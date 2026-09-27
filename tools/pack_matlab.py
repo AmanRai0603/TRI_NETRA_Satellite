@@ -25,6 +25,8 @@ for p in sorted(SRC.rglob("*")):
 extra = {
     "docs/ARCHITECTURE_PLAN.md": ROOT / "docs" / "ARCHITECTURE_PLAN.md",
     "docs/RESULTS.md": ROOT / "docs" / "RESULTS.md",
+    "docs/SELECTION.md": ROOT / "docs" / "SELECTION.md",
+    "docs/OILS_HILS.md": ROOT / "docs" / "OILS_HILS.md",
     "store/README.md": None,
 }
 man = []
@@ -36,8 +38,8 @@ with zipfile.ZipFile(out, "w", zipfile.ZIP_DEFLATED, compresslevel=9) as z:
         z.writestr(zi, data); man.append(f"{hashlib.sha256(data).hexdigest()}  {arc}")
     for arc, src in extra.items():
         data = src.read_bytes() if src and src.exists() else (
-            b"Your results are filed here, one folder per scenario or campaign:\n"
-            b"channels.csv, manifest.json, figures, rec.mat, result.html.\n")
+            b"Your results are filed here: results/<scenario or campaign>/, trades/<trade>/:\n"
+            b"channels.csv, manifest.json, figures, rec.mat, result.html; trade.json, trade.png.\n")
         a = f"{name}/{arc}"
         zi = zipfile.ZipInfo(a, FIXED); zi.compress_type = zipfile.ZIP_DEFLATED; zi.external_attr = 0o644 << 16
         z.writestr(zi, data); man.append(f"{hashlib.sha256(data).hexdigest()}  {a}")

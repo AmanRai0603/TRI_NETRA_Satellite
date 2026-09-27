@@ -8,3 +8,4 @@ matlab_sils/pop/data_cache/
 *.asv
 __pycache__/
 matlab_sils/store/results/*.log
+matlab_sils/store/trades/**/*.mat
