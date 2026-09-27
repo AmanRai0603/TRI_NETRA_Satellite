@@ -251,22 +251,31 @@ def main():
 
 def write_html(sections):
     css = """
-:root{--surface:#fcfcfb;--text:#0b0b0b;--muted:#52514e;--line:#e4e3df;--pass:#0a7a3a;--fail:#b3261e;--accent:#2a78d6}
-@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--surface:#1a1a19;--text:#fff;--muted:#c3c2b7;--line:#3a3a37;--pass:#5bd08a;--fail:#ff8a80;--accent:#3987e5}}
-:root[data-theme="dark"]{--surface:#1a1a19;--text:#fff;--muted:#c3c2b7;--line:#3a3a37;--pass:#5bd08a;--fail:#ff8a80;--accent:#3987e5}
-body{background:var(--surface);color:var(--text);font:15px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;margin:0}
-main{max-width:1120px;margin:0 auto;padding:24px 16px 64px}
-h1{font-size:28px;margin:0 0 4px} h2{margin-top:40px;border-top:1px solid var(--line);padding-top:24px} .muted{color:var(--muted)}
-table{border-collapse:collapse;width:100%;margin:8px 0 16px;font-variant-numeric:tabular-nums}
-th,td{border-bottom:1px solid var(--line);padding:6px 8px;text-align:left} th{color:var(--muted);font-weight:600}
+:root{--bg:#f7f8f9;--surface:#ffffff;--text:#15191e;--muted:#56606b;--line:#dde2e7;--accent:#2a78d6;--pass:#0a7a3a;--fail:#b3261e;--chip:#eef2f6}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){color-scheme:dark;--bg:#14171a;--surface:#1b1f23;--text:#eef1f4;--muted:#a3adb8;--line:#2f353c;--accent:#5a9ce8;--pass:#5bd08a;--fail:#ff8a80;--chip:#252b31}}
+:root[data-theme="dark"]{color-scheme:dark;--bg:#14171a;--surface:#1b1f23;--text:#eef1f4;--muted:#a3adb8;--line:#2f353c;--accent:#5a9ce8;--pass:#5bd08a;--fail:#ff8a80;--chip:#252b31}
+body{background:var(--bg);color:var(--text);font:15px/1.55 "IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif}
+main{max-width:1080px;margin:0 auto;padding-inline:16px;padding-block:28px 64px}
+h1{font-size:30px;line-height:1.15;margin:0 0 6px;text-wrap:balance} h2{font-size:21px;margin:44px 0 6px;padding-top:22px;border-top:1px solid var(--line);text-wrap:balance}
+.muted{color:var(--muted)} p{max-width:72ch} code,.mono{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:.92em}
+.lede{font-size:16px}
+table{border-collapse:collapse;width:100%;margin:10px 0 14px;font-variant-numeric:tabular-nums;background:var(--surface)}
+th,td{border-bottom:1px solid var(--line);padding:7px 10px;text-align:left;vertical-align:top} th{color:var(--muted);font-weight:600;font-size:13px;text-transform:uppercase;letter-spacing:.04em}
 .pass{color:var(--pass);font-weight:600}.fail{color:var(--fail);font-weight:600}
-img{max-width:100%;height:auto;border:1px solid var(--line);border-radius:6px;margin:8px 0;background:#fcfcfb}
-.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin:12px 0}
-.tile{border:1px solid var(--line);border-radius:8px;padding:12px}.tile b{font-size:22px;display:block}
-nav a{margin-right:12px;color:var(--accent)} .scroll{overflow-x:auto}
+figure{margin:10px 0 18px} img{display:block;max-width:100%;height:auto;border:1px solid var(--line);border-radius:4px;background:#fcfcfb}
+nav{display:flex;flex-wrap:wrap;gap:6px;margin:16px 0}
+nav a{font:13px "IBM Plex Mono",monospace;color:var(--text);background:var(--chip);border:1px solid var(--line);border-radius:3px;padding:3px 8px;text-decoration:none}
+nav a:hover,nav a:focus-visible{border-color:var(--accent);outline:none}
+.scroll{overflow-x:auto}
+.kv{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px;margin:14px 0}
+.kv div{background:var(--surface);border:1px solid var(--line);border-radius:4px;padding:10px 12px}.kv b{display:block;font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;font-weight:600}
 """
-    out = [f"<!doctype html><html lang='en'><head><meta charset='utf-8'><meta name='viewport' content='width=device-width,initial-scale=1'><title>TRI-NETRA SILS Results</title><style>{css}</style></head><body><main>"]
-    out.append("<h1>TRI-NETRA ADCS — SILS results</h1><p class='muted'>Two 3U cases at 550 km SSO, closed loop with the in-loop Precision Orbit Propagator (POP v51). Owner: <b>Agastya</b>. Every number below was produced by <code>matlab_sils</code> in GNU Octave 8.4 and is re-derivable from the filed channels.</p>")
+    out = ['<title>TRI-NETRA SILS Results</title>',
+           '<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>',
+           '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;600;700&display=swap">',
+           f'<style>{css}</style><main>']
+    out.append("<h1>TRI-NETRA ADCS: SILS results</h1><p class='lede muted'>Two 3U cases at 550 km sun-synchronous orbit, closed loop, with the Precision Orbit Propagator (POP v51) stepped inside the attitude loop. Owner: <b>Agastya</b>. Every number was produced by <code>matlab_sils</code> in GNU Octave 8.4 and can be re-derived from the filed channels.</p>")
+    out.append("<div class='kv'><div><b>AIS 3U</b>10° APE · SSO dawn–dusk (LTAN 06:00) · coils only</div><div><b>Imaging 3U</b>0.01° APE 3σ · SSO LTAN 10:00 · wheels + 2 star trackers</div><div><b>Orbit truth</b>POP RK4 in the loop · J2–J6 · DE440 Sun/Moon · DTM2020 drag · SRP</div><div><b>Epoch</b>2027-01-01 06:00 UTC (case mission.epoch)</div></div>")
     out.append("<nav>" + "".join(f"<a href='#{html.escape(s[1])}'>{html.escape(s[1])}</a>" for s in sections) + "</nav>")
     for kind, sid, obj, figs in sections:
         out.append(f"<h2 id='{sid}'>{sid}</h2>")
@@ -290,8 +299,8 @@ nav a{margin-right:12px;color:var(--accent)} .scroll{overflow-x:auto}
                 out.append(f"<tr><td>{st['id']}</td><td>{st['mean']:.4g}</td><td>{st['std']:.3g}</td><td>p{st['level']:g}: {st['pct']:.4g} {st['unit']}</td><td>{req}</td><td>{pr}</td><td class='{cls}'>{v}</td></tr>")
             out.append("</table></div>")
         for f in figs:
-            out.append(f"<img src='figures/{f}' alt='{html.escape(f)}' loading='lazy'>")
-    out.append("<p class='muted'>Copyright © 2026 Agastya. All rights reserved.</p></main></body></html>")
+            out.append(f"<figure><img src='figures/{f}' alt='{html.escape(f.replace('_', ' ')[:-4])}' loading='lazy'></figure>")
+    out.append("<p class='muted'>Copyright © 2026 Agastya. All rights reserved.</p></main>")
     (OUT / "index.html").write_text("\n".join(out))
 
 
