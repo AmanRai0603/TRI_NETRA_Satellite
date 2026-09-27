@@ -73,7 +73,7 @@ def save(fig, name):
     return p.name
 
 
-def run_figures(sid, man, ch):
+def run_figures(sid, man, ch, full=True):
     t = ch["t_s"] / 60.0
     files = []
     title = f"{sid}  ·  {man['case']}  ·  {man['product']}"
@@ -117,22 +117,40 @@ def run_figures(sid, man, ch):
 
     # 3 actuators & power (small multiples: different units)
     has_rw = "h_w1_Nms" in ch and np.isfinite(ch["h_w1_Nms"]).any()
-    fig, axs = plt.subplots(3 if has_rw else 2, 1, figsize=(10, 7 if has_rw else 5), sharex=True)
-    for c, a in zip([S1, S2, S3], "xyz"):
-        axs[0].plot(t, ch[f"m_{a}_Am2"], color=c, lw=0.9, label=f"m{a}")
-    axs[0].set_ylabel("dipole [A m²]"); axs[0].legend(loc="upper right", ncol=3)
-    axs[0].set_title(f"{title}\nmagnetorquer dipole", loc="left")
-    k = 1
-    if has_rw:
-        for c, i in zip([S1, S2, S3], [1, 2, 3]):
-            axs[1].plot(t, ch[f"h_w{i}_Nms"] * 1e3, color=c, label=f"wheel {i}")
-        axs[1].set_ylabel("h [mN m s]"); axs[1].legend(loc="upper right", ncol=3); axs[1].set_title("wheel momentum", loc="left")
-        k = 2
-    axs[k].plot(t, ch["P_mtq_W"] + ch["P_rw_W"], color=S1)
-    req_line(axs[k], case_req(man, "req.pavg"), "orbit-average req")
-    axs[k].set_ylabel("ADCS power [W]"); axs[k].set_xlabel("time [min]"); axs[k].set_title("actuator power (cycle average)", loc="left")
+    has_g = "gimbal1_rad" in ch
+    has_p = "prop_kg" in ch and np.nanmax(ch["prop_kg"]) > 0
+    panels = ["dipole"] + (["h"] if has_rw else []) + (["gimbal"] if has_g else []) + (["prop"] if has_p else []) + ["power"]
+    fig, axs = plt.subplots(len(panels), 1, figsize=(10, 2.3 * len(panels) + 0.6), sharex=True)
+    for ax_, pn in zip(axs, panels):
+        if pn == "dipole":
+            for c, a in zip([S1, S2, S3], "xyz"):
+                ax_.plot(t, ch[f"m_{a}_Am2"], color=c, lw=0.9, label=f"m{a}")
+            ax_.set_ylabel("dipole [A m²]"); ax_.legend(loc="upper right", ncol=3)
+            ax_.set_title(f"{title}\nactuators: magnetorquer dipole", loc="left")
+        elif pn == "h":
+            cols = [S1, S2, S3, S4]
+            i = 1
+            while f"h_w{i}_Nms" in ch:
+                ax_.plot(t, ch[f"h_w{i}_Nms"] * 1e3, color=cols[(i - 1) % 4], label=f"rotor {i}"); i += 1
+            ax_.set_ylabel("h [mN m s]"); ax_.legend(loc="upper right", ncol=4)
+            ax_.set_title("momentum-exchange devices: stored momentum", loc="left")
+        elif pn == "gimbal":
+            cols = [S1, S2, S3, S4]; i = 1
+            while f"gimbal{i}_rad" in ch:
+                ax_.plot(t, np.degrees(ch[f"gimbal{i}_rad"]), color=cols[(i - 1) % 4], label=f"gimbal {i}"); i += 1
+            ax_.set_ylabel("gimbal [deg]"); ax_.legend(loc="upper right", ncol=4); ax_.set_title("CMG gimbal angles", loc="left")
+        elif pn == "prop":
+            ax_.plot(t, ch["prop_kg"] * 1e3, color=S1); ax_.set_ylabel("propellant [g]"); ax_.set_title("cold-gas propellant used", loc="left")
+        else:
+            tot = ch["P_mtq_W"] + ch["P_rw_W"] + (ch["P_rcs_W"] if "P_rcs_W" in ch else 0)
+            ax_.plot(t, tot, color=S1)
+            req_line(ax_, case_req(man, "req.pavg"), "orbit-average req")
+            ax_.set_ylabel("ADCS power [W]"); ax_.set_title("actuator power (cycle average)", loc="left")
+    axs[-1].set_xlabel("time [min]")
     files.append(save(fig, f"{sid}_3_actuators"))
 
+    if not full:
+        return files
     # 4 environment from the precision orbit
     fig, axs = plt.subplots(3, 1, figsize=(10, 6.5), sharex=True)
     axs[0].semilogy(t, ch["rho_kgm3"], color=S1); axs[0].set_ylabel("ρ [kg/m³]")
@@ -218,21 +236,102 @@ def verdict(p):
     return ("✔ PASS", "pass") if p else ("✖ FAIL", "fail")
 
 
+GROUPS = [
+    ("AIS 3U, magnetorquers only (10°, SSO dawn–dusk)", ["detumble_ais", "detumble_ais_mag", "detumble_ais_bangbang", "nadir_hold_ais", "nadir_hold_ais_css", "mission_ais", "fault_coil_ais", "fault_gyro_ais"]),
+    ("Imaging 3U, magnetorquers + reaction wheels (0.01°, SSO 10:00)", ["detumble_img", "fine_hold_img", "fine_hold_img_lqr", "fine_hold_img_smc", "slew_img", "slew_img_lqr", "slew_img_smc", "agile_slew_img", "mission_img", "fault_wheel_img", "fault_st_img"]),
+    ("Imaging 3U, magnetorquers + fluid momentum rings (IDMAS)", ["fine_hold_fmr", "slew_fmr", "mission_fmr"]),
+    ("Imaging 3U, magnetorquers + fluid rings + cold-gas RCS", ["fine_hold_fmr_rcs", "slew_fmr_rcs", "agile_slew_fmr_rcs", "mission_fmr_rcs"]),
+    ("Imaging 3U, magnetorquers + reaction wheels + cold-gas RCS", ["fine_hold_rw_rcs", "slew_rw_rcs", "agile_slew_rw_rcs", "mission_rw_rcs"]),
+    ("Imaging 3U, magnetorquers + 4 SGCMG", ["fine_hold_cmg", "slew_cmg", "agile_slew_cmg", "mission_cmg", "fault_gimbal_cmg"]),
+    ("Imaging 3U, magnetorquers + 4 VSCMG", ["fine_hold_vscmg", "slew_vscmg", "agile_slew_vscmg", "mission_vscmg"]),
+]
+PRIMARY = {"detumble_ais", "nadir_hold_ais", "mission_ais", "detumble_img", "fine_hold_img", "slew_img", "mission_img",
+           "mission_fmr", "mission_fmr_rcs", "mission_rw_rcs", "mission_cmg", "mission_vscmg"}
+CAMPAIGNS = ["mc_detumble_ais", "mc_nadir_ais", "edge_nadir_ais", "mc_fine_img", "edge_fine_img", "mc_slew_img", "mc_slew_cmg", "mc_agile_rw_rcs"]
+
+
+def mval(man, mid):
+    for m in man["metrics"]:
+        if m["id"] == mid:
+            return m["value"]
+    return float("nan")
+
+
+def comparison_figures(runs):
+    files = []
+    fams = [("RW", "img"), ("fluid rings", "fmr"), ("rings + RCS", "fmr_rcs"), ("RW + RCS", "rw_rcs"), ("SGCMG", "cmg"), ("VSCMG", "vscmg")]
+    rows = []
+    for name, k in fams:
+        fh, sl, ag = runs.get(f"fine_hold_{k}"), runs.get(f"slew_{k}"), runs.get(f"agile_slew_{k}")
+        rows.append((name,
+                     mval(fh[0], "ape_los_p9973") if fh else np.nan,
+                     mval(sl[0], "settle_time_after_slew") if sl else np.nan,
+                     mval(ag[0], "ape_los_on_target_p9973") if ag else np.nan,
+                     mval(fh[0], "power_mean") if fh else np.nan))
+    if any(np.isfinite(r[1]) for r in rows):
+        fig, axs = plt.subplots(1, 3, figsize=(11, 3.8))
+        names = [r[0] for r in rows]; y = np.arange(len(rows))
+        for ax_, col, lab, req, logx in [(axs[0], 1, "fine-hold APE, p99.73 [deg]", 0.01, True),
+                                          (axs[1], 2, "30° slew settling [s]", 20, False),
+                                          (axs[2], 3, "after 90°/15 s slew, APE p99.73 [deg]", 0.01, True)]:
+            v = np.array([r[col] for r in rows], dtype=float)
+            vv = np.where(np.isfinite(v), v, 0)
+            ax_.barh(y, vv, color=S1, height=0.6)
+            for yi, val in zip(y, v):
+                ax_.text(vv[yi] if np.isfinite(val) else 0, yi, f" {val:.3g}" if np.isfinite(val) else " not settled", va="center", fontsize=8, color=INK)
+            ax_.axvline(req, color=INK, ls="--", lw=1.2)
+            if logx and np.nanmax(vv) > 0: ax_.set_xscale("log")
+            ax_.set_yticks(y); ax_.set_yticklabels(names if ax_ is axs[0] else []); ax_.set_xlabel(lab); ax_.grid(axis="y", visible=False)
+            ax_.invert_yaxis()
+        fig.suptitle("Imaging 3U: actuator families on the same case (dashed = requirement)", x=0.01, ha="left", fontweight="bold")
+        fig.tight_layout(); files.append(save(fig, "compare_families"))
+    laws = [("PID", ""), ("LQR", "_lqr"), ("sliding mode", "_smc")]
+    if all(runs.get(f"fine_hold_img{k}") for _, k in laws):
+        fig, axs = plt.subplots(1, 2, figsize=(10, 3.2)); y = np.arange(3)
+        for ax_, sc, mid, lab, req in [(axs[0], "fine_hold_img", "ape_los_p9973", "fine-hold APE p99.73 [deg]", 0.01),
+                                        (axs[1], "slew_img", "settle_time_after_slew", "30° slew settling [s]", 20)]:
+            v = np.array([mval(runs[f"{sc}{k}"][0], mid) if runs.get(f"{sc}{k}") else np.nan for _, k in laws])
+            ax_.barh(y, np.nan_to_num(v), color=S1, height=0.55)
+            for yi, val in zip(y, v): ax_.text(np.nan_to_num(val), yi, f" {val:.3g}", va="center", fontsize=9)
+            ax_.axvline(req, color=INK, ls="--", lw=1.2); ax_.set_yticks(y); ax_.set_yticklabels([l for l, _ in laws] if ax_ is axs[0] else [])
+            ax_.set_xlabel(lab); ax_.invert_yaxis(); ax_.grid(axis="y", visible=False)
+        fig.suptitle("Controller comparison on the reaction-wheel imaging product", x=0.01, ha="left", fontweight="bold")
+        fig.tight_layout(); files.append(save(fig, "compare_controllers"))
+    dl = [("gyro-fed B-dot", "detumble_ais"), ("magnetometer B-dot", "detumble_ais_mag"), ("bang-bang B-dot", "detumble_ais_bangbang")]
+    if all(runs.get(k) for _, k in dl):
+        fig, ax_ = plt.subplots(figsize=(10, 3.4))
+        for (lab, k), c in zip(dl, [S1, S2, S3]):
+            _, ch = runs[k]; ax_.semilogy(ch["t_s"] / 60, ch["rate_degps"], color=c, label=lab)
+        ax_.axhline(0.5, color=INK, ls="--", lw=1.2); ax_.set_xlabel("time [min]"); ax_.set_ylabel("|ω| [deg/s]"); ax_.legend(loc="upper right")
+        ax_.set_title("AIS 3U detumble from 10°/s: three B-dot laws (dashed = 0.5°/s threshold)", loc="left")
+        files.append(save(fig, "compare_detumble_laws"))
+    return files
+
+
 def main():
     FIG.mkdir(parents=True, exist_ok=True)
     report = {"owner": "Agastya", "scenarios": {}, "campaigns": {}}
+    runs = {}
+    for _, ids in GROUPS:
+        for sid in ids:
+            d = STORE / sid
+            if (d / "manifest.json").exists():
+                runs[sid] = load_run(d)
+    cmp_figs = comparison_figures(runs)
     sections = []
-    order = ["detumble_ais", "nadir_hold_ais", "mission_ais", "detumble_img", "fine_hold_img", "slew_img", "mission_img"]
-    for sid in order:
-        d = STORE / sid
-        if not (d / "manifest.json").exists():
-            continue
-        man, ch = load_run(d)
-        figs = run_figures(sid, man, ch)
-        report["scenarios"][sid] = {"case": man["case"], "product": man["product"], "metrics": man["metrics"],
-                                    "wall_s": man["wall_s"], "duration_s": man["duration_s"], "figures": figs}
-        sections.append(("run", sid, man, figs))
-    for cid in ["mc_detumble_ais", "mc_nadir_ais", "mc_fine_img", "mc_slew_img"]:
+    for gname, ids in GROUPS:
+        items = []
+        for sid in ids:
+            if sid not in runs: continue
+            man, ch = runs[sid]
+            figs = run_figures(sid, man, ch, full=sid in PRIMARY)
+            report["scenarios"][sid] = {"case": man["case"], "product": man["product"], "label": man.get("label", sid),
+                                        "metrics": man["metrics"], "wall_s": man["wall_s"], "duration_s": man["duration_s"],
+                                        "mode_log": man.get("mode_log", []), "figures": figs}
+            items.append(("run", sid, man, figs))
+        sections.append((gname, items))
+    mc_items = []
+    for cid in CAMPAIGNS:
         d = STORE / cid
         if not (d / "summary.json").exists():
             continue
@@ -243,19 +342,22 @@ def main():
             rows = [{k: float(v) for k, v in r.items()} for r in csv.DictReader(f)]
         figs = campaign_figures(cid, summ, rows)
         report["campaigns"][cid] = {"summary": summ, "figures": figs}
-        sections.append(("mc", cid, summ, figs))
+        mc_items.append(("mc", cid, summ, figs))
+    sections.append(("Monte Carlo and edge-case campaigns", mc_items))
     (OUT / "summary.json").write_text(json.dumps(report, indent=1, default=float))
-    write_html(sections)
-    print(f"report: {len(sections)} sections, {sum(len(s[3]) for s in sections)} figures")
+    write_html(sections, cmp_figs, report)
+    write_md(sections, cmp_figs)
+    print(f"report: {sum(len(i) for _, i in sections)} items, {len(list(FIG.glob('*.png')))} figures")
 
 
-def write_html(sections):
+def write_html(sections, cmp_figs, report):
     css = """
 :root{--bg:#f7f8f9;--surface:#ffffff;--text:#15191e;--muted:#56606b;--line:#dde2e7;--accent:#2a78d6;--pass:#0a7a3a;--fail:#b3261e;--chip:#eef2f6}
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){color-scheme:dark;--bg:#14171a;--surface:#1b1f23;--text:#eef1f4;--muted:#a3adb8;--line:#2f353c;--accent:#5a9ce8;--pass:#5bd08a;--fail:#ff8a80;--chip:#252b31}}
 :root[data-theme="dark"]{color-scheme:dark;--bg:#14171a;--surface:#1b1f23;--text:#eef1f4;--muted:#a3adb8;--line:#2f353c;--accent:#5a9ce8;--pass:#5bd08a;--fail:#ff8a80;--chip:#252b31}
 body{background:var(--bg);color:var(--text);font:15px/1.55 "IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif}
 main{max-width:1080px;margin:0 auto;padding-inline:16px;padding-block:28px 64px}
+h3{font-size:17px;margin:30px 0 4px}
 h1{font-size:30px;line-height:1.15;margin:0 0 6px;text-wrap:balance} h2{font-size:21px;margin:44px 0 6px;padding-top:22px;border-top:1px solid var(--line);text-wrap:balance}
 .muted{color:var(--muted)} p{max-width:72ch} code,.mono{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:.92em}
 .lede{font-size:16px}
@@ -276,33 +378,81 @@ nav a:hover,nav a:focus-visible{border-color:var(--accent);outline:none}
            f'<style>{css}</style><main>']
     out.append("<h1>TRI-NETRA ADCS: SILS results</h1><p class='lede muted'>Two 3U cases at 550 km sun-synchronous orbit, closed loop, with the Precision Orbit Propagator (POP v51) stepped inside the attitude loop. Owner: <b>Agastya</b>. Every number was produced by <code>matlab_sils</code> in GNU Octave 8.4 and can be re-derived from the filed channels.</p>")
     out.append("<div class='kv'><div><b>AIS 3U</b>10° APE · SSO dawn–dusk (LTAN 06:00) · coils only</div><div><b>Imaging 3U</b>0.01° APE 3σ · SSO LTAN 10:00 · wheels + 2 star trackers</div><div><b>Orbit truth</b>POP RK4 in the loop · J2–J6 · DE440 Sun/Moon · DTM2020 drag · SRP</div><div><b>Epoch</b>2027-01-01 06:00 UTC (case mission.epoch)</div></div>")
-    out.append("<nav>" + "".join(f"<a href='#{html.escape(s[1])}'>{html.escape(s[1])}</a>" for s in sections) + "</nav>")
-    for kind, sid, obj, figs in sections:
-        out.append(f"<h2 id='{sid}'>{sid}</h2>")
-        if kind == "run":
-            man = obj
-            out.append(f"<p class='muted'>case <b>{html.escape(man['case'])}</b> — {html.escape(man['case_title'])} · product <b>{man['product']}</b> · {man['duration_s']/60:.0f} min simulated in {man['wall_s']/60:.1f} min wall · seed {man['seed']}</p>")
-            out.append("<div class='scroll'><table><tr><th>metric</th><th>value</th><th>required</th><th>verdict</th></tr>")
-            for m in man["metrics"]:
+    # verdict matrix
+    out.append("<h2 id='verdicts'>Verdicts at a glance</h2><p class='muted'>Every requirement-bound metric of every scenario (single nominal run, seed 1). Monte Carlo and edge-case statistics follow at the end.</p>")
+    out.append("<div class='scroll'><table><tr><th>scenario</th><th>product</th><th>requirement checks</th></tr>")
+    for gname, items in sections:
+        for kind, sid, obj, figs in items:
+            if kind != "run": continue
+            checks = []
+            for m in obj["metrics"]:
                 v, cls = verdict(m["pass"])
-                req = "—" if m["req"] is None or not np.isfinite(m["req"]) else f"{m['req']:g}"
-                out.append(f"<tr><td>{m['id']}</td><td>{m['value']:.4g} {m['unit']}</td><td>{req}</td><td class='{cls}'>{v}</td></tr>")
-            out.append("</table></div>")
-        else:
-            summ = obj
-            out.append(f"<p class='muted'>Monte Carlo · scenario <b>{summ['scenario']}</b> · case <b>{summ['case']}</b> · {summ['runs']} runs · dispersed: mass properties, magnetic dipole, CM offset, aero/SRP surface properties, space weather, initial conditions, and every sensor/actuator part error from its descriptor.</p>")
-            out.append("<div class='scroll'><table><tr><th>metric</th><th>mean</th><th>std</th><th>ensemble percentile</th><th>required</th><th>runs passing</th><th>verdict</th></tr>")
-            for st in summ["stats"]:
-                v, cls = verdict(st["pass"])
-                req = "—" if st["req"] is None or not np.isfinite(st["req"]) else f"{st['req']:g}"
-                pr = "—" if st["pass_rate"] is None or not np.isfinite(st["pass_rate"]) else f"{100*st['pass_rate']:.0f}%"
-                out.append(f"<tr><td>{st['id']}</td><td>{st['mean']:.4g}</td><td>{st['std']:.3g}</td><td>p{st['level']:g}: {st['pct']:.4g} {st['unit']}</td><td>{req}</td><td>{pr}</td><td class='{cls}'>{v}</td></tr>")
-            out.append("</table></div>")
-        for f in figs:
-            out.append(f"<figure><img src='figures/{f}' alt='{html.escape(f.replace('_', ' ')[:-4])}' loading='lazy'></figure>")
+                if cls: checks.append(f"<span class='{cls}'>{v.split()[0]}</span> {m['id']} {m['value']:.3g} {m['unit']}")
+            out.append(f"<tr><td><a href='#{sid}'>{sid}</a></td><td class='mono'>{obj['product']}</td><td>{'<br>'.join(checks) or '—'}</td></tr>")
+    out.append("</table></div>")
+    if cmp_figs:
+        out.append("<h2 id='compare'>Comparisons</h2>")
+        for f in cmp_figs: out.append(f"<figure><img src='figures/{f}' alt='{f[:-4]}' loading='lazy'></figure>")
+    out.append("<nav>" + "".join(f"<a href='#g{gi}'>{html.escape(g.split(',')[0] if len(g) > 40 else g)}</a>" for gi, (g, _) in enumerate(sections)) + "</nav>")
+    for gi, (gname, items) in enumerate(sections):
+        out.append(f"<h2 id='g{gi}'>{html.escape(gname)}</h2>")
+        for kind, sid, obj, figs in items:
+            out.append(f"<h3 id='{sid}'>{sid}</h3>")
+            if kind == "run":
+                man = obj
+                log = "; ".join(f"{e['t']:.0f} s {e['mode']}" for e in (man.get("mode_log") or []) if isinstance(e, dict))
+                out.append(f"<p class='muted'>{html.escape(man.get('label', ''))} · product <b>{man['product']}</b> · {man['duration_s']/60:.0f} min simulated in {man['wall_s']/60:.1f} min wall · events: {html.escape(log)}</p>")
+                out.append("<div class='scroll'><table><tr><th>metric</th><th>value</th><th>required</th><th>verdict</th></tr>")
+                for m in man["metrics"]:
+                    v, cls = verdict(m["pass"])
+                    req = "—" if m["req"] is None or not np.isfinite(m["req"]) else f"{m['req']:g}"
+                    out.append(f"<tr><td>{m['id']}</td><td>{m['value']:.4g} {m['unit']}</td><td>{req}</td><td class='{cls}'>{v}</td></tr>")
+                out.append("</table></div>")
+            else:
+                summ = obj
+                kindtxt = "edge cases (each dispersion at its bounds, then all adverse)" if sid.startswith("edge") else "Monte Carlo"
+                out.append(f"<p class='muted'>{kindtxt} · scenario <b>{summ['scenario']}</b> · case <b>{summ['case']}</b> · {summ['runs']} runs · dispersed: mass properties, magnetic dipole, CM offset, surface properties, space weather, initial conditions, and every part error from its descriptor.</p>")
+                out.append("<div class='scroll'><table><tr><th>metric</th><th>mean</th><th>std</th><th>ensemble percentile</th><th>required</th><th>runs passing</th><th>verdict</th></tr>")
+                for st in summ["stats"]:
+                    v, cls = verdict(st["pass"])
+                    req = "—" if st["req"] is None or not np.isfinite(st["req"]) else f"{st['req']:g}"
+                    pr = "—" if st["pass_rate"] is None or not np.isfinite(st["pass_rate"]) else f"{100*st['pass_rate']:.0f}%"
+                    out.append(f"<tr><td>{st['id']}</td><td>{st['mean']:.4g}</td><td>{st['std']:.3g}</td><td>p{st['level']:g}: {st['pct']:.4g} {st['unit']}</td><td>{req}</td><td>{pr}</td><td class='{cls}'>{v}</td></tr>")
+                out.append("</table></div>")
+            for f in figs:
+                out.append(f"<figure><img src='figures/{f}' alt='{html.escape(f.replace('_', ' ')[:-4])}' loading='lazy'></figure>")
     out.append("<p class='muted'>Copyright © 2026 Agastya. All rights reserved.</p></main>")
     (OUT / "index.html").write_text("\n".join(out))
 
 
 if __name__ == "__main__":
     main()
+
+
+def write_md(sections, cmp_figs):
+    """docs/RESULTS.md: the verdict tables (the HTML report carries the figures)."""
+    L = ["# TRI-NETRA ADCS — SILS results", "", "**Owner: Agastya.** Copyright (c) 2026 Agastya. All rights reserved.", "",
+         "Produced by `matlab_sils` (GNU Octave 8.4) with the Precision Orbit Propagator stepped inside the attitude loop.",
+         "Figures: `results/index.html` (open in a browser) and `results/figures/`. Single runs are the nominal case, seed 1.", ""]
+    for gname, items in sections:
+        L += [f"## {gname}", ""]
+        for kind, sid, obj, figs in items:
+            if kind == "run":
+                L += [f"### `{sid}` — {obj.get('label', '')}", "", "| metric | value | required | verdict |", "|---|---|---|---|"]
+                for m in obj["metrics"]:
+                    v, _ = verdict(m["pass"])
+                    req = "—" if m["req"] is None or not np.isfinite(m["req"]) else f"{m['req']:g}"
+                    L.append(f"| {m['id']} | {m['value']:.4g} {m['unit']} | {req} | {v} |")
+                ev = [f"{e['t']:.0f} s {e['mode']}" for e in (obj.get('mode_log') or []) if isinstance(e, dict)]
+                if len(ev) > 1: L += ["", "Events: " + "; ".join(ev)]
+                L.append("")
+            else:
+                L += [f"### `{sid}` — {obj['runs']} runs of `{obj['scenario']}`", "",
+                      "| metric | mean | std | ensemble percentile | required | runs passing | verdict |", "|---|---|---|---|---|---|---|"]
+                for st in obj["stats"]:
+                    v, _ = verdict(st["pass"])
+                    req = "—" if st["req"] is None or not np.isfinite(st["req"]) else f"{st['req']:g}"
+                    pr = "—" if st["pass_rate"] is None or not np.isfinite(st["pass_rate"]) else f"{100*st['pass_rate']:.0f}%"
+                    L.append(f"| {st['id']} | {st['mean']:.4g} | {st['std']:.3g} | p{st['level']:g}: {st['pct']:.4g} {st['unit']} | {req} | {pr} | {v} |")
+                L.append("")
+    (ROOT / "docs" / "RESULTS.md").write_text("\n".join(L) + "\n")

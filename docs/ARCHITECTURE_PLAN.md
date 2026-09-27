@@ -74,23 +74,28 @@ Node ids follow the twin map (`spec/plan/twin_map.toml`); the file is its MATLAB
 | `env.density` | `+orbit/node.m` → `context.m` | density from the POP drag model at each node, log-linear between | POP `atmos.dtm2020` |
 | `env.sun_eclipse` | `+env/shadow.m`, `+orbit/node.m` | DE440 Sun, conical shadow (Montenbruck & Gill) | POP `ephemInputs` |
 | `env.disturbances` | `+env/geometry.m`, `torques.m` | gravity gradient; free-molecular aero per facet (Schaaf–Chambre, σn/σt, vb/v); SRP per facet (specular + diffuse) × ν; residual dipole × B | Standard Code `env.disturbances` (upgraded) |
-| `plant.dynamics` | `+plant/deriv.m`, `step.m` | rigid body + wheels, Euler with wheel momentum, RK4, renormalise | Standard Code `plant.dynamics` |
+| `plant.dynamics` | `+plant/deriv.m`, `step.m`, `geometry.m`, `axes.m` | rigid body + every momentum-exchange device: fixed rotors (wheels, fluid rings) and gimballed rotors (CMG, VSCMG), Euler with a variable-axis momentum, RK4, renormalise | Standard Code `plant.dynamics` (generalised) |
 | `device.gyro` | `+devices/gyro.m` | scale/misalign, bias, RRW, ARW, range | Standard Code `sens.gyro` + SYN-GYRO-1 |
 | `device.magnetometer` | `+devices/magnetometer.m` | scale/misalign, bias, noise, coil coupling, range | Standard Code `sens.magnetometer` + SYN-MAG-1 |
 | `device.sun_sensor` | `+devices/sun_sensor.m` | six heads, FOV, eclipse, bias + noise | Standard Code `sens.sunSensor` + SYN-SUN-1 |
-| `device.star_tracker` | `+devices/star_tracker.m`, `st_history.m` | cross/roll noise, bias, latency (true history), rate / Sun / Earth exclusion | Standard Code `sens.starTracker` + SYN-ST-1 |
+| `device.star_tracker` | `+devices/star_tracker.m`, `star_catalogue.m`, `st_history.m`, `+fsw/quest.m` | star-field model (4000-star catalogue, 12 brightest in the FOV, centroid noise), QUEST / q-method attitude, two heads, latency (true history), rate / Sun / Earth exclusion | Standard Code `sens.starTracker` + SYN-ST-1 |
 | `device.gnss` | `+devices/gps.m` | position/velocity noise | Standard Code `sens.gps` |
 | `device.coil_tile` | `+devices/mtq.m` | per-coil saturation, scale, misalignment, power | Standard Code `act.mtqModel` + SYN-CT-1 |
-| `device.reaction_wheel` | `+devices/rw.m` | torque/speed limits, friction with driver compensation, noise, power | Standard Code `act.rwModel` + SYN-RW-10 |
+| `device.reaction_wheel`, `device.magneto_fluidic_panel`, `device.cmg`, `device.vscmg` | `+devices/mex.m` | wheels: torque/speed limits, friction with driver compensation, noise; fluid rings: ρA2S momentum, 0.75 s laminar loss, closed-loop flow driver, pump power; CMG/VSCMG: rotor speed loop, gimbal rate limits | Standard Code `act.rwModel`, SYN-RW-10, SYN-MFP-1 (IDMAS), TRN-CMG-1, TRN-VSCMG-1 |
+| `device.rcs` | `+devices/rcs.m` | six cold-gas couples, PWM with minimum impulse bit and valve resolution, thrust scale/misalignment, propellant | TRN-RCS-3U |
+| `device.coarse_sun_sensor` | `+devices/css.m` | six cosine photodiodes with Earth albedo | TRN-CSS-1 |
 | `fsw.bdot` | `+fsw/bdot.m` | Avanzini–Giulietti gain, unit-vector derivative, direction-preserving saturation, measure-then-drive duty | Standard Code `ctrl.bdot`, `act.saturateDipole` |
 | `fsw.mekf` | `+fsw/mekf_init.m`, `mekf_predict.m`, `mekf_vector.m`, `mekf_quat.m`, `triad.m` | Markley–Crassidis MEKF (attitude + gyro bias), Sun / field / star-tracker updates, TRIAD initialisation | Standard Code `ad.mekf` was a **stub** — implemented |
 | `fsw.guidance` | `+fsw/guidance.m` | nadir (ported), off-nadir target, cycloidal target slew, inertial | Standard Code `guid.nadir` |
 | `fsw.mtq_pd` | `+fsw/mtq_pd.m`, `torque2dipole.m` | magnetic three-axis PD + min-norm dipole | Standard Code `act.torque2dipole` |
-| `fsw.pd_alloc` | `+fsw/pd_alloc.m`, `dump.m` | quaternion PID + gyroscopic compensation + wheel allocation; cross-product dump with wheel feedforward | Standard Code `ctrl.nadirPointing` PID, `ctrl.rwDump` |
+| `fsw.control_law` | `+fsw/control_law.m`, `lqr_gain.m` | PID (ported), LQR (Hamiltonian ARE, Bryson weights), sliding mode (Crassidis–Markley); gyroscopic compensation and slew-acceleration feedforward | Standard Code `ctrl.nadirPointing` PID |
+| `fsw.pd_alloc`, `fsw.idmas_split`, `fsw.cmg_sr`, `fsw.rcs_pwm` | `+fsw/allocate.m`, `steer_sr.m`, `rcs_duty.m`, `dump.m` | minimum-norm rotor allocation; IDMAS split (coils take the torque across B, rings the rest); singularity-robust CMG/VSCMG steering; RCS slew assist and dumping with MIB-aware feedforward; cross-product magnetic dump; rotor FDIR with coil backup | Standard Code `ctrl.rwDump`; spec algorithms |
+| `hal` | `+hal/*.m` | the `adcs_hal.h` boundary in MATLAB: register-level frames, `sils` / `loopback` / `udp` backends, real-time pacing, HILS stimulus | spec `fsw/include/adcs_hal.h`; `docs/OILS_HILS.md` |
+| faults | `+faults/apply.m` | scheduled rotor / gimbal / star-tracker head / coil / gyro / GNSS / valve faults | spec §10.2 fault campaigns |
 | mode manager | `+fsw/step.m`, `init.m` | tick order, onboard orbit, modes, auto transition | Standard Code `modes.step` |
 | `run.single` | `run.m` | the loop above | spec §9.3 |
 | `metric.*` | `+metrics/derive.m`, `evaluate.m`, `window.m`, `time_to.m` | APE/AKE (3-axis and payload LOS), RKS, detumble, settle, momentum, power | spec §10.3 (ECSS-E-ST-60-10C) |
-| `campaign.run` | `+campaign/run.m`, `draw.m`, `collect.m`, `summarise.m` | Monte Carlo with per-run streams, parfor / worker processes, ensemble percentile at the case level | spec §10.2 |
+| `campaign.run` | `+campaign/run.m`, `draw.m`, `collect.m`, `summarise.m`, `write.m` | Monte Carlo and edge-case (each dispersion at its bounds, then all adverse) campaigns with per-run streams, parfor / worker processes, ensemble percentile at the case level | spec §10.2 |
 | `recorder`, `result.document` | `+rec/write.m`, `+result/save.m` | CSV + JSON channels, HTML result | spec §9.8, §13.5 |
 | `viz.*` | `+viz/run.m`, `campaign.m` | per-test figures | spec §10.8.4 |
 
@@ -104,6 +109,18 @@ Node ids follow the twin map (`spec/plan/twin_map.toml`); the file is its MATLAB
 | Modes | detumble (B-dot) → nadir_mtq | detumble (B-dot) → nadir_rw / target_rw / slew_rw with magnetic dumping |
 | Scenarios | `detumble_ais`, `nadir_hold_ais`, `mission_ais` | `detumble_img`, `fine_hold_img`, `slew_img`, `mission_img` |
 | Monte Carlo | `mc_detumble_ais`, `mc_nadir_ais` | `mc_fine_img`, `mc_slew_img` |
+
+## 4b. Actuator families (all on the imaging case, plus the AIS coils-only case)
+
+| family (spec) | product | fine pointing | agile slew | momentum management |
+|---|---|---|---|---|
+| `mtq` | `TRN-P-3U-AIS`, `TRN-P-3U-AIS-CSS` | coils only (magnetic PD) | — | residual-dipole compensation |
+| `mtq_rw` | `TRN-P-3U-IMG` | 3 wheels, PID / LQR / SMC | torque-limited | coils, cross-product law |
+| `mtq_fmr` | `TRN-P-3U-FMR` | 3 fluid rings, IDMAS split with the coils | momentum-limited (1 mN m s) | coils |
+| `mtq_fmr_rcs` | `TRN-P-3U-FMR-RCS` | rings + coils | RCS takes the axes the rings cannot hold | coils |
+| `mtq_rw_rcs` | `TRN-P-3U-RW-RCS` | wheels | RCS assists beyond wheel torque / momentum | RCS (MIB-aware) |
+| `mtq_cmg` | `TRN-P-3U-CMG` | 4-SGCMG pyramid, SR steering | gimbal torque | coils |
+| `mtq_vscmg` | `TRN-P-3U-VSCMG` | 4-VSCMG pyramid, SR steering + wheel mode | gimbal + wheel torque | coils |
 
 ## 5. Disturbance torques — the model and why it is better
 
@@ -155,3 +172,7 @@ plan for the rest.
 | D6 | Magnetic momentum-dump pulses (≈4e-7 N m) reach the body unopposed. | Wheel loop feeds forward the known dump torque m×B. |
 | D7 | Rate error must use the reference rate carried into body axes, A(q_e)ω_ref (bug found at large AIS errors). | Fixed in both pointing laws. |
 | D8 | A single-sample star-tracker history made the latency 0.2 s instead of 0.1 s (orbit-rate × 0.1 s = 0.006° bias). | True attitude history kept every tick and interpolated at t − latency. |
+| D9 | Fluid-ring loss compensated open-loop with a ±20 % loss dispersion leaves a torque error proportional to the stored momentum; the rings stop delivering after ~10 min. | Closed-loop flow driver (integrated command, filtered flow sensor, servo), like a wheel speed loop. |
+| D10 | Rings store only ~1 mN m s; thrusters cannot unload that (one MIB pulse ≈ 150 µN m over a tick). | Rings are unloaded by the coils (IDMAS); RCS only assists slews. RCS dump thresholds scale with each product's momentum capacity. |
+| D11 | A thruster request below the MIB is not fired, but was fed forward to the wheels. | The FSW quantises its own valve commands (MIB, valve resolution) before feeding them forward. |
+| D12 | ζ = 2 holds tighter, ζ = 0.9 settles a 30° slew in ~13 s instead of ~45 s. | Damping scheduled by mode: hold scenarios fly 2.0, slew/target scenarios 0.9. |

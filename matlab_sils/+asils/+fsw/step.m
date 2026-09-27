@@ -138,8 +138,13 @@ function [F, out] = step(F, z, t, P, D) %#ok<INUSD>
             Hdev = A*z.h;
             % ---- FDIR: a fixed rotor that does not follow its command is isolated
             if nr > 0 && ~isempty(F.h_prev)
+                % compare with what the device CAN do: the command clipped to its
+                % torque limit, and never while it sits at its momentum limit
                 meas = (z.h - F.h_prev)/dt;
-                bad = abs(meas - F.cmd_r_prev) > 0.5*dev.mex.torque_max(:) & F.M.gi(:) == 0 & abs(F.cmd_r_prev) > 0.2*dev.mex.torque_max(:);
+                tmax = dev.mex.torque_max(:);
+                expect = max(-0.8*tmax, min(0.8*tmax, F.cmd_r_prev));
+                bad = abs(meas - expect) > 0.5*tmax & F.M.gi(:) == 0 & abs(expect) > 0.2*tmax ...
+                      & abs(z.h) < 0.9*dev.mex.h_max(:);
                 F.fd_count = (F.fd_count + dt).*bad;
                 newly = F.fd_count > G.fdir_s & ~F.rot_failed(:);
                 if any(newly)
@@ -169,7 +174,8 @@ function [F, out] = step(F, z, t, P, D) %#ok<INUSD>
                 end
                 if F.ad_ok && any(F.rot_failed)   % a lost wheel axis is flown with the coils
                     fixed = find(F.M.gi(:) == 0 & ~F.rot_failed(:));
-                    un = F.tau_req - A(:, fixed)*(pinv(A(:, fixed))*F.tau_req);
+                    if isempty(fixed), un = F.tau_req;
+                    else, un = F.tau_req - A(:, fixed)*(pinv(A(:, fixed))*F.tau_req); end
                     m = m + asils.fsw.torque2dipole(un, z.B, dev.mtq.m_max);
                 end
                 m_body = m - G.m_res_est;

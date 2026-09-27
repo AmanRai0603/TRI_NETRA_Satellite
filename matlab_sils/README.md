@@ -37,27 +37,52 @@ rec = asils.run('nadir_hold_ais', 'cases/ais_3u.csv', 'seed', 7, ...
       'set', struct('env__F107', 220, 'sc__mass_kg', 4.3, 'sim__duration_s', 6000));
 ```
 
-## Scenarios (`data/scenarios`) and campaigns (`data/campaigns`)
+## Actuator families (products in `data/products`)
 
-| id | case | what |
+| family | product | what it flies |
 |---|---|---|
-| `detumble_ais` | AIS | B-dot detumble from 10 deg/s, 3 orbits |
-| `nadir_hold_ais` | AIS | magnetic-only nadir hold from 30 deg, 3 orbits, APE/AKE last orbit |
-| `mission_ais` | AIS | tumble → B-dot → automatic switch to nadir hold, 5 orbits |
-| `detumble_img` | imaging | B-dot detumble from 10 deg/s, 3 orbits |
-| `fine_hold_img` | imaging | wheel + star-tracker fine nadir hold, 1 orbit, 3-sigma APE/AKE/RKS |
-| `slew_img` | imaging | 30 deg target slew in 60 s and settle |
-| `mission_img` | imaging | tumble → B-dot → wheel nadir hold, 3 orbits |
-| `mc_detumble_ais`, `mc_nadir_ais`, `mc_fine_img`, `mc_slew_img` | | Monte Carlo campaigns |
+| coils only | `TRN-P-3U-AIS`, `TRN-P-3U-AIS-CSS` | B-dot detumble, magnetic nadir pointing (fine or coarse cosine sun sensors) |
+| coils + reaction wheels | `TRN-P-3U-IMG` | fine pointing with PID, LQR or sliding-mode control; magnetic dumping |
+| coils + fluid momentum rings | `TRN-P-3U-FMR` | IDMAS split: coils take the torque across the field, galinstan rings the rest |
+| coils + fluid rings + RCS | `TRN-P-3U-FMR-RCS` | rings for fine pointing, cold-gas thrusters for agile slews |
+| coils + wheels + RCS | `TRN-P-3U-RW-RCS` | wheels for fine pointing, thrusters assist slews and unload the wheels |
+| coils + 4 SGCMG | `TRN-P-3U-CMG` | singularity-robust steering, agile slews |
+| coils + 4 VSCMG | `TRN-P-3U-VSCMG` | gimbal + wheel-mode torque through singularities |
+
+Every imaging product carries two star-tracker heads (star-field model solved by
+QUEST), a precision MEMS gyro, magnetometer, sun sensors and GNSS.
+
+## Scenarios (`data/scenarios`, 39) and campaigns (`data/campaigns`, 8)
+
+- **AIS (coils only):** `detumble_ais` (+ `_mag`, `_bangbang` B-dot laws), `nadir_hold_ais`,
+  `nadir_hold_ais_css`, `mission_ais` (tumble → detumble → nadir), faults `fault_coil_ais`, `fault_gyro_ais`.
+- **Imaging, per family** (`img` = wheels, `fmr`, `fmr_rcs`, `rw_rcs`, `cmg`, `vscmg`):
+  `fine_hold_<f>`, `slew_<f>` (30° in 60 s), `agile_slew_<f>` (90° pitch in 15 s), `mission_<f>`
+  (tumble → detumble → fine hold); controller comparison `fine_hold_img_lqr/_smc`, `slew_img_lqr/_smc`;
+  faults `fault_wheel_img`, `fault_st_img`, `fault_gimbal_cmg`.
+- **Campaigns:** Monte Carlo `mc_detumble_ais`, `mc_nadir_ais`, `mc_fine_img`, `mc_slew_img`,
+  `mc_slew_cmg`, `mc_agile_rw_rcs`; edge cases (each dispersion at its bounds, then all adverse)
+  `edge_nadir_ais`, `edge_fine_img`.
+
+Run everything: `python3 ../tools/run_matrix.py --workers 4` (Octave), or `run_scenarios` +
+`run_campaign` in MATLAB.
+
+## OILS / HILS
+
+Sensors and actuators cross a hardware-abstraction boundary (`+asils/+hal`, the MATLAB side of
+`adcs_hal.h`) as register values in every run. Switch the backend to `loopback` (byte frames) or
+`udp` (flight OBC / rig in the loop) with real-time pacing; `asils.hal.stimulus(rec)` gives the
+Helmholtz-cage field, Sun-simulator direction and air-bearing rate for a HILS replay. See
+`../docs/OILS_HILS.md`.
 
 ## Layout
 
 | folder | contents |
 |---|---|
-| `+asils/` | the SILS: `+orbit` (in-loop POP), `+env`, `+plant`, `+devices`, `+fsw`, `+metrics`, `+campaign`, `+rec`, `+viz`, `+result`, `run.m`, `config.m` |
+| `+asils/` | the SILS: `+orbit` (in-loop POP), `+env`, `+plant`, `+devices`, `+fsw`, `+hal`, `+faults`, `+metrics`, `+campaign`, `+rec`, `+viz`, `+result`, `run.m`, `config.m` |
 | `pop/` | Precision Orbit Propagator v51 (vendored) |
 | `cases/`, `data/` | the case CSVs; exported parts, products, scenarios, campaigns (JSON) |
-| `examples/`, `tests/`, `tools/` | six worked examples, the test suite, batch drivers |
+| `examples/`, `tests/`, `tools/` | worked examples, the test suite (17 tests), batch drivers |
 | `store/` | your results, filed per scenario |
 
 Architecture, node by node: `../docs/ARCHITECTURE_PLAN.md`. Results: `../docs/RESULTS.md`.
