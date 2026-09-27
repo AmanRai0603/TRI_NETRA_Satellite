@@ -1,0 +1,4577 @@
+{
+ "_source": "ADCS platform plan, tools/build_tree.py — the ADCS equivalent of VLEO_SIMULATOR cd06/tree.json",
+ "_note": "Layers 1 and 2 are named in full. Layer 3 is shape only, as in CD-06: interface, one required and one achieved row per layer-2 target, and the rest to be named. The 5th field of each row names the configuration families it is in play for; empty means all.",
+ "layer3_shape": [
+  {
+   "id": "dist",
+   "label": "Disturbance environment",
+   "group": "gd",
+   "targets": 6,
+   "nodes": 25
+  },
+  {
+   "id": "sens",
+   "label": "Attitude sensors",
+   "group": "gs",
+   "targets": 7,
+   "nodes": 29
+  },
+  {
+   "id": "est",
+   "label": "Attitude estimation",
+   "group": "ge",
+   "targets": 6,
+   "nodes": 22
+  },
+  {
+   "id": "mtq",
+   "label": "Magnetic actuation",
+   "group": "gm",
+   "targets": 6,
+   "nodes": 26
+  },
+  {
+   "id": "rw",
+   "label": "Reaction wheels",
+   "group": "gw",
+   "targets": 7,
+   "nodes": 26
+  },
+  {
+   "id": "fmr",
+   "label": "Fluid momentum rings",
+   "group": "gf",
+   "targets": 10,
+   "nodes": 36
+  },
+  {
+   "id": "rcs",
+   "label": "Reaction control thrusters",
+   "group": "gr",
+   "targets": 5,
+   "nodes": 22
+  },
+  {
+   "id": "ctl",
+   "label": "Control and allocation",
+   "group": "gc",
+   "targets": 6,
+   "nodes": 28
+  },
+  {
+   "id": "pnt",
+   "label": "Pointing error budget",
+   "group": "gp",
+   "targets": 6,
+   "nodes": 25
+  },
+  {
+   "id": "modes",
+   "label": "Modes and FDIR",
+   "group": "gq",
+   "targets": 5,
+   "nodes": 22
+  },
+  {
+   "id": "fsw",
+   "label": "Flight software and OBC interfaces",
+   "group": "gx",
+   "targets": 5,
+   "nodes": 22
+  },
+  {
+   "id": "budget",
+   "label": "ADCS unit budgets",
+   "group": "gb",
+   "targets": 4,
+   "nodes": 17
+  },
+  {
+   "id": "oils",
+   "label": "OILS rig",
+   "group": "v3",
+   "targets": 5,
+   "nodes": 20
+  },
+  {
+   "id": "hils",
+   "label": "HILS rig",
+   "group": "v4",
+   "targets": 16,
+   "nodes": 48
+  }
+ ],
+ "HN_MGT": [
+  [
+   "mgm",
+   "ADCS products and test facility",
+   null,
+   "the company — every case, every order, one architecture",
+   ""
+  ],
+  [
+   "cas",
+   "Case intake",
+   "mgm",
+   "every enquiry is one case: one CSV in the fixed format, never a branch of this tree",
+   ""
+  ],
+  [
+   "ci1",
+   "Case",
+   "cas",
+   "the rows every case has, whoever sent it",
+   ""
+  ],
+  [
+   "ci1_0",
+   "Case input format version",
+   "ci1",
+   "set here",
+   ""
+  ],
+  [
+   "ci1_1",
+   "Satellite ADCS",
+   "ci1",
+   "the door into this case’s engineering layer",
+   ""
+  ],
+  [
+   "ci1_2",
+   "Catalogue product selected",
+   "ci1",
+   "set here",
+   ""
+  ],
+  [
+   "ci1_3",
+   "Cost & price",
+   "ci1",
+   "set here",
+   ""
+  ],
+  [
+   "ci1_4",
+   "Acceptance criteria",
+   "ci1",
+   "set here",
+   ""
+  ],
+  [
+   "cat",
+   "Catalogue",
+   "mgm",
+   "what the company has designed, proven in SILS and offers",
+   ""
+  ],
+  [
+   "ct1",
+   "Products",
+   "cat",
+   "a product is a configuration plus its algorithm, designed for a satellite class",
+   ""
+  ],
+  [
+   "ct1_0",
+   "Products offered",
+   "ct1",
+   "set here",
+   ""
+  ],
+  [
+   "ct1_1",
+   "Designed products awaiting promotion",
+   "ct1",
+   "set here",
+   ""
+  ],
+  [
+   "ct1_2",
+   "Satellite classes defined",
+   "ct1",
+   "set here",
+   ""
+  ],
+  [
+   "ct1_3",
+   "Satellite classes with an offered product",
+   "ct1",
+   "set here",
+   ""
+  ],
+  [
+   "ct1_4",
+   "Class coverage",
+   "ct1",
+   "computed",
+   ""
+  ],
+  [
+   "ct2",
+   "Design runs",
+   "cat",
+   "the designer's sweeps over part combinations",
+   ""
+  ],
+  [
+   "ct2_0",
+   "Combinations evaluated",
+   "ct2",
+   "set here",
+   ""
+  ],
+  [
+   "ct2_1",
+   "Combinations that met their class requirements",
+   "ct2",
+   "set here",
+   ""
+  ],
+  [
+   "ct2_2",
+   "Design yield",
+   "ct2",
+   "computed",
+   ""
+  ],
+  [
+   "ct3",
+   "Case matching",
+   "cat",
+   "how often a case finds an offered product without new design",
+   ""
+  ],
+  [
+   "ct3_0",
+   "Cases solved",
+   "ct3",
+   "set here",
+   ""
+  ],
+  [
+   "ct3_1",
+   "Cases matched by an offered product",
+   "ct3",
+   "set here",
+   ""
+  ],
+  [
+   "ct3_2",
+   "Catalogue hit rate",
+   "ct3",
+   "computed",
+   ""
+  ],
+  [
+   "cmr",
+   "Commercial",
+   "mgm",
+   "what an order is worth, and what it costs to deliver",
+   ""
+  ],
+  [
+   "cm1",
+   "Quote",
+   "cmr",
+   "frozen by the case hash; any change is a new quote",
+   ""
+  ],
+  [
+   "cm1_0",
+   "Unit price",
+   "cm1",
+   "computed",
+   ""
+  ],
+  [
+   "cm1_1",
+   "OILS campaign price",
+   "cm1",
+   "computed",
+   ""
+  ],
+  [
+   "cm1_2",
+   "HILS campaign price",
+   "cm1",
+   "computed",
+   ""
+  ],
+  [
+   "cm1_3",
+   "Quote validity",
+   "cm1",
+   "set here",
+   ""
+  ],
+  [
+   "cm1_4",
+   "Quote total",
+   "cm1",
+   "computed",
+   ""
+  ],
+  [
+   "cm2",
+   "Cost to deliver",
+   "cmr",
+   "what the unit and its evidence cost us",
+   ""
+  ],
+  [
+   "cm2_0",
+   "Bill of materials cost",
+   "cm2",
+   "set here",
+   ""
+  ],
+  [
+   "cm2_1",
+   "Build labour",
+   "cm2",
+   "set here",
+   ""
+  ],
+  [
+   "cm2_2",
+   "Calibration labour",
+   "cm2",
+   "set here",
+   ""
+  ],
+  [
+   "cm2_3",
+   "Facility cost per day",
+   "cm2",
+   "set here",
+   ""
+  ],
+  [
+   "cm2_4",
+   "Cost to deliver one unit",
+   "cm2",
+   "computed",
+   ""
+  ],
+  [
+   "cm3",
+   "Margin and terms",
+   "cmr",
+   "how the price is set from the cost",
+   ""
+  ],
+  [
+   "cm3_0",
+   "Target gross margin",
+   "cm3",
+   "set here",
+   ""
+  ],
+  [
+   "cm3_1",
+   "Achieved gross margin",
+   "cm3",
+   "computed",
+   ""
+  ],
+  [
+   "cm3_2",
+   "Data-share discount",
+   "cm3",
+   "set here",
+   ""
+  ],
+  [
+   "cm3_3",
+   "Payment milestones",
+   "cm3",
+   "set here",
+   ""
+  ],
+  [
+   "ord",
+   "Order lifecycle",
+   "mgm",
+   "one path for every order, enquiry to flight data",
+   ""
+  ],
+  [
+   "od1",
+   "Stage durations",
+   "ord",
+   "each stage ends on a gate, not on a date",
+   ""
+  ],
+  [
+   "od1_0",
+   "Enquiry to shortlist",
+   "od1",
+   "set here",
+   ""
+  ],
+  [
+   "od1_1",
+   "Shortlist to quote",
+   "od1",
+   "set here",
+   ""
+  ],
+  [
+   "od1_2",
+   "Quote to purchase order",
+   "od1",
+   "set here",
+   ""
+  ],
+  [
+   "od1_3",
+   "Purchase order to unit built",
+   "od1",
+   "set here",
+   ""
+  ],
+  [
+   "od1_4",
+   "Unit built to calibrated",
+   "od1",
+   "set here",
+   ""
+  ],
+  [
+   "od1_5",
+   "Calibrated to OILS passed",
+   "od1",
+   "set here",
+   ""
+  ],
+  [
+   "od1_6",
+   "OILS passed to HILS passed",
+   "od1",
+   "set here",
+   ""
+  ],
+  [
+   "od1_7",
+   "HILS passed to certificate",
+   "od1",
+   "set here",
+   ""
+  ],
+  [
+   "od1_8",
+   "Certificate to delivery",
+   "od1",
+   "set here",
+   ""
+  ],
+  [
+   "od1_9",
+   "Order lead time",
+   "od1",
+   "computed",
+   ""
+  ],
+  [
+   "od2",
+   "Configuration control",
+   "ord",
+   "what may change after the order, and at what price",
+   ""
+  ],
+  [
+   "od2_0",
+   "Engineering changes after order",
+   "od2",
+   "set here",
+   ""
+  ],
+  [
+   "od2_1",
+   "Deviations raised",
+   "od2",
+   "set here",
+   ""
+  ],
+  [
+   "od2_2",
+   "Waivers granted",
+   "od2",
+   "set here",
+   ""
+  ],
+  [
+   "fac",
+   "Test facility",
+   "mgm",
+   "the rig time every order is booked against",
+   ""
+  ],
+  [
+   "fa1",
+   "SILS capacity",
+   "fac",
+   "server compute for client and internal runs",
+   ""
+  ],
+  [
+   "fa1_0",
+   "Server cores for SILS",
+   "fa1",
+   "set here",
+   ""
+  ],
+  [
+   "fa1_1",
+   "Monte Carlo runs per hour",
+   "fa1",
+   "computed",
+   ""
+  ],
+  [
+   "fa1_2",
+   "Client run quota per project",
+   "fa1",
+   "set here",
+   ""
+  ],
+  [
+   "fa2",
+   "OILS rig",
+   "fac",
+   "flight OBC in the loop against the real-time plant: the rig host, the interface emulation unit, the flight connectors",
+   ""
+  ],
+  [
+   "fa2_0",
+   "OILS rig hours per week",
+   "fa2",
+   "set here",
+   ""
+  ],
+  [
+   "fa2_1",
+   "Real-time plant step",
+   "fa2",
+   "set here",
+   ""
+  ],
+  [
+   "fa2_2",
+   "Deadline misses allowed per hour",
+   "fa2",
+   "set here",
+   ""
+  ],
+  [
+   "fa2_3",
+   "Rig loop latency, worst case measured",
+   "fa2",
+   "set here",
+   ""
+  ],
+  [
+   "fa2_4",
+   "Rig loop jitter measured",
+   "fa2",
+   "set here",
+   ""
+  ],
+  [
+   "fa2_5",
+   "Interface emulation channels",
+   "fa2",
+   "set here",
+   ""
+  ],
+  [
+   "fa2_6",
+   "Flight interface kinds emulated",
+   "fa2",
+   "set here",
+   ""
+  ],
+  [
+   "fa2_7",
+   "Flight-connector isolation voltage",
+   "fa2",
+   "set here",
+   ""
+  ],
+  [
+   "fa2_8",
+   "GNSS receiver outputs emulated",
+   "fa2",
+   "set here",
+   ""
+  ],
+  [
+   "fa2_9",
+   "Rig host to IEU link rate",
+   "fa2",
+   "set here",
+   ""
+  ],
+  [
+   "fa3",
+   "Magnetic field simulator",
+   "fac",
+   "the Helmholtz cage: the orbit's field, made in the lab around the unit",
+   ""
+  ],
+  [
+   "fa3_0",
+   "Helmholtz cage field range",
+   "fa3",
+   "set here",
+   ""
+  ],
+  [
+   "fa3_1",
+   "Cage field uniformity",
+   "fa3",
+   "set here",
+   ""
+  ],
+  [
+   "fa3_2",
+   "Uniform-field test volume",
+   "fa3",
+   "set here",
+   ""
+  ],
+  [
+   "fa3_3",
+   "Cage field error against command",
+   "fa3",
+   "set here",
+   ""
+  ],
+  [
+   "fa3_4",
+   "Cage field direction error",
+   "fa3",
+   "set here",
+   ""
+  ],
+  [
+   "fa3_5",
+   "Cage coil time constant",
+   "fa3",
+   "set here",
+   ""
+  ],
+  [
+   "fa3_6",
+   "Reference magnetometer noise",
+   "fa3",
+   "set here",
+   ""
+  ],
+  [
+   "fa4",
+   "Facility use",
+   "fac",
+   "booked against capacity",
+   ""
+  ],
+  [
+   "fa4_0",
+   "Campaign days booked",
+   "fa4",
+   "computed",
+   ""
+  ],
+  [
+   "fa4_1",
+   "Facility utilisation",
+   "fa4",
+   "computed",
+   ""
+  ],
+  [
+   "fa5",
+   "Air-bearing platform",
+   "fac",
+   "real rotational dynamics, with the torques a bearing adds",
+   ""
+  ],
+  [
+   "fa5_0",
+   "Air-bearing residual torque",
+   "fa5",
+   "set here",
+   ""
+  ],
+  [
+   "fa5_1",
+   "Bearing tilt range",
+   "fa5",
+   "set here",
+   ""
+  ],
+  [
+   "fa5_2",
+   "Platform inertia",
+   "fa5",
+   "set here",
+   ""
+  ],
+  [
+   "fa5_3",
+   "Platform payload capacity",
+   "fa5",
+   "set here",
+   ""
+  ],
+  [
+   "fa5_4",
+   "Balance residual centre-of-mass offset",
+   "fa5",
+   "set here",
+   ""
+  ],
+  [
+   "fa5_5",
+   "Bearing aerodynamic drag torque",
+   "fa5",
+   "set here",
+   ""
+  ],
+  [
+   "fa5_6",
+   "Truth attitude accuracy",
+   "fa5",
+   "set here",
+   ""
+  ],
+  [
+   "fa5_7",
+   "Truth attitude rate",
+   "fa5",
+   "set here",
+   ""
+  ],
+  [
+   "fa6",
+   "Optical and RF stimulators",
+   "fac",
+   "the Sun, the stars and the GNSS sky, for the real sensors",
+   ""
+  ],
+  [
+   "fa6_0",
+   "Sun simulator irradiance",
+   "fa6",
+   "set here",
+   ""
+  ],
+  [
+   "fa6_1",
+   "Sun simulator collimation half-angle",
+   "fa6",
+   "set here",
+   ""
+  ],
+  [
+   "fa6_2",
+   "Sun simulator spatial non-uniformity",
+   "fa6",
+   "set here",
+   ""
+  ],
+  [
+   "fa6_3",
+   "Sun simulator temporal instability",
+   "fa6",
+   "set here",
+   ""
+  ],
+  [
+   "fa6_4",
+   "Star stimulator angular step",
+   "fa6",
+   "set here",
+   ""
+  ],
+  [
+   "fa6_5",
+   "Star stimulator faintest magnitude",
+   "fa6",
+   "set here",
+   ""
+  ],
+  [
+   "fa6_6",
+   "Star stimulator frame rate",
+   "fa6",
+   "set here",
+   ""
+  ],
+  [
+   "fa6_7",
+   "Star stimulator latency",
+   "fa6",
+   "set here",
+   ""
+  ],
+  [
+   "fa6_8",
+   "GNSS RF simulator channels",
+   "fa6",
+   "set here",
+   ""
+  ],
+  [
+   "fa7",
+   "Actuator test stands",
+   "fac",
+   "each actuator family measured on its own stand before it closes a loop",
+   ""
+  ],
+  [
+   "fa7_0",
+   "Force dynamometer bandwidth",
+   "fa7",
+   "set here",
+   ""
+  ],
+  [
+   "fa7_1",
+   "Wheel imbalance resolution",
+   "fa7",
+   "set here",
+   ""
+  ],
+  [
+   "fa7_2",
+   "Coil dipole measurement resolution",
+   "fa7",
+   "set here",
+   ""
+  ],
+  [
+   "fa7_3",
+   "Ring torque measurement resolution",
+   "fa7",
+   "set here",
+   ""
+  ],
+  [
+   "fa7_4",
+   "Thrust stand resolution",
+   "fa7",
+   "set here",
+   ""
+  ],
+  [
+   "fa7_5",
+   "Impulse bit resolution",
+   "fa7",
+   "set here",
+   ""
+  ],
+  [
+   "fa7_6",
+   "Dynamometer torque resolution",
+   "fa7",
+   "set here",
+   ""
+  ],
+  [
+   "fa8",
+   "Rig safety and power",
+   "fac",
+   "what stops a run in hardware, and the supplies the unit runs from",
+   ""
+  ],
+  [
+   "fa8_0",
+   "Hardware interlocks",
+   "fa8",
+   "set here",
+   ""
+  ],
+  [
+   "fa8_1",
+   "Emergency stop response time",
+   "fa8",
+   "set here",
+   ""
+  ],
+  [
+   "fa8_2",
+   "Brownout injection range",
+   "fa8",
+   "set here",
+   ""
+  ],
+  [
+   "fa8_3",
+   "Programmable supply channels",
+   "fa8",
+   "set here",
+   ""
+  ],
+  [
+   "std",
+   "Standards & compliance",
+   "mgm",
+   "every standard a certificate is issued against",
+   ""
+  ],
+  [
+   "st1",
+   "AOCS requirements, ECSS-E-ST-60-30C",
+   "std",
+   "the structure every requirement package follows",
+   ""
+  ],
+  [
+   "st1_0",
+   "Requirement clauses covered",
+   "st1",
+   "set here",
+   ""
+  ],
+  [
+   "st1_1",
+   "Tailoring items",
+   "st1",
+   "set here",
+   ""
+  ],
+  [
+   "st2",
+   "Control performance, ECSS-E-ST-60-10C",
+   "std",
+   "how APE, RPE and AKE are stated and budgeted",
+   ""
+  ],
+  [
+   "st2_0",
+   "Statistical confidence of the budget",
+   "st2",
+   "set here",
+   ""
+  ],
+  [
+   "st2_1",
+   "Performance indices budgeted",
+   "st2",
+   "set here",
+   ""
+  ],
+  [
+   "st3",
+   "Verification, ECSS-E-ST-10-02C",
+   "std",
+   "test, analysis, review of design, inspection",
+   ""
+  ],
+  [
+   "st3_0",
+   "Requirements with a verification method",
+   "st3",
+   "set here",
+   ""
+  ],
+  [
+   "st3_1",
+   "Verification close-out rate",
+   "st3",
+   "set here",
+   ""
+  ],
+  [
+   "st4",
+   "Testing, ECSS-E-ST-10-03C",
+   "std",
+   "test levels and the conditions they are run at",
+   ""
+  ],
+  [
+   "st4_0",
+   "Test levels applied",
+   "st4",
+   "set here",
+   ""
+  ],
+  [
+   "st5",
+   "Software, ECSS-E-ST-40C and ECSS-Q-ST-80C",
+   "std",
+   "flight software process and product assurance",
+   ""
+  ],
+  [
+   "st5_0",
+   "Software criticality category",
+   "st5",
+   "set here",
+   ""
+  ],
+  [
+   "st5_1",
+   "Flight software unit-test coverage",
+   "st5",
+   "set here",
+   ""
+  ],
+  [
+   "st6",
+   "Export control",
+   "std",
+   "checked at quote time, before a foreign client sees a price",
+   ""
+  ],
+  [
+   "st6_0",
+   "Export classification checks done",
+   "st6",
+   "set here",
+   ""
+  ],
+  [
+   "st7",
+   "Quality management",
+   "std",
+   "non-conformances and their closure",
+   ""
+  ],
+  [
+   "st7_0",
+   "Non-conformances open",
+   "st7",
+   "set here",
+   ""
+  ],
+  [
+   "sup",
+   "Supply chain",
+   "mgm",
+   "what has to be bought, qualified and delivered",
+   ""
+  ],
+  [
+   "su1",
+   "Long-lead items",
+   "sup",
+   "the parts that set the lead time",
+   ""
+  ],
+  [
+   "su1_0",
+   "Reaction wheel lead time",
+   "su1",
+   "set here",
+   ""
+  ],
+  [
+   "su1_1",
+   "Star tracker lead time",
+   "su1",
+   "set here",
+   ""
+  ],
+  [
+   "su1_2",
+   "Gallium alloy stock",
+   "su1",
+   "set here",
+   ""
+  ],
+  [
+   "su2",
+   "Make or buy",
+   "sup",
+   "what is built in-house",
+   ""
+  ],
+  [
+   "su2_0",
+   "Fraction of parts made in-house",
+   "su2",
+   "set here",
+   ""
+  ],
+  [
+   "su3",
+   "Supplier qualification",
+   "sup",
+   "who may supply a flight part",
+   ""
+  ],
+  [
+   "su3_0",
+   "Qualified suppliers",
+   "su3",
+   "set here",
+   ""
+  ],
+  [
+   "hrt",
+   "Heritage",
+   "mgm",
+   "what the catalogue has already proven",
+   ""
+  ],
+  [
+   "hr1",
+   "Flight record",
+   "hrt",
+   "per catalogue family",
+   ""
+  ],
+  [
+   "hr1_0",
+   "Flight units delivered",
+   "hr1",
+   "set here",
+   ""
+  ],
+  [
+   "hr1_1",
+   "Orbit-hours of heritage",
+   "hr1",
+   "set here",
+   ""
+  ],
+  [
+   "hr1_2",
+   "Fraction of parts with flight heritage",
+   "hr1",
+   "computed",
+   ""
+  ],
+  [
+   "rsk",
+   "Risk management",
+   "mgm",
+   "what the platform still believes without proof, what tested it, and what is left open; every new node version is concluded here",
+   ""
+  ],
+  [
+   "rk1",
+   "Risk register",
+   "rsk",
+   "each risk R-xx has a level L1 (negligible) to L5 (would stop delivery); only a test lowers a level",
+   ""
+  ],
+  [
+   "rk1_0",
+   "Risks open",
+   "rk1",
+   "set here",
+   ""
+  ],
+  [
+   "rk1_1",
+   "Risks open at level L4 or L5",
+   "rk1",
+   "set here",
+   ""
+  ],
+  [
+   "rk1_2",
+   "Risks closed",
+   "rk1",
+   "set here",
+   ""
+  ],
+  [
+   "rk1_3",
+   "Risks opened this quarter",
+   "rk1",
+   "set here",
+   ""
+  ],
+  [
+   "rk1_4",
+   "Risks closed this quarter",
+   "rk1",
+   "set here",
+   ""
+  ],
+  [
+   "rk2",
+   "Beliefs and versions",
+   "rsk",
+   "every node version records the belief it rests on; a new version exists because a belief broke or needed proof",
+   ""
+  ],
+  [
+   "rk2_0",
+   "Beliefs a test broke",
+   "rk2",
+   "set here",
+   ""
+  ],
+  [
+   "rk2_1",
+   "Beliefs a test held",
+   "rk2",
+   "set here",
+   ""
+  ],
+  [
+   "rk2_2",
+   "Beliefs not yet tested",
+   "rk2",
+   "set here",
+   ""
+  ],
+  [
+   "rk2_3",
+   "Beliefs recorded",
+   "rk2",
+   "set here",
+   ""
+  ],
+  [
+   "rk2_4",
+   "Node versions released",
+   "rk2",
+   "set here",
+   ""
+  ],
+  [
+   "rk2_5",
+   "Cost of the tests this quarter",
+   "rk2",
+   "set here",
+   ""
+  ],
+  [
+   "rk3",
+   "Open risk by area",
+   "rsk",
+   "the highest open level in each area a decision is made in",
+   ""
+  ],
+  [
+   "rk3_0",
+   "Highest open risk: nodes",
+   "rk3",
+   "set here",
+   ""
+  ],
+  [
+   "rk3_1",
+   "Highest open risk: case inputs",
+   "rk3",
+   "set here",
+   ""
+  ],
+  [
+   "rk3_2",
+   "Highest open risk: outputs and results",
+   "rk3",
+   "set here",
+   ""
+  ],
+  [
+   "rk3_3",
+   "Highest open risk: models",
+   "rk3",
+   "set here",
+   ""
+  ],
+  [
+   "rk3_4",
+   "Highest open risk: maths",
+   "rk3",
+   "set here",
+   ""
+  ],
+  [
+   "rk3_5",
+   "Highest open risk: algorithms",
+   "rk3",
+   "set here",
+   ""
+  ],
+  [
+   "rk3_6",
+   "Highest open risk: visualisation",
+   "rk3",
+   "set here",
+   ""
+  ],
+  [
+   "rk4",
+   "Conclusion",
+   "rsk",
+   "what the ledger says about the platform as a whole, release by release",
+   ""
+  ],
+  [
+   "rk4_0",
+   "Highest open risk level",
+   "rk4",
+   "computed",
+   ""
+  ],
+  [
+   "rk4_1",
+   "Net risks closed this quarter",
+   "rk4",
+   "computed",
+   ""
+  ],
+  [
+   "rk4_2",
+   "Share of beliefs tested",
+   "rk4",
+   "computed",
+   ""
+  ]
+ ],
+ "ED_MGT": [
+  [
+   "cas",
+   "cat",
+   "every case is solved against the catalogue first"
+  ],
+  [
+   "cat",
+   "cmr",
+   "the selected product is what gets priced"
+  ],
+  [
+   "cmr",
+   "ord",
+   "a frozen quote becomes an order"
+  ],
+  [
+   "ord",
+   "fac",
+   "an order books rig time"
+  ],
+  [
+   "fac",
+   "std",
+   "every campaign is run to a test standard"
+  ],
+  [
+   "std",
+   "ord",
+   "the certificate closes the order"
+  ],
+  [
+   "sup",
+   "ord",
+   "long-lead parts set the build stage"
+  ],
+  [
+   "hrt",
+   "cat",
+   "heritage is recorded per product"
+  ],
+  [
+   "cat",
+   "rsk",
+   "every product and node decision records the belief it rests on"
+  ],
+  [
+   "rsk",
+   "std",
+   "open risk levels feed the quality verdict"
+  ]
+ ],
+ "HN_SYS": [
+  [
+   "prg",
+   "Satellite ADCS",
+   null,
+   "the case's satellite, as the attitude system sees it",
+   ""
+  ],
+  [
+   "svc",
+   "Pointing service the customer needs",
+   "prg",
+   "what the case asks for — everything below exists to meet it",
+   ""
+  ],
+  [
+   "p1",
+   "Pointing performance",
+   "svc",
+   "how well it points and knows where it points",
+   ""
+  ],
+  [
+   "p1k",
+   "KPI required · pointing performance",
+   "p1",
+   "6 targets this service must hit",
+   ""
+  ],
+  [
+   "p1k_0",
+   "Absolute pointing error (APE)",
+   "p1k",
+   "target — required",
+   ""
+  ],
+  [
+   "p1k_1",
+   "Absolute knowledge error (AKE)",
+   "p1k",
+   "target — required",
+   ""
+  ],
+  [
+   "p1k_2",
+   "Relative pointing error (RPE)",
+   "p1k",
+   "target — required",
+   ""
+  ],
+  [
+   "p1k_3",
+   "Pointing drift error (PDE)",
+   "p1k",
+   "target — required",
+   ""
+  ],
+  [
+   "p1k_4",
+   "Rate stability",
+   "p1k",
+   "target — required",
+   ""
+  ],
+  [
+   "p1k_5",
+   "Relative knowledge error (RKE)",
+   "p1k",
+   "target — required",
+   ""
+  ],
+  [
+   "p1a",
+   "KPI achieved · pointing performance",
+   "p1",
+   "what the design actually delivers",
+   ""
+  ],
+  [
+   "p1a_0",
+   "Absolute pointing error (APE)",
+   "p1a",
+   "achieved — what the design delivers",
+   ""
+  ],
+  [
+   "p1a_1",
+   "Absolute knowledge error (AKE)",
+   "p1a",
+   "achieved — what the design delivers",
+   ""
+  ],
+  [
+   "p1a_2",
+   "Relative pointing error (RPE)",
+   "p1a",
+   "achieved — what the design delivers",
+   ""
+  ],
+  [
+   "p1a_3",
+   "Pointing drift error (PDE)",
+   "p1a",
+   "achieved — what the design delivers",
+   ""
+  ],
+  [
+   "p1a_4",
+   "Rate stability",
+   "p1a",
+   "achieved — what the design delivers",
+   ""
+  ],
+  [
+   "p1a_5",
+   "Relative knowledge error (RKE)",
+   "p1a",
+   "achieved — what the design delivers",
+   ""
+  ],
+  [
+   "p2",
+   "Agility",
+   "svc",
+   "how fast it moves from one target to the next",
+   ""
+  ],
+  [
+   "p2k",
+   "KPI required · agility",
+   "p2",
+   "5 targets this service must hit",
+   ""
+  ],
+  [
+   "p2k_0",
+   "Reference slew time",
+   "p2k",
+   "target — required",
+   ""
+  ],
+  [
+   "p2k_1",
+   "Settling time after a slew",
+   "p2k",
+   "target — required",
+   ""
+  ],
+  [
+   "p2k_2",
+   "Slews per orbit",
+   "p2k",
+   "target — required",
+   ""
+  ],
+  [
+   "p2k_3",
+   "Target-tracking rate",
+   "p2k",
+   "target — required",
+   ""
+  ],
+  [
+   "p2k_4",
+   "Maximum body rate",
+   "p2k",
+   "target — required",
+   ""
+  ],
+  [
+   "p2a",
+   "KPI achieved · agility",
+   "p2",
+   "what the design actually delivers",
+   ""
+  ],
+  [
+   "p2a_0",
+   "Reference slew time",
+   "p2a",
+   "achieved — what the design delivers",
+   ""
+  ],
+  [
+   "p2a_1",
+   "Settling time after a slew",
+   "p2a",
+   "achieved — what the design delivers",
+   ""
+  ],
+  [
+   "p2a_2",
+   "Slews per orbit",
+   "p2a",
+   "achieved — what the design delivers",
+   ""
+  ],
+  [
+   "p2a_3",
+   "Target-tracking rate",
+   "p2a",
+   "achieved — what the design delivers",
+   ""
+  ],
+  [
+   "p2a_4",
+   "Maximum body rate",
+   "p2a",
+   "achieved — what the design delivers",
+   ""
+  ],
+  [
+   "p3",
+   "Robustness and safety",
+   "svc",
+   "what it survives, and how fast it recovers",
+   ""
+  ],
+  [
+   "p3k",
+   "KPI required · robustness and safety",
+   "p3",
+   "6 targets this service must hit",
+   ""
+  ],
+  [
+   "p3k_0",
+   "Detumble time",
+   "p3k",
+   "target — required",
+   ""
+  ],
+  [
+   "p3k_1",
+   "Sun-acquisition time in safe mode",
+   "p3k",
+   "target — required",
+   ""
+  ],
+  [
+   "p3k_2",
+   "Faults tolerated",
+   "p3k",
+   "target — required",
+   ""
+  ],
+  [
+   "p3k_3",
+   "Recovery time after a single fault",
+   "p3k",
+   "target — required",
+   ""
+  ],
+  [
+   "p3k_4",
+   "Momentum saturation margin",
+   "p3k",
+   "target — required",
+   ""
+  ],
+  [
+   "p3k_5",
+   "Momentum dump interval",
+   "p3k",
+   "target — required",
+   ""
+  ],
+  [
+   "p3a",
+   "KPI achieved · robustness and safety",
+   "p3",
+   "what the design actually delivers",
+   ""
+  ],
+  [
+   "p3a_0",
+   "Detumble time",
+   "p3a",
+   "achieved — what the design delivers",
+   ""
+  ],
+  [
+   "p3a_1",
+   "Sun-acquisition time in safe mode",
+   "p3a",
+   "achieved — what the design delivers",
+   ""
+  ],
+  [
+   "p3a_2",
+   "Faults tolerated",
+   "p3a",
+   "achieved — what the design delivers",
+   ""
+  ],
+  [
+   "p3a_3",
+   "Recovery time after a single fault",
+   "p3a",
+   "achieved — what the design delivers",
+   ""
+  ],
+  [
+   "p3a_4",
+   "Momentum saturation margin",
+   "p3a",
+   "achieved — what the design delivers",
+   ""
+  ],
+  [
+   "p3a_5",
+   "Momentum dump interval",
+   "p3a",
+   "achieved — what the design delivers",
+   ""
+  ],
+  [
+   "p4",
+   "Resource footprint",
+   "svc",
+   "what the ADCS costs the satellite",
+   ""
+  ],
+  [
+   "p4k",
+   "KPI required · resource footprint",
+   "p4",
+   "5 targets this service must hit",
+   ""
+  ],
+  [
+   "p4k_0",
+   "ADCS mass",
+   "p4k",
+   "target — required",
+   ""
+  ],
+  [
+   "p4k_1",
+   "ADCS orbit-average power",
+   "p4k",
+   "target — required",
+   ""
+  ],
+  [
+   "p4k_2",
+   "ADCS peak power",
+   "p4k",
+   "target — required",
+   ""
+  ],
+  [
+   "p4k_3",
+   "ADCS volume",
+   "p4k",
+   "target — required",
+   ""
+  ],
+  [
+   "p4k_4",
+   "RCS propellant per year",
+   "p4k",
+   "target — required",
+   "rcs"
+  ],
+  [
+   "p4a",
+   "KPI achieved · resource footprint",
+   "p4",
+   "what the design actually delivers",
+   ""
+  ],
+  [
+   "p4a_0",
+   "ADCS mass",
+   "p4a",
+   "achieved — what the design delivers",
+   ""
+  ],
+  [
+   "p4a_1",
+   "ADCS orbit-average power",
+   "p4a",
+   "achieved — what the design delivers",
+   ""
+  ],
+  [
+   "p4a_2",
+   "ADCS peak power",
+   "p4a",
+   "achieved — what the design delivers",
+   ""
+  ],
+  [
+   "p4a_3",
+   "ADCS volume",
+   "p4a",
+   "achieved — what the design delivers",
+   ""
+  ],
+  [
+   "p4a_4",
+   "RCS propellant per year",
+   "p4a",
+   "achieved — what the design delivers",
+   "rcs"
+  ],
+  [
+   "cpt",
+   "ADCS configuration",
+   "prg",
+   "set from the chosen product or part combination — counts, so absence is zero, never a missing row",
+   ""
+  ],
+  [
+   "cf",
+   "Hardware fitted",
+   "cpt",
+   "set from the product or part combination: filled slots' counts, zero for the rest",
+   ""
+  ],
+  [
+   "cf_0",
+   "Magnetorquer axes fitted",
+   "cf",
+   "set here",
+   "mtq"
+  ],
+  [
+   "cf_1",
+   "Reaction wheels fitted",
+   "cf",
+   "set here",
+   "rw"
+  ],
+  [
+   "cf_2",
+   "Fluid momentum rings fitted",
+   "cf",
+   "set here",
+   "fmr"
+  ],
+  [
+   "cf_3",
+   "RCS thrusters fitted",
+   "cf",
+   "set here",
+   "rcs"
+  ],
+  [
+   "cf_4",
+   "Star tracker heads fitted",
+   "cf",
+   "set here",
+   ""
+  ],
+  [
+   "cf_5",
+   "Gyro units fitted",
+   "cf",
+   "set here",
+   ""
+  ],
+  [
+   "msn",
+   "Mission and orbit",
+   "prg",
+   "where it flies and what it is asked to do there",
+   ""
+  ],
+  [
+   "m1",
+   "Mission requirements",
+   "msn",
+   "what the mission sets, before any hardware",
+   ""
+  ],
+  [
+   "m1_0",
+   "Mission lifetime",
+   "m1",
+   "set here",
+   ""
+  ],
+  [
+   "m1_1",
+   "Launch epoch",
+   "m1",
+   "set here",
+   ""
+  ],
+  [
+   "m1_2",
+   "Fine-pointing duty cycle",
+   "m1",
+   "set here",
+   ""
+  ],
+  [
+   "m1_3",
+   "Slews per day",
+   "m1",
+   "set here",
+   ""
+  ],
+  [
+   "m1_4",
+   "Reference slew angle",
+   "m1",
+   "set here",
+   ""
+  ],
+  [
+   "m1_5",
+   "Initial tumble rate after separation",
+   "m1",
+   "set here",
+   ""
+  ],
+  [
+   "m2",
+   "Orbit",
+   "msn",
+   "the orbit the case flies",
+   ""
+  ],
+  [
+   "m2_0",
+   "Altitude",
+   "m2",
+   "set here",
+   ""
+  ],
+  [
+   "m2_1",
+   "Inclination",
+   "m2",
+   "set here",
+   ""
+  ],
+  [
+   "m2_2",
+   "Eccentricity",
+   "m2",
+   "set here",
+   ""
+  ],
+  [
+   "m2_3",
+   "LTAN",
+   "m2",
+   "set here",
+   ""
+  ],
+  [
+   "m2_4",
+   "Orbit radius",
+   "m2",
+   "computed",
+   ""
+  ],
+  [
+   "m2_5",
+   "Orbital period",
+   "m2",
+   "computed",
+   ""
+  ],
+  [
+   "m2_6",
+   "Orbital rate",
+   "m2",
+   "computed",
+   ""
+  ],
+  [
+   "m2_7",
+   "Eclipse fraction",
+   "m2",
+   "computed",
+   ""
+  ],
+  [
+   "m3",
+   "Environment along the orbit",
+   "msn",
+   "what the orbit exposes the satellite to",
+   ""
+  ],
+  [
+   "m3_0",
+   "Field strength, minimum",
+   "m3",
+   "computed",
+   ""
+  ],
+  [
+   "m3_1",
+   "Field strength, maximum",
+   "m3",
+   "computed",
+   ""
+  ],
+  [
+   "m3_2",
+   "Magnetic latitude range",
+   "m3",
+   "computed",
+   ""
+  ],
+  [
+   "m3_3",
+   "Atmospheric density at altitude",
+   "m3",
+   "computed",
+   ""
+  ],
+  [
+   "m3_4",
+   "Orbital speed",
+   "m3",
+   "computed",
+   ""
+  ],
+  [
+   "m3_5",
+   "Solar radiation pressure",
+   "m3",
+   "computed",
+   ""
+  ],
+  [
+   "sat",
+   "Satellite as the ADCS sees it",
+   "prg",
+   "the vehicle the case describes, before any ADCS part is chosen",
+   ""
+  ],
+  [
+   "s1",
+   "Mass properties",
+   "sat",
+   "what resists being turned",
+   ""
+  ],
+  [
+   "s1_0",
+   "Satellite mass",
+   "s1",
+   "set here",
+   ""
+  ],
+  [
+   "s1_1",
+   "Largest principal inertia",
+   "s1",
+   "set here",
+   ""
+  ],
+  [
+   "s1_2",
+   "Intermediate principal inertia",
+   "s1",
+   "set here",
+   ""
+  ],
+  [
+   "s1_3",
+   "Smallest principal inertia",
+   "s1",
+   "set here",
+   ""
+  ],
+  [
+   "s1_4",
+   "Centre-of-mass offset",
+   "s1",
+   "set here",
+   ""
+  ],
+  [
+   "s1_5",
+   "Inertia uncertainty",
+   "s1",
+   "set here",
+   ""
+  ],
+  [
+   "s2",
+   "Surfaces and offsets",
+   "sat",
+   "what the air and the light push on",
+   ""
+  ],
+  [
+   "s2_0",
+   "Frontal area",
+   "s2",
+   "set here",
+   ""
+  ],
+  [
+   "s2_1",
+   "Aerodynamic centre-of-pressure offset",
+   "s2",
+   "set here",
+   ""
+  ],
+  [
+   "s2_2",
+   "Sunlit area",
+   "s2",
+   "set here",
+   ""
+  ],
+  [
+   "s2_3",
+   "Solar centre-of-pressure offset",
+   "s2",
+   "set here",
+   ""
+  ],
+  [
+   "s2_4",
+   "Surface reflectivity",
+   "s2",
+   "set here",
+   ""
+  ],
+  [
+   "s2_5",
+   "Drag coefficient",
+   "s2",
+   "set here",
+   ""
+  ],
+  [
+   "s3",
+   "Magnetic cleanliness",
+   "sat",
+   "the satellite's own field",
+   ""
+  ],
+  [
+   "s3_0",
+   "Residual dipole",
+   "s3",
+   "set here",
+   ""
+  ],
+  [
+   "s3_1",
+   "Residual dipole uncertainty",
+   "s3",
+   "set here",
+   ""
+  ],
+  [
+   "s4",
+   "Flexible modes",
+   "sat",
+   "what rings when the body is moved",
+   ""
+  ],
+  [
+   "s4_0",
+   "First flexible mode frequency",
+   "s4",
+   "set here",
+   ""
+  ],
+  [
+   "s4_1",
+   "Modal participation",
+   "s4",
+   "set here",
+   ""
+  ],
+  [
+   "s5",
+   "Resources offered to the ADCS",
+   "sat",
+   "what the bus gives the ADCS to work with",
+   ""
+  ],
+  [
+   "s5_0",
+   "Power allocated to the ADCS",
+   "s5",
+   "set here",
+   ""
+  ],
+  [
+   "s5_1",
+   "Mass allocated to the ADCS",
+   "s5",
+   "set here",
+   ""
+  ],
+  [
+   "s5_2",
+   "Volume allocated to the ADCS",
+   "s5",
+   "set here",
+   ""
+  ],
+  [
+   "s5_3",
+   "Bus voltage",
+   "s5",
+   "set here",
+   ""
+  ],
+  [
+   "s5_4",
+   "OBC data interfaces offered",
+   "s5",
+   "set here",
+   ""
+  ],
+  [
+   "sub",
+   "ADCS subsystems",
+   "prg",
+   "grouped by what each one is there to do",
+   ""
+  ],
+  [
+   "sb0",
+   "Know what pushes it",
+   "sub",
+   "the torques the ADCS must reject",
+   ""
+  ],
+  [
+   "gd",
+   "Disturbance torques",
+   "sb0",
+   "what the environment does to this satellite",
+   ""
+  ],
+  [
+   "gd_0",
+   "Gravity-gradient torque",
+   "gd",
+   "computed",
+   ""
+  ],
+  [
+   "gd_1",
+   "Aerodynamic torque",
+   "gd",
+   "computed",
+   ""
+  ],
+  [
+   "gd_2",
+   "Solar-pressure torque",
+   "gd",
+   "computed",
+   ""
+  ],
+  [
+   "gd_3",
+   "Residual-magnetic torque",
+   "gd",
+   "computed",
+   ""
+  ],
+  [
+   "gd_4",
+   "Total disturbance torque",
+   "gd",
+   "computed",
+   ""
+  ],
+  [
+   "gd_5",
+   "Secular momentum per orbit",
+   "gd",
+   "computed",
+   ""
+  ],
+  [
+   "sb1",
+   "Sense it",
+   "sub",
+   "attitude sensing and estimation",
+   ""
+  ],
+  [
+   "gs",
+   "Attitude sensors",
+   "sb1",
+   "the error each sensor brings",
+   ""
+  ],
+  [
+   "gs_0",
+   "Star tracker noise, cross-boresight",
+   "gs",
+   "set here",
+   ""
+  ],
+  [
+   "gs_1",
+   "Star tracker noise, about boresight",
+   "gs",
+   "set here",
+   ""
+  ],
+  [
+   "gs_2",
+   "Gyro angle random walk",
+   "gs",
+   "set here",
+   ""
+  ],
+  [
+   "gs_3",
+   "Gyro bias instability",
+   "gs",
+   "set here",
+   ""
+  ],
+  [
+   "gs_4",
+   "Magnetometer noise",
+   "gs",
+   "set here",
+   ""
+  ],
+  [
+   "gs_5",
+   "Sun sensor accuracy",
+   "gs",
+   "set here",
+   ""
+  ],
+  [
+   "gs_6",
+   "Sensor alignment error",
+   "gs",
+   "set here",
+   ""
+  ],
+  [
+   "ge",
+   "Attitude estimation",
+   "sb1",
+   "what the filter knows from those sensors",
+   ""
+  ],
+  [
+   "ge_0",
+   "Estimator update rate",
+   "ge",
+   "set here",
+   ""
+  ],
+  [
+   "ge_1",
+   "Knowledge error, star tracker available",
+   "ge",
+   "computed",
+   ""
+  ],
+  [
+   "ge_2",
+   "Knowledge error, gyro-only propagation",
+   "ge",
+   "computed",
+   ""
+  ],
+  [
+   "ge_3",
+   "Gyro-only propagation time allowed",
+   "ge",
+   "computed",
+   ""
+  ],
+  [
+   "ge_4",
+   "Knowledge error, magnetometer and sun only",
+   "ge",
+   "computed",
+   ""
+  ],
+  [
+   "ge_5",
+   "Knowledge error, sensors fitted",
+   "ge",
+   "computed",
+   ""
+  ],
+  [
+   "sb2",
+   "Act on it",
+   "sub",
+   "the actuators, one group per catalogue family",
+   ""
+  ],
+  [
+   "gm",
+   "Magnetic actuation",
+   "sb2",
+   "coils: the safety floor in every family",
+   ""
+  ],
+  [
+   "gm_0",
+   "Dipole available per axis",
+   "gm",
+   "set here",
+   "mtq"
+  ],
+  [
+   "gm_1",
+   "Dipole needed to reject disturbances",
+   "gm",
+   "computed",
+   "mtq"
+  ],
+  [
+   "gm_2",
+   "Dipole needed to dump momentum",
+   "gm",
+   "computed",
+   "mtq"
+  ],
+  [
+   "gm_3",
+   "Magnetic torque authority",
+   "gm",
+   "computed",
+   "mtq"
+  ],
+  [
+   "gm_4",
+   "Magnetorquer power",
+   "gm",
+   "computed",
+   "mtq"
+  ],
+  [
+   "gm_5",
+   "Magnetorquer mass",
+   "gm",
+   "computed",
+   "mtq"
+  ],
+  [
+   "gw",
+   "Reaction wheels",
+   "sb2",
+   "stored momentum for agility and quiet holds",
+   ""
+  ],
+  [
+   "gw_0",
+   "Wheel momentum capacity",
+   "gw",
+   "set here",
+   "rw"
+  ],
+  [
+   "gw_1",
+   "Wheel torque capacity",
+   "gw",
+   "set here",
+   "rw"
+  ],
+  [
+   "gw_2",
+   "Cyclic momentum to store",
+   "gw",
+   "computed",
+   "rw"
+  ],
+  [
+   "gw_3",
+   "Momentum for the reference slew",
+   "gw",
+   "computed",
+   "rw,fmr,rcs"
+  ],
+  [
+   "gw_4",
+   "Peak torque for the reference slew",
+   "gw",
+   "computed",
+   "rw,fmr,rcs"
+  ],
+  [
+   "gw_5",
+   "Wheel power",
+   "gw",
+   "computed",
+   "rw"
+  ],
+  [
+   "gw_6",
+   "Wheel mass",
+   "gw",
+   "computed",
+   "rw"
+  ],
+  [
+   "gf",
+   "Fluid momentum rings",
+   "sb2",
+   "IDMAS V2: liquid metal in a sealed channel",
+   ""
+  ],
+  [
+   "gf_0",
+   "Ring channel bore",
+   "gf",
+   "set here",
+   "fmr"
+  ],
+  [
+   "gf_1",
+   "Ring enclosed area",
+   "gf",
+   "set here",
+   "fmr"
+  ],
+  [
+   "gf_2",
+   "Ring fluid density",
+   "gf",
+   "set here",
+   "fmr"
+  ],
+  [
+   "gf_3",
+   "Ring fluid viscosity",
+   "gf",
+   "set here",
+   "fmr"
+  ],
+  [
+   "gf_4",
+   "Ring cruise speed",
+   "gf",
+   "set here",
+   "fmr"
+  ],
+  [
+   "gf_5",
+   "Ring channel length",
+   "gf",
+   "set here",
+   "fmr"
+  ],
+  [
+   "gf_6",
+   "Ring momentum at cruise speed",
+   "gf",
+   "computed",
+   "fmr"
+  ],
+  [
+   "gf_7",
+   "Ring spin-down time",
+   "gf",
+   "computed",
+   "fmr"
+  ],
+  [
+   "gf_8",
+   "Ring holding power",
+   "gf",
+   "computed",
+   "fmr"
+  ],
+  [
+   "gf_9",
+   "Ring pump pressure for the reference slew",
+   "gf",
+   "computed",
+   "fmr"
+  ],
+  [
+   "gr",
+   "Reaction control thrusters",
+   "sb2",
+   "IDMAS V3: slew excess, fast dumps, orbit trim",
+   ""
+  ],
+  [
+   "gr_0",
+   "Thrust per thruster",
+   "gr",
+   "set here",
+   "rcs"
+  ],
+  [
+   "gr_1",
+   "Thruster moment arm",
+   "gr",
+   "set here",
+   "rcs"
+  ],
+  [
+   "gr_2",
+   "Specific impulse",
+   "gr",
+   "set here",
+   "rcs"
+  ],
+  [
+   "gr_3",
+   "Propellant per slew",
+   "gr",
+   "computed",
+   "rcs"
+  ],
+  [
+   "gr_4",
+   "Propellant per year",
+   "gr",
+   "computed",
+   "rcs"
+  ],
+  [
+   "sb3",
+   "Close the loop",
+   "sub",
+   "control, allocation, the pointing budget and the modes",
+   ""
+  ],
+  [
+   "gc",
+   "Control and allocation",
+   "sb3",
+   "one allocation for every family",
+   ""
+  ],
+  [
+   "gc_0",
+   "Control bandwidth",
+   "gc",
+   "set here",
+   ""
+  ],
+  [
+   "gc_1",
+   "Damping ratio",
+   "gc",
+   "set here",
+   ""
+  ],
+  [
+   "gc_2",
+   "Settling time",
+   "gc",
+   "computed",
+   ""
+  ],
+  [
+   "gc_3",
+   "Torque authority, combined",
+   "gc",
+   "computed",
+   ""
+  ],
+  [
+   "gc_4",
+   "Momentum authority, combined",
+   "gc",
+   "computed",
+   ""
+  ],
+  [
+   "gc_5",
+   "Reference slew time achievable",
+   "gc",
+   "computed",
+   ""
+  ],
+  [
+   "gp",
+   "Pointing error budget",
+   "sb3",
+   "ECSS-E-ST-60-10C: every contributor, one budget",
+   ""
+  ],
+  [
+   "gp_0",
+   "Knowledge contribution",
+   "gp",
+   "computed",
+   ""
+  ],
+  [
+   "gp_1",
+   "Control contribution",
+   "gp",
+   "computed",
+   ""
+  ],
+  [
+   "gp_2",
+   "Alignment contribution",
+   "gp",
+   "computed",
+   ""
+  ],
+  [
+   "gp_3",
+   "Thermal distortion contribution",
+   "gp",
+   "set here",
+   ""
+  ],
+  [
+   "gp_4",
+   "Jitter contribution",
+   "gp",
+   "computed",
+   ""
+  ],
+  [
+   "gp_5",
+   "APE budget total",
+   "gp",
+   "computed",
+   ""
+  ],
+  [
+   "gq",
+   "Modes and FDIR",
+   "sb3",
+   "detumble, safe mode, and what a fault costs",
+   ""
+  ],
+  [
+   "gq_0",
+   "Detumble time estimate",
+   "gq",
+   "computed",
+   ""
+  ],
+  [
+   "gq_1",
+   "Safe-mode sun acquisition estimate",
+   "gq",
+   "computed",
+   ""
+  ],
+  [
+   "gq_2",
+   "Faults tolerated by the configuration",
+   "gq",
+   "computed",
+   ""
+  ],
+  [
+   "gq_3",
+   "Fault recovery time estimate",
+   "gq",
+   "computed",
+   ""
+  ],
+  [
+   "gq_4",
+   "Momentum dump interval estimate",
+   "gq",
+   "computed",
+   ""
+  ],
+  [
+   "sb4",
+   "Host it",
+   "sub",
+   "the software, the OBC and the unit's own budgets",
+   ""
+  ],
+  [
+   "gx",
+   "Flight software and OBC interfaces",
+   "sb4",
+   "what the loop costs the computer",
+   ""
+  ],
+  [
+   "gx_0",
+   "Control loop rate",
+   "gx",
+   "set here",
+   ""
+  ],
+  [
+   "gx_1",
+   "OBC CPU load",
+   "gx",
+   "computed",
+   ""
+  ],
+  [
+   "gx_2",
+   "Interfaces used",
+   "gx",
+   "computed",
+   ""
+  ],
+  [
+   "gx_3",
+   "Sensor-to-actuator latency",
+   "gx",
+   "computed",
+   ""
+  ],
+  [
+   "gx_4",
+   "Telemetry rate",
+   "gx",
+   "computed",
+   ""
+  ],
+  [
+   "gb",
+   "ADCS unit budgets",
+   "sb4",
+   "the totals the case's allocation is checked against",
+   ""
+  ],
+  [
+   "gb_0",
+   "ADCS mass total",
+   "gb",
+   "computed",
+   ""
+  ],
+  [
+   "gb_1",
+   "ADCS orbit-average power total",
+   "gb",
+   "computed",
+   ""
+  ],
+  [
+   "gb_2",
+   "ADCS peak power total",
+   "gb",
+   "computed",
+   ""
+  ],
+  [
+   "gb_3",
+   "ADCS volume total",
+   "gb",
+   "computed",
+   ""
+  ],
+  [
+   "ver",
+   "Verification",
+   "prg",
+   "how each achieved number was earned",
+   ""
+  ],
+  [
+   "v1",
+   "Verification coverage",
+   "ver",
+   "which rung supplied each achieved value",
+   ""
+  ],
+  [
+   "v1_0",
+   "Requirements verified by analysis",
+   "v1",
+   "set here",
+   ""
+  ],
+  [
+   "v1_1",
+   "Requirements verified by SILS",
+   "v1",
+   "set here",
+   ""
+  ],
+  [
+   "v1_2",
+   "Requirements verified by OILS",
+   "v1",
+   "set here",
+   ""
+  ],
+  [
+   "v1_3",
+   "Requirements verified by HILS",
+   "v1",
+   "set here",
+   ""
+  ],
+  [
+   "v1_4",
+   "Requirements not yet verified",
+   "v1",
+   "set here",
+   ""
+  ],
+  [
+   "v2",
+   "Campaign evidence",
+   "ver",
+   "the size of the evidence behind the numbers",
+   ""
+  ],
+  [
+   "v2_0",
+   "Monte Carlo runs",
+   "v2",
+   "set here",
+   ""
+  ],
+  [
+   "v2_1",
+   "Edge cases run",
+   "v2",
+   "set here",
+   ""
+  ],
+  [
+   "v2_2",
+   "SILS to OILS difference, APE",
+   "v2",
+   "set here",
+   ""
+  ],
+  [
+   "v2_3",
+   "SILS to HILS difference, APE",
+   "v2",
+   "set here",
+   ""
+  ],
+  [
+   "v3",
+   "OILS rig needs",
+   "ver",
+   "what the OBC-in-the-loop rig must do to test this case's unit",
+   ""
+  ],
+  [
+   "v3_0",
+   "Real-time plant step needed",
+   "v3",
+   "computed",
+   ""
+  ],
+  [
+   "v3_1",
+   "Flight ports to answer",
+   "v3",
+   "computed",
+   ""
+  ],
+  [
+   "v3_2",
+   "Rig loop latency allowed",
+   "v3",
+   "computed",
+   ""
+  ],
+  [
+   "v3_3",
+   "Emulator link rate needed",
+   "v3",
+   "computed",
+   ""
+  ],
+  [
+   "v3_4",
+   "Real-time run length",
+   "v3",
+   "computed",
+   ""
+  ],
+  [
+   "v4",
+   "HILS rig needs",
+   "ver",
+   "what the cage, the bearing, the stimulators and the test stands must do for this case's unit",
+   ""
+  ],
+  [
+   "v4_0",
+   "Cage field range needed",
+   "v4",
+   "computed",
+   ""
+  ],
+  [
+   "v4_1",
+   "Cage field accuracy needed",
+   "v4",
+   "computed",
+   ""
+  ],
+  [
+   "v4_2",
+   "Cage field slew rate needed",
+   "v4",
+   "computed",
+   ""
+  ],
+  [
+   "v4_3",
+   "Bearing residual torque allowed",
+   "v4",
+   "computed",
+   ""
+  ],
+  [
+   "v4_4",
+   "Bearing balance offset allowed",
+   "v4",
+   "computed",
+   ""
+  ],
+  [
+   "v4_5",
+   "Bearing tilt range needed",
+   "v4",
+   "computed",
+   ""
+  ],
+  [
+   "v4_6",
+   "Platform inertia to match",
+   "v4",
+   "computed",
+   ""
+  ],
+  [
+   "v4_7",
+   "Truth attitude accuracy needed",
+   "v4",
+   "computed",
+   ""
+  ],
+  [
+   "v4_8",
+   "Sun simulator irradiance needed",
+   "v4",
+   "computed",
+   ""
+  ],
+  [
+   "v4_9",
+   "Sun simulator collimation needed",
+   "v4",
+   "computed",
+   ""
+  ],
+  [
+   "v4_10",
+   "Star stimulator error allowed",
+   "v4",
+   "computed",
+   ""
+  ],
+  [
+   "v4_11",
+   "Star stimulator frame rate needed",
+   "v4",
+   "computed",
+   ""
+  ],
+  [
+   "v4_12",
+   "Coil dipole to measure",
+   "v4",
+   "computed",
+   "mtq"
+  ],
+  [
+   "v4_13",
+   "Wheel torque and disturbance to measure",
+   "v4",
+   "computed",
+   "rw"
+  ],
+  [
+   "v4_14",
+   "Ring torque to measure",
+   "v4",
+   "computed",
+   "fmr"
+  ],
+  [
+   "v4_15",
+   "Thrust to measure",
+   "v4",
+   "computed",
+   "rcs"
+  ]
+ ],
+ "ED_SYS": [
+  [
+   "svc",
+   "cpt",
+   "the service asked for picks the family"
+  ],
+  [
+   "m2",
+   "m3",
+   "the orbit sets the environment"
+  ],
+  [
+   "m3",
+   "gd",
+   "field, density and light set the torques"
+  ],
+  [
+   "s1",
+   "gd",
+   "inertia sets the gravity-gradient torque"
+  ],
+  [
+   "s2",
+   "gd",
+   "areas and offsets set aero and solar torques"
+  ],
+  [
+   "s3",
+   "gd",
+   "the residual dipole sets the magnetic torque"
+  ],
+  [
+   "gd",
+   "gm",
+   "the coils must reject and dump what the environment adds"
+  ],
+  [
+   "gd",
+   "gw",
+   "the wheels must store the cyclic part"
+  ],
+  [
+   "m1",
+   "gw",
+   "the reference slew sizes the stored momentum"
+  ],
+  [
+   "gw",
+   "gf",
+   "the rings are sized against the same slew"
+  ],
+  [
+   "gw",
+   "gr",
+   "the thrusters carry what the rings cannot"
+  ],
+  [
+   "cpt",
+   "gc",
+   "the counts fitted set the combined authority"
+  ],
+  [
+   "gm",
+   "gc",
+   "coil authority enters the allocation"
+  ],
+  [
+   "gf",
+   "gc",
+   "ring authority enters the allocation"
+  ],
+  [
+   "gr",
+   "gc",
+   "thruster authority enters the allocation"
+  ],
+  [
+   "gs",
+   "ge",
+   "sensor errors set what the filter can know"
+  ],
+  [
+   "ge",
+   "gp",
+   "knowledge enters the pointing budget"
+  ],
+  [
+   "gc",
+   "gp",
+   "control error enters the pointing budget"
+  ],
+  [
+   "s4",
+   "gc",
+   "the first mode caps the bandwidth"
+  ],
+  [
+   "gc",
+   "gq",
+   "authority sets detumble and recovery"
+  ],
+  [
+   "gx",
+   "gp",
+   "latency enters the pointing budget"
+  ],
+  [
+   "cpt",
+   "gb",
+   "every fitted part is in the budget"
+  ],
+  [
+   "s5",
+   "gb",
+   "the allocation is what the budget closes against"
+  ],
+  [
+   "gp",
+   "p1a",
+   "the budget is the achieved pointing"
+  ],
+  [
+   "gc",
+   "p2a",
+   "authority and bandwidth are the achieved agility"
+  ],
+  [
+   "gq",
+   "p3a",
+   "modes are the achieved robustness"
+  ],
+  [
+   "gb",
+   "p4a",
+   "the budget totals are the achieved footprint"
+  ],
+  [
+   "v1",
+   "svc",
+   "each achieved KPI carries the rung that earned it"
+  ],
+  [
+   "gx",
+   "v3",
+   "the flight loop sets the real-time plant"
+  ],
+  [
+   "cpt",
+   "v3",
+   "every fitted part is a flight port the rig answers"
+  ],
+  [
+   "m3",
+   "v4",
+   "the orbit's field is what the cage must make"
+  ],
+  [
+   "gc",
+   "v4",
+   "control authority sets the bearing torque allowed"
+  ],
+  [
+   "gs",
+   "v4",
+   "the sensors fitted set the stimulators"
+  ],
+  [
+   "cpt",
+   "v4",
+   "the hardware fitted sets what the test stands measure"
+  ],
+  [
+   "v3",
+   "v1",
+   "OILS campaigns verify what OILS can"
+  ],
+  [
+   "v4",
+   "v1",
+   "HILS campaigns verify the unit"
+  ]
+ ],
+ "VE": [
+  [
+   "m2_0",
+   "m2_4",
+   "radius from altitude"
+  ],
+  [
+   "m2_4",
+   "m2_5",
+   "period from the semi-major axis"
+  ],
+  [
+   "m2_5",
+   "m2_6",
+   "mean motion from the period"
+  ],
+  [
+   "m2_0",
+   "m2_7",
+   "eclipse from the Earth's angular radius"
+  ],
+  [
+   "m2_3",
+   "m2_7",
+   "beta angle from the node's local time"
+  ],
+  [
+   "m2_1",
+   "m3_2",
+   "the orbit reaches the magnetic latitudes its inclination allows"
+  ],
+  [
+   "m2_4",
+   "m3_0",
+   "dipole field falls as the cube of radius"
+  ],
+  [
+   "m2_4",
+   "m3_1",
+   "dipole field falls as the cube of radius"
+  ],
+  [
+   "m3_2",
+   "m3_1",
+   "the field doubles from equator to pole"
+  ],
+  [
+   "m2_0",
+   "m3_3",
+   "density from altitude"
+  ],
+  [
+   "m1_1",
+   "m3_3",
+   "solar activity at the launch epoch"
+  ],
+  [
+   "m2_4",
+   "m3_4",
+   "circular speed at that radius"
+  ],
+  [
+   "m2_4",
+   "gd_0",
+   "gravity gradient falls as the cube of radius"
+  ],
+  [
+   "s1_1",
+   "gd_0",
+   "the inertia difference drives the torque"
+  ],
+  [
+   "s1_3",
+   "gd_0",
+   "the inertia difference drives the torque"
+  ],
+  [
+   "m3_3",
+   "gd_1",
+   "dynamic pressure"
+  ],
+  [
+   "m3_4",
+   "gd_1",
+   "dynamic pressure"
+  ],
+  [
+   "s2_0",
+   "gd_1",
+   "the area the air pushes on"
+  ],
+  [
+   "s2_1",
+   "gd_1",
+   "the lever arm"
+  ],
+  [
+   "s2_5",
+   "gd_1",
+   "the drag coefficient"
+  ],
+  [
+   "m3_5",
+   "gd_2",
+   "the light's pressure"
+  ],
+  [
+   "s2_2",
+   "gd_2",
+   "the area it pushes on"
+  ],
+  [
+   "s2_3",
+   "gd_2",
+   "the lever arm"
+  ],
+  [
+   "s2_4",
+   "gd_2",
+   "reflection adds to absorption"
+  ],
+  [
+   "s3_0",
+   "gd_3",
+   "residual dipole across the field"
+  ],
+  [
+   "m3_1",
+   "gd_3",
+   "the worst-case field"
+  ],
+  [
+   "gd_0",
+   "gd_4",
+   "summed worst case"
+  ],
+  [
+   "gd_1",
+   "gd_4",
+   "summed worst case"
+  ],
+  [
+   "gd_2",
+   "gd_4",
+   "summed worst case"
+  ],
+  [
+   "gd_3",
+   "gd_4",
+   "summed worst case"
+  ],
+  [
+   "gd_4",
+   "gd_5",
+   "a torque held for an orbit"
+  ],
+  [
+   "m2_5",
+   "gd_5",
+   "one orbit"
+  ],
+  [
+   "gd_4",
+   "gm_1",
+   "torque over the weakest field"
+  ],
+  [
+   "m3_0",
+   "gm_1",
+   "the weakest field along the orbit"
+  ],
+  [
+   "gd_5",
+   "gm_2",
+   "momentum to remove each orbit"
+  ],
+  [
+   "m3_0",
+   "gm_2",
+   "the weakest field"
+  ],
+  [
+   "m2_5",
+   "gm_2",
+   "the time available to dump it"
+  ],
+  [
+   "gm_0",
+   "gm_3",
+   "dipole fitted"
+  ],
+  [
+   "m3_0",
+   "gm_3",
+   "the weakest field"
+  ],
+  [
+   "cf_0",
+   "gm_3",
+   "axes fitted"
+  ],
+  [
+   "gm_0",
+   "gm_4",
+   "power grows with the square of the dipole"
+  ],
+  [
+   "cf_0",
+   "gm_5",
+   "one coil set per axis"
+  ],
+  [
+   "gd_4",
+   "gw_2",
+   "cyclic disturbance momentum"
+  ],
+  [
+   "m2_5",
+   "gw_2",
+   "over a quarter orbit"
+  ],
+  [
+   "s1_1",
+   "gw_3",
+   "bang-bang slew about the largest axis"
+  ],
+  [
+   "m1_4",
+   "gw_3",
+   "the reference slew angle"
+  ],
+  [
+   "p2k_0",
+   "gw_3",
+   "in the required slew time"
+  ],
+  [
+   "cf_1",
+   "gw_5",
+   "wheels fitted"
+  ],
+  [
+   "cf_1",
+   "gw_6",
+   "wheels fitted"
+  ],
+  [
+   "gf_0",
+   "gf_6",
+   "momentum grows with the bore area"
+  ],
+  [
+   "gf_1",
+   "gf_6",
+   "momentum grows with the enclosed area"
+  ],
+  [
+   "gf_2",
+   "gf_6",
+   "momentum grows with the fluid density"
+  ],
+  [
+   "gf_4",
+   "gf_6",
+   "momentum grows with the flow speed"
+  ],
+  [
+   "gf_0",
+   "gf_7",
+   "spin-down grows with the square of the bore"
+  ],
+  [
+   "gf_2",
+   "gf_7",
+   "denser fluid coasts longer"
+  ],
+  [
+   "gf_3",
+   "gf_7",
+   "viscosity drains it"
+  ],
+  [
+   "gf_6",
+   "gf_8",
+   "holding power grows with momentum squared"
+  ],
+  [
+   "gf_3",
+   "gf_8",
+   "viscous loss"
+  ],
+  [
+   "gf_5",
+   "gf_8",
+   "loss grows with the channel length"
+  ],
+  [
+   "gf_2",
+   "gf_8",
+   "denser fluid needs less speed for the same momentum"
+  ],
+  [
+   "gf_0",
+   "gf_8",
+   "a wider bore loses less"
+  ],
+  [
+   "gf_1",
+   "gf_8",
+   "more enclosed area needs less speed"
+  ],
+  [
+   "s1_1",
+   "gw_4",
+   "bang-bang slew about the largest axis"
+  ],
+  [
+   "m1_4",
+   "gw_4",
+   "the reference slew angle"
+  ],
+  [
+   "p2k_0",
+   "gw_4",
+   "in the required slew time"
+  ],
+  [
+   "gw_4",
+   "gf_9",
+   "the slew's peak torque"
+  ],
+  [
+   "gf_5",
+   "gf_9",
+   "the pressure acts along the channel length"
+  ],
+  [
+   "gf_1",
+   "gf_9",
+   "the channel's enclosed area"
+  ],
+  [
+   "gf_0",
+   "gf_9",
+   "the channel's bore"
+  ],
+  [
+   "gw_3",
+   "gr_3",
+   "momentum to add and remove"
+  ],
+  [
+   "gr_1",
+   "gr_3",
+   "the lever arm"
+  ],
+  [
+   "gr_2",
+   "gr_3",
+   "specific impulse"
+  ],
+  [
+   "gr_3",
+   "gr_4",
+   "per slew"
+  ],
+  [
+   "m1_3",
+   "gr_4",
+   "slews per day"
+  ],
+  [
+   "cf_3",
+   "gr_4",
+   "zero when no thrusters are fitted"
+  ],
+  [
+   "gc_0",
+   "gc_2",
+   "settling from the closed-loop poles"
+  ],
+  [
+   "gc_1",
+   "gc_2",
+   "settling from the closed-loop poles"
+  ],
+  [
+   "gm_3",
+   "gc_3",
+   "coil authority"
+  ],
+  [
+   "gw_1",
+   "gc_3",
+   "wheel torque"
+  ],
+  [
+   "cf_1",
+   "gc_3",
+   "wheels fitted"
+  ],
+  [
+   "gr_0",
+   "gc_3",
+   "thruster torque"
+  ],
+  [
+   "gr_1",
+   "gc_3",
+   "thruster torque"
+  ],
+  [
+   "cf_3",
+   "gc_3",
+   "thrusters fitted"
+  ],
+  [
+   "gw_0",
+   "gc_4",
+   "wheel momentum"
+  ],
+  [
+   "cf_1",
+   "gc_4",
+   "wheels fitted"
+  ],
+  [
+   "gf_6",
+   "gc_4",
+   "ring momentum"
+  ],
+  [
+   "cf_2",
+   "gc_4",
+   "rings fitted"
+  ],
+  [
+   "gc_3",
+   "gc_5",
+   "torque-limited slew"
+  ],
+  [
+   "gc_4",
+   "gc_5",
+   "momentum-limited coast"
+  ],
+  [
+   "s1_1",
+   "gc_5",
+   "about the largest axis"
+  ],
+  [
+   "m1_4",
+   "gc_5",
+   "the reference angle"
+  ],
+  [
+   "m1_1",
+   "m3_5",
+   "sun distance on that date"
+  ],
+  [
+   "gs_2",
+   "ge_3",
+   "the gap the random walk allows"
+  ],
+  [
+   "gs_3",
+   "ge_3",
+   "the gap the bias allows"
+  ],
+  [
+   "p1k_1",
+   "ge_3",
+   "the knowledge the gap may cost"
+  ],
+  [
+   "gs_0",
+   "ge_1",
+   "star tracker noise"
+  ],
+  [
+   "gs_1",
+   "ge_1",
+   "star tracker noise about boresight"
+  ],
+  [
+   "gs_2",
+   "ge_1",
+   "gyro noise between updates"
+  ],
+  [
+   "ge_0",
+   "ge_1",
+   "update interval"
+  ],
+  [
+   "cf_4",
+   "ge_1",
+   "heads fitted"
+  ],
+  [
+   "gs_2",
+   "ge_2",
+   "angle random walk over the gap"
+  ],
+  [
+   "gs_3",
+   "ge_2",
+   "bias instability over the gap"
+  ],
+  [
+   "ge_3",
+   "ge_2",
+   "the gap"
+  ],
+  [
+   "gs_4",
+   "ge_4",
+   "field direction noise"
+  ],
+  [
+   "m3_0",
+   "ge_4",
+   "the weakest field is the noisiest direction"
+  ],
+  [
+   "gs_5",
+   "ge_4",
+   "sun direction accuracy"
+  ],
+  [
+   "ge_1",
+   "ge_5",
+   "the star tracker's knowledge, when one is fitted"
+  ],
+  [
+   "ge_4",
+   "ge_5",
+   "magnetometer and sun knowledge, when no star tracker is"
+  ],
+  [
+   "cf_4",
+   "ge_5",
+   "which of the two the fitted sensors give"
+  ],
+  [
+   "ge_5",
+   "gp_0",
+   "knowledge enters the budget"
+  ],
+  [
+   "gc_2",
+   "gp_1",
+   "control error from the loop"
+  ],
+  [
+   "gd_4",
+   "gp_1",
+   "disturbance the loop must reject"
+  ],
+  [
+   "gc_3",
+   "gp_1",
+   "authority available to reject it"
+  ],
+  [
+   "gs_6",
+   "gp_2",
+   "alignment enters the budget"
+  ],
+  [
+   "gx_3",
+   "gp_4",
+   "latency against the rate"
+  ],
+  [
+   "gp_0",
+   "gp_5",
+   "summed per ECSS-E-ST-60-10C"
+  ],
+  [
+   "gp_1",
+   "gp_5",
+   "summed per ECSS-E-ST-60-10C"
+  ],
+  [
+   "gp_2",
+   "gp_5",
+   "summed per ECSS-E-ST-60-10C"
+  ],
+  [
+   "gp_3",
+   "gp_5",
+   "summed per ECSS-E-ST-60-10C"
+  ],
+  [
+   "gp_4",
+   "gp_5",
+   "summed per ECSS-E-ST-60-10C"
+  ],
+  [
+   "m1_5",
+   "gq_0",
+   "the rate to remove"
+  ],
+  [
+   "s1_1",
+   "gq_0",
+   "the inertia to slow"
+  ],
+  [
+   "gm_3",
+   "gq_0",
+   "coil authority"
+  ],
+  [
+   "gc_3",
+   "gq_1",
+   "authority to acquire"
+  ],
+  [
+   "cf_0",
+   "gq_2",
+   "redundancy per family"
+  ],
+  [
+   "cf_1",
+   "gq_2",
+   "redundancy per family"
+  ],
+  [
+   "cf_2",
+   "gq_2",
+   "redundancy per family"
+  ],
+  [
+   "cf_3",
+   "gq_2",
+   "redundancy per family"
+  ],
+  [
+   "gc_3",
+   "gq_3",
+   "authority after a fault"
+  ],
+  [
+   "gd_5",
+   "gq_4",
+   "momentum gathered per orbit"
+  ],
+  [
+   "gc_4",
+   "gq_4",
+   "momentum that can be stored"
+  ],
+  [
+   "gm_2",
+   "gq_4",
+   "dipole needed against dipole available"
+  ],
+  [
+   "gx_0",
+   "gx_1",
+   "loop rate"
+  ],
+  [
+   "gx_0",
+   "gx_3",
+   "one loop period"
+  ],
+  [
+   "cf_0",
+   "gx_2",
+   "every fitted part needs a port"
+  ],
+  [
+   "cf_1",
+   "gx_2",
+   "every fitted part needs a port"
+  ],
+  [
+   "cf_2",
+   "gx_2",
+   "every fitted part needs a port"
+  ],
+  [
+   "cf_3",
+   "gx_2",
+   "every fitted part needs a port"
+  ],
+  [
+   "cf_4",
+   "gx_2",
+   "every fitted part needs a port"
+  ],
+  [
+   "cf_5",
+   "gx_2",
+   "every fitted part needs a port"
+  ],
+  [
+   "gx_0",
+   "gx_4",
+   "one frame per loop"
+  ],
+  [
+   "gm_5",
+   "gb_0",
+   "coil mass"
+  ],
+  [
+   "gw_6",
+   "gb_0",
+   "wheel mass"
+  ],
+  [
+   "gm_4",
+   "gb_1",
+   "coil power"
+  ],
+  [
+   "gw_5",
+   "gb_1",
+   "wheel power"
+  ],
+  [
+   "gf_8",
+   "gb_1",
+   "ring holding power"
+  ],
+  [
+   "cf_2",
+   "gb_1",
+   "holding power per ring, times the rings fitted; zero when none"
+  ],
+  [
+   "gm_4",
+   "gb_2",
+   "coil peak"
+  ],
+  [
+   "gw_5",
+   "gb_2",
+   "wheel peak"
+  ],
+  [
+   "gf_9",
+   "gb_2",
+   "ring sprint power"
+  ],
+  [
+   "cf_2",
+   "gb_2",
+   "sprint power per ring, times the rings fitted; zero when none"
+  ],
+  [
+   "cf_0",
+   "gb_3",
+   "volume per part"
+  ],
+  [
+   "cf_1",
+   "gb_3",
+   "volume per part"
+  ],
+  [
+   "cf_2",
+   "gb_3",
+   "volume per part"
+  ],
+  [
+   "cf_3",
+   "gb_3",
+   "volume per part"
+  ],
+  [
+   "cm2_0",
+   "cm2_4",
+   "parts"
+  ],
+  [
+   "cm2_1",
+   "cm2_4",
+   "labour"
+  ],
+  [
+   "cm2_2",
+   "cm2_4",
+   "labour"
+  ],
+  [
+   "cm2_4",
+   "cm1_0",
+   "price from cost and margin"
+  ],
+  [
+   "cm3_0",
+   "cm1_0",
+   "price from cost and margin"
+  ],
+  [
+   "cm3_2",
+   "cm1_0",
+   "the data-share discount"
+  ],
+  [
+   "cm2_3",
+   "cm1_1",
+   "rig days"
+  ],
+  [
+   "cm2_3",
+   "cm1_2",
+   "rig days"
+  ],
+  [
+   "cm1_0",
+   "cm1_4",
+   "summed"
+  ],
+  [
+   "cm1_1",
+   "cm1_4",
+   "summed"
+  ],
+  [
+   "cm1_2",
+   "cm1_4",
+   "summed"
+  ],
+  [
+   "cm1_0",
+   "cm3_1",
+   "price against cost"
+  ],
+  [
+   "cm2_4",
+   "cm3_1",
+   "price against cost"
+  ],
+  [
+   "od1_0",
+   "od1_9",
+   "summed"
+  ],
+  [
+   "od1_1",
+   "od1_9",
+   "summed"
+  ],
+  [
+   "od1_2",
+   "od1_9",
+   "summed"
+  ],
+  [
+   "od1_3",
+   "od1_9",
+   "summed"
+  ],
+  [
+   "od1_4",
+   "od1_9",
+   "summed"
+  ],
+  [
+   "od1_5",
+   "od1_9",
+   "summed"
+  ],
+  [
+   "od1_6",
+   "od1_9",
+   "summed"
+  ],
+  [
+   "od1_7",
+   "od1_9",
+   "summed"
+  ],
+  [
+   "od1_8",
+   "od1_9",
+   "summed"
+  ],
+  [
+   "fa1_0",
+   "fa1_1",
+   "runs scale with cores"
+  ],
+  [
+   "od1_5",
+   "fa4_0",
+   "rig days per order"
+  ],
+  [
+   "od1_6",
+   "fa4_0",
+   "rig days per order"
+  ],
+  [
+   "fa4_0",
+   "fa4_1",
+   "booked against available"
+  ],
+  [
+   "fa2_0",
+   "fa4_1",
+   "booked against available"
+  ],
+  [
+   "hr1_0",
+   "hr1_2",
+   "units flown"
+  ],
+  [
+   "ct1_3",
+   "ct1_4",
+   "classes covered"
+  ],
+  [
+   "ct1_2",
+   "ct1_4",
+   "of classes defined"
+  ],
+  [
+   "ct2_1",
+   "ct2_2",
+   "combinations that passed"
+  ],
+  [
+   "ct2_0",
+   "ct2_2",
+   "of combinations evaluated"
+  ],
+  [
+   "ct3_1",
+   "ct3_2",
+   "cases matched"
+  ],
+  [
+   "ct3_0",
+   "ct3_2",
+   "of cases solved"
+  ],
+  [
+   "gx_0",
+   "v3_0",
+   "the plant runs several steps per flight cycle"
+  ],
+  [
+   "cf_0",
+   "v3_1",
+   "each fitted part is a port"
+  ],
+  [
+   "cf_1",
+   "v3_1",
+   "each fitted part is a port"
+  ],
+  [
+   "cf_2",
+   "v3_1",
+   "each fitted part is a port"
+  ],
+  [
+   "cf_3",
+   "v3_1",
+   "each fitted part is a port"
+  ],
+  [
+   "cf_4",
+   "v3_1",
+   "each fitted part is a port"
+  ],
+  [
+   "cf_5",
+   "v3_1",
+   "each fitted part is a port"
+  ],
+  [
+   "gx_2",
+   "v3_1",
+   "the interfaces the flight software uses"
+  ],
+  [
+   "gx_3",
+   "v3_2",
+   "the rig may add only a share of the loop's latency"
+  ],
+  [
+   "gx_0",
+   "v3_2",
+   "within one flight cycle"
+  ],
+  [
+   "v3_1",
+   "v3_3",
+   "every port's traffic crosses the link"
+  ],
+  [
+   "gx_0",
+   "v3_3",
+   "once per flight cycle"
+  ],
+  [
+   "m2_5",
+   "v3_4",
+   "a real-time run lasts at least the orbit it flies"
+  ],
+  [
+   "m3_1",
+   "v4_0",
+   "the strongest field on the orbit"
+  ],
+  [
+   "m3_0",
+   "v4_1",
+   "the weakest field sets the error allowed"
+  ],
+  [
+   "gs_4",
+   "v4_1",
+   "the magnetometer must not see the cage's error"
+  ],
+  [
+   "m3_1",
+   "v4_2",
+   "the field turns once per orbit, twice as fast near the poles"
+  ],
+  [
+   "m2_6",
+   "v4_2",
+   "at the orbital rate"
+  ],
+  [
+   "gc_3",
+   "v4_3",
+   "the bearing's torque must stay small beside the authority"
+  ],
+  [
+   "gd_4",
+   "v4_3",
+   "and beside the orbit's disturbance it stands in for"
+  ],
+  [
+   "v4_3",
+   "v4_4",
+   "torque is weight times offset"
+  ],
+  [
+   "s1_0",
+   "v4_4",
+   "the weight on the bearing"
+  ],
+  [
+   "m1_4",
+   "v4_5",
+   "the reference slew, about an axis the bearing may tilt"
+  ],
+  [
+   "s1_1",
+   "v4_6",
+   "the platform must carry the unit's inertia"
+  ],
+  [
+   "s1_2",
+   "v4_6",
+   "the platform must carry the unit's inertia"
+  ],
+  [
+   "s1_3",
+   "v4_6",
+   "the platform must carry the unit's inertia"
+  ],
+  [
+   "ge_5",
+   "v4_7",
+   "truth must be finer than the knowledge it checks"
+  ],
+  [
+   "m3_5",
+   "v4_8",
+   "the Sun's pressure is its irradiance over the speed of light"
+  ],
+  [
+   "gs_5",
+   "v4_9",
+   "the simulated Sun must be sharper than the sensor"
+  ],
+  [
+   "gs_0",
+   "v4_10",
+   "the rendered sky must be finer than the tracker"
+  ],
+  [
+   "gs_1",
+   "v4_10",
+   "the rendered sky must be finer than the tracker"
+  ],
+  [
+   "ge_0",
+   "v4_11",
+   "a frame for every estimator update"
+  ],
+  [
+   "gm_0",
+   "v4_12",
+   "the dipole each coil must be shown to give"
+  ],
+  [
+   "gw_1",
+   "v4_13",
+   "the torque the wheel must be shown to give"
+  ],
+  [
+   "gw_0",
+   "v4_13",
+   "the momentum at which its imbalance is measured"
+  ],
+  [
+   "gw_4",
+   "v4_14",
+   "the torque the rings must be shown to give"
+  ],
+  [
+   "gf_6",
+   "v4_14",
+   "at the momentum they carry"
+  ],
+  [
+   "gr_0",
+   "v4_15",
+   "the thrust each thruster must be shown to give"
+  ],
+  [
+   "rk3_0",
+   "rk4_0",
+   "highest over the areas"
+  ],
+  [
+   "rk3_1",
+   "rk4_0",
+   "highest over the areas"
+  ],
+  [
+   "rk3_2",
+   "rk4_0",
+   "highest over the areas"
+  ],
+  [
+   "rk3_3",
+   "rk4_0",
+   "highest over the areas"
+  ],
+  [
+   "rk3_4",
+   "rk4_0",
+   "highest over the areas"
+  ],
+  [
+   "rk3_5",
+   "rk4_0",
+   "highest over the areas"
+  ],
+  [
+   "rk3_6",
+   "rk4_0",
+   "highest over the areas"
+  ],
+  [
+   "rk1_4",
+   "rk4_1",
+   "closed less opened"
+  ],
+  [
+   "rk1_3",
+   "rk4_1",
+   "closed less opened"
+  ],
+  [
+   "rk2_2",
+   "rk4_2",
+   "tested share of the beliefs"
+  ],
+  [
+   "rk2_3",
+   "rk4_2",
+   "tested share of the beliefs"
+  ]
+ ],
+ "KE": [
+  [
+   "gp_5",
+   "p1a_0",
+   "the budget total is the achieved APE"
+  ],
+  [
+   "ge_5",
+   "p1a_1",
+   "knowledge with the sensors fitted"
+  ],
+  [
+   "gp_4",
+   "p1a_2",
+   "jitter sets the relative error"
+  ],
+  [
+   "gp_3",
+   "p1a_3",
+   "thermal drift sets the drift error"
+  ],
+  [
+   "gc_2",
+   "p1a_4",
+   "the loop sets rate stability"
+  ],
+  [
+   "gs_2",
+   "p1a_5",
+   "gyro noise sets relative knowledge"
+  ],
+  [
+   "gc_5",
+   "p2a_0",
+   "the reference slew achievable"
+  ],
+  [
+   "gc_2",
+   "p2a_1",
+   "settling after the slew"
+  ],
+  [
+   "gc_5",
+   "p2a_2",
+   "slews that fit in an orbit"
+  ],
+  [
+   "gc_3",
+   "p2a_3",
+   "authority sets the tracking rate"
+  ],
+  [
+   "gc_4",
+   "p2a_4",
+   "stored momentum sets the maximum rate"
+  ],
+  [
+   "gq_0",
+   "p3a_0",
+   "detumble estimate"
+  ],
+  [
+   "gq_1",
+   "p3a_1",
+   "sun acquisition estimate"
+  ],
+  [
+   "gq_2",
+   "p3a_2",
+   "faults the configuration tolerates"
+  ],
+  [
+   "gq_3",
+   "p3a_3",
+   "recovery estimate"
+  ],
+  [
+   "gc_4",
+   "p3a_4",
+   "stored momentum against the cyclic load"
+  ],
+  [
+   "gw_2",
+   "p3a_4",
+   "stored momentum against the cyclic load"
+  ],
+  [
+   "gq_4",
+   "p3a_5",
+   "dump interval estimate"
+  ],
+  [
+   "gb_0",
+   "p4a_0",
+   "mass total"
+  ],
+  [
+   "gb_1",
+   "p4a_1",
+   "average power total"
+  ],
+  [
+   "gb_2",
+   "p4a_2",
+   "peak power total"
+  ],
+  [
+   "gb_3",
+   "p4a_3",
+   "volume total"
+  ],
+  [
+   "gr_4",
+   "p4a_4",
+   "propellant per year"
+  ]
+ ]
+}

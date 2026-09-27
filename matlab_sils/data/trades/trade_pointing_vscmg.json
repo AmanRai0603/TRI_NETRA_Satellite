@@ -1,0 +1,50 @@
+{
+ "candidates": [
+  {
+   "algorithms": {
+    "pointing": "pid"
+   },
+   "id": "pid",
+   "label": "PID (Standard Code nadirPointing)"
+  },
+  {
+   "algorithms": {
+    "pointing": "lqr"
+   },
+   "id": "lqr",
+   "label": "LQR (Bryson weights)"
+  },
+  {
+   "algorithms": {
+    "pointing": "smc"
+   },
+   "id": "smc",
+   "label": "sliding mode (Crassidis & Markley)"
+  }
+ ],
+ "gate": [
+  "ape_los_p9973",
+  "ake_los_p9973"
+ ],
+ "id": "trade_pointing_vscmg",
+ "kind": "algorithm",
+ "label": "Imaging 3U, VSCMG pyramid \u2014 fine-pointing law (0.01 deg)",
+ "objective": {
+  "metric": "ape_los_p9973",
+  "sense": "min"
+ },
+ "promote_to": "TRN-P-3U-VSCMG",
+ "question": "Which control law gives the smallest 3-sigma payload APE on a nadir hold with the VSCMG pyramid?",
+ "scenario": "fine_hold_vscmg",
+ "schema": "adcs-trade/1",
+ "seeds": [
+  1,
+  2
+ ],
+ "slot": "pointing",
+ "tie_break": {
+  "metric": "power_mean",
+  "sense": "min"
+ },
+ "tie_tol": 0.05
+}

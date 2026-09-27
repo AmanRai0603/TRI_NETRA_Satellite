@@ -1,0 +1,121 @@
+{
+ "confirmed_by": "UNCONFIRMED \u00b7 bounds \u00b7 awaiting a person",
+ "families": [
+  "mtq",
+  "mtq_fmr",
+  "mtq_fmr_rcs"
+ ],
+ "fsw": "reference",
+ "id": "idmas_split",
+ "label": "IDMAS split projection and allocation",
+ "modes": [
+  "inertial_hold",
+  "nadir_hold",
+  "target_hold",
+  "slew",
+  "dump"
+ ],
+ "needs": [
+  "rings",
+  "coils"
+ ],
+ "number": 4,
+ "param": [
+  {
+   "hi": 1.0,
+   "lo": 0.01,
+   "meaning": "closed-loop natural frequency",
+   "name": "bandwidth",
+   "number": 1,
+   "scale": "log",
+   "trades": "pointing and agility against ring power and flexible-mode margin",
+   "tree_id": "gc_0",
+   "unit": "RadianPerSecond"
+  },
+  {
+   "hi": 1.0,
+   "lo": 0.5,
+   "meaning": "closed-loop damping ratio",
+   "name": "damping",
+   "number": 2,
+   "scale": "lin",
+   "trades": "overshoot against settling time",
+   "tree_id": "gc_1",
+   "unit": "One"
+  },
+  {
+   "hi": 20.0,
+   "lo": 1.0,
+   "meaning": "how often the control law runs",
+   "name": "loop_rate",
+   "number": 3,
+   "scale": "lin",
+   "trades": "latency against OBC load",
+   "tree_id": "gx_0",
+   "unit": "Hertz"
+  },
+  {
+   "families": [
+    "mtq_fmr",
+    "mtq_fmr_rcs"
+   ],
+   "hi": "part:rings.v_max_m_s",
+   "lo": 0.0,
+   "meaning": "the ring flow speed held between manoeuvres",
+   "name": "cruise_speed",
+   "number": 4,
+   "scale": "lin",
+   "trades": "stored momentum against holding power",
+   "tree_id": "gf_4",
+   "unit": "MetrePerSecond"
+  },
+  {
+   "families": [
+    "mtq_fmr",
+    "mtq_fmr_rcs"
+   ],
+   "hi": 1.5,
+   "lo": 0.5,
+   "meaning": "multiplies the pump-torque feed-forward (IDMAS v2 \u00a713 ran with 10-30 % errors in it)",
+   "name": "feedforward_scale",
+   "number": 5,
+   "scale": "lin",
+   "trades": "tracking against sensitivity to the friction model",
+   "tree_id": "",
+   "unit": "One"
+  },
+  {
+   "families": [
+    "mtq_fmr",
+    "mtq_fmr_rcs"
+   ],
+   "hi": 1.0,
+   "lo": 0.0,
+   "meaning": "the allocation's weight on rings against coils for the in-plane demand",
+   "name": "ring_weight",
+   "number": 6,
+   "scale": "lin",
+   "trades": "ring power against coil saturation",
+   "tree_id": "",
+   "unit": "One"
+  },
+  {
+   "families": [
+    "mtq_fmr_rcs"
+   ],
+   "hi": 2.0,
+   "lo": 0.5,
+   "meaning": "multiplies the momentum demand above which thrusters fire",
+   "name": "rcs_threshold_scale",
+   "number": 7,
+   "scale": "lin",
+   "trades": "propellant against slew time",
+   "tree_id": "",
+   "unit": "One"
+  }
+ ],
+ "prototype": false,
+ "schema": "adcs-algorithm/1",
+ "slot": "allocation",
+ "source": "idmas_v2"
+}

@@ -1,0 +1,24 @@
+# Miniature single-gimbal control moment gyro for a 3U (four in a pyramid).
+# Class of published CubeSat micro-CMG clusters (rotor momentum a few mN m s,
+# gimbal rates ~1 rad/s). Synthetic: tests only.
+part_number = "TRN-CMG-1"
+kind = "cmg"
+name = "Micro single-gimbal CMG — tests only"
+status = "synthetic"
+source = "sils_trade_study"
+families = ["mtq_cmg"]
+made = "bought"
+descriptor_version = 1
+
+[nominal]
+rotor_momentum_Nms = 0.004
+rotor_inertia_kgm2 = 5.0e-6
+rotor_torque_max_Nm = 0.001
+gimbal_rate_max_rad_s = 1.5
+gimbal_power_W = 0.3
+power_steady_W = 0.4
+mass_kg = 0.12
+
+[dispersion]
+torque_scale = { dist = "normal", mean = 1.0, sigma = 0.01 }
+axis_misalignment_rad = { dist = "normal", mean = 0.0, sigma = 0.001 }

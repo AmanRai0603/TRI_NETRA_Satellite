@@ -1,0 +1,33 @@
+{
+ "descriptor_version": 1,
+ "dispersion": {
+  "axis_misalignment_rad": {
+   "dist": "normal",
+   "mean": 0.0,
+   "sigma": 0.001
+  },
+  "torque_scale": {
+   "dist": "normal",
+   "mean": 1.0,
+   "sigma": 0.01
+  }
+ },
+ "families": [
+  "mtq_cmg"
+ ],
+ "kind": "cmg",
+ "made": "bought",
+ "name": "Micro single-gimbal CMG \u2014 tests only",
+ "nominal": {
+  "gimbal_power_W": 0.3,
+  "gimbal_rate_max_rad_s": 1.5,
+  "mass_kg": 0.12,
+  "power_steady_W": 0.4,
+  "rotor_inertia_kgm2": 5e-06,
+  "rotor_momentum_Nms": 0.004,
+  "rotor_torque_max_Nm": 0.001
+ },
+ "part_number": "TRN-CMG-1",
+ "source": "sils_trade_study",
+ "status": "synthetic"
+}

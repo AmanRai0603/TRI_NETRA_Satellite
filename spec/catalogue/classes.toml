@@ -1,0 +1,72 @@
+# Satellite classes: what the design team designs products for.
+#
+# A class is a family of satellites the company expects to be asked about. Its
+# `standards` are case CSVs in the fixed format (plan/case_template.csv), one
+# per requirement set the class is designed for (a 3U with coarse pointing and
+# a 3U with fine pointing are one class, two standards). Each holds the
+# class's standard inputs and requirements, with lo/hi ranges on the inputs a
+# design must hold across. `adcs design designs/<id>.toml` sweeps part
+# combinations against it; every combination that meets it is saved as a
+# candidate product for that class (SPEC.md §8.6).
+#
+# A case names its class in meta.class, or the solver infers it: the class
+# with the narrowest mass range that holds the case's mass (3.5 kg is a 3U,
+# not a 6U). No class holds it, or two equally narrow ones do: the case must
+# name its class. A product is searched first for cases of its own class.
+#
+# The CubeSat mass limits are the CubeSat Design Specification's. The small-
+# satellite classes and every class's standard values and ranges are company
+# decisions (D21): until a person sets them they are nan or empty, and a design
+# run against the class is refused by name.
+
+[[class]]
+id = "cubesat_1u"
+label = "1U CubeSat"
+mass_kg = [0.0, 2.00]
+source = "cds14_1"
+standards = []
+
+[[class]]
+id = "cubesat_3u"
+label = "3U CubeSat"
+mass_kg = [0.0, 6.00]
+source = "cds14_1"
+standards = [
+  "catalogue/classes/cubesat_3u_ais.csv",   # coarse pointing: the ais_3u requirement set until D21
+  "catalogue/classes/cubesat_3u_img.csv",   # fine pointing: the ais_img_3u requirement set until D21
+]
+
+[[class]]
+id = "cubesat_6u"
+label = "6U CubeSat"
+mass_kg = [0.0, 12.00]
+source = "cds14_1"
+standards = []
+
+[[class]]
+id = "cubesat_12u"
+label = "12U CubeSat"
+mass_kg = [0.0, 24.00]
+source = "cds14_1"
+standards = []
+
+[[class]]
+id = "smallsat_50"
+label = "Small satellite, about 50 kg"
+mass_kg = [nan, nan]
+source = ""
+standards = []
+
+[[class]]
+id = "smallsat_150"
+label = "Small satellite, about 150 kg"
+mass_kg = [nan, nan]
+source = ""
+standards = []
+
+[[class]]
+id = "smallsat_500"
+label = "Small satellite, about 500 kg"
+mass_kg = [nan, nan]
+source = ""
+standards = []

@@ -1,0 +1,34 @@
+{
+ "case": "ais_img_3u",
+ "dispersions": [
+  {
+   "frac": 0.1,
+   "kind": "inertia"
+  },
+  {
+   "hi": 2.0,
+   "kind": "residual_dipole",
+   "lo": 0.5
+  },
+  {
+   "hi": 1.5,
+   "kind": "cm_offset",
+   "lo": 0.5
+  },
+  {
+   "hi": 1.0,
+   "kind": "initial_error_deg",
+   "lo": 0.1
+  },
+  {
+   "kind": "arg_lat_deg"
+  }
+ ],
+ "id": "mc_slew_cmg",
+ "runs": 20,
+ "scenario": "slew_cmg",
+ "schema": "adcs-campaign/1",
+ "seed": 20260930,
+ "type": "montecarlo",
+ "what": "30 deg slew with the 4-SGCMG pyramid across inertia and disturbance dispersions and part errors"
+}

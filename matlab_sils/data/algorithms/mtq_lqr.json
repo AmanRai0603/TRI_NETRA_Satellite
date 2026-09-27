@@ -1,0 +1,16 @@
+{
+ "confirmed_by": "UNCONFIRMED \u00b7 awaiting a person",
+ "fsw": "reference",
+ "id": "mtq_lqr",
+ "label": "Magnetic LQR (averaged double integrator, Bryson weights), projected on the field",
+ "needs": [
+  "coils",
+  "magnetometer",
+  "attitude"
+ ],
+ "number": 31,
+ "prototype": true,
+ "schema": "adcs-algorithm/1",
+ "slot": "mtq_pointing",
+ "source": "psiaki2001 averaging; this SILS"
+}

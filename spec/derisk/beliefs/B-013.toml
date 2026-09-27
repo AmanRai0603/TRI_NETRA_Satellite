@@ -1,0 +1,23 @@
+schema = "adcs-belief/1"
+id = "B-013"
+quarter = "Q3-26"
+area = "visualisation"
+about = ["manual", "forms", "results/template.html"]
+request = ""
+version = ""
+recorded_by = "planning package"
+believed = "Templates and manuals written to the explanation standard explain themselves to a new reader."
+status = "untested"
+tested = ""
+now_know = "tools/explain_check.py checks the parts of the standard a program can see: order, badges, depth switch, claim tags. It cannot check that a reader understood."
+cost_k = ""
+plan_change = "Every template and manual page follows adcs-explain/1 (SPEC.md §5.12)."
+previous_issue = ""
+benefit = ""
+would_test = "A teach-back test per template: a new team member reads it or fills it, then explains it back without help; each miss is fixed."
+risks = ["R-17"]
+
+[[move]]
+risk = "R-17"
+from = 0
+to = 3

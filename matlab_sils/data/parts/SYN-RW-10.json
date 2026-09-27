@@ -1,0 +1,46 @@
+{
+ "descriptor_version": 1,
+ "dispersion": {
+  "axis_misalignment_rad": {
+   "dist": "normal",
+   "mean": 0.0,
+   "sigma": 0.001
+  },
+  "friction_scale": {
+   "dist": "uniform",
+   "hi": 2.0,
+   "lo": 0.5
+  },
+  "torque_scale": {
+   "dist": "normal",
+   "mean": 1.0,
+   "sigma": 0.01
+  }
+ },
+ "families": [
+  "mtq_rw"
+ ],
+ "interface": {
+  "bus": "rs485",
+  "eeprom": []
+ },
+ "kind": "reaction_wheel",
+ "made": "bought",
+ "name": "Synthetic reaction wheel, 10 mN.m.s class \u2014 tests only",
+ "nominal": {
+  "dynamic_imbalance_kgm2": 1e-09,
+  "friction_coulomb_Nm": 1e-05,
+  "friction_viscous_Nms": 1e-08,
+  "h_max_Nms": 0.01,
+  "mass_kg": 0.15,
+  "power_peak_W": 3.0,
+  "power_steady_W": 0.5,
+  "rotor_inertia_kgm2": 1.6e-05,
+  "speed_max_rad_s": 600.0,
+  "static_imbalance_kgm": 1e-07,
+  "torque_max_Nm": 0.001
+ },
+ "part_number": "SYN-RW-10",
+ "source": "synthetic_test_parts",
+ "status": "synthetic"
+}

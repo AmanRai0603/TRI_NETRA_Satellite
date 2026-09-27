@@ -1,0 +1,5 @@
+# Local runtime cache and secrets — never commit or share these
+data_cache/
+credentials.json
+**/credentials.json
+*.local.json

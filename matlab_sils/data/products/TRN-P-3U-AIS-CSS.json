@@ -1,0 +1,100 @@
+{
+ "algorithms": [
+  "bdot",
+  "mekf",
+  "mtq_pd"
+ ],
+ "classes": [
+  "cubesat_3u"
+ ],
+ "counts": {
+  "n_gyro": 1,
+  "n_mtq": 3,
+  "n_rw": 0,
+  "n_st": 0,
+  "n_sun": 6
+ },
+ "family": "mtq",
+ "fill": [
+  {
+   "axes_body": [
+    [
+     1.0,
+     0.0,
+     0.0
+    ],
+    [
+     0.0,
+     1.0,
+     0.0
+    ],
+    [
+     0.0,
+     0.0,
+     1.0
+    ]
+   ],
+   "part": "SYN-CT-1",
+   "slot": "coils"
+  },
+  {
+   "part": "SYN-MAG-1",
+   "slot": "magnetometer"
+  },
+  {
+   "normals_body": [
+    [
+     1.0,
+     0.0,
+     0.0
+    ],
+    [
+     -1.0,
+     0.0,
+     0.0
+    ],
+    [
+     0.0,
+     1.0,
+     0.0
+    ],
+    [
+     0.0,
+     -1.0,
+     0.0
+    ],
+    [
+     0.0,
+     0.0,
+     1.0
+    ],
+    [
+     0.0,
+     0.0,
+     -1.0
+    ]
+   ],
+   "part": "TRN-CSS-1",
+   "slot": "coarse_sun_sensors"
+  },
+  {
+   "part": "SYN-GYRO-1",
+   "slot": "gyro"
+  },
+  {
+   "part": "TRN-GPS-1",
+   "slot": "gnss"
+  }
+ ],
+ "id": "TRN-P-3U-AIS-CSS",
+ "label": "3U AIS \u2014 coils-only ADCS with coarse cosine sun sensors",
+ "origin": "seeded",
+ "payload_boresight_body": [
+  1.0,
+  0.0,
+  0.0
+ ],
+ "schema": "adcs-product/1",
+ "source": "synthetic_test_parts",
+ "status": "candidate"
+}

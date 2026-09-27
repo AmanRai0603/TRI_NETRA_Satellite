@@ -1,0 +1,16 @@
+{
+ "confirmed_by": "UNCONFIRMED \u00b7 awaiting a person",
+ "fsw": "reference",
+ "id": "mtq_rate_damp",
+ "label": "Gravity-gradient + magnetic libration damping (no attitude feedback)",
+ "needs": [
+  "coils",
+  "magnetometer",
+  "attitude"
+ ],
+ "number": 33,
+ "prototype": true,
+ "schema": "adcs-algorithm/1",
+ "slot": "mtq_pointing",
+ "source": "classic passive-GG CubeSat stabilisation"
+}

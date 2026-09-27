@@ -1,0 +1,39 @@
+# Agile pointing with a four-unit single-gimbal CMG pyramid (singularity-robust steering). Synthetic parts.
+schema = "adcs-product/1"
+id = "TRN-P-3U-CMG"
+label = "3U imaging — 4 micro SGCMG pyramid + coils + 2 ST"
+family = "mtq_cmg"
+classes = ["cubesat_3u"]
+status = "candidate"
+origin = "seeded"
+source = "sils_trade_study"
+algorithms = ["bdot", "mekf", "cmg_sr"]
+payload_boresight_body = [0.0, 1.0, 0.0]   # camera line of sight
+
+[[fill]]
+slot = "coils"
+part = "SYN-CT-1"
+axes_body = [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]]
+[[fill]]
+slot = "cmg"
+part = "TRN-CMG-1"
+gimbal_axes_body = [[0.8165, 0.0, 0.5774], [0.0, 0.8165, 0.5774], [-0.8165, 0.0, 0.5774], [0.0, -0.8165, 0.5774]]   # pyramid, skew 54.74 deg
+spin_axes_body = [[0.0, 1.0, 0.0], [-1.0, 0.0, 0.0], [0.0, -1.0, 0.0], [1.0, 0.0, 0.0]]   # zero net momentum at delta = 0
+[[fill]]
+slot = "star_tracker"
+part = "SYN-ST-1"
+boresights_body = [[0.0, -0.9063, 0.4226], [0.0, -0.9063, -0.4226]]
+calibrated_residual_rad = 1.0e-5
+[[fill]]
+slot = "magnetometer"
+part = "SYN-MAG-1"
+[[fill]]
+slot = "sun_sensors"
+part = "SYN-SUN-1"
+normals_body = [[1.0, 0.0, 0.0], [-1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, -1.0, 0.0], [0.0, 0.0, 1.0], [0.0, 0.0, -1.0]]
+[[fill]]
+slot = "gyro"
+part = "TRN-GYRO-P1"          # precision MEMS: the SILS gyro trade, docs/RESULTS.md
+[[fill]]
+slot = "gnss"
+part = "TRN-GPS-1"

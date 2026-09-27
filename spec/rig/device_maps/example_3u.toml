@@ -1,0 +1,93 @@
+# The rig's wiring for one unit under test: which flight port each device is on,
+# and what answers on that port at each rung.
+#
+# The same file serves OILS and HILS. At OILS every device is `emulated`: the
+# interface emulation unit (IEU) answers on the flight connector with bytes the
+# real-time plant produced. At HILS a device is `real` and the environment
+# simulator stimulates it instead. Moving one device from emulated to real is a
+# one-line change here, which is how a campaign walks from OILS to HILS one part
+# at a time.
+#
+# Port numbers are the flight software's (adcs_hal.h). The IEU channel is the
+# emulator's own.
+
+schema = "adcs-rig-devices/1"
+unit_under_test = "IDM-CTRL-1 serial TBD"
+fsw_build = "reference"
+
+[rig]
+plant_host = "rig-rt-01"            # PREEMPT_RT Linux host running adcs-rig (SPEC.md §12.3)
+plant_step_s = 0.001                # 1 kHz real-time plant
+ieu = "ieu-01"                      # FPGA/MCU interface emulation unit, UDP to the host
+ieu_link = { kind = "udp", host = "10.0.10.2", port = 47001, cycle_s = 0.001 }
+time_sync = { kind = "pps", source = "rig" }   # one PPS line to the OBC, plus a time packet
+
+[[device]]
+name = "magnetometer"
+part = "SYN-MAG-1"
+hal = { kind = "i2c", bus = 1, addr7 = 0x1E }
+oils = { mode = "emulated", ieu_channel = "i2c-target-0" }
+hils = { mode = "real", stimulus = "helmholtz_cage" }
+
+[[device]]
+name = "sun_sensor_plus_x"
+part = "SYN-SUN-1"
+hal = { kind = "i2c", bus = 1, addr7 = 0x60 }
+oils = { mode = "emulated", ieu_channel = "i2c-target-1" }
+hils = { mode = "real", stimulus = "sun_simulator" }
+
+[[device]]
+name = "star_tracker"
+part = "SYN-ST-1"
+hal = { kind = "uart", port = 2, baud = 115200, framing = "rs422" }
+oils = { mode = "emulated", ieu_channel = "uart-2" }
+hils = { mode = "real", stimulus = "star_stimulator" }
+
+[[device]]
+name = "gyro"
+part = "SYN-GYRO-1"
+hal = { kind = "spi", bus = 0, chip_select = 1 }
+oils = { mode = "emulated", ieu_channel = "spi-target-0" }
+hils = { mode = "real", stimulus = "air_bearing_motion" }
+
+[[device]]
+name = "coil_tile_minus_x"
+part = "IDM-CT-3U"
+hal = { kind = "can", port = 0, node_id = 0x11 }   # the tile carries its own H-bridge and MCU (IDMAS v2 §11)
+oils = { mode = "emulated", ieu_channel = "can-0" }
+hils = { mode = "real", stimulus = "none", measured_by = "helmholtz_cage reference magnetometer" }
+# A PWM-driven coil (SYN-CT-1) would instead be:
+#   hal = { kind = "pwm", channel = 0, current_sense_adc = 0 }
+#   oils = { mode = "emulated", ieu_channel = "pwm-capture-0", load = "coil-equivalent RL" }
+
+[[device]]
+name = "panel_ring_plus_y"
+part = "IDM-MFP-3U"
+hal = { kind = "can", port = 0, node_id = 0x21 }
+oils = { mode = "emulated", ieu_channel = "can-0" }
+hils = { mode = "real", stimulus = "air_bearing_motion" }
+
+[[device]]
+name = "gnss"
+part = "none in this scenario"
+hal = { kind = "uart", port = 3, baud = 115200, framing = "ttl" }
+oils = { mode = "emulated", ieu_channel = "uart-3", protocol = "receiver output from the plant's truth orbit" }
+hils = { mode = "real", stimulus = "gnss_rf_simulator" }
+
+# Faults the rig may inject at this unit, and where. The same names as the
+# scenario's fault kinds (campaigns/*.toml).
+[[fault_point]]
+kind = "sensor_dropout"
+at = "ieu channel stops answering"
+[[fault_point]]
+kind = "bus_error"
+at = "ieu corrupts CRC or NACKs"
+[[fault_point]]
+kind = "coil_open_circuit"
+at = "relay in series with the coil load (OILS) or coil (HILS)"
+[[fault_point]]
+kind = "ring_freeze"
+at = "IEU reports the ring module frozen and stops its flow (OILS); the module's own freeze test command (HILS)"
+[[fault_point]]
+kind = "power_brownout"
+at = "programmable supply to the OBC"

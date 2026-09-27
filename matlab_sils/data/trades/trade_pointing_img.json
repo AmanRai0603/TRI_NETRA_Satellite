@@ -1,0 +1,50 @@
+{
+ "candidates": [
+  {
+   "algorithms": {
+    "pointing": "pid"
+   },
+   "id": "pid",
+   "label": "PID (Standard Code nadirPointing)"
+  },
+  {
+   "algorithms": {
+    "pointing": "lqr"
+   },
+   "id": "lqr",
+   "label": "LQR (Bryson weights)"
+  },
+  {
+   "algorithms": {
+    "pointing": "smc"
+   },
+   "id": "smc",
+   "label": "sliding mode (Crassidis & Markley)"
+  }
+ ],
+ "gate": [
+  "ape_los_p9973",
+  "ake_los_p9973"
+ ],
+ "id": "trade_pointing_img",
+ "kind": "algorithm",
+ "label": "Imaging 3U, reaction wheels \u2014 fine-pointing law (0.01 deg)",
+ "objective": {
+  "metric": "ape_los_p9973",
+  "sense": "min"
+ },
+ "promote_to": "TRN-P-3U-IMG",
+ "question": "Which control law gives the smallest 3-sigma payload APE on a nadir hold with the reaction wheels?",
+ "scenario": "fine_hold_img",
+ "schema": "adcs-trade/1",
+ "seeds": [
+  1,
+  2
+ ],
+ "slot": "pointing",
+ "tie_break": {
+  "metric": "power_mean",
+  "sense": "min"
+ },
+ "tie_tol": 0.05
+}

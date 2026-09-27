@@ -1,0 +1,23 @@
+# B-dot detumble and the coils' safe mode. Every family carries it: the coils
+# are the safety floor (SPEC.md §2).
+schema = "adcs-algorithm/1"
+id = "bdot"
+number = 1                         # the algorithm id in fswcfg section 0x06; assigned once, never reused or renumbered
+label = "B-dot detumble"
+modes = ["detumble", "safe"]
+families = ["mtq", "mtq_rw", "mtq_fmr", "mtq_fmr_rcs"]
+fsw = "reference"                  # fsw/src/modes/bdot.c; a company build replaces it behind adcs_fsw.h
+source = "avanzini2012"
+confirmed_by = "UNCONFIRMED · bounds · awaiting a person"
+prototype = false                  # true while only the MATLAB twin implements it; no product may carry it (SPEC.md §10.8.5)
+
+[[param]]
+number = 1                         # the parameter id within this algorithm; never reused
+name = "gain_scale"
+unit = "One"
+lo = 0.25
+hi = 4.0
+scale = "log"
+tree_id = ""
+meaning = "multiplies the reference B-dot gain of avanzini2012, computed from the orbital rate, the magnetic inclination and the smallest inertia"
+trades = "faster rate removal against coil saturation and chatter"

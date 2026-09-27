@@ -1,0 +1,252 @@
+# The configuration families a customer can buy.
+#
+# A family is data, not code: adding one (say magnetorquers + wheels + RCS) is a
+# new [[family]] here, reviewed like any other change to the tree. The solver
+# never hard-codes a family name.
+#
+# FIELDS
+# tags       the hardware tags this family puts in play. They are the values of
+#            the 5th field of tree rows (plan/tree.json): mtq, rw, fmr, rcs. A
+#            group is in play for a candidate when its tags meet the tags
+#            whose count is above zero (SPEC.md §5.6).
+# counts     the declared count rows the family sets (tree group "cf"), as
+#            [min, max]. A family without a part type sets its count to zero.
+# serves     the bus-mass range the family is offered for (IDMAS v2 §01, §08).
+# algorithms the flight algorithms (catalogue/algorithms/) a product of this
+#            family may carry. Between them they must tune every `tuned` row
+#            in play for the family (plan/case_inputs.toml).
+#
+# SLOTS. Each [[family.slot]] is one function the configuration must fill:
+#   name       the function ("coils", "rings", "magnetometer", ...)
+#   kinds      the module kinds that may fill it (catalogue/schema.toml)
+#   parts      the catalogue parts that may fill it, all of one of those kinds
+#   count      the tree count row the number fitted sets, or "" for one unit
+#   count_from a descriptor field of the part filling the slot that supplies
+#              the count instead (an RCS module states its own thruster
+#              count); the product then does not set that count itself
+#   required   true when a configuration without it is refused by name
+# One part is chosen per slot, and the slot's count comes from `counts`. The
+# counts of the slots a configuration fills are supplied to the tree; every
+# other count row is supplied as zero. That is how absence stays a count of
+# zero now that there are no family base cases (SPEC.md §2). Two
+# parts that do the same job (a panel ring or a body ring) are alternatives in
+# ONE slot, never two slots.
+#
+# SYNTHETIC PARTS in a slot are allowed in design runs and internal results
+# (engineers, CLI), marked as synthetic. A product that holds one is never
+# promoted to `offered`, so a client never sees it. Until D18 replaces them,
+# every sensor slot is synthetic, so no product can be offered yet: the honest
+# state today.
+
+[[family]]
+id = "mtq"
+label = "Magnetorquers only"
+idmas = "V1"
+algorithms = ["bdot", "mekf", "idmas_split"]
+tags = ["mtq"]
+serves_mass_kg = [0.5, 30.0]
+what = "Two axes of authority at an instant, three over an orbit. Detumble, coarse pointing, safe mode. The safety floor of every other family."
+counts = { n_mtq = [3, 6], n_rw = [0, 0], n_fmr = [0, 0], n_rcs = [0, 0], n_st = [0, 2], n_gyro = [0, 1] }
+
+  [[family.slot]]
+  name = "coils"
+  kinds = ["coil_tile"]
+  parts = ["IDM-CT-3U", "SYN-CT-1"]
+  count = "n_mtq"
+  required = true
+  [[family.slot]]
+  name = "magnetometer"
+  kinds = ["magnetometer"]
+  parts = ["SYN-MAG-1"]
+  count = ""
+  required = true
+  [[family.slot]]
+  name = "sun_sensor"
+  kinds = ["sun_sensor"]
+  parts = ["SYN-SUN-1"]
+  count = ""
+  required = false
+  [[family.slot]]
+  name = "star_tracker"
+  kinds = ["star_tracker"]
+  parts = ["SYN-ST-1"]
+  count = "n_st"
+  required = false
+  [[family.slot]]
+  name = "gyro"
+  kinds = ["gyro"]
+  parts = ["SYN-GYRO-1"]
+  count = "n_gyro"
+  required = false
+  [[family.slot]]
+  name = "controller"
+  kinds = ["adcs_controller"]
+  parts = ["IDM-CTRL-1"]
+  count = ""
+  required = true
+
+[[family]]
+id = "mtq_rw"
+label = "Magnetorquers + reaction wheels"
+idmas = ""
+algorithms = ["bdot", "mekf", "pd_alloc"]
+tags = ["mtq", "rw"]
+serves_mass_kg = [1.0, 500.0]
+what = "The conventional architecture: wheels store momentum and carry agility, coils dump it. Offered beside IDMAS so a customer can compare on the same requirements."
+counts = { n_mtq = [3, 6], n_rw = [3, 4], n_fmr = [0, 0], n_rcs = [0, 0], n_st = [0, 2], n_gyro = [1, 2] }
+
+  [[family.slot]]
+  name = "coils"
+  kinds = ["coil_tile"]
+  parts = ["IDM-CT-3U", "SYN-CT-1"]
+  count = "n_mtq"
+  required = true
+  [[family.slot]]
+  name = "wheels"
+  kinds = ["reaction_wheel"]
+  parts = ["SYN-RW-10"]
+  count = "n_rw"
+  required = true
+  [[family.slot]]
+  name = "magnetometer"
+  kinds = ["magnetometer"]
+  parts = ["SYN-MAG-1"]
+  count = ""
+  required = true
+  [[family.slot]]
+  name = "sun_sensor"
+  kinds = ["sun_sensor"]
+  parts = ["SYN-SUN-1"]
+  count = ""
+  required = false
+  [[family.slot]]
+  name = "star_tracker"
+  kinds = ["star_tracker"]
+  parts = ["SYN-ST-1"]
+  count = "n_st"
+  required = false
+  [[family.slot]]
+  name = "gyro"
+  kinds = ["gyro"]
+  parts = ["SYN-GYRO-1"]
+  count = "n_gyro"
+  required = true
+  [[family.slot]]
+  name = "controller"
+  kinds = ["adcs_controller"]
+  parts = ["IDM-CTRL-1"]
+  count = ""
+  required = true
+
+[[family]]
+id = "mtq_fmr"
+label = "Magnetorquers + fluid momentum rings (IDMAS V2)"
+idmas = "V2"
+algorithms = ["bdot", "mekf", "idmas_split"]
+tags = ["mtq", "fmr"]
+serves_mass_kg = [1.0, 50.0]
+what = "Three axes at every instant with no moving solid part: coils carry the slow perpendicular load and dump, rings carry everything fast and everything along B (IDMAS v2 §02)."
+counts = { n_mtq = [3, 6], n_rw = [0, 0], n_fmr = [3, 4], n_rcs = [0, 0], n_st = [0, 2], n_gyro = [1, 2] }
+
+  [[family.slot]]
+  name = "coils"
+  kinds = ["coil_tile"]
+  parts = ["IDM-CT-3U", "SYN-CT-1"]
+  count = "n_mtq"
+  required = true
+  [[family.slot]]
+  name = "rings"
+  kinds = ["magneto_fluidic_panel", "body_ring"]
+  parts = ["IDM-MFP-3U", "SYN-MFP-1", "IDM-BR-150"]
+  count = "n_fmr"
+  required = true
+  [[family.slot]]
+  name = "magnetometer"
+  kinds = ["magnetometer"]
+  parts = ["SYN-MAG-1"]
+  count = ""
+  required = true
+  [[family.slot]]
+  name = "sun_sensor"
+  kinds = ["sun_sensor"]
+  parts = ["SYN-SUN-1"]
+  count = ""
+  required = false
+  [[family.slot]]
+  name = "star_tracker"
+  kinds = ["star_tracker"]
+  parts = ["SYN-ST-1"]
+  count = "n_st"
+  required = false
+  [[family.slot]]
+  name = "gyro"
+  kinds = ["gyro"]
+  parts = ["SYN-GYRO-1"]
+  count = "n_gyro"
+  required = true
+  [[family.slot]]
+  name = "controller"
+  kinds = ["adcs_controller"]
+  parts = ["IDM-CTRL-1"]
+  count = ""
+  required = true
+
+[[family]]
+id = "mtq_fmr_rcs"
+label = "Magnetorquers + fluid rings + RCS (IDMAS V3)"
+idmas = "V3"
+algorithms = ["bdot", "mekf", "idmas_split"]
+tags = ["mtq", "fmr", "rcs"]
+serves_mass_kg = [50.0, 500.0]
+what = "Large LEO buses with no gyroscopic actuator: rings sprint for slews, RCS tops up the excess, dumps fast and trims the orbit (IDMAS v2 §09). Step-and-stare agility on large buses stays a stated gap."
+counts = { n_mtq = [3, 6], n_rw = [0, 0], n_fmr = [3, 4], n_rcs = [4, 16], n_st = [1, 2], n_gyro = [1, 2] }
+
+  [[family.slot]]
+  name = "coils"
+  kinds = ["torque_rod", "coil_tile"]
+  parts = ["IDM-TR-150"]
+  count = "n_mtq"
+  required = true
+  [[family.slot]]
+  name = "rings"
+  kinds = ["body_ring"]
+  parts = ["IDM-BR-150"]
+  count = "n_fmr"
+  required = true
+  [[family.slot]]
+  name = "rcs"
+  kinds = ["rcs_module"]
+  parts = ["IDM-RCS-G1"]
+  count = "n_rcs"
+  count_from = "thrusters"
+  required = true
+  [[family.slot]]
+  name = "magnetometer"
+  kinds = ["magnetometer"]
+  parts = ["SYN-MAG-1"]
+  count = ""
+  required = true
+  [[family.slot]]
+  name = "sun_sensor"
+  kinds = ["sun_sensor"]
+  parts = ["SYN-SUN-1"]
+  count = ""
+  required = false
+  [[family.slot]]
+  name = "star_tracker"
+  kinds = ["star_tracker"]
+  parts = ["SYN-ST-1"]
+  count = "n_st"
+  required = true
+  [[family.slot]]
+  name = "gyro"
+  kinds = ["gyro"]
+  parts = ["SYN-GYRO-1"]
+  count = "n_gyro"
+  required = true
+  [[family.slot]]
+  name = "controller"
+  kinds = ["adcs_controller"]
+  parts = ["IDM-CTRL-1"]
+  count = ""
+  required = true

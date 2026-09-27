@@ -1,0 +1,69 @@
+# A catalogue product: a configuration (which part fills each slot, how many,
+# where they are mounted) plus the flight algorithms it carries. Products are
+# what the solver offers a case and what the design team adds to (SPEC.md §7.7).
+#
+# status  candidate — saved, internal only; offered — a person promoted it
+#         (H14), so a client may be shown it; retired — kept for old quotes.
+# origin  seeded — written by hand into this package; designed — saved by
+#         `adcs design`, with its [design] table filled.
+# A product holding any SYN-* part is shown everywhere as synthetic; that is
+# derived from its parts, never a field someone sets.
+# mounts_pending  a reason, when the product does not yet mount every part;
+#         a run on it is refused, naming the parts without a mount.
+# The tuned parameter values are never stored here: they are per case, in the
+# run ledger, and restricted (D1).
+
+# IDMAS V3 (IDMAS v2 §09). Its torque rods, body rings and RCS carry nan fields,
+# so every run on it is refused by name until they are specified. The ring
+# count is the one the first plan used for V3; a person confirms it. It has
+# no mounts yet: a run also names that.
+
+schema = "adcs-product/1"
+id = "IDM-P-150-V3"
+label = "150 kg IDMAS V3 — torque rods + body rings + RCS"
+family = "mtq_fmr_rcs"
+classes = ["smallsat_150"]
+status = "candidate"
+origin = "seeded"
+source = "idmas_v2"
+algorithms = ["bdot", "mekf", "idmas_split"]
+counts = { n_mtq = 3, n_rw = 0, n_fmr = 4, n_st = 1, n_gyro = 1 }   # n_rcs comes from the RCS module's `thrusters` (count_from)
+mounts_pending = "no layout has been chosen for the 150 kg bus"
+
+[[fill]]
+slot = "coils"
+part = "IDM-TR-150"
+
+[[fill]]
+slot = "rings"
+part = "IDM-BR-150"
+
+[[fill]]
+slot = "rcs"
+part = "IDM-RCS-G1"
+
+[[fill]]
+slot = "magnetometer"
+part = "SYN-MAG-1"
+
+[[fill]]
+slot = "star_tracker"
+part = "SYN-ST-1"
+
+[[fill]]
+slot = "gyro"
+part = "SYN-GYRO-1"
+
+[[fill]]
+slot = "controller"
+part = "IDM-CTRL-1"
+
+[design]            # written by `adcs design`; empty for a seeded product
+case_hash = ""      # the class standard (or case) it was designed against
+campaign_hashes = []  # the SILS campaigns that proved it
+envelope = {}       # per case key, the [lo, hi] it held across
+worst_margin = nan  # its thinnest margin over every bound requirement
+
+[promotion]         # H14: a person, never an agent
+by = ""
+date = ""

@@ -1,0 +1,16 @@
+{
+ "confirmed_by": "UNCONFIRMED \u00b7 awaiting a person",
+ "fsw": "reference",
+ "id": "bdot_gyro",
+ "label": "Gyro-fed B-dot (Avanzini-Giulietti gain, db/dt = -w x b)",
+ "needs": [
+  "coils",
+  "magnetometer",
+  "gyro"
+ ],
+ "number": 10,
+ "prototype": true,
+ "schema": "adcs-algorithm/1",
+ "slot": "detumble",
+ "source": "avanzini2012; Standard Code ctrl.bdot rate-feedback branch"
+}

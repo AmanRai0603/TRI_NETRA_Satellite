@@ -1,0 +1,53 @@
+{
+ "candidates": [
+  {
+   "algorithms": {
+    "mtq_pointing": "mtq_pd"
+   },
+   "id": "mtq_pd",
+   "label": "quaternion PD, projected on the field"
+  },
+  {
+   "algorithms": {
+    "mtq_pointing": "mtq_lqr"
+   },
+   "id": "mtq_lqr",
+   "label": "LQR (Bryson weights), projected"
+  },
+  {
+   "algorithms": {
+    "mtq_pointing": "mtq_smc"
+   },
+   "id": "mtq_smc",
+   "label": "sliding mode, projected"
+  },
+  {
+   "algorithms": {
+    "mtq_pointing": "mtq_rate_damp"
+   },
+   "id": "mtq_rate_damp",
+   "label": "rate damping only + gravity gradient"
+  }
+ ],
+ "id": "trade_mtq_pointing_ais",
+ "kind": "algorithm",
+ "label": "AIS 3U \u2014 magnetic pointing law (coils only, 10 deg)",
+ "objective": {
+  "metric": "ape_los_last_orbit",
+  "sense": "min"
+ },
+ "promote_to": "TRN-P-3U-AIS",
+ "question": "Which coils-only three-axis law gives the smallest antenna pointing error over the last orbit?",
+ "scenario": "nadir_hold_ais",
+ "schema": "adcs-trade/1",
+ "seeds": [
+  1,
+  2,
+  3
+ ],
+ "slot": "mtq_pointing",
+ "tie_break": {
+  "metric": "power_mean",
+  "sense": "min"
+ }
+}

@@ -1,0 +1,28 @@
+# Which magnetic-only pointing law holds the AIS antenna (+X_B) on nadir?
+schema = "adcs-trade/1"
+id = "trade_mtq_pointing_ais"
+label = "AIS 3U — magnetic pointing law (coils only, 10 deg)"
+question = "Which coils-only three-axis law gives the smallest antenna pointing error over the last orbit?"
+kind = "algorithm"
+slot = "mtq_pointing"
+promote_to = "TRN-P-3U-AIS"
+scenario = "nadir_hold_ais"
+seeds = [1, 2, 3]
+objective = { metric = "ape_los_last_orbit", sense = "min" }
+tie_break = { metric = "power_mean", sense = "min" }
+[[candidates]]
+id = "mtq_pd"
+label = "quaternion PD, projected on the field"
+algorithms = { mtq_pointing = "mtq_pd" }
+[[candidates]]
+id = "mtq_lqr"
+label = "LQR (Bryson weights), projected"
+algorithms = { mtq_pointing = "mtq_lqr" }
+[[candidates]]
+id = "mtq_smc"
+label = "sliding mode, projected"
+algorithms = { mtq_pointing = "mtq_smc" }
+[[candidates]]
+id = "mtq_rate_damp"
+label = "rate damping only + gravity gradient"
+algorithms = { mtq_pointing = "mtq_rate_damp" }

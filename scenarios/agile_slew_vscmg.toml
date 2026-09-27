@@ -1,0 +1,37 @@
+# Imaging 3U: settle on nadir, then a 30 deg roll slew to an off-nadir target
+# in 60 s (cycloidal eigen-axis profile) and settle inside the APE.
+schema = "adcs-scenario/1"
+id = "agile_slew_vscmg"
+label = "3U imaging — (vscmg): 90 deg pitch in 15 s"
+case = "ais_img_3u"
+product = "TRN-P-3U-VSCMG"
+[time]
+duration_s = 600.0
+dt_s = 0.1
+record_dt_s = 0.1
+[initial]
+attitude = { kind = "error_from_target", angle_deg = 0.5, axis_body = [0.577, 0.577, 0.577] }
+rate = { kind = "lvlh" }
+[fsw]
+start_mode = "slew_fine"
+guidance = { kind = "slew", roll_deg = 90.0, t0 = 200.0, T_s = 15.0, axis = [0.0, 0.0, 1.0] }
+rw_bandwidth = 0.9
+rw_damping = 0.9             # slews: faster settling (hold modes fly 2.0)
+[[metrics]]
+id = "settle_time_after_slew"
+kind = "time_to_threshold"
+channel = "ape_los"
+from_s = 215.0
+threshold_deg = 0.01
+hold_s = 30.0
+# no requirement: the case states settling for the 30 deg reference slew
+[[metrics]]
+id = "ape_los_on_target_p9973"
+kind = "ape_los"
+window = "after_s:300"
+statistic = "p99.73"
+requirement = "req.ape"
+[[metrics]]
+id = "wheel_momentum_peak"
+kind = "wheel_momentum_peak"
+window = "all"

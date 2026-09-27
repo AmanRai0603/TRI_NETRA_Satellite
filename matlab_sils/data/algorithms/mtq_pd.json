@@ -1,0 +1,16 @@
+{
+ "confirmed_by": "UNCONFIRMED \u00b7 awaiting a person",
+ "fsw": "reference",
+ "id": "mtq_pd",
+ "label": "Magnetic quaternion PD, min-norm dipole (Lovera-Astolfi)",
+ "needs": [
+  "coils",
+  "magnetometer",
+  "attitude"
+ ],
+ "number": 30,
+ "prototype": true,
+ "schema": "adcs-algorithm/1",
+ "slot": "mtq_pointing",
+ "source": "lovera2004; Standard Code act.torque2dipole"
+}

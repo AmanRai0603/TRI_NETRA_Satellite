@@ -1,0 +1,13 @@
+# Algorithm descriptor (adcs-algorithm/1 + slot/needs, SILS registry).
+# slot: the FSW job it does; needs: hardware (or capabilities) a product must
+# carry for it to be selectable. asils.fsw.select refuses an incompatible pick.
+schema = "adcs-algorithm/1"
+id = "bdot_mag"
+number = 11
+slot = "detumble"
+label = "Magnetometer B-dot (consecutive coil-off windows)"
+needs = ["coils", "magnetometer"]
+fsw = "reference"
+source = "avanzini2012; Standard Code ctrl.bdot TC=1"
+confirmed_by = "UNCONFIRMED · awaiting a person"
+prototype = true                   # MATLAB twin only until its C lands (SPEC 10.8.5)

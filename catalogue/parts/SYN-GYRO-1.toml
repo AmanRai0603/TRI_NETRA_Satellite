@@ -1,0 +1,27 @@
+# SYNTHETIC MEMS gyro — tests only.
+part_number = "SYN-GYRO-1"
+kind = "gyro"
+name = "Synthetic MEMS gyro — tests only"
+status = "synthetic"
+source = "synthetic_test_parts"
+families = ["mtq", "mtq_rw", "mtq_fmr", "mtq_fmr_rcs"]
+made = "bought"
+descriptor_version = 1
+
+[nominal]
+arw_rad_per_sqrt_s = 5.0e-5
+rrw_rad_per_s_sqrt_s = 1.0e-7
+bias_instability_rad_s = 5.0e-6
+range_rad_s = 5.0
+rate_Hz = 100.0
+mass_kg = 0.05
+power_W = 0.3
+
+[dispersion]
+bias_rad_s = { dist = "normal", mean = 0.0, sigma = 5.0e-5 }
+scale_factor = { dist = "normal", mean = 1.0, sigma = 0.002 }
+axis_misalignment_rad = { dist = "normal", mean = 0.0, sigma = 0.001 }
+
+[interface]
+bus = "spi"
+eeprom = []

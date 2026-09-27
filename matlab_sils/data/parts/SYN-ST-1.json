@@ -1,0 +1,43 @@
+{
+ "descriptor_version": 1,
+ "dispersion": {
+  "axis_misalignment_rad": {
+   "dist": "normal",
+   "mean": 0.0,
+   "sigma": 0.0001
+  },
+  "bias_rad": {
+   "dist": "normal",
+   "mean": 0.0,
+   "sigma": 5e-05
+  }
+ },
+ "families": [
+  "mtq",
+  "mtq_rw",
+  "mtq_fmr",
+  "mtq_fmr_rcs"
+ ],
+ "interface": {
+  "bus": "rs422",
+  "eeprom": []
+ },
+ "kind": "star_tracker",
+ "made": "bought",
+ "name": "Synthetic star tracker head \u2014 tests only",
+ "nominal": {
+  "earth_exclusion_rad": 0.35,
+  "fov_half_angle_rad": 0.17,
+  "latency_s": 0.1,
+  "mass_kg": 0.3,
+  "max_rate_rad_s": 0.017,
+  "noise_cross_rad": 2.4e-05,
+  "noise_roll_rad": 0.00019,
+  "power_W": 1.0,
+  "rate_Hz": 5.0,
+  "sun_exclusion_rad": 0.52
+ },
+ "part_number": "SYN-ST-1",
+ "source": "synthetic_test_parts",
+ "status": "synthetic"
+}

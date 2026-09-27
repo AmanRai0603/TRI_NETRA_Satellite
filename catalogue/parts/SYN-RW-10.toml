@@ -1,0 +1,33 @@
+# SYNTHETIC. Round numbers so the reaction-wheel family can be exercised in
+# software tests. Not a product, not a supplier's part. Never quotable, never
+# in evidence; CI refuses an evidence campaign that names it.
+part_number = "SYN-RW-10"
+kind = "reaction_wheel"
+name = "Synthetic reaction wheel, 10 mN.m.s class — tests only"
+status = "synthetic"
+source = "synthetic_test_parts"
+families = ["mtq_rw"]
+made = "bought"
+descriptor_version = 1
+
+[nominal]
+h_max_Nms = 0.01
+torque_max_Nm = 0.001
+speed_max_rad_s = 600.0
+rotor_inertia_kgm2 = 1.6e-5
+friction_coulomb_Nm = 1.0e-5
+friction_viscous_Nms = 1.0e-8
+static_imbalance_kgm = 1.0e-7
+dynamic_imbalance_kgm2 = 1.0e-9
+power_steady_W = 0.5
+power_peak_W = 3.0
+mass_kg = 0.15
+
+[dispersion]
+torque_scale = { dist = "normal", mean = 1.0, sigma = 0.01 }
+friction_scale = { dist = "uniform", lo = 0.5, hi = 2.0 }
+axis_misalignment_rad = { dist = "normal", mean = 0.0, sigma = 0.001 }
+
+[interface]
+bus = "rs485"
+eeprom = []

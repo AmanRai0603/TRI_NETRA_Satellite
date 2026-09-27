@@ -1,0 +1,15 @@
+{
+ "confirmed_by": "UNCONFIRMED \u00b7 awaiting a person",
+ "fsw": "reference",
+ "id": "lqr",
+ "label": "Per-axis LQR on [int theta, theta, omega] (Hamiltonian ARE)",
+ "needs": [
+  "momentum",
+  "attitude"
+ ],
+ "number": 41,
+ "prototype": true,
+ "schema": "adcs-algorithm/1",
+ "slot": "pointing",
+ "source": "this SILS"
+}

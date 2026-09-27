@@ -1,0 +1,38 @@
+{
+ "descriptor_version": 1,
+ "dispersion": {
+  "axis_misalignment_rad": {
+   "dist": "normal",
+   "mean": 0.0,
+   "sigma": 0.002
+  },
+  "bias_rad": {
+   "dist": "normal",
+   "mean": 0.0,
+   "sigma": 0.003
+  }
+ },
+ "families": [
+  "mtq",
+  "mtq_rw",
+  "mtq_fmr",
+  "mtq_fmr_rcs"
+ ],
+ "interface": {
+  "bus": "i2c",
+  "eeprom": []
+ },
+ "kind": "sun_sensor",
+ "made": "bought",
+ "name": "Synthetic fine sun sensor \u2014 tests only",
+ "nominal": {
+  "accuracy_rad": 0.0087,
+  "fov_half_angle_rad": 1.05,
+  "mass_kg": 0.01,
+  "power_W": 0.05,
+  "rate_Hz": 10.0
+ },
+ "part_number": "SYN-SUN-1",
+ "source": "synthetic_test_parts",
+ "status": "synthetic"
+}

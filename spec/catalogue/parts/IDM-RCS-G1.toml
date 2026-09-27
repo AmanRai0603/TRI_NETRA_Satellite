@@ -1,0 +1,28 @@
+# IDMAS V3 reaction-control module: green monopropellant (IDMAS v2 §09.2, §10.1).
+part_number = "IDM-RCS-G1"
+kind = "rcs_module"
+name = "RCS module, green monopropellant, 1-5 N class"
+status = "placeholder"
+source = "idmas_v2"
+families = ["mtq_fmr_rcs"]
+made = "bought"
+descriptor_version = 1
+
+[nominal]
+thrusters = nan
+thrust_N = nan                    # 1-5 N class (§10.1); chosen with the supplier
+isp_s = 220.0                     # the value §09 sizes with
+min_impulse_bit_Ns = nan
+propellant_kg = nan
+moment_arm_m = 0.8                # §09 footnote, 500 kg bus
+mass_dry_kg = nan
+valve_power_W = nan
+
+[dispersion]
+thrust_scale = { dist = "normal", mean = 1.0, sigma = nan }
+isp_scale = { dist = "normal", mean = 1.0, sigma = nan }
+thrust_misalignment_rad = { dist = "normal", mean = 0.0, sigma = nan }
+
+[interface]
+bus = "rs422"
+eeprom = []

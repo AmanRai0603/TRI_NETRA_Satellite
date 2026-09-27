@@ -1,0 +1,158 @@
+{
+ "algorithms": [
+  "bdot",
+  "mekf",
+  "cmg_sr"
+ ],
+ "classes": [
+  "cubesat_3u"
+ ],
+ "family": "mtq_cmg",
+ "fill": [
+  {
+   "axes_body": [
+    [
+     1.0,
+     0.0,
+     0.0
+    ],
+    [
+     0.0,
+     1.0,
+     0.0
+    ],
+    [
+     0.0,
+     0.0,
+     1.0
+    ]
+   ],
+   "part": "SYN-CT-1",
+   "slot": "coils"
+  },
+  {
+   "gimbal_axes_body": [
+    [
+     0.8165,
+     0.0,
+     0.5774
+    ],
+    [
+     0.0,
+     0.8165,
+     0.5774
+    ],
+    [
+     -0.8165,
+     0.0,
+     0.5774
+    ],
+    [
+     0.0,
+     -0.8165,
+     0.5774
+    ]
+   ],
+   "part": "TRN-CMG-1",
+   "slot": "cmg",
+   "spin_axes_body": [
+    [
+     0.0,
+     1.0,
+     0.0
+    ],
+    [
+     -1.0,
+     0.0,
+     0.0
+    ],
+    [
+     0.0,
+     -1.0,
+     0.0
+    ],
+    [
+     1.0,
+     0.0,
+     0.0
+    ]
+   ]
+  },
+  {
+   "boresights_body": [
+    [
+     0.0,
+     -0.9063,
+     0.4226
+    ],
+    [
+     0.0,
+     -0.9063,
+     -0.4226
+    ]
+   ],
+   "calibrated_residual_rad": 1e-05,
+   "part": "SYN-ST-1",
+   "slot": "star_tracker"
+  },
+  {
+   "part": "SYN-MAG-1",
+   "slot": "magnetometer"
+  },
+  {
+   "normals_body": [
+    [
+     1.0,
+     0.0,
+     0.0
+    ],
+    [
+     -1.0,
+     0.0,
+     0.0
+    ],
+    [
+     0.0,
+     1.0,
+     0.0
+    ],
+    [
+     0.0,
+     -1.0,
+     0.0
+    ],
+    [
+     0.0,
+     0.0,
+     1.0
+    ],
+    [
+     0.0,
+     0.0,
+     -1.0
+    ]
+   ],
+   "part": "SYN-SUN-1",
+   "slot": "sun_sensors"
+  },
+  {
+   "part": "TRN-GYRO-P1",
+   "slot": "gyro"
+  },
+  {
+   "part": "TRN-GPS-1",
+   "slot": "gnss"
+  }
+ ],
+ "id": "TRN-P-3U-CMG",
+ "label": "3U imaging \u2014 4 micro SGCMG pyramid + coils + 2 ST",
+ "origin": "seeded",
+ "payload_boresight_body": [
+  0.0,
+  1.0,
+  0.0
+ ],
+ "schema": "adcs-product/1",
+ "source": "sils_trade_study",
+ "status": "candidate"
+}

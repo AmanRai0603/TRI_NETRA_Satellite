@@ -1,0 +1,10 @@
+schema = "adcs-campaign/1"
+id = "inertial_hold_mc500"
+scenario = "inertial_hold_3u"
+type = "montecarlo"
+what = "IDMAS v2 §16 P0 exit criterion: the V2 advantage holds across 500 Monte Carlo cases."
+runs = 500
+seed = 20260927                    # counter-based: run k draws from stream hash(seed, k, parameter path)
+dispersions = ["case", "catalogue", "scenario"]   # every lo/hi in the case CSV, every [dispersion] in the parts, every dist = ... in the scenario
+statistic = { metric = "ape_last_half_orbit", ensemble = "case", temporal = "max" }   # ECSS-E-ST-60-10C: both levels; "case" = the level the case states for the bound requirement
+pass = "every metric bound to a requirement meets it at the stated ensemble probability"

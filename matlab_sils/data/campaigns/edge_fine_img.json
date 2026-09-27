@@ -1,0 +1,46 @@
+{
+ "case": "ais_img_3u",
+ "dispersions": [
+  {
+   "frac": 0.1,
+   "kind": "inertia"
+  },
+  {
+   "hi": 2.0,
+   "kind": "residual_dipole",
+   "lo": 0.5
+  },
+  {
+   "hi": 1.5,
+   "kind": "cm_offset",
+   "lo": 0.5
+  },
+  {
+   "hi": 220.0,
+   "kind": "solar_flux",
+   "lo": 70.0
+  },
+  {
+   "hi": 1.0,
+   "kind": "accommodation",
+   "lo": 0.7
+  },
+  {
+   "hi": 0.9,
+   "kind": "reflectivity",
+   "lo": 0.3
+  },
+  {
+   "hi": 3.0,
+   "kind": "initial_error_deg",
+   "lo": 0.5
+  }
+ ],
+ "id": "edge_fine_img",
+ "runs": 15,
+ "scenario": "fine_hold_img",
+ "schema": "adcs-campaign/1",
+ "seed": 20260929,
+ "type": "edge",
+ "what": "every dispersion of the imaging fine hold at its low and high bound, one at a time, then all at the adverse end"
+}

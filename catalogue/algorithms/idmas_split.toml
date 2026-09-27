@@ -1,0 +1,98 @@
+# The IDMAS split-projection law and allocation (IDMAS v2 §12): coils take the
+# part of the demand perpendicular to the field, rings take the rest; with RCS
+# fitted, thrusters carry the slew excess the rings cannot. With no rings fitted
+# it is the magnetic-only pointing law of IDMAS V1, so the coils-only family
+# carries it too; the ring parameters are then out of play.
+schema = "adcs-algorithm/1"
+slot = "allocation"
+needs = ["rings", "coils"]
+id = "idmas_split"
+number = 4                         # the algorithm id in fswcfg section 0x06; assigned once, never reused or renumbered
+label = "IDMAS split projection and allocation"
+modes = ["inertial_hold", "nadir_hold", "target_hold", "slew", "dump"]
+families = ["mtq", "mtq_fmr", "mtq_fmr_rcs"]
+fsw = "reference"
+source = "idmas_v2"
+confirmed_by = "UNCONFIRMED · bounds · awaiting a person"
+prototype = false                  # true while only the MATLAB twin implements it; no product may carry it (SPEC.md §10.8.5)
+
+[[param]]
+number = 1                         # the parameter id within this algorithm; never reused
+name = "bandwidth"
+unit = "RadianPerSecond"
+lo = 0.01
+hi = 1.0
+scale = "log"
+tree_id = "gc_0"                   # Control bandwidth
+meaning = "closed-loop natural frequency"
+trades = "pointing and agility against ring power and flexible-mode margin"
+
+[[param]]
+number = 2                         # the parameter id within this algorithm; never reused
+name = "damping"
+unit = "One"
+lo = 0.5
+hi = 1.0
+scale = "lin"
+tree_id = "gc_1"                   # Damping ratio
+meaning = "closed-loop damping ratio"
+trades = "overshoot against settling time"
+
+[[param]]
+number = 3                         # the parameter id within this algorithm; never reused
+name = "loop_rate"
+unit = "Hertz"
+lo = 1.0
+hi = 20.0
+scale = "lin"
+tree_id = "gx_0"                   # Control loop rate
+meaning = "how often the control law runs"
+trades = "latency against OBC load"
+
+[[param]]
+number = 4                         # the parameter id within this algorithm; never reused
+name = "cruise_speed"
+unit = "MetrePerSecond"
+lo = 0.0
+hi = "part:rings.v_max_m_s"
+scale = "lin"
+tree_id = "gf_4"                   # Ring cruise speed
+families = ["mtq_fmr", "mtq_fmr_rcs"]
+meaning = "the ring flow speed held between manoeuvres"
+trades = "stored momentum against holding power"
+
+[[param]]
+number = 5                         # the parameter id within this algorithm; never reused
+name = "feedforward_scale"
+unit = "One"
+lo = 0.5
+hi = 1.5
+scale = "lin"
+tree_id = ""
+families = ["mtq_fmr", "mtq_fmr_rcs"]
+meaning = "multiplies the pump-torque feed-forward (IDMAS v2 §13 ran with 10-30 % errors in it)"
+trades = "tracking against sensitivity to the friction model"
+
+[[param]]
+number = 6                         # the parameter id within this algorithm; never reused
+name = "ring_weight"
+unit = "One"
+lo = 0.0
+hi = 1.0
+scale = "lin"
+tree_id = ""
+families = ["mtq_fmr", "mtq_fmr_rcs"]
+meaning = "the allocation's weight on rings against coils for the in-plane demand"
+trades = "ring power against coil saturation"
+
+[[param]]
+number = 7                         # the parameter id within this algorithm; never reused
+name = "rcs_threshold_scale"
+unit = "One"
+lo = 0.5
+hi = 2.0
+scale = "lin"
+tree_id = ""
+families = ["mtq_fmr_rcs"]          # only when thrusters are fitted
+meaning = "multiplies the momentum demand above which thrusters fire"
+trades = "propellant against slew time"

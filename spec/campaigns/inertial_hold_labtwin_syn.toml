@@ -1,0 +1,6 @@
+schema = "adcs-campaign/1"
+id = "inertial_hold_labtwin_syn"
+scenario = "inertial_hold_3u"
+type = "labtwin"
+what = "The lab twin against a synthetic lab with stated round numbers, so the lab-twin machinery runs before the facility is measured. inertial_hold_labtwin (the real bay) is refused until then."
+lab = "rig/labs/syn_lab.toml"

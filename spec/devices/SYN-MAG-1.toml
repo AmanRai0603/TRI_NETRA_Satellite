@@ -1,0 +1,94 @@
+# Device protocol: what SYN-MAG-1 puts on its port.
+#
+# SYNTHETIC, like the part: a complete, invented I2C register map so the whole
+# path (plant -> emulator -> HAL -> the flight software's own driver) can be
+# tested. A real part's file is entered from its interface control document by
+# a person, names the ICD revision, and is reviewed by two (SPEC.md §17.3).
+#
+# One file drives three things: the SILS emulator in adcs-sim, the OILS
+# emulator in the interface emulation unit, and a golden-byte test.
+
+schema = "adcs-device/1"
+part_number = "SYN-MAG-1"
+icd = "synthetic — no ICD"
+bus = "i2c"
+address7 = 0x1E
+byte_order = "little"
+max_clock_Hz = 400000
+
+# What the model's engineering value becomes on the wire.
+[scaling]
+field_lsb_T = 1.5e-8              # one count
+field_range_counts = [-32768, 32767]
+temperature_lsb_K = 0.0625
+temperature_offset_K = 273.15
+
+[[register]]
+name = "WHO_AM_I"
+address = 0x0F
+access = "r"
+reset = 0x3D
+width = 8
+
+[[register]]
+name = "CTRL"
+address = 0x20
+access = "rw"
+reset = 0x00
+width = 8
+fields = [
+  { name = "odr", bits = [2, 4], values = { "10Hz" = 4, "20Hz" = 5, "40Hz" = 6 } },
+  { name = "mode", bits = [0, 1], values = { "idle" = 0, "continuous" = 1, "single" = 2 } },
+]
+
+[[register]]
+name = "STATUS"
+address = 0x27
+access = "r"
+reset = 0x00
+width = 8
+fields = [ { name = "data_ready", bits = [3, 3] }, { name = "overrun", bits = [7, 7] } ]
+
+[[register]]
+name = "OUT_X"
+address = 0x28
+access = "r"
+width = 16
+signed = true
+channel = "b_meas.x"
+
+[[register]]
+name = "OUT_Y"
+address = 0x2A
+access = "r"
+width = 16
+signed = true
+channel = "b_meas.y"
+
+[[register]]
+name = "OUT_Z"
+address = 0x2C
+access = "r"
+width = 16
+signed = true
+channel = "b_meas.z"
+
+[[register]]
+name = "TEMP"
+address = 0x2E
+access = "r"
+width = 16
+signed = true
+channel = "temperature"
+
+[behaviour]
+auto_increment = true             # a burst read from OUT_X returns X, Y, Z in order
+data_ready_clears_on = "read of OUT_Z"
+conversion_time_s = 0.005
+read_while_converting = "returns the previous sample and sets overrun"
+
+# What each fault kind looks like on this port (campaigns/*.toml, rig device maps).
+[faults]
+sensor_dropout = "NACK the address"
+bus_error = "NACK after the register byte"
+stuck = "hold the last sample; data_ready stays set"

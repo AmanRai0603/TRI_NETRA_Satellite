@@ -1,0 +1,23 @@
+schema = "adcs-belief/1"
+id = "B-008"
+quarter = "Q3-26"
+area = "math"
+about = ["gp_5"]
+request = ""
+version = ""
+recorded_by = "planning package"
+believed = "The five pointing contributors are independent and random, so the APE row adds them in quadrature."
+status = "untested"
+tested = ""
+now_know = "ECSS-E-ST-60-10C adds independent random contributors in quadrature and biases linearly. Which of ours is a bias has not been decided contributor by contributor."
+cost_k = ""
+plan_change = "The assumption is written on the row and opened as a risk."
+previous_issue = ""
+benefit = ""
+would_test = "A person classifies each contributor as random or bias, with a source, and the budget rule is matched to it."
+risks = ["R-15"]
+
+[[move]]
+risk = "R-15"
+from = 0
+to = 3

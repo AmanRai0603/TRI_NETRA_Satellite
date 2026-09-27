@@ -1,0 +1,1752 @@
+# Seed content for node forms: the pilot thread's 61 rows and the risk
+# branch's 21 (82 in all), written from cited sources so the first forms the
+# developer team takes through intake are not blank (SPEC.md §5.8, §5.13).
+#
+# WHAT THIS FILE IS. Content, not code and not a sheet. `tools/forms.py` turns
+# each row into that node's seed form (adcs-node-form/1). In the built
+# repository the developer team takes every seed form through the same intake
+# as a team member's form (SPEC.md §5.11): the checker, then the implementation
+# agent, then verify, then review. Nothing is written to a sheet from here
+# directly.
+#
+# WHO WROTE IT. The planning assistant that wrote this package, from the
+# sources below. That is why every row reaches the repository with nobody's
+# name on its relation or value: the seed forms leave `attested_by` empty, and
+# the rows run as UNCONFIRMED until an engineer attests them in a node form.
+#
+# THE THREAD. One reference case, followed end to end before anything else is
+# widened (VLEO RUNBOOK: "one node, all the way through"): the IDMAS v2 §13
+# case, a 3U CubeSat in a 500 km sun-synchronous orbit with three panel rings
+# plus coils. Orbit -> environment -> disturbances -> coil sizing -> ring
+# sizing -> settling -> the APE budget. The RCS rows are included because
+# IDMAS v2 §09 prints the numbers a test vector needs.
+#
+# RULES THIS FILE KEEPS (tools/validate_plan.py checks them):
+# * Values are in the declared unit. Test-vector (fixture) `expect` and
+#   `inputs` are SI, keyed by binding, exactly as fixtures.toml in VLEO.
+# * Every test-vector value is TRANSCRIBED from a page of a cited source. None
+#   was computed by the author of this file: a number computed by an assistant
+#   is `agent-generated`, and the gate refuses it. Where a test vector is
+#   wanted and no source prints the number, `fixture_wanted` says so; an
+#   engineer supplies it in the node form, with the page it comes from.
+#   Tolerances cover the source's printed rounding and nothing more.
+# * Values on declared rows are the reference satellite's, never a
+#   confirmation. They run as UNCONFIRMED until attested (SPEC.md §5.8).
+# * A computed row carries `why`, which becomes `[theory] why`. Without
+#   theory the engine answers Undefined.
+# * `physics` names the adcs-core::physics function (plan/physics.toml) the
+#   step calls, with the row's bindings in declared order; `call = "slice"`
+#   passes them as one slice instead. A formula never appears in node code
+#   (rule 3). Measured data a function needs (IGRF-14 terms, the density
+#   table) is compiled into adcs-core from its bundle; `bundles` makes the run
+#   refuse when that bundle is not the verified one.
+# * The inputs of a row are exactly its VE edges in plan/tree.json.
+# * `tier` sets the validation ceiling (VLEO credibility.rs): A for declared
+#   rows, B for computed rows whose test vectors are independent-tool.
+# * A row is named by its tree id (plan/tree.json).
+#
+# Every unit used here is in plan/units.toml.
+
+# ---------------------------------------------------------------- sources ---
+
+[[source]]
+id = "adcs_ref_c1"
+title = "Reference 3U satellite (reference case C1) — the structure, orbit and IDMAS V2 values both default 3U cases share, as stated for this plan"
+where = "plan/seed_content.toml; to be replaced by the customer's own statement"
+status = "current"
+used_for = "Every declared value of the pilot thread. A reference value, never a confirmation."
+
+[[source]]
+id = "idmas_v2"
+title = "IDMAS v2 Exploration — From magnetorquer pointing to an actuator system for any satellite"
+where = "Orbitt Space research document, 2026 (IDMAS_v2_Exploration.pdf), sections 03, 07, 08, 09, 13"
+status = "current"
+used_for = "Fluid-ring momentum, spin-down, pump pressure and RCS propellant relations, and the sizing-script values used as fixtures."
+
+[[source]]
+id = "vallado2013"
+title = "Vallado, D. A. — Fundamentals of Astrodynamics and Applications, 4th ed."
+where = "Microcosm Press, 2013"
+status = "current"
+used_for = "Circular-orbit radius, period, rate and speed."
+
+[[source]]
+id = "wertz1978"
+title = "Wertz, J. R. (ed.) — Spacecraft Attitude Determination and Control"
+where = "D. Reidel, 1978"
+status = "current"
+used_for = "Gravity-gradient, aerodynamic, solar-pressure and residual-magnetic disturbance torques; the dipole field model."
+
+[[source]]
+id = "smad2011"
+title = "Wertz, Everett, Puschell (eds.) — Space Mission Engineering: The New SMAD"
+where = "Microcosm Press, 2011, chapter 19"
+status = "current"
+used_for = "Worst-case disturbance summation and momentum-dumping dipole sizing."
+
+[[source]]
+id = "markley2014"
+title = "Markley, F. L. and Crassidis, J. L. — Fundamentals of Spacecraft Attitude Determination and Control"
+where = "Springer, 2014"
+status = "current"
+used_for = "Estimation and control relations written after the pilot thread."
+
+[[source]]
+id = "igrf14"
+title = "International geomagnetic reference field: the fourteenth generation"
+where = "Earth, Planets and Space, 2025; coefficients from NOAA NCEI (igrf14coeffs.txt)"
+status = "current"
+used_for = "The dipole strength and tilt at the launch epoch, shipped as the igrf14 bundle."
+
+[[source]]
+id = "kopp2011"
+title = "Kopp, G. and Lean, J. L. — A new, lower value of total solar irradiance"
+where = "Geophysical Research Letters 38, L01706, 2011"
+status = "current"
+used_for = "Total solar irradiance of 1360.8 W/m2 at 1 AU for the solar radiation pressure."
+
+[[source]]
+id = "ecss_e_st_60_10c"
+title = "ECSS-E-ST-60-10C — Space engineering: Control performance"
+where = "ECSS, 15 November 2008"
+status = "current"
+used_for = "Performance-error indices and the rule for summing independent contributors in the pointing budget."
+
+[[source]]
+id = "ogata2010"
+title = "Ogata, K. — Modern Control Engineering, 5th ed."
+where = "Prentice Hall, 2010"
+status = "current"
+used_for = "The 2 per cent settling time of a second-order loop."
+
+[[source]]
+id = "nrlmsis2"
+title = "Emmert, J. T. et al. — NRLMSIS 2.0: A whole-atmosphere empirical model of temperature and neutral species densities"
+where = "Earth and Space Science 8, e2020EA001321, 2021"
+status = "current"
+used_for = "The density-against-altitude table shipped as the atmos-density bundle, at low, mean and high solar activity."
+
+[[source]]
+id = "synthetic_test_parts"
+title = "Synthetic catalogue parts for software tests"
+where = "catalogue/parts/SYN-*.toml"
+status = "current"
+used_for = "Round numbers that let every family be exercised in tests. Never quotable, never evidence."
+
+[[source]]
+id = "avanzini2012"
+title = "Avanzini, G. and Giulietti, F. — Magnetic Detumbling of a Rigid Spacecraft"
+where = "Journal of Guidance, Control, and Dynamics, 2012, doi:10.2514/1.53074"
+status = "current"
+used_for = "The B-dot gain the bdot algorithm's gain_scale multiplies (catalogue/algorithms/bdot.toml)."
+
+[[source]]
+id = "cds14_1"
+title = "CubeSat Design Specification, Rev. 14.1 — The CubeSat Program, Cal Poly SLO"
+where = "February 2022, Table 1 (requirement 2.2.10): maximum mass per form factor"
+status = "current"
+used_for = "The mass limit of each CubeSat class in catalogue/classes.toml."
+
+[[source]]
+id = "schwartz2003"
+title = "Schwartz, J. L., Peck, M. A., Hall, C. D. — Historical Review of Air-Bearing Spacecraft Simulators"
+where = "Journal of Guidance, Control, and Dynamics 26(4), 2003, doi:10.2514/2.5085"
+status = "current"
+used_for = "The air-bearing platform rows (fa5) and the bearing needs (h_tbear, h_cmoff, h_tilt): a bearing's residual torque is the weight it carries times its centre-of-mass offset, and tabletop and umbrella bearings limit tilt."
+
+[[source]]
+id = "ibrahim2026"
+title = "Ibrahim et al. — Air-Bearing Testbeds for CubeSat and Nanosatellite (review)"
+where = "Research Square preprint rs-10893767, 2026 (not yet peer reviewed)"
+status = "preprint"
+used_for = "Typical CubeSat bearing figures a request may compare against: automatic mass balancing to micrometre-level offsets, tilt ranges of about ±45 to ±50 degrees, and the gravity torque of a given offset. A preprint: a form citing it says so."
+
+[[source]]
+id = "dasilva2019"
+title = "da Silva, R. C., Ishioka, I. S. K., Cappelletti, C., Battistini, S., Borges, R. A. — Helmholtz Cage Design and Validation for Nanosatellites HWIL Testing"
+where = "IEEE Transactions on Aerospace and Electronic Systems, 2019: requirements (field per axis, 5 per cent intensity and 5 degree direction error, 0.5 per cent homogeneous zone) and measured performance"
+status = "current"
+used_for = "The magnetic field simulator rows (fa3) and the cage needs (h_brng, h_bacc, h_bslew): what a cage is specified by, and how an orbit's field is commanded and checked with a reference magnetometer."
+
+[[source]]
+id = "astm_e927"
+title = "ASTM E927-19 — Standard Classification for Solar Simulators for Electrical Performance Testing of Photovoltaic Devices"
+where = "ASTM International, 2019: classes by spectral match, spatial non-uniformity and temporal instability"
+status = "current"
+used_for = "How the Sun simulator's non-uniformity and temporal instability (f_sununi, f_sunstab) are stated and classed. The class limits are read from the standard itself."
+
+[[source]]
+id = "zhao2024"
+title = "Zhao, H., Zhuang, A., Lembeck, M. F. — A Low-Cost, Hardware-in-the-Loop Simulator Facilitating CubeSat Star Tracker Development"
+where = "38th Annual Small Satellite Conference, 2024: display, collimator, angular step, displayable magnitudes"
+status = "current"
+used_for = "The star stimulator rows (f_star, f_starmag, f_starfr, f_starlat) and needs (h_starerr, h_starfr): a star stimulator's angular step is the display's pixel pitch over the collimator's focal length."
+
+[[source]]
+id = "bremer2017"
+title = "Bremer, L., Fernández Garcia, V., Neefs, M., Agenjo Diaz, A. — The Euclid AOCS simulation facilities"
+where = "ESA GNC conference, 2017: engineering simulator, real-time simulator, software validation facility, hardware-in-the-loop facility, SCOE"
+status = "current"
+used_for = "One model reused across every facility: the MATLAB engineering simulator's models carried into the real-time simulator, one parameter database for all, and the real-time simulator run at twice the on-board cycle. The pattern the MATLAB twin's lockstep (SPEC.md §10.8.7) and the rig's reuse of adcs-sim-core follow."
+
+[[source]]
+id = "colagrossi2023"
+title = "Colagrossi, A., Silvestrini, S., Lavagna, M. — Flat-Sat Facility for Processor-in-the-Loop Verification and Testing of Nanosatellite ADCS"
+where = "ESA GNC-ICATT, 2023: architecture, emulated interfaces, timing, isolation, pass criteria"
+status = "current"
+used_for = "The OILS rig rows (fa2) and needs (v3): interface emulation of UART, I2C, SPI, CAN and PWM on the flight connectors, a missed-tick count with an allowed share, galvanic isolation of the OBC, and one functional simulator shared by the model-in-the-loop and processor-in-the-loop stages."
+
+[[source]]
+id = "nadeem2022"
+title = "Nadeem, S. — Empirical Methods for Reaction Wheel Micro-Vibration Verification in a Production Environment"
+where = "36th Annual Small Satellite Conference, 2022: force dynamometer and laser vibrometer methods"
+status = "current"
+used_for = "The wheel test stand rows (f_dynbw, f_imb) and the wheel need (h_rwd): static and dynamic imbalance from a multi-component force dynamometer at speed and over a run-down."
+
+[[source]]
+id = "springmann2010"
+title = "Springmann, J. C., Cutler, J. W. — Magnetic Sensor Calibration and Residual Dipole Characterization for Application to Nanosatellites"
+where = "AIAA/AAS Astrodynamics Specialist Conference, 2010, AIAA 2010-7518"
+status = "current"
+used_for = "How a coil's dipole and the satellite's residual dipole are measured with magnetometers (f_dipres, h_dip)."
+
+[[source]]
+id = "ecss_e_tm_10_21a"
+title = "ECSS-E-TM-10-21A — System modelling and simulation"
+where = "ECSS, 16 April 2010"
+status = "current"
+used_for = "The names and roles of the simulation facilities a project uses (functional engineering simulator, software validation facility, real-time test bench) and model reuse across them."
+
+[[source]]
+id = "ecss_m_st_80c"
+title = "ECSS-M-ST-80C, Space project management — Risk management"
+where = "ECSS, 31 July 2008: the risk management process, severity and likelihood scoring, risk index"
+status = "current"
+used_for = "The idea behind the risk levels L1–L5 and the rule that a risk is lowered only by an action whose result is recorded. The mapping from its severity and likelihood scores to our five levels is decision D26, not the standard's."
+
+[[source]]
+id = "adcs_derisk_method"
+title = "Quarterly De-risking Narrative — the company's template; derisk/narrative_template.xlsx is regenerated from its title and columns by tools/derisk.py template"
+where = "derisk/narrative_template.xlsx, sheet \"De-risking Narrative\": the columns Quarter, What we believed, What we tested, What we now know, What it cost, What changed in the plan, Risks opened / closed"
+status = "current"
+used_for = "The fields of a belief record (SPEC.md §5.13), the quarterly narrative's columns, and the counts the risk rows are rolled up from."
+
+# ------------------------------------------------------ declared: mission ---
+
+[[row]]
+tree_id = "m1_1"
+kind = "declared"
+tier = "A"
+question = "When does the satellite start flying, in years after J2000?"
+expression = "t_epoch = 27"
+source = "adcs_ref_c1"
+symbol = "t_epoch"
+type = "Time"
+unit = "Year"
+value = 27.0
+lower = 20.0
+upper = 45.0
+reason_lower = "before 2020 the igrf14 bundle's definitive coefficients do not reach the launch"
+reason_upper = "after 2045 the field model would be extrapolated past anything its secular variation supports"
+
+[[row]]
+tree_id = "m1_4"
+kind = "declared"
+tier = "A"
+question = "Through what angle is the reference slew made?"
+expression = "theta_ref = 30"
+source = "adcs_ref_c1"
+symbol = "theta_ref"
+type = "Angle"
+unit = "Degree"
+value = 30.0
+lower = 0.1
+upper = 180.0
+reason_lower = "below 0.1 degree a slew is a pointing correction, which the pointing budget covers"
+reason_upper = "180 degrees is the largest rotation between two attitudes"
+
+[[row]]
+tree_id = "m1_5"
+kind = "declared"
+tier = "A"
+question = "How fast is the satellite tumbling when it leaves the deployer?"
+expression = "w0 = 10"
+source = "adcs_ref_c1"
+symbol = "w0"
+type = "AngularRate"
+unit = "DegreePerSecond"
+value = 10.0
+lower = 0.01
+upper = 60.0
+reason_lower = "below 0.01 deg/s there is no tumble to remove"
+reason_upper = "above 60 deg/s the separation is a failure the ADCS is not sized to recover"
+
+[[row]]
+tree_id = "m2_0"
+kind = "declared"
+tier = "A"
+question = "At what altitude does it fly?"
+expression = "h = 500"
+source = "adcs_ref_c1"
+symbol = "h"
+type = "Length"
+unit = "Kilometre"
+value = 500.0
+lower = 150.0
+upper = 2000.0
+reason_lower = "below 150 km no satellite in this class stays up long enough to point"
+reason_upper = "above 2000 km is not low Earth orbit, and the field and density models here are sized for it"
+
+[[row]]
+tree_id = "m2_1"
+kind = "declared"
+tier = "A"
+question = "At what inclination?"
+expression = "i = 97.4"
+source = "adcs_ref_c1"
+symbol = "i"
+type = "Angle"
+unit = "Degree"
+value = 97.4
+lower = 0.0
+upper = 180.0
+reason_lower = "an inclination is not negative"
+reason_upper = "an inclination is at most 180 degrees"
+
+[[row]]
+tree_id = "m2_2"
+kind = "declared"
+tier = "A"
+question = "How eccentric is the orbit?"
+expression = "e = 0"
+source = "adcs_ref_c1"
+symbol = "e"
+type = "Ratio"
+unit = "One"
+value = 0.0
+lower = 0.0
+upper = 0.1
+reason_lower = "an eccentricity is not negative"
+reason_upper = "above 0.1 the circular-orbit relations downstream are wrong by more than their stated error"
+
+# ---------------------------------------------- declared: the satellite ---
+
+[[row]]
+tree_id = "s1_0"
+kind = "declared"
+tier = "A"
+question = "What is the satellite's mass?"
+expression = "m_sat = 4"
+source = "adcs_ref_c1"
+symbol = "m_sat"
+type = "Mass"
+unit = "Kilogram"
+value = 4.0
+lower = 0.1
+upper = 1000.0
+reason_lower = "below 100 g there is no satellite to point"
+reason_upper = "above 1000 kg the bus is outside every catalogue family"
+
+[[row]]
+tree_id = "s1_1"
+kind = "declared"
+tier = "A"
+question = "What is the largest principal moment of inertia?"
+expression = "I_max = 0.042"
+source = "adcs_ref_c1"
+symbol = "I_max"
+type = "MomentOfInertia"          # (NEW) quantity; VLEO declared inertia as Ratio
+unit = "KilogramSquareMetre"      # (NEW)
+value = 0.042
+lower = 0.0001
+upper = 2000.0
+reason_lower = "below 1e-4 kg.m2 the body is smaller than a 1U CubeSat"
+reason_upper = "above 2000 kg.m2 the bus is outside every catalogue family"
+note = "Reference value: a uniform 4 kg, 0.1 x 0.1 x 0.34 m box. The customer's CAD replaces it."
+
+[[row]]
+tree_id = "s1_3"
+kind = "declared"
+tier = "A"
+question = "What is the smallest principal moment of inertia?"
+expression = "I_min = 0.0067"
+source = "adcs_ref_c1"
+symbol = "I_min"
+type = "MomentOfInertia"
+unit = "KilogramSquareMetre"
+value = 0.0067
+lower = 0.0001
+upper = 2000.0
+reason_lower = "below 1e-4 kg.m2 the body is smaller than a 1U CubeSat"
+reason_upper = "above 2000 kg.m2 the bus is outside every catalogue family"
+
+[[row]]
+tree_id = "s2_0"
+kind = "declared"
+tier = "A"
+question = "What area does the air push on?"
+expression = "A_fr = 0.034"
+source = "adcs_ref_c1"
+symbol = "A_fr"
+type = "Area"
+unit = "SquareMetre"
+value = 0.034
+lower = 0.0001
+upper = 20.0
+reason_lower = "below 1 cm2 there is no body"
+reason_upper = "above 20 m2 the aerodynamic model here does not hold for appendages that size"
+
+[[row]]
+tree_id = "s2_1"
+kind = "declared"
+tier = "A"
+question = "How far is the aerodynamic centre of pressure from the centre of mass?"
+expression = "c_pa = 0.02"
+source = "adcs_ref_c1"
+symbol = "c_pa"
+type = "Length"
+unit = "Metre"
+value = 0.02
+lower = 0.0
+upper = 2.0
+reason_lower = "an offset magnitude is not negative"
+reason_upper = "above 2 m the offset is longer than the bus"
+
+[[row]]
+tree_id = "s2_5"
+kind = "declared"
+tier = "A"
+question = "What drag coefficient is assumed?"
+expression = "C_D = 2.2"
+source = "adcs_ref_c1"
+symbol = "C_D"
+type = "Ratio"
+unit = "One"
+value = 2.2
+lower = 1.0
+upper = 4.0
+reason_lower = "below 1 no free-molecular flat body produces it"
+reason_upper = "above 4 the surface model would need to be stated, not assumed"
+
+[[row]]
+tree_id = "s3_0"
+kind = "declared"
+tier = "A"
+question = "What residual magnetic dipole does the satellite carry?"
+expression = "D_res = 0.01"
+source = "adcs_ref_c1"
+symbol = "D_res"
+type = "DipoleMoment"
+unit = "AmpereSquareMetre"
+value = 0.01
+lower = 0.0
+upper = 50.0
+reason_lower = "a dipole magnitude is not negative"
+reason_upper = "above 50 A.m2 the satellite's own field is larger than any coil in the catalogue"
+
+[[row]]
+tree_id = "m1_3"
+kind = "declared"
+tier = "A"
+question = "How many slews does the mission make each day?"
+expression = "n_day = 10"
+source = "adcs_ref_c1"
+symbol = "n_day"
+type = "Ratio"
+unit = "Count"
+value = 10.0
+lower = 0.0
+upper = 500.0
+reason_lower = "zero is a real answer: an inertial or nadir mission that never slews"
+reason_upper = "above 500 a day the satellite is always slewing and the duty cycle row is meaningless"
+
+[[row]]
+tree_id = "s2_2"
+kind = "declared"
+tier = "A"
+question = "What area does sunlight push on?"
+expression = "A_sun = 0.034"
+source = "adcs_ref_c1"
+symbol = "A_sun"
+type = "Area"
+unit = "SquareMetre"
+value = 0.034
+lower = 0.0001
+upper = 50.0
+reason_lower = "below 1 cm2 there is no body"
+reason_upper = "above 50 m2 the arrays are outside every catalogue family"
+
+[[row]]
+tree_id = "s2_3"
+kind = "declared"
+tier = "A"
+question = "How far is the solar centre of pressure from the centre of mass?"
+expression = "c_ps = 0.02"
+source = "adcs_ref_c1"
+symbol = "c_ps"
+type = "Length"
+unit = "Metre"
+value = 0.02
+lower = 0.0
+upper = 5.0
+reason_lower = "an offset magnitude is not negative"
+reason_upper = "above 5 m the offset is longer than any array in the catalogue families"
+
+[[row]]
+tree_id = "s2_4"
+kind = "declared"
+tier = "A"
+question = "What fraction of sunlight do the surfaces reflect?"
+expression = "q = 0.6"
+source = "adcs_ref_c1"
+symbol = "q"
+type = "Ratio"
+unit = "One"
+value = 0.6
+lower = 0.0
+upper = 1.0
+reason_lower = "a reflectivity is not negative"
+reason_upper = "a surface reflects at most all the light that reaches it"
+
+# ------------------------------------------ declared: fitted hardware ---
+
+[[row]]
+tree_id = "cf_0"
+kind = "declared"
+tier = "A"
+question = "How many magnetorquer axes are fitted?"
+expression = "n_mtq = 3"
+source = "adcs_ref_c1"
+symbol = "n_mtq"
+type = "Ratio"
+unit = "Count"
+value = 3.0
+lower = 0.0
+upper = 12.0
+reason_lower = "zero is a real answer: the family has no coils"
+reason_upper = "above 12 coil sets no family fits them (the families allow at most 6)"
+
+[[row]]
+tree_id = "cf_2"
+kind = "declared"
+tier = "A"
+question = "How many fluid momentum rings are fitted?"
+expression = "n_fmr = 3"
+source = "adcs_ref_c1"
+symbol = "n_fmr"
+type = "Ratio"
+unit = "Count"
+value = 3.0
+lower = 0.0
+upper = 8.0
+reason_lower = "zero is a real answer: the family has no rings"
+reason_upper = "above 8 rings no IDMAS configuration exists (V3 fault-tolerant uses 4)"
+
+[[row]]
+tree_id = "cf_3"
+kind = "declared"
+tier = "A"
+question = "How many RCS thrusters are fitted?"
+expression = "n_rcs = 0"
+source = "adcs_ref_c1"
+symbol = "n_rcs"
+type = "Ratio"
+unit = "Count"
+value = 0.0
+lower = 0.0
+upper = 16.0
+reason_lower = "zero is a real answer: the family has no thrusters"
+reason_upper = "above 16 thrusters no IDMAS V3 configuration exists"
+
+[[row]]
+tree_id = "gm_0"
+kind = "declared"
+tier = "A"
+question = "What dipole can each coil axis produce?"
+expression = "m_av = 0.45"
+source = "idmas_v2"
+symbol = "m_av"
+type = "DipoleMoment"
+unit = "AmpereSquareMetre"
+value = 0.45
+lower = 0.0
+upper = 100.0
+reason_lower = "a dipole magnitude is not negative"
+reason_upper = "above 100 A.m2 no coil or rod in the catalogue produces it"
+note = "IDMAS v2 §03A: N = 200, I = 0.1 A on the 3U long panel."
+
+[[row]]
+tree_id = "gf_0"
+kind = "declared"
+tier = "A"
+question = "What is the ring channel's bore?"
+expression = "d = 3"
+source = "idmas_v2"
+symbol = "d"
+type = "Length"
+unit = "Millimetre"               # (NEW)
+value = 3.0
+lower = 0.5
+upper = 20.0
+reason_lower = "below 0.5 mm the metal stops within a tenth of a second and the ring holds nothing (IDMAS v2 §07.2)"
+reason_upper = "above 20 mm no ring in the catalogue is sized (the 500 kg body ring is 16 mm)"
+
+[[row]]
+tree_id = "gf_1"
+kind = "declared"
+tier = "A"
+question = "What area does the ring channel enclose?"
+expression = "S = 0.022"
+source = "idmas_v2"
+symbol = "S"
+type = "Area"
+unit = "SquareMetre"
+value = 0.022
+lower = 0.0001
+upper = 5.0
+reason_lower = "below 1 cm2 the ring is smaller than a PocketQube face"
+reason_upper = "above 5 m2 the ring is bigger than any body ring in the catalogue"
+
+[[row]]
+tree_id = "gf_2"
+kind = "declared"
+tier = "A"
+question = "How dense is the ring fluid?"
+expression = "rho_f = 6440"
+source = "idmas_v2"
+symbol = "rho_f"
+type = "MassDensity"
+unit = "KgPerCubicMetre"
+value = 6440.0
+lower = 500.0
+upper = 10000.0
+reason_lower = "below 500 kg/m3 the fluid is lighter than NaK-78, the lightest in IDMAS v2 §10.4"
+reason_upper = "above 10000 kg/m3 no candidate liquid metal in IDMAS v2 §10.4 is that dense"
+
+[[row]]
+tree_id = "gf_3"
+kind = "declared"
+tier = "A"
+question = "How viscous is the ring fluid?"
+expression = "mu_f = 0.0024"
+source = "idmas_v2"
+symbol = "mu_f"
+type = "DynamicViscosity"         # (NEW)
+unit = "PascalSecond"             # (NEW)
+value = 0.0024
+lower = 0.0001
+upper = 0.1
+reason_lower = "below 0.1 mPa.s no liquid metal candidate is that thin"
+reason_upper = "above 100 mPa.s the fluid is not a liquid metal and the pump model does not hold"
+
+[[row]]
+tree_id = "gf_4"
+kind = "declared"
+tier = "A"
+question = "At what speed does the ring fluid cruise?"
+expression = "v_cr = 0.2"
+source = "idmas_v2"
+symbol = "v_cr"
+type = "Velocity"
+unit = "MetrePerSecond"
+value = 0.2
+lower = 0.01
+upper = 5.0
+reason_lower = "below 1 cm/s the ring holds nothing useful"
+reason_upper = "above 5 m/s is past the sprint regime of IDMAS v2 §09 (1 to 2.5 m/s)"
+
+[[row]]
+tree_id = "gf_5"
+kind = "declared"
+tier = "A"
+question = "How long is the ring channel along its centreline?"
+expression = "L = 0.72"
+source = "idmas_v2"
+symbol = "L"
+type = "Length"
+unit = "Metre"
+value = 0.72
+lower = 0.05
+upper = 20.0
+reason_lower = "below 5 cm the ring is smaller than a PocketQube face"
+reason_upper = "above 20 m the ring is longer than any body ring's circumference in the catalogue"
+note = "Perimeter of the 80 x 280 mm centreline stated in IDMAS v2 §03A. A person confirms the arithmetic."
+
+[[row]]
+tree_id = "gr_1"
+kind = "declared"
+tier = "A"
+question = "What moment arm do the thrusters act through?"
+expression = "r_arm = 0.8"
+source = "idmas_v2"
+symbol = "r_arm"
+type = "Length"
+unit = "Metre"
+value = 0.8
+lower = 0.05
+upper = 5.0
+reason_lower = "below 5 cm the thrusters cannot produce useful torque"
+reason_upper = "above 5 m the arm is longer than any bus in the catalogue"
+
+[[row]]
+tree_id = "gr_2"
+kind = "declared"
+tier = "A"
+question = "What is the thrusters' specific impulse?"
+expression = "Isp = 220"
+source = "idmas_v2"
+symbol = "Isp"
+type = "Time"
+unit = "Second"
+value = 220.0
+lower = 50.0
+upper = 400.0
+reason_lower = "below 50 s no monopropellant thruster in the catalogue operates"
+reason_upper = "above 400 s the thruster is not a chemical RCS thruster"
+
+[[row]]
+tree_id = "gc_0"
+kind = "declared"
+tier = "A"
+question = "What closed-loop natural frequency is the attitude loop tuned to?"
+expression = "w_n = 0.1"
+source = "adcs_ref_c1"
+symbol = "w_n"
+type = "AngularRate"
+unit = "RadianPerSecond"
+value = 0.1
+lower = 0.001
+upper = 10.0
+reason_lower = "below 0.001 rad/s the loop cannot reject a disturbance within an orbit"
+reason_upper = "above 10 rad/s the loop is faster than any sensor in the catalogue updates"
+
+[[row]]
+tree_id = "gc_1"
+kind = "declared"
+tier = "A"
+question = "What damping ratio is the attitude loop tuned to?"
+expression = "zeta = 0.707"
+source = "adcs_ref_c1"
+symbol = "zeta"
+type = "Ratio"
+unit = "One"
+value = 0.707
+lower = 0.1
+upper = 2.0
+reason_lower = "below 0.1 the loop rings for longer than any pointing window"
+reason_upper = "above 2 the loop is so overdamped that the settling relation used here no longer holds"
+
+# ----------------------------------------- declared: written requirements ---
+# On the tree these are "target — required" rows. Written, they follow the
+# VLEO convention: kind = "declared" with a top-level `sense` (gate check 7d).
+
+[[row]]
+tree_id = "p1k_0"
+kind = "declared"
+tier = "A"
+sense = "<="
+question = "What absolute pointing error does the customer require?"
+expression = "APE_req = 0.1"
+source = "adcs_ref_c1"
+symbol = "APE_req"
+type = "Angle"
+unit = "Degree"
+value = 0.1
+lower = 0.0001
+upper = 30.0
+reason_lower = "below 0.36 arcsec no sensor in the catalogue can verify it"
+reason_upper = "above 30 degrees the requirement is not a pointing requirement"
+
+[[row]]
+tree_id = "p2k_0"
+kind = "declared"
+tier = "A"
+sense = "<="
+question = "In what time must the reference slew be completed?"
+expression = "T_slew_req = 60"
+source = "adcs_ref_c1"
+symbol = "T_slew_req"
+type = "Time"
+unit = "Second"
+value = 60.0
+lower = 1.0
+upper = 86400.0
+reason_lower = "below 1 s no catalogue family completes a slew"
+reason_upper = "above a day the requirement is not an agility requirement"
+
+# ------------------------------------------------------ computed: orbit ---
+
+[[row]]
+tree_id = "m2_4"
+kind = "computed"
+tier = "B"
+question = "How far is the satellite from the Earth's centre?"
+expression = "r = R_E + h"
+source = "vallado2013"
+physics = "orbit::radius"
+symbol = "r"
+type = "Length"
+unit = "Kilometre"
+lower = 6500.0
+upper = 8400.0
+reason_lower = "below 6500 km the orbit is under the altitude floor of this tree"
+reason_upper = "above 8400 km the orbit is above the altitude ceiling of this tree"
+inputs = [["h", "m2_0"]]
+steps = ["add the equatorial Earth radius to the altitude"]
+why = "For a circular orbit the radius is the altitude plus the Earth's equatorial radius. The equatorial radius is used because every downstream relation that reads it (field, gravity gradient) was written against it."
+assumptions = [["the orbit is circular", "the eccentricity row is above about 0.01, when the radius varies by more than the error budgeted for it"]]
+
+[[row]]
+tree_id = "m2_5"
+kind = "computed"
+tier = "B"
+question = "How long is one orbit?"
+expression = "T = 2*pi*sqrt(r^3/mu)"
+source = "vallado2013"
+physics = "orbit::circular_period"
+symbol = "T"
+type = "Time"
+unit = "Minute"
+lower = 85.0
+upper = 130.0
+reason_lower = "below 85 minutes the orbit is under the altitude floor of this tree"
+reason_upper = "above 130 minutes the orbit is above the altitude ceiling of this tree"
+inputs = [["r", "m2_4"]]
+steps = ["take Kepler's third law for a circular orbit of this radius"]
+why = "Kepler's third law with the Earth's gravitational parameter. J2 changes the period by a fraction of a per cent at these altitudes, which is below every margin this row feeds."
+assumptions = [["J2 is neglected", "a downstream margin is smaller than 0.5 per cent of the period"]]
+fixture_wanted = "a published orbital-period table value near 500 km (an engineer supplies it in the node form, with its page)"
+
+[[row]]
+tree_id = "m2_6"
+kind = "computed"
+tier = "B"
+question = "How fast does the orbit turn?"
+expression = "n = 2*pi/T"
+source = "vallado2013"
+physics = "orbit::mean_motion"
+symbol = "n"
+type = "AngularRate"
+unit = "RadianPerSecond"
+lower = 0.0008
+upper = 0.0013
+reason_lower = "below 0.0008 rad/s the orbit is above the altitude ceiling of this tree"
+reason_upper = "above 0.0013 rad/s the orbit is under the altitude floor of this tree"
+inputs = [["t_orb", "m2_5"]]
+steps = ["divide a full turn by the period"]
+why = "The mean motion of a circular orbit is one revolution per period. It is the rate a nadir-pointing body turns at, which sets the gyroscopic coupling the controller sees."
+
+[[row]]
+tree_id = "m3_4"
+kind = "computed"
+tier = "B"
+question = "How fast is the satellite moving?"
+expression = "v = sqrt(mu/r)"
+source = "vallado2013"
+physics = "orbit::circular_speed"
+symbol = "v"
+type = "Velocity"
+unit = "KmPerSecond"
+lower = 6.8
+upper = 7.9
+reason_lower = "below 6.8 km/s the orbit is above the altitude ceiling of this tree"
+reason_upper = "above 7.9 km/s the orbit is under the altitude floor of this tree"
+inputs = [["r", "m2_4"]]
+steps = ["take the circular speed at this radius"]
+why = "Circular speed from the vis-viva equation with a = r. The aerodynamic torque reads it squared, so its error doubles there."
+
+# ------------------------------------------------ computed: environment ---
+
+[[row]]
+tree_id = "m3_2"
+kind = "computed"
+tier = "B"
+question = "How far from the magnetic equator does the orbit reach?"
+expression = "lambda_max = min(90 deg, i' + theta_dip), i' = min(i, 180 deg - i)"
+source = "igrf14"
+physics = "env::max_magnetic_latitude"
+bundles = ["igrf14"]
+symbol = "lambda_max"
+type = "Angle"
+unit = "Degree"
+lower = 0.0
+upper = 90.0
+reason_lower = "a latitude magnitude is not negative"
+reason_upper = "a latitude is at most 90 degrees"
+inputs = [["i", "m2_1"]]
+steps = ["fold the inclination into 0 to 90 degrees, add the dipole tilt at the epoch, and cap at the pole"]
+why = "A dipole tilted by theta_dip from the spin axis lets an orbit of inclination i reach magnetic latitude i + theta_dip. The tilt comes from the degree-1 IGRF-14 coefficients, read from the igrf14 bundle, not typed here."
+assumptions = [["the field is a tilted dipole", "the pointing budget needs the field direction to better than about 10 degrees, where higher-degree terms matter"]]
+
+[[row]]
+tree_id = "m3_0"
+kind = "computed"
+tier = "B"
+question = "How weak does the field get along the orbit?"
+expression = "B_min = B0*(R_E/r)^3"
+source = "wertz1978"
+physics = "env::dipole_field_equator"
+bundles = ["igrf14"]
+symbol = "B_min"
+type = "MagneticFluxDensity"
+unit = "Microtesla"               # (NEW)
+lower = 5.0
+upper = 60.0
+reason_lower = "below 5 uT the orbit is higher than this tree's ceiling"
+reason_upper = "above 60 uT the value exceeds the field at the surface"
+inputs = [["r", "m2_4"]]
+steps = ["scale the equatorial dipole strength at the epoch by the cube of the radius ratio"]
+why = "A dipole field is weakest at the magnetic equator and falls as the cube of distance. B0 is the dipole strength from the degree-1 IGRF-14 coefficients at the epoch, read from the igrf14 bundle. The minimum is what sizes every coil, because authority is lowest there."
+assumptions = [["the field is a dipole", "the orbit is low enough that the real minimum departs from the dipole's by more than 20 per cent; SILS uses the full IGRF-14 expansion and the parity ledger shows the gap"], ["the dipole strength is taken at the IGRF-14 model epoch 2025.0", "the launch epoch is far enough from 2025 that secular variation moves B0 by more than the margin this row feeds"]]
+
+[[row]]
+tree_id = "m3_1"
+kind = "computed"
+tier = "B"
+question = "How strong does the field get along the orbit?"
+expression = "B_max = B0*(R_E/r)^3*sqrt(1 + 3*sin(lambda_max)^2)"
+source = "wertz1978"
+physics = "env::dipole_field_max"
+bundles = ["igrf14"]
+symbol = "B_max"
+type = "MagneticFluxDensity"
+unit = "Microtesla"
+lower = 5.0
+upper = 70.0
+reason_lower = "below 5 uT the orbit is higher than this tree's ceiling"
+reason_upper = "above 70 uT the value exceeds the field anywhere at the surface"
+inputs = [["r", "m2_4"], ["lambda_max", "m3_2"]]
+steps = ["scale the dipole strength by the radius ratio cubed and by the latitude factor at the highest magnetic latitude reached"]
+why = "The dipole field magnitude grows by sqrt(1 + 3 sin^2 lambda) from equator to pole, doubling at the pole. The maximum sizes the residual-magnetic torque."
+
+[[row]]
+tree_id = "m3_5"
+kind = "computed"
+tier = "B"
+question = "How hard does sunlight push?"
+expression = "P_srp = (F_sun/c)*(1 AU/d)^2"
+source = "kopp2011"
+physics = "env::solar_pressure"
+symbol = "P_srp"
+type = "Pressure"
+unit = "Pascal"
+lower = 4.0e-6
+upper = 5.0e-6
+reason_lower = "the pressure at aphelion is above 4.3 uPa"
+reason_upper = "the pressure at perihelion is below 4.8 uPa"
+inputs = [["t_epoch", "m1_1"]]
+steps = ["divide the total solar irradiance by the speed of light and scale by the inverse square of the Sun distance at the epoch"]
+why = "Radiation pressure on a perfect absorber is the irradiance over c. The irradiance at 1 AU is 1360.8 W/m2 (Kopp and Lean 2011); the Sun distance at the epoch comes from the low-precision solar ephemeris in adcs-core."
+
+[[row]]
+tree_id = "m3_3"
+kind = "computed"
+tier = "B"
+question = "How dense is the air at this altitude?"
+expression = "rho = table(h, solar activity at t_epoch)"
+source = "nrlmsis2"
+physics = "env::density_at"
+bundles = ["atmos-density"]
+symbol = "rho"
+type = "MassDensity"
+unit = "KgPerCubicMetre"
+lower = 1.0e-17
+upper = 1.0e-8
+reason_lower = "below 1e-17 kg/m3 the orbit is above this tree's ceiling at any solar activity"
+reason_upper = "above 1e-8 kg/m3 the orbit is below this tree's floor"
+inputs = [["h", "m2_0"], ["t_epoch", "m1_1"]]
+steps = ["interpolate log density at this altitude in the NRLMSIS 2.0 table for the solar activity expected at the epoch"]
+why = "Density is taken from a table of NRLMSIS 2.0 runs at low, mean and high solar activity, interpolated in log density against altitude. The epoch picks the activity level through the solar cycle phase. A table, not the model, because the kernel is no_std and the model is not; the bundle carries the table with its hash."
+assumptions = [["the activity level at the epoch is the cycle-mean for that phase", "a storm or a cycle much stronger than the mean, when the aerodynamic torque is several times larger; SILS disperses it"]]
+
+[[row]]
+tree_id = "gd_2"
+kind = "computed"
+tier = "B"
+question = "How large is the solar-pressure torque at worst?"
+expression = "tau_s = P_srp*A_sun*(1 + q)*c_ps"
+source = "wertz1978"
+physics = "gnc::solar_pressure_torque_at"
+symbol = "tau_s"
+type = "Torque"
+unit = "MicronewtonMetre"
+lower = 0.0
+upper = 1.0e6
+reason_lower = "a torque magnitude is not negative"
+reason_upper = "above 1 N.m the bus is outside every catalogue family"
+inputs = [["p_srp", "m3_5"], ["a_sun", "s2_2"], ["q", "s2_4"], ["c_ps", "s2_3"]]
+steps = ["radiation pressure times area times one plus reflectivity times the centre-of-pressure offset, at normal incidence"]
+why = "A surface absorbing and specularly reflecting at normal incidence feels P A (1 + q). Normal incidence is the worst case; the torque is that force times the offset."
+assumptions = [["sunlight arrives at normal incidence", "the attitude is known, when the cosine of the incidence angle reduces it"]]
+
+# ------------------------------------------------ computed: disturbances ---
+
+[[row]]
+tree_id = "gd_0"
+kind = "computed"
+tier = "B"
+question = "How large is the gravity-gradient torque at worst?"
+expression = "tau_gg = 3*mu/(2*r^3)*|I_max - I_min|*sin(2*theta), theta = 45 deg"
+source = "wertz1978"
+physics = "gnc::gravity_gradient_torque_worst"
+symbol = "tau_gg"
+type = "Torque"
+unit = "MicronewtonMetre"          # (NEW)
+lower = 0.0
+upper = 1.0e6
+reason_lower = "a torque magnitude is not negative"
+reason_upper = "above 1 N.m the bus is outside every catalogue family"
+inputs = [["r", "m2_4"], ["i_max", "s1_1"], ["i_min", "s1_3"]]
+steps = ["evaluate the gravity-gradient torque at the worst angle between the largest and smallest axes"]
+why = "The gravity-gradient torque on a rigid body is 3 mu / (2 r^3) times the inertia difference times sin(2 theta), largest at theta = 45 degrees. Using the worst angle makes this a sizing bound; SILS evaluates the torque at the attitude actually flown."
+assumptions = [["the body is rigid and the angle is at its worst", "the satellite holds a known attitude, when the real torque is smaller and the coils are oversized"]]
+
+[[row]]
+tree_id = "gd_1"
+kind = "computed"
+tier = "B"
+question = "How large is the aerodynamic torque at worst?"
+expression = "tau_a = 0.5*rho*v^2*C_D*A_fr*c_pa"
+source = "wertz1978"
+physics = "gnc::aero_torque"
+symbol = "tau_a"
+type = "Torque"
+unit = "MicronewtonMetre"
+lower = 0.0
+upper = 1.0e6
+reason_lower = "a torque magnitude is not negative"
+reason_upper = "above 1 N.m the bus is outside every catalogue family"
+inputs = [["rho", "m3_3"], ["v", "m3_4"], ["c_d", "s2_5"], ["a_fr", "s2_0"], ["c_pa", "s2_1"]]
+steps = ["dynamic pressure times drag coefficient times area times the centre-of-pressure offset"]
+why = "In free-molecular flow the drag force is 0.5 rho v^2 C_D A, and it acts at the centre of pressure; the torque is that force times the offset to the centre of mass."
+assumptions = [["the offset is perpendicular to the flow", "the attitude is known, when the real lever arm is shorter"]]
+
+[[row]]
+tree_id = "gd_3"
+kind = "computed"
+tier = "B"
+question = "How large is the residual-magnetic torque at worst?"
+expression = "tau_m = D_res*B_max"
+source = "wertz1978"
+physics = "gnc::magnetic_torque"
+symbol = "tau_m"
+type = "Torque"
+unit = "MicronewtonMetre"
+lower = 0.0
+upper = 1.0e6
+reason_lower = "a torque magnitude is not negative"
+reason_upper = "above 1 N.m the bus is outside every catalogue family"
+inputs = [["d_res", "s3_0"], ["b_max", "m3_1"]]
+steps = ["the residual dipole times the strongest field"]
+why = "A dipole in a field feels m x B, at most m B when the two are perpendicular. The strongest field along the orbit bounds it."
+
+[[row]]
+tree_id = "gd_4"
+kind = "computed"
+tier = "B"
+question = "How large is the total disturbance torque at worst?"
+expression = "tau_d = tau_gg + tau_a + tau_s + tau_m"
+source = "smad2011"
+physics = "gnc::total_disturbance_torque"
+symbol = "tau_d"
+type = "Torque"
+unit = "MicronewtonMetre"
+lower = 0.0
+upper = 4.0e6
+reason_lower = "a torque magnitude is not negative"
+reason_upper = "above 4 N.m the sum of four bounded terms is exceeded"
+inputs = [["tau_a", "gd_1"], ["tau_gg", "gd_0"], ["tau_s", "gd_2"], ["tau_m", "gd_3"]]   # VLEO gnc::total_disturbance_torque order
+steps = ["sum the four worst-case torques linearly"]
+why = "SMAD sizes against the linear sum of worst cases, because the torques are not independent random variables: they share the attitude and the orbit position. The sum is conservative."
+assumptions = [["all four peak together", "a campaign shows they do not, when the coils are oversized by the difference"]]
+
+[[row]]
+tree_id = "gd_5"
+kind = "computed"
+tier = "B"
+question = "How much momentum does the disturbance add in one orbit if none of it cancels?"
+expression = "H_sec = tau_d*T"
+source = "smad2011"
+physics = "gnc::secular_momentum_per_orbit"
+symbol = "H_sec"
+type = "AngularMomentum"
+unit = "MillinewtonMetreSecond"    # (NEW)
+lower = 0.0
+upper = 1.0e5
+reason_lower = "a momentum magnitude is not negative"
+reason_upper = "above 100 N.m.s per orbit the bus is outside every catalogue family"
+inputs = [["tau_d", "gd_4"], ["t_orb", "m2_5"]]
+steps = ["hold the total torque for one orbit"]
+why = "A torque held for a time adds its product in momentum. Treating all of it as secular is the worst case; the cyclic part is sized separately in gw_2."
+
+# ------------------------------------------------------- computed: coils ---
+
+[[row]]
+tree_id = "gm_1"
+kind = "computed"
+tier = "B"
+question = "What dipole is needed to reject the disturbance where the field is weakest?"
+expression = "m_rej = tau_d/B_min"
+source = "smad2011"
+physics = "mtq::dipole_to_reject"
+symbol = "m_rej"
+type = "DipoleMoment"
+unit = "AmpereSquareMetre"
+lower = 0.0
+upper = 1000.0
+reason_lower = "a dipole magnitude is not negative"
+reason_upper = "above 1000 A.m2 no coil or rod in the catalogue produces it"
+inputs = [["tau_d", "gd_4"], ["b_min", "m3_0"]]
+steps = ["divide the total disturbance torque by the weakest field"]
+why = "A coil produces at most m B of torque, so rejecting tau_d where the field is weakest needs tau_d / B_min. This ignores the direction along B, which coils cannot reach at all; that axis is what the rings are for (IDMAS v2 §02)."
+
+[[row]]
+tree_id = "gm_2"
+kind = "computed"
+tier = "B"
+question = "What dipole is needed to dump one orbit's momentum within an orbit?"
+expression = "m_dump = H_sec/(B_min*T)"
+source = "smad2011"
+physics = "gnc::magnetorquer_dipole_required"
+symbol = "m_dump"
+type = "DipoleMoment"
+unit = "AmpereSquareMetre"
+lower = 0.0
+upper = 1000.0
+reason_lower = "a dipole magnitude is not negative"
+reason_upper = "above 1000 A.m2 no coil or rod in the catalogue produces it"
+inputs = [["h", "gd_5"], ["b", "m3_0"], ["td", "m2_5"]]
+steps = ["divide the stored momentum by the field and the available dump interval"]
+why = "The same relation VLEO_SIMULATOR already carries (gnc_magnetorquer_dipole_required): momentum removed equals average torque times time, and the coil torque is at most m B."
+
+[[row]]
+tree_id = "gm_3"
+kind = "computed"
+tier = "B"
+question = "How much torque can the fitted coils produce where the field is weakest?"
+expression = "tau_mtq = m_av*B_min*min(n_mtq, 3)/3"
+source = "wertz1978"
+physics = "mtq::torque_authority"
+zero_when_absent = ["cf_0"]      # the count this row totals over; zero when it is zero (SPEC.md §5.6)
+symbol = "tau_mtq"
+type = "Torque"
+unit = "MicronewtonMetre"
+lower = 0.0
+upper = 1.0e6
+reason_lower = "zero is a real answer: no coils are fitted"
+reason_upper = "above 1 N.m no coil set in the catalogue produces it"
+inputs = [["m_av", "gm_0"], ["b_min", "m3_0"], ["n_mtq", "cf_0"]]
+steps = ["dipole per axis times the weakest field, scaled by the fraction of the three axes fitted"]
+why = "Each fitted axis contributes m B_min at best. Fewer than three axes leaves a direction uncommandable, which the linear scaling represents only as a sizing proxy; the allocation in SILS represents it exactly."
+assumptions = [["authority scales with axes fitted", "fewer than three axes are fitted, when the real authority is direction-dependent and SILS must be used"]]
+
+# ------------------------------------------------- computed: agility need ---
+
+[[row]]
+tree_id = "gw_3"
+kind = "computed"
+tier = "B"
+question = "What peak momentum does the reference slew need?"
+expression = "H_slew = 2*I_max*theta/T"
+source = "idmas_v2"
+physics = "rw::bang_bang_peak_momentum"
+symbol = "H_slew"
+type = "AngularMomentum"
+unit = "MillinewtonMetreSecond"
+lower = 0.0
+upper = 1.0e5
+reason_lower = "a momentum magnitude is not negative"
+reason_upper = "above 100 N.m.s no actuator in the catalogue stores it"
+inputs = [["i_max", "s1_1"], ["theta", "m1_4"], ["t_slew", "p2k_0"]]
+steps = ["peak momentum of a rest-to-rest bang-bang slew about the largest axis"]
+why = "A rest-to-rest bang-bang slew of angle theta in time T accelerates for T/2 and brakes for T/2; the body rate peaks at 2 theta / T, so the actuator must hold 2 J theta / T (IDMAS v2 §09A)."
+assumptions = [["the slew is rest-to-rest about one principal axis", "the slew is eigenaxis about a non-principal axis, when the inertia is a projection"]]
+
+[[row]]
+tree_id = "gw_4"
+kind = "computed"
+tier = "B"
+question = "What peak torque does the reference slew need?"
+expression = "tau_slew = 4*I_max*theta/T^2"
+source = "idmas_v2"
+physics = "rw::bang_bang_peak_torque"
+symbol = "tau_slew"
+type = "Torque"
+unit = "MicronewtonMetre"
+lower = 0.0
+upper = 1.0e7
+reason_lower = "a torque magnitude is not negative"
+reason_upper = "above 10 N.m no actuator in the catalogue produces it"
+inputs = [["i_max", "s1_1"], ["theta", "m1_4"], ["t_slew", "p2k_0"]]
+steps = ["peak torque of a rest-to-rest bang-bang slew about the largest axis"]
+why = "The same bang-bang slew needs a constant torque of 4 J theta / T^2 through both halves (IDMAS v2 §09A)."
+
+# ------------------------------------------------------- computed: rings ---
+
+[[row]]
+tree_id = "gf_6"
+kind = "computed"
+tier = "B"
+question = "How much momentum does one ring hold at cruise speed?"
+expression = "H = 2*rho*A*v*S, A = pi*d^2/4"
+source = "idmas_v2"
+physics = "fmr::ring_momentum"
+symbol = "H_ring"
+type = "AngularMomentum"
+unit = "MillinewtonMetreSecond"
+lower = 0.0
+upper = 1.0e5
+reason_lower = "zero is a real answer: the fluid is at rest"
+reason_upper = "above 100 N.m.s no ring in the catalogue holds it"
+inputs = [["d", "gf_0"], ["s", "gf_1"], ["rho", "gf_2"], ["v", "gf_4"]]
+steps = ["twice the fluid density times the bore area times the speed times the enclosed area"]
+why = "Fluid of density rho moving at v through a closed channel of bore area A carries angular momentum 2 rho A v S about the channel's normal, where S is the area the centreline encloses (IDMAS v2 §03A). The same S sets the coil dipole, which is why one perimeter serves both actuators."
+assumptions = [["the flow is uniform across the bore", "the flow is turbulent or the bore is not round, when a velocity-profile factor applies"]]
+
+  [[row.fixture]]
+  label = "3U long panel, 3 mm bore, Galinstan, 0.2 m/s"
+  expect = 4.0e-4
+  tolerance = 0.02
+  provenance = "independent-tool"
+  source = "idmas_v2"
+  inputs = { d = 0.003, s = 0.022, rho = 6440.0, v = 0.2 }
+  note = "IDMAS v2 §05.1 table: S = 0.022 m2 -> 0.40 mNms at 0.2 m/s; bore and fluid from §03A and §03E."
+
+  [[row.fixture]]
+  label = "3U long panel, 3 mm bore, Galinstan, 0.5 m/s"
+  expect = 1.01e-3
+  tolerance = 0.02
+  provenance = "independent-tool"
+  source = "idmas_v2"
+  inputs = { d = 0.003, s = 0.022, rho = 6440.0, v = 0.5 }
+  note = "IDMAS v2 §08 table, 3U row: H at 0.5 m/s = 1.01 mNms."
+
+[[row]]
+tree_id = "gf_7"
+kind = "computed"
+tier = "B"
+question = "How quickly does a ring lose its momentum if the pump stops?"
+expression = "T_spin = rho*d^2/(32*mu)"
+source = "idmas_v2"
+physics = "fmr::spin_down_time"
+symbol = "T_spin"
+type = "Time"
+unit = "Second"
+lower = 0.0
+upper = 1000.0
+reason_lower = "a time is not negative"
+reason_upper = "above 1000 s the bore is larger than any ring in the catalogue"
+inputs = [["d", "gf_0"], ["rho", "gf_2"], ["mu", "gf_3"]]
+steps = ["the laminar viscous time constant of a round channel"]
+why = "Laminar wall friction in a round channel decays the flow with time constant rho d^2 / (32 mu) (IDMAS v2 §03B). It is why the ring is a torque device and not a store: a 3 mm channel coasts under a second."
+assumptions = [["the flow is laminar", "the Reynolds number rho v d / mu exceeds about 2000, when turbulent losses shorten it"]]
+# The worked example of the explanation standard (SPEC.md §5.12; manual/developer/07_explaining.md).
+explain = { simply = "Stop the pump and the liquid metal in the ring keeps flowing for a moment, until friction at the channel wall brings it to rest. This node says how long that takes.", one_line = "How long a ring's flow coasts after the pump stops: density times bore squared, over 32 times viscosity.", wrong_idea = "A ring stores momentum like a reaction wheel, so it keeps holding the satellite's attitude after its pump stops.", wrong_because = "A wheel turns on bearings and coasts; the ring's fluid rubs on its whole wall. A 3 mm channel coasts in under a second (IDMAS v2 §03B), so the ring is a torque device, not a store: its pump holds the momentum, or the coils take it.", contrast = "Two rings, one difference, the bore: the same Galinstan ring coasts 21 s with a 16 mm channel and 0.75 s with a 3 mm one (IDMAS v2 §03B). The time goes with the bore squared.", analogy = "Stirred tea keeps turning after you take the spoon out, and slows as the cup's wall and bottom drag on it.", analogy_breaks = "The tea has a free surface and is not in a closed loop, and a stirred cup is rarely laminar. The ring is full, closed, and assumed laminar; that assumption is where this node stops being true.", why_chain = ["Why does a 3 mm ring coast for under a second? Friction at the wall removes its momentum fast.", "Why is that friction so strong? The flow's speed goes from zero at the wall to its peak within half a bore, so the shear is large.", "Why does the time go with the bore squared? The pressure a laminar flow loses per metre is 32 mu v / d^2, and that pressure is what slows the column.", "Floor: the Hagen-Poiseuille law of laminar pipe flow, which follows from Newton's law of viscosity."] }
+
+  [[row.fixture]]
+  label = "3 mm Galinstan channel"
+  expect = 0.75
+  tolerance = 0.02
+  provenance = "independent-tool"
+  source = "idmas_v2"
+  inputs = { d = 0.003, rho = 6440.0, mu = 0.0024 }
+  note = "IDMAS v2 §03B: 'A 3 mm Galinstan channel loses its momentum in 0.75 s'."
+
+  [[row.fixture]]
+  label = "10 mm Galinstan body ring"
+  expect = 8.4
+  tolerance = 0.01
+  provenance = "independent-tool"
+  source = "idmas_v2"
+  inputs = { d = 0.010, rho = 6440.0, mu = 0.0024 }
+  note = "IDMAS v2 §08 table, 150 kg row: spin-down 8.4 s."
+
+  [[row.fixture]]
+  label = "16 mm Galinstan body ring"
+  expect = 21.0
+  tolerance = 0.03
+  provenance = "independent-tool"
+  source = "idmas_v2"
+  inputs = { d = 0.016, rho = 6440.0, mu = 0.0024 }
+  note = "IDMAS v2 §03B: 'a 16 mm channel in 21 s'; the §08 table rounds the same."
+
+[[row]]
+tree_id = "gf_8"
+kind = "computed"
+tier = "B"
+question = "What pumping power does holding that momentum cost?"
+expression = "P_hold = 2*pi*mu*L*H^2/(rho^2*A^2*S^2), A = pi*d^2/4"
+source = "idmas_v2"
+physics = "fmr::holding_power_laminar"
+symbol = "P_hold"
+type = "Power"
+unit = "Milliwatt"                 # (NEW)
+lower = 0.0
+upper = 1.0e6
+reason_lower = "zero is a real answer: the ring idles at rest"
+reason_upper = "above 1 kW no pump in the catalogue delivers it"
+inputs = [["h", "gf_6"], ["mu", "gf_3"], ["l", "gf_5"], ["rho", "gf_2"], ["d", "gf_0"], ["s", "gf_1"]]
+steps = ["hydraulic power lost to laminar wall friction at the flow speed that carries this momentum"]
+why = "Holding momentum H needs flow v = H / (2 rho A S); laminar loss over length L is 8 pi mu L v^2, which is the expression above (IDMAS v2 §03B). It grows with H squared, which is why the rings idle near zero and the coils dump them."
+assumptions = [["the flow is laminar", "the Reynolds number exceeds about 2000 — the IDMAS v2 §08 holding powers at 0.5 m/s are turbulent and this row does not reproduce them"]]
+
+[[row]]
+tree_id = "gf_9"
+kind = "computed"
+tier = "B"
+question = "What pump pressure does the reference slew's peak torque need?"
+expression = "dp = tau*L/(2*S*A), A = pi*d^2/4"
+source = "idmas_v2"
+physics = "fmr::pump_pressure_for_torque"
+symbol = "dp"
+type = "Pressure"
+unit = "Kilopascal"                # (NEW)
+lower = 0.0
+upper = 1000.0
+reason_lower = "zero is a real answer: no torque asked"
+reason_upper = "above 1 MPa no pump in the catalogue produces it"
+inputs = [["tau", "gw_4"], ["l", "gf_5"], ["s", "gf_1"], ["d", "gf_0"]]
+steps = ["the pressure that accelerates the fluid fast enough to produce the torque"]
+why = "Torque from a ring is the rate of change of its momentum, 2 rho A S dv/dt, and the pump pressure that drives dv/dt over length L is rho L dv/dt; eliminating dv/dt gives tau L / (2 S A) (IDMAS v2 §07.1, §09A)."
+fixture_wanted = "IDMAS v2 §03C: 2.2 kPa for 1 mN.m on the 3U panel — an engineer confirms L from the stated centreline and supplies the vector in the node form, with its page"
+
+# --------------------------------------------------------- computed: RCS ---
+
+[[row]]
+tree_id = "gr_3"
+kind = "computed"
+tier = "B"
+question = "How much propellant does one slew burn if the thrusters do all of it?"
+expression = "m_p = (2*H/r)/(Isp*g0)"
+source = "idmas_v2"
+physics = "rcs::propellant_per_slew"
+symbol = "m_p"
+type = "Mass"
+unit = "Gram"
+lower = 0.0
+upper = 10000.0
+reason_lower = "zero is a real answer: no momentum to add"
+reason_upper = "above 10 kg per slew no catalogue bus carries the tank"
+inputs = [["h", "gw_3"], ["r", "gr_1"], ["isp", "gr_2"]]
+steps = ["the impulse to add and then remove the slew momentum at this arm, over the exhaust velocity"]
+why = "Adding momentum H through arm r takes impulse H / r and braking takes the same again; impulse over Isp g0 is propellant mass (IDMAS v2 §09A)."
+
+  [[row.fixture]]
+  label = "500 kg bus, 30 deg in 60 s, RCS alone"
+  expect = 3.0e-3
+  tolerance = 0.01
+  provenance = "independent-tool"
+  source = "idmas_v2"
+  inputs = { h = 2.6, r = 0.8, isp = 220.0 }
+  note = "IDMAS v2 §09 table, 500 kg 30 deg in 60 s: peak H 2.6 Nms, RCS-only 3.0 g; arm 0.8 m and Isp 220 s from its footnote."
+
+[[row]]
+tree_id = "gr_4"
+kind = "computed"
+tier = "B"
+question = "How much propellant a year does that cost?"
+expression = "m_year = m_p*n_day*365.25 when n_rcs > 0, else 0"
+source = "idmas_v2"
+physics = "rcs::propellant_per_year"
+zero_when_absent = ["cf_3"]      # the count this row totals over; zero when it is zero (SPEC.md §5.6)
+symbol = "m_year"
+type = "Mass"
+unit = "Kilogram"
+lower = 0.0
+upper = 1000.0
+reason_lower = "zero is a real answer: no slews"
+reason_upper = "above a tonne a year no catalogue bus carries the tank"
+inputs = [["m_p", "gr_3"], ["n_day", "m1_3"], ["n_rcs", "cf_3"]]
+steps = ["propellant per slew times slews per day times the days in a year, and zero when no thrusters are fitted"]
+why = "A straight product. It is the number that shows RCS as the top-up and the backup, not the engine of agility (IDMAS v2 §09.1)."
+
+  [[row.fixture]]
+  label = "500 kg bus, 30 deg in 30 s, 20 slews a day, RCS alone"
+  expect = 44.0
+  tolerance = 0.02
+  provenance = "independent-tool"
+  source = "idmas_v2"
+  inputs = { m_p = 6.1e-3, n_day = 20.0, n_rcs = 8.0 }
+  note = "n_rcs is any positive count: the source does not print it and it does not enter the relation when positive. IDMAS v2 §09.1: '44 kg of propellant a year on a 500 kg bus (30 deg in 30 s)' at 20 slews a day; 6.1 g per slew from the §09 table."
+
+# ------------------------------------------------- computed: loop, budget ---
+
+[[row]]
+tree_id = "gc_2"
+kind = "computed"
+tier = "B"
+question = "How long does the loop take to settle after a step?"
+expression = "t_s = 4/(zeta*w_n)"
+source = "ogata2010"
+physics = "ctl::settling_time_2pct"
+symbol = "t_s"
+type = "Time"
+unit = "Second"
+lower = 0.1
+upper = 100000.0
+reason_lower = "below 0.1 s no catalogue sensor updates fast enough to see it"
+reason_upper = "above a day the loop is not controlling attitude"
+inputs = [["w_n", "gc_0"], ["zeta", "gc_1"]]
+steps = ["the 2 per cent settling time of a second-order loop"]
+why = "For an underdamped second-order loop the envelope decays as exp(-zeta w_n t), which is inside 2 per cent after 4 / (zeta w_n)."
+assumptions = [["the loop is second order and underdamped", "zeta is above about 0.9, or actuator saturation shapes the response"]]
+
+[[row]]
+tree_id = "gp_5"
+kind = "computed"
+tier = "B"
+question = "What absolute pointing error does the budget add up to?"
+expression = "APE = sqrt(e_k^2 + e_c^2 + e_a^2 + e_t^2 + e_j^2)"
+source = "ecss_e_st_60_10c"
+physics = "gnc::pointing_error_rss"
+call = "slice"
+symbol = "APE"
+type = "Angle"
+unit = "Degree"
+lower = 0.0
+upper = 30.0
+reason_lower = "an error magnitude is not negative"
+reason_upper = "above 30 degrees the budget is not a pointing budget"
+inputs = [["e_k", "gp_0"], ["e_c", "gp_1"], ["e_a", "gp_2"], ["e_t", "gp_3"], ["e_j", "gp_4"]]
+steps = ["root-sum-square the five independent contributors at the same confidence level"]
+why = "ECSS-E-ST-60-10C sums contributors by their statistical class. Independent random contributors stated at one confidence level add in quadrature. A bias would add linearly; this row treats every contributor as random, which a person must check contributor by contributor."
+assumptions = [["every contributor is independent and random", "a contributor is a bias, when it must be added linearly"]]
+
+# ------------------------------------------- risk management (layer 1) ---
+# The 18 declared risk rows are counted from the de-risking ledger by
+# `cargo xtask derisk rollup` (supplier derisk, SPEC.md §5.13): these rows give their
+# symbol, quantity, unit and bounds, never a value.
+
+[[row]]
+tree_id = "rk1_0"
+kind = "declared"
+tier = "A"
+question = "How many risks in the register are open?"
+expression = "n_open = counted by cargo xtask derisk rollup"
+source = "adcs_derisk_method"
+symbol = "n_open"
+type = "Ratio"
+unit = "Count"
+lower = 0.0
+upper = 10000.0
+reason_lower = "a count is not negative"
+reason_upper = "above 10000 the register is not being kept one risk or belief at a time"
+
+[[row]]
+tree_id = "rk1_1"
+kind = "declared"
+tier = "A"
+question = "How many open risks are at level L4 or L5?"
+expression = "n_high = counted by cargo xtask derisk rollup"
+source = "adcs_derisk_method"
+symbol = "n_high"
+type = "Ratio"
+unit = "Count"
+lower = 0.0
+upper = 10000.0
+reason_lower = "a count is not negative"
+reason_upper = "above 10000 the register is not being kept one risk or belief at a time"
+
+[[row]]
+tree_id = "rk1_2"
+kind = "declared"
+tier = "A"
+question = "How many risks has a recorded test closed?"
+expression = "n_closed = counted by cargo xtask derisk rollup"
+source = "adcs_derisk_method"
+symbol = "n_closed"
+type = "Ratio"
+unit = "Count"
+lower = 0.0
+upper = 10000.0
+reason_lower = "a count is not negative"
+reason_upper = "above 10000 the register is not being kept one risk or belief at a time"
+
+[[row]]
+tree_id = "rk1_3"
+kind = "declared"
+tier = "A"
+question = "How many risks were opened this quarter?"
+expression = "n_opened_q = counted by cargo xtask derisk rollup"
+source = "adcs_derisk_method"
+symbol = "n_opened_q"
+type = "Ratio"
+unit = "Count"
+lower = 0.0
+upper = 10000.0
+reason_lower = "a count is not negative"
+reason_upper = "above 10000 the register is not being kept one risk or belief at a time"
+
+[[row]]
+tree_id = "rk1_4"
+kind = "declared"
+tier = "A"
+question = "How many risks were closed this quarter?"
+expression = "n_closed_q = counted by cargo xtask derisk rollup"
+source = "adcs_derisk_method"
+symbol = "n_closed_q"
+type = "Ratio"
+unit = "Count"
+lower = 0.0
+upper = 10000.0
+reason_lower = "a count is not negative"
+reason_upper = "above 10000 the register is not being kept one risk or belief at a time"
+
+[[row]]
+tree_id = "rk2_0"
+kind = "declared"
+tier = "A"
+question = "How many recorded beliefs has a test broken?"
+expression = "n_broke = counted by cargo xtask derisk rollup"
+source = "adcs_derisk_method"
+symbol = "n_broke"
+type = "Ratio"
+unit = "Count"
+lower = 0.0
+upper = 10000.0
+reason_lower = "a count is not negative"
+reason_upper = "above 10000 the register is not being kept one risk or belief at a time"
+
+[[row]]
+tree_id = "rk2_1"
+kind = "declared"
+tier = "A"
+question = "How many recorded beliefs has a test held?"
+expression = "n_held = counted by cargo xtask derisk rollup"
+source = "adcs_derisk_method"
+symbol = "n_held"
+type = "Ratio"
+unit = "Count"
+lower = 0.0
+upper = 10000.0
+reason_lower = "a count is not negative"
+reason_upper = "above 10000 the register is not being kept one risk or belief at a time"
+
+[[row]]
+tree_id = "rk2_2"
+kind = "declared"
+tier = "A"
+question = "How many recorded beliefs are not yet tested?"
+expression = "n_untested = counted by cargo xtask derisk rollup"
+source = "adcs_derisk_method"
+symbol = "n_untested"
+type = "Ratio"
+unit = "Count"
+lower = 0.0
+upper = 10000.0
+reason_lower = "a count is not negative"
+reason_upper = "above 10000 the register is not being kept one risk or belief at a time"
+
+[[row]]
+tree_id = "rk2_3"
+kind = "declared"
+tier = "A"
+question = "How many beliefs are recorded in all?"
+expression = "n_beliefs = counted by cargo xtask derisk rollup"
+source = "adcs_derisk_method"
+symbol = "n_beliefs"
+type = "Ratio"
+unit = "Count"
+lower = 0.0
+upper = 10000.0
+reason_lower = "a count is not negative"
+reason_upper = "above 10000 the register is not being kept one risk or belief at a time"
+
+[[row]]
+tree_id = "rk2_4"
+kind = "declared"
+tier = "A"
+question = "How many node versions have been released?"
+expression = "n_versions = counted by cargo xtask derisk rollup"
+source = "adcs_derisk_method"
+symbol = "n_versions"
+type = "Ratio"
+unit = "Count"
+lower = 0.0
+upper = 10000.0
+reason_lower = "a count is not negative"
+reason_upper = "above 10000 the register is not being kept one risk or belief at a time"
+
+[[row]]
+tree_id = "rk2_5"
+kind = "declared"
+tier = "A"
+question = "What did the tests recorded this quarter cost?"
+expression = "cost_q = counted by cargo xtask derisk rollup"
+source = "adcs_derisk_method"
+symbol = "cost_q"
+type = "Money"
+unit = "UsDollar"
+lower = 0.0
+upper = 100000000.0
+reason_lower = "a cost is not negative"
+reason_upper = "above 100 million dollars a quarter the figure is not a test cost; the currency is decision D13"
+
+[[row]]
+tree_id = "rk3_0"
+kind = "declared"
+tier = "A"
+question = "What is the highest open risk level among the risks about nodes?"
+expression = "L_node = counted by cargo xtask derisk rollup"
+source = "ecss_m_st_80c"
+symbol = "L_node"
+type = "RiskLevel"
+unit = "RiskLevel"
+lower = 0.0
+upper = 5.0
+reason_lower = "level 0 means nothing open in the area"
+reason_upper = "L5 is the highest level the scale has"
+
+[[row]]
+tree_id = "rk3_1"
+kind = "declared"
+tier = "A"
+question = "What is the highest open risk level among the risks about case inputs?"
+expression = "L_in = counted by cargo xtask derisk rollup"
+source = "ecss_m_st_80c"
+symbol = "L_in"
+type = "RiskLevel"
+unit = "RiskLevel"
+lower = 0.0
+upper = 5.0
+reason_lower = "level 0 means nothing open in the area"
+reason_upper = "L5 is the highest level the scale has"
+
+[[row]]
+tree_id = "rk3_2"
+kind = "declared"
+tier = "A"
+question = "What is the highest open risk level among the risks about outputs and results?"
+expression = "L_out = counted by cargo xtask derisk rollup"
+source = "ecss_m_st_80c"
+symbol = "L_out"
+type = "RiskLevel"
+unit = "RiskLevel"
+lower = 0.0
+upper = 5.0
+reason_lower = "level 0 means nothing open in the area"
+reason_upper = "L5 is the highest level the scale has"
+
+[[row]]
+tree_id = "rk3_3"
+kind = "declared"
+tier = "A"
+question = "What is the highest open risk level among the risks about models?"
+expression = "L_model = counted by cargo xtask derisk rollup"
+source = "ecss_m_st_80c"
+symbol = "L_model"
+type = "RiskLevel"
+unit = "RiskLevel"
+lower = 0.0
+upper = 5.0
+reason_lower = "level 0 means nothing open in the area"
+reason_upper = "L5 is the highest level the scale has"
+
+[[row]]
+tree_id = "rk3_4"
+kind = "declared"
+tier = "A"
+question = "What is the highest open risk level among the risks about maths?"
+expression = "L_math = counted by cargo xtask derisk rollup"
+source = "ecss_m_st_80c"
+symbol = "L_math"
+type = "RiskLevel"
+unit = "RiskLevel"
+lower = 0.0
+upper = 5.0
+reason_lower = "level 0 means nothing open in the area"
+reason_upper = "L5 is the highest level the scale has"
+
+[[row]]
+tree_id = "rk3_5"
+kind = "declared"
+tier = "A"
+question = "What is the highest open risk level among the risks about algorithms?"
+expression = "L_alg = counted by cargo xtask derisk rollup"
+source = "ecss_m_st_80c"
+symbol = "L_alg"
+type = "RiskLevel"
+unit = "RiskLevel"
+lower = 0.0
+upper = 5.0
+reason_lower = "level 0 means nothing open in the area"
+reason_upper = "L5 is the highest level the scale has"
+
+[[row]]
+tree_id = "rk3_6"
+kind = "declared"
+tier = "A"
+question = "What is the highest open risk level among the risks about visualisation?"
+expression = "L_viz = counted by cargo xtask derisk rollup"
+source = "ecss_m_st_80c"
+symbol = "L_viz"
+type = "RiskLevel"
+unit = "RiskLevel"
+lower = 0.0
+upper = 5.0
+reason_lower = "level 0 means nothing open in the area"
+reason_upper = "L5 is the highest level the scale has"
+
+[[row]]
+tree_id = "rk4_0"
+kind = "computed"
+tier = "B"
+question = "What is the highest risk level still open anywhere in the platform?"
+expression = "L_max = max(L_node, L_in, L_out, L_model, L_math, L_alg, L_viz)"
+source = "ecss_m_st_80c"
+physics = "risk::highest_level"
+call = "slice"
+symbol = "L_max"
+type = "RiskLevel"
+unit = "RiskLevel"
+lower = 0.0
+upper = 5.0
+reason_lower = "level 0 means nothing is open anywhere"
+reason_upper = "L5 is the highest level the scale has"
+inputs = [["L_node", "rk3_0"], ["L_in", "rk3_1"], ["L_out", "rk3_2"], ["L_model", "rk3_3"], ["L_math", "rk3_4"], ["L_alg", "rk3_5"], ["L_viz", "rk3_6"]]
+steps = ["the highest of the seven area levels"]
+why = "A platform is only as proven as its least-proven area. One open L5 risk would stop delivery whatever the other areas say, so the conclusion is the maximum over the areas. An average would let six quiet areas hide the seventh."
+assumptions = [["every open risk is filed under the area it is about", "a risk spans two areas and is filed under only one; the register then files it under both"]]
+fixture_wanted = "a vector a person derives by hand (independent-derivation) from a named, committed state of derisk/risks.toml: the seven area levels it holds and their highest, citing the commit; never a number the rollup or the narrative printed"
+
+[[row]]
+tree_id = "rk4_1"
+kind = "computed"
+tier = "B"
+question = "How many more risks were closed than opened this quarter?"
+expression = "n_net = n_closed_q - n_opened_q"
+source = "adcs_derisk_method"
+physics = "risk::net_closed"
+symbol = "n_net"
+type = "Ratio"
+unit = "Count"
+lower = -10000.0
+upper = 10000.0
+reason_lower = "the register holds fewer than 10000 risks, so no quarter opens more"
+reason_upper = "the register holds fewer than 10000 risks, so no quarter closes more"
+inputs = [["n_closed_q", "rk1_4"], ["n_opened_q", "rk1_3"]]
+steps = ["risks closed this quarter less risks opened this quarter"]
+why = "The narrative's last column lists what a quarter opened and closed. Their difference says whether the quarter reduced what is unknown or added to it. A negative number is not a failure: a test that breaks a belief usually opens a risk, and that is the ledger working."
+assumptions = [["a risk opened and closed in the same quarter is counted in both", "the register records only the net change, which it must not"]]
+fixture_wanted = "a vector a person counts by hand (independent-derivation) from a named, committed state of derisk/risks.toml: the risks opened and closed in one quarter and their difference, citing the commit; never a number the rollup or the narrative printed"
+
+[[row]]
+tree_id = "rk4_2"
+kind = "computed"
+tier = "B"
+question = "What share of the recorded beliefs has a test checked, either way?"
+expression = "f_tested = 1 - n_untested / n_beliefs"
+source = "adcs_derisk_method"
+physics = "risk::share_tested"
+symbol = "f_tested"
+type = "Ratio"
+unit = "One"
+lower = 0.0
+upper = 1.0
+reason_lower = "a share is not negative"
+reason_upper = "a share is not above one"
+inputs = [["n_untested", "rk2_2"], ["n_beliefs", "rk2_3"]]
+steps = ["one less the untested share of the recorded beliefs; Undefined when none is recorded"]
+why = "A belief a test broke is as useful as one it held: both are now knowledge. What stays a risk is the belief nobody has tested. The share tested is how much of what the platform rests on has met evidence."
+assumptions = [["every decision the platform rests on has a belief record", "a decision is made outside a node form or the ledger; the D checks of intake refuse that for changes and new nodes, not for decisions made elsewhere"]]
+fixture_wanted = "a vector a person counts by hand (independent-derivation) from a named, committed state of derisk/beliefs/: the beliefs untested and recorded, and the share, citing the commit; never a number the rollup or the narrative printed"

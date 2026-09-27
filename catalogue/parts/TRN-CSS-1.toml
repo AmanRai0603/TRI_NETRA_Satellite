@@ -1,0 +1,23 @@
+# Coarse sun sensor: one cosine photodiode per face (six), which also sees the
+# Earth's albedo -- the dominant error of cosine sensors in LEO.
+# Synthetic: tests only.
+part_number = "TRN-CSS-1"
+kind = "coarse_sun_sensor"
+name = "Cosine photodiode sun sensor, one per face — tests only"
+status = "synthetic"
+source = "sils_trade_study"
+families = ["mtq", "mtq_rw", "mtq_fmr"]
+made = "bought"
+descriptor_version = 1
+
+[nominal]
+noise_frac = 0.01            # current noise, fraction of full sun
+albedo = 0.30                # Earth bond albedo seen by the diodes
+fov_half_angle_rad = 1.52
+rate_Hz = 10.0
+mass_kg = 0.005
+power_W = 0.02
+
+[dispersion]
+scale = { dist = "normal", mean = 1.0, sigma = 0.02 }
+axis_misalignment_rad = { dist = "normal", mean = 0.0, sigma = 0.01 }

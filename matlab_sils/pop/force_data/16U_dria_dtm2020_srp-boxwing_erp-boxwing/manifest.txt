@@ -1,0 +1,12 @@
+TEMPLATE_16U   2026-07-16 08:47:24
+epoch      2007 1 1 0 0 0 
+alt/inc    300 km / 96.5 deg   tspan 1800 s
+geometry   sgeom.vleo16u  8 facets  mass 24 kg
+attitude   ram
+drag       dria / dtm2020   gsi Tw=300 aT=0.9
+srp / erp  boxwing / boxwing
+gravity    default deg 20
+integrator rk78 rtol 1e-11
+
+Files are per-force ON PURPOSE: "the drag is wrong" is answerable
+from drag.csv alone, and two runs diff force by force.

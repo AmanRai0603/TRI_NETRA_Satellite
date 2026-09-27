@@ -1,0 +1,51 @@
+{
+ "candidates": [
+  {
+   "id": "mtq_rw",
+   "label": "coils + wheels",
+   "scenario": "agile_slew_img"
+  },
+  {
+   "id": "mtq_rw_rcs",
+   "label": "coils + wheels + RCS",
+   "scenario": "agile_slew_rw_rcs"
+  },
+  {
+   "id": "mtq_fmr_rcs",
+   "label": "coils + fluid rings + RCS",
+   "scenario": "agile_slew_fmr_rcs"
+  },
+  {
+   "id": "mtq_cmg",
+   "label": "coils + CMG pyramid",
+   "scenario": "agile_slew_cmg"
+  },
+  {
+   "id": "mtq_vscmg",
+   "label": "coils + VSCMG pyramid",
+   "scenario": "agile_slew_vscmg"
+  }
+ ],
+ "gate": [
+  "ape_los_on_target_p9973"
+ ],
+ "id": "trade_hardware_agile",
+ "kind": "hardware",
+ "label": "Imaging 3U \u2014 actuator family for the agile 90 deg slew",
+ "objective": {
+  "metric": "settle_time_after_slew",
+  "sense": "min"
+ },
+ "question": "Which family completes the 90 deg retarget and settles to 0.01 deg soonest?",
+ "schema": "adcs-trade/1",
+ "seeds": [
+  1,
+  2
+ ],
+ "slot": "actuators",
+ "tie_break": {
+  "metric": "power_mean",
+  "sense": "min"
+ },
+ "tie_tol": 0.1
+}

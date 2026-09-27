@@ -1,0 +1,17 @@
+# GNSS receiver used by both 3U designs. Values are the Standard Code
+# cfg.sensors GPS block (10 m / 0.2 m/s 1-sigma, 1 Hz). Synthetic: tests only.
+part_number = "TRN-GPS-1"
+kind = "gnss"
+name = "GNSS receiver (Standard Code values) — tests only"
+status = "synthetic"
+source = "tri_netra_standard_code"
+families = ["mtq", "mtq_rw"]
+made = "bought"
+descriptor_version = 1
+
+[nominal]
+pos_sigma_m = 10.0
+vel_sigma_m_s = 0.2
+rate_Hz = 1.0
+mass_kg = 0.03
+power_W = 0.8

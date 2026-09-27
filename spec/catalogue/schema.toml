@@ -1,0 +1,114 @@
+# The module descriptor standard — one record per catalogue part.
+#
+# This answers the open question "Module descriptor standard" in IDMAS v2 §14:
+# every module is self-describing, and the same record is read by
+#
+#   1. the solver (which parts fit, what they cost the bus),
+#   2. the closure engine (as Case supplies on declared rows, SPEC.md §8.4),
+#   3. the loop engine (plant, sensor and actuator model parameters),
+#   4. the flight software config generator (allocation matrices A and D, limits),
+#   5. the EEPROM image written into the flight module at calibration.
+#
+# One record, five readers, so a part cannot mean one thing to the quote and
+# another to the rig.
+#
+# FILE LAYOUT
+#   catalogue/parts/<part_number>.toml     one file per part (this schema)
+#   catalogue/families.toml                the configuration families
+#   bundles/catalogue/<version>/           the published, hashed copy (xtask bundle publish)
+#   serials/<part_number>/<serial>.toml    per-unit measured descriptors (after calibration)
+#
+# FIELD RULES
+# * Every number is SI and the key names its unit (`mass_kg`, `h_max_Nms`).
+# * `nan` means "not yet measured or not yet chosen". A run that needs a nan
+#   field is refused by name, never substituted (rule 5). TOML reads `nan`.
+# * `status` decides who may use the part:
+#     synthetic      invented round numbers for software tests only. Never in a
+#                    client shortlist, a quote, or any evidence package. CI
+#                    refuses an evidence campaign that names one.
+#     placeholder    a real part not yet specified; every performance field nan.
+#     reference      values from our own design documents (e.g. IDMAS v2),
+#                    unqualified. Quotable, with "not yet qualified" printed on
+#                    the quote line.
+#     qualified      passed its qualification campaign; values from test.
+#     flight-proven  flown; values from test and flight data.
+# * `source` is a sources/sources.toml id. `families` lists the configuration
+#   families the part may appear in.
+# * A per-serial descriptor copies the part's record and overrides `nominal`
+#   with measured values, adding `[calibration]` (who, when, rig, campaign
+#   hash). The solver reads parts; the rig, the EEPROM image and the
+#   as-built twin read serials.
+
+schema = "adcs-descriptor/1"
+
+[[module_kind]]
+kind = "coil_tile"
+what = "IDMAS V1 coil tile: multilayer PCB coil, H-bridge, current sense, MCU (IDMAS v2 §11)"
+required = ["dipole_max_Am2", "dipole_per_amp_Am2_per_A", "current_max_A", "resistance_ohm", "time_constant_s", "mass_kg", "power_at_max_W"]
+dispersions = ["dipole_scale", "axis_misalignment_rad"]
+
+[[module_kind]]
+kind = "torque_rod"
+what = "Magnetorquer rod with a soft-magnetic core, for large buses (IDMAS v2 §04)"
+required = ["dipole_max_Am2", "dipole_per_amp_Am2_per_A", "current_max_A", "resistance_ohm", "residual_dipole_Am2", "mass_kg", "power_at_max_W"]
+dispersions = ["dipole_scale", "axis_misalignment_rad", "residual_dipole_Am2"]
+
+[[module_kind]]
+kind = "magneto_fluidic_panel"
+what = "IDMAS V2 panel: coil layers + perimeter winding + sealed ring + pump + flow electrodes (IDMAS v2 §05, §11)"
+required = ["dipole_max_Am2", "dipole_per_amp_Am2_per_A", "current_max_A", "bore_m", "enclosed_area_m2", "channel_length_m", "fluid", "fluid_density_kg_m3", "fluid_viscosity_Pa_s", "fluid_mass_kg", "v_cruise_m_s", "v_max_m_s", "pump_type", "pump_efficiency", "field_power_W", "melt_point_K", "mass_kg"]
+dispersions = ["dipole_scale", "friction_scale", "pump_efficiency", "flow_sensor_noise_m_s", "axis_misalignment_rad"]
+
+[[module_kind]]
+kind = "body_ring"
+what = "IDMAS V2/V3 body ring around the bus, induction or yoke pump (IDMAS v2 §04 B, §11)"
+required = ["bore_m", "enclosed_area_m2", "channel_length_m", "fluid", "fluid_density_kg_m3", "fluid_viscosity_Pa_s", "fluid_mass_kg", "v_cruise_m_s", "v_max_m_s", "pump_type", "pump_efficiency", "field_power_W", "melt_point_K", "mass_kg"]
+dispersions = ["friction_scale", "pump_efficiency", "flow_sensor_noise_m_s", "axis_misalignment_rad"]
+
+[[module_kind]]
+kind = "reaction_wheel"
+what = "Reaction wheel (bought)"
+required = ["h_max_Nms", "torque_max_Nm", "speed_max_rad_s", "rotor_inertia_kgm2", "friction_coulomb_Nm", "friction_viscous_Nms", "static_imbalance_kgm", "dynamic_imbalance_kgm2", "power_steady_W", "power_peak_W", "mass_kg"]
+dispersions = ["torque_scale", "friction_scale", "axis_misalignment_rad"]
+
+[[module_kind]]
+kind = "rcs_module"
+what = "IDMAS V3 reaction control: green monopropellant thrusters, tank, valves (IDMAS v2 §09.2, §11)"
+required = ["thrusters", "thrust_N", "isp_s", "min_impulse_bit_Ns", "propellant_kg", "moment_arm_m", "mass_dry_kg", "valve_power_W"]
+dispersions = ["thrust_scale", "isp_scale", "thrust_misalignment_rad"]
+
+[[module_kind]]
+kind = "magnetometer"
+what = "Three-axis magnetometer"
+required = ["noise_T_rms", "bias_T", "range_T", "rate_Hz", "mass_kg", "power_W"]
+dispersions = ["bias_T", "scale_factor", "axis_misalignment_rad"]
+
+[[module_kind]]
+kind = "sun_sensor"
+what = "Coarse or fine sun sensor"
+required = ["accuracy_rad", "fov_half_angle_rad", "rate_Hz", "mass_kg", "power_W"]
+dispersions = ["bias_rad", "axis_misalignment_rad"]
+
+[[module_kind]]
+kind = "star_tracker"
+what = "Star tracker head (in-house optical suite or bought)"
+required = ["noise_cross_rad", "noise_roll_rad", "rate_Hz", "latency_s", "max_rate_rad_s", "sun_exclusion_rad", "earth_exclusion_rad", "fov_half_angle_rad", "mass_kg", "power_W"]
+dispersions = ["bias_rad", "axis_misalignment_rad"]
+
+[[module_kind]]
+kind = "gyro"
+what = "Three-axis rate sensor (MEMS or FOG)"
+required = ["arw_rad_per_sqrt_s", "rrw_rad_per_s_sqrt_s", "bias_instability_rad_s", "range_rad_s", "rate_Hz", "mass_kg", "power_W"]
+dispersions = ["bias_rad_s", "scale_factor", "axis_misalignment_rad"]
+
+[[module_kind]]
+kind = "gnss_receiver"
+what = "GNSS receiver for orbit knowledge"
+required = ["position_noise_m", "velocity_noise_m_s", "rate_Hz", "time_to_first_fix_s", "mass_kg", "power_W"]
+dispersions = ["position_noise_m"]
+
+[[module_kind]]
+kind = "adcs_controller"
+what = "The IDMAS controller: one firmware, estimator, allocation, modes (IDMAS v2 §11)"
+required = ["cpu_clock_Hz", "ram_bytes", "flash_bytes", "can_ports", "rs422_ports", "i2c_ports", "spi_ports", "mass_kg", "power_W"]
+dispersions = []

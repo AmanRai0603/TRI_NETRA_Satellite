@@ -1,0 +1,8 @@
+schema = "adcs-campaign/1"
+id = "inertial_hold_edge"
+scenario = "inertial_hold_3u"
+type = "edge"
+what = "Every dispersed parameter at each end of its range (case lo/hi, part dispersions, scenario distributions), one at a time, then the worst corners the one-at-a-time pass finds."
+method = "one_at_a_time_then_corners"
+sigma_level = 3.0                  # normal dispersions at +/- 3 sigma; uniform at lo and hi
+corners = { from = "worst", count = 8 }

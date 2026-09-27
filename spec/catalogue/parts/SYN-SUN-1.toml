@@ -1,0 +1,24 @@
+# SYNTHETIC sun sensor — tests only.
+part_number = "SYN-SUN-1"
+kind = "sun_sensor"
+name = "Synthetic fine sun sensor — tests only"
+status = "synthetic"
+source = "synthetic_test_parts"
+families = ["mtq", "mtq_rw", "mtq_fmr", "mtq_fmr_rcs"]
+made = "bought"
+descriptor_version = 1
+
+[nominal]
+accuracy_rad = 0.0087
+fov_half_angle_rad = 1.05
+rate_Hz = 10.0
+mass_kg = 0.01
+power_W = 0.05
+
+[dispersion]
+bias_rad = { dist = "normal", mean = 0.0, sigma = 0.003 }
+axis_misalignment_rad = { dist = "normal", mean = 0.0, sigma = 0.002 }
+
+[interface]
+bus = "i2c"
+eeprom = []

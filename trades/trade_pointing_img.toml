@@ -1,0 +1,26 @@
+# Which fine-pointing law on the reaction wheels imaging bus?
+schema = "adcs-trade/1"
+id = "trade_pointing_img"
+label = "Imaging 3U, reaction wheels — fine-pointing law (0.01 deg)"
+question = "Which control law gives the smallest 3-sigma payload APE on a nadir hold with the reaction wheels?"
+kind = "algorithm"
+slot = "pointing"
+promote_to = "TRN-P-3U-IMG"
+scenario = "fine_hold_img"
+seeds = [1, 2]
+objective = { metric = "ape_los_p9973", sense = "min" }
+gate = ["ape_los_p9973", "ake_los_p9973"]
+tie_break = { metric = "power_mean", sense = "min" }
+tie_tol = 0.05
+[[candidates]]
+id = "pid"
+label = "PID (Standard Code nadirPointing)"
+algorithms = { pointing = "pid" }
+[[candidates]]
+id = "lqr"
+label = "LQR (Bryson weights)"
+algorithms = { pointing = "lqr" }
+[[candidates]]
+id = "smc"
+label = "sliding mode (Crassidis & Markley)"
+algorithms = { pointing = "smc" }

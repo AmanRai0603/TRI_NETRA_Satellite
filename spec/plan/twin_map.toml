@@ -1,0 +1,287 @@
+# The twin map (adcs-twin-map/1): every element of SILS, where it lives in the
+# platform (Rust, and C for flight software) and where it lives in the MATLAB
+# twin, the phase that builds both, and the test both must pass. SPEC.md §10.8.7.
+#
+# THE RULE (lockstep). An element is written in both engines in the same change,
+# or in neither. From the phase that builds it, a change to one side's file
+# without the other's fails the `twin` CI job, unless the pull request carries the
+# label `twin:none` with a line saying why the other side needs nothing (a
+# performance change with identical results, a comment, a rename the map follows).
+# So the MATLAB SILS zip, rebuilt on every push, is never behind the platform.
+#
+# `[[family]]` expands over a registry, so a new physics function, algorithm,
+# metric or part kind lands in the map the moment it lands in its registry, and
+# the check then asks for both sides. `[[element]]` is a single piece.
+# `only` marks an element that exists on one side by design, with the reason.
+# `twin_also` lists further twin files of one element (all count as its twin).
+# A platform module file holding several functions (physics/<module>.rs) is
+# changed with at least one of their twins; which function changed is not
+# visible from paths, so review and the shared tests see to the rest.
+#
+# tools/twin_check.py reads this file (in the repository, `cargo xtask twin check`).
+# The idea is the one ESA flight projects use: one model definition and one
+# parameter database, carried from the MATLAB engineering simulator into every
+# facility that runs it [bremer2017, colagrossi2023].
+
+schema = "adcs-twin-map/1"
+
+# ------------------------------------------------------------------ families
+
+[[family]]
+kind = "physics"
+source = "plan/physics.toml"            # every [[function]]: {module}, {name}; from P1, the generated table of adcs-core::physics (SPEC.md §6.2)
+id = "physics.{module}.{name}"
+platform = "adcs_core::physics::{module}::{name}"
+platform_file = "crates/adcs-core/src/physics/{module}.rs"
+twin = "asils.physics.{module}.{name}"
+twin_file = "matlab_sils/+asils/+physics/+{module}/{name}.m"
+phase = "P1"
+rungs = ["sils", "oils", "hils"]         # the plant and the tree call the same functions at every rung
+test = "the fixtures of every row that calls it, in both engines"
+
+[[family]]
+kind = "fsw"
+source = "catalogue/algorithms/*.toml"  # every algorithm: {id}
+id = "fsw.{id}"
+platform = "fsw/src/{id}.c behind adcs_fsw.h"
+platform_file = "fsw/src/{id}.c"
+twin = "asils.fsw.{id}"
+twin_file = "matlab_sils/+asils/+fsw/{id}.m"
+phase = "P3"
+rungs = ["sils", "oils", "hils"]         # the same C runs on the flight OBC at OILS and HILS
+test = "the algorithm's parameter ids and bounds (SPEC.md §7.5); the golden scenarios in matlab-parity"
+
+[[family]]
+kind = "metric"
+source = ["scenarios/*.toml", "plan/kpis.toml"]   # every [[metric]] kind of a scenario, and every KPI's metric: {kind}
+exclude = ["inspection_mass", "inspection_volume"]
+exclude_why = "measured on the delivered unit by inspection, never computed from a run, in either engine"
+id = "metric.{kind}"
+platform = "adcs_sim::metrics::{kind}"
+platform_file = "crates/adcs-sim/src/metrics/{kind}.rs"
+twin = "asils.metrics.{kind}"
+twin_file = "matlab_sils/+asils/+metrics/{kind}.m"
+phase = "P3"
+rungs = ["sils", "oils", "hils"]
+test = "the recorded reference runs: the same channels give the same metric"
+
+[[family]]
+kind = "device"
+source = "catalogue/parts/*.toml"       # every part kind: {kind}
+id = "device.{kind}"
+platform = "adcs_sim::emulate::{kind} (descriptor level; byte protocols stay in the platform)"
+platform_file = "crates/adcs-sim/src/emulate/{kind}.rs"
+twin = "asils.devices.{kind}"
+twin_file = "matlab_sils/+asils/+devices/{kind}.m"
+phase = "P3"
+rungs = ["sils", "oils"]                 # at HILS the real part answers
+test = "noise, bias, quantisation, latency and saturation from the same descriptor fields"
+
+# ------------------------------------------------------------------ single elements
+
+[[element]]
+id = "case.read"
+platform = "adcs_case::import"
+platform_file = "crates/adcs-case/src/import.rs"
+twin = "asils.case.read"
+twin_file = "matlab_sils/+asils/+case/read.m"
+phase = "P1"
+rungs = ["sils", "oils", "hils"]
+test = "the malformed-case suite shared with the cases job: the same refusals, the same messages"
+
+[[element]]
+id = "case.template"
+platform = "adcs_case::template"
+platform_file = "crates/adcs-case/src/template.rs"
+twin = "asils.case.template"
+twin_file = "matlab_sils/+asils/+case/template.m"
+phase = "P1"
+rungs = ["sils"]
+test = "writes plan/case_template.csv byte for byte"
+
+[[element]]
+id = "result.document"
+platform = "adcs_result::{write, read, import, index}"
+platform_file = "crates/adcs-result/src/lib.rs"
+twin = "asils.result.{save, open, import, index}"
+twin_file = "matlab_sils/+asils/+result/save.m"
+twin_also = ["matlab_sils/+asils/+result/open.m", "matlab_sils/+asils/+result/import.m", "matlab_sils/+asils/+result/index.m"]
+phase = "P3"
+rungs = ["sils", "oils", "hils"]
+test = "a result written by either opens in the other's viewer; the same store layout (SPEC.md §13.5.4)"
+
+[[element]]
+id = "rng.draw"
+platform = "adcs_sim_core::rng::draw"
+platform_file = "crates/adcs-sim-core/src/rng.rs"
+twin = "asils.rng.draw"
+twin_file = "matlab_sils/+asils/+rng/draw.m"
+phase = "P3"
+rungs = ["sils"]
+test = "the 1,000 reference draws from cargo xtask rng-reference, exactly"
+
+[[element]]
+id = "env.field"
+platform = "adcs_sim_core::env::field (IGRF-14 to degree 13)"
+platform_file = "crates/adcs-sim-core/src/env/field.rs"
+twin = "asils.env.field"
+twin_file = "matlab_sils/+asils/+env/field.m"
+phase = "P3"
+rungs = ["sils", "oils", "hils"]         # at HILS the same field is what the cage is commanded to make
+test = "the NOAA calculator points recorded as the field model's fixtures"
+
+[[element]]
+id = "env.density"
+platform = "adcs_sim_core::env::density"
+platform_file = "crates/adcs-sim-core/src/env/density.rs"
+twin = "asils.env.density"
+twin_file = "matlab_sils/+asils/+env/density.m"
+phase = "P3"
+rungs = ["sils", "oils"]
+test = "the atmos-density bundle's table, interpolated identically"
+
+[[element]]
+id = "env.orbit"
+platform = "adcs_sim_core::env::orbit (two-body, J2)"
+platform_file = "crates/adcs-sim-core/src/env/orbit.rs"
+twin = "asils.env.orbit"
+twin_file = "matlab_sils/+asils/+env/orbit.m"
+phase = "P3"
+rungs = ["sils", "oils", "hils"]
+test = "the orbit rows' fixtures and one golden propagation"
+
+[[element]]
+id = "env.sun_eclipse"
+platform = "adcs_sim_core::env::sun (position, conical eclipse)"
+platform_file = "crates/adcs-sim-core/src/env/sun.rs"
+twin = "asils.env.sun"
+twin_file = "matlab_sils/+asils/+env/sun.m"
+phase = "P3"
+rungs = ["sils", "oils", "hils"]         # at HILS it drives the sun simulator's shutter
+test = "eclipse entry and exit times on the golden orbit"
+
+[[element]]
+id = "env.disturbances"
+platform = "adcs_sim_core::env::torques (gravity gradient, aero, solar, residual magnetic)"
+platform_file = "crates/adcs-sim-core/src/env/torques.rs"
+twin = "asils.env.torques"
+twin_file = "matlab_sils/+asils/+env/torques.m"
+phase = "P3"
+rungs = ["sils", "oils"]
+test = "the disturbance rows' fixtures (gd_0..gd_4)"
+
+[[element]]
+id = "plant.dynamics"
+platform = "adcs_sim_core::plant (rigid body, RK4, the tick order of SPEC.md §9.3)"
+platform_file = "crates/adcs-sim-core/src/plant.rs"
+twin = "asils.plant.step"
+twin_file = "matlab_sils/+asils/+plant/step.m"
+phase = "P3"
+rungs = ["sils", "oils"]                 # at HILS the air bearing is the dynamics; the lab twin models it
+test = "torque-free precession and a constant-torque spin-up against their closed forms"
+
+[[element]]
+id = "plant.actuators"
+platform = "adcs_sim_core::plant::actuators (coils, wheels, rings, thrusters)"
+platform_file = "crates/adcs-sim-core/src/plant/actuators.rs"
+twin = "asils.plant.actuators"
+twin_file = "matlab_sils/+asils/+plant/actuators.m"
+phase = "P3"
+rungs = ["sils", "oils"]
+test = "each family's torque from the same command and descriptor"
+
+[[element]]
+id = "product.supply"
+platform = "adcs_config::supply_map"
+platform_file = "crates/adcs-config/src/supply_map.rs"
+twin = "asils.product.load"
+twin_file = "matlab_sils/+asils/+product/load.m"
+phase = "P2"
+rungs = ["sils", "oils", "hils"]
+test = "the same counts, zero for empty slots, NotFitted for their per-unit values"
+
+[[element]]
+id = "scenario.load"
+platform = "adcs_sim::scenario (case: references resolved)"
+platform_file = "crates/adcs-sim/src/scenario.rs"
+twin = "asils.scenario.load"
+twin_file = "matlab_sils/+asils/+scenario/load.m"
+phase = "P3"
+rungs = ["sils", "oils", "hils"]
+test = "an unstated case key refuses the run by the same name"
+
+[[element]]
+id = "run.single"
+platform = "adcs_sim::run"
+platform_file = "crates/adcs-sim/src/run.rs"
+twin = "asils.run"
+twin_file = "matlab_sils/+asils/run.m"
+phase = "P3"
+rungs = ["sils"]
+test = "the golden scenarios in matlab-parity"
+
+[[element]]
+id = "recorder"
+platform = "adcs_sim::record (adcs-rec/1)"
+platform_file = "crates/adcs-sim/src/record.rs"
+twin = "asils.rec.write"
+twin_file = "matlab_sils/+asils/+rec/write.m"
+phase = "P3"
+rungs = ["sils", "oils", "hils"]
+test = "the same channel names and units; each tool reads the other's"
+
+[[element]]
+id = "campaign.run"
+platform = "adcs_sim::campaign (nominal, montecarlo, edge, sweep, fault)"
+platform_file = "crates/adcs-sim/src/campaign.rs"
+twin = "asils.campaign.run"
+twin_file = "matlab_sils/+asils/+campaign/run.m"
+phase = "P4"
+rungs = ["sils", "oils", "hils"]
+test = "the same draws, run for run; the same two-level statistics"
+
+[[element]]
+id = "tune"
+platform = "adcs_tune"
+platform_file = "crates/adcs-tune/src/lib.rs"
+twin = "asils.tune"
+twin_file = "matlab_sils/+asils/tune.m"
+phase = "P4"
+rungs = ["sils"]
+test = "the same pattern search, box, clipping and objective on one golden case"
+
+[[element]]
+id = "campaign.labtwin"
+platform = "adcs_sim::campaign::labtwin"
+platform_file = "crates/adcs-sim/src/campaign/labtwin.rs"
+twin = ""
+twin_file = ""
+phase = "P4"
+rungs = ["hils"]
+only = "platform"
+why = "the lab twin models the rig (SPEC.md §12.6), which the MATLAB twin does not have"
+test = "the lab twin's replay of a recorded HILS session, against that session"
+
+[[element]]
+id = "device.protocols"
+platform = "adcs_sim::emulate byte-level protocols from devices/*.toml"
+platform_file = "crates/adcs-sim/src/emulate/protocol.rs"
+twin = ""
+twin_file = ""
+phase = "P3"
+rungs = ["sils", "oils"]
+only = "platform"
+why = "a protocol bug is the platform's to find; the twin emulates at descriptor level (SPEC.md §10.8.3)"
+test = "each device file's recorded byte exchanges, replayed"
+
+[[element]]
+id = "viz.app"
+platform = ""
+platform_file = ""
+twin = "asils.viz.*, asils.app"
+twin_file = "matlab_sils/+asils/app.m"
+phase = "P3M"
+rungs = ["sils"]
+only = "twin"
+why = "the platform draws in its web views (SPEC.md §13); the twin draws in MATLAB figures"
+test = "the app opens every example result and draws each of its views"

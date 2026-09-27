@@ -1,0 +1,42 @@
+{
+ "descriptor_version": 1,
+ "dispersion": {
+  "axis_misalignment_rad": {
+   "dist": "normal",
+   "mean": 0.0,
+   "sigma": 0.001
+  },
+  "bias_rad_s": {
+   "dist": "normal",
+   "mean": 0.0,
+   "sigma": 2e-05
+  },
+  "scale_factor": {
+   "dist": "normal",
+   "mean": 1.0,
+   "sigma": 0.001
+  }
+ },
+ "families": [
+  "mtq_rw"
+ ],
+ "interface": {
+  "bus": "spi",
+  "eeprom": []
+ },
+ "kind": "gyro",
+ "made": "bought",
+ "name": "Precision MEMS gyro (0.034 deg/sqrt(h) class) \u2014 tests only",
+ "nominal": {
+  "arw_rad_per_sqrt_s": 1e-05,
+  "bias_instability_rad_s": 1e-06,
+  "mass_kg": 0.06,
+  "power_W": 0.3,
+  "range_rad_s": 5.0,
+  "rate_Hz": 100.0,
+  "rrw_rad_per_s_sqrt_s": 5e-08
+ },
+ "part_number": "TRN-GYRO-P1",
+ "source": "sils_trade_study",
+ "status": "synthetic"
+}

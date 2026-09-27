@@ -1,0 +1,29 @@
+# Which detumble law for the coils-only AIS bus?
+schema = "adcs-trade/1"
+id = "trade_detumble_ais"
+label = "AIS 3U — detumble law (coils only)"
+question = "Which B-dot variant brings a 10 deg/s tumble below 0.5 deg/s fastest, within the power budget?"
+kind = "algorithm"
+slot = "detumble"
+promote_to = "TRN-P-3U-AIS"
+scenario = "detumble_ais"
+duration_s = 11480.0            # two orbits: every candidate is done by then or fails
+seeds = [1, 2, 3]
+objective = { metric = "detumble_time", sense = "min" }
+tie_break = { metric = "power_mean", sense = "min" }
+[[candidates]]
+id = "bdot_gyro"
+label = "B-dot, gyro-fed db/dt = -w x b"
+algorithms = { detumble = "bdot_gyro" }
+[[candidates]]
+id = "bdot_mag"
+label = "B-dot, magnetometer finite difference"
+algorithms = { detumble = "bdot_mag" }
+[[candidates]]
+id = "bdot_bangbang"
+label = "bang-bang B-dot (full dipole)"
+algorithms = { detumble = "bdot_bangbang" }
+[[candidates]]
+id = "genbdot_l1"
+label = "Standard Code L1 generalised B-dot (w_d = 0)"
+algorithms = { detumble = "genbdot_l1" }

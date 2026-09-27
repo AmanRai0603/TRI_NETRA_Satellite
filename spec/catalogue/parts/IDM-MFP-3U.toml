@@ -1,0 +1,40 @@
+# IDMAS V2 magneto-fluidic panel, 3U long panel: coil layers, perimeter
+# winding, sealed Galinstan ring, yoke pump, flow electrodes (IDMAS v2 §05, §11).
+part_number = "IDM-MFP-3U"
+kind = "magneto_fluidic_panel"
+name = "Magneto-fluidic panel, 3U long panel"
+status = "reference"
+source = "idmas_v2"
+families = ["mtq_fmr"]
+made = "in-house"
+descriptor_version = 1
+
+[nominal]
+dipole_max_Am2 = 0.45             # §03A
+dipole_per_amp_Am2_per_A = 4.5    # from the printed 0.45 A.m2 at 0.1 A (§03A)
+current_max_A = 0.1
+bore_m = 0.003                    # §03A
+enclosed_area_m2 = 0.022          # §05.1 table
+channel_length_m = 0.72           # perimeter of the 80 x 280 mm centreline, §03A — a person confirms
+fluid = "galinstan"               # §03E; Ga-Zn once Indian gallium flows (§10.5)
+fluid_density_kg_m3 = 6440.0      # §03E
+fluid_viscosity_Pa_s = 0.0024     # §03E
+fluid_mass_kg = 0.0316            # §03 Fig 3: 31.6 g Galinstan
+v_cruise_m_s = 0.2                # §03 Fig 3, §08
+v_max_m_s = 0.5                   # §08 table's upper speed for panel rings
+pump_type = "dc-conduction-yoke"  # §03C
+pump_efficiency = nan             # the number §16 P1 measures; §13 assumed 0.10
+field_power_W = nan               # 1-3 W while pumping (§03C) — measured per unit
+melt_point_K = 254.0              # commercial Galinstan, liquid to -19 C (§03E)
+mass_kg = nan
+
+[dispersion]
+dipole_scale = { dist = "normal", mean = 1.0, sigma = nan }
+friction_scale = { dist = "uniform", lo = 0.8, hi = 1.2 }     # §13 ran the friction model 20 % low
+pump_efficiency = { dist = "uniform", lo = nan, hi = nan }
+flow_sensor_noise_m_s = { dist = "normal", mean = 0.0, sigma = nan }
+axis_misalignment_rad = { dist = "normal", mean = 0.0, sigma = nan }
+
+[interface]
+bus = "can"
+eeprom = ["dipole_per_amp_Am2_per_A", "bore_m", "enclosed_area_m2", "channel_length_m", "pump_efficiency", "friction_curve"]

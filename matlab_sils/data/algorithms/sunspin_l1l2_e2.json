@@ -1,0 +1,17 @@
+{
+ "confirmed_by": "UNCONFIRMED \u00b7 awaiting a person",
+ "fsw": "reference",
+ "id": "sunspin_l1l2_e2",
+ "label": "Spin-up L1 + He et al. L2 with eclipse policy E2 (gyro-propagated Sun keeps the coils working in eclipse)",
+ "needs": [
+  "coils",
+  "magnetometer",
+  "gyro",
+  "sun"
+ ],
+ "number": 21,
+ "prototype": true,
+ "schema": "adcs-algorithm/1",
+ "slot": "sun_spin",
+ "source": "Standard Code ctrl.sunSpin E2 branch + ctrl.propagateSun; theory doc sec. 5.8"
+}

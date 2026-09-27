@@ -1,0 +1,38 @@
+{
+ "confirmed_by": "UNCONFIRMED \u00b7 bounds \u00b7 awaiting a person",
+ "families": [
+  "mtq",
+  "mtq_rw",
+  "mtq_fmr",
+  "mtq_fmr_rcs"
+ ],
+ "fsw": "reference",
+ "id": "bdot",
+ "label": "B-dot detumble",
+ "modes": [
+  "detumble",
+  "safe"
+ ],
+ "needs": [
+  "coils",
+  "magnetometer"
+ ],
+ "number": 1,
+ "param": [
+  {
+   "hi": 4.0,
+   "lo": 0.25,
+   "meaning": "multiplies the reference B-dot gain of avanzini2012, computed from the orbital rate, the magnetic inclination and the smallest inertia",
+   "name": "gain_scale",
+   "number": 1,
+   "scale": "log",
+   "trades": "faster rate removal against coil saturation and chatter",
+   "tree_id": "",
+   "unit": "One"
+  }
+ ],
+ "prototype": false,
+ "schema": "adcs-algorithm/1",
+ "slot": "detumble",
+ "source": "avanzini2012"
+}

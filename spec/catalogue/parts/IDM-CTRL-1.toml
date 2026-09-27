@@ -1,0 +1,27 @@
+# The IDMAS controller (IDMAS v2 §11): one firmware, estimator, allocation,
+# modes. Hardware values are chosen at its design review.
+part_number = "IDM-CTRL-1"
+kind = "adcs_controller"
+name = "IDMAS controller"
+status = "placeholder"
+source = "idmas_v2"
+families = ["mtq", "mtq_rw", "mtq_fmr", "mtq_fmr_rcs"]
+made = "in-house"
+descriptor_version = 1
+
+[nominal]
+cpu_clock_Hz = nan
+ram_bytes = nan
+flash_bytes = nan
+can_ports = nan
+rs422_ports = nan
+i2c_ports = nan
+spi_ports = nan
+mass_kg = nan
+power_W = nan
+
+[dispersion]
+
+[interface]
+bus = "can"
+eeprom = []

@@ -1,0 +1,13 @@
+# Algorithm descriptor (adcs-algorithm/1 + slot/needs, SILS registry).
+# slot: the FSW job it does; needs: hardware (or capabilities) a product must
+# carry for it to be selectable. asils.fsw.select refuses an incompatible pick.
+schema = "adcs-algorithm/1"
+id = "mtq_lqr"
+number = 31
+slot = "mtq_pointing"
+label = "Magnetic LQR (averaged double integrator, Bryson weights), projected on the field"
+needs = ["coils", "magnetometer", "attitude"]
+fsw = "reference"
+source = "psiaki2001 averaging; this SILS"
+confirmed_by = "UNCONFIRMED · awaiting a person"
+prototype = true                   # MATLAB twin only until its C lands (SPEC 10.8.5)

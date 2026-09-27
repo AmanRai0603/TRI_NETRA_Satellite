@@ -1,0 +1,15 @@
+{
+ "confirmed_by": "UNCONFIRMED \u00b7 awaiting a person",
+ "fsw": "reference",
+ "id": "genbdot_l1",
+ "label": "Generalised B-dot L1 with zero spin target (Cubas 2015)",
+ "needs": [
+  "coils",
+  "magnetometer"
+ ],
+ "number": 13,
+ "prototype": true,
+ "schema": "adcs-algorithm/1",
+ "slot": "detumble",
+ "source": "Standard Code ctrl.genBdot / spinupTick; theory doc sec. 4"
+}
