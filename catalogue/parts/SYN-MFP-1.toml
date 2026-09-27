@@ -1,0 +1,43 @@
+# SYNTHETIC twin of IDM-MFP-3U: the IDMAS v2 geometry and fluid, with the
+# unmeasured electrical and mechanical values replaced by stated round numbers.
+# Its pump efficiency is the 0.10 IDMAS v2 §13 assumed for its own simulation.
+# It lets the machinery pilot run before the bench (IDMAS v2 §16 P1) measures
+# the real panel. Never quotable, never evidence (SPEC.md §7.3).
+part_number = "SYN-MFP-1"
+kind = "magneto_fluidic_panel"
+name = "Synthetic magneto-fluidic panel, 3U geometry — tests and pilot only"
+status = "synthetic"
+source = "synthetic_test_parts"
+families = ["mtq_fmr"]
+made = "in-house"
+descriptor_version = 1
+
+[nominal]
+dipole_max_Am2 = 0.45
+dipole_per_amp_Am2_per_A = 4.5
+current_max_A = 0.1
+bore_m = 0.003
+enclosed_area_m2 = 0.022
+channel_length_m = 0.72
+fluid = "galinstan"
+fluid_density_kg_m3 = 6440.0
+fluid_viscosity_Pa_s = 0.0024
+fluid_mass_kg = 0.0316
+v_cruise_m_s = 0.2
+v_max_m_s = 0.5
+pump_type = "dc-conduction-yoke"
+pump_efficiency = 0.10
+field_power_W = 2.0
+melt_point_K = 254.0
+mass_kg = 0.12
+
+[dispersion]
+dipole_scale = { dist = "normal", mean = 1.0, sigma = 0.02 }
+friction_scale = { dist = "uniform", lo = 0.8, hi = 1.2 }
+pump_efficiency = { dist = "uniform", lo = 0.05, hi = 0.15 }
+flow_sensor_noise_m_s = { dist = "normal", mean = 0.0, sigma = 0.002 }
+axis_misalignment_rad = { dist = "normal", mean = 0.0, sigma = 0.005 }
+
+[interface]
+bus = "can"
+eeprom = []

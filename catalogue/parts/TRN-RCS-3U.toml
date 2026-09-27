@@ -1,0 +1,26 @@
+# Cold-gas (butane) reaction control for a 3U: six nozzle couples (a +/- pure
+# torque about each body axis), 10 mN nozzles, 5 ms minimum impulse bit.
+# Class of flown CubeSat cold-gas systems. Synthetic: tests only.
+part_number = "TRN-RCS-3U"
+kind = "rcs"
+name = "Cold-gas RCS, six couples — tests only"
+status = "synthetic"
+source = "sils_trade_study"
+families = ["mtq_rw_rcs", "mtq_fmr_rcs"]
+made = "bought"
+descriptor_version = 1
+
+[nominal]
+thrust_N = 0.010
+isp_s = 65.0
+mib_s = 0.005
+valve_res_s = 0.001
+arm_long_m = 0.15            # couples about Y and Z act on the 0.34 m axis
+arm_short_m = 0.045          # couples about X act across the 0.1 m face
+propellant_kg = 0.05
+valve_power_W = 1.0
+mass_kg = 0.35
+
+[dispersion]
+thrust_scale = { dist = "normal", mean = 1.0, sigma = 0.03 }
+axis_misalignment_rad = { dist = "normal", mean = 0.0, sigma = 0.01 }

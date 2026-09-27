@@ -1,14 +1,14 @@
 {
  "case": "ais_img_3u",
  "fsw": {
-  "auto_next": "nadir_rw",
+  "auto_next": "nadir_fine",
   "detumble_exit_deg_s": 0.5,
   "detumble_hold_s": 60.0,
   "guidance": {
    "kind": "nadir"
   },
   "rw_bandwidth": 0.9,
-  "rw_damping": 0.9,
+  "rw_damping": 2.0,
   "start_mode": "detumble"
  },
  "id": "mission_img",

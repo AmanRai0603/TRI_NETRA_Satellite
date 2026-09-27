@@ -1,0 +1,46 @@
+# AIS 3U: magnetic-only nadir hold from a 30 deg error, three orbits;
+# APE / AKE judged over the last orbit against the case's 10 deg / 5 deg.
+schema = "adcs-scenario/1"
+id = "fault_gyro_ais"
+label = "3U AIS — gyro bias step of 0.1 deg/s during nadir hold"
+case = "ais_3u"
+product = "TRN-P-3U-AIS"
+[time]
+duration_s = 17220.0
+dt_s = 0.2                    # magnetic control is slow; the 1 s coil duty still resolves
+record_dt_s = 1.0
+[initial]
+attitude = { kind = "error_from_target", angle_deg = 30.0, axis_body = [0.577, 0.577, 0.577] }
+rate = { kind = "lvlh" }
+[fsw]
+start_mode = "nadir_mtq"
+guidance = { kind = "nadir" }
+mtq_wn = 0.005
+mtq_zeta = 2.0
+[[metrics]]
+id = "ape_3axis_last_orbit"          # information: yaw about the antenna axis is not required
+kind = "ape"
+window = "last_orbit"
+statistic = "max"
+[[metrics]]
+id = "ape_los_last_orbit"
+kind = "ape_los"
+window = "last_orbit"
+statistic = "max"
+requirement = "req.ape"
+[[metrics]]
+id = "ake_los_last_orbit"
+kind = "ake_los"
+window = "last_orbit"
+statistic = "max"
+requirement = "req.ake"
+[[metrics]]
+id = "power_mean"
+kind = "power_mean"
+window = "all"
+requirement = "req.pavg"
+
+[[faults]]
+kind = "gyro_bias_step"
+t_s = 6000.0
+value = [0.001745, 0.0, 0.0]

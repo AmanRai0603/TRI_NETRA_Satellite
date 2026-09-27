@@ -12,9 +12,14 @@ function [set, d] = draw(C, P0, k)
     ds = C.dispersions; if ~iscell(ds), ds = num2cell(ds); end
     for i = 1:numel(ds)
         s = ds{i};
+        if edge
+            if which > 0 && i ~= which, continue, end
+            if which == 0, U = @(a, b) b; end      % adverse = upper bound for every kind below
+        end
         switch s.kind
             case 'inertia'           % each principal moment +/- s.frac (uniform)
                 f = 1 + s.frac*(2*rand(3,1) - 1);
+                if edge, f = 1 + s.frac*(2*U(0, 1) - 1)*[1; -1; 1]; end
                 set.sc__I = diag(diag(P0.sc.I).*f); d.inertia_scale_x = f(1); d.inertia_scale_y = f(2); d.inertia_scale_z = f(3);
             case 'mass'
                 v = P0.sc.mass_kg*(1 + s.frac*randn); set.sc__mass_kg = v; d.mass_kg = v;
@@ -45,4 +50,8 @@ function [set, d] = draw(C, P0, k)
                 error('asils:campaign:kind', 'unknown dispersion %s', s.kind);
         end
     end
+end
+
+function v = edge_(a, b, hi)
+    if hi, v = b; else, v = a; end
 end

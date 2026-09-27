@@ -6,4 +6,5 @@ function B_meas = magnetometer(B_true_B, D, m, m_coil)
 %   B += k_coil * m_coil (T per A m^2), and range saturation.
     B_meas = D.M*B_true_B + D.b + m.noise*randn(3,1) + m.k_coil*m_coil;
     B_meas = max(-m.range, min(m.range, B_meas));
+    if isfield(D, 'dead') && D.dead, B_meas = [1e-9; 0; 0]; end   % a dead sensor reads a flat line
 end

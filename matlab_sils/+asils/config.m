@@ -17,6 +17,7 @@ function P = config(scenarioId, caseFile, opts)
     C = asils.case.read(caseFile);
     v = C.v;
     P.scenario = S; P.case = C; P.id = S.id;
+    P.faults = asils.util.getf(S, 'faults', []);          % scheduled fault injection (asils.faults.apply)
     P.seed = asils.util.getf(opts, 'seed', 1);
     P.dev = asils.product.load(asils.util.getf(opts, 'product', S.product));
 
@@ -59,8 +60,10 @@ function P = config(scenarioId, caseFile, opts)
 
     %% flight software (derived gains; tunable per scenario)
     F = struct();
-    F.start_mode = S.fsw.start_mode;
-    F.auto_next = asils.util.getf(S.fsw, 'auto_next', '');
+    legacy = struct('nadir_rw', 'nadir_fine', 'target_rw', 'target_fine', 'slew_rw', 'slew_fine');
+    F.start_mode = S.fsw.start_mode; if isfield(legacy, F.start_mode), F.start_mode = legacy.(F.start_mode); end
+    F.auto_next = asils.util.getf(S.fsw, 'auto_next', ''); if isfield(legacy, F.auto_next), F.auto_next = legacy.(F.auto_next); end
+    F.bdot_law = asils.util.getf(S.fsw, 'bdot_law', 'gyro');      % 'gyro' | 'mag' | 'bangbang'
     F.detumble_exit = asils.util.getf(S.fsw, 'detumble_exit_deg_s', 0.5)*pi/180;
     F.detumble_hold_s = asils.util.getf(S.fsw, 'detumble_hold_s', 60);
     F.guidance = S.fsw.guidance;
@@ -71,9 +74,24 @@ function P = config(scenarioId, caseFile, opts)
     I = diag(P.sc.I);
     wn = asils.util.getf(S.fsw, 'mtq_wn', 0.005); z = asils.util.getf(S.fsw, 'mtq_zeta', 2.0);   % SILS sweep (docs/RESULTS.md)
     F.mtq.Kp = I*wn^2; F.mtq.Kd = 2*z*I*wn;
-    wn = asils.util.getf(S.fsw, 'rw_bandwidth', 0.9);   % SILS sweep: noise-limited optimum at the spec's 1 rad/s bound z = asils.util.getf(S.fsw, 'rw_damping', 0.9);
+    wn = asils.util.getf(S.fsw, 'rw_bandwidth', 0.9);   % SILS sweep: noise-limited optimum at the spec's 1 rad/s bound
+    z = asils.util.getf(S.fsw, 'rw_damping', 2.0);   % SILS sweep: heavier damping beats 0.9 on the 3-sigma APE
     F.rw.Kp = I*wn^2; F.rw.Kd = 2*z*I*wn; F.rw.Ki = 0.15*I*wn^3;
     F.rw.err_max = 0.2; F.rw.int_max = 0.02; F.rw.dt = 1/asils.util.getf(S.fsw, 'rw_rate_hz', 10);
+    F.rw.law = asils.util.getf(S.fsw, 'control_law', 'pid');     % 'pid' | 'lqr' | 'smc'
+    % LQR on [int theta; theta; omega] per axis, Bryson weights sized to the same bandwidth
+    th = 1e-3; F.rw.Klqr = zeros(3, 3);
+    for ax = 1:3
+        Aq = [0 1 0; 0 0 1; 0 0 0]; Bq = [0; 0; 1/I(ax)];
+        Q = diag([(wn/(0.5*th))^2, 1/th^2, 1/(wn*th)^2]); Rq = 1/(I(ax)*wn^2*th)^2;
+        F.rw.Klqr(ax, :) = asils.fsw.lqr_gain(Aq, Bq, Q, Rq);
+    end
+    % sliding mode: surface slope lambda, boundary layer phi, reaching gain
+    F.rw.lambda = wn/(2*z); F.rw.phi = 2e-4; F.rw.Gs = 2*z*wn*F.rw.phi*ones(3,1);
+    F.cmg = struct('lam0', 1e-9, 'mu', 10, 'k_null', 0.002);        % SR steering (Wie 2008)
+    F.rcs = struct('assist', logical(asils.util.getf(S.fsw, 'rcs_assist', 1)), 'assist_frac', 0.8, ...
+                   'dump', logical(asils.util.getf(S.fsw, 'rcs_dump', 1)), 'dump_hi', 4e-3, 'dump_lo', 1e-3, 'dump_k', 0.05);
+    F.fdir_s = 3.0;                                  % a rotor off its command this long is isolated
     F.rate_lpf_s = asils.util.getf(S.fsw, 'rate_lpf_s', 0.3);   % controller rate filter time constant
     F.dump_k = asils.util.getf(S.fsw, 'dump_gain', 2e-3); F.h_bias = asils.util.getf(S.fsw, 'wheel_bias_Nms', 2e-3);
     F.m_res_est = P.sc.m_res;       % ground-calibrated residual dipole the coils cancel (nominal case value)

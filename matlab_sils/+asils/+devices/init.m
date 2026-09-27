@@ -4,7 +4,7 @@ function D = init(P)
 %   table (catalogue/parts/*.toml -> data/parts/*.json). In a nominal run the
 %   draws are still made (seeded), so a Monte Carlo run k differs from the
 %   nominal only by its seed and its dispersed case/scenario values.
-    dv = P.dev; D = struct();
+    dv = P.dev; D = struct('gps_dead', false);
     ma = @(s) asils.quat.dcm(asils.quat.fromrotvec(s*randn(3,1)));   % small misalignment DCM
     if dv.gyro.fitted
         g = dv.gyro;
@@ -16,6 +16,7 @@ function D = init(P)
         m = dv.mag;
         D.mag.M = ma(m.misalign_rad) * diag(1 + m.sf_sigma*randn(3,1));
         D.mag.b = m.bias_T*ones(3,1)/sqrt(3) + m.bias_sigma*randn(3,1);
+        D.mag.dead = false;
     end
     if dv.sun.fitted
         s = dv.sun; D.sun.n = s.normals;
@@ -23,25 +24,41 @@ function D = init(P)
     end
     if dv.st.fitted
         s = dv.st;
-        for h = 1:size(s.boresight, 2)
+        nh = size(s.boresight, 2);
+        for h = 1:nh
             D.st.q_bias(:,h) = asils.quat.fromrotvec(s.bias_sigma*randn(3,1));
             D.st.q_mis(:,h) = asils.quat.fromrotvec(s.misalign_sigma*randn(3,1));
         end
-        D.st.hist_q = []; D.st.hist_t = [];
+        D.st.hist_q = []; D.st.hist_t = []; D.st.dead = false(1, nh);
+        if strcmp(s.model, 'quest'), D.st.cat = asils.devices.star_catalogue(4000); end
     end
     if dv.mtq.fitted
         t = dv.mtq; n = size(t.axes, 2);
         D.mtq.scale = 1 + t.scale_sigma*randn(1, n);
         A = t.axes;
         for j = 1:n, A(:,j) = ma(t.misalign_rad) * A(:,j); end
-        D.mtq.A = A;
+        D.mtq.A = A; D.mtq.dead = false(1, n);
     end
-    if dv.rw.fitted
-        w = dv.rw; n = size(w.axes, 2);
-        D.rw.tscale = 1 + w.torque_scale_sigma*randn(1, n);
-        D.rw.fscale = w.friction_scale_lo + (w.friction_scale_hi - w.friction_scale_lo)*rand(1, n);
-        A = w.axes;
-        for j = 1:n, A(:,j) = ma(w.misalign_rad) * A(:,j); end
-        D.rw.A = A;
+    if dv.css.fitted
+        c = dv.css; k = size(c.normals, 2);
+        D.css.scale = 1 + c.scale_sigma*randn(1, k); D.css.dead = false(1, k);
+        D.css.R = ma(c.misalign_rad);
+    end
+    if dv.mex.fitted
+        w = dv.mex; n = numel(w.kind);
+        D.mex.tscale = 1 + w.torque_scale_sigma.*randn(1, n);
+        D.mex.fscale = w.friction_scale_lo + (w.friction_scale_hi - w.friction_scale_lo).*rand(1, n);
+        D.mex.eta = w.eta_lo + (w.eta_hi - w.eta_lo).*rand(1, n);      % fmr pump efficiency
+        A = w.A0;
+        for j = 1:n, A(:,j) = ma(w.misalign_rad(j)) * A(:,j); end
+        D.mex.A0 = A; D.mex.failed = false(1, n); D.mex.gfailed = false(1, size(w.G, 2));
+        D.mex.htgt = zeros(1, n); D.mex.hf = zeros(1, n);          % fluid-ring driver state
+    end
+    if dv.rcs.fitted
+        r = dv.rcs; nc = size(r.tau_couple, 2);
+        D.rcs.tscale = 1 + r.thrust_sigma*randn(1, nc);
+        T = r.tau_couple;
+        for j = 1:nc, T(:,j) = ma(r.misalign_rad) * T(:,j); end
+        D.rcs.tau_couple = T; D.rcs.failed = false(1, nc);
     end
 end

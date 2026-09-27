@@ -13,10 +13,10 @@ record_dt_s = 0.1
 attitude = { kind = "error_from_target", angle_deg = 0.5, axis_body = [0.577, 0.577, 0.577] }
 rate = { kind = "lvlh" }
 [fsw]
-start_mode = "slew_rw"
+start_mode = "slew_fine"
 guidance = { kind = "slew", roll_deg = 30.0, t0 = 200.0, T_s = 60.0 }
 rw_bandwidth = 0.9
-rw_damping = 0.9
+rw_damping = 0.9             # slews: faster settling (hold modes fly 2.0)
 [[metrics]]
 id = "settle_time_after_slew"
 kind = "time_to_threshold"

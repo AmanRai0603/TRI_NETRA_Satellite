@@ -1,0 +1,62 @@
+{
+ "descriptor_version": 1,
+ "dispersion": {
+  "axis_misalignment_rad": {
+   "dist": "normal",
+   "mean": 0.0,
+   "sigma": 0.005
+  },
+  "dipole_scale": {
+   "dist": "normal",
+   "mean": 1.0,
+   "sigma": 0.02
+  },
+  "flow_sensor_noise_m_s": {
+   "dist": "normal",
+   "mean": 0.0,
+   "sigma": 0.002
+  },
+  "friction_scale": {
+   "dist": "uniform",
+   "hi": 1.2,
+   "lo": 0.8
+  },
+  "pump_efficiency": {
+   "dist": "uniform",
+   "hi": 0.15,
+   "lo": 0.05
+  }
+ },
+ "families": [
+  "mtq_fmr"
+ ],
+ "interface": {
+  "bus": "can",
+  "eeprom": []
+ },
+ "kind": "magneto_fluidic_panel",
+ "made": "in-house",
+ "name": "Synthetic magneto-fluidic panel, 3U geometry \u2014 tests and pilot only",
+ "nominal": {
+  "bore_m": 0.003,
+  "channel_length_m": 0.72,
+  "current_max_A": 0.1,
+  "dipole_max_Am2": 0.45,
+  "dipole_per_amp_Am2_per_A": 4.5,
+  "enclosed_area_m2": 0.022,
+  "field_power_W": 2.0,
+  "fluid": "galinstan",
+  "fluid_density_kg_m3": 6440.0,
+  "fluid_mass_kg": 0.0316,
+  "fluid_viscosity_Pa_s": 0.0024,
+  "mass_kg": 0.12,
+  "melt_point_K": 254.0,
+  "pump_efficiency": 0.1,
+  "pump_type": "dc-conduction-yoke",
+  "v_cruise_m_s": 0.2,
+  "v_max_m_s": 0.5
+ },
+ "part_number": "SYN-MFP-1",
+ "source": "synthetic_test_parts",
+ "status": "synthetic"
+}

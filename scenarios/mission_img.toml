@@ -13,12 +13,12 @@ attitude = { kind = "random" }
 rate = { kind = "random_direction", magnitude_deg_s = "case:mission.w0" }
 [fsw]
 start_mode = "detumble"
-auto_next = "nadir_rw"
+auto_next = "nadir_fine"
 detumble_exit_deg_s = 0.5
 detumble_hold_s = 60.0
 guidance = { kind = "nadir" }
 rw_bandwidth = 0.9
-rw_damping = 0.9
+rw_damping = 2.0
 [[metrics]]
 id = "detumble_time"
 kind = "time_to_rate"

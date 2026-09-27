@@ -1,0 +1,28 @@
+# Variable-speed control moment gyro: a micro CMG whose rotor is also torqued
+# like a reaction wheel, so the cluster has wheel-mode torque near the
+# gimbal singularities. Synthetic: tests only.
+part_number = "TRN-VSCMG-1"
+kind = "vscmg"
+name = "Micro variable-speed CMG — tests only"
+status = "synthetic"
+source = "sils_trade_study"
+families = ["mtq_vscmg"]
+made = "bought"
+descriptor_version = 1
+
+[nominal]
+rotor_momentum_Nms = 0.004
+h_max_Nms = 0.008
+rotor_inertia_kgm2 = 5.0e-6
+rotor_torque_max_Nm = 0.001
+friction_coulomb_Nm = 1.0e-5
+friction_viscous_Nms = 1.0e-8
+gimbal_rate_max_rad_s = 1.5
+gimbal_power_W = 0.3
+power_steady_W = 0.5
+mass_kg = 0.14
+
+[dispersion]
+torque_scale = { dist = "normal", mean = 1.0, sigma = 0.01 }
+friction_scale = { dist = "uniform", lo = 0.5, hi = 2.0 }
+axis_misalignment_rad = { dist = "normal", mean = 0.0, sigma = 0.001 }

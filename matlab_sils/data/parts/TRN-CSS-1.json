@@ -1,0 +1,34 @@
+{
+ "descriptor_version": 1,
+ "dispersion": {
+  "axis_misalignment_rad": {
+   "dist": "normal",
+   "mean": 0.0,
+   "sigma": 0.01
+  },
+  "scale": {
+   "dist": "normal",
+   "mean": 1.0,
+   "sigma": 0.02
+  }
+ },
+ "families": [
+  "mtq",
+  "mtq_rw",
+  "mtq_fmr"
+ ],
+ "kind": "coarse_sun_sensor",
+ "made": "bought",
+ "name": "Cosine photodiode sun sensor, one per face \u2014 tests only",
+ "nominal": {
+  "albedo": 0.3,
+  "fov_half_angle_rad": 1.52,
+  "mass_kg": 0.005,
+  "noise_frac": 0.01,
+  "power_W": 0.02,
+  "rate_Hz": 10.0
+ },
+ "part_number": "TRN-CSS-1",
+ "source": "sils_trade_study",
+ "status": "synthetic"
+}

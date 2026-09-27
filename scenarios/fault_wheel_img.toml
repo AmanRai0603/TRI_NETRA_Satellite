@@ -1,0 +1,68 @@
+# Imaging 3U: fine nadir hold with wheels + star tracker + MEKF from a 2 deg
+# error; APE / AKE (3-sigma = 99.73 % temporal) over the last half orbit.
+schema = "adcs-scenario/1"
+id = "fault_wheel_img"
+label = "3U imaging — reaction wheel 1 fails during fine hold (FDIR + coils)"
+case = "ais_img_3u"
+product = "TRN-P-3U-IMG"
+[time]
+duration_s = 5740.0           # one orbit
+dt_s = 0.1
+record_dt_s = 0.1
+[initial]
+attitude = { kind = "error_from_target", angle_deg = 2.0, axis_body = [0.577, 0.577, 0.577] }
+rate = { kind = "lvlh" }
+[fsw]
+start_mode = "nadir_fine"
+guidance = { kind = "nadir" }
+rw_bandwidth = 0.9
+rw_damping = 2.0
+rw_rate_hz = 10.0
+[[metrics]]
+id = "ape_los_p9973"
+kind = "ape_los"
+window = "last_half_orbit"
+statistic = "p99.73"
+requirement = "req.ape"
+[[metrics]]
+id = "ape_los_max"
+kind = "ape_los"
+window = "last_half_orbit"
+statistic = "max"
+[[metrics]]
+id = "ape_3ax_p9973"
+kind = "ape"
+window = "last_half_orbit"
+statistic = "p99.73"
+[[metrics]]
+id = "ake_los_p9973"
+kind = "ake_los"
+window = "last_half_orbit"
+statistic = "p99.73"
+requirement = "req.ake"
+[[metrics]]
+id = "rate_stability_p9973"
+kind = "rate_stability"
+window = "last_half_orbit"
+statistic = "p99.73"
+requirement = "req.rks"
+[[metrics]]
+id = "time_to_0p01_deg"
+kind = "time_to_threshold"
+channel = "ape_los"
+threshold_deg = 0.01
+hold_s = 60.0
+[[metrics]]
+id = "wheel_momentum_peak"
+kind = "wheel_momentum_peak"
+window = "all"
+[[metrics]]
+id = "power_mean"
+kind = "power_mean"
+window = "all"
+requirement = "req.pavg"
+
+[[faults]]
+kind = "rotor_fail"
+t_s = 1200.0
+index = 1

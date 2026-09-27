@@ -5,9 +5,9 @@
    "kind": "nadir"
   },
   "rw_bandwidth": 0.9,
-  "rw_damping": 0.9,
+  "rw_damping": 2.0,
   "rw_rate_hz": 10.0,
-  "start_mode": "nadir_rw"
+  "start_mode": "nadir_fine"
  },
  "id": "fine_hold_img",
  "initial": {
