@@ -1,0 +1,33 @@
+{
+ "candidates": [
+  {
+   "id": "fine_sun_heads",
+   "label": "TRN-P-3U-AIS: 6 fine Sun-sensor heads",
+   "scenario": "nadir_hold_ais"
+  },
+  {
+   "id": "coarse_css",
+   "label": "TRN-P-3U-AIS-CSS: 6 cosine cells",
+   "scenario": "nadir_hold_ais_css"
+  }
+ ],
+ "id": "trade_sun_sensor_ais",
+ "kind": "hardware",
+ "label": "AIS 3U \u2014 fine Sun-sensor heads vs coarse cosine cells",
+ "objective": {
+  "metric": "ape_los_last_orbit",
+  "sense": "min"
+ },
+ "question": "Do six cheap cosine Sun cells (with Earth albedo) still meet the 10 deg / 5 deg AIS requirement?",
+ "schema": "adcs-trade/1",
+ "seeds": [
+  1,
+  2,
+  3
+ ],
+ "slot": "sun",
+ "tie_break": {
+  "metric": "power_mean",
+  "sense": "min"
+ }
+}

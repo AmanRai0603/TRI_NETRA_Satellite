@@ -1,0 +1,15 @@
+{
+ "confirmed_by": "UNCONFIRMED \u00b7 awaiting a person",
+ "fsw": "reference",
+ "id": "pid",
+ "label": "Quaternion PID + gyroscopic compensation (R42 port)",
+ "needs": [
+  "momentum",
+  "attitude"
+ ],
+ "number": 40,
+ "prototype": true,
+ "schema": "adcs-algorithm/1",
+ "slot": "pointing",
+ "source": "Standard Code ctrl.nadirPointing pid_"
+}

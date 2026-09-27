@@ -1,0 +1,36 @@
+# Which actuator family for a 0.01 deg imaging nadir hold?
+schema = "adcs-trade/1"
+id = "trade_hardware_fine"
+label = "Imaging 3U — actuator family for the 0.01 deg fine hold"
+question = "Which momentum-exchange family (each with coils) holds the camera best, and at what power?"
+kind = "hardware"
+slot = "actuators"
+seeds = [1, 2]
+objective = { metric = "ape_los_p9973", sense = "min" }
+gate = ["ape_los_p9973", "ake_los_p9973"]
+tie_break = { metric = "power_mean", sense = "min" }
+tie_tol = 0.25                   # within 25 % on pointing, the lower-power family wins
+[[candidates]]
+id = "mtq_rw"
+label = "coils + 3 reaction wheels"
+scenario = "fine_hold_img"
+[[candidates]]
+id = "mtq_rw_rcs"
+label = "coils + wheels + cold-gas RCS"
+scenario = "fine_hold_rw_rcs"
+[[candidates]]
+id = "mtq_fmr"
+label = "coils + 3 fluid rings (IDMAS)"
+scenario = "fine_hold_fmr"
+[[candidates]]
+id = "mtq_fmr_rcs"
+label = "coils + fluid rings + RCS"
+scenario = "fine_hold_fmr_rcs"
+[[candidates]]
+id = "mtq_cmg"
+label = "coils + 4-CMG pyramid"
+scenario = "fine_hold_cmg"
+[[candidates]]
+id = "mtq_vscmg"
+label = "coils + 4-VSCMG pyramid"
+scenario = "fine_hold_vscmg"

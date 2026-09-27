@@ -1,7 +1,9 @@
 {
  "case": "ais_img_3u",
  "fsw": {
-  "control_law": "smc",
+  "algorithms": {
+   "pointing": "smc"
+  },
   "guidance": {
    "kind": "nadir"
   },

@@ -1,0 +1,54 @@
+{
+ "candidates": [
+  {
+   "algorithms": {
+    "detumble": "bdot_gyro"
+   },
+   "id": "bdot_gyro",
+   "label": "B-dot, gyro-fed db/dt = -w x b"
+  },
+  {
+   "algorithms": {
+    "detumble": "bdot_mag"
+   },
+   "id": "bdot_mag",
+   "label": "B-dot, magnetometer finite difference"
+  },
+  {
+   "algorithms": {
+    "detumble": "bdot_bangbang"
+   },
+   "id": "bdot_bangbang",
+   "label": "bang-bang B-dot (full dipole)"
+  },
+  {
+   "algorithms": {
+    "detumble": "genbdot_l1"
+   },
+   "id": "genbdot_l1",
+   "label": "Standard Code L1 generalised B-dot (w_d = 0)"
+  }
+ ],
+ "duration_s": 11480.0,
+ "id": "trade_detumble_ais",
+ "kind": "algorithm",
+ "label": "AIS 3U \u2014 detumble law (coils only)",
+ "objective": {
+  "metric": "detumble_time",
+  "sense": "min"
+ },
+ "promote_to": "TRN-P-3U-AIS",
+ "question": "Which B-dot variant brings a 10 deg/s tumble below 0.5 deg/s fastest, within the power budget?",
+ "scenario": "detumble_ais",
+ "schema": "adcs-trade/1",
+ "seeds": [
+  1,
+  2,
+  3
+ ],
+ "slot": "detumble",
+ "tie_break": {
+  "metric": "power_mean",
+  "sense": "min"
+ }
+}

@@ -1,0 +1,15 @@
+{
+ "confirmed_by": "UNCONFIRMED \u00b7 awaiting a person",
+ "fsw": "reference",
+ "id": "bdot_bangbang",
+ "label": "Bang-bang B-dot (full dipole against db/dt, deadband)",
+ "needs": [
+  "coils",
+  "magnetometer"
+ ],
+ "number": 12,
+ "prototype": true,
+ "schema": "adcs-algorithm/1",
+ "slot": "detumble",
+ "source": "Standard Code ctrl.bdot TC=0"
+}

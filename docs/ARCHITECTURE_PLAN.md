@@ -87,7 +87,10 @@ Node ids follow the twin map (`spec/plan/twin_map.toml`); the file is its MATLAB
 | `fsw.bdot` | `+fsw/bdot.m` | Avanzini–Giulietti gain, unit-vector derivative, direction-preserving saturation, measure-then-drive duty | Standard Code `ctrl.bdot`, `act.saturateDipole` |
 | `fsw.mekf` | `+fsw/mekf_init.m`, `mekf_predict.m`, `mekf_vector.m`, `mekf_quat.m`, `triad.m` | Markley–Crassidis MEKF (attitude + gyro bias), Sun / field / star-tracker updates, TRIAD initialisation | Standard Code `ad.mekf` was a **stub** — implemented |
 | `fsw.guidance` | `+fsw/guidance.m` | nadir (ported), off-nadir target, cycloidal target slew, inertial | Standard Code `guid.nadir` |
-| `fsw.mtq_pd` | `+fsw/mtq_pd.m`, `torque2dipole.m` | magnetic three-axis PD + min-norm dipole | Standard Code `act.torque2dipole` |
+| `fsw.mtq_pd` (slot `mtq_pointing`) | `+fsw/mtq_pd.m`, `torque2dipole.m`, `step.m` (`mtq_law_`) | magnetic three-axis PD, LQR, sliding mode or rate damping, all projected across B by the min-norm dipole | Standard Code `act.torque2dipole` |
+| `fsw.genbdot_l1`, `fsw.sunspin_l1l2` | `+fsw/gen_bdot.m`, `sun_spin.m`, `step.m` (`spinup` / `sun_spin` modes, `spin_guards_`) | L1 generalised B-dot on the magnetometer's d**B**/dt (detumble with ω_d = 0, spin-up with ω_d = σω_s e_z and the G_σ sign flip); L2 He et al. Sun-pointing spin (ω* = −ω_s, live σ, eclipse E1); SpinUp/SunSpin guards with dwells | Standard Code `ctrl.genBdot`, `ctrl.spinupTick`, `ctrl.sunSpin`, `modes.transitions` (**ported**) |
+| `fsw.select` | `+fsw/select.m`, `init.m` | algorithm registry → the law for each slot, checked against the product's hardware | this SILS (§3b) |
+| `trade.*` | `+trade/run.m`, `spec.m`, `jobs.m`, `collect.m`, `print.m`, `+viz/trade.m` | candidates × seeds, feasibility, worst-case ranking, tie-break, proposal | this SILS (§3b) |
 | `fsw.control_law` | `+fsw/control_law.m`, `lqr_gain.m` | PID (ported), LQR (Hamiltonian ARE, Bryson weights), sliding mode (Crassidis–Markley); gyroscopic compensation and slew-acceleration feedforward | Standard Code `ctrl.nadirPointing` PID |
 | `fsw.pd_alloc`, `fsw.idmas_split`, `fsw.cmg_sr`, `fsw.rcs_pwm` | `+fsw/allocate.m`, `steer_sr.m`, `rcs_duty.m`, `dump.m` | minimum-norm rotor allocation; IDMAS split (coils take the torque across B, rings the rest); singularity-robust CMG/VSCMG steering; RCS slew assist and dumping with MIB-aware feedforward; cross-product magnetic dump; rotor FDIR with coil backup | Standard Code `ctrl.rwDump`; spec algorithms |
 | `hal` | `+hal/*.m` | the `adcs_hal.h` boundary in MATLAB: register-level frames, `sils` / `loopback` / `udp` backends, real-time pacing, HILS stimulus | spec `fsw/include/adcs_hal.h`; `docs/OILS_HILS.md` |
@@ -99,6 +102,27 @@ Node ids follow the twin map (`spec/plan/twin_map.toml`); the file is its MATLAB
 | `recorder`, `result.document` | `+rec/write.m`, `+result/save.m` | CSV + JSON channels, HTML result | spec §9.8, §13.5 |
 | `viz.*` | `+viz/run.m`, `campaign.m` | per-test figures | spec §10.8.4 |
 
+## 3b. One job, several algorithms, several hardware sets
+
+The same job (detumble, point, acquire the Sun, allocate torque) can be done by
+several algorithms, and the same algorithm can fly on several products. The SILS
+keeps these apart in three layers:
+
+1. **Registry** — `catalogue/algorithms/<id>.toml`: one file per algorithm with its
+   `slot` (the job) and `needs` (the hardware or capability it requires).
+   Slots: `detumble`, `attitude`, `mtq_pointing`, `pointing`, `sun_spin`,
+   `allocation`, `thrusters`.
+2. **Selection** — `asils.fsw.select`, once per run: scenario `[fsw] algorithms`
+   → product `[selected]` → first compatible default; an incompatible choice is
+   refused before the loop starts (e.g. `pid` on the coils-only AIS bus). The
+   flight software dispatches on the resolved law names only.
+3. **Trade** — `trades/<id>.toml`: candidates are algorithms for one slot on
+   fixed hardware, whole products (hardware trades) or tunings, all flown on the
+   same seeds. Candidates meeting every requirement on every seed are ranked by
+   their worst objective value, ties broken by power or propellant. The winner is
+   *proposed* (`docs/SELECTION.md`) and, once a person confirms it, promoted into
+   the product's `[selected]` table.
+
 ## 4. The two cases
 
 | | AIS (`cases/ais_3u.csv`) | Imaging (`cases/ais_img_3u.csv`) |
@@ -106,15 +130,15 @@ Node ids follow the twin map (`spec/plan/twin_map.toml`); the file is its MATLAB
 | Orbit | 550 km SSO, i = 97.593°, **dawn–dusk LTAN 06:00** | 550 km SSO, i = 97.593°, **LTAN 10:00** |
 | Pointing requirement | APE 10° (AKE 5°) | APE 0.01° 3σ (AKE 0.005° 3σ) |
 | Product | `TRN-P-3U-AIS`: 3 coils, magnetometer, 6 sun sensors, MEMS gyro, GNSS; antenna axis +X (long axis) on nadir | `TRN-P-3U-IMG`: 3 reaction wheels, **two** star-tracker heads (±25° from zenith), precision MEMS gyro, 3 coils, magnetometer, 6 sun sensors, GNSS; camera axis +Y on nadir |
-| Modes | detumble (B-dot) → nadir_mtq | detumble (B-dot) → nadir_rw / target_rw / slew_rw with magnetic dumping |
-| Scenarios | `detumble_ais`, `nadir_hold_ais`, `mission_ais` | `detumble_img`, `fine_hold_img`, `slew_img`, `mission_img` |
+| Modes | detumble (B-dot) → nadir_mtq, or detumble → spinup → sun_spin (coils-only Sun acquisition) | detumble (B-dot) → nadir_fine / target_fine / slew_fine with magnetic dumping |
+| Scenarios | `detumble_ais`, `nadir_hold_ais`, `sun_spin_ais`, `mission_ais` | `detumble_img`, `fine_hold_img`, `slew_img`, `mission_img` |
 | Monte Carlo | `mc_detumble_ais`, `mc_nadir_ais` | `mc_fine_img`, `mc_slew_img` |
 
 ## 4b. Actuator families (all on the imaging case, plus the AIS coils-only case)
 
 | family (spec) | product | fine pointing | agile slew | momentum management |
 |---|---|---|---|---|
-| `mtq` | `TRN-P-3U-AIS`, `TRN-P-3U-AIS-CSS` | coils only (magnetic PD) | — | residual-dipole compensation |
+| `mtq` | `TRN-P-3U-AIS`, `TRN-P-3U-AIS-CSS` | coils only (magnetic PD / LQR / SMC / rate damping), or Sun-pointing spin | — | residual-dipole compensation |
 | `mtq_rw` | `TRN-P-3U-IMG` | 3 wheels, PID / LQR / SMC | torque-limited | coils, cross-product law |
 | `mtq_fmr` | `TRN-P-3U-FMR` | 3 fluid rings, IDMAS split with the coils | momentum-limited (1 mN m s) | coils |
 | `mtq_fmr_rcs` | `TRN-P-3U-FMR-RCS` | rings + coils | RCS takes the axes the rings cannot hold | coils |

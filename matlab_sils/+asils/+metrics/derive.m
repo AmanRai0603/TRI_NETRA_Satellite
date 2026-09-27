@@ -10,16 +10,18 @@ function rec = derive(rec)
 %   rks      rate stability: change of the pointing-error vector over
 %            1 s (an exposure) divided by 1 s [deg/s]
 %   rate     |w| [deg/s];  rate_err |w - w_ref| [deg/s]
+%   sun_angle angle between -Z_B and the Sun, sunlit only [deg] (Sun-spin modes)
+%   spin_z   body rate about +Z_B [deg/s]
     n = numel(rec.t);
     bs = rec.P.dev.boresight;
     gd = rec.P.fsw.guidance;
-    kinds = {'', 'nadir', 'nadir', 'target', 'slew'};    % by mode id (detumble has none)
+    kinds = {'', 'nadir', 'nadir', 'target', 'slew', '', ''};    % by mode id (detumble, spin-up, Sun spin have none)
     rec.q_ref_true = nan(4,n); rec.e_vec = nan(3,n);
     rec.ape_3ax = nan(1,n); rec.ape_los = nan(1,n); rec.ake_3ax = nan(1,n); rec.ake_los = nan(1,n);
     for j = 1:n
         q = rec.q(:,j); qe = rec.q_est(:,j);
         b_true = asils.quat.dcm(q)'*bs;
-        if rec.mode(j) > 1
+        if ~isempty(kinds{rec.mode(j)})
             [qr, ~] = asils.fsw.guidance(kinds{rec.mode(j)}, rec.r(:,j), rec.v(:,j), rec.t(j), gd);
             rec.q_ref_true(:,j) = qr;
             dq = asils.quat.mult(asils.quat.conj(qr), q); if dq(4) < 0, dq = -dq; end
@@ -35,6 +37,9 @@ function rec = derive(rec)
         end
     end
     rec.rate = sqrt(sum(rec.w.^2, 1))*180/pi;
+    rec.sun_angle = acosd(max(-1, min(1, -rec.sun_body(3,:))));
+    rec.sun_angle(rec.nu < 0.5) = NaN;
+    rec.spin_z = rec.w(3,:)*180/pi;
     rec.rate_err = sqrt(sum((rec.w - rec.w_ref).^2, 1))*180/pi;
     lag = max(1, round(1/max(rec.P.sim.record_dt, 1e-9)));
     rec.rks = nan(1, n);

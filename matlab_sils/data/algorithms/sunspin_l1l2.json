@@ -1,0 +1,17 @@
+{
+ "confirmed_by": "UNCONFIRMED \u00b7 awaiting a person",
+ "fsw": "reference",
+ "id": "sunspin_l1l2",
+ "label": "Spin-up L1 then He et al. Sun-pointing spin L2 (coils only, no attitude solution)",
+ "needs": [
+  "coils",
+  "magnetometer",
+  "gyro",
+  "sun"
+ ],
+ "number": 20,
+ "prototype": true,
+ "schema": "adcs-algorithm/1",
+ "slot": "sun_spin",
+ "source": "Standard Code ctrl.spinupTick + ctrl.sunSpin; He et al. 2023; theory doc sec. 4-7"
+}

@@ -13,6 +13,11 @@ function [F, out] = step(F, z, t, P, D) %#ok<INUSD>
 %     4 guidance -> control -> allocation (coils, momentum devices, thrusters)
 %
 %   Modes: detumble | nadir_mtq | nadir_fine | target_fine | slew_fine
+%          spinup | sun_spin   (coils-only Sun acquisition, Standard Code L1/L2)
+%
+%   Which law does each job comes from the algorithm registry, resolved once
+%   at configuration (asils.fsw.select -> P.fsw.alg, laws mapped in fsw.init):
+%   G.bdot_law, G.mtq.law, G.rw.law. The mode code below only dispatches.
     G = F.P; dt = P.sim.dt; dev = P.dev;
     jd = F.jd0 + t/86400;
 
@@ -33,7 +38,7 @@ function [F, out] = step(F, z, t, P, D) %#ok<INUSD>
         C = asils.fsw.gmst_rot(jd);
         F.Bref = asils.env.field(C*F.r, C, F.gh, G.igrf_nmax); F.t_Bref = t;
     end
-    usesAD = ~strcmp(F.mode, 'detumble');
+    usesAD = ~any(strcmp(F.mode, {'detumble', 'spinup', 'sun_spin'}));   % the spin modes need no attitude
     if usesAD
         if ~F.ad_ok
             if dev.st.fitted && z.st_ok
@@ -83,6 +88,10 @@ function [F, out] = step(F, z, t, P, D) %#ok<INUSD>
             F = enter_(F, G.auto_next, t);
         end
     end
+    if any(strcmp(F.mode, {'spinup', 'sun_spin'}))
+        [F, nxt] = spin_guards_(F, z, t, dt, G.ss);
+        if ~isempty(nxt), F = enter_(F, nxt, t); end
+    end
 
     %% 4 guidance / control / commands ------------------------------------------
     m_body = F.m_hold; nr = F.M.nr; ng = F.M.ng;
@@ -93,8 +102,8 @@ function [F, out] = step(F, z, t, P, D) %#ok<INUSD>
             % rest of the 1 s cycle (Standard Code ctrl.bdotScheduler duty).
             if phase < G.mtq_meas + dt/2
                 m_body = zeros(3,1);
-                if first, F.bsum = zeros(3,1); F.bn = 0; end
-                F.bsum = F.bsum + z.B/norm(z.B); F.bn = F.bn + 1;
+                if first, F.bsum = zeros(3,1); F.bsum_raw = zeros(3,1); F.bn = 0; end
+                F.bsum = F.bsum + z.B/norm(z.B); F.bsum_raw = F.bsum_raw + z.B; F.bn = F.bn + 1;
                 if abs(phase - G.mtq_meas) < dt/2
                     b = F.bsum/F.bn; b = b/norm(b);
                     law = G.bdot_law; if strcmp(law, 'gyro') && ~dev.gyro.fitted, law = 'mag'; end
@@ -109,6 +118,13 @@ function [F, out] = step(F, z, t, P, D) %#ok<INUSD>
                                 bd = (b - F.b1)/G.mtq_period;
                                 m_body = -dev.mtq.m_max*sign(bd).*(abs(bd) > 1e-4);
                             end
+                        case 'l1'        % Standard Code ctrl.genBdot with omega_d = 0, on the raw field [T]
+                            Bav = F.bsum_raw/F.bn;
+                            if ~isempty(F.B1raw)
+                                m_body = asils.fsw.gen_bdot(Bav, (Bav - F.B1raw)/G.mtq_period, zeros(3,1), G.ss.k_l1);
+                                m_body = m_body*min(1, dev.mtq.m_max/max(max(abs(m_body)), 1e-30));
+                            end
+                            F.B1raw = Bav;
                     end
                     if any(m_body)
                         m_body = m_body - G.m_res_est;
@@ -126,7 +142,7 @@ function [F, out] = step(F, z, t, P, D) %#ok<INUSD>
                 m_body = zeros(3,1);
             elseif abs(phase - G.mtq_meas) < dt/2 && F.ad_ok && ~isempty(F.r)
                 [F.q_ref, F.w_ref] = asils.fsw.guidance('nadir', F.r, F.v, t, F.gd);
-                F.tau_req = asils.fsw.mtq_pd(F.K.q, F.w_est, F.q_ref, F.w_ref, G.mtq);
+                F = mtq_law_(F, G, P);
                 m_body = asils.fsw.torque2dipole(F.tau_req, z.B, dev.mtq.m_max) - G.m_res_est;
                 m_body = m_body*min(1, dev.mtq.m_max/max(abs(m_body)));   % residual-dipole compensation
             elseif phase < G.mtq_meas
@@ -206,12 +222,89 @@ function [F, out] = step(F, z, t, P, D) %#ok<INUSD>
                 [cmd_r, cmd_g] = asils.fsw.allocate(F.tau_req - tau_coil - tau_rcs, z, F, P);
             end
             F.h_prev = z.h; F.cmd_r_prev = cmd_r;
+        case {'spinup', 'sun_spin'}
+            % Sun vector for L2: measured when valid, else (E2) propagated on the
+            % gyro from the last sunlit sample, ds/dt = -w x s (ctrl.propagateSun)
+            if z.sun_ok, F.s_prop = z.sun;
+            elseif ~isempty(F.s_prop)
+                F.s_prop = asils.quat.dcm(asils.quat.fromrotvec(F.w_est*dt))*F.s_prop;
+                F.s_prop = F.s_prop/norm(F.s_prop);
+            end
+            % Standard Code duty: coils off and the field averaged over the
+            % measure window, the law run once per cycle, the dipole held.
+            if phase < G.mtq_meas + dt/2
+                m_body = zeros(3,1);
+                if first, F.bsum_raw = zeros(3,1); F.bn = 0; end
+                F.bsum_raw = F.bsum_raw + z.B; F.bn = F.bn + 1;
+                if abs(phase - G.mtq_meas) < dt/2
+                    Bav = F.bsum_raw/F.bn;
+                    if strcmp(F.mode, 'spinup')       % L1: ctrl.spinupTick
+                        if isempty(F.B1raw), bd = zeros(3,1); else, bd = (Bav - F.B1raw)/G.mtq_period; end
+                        wd = F.sigma*G.ss.spin_dps*pi/180*[0;0;1];
+                        m0 = asils.fsw.gen_bdot(Bav, bd, wd, G.ss.k_l1);
+                    else                              % L2: ctrl.sunSpin (He et al. 2023)
+                        ecl = ~z.sun_ok && strcmp(G.ss.eclipse, 'E1');
+                        [m0, F.V_ss] = asils.fsw.sun_spin(Bav, F.w_est, F.s_prop, ecl || isempty(F.s_prop), P.sc.I, G.ss);
+                    end
+                    F.B1raw = Bav;
+                    if any(m0)
+                        m_body = m0 - G.m_res_est;
+                        m_body = m_body*min(1, dev.mtq.m_max/max(abs(m_body)));   % act.saturateDipole
+                    end
+                end
+            end
+            if nr > 0, cmd_r = -0.2*(z.h - F.h_t_rot); end
     end
     F.m_hold = m_body;
     out.m_body = m_body; out.cmd_r = cmd_r; out.cmd_g = cmd_g; out.duty = duty;
 end
 
+function F = mtq_law_(F, G, P)
+%MTQ_LAW_  The magnetic pointing law the registry selected (slot mtq_pointing).
+%   Every law returns a body torque request; torque2dipole keeps the part
+%   across the field. Same bandwidth for all, so a trade compares laws.
+    g = G.mtq;
+    switch g.law
+        case 'mtq_pd'            % quaternion PD (Lovera & Astolfi 2004)
+            F.tau_req = asils.fsw.mtq_pd(F.K.q, F.w_est, F.q_ref, F.w_ref, g);
+        case {'mtq_lqr', 'mtq_smc'}
+            g.law = strrep(g.law, 'mtq_', '');
+            [F.tau_req, F.I_q] = asils.fsw.control_law(F.K.q, F.w_est, F.q_ref, F.w_ref, F.I_q, G.mtq_period, g, P.sc.I, zeros(3,1));
+        case 'mtq_rate_damp'     % damp the rate relative to LVLH only; gravity gradient holds pitch/roll
+            qe = asils.quat.mult(asils.quat.conj(F.q_ref), F.K.q);
+            F.tau_req = -g.Kd.*(F.w_est - asils.quat.dcm(qe)*F.w_ref);
+        otherwise
+            error('asils:fsw:law', 'unknown magnetic pointing law %s', g.law);
+    end
+end
+
+function [F, nxt] = spin_guards_(F, z, t, dt, s)
+%SPIN_GUARDS_  Standard Code modes.transitions rows for SpinUp / SunSpin and the
+%   spin-sign flip G_sigma of ctrl.spinupTick (theory doc sec. 4.4, 7.2).
+    nxt = ''; d = pi/180; w = F.w_est;
+    wz = w(3); wp = norm(w(1:2));
+    if norm(w) > s.omega_max_dps*d, nxt = 'detumble'; return, end     % G_fault, dwell 0
+    if strcmp(F.mode, 'spinup')
+        conv = abs(wz - F.sigma*s.spin_dps*d) < s.z_in_dps*d && wp < s.perp_in_dps*d;
+        % G_sigma: -Z_B must end up on the Sun; a converged spin that keeps the
+        % Sun on +Z flips the target spin sign
+        if conv && z.sun_ok, F.sz_sum = F.sz_sum + z.sun(3); F.sz_n = F.sz_n + 1; end
+        if t - F.sz_t0 >= s.t_check_s && F.sz_n > 0 && F.sz_sum/F.sz_n > s.sun_min
+            F.sigma = -F.sigma; F.sz_sum = 0; F.sz_n = 0; F.sz_t0 = t;
+            F.log(end+1).t = t; F.log(end).mode = sprintf('spin sign -> %+d', F.sigma);
+        end
+        ok = conv && z.sun_ok && z.sun(3) < 0;                           % G_S->SS
+        if ok, F.hold = F.hold + dt; else, F.hold = 0; end
+        if F.hold >= s.dwell_in_s, nxt = 'sun_spin'; end
+    else
+        bad = abs(wz) < s.omega_exit_dps*d || wp > s.perp_out_dps*d;    % G_SS->S
+        if bad, F.hold = F.hold + dt; else, F.hold = 0; end
+        if F.hold >= s.dwell_out_s, nxt = 'spinup'; end
+    end
+end
+
 function F = enter_(F, mode, t)
+    if strcmp(mode, 'spinup'), F.sz_sum = 0; F.sz_n = 0; F.sz_t0 = t; end
     F.mode = mode; F.t_mode = t; F.hold = 0; F.I_q = zeros(3,1);
     F.log(end+1).t = t; F.log(end).mode = mode;
 end

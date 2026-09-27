@@ -1,0 +1,45 @@
+{
+ "candidates": [
+  {
+   "algorithms": {
+    "pointing": "pid"
+   },
+   "id": "pid"
+  },
+  {
+   "algorithms": {
+    "pointing": "lqr"
+   },
+   "id": "lqr"
+  },
+  {
+   "algorithms": {
+    "pointing": "smc"
+   },
+   "id": "smc"
+  }
+ ],
+ "gate": [
+  "ape_los_on_target_p9973"
+ ],
+ "id": "trade_slew_img",
+ "kind": "algorithm",
+ "label": "Imaging 3U, reaction wheels \u2014 slew law",
+ "objective": {
+  "metric": "settle_time_after_slew",
+  "sense": "min"
+ },
+ "promote_to": "TRN-P-3U-IMG",
+ "question": "Which control law settles the target slew to 0.01 deg soonest?",
+ "scenario": "slew_img",
+ "schema": "adcs-trade/1",
+ "seeds": [
+  1,
+  2
+ ],
+ "slot": "pointing",
+ "tie_break": {
+  "metric": "power_mean",
+  "sense": "min"
+ }
+}

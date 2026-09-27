@@ -1,7 +1,9 @@
 {
  "case": "ais_img_3u",
  "fsw": {
-  "control_law": "lqr",
+  "algorithms": {
+   "pointing": "lqr"
+  },
   "guidance": {
    "kind": "nadir"
   },

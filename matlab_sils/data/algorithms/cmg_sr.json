@@ -1,0 +1,14 @@
+{
+ "confirmed_by": "UNCONFIRMED \u00b7 awaiting a person",
+ "fsw": "reference",
+ "id": "cmg_sr",
+ "label": "Singularity-robust CMG steering",
+ "needs": [
+  "cmg"
+ ],
+ "number": 52,
+ "prototype": true,
+ "schema": "adcs-algorithm/1",
+ "slot": "allocation",
+ "source": "wie2008"
+}

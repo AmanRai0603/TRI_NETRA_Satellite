@@ -1,0 +1,16 @@
+{
+ "confirmed_by": "UNCONFIRMED \u00b7 awaiting a person",
+ "fsw": "reference",
+ "id": "mtq_smc",
+ "label": "Magnetic sliding mode (quaternion surface), projected on the field",
+ "needs": [
+  "coils",
+  "magnetometer",
+  "attitude"
+ ],
+ "number": 32,
+ "prototype": true,
+ "schema": "adcs-algorithm/1",
+ "slot": "mtq_pointing",
+ "source": "crassidis1996; this SILS"
+}

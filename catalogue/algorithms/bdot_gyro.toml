@@ -1,0 +1,13 @@
+# Algorithm descriptor (adcs-algorithm/1 + slot/needs, SILS registry).
+# slot: the FSW job it does; needs: hardware (or capabilities) a product must
+# carry for it to be selectable. asils.fsw.select refuses an incompatible pick.
+schema = "adcs-algorithm/1"
+id = "bdot_gyro"
+number = 10
+slot = "detumble"
+label = "Gyro-fed B-dot (Avanzini-Giulietti gain, db/dt = -w x b)"
+needs = ["coils", "magnetometer", "gyro"]
+fsw = "reference"
+source = "avanzini2012; Standard Code ctrl.bdot rate-feedback branch"
+confirmed_by = "UNCONFIRMED · awaiting a person"
+prototype = true                   # MATLAB twin only until its C lands (SPEC 10.8.5)

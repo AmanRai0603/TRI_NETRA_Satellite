@@ -1,0 +1,58 @@
+{
+ "confirmed_by": "UNCONFIRMED \u00b7 bounds \u00b7 awaiting a person",
+ "families": [
+  "mtq",
+  "mtq_rw",
+  "mtq_fmr",
+  "mtq_fmr_rcs"
+ ],
+ "fsw": "reference",
+ "id": "mekf",
+ "label": "Multiplicative extended Kalman filter",
+ "modes": [
+  "estimate"
+ ],
+ "needs": [
+  "gyro"
+ ],
+ "number": 2,
+ "param": [
+  {
+   "hi": 10.0,
+   "lo": 1.0,
+   "meaning": "how often the filter runs its measurement update",
+   "name": "update_rate",
+   "number": 1,
+   "scale": "lin",
+   "trades": "knowledge error against OBC load",
+   "tree_id": "ge_0",
+   "unit": "Hertz"
+  },
+  {
+   "hi": 10.0,
+   "lo": 0.1,
+   "meaning": "multiplies the gyro noise the filter assumes (the part's descriptor values)",
+   "name": "process_noise_scale",
+   "number": 2,
+   "scale": "log",
+   "trades": "responsiveness against noise",
+   "tree_id": "",
+   "unit": "One"
+  },
+  {
+   "hi": 10.0,
+   "lo": 0.1,
+   "meaning": "multiplies the sensor noise the filter assumes (the parts' descriptor values)",
+   "name": "measurement_noise_scale",
+   "number": 3,
+   "scale": "log",
+   "trades": "trust in the measurement against trust in the propagation",
+   "tree_id": "",
+   "unit": "One"
+  }
+ ],
+ "prototype": false,
+ "schema": "adcs-algorithm/1",
+ "slot": "attitude",
+ "source": "markley2014"
+}

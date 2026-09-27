@@ -1,0 +1,70 @@
+{
+ "confirmed_by": "UNCONFIRMED \u00b7 bounds \u00b7 awaiting a person",
+ "families": [
+  "mtq_rw"
+ ],
+ "fsw": "reference",
+ "id": "pd_alloc",
+ "label": "Quaternion PD with wheel allocation and magnetic dumping",
+ "modes": [
+  "inertial_hold",
+  "nadir_hold",
+  "target_hold",
+  "slew",
+  "dump"
+ ],
+ "needs": [
+  "wheels_or_rings"
+ ],
+ "number": 3,
+ "param": [
+  {
+   "hi": 1.0,
+   "lo": 0.01,
+   "meaning": "closed-loop natural frequency",
+   "name": "bandwidth",
+   "number": 1,
+   "scale": "log",
+   "trades": "pointing and agility against actuator use and flexible-mode margin",
+   "tree_id": "gc_0",
+   "unit": "RadianPerSecond"
+  },
+  {
+   "hi": 1.0,
+   "lo": 0.5,
+   "meaning": "closed-loop damping ratio",
+   "name": "damping",
+   "number": 2,
+   "scale": "lin",
+   "trades": "overshoot against settling time",
+   "tree_id": "gc_1",
+   "unit": "One"
+  },
+  {
+   "hi": 10.0,
+   "lo": 0.1,
+   "meaning": "multiplies the magnetic momentum-dump gain",
+   "name": "dump_gain_scale",
+   "number": 3,
+   "scale": "log",
+   "trades": "dump interval against disturbance to the pointing",
+   "tree_id": "",
+   "unit": "One"
+  },
+  {
+   "hi": 20.0,
+   "lo": 1.0,
+   "meaning": "how often the control law runs",
+   "name": "loop_rate",
+   "number": 4,
+   "scale": "lin",
+   "trades": "latency against OBC load",
+   "tree_id": "gx_0",
+   "unit": "Hertz"
+  }
+ ],
+ "prototype": false,
+ "schema": "adcs-algorithm/1",
+ "slot": "allocation",
+ "source": "markley2014"
+}

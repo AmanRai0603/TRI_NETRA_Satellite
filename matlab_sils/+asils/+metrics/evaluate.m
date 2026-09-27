@@ -28,6 +28,17 @@ function M = evaluate(rec)
                 val = asils.metrics.time_to(rec.t(k) - t0, e(k), m.threshold_deg, asils.util.getf(m, 'hold_s', 10)); unit = 's';
             case 'wheel_momentum_peak'
                 val = max(max(abs(rec.h_w(:, idx)))); unit = 'N m s';
+            case 'time_to_mode'        % first entry into a mode [min] (NaN: never)
+                k = find(rec.mode == find(strcmp(rec.modes, m.mode)), 1);
+                val = NaN; if ~isempty(k), val = rec.t(k)/60; end
+                unit = 'min';
+            case 'sun_angle'           % -Z_B to Sun, sunlit samples of the window
+                sel = idx; if isfield(m, 'mode'), sel = idx(rec.mode(idx) == find(strcmp(rec.modes, m.mode))); end
+                val = stat_(rec.sun_angle(sel), stat);
+            case 'spin_rate_error'
+                val = stat_(abs(abs(rec.spin_z(idx)) - rec.P.fsw.ss.spin_dps), stat); unit = 'deg/s';
+            case 'mode_fraction'       % share of the window spent in a mode [%]
+                val = 100*mean(rec.mode(idx) == find(strcmp(rec.modes, m.mode))); unit = '%';
             case 'power_mean'
                 val = mean(rec.P_mtq(idx) + rec.P_rw(idx)); unit = 'W';
             case 'power_peak'
@@ -39,7 +50,13 @@ function M = evaluate(rec)
         rv = NaN; pass = NaN;
         if ~isempty(rk)
             rv = C.(strrep(rk, '.', '_'));
-            if isfinite(rv), pass = double(val <= rv); end
+        elseif isfield(m, 'limit')             % scenario-local bound (no case key yet)
+            rv = m.limit; rk = 'scenario';
+        end
+        if isfinite(rv)
+            if strcmp(asils.util.getf(m, 'sense', 'max'), 'min'), pass = double(val >= rv);
+            else, pass = double(val <= rv); end
+            if isnan(val), pass = 0; end
         end
         M(end+1) = struct('id', m.id, 'kind', m.kind, 'value', val, 'unit', unit, ...
                           'req', rv, 'req_key', rk, 'pass', pass); %#ok<AGROW>

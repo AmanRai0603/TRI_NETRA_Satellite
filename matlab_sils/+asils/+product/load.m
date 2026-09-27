@@ -13,6 +13,7 @@ function dev = load(productId)
     pr = asils.util.readjson(fullfile(R, 'data', 'products', [productId '.json']));
     fills = pr.fill; if ~iscell(fills), fills = num2cell(fills); end
     dev = struct('id', pr.id, 'label', pr.label, 'family', pr.family, 'algorithms', {pr.algorithms});
+    if isfield(pr, 'selected'), dev.selected = pr.selected; end     % promoted outcome of a trade
     dev.boresight = [0;1;0];
     if isfield(pr, 'payload_boresight_body'), dev.boresight = pr.payload_boresight_body(:)/norm(pr.payload_boresight_body); end
     dev.gyro.fitted = false; dev.mag.fitted = false; dev.sun.fitted = false; dev.css.fitted = false;

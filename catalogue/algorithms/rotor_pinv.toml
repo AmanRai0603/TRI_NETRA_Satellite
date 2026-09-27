@@ -1,0 +1,13 @@
+# Algorithm descriptor (adcs-algorithm/1 + slot/needs, SILS registry).
+# slot: the FSW job it does; needs: hardware (or capabilities) a product must
+# carry for it to be selectable. asils.fsw.select refuses an incompatible pick.
+schema = "adcs-algorithm/1"
+id = "rotor_pinv"
+number = 50
+slot = "allocation"
+label = "Minimum-norm allocation to fixed rotors (wheels, rings)"
+needs = ["wheels_or_rings"]
+fsw = "reference"
+source = "spec pd_alloc"
+confirmed_by = "UNCONFIRMED · awaiting a person"
+prototype = true                   # MATLAB twin only until its C lands (SPEC 10.8.5)

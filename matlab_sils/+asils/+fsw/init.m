@@ -2,6 +2,16 @@ function F = init(P, jd0)
 %ASILS.FSW.INIT  Flight-software state at power-on (threaded through every tick,
 %   no persistent/global -- the Standard Code rule).
     F.P = P.fsw; F.jd0 = jd0;
+    % the registry's choice for each slot -> the law names the mode code dispatches on
+    a = P.fsw.alg;
+    bd = struct('bdot', 'mag', 'bdot_mag', 'mag', 'bdot_gyro', 'gyro', 'bdot_bangbang', 'bangbang', 'genbdot_l1', 'l1');
+    F.P.bdot_law = 'mag'; if ~isempty(a.detumble), F.P.bdot_law = bd.(a.detumble); end
+    F.P.rw.law = 'pid'; if any(strcmp(a.pointing, {'pid', 'lqr', 'smc'})), F.P.rw.law = a.pointing; end
+    F.P.mtq.law = 'mtq_pd'; if ~isempty(a.mtq_pointing), F.P.mtq.law = a.mtq_pointing; end
+    F.sigma = F.P.ss.sigma0; F.sz_sum = 0; F.sz_n = 0; F.sz_t0 = 0; F.V_ss = NaN;
+    F.B1raw = []; F.bsum_raw = zeros(3,1); F.s_prop = [];
+    ssv = struct('sunspin_l1l2', {{'E1', 0}}, 'sunspin_l1l2_e2', {{'E2', 0}}, 'sunspin_damped', {{'E2', 0.5}});
+    if isfield(ssv, a.sun_spin), v = ssv.(a.sun_spin); F.P.ss.eclipse = v{1}; F.P.ss.rz_floor = v{2}; end
     F.mode = F.P.start_mode; F.t_mode = 0; F.hold = 0;
     F.K = []; F.ad_ok = false; F.t_st = -1e9;
     F.r = []; F.v = []; F.t_fix = -1;
@@ -10,7 +20,7 @@ function F = init(P, jd0)
     F.M = asils.plant.geometry(X.A0, X.G, X.gi);        % NOMINAL geometry (FSW never sees the true misalignment)
     nr = F.M.nr;
     F.rot_failed = false(nr, 1); F.fd_count = zeros(nr, 1); F.h_prev = []; F.cmd_r_prev = zeros(nr, 1);
-    F.idmas = any(strcmp(dev.algorithms, 'idmas_split'));
+    F.idmas = strcmp(a.allocation, 'idmas_split');
     F.nc = 0; if dev.rcs.fitted, F.nc = size(dev.rcs.tau_couple, 2); end
     F.has_rcs_dump = F.nc > 0 && F.P.rcs.dump;
     F.rcs_dumping = false;

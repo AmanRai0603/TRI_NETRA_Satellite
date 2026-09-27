@@ -1,0 +1,15 @@
+{
+ "confirmed_by": "UNCONFIRMED \u00b7 awaiting a person",
+ "fsw": "reference",
+ "id": "smc",
+ "label": "Quaternion sliding mode with boundary layer",
+ "needs": [
+  "momentum",
+  "attitude"
+ ],
+ "number": 42,
+ "prototype": true,
+ "schema": "adcs-algorithm/1",
+ "slot": "pointing",
+ "source": "crassidis1996"
+}

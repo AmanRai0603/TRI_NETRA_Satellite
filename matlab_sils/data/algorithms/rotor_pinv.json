@@ -1,0 +1,14 @@
+{
+ "confirmed_by": "UNCONFIRMED \u00b7 awaiting a person",
+ "fsw": "reference",
+ "id": "rotor_pinv",
+ "label": "Minimum-norm allocation to fixed rotors (wheels, rings)",
+ "needs": [
+  "wheels_or_rings"
+ ],
+ "number": 50,
+ "prototype": true,
+ "schema": "adcs-algorithm/1",
+ "slot": "allocation",
+ "source": "spec pd_alloc"
+}

@@ -1,0 +1,13 @@
+# Algorithm descriptor (adcs-algorithm/1 + slot/needs, SILS registry).
+# slot: the FSW job it does; needs: hardware (or capabilities) a product must
+# carry for it to be selectable. asils.fsw.select refuses an incompatible pick.
+schema = "adcs-algorithm/1"
+id = "sunspin_l1l2"
+number = 20
+slot = "sun_spin"
+label = "Spin-up L1 then He et al. Sun-pointing spin L2 (coils only, no attitude solution)"
+needs = ["coils", "magnetometer", "gyro", "sun"]
+fsw = "reference"
+source = "Standard Code ctrl.spinupTick + ctrl.sunSpin; He et al. 2023; theory doc sec. 4-7"
+confirmed_by = "UNCONFIRMED · awaiting a person"
+prototype = true                   # MATLAB twin only until its C lands (SPEC 10.8.5)

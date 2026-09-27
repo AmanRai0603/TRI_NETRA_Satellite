@@ -1,8 +1,10 @@
 {
  "case": "ais_3u",
  "fsw": {
+  "algorithms": {
+   "detumble": "bdot_bangbang"
+  },
   "bdot_gain_scale": 3.0,
-  "bdot_law": "bangbang",
   "guidance": {
    "kind": "nadir"
   },

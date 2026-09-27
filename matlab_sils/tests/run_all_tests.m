@@ -5,7 +5,7 @@ function ok = run_all_tests()
 %   Copyright (c) 2026 Agastya. All rights reserved.
     T = {@t_quat, @t_kinematics, @t_sso, @t_case, @t_igrf, @t_shadow, ...
          @t_torques, @t_plant_conservation, @t_cmg_plant, @t_mekf, @t_quest, @t_lqr, ...
-         @t_fmr_spin_down, @t_cmg_steering, @t_hal_loopback, @t_orbit_vs_pop, @t_short_runs};
+         @t_fmr_spin_down, @t_cmg_steering, @t_hal_loopback, @t_select, @t_gen_bdot, @t_sun_spin_law, @t_orbit_vs_pop, @t_short_runs};
     n = 0;
     for i = 1:numel(T)
         name = func2str(T{i});
@@ -192,4 +192,51 @@ function m = t_short_runs()
     r2 = asils.run('fine_hold_img', 'cases/ais_img_3u.csv', 'set', struct('sim__duration_s', 30), 'quiet', true);
     assert(all(isfinite(r1.q(:))) && all(isfinite(r2.q(:))), 'non-finite state');
     m = sprintf('30 s runs: AIS %.1f s wall, IMG %.1f s wall', r1.wall_s, r2.wall_s);
+end
+
+function m = t_select()
+%T_SELECT  The registry resolves every slot and refuses hardware it cannot fly.
+    P = asils.config('fine_hold_img', 'cases/ais_img_3u.csv', struct('seed', 1));
+    a = P.fsw.alg;
+    assert(strcmp(a.pointing, 'pid') && strcmp(a.allocation, 'rotor_pinv') && strcmp(a.detumble, 'bdot_gyro'), 'defaults');
+    P = asils.config('fine_hold_cmg', 'cases/ais_img_3u.csv', struct('seed', 1));
+    assert(strcmp(P.fsw.alg.allocation, 'cmg_sr'), 'CMG allocation %s', P.fsw.alg.allocation);
+    refused = false;
+    try
+        asils.config('nadir_hold_ais', 'cases/ais_3u.csv', struct('seed', 1, 'set', struct('fsw__algorithms__pointing', 'pid')));
+    catch e
+        refused = ~isempty(strfind(e.message, 'cannot fly'));
+    end
+    assert(refused, 'a wheel law on a coils-only bus was not refused');
+    m = 'defaults per product, CMG steering picked, wheel law refused on coils-only bus';
+end
+
+function m = t_gen_bdot()
+%T_GEN_BDOT  L1 with w_d = 0 is plain B-dot; with w_d it drives the rate to w_d
+%   (Standard Code theory eq 4.1-4.3: the torque m x B opposes w - w_d across B).
+    B = [2e-5; -1e-5; 3e-5]; w = [0.05; -0.02; 0.1];
+    m0 = asils.fsw.gen_bdot(B, -asils.util.cross3(w, B), zeros(3,1), 1e6);
+    assert(dot(asils.util.cross3(m0, B), w) < 0, 'plain B-dot does not remove energy');
+    wd = [0; 0; 0.1];
+    m1 = asils.fsw.gen_bdot(B, -asils.util.cross3(w, B), wd, 1e6);
+    tq = asils.util.cross3(m1, B);
+    assert(dot(tq, w - wd) < 0, 'L1 does not drive toward w_d');
+    m = sprintf('dV/dt < 0 for w_d = 0 and w_d = %.2f rad/s e_z', wd(3));
+end
+
+function m = t_sun_spin_law()
+%T_SUN_SPIN_LAW  L2 (He et al.): the commanded torque never raises the Lyapunov
+%   value (A . m0 <= 0), and E1 turns the coils off in eclipse.
+    J = diag([0.0067 0.042 0.042]); g = struct('spin_dps', 6, 'k1', 0.01, 'k2', 0.05);
+    worst = -Inf;
+    for k = 1:200
+        B = 3e-5*randn(3,1); w = 0.1*randn(3,1); s = randn(3,1); s = s/norm(s);
+        m0 = asils.fsw.sun_spin(B, w, s, false, J, g);
+        ws = -g.spin_dps*pi/180; sg = sign(w(3));
+        A = asils.util.cross3(B, g.k1*(J*w - sg*J(3,3)*ws*s) + g.k2*diag([J(3,3)-J(1,1), J(3,3)-J(2,2), 0])*w);
+        worst = max(worst, dot(A, m0));
+    end
+    assert(worst <= 1e-20, 'A.m0 = %.2e > 0', worst);
+    assert(~any(asils.fsw.sun_spin([1e-5;0;0], [0;0;0.1], [0;0;-1], true, J, g)), 'E1 eclipse');
+    m = sprintf('max A.m0 = %.1e over 200 draws; E1 coils off', worst);
 end

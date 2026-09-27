@@ -1,0 +1,46 @@
+# Multiplicative extended Kalman filter: star tracker, gyro, magnetometer, sun sensor.
+schema = "adcs-algorithm/1"
+slot = "attitude"
+needs = ["gyro"]
+id = "mekf"
+number = 2                         # the algorithm id in fswcfg section 0x06; assigned once, never reused or renumbered
+label = "Multiplicative extended Kalman filter"
+modes = ["estimate"]
+families = ["mtq", "mtq_rw", "mtq_fmr", "mtq_fmr_rcs"]
+fsw = "reference"
+source = "markley2014"
+confirmed_by = "UNCONFIRMED · bounds · awaiting a person"
+prototype = false                  # true while only the MATLAB twin implements it; no product may carry it (SPEC.md §10.8.5)
+
+[[param]]
+number = 1                         # the parameter id within this algorithm; never reused
+name = "update_rate"
+unit = "Hertz"
+lo = 1.0
+hi = 10.0
+scale = "lin"
+tree_id = "ge_0"                   # Estimator update rate
+meaning = "how often the filter runs its measurement update"
+trades = "knowledge error against OBC load"
+
+[[param]]
+number = 2                         # the parameter id within this algorithm; never reused
+name = "process_noise_scale"
+unit = "One"
+lo = 0.1
+hi = 10.0
+scale = "log"
+tree_id = ""
+meaning = "multiplies the gyro noise the filter assumes (the part's descriptor values)"
+trades = "responsiveness against noise"
+
+[[param]]
+number = 3                         # the parameter id within this algorithm; never reused
+name = "measurement_noise_scale"
+unit = "One"
+lo = 0.1
+hi = 10.0
+scale = "log"
+tree_id = ""
+meaning = "multiplies the sensor noise the filter assumes (the parts' descriptor values)"
+trades = "trust in the measurement against trust in the propagation"

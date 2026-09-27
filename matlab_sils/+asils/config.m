@@ -63,7 +63,7 @@ function P = config(scenarioId, caseFile, opts)
     legacy = struct('nadir_rw', 'nadir_fine', 'target_rw', 'target_fine', 'slew_rw', 'slew_fine');
     F.start_mode = S.fsw.start_mode; if isfield(legacy, F.start_mode), F.start_mode = legacy.(F.start_mode); end
     F.auto_next = asils.util.getf(S.fsw, 'auto_next', ''); if isfield(legacy, F.auto_next), F.auto_next = legacy.(F.auto_next); end
-    F.bdot_law = asils.util.getf(S.fsw, 'bdot_law', 'gyro');      % 'gyro' | 'mag' | 'bangbang'
+
     F.detumble_exit = asils.util.getf(S.fsw, 'detumble_exit_deg_s', 0.5)*pi/180;
     F.detumble_hold_s = asils.util.getf(S.fsw, 'detumble_hold_s', 60);
     F.guidance = S.fsw.guidance;
@@ -74,11 +74,24 @@ function P = config(scenarioId, caseFile, opts)
     I = diag(P.sc.I);
     wn = asils.util.getf(S.fsw, 'mtq_wn', 0.005); z = asils.util.getf(S.fsw, 'mtq_zeta', 2.0);   % SILS sweep (docs/RESULTS.md)
     F.mtq.Kp = I*wn^2; F.mtq.Kd = 2*z*I*wn;
+    % the same bandwidth for every magnetic pointing law, so a trade compares laws, not gains
+    F.mtq.err_max = 0.5; F.mtq.int_max = 0.05; th = 0.05; F.mtq.Ki = zeros(3,1);
+    F.mtq.Klqr = zeros(3, 3);
+    for ax = 1:3
+        Q = diag([(wn/(0.5*th))^2*0, 1/th^2, 1/(wn*th)^2]) + diag([1e-12 0 0]); Rq = 1/(I(ax)*wn^2*th)^2;
+        F.mtq.Klqr(ax, :) = asils.fsw.lqr_gain([0 1 0; 0 0 1; 0 0 0], [0; 0; 1/I(ax)], Q, Rq);
+    end
+    F.mtq.lambda = wn/(2*z)*2; F.mtq.phi = 5e-4; F.mtq.Gs = 2*z*wn*F.mtq.phi*ones(3,1);
+    % Standard Code L1/L2 (cfg.control: ctl.spinup, ctl.sunSpin; theory doc sec. 4-7)
+    F.ss = struct('k_l1', asils.util.getf(S.fsw, 'l1_gain', 1e6), 'spin_dps', asils.util.getf(S.fsw, 'spin_rate_dps', 6), ...
+        'sigma0', 1, 'z_in_dps', 0.5, 'perp_in_dps', 0.5, 'sun_min', 0.05, 't_check_s', 60, 'omega_max_dps', 100, ...
+        'dwell_in_s', 60, 'k1', 0.01, 'k2', 0.05, 'eclipse', 'E1', 'perp_out_dps', 1.0, 'omega_exit_dps', 2.0, ...
+        'dwell_out_s', 30, 'detumble_exit_dps', 2.0);
     wn = asils.util.getf(S.fsw, 'rw_bandwidth', 0.9);   % SILS sweep: noise-limited optimum at the spec's 1 rad/s bound
     z = asils.util.getf(S.fsw, 'rw_damping', 2.0);   % SILS sweep: heavier damping beats 0.9 on the 3-sigma APE
     F.rw.Kp = I*wn^2; F.rw.Kd = 2*z*I*wn; F.rw.Ki = 0.15*I*wn^3;
     F.rw.err_max = 0.2; F.rw.int_max = 0.02; F.rw.dt = 1/asils.util.getf(S.fsw, 'rw_rate_hz', 10);
-    F.rw.law = asils.util.getf(S.fsw, 'control_law', 'pid');     % 'pid' | 'lqr' | 'smc'
+
     % LQR on [int theta; theta; omega] per axis, Bryson weights sized to the same bandwidth
     th = 1e-3; F.rw.Klqr = zeros(3, 3);
     for ax = 1:3
@@ -100,13 +113,17 @@ function P = config(scenarioId, caseFile, opts)
     F.mekf.sig_mag = 0.03; F.mekf.sig_sun = 0.012;  % direction 1-sigma [rad] incl. model error
     F.st_coast_s = 900;                             % gyro-only coasting allowed across a star-tracker outage
     F.igrf_nmax = 10;                               % onboard field model degree (truth: 13)
+    F.algorithms = asils.util.getf(S.fsw, 'algorithms', struct());
     P.fsw = F;
 
-    %% overrides (Monte Carlo dispersions and user tweaks): opts.set.<path_with_underscores>
     %  The FSW's calibrated dipole (fsw.m_res_est) is fixed BEFORE overrides, so a
     %  dispersed true dipole (sc.m_res) leaves a realistic calibration error.
     if isfield(opts, 'set')
         P = asils.util.setpaths(P, opts.set);
     end
+    % which algorithm fills each FSW slot, checked against the hardware
+    % (a trade overrides one with set.fsw__algorithms__<slot>)
+    S2 = P.scenario; S2.fsw.algorithms = P.fsw.algorithms;
+    P.fsw.alg = asils.fsw.select(P.dev, S2);
     P.sc.Iinv = inv(P.sc.I);
 end

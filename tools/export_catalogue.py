@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Export catalogue/{parts,products}/*.toml, scenarios/ and campaigns/ to matlab_sils/data/*/<id>.json.
+"""Export catalogue/{parts,products}/*.toml, scenarios/, campaigns/ and trades/ to matlab_sils/data/*/<id>.json.
 
 MATLAB has no TOML reader, so the MATLAB SILS reads JSON (SPEC.md 10.8.2).
 The export is generated, never edited: run this after changing a TOML file.
@@ -21,5 +21,7 @@ def export(kind, src=None):
 if __name__ == "__main__":
     export("parts")
     export("products")
+    export("algorithms")
     export("scenarios", ROOT / "scenarios")
     export("campaigns", ROOT / "campaigns")
+    export("trades", ROOT / "trades")

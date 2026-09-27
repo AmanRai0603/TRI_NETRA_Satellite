@@ -1,0 +1,21 @@
+# Fluid rings: do the coils share the torque (IDMAS) or only dump momentum?
+schema = "adcs-trade/1"
+id = "trade_allocation_fmr"
+label = "Imaging 3U, fluid rings — allocation (IDMAS split vs rings only)"
+question = "Does handing the across-field torque to the coils (IDMAS) improve the fluid-ring fine hold?"
+kind = "algorithm"
+slot = "allocation"
+promote_to = "TRN-P-3U-FMR"
+scenario = "fine_hold_fmr"
+seeds = [1, 2]
+objective = { metric = "ape_los_p9973", sense = "min" }
+gate = ["ape_los_p9973", "ake_los_p9973"]
+tie_break = { metric = "power_mean", sense = "min" }
+[[candidates]]
+id = "idmas_split"
+label = "IDMAS: coils take tau across B, rings the rest"
+algorithms = { allocation = "idmas_split" }
+[[candidates]]
+id = "rotor_pinv"
+label = "rings take all the torque, coils only dump"
+algorithms = { allocation = "rotor_pinv" }

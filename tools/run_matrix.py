@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 """Run the whole SILS test matrix with GNU Octave on N workers.
 
-Every scenario in matlab_sils/data/scenarios and every run of every campaign
-in matlab_sils/data/campaigns is one job; jobs run longest-first on N worker
+Every scenario in matlab_sils/data/scenarios, every run of every campaign
+in matlab_sils/data/campaigns and every (candidate, seed) of every trade in
+matlab_sils/data/trades is one job; jobs run longest-first on N worker
 processes; campaigns are collected and plotted at the end.
-    python3 tools/run_matrix.py --workers 4 [--only scenarios|campaigns]
+    python3 tools/run_matrix.py --workers 4 [--only scenarios|campaigns|trades]
 MATLAB users: run_scenarios and run_campaign (parfor) do the same.
 Copyright (c) 2026 Agastya. All rights reserved.
 """
@@ -34,6 +35,15 @@ def main():
             dur = c.get("duration_s", s["time"]["duration_s"]); cost = dur / s["time"]["dt_s"]
             for k in range(1, c["runs"] + 1):
                 jobs.append((cost, f"{c['id']}:{k}", f"asils.campaign.run('{c['id']}', 'runs', {k});"))
+    if a.only in ("all", "trades"):
+        for f in sorted((ROOT / "data" / "trades").glob("*.json")):
+            d = json.loads(f.read_text()); k = 0
+            for c in d["candidates"]:
+                s = json.loads((ROOT / "data" / "scenarios" / f"{c.get('scenario', d.get('scenario'))}.json").read_text())
+                cost = d.get("duration_s", s["time"]["duration_s"]) / s["time"]["dt_s"]
+                for seed in d.get("seeds", [1]):
+                    k += 1
+                    jobs.append((cost, f"{d['id']}:{k}", f"asils.trade.run('{d['id']}', 'jobs', {k});"))
     jobs.sort(key=lambda j: -j[0])
     t0 = time.time(); done = 0
     print(f"{len(jobs)} jobs on {a.workers} workers", flush=True)
@@ -47,6 +57,10 @@ def main():
             cid = f.stem
             rc = octave(f"run_campaign('{cid}');", LOG / f"collect_{cid}.log")
             print(f"collected {cid} rc={rc}", flush=True)
+    if a.only in ("all", "trades"):
+        for f in sorted((ROOT / "data" / "trades").glob("*.json")):
+            rc = octave(f"asils.trade.collect('{f.stem}');", LOG / f"collect_{f.stem}.log")
+            print(f"collected {f.stem} rc={rc}", flush=True)
     (LOG / "matrix.done").write_text("done\n")
 
 if __name__ == "__main__":

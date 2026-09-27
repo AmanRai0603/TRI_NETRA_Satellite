@@ -1,0 +1,42 @@
+{
+ "candidates": [
+  {
+   "algorithms": {
+    "allocation": "idmas_split"
+   },
+   "id": "idmas_split",
+   "label": "IDMAS: coils take tau across B, rings the rest"
+  },
+  {
+   "algorithms": {
+    "allocation": "rotor_pinv"
+   },
+   "id": "rotor_pinv",
+   "label": "rings take all the torque, coils only dump"
+  }
+ ],
+ "gate": [
+  "ape_los_p9973",
+  "ake_los_p9973"
+ ],
+ "id": "trade_allocation_fmr",
+ "kind": "algorithm",
+ "label": "Imaging 3U, fluid rings \u2014 allocation (IDMAS split vs rings only)",
+ "objective": {
+  "metric": "ape_los_p9973",
+  "sense": "min"
+ },
+ "promote_to": "TRN-P-3U-FMR",
+ "question": "Does handing the across-field torque to the coils (IDMAS) improve the fluid-ring fine hold?",
+ "scenario": "fine_hold_fmr",
+ "schema": "adcs-trade/1",
+ "seeds": [
+  1,
+  2
+ ],
+ "slot": "allocation",
+ "tie_break": {
+  "metric": "power_mean",
+  "sense": "min"
+ }
+}

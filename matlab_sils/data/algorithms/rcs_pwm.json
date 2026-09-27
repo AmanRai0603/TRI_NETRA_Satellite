@@ -1,0 +1,14 @@
+{
+ "confirmed_by": "UNCONFIRMED \u00b7 awaiting a person",
+ "fsw": "reference",
+ "id": "rcs_pwm",
+ "label": "Thruster-couple PWM with MIB-aware feedforward: slew assist and dumping",
+ "needs": [
+  "rcs"
+ ],
+ "number": 54,
+ "prototype": true,
+ "schema": "adcs-algorithm/1",
+ "slot": "thrusters",
+ "source": "this SILS"
+}

@@ -1,0 +1,45 @@
+{
+ "candidates": [
+  {
+   "algorithms": {
+    "sun_spin": "sunspin_l1l2"
+   },
+   "id": "sunspin_l1l2",
+   "label": "Standard Code port: L1 spin-up + He et al. L2, eclipse E1 (coils off)"
+  },
+  {
+   "algorithms": {
+    "sun_spin": "sunspin_l1l2_e2"
+   },
+   "id": "sunspin_l1l2_e2",
+   "label": "the same with eclipse E2 (gyro-propagated Sun)"
+  },
+  {
+   "algorithms": {
+    "sun_spin": "sunspin_damped"
+   },
+   "id": "sunspin_damped",
+   "label": "E2 + nutation damping on both transverse axes"
+  }
+ ],
+ "id": "trade_sun_spin_ais",
+ "kind": "algorithm",
+ "label": "AIS 3U \u2014 Sun-pointing spin law (coils only)",
+ "objective": {
+  "metric": "sun_spin_share_last_orbit",
+  "sense": "max"
+ },
+ "promote_to": "TRN-P-3U-AIS",
+ "question": "Which L1/L2 variant keeps the bus in the Sun-pointing spin (and -Z_B on the Sun) for the largest share of an orbit, eclipses included?",
+ "scenario": "sun_spin_ais",
+ "schema": "adcs-trade/1",
+ "seeds": [
+  1,
+  2
+ ],
+ "slot": "sun_spin",
+ "tie_break": {
+  "metric": "sun_angle_last_orbit",
+  "sense": "min"
+ }
+}

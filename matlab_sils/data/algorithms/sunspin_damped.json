@@ -1,0 +1,17 @@
+{
+ "confirmed_by": "UNCONFIRMED \u00b7 awaiting a person",
+ "fsw": "reference",
+ "id": "sunspin_damped",
+ "label": "L1 + L2 with E2 and a floor on the nutation-damping matrix R_z (both transverse axes damped when J_y = J_z)",
+ "needs": [
+  "coils",
+  "magnetometer",
+  "gyro",
+  "sun"
+ ],
+ "number": 22,
+ "prototype": true,
+ "schema": "adcs-algorithm/1",
+ "slot": "sun_spin",
+ "source": "this SILS: Standard Code ctrl.sunSpin with R_z diagonal >= 0.5 J_z"
+}

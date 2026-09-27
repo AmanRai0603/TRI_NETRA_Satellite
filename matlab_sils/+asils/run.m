@@ -61,7 +61,7 @@ function rec = run(scenarioId, caseFile, varargin)
         'tau_rw', Z(3), 'tau_rcs', Z(3), 'tau_req', Z(3), 'mode', Z(1), 'P_mtq', Z(1), 'P_rw', Z(1), 'P_rcs', Z(1), ...
         'prop_kg', Z(1), 'r', Z(3), 'v', Z(3), 'rho', Z(1), 'nu', Z(1), 'B', Z(3), 'B_meas', Z(3), ...
         'sun_ok', Z(1), 'st_ok', Z(1), 'ad_ok', Z(1), 'sun_eci', Z(3), 'sun_body', Z(3), 'n_failed', Z(1));
-    modes = {'detumble', 'nadir_mtq', 'nadir_fine', 'target_fine', 'slew_fine'};
+    modes = {'detumble', 'nadir_mtq', 'nadir_fine', 'target_fine', 'slew_fine', 'spinup', 'sun_spin'};
 
     env_every = max(1, round(P.env.dt_s/dt));
     st_every = 1; if dev.st.fitted, st_every = max(1, round(1/(dev.st.rate_hz*dt))); end

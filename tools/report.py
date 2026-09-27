@@ -4,10 +4,12 @@
 Reads, never re-runs:
   matlab_sils/store/results/<scenario>/{manifest.json, channels.csv}
   matlab_sils/store/results/<campaign>/{summary.json, runs.csv, run_*.mat (not needed)}
+  matlab_sils/store/trades/<trade>/trade.json
 Writes:
   results/figures/<id>_*.png      one figure set per test
   results/index.html               the report page (figures + verdict tables)
   results/summary.json             every metric, every verdict
+  docs/RESULTS.md, docs/SELECTION.md
 
 Copyright (c) 2026 Agastya. All rights reserved.
 """
@@ -19,6 +21,7 @@ import matplotlib.pyplot as plt
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 STORE = ROOT / "matlab_sils" / "store" / "results"
+TRADES = ROOT / "matlab_sils" / "store" / "trades"
 OUT = ROOT / "results"
 FIG = OUT / "figures"
 
@@ -32,7 +35,7 @@ plt.rcParams.update({
     "axes.spines.right": False, "font.size": 10, "axes.titlesize": 11, "axes.titleweight": "bold",
     "lines.linewidth": 1.6, "legend.frameon": False,
 })
-MODES = ["detumble", "nadir_mtq", "nadir_rw", "target_rw", "slew_rw"]
+MODES = ["detumble", "nadir_mtq", "nadir_fine", "target_fine", "slew_fine", "spinup", "sun_spin"]
 
 
 def load_run(d):
@@ -149,6 +152,20 @@ def run_figures(sid, man, ch, full=True):
     axs[-1].set_xlabel("time [min]")
     files.append(save(fig, f"{sid}_3_actuators"))
 
+    if "sun_body_z" in ch and (ch["mode"] >= 6).any():
+        # Sun-spin chain: -Z_B to Sun angle, spin rate, modes
+        lit = ch["shadow_nu"] > 0.5
+        ang = np.degrees(np.arccos(np.clip(-ch["sun_body_z"], -1, 1))); ang[~lit] = np.nan
+        fig, axs = plt.subplots(3, 1, figsize=(10, 7), sharex=True, gridspec_kw={"height_ratios": [2, 2, 1]})
+        axs[0].plot(t, ang, color=S1, lw=1.0); axs[0].axhline(20, color=INK, ls="--", lw=1.2)
+        axs[0].set_ylabel("−Z_B to Sun [deg]"); axs[0].set_ylim(0, 180)
+        axs[0].set_title(f"{title}\nSun acquisition with coils only: Sun angle (sunlit samples; dashed θ_ok 20°)", loc="left")
+        axs[1].plot(t, ch["w_z_degps"], color=S1, label="ω_z (spin)")
+        axs[1].plot(t, np.hypot(ch["w_x_degps"], ch["w_y_degps"]), color=S2, lw=1.0, label="|ω_xy| (nutation)")
+        axs[1].set_ylabel("rate [deg/s]"); axs[1].legend(loc="upper right")
+        axs[2].step(t, ch["mode"], color=S1, where="post"); axs[2].set_yticks([1, 6, 7]); axs[2].set_yticklabels(["detumble", "spinup", "sun_spin"])
+        axs[2].set_xlabel("time [min]")
+        files.append(save(fig, f"{sid}_7_sunspin"))
     if not full:
         return files
     # 4 environment from the precision orbit
@@ -180,7 +197,7 @@ def run_figures(sid, man, ch, full=True):
 
     # 6 mode timeline + rate
     fig, axs = plt.subplots(2, 1, figsize=(10, 4.8), sharex=True, gridspec_kw={"height_ratios": [1, 2]})
-    axs[0].step(t, ch["mode"], color=S1, where="post"); axs[0].set_yticks(range(1, 6)); axs[0].set_yticklabels(MODES)
+    axs[0].step(t, ch["mode"], color=S1, where="post"); axs[0].set_yticks(range(1, len(MODES) + 1)); axs[0].set_yticklabels(MODES)
     axs[0].set_title(f"{title}\nmode timeline and body rate", loc="left")
     axs[1].semilogy(t, ch["rate_degps"], color=S1); axs[1].set_ylabel("|ω| [deg/s]"); axs[1].set_xlabel("time [min]")
     files.append(save(fig, f"{sid}_6_modes"))
@@ -237,15 +254,15 @@ def verdict(p):
 
 
 GROUPS = [
-    ("AIS 3U, magnetorquers only (10°, SSO dawn–dusk)", ["detumble_ais", "detumble_ais_mag", "detumble_ais_bangbang", "nadir_hold_ais", "nadir_hold_ais_css", "mission_ais", "fault_coil_ais", "fault_gyro_ais"]),
-    ("Imaging 3U, magnetorquers + reaction wheels (0.01°, SSO 10:00)", ["detumble_img", "fine_hold_img", "fine_hold_img_lqr", "fine_hold_img_smc", "slew_img", "slew_img_lqr", "slew_img_smc", "agile_slew_img", "mission_img", "fault_wheel_img", "fault_st_img"]),
+    ("AIS 3U, magnetorquers only (10°, SSO dawn–dusk)", ["detumble_ais", "nadir_hold_ais", "nadir_hold_ais_css", "sun_spin_ais", "mission_ais", "fault_coil_ais", "fault_gyro_ais"]),
+    ("Imaging 3U, magnetorquers + reaction wheels (0.01°, SSO 10:00)", ["detumble_img", "fine_hold_img", "slew_img", "agile_slew_img", "mission_img", "fault_wheel_img", "fault_st_img"]),
     ("Imaging 3U, magnetorquers + fluid momentum rings (IDMAS)", ["fine_hold_fmr", "slew_fmr", "mission_fmr"]),
     ("Imaging 3U, magnetorquers + fluid rings + cold-gas RCS", ["fine_hold_fmr_rcs", "slew_fmr_rcs", "agile_slew_fmr_rcs", "mission_fmr_rcs"]),
     ("Imaging 3U, magnetorquers + reaction wheels + cold-gas RCS", ["fine_hold_rw_rcs", "slew_rw_rcs", "agile_slew_rw_rcs", "mission_rw_rcs"]),
     ("Imaging 3U, magnetorquers + 4 SGCMG", ["fine_hold_cmg", "slew_cmg", "agile_slew_cmg", "mission_cmg", "fault_gimbal_cmg"]),
     ("Imaging 3U, magnetorquers + 4 VSCMG", ["fine_hold_vscmg", "slew_vscmg", "agile_slew_vscmg", "mission_vscmg"]),
 ]
-PRIMARY = {"detumble_ais", "nadir_hold_ais", "mission_ais", "detumble_img", "fine_hold_img", "slew_img", "mission_img",
+PRIMARY = {"detumble_ais", "sun_spin_ais", "nadir_hold_ais", "mission_ais", "detumble_img", "fine_hold_img", "slew_img", "mission_img",
            "mission_fmr", "mission_fmr_rcs", "mission_rw_rcs", "mission_cmg", "mission_vscmg"}
 CAMPAIGNS = ["mc_detumble_ais", "mc_nadir_ais", "edge_nadir_ais", "mc_fine_img", "edge_fine_img", "mc_slew_img", "mc_slew_cmg", "mc_agile_rw_rcs"]
 
@@ -285,27 +302,60 @@ def comparison_figures(runs):
             ax_.invert_yaxis()
         fig.suptitle("Imaging 3U: actuator families on the same case (dashed = requirement)", x=0.01, ha="left", fontweight="bold")
         fig.tight_layout(); files.append(save(fig, "compare_families"))
-    laws = [("PID", ""), ("LQR", "_lqr"), ("sliding mode", "_smc")]
-    if all(runs.get(f"fine_hold_img{k}") for _, k in laws):
-        fig, axs = plt.subplots(1, 2, figsize=(10, 3.2)); y = np.arange(3)
-        for ax_, sc, mid, lab, req in [(axs[0], "fine_hold_img", "ape_los_p9973", "fine-hold APE p99.73 [deg]", 0.01),
-                                        (axs[1], "slew_img", "settle_time_after_slew", "30° slew settling [s]", 20)]:
-            v = np.array([mval(runs[f"{sc}{k}"][0], mid) if runs.get(f"{sc}{k}") else np.nan for _, k in laws])
-            ax_.barh(y, np.nan_to_num(v), color=S1, height=0.55)
-            for yi, val in zip(y, v): ax_.text(np.nan_to_num(val), yi, f" {val:.3g}", va="center", fontsize=9)
-            ax_.axvline(req, color=INK, ls="--", lw=1.2); ax_.set_yticks(y); ax_.set_yticklabels([l for l, _ in laws] if ax_ is axs[0] else [])
-            ax_.set_xlabel(lab); ax_.invert_yaxis(); ax_.grid(axis="y", visible=False)
-        fig.suptitle("Controller comparison on the reaction-wheel imaging product", x=0.01, ha="left", fontweight="bold")
-        fig.tight_layout(); files.append(save(fig, "compare_controllers"))
-    dl = [("gyro-fed B-dot", "detumble_ais"), ("magnetometer B-dot", "detumble_ais_mag"), ("bang-bang B-dot", "detumble_ais_bangbang")]
-    if all(runs.get(k) for _, k in dl):
-        fig, ax_ = plt.subplots(figsize=(10, 3.4))
-        for (lab, k), c in zip(dl, [S1, S2, S3]):
-            _, ch = runs[k]; ax_.semilogy(ch["t_s"] / 60, ch["rate_degps"], color=c, label=lab)
-        ax_.axhline(0.5, color=INK, ls="--", lw=1.2); ax_.set_xlabel("time [min]"); ax_.set_ylabel("|ω| [deg/s]"); ax_.legend(loc="upper right")
-        ax_.set_title("AIS 3U detumble from 10°/s: three B-dot laws (dashed = 0.5°/s threshold)", loc="left")
-        files.append(save(fig, "compare_detumble_laws"))
     return files
+
+
+TRADE_ORDER = ["trade_detumble_ais", "trade_mtq_pointing_ais", "trade_sun_spin_ais", "trade_sun_sensor_ais",
+               "trade_pointing_img", "trade_slew_img", "trade_pointing_cmg", "trade_pointing_vscmg", "trade_pointing_fmr",
+               "trade_allocation_fmr", "trade_hardware_fine", "trade_hardware_agile"]
+
+
+def fnum(x):
+    return float("nan") if x is None else float(x)
+
+
+def seeds_of(c):
+    v = c.get("obj_seeds")
+    if v is None: return []
+    if not isinstance(v, list): v = [v]
+    return [fnum(x) for x in v]
+
+
+def load_trades():
+    out = []
+    ids = [t for t in TRADE_ORDER if (TRADES / t / "trade.json").exists()]
+    ids += sorted(d.name for d in TRADES.glob("*") if (d / "trade.json").exists() and d.name not in ids) if TRADES.exists() else []
+    for tid in ids:
+        T = json.loads((TRADES / tid / "trade.json").read_text())
+        c = T["candidates"]
+        T["candidates"] = c if isinstance(c, list) else [c]
+        out.append(T)
+    return out
+
+
+def trade_figure(T):
+    C = T["candidates"]; n = len(C)
+    unit = ""
+    m0 = C[0].get("metrics") or {}
+    if isinstance(m0, dict) and T["objective"]["metric"] in m0:
+        unit = m0[T["objective"]["metric"]].get("unit", "")
+    fig, ax = plt.subplots(figsize=(10, 0.55 * n + 1.6))
+    y = np.arange(n)
+    for i, c in enumerate(C):
+        col = S3 if (i == 0 and T.get("selected")) else (S1 if c["feasible"] else "#b9bec4")
+        w = fnum(c["obj"])
+        if np.isfinite(w):
+            ax.barh(i, w, color=col, height=0.55)
+        for v in seeds_of(c):
+            if np.isfinite(v): ax.plot(v, i, "o", color=INK, ms=4)
+        lab = f" {w:.3g}" if np.isfinite(w) else " no value"
+        ax.text(w if np.isfinite(w) else 0, i, lab + ("" if c["feasible"] else "  (fails a requirement)"), va="center", fontsize=8, color=INK2)
+    ax.set_yticks(y); ax.set_yticklabels([c["id"] for c in C]); ax.invert_yaxis(); ax.grid(axis="y", visible=False)
+    vals = [fnum(c["obj"]) for c in C if np.isfinite(fnum(c["obj"])) and fnum(c["obj"]) > 0]
+    if vals and max(vals) / max(min(vals), 1e-12) > 50: ax.set_xscale("log")
+    ax.set_xlabel(f"{T['objective']['metric']} [{unit}] — bar: worst over seeds, dots: each seed")
+    ax.set_title(f"{T['label']}\ngreen: proposed · blue: meets every requirement · grey: fails one", loc="left")
+    return save(fig, T["id"])
 
 
 def main():
@@ -344,13 +394,40 @@ def main():
         report["campaigns"][cid] = {"summary": summ, "figures": figs}
         mc_items.append(("mc", cid, summ, figs))
     sections.append(("Monte Carlo and edge-case campaigns", mc_items))
+    trades = load_trades()
+    for T in trades:
+        T["figure"] = trade_figure(T)
+    report["trades"] = trades
     (OUT / "summary.json").write_text(json.dumps(report, indent=1, default=float))
-    write_html(sections, cmp_figs, report)
+    write_html(sections, cmp_figs, report, trades)
     write_md(sections, cmp_figs)
+    write_selection(trades)
     print(f"report: {sum(len(i) for _, i in sections)} items, {len(list(FIG.glob('*.png')))} figures")
 
 
-def write_html(sections, cmp_figs, report):
+def trade_html(T):
+    o = [f"<h3 id='{T['id']}'>{html.escape(T['label'])}</h3>",
+         f"<p class='muted'>{html.escape(T.get('question', ''))} · {T['kind']} trade"
+         + (f" for slot <code>{T['slot']}</code>" if T.get('slot') else "")
+         + (f" on <b>{T['promote_to']}</b>" if T.get('promote_to') else "")
+         + f" · seeds {T['seeds'] if isinstance(T['seeds'], list) else [T['seeds']]} · ranked by the worst <code>{T['objective']['metric']}</code> over the seeds"
+         + (f", ties by <code>{T['tie_break']['metric']}</code>" if T.get('tie_break', {}).get('metric') else "") + "</p>"]
+    o.append("<div class='scroll'><table><tr><th>rank</th><th>candidate</th><th>product / algorithms</th><th>objective worst</th><th>mean</th><th>requirement checks passed</th><th>tie-break</th></tr>")
+    for i, c in enumerate(T["candidates"]):
+        al = c.get("algorithms") or {}
+        alt = ", ".join(f"{k}={v}" for k, v in al.items() if v) if isinstance(al, dict) else ""
+        pr = fnum(c.get("pass_rate")); cls = "pass" if c["feasible"] else "fail"
+        o.append(f"<tr><td>{i+1}</td><td><b>{html.escape(c['id'])}</b><br><span class='muted'>{html.escape(c.get('label',''))}</span></td>"
+                 f"<td class='mono'>{html.escape(c.get('product',''))}<br><span class='muted'>{html.escape(alt)}</span></td>"
+                 f"<td>{fnum(c['obj']):.4g}</td><td>{fnum(c['obj_mean']):.4g}</td><td class='{cls}'>{pr:.0f}%</td><td>{fnum(c.get('tie')):.3g}</td></tr>")
+    o.append("</table></div>")
+    sel = T.get("selected") or "none"
+    o.append(f"<p><b>Proposed: {html.escape(sel)}</b> — {html.escape(T.get('rationale',''))} <span class='muted'>({html.escape(T.get('status',''))})</span></p>")
+    o.append(f"<figure><img src='figures/{T['figure']}' alt='{html.escape(T['id'])}' loading='lazy'></figure>")
+    return "\n".join(o)
+
+
+def write_html(sections, cmp_figs, report, trades=()):
     css = """
 :root{--bg:#f7f8f9;--surface:#ffffff;--text:#15191e;--muted:#56606b;--line:#dde2e7;--accent:#2a78d6;--pass:#0a7a3a;--fail:#b3261e;--chip:#eef2f6}
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){color-scheme:dark;--bg:#14171a;--surface:#1b1f23;--text:#eef1f4;--muted:#a3adb8;--line:#2f353c;--accent:#5a9ce8;--pass:#5bd08a;--fail:#ff8a80;--chip:#252b31}}
@@ -390,6 +467,15 @@ nav a:hover,nav a:focus-visible{border-color:var(--accent);outline:none}
                 if cls: checks.append(f"<span class='{cls}'>{v.split()[0]}</span> {m['id']} {m['value']:.3g} {m['unit']}")
             out.append(f"<tr><td><a href='#{sid}'>{sid}</a></td><td class='mono'>{obj['product']}</td><td>{'<br>'.join(checks) or '—'}</td></tr>")
     out.append("</table></div>")
+    if trades:
+        out.append("<h2 id='trades'>Trades: one job, several algorithms, several hardware sets</h2>")
+        out.append("<p>Every algorithm is registered once (<code>catalogue/algorithms</code>) with the job it does (its <i>slot</i>) and the hardware it <i>needs</i>. A run's algorithm for each slot comes from the scenario, else the product's promoted <code>[selected]</code> table, else the first compatible default, and a choice the hardware cannot fly is refused before the run. A trade flies every candidate on the same seeds, ranks the ones that meet every requirement by their worst objective value, and <b>proposes</b> a winner for a person to confirm.</p>")
+        out.append("<div class='scroll'><table><tr><th>trade</th><th>slot</th><th>product</th><th>proposed</th><th>why</th></tr>")
+        for T in trades:
+            out.append(f"<tr><td><a href='#{T['id']}'>{html.escape(T['label'])}</a></td><td><code>{T.get('slot','')}</code></td><td class='mono'>{T.get('promote_to','') or '—'}</td><td><b>{html.escape(T.get('selected') or 'none')}</b></td><td class='muted'>{html.escape(T.get('rationale',''))}</td></tr>")
+        out.append("</table></div>")
+        for T in trades:
+            out.append(trade_html(T))
     if cmp_figs:
         out.append("<h2 id='compare'>Comparisons</h2>")
         for f in cmp_figs: out.append(f"<figure><img src='figures/{f}' alt='{f[:-4]}' loading='lazy'></figure>")
@@ -425,10 +511,6 @@ nav a:hover,nav a:focus-visible{border-color:var(--accent);outline:none}
     (OUT / "index.html").write_text("\n".join(out))
 
 
-if __name__ == "__main__":
-    main()
-
-
 def write_md(sections, cmp_figs):
     """docs/RESULTS.md: the verdict tables (the HTML report carries the figures)."""
     L = ["# TRI-NETRA ADCS — SILS results", "", "**Owner: Agastya.** Copyright (c) 2026 Agastya. All rights reserved.", "",
@@ -456,3 +538,40 @@ def write_md(sections, cmp_figs):
                     L.append(f"| {st['id']} | {st['mean']:.4g} | {st['std']:.3g} | p{st['level']:g}: {st['pct']:.4g} {st['unit']} | {req} | {pr} | {v} |")
                 L.append("")
     (ROOT / "docs" / "RESULTS.md").write_text("\n".join(L) + "\n")
+
+
+def write_selection(trades):
+    """docs/SELECTION.md: what each trade proposes, and how the choice is applied."""
+    L = ["# Algorithm and hardware selection", "", "**Owner: Agastya.** Copyright (c) 2026 Agastya. All rights reserved.", "",
+         "Generated by `tools/report.py` from `matlab_sils/store/trades/*/trade.json`. Every entry is a",
+         "**proposal**: the product's `[selected]` table is edited only when a person confirms it.", "",
+         "## How one job, several algorithms and several hardware sets are managed", "",
+         "1. **Registry.** Every algorithm is one file in `catalogue/algorithms/<id>.toml` with its `slot`",
+         "   (the job: `detumble`, `attitude`, `mtq_pointing`, `pointing`, `sun_spin`, `allocation`, `thrusters`)",
+         "   and what it `needs` (`coils`, `magnetometer`, `gyro`, `sun`, `star_tracker`, `attitude`, `momentum`,",
+         "   `wheels_or_rings`, `rings`, `cmg`, `vscmg`, `rcs`).",
+         "2. **Resolution** (`asils.fsw.select`, once per run, before the loop): the scenario's",
+         "   `[fsw] algorithms = {slot = id}` → else the product's `[selected]` table → else the first compatible",
+         "   default. An algorithm whose needs the product does not carry is refused by name.",
+         "3. **Dispatch.** The flight software modes only ask *which law fills this slot* (`asils.fsw.step`);",
+         "   adding an algorithm is one registry file plus one `case` in the law's dispatcher.",
+         "4. **Trade** (`trades/<id>.toml`, `asils.trade.run`): candidates are algorithms for one slot on fixed",
+         "   hardware, hardware sets (other products), or tunings, all flown on the same seeds. Feasible",
+         "   candidates (every requirement met on every seed) are ranked by their worst objective value, ties by",
+         "   power or propellant.",
+         "5. **Promotion.** The confirmed winner goes into the product's `[selected]` table, so every later",
+         "   scenario and campaign on that product flies it without restating it.", "",
+         "## Proposals", "", "| trade | slot | product | proposed | rationale |", "|---|---|---|---|---|"]
+    for T in trades:
+        L.append(f"| {T['label']} | `{T.get('slot','')}` | {T.get('promote_to','') or '—'} | **{T.get('selected') or 'none'}** | {T.get('rationale','')} |")
+    for T in trades:
+        L += ["", f"### {T['label']}", "", T.get("question", ""), "",
+              f"Objective: worst `{T['objective']['metric']}` over the seeds; figure `results/figures/{T.get('figure','')}`.", "",
+              "| rank | candidate | product | objective worst | mean | checks passed |", "|---|---|---|---|---|---|"]
+        for i, c in enumerate(T["candidates"]):
+            L.append(f"| {i+1} | {c['id']} | {c.get('product','')} | {fnum(c['obj']):.4g} | {fnum(c['obj_mean']):.4g} | {fnum(c.get('pass_rate')):.0f}% |")
+    (ROOT / "docs" / "SELECTION.md").write_text("\n".join(L) + "\n")
+
+
+if __name__ == "__main__":
+    main()

@@ -1,7 +1,9 @@
 {
  "case": "ais_img_3u",
  "fsw": {
-  "control_law": "lqr",
+  "algorithms": {
+   "pointing": "lqr"
+  },
   "guidance": {
    "T_s": 60.0,
    "kind": "slew",

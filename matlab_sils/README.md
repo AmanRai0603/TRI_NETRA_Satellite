@@ -41,7 +41,7 @@ rec = asils.run('nadir_hold_ais', 'cases/ais_3u.csv', 'seed', 7, ...
 
 | family | product | what it flies |
 |---|---|---|
-| coils only | `TRN-P-3U-AIS`, `TRN-P-3U-AIS-CSS` | B-dot detumble, magnetic nadir pointing (fine or coarse cosine sun sensors) |
+| coils only | `TRN-P-3U-AIS`, `TRN-P-3U-AIS-CSS` | B-dot detumble (4 laws), magnetic nadir pointing (4 laws), Standard Code Sun-pointing spin (L1 spin-up + L2 He et al.) |
 | coils + reaction wheels | `TRN-P-3U-IMG` | fine pointing with PID, LQR or sliding-mode control; magnetic dumping |
 | coils + fluid momentum rings | `TRN-P-3U-FMR` | IDMAS split: coils take the torque across the field, galinstan rings the rest |
 | coils + fluid rings + RCS | `TRN-P-3U-FMR-RCS` | rings for fine pointing, cold-gas thrusters for agile slews |
@@ -52,20 +52,48 @@ rec = asils.run('nadir_hold_ais', 'cases/ais_3u.csv', 'seed', 7, ...
 Every imaging product carries two star-tracker heads (star-field model solved by
 QUEST), a precision MEMS gyro, magnetometer, sun sensors and GNSS.
 
-## Scenarios (`data/scenarios`, 39) and campaigns (`data/campaigns`, 8)
+## Algorithms: one job, several algorithms, several hardware sets
 
-- **AIS (coils only):** `detumble_ais` (+ `_mag`, `_bangbang` B-dot laws), `nadir_hold_ais`,
-  `nadir_hold_ais_css`, `mission_ais` (tumble → detumble → nadir), faults `fault_coil_ais`, `fault_gyro_ais`.
+Every algorithm is registered once in `data/algorithms/<id>.json` (source `../catalogue/algorithms`)
+with its **slot** (the job it does) and what hardware it **needs**:
+
+| slot | algorithms |
+|---|---|
+| `detumble` | `bdot_gyro`, `bdot_mag`, `bdot_bangbang`, `genbdot_l1` (Standard Code L1) |
+| `mtq_pointing` (coils) | `mtq_pd`, `mtq_lqr`, `mtq_smc`, `mtq_rate_damp` |
+| `sun_spin` (coils) | `sunspin_l1l2` (Standard Code spin-up L1 + He et al. L2) |
+| `pointing` (momentum devices) | `pid`, `lqr`, `smc` |
+| `allocation` | `rotor_pinv`, `idmas_split`, `cmg_sr`, `vscmg_sr` |
+| `thrusters`, `attitude` | `rcs_pwm`, `mekf` |
+
+`asils.fsw.select` resolves each slot once per run: the scenario's `[fsw] algorithms = {slot = id}`,
+else the product's `[selected]` table, else the first compatible default. A choice the hardware
+cannot fly is refused by name. Override one for a single run:
+`asils.run('nadir_hold_ais', 'cases/ais_3u.csv', 'set', struct('fsw__algorithms__mtq_pointing', 'mtq_smc'))`.
+
+**Trades** (`data/trades`, 12) fly every candidate — an algorithm for a slot, another product, or a
+tuning — on the same seeds, rank those meeting every requirement by their worst objective value, and
+propose a winner: `run_trade({'trade_mtq_pointing_ais'})` → `store/trades/<id>/trade.json`, `trade.png`.
+Proposals are summarised in `../docs/SELECTION.md`; a person confirms them into the product's `[selected]`.
+
+## Scenarios (`data/scenarios`, 34), campaigns (`data/campaigns`, 8), trades (`data/trades`, 12)
+
+- **AIS (coils only):** `detumble_ais`, `nadir_hold_ais`, `nadir_hold_ais_css`, `sun_spin_ais`
+  (detumble → spin-up → Sun-pointing spin, no attitude solution), `mission_ais` (tumble → detumble → nadir),
+  faults `fault_coil_ais`, `fault_gyro_ais`.
 - **Imaging, per family** (`img` = wheels, `fmr`, `fmr_rcs`, `rw_rcs`, `cmg`, `vscmg`):
   `fine_hold_<f>`, `slew_<f>` (30° in 60 s), `agile_slew_<f>` (90° pitch in 15 s), `mission_<f>`
-  (tumble → detumble → fine hold); controller comparison `fine_hold_img_lqr/_smc`, `slew_img_lqr/_smc`;
-  faults `fault_wheel_img`, `fault_st_img`, `fault_gimbal_cmg`.
+  (tumble → detumble → fine hold); faults `fault_wheel_img`, `fault_st_img`, `fault_gimbal_cmg`.
 - **Campaigns:** Monte Carlo `mc_detumble_ais`, `mc_nadir_ais`, `mc_fine_img`, `mc_slew_img`,
   `mc_slew_cmg`, `mc_agile_rw_rcs`; edge cases (each dispersion at its bounds, then all adverse)
   `edge_nadir_ais`, `edge_fine_img`.
 
-Run everything: `python3 ../tools/run_matrix.py --workers 4` (Octave), or `run_scenarios` +
-`run_campaign` in MATLAB.
+- **Trades:** detumble law, magnetic pointing law, Sun-spin rate and Sun sensing (AIS); fine-pointing law
+  per actuator family (RW, CMG, VSCMG, fluid rings), slew law, fluid-ring allocation; actuator family for
+  the fine hold and for the agile slew.
+
+Run everything: `python3 ../tools/run_matrix.py --workers 4` (Octave), or `run_scenarios`,
+`run_campaign` and `run_trade` in MATLAB.
 
 ## OILS / HILS
 
@@ -79,10 +107,10 @@ Helmholtz-cage field, Sun-simulator direction and air-bearing rate for a HILS re
 
 | folder | contents |
 |---|---|
-| `+asils/` | the SILS: `+orbit` (in-loop POP), `+env`, `+plant`, `+devices`, `+fsw`, `+hal`, `+faults`, `+metrics`, `+campaign`, `+rec`, `+viz`, `+result`, `run.m`, `config.m` |
+| `+asils/` | the SILS: `+orbit` (in-loop POP), `+env`, `+plant`, `+devices`, `+fsw`, `+hal`, `+faults`, `+metrics`, `+campaign`, `+trade`, `+rec`, `+viz`, `+result`, `run.m`, `config.m` |
 | `pop/` | Precision Orbit Propagator v51 (vendored) |
-| `cases/`, `data/` | the case CSVs; exported parts, products, scenarios, campaigns (JSON) |
-| `examples/`, `tests/`, `tools/` | worked examples, the test suite (17 tests), batch drivers |
+| `cases/`, `data/` | the case CSVs; exported parts, products, algorithms, scenarios, campaigns, trades (JSON) |
+| `examples/`, `tests/`, `tools/` | worked examples, the test suite (20 tests), batch drivers |
 | `store/` | your results, filed per scenario |
 
-Architecture, node by node: `../docs/ARCHITECTURE_PLAN.md`. Results: `../docs/RESULTS.md`.
+Architecture, node by node: `../docs/ARCHITECTURE_PLAN.md`. Results: `../docs/RESULTS.md`. Selection: `../docs/SELECTION.md`.

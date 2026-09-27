@@ -1,0 +1,18 @@
+# Which Sun sensing for the coils-only AIS bus?
+schema = "adcs-trade/1"
+id = "trade_sun_sensor_ais"
+label = "AIS 3U — fine Sun-sensor heads vs coarse cosine cells"
+question = "Do six cheap cosine Sun cells (with Earth albedo) still meet the 10 deg / 5 deg AIS requirement?"
+kind = "hardware"
+slot = "sun"
+seeds = [1, 2, 3]
+objective = { metric = "ape_los_last_orbit", sense = "min" }
+tie_break = { metric = "power_mean", sense = "min" }
+[[candidates]]
+id = "fine_sun_heads"
+label = "TRN-P-3U-AIS: 6 fine Sun-sensor heads"
+scenario = "nadir_hold_ais"
+[[candidates]]
+id = "coarse_css"
+label = "TRN-P-3U-AIS-CSS: 6 cosine cells"
+scenario = "nadir_hold_ais_css"
