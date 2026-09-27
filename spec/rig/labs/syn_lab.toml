@@ -1,0 +1,89 @@
+# SYNTHETIC lab: stated round numbers so the lab-twin machinery can run before
+# the facility is measured (SPEC.md §12.6, §19 P4 and P7). Never evidence.
+# rig/labs/hils_bay1.toml is the real bay, nan until measured.
+
+schema = "adcs-lab/1"
+facility = "synthetic lab — tests only"
+status = "synthetic"
+
+[rig_host]
+worst_latency_s = 5.0e-5
+jitter_s = 1.0e-5
+
+[ieu]
+channels = 16
+interface_kinds = ["i2c", "spi", "uart", "can", "pwm"]
+isolation_V = 1000.0
+link_rate_bps = 1.0e6
+gnss_outputs_emulated = 1
+
+[air_bearing]
+axes = 3
+tilt_limit_rad = 0.52
+platform_inertia_kgm2 = [0.5, 0.5, 0.6]
+residual_gravity_torque_Nm = 1.5e-4
+aero_drag_Nms = 1.0e-5
+balance_method = "stated for tests"
+payload_capacity_kg = 20.0
+balance_offset_m = 1.0e-6
+metrology = { kind = "optical", rate_Hz = 100.0, accuracy_rad = 1.0e-4 }
+
+[helmholtz_cage]
+axes = 3
+field_range_T = 2.0e-4
+uniformity_in_test_volume = 0.01
+bandwidth_Hz = 10.0
+test_volume_edge_m = 0.4
+field_error_fraction = 0.02
+direction_error_rad = 0.02
+time_constant_s = 0.03
+drive = { kind = "bipolar power supplies", interface = "mock" }
+reference_magnetometer = { kind = "fluxgate", noise_T_rms = 1.0e-9 }
+earth_field_cancellation = true
+command = "B_lab(t) = R_lab_from_eci * B_eci(r(t), t) from the real-time orbit"
+
+[sun_simulator]
+irradiance_W_m2 = 1000.0
+collimation_half_angle_rad = 0.01
+non_uniformity = 0.02
+temporal_instability = 0.02
+pointing = "fixed in the lab frame"
+eclipse = "shutter driven by the real-time orbit"
+
+[star_stimulator]
+display = "mock"
+angular_step_rad = 9.1e-5
+black_level = 0.001
+frame_rate_Hz = 30.0
+faintest_magnitude = 6.0
+latency_s = 0.02
+catalogue = "mock"
+
+[gnss_rf_simulator]
+kind = "mock"
+constellations = ["GPS L1 C/A"]
+channels = 8
+note = "mock"
+
+[test_stands]
+dynamometer_bandwidth_Hz = 400.0
+imbalance_resolution_kgm = 1.0e-7
+dipole_resolution_Am2 = 1.0e-3
+ring_torque_resolution_Nm = 1.0e-6
+thrust_resolution_N = 1.0e-6
+impulse_bit_resolution_Ns = 1.0e-7
+dynamometer_torque_resolution_Nm = 1.0e-6
+
+[safety]
+hardware_interlocks = ["cage current", "bearing tilt", "supply voltage"]
+estop_response_s = 0.1
+
+[power]
+brownout_range_V = 3.0
+supply_channels = 4
+
+[lab_twin]
+replace_dynamics = "air-bearing platform inertia and tilt limits"
+add_disturbances = ["residual_gravity_torque", "bearing_aero_drag"]
+replace_field = "cage field as commanded, with the cage's stated error"
+keep = ["fsw build", "scenario timeline", "sensor and actuator descriptors of the parts flown"]

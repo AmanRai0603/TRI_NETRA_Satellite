@@ -1,0 +1,23 @@
+schema = "adcs-belief/1"
+id = "B-012"
+quarter = "Q3-26"
+area = "visualisation"
+about = ["results/template.html"]
+request = ""
+version = ""
+recorded_by = "planning package"
+believed = "A result page that states its engine and credibility in its first sentence stops a reader taking a demonstration as evidence."
+status = "untested"
+tested = ""
+now_know = "The viewer does state them first. Nobody who has not seen it has been asked to read one."
+cost_k = ""
+plan_change = "The viewer opens with a one-sentence verdict that names the engine and credibility (SPEC.md §13b)."
+previous_issue = ""
+benefit = ""
+would_test = "A reader test: people new to the viewer are shown a demonstration and a real result and asked which is evidence."
+risks = ["R-16"]
+
+[[move]]
+risk = "R-16"
+from = 0
+to = 4

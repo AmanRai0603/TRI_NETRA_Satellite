@@ -1,0 +1,45 @@
+{
+ "descriptor_version": 1,
+ "dispersion": {
+  "axis_misalignment_rad": {
+   "dist": "normal",
+   "mean": 0.0,
+   "sigma": 0.001
+  },
+  "bias_rad_s": {
+   "dist": "normal",
+   "mean": 0.0,
+   "sigma": 5e-05
+  },
+  "scale_factor": {
+   "dist": "normal",
+   "mean": 1.0,
+   "sigma": 0.002
+  }
+ },
+ "families": [
+  "mtq",
+  "mtq_rw",
+  "mtq_fmr",
+  "mtq_fmr_rcs"
+ ],
+ "interface": {
+  "bus": "spi",
+  "eeprom": []
+ },
+ "kind": "gyro",
+ "made": "bought",
+ "name": "Synthetic MEMS gyro \u2014 tests only",
+ "nominal": {
+  "arw_rad_per_sqrt_s": 5e-05,
+  "bias_instability_rad_s": 5e-06,
+  "mass_kg": 0.05,
+  "power_W": 0.3,
+  "range_rad_s": 5.0,
+  "rate_Hz": 100.0,
+  "rrw_rad_per_s_sqrt_s": 1e-07
+ },
+ "part_number": "SYN-GYRO-1",
+ "source": "synthetic_test_parts",
+ "status": "synthetic"
+}

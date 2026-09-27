@@ -1,0 +1,84 @@
+# IDMAS V3 on a 150 kg bus: a 30 degree slew in 60 s carried by the body rings
+# in sprint mode, the RCS armed for the excess (IDMAS v2 §09).
+#
+# Its expected first result is a refusal, by name, for two reasons: the V3
+# parts (IDM-TR-150, IDM-BR-150, IDM-RCS-G1) carry nan fields and the product
+# has no mounts yet; and case ref_c2_150kg states no orbit or epoch, so every
+# "case:" value below is unstated. Both lists are printed. Nothing is guessed.
+
+schema = "adcs-scenario/1"
+id = "slew_150kg_v3"
+label = "150 kg bus, 30 degrees in 60 s, rings sprint, RCS tops up"
+case = "ref_c2_150kg"                 # plan/cases/ref_c2_150kg.csv — the default; --case replaces it
+
+families = ["mtq_fmr_rcs"]   # the families this template can verify; the solver runs it for any product of these
+
+[configuration]
+product = "IDM-P-150-V3"                 # catalogue/products/IDM-P-150-V3.toml: parts, counts, mounts, algorithms
+
+[time]
+epoch = "case:mission.epoch"        # years after J2000, from the case
+duration_s = 600.0
+dynamics_step_s = 0.005
+fsw_rate_hz = 20.0
+
+[orbit]                            # the orbit is the case's, never restated here
+altitude_km = "case:orbit.alt"
+inclination_deg = "case:orbit.inc"
+eccentricity = "case:orbit.ecc"
+ltan_h = "case:orbit.ltan"
+propagator = "j2"
+
+[initial]
+attitude = { kind = "at_target", target = "nadir" }
+rate_body_rad_s = [0.0, 0.0, 0.0]
+
+[environment]
+magnetic_field = { model = "igrf14", degree = 10 }
+atmosphere = { model = "atmos-density", activity = "epoch-mean" }
+gravity_gradient = true
+aerodynamic = true
+solar_pressure = true
+residual_dipole = true
+eclipse = "conical"
+
+[fsw]
+build = "reference"
+mode_sequence = [
+  { t_s = 0.0, mode = "nadir_hold" },
+  { t_s = 60.0, mode = "slew", target = { kind = "eigenaxis", angle_deg = "case:mission.sangle", axis_body = [0.0, 1.0, 0.0] }, allowed_time_s = "case:req.slew" },
+  { t_s = 180.0, mode = "target_hold" },
+]
+
+[[metric]]
+id = "slew_time"
+kind = "slew_time"
+settle_band_deg = 0.05
+requirement = "p2k_0"
+evidence = "p2a_0"
+analysis = "gc_5"
+
+[[metric]]
+id = "settle_time"
+kind = "settling_time"
+band_deg = 0.05
+requirement = "p2k_1"
+evidence = "p2a_1"
+analysis = "gc_2"
+
+[[metric]]
+id = "propellant_used"
+kind = "consumable"
+channel = "propellant_kg"
+
+[output]
+rate_hz = 20.0
+channels = ["t", "q_err_deg", "w_true", "h_ring", "ring_speed", "ring_power", "thruster_on", "propellant_kg", "mode"]
+
+[parity_reference]
+source = "idmas_v2"
+peak_momentum_Nms = 0.35
+peak_torque_Nm = 0.012
+ring_speed_needed_m_s = 0.75
+ring_peak_power_W = 2.5
+note = "IDMAS v2 §09 table, 150 kg, 30 degrees in 60 s. The ring peak power assumes pump efficiency 0.3."

@@ -1,0 +1,630 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Case editor — ais_img_3u</title>
+<!--
+  ADCS platform case editor, adcs-case-editor/1 (SPEC.md §8.3).
+
+  A case is your whole input to the software: the satellite, its orbit and
+  mission, and what its ADCS must achieve. It is always one CSV file in the
+  fixed format adcs-case/1, which the web app, the portal and the MATLAB SILS
+  tool all read the same way. This page writes that CSV. It works offline,
+  opened straight from disk.
+
+  The software checks a case again when you open it (and `adcs case check
+  <file.csv>` checks it from a terminal). This page catches typing slips as
+  you go, with the same rules.
+
+  The JSON block at the end (id="adcs-case-editor") holds the format and your
+  values. "Save editor copy" writes a copy of this page with your values in it;
+  "Download CSV" writes the case itself.
+-->
+<style>
+:root {
+  color-scheme: light;
+  --page: #f9f9f7; --surface: #fcfcfb; --raised: #ffffff; --ink: #0b0b0b; --ink-2: #52514e; --muted: #898781;
+  --line: #e1e0d9; --line-2: #c3c2b7; --accent: #2a78d6; --accent-ink: #1c5cab; --accent-soft: #e6f0fc;
+  --changed: #8a5a00; --changed-soft: #fff5de; --good-ink: #006300; --good-soft: #e7f6e7; --bad: #d03b3b; --bad-soft: #fdecec;
+  --warn-ink: #7a5300; --warn-soft: #fff3d6; --focus: #2a78d6;
+}
+@media (prefers-color-scheme: dark) {
+  :root:where(:not([data-theme="light"])) {
+    color-scheme: dark;
+    --page: #0d0d0d; --surface: #1a1a19; --raised: #222220; --ink: #ffffff; --ink-2: #c3c2b7; --muted: #898781;
+    --line: #2c2c2a; --line-2: #383835; --accent: #3987e5; --accent-ink: #86b6ef; --accent-soft: #16263a;
+    --changed: #f0c060; --changed-soft: #33290f; --good-ink: #4cc44c; --good-soft: #10260f; --bad: #e66767; --bad-soft: #3a1a1a;
+    --warn-ink: #f0c060; --warn-soft: #33290f; --focus: #86b6ef;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --page: #0d0d0d; --surface: #1a1a19; --raised: #222220; --ink: #ffffff; --ink-2: #c3c2b7; --muted: #898781;
+  --line: #2c2c2a; --line-2: #383835; --accent: #3987e5; --accent-ink: #86b6ef; --accent-soft: #16263a;
+  --changed: #f0c060; --changed-soft: #33290f; --good-ink: #4cc44c; --good-soft: #10260f; --bad: #e66767; --bad-soft: #3a1a1a;
+  --warn-ink: #f0c060; --warn-soft: #33290f; --focus: #86b6ef;
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; scroll-padding-top: 76px; }
+body { margin: 0; background: var(--page); color: var(--ink); font: 15px/1.55 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+header.top { position: sticky; top: 0; z-index: 10; background: var(--surface); border-bottom: 1px solid var(--line); }
+.top .bar { max-width: 1280px; margin: 0 auto; padding: 10px 16px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.top h1 { font-size: 16px; line-height: 1.3; margin: 0; flex: 1 1 260px; min-width: 0; overflow-wrap: anywhere; }
+.top h1 small { display: block; font-weight: 400; color: var(--ink-2); font-size: 12px; }
+.chip { font-size: 12px; padding: 2px 9px; border-radius: 999px; background: var(--accent-soft); color: var(--accent-ink); white-space: nowrap; }
+.chip.bad { background: var(--bad-soft); color: var(--bad); }
+.chip.good { background: var(--good-soft); color: var(--good-ink); }
+button { font: inherit; font-size: 13px; padding: 7px 12px; border-radius: 7px; border: 1px solid var(--line-2); background: var(--raised); color: var(--ink); cursor: pointer; white-space: nowrap; }
+button.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+button.ghost { background: transparent; border-color: transparent; color: var(--accent-ink); padding: 4px 6px; }
+:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.layout { max-width: 1280px; margin: 0 auto; padding: 16px; display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 20px; }
+nav.side { position: sticky; top: 76px; align-self: start; font-size: 14px; }
+nav.side a { display: flex; justify-content: space-between; gap: 8px; padding: 5px 10px; border-radius: 6px; color: var(--ink-2); text-decoration: none; }
+nav.side a:hover { background: var(--accent-soft); color: var(--ink); }
+nav.side .n { color: var(--muted); font-variant-numeric: tabular-nums; }
+nav.side .n.bad { color: var(--bad); font-weight: 600; }
+main { min-width: 0; }
+section.card { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 18px 20px; margin: 0 0 16px; }
+section.card > h2 { font-size: 17px; margin: 0 0 4px; }
+.lead { color: var(--ink-2); margin: 0 0 12px; }
+h3 { font-size: 12px; margin: 16px 0 6px; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
+p { margin: 6px 0; }
+.muted { color: var(--ink-2); font-size: 13px; }
+.tiny { color: var(--muted); font-size: 12px; }
+.mono, code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 13px; }
+table { border-collapse: collapse; width: 100%; font-size: 13px; }
+th, td { text-align: left; padding: 6px 7px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { color: var(--ink-2); font-weight: 600; font-size: 12px; }
+.scroll { overflow-x: auto; }
+table.case { table-layout: fixed; min-width: 920px; }
+table.case td input { width: 100%; font: inherit; font-size: 13px; padding: 5px 7px; border: 1px solid var(--line-2); border-radius: 6px; background: var(--surface); color: var(--ink); }
+table.case td input:disabled { background: transparent; border-color: transparent; color: var(--muted); }
+table.case tr.changed td { background: var(--changed-soft); }
+table.case tr.filled td:first-child { box-shadow: inset 3px 0 0 var(--accent); }
+table.case tr.bad td:first-child { box-shadow: inset 3px 0 0 var(--bad); }
+table.case tr.hidden { display: none; }
+table.case td.mono { overflow-wrap: anywhere; word-break: break-all; }
+.help { color: var(--ink-2); font-size: 12px; margin-top: 2px; }
+.pol { font-size: 11px; color: var(--muted); }
+.sense { font-weight: 700; color: var(--ink-2); }
+.err { color: var(--bad); font-size: 12px; }
+.steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 10px; margin: 10px 0 4px; padding: 0; list-style: none; counter-reset: s; }
+.steps li { background: var(--raised); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; font-size: 13px; counter-increment: s; }
+.steps li::before { content: counter(s); display: inline-grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; background: var(--accent-soft); color: var(--accent-ink); font-weight: 700; font-size: 12px; margin-right: 6px; }
+.toolbar { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin: 4px 0 12px; }
+.toolbar input[type=search] { flex: 1 1 220px; min-width: 0; font: inherit; font-size: 14px; padding: 7px 9px; border: 1px solid var(--line-2); border-radius: 7px; background: var(--surface); color: var(--ink); }
+.toolbar select { max-width: 100%; min-width: 0; flex: 0 1 auto; font: inherit; font-size: 14px; padding: 7px 9px; border: 1px solid var(--line-2); border-radius: 7px; background: var(--surface); color: var(--ink); }
+.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin: 8px 0 12px; }
+.tile { background: var(--raised); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; }
+.tile .v { font-size: 22px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.tile .k { font-size: 12px; color: var(--ink-2); }
+.issues { list-style: none; padding: 0; margin: 8px 0; }
+.issues li { padding: 6px 10px; border-radius: 7px; margin: 4px 0; font-size: 13px; display: flex; gap: 8px; }
+.issues li.error { background: var(--bad-soft); color: var(--bad); }
+.issues li.warn { background: var(--warn-soft); color: var(--warn-ink); }
+.issues li.ok { background: var(--good-soft); color: var(--good-ink); }
+.issues li a { color: inherit; }
+details { border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; background: var(--raised); margin: 8px 0; }
+details > summary { cursor: pointer; font-weight: 600; }
+.row-actions { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+.banner { display: none; background: var(--accent-soft); border-radius: 10px; padding: 10px 14px; margin: 0 0 16px; font-size: 14px; }
+.banner.on { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.toast { position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%); background: var(--ink); color: var(--page); padding: 8px 14px; border-radius: 8px; font-size: 13px; opacity: 0; transition: opacity .2s; pointer-events: none; z-index: 20; }
+.toast.on { opacity: 1; }
+@media (max-width: 860px) { .layout { grid-template-columns: 1fr; } nav.side { display: none; } }
+@media print { header.top, nav.side, button, .toolbar, .banner { display: none !important; } .layout { display: block; padding: 0; } section.card { border: 0; padding: 0 0 12px; } body { background: #fff; color: #000; } }
+/* explain-kit:css:begin (generated by tools/explain_kit.py; do not edit here) */
+.xk-depth { display: inline-flex; border: 1px solid var(--line-2, #c3c2b7); border-radius: 8px; overflow: hidden; }
+.xk-depth button { border: 0; border-radius: 0; padding: 5px 10px; font-size: 12px; background: var(--raised); color: var(--ink-2); }
+.xk-depth button + button { border-left: 1px solid var(--line-2, #c3c2b7); }
+.xk-depth button[aria-pressed="true"] { background: var(--accent); color: #fff; }
+body[data-depth="learn"] [data-show]:not([data-show~="learn"]),
+body[data-depth="read"] [data-show]:not([data-show~="read"]),
+body[data-depth="expert"] [data-show]:not([data-show~="expert"]) { display: none !important; }
+.xk-kind { display: inline-block; font-size: 10.5px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase;
+  padding: 1px 7px; border-radius: 5px; border: 1px solid var(--line-2, #c3c2b7); color: var(--ink-2); vertical-align: 2px; margin-left: 8px; white-space: nowrap; }
+.xk-kind::before { margin-right: 4px; font-weight: 400; }
+.xk-kind[data-k="tutorial"]::before { content: "\25B6"; }
+.xk-kind[data-k="how-to"]::before { content: "\2192"; }
+.xk-kind[data-k="reference"]::before { content: "\2261"; }
+.xk-kind[data-k="explanation"]::before { content: "?"; }
+.xk-claim { display: inline-block; font-size: 11px; line-height: 1.4; padding: 0 6px; border-radius: 4px; margin: 0 2px;
+  border: 1px solid var(--line-2, #c3c2b7); color: var(--ink-2); text-decoration: none; overflow-wrap: anywhere; max-width: 100%; vertical-align: 1px; }
+.xk-claim[data-claim="sourced"] { color: var(--accent-ink); border-color: var(--accent); }
+.xk-claim[data-claim="example"] { border-style: dashed; }
+.xk-answer { font-size: 17px; line-height: 1.45; margin: 4px 0 14px; padding: 12px 14px; border-radius: 10px;
+  background: var(--raised); border: 1px solid var(--line); border-left: 4px solid var(--accent); }
+.xk-crumbs { font-size: 12px; color: var(--ink-2); margin: 0 0 8px; display: flex; flex-wrap: wrap; gap: 4px; align-items: center; }
+.xk-crumbs span + span::before { content: "\203A"; margin: 0 6px 0 2px; color: var(--muted); }
+.xk-crumbs span:last-child { color: var(--ink); font-weight: 600; }
+.xk-step { font-size: 11px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--muted); margin: 14px 0 4px; display: flex; gap: 8px; align-items: center; }
+.xk-step b { display: inline-grid; place-items: center; width: 20px; height: 20px; border-radius: 50%; background: var(--accent-soft); color: var(--accent-ink); font-size: 11px; }
+.xk-box { border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; margin: 8px 0; background: var(--raised); font-size: 14px; }
+.xk-box > .xk-h { font-size: 12px; font-weight: 700; color: var(--ink-2); margin-bottom: 3px; }
+.xk-box.wrong { border-left: 4px solid var(--bad, #d03b3b); }
+.xk-box.analogy { border-left: 4px solid var(--accent); }
+.xk-box.breaks { border-left: 4px solid var(--warn-ink, #7a5300); }
+.xk-box.try { border-left: 4px solid var(--good, #0ca30c); }
+.xk-box [data-explain="analogy-breaks"], .xk-box [data-explain="because"] { margin-top: 6px; }
+.xk-why { margin: 6px 0; padding-left: 18px; }
+.xk-why li { margin: 2px 0; }
+.xk-why li:last-child { font-weight: 600; }
+.xk-state { display: inline-flex; gap: 5px; align-items: center; font-weight: 600; }
+.xk-state[data-state="ok"] { color: var(--good-ink, #006300); }
+.xk-state[data-state="bad"] { color: var(--bad, #d03b3b); }
+.xk-state[data-state="warn"] { color: var(--warn-ink, #7a5300); }
+.xk-state[data-state="none"] { color: var(--ink-2); }
+.xk-reveal { margin-top: 6px; }
+.xk-reveal[hidden] { display: none; }
+@media print { .xk-depth { display: none !important; } body [data-show] { display: revert !important; } }
+/* explain-kit:css:end */
+</style>
+<script>
+/* explain-kit:js:begin (generated by tools/explain_kit.py; do not edit here) */
+(function () {
+  "use strict";
+  var KINDS = { "tutorial": "Tutorial", "how-to": "How-to", "reference": "Reference", "explanation": "Explanation" };
+  var DEPTHS = [["learn", "Learn", "Every exercise, answers hidden until you try"],
+                ["read", "Read", "The answer, the explanation and the pictures"],
+                ["expert", "Expert", "The answer, the relation, the limits and the sources"]];
+  var KEY = "adcs-explain-depth";
+  function get() { try { return localStorage.getItem(KEY); } catch (e) { return null; } }
+  function put(v) { try { localStorage.setItem(KEY, v); } catch (e) { /* the page works without it */ } }
+  function setDepth(d) {
+    if (!DEPTHS.some(function (x) { return x[0] === d; })) d = "read";
+    document.body.setAttribute("data-depth", d);
+    Array.prototype.forEach.call(document.querySelectorAll("[data-depth-switch] button"), function (b) {
+      b.setAttribute("aria-pressed", b.getAttribute("data-d") === d ? "true" : "false");
+    });
+  }
+  function mountSwitch(host) {
+    var box = document.createElement("div");
+    box.className = "xk-depth"; box.setAttribute("data-depth-switch", ""); box.setAttribute("role", "group");
+    box.setAttribute("aria-label", "How much to show");
+    DEPTHS.forEach(function (x) {
+      var b = document.createElement("button");
+      b.type = "button"; b.textContent = x[1]; b.title = x[2]; b.setAttribute("data-d", x[0]);
+      b.addEventListener("click", function () { setDepth(x[0]); put(x[0]); });
+      box.appendChild(b);
+    });
+    host.appendChild(box);
+    return box;
+  }
+  function badge(kind) {
+    var s = document.createElement("span");
+    s.className = "xk-kind"; s.setAttribute("data-k", kind); s.textContent = KINDS[kind] || kind;
+    s.title = { "tutorial": "Learn by doing it once", "how-to": "Do one task", "reference": "Look something up",
+                "explanation": "Understand why" }[kind] || "";
+    return s;
+  }
+  function claim(type, label, href) {
+    var a = document.createElement(href ? "a" : "span");
+    a.className = "xk-claim"; a.setAttribute("data-claim", type);
+    if (href) a.setAttribute("href", href);
+    a.textContent = label || type;
+    a.title = { "sourced": "Stated in the cited source", "derived": "Worked here from sourced relations",
+                "reference": "The reference case's value, unconfirmed until a person confirms it",
+                "example": "A demonstration or a made-up number" }[type] || "";
+    return a;
+  }
+  function station(step, n) {
+    var names = { simply: "Say it simply", real: "Now the real thing", breaks: "Where the simple version breaks", "try": "Try it" };
+    var d = document.createElement("div");
+    d.className = "xk-step"; d.setAttribute("data-step", step);
+    var b = document.createElement("b"); b.textContent = String(n || ({ simply: 1, real: 2, breaks: 3, "try": 4 })[step]);
+    d.appendChild(b); d.appendChild(document.createTextNode(names[step] || step));
+    return d;
+  }
+  function state(kind, word) {
+    var s = document.createElement("span");
+    s.className = "xk-state"; s.setAttribute("data-state", kind);
+    var i = document.createElement("span"); i.setAttribute("aria-hidden", "true");
+    i.textContent = { ok: "✔", bad: "✖", warn: "!", none: "–" }[kind] || "•";
+    s.appendChild(i); s.appendChild(document.createTextNode(word));
+    return s;
+  }
+  window.ADCS_EXPLAIN = { badge: badge, claim: claim, station: station, state: state, setDepth: setDepth, mountSwitch: mountSwitch };
+  function start() {
+    Array.prototype.forEach.call(document.querySelectorAll("[data-depth-host]"), function (h) { if (!h.querySelector("[data-depth-switch]")) mountSwitch(h); });
+    Array.prototype.forEach.call(document.querySelectorAll("[data-kind]"), function (sec) {
+      var h = sec.querySelector("h2, h3");
+      if (h && !h.querySelector(".xk-kind")) h.appendChild(badge(sec.getAttribute("data-kind")));
+    });
+    setDepth(document.body.getAttribute("data-depth") || get() || "read");
+  }
+  window.ADCS_EXPLAIN.start = start;
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", start); else start();
+})();
+/* explain-kit:js:end */
+</script>
+</head>
+<body>
+<header class="top"><div class="bar">
+  <h1 id="title"></h1>
+  <span class="chip" id="state"></span>
+  <div data-depth-host></div>
+  <button id="theme" title="Switch light or dark" aria-label="Switch light or dark">◐</button>
+  <button id="print">Print</button>
+  <button id="savecopy">Save editor copy</button>
+  <button id="dl" class="primary">Download CSV</button>
+</div></header>
+<div class="layout">
+  <nav class="side" id="nav" aria-label="Sections"></nav>
+  <main id="main"><div class="banner" id="draft"></div></main>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<script type="application/json" id="adcs-case-editor">
+{"schema":"adcs-case-editor/1","title":"Case editor — ais_img_3u","exported":{"commit":"package","software":"plan (not yet built)","date":"2026-09-27","tool":"tools/forms.py (stand-in for cargo xtask form export)"},"format":"adcs-case/1","columns":["section","key","label","unit","value","lo","hi","level","note"],"default_level":99.73,"sections":{"meta":{"title":"About the case","lead":"Who and what this case is. The id names the file and every result made from it."},"req":{"title":"What the ADCS must achieve","lead":"Each requirement in its unit, and the per cent of cases it must hold for (level). A blank requirement is simply not judged."},"mission":{"title":"Mission","lead":"How long, when, and how the satellite will be pointed."},"orbit":{"title":"Orbit","lead":"A circular orbit by default. The orbit is always the case's: no scenario restates it."},"mass":{"title":"Mass properties","lead":"The whole satellite as the ADCS must turn it. Give lo and hi where they are uncertain."},"surface":{"title":"Surfaces","lead":"What drag and sunlight push on. Offsets are between the centre of pressure and the centre of mass."},"magnetic":{"title":"Magnetic cleanliness","lead":"The satellite's own magnetic dipole, which the field turns into a torque."},"flex":{"title":"Flexible modes","lead":"Only if the satellite has flexible panels or booms."},"resources":{"title":"Resources offered to the ADCS","lead":"What the platform can give the ADCS. The solver refuses a product that needs more."},"pointing":{"title":"Pointing budget inputs","lead":"Contributions the ADCS cannot see for itself."}},"rows":[{"section":"meta","key":"meta.schema","label":"Case format","unit":"","blank":"stated","range":false,"level":false,"help":"fixed; the importer refuses any other version it cannot migrate"},{"section":"meta","key":"meta.case_id","label":"Case id","unit":"","blank":"stated","range":false,"level":false,"help":"lower-case letters, digits and _; unique among the sender's cases"},{"section":"meta","key":"meta.title","label":"Title","unit":"","blank":"stated","range":false,"level":false,"help":"free text"},{"section":"meta","key":"meta.class","label":"Satellite class","unit":"","blank":"stated","range":false,"level":false,"help":"optional: a class id in catalogue/classes.toml; blank lets the solver infer it"},{"section":"meta","key":"meta.families","label":"Families to search","unit":"","blank":"stated","range":false,"level":false,"help":"optional: family ids joined by ';'; blank searches all four"},{"section":"req","key":"req.ape","label":"Absolute pointing error (APE)","unit":"Degree","blank":"stated","range":false,"level":true,"help":"largest angle allowed between where the payload axis points and where it should point, at the level given","sense":"\u003c=","fraction":false},{"section":"req","key":"req.ake","label":"Absolute knowledge error (AKE)","unit":"Degree","blank":"stated","range":false,"level":true,"help":"largest error allowed in what the ADCS believes its attitude is, at the level given","sense":"\u003c=","fraction":false},{"section":"req","key":"req.rpe","label":"Relative pointing error (RPE)","unit":"Degree","blank":"stated","range":false,"level":true,"help":"largest pointing wander allowed within a short window (jitter), at the level given","sense":"\u003c=","fraction":false},{"section":"req","key":"req.pde","label":"Pointing drift error (PDE)","unit":"Degree","blank":"stated","range":false,"level":true,"help":"largest slow pointing drift allowed over a long window (thermal, bias), at the level given","sense":"\u003c=","fraction":false},{"section":"req","key":"req.rks","label":"Rate stability","unit":"DegreePerSecond","blank":"stated","range":false,"level":true,"help":"largest body rate allowed while holding a target, at the level given","sense":"\u003c=","fraction":false},{"section":"req","key":"req.rke","label":"Relative knowledge error (RKE)","unit":"Degree","blank":"stated","range":false,"level":true,"help":"largest error allowed in the attitude change the ADCS believes happened over a short window","sense":"\u003c=","fraction":false},{"section":"req","key":"req.slew","label":"Reference slew time","unit":"Second","blank":"stated","range":false,"level":true,"help":"longest time allowed to turn through the reference slew angle (mission.sangle)","sense":"\u003c=","fraction":false},{"section":"req","key":"req.settle","label":"Settling time after a slew","unit":"Second","blank":"stated","range":false,"level":true,"help":"longest time allowed after a slew before pointing is back within its requirement","sense":"\u003c=","fraction":false},{"section":"req","key":"req.spo","label":"Slews per orbit","unit":"Count","blank":"stated","range":false,"level":true,"help":"fewest slews the ADCS must be able to make per orbit","sense":">=","fraction":false},{"section":"req","key":"req.track","label":"Target-tracking rate","unit":"DegreePerSecond","blank":"stated","range":false,"level":true,"help":"slowest rate at which the ADCS must be able to follow a moving target","sense":">=","fraction":false},{"section":"req","key":"req.wmax","label":"Maximum body rate","unit":"DegreePerSecond","blank":"stated","range":false,"level":true,"help":"lowest top body rate the ADCS must be able to reach","sense":">=","fraction":false},{"section":"req","key":"req.detumble","label":"Detumble time","unit":"Minute","blank":"stated","range":false,"level":true,"help":"longest time allowed from separation, at mission.w0, to a slow stable spin","sense":"\u003c=","fraction":false},{"section":"req","key":"req.sunacq","label":"Sun-acquisition time in safe mode","unit":"Minute","blank":"stated","range":false,"level":true,"help":"longest time allowed in safe mode to point the panels at the Sun","sense":"\u003c=","fraction":false},{"section":"req","key":"req.faults","label":"Faults tolerated","unit":"Count","blank":"stated","range":false,"level":true,"help":"fewest single failures the ADCS must survive and keep working","sense":">=","fraction":false},{"section":"req","key":"req.recover","label":"Recovery time after a single fault","unit":"Minute","blank":"stated","range":false,"level":true,"help":"longest time allowed to recover full service after one fault","sense":"\u003c=","fraction":false},{"section":"req","key":"req.hsat","label":"Momentum saturation margin","unit":"One","blank":"stated","range":false,"level":true,"help":"fraction of the stored momentum left unused, 0 to 1","sense":">=","fraction":true},{"section":"req","key":"req.dump","label":"Momentum dump interval","unit":"Hour","blank":"stated","range":false,"level":true,"help":"shortest time allowed between momentum dumps","sense":">=","fraction":false},{"section":"req","key":"req.mass","label":"ADCS mass","unit":"Kilogram","blank":"stated","range":false,"level":true,"help":"heaviest the whole ADCS may be","sense":"\u003c=","fraction":false},{"section":"req","key":"req.pavg","label":"ADCS orbit-average power","unit":"Watt","blank":"stated","range":false,"level":true,"help":"most power the ADCS may draw on average over an orbit","sense":"\u003c=","fraction":false},{"section":"req","key":"req.ppk","label":"ADCS peak power","unit":"Watt","blank":"stated","range":false,"level":true,"help":"most power the ADCS may draw at any moment","sense":"\u003c=","fraction":false},{"section":"req","key":"req.vol","label":"ADCS volume","unit":"Litre","blank":"stated","range":false,"level":true,"help":"most volume the whole ADCS may take","sense":"\u003c=","fraction":false},{"section":"req","key":"req.prop","label":"RCS propellant per year","unit":"Kilogram","blank":"stated","range":false,"level":true,"help":"most thruster propellant the ADCS may use per year","sense":"\u003c=","fraction":false},{"section":"mission","key":"mission.life","label":"Mission lifetime","unit":"Year","blank":"stated","range":false,"level":false,"help":"how long the satellite must work in orbit","sense":null,"fraction":false},{"section":"mission","key":"mission.epoch","label":"Launch epoch","unit":"Year","blank":"stated","range":false,"level":false,"help":"years after J2000.0: 27.0 is early 2027","sense":null,"fraction":false},{"section":"mission","key":"mission.duty","label":"Fine-pointing duty cycle","unit":"One","blank":"stated","range":false,"level":false,"help":"fraction of the orbit in fine pointing, 0 to 1","sense":null,"fraction":true},{"section":"mission","key":"mission.spd","label":"Slews per day","unit":"Count","blank":"stated","range":false,"level":false,"help":"slews per day","sense":null,"fraction":false},{"section":"mission","key":"mission.sangle","label":"Reference slew angle","unit":"Degree","blank":"stated","range":false,"level":false,"help":"the slew angle the slew-time requirement is stated for","sense":null,"fraction":false},{"section":"mission","key":"mission.w0","label":"Initial tumble rate after separation","unit":"DegreePerSecond","blank":"stated","range":true,"level":false,"help":"body rate just after separation from the launcher; give lo and hi if the launcher states a range","sense":null,"fraction":false},{"section":"orbit","key":"orbit.alt","label":"Altitude","unit":"Kilometre","blank":"stated","range":true,"level":false,"help":"mean altitude of a circular orbit","sense":null,"fraction":false},{"section":"orbit","key":"orbit.inc","label":"Inclination","unit":"Degree","blank":"stated","range":true,"level":false,"help":"orbit inclination; about 97 to 98 degrees for sun-synchronous orbits at a few hundred km","sense":null,"fraction":false},{"section":"orbit","key":"orbit.ecc","label":"Eccentricity","unit":"One","blank":"default","range":false,"level":false,"help":"orbit eccentricity; blank means circular, and the report lists it as assumed","sense":null,"fraction":false},{"section":"orbit","key":"orbit.ltan","label":"LTAN","unit":"Hour","blank":"stated","range":true,"level":false,"help":"local time of the ascending node, hours","sense":null,"fraction":false},{"section":"mass","key":"mass.m","label":"Satellite mass","unit":"Kilogram","blank":"stated","range":true,"level":false,"help":"the whole satellite, wet, at launch","sense":null,"fraction":false},{"section":"mass","key":"mass.imax","label":"Largest principal inertia","unit":"KilogramSquareMetre","blank":"stated","range":true,"level":false,"help":"largest principal moment of inertia of the whole satellite","sense":null,"fraction":false},{"section":"mass","key":"mass.iint","label":"Intermediate principal inertia","unit":"KilogramSquareMetre","blank":"stated","range":true,"level":false,"help":"middle principal moment of inertia","sense":null,"fraction":false},{"section":"mass","key":"mass.imin","label":"Smallest principal inertia","unit":"KilogramSquareMetre","blank":"stated","range":true,"level":false,"help":"smallest principal moment of inertia","sense":null,"fraction":false},{"section":"mass","key":"mass.cm","label":"Centre-of-mass offset","unit":"Millimetre","blank":"stated","range":true,"level":false,"help":"centre-of-mass offset from the geometric centre","sense":null,"fraction":false},{"section":"mass","key":"mass.iunc","label":"Inertia uncertainty","unit":"One","blank":"stated","range":false,"level":false,"help":"fraction, 0 to 1","sense":null,"fraction":true},{"section":"surface","key":"surface.afr","label":"Frontal area","unit":"SquareMetre","blank":"stated","range":true,"level":false,"help":"area facing the direction of flight, in the attitude it flies most","sense":null,"fraction":false},{"section":"surface","key":"surface.cpa","label":"Aerodynamic centre-of-pressure offset","unit":"Metre","blank":"stated","range":true,"level":false,"help":"distance between the centre of pressure for drag and the centre of mass","sense":null,"fraction":false},{"section":"surface","key":"surface.asun","label":"Sunlit area","unit":"SquareMetre","blank":"stated","range":true,"level":false,"help":"area facing the Sun, in the attitude it flies most","sense":null,"fraction":false},{"section":"surface","key":"surface.cps","label":"Solar centre-of-pressure offset","unit":"Metre","blank":"stated","range":true,"level":false,"help":"distance between the centre of pressure for sunlight and the centre of mass","sense":null,"fraction":false},{"section":"surface","key":"surface.refl","label":"Surface reflectivity","unit":"One","blank":"default","range":true,"level":false,"help":"fraction of sunlight the surfaces reflect, 0 to 1; blank takes the reference value, listed","sense":null,"fraction":true},{"section":"surface","key":"surface.cd","label":"Drag coefficient","unit":"One","blank":"default","range":true,"level":false,"help":"drag coefficient; blank takes the reference value, listed","sense":null,"fraction":false},{"section":"magnetic","key":"magnetic.dres","label":"Residual dipole","unit":"AmpereSquareMetre","blank":"stated","range":true,"level":false,"help":"the satellite's own magnetic dipole, from a magnetic test or a budget","sense":null,"fraction":false},{"section":"magnetic","key":"magnetic.dunc","label":"Residual dipole uncertainty","unit":"AmpereSquareMetre","blank":"stated","range":false,"level":false,"help":"how uncertain that residual dipole is","sense":null,"fraction":false},{"section":"flex","key":"flex.fmode","label":"First flexible mode frequency","unit":"Hertz","blank":"stated","range":true,"level":false,"help":"lowest structural or panel mode frequency; leave blank if the satellite is rigid","sense":null,"fraction":false},{"section":"flex","key":"flex.mpart","label":"Modal participation","unit":"One","blank":"stated","range":false,"level":false,"help":"fraction, 0 to 1","sense":null,"fraction":true},{"section":"resources","key":"resources.palloc","label":"Power allocated to the ADCS","unit":"Watt","blank":"stated","range":false,"level":false,"help":"power the platform can give the ADCS","sense":null,"fraction":false},{"section":"resources","key":"resources.malloc","label":"Mass allocated to the ADCS","unit":"Kilogram","blank":"stated","range":false,"level":false,"help":"mass the platform can give the ADCS","sense":null,"fraction":false},{"section":"resources","key":"resources.valloc","label":"Volume allocated to the ADCS","unit":"Litre","blank":"stated","range":false,"level":false,"help":"volume the platform can give the ADCS","sense":null,"fraction":false},{"section":"resources","key":"resources.vbus","label":"Bus voltage","unit":"Volt","blank":"stated","range":false,"level":false,"help":"voltage of the bus the ADCS is powered from","sense":null,"fraction":false},{"section":"resources","key":"resources.nif","label":"OBC data interfaces offered","unit":"Count","blank":"stated","range":false,"level":false,"help":"OBC data interfaces offered to the ADCS","sense":null,"fraction":false},{"section":"pointing","key":"pointing.et","label":"Thermal distortion contribution","unit":"Degree","blank":"stated","range":false,"level":false,"help":"pointing error from thermal distortion between the payload and the ADCS sensors, if known","sense":null,"fraction":false}],"values":{"meta.case_id":{"value":"ais_img_3u","lo":"","hi":"","level":"","note":""},"meta.title":{"value":"3U AIS and imaging satellite — fine pointing, 0.01 degrees","lo":"","hi":"","level":"","note":""},"meta.class":{"value":"cubesat_3u","lo":"","hi":"","level":"","note":""},"req.ape":{"value":"0.01","lo":"","hi":"","level":"99.73","note":"stated by the user; 3-sigma. A flown 3U reference: MinXSS-1 (BCT XACT) measured 0.0042-0.0117 deg 3-sigma, axis dependent (arXiv:1706.06967)"},"req.ake":{"value":"0.005","lo":"","hi":"","level":"99.73","note":"UNCONFIRMED · plan reference: half the APE"},"req.rks":{"value":"0.001","lo":"","hi":"","level":"99.73","note":"UNCONFIRMED · plan reference: 3.6 arcsec/s, to hold smear under an exposure"},"req.slew":{"value":"60.0","lo":"","hi":"","level":"","note":"UNCONFIRMED · adcs_ref_c1: mission.sangle in 60 s, target to target"},"req.settle":{"value":"20.0","lo":"","hi":"","level":"","note":"UNCONFIRMED · plan reference: back inside the APE after a slew"},"req.detumble":{"value":"284.0","lo":"","hi":"","level":"","note":"UNCONFIRMED · plan reference: three orbits at 500 km"},"req.sunacq":{"value":"95.0","lo":"","hi":"","level":"","note":"UNCONFIRMED · plan reference: one orbit"},"req.hsat":{"value":"","lo":"","hi":"","level":"","note":"fraction of the stored momentum left unused, 0 to 1"},"req.mass":{"value":"1.0","lo":"","hi":"","level":"","note":"UNCONFIRMED · plan reference: wheels, star tracker and coils in a 3U"},"req.pavg":{"value":"2.0","lo":"","hi":"","level":"","note":"UNCONFIRMED · plan reference"},"req.ppk":{"value":"4.0","lo":"","hi":"","level":"","note":"UNCONFIRMED · plan reference"},"req.vol":{"value":"0.6","lo":"","hi":"","level":"","note":"UNCONFIRMED · plan reference: about half of 1U"},"mission.epoch":{"value":"27.0","lo":"","hi":"","level":"","note":"UNCONFIRMED · adcs_ref_c1: years after J2000.0, early 2027"},"mission.duty":{"value":"","lo":"","hi":"","level":"","note":"fraction of the orbit in fine pointing, 0 to 1"},"mission.spd":{"value":"10.0","lo":"","hi":"","level":"","note":"UNCONFIRMED · adcs_ref_c1"},"mission.sangle":{"value":"30.0","lo":"","hi":"","level":"","note":"UNCONFIRMED · adcs_ref_c1"},"mission.w0":{"value":"10.0","lo":"","hi":"","level":"","note":"UNCONFIRMED · adcs_ref_c1: tumble after separation"},"orbit.alt":{"value":"500.0","lo":"","hi":"","level":"","note":"UNCONFIRMED · adcs_ref_c1"},"orbit.inc":{"value":"97.4","lo":"","hi":"","level":"","note":"UNCONFIRMED · adcs_ref_c1: sun-synchronous at 500 km"},"orbit.ecc":{"value":"0.0","lo":"","hi":"","level":"","note":"UNCONFIRMED · adcs_ref_c1"},"orbit.ltan":{"value":"10.5","lo":"","hi":"","level":"","note":"UNCONFIRMED · adcs_ref_c1"},"mass.m":{"value":"4.0","lo":"","hi":"","level":"","note":"UNCONFIRMED · adcs_ref_c1"},"mass.imax":{"value":"0.042","lo":"","hi":"","level":"","note":"UNCONFIRMED · adcs_ref_c1: uniform 3U box, m/12*(0.10^2+0.34^2)"},"mass.iint":{"value":"0.042","lo":"","hi":"","level":"","note":"UNCONFIRMED · the same uniform-box model that gives mass.imax and mass.imin: the two long axes are equal"},"mass.imin":{"value":"0.0067","lo":"","hi":"","level":"","note":"UNCONFIRMED · adcs_ref_c1: uniform 3U box, m/12*(0.10^2+0.10^2)"},"mass.cm":{"value":"","lo":"","hi":"","level":"","note":"centre-of-mass offset from the geometric centre"},"mass.iunc":{"value":"","lo":"","hi":"","level":"","note":"fraction, 0 to 1"},"surface.afr":{"value":"0.034","lo":"","hi":"","level":"","note":"UNCONFIRMED · adcs_ref_c1: the 10 x 34 cm face"},"surface.cpa":{"value":"0.02","lo":"","hi":"","level":"","note":"UNCONFIRMED · adcs_ref_c1"},"surface.asun":{"value":"0.034","lo":"","hi":"","level":"","note":"UNCONFIRMED · adcs_ref_c1"},"surface.cps":{"value":"0.02","lo":"","hi":"","level":"","note":"UNCONFIRMED · adcs_ref_c1"},"surface.refl":{"value":"0.6","lo":"","hi":"","level":"","note":"UNCONFIRMED · adcs_ref_c1"},"surface.cd":{"value":"2.2","lo":"","hi":"","level":"","note":"UNCONFIRMED · adcs_ref_c1"},"magnetic.dres":{"value":"0.01","lo":"","hi":"","level":"","note":"UNCONFIRMED · adcs_ref_c1"},"flex.mpart":{"value":"","lo":"","hi":"","level":"","note":"fraction, 0 to 1"},"resources.nif":{"value":"","lo":"","hi":"","level":"","note":"OBC data interfaces offered to the ADCS"}},"presets":[{"id":"ais_3u","title":"3U AIS satellite — coarse pointing, 10 degrees","values":{"meta.case_id":{"value":"ais_3u","lo":"","hi":"","level":"","note":""},"meta.title":{"value":"3U AIS satellite — coarse pointing, 10 degrees","lo":"","hi":"","level":"","note":""},"meta.class":{"value":"cubesat_3u","lo":"","hi":"","level":"","note":""},"req.ape":{"value":"10.0","lo":"","hi":"","level":"","note":"stated by the user: the AIS antenna needs only coarse nadir pointing"},"req.ake":{"value":"5.0","lo":"","hi":"","level":"","note":"UNCONFIRMED · plan reference: half the APE, so knowledge never dominates the budget"},"req.detumble":{"value":"284.0","lo":"","hi":"","level":"","note":"UNCONFIRMED · plan reference: three orbits at 500 km (94.6 min each), from mission.w0"},"req.sunacq":{"value":"95.0","lo":"","hi":"","level":"","note":"UNCONFIRMED · plan reference: one orbit"},"req.hsat":{"value":"","lo":"","hi":"","level":"","note":"fraction of the stored momentum left unused, 0 to 1"},"req.mass":{"value":"0.35","lo":"","hi":"","level":"","note":"UNCONFIRMED · plan reference: a coils-and-magnetometer ADCS in a 3U"},"req.pavg":{"value":"0.5","lo":"","hi":"","level":"","note":"UNCONFIRMED · plan reference: leaves the AIS receiver its share of a 3U power budget"},"req.ppk":{"value":"1.5","lo":"","hi":"","level":"","note":"UNCONFIRMED · plan reference: all coils at full current"},"req.vol":{"value":"0.3","lo":"","hi":"","level":"","note":"UNCONFIRMED · plan reference: under a third of 1U"},"mission.epoch":{"value":"27.0","lo":"","hi":"","level":"","note":"UNCONFIRMED · adcs_ref_c1: years after J2000.0, early 2027"},"mission.duty":{"value":"","lo":"","hi":"","level":"","note":"fraction of the orbit in fine pointing, 0 to 1"},"mission.spd":{"value":"10.0","lo":"","hi":"","level":"","note":"UNCONFIRMED · adcs_ref_c1"},"mission.sangle":{"value":"30.0","lo":"","hi":"","level":"","note":"UNCONFIRMED · adcs_ref_c1"},"mission.w0":{"value":"10.0","lo":"","hi":"","level":"","note":"UNCONFIRMED · adcs_ref_c1: tumble after separation"},"orbit.alt":{"value":"500.0","lo":"","hi":"","level":"","note":"UNCONFIRMED · adcs_ref_c1"},"orbit.inc":{"value":"97.4","lo":"","hi":"","level":"","note":"UNCONFIRMED · adcs_ref_c1: sun-synchronous at 500 km"},"orbit.ecc":{"value":"0.0","lo":"","hi":"","level":"","note":"UNCONFIRMED · adcs_ref_c1"},"orbit.ltan":{"value":"10.5","lo":"","hi":"","level":"","note":"UNCONFIRMED · adcs_ref_c1"},"mass.m":{"value":"4.0","lo":"","hi":"","level":"","note":"UNCONFIRMED · adcs_ref_c1"},"mass.imax":{"value":"0.042","lo":"","hi":"","level":"","note":"UNCONFIRMED · adcs_ref_c1: uniform 3U box, m/12*(0.10^2+0.34^2)"},"mass.iint":{"value":"0.042","lo":"","hi":"","level":"","note":"UNCONFIRMED · the same uniform-box model that gives mass.imax and mass.imin: the two long axes are equal"},"mass.imin":{"value":"0.0067","lo":"","hi":"","level":"","note":"UNCONFIRMED · adcs_ref_c1: uniform 3U box, m/12*(0.10^2+0.10^2)"},"mass.cm":{"value":"","lo":"","hi":"","level":"","note":"centre-of-mass offset from the geometric centre"},"mass.iunc":{"value":"","lo":"","hi":"","level":"","note":"fraction, 0 to 1"},"surface.afr":{"value":"0.034","lo":"","hi":"","level":"","note":"UNCONFIRMED · adcs_ref_c1: the 10 x 34 cm face"},"surface.cpa":{"value":"0.02","lo":"","hi":"","level":"","note":"UNCONFIRMED · adcs_ref_c1"},"surface.asun":{"value":"0.034","lo":"","hi":"","level":"","note":"UNCONFIRMED · adcs_ref_c1"},"surface.cps":{"value":"0.02","lo":"","hi":"","level":"","note":"UNCONFIRMED · adcs_ref_c1"},"surface.refl":{"value":"0.6","lo":"","hi":"","level":"","note":"UNCONFIRMED · adcs_ref_c1"},"surface.cd":{"value":"2.2","lo":"","hi":"","level":"","note":"UNCONFIRMED · adcs_ref_c1"},"magnetic.dres":{"value":"0.01","lo":"","hi":"","level":"","note":"UNCONFIRMED · adcs_ref_c1"},"flex.mpart":{"value":"","lo":"","hi":"","level":"","note":"fraction, 0 to 1"},"resources.nif":{"value":"","lo":"","hi":"","level":"","note":"OBC data interfaces offered to the ADCS"}}},{"id":"ais_img_3u","title":"3U AIS and imaging satellite — fine pointing, 0.01 degrees","values":{"meta.case_id":{"value":"ais_img_3u","lo":"","hi":"","level":"","note":""},"meta.title":{"value":"3U AIS and imaging satellite — fine pointing, 0.01 degrees","lo":"","hi":"","level":"","note":""},"meta.class":{"value":"cubesat_3u","lo":"","hi":"","level":"","note":""},"req.ape":{"value":"0.01","lo":"","hi":"","level":"99.73","note":"stated by the user; 3-sigma. A flown 3U reference: MinXSS-1 (BCT XACT) measured 0.0042-0.0117 deg 3-sigma, axis dependent (arXiv:1706.06967)"},"req.ake":{"value":"0.005","lo":"","hi":"","level":"99.73","note":"UNCONFIRMED · plan reference: half the APE"},"req.rks":{"value":"0.001","lo":"","hi":"","level":"99.73","note":"UNCONFIRMED · plan reference: 3.6 arcsec/s, to hold smear under an exposure"},"req.slew":{"value":"60.0","lo":"","hi":"","level":"","note":"UNCONFIRMED · adcs_ref_c1: mission.sangle in 60 s, target to target"},"req.settle":{"value":"20.0","lo":"","hi":"","level":"","note":"UNCONFIRMED · plan reference: back inside the APE after a slew"},"req.detumble":{"value":"284.0","lo":"","hi":"","level":"","note":"UNCONFIRMED · plan reference: three orbits at 500 km"},"req.sunacq":{"value":"95.0","lo":"","hi":"","level":"","note":"UNCONFIRMED · plan reference: one orbit"},"req.hsat":{"value":"","lo":"","hi":"","level":"","note":"fraction of the stored momentum left unused, 0 to 1"},"req.mass":{"value":"1.0","lo":"","hi":"","level":"","note":"UNCONFIRMED · plan reference: wheels, star tracker and coils in a 3U"},"req.pavg":{"value":"2.0","lo":"","hi":"","level":"","note":"UNCONFIRMED · plan reference"},"req.ppk":{"value":"4.0","lo":"","hi":"","level":"","note":"UNCONFIRMED · plan reference"},"req.vol":{"value":"0.6","lo":"","hi":"","level":"","note":"UNCONFIRMED · plan reference: about half of 1U"},"mission.epoch":{"value":"27.0","lo":"","hi":"","level":"","note":"UNCONFIRMED · adcs_ref_c1: years after J2000.0, early 2027"},"mission.duty":{"value":"","lo":"","hi":"","level":"","note":"fraction of the orbit in fine pointing, 0 to 1"},"mission.spd":{"value":"10.0","lo":"","hi":"","level":"","note":"UNCONFIRMED · adcs_ref_c1"},"mission.sangle":{"value":"30.0","lo":"","hi":"","level":"","note":"UNCONFIRMED · adcs_ref_c1"},"mission.w0":{"value":"10.0","lo":"","hi":"","level":"","note":"UNCONFIRMED · adcs_ref_c1: tumble after separation"},"orbit.alt":{"value":"500.0","lo":"","hi":"","level":"","note":"UNCONFIRMED · adcs_ref_c1"},"orbit.inc":{"value":"97.4","lo":"","hi":"","level":"","note":"UNCONFIRMED · adcs_ref_c1: sun-synchronous at 500 km"},"orbit.ecc":{"value":"0.0","lo":"","hi":"","level":"","note":"UNCONFIRMED · adcs_ref_c1"},"orbit.ltan":{"value":"10.5","lo":"","hi":"","level":"","note":"UNCONFIRMED · adcs_ref_c1"},"mass.m":{"value":"4.0","lo":"","hi":"","level":"","note":"UNCONFIRMED · adcs_ref_c1"},"mass.imax":{"value":"0.042","lo":"","hi":"","level":"","note":"UNCONFIRMED · adcs_ref_c1: uniform 3U box, m/12*(0.10^2+0.34^2)"},"mass.iint":{"value":"0.042","lo":"","hi":"","level":"","note":"UNCONFIRMED · the same uniform-box model that gives mass.imax and mass.imin: the two long axes are equal"},"mass.imin":{"value":"0.0067","lo":"","hi":"","level":"","note":"UNCONFIRMED · adcs_ref_c1: uniform 3U box, m/12*(0.10^2+0.10^2)"},"mass.cm":{"value":"","lo":"","hi":"","level":"","note":"centre-of-mass offset from the geometric centre"},"mass.iunc":{"value":"","lo":"","hi":"","level":"","note":"fraction, 0 to 1"},"surface.afr":{"value":"0.034","lo":"","hi":"","level":"","note":"UNCONFIRMED · adcs_ref_c1: the 10 x 34 cm face"},"surface.cpa":{"value":"0.02","lo":"","hi":"","level":"","note":"UNCONFIRMED · adcs_ref_c1"},"surface.asun":{"value":"0.034","lo":"","hi":"","level":"","note":"UNCONFIRMED · adcs_ref_c1"},"surface.cps":{"value":"0.02","lo":"","hi":"","level":"","note":"UNCONFIRMED · adcs_ref_c1"},"surface.refl":{"value":"0.6","lo":"","hi":"","level":"","note":"UNCONFIRMED · adcs_ref_c1"},"surface.cd":{"value":"2.2","lo":"","hi":"","level":"","note":"UNCONFIRMED · adcs_ref_c1"},"magnetic.dres":{"value":"0.01","lo":"","hi":"","level":"","note":"UNCONFIRMED · adcs_ref_c1"},"flex.mpart":{"value":"","lo":"","hi":"","level":"","note":"fraction, 0 to 1"},"resources.nif":{"value":"","lo":"","hi":"","level":"","note":"OBC data interfaces offered to the ADCS"}}},{"id":"ref_c2_150kg","title":"Reference C2 — 150 kg LEO EO bus","values":{"meta.case_id":{"value":"ref_c2_150kg","lo":"","hi":"","level":"","note":""},"meta.title":{"value":"Reference C2 — 150 kg LEO EO bus","lo":"","hi":"","level":"","note":""},"meta.class":{"value":"smallsat_150","lo":"","hi":"","level":"","note":""},"req.slew":{"value":"60.0","lo":"","hi":"","level":"","note":"idmas_v2 §09: 30 degrees in 60 s"},"req.hsat":{"value":"","lo":"","hi":"","level":"","note":"fraction of the stored momentum left unused, 0 to 1"},"mission.epoch":{"value":"","lo":"","hi":"","level":"","note":"years after J2000.0: 27.0 is early 2027"},"mission.duty":{"value":"","lo":"","hi":"","level":"","note":"fraction of the orbit in fine pointing, 0 to 1"},"mission.spd":{"value":"","lo":"","hi":"","level":"","note":"slews per day"},"mission.sangle":{"value":"30.0","lo":"","hi":"","level":"","note":"idmas_v2 §09"},"orbit.ltan":{"value":"","lo":"","hi":"","level":"","note":"local time of the ascending node, hours"},"mass.m":{"value":"150.0","lo":"","hi":"","level":"","note":"idmas_v2 §09: the stated bus class"},"mass.imax":{"value":"","lo":"","hi":"","level":"","note":"IDMAS v2 §09 does not state the inertia; unstated until the case owner does"},"mass.imin":{"value":"","lo":"","hi":"","level":"","note":"unstated"},"mass.cm":{"value":"","lo":"","hi":"","level":"","note":"centre-of-mass offset from the geometric centre"},"mass.iunc":{"value":"","lo":"","hi":"","level":"","note":"fraction, 0 to 1"},"flex.mpart":{"value":"","lo":"","hi":"","level":"","note":"fraction, 0 to 1"},"resources.nif":{"value":"","lo":"","hi":"","level":"","note":"OBC data interfaces offered to the ADCS"}}},{"id":"ref_c3_12u","title":"Reference C3 — 12U science satellite, not yet stated","values":{"meta.case_id":{"value":"ref_c3_12u","lo":"","hi":"","level":"","note":""},"meta.title":{"value":"Reference C3 — 12U science satellite, not yet stated","lo":"","hi":"","level":"","note":""},"meta.class":{"value":"cubesat_12u","lo":"","hi":"","level":"","note":""},"req.hsat":{"value":"","lo":"","hi":"","level":"","note":"fraction of the stored momentum left unused, 0 to 1"},"mission.epoch":{"value":"","lo":"","hi":"","level":"","note":"years after J2000.0: 27.0 is early 2027"},"mission.duty":{"value":"","lo":"","hi":"","level":"","note":"fraction of the orbit in fine pointing, 0 to 1"},"mission.spd":{"value":"","lo":"","hi":"","level":"","note":"slews per day"},"orbit.ltan":{"value":"","lo":"","hi":"","level":"","note":"local time of the ascending node, hours"},"mass.cm":{"value":"","lo":"","hi":"","level":"","note":"centre-of-mass offset from the geometric centre"},"mass.iunc":{"value":"","lo":"","hi":"","level":"","note":"fraction, 0 to 1"},"flex.mpart":{"value":"","lo":"","hi":"","level":"","note":"fraction, 0 to 1"},"resources.nif":{"value":"","lo":"","hi":"","level":"","note":"OBC data interfaces offered to the ADCS"}}}],"scenarios":[{"id":"detumble_3u","label":"3U detumble from separation with coils only","reads":["magnetic.dres","mass.iint","mass.imax","mass.imin","mass.m","mission.epoch","mission.w0","orbit.alt","orbit.ecc","orbit.inc","orbit.ltan","surface.afr","surface.asun","surface.cd","surface.cpa","surface.cps","surface.refl"],"binds":["req.detumble"]},{"id":"inertial_hold_3u","label":"3U inertial hold from a 30 degree error — IDMAS v2 §13, machinery pilot on synthetic twins","reads":["magnetic.dres","mass.iint","mass.imax","mass.imin","mass.m","mission.epoch","orbit.alt","orbit.ecc","orbit.inc","orbit.ltan","surface.afr","surface.asun","surface.cd","surface.cpa","surface.cps","surface.refl"],"binds":["req.ape"]},{"id":"inertial_hold_3u_idmas","label":"3U inertial hold from a 30 degree error, flying the IDMAS parts — expected refusal until the bench measures them","reads":["magnetic.dres","mass.iint","mass.imax","mass.imin","mass.m","mission.epoch","orbit.alt","orbit.ecc","orbit.inc","orbit.ltan","surface.afr","surface.asun","surface.cd","surface.cpa","surface.cps","surface.refl"],"binds":["req.ape"]},{"id":"nadir_hold_3u","label":"3U nadir hold, coarse pointing, any family","reads":["magnetic.dres","mass.iint","mass.imax","mass.imin","mass.m","mission.epoch","orbit.alt","orbit.ecc","orbit.inc","orbit.ltan","surface.afr","surface.asun","surface.cd","surface.cpa","surface.cps","surface.refl"],"binds":["req.ape","req.ake"]},{"id":"slew_150kg_v3","label":"150 kg bus, 30 degrees in 60 s, rings sprint, RCS tops up","reads":["magnetic.dres","mass.iint","mass.imax","mass.imin","mass.m","mission.epoch","mission.sangle","orbit.alt","orbit.ecc","orbit.inc","orbit.ltan","req.slew","surface.afr","surface.asun","surface.cd","surface.cpa","surface.cps","surface.refl"],"binds":["req.slew","req.settle"]}],"classes":["cubesat_1u","cubesat_3u","cubesat_6u","cubesat_12u","smallsat_50","smallsat_150","smallsat_500"],"families":["mtq","mtq_rw","mtq_fmr","mtq_fmr_rcs"],"loaded_from":"ais_img_3u.csv","case_title":"3U AIS and imaging satellite — fine pointing, 0.01 degrees"}
+</script>
+<script>
+(function () {
+  "use strict";
+  var PRISTINE = "<!doctype html>\n" + document.documentElement.outerHTML;
+  var F = JSON.parse(document.getElementById("adcs-case-editor").textContent);
+  F.values = F.values || {};
+  var V = F.values;                      // key -> {value, lo, hi, level, note}
+  var START = JSON.parse(JSON.stringify(V));
+  var DRAFT_KEY = "adcs-case-editor:" + F.format + ":" + (F.loaded_from || "blank");
+  var SAVED = null;
+  try { SAVED = JSON.parse(localStorage.getItem(DRAFT_KEY) || "null"); } catch (e) { SAVED = null; }
+
+  function el(tag, attrs, kids) {
+    var n = document.createElement(tag);
+    if (attrs) for (var k in attrs) { var v = attrs[k]; if (v === undefined || v === null || v === false) continue;
+      if (k === "text") n.textContent = v; else if (k.slice(0, 2) === "on") n.addEventListener(k.slice(2), v); else n.setAttribute(k, v === true ? "" : v); }
+    (kids || []).forEach(function (c) { if (c !== null && c !== undefined) n.appendChild(typeof c === "string" ? document.createTextNode(c) : c); });
+    return n;
+  }
+  function clear(n) { while (n.firstChild) n.removeChild(n.firstChild); return n; }
+  function str(v) { return v === null || v === undefined ? "" : String(v); }
+  function num(v) { return v !== "" && v !== null && v !== undefined && isFinite(Number(v)); }
+  function toast(m) { var t = document.getElementById("toast"); t.textContent = m; t.classList.add("on"); setTimeout(function () { t.classList.remove("on"); }, 1800); }
+  function g(key, k) { return str((V[key] || {})[k]); }
+  function setv(key, k, v) { V[key] = V[key] || {}; V[key][k] = v; }
+
+  var main = document.getElementById("main"), nav = document.getElementById("nav"), counts = {};
+  function card(id, title, lead, kind, extra) {
+    var s = el("section", Object.assign({ class: "card", id: id, "data-kind": kind || "how-to" }, extra || {}), [el("h2", { text: title })]);
+    if (lead) s.appendChild(el("p", { class: "lead", text: lead }));
+    main.appendChild(s);
+    var c = el("span", { class: "n" }); counts[id] = c;
+    nav.appendChild(el("a", { href: "#" + id }, [el("span", { text: title }), c]));
+    return s;
+  }
+  document.getElementById("title").appendChild(document.createTextNode(F.title));
+  document.getElementById("title").appendChild(el("small", { text: F.schema + " · writes " + F.format }));
+  document.getElementById("theme").onclick = function () {
+    var r = document.documentElement, dark = r.getAttribute("data-theme") === "dark" || (!r.getAttribute("data-theme") && matchMedia("(prefers-color-scheme: dark)").matches);
+    r.setAttribute("data-theme", dark ? "light" : "dark");
+  };
+  document.getElementById("print").onclick = function () { window.print(); };
+
+  // ------------------------------------------------------------------ where you are, the answer, the overview (adcs-explain/1)
+  main.appendChild(el("nav", { class: "xk-crumbs", "data-explain": "zoom", "aria-label": "Where you are" },
+    [el("span", { text: "Your store" }), el("span", { text: "Cases" }), el("span", { id: "crumb-case", text: F.loaded_from || "new case" })]));
+  var answerEl = el("p", { class: "xk-answer", "data-explain": "answer", id: "answer" });
+  main.appendChild(answerEl);
+  (function () {
+    var s = card("overview", "What a case is", "Your whole input to the software, in one file: the satellite, its orbit and mission, and what the ADCS must achieve. It is the only thing you edit to use the software.", "explanation", { "data-explain": "overview" });
+    var ol = el("ol", { class: "steps" });
+    ["You write the case here (or in any spreadsheet) and download it as one CSV.",
+     "You open the CSV in the software. It checks it and files it in your store under its own hash.",
+     "You run it. Each result is saved as one file, beside the exact case it ran on.",
+     "To change what the software does with a case, you change the case, never the software."].forEach(function (t) { ol.appendChild(el("li", { text: t })); });
+    s.appendChild(ol);
+    s.appendChild(el("p", { class: "tiny", text: "The sections below, in order: about the case, what the ADCS must achieve, then what you know about the mission, orbit and satellite. “Is it ready?” at the end says what will run." }));
+  })();
+
+  // ------------------------------------------------------------------ start here
+  (function () {
+    var s = card("start", "Start here", "", "tutorial");
+    var st = el("ol", { class: "steps" });
+    ["Start from a reference case, open a CSV you already have, or start blank (the menu below).",
+     "Give the case an id and a title under “About the case”.",
+     "Write the requirements you have, each in the unit shown, and the level (per cent) it holds at.",
+     "Fill what you know about the satellite. Leave the rest blank: a blank is never guessed.",
+     "Read “Is it ready?” — what will run, and what a blank will block.",
+     "Press “Download CSV”, then open it in the software (web app, portal or MATLAB SILS tool) and run."
+    ].forEach(function (t) { st.appendChild(el("li", { text: t })); });
+    s.appendChild(st);
+    var tb = el("div", { class: "toolbar" });
+    var pre = el("select", { "aria-label": "Start from" });
+    pre.appendChild(el("option", { value: "", text: "Start from…" }));
+    pre.appendChild(el("option", { value: "__blank", text: "a blank case" }));
+    (F.presets || []).forEach(function (p) { pre.appendChild(el("option", { value: p.id, text: p.title + " (" + p.id + ")" })); });
+    pre.addEventListener("change", function () {
+      var v = pre.value; pre.value = ""; if (!v) return;
+      if (!confirm("Replace every value on this page with " + (v === "__blank" ? "a blank case" : v) + "?")) return;
+      var p = v === "__blank" ? { values: {} } : (F.presets || []).filter(function (x) { return x.id === v; })[0];
+      load(p.values, v === "__blank" ? "blank" : v);
+    });
+    var file = el("input", { type: "file", accept: ".csv,text/csv", style: "display:none", "aria-label": "Open a case CSV" });
+    file.addEventListener("change", function () {
+      var f = file.files[0]; if (!f) return;
+      var r = new FileReader();
+      r.onload = function () { var out = parseCsv(String(r.result)); if (out.error) { alert(out.error); return; } load(out.values, f.name); };
+      r.readAsText(f); file.value = "";
+    });
+    tb.appendChild(pre); tb.appendChild(el("button", { text: "Open a CSV…", onclick: function () { file.click(); } })); tb.appendChild(file);
+    s.appendChild(tb);
+  })();
+
+  // ------------------------------------------------------------------ how the software reads what you leave out
+  (function () {
+    var X = window.ADCS_EXPLAIN;
+    var s = card("blanks", "What happens to a blank, a range and a level", "", "explanation");
+    s.appendChild(X.station("simply"));
+    s.appendChild(el("p", { text: "The software never guesses. What you leave blank is either blocked, by name, or filled from the reference case and listed, so you always know." }));
+    s.appendChild(X.station("real"));
+    var ul = el("ul");
+    ["Blank, “stated” rows: left unstated. Every result that needs one is blocked and names the key.",
+     "Blank, “default” rows: the reference value is used and the import report lists it as assumed.",
+     "lo and hi (only where the row allows a range): the value is nominal, lo…hi the spread. Monte Carlo and edge runs draw from it.",
+     "level (requirements only): the per cent of cases the requirement must hold for, e.g. 99.73 for 3σ. Blank takes " + F.default_level + " and is listed as assumed.",
+     "note: anything a reader should know. A note starting UNCONFIRMED marks a value nobody has confirmed; results that use it say so."].forEach(function (t) { ul.appendChild(el("li", { text: t })); });
+    s.appendChild(ul);
+    s.appendChild(el("div", { class: "xk-box", "data-explain": "contrast" }, [el("div", { class: "xk-h", text: "Two rows, one difference" }),
+      document.createTextNode("Leave surface.cd blank and the run goes ahead with the reference drag coefficient, listed as assumed. Leave mass.m blank and every scenario that needs the mass is blocked, naming mass.m. The one difference: surface.cd is a “default” row, mass.m a “stated” one; each row says which under its name.")]));
+    s.appendChild(X.station("breaks"));
+    s.appendChild(el("div", { class: "xk-box breaks", "data-explain": "breaks" }, [el("ul", null, [
+      el("li", { text: "lo…hi is what a campaign draws from, not a check: a real satellite outside that range is not caught." }),
+      el("li", { text: "This page checks the format and says what will run. It cannot know whether a number is right." }),
+      el("li", { text: "A default row's reference value belongs to the reference satellite, not yours." })])]));
+    s.appendChild(el("div", { class: "xk-box wrong", "data-explain": "wrong-idea" }, [el("div", { class: "xk-h", text: "Common wrong idea" }),
+      document.createTextNode("“If I leave a row blank, the software picks a sensible value.” "),
+      el("div", { "data-explain": "because", text: "Only a “default” row does, and it is listed as assumed in every report. A “stated” row is never filled: the results that need it are blocked, by name, so a guess can never pass for your number." })]));
+    s.appendChild(X.station("try"));
+    s.appendChild(el("p", { "data-show": "learn", "data-explain": "predict", text: "Before you look at “Is it ready?”: clear mass.m and predict which scenarios will be blocked. Then scroll down and check." }));
+    s.appendChild(el("p", { "data-show": "read expert", class: "muted", text: "Clear any row and watch “Is it ready?” change." }));
+  })();
+
+  // ------------------------------------------------------------------ the case, section by section
+  var rows = [];
+  var SECT = F.sections || {};
+  (function () {
+    var bySec = {}, order = [];
+    F.rows.forEach(function (r) { if (!bySec[r.section]) { bySec[r.section] = []; order.push(r.section); } bySec[r.section].push(r); });
+    order.forEach(function (sec) {
+      var meta = SECT[sec] || { title: sec, lead: "" };
+      var s = card("s-" + sec, meta.title, meta.lead);
+      if (sec === "req") {
+        var tb = el("div", { class: "toolbar" });
+        var q = el("input", { type: "search", placeholder: "Find a key or a word", "aria-label": "Find" });
+        var only = el("input", { type: "checkbox", id: "only-req" });
+        q.addEventListener("input", filter); only.addEventListener("change", filter);
+        tb.appendChild(q); tb.appendChild(el("label", { for: "only-req" }, [only, " only rows with a value"]));
+        s.appendChild(tb);
+        filterCtl = { q: q, only: only };
+      }
+      var t = el("table", { class: "case" }), cg = el("colgroup");
+      (sec === "meta" ? ["16%", "34%", "50%"] : ["14%", "30%", "11%", "11%", "7%", "7%", "7%", "13%"]).forEach(function (w) { cg.appendChild(el("col", { style: "width:" + w })); });
+      t.appendChild(cg);
+      var tr = el("tr");
+      (sec === "meta" ? ["key", "what", "value"] : ["key", "what it means", "unit", sec === "req" ? "required" : "value", "lo", "hi", "level %", "note"]).forEach(function (h) { tr.appendChild(el("th", { text: h })); });
+      t.appendChild(el("thead", null, [tr]));
+      var body = el("tbody"); t.appendChild(body);
+      s.appendChild(el("div", { class: "scroll" }, [t]));
+      bySec[sec].forEach(function (r) { body.appendChild(row(r)); });
+    });
+  })();
+  var filterCtl = filterCtl || null;
+  function filter() {
+    if (!filterCtl) return;
+    var q = filterCtl.q.value.toLowerCase(), only = filterCtl.only.checked;
+    rows.forEach(function (x) { x.tr.classList.toggle("hidden", (q && x.text.indexOf(q) < 0) || (only && !g(x.r.key, "value"))); });
+  }
+  function row(r) {
+    var tr = el("tr", { id: "k-" + r.key.replace(/\./g, "-") });
+    tr.appendChild(el("td", { class: "mono", text: r.key }));
+    var what = el("td", null, [el("div", { text: r.label })]);
+    if (r.help) what.appendChild(el("div", { class: "help", text: r.help }));
+    if (r.sense) what.appendChild(el("div", { class: "help" }, [el("span", { class: "sense", text: r.sense === "<=" ? "at most" : "at least" }), " — the achieved value must be " + (r.sense === "<=" ? "at or under" : "at or over") + " this"]));
+    if (r.section !== "meta" && r.section !== "req") what.appendChild(el("div", { class: "pol", text: r.blank === "default" ? "blank → reference value, listed as assumed" : "blank → unstated; blocks what needs it, by name" }));
+    tr.appendChild(what);
+    var err = el("div", { class: "err" });
+    var inputs = {};
+    if (r.section === "meta") {
+      var td = el("td");
+      var inp = el("input", { type: "text", "aria-label": r.key, disabled: r.key === "meta.schema" || null, list: r.key === "meta.class" ? "dl-classes" : null, placeholder: r.help || "" });
+      inp.value = r.key === "meta.schema" ? F.format : g(r.key, "value");
+      inp.addEventListener("input", function () { setv(r.key, "value", inp.value); paint(); refresh(); });
+      inputs.value = inp; td.appendChild(inp); td.appendChild(err); tr.appendChild(td);
+    } else {
+      tr.appendChild(el("td", { class: "mono", text: r.unit }));
+      ["value", "lo", "hi", "level", "note"].forEach(function (k) {
+        var td = el("td");
+        var allowed = k === "value" || k === "note" || ((k === "lo" || k === "hi") && r.range) || (k === "level" && r.level);
+        var inp = el("input", { type: "text", "aria-label": r.key + " " + k, disabled: allowed ? null : true, inputmode: k === "note" ? null : "decimal",
+          placeholder: !allowed ? "—" : k === "level" ? String(F.default_level) : "", title: !allowed ? (k === "level" ? "only requirements take a level" : "this row takes no range") : "" });
+        inp.value = g(r.key, k);
+        inp.addEventListener("input", function () { setv(r.key, k, inp.value); paint(); refresh(); });
+        inputs[k] = inp; td.appendChild(inp);
+        if (k === "note") td.appendChild(err);
+        tr.appendChild(td);
+      });
+    }
+    function paint() {
+      var e = check(r);
+      err.textContent = e;
+      tr.classList.toggle("bad", !!e);
+      tr.classList.toggle("filled", !!g(r.key, "value"));
+      tr.classList.toggle("changed", JSON.stringify(V[r.key] || {}) !== JSON.stringify(START[r.key] || {}) && !(isEmpty(V[r.key]) && isEmpty(START[r.key])));
+    }
+    rows.push({ r: r, tr: tr, inputs: inputs, paint: paint, text: (r.key + " " + r.label + " " + (r.help || "")).toLowerCase() });
+    setTimeout(paint, 0);
+    return tr;
+  }
+  function isEmpty(o) { return !o || ["value", "lo", "hi", "level", "note"].every(function (k) { return !str(o[k]); }); }
+  (function () { var d = el("datalist", { id: "dl-classes" }); (F.classes || []).forEach(function (c) { d.appendChild(el("option", { value: c })); }); document.body.appendChild(d); })();
+
+  // The same rules the software's case check applies to one row.
+  function check(r) {
+    var k = r.key;
+    if (r.section === "meta") {
+      var v = g(k, "value");
+      if (k === "meta.case_id") return !v ? "give the case an id" : (!/^[a-z0-9_]+$/.test(v) ? "lower-case letters, digits and _ only" : "");
+      if (k === "meta.class" && v && (F.classes || []).indexOf(v) < 0) return "not a satellite class the software knows";
+      if (k === "meta.families" && v) { var bad = v.split(";").filter(function (x) { return (F.families || []).indexOf(x) < 0; }); if (bad.length) return "unknown families: " + bad.join(", "); }
+      return "";
+    }
+    var val = g(k, "value"), lo = g(k, "lo"), hi = g(k, "hi"), lv = g(k, "level");
+    if (val && !num(val)) return "value is not a number";
+    if (r.section === "req" && num(val) && Number(val) < 0) return "a requirement is a magnitude: not negative";
+    if (r.fraction && num(val) && (Number(val) < 0 || Number(val) > 1)) return "a fraction between 0 and 1";
+    if ((lo || hi) && !r.range) return "this row takes no range";
+    if (!!lo !== !!hi) return "give both lo and hi, or neither";
+    if (lo && hi && !(num(lo) && num(hi) && Number(lo) < Number(hi))) return "lo must be a number below hi";
+    if (val && lo && hi && (Number(val) < Number(lo) || Number(val) > Number(hi))) return "the value lies outside lo…hi";
+    if (lv && !r.level) return "only requirements take a level";
+    if (lv && !(num(lv) && Number(lv) > 0 && Number(lv) < 100)) return "level is a per cent between 0 and 100";
+    if (lv && !val) return "a level needs a value";
+    return "";
+  }
+
+  // ------------------------------------------------------------------ is it ready?
+  var readyCard = card("ready", "Is it ready?", "What the software will be able to run with this case, and what a blank will block. Nothing is guessed: a blank “stated” input blocks exactly the results that need it.", "reference");
+  function readiness() {
+    var inputs = F.rows.filter(function (r) { return r.section !== "meta" && r.section !== "req"; });
+    var reqs = F.rows.filter(function (r) { return r.section === "req"; });
+    var stated = inputs.filter(function (r) { return g(r.key, "value"); });
+    var unstated = inputs.filter(function (r) { return !g(r.key, "value") && r.blank === "stated"; });
+    var assumed = inputs.filter(function (r) { return !g(r.key, "value") && r.blank === "default"; });
+    var written = reqs.filter(function (r) { return g(r.key, "value"); });
+    var unconf = F.rows.filter(function (r) { return g(r.key, "value") && /^UNCONFIRMED/.test(g(r.key, "note")); });
+    var levelAssumed = written.filter(function (r) { return !g(r.key, "level"); });
+    var scen = (F.scenarios || []).map(function (s) {
+      var miss = s.reads.filter(function (k) { var r = F.rows.filter(function (x) { return x.key === k; })[0]; return r && r.blank === "stated" && !g(k, "value"); });
+      var binds = s.binds.filter(function (k) { return g(k, "value"); });
+      return { id: s.id, label: s.label, missing: miss, binds: binds, all: s.binds };
+    });
+    return { inputs: inputs, reqs: reqs, stated: stated, unstated: unstated, assumed: assumed, written: written, unconf: unconf, levelAssumed: levelAssumed, scen: scen };
+  }
+  function problems() {
+    var out = [];
+    rows.forEach(function (x) { var e = check(x.r); if (e) out.push({ level: "error", key: x.r.key, text: x.r.key + ": " + e }); });
+    var R = readiness();
+    if (!R.written.length) out.push({ level: "warn", key: "req.ape", text: "No requirement is written: the software can run, but nothing can pass or fail." });
+    if (R.unconf.length) out.push({ level: "warn", key: R.unconf[0].key, text: R.unconf.length + " value(s) marked UNCONFIRMED: results that use them say so." });
+    return out;
+  }
+  function refresh() {
+    var R = readiness(), P = problems(), errs = P.filter(function (x) { return x.level === "error"; });
+    var blocked = R.scen.filter(function (x) { return x.missing.length; }).length;
+    answerEl.textContent = (errs.length ? "Not ready: " + errs.length + " row" + (errs.length === 1 ? " breaks" : "s break") + " the case format, and the software will refuse the file. " :
+      "The format is right. ") + R.written.length + " of " + R.reqs.length + " requirements are written; " + R.unstated.length + " inputs are unstated" +
+      (R.scen.length ? ", which block " + blocked + " of " + R.scen.length + " scenarios" : "") + "; " + R.assumed.length + " will take the reference value, listed. Download the CSV when you are done.";
+    var cc = document.getElementById("crumb-case"); if (cc) cc.textContent = caseId();
+    var chip = document.getElementById("state");
+    chip.textContent = errs.length ? errs.length + " to fix" : "format OK";
+    chip.className = "chip " + (errs.length ? "bad" : "good");
+    Object.keys(counts).forEach(function (id) { counts[id].textContent = ""; counts[id].className = "n"; });
+    errs.forEach(function (e) { var sec = "s-" + e.key.split(".")[0]; if (counts[sec]) { counts[sec].textContent = String((Number(counts[sec].textContent) || 0) + 1); counts[sec].className = "n bad"; } });
+    counts.ready.textContent = errs.length ? String(errs.length) : "✓"; counts.ready.className = "n" + (errs.length ? " bad" : "");
+    var s = readyCard;
+    while (s.childNodes.length > 2) s.removeChild(s.lastChild);
+    var tiles = el("div", { class: "tiles" });
+    [[R.written.length + " / " + R.reqs.length, "requirements written"],
+     [R.stated.length + " / " + R.inputs.length, "inputs stated"],
+     [String(R.unstated.length), "inputs unstated (block what needs them)"],
+     [String(R.assumed.length), "blank → reference value, listed"],
+     [String(R.levelAssumed.length), "requirements taking the default level"],
+     [String(R.unconf.length), "values marked UNCONFIRMED"]].forEach(function (x) { tiles.appendChild(el("div", { class: "tile" }, [el("div", { class: "v", text: x[0] }), el("div", { class: "k", text: x[1] })])); });
+    s.appendChild(tiles);
+    var ul = el("ul", { class: "issues" });
+    if (!P.length) ul.appendChild(el("li", { class: "ok" }, [el("span", { text: "✓ The format checks pass." })]));
+    P.slice(0, 40).forEach(function (x) { ul.appendChild(el("li", { class: x.level }, [el("a", { href: "#k-" + x.key.replace(/\./g, "-"), text: x.text })])); });
+    if (P.length > 40) ul.appendChild(el("li", { class: "warn", text: "…and " + (P.length - 40) + " more." }));
+    s.appendChild(ul);
+    if (R.scen.length) {
+      s.appendChild(el("h3", { text: "Scenarios in this release" }));
+      var t = el("table"), tr = el("tr");
+      ["scenario", "can it run?", "requirements it judges that this case writes"].forEach(function (h) { tr.appendChild(el("th", { text: h })); });
+      t.appendChild(el("thead", null, [tr]));
+      var tb = el("tbody");
+      R.scen.forEach(function (x) {
+        tb.appendChild(el("tr", null, [el("td", null, [el("div", { class: "mono", text: x.id }), el("div", { class: "help", text: x.label })]),
+          el("td", { text: x.missing.length ? "blocked — needs " + x.missing.join(", ") : "yes" }),
+          el("td", { text: x.binds.length ? x.binds.join(", ") : (x.all.length ? "none of " + x.all.join(", ") : "—") })]));
+      });
+      t.appendChild(tb); s.appendChild(el("div", { class: "scroll" }, [t]));
+      s.appendChild(el("p", { class: "tiny", text: "A scenario also needs a product whose family it can verify; the software chooses or you pick one. This table covers only what the case decides." }));
+    }
+    if (R.assumed.length) s.appendChild(el("p", { class: "muted", text: "Will take the reference value (listed in the report): " + R.assumed.map(function (r) { return r.key; }).join(", ") + "." }));
+    s.appendChild(el("div", { class: "row-actions" }, [el("button", { class: "primary", text: "Download CSV", onclick: downloadCsv }), el("button", { text: "Save editor copy", onclick: saveCopy })]));
+    s.appendChild(el("p", { class: "tiny", text: "Next: open the CSV in the software and run. From a terminal, `adcs case check " + caseId() + ".csv` prints this same report." }));
+    try { if (JSON.stringify(V) !== JSON.stringify(START)) localStorage.setItem(DRAFT_KEY, JSON.stringify({ values: V, at: new Date().toISOString() })); } catch (e) { /* no storage: the downloaded CSV is the record */ }
+  }
+
+  // ------------------------------------------------------------------ files
+  function parseCsv(text) {
+    var out = [], rowa = [], cell = "", q = false;
+    for (var i = 0; i < text.length; i++) {
+      var ch = text[i];
+      if (q) { if (ch === '"') { if (text[i + 1] === '"') { cell += '"'; i++; } else q = false; } else cell += ch; }
+      else if (ch === '"') q = true;
+      else if (ch === ",") { rowa.push(cell); cell = ""; }
+      else if (ch === "\n" || ch === "\r") { if (ch === "\r" && text[i + 1] === "\n") i++; rowa.push(cell); out.push(rowa); rowa = []; cell = ""; }
+      else cell += ch;
+    }
+    if (cell !== "" || rowa.length) { rowa.push(cell); out.push(rowa); }
+    if (!out.length || out[0].join(",") !== F.columns.join(",")) return { error: "That file's header is not the case format. It must be: " + F.columns.join(",") };
+    var values = {}, bad = [];
+    out.slice(1).forEach(function (r) {
+      if (r.length < F.columns.length) return;
+      var known = F.rows.filter(function (x) { return x.key === r[1]; })[0];
+      if (!known) { bad.push(r[1] + " (not a key of " + F.format + ")"); return; }
+      if (known.section !== "meta" && r[3] !== known.unit) bad.push(r[1] + " (unit " + r[3] + "; the format says " + known.unit + ")");
+      values[r[1]] = { value: r[4], lo: r[5], hi: r[6], level: r[7], note: r[8] };
+    });
+    if (bad.length) return { error: "Not opened. These rows are not in the case format:\n" + bad.join("\n") };
+    return { values: values };
+  }
+  function load(values, from) {
+    Object.keys(V).forEach(function (k) { delete V[k]; });
+    Object.keys(values || {}).forEach(function (k) { if (k !== "meta.schema") V[k] = JSON.parse(JSON.stringify(values[k])); });
+    rows.forEach(function (x) { for (var k in x.inputs) { if (x.r.key === "meta.schema") continue; x.inputs[k].value = g(x.r.key, k); } x.paint(); });
+    F.loaded_from = from;
+    refresh(); toast("Loaded " + from);
+  }
+  function cell(s) { s = str(s); return /[",\n\r]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; }
+  function caseCsv() {
+    var out = [F.columns.join(",")];
+    F.rows.forEach(function (r) {
+      var v = r.key === "meta.schema" ? F.format : g(r.key, "value");
+      out.push([r.section, r.key, r.label, r.section === "meta" ? "" : r.unit, v,
+        r.section === "meta" ? "" : g(r.key, "lo"), r.section === "meta" ? "" : g(r.key, "hi"), r.section === "meta" ? "" : g(r.key, "level"), r.section === "meta" ? "" : g(r.key, "note")].map(cell).join(","));
+    });
+    return out.join("\n") + "\n";
+  }
+  function caseId() { return g("meta.case_id", "value") || "case"; }
+  function download(blob, name) { var a = el("a", { href: URL.createObjectURL(blob), download: name }); document.body.appendChild(a); a.click(); setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 1000); }
+  function downloadCsv() {
+    var n = problems().filter(function (x) { return x.level === "error"; }).length;
+    if (n && !confirm(n + " row(s) break the format, and the software will refuse the file. Download anyway?")) return;
+    download(new Blob([caseCsv()], { type: "text/csv" }), caseId() + ".csv");
+  }
+  function saveCopy() {
+    var json = JSON.stringify(F, null, 1).replace(/</g, "\\u003c");
+    var open = '<script type="application/json" id="adcs-case-editor">';
+    var i = PRISTINE.indexOf(open), j = PRISTINE.indexOf("</" + "script>", i);
+    download(new Blob([PRISTINE.slice(0, i + open.length) + "\n" + json + "\n" + PRISTINE.slice(j)], { type: "text/html" }), caseId() + ".case-editor.html");
+    toast("Saved an editor copy");
+  }
+  document.getElementById("dl").onclick = downloadCsv;
+  document.getElementById("savecopy").onclick = saveCopy;
+
+  (function () {
+    if (!SAVED || JSON.stringify(SAVED.values) === JSON.stringify(V)) return;
+    var b = document.getElementById("draft");
+    b.appendChild(el("span", { text: "This browser kept unsaved values from " + str(SAVED.at).slice(0, 16).replace("T", " ") + "." }));
+    b.appendChild(el("button", { class: "primary", text: "Restore them", onclick: function () { load(SAVED.values, "the unsaved values"); b.classList.remove("on"); } }));
+    b.appendChild(el("button", { text: "Discard", onclick: function () { try { localStorage.removeItem(DRAFT_KEY); } catch (e) {} b.classList.remove("on"); } }));
+    b.classList.add("on");
+  })();
+  refresh();
+})();
+</script>
+</body>
+</html>

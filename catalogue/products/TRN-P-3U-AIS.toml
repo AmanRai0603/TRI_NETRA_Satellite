@@ -1,0 +1,36 @@
+# TRI-NETRA 3U AIS: coarse nadir pointing (10 deg) with magnetorquers only.
+# Coils on the three body axes, magnetometer, six fine sun-sensor heads,
+# MEMS gyro, GNSS. Synthetic parts: an engineering baseline, never offered.
+schema = "adcs-product/1"
+id = "TRN-P-3U-AIS"
+label = "3U AIS — coils-only ADCS (MTQ + MAG + CSS + GYRO + GNSS)"
+family = "mtq"
+classes = ["cubesat_3u"]
+status = "candidate"
+origin = "seeded"
+source = "synthetic_test_parts"
+algorithms = ["bdot", "mekf", "mtq_pd"]
+counts = { n_mtq = 3, n_rw = 0, n_st = 0, n_gyro = 1, n_sun = 6 }
+# The AIS antenna axis is the long (minimum-inertia) +X_B axis, held on nadir:
+# gravity gradient then STABILISES pitch and roll and the coils add damping and
+# yaw (the SILS showed the +Y-on-nadir attitude is gravity-gradient unstable
+# for this inertia and cannot be held by slow magnetic control; docs/RESULTS.md).
+payload_boresight_body = [1.0, 0.0, 0.0]
+
+[[fill]]
+slot = "coils"
+part = "SYN-CT-1"
+axes_body = [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]]
+[[fill]]
+slot = "magnetometer"
+part = "SYN-MAG-1"
+[[fill]]
+slot = "sun_sensors"
+part = "SYN-SUN-1"
+normals_body = [[1.0, 0.0, 0.0], [-1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, -1.0, 0.0], [0.0, 0.0, 1.0], [0.0, 0.0, -1.0]]
+[[fill]]
+slot = "gyro"
+part = "SYN-GYRO-1"
+[[fill]]
+slot = "gnss"
+part = "TRN-GPS-1"

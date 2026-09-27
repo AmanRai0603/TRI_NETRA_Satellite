@@ -1,0 +1,49 @@
+{
+ "case": "ais_img_3u",
+ "dispersions": [
+  {
+   "frac": 0.1,
+   "kind": "inertia"
+  },
+  {
+   "hi": 2.0,
+   "kind": "residual_dipole",
+   "lo": 0.5
+  },
+  {
+   "hi": 1.5,
+   "kind": "cm_offset",
+   "lo": 0.5
+  },
+  {
+   "hi": 220.0,
+   "kind": "solar_flux",
+   "lo": 70.0
+  },
+  {
+   "hi": 1.0,
+   "kind": "accommodation",
+   "lo": 0.7
+  },
+  {
+   "hi": 0.9,
+   "kind": "reflectivity",
+   "lo": 0.3
+  },
+  {
+   "hi": 3.0,
+   "kind": "initial_error_deg",
+   "lo": 0.5
+  },
+  {
+   "kind": "arg_lat_deg"
+  }
+ ],
+ "id": "mc_fine_img",
+ "runs": 24,
+ "scenario": "fine_hold_img",
+ "schema": "adcs-campaign/1",
+ "seed": 20260929,
+ "type": "montecarlo",
+ "what": "Fine nadir hold of the imaging 3U (0.01 deg 3-sigma) across mass-property, magnetic, aero, SRP, space-weather dispersions and part errors"
+}

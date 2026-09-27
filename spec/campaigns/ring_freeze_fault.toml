@@ -1,0 +1,12 @@
+schema = "adcs-campaign/1"
+id = "ring_freeze_fault"
+scenario = "inertial_hold_3u"
+type = "fault"
+what = "IDMAS v2 §12.6: a ring freezes, then all rings are lost. The same QP drops the columns; the worst case must be V1 behaviour, never loss of control."
+faults = [
+  { t_s = 3000.0, kind = "ring_freeze", target = "SYN-MFP-1@+Y" },
+  { t_s = 3000.0, kind = "ring_freeze", target = "SYN-MFP-1@*", variant = "all_rings_lost" },
+  { t_s = 3000.0, kind = "coil_open_circuit", target = "SYN-CT-1@-X" },
+  { t_s = 3000.0, kind = "sensor_dropout", target = "SYN-ST-1", duration_s = 900.0 },
+]
+pass = "control is kept in every fault; recovery time is recorded against p3k_3"

@@ -1,0 +1,35 @@
+# IDMAS V2/V3 body ring for a 150 kg bus (IDMAS v2 §08 table, 150 kg row).
+part_number = "IDM-BR-150"
+kind = "body_ring"
+name = "Body ring, 150 kg class, 10 mm bore"
+status = "reference"
+source = "idmas_v2"
+families = ["mtq_fmr", "mtq_fmr_rcs"]
+made = "in-house"
+descriptor_version = 1
+
+[nominal]
+bore_m = 0.010                    # §08
+enclosed_area_m2 = nan            # §08 sizes it from the largest face; not printed
+channel_length_m = nan
+fluid = "galinstan"
+fluid_density_kg_m3 = 6440.0
+fluid_viscosity_Pa_s = 0.0024
+fluid_mass_kg = 1.4               # §08
+v_cruise_m_s = 0.2
+v_max_m_s = 2.0                   # sprint mode to about 2 m/s (§09)
+pump_type = "ac-induction"        # §03C: large rings use an induction stator
+pump_efficiency = nan             # V3 needs about 0.3 (§09, §16)
+field_power_W = nan
+melt_point_K = 254.0
+mass_kg = nan
+
+[dispersion]
+friction_scale = { dist = "uniform", lo = 0.8, hi = 1.2 }
+pump_efficiency = { dist = "uniform", lo = nan, hi = nan }
+flow_sensor_noise_m_s = { dist = "normal", mean = 0.0, sigma = nan }
+axis_misalignment_rad = { dist = "normal", mean = 0.0, sigma = nan }
+
+[interface]
+bus = "can"
+eeprom = ["bore_m", "enclosed_area_m2", "channel_length_m", "pump_efficiency", "friction_curve"]

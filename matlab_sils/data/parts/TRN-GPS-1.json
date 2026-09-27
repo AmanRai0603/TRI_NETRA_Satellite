@@ -1,0 +1,20 @@
+{
+ "descriptor_version": 1,
+ "families": [
+  "mtq",
+  "mtq_rw"
+ ],
+ "kind": "gnss",
+ "made": "bought",
+ "name": "GNSS receiver (Standard Code values) \u2014 tests only",
+ "nominal": {
+  "mass_kg": 0.03,
+  "pos_sigma_m": 10.0,
+  "power_W": 0.8,
+  "rate_Hz": 1.0,
+  "vel_sigma_m_s": 0.2
+ },
+ "part_number": "TRN-GPS-1",
+ "source": "tri_netra_standard_code",
+ "status": "synthetic"
+}

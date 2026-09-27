@@ -1,0 +1,27 @@
+# IDMAS V1 coil tile for a 3U long panel. Values from IDMAS v2 §03A; the rest
+# are measured at calibration (nan until then).
+part_number = "IDM-CT-3U"
+kind = "coil_tile"
+name = "Coil tile, 3U long panel"
+status = "reference"
+source = "idmas_v2"
+families = ["mtq", "mtq_rw", "mtq_fmr"]
+made = "in-house"
+descriptor_version = 1
+
+[nominal]
+dipole_max_Am2 = 0.45             # IDMAS v2 §03A: N = 200, I = 0.1 A
+dipole_per_amp_Am2_per_A = 4.5    # from the printed 0.45 A.m2 at 0.1 A; the outer winding encloses slightly more than the ring's 0.022 m2
+current_max_A = 0.1
+resistance_ohm = nan
+time_constant_s = nan
+mass_kg = nan
+power_at_max_W = nan
+
+[dispersion]
+dipole_scale = { dist = "normal", mean = 1.0, sigma = nan }
+axis_misalignment_rad = { dist = "normal", mean = 0.0, sigma = nan }
+
+[interface]
+bus = "can"
+eeprom = ["dipole_per_amp_Am2_per_A", "current_max_A", "resistance_ohm"]

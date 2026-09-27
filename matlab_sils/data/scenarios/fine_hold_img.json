@@ -1,0 +1,88 @@
+{
+ "case": "ais_img_3u",
+ "fsw": {
+  "guidance": {
+   "kind": "nadir"
+  },
+  "rw_bandwidth": 0.9,
+  "rw_damping": 0.9,
+  "rw_rate_hz": 10.0,
+  "start_mode": "nadir_rw"
+ },
+ "id": "fine_hold_img",
+ "initial": {
+  "attitude": {
+   "angle_deg": 2.0,
+   "axis_body": [
+    0.577,
+    0.577,
+    0.577
+   ],
+   "kind": "error_from_target"
+  },
+  "rate": {
+   "kind": "lvlh"
+  }
+ },
+ "label": "3U imaging \u2014 fine nadir hold, reaction wheels + star tracker (0.01 deg)",
+ "metrics": [
+  {
+   "id": "ape_los_p9973",
+   "kind": "ape_los",
+   "requirement": "req.ape",
+   "statistic": "p99.73",
+   "window": "last_half_orbit"
+  },
+  {
+   "id": "ape_los_max",
+   "kind": "ape_los",
+   "statistic": "max",
+   "window": "last_half_orbit"
+  },
+  {
+   "id": "ape_3ax_p9973",
+   "kind": "ape",
+   "statistic": "p99.73",
+   "window": "last_half_orbit"
+  },
+  {
+   "id": "ake_los_p9973",
+   "kind": "ake_los",
+   "requirement": "req.ake",
+   "statistic": "p99.73",
+   "window": "last_half_orbit"
+  },
+  {
+   "id": "rate_stability_p9973",
+   "kind": "rate_stability",
+   "requirement": "req.rks",
+   "statistic": "p99.73",
+   "window": "last_half_orbit"
+  },
+  {
+   "channel": "ape_los",
+   "hold_s": 60.0,
+   "id": "time_to_0p01_deg",
+   "kind": "time_to_threshold",
+   "threshold_deg": 0.01
+  },
+  {
+   "id": "wheel_momentum_peak",
+   "kind": "wheel_momentum_peak",
+   "window": "all"
+  },
+  {
+   "id": "power_mean",
+   "kind": "power_mean",
+   "requirement": "req.pavg",
+   "window": "all"
+  }
+ ],
+ "product": "TRN-P-3U-IMG",
+ "schema": "adcs-scenario/1",
+ "time": {
+  "dt_s": 0.1,
+  "duration_s": 5740.0,
+  "record_dt_s": 0.1
+ }
+}

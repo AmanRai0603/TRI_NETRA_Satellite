@@ -1,0 +1,60 @@
+section,key,label,unit,value,lo,hi,level,note
+meta,meta.schema,Case format,,adcs-case/1,,,,
+meta,meta.case_id,Case id,,,,,,
+meta,meta.title,Title,,,,,,
+meta,meta.class,Satellite class,,,,,,
+meta,meta.families,Families to search,,,,,,
+req,req.ape,Absolute pointing error (APE),Degree,,,,,"largest angle allowed between where the payload axis points and where it should point, at the level given"
+req,req.ake,Absolute knowledge error (AKE),Degree,,,,,"largest error allowed in what the ADCS believes its attitude is, at the level given"
+req,req.rpe,Relative pointing error (RPE),Degree,,,,,"largest pointing wander allowed within a short window (jitter), at the level given"
+req,req.pde,Pointing drift error (PDE),Degree,,,,,"largest slow pointing drift allowed over a long window (thermal, bias), at the level given"
+req,req.rks,Rate stability,DegreePerSecond,,,,,"largest body rate allowed while holding a target, at the level given"
+req,req.rke,Relative knowledge error (RKE),Degree,,,,,largest error allowed in the attitude change the ADCS believes happened over a short window
+req,req.slew,Reference slew time,Second,,,,,longest time allowed to turn through the reference slew angle (mission.sangle)
+req,req.settle,Settling time after a slew,Second,,,,,longest time allowed after a slew before pointing is back within its requirement
+req,req.spo,Slews per orbit,Count,,,,,fewest slews the ADCS must be able to make per orbit
+req,req.track,Target-tracking rate,DegreePerSecond,,,,,slowest rate at which the ADCS must be able to follow a moving target
+req,req.wmax,Maximum body rate,DegreePerSecond,,,,,lowest top body rate the ADCS must be able to reach
+req,req.detumble,Detumble time,Minute,,,,,"longest time allowed from separation, at mission.w0, to a slow stable spin"
+req,req.sunacq,Sun-acquisition time in safe mode,Minute,,,,,longest time allowed in safe mode to point the panels at the Sun
+req,req.faults,Faults tolerated,Count,,,,,fewest single failures the ADCS must survive and keep working
+req,req.recover,Recovery time after a single fault,Minute,,,,,longest time allowed to recover full service after one fault
+req,req.hsat,Momentum saturation margin,One,,,,,"fraction of the stored momentum left unused, 0 to 1"
+req,req.dump,Momentum dump interval,Hour,,,,,shortest time allowed between momentum dumps
+req,req.mass,ADCS mass,Kilogram,,,,,heaviest the whole ADCS may be
+req,req.pavg,ADCS orbit-average power,Watt,,,,,most power the ADCS may draw on average over an orbit
+req,req.ppk,ADCS peak power,Watt,,,,,most power the ADCS may draw at any moment
+req,req.vol,ADCS volume,Litre,,,,,most volume the whole ADCS may take
+req,req.prop,RCS propellant per year,Kilogram,,,,,most thruster propellant the ADCS may use per year
+mission,mission.life,Mission lifetime,Year,,,,,how long the satellite must work in orbit
+mission,mission.epoch,Launch epoch,Year,,,,,years after J2000.0: 27.0 is early 2027
+mission,mission.duty,Fine-pointing duty cycle,One,,,,,"fraction of the orbit in fine pointing, 0 to 1"
+mission,mission.spd,Slews per day,Count,,,,,slews per day
+mission,mission.sangle,Reference slew angle,Degree,,,,,the slew angle the slew-time requirement is stated for
+mission,mission.w0,Initial tumble rate after separation,DegreePerSecond,,,,,body rate just after separation from the launcher; give lo and hi if the launcher states a range
+orbit,orbit.alt,Altitude,Kilometre,,,,,mean altitude of a circular orbit
+orbit,orbit.inc,Inclination,Degree,,,,,orbit inclination; about 97 to 98 degrees for sun-synchronous orbits at a few hundred km
+orbit,orbit.ecc,Eccentricity,One,,,,,"orbit eccentricity; blank means circular, and the report lists it as assumed"
+orbit,orbit.ltan,LTAN,Hour,,,,,"local time of the ascending node, hours"
+mass,mass.m,Satellite mass,Kilogram,,,,,"the whole satellite, wet, at launch"
+mass,mass.imax,Largest principal inertia,KilogramSquareMetre,,,,,largest principal moment of inertia of the whole satellite
+mass,mass.iint,Intermediate principal inertia,KilogramSquareMetre,,,,,middle principal moment of inertia
+mass,mass.imin,Smallest principal inertia,KilogramSquareMetre,,,,,smallest principal moment of inertia
+mass,mass.cm,Centre-of-mass offset,Millimetre,,,,,centre-of-mass offset from the geometric centre
+mass,mass.iunc,Inertia uncertainty,One,,,,,"fraction, 0 to 1"
+surface,surface.afr,Frontal area,SquareMetre,,,,,"area facing the direction of flight, in the attitude it flies most"
+surface,surface.cpa,Aerodynamic centre-of-pressure offset,Metre,,,,,distance between the centre of pressure for drag and the centre of mass
+surface,surface.asun,Sunlit area,SquareMetre,,,,,"area facing the Sun, in the attitude it flies most"
+surface,surface.cps,Solar centre-of-pressure offset,Metre,,,,,distance between the centre of pressure for sunlight and the centre of mass
+surface,surface.refl,Surface reflectivity,One,,,,,"fraction of sunlight the surfaces reflect, 0 to 1; blank takes the reference value, listed"
+surface,surface.cd,Drag coefficient,One,,,,,"drag coefficient; blank takes the reference value, listed"
+magnetic,magnetic.dres,Residual dipole,AmpereSquareMetre,,,,,"the satellite's own magnetic dipole, from a magnetic test or a budget"
+magnetic,magnetic.dunc,Residual dipole uncertainty,AmpereSquareMetre,,,,,how uncertain that residual dipole is
+flex,flex.fmode,First flexible mode frequency,Hertz,,,,,lowest structural or panel mode frequency; leave blank if the satellite is rigid
+flex,flex.mpart,Modal participation,One,,,,,"fraction, 0 to 1"
+resources,resources.palloc,Power allocated to the ADCS,Watt,,,,,power the platform can give the ADCS
+resources,resources.malloc,Mass allocated to the ADCS,Kilogram,,,,,mass the platform can give the ADCS
+resources,resources.valloc,Volume allocated to the ADCS,Litre,,,,,volume the platform can give the ADCS
+resources,resources.vbus,Bus voltage,Volt,,,,,voltage of the bus the ADCS is powered from
+resources,resources.nif,OBC data interfaces offered,Count,,,,,OBC data interfaces offered to the ADCS
+pointing,pointing.et,Thermal distortion contribution,Degree,,,,,"pointing error from thermal distortion between the payload and the ADCS sensors, if known"

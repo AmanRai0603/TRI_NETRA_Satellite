@@ -1,0 +1,21 @@
+# A design job: what `adcs design` sweeps for one satellite class and one of
+# its standards (SPEC.md §8.6).
+#
+# It reads the standard case, enumerates every part combination the named
+# families allow, drops the ones the analysis closures already fail, tunes each
+# survivor's algorithms in SILS against the standard's requirements, confirms
+# the best with a Monte Carlo, and saves each combination that meets every
+# written requirement as a candidate product, origin "designed". A person
+# promotes a candidate to "offered" (H14). Synthetic parts are allowed here and
+# marked; a product holding one is never offered.
+
+schema = "adcs-design/1"
+id = "cubesat_3u_img"
+class = "cubesat_3u"
+standard = "catalogue/classes/cubesat_3u_img.csv"
+families = ["mtq_rw", "mtq_fmr"]   # fine pointing: stored momentum and a star tracker
+parts = "internal"                 # "internal": synthetic and placeholder parts allowed, marked; "offerable": only reference and above
+counts = "family"                  # every count in the family's range
+tuning = { evaluations = 60, seed = 20260927 }   # per combination; deterministic
+confirm = { type = "montecarlo", runs = 200, seed = 20260928 }
+keep = 3                           # at most this many candidates saved per family, best worst-margin first

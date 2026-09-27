@@ -1,0 +1,71 @@
+# Nadir hold after detumble, for any family: the coarse-pointing test that the
+# 3U AIS case (ais_3u, 10 degrees) is judged by, and a first check for every
+# other product. It starts 30 degrees off nadir at rest in the body frame and
+# holds for three orbits. APE and AKE are measured over the last orbit.
+#
+# The default product is the coils-only one, so this is the scenario that says
+# whether magnetorquers alone meet a coarse requirement. Whatever it measures
+# is recorded, never expected.
+
+schema = "adcs-scenario/1"
+id = "nadir_hold_3u"
+label = "3U nadir hold, coarse pointing, any family"
+case = "ais_3u"                 # plan/cases/ais_3u.csv — the default; --case replaces it
+
+families = ["mtq", "mtq_rw", "mtq_fmr", "mtq_fmr_rcs"]   # the families this template can verify; the solver runs it for any product of these
+
+[configuration]
+product = "SYN-P-3U-MTQ"                 # catalogue/products/SYN-P-3U-MTQ.toml: parts, counts, mounts, algorithms
+
+[time]
+epoch = "case:mission.epoch"        # years after J2000, from the case
+duration_s = 17100.0               # three orbits at the reference case's 500 km
+dynamics_step_s = 0.01
+fsw_rate_hz = 2.0                  # coils-only duty: measure, then drive (read window)
+
+[orbit]                            # the orbit is the case's, never restated here
+altitude_km = "case:orbit.alt"
+inclination_deg = "case:orbit.inc"
+eccentricity = "case:orbit.ecc"
+ltan_h = "case:orbit.ltan"
+propagator = "j2"
+
+[initial]
+attitude = { kind = "error_from_target", angle_deg = 30.0, axis_body = [0.577, 0.577, 0.577] }
+rate_body_rad_s = [0.0, 0.0, 0.0]
+ring_speed_m_s = 0.0               # every ring fitted, whatever the product's count; ignored when none is
+
+[environment]
+magnetic_field = { model = "igrf14", degree = 10 }
+atmosphere = { model = "atmos-density", activity = "epoch-mean" }
+gravity_gradient = true
+aerodynamic = true
+solar_pressure = true
+residual_dipole = true
+eclipse = "conical"
+
+[fsw]
+build = "reference"
+mode_sequence = [ { t_s = 0.0, mode = "nadir_hold" } ]
+
+[[metric]]
+id = "ape_last_orbit"
+kind = "ape"
+window = "last_orbit"
+statistic = "max"
+requirement = "p1k_0"
+evidence = "p1a_0"
+analysis = "gp_5"
+
+[[metric]]
+id = "ake_last_orbit"
+kind = "ake"
+window = "last_orbit"
+statistic = "max"
+requirement = "p1k_1"
+evidence = "p1a_1"
+analysis = "ge_5"
+
+[output]
+rate_hz = 2.0
+channels = ["t", "q_true", "q_est", "q_err_deg", "w_true", "b_meas", "m_cmd", "mode"]

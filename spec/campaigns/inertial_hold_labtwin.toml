@@ -1,0 +1,6 @@
+schema = "adcs-campaign/1"
+id = "inertial_hold_labtwin"
+scenario = "inertial_hold_3u"
+type = "labtwin"
+what = "The same scenario with the plant replaced by the lab: air-bearing dynamics, the bearing's residual torque, the cage's field instead of the orbit's. HILS is compared with THIS run, not with the orbit run (SPEC.md §12.6)."
+lab = "rig/labs/hils_bay1.toml"

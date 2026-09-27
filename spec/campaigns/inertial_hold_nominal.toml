@@ -1,0 +1,5 @@
+schema = "adcs-campaign/1"
+id = "inertial_hold_nominal"
+scenario = "inertial_hold_3u"
+type = "nominal"
+what = "One run, every dispersed parameter at its mean. The run every other campaign is compared with."

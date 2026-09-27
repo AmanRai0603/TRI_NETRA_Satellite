@@ -1,0 +1,60 @@
+section,key,label,unit,value,lo,hi,level,note
+meta,meta.schema,Case format,,adcs-case/1,,,,
+meta,meta.case_id,Case id,,ais_3u,,,,
+meta,meta.title,Title,,"3U AIS satellite — coarse pointing, 10 degrees",,,,
+meta,meta.class,Satellite class,,cubesat_3u,,,,
+meta,meta.families,Families to search,,,,,,
+req,req.ape,Absolute pointing error (APE),Degree,10.0,,,,stated by the user: the AIS antenna needs only coarse nadir pointing
+req,req.ake,Absolute knowledge error (AKE),Degree,5.0,,,,"UNCONFIRMED · plan reference: half the APE, so knowledge never dominates the budget"
+req,req.rpe,Relative pointing error (RPE),Degree,,,,,
+req,req.pde,Pointing drift error (PDE),Degree,,,,,
+req,req.rks,Rate stability,DegreePerSecond,,,,,
+req,req.rke,Relative knowledge error (RKE),Degree,,,,,
+req,req.slew,Reference slew time,Second,,,,,
+req,req.settle,Settling time after a slew,Second,,,,,
+req,req.spo,Slews per orbit,Count,,,,,
+req,req.track,Target-tracking rate,DegreePerSecond,,,,,
+req,req.wmax,Maximum body rate,DegreePerSecond,,,,,
+req,req.detumble,Detumble time,Minute,284.0,,,,"UNCONFIRMED · plan reference: three orbits at 500 km (94.6 min each), from mission.w0"
+req,req.sunacq,Sun-acquisition time in safe mode,Minute,95.0,,,,UNCONFIRMED · plan reference: one orbit
+req,req.faults,Faults tolerated,Count,,,,,
+req,req.recover,Recovery time after a single fault,Minute,,,,,
+req,req.hsat,Momentum saturation margin,One,,,,,"fraction of the stored momentum left unused, 0 to 1"
+req,req.dump,Momentum dump interval,Hour,,,,,
+req,req.mass,ADCS mass,Kilogram,0.35,,,,UNCONFIRMED · plan reference: a coils-and-magnetometer ADCS in a 3U
+req,req.pavg,ADCS orbit-average power,Watt,0.5,,,,UNCONFIRMED · plan reference: leaves the AIS receiver its share of a 3U power budget
+req,req.ppk,ADCS peak power,Watt,1.5,,,,UNCONFIRMED · plan reference: all coils at full current
+req,req.vol,ADCS volume,Litre,0.3,,,,UNCONFIRMED · plan reference: under a third of 1U
+req,req.prop,RCS propellant per year,Kilogram,,,,,
+mission,mission.life,Mission lifetime,Year,,,,,
+mission,mission.epoch,Launch epoch,Year,27.0,,,,"UNCONFIRMED · adcs_ref_c1: years after J2000.0, early 2027"
+mission,mission.duty,Fine-pointing duty cycle,One,,,,,"fraction of the orbit in fine pointing, 0 to 1"
+mission,mission.spd,Slews per day,Count,10.0,,,,UNCONFIRMED · adcs_ref_c1
+mission,mission.sangle,Reference slew angle,Degree,30.0,,,,UNCONFIRMED · adcs_ref_c1
+mission,mission.w0,Initial tumble rate after separation,DegreePerSecond,10.0,,,,UNCONFIRMED · adcs_ref_c1: tumble after separation
+orbit,orbit.alt,Altitude,Kilometre,500.0,,,,UNCONFIRMED · adcs_ref_c1
+orbit,orbit.inc,Inclination,Degree,97.4,,,,UNCONFIRMED · adcs_ref_c1: sun-synchronous at 500 km
+orbit,orbit.ecc,Eccentricity,One,0.0,,,,UNCONFIRMED · adcs_ref_c1
+orbit,orbit.ltan,LTAN,Hour,10.5,,,,UNCONFIRMED · adcs_ref_c1
+mass,mass.m,Satellite mass,Kilogram,4.0,,,,UNCONFIRMED · adcs_ref_c1
+mass,mass.imax,Largest principal inertia,KilogramSquareMetre,0.042,,,,"UNCONFIRMED · adcs_ref_c1: uniform 3U box, m/12*(0.10^2+0.34^2)"
+mass,mass.iint,Intermediate principal inertia,KilogramSquareMetre,0.042,,,,UNCONFIRMED · the same uniform-box model that gives mass.imax and mass.imin: the two long axes are equal
+mass,mass.imin,Smallest principal inertia,KilogramSquareMetre,0.0067,,,,"UNCONFIRMED · adcs_ref_c1: uniform 3U box, m/12*(0.10^2+0.10^2)"
+mass,mass.cm,Centre-of-mass offset,Millimetre,,,,,centre-of-mass offset from the geometric centre
+mass,mass.iunc,Inertia uncertainty,One,,,,,"fraction, 0 to 1"
+surface,surface.afr,Frontal area,SquareMetre,0.034,,,,UNCONFIRMED · adcs_ref_c1: the 10 x 34 cm face
+surface,surface.cpa,Aerodynamic centre-of-pressure offset,Metre,0.02,,,,UNCONFIRMED · adcs_ref_c1
+surface,surface.asun,Sunlit area,SquareMetre,0.034,,,,UNCONFIRMED · adcs_ref_c1
+surface,surface.cps,Solar centre-of-pressure offset,Metre,0.02,,,,UNCONFIRMED · adcs_ref_c1
+surface,surface.refl,Surface reflectivity,One,0.6,,,,UNCONFIRMED · adcs_ref_c1
+surface,surface.cd,Drag coefficient,One,2.2,,,,UNCONFIRMED · adcs_ref_c1
+magnetic,magnetic.dres,Residual dipole,AmpereSquareMetre,0.01,,,,UNCONFIRMED · adcs_ref_c1
+magnetic,magnetic.dunc,Residual dipole uncertainty,AmpereSquareMetre,,,,,
+flex,flex.fmode,First flexible mode frequency,Hertz,,,,,
+flex,flex.mpart,Modal participation,One,,,,,"fraction, 0 to 1"
+resources,resources.palloc,Power allocated to the ADCS,Watt,,,,,
+resources,resources.malloc,Mass allocated to the ADCS,Kilogram,,,,,
+resources,resources.valloc,Volume allocated to the ADCS,Litre,,,,,
+resources,resources.vbus,Bus voltage,Volt,,,,,
+resources,resources.nif,OBC data interfaces offered,Count,,,,,OBC data interfaces offered to the ADCS
+pointing,pointing.et,Thermal distortion contribution,Degree,,,,,

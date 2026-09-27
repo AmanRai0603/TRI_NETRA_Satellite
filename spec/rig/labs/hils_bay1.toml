@@ -1,0 +1,96 @@
+# The lab as a plant: what the HILS environment simulator can do, and what the
+# lab twin (campaign type "labtwin") must model so that HILS is compared with a
+# run that flew in the same lab, not in orbit.
+#
+# Every number here is a facility measurement. `nan` until the facility has
+# measured it; a lab-twin run that needs a nan is refused by name.
+
+schema = "adcs-lab/1"
+facility = "HILS bay 1"
+# Each capability below is also a layer-1 row of the tree (Test facility, supplier
+# `lab`, SPEC.md §12.10). `adcs rig fit` compares them with a case's layer-2 rig
+# needs, and refuses a campaign by name when the lab cannot meet one.
+
+[rig_host]
+worst_latency_s = nan               # cyclictest-style histogram at commissioning (SPEC.md §12.3)
+jitter_s = nan
+
+[ieu]
+channels = nan
+interface_kinds = nan               # the list the gateware answers, written when D14 chooses the IEU and each kind is shown working (SPEC.md §12.2 names i2c, spi, uart, rs422, rs485, can, pwm)
+isolation_V = nan                   # galvanic isolation of the flight connectors (Colagrossi 2023: in the order of kV)
+link_rate_bps = nan                 # the rig host to IEU link, measured
+gnss_outputs_emulated = nan
+
+[air_bearing]
+axes = 3                            # tabletop spherical bearing: yaw free, roll and pitch limited
+tilt_limit_rad = nan
+platform_inertia_kgm2 = [nan, nan, nan]
+residual_gravity_torque_Nm = nan    # m g |r|: 15 kg at 1 um offset is ~1.5e-4 N.m (Schwartz, Peck and Hall 2003)
+aero_drag_Nms = nan
+balance_method = "automatic mass balancer, then residual estimate"
+payload_capacity_kg = nan
+balance_offset_m = nan              # residual centre-of-mass offset after balancing (Schwartz 2003; Ibrahim 2026)
+metrology = { kind = "optical", rate_Hz = nan, accuracy_rad = nan }   # truth attitude of the platform
+
+[helmholtz_cage]
+axes = 3
+field_range_T = nan
+uniformity_in_test_volume = nan
+bandwidth_Hz = nan
+test_volume_edge_m = nan            # edge of the cube inside which the uniformity holds
+field_error_fraction = nan          # field magnitude error against command (da Silva 2019 required <= 5 %)
+direction_error_rad = nan           # field direction error against command (da Silva 2019 required <= 5 deg)
+time_constant_s = nan               # coil L/R
+drive = { kind = "bipolar power supplies", interface = "scpi-over-lan" }
+reference_magnetometer = { kind = "fluxgate", noise_T_rms = nan }
+earth_field_cancellation = true
+command = "B_lab(t) = R_lab_from_eci * B_eci(r(t), t) from the real-time orbit"
+
+[sun_simulator]
+irradiance_W_m2 = nan
+collimation_half_angle_rad = nan
+non_uniformity = nan                # spatial, as ASTM E927 states it
+temporal_instability = nan
+pointing = "fixed in the lab frame; the orbit's Sun vector is realised by the platform's attitude"
+eclipse = "shutter driven by the real-time orbit"
+
+[star_stimulator]
+display = "4K microdisplay behind a collimator"
+angular_step_rad = nan              # FOV / pixel count (Schwartz, Peck and Hall 2003)
+black_level = nan
+frame_rate_Hz = nan
+faintest_magnitude = nan
+latency_s = nan                     # render and display, from the truth attitude to light
+catalogue = "same star catalogue the tracker carries"
+
+[gnss_rf_simulator]
+kind = "SDR signal generator"
+constellations = ["GPS L1 C/A"]
+channels = nan
+note = "RF-level stimulus for a real receiver at HILS. At OILS the receiver's output is emulated at protocol level instead."
+
+[test_stands]
+# Each actuator family is measured on its own stand before it closes a loop at HILS.
+dynamometer_bandwidth_Hz = nan      # multi-component force dynamometer for wheels (Nadeem 2022)
+imbalance_resolution_kgm = nan      # static imbalance, kg.m
+dipole_resolution_Am2 = nan         # coil dipole by reference magnetometer (Springmann and Cutler 2010)
+ring_torque_resolution_Nm = nan     # fluid ring reaction torque on a torque table
+thrust_resolution_N = nan           # thrust stand
+impulse_bit_resolution_Ns = nan
+dynamometer_torque_resolution_Nm = nan   # the smallest wheel torque or disturbance the dynamometer resolves
+
+[safety]
+hardware_interlocks = nan           # the interlocks installed and tested at bring-up, as a list; SPEC.md §12.8 requires cage current, bearing tilt and supply voltage, each independent of the software
+estop_response_s = nan
+
+[power]
+brownout_range_V = nan
+supply_channels = nan
+
+[lab_twin]
+# What the lab-twin run replaces in the scenario.
+replace_dynamics = "air-bearing platform inertia and tilt limits"
+add_disturbances = ["residual_gravity_torque", "bearing_aero_drag", "cable_torque"]
+replace_field = "cage field as commanded, with the cage's measured error model"
+keep = ["fsw build", "scenario timeline", "sensor and actuator descriptors of the serials fitted"]

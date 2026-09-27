@@ -1,0 +1,37 @@
+schema = "adcs-campaign/1"
+id = "mc_fine_img"
+scenario = "fine_hold_img"
+case = "ais_img_3u"
+type = "montecarlo"
+what = "Fine nadir hold of the imaging 3U (0.01 deg 3-sigma) across mass-property, magnetic, aero, SRP, space-weather dispersions and part errors"
+runs = 24
+seed = 20260929
+[[dispersions]]
+kind = "inertia"
+frac = 0.10
+[[dispersions]]
+kind = "residual_dipole"
+lo = 0.5
+hi = 2.0
+[[dispersions]]
+kind = "cm_offset"
+lo = 0.5
+hi = 1.5
+[[dispersions]]
+kind = "solar_flux"
+lo = 70.0
+hi = 220.0
+[[dispersions]]
+kind = "accommodation"
+lo = 0.7
+hi = 1.0
+[[dispersions]]
+kind = "reflectivity"
+lo = 0.3
+hi = 0.9
+[[dispersions]]
+kind = "initial_error_deg"
+lo = 0.5
+hi = 3.0
+[[dispersions]]
+kind = "arg_lat_deg"

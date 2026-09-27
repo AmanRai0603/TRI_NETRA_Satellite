@@ -1,0 +1,42 @@
+schema = "adcs-campaign/1"
+id = "mc_nadir_ais"
+scenario = "nadir_hold_ais"
+case = "ais_3u"
+type = "montecarlo"
+what = "Magnetic-only nadir hold of the AIS 3U (10 deg) across mass-property, magnetic, aero, SRP and space-weather dispersions and sensor/actuator part errors"
+runs = 24
+duration_s = 11480.0           # two orbits (window: last orbit)
+seed = 20260928
+[[dispersions]]
+kind = "inertia"
+frac = 0.10
+[[dispersions]]
+kind = "residual_dipole"
+lo = 0.5
+hi = 2.0
+[[dispersions]]
+kind = "cm_offset"
+lo = 0.5
+hi = 1.5
+[[dispersions]]
+kind = "solar_flux"
+lo = 70.0
+hi = 220.0
+[[dispersions]]
+kind = "kp"
+lo = 0.0
+hi = 6.0
+[[dispersions]]
+kind = "accommodation"
+lo = 0.7
+hi = 1.0
+[[dispersions]]
+kind = "reflectivity"
+lo = 0.3
+hi = 0.9
+[[dispersions]]
+kind = "initial_error_deg"
+lo = 5.0
+hi = 40.0
+[[dispersions]]
+kind = "arg_lat_deg"

@@ -1,0 +1,318 @@
+# The functions of adcs-core::physics (SPEC.md §6.2): the only place a relation lives (rule 3).
+#
+# A node form's step names one of these, or asks for a new one (`new = true` in the form),
+# which the implementation agent then writes in adcs-core::physics with its own review.
+# tools/validate_plan.py checks that this file and SPEC.md §6.2's table name the same
+# functions, and that every function the seed content calls is here.
+
+[[function]]
+module = "orbit"
+name = "radius"
+args = ["h"]
+used_by = ["m2_4"]
+source = "vallado2013"
+kept_from_vleo = false
+
+[[function]]
+module = "orbit"
+name = "circular_period"
+args = ["r"]
+used_by = ["m2_5"]
+source = "vallado2013"
+kept_from_vleo = false
+
+[[function]]
+module = "orbit"
+name = "mean_motion"
+args = ["t_orb"]
+used_by = ["m2_6"]
+source = "vallado2013"
+kept_from_vleo = false
+
+[[function]]
+module = "orbit"
+name = "circular_speed"
+args = ["r"]
+used_by = ["m3_4"]
+source = "vallado2013"
+kept_from_vleo = false
+
+[[function]]
+module = "orbit"
+name = "eclipse_fraction"
+args = ["r", "beta"]
+used_by = []
+source = "vallado2013"
+kept_from_vleo = false
+
+[[function]]
+module = "orbit"
+name = "beta_angle"
+args = ["inc", "ltan", "epoch"]
+used_by = []
+source = "vallado2013"
+kept_from_vleo = false
+
+[[function]]
+module = "env"
+name = "max_magnetic_latitude"
+args = ["i"]
+used_by = ["m3_2"]
+source = "wertz1978, igrf14, nrlmsis2, kopp2011"
+kept_from_vleo = false
+
+[[function]]
+module = "env"
+name = "dipole_field_equator"
+args = ["r"]
+used_by = ["m3_0"]
+source = "wertz1978, igrf14, nrlmsis2, kopp2011"
+kept_from_vleo = false
+
+[[function]]
+module = "env"
+name = "dipole_field_max"
+args = ["r", "lambda_max"]
+used_by = ["m3_1"]
+source = "wertz1978, igrf14, nrlmsis2, kopp2011"
+kept_from_vleo = false
+
+[[function]]
+module = "env"
+name = "density_at"
+args = ["h", "t_epoch"]
+used_by = ["m3_3"]
+source = "wertz1978, igrf14, nrlmsis2, kopp2011"
+kept_from_vleo = false
+
+[[function]]
+module = "env"
+name = "solar_pressure"
+args = ["t_epoch"]
+used_by = ["m3_5"]
+source = "wertz1978, igrf14, nrlmsis2, kopp2011"
+kept_from_vleo = false
+
+[[function]]
+module = "env"
+name = "sun_distance_au"
+args = ["t_epoch"]
+used_by = []
+source = "wertz1978, igrf14, nrlmsis2, kopp2011"
+kept_from_vleo = false
+
+[[function]]
+module = "gnc"
+name = "magnetic_torque"
+args = ["residual_dipole", "field"]
+used_by = ["gd_3"]
+source = "wertz1978, smad2011"
+kept_from_vleo = true
+
+[[function]]
+module = "gnc"
+name = "total_disturbance_torque"
+args = ["aerodynamic", "gravity_gradient", "solar", "magnetic"]
+used_by = ["gd_4"]
+source = "wertz1978, smad2011"
+kept_from_vleo = true
+
+[[function]]
+module = "gnc"
+name = "magnetorquer_dipole_required"
+args = ["momentum", "field", "dump_time"]
+used_by = ["gm_2"]
+source = "wertz1978, smad2011"
+kept_from_vleo = true
+
+[[function]]
+module = "gnc"
+name = "pointing_error_rss"
+args = ["terms"]
+used_by = ["gp_5"]
+source = "wertz1978, smad2011"
+kept_from_vleo = true
+
+[[function]]
+module = "gnc"
+name = "gravity_gradient_torque_worst"
+args = ["r", "i_max", "i_min"]
+used_by = ["gd_0"]
+source = "wertz1978, smad2011"
+kept_from_vleo = false
+
+[[function]]
+module = "gnc"
+name = "aero_torque"
+args = ["rho", "v", "c_d", "a_fr", "c_pa"]
+used_by = ["gd_1"]
+source = "wertz1978, smad2011"
+kept_from_vleo = false
+
+[[function]]
+module = "gnc"
+name = "solar_pressure_torque_at"
+args = ["p_srp", "a_sun", "q", "c_ps"]
+used_by = ["gd_2"]
+source = "wertz1978, smad2011"
+kept_from_vleo = false
+
+[[function]]
+module = "gnc"
+name = "secular_momentum_per_orbit"
+args = ["tau_d", "t_orb"]
+used_by = ["gd_5"]
+source = "wertz1978, smad2011"
+kept_from_vleo = false
+
+[[function]]
+module = "mtq"
+name = "dipole_to_reject"
+args = ["tau_d", "b_min"]
+used_by = ["gm_1"]
+source = "smad2011, idmas_v2"
+kept_from_vleo = false
+
+[[function]]
+module = "mtq"
+name = "torque_authority"
+args = ["m_av", "b_min", "n_mtq"]
+used_by = ["gm_3"]
+source = "smad2011, idmas_v2"
+kept_from_vleo = false
+
+[[function]]
+module = "mtq"
+name = "coil_dipole"
+args = ["n_turns", "current", "area"]
+used_by = []
+source = "smad2011, idmas_v2"
+kept_from_vleo = false
+
+[[function]]
+module = "rw"
+name = "bang_bang_peak_momentum"
+args = ["i_max", "theta", "t_slew"]
+used_by = ["gw_3"]
+source = "idmas_v2, smad2011"
+kept_from_vleo = false
+
+[[function]]
+module = "rw"
+name = "bang_bang_peak_torque"
+args = ["i_max", "theta", "t_slew"]
+used_by = ["gw_4"]
+source = "idmas_v2, smad2011"
+kept_from_vleo = false
+
+[[function]]
+module = "rw"
+name = "cyclic_momentum_quarter_orbit"
+args = ["tau", "t_orb"]
+used_by = []
+source = "idmas_v2, smad2011"
+kept_from_vleo = false
+
+[[function]]
+module = "fmr"
+name = "ring_momentum"
+args = ["d", "s", "rho", "v"]
+used_by = ["gf_6"]
+source = "idmas_v2"
+kept_from_vleo = false
+
+[[function]]
+module = "fmr"
+name = "spin_down_time"
+args = ["d", "rho", "mu"]
+used_by = ["gf_7"]
+source = "idmas_v2"
+kept_from_vleo = false
+
+[[function]]
+module = "fmr"
+name = "holding_power_laminar"
+args = ["h", "mu", "l", "rho", "d", "s"]
+used_by = ["gf_8"]
+source = "idmas_v2"
+kept_from_vleo = false
+
+[[function]]
+module = "fmr"
+name = "pump_pressure_for_torque"
+args = ["tau", "l", "s", "d"]
+used_by = ["gf_9"]
+source = "idmas_v2"
+kept_from_vleo = false
+
+[[function]]
+module = "fmr"
+name = "reynolds"
+args = ["rho", "v", "d", "mu"]
+used_by = []
+source = "idmas_v2"
+kept_from_vleo = false
+
+[[function]]
+module = "fmr"
+name = "conduction_pump_pressure"
+args = ["n", "i", "b", "h"]
+used_by = []
+source = "idmas_v2"
+kept_from_vleo = false
+
+[[function]]
+module = "rcs"
+name = "propellant_per_slew"
+args = ["h", "r", "isp"]
+used_by = ["gr_3"]
+source = "idmas_v2"
+kept_from_vleo = false
+
+[[function]]
+module = "rcs"
+name = "propellant_per_year"
+args = ["m_p", "n_day", "n_rcs"]
+used_by = ["gr_4"]
+source = "idmas_v2"
+kept_from_vleo = false
+
+[[function]]
+module = "ctl"
+name = "settling_time_2pct"
+args = ["w_n", "zeta"]
+used_by = ["gc_2"]
+source = "ogata2010"
+kept_from_vleo = false
+
+[[function]]
+module = "mission"
+name = "closure"
+args = ["req", "ach", "sense"]
+used_by = []
+source = "—"
+kept_from_vleo = true
+
+[[function]]
+module = "risk"
+name = "highest_level"
+args = ["levels"]
+used_by = ["rk4_0"]
+source = "ecss_m_st_80c"
+kept_from_vleo = false
+
+[[function]]
+module = "risk"
+name = "net_closed"
+args = ["closed", "opened"]
+used_by = ["rk4_1"]
+source = "adcs_derisk_method"
+kept_from_vleo = false
+
+[[function]]
+module = "risk"
+name = "share_tested"
+args = ["untested", "total"]
+used_by = ["rk4_2"]
+source = "adcs_derisk_method"
+kept_from_vleo = false

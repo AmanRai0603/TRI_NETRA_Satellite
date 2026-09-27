@@ -1,0 +1,26 @@
+# SYNTHETIC magnetometer — tests only (see SYN-RW-10.toml).
+part_number = "SYN-MAG-1"
+kind = "magnetometer"
+name = "Synthetic three-axis magnetometer — tests only"
+status = "synthetic"
+source = "synthetic_test_parts"
+families = ["mtq", "mtq_rw", "mtq_fmr", "mtq_fmr_rcs"]
+made = "bought"
+descriptor_version = 1
+
+[nominal]
+noise_T_rms = 1.0e-7
+bias_T = 5.0e-7
+range_T = 1.0e-4
+rate_Hz = 10.0
+mass_kg = 0.02
+power_W = 0.1
+
+[dispersion]
+bias_T = { dist = "normal", mean = 0.0, sigma = 5.0e-7 }
+scale_factor = { dist = "normal", mean = 1.0, sigma = 0.005 }
+axis_misalignment_rad = { dist = "normal", mean = 0.0, sigma = 0.002 }
+
+[interface]
+bus = "i2c"
+eeprom = []

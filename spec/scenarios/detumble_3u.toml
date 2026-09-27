@@ -1,0 +1,59 @@
+# The pilot the facility software starts from: the existing detumble C code
+# (B-dot) closed around a plant for the first time, then walked up SILS -> PIL
+# -> OILS -> HILS with this same file. It flies SYN-CT-1, a PWM-driven coil, so
+# the OBC's own H-bridge path is exercised; the magnetometer is read in a
+# window with the coils off. The controller's descriptor is read for nothing
+# in SILS, so its nan fields do not refuse the run (SPEC.md §7.3).
+
+schema = "adcs-scenario/1"
+id = "detumble_3u"
+label = "3U detumble from separation with coils only"
+case = "ais_3u"                 # plan/cases/ais_3u.csv — the default; --case replaces it
+
+families = ["mtq", "mtq_rw", "mtq_fmr", "mtq_fmr_rcs"]   # the families this template can verify; the solver runs it for any product of these
+
+[configuration]
+product = "SYN-P-3U-MTQ"                 # catalogue/products/SYN-P-3U-MTQ.toml: parts, counts, mounts, algorithms
+
+[time]
+epoch = "case:mission.epoch"        # years after J2000, from the case
+duration_s = 22800.0               # four orbits: the three a detumble requirement allows, plus one to see the hold
+dynamics_step_s = 0.01
+fsw_rate_hz = 2.0                  # B-dot duty: measure, then drive, never both (read window)
+
+[orbit]                            # the orbit is the case's, never restated here
+altitude_km = "case:orbit.alt"
+inclination_deg = "case:orbit.inc"
+eccentricity = "case:orbit.ecc"
+ltan_h = "case:orbit.ltan"
+propagator = "j2"
+
+[initial]
+attitude = { kind = "random", seed_stream = "attitude" }
+rate_body_rad_s = { kind = "random_direction", magnitude_deg_s = "case:mission.w0" }
+
+[environment]
+magnetic_field = { model = "igrf14", degree = 10 }
+atmosphere = { model = "atmos-density", activity = "epoch-mean" }
+gravity_gradient = true
+aerodynamic = true
+solar_pressure = true
+residual_dipole = true
+eclipse = "conical"
+
+[fsw]
+build = "reference"
+mode_sequence = [ { t_s = 0.0, mode = "detumble" } ]
+
+[[metric]]
+id = "detumble_time"
+kind = "time_to_rate"
+rate_threshold_deg_s = 0.5
+hold_s = 600.0                     # below the threshold and staying there for 10 minutes
+requirement = "p3k_0"
+evidence = "p3a_0"
+analysis = "gq_0"
+
+[output]
+rate_hz = 2.0
+channels = ["t", "w_true", "b_meas", "m_cmd", "mode"]

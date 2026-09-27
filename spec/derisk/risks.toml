@@ -1,0 +1,321 @@
+# The risk register (adcs-risk-register/1). SPEC.md §5.13.
+#
+# WHAT THIS FILE IS. Every risk the platform carries, one [[risk]] each, with
+# its level now and every move of that level. The layer-1 risk rows
+# (mgt_risk_management) are counted from this file and derisk/beliefs/ by
+# `cargo xtask derisk rollup`; a node form never sets them.
+#
+# THE RULES (tools/derisk.py check, and `cargo xtask derisk check` in CI):
+# * A level moves only through a belief record (derisk/beliefs/<id>.toml),
+#   and the move is written in both places: the belief's [[move]] tables and
+#   this risk's `history`, with the same quarter, from, to and belief id.
+# * A level goes DOWN only when the belief that moves it was tested: its
+#   status is `held` or `broke`, and `tested` says what was done. Nothing is
+#   lowered by argument, by review or by time passing.
+# * A level may go UP at any time, by any belief, tested or not. Bad news is
+#   recorded the day it is known, never saved for a meeting.
+# * Level 0 means closed. A closed risk stays in the file.
+# * `owner` is a team (SPEC.md §5.9), never a person.
+#
+# THE LEVELS here are PROPOSED by the planning package that wrote this file,
+# from SPEC.md §21 as it stood. None is the result of a test. Decision D26
+# confirms the scale and every starting level at P1; until then each history
+# entry says "proposed".
+
+schema = "adcs-risk-register/1"
+
+[[level]]
+n = 1
+name = "negligible"
+meaning = "if it happens, one run is repeated"
+
+[[level]]
+n = 2
+name = "minor"
+meaning = "if it happens, one node needs a new version"
+
+[[level]]
+n = 3
+name = "significant"
+meaning = "if it happens, a release is withdrawn or a quote is redone"
+
+[[level]]
+n = 4
+name = "major"
+meaning = "if it happens, a result already delivered, or a certificate, is in doubt"
+
+[[level]]
+n = 5
+name = "critical"
+meaning = "if it happens, delivery stops, or something leaves that must not"
+
+[[area]]
+id = "node"
+label = "nodes"
+covers = "the tree: which nodes exist, what each one is, how they connect"
+
+[[area]]
+id = "input"
+label = "case inputs"
+covers = "the case CSV, its format, and what a run reads from it"
+
+[[area]]
+id = "output"
+label = "outputs and results"
+covers = "result documents, certificates, exports, what leaves the company"
+
+[[area]]
+id = "model"
+label = "models"
+covers = "the plant, the environment, the rig, and how far each stands in for orbit"
+
+[[area]]
+id = "math"
+label = "maths"
+covers = "the relations in adcs-core::physics and the assumptions under them"
+
+[[area]]
+id = "algorithm"
+label = "algorithms"
+covers = "estimation, control, tuning, the solver and the designer"
+
+[[area]]
+id = "visualisation"
+label = "visualisation"
+covers = "every page a person reads: forms, results, the library, the manuals"
+
+# ------------------------------------------------------------------ risks ---
+
+[[risk]]
+id = "R-01"
+title = "The tree is mostly unwritten"
+area = "node"
+owner = "systems"
+why = "Most sheets need a person's form; the seed content covers the pilot thread and the risk branch only."
+done = "Fill by thread, not by subsystem. The node library marks what is written; xtask ready counts what remains."
+closing_test = "xtask ready reports every node a release's product reads as specified, and a product built on them passes its campaign"
+level = 4
+opened = "Q3-26"
+closed = ""
+history = [{ quarter = "Q3-26", from = 0, to = 4, belief = "", note = "entered from SPEC.md §21 at planning; level proposed, D26 confirms" }]
+
+[[risk]]
+id = "R-02"
+title = "Requests arrive faster than the developer team can take them"
+area = "node"
+owner = "systems"
+why = "Every change goes through one team."
+done = "The checker does the first reading in seconds; the brief bounds implementation; the inbox shows the queue."
+closing_test = "two consecutive quarters in which the median request goes from 'received' to 'released' within one release cycle"
+level = 3
+opened = "Q3-26"
+closed = ""
+history = [{ quarter = "Q3-26", from = 0, to = 3, belief = "", note = "entered from SPEC.md §21 at planning; level proposed, D26 confirms" }]
+
+[[risk]]
+id = "R-03"
+title = "A request is complete but wrong"
+area = "math"
+owner = "gnc"
+why = "The checker proves consistency, not truth."
+done = "'Checked by' makes the judgement a named person's; test vectors come from cited pages; an unconfirmed relation runs as UNCONFIRMED."
+closing_test = "every node a released product reads is confirmed by a person and carries at least one test vector from a cited page"
+level = 4
+opened = "Q3-26"
+closed = ""
+history = [{ quarter = "Q3-26", from = 0, to = 4, belief = "", note = "entered from SPEC.md §21 at planning; level proposed, D26 confirms" }]
+
+[[risk]]
+id = "R-04"
+title = "The IDMAS parts are mostly unmeasured"
+area = "model"
+owner = "actuators"
+why = "Pump efficiency, friction curves, mass and power are 'nan' in IDMAS v2 §16."
+done = "Every result that reads them carries low credibility until the bench measures them."
+closing_test = "bench measurements of each IDMAS part's unmeasured fields, recorded in the part files with their reports"
+level = 4
+opened = "Q3-26"
+closed = ""
+history = [{ quarter = "Q3-26", from = 0, to = 4, belief = "", note = "entered from SPEC.md §21 at planning; level proposed, D26 confirms" }]
+
+[[risk]]
+id = "R-05"
+title = "A PC is not a hard real-time target"
+area = "model"
+owner = "avionics"
+why = "1 kHz over UDP on commodity hardware can jitter."
+done = "Measure at commissioning (SPEC.md §12.3); move the plant to the PolarFire SoC if it cannot hold."
+closing_test = "the commissioning run records deadline misses per hour below the facility's allowance for the whole of a campaign"
+level = 3
+opened = "Q3-26"
+closed = ""
+history = [{ quarter = "Q3-26", from = 0, to = 3, belief = "", note = "entered from SPEC.md §21 at planning; level proposed, D26 confirms" }]
+
+[[risk]]
+id = "R-06"
+title = "An air bearing is not orbit"
+area = "model"
+owner = "verification"
+why = "Its residual torque exceeds a CubeSat's orbital disturbances."
+done = "HILS is compared with the lab twin, never with the orbit run (SPEC.md §12.6); adcs rig fit refuses a HILS campaign whose bearing, cage or stimulators fall short of what the case needs (SPEC.md §12.10)."
+closing_test = "a HILS campaign and its lab twin agree within D23's tolerances on every metric the certificate states"
+level = 3
+opened = "Q3-26"
+closed = ""
+history = [{ quarter = "Q3-26", from = 0, to = 3, belief = "", note = "entered from SPEC.md §21 at planning; level proposed, D26 confirms" }]
+
+[[risk]]
+id = "R-07"
+title = "Customer flight code keeps hidden state"
+area = "algorithm"
+owner = "avionics"
+why = "C statics break repeatability across runs."
+done = "The init-twice test (SPEC.md §9.6) refuses such a build by name."
+closing_test = "the init-twice test passes on every customer build a campaign runs"
+level = 3
+opened = "Q3-26"
+closed = ""
+history = [{ quarter = "Q3-26", from = 0, to = 3, belief = "", note = "entered from SPEC.md §21 at planning; level proposed, D26 confirms" }]
+
+[[risk]]
+id = "R-08"
+title = "Intellectual property leaves through the browser or an FMU"
+area = "output"
+owner = "quality"
+why = "VLEO's WASM ships the whole kernel (F3); an FMU is native code."
+done = "F3 is fixed; FMUs run only in a sandbox (SPEC.md §15.6); restricted content is excluded by test (SPEC.md §14.6)."
+closing_test = "the restricted-content test passes on every artefact a release publishes, and D20's external review finds no route out"
+level = 4
+opened = "Q3-26"
+closed = ""
+history = [{ quarter = "Q3-26", from = 0, to = 4, belief = "", note = "entered from SPEC.md §21 at planning; level proposed, D26 confirms" }]
+
+[[risk]]
+id = "R-09"
+title = "Synthetic or demonstration numbers reach a client as evidence"
+area = "output"
+owner = "quality"
+why = "Round test values look plausible."
+done = "SYN-* naming, the status rule, InputPedigree 0, a CI refusal (SPEC.md §7.3); demo results are marked at the top and never evidence."
+closing_test = "the CI refusal and the result viewer's demo banner are shown, by test, to stop every synthetic path the release has"
+level = 5
+opened = "Q3-26"
+closed = ""
+history = [{ quarter = "Q3-26", from = 0, to = 5, belief = "", note = "entered from SPEC.md §21 at planning; level proposed, D26 confirms" }]
+
+[[risk]]
+id = "R-10"
+title = "The MATLAB twin drifts from the platform"
+area = "model"
+owner = "gnc"
+why = "Two implementations of one engine diverge unless something checks them."
+done = "One set of definitions, exported; every SILS element written in both engines in the same change from P1, as plan/twin_map.toml lists them, and the twin job refusing a one-sided change (SPEC.md §10.8.7); the same fixtures and draws; the matlab-parity job on every push."
+closing_test = "matlab-parity green on every push for a whole quarter, with every ledger line explained by a person"
+level = 3
+opened = "Q3-26"
+closed = ""
+history = [{ quarter = "Q3-26", from = 0, to = 3, belief = "", note = "entered from SPEC.md §21 at planning; level proposed, D26 confirms" }]
+
+[[risk]]
+id = "R-11"
+title = "Tuning fits the case, not the physics"
+area = "algorithm"
+owner = "gnc"
+why = "A search over gains finds whatever the plant model rewards."
+done = "Tune on nominal plus edge corners; confirm with a Monte Carlo never tuned on (SPEC.md §8.5)."
+closing_test = "a tuned product's HILS result agrees with its confirming Monte Carlo within D23's tolerances"
+level = 4
+opened = "Q3-26"
+closed = ""
+history = [{ quarter = "Q3-26", from = 0, to = 4, belief = "", note = "entered from SPEC.md §21 at planning; level proposed, D26 confirms" }]
+
+[[risk]]
+id = "R-12"
+title = "The design sweep explodes"
+area = "algorithm"
+owner = "systems"
+why = "Parts x counts x families grows as a product."
+done = "Screening prunes before SILS; keep caps what is saved; the sweep's size is printed first."
+closing_test = "the largest design job of a quarter finishes inside its stated budget"
+level = 2
+opened = "Q3-26"
+closed = ""
+history = [{ quarter = "Q3-26", from = 0, to = 2, belief = "", note = "entered from SPEC.md §21 at planning; level proposed, D26 confirms" }]
+
+[[risk]]
+id = "R-13"
+title = "A case CSV is read two ways"
+area = "input"
+owner = "systems"
+why = "A portal form and a file upload drift apart."
+done = "One importer, adcs-case; the case editor writes a CSV; the format is generated from the tree and checked in CI."
+closing_test = "every face (web, workbench, MATLAB, portal) imports the reference cases to the same case hash"
+level = 3
+opened = "Q3-26"
+closed = ""
+history = [{ quarter = "Q3-26", from = 0, to = 3, belief = "", note = "entered from SPEC.md §21 at planning; level proposed, D26 confirms" }]
+
+[[risk]]
+id = "R-14"
+title = "Tenant data leaks from the multi-tenant portal"
+area = "output"
+owner = "quality"
+why = "A tenant data leak is the costliest defect a portal can have."
+done = "The isolation suite on every route and role; D20 before the first client."
+closing_test = "D20's external review and the isolation suite both pass before the first client's project is opened"
+level = 5
+opened = "Q3-26"
+closed = ""
+history = [{ quarter = "Q3-26", from = 0, to = 5, belief = "", note = "entered from SPEC.md §21 at planning; level proposed, D26 confirms" }]
+
+[[risk]]
+id = "R-15"
+title = "Pointing-budget contributors are not all independent and random"
+area = "math"
+owner = "gnc"
+why = "The APE row adds its contributors in quadrature; a bias among them would add linearly and the budget would be optimistic."
+done = "The assumption is written on the row (gp_5) and every result that reads it says so."
+closing_test = "each contributor classified as random or bias by a person, with the classification's source, and the budget rule matched to it"
+level = 3
+opened = "Q3-26"
+closed = ""
+history = [{ quarter = "Q3-26", from = 0, to = 3, belief = "B-008", note = "opened by the belief record B-008; level proposed, D26 confirms" }]
+
+[[risk]]
+id = "R-16"
+title = "A reader takes a demonstration or unconfirmed result as evidence"
+area = "visualisation"
+owner = "quality"
+why = "A clean chart looks authoritative whatever produced it."
+done = "The result viewer states the engine and credibility in its first sentence; demo results carry a banner; UNCONFIRMED rows are named."
+closing_test = "a reader test: people who have not seen the viewer are shown a demo and a real result and asked which is evidence; every one answers right"
+level = 4
+opened = "Q3-26"
+closed = ""
+history = [{ quarter = "Q3-26", from = 0, to = 4, belief = "B-012", note = "opened by the belief record B-012; level proposed, D26 confirms" }]
+
+[[risk]]
+id = "R-17"
+title = "A template explains itself only to the person who wrote it"
+area = "visualisation"
+owner = "systems"
+why = "Every template in this package was written by its authors, who cannot see what a new reader misses."
+done = "Every template follows the explanation standard adcs-explain/1 and tools/explain_check.py checks the parts a program can see."
+closing_test = "a teach-back test per template: a new team member fills it, or reads it and explains it back, without help, and the misses are fixed"
+level = 3
+opened = "Q3-26"
+closed = ""
+history = [{ quarter = "Q3-26", from = 0, to = 3, belief = "B-013", note = "opened by the belief record B-013; level proposed, D26 confirms" }]
+
+[[risk]]
+id = "R-18"
+title = "The lab cannot meet a case's OILS or HILS needs"
+area = "model"
+owner = "verification"
+why = "A case may need a field range, a bearing torque, a truth accuracy or a stimulator the bay does not have, and a campaign booked on it would measure the lab, not the unit."
+done = "The tree computes each case's rig needs; the lab file holds the measured capabilities; adcs rig fit compares them and adcs rig arm refuses a short fit (SPEC.md §12.10)."
+closing_test = "adcs rig fit passes for the reference cases on hils_bay1 with every line measured"
+level = 3
+opened = "Q3-26"
+closed = ""
+history = [{ quarter = "Q3-26", from = 0, to = 3, belief = "B-016", note = "opened by the belief record B-016; level proposed, D26 confirms" }]

@@ -1,0 +1,10 @@
+schema = "adcs-campaign/1"
+id = "detumble_rate_sweep"
+scenario = "detumble_3u"
+type = "sweep"
+what = "Detumble time against the separation rate, from 1 to 30 degrees per second, inside m1_5's declared domain."
+parameter = "case:mission.w0"   # a sweep may vary a case input; the case file itself is never changed
+from = 1.0
+to = 30.0
+points = 30
+repeats_per_point = 20             # random direction per repeat, seeded

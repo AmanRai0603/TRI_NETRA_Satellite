@@ -1,0 +1,49 @@
+# TRI-NETRA 3U imaging: fine pointing (0.01 deg) with three reaction wheels,
+# star tracker and a precision MEMS gyro, coils for detumble and momentum dumping.
+# Two star-tracker heads, boresights canted +/-25 deg from zenith (-Y_B) toward
+# +/-Z_B (the orbit-normal sides). In the LTAN 10:00 orbit the Sun passes
+# within 24 deg of zenith once per orbit -- inside a single zenith head's
+# 30 deg exclusion cone (the SILS showed a 580 s dropout per orbit). With two
+# canted heads one is always clear of the Sun; when both are valid the MEKF
+# fuses them and each head's weak roll axis is observed by the other.
+# The tracker-to-payload alignment is calibrated in orbit (star/landmark
+# calibration): residual 1e-5 rad per axis replaces the part's pre-flight
+# bias / mount dispersion (st_calibrated_residual_rad).
+schema = "adcs-product/1"
+id = "TRN-P-3U-IMG"
+label = "3U imaging — 3 RW + ST + GYRO + MTQ + MAG + CSS + GNSS"
+family = "mtq_rw"
+classes = ["cubesat_3u"]
+status = "candidate"
+origin = "seeded"
+source = "synthetic_test_parts"
+algorithms = ["bdot", "mekf", "pd_alloc"]
+counts = { n_mtq = 3, n_rw = 3, n_st = 2, n_gyro = 1, n_sun = 6 }
+payload_boresight_body = [0.0, 1.0, 0.0]   # camera line of sight
+
+[[fill]]
+slot = "coils"
+part = "SYN-CT-1"
+axes_body = [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]]
+[[fill]]
+slot = "wheels"
+part = "SYN-RW-10"
+axes_body = [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]]
+[[fill]]
+slot = "star_tracker"
+part = "SYN-ST-1"
+boresights_body = [[0.0, -0.9063, 0.4226], [0.0, -0.9063, -0.4226]]
+calibrated_residual_rad = 1.0e-5
+[[fill]]
+slot = "magnetometer"
+part = "SYN-MAG-1"
+[[fill]]
+slot = "sun_sensors"
+part = "SYN-SUN-1"
+normals_body = [[1.0, 0.0, 0.0], [-1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, -1.0, 0.0], [0.0, 0.0, 1.0], [0.0, 0.0, -1.0]]
+[[fill]]
+slot = "gyro"
+part = "TRN-GYRO-P1"          # precision MEMS: the SILS gyro trade, docs/RESULTS.md
+[[fill]]
+slot = "gnss"
+part = "TRN-GPS-1"

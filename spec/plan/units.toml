@@ -1,0 +1,797 @@
+# The units and quantities a node may declare (SPEC.md §6.1).
+#
+# The first part is VLEO_SIMULATOR's vleo-units at abf79ee (unit.rs `units!`, quantity.rs
+# QUANTITIES), copied; the part marked origin = "adcs" is §6.1's additions. In the built
+# repository the registry is adcs-units itself and this file is not read; here it is what
+# the form pick-lists and tools/intake.py check a node form against.
+#
+# `quantity` lists the quantities a unit may express. Dimension alone is not enough:
+# Degree and One are both dimensionless, and an angle declared as a ratio is a fault.
+# Every quantity SPEC.md §6.1 adds has at least one unit; tools/validate_plan.py checks it.
+
+[[quantity]]
+name = "Acceleration"
+origin = "vleo"
+
+[[quantity]]
+name = "Angle"
+origin = "vleo"
+
+[[quantity]]
+name = "AngularMomentum"
+origin = "vleo"
+
+[[quantity]]
+name = "AngularRate"
+origin = "vleo"
+
+[[quantity]]
+name = "Area"
+origin = "vleo"
+
+[[quantity]]
+name = "Charge"
+origin = "vleo"
+
+[[quantity]]
+name = "Current"
+origin = "vleo"
+
+[[quantity]]
+name = "DataRate"
+origin = "vleo"
+
+[[quantity]]
+name = "DataVolume"
+origin = "vleo"
+
+[[quantity]]
+name = "DipoleMoment"
+origin = "vleo"
+
+[[quantity]]
+name = "Energy"
+origin = "vleo"
+
+[[quantity]]
+name = "Force"
+origin = "vleo"
+
+[[quantity]]
+name = "Frequency"
+origin = "vleo"
+
+[[quantity]]
+name = "Impulse"
+origin = "vleo"
+
+[[quantity]]
+name = "Irradiance"
+origin = "vleo"
+
+[[quantity]]
+name = "Length"
+origin = "vleo"
+
+[[quantity]]
+name = "MagneticFluxDensity"
+origin = "vleo"
+
+[[quantity]]
+name = "Mass"
+origin = "vleo"
+
+[[quantity]]
+name = "MassDensity"
+origin = "vleo"
+
+[[quantity]]
+name = "MassFlow"
+origin = "vleo"
+
+[[quantity]]
+name = "MassFlux"
+origin = "vleo"
+
+[[quantity]]
+name = "MolarMass"
+origin = "vleo"
+
+[[quantity]]
+name = "Money"
+origin = "vleo"
+
+[[quantity]]
+name = "NumberDensity"
+origin = "vleo"
+
+[[quantity]]
+name = "Power"
+origin = "vleo"
+
+[[quantity]]
+name = "Pressure"
+origin = "vleo"
+
+[[quantity]]
+name = "Ratio"
+origin = "vleo"
+
+[[quantity]]
+name = "Temperature"
+origin = "vleo"
+
+[[quantity]]
+name = "Time"
+origin = "vleo"
+
+[[quantity]]
+name = "Torque"
+origin = "vleo"
+
+[[quantity]]
+name = "Velocity"
+origin = "vleo"
+
+[[quantity]]
+name = "Voltage"
+origin = "vleo"
+
+[[quantity]]
+name = "Volume"
+origin = "vleo"
+
+[[quantity]]
+name = "MomentOfInertia"
+origin = "adcs"
+
+[[quantity]]
+name = "DynamicViscosity"
+origin = "adcs"
+
+[[quantity]]
+name = "AngularAcceleration"
+origin = "adcs"
+
+[[quantity]]
+name = "AngleRandomWalk"
+origin = "adcs"
+
+[[quantity]]
+name = "RateRandomWalk"
+origin = "adcs"
+
+[[quantity]]
+name = "RiskLevel"
+origin = "adcs"
+
+[[unit]]
+name = "One"
+symbol = "-"
+si = 1.0
+quantity = ["Ratio"]
+note = "dimensionless ratio"
+origin = "vleo"
+
+[[unit]]
+name = "Percent"
+symbol = "%"
+si = 0.01
+quantity = ["Ratio"]
+note = "per cent"
+origin = "vleo"
+
+[[unit]]
+name = "Decibel"
+symbol = "dB"
+si = 1.0
+quantity = ["Ratio"]
+note = "decibel, a logarithmic ratio"
+origin = "vleo"
+
+[[unit]]
+name = "Count"
+symbol = "#"
+si = 1.0
+quantity = ["Ratio"]
+note = "a whole number of things"
+origin = "vleo"
+
+[[unit]]
+name = "Bit"
+symbol = "bit"
+si = 1.0
+quantity = ["DataVolume"]
+note = "one bit"
+origin = "vleo"
+
+[[unit]]
+name = "Metre"
+symbol = "m"
+si = 1.0
+quantity = ["Length"]
+note = "metre"
+origin = "vleo"
+
+[[unit]]
+name = "Kilometre"
+symbol = "km"
+si = 1000.0
+quantity = ["Length"]
+note = "kilometre"
+origin = "vleo"
+
+[[unit]]
+name = "Micrometre"
+symbol = "um"
+si = 1e-06
+quantity = ["Length"]
+note = "micrometre"
+origin = "vleo"
+
+[[unit]]
+name = "Nanometre"
+symbol = "nm"
+si = 1e-09
+quantity = ["Length"]
+note = "nanometre"
+origin = "vleo"
+
+[[unit]]
+name = "SquareMetre"
+symbol = "m^2"
+si = 1.0
+quantity = ["Area"]
+note = "square metre"
+origin = "vleo"
+
+[[unit]]
+name = "CubicMetre"
+symbol = "m^3"
+si = 1.0
+quantity = ["Volume"]
+note = "cubic metre"
+origin = "vleo"
+
+[[unit]]
+name = "Kilogram"
+symbol = "kg"
+si = 1.0
+quantity = ["Mass"]
+note = "kilogram"
+origin = "vleo"
+
+[[unit]]
+name = "Gram"
+symbol = "g"
+si = 0.001
+quantity = ["Mass"]
+note = "gram"
+origin = "vleo"
+
+[[unit]]
+name = "KgPerMol"
+symbol = "kg/mol"
+si = 1.0
+quantity = ["MolarMass"]
+note = "molar mass"
+origin = "vleo"
+
+[[unit]]
+name = "Second"
+symbol = "s"
+si = 1.0
+quantity = ["Time"]
+note = "second"
+origin = "vleo"
+
+[[unit]]
+name = "Minute"
+symbol = "min"
+si = 60.0
+quantity = ["Time"]
+note = "minute"
+origin = "vleo"
+
+[[unit]]
+name = "Hour"
+symbol = "h"
+si = 3600.0
+quantity = ["Time"]
+note = "hour"
+origin = "vleo"
+
+[[unit]]
+name = "Day"
+symbol = "d"
+si = 86400.0
+quantity = ["Time"]
+note = "day"
+origin = "vleo"
+
+[[unit]]
+name = "Year"
+symbol = "yr"
+si = 31557600.0
+quantity = ["Time"]
+note = "Julian year"
+origin = "vleo"
+
+[[unit]]
+name = "MetrePerSecond"
+symbol = "m/s"
+si = 1.0
+quantity = ["Velocity"]
+note = "metre per second"
+origin = "vleo"
+
+[[unit]]
+name = "KmPerSecond"
+symbol = "km/s"
+si = 1000.0
+quantity = ["Velocity"]
+note = "kilometre per second"
+origin = "vleo"
+
+[[unit]]
+name = "MetrePerSecond2"
+symbol = "m/s^2"
+si = 1.0
+quantity = ["Acceleration"]
+note = "metre per second squared"
+origin = "vleo"
+
+[[unit]]
+name = "KgPerSecond"
+symbol = "kg/s"
+si = 1.0
+quantity = ["MassFlow"]
+note = "mass flow"
+origin = "vleo"
+
+[[unit]]
+name = "MgPerSecond"
+symbol = "mg/s"
+si = 1e-06
+quantity = ["MassFlow"]
+note = "milligram per second"
+origin = "vleo"
+
+[[unit]]
+name = "KgPerCubicMetre"
+symbol = "kg/m^3"
+si = 1.0
+quantity = ["MassDensity"]
+note = "mass density"
+origin = "vleo"
+
+[[unit]]
+name = "PerCubicMetre"
+symbol = "1/m^3"
+si = 1.0
+quantity = ["NumberDensity"]
+note = "number density"
+origin = "vleo"
+
+[[unit]]
+name = "Newton"
+symbol = "N"
+si = 1.0
+quantity = ["Force"]
+note = "newton"
+origin = "vleo"
+
+[[unit]]
+name = "Millinewton"
+symbol = "mN"
+si = 0.001
+quantity = ["Force"]
+note = "millinewton"
+origin = "vleo"
+
+[[unit]]
+name = "Micronewton"
+symbol = "uN"
+si = 1e-06
+quantity = ["Force"]
+note = "micronewton"
+origin = "vleo"
+
+[[unit]]
+name = "NewtonMetre"
+symbol = "N.m"
+si = 1.0
+quantity = ["Torque"]
+note = "torque"
+origin = "vleo"
+
+[[unit]]
+name = "NewtonSecond"
+symbol = "N.s"
+si = 1.0
+quantity = ["Impulse"]
+note = "impulse"
+origin = "vleo"
+
+[[unit]]
+name = "NewtonMetreSecond"
+symbol = "N.m.s"
+si = 1.0
+quantity = ["AngularMomentum"]
+note = "angular momentum"
+origin = "vleo"
+
+[[unit]]
+name = "Pascal"
+symbol = "Pa"
+si = 1.0
+quantity = ["Pressure"]
+note = "pascal"
+origin = "vleo"
+
+[[unit]]
+name = "Joule"
+symbol = "J"
+si = 1.0
+quantity = ["Energy"]
+note = "joule"
+origin = "vleo"
+
+[[unit]]
+name = "WattHour"
+symbol = "Wh"
+si = 3600.0
+quantity = ["Energy"]
+note = "watt-hour"
+origin = "vleo"
+
+[[unit]]
+name = "Watt"
+symbol = "W"
+si = 1.0
+quantity = ["Power"]
+note = "watt"
+origin = "vleo"
+
+[[unit]]
+name = "Kilowatt"
+symbol = "kW"
+si = 1000.0
+quantity = ["Power"]
+note = "kilowatt"
+origin = "vleo"
+
+[[unit]]
+name = "WattPerSquareMetre"
+symbol = "W/m^2"
+si = 1.0
+quantity = ["Irradiance"]
+note = "irradiance"
+origin = "vleo"
+
+[[unit]]
+name = "Kelvin"
+symbol = "K"
+si = 1.0
+quantity = ["Temperature"]
+note = "kelvin"
+origin = "vleo"
+
+[[unit]]
+name = "Radian"
+symbol = "rad"
+si = 1.0
+quantity = ["Angle"]
+note = "radian"
+origin = "vleo"
+
+[[unit]]
+name = "Degree"
+symbol = "deg"
+si = 0.017453292519943295
+quantity = ["Angle"]
+note = "degree"
+origin = "vleo"
+
+[[unit]]
+name = "RadianPerSecond"
+symbol = "rad/s"
+si = 1.0
+quantity = ["AngularRate"]
+note = "angular rate"
+origin = "vleo"
+
+[[unit]]
+name = "DegreePerSecond"
+symbol = "deg/s"
+si = 0.017453292519943295
+quantity = ["AngularRate"]
+note = "degree per second"
+origin = "vleo"
+
+[[unit]]
+name = "DegreePerDay"
+symbol = "deg/d"
+si = 2.019133393046672e-07
+quantity = ["AngularRate"]
+note = "degree per day"
+origin = "vleo"
+
+[[unit]]
+name = "Arcsecond"
+symbol = "arcsec"
+si = 4.84813681109536e-06
+quantity = ["Angle"]
+note = "arcsecond"
+origin = "vleo"
+
+[[unit]]
+name = "Volt"
+symbol = "V"
+si = 1.0
+quantity = ["Voltage"]
+note = "volt"
+origin = "vleo"
+
+[[unit]]
+name = "Ampere"
+symbol = "A"
+si = 1.0
+quantity = ["Current"]
+note = "ampere"
+origin = "vleo"
+
+[[unit]]
+name = "AmpereHour"
+symbol = "Ah"
+si = 3600.0
+quantity = ["Charge"]
+note = "ampere-hour"
+origin = "vleo"
+
+[[unit]]
+name = "Tesla"
+symbol = "T"
+si = 1.0
+quantity = ["MagneticFluxDensity"]
+note = "tesla"
+origin = "vleo"
+
+[[unit]]
+name = "AmpereSquareMetre"
+symbol = "A.m^2"
+si = 1.0
+quantity = ["DipoleMoment"]
+note = "magnetic dipole moment"
+origin = "vleo"
+
+[[unit]]
+name = "Coulomb"
+symbol = "C"
+si = 1.0
+quantity = ["Charge"]
+note = "coulomb"
+origin = "vleo"
+
+[[unit]]
+name = "ElectronVolt"
+symbol = "eV"
+si = 1.602176634e-19
+quantity = ["Energy"]
+note = "electronvolt"
+origin = "vleo"
+
+[[unit]]
+name = "Hertz"
+symbol = "Hz"
+si = 1.0
+quantity = ["Frequency"]
+note = "hertz"
+origin = "vleo"
+
+[[unit]]
+name = "Megahertz"
+symbol = "MHz"
+si = 1000000.0
+quantity = ["Frequency"]
+note = "megahertz"
+origin = "vleo"
+
+[[unit]]
+name = "Gigahertz"
+symbol = "GHz"
+si = 1000000000.0
+quantity = ["Frequency"]
+note = "gigahertz"
+origin = "vleo"
+
+[[unit]]
+name = "BitPerSecond"
+symbol = "bit/s"
+si = 1.0
+quantity = ["DataRate"]
+note = "bit per second"
+origin = "vleo"
+
+[[unit]]
+name = "MegabitPerSecond"
+symbol = "Mbit/s"
+si = 1000000.0
+quantity = ["DataRate"]
+note = "megabit per second"
+origin = "vleo"
+
+[[unit]]
+name = "Gigabit"
+symbol = "Gbit"
+si = 1000000000.0
+quantity = ["DataVolume"]
+note = "gigabit"
+origin = "vleo"
+
+[[unit]]
+name = "Gigabyte"
+symbol = "GB"
+si = 8000000000.0
+quantity = ["DataVolume"]
+note = "gigabyte, as bits"
+origin = "vleo"
+
+[[unit]]
+name = "UsDollar"
+symbol = "USD"
+si = 1.0
+quantity = ["Money"]
+note = "United States dollar"
+origin = "vleo"
+
+[[unit]]
+name = "MillionUsDollar"
+symbol = "MUSD"
+si = 1000000.0
+quantity = ["Money"]
+note = "million United States dollars"
+origin = "vleo"
+
+[[unit]]
+name = "KilogramSquareMetre"
+symbol = "kg.m^2"
+si = 1.0
+quantity = ["MomentOfInertia"]
+note = "moment of inertia"
+origin = "adcs"
+
+[[unit]]
+name = "PascalSecond"
+symbol = "Pa.s"
+si = 1.0
+quantity = ["DynamicViscosity"]
+note = "dynamic viscosity"
+origin = "adcs"
+
+[[unit]]
+name = "MillipascalSecond"
+symbol = "mPa.s"
+si = 0.001
+quantity = ["DynamicViscosity"]
+note = "dynamic viscosity"
+origin = "adcs"
+
+[[unit]]
+name = "Millimetre"
+symbol = "mm"
+si = 0.001
+quantity = ["Length"]
+note = "millimetre, ring bore"
+origin = "adcs"
+
+[[unit]]
+name = "Microtesla"
+symbol = "uT"
+si = 1e-06
+quantity = ["MagneticFluxDensity"]
+note = "microtesla"
+origin = "adcs"
+
+[[unit]]
+name = "Nanotesla"
+symbol = "nT"
+si = 1e-09
+quantity = ["MagneticFluxDensity"]
+note = "nanotesla"
+origin = "adcs"
+
+[[unit]]
+name = "MicronewtonMetre"
+symbol = "uN.m"
+si = 1e-06
+quantity = ["Torque"]
+note = "disturbance torque"
+origin = "adcs"
+
+[[unit]]
+name = "MillinewtonMetre"
+symbol = "mN.m"
+si = 0.001
+quantity = ["Torque"]
+note = "actuator torque"
+origin = "adcs"
+
+[[unit]]
+name = "MillinewtonMetreSecond"
+symbol = "mN.m.s"
+si = 0.001
+quantity = ["AngularMomentum"]
+note = "ring and wheel momentum"
+origin = "adcs"
+
+[[unit]]
+name = "Milliwatt"
+symbol = "mW"
+si = 0.001
+quantity = ["Power"]
+note = "holding power"
+origin = "adcs"
+
+[[unit]]
+name = "Kilopascal"
+symbol = "kPa"
+si = 1000.0
+quantity = ["Pressure"]
+note = "pump pressure"
+origin = "adcs"
+
+[[unit]]
+name = "Litre"
+symbol = "L"
+si = 0.001
+quantity = ["Volume"]
+note = "volume allocated to the ADCS"
+origin = "adcs"
+
+[[unit]]
+name = "DegreePerHour"
+symbol = "deg/h"
+si = 4.84813681109536e-06
+quantity = ["AngularRate"]
+note = "gyro bias"
+origin = "adcs"
+
+[[unit]]
+name = "DegreePerSqrtHour"
+symbol = "deg/sqrt(h)"
+si = 0.0002908882086657216
+quantity = ["AngleRandomWalk"]
+note = "gyro angle random walk"
+origin = "adcs"
+
+[[unit]]
+name = "RadianPerSecond2"
+symbol = "rad/s^2"
+si = 1.0
+quantity = ["AngularAcceleration"]
+note = "angular acceleration"
+origin = "adcs"
+
+[[unit]]
+name = "IndianRupee"
+symbol = "INR"
+si = 1.0
+quantity = ["Money"]
+note = "Indian rupee; the currency convention is D13"
+origin = "adcs"
+[[unit]]
+name = "DegreePerHourSqrtHour"
+symbol = "deg/h/sqrt(h)"
+si = 8.080228018492267e-08
+quantity = ["RateRandomWalk"]
+note = "gyro rate random walk"
+origin = "adcs"
+
+[[unit]]
+name = "RiskLevel"
+symbol = "L"
+si = 1.0
+quantity = ["RiskLevel"]
+note = "risk level: 0 none open, 1 negligible to 5 would stop delivery; ordinal, compared and maxed, never added (SPEC.md §5.13)"
+origin = "adcs"

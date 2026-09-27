@@ -1,0 +1,32 @@
+# Precision MEMS rate gyro for the fine-pointing (imaging) 3U. The SILS trade
+# (docs/RESULTS.md, "gyro trade") showed that the SYN-GYRO-1 angular random
+# walk (5e-5 rad/sqrt(s), 0.17 deg/sqrt(h)) leaves ~0.02 deg 3-sigma of
+# pointing jitter through the rate loop; 1e-5 rad/sqrt(s) (0.034 deg/sqrt(h),
+# the class of a CRH03-type 3U gyro) brings it under 0.01 deg.
+# Synthetic: tests only.
+part_number = "TRN-GYRO-P1"
+kind = "gyro"
+name = "Precision MEMS gyro (0.034 deg/sqrt(h) class) — tests only"
+status = "synthetic"
+source = "sils_trade_study"
+families = ["mtq_rw"]
+made = "bought"
+descriptor_version = 1
+
+[nominal]
+arw_rad_per_sqrt_s = 1.0e-5
+rrw_rad_per_s_sqrt_s = 5.0e-8
+bias_instability_rad_s = 1.0e-6
+range_rad_s = 5.0
+rate_Hz = 100.0
+mass_kg = 0.06
+power_W = 0.3
+
+[dispersion]
+bias_rad_s = { dist = "normal", mean = 0.0, sigma = 2.0e-5 }
+scale_factor = { dist = "normal", mean = 1.0, sigma = 0.001 }
+axis_misalignment_rad = { dist = "normal", mean = 0.0, sigma = 0.001 }
+
+[interface]
+bus = "spi"
+eeprom = []

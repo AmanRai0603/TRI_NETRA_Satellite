@@ -1,0 +1,33 @@
+# Imaging 3U end-to-end: tumble -> B-dot -> automatic switch to wheel nadir hold.
+schema = "adcs-scenario/1"
+id = "mission_img"
+label = "3U imaging — integrated chain: detumble then fine nadir hold"
+case = "ais_img_3u"
+product = "TRN-P-3U-IMG"
+[time]
+duration_s = 17220.0
+dt_s = 0.1
+record_dt_s = 1.0
+[initial]
+attitude = { kind = "random" }
+rate = { kind = "random_direction", magnitude_deg_s = "case:mission.w0" }
+[fsw]
+start_mode = "detumble"
+auto_next = "nadir_rw"
+detumble_exit_deg_s = 0.5
+detumble_hold_s = 60.0
+guidance = { kind = "nadir" }
+rw_bandwidth = 0.9
+rw_damping = 0.9
+[[metrics]]
+id = "detumble_time"
+kind = "time_to_rate"
+rate_threshold_deg_s = 0.5
+hold_s = 600.0
+requirement = "req.detumble"
+[[metrics]]
+id = "ape_los_last_half_orbit_p9973"
+kind = "ape_los"
+window = "last_half_orbit"
+statistic = "p99.73"
+requirement = "req.ape"

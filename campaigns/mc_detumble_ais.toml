@@ -1,0 +1,33 @@
+schema = "adcs-campaign/1"
+id = "mc_detumble_ais"
+scenario = "detumble_ais"
+case = "ais_3u"
+type = "montecarlo"
+what = "B-dot detumble of the AIS 3U across inertia, dipole, CM, flux and initial-rate dispersions"
+runs = 24
+duration_s = 11480.0           # two orbits (window: last orbit)
+seed = 20260927
+[[dispersions]]
+kind = "inertia"
+frac = 0.10
+[[dispersions]]
+kind = "mass"
+frac = 0.03
+[[dispersions]]
+kind = "residual_dipole"
+lo = 0.5
+hi = 2.0
+[[dispersions]]
+kind = "cm_offset"
+lo = 0.5
+hi = 1.5
+[[dispersions]]
+kind = "solar_flux"
+lo = 70.0
+hi = 220.0
+[[dispersions]]
+kind = "initial_rate_deg_s"
+lo = 5.0
+hi = 15.0
+[[dispersions]]
+kind = "arg_lat_deg"

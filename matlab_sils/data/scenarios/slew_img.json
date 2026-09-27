@@ -1,0 +1,60 @@
+{
+ "case": "ais_img_3u",
+ "fsw": {
+  "guidance": {
+   "T_s": 60.0,
+   "kind": "slew",
+   "roll_deg": 30.0,
+   "t0": 200.0
+  },
+  "rw_bandwidth": 0.9,
+  "rw_damping": 0.9,
+  "start_mode": "slew_rw"
+ },
+ "id": "slew_img",
+ "initial": {
+  "attitude": {
+   "angle_deg": 0.5,
+   "axis_body": [
+    0.577,
+    0.577,
+    0.577
+   ],
+   "kind": "error_from_target"
+  },
+  "rate": {
+   "kind": "lvlh"
+  }
+ },
+ "label": "3U imaging \u2014 30 deg target slew in 60 s and settle",
+ "metrics": [
+  {
+   "channel": "ape_los",
+   "from_s": 260.0,
+   "hold_s": 30.0,
+   "id": "settle_time_after_slew",
+   "kind": "time_to_threshold",
+   "requirement": "req.settle",
+   "threshold_deg": 0.01
+  },
+  {
+   "id": "ape_los_on_target_p9973",
+   "kind": "ape_los",
+   "requirement": "req.ape",
+   "statistic": "p99.73",
+   "window": "after_s:320"
+  },
+  {
+   "id": "wheel_momentum_peak",
+   "kind": "wheel_momentum_peak",
+   "window": "all"
+  }
+ ],
+ "product": "TRN-P-3U-IMG",
+ "schema": "adcs-scenario/1",
+ "time": {
+  "dt_s": 0.1,
+  "duration_s": 600.0,
+  "record_dt_s": 0.1
+ }
+}

@@ -1,0 +1,29 @@
+# Torque rods for IDMAS V3 large buses (IDMAS v2 §04 "Coil layer: ... torque
+# rods on large buses"; §08.1 "rods" for 150 and 500 kg). The coils are the
+# safety floor in every family, so V3 carries them too.
+part_number = "IDM-TR-150"
+kind = "torque_rod"
+name = "Torque rod, 150 kg class"
+status = "placeholder"
+source = "idmas_v2"
+families = ["mtq_fmr_rcs"]
+made = "in-house"
+descriptor_version = 1
+
+[nominal]
+dipole_max_Am2 = nan
+dipole_per_amp_Am2_per_A = nan
+current_max_A = nan
+resistance_ohm = nan
+residual_dipole_Am2 = nan
+mass_kg = nan
+power_at_max_W = nan
+
+[dispersion]
+dipole_scale = { dist = "normal", mean = 1.0, sigma = nan }
+axis_misalignment_rad = { dist = "normal", mean = 0.0, sigma = nan }
+residual_dipole_Am2 = { dist = "uniform", lo = nan, hi = nan }
+
+[interface]
+bus = "can"
+eeprom = ["dipole_per_amp_Am2_per_A", "residual_dipole_Am2"]

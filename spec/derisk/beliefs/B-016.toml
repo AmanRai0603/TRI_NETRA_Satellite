@@ -1,0 +1,23 @@
+schema = "adcs-belief/1"
+id = "B-016"
+quarter = "Q3-26"
+area = "model"
+about = ["sys_oils_rig_needs", "sys_hils_rig_needs", "mgt_oils_rig", "mgt_magnetic_field_simulator", "mgt_air_bearing_platform", "mgt_optical_and_rf_stimulators", "mgt_actuator_test_stands", "mgt_rig_safety_and_power", "rig/labs"]
+request = ""
+version = ""
+recorded_by = "planning package"
+believed = "The OILS and HILS needs the tree computes from a case, compared with the lab file's measured capabilities, are enough to decide whether a rig campaign can be run for that case."
+status = "untested"
+tested = ""
+now_know = "The needs are rows with no content yet, and the real bay has no measured value. The facility figures follow the literature (Schwartz 2003, da Silva 2019, ASTM E927, Zhao 2024, Colagrossi 2023), but which of them decide a campaign's outcome is not known until one is run."
+cost_k = ""
+plan_change = "Layer 2 gains OILS rig needs (v3) and HILS rig needs (v4); layer 1's facility rows are read from the lab file by the lab supplier; adcs rig fit compares the two and adcs rig arm refuses a short fit (SPEC.md §12.10)."
+previous_issue = ""
+benefit = "A case says what testing its unit will demand before any rig time is booked, and the quote can name a facility shortfall."
+would_test = "The first HILS campaign on hils_bay1 whose fit passed: if the parity ledger's cause for its difference from the lab twin names a lab property no fit line covers, this belief breaks and the need rows grow."
+risks = ["R-18"]
+
+[[move]]
+risk = "R-18"
+from = 0
+to = 3

@@ -1,0 +1,9 @@
+# regenerable run outputs (re-run the scenario to reproduce them)
+matlab_sils/store/results/**/channels.csv
+matlab_sils/store/results/**/rec.mat
+matlab_sils/store/results/**/run_*.mat
+matlab_sils/store/logs/
+# POP download caches
+matlab_sils/pop/data_cache/
+*.asv
+__pycache__/

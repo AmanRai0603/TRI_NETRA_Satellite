@@ -1,0 +1,217 @@
+# The 22 KPIs, each closed twice (SPEC.md §5.5).
+#
+# requirement  the tree row a customer writes (declared, with `sense`)
+# evidence     the achieved row only a campaign can supply (an evidence row)
+# analysis     the system-layer row that answers the KPI by analysis, or "none"
+#              when no honest closed-form relation exists at system level.
+#              This is the ANSWER, which is narrower than a contribution edge:
+#              tree.json's KE edges say which variables feed a KPI (coverage),
+#              and several KPIs with analysis = "none" still have them.
+# metric       the metric kind a campaign computes for the evidence row (§10.3);
+#              "inspection_*" rows are closed by weighing or measuring a unit,
+#              not by a campaign.
+# sense        the sense a requirement on this KPI is normally written in. The
+#              written requirement's own `sense` is what the closure uses.
+# slug         the closure rows are kpi_<slug>_analysis and kpi_<slug>_verified.
+#
+# `xtask draft` reads this file: when it writes a requirement row it also writes
+# that KPI's two closures (the analysis one only when `analysis` is not "none"),
+# as VLEO's KPI() does, with the hole's Sense read from the requirement.
+
+[[kpi]]
+requirement = "p1k_0"
+evidence = "p1a_0"
+analysis = "gp_5"
+metric = "ape"
+sense = "<="
+slug = "absolute_pointing_error_ape"
+label = "Absolute pointing error (APE)"
+
+[[kpi]]
+requirement = "p1k_1"
+evidence = "p1a_1"
+analysis = "ge_5"
+metric = "ake"
+sense = "<="
+slug = "absolute_knowledge_error_ake"
+label = "Absolute knowledge error (AKE)"
+
+[[kpi]]
+requirement = "p1k_2"
+evidence = "p1a_2"
+analysis = "gp_4"
+metric = "rpe"
+sense = "<="
+slug = "relative_pointing_error_rpe"
+label = "Relative pointing error (RPE)"
+
+[[kpi]]
+requirement = "p1k_3"
+evidence = "p1a_3"
+analysis = "gp_3"
+metric = "pde"
+sense = "<="
+slug = "pointing_drift_error_pde"
+label = "Pointing drift error (PDE)"
+
+[[kpi]]
+requirement = "p1k_4"
+evidence = "p1a_4"
+analysis = "none"
+metric = "rate_stability"
+sense = "<="
+slug = "rate_stability"
+label = "Rate stability"
+
+[[kpi]]
+requirement = "p1k_5"
+evidence = "p1a_5"
+analysis = "none"
+metric = "rke"
+sense = "<="
+slug = "relative_knowledge_error_rke"
+label = "Relative knowledge error (RKE)"
+
+[[kpi]]
+requirement = "p2k_0"
+evidence = "p2a_0"
+analysis = "gc_5"
+metric = "slew_time"
+sense = "<="
+slug = "reference_slew_time"
+label = "Reference slew time"
+
+[[kpi]]
+requirement = "p2k_1"
+evidence = "p2a_1"
+analysis = "gc_2"
+metric = "settling_time"
+sense = "<="
+slug = "settling_time_after_a_slew"
+label = "Settling time after a slew"
+
+[[kpi]]
+requirement = "p2k_2"
+evidence = "p2a_2"
+analysis = "none"
+metric = "slews_per_orbit"
+sense = ">="
+slug = "slews_per_orbit"
+label = "Slews per orbit"
+
+[[kpi]]
+requirement = "p2k_3"
+evidence = "p2a_3"
+analysis = "none"
+metric = "tracking_rate"
+sense = ">="
+slug = "target_tracking_rate"
+label = "Target-tracking rate"
+
+[[kpi]]
+requirement = "p2k_4"
+evidence = "p2a_4"
+analysis = "none"
+metric = "max_rate"
+sense = ">="
+slug = "maximum_body_rate"
+label = "Maximum body rate"
+
+[[kpi]]
+requirement = "p3k_0"
+evidence = "p3a_0"
+analysis = "gq_0"
+metric = "time_to_rate"
+sense = "<="
+slug = "detumble_time"
+label = "Detumble time"
+
+[[kpi]]
+requirement = "p3k_1"
+evidence = "p3a_1"
+analysis = "gq_1"
+metric = "sun_acquisition"
+sense = "<="
+slug = "sun_acquisition_time_in_safe_mode"
+label = "Sun-acquisition time in safe mode"
+
+[[kpi]]
+requirement = "p3k_2"
+evidence = "p3a_2"
+analysis = "gq_2"
+metric = "faults_survived"
+sense = ">="
+slug = "faults_tolerated"
+label = "Faults tolerated"
+
+[[kpi]]
+requirement = "p3k_3"
+evidence = "p3a_3"
+analysis = "gq_3"
+metric = "recovery_time"
+sense = "<="
+slug = "recovery_time_after_a_single_fault"
+label = "Recovery time after a single fault"
+
+[[kpi]]
+requirement = "p3k_4"
+evidence = "p3a_4"
+analysis = "none"
+metric = "momentum_margin"
+sense = ">="
+slug = "momentum_saturation_margin"
+label = "Momentum saturation margin"
+
+[[kpi]]
+requirement = "p3k_5"
+evidence = "p3a_5"
+analysis = "gq_4"
+metric = "dump_interval"
+sense = ">="
+slug = "momentum_dump_interval"
+label = "Momentum dump interval"
+
+[[kpi]]
+requirement = "p4k_0"
+evidence = "p4a_0"
+analysis = "gb_0"
+metric = "inspection_mass"
+sense = "<="
+slug = "adcs_mass"
+label = "ADCS mass"
+
+[[kpi]]
+requirement = "p4k_1"
+evidence = "p4a_1"
+analysis = "gb_1"
+metric = "power"
+sense = "<="
+slug = "adcs_orbit_average_power"
+label = "ADCS orbit-average power"
+
+[[kpi]]
+requirement = "p4k_2"
+evidence = "p4a_2"
+analysis = "gb_2"
+metric = "power_peak"
+sense = "<="
+slug = "adcs_peak_power"
+label = "ADCS peak power"
+
+[[kpi]]
+requirement = "p4k_3"
+evidence = "p4a_3"
+analysis = "gb_3"
+metric = "inspection_volume"
+sense = "<="
+slug = "adcs_volume"
+label = "ADCS volume"
+
+[[kpi]]
+requirement = "p4k_4"
+evidence = "p4a_4"
+analysis = "gr_4"
+metric = "consumable_per_year"
+sense = "<="
+slug = "rcs_propellant_per_year"
+label = "RCS propellant per year"

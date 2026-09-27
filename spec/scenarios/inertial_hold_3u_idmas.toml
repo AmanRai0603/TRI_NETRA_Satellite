@@ -1,0 +1,103 @@
+# A scenario: everything one simulated run needs, and nothing a campaign adds.
+# Campaigns (campaigns/*.toml) derive every run type from this one file —
+# nominal, edge, Monte Carlo, sweep, fault, lab twin — so the template is
+# written once and every rung (SILS, PIL, OILS, HILS) reads the same file.
+#
+# The IDMAS v2 §13 case flying the real IDMAS parts, IDM-MFP-3U and IDM-CT-3U.
+# Today it is REFUSED by name: their resistance, time constant, pump efficiency,
+# mass and dispersions are nan until the bench (IDMAS v2 §16 P1) measures them.
+# That refusal is this scenario's expected result (SPEC.md §19 P3). When the
+# parts are measured it runs unchanged, and its parity line joins the synthetic
+# pilot's (inertial_hold_3u) in the ledger.
+
+schema = "adcs-scenario/1"
+id = "inertial_hold_3u_idmas"
+label = "3U inertial hold from a 30 degree error, flying the IDMAS parts — expected refusal until the bench measures them"
+case = "ais_img_3u"                 # plan/cases/ais_img_3u.csv — the default; --case replaces it
+
+families = ["mtq_fmr"]   # the families this template can verify; the solver runs it for any product of these
+
+[configuration]
+product = "IDM-P-3U-FMR"                 # catalogue/products/IDM-P-3U-FMR.toml: parts, counts, mounts, algorithms
+
+[time]
+epoch = "case:mission.epoch"        # years after J2000, from the case
+duration_s = 11400.0               # two orbits at the reference case's 500 km
+dynamics_step_s = 0.01             # RK4 plant step; ring spin-down is 0.75 s
+fsw_rate_hz = 10.0                 # the flight code's tick; sensors run at their descriptor rates
+
+[orbit]                            # the orbit is the case's, never restated here
+altitude_km = "case:orbit.alt"
+inclination_deg = "case:orbit.inc"
+eccentricity = "case:orbit.ecc"
+ltan_h = "case:orbit.ltan"
+propagator = "j2"
+
+[initial]
+attitude = { kind = "error_from_target", angle_deg = 30.0, axis_body = [0.577, 0.577, 0.577] }
+rate_body_rad_s = [0.0, 0.0, 0.0]
+ring_speed_m_s = 0.0               # every ring fitted, whatever the product's count
+
+[environment]
+magnetic_field = { model = "igrf14", degree = 10 }
+atmosphere = { model = "atmos-density", activity = "epoch-mean" }
+gravity_gradient = true
+aerodynamic = true
+solar_pressure = true
+residual_dipole = true
+eclipse = "conical"
+
+[fsw]
+build = "reference"                # fsw/ in this repository; a customer build is named by its hash
+mode_sequence = [ { t_s = 0.0, mode = "inertial_hold", target = { frame = "eci", quaternion = [1.0, 0.0, 0.0, 0.0] } } ]
+
+# The model errors IDMAS v2 §13 ran with: 10-30 % errors in the feed-forward,
+# the friction model 20 % low, pump efficiency assumed 10 %.
+[model_errors]
+feedforward_scale = { dist = "uniform", lo = 0.7, hi = 0.9 }
+friction_model_scale = 0.8
+pump_efficiency = 0.10
+
+[[metric]]
+id = "ape_last_half_orbit"
+kind = "ape"                       # ECSS-E-ST-60-10C absolute pointing error
+window = "last_half_orbit"
+statistic = "max"                  # temporal maximum within the window
+requirement = "p1k_0"              # tree id of the requirement it is judged against
+evidence = "p1a_0"                 # tree id of the achieved row it supplies
+analysis = "gp_5"                  # the analytic row it is compared with in the parity ledger
+
+[[metric]]
+id = "rms_last_half_orbit"
+kind = "pointing_rms"
+window = "last_half_orbit"
+
+[[metric]]
+id = "time_to_0p1_deg"
+kind = "time_to_threshold"
+threshold_deg = 0.1
+
+[[metric]]
+id = "ring_momentum_peak"
+kind = "actuator_peak"
+channel = "h_ring"
+
+[[metric]]
+id = "ring_power"
+kind = "actuator_power"
+statistics = ["mean", "max"]
+
+[output]
+rate_hz = 10.0
+channels = ["t", "q_true", "q_est", "q_err_deg", "w_true", "w_est", "b_true", "b_meas", "m_cmd", "h_ring", "ring_power", "mode", "faults"]
+
+# Published IDMAS v2 §13 results (MATLAB simulation, marked [M] there). Parity
+# reference only: differences are recorded with their size and cause.
+[parity_reference]
+source = "idmas_v2"
+time_to_0p1_deg_s = 210.0
+rms_last_half_orbit_deg = 0.044
+max_last_half_orbit_deg = 0.072
+ring_momentum_peak_Nms = 1.8e-4
+ring_power_mean_W = 6.0e-5
+ring_power_max_W = 3.1e-3

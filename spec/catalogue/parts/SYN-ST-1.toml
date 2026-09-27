@@ -1,0 +1,30 @@
+# SYNTHETIC star tracker — tests only. The in-house optical suite replaces it
+# with its own descriptor when its head is characterised.
+part_number = "SYN-ST-1"
+kind = "star_tracker"
+name = "Synthetic star tracker head — tests only"
+status = "synthetic"
+source = "synthetic_test_parts"
+families = ["mtq", "mtq_rw", "mtq_fmr", "mtq_fmr_rcs"]
+made = "bought"
+descriptor_version = 1
+
+[nominal]
+noise_cross_rad = 2.4e-5
+noise_roll_rad = 1.9e-4
+rate_Hz = 5.0
+latency_s = 0.1
+max_rate_rad_s = 0.017
+sun_exclusion_rad = 0.52
+earth_exclusion_rad = 0.35
+fov_half_angle_rad = 0.17
+mass_kg = 0.3
+power_W = 1.0
+
+[dispersion]
+bias_rad = { dist = "normal", mean = 0.0, sigma = 5.0e-5 }
+axis_misalignment_rad = { dist = "normal", mean = 0.0, sigma = 1.0e-4 }
+
+[interface]
+bus = "rs422"
+eeprom = []

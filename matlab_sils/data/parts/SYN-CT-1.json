@@ -1,0 +1,39 @@
+{
+ "descriptor_version": 1,
+ "dispersion": {
+  "axis_misalignment_rad": {
+   "dist": "normal",
+   "mean": 0.0,
+   "sigma": 0.005
+  },
+  "dipole_scale": {
+   "dist": "normal",
+   "mean": 1.0,
+   "sigma": 0.02
+  }
+ },
+ "families": [
+  "mtq",
+  "mtq_rw",
+  "mtq_fmr"
+ ],
+ "interface": {
+  "bus": "pwm",
+  "eeprom": []
+ },
+ "kind": "coil_tile",
+ "made": "in-house",
+ "name": "Synthetic PWM-driven coil, 3U class \u2014 tests only",
+ "nominal": {
+  "current_max_A": 0.1,
+  "dipole_max_Am2": 0.45,
+  "dipole_per_amp_Am2_per_A": 4.5,
+  "mass_kg": 0.03,
+  "power_at_max_W": 0.3,
+  "resistance_ohm": 30.0,
+  "time_constant_s": 0.005
+ },
+ "part_number": "SYN-CT-1",
+ "source": "synthetic_test_parts",
+ "status": "synthetic"
+}

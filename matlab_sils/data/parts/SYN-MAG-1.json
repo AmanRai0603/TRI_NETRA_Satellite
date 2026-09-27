@@ -1,0 +1,44 @@
+{
+ "descriptor_version": 1,
+ "dispersion": {
+  "axis_misalignment_rad": {
+   "dist": "normal",
+   "mean": 0.0,
+   "sigma": 0.002
+  },
+  "bias_T": {
+   "dist": "normal",
+   "mean": 0.0,
+   "sigma": 5e-07
+  },
+  "scale_factor": {
+   "dist": "normal",
+   "mean": 1.0,
+   "sigma": 0.005
+  }
+ },
+ "families": [
+  "mtq",
+  "mtq_rw",
+  "mtq_fmr",
+  "mtq_fmr_rcs"
+ ],
+ "interface": {
+  "bus": "i2c",
+  "eeprom": []
+ },
+ "kind": "magnetometer",
+ "made": "bought",
+ "name": "Synthetic three-axis magnetometer \u2014 tests only",
+ "nominal": {
+  "bias_T": 5e-07,
+  "mass_kg": 0.02,
+  "noise_T_rms": 1e-07,
+  "power_W": 0.1,
+  "range_T": 0.0001,
+  "rate_Hz": 10.0
+ },
+ "part_number": "SYN-MAG-1",
+ "source": "synthetic_test_parts",
+ "status": "synthetic"
+}
