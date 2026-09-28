@@ -282,6 +282,11 @@ def open_items():
             items.append(f"<b>{e(c)}</b>: the selected <code>{e(sel['selected'])}</code> leaves " + e("; ".join(sel["families"][sel["selected"]]["gaps"])) +
                          ". Either the case relaxes these (several are marked UNCONFIRMED in the case file) or the next design lever is needed.")
     notes = [
+        "Soft OILS finding: bang-bang B-dot (detumble_ais_bangbang) detumbles in 32 min in SILS but, with the OBC's 2-8 ms command latency, "
+        "settles into a 0.7-1.0 deg/s limit cycle and never holds below 0.5 deg/s. The proportional B-dot laws are unaffected. Keep the "
+        "proportional law as the flight default, or add a dead band / latency compensation to the bang-bang law before OILS.",
+        "Soft OILS knife edges (verdict flips, not trends): agile_slew_vscmg APE 0.01008 vs 0.00997 deg against 0.01 deg; sun_spin_ais "
+        "entry time (the known sign-flip lock-up, which the latency happens to avoid in this seed).",
         "Fine hold (imaging 3U): rate stability p99.73 is ~3.7e-3 deg/s against 1e-3 deg/s in every configuration and every campaign "
         "(MATLAB and engine alike): a requirement/controller-bandwidth conflict to resolve before OILS.",
         "Fluid-loop field power: the 2 W electromagnet pump dominates the power of our FMR families; the permanent-magnet yoke removes it "

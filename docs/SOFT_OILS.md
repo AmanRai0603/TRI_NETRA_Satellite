@@ -65,3 +65,14 @@ On a real OBC, the same flight software and the same link server run behind a bo
 script, modelled on `fsw/targets/qemu-mps2/main.c`. The engine then connects with
 `--fsw tcp:<host:port>` (or a serial-to-TCP bridge) and `--realtime`. The comparison against SILS
 and against soft OILS is the same ledger.
+
+## What the matrix found
+
+- Soft OILS matches SILS on 104 of 107 requirement verdicts over the 40 scenarios. The worst OBC load
+  is 6.8 % of the control period (VSCMG steering, ~0.92 M instructions per step), with no overrun
+  anywhere (`results/SOFT_OILS.md`).
+- **Bang-bang B-dot does not survive the latency.** It detumbles in 32 min in SILS. With the OBC's
+  2–8 ms command delay it settles into a 0.7–1.0 deg/s limit cycle, so it never holds below
+  0.5 deg/s. The proportional laws are unaffected. This is exactly the kind of result SILS cannot show.
+- The other two flips are knife edges: `agile_slew_vscmg` APE (0.01008 vs 0.00997 deg against
+  0.01 deg), and the known Sun-spin sign-flip lock-up, which the latency happens to avoid in this seed.
