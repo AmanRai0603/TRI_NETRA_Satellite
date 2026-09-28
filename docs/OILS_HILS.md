@@ -77,7 +77,20 @@ DTM2020 density, co-rotating atmosphere, Earth albedo for the cosine sun
 sensors. At HILS these are *commands* to the stimulators instead of inputs to
 sensor models; nothing else changes.
 
-## 5. Bring-up order
+## 5. Component levels and the dispatch package
+
+Every unit runs at one of three levels. At `model`, its statistics only. At `chain`, its own
+processing is in the loop: `+asils/+comp`, for example the star tracker's image → centroid →
+identify → QUEST. At `hil`, the real unit is on the HAL link. Its HAL frame is the same at every
+level, so one unit can move up a level at a time.
+
+`asils.solution.dispatch(case)` writes what the OBC build needs for the recommended solution into
+`dist/dispatch/<case>/<family>/`:
+- `adcs_fsw_params.h`: the flight parameters the SILS flew;
+- `modes.json`: per-mode methods and algorithms;
+- `hal_map.json`: each fitted component, its HAL output and its chain.
+
+## 6. Bring-up order
 
 1. `loopback` on every scenario — the byte frames are right.
 2. OILS with the flight OBC running the C flight software behind `adcs_hal.h`,

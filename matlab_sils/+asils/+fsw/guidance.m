@@ -9,6 +9,12 @@ function [q_ref, w_ref, wd_ref] = guidance(kind, r, v, t, gd)
 %             cycloidal profile of duration gd.T_s starting at gd.t0 (zero rate
 %             and acceleration at both ends), tracked in the rotating frame.
 %   'inertial' fixed gd.q_inertial.
+%   'sun'     three-axis Sun referencing: the power face gd.sun_axis (body,
+%             default -Z) on the Sun (gd.sun_eci, unit, ECI -- the caller's Sun
+%             model), and gd.roll_axis (body, default the payload boresight
+%             made normal to the power face) on the orbit normal projected
+%             across the Sun line. The Sun line moves ~1 deg/day, so the
+%             reference is an inertial hold: w_ref = 0.
 %   w_ref: orbit rate of the LVLH frame (r x v / |r|^2) expressed in the reference frame.
     rh = r/norm(r); vh = v/norm(v);
     nrm = asils.util.cross3(vh, -rh); nrm = nrm/norm(nrm);
@@ -42,7 +48,25 @@ function [q_ref, w_ref, wd_ref] = guidance(kind, r, v, t, gd)
             wd_ref = ax_*ph*sdd;
         case 'inertial'
             q_ref = gd.q_inertial; w_ref = zeros(3,1);
+        case 'sun'
+            q_ref = sun_ref_(gd, nrm); w_ref = zeros(3,1);
         otherwise
             error('asils:fsw:guidance', 'unknown guidance %s', kind);
     end
+end
+
+function q = sun_ref_(gd, nrm)
+%SUN_REF_  Reference attitude for Sun referencing (see 'sun' above).
+    a = [0; 0; -1]; if isfield(gd, 'sun_axis'), a = gd.sun_axis(:)/norm(gd.sun_axis); end
+    b = [1; 0; 0]; if isfield(gd, 'roll_axis'), b = gd.roll_axis(:); end
+    b = b - (a'*b)*a;
+    if norm(b) < 1e-6, b = [0; 1; 0] - a(2)*a; end
+    b = b/norm(b);
+    s = gd.sun_eci(:)/norm(gd.sun_eci);
+    e2 = nrm - (nrm'*s)*s;
+    if norm(e2) < 1e-6, e2 = [0; 0; 1] - s(3)*s; end    % Sun on the orbit normal: any roll
+    e2 = e2/norm(e2);
+    Bm = [a, b, asils.util.cross3(a, b)];
+    Em = [s, e2, asils.util.cross3(s, e2)];
+    q = asils.quat.fromdcm(Bm*Em');                      % R (ECI -> body): R*s = a, R*e2 = b
 end

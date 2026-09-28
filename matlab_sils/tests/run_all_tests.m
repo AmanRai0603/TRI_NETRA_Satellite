@@ -5,7 +5,8 @@ function ok = run_all_tests()
 %   Copyright (c) 2026 Agastya. All rights reserved.
     T = {@t_quat, @t_kinematics, @t_sso, @t_case, @t_igrf, @t_shadow, ...
          @t_torques, @t_plant_conservation, @t_cmg_plant, @t_mekf, @t_quest, @t_lqr, ...
-         @t_fmr_spin_down, @t_cmg_steering, @t_hal_loopback, @t_select, @t_gen_bdot, @t_sun_spin_law, @t_orbit_vs_pop, @t_short_runs};
+         @t_fmr_spin_down, @t_cmg_steering, @t_hal_loopback, @t_select, @t_gen_bdot, @t_sun_spin_law, @t_sun_guidance, @t_sun_model, @t_st_chain, @t_sun_chain, @t_es_chain, ...
+         @t_sizing, @t_modes_table, @t_orbit_vs_pop, @t_short_runs};
     n = 0;
     for i = 1:numel(T)
         name = func2str(T{i});
@@ -239,4 +240,95 @@ function m = t_sun_spin_law()
     assert(worst <= 1e-20, 'A.m0 = %.2e > 0', worst);
     assert(~any(asils.fsw.sun_spin([1e-5;0;0], [0;0;0.1], [0;0;-1], true, J, g)), 'E1 eclipse');
     m = sprintf('max A.m0 = %.1e over 200 draws; E1 coils off', worst);
+end
+
+function m = t_sun_guidance()
+%T_SUN_GUIDANCE  Sun referencing puts the power face on the Sun and the roll
+%   axis on the orbit normal projected across the Sun line.
+    gd = struct('sun_axis', [0;0;-1], 'roll_axis', [0;1;0], 'sun_eci', [0.3;0.9;0.2]);
+    r = [7e6;0;0]; v = [0;7.5e3;0];
+    R = asils.quat.dcm(asils.fsw.guidance('sun', r, v, 0, gd));
+    s = gd.sun_eci/norm(gd.sun_eci); n = cross(r, v); n = n/norm(n); e = n - (n'*s)*s; e = e/norm(e);
+    e1 = acosd(min(1, [0 0 -1]*R*s)); e2 = acosd(min(1, [0 1 0]*R*e));
+    assert(e1 < 1e-6 && e2 < 1e-6, 'Sun %.2e deg, roll %.2e deg', e1, e2);
+    m = sprintf('power face on the Sun %.0e deg, roll axis %.0e deg', e1, e2);
+end
+
+function m = t_sun_model()
+%T_SUN_MODEL  The onboard Sun (precessed to J2000) agrees with DE440 to 0.01 deg.
+    P = asils.config('fine_hold_img', 'cases/ais_img_3u.csv'); O = asils.orbit.init(P);
+    X = asils.orbit.context(O, 0); [r, ~] = asils.orbit.state(O, 0);
+    s = X.sun_eci - r; e = acosd(asils.fsw.sun_model(asils.util.jd(P.epoch_utc))'*s/norm(s));
+    assert(e < 0.01, 'onboard Sun off by %.4f deg', e);
+    m = sprintf('onboard Sun vs DE440 %.4f deg', e);
+end
+
+function m = t_st_chain()
+%T_ST_CHAIN  Star-tracker component chain on rendered frames: every frame
+%   solved, the attitude within 60 arcsec (3-axis, roll included).
+    rand('seed', 3); randn('seed', 3);
+    cat = asils.devices.star_catalogue(4000); cam = asils.comp.star_tracker.camera(0.17);
+    K = asils.comp.star_tracker.pairs(cat, cam.fov); K.R_head_nominal = eye(3);
+    E = zeros(1, 8);
+    for k = 1:8
+        q = asils.quat.norm(randn(4,1));
+        [qm, ok] = asils.comp.star_tracker.chain(q, eye(3), cat, K, cam);
+        assert(ok, 'frame %d not solved', k);
+        E(k) = asils.quat.angle(q, qm)*180/pi*3600;
+    end
+    assert(max(E) < 60, 'worst frame %.1f arcsec', max(E));
+    m = sprintf('8/8 frames solved, median %.1f arcsec, worst %.1f arcsec', median(E), max(E));
+end
+
+function m = t_sun_chain()
+%T_SUN_CHAIN  Quadrant Sun sensor: currents -> angles within 0.5 deg over +/-30 deg.
+    p = asils.comp.sun_sensor.head(); p.noise = 0; E = [];
+    for a = -30:10:30
+        for b = -30:15:30
+            s = [tand(a); tand(b); 1]; s = s/norm(s);
+            [sh, ok] = asils.comp.sun_sensor.angles(asils.comp.sun_sensor.currents(s, p), p);
+            assert(ok, 'no Sun at %g, %g', a, b); E(end+1) = acosd(min(1, s'*sh)); %#ok<AGROW>
+        end
+    end
+    assert(max(E) < 0.5, 'worst %.3f deg', max(E));
+    m = sprintf('noise-free worst %.2e deg over +/-30 deg', max(E));
+end
+
+function m = t_es_chain()
+%T_ES_CHAIN  Earth sensor: limb points -> horizon fit recovers nadir within the
+%   unit's 0.25 deg (SYN-ES-1) with 0.1 deg noise per limb crossing.
+    p = asils.comp.earth_sensor.head(); randn('seed', 5);
+    rho = asin(6378.137/6928.137); E = zeros(1, 20);
+    for k = 1:20
+        n = [0.3*randn; 0.3*randn; 1]; n = n/norm(n);
+        [nm, ok] = asils.comp.earth_sensor.horizon(asils.comp.earth_sensor.limb(n, rho, p), rho);
+        assert(ok, 'no horizon'); E(k) = acosd(min(1, n'*nm));
+    end
+    assert(max(E) < 0.25, 'worst %.3f deg', max(E));
+    m = sprintf('20 attitudes, worst nadir error %.3f deg', max(E));
+end
+
+function m = t_sizing()
+%T_SIZING  The sizing laws reproduce their anchor parts at the anchor demand.
+    Dm = struct('h_req', 0.01, 'tau_req', 0.001);
+    w = asils.sizing.rw(Dm, 'test');
+    assert(abs(w.nominal.mass_kg - 0.15)/0.15 < 0.05 && abs(w.nominal.rotor_inertia_kgm2 - 1.6e-5)/1.6e-5 < 0.05, 'RW anchor');
+    Dm.h_req = 0.008; c = asils.sizing.cmg(Dm, 'test', false);
+    assert(abs(c.nominal.mass_kg - 0.12)/0.12 < 0.05, 'CMG anchor %.3f', c.nominal.mass_kg);
+    Dm.h_req = 1e-3; f = asils.sizing.fmr(Dm, 'test');
+    assert(f{2}.nominal.h_max_Nms >= 1e-3 && f{2}.nominal.field_power_W > 1, 'FMR');
+    m = sprintf('RW %.3f kg, CMG %.3f kg, FMR-Y %.1f W with field', w.nominal.mass_kg, c.nominal.mass_kg, f{2}.nominal.power_steady_W);
+end
+
+function m = t_modes_table()
+%T_MODES_TABLE  Every mission mode option names a controller state the FSW has.
+    T = asils.fsw.modes(); n = 0;
+    for id = asils.solution.mode()
+        M = asils.solution.mode(id{1});
+        for i = 1:numel(M.options)
+            assert(any(strcmp(T.state, M.options{i}.fsw_mode)), '%s/%s: unknown state %s', id{1}, M.options{i}.id, M.options{i}.fsw_mode);
+            n = n + 1;
+        end
+    end
+    m = sprintf('%d options over %d modes map to FSW states', n, numel(asils.solution.mode()));
 end

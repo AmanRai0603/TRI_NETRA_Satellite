@@ -12,6 +12,7 @@ function [tau_B, mdot, P_W, on_s] = rcs(duty, D, r, T)
     on_s(D.failed) = 0;
     f = on_s/T;
     tau_B = D.tau_couple*(f(:).*D.tscale(:));
-    mdot = sum(f.*D.tscale)*2*r.thrust_N/(r.isp_s*9.80665);
+    isp = r.isp_s; if isfield(D, 'isp'), isp = D.isp; end
+    mdot = sum(f.*D.tscale)*2*r.thrust_N/(isp*9.80665);
     P_W = r.valve_power_W*sum(on_s > 0);
 end

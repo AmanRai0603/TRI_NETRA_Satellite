@@ -1,0 +1,22 @@
+{
+ "chain": [
+  {
+   "file": "matlab_sils/+asils/+devices/mex.m",
+   "node": "torque_loop",
+   "status": "baseline",
+   "what": "torque command with friction compensation (benchmark: bought unit's own driver)"
+  }
+ ],
+ "hal_output": "wheel torque command (int16 Q15) / tach",
+ "id": "reaction_wheel",
+ "in_house": "benchmark",
+ "kind": "actuator",
+ "levels": [
+  "model (default)"
+ ],
+ "model": "matlab_sils/+asils/+devices/mex.m",
+ "parts": [
+  "SYN-RW-10"
+ ],
+ "schema": "adcs-component/1"
+}

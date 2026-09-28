@@ -12,6 +12,6 @@
  "number": 20,
  "prototype": true,
  "schema": "adcs-algorithm/1",
- "slot": "sun_spin",
+ "slot": "sun_acquisition",
  "source": "Standard Code ctrl.spinupTick + ctrl.sunSpin; He et al. 2023; theory doc sec. 4-7"
 }

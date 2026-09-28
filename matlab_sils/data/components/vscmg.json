@@ -1,0 +1,22 @@
+{
+ "chain": [
+  {
+   "file": "matlab_sils/+asils/+devices/mex.m",
+   "node": "gimbal_wheel_loop",
+   "status": "baseline",
+   "what": "gimbal rate + rotor torque loops (benchmark)"
+  }
+ ],
+ "hal_output": "gimbal rate + wheel torque commands",
+ "id": "vscmg",
+ "in_house": "benchmark",
+ "kind": "actuator",
+ "levels": [
+  "model (default)"
+ ],
+ "model": "matlab_sils/+asils/+devices/mex.m",
+ "parts": [
+  "TRN-VSCMG-1"
+ ],
+ "schema": "adcs-component/1"
+}

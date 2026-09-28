@@ -19,9 +19,19 @@ def octave(code, log):
     with open(log, "w") as f:
         return subprocess.run(cmd, cwd=ROOT, stdout=f, stderr=subprocess.STDOUT).returncode
 
+def orbit_period(case):
+    """Orbit period [s] from the case's altitude (circular)."""
+    import csv, math
+    with open(ROOT / "cases" / f"{case}.csv") as f:
+        alt = next(float(r["value"]) for r in csv.DictReader(f) if r["key"] == "orbit.alt")
+    return 2 * math.pi * math.sqrt((6378137 + alt * 1e3) ** 3 / 3.986004418e14)
+
+
 def main():
     ap = argparse.ArgumentParser(); ap.add_argument("--workers", type=int, default=4)
-    ap.add_argument("--only", default="all"); a = ap.parse_args()
+    ap.add_argument("--only", default="all")
+    ap.add_argument("--cases", default="ais_3u,ais_img_3u", help="cases for --only solutions")
+    ap.add_argument("--seeds", default="1,2"); a = ap.parse_args()
     LOG.mkdir(parents=True, exist_ok=True)
     jobs = []
     if a.only in ("all", "scenarios"):
@@ -44,6 +54,21 @@ def main():
                 for seed in d.get("seeds", [1]):
                     k += 1
                     jobs.append((cost, f"{d['id']}:{k}", f"asils.trade.run('{d['id']}', 'jobs', {k});"))
+    if a.only == "solutions":
+        # the solution matrix: every mode x option x seed of each case (sized first)
+        seeds = [int(x) for x in a.seeds.split(",")]
+        for c in a.cases.split(","):
+            rc = octave(f"asils.sizing.size_all('{c}', struct('quiet', true));", LOG / f"size_{c}.log")
+            print(f"sized {c} rc={rc}", flush=True)
+            T = orbit_period(c)
+            k = 0
+            for mf in sorted((ROOT / "data" / "modes").glob("*.json"), key=lambda f: json.loads(f.read_text())["order"]):
+                M = json.loads(mf.read_text())
+                for o in M["options"]:
+                    cost = o.get("duration_orbits", M["test"]["duration_orbits"]) * T / o["dt_s"]
+                    for s in seeds:
+                        k += 1
+                        jobs.append((cost, f"sol:{c}:{k}", f"asils.solution.run('{c}', 'jobs', {k}, 'seeds', [{' '.join(map(str, seeds))}]);"))
     jobs.sort(key=lambda j: -j[0])
     t0 = time.time(); done = 0
     print(f"{len(jobs)} jobs on {a.workers} workers", flush=True)
@@ -61,6 +86,10 @@ def main():
         for f in sorted((ROOT / "data" / "trades").glob("*.json")):
             rc = octave(f"asils.trade.collect('{f.stem}');", LOG / f"collect_{f.stem}.log")
             print(f"collected {f.stem} rc={rc}", flush=True)
+    if a.only == "solutions":
+        for c in a.cases.split(","):
+            rc = octave(f"asils.solution.collect('{c}');", LOG / f"collect_solution_{c}.log")
+            print(f"collected solution {c} rc={rc}", flush=True)
     (LOG / "matrix.done").write_text("done\n")
 
 if __name__ == "__main__":

@@ -12,8 +12,13 @@ function [F, out] = step(F, z, t, P, D) %#ok<INUSD>
 %     3 mode manager (transitions)
 %     4 guidance -> control -> allocation (coils, momentum devices, thrusters)
 %
-%   Modes: detumble | nadir_mtq | nadir_fine | target_fine | slew_fine
-%          spinup | sun_spin   (coils-only Sun acquisition, Standard Code L1/L2)
+%   Controller states and the mission mode each serves: asils.fsw.modes
+%     detumble          detumble (coils) | detumble_rcs (thrusters)
+%     sun_acquisition   spinup + sun_spin (coils, Standard Code L1/L2) |
+%                       sun_acq_rotor (momentum devices, Sun vector)
+%     sun_referencing   sun_mtq (coils) | sun_fine (momentum devices)
+%     nadir_pointing    nadir_mtq (coils) | nadir_fine (momentum devices)
+%     (imaging)         target_fine, slew_fine
 %
 %   Which law does each job comes from the algorithm registry, resolved once
 %   at configuration (asils.fsw.select -> P.fsw.alg, laws mapped in fsw.init):
@@ -31,6 +36,7 @@ function [F, out] = step(F, z, t, P, D) %#ok<INUSD>
 
     %% 2 attitude determination -------------------------------------------
     s_ref = asils.fsw.sun_model(jd);
+    F.gd.sun_eci = s_ref;                                % Sun-referencing guidance uses the onboard model
     phase = mod(t + 1e-9, G.mtq_period);
     first = phase < dt - 1e-9;                          % start of an MTQ cycle (coils off)
     if first && ~isempty(F.r) && (t - F.t_Bref) >= 0.999
@@ -38,7 +44,7 @@ function [F, out] = step(F, z, t, P, D) %#ok<INUSD>
         C = asils.fsw.gmst_rot(jd);
         F.Bref = asils.env.field(C*F.r, C, F.gh, G.igrf_nmax); F.t_Bref = t;
     end
-    usesAD = ~any(strcmp(F.mode, {'detumble', 'spinup', 'sun_spin'}));   % the spin modes need no attitude
+    usesAD = ~any(strcmp(F.mode, {'detumble', 'detumble_rcs', 'spinup', 'sun_spin'}));   % rate-only / spin modes need no attitude
     if usesAD
         if ~F.ad_ok
             if dev.st.fitted && z.st_ok
@@ -68,6 +74,9 @@ function [F, out] = step(F, z, t, P, D) %#ok<INUSD>
                 if z.clean && first && ~isempty(F.Bref)
                     F.K = asils.fsw.mekf_vector(F.K, z.B, F.Bref, G.mekf.sig_mag);
                 end
+                if z.es_ok && first && ~isempty(F.r)             % Earth sensor: nadir vector
+                    F.K = asils.fsw.mekf_vector(F.K, z.nadir, -F.r/norm(F.r), max(dev.es.noise, 1e-3)*2);
+                end
             end
         end
     end
@@ -82,7 +91,10 @@ function [F, out] = step(F, z, t, P, D) %#ok<INUSD>
     if isempty(F.w_est) || G.rate_lpf_s <= 0, F.w_est = w_raw; else, F.w_est = F.w_est + a*(w_raw - F.w_est); end
 
     %% 3 mode manager -------------------------------------------------------
-    if strcmp(F.mode, 'detumble') && ~isempty(G.auto_next)
+    while F.sched_i <= numel(F.sched) && t >= F.sched{F.sched_i}.t_s   % commanded changes (ground / schedule)
+        F = enter_(F, F.sched{F.sched_i}.mode, t); F.sched_i = F.sched_i + 1;
+    end
+    if any(strcmp(F.mode, {'detumble', 'detumble_rcs'})) && ~isempty(G.auto_next)
         if norm(z.w) < G.detumble_exit, F.hold = F.hold + dt; else, F.hold = 0; end
         if F.hold >= G.detumble_hold_s
             F = enter_(F, G.auto_next, t);
@@ -91,6 +103,20 @@ function [F, out] = step(F, z, t, P, D) %#ok<INUSD>
     if any(strcmp(F.mode, {'spinup', 'sun_spin'}))
         [F, nxt] = spin_guards_(F, z, t, dt, G.ss);
         if ~isempty(nxt), F = enter_(F, nxt, t); end
+    end
+    if any(strcmp(F.mode, {'spinup', 'sun_spin', 'sun_acq_rotor'}))
+        % Sun vector for the acquisition laws: measured when valid, else (E2)
+        % propagated on the gyro from the last sunlit sample (ctrl.propagateSun)
+        if z.sun_ok, F.s_prop = z.sun;
+        elseif ~isempty(F.s_prop)
+            F.s_prop = asils.quat.dcm(asils.quat.fromrotvec(F.w_est*dt))*F.s_prop;
+            F.s_prop = F.s_prop/norm(F.s_prop);
+        end
+    end
+    if strcmp(F.mode, 'sun_acq_rotor') && ~isempty(G.auto_next)     % acquired -> next mode
+        ok = z.sun_ok && acosd(max(-1, min(1, z.sun'*dev.sun_axis))) < G.sa.done_deg && F.ad_ok;
+        if ok, F.acq_hold = F.acq_hold + dt; else, F.acq_hold = 0; end
+        if F.acq_hold >= G.sa.done_hold_s, F = enter_(F, G.auto_next, t); end
     end
 
     %% 4 guidance / control / commands ------------------------------------------
@@ -137,19 +163,45 @@ function [F, out] = step(F, z, t, P, D) %#ok<INUSD>
                 cmd_r = -0.2*(z.h - F.h_t_rot);
                 cmd_r(F.M.gi(:) > 0 & strcmp(dev.mex.kind(:), 'cmg')) = 0;
             end
-        case 'nadir_mtq'
+        case 'detumble_rcs'
+            % thruster rate damping: tau = -I w / T_damp (couples, MIB-aware),
+            % off inside a small deadband; coils off, rotors held at their bias
+            % thruster PWM on a 1 s cycle (a 0.1 s tick would leave every small
+            % request below the minimum impulse bit): the on-times are set at
+            % the start of the cycle and played out over its ticks
+            Tc = G.rcsd.period_s;
+            if F.nc > 0 && (isempty(F.rcs_left) || mod(t + 1e-9, Tc) < dt - 1e-9)
+                F.rcs_left = zeros(1, F.nc);
+                if norm(F.w_est) > G.rcsd.deadband_deg_s*pi/180
+                    F.tau_req = -P.sc.I*F.w_est/G.rcsd.T_damp_s;
+                    [dc, ~] = asils.fsw.rcs_duty(F.tau_req, dev.rcs, Tc);
+                    F.rcs_left = dc*Tc;
+                end
+            end
+            if F.nc > 0
+                duty = min(1, F.rcs_left/dt);
+                F.rcs_left = max(0, F.rcs_left - dt);
+            end
+            m_body = zeros(3,1);
+            if nr > 0
+                cmd_r = -0.2*(z.h - F.h_t_rot);
+                cmd_r(F.M.gi(:) > 0 & strcmp(dev.mex.kind(:), 'cmg')) = 0;
+            end
+        case {'nadir_mtq', 'sun_mtq'}
             if first
                 m_body = zeros(3,1);
             elseif abs(phase - G.mtq_meas) < dt/2 && F.ad_ok && ~isempty(F.r)
-                [F.q_ref, F.w_ref] = asils.fsw.guidance('nadir', F.r, F.v, t, F.gd);
+                [F.q_ref, F.w_ref] = asils.fsw.guidance(strrep(F.mode, '_mtq', ''), F.r, F.v, t, F.gd);
                 F = mtq_law_(F, G, P);
                 m_body = asils.fsw.torque2dipole(F.tau_req, z.B, dev.mtq.m_max) - G.m_res_est;
                 m_body = m_body*min(1, dev.mtq.m_max/max(abs(m_body)));   % residual-dipole compensation
             elseif phase < G.mtq_meas
                 m_body = zeros(3,1);
             end
-        case {'nadir_fine', 'target_fine', 'slew_fine'}
+        case {'nadir_fine', 'target_fine', 'slew_fine', 'sun_fine', 'sun_acq_rotor'}
             kind = strrep(F.mode, '_fine', '');
+            acq = strcmp(F.mode, 'sun_acq_rotor');      % Sun-vector law, no attitude solution needed
+            ctl_ok = F.ad_ok || acq;
             A = asils.plant.axes(F.M, z.delta);
             Hdev = A*z.h;
             % ---- FDIR: a fixed rotor that does not follow its command is isolated
@@ -169,10 +221,18 @@ function [F, out] = step(F, z, t, P, D) %#ok<INUSD>
                 end
             end
             % ---- control law at the control rate
-            if F.ad_ok && ~isempty(F.r) && t - F.last_ctrl >= G.rw.dt - 1e-9
+            if acq && t - F.last_ctrl >= G.rw.dt - 1e-9
+                F.tau_req = sun_acq_law_(F, z, dev.sun_axis, G.sa, P.sc.I, Hdev);
+                F.last_ctrl = t;
+            elseif F.ad_ok && ~isempty(F.r) && t - F.last_ctrl >= G.rw.dt - 1e-9
                 [qr, wr, wdr] = asils.fsw.guidance(kind, F.r, F.v, t, F.gd);
                 F.q_ref = qr; F.w_ref = wr;
-                [F.tau_req, F.I_q] = asils.fsw.control_law(F.K.q, F.w_est, F.q_ref, F.w_ref, F.I_q, G.rw.dt, G.rw, P.sc.I, Hdev, wdr);
+                [F.tau_req, F.capturing] = capture_law_(F, G, P.sc.I, Hdev);
+                if F.capturing
+                    F.I_q = zeros(3,1);            % no integral windup during the manoeuvre
+                else
+                    [F.tau_req, F.I_q] = asils.fsw.control_law(F.K.q, F.w_est, F.q_ref, F.w_ref, F.I_q, G.rw.dt, G.rw, P.sc.I, Hdev, wdr);
+                end
                 F.last_ctrl = t;
             end
             % ---- momentum management: coils (default) or thrusters
@@ -185,7 +245,7 @@ function [F, out] = step(F, z, t, P, D) %#ok<INUSD>
             elseif abs(phase - G.mtq_meas) < dt/2
                 m = zeros(3,1);
                 if ~F.has_rcs_dump, m = asils.fsw.dump(z.h, A, F.H_t, z.B, G.dump_k, dev.mtq.m_max); end
-                if F.idmas && F.ad_ok       % IDMAS split: coils take the torque across the field
+                if F.idmas && ctl_ok        % IDMAS split: coils take the torque across the field
                     m = m + asils.fsw.torque2dipole(F.tau_req, z.B, dev.mtq.m_max);
                 end
                 if F.ad_ok && any(F.rot_failed)   % a lost wheel axis is flown with the coils
@@ -202,7 +262,7 @@ function [F, out] = step(F, z, t, P, D) %#ok<INUSD>
             end
             % ---- thrusters: slew assist beyond the rotors' authority, and dumping
             tau_rcs = zeros(3,1);
-            if F.nc > 0 && F.ad_ok
+            if F.nc > 0 && ctl_ok
                 req = zeros(3,1);
                 if G.rcs.assist
                     % torque beyond the momentum devices' authority ...
@@ -218,18 +278,11 @@ function [F, out] = step(F, z, t, P, D) %#ok<INUSD>
             end
             % ---- the momentum devices deliver the rest (feedforward of the known coil and thruster torque)
             if any(m_body), tau_coil = asils.util.cross3(m_body + G.m_res_est, F.B_dump); else, tau_coil = zeros(3,1); end
-            if F.ad_ok && ~isempty(F.r) && nr > 0
+            if ctl_ok && (~isempty(F.r) || acq) && nr > 0
                 [cmd_r, cmd_g] = asils.fsw.allocate(F.tau_req - tau_coil - tau_rcs, z, F, P);
             end
             F.h_prev = z.h; F.cmd_r_prev = cmd_r;
         case {'spinup', 'sun_spin'}
-            % Sun vector for L2: measured when valid, else (E2) propagated on the
-            % gyro from the last sunlit sample, ds/dt = -w x s (ctrl.propagateSun)
-            if z.sun_ok, F.s_prop = z.sun;
-            elseif ~isempty(F.s_prop)
-                F.s_prop = asils.quat.dcm(asils.quat.fromrotvec(F.w_est*dt))*F.s_prop;
-                F.s_prop = F.s_prop/norm(F.s_prop);
-            end
             % Standard Code duty: coils off and the field averaged over the
             % measure window, the law run once per cycle, the dipole held.
             if phase < G.mtq_meas + dt/2
@@ -257,6 +310,53 @@ function [F, out] = step(F, z, t, P, D) %#ok<INUSD>
     end
     F.m_hold = m_body;
     out.m_body = m_body; out.cmd_r = cmd_r; out.cmd_g = cmd_g; out.duty = duty;
+end
+
+function [tau, on] = capture_law_(F, G, I, Hdev)
+%CAPTURE_LAW_  Large-error capture for the fine modes: beyond G.capture_deg
+%   the linear law would ask for far more torque than small momentum devices
+%   have, saturate them and wind its integrator up. Instead: an eigenaxis rate
+%   command sized to THIS product's authority -- the rate that stops within
+%   the remaining angle at half the torque capacity, never above half the
+%   momentum capacity or G.capture_rate -- tracked by a rate loop. Slews
+%   (guidance 'slew') keep their own profile.
+    tau = zeros(3,1); on = false;
+    if strcmp(F.mode, 'slew_fine') || G.capture_deg <= 0, return, end
+    qe = asils.quat.mult(asils.quat.conj(F.q_ref), F.K.q); if qe(4) < 0, qe = -qe; end
+    th = 2*acos(min(1, qe(4)));
+    if th < G.capture_deg*pi/180, return, end
+    on = true;
+    e = qe(1:3)/max(norm(qe(1:3)), 1e-12);
+    Jm = max(diag(I));
+    alpha = 0.5*min(F.cap)/Jm;
+    wmax = min(G.capture_rate_deg_s*pi/180, 0.5*min(F.hcap)/Jm);
+    wref = asils.quat.dcm(qe)*F.w_ref;
+    wc = wref - e*min(wmax, sqrt(2*alpha*th));
+    w = F.w_est; H = I*w + Hdev;
+    kr = min(0.5, 4*alpha/max(wmax, 1e-6));
+    tau = I*(kr*(wc - w)) + [w(2)*H(3)-w(3)*H(2); w(3)*H(1)-w(1)*H(3); w(1)*H(2)-w(2)*H(1)];
+end
+
+function tau = sun_acq_law_(F, z, a, g, I, Hdev)
+%SUN_ACQ_LAW_  Sun-vector acquisition with momentum devices (no attitude
+%   solution): rate command w_c = k (a x s) turns the power face a onto the
+%   measured (or gyro-propagated) Sun s -- in body axes ds/dt = -w x s, so
+%   d(s.a)/dt = k (1 - (s.a)^2) >= 0 -- saturated at g.w_max; a rate loop with gyroscopic
+%   compensation gives the torque. Antiparallel start: turn about any axis
+%   normal to a. No Sun ever seen: hold the rate at zero.
+    wmax = g.w_max_deg_s*pi/180; wc = zeros(3,1);
+    if ~isempty(F.s_prop)
+        s = F.s_prop/norm(F.s_prop);
+        c = asils.util.cross3(a, s);
+        if s'*a < -0.95
+            c = asils.util.cross3(a, [1;0;0]); if norm(c) < 0.1, c = asils.util.cross3(a, [0;1;0]); end
+            c = c/norm(c);
+        end
+        wc = (wmax/0.5)*c;
+        if norm(wc) > wmax, wc = wc*wmax/norm(wc); end
+    end
+    w = F.w_est; H = I*w + Hdev;
+    tau = I*(g.kd*(wc - w)) + [w(2)*H(3)-w(3)*H(2); w(3)*H(1)-w(1)*H(3); w(1)*H(2)-w(2)*H(1)];
 end
 
 function F = mtq_law_(F, G, P)

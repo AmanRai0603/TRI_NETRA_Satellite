@@ -26,7 +26,14 @@ function [q_meas, valid, D] = star_tracker(q_true, t, w_true, sun_B, nadir_B, ea
         valid(h) = slow && ~D.dead(h) && acos(max(-1,min(1, bs'*sun_B))) > s.sun_excl ...
             && acos(max(-1,min(1, bs'*nadir_B))) > earth_ang + s.earth_excl;
         dq = asils.quat.mult(D.q_mis(:,h), D.q_bias(:,h));          % mount error of this head
-        if strcmp(s.model, 'quest')
+        if strcmp(s.model, 'image')
+            % COMPONENT LEVEL: the in-house chain on a rendered frame
+            % (asils.comp.star_tracker: render -> centroid -> identify -> QUEST)
+            Rbh = head_(bs); Rtrue = Rbh*asils.quat.dcm(dq)';       % true mount of this head
+            K = D.st.K; K.R_head_nominal = Rbh;
+            [q_meas(:,h), okh] = asils.comp.star_tracker.chain(q_old, Rtrue, D.cat, K, D.cam);
+            valid(h) = valid(h) && okh;
+        elseif strcmp(s.model, 'quest')
             % STAR-FIELD MODEL + ALGORITHM: stars inside the FOV (true attitude
             % t - latency), the brightest 12 centroided with noise, identified,
             % and the attitude solved by the q-method (asils.fsw.quest).
@@ -51,4 +58,11 @@ function [q_meas, valid, D] = star_tracker(q_true, t, w_true, sun_B, nadir_B, ea
             q_meas(:, h) = asils.quat.norm(asils.quat.mult(q_old, asils.quat.mult(dq, asils.quat.fromrotvec(e))));
         end
     end
+end
+
+function R = head_(bs)
+%HEAD_  Nominal body -> head rotation: head z on the boresight.
+    z = bs/norm(bs); x = cross(z, [0; 0; 1]); if norm(x) < 1e-6, x = cross(z, [1; 0; 0]); end
+    x = x/norm(x); y = cross(z, x);
+    R = [x'; y'; z'];
 end

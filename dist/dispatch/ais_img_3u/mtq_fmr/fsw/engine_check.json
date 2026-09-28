@@ -1,0 +1,70 @@
+{
+ "c": {
+  "rc": 0,
+  "build_id": "trinetra-fsw-c/1.0.0 (adcs-fswcfg/1)",
+  "metrics": [
+   {
+    "id": "detumble_time",
+    "kind": "time_to_rate",
+    "value": 81.925,
+    "unit": "min",
+    "req": 284.0,
+    "req_key": "req.detumble",
+    "pass": 1
+   },
+   {
+    "id": "power_mean",
+    "kind": "power_mean",
+    "value": 0.9598266171976164,
+    "unit": "W",
+    "req": 2.0,
+    "req_key": "req.pavg",
+    "pass": 1
+   }
+  ],
+  "mode_log": [
+   {
+    "t": 0.0,
+    "mode": "detumble"
+   },
+   {
+    "t": 4850.2,
+    "mode": "sun_acq_rotor"
+   }
+  ]
+ },
+ "rust": {
+  "rc": 0,
+  "build_id": "trinetra-fsw-rs/1.0.0 (adcs-fswcfg/1)",
+  "metrics": [
+   {
+    "id": "detumble_time",
+    "kind": "time_to_rate",
+    "value": 81.925,
+    "unit": "min",
+    "req": 284.0,
+    "req_key": "req.detumble",
+    "pass": 1
+   },
+   {
+    "id": "power_mean",
+    "kind": "power_mean",
+    "value": 0.9598266171976164,
+    "unit": "W",
+    "req": 2.0,
+    "req_key": "req.pavg",
+    "pass": 1
+   }
+  ],
+  "mode_log": [
+   {
+    "t": 0.0,
+    "mode": "detumble"
+   },
+   {
+    "t": 4850.2,
+    "mode": "sun_acq_rotor"
+   }
+  ]
+ }
+}

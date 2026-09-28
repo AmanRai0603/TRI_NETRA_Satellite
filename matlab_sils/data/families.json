@@ -1,0 +1,98 @@
+{
+ "family": [
+  {
+   "actuators": [
+    "mtq"
+   ],
+   "id": "mtq",
+   "label": "Magnetorquers only",
+   "role": "solution",
+   "simplicity": 1
+  },
+  {
+   "actuators": [
+    "mtq",
+    "fmr"
+   ],
+   "id": "mtq_fmr",
+   "label": "Magnetorquers + fluid momentum loop",
+   "role": "solution",
+   "simplicity": 2
+  },
+  {
+   "actuators": [
+    "mtq",
+    "fmr",
+    "rcs"
+   ],
+   "id": "mtq_fmr_rcs",
+   "label": "Magnetorquers + fluid loop + N2O cold-gas RCS",
+   "role": "solution",
+   "simplicity": 3
+  },
+  {
+   "actuators": [
+    "mtq",
+    "rw"
+   ],
+   "id": "mtq_rw",
+   "label": "Magnetorquers + reaction wheels",
+   "role": "benchmark",
+   "simplicity": 2
+  },
+  {
+   "actuators": [
+    "mtq",
+    "rw",
+    "rcs"
+   ],
+   "id": "mtq_rw_rcs",
+   "label": "Magnetorquers + reaction wheels + N2O cold-gas RCS",
+   "role": "benchmark",
+   "simplicity": 3
+  },
+  {
+   "actuators": [
+    "mtq",
+    "cmg"
+   ],
+   "id": "mtq_cmg",
+   "label": "Magnetorquers + 4 single-gimbal CMG (pyramid)",
+   "role": "benchmark",
+   "simplicity": 3
+  },
+  {
+   "actuators": [
+    "mtq",
+    "cmg",
+    "rcs"
+   ],
+   "id": "mtq_cmg_rcs",
+   "label": "Magnetorquers + 4 CMG + N2O cold-gas RCS",
+   "role": "benchmark",
+   "simplicity": 4
+  },
+  {
+   "actuators": [
+    "mtq",
+    "vscmg"
+   ],
+   "id": "mtq_vscmg",
+   "label": "Magnetorquers + 4 variable-speed CMG (pyramid)",
+   "role": "benchmark",
+   "simplicity": 3
+  },
+  {
+   "actuators": [
+    "mtq",
+    "vscmg",
+    "rcs"
+   ],
+   "id": "mtq_vscmg_rcs",
+   "label": "Magnetorquers + 4 VSCMG + N2O cold-gas RCS",
+   "role": "benchmark",
+   "simplicity": 4
+  }
+ ],
+ "schema": "adcs-families/1"
+}

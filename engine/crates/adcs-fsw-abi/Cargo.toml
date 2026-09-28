@@ -1,0 +1,15 @@
+[package]
+name = "adcs-fsw-abi"
+description = "adcs_hal.h over the engine's emulated buses; links the C flight software (fsw/) with cc and runs the Rust one (fsw-rs) behind the same bytes"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+publish.workspace = true
+build = "build.rs"
+links = "adcs_fsw_c"
+
+[dependencies]
+adcs-fsw = { path = "../../../fsw-rs" }
+
+[build-dependencies]
+cc = "1"

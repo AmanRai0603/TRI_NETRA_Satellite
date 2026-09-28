@@ -1,0 +1,36 @@
+# Component: star_tracker. The MODEL is what the SILS flies in place of the unit;
+# the CHAIN is the unit's own processing (in-house development plugs in
+# node by node). status: implemented | baseline (standard method standing in
+# for the in-house one) | stub. Generated layout, edited by hand.
+schema = "adcs-component/1"
+id = "star_tracker"
+kind = "sensor"
+in_house = "planned"
+parts = ["SYN-ST-1"]
+model = "matlab_sils/+asils/+devices/star_tracker.m"
+hal_output = "attitude quaternion per head + validity (int32 Q30 x4, flags bit1)"
+levels = ["model: quaternion + noise (fast)", "vectors: star vectors with known ids -> QUEST (default)", "image: rendered frame -> full chain"]
+
+[[chain]]
+node = "render"
+file = "matlab_sils/+asils/+comp/+star_tracker/render.m"
+status = "implemented"
+what = "MODEL SIDE: star field + PSF + noise -> pixel frame"
+
+[[chain]]
+node = "centroid"
+file = "matlab_sils/+asils/+comp/+star_tracker/centroid.m"
+status = "baseline"
+what = "pixel frame -> spot centroids (threshold, centre of gravity)"
+
+[[chain]]
+node = "identify"
+file = "matlab_sils/+asils/+comp/+star_tracker/identify.m"
+status = "baseline"
+what = "centroids -> catalogue ids (pair-angle voting)"
+
+[[chain]]
+node = "attitude"
+file = "matlab_sils/+asils/+comp/+star_tracker/attitude.m"
+status = "implemented"
+what = "matched vectors -> quaternion (QUEST / q-method)"

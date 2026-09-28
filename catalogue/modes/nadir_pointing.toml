@@ -1,0 +1,124 @@
+# Mission mode: nadir pointing. Payload axis on nadir with full navigation
+# (star tracker, gyro, Sun, magnetometer, Earth sensor in the MEKF), and the
+# pointing-stability (jitter) constraint of the payload.
+schema = "adcs-mode/1"
+id = "nadir_pointing"
+order = 4
+label = "Nadir pointing"
+goal = "Payload axis on nadir: case req.ape / req.ake / req.rks"
+navigation = ["star_tracker", "gyro", "sun", "magnetometer", "earth_sensor"]
+objective = "ape_los_p9973"
+guidance = "nadir"
+next = ""
+exit = "commanded (schedule / ground)"
+
+[test]
+duration_orbits = 1.0
+window = "last_half_orbit"
+attitude = { kind = "error_from_guidance", angle_deg = 10.0, axis_body = [0.577, 0.577, 0.577] }
+rate = { kind = "lvlh" }
+
+[[metrics]]
+id = "ape_los_p9973"
+kind = "ape_los"
+window = "last_half_orbit"
+statistic = "p99.73"
+requirement = "req.ape"
+[[metrics]]
+id = "ake_los_p9973"
+kind = "ake_los"
+window = "last_half_orbit"
+statistic = "p99.73"
+requirement = "req.ake"
+[[metrics]]
+id = "rate_stability_p9973"
+kind = "rate_stability"
+window = "last_half_orbit"
+statistic = "p99.73"
+requirement = "req.rks"
+[[metrics]]
+id = "jitter"
+kind = "jitter"
+window = "last_half_orbit"
+[[metrics]]
+id = "momentum_peak"
+kind = "wheel_momentum_peak"
+window = "all"
+[[metrics]]
+id = "power_mean"
+kind = "power_mean"
+window = "all"
+requirement = "req.pavg"
+[[metrics]]
+id = "power_peak"
+kind = "power_peak"
+window = "all"
+[[metrics]]
+id = "propellant"
+kind = "propellant"
+window = "all"
+
+[[options]]
+id = "mtq"
+actuator = "mtq"
+family = "mtq"
+fsw_mode = "nadir_mtq"
+dt_s = 0.2
+duration_orbits = 2.0
+window = "last_orbit"
+[[options]]
+id = "rw+mtq"
+actuator = "rw"
+dump = "mtq"
+family = "mtq_rw"
+fsw_mode = "nadir_fine"
+dt_s = 0.1
+[[options]]
+id = "rw+rcs"
+actuator = "rw"
+dump = "rcs"
+family = "mtq_rw_rcs"
+fsw_mode = "nadir_fine"
+dt_s = 0.1
+[[options]]
+id = "cmg+mtq"
+actuator = "cmg"
+dump = "mtq"
+family = "mtq_cmg"
+fsw_mode = "nadir_fine"
+dt_s = 0.1
+[[options]]
+id = "cmg+rcs"
+actuator = "cmg"
+dump = "rcs"
+family = "mtq_cmg_rcs"
+fsw_mode = "nadir_fine"
+dt_s = 0.1
+[[options]]
+id = "vscmg+mtq"
+actuator = "vscmg"
+dump = "mtq"
+family = "mtq_vscmg"
+fsw_mode = "nadir_fine"
+dt_s = 0.1
+[[options]]
+id = "vscmg+rcs"
+actuator = "vscmg"
+dump = "rcs"
+family = "mtq_vscmg_rcs"
+fsw_mode = "nadir_fine"
+dt_s = 0.1
+[[options]]
+id = "fmr+mtq"
+actuator = "fmr"
+dump = "mtq"
+family = "mtq_fmr"
+fsw_mode = "nadir_fine"
+dt_s = 0.1
+[[options]]
+id = "fmr+rcs"
+actuator = "fmr"
+dump = "rcs"
+family = "mtq_fmr_rcs"
+fsw_mode = "nadir_fine"
+dt_s = 0.1

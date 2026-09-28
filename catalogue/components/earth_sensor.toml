@@ -1,0 +1,24 @@
+# Component: earth_sensor. The MODEL is what the SILS flies in place of the unit;
+# the CHAIN is the unit's own processing (in-house development plugs in
+# node by node). status: implemented | baseline (standard method standing in
+# for the in-house one) | stub. Generated layout, edited by hand.
+schema = "adcs-component/1"
+id = "earth_sensor"
+kind = "sensor"
+in_house = "planned"
+parts = ["SYN-ES-1"]
+model = "matlab_sils/+asils/+devices/earth_sensor.m"
+hal_output = "nadir unit vector + validity"
+levels = ["model: nadir vector + noise (default)", "chain: limb points -> horizon fit -> nadir vector"]
+
+[[chain]]
+node = "limb"
+file = "matlab_sils/+asils/+comp/+earth_sensor/limb.m"
+status = "implemented"
+what = "MODEL SIDE: geometry -> horizon (limb) directions seen by the IR array"
+
+[[chain]]
+node = "horizon"
+file = "matlab_sils/+asils/+comp/+earth_sensor/horizon.m"
+status = "baseline"
+what = "limb directions -> cone-axis least-squares fit -> nadir vector"

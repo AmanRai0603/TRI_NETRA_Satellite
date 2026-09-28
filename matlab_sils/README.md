@@ -52,6 +52,30 @@ rec = asils.run('nadir_hold_ais', 'cases/ais_3u.csv', 'seed', 7, ...
 Every imaging product carries two star-tracker heads (star-field model solved by
 QUEST), a precision MEMS gyro, magnetometer, sun sensors and GNSS.
 
+## From a customer's case to a solution
+
+```matlab
+Z   = asils.sizing.size_all('ais_3u');          % demand survey + every actuator sized to the case
+asils.solution.run('ais_3u');                   % every mission mode x option x seed (~50 runs a case)
+Sol = asils.solution.collect('ais_3u');         % per-family verdicts, recommended solution
+asils.solution.dispatch('ais_3u');              % ../dist/dispatch/ais_3u/<family>/ for OILS / the OBC
+```
+
+- **Mission modes** (`data/modes`, from `../catalogue/modes`): `detumble`, `sun_acquisition`,
+  `sun_referencing`, `nadir_pointing`. Each mode lists its options: which actuator does the job and
+  which dumps momentum. Every option is flown on its case-sized product from the same start and seeds.
+- **Families** (`data/families.json`): our solutions `mtq`, `mtq_fmr`, `mtq_fmr_rcs`; the benchmarks
+  `mtq_rw`, `mtq_cmg` and `mtq_vscmg`, each also with RCS. The simplest solution that passes every
+  mode is recommended; the benchmarks are only compared.
+- **Sizing** (`+asils/+sizing`): the disturbance survey on the POP orbit, then physical sizing laws for
+  the coils, the fluid loop (with pump field power), the N2O cold-gas RCS (Isp 60–80 s), wheels, CMG
+  and VSCMG, and a frequency-domain jitter figure.
+- **Components** (`+asils/+comp`, `data/components`): each unit's own processing chain, next to the
+  model the SILS flies. Examples: the star tracker's render → centroid → identify → QUEST, the Sun
+  sensor's quadrant currents → angles, the Earth sensor's limb → horizon fit, and the fluid-loop flow
+  servo. Set a device's level with `dev__st__model = 'image'` (the star tracker's full chain) or
+  `dev__sun__level = 'chain'`. See `../docs/COMPONENTS.md`.
+
 ## Algorithms: one job, several algorithms, several hardware sets
 
 Every algorithm is registered once in `data/algorithms/<id>.json` (source `../catalogue/algorithms`)
@@ -61,7 +85,7 @@ with its **slot** (the job it does) and what hardware it **needs**:
 |---|---|
 | `detumble` | `bdot_gyro`, `bdot_mag`, `bdot_bangbang`, `genbdot_l1` (Standard Code L1) |
 | `mtq_pointing` (coils) | `mtq_pd`, `mtq_lqr`, `mtq_smc`, `mtq_rate_damp` |
-| `sun_spin` (coils) | `sunspin_l1l2` (Standard Code spin-up L1 + He et al. L2) |
+| `sun_acquisition` (coils; alias `sun_spin`) | `sunspin_l1l2` (Standard Code spin-up L1 + He et al. L2) |
 | `pointing` (momentum devices) | `pid`, `lqr`, `smc` |
 | `allocation` | `rotor_pinv`, `idmas_split`, `cmg_sr`, `vscmg_sr` |
 | `thrusters`, `attitude` | `rcs_pwm`, `mekf` |
@@ -107,10 +131,10 @@ Helmholtz-cage field, Sun-simulator direction and air-bearing rate for a HILS re
 
 | folder | contents |
 |---|---|
-| `+asils/` | the SILS: `+orbit` (in-loop POP), `+env`, `+plant`, `+devices`, `+fsw`, `+hal`, `+faults`, `+metrics`, `+campaign`, `+trade`, `+rec`, `+viz`, `+result`, `run.m`, `config.m` |
+| `+asils/` | the SILS: `+orbit` (in-loop POP), `+env`, `+plant`, `+devices` (unit models), `+comp` (unit chains), `+fsw`, `+hal`, `+faults`, `+metrics`, `+sizing`, `+solution`, `+campaign`, `+trade`, `+rec`, `+viz`, `+result`, `run.m`, `config.m` |
 | `pop/` | Precision Orbit Propagator v51 (vendored) |
-| `cases/`, `data/` | the case CSVs; exported parts, products, algorithms, scenarios, campaigns, trades (JSON) |
-| `examples/`, `tests/`, `tools/` | worked examples, the test suite (20 tests), batch drivers |
+| `cases/`, `data/` | the case CSVs; exported parts, products, algorithms, modes, families, components, scenarios, campaigns, trades (JSON) |
+| `examples/`, `tests/`, `tools/` | worked examples, the test suite (27 tests), batch drivers |
 | `store/` | your results, filed per scenario |
 
-Architecture, node by node: `../docs/ARCHITECTURE_PLAN.md`. Results: `../docs/RESULTS.md`. Selection: `../docs/SELECTION.md`.
+Architecture, node by node: `../docs/ARCHITECTURE_PLAN.md`. Results: `../docs/RESULTS.md`. Selection: `../docs/SELECTION.md`. Solutions: `../docs/SOLUTION_PIPELINE.md`, `../docs/SOLUTIONS.md`.

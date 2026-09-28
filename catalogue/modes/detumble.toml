@@ -1,0 +1,54 @@
+# Mission mode: detumble. Rates from the separation tumble down to a level the
+# next mode can start from. Rate-only: no attitude solution is needed.
+schema = "adcs-mode/1"
+id = "detumble"
+order = 1
+label = "Detumbling"
+goal = "Body rate from the separation tumble (case mission.w0) to below 0.5 deg/s, held 10 min"
+navigation = ["magnetometer", "gyro"]
+objective = "detumble_time"
+guidance = "none"
+next = "sun_acquisition"
+exit = "|w| < 0.5 deg/s held 60 s"
+
+[test]
+duration_orbits = 2.0
+window = "all"
+attitude = { kind = "random" }
+rate = { kind = "random_direction", magnitude_deg_s = "case:mission.w0" }
+
+[[metrics]]
+id = "detumble_time"
+kind = "time_to_rate"
+rate_threshold_deg_s = 0.5
+hold_s = 600.0
+requirement = "req.detumble"
+[[metrics]]
+id = "power_mean"
+kind = "power_mean"
+window = "all"
+[[metrics]]
+id = "power_peak"
+kind = "power_peak"
+window = "all"
+requirement = "req.ppk"
+[[metrics]]
+id = "propellant"
+kind = "propellant"
+window = "all"
+
+# Options: which actuator does the job. `family` names the sized product it is
+# flown on, `fsw_mode` the flight-software controller that implements it.
+[[options]]
+id = "mtq"
+actuator = "mtq"
+family = "mtq"
+fsw_mode = "detumble"
+dt_s = 0.2
+[[options]]
+id = "rcs"
+actuator = "rcs"
+family = "mtq_fmr_rcs"
+fsw_mode = "detumble_rcs"
+dt_s = 0.1
+duration_orbits = 0.5

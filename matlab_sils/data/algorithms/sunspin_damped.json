@@ -12,6 +12,6 @@
  "number": 22,
  "prototype": true,
  "schema": "adcs-algorithm/1",
- "slot": "sun_spin",
+ "slot": "sun_acquisition",
  "source": "this SILS: Standard Code ctrl.sunSpin with R_z diagonal >= 0.5 J_z"
 }

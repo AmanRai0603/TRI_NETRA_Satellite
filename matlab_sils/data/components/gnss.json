@@ -1,0 +1,14 @@
+{
+ "hal_output": "position (1 cm), velocity (1 mm/s)",
+ "id": "gnss",
+ "in_house": "no",
+ "kind": "sensor",
+ "levels": [
+  "model (default)"
+ ],
+ "model": "matlab_sils/+asils/+devices/gps.m",
+ "parts": [
+  "TRN-GPS-1"
+ ],
+ "schema": "adcs-component/1"
+}

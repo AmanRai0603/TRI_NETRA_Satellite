@@ -1,0 +1,235 @@
+{
+ "scenario": "sun_spin_ais",
+ "fsw": "c",
+ "runs": [
+  {
+   "sun_spin_entry": 142.40666666666667,
+   "sun_angle_last_orbit": 93.84308532175665,
+   "spin_rate_error_last_orbit": 1.116324695323408,
+   "sun_spin_share_last_orbit": 13.748039728175641,
+   "power_mean": 0.4500194377262069,
+   "seed": 1
+  },
+  {
+   "sun_spin_entry": 74.72333333333334,
+   "sun_angle_last_orbit": 7.651999377682141,
+   "spin_rate_error_last_orbit": 0.07710562536749865,
+   "sun_spin_share_last_orbit": 75.86687576232794,
+   "power_mean": 0.20250702766168782,
+   "seed": 2
+  },
+  {
+   "sun_spin_entry": 42.79,
+   "sun_angle_last_orbit": 10.05115279013702,
+   "spin_rate_error_last_orbit": 0.03630271406840234,
+   "sun_spin_share_last_orbit": 66.66666666666667,
+   "power_mean": 0.2131297646260907,
+   "seed": 3
+  },
+  {
+   "sun_spin_entry": 35.64,
+   "sun_angle_last_orbit": 2.729667456085486,
+   "spin_rate_error_last_orbit": 0.03193592896825792,
+   "sun_spin_share_last_orbit": 80.53667886391358,
+   "power_mean": 0.16118455270332427,
+   "seed": 4
+  },
+  {
+   "sun_spin_entry": 142.72333333333333,
+   "sun_angle_last_orbit": 9.783703541634022,
+   "spin_rate_error_last_orbit": 0.052395327847560694,
+   "sun_spin_share_last_orbit": 70.32584073880467,
+   "power_mean": 0.3063939226240157,
+   "seed": 5
+  },
+  {
+   "sun_spin_entry": 37.39,
+   "sun_angle_last_orbit": 11.774175783959038,
+   "spin_rate_error_last_orbit": 0.061079090990968136,
+   "sun_spin_share_last_orbit": 56.80432131033281,
+   "power_mean": 0.21988337825038376,
+   "seed": 6
+  },
+  {
+   "sun_spin_entry": 107.34,
+   "sun_angle_last_orbit": 9.483868949577392,
+   "spin_rate_error_last_orbit": 0.05214383402694226,
+   "sun_spin_share_last_orbit": 65.51664052970901,
+   "power_mean": 0.3185642092719006,
+   "seed": 7
+  },
+  {
+   "sun_spin_entry": 64.62333333333333,
+   "sun_angle_last_orbit": 4.575189247731516,
+   "spin_rate_error_last_orbit": 0.031195868169933888,
+   "sun_spin_share_last_orbit": 79.16013242725214,
+   "power_mean": 0.20920238238887037,
+   "seed": 8
+  },
+  {
+   "sun_spin_entry": 54.79,
+   "sun_angle_last_orbit": 29.750617155228017,
+   "spin_rate_error_last_orbit": 0.19577024544692684,
+   "sun_spin_share_last_orbit": 58.947551838299354,
+   "power_mean": 0.31763009896069355,
+   "seed": 9
+  },
+  {
+   "sun_spin_entry": 64.05666666666667,
+   "sun_angle_last_orbit": 19.28972007729661,
+   "spin_rate_error_last_orbit": 0.09837067272109459,
+   "sun_spin_share_last_orbit": 47.49956438403903,
+   "power_mean": 0.2734061679008158,
+   "seed": 10
+  },
+  {
+   "sun_spin_entry": 35.723333333333336,
+   "sun_angle_last_orbit": 5.590174920160831,
+   "spin_rate_error_last_orbit": 0.032945734307164826,
+   "sun_spin_share_last_orbit": 78.06238020561074,
+   "power_mean": 0.13158768704374182,
+   "seed": 11
+  },
+  {
+   "sun_spin_entry": 44.223333333333336,
+   "sun_angle_last_orbit": 8.527957285636559,
+   "spin_rate_error_last_orbit": 0.04336238052954463,
+   "sun_spin_share_last_orbit": 74.36835685659523,
+   "power_mean": 0.23185520700611342,
+   "seed": 12
+  },
+  {
+   "sun_spin_entry": 36.39,
+   "sun_angle_last_orbit": 8.867397137697889,
+   "spin_rate_error_last_orbit": 0.04725231645281054,
+   "sun_spin_share_last_orbit": 73.58424812685136,
+   "power_mean": 0.1499525934182238,
+   "seed": 13
+  },
+  {
+   "sun_spin_entry": 63.25666666666667,
+   "sun_angle_last_orbit": 36.47453670943318,
+   "spin_rate_error_last_orbit": 0.2697320215966063,
+   "sun_spin_share_last_orbit": 53.00575013068479,
+   "power_mean": 0.27242979733127526,
+   "seed": 14
+  },
+  {
+   "sun_spin_entry": 76.15666666666668,
+   "sun_angle_last_orbit": 172.60798660146563,
+   "spin_rate_error_last_orbit": 1.918584042205307,
+   "sun_spin_share_last_orbit": 0.0,
+   "power_mean": 0.43502603750230245,
+   "seed": 15
+  },
+  {
+   "sun_spin_entry": 61.20666666666667,
+   "sun_angle_last_orbit": 8.830572145823258,
+   "spin_rate_error_last_orbit": 0.049980282533992205,
+   "sun_spin_share_last_orbit": 77.13887436835685,
+   "power_mean": 0.2649051055027886,
+   "seed": 16
+  },
+  {
+   "sun_spin_entry": 63.123333333333335,
+   "sun_angle_last_orbit": 10.749024182772933,
+   "spin_rate_error_last_orbit": 0.07449040664191565,
+   "sun_spin_share_last_orbit": 67.6424464192368,
+   "power_mean": 0.2924371542751158,
+   "seed": 17
+  },
+  {
+   "sun_spin_entry": 46.84,
+   "sun_angle_last_orbit": 5.2962854757448445,
+   "spin_rate_error_last_orbit": 0.039334721834331454,
+   "sun_spin_share_last_orbit": 81.98292385433002,
+   "power_mean": 0.17811144916973148,
+   "seed": 18
+  },
+  {
+   "sun_spin_entry": 35.64,
+   "sun_angle_last_orbit": 8.73389175988133,
+   "spin_rate_error_last_orbit": 0.048897897881298724,
+   "sun_spin_share_last_orbit": 76.00627286983796,
+   "power_mean": 0.20411057013528958,
+   "seed": 19
+  },
+  {
+   "sun_spin_entry": 84.90666666666668,
+   "sun_angle_last_orbit": 9.373973434160101,
+   "spin_rate_error_last_orbit": 0.04709580857336084,
+   "sun_spin_share_last_orbit": 75.50095835511414,
+   "power_mean": 0.23048145216187713,
+   "seed": 20
+  },
+  {
+   "sun_spin_entry": 42.35666666666667,
+   "sun_angle_last_orbit": 9.553750342498946,
+   "spin_rate_error_last_orbit": 0.06812970123402809,
+   "sun_spin_share_last_orbit": 70.5697856769472,
+   "power_mean": 0.19152046249933732,
+   "seed": 21
+  },
+  {
+   "sun_spin_entry": 76.99000000000001,
+   "sun_angle_last_orbit": 21.276774111327654,
+   "spin_rate_error_last_orbit": 0.12437771416667995,
+   "sun_spin_share_last_orbit": 49.97386304234187,
+   "power_mean": 0.35197692987115753,
+   "seed": 22
+  },
+  {
+   "sun_spin_entry": 39.52333333333333,
+   "sun_angle_last_orbit": 7.623070239460234,
+   "spin_rate_error_last_orbit": 0.042766054104882954,
+   "sun_spin_share_last_orbit": 80.03136434918976,
+   "power_mean": 0.16344625422263656,
+   "seed": 23
+  },
+  {
+   "sun_spin_entry": 248.95666666666668,
+   "sun_angle_last_orbit": 113.72563466871196,
+   "spin_rate_error_last_orbit": 0.9799802064543034,
+   "sun_spin_share_last_orbit": 37.584945112388915,
+   "power_mean": 0.40586718739869426,
+   "seed": 24
+  }
+ ],
+ "stats": {
+  "sun_spin_entry": {
+   "n": 24,
+   "mean": 71.74069444444444,
+   "std": 47.451174828167346,
+   "min": 35.64,
+   "max": 248.95666666666668
+  },
+  "sun_angle_last_orbit": {
+   "n": 24,
+   "mean": 26.090175363160967,
+   "std": 40.55196603467526,
+   "min": 2.729667456085486,
+   "max": 172.60798660146563
+  },
+  "spin_rate_error_last_orbit": {
+   "n": 24,
+   "mean": 0.2308147204769675,
+   "std": 0.44672174437530154,
+   "min": 0.031195868169933888,
+   "max": 1.918584042205307
+  },
+  "sun_spin_share_last_orbit": {
+   "n": 24,
+   "mean": 62.93852006737527,
+   "std": 20.550419220586157,
+   "min": 0.0,
+   "max": 81.98292385433002
+  },
+  "power_mean": {
+   "n": 24,
+   "mean": 0.2573178679021781,
+   "std": 0.08664613002128835,
+   "min": 0.13158768704374182,
+   "max": 0.4500194377262069
+  }
+ }
+}

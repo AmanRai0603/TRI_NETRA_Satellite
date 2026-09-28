@@ -1,0 +1,18 @@
+# Component: magnetometer. The MODEL is what the SILS flies in place of the unit;
+# the CHAIN is the unit's own processing (in-house development plugs in
+# node by node). status: implemented | baseline (standard method standing in
+# for the in-house one) | stub. Generated layout, edited by hand.
+schema = "adcs-component/1"
+id = "magnetometer"
+kind = "sensor"
+in_house = "no"
+parts = ["SYN-MAG-1"]
+model = "matlab_sils/+asils/+devices/magnetometer.m"
+hal_output = "field vector (int16, 3.05 nT LSB)"
+levels = ["model (default)"]
+
+[[chain]]
+node = "calibrate"
+file = "matlab_sils/+asils/+comp/+magnetometer/calibrate.m"
+status = "stub"
+what = "raw -> bias / scale / misalignment corrected field (in-orbit calibration to come)"

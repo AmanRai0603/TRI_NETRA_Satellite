@@ -110,7 +110,7 @@ keeps these apart in three layers:
 
 1. **Registry** — `catalogue/algorithms/<id>.toml`: one file per algorithm with its
    `slot` (the job) and `needs` (the hardware or capability it requires).
-   Slots: `detumble`, `attitude`, `mtq_pointing`, `pointing`, `sun_spin`,
+   Slots: `detumble`, `attitude`, `mtq_pointing`, `pointing`, `sun_acquisition` (alias `sun_spin`),
    `allocation`, `thrusters`.
 2. **Selection** — `asils.fsw.select`, once per run: scenario `[fsw] algorithms`
    → product `[selected]` → first compatible default; an incompatible choice is
@@ -122,6 +122,24 @@ keeps these apart in three layers:
    their worst objective value, ties broken by power or propellant. The winner is
    *proposed* (`docs/SELECTION.md`) and, once a person confirms it, promoted into
    the product's `[selected]` table.
+
+## 3c. Mission modes, sizing and solutions
+
+The SILS is organised around one question per customer case: which of our three ADCS solutions
+flies it, and how does it compare with the standard actuators on every parameter?
+`docs/SOLUTION_PIPELINE.md` has the whole flow:
+demand → sizing → modes × options → solution → dispatch.
+
+| node | file | filled with |
+|---|---|---|
+| `sizing.demand` | `+sizing/demand.m` | disturbance survey on the POP orbit at four attitudes, field along the orbit, detumble and slew demand |
+| `sizing.*` | `+sizing/{mtq,fmr,rcs,rw,cmg}.m`, `size_all.m` | physical sizing laws anchored on the reference parts; one product per family |
+| `sizing.jitter` | `+sizing/jitter.m` | rotor-imbalance jitter, frequency domain |
+| `fsw.modes` | `+fsw/modes.m`, `step.m` | controller states → mission modes: `detumble_rcs`, `sun_acq_rotor`, `sun_mtq`, `sun_fine`, the capture manoeuvre |
+| `fsw.guidance` (`sun`) | `+fsw/guidance.m` | three-axis Sun referencing: power face on the Sun, roll axis on the orbit normal |
+| `device.earth_sensor` | `+devices/earth_sensor.m` | nadir vector model (SYN-ES-1), MEKF update |
+| `comp.*` | `+comp/+star_tracker`, `+sun_sensor`, `+earth_sensor`, `+magnetometer`, `+magnetorquer`, `+fluid_loop`, `+rcs` | each unit's own processing chain, with a status per node (docs/COMPONENTS.md) |
+| `solution.*` | `+solution/{mode,scenario,jobs,run,collect,print,dispatch}.m` | the mode × option matrix, family verdicts, the recommendation, the dispatch package |
 
 ## 4. The two cases
 

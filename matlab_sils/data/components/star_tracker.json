@@ -1,0 +1,42 @@
+{
+ "chain": [
+  {
+   "file": "matlab_sils/+asils/+comp/+star_tracker/render.m",
+   "node": "render",
+   "status": "implemented",
+   "what": "MODEL SIDE: star field + PSF + noise -> pixel frame"
+  },
+  {
+   "file": "matlab_sils/+asils/+comp/+star_tracker/centroid.m",
+   "node": "centroid",
+   "status": "baseline",
+   "what": "pixel frame -> spot centroids (threshold, centre of gravity)"
+  },
+  {
+   "file": "matlab_sils/+asils/+comp/+star_tracker/identify.m",
+   "node": "identify",
+   "status": "baseline",
+   "what": "centroids -> catalogue ids (pair-angle voting)"
+  },
+  {
+   "file": "matlab_sils/+asils/+comp/+star_tracker/attitude.m",
+   "node": "attitude",
+   "status": "implemented",
+   "what": "matched vectors -> quaternion (QUEST / q-method)"
+  }
+ ],
+ "hal_output": "attitude quaternion per head + validity (int32 Q30 x4, flags bit1)",
+ "id": "star_tracker",
+ "in_house": "planned",
+ "kind": "sensor",
+ "levels": [
+  "model: quaternion + noise (fast)",
+  "vectors: star vectors with known ids -> QUEST (default)",
+  "image: rendered frame -> full chain"
+ ],
+ "model": "matlab_sils/+asils/+devices/star_tracker.m",
+ "parts": [
+  "SYN-ST-1"
+ ],
+ "schema": "adcs-component/1"
+}

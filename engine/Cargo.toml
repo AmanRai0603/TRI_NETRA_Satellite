@@ -1,0 +1,18 @@
+# TRI-NETRA ADCS engine (SILS): plant, environment, orbit, device emulators, scheduler,
+# recorder and metrics in Rust; the flight software (C or Rust) behind adcs_hal.h.
+# Owner: Agastya. Copyright (c) 2026 Agastya. All rights reserved.
+[workspace]
+resolver = "2"
+members = ["crates/adcs-sim-core", "crates/adcs-pop", "crates/adcs-fsw-abi", "crates/adcs-sim", "crates/adcs-cli"]
+
+[workspace.package]
+version = "1.1.0"
+edition = "2021"
+authors = ["Agastya"]
+publish = false
+
+[profile.release]
+opt-level = 3
+debug = false
+[profile.dev]
+opt-level = 1

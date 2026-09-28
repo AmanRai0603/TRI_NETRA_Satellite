@@ -13,13 +13,14 @@ function P = config(scenarioId, caseFile, opts)
     if nargin < 3, opts = struct(); end
     R = asils.util.root();
     if ~exist(caseFile, 'file'), caseFile = fullfile(R, caseFile); end
-    S = asils.scenario.load(scenarioId);
+    if isstruct(scenarioId), S = scenarioId; else, S = asils.scenario.load(scenarioId); end   % a mode test builds its scenario in memory
     C = asils.case.read(caseFile);
     v = C.v;
     P.scenario = S; P.case = C; P.id = S.id;
     P.faults = asils.util.getf(S, 'faults', []);          % scheduled fault injection (asils.faults.apply)
     P.seed = asils.util.getf(opts, 'seed', 1);
     P.dev = asils.product.load(asils.util.getf(opts, 'product', S.product));
+    P.sizing_case = asils.util.getf(opts, 'sizing_case', '');
 
     %% epoch: case mission.epoch = years after J2000.0
     P.epoch_utc = asils.util.jd2utc(2451545.0 + v.mission_epoch*365.25);
@@ -66,6 +67,14 @@ function P = config(scenarioId, caseFile, opts)
 
     F.detumble_exit = asils.util.getf(S.fsw, 'detumble_exit_deg_s', 0.5)*pi/180;
     F.detumble_hold_s = asils.util.getf(S.fsw, 'detumble_hold_s', 60);
+    F.schedule = asils.util.getf(S.fsw, 'schedule', []);           % [[fsw.schedule]] t_s, mode: commanded changes
+    if isstruct(F.schedule), F.schedule = num2cell(F.schedule); end
+    % thruster rate damping (detumble_rcs) and rotor Sun acquisition (sun_acq_rotor)
+    F.rcsd = struct('T_damp_s', asils.util.getf(S.fsw, 'rcs_damp_s', 20), 'deadband_deg_s', 0.2, 'period_s', 1.0);
+    F.sa = struct('w_max_deg_s', asils.util.getf(S.fsw, 'sun_acq_rate_deg_s', 1.0), 'kd', 0.1, ...
+                  'done_deg', 10, 'done_hold_s', 60);
+    F.capture_deg = asils.util.getf(S.fsw, 'capture_deg', 3.0);         % fine modes: capture manoeuvre beyond this error
+    F.capture_rate_deg_s = asils.util.getf(S.fsw, 'capture_rate_deg_s', 1.0);
     F.guidance = S.fsw.guidance;
     F.guidance.q_off = asils.fsw.boresight_offset(P.dev.boresight);   % payload axis -> nadir
     F.mtq_period = 1.0; F.mtq_meas = 0.2;          % measure-then-drive duty (Standard Code bdotScheduler idea)

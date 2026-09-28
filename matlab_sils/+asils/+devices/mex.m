@@ -35,10 +35,7 @@ function [hdot, gdot, P_W, D] = mex(cmd_r, cmd_g, h, d, D, m, dt)
                 % so a loss model 20 % wrong does not leave a torque error
                 % proportional to the stored momentum.
                 Tsd = m.T_sd(i);
-                D.htgt(i) = max(-m.h_max(i), min(m.h_max(i), D.htgt(i) + cmd_r(i)*dt));
-                D.hf(i) = D.hf(i) + dt/(m.flow_tau + dt)*(h(i) + m.flow_noise_h(i)*randn - D.hf(i));
-                pump = cmd_r(i) + D.hf(i)/Tsd + m.k_flow*(D.htgt(i) - D.hf(i));
-                pump = max(-m.torque_max(i), min(m.torque_max(i), pump));
+                [pump, D] = asils.comp.fluid_loop.drive(i, cmd_r(i), h(i), D, m, dt);   % unit firmware
                 hdot(i) = pump - h(i)/Tsd*D.fscale(i);
                 if abs(h(i)) >= m.h_max(i) && sign(hdot(i)) == sign(h(i))
                     hdot(i) = 0;                                    % flow held at v_max
@@ -49,7 +46,8 @@ function [hdot, gdot, P_W, D] = mex(cmd_r, cmd_g, h, d, D, m, dt)
                 % pump field (yoke electromagnet) is on while the pump drives the
                 % loop (IDMAS v2 §03C: 1-3 W per unit); the loop spins down in
                 % ~1 s, so it is on whenever the ring holds momentum
-                if abs(pump) > 1e-3*m.torque_max(i), P_W = P_W + m.field_power(i); end
+                % idle driver (no momentum target, no command): field off
+                if abs(D.htgt(i)) > 0.02*m.h_max(i) || abs(cmd_r(i)) > 0.02*m.torque_max(i), P_W = P_W + m.field_power(i); end
             case 'cmg'
                 hdot(i) = max(-m.torque_max(i), min(m.torque_max(i), -m.k_speed*(h(i) - m.h0(i))));
                 P_W = P_W + m.p_steady(i);

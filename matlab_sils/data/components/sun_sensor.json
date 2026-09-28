@@ -1,0 +1,29 @@
+{
+ "chain": [
+  {
+   "file": "matlab_sils/+asils/+comp/+sun_sensor/currents.m",
+   "node": "currents",
+   "status": "implemented",
+   "what": "MODEL SIDE: Sun direction -> four quadrant photodiode currents behind a square aperture"
+  },
+  {
+   "file": "matlab_sils/+asils/+comp/+sun_sensor/angles.m",
+   "node": "angles",
+   "status": "baseline",
+   "what": "quadrant currents -> alpha, beta -> Sun unit vector (head frame -> body)"
+  }
+ ],
+ "hal_output": "Sun unit vector (int16 Q15 x3) + validity (flags bit0)",
+ "id": "sun_sensor",
+ "in_house": "planned",
+ "kind": "sensor",
+ "levels": [
+  "model: Sun vector + noise (default)",
+  "chain: quadrant currents -> angles -> vector"
+ ],
+ "model": "matlab_sils/+asils/+devices/sun_sensor.m",
+ "parts": [
+  "SYN-SUN-1"
+ ],
+ "schema": "adcs-component/1"
+}

@@ -61,14 +61,15 @@ function rec = run(scenarioId, caseFile, varargin)
         'tau_rw', Z(3), 'tau_rcs', Z(3), 'tau_req', Z(3), 'mode', Z(1), 'P_mtq', Z(1), 'P_rw', Z(1), 'P_rcs', Z(1), ...
         'prop_kg', Z(1), 'r', Z(3), 'v', Z(3), 'rho', Z(1), 'nu', Z(1), 'B', Z(3), 'B_meas', Z(3), ...
         'sun_ok', Z(1), 'st_ok', Z(1), 'ad_ok', Z(1), 'sun_eci', Z(3), 'sun_body', Z(3), 'n_failed', Z(1));
-    modes = {'detumble', 'nadir_mtq', 'nadir_fine', 'target_fine', 'slew_fine', 'spinup', 'sun_spin'};
+    MT = asils.fsw.modes(); modes = MT.state;
 
     env_every = max(1, round(P.env.dt_s/dt));
     st_every = 1; if dev.st.fitted, st_every = max(1, round(1/(dev.st.rate_hz*dt))); end
     gps_every = max(1, round(1/dt));
+    es_every = 1; if dev.es.fitted, es_every = max(1, round(1/(dev.es.rate_hz*dt))); end
     m_B = zeros(3,1); P_mtq = 0; P_mex = 0; P_rcs = 0; hdot = zeros(nr,1); gdot = zeros(ng,1);
     tau_rcs = zeros(3,1); prop = 0;
-    z = struct('gps_ok', false, 'st_ok', false, 'st_valid', false, 'sun_ok', false, 'clean', true, ...
+    z = struct('gps_ok', false, 'st_ok', false, 'st_valid', false, 'sun_ok', false, 'clean', true, 'es_ok', false, 'nadir', [0;0;-1], ...
                'q_st', [0;0;0;1], 'sun', [1;0;0], 'r_gps', [], 'v_gps', [], 'h', zeros(nr,1), 'delta', zeros(ng,1));
     j = 0; tprint = 0; parts = zeros(3,4); Eacc = [0 0 0]; off = floor(every/2);
     for k = 0:N
@@ -104,6 +105,8 @@ function rec = run(scenarioId, caseFile, varargin)
             [z.q_st, z.st_valid, D.st] = asils.devices.star_tracker(q, t, w, sB, nB, asin(6378137/norm(r)), D.st, dev.st);
             z.st_ok = any(z.st_valid);
         end
+        z.es_ok = false;
+        if dev.es.fitted && mod(k, es_every) == 0, [z.nadir, z.es_ok] = asils.devices.earth_sensor(nB, D.es, dev.es); end
         z.gps_ok = dev.gps.fitted && mod(k, gps_every) == 0 && ~D.gps_dead;
         if z.gps_ok, [z.r_gps, z.v_gps] = asils.devices.gps(r, v, dev.gps); end
         if nr > 0, z.h = h + 1e-7*randn(nr,1); end
@@ -162,7 +165,7 @@ function rec = run(scenarioId, caseFile, varargin)
     fn = fieldnames(R_);
     for i = 1:numel(fn), R_.(fn{i}) = R_.(fn{i})(:, 1:j); end
     rec = R_;
-    rec.P = rmfield(P, 'igrf'); rec.modes = modes; rec.mode_log = F.log;
+    rec.P = rmfield(P, 'igrf'); rec.modes = modes; rec.mission_modes = MT.mission; rec.mode_log = F.log;
     rec.orbit = struct('raan_rad', O.raan_rad, 'inc_rad', O.inc_rad, 'a_m', O.a_m);
     rec.wall_s = toc(tic_all);
     rec = asils.metrics.derive(rec);
@@ -179,7 +182,11 @@ function [q0, w0] = initial_(P, r, v, F)
     switch S.attitude.kind
         case 'random'
             q0 = asils.quat.norm(randn(4,1));
-        case 'error_from_target'
+        case {'error_from_target', 'error_from_guidance'}
+            % offset from the reference of the mode being tested (its guidance law)
+            if strcmp(S.attitude.kind, 'error_from_guidance') && ~isempty(F.gd_kind0)
+                q_ref = asils.fsw.guidance(F.gd_kind0, r, v, 0, F.gd);
+            end
             ax = S.attitude.axis_body(:); ax = ax/norm(ax);
             q0 = asils.quat.norm(asils.quat.mult(q_ref, asils.quat.fromrotvec(S.attitude.angle_deg*pi/180*ax)));
         otherwise
@@ -192,6 +199,10 @@ function [q0, w0] = initial_(P, r, v, F)
             dd = randn(3,1); w0 = dd/norm(dd)*mag*pi/180;
         case 'lvlh'
             Rq = asils.quat.dcm(q0); w0 = Rq*(asils.util.cross3(r, v)/(r'*r));
+        case 'guidance'           % the tested mode's reference rate plus a random extra
+            w0 = zeros(3,1);
+            if ~isempty(F.gd_kind0), [~, w0] = asils.fsw.guidance(F.gd_kind0, r, v, 0, F.gd); end
+            dd = randn(3,1); w0 = w0 + dd/norm(dd)*asils.util.getf(S.rate, 'extra_deg_s', 0)*pi/180;
         otherwise
             w0 = S.rate.value_deg_s(:)*pi/180;
     end

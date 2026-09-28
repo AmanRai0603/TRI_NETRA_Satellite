@@ -1,0 +1,18 @@
+# Component: coarse_sun_sensor. The MODEL is what the SILS flies in place of the unit;
+# the CHAIN is the unit's own processing (in-house development plugs in
+# node by node). status: implemented | baseline (standard method standing in
+# for the in-house one) | stub. Generated layout, edited by hand.
+schema = "adcs-component/1"
+id = "coarse_sun_sensor"
+kind = "sensor"
+in_house = "no"
+parts = ["TRN-CSS-1"]
+model = "matlab_sils/+asils/+devices/css.m"
+hal_output = "Sun unit vector + validity"
+levels = ["model (default)"]
+
+[[chain]]
+node = "difference"
+file = "matlab_sils/+asils/+devices/css.m"
+status = "implemented"
+what = "opposite-face current difference -> Sun vector (albedo is the error)"

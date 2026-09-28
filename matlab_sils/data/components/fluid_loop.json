@@ -1,0 +1,22 @@
+{
+ "chain": [
+  {
+   "file": "matlab_sils/+asils/+comp/+fluid_loop/drive.m",
+   "node": "flow_servo",
+   "status": "implemented",
+   "what": "momentum command -> integrated target -> filtered flow -> loss feed-forward + flow servo -> pump drive"
+  }
+ ],
+ "hal_output": "ring momentum command (int16 Q15) / flow reading",
+ "id": "fluid_loop",
+ "in_house": "yes",
+ "kind": "actuator",
+ "levels": [
+  "model (default)"
+ ],
+ "model": "matlab_sils/+asils/+devices/mex.m",
+ "parts": [
+  "SYN-MFP-1"
+ ],
+ "schema": "adcs-component/1"
+}

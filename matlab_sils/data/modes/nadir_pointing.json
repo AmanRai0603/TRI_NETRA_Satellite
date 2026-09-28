@@ -1,0 +1,158 @@
+{
+ "exit": "commanded (schedule / ground)",
+ "goal": "Payload axis on nadir: case req.ape / req.ake / req.rks",
+ "guidance": "nadir",
+ "id": "nadir_pointing",
+ "label": "Nadir pointing",
+ "metrics": [
+  {
+   "id": "ape_los_p9973",
+   "kind": "ape_los",
+   "requirement": "req.ape",
+   "statistic": "p99.73",
+   "window": "last_half_orbit"
+  },
+  {
+   "id": "ake_los_p9973",
+   "kind": "ake_los",
+   "requirement": "req.ake",
+   "statistic": "p99.73",
+   "window": "last_half_orbit"
+  },
+  {
+   "id": "rate_stability_p9973",
+   "kind": "rate_stability",
+   "requirement": "req.rks",
+   "statistic": "p99.73",
+   "window": "last_half_orbit"
+  },
+  {
+   "id": "jitter",
+   "kind": "jitter",
+   "window": "last_half_orbit"
+  },
+  {
+   "id": "momentum_peak",
+   "kind": "wheel_momentum_peak",
+   "window": "all"
+  },
+  {
+   "id": "power_mean",
+   "kind": "power_mean",
+   "requirement": "req.pavg",
+   "window": "all"
+  },
+  {
+   "id": "power_peak",
+   "kind": "power_peak",
+   "window": "all"
+  },
+  {
+   "id": "propellant",
+   "kind": "propellant",
+   "window": "all"
+  }
+ ],
+ "navigation": [
+  "star_tracker",
+  "gyro",
+  "sun",
+  "magnetometer",
+  "earth_sensor"
+ ],
+ "next": "",
+ "objective": "ape_los_p9973",
+ "options": [
+  {
+   "actuator": "mtq",
+   "dt_s": 0.2,
+   "duration_orbits": 2.0,
+   "family": "mtq",
+   "fsw_mode": "nadir_mtq",
+   "id": "mtq",
+   "window": "last_orbit"
+  },
+  {
+   "actuator": "rw",
+   "dt_s": 0.1,
+   "dump": "mtq",
+   "family": "mtq_rw",
+   "fsw_mode": "nadir_fine",
+   "id": "rw+mtq"
+  },
+  {
+   "actuator": "rw",
+   "dt_s": 0.1,
+   "dump": "rcs",
+   "family": "mtq_rw_rcs",
+   "fsw_mode": "nadir_fine",
+   "id": "rw+rcs"
+  },
+  {
+   "actuator": "cmg",
+   "dt_s": 0.1,
+   "dump": "mtq",
+   "family": "mtq_cmg",
+   "fsw_mode": "nadir_fine",
+   "id": "cmg+mtq"
+  },
+  {
+   "actuator": "cmg",
+   "dt_s": 0.1,
+   "dump": "rcs",
+   "family": "mtq_cmg_rcs",
+   "fsw_mode": "nadir_fine",
+   "id": "cmg+rcs"
+  },
+  {
+   "actuator": "vscmg",
+   "dt_s": 0.1,
+   "dump": "mtq",
+   "family": "mtq_vscmg",
+   "fsw_mode": "nadir_fine",
+   "id": "vscmg+mtq"
+  },
+  {
+   "actuator": "vscmg",
+   "dt_s": 0.1,
+   "dump": "rcs",
+   "family": "mtq_vscmg_rcs",
+   "fsw_mode": "nadir_fine",
+   "id": "vscmg+rcs"
+  },
+  {
+   "actuator": "fmr",
+   "dt_s": 0.1,
+   "dump": "mtq",
+   "family": "mtq_fmr",
+   "fsw_mode": "nadir_fine",
+   "id": "fmr+mtq"
+  },
+  {
+   "actuator": "fmr",
+   "dt_s": 0.1,
+   "dump": "rcs",
+   "family": "mtq_fmr_rcs",
+   "fsw_mode": "nadir_fine",
+   "id": "fmr+rcs"
+  }
+ ],
+ "order": 4,
+ "schema": "adcs-mode/1",
+ "test": {
+  "attitude": {
+   "angle_deg": 10.0,
+   "axis_body": [
+    0.577,
+    0.577,
+    0.577
+   ],
+   "kind": "error_from_guidance"
+  },
+  "duration_orbits": 1.0,
+  "rate": {
+   "kind": "lvlh"
+  },
+  "window": "last_half_orbit"
+ }
+}

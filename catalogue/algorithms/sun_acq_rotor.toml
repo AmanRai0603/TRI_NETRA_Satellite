@@ -1,0 +1,11 @@
+# Algorithm descriptor (adcs-algorithm/1 + slot/needs, SILS registry).
+schema = "adcs-algorithm/1"
+id = "sun_acq_rotor"
+number = 41
+slot = "sun_acquisition"
+label = "Sun-vector acquisition with momentum devices: tau = kp (s_meas x a_sun) - kd (w - w_s), rate hold in eclipse"
+needs = ["momentum", "sun", "gyro"]
+fsw = "reference"
+source = "this SILS (Wie 2008 sec. 7.3 eigenaxis-free vector acquisition)"
+confirmed_by = "UNCONFIRMED · awaiting a person"
+prototype = true

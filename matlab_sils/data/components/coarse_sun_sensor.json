@@ -1,0 +1,22 @@
+{
+ "chain": [
+  {
+   "file": "matlab_sils/+asils/+devices/css.m",
+   "node": "difference",
+   "status": "implemented",
+   "what": "opposite-face current difference -> Sun vector (albedo is the error)"
+  }
+ ],
+ "hal_output": "Sun unit vector + validity",
+ "id": "coarse_sun_sensor",
+ "in_house": "no",
+ "kind": "sensor",
+ "levels": [
+  "model (default)"
+ ],
+ "model": "matlab_sils/+asils/+devices/css.m",
+ "parts": [
+  "TRN-CSS-1"
+ ],
+ "schema": "adcs-component/1"
+}

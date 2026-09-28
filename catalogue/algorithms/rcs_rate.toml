@@ -1,0 +1,11 @@
+# Algorithm descriptor (adcs-algorithm/1 + slot/needs, SILS registry).
+schema = "adcs-algorithm/1"
+id = "rcs_rate"
+number = 40
+slot = "detumble"
+label = "Thruster rate damping: tau = -I w / T_damp, pulse-width modulated with MIB-aware couples"
+needs = ["rcs", "gyro"]
+fsw = "reference"
+source = "this SILS (classic cold-gas rate damping, Wertz 1978 sec. 18)"
+confirmed_by = "UNCONFIRMED · awaiting a person"
+prototype = true

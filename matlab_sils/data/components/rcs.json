@@ -1,0 +1,22 @@
+{
+ "chain": [
+  {
+   "file": "matlab_sils/+asils/+comp/+rcs/schedule.m",
+   "node": "schedule",
+   "status": "implemented",
+   "what": "torque request -> couple selection -> MIB / valve-resolution quantised on-times"
+  }
+ ],
+ "hal_output": "valve on-time per nozzle couple (uint8, 1 ms)",
+ "id": "rcs",
+ "in_house": "yes",
+ "kind": "actuator",
+ "levels": [
+  "model (default)"
+ ],
+ "model": "matlab_sils/+asils/+devices/rcs.m",
+ "parts": [
+  "TRN-RCS-3U"
+ ],
+ "schema": "adcs-component/1"
+}

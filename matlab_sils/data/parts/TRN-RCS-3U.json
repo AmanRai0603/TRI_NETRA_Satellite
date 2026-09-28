@@ -6,6 +6,11 @@
    "mean": 0.0,
    "sigma": 0.01
   },
+  "isp_s": {
+   "dist": "uniform",
+   "hi": 80.0,
+   "lo": 60.0
+  },
   "thrust_scale": {
    "dist": "normal",
    "mean": 1.0,
@@ -17,16 +22,20 @@
   "mtq_fmr_rcs"
  ],
  "kind": "rcs",
- "made": "bought",
- "name": "Cold-gas RCS, six couples \u2014 tests only",
+ "made": "in-house",
+ "name": "N2O cold-gas RCS, six couples \u2014 in-house reference",
  "nominal": {
   "arm_long_m": 0.15,
   "arm_short_m": 0.045,
-  "isp_s": 65.0,
+  "isp_s": 70.0,
   "mass_kg": 0.35,
   "mib_s": 0.005,
+  "propellant": "N2O",
+  "propellant_density_kg_m3": 745.0,
   "propellant_kg": 0.05,
+  "tank_pressure_bar": 50.0,
   "thrust_N": 0.01,
+  "thrusters": 12,
   "valve_power_W": 1.0,
   "valve_res_s": 0.001
  },

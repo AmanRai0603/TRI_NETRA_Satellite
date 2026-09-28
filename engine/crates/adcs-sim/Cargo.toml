@@ -1,0 +1,14 @@
+[package]
+name = "adcs-sim"
+description = "TRI-NETRA ADCS SILS engine: case + scenario + product -> closed loop with the flight software behind bytes -> recording + metrics"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+publish.workspace = true
+
+[dependencies]
+adcs-sim-core = { path = "../adcs-sim-core" }
+adcs-pop = { path = "../adcs-pop" }
+adcs-fsw-abi = { path = "../adcs-fsw-abi" }
+adcs-fsw = { path = "../../../fsw-rs" }
+serde_json = { version = "1", features = ["preserve_order"] }

@@ -5,7 +5,7 @@ function alg = select(dev, S)
 %   One job, several algorithms, several kinds of hardware: every algorithm is
 %   registered once in catalogue/algorithms/<id>.toml with its SLOT (the job:
 %   detumble, attitude, pointing (momentum devices), mtq_pointing (coils),
-%   sun_spin, allocation, thrusters) and what it
+%   sun_acquisition (alias sun_spin), allocation, thrusters) and what it
 %   NEEDS (coils, magnetometer, gyro, sun, momentum, wheels_or_rings, rings,
 %   cmg, vscmg, rcs, attitude). The choice for a run is, in order:
 %     1 the scenario's [fsw.algorithms] table (a trade or a test fixes it)
@@ -17,13 +17,17 @@ function alg = select(dev, S)
     R = asils.util.root();
     has = caps_(dev);
     dflt = struct('detumble', {{'bdot_gyro', 'bdot_mag'}}, 'attitude', {{'mekf'}}, ...
-        'pointing', {{'pid'}}, 'mtq_pointing', {{'mtq_pd'}}, 'sun_spin', {{'sunspin_l1l2'}}, ...
+        'pointing', {{'pid'}}, 'mtq_pointing', {{'mtq_pd'}}, 'sun_acquisition', {{'sunspin_l1l2'}}, ...
         'allocation', {{'cmg_sr', 'vscmg_sr', 'idmas_split', 'rotor_pinv'}}, 'thrusters', {{'rcs_pwm'}});
     pick = struct();
     if isfield(dev, 'selected'), pick = dev.selected; end
     if isfield(S, 'fsw') && isfield(S.fsw, 'algorithms')
         f = fieldnames(S.fsw.algorithms);
         for i = 1:numel(f), pick.(f{i}) = S.fsw.algorithms.(f{i}); end
+    end
+    if isfield(pick, 'sun_spin')             % legacy slot name of the coils-only Sun acquisition law
+        if ~isfield(pick, 'sun_acquisition'), pick.sun_acquisition = pick.sun_spin; end
+        pick = rmfield(pick, 'sun_spin');
     end
     slots = fieldnames(dflt); alg = struct();
     for i = 1:numel(slots)

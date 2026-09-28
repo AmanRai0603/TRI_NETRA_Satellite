@@ -9,3 +9,11 @@ matlab_sils/pop/data_cache/
 __pycache__/
 matlab_sils/store/results/*.log
 matlab_sils/store/trades/**/*.mat
+matlab_sils/store/solutions/**/*.mat
+fsw/build/
+target/
+engine/target/
+fsw-rs/target/
+matlab_sils/store/results_engine/**/channels.csv
+matlab_sils/store/solutions_engine/**/channels.csv
+.claude/
