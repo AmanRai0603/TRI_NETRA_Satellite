@@ -1,0 +1,451 @@
+# The flight-software parameter table (adcs-fswcfg/1): the ONE source of every
+# parameter the flight software reads at init. tools/gen_fsw_params.py writes
+#   fsw/include/adcs_params.h, fsw/src/adcs_params.c   (C struct + blob decoder)
+#   fsw-rs/src/params.rs                               (Rust struct + decoder + encoder)
+# and the engine encodes the blob with the same order. Blob layout:
+#   "ADCSCFG1" | u32 payload length | fields in this order, little-endian | u32 CRC-32 (IEEE) of the payload
+# type: f64 | u32 | u8 ; shape: [] scalar, [n] or [n, m] row-major.
+# Values come from asils.config (MATLAB twin) / adcs_sim::config (Rust engine).
+# Owner: Agastya. Copyright (c) 2026 Agastya. All rights reserved.
+schema = "adcs-fswcfg/1"
+max_rotors = 8
+max_gimbals = 4
+max_couples = 6
+max_heads = 2
+max_schedule = 8
+
+[[field]]
+name = "jd0"
+type = "f64"
+doc = "Julian date of tick 0 (UTC ~ TT for the onboard models)"
+[[field]]
+name = "dt"
+type = "f64"
+doc = "flight-software tick [s]"
+[[field]]
+name = "mu"
+type = "f64"
+doc = "Earth gravitational parameter [m^3/s^2]"
+[[field]]
+name = "start_mode"
+type = "u8"
+doc = "controller state at init (adcs_mode_t)"
+[[field]]
+name = "auto_next"
+type = "u8"
+doc = "state entered when detumble / rotor Sun acquisition completes (255 = none)"
+[[field]]
+name = "n_sched"
+type = "u8"
+doc = "number of commanded mode changes"
+[[field]]
+name = "sched_t"
+type = "f64"
+shape = [8]
+doc = "commanded change times [s]"
+[[field]]
+name = "sched_mode"
+type = "u8"
+shape = [8]
+doc = "commanded states"
+# ---- algorithm choices (registry slots, resolved on the ground)
+[[field]]
+name = "bdot_law"
+type = "u8"
+doc = "0 gyro, 1 mag, 2 bangbang, 3 L1 generalised B-dot"
+[[field]]
+name = "rw_law"
+type = "u8"
+doc = "fine pointing law: 0 pid, 1 lqr, 2 smc"
+[[field]]
+name = "mtq_law"
+type = "u8"
+doc = "magnetic pointing law: 0 pd, 1 lqr, 2 smc, 3 rate damping"
+[[field]]
+name = "alloc"
+type = "u8"
+doc = "allocation: 0 rotor pinv, 1 IDMAS split, 2 CMG SR, 3 VSCMG SR"
+[[field]]
+name = "ss_eclipse"
+type = "u8"
+doc = "Sun spin eclipse policy: 1 E1 (coils off), 2 E2 (gyro-propagated Sun)"
+[[field]]
+name = "ss_rz_floor"
+type = "f64"
+doc = "Sun spin R_z floor as a fraction of J_zz (0 = published law)"
+# ---- guidance
+[[field]]
+name = "gd_kind"
+type = "u8"
+doc = "guidance of the fine / magnetic states: 0 nadir, 1 target, 2 slew, 3 inertial, 4 sun"
+[[field]]
+name = "gd_q_off"
+type = "f64"
+shape = [4]
+doc = "payload boresight offset quaternion (x y z w)"
+[[field]]
+name = "gd_roll_deg"
+type = "f64"
+doc = "target offset / slew angle [deg]"
+[[field]]
+name = "gd_t0"
+type = "f64"
+doc = "slew start [s]"
+[[field]]
+name = "gd_T"
+type = "f64"
+doc = "slew duration [s]"
+[[field]]
+name = "gd_axis"
+type = "f64"
+shape = [3]
+doc = "slew / target axis (body)"
+[[field]]
+name = "gd_q_inertial"
+type = "f64"
+shape = [4]
+doc = "inertial hold attitude"
+[[field]]
+name = "sun_axis"
+type = "f64"
+shape = [3]
+doc = "power face (body)"
+[[field]]
+name = "roll_axis"
+type = "f64"
+shape = [3]
+doc = "Sun-referencing roll axis (body)"
+# ---- spacecraft
+[[field]]
+name = "J"
+type = "f64"
+shape = [3, 3]
+doc = "inertia [kg m^2]"
+[[field]]
+name = "m_res_est"
+type = "f64"
+shape = [3]
+doc = "calibrated residual dipole [A m^2]"
+# ---- coils
+[[field]]
+name = "mtq_period"
+type = "f64"
+doc = "coil cycle [s]"
+[[field]]
+name = "mtq_meas"
+type = "f64"
+doc = "coil-off measurement window [s]"
+[[field]]
+name = "m_max"
+type = "f64"
+doc = "coil dipole limit [A m^2]"
+[[field]]
+name = "bdot_k"
+type = "f64"
+doc = "B-dot gain [A m^2 s]"
+[[field]]
+name = "detumble_exit"
+type = "f64"
+doc = "detumble exit rate [rad/s]"
+[[field]]
+name = "detumble_hold_s"
+type = "f64"
+doc = "dwell below the exit rate [s]"
+# ---- magnetic three-axis gains
+[[field]]
+name = "mtq_Kp"
+type = "f64"
+shape = [3]
+[[field]]
+name = "mtq_Kd"
+type = "f64"
+shape = [3]
+[[field]]
+name = "mtq_Ki"
+type = "f64"
+shape = [3]
+[[field]]
+name = "mtq_Klqr"
+type = "f64"
+shape = [3, 3]
+[[field]]
+name = "mtq_lambda"
+type = "f64"
+[[field]]
+name = "mtq_phi"
+type = "f64"
+[[field]]
+name = "mtq_Gs"
+type = "f64"
+shape = [3]
+[[field]]
+name = "mtq_err_max"
+type = "f64"
+[[field]]
+name = "mtq_int_max"
+type = "f64"
+# ---- fine-pointing gains
+[[field]]
+name = "rw_Kp"
+type = "f64"
+shape = [3]
+[[field]]
+name = "rw_Kd"
+type = "f64"
+shape = [3]
+[[field]]
+name = "rw_Ki"
+type = "f64"
+shape = [3]
+[[field]]
+name = "rw_Klqr"
+type = "f64"
+shape = [3, 3]
+[[field]]
+name = "rw_lambda"
+type = "f64"
+[[field]]
+name = "rw_phi"
+type = "f64"
+[[field]]
+name = "rw_Gs"
+type = "f64"
+shape = [3]
+[[field]]
+name = "rw_err_max"
+type = "f64"
+[[field]]
+name = "rw_int_max"
+type = "f64"
+[[field]]
+name = "rw_dt"
+type = "f64"
+doc = "fine control period [s]"
+[[field]]
+name = "capture_deg"
+type = "f64"
+[[field]]
+name = "capture_rate_deg_s"
+type = "f64"
+# ---- Standard Code L1 / L2
+[[field]]
+name = "ss_k_l1"
+type = "f64"
+[[field]]
+name = "ss_spin_dps"
+type = "f64"
+[[field]]
+name = "ss_sigma0"
+type = "f64"
+[[field]]
+name = "ss_z_in_dps"
+type = "f64"
+[[field]]
+name = "ss_perp_in_dps"
+type = "f64"
+[[field]]
+name = "ss_sun_min"
+type = "f64"
+[[field]]
+name = "ss_t_check_s"
+type = "f64"
+[[field]]
+name = "ss_omega_max_dps"
+type = "f64"
+[[field]]
+name = "ss_dwell_in_s"
+type = "f64"
+[[field]]
+name = "ss_k1"
+type = "f64"
+[[field]]
+name = "ss_k2"
+type = "f64"
+[[field]]
+name = "ss_perp_out_dps"
+type = "f64"
+[[field]]
+name = "ss_omega_exit_dps"
+type = "f64"
+[[field]]
+name = "ss_dwell_out_s"
+type = "f64"
+# ---- rotor Sun acquisition
+[[field]]
+name = "sa_w_max_deg_s"
+type = "f64"
+[[field]]
+name = "sa_kd"
+type = "f64"
+[[field]]
+name = "sa_done_deg"
+type = "f64"
+[[field]]
+name = "sa_done_hold_s"
+type = "f64"
+# ---- momentum devices
+[[field]]
+name = "nr"
+type = "u8"
+doc = "rotors"
+[[field]]
+name = "ng"
+type = "u8"
+doc = "gimbals"
+[[field]]
+name = "rot_kind"
+type = "u8"
+shape = [8]
+doc = "0 wheel, 1 fluid loop, 2 CMG rotor, 3 VSCMG rotor"
+[[field]]
+name = "rot_a0"
+type = "f64"
+shape = [8, 3]
+doc = "nominal rotor axes (body)"
+[[field]]
+name = "rot_gi"
+type = "u8"
+shape = [8]
+doc = "gimbal index + 1 (0 = fixed)"
+[[field]]
+name = "gim_axis"
+type = "f64"
+shape = [4, 3]
+[[field]]
+name = "rot_tmax"
+type = "f64"
+shape = [8]
+[[field]]
+name = "rot_hmax"
+type = "f64"
+shape = [8]
+[[field]]
+name = "rot_h0"
+type = "f64"
+shape = [8]
+doc = "CMG / VSCMG rotor momentum"
+[[field]]
+name = "gim_rate_max"
+type = "f64"
+[[field]]
+name = "h_bias"
+type = "f64"
+doc = "wheel bias momentum [N m s]"
+[[field]]
+name = "dump_k"
+type = "f64"
+[[field]]
+name = "cmg_lam0"
+type = "f64"
+[[field]]
+name = "cmg_mu"
+type = "f64"
+[[field]]
+name = "cmg_k_null"
+type = "f64"
+[[field]]
+name = "fdir_s"
+type = "f64"
+# ---- thrusters
+[[field]]
+name = "nc"
+type = "u8"
+doc = "thruster couples"
+[[field]]
+name = "rcs_tau"
+type = "f64"
+shape = [6, 3]
+doc = "torque of each couple at full duty (body) [N m]"
+[[field]]
+name = "rcs_mib"
+type = "f64"
+[[field]]
+name = "rcs_res"
+type = "f64"
+[[field]]
+name = "rcs_assist"
+type = "u8"
+[[field]]
+name = "rcs_assist_frac"
+type = "f64"
+[[field]]
+name = "rcs_dump"
+type = "u8"
+[[field]]
+name = "rcs_dump_hi"
+type = "f64"
+[[field]]
+name = "rcs_dump_lo"
+type = "f64"
+[[field]]
+name = "rcs_dump_k"
+type = "f64"
+[[field]]
+name = "rcsd_T_damp_s"
+type = "f64"
+[[field]]
+name = "rcsd_deadband_deg_s"
+type = "f64"
+[[field]]
+name = "rcsd_period_s"
+type = "f64"
+# ---- sensors
+[[field]]
+name = "has_gyro"
+type = "u8"
+[[field]]
+name = "has_st"
+type = "u8"
+[[field]]
+name = "has_sun"
+type = "u8"
+[[field]]
+name = "has_es"
+type = "u8"
+[[field]]
+name = "has_gps"
+type = "u8"
+[[field]]
+name = "n_heads"
+type = "u8"
+[[field]]
+name = "st_bs"
+type = "f64"
+shape = [2, 3]
+doc = "star-tracker head boresights (body)"
+[[field]]
+name = "st_noise_cross"
+type = "f64"
+[[field]]
+name = "st_noise_roll"
+type = "f64"
+[[field]]
+name = "st_latency"
+type = "f64"
+[[field]]
+name = "st_coast_s"
+type = "f64"
+[[field]]
+name = "gyro_arw"
+type = "f64"
+[[field]]
+name = "gyro_rrw"
+type = "f64"
+[[field]]
+name = "es_noise"
+type = "f64"
+[[field]]
+name = "mekf_sig_mag"
+type = "f64"
+[[field]]
+name = "mekf_sig_sun"
+type = "f64"
+[[field]]
+name = "mekf_meas_scale"
+type = "f64"
+[[field]]
+name = "rate_lpf_s"
+type = "f64"
+[[field]]
+name = "igrf_nmax"
+type = "u8"

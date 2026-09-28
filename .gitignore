@@ -10,3 +10,5 @@ __pycache__/
 matlab_sils/store/results/*.log
 matlab_sils/store/trades/**/*.mat
 matlab_sils/store/solutions/**/*.mat
+fsw/build/
+target/
