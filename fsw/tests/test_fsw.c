@@ -161,6 +161,7 @@ static void t_abi(void)
         double B[3] = {2e-5, -1e-5, 3e-5}, w[3] = {0.05, -0.02, 0.1}, bd[3], m[3] = {a[5][0], a[5][1], a[5][2]};
         bd[0] = -(w[1]*B[2] - w[2]*B[1]); bd[1] = -(w[2]*B[0] - w[0]*B[2]); bd[2] = -(w[0]*B[1] - w[1]*B[0]);
         CHECK(on && m[0]*bd[0] + m[1]*bd[1] + m[2]*bd[2] < 0, "B-dot dipole opposes dB/dt");
+        CHECK(a[2][0] == 25936 && a[2][1] == 32767 && a[2][2] == -6826, "PWM words equal the Rust build (fsw-rs/tests/fsw.rs)");
     }
     {   /* a corrupted blob is refused */
         uint8_t blob[ADCS_PARAMS_BLOB_SIZE]; adcs_params_t p; adcs_fsw_init_t in;
