@@ -589,6 +589,61 @@ def trade_html(T):
     return "\n".join(o)
 
 
+def engine_section():
+    """The Rust engine and the two flight-software builds (tools/engine.py twin-parity)."""
+    import sys
+    sys.path.insert(0, str(ROOT / "tools"))
+    import engine as E
+    pj = OUT / "engine_parity.json"
+    if not pj.exists():
+        return []
+    rows = json.loads(pj.read_text())
+    judged = [r for r in rows if r["agree"] is not None]
+    agree = sum(r["agree"] for r in judged)
+    walls = {r["scenario"]: (r["wall_matlab_s"], r["wall_engine_s"]) for r in rows if r["wall_matlab_s"] and r["wall_engine_s"]}
+    sp = sorted(a / b for a, b in walls.values())
+    # distribution figure: MATLAB campaign vs engine Monte Carlo
+    pairs = [("mc_fine_img", "fine_hold_img", "ape_los_p9973", "APE LOS p99.73 [deg]", 0.01),
+             ("mc_detumble_ais", "detumble_ais", "detumble_time", "detumble time [min]", None),
+             ("mc_slew_img", "slew_img", "settle_time_after_slew", "settle after slew [s]", 20)]
+    have = []
+    for camp, scen, mid, lab, req in pairs:
+        a, b = E.TWIN / camp / "summary.json", E.ENG / f"mc_{scen}" / "summary.json"
+        if a.exists() and b.exists():
+            sa = json.loads(a.read_text()); sb = json.loads(b.read_text())
+            va = next((m["values"] for m in aslist(sa["stats"]) if m["id"] == mid), None)
+            vb = [r[mid] for r in sb["runs"] if isinstance(r.get(mid), (int, float))]
+            if va and vb:
+                have.append((camp, scen, lab, req, [x for x in va if x is not None], vb))
+    out = ["<h2 id='engine'>Flight software in C and Rust, engine in Rust</h2>",
+           "<p>The flight software is written once as pseudocode (<code>fsw/pseudocode</code>) and flown in two builds: "
+           "embedded C (<code>fsw/</code>, C99, the OBC build) and Rust (<code>fsw-rs/</code>, <code>no_std</code>). The plant, orbit, "
+           "environment and every device run in the Rust engine (<code>engine/</code>), and each device speaks its own bytes (I2C "
+           "registers, SPI, UART frames with CRC, CAN), so the flight drivers are exercised as on the OBC. Python orchestrates and "
+           "reports; MATLAB stays the SILS twin (docs/LANGUAGES.md, fsw/twin_map.toml).</p>",
+           f"<div class='kv'><div><b>C vs Rust flight software</b>bit-identical closed-loop trajectories on every scenario tried (<code>adcs parity</code>)</div>"
+           f"<div><b>Engine vs MATLAB, single runs</b>{agree} of {len(judged)} requirement verdicts agree over {len(walls)} scenarios</div>"
+           f"<div><b>Speed, one core</b>{sp[len(sp)//2]:.0f}× faster than the Octave twin (median; {sp[0]:.0f}–{sp[-1]:.0f}×)</div>"
+           f"<div><b>Distributions</b>Monte Carlo on both sides agree where the dispersions match (figure)</div></div>"]
+    if have:
+        fig, axs = plt.subplots(1, len(have), figsize=(3.6 * len(have), 3.2))
+        axs = np.atleast_1d(axs)
+        for ax, (camp, scen, lab, req, va, vb) in zip(axs, have):
+            rng = np.random.default_rng(0)
+            ax.scatter(0 + 0.08 * rng.standard_normal(len(va)), va, s=18, color=S1, label="MATLAB twin")
+            ax.scatter(1 + 0.08 * rng.standard_normal(len(vb)), vb, s=18, color=S2, label="Rust engine")
+            if req: req_line(ax, req, "req")
+            ax.set_xticks([0, 1]); ax.set_xticklabels(["MATLAB", "engine"]); ax.set_xlim(-0.6, 1.6); ax.set_title(scen); ax.set_ylabel(lab)
+        h, l = axs[0].get_legend_handles_labels()
+        fig.legend(h, l, loc="lower center", ncol=2, bbox_to_anchor=(0.5, -0.04), fontsize=9)
+        fig.suptitle("Monte Carlo: MATLAB campaign vs Rust engine (C flight software)", fontsize=11, fontweight="bold")
+        fig.tight_layout(rect=(0, 0.04, 1, 0.94))
+        out.append(f"<figure><img src='figures/{save(fig, 'engine_vs_matlab_mc')}' alt='Monte Carlo distributions, MATLAB twin vs Rust engine' loading='lazy'></figure>")
+    out.append("<h3>Differences traced to their cause</h3><ul>" + "".join(f"<li><b>{html.escape(k)}.</b> {html.escape(v)}</li>" for k, v in E.NOTES) + "</ul>")
+    out.append("<p class='muted'>Full ledger, metric by metric: <code>results/ENGINE_PARITY.md</code>. Build and run: <code>python3 tools/engine.py build && python3 tools/engine.py run</code>.</p>")
+    return out
+
+
 def write_html(sections, cmp_figs, report, trades=(), sol_html=()):
     css = """
 :root{--bg:#f7f8f9;--surface:#ffffff;--text:#15191e;--muted:#56606b;--line:#dde2e7;--accent:#2a78d6;--pass:#0a7a3a;--fail:#b3261e;--chip:#eef2f6}
@@ -643,6 +698,7 @@ nav a:hover,nav a:focus-visible{border-color:var(--accent);outline:none}
         out.append("</table></div>")
         for T in trades:
             out.append(trade_html(T))
+    out.extend(engine_section())
     if cmp_figs:
         out.append("<h2 id='compare'>Comparisons</h2>")
         for f in cmp_figs: out.append(f"<figure><img src='figures/{f}' alt='{f[:-4]}' loading='lazy'></figure>")

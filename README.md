@@ -31,8 +31,8 @@ case  ->  demand  ->  sizing  ->  mission modes x methods (SILS)  ->  solution  
 | `scenarios/`, `campaigns/`, `trades/` | test scenarios, Monte Carlo / edge campaigns, algorithm and hardware trades |
 | `docs/` | `SOLUTION_PIPELINE.md` (start here), `LANGUAGES.md` (C / Rust / Python / MATLAB roles), `ARCHITECTURE_PLAN.md`, `COMPONENTS.md`, `OILS_HILS.md`, `RESULTS.md`, `SELECTION.md`, `SOLUTIONS.md` |
 | `results/index.html` | the report with every figure |
-| `dist/` | the downloadable MATLAB SILS zip; `dist/dispatch/` holds the dispatch packages |
-| `tools/` | `engine.py` (build, run, Monte Carlo and parity on the Rust engine), `gen_fsw_params.py` (params → C + Rust), `export_catalogue.py` (TOML → JSON), `run_matrix.py` (parallel runner), `report.py`, `pack_matlab.py`, `components_doc.py` |
+| `dist/` | the downloadable MATLAB SILS zip and the flight-software + Rust-engine zip; `dist/dispatch/` holds the dispatch packages |
+| `tools/` | `engine.py` (build, run, Monte Carlo and parity on the Rust engine), `gen_fsw_params.py` (params → C + Rust), `export_catalogue.py` (TOML → JSON), `run_matrix.py` (parallel runner), `report.py`, `pack_matlab.py`, `pack_flight.py` (flight software + engine zip), `components_doc.py` |
 | `spec/` | the platform architecture package (reference, unchanged) |
 
 ## Run it
