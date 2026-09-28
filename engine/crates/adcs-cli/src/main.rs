@@ -2,6 +2,7 @@
 //!
 //!   adcs run <scenario> [--case F] [--fsw c|rust] [--seed N] [--out DIR] [--set k=v]... [--alg slot=id]... [--quiet]
 //!   adcs params <scenario> [--case F] [--set k=v]... --out blob.bin     the adcs-fswcfg/1 blob (OILS / OBC upload)
+//!   adcs size <case> [--knobs k.json] [--out DIR]                        demand survey + every actuator option sized (adcs-design)
 //!   adcs parity <scenario> [--fsw A --against B] ...                  two flight-software targets, same loop, same bytes
 //!
 //! --fsw: c | rust (in-process) | obc-posix | obc-posix-rs (virtual OBC process) | qemu | qemu-rs
@@ -44,6 +45,7 @@ fn parse() -> Result<Args, String> {
             "--out" => a.out = Some(val()?.into()),
             "--set" => { let s = val()?; let (k, v) = s.split_once('=').ok_or("--set k=v")?; a.set.push((k.into(), v.into())); }
             "--alg" => { let s = val()?; let (k, v) = s.split_once('=').ok_or("--alg slot=id")?; a.set.push((format!("fsw.algorithms.{k}"), format!("\"{v}\""))); }
+            "--knobs" => { let f = val()?; a.set.push(("knobs".into(), f)); }
             "--quiet" | "-q" => a.quiet = true,
             _ => return Err(format!("unknown option {k}\n{}", usage())),
         }
@@ -80,6 +82,25 @@ fn print_metrics(ms: &[serde_json::Value]) {
 fn main() -> ExitCode {
     let a = match parse() { Ok(a) => a, Err(e) => { eprintln!("{e}"); return ExitCode::from(2); } };
     let r = (|| -> Result<(), String> {
+        if a.cmd == "size" {
+            // adcs size <case> [--out DIR] [--knobs knobs.json]: demand survey + every option sized (adcs-design)
+            let root = data_root();
+            let case_file = root.join("cases").join(format!("{}.csv", a.scenario));
+            let knobs = match a.set.iter().find(|(k, _)| k == "knobs") {
+                Some((_, f)) => adcs_design::Knobs::from_json(&adcs_sim::json::read(std::path::Path::new(f))?),
+                None => adcs_design::Knobs::default(),
+            };
+            let out = a.out.clone().unwrap_or_else(|| root.join("store/design").join(&a.scenario).join("sized"));
+            let z = adcs_design::size_all(&root, &case_file, &knobs, &out)?;
+            let d = &z["demand"];
+            println!("[size] {} ({} class): tau_dist {:.3e} N m, h_req {:.3e} N m s, tau_req {:.3e} N m, B_min {:.3e} T -> {}",
+                a.scenario, z["class"].as_str().unwrap_or(""), d["tau_dist"].as_f64().unwrap_or(0.0), d["h_req"].as_f64().unwrap_or(0.0),
+                d["tau_req"].as_f64().unwrap_or(0.0), d["B_min"].as_f64().unwrap_or(0.0), out.display());
+            if let Some(f) = z["families"].as_object() {
+                for (k, v) in f { println!("  {:<15} {:>7.3} kg {:>7.3} W {:>7.3} L", k, v["mass_kg"].as_f64().unwrap_or(0.0), v["power_W"].as_f64().unwrap_or(0.0), v["volume_L"].as_f64().unwrap_or(0.0)); }
+            }
+            return Ok(());
+        }
         let c = config(&a)?;
         match a.cmd.as_str() {
             "params" => {

@@ -3,10 +3,10 @@
 # Owner: Agastya. Copyright (c) 2026 Agastya. All rights reserved.
 [workspace]
 resolver = "2"
-members = ["crates/adcs-sim-core", "crates/adcs-pop", "crates/adcs-fsw-abi", "crates/adcs-sim", "crates/adcs-cli"]
+members = ["crates/adcs-sim-core", "crates/adcs-pop", "crates/adcs-fsw-abi", "crates/adcs-sim", "crates/adcs-design", "crates/adcs-cli"]
 
 [workspace.package]
-version = "1.1.0"
+version = "1.2.0"
 edition = "2021"
 authors = ["Agastya"]
 publish = false

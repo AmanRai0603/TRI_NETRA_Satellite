@@ -93,12 +93,15 @@ level, so one unit can move up a level at a time.
 ## 6. Bring-up order
 
 1. `loopback` on every scenario — the byte frames are right.
-2. OILS with the flight OBC running the C flight software behind `adcs_hal.h`,
+2. Soft OILS (`docs/SOFT_OILS.md`): the same flight software as Cortex-M4F firmware in QEMU on
+   adcs-link/1, with exact per-step instruction counts turned into command latency; every scenario
+   next to its SILS run (`tools/engine.py oils`) and the dispatched mission (`tools/pipeline.py`).
+3. OILS with the flight OBC running the C flight software behind `adcs_hal.h`,
    `udp`, `realtime = 1`, detumble first (`detumble_ais`), then pointing.
-3. HILS per device: replace one device model at a time by the real part
+4. HILS per device: replace one device model at a time by the real part
    (magnetometer in the cage first, then coils, then wheels on the air bearing),
    keeping the rest emulated.
-4. Compare every OILS/HILS run with its SILS twin (`asils.viz.compare`-style
+5. Compare every OILS/HILS run with its SILS twin (`asils.viz.compare`-style
    overlays of `channels.csv`): a difference is a parity-ledger line with a cause.
 
 The `udp` backend needs `udpport` (MATLAB R2020b+) or the Octave

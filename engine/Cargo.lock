@@ -4,10 +4,21 @@ version = 4
 
 [[package]]
 name = "adcs-cli"
-version = "1.1.0"
+version = "1.2.0"
 dependencies = [
+ "adcs-design",
  "adcs-fsw",
  "adcs-fsw-abi",
+ "adcs-sim",
+ "adcs-sim-core",
+ "serde_json",
+]
+
+[[package]]
+name = "adcs-design"
+version = "1.2.0"
+dependencies = [
+ "adcs-fsw",
  "adcs-sim",
  "adcs-sim-core",
  "serde_json",
@@ -22,7 +33,7 @@ dependencies = [
 
 [[package]]
 name = "adcs-fsw-abi"
-version = "1.1.0"
+version = "1.2.0"
 dependencies = [
  "adcs-fsw",
  "cc",
@@ -30,14 +41,14 @@ dependencies = [
 
 [[package]]
 name = "adcs-pop"
-version = "1.1.0"
+version = "1.2.0"
 dependencies = [
  "serde_json",
 ]
 
 [[package]]
 name = "adcs-sim"
-version = "1.1.0"
+version = "1.2.0"
 dependencies = [
  "adcs-fsw",
  "adcs-fsw-abi",
@@ -48,7 +59,7 @@ dependencies = [
 
 [[package]]
 name = "adcs-sim-core"
-version = "1.1.0"
+version = "1.2.0"
 dependencies = [
  "libm",
 ]

@@ -1,0 +1,279 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1400 1052" width="1400" height="1052" font-family="Helvetica, Arial, sans-serif" role="img" aria-labelledby="t d">
+  <title id="t">Who runs what: languages and layers</title>
+  <desc id="d">TRI-NETRA ADCS layers: pseudocode contract; C99 and Rust no_std flight software sharing one ABI; the byte-level HAL; the four places flight software runs over adcs-link/1; the Rust engine crates; Python tools; the MATLAB/Octave twin; and the outputs.</desc>
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#4338ca"/>
+    </marker>
+  </defs>
+  <rect x="0" y="0" width="1400" height="1052" fill="#ffffff"/>
+  <text x="30" y="42" font-size="24" font-weight="bold" fill="#1f2a44">Who runs what: languages and layers</text>
+  <text x="30" y="66" font-size="14" fill="#475569">TRI-NETRA ADCS, from the flight contract at the top to the ground tooling and outputs at the bottom</text>
+  <rect x="30" y="88" width="1340" height="76" rx="14" fill="#eef2ff" stroke="#4338ca" stroke-width="1.5" stroke-opacity="0.5"/>
+    <text x="50" y="118" font-size="16" fill="#4338ca" text-anchor="start" font-weight="bold">
+      <tspan x="50" dy="0">Pseudocode contract</tspan>
+    </text>
+    <text x="50" y="140" font-size="12" fill="#475569" text-anchor="start">
+      <tspan x="50" dy="0">fsw/pseudocode</tspan>
+    </text>
+  <rect x="270" y="102" width="1080" height="48" rx="8" fill="#ffffff" stroke="#4338ca" stroke-width="1.5"/>
+  <text x="810.0" y="131.0" text-anchor="middle" font-size="14" fill="#1f2a44"><tspan font-weight="bold">fsw/pseudocode 00–09</tspan><tspan> — the reference algorithm specification both flight implementations follow</tspan></text>
+  <rect x="30" y="178" width="1340" height="100" rx="14" fill="#eef2ff" stroke="#4338ca" stroke-width="1.5" stroke-opacity="0.5"/>
+    <text x="50" y="208" font-size="16" fill="#4338ca" text-anchor="start" font-weight="bold">
+      <tspan x="50" dy="0">Flight software</tspan>
+    </text>
+    <text x="50" y="230" font-size="12" fill="#475569" text-anchor="start">
+      <tspan x="50" dy="0">two implementations,</tspan>
+      <tspan x="50" dy="16">one contract</tspan>
+    </text>
+  <g>
+    <rect x="270" y="192" width="400" height="72" rx="8" fill="#ffffff" stroke="#4338ca" stroke-width="1.5"/>
+    <text x="470.0" y="218" font-size="16" font-weight="bold" fill="#1f2a44" text-anchor="middle">Embedded C99</text>
+    <text x="470.0" y="239" font-size="13" fill="#1f2a44" text-anchor="middle">
+      <tspan x="470.0" dy="0">fsw/</tspan>
+    </text>
+  </g>
+  <g>
+    <rect x="950" y="192" width="400" height="72" rx="8" fill="#ffffff" stroke="#4338ca" stroke-width="1.5"/>
+    <text x="1150.0" y="218" font-size="16" font-weight="bold" fill="#1f2a44" text-anchor="middle">Rust no_std</text>
+    <text x="1150.0" y="239" font-size="13" fill="#1f2a44" text-anchor="middle">
+      <tspan x="1150.0" dy="0">fsw-rs/</tspan>
+    </text>
+  </g>
+  <path d="M680,208 L940,208" fill="none" stroke="#4338ca" stroke-width="1.5" marker-start="url(#arr)" marker-end="url(#arr)"/>
+    <text x="810.0" y="230" font-size="13" fill="#1f2a44" text-anchor="middle">
+      <tspan x="810.0" dy="0">same adcs_fsw.h ABI</tspan>
+      <tspan x="810.0" dy="18">same adcs-fswcfg/1 blob</tspan>
+      <tspan x="810.0" dy="18">bit-identical</tspan>
+    </text>
+  <rect x="30" y="292" width="1340" height="100" rx="14" fill="#fffbeb" stroke="#b45309" stroke-width="1.5" stroke-opacity="0.5"/>
+    <text x="50" y="322" font-size="16" fill="#b45309" text-anchor="start" font-weight="bold">
+      <tspan x="50" dy="0">HAL boundary</tspan>
+    </text>
+    <text x="50" y="344" font-size="12" fill="#475569" text-anchor="start">
+      <tspan x="50" dy="0">adcs_hal.h, byte level</tspan>
+    </text>
+  <g>
+    <rect x="270.0" y="306" width="171.7" height="72" rx="8" fill="#ffffff" stroke="#b45309" stroke-width="1.5"/>
+    <text x="355.85" y="332" font-size="15" font-weight="bold" fill="#1f2a44" text-anchor="middle">I2C</text>
+    <text x="355.85" y="353" font-size="13" fill="#1f2a44" text-anchor="middle">
+      <tspan x="355.85" dy="0">magnetometer 0x1E</tspan>
+    </text>
+  </g>
+  <g>
+    <rect x="451.7" y="306" width="171.7" height="72" rx="8" fill="#ffffff" stroke="#b45309" stroke-width="1.5"/>
+    <text x="537.55" y="332" font-size="15" font-weight="bold" fill="#1f2a44" text-anchor="middle">SPI</text>
+    <text x="537.55" y="353" font-size="13" fill="#1f2a44" text-anchor="middle">
+      <tspan x="537.55" dy="0">gyro</tspan>
+    </text>
+  </g>
+  <g>
+    <rect x="633.3" y="306" width="171.7" height="72" rx="8" fill="#ffffff" stroke="#b45309" stroke-width="1.5"/>
+    <text x="719.15" y="332" font-size="15" font-weight="bold" fill="#1f2a44" text-anchor="middle">I2C</text>
+    <text x="719.15" y="353" font-size="13" fill="#1f2a44" text-anchor="middle">
+      <tspan x="719.15" dy="0">Sun 0x60 · Earth 0x30</tspan>
+    </text>
+  </g>
+  <g>
+    <rect x="815.0" y="306" width="171.7" height="72" rx="8" fill="#ffffff" stroke="#b45309" stroke-width="1.5"/>
+    <text x="900.85" y="332" font-size="15" font-weight="bold" fill="#1f2a44" text-anchor="middle">UART</text>
+    <text x="900.85" y="353" font-size="13" fill="#1f2a44" text-anchor="middle">
+      <tspan x="900.85" dy="0">star tracker · GNSS</tspan>
+    </text>
+  </g>
+  <g>
+    <rect x="996.7" y="306" width="171.7" height="72" rx="8" fill="#ffffff" stroke="#b45309" stroke-width="1.5"/>
+    <text x="1082.55" y="332" font-size="15" font-weight="bold" fill="#1f2a44" text-anchor="middle">CAN</text>
+    <text x="1082.55" y="353" font-size="13" fill="#1f2a44" text-anchor="middle">
+      <tspan x="1082.55" dy="0">rotors</tspan>
+    </text>
+  </g>
+  <g>
+    <rect x="1178.3" y="306" width="171.7" height="72" rx="8" fill="#ffffff" stroke="#b45309" stroke-width="1.5"/>
+    <text x="1264.1499999999999" y="332" font-size="15" font-weight="bold" fill="#1f2a44" text-anchor="middle">PWM</text>
+    <text x="1264.1499999999999" y="353" font-size="13" fill="#1f2a44" text-anchor="middle">
+      <tspan x="1264.1499999999999" dy="0">coils</tspan>
+    </text>
+  </g>
+  <rect x="30" y="406" width="1340" height="150" rx="14" fill="#fffbeb" stroke="#b45309" stroke-width="1.5" stroke-opacity="0.5"/>
+    <text x="50" y="436" font-size="16" fill="#b45309" text-anchor="start" font-weight="bold">
+      <tspan x="50" dy="0">Where the flight</tspan>
+      <tspan x="50" dy="20">software runs</tspan>
+    </text>
+    <text x="50" y="478" font-size="12" fill="#475569" text-anchor="start">
+      <tspan x="50" dy="0">in-loop targets</tspan>
+    </text>
+  <g>
+    <rect x="270.0" y="420" width="262.5" height="74" rx="8" fill="#ffffff" stroke="#b45309" stroke-width="1.5"/>
+    <text x="401.25" y="446" font-size="15" font-weight="bold" fill="#1f2a44" text-anchor="middle">In-process</text>
+    <text x="401.25" y="467" font-size="13" fill="#1f2a44" text-anchor="middle">
+      <tspan x="401.25" dy="0">C / Rust linked into the engine</tspan>
+    </text>
+  </g>
+  <g>
+    <rect x="542.5" y="420" width="262.5" height="74" rx="8" fill="#ffffff" stroke="#b45309" stroke-width="1.5"/>
+    <text x="673.75" y="446" font-size="15" font-weight="bold" fill="#1f2a44" text-anchor="middle">Virtual OBC</text>
+    <text x="673.75" y="467" font-size="13" fill="#1f2a44" text-anchor="middle">
+      <tspan x="673.75" dy="0">separate obc-posix process</tspan>
+    </text>
+  </g>
+  <g>
+    <rect x="815.0" y="420" width="262.5" height="74" rx="8" fill="#ffffff" stroke="#b45309" stroke-width="1.5"/>
+    <text x="946.25" y="446" font-size="15" font-weight="bold" fill="#1f2a44" text-anchor="middle">QEMU Cortex-M4F</text>
+    <text x="946.25" y="467" font-size="13" fill="#1f2a44" text-anchor="middle">
+      <tspan x="946.25" dy="0">firmware image (soft OILS)</tspan>
+    </text>
+  </g>
+  <g>
+    <rect x="1087.5" y="420" width="262.5" height="74" rx="8" fill="#ffffff" stroke="#b45309" stroke-width="1.5"/>
+    <text x="1218.75" y="446" font-size="15" font-weight="bold" fill="#1f2a44" text-anchor="middle">Real OBC</text>
+    <text x="1218.75" y="467" font-size="13" fill="#1f2a44" text-anchor="middle">
+      <tspan x="1218.75" dy="0">tcp / serial (OILS, HILS)</tspan>
+    </text>
+  </g>
+  <line x1="401.25" y1="494" x2="401.25" y2="510" stroke="#b45309" stroke-width="1.5"/>
+  <line x1="673.75" y1="494" x2="673.75" y2="510" stroke="#b45309" stroke-width="1.5"/>
+  <line x1="946.25" y1="494" x2="946.25" y2="510" stroke="#b45309" stroke-width="1.5"/>
+  <line x1="1218.75" y1="494" x2="1218.75" y2="510" stroke="#b45309" stroke-width="1.5"/>
+  <rect x="270" y="510" width="1080" height="32" rx="6" fill="#b45309"/>
+  <text x="810.0" y="531" text-anchor="middle" font-size="14" fill="#ffffff"><tspan font-weight="bold">adcs-link/1</tspan><tspan> — A5 5A frames, CRC16 — one protocol to every target</tspan></text>
+  <rect x="30" y="570" width="1340" height="112" rx="14" fill="#ecfdf5" stroke="#0f766e" stroke-width="1.5" stroke-opacity="0.5"/>
+    <text x="50" y="600" font-size="16" fill="#0f766e" text-anchor="start" font-weight="bold">
+      <tspan x="50" dy="0">Rust engine</tspan>
+    </text>
+    <text x="50" y="622" font-size="12" fill="#475569" text-anchor="start">
+      <tspan x="50" dy="0">engine/</tspan>
+    </text>
+  <g>
+    <rect x="270.0" y="584" width="171.7" height="84" rx="8" fill="#ffffff" stroke="#0f766e" stroke-width="1.5"/>
+    <text x="355.85" y="610" font-size="15" font-weight="bold" fill="#1f2a44" text-anchor="middle">adcs-pop</text>
+    <text x="355.85" y="631" font-size="13" fill="#1f2a44" text-anchor="middle">
+      <tspan x="355.85" dy="0">POP v51 port</tspan>
+    </text>
+  </g>
+  <g>
+    <rect x="451.7" y="584" width="171.7" height="84" rx="8" fill="#ffffff" stroke="#0f766e" stroke-width="1.5"/>
+    <text x="537.55" y="610" font-size="15" font-weight="bold" fill="#1f2a44" text-anchor="middle">adcs-sim-core</text>
+    <text x="537.55" y="631" font-size="13" fill="#1f2a44" text-anchor="middle">
+      <tspan x="537.55" dy="0">no_std plant, sensors,</tspan>
+      <tspan x="537.55" dy="18">actuators, device codecs</tspan>
+    </text>
+  </g>
+  <g>
+    <rect x="633.3" y="584" width="171.7" height="84" rx="8" fill="#ffffff" stroke="#0f766e" stroke-width="1.5"/>
+    <text x="719.15" y="610" font-size="15" font-weight="bold" fill="#1f2a44" text-anchor="middle">adcs-sim</text>
+    <text x="719.15" y="631" font-size="13" fill="#1f2a44" text-anchor="middle">
+      <tspan x="719.15" dy="0">config, loop,</tspan>
+      <tspan x="719.15" dy="18">metrics, recorder</tspan>
+    </text>
+  </g>
+  <g>
+    <rect x="815.0" y="584" width="171.7" height="84" rx="8" fill="#ffffff" stroke="#0f766e" stroke-width="1.5"/>
+    <text x="900.85" y="610" font-size="15" font-weight="bold" fill="#1f2a44" text-anchor="middle">adcs-design</text>
+    <text x="900.85" y="631" font-size="13" fill="#1f2a44" text-anchor="middle">
+      <tspan x="900.85" dy="0">demand, sizing,</tspan>
+      <tspan x="900.85" dy="18">products</tspan>
+    </text>
+  </g>
+  <g>
+    <rect x="996.7" y="584" width="171.7" height="84" rx="8" fill="#ffffff" stroke="#0f766e" stroke-width="1.5"/>
+    <text x="1082.55" y="610" font-size="15" font-weight="bold" fill="#1f2a44" text-anchor="middle">adcs-fsw-abi</text>
+    <text x="1082.55" y="631" font-size="13" fill="#1f2a44" text-anchor="middle">
+      <tspan x="1082.55" dy="0">bus + link</tspan>
+    </text>
+  </g>
+  <g>
+    <rect x="1178.3" y="584" width="171.7" height="84" rx="8" fill="#ffffff" stroke="#0f766e" stroke-width="1.5"/>
+    <text x="1264.1499999999999" y="610" font-size="15" font-weight="bold" fill="#1f2a44" text-anchor="middle">adcs-cli</text>
+    <text x="1264.1499999999999" y="631" font-size="13" fill="#1f2a44" text-anchor="middle">
+      <tspan x="1264.1499999999999" dy="0">adcs run | size |</tspan>
+      <tspan x="1264.1499999999999" dy="18">params | parity</tspan>
+    </text>
+  </g>
+  <rect x="30" y="696" width="1340" height="96" rx="14" fill="#f0f9ff" stroke="#0369a1" stroke-width="1.5" stroke-opacity="0.5"/>
+    <text x="50" y="726" font-size="16" fill="#0369a1" text-anchor="start" font-weight="bold">
+      <tspan x="50" dy="0">Python</tspan>
+    </text>
+    <text x="50" y="748" font-size="12" fill="#475569" text-anchor="start">
+      <tspan x="50" dy="0">tools/</tspan>
+    </text>
+  <g>
+    <rect x="270.0" y="710" width="353.3" height="68" rx="8" fill="#ffffff" stroke="#0369a1" stroke-width="1.5"/>
+    <text x="446.65" y="736" font-size="15" font-weight="bold" fill="#1f2a44" text-anchor="middle">pipeline.py</text>
+    <text x="446.65" y="757" font-size="13" fill="#1f2a44" text-anchor="middle">
+      <tspan x="446.65" dy="0">design loop nodes</tspan>
+    </text>
+  </g>
+  <g>
+    <rect x="633.3" y="710" width="353.3" height="68" rx="8" fill="#ffffff" stroke="#0369a1" stroke-width="1.5"/>
+    <text x="809.9499999999999" y="736" font-size="15" font-weight="bold" fill="#1f2a44" text-anchor="middle">engine.py</text>
+    <text x="809.9499999999999" y="757" font-size="13" fill="#1f2a44" text-anchor="middle">
+      <tspan x="809.9499999999999" dy="0">runs, MC, campaigns, parity, soft OILS</tspan>
+    </text>
+  </g>
+  <g>
+    <rect x="996.7" y="710" width="353.3" height="68" rx="8" fill="#ffffff" stroke="#0369a1" stroke-width="1.5"/>
+    <text x="1173.3500000000001" y="736" font-size="15" font-weight="bold" fill="#1f2a44" text-anchor="middle">report.py + vv_report.py</text>
+    <text x="1173.3500000000001" y="757" font-size="13" fill="#1f2a44" text-anchor="middle">
+      <tspan x="1173.3500000000001" dy="0">HTML / PDF reports</tspan>
+    </text>
+  </g>
+  <rect x="30" y="806" width="1340" height="96" rx="14" fill="#f1f5f9" stroke="#475569" stroke-width="1.5" stroke-opacity="0.5"/>
+    <text x="50" y="836" font-size="16" fill="#475569" text-anchor="start" font-weight="bold">
+      <tspan x="50" dy="0">MATLAB / Octave</tspan>
+    </text>
+    <text x="50" y="858" font-size="12" fill="#475569" text-anchor="start">
+      <tspan x="50" dy="0">matlab_sils/</tspan>
+    </text>
+  <g>
+    <rect x="270.0" y="820" width="353.3" height="68" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.5"/>
+    <text x="446.65" y="846" font-size="15" font-weight="bold" fill="#1f2a44" text-anchor="middle">Design twin</text>
+    <text x="446.65" y="867" font-size="13" fill="#1f2a44" text-anchor="middle">
+      <tspan x="446.65" dy="0">reference for the Rust engine</tspan>
+    </text>
+  </g>
+  <g>
+    <rect x="633.3" y="820" width="353.3" height="68" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.5"/>
+    <text x="809.9499999999999" y="846" font-size="15" font-weight="bold" fill="#1f2a44" text-anchor="middle">POP v51</text>
+    <text x="809.9499999999999" y="867" font-size="13" fill="#1f2a44" text-anchor="middle">
+      <tspan x="809.9499999999999" dy="0">orbit and environment</tspan>
+    </text>
+  </g>
+  <g>
+    <rect x="996.7" y="820" width="353.3" height="68" rx="8" fill="#ffffff" stroke="#475569" stroke-width="1.5"/>
+    <text x="1173.3500000000001" y="846" font-size="15" font-weight="bold" fill="#1f2a44" text-anchor="middle">+asils packages</text>
+    <text x="1173.3500000000001" y="867" font-size="13" fill="#1f2a44" text-anchor="middle">
+      <tspan x="1173.3500000000001" dy="0">orbit, env, devices, FSW, campaigns</tspan>
+    </text>
+  </g>
+  <rect x="30" y="916" width="1340" height="96" rx="14" fill="#f8fafc" stroke="#1f2a44" stroke-width="1.5" stroke-opacity="0.5"/>
+    <text x="50" y="946" font-size="16" fill="#1f2a44" text-anchor="start" font-weight="bold">
+      <tspan x="50" dy="0">Outputs</tspan>
+    </text>
+    <text x="50" y="968" font-size="12" fill="#475569" text-anchor="start">
+      <tspan x="50" dy="0">what a run leaves behind</tspan>
+    </text>
+  <g>
+    <rect x="270.0" y="930" width="353.3" height="68" rx="8" fill="#ffffff" stroke="#1f2a44" stroke-width="1.5"/>
+    <text x="446.65" y="956" font-size="15" font-weight="bold" fill="#1f2a44" text-anchor="middle">results/*.md</text>
+    <text x="446.65" y="977" font-size="13" fill="#1f2a44" text-anchor="middle">
+      <tspan x="446.65" dy="0">parity, solutions, virtual OBC</tspan>
+    </text>
+  </g>
+  <g>
+    <rect x="633.3" y="930" width="353.3" height="68" rx="8" fill="#ffffff" stroke="#1f2a44" stroke-width="1.5"/>
+    <text x="809.9499999999999" y="956" font-size="15" font-weight="bold" fill="#1f2a44" text-anchor="middle">results/index.html</text>
+    <text x="809.9499999999999" y="977" font-size="13" fill="#1f2a44" text-anchor="middle">
+      <tspan x="809.9499999999999" dy="0">browsable results index + figures</tspan>
+    </text>
+  </g>
+  <g>
+    <rect x="996.7" y="930" width="353.3" height="68" rx="8" fill="#ffffff" stroke="#1f2a44" stroke-width="1.5"/>
+    <text x="1173.3500000000001" y="956" font-size="15" font-weight="bold" fill="#1f2a44" text-anchor="middle">dist/</text>
+    <text x="1173.3500000000001" y="977" font-size="13" fill="#1f2a44" text-anchor="middle">
+      <tspan x="1173.3500000000001" dy="0">flight + engine zip, V&amp;V report PDF</tspan>
+    </text>
+  </g>
+  <text x="1370" y="1038" text-anchor="end" font-size="11" fill="#475569">TRI-NETRA ADCS · Agastya</text>
+</svg>
