@@ -4,7 +4,7 @@
 schema = "adcs-algorithm/1"
 id = "sunspin_l1l2"
 number = 20
-slot = "sun_spin"
+slot = "sun_acquisition"
 label = "Spin-up L1 then He et al. Sun-pointing spin L2 (coils only, no attitude solution)"
 needs = ["coils", "magnetometer", "gyro", "sun"]
 fsw = "reference"

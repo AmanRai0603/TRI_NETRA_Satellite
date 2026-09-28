@@ -1,0 +1,18 @@
+# Component: cmg. The MODEL is what the SILS flies in place of the unit;
+# the CHAIN is the unit's own processing (in-house development plugs in
+# node by node). status: implemented | baseline (standard method standing in
+# for the in-house one) | stub. Generated layout, edited by hand.
+schema = "adcs-component/1"
+id = "cmg"
+kind = "actuator"
+in_house = "benchmark"
+parts = ["TRN-CMG-1"]
+model = "matlab_sils/+asils/+devices/mex.m"
+hal_output = "gimbal rate command (int16 Q15) / encoder"
+levels = ["model (default)"]
+
+[[chain]]
+node = "gimbal_loop"
+file = "matlab_sils/+asils/+devices/mex.m"
+status = "baseline"
+what = "gimbal rate loop, rotor speed loop (benchmark)"

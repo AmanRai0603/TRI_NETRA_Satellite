@@ -1,0 +1,79 @@
+# Mission mode: Sun acquisition (safe mode). Put the power face (product
+# sun_axis_body) on the Sun from any attitude, with Sun sensors and the gyro
+# only -- no attitude solution. Eclipses are part of the test.
+schema = "adcs-mode/1"
+id = "sun_acquisition"
+order = 2
+label = "Sun acquisition"
+goal = "Power face within 20 deg of the Sun within case req.sunacq, and kept there"
+navigation = ["sun", "gyro", "magnetometer"]
+objective = "sun_acquisition_time"
+guidance = "sun_vector"
+next = "sun_referencing"
+exit = "Sun angle < 10 deg held 60 s and an attitude solution available"
+
+[test]
+duration_orbits = 1.5
+window = "last_half_orbit"
+attitude = { kind = "random" }
+rate = { kind = "random_direction", magnitude_deg_s = 0.5 }
+
+[[metrics]]
+id = "sun_acquisition_time"
+kind = "time_to_threshold"
+channel = "sun_angle_geo"
+threshold_deg = 20.0
+hold_s = 300.0
+requirement = "req.sunacq"
+unit_min = true
+[[metrics]]
+id = "sun_angle_p95"
+kind = "sun_angle"
+window = "last_half_orbit"
+statistic = "p95"
+limit = 20.0
+[[metrics]]
+id = "power_mean"
+kind = "power_mean"
+window = "all"
+requirement = "req.pavg"
+[[metrics]]
+id = "power_peak"
+kind = "power_peak"
+window = "all"
+[[metrics]]
+id = "propellant"
+kind = "propellant"
+window = "all"
+
+[[options]]
+id = "mtq"
+actuator = "mtq"
+family = "mtq"
+fsw_mode = "spinup"
+dt_s = 0.2
+algorithms = { sun_acquisition = "sunspin_damped" }
+[[options]]
+id = "rw"
+actuator = "rw"
+family = "mtq_rw"
+fsw_mode = "sun_acq_rotor"
+dt_s = 0.1
+[[options]]
+id = "cmg"
+actuator = "cmg"
+family = "mtq_cmg"
+fsw_mode = "sun_acq_rotor"
+dt_s = 0.1
+[[options]]
+id = "vscmg"
+actuator = "vscmg"
+family = "mtq_vscmg"
+fsw_mode = "sun_acq_rotor"
+dt_s = 0.1
+[[options]]
+id = "fmr"
+actuator = "fmr"
+family = "mtq_fmr"
+fsw_mode = "sun_acq_rotor"
+dt_s = 0.1

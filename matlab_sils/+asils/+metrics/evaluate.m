@@ -26,6 +26,7 @@ function M = evaluate(rec)
                 k = find(rec.t >= t0);
                 e = rec.(asils.util.getf(m, 'channel', 'ape_los'));
                 val = asils.metrics.time_to(rec.t(k) - t0, e(k), m.threshold_deg, asils.util.getf(m, 'hold_s', 10)); unit = 's';
+                if asils.util.getf(m, 'unit_min', false), val = val/60; unit = 'min'; end
             case 'wheel_momentum_peak'
                 val = max(max(abs(rec.h_w(:, idx)))); unit = 'N m s';
             case 'time_to_mode'        % first entry into a mode [min] (NaN: never)
@@ -39,10 +40,15 @@ function M = evaluate(rec)
                 val = stat_(abs(abs(rec.spin_z(idx)) - rec.P.fsw.ss.spin_dps), stat); unit = 'deg/s';
             case 'mode_fraction'       % share of the window spent in a mode [%]
                 val = 100*mean(rec.mode(idx) == find(strcmp(rec.modes, m.mode))); unit = '%';
+            case 'propellant'            % N2O used [g]
+                pk = rec.prop_kg(isfinite(rec.prop_kg)); val = 0; if ~isempty(pk), val = 1e3*max(pk); end
+                unit = 'g';
+            case 'jitter'                % rotor-imbalance pointing jitter, frequency domain [arcsec]
+                val = asils.sizing.jitter(rec, idx); unit = 'arcsec';
             case 'power_mean'
-                val = mean(rec.P_mtq(idx) + rec.P_rw(idx)); unit = 'W';
+                val = mean(rec.P_mtq(idx) + rec.P_rw(idx) + p_rcs_(rec, idx)); unit = 'W';
             case 'power_peak'
-                val = max(rec.P_mtq(idx) + rec.P_rw(idx)); unit = 'W';
+                val = max(rec.P_mtq(idx) + rec.P_rw(idx) + p_rcs_(rec, idx)); unit = 'W';
             otherwise
                 error('asils:metrics:kind', 'unknown metric kind %s', m.kind);
         end
@@ -62,6 +68,10 @@ function M = evaluate(rec)
                           'req', rv, 'req_key', rk, 'pass', pass); %#ok<AGROW>
     end
 end
+function p = p_rcs_(rec, idx)
+    p = 0; if isfield(rec, 'P_rcs'), p = rec.P_rcs(idx); p(~isfinite(p)) = 0; end
+end
+
 function v = stat_(x, s)
     x = x(isfinite(x));
     if isempty(x), v = NaN; return, end

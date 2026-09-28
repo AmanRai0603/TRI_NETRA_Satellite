@@ -25,3 +25,8 @@ if __name__ == "__main__":
     export("scenarios", ROOT / "scenarios")
     export("campaigns", ROOT / "campaigns")
     export("trades", ROOT / "trades")
+    export("modes")
+    export("components")
+    fam = tomllib.loads((ROOT / "catalogue" / "families.toml").read_text())
+    (ROOT / "matlab_sils" / "data" / "families.json").write_text(json.dumps(fam, indent=1, sort_keys=True) + "\n")
+    print("wrote matlab_sils/data/families.json")

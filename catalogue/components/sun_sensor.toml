@@ -1,0 +1,24 @@
+# Component: sun_sensor. The MODEL is what the SILS flies in place of the unit;
+# the CHAIN is the unit's own processing (in-house development plugs in
+# node by node). status: implemented | baseline (standard method standing in
+# for the in-house one) | stub. Generated layout, edited by hand.
+schema = "adcs-component/1"
+id = "sun_sensor"
+kind = "sensor"
+in_house = "planned"
+parts = ["SYN-SUN-1"]
+model = "matlab_sils/+asils/+devices/sun_sensor.m"
+hal_output = "Sun unit vector (int16 Q15 x3) + validity (flags bit0)"
+levels = ["model: Sun vector + noise (default)", "chain: quadrant currents -> angles -> vector"]
+
+[[chain]]
+node = "currents"
+file = "matlab_sils/+asils/+comp/+sun_sensor/currents.m"
+status = "implemented"
+what = "MODEL SIDE: Sun direction -> four quadrant photodiode currents behind a square aperture"
+
+[[chain]]
+node = "angles"
+file = "matlab_sils/+asils/+comp/+sun_sensor/angles.m"
+status = "baseline"
+what = "quadrant currents -> alpha, beta -> Sun unit vector (head frame -> body)"

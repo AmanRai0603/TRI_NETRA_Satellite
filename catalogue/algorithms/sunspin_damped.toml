@@ -4,7 +4,7 @@
 schema = "adcs-algorithm/1"
 id = "sunspin_damped"
 number = 22
-slot = "sun_spin"
+slot = "sun_acquisition"
 label = "L1 + L2 with E2 and a floor on the nutation-damping matrix R_z (both transverse axes damped when J_y = J_z)"
 needs = ["coils", "magnetometer", "gyro", "sun"]
 fsw = "reference"

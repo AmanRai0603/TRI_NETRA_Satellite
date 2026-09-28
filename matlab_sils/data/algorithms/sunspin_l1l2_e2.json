@@ -12,6 +12,6 @@
  "number": 21,
  "prototype": true,
  "schema": "adcs-algorithm/1",
- "slot": "sun_spin",
+ "slot": "sun_acquisition",
  "source": "Standard Code ctrl.sunSpin E2 branch + ctrl.propagateSun; theory doc sec. 5.8"
 }

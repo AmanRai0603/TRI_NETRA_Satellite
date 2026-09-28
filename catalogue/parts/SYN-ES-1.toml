@@ -1,0 +1,26 @@
+# SYNTHETIC. Static infrared Earth (horizon) sensor, CubeSat class: thermopile
+# array seeing the Earth limb, output the nadir unit vector. In-house
+# development planned (catalogue/components/earth_sensor.toml); until then this
+# is only the MODEL the SILS uses. Round numbers, tests only.
+part_number = "SYN-ES-1"
+kind = "earth_sensor"
+name = "Synthetic static IR Earth sensor — tests only"
+status = "synthetic"
+source = "synthetic_test_parts"
+families = ["mtq", "mtq_fmr", "mtq_fmr_rcs"]
+made = "in-house"
+descriptor_version = 1
+
+[nominal]
+accuracy_rad = 0.0044          # 0.25 deg 1-sigma nadir-vector error
+fov_half_angle_rad = 0.52      # the Earth disc (67 deg across at 550 km) must be inside +/- 30 deg of the boresight
+rate_Hz = 2.0
+power_W = 0.1
+mass_kg = 0.03
+
+[dispersion]
+bias_rad = { dist = "normal", mean = 0.0, sigma = 0.002 }
+
+[interface]
+bus = "i2c"
+eeprom = []

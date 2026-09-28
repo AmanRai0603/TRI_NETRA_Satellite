@@ -1,0 +1,29 @@
+{
+ "chain": [
+  {
+   "file": "matlab_sils/+asils/+comp/+earth_sensor/limb.m",
+   "node": "limb",
+   "status": "implemented",
+   "what": "MODEL SIDE: geometry -> horizon (limb) directions seen by the IR array"
+  },
+  {
+   "file": "matlab_sils/+asils/+comp/+earth_sensor/horizon.m",
+   "node": "horizon",
+   "status": "baseline",
+   "what": "limb directions -> cone-axis least-squares fit -> nadir vector"
+  }
+ ],
+ "hal_output": "nadir unit vector + validity",
+ "id": "earth_sensor",
+ "in_house": "planned",
+ "kind": "sensor",
+ "levels": [
+  "model: nadir vector + noise (default)",
+  "chain: limb points -> horizon fit -> nadir vector"
+ ],
+ "model": "matlab_sils/+asils/+devices/earth_sensor.m",
+ "parts": [
+  "SYN-ES-1"
+ ],
+ "schema": "adcs-component/1"
+}

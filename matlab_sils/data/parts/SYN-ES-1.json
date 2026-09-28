@@ -1,0 +1,32 @@
+{
+ "descriptor_version": 1,
+ "dispersion": {
+  "bias_rad": {
+   "dist": "normal",
+   "mean": 0.0,
+   "sigma": 0.002
+  }
+ },
+ "families": [
+  "mtq",
+  "mtq_fmr",
+  "mtq_fmr_rcs"
+ ],
+ "interface": {
+  "bus": "i2c",
+  "eeprom": []
+ },
+ "kind": "earth_sensor",
+ "made": "in-house",
+ "name": "Synthetic static IR Earth sensor \u2014 tests only",
+ "nominal": {
+  "accuracy_rad": 0.0044,
+  "fov_half_angle_rad": 0.52,
+  "mass_kg": 0.03,
+  "power_W": 0.1,
+  "rate_Hz": 2.0
+ },
+ "part_number": "SYN-ES-1",
+ "source": "synthetic_test_parts",
+ "status": "synthetic"
+}

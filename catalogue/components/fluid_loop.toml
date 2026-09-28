@@ -1,0 +1,18 @@
+# Component: fluid_loop. The MODEL is what the SILS flies in place of the unit;
+# the CHAIN is the unit's own processing (in-house development plugs in
+# node by node). status: implemented | baseline (standard method standing in
+# for the in-house one) | stub. Generated layout, edited by hand.
+schema = "adcs-component/1"
+id = "fluid_loop"
+kind = "actuator"
+in_house = "yes"
+parts = ["SYN-MFP-1"]
+model = "matlab_sils/+asils/+devices/mex.m"
+hal_output = "ring momentum command (int16 Q15) / flow reading"
+levels = ["model (default)"]
+
+[[chain]]
+node = "flow_servo"
+file = "matlab_sils/+asils/+comp/+fluid_loop/drive.m"
+status = "implemented"
+what = "momentum command -> integrated target -> filtered flow -> loss feed-forward + flow servo -> pump drive"

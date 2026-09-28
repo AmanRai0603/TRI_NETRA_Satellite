@@ -1,0 +1,22 @@
+{
+ "chain": [
+  {
+   "file": "matlab_sils/+asils/+comp/+magnetometer/calibrate.m",
+   "node": "calibrate",
+   "status": "stub",
+   "what": "raw -> bias / scale / misalignment corrected field (in-orbit calibration to come)"
+  }
+ ],
+ "hal_output": "field vector (int16, 3.05 nT LSB)",
+ "id": "magnetometer",
+ "in_house": "no",
+ "kind": "sensor",
+ "levels": [
+  "model (default)"
+ ],
+ "model": "matlab_sils/+asils/+devices/magnetometer.m",
+ "parts": [
+  "SYN-MAG-1"
+ ],
+ "schema": "adcs-component/1"
+}

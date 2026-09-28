@@ -10,20 +10,25 @@ function dev = load(productId)
 %     dev.mex.A0       spin axes at zero gimbal angle (3 x nr)
 %     dev.mex.G, gi    gimbal axes (3 x ng) and each rotor's gimbal index
     R = asils.util.root();
-    pr = asils.util.readjson(fullfile(R, 'data', 'products', [productId '.json']));
+    pr = asils.util.readjson(find_(R, 'products', productId));
     fills = pr.fill; if ~iscell(fills), fills = num2cell(fills); end
     dev = struct('id', pr.id, 'label', pr.label, 'family', pr.family, 'algorithms', {pr.algorithms});
     if isfield(pr, 'selected'), dev.selected = pr.selected; end     % promoted outcome of a trade
     dev.boresight = [0;1;0];
     if isfield(pr, 'payload_boresight_body'), dev.boresight = pr.payload_boresight_body(:)/norm(pr.payload_boresight_body); end
+    dev.sun_axis = [0;0;-1];                  % power face (Sun referencing / acquisition), Standard Code -Z
+    if isfield(pr, 'sun_axis_body'), dev.sun_axis = pr.sun_axis_body(:)/norm(pr.sun_axis_body); end
+    dev.budget = struct('mass_kg', 0, 'power_W', 0, 'volume_L', 0, 'items', {{}});
+    dev.es.fitted = false;
     dev.gyro.fitted = false; dev.mag.fitted = false; dev.sun.fitted = false; dev.css.fitted = false;
     dev.st.fitted = false; dev.mtq.fitted = false; dev.gps.fitted = false; dev.rcs.fitted = false;
     X = mex_empty_();
     for i = 1:numel(fills)
         f = fills{i};
-        p = asils.util.readjson(fullfile(R, 'data', 'parts', [f.part '.json']));
+        p = asils.util.readjson(find_(R, 'parts', f.part));
         nm = p.nominal; ds = asils.util.getf(p, 'dispersion', struct());
         sig = @(key, d) sigma_(ds, key, d);
+        dev.budget = budget_(dev.budget, f, nm);
         switch f.slot
             case 'coils'
                 dev.mtq = struct('fitted', true, 'part', f.part, 'axes', axes_(f.axes_body), ...
@@ -47,6 +52,8 @@ function dev = load(productId)
                         ds.friction_scale.lo, ds.friction_scale.hi, sig('axis_misalignment_rad', 0));
                     X.T_sd(end) = Tsd; X.k_hv(end) = k_hv; X.Ac(end) = Ac; X.S(end) = S; X.l(end) = nm.channel_length_m;
                     X.flow_noise_h(end) = k_hv*sig('flow_sensor_noise_m_s', 0);
+                    fp = asils.util.getf(nm, 'field_power_W', 0); if isnan(fp), fp = 0; end
+                    X.field_power(end) = fp;
                     X.eta_lo(end) = ds.pump_efficiency.lo; X.eta_hi(end) = ds.pump_efficiency.hi;
                 end
                 dev.fmr_cruise_h = k_hv*nm.v_cruise_m_s;
@@ -73,6 +80,7 @@ function dev = load(productId)
                 dev.rcs = struct('fitted', true, 'part', f.part, 'tau_couple', T, 'thrust_N', F, ...
                     'isp_s', nm.isp_s, 'mib_s', nm.mib_s, 'valve_res_s', nm.valve_res_s, ...
                     'propellant_kg', nm.propellant_kg, 'valve_power_W', nm.valve_power_W, ...
+                    'isp_lo', lohi_(ds, 'isp_s', nm.isp_s, 1), 'isp_hi', lohi_(ds, 'isp_s', nm.isp_s, 2), ...
                     'thrust_sigma', sig('thrust_scale', 0), 'misalign_rad', sig('axis_misalignment_rad', 0));
             case 'star_tracker'
                 if isfield(f, 'boresights_body'), bs = axes_(f.boresights_body); else, bs = axes_(f.boresight_body(:)'); end
@@ -104,21 +112,50 @@ function dev = load(productId)
                     'rrw', nm.rrw_rad_per_s_sqrt_s, 'range', nm.range_rad_s, 'rate_hz', nm.rate_Hz, ...
                     'bias_sigma', sig('bias_rad_s', 0), 'sf_sigma', sig('scale_factor', 0), ...
                     'misalign_rad', sig('axis_misalignment_rad', 0));
+            case 'earth_sensor'
+                bsv = dev.boresight; if isfield(f, 'boresight_body'), bsv = f.boresight_body(:)/norm(f.boresight_body); end
+                dev.es = struct('fitted', true, 'part', f.part, 'boresight', bsv, 'noise', nm.accuracy_rad, ...
+                    'fov_rad', nm.fov_half_angle_rad, 'rate_hz', nm.rate_Hz, 'bias_sigma', sig('bias_rad', 0));
             case 'gnss'
                 dev.gps = struct('fitted', true, 'part', f.part, 'pos_sigma', nm.pos_sigma_m, ...
                     'vel_sigma', nm.vel_sigma_m_s, 'rate_hz', nm.rate_Hz);
         end
     end
     X.fitted = ~isempty(X.kind);
+    X.Us = zeros(1, numel(X.kind)); X.Ud = X.Us;       % rotor imbalance (jitter, asils.sizing.jitter)
+    k = 0;
+    for i = 1:numel(fills)
+        f = fills{i};
+        if ~any(strcmp(f.slot, {'wheels', 'rings', 'cmg', 'vscmg'})), continue, end
+        pj = asils.util.readjson(find_(R, 'parts', f.part)); nm = pj.nominal;
+        if isfield(f, 'spin_axes_body'), a = f.spin_axes_body; else, a = f.axes_body; end
+        if iscell(a), n = numel(a); elseif isvector(a), n = 1; else, n = size(a, 1); end
+        X.Us(k+1:k+n) = asils.util.getf(nm, 'static_imbalance_kgm', 0);
+        X.Ud(k+1:k+n) = asils.util.getf(nm, 'dynamic_imbalance_kgm2', 0);
+        k = k + n;
+    end
     dev.mex = X;
     dev.rw.fitted = X.fitted;          % legacy name: "has momentum-exchange devices"
+end
+
+function f = find_(R, kind, id)
+%FIND_  A catalogue record (data/<kind>/<id>.json), or a case-sized one written
+%   by asils.sizing (store/sized/<case>/<kind>/<id>.json).
+    f = fullfile(R, 'data', kind, [id '.json']);
+    if exist(f, 'file') == 2, return, end
+    d = dir(fullfile(R, 'store', 'sized'));
+    for i = 1:numel(d)
+        g = fullfile(R, 'store', 'sized', d(i).name, kind, [id '.json']);
+        if d(i).isdir && exist(g, 'file') == 2, f = g; return, end
+    end
+    error('asils:product:missing', 'No %s record %s (data/%s or store/sized/*/%s)', kind(1:end-1), id, kind, kind);
 end
 
 function X = mex_empty_()
     X = struct('kind', {{}}, 'part', {{}}, 'A0', zeros(3,0), 'G', zeros(3,0), 'gi', zeros(1,0), ...
         'h_max', [], 'torque_max', [], 'J', [], 'coulomb', [], 'viscous', [], 'p_steady', [], ...
         'torque_scale_sigma', [], 'friction_scale_lo', [], 'friction_scale_hi', [], 'misalign_rad', [], ...
-        'T_sd', [], 'k_hv', [], 'Ac', [], 'S', [], 'l', [], 'flow_noise_h', [], 'eta_lo', [], 'eta_hi', [], 'h0', [], ...
+        'T_sd', [], 'k_hv', [], 'Ac', [], 'S', [], 'l', [], 'flow_noise_h', [], 'field_power', [], 'eta_lo', [], 'eta_hi', [], 'h0', [], ...
         'torque_noise', 0.001, 'friction_comp', 0.95, 'eta', 0.8, 'k_speed', 1.0, 'k_flow', 2.0, 'flow_tau', 0.3, ...
         'gimbal_rate_max', 0, 'gimbal_power', 0);
 end
@@ -129,13 +166,37 @@ function X = add_(X, kind, part, a, gi, hmax, tmax, J, cou, vis, pst, tsig, flo,
     X.viscous(end+1) = vis; X.p_steady(end+1) = pst; X.torque_scale_sigma(end+1) = tsig;
     X.friction_scale_lo(end+1) = flo; X.friction_scale_hi(end+1) = fhi; X.misalign_rad(end+1) = mis;
     X.T_sd(end+1) = Inf; X.k_hv(end+1) = 1; X.Ac(end+1) = 1; X.S(end+1) = 1; X.l(end+1) = 1;
-    X.flow_noise_h(end+1) = 0; X.eta_lo(end+1) = 1; X.eta_hi(end+1) = 1; X.h0(end+1) = 0;
+    X.flow_noise_h(end+1) = 0; X.field_power(end+1) = 0; X.eta_lo(end+1) = 1; X.eta_hi(end+1) = 1; X.h0(end+1) = 0;
 end
 
 function A = axes_(a)
     if iscell(a), a = cell2mat(cellfun(@(x) x(:)', a, 'UniformOutput', false)); end
     A = a';                                   % 3 x n
     for j = 1:size(A,2), A(:,j) = A(:,j)/norm(A(:,j)); end
+end
+
+function B = budget_(B, f, nm)
+%BUDGET_  ADCS mass / nominal power / volume, per fill (unit count from its axes).
+    n = 1;
+    for key = {'axes_body', 'spin_axes_body', 'boresights_body', 'normals_body'}
+        if isfield(f, key{1})
+            a = f.(key{1}); if iscell(a), n = numel(a); elseif isvector(a), n = numel(a)/3; else, n = size(a, 1); end
+            if strcmp(f.slot, 'coarse_sun_sensors'), n = 1; end   % one board of cosine cells
+        end
+    end
+    m = asils.util.getf(nm, 'mass_kg', 0);
+    p = asils.util.getf(nm, 'power_steady_W', asils.util.getf(nm, 'power_W', asils.util.getf(nm, 'power_at_max_W', 0)));
+    v = asils.util.getf(nm, 'volume_L', 0);
+    B.mass_kg = B.mass_kg + n*m; B.power_W = B.power_W + n*p; B.volume_L = B.volume_L + n*v;
+    B.items{end+1} = struct('slot', f.slot, 'part', f.part, 'n', n, 'mass_kg', n*m, 'power_W', n*p, 'volume_L', n*v);
+end
+
+function x = lohi_(ds, key, d, k)
+    x = d;
+    if isfield(ds, key)
+        if k == 1 && isfield(ds.(key), 'lo'), x = ds.(key).lo; end
+        if k == 2 && isfield(ds.(key), 'hi'), x = ds.(key).hi; end
+    end
 end
 
 function s = sigma_(ds, key, d)

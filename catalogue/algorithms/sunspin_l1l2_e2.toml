@@ -4,7 +4,7 @@
 schema = "adcs-algorithm/1"
 id = "sunspin_l1l2_e2"
 number = 21
-slot = "sun_spin"
+slot = "sun_acquisition"
 label = "Spin-up L1 + He et al. L2 with eclipse policy E2 (gyro-propagated Sun keeps the coils working in eclipse)"
 needs = ["coils", "magnetometer", "gyro", "sun"]
 fsw = "reference"

@@ -28,7 +28,7 @@ function F = init(P, jd0)
     F.h_t_rot = zeros(nr, 1); F.H_t = zeros(3, 1); F.cap = zeros(3, 1); F.hcap = zeros(3, 1);
     for i = 1:nr
         switch X.kind{i}
-            case 'rw',  F.h_t_rot(i) = F.P.h_bias;           % wheels biased off zero speed
+            case 'rw',  F.h_t_rot(i) = min(F.P.h_bias, 0.25*X.h_max(i));   % wheels biased off zero speed, within their capacity
             case {'cmg', 'vscmg'}, F.h_t_rot(i) = X.h0(i);
         end
         if X.gi(i) == 0
@@ -48,6 +48,11 @@ function F = init(P, jd0)
     end
     F.I_q = zeros(3,1); F.q_ref = nan(4,1); F.w_ref = nan(3,1);
     F.gd = F.P.guidance; F.gh = []; F.Bref = []; F.t_Bref = -1e9;
+    F.gd.sun_axis = dev.sun_axis; F.gd.roll_axis = dev.boresight;   % Sun referencing: power face, roll axis
+    F.gd.sun_eci = asils.fsw.sun_model(jd0);
+    MT = asils.fsw.modes(); F.gd_kind0 = MT.guidance{strcmp(MT.state, F.mode)};
+    F.sched = asils.util.getf(F.P, 'schedule', []); F.sched_i = 1;   % commanded mode changes [t_s, mode]
+    F.acq_hold = 0; F.capturing = false; F.rcs_left = [];
     F.last_ctrl = -1e9; F.tau_req = zeros(3,1); F.B_dump = zeros(3,1); F.m_dump = zeros(3,1);
     F.w_est = zeros(3,1);
     F.log = struct('t', {}, 'mode', {});

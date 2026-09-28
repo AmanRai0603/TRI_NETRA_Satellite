@@ -1,0 +1,28 @@
+{
+ "chain": [
+  {
+   "file": "matlab_sils/+asils/+comp/+magnetorquer/drive.m",
+   "node": "dipole",
+   "status": "implemented",
+   "what": "dipole command -> residual-dipole compensation -> direction-preserving saturation -> PWM duty"
+  },
+  {
+   "file": "matlab_sils/+asils/+fsw/step.m",
+   "node": "duty_cycle",
+   "status": "implemented",
+   "what": "measure-then-drive schedule: coils off 0.2 s of each 1 s for a clean field"
+  }
+ ],
+ "hal_output": "coil PWM duty (int16 Q15 x3)",
+ "id": "magnetorquer",
+ "in_house": "yes",
+ "kind": "actuator",
+ "levels": [
+  "model (default)"
+ ],
+ "model": "matlab_sils/+asils/+devices/mtq.m",
+ "parts": [
+  "SYN-CT-1"
+ ],
+ "schema": "adcs-component/1"
+}

@@ -1,0 +1,12 @@
+# Component: gnss. The MODEL is what the SILS flies in place of the unit;
+# the CHAIN is the unit's own processing (in-house development plugs in
+# node by node). status: implemented | baseline (standard method standing in
+# for the in-house one) | stub. Generated layout, edited by hand.
+schema = "adcs-component/1"
+id = "gnss"
+kind = "sensor"
+in_house = "no"
+parts = ["TRN-GPS-1"]
+model = "matlab_sils/+asils/+devices/gps.m"
+hal_output = "position (1 cm), velocity (1 mm/s)"
+levels = ["model (default)"]

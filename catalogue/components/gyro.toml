@@ -1,0 +1,18 @@
+# Component: gyro. The MODEL is what the SILS flies in place of the unit;
+# the CHAIN is the unit's own processing (in-house development plugs in
+# node by node). status: implemented | baseline (standard method standing in
+# for the in-house one) | stub. Generated layout, edited by hand.
+schema = "adcs-component/1"
+id = "gyro"
+kind = "sensor"
+in_house = "no"
+parts = ["SYN-GYRO-1", "TRN-GYRO-P1"]
+model = "matlab_sils/+asils/+devices/gyro.m"
+hal_output = "body rate (int32, 24-bit)"
+levels = ["model (default)"]
+
+[[chain]]
+node = "bias"
+file = "matlab_sils/+asils/+fsw/mekf_predict.m"
+status = "implemented"
+what = "bias estimated in the MEKF (attitude filter), no separate unit processing"

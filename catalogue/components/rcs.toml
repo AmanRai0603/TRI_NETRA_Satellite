@@ -1,0 +1,18 @@
+# Component: rcs. The MODEL is what the SILS flies in place of the unit;
+# the CHAIN is the unit's own processing (in-house development plugs in
+# node by node). status: implemented | baseline (standard method standing in
+# for the in-house one) | stub. Generated layout, edited by hand.
+schema = "adcs-component/1"
+id = "rcs"
+kind = "actuator"
+in_house = "yes"
+parts = ["TRN-RCS-3U"]
+model = "matlab_sils/+asils/+devices/rcs.m"
+hal_output = "valve on-time per nozzle couple (uint8, 1 ms)"
+levels = ["model (default)"]
+
+[[chain]]
+node = "schedule"
+file = "matlab_sils/+asils/+comp/+rcs/schedule.m"
+status = "implemented"
+what = "torque request -> couple selection -> MIB / valve-resolution quantised on-times"

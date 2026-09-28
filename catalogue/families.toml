@@ -1,0 +1,76 @@
+# Configuration families (SPEC.md §2), with the role each plays in a solution.
+#
+#   role = "solution"   our ADCS: magnetorquers only, + fluid loop, + fluid loop
+#                       + N2O cold-gas RCS. These are the only families dispatched.
+#   role = "benchmark"  standard actuators, SIZED to the same case, flown through
+#                       the same modes and seeds, so every figure of ours is
+#                       quoted next to what a standard actuator would give.
+#                       A benchmark becomes a solution by changing its role
+#                       (e.g. an in-house wheel or CMG).
+# The coils are in every family: they detumble, dump and own safe mode.
+# actuators: the kinds the family carries (mtq, fmr, rcs, rw, cmg, vscmg).
+# simplicity: order of preference among solutions (simplest first).
+schema = "adcs-families/1"
+
+[[family]]
+id = "mtq"
+role = "solution"
+label = "Magnetorquers only"
+actuators = ["mtq"]
+simplicity = 1
+
+[[family]]
+id = "mtq_fmr"
+role = "solution"
+label = "Magnetorquers + fluid momentum loop"
+actuators = ["mtq", "fmr"]
+simplicity = 2
+
+[[family]]
+id = "mtq_fmr_rcs"
+role = "solution"
+label = "Magnetorquers + fluid loop + N2O cold-gas RCS"
+actuators = ["mtq", "fmr", "rcs"]
+simplicity = 3
+
+[[family]]
+id = "mtq_rw"
+role = "benchmark"
+label = "Magnetorquers + reaction wheels"
+actuators = ["mtq", "rw"]
+simplicity = 2
+
+[[family]]
+id = "mtq_rw_rcs"
+role = "benchmark"
+label = "Magnetorquers + reaction wheels + N2O cold-gas RCS"
+actuators = ["mtq", "rw", "rcs"]
+simplicity = 3
+
+[[family]]
+id = "mtq_cmg"
+role = "benchmark"
+label = "Magnetorquers + 4 single-gimbal CMG (pyramid)"
+actuators = ["mtq", "cmg"]
+simplicity = 3
+
+[[family]]
+id = "mtq_cmg_rcs"
+role = "benchmark"
+label = "Magnetorquers + 4 CMG + N2O cold-gas RCS"
+actuators = ["mtq", "cmg", "rcs"]
+simplicity = 4
+
+[[family]]
+id = "mtq_vscmg"
+role = "benchmark"
+label = "Magnetorquers + 4 variable-speed CMG (pyramid)"
+actuators = ["mtq", "vscmg"]
+simplicity = 3
+
+[[family]]
+id = "mtq_vscmg_rcs"
+role = "benchmark"
+label = "Magnetorquers + 4 VSCMG + N2O cold-gas RCS"
+actuators = ["mtq", "vscmg", "rcs"]
+simplicity = 4

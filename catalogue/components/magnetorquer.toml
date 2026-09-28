@@ -1,0 +1,24 @@
+# Component: magnetorquer. The MODEL is what the SILS flies in place of the unit;
+# the CHAIN is the unit's own processing (in-house development plugs in
+# node by node). status: implemented | baseline (standard method standing in
+# for the in-house one) | stub. Generated layout, edited by hand.
+schema = "adcs-component/1"
+id = "magnetorquer"
+kind = "actuator"
+in_house = "yes"
+parts = ["SYN-CT-1"]
+model = "matlab_sils/+asils/+devices/mtq.m"
+hal_output = "coil PWM duty (int16 Q15 x3)"
+levels = ["model (default)"]
+
+[[chain]]
+node = "dipole"
+file = "matlab_sils/+asils/+comp/+magnetorquer/drive.m"
+status = "implemented"
+what = "dipole command -> residual-dipole compensation -> direction-preserving saturation -> PWM duty"
+
+[[chain]]
+node = "duty_cycle"
+file = "matlab_sils/+asils/+fsw/step.m"
+status = "implemented"
+what = "measure-then-drive schedule: coils off 0.2 s of each 1 s for a clean field"

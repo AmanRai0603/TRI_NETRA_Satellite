@@ -30,7 +30,11 @@ function D = init(P)
             D.st.q_mis(:,h) = asils.quat.fromrotvec(s.misalign_sigma*randn(3,1));
         end
         D.st.hist_q = []; D.st.hist_t = []; D.st.dead = false(1, nh);
-        if strcmp(s.model, 'quest'), D.st.cat = asils.devices.star_catalogue(4000); end
+        if any(strcmp(s.model, {'quest', 'image'})), D.st.cat = asils.devices.star_catalogue(4000); end
+        if strcmp(s.model, 'image')          % component level: camera + onboard pair table
+            D.st.cam = asils.comp.star_tracker.camera(s.fov);
+            D.st.K = asils.comp.star_tracker.pairs(D.st.cat, s.fov);
+        end
     end
     if dv.mtq.fitted
         t = dv.mtq; n = size(t.axes, 2);
@@ -38,6 +42,9 @@ function D = init(P)
         A = t.axes;
         for j = 1:n, A(:,j) = ma(t.misalign_rad) * A(:,j); end
         D.mtq.A = A; D.mtq.dead = false(1, n);
+    end
+    if dv.es.fitted
+        D.es.bias = asils.quat.fromrotvec(dv.es.bias_sigma*randn(3,1));
     end
     if dv.css.fitted
         c = dv.css; k = size(c.normals, 2);
@@ -60,5 +67,6 @@ function D = init(P)
         T = r.tau_couple;
         for j = 1:nc, T(:,j) = ma(r.misalign_rad) * T(:,j); end
         D.rcs.tau_couple = T; D.rcs.failed = false(1, nc);
+        D.rcs.isp = r.isp_lo + (r.isp_hi - r.isp_lo)*rand;        % N2O: 60-80 s
     end
 end
