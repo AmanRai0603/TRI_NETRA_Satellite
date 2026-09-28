@@ -1,0 +1,1186 @@
+{
+ "schema": "adcs-campaign-result/1",
+ "owner": "Agastya",
+ "id": "mc_detumble_ais",
+ "scenario": "detumble_ais",
+ "case": "ais_3u",
+ "type": "montecarlo",
+ "runs": 24,
+ "engine": true,
+ "fsw": "c",
+ "stats": [
+  {
+   "id": "detumble_time",
+   "unit": "min",
+   "req": 284.0,
+   "values": [
+    39.873333333333335,
+    62.306666666666665,
+    34.70666666666667,
+    42.57333333333334,
+    61.42333333333333,
+    54.940000000000005,
+    61.32333333333334,
+    51.190000000000005,
+    48.306666666666665,
+    57.873333333333335,
+    57.556666666666665,
+    71.89000000000001,
+    80.47333333333334,
+    67.20666666666666,
+    59.42333333333333,
+    42.223333333333336,
+    66.27333333333334,
+    71.07333333333334,
+    60.89,
+    57.09,
+    63.57333333333334,
+    42.95666666666667,
+    51.59,
+    44.156666666666666
+   ],
+   "mean": 56.287222222222226,
+   "std": 11.425105488647844,
+   "min": 34.70666666666667,
+   "max": 80.47333333333334,
+   "n_valid": 24,
+   "pass_rate": 1.0,
+   "pass": true
+  },
+  {
+   "id": "power_mean",
+   "unit": "W",
+   "req": 0.5,
+   "values": [
+    0.020704253800951748,
+    0.031728204499117625,
+    0.032637178566909286,
+    0.018460718631232404,
+    0.030683276253141392,
+    0.02109667765394132,
+    0.032117470120987916,
+    0.018818185353796313,
+    0.015607468777997702,
+    0.03137958790506583,
+    0.02269666605579127,
+    0.03591213505012235,
+    0.03234182893304481,
+    0.03891108363284528,
+    0.03032651447864047,
+    0.021758504586336776,
+    0.03586161993922972,
+    0.03245192268164736,
+    0.03331967993539766,
+    0.03356202481147672,
+    0.029531877564014885,
+    0.01739524130870597,
+    0.022264975000779025,
+    0.023709913106458782
+   ],
+   "mean": 0.027636542026984692,
+   "std": 0.006844648664785411,
+   "min": 0.015607468777997702,
+   "max": 0.03891108363284528,
+   "n_valid": 24,
+   "pass_rate": 1.0,
+   "pass": true
+  },
+  {
+   "id": "power_peak",
+   "unit": "W",
+   "req": 1.5,
+   "values": [
+    0.18230903042695396,
+    0.5213977477340006,
+    0.6480263679921873,
+    0.27705435346537677,
+    0.5585729544969024,
+    0.24955107272560806,
+    0.41768364513077183,
+    0.1922702719199194,
+    0.21252601702932825,
+    0.37468550675984985,
+    0.41509079256569104,
+    0.6078994109927671,
+    0.325417645802179,
+    0.5423566393017365,
+    0.44843897824030277,
+    0.26407544175542463,
+    0.34833582567827387,
+    0.6201055940427869,
+    0.631923581652272,
+    0.6351133762627033,
+    0.405693533127842,
+    0.2778087710196234,
+    0.3165770439771721,
+    0.17619678334910124
+   ],
+   "mean": 0.4020462660603656,
+   "std": 0.15988901952232884,
+   "min": 0.17619678334910124,
+   "max": 0.6480263679921873,
+   "n_valid": 24,
+   "pass_rate": 1.0,
+   "pass": true
+  }
+ ],
+ "per_run": [
+  {
+   "k": 1,
+   "metrics": [
+    {
+     "id": "detumble_time",
+     "kind": "time_to_rate",
+     "value": 39.873333333333335,
+     "unit": "min",
+     "req": 284.0,
+     "req_key": "req.detumble",
+     "pass": 1
+    },
+    {
+     "id": "power_mean",
+     "kind": "power_mean",
+     "value": 0.020704253800951748,
+     "unit": "W",
+     "req": 0.5,
+     "req_key": "req.pavg",
+     "pass": 1
+    },
+    {
+     "id": "power_peak",
+     "kind": "power_peak",
+     "value": 0.18230903042695396,
+     "unit": "W",
+     "req": 1.5,
+     "req_key": "req.ppk",
+     "pass": 1
+    }
+   ],
+   "draws": {
+    "inertia_scale_x": 1.0482315423079283,
+    "inertia_scale_y": 1.068418229343796,
+    "inertia_scale_z": 0.952286963229524,
+    "mass_kg": 4.136375382239093,
+    "residual_dipole_Am2": 0.019499173417718153,
+    "cm_offset_mm": 14.420950782775984,
+    "F107": 122.63022267283974,
+    "initial_rate_deg_s": 8.502345982378461,
+    "arg_lat_deg": 113.37824475091169
+   },
+   "wall_s": 0.289790747
+  },
+  {
+   "k": 2,
+   "metrics": [
+    {
+     "id": "detumble_time",
+     "kind": "time_to_rate",
+     "value": 62.306666666666665,
+     "unit": "min",
+     "req": 284.0,
+     "req_key": "req.detumble",
+     "pass": 1
+    },
+    {
+     "id": "power_mean",
+     "kind": "power_mean",
+     "value": 0.031728204499117625,
+     "unit": "W",
+     "req": 0.5,
+     "req_key": "req.pavg",
+     "pass": 1
+    },
+    {
+     "id": "power_peak",
+     "kind": "power_peak",
+     "value": 0.5213977477340006,
+     "unit": "W",
+     "req": 1.5,
+     "req_key": "req.ppk",
+     "pass": 1
+    }
+   ],
+   "draws": {
+    "inertia_scale_x": 0.9711589370038449,
+    "inertia_scale_y": 0.9795106767471747,
+    "inertia_scale_z": 1.0943324670080634,
+    "mass_kg": 3.731835195665747,
+    "residual_dipole_Am2": 0.013198346383459979,
+    "cm_offset_mm": 15.19070510283494,
+    "F107": 170.43955455029925,
+    "initial_rate_deg_s": 12.933063552328642,
+    "arg_lat_deg": 199.41403702360267
+   },
+   "wall_s": 0.386989864
+  },
+  {
+   "k": 3,
+   "metrics": [
+    {
+     "id": "detumble_time",
+     "kind": "time_to_rate",
+     "value": 34.70666666666667,
+     "unit": "min",
+     "req": 284.0,
+     "req_key": "req.detumble",
+     "pass": 1
+    },
+    {
+     "id": "power_mean",
+     "kind": "power_mean",
+     "value": 0.032637178566909286,
+     "unit": "W",
+     "req": 0.5,
+     "req_key": "req.pavg",
+     "pass": 1
+    },
+    {
+     "id": "power_peak",
+     "kind": "power_peak",
+     "value": 0.6480263679921873,
+     "unit": "W",
+     "req": 1.5,
+     "req_key": "req.ppk",
+     "pass": 1
+    }
+   ],
+   "draws": {
+    "inertia_scale_x": 0.9749486323462261,
+    "inertia_scale_y": 0.9267587510394811,
+    "inertia_scale_z": 1.0936181328150112,
+    "mass_kg": 4.090808854381206,
+    "residual_dipole_Am2": 0.007564385120239556,
+    "cm_offset_mm": 25.461982964812893,
+    "F107": 213.16886809813366,
+    "initial_rate_deg_s": 10.989005022583278,
+    "arg_lat_deg": 326.0987543416057
+   },
+   "wall_s": 0.28659305
+  },
+  {
+   "k": 4,
+   "metrics": [
+    {
+     "id": "detumble_time",
+     "kind": "time_to_rate",
+     "value": 42.57333333333334,
+     "unit": "min",
+     "req": 284.0,
+     "req_key": "req.detumble",
+     "pass": 1
+    },
+    {
+     "id": "power_mean",
+     "kind": "power_mean",
+     "value": 0.018460718631232404,
+     "unit": "W",
+     "req": 0.5,
+     "req_key": "req.pavg",
+     "pass": 1
+    },
+    {
+     "id": "power_peak",
+     "kind": "power_peak",
+     "value": 0.27705435346537677,
+     "unit": "W",
+     "req": 1.5,
+     "req_key": "req.ppk",
+     "pass": 1
+    }
+   ],
+   "draws": {
+    "inertia_scale_x": 1.0549917001682378,
+    "inertia_scale_y": 1.0160961426398163,
+    "inertia_scale_z": 0.9254473349396757,
+    "mass_kg": 3.868870550976656,
+    "residual_dipole_Am2": 0.019863433962931935,
+    "cm_offset_mm": 27.36247286352329,
+    "F107": 185.7337980160562,
+    "initial_rate_deg_s": 5.235298741767981,
+    "arg_lat_deg": 356.09382885254684
+   },
+   "wall_s": 0.363129508
+  },
+  {
+   "k": 5,
+   "metrics": [
+    {
+     "id": "detumble_time",
+     "kind": "time_to_rate",
+     "value": 61.42333333333333,
+     "unit": "min",
+     "req": 284.0,
+     "req_key": "req.detumble",
+     "pass": 1
+    },
+    {
+     "id": "power_mean",
+     "kind": "power_mean",
+     "value": 0.030683276253141392,
+     "unit": "W",
+     "req": 0.5,
+     "req_key": "req.pavg",
+     "pass": 1
+    },
+    {
+     "id": "power_peak",
+     "kind": "power_peak",
+     "value": 0.5585729544969024,
+     "unit": "W",
+     "req": 1.5,
+     "req_key": "req.ppk",
+     "pass": 1
+    }
+   ],
+   "draws": {
+    "inertia_scale_x": 1.055006118420914,
+    "inertia_scale_y": 0.9109172879597993,
+    "inertia_scale_z": 0.9119041567660523,
+    "mass_kg": 4.34173445358342,
+    "residual_dipole_Am2": 0.00943768863607258,
+    "cm_offset_mm": 21.69546688717456,
+    "F107": 123.25760086766775,
+    "initial_rate_deg_s": 13.42153170964269,
+    "arg_lat_deg": 179.04129766719717
+   },
+   "wall_s": 0.399255204
+  },
+  {
+   "k": 6,
+   "metrics": [
+    {
+     "id": "detumble_time",
+     "kind": "time_to_rate",
+     "value": 54.940000000000005,
+     "unit": "min",
+     "req": 284.0,
+     "req_key": "req.detumble",
+     "pass": 1
+    },
+    {
+     "id": "power_mean",
+     "kind": "power_mean",
+     "value": 0.02109667765394132,
+     "unit": "W",
+     "req": 0.5,
+     "req_key": "req.pavg",
+     "pass": 1
+    },
+    {
+     "id": "power_peak",
+     "kind": "power_peak",
+     "value": 0.24955107272560806,
+     "unit": "W",
+     "req": 1.5,
+     "req_key": "req.ppk",
+     "pass": 1
+    }
+   ],
+   "draws": {
+    "inertia_scale_x": 0.9996196211498009,
+    "inertia_scale_y": 0.9339270333623039,
+    "inertia_scale_z": 1.0344484245479397,
+    "mass_kg": 3.937648154100526,
+    "residual_dipole_Am2": 0.018732516864933067,
+    "cm_offset_mm": 28.38626104359573,
+    "F107": 84.65248593281147,
+    "initial_rate_deg_s": 7.987570748151618,
+    "arg_lat_deg": 61.449126244253776
+   },
+   "wall_s": 0.2675617
+  },
+  {
+   "k": 7,
+   "metrics": [
+    {
+     "id": "detumble_time",
+     "kind": "time_to_rate",
+     "value": 61.32333333333334,
+     "unit": "min",
+     "req": 284.0,
+     "req_key": "req.detumble",
+     "pass": 1
+    },
+    {
+     "id": "power_mean",
+     "kind": "power_mean",
+     "value": 0.032117470120987916,
+     "unit": "W",
+     "req": 0.5,
+     "req_key": "req.pavg",
+     "pass": 1
+    },
+    {
+     "id": "power_peak",
+     "kind": "power_peak",
+     "value": 0.41768364513077183,
+     "unit": "W",
+     "req": 1.5,
+     "req_key": "req.ppk",
+     "pass": 1
+    }
+   ],
+   "draws": {
+    "inertia_scale_x": 0.9181690743618175,
+    "inertia_scale_y": 0.955530830963044,
+    "inertia_scale_z": 1.0864222273648338,
+    "mass_kg": 3.826649067777952,
+    "residual_dipole_Am2": 0.013184329010730368,
+    "cm_offset_mm": 15.948807663932055,
+    "F107": 114.51171400890192,
+    "initial_rate_deg_s": 14.554778084247348,
+    "arg_lat_deg": 71.14101943544068
+   },
+   "wall_s": 0.244166011
+  },
+  {
+   "k": 8,
+   "metrics": [
+    {
+     "id": "detumble_time",
+     "kind": "time_to_rate",
+     "value": 51.190000000000005,
+     "unit": "min",
+     "req": 284.0,
+     "req_key": "req.detumble",
+     "pass": 1
+    },
+    {
+     "id": "power_mean",
+     "kind": "power_mean",
+     "value": 0.018818185353796313,
+     "unit": "W",
+     "req": 0.5,
+     "req_key": "req.pavg",
+     "pass": 1
+    },
+    {
+     "id": "power_peak",
+     "kind": "power_peak",
+     "value": 0.1922702719199194,
+     "unit": "W",
+     "req": 1.5,
+     "req_key": "req.ppk",
+     "pass": 1
+    }
+   ],
+   "draws": {
+    "inertia_scale_x": 0.9631502864843176,
+    "inertia_scale_y": 1.0622489406910058,
+    "inertia_scale_z": 0.9168623907208541,
+    "mass_kg": 4.009232782285994,
+    "residual_dipole_Am2": 0.016117962894091904,
+    "cm_offset_mm": 16.44951339806997,
+    "F107": 165.02230035592783,
+    "initial_rate_deg_s": 5.38687441591486,
+    "arg_lat_deg": 124.50326882826614
+   },
+   "wall_s": 0.333280462
+  },
+  {
+   "k": 9,
+   "metrics": [
+    {
+     "id": "detumble_time",
+     "kind": "time_to_rate",
+     "value": 48.306666666666665,
+     "unit": "min",
+     "req": 284.0,
+     "req_key": "req.detumble",
+     "pass": 1
+    },
+    {
+     "id": "power_mean",
+     "kind": "power_mean",
+     "value": 0.015607468777997702,
+     "unit": "W",
+     "req": 0.5,
+     "req_key": "req.pavg",
+     "pass": 1
+    },
+    {
+     "id": "power_peak",
+     "kind": "power_peak",
+     "value": 0.21252601702932825,
+     "unit": "W",
+     "req": 1.5,
+     "req_key": "req.ppk",
+     "pass": 1
+    }
+   ],
+   "draws": {
+    "inertia_scale_x": 0.9984608399729101,
+    "inertia_scale_y": 0.9773943263334839,
+    "inertia_scale_z": 1.0731382748116098,
+    "mass_kg": 3.998143094083909,
+    "residual_dipole_Am2": 0.00737224549620895,
+    "cm_offset_mm": 25.70793738402344,
+    "F107": 136.9197946436543,
+    "initial_rate_deg_s": 5.7986134978123385,
+    "arg_lat_deg": 37.530979047972956
+   },
+   "wall_s": 0.293196464
+  },
+  {
+   "k": 10,
+   "metrics": [
+    {
+     "id": "detumble_time",
+     "kind": "time_to_rate",
+     "value": 57.873333333333335,
+     "unit": "min",
+     "req": 284.0,
+     "req_key": "req.detumble",
+     "pass": 1
+    },
+    {
+     "id": "power_mean",
+     "kind": "power_mean",
+     "value": 0.03137958790506583,
+     "unit": "W",
+     "req": 0.5,
+     "req_key": "req.pavg",
+     "pass": 1
+    },
+    {
+     "id": "power_peak",
+     "kind": "power_peak",
+     "value": 0.37468550675984985,
+     "unit": "W",
+     "req": 1.5,
+     "req_key": "req.ppk",
+     "pass": 1
+    }
+   ],
+   "draws": {
+    "inertia_scale_x": 1.0497757413941855,
+    "inertia_scale_y": 0.930741374907595,
+    "inertia_scale_z": 0.9606254842733544,
+    "mass_kg": 4.078714468991438,
+    "residual_dipole_Am2": 0.01793821113558877,
+    "cm_offset_mm": 16.535140863526035,
+    "F107": 207.19162913606934,
+    "initial_rate_deg_s": 12.900287768502807,
+    "arg_lat_deg": 98.23427413456758
+   },
+   "wall_s": 0.375077132
+  },
+  {
+   "k": 11,
+   "metrics": [
+    {
+     "id": "detumble_time",
+     "kind": "time_to_rate",
+     "value": 57.556666666666665,
+     "unit": "min",
+     "req": 284.0,
+     "req_key": "req.detumble",
+     "pass": 1
+    },
+    {
+     "id": "power_mean",
+     "kind": "power_mean",
+     "value": 0.02269666605579127,
+     "unit": "W",
+     "req": 0.5,
+     "req_key": "req.pavg",
+     "pass": 1
+    },
+    {
+     "id": "power_peak",
+     "kind": "power_peak",
+     "value": 0.41509079256569104,
+     "unit": "W",
+     "req": 1.5,
+     "req_key": "req.ppk",
+     "pass": 1
+    }
+   ],
+   "draws": {
+    "inertia_scale_x": 0.9246041545373676,
+    "inertia_scale_y": 0.9845776193180495,
+    "inertia_scale_z": 0.9004760236496014,
+    "mass_kg": 4.124419422105943,
+    "residual_dipole_Am2": 0.011109981259565662,
+    "cm_offset_mm": 21.375249911862504,
+    "F107": 120.85290596814828,
+    "initial_rate_deg_s": 9.580969089729958,
+    "arg_lat_deg": 25.187855064418166
+   },
+   "wall_s": 0.422992841
+  },
+  {
+   "k": 12,
+   "metrics": [
+    {
+     "id": "detumble_time",
+     "kind": "time_to_rate",
+     "value": 71.89000000000001,
+     "unit": "min",
+     "req": 284.0,
+     "req_key": "req.detumble",
+     "pass": 1
+    },
+    {
+     "id": "power_mean",
+     "kind": "power_mean",
+     "value": 0.03591213505012235,
+     "unit": "W",
+     "req": 0.5,
+     "req_key": "req.pavg",
+     "pass": 1
+    },
+    {
+     "id": "power_peak",
+     "kind": "power_peak",
+     "value": 0.6078994109927671,
+     "unit": "W",
+     "req": 1.5,
+     "req_key": "req.ppk",
+     "pass": 1
+    }
+   ],
+   "draws": {
+    "inertia_scale_x": 0.9918224776259106,
+    "inertia_scale_y": 0.9749492712771226,
+    "inertia_scale_z": 1.0743942680786376,
+    "mass_kg": 4.093452153121027,
+    "residual_dipole_Am2": 0.018277040526657178,
+    "cm_offset_mm": 12.344088048933846,
+    "F107": 92.22486893297037,
+    "initial_rate_deg_s": 13.221845977446518,
+    "arg_lat_deg": 9.82900589114022
+   },
+   "wall_s": 0.313347331
+  },
+  {
+   "k": 13,
+   "metrics": [
+    {
+     "id": "detumble_time",
+     "kind": "time_to_rate",
+     "value": 80.47333333333334,
+     "unit": "min",
+     "req": 284.0,
+     "req_key": "req.detumble",
+     "pass": 1
+    },
+    {
+     "id": "power_mean",
+     "kind": "power_mean",
+     "value": 0.03234182893304481,
+     "unit": "W",
+     "req": 0.5,
+     "req_key": "req.pavg",
+     "pass": 1
+    },
+    {
+     "id": "power_peak",
+     "kind": "power_peak",
+     "value": 0.325417645802179,
+     "unit": "W",
+     "req": 1.5,
+     "req_key": "req.ppk",
+     "pass": 1
+    }
+   ],
+   "draws": {
+    "inertia_scale_x": 0.9722660495489008,
+    "inertia_scale_y": 1.0784005384429811,
+    "inertia_scale_z": 1.0010425123301698,
+    "mass_kg": 3.8874994993181,
+    "residual_dipole_Am2": 0.013430020145625887,
+    "cm_offset_mm": 23.801384319601084,
+    "F107": 87.92019613601263,
+    "initial_rate_deg_s": 11.16659443971807,
+    "arg_lat_deg": 111.82501579290668
+   },
+   "wall_s": 0.327115086
+  },
+  {
+   "k": 14,
+   "metrics": [
+    {
+     "id": "detumble_time",
+     "kind": "time_to_rate",
+     "value": 67.20666666666666,
+     "unit": "min",
+     "req": 284.0,
+     "req_key": "req.detumble",
+     "pass": 1
+    },
+    {
+     "id": "power_mean",
+     "kind": "power_mean",
+     "value": 0.03891108363284528,
+     "unit": "W",
+     "req": 0.5,
+     "req_key": "req.pavg",
+     "pass": 1
+    },
+    {
+     "id": "power_peak",
+     "kind": "power_peak",
+     "value": 0.5423566393017365,
+     "unit": "W",
+     "req": 1.5,
+     "req_key": "req.ppk",
+     "pass": 1
+    }
+   ],
+   "draws": {
+    "inertia_scale_x": 1.0141925466010737,
+    "inertia_scale_y": 0.9465646669037638,
+    "inertia_scale_z": 1.0408138933888935,
+    "mass_kg": 4.073599692260247,
+    "residual_dipole_Am2": 0.010443347614592076,
+    "cm_offset_mm": 26.047046333089252,
+    "F107": 129.01271477908642,
+    "initial_rate_deg_s": 14.565100392885562,
+    "arg_lat_deg": 296.1761138747445
+   },
+   "wall_s": 0.311140414
+  },
+  {
+   "k": 15,
+   "metrics": [
+    {
+     "id": "detumble_time",
+     "kind": "time_to_rate",
+     "value": 59.42333333333333,
+     "unit": "min",
+     "req": 284.0,
+     "req_key": "req.detumble",
+     "pass": 1
+    },
+    {
+     "id": "power_mean",
+     "kind": "power_mean",
+     "value": 0.03032651447864047,
+     "unit": "W",
+     "req": 0.5,
+     "req_key": "req.pavg",
+     "pass": 1
+    },
+    {
+     "id": "power_peak",
+     "kind": "power_peak",
+     "value": 0.44843897824030277,
+     "unit": "W",
+     "req": 1.5,
+     "req_key": "req.ppk",
+     "pass": 1
+    }
+   ],
+   "draws": {
+    "inertia_scale_x": 1.0713632711921381,
+    "inertia_scale_y": 0.9545190421273224,
+    "inertia_scale_z": 1.0350946012030109,
+    "mass_kg": 3.808584385188357,
+    "residual_dipole_Am2": 0.017755046326506405,
+    "cm_offset_mm": 19.81953038070097,
+    "F107": 156.67162751513513,
+    "initial_rate_deg_s": 11.808978323938195,
+    "arg_lat_deg": 205.01456730241796
+   },
+   "wall_s": 0.445137646
+  },
+  {
+   "k": 16,
+   "metrics": [
+    {
+     "id": "detumble_time",
+     "kind": "time_to_rate",
+     "value": 42.223333333333336,
+     "unit": "min",
+     "req": 284.0,
+     "req_key": "req.detumble",
+     "pass": 1
+    },
+    {
+     "id": "power_mean",
+     "kind": "power_mean",
+     "value": 0.021758504586336776,
+     "unit": "W",
+     "req": 0.5,
+     "req_key": "req.pavg",
+     "pass": 1
+    },
+    {
+     "id": "power_peak",
+     "kind": "power_peak",
+     "value": 0.26407544175542463,
+     "unit": "W",
+     "req": 1.5,
+     "req_key": "req.ppk",
+     "pass": 1
+    }
+   ],
+   "draws": {
+    "inertia_scale_x": 1.0228110290643324,
+    "inertia_scale_y": 0.9523760810006707,
+    "inertia_scale_z": 0.9379625739412738,
+    "mass_kg": 4.083090357111957,
+    "residual_dipole_Am2": 0.01641455417072459,
+    "cm_offset_mm": 25.41156558664129,
+    "F107": 147.0936175457931,
+    "initial_rate_deg_s": 8.777523127395952,
+    "arg_lat_deg": 135.96295526043815
+   },
+   "wall_s": 0.334351587
+  },
+  {
+   "k": 17,
+   "metrics": [
+    {
+     "id": "detumble_time",
+     "kind": "time_to_rate",
+     "value": 66.27333333333334,
+     "unit": "min",
+     "req": 284.0,
+     "req_key": "req.detumble",
+     "pass": 1
+    },
+    {
+     "id": "power_mean",
+     "kind": "power_mean",
+     "value": 0.03586161993922972,
+     "unit": "W",
+     "req": 0.5,
+     "req_key": "req.pavg",
+     "pass": 1
+    },
+    {
+     "id": "power_peak",
+     "kind": "power_peak",
+     "value": 0.34833582567827387,
+     "unit": "W",
+     "req": 1.5,
+     "req_key": "req.ppk",
+     "pass": 1
+    }
+   ],
+   "draws": {
+    "inertia_scale_x": 1.0867749649973484,
+    "inertia_scale_y": 0.9167499903721424,
+    "inertia_scale_z": 0.9675002787141075,
+    "mass_kg": 3.888573432639021,
+    "residual_dipole_Am2": 0.016759410852213292,
+    "cm_offset_mm": 26.656895352506087,
+    "F107": 132.77405087669774,
+    "initial_rate_deg_s": 12.647559098461489,
+    "arg_lat_deg": 122.15136064112956
+   },
+   "wall_s": 0.318498683
+  },
+  {
+   "k": 18,
+   "metrics": [
+    {
+     "id": "detumble_time",
+     "kind": "time_to_rate",
+     "value": 71.07333333333334,
+     "unit": "min",
+     "req": 284.0,
+     "req_key": "req.detumble",
+     "pass": 1
+    },
+    {
+     "id": "power_mean",
+     "kind": "power_mean",
+     "value": 0.03245192268164736,
+     "unit": "W",
+     "req": 0.5,
+     "req_key": "req.pavg",
+     "pass": 1
+    },
+    {
+     "id": "power_peak",
+     "kind": "power_peak",
+     "value": 0.6201055940427869,
+     "unit": "W",
+     "req": 1.5,
+     "req_key": "req.ppk",
+     "pass": 1
+    }
+   ],
+   "draws": {
+    "inertia_scale_x": 0.9960406791820771,
+    "inertia_scale_y": 0.9720640302321163,
+    "inertia_scale_z": 1.0709947471805785,
+    "mass_kg": 3.9195650081242865,
+    "residual_dipole_Am2": 0.011295162967221991,
+    "cm_offset_mm": 16.579180630455205,
+    "F107": 72.9346118391654,
+    "initial_rate_deg_s": 10.979282495149416,
+    "arg_lat_deg": 162.14366188558827
+   },
+   "wall_s": 0.33965387
+  },
+  {
+   "k": 19,
+   "metrics": [
+    {
+     "id": "detumble_time",
+     "kind": "time_to_rate",
+     "value": 60.89,
+     "unit": "min",
+     "req": 284.0,
+     "req_key": "req.detumble",
+     "pass": 1
+    },
+    {
+     "id": "power_mean",
+     "kind": "power_mean",
+     "value": 0.03331967993539766,
+     "unit": "W",
+     "req": 0.5,
+     "req_key": "req.pavg",
+     "pass": 1
+    },
+    {
+     "id": "power_peak",
+     "kind": "power_peak",
+     "value": 0.631923581652272,
+     "unit": "W",
+     "req": 1.5,
+     "req_key": "req.ppk",
+     "pass": 1
+    }
+   ],
+   "draws": {
+    "inertia_scale_x": 0.979235013512544,
+    "inertia_scale_y": 0.9308115060285473,
+    "inertia_scale_z": 0.9184637407494429,
+    "mass_kg": 4.041404983482225,
+    "residual_dipole_Am2": 0.008684482478836311,
+    "cm_offset_mm": 29.77569422544498,
+    "F107": 163.59346415934007,
+    "initial_rate_deg_s": 12.972539470659946,
+    "arg_lat_deg": 174.89479271234262
+   },
+   "wall_s": 0.308598872
+  },
+  {
+   "k": 20,
+   "metrics": [
+    {
+     "id": "detumble_time",
+     "kind": "time_to_rate",
+     "value": 57.09,
+     "unit": "min",
+     "req": 284.0,
+     "req_key": "req.detumble",
+     "pass": 1
+    },
+    {
+     "id": "power_mean",
+     "kind": "power_mean",
+     "value": 0.03356202481147672,
+     "unit": "W",
+     "req": 0.5,
+     "req_key": "req.pavg",
+     "pass": 1
+    },
+    {
+     "id": "power_peak",
+     "kind": "power_peak",
+     "value": 0.6351133762627033,
+     "unit": "W",
+     "req": 1.5,
+     "req_key": "req.ppk",
+     "pass": 1
+    }
+   ],
+   "draws": {
+    "inertia_scale_x": 1.0431731027450404,
+    "inertia_scale_y": 0.9192024572978531,
+    "inertia_scale_z": 0.9304930007695807,
+    "mass_kg": 4.090440583297023,
+    "residual_dipole_Am2": 0.011488843024698887,
+    "cm_offset_mm": 22.530113133696123,
+    "F107": 218.86118010927024,
+    "initial_rate_deg_s": 14.124104153695809,
+    "arg_lat_deg": 359.01128609466116
+   },
+   "wall_s": 0.308237753
+  },
+  {
+   "k": 21,
+   "metrics": [
+    {
+     "id": "detumble_time",
+     "kind": "time_to_rate",
+     "value": 63.57333333333334,
+     "unit": "min",
+     "req": 284.0,
+     "req_key": "req.detumble",
+     "pass": 1
+    },
+    {
+     "id": "power_mean",
+     "kind": "power_mean",
+     "value": 0.029531877564014885,
+     "unit": "W",
+     "req": 0.5,
+     "req_key": "req.pavg",
+     "pass": 1
+    },
+    {
+     "id": "power_peak",
+     "kind": "power_peak",
+     "value": 0.405693533127842,
+     "unit": "W",
+     "req": 1.5,
+     "req_key": "req.ppk",
+     "pass": 1
+    }
+   ],
+   "draws": {
+    "inertia_scale_x": 1.0218834707809812,
+    "inertia_scale_y": 1.0003440220551088,
+    "inertia_scale_z": 1.063953606059941,
+    "mass_kg": 4.02515836980347,
+    "residual_dipole_Am2": 0.018484571409509223,
+    "cm_offset_mm": 24.63715095787162,
+    "F107": 196.08296932987287,
+    "initial_rate_deg_s": 12.75644605617833,
+    "arg_lat_deg": 70.55773277147662
+   },
+   "wall_s": 0.335046037
+  },
+  {
+   "k": 22,
+   "metrics": [
+    {
+     "id": "detumble_time",
+     "kind": "time_to_rate",
+     "value": 42.95666666666667,
+     "unit": "min",
+     "req": 284.0,
+     "req_key": "req.detumble",
+     "pass": 1
+    },
+    {
+     "id": "power_mean",
+     "kind": "power_mean",
+     "value": 0.01739524130870597,
+     "unit": "W",
+     "req": 0.5,
+     "req_key": "req.pavg",
+     "pass": 1
+    },
+    {
+     "id": "power_peak",
+     "kind": "power_peak",
+     "value": 0.2778087710196234,
+     "unit": "W",
+     "req": 1.5,
+     "req_key": "req.ppk",
+     "pass": 1
+    }
+   ],
+   "draws": {
+    "inertia_scale_x": 1.0538435981017715,
+    "inertia_scale_y": 1.0963247007689954,
+    "inertia_scale_z": 1.0020389607984939,
+    "mass_kg": 4.2084968440250385,
+    "residual_dipole_Am2": 0.016058225579308312,
+    "cm_offset_mm": 18.31495185768748,
+    "F107": 123.99450729604473,
+    "initial_rate_deg_s": 10.757950579707627,
+    "arg_lat_deg": 243.1764689348051
+   },
+   "wall_s": 0.272277209
+  },
+  {
+   "k": 23,
+   "metrics": [
+    {
+     "id": "detumble_time",
+     "kind": "time_to_rate",
+     "value": 51.59,
+     "unit": "min",
+     "req": 284.0,
+     "req_key": "req.detumble",
+     "pass": 1
+    },
+    {
+     "id": "power_mean",
+     "kind": "power_mean",
+     "value": 0.022264975000779025,
+     "unit": "W",
+     "req": 0.5,
+     "req_key": "req.pavg",
+     "pass": 1
+    },
+    {
+     "id": "power_peak",
+     "kind": "power_peak",
+     "value": 0.3165770439771721,
+     "unit": "W",
+     "req": 1.5,
+     "req_key": "req.ppk",
+     "pass": 1
+    }
+   ],
+   "draws": {
+    "inertia_scale_x": 1.0098070511568031,
+    "inertia_scale_y": 1.0987067279718956,
+    "inertia_scale_z": 0.9615540797000985,
+    "mass_kg": 4.024613314953667,
+    "residual_dipole_Am2": 0.014926678797011568,
+    "cm_offset_mm": 14.233698018508804,
+    "F107": 74.99065167403647,
+    "initial_rate_deg_s": 5.345895365853412,
+    "arg_lat_deg": 314.5655245244127
+   },
+   "wall_s": 0.335376725
+  },
+  {
+   "k": 24,
+   "metrics": [
+    {
+     "id": "detumble_time",
+     "kind": "time_to_rate",
+     "value": 44.156666666666666,
+     "unit": "min",
+     "req": 284.0,
+     "req_key": "req.detumble",
+     "pass": 1
+    },
+    {
+     "id": "power_mean",
+     "kind": "power_mean",
+     "value": 0.023709913106458782,
+     "unit": "W",
+     "req": 0.5,
+     "req_key": "req.pavg",
+     "pass": 1
+    },
+    {
+     "id": "power_peak",
+     "kind": "power_peak",
+     "value": 0.17619678334910124,
+     "unit": "W",
+     "req": 1.5,
+     "req_key": "req.ppk",
+     "pass": 1
+    }
+   ],
+   "draws": {
+    "inertia_scale_x": 0.9091700353466965,
+    "inertia_scale_y": 0.9885055108104976,
+    "inertia_scale_z": 0.9366143340725057,
+    "mass_kg": 4.097677355521364,
+    "residual_dipole_Am2": 0.011074807109081725,
+    "cm_offset_mm": 14.557186119144216,
+    "F107": 181.66475146913416,
+    "initial_rate_deg_s": 6.264886975114643,
+    "arg_lat_deg": 276.9454568536957
+   },
+   "wall_s": 0.315686247
+  }
+ ],
+ "wall_s": 6.256478786468506
+}

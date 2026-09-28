@@ -1,0 +1,200 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1400 900" width="1400" height="900" font-family="Helvetica, Arial, sans-serif" role="img" aria-labelledby="t d">
+  <title id="t">TRI-NETRA ADCS: from customer case to flight</title>
+  <desc id="d">End-to-end verification and validation flow: design loop (case, demand survey, sizing, SILS mode matrix, assess, converge, select), verification (dispatch, Monte Carlo and edge campaigns, soft OILS, V&amp;V report) and hardware rungs (OILS, HILS).</desc>
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#1f2a44"/>
+    </marker>
+    <marker id="arrA" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#0f766e"/>
+    </marker>
+  </defs>
+  <rect x="0" y="0" width="1400" height="900" fill="#ffffff"/>
+  <text x="30" y="42" font-size="24" font-weight="bold" fill="#1f2a44">TRI-NETRA ADCS: from customer case to flight</text>
+  <text x="30" y="66" font-size="14" fill="#475569">End-to-end V&amp;V flow: design loop, software verification, then hardware-in-the-loop rungs</text>
+  <rect x="30" y="86" width="1340" height="368" rx="14" fill="#ecfdf5" stroke="#0f766e" stroke-width="1.5" stroke-opacity="0.45"/>
+  <text x="50" y="110" font-size="14" font-weight="bold" fill="#0f766e" letter-spacing="0.5">A  ·  DESIGN  (Rust engine + Python orchestration)</text>
+  <g id="n1">
+    <rect x="50" y="122" width="295" height="130" rx="10" fill="#ffffff" stroke="#0f766e" stroke-width="1.5"/>
+    <circle cx="76" cy="148" r="14" fill="#0f766e"/>
+    <text x="76" y="153" text-anchor="middle" font-size="13" font-weight="bold" fill="#ffffff">1</text>
+    <text x="100" y="154" font-size="16" font-weight="bold" fill="#1f2a44">Case</text>
+    <text x="66" y="184" font-size="13" fill="#1f2a44">
+      <tspan x="66" dy="0">adcs-case/1: orbit, mass,</tspan>
+      <tspan x="66" dy="18">surfaces, requirements</tspan>
+    </text>
+  </g>
+  <g id="n2">
+    <rect x="385" y="122" width="295" height="130" rx="10" fill="#ffffff" stroke="#0f766e" stroke-width="1.5"/>
+    <circle cx="411" cy="148" r="14" fill="#0f766e"/>
+    <text x="411" y="153" text-anchor="middle" font-size="13" font-weight="bold" fill="#ffffff">2</text>
+    <text x="435" y="154" font-size="16" font-weight="bold" fill="#1f2a44">Demand survey</text>
+    <text x="401" y="184" font-size="13" fill="#1f2a44">
+      <tspan x="401" dy="0">POP orbit; disturbance torques</tspan>
+      <tspan x="401" dy="18">at 4 attitudes; magnetic field;</tspan>
+      <tspan x="401" dy="18">detumble &amp; slew momentum</tspan>
+    </text>
+  </g>
+  <g id="n3">
+    <rect x="720" y="122" width="295" height="130" rx="10" fill="#ffffff" stroke="#0f766e" stroke-width="1.5"/>
+    <circle cx="746" cy="148" r="14" fill="#0f766e"/>
+    <text x="746" y="153" text-anchor="middle" font-size="13" font-weight="bold" fill="#ffffff">3</text>
+    <text x="770" y="154" font-size="16" font-weight="bold" fill="#1f2a44">Sizing</text>
+    <text x="736" y="184" font-size="13" fill="#1f2a44">
+      <tspan x="736" dy="0">Solutions: MTQ, FMR fluid loop, N2O RCS</tspan>
+      <tspan x="736" dy="18">Benchmarks: RW, CMG, VSCMG</tspan>
+      <tspan x="736" dy="18">Sensor suite by knowledge class</tspan>
+    </text>
+  </g>
+  <g id="n4">
+    <rect x="1055" y="122" width="295" height="130" rx="10" fill="#ffffff" stroke="#0f766e" stroke-width="1.5"/>
+    <circle cx="1081" cy="148" r="14" fill="#0f766e"/>
+    <text x="1081" y="153" text-anchor="middle" font-size="13" font-weight="bold" fill="#ffffff">4</text>
+    <text x="1105" y="154" font-size="16" font-weight="bold" fill="#1f2a44">SILS mode matrix</text>
+    <text x="1071" y="184" font-size="13" fill="#1f2a44">
+      <tspan x="1071" dy="0">every mission mode × actuator option</tspan>
+      <tspan x="1071" dy="18">× seed: detumble, sun acquisition,</tspan>
+      <tspan x="1071" dy="18">sun referencing, nadir pointing</tspan>
+    </text>
+  </g>
+  <g id="n5">
+    <rect x="1055" y="300" width="295" height="130" rx="10" fill="#ffffff" stroke="#0f766e" stroke-width="1.5"/>
+    <circle cx="1081" cy="326" r="14" fill="#0f766e"/>
+    <text x="1081" y="331" text-anchor="middle" font-size="13" font-weight="bold" fill="#ffffff">5</text>
+    <text x="1105" y="332" font-size="16" font-weight="bold" fill="#1f2a44">Assess</text>
+    <text x="1071" y="362" font-size="13" fill="#1f2a44">
+      <tspan x="1071" dy="0">failing requirement → cause:</tspan>
+      <tspan x="1071" dy="18">authority, momentum, power,</tspan>
+      <tspan x="1071" dy="18">knowledge</tspan>
+    </text>
+  </g>
+  <g id="n6">
+    <rect x="720" y="300" width="295" height="130" rx="10" fill="#ffffff" stroke="#0f766e" stroke-width="1.5"/>
+    <circle cx="746" cy="326" r="14" fill="#0f766e"/>
+    <text x="746" y="331" text-anchor="middle" font-size="13" font-weight="bold" fill="#ffffff">6</text>
+    <text x="770" y="332" font-size="16" font-weight="bold" fill="#1f2a44">Converge</text>
+    <text x="736" y="362" font-size="13" fill="#1f2a44">
+      <tspan x="736" dy="0">resize margins / upgrade sensor</tspan>
+      <tspan x="736" dy="18">or algorithm; repeat 3–5 until</tspan>
+      <tspan x="736" dy="18">the selection is stable</tspan>
+    </text>
+  </g>
+  <g id="n7">
+    <rect x="385" y="300" width="295" height="130" rx="10" fill="#ffffff" stroke="#0f766e" stroke-width="1.5"/>
+    <circle cx="411" cy="326" r="14" fill="#0f766e"/>
+    <text x="411" y="331" text-anchor="middle" font-size="13" font-weight="bold" fill="#ffffff">7</text>
+    <text x="435" y="332" font-size="16" font-weight="bold" fill="#1f2a44">Select</text>
+    <text x="401" y="362" font-size="13" fill="#1f2a44">
+      <tspan x="401" dy="0">simplest solution family passing</tspan>
+      <tspan x="401" dy="18">every mode; per-mode method,</tspan>
+      <tspan x="401" dy="18">sensors, algorithms</tspan>
+    </text>
+  </g>
+  <g id="matlab-note">
+    <rect x="50" y="300" width="295" height="130" rx="10" fill="#f1f5f9" stroke="#475569" stroke-width="1.5" stroke-dasharray="4 3"/>
+    <text x="66" y="330" font-size="15" font-weight="bold" fill="#475569">MATLAB / Octave twin</text>
+    <text x="66" y="356" font-size="13" fill="#1f2a44">
+      <tspan x="66" dy="0">Design reference; POP v51 orbit,</tspan>
+      <tspan x="66" dy="18">same models. The Rust engine is</tspan>
+      <tspan x="66" dy="18">bit-identical on orbit / environment.</tspan>
+    </text>
+    <text x="66" y="416" font-size="12" font-style="italic" fill="#475569">side reference, not a pipeline step</text>
+  </g>
+  <path d="M347,187.0 L383,187.0" fill="none" stroke="#1f2a44" stroke-width="1.5" marker-end="url(#arr)"/>
+  <path d="M682,187.0 L718,187.0" fill="none" stroke="#1f2a44" stroke-width="1.5" marker-end="url(#arr)"/>
+  <path d="M1017,187.0 L1053,187.0" fill="none" stroke="#1f2a44" stroke-width="1.5" marker-end="url(#arr)"/>
+  <path d="M1202.5,254 L1202.5,298" fill="none" stroke="#1f2a44" stroke-width="1.5" marker-end="url(#arr)"/>
+  <path d="M1053,365.0 L1017,365.0" fill="none" stroke="#1f2a44" stroke-width="1.5" marker-end="url(#arr)"/>
+  <path d="M718,365.0 L682,365.0" fill="none" stroke="#1f2a44" stroke-width="1.5" marker-end="url(#arr)"/>
+  <path d="M867.5,298 L867.5,254" fill="none" stroke="#0f766e" stroke-width="1.5" stroke-dasharray="6 4" marker-end="url(#arrA)"/>
+  <text x="877.5" y="280.0" font-size="12" fill="#0f766e" text-anchor="start" font-weight="bold">not converged: resize</text>
+  <rect x="30" y="470" width="1340" height="190" rx="14" fill="#eef2ff" stroke="#4338ca" stroke-width="1.5" stroke-opacity="0.45"/>
+  <text x="50" y="494" font-size="14" font-weight="bold" fill="#4338ca" letter-spacing="0.5">B  ·  VERIFICATION</text>
+  <g id="n8">
+    <rect x="50" y="506" width="295" height="130" rx="10" fill="#ffffff" stroke="#4338ca" stroke-width="1.5"/>
+    <circle cx="76" cy="532" r="14" fill="#4338ca"/>
+    <text x="76" y="537" text-anchor="middle" font-size="13" font-weight="bold" fill="#ffffff">8</text>
+    <text x="100" y="538" font-size="16" font-weight="bold" fill="#1f2a44">Dispatch</text>
+    <text x="66" y="568" font-size="13" fill="#1f2a44">
+      <tspan x="66" dy="0">adcs-fswcfg/1 blob, BUILD.md,</tspan>
+      <tspan x="66" dy="18">C + Rust flight software</tspan>
+    </text>
+  </g>
+  <g id="n9">
+    <rect x="385" y="506" width="295" height="130" rx="10" fill="#ffffff" stroke="#4338ca" stroke-width="1.5"/>
+    <circle cx="411" cy="532" r="14" fill="#4338ca"/>
+    <text x="411" y="537" text-anchor="middle" font-size="13" font-weight="bold" fill="#ffffff">9</text>
+    <text x="435" y="538" font-size="16" font-weight="bold" fill="#1f2a44">MC + edge campaigns</text>
+    <text x="401" y="568" font-size="13" fill="#1f2a44">
+      <tspan x="401" dy="0">Monte Carlo and edge cases on</tspan>
+      <tspan x="401" dy="18">the Rust engine; compared with</tspan>
+      <tspan x="401" dy="18">the MATLAB twin</tspan>
+    </text>
+  </g>
+  <g id="n10">
+    <rect x="720" y="506" width="295" height="130" rx="10" fill="#ffffff" stroke="#4338ca" stroke-width="1.5"/>
+    <circle cx="746" cy="532" r="14" fill="#4338ca"/>
+    <text x="746" y="537" text-anchor="middle" font-size="13" font-weight="bold" fill="#ffffff">10</text>
+    <text x="770" y="538" font-size="16" font-weight="bold" fill="#1f2a44">Soft OILS</text>
+    <text x="736" y="568" font-size="13" fill="#1f2a44">
+      <tspan x="736" dy="0">flight software as Cortex-M4F</tspan>
+      <tspan x="736" dy="18">firmware in QEMU over adcs-link/1;</tspan>
+      <tspan x="736" dy="18">exact instruction counts → latency</tspan>
+      <tspan x="736" dy="18">inside the control period</tspan>
+    </text>
+  </g>
+  <g id="n11">
+    <rect x="1055" y="506" width="295" height="130" rx="10" fill="#ffffff" stroke="#4338ca" stroke-width="1.5"/>
+    <circle cx="1081" cy="532" r="14" fill="#4338ca"/>
+    <text x="1081" y="537" text-anchor="middle" font-size="13" font-weight="bold" fill="#ffffff">11</text>
+    <text x="1105" y="538" font-size="16" font-weight="bold" fill="#1f2a44">V&amp;V report</text>
+    <text x="1071" y="568" font-size="13" fill="#1f2a44">
+      <tspan x="1071" dy="0">HTML + PDF</tspan>
+    </text>
+  </g>
+  <path d="M347,571.0 L383,571.0" fill="none" stroke="#1f2a44" stroke-width="1.5" marker-end="url(#arr)"/>
+  <path d="M682,571.0 L718,571.0" fill="none" stroke="#1f2a44" stroke-width="1.5" marker-end="url(#arr)"/>
+  <path d="M1017,571.0 L1053,571.0" fill="none" stroke="#1f2a44" stroke-width="1.5" marker-end="url(#arr)"/>
+  <path d="M532.5,432 L532.5,462 L197.5,462 L197.5,504" fill="none" stroke="#1f2a44" stroke-width="1.5" marker-end="url(#arr)"/>
+  <text x="542.5" y="448" font-size="12" fill="#475569" text-anchor="start">flight configuration</text>
+  <rect x="30" y="676" width="1340" height="190" rx="14" fill="#fffbeb" stroke="#b45309" stroke-width="1.5" stroke-opacity="0.45"/>
+  <text x="50" y="700" font-size="14" font-weight="bold" fill="#b45309" letter-spacing="0.5">C  ·  HARDWARE  (next rungs)</text>
+  <g id="n12">
+    <rect x="1055" y="712" width="295" height="130" rx="10" fill="#ffffff" stroke="#b45309" stroke-width="1.5" stroke-dasharray="6 4"/>
+    <circle cx="1081" cy="738" r="14" fill="#b45309"/>
+    <text x="1081" y="743" text-anchor="middle" font-size="13" font-weight="bold" fill="#ffffff">12</text>
+    <text x="1105" y="744" font-size="16" font-weight="bold" fill="#1f2a44">OILS</text>
+    <text x="1071" y="774" font-size="13" fill="#1f2a44">
+      <tspan x="1071" dy="0">real OBC on adcs-link/1</tspan>
+      <tspan x="1071" dy="18">via tcp / serial, --realtime</tspan>
+    </text>
+  </g>
+  <g id="n13">
+    <rect x="720" y="712" width="295" height="130" rx="10" fill="#ffffff" stroke="#b45309" stroke-width="1.5" stroke-dasharray="6 4"/>
+    <circle cx="746" cy="738" r="14" fill="#b45309"/>
+    <text x="746" y="743" text-anchor="middle" font-size="13" font-weight="bold" fill="#ffffff">13</text>
+    <text x="770" y="744" font-size="16" font-weight="bold" fill="#1f2a44">HILS</text>
+    <text x="736" y="774" font-size="13" fill="#1f2a44">
+      <tspan x="736" dy="0">Helmholtz cage, Sun simulator,</tspan>
+      <tspan x="736" dy="18">air bearing; one device at a time</tspan>
+    </text>
+  </g>
+  <path d="M1202.5,638 L1202.5,710" fill="none" stroke="#1f2a44" stroke-width="1.5" marker-end="url(#arr)"/>
+  <path d="M1053,777.0 L1017,777.0" fill="none" stroke="#1f2a44" stroke-width="1.5" marker-end="url(#arr)"/>
+  <path d="M718,777.0 L637,777.0" fill="none" stroke="#1f2a44" stroke-width="1.5" marker-end="url(#arr)"/>
+  <rect x="430" y="749.0" width="205" height="56" rx="28" fill="#1f2a44"/>
+  <text x="532.5" y="784.0" text-anchor="middle" font-size="18" font-weight="bold" fill="#ffffff">Flight</text>
+  <g id="legend" font-size="12">
+    <text x="50" y="730" font-size="13" font-weight="bold" fill="#1f2a44">Legend</text>
+    <line x1="50" y1="752" x2="90" y2="752" stroke="#1f2a44" stroke-width="1.5" marker-end="url(#arr)"/>
+    <text x="102" y="756" fill="#1f2a44">flow to the next step</text>
+    <line x1="50" y1="776" x2="90" y2="776" stroke="#0f766e" stroke-width="1.5" stroke-dasharray="6 4" marker-end="url(#arrA)"/>
+    <text x="102" y="780" fill="#1f2a44">design iteration (repeat 3–5)</text>
+    <rect x="50" y="792" width="40" height="18" rx="4" fill="#ffffff" stroke="#b45309" stroke-width="1.5" stroke-dasharray="6 4"/>
+    <text x="102" y="805" fill="#1f2a44">hardware rung, next step</text>
+    <rect x="50" y="818" width="40" height="18" rx="4" fill="#f1f5f9" stroke="#475569" stroke-width="1.5" stroke-dasharray="4 3"/>
+    <text x="102" y="831" fill="#1f2a44">reference model (side note)</text>
+  </g>
+  <text x="1370" y="884" text-anchor="end" font-size="11" fill="#475569">TRI-NETRA ADCS · Agastya</text>
+</svg>

@@ -1,0 +1,1858 @@
+{
+ "schema": "adcs-campaign-result/1",
+ "owner": "Agastya",
+ "id": "mc_slew_img",
+ "scenario": "slew_img",
+ "case": "ais_img_3u",
+ "type": "montecarlo",
+ "runs": 40,
+ "engine": true,
+ "fsw": "c",
+ "stats": [
+  {
+   "id": "settle_time_after_slew",
+   "unit": "s",
+   "req": 20.0,
+   "values": [
+    12.800000000000011,
+    15.5,
+    42.10000000000002,
+    11.900000000000034,
+    15.199999999999989,
+    12.900000000000034,
+    12.600000000000023,
+    13.199999999999989,
+    14.800000000000011,
+    12.699999999999989,
+    13.100000000000023,
+    12.400000000000034,
+    14.600000000000023,
+    13.0,
+    9.800000000000011,
+    12.5,
+    12.100000000000023,
+    12.400000000000034,
+    13.199999999999989,
+    13.800000000000011,
+    14.300000000000011,
+    12.400000000000034,
+    12.400000000000034,
+    12.800000000000011,
+    12.199999999999989,
+    14.400000000000034,
+    11.800000000000011,
+    11.0,
+    11.800000000000011,
+    11.900000000000034,
+    11.300000000000011,
+    14.199999999999989,
+    14.300000000000011,
+    14.800000000000011,
+    13.0,
+    15.600000000000023,
+    14.5,
+    13.5,
+    12.900000000000034,
+    13.900000000000034
+   ],
+   "mean": 13.840000000000014,
+   "std": 4.756145821663071,
+   "min": 9.800000000000011,
+   "max": 42.10000000000002,
+   "n_valid": 40,
+   "pass_rate": 0.975,
+   "pass": false
+  },
+  {
+   "id": "ape_los_on_target_p9973",
+   "unit": "deg",
+   "req": 0.01,
+   "values": [
+    0.007643668623376254,
+    0.009396877424725975,
+    0.010044684733078525,
+    0.008147843994329971,
+    0.00601092919394814,
+    0.0063392666244717,
+    0.009108088559977086,
+    0.010600947492802541,
+    0.00888744436485241,
+    0.008450654361616168,
+    0.008336273782976734,
+    0.00864931505819063,
+    0.00784695797408874,
+    0.007661318208788021,
+    0.00780119116291434,
+    0.00877694698589019,
+    0.006667762833714941,
+    0.008167273231078532,
+    0.00910540320406951,
+    0.007273267982028716,
+    0.0072411846364119755,
+    0.007092552465071245,
+    0.007690493691753246,
+    0.007037591953312758,
+    0.00800066164262928,
+    0.009615916975785819,
+    0.007857651664962497,
+    0.00677609743797155,
+    0.008024058798155227,
+    0.0075145680889409415,
+    0.007974922362506541,
+    0.0074843240305010016,
+    0.00644196329856788,
+    0.0068418408765608275,
+    0.007332655431622054,
+    0.007505929736354596,
+    0.007390474182169893,
+    0.007489782832846474,
+    0.008044419992496032,
+    0.007149164465796122
+   ],
+   "mean": 0.007885559259033377,
+   "std": 0.0010024734607733253,
+   "min": 0.00601092919394814,
+   "max": 0.010600947492802541,
+   "n_valid": 40,
+   "pass_rate": 0.95,
+   "pass": false
+  },
+  {
+   "id": "wheel_momentum_peak",
+   "unit": "N m s",
+   "req": null,
+   "values": [
+    0.0030401473566415748,
+    0.003886089437950541,
+    0.0036088733910954085,
+    0.0031295157873240443,
+    0.0035961036725674946,
+    0.003176622206630562,
+    0.003735818782400219,
+    0.0032479941739393687,
+    0.0037178274376377493,
+    0.0033892408333188683,
+    0.0035917319621604454,
+    0.003528425009946944,
+    0.003434141848383773,
+    0.0037103886028481913,
+    0.0037833989789365185,
+    0.003793115234455243,
+    0.0030020778734370325,
+    0.0036376499681004155,
+    0.0034228761876120275,
+    0.003826005270018525,
+    0.0037731227878879496,
+    0.003289984802886276,
+    0.003077626732659466,
+    0.003375383961933235,
+    0.003185092381850463,
+    0.003054188826996599,
+    0.003641594493655397,
+    0.003239231987312106,
+    0.003683186373609463,
+    0.0036249158271591904,
+    0.003598586036216443,
+    0.0031252662845110404,
+    0.0030037422938750044,
+    0.0031161139710439373,
+    0.0035439010442256187,
+    0.003667540721116827,
+    0.0029981302394897972,
+    0.003118520565063386,
+    0.0031089196487393187,
+    0.003625764728719976
+   ],
+   "mean": 0.003427721443108911,
+   "std": 0.00028121398636121123,
+   "min": 0.0029981302394897972,
+   "max": 0.003886089437950541,
+   "n_valid": 40,
+   "pass_rate": null,
+   "pass": null
+  }
+ ],
+ "per_run": [
+  {
+   "k": 1,
+   "metrics": [
+    {
+     "id": "settle_time_after_slew",
+     "kind": "time_to_threshold",
+     "value": 12.800000000000011,
+     "unit": "s",
+     "req": 20.0,
+     "req_key": "req.settle",
+     "pass": 1
+    },
+    {
+     "id": "ape_los_on_target_p9973",
+     "kind": "ape_los",
+     "value": 0.007643668623376254,
+     "unit": "deg",
+     "req": 0.01,
+     "req_key": "req.ape",
+     "pass": 1
+    },
+    {
+     "id": "wheel_momentum_peak",
+     "kind": "wheel_momentum_peak",
+     "value": 0.0030401473566415748,
+     "unit": "N m s",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    }
+   ],
+   "draws": {
+    "inertia_scale_x": 0.9099233113131775,
+    "inertia_scale_y": 0.9098328662103774,
+    "inertia_scale_z": 0.9509169865733794,
+    "residual_dipole_Am2": 0.009581395015378307,
+    "cm_offset_mm": 12.839151587399291,
+    "initial_error_deg": 0.9557634039841136,
+    "arg_lat_deg": 153.1819764157726
+   },
+   "wall_s": 0.15567694
+  },
+  {
+   "k": 2,
+   "metrics": [
+    {
+     "id": "settle_time_after_slew",
+     "kind": "time_to_threshold",
+     "value": 15.5,
+     "unit": "s",
+     "req": 20.0,
+     "req_key": "req.settle",
+     "pass": 1
+    },
+    {
+     "id": "ape_los_on_target_p9973",
+     "kind": "ape_los",
+     "value": 0.009396877424725975,
+     "unit": "deg",
+     "req": 0.01,
+     "req_key": "req.ape",
+     "pass": 1
+    },
+    {
+     "id": "wheel_momentum_peak",
+     "kind": "wheel_momentum_peak",
+     "value": 0.003886089437950541,
+     "unit": "N m s",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    }
+   ],
+   "draws": {
+    "inertia_scale_x": 0.9885106165293088,
+    "inertia_scale_y": 1.0592458198809576,
+    "inertia_scale_z": 1.0830159094313991,
+    "residual_dipole_Am2": 0.0130478804479023,
+    "cm_offset_mm": 19.16561539766527,
+    "initial_error_deg": 0.2620660234356735,
+    "arg_lat_deg": 44.712601043798166
+   },
+   "wall_s": 0.149101068
+  },
+  {
+   "k": 3,
+   "metrics": [
+    {
+     "id": "settle_time_after_slew",
+     "kind": "time_to_threshold",
+     "value": 42.10000000000002,
+     "unit": "s",
+     "req": 20.0,
+     "req_key": "req.settle",
+     "pass": 0
+    },
+    {
+     "id": "ape_los_on_target_p9973",
+     "kind": "ape_los",
+     "value": 0.010044684733078525,
+     "unit": "deg",
+     "req": 0.01,
+     "req_key": "req.ape",
+     "pass": 0
+    },
+    {
+     "id": "wheel_momentum_peak",
+     "kind": "wheel_momentum_peak",
+     "value": 0.0036088733910954085,
+     "unit": "N m s",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    }
+   ],
+   "draws": {
+    "inertia_scale_x": 0.9179163198776843,
+    "inertia_scale_y": 1.008115944174266,
+    "inertia_scale_z": 0.9366774173101801,
+    "residual_dipole_Am2": 0.01887496870596118,
+    "cm_offset_mm": 24.080665252113032,
+    "initial_error_deg": 0.5966844101193053,
+    "arg_lat_deg": 46.838470998121316
+   },
+   "wall_s": 0.165112698
+  },
+  {
+   "k": 4,
+   "metrics": [
+    {
+     "id": "settle_time_after_slew",
+     "kind": "time_to_threshold",
+     "value": 11.900000000000034,
+     "unit": "s",
+     "req": 20.0,
+     "req_key": "req.settle",
+     "pass": 1
+    },
+    {
+     "id": "ape_los_on_target_p9973",
+     "kind": "ape_los",
+     "value": 0.008147843994329971,
+     "unit": "deg",
+     "req": 0.01,
+     "req_key": "req.ape",
+     "pass": 1
+    },
+    {
+     "id": "wheel_momentum_peak",
+     "kind": "wheel_momentum_peak",
+     "value": 0.0031295157873240443,
+     "unit": "N m s",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    }
+   ],
+   "draws": {
+    "inertia_scale_x": 1.0574930033367438,
+    "inertia_scale_y": 0.9421964199037568,
+    "inertia_scale_z": 1.049951231496378,
+    "residual_dipole_Am2": 0.015295939848408125,
+    "cm_offset_mm": 10.847872879626848,
+    "initial_error_deg": 0.6535006419352062,
+    "arg_lat_deg": 344.1065179341121
+   },
+   "wall_s": 0.154689474
+  },
+  {
+   "k": 5,
+   "metrics": [
+    {
+     "id": "settle_time_after_slew",
+     "kind": "time_to_threshold",
+     "value": 15.199999999999989,
+     "unit": "s",
+     "req": 20.0,
+     "req_key": "req.settle",
+     "pass": 1
+    },
+    {
+     "id": "ape_los_on_target_p9973",
+     "kind": "ape_los",
+     "value": 0.00601092919394814,
+     "unit": "deg",
+     "req": 0.01,
+     "req_key": "req.ape",
+     "pass": 1
+    },
+    {
+     "id": "wheel_momentum_peak",
+     "kind": "wheel_momentum_peak",
+     "value": 0.0035961036725674946,
+     "unit": "N m s",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    }
+   ],
+   "draws": {
+    "inertia_scale_x": 0.9004636816829277,
+    "inertia_scale_y": 1.003502387003758,
+    "inertia_scale_z": 1.0500337566543743,
+    "residual_dipole_Am2": 0.01478714817199098,
+    "cm_offset_mm": 17.034655958380608,
+    "initial_error_deg": 0.5901032109710747,
+    "arg_lat_deg": 30.43559026461577
+   },
+   "wall_s": 0.17434927
+  },
+  {
+   "k": 6,
+   "metrics": [
+    {
+     "id": "settle_time_after_slew",
+     "kind": "time_to_threshold",
+     "value": 12.900000000000034,
+     "unit": "s",
+     "req": 20.0,
+     "req_key": "req.settle",
+     "pass": 1
+    },
+    {
+     "id": "ape_los_on_target_p9973",
+     "kind": "ape_los",
+     "value": 0.0063392666244717,
+     "unit": "deg",
+     "req": 0.01,
+     "req_key": "req.ape",
+     "pass": 1
+    },
+    {
+     "id": "wheel_momentum_peak",
+     "kind": "wheel_momentum_peak",
+     "value": 0.003176622206630562,
+     "unit": "N m s",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    }
+   ],
+   "draws": {
+    "inertia_scale_x": 1.0352665629225133,
+    "inertia_scale_y": 0.9776773082051623,
+    "inertia_scale_z": 0.978921014372887,
+    "residual_dipole_Am2": 0.005116310185947415,
+    "cm_offset_mm": 10.076146729467414,
+    "initial_error_deg": 0.7506419450400592,
+    "arg_lat_deg": 350.5510941580371
+   },
+   "wall_s": 0.165640829
+  },
+  {
+   "k": 7,
+   "metrics": [
+    {
+     "id": "settle_time_after_slew",
+     "kind": "time_to_threshold",
+     "value": 12.600000000000023,
+     "unit": "s",
+     "req": 20.0,
+     "req_key": "req.settle",
+     "pass": 1
+    },
+    {
+     "id": "ape_los_on_target_p9973",
+     "kind": "ape_los",
+     "value": 0.009108088559977086,
+     "unit": "deg",
+     "req": 0.01,
+     "req_key": "req.ape",
+     "pass": 1
+    },
+    {
+     "id": "wheel_momentum_peak",
+     "kind": "wheel_momentum_peak",
+     "value": 0.003735818782400219,
+     "unit": "N m s",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    }
+   ],
+   "draws": {
+    "inertia_scale_x": 1.0371467999538209,
+    "inertia_scale_y": 0.9129656339915786,
+    "inertia_scale_z": 0.9560109576673269,
+    "residual_dipole_Am2": 0.006231450031342578,
+    "cm_offset_mm": 25.06166493902048,
+    "initial_error_deg": 0.6001607157512814,
+    "arg_lat_deg": 223.2601985054529
+   },
+   "wall_s": 0.199835341
+  },
+  {
+   "k": 8,
+   "metrics": [
+    {
+     "id": "settle_time_after_slew",
+     "kind": "time_to_threshold",
+     "value": 13.199999999999989,
+     "unit": "s",
+     "req": 20.0,
+     "req_key": "req.settle",
+     "pass": 1
+    },
+    {
+     "id": "ape_los_on_target_p9973",
+     "kind": "ape_los",
+     "value": 0.010600947492802541,
+     "unit": "deg",
+     "req": 0.01,
+     "req_key": "req.ape",
+     "pass": 0
+    },
+    {
+     "id": "wheel_momentum_peak",
+     "kind": "wheel_momentum_peak",
+     "value": 0.0032479941739393687,
+     "unit": "N m s",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    }
+   ],
+   "draws": {
+    "inertia_scale_x": 1.0157713701734985,
+    "inertia_scale_y": 1.0436974582357181,
+    "inertia_scale_z": 0.9282751335616323,
+    "residual_dipole_Am2": 0.01044842761527276,
+    "cm_offset_mm": 19.85444118328638,
+    "initial_error_deg": 0.9609221827671909,
+    "arg_lat_deg": 182.31714314205533
+   },
+   "wall_s": 0.179585768
+  },
+  {
+   "k": 9,
+   "metrics": [
+    {
+     "id": "settle_time_after_slew",
+     "kind": "time_to_threshold",
+     "value": 14.800000000000011,
+     "unit": "s",
+     "req": 20.0,
+     "req_key": "req.settle",
+     "pass": 1
+    },
+    {
+     "id": "ape_los_on_target_p9973",
+     "kind": "ape_los",
+     "value": 0.00888744436485241,
+     "unit": "deg",
+     "req": 0.01,
+     "req_key": "req.ape",
+     "pass": 1
+    },
+    {
+     "id": "wheel_momentum_peak",
+     "kind": "wheel_momentum_peak",
+     "value": 0.0037178274376377493,
+     "unit": "N m s",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    }
+   ],
+   "draws": {
+    "inertia_scale_x": 1.064559827444002,
+    "inertia_scale_y": 0.9191561578646267,
+    "inertia_scale_z": 0.9929112354655013,
+    "residual_dipole_Am2": 0.018704336583659043,
+    "cm_offset_mm": 23.43236473124689,
+    "initial_error_deg": 0.17181798110354007,
+    "arg_lat_deg": 71.64647483531037
+   },
+   "wall_s": 0.154880814
+  },
+  {
+   "k": 10,
+   "metrics": [
+    {
+     "id": "settle_time_after_slew",
+     "kind": "time_to_threshold",
+     "value": 12.699999999999989,
+     "unit": "s",
+     "req": 20.0,
+     "req_key": "req.settle",
+     "pass": 1
+    },
+    {
+     "id": "ape_los_on_target_p9973",
+     "kind": "ape_los",
+     "value": 0.008450654361616168,
+     "unit": "deg",
+     "req": 0.01,
+     "req_key": "req.ape",
+     "pass": 1
+    },
+    {
+     "id": "wheel_momentum_peak",
+     "kind": "wheel_momentum_peak",
+     "value": 0.0033892408333188683,
+     "unit": "N m s",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    }
+   ],
+   "draws": {
+    "inertia_scale_x": 0.9277910911984728,
+    "inertia_scale_y": 0.9227169505615084,
+    "inertia_scale_z": 1.0855866949737165,
+    "residual_dipole_Am2": 0.013963743945317415,
+    "cm_offset_mm": 25.440531126376346,
+    "initial_error_deg": 0.7130554846060922,
+    "arg_lat_deg": 301.75903830013
+   },
+   "wall_s": 0.126507517
+  },
+  {
+   "k": 11,
+   "metrics": [
+    {
+     "id": "settle_time_after_slew",
+     "kind": "time_to_threshold",
+     "value": 13.100000000000023,
+     "unit": "s",
+     "req": 20.0,
+     "req_key": "req.settle",
+     "pass": 1
+    },
+    {
+     "id": "ape_los_on_target_p9973",
+     "kind": "ape_los",
+     "value": 0.008336273782976734,
+     "unit": "deg",
+     "req": 0.01,
+     "req_key": "req.ape",
+     "pass": 1
+    },
+    {
+     "id": "wheel_momentum_peak",
+     "kind": "wheel_momentum_peak",
+     "value": 0.0035917319621604454,
+     "unit": "N m s",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    }
+   ],
+   "draws": {
+    "inertia_scale_x": 1.0218661132299243,
+    "inertia_scale_y": 0.9488670547517344,
+    "inertia_scale_z": 0.9746521223838135,
+    "residual_dipole_Am2": 0.014011914884647361,
+    "cm_offset_mm": 26.83865357256355,
+    "initial_error_deg": 0.9630097536745001,
+    "arg_lat_deg": 59.314526875751675
+   },
+   "wall_s": 0.142662469
+  },
+  {
+   "k": 12,
+   "metrics": [
+    {
+     "id": "settle_time_after_slew",
+     "kind": "time_to_threshold",
+     "value": 12.400000000000034,
+     "unit": "s",
+     "req": 20.0,
+     "req_key": "req.settle",
+     "pass": 1
+    },
+    {
+     "id": "ape_los_on_target_p9973",
+     "kind": "ape_los",
+     "value": 0.00864931505819063,
+     "unit": "deg",
+     "req": 0.01,
+     "req_key": "req.ape",
+     "pass": 1
+    },
+    {
+     "id": "wheel_momentum_peak",
+     "kind": "wheel_momentum_peak",
+     "value": 0.003528425009946944,
+     "unit": "N m s",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    }
+   ],
+   "draws": {
+    "inertia_scale_x": 1.0401435290265937,
+    "inertia_scale_y": 1.0653611812150185,
+    "inertia_scale_z": 0.9281715457120935,
+    "residual_dipole_Am2": 0.011540438417851889,
+    "cm_offset_mm": 16.913587398483084,
+    "initial_error_deg": 0.2803986889729295,
+    "arg_lat_deg": 282.8512574243498
+   },
+   "wall_s": 0.198674606
+  },
+  {
+   "k": 13,
+   "metrics": [
+    {
+     "id": "settle_time_after_slew",
+     "kind": "time_to_threshold",
+     "value": 14.600000000000023,
+     "unit": "s",
+     "req": 20.0,
+     "req_key": "req.settle",
+     "pass": 1
+    },
+    {
+     "id": "ape_los_on_target_p9973",
+     "kind": "ape_los",
+     "value": 0.00784695797408874,
+     "unit": "deg",
+     "req": 0.01,
+     "req_key": "req.ape",
+     "pass": 1
+    },
+    {
+     "id": "wheel_momentum_peak",
+     "kind": "wheel_momentum_peak",
+     "value": 0.003434141848383773,
+     "unit": "N m s",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    }
+   ],
+   "draws": {
+    "inertia_scale_x": 0.9673548344559195,
+    "inertia_scale_y": 1.0946602772718312,
+    "inertia_scale_z": 1.0104768252573306,
+    "residual_dipole_Am2": 0.010826981554535951,
+    "cm_offset_mm": 17.4396039663938,
+    "initial_error_deg": 0.8204113117984672,
+    "arg_lat_deg": 358.90785177232345
+   },
+   "wall_s": 0.139207012
+  },
+  {
+   "k": 14,
+   "metrics": [
+    {
+     "id": "settle_time_after_slew",
+     "kind": "time_to_threshold",
+     "value": 13.0,
+     "unit": "s",
+     "req": 20.0,
+     "req_key": "req.settle",
+     "pass": 1
+    },
+    {
+     "id": "ape_los_on_target_p9973",
+     "kind": "ape_los",
+     "value": 0.007661318208788021,
+     "unit": "deg",
+     "req": 0.01,
+     "req_key": "req.ape",
+     "pass": 1
+    },
+    {
+     "id": "wheel_momentum_peak",
+     "kind": "wheel_momentum_peak",
+     "value": 0.0037103886028481913,
+     "unit": "N m s",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    }
+   ],
+   "draws": {
+    "inertia_scale_x": 0.9725248416256681,
+    "inertia_scale_y": 1.0165747707247137,
+    "inertia_scale_z": 1.0176169799208725,
+    "residual_dipole_Am2": 0.01944444563874342,
+    "cm_offset_mm": 25.04117880445771,
+    "initial_error_deg": 0.4454851985930124,
+    "arg_lat_deg": 57.080487731354786
+   },
+   "wall_s": 0.17763989
+  },
+  {
+   "k": 15,
+   "metrics": [
+    {
+     "id": "settle_time_after_slew",
+     "kind": "time_to_threshold",
+     "value": 9.800000000000011,
+     "unit": "s",
+     "req": 20.0,
+     "req_key": "req.settle",
+     "pass": 1
+    },
+    {
+     "id": "ape_los_on_target_p9973",
+     "kind": "ape_los",
+     "value": 0.00780119116291434,
+     "unit": "deg",
+     "req": 0.01,
+     "req_key": "req.ape",
+     "pass": 1
+    },
+    {
+     "id": "wheel_momentum_peak",
+     "kind": "wheel_momentum_peak",
+     "value": 0.0037833989789365185,
+     "unit": "N m s",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    }
+   ],
+   "draws": {
+    "inertia_scale_x": 1.0855231076087837,
+    "inertia_scale_y": 1.0661176809287785,
+    "inertia_scale_z": 1.006885106377331,
+    "residual_dipole_Am2": 0.01641097390904235,
+    "cm_offset_mm": 13.519702316336735,
+    "initial_error_deg": 0.17653309256067481,
+    "arg_lat_deg": 236.96045547139462
+   },
+   "wall_s": 0.192686058
+  },
+  {
+   "k": 16,
+   "metrics": [
+    {
+     "id": "settle_time_after_slew",
+     "kind": "time_to_threshold",
+     "value": 12.5,
+     "unit": "s",
+     "req": 20.0,
+     "req_key": "req.settle",
+     "pass": 1
+    },
+    {
+     "id": "ape_los_on_target_p9973",
+     "kind": "ape_los",
+     "value": 0.00877694698589019,
+     "unit": "deg",
+     "req": 0.01,
+     "req_key": "req.ape",
+     "pass": 1
+    },
+    {
+     "id": "wheel_momentum_peak",
+     "kind": "wheel_momentum_peak",
+     "value": 0.003793115234455243,
+     "unit": "N m s",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    }
+   ],
+   "draws": {
+    "inertia_scale_x": 1.0996493632598456,
+    "inertia_scale_y": 1.040604684347257,
+    "inertia_scale_z": 0.9965139660762672,
+    "residual_dipole_Am2": 0.008338264168225031,
+    "cm_offset_mm": 23.538386957654044,
+    "initial_error_deg": 0.7989561011365851,
+    "arg_lat_deg": 57.90386149676636
+   },
+   "wall_s": 0.191751031
+  },
+  {
+   "k": 17,
+   "metrics": [
+    {
+     "id": "settle_time_after_slew",
+     "kind": "time_to_threshold",
+     "value": 12.100000000000023,
+     "unit": "s",
+     "req": 20.0,
+     "req_key": "req.settle",
+     "pass": 1
+    },
+    {
+     "id": "ape_los_on_target_p9973",
+     "kind": "ape_los",
+     "value": 0.006667762833714941,
+     "unit": "deg",
+     "req": 0.01,
+     "req_key": "req.ape",
+     "pass": 1
+    },
+    {
+     "id": "wheel_momentum_peak",
+     "kind": "wheel_momentum_peak",
+     "value": 0.0030020778734370325,
+     "unit": "N m s",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    }
+   ],
+   "draws": {
+    "inertia_scale_x": 0.9929696929059096,
+    "inertia_scale_y": 1.0723201197825722,
+    "inertia_scale_z": 1.0080065167049226,
+    "residual_dipole_Am2": 0.009495348053262109,
+    "cm_offset_mm": 25.438878402998295,
+    "initial_error_deg": 0.4502018863999888,
+    "arg_lat_deg": 156.95575354284168
+   },
+   "wall_s": 0.165743604
+  },
+  {
+   "k": 18,
+   "metrics": [
+    {
+     "id": "settle_time_after_slew",
+     "kind": "time_to_threshold",
+     "value": 12.400000000000034,
+     "unit": "s",
+     "req": 20.0,
+     "req_key": "req.settle",
+     "pass": 1
+    },
+    {
+     "id": "ape_los_on_target_p9973",
+     "kind": "ape_los",
+     "value": 0.008167273231078532,
+     "unit": "deg",
+     "req": 0.01,
+     "req_key": "req.ape",
+     "pass": 1
+    },
+    {
+     "id": "wheel_momentum_peak",
+     "kind": "wheel_momentum_peak",
+     "value": 0.0036376499681004155,
+     "unit": "N m s",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    }
+   ],
+   "draws": {
+    "inertia_scale_x": 1.0475465785010043,
+    "inertia_scale_y": 0.9208641951594785,
+    "inertia_scale_z": 0.9559062854525587,
+    "residual_dipole_Am2": 0.016369170164412524,
+    "cm_offset_mm": 14.665109003323254,
+    "initial_error_deg": 0.41834393185476215,
+    "arg_lat_deg": 225.60241517280076
+   },
+   "wall_s": 0.154814276
+  },
+  {
+   "k": 19,
+   "metrics": [
+    {
+     "id": "settle_time_after_slew",
+     "kind": "time_to_threshold",
+     "value": 13.199999999999989,
+     "unit": "s",
+     "req": 20.0,
+     "req_key": "req.settle",
+     "pass": 1
+    },
+    {
+     "id": "ape_los_on_target_p9973",
+     "kind": "ape_los",
+     "value": 0.00910540320406951,
+     "unit": "deg",
+     "req": 0.01,
+     "req_key": "req.ape",
+     "pass": 1
+    },
+    {
+     "id": "wheel_momentum_peak",
+     "kind": "wheel_momentum_peak",
+     "value": 0.0034228761876120275,
+     "unit": "N m s",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    }
+   ],
+   "draws": {
+    "inertia_scale_x": 1.024049255474098,
+    "inertia_scale_y": 0.9404076708936021,
+    "inertia_scale_z": 1.0079004992011176,
+    "residual_dipole_Am2": 0.01077872065915715,
+    "cm_offset_mm": 19.426656920960987,
+    "initial_error_deg": 0.657666226067304,
+    "arg_lat_deg": 112.49903863493472
+   },
+   "wall_s": 0.193188059
+  },
+  {
+   "k": 20,
+   "metrics": [
+    {
+     "id": "settle_time_after_slew",
+     "kind": "time_to_threshold",
+     "value": 13.800000000000011,
+     "unit": "s",
+     "req": 20.0,
+     "req_key": "req.settle",
+     "pass": 1
+    },
+    {
+     "id": "ape_los_on_target_p9973",
+     "kind": "ape_los",
+     "value": 0.007273267982028716,
+     "unit": "deg",
+     "req": 0.01,
+     "req_key": "req.ape",
+     "pass": 1
+    },
+    {
+     "id": "wheel_momentum_peak",
+     "kind": "wheel_momentum_peak",
+     "value": 0.003826005270018525,
+     "unit": "N m s",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    }
+   ],
+   "draws": {
+    "inertia_scale_x": 1.0069053094668927,
+    "inertia_scale_y": 1.039819437478781,
+    "inertia_scale_z": 1.0506256059152226,
+    "residual_dipole_Am2": 0.01035987664250775,
+    "cm_offset_mm": 26.616949313469412,
+    "initial_error_deg": 0.1163027253301933,
+    "arg_lat_deg": 25.867520999026517
+   },
+   "wall_s": 0.228766011
+  },
+  {
+   "k": 21,
+   "metrics": [
+    {
+     "id": "settle_time_after_slew",
+     "kind": "time_to_threshold",
+     "value": 14.300000000000011,
+     "unit": "s",
+     "req": 20.0,
+     "req_key": "req.settle",
+     "pass": 1
+    },
+    {
+     "id": "ape_los_on_target_p9973",
+     "kind": "ape_los",
+     "value": 0.0072411846364119755,
+     "unit": "deg",
+     "req": 0.01,
+     "req_key": "req.ape",
+     "pass": 1
+    },
+    {
+     "id": "wheel_momentum_peak",
+     "kind": "wheel_momentum_peak",
+     "value": 0.0037731227878879496,
+     "unit": "N m s",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    }
+   ],
+   "draws": {
+    "inertia_scale_x": 0.9663594194175643,
+    "inertia_scale_y": 1.0662217291564757,
+    "inertia_scale_z": 1.0925508349022803,
+    "residual_dipole_Am2": 0.01537565180365446,
+    "cm_offset_mm": 29.621270127076063,
+    "initial_error_deg": 0.3589192493991603,
+    "arg_lat_deg": 70.62803156332154
+   },
+   "wall_s": 0.184746607
+  },
+  {
+   "k": 22,
+   "metrics": [
+    {
+     "id": "settle_time_after_slew",
+     "kind": "time_to_threshold",
+     "value": 12.400000000000034,
+     "unit": "s",
+     "req": 20.0,
+     "req_key": "req.settle",
+     "pass": 1
+    },
+    {
+     "id": "ape_los_on_target_p9973",
+     "kind": "ape_los",
+     "value": 0.007092552465071245,
+     "unit": "deg",
+     "req": 0.01,
+     "req_key": "req.ape",
+     "pass": 1
+    },
+    {
+     "id": "wheel_momentum_peak",
+     "kind": "wheel_momentum_peak",
+     "value": 0.003289984802886276,
+     "unit": "N m s",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    }
+   ],
+   "draws": {
+    "inertia_scale_x": 1.0643653297089632,
+    "inertia_scale_y": 0.9209776334344566,
+    "inertia_scale_z": 1.0337851797291313,
+    "residual_dipole_Am2": 0.019739544892781468,
+    "cm_offset_mm": 10.984215382655096,
+    "initial_error_deg": 0.33944297159627956,
+    "arg_lat_deg": 111.21165626722751
+   },
+   "wall_s": 0.154055994
+  },
+  {
+   "k": 23,
+   "metrics": [
+    {
+     "id": "settle_time_after_slew",
+     "kind": "time_to_threshold",
+     "value": 12.400000000000034,
+     "unit": "s",
+     "req": 20.0,
+     "req_key": "req.settle",
+     "pass": 1
+    },
+    {
+     "id": "ape_los_on_target_p9973",
+     "kind": "ape_los",
+     "value": 0.007690493691753246,
+     "unit": "deg",
+     "req": 0.01,
+     "req_key": "req.ape",
+     "pass": 1
+    },
+    {
+     "id": "wheel_momentum_peak",
+     "kind": "wheel_momentum_peak",
+     "value": 0.003077626732659466,
+     "unit": "N m s",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    }
+   ],
+   "draws": {
+    "inertia_scale_x": 0.937592751807111,
+    "inertia_scale_y": 0.9834808264029121,
+    "inertia_scale_z": 1.0472952769143502,
+    "residual_dipole_Am2": 0.009775913209272177,
+    "cm_offset_mm": 21.102269986026165,
+    "initial_error_deg": 0.7396226133587913,
+    "arg_lat_deg": 145.01251669524711
+   },
+   "wall_s": 0.159899227
+  },
+  {
+   "k": 24,
+   "metrics": [
+    {
+     "id": "settle_time_after_slew",
+     "kind": "time_to_threshold",
+     "value": 12.800000000000011,
+     "unit": "s",
+     "req": 20.0,
+     "req_key": "req.settle",
+     "pass": 1
+    },
+    {
+     "id": "ape_los_on_target_p9973",
+     "kind": "ape_los",
+     "value": 0.007037591953312758,
+     "unit": "deg",
+     "req": 0.01,
+     "req_key": "req.ape",
+     "pass": 1
+    },
+    {
+     "id": "wheel_momentum_peak",
+     "kind": "wheel_momentum_peak",
+     "value": 0.003375383961933235,
+     "unit": "N m s",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    }
+   ],
+   "draws": {
+    "inertia_scale_x": 1.0835636542368032,
+    "inertia_scale_y": 0.9784665187422872,
+    "inertia_scale_z": 0.9332841128586585,
+    "residual_dipole_Am2": 0.013195983445239885,
+    "cm_offset_mm": 10.191049415332673,
+    "initial_error_deg": 0.15819911635799294,
+    "arg_lat_deg": 309.9073479213693
+   },
+   "wall_s": 0.200271892
+  },
+  {
+   "k": 25,
+   "metrics": [
+    {
+     "id": "settle_time_after_slew",
+     "kind": "time_to_threshold",
+     "value": 12.199999999999989,
+     "unit": "s",
+     "req": 20.0,
+     "req_key": "req.settle",
+     "pass": 1
+    },
+    {
+     "id": "ape_los_on_target_p9973",
+     "kind": "ape_los",
+     "value": 0.00800066164262928,
+     "unit": "deg",
+     "req": 0.01,
+     "req_key": "req.ape",
+     "pass": 1
+    },
+    {
+     "id": "wheel_momentum_peak",
+     "kind": "wheel_momentum_peak",
+     "value": 0.003185092381850463,
+     "unit": "N m s",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    }
+   ],
+   "draws": {
+    "inertia_scale_x": 0.9283781397571927,
+    "inertia_scale_y": 1.052129244662249,
+    "inertia_scale_z": 0.95809956483616,
+    "residual_dipole_Am2": 0.018871497513155533,
+    "cm_offset_mm": 29.307041110785597,
+    "initial_error_deg": 0.10250084452220896,
+    "arg_lat_deg": 125.77664960170479
+   },
+   "wall_s": 0.192607403
+  },
+  {
+   "k": 26,
+   "metrics": [
+    {
+     "id": "settle_time_after_slew",
+     "kind": "time_to_threshold",
+     "value": 14.400000000000034,
+     "unit": "s",
+     "req": 20.0,
+     "req_key": "req.settle",
+     "pass": 1
+    },
+    {
+     "id": "ape_los_on_target_p9973",
+     "kind": "ape_los",
+     "value": 0.009615916975785819,
+     "unit": "deg",
+     "req": 0.01,
+     "req_key": "req.ape",
+     "pass": 1
+    },
+    {
+     "id": "wheel_momentum_peak",
+     "kind": "wheel_momentum_peak",
+     "value": 0.003054188826996599,
+     "unit": "N m s",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    }
+   ],
+   "draws": {
+    "inertia_scale_x": 0.9343418112188557,
+    "inertia_scale_y": 1.0077406344757023,
+    "inertia_scale_z": 1.0186584599544568,
+    "residual_dipole_Am2": 0.007867012721674022,
+    "cm_offset_mm": 18.46196662307223,
+    "initial_error_deg": 0.5907240050673204,
+    "arg_lat_deg": 157.06109869934818
+   },
+   "wall_s": 0.165628076
+  },
+  {
+   "k": 27,
+   "metrics": [
+    {
+     "id": "settle_time_after_slew",
+     "kind": "time_to_threshold",
+     "value": 11.800000000000011,
+     "unit": "s",
+     "req": 20.0,
+     "req_key": "req.settle",
+     "pass": 1
+    },
+    {
+     "id": "ape_los_on_target_p9973",
+     "kind": "ape_los",
+     "value": 0.007857651664962497,
+     "unit": "deg",
+     "req": 0.01,
+     "req_key": "req.ape",
+     "pass": 1
+    },
+    {
+     "id": "wheel_momentum_peak",
+     "kind": "wheel_momentum_peak",
+     "value": 0.003641594493655397,
+     "unit": "N m s",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    }
+   ],
+   "draws": {
+    "inertia_scale_x": 1.0230147964106873,
+    "inertia_scale_y": 1.0934849753449591,
+    "inertia_scale_z": 0.9137439630478218,
+    "residual_dipole_Am2": 0.018683456212923992,
+    "cm_offset_mm": 23.176027118589584,
+    "initial_error_deg": 0.6493248334788307,
+    "arg_lat_deg": 241.5500702295584
+   },
+   "wall_s": 0.225193201
+  },
+  {
+   "k": 28,
+   "metrics": [
+    {
+     "id": "settle_time_after_slew",
+     "kind": "time_to_threshold",
+     "value": 11.0,
+     "unit": "s",
+     "req": 20.0,
+     "req_key": "req.settle",
+     "pass": 1
+    },
+    {
+     "id": "ape_los_on_target_p9973",
+     "kind": "ape_los",
+     "value": 0.00677609743797155,
+     "unit": "deg",
+     "req": 0.01,
+     "req_key": "req.ape",
+     "pass": 1
+    },
+    {
+     "id": "wheel_momentum_peak",
+     "kind": "wheel_momentum_peak",
+     "value": 0.003239231987312106,
+     "unit": "N m s",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    }
+   ],
+   "draws": {
+    "inertia_scale_x": 0.9740602623934328,
+    "inertia_scale_y": 0.9081973080061816,
+    "inertia_scale_z": 0.9152125156530733,
+    "residual_dipole_Am2": 0.012885416430788681,
+    "cm_offset_mm": 18.81486518472159,
+    "initial_error_deg": 0.9379022504973737,
+    "arg_lat_deg": 131.41481708064848
+   },
+   "wall_s": 0.187464369
+  },
+  {
+   "k": 29,
+   "metrics": [
+    {
+     "id": "settle_time_after_slew",
+     "kind": "time_to_threshold",
+     "value": 11.800000000000011,
+     "unit": "s",
+     "req": 20.0,
+     "req_key": "req.settle",
+     "pass": 1
+    },
+    {
+     "id": "ape_los_on_target_p9973",
+     "kind": "ape_los",
+     "value": 0.008024058798155227,
+     "unit": "deg",
+     "req": 0.01,
+     "req_key": "req.ape",
+     "pass": 1
+    },
+    {
+     "id": "wheel_momentum_peak",
+     "kind": "wheel_momentum_peak",
+     "value": 0.003683186373609463,
+     "unit": "N m s",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    }
+   ],
+   "draws": {
+    "inertia_scale_x": 0.9846589078766673,
+    "inertia_scale_y": 0.9069131895281274,
+    "inertia_scale_z": 0.9929717027299307,
+    "residual_dipole_Am2": 0.017791652209220778,
+    "cm_offset_mm": 10.365729326886923,
+    "initial_error_deg": 0.681684787206035,
+    "arg_lat_deg": 268.7387677356357
+   },
+   "wall_s": 0.184445676
+  },
+  {
+   "k": 30,
+   "metrics": [
+    {
+     "id": "settle_time_after_slew",
+     "kind": "time_to_threshold",
+     "value": 11.900000000000034,
+     "unit": "s",
+     "req": 20.0,
+     "req_key": "req.settle",
+     "pass": 1
+    },
+    {
+     "id": "ape_los_on_target_p9973",
+     "kind": "ape_los",
+     "value": 0.0075145680889409415,
+     "unit": "deg",
+     "req": 0.01,
+     "req_key": "req.ape",
+     "pass": 1
+    },
+    {
+     "id": "wheel_momentum_peak",
+     "kind": "wheel_momentum_peak",
+     "value": 0.0036249158271591904,
+     "unit": "N m s",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    }
+   ],
+   "draws": {
+    "inertia_scale_x": 1.0781773323160553,
+    "inertia_scale_y": 0.9907605771458906,
+    "inertia_scale_z": 0.9237478617303131,
+    "residual_dipole_Am2": 0.018199114367503728,
+    "cm_offset_mm": 17.152893255521498,
+    "initial_error_deg": 0.8493036296151689,
+    "arg_lat_deg": 33.28746422267774
+   },
+   "wall_s": 0.165337958
+  },
+  {
+   "k": 31,
+   "metrics": [
+    {
+     "id": "settle_time_after_slew",
+     "kind": "time_to_threshold",
+     "value": 11.300000000000011,
+     "unit": "s",
+     "req": 20.0,
+     "req_key": "req.settle",
+     "pass": 1
+    },
+    {
+     "id": "ape_los_on_target_p9973",
+     "kind": "ape_los",
+     "value": 0.007974922362506541,
+     "unit": "deg",
+     "req": 0.01,
+     "req_key": "req.ape",
+     "pass": 1
+    },
+    {
+     "id": "wheel_momentum_peak",
+     "kind": "wheel_momentum_peak",
+     "value": 0.003598586036216443,
+     "unit": "N m s",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    }
+   ],
+   "draws": {
+    "inertia_scale_x": 1.0765653705512592,
+    "inertia_scale_y": 1.087818618586626,
+    "inertia_scale_z": 0.9088455733560284,
+    "residual_dipole_Am2": 0.012963143970645755,
+    "cm_offset_mm": 11.028276202232533,
+    "initial_error_deg": 0.8548804532945439,
+    "arg_lat_deg": 53.675215597559244
+   },
+   "wall_s": 0.170843521
+  },
+  {
+   "k": 32,
+   "metrics": [
+    {
+     "id": "settle_time_after_slew",
+     "kind": "time_to_threshold",
+     "value": 14.199999999999989,
+     "unit": "s",
+     "req": 20.0,
+     "req_key": "req.settle",
+     "pass": 1
+    },
+    {
+     "id": "ape_los_on_target_p9973",
+     "kind": "ape_los",
+     "value": 0.0074843240305010016,
+     "unit": "deg",
+     "req": 0.01,
+     "req_key": "req.ape",
+     "pass": 1
+    },
+    {
+     "id": "wheel_momentum_peak",
+     "kind": "wheel_momentum_peak",
+     "value": 0.0031252662845110404,
+     "unit": "N m s",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    }
+   ],
+   "draws": {
+    "inertia_scale_x": 0.9824744090798094,
+    "inertia_scale_y": 1.085009268763499,
+    "inertia_scale_z": 1.0607292953993654,
+    "residual_dipole_Am2": 0.019927288430819225,
+    "cm_offset_mm": 28.03039046795354,
+    "initial_error_deg": 0.42541932549827977,
+    "arg_lat_deg": 324.43456047165324
+   },
+   "wall_s": 0.202448147
+  },
+  {
+   "k": 33,
+   "metrics": [
+    {
+     "id": "settle_time_after_slew",
+     "kind": "time_to_threshold",
+     "value": 14.300000000000011,
+     "unit": "s",
+     "req": 20.0,
+     "req_key": "req.settle",
+     "pass": 1
+    },
+    {
+     "id": "ape_los_on_target_p9973",
+     "kind": "ape_los",
+     "value": 0.00644196329856788,
+     "unit": "deg",
+     "req": 0.01,
+     "req_key": "req.ape",
+     "pass": 1
+    },
+    {
+     "id": "wheel_momentum_peak",
+     "kind": "wheel_momentum_peak",
+     "value": 0.0030037422938750044,
+     "unit": "N m s",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    }
+   ],
+   "draws": {
+    "inertia_scale_x": 0.9226270561276507,
+    "inertia_scale_y": 1.098945489666467,
+    "inertia_scale_z": 1.0766462924586189,
+    "residual_dipole_Am2": 0.010101325876394363,
+    "cm_offset_mm": 11.47141070030267,
+    "initial_error_deg": 0.8494494140321521,
+    "arg_lat_deg": 153.12774930677952
+   },
+   "wall_s": 0.227315711
+  },
+  {
+   "k": 34,
+   "metrics": [
+    {
+     "id": "settle_time_after_slew",
+     "kind": "time_to_threshold",
+     "value": 14.800000000000011,
+     "unit": "s",
+     "req": 20.0,
+     "req_key": "req.settle",
+     "pass": 1
+    },
+    {
+     "id": "ape_los_on_target_p9973",
+     "kind": "ape_los",
+     "value": 0.0068418408765608275,
+     "unit": "deg",
+     "req": 0.01,
+     "req_key": "req.ape",
+     "pass": 1
+    },
+    {
+     "id": "wheel_momentum_peak",
+     "kind": "wheel_momentum_peak",
+     "value": 0.0031161139710439373,
+     "unit": "N m s",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    }
+   ],
+   "draws": {
+    "inertia_scale_x": 0.9124817983120063,
+    "inertia_scale_y": 1.0651407903829817,
+    "inertia_scale_z": 1.096087549454297,
+    "residual_dipole_Am2": 0.014226729739270706,
+    "cm_offset_mm": 24.098179145868134,
+    "initial_error_deg": 0.14390835871102217,
+    "arg_lat_deg": 343.0909916768553
+   },
+   "wall_s": 0.181704326
+  },
+  {
+   "k": 35,
+   "metrics": [
+    {
+     "id": "settle_time_after_slew",
+     "kind": "time_to_threshold",
+     "value": 13.0,
+     "unit": "s",
+     "req": 20.0,
+     "req_key": "req.settle",
+     "pass": 1
+    },
+    {
+     "id": "ape_los_on_target_p9973",
+     "kind": "ape_los",
+     "value": 0.007332655431622054,
+     "unit": "deg",
+     "req": 0.01,
+     "req_key": "req.ape",
+     "pass": 1
+    },
+    {
+     "id": "wheel_momentum_peak",
+     "kind": "wheel_momentum_peak",
+     "value": 0.0035439010442256187,
+     "unit": "N m s",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    }
+   ],
+   "draws": {
+    "inertia_scale_x": 0.9759770283257718,
+    "inertia_scale_y": 1.0534125623804258,
+    "inertia_scale_z": 0.955014685554411,
+    "residual_dipole_Am2": 0.01547362759429818,
+    "cm_offset_mm": 25.28140114154683,
+    "initial_error_deg": 0.8992539040331439,
+    "arg_lat_deg": 274.57965252641065
+   },
+   "wall_s": 0.182217947
+  },
+  {
+   "k": 36,
+   "metrics": [
+    {
+     "id": "settle_time_after_slew",
+     "kind": "time_to_threshold",
+     "value": 15.600000000000023,
+     "unit": "s",
+     "req": 20.0,
+     "req_key": "req.settle",
+     "pass": 1
+    },
+    {
+     "id": "ape_los_on_target_p9973",
+     "kind": "ape_los",
+     "value": 0.007505929736354596,
+     "unit": "deg",
+     "req": 0.01,
+     "req_key": "req.ape",
+     "pass": 1
+    },
+    {
+     "id": "wheel_momentum_peak",
+     "kind": "wheel_momentum_peak",
+     "value": 0.003667540721116827,
+     "unit": "N m s",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    }
+   ],
+   "draws": {
+    "inertia_scale_x": 0.9412811679488563,
+    "inertia_scale_y": 0.9669715234705107,
+    "inertia_scale_z": 0.9867233813191831,
+    "residual_dipole_Am2": 0.00894792850794073,
+    "cm_offset_mm": 19.258794113010143,
+    "initial_error_deg": 0.8419902247190844,
+    "arg_lat_deg": 12.67450094853487
+   },
+   "wall_s": 0.239098272
+  },
+  {
+   "k": 37,
+   "metrics": [
+    {
+     "id": "settle_time_after_slew",
+     "kind": "time_to_threshold",
+     "value": 14.5,
+     "unit": "s",
+     "req": 20.0,
+     "req_key": "req.settle",
+     "pass": 1
+    },
+    {
+     "id": "ape_los_on_target_p9973",
+     "kind": "ape_los",
+     "value": 0.007390474182169893,
+     "unit": "deg",
+     "req": 0.01,
+     "req_key": "req.ape",
+     "pass": 1
+    },
+    {
+     "id": "wheel_momentum_peak",
+     "kind": "wheel_momentum_peak",
+     "value": 0.0029981302394897972,
+     "unit": "N m s",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    }
+   ],
+   "draws": {
+    "inertia_scale_x": 0.9823037722194273,
+    "inertia_scale_y": 0.9020478956521336,
+    "inertia_scale_z": 0.9692494202607782,
+    "residual_dipole_Am2": 0.013122987181210808,
+    "cm_offset_mm": 29.340063503254207,
+    "initial_error_deg": 0.4129491424918931,
+    "arg_lat_deg": 163.37313549467862
+   },
+   "wall_s": 0.222577628
+  },
+  {
+   "k": 38,
+   "metrics": [
+    {
+     "id": "settle_time_after_slew",
+     "kind": "time_to_threshold",
+     "value": 13.5,
+     "unit": "s",
+     "req": 20.0,
+     "req_key": "req.settle",
+     "pass": 1
+    },
+    {
+     "id": "ape_los_on_target_p9973",
+     "kind": "ape_los",
+     "value": 0.007489782832846474,
+     "unit": "deg",
+     "req": 0.01,
+     "req_key": "req.ape",
+     "pass": 1
+    },
+    {
+     "id": "wheel_momentum_peak",
+     "kind": "wheel_momentum_peak",
+     "value": 0.003118520565063386,
+     "unit": "N m s",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    }
+   ],
+   "draws": {
+    "inertia_scale_x": 1.03598851918893,
+    "inertia_scale_y": 1.0481042966683944,
+    "inertia_scale_z": 1.063732922835258,
+    "residual_dipole_Am2": 0.008151966469060577,
+    "cm_offset_mm": 17.850638206839697,
+    "initial_error_deg": 0.5714470372385866,
+    "arg_lat_deg": 139.69289786567646
+   },
+   "wall_s": 0.159795559
+  },
+  {
+   "k": 39,
+   "metrics": [
+    {
+     "id": "settle_time_after_slew",
+     "kind": "time_to_threshold",
+     "value": 12.900000000000034,
+     "unit": "s",
+     "req": 20.0,
+     "req_key": "req.settle",
+     "pass": 1
+    },
+    {
+     "id": "ape_los_on_target_p9973",
+     "kind": "ape_los",
+     "value": 0.008044419992496032,
+     "unit": "deg",
+     "req": 0.01,
+     "req_key": "req.ape",
+     "pass": 1
+    },
+    {
+     "id": "wheel_momentum_peak",
+     "kind": "wheel_momentum_peak",
+     "value": 0.0031089196487393187,
+     "unit": "N m s",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    }
+   ],
+   "draws": {
+    "inertia_scale_x": 1.062709552284637,
+    "inertia_scale_y": 0.9507077369857327,
+    "inertia_scale_z": 0.9933915414670221,
+    "residual_dipole_Am2": 0.010834543325599117,
+    "cm_offset_mm": 18.181404699045686,
+    "initial_error_deg": 0.9761750164345478,
+    "arg_lat_deg": 338.5416803446267
+   },
+   "wall_s": 0.265165493
+  },
+  {
+   "k": 40,
+   "metrics": [
+    {
+     "id": "settle_time_after_slew",
+     "kind": "time_to_threshold",
+     "value": 13.900000000000034,
+     "unit": "s",
+     "req": 20.0,
+     "req_key": "req.settle",
+     "pass": 1
+    },
+    {
+     "id": "ape_los_on_target_p9973",
+     "kind": "ape_los",
+     "value": 0.007149164465796122,
+     "unit": "deg",
+     "req": 0.01,
+     "req_key": "req.ape",
+     "pass": 1
+    },
+    {
+     "id": "wheel_momentum_peak",
+     "kind": "wheel_momentum_peak",
+     "value": 0.003625764728719976,
+     "unit": "N m s",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    }
+   ],
+   "draws": {
+    "inertia_scale_x": 1.0957923057766015,
+    "inertia_scale_y": 1.06678818463415,
+    "inertia_scale_z": 1.0919022927598168,
+    "residual_dipole_Am2": 0.010667566131654552,
+    "cm_offset_mm": 15.678408068645508,
+    "initial_error_deg": 0.9014470933089295,
+    "arg_lat_deg": 274.6225585520239
+   },
+   "wall_s": 0.225274899
+  }
+ ],
+ "wall_s": 6.279756546020508
+}

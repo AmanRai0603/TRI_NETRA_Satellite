@@ -16,7 +16,7 @@ pub mod run;
 pub mod metrics;
 pub mod rec;
 
-pub const ENGINE: &str = "adcs-engine-rs/1.1.0 (adcs-case/1, POP v51 port in-loop)";
+pub const ENGINE: &str = "adcs-engine-rs/1.2.0 (adcs-case/1, POP v51 port in-loop, adcs-design, soft OILS)";
 
 /// The data root (matlab_sils): $ADCS_ROOT, else the first ancestor of the
 /// working directory holding matlab_sils/data.

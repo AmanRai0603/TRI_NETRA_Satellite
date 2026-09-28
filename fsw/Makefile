@@ -56,5 +56,9 @@ $(RS_ARM): ../fsw-rs/src/*.rs
 build/obc_qemu_rs.elf: $(LINK_SRC) targets/qemu-mps2/main.c targets/qemu-mps2/link.ld $(RS_ARM) | build
 	$(ARMCC) $(ARMFLAGS) $(LINK_SRC) targets/qemu-mps2/main.c $(RS_ARM) $(ARMLD) -Wl,--allow-multiple-definition -o $@
 
-obc: build/obc_posix build/obc_posix_rs build/obc_qemu.elf build/obc_qemu_rs.elf
+# soft OILS: exact per-step instruction counts from QEMU (a host shared object)
+build/insn_count.so: targets/qemu-mps2/insn_count.c | build
+	$(CC) -std=c99 -O2 -Wall -Wextra -D_POSIX_C_SOURCE=200809L -shared -fPIC $< -o $@
+
+obc: build/obc_posix build/obc_posix_rs build/obc_qemu.elf build/obc_qemu_rs.elf build/insn_count.so
 .PHONY: obc

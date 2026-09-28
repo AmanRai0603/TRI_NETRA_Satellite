@@ -47,9 +47,17 @@ static void semihost_exit(int code)
     __asm volatile ("bkpt 0xAB" : : "r"(r0), "r"(r1) : "memory");
 }
 
+/* SysTick on the processor clock (25 MHz on mps2-an386), free-running over its 24 bits.
+ * It counts down; the link wants an up-counter, so return the complement. */
+#define SYST_CSR (*(volatile uint32_t *)0xE000E010u)
+#define SYST_RVR (*(volatile uint32_t *)0xE000E014u)
+#define SYST_CVR (*(volatile uint32_t *)0xE000E018u)
+static uint32_t systick(void *c) { (void)c; return 0xFFFFFFu - (SYST_CVR & 0xFFFFFFu); }
+
 int main(void)
 {
-    adcs_link_io_t io = { ugetc, uwrite, 0 };
+    adcs_link_io_t io = { ugetc, uwrite, 0, systick, 25000000u, 0xFFFFFFu };
+    SYST_RVR = 0xFFFFFFu; SYST_CVR = 0u; SYST_CSR = 5u;           /* ENABLE | CLKSOURCE = processor */
     REG(U_BAUD) = 16u;
     REG(U_CTRL) = 3u;                                             /* TX + RX enable */
     semihost_exit(adcs_link_serve(&io) == 0 ? 0 : 1);

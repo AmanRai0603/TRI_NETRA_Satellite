@@ -144,8 +144,16 @@ impl std::str::FromStr for Impl {
     fn from_str(s: &str) -> Result<Impl, String> {
         let repo = repo_root();
         let fsw = |f: &str| repo.join("fsw/build").join(f).display().to_string();
-        let qemu = |elf: String| vec!["qemu-system-arm".into(), "-M".into(), "mps2-an386".into(), "-cpu".into(), "cortex-m4".into(),
-            "-display".into(), "none".into(), "-monitor".into(), "none".into(), "-serial".into(), "stdio".into(), "-semihosting".into(), "-kernel".into(), elf];
+        let plugin = repo.join("fsw/build/insn_count.so");
+        let qemu = |elf: String| {
+            let mut v: Vec<String> = vec!["qemu-system-arm".into(), "-M".into(), "mps2-an386".into(), "-cpu".into(), "cortex-m4".into(),
+                "-display".into(), "none".into(), "-monitor".into(), "none".into(), "-serial".into(), "stdio".into(), "-semihosting".into()];
+            // soft OILS: the exact instruction count of every step (fsw/targets/qemu-mps2/insn_count.c);
+            // {COUNTS} becomes a per-run file the link reads (link.rs)
+            if plugin.is_file() { v.extend(["-plugin".into(), format!("{},out={{COUNTS}}", plugin.display())]); }
+            v.extend(["-kernel".into(), elf]);
+            v
+        };
         match s {
             "c" | "C" => Ok(Impl::C),
             "rust" | "rs" | "Rust" => Ok(Impl::Rust),
@@ -232,6 +240,10 @@ impl Fsw {
             Fsw::Obc(l) => { for (i, x) in l.debug.iter().take(DEBUG_LEN).enumerate() { v[i] = *x; } }
         }
         v
+    }
+    /// The last step's execution on a virtual/real OBC: (seconds by its counter, exact instructions).
+    pub fn obc_exec(&self) -> Option<(f64, Option<f64>)> {
+        match self { Fsw::Obc(l) => l.exec(), _ => None }
     }
     pub fn build_id(&self) -> String {
         match self {

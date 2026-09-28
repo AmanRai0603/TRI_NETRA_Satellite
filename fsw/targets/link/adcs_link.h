@@ -10,13 +10,19 @@
  *   0x02 TICK    u64 now_ns, u8 present,        0x82 OUT   i32 rc, i16 pwm[8],
  *                mag[7] gyro[13] sun[7] es[7],             u8 ncan, ncan x (u32 id, u8 dlc, data[8]),
  *                u16 n1, uart1[n1], u16 n2, uart2[n2],     u8 ndbg, ndbg x f64 (adcs_fsw_debug)
- *                u8 ncan, ncan x (u32 id, u8 dlc, data[8])
- *   0x03 CMD     tc[]                           0x81 ACK   i32 rc, u8 0
+ *                u8 ncan, ncan x (u32 id, u8 dlc, data[8])  u32 exec_ticks, u32 clock_hz (timing trailer)
+ *   0x03 CMD    tc[]                           0x81 ACK   i32 rc, u8 0
  *   0x04 BYE                                    0x81 ACK   i32 0, u8 0   (then the server returns)
  *
  * present: bit0 magnetometer, bit1 gyro, bit2 Sun sensors, bit3 Earth sensor (an absent
  * device answers ADCS_E_NODEV, as on the bus). The OBC side implements adcs_hal.h from the
  * last TICK, so the flight software's drivers run unchanged.
+ *
+ * Timing trailer (soft OILS): the ticks of the platform's free-running counter spent
+ * inside adcs_fsw_step, and the counter's rate (0 when the platform has no counter).
+ * On QEMU with -icount shift=0 the counter runs on virtual time, one nanosecond per
+ * instruction, so the count is exact and repeatable. An engine that predates the
+ * trailer ignores the extra 8 bytes.
  * Owner: Agastya. Copyright (c) 2026 Agastya. All rights reserved.
  */
 #ifndef ADCS_LINK_H
@@ -34,6 +40,9 @@ typedef struct {
     int (*getc)(void *ctx);                       /* next byte, or -1 on end of stream */
     void (*write)(void *ctx, const uint8_t *b, size_t n);
     void *ctx;
+    /* optional execution timer: a free-running up-counter, its rate and its width mask */
+    uint32_t (*clock)(void *ctx);
+    uint32_t clock_hz, clock_mask;
 } adcs_link_io_t;
 
 uint16_t adcs_link_crc(const uint8_t *p, size_t n, uint16_t c);

@@ -13,7 +13,8 @@ everything and writes the reports. **MATLAB** stays the design twin of the SILS.
                         └──── same params blob (adcs-fswcfg/1, fsw/params/params.toml
                               → tools/gen_fsw_params.py → C + Rust) and same bytes ────┐
                                                                                        │
-   engine/ (Rust)  adcs-pop       the POP v51 port: time scales, frames, EOP, DE440,     │
+   engine/ (Rust)  adcs-design    demand survey + sizing of every option (the +asils/+sizing laws, identical)
+                   adcs-pop       the POP v51 port: time scales, frames, EOP, DE440,     │
                                   gravity, tides, radiation, DTM2020/JB2008 drag, integ. │
                    adcs-sim-core  plant, field, torques, sensor and actuator models,     │
                    (no_std)       device byte codecs (+ analytic fallback orbit)        │
@@ -23,7 +24,9 @@ everything and writes the reports. **MATLAB** stays the design twin of the SILS.
    fsw/targets/    virtual OBC    adcs-link/1: the flight software as a process or as Cortex-M4F
                                   firmware in QEMU, in lockstep with the engine (docs/VIRTUAL_OBC.md)
                         │
-   tools/ (Python)  engine.py     build, run, Monte Carlo, C-vs-Rust parity, engine-vs-MATLAB ledger
+   tools/ (Python)  pipeline.py   the design loop: size -> SILS matrix -> assess -> converge -> select -> dispatch -> MC -> soft OILS
+                    vv_report.py  the V&V report (template -> HTML -> PDF)
+                    engine.py     build, run, Monte Carlo, C-vs-Rust parity, engine-vs-MATLAB ledger
                     report.py     figures + results/index.html from any adcs-rec/1 run
                     gen_fsw_params.py, export_catalogue.py, run_matrix.py, pack_matlab.py
                         │

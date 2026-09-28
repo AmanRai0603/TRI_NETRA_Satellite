@@ -12,6 +12,7 @@ path = "src/main.rs"
 
 [dependencies]
 adcs-sim = { path = "../adcs-sim" }
+adcs-design = { path = "../adcs-design" }
 adcs-fsw-abi = { path = "../adcs-fsw-abi" }
 adcs-fsw = { path = "../../../fsw-rs" }
 adcs-sim-core = { path = "../adcs-sim-core" }

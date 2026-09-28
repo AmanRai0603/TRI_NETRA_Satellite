@@ -40,10 +40,37 @@ pub struct Link {
     pub debug: Vec<f64>,
     pub bytes_tx: u64,
     pub bytes_rx: u64,
+    /// timing trailer of the last OUT: counter ticks inside adcs_fsw_step and the counter rate
+    pub exec_ticks: u32,
+    pub clock_hz: u32,
+    /// QEMU with the insn_count plugin: the exact guest instructions of every step
+    counts: Option<(std::fs::File, std::path::PathBuf)>,
+    pub insn: Option<u64>,
+}
+
+impl Link {
+    /// The last step on the OBC: (seconds by the OBC's own counter, exact guest instructions).
+    pub fn exec(&self) -> Option<(f64, Option<f64>)> {
+        if self.clock_hz == 0 && self.insn.is_none() { return None; }
+        let s = if self.clock_hz > 0 { self.exec_ticks as f64/self.clock_hz as f64 } else { 0.0 };
+        Some((s, self.insn.map(|n| n as f64)))
+    }
 }
 
 impl Link {
     pub fn open(t: &Target) -> Result<Link, String> {
+        static N: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
+        let mut counts = None;
+        let mut t = t.clone();
+        if let Target::Spawn(cmd) = &mut t {
+            if cmd.iter().any(|a| a.contains("{COUNTS}")) {
+                let p = std::env::temp_dir().join(format!("adcs-insn-{}-{}.bin", std::process::id(), N.fetch_add(1, std::sync::atomic::Ordering::Relaxed)));
+                std::fs::write(&p, []).map_err(|e| format!("{}: {e}", p.display()))?;
+                for a in cmd.iter_mut() { *a = a.replace("{COUNTS}", &p.display().to_string()); }
+                counts = Some((std::fs::File::open(&p).map_err(|e| e.to_string())?, p));
+            }
+        }
+        let t = &t;
         let (child, rd, wr): (Option<Child>, Box<dyn Read + Send>, Box<dyn Write + Send>) = match t {
             Target::Spawn(cmd) => {
                 let mut c = Command::new(&cmd[0]).args(&cmd[1..]).stdin(Stdio::piped()).stdout(Stdio::piped()).stderr(Stdio::inherit())
@@ -59,7 +86,7 @@ impl Link {
                 (None, Box::new(BufReader::new(r)), Box::new(BufWriter::new(s)))
             }
         };
-        Ok(Link { child, rd, wr, build_id: String::new(), debug: vec![], bytes_tx: 0, bytes_rx: 0 })
+        Ok(Link { child, rd, wr, build_id: String::new(), debug: vec![], bytes_tx: 0, bytes_rx: 0, exec_ticks: 0, clock_hz: 0, counts, insn: None })
     }
 
     fn send(&mut self, ty: u8, p: &[u8]) -> Result<(), String> {
@@ -145,6 +172,15 @@ impl Link {
         let nd = r[k] as usize; k += 1;
         self.debug.clear();
         for _ in 0..nd { let mut x = [0u8; 8]; x.copy_from_slice(&r[k..k + 8]); self.debug.push(f64::from_le_bytes(x)); k += 8; }
+        if r.len() >= k + 8 {
+            self.exec_ticks = u32::from_le_bytes([r[k], r[k + 1], r[k + 2], r[k + 3]]);
+            self.clock_hz = u32::from_le_bytes([r[k + 4], r[k + 5], r[k + 6], r[k + 7]]);
+        }
+        // the plugin wrote this step's count before the firmware sent OUT
+        if let Some((f, _)) = self.counts.as_mut() {
+            let mut b = [0u8; 8];
+            self.insn = match f.read_exact(&mut b) { Ok(()) => Some(u64::from_le_bytes(b)), Err(_) => None };
+        }
         Ok(rc)
     }
 
@@ -160,5 +196,6 @@ impl Drop for Link {
         let _ = self.send(BYE, &[]);
         let _ = self.recv();
         if let Some(c) = self.child.as_mut() { let _ = c.wait(); }
+        if let Some((_, p)) = self.counts.take() { let _ = std::fs::remove_file(p); }
     }
 }

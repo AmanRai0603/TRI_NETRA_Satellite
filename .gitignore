@@ -17,3 +17,5 @@ fsw-rs/target/
 matlab_sils/store/results_engine/**/channels.csv
 matlab_sils/store/solutions_engine/**/channels.csv
 .claude/
+matlab_sils/store/pipeline/cache/
+matlab_sils/store/pipeline/**/channels.csv

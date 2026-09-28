@@ -2,10 +2,13 @@
 //!
 //!   adcs run <scenario> [--case F] [--fsw c|rust] [--seed N] [--out DIR] [--set k=v]... [--alg slot=id]... [--quiet]
 //!   adcs params <scenario> [--case F] [--set k=v]... --out blob.bin     the adcs-fswcfg/1 blob (OILS / OBC upload)
+//!   adcs size <case> [--knobs k.json] [--out DIR]                        demand survey + every actuator option sized (adcs-design)
 //!   adcs parity <scenario> [--fsw A --against B] ...                  two flight-software targets, same loop, same bytes
 //!
 //! --fsw: c | rust (in-process) | obc-posix | obc-posix-rs (virtual OBC process) | qemu | qemu-rs
 //! (virtual Cortex-M4 OBC in QEMU) | spawn:<cmd> | tcp:<host:port> (a real OBC); --realtime paces ticks to wall time.
+//! --oils: soft OILS -- each command lands after the OBC's execution (exact QEMU instruction count x
+//! --cpi / --obc-mhz) plus its bus time (--i2c-khz, --can-kbps), inside the control period (docs/SOFT_OILS.md).
 //!
 //! Scenario ids are matlab_sils/data/scenarios/*.json (or a path); the case defaults to
 //! cases/<scenario.case>.csv. Overrides: `--set fsw.rw_bandwidth=0.5` edits the scenario,
@@ -16,17 +19,24 @@ use adcs_sim::{config::Config, data_root, metrics, rec, run};
 use std::path::PathBuf;
 use std::process::ExitCode;
 
-struct Args { cmd: String, scenario: String, case: Option<String>, fsw: Impl, fsw_b: Option<Impl>, seed: u64, out: Option<PathBuf>, set: Vec<(String, String)>, quiet: bool, realtime: bool }
+struct Args { cmd: String, scenario: String, case: Option<String>, fsw: Impl, fsw_b: Option<Impl>, seed: u64, out: Option<PathBuf>, set: Vec<(String, String)>, quiet: bool, realtime: bool,
+    oils: Option<run::OilsModel> }
 
 fn parse() -> Result<Args, String> {
     let mut it = std::env::args().skip(1);
     let cmd = it.next().ok_or_else(usage)?;
     if cmd == "-h" || cmd == "--help" { return Err(usage()); }
     let scenario = it.next().ok_or_else(usage)?;
-    let mut a = Args { cmd, scenario, case: None, fsw: Impl::C, fsw_b: None, seed: 1, out: None, set: vec![], quiet: false, realtime: false };
+    let mut a = Args { cmd, scenario, case: None, fsw: Impl::C, fsw_b: None, seed: 1, out: None, set: vec![], quiet: false, realtime: false, oils: None };
     while let Some(k) = it.next() {
         let mut val = || it.next().ok_or(format!("{k} needs a value"));
+        let num = |s: String| s.parse::<f64>().map_err(|_| format!("{k}: not a number"));
         match k.as_str() {
+            "--oils" => { a.oils.get_or_insert_with(Default::default); }
+            "--obc-mhz" => { let x = num(val()?)?; a.oils.get_or_insert_with(Default::default).cpu_hz = x*1e6; }
+            "--cpi" => { let x = num(val()?)?; a.oils.get_or_insert_with(Default::default).cpi = x; }
+            "--i2c-khz" => { let x = num(val()?)?; a.oils.get_or_insert_with(Default::default).i2c_hz = x*1e3; }
+            "--can-kbps" => { let x = num(val()?)?; a.oils.get_or_insert_with(Default::default).can_bps = x*1e3; }
             "--case" => a.case = Some(val()?),
             "--fsw" => a.fsw = val()?.parse()?,
             "--against" => a.fsw_b = Some(val()?.parse()?),
@@ -35,6 +45,7 @@ fn parse() -> Result<Args, String> {
             "--out" => a.out = Some(val()?.into()),
             "--set" => { let s = val()?; let (k, v) = s.split_once('=').ok_or("--set k=v")?; a.set.push((k.into(), v.into())); }
             "--alg" => { let s = val()?; let (k, v) = s.split_once('=').ok_or("--alg slot=id")?; a.set.push((format!("fsw.algorithms.{k}"), format!("\"{v}\""))); }
+            "--knobs" => { let f = val()?; a.set.push(("knobs".into(), f)); }
             "--quiet" | "-q" => a.quiet = true,
             _ => return Err(format!("unknown option {k}\n{}", usage())),
         }
@@ -43,7 +54,7 @@ fn parse() -> Result<Args, String> {
 }
 
 fn usage() -> String {
-    "usage: adcs run|params|parity <scenario> [--case F] [--fsw c|rust|obc-posix|obc-posix-rs|qemu|qemu-rs|spawn:<cmd>|tcp:<host:port>] [--against <fsw>] [--realtime] [--seed N] [--out DIR] [--set k=v]... [--alg slot=id]... [--quiet]".into()
+    "usage: adcs run|params|parity <scenario> [--case F] [--fsw c|rust|obc-posix|obc-posix-rs|qemu|qemu-rs|spawn:<cmd>|tcp:<host:port>] [--against <fsw>] [--realtime] [--oils [--obc-mhz F] [--cpi C] [--i2c-khz K] [--can-kbps B]] [--seed N] [--out DIR] [--set k=v]... [--alg slot=id]... [--quiet]".into()
 }
 
 fn config(a: &Args) -> Result<Config, String> {
@@ -71,6 +82,25 @@ fn print_metrics(ms: &[serde_json::Value]) {
 fn main() -> ExitCode {
     let a = match parse() { Ok(a) => a, Err(e) => { eprintln!("{e}"); return ExitCode::from(2); } };
     let r = (|| -> Result<(), String> {
+        if a.cmd == "size" {
+            // adcs size <case> [--out DIR] [--knobs knobs.json]: demand survey + every option sized (adcs-design)
+            let root = data_root();
+            let case_file = root.join("cases").join(format!("{}.csv", a.scenario));
+            let knobs = match a.set.iter().find(|(k, _)| k == "knobs") {
+                Some((_, f)) => adcs_design::Knobs::from_json(&adcs_sim::json::read(std::path::Path::new(f))?),
+                None => adcs_design::Knobs::default(),
+            };
+            let out = a.out.clone().unwrap_or_else(|| root.join("store/design").join(&a.scenario).join("sized"));
+            let z = adcs_design::size_all(&root, &case_file, &knobs, &out)?;
+            let d = &z["demand"];
+            println!("[size] {} ({} class): tau_dist {:.3e} N m, h_req {:.3e} N m s, tau_req {:.3e} N m, B_min {:.3e} T -> {}",
+                a.scenario, z["class"].as_str().unwrap_or(""), d["tau_dist"].as_f64().unwrap_or(0.0), d["h_req"].as_f64().unwrap_or(0.0),
+                d["tau_req"].as_f64().unwrap_or(0.0), d["B_min"].as_f64().unwrap_or(0.0), out.display());
+            if let Some(f) = z["families"].as_object() {
+                for (k, v) in f { println!("  {:<15} {:>7.3} kg {:>7.3} W {:>7.3} L", k, v["mass_kg"].as_f64().unwrap_or(0.0), v["power_W"].as_f64().unwrap_or(0.0), v["volume_L"].as_f64().unwrap_or(0.0)); }
+            }
+            return Ok(());
+        }
         let c = config(&a)?;
         match a.cmd.as_str() {
             "params" => {
@@ -80,19 +110,26 @@ fn main() -> ExitCode {
             }
             "run" => {
                 if !a.quiet { eprintln!("[adcs] {} on {} ({}), fsw {:?}, seed {}, {:.0} s", c.id, c.case.id, c.dev.id, a.fsw, a.seed, c.duration_s); }
-                let r = run::run(&c, &run::Opts { fsw: a.fsw.clone(), quiet: a.quiet, realtime: a.realtime })?;
+                let r = run::run(&c, &run::Opts { fsw: a.fsw.clone(), quiet: a.quiet, realtime: a.realtime, oils: a.oils.clone() })?;
                 let d = metrics::derive(&c, &r);
                 let ms = metrics::evaluate(&c, &r, &d);
                 let out = a.out.clone().unwrap_or_else(|| data_root().join("store/results_engine").join(&c.id));
                 rec::write(&out, &c, &r, &d, &ms)?;
                 println!("[adcs] {} done in {:.1} s wall ({:.0}x real time), fsw {} -> {}", c.id, r.wall_s, c.duration_s/r.wall_s.max(1e-9), r.fsw_build, out.display());
                 print_metrics(&ms);
+                if let Some(s) = &r.oils {
+                    let j = s.json(c.dt);
+                    let ms_ = |k: &str, q: &str| j[k][q].as_f64().unwrap_or(f64::NAN)*1e3;
+                    println!("  soft OILS: latency mean {:.3} ms, max {:.3} ms (exec max {:.3} ms, bus {:.3} ms) in a {:.0} ms period; CPU load max {:.1} %; overruns {}",
+                        ms_("latency_s", "mean"), ms_("latency_s", "max"), ms_("exec_s", "max"), ms_("bus_s", "max"), c.dt*1e3,
+                        j["cpu_load_max"].as_f64().unwrap_or(f64::NAN)*100.0, s.overruns);
+                }
             }
             "parity" => {
                 // default: C vs Rust in-process; --fsw A --against B compares any two (e.g. c vs qemu)
                 let (ia, ib) = match &a.fsw_b { Some(b) => (a.fsw.clone(), b.clone()), None => (Impl::C, Impl::Rust) };
-                let rc = run::run(&c, &run::Opts { fsw: ia, quiet: true, realtime: false })?;
-                let rr = run::run(&c, &run::Opts { fsw: ib, quiet: true, realtime: false })?;
+                let rc = run::run(&c, &run::Opts { fsw: ia, quiet: true, realtime: false, oils: None })?;
+                let rr = run::run(&c, &run::Opts { fsw: ib, quiet: true, realtime: false, oils: None })?;
                 let mut dq: f64 = 0.0;
                 let mut dw: f64 = 0.0;
                 let mut first = None;

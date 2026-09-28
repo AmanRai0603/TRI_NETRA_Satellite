@@ -1,0 +1,1505 @@
+{
+ "schema": "adcs-campaign-result/1",
+ "owner": "Agastya",
+ "id": "edge_fine_img",
+ "scenario": "fine_hold_img",
+ "case": "ais_img_3u",
+ "type": "edge",
+ "runs": 15,
+ "engine": true,
+ "fsw": "c",
+ "stats": [
+  {
+   "id": "ape_los_p9973",
+   "unit": "deg",
+   "req": 0.01,
+   "values": [
+    0.01625612481618302,
+    0.015402444325153947,
+    0.01962285083922737,
+    0.013143816031085236,
+    0.018305338454970906,
+    0.01910987119948889,
+    0.016318569448384317,
+    0.016613877224765546,
+    0.018009154132235417,
+    0.02001070473122168,
+    0.012407111884827718,
+    0.016317603257914825,
+    0.021683424899764374,
+    0.008576216333281424,
+    0.01201741753183786
+   ],
+   "mean": 0.0162529683406895,
+   "std": 0.0035113778767391106,
+   "min": 0.008576216333281424,
+   "max": 0.021683424899764374,
+   "n_valid": 15,
+   "pass_rate": 0.06666666666666667,
+   "pass": false
+  },
+  {
+   "id": "ape_los_max",
+   "unit": "deg",
+   "req": null,
+   "values": [
+    0.018281806202172034,
+    0.017936832241655386,
+    0.023554659587528632,
+    0.015299815121861791,
+    0.02100119425877931,
+    0.02107938626383423,
+    0.01917712498627307,
+    0.0193855841826388,
+    0.019620525263946337,
+    0.023182056697060686,
+    0.01529804503351092,
+    0.019003987694082198,
+    0.024462702590558414,
+    0.010974326162588303,
+    0.015064479469729688
+   ],
+   "mean": 0.018888168383747985,
+   "std": 0.0036422473227829683,
+   "min": 0.010974326162588303,
+   "max": 0.024462702590558414,
+   "n_valid": 15,
+   "pass_rate": null,
+   "pass": null
+  },
+  {
+   "id": "ape_3ax_p9973",
+   "unit": "deg",
+   "req": null,
+   "values": [
+    0.01656730759030012,
+    0.015692719994887746,
+    0.019820328577620706,
+    0.013215030747500987,
+    0.018338624371546354,
+    0.01974779560964481,
+    0.016335547459905696,
+    0.016678585650535146,
+    0.018116554622954757,
+    0.020052939762816118,
+    0.01257836720716401,
+    0.016349652186321513,
+    0.021878973539830416,
+    0.008714406003970778,
+    0.012037040204886313
+   ],
+   "mean": 0.0164082582353257,
+   "std": 0.0035500354088287248,
+   "min": 0.008714406003970778,
+   "max": 0.021878973539830416,
+   "n_valid": 15,
+   "pass_rate": null,
+   "pass": null
+  },
+  {
+   "id": "ake_los_p9973",
+   "unit": "deg",
+   "req": 0.005,
+   "values": [
+    0.002364838339094933,
+    0.00260238470497854,
+    0.00255391627131207,
+    0.0031701574331881683,
+    0.0024966947277509084,
+    0.0029396662766856194,
+    0.002890786665676189,
+    0.002489063404905133,
+    0.0025656058597994208,
+    0.002327058706766394,
+    0.0026030350172485733,
+    0.0025462551946219213,
+    0.0037137380278431343,
+    0.002845418530880408,
+    0.0029774650550222362
+   ],
+   "mean": 0.002739072281051577,
+   "std": 0.0003622353736912383,
+   "min": 0.002327058706766394,
+   "max": 0.0037137380278431343,
+   "n_valid": 15,
+   "pass_rate": 1.0,
+   "pass": true
+  },
+  {
+   "id": "rate_stability_p9973",
+   "unit": "deg/s",
+   "req": 0.001,
+   "values": [
+    0.0037919374262261212,
+    0.0036341979130290036,
+    0.0037968708932367813,
+    0.0037748898460709833,
+    0.0036303581599665307,
+    0.00395434444769118,
+    0.003811415673100686,
+    0.0039516251197386516,
+    0.003759424682203038,
+    0.003942828289843714,
+    0.003565326164918776,
+    0.0038977177039603217,
+    0.003905812755743716,
+    0.0037994918541854094,
+    0.0036110326966578787
+   ],
+   "mean": 0.003788484908438186,
+   "std": 0.0001296974005084001,
+   "min": 0.003565326164918776,
+   "max": 0.00395434444769118,
+   "n_valid": 15,
+   "pass_rate": 0.0,
+   "pass": false
+  },
+  {
+   "id": "time_to_0p01_deg",
+   "unit": "s",
+   "req": null,
+   "values": [
+    81.60000000000001,
+    83.60000000000001,
+    68.60000000000001,
+    67.9,
+    85.80000000000001,
+    83.30000000000001,
+    83.5,
+    81.2,
+    85.30000000000001,
+    80.7,
+    88.9,
+    83.30000000000001,
+    59.900000000000006,
+    69.8,
+    71.2
+   ],
+   "mean": 78.30666666666667,
+   "std": 8.499030757064233,
+   "min": 59.900000000000006,
+   "max": 88.9,
+   "n_valid": 15,
+   "pass_rate": null,
+   "pass": null
+  },
+  {
+   "id": "wheel_momentum_peak",
+   "unit": "N m s",
+   "req": null,
+   "values": [
+    0.00328440901319203,
+    0.003299614757132161,
+    0.0033118868551476953,
+    0.0033120449020584905,
+    0.0031918695489485827,
+    0.003271456753349908,
+    0.00329216013163913,
+    0.0032997298398981445,
+    0.0032449536750754977,
+    0.0032685596346174388,
+    0.003257773826452951,
+    0.0032624721306893745,
+    0.003311714695457629,
+    0.0033131591358249836,
+    0.0030015366958989517
+   ],
+   "mean": 0.0032615561063588645,
+   "std": 7.907039531116816e-05,
+   "min": 0.0030015366958989517,
+   "max": 0.0033131591358249836,
+   "n_valid": 15,
+   "pass_rate": null,
+   "pass": null
+  },
+  {
+   "id": "power_mean",
+   "unit": "W",
+   "req": 2.0,
+   "values": [
+    1.5567838744917077,
+    1.5565480741961826,
+    1.5561322447073593,
+    1.5598796795857037,
+    1.5573178933948457,
+    1.5563657218166362,
+    1.5570317180672115,
+    1.5569130105833957,
+    1.5576762670068556,
+    1.556616623998598,
+    1.5570125244984132,
+    1.5564252530131557,
+    1.5571250028125703,
+    1.556628507290191,
+    1.5543646119732093
+   ],
+   "mean": 1.556854733829069,
+   "std": 0.0011188518674302656,
+   "min": 1.5543646119732093,
+   "max": 1.5598796795857037,
+   "n_valid": 15,
+   "pass_rate": 1.0,
+   "pass": true
+  }
+ ],
+ "per_run": [
+  {
+   "k": 1,
+   "metrics": [
+    {
+     "id": "ape_los_p9973",
+     "kind": "ape_los",
+     "value": 0.01625612481618302,
+     "unit": "deg",
+     "req": 0.01,
+     "req_key": "req.ape",
+     "pass": 0
+    },
+    {
+     "id": "ape_los_max",
+     "kind": "ape_los",
+     "value": 0.018281806202172034,
+     "unit": "deg",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    },
+    {
+     "id": "ape_3ax_p9973",
+     "kind": "ape",
+     "value": 0.01656730759030012,
+     "unit": "deg",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    },
+    {
+     "id": "ake_los_p9973",
+     "kind": "ake_los",
+     "value": 0.002364838339094933,
+     "unit": "deg",
+     "req": 0.005,
+     "req_key": "req.ake",
+     "pass": 1
+    },
+    {
+     "id": "rate_stability_p9973",
+     "kind": "rate_stability",
+     "value": 0.0037919374262261212,
+     "unit": "deg/s",
+     "req": 0.001,
+     "req_key": "req.rks",
+     "pass": 0
+    },
+    {
+     "id": "time_to_0p01_deg",
+     "kind": "time_to_threshold",
+     "value": 81.60000000000001,
+     "unit": "s",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    },
+    {
+     "id": "wheel_momentum_peak",
+     "kind": "wheel_momentum_peak",
+     "value": 0.00328440901319203,
+     "unit": "N m s",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    },
+    {
+     "id": "power_mean",
+     "kind": "power_mean",
+     "value": 1.5567838744917077,
+     "unit": "W",
+     "req": 2.0,
+     "req_key": "req.pavg",
+     "pass": 1
+    }
+   ],
+   "draws": {
+    "edge_case": 1,
+    "edge_high": 0,
+    "inertia_scale_x": 0.9,
+    "inertia_scale_y": 1.1,
+    "inertia_scale_z": 0.9
+   },
+   "wall_s": 1.311147691
+  },
+  {
+   "k": 2,
+   "metrics": [
+    {
+     "id": "ape_los_p9973",
+     "kind": "ape_los",
+     "value": 0.015402444325153947,
+     "unit": "deg",
+     "req": 0.01,
+     "req_key": "req.ape",
+     "pass": 0
+    },
+    {
+     "id": "ape_los_max",
+     "kind": "ape_los",
+     "value": 0.017936832241655386,
+     "unit": "deg",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    },
+    {
+     "id": "ape_3ax_p9973",
+     "kind": "ape",
+     "value": 0.015692719994887746,
+     "unit": "deg",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    },
+    {
+     "id": "ake_los_p9973",
+     "kind": "ake_los",
+     "value": 0.00260238470497854,
+     "unit": "deg",
+     "req": 0.005,
+     "req_key": "req.ake",
+     "pass": 1
+    },
+    {
+     "id": "rate_stability_p9973",
+     "kind": "rate_stability",
+     "value": 0.0036341979130290036,
+     "unit": "deg/s",
+     "req": 0.001,
+     "req_key": "req.rks",
+     "pass": 0
+    },
+    {
+     "id": "time_to_0p01_deg",
+     "kind": "time_to_threshold",
+     "value": 83.60000000000001,
+     "unit": "s",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    },
+    {
+     "id": "wheel_momentum_peak",
+     "kind": "wheel_momentum_peak",
+     "value": 0.003299614757132161,
+     "unit": "N m s",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    },
+    {
+     "id": "power_mean",
+     "kind": "power_mean",
+     "value": 1.5565480741961826,
+     "unit": "W",
+     "req": 2.0,
+     "req_key": "req.pavg",
+     "pass": 1
+    }
+   ],
+   "draws": {
+    "edge_case": 1,
+    "edge_high": 1,
+    "inertia_scale_x": 1.1,
+    "inertia_scale_y": 0.8999999999999999,
+    "inertia_scale_z": 1.1
+   },
+   "wall_s": 1.312959078
+  },
+  {
+   "k": 3,
+   "metrics": [
+    {
+     "id": "ape_los_p9973",
+     "kind": "ape_los",
+     "value": 0.01962285083922737,
+     "unit": "deg",
+     "req": 0.01,
+     "req_key": "req.ape",
+     "pass": 0
+    },
+    {
+     "id": "ape_los_max",
+     "kind": "ape_los",
+     "value": 0.023554659587528632,
+     "unit": "deg",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    },
+    {
+     "id": "ape_3ax_p9973",
+     "kind": "ape",
+     "value": 0.019820328577620706,
+     "unit": "deg",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    },
+    {
+     "id": "ake_los_p9973",
+     "kind": "ake_los",
+     "value": 0.00255391627131207,
+     "unit": "deg",
+     "req": 0.005,
+     "req_key": "req.ake",
+     "pass": 1
+    },
+    {
+     "id": "rate_stability_p9973",
+     "kind": "rate_stability",
+     "value": 0.0037968708932367813,
+     "unit": "deg/s",
+     "req": 0.001,
+     "req_key": "req.rks",
+     "pass": 0
+    },
+    {
+     "id": "time_to_0p01_deg",
+     "kind": "time_to_threshold",
+     "value": 68.60000000000001,
+     "unit": "s",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    },
+    {
+     "id": "wheel_momentum_peak",
+     "kind": "wheel_momentum_peak",
+     "value": 0.0033118868551476953,
+     "unit": "N m s",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    },
+    {
+     "id": "power_mean",
+     "kind": "power_mean",
+     "value": 1.5561322447073593,
+     "unit": "W",
+     "req": 2.0,
+     "req_key": "req.pavg",
+     "pass": 1
+    }
+   ],
+   "draws": {
+    "edge_case": 2,
+    "edge_high": 0,
+    "residual_dipole_Am2": 0.005
+   },
+   "wall_s": 1.293667747
+  },
+  {
+   "k": 4,
+   "metrics": [
+    {
+     "id": "ape_los_p9973",
+     "kind": "ape_los",
+     "value": 0.013143816031085236,
+     "unit": "deg",
+     "req": 0.01,
+     "req_key": "req.ape",
+     "pass": 0
+    },
+    {
+     "id": "ape_los_max",
+     "kind": "ape_los",
+     "value": 0.015299815121861791,
+     "unit": "deg",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    },
+    {
+     "id": "ape_3ax_p9973",
+     "kind": "ape",
+     "value": 0.013215030747500987,
+     "unit": "deg",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    },
+    {
+     "id": "ake_los_p9973",
+     "kind": "ake_los",
+     "value": 0.0031701574331881683,
+     "unit": "deg",
+     "req": 0.005,
+     "req_key": "req.ake",
+     "pass": 1
+    },
+    {
+     "id": "rate_stability_p9973",
+     "kind": "rate_stability",
+     "value": 0.0037748898460709833,
+     "unit": "deg/s",
+     "req": 0.001,
+     "req_key": "req.rks",
+     "pass": 0
+    },
+    {
+     "id": "time_to_0p01_deg",
+     "kind": "time_to_threshold",
+     "value": 67.9,
+     "unit": "s",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    },
+    {
+     "id": "wheel_momentum_peak",
+     "kind": "wheel_momentum_peak",
+     "value": 0.0033120449020584905,
+     "unit": "N m s",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    },
+    {
+     "id": "power_mean",
+     "kind": "power_mean",
+     "value": 1.5598796795857037,
+     "unit": "W",
+     "req": 2.0,
+     "req_key": "req.pavg",
+     "pass": 1
+    }
+   ],
+   "draws": {
+    "edge_case": 2,
+    "edge_high": 1,
+    "residual_dipole_Am2": 0.02
+   },
+   "wall_s": 1.411084534
+  },
+  {
+   "k": 5,
+   "metrics": [
+    {
+     "id": "ape_los_p9973",
+     "kind": "ape_los",
+     "value": 0.018305338454970906,
+     "unit": "deg",
+     "req": 0.01,
+     "req_key": "req.ape",
+     "pass": 0
+    },
+    {
+     "id": "ape_los_max",
+     "kind": "ape_los",
+     "value": 0.02100119425877931,
+     "unit": "deg",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    },
+    {
+     "id": "ape_3ax_p9973",
+     "kind": "ape",
+     "value": 0.018338624371546354,
+     "unit": "deg",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    },
+    {
+     "id": "ake_los_p9973",
+     "kind": "ake_los",
+     "value": 0.0024966947277509084,
+     "unit": "deg",
+     "req": 0.005,
+     "req_key": "req.ake",
+     "pass": 1
+    },
+    {
+     "id": "rate_stability_p9973",
+     "kind": "rate_stability",
+     "value": 0.0036303581599665307,
+     "unit": "deg/s",
+     "req": 0.001,
+     "req_key": "req.rks",
+     "pass": 0
+    },
+    {
+     "id": "time_to_0p01_deg",
+     "kind": "time_to_threshold",
+     "value": 85.80000000000001,
+     "unit": "s",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    },
+    {
+     "id": "wheel_momentum_peak",
+     "kind": "wheel_momentum_peak",
+     "value": 0.0031918695489485827,
+     "unit": "N m s",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    },
+    {
+     "id": "power_mean",
+     "kind": "power_mean",
+     "value": 1.5573178933948457,
+     "unit": "W",
+     "req": 2.0,
+     "req_key": "req.pavg",
+     "pass": 1
+    }
+   ],
+   "draws": {
+    "edge_case": 3,
+    "edge_high": 0,
+    "cm_offset_mm": 10.0
+   },
+   "wall_s": 1.186160216
+  },
+  {
+   "k": 6,
+   "metrics": [
+    {
+     "id": "ape_los_p9973",
+     "kind": "ape_los",
+     "value": 0.01910987119948889,
+     "unit": "deg",
+     "req": 0.01,
+     "req_key": "req.ape",
+     "pass": 0
+    },
+    {
+     "id": "ape_los_max",
+     "kind": "ape_los",
+     "value": 0.02107938626383423,
+     "unit": "deg",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    },
+    {
+     "id": "ape_3ax_p9973",
+     "kind": "ape",
+     "value": 0.01974779560964481,
+     "unit": "deg",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    },
+    {
+     "id": "ake_los_p9973",
+     "kind": "ake_los",
+     "value": 0.0029396662766856194,
+     "unit": "deg",
+     "req": 0.005,
+     "req_key": "req.ake",
+     "pass": 1
+    },
+    {
+     "id": "rate_stability_p9973",
+     "kind": "rate_stability",
+     "value": 0.00395434444769118,
+     "unit": "deg/s",
+     "req": 0.001,
+     "req_key": "req.rks",
+     "pass": 0
+    },
+    {
+     "id": "time_to_0p01_deg",
+     "kind": "time_to_threshold",
+     "value": 83.30000000000001,
+     "unit": "s",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    },
+    {
+     "id": "wheel_momentum_peak",
+     "kind": "wheel_momentum_peak",
+     "value": 0.003271456753349908,
+     "unit": "N m s",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    },
+    {
+     "id": "power_mean",
+     "kind": "power_mean",
+     "value": 1.5563657218166362,
+     "unit": "W",
+     "req": 2.0,
+     "req_key": "req.pavg",
+     "pass": 1
+    }
+   ],
+   "draws": {
+    "edge_case": 3,
+    "edge_high": 1,
+    "cm_offset_mm": 30.0
+   },
+   "wall_s": 1.477010172
+  },
+  {
+   "k": 7,
+   "metrics": [
+    {
+     "id": "ape_los_p9973",
+     "kind": "ape_los",
+     "value": 0.016318569448384317,
+     "unit": "deg",
+     "req": 0.01,
+     "req_key": "req.ape",
+     "pass": 0
+    },
+    {
+     "id": "ape_los_max",
+     "kind": "ape_los",
+     "value": 0.01917712498627307,
+     "unit": "deg",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    },
+    {
+     "id": "ape_3ax_p9973",
+     "kind": "ape",
+     "value": 0.016335547459905696,
+     "unit": "deg",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    },
+    {
+     "id": "ake_los_p9973",
+     "kind": "ake_los",
+     "value": 0.002890786665676189,
+     "unit": "deg",
+     "req": 0.005,
+     "req_key": "req.ake",
+     "pass": 1
+    },
+    {
+     "id": "rate_stability_p9973",
+     "kind": "rate_stability",
+     "value": 0.003811415673100686,
+     "unit": "deg/s",
+     "req": 0.001,
+     "req_key": "req.rks",
+     "pass": 0
+    },
+    {
+     "id": "time_to_0p01_deg",
+     "kind": "time_to_threshold",
+     "value": 83.5,
+     "unit": "s",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    },
+    {
+     "id": "wheel_momentum_peak",
+     "kind": "wheel_momentum_peak",
+     "value": 0.00329216013163913,
+     "unit": "N m s",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    },
+    {
+     "id": "power_mean",
+     "kind": "power_mean",
+     "value": 1.5570317180672115,
+     "unit": "W",
+     "req": 2.0,
+     "req_key": "req.pavg",
+     "pass": 1
+    }
+   ],
+   "draws": {
+    "edge_case": 4,
+    "edge_high": 0,
+    "F107": 70.0
+   },
+   "wall_s": 1.229418113
+  },
+  {
+   "k": 8,
+   "metrics": [
+    {
+     "id": "ape_los_p9973",
+     "kind": "ape_los",
+     "value": 0.016613877224765546,
+     "unit": "deg",
+     "req": 0.01,
+     "req_key": "req.ape",
+     "pass": 0
+    },
+    {
+     "id": "ape_los_max",
+     "kind": "ape_los",
+     "value": 0.0193855841826388,
+     "unit": "deg",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    },
+    {
+     "id": "ape_3ax_p9973",
+     "kind": "ape",
+     "value": 0.016678585650535146,
+     "unit": "deg",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    },
+    {
+     "id": "ake_los_p9973",
+     "kind": "ake_los",
+     "value": 0.002489063404905133,
+     "unit": "deg",
+     "req": 0.005,
+     "req_key": "req.ake",
+     "pass": 1
+    },
+    {
+     "id": "rate_stability_p9973",
+     "kind": "rate_stability",
+     "value": 0.0039516251197386516,
+     "unit": "deg/s",
+     "req": 0.001,
+     "req_key": "req.rks",
+     "pass": 0
+    },
+    {
+     "id": "time_to_0p01_deg",
+     "kind": "time_to_threshold",
+     "value": 81.2,
+     "unit": "s",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    },
+    {
+     "id": "wheel_momentum_peak",
+     "kind": "wheel_momentum_peak",
+     "value": 0.0032997298398981445,
+     "unit": "N m s",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    },
+    {
+     "id": "power_mean",
+     "kind": "power_mean",
+     "value": 1.5569130105833957,
+     "unit": "W",
+     "req": 2.0,
+     "req_key": "req.pavg",
+     "pass": 1
+    }
+   ],
+   "draws": {
+    "edge_case": 4,
+    "edge_high": 1,
+    "F107": 220.0
+   },
+   "wall_s": 1.14342093
+  },
+  {
+   "k": 9,
+   "metrics": [
+    {
+     "id": "ape_los_p9973",
+     "kind": "ape_los",
+     "value": 0.018009154132235417,
+     "unit": "deg",
+     "req": 0.01,
+     "req_key": "req.ape",
+     "pass": 0
+    },
+    {
+     "id": "ape_los_max",
+     "kind": "ape_los",
+     "value": 0.019620525263946337,
+     "unit": "deg",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    },
+    {
+     "id": "ape_3ax_p9973",
+     "kind": "ape",
+     "value": 0.018116554622954757,
+     "unit": "deg",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    },
+    {
+     "id": "ake_los_p9973",
+     "kind": "ake_los",
+     "value": 0.0025656058597994208,
+     "unit": "deg",
+     "req": 0.005,
+     "req_key": "req.ake",
+     "pass": 1
+    },
+    {
+     "id": "rate_stability_p9973",
+     "kind": "rate_stability",
+     "value": 0.003759424682203038,
+     "unit": "deg/s",
+     "req": 0.001,
+     "req_key": "req.rks",
+     "pass": 0
+    },
+    {
+     "id": "time_to_0p01_deg",
+     "kind": "time_to_threshold",
+     "value": 85.30000000000001,
+     "unit": "s",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    },
+    {
+     "id": "wheel_momentum_peak",
+     "kind": "wheel_momentum_peak",
+     "value": 0.0032449536750754977,
+     "unit": "N m s",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    },
+    {
+     "id": "power_mean",
+     "kind": "power_mean",
+     "value": 1.5576762670068556,
+     "unit": "W",
+     "req": 2.0,
+     "req_key": "req.pavg",
+     "pass": 1
+    }
+   ],
+   "draws": {
+    "edge_case": 5,
+    "edge_high": 0,
+    "sigma_accom": 0.7
+   },
+   "wall_s": 1.360541735
+  },
+  {
+   "k": 10,
+   "metrics": [
+    {
+     "id": "ape_los_p9973",
+     "kind": "ape_los",
+     "value": 0.02001070473122168,
+     "unit": "deg",
+     "req": 0.01,
+     "req_key": "req.ape",
+     "pass": 0
+    },
+    {
+     "id": "ape_los_max",
+     "kind": "ape_los",
+     "value": 0.023182056697060686,
+     "unit": "deg",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    },
+    {
+     "id": "ape_3ax_p9973",
+     "kind": "ape",
+     "value": 0.020052939762816118,
+     "unit": "deg",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    },
+    {
+     "id": "ake_los_p9973",
+     "kind": "ake_los",
+     "value": 0.002327058706766394,
+     "unit": "deg",
+     "req": 0.005,
+     "req_key": "req.ake",
+     "pass": 1
+    },
+    {
+     "id": "rate_stability_p9973",
+     "kind": "rate_stability",
+     "value": 0.003942828289843714,
+     "unit": "deg/s",
+     "req": 0.001,
+     "req_key": "req.rks",
+     "pass": 0
+    },
+    {
+     "id": "time_to_0p01_deg",
+     "kind": "time_to_threshold",
+     "value": 80.7,
+     "unit": "s",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    },
+    {
+     "id": "wheel_momentum_peak",
+     "kind": "wheel_momentum_peak",
+     "value": 0.0032685596346174388,
+     "unit": "N m s",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    },
+    {
+     "id": "power_mean",
+     "kind": "power_mean",
+     "value": 1.556616623998598,
+     "unit": "W",
+     "req": 2.0,
+     "req_key": "req.pavg",
+     "pass": 1
+    }
+   ],
+   "draws": {
+    "edge_case": 5,
+    "edge_high": 1,
+    "sigma_accom": 1.0
+   },
+   "wall_s": 1.1941291920000001
+  },
+  {
+   "k": 11,
+   "metrics": [
+    {
+     "id": "ape_los_p9973",
+     "kind": "ape_los",
+     "value": 0.012407111884827718,
+     "unit": "deg",
+     "req": 0.01,
+     "req_key": "req.ape",
+     "pass": 0
+    },
+    {
+     "id": "ape_los_max",
+     "kind": "ape_los",
+     "value": 0.01529804503351092,
+     "unit": "deg",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    },
+    {
+     "id": "ape_3ax_p9973",
+     "kind": "ape",
+     "value": 0.01257836720716401,
+     "unit": "deg",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    },
+    {
+     "id": "ake_los_p9973",
+     "kind": "ake_los",
+     "value": 0.0026030350172485733,
+     "unit": "deg",
+     "req": 0.005,
+     "req_key": "req.ake",
+     "pass": 1
+    },
+    {
+     "id": "rate_stability_p9973",
+     "kind": "rate_stability",
+     "value": 0.003565326164918776,
+     "unit": "deg/s",
+     "req": 0.001,
+     "req_key": "req.rks",
+     "pass": 0
+    },
+    {
+     "id": "time_to_0p01_deg",
+     "kind": "time_to_threshold",
+     "value": 88.9,
+     "unit": "s",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    },
+    {
+     "id": "wheel_momentum_peak",
+     "kind": "wheel_momentum_peak",
+     "value": 0.003257773826452951,
+     "unit": "N m s",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    },
+    {
+     "id": "power_mean",
+     "kind": "power_mean",
+     "value": 1.5570125244984132,
+     "unit": "W",
+     "req": 2.0,
+     "req_key": "req.pavg",
+     "pass": 1
+    }
+   ],
+   "draws": {
+    "edge_case": 6,
+    "edge_high": 0,
+    "reflectivity": 0.3
+   },
+   "wall_s": 1.569822678
+  },
+  {
+   "k": 12,
+   "metrics": [
+    {
+     "id": "ape_los_p9973",
+     "kind": "ape_los",
+     "value": 0.016317603257914825,
+     "unit": "deg",
+     "req": 0.01,
+     "req_key": "req.ape",
+     "pass": 0
+    },
+    {
+     "id": "ape_los_max",
+     "kind": "ape_los",
+     "value": 0.019003987694082198,
+     "unit": "deg",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    },
+    {
+     "id": "ape_3ax_p9973",
+     "kind": "ape",
+     "value": 0.016349652186321513,
+     "unit": "deg",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    },
+    {
+     "id": "ake_los_p9973",
+     "kind": "ake_los",
+     "value": 0.0025462551946219213,
+     "unit": "deg",
+     "req": 0.005,
+     "req_key": "req.ake",
+     "pass": 1
+    },
+    {
+     "id": "rate_stability_p9973",
+     "kind": "rate_stability",
+     "value": 0.0038977177039603217,
+     "unit": "deg/s",
+     "req": 0.001,
+     "req_key": "req.rks",
+     "pass": 0
+    },
+    {
+     "id": "time_to_0p01_deg",
+     "kind": "time_to_threshold",
+     "value": 83.30000000000001,
+     "unit": "s",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    },
+    {
+     "id": "wheel_momentum_peak",
+     "kind": "wheel_momentum_peak",
+     "value": 0.0032624721306893745,
+     "unit": "N m s",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    },
+    {
+     "id": "power_mean",
+     "kind": "power_mean",
+     "value": 1.5564252530131557,
+     "unit": "W",
+     "req": 2.0,
+     "req_key": "req.pavg",
+     "pass": 1
+    }
+   ],
+   "draws": {
+    "edge_case": 6,
+    "edge_high": 1,
+    "reflectivity": 0.9
+   },
+   "wall_s": 1.283262866
+  },
+  {
+   "k": 13,
+   "metrics": [
+    {
+     "id": "ape_los_p9973",
+     "kind": "ape_los",
+     "value": 0.021683424899764374,
+     "unit": "deg",
+     "req": 0.01,
+     "req_key": "req.ape",
+     "pass": 0
+    },
+    {
+     "id": "ape_los_max",
+     "kind": "ape_los",
+     "value": 0.024462702590558414,
+     "unit": "deg",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    },
+    {
+     "id": "ape_3ax_p9973",
+     "kind": "ape",
+     "value": 0.021878973539830416,
+     "unit": "deg",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    },
+    {
+     "id": "ake_los_p9973",
+     "kind": "ake_los",
+     "value": 0.0037137380278431343,
+     "unit": "deg",
+     "req": 0.005,
+     "req_key": "req.ake",
+     "pass": 1
+    },
+    {
+     "id": "rate_stability_p9973",
+     "kind": "rate_stability",
+     "value": 0.003905812755743716,
+     "unit": "deg/s",
+     "req": 0.001,
+     "req_key": "req.rks",
+     "pass": 0
+    },
+    {
+     "id": "time_to_0p01_deg",
+     "kind": "time_to_threshold",
+     "value": 59.900000000000006,
+     "unit": "s",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    },
+    {
+     "id": "wheel_momentum_peak",
+     "kind": "wheel_momentum_peak",
+     "value": 0.003311714695457629,
+     "unit": "N m s",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    },
+    {
+     "id": "power_mean",
+     "kind": "power_mean",
+     "value": 1.5571250028125703,
+     "unit": "W",
+     "req": 2.0,
+     "req_key": "req.pavg",
+     "pass": 1
+    }
+   ],
+   "draws": {
+    "edge_case": 7,
+    "edge_high": 0,
+    "initial_error_deg": 0.5
+   },
+   "wall_s": 1.273721401
+  },
+  {
+   "k": 14,
+   "metrics": [
+    {
+     "id": "ape_los_p9973",
+     "kind": "ape_los",
+     "value": 0.008576216333281424,
+     "unit": "deg",
+     "req": 0.01,
+     "req_key": "req.ape",
+     "pass": 1
+    },
+    {
+     "id": "ape_los_max",
+     "kind": "ape_los",
+     "value": 0.010974326162588303,
+     "unit": "deg",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    },
+    {
+     "id": "ape_3ax_p9973",
+     "kind": "ape",
+     "value": 0.008714406003970778,
+     "unit": "deg",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    },
+    {
+     "id": "ake_los_p9973",
+     "kind": "ake_los",
+     "value": 0.002845418530880408,
+     "unit": "deg",
+     "req": 0.005,
+     "req_key": "req.ake",
+     "pass": 1
+    },
+    {
+     "id": "rate_stability_p9973",
+     "kind": "rate_stability",
+     "value": 0.0037994918541854094,
+     "unit": "deg/s",
+     "req": 0.001,
+     "req_key": "req.rks",
+     "pass": 0
+    },
+    {
+     "id": "time_to_0p01_deg",
+     "kind": "time_to_threshold",
+     "value": 69.8,
+     "unit": "s",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    },
+    {
+     "id": "wheel_momentum_peak",
+     "kind": "wheel_momentum_peak",
+     "value": 0.0033131591358249836,
+     "unit": "N m s",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    },
+    {
+     "id": "power_mean",
+     "kind": "power_mean",
+     "value": 1.556628507290191,
+     "unit": "W",
+     "req": 2.0,
+     "req_key": "req.pavg",
+     "pass": 1
+    }
+   ],
+   "draws": {
+    "edge_case": 7,
+    "edge_high": 1,
+    "initial_error_deg": 3.0
+   },
+   "wall_s": 1.269425376
+  },
+  {
+   "k": 15,
+   "metrics": [
+    {
+     "id": "ape_los_p9973",
+     "kind": "ape_los",
+     "value": 0.01201741753183786,
+     "unit": "deg",
+     "req": 0.01,
+     "req_key": "req.ape",
+     "pass": 0
+    },
+    {
+     "id": "ape_los_max",
+     "kind": "ape_los",
+     "value": 0.015064479469729688,
+     "unit": "deg",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    },
+    {
+     "id": "ape_3ax_p9973",
+     "kind": "ape",
+     "value": 0.012037040204886313,
+     "unit": "deg",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    },
+    {
+     "id": "ake_los_p9973",
+     "kind": "ake_los",
+     "value": 0.0029774650550222362,
+     "unit": "deg",
+     "req": 0.005,
+     "req_key": "req.ake",
+     "pass": 1
+    },
+    {
+     "id": "rate_stability_p9973",
+     "kind": "rate_stability",
+     "value": 0.0036110326966578787,
+     "unit": "deg/s",
+     "req": 0.001,
+     "req_key": "req.rks",
+     "pass": 0
+    },
+    {
+     "id": "time_to_0p01_deg",
+     "kind": "time_to_threshold",
+     "value": 71.2,
+     "unit": "s",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    },
+    {
+     "id": "wheel_momentum_peak",
+     "kind": "wheel_momentum_peak",
+     "value": 0.0030015366958989517,
+     "unit": "N m s",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    },
+    {
+     "id": "power_mean",
+     "kind": "power_mean",
+     "value": 1.5543646119732093,
+     "unit": "W",
+     "req": 2.0,
+     "req_key": "req.pavg",
+     "pass": 1
+    }
+   ],
+   "draws": {
+    "edge_case": 0,
+    "edge_high": 1,
+    "inertia_scale_x": 1.1,
+    "inertia_scale_y": 0.8999999999999999,
+    "inertia_scale_z": 1.1,
+    "residual_dipole_Am2": 0.02,
+    "cm_offset_mm": 30.0,
+    "F107": 220.0,
+    "sigma_accom": 1.0,
+    "reflectivity": 0.9,
+    "initial_error_deg": 3.0
+   },
+   "wall_s": 1.1638340440000001
+  }
+ ],
+ "wall_s": 17.524494171142578
+}

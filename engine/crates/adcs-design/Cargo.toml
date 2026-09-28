@@ -1,0 +1,13 @@
+[package]
+name = "adcs-design"
+description = "TRI-NETRA ADCS design node: demand survey on the POP engine, parametric sizing of every actuator option, product assembly and budgets (port of matlab_sils/+asils/+sizing)"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+publish.workspace = true
+
+[dependencies]
+adcs-sim = { path = "../adcs-sim" }
+adcs-sim-core = { path = "../adcs-sim-core" }
+adcs-fsw = { path = "../../../fsw-rs" }
+serde_json = { version = "1", features = ["preserve_order", "float_roundtrip"] }

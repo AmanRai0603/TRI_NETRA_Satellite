@@ -81,6 +81,7 @@ pub fn write(dir: &Path, c: &Config, rec: &Record, d: &Derived, metrics: &[Value
                   "propagator": if c.orbit_model == "pop" { "POP v51 port (adcs-pop): degree-6 field, DE440 Sun/Moon (Battin), DTM2020 drag, conical SRP, RK4 10 s + Hermite" } else { "analytic (adcs-sim-core): J2-J6, Montenbruck-Gill Sun/Moon, exponential drag, SRP" }},
         "boresight_body": c.dev.boresight, "metrics": metrics,
         "mode_log": rec.mode_log.iter().map(|(t, m)| json!({"t": t, "mode": m})).collect::<Vec<_>>(),
+        "oils": rec.oils.as_ref().map(|s| s.json(c.dt)),
     });
     std::fs::write(dir.join("manifest.json"), serde_json::to_string(&man).unwrap() + "\n").map_err(|e| e.to_string())?;
     Ok(())
@@ -103,6 +104,8 @@ pub fn impl_label(i: &adcs_fsw_abi::Impl) -> String {
     match i {
         Impl::C => "c (in-process)".into(),
         Impl::Rust => "rust (in-process)".into(),
+        Impl::Obc(Target::Spawn(c)) if c[0].contains("qemu-system") => format!("virtual OBC: QEMU mps2-an386 Cortex-M4F, {}",
+            c.last().map(|x| x.rsplit('/').next().unwrap_or(x)).unwrap_or("?")),
         Impl::Obc(Target::Spawn(c)) => format!("virtual OBC: {}", c.iter().map(|x| x.rsplit('/').next().unwrap_or(x)).collect::<Vec<_>>().join(" ")),
         Impl::Obc(Target::Tcp(a)) => format!("OBC at tcp:{a}"),
     }
