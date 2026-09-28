@@ -12,7 +12,7 @@
  "feasible_options": 6,
  "options": 25,
  "changes": [
-  "mtqp: authority x1.5 -> x2.25 (performance)"
+  "mtqp: authority back to x1 (no improvement)"
  ],
  "blocked": [
   "detumble/rcs: power fails at the sized authority (rcs); the part's standby power is the floor",
@@ -30,7 +30,8 @@
   "sun_referencing/rw+mtq: power fails at the sized authority (rw); the part's standby power is the floor",
   "sun_referencing/rw+rcs: power fails at the sized authority (rw); the part's standby power is the floor",
   "sun_referencing/vscmg+mtq: performance and power both fail \u2014 no authority change helps",
-  "sun_referencing/vscmg+rcs: power fails at the sized authority (vscmg); the part's standby power is the floor"
+  "sun_referencing/vscmg+rcs: power fails at the sized authority (vscmg); the part's standby power is the floor",
+  "mtqp: more authority did not reduce the performance violation (39.9 -> 41); kept at x1"
  ],
  "families": {
   "mtq": {

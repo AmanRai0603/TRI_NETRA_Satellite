@@ -1,0 +1,10 @@
+{
+ "scale": {
+  "cmg": 1.0,
+  "fmr": 2.25,
+  "mtqp": 1.0,
+  "rw": 1.0,
+  "vscmg": 2.25
+ },
+ "fmr_pm": true
+}

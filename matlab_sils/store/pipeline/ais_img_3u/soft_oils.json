@@ -1,0 +1,266 @@
+{
+ "_key": "df1d52d07324d5cd",
+ "sils": {
+  "rc": 0,
+  "wall_s": 9.446570873260498,
+  "metrics": [
+   {
+    "id": "detumble_time",
+    "kind": "time_to_rate",
+    "value": 82.175,
+    "unit": "min",
+    "req": 284.0,
+    "req_key": "req.detumble",
+    "pass": 1
+   },
+   {
+    "id": "ape_los_p9973",
+    "kind": "ape_los",
+    "value": 0.01246925498724414,
+    "unit": "deg",
+    "req": 0.01,
+    "req_key": "req.ape",
+    "pass": 0
+   },
+   {
+    "id": "ake_los_p9973",
+    "kind": "ake_los",
+    "value": 0.0031239000210155983,
+    "unit": "deg",
+    "req": 0.005,
+    "req_key": "req.ake",
+    "pass": 1
+   },
+   {
+    "id": "power_mean",
+    "kind": "power_mean",
+    "value": 0.04263161944929442,
+    "unit": "W",
+    "req": 2.0,
+    "req_key": "req.pavg",
+    "pass": 1
+   },
+   {
+    "id": "power_peak",
+    "kind": "power_peak",
+    "value": 0.12504497202140485,
+    "unit": "W",
+    "req": null,
+    "req_key": "",
+    "pass": null
+   },
+   {
+    "id": "propellant",
+    "kind": "propellant",
+    "value": 0.0,
+    "unit": "g",
+    "req": null,
+    "req_key": "",
+    "pass": null
+   }
+  ],
+  "oils": null,
+  "fsw": {
+   "impl": "c (in-process)",
+   "build_id": "trinetra-fsw-c/1.0.0 (adcs-fswcfg/1)"
+  }
+ },
+ "oils": {
+  "rc": 0,
+  "wall_s": 1840.0410916805267,
+  "metrics": [
+   {
+    "id": "detumble_time",
+    "kind": "time_to_rate",
+    "value": 82.75833333333334,
+    "unit": "min",
+    "req": 284.0,
+    "req_key": "req.detumble",
+    "pass": 1
+   },
+   {
+    "id": "ape_los_p9973",
+    "kind": "ape_los",
+    "value": 0.012490239935538903,
+    "unit": "deg",
+    "req": 0.01,
+    "req_key": "req.ape",
+    "pass": 0
+   },
+   {
+    "id": "ake_los_p9973",
+    "kind": "ake_los",
+    "value": 0.0031128617587883925,
+    "unit": "deg",
+    "req": 0.005,
+    "req_key": "req.ake",
+    "pass": 1
+   },
+   {
+    "id": "power_mean",
+    "kind": "power_mean",
+    "value": 0.043424732397976736,
+    "unit": "W",
+    "req": 2.0,
+    "req_key": "req.pavg",
+    "pass": 1
+   },
+   {
+    "id": "power_peak",
+    "kind": "power_peak",
+    "value": 0.12503626879342677,
+    "unit": "W",
+    "req": null,
+    "req_key": "",
+    "pass": null
+   },
+   {
+    "id": "propellant",
+    "kind": "propellant",
+    "value": 0.0,
+    "unit": "g",
+    "req": null,
+    "req_key": "",
+    "pass": null
+   }
+  ],
+  "oils": {
+   "model": {
+    "cpu_hz": 168000000.0,
+    "cpi": 1.25,
+    "i2c_hz": 400000.0,
+    "spi_hz": 1000000.0,
+    "can_bps": 1000000.0
+   },
+   "ticks": 172171,
+   "overruns": 0,
+   "control_period_s": 0.1,
+   "exec_s": {
+    "mean": 0.0016009100687135206,
+    "p99": 0.006218474702380953,
+    "max": 0.006294255952380952
+   },
+   "bus_s": {
+    "mean": 0.0011690000000026866,
+    "p99": 0.0011690000000000001,
+    "max": 0.0011690000000000001
+   },
+   "latency_s": {
+    "mean": 0.002769910068713521,
+    "p99": 0.007387474702380953,
+    "max": 0.007463255952380952
+   },
+   "instructions": {
+    "mean": 215162.31323509765,
+    "p99": 835763.0,
+    "max": 845948.0
+   },
+   "cpu_load_mean": 0.016009100687135205,
+   "cpu_load_max": 0.06294255952380952,
+   "deadline_margin_min_s": 0.09253674404761905
+  },
+  "fsw": {
+   "impl": "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu.elf",
+   "build_id": "trinetra-fsw-c/1.0.0 (adcs-fswcfg/1) via adcs-link/1"
+  }
+ },
+ "oils_rs": {
+  "rc": 0,
+  "wall_s": 1937.9160766601562,
+  "metrics": [
+   {
+    "id": "detumble_time",
+    "kind": "time_to_rate",
+    "value": 82.74166666666666,
+    "unit": "min",
+    "req": 284.0,
+    "req_key": "req.detumble",
+    "pass": 1
+   },
+   {
+    "id": "ape_los_p9973",
+    "kind": "ape_los",
+    "value": 0.012523300992435227,
+    "unit": "deg",
+    "req": 0.01,
+    "req_key": "req.ape",
+    "pass": 0
+   },
+   {
+    "id": "ake_los_p9973",
+    "kind": "ake_los",
+    "value": 0.003119509335115693,
+    "unit": "deg",
+    "req": 0.005,
+    "req_key": "req.ake",
+    "pass": 1
+   },
+   {
+    "id": "power_mean",
+    "kind": "power_mean",
+    "value": 0.043427334390134464,
+    "unit": "W",
+    "req": 2.0,
+    "req_key": "req.pavg",
+    "pass": 1
+   },
+   {
+    "id": "power_peak",
+    "kind": "power_peak",
+    "value": 0.12546112537008244,
+    "unit": "W",
+    "req": null,
+    "req_key": "",
+    "pass": null
+   },
+   {
+    "id": "propellant",
+    "kind": "propellant",
+    "value": 0.0,
+    "unit": "g",
+    "req": null,
+    "req_key": "",
+    "pass": null
+   }
+  ],
+  "oils": {
+   "model": {
+    "cpu_hz": 168000000.0,
+    "cpi": 1.25,
+    "i2c_hz": 400000.0,
+    "spi_hz": 1000000.0,
+    "can_bps": 1000000.0
+   },
+   "ticks": 172171,
+   "overruns": 0,
+   "control_period_s": 0.1,
+   "exec_s": {
+    "mean": 0.0021502290597599093,
+    "p99": 0.0072911532738095235,
+    "max": 0.007345208333333333
+   },
+   "bus_s": {
+    "mean": 0.0011690000000026866,
+    "p99": 0.0011690000000000001,
+    "max": 0.0011690000000000001
+   },
+   "latency_s": {
+    "mean": 0.0033192290597598936,
+    "p99": 0.008460153273809523,
+    "max": 0.008514208333333334
+   },
+   "instructions": {
+    "mean": 288990.7856317266,
+    "p99": 979931.0,
+    "max": 987196.0
+   },
+   "cpu_load_mean": 0.021502290597599092,
+   "cpu_load_max": 0.07345208333333332,
+   "deadline_margin_min_s": 0.09148579166666668
+  },
+  "fsw": {
+   "impl": "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu_rs.elf",
+   "build_id": "trinetra-fsw-rs/1.0.0 (adcs-fswcfg/1) via adcs-link/1"
+  }
+ }
+}

@@ -2,7 +2,7 @@
  "iteration": 4,
  "knobs": {
   "scale": {
-   "mtqp": 2.25
+   "mtqp": 1.0
   },
   "fmr_pm": true
  },
@@ -11,9 +11,7 @@
  "status": "closest (not feasible)",
  "feasible_options": 6,
  "options": 25,
- "changes": [
-  "mtqp: authority x2.25 -> x3.375 (performance)"
- ],
+ "changes": [],
  "blocked": [
   "detumble/rcs: power fails at the sized authority (rcs); the part's standby power is the floor",
   "nadir_pointing/cmg+mtq: power fails at the sized authority (cmg); the part's standby power is the floor",
@@ -30,7 +28,8 @@
   "sun_referencing/rw+mtq: power fails at the sized authority (rw); the part's standby power is the floor",
   "sun_referencing/rw+rcs: power fails at the sized authority (rw); the part's standby power is the floor",
   "sun_referencing/vscmg+mtq: performance and power both fail \u2014 no authority change helps",
-  "sun_referencing/vscmg+rcs: power fails at the sized authority (vscmg); the part's standby power is the floor"
+  "sun_referencing/vscmg+rcs: power fails at the sized authority (vscmg); the part's standby power is the floor",
+  "mtqp: more authority did not reduce the performance violation (39.9 -> 41); kept at x1"
  ],
  "families": {
   "mtq": {
@@ -41,9 +40,9 @@
     "nadir_pointing: ape_los_p9973 (performance)"
    ],
    "budget": {
-    "mass_kg": 0.2926854700966821,
-    "power_W": 2.6268547009668217,
-    "volume_L": 0.04107418803867285
+    "mass_kg": 0.23563798670963648,
+    "power_W": 2.056379867096365,
+    "volume_L": 0.018255194683854604
    }
   },
   "mtq_fmr": {
@@ -165,7 +164,7 @@
    "alg": null,
    "feasible": true,
    "failing": {},
-   "objective": 39.24,
+   "objective": 48.74,
    "objective_id": "detumble_time"
   },
   {
@@ -182,13 +181,13 @@
   {
    "mode": "sun_acquisition",
    "option": "mtq",
-   "alg": "sunspin_l1l2_e2",
+   "alg": "sunspin_damped",
    "feasible": false,
    "failing": {
     "sun_acquisition_time": "performance",
     "sun_angle_p95": "performance"
    },
-   "objective": 108.60666666666667,
+   "objective": null,
    "objective_id": "sun_acquisition_time"
   },
   {
@@ -241,7 +240,7 @@
    "failing": {
     "sun_ape_p9973": "performance"
    },
-   "objective": 127.21627032309823,
+   "objective": 127.22146233076187,
    "objective_id": "sun_ape_p9973"
   },
   {
@@ -337,7 +336,7 @@
    "failing": {
     "ape_los_p9973": "performance"
    },
-   "objective": 11.84995793954931,
+   "objective": 11.85372556625722,
    "objective_id": "ape_los_p9973"
   },
   {

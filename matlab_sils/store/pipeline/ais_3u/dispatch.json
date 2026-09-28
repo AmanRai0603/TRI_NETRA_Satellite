@@ -1,7 +1,7 @@
 {
  "family": "mtq_fmr",
- "dir": "dist/dispatch/ais_3u/mtq_fmr",
- "scenario": "/home/user/TRI_NETRA_Satellite/dist/dispatch/ais_3u/mtq_fmr/mission_scenario.json",
+ "dir": "dist/dispatch/ais_3u/mtq_fmr/converged",
+ "scenario": "/home/user/TRI_NETRA_Satellite/dist/dispatch/ais_3u/mtq_fmr/converged/mission_scenario.json",
  "check": {
   "c": {
    "rc": 0,
