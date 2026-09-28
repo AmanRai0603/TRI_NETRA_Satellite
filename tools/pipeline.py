@@ -665,7 +665,7 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("cases", nargs="*")
     ap.add_argument("--seeds", default="1,2")
-    ap.add_argument("--max-iter", type=int, default=16)
+    ap.add_argument("--max-iter", type=int, default=24)
     ap.add_argument("--jobs", type=int, default=os.cpu_count())
     ap.add_argument("--mc-runs", type=int, default=12)
     ap.add_argument("--no-oils", action="store_true")

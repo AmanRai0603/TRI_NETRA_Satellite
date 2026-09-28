@@ -1,0 +1,9 @@
+{
+ "scale": {
+  "mtqp": 1.0,
+  "vscmg": 1.5,
+  "fmr": 1.5
+ },
+ "gyro_grade": 0.1,
+ "fmr_flow_sigma": 5e-05
+}
