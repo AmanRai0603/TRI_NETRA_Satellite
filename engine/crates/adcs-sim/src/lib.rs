@@ -16,7 +16,7 @@ pub mod run;
 pub mod metrics;
 pub mod rec;
 
-pub const ENGINE: &str = "adcs-engine-rs/1.0.0 (adcs-case/1, J2-J6 + Sun/Moon + drag + SRP in-loop)";
+pub const ENGINE: &str = "adcs-engine-rs/1.1.0 (adcs-case/1, POP v51 port in-loop)";
 
 /// The data root (matlab_sils): $ADCS_ROOT, else the first ancestor of the
 /// working directory holding matlab_sils/data.
@@ -28,4 +28,10 @@ pub fn data_root() -> std::path::PathBuf {
         if d.join("data/scenarios").is_dir() { return d; }
         if !d.pop() { return "matlab_sils".into(); }
     }
+}
+
+/// The DE440 kernel the POP port reads: $ADCS_DE440, else matlab_sils/pop/03_frames_time/ephemeris/data/de440s.bsp.
+pub fn pop_kernel() -> std::path::PathBuf {
+    if let Ok(p) = std::env::var("ADCS_DE440") { return p.into(); }
+    data_root().join("pop/03_frames_time/ephemeris/data/de440s.bsp")
 }

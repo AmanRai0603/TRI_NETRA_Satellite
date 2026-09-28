@@ -4,28 +4,28 @@
   "metric": "settle_time_after_slew",
   "unit": "s",
   "matlab": 38.70000000000002,
-  "engine": 36.400000000000006,
-  "ratio": 0.9405684754521961,
+  "engine": 36.30000000000001,
+  "ratio": 0.9379844961240309,
   "req": null,
   "pass_matlab": null,
   "pass_engine": null,
   "agree": null,
   "wall_matlab_s": 55.428386926651,
-  "wall_engine_s": 0.288434485
+  "wall_engine_s": 0.136948121
  },
  {
   "scenario": "agile_slew_cmg",
   "metric": "ape_los_on_target_p9973",
   "unit": "deg",
   "matlab": 0.005492148222782869,
-  "engine": 0.004497120562715147,
-  "ratio": 0.8188272385038542,
+  "engine": 0.004543995822444758,
+  "ratio": 0.8273621974722155,
   "req": 0.01,
   "pass_matlab": 1,
   "pass_engine": 1,
   "agree": true,
   "wall_matlab_s": 55.428386926651,
-  "wall_engine_s": 0.288434485
+  "wall_engine_s": 0.136948121
  },
  {
   "scenario": "agile_slew_cmg",
@@ -39,7 +39,7 @@
   "pass_engine": null,
   "agree": null,
   "wall_matlab_s": 55.428386926651,
-  "wall_engine_s": 0.288434485
+  "wall_engine_s": 0.136948121
  },
  {
   "scenario": "agile_slew_fmr_rcs",
@@ -53,35 +53,35 @@
   "pass_engine": null,
   "agree": null,
   "wall_matlab_s": 50.83361101150513,
-  "wall_engine_s": 0.199591599
+  "wall_engine_s": 0.141724079
  },
  {
   "scenario": "agile_slew_fmr_rcs",
   "metric": "ape_los_on_target_p9973",
   "unit": "deg",
   "matlab": 0.007225077734476367,
-  "engine": 0.006576655697066741,
-  "ratio": 0.9102539707890603,
+  "engine": 0.006613632391270315,
+  "ratio": 0.9153717972765361,
   "req": 0.01,
   "pass_matlab": 1,
   "pass_engine": 1,
   "agree": true,
   "wall_matlab_s": 50.83361101150513,
-  "wall_engine_s": 0.199591599
+  "wall_engine_s": 0.141724079
  },
  {
   "scenario": "agile_slew_fmr_rcs",
   "metric": "wheel_momentum_peak",
   "unit": "N m s",
   "matlab": 0.0009451876427477859,
-  "engine": 0.0009536512691686846,
-  "ratio": 1.0089544404075088,
+  "engine": 0.0009536239551557371,
+  "ratio": 1.0089255424281953,
   "req": null,
   "pass_matlab": null,
   "pass_engine": null,
   "agree": null,
   "wall_matlab_s": 50.83361101150513,
-  "wall_engine_s": 0.199591599
+  "wall_engine_s": 0.141724079
  },
  {
   "scenario": "agile_slew_img",
@@ -95,77 +95,77 @@
   "pass_engine": null,
   "agree": null,
   "wall_matlab_s": 47.56780004501343,
-  "wall_engine_s": 0.175820779
+  "wall_engine_s": 0.123758095
  },
  {
   "scenario": "agile_slew_img",
   "metric": "ape_los_on_target_p9973",
   "unit": "deg",
   "matlab": 0.009879696665701352,
-  "engine": 0.00870062749142821,
-  "ratio": 0.8806573507093154,
+  "engine": 0.008685842270355782,
+  "ratio": 0.879160824897571,
   "req": 0.01,
   "pass_matlab": 1,
   "pass_engine": 1,
   "agree": true,
   "wall_matlab_s": 47.56780004501343,
-  "wall_engine_s": 0.175820779
+  "wall_engine_s": 0.123758095
  },
  {
   "scenario": "agile_slew_img",
   "metric": "wheel_momentum_peak",
   "unit": "N m s",
   "matlab": 0.006920054725925468,
-  "engine": 0.006886733290279291,
-  "ratio": 0.9951848017153186,
+  "engine": 0.006886959297775572,
+  "ratio": 0.9952174614998481,
   "req": null,
   "pass_matlab": null,
   "pass_engine": null,
   "agree": null,
   "wall_matlab_s": 47.56780004501343,
-  "wall_engine_s": 0.175820779
+  "wall_engine_s": 0.123758095
  },
  {
   "scenario": "agile_slew_rw_rcs",
   "metric": "settle_time_after_slew",
   "unit": "s",
   "matlab": 39.5,
-  "engine": 36.70000000000002,
-  "ratio": 0.9291139240506333,
+  "engine": 36.80000000000001,
+  "ratio": 0.9316455696202535,
   "req": null,
   "pass_matlab": null,
   "pass_engine": null,
   "agree": null,
   "wall_matlab_s": 54.53016495704651,
-  "wall_engine_s": 0.188549636
+  "wall_engine_s": 0.181824767
  },
  {
   "scenario": "agile_slew_rw_rcs",
   "metric": "ape_los_on_target_p9973",
   "unit": "deg",
   "matlab": 0.008113682421798288,
-  "engine": 0.008724960907210531,
-  "ratio": 1.0753392175875627,
+  "engine": 0.008702458915986942,
+  "ratio": 1.0725658786701884,
   "req": 0.01,
   "pass_matlab": 1,
   "pass_engine": 1,
   "agree": true,
   "wall_matlab_s": 54.53016495704651,
-  "wall_engine_s": 0.188549636
+  "wall_engine_s": 0.181824767
  },
  {
   "scenario": "agile_slew_rw_rcs",
   "metric": "wheel_momentum_peak",
   "unit": "N m s",
   "matlab": 0.0033627741269587194,
-  "engine": 0.0033711737132005783,
-  "ratio": 1.002497814579493,
+  "engine": 0.003370872400509523,
+  "ratio": 1.0024082121620603,
   "req": null,
   "pass_matlab": null,
   "pass_engine": null,
   "agree": null,
   "wall_matlab_s": 54.53016495704651,
-  "wall_engine_s": 0.188549636
+  "wall_engine_s": 0.181824767
  },
  {
   "scenario": "agile_slew_vscmg",
@@ -179,105 +179,105 @@
   "pass_engine": null,
   "agree": null,
   "wall_matlab_s": 60.52176880836487,
-  "wall_engine_s": 0.246568555
+  "wall_engine_s": 0.150515344
  },
  {
   "scenario": "agile_slew_vscmg",
   "metric": "ape_los_on_target_p9973",
   "unit": "deg",
   "matlab": 0.010065815802804863,
-  "engine": 0.010081361867063971,
-  "ratio": 1.0015444415597965,
+  "engine": 0.010081478638413702,
+  "ratio": 1.0015560423432817,
   "req": 0.01,
   "pass_matlab": 0,
   "pass_engine": 0,
   "agree": true,
   "wall_matlab_s": 60.52176880836487,
-  "wall_engine_s": 0.246568555
+  "wall_engine_s": 0.150515344
  },
  {
   "scenario": "agile_slew_vscmg",
   "metric": "wheel_momentum_peak",
   "unit": "N m s",
   "matlab": 0.0080869413838314,
-  "engine": 0.008091199093455534,
-  "ratio": 1.0005264919605634,
+  "engine": 0.00809139239782502,
+  "ratio": 1.0005503952337926,
   "req": null,
   "pass_matlab": null,
   "pass_engine": null,
   "agree": null,
   "wall_matlab_s": 60.52176880836487,
-  "wall_engine_s": 0.246568555
+  "wall_engine_s": 0.150515344
  },
  {
   "scenario": "detumble_ais",
   "metric": "detumble_time",
   "unit": "min",
   "matlab": 58.25666666666667,
-  "engine": 37.940000000000005,
-  "ratio": 0.6512559363735195,
+  "engine": 37.79,
+  "ratio": 0.6486811237626595,
   "req": 284,
   "pass_matlab": 1,
   "pass_engine": 1,
   "agree": true,
   "wall_matlab_s": 496.02754306793213,
-  "wall_engine_s": 0.533854793
+  "wall_engine_s": 0.328028724
  },
  {
   "scenario": "detumble_ais",
   "metric": "power_mean",
   "unit": "W",
   "matlab": 0.02455017050857238,
-  "engine": 0.021741939350742322,
-  "ratio": 0.8856125599270488,
+  "engine": 0.021701207481193658,
+  "ratio": 0.8839534321611361,
   "req": 0.5,
   "pass_matlab": 1,
   "pass_engine": 1,
   "agree": true,
   "wall_matlab_s": 496.02754306793213,
-  "wall_engine_s": 0.533854793
+  "wall_engine_s": 0.328028724
  },
  {
   "scenario": "detumble_ais",
   "metric": "power_peak",
   "unit": "W",
   "matlab": 0.363907470703125,
-  "engine": 0.5504428235724967,
-  "ratio": 1.5125900617235388,
+  "engine": 0.550234076967681,
+  "ratio": 1.512016436223594,
   "req": 1.5,
   "pass_matlab": 1,
   "pass_engine": 1,
   "agree": true,
   "wall_matlab_s": 496.02754306793213,
-  "wall_engine_s": 0.533854793
+  "wall_engine_s": 0.328028724
  },
  {
   "scenario": "detumble_ais_bangbang",
   "metric": "detumble_time",
   "unit": "min",
   "matlab": null,
-  "engine": null,
+  "engine": 32.20666666666667,
   "ratio": null,
   "req": 284,
   "pass_matlab": 0,
-  "pass_engine": 0,
-  "agree": true,
+  "pass_engine": 1,
+  "agree": false,
   "wall_matlab_s": 497.8236529827118,
-  "wall_engine_s": 0.647495981
+  "wall_engine_s": 0.326605788
  },
  {
   "scenario": "detumble_ais_bangbang",
   "metric": "power_mean",
   "unit": "W",
   "matlab": 0.7118580016683625,
-  "engine": 0.7119859681418059,
-  "ratio": 1.000179764044435,
+  "engine": 0.7114314758350445,
+  "ratio": 0.9994008273668086,
   "req": 0.5,
   "pass_matlab": 0,
   "pass_engine": 0,
   "agree": true,
   "wall_matlab_s": 497.8236529827118,
-  "wall_engine_s": 0.647495981
+  "wall_engine_s": 0.326605788
  },
  {
   "scenario": "detumble_ais_bangbang",
@@ -291,175 +291,175 @@
   "pass_engine": 1,
   "agree": true,
   "wall_matlab_s": 497.8236529827118,
-  "wall_engine_s": 0.647495981
+  "wall_engine_s": 0.326605788
  },
  {
   "scenario": "detumble_ais_mag",
   "metric": "detumble_time",
   "unit": "min",
   "matlab": 58.54,
-  "engine": 41.39,
-  "ratio": 0.7070379227878374,
+  "engine": 41.156666666666666,
+  "ratio": 0.7030520441863114,
   "req": 284,
   "pass_matlab": 1,
   "pass_engine": 1,
   "agree": true,
   "wall_matlab_s": 526.1754651069641,
-  "wall_engine_s": 0.678337557
+  "wall_engine_s": 0.31705421
  },
  {
   "scenario": "detumble_ais_mag",
   "metric": "power_mean",
   "unit": "W",
   "matlab": 0.07473964637334136,
-  "engine": 0.08005023827626255,
-  "ratio": 1.0710545495009915,
+  "engine": 0.0783897781533677,
+  "ratio": 1.0488379589300316,
   "req": 0.5,
   "pass_matlab": 1,
   "pass_engine": 1,
   "agree": true,
   "wall_matlab_s": 526.1754651069641,
-  "wall_engine_s": 0.678337557
+  "wall_engine_s": 0.31705421
  },
  {
   "scenario": "detumble_ais_mag",
   "metric": "power_peak",
   "unit": "W",
   "matlab": 0.70453857421875,
-  "engine": 0.6525382244331187,
-  "ratio": 0.9261923311391523,
+  "engine": 0.6377391888180182,
+  "ratio": 0.9051870432008574,
   "req": 1.5,
   "pass_matlab": 1,
   "pass_engine": 1,
   "agree": true,
   "wall_matlab_s": 526.1754651069641,
-  "wall_engine_s": 0.678337557
+  "wall_engine_s": 0.31705421
  },
  {
   "scenario": "detumble_img",
   "metric": "detumble_time",
   "unit": "min",
   "matlab": 21.975,
-  "engine": 47.50833333333333,
-  "ratio": 2.161926431551005,
+  "engine": 47.541666666666664,
+  "ratio": 2.1634433067880163,
   "req": 284,
   "pass_matlab": 1,
   "pass_engine": 1,
   "agree": true,
   "wall_matlab_s": 971.630609035492,
-  "wall_engine_s": 5.5410491539999995
+  "wall_engine_s": 1.9071596739999999
  },
  {
   "scenario": "fault_coil_ais",
   "metric": "detumble_time",
   "unit": "min",
   "matlab": 128.34,
-  "engine": 82.34,
-  "ratio": 0.6415770609318997,
+  "engine": 82.17333333333335,
+  "ratio": 0.6402784270946965,
   "req": 284,
   "pass_matlab": 1,
   "pass_engine": 1,
   "agree": true,
   "wall_matlab_s": 533.3220629692078,
-  "wall_engine_s": 0.635547673
+  "wall_engine_s": 0.323134694
  },
  {
   "scenario": "fault_coil_ais",
   "metric": "power_mean",
   "unit": "W",
   "matlab": 0.02199375426157996,
-  "engine": 0.01789849557925635,
-  "ratio": 0.8137990161380744,
+  "engine": 0.018206591921134798,
+  "ratio": 0.8278073722474562,
   "req": 0.5,
   "pass_matlab": 1,
   "pass_engine": 1,
   "agree": true,
   "wall_matlab_s": 533.3220629692078,
-  "wall_engine_s": 0.635547673
+  "wall_engine_s": 0.323134694
  },
  {
   "scenario": "fault_coil_ais",
   "metric": "power_peak",
   "unit": "W",
   "matlab": 0.31628540039062497,
-  "engine": 0.5504428235724967,
-  "ratio": 1.7403358577179917,
+  "engine": 0.550234076967681,
+  "ratio": 1.7396758632808222,
   "req": 1.5,
   "pass_matlab": 1,
   "pass_engine": 1,
   "agree": true,
   "wall_matlab_s": 533.3220629692078,
-  "wall_engine_s": 0.635547673
+  "wall_engine_s": 0.323134694
  },
  {
   "scenario": "fault_gimbal_cmg",
   "metric": "ape_los_p9973",
   "unit": "deg",
   "matlab": 0.006361828317053155,
-  "engine": 0.005515955940185838,
-  "ratio": 0.8670394209476041,
+  "engine": 0.005508721310315972,
+  "ratio": 0.8659022274382361,
   "req": 0.01,
   "pass_matlab": 1,
   "pass_engine": 1,
   "agree": true,
   "wall_matlab_s": 464.55497193336487,
-  "wall_engine_s": 2.375955369
+  "wall_engine_s": 1.143987807
  },
  {
   "scenario": "fault_gimbal_cmg",
   "metric": "ape_los_max",
   "unit": "deg",
   "matlab": 0.0073521244187336075,
-  "engine": 0.0066113395519409104,
-  "ratio": 0.8992420660203821,
+  "engine": 0.006598936201818559,
+  "ratio": 0.8975550230086036,
   "req": null,
   "pass_matlab": null,
   "pass_engine": null,
   "agree": null,
   "wall_matlab_s": 464.55497193336487,
-  "wall_engine_s": 2.375955369
+  "wall_engine_s": 1.143987807
  },
  {
   "scenario": "fault_gimbal_cmg",
   "metric": "ape_3ax_p9973",
   "unit": "deg",
   "matlab": 0.00668934109183948,
-  "engine": 0.0064042052350735896,
-  "ratio": 0.957374597460169,
+  "engine": 0.006254102165015406,
+  "ratio": 0.9349354561460418,
   "req": null,
   "pass_matlab": null,
   "pass_engine": null,
   "agree": null,
   "wall_matlab_s": 464.55497193336487,
-  "wall_engine_s": 2.375955369
+  "wall_engine_s": 1.143987807
  },
  {
   "scenario": "fault_gimbal_cmg",
   "metric": "ake_los_p9973",
   "unit": "deg",
   "matlab": 0.003430368909254262,
-  "engine": 0.002641678725161177,
-  "ratio": 0.7700858989348347,
+  "engine": 0.002624299513776467,
+  "ratio": 0.7650196183555579,
   "req": 0.005,
   "pass_matlab": 1,
   "pass_engine": 1,
   "agree": true,
   "wall_matlab_s": 464.55497193336487,
-  "wall_engine_s": 2.375955369
+  "wall_engine_s": 1.143987807
  },
  {
   "scenario": "fault_gimbal_cmg",
   "metric": "rate_stability_p9973",
   "unit": "deg/s",
   "matlab": 0.0029508118757482545,
-  "engine": 0.0029552378038366993,
-  "ratio": 1.0014999018150972,
+  "engine": 0.0029629452945429307,
+  "ratio": 1.0041118916778113,
   "req": 0.001,
   "pass_matlab": 0,
   "pass_engine": 0,
   "agree": true,
   "wall_matlab_s": 464.55497193336487,
-  "wall_engine_s": 2.375955369
+  "wall_engine_s": 1.143987807
  },
  {
   "scenario": "fault_gimbal_cmg",
@@ -473,7 +473,7 @@
   "pass_engine": null,
   "agree": null,
   "wall_matlab_s": 464.55497193336487,
-  "wall_engine_s": 2.375955369
+  "wall_engine_s": 1.143987807
  },
  {
   "scenario": "fault_gimbal_cmg",
@@ -487,147 +487,147 @@
   "pass_engine": null,
   "agree": null,
   "wall_matlab_s": 464.55497193336487,
-  "wall_engine_s": 2.375955369
+  "wall_engine_s": 1.143987807
  },
  {
   "scenario": "fault_gimbal_cmg",
   "metric": "power_mean",
   "unit": "W",
   "matlab": 1.6098324684433705,
-  "engine": 1.6098357781518522,
-  "ratio": 1.000002055933488,
+  "engine": 1.6098333470280515,
+  "ratio": 1.000000545761561,
   "req": 2,
   "pass_matlab": 1,
   "pass_engine": 1,
   "agree": true,
   "wall_matlab_s": 464.55497193336487,
-  "wall_engine_s": 2.375955369
+  "wall_engine_s": 1.143987807
  },
  {
   "scenario": "fault_gyro_ais",
   "metric": "ape_3axis_last_orbit",
   "unit": "deg",
   "matlab": 179.99428013445777,
-  "engine": 179.95685947532988,
-  "ratio": 0.9997921008428716,
+  "engine": 179.9757189945884,
+  "ratio": 0.999896879279411,
   "req": null,
   "pass_matlab": null,
   "pass_engine": null,
   "agree": null,
   "wall_matlab_s": 579.2471899986267,
-  "wall_engine_s": 0.729825748
+  "wall_engine_s": 0.37745015
  },
  {
   "scenario": "fault_gyro_ais",
   "metric": "ape_los_last_orbit",
   "unit": "deg",
   "matlab": 56.78921750727072,
-  "engine": 47.177444082684524,
-  "ratio": 0.830746507057337,
+  "engine": 52.78008444232647,
+  "ratio": 0.9294032698296827,
   "req": 10,
   "pass_matlab": 0,
   "pass_engine": 0,
   "agree": true,
   "wall_matlab_s": 579.2471899986267,
-  "wall_engine_s": 0.729825748
+  "wall_engine_s": 0.37745015
  },
  {
   "scenario": "fault_gyro_ais",
   "metric": "ake_los_last_orbit",
   "unit": "deg",
   "matlab": 42.58781910428527,
-  "engine": 37.392293399029306,
-  "ratio": 0.8780044197019429,
+  "engine": 41.91964420918183,
+  "ratio": 0.9843106571513495,
   "req": 5,
   "pass_matlab": 0,
   "pass_engine": 0,
   "agree": true,
   "wall_matlab_s": 579.2471899986267,
-  "wall_engine_s": 0.729825748
+  "wall_engine_s": 0.37745015
  },
  {
   "scenario": "fault_gyro_ais",
   "metric": "power_mean",
   "unit": "W",
   "matlab": 0.010768278549581524,
-  "engine": 0.010344431125280664,
-  "ratio": 0.9606392588797462,
+  "engine": 0.010563361388629315,
+  "ratio": 0.9809702952975551,
   "req": 0.5,
   "pass_matlab": 1,
   "pass_engine": 1,
   "agree": true,
   "wall_matlab_s": 579.2471899986267,
-  "wall_engine_s": 0.729825748
+  "wall_engine_s": 0.37745015
  },
  {
   "scenario": "fault_st_img",
   "metric": "ape_los_p9973",
   "unit": "deg",
   "matlab": 0.18425753045740917,
-  "engine": 0.13677757995588066,
-  "ratio": 0.7423174489332287,
+  "engine": 0.1022222280881478,
+  "ratio": 0.5547791063648078,
   "req": 0.01,
   "pass_matlab": 0,
   "pass_engine": 0,
   "agree": true,
   "wall_matlab_s": 388.5329067707062,
-  "wall_engine_s": 2.186382103
+  "wall_engine_s": 0.799096507
  },
  {
   "scenario": "fault_st_img",
   "metric": "ape_los_max",
   "unit": "deg",
   "matlab": 0.18917101157196248,
-  "engine": 0.15251885815567118,
-  "ratio": 0.8062485731205784,
+  "engine": 0.11524421718871923,
+  "ratio": 0.6092065387348168,
   "req": null,
   "pass_matlab": null,
   "pass_engine": null,
   "agree": null,
   "wall_matlab_s": 388.5329067707062,
-  "wall_engine_s": 2.186382103
+  "wall_engine_s": 0.799096507
  },
  {
   "scenario": "fault_st_img",
   "metric": "ape_3ax_p9973",
   "unit": "deg",
   "matlab": 0.18579874815385622,
-  "engine": 0.1383979806485256,
-  "ratio": 0.7448811255386985,
+  "engine": 0.10239477130714363,
+  "ratio": 0.5511058191971916,
   "req": null,
   "pass_matlab": null,
   "pass_engine": null,
   "agree": null,
   "wall_matlab_s": 388.5329067707062,
-  "wall_engine_s": 2.186382103
+  "wall_engine_s": 0.799096507
  },
  {
   "scenario": "fault_st_img",
   "metric": "ake_los_p9973",
   "unit": "deg",
   "matlab": 0.18474702064878892,
-  "engine": 0.14432993210256867,
-  "ratio": 0.7812300928898082,
+  "engine": 0.10931314299278329,
+  "ratio": 0.5916909653476453,
   "req": 0.005,
   "pass_matlab": 0,
   "pass_engine": 0,
   "agree": true,
   "wall_matlab_s": 388.5329067707062,
-  "wall_engine_s": 2.186382103
+  "wall_engine_s": 0.799096507
  },
  {
   "scenario": "fault_st_img",
   "metric": "rate_stability_p9973",
   "unit": "deg/s",
   "matlab": 0.0040821295910020445,
-  "engine": 0.00399319022936044,
-  "ratio": 0.9782125090203782,
+  "engine": 0.0037712623100350246,
+  "ratio": 0.9238467878010921,
   "req": 0.001,
   "pass_matlab": 0,
   "pass_engine": 0,
   "agree": true,
   "wall_matlab_s": 388.5329067707062,
-  "wall_engine_s": 2.186382103
+  "wall_engine_s": 0.799096507
  },
  {
   "scenario": "fault_st_img",
@@ -641,105 +641,105 @@
   "pass_engine": null,
   "agree": null,
   "wall_matlab_s": 388.5329067707062,
-  "wall_engine_s": 2.186382103
+  "wall_engine_s": 0.799096507
  },
  {
   "scenario": "fault_st_img",
   "metric": "wheel_momentum_peak",
   "unit": "N m s",
   "matlab": 0.0032568486930182813,
-  "engine": 0.00327924617340907,
-  "ratio": 1.006877040508146,
+  "engine": 0.0032777222449945445,
+  "ratio": 1.0064091254902354,
   "req": null,
   "pass_matlab": null,
   "pass_engine": null,
   "agree": null,
   "wall_matlab_s": 388.5329067707062,
-  "wall_engine_s": 2.186382103
+  "wall_engine_s": 0.799096507
  },
  {
   "scenario": "fault_st_img",
   "metric": "power_mean",
   "unit": "W",
   "matlab": 1.5572130951267216,
-  "engine": 1.5573394614922027,
-  "ratio": 1.0000811490513897,
+  "engine": 1.5573215249068173,
+  "ratio": 1.0000696306629036,
   "req": 2,
   "pass_matlab": 1,
   "pass_engine": 1,
   "agree": true,
   "wall_matlab_s": 388.5329067707062,
-  "wall_engine_s": 2.186382103
+  "wall_engine_s": 0.799096507
  },
  {
   "scenario": "fault_wheel_img",
   "metric": "ape_los_p9973",
   "unit": "deg",
   "matlab": 15.834071884764585,
-  "engine": 28.570529049683337,
-  "ratio": 1.8043703008051686,
+  "engine": 28.623134282970852,
+  "ratio": 1.8076925816227851,
   "req": 0.01,
   "pass_matlab": 0,
   "pass_engine": 0,
   "agree": true,
   "wall_matlab_s": 414.3348820209503,
-  "wall_engine_s": 3.51109772
+  "wall_engine_s": 1.160620778
  },
  {
   "scenario": "fault_wheel_img",
   "metric": "ape_los_max",
   "unit": "deg",
   "matlab": 15.870191978841307,
-  "engine": 28.628404274307666,
-  "ratio": 1.8039103945608252,
+  "engine": 28.681005801393304,
+  "ratio": 1.807224880431933,
   "req": null,
   "pass_matlab": null,
   "pass_engine": null,
   "agree": null,
   "wall_matlab_s": 414.3348820209503,
-  "wall_engine_s": 3.51109772
+  "wall_engine_s": 1.160620778
  },
  {
   "scenario": "fault_wheel_img",
   "metric": "ape_3ax_p9973",
   "unit": "deg",
   "matlab": 15.834071946375513,
-  "engine": 28.5705547122128,
-  "ratio": 1.80437191450003,
+  "engine": 28.623159588274255,
+  "ratio": 1.807694172744126,
   "req": null,
   "pass_matlab": null,
   "pass_engine": null,
   "agree": null,
   "wall_matlab_s": 414.3348820209503,
-  "wall_engine_s": 3.51109772
+  "wall_engine_s": 1.160620778
  },
  {
   "scenario": "fault_wheel_img",
   "metric": "ake_los_p9973",
   "unit": "deg",
   "matlab": 0.0036485982565832007,
-  "engine": 0.002627224240566964,
-  "ratio": 0.7200639960364609,
+  "engine": 0.0028581257166492503,
+  "ratio": 0.783348978334983,
   "req": 0.005,
   "pass_matlab": 1,
   "pass_engine": 1,
   "agree": true,
   "wall_matlab_s": 414.3348820209503,
-  "wall_engine_s": 3.51109772
+  "wall_engine_s": 1.160620778
  },
  {
   "scenario": "fault_wheel_img",
   "metric": "rate_stability_p9973",
   "unit": "deg/s",
   "matlab": 0.3826983981962098,
-  "engine": 0.6261048461437551,
-  "ratio": 1.636026827117135,
+  "engine": 0.6244137380838454,
+  "ratio": 1.6316079216085662,
   "req": 0.001,
   "pass_matlab": 0,
   "pass_engine": 0,
   "agree": true,
   "wall_matlab_s": 414.3348820209503,
-  "wall_engine_s": 3.51109772
+  "wall_engine_s": 1.160620778
  },
  {
   "scenario": "fault_wheel_img",
@@ -753,105 +753,105 @@
   "pass_engine": null,
   "agree": null,
   "wall_matlab_s": 414.3348820209503,
-  "wall_engine_s": 3.51109772
+  "wall_engine_s": 1.160620778
  },
  {
   "scenario": "fault_wheel_img",
   "metric": "wheel_momentum_peak",
   "unit": "N m s",
   "matlab": 0.003674758260242864,
-  "engine": 0.004292873339517016,
-  "ratio": 1.1682056438818103,
+  "engine": 0.0042900682650407656,
+  "ratio": 1.1674423080981757,
   "req": null,
   "pass_matlab": null,
   "pass_engine": null,
   "agree": null,
   "wall_matlab_s": 414.3348820209503,
-  "wall_engine_s": 3.51109772
+  "wall_engine_s": 1.160620778
  },
  {
   "scenario": "fault_wheel_img",
   "metric": "power_mean",
   "unit": "W",
   "matlab": 1.1907937149274128,
-  "engine": 1.213121396842193,
-  "ratio": 1.0187502517311666,
+  "engine": 1.2130652778285238,
+  "ratio": 1.0187031243295306,
   "req": 2,
   "pass_matlab": 1,
   "pass_engine": 1,
   "agree": true,
   "wall_matlab_s": 414.3348820209503,
-  "wall_engine_s": 3.51109772
+  "wall_engine_s": 1.160620778
  },
  {
   "scenario": "fine_hold_cmg",
   "metric": "ape_los_p9973",
   "unit": "deg",
   "matlab": 0.005523152850647309,
-  "engine": 0.005056962713988956,
-  "ratio": 0.9155934754542028,
+  "engine": 0.0050207258157890485,
+  "ratio": 0.909032567367862,
   "req": 0.01,
   "pass_matlab": 1,
   "pass_engine": 1,
   "agree": true,
   "wall_matlab_s": 468.44412994384766,
-  "wall_engine_s": 2.712866839
+  "wall_engine_s": 1.014018686
  },
  {
   "scenario": "fine_hold_cmg",
   "metric": "ape_los_max",
   "unit": "deg",
   "matlab": 0.006413984962130652,
-  "engine": 0.005856111674168928,
-  "ratio": 0.913022357979398,
+  "engine": 0.0059564946444639,
+  "ratio": 0.928672998086547,
   "req": null,
   "pass_matlab": null,
   "pass_engine": null,
   "agree": null,
   "wall_matlab_s": 468.44412994384766,
-  "wall_engine_s": 2.712866839
+  "wall_engine_s": 1.014018686
  },
  {
   "scenario": "fine_hold_cmg",
   "metric": "ape_3ax_p9973",
   "unit": "deg",
   "matlab": 0.006145768956612303,
-  "engine": 0.006370566723485968,
-  "ratio": 1.03657764690809,
+  "engine": 0.006204374674134328,
+  "ratio": 1.0095359454505641,
   "req": null,
   "pass_matlab": null,
   "pass_engine": null,
   "agree": null,
   "wall_matlab_s": 468.44412994384766,
-  "wall_engine_s": 2.712866839
+  "wall_engine_s": 1.014018686
  },
  {
   "scenario": "fine_hold_cmg",
   "metric": "ake_los_p9973",
   "unit": "deg",
   "matlab": 0.0034099247014481187,
-  "engine": 0.0026371084750758636,
-  "ratio": 0.7733626710161496,
+  "engine": 0.0026263098760842644,
+  "ratio": 0.7701958565152273,
   "req": 0.005,
   "pass_matlab": 1,
   "pass_engine": 1,
   "agree": true,
   "wall_matlab_s": 468.44412994384766,
-  "wall_engine_s": 2.712866839
+  "wall_engine_s": 1.014018686
  },
  {
   "scenario": "fine_hold_cmg",
   "metric": "rate_stability_p9973",
   "unit": "deg/s",
   "matlab": 0.002424524566174475,
-  "engine": 0.002449493559191508,
-  "ratio": 1.0102985110422824,
+  "engine": 0.0024372972116540755,
+  "ratio": 1.005268103139806,
   "req": 0.001,
   "pass_matlab": 0,
   "pass_engine": 0,
   "agree": true,
   "wall_matlab_s": 468.44412994384766,
-  "wall_engine_s": 2.712866839
+  "wall_engine_s": 1.014018686
  },
  {
   "scenario": "fine_hold_cmg",
@@ -865,7 +865,7 @@
   "pass_engine": null,
   "agree": null,
   "wall_matlab_s": 468.44412994384766,
-  "wall_engine_s": 2.712866839
+  "wall_engine_s": 1.014018686
  },
  {
   "scenario": "fine_hold_cmg",
@@ -879,91 +879,91 @@
   "pass_engine": null,
   "agree": null,
   "wall_matlab_s": 468.44412994384766,
-  "wall_engine_s": 2.712866839
+  "wall_engine_s": 1.014018686
  },
  {
   "scenario": "fine_hold_cmg",
   "metric": "power_mean",
   "unit": "W",
   "matlab": 1.6098528884943926,
-  "engine": 1.6098556755012057,
-  "ratio": 1.00000173121832,
+  "engine": 1.6098532577755433,
+  "ratio": 1.0000002293881345,
   "req": 2,
   "pass_matlab": 1,
   "pass_engine": 1,
   "agree": true,
   "wall_matlab_s": 468.44412994384766,
-  "wall_engine_s": 2.712866839
+  "wall_engine_s": 1.014018686
  },
  {
   "scenario": "fine_hold_fmr",
   "metric": "ape_los_p9973",
   "unit": "deg",
   "matlab": 0.00603292951574543,
-  "engine": 0.005677901137239463,
-  "ratio": 0.9411515785855986,
+  "engine": 0.005688835076072578,
+  "ratio": 0.9429639549451397,
   "req": 0.01,
   "pass_matlab": 1,
   "pass_engine": 1,
   "agree": true,
   "wall_matlab_s": 658.9512960910797,
-  "wall_engine_s": 2.600329577
+  "wall_engine_s": 1.001835204
  },
  {
   "scenario": "fine_hold_fmr",
   "metric": "ape_los_max",
   "unit": "deg",
   "matlab": 0.007836066252184623,
-  "engine": 0.007706755746136322,
-  "ratio": 0.983498033083596,
+  "engine": 0.007670772555941521,
+  "ratio": 0.9789060364060833,
   "req": null,
   "pass_matlab": null,
   "pass_engine": null,
   "agree": null,
   "wall_matlab_s": 658.9512960910797,
-  "wall_engine_s": 2.600329577
+  "wall_engine_s": 1.001835204
  },
  {
   "scenario": "fine_hold_fmr",
   "metric": "ape_3ax_p9973",
   "unit": "deg",
   "matlab": 0.007028014079554227,
-  "engine": 0.00663157247067021,
-  "ratio": 0.9435912329718664,
+  "engine": 0.006615573286567047,
+  "ratio": 0.941314745770495,
   "req": null,
   "pass_matlab": null,
   "pass_engine": null,
   "agree": null,
   "wall_matlab_s": 658.9512960910797,
-  "wall_engine_s": 2.600329577
+  "wall_engine_s": 1.001835204
  },
  {
   "scenario": "fine_hold_fmr",
   "metric": "ake_los_p9973",
   "unit": "deg",
   "matlab": 0.0033213614275627314,
-  "engine": 0.0026322136444515837,
-  "ratio": 0.7925104514696386,
+  "engine": 0.0026309994575527437,
+  "ratio": 0.7921448824325673,
   "req": 0.005,
   "pass_matlab": 1,
   "pass_engine": 1,
   "agree": true,
   "wall_matlab_s": 658.9512960910797,
-  "wall_engine_s": 2.600329577
+  "wall_engine_s": 1.001835204
  },
  {
   "scenario": "fine_hold_fmr",
   "metric": "rate_stability_p9973",
   "unit": "deg/s",
   "matlab": 0.00465410757830101,
-  "engine": 0.004722317724325565,
-  "ratio": 1.014655902313598,
+  "engine": 0.004728905497182666,
+  "ratio": 1.0160713772991388,
   "req": 0.001,
   "pass_matlab": 0,
   "pass_engine": 0,
   "agree": true,
   "wall_matlab_s": 658.9512960910797,
-  "wall_engine_s": 2.600329577
+  "wall_engine_s": 1.001835204
  },
  {
   "scenario": "fine_hold_fmr",
@@ -977,7 +977,7 @@
   "pass_engine": null,
   "agree": null,
   "wall_matlab_s": 658.9512960910797,
-  "wall_engine_s": 2.600329577
+  "wall_engine_s": 1.001835204
  },
  {
   "scenario": "fine_hold_fmr",
@@ -991,91 +991,91 @@
   "pass_engine": null,
   "agree": null,
   "wall_matlab_s": 658.9512960910797,
-  "wall_engine_s": 2.600329577
+  "wall_engine_s": 1.001835204
  },
  {
   "scenario": "fine_hold_fmr",
   "metric": "power_mean",
   "unit": "W",
   "matlab": 4.348422003296978,
-  "engine": 0.08461267006696478,
-  "ratio": 0.019458247153291783,
+  "engine": 0.08406296596575745,
+  "ratio": 0.019331832536497336,
   "req": 2,
   "pass_matlab": 0,
   "pass_engine": 1,
   "agree": false,
   "wall_matlab_s": 658.9512960910797,
-  "wall_engine_s": 2.600329577
+  "wall_engine_s": 1.001835204
  },
  {
   "scenario": "fine_hold_fmr_rcs",
   "metric": "ape_los_p9973",
   "unit": "deg",
   "matlab": 0.006160034370312438,
-  "engine": 0.005677901137239463,
-  "ratio": 0.921732054711162,
+  "engine": 0.005688835076072578,
+  "ratio": 0.9235070348778004,
   "req": 0.01,
   "pass_matlab": 1,
   "pass_engine": 1,
   "agree": true,
   "wall_matlab_s": 523.1565821170807,
-  "wall_engine_s": 2.381401306
+  "wall_engine_s": 0.986105535
  },
  {
   "scenario": "fine_hold_fmr_rcs",
   "metric": "ape_los_max",
   "unit": "deg",
   "matlab": 0.006973045717786635,
-  "engine": 0.007706755746136322,
-  "ratio": 1.1052208831039443,
+  "engine": 0.007670772555941521,
+  "ratio": 1.1000605569493322,
   "req": null,
   "pass_matlab": null,
   "pass_engine": null,
   "agree": null,
   "wall_matlab_s": 523.1565821170807,
-  "wall_engine_s": 2.381401306
+  "wall_engine_s": 0.986105535
  },
  {
   "scenario": "fine_hold_fmr_rcs",
   "metric": "ape_3ax_p9973",
   "unit": "deg",
   "matlab": 0.006877888579606446,
-  "engine": 0.00663157247067021,
-  "ratio": 0.9641872493156425,
+  "engine": 0.006615573286567047,
+  "ratio": 0.9618610726237719,
   "req": null,
   "pass_matlab": null,
   "pass_engine": null,
   "agree": null,
   "wall_matlab_s": 523.1565821170807,
-  "wall_engine_s": 2.381401306
+  "wall_engine_s": 0.986105535
  },
  {
   "scenario": "fine_hold_fmr_rcs",
   "metric": "ake_los_p9973",
   "unit": "deg",
   "matlab": 0.0034800530184713775,
-  "engine": 0.0026322136444515837,
-  "ratio": 0.7563717076953588,
+  "engine": 0.0026309994575527437,
+  "ratio": 0.7560228087296259,
   "req": 0.005,
   "pass_matlab": 1,
   "pass_engine": 1,
   "agree": true,
   "wall_matlab_s": 523.1565821170807,
-  "wall_engine_s": 2.381401306
+  "wall_engine_s": 0.986105535
  },
  {
   "scenario": "fine_hold_fmr_rcs",
   "metric": "rate_stability_p9973",
   "unit": "deg/s",
   "matlab": 0.004643436735126702,
-  "engine": 0.004722317724325565,
-  "ratio": 1.0169876308644723,
+  "engine": 0.004728905497182666,
+  "ratio": 1.0184063586802874,
   "req": 0.001,
   "pass_matlab": 0,
   "pass_engine": 0,
   "agree": true,
   "wall_matlab_s": 523.1565821170807,
-  "wall_engine_s": 2.381401306
+  "wall_engine_s": 0.986105535
  },
  {
   "scenario": "fine_hold_fmr_rcs",
@@ -1089,7 +1089,7 @@
   "pass_engine": null,
   "agree": null,
   "wall_matlab_s": 523.1565821170807,
-  "wall_engine_s": 2.381401306
+  "wall_engine_s": 0.986105535
  },
  {
   "scenario": "fine_hold_fmr_rcs",
@@ -1103,91 +1103,91 @@
   "pass_engine": null,
   "agree": null,
   "wall_matlab_s": 523.1565821170807,
-  "wall_engine_s": 2.381401306
+  "wall_engine_s": 0.986105535
  },
  {
   "scenario": "fine_hold_fmr_rcs",
   "metric": "power_mean",
   "unit": "W",
   "matlab": 4.366967824664844,
-  "engine": 0.08461267006696478,
-  "ratio": 0.019375611056502033,
+  "engine": 0.08406296596575745,
+  "ratio": 0.01924973330258258,
   "req": 2,
   "pass_matlab": 0,
   "pass_engine": 1,
   "agree": false,
   "wall_matlab_s": 523.1565821170807,
-  "wall_engine_s": 2.381401306
+  "wall_engine_s": 0.986105535
  },
  {
   "scenario": "fine_hold_img",
   "metric": "ape_los_p9973",
   "unit": "deg",
   "matlab": 0.009166008505534255,
-  "engine": 0.010616155442598429,
-  "ratio": 1.1582092070052743,
+  "engine": 0.01048540870040256,
+  "ratio": 1.1439449018699555,
   "req": 0.01,
   "pass_matlab": 1,
   "pass_engine": 0,
   "agree": false,
   "wall_matlab_s": 389.71645307540894,
-  "wall_engine_s": 1.198645711
+  "wall_engine_s": 0.98039751
  },
  {
   "scenario": "fine_hold_img",
   "metric": "ape_los_max",
   "unit": "deg",
   "matlab": 0.010924857468998192,
-  "engine": 0.014180056446135408,
-  "ratio": 1.297962603757037,
+  "engine": 0.014753893157977569,
+  "ratio": 1.3504883885071408,
   "req": null,
   "pass_matlab": null,
   "pass_engine": null,
   "agree": null,
   "wall_matlab_s": 389.71645307540894,
-  "wall_engine_s": 1.198645711
+  "wall_engine_s": 0.98039751
  },
  {
   "scenario": "fine_hold_img",
   "metric": "ape_3ax_p9973",
   "unit": "deg",
   "matlab": 0.00959540290245215,
-  "engine": 0.010833310380670957,
-  "ratio": 1.1290104741617941,
+  "engine": 0.010916882155250307,
+  "ratio": 1.137720038046599,
   "req": null,
   "pass_matlab": null,
   "pass_engine": null,
   "agree": null,
   "wall_matlab_s": 389.71645307540894,
-  "wall_engine_s": 1.198645711
+  "wall_engine_s": 0.98039751
  },
  {
   "scenario": "fine_hold_img",
   "metric": "ake_los_p9973",
   "unit": "deg",
   "matlab": 0.0033331261920540377,
-  "engine": 0.0026350286191542008,
-  "ratio": 0.7905577128870616,
+  "engine": 0.002608036040076056,
+  "ratio": 0.7824594359173827,
   "req": 0.005,
   "pass_matlab": 1,
   "pass_engine": 1,
   "agree": true,
   "wall_matlab_s": 389.71645307540894,
-  "wall_engine_s": 1.198645711
+  "wall_engine_s": 0.98039751
  },
  {
   "scenario": "fine_hold_img",
   "metric": "rate_stability_p9973",
   "unit": "deg/s",
   "matlab": 0.0036700407696835767,
-  "engine": 0.0035603789817631377,
-  "ratio": 0.9701197357734275,
+  "engine": 0.0035517891985791376,
+  "ratio": 0.967779221396869,
   "req": 0.001,
   "pass_matlab": 0,
   "pass_engine": 0,
   "agree": true,
   "wall_matlab_s": 389.71645307540894,
-  "wall_engine_s": 1.198645711
+  "wall_engine_s": 0.98039751
  },
  {
   "scenario": "fine_hold_img",
@@ -1201,105 +1201,105 @@
   "pass_engine": null,
   "agree": null,
   "wall_matlab_s": 389.71645307540894,
-  "wall_engine_s": 1.198645711
+  "wall_engine_s": 0.98039751
  },
  {
   "scenario": "fine_hold_img",
   "metric": "wheel_momentum_peak",
   "unit": "N m s",
   "matlab": 0.003256767272330742,
-  "engine": 0.00327926431748416,
-  "ratio": 1.0069077840914675,
+  "engine": 0.003277758632163399,
+  "ratio": 1.0064454589712313,
   "req": null,
   "pass_matlab": null,
   "pass_engine": null,
   "agree": null,
   "wall_matlab_s": 389.71645307540894,
-  "wall_engine_s": 1.198645711
+  "wall_engine_s": 0.98039751
  },
  {
   "scenario": "fine_hold_img",
   "metric": "power_mean",
   "unit": "W",
   "matlab": 1.5572084379521545,
-  "engine": 1.557341059929059,
-  "ratio": 1.0000851664900294,
+  "engine": 1.5573238717790905,
+  "ratio": 1.000074128693451,
   "req": 2,
   "pass_matlab": 1,
   "pass_engine": 1,
   "agree": true,
   "wall_matlab_s": 389.71645307540894,
-  "wall_engine_s": 1.198645711
+  "wall_engine_s": 0.98039751
  },
  {
   "scenario": "fine_hold_img_lqr",
   "metric": "ape_los_p9973",
   "unit": "deg",
   "matlab": 0.004838318079808267,
-  "engine": 0.004119263019799664,
-  "ratio": 0.851383260019751,
+  "engine": 0.00415645527691288,
+  "ratio": 0.859070281935162,
   "req": 0.01,
   "pass_matlab": 1,
   "pass_engine": 1,
   "agree": true,
   "wall_matlab_s": 387.77910590171814,
-  "wall_engine_s": 2.251185117
+  "wall_engine_s": 1.091463444
  },
  {
   "scenario": "fine_hold_img_lqr",
   "metric": "ape_los_max",
   "unit": "deg",
   "matlab": 0.007000245856801578,
-  "engine": 0.005289514577370539,
-  "ratio": 0.7556184004924829,
+  "engine": 0.0053621346821563845,
+  "ratio": 0.7659923368186315,
   "req": null,
   "pass_matlab": null,
   "pass_engine": null,
   "agree": null,
   "wall_matlab_s": 387.77910590171814,
-  "wall_engine_s": 2.251185117
+  "wall_engine_s": 1.091463444
  },
  {
   "scenario": "fine_hold_img_lqr",
   "metric": "ape_3ax_p9973",
   "unit": "deg",
   "matlab": 0.006846034332894568,
-  "engine": 0.006578920678938818,
-  "ratio": 0.9609827177359755,
+  "engine": 0.006569625274153776,
+  "ratio": 0.9596249382781107,
   "req": null,
   "pass_matlab": null,
   "pass_engine": null,
   "agree": null,
   "wall_matlab_s": 387.77910590171814,
-  "wall_engine_s": 2.251185117
+  "wall_engine_s": 1.091463444
  },
  {
   "scenario": "fine_hold_img_lqr",
   "metric": "ake_los_p9973",
   "unit": "deg",
   "matlab": 0.0033212391821586724,
-  "engine": 0.0026591528232895057,
-  "ratio": 0.8006508045473446,
+  "engine": 0.0026523706461802437,
+  "ratio": 0.7986087423117504,
   "req": 0.005,
   "pass_matlab": 1,
   "pass_engine": 1,
   "agree": true,
   "wall_matlab_s": 387.77910590171814,
-  "wall_engine_s": 2.251185117
+  "wall_engine_s": 1.091463444
  },
  {
   "scenario": "fine_hold_img_lqr",
   "metric": "rate_stability_p9973",
   "unit": "deg/s",
   "matlab": 0.006652364489007636,
-  "engine": 0.006748722184749061,
-  "ratio": 1.014484728835987,
+  "engine": 0.006703833797701828,
+  "ratio": 1.0077369946850088,
   "req": 0.001,
   "pass_matlab": 0,
   "pass_engine": 0,
   "agree": true,
   "wall_matlab_s": 387.77910590171814,
-  "wall_engine_s": 2.251185117
+  "wall_engine_s": 1.091463444
  },
  {
   "scenario": "fine_hold_img_lqr",
@@ -1313,105 +1313,105 @@
   "pass_engine": null,
   "agree": null,
   "wall_matlab_s": 387.77910590171814,
-  "wall_engine_s": 2.251185117
+  "wall_engine_s": 1.091463444
  },
  {
   "scenario": "fine_hold_img_lqr",
   "metric": "wheel_momentum_peak",
   "unit": "N m s",
   "matlab": 0.003258525356746449,
-  "engine": 0.003282499920589804,
-  "ratio": 1.007357488808156,
+  "engine": 0.003281010954153369,
+  "ratio": 1.0069005439409473,
   "req": null,
   "pass_matlab": null,
   "pass_engine": null,
   "agree": null,
   "wall_matlab_s": 387.77910590171814,
-  "wall_engine_s": 2.251185117
+  "wall_engine_s": 1.091463444
  },
  {
   "scenario": "fine_hold_img_lqr",
   "metric": "power_mean",
   "unit": "W",
   "matlab": 1.5578065098110074,
-  "engine": 1.5579345453526665,
-  "ratio": 1.0000821896306458,
+  "engine": 1.5579173018428665,
+  "ratio": 1.00007112053465,
   "req": 2,
   "pass_matlab": 1,
   "pass_engine": 1,
   "agree": true,
   "wall_matlab_s": 387.77910590171814,
-  "wall_engine_s": 2.251185117
+  "wall_engine_s": 1.091463444
  },
  {
   "scenario": "fine_hold_img_smc",
   "metric": "ape_los_p9973",
   "unit": "deg",
   "matlab": 0.01425541920992671,
-  "engine": 0.01946318614188244,
-  "ratio": 1.3653183996391576,
+  "engine": 0.01945481954336117,
+  "ratio": 1.3647314931162373,
   "req": 0.01,
   "pass_matlab": 0,
   "pass_engine": 0,
   "agree": true,
   "wall_matlab_s": 388.04844999313354,
-  "wall_engine_s": 1.980939379
+  "wall_engine_s": 0.994326733
  },
  {
   "scenario": "fine_hold_img_smc",
   "metric": "ape_los_max",
   "unit": "deg",
   "matlab": 0.01572278005600312,
-  "engine": 0.020586084821884267,
-  "ratio": 1.3093158301876955,
+  "engine": 0.020597753792059515,
+  "ratio": 1.3100579998379536,
   "req": null,
   "pass_matlab": null,
   "pass_engine": null,
   "agree": null,
   "wall_matlab_s": 388.04844999313354,
-  "wall_engine_s": 1.980939379
+  "wall_engine_s": 0.994326733
  },
  {
   "scenario": "fine_hold_img_smc",
   "metric": "ape_3ax_p9973",
   "unit": "deg",
   "matlab": 0.015020676371351183,
-  "engine": 0.019839520484348554,
-  "ratio": 1.3208140561624984,
+  "engine": 0.019815141773307444,
+  "ratio": 1.3191910459572052,
   "req": null,
   "pass_matlab": null,
   "pass_engine": null,
   "agree": null,
   "wall_matlab_s": 388.04844999313354,
-  "wall_engine_s": 1.980939379
+  "wall_engine_s": 0.994326733
  },
  {
   "scenario": "fine_hold_img_smc",
   "metric": "ake_los_p9973",
   "unit": "deg",
   "matlab": 0.003315047943593345,
-  "engine": 0.002557157970682937,
-  "ratio": 0.7713788802436161,
+  "engine": 0.002648591902073026,
+  "ratio": 0.7989603610987556,
   "req": 0.005,
   "pass_matlab": 1,
   "pass_engine": 1,
   "agree": true,
   "wall_matlab_s": 388.04844999313354,
-  "wall_engine_s": 1.980939379
+  "wall_engine_s": 0.994326733
  },
  {
   "scenario": "fine_hold_img_smc",
   "metric": "rate_stability_p9973",
   "unit": "deg/s",
   "matlab": 0.003618031433311863,
-  "engine": 0.00347836796685095,
-  "ratio": 0.9613979400026749,
+  "engine": 0.003481571379738736,
+  "ratio": 0.9622833421742236,
   "req": 0.001,
   "pass_matlab": 0,
   "pass_engine": 0,
   "agree": true,
   "wall_matlab_s": 388.04844999313354,
-  "wall_engine_s": 1.980939379
+  "wall_engine_s": 0.994326733
  },
  {
   "scenario": "fine_hold_img_smc",
@@ -1425,105 +1425,105 @@
   "pass_engine": null,
   "agree": null,
   "wall_matlab_s": 388.04844999313354,
-  "wall_engine_s": 1.980939379
+  "wall_engine_s": 0.994326733
  },
  {
   "scenario": "fine_hold_img_smc",
   "metric": "wheel_momentum_peak",
   "unit": "N m s",
   "matlab": 0.0032564068078491442,
-  "engine": 0.0032786785775345078,
-  "ratio": 1.0068393695872642,
+  "engine": 0.003277179133526099,
+  "ratio": 1.0063789099159497,
   "req": null,
   "pass_matlab": null,
   "pass_engine": null,
   "agree": null,
   "wall_matlab_s": 388.04844999313354,
-  "wall_engine_s": 1.980939379
+  "wall_engine_s": 0.994326733
  },
  {
   "scenario": "fine_hold_img_smc",
   "metric": "power_mean",
   "unit": "W",
   "matlab": 1.557215353209668,
-  "engine": 1.5573505396307497,
-  "ratio": 1.0000868129259084,
+  "engine": 1.5573332349944629,
+  "ratio": 1.0000757003741017,
   "req": 2,
   "pass_matlab": 1,
   "pass_engine": 1,
   "agree": true,
   "wall_matlab_s": 388.04844999313354,
-  "wall_engine_s": 1.980939379
+  "wall_engine_s": 0.994326733
  },
  {
   "scenario": "fine_hold_rw_rcs",
   "metric": "ape_los_p9973",
   "unit": "deg",
   "matlab": 0.008375133573049651,
-  "engine": 0.033976074421187406,
-  "ratio": 4.056780005338547,
+  "engine": 0.03388466466283655,
+  "ratio": 4.0458655814008795,
   "req": 0.01,
   "pass_matlab": 1,
   "pass_engine": 0,
   "agree": false,
   "wall_matlab_s": 394.2328910827637,
-  "wall_engine_s": 1.423758358
+  "wall_engine_s": 1.000292875
  },
  {
   "scenario": "fine_hold_rw_rcs",
   "metric": "ape_los_max",
   "unit": "deg",
   "matlab": 0.009925551806824372,
-  "engine": 0.036061985969405595,
-  "ratio": 3.6332474678748805,
+  "engine": 0.04053789321091246,
+  "ratio": 4.084195418036143,
   "req": null,
   "pass_matlab": null,
   "pass_engine": null,
   "agree": null,
   "wall_matlab_s": 394.2328910827637,
-  "wall_engine_s": 1.423758358
+  "wall_engine_s": 1.000292875
  },
  {
   "scenario": "fine_hold_rw_rcs",
   "metric": "ape_3ax_p9973",
   "unit": "deg",
   "matlab": 0.008487583636785232,
-  "engine": 0.034109143197879534,
-  "ratio": 4.018710702307583,
+  "engine": 0.034064264088226166,
+  "ratio": 4.013423083171925,
   "req": null,
   "pass_matlab": null,
   "pass_engine": null,
   "agree": null,
   "wall_matlab_s": 394.2328910827637,
-  "wall_engine_s": 1.423758358
+  "wall_engine_s": 1.000292875
  },
  {
   "scenario": "fine_hold_rw_rcs",
   "metric": "ake_los_p9973",
   "unit": "deg",
   "matlab": 0.0034386011043511847,
-  "engine": 0.002639859140416692,
-  "ratio": 0.7677131078322027,
+  "engine": 0.002601543286890391,
+  "ratio": 0.7565702470107435,
   "req": 0.005,
   "pass_matlab": 1,
   "pass_engine": 1,
   "agree": true,
   "wall_matlab_s": 394.2328910827637,
-  "wall_engine_s": 1.423758358
+  "wall_engine_s": 1.000292875
  },
  {
   "scenario": "fine_hold_rw_rcs",
   "metric": "rate_stability_p9973",
   "unit": "deg/s",
   "matlab": 0.0036042922017832796,
-  "engine": 0.005133930465007044,
-  "ratio": 1.4243935223861575,
+  "engine": 0.005640505712910319,
+  "ratio": 1.5649412969679848,
   "req": 0.001,
   "pass_matlab": 0,
   "pass_engine": 0,
   "agree": true,
   "wall_matlab_s": 394.2328910827637,
-  "wall_engine_s": 1.423758358
+  "wall_engine_s": 1.000292875
  },
  {
   "scenario": "fine_hold_rw_rcs",
@@ -1537,105 +1537,105 @@
   "pass_engine": null,
   "agree": null,
   "wall_matlab_s": 394.2328910827637,
-  "wall_engine_s": 1.423758358
+  "wall_engine_s": 1.000292875
  },
  {
   "scenario": "fine_hold_rw_rcs",
   "metric": "wheel_momentum_peak",
   "unit": "N m s",
   "matlab": 0.002802646524888059,
-  "engine": 0.002807217653138982,
-  "ratio": 1.0016310041991847,
+  "engine": 0.002806332182908937,
+  "ratio": 1.0013150634545416,
   "req": null,
   "pass_matlab": null,
   "pass_engine": null,
   "agree": null,
   "wall_matlab_s": 394.2328910827637,
-  "wall_engine_s": 1.423758358
+  "wall_engine_s": 1.000292875
  },
  {
   "scenario": "fine_hold_rw_rcs",
   "metric": "power_mean",
   "unit": "W",
   "matlab": 1.5100855484708615,
-  "engine": 1.5300995174479752,
-  "ratio": 1.0132535332169625,
+  "engine": 1.5301332707303108,
+  "ratio": 1.013275885117734,
   "req": 2,
   "pass_matlab": 1,
   "pass_engine": 1,
   "agree": true,
   "wall_matlab_s": 394.2328910827637,
-  "wall_engine_s": 1.423758358
+  "wall_engine_s": 1.000292875
  },
  {
   "scenario": "fine_hold_vscmg",
   "metric": "ape_los_p9973",
   "unit": "deg",
   "matlab": 0.009129105781604186,
-  "engine": 0.008299928618416042,
-  "ratio": 0.9091721376633628,
+  "engine": 0.008279703895293273,
+  "ratio": 0.9069567264712257,
   "req": 0.01,
   "pass_matlab": 1,
   "pass_engine": 1,
   "agree": true,
   "wall_matlab_s": 475.56675696372986,
-  "wall_engine_s": 1.4156024
+  "wall_engine_s": 1.083572544
  },
  {
   "scenario": "fine_hold_vscmg",
   "metric": "ape_los_max",
   "unit": "deg",
   "matlab": 0.010355817039760051,
-  "engine": 0.010357056857295977,
-  "ratio": 1.0001197218462983,
+  "engine": 0.010208552258427093,
+  "ratio": 0.9857795110933738,
   "req": null,
   "pass_matlab": null,
   "pass_engine": null,
   "agree": null,
   "wall_matlab_s": 475.56675696372986,
-  "wall_engine_s": 1.4156024
+  "wall_engine_s": 1.083572544
  },
  {
   "scenario": "fine_hold_vscmg",
   "metric": "ape_3ax_p9973",
   "unit": "deg",
   "matlab": 0.009207657096371013,
-  "engine": 0.008721129257087219,
-  "ratio": 0.9471605171444158,
+  "engine": 0.008731003060266146,
+  "ratio": 0.9482328641134203,
   "req": null,
   "pass_matlab": null,
   "pass_engine": null,
   "agree": null,
   "wall_matlab_s": 475.56675696372986,
-  "wall_engine_s": 1.4156024
+  "wall_engine_s": 1.083572544
  },
  {
   "scenario": "fine_hold_vscmg",
   "metric": "ake_los_p9973",
   "unit": "deg",
   "matlab": 0.00355785825812482,
-  "engine": 0.002665656338954935,
-  "ratio": 0.7492306172871197,
+  "engine": 0.0026364118238512966,
+  "ratio": 0.7410109207781722,
   "req": 0.005,
   "pass_matlab": 1,
   "pass_engine": 1,
   "agree": true,
   "wall_matlab_s": 475.56675696372986,
-  "wall_engine_s": 1.4156024
+  "wall_engine_s": 1.083572544
  },
  {
   "scenario": "fine_hold_vscmg",
   "metric": "rate_stability_p9973",
   "unit": "deg/s",
   "matlab": 0.004557086755770034,
-  "engine": 0.004740316784111128,
-  "ratio": 1.0402077112332992,
+  "engine": 0.004762354725018702,
+  "ratio": 1.045043682565131,
   "req": 0.001,
   "pass_matlab": 0,
   "pass_engine": 0,
   "agree": true,
   "wall_matlab_s": 475.56675696372986,
-  "wall_engine_s": 1.4156024
+  "wall_engine_s": 1.083572544
  },
  {
   "scenario": "fine_hold_vscmg",
@@ -1649,231 +1649,231 @@
   "pass_engine": null,
   "agree": null,
   "wall_matlab_s": 475.56675696372986,
-  "wall_engine_s": 1.4156024
+  "wall_engine_s": 1.083572544
  },
  {
   "scenario": "fine_hold_vscmg",
   "metric": "wheel_momentum_peak",
   "unit": "N m s",
   "matlab": 0.004200910331586307,
-  "engine": 0.004202644502004923,
-  "ratio": 1.0004128082443409,
+  "engine": 0.004202635267881507,
+  "ratio": 1.0004106101199612,
   "req": null,
   "pass_matlab": null,
   "pass_engine": null,
   "agree": null,
   "wall_matlab_s": 475.56675696372986,
-  "wall_engine_s": 1.4156024
+  "wall_engine_s": 1.083572544
  },
  {
   "scenario": "fine_hold_vscmg",
   "metric": "power_mean",
   "unit": "W",
   "matlab": 2.0145844571681404,
-  "engine": 2.01412036276748,
-  "ratio": 0.9997696326907473,
+  "engine": 2.014100066492688,
+  "ratio": 0.9997595580201519,
   "req": 2,
   "pass_matlab": 0,
   "pass_engine": 0,
   "agree": true,
   "wall_matlab_s": 475.56675696372986,
-  "wall_engine_s": 1.4156024
+  "wall_engine_s": 1.083572544
  },
  {
   "scenario": "mission_ais",
   "metric": "detumble_time",
   "unit": "min",
   "matlab": 58.25666666666667,
-  "engine": 37.940000000000005,
-  "ratio": 0.6512559363735195,
+  "engine": 37.79,
+  "ratio": 0.6486811237626595,
   "req": 284,
   "pass_matlab": 1,
   "pass_engine": 1,
   "agree": true,
   "wall_matlab_s": 905.6205930709839,
-  "wall_engine_s": 0.714719961
+  "wall_engine_s": 0.549798939
  },
  {
   "scenario": "mission_ais",
   "metric": "ape_los_last_orbit",
   "unit": "deg",
   "matlab": 9.113536600442313,
-  "engine": 8.022583571016904,
-  "ratio": 0.8802931203049691,
+  "engine": 8.93507009713149,
+  "ratio": 0.9804174261721667,
   "req": 10,
   "pass_matlab": 1,
   "pass_engine": 1,
   "agree": true,
   "wall_matlab_s": 905.6205930709839,
-  "wall_engine_s": 0.714719961
+  "wall_engine_s": 0.549798939
  },
  {
   "scenario": "mission_ais",
   "metric": "ape_3axis_last_orbit",
   "unit": "deg",
   "matlab": 77.1337938320774,
-  "engine": 89.92227477715355,
-  "ratio": 1.1657960837880872,
+  "engine": 88.69233084873862,
+  "ratio": 1.1498504927921023,
   "req": null,
   "pass_matlab": null,
   "pass_engine": null,
   "agree": null,
   "wall_matlab_s": 905.6205930709839,
-  "wall_engine_s": 0.714719961
+  "wall_engine_s": 0.549798939
  },
  {
   "scenario": "mission_ais",
   "metric": "ake_los_last_orbit",
   "unit": "deg",
   "matlab": 4.045744084618963,
-  "engine": 7.467686983560358,
-  "ratio": 1.8458129894945345,
+  "engine": 1.1880898481105393,
+  "ratio": 0.29366411301876405,
   "req": 5,
   "pass_matlab": 1,
-  "pass_engine": 0,
-  "agree": false,
+  "pass_engine": 1,
+  "agree": true,
   "wall_matlab_s": 905.6205930709839,
-  "wall_engine_s": 0.714719961
+  "wall_engine_s": 0.549798939
  },
  {
   "scenario": "mission_cmg",
   "metric": "detumble_time",
   "unit": "min",
   "matlab": 59.458333333333336,
-  "engine": 57.025,
-  "ratio": 0.9590749824807288,
+  "engine": 57.00833333333333,
+  "ratio": 0.9587946741415556,
   "req": 284,
   "pass_matlab": 1,
   "pass_engine": 1,
   "agree": true,
   "wall_matlab_s": 1420.6372439861298,
-  "wall_engine_s": 4.335341466
+  "wall_engine_s": 2.680594222
  },
  {
   "scenario": "mission_cmg",
   "metric": "ape_los_last_half_orbit_p9973",
   "unit": "deg",
   "matlab": 0.005659207494260749,
-  "engine": 0.005373976607492762,
-  "ratio": 0.9495987932838207,
+  "engine": 0.005240526904657488,
+  "ratio": 0.9260178054916942,
   "req": 0.01,
   "pass_matlab": 1,
   "pass_engine": 1,
   "agree": true,
   "wall_matlab_s": 1420.6372439861298,
-  "wall_engine_s": 4.335341466
+  "wall_engine_s": 2.680594222
  },
  {
   "scenario": "mission_fmr",
   "metric": "detumble_time",
   "unit": "min",
   "matlab": 24.475,
-  "engine": 61.125,
-  "ratio": 2.497446373850868,
+  "engine": 61.325,
+  "ratio": 2.50561797752809,
   "req": 284,
   "pass_matlab": 1,
   "pass_engine": 1,
   "agree": true,
   "wall_matlab_s": 1622.2781040668488,
-  "wall_engine_s": 4.083895696
+  "wall_engine_s": 2.420296159
  },
  {
   "scenario": "mission_fmr",
   "metric": "ape_los_last_half_orbit_p9973",
   "unit": "deg",
   "matlab": 0.006388460280472044,
-  "engine": 0.005942238881441233,
-  "ratio": 0.9301519647238318,
+  "engine": 0.00595408507157916,
+  "ratio": 0.9320062754055679,
   "req": 0.01,
   "pass_matlab": 1,
   "pass_engine": 1,
   "agree": true,
   "wall_matlab_s": 1622.2781040668488,
-  "wall_engine_s": 4.083895696
+  "wall_engine_s": 2.420296159
  },
  {
   "scenario": "mission_fmr_rcs",
   "metric": "detumble_time",
   "unit": "min",
   "matlab": 64.125,
-  "engine": 61.125,
-  "ratio": 0.9532163742690059,
+  "engine": 61.325,
+  "ratio": 0.9563352826510721,
   "req": 284,
   "pass_matlab": 1,
   "pass_engine": 1,
   "agree": true,
   "wall_matlab_s": 1619.4550411701202,
-  "wall_engine_s": 3.2685175969999998
+  "wall_engine_s": 2.744157848
  },
  {
   "scenario": "mission_fmr_rcs",
   "metric": "ape_los_last_half_orbit_p9973",
   "unit": "deg",
   "matlab": 0.006252813433310592,
-  "engine": 0.005942238881441233,
-  "ratio": 0.9503304304243534,
+  "engine": 0.00595408507157916,
+  "ratio": 0.9522249680215921,
   "req": 0.01,
   "pass_matlab": 1,
   "pass_engine": 1,
   "agree": true,
   "wall_matlab_s": 1619.4550411701202,
-  "wall_engine_s": 3.2685175969999998
+  "wall_engine_s": 2.744157848
  },
  {
   "scenario": "mission_img",
   "metric": "detumble_time",
   "unit": "min",
   "matlab": 23.675,
-  "engine": 51.108333333333334,
-  "ratio": 2.1587469200985567,
+  "engine": 51.00833333333333,
+  "ratio": 2.1545230552622314,
   "req": 284,
   "pass_matlab": 1,
   "pass_engine": 1,
   "agree": true,
   "wall_matlab_s": 1235.396849155426,
-  "wall_engine_s": 4.194333595
+  "wall_engine_s": 2.71783036
  },
  {
   "scenario": "mission_img",
   "metric": "ape_los_last_half_orbit_p9973",
   "unit": "deg",
   "matlab": 0.007627071269811129,
-  "engine": 0.01036029108652462,
-  "ratio": 1.3583577129444044,
+  "engine": 0.010659290304859646,
+  "ratio": 1.3975600761789662,
   "req": 0.01,
   "pass_matlab": 1,
   "pass_engine": 0,
   "agree": false,
   "wall_matlab_s": 1235.396849155426,
-  "wall_engine_s": 4.194333595
+  "wall_engine_s": 2.71783036
  },
  {
   "scenario": "mission_rw_rcs",
   "metric": "detumble_time",
   "unit": "min",
   "matlab": 24.258333333333333,
-  "engine": 51.108333333333334,
-  "ratio": 2.106836138783923,
+  "engine": 51.00833333333333,
+  "ratio": 2.1027138440398487,
   "req": 284,
   "pass_matlab": 1,
   "pass_engine": 1,
   "agree": true,
   "wall_matlab_s": 1262.6471700668335,
-  "wall_engine_s": 4.340595127
+  "wall_engine_s": 2.652764627
  },
  {
   "scenario": "mission_rw_rcs",
   "metric": "ape_los_last_half_orbit_p9973",
   "unit": "deg",
   "matlab": 0.007672929647481026,
-  "engine": 0.0075242111929186015,
-  "ratio": 0.9806177742537693,
+  "engine": 0.007564203863610057,
+  "ratio": 0.9858299516786704,
   "req": 0.01,
   "pass_matlab": 1,
   "pass_engine": 1,
   "agree": true,
   "wall_matlab_s": 1262.6471700668335,
-  "wall_engine_s": 4.340595127
+  "wall_engine_s": 2.652764627
  },
  {
   "scenario": "mission_vscmg",
@@ -1887,161 +1887,161 @@
   "pass_engine": 1,
   "agree": true,
   "wall_matlab_s": 1461.0418908596039,
-  "wall_engine_s": 4.175692733
+  "wall_engine_s": 2.967417517
  },
  {
   "scenario": "mission_vscmg",
   "metric": "ape_los_last_half_orbit_p9973",
   "unit": "deg",
   "matlab": 0.011108323890360422,
-  "engine": 0.009563352548242927,
-  "ratio": 0.8609176904304897,
+  "engine": 0.009594944176018163,
+  "ratio": 0.8637616503372268,
   "req": 0.01,
   "pass_matlab": 0,
   "pass_engine": 1,
   "agree": false,
   "wall_matlab_s": 1461.0418908596039,
-  "wall_engine_s": 4.175692733
+  "wall_engine_s": 2.967417517
  },
  {
   "scenario": "nadir_hold_ais",
   "metric": "ape_3axis_last_orbit",
   "unit": "deg",
   "matlab": 49.93332045239301,
-  "engine": 122.93212730585921,
-  "ratio": 2.461925748019583,
+  "engine": 109.83387735361731,
+  "ratio": 2.199610928304561,
   "req": null,
   "pass_matlab": null,
   "pass_engine": null,
   "agree": null,
   "wall_matlab_s": 569.4380128383636,
-  "wall_engine_s": 0.265196956
+  "wall_engine_s": 0.361925993
  },
  {
   "scenario": "nadir_hold_ais",
   "metric": "ape_los_last_orbit",
   "unit": "deg",
   "matlab": 7.2484288392594065,
-  "engine": 12.727112664226349,
-  "ratio": 1.7558443279863551,
+  "engine": 12.638200722154942,
+  "ratio": 1.7435779535701732,
   "req": 10,
   "pass_matlab": 1,
   "pass_engine": 0,
   "agree": false,
   "wall_matlab_s": 569.4380128383636,
-  "wall_engine_s": 0.265196956
+  "wall_engine_s": 0.361925993
  },
  {
   "scenario": "nadir_hold_ais",
   "metric": "ake_los_last_orbit",
   "unit": "deg",
   "matlab": 3.863572749542529,
-  "engine": 7.402403465783294,
-  "ratio": 1.9159477368867417,
+  "engine": 5.49056576806512,
+  "ratio": 1.4211110089010843,
   "req": 5,
   "pass_matlab": 1,
   "pass_engine": 0,
   "agree": false,
   "wall_matlab_s": 569.4380128383636,
-  "wall_engine_s": 0.265196956
+  "wall_engine_s": 0.361925993
  },
  {
   "scenario": "nadir_hold_ais",
   "metric": "power_mean",
   "unit": "W",
   "matlab": 0.01080065146035819,
-  "engine": 0.010432465213617553,
-  "ratio": 0.9659107371354406,
+  "engine": 0.010539787793874576,
+  "ratio": 0.9758474137008247,
   "req": 0.5,
   "pass_matlab": 1,
   "pass_engine": 1,
   "agree": true,
   "wall_matlab_s": 569.4380128383636,
-  "wall_engine_s": 0.265196956
+  "wall_engine_s": 0.361925993
  },
  {
   "scenario": "nadir_hold_ais_css",
   "metric": "ape_3axis_last_orbit",
   "unit": "deg",
   "matlab": 179.93705848443003,
-  "engine": 105.37250761084631,
-  "ratio": 0.5856075924458007,
+  "engine": 179.96658308747158,
+  "ratio": 1.0001640829481722,
   "req": null,
   "pass_matlab": null,
   "pass_engine": null,
   "agree": null,
   "wall_matlab_s": 550.4637899398804,
-  "wall_engine_s": 0.455454263
+  "wall_engine_s": 0.400654527
  },
  {
   "scenario": "nadir_hold_ais_css",
   "metric": "ape_los_last_orbit",
   "unit": "deg",
   "matlab": 36.56429111543798,
-  "engine": 14.51123278411766,
-  "ratio": 0.39686897629996176,
+  "engine": 39.44055154627257,
+  "ratio": 1.0786630984244678,
   "req": 10,
   "pass_matlab": 0,
   "pass_engine": 0,
   "agree": true,
   "wall_matlab_s": 550.4637899398804,
-  "wall_engine_s": 0.455454263
+  "wall_engine_s": 0.400654527
  },
  {
   "scenario": "nadir_hold_ais_css",
   "metric": "ake_los_last_orbit",
   "unit": "deg",
   "matlab": 41.555159338531766,
-  "engine": 13.242866414329656,
-  "ratio": 0.3186816420662907,
+  "engine": 39.21547662093392,
+  "ratio": 0.9436969378811071,
   "req": 5,
   "pass_matlab": 0,
   "pass_engine": 0,
   "agree": true,
   "wall_matlab_s": 550.4637899398804,
-  "wall_engine_s": 0.455454263
+  "wall_engine_s": 0.400654527
  },
  {
   "scenario": "nadir_hold_ais_css",
   "metric": "power_mean",
   "unit": "W",
   "matlab": 0.010714231548350292,
-  "engine": 0.010741390292257572,
-  "ratio": 1.0025348289128082,
+  "engine": 0.010643570645264142,
+  "ratio": 0.9934049490374296,
   "req": 0.5,
   "pass_matlab": 1,
   "pass_engine": 1,
   "agree": true,
   "wall_matlab_s": 550.4637899398804,
-  "wall_engine_s": 0.455454263
+  "wall_engine_s": 0.400654527
  },
  {
   "scenario": "slew_cmg",
   "metric": "settle_time_after_slew",
   "unit": "s",
   "matlab": 11.400000000000034,
-  "engine": 12.5,
-  "ratio": 1.0964912280701722,
+  "engine": 12.400000000000034,
+  "ratio": 1.0877192982456139,
   "req": 20,
   "pass_matlab": 1,
   "pass_engine": 1,
   "agree": true,
   "wall_matlab_s": 54.34743690490723,
-  "wall_engine_s": 0.119040891
+  "wall_engine_s": 0.172850982
  },
  {
   "scenario": "slew_cmg",
   "metric": "ape_los_on_target_p9973",
   "unit": "deg",
   "matlab": 0.004542425720625455,
-  "engine": 0.004193379209386256,
-  "ratio": 0.9231585648931342,
+  "engine": 0.004232932592228714,
+  "ratio": 0.9318661113176934,
   "req": 0.01,
   "pass_matlab": 1,
   "pass_engine": 1,
   "agree": true,
   "wall_matlab_s": 54.34743690490723,
-  "wall_engine_s": 0.119040891
+  "wall_engine_s": 0.172850982
  },
  {
   "scenario": "slew_cmg",
@@ -2055,7 +2055,7 @@
   "pass_engine": null,
   "agree": null,
   "wall_matlab_s": 54.34743690490723,
-  "wall_engine_s": 0.119040891
+  "wall_engine_s": 0.172850982
  },
  {
   "scenario": "slew_fmr",
@@ -2069,35 +2069,35 @@
   "pass_engine": 1,
   "agree": true,
   "wall_matlab_s": 78.75554490089417,
-  "wall_engine_s": 0.087568942
+  "wall_engine_s": 0.154821622
  },
  {
   "scenario": "slew_fmr",
   "metric": "ape_los_on_target_p9973",
   "unit": "deg",
   "matlab": 0.008052660245847734,
-  "engine": 0.006581807658508293,
-  "ratio": 0.8173457537715105,
+  "engine": 0.00652935742293547,
+  "ratio": 0.8108323490119009,
   "req": 0.01,
   "pass_matlab": 1,
   "pass_engine": 1,
   "agree": true,
   "wall_matlab_s": 78.75554490089417,
-  "wall_engine_s": 0.087568942
+  "wall_engine_s": 0.154821622
  },
  {
   "scenario": "slew_fmr",
   "metric": "wheel_momentum_peak",
   "unit": "N m s",
   "matlab": 0.00011202724306451886,
-  "engine": 0.00011112723055270644,
-  "ratio": 0.9919661281738935,
+  "engine": 0.00011113400106412978,
+  "ratio": 0.992026564468121,
   "req": null,
   "pass_matlab": null,
   "pass_engine": null,
   "agree": null,
   "wall_matlab_s": 78.75554490089417,
-  "wall_engine_s": 0.087568942
+  "wall_engine_s": 0.154821622
  },
  {
   "scenario": "slew_fmr_rcs",
@@ -2111,35 +2111,35 @@
   "pass_engine": 1,
   "agree": true,
   "wall_matlab_s": 55.8882110118866,
-  "wall_engine_s": 0.155426496
+  "wall_engine_s": 0.145944508
  },
  {
   "scenario": "slew_fmr_rcs",
   "metric": "ape_los_on_target_p9973",
   "unit": "deg",
   "matlab": 0.007078166329372722,
-  "engine": 0.006581807658508293,
-  "ratio": 0.9298746811296794,
+  "engine": 0.00652935742293547,
+  "ratio": 0.9224645365905256,
   "req": 0.01,
   "pass_matlab": 1,
   "pass_engine": 1,
   "agree": true,
   "wall_matlab_s": 55.8882110118866,
-  "wall_engine_s": 0.155426496
+  "wall_engine_s": 0.145944508
  },
  {
   "scenario": "slew_fmr_rcs",
   "metric": "wheel_momentum_peak",
   "unit": "N m s",
   "matlab": 0.00011182048732812648,
-  "engine": 0.00011112723055270644,
-  "ratio": 0.9938002704872342,
+  "engine": 0.00011113400106412978,
+  "ratio": 0.9938608185279834,
   "req": null,
   "pass_matlab": null,
   "pass_engine": null,
   "agree": null,
   "wall_matlab_s": 55.8882110118866,
-  "wall_engine_s": 0.155426496
+  "wall_engine_s": 0.145944508
  },
  {
   "scenario": "slew_img",
@@ -2153,35 +2153,35 @@
   "pass_engine": 1,
   "agree": true,
   "wall_matlab_s": 45.909926891326904,
-  "wall_engine_s": 0.087001068
+  "wall_engine_s": 0.15390814
  },
  {
   "scenario": "slew_img",
   "metric": "ape_los_on_target_p9973",
   "unit": "deg",
   "matlab": 0.009893840675525643,
-  "engine": 0.00792070025302722,
-  "ratio": 0.8005688097060858,
+  "engine": 0.007925203073528949,
+  "ratio": 0.8010239232104772,
   "req": 0.01,
   "pass_matlab": 1,
   "pass_engine": 1,
   "agree": true,
   "wall_matlab_s": 45.909926891326904,
-  "wall_engine_s": 0.087001068
+  "wall_engine_s": 0.15390814
  },
  {
   "scenario": "slew_img",
   "metric": "wheel_momentum_peak",
   "unit": "N m s",
   "matlab": 0.0033383376503035396,
-  "engine": 0.003336333099547939,
-  "ratio": 0.9993995362466052,
+  "engine": 0.003335668980872261,
+  "ratio": 0.9992005993069527,
   "req": null,
   "pass_matlab": null,
   "pass_engine": null,
   "agree": null,
   "wall_matlab_s": 45.909926891326904,
-  "wall_engine_s": 0.087001068
+  "wall_engine_s": 0.15390814
  },
  {
   "scenario": "slew_img_lqr",
@@ -2195,35 +2195,35 @@
   "pass_engine": 1,
   "agree": true,
   "wall_matlab_s": 45.53564810752869,
-  "wall_engine_s": 0.206639037
+  "wall_engine_s": 0.146360316
  },
  {
   "scenario": "slew_img_lqr",
   "metric": "ape_los_on_target_p9973",
   "unit": "deg",
   "matlab": 0.005326293837436087,
-  "engine": 0.004451415973335652,
-  "ratio": 0.8357435975553361,
+  "engine": 0.004439479541748441,
+  "ratio": 0.8335025586732311,
   "req": 0.01,
   "pass_matlab": 1,
   "pass_engine": 1,
   "agree": true,
   "wall_matlab_s": 45.53564810752869,
-  "wall_engine_s": 0.206639037
+  "wall_engine_s": 0.146360316
  },
  {
   "scenario": "slew_img_lqr",
   "metric": "wheel_momentum_peak",
   "unit": "N m s",
   "matlab": 0.0033384023859774265,
-  "engine": 0.0033368254440309824,
-  "ratio": 0.9995276357478452,
+  "engine": 0.0033361400091252644,
+  "ratio": 0.9993223175068215,
   "req": null,
   "pass_matlab": null,
   "pass_engine": null,
   "agree": null,
   "wall_matlab_s": 45.53564810752869,
-  "wall_engine_s": 0.206639037
+  "wall_engine_s": 0.146360316
  },
  {
   "scenario": "slew_img_smc",
@@ -2237,35 +2237,35 @@
   "pass_engine": 0,
   "agree": false,
   "wall_matlab_s": 45.1879620552063,
-  "wall_engine_s": 0.152646912
+  "wall_engine_s": 0.147131601
  },
  {
   "scenario": "slew_img_smc",
   "metric": "ape_los_on_target_p9973",
   "unit": "deg",
   "matlab": 0.01233483109572812,
-  "engine": 0.01785163202845321,
-  "ratio": 1.4472538691377546,
+  "engine": 0.017800521437716408,
+  "ratio": 1.443110270385559,
   "req": 0.01,
   "pass_matlab": 0,
   "pass_engine": 0,
   "agree": true,
   "wall_matlab_s": 45.1879620552063,
-  "wall_engine_s": 0.152646912
+  "wall_engine_s": 0.147131601
  },
  {
   "scenario": "slew_img_smc",
   "metric": "wheel_momentum_peak",
   "unit": "N m s",
   "matlab": 0.0033383370494234114,
-  "engine": 0.003336337795971703,
-  "ratio": 0.9994011229477102,
+  "engine": 0.003335688759211971,
+  "ratio": 0.999206703765308,
   "req": null,
   "pass_matlab": null,
   "pass_engine": null,
   "agree": null,
   "wall_matlab_s": 45.1879620552063,
-  "wall_engine_s": 0.152646912
+  "wall_engine_s": 0.147131601
  },
  {
   "scenario": "slew_rw_rcs",
@@ -2279,35 +2279,35 @@
   "pass_engine": 1,
   "agree": true,
   "wall_matlab_s": 46.26804995536804,
-  "wall_engine_s": 0.090508293
+  "wall_engine_s": 0.145699638
  },
  {
   "scenario": "slew_rw_rcs",
   "metric": "ape_los_on_target_p9973",
   "unit": "deg",
   "matlab": 0.007829084510809332,
-  "engine": 0.007945067279588734,
-  "ratio": 1.0148143462520132,
+  "engine": 0.007921819653506648,
+  "ratio": 1.0118449535918637,
   "req": 0.01,
   "pass_matlab": 1,
   "pass_engine": 1,
   "agree": true,
   "wall_matlab_s": 46.26804995536804,
-  "wall_engine_s": 0.090508293
+  "wall_engine_s": 0.145699638
  },
  {
   "scenario": "slew_rw_rcs",
   "metric": "wheel_momentum_peak",
   "unit": "N m s",
   "matlab": 0.0034193980108853704,
-  "engine": 0.0034199726099476643,
-  "ratio": 1.0001680410003353,
+  "engine": 0.003419076322837776,
+  "ratio": 0.9999059226078478,
   "req": null,
   "pass_matlab": null,
   "pass_engine": null,
   "agree": null,
   "wall_matlab_s": 46.26804995536804,
-  "wall_engine_s": 0.090508293
+  "wall_engine_s": 0.145699638
  },
  {
   "scenario": "slew_vscmg",
@@ -2321,104 +2321,104 @@
   "pass_engine": 1,
   "agree": true,
   "wall_matlab_s": 55.96863889694214,
-  "wall_engine_s": 0.10240112
+  "wall_engine_s": 0.146849392
  },
  {
   "scenario": "slew_vscmg",
   "metric": "ape_los_on_target_p9973",
   "unit": "deg",
   "matlab": 0.010272801930334453,
-  "engine": 0.01082569757749134,
-  "ratio": 1.0538213090164084,
+  "engine": 0.010831344152894409,
+  "ratio": 1.0543709716538623,
   "req": 0.01,
   "pass_matlab": 0,
   "pass_engine": 0,
   "agree": true,
   "wall_matlab_s": 55.96863889694214,
-  "wall_engine_s": 0.10240112
+  "wall_engine_s": 0.146849392
  },
  {
   "scenario": "slew_vscmg",
   "metric": "wheel_momentum_peak",
   "unit": "N m s",
   "matlab": 0.0040509197348247775,
-  "engine": 0.004054966870147163,
-  "ratio": 1.00099906578933,
+  "engine": 0.004055751765757895,
+  "ratio": 1.0011928231733593,
   "req": null,
   "pass_matlab": null,
   "pass_engine": null,
   "agree": null,
   "wall_matlab_s": 55.96863889694214,
-  "wall_engine_s": 0.10240112
+  "wall_engine_s": 0.146849392
  },
  {
   "scenario": "sun_spin_ais",
   "metric": "sun_spin_entry",
   "unit": "min",
   "matlab": 40.440000000000005,
-  "engine": 65.85666666666667,
-  "ratio": 1.628503132212331,
+  "engine": 142.40666666666667,
+  "ratio": 3.5214309264754364,
   "req": 95,
   "pass_matlab": 1,
-  "pass_engine": 1,
-  "agree": true,
+  "pass_engine": 0,
+  "agree": false,
   "wall_matlab_s": 500.98096203804016,
-  "wall_engine_s": 0.25242821
+  "wall_engine_s": 0.32091836
  },
  {
   "scenario": "sun_spin_ais",
   "metric": "sun_angle_last_orbit",
   "unit": "deg",
   "matlab": 6.50275913917671,
-  "engine": 174.13218671184353,
-  "ratio": 26.77820029697267,
+  "engine": 93.84308532175665,
+  "ratio": 14.431271912931065,
   "req": 20,
   "pass_matlab": 1,
   "pass_engine": 0,
   "agree": false,
   "wall_matlab_s": 500.98096203804016,
-  "wall_engine_s": 0.25242821
+  "wall_engine_s": 0.32091836
  },
  {
   "scenario": "sun_spin_ais",
   "metric": "spin_rate_error_last_orbit",
   "unit": "deg/s",
   "matlab": 0.04568075655051495,
-  "engine": 1.4311483210645939,
-  "ratio": 31.32934804794648,
+  "engine": 1.116324695323408,
+  "ratio": 24.437526425135882,
   "req": 0.5,
   "pass_matlab": 1,
   "pass_engine": 0,
   "agree": false,
   "wall_matlab_s": 500.98096203804016,
-  "wall_engine_s": 0.25242821
+  "wall_engine_s": 0.32091836
  },
  {
   "scenario": "sun_spin_ais",
   "metric": "sun_spin_share_last_orbit",
   "unit": "%",
   "matlab": 78.81163965847708,
-  "engine": 0.0,
-  "ratio": 0.0,
+  "engine": 13.748039728175641,
+  "ratio": 0.17444174220650013,
   "req": 90,
   "pass_matlab": 0,
   "pass_engine": 0,
   "agree": true,
   "wall_matlab_s": 500.98096203804016,
-  "wall_engine_s": 0.25242821
+  "wall_engine_s": 0.32091836
  },
  {
   "scenario": "sun_spin_ais",
   "metric": "power_mean",
   "unit": "W",
   "matlab": 0.20619345495575098,
-  "engine": 0.4611704402541031,
-  "ratio": 2.236591071006934,
+  "engine": 0.4500194377262069,
+  "ratio": 2.1825107776712933,
   "req": 0.5,
   "pass_matlab": 1,
   "pass_engine": 1,
   "agree": true,
   "wall_matlab_s": 500.98096203804016,
-  "wall_engine_s": 0.25242821
+  "wall_engine_s": 0.32091836
  }
 ]

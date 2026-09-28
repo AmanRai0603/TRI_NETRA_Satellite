@@ -14,6 +14,63 @@ use adcs_sim_core::sensors::*;
 use adcs_sim_core::torques::{self, Facets};
 use adcs_sim_core::{ephem, field, time, NC, NG, NR};
 
+/// The environment the attitude loop reads at an env tick.
+pub struct Env { pub b_eci: V3, pub sun_rel: V3, pub nu: f64, pub v_rel: V3, pub rho: f64, pub p_srp: f64 }
+
+/// The truth orbit and environment. `Pop`: the Rust port of POP stepped as asils.orbit
+/// does (bit-identical to the MATLAB twin's orbit, Sun, Moon, density, frame). `Fast`:
+/// the analytic models of adcs-sim-core (J2-J6, Montenbruck-Gill, exponential density).
+pub enum Truth { Pop(Box<adcs_pop::accel::InLoop>), Fast(Orbit, f64) }
+
+impl Truth {
+    pub fn new(c: &Config) -> Result<(Truth, f64), String> {
+        if c.orbit_model == "pop" {
+            use adcs_pop::accel::{sso_initial, Forces, InLoop, Sc, World};
+            let cr = 1.0 + c.refl;
+            let w = World::new(c.epoch_utc, adcs_pop::frames::Build::Gmst, adcs_pop::frames::FrameOpt::default(),
+                adcs_pop::gravity::Field::default_field(), Forces::sils(cr),
+                Sc { mass: c.mass_kg, aref: c.aref_m2, cd: Some(c.cd), cr: Some(cr), r_bi: adcs_pop::la::I3, srp_facets: vec![], drag_facets: None },
+                Some(adcs_pop::spaceweather::ManualIndices { f107: c.f107, f107a: Some(c.f107a), kp: Some(adcs_pop::atmos::dtm2020::KpIn::Scalar(c.kp)), ap: Some(c.ap), ap3: None }),
+                Some(crate::pop_kernel()))?;
+            let (r0, v0, raan) = sso_initial(&w, c.alt_km, c.ecc, c.inc_deg, c.ltan_h, 0.0, c.u0_deg)?;
+            Ok((Truth::Pop(Box::new(InLoop::new(w, c.orbit_step_s, r0, v0)?)), raan))
+        } else {
+            let jd_tt0 = c.jd0 + time::TT_MINUS_UTC_S/86400.0;
+            let s0 = ephem::sun(jd_tt0);
+            let raan = (s0[1].atan2(s0[0]) + (c.ltan_h - 12.0)*15.0*std::f64::consts::PI/180.0).rem_euclid(2.0*std::f64::consts::PI);
+            let a = orbit::RE + c.alt_km*1e3;
+            let (r0, v0) = orbit::coe2rv(a, c.ecc, c.inc_deg.to_radians(), raan, 0.0, c.u0_deg.to_radians());
+            let o = Orbit::new(OrbitCfg { jd0_utc: c.jd0, step_s: c.orbit_step_s, zonal_max: c.zonal_max, third_body: c.third_body, drag: c.drag, srp: c.srp,
+                mass_kg: c.mass_kg, area_m2: c.aref_m2, cd: c.cd, cr: 1.0 + c.refl, density_scale: c.density_scale }, r0, v0);
+            Ok((Truth::Fast(o, c.jd0), raan))
+        }
+    }
+    pub fn state(&mut self, t: f64) -> Result<(V3, V3), String> {
+        match self { Truth::Pop(o) => o.state(t), Truth::Fast(o, _) => Ok(o.state(t)) }
+    }
+    /// asils.run's env refresh: field at the POP position (op.geodetic), Sun, shadow,
+    /// atmosphere-relative velocity, density and SRP pressure.
+    pub fn env(&self, t: f64, r: &V3, v: &V3, gh: &field::Gh, nmax: usize) -> Env {
+        match self {
+            Truth::Pop(o) => {
+                let x = o.context(t);
+                let re = mv(&x.c, r);
+                let (lat, lon, h) = adcs_pop::geodetic::geodetic(&re);
+                let w = o.omega_e;
+                Env { b_eci: field::eci_at(lat, lon, h, &x.c, gh, nmax), sun_rel: sub(&x.sun_eci, r), nu: ephem::shadow(r, &x.sun_eci),
+                      v_rel: [v[0] + w*r[1], v[1] - w*r[0], v[2]], rho: x.rho, p_srp: x.p_srp }
+            }
+            Truth::Fast(o, jd0) => {
+                let xc = o.context(t);
+                let cm = time::eci2ecef(jd0 + t/86400.0);
+                Env { b_eci: field::eci(&mv(&cm, r), &cm, gh, nmax), sun_rel: sub(&xc.sun, r), nu: ephem::shadow(r, &xc.sun),
+                      v_rel: [v[0] + orbit::OMEGA_E*r[1], v[1] - orbit::OMEGA_E*r[0], v[2]], rho: xc.rho, p_srp: xc.p_srp }
+            }
+        }
+    }
+    pub fn set_attitude(&mut self, r_bi: M3) { if let Truth::Pop(o) = self { o.set_attitude(r_bi); } }
+}
+
 /// One recorded sample (the channels of asils.rec.write).
 #[derive(Clone, Debug, Default)]
 pub struct Row {
@@ -42,15 +99,8 @@ pub fn run(c: &Config, o: &Opts) -> Result<Record, String> {
     let d = &c.dev;
     let p = &c.params;
 
-    // ---- orbit: SSO geometry from the LTAN at the epoch ----
-    let jd_tt0 = c.jd0 + time::TT_MINUS_UTC_S/86400.0;
-    let s0 = ephem::sun(jd_tt0);
-    let ra_sun = s0[1].atan2(s0[0]);
-    let raan = (ra_sun + (c.ltan_h - 12.0)*15.0*std::f64::consts::PI/180.0).rem_euclid(2.0*std::f64::consts::PI);
-    let a = orbit::RE + c.alt_km*1e3;
-    let (r0, v0) = orbit::coe2rv(a, c.ecc, c.inc_deg.to_radians(), raan, 0.0, c.u0_deg.to_radians());
-    let mut orb = Orbit::new(OrbitCfg { jd0_utc: c.jd0, step_s: c.orbit_step_s, zonal_max: c.zonal_max, third_body: c.third_body, drag: c.drag, srp: c.srp,
-        mass_kg: c.mass_kg, area_m2: c.aref_m2, cd: c.cd, cr: 1.0 + c.refl, density_scale: c.density_scale }, r0, v0);
+    // ---- orbit and environment truth: the POP port (as asils.orbit) or the analytic model ----
+    let (mut orb, raan) = Truth::new(c)?;
     let gh = field::gh(time::decyear(c.jd0));
     let facets = Facets::boxed(&c.box_m, &c.cm_offset_m, c.sigma_n, c.sigma_t, c.vb_ratio, c.refl, c.spec_frac);
 
@@ -79,7 +129,7 @@ pub fn run(c: &Config, o: &Opts) -> Result<Record, String> {
     let fsw_build = fsw.build_id();
 
     // ---- initial state (asils.run initial_) ----
-    let (r, v) = orb.state(0.0);
+    let (r, v) = orb.state(0.0)?;
     let gd = Guid { q_off: p.gd_q_off, roll_deg: p.gd_roll_deg, t0: p.gd_t0, t_slew: p.gd_T, axis: p.gd_axis, q_inertial: p.gd_q_inertial,
         sun_axis: p.sun_axis, roll_axis: p.roll_axis, sun_eci: adcs_fsw::env::sun_model(c.jd0) };
     let mut ir = rs("initial");
@@ -139,15 +189,11 @@ pub fn run(c: &Config, o: &Opts) -> Result<Record, String> {
     let mut can_rx_count = 0usize;
     for k in 0..=n {
         let t = k as f64*dt;
-        let (r, v) = orb.state(t);
+        let (r, v) = orb.state(t)?;
         if k % env_every == 0 {
-            let xc = orb.context(t);
-            let cm = time::eci2ecef(c.jd0 + t/86400.0);
-            b_eci = field::eci(&mv(&cm, &r), &cm, &gh, c.igrf_nmax);
-            sun_rel = sub(&xc.sun, &r);
-            nu = ephem::shadow(&r, &xc.sun);
-            v_rel = [v[0] + orbit::OMEGA_E*r[1], v[1] - orbit::OMEGA_E*r[0], v[2]];
-            rho = xc.rho; psrp = xc.p_srp;
+            let ev = orb.env(t, &r, &v, &gh, c.igrf_nmax);
+            b_eci = ev.b_eci; sun_rel = ev.sun_rel; nu = ev.nu; v_rel = ev.v_rel; rho = ev.rho; psrp = ev.p_srp;
+            orb.set_attitude(transpose(&dcm(&x.q)));      // attitude -> POP (box-wing / panel models read it)
         }
         for (i, f) in c.faults.iter().enumerate() {
             if fault_done[i] || t < f.t_s { continue; }

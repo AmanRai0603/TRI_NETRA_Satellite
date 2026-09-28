@@ -12,7 +12,8 @@ schema = "adcs-twinmap/1"
 pseudocode = "fsw/pseudocode/*.md -- the contract every implementation follows"
 flight_c = "fsw/ (C99, no malloc/time/rand, -ffp-contract=off) -- OBC build, links behind adcs_fsw.h / adcs_hal.h"
 flight_rust = "fsw-rs/ (no_std, no heap; feature cabi exports adcs_fsw.h) -- the same flight software in Rust"
-engine = "engine/ (Rust): adcs-sim-core (no_std plant/env/orbit/devices/byte codecs), adcs-fsw-abi (HAL + C link), adcs-sim (config, loop, metrics, recorder), adcs-cli"
+engine = "engine/ (Rust): adcs-pop (the POP v51 port: time, frames, DE440, gravity, tides, radiation, drag, integrators), adcs-sim-core (no_std plant/devices/byte codecs + analytic fallback models), adcs-fsw-abi (HAL, C link, adcs-link/1 client), adcs-sim (config, loop, metrics, recorder), adcs-cli"
+virtual_obc = "fsw/targets/ (adcs-link/1 server; POSIX process and QEMU mps2-an386 Cortex-M4F firmware, C and Rust flight software) -- docs/VIRTUAL_OBC.md"
 python = "tools/ -- orchestration (engine.py), report and figures (report.py), packaging, parameter generation (gen_fsw_params.py)"
 matlab = "matlab_sils/ -- the SILS twin (design workflow; POP v51 in the loop), run in MATLAB or Octave"
 
@@ -97,15 +98,26 @@ parity = "same equations"
 
 [[node]]
 id = "field"
-matlab = "+asils/+env/{field,igrf_gh,igrf_ned}.m (degree 13), op.geodetic (POP)"
-engine = "adcs-sim-core/src/field.rs (degree 13, same recursion, table = fsw-rs/src/igrf13.rs)"
-parity = "same model; geodetic iteration count differs (5 vs POP's)"
+matlab = "+asils/+env/{field,igrf_gh,igrf_ned}.m (degree 13) with op.geodetic (POP)"
+engine = "adcs-sim-core/src/field.rs (degree 13, same recursion, table = fsw-rs/src/igrf13.rs) fed by adcs_pop::geodetic"
+parity = "bit: |B| equal to the 9 filed digits on every sample of all 40 scenarios (results/ENGINE_PARITY.md)"
 
 [[node]]
 id = "orbit"
-matlab = "+asils/+orbit/* over POP v51: degree-6 field with tesserals, DE440 Sun/Moon, DTM2020 density, SRP, RK4 10 s + Hermite"
-engine = "adcs-sim-core/src/orbit.rs: zonal J2..J6, Montenbruck-Gill Sun/Moon, Vallado exponential density x density_scale, SRP, RK4 10 s + Hermite"
-parity = "ledger: position drifts from POP (tesserals, ephemeris); density ~3x DTM2020 at 550 km unless engine.density_scale is set"
+matlab = "+asils/+orbit/* over POP v51 (matlab_sils/pop): op.buildWorld + op.accel, RK4 10 s nodes + Hermite"
+engine = "adcs-pop: accel.rs (World, InLoop = asils.orbit), time.rs, frames/, eop.rs, geodetic.rs, spk.rs + ephem.rs (DE440), gravity/, thirdbody.rs, srp.rs, erp.rs, relativity.rs, solidtides.rs, oceantides.rs, atmos/ (DTM2020 oper/research, JB2008, exponential), spaceweather.rs, drag.rs (+gsi, geom), integ.rs"
+parity = "bit: tests/inloop.rs (a full orbit, both cases: states, Sun, Moon, P_srp, density, ECI->ECEF identical); every POP module tested against Octave vectors (41 tests, all at 0 error); engine vs twin channels identical on all 40 scenarios"
+fallback = "engine.orbit=fast selects the analytic models of adcs-sim-core (J2-J6, Montenbruck-Gill, exponential density)"
+
+[[node]]
+id = "pop_modules"
+time_frames = "03_frames_time/+timeconv, +frames (gmst, A, B, C), tidal_eop_models, op.addsec, op.geodetic -> adcs-pop time, frames, eop, geodetic"
+ephemeris = "03_frames_time/ephemeris/+de440, ephemInputs -> adcs-pop spk (DAF/SPK type 2 reader), ephem"
+forces = "02_forces/+thirdbody, +srp, +erp, +relativity, +solidtides, +oceantides, +tideutil, +drag, +dgeom, +sgeom, +forces -> adcs-pop"
+gravity = "01_core/+grav, op.gravLoad -> adcs-pop gravity"
+atmosphere = "04_atmosphere (+atmos, dtm2020 operational/research, jb2008), 05_data drivers/space weather parsers -> adcs-pop atmos, spaceweather"
+integrators = "01_core/+integ (rk4, rk45, rk78, rk6luther, nystrom4, gaussJackson8, hermite, run) -> adcs-pop integ"
+not_ported = "NRLMSISE (a wrapper around the Aerospace Toolbox), the 'toolbox' gravity model, MATLAB's ode45/78/89/113 wrappers, network downloads of EOP / space weather / gravity files (the parsers are ported)"
 
 [[node]]
 id = "sensors_actuators"

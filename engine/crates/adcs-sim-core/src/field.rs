@@ -102,6 +102,12 @@ pub fn ned(g: &Gh, lat: f64, lon: f64, alt_km: f64, nmax: usize) -> V3 {
 /// Field in ECI [T] at an ECEF position, given the ECI->ECEF matrix.
 pub fn eci(r_ecef: &V3, c_eci2ecef: &M3, g: &Gh, nmax: usize) -> V3 {
     let (lat, lon, h) = geodetic(r_ecef);
+    eci_at(lat, lon, h, c_eci2ecef, g, nmax)
+}
+
+/// Field in ECI [T] at geodetic (lat, lon [rad], h [m]) -- asils.env.field with the
+/// geodetic coordinates supplied by the caller (the engine passes POP's op.geodetic).
+pub fn eci_at(lat: f64, lon: f64, h: f64, c_eci2ecef: &M3, g: &Gh, nmax: usize) -> V3 {
     let bn = scale(&ned(g, lat, lon, h/1000.0, nmax), 1e-9);
     let (sl, cl, so, co) = (sin(lat), cos(lat), sin(lon), cos(lon));
     let be = [-sl*co*bn[0] - so*bn[1] - cl*co*bn[2], -sl*so*bn[0] + co*bn[1] - cl*so*bn[2], cl*bn[0] - sl*bn[2]];

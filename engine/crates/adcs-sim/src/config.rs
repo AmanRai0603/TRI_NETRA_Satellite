@@ -32,6 +32,10 @@ pub struct Config {
     pub epoch_utc: [f64; 6], pub jd0: f64,
     pub alt_km: f64, pub inc_deg: f64, pub ecc: f64, pub ltan_h: f64, pub u0_deg: f64, pub orbit_step_s: f64, pub period_s: f64, pub mu: f64,
     pub zonal_max: usize, pub third_body: bool, pub drag: bool, pub srp: bool, pub density_scale: f64,
+    /// truth orbit/environment: "pop" (the POP port, as the MATLAB twin) or "fast" (analytic)
+    pub orbit_model: String,
+    /// space weather (asils.config P.env): F10.7, F10.7a, Kp, ap
+    pub f107: f64, pub f107a: f64, pub kp: f64, pub ap: f64,
     pub igrf_nmax: usize, pub env_dt_s: f64, pub env_on: [bool; 4],
     pub mass_kg: f64, pub inertia: [[f64; 3]; 3], pub box_m: [f64; 3], pub cm_offset_m: [f64; 3], pub aref_m2: f64, pub cd: f64, pub refl: f64,
     pub sigma_n: f64, pub sigma_t: f64, pub vb_ratio: f64, pub spec_frac: f64, pub m_res: [f64; 3],
@@ -208,6 +212,7 @@ impl Config {
             id: json::s(&s, "id", scenario).into(), case: c.clone(), dev, seed, epoch_utc: epoch, jd0,
             alt_km: v("orbit.alt"), inc_deg: v("orbit.inc"), ecc: v("orbit.ecc"), ltan_h: v("orbit.ltan"), u0_deg: json::f(&init, "arg_lat_deg", 0.0),
             orbit_step_s: 10.0, period_s: 2.0*PI/n, mu, zonal_max: 6, third_body: true, drag: true, srp: true, density_scale: 1.0,
+            orbit_model: "pop".into(), f107: 130.0, f107a: 130.0, kp: 2.0, ap: 7.0,
             igrf_nmax: 13, env_dt_s: 1.0, env_on: [true; 4],
             mass_kg: v("mass.m"), inertia, box_m: [0.34, 0.10, 0.10], cm_offset_m: [cpa*cmd[0]/cmn, cpa*cmd[1]/cmn, cpa*cmd[2]/cmn],
             aref_m2: v("surface.afr"), cd: v("surface.cd"), refl: v("surface.refl"), sigma_n: 0.8, sigma_t: 0.8, vb_ratio: 0.05, spec_frac: 0.5, m_res,
@@ -215,6 +220,11 @@ impl Config {
             params: p, alg, faults, gd_kind0, h_t_rot, spin_dps: json::f(&fsw, "spin_rate_dps", 6.0), scenario: s,
         };
         for (k, val) in eng {
+            if k == "engine.orbit" {
+                if val != "pop" && val != "fast" { return Err("engine.orbit: pop | fast".into()); }
+                cfg.orbit_model = val.clone();
+                continue;
+            }
             let x: f64 = val.parse().map_err(|_| format!("{k}: not a number"))?;
             match k.as_str() {
                 "engine.density_scale" => cfg.density_scale = x,
@@ -222,6 +232,10 @@ impl Config {
                 "engine.orbit_step_s" => cfg.orbit_step_s = x,
                 "engine.zonal_max" => cfg.zonal_max = x as usize,
                 "engine.igrf_nmax" => cfg.igrf_nmax = x as usize,
+                "engine.f107" => cfg.f107 = x,
+                "engine.f107a" => cfg.f107a = x,
+                "engine.kp" => cfg.kp = x,
+                "engine.ap" => cfg.ap = x,
                 _ => return Err(format!("unknown engine override {k}")),
             }
         }

@@ -41,6 +41,7 @@ version = "1.0.0"
 dependencies = [
  "adcs-fsw",
  "adcs-fsw-abi",
+ "adcs-pop",
  "adcs-sim-core",
  "serde_json",
 ]

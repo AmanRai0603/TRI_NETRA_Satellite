@@ -77,7 +77,8 @@ pub fn write(dir: &Path, c: &Config, rec: &Record, d: &Derived, metrics: &[Value
         "duration_s": c.duration_s, "dt_s": c.dt, "wall_s": rec.wall_s,
         "fsw": {"impl": impl_label(&rec.fsw_impl), "build_id": rec.fsw_build},
         "orbit": {"alt_km": c.alt_km, "inc_deg": c.inc_deg, "ltan_h": c.ltan_h, "raan_deg": rec.raan_rad.to_degrees(), "period_s": c.period_s,
-                  "atmosphere": format!("exponential x{}", c.density_scale)},
+                  "atmosphere": if c.orbit_model == "pop" { format!("dtm2020 (F10.7 {}, Kp {})", c.f107, c.kp) } else { format!("exponential x{}", c.density_scale) },
+                  "propagator": if c.orbit_model == "pop" { "POP v51 port (adcs-pop): degree-6 field, DE440 Sun/Moon (Battin), DTM2020 drag, conical SRP, RK4 10 s + Hermite" } else { "analytic (adcs-sim-core): J2-J6, Montenbruck-Gill Sun/Moon, exponential drag, SRP" }},
         "boresight_body": c.dev.boresight, "metrics": metrics,
         "mode_log": rec.mode_log.iter().map(|(t, m)| json!({"t": t, "mode": m})).collect::<Vec<_>>(),
     });
