@@ -1,0 +1,166 @@
+{
+ "family": "mtq_fmr",
+ "dir": "dist/dispatch/ais_3u/mtq_fmr",
+ "scenario": "/home/user/TRI_NETRA_Satellite/dist/dispatch/ais_3u/mtq_fmr/mission_scenario.json",
+ "check": {
+  "c": {
+   "rc": 0,
+   "build_id": "trinetra-fsw-c/1.0.0 (adcs-fswcfg/1)",
+   "metrics": [
+    {
+     "id": "detumble_time",
+     "kind": "time_to_rate",
+     "value": 54.858333333333334,
+     "unit": "min",
+     "req": 284.0,
+     "req_key": "req.detumble",
+     "pass": 1
+    },
+    {
+     "id": "ape_los_p9973",
+     "kind": "ape_los",
+     "value": 0.12408393586069853,
+     "unit": "deg",
+     "req": 10.0,
+     "req_key": "req.ape",
+     "pass": 1
+    },
+    {
+     "id": "ake_los_p9973",
+     "kind": "ake_los",
+     "value": 0.12373799917229188,
+     "unit": "deg",
+     "req": 5.0,
+     "req_key": "req.ake",
+     "pass": 1
+    },
+    {
+     "id": "power_mean",
+     "kind": "power_mean",
+     "value": 0.054880700027895774,
+     "unit": "W",
+     "req": 0.5,
+     "req_key": "req.pavg",
+     "pass": 1
+    },
+    {
+     "id": "power_peak",
+     "kind": "power_peak",
+     "value": 0.18138475421727415,
+     "unit": "W",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    },
+    {
+     "id": "propellant",
+     "kind": "propellant",
+     "value": 0.0,
+     "unit": "g",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    }
+   ],
+   "mode_log": [
+    {
+     "t": 0.0,
+     "mode": "detumble"
+    },
+    {
+     "t": 3165.2000000000003,
+     "mode": "sun_acq_rotor"
+    },
+    {
+     "t": 11478.0,
+     "mode": "nadir_fine"
+    }
+   ]
+  },
+  "rust": {
+   "rc": 0,
+   "build_id": "trinetra-fsw-rs/1.0.0 (adcs-fswcfg/1)",
+   "metrics": [
+    {
+     "id": "detumble_time",
+     "kind": "time_to_rate",
+     "value": 54.858333333333334,
+     "unit": "min",
+     "req": 284.0,
+     "req_key": "req.detumble",
+     "pass": 1
+    },
+    {
+     "id": "ape_los_p9973",
+     "kind": "ape_los",
+     "value": 0.12408393586069853,
+     "unit": "deg",
+     "req": 10.0,
+     "req_key": "req.ape",
+     "pass": 1
+    },
+    {
+     "id": "ake_los_p9973",
+     "kind": "ake_los",
+     "value": 0.12373799917229188,
+     "unit": "deg",
+     "req": 5.0,
+     "req_key": "req.ake",
+     "pass": 1
+    },
+    {
+     "id": "power_mean",
+     "kind": "power_mean",
+     "value": 0.054880700027895774,
+     "unit": "W",
+     "req": 0.5,
+     "req_key": "req.pavg",
+     "pass": 1
+    },
+    {
+     "id": "power_peak",
+     "kind": "power_peak",
+     "value": 0.18138475421727415,
+     "unit": "W",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    },
+    {
+     "id": "propellant",
+     "kind": "propellant",
+     "value": 0.0,
+     "unit": "g",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    }
+   ],
+   "mode_log": [
+    {
+     "t": 0.0,
+     "mode": "detumble"
+    },
+    {
+     "t": 3165.2000000000003,
+     "mode": "sun_acq_rotor"
+    },
+    {
+     "t": 11478.0,
+     "mode": "nadir_fine"
+    }
+   ]
+  },
+  "c_equals_rust_bitwise": true
+ },
+ "methods": {
+  "detumble": "mtq",
+  "sun_acquisition": "fmr",
+  "sun_referencing": "fmr+mtq",
+  "nadir_pointing": "fmr+mtq"
+ },
+ "algorithms": {
+  "detumble": "bdot_gyro",
+  "pointing": "pid"
+ }
+}

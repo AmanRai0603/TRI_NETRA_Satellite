@@ -1,0 +1,1488 @@
+{
+ "schema": "adcs-campaign-result/1",
+ "owner": "Agastya",
+ "id": "mc_nadir_ais",
+ "scenario": "nadir_hold_ais",
+ "case": "ais_3u",
+ "type": "montecarlo",
+ "runs": 24,
+ "engine": true,
+ "fsw": "c",
+ "stats": [
+  {
+   "id": "ape_3axis_last_orbit",
+   "unit": "deg",
+   "req": null,
+   "values": [
+    179.99561801846906,
+    152.18353221686232,
+    179.95487391512083,
+    179.999863690097,
+    179.9991533578896,
+    179.9877884508162,
+    179.99319341240715,
+    179.9926466296159,
+    150.01524755501794,
+    179.99347385341812,
+    179.89734092522306,
+    179.9828572643495,
+    179.97740061532213,
+    179.99563192333684,
+    179.9479369975065,
+    179.9948731897457,
+    179.99812094552016,
+    141.75242418486263,
+    179.98937406239938,
+    179.97142408913663,
+    179.9942754112157,
+    179.9975863781832,
+    176.80698003267386,
+    179.96681705789888
+   ],
+   "mean": 175.849518090712,
+   "std": 10.89973316389501,
+   "min": 141.75242418486263,
+   "max": 179.999863690097,
+   "n_valid": 24,
+   "pass_rate": null,
+   "pass": null
+  },
+  {
+   "id": "ape_los_last_orbit",
+   "unit": "deg",
+   "req": 10.0,
+   "values": [
+    61.33964074208324,
+    79.96822719980398,
+    148.50715290937006,
+    122.36666105873121,
+    114.87055091970885,
+    72.30007189414022,
+    142.2511599695097,
+    168.55851665365861,
+    39.32058616256733,
+    95.10038795653342,
+    92.09400965966404,
+    83.5023174323575,
+    45.78958742086609,
+    116.73057846601792,
+    58.85458867756301,
+    136.96476102053583,
+    29.273428707221534,
+    27.76381872079254,
+    91.64449334147847,
+    86.9547494928039,
+    72.24424339282294,
+    169.76224330237287,
+    46.58958076373676,
+    128.77256087939787
+   ],
+   "mean": 92.98016319765576,
+   "std": 42.29141649090549,
+   "min": 27.76381872079254,
+   "max": 169.76224330237287,
+   "n_valid": 24,
+   "pass_rate": 0.0,
+   "pass": false
+  },
+  {
+   "id": "ake_los_last_orbit",
+   "unit": "deg",
+   "req": 5.0,
+   "values": [
+    2.1400292777184093,
+    2.1508032838185978,
+    4.8348468415712125,
+    7.134947107824171,
+    1.9762107309958492,
+    1.417705283336099,
+    2.2154269871252366,
+    6.635929900737681,
+    2.141140327586606,
+    2.500693661604025,
+    1.9926059372991507,
+    2.5599664640130877,
+    1.3963098575162358,
+    1.8325527737390561,
+    1.4122580258038437,
+    2.1724773765292356,
+    1.6293165257823854,
+    3.249751504766555,
+    0.8247852508390933,
+    3.610121195135205,
+    4.714967685768171,
+    1.6349559710485182,
+    5.305977979864128,
+    2.4101575983243593
+   ],
+   "mean": 2.828914064531121,
+   "std": 1.687044549297399,
+   "min": 0.8247852508390933,
+   "max": 7.134947107824171,
+   "n_valid": 24,
+   "pass_rate": 0.875,
+   "pass": false
+  },
+  {
+   "id": "power_mean",
+   "unit": "W",
+   "req": 0.5,
+   "values": [
+    0.005946669769926687,
+    0.01244775216424823,
+    0.011059416922305368,
+    0.007080640292842402,
+    0.00805820485023563,
+    0.012214807339967083,
+    0.014822163653230278,
+    0.014801604688268244,
+    0.009843239566814533,
+    0.007247541372018186,
+    0.015178927022636058,
+    0.008936955465998658,
+    0.006410283169901678,
+    0.008066605215504,
+    0.0075155237099432054,
+    0.00916469228710024,
+    0.009229220872341463,
+    0.011013677595304836,
+    0.011031680565321196,
+    0.007084631702396353,
+    0.01277803915171502,
+    0.013823674578621431,
+    0.010843467725966466,
+    0.0064074566790475705
+   ],
+   "mean": 0.010041953181735617,
+   "std": 0.002898244887937246,
+   "min": 0.005946669769926687,
+   "max": 0.015178927022636058,
+   "n_valid": 24,
+   "pass_rate": 1.0,
+   "pass": true
+  }
+ ],
+ "per_run": [
+  {
+   "k": 1,
+   "metrics": [
+    {
+     "id": "ape_3axis_last_orbit",
+     "kind": "ape",
+     "value": 179.99561801846906,
+     "unit": "deg",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    },
+    {
+     "id": "ape_los_last_orbit",
+     "kind": "ape_los",
+     "value": 61.33964074208324,
+     "unit": "deg",
+     "req": 10.0,
+     "req_key": "req.ape",
+     "pass": 0
+    },
+    {
+     "id": "ake_los_last_orbit",
+     "kind": "ake_los",
+     "value": 2.1400292777184093,
+     "unit": "deg",
+     "req": 5.0,
+     "req_key": "req.ake",
+     "pass": 1
+    },
+    {
+     "id": "power_mean",
+     "kind": "power_mean",
+     "value": 0.005946669769926687,
+     "unit": "W",
+     "req": 0.5,
+     "req_key": "req.pavg",
+     "pass": 1
+    }
+   ],
+   "draws": {
+    "inertia_scale_x": 1.0291634444710729,
+    "inertia_scale_y": 1.0340082186690756,
+    "inertia_scale_z": 0.939949085924457,
+    "residual_dipole_Am2": 0.005291119303435642,
+    "cm_offset_mm": 15.467807926782829,
+    "F107": 197.30630815658702,
+    "Kp": 5.699267444779787,
+    "sigma_accom": 0.9850959653669231,
+    "reflectivity": 0.5624283910927876,
+    "initial_error_deg": 5.292366677040745,
+    "arg_lat_deg": 164.09928564998773
+   },
+   "wall_s": 0.494973777
+  },
+  {
+   "k": 2,
+   "metrics": [
+    {
+     "id": "ape_3axis_last_orbit",
+     "kind": "ape",
+     "value": 152.18353221686232,
+     "unit": "deg",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    },
+    {
+     "id": "ape_los_last_orbit",
+     "kind": "ape_los",
+     "value": 79.96822719980398,
+     "unit": "deg",
+     "req": 10.0,
+     "req_key": "req.ape",
+     "pass": 0
+    },
+    {
+     "id": "ake_los_last_orbit",
+     "kind": "ake_los",
+     "value": 2.1508032838185978,
+     "unit": "deg",
+     "req": 5.0,
+     "req_key": "req.ake",
+     "pass": 1
+    },
+    {
+     "id": "power_mean",
+     "kind": "power_mean",
+     "value": 0.01244775216424823,
+     "unit": "W",
+     "req": 0.5,
+     "req_key": "req.pavg",
+     "pass": 1
+    }
+   ],
+   "draws": {
+    "inertia_scale_x": 0.9470196115527149,
+    "inertia_scale_y": 1.0167213720126507,
+    "inertia_scale_z": 0.94792841177839,
+    "residual_dipole_Am2": 0.01590605221636869,
+    "cm_offset_mm": 17.177141028221403,
+    "F107": 171.08171410717904,
+    "Kp": 5.820533167738637,
+    "sigma_accom": 0.8970672779592592,
+    "reflectivity": 0.31666109988088337,
+    "initial_error_deg": 31.358071491654467,
+    "arg_lat_deg": 49.66467758032347
+   },
+   "wall_s": 0.316538293
+  },
+  {
+   "k": 3,
+   "metrics": [
+    {
+     "id": "ape_3axis_last_orbit",
+     "kind": "ape",
+     "value": 179.95487391512083,
+     "unit": "deg",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    },
+    {
+     "id": "ape_los_last_orbit",
+     "kind": "ape_los",
+     "value": 148.50715290937006,
+     "unit": "deg",
+     "req": 10.0,
+     "req_key": "req.ape",
+     "pass": 0
+    },
+    {
+     "id": "ake_los_last_orbit",
+     "kind": "ake_los",
+     "value": 4.8348468415712125,
+     "unit": "deg",
+     "req": 5.0,
+     "req_key": "req.ake",
+     "pass": 1
+    },
+    {
+     "id": "power_mean",
+     "kind": "power_mean",
+     "value": 0.011059416922305368,
+     "unit": "W",
+     "req": 0.5,
+     "req_key": "req.pavg",
+     "pass": 1
+    }
+   ],
+   "draws": {
+    "inertia_scale_x": 1.0352735047642017,
+    "inertia_scale_y": 0.928851659253136,
+    "inertia_scale_z": 0.92343249154758,
+    "residual_dipole_Am2": 0.01151878582706021,
+    "cm_offset_mm": 25.311358069321464,
+    "F107": 82.75916817149005,
+    "Kp": 4.106059426898514,
+    "sigma_accom": 0.7264307774013904,
+    "reflectivity": 0.3325322115447742,
+    "initial_error_deg": 21.1960167437941,
+    "arg_lat_deg": 272.1947807431221
+   },
+   "wall_s": 0.34936171
+  },
+  {
+   "k": 4,
+   "metrics": [
+    {
+     "id": "ape_3axis_last_orbit",
+     "kind": "ape",
+     "value": 179.999863690097,
+     "unit": "deg",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    },
+    {
+     "id": "ape_los_last_orbit",
+     "kind": "ape_los",
+     "value": 122.36666105873121,
+     "unit": "deg",
+     "req": 10.0,
+     "req_key": "req.ape",
+     "pass": 0
+    },
+    {
+     "id": "ake_los_last_orbit",
+     "kind": "ake_los",
+     "value": 7.134947107824171,
+     "unit": "deg",
+     "req": 5.0,
+     "req_key": "req.ake",
+     "pass": 0
+    },
+    {
+     "id": "power_mean",
+     "kind": "power_mean",
+     "value": 0.007080640292842402,
+     "unit": "W",
+     "req": 0.5,
+     "req_key": "req.pavg",
+     "pass": 1
+    }
+   ],
+   "draws": {
+    "inertia_scale_x": 1.0154183708103175,
+    "inertia_scale_y": 0.9761442437012415,
+    "inertia_scale_z": 1.0816104143477119,
+    "residual_dipole_Am2": 0.0065528081020314564,
+    "cm_offset_mm": 15.74670931387413,
+    "F107": 101.76617256118452,
+    "Kp": 0.4214750167271957,
+    "sigma_accom": 0.9243228840138427,
+    "reflectivity": 0.6224082062795908,
+    "initial_error_deg": 32.29540572778902,
+    "arg_lat_deg": 302.6842621907419
+   },
+   "wall_s": 0.329019485
+  },
+  {
+   "k": 5,
+   "metrics": [
+    {
+     "id": "ape_3axis_last_orbit",
+     "kind": "ape",
+     "value": 179.9991533578896,
+     "unit": "deg",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    },
+    {
+     "id": "ape_los_last_orbit",
+     "kind": "ape_los",
+     "value": 114.87055091970885,
+     "unit": "deg",
+     "req": 10.0,
+     "req_key": "req.ape",
+     "pass": 0
+    },
+    {
+     "id": "ake_los_last_orbit",
+     "kind": "ake_los",
+     "value": 1.9762107309958492,
+     "unit": "deg",
+     "req": 5.0,
+     "req_key": "req.ake",
+     "pass": 1
+    },
+    {
+     "id": "power_mean",
+     "kind": "power_mean",
+     "value": 0.00805820485023563,
+     "unit": "W",
+     "req": 0.5,
+     "req_key": "req.pavg",
+     "pass": 1
+    }
+   ],
+   "draws": {
+    "inertia_scale_x": 0.9007827583723207,
+    "inertia_scale_y": 0.9780127567042546,
+    "inertia_scale_z": 0.9049337485870106,
+    "residual_dipole_Am2": 0.007821880630629717,
+    "cm_offset_mm": 20.324850481180874,
+    "F107": 162.55049679133344,
+    "Kp": 2.7737883748837975,
+    "sigma_accom": 0.7258832849698138,
+    "reflectivity": 0.7522548126893458,
+    "initial_error_deg": 13.48529817703608,
+    "arg_lat_deg": 137.18799670466205
+   },
+   "wall_s": 0.351281327
+  },
+  {
+   "k": 6,
+   "metrics": [
+    {
+     "id": "ape_3axis_last_orbit",
+     "kind": "ape",
+     "value": 179.9877884508162,
+     "unit": "deg",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    },
+    {
+     "id": "ape_los_last_orbit",
+     "kind": "ape_los",
+     "value": 72.30007189414022,
+     "unit": "deg",
+     "req": 10.0,
+     "req_key": "req.ape",
+     "pass": 0
+    },
+    {
+     "id": "ake_los_last_orbit",
+     "kind": "ake_los",
+     "value": 1.417705283336099,
+     "unit": "deg",
+     "req": 5.0,
+     "req_key": "req.ake",
+     "pass": 1
+    },
+    {
+     "id": "power_mean",
+     "kind": "power_mean",
+     "value": 0.012214807339967083,
+     "unit": "W",
+     "req": 0.5,
+     "req_key": "req.pavg",
+     "pass": 1
+    }
+   ],
+   "draws": {
+    "inertia_scale_x": 1.0798075672311724,
+    "inertia_scale_y": 0.9090404101486924,
+    "inertia_scale_z": 0.9009155446122517,
+    "residual_dipole_Am2": 0.01447805152377866,
+    "cm_offset_mm": 22.97640262669409,
+    "F107": 191.7156855038016,
+    "Kp": 4.386541640533585,
+    "sigma_accom": 0.9230330642383131,
+    "reflectivity": 0.5760352080098143,
+    "initial_error_deg": 18.553857047814148,
+    "arg_lat_deg": 135.94136475057851
+   },
+   "wall_s": 0.345841448
+  },
+  {
+   "k": 7,
+   "metrics": [
+    {
+     "id": "ape_3axis_last_orbit",
+     "kind": "ape",
+     "value": 179.99319341240715,
+     "unit": "deg",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    },
+    {
+     "id": "ape_los_last_orbit",
+     "kind": "ape_los",
+     "value": 142.2511599695097,
+     "unit": "deg",
+     "req": 10.0,
+     "req_key": "req.ape",
+     "pass": 0
+    },
+    {
+     "id": "ake_los_last_orbit",
+     "kind": "ake_los",
+     "value": 2.2154269871252366,
+     "unit": "deg",
+     "req": 5.0,
+     "req_key": "req.ake",
+     "pass": 1
+    },
+    {
+     "id": "power_mean",
+     "kind": "power_mean",
+     "value": 0.014822163653230278,
+     "unit": "W",
+     "req": 0.5,
+     "req_key": "req.pavg",
+     "pass": 1
+    }
+   ],
+   "draws": {
+    "inertia_scale_x": 1.0247907086780423,
+    "inertia_scale_y": 0.9964049904260691,
+    "inertia_scale_z": 0.9871455264981671,
+    "residual_dipole_Am2": 0.017147709447523144,
+    "cm_offset_mm": 23.505367688088484,
+    "F107": 125.32353767655721,
+    "Kp": 5.707726252162276,
+    "sigma_accom": 0.9346521679273254,
+    "reflectivity": 0.5171907260196933,
+    "initial_error_deg": 5.067363870230654,
+    "arg_lat_deg": 230.02433165475756
+   },
+   "wall_s": 0.487722822
+  },
+  {
+   "k": 8,
+   "metrics": [
+    {
+     "id": "ape_3axis_last_orbit",
+     "kind": "ape",
+     "value": 179.9926466296159,
+     "unit": "deg",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    },
+    {
+     "id": "ape_los_last_orbit",
+     "kind": "ape_los",
+     "value": 168.55851665365861,
+     "unit": "deg",
+     "req": 10.0,
+     "req_key": "req.ape",
+     "pass": 0
+    },
+    {
+     "id": "ake_los_last_orbit",
+     "kind": "ake_los",
+     "value": 6.635929900737681,
+     "unit": "deg",
+     "req": 5.0,
+     "req_key": "req.ake",
+     "pass": 0
+    },
+    {
+     "id": "power_mean",
+     "kind": "power_mean",
+     "value": 0.014801604688268244,
+     "unit": "W",
+     "req": 0.5,
+     "req_key": "req.pavg",
+     "pass": 1
+    }
+   ],
+   "draws": {
+    "inertia_scale_x": 1.0135535967769398,
+    "inertia_scale_y": 1.0248688328146935,
+    "inertia_scale_z": 1.050877254136827,
+    "residual_dipole_Am2": 0.016754544262204515,
+    "cm_offset_mm": 20.96809202577665,
+    "F107": 178.97669084449544,
+    "Kp": 3.71035061857926,
+    "sigma_accom": 0.9955816242834203,
+    "reflectivity": 0.6400129120267058,
+    "initial_error_deg": 31.419747775463005,
+    "arg_lat_deg": 297.1706110590523
+   },
+   "wall_s": 0.515446693
+  },
+  {
+   "k": 9,
+   "metrics": [
+    {
+     "id": "ape_3axis_last_orbit",
+     "kind": "ape",
+     "value": 150.01524755501794,
+     "unit": "deg",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    },
+    {
+     "id": "ape_los_last_orbit",
+     "kind": "ape_los",
+     "value": 39.32058616256733,
+     "unit": "deg",
+     "req": 10.0,
+     "req_key": "req.ape",
+     "pass": 0
+    },
+    {
+     "id": "ake_los_last_orbit",
+     "kind": "ake_los",
+     "value": 2.141140327586606,
+     "unit": "deg",
+     "req": 5.0,
+     "req_key": "req.ake",
+     "pass": 1
+    },
+    {
+     "id": "power_mean",
+     "kind": "power_mean",
+     "value": 0.009843239566814533,
+     "unit": "W",
+     "req": 0.5,
+     "req_key": "req.pavg",
+     "pass": 1
+    }
+   ],
+   "draws": {
+    "inertia_scale_x": 1.0978787624557014,
+    "inertia_scale_y": 1.0637513905761602,
+    "inertia_scale_z": 1.0201585694556146,
+    "residual_dipole_Am2": 0.014477264626539848,
+    "cm_offset_mm": 28.179548737502174,
+    "F107": 179.29456429078945,
+    "Kp": 4.523299555205319,
+    "sigma_accom": 0.7232410652547475,
+    "reflectivity": 0.8543238459086497,
+    "initial_error_deg": 31.679498524101785,
+    "arg_lat_deg": 325.33598300011454
+   },
+   "wall_s": 0.308742518
+  },
+  {
+   "k": 10,
+   "metrics": [
+    {
+     "id": "ape_3axis_last_orbit",
+     "kind": "ape",
+     "value": 179.99347385341812,
+     "unit": "deg",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    },
+    {
+     "id": "ape_los_last_orbit",
+     "kind": "ape_los",
+     "value": 95.10038795653342,
+     "unit": "deg",
+     "req": 10.0,
+     "req_key": "req.ape",
+     "pass": 0
+    },
+    {
+     "id": "ake_los_last_orbit",
+     "kind": "ake_los",
+     "value": 2.500693661604025,
+     "unit": "deg",
+     "req": 5.0,
+     "req_key": "req.ake",
+     "pass": 1
+    },
+    {
+     "id": "power_mean",
+     "kind": "power_mean",
+     "value": 0.007247541372018186,
+     "unit": "W",
+     "req": 0.5,
+     "req_key": "req.pavg",
+     "pass": 1
+    }
+   ],
+   "draws": {
+    "inertia_scale_x": 1.0062192573793662,
+    "inertia_scale_y": 1.0565398376881692,
+    "inertia_scale_z": 1.0021786328583115,
+    "residual_dipole_Am2": 0.008339146844742828,
+    "cm_offset_mm": 12.652798317983208,
+    "F107": 87.10766940157569,
+    "Kp": 5.156564189768888,
+    "sigma_accom": 0.8826358374380853,
+    "reflectivity": 0.6953034454244581,
+    "initial_error_deg": 19.4807105070334,
+    "arg_lat_deg": 159.1056137322814
+   },
+   "wall_s": 0.392777926
+  },
+  {
+   "k": 11,
+   "metrics": [
+    {
+     "id": "ape_3axis_last_orbit",
+     "kind": "ape",
+     "value": 179.89734092522306,
+     "unit": "deg",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    },
+    {
+     "id": "ape_los_last_orbit",
+     "kind": "ape_los",
+     "value": 92.09400965966404,
+     "unit": "deg",
+     "req": 10.0,
+     "req_key": "req.ape",
+     "pass": 0
+    },
+    {
+     "id": "ake_los_last_orbit",
+     "kind": "ake_los",
+     "value": 1.9926059372991507,
+     "unit": "deg",
+     "req": 5.0,
+     "req_key": "req.ake",
+     "pass": 1
+    },
+    {
+     "id": "power_mean",
+     "kind": "power_mean",
+     "value": 0.015178927022636058,
+     "unit": "W",
+     "req": 0.5,
+     "req_key": "req.pavg",
+     "pass": 1
+    }
+   ],
+   "draws": {
+    "inertia_scale_x": 1.0338785148858909,
+    "inertia_scale_y": 0.9647900734575773,
+    "inertia_scale_z": 0.9423335560347845,
+    "residual_dipole_Am2": 0.01847495116887966,
+    "cm_offset_mm": 24.524593121627145,
+    "F107": 205.46248359894338,
+    "Kp": 2.232345796761691,
+    "sigma_accom": 0.8003261893097586,
+    "reflectivity": 0.3573734155681574,
+    "initial_error_deg": 33.68729459143069,
+    "arg_lat_deg": 241.15202666898134
+   },
+   "wall_s": 0.453974423
+  },
+  {
+   "k": 12,
+   "metrics": [
+    {
+     "id": "ape_3axis_last_orbit",
+     "kind": "ape",
+     "value": 179.9828572643495,
+     "unit": "deg",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    },
+    {
+     "id": "ape_los_last_orbit",
+     "kind": "ape_los",
+     "value": 83.5023174323575,
+     "unit": "deg",
+     "req": 10.0,
+     "req_key": "req.ape",
+     "pass": 0
+    },
+    {
+     "id": "ake_los_last_orbit",
+     "kind": "ake_los",
+     "value": 2.5599664640130877,
+     "unit": "deg",
+     "req": 5.0,
+     "req_key": "req.ake",
+     "pass": 1
+    },
+    {
+     "id": "power_mean",
+     "kind": "power_mean",
+     "value": 0.008936955465998658,
+     "unit": "W",
+     "req": 0.5,
+     "req_key": "req.pavg",
+     "pass": 1
+    }
+   ],
+   "draws": {
+    "inertia_scale_x": 0.9286824729180931,
+    "inertia_scale_y": 1.0478963190346797,
+    "inertia_scale_z": 0.9189708332067414,
+    "residual_dipole_Am2": 0.010101417535028778,
+    "cm_offset_mm": 22.124214037800012,
+    "F107": 71.50014411621669,
+    "Kp": 1.0316925436944666,
+    "sigma_accom": 0.7386032387242334,
+    "reflectivity": 0.7486788411303524,
+    "initial_error_deg": 37.30575745852377,
+    "arg_lat_deg": 255.23176664820838
+   },
+   "wall_s": 0.421387719
+  },
+  {
+   "k": 13,
+   "metrics": [
+    {
+     "id": "ape_3axis_last_orbit",
+     "kind": "ape",
+     "value": 179.97740061532213,
+     "unit": "deg",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    },
+    {
+     "id": "ape_los_last_orbit",
+     "kind": "ape_los",
+     "value": 45.78958742086609,
+     "unit": "deg",
+     "req": 10.0,
+     "req_key": "req.ape",
+     "pass": 0
+    },
+    {
+     "id": "ake_los_last_orbit",
+     "kind": "ake_los",
+     "value": 1.3963098575162358,
+     "unit": "deg",
+     "req": 5.0,
+     "req_key": "req.ake",
+     "pass": 1
+    },
+    {
+     "id": "power_mean",
+     "kind": "power_mean",
+     "value": 0.006410283169901678,
+     "unit": "W",
+     "req": 0.5,
+     "req_key": "req.pavg",
+     "pass": 1
+    }
+   ],
+   "draws": {
+    "inertia_scale_x": 0.9609361924834561,
+    "inertia_scale_y": 1.0112045535447591,
+    "inertia_scale_z": 0.9091167205394153,
+    "residual_dipole_Am2": 0.008813009939596595,
+    "cm_offset_mm": 19.7569667455466,
+    "F107": 78.33813945753563,
+    "Kp": 1.4301744427104164,
+    "sigma_accom": 0.787267386973036,
+    "reflectivity": 0.7693947742248894,
+    "initial_error_deg": 9.565859342015857,
+    "arg_lat_deg": 300.43085970173405
+   },
+   "wall_s": 0.522765012
+  },
+  {
+   "k": 14,
+   "metrics": [
+    {
+     "id": "ape_3axis_last_orbit",
+     "kind": "ape",
+     "value": 179.99563192333684,
+     "unit": "deg",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    },
+    {
+     "id": "ape_los_last_orbit",
+     "kind": "ape_los",
+     "value": 116.73057846601792,
+     "unit": "deg",
+     "req": 10.0,
+     "req_key": "req.ape",
+     "pass": 0
+    },
+    {
+     "id": "ake_los_last_orbit",
+     "kind": "ake_los",
+     "value": 1.8325527737390561,
+     "unit": "deg",
+     "req": 5.0,
+     "req_key": "req.ake",
+     "pass": 1
+    },
+    {
+     "id": "power_mean",
+     "kind": "power_mean",
+     "value": 0.008066605215504,
+     "unit": "W",
+     "req": 0.5,
+     "req_key": "req.pavg",
+     "pass": 1
+    }
+   ],
+   "draws": {
+    "inertia_scale_x": 0.927939403176423,
+    "inertia_scale_y": 1.0537396179145704,
+    "inertia_scale_z": 1.0757720356200644,
+    "residual_dipole_Am2": 0.006846293261233263,
+    "cm_offset_mm": 27.64298014789097,
+    "F107": 204.43962979570986,
+    "Kp": 4.559775819267778,
+    "sigma_accom": 0.9072018119792635,
+    "reflectivity": 0.7492104896475144,
+    "initial_error_deg": 7.8197938701456,
+    "arg_lat_deg": 35.62640406731167
+   },
+   "wall_s": 0.315302201
+  },
+  {
+   "k": 15,
+   "metrics": [
+    {
+     "id": "ape_3axis_last_orbit",
+     "kind": "ape",
+     "value": 179.9479369975065,
+     "unit": "deg",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    },
+    {
+     "id": "ape_los_last_orbit",
+     "kind": "ape_los",
+     "value": 58.85458867756301,
+     "unit": "deg",
+     "req": 10.0,
+     "req_key": "req.ape",
+     "pass": 0
+    },
+    {
+     "id": "ake_los_last_orbit",
+     "kind": "ake_los",
+     "value": 1.4122580258038437,
+     "unit": "deg",
+     "req": 5.0,
+     "req_key": "req.ake",
+     "pass": 1
+    },
+    {
+     "id": "power_mean",
+     "kind": "power_mean",
+     "value": 0.0075155237099432054,
+     "unit": "W",
+     "req": 0.5,
+     "req_key": "req.pavg",
+     "pass": 1
+    }
+   ],
+   "draws": {
+    "inertia_scale_x": 0.9224088164878348,
+    "inertia_scale_y": 0.987195808691447,
+    "inertia_scale_z": 1.014003894741829,
+    "residual_dipole_Am2": 0.008497625048631082,
+    "cm_offset_mm": 12.955618680719624,
+    "F107": 71.37868974672278,
+    "Kp": 5.3491819722561855,
+    "sigma_accom": 0.8489154409510236,
+    "reflectivity": 0.7959988594919403,
+    "initial_error_deg": 10.203824431248286,
+    "arg_lat_deg": 103.08792938724764
+   },
+   "wall_s": 0.263404043
+  },
+  {
+   "k": 16,
+   "metrics": [
+    {
+     "id": "ape_3axis_last_orbit",
+     "kind": "ape",
+     "value": 179.9948731897457,
+     "unit": "deg",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    },
+    {
+     "id": "ape_los_last_orbit",
+     "kind": "ape_los",
+     "value": 136.96476102053583,
+     "unit": "deg",
+     "req": 10.0,
+     "req_key": "req.ape",
+     "pass": 0
+    },
+    {
+     "id": "ake_los_last_orbit",
+     "kind": "ake_los",
+     "value": 2.1724773765292356,
+     "unit": "deg",
+     "req": 5.0,
+     "req_key": "req.ake",
+     "pass": 1
+    },
+    {
+     "id": "power_mean",
+     "kind": "power_mean",
+     "value": 0.00916469228710024,
+     "unit": "W",
+     "req": 0.5,
+     "req_key": "req.pavg",
+     "pass": 1
+    }
+   ],
+   "draws": {
+    "inertia_scale_x": 1.016688666268571,
+    "inertia_scale_y": 0.9593811781835905,
+    "inertia_scale_z": 0.9603742909491307,
+    "residual_dipole_Am2": 0.009271272600973733,
+    "cm_offset_mm": 29.96190346747919,
+    "F107": 174.49431344358237,
+    "Kp": 2.1298019779184023,
+    "sigma_accom": 0.8526203029148323,
+    "reflectivity": 0.5963623343516253,
+    "initial_error_deg": 14.82794337907763,
+    "arg_lat_deg": 49.76003566160971
+   },
+   "wall_s": 0.371820066
+  },
+  {
+   "k": 17,
+   "metrics": [
+    {
+     "id": "ape_3axis_last_orbit",
+     "kind": "ape",
+     "value": 179.99812094552016,
+     "unit": "deg",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    },
+    {
+     "id": "ape_los_last_orbit",
+     "kind": "ape_los",
+     "value": 29.273428707221534,
+     "unit": "deg",
+     "req": 10.0,
+     "req_key": "req.ape",
+     "pass": 0
+    },
+    {
+     "id": "ake_los_last_orbit",
+     "kind": "ake_los",
+     "value": 1.6293165257823854,
+     "unit": "deg",
+     "req": 5.0,
+     "req_key": "req.ake",
+     "pass": 1
+    },
+    {
+     "id": "power_mean",
+     "kind": "power_mean",
+     "value": 0.009229220872341463,
+     "unit": "W",
+     "req": 0.5,
+     "req_key": "req.pavg",
+     "pass": 1
+    }
+   ],
+   "draws": {
+    "inertia_scale_x": 0.9146087005706298,
+    "inertia_scale_y": 0.9547457870198286,
+    "inertia_scale_z": 0.9055995098429929,
+    "residual_dipole_Am2": 0.01434165364443916,
+    "cm_offset_mm": 25.716300554777497,
+    "F107": 181.6518271035522,
+    "Kp": 3.502054356193623,
+    "sigma_accom": 0.8542605407558147,
+    "reflectivity": 0.4219231182356028,
+    "initial_error_deg": 35.15782323379266,
+    "arg_lat_deg": 221.49784853084356
+   },
+   "wall_s": 0.296042751
+  },
+  {
+   "k": 18,
+   "metrics": [
+    {
+     "id": "ape_3axis_last_orbit",
+     "kind": "ape",
+     "value": 141.75242418486263,
+     "unit": "deg",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    },
+    {
+     "id": "ape_los_last_orbit",
+     "kind": "ape_los",
+     "value": 27.76381872079254,
+     "unit": "deg",
+     "req": 10.0,
+     "req_key": "req.ape",
+     "pass": 0
+    },
+    {
+     "id": "ake_los_last_orbit",
+     "kind": "ake_los",
+     "value": 3.249751504766555,
+     "unit": "deg",
+     "req": 5.0,
+     "req_key": "req.ake",
+     "pass": 1
+    },
+    {
+     "id": "power_mean",
+     "kind": "power_mean",
+     "value": 0.011013677595304836,
+     "unit": "W",
+     "req": 0.5,
+     "req_key": "req.pavg",
+     "pass": 1
+    }
+   ],
+   "draws": {
+    "inertia_scale_x": 0.9585909699919872,
+    "inertia_scale_y": 1.0960471449916107,
+    "inertia_scale_z": 0.9512568170568108,
+    "residual_dipole_Am2": 0.011356569921451898,
+    "cm_offset_mm": 21.95380754226645,
+    "F107": 145.865792282162,
+    "Kp": 3.949729371605602,
+    "sigma_accom": 0.8287391075517987,
+    "reflectivity": 0.36513802029175446,
+    "initial_error_deg": 20.460430064499267,
+    "arg_lat_deg": 303.6659121327101
+   },
+   "wall_s": 0.351983389
+  },
+  {
+   "k": 19,
+   "metrics": [
+    {
+     "id": "ape_3axis_last_orbit",
+     "kind": "ape",
+     "value": 179.98937406239938,
+     "unit": "deg",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    },
+    {
+     "id": "ape_los_last_orbit",
+     "kind": "ape_los",
+     "value": 91.64449334147847,
+     "unit": "deg",
+     "req": 10.0,
+     "req_key": "req.ape",
+     "pass": 0
+    },
+    {
+     "id": "ake_los_last_orbit",
+     "kind": "ake_los",
+     "value": 0.8247852508390933,
+     "unit": "deg",
+     "req": 5.0,
+     "req_key": "req.ake",
+     "pass": 1
+    },
+    {
+     "id": "power_mean",
+     "kind": "power_mean",
+     "value": 0.011031680565321196,
+     "unit": "W",
+     "req": 0.5,
+     "req_key": "req.pavg",
+     "pass": 1
+    }
+   ],
+   "draws": {
+    "inertia_scale_x": 1.0952597874127443,
+    "inertia_scale_y": 1.0233797613895856,
+    "inertia_scale_z": 0.9926005940922581,
+    "residual_dipole_Am2": 0.013630400387399192,
+    "cm_offset_mm": 18.73439041272954,
+    "F107": 133.84925852551058,
+    "Kp": 2.054854330805917,
+    "sigma_accom": 0.9765081745606564,
+    "reflectivity": 0.7742464447385529,
+    "initial_error_deg": 8.541181200035098,
+    "arg_lat_deg": 218.6004251624113
+   },
+   "wall_s": 0.294961671
+  },
+  {
+   "k": 20,
+   "metrics": [
+    {
+     "id": "ape_3axis_last_orbit",
+     "kind": "ape",
+     "value": 179.97142408913663,
+     "unit": "deg",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    },
+    {
+     "id": "ape_los_last_orbit",
+     "kind": "ape_los",
+     "value": 86.9547494928039,
+     "unit": "deg",
+     "req": 10.0,
+     "req_key": "req.ape",
+     "pass": 0
+    },
+    {
+     "id": "ake_los_last_orbit",
+     "kind": "ake_los",
+     "value": 3.610121195135205,
+     "unit": "deg",
+     "req": 5.0,
+     "req_key": "req.ake",
+     "pass": 1
+    },
+    {
+     "id": "power_mean",
+     "kind": "power_mean",
+     "value": 0.007084631702396353,
+     "unit": "W",
+     "req": 0.5,
+     "req_key": "req.pavg",
+     "pass": 1
+    }
+   ],
+   "draws": {
+    "inertia_scale_x": 1.062294321060261,
+    "inertia_scale_y": 0.9494901593120056,
+    "inertia_scale_z": 0.911124491687913,
+    "residual_dipole_Am2": 0.007184596959062404,
+    "cm_offset_mm": 12.16142133498356,
+    "F107": 81.00694986886795,
+    "Kp": 3.4989966060386357,
+    "sigma_accom": 0.889503363546611,
+    "reflectivity": 0.7824092320400668,
+    "initial_error_deg": 29.663529831007143,
+    "arg_lat_deg": 306.7389467638165
+   },
+   "wall_s": 0.451469055
+  },
+  {
+   "k": 21,
+   "metrics": [
+    {
+     "id": "ape_3axis_last_orbit",
+     "kind": "ape",
+     "value": 179.9942754112157,
+     "unit": "deg",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    },
+    {
+     "id": "ape_los_last_orbit",
+     "kind": "ape_los",
+     "value": 72.24424339282294,
+     "unit": "deg",
+     "req": 10.0,
+     "req_key": "req.ape",
+     "pass": 0
+    },
+    {
+     "id": "ake_los_last_orbit",
+     "kind": "ake_los",
+     "value": 4.714967685768171,
+     "unit": "deg",
+     "req": 5.0,
+     "req_key": "req.ake",
+     "pass": 1
+    },
+    {
+     "id": "power_mean",
+     "kind": "power_mean",
+     "value": 0.01277803915171502,
+     "unit": "W",
+     "req": 0.5,
+     "req_key": "req.pavg",
+     "pass": 1
+    }
+   ],
+   "draws": {
+    "inertia_scale_x": 0.9559083844882501,
+    "inertia_scale_y": 1.067965848639397,
+    "inertia_scale_z": 1.0879055065091991,
+    "residual_dipole_Am2": 0.01885322933324668,
+    "cm_offset_mm": 19.50038046590097,
+    "F107": 103.27538706239137,
+    "Kp": 5.819185184660312,
+    "sigma_accom": 0.8388984352897846,
+    "reflectivity": 0.44017241560374926,
+    "initial_error_deg": 34.29755359841728,
+    "arg_lat_deg": 346.45295942272463
+   },
+   "wall_s": 0.390924058
+  },
+  {
+   "k": 22,
+   "metrics": [
+    {
+     "id": "ape_3axis_last_orbit",
+     "kind": "ape",
+     "value": 179.9975863781832,
+     "unit": "deg",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    },
+    {
+     "id": "ape_los_last_orbit",
+     "kind": "ape_los",
+     "value": 169.76224330237287,
+     "unit": "deg",
+     "req": 10.0,
+     "req_key": "req.ape",
+     "pass": 0
+    },
+    {
+     "id": "ake_los_last_orbit",
+     "kind": "ake_los",
+     "value": 1.6349559710485182,
+     "unit": "deg",
+     "req": 5.0,
+     "req_key": "req.ake",
+     "pass": 1
+    },
+    {
+     "id": "power_mean",
+     "kind": "power_mean",
+     "value": 0.013823674578621431,
+     "unit": "W",
+     "req": 0.5,
+     "req_key": "req.pavg",
+     "pass": 1
+    }
+   ],
+   "draws": {
+    "inertia_scale_x": 1.0589356555355773,
+    "inertia_scale_y": 0.9876786372433216,
+    "inertia_scale_z": 0.9436527985946563,
+    "residual_dipole_Am2": 0.017863220387375756,
+    "cm_offset_mm": 18.276591315748078,
+    "F107": 185.6636715134269,
+    "Kp": 1.4862370066574793,
+    "sigma_accom": 0.9795457849718989,
+    "reflectivity": 0.6070155823846503,
+    "initial_error_deg": 17.155776645521264,
+    "arg_lat_deg": 28.36793351946248
+   },
+   "wall_s": 0.411386195
+  },
+  {
+   "k": 23,
+   "metrics": [
+    {
+     "id": "ape_3axis_last_orbit",
+     "kind": "ape",
+     "value": 176.80698003267386,
+     "unit": "deg",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    },
+    {
+     "id": "ape_los_last_orbit",
+     "kind": "ape_los",
+     "value": 46.58958076373676,
+     "unit": "deg",
+     "req": 10.0,
+     "req_key": "req.ape",
+     "pass": 0
+    },
+    {
+     "id": "ake_los_last_orbit",
+     "kind": "ake_los",
+     "value": 5.305977979864128,
+     "unit": "deg",
+     "req": 5.0,
+     "req_key": "req.ake",
+     "pass": 0
+    },
+    {
+     "id": "power_mean",
+     "kind": "power_mean",
+     "value": 0.010843467725966466,
+     "unit": "W",
+     "req": 0.5,
+     "req_key": "req.pavg",
+     "pass": 1
+    }
+   ],
+   "draws": {
+    "inertia_scale_x": 1.046415855921394,
+    "inertia_scale_y": 0.9467261897366112,
+    "inertia_scale_z": 1.0538070732109661,
+    "residual_dipole_Am2": 0.01743101119473148,
+    "cm_offset_mm": 14.321454565252658,
+    "F107": 120.10598635399921,
+    "Kp": 0.105980106637525,
+    "sigma_accom": 0.8337731025287665,
+    "reflectivity": 0.49820645953852905,
+    "initial_error_deg": 30.634005736258754,
+    "arg_lat_deg": 54.2757256386732
+   },
+   "wall_s": 0.31575824
+  },
+  {
+   "k": 24,
+   "metrics": [
+    {
+     "id": "ape_3axis_last_orbit",
+     "kind": "ape",
+     "value": 179.96681705789888,
+     "unit": "deg",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    },
+    {
+     "id": "ape_los_last_orbit",
+     "kind": "ape_los",
+     "value": 128.77256087939787,
+     "unit": "deg",
+     "req": 10.0,
+     "req_key": "req.ape",
+     "pass": 0
+    },
+    {
+     "id": "ake_los_last_orbit",
+     "kind": "ake_los",
+     "value": 2.4101575983243593,
+     "unit": "deg",
+     "req": 5.0,
+     "req_key": "req.ake",
+     "pass": 1
+    },
+    {
+     "id": "power_mean",
+     "kind": "power_mean",
+     "value": 0.0064074566790475705,
+     "unit": "W",
+     "req": 0.5,
+     "req_key": "req.pavg",
+     "pass": 1
+    }
+   ],
+   "draws": {
+    "inertia_scale_x": 0.9146516271121319,
+    "inertia_scale_y": 1.01252170723913,
+    "inertia_scale_z": 1.0311594327506515,
+    "residual_dipole_Am2": 0.005233986053082575,
+    "cm_offset_mm": 28.60958562339068,
+    "F107": 106.39268795328445,
+    "Kp": 0.7631569370790448,
+    "sigma_accom": 0.7825683745401776,
+    "reflectivity": 0.4269892971321857,
+    "initial_error_deg": 32.81929149890884,
+    "arg_lat_deg": 30.688165612624857
+   },
+   "wall_s": 0.295207045
+  }
+ ],
+ "wall_s": 7.174398422241211
+}
