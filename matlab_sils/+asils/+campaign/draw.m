@@ -10,11 +10,19 @@ function [set, d] = draw(C, P0, k)
     if isfield(C, 'duration_s'), set.sim__duration_s = C.duration_s; end
     U = @(a, b) a + (b - a)*rand;
     ds = C.dispersions; if ~iscell(ds), ds = num2cell(ds); end
+    % edge campaign (type = "edge"): run 2j-1 / 2j puts dispersion j at its
+    % low / high bound with every other dispersion nominal; run 2n+1 puts
+    % every dispersion at its adverse (upper) bound
+    edge = strcmp(asils.util.getf(C, 'type', 'mc'), 'edge');
+    which = 0; hi = true;
+    if edge && k <= 2*numel(ds), which = ceil(k/2); hi = mod(k, 2) == 0; end
     for i = 1:numel(ds)
         s = ds{i};
         if edge
             if which > 0 && i ~= which, continue, end
-            if which == 0, U = @(a, b) b; end      % adverse = upper bound for every kind below
+            if which > 0, U = @(a, b) edge_(a, b, hi);
+            else, U = @(a, b) b; end               % adverse = upper bound for every kind below
+            d.edge_case = which; d.edge_high = double(hi);
         end
         switch s.kind
             case 'inertia'           % each principal moment +/- s.frac (uniform)

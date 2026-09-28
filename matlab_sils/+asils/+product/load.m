@@ -47,6 +47,8 @@ function dev = load(productId)
                         ds.friction_scale.lo, ds.friction_scale.hi, sig('axis_misalignment_rad', 0));
                     X.T_sd(end) = Tsd; X.k_hv(end) = k_hv; X.Ac(end) = Ac; X.S(end) = S; X.l(end) = nm.channel_length_m;
                     X.flow_noise_h(end) = k_hv*sig('flow_sensor_noise_m_s', 0);
+                    fp = asils.util.getf(nm, 'field_power_W', 0); if isnan(fp), fp = 0; end
+                    X.field_power(end) = fp;
                     X.eta_lo(end) = ds.pump_efficiency.lo; X.eta_hi(end) = ds.pump_efficiency.hi;
                 end
                 dev.fmr_cruise_h = k_hv*nm.v_cruise_m_s;
@@ -118,7 +120,7 @@ function X = mex_empty_()
     X = struct('kind', {{}}, 'part', {{}}, 'A0', zeros(3,0), 'G', zeros(3,0), 'gi', zeros(1,0), ...
         'h_max', [], 'torque_max', [], 'J', [], 'coulomb', [], 'viscous', [], 'p_steady', [], ...
         'torque_scale_sigma', [], 'friction_scale_lo', [], 'friction_scale_hi', [], 'misalign_rad', [], ...
-        'T_sd', [], 'k_hv', [], 'Ac', [], 'S', [], 'l', [], 'flow_noise_h', [], 'eta_lo', [], 'eta_hi', [], 'h0', [], ...
+        'T_sd', [], 'k_hv', [], 'Ac', [], 'S', [], 'l', [], 'flow_noise_h', [], 'field_power', [], 'eta_lo', [], 'eta_hi', [], 'h0', [], ...
         'torque_noise', 0.001, 'friction_comp', 0.95, 'eta', 0.8, 'k_speed', 1.0, 'k_flow', 2.0, 'flow_tau', 0.3, ...
         'gimbal_rate_max', 0, 'gimbal_power', 0);
 end
@@ -129,7 +131,7 @@ function X = add_(X, kind, part, a, gi, hmax, tmax, J, cou, vis, pst, tsig, flo,
     X.viscous(end+1) = vis; X.p_steady(end+1) = pst; X.torque_scale_sigma(end+1) = tsig;
     X.friction_scale_lo(end+1) = flo; X.friction_scale_hi(end+1) = fhi; X.misalign_rad(end+1) = mis;
     X.T_sd(end+1) = Inf; X.k_hv(end+1) = 1; X.Ac(end+1) = 1; X.S(end+1) = 1; X.l(end+1) = 1;
-    X.flow_noise_h(end+1) = 0; X.eta_lo(end+1) = 1; X.eta_hi(end+1) = 1; X.h0(end+1) = 0;
+    X.flow_noise_h(end+1) = 0; X.field_power(end+1) = 0; X.eta_lo(end+1) = 1; X.eta_hi(end+1) = 1; X.h0(end+1) = 0;
 end
 
 function A = axes_(a)
