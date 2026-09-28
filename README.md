@@ -23,18 +23,23 @@ case  ->  demand  ->  sizing  ->  mission modes x methods (SILS)  ->  solution  
 
 | path | what |
 |---|---|
-| `matlab_sils/` | the SILS (MATLAB / GNU Octave), with the Precision Orbit Propagator in the loop; start at `matlab_sils/README.md` |
+| `fsw/` | the flight software in **embedded C** (C99) behind `adcs_fsw.h` / `adcs_hal.h`; `fsw/pseudocode/` is the contract, `fsw/params/params.toml` the parameter set |
+| `fsw-rs/` | the same flight software in **Rust** (`no_std`; feature `cabi` exports the C ABI) |
+| `engine/` | the **Rust SILS engine**: plant, orbit, environment, device emulators speaking bytes, config, metrics, recorder; `adcs` CLI |
+| `matlab_sils/` | the SILS twin (MATLAB / GNU Octave), with the Precision Orbit Propagator in the loop; start at `matlab_sils/README.md` |
 | `catalogue/` | parts, products, algorithms (slot + hardware needs), `families.toml` (solution / benchmark), `modes/`, `components/` |
 | `scenarios/`, `campaigns/`, `trades/` | test scenarios, Monte Carlo / edge campaigns, algorithm and hardware trades |
-| `docs/` | `SOLUTION_PIPELINE.md` (start here), `ARCHITECTURE_PLAN.md`, `COMPONENTS.md`, `OILS_HILS.md`, `RESULTS.md`, `SELECTION.md`, `SOLUTIONS.md` |
+| `docs/` | `SOLUTION_PIPELINE.md` (start here), `LANGUAGES.md` (C / Rust / Python / MATLAB roles), `ARCHITECTURE_PLAN.md`, `COMPONENTS.md`, `OILS_HILS.md`, `RESULTS.md`, `SELECTION.md`, `SOLUTIONS.md` |
 | `results/index.html` | the report with every figure |
 | `dist/` | the downloadable MATLAB SILS zip; `dist/dispatch/` holds the dispatch packages |
-| `tools/` | `export_catalogue.py` (TOML → JSON), `run_matrix.py` (parallel runner), `report.py`, `pack_matlab.py`, `components_doc.py` |
+| `tools/` | `engine.py` (build, run, Monte Carlo and parity on the Rust engine), `gen_fsw_params.py` (params → C + Rust), `export_catalogue.py` (TOML → JSON), `run_matrix.py` (parallel runner), `report.py`, `pack_matlab.py`, `components_doc.py` |
 | `spec/` | the platform architecture package (reference, unchanged) |
 
 ## Run it
 
 ```bash
+python3 tools/engine.py build && python3 tools/engine.py run   # flight software (C + Rust) and the Rust engine
+python3 tools/engine.py fsw-parity && python3 tools/engine.py twin-parity
 python3 tools/export_catalogue.py                           # after editing any TOML
 python3 tools/run_matrix.py --workers 4                     # scenarios, campaigns, trades
 python3 tools/run_matrix.py --workers 4 --only solutions    # the customer-case solution matrix

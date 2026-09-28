@@ -1,0 +1,18 @@
+[package]
+name = "adcs-cli"
+description = "adcs -- run TRI-NETRA ADCS SILS scenarios on the Rust engine with the C or Rust flight software"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+publish.workspace = true
+
+[[bin]]
+name = "adcs"
+path = "src/main.rs"
+
+[dependencies]
+adcs-sim = { path = "../adcs-sim" }
+adcs-fsw-abi = { path = "../adcs-fsw-abi" }
+adcs-fsw = { path = "../../../fsw-rs" }
+adcs-sim-core = { path = "../adcs-sim-core" }
+serde_json = "1"

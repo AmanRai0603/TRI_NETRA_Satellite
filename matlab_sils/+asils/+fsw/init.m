@@ -11,7 +11,7 @@ function F = init(P, jd0)
     F.sigma = F.P.ss.sigma0; F.sz_sum = 0; F.sz_n = 0; F.sz_t0 = 0; F.V_ss = NaN;
     F.B1raw = []; F.bsum_raw = zeros(3,1); F.s_prop = [];
     ssv = struct('sunspin_l1l2', {{'E1', 0}}, 'sunspin_l1l2_e2', {{'E2', 0}}, 'sunspin_damped', {{'E2', 0.5}});
-    if isfield(ssv, a.sun_spin), v = ssv.(a.sun_spin); F.P.ss.eclipse = v{1}; F.P.ss.rz_floor = v{2}; end
+    if isfield(ssv, a.sun_acquisition), v = ssv.(a.sun_acquisition); F.P.ss.eclipse = v{1}; F.P.ss.rz_floor = v{2}; end
     F.mode = F.P.start_mode; F.t_mode = 0; F.hold = 0;
     F.K = []; F.ad_ok = false; F.t_st = -1e9;
     F.r = []; F.v = []; F.t_fix = -1;

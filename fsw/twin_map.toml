@@ -1,0 +1,127 @@
+# twin_map.toml -- one row per node: the pseudocode, the MATLAB twin, the C flight
+# software, the Rust flight software and the Rust engine that implement it, and how
+# their agreement is measured. Owner: Agastya. Copyright (c) 2026 Agastya.
+#
+# parity kinds
+#   bit        identical bytes/values on one platform (tests pin them)
+#   vector     same inputs -> same outputs to a stated tolerance (unit-test vectors from the twin)
+#   ledger     different models by design; the difference is measured and filed (results/ENGINE_PARITY.md)
+schema = "adcs-twinmap/1"
+
+[languages]
+pseudocode = "fsw/pseudocode/*.md -- the contract every implementation follows"
+flight_c = "fsw/ (C99, no malloc/time/rand, -ffp-contract=off) -- OBC build, links behind adcs_fsw.h / adcs_hal.h"
+flight_rust = "fsw-rs/ (no_std, no heap; feature cabi exports adcs_fsw.h) -- the same flight software in Rust"
+engine = "engine/ (Rust): adcs-sim-core (no_std plant/env/orbit/devices/byte codecs), adcs-fsw-abi (HAL + C link), adcs-sim (config, loop, metrics, recorder), adcs-cli"
+python = "tools/ -- orchestration (engine.py), report and figures (report.py), packaging, parameter generation (gen_fsw_params.py)"
+matlab = "matlab_sils/ -- the SILS twin (design workflow; POP v51 in the loop), run in MATLAB or Octave"
+
+[params]
+source = "fsw/params/params.toml"
+generator = "tools/gen_fsw_params.py"
+c = "fsw/include/adcs_params.h, fsw/src/adcs_params.c"
+rust = "fsw-rs/src/params.rs"
+engine_fill = "engine/crates/adcs-sim/src/config.rs (the asils.config + asils.fsw.init mapping)"
+parity = "bit: the blob layout is generated for both; CRC-32 protected"
+
+# ---------------- flight software ----------------
+[[node]]
+id = "math"
+pseudocode = "01_math.md"
+matlab = "+asils/+quat/*, +asils/+fsw/{triad,quest}.m"
+c = "fsw/src/adcs_math.c"
+rust = "fsw-rs/src/math.rs"
+parity = "bit (C = Rust on host: fsw-rs tests pin C's outputs); vector vs MATLAB (fsw/tests/test_fsw.c t_math)"
+
+[[node]]
+id = "time_frames_models"
+pseudocode = "02_time_frames_models.md"
+matlab = "+asils/+fsw/{gmst_rot,sun_model}.m, +asils/+env/{igrf_gh,igrf_ned}.m"
+c = "fsw/src/adcs_env.c"
+rust = "fsw-rs/src/env.rs"
+parity = "vector: IGRF (1e-5 nT) and Sun (1e-11) against the twin, both builds"
+
+[[node]]
+id = "estimation"
+pseudocode = "03_estimation.md"
+matlab = "+asils/+fsw/{mekf_*,triad,quest}.m"
+c = "fsw/src/adcs_est.c"
+rust = "fsw-rs/src/est.rs"
+parity = "vector (QUEST/TRIAD 1e-9 rad, MEKF convergence); closed loop bit C = Rust"
+
+[[node]]
+id = "guidance_control"
+pseudocode = "04_guidance.md, 05_control.md, 06_detumble_sunspin.md"
+matlab = "+asils/+fsw/{guidance,control_law,mtq_pd,torque2dipole,bdot,gen_bdot,sun_spin,boresight_offset}.m"
+c = "fsw/src/adcs_ctl.c"
+rust = "fsw-rs/src/ctl.rs"
+parity = "vector (law properties); closed loop bit C = Rust"
+
+[[node]]
+id = "allocation"
+pseudocode = "07_allocation.md"
+matlab = "+asils/+fsw/{allocate,steer_sr,dump,rcs_duty}.m"
+c = "fsw/src/adcs_alloc.c"
+rust = "fsw-rs/src/alloc.rs"
+parity = "vector (RCS duty with MIB); closed loop bit C = Rust"
+
+[[node]]
+id = "mode_manager"
+pseudocode = "08_mode_manager.md"
+matlab = "+asils/+fsw/{init,step,modes,select}.m"
+c = "fsw/src/adcs_fsw.c"
+rust = "fsw-rs/src/fsw.rs"
+parity = "bit: `adcs parity <scenario>` and engine test run_twice_identical_and_c_equals_rust compare every recorded sample"
+
+[[node]]
+id = "drivers_hal"
+pseudocode = "09_drivers_hal.md"
+matlab = "+asils/+hal/* (quantisation and loopback framing)"
+c = "fsw/include/{adcs_hal.h,adcs_devices.h}, fsw/src/adcs_drv.c"
+rust = "fsw-rs/src/{hal,devices,drv}.rs"
+engine = "engine/crates/adcs-sim-core/src/emu.rs (device side), engine/crates/adcs-fsw-abi (bus, extern C HAL)"
+parity = "bit: the PWM words of the byte-level detumble are pinned in both test suites"
+
+# ---------------- plant and environment (engine vs MATLAB twin) ----------------
+[[node]]
+id = "plant"
+matlab = "+asils/+plant/{geometry,axes,deriv,step}.m"
+engine = "adcs-sim-core/src/plant.rs"
+parity = "same equations and RK4; engine test: inertial momentum conserved to 1e-9 over 20 s with rotors and a gimbal"
+
+[[node]]
+id = "torques"
+matlab = "+asils/+env/{geometry,torques,shadow}.m"
+engine = "adcs-sim-core/src/{torques,ephem}.rs"
+parity = "same equations"
+
+[[node]]
+id = "field"
+matlab = "+asils/+env/{field,igrf_gh,igrf_ned}.m (degree 13), op.geodetic (POP)"
+engine = "adcs-sim-core/src/field.rs (degree 13, same recursion, table = fsw-rs/src/igrf13.rs)"
+parity = "same model; geodetic iteration count differs (5 vs POP's)"
+
+[[node]]
+id = "orbit"
+matlab = "+asils/+orbit/* over POP v51: degree-6 field with tesserals, DE440 Sun/Moon, DTM2020 density, SRP, RK4 10 s + Hermite"
+engine = "adcs-sim-core/src/orbit.rs: zonal J2..J6, Montenbruck-Gill Sun/Moon, Vallado exponential density x density_scale, SRP, RK4 10 s + Hermite"
+parity = "ledger: position drifts from POP (tesserals, ephemeris); density ~3x DTM2020 at 550 km unless engine.density_scale is set"
+
+[[node]]
+id = "sensors_actuators"
+matlab = "+asils/+devices/*, +asils/+comp/+fluid_loop/drive.m"
+engine = "adcs-sim-core/src/{sensors,actuators}.rs"
+parity = "same models and dispersions; random streams differ (twister vs counter-based SplitMix64) -> ledger at the metric level and Monte Carlo"
+not_ported = "star tracker model 'image' (the component-level camera chain) -- the engine runs 'quest' (default) and 'noise'; CSS component chain; jitter metric (asils.sizing.jitter)"
+
+[[node]]
+id = "config"
+matlab = "+asils/config.m, +asils/+product/load.m, +asils/+case/read.m, +asils/+fsw/{init,select,lqr_gain}.m"
+engine = "adcs-sim/src/{config,product,case,lqr}.rs"
+parity = "vector: LQR gains equal Octave's asils.fsw.lqr_gain to 1e-9 (engine test lqr_matches_matlab)"
+
+[[node]]
+id = "metrics_recorder"
+matlab = "+asils/+metrics/*, +asils/+rec/write.m"
+engine = "adcs-sim/src/{metrics,rec}.rs"
+parity = "same channels.csv columns and %.9g formatting; tools/report.py reads either"

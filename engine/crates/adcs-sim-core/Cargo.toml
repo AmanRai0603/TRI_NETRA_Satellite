@@ -1,0 +1,10 @@
+[package]
+name = "adcs-sim-core"
+description = "TRI-NETRA ADCS plant: rigid body + rotors, orbit, environment, sensor/actuator models, byte codecs (no_std, no alloc)"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+publish.workspace = true
+
+[dependencies]
+libm = "0.2"
