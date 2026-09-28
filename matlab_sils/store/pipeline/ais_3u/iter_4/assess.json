@@ -2,9 +2,10 @@
  "iteration": 4,
  "knobs": {
   "scale": {
+   "fmr": 1.0,
    "mtqp": 1.0
   },
-  "fmr_pm": true
+  "fmr_lambda": 0.9000000000000001
  },
  "class": "coarse",
  "selected": "mtq_fmr",
@@ -29,6 +30,7 @@
   "sun_referencing/rw+rcs: power fails at the sized authority (rw); the part's standby power is the floor",
   "sun_referencing/vscmg+mtq: performance and power both fail \u2014 no authority change helps",
   "sun_referencing/vscmg+rcs: power fails at the sized authority (vscmg); the part's standby power is the floor",
+  "mass (mtq_fmr): no lever left (budget: mass_kg 1.6 > 0.35 budget: volume_L 0.537 > 0.3)",
   "mtqp: more authority did not reduce the performance violation (39.9 -> 41); kept at x1"
  ],
  "families": {
@@ -48,25 +50,25 @@
   "mtq_fmr": {
    "feasible": false,
    "gaps": [
-    "budget: mass_kg 0.855 > 0.35",
-    "budget: volume_L 0.477 > 0.3"
+    "budget: mass_kg 1.6 > 0.35",
+    "budget: volume_L 0.537 > 0.3"
    ],
    "budget": {
-    "mass_kg": 0.8546057483598011,
-    "power_W": 1.8787468443047084,
-    "volume_L": 0.47712759734192733
+    "mass_kg": 1.6004925418497764,
+    "power_W": 2.2408142134550255,
+    "volume_L": 0.5371275973419273
    }
   },
   "mtq_fmr_rcs": {
    "feasible": false,
    "gaps": [
-    "budget: mass_kg 1.37 > 0.35",
-    "budget: volume_L 1.46 > 0.3"
+    "budget: mass_kg 2.12 > 0.35",
+    "budget: volume_L 1.52 > 0.3"
    ],
    "budget": {
-    "mass_kg": 1.373066611501576,
-    "power_W": 1.9287468443047084,
-    "volume_L": 1.4591900411347951
+    "mass_kg": 2.118953404991551,
+    "power_W": 2.290814213455026,
+    "volume_L": 1.5191900411347952
    }
   },
   "mtq_rw": {
@@ -175,7 +177,7 @@
    "failing": {
     "power_peak": "power"
    },
-   "objective": 1.125,
+   "objective": 1.875,
    "objective_id": "detumble_time"
   },
   {
@@ -302,12 +304,12 @@
   {
    "mode": "sun_referencing",
    "option": "vscmg+rcs",
-   "alg": "lqr",
+   "alg": "pid@bw4",
    "feasible": false,
    "failing": {
     "power_mean": "power"
    },
-   "objective": 2.0502292160037534,
+   "objective": 1.2382566129978465,
    "objective_id": "sun_ape_p9973"
   },
   {
@@ -316,7 +318,7 @@
    "alg": null,
    "feasible": true,
    "failing": {},
-   "objective": 0.24685656915575302,
+   "objective": 0.2513325094425192,
    "objective_id": "sun_ape_p9973"
   },
   {
@@ -325,7 +327,7 @@
    "alg": null,
    "feasible": true,
    "failing": {},
-   "objective": 0.24696583280478868,
+   "objective": 0.25119062643119716,
    "objective_id": "sun_ape_p9973"
   },
   {
@@ -411,7 +413,7 @@
    "alg": null,
    "feasible": true,
    "failing": {},
-   "objective": 0.14778789388426405,
+   "objective": 0.15140443642662954,
    "objective_id": "ape_los_p9973"
   },
   {
@@ -420,7 +422,7 @@
    "alg": null,
    "feasible": true,
    "failing": {},
-   "objective": 0.14782806289169448,
+   "objective": 0.15133197009388233,
    "objective_id": "ape_los_p9973"
   }
  ]

@@ -94,27 +94,27 @@
   },
   "knobs": {
     "scale": {
-      "cmg": 1.0,
+      "cmg": 1.5,
       "fmr": 1.5,
       "mtqp": 1.0,
-      "rw": 1.0,
-      "vscmg": 1.5
+      "rw": 1.5,
+      "vscmg": 2.25
     },
     "k_h": null,
     "k_tau": 1.5,
     "fmr_lambda": 0.1,
     "star_tracker": false,
-    "st_heads": 1,
+    "st_heads": 2,
     "fmr_flow_sigma": 0.0002,
-    "gyro_grade": 1.0
+    "gyro_grade": 0.1
   },
   "families": {
     "mtq": {
       "product": "SZ-ais_img_3u-mtq",
       "role": "solution",
       "label": "Magnetorquers only",
-      "mass_kg": 0.5295611292035013,
-      "power_W": 2.895611292035013,
+      "mass_kg": 1.3695611292035013,
+      "power_W": 6.595611292035012,
       "volume_L": 0.011824451681400512,
       "items": [
         {
@@ -128,9 +128,9 @@
         {
           "slot": "star_tracker",
           "part": "SYN-ST-1",
-          "n": 1.0,
-          "mass_kg": 0.3,
-          "power_W": 1.0,
+          "n": 2.0,
+          "mass_kg": 0.6,
+          "power_W": 2.0,
           "volume_L": 0.0
         },
         {
@@ -151,10 +151,10 @@
         },
         {
           "slot": "gyro",
-          "part": "TRN-GYRO-P1",
+          "part": "SZ-ais_img_3u-GYRO",
           "n": 1.0,
-          "mass_kg": 0.06,
-          "power_W": 0.3,
+          "mass_kg": 0.6,
+          "power_W": 2.9999999999999996,
           "volume_L": 0.0
         },
         {
@@ -179,8 +179,8 @@
       "product": "SZ-ais_img_3u-mtq_fmr",
       "role": "solution",
       "label": "Magnetorquers + fluid momentum loop",
-      "mass_kg": 1.9901997369314088,
-      "power_W": 6.405380945700811,
+      "mass_kg": 2.8301997369314082,
+      "power_W": 10.105380945700812,
       "volume_L": 0.534415333603444,
       "items": [
         {
@@ -218,9 +218,9 @@
         {
           "slot": "star_tracker",
           "part": "SYN-ST-1",
-          "n": 1.0,
-          "mass_kg": 0.3,
-          "power_W": 1.0,
+          "n": 2.0,
+          "mass_kg": 0.6,
+          "power_W": 2.0,
           "volume_L": 0.0
         },
         {
@@ -241,10 +241,10 @@
         },
         {
           "slot": "gyro",
-          "part": "TRN-GYRO-P1",
+          "part": "SZ-ais_img_3u-GYRO",
           "n": 1.0,
-          "mass_kg": 0.06,
-          "power_W": 0.3,
+          "mass_kg": 0.6,
+          "power_W": 2.9999999999999996,
           "volume_L": 0.0
         },
         {
@@ -269,8 +269,8 @@
       "product": "SZ-ais_img_3u-mtq_fmr_rcs",
       "role": "solution",
       "label": "Magnetorquers + fluid loop + N2O cold-gas RCS",
-      "mass_kg": 2.4561165277882795,
-      "power_W": 6.455380945700811,
+      "mass_kg": 3.29611652778828,
+      "power_W": 10.155380945700811,
       "volume_L": 1.375932994320427,
       "items": [
         {
@@ -316,9 +316,9 @@
         {
           "slot": "star_tracker",
           "part": "SYN-ST-1",
-          "n": 1.0,
-          "mass_kg": 0.3,
-          "power_W": 1.0,
+          "n": 2.0,
+          "mass_kg": 0.6,
+          "power_W": 2.0,
           "volume_L": 0.0
         },
         {
@@ -339,10 +339,10 @@
         },
         {
           "slot": "gyro",
-          "part": "TRN-GYRO-P1",
+          "part": "SZ-ais_img_3u-GYRO",
           "n": 1.0,
-          "mass_kg": 0.06,
-          "power_W": 0.3,
+          "mass_kg": 0.6,
+          "power_W": 2.9999999999999996,
           "volume_L": 0.0
         },
         {
@@ -367,9 +367,9 @@
       "product": "SZ-ais_img_3u-mtq_rw",
       "role": "benchmark",
       "label": "Magnetorquers + reaction wheels",
-      "mass_kg": 0.7825798871980671,
-      "power_W": 3.5000669246047296,
-      "volume_L": 0.1415765586722607,
+      "mass_kg": 1.6464155512686536,
+      "power_W": 7.2699087168640455,
+      "volume_L": 0.1638104415062754,
       "items": [
         {
           "slot": "coils",
@@ -383,16 +383,16 @@
           "slot": "wheels",
           "part": "SZ-ais_img_3u-RW",
           "n": 3.0,
-          "mass_kg": 0.26654155318945727,
-          "power_W": 0.7396835845186325,
-          "volume_L": 0.1351612250688168
+          "mass_kg": 0.2903772172600439,
+          "power_W": 0.8095253767779488,
+          "volume_L": 0.1573951079028315
         },
         {
           "slot": "star_tracker",
           "part": "SYN-ST-1",
-          "n": 1.0,
-          "mass_kg": 0.3,
-          "power_W": 1.0,
+          "n": 2.0,
+          "mass_kg": 0.6,
+          "power_W": 2.0,
           "volume_L": 0.0
         },
         {
@@ -413,10 +413,10 @@
         },
         {
           "slot": "gyro",
-          "part": "TRN-GYRO-P1",
+          "part": "SZ-ais_img_3u-GYRO",
           "n": 1.0,
-          "mass_kg": 0.06,
-          "power_W": 0.3,
+          "mass_kg": 0.6,
+          "power_W": 2.9999999999999996,
           "volume_L": 0.0
         },
         {
@@ -441,9 +441,9 @@
       "product": "SZ-ais_img_3u-mtq_rw_rcs",
       "role": "benchmark",
       "label": "Magnetorquers + reaction wheels + N2O cold-gas RCS",
-      "mass_kg": 1.2484966780549385,
-      "power_W": 3.5500669246047303,
-      "volume_L": 0.9830942193892437,
+      "mass_kg": 2.1123323421255247,
+      "power_W": 7.319908716864046,
+      "volume_L": 1.0053281022232583,
       "items": [
         {
           "slot": "coils",
@@ -457,9 +457,9 @@
           "slot": "wheels",
           "part": "SZ-ais_img_3u-RW",
           "n": 3.0,
-          "mass_kg": 0.26654155318945727,
-          "power_W": 0.7396835845186325,
-          "volume_L": 0.1351612250688168
+          "mass_kg": 0.2903772172600439,
+          "power_W": 0.8095253767779488,
+          "volume_L": 0.1573951079028315
         },
         {
           "slot": "rcs",
@@ -472,9 +472,9 @@
         {
           "slot": "star_tracker",
           "part": "SYN-ST-1",
-          "n": 1.0,
-          "mass_kg": 0.3,
-          "power_W": 1.0,
+          "n": 2.0,
+          "mass_kg": 0.6,
+          "power_W": 2.0,
           "volume_L": 0.0
         },
         {
@@ -495,10 +495,10 @@
         },
         {
           "slot": "gyro",
-          "part": "TRN-GYRO-P1",
+          "part": "SZ-ais_img_3u-GYRO",
           "n": 1.0,
-          "mass_kg": 0.06,
-          "power_W": 0.3,
+          "mass_kg": 0.6,
+          "power_W": 2.9999999999999996,
           "volume_L": 0.0
         },
         {
@@ -523,9 +523,9 @@
       "product": "SZ-ais_img_3u-mtq_cmg",
       "role": "benchmark",
       "label": "Magnetorquers + 4 single-gimbal CMG (pyramid)",
-      "mass_kg": 0.8635137121933165,
-      "power_W": 3.6803833400860975,
-      "volume_L": 0.2719880503941047,
+      "mass_kg": 1.7331150645594073,
+      "power_W": 7.440383340086098,
+      "volume_L": 0.3161210780829559,
       "items": [
         {
           "slot": "coils",
@@ -539,16 +539,16 @@
           "slot": "cmg",
           "part": "SZ-ais_img_3u-CMG",
           "n": 4.0,
-          "mass_kg": 0.3474753781847067,
-          "power_W": 0.92,
-          "volume_L": 0.26557271679066075
+          "mass_kg": 0.3770767305507975,
+          "power_W": 0.98,
+          "volume_L": 0.309705744479512
         },
         {
           "slot": "star_tracker",
           "part": "SYN-ST-1",
-          "n": 1.0,
-          "mass_kg": 0.3,
-          "power_W": 1.0,
+          "n": 2.0,
+          "mass_kg": 0.6,
+          "power_W": 2.0,
           "volume_L": 0.0
         },
         {
@@ -569,10 +569,10 @@
         },
         {
           "slot": "gyro",
-          "part": "TRN-GYRO-P1",
+          "part": "SZ-ais_img_3u-GYRO",
           "n": 1.0,
-          "mass_kg": 0.06,
-          "power_W": 0.3,
+          "mass_kg": 0.6,
+          "power_W": 2.9999999999999996,
           "volume_L": 0.0
         },
         {
@@ -597,9 +597,9 @@
       "product": "SZ-ais_img_3u-mtq_cmg_rcs",
       "role": "benchmark",
       "label": "Magnetorquers + 4 CMG + N2O cold-gas RCS",
-      "mass_kg": 1.329430503050188,
-      "power_W": 3.730383340086098,
-      "volume_L": 1.1135057111110878,
+      "mass_kg": 2.1990318554162784,
+      "power_W": 7.490383340086097,
+      "volume_L": 1.157638738799939,
       "items": [
         {
           "slot": "coils",
@@ -613,9 +613,9 @@
           "slot": "cmg",
           "part": "SZ-ais_img_3u-CMG",
           "n": 4.0,
-          "mass_kg": 0.3474753781847067,
-          "power_W": 0.92,
-          "volume_L": 0.26557271679066075
+          "mass_kg": 0.3770767305507975,
+          "power_W": 0.98,
+          "volume_L": 0.309705744479512
         },
         {
           "slot": "rcs",
@@ -628,9 +628,9 @@
         {
           "slot": "star_tracker",
           "part": "SYN-ST-1",
-          "n": 1.0,
-          "mass_kg": 0.3,
-          "power_W": 1.0,
+          "n": 2.0,
+          "mass_kg": 0.6,
+          "power_W": 2.0,
           "volume_L": 0.0
         },
         {
@@ -651,10 +651,10 @@
         },
         {
           "slot": "gyro",
-          "part": "TRN-GYRO-P1",
+          "part": "SZ-ais_img_3u-GYRO",
           "n": 1.0,
-          "mass_kg": 0.06,
-          "power_W": 0.3,
+          "mass_kg": 0.6,
+          "power_W": 2.9999999999999996,
           "volume_L": 0.0
         },
         {
@@ -679,9 +679,9 @@
       "product": "SZ-ais_img_3u-mtq_vscmg",
       "role": "benchmark",
       "label": "Magnetorquers + 4 variable-speed CMG (pyramid)",
-      "mass_kg": 0.9308227376144871,
-      "power_W": 4.140383340086097,
-      "volume_L": 0.3161210780829559,
+      "mass_kg": 1.8123524566797937,
+      "power_W": 7.930383340086098,
+      "volume_L": 0.369223528961592,
       "items": [
         {
           "slot": "coils",
@@ -695,16 +695,16 @@
           "slot": "vscmg",
           "part": "SZ-ais_img_3u-VSCMG",
           "n": 4.0,
-          "mass_kg": 0.41478440360587726,
-          "power_W": 1.38,
-          "volume_L": 0.309705744479512
+          "mass_kg": 0.45631412267118376,
+          "power_W": 1.4700000000000002,
+          "volume_L": 0.36280819535814807
         },
         {
           "slot": "star_tracker",
           "part": "SYN-ST-1",
-          "n": 1.0,
-          "mass_kg": 0.3,
-          "power_W": 1.0,
+          "n": 2.0,
+          "mass_kg": 0.6,
+          "power_W": 2.0,
           "volume_L": 0.0
         },
         {
@@ -725,10 +725,10 @@
         },
         {
           "slot": "gyro",
-          "part": "TRN-GYRO-P1",
+          "part": "SZ-ais_img_3u-GYRO",
           "n": 1.0,
-          "mass_kg": 0.06,
-          "power_W": 0.3,
+          "mass_kg": 0.6,
+          "power_W": 2.9999999999999996,
           "volume_L": 0.0
         },
         {
@@ -753,9 +753,9 @@
       "product": "SZ-ais_img_3u-mtq_vscmg_rcs",
       "role": "benchmark",
       "label": "Magnetorquers + 4 VSCMG + N2O cold-gas RCS",
-      "mass_kg": 1.3967395284713586,
-      "power_W": 4.190383340086097,
-      "volume_L": 1.157638738799939,
+      "mass_kg": 2.2782692475366644,
+      "power_W": 7.980383340086097,
+      "volume_L": 1.210741189678575,
       "items": [
         {
           "slot": "coils",
@@ -769,9 +769,9 @@
           "slot": "vscmg",
           "part": "SZ-ais_img_3u-VSCMG",
           "n": 4.0,
-          "mass_kg": 0.41478440360587726,
-          "power_W": 1.38,
-          "volume_L": 0.309705744479512
+          "mass_kg": 0.45631412267118376,
+          "power_W": 1.4700000000000002,
+          "volume_L": 0.36280819535814807
         },
         {
           "slot": "rcs",
@@ -784,9 +784,9 @@
         {
           "slot": "star_tracker",
           "part": "SYN-ST-1",
-          "n": 1.0,
-          "mass_kg": 0.3,
-          "power_W": 1.0,
+          "n": 2.0,
+          "mass_kg": 0.6,
+          "power_W": 2.0,
           "volume_L": 0.0
         },
         {
@@ -807,10 +807,10 @@
         },
         {
           "slot": "gyro",
-          "part": "TRN-GYRO-P1",
+          "part": "SZ-ais_img_3u-GYRO",
           "n": 1.0,
-          "mass_kg": 0.06,
-          "power_W": 0.3,
+          "mass_kg": 0.6,
+          "power_W": 2.9999999999999996,
           "volume_L": 0.0
         },
         {
@@ -918,20 +918,20 @@
       "made": "bought",
       "descriptor_version": 1,
       "nominal": {
-        "h_max_Nms": 0.0015520398279848051,
-        "torque_max_Nm": 0.0001,
+        "h_max_Nms": 0.0023280597419772075,
+        "torque_max_Nm": 0.00015000000000000001,
         "speed_max_rad_s": 628.3185307179587,
-        "rotor_inertia_kgm2": 2.470148104992767e-6,
-        "rotor_radius_m": 0.014467712404965097,
-        "rotor_mass_kg": 0.013112356543857163,
-        "friction_coulomb_Nm": 3.939593669383691e-6,
+        "rotor_inertia_kgm2": 3.70522215748915e-6,
+        "rotor_radius_m": 0.015689825696991413,
+        "rotor_mass_kg": 0.016723820796976343,
+        "friction_coulomb_Nm": 4.824997141944447e-6,
         "friction_viscous_Nms": 1e-8,
-        "static_imbalance_kgm": 5.217240898845571e-8,
-        "dynamic_imbalance_kgm2": 3.7740770435959657e-10,
-        "power_steady_W": 0.24656119483954417,
-        "power_peak_W": 0.3722249009831359,
-        "mass_kg": 0.08884718439648576,
-        "volume_L": 0.0450537416896056
+        "static_imbalance_kgm": 6.654196868054563e-8,
+        "dynamic_imbalance_kgm2": 5.220159450662113e-10,
+        "power_steady_W": 0.26984179225931626,
+        "power_peak_W": 0.4583373514747039,
+        "mass_kg": 0.09679240575334797,
+        "volume_L": 0.0524650359676105
       },
       "dispersion": {
         "torque_scale": {
@@ -953,7 +953,7 @@
       "sizing": {
         "h_req_Nms": 0.0015520398279848051,
         "tau_req_Nm": 0.000057572692339687917,
-        "scale": 1.0,
+        "scale": 1.5,
         "floor": "h >= 1 mNms, tau >= 0.1 mNm",
         "law": "rim flywheel 6000 rpm, ISO 1940 G2.5, anchored on SYN-RW-10"
       }
@@ -967,19 +967,19 @@
       "made": "bought",
       "descriptor_version": 1,
       "nominal": {
-        "rotor_momentum_Nms": 0.001,
-        "rotor_inertia_kgm2": 1.25e-6,
-        "rotor_radius_m": 0.011367874248827984,
-        "rotor_mass_kg": 0.01074753781847067,
+        "rotor_momentum_Nms": 0.0015,
+        "rotor_inertia_kgm2": 1.875e-6,
+        "rotor_radius_m": 0.012328138721379193,
+        "rotor_mass_kg": 0.013707673055079753,
         "rotor_speed_rad_s": 800.0,
         "rotor_torque_max_Nm": 0.0001,
         "gimbal_rate_max_rad_s": 0.5,
         "gimbal_power_W": 0.09999999999999999,
-        "power_steady_W": 0.23,
-        "static_imbalance_kgm": 3.358605568272084e-8,
-        "dynamic_imbalance_kgm2": 1.909010287576525e-10,
-        "mass_kg": 0.08686884454617667,
-        "volume_L": 0.06639317919766519
+        "power_steady_W": 0.245,
+        "static_imbalance_kgm": 4.283647829712423e-8,
+        "dynamic_imbalance_kgm2": 2.640470233911483e-10,
+        "mass_kg": 0.09426918263769937,
+        "volume_L": 0.077426436119878
       },
       "dispersion": {
         "torque_scale": {
@@ -997,7 +997,7 @@
         "h_req_Nms": 0.0015520398279848051,
         "tau_req_Nm": 0.000057572692339687917,
         "units": 4,
-        "scale": 1.0,
+        "scale": 1.5,
         "law": "pyramid 54.74 deg, h0 = h_req/2, rotor 800 rad/s, ISO 1940 G2.5, anchored on TRN-CMG-1"
       }
     },
@@ -1010,20 +1010,20 @@
       "made": "bought",
       "descriptor_version": 1,
       "nominal": {
-        "rotor_momentum_Nms": 0.0015,
-        "rotor_inertia_kgm2": 1.875e-6,
-        "rotor_radius_m": 0.012328138721379193,
-        "rotor_mass_kg": 0.013707673055079753,
+        "rotor_momentum_Nms": 0.0022500000000000003,
+        "rotor_inertia_kgm2": 2.8125e-6,
+        "rotor_radius_m": 0.013369518434745025,
+        "rotor_mass_kg": 0.017483102061016702,
         "rotor_speed_rad_s": 800.0,
         "rotor_torque_max_Nm": 0.0001,
         "gimbal_rate_max_rad_s": 0.5,
         "gimbal_power_W": 0.09999999999999999,
-        "power_steady_W": 0.345,
-        "static_imbalance_kgm": 4.283647829712423e-8,
-        "dynamic_imbalance_kgm2": 2.640470233911483e-10,
-        "mass_kg": 0.10369610090146932,
-        "volume_L": 0.077426436119878,
-        "h_max_Nms": 0.003,
+        "power_steady_W": 0.36750000000000005,
+        "static_imbalance_kgm": 5.4634693940677195e-8,
+        "dynamic_imbalance_kgm2": 3.6521977390826804e-10,
+        "mass_kg": 0.11407853066779594,
+        "volume_L": 0.09070204883953702,
+        "h_max_Nms": 0.0045000000000000005,
         "friction_coulomb_Nm": 0.00001,
         "friction_viscous_Nms": 1e-8
       },
@@ -1048,7 +1048,7 @@
         "h_req_Nms": 0.0015520398279848051,
         "tau_req_Nm": 0.000057572692339687917,
         "units": 4,
-        "scale": 1.5,
+        "scale": 2.25,
         "law": "pyramid 54.74 deg, h0 = h_req/2, rotor 800 rad/s, ISO 1940 G2.5, anchored on TRN-CMG-1"
       }
     },

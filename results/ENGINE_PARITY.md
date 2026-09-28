@@ -12,7 +12,7 @@ twin's filed channels (see 'Truth environment' below). What still differs is the
 compared by metric ratio and verdict agreement, and Monte Carlo on both sides compares
 distributions (`tools/engine.py mc`).
 
-**Verdict agreement: 94 of 107 judged metrics** (173 metrics over 40 scenarios).
+**Verdict agreement: 95 of 107 judged metrics** (173 metrics over 40 scenarios).
 
 | scenario | metric | MATLAB | engine | engine/MATLAB | req | MATLAB | engine |
 |---|---|---:|---:|---:|---:|---|---|
@@ -34,9 +34,9 @@ distributions (`tools/engine.py mc`).
 | detumble_ais | detumble_time (min) | 58.26 | 37.79 | 0.6487 | 284 | pass | pass |
 | detumble_ais | power_mean (W) | 0.02455 | 0.0217 | 0.884 | 0.5 | pass | pass |
 | detumble_ais | power_peak (W) | 0.3639 | 0.5502 | 1.512 | 1.5 | pass | pass |
-| detumble_ais_bangbang | detumble_time (min) | — | 32.21 | — | 284 | FAIL | pass ⚠ |
-| detumble_ais_bangbang | power_mean (W) | 0.7119 | 0.7114 | 0.9994 | 0.5 | FAIL | FAIL |
-| detumble_ais_bangbang | power_peak (W) | 0.72 | 0.72 | 1 | 1.5 | pass | pass |
+| detumble_ais_bangbang | detumble_time (min) | 65.12 | 54.02 | 0.8296 | 284 | pass | pass |
+| detumble_ais_bangbang | power_mean (W) | 0.4399 | 0.4366 | 0.9925 | 0.5 | pass | pass |
+| detumble_ais_bangbang | power_peak (W) | 0.7169 | 0.717 | 1 | 1.5 | pass | pass |
 | detumble_ais_mag | detumble_time (min) | 58.54 | 41.16 | 0.7031 | 284 | pass | pass |
 | detumble_ais_mag | power_mean (W) | 0.07474 | 0.07839 | 1.049 | 0.5 | pass | pass |
 | detumble_ais_mag | power_peak (W) | 0.7045 | 0.6377 | 0.9052 | 1.5 | pass | pass |
@@ -200,7 +200,7 @@ distributions (`tools/engine.py mc`).
 | agile_slew_rw_rcs | 6001 | 0 | 0 | 0 | 3.96e-09 |
 | agile_slew_vscmg | 6001 | 0 | 0 | 0 | 3.63e-09 |
 | detumble_ais | 17221 | 0 | 0 | 0 | 5.59e-09 |
-| detumble_ais_bangbang | 17221 | 0 | 0 | 0 | 5.64e-09 |
+| detumble_ais_bangbang | 17221 | 0 | 0 | 0 | 5.32e-09 |
 | detumble_ais_mag | 17221 | 0 | 0 | 0 | 5.94e-09 |
 | detumble_img | 17221 | 0 | 0 | 0 | 5.38e-09 |
 | fault_coil_ais | 17221 | 0 | 0 | 0 | 5.31e-09 |
@@ -271,50 +271,50 @@ reflectivity; the engine Monte Carlo disperses the units and the initial state o
 - **fine_hold_rw_rcs · ape_los_p9973.** Traced: the momentum-dump pulses (same times, same counts, same propellant on both sides) are fed forward with the nominal thruster torque; the unit's thrust-scale draw (sigma 3 %) leaves an uncompensated torque for the ~30 s dump. Engine draw 0.985 -> ~3e-6 N m -> 0.03 deg offset against Kp = 5.4e-3; MATLAB draw 0.995 -> 0.01 deg. Engine Monte Carlo (24 seeds): mean 0.034 deg, range 0.009-0.079 deg; the MATLAB run sits at the lucky end. Finding: RCS dumping during imaging breaks the 0.01 deg APE for most thrust-scale draws -> calibrate thrust on orbit or inhibit RCS dumping in the fine modes.
 - **sun_spin_ais · sun_angle, spin_rate_error, share.** Traced to the flight logic (identical in MATLAB, C and Rust): when spin-up converges with the Sun on +Z, the sigma flip reverses the spin every 60 s check, which drives the body through zero spin and never moves the Sun to -Z. Engine seed 1 is that case; 3 of 24 Monte Carlo seeds lock up (mean sun angle 26 deg, range 2.7-173 deg), the MATLAB run (6.5 deg) is inside. Finding: the sign-flip guard needs a hemisphere manoeuvre, not a spin reversal.
 - **nadir_hold_ais, mission_ais · ake_los / ape_los.** Realisation spread of the coils-only MEKF (magnetometer + Sun): engine 24-seed AKE mean 4.0 deg (0.8-8.5 deg); the MATLAB runs (3.9-4.0 deg) are inside the distribution.
-- **detumble_* and mission_* · detumble_time.** Random initial tumble direction; at distribution level the MATLAB campaign (48.5 +/- 12 min) and the engine Monte Carlo (53 +/- 7.6 min) overlap (table above); the engine has no inertia/dipole dispersion yet.
-- **mc_nadir_ais vs engine nadir_hold_ais · ape_los.** Not a like-for-like pair: the MATLAB campaign also disperses the residual dipole (0.5-2x), inertia and CM offset, which a coils-only nadir hold cannot absorb (MATLAB mean 90 deg); the engine Monte Carlo disperses the units only (9.6 deg), matching the nominal MATLAB run (7.2 deg). Environment dispersions in the engine's Monte Carlo are the next step for this pair.
+- **detumble_* and mission_* · detumble_time.** Random initial tumble direction; at distribution level the MATLAB campaign (48.5 +/- 12 min) and the engine campaign mc_detumble_ais with the full dispersions (56.3 +/- 11.4 min) overlap; results/ENGINE_CAMPAIGNS.md.
+- **mc_nadir_ais · ape_los.** Like-for-like since the engine campaigns (tools/engine.py campaign, results/ENGINE_CAMPAIGNS.md) disperse the residual dipole, inertia, CM offset, flux, Kp, accommodation and reflectivity exactly as asils.campaign.draw: MATLAB mean 89.7 deg vs engine 93.0 deg; the coils-only nadir hold cannot absorb the dispersed dipole.
 
 ## Wall time (one core each)
 
 | scenario | MATLAB/Octave [s] | engine [s] | speed-up |
 |---|---:|---:|---:|
-| agile_slew_cmg | 55 | 0.14 | 405x |
-| agile_slew_fmr_rcs | 51 | 0.14 | 359x |
-| agile_slew_img | 48 | 0.12 | 384x |
-| agile_slew_rw_rcs | 55 | 0.18 | 300x |
-| agile_slew_vscmg | 61 | 0.15 | 402x |
-| detumble_ais | 496 | 0.33 | 1512x |
-| detumble_ais_bangbang | 498 | 0.33 | 1524x |
-| detumble_ais_mag | 526 | 0.32 | 1660x |
-| detumble_img | 972 | 1.91 | 509x |
-| fault_coil_ais | 533 | 0.32 | 1650x |
-| fault_gimbal_cmg | 465 | 1.14 | 406x |
-| fault_gyro_ais | 579 | 0.38 | 1535x |
-| fault_st_img | 389 | 0.80 | 486x |
-| fault_wheel_img | 414 | 1.16 | 357x |
-| fine_hold_cmg | 468 | 1.01 | 462x |
-| fine_hold_fmr | 659 | 1.00 | 658x |
-| fine_hold_fmr_rcs | 523 | 0.99 | 531x |
-| fine_hold_img | 390 | 0.98 | 398x |
-| fine_hold_img_lqr | 388 | 1.09 | 355x |
-| fine_hold_img_smc | 388 | 0.99 | 390x |
-| fine_hold_rw_rcs | 394 | 1.00 | 394x |
-| fine_hold_vscmg | 476 | 1.08 | 439x |
-| mission_ais | 906 | 0.55 | 1647x |
-| mission_cmg | 1421 | 2.68 | 530x |
-| mission_fmr | 1622 | 2.42 | 670x |
-| mission_fmr_rcs | 1619 | 2.74 | 590x |
-| mission_img | 1235 | 2.72 | 455x |
-| mission_rw_rcs | 1263 | 2.65 | 476x |
-| mission_vscmg | 1461 | 2.97 | 492x |
-| nadir_hold_ais | 569 | 0.36 | 1573x |
-| nadir_hold_ais_css | 550 | 0.40 | 1374x |
-| slew_cmg | 54 | 0.17 | 314x |
-| slew_fmr | 79 | 0.15 | 509x |
-| slew_fmr_rcs | 56 | 0.15 | 383x |
-| slew_img | 46 | 0.15 | 298x |
-| slew_img_lqr | 46 | 0.15 | 311x |
-| slew_img_smc | 45 | 0.15 | 307x |
-| slew_rw_rcs | 46 | 0.15 | 318x |
-| slew_vscmg | 56 | 0.15 | 381x |
-| sun_spin_ais | 501 | 0.32 | 1561x |
+| agile_slew_cmg | 55 | 2.17 | 26x |
+| agile_slew_fmr_rcs | 51 | 2.20 | 23x |
+| agile_slew_img | 48 | 1.53 | 31x |
+| agile_slew_rw_rcs | 55 | 1.52 | 36x |
+| agile_slew_vscmg | 61 | 0.20 | 300x |
+| detumble_ais | 496 | 0.97 | 511x |
+| detumble_ais_bangbang | 848 | 0.74 | 1152x |
+| detumble_ais_mag | 526 | 1.34 | 392x |
+| detumble_img | 972 | 4.09 | 237x |
+| fault_coil_ais | 533 | 0.59 | 908x |
+| fault_gimbal_cmg | 465 | 2.02 | 230x |
+| fault_gyro_ais | 579 | 1.20 | 481x |
+| fault_st_img | 389 | 1.74 | 223x |
+| fault_wheel_img | 414 | 2.15 | 192x |
+| fine_hold_cmg | 468 | 2.58 | 182x |
+| fine_hold_fmr | 659 | 1.77 | 371x |
+| fine_hold_fmr_rcs | 523 | 2.28 | 230x |
+| fine_hold_img | 390 | 1.38 | 282x |
+| fine_hold_img_lqr | 388 | 1.91 | 203x |
+| fine_hold_img_smc | 388 | 1.37 | 284x |
+| fine_hold_rw_rcs | 394 | 1.72 | 229x |
+| fine_hold_vscmg | 476 | 2.23 | 213x |
+| mission_ais | 906 | 0.78 | 1158x |
+| mission_cmg | 1421 | 5.67 | 251x |
+| mission_fmr | 1622 | 4.49 | 361x |
+| mission_fmr_rcs | 1619 | 4.82 | 336x |
+| mission_img | 1235 | 4.01 | 308x |
+| mission_rw_rcs | 1263 | 4.95 | 255x |
+| mission_vscmg | 1461 | 5.92 | 247x |
+| nadir_hold_ais | 569 | 0.64 | 892x |
+| nadir_hold_ais_css | 550 | 0.66 | 836x |
+| slew_cmg | 54 | 0.54 | 100x |
+| slew_fmr | 79 | 0.22 | 358x |
+| slew_fmr_rcs | 56 | 0.22 | 249x |
+| slew_img | 46 | 0.62 | 74x |
+| slew_img_lqr | 46 | 0.59 | 77x |
+| slew_img_smc | 45 | 0.24 | 192x |
+| slew_rw_rcs | 46 | 0.18 | 260x |
+| slew_vscmg | 56 | 0.33 | 168x |
+| sun_spin_ais | 501 | 0.62 | 809x |

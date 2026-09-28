@@ -179,7 +179,9 @@ impl Link {
         // the plugin wrote this step's count before the firmware sent OUT
         if let Some((f, _)) = self.counts.as_mut() {
             let mut b = [0u8; 8];
-            self.insn = match f.read_exact(&mut b) { Ok(()) => Some(u64::from_le_bytes(b)), Err(_) => None };
+            // a missing count must stop the run: falling back to another clock would mix time bases
+            f.read_exact(&mut b).map_err(|e| format!("link: no instruction count from the QEMU plugin ({e}); is the disk full?"))?;
+            self.insn = Some(u64::from_le_bytes(b));
         }
         Ok(rc)
     }

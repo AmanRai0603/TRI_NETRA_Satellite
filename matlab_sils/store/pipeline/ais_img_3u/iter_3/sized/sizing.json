@@ -102,15 +102,15 @@
     "star_tracker": false,
     "st_heads": 2,
     "fmr_flow_sigma": 0.002,
-    "gyro_grade": 1.0
+    "gyro_grade": 0.3
   },
   "families": {
     "mtq": {
       "product": "SZ-ais_img_3u-mtq",
       "role": "solution",
       "label": "Magnetorquers only",
-      "mass_kg": 0.8443416938052519,
-      "power_W": 4.043416938052519,
+      "mass_kg": 0.9843416938052518,
+      "power_W": 4.743416938052519,
       "volume_L": 0.01773667752210077,
       "items": [
         {
@@ -147,10 +147,10 @@
         },
         {
           "slot": "gyro",
-          "part": "TRN-GYRO-P1",
+          "part": "SZ-ais_img_3u-GYRO",
           "n": 1.0,
-          "mass_kg": 0.06,
-          "power_W": 0.3,
+          "mass_kg": 0.2,
+          "power_W": 1.0,
           "volume_L": 0.0
         },
         {
@@ -175,8 +175,8 @@
       "product": "SZ-ais_img_3u-mtq_fmr",
       "role": "solution",
       "label": "Magnetorquers + fluid momentum loop",
-      "mass_kg": 1.7273198532328387,
-      "power_W": 6.876812587204763,
+      "mass_kg": 1.8673198532328386,
+      "power_W": 7.576812587204763,
       "volume_L": 0.534415333603444,
       "items": [
         {
@@ -237,10 +237,10 @@
         },
         {
           "slot": "gyro",
-          "part": "TRN-GYRO-P1",
+          "part": "SZ-ais_img_3u-GYRO",
           "n": 1.0,
-          "mass_kg": 0.06,
-          "power_W": 0.3,
+          "mass_kg": 0.2,
+          "power_W": 1.0,
           "volume_L": 0.0
         },
         {
@@ -265,8 +265,8 @@
       "product": "SZ-ais_img_3u-mtq_fmr_rcs",
       "role": "solution",
       "label": "Magnetorquers + fluid loop + N2O cold-gas RCS",
-      "mass_kg": 2.1932366440897093,
-      "power_W": 6.926812587204763,
+      "mass_kg": 2.3332366440897094,
+      "power_W": 7.626812587204763,
       "volume_L": 1.375932994320427,
       "items": [
         {
@@ -335,10 +335,10 @@
         },
         {
           "slot": "gyro",
-          "part": "TRN-GYRO-P1",
+          "part": "SZ-ais_img_3u-GYRO",
           "n": 1.0,
-          "mass_kg": 0.06,
-          "power_W": 0.3,
+          "mass_kg": 0.2,
+          "power_W": 1.0,
           "volume_L": 0.0
         },
         {
@@ -363,8 +363,8 @@
       "product": "SZ-ais_img_3u-mtq_rw",
       "role": "benchmark",
       "label": "Magnetorquers + reaction wheels",
-      "mass_kg": 1.0825798871980672,
-      "power_W": 4.50006692460473,
+      "mass_kg": 1.222579887198067,
+      "power_W": 5.20006692460473,
       "volume_L": 0.1415765586722607,
       "items": [
         {
@@ -409,10 +409,10 @@
         },
         {
           "slot": "gyro",
-          "part": "TRN-GYRO-P1",
+          "part": "SZ-ais_img_3u-GYRO",
           "n": 1.0,
-          "mass_kg": 0.06,
-          "power_W": 0.3,
+          "mass_kg": 0.2,
+          "power_W": 1.0,
           "volume_L": 0.0
         },
         {
@@ -437,8 +437,8 @@
       "product": "SZ-ais_img_3u-mtq_rw_rcs",
       "role": "benchmark",
       "label": "Magnetorquers + reaction wheels + N2O cold-gas RCS",
-      "mass_kg": 1.5484966780549385,
-      "power_W": 4.55006692460473,
+      "mass_kg": 1.6884966780549384,
+      "power_W": 5.25006692460473,
       "volume_L": 0.9830942193892437,
       "items": [
         {
@@ -491,10 +491,10 @@
         },
         {
           "slot": "gyro",
-          "part": "TRN-GYRO-P1",
+          "part": "SZ-ais_img_3u-GYRO",
           "n": 1.0,
-          "mass_kg": 0.06,
-          "power_W": 0.3,
+          "mass_kg": 0.2,
+          "power_W": 1.0,
           "volume_L": 0.0
         },
         {
@@ -519,8 +519,8 @@
       "product": "SZ-ais_img_3u-mtq_cmg",
       "role": "benchmark",
       "label": "Magnetorquers + 4 single-gimbal CMG (pyramid)",
-      "mass_kg": 1.1635137121933166,
-      "power_W": 4.680383340086097,
+      "mass_kg": 1.3035137121933165,
+      "power_W": 5.380383340086097,
       "volume_L": 0.2719880503941047,
       "items": [
         {
@@ -565,10 +565,10 @@
         },
         {
           "slot": "gyro",
-          "part": "TRN-GYRO-P1",
+          "part": "SZ-ais_img_3u-GYRO",
           "n": 1.0,
-          "mass_kg": 0.06,
-          "power_W": 0.3,
+          "mass_kg": 0.2,
+          "power_W": 1.0,
           "volume_L": 0.0
         },
         {
@@ -593,8 +593,8 @@
       "product": "SZ-ais_img_3u-mtq_cmg_rcs",
       "role": "benchmark",
       "label": "Magnetorquers + 4 CMG + N2O cold-gas RCS",
-      "mass_kg": 1.6294305030501879,
-      "power_W": 4.730383340086098,
+      "mass_kg": 1.7694305030501878,
+      "power_W": 5.430383340086098,
       "volume_L": 1.1135057111110878,
       "items": [
         {
@@ -647,10 +647,10 @@
         },
         {
           "slot": "gyro",
-          "part": "TRN-GYRO-P1",
+          "part": "SZ-ais_img_3u-GYRO",
           "n": 1.0,
-          "mass_kg": 0.06,
-          "power_W": 0.3,
+          "mass_kg": 0.2,
+          "power_W": 1.0,
           "volume_L": 0.0
         },
         {
@@ -675,8 +675,8 @@
       "product": "SZ-ais_img_3u-mtq_vscmg",
       "role": "benchmark",
       "label": "Magnetorquers + 4 variable-speed CMG (pyramid)",
-      "mass_kg": 1.1982612500117873,
-      "power_W": 5.080383340086097,
+      "mass_kg": 1.3382612500117872,
+      "power_W": 5.7803833400860976,
       "volume_L": 0.2719880503941047,
       "items": [
         {
@@ -721,10 +721,10 @@
         },
         {
           "slot": "gyro",
-          "part": "TRN-GYRO-P1",
+          "part": "SZ-ais_img_3u-GYRO",
           "n": 1.0,
-          "mass_kg": 0.06,
-          "power_W": 0.3,
+          "mass_kg": 0.2,
+          "power_W": 1.0,
           "volume_L": 0.0
         },
         {
@@ -749,8 +749,8 @@
       "product": "SZ-ais_img_3u-mtq_vscmg_rcs",
       "role": "benchmark",
       "label": "Magnetorquers + 4 VSCMG + N2O cold-gas RCS",
-      "mass_kg": 1.6641780408686586,
-      "power_W": 5.130383340086097,
+      "mass_kg": 1.8041780408686585,
+      "power_W": 5.830383340086097,
       "volume_L": 1.1135057111110878,
       "items": [
         {
@@ -803,10 +803,10 @@
         },
         {
           "slot": "gyro",
-          "part": "TRN-GYRO-P1",
+          "part": "SZ-ais_img_3u-GYRO",
           "n": 1.0,
-          "mass_kg": 0.06,
-          "power_W": 0.3,
+          "mass_kg": 0.2,
+          "power_W": 1.0,
           "volume_L": 0.0
         },
         {

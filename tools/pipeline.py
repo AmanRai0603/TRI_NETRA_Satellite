@@ -125,6 +125,7 @@ def run_job(args):
     env = dict(os.environ, ADCS_SIZED_DIR=str(sized))
     p = subprocess.run([str(BIN), "run", str(scen_path), "--case", str(MS / "cases" / f"{case}.csv"), "--seed", str(seed),
                         "--fsw", fsw, "--out", str(out), "--quiet"], cwd=MS, capture_output=True, text=True, env=env)
+    (out / "channels.csv").unlink(missing_ok=True)      # the loop reads the manifest; the channels cost GBs over a run
     return key, p.returncode, (p.stdout + p.stderr).strip()[-500:]
 
 

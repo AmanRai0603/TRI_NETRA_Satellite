@@ -10,7 +10,7 @@
     {
      "id": "detumble_time",
      "kind": "time_to_rate",
-     "value": 54.858333333333334,
+     "value": 55.641666666666666,
      "unit": "min",
      "req": 284.0,
      "req_key": "req.detumble",
@@ -19,7 +19,7 @@
     {
      "id": "ape_los_p9973",
      "kind": "ape_los",
-     "value": 0.12408393586069853,
+     "value": 0.1516330065704542,
      "unit": "deg",
      "req": 10.0,
      "req_key": "req.ape",
@@ -28,7 +28,7 @@
     {
      "id": "ake_los_p9973",
      "kind": "ake_los",
-     "value": 0.12373799917229188,
+     "value": 0.14996751561347565,
      "unit": "deg",
      "req": 5.0,
      "req_key": "req.ake",
@@ -37,7 +37,7 @@
     {
      "id": "power_mean",
      "kind": "power_mean",
-     "value": 0.054880700027895774,
+     "value": 0.15929584800229787,
      "unit": "W",
      "req": 0.5,
      "req_key": "req.pavg",
@@ -46,7 +46,7 @@
     {
      "id": "power_peak",
      "kind": "power_peak",
-     "value": 0.18138475421727415,
+     "value": 0.5413690110381522,
      "unit": "W",
      "req": null,
      "req_key": "",
@@ -68,7 +68,7 @@
      "mode": "detumble"
     },
     {
-     "t": 3165.2000000000003,
+     "t": 3207.2000000000003,
      "mode": "sun_acq_rotor"
     },
     {
@@ -84,7 +84,7 @@
     {
      "id": "detumble_time",
      "kind": "time_to_rate",
-     "value": 54.858333333333334,
+     "value": 55.641666666666666,
      "unit": "min",
      "req": 284.0,
      "req_key": "req.detumble",
@@ -93,7 +93,7 @@
     {
      "id": "ape_los_p9973",
      "kind": "ape_los",
-     "value": 0.12408393586069853,
+     "value": 0.1516330065704542,
      "unit": "deg",
      "req": 10.0,
      "req_key": "req.ape",
@@ -102,7 +102,7 @@
     {
      "id": "ake_los_p9973",
      "kind": "ake_los",
-     "value": 0.12373799917229188,
+     "value": 0.14996751561347565,
      "unit": "deg",
      "req": 5.0,
      "req_key": "req.ake",
@@ -111,7 +111,7 @@
     {
      "id": "power_mean",
      "kind": "power_mean",
-     "value": 0.054880700027895774,
+     "value": 0.15929584800229787,
      "unit": "W",
      "req": 0.5,
      "req_key": "req.pavg",
@@ -120,7 +120,7 @@
     {
      "id": "power_peak",
      "kind": "power_peak",
-     "value": 0.18138475421727415,
+     "value": 0.5413690110381522,
      "unit": "W",
      "req": null,
      "req_key": "",
@@ -142,7 +142,7 @@
      "mode": "detumble"
     },
     {
-     "t": 3165.2000000000003,
+     "t": 3207.2000000000003,
      "mode": "sun_acq_rotor"
     },
     {

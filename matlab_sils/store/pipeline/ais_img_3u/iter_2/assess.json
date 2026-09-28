@@ -10,7 +10,6 @@
  "options": 25,
  "changes": [
   "rate stability: gyro noise x1 -> x0.3 (fibre-optic class)",
-  "gyro grade back to x1: rate-stability violation 290 -> 290",
   "mtqp: authority x1 -> x1.5 (performance)"
  ],
  "blocked": [

@@ -1,12 +1,12 @@
 {
  "scale": {
   "mtqp": 1.0,
-  "cmg": 1.0,
-  "rw": 1.0,
-  "vscmg": 1.5,
-  "fmr": 1.5
+  "vscmg": 2.25,
+  "fmr": 1.5,
+  "cmg": 1.5,
+  "rw": 1.5
  },
- "gyro_grade": 1.0,
+ "gyro_grade": 0.1,
  "fmr_flow_sigma": 0.0002,
- "st_heads": 1
+ "st_heads": 2
 }
