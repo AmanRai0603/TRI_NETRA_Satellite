@@ -41,9 +41,9 @@ Runs are deterministic: the same scenario gives the same instruction counts and 
 | mission_ais | 200 | 1.857e+05 / 7.584e+05 | 5.643 | 1.936 / 6.197 | 0.7 % / 2.8 % | 0 | 193.8 |
 | mission_cmg | 100 | 3.053e+05 / 8.969e+05 | 6.673 | 3.865 / 8.267 | 2.3 % / 6.7 % | 0 | 91.73 |
 | mission_fmr | 100 | 2.613e+05 / 8.462e+05 | 6.296 | 2.889 / 7.24 | 1.9 % / 6.3 % | 0 | 92.76 |
-| mission_fmr_rcs | 100 | 2.577e+05 / 8.494e+05 | 10.41 | 2.843 / 11.48 | 1.8 % / 10.4 % | 0 | 88.52 |
-| mission_img | 100 | 2.594e+05 / 8.45e+05 | 48.46 | 2.726 / 49.4 | 1.8 % / 48.5 % | 0 | 50.6 |
-| mission_rw_rcs | 100 | 2.645e+05 / 8.546e+05 | 40.84 | 2.895 / 41.91 | 1.8 % / 40.8 % | 0 | 58.09 |
+| mission_fmr_rcs | 100 | 2.638e+05 / 8.494e+05 | 6.32 | 3.036 / 7.394 | 2.0 % / 6.3 % | 0 | 92.61 |
+| mission_img | 100 | 2.681e+05 / 8.45e+05 | 6.287 | 2.939 / 7.231 | 2.0 % / 6.3 % | 0 | 92.77 |
+| mission_rw_rcs | 100 | 2.744e+05 / 8.546e+05 | 6.359 | 3.116 / 7.433 | 2.0 % / 6.4 % | 0 | 92.57 |
 | mission_vscmg | 100 | 3.226e+05 / 9.18e+05 | 6.83 | 3.994 / 8.424 | 2.4 % / 6.8 % | 0 | 91.58 |
 | nadir_hold_ais | 200 | 1.935e+05 / 6.373e+05 | 4.742 | 1.994 / 5.296 | 0.7 % / 2.4 % | 0 | 194.7 |
 | nadir_hold_ais_css | 200 | 1.935e+05 / 6.377e+05 | 4.745 | 1.994 / 5.299 | 0.7 % / 2.4 % | 0 | 194.7 |
@@ -134,11 +134,11 @@ Runs are deterministic: the same scenario gives the same instruction counts and 
 | mission_fmr | detumble_time (min) | 284 | 61.33 | 61.51 | pass | pass |
 | mission_fmr | ape_los_last_half_orbit_p9973 (deg) | 0.01 | 0.005954 | 0.005997 | pass | pass |
 | mission_fmr_rcs | detumble_time (min) | 284 | 61.33 | 61.51 | pass | pass |
-| mission_fmr_rcs | ape_los_last_half_orbit_p9973 (deg) | 0.01 | 0.005954 | 0.005964 | pass | pass |
+| mission_fmr_rcs | ape_los_last_half_orbit_p9973 (deg) | 0.01 | 0.005954 | 0.006054 | pass | pass |
 | mission_img | detumble_time (min) | 284 | 51.01 | 51.39 | pass | pass |
-| mission_img | ape_los_last_half_orbit_p9973 (deg) | 0.01 | 0.01066 | 0.01047 | FAIL | FAIL |
+| mission_img | ape_los_last_half_orbit_p9973 (deg) | 0.01 | 0.01066 | 0.01023 | FAIL | FAIL |
 | mission_rw_rcs | detumble_time (min) | 284 | 51.01 | 51.39 | pass | pass |
-| mission_rw_rcs | ape_los_last_half_orbit_p9973 (deg) | 0.01 | 0.007564 | 0.00757 | pass | pass |
+| mission_rw_rcs | ape_los_last_half_orbit_p9973 (deg) | 0.01 | 0.007564 | 0.00763 | pass | pass |
 | mission_vscmg | detumble_time (min) | 284 | 57.02 | 56.86 | pass | pass |
 | mission_vscmg | ape_los_last_half_orbit_p9973 (deg) | 0.01 | 0.009595 | 0.009586 | pass | pass |
 | nadir_hold_ais | ape_los_last_orbit (deg) | 10 | 12.64 | 12.53 | FAIL | FAIL |

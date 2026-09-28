@@ -147,8 +147,8 @@ def design():
 
 def pump_front(c, sel):
     """The electromagnetic pump's mass / steady-power front per ring (empump.rs), the chosen design marked."""
-    its = sorted((PIPE / c).glob("iter_*/sized/sizing.json"), key=lambda p: int(p.parent.parent.name.split("_")[1]))
-    if not its or "fmr" not in sel["selected"] and "fmr" not in " ".join(sel["families"]):
+    its = [PIPE / c / f"iter_{sel['iterations']}" / "sized" / "sizing.json"]
+    if not its[0].exists() or "fmr" not in sel["selected"] and "fmr" not in " ".join(sel["families"]):
         return ""
     z = jl(its[-1])
     parts = z.get("parts", {})

@@ -35,7 +35,7 @@ Every node is a step with a file: `matlab_sils/store/pipeline/<case>/...`.
 
 | failure | cause class | what the loop changes (in this order) |
 |---|---|---|
-| time, APE, Sun angle | performance | 1. every algorithm of the option's slot, and for rotor/fluid pointing the bandwidth-tuned laws (`pid@bw2.5`, `pid@bw4`)<br>2. fluid loop: a quieter flow sensor, 2 → 0.5 → 0.2 mm/s (1σ), the loop's in-house sensor requirement<br>3. the option's actuator authority ×1.5 (bounds ×0.5 … ×4), undone if the violation does not fall by 5 % |
+| time, APE, Sun angle | performance | 1. every algorithm of the option's slot, and for rotor/fluid pointing the bandwidth-tuned laws (`pid@bw2.5`, `pid@bw4`)<br>2. fluid loop: a quieter flow sensor, 2 → 0.5 → 0.12 → 0.05 mm/s (1σ), the loop's in-house sensor requirement<br>3. the option's actuator authority ×1.5 (bounds ×0.5 … ×4), undone if the violation does not fall by 5 % |
 | rate stability (fine class) | performance | gyro grade: noise ×0.3, then ×0.1, at mass and power ÷ grade (fibre-optic class); undone if rate stability does not improve |
 | AKE | knowledge | the star tracker on a coarse-class product |
 | mean / peak power on a fluid-loop option | power | the electromagnetic pump with more copper: λ ×3 (bound 3 kg/W); not when the power is the RCS valves' |

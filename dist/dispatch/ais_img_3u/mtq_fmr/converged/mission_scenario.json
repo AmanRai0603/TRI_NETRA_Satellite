@@ -36,7 +36,7 @@
   ],
   "rcs_dump": 0.0,
   "dump_gain": 0.03,
-  "rw_bandwidth": 4.0
+  "rw_bandwidth": 2.5
  },
  "metrics": [
   {

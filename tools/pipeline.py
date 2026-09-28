@@ -65,7 +65,7 @@ def auth_part(mode, o):
     return {"mtq": "mtqp", "rw": "rw", "cmg": "cmg", "vscmg": "vscmg", "fmr": "fmr", "rcs": "rcs"}[a]
 SCALE_MIN, SCALE_MAX, UP, DOWN = 0.5, 4.0, 1.5, 0.75
 LAMBDA_MIN, LAMBDA_MAX = 0.01, 3.0
-FLOW_SIGMA_MIN = 0.0002
+FLOW_SIGMA_MIN = 0.00005
 GYRO_MIN = 0.1
 FAMILIES = []
 
@@ -552,6 +552,8 @@ def run_case(case, a, modes, families, build):
     print(f"== {case}")
     state = PIPE / case
     state.mkdir(parents=True, exist_ok=True)
+    for old in state.glob("iter_*"):                    # a new loop starts from the laws as written
+        shutil.rmtree(old)
     knobs, variants_on, history, log = {"scale": {}}, set(), {}, []
     it = 0
     for it in range(1, a.max_iter + 1):
