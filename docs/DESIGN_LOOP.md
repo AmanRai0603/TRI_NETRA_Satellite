@@ -41,7 +41,7 @@ Every node is a step with a file: `matlab_sils/store/pipeline/<case>/...`.
 | mean / peak power on a fluid-loop option | power | the electromagnetic pump with more copper: λ ×3 (bound 3 kg/W); not when the power is the RCS valves' |
 | mean power, coils-only family, performance passing | power | coil authority ×0.75 |
 | power on a rotor | power | blocked: the rotor's standby power is the floor |
-| mass budget of the closest solution family | mass | 1. one star-tracker head instead of two<br>2. a lighter pump (λ ÷3) while power allows<br>3. less fluid-loop momentum (×0.75)<br>each undone, and its lever closed, if it breaks a mode of that family or raises its requirement violation by more than 5 % |
+| mass budget of the closest solution family | mass | 1. a lighter gyro (grade ×3 back towards the catalogue unit)<br>2. one star-tracker head instead of two<br>3. a lighter pump (λ ÷3) while power allows<br>4. less fluid-loop momentum (×0.75)<br>each undone, and its lever closed, if it breaks a mode of that family or raises its requirement violation by more than 5 % |
 | propellant | propellant | RCS ×1.5 |
 
 A part that one failure pushes up and another pushes down is frozen and reported as a

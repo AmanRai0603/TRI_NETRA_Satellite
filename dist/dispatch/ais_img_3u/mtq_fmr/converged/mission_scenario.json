@@ -26,7 +26,7 @@
   },
   "algorithms": {
    "detumble": "bdot_gyro",
-   "pointing": "pid"
+   "pointing": "smc"
   },
   "schedule": [
    {
@@ -35,8 +35,7 @@
    }
   ],
   "rcs_dump": 0.0,
-  "dump_gain": 0.03,
-  "rw_bandwidth": 2.5
+  "dump_gain": 0.03
  },
  "metrics": [
   {

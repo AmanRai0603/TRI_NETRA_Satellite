@@ -105,7 +105,7 @@
     "fmr_lambda": 0.03333333333333333,
     "star_tracker": false,
     "st_heads": 2,
-    "fmr_flow_sigma": 0.0002,
+    "fmr_flow_sigma": 0.00005,
     "gyro_grade": 0.1
   },
   "families": {
@@ -1117,7 +1117,7 @@
         "flow_sensor_noise_m_s": {
           "dist": "normal",
           "mean": 0,
-          "sigma": 0.0002
+          "sigma": 0.00005
         },
         "axis_misalignment_rad": {
           "dist": "normal",
@@ -1128,7 +1128,7 @@
       "sizing": {
         "h_req_Nms": 0.0015520398279848051,
         "tau_req_Nm": 0.000057572692339687917,
-        "flow_sensor_sigma_m_s": 0.0002,
+        "flow_sensor_sigma_m_s": 0.00005,
         "face_m2": 0.010000000000000002,
         "scale": 0.5,
         "lambda_kg_per_W": 0.03333333333333333,
@@ -1272,7 +1272,7 @@
         "flow_sensor_noise_m_s": {
           "dist": "normal",
           "mean": 0,
-          "sigma": 0.0002
+          "sigma": 0.00005
         },
         "axis_misalignment_rad": {
           "dist": "normal",
@@ -1283,7 +1283,7 @@
       "sizing": {
         "h_req_Nms": 0.0015520398279848051,
         "tau_req_Nm": 0.000057572692339687917,
-        "flow_sensor_sigma_m_s": 0.0002,
+        "flow_sensor_sigma_m_s": 0.00005,
         "face_m2": 0.034,
         "scale": 0.5,
         "lambda_kg_per_W": 0.03333333333333333,
@@ -1427,7 +1427,7 @@
         "flow_sensor_noise_m_s": {
           "dist": "normal",
           "mean": 0,
-          "sigma": 0.0002
+          "sigma": 0.00005
         },
         "axis_misalignment_rad": {
           "dist": "normal",
@@ -1438,7 +1438,7 @@
       "sizing": {
         "h_req_Nms": 0.0015520398279848051,
         "tau_req_Nm": 0.000057572692339687917,
-        "flow_sensor_sigma_m_s": 0.0002,
+        "flow_sensor_sigma_m_s": 0.00005,
         "face_m2": 0.034,
         "scale": 0.5,
         "lambda_kg_per_W": 0.03333333333333333,

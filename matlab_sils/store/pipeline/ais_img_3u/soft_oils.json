@@ -1,13 +1,13 @@
 {
- "_key": "a5034f6dfef470b3",
+ "_key": "21ac493ca48dd89a",
  "sils": {
   "rc": 0,
-  "wall_s": 9.285144329071045,
+  "wall_s": 2.5761420726776123,
   "metrics": [
    {
     "id": "detumble_time",
     "kind": "time_to_rate",
-    "value": 81.85833333333333,
+    "value": 81.84166666666667,
     "unit": "min",
     "req": 284.0,
     "req_key": "req.detumble",
@@ -16,7 +16,7 @@
    {
     "id": "ape_los_p9973",
     "kind": "ape_los",
-    "value": 0.0014927230568329867,
+    "value": 0.0011838842345334066,
     "unit": "deg",
     "req": 0.01,
     "req_key": "req.ape",
@@ -25,7 +25,7 @@
    {
     "id": "ake_los_p9973",
     "kind": "ake_los",
-    "value": 0.0011249957339625868,
+    "value": 0.00115936928477117,
     "unit": "deg",
     "req": 0.005,
     "req_key": "req.ake",
@@ -34,7 +34,7 @@
    {
     "id": "power_mean",
     "kind": "power_mean",
-    "value": 1.3586527016611893,
+    "value": 1.3485523717001655,
     "unit": "W",
     "req": 2.0,
     "req_key": "req.pavg",
@@ -43,7 +43,7 @@
    {
     "id": "power_peak",
     "kind": "power_peak",
-    "value": 2.8986934499861627,
+    "value": 2.89659456700852,
     "unit": "W",
     "req": null,
     "req_key": "",
@@ -67,12 +67,12 @@
  },
  "oils": {
   "rc": 0,
-  "wall_s": 1610.8837475776672,
+  "wall_s": 1595.48685836792,
   "metrics": [
    {
     "id": "detumble_time",
     "kind": "time_to_rate",
-    "value": 82.75833333333334,
+    "value": 82.775,
     "unit": "min",
     "req": 284.0,
     "req_key": "req.detumble",
@@ -81,7 +81,7 @@
    {
     "id": "ape_los_p9973",
     "kind": "ape_los",
-    "value": 0.0014806832685577876,
+    "value": 0.0011360349480922815,
     "unit": "deg",
     "req": 0.01,
     "req_key": "req.ape",
@@ -90,7 +90,7 @@
    {
     "id": "ake_los_p9973",
     "kind": "ake_los",
-    "value": 0.0011153192547050262,
+    "value": 0.0011520431322964747,
     "unit": "deg",
     "req": 0.005,
     "req_key": "req.ake",
@@ -99,7 +99,7 @@
    {
     "id": "power_mean",
     "kind": "power_mean",
-    "value": 1.4431908537963547,
+    "value": 1.3881417875107953,
     "unit": "W",
     "req": 2.0,
     "req_key": "req.pavg",
@@ -108,7 +108,7 @@
    {
     "id": "power_peak",
     "kind": "power_peak",
-    "value": 2.904599532911634,
+    "value": 2.905733313232756,
     "unit": "W",
     "req": null,
     "req_key": "",
@@ -136,9 +136,9 @@
    "overruns": 0,
    "control_period_s": 0.1,
    "exec_s": {
-    "mean": 0.0016050984150568022,
-    "p99": 0.006207157738095238,
-    "max": 0.006284650297619048
+    "mean": 0.0016124442499510908,
+    "p99": 0.006229479166666667,
+    "max": 0.006306160714285715
    },
    "bus_s": {
     "mean": 0.0011690000000026866,
@@ -146,18 +146,18 @@
     "max": 0.0011690000000000001
    },
    "latency_s": {
-    "mean": 0.0027740984150568344,
-    "p99": 0.007376157738095238,
-    "max": 0.0074536502976190475
+    "mean": 0.002781444249951115,
+    "p99": 0.007398479166666667,
+    "max": 0.007475160714285715
    },
    "instructions": {
-    "mean": 215725.22698363836,
-    "p99": 834242.0,
-    "max": 844657.0
+    "mean": 216712.50719342977,
+    "p99": 837242.0,
+    "max": 847548.0
    },
-   "cpu_load_mean": 0.01605098415056802,
-   "cpu_load_max": 0.06284650297619047,
-   "deadline_margin_min_s": 0.09254634970238096
+   "cpu_load_mean": 0.016124442499510908,
+   "cpu_load_max": 0.06306160714285715,
+   "deadline_margin_min_s": 0.0925248392857143
   },
   "fsw": {
    "impl": "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu.elf",
@@ -166,7 +166,7 @@
  },
  "oils_rs": {
   "rc": 0,
-  "wall_s": 1741.8671848773956,
+  "wall_s": 1647.1488885879517,
   "metrics": [
    {
     "id": "detumble_time",
@@ -180,7 +180,7 @@
    {
     "id": "ape_los_p9973",
     "kind": "ape_los",
-    "value": 0.0014857567593372692,
+    "value": 0.0011126983356594489,
     "unit": "deg",
     "req": 0.01,
     "req_key": "req.ape",
@@ -189,7 +189,7 @@
    {
     "id": "ake_los_p9973",
     "kind": "ake_los",
-    "value": 0.0011233802321738982,
+    "value": 0.0011582898828168533,
     "unit": "deg",
     "req": 0.005,
     "req_key": "req.ake",
@@ -198,7 +198,7 @@
    {
     "id": "power_mean",
     "kind": "power_mean",
-    "value": 1.500025006265946,
+    "value": 1.4563836039167406,
     "unit": "W",
     "req": 2.0,
     "req_key": "req.pavg",
@@ -207,7 +207,7 @@
    {
     "id": "power_peak",
     "kind": "power_peak",
-    "value": 2.905570321169451,
+    "value": 2.905333865118732,
     "unit": "W",
     "req": null,
     "req_key": "",
@@ -235,9 +235,9 @@
    "overruns": 0,
    "control_period_s": 0.1,
    "exec_s": {
-    "mean": 0.0021548306649158376,
-    "p99": 0.007281949404761905,
-    "max": 0.007335595238095238
+    "mean": 0.002160897864320464,
+    "p99": 0.007299449404761905,
+    "max": 0.00735077380952381
    },
    "bus_s": {
     "mean": 0.0011690000000026866,
@@ -245,18 +245,18 @@
     "max": 0.0011690000000000001
    },
    "latency_s": {
-    "mean": 0.0033238306649158913,
-    "p99": 0.008450949404761906,
-    "max": 0.008504595238095238
+    "mean": 0.0033298978643204807,
+    "p99": 0.008468449404761906,
+    "max": 0.00851977380952381
    },
    "instructions": {
-    "mean": 289609.2413646898,
-    "p99": 978694.0,
-    "max": 985904.0
+    "mean": 290424.67296466883,
+    "p99": 981046.0,
+    "max": 987944.0
    },
-   "cpu_load_mean": 0.021548306649158376,
-   "cpu_load_max": 0.07335595238095238,
-   "deadline_margin_min_s": 0.09149540476190476
+   "cpu_load_mean": 0.021608978643204636,
+   "cpu_load_max": 0.0735077380952381,
+   "deadline_margin_min_s": 0.09148022619047619
   },
   "fsw": {
    "impl": "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu_rs.elf",

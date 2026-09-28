@@ -300,7 +300,11 @@ def node_converge(case, res, knobs, variants_on, history, fine, modes, sel=None)
             fam_opts = {kk: r for kk, r in res.items() if usable(next(x for x in Mby[kk[0]]["options"] if x["id"] == kk[1]), acts)}
             feas_now = [key for key, r in fam_opts.items() if r["feasible"]]
             vb = fam_violation(fam_opts, modes)
-            if fine and k.get("st_heads", 2) == 2 and not history.get("_st2") and not closed("st_heads"):
+            if fine and k.get("gyro_grade", 1.0) < 0.999 and not closed("gyro_grade"):
+                g0 = k["gyro_grade"]; history["_last_mass"] = ("gyro_grade", g0, feas_now, acts, vb)
+                k["gyro_grade"] = min(1.0, round(g0 * 3, 3))
+                changes.append(f"mass ({f}): gyro noise x{g0:g} -> x{k['gyro_grade']:g} (a lighter gyro)")
+            elif fine and k.get("st_heads", 2) == 2 and not history.get("_st2") and not closed("st_heads"):
                 history["_last_mass"] = ("st_heads", 2, feas_now, acts, vb)
                 k["st_heads"] = 1; changes.append(f"mass ({f}): one star-tracker head instead of two")
             elif fam_has_fmr and "power" not in g and k.get("fmr_lambda", 0.1) > LAMBDA_MIN and not history.get("_lam_up") and not closed("fmr_lambda"):
