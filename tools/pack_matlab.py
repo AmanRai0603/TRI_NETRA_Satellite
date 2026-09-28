@@ -27,6 +27,9 @@ extra = {
     "docs/RESULTS.md": ROOT / "docs" / "RESULTS.md",
     "docs/SELECTION.md": ROOT / "docs" / "SELECTION.md",
     "docs/OILS_HILS.md": ROOT / "docs" / "OILS_HILS.md",
+    "docs/SOLUTION_PIPELINE.md": ROOT / "docs" / "SOLUTION_PIPELINE.md",
+    "docs/SOLUTIONS.md": ROOT / "docs" / "SOLUTIONS.md",
+    "docs/COMPONENTS.md": ROOT / "docs" / "COMPONENTS.md",
     "store/README.md": None,
 }
 man = []
