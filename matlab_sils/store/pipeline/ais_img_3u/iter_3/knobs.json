@@ -1,10 +1,6 @@
 {
  "scale": {
-  "cmg": 1.5,
-  "fmr": 1.5,
-  "mtqp": 1.5,
-  "rw": 1.5,
-  "vscmg": 1.5
+  "mtqp": 1.5
  },
- "fmr_pm": true
+ "gyro_grade": 1.0
 }

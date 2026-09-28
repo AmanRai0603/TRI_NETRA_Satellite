@@ -1,23 +1,23 @@
 {
  "iteration": 2,
  "knobs": {
-  "scale": {},
-  "fmr_pm": true
+  "scale": {}
  },
  "class": "fine",
  "selected": "mtq_fmr",
  "status": "closest (not feasible)",
- "feasible_options": 14,
+ "feasible_options": 13,
  "options": 25,
  "changes": [
-  "cmg: authority x1 -> x1.5 (performance)",
-  "fmr: authority x1 -> x1.5 (performance)",
-  "mtqp: authority x1 -> x1.5 (performance)",
-  "rw: authority x1 -> x1.5 (performance)",
-  "vscmg: authority x1 -> x1.5 (performance)"
+  "rate stability: gyro noise x1 -> x0.3 (fibre-optic class)",
+  "gyro grade back to x1: rate-stability violation 290 -> 290",
+  "mtqp: authority x1 -> x1.5 (performance)"
  ],
  "blocked": [
-  "nadir_pointing/mtq: knowledge fails with the star tracker fitted"
+  "nadir_pointing/fmr+rcs: performance and power both fail \u2014 no authority change helps",
+  "nadir_pointing/fmr+rcs: power is the thrusters' valve power (RCS dumping), not the pump",
+  "nadir_pointing/mtq: knowledge fails with the star tracker fitted",
+  "sun_referencing/fmr+rcs: power is the thrusters' valve power (RCS dumping), not the pump"
  ],
  "families": {
   "mtq": {
@@ -37,25 +37,25 @@
    "feasible": false,
    "gaps": [
     "nadir_pointing: ape_los_p9973 (performance), rate_stability_p9973 (performance)",
-    "budget: mass_kg 1.53 > 1"
+    "budget: mass_kg 1.73 > 1"
    ],
    "budget": {
-    "mass_kg": 1.5268321151717141,
-    "power_W": 3.8331528495152525,
-    "volume_L": 0.47441533360344396
+    "mass_kg": 1.7273198532328387,
+    "power_W": 6.876812587204763,
+    "volume_L": 0.534415333603444
    }
   },
   "mtq_fmr_rcs": {
    "feasible": false,
    "gaps": [
     "nadir_pointing: ape_los_p9973 (performance), rate_stability_p9973 (performance)",
-    "budget: mass_kg 1.99 > 1",
-    "budget: volume_L 1.32 > 0.6"
+    "budget: mass_kg 2.19 > 1",
+    "budget: volume_L 1.38 > 0.6"
    ],
    "budget": {
-    "mass_kg": 1.9927489060285857,
-    "power_W": 3.8831528495152523,
-    "volume_L": 1.315932994320427
+    "mass_kg": 2.1932366440897093,
+    "power_W": 6.926812587204763,
+    "volume_L": 1.375932994320427
    }
   },
   "mtq_rw": {
@@ -150,7 +150,7 @@
    "alg": null,
    "feasible": true,
    "failing": {},
-   "objective": 1.0916666666666666,
+   "objective": 1.0583333333333333,
    "objective_id": "detumble_time"
   },
   {
@@ -272,16 +272,18 @@
    "alg": null,
    "feasible": true,
    "failing": {},
-   "objective": 0.025594263787893135,
+   "objective": 0.03748170696176573,
    "objective_id": "sun_ape_p9973"
   },
   {
    "mode": "sun_referencing",
    "option": "fmr+rcs",
    "alg": null,
-   "feasible": true,
-   "failing": {},
-   "objective": 0.025531369310390226,
+   "feasible": false,
+   "failing": {
+    "power_mean": "power"
+   },
+   "objective": 0.03733173574854827,
    "objective_id": "sun_ape_p9973"
   },
   {
@@ -300,12 +302,12 @@
   {
    "mode": "nadir_pointing",
    "option": "rw+mtq",
-   "alg": "pid",
+   "alg": "pid@bw2.5",
    "feasible": false,
    "failing": {
     "rate_stability_p9973": "performance"
    },
-   "objective": 0.004932608212572191,
+   "objective": 0.003915164752365401,
    "objective_id": "ape_los_p9973"
   },
   {
@@ -355,36 +357,37 @@
   {
    "mode": "nadir_pointing",
    "option": "vscmg+rcs",
-   "alg": "pid",
+   "alg": "pid@bw2.5",
    "feasible": false,
    "failing": {
     "rate_stability_p9973": "performance"
    },
-   "objective": 0.005099051011393161,
+   "objective": 0.004090770696704996,
    "objective_id": "ape_los_p9973"
   },
   {
    "mode": "nadir_pointing",
    "option": "fmr+mtq",
-   "alg": "pid",
+   "alg": "pid@bw4",
    "feasible": false,
    "failing": {
     "ape_los_p9973": "performance",
     "rate_stability_p9973": "performance"
    },
-   "objective": 0.0228117804898552,
+   "objective": 0.010043567040760202,
    "objective_id": "ape_los_p9973"
   },
   {
    "mode": "nadir_pointing",
    "option": "fmr+rcs",
-   "alg": "pid",
+   "alg": "pid@bw4",
    "feasible": false,
    "failing": {
     "ape_los_p9973": "performance",
-    "rate_stability_p9973": "performance"
+    "rate_stability_p9973": "performance",
+    "power_mean": "power"
    },
-   "objective": 0.022783222044050123,
+   "objective": 0.010055397051088589,
    "objective_id": "ape_los_p9973"
   }
  ]

@@ -1,0 +1,419 @@
+{
+ "iteration": 8,
+ "knobs": {
+  "scale": {
+   "mtqp": 1.0,
+   "cmg": 1.0,
+   "rw": 1.0,
+   "vscmg": 1.5,
+   "fmr": 1.5
+  },
+  "gyro_grade": 1.0,
+  "fmr_flow_sigma": 0.0002,
+  "st_heads": 1
+ },
+ "class": "fine",
+ "selected": "mtq_fmr",
+ "status": "closest (not feasible)",
+ "feasible_options": 14,
+ "options": 25,
+ "changes": [
+  "mass lever st_heads undone: it broke requirement violation 3.21 -> 46.6"
+ ],
+ "blocked": [
+  "nadir_pointing/cmg+mtq: knowledge fails with the star tracker fitted",
+  "nadir_pointing/cmg+rcs: knowledge fails with the star tracker fitted",
+  "nadir_pointing/fmr+mtq: knowledge fails with the star tracker fitted",
+  "nadir_pointing/fmr+rcs: knowledge fails with the star tracker fitted",
+  "nadir_pointing/mtq: knowledge fails with the star tracker fitted",
+  "nadir_pointing/rw+mtq: knowledge fails with the star tracker fitted",
+  "nadir_pointing/rw+rcs: knowledge fails with the star tracker fitted",
+  "nadir_pointing/vscmg+mtq: knowledge fails with the star tracker fitted",
+  "nadir_pointing/vscmg+rcs: knowledge fails with the star tracker fitted",
+  "cmg: more authority did not reduce the performance violation (10.2 -> 10.2); kept at x1",
+  "fmr: more authority did not reduce the performance violation (9.08 -> 12.2); kept at x1.5",
+  "mtqp: more authority did not reduce the performance violation (1.35e+04 -> 1.35e+04); kept at x1",
+  "rw: more authority did not reduce the performance violation (7.15 -> 7.2); kept at x1",
+  "vscmg: more authority did not reduce the performance violation (6.9 -> 7.11); kept at x1.5"
+ ],
+ "families": {
+  "mtq": {
+   "feasible": false,
+   "gaps": [
+    "sun_acquisition: sun_acquisition_time (performance), sun_angle_p95 (performance)",
+    "sun_referencing: sun_ape_p9973 (performance)",
+    "nadir_pointing: ape_los_p9973 (performance), ake_los_p9973 (knowledge), rate_stability_p9973 (performance)"
+   ],
+   "budget": {
+    "mass_kg": 0.5295611292035013,
+    "power_W": 2.895611292035013,
+    "volume_L": 0.011824451681400512
+   }
+  },
+  "mtq_fmr": {
+   "feasible": false,
+   "gaps": [
+    "nadir_pointing: ape_los_p9973 (performance), ake_los_p9973 (knowledge), rate_stability_p9973 (performance)",
+    "budget: mass_kg 1.99 > 1"
+   ],
+   "budget": {
+    "mass_kg": 1.9901997369314088,
+    "power_W": 6.405380945700811,
+    "volume_L": 0.534415333603444
+   }
+  },
+  "mtq_fmr_rcs": {
+   "feasible": false,
+   "gaps": [
+    "nadir_pointing: ape_los_p9973 (performance), ake_los_p9973 (knowledge), rate_stability_p9973 (performance)",
+    "budget: mass_kg 2.46 > 1",
+    "budget: volume_L 1.38 > 0.6"
+   ],
+   "budget": {
+    "mass_kg": 2.4561165277882795,
+    "power_W": 6.455380945700811,
+    "volume_L": 1.375932994320427
+   }
+  },
+  "mtq_rw": {
+   "feasible": false,
+   "gaps": [
+    "nadir_pointing: ape_los_p9973 (performance), ake_los_p9973 (knowledge), rate_stability_p9973 (performance)"
+   ],
+   "budget": {
+    "mass_kg": 0.7825798871980671,
+    "power_W": 3.5000669246047296,
+    "volume_L": 0.1415765586722607
+   }
+  },
+  "mtq_rw_rcs": {
+   "feasible": false,
+   "gaps": [
+    "nadir_pointing: ape_los_p9973 (performance), ake_los_p9973 (knowledge), rate_stability_p9973 (performance)",
+    "budget: mass_kg 1.25 > 1",
+    "budget: volume_L 0.983 > 0.6"
+   ],
+   "budget": {
+    "mass_kg": 1.2484966780549385,
+    "power_W": 3.5500669246047303,
+    "volume_L": 0.9830942193892437
+   }
+  },
+  "mtq_cmg": {
+   "feasible": false,
+   "gaps": [
+    "nadir_pointing: ape_los_p9973 (performance), ake_los_p9973 (knowledge), rate_stability_p9973 (performance)"
+   ],
+   "budget": {
+    "mass_kg": 0.8635137121933165,
+    "power_W": 3.6803833400860975,
+    "volume_L": 0.2719880503941047
+   }
+  },
+  "mtq_cmg_rcs": {
+   "feasible": false,
+   "gaps": [
+    "nadir_pointing: ape_los_p9973 (performance), ake_los_p9973 (knowledge), rate_stability_p9973 (performance)",
+    "budget: mass_kg 1.33 > 1",
+    "budget: volume_L 1.11 > 0.6"
+   ],
+   "budget": {
+    "mass_kg": 1.329430503050188,
+    "power_W": 3.730383340086098,
+    "volume_L": 1.1135057111110878
+   }
+  },
+  "mtq_vscmg": {
+   "feasible": false,
+   "gaps": [
+    "nadir_pointing: ape_los_p9973 (performance), ake_los_p9973 (knowledge), rate_stability_p9973 (performance)"
+   ],
+   "budget": {
+    "mass_kg": 0.9308227376144871,
+    "power_W": 4.140383340086097,
+    "volume_L": 0.3161210780829559
+   }
+  },
+  "mtq_vscmg_rcs": {
+   "feasible": false,
+   "gaps": [
+    "nadir_pointing: ape_los_p9973 (performance), ake_los_p9973 (knowledge), rate_stability_p9973 (performance)",
+    "budget: mass_kg 1.4 > 1",
+    "budget: volume_L 1.16 > 0.6"
+   ],
+   "budget": {
+    "mass_kg": 1.3967395284713586,
+    "power_W": 4.190383340086097,
+    "volume_L": 1.157638738799939
+   }
+  }
+ },
+ "matrix": [
+  {
+   "mode": "detumble",
+   "option": "mtq",
+   "alg": null,
+   "feasible": true,
+   "failing": {},
+   "objective": 58.70666666666667,
+   "objective_id": "detumble_time"
+  },
+  {
+   "mode": "detumble",
+   "option": "rcs",
+   "alg": null,
+   "feasible": true,
+   "failing": {},
+   "objective": 1.125,
+   "objective_id": "detumble_time"
+  },
+  {
+   "mode": "sun_acquisition",
+   "option": "mtq",
+   "alg": "sunspin_damped",
+   "feasible": false,
+   "failing": {
+    "sun_acquisition_time": "performance",
+    "sun_angle_p95": "performance"
+   },
+   "objective": 94.19000000000001,
+   "objective_id": "sun_acquisition_time"
+  },
+  {
+   "mode": "sun_acquisition",
+   "option": "rw",
+   "alg": null,
+   "feasible": true,
+   "failing": {},
+   "objective": 2.275,
+   "objective_id": "sun_acquisition_time"
+  },
+  {
+   "mode": "sun_acquisition",
+   "option": "cmg",
+   "alg": null,
+   "feasible": true,
+   "failing": {},
+   "objective": 2.275,
+   "objective_id": "sun_acquisition_time"
+  },
+  {
+   "mode": "sun_acquisition",
+   "option": "vscmg",
+   "alg": null,
+   "feasible": true,
+   "failing": {},
+   "objective": 2.2583333333333333,
+   "objective_id": "sun_acquisition_time"
+  },
+  {
+   "mode": "sun_acquisition",
+   "option": "fmr",
+   "alg": null,
+   "feasible": true,
+   "failing": {},
+   "objective": 2.2916666666666665,
+   "objective_id": "sun_acquisition_time"
+  },
+  {
+   "mode": "sun_referencing",
+   "option": "mtq",
+   "alg": "mtq_rate_damp",
+   "feasible": false,
+   "failing": {
+    "sun_ape_p9973": "performance"
+   },
+   "objective": 139.5504634640289,
+   "objective_id": "sun_ape_p9973"
+  },
+  {
+   "mode": "sun_referencing",
+   "option": "rw+mtq",
+   "alg": null,
+   "feasible": true,
+   "failing": {},
+   "objective": 0.20075960248728866,
+   "objective_id": "sun_ape_p9973"
+  },
+  {
+   "mode": "sun_referencing",
+   "option": "rw+rcs",
+   "alg": null,
+   "feasible": true,
+   "failing": {},
+   "objective": 0.20068518965973697,
+   "objective_id": "sun_ape_p9973"
+  },
+  {
+   "mode": "sun_referencing",
+   "option": "cmg+mtq",
+   "alg": null,
+   "feasible": true,
+   "failing": {},
+   "objective": 0.2007565301441718,
+   "objective_id": "sun_ape_p9973"
+  },
+  {
+   "mode": "sun_referencing",
+   "option": "cmg+rcs",
+   "alg": null,
+   "feasible": true,
+   "failing": {},
+   "objective": 0.20076010527426322,
+   "objective_id": "sun_ape_p9973"
+  },
+  {
+   "mode": "sun_referencing",
+   "option": "vscmg+mtq",
+   "alg": null,
+   "feasible": true,
+   "failing": {},
+   "objective": 0.2017721907438487,
+   "objective_id": "sun_ape_p9973"
+  },
+  {
+   "mode": "sun_referencing",
+   "option": "vscmg+rcs",
+   "alg": null,
+   "feasible": true,
+   "failing": {},
+   "objective": 0.20079830956357758,
+   "objective_id": "sun_ape_p9973"
+  },
+  {
+   "mode": "sun_referencing",
+   "option": "fmr+mtq",
+   "alg": null,
+   "feasible": true,
+   "failing": {},
+   "objective": 0.20143408651677755,
+   "objective_id": "sun_ape_p9973"
+  },
+  {
+   "mode": "sun_referencing",
+   "option": "fmr+rcs",
+   "alg": null,
+   "feasible": true,
+   "failing": {},
+   "objective": 0.20142095230993995,
+   "objective_id": "sun_ape_p9973"
+  },
+  {
+   "mode": "nadir_pointing",
+   "option": "mtq",
+   "alg": "mtq_rate_damp",
+   "feasible": false,
+   "failing": {
+    "ape_los_p9973": "performance",
+    "ake_los_p9973": "knowledge",
+    "rate_stability_p9973": "performance"
+   },
+   "objective": 130.16767206313781,
+   "objective_id": "ape_los_p9973"
+  },
+  {
+   "mode": "nadir_pointing",
+   "option": "rw+mtq",
+   "alg": "pid",
+   "feasible": false,
+   "failing": {
+    "ape_los_p9973": "performance",
+    "ake_los_p9973": "knowledge",
+    "rate_stability_p9973": "performance"
+   },
+   "objective": 0.14192242538234048,
+   "objective_id": "ape_los_p9973"
+  },
+  {
+   "mode": "nadir_pointing",
+   "option": "rw+rcs",
+   "alg": "pid",
+   "feasible": false,
+   "failing": {
+    "ape_los_p9973": "performance",
+    "ake_los_p9973": "knowledge",
+    "rate_stability_p9973": "performance"
+   },
+   "objective": 0.14156873863754113,
+   "objective_id": "ape_los_p9973"
+  },
+  {
+   "mode": "nadir_pointing",
+   "option": "cmg+mtq",
+   "alg": "pid",
+   "feasible": false,
+   "failing": {
+    "ape_los_p9973": "performance",
+    "ake_los_p9973": "knowledge",
+    "rate_stability_p9973": "performance"
+   },
+   "objective": 0.14163045915055597,
+   "objective_id": "ape_los_p9973"
+  },
+  {
+   "mode": "nadir_pointing",
+   "option": "cmg+rcs",
+   "alg": "pid",
+   "feasible": false,
+   "failing": {
+    "ape_los_p9973": "performance",
+    "ake_los_p9973": "knowledge",
+    "rate_stability_p9973": "performance"
+   },
+   "objective": 0.1416372986423068,
+   "objective_id": "ape_los_p9973"
+  },
+  {
+   "mode": "nadir_pointing",
+   "option": "vscmg+mtq",
+   "alg": "smc",
+   "feasible": false,
+   "failing": {
+    "ape_los_p9973": "performance",
+    "ake_los_p9973": "knowledge",
+    "rate_stability_p9973": "performance"
+   },
+   "objective": 0.14081748069760294,
+   "objective_id": "ape_los_p9973"
+  },
+  {
+   "mode": "nadir_pointing",
+   "option": "vscmg+rcs",
+   "alg": "pid",
+   "feasible": false,
+   "failing": {
+    "ape_los_p9973": "performance",
+    "ake_los_p9973": "knowledge",
+    "rate_stability_p9973": "performance"
+   },
+   "objective": 0.14161916405291353,
+   "objective_id": "ape_los_p9973"
+  },
+  {
+   "mode": "nadir_pointing",
+   "option": "fmr+mtq",
+   "alg": "pid",
+   "feasible": false,
+   "failing": {
+    "ape_los_p9973": "performance",
+    "ake_los_p9973": "knowledge",
+    "rate_stability_p9973": "performance"
+   },
+   "objective": 0.14098140503084075,
+   "objective_id": "ape_los_p9973"
+  },
+  {
+   "mode": "nadir_pointing",
+   "option": "fmr+rcs",
+   "alg": "pid",
+   "feasible": false,
+   "failing": {
+    "ape_los_p9973": "performance",
+    "ake_los_p9973": "knowledge",
+    "rate_stability_p9973": "performance"
+   },
+   "objective": 0.14098314135919235,
+   "objective_id": "ape_los_p9973"
+  }
+ ]
+}

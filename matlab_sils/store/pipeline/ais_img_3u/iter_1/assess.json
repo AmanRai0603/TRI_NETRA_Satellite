@@ -13,7 +13,6 @@
   "nadir_pointing/cmg+rcs: fly every pointing algorithm",
   "nadir_pointing/fmr+mtq: fly every pointing algorithm",
   "nadir_pointing/fmr+rcs: fly every pointing algorithm",
-  "nadir_pointing/fmr+rcs: power -> permanent-magnet pump yoke on the fluid loop",
   "nadir_pointing/mtq: fly every mtq_pointing algorithm",
   "nadir_pointing/rw+mtq: fly every pointing algorithm",
   "nadir_pointing/rw+rcs: fly every pointing algorithm",
@@ -23,8 +22,9 @@
   "sun_referencing/mtq: fly every mtq_pointing algorithm"
  ],
  "blocked": [
+  "nadir_pointing/fmr+rcs: power is the thrusters' valve power (RCS dumping), not the pump",
   "nadir_pointing/mtq: knowledge fails with the star tracker fitted",
-  "sun_referencing/fmr+rcs: power fails at the sized authority (fmr); the part's standby power is the floor"
+  "sun_referencing/fmr+rcs: power is the thrusters' valve power (RCS dumping), not the pump"
  ],
  "families": {
   "mtq": {
@@ -44,25 +44,25 @@
    "feasible": false,
    "gaps": [
     "nadir_pointing: ape_los_p9973 (performance), rate_stability_p9973 (performance)",
-    "budget: mass_kg 1.36 > 1"
+    "budget: mass_kg 1.73 > 1"
    ],
    "budget": {
-    "mass_kg": 1.3572651546035335,
-    "power_W": 12.311500877924292,
-    "volume_L": 0.47441533360344396
+    "mass_kg": 1.7273198532328387,
+    "power_W": 6.876812587204763,
+    "volume_L": 0.534415333603444
    }
   },
   "mtq_fmr_rcs": {
    "feasible": false,
    "gaps": [
     "nadir_pointing: ape_los_p9973 (performance), rate_stability_p9973 (performance)",
-    "budget: mass_kg 1.82 > 1",
-    "budget: volume_L 1.32 > 0.6"
+    "budget: mass_kg 2.19 > 1",
+    "budget: volume_L 1.38 > 0.6"
    ],
    "budget": {
-    "mass_kg": 1.823181945460405,
-    "power_W": 12.361500877924293,
-    "volume_L": 1.315932994320427
+    "mass_kg": 2.1932366440897093,
+    "power_W": 6.926812587204763,
+    "volume_L": 1.375932994320427
    }
   },
   "mtq_rw": {
@@ -157,7 +157,7 @@
    "alg": null,
    "feasible": true,
    "failing": {},
-   "objective": 1.0916666666666666,
+   "objective": 1.0583333333333333,
    "objective_id": "detumble_time"
   },
   {
@@ -279,7 +279,7 @@
    "alg": null,
    "feasible": true,
    "failing": {},
-   "objective": 0.025594263787893135,
+   "objective": 0.03748170696176573,
    "objective_id": "sun_ape_p9973"
   },
   {
@@ -290,7 +290,7 @@
    "failing": {
     "power_mean": "power"
    },
-   "objective": 0.025531369310390226,
+   "objective": 0.03733173574854827,
    "objective_id": "sun_ape_p9973"
   },
   {
@@ -381,7 +381,7 @@
     "ape_los_p9973": "performance",
     "rate_stability_p9973": "performance"
    },
-   "objective": 0.0228117804898552,
+   "objective": 0.034436429062475606,
    "objective_id": "ape_los_p9973"
   },
   {
@@ -394,7 +394,7 @@
     "rate_stability_p9973": "performance",
     "power_mean": "power"
    },
-   "objective": 0.022783222044050123,
+   "objective": 0.03445118060357715,
    "objective_id": "ape_los_p9973"
   }
  ]

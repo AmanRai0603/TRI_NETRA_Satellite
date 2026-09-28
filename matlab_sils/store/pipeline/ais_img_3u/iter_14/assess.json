@@ -1,0 +1,405 @@
+{
+ "iteration": 14,
+ "knobs": {
+  "scale": {
+   "mtqp": 1.0,
+   "cmg": 1.0,
+   "rw": 1.0,
+   "vscmg": 1.5,
+   "fmr": 0.84375
+  },
+  "gyro_grade": 1.0,
+  "fmr_flow_sigma": 0.0002,
+  "st_heads": 2,
+  "fmr_lambda": 0.03333333333333333
+ },
+ "class": "fine",
+ "selected": "mtq_fmr",
+ "status": "closest (not feasible)",
+ "feasible_options": 13,
+ "options": 25,
+ "changes": [
+  "mass (mtq_fmr): fluid-loop momentum x0.84375 -> x0.632812"
+ ],
+ "blocked": [
+  "nadir_pointing/fmr+rcs: performance and power both fail \u2014 no authority change helps",
+  "nadir_pointing/fmr+rcs: power is the thrusters' valve power (RCS dumping), not the pump",
+  "nadir_pointing/mtq: knowledge fails with the star tracker fitted",
+  "sun_referencing/fmr+rcs: power is the thrusters' valve power (RCS dumping), not the pump",
+  "cmg: more authority did not reduce the performance violation (10.2 -> 10.2); kept at x1",
+  "fmr: more authority did not reduce the performance violation (9.08 -> 12.2); kept at x1.5",
+  "mtqp: more authority did not reduce the performance violation (1.35e+04 -> 1.35e+04); kept at x1",
+  "rw: more authority did not reduce the performance violation (7.15 -> 7.2); kept at x1",
+  "vscmg: more authority did not reduce the performance violation (6.9 -> 7.11); kept at x1.5"
+ ],
+ "families": {
+  "mtq": {
+   "feasible": false,
+   "gaps": [
+    "sun_acquisition: sun_acquisition_time (performance), sun_angle_p95 (performance)",
+    "sun_referencing: sun_ape_p9973 (performance)",
+    "nadir_pointing: ape_los_p9973 (performance), ake_los_p9973 (knowledge), rate_stability_p9973 (performance)"
+   ],
+   "budget": {
+    "mass_kg": 0.8295611292035014,
+    "power_W": 3.8956112920350123,
+    "volume_L": 0.011824451681400512
+   }
+  },
+  "mtq_fmr": {
+   "feasible": false,
+   "gaps": [
+    "nadir_pointing: rate_stability_p9973 (performance)",
+    "budget: mass_kg 1.49 > 1"
+   ],
+   "budget": {
+    "mass_kg": 1.4912106099554032,
+    "power_W": 9.24847114982798,
+    "volume_L": 0.534415333603444
+   }
+  },
+  "mtq_fmr_rcs": {
+   "feasible": false,
+   "gaps": [
+    "nadir_pointing: rate_stability_p9973 (performance)",
+    "budget: mass_kg 1.96 > 1",
+    "budget: volume_L 1.38 > 0.6"
+   ],
+   "budget": {
+    "mass_kg": 1.9571274008122743,
+    "power_W": 9.298471149827979,
+    "volume_L": 1.375932994320427
+   }
+  },
+  "mtq_rw": {
+   "feasible": false,
+   "gaps": [
+    "nadir_pointing: rate_stability_p9973 (performance)",
+    "budget: mass_kg 1.08 > 1"
+   ],
+   "budget": {
+    "mass_kg": 1.0825798871980672,
+    "power_W": 4.50006692460473,
+    "volume_L": 0.1415765586722607
+   }
+  },
+  "mtq_rw_rcs": {
+   "feasible": false,
+   "gaps": [
+    "nadir_pointing: rate_stability_p9973 (performance)",
+    "budget: mass_kg 1.55 > 1",
+    "budget: volume_L 0.983 > 0.6"
+   ],
+   "budget": {
+    "mass_kg": 1.5484966780549385,
+    "power_W": 4.55006692460473,
+    "volume_L": 0.9830942193892437
+   }
+  },
+  "mtq_cmg": {
+   "feasible": false,
+   "gaps": [
+    "nadir_pointing: rate_stability_p9973 (performance)",
+    "budget: mass_kg 1.16 > 1"
+   ],
+   "budget": {
+    "mass_kg": 1.1635137121933166,
+    "power_W": 4.680383340086097,
+    "volume_L": 0.2719880503941047
+   }
+  },
+  "mtq_cmg_rcs": {
+   "feasible": false,
+   "gaps": [
+    "nadir_pointing: rate_stability_p9973 (performance)",
+    "budget: mass_kg 1.63 > 1",
+    "budget: volume_L 1.11 > 0.6"
+   ],
+   "budget": {
+    "mass_kg": 1.6294305030501879,
+    "power_W": 4.730383340086098,
+    "volume_L": 1.1135057111110878
+   }
+  },
+  "mtq_vscmg": {
+   "feasible": false,
+   "gaps": [
+    "nadir_pointing: rate_stability_p9973 (performance)",
+    "budget: mass_kg 1.23 > 1"
+   ],
+   "budget": {
+    "mass_kg": 1.2308227376144871,
+    "power_W": 5.140383340086097,
+    "volume_L": 0.3161210780829559
+   }
+  },
+  "mtq_vscmg_rcs": {
+   "feasible": false,
+   "gaps": [
+    "nadir_pointing: rate_stability_p9973 (performance)",
+    "budget: mass_kg 1.7 > 1",
+    "budget: volume_L 1.16 > 0.6"
+   ],
+   "budget": {
+    "mass_kg": 1.6967395284713587,
+    "power_W": 5.190383340086097,
+    "volume_L": 1.157638738799939
+   }
+  }
+ },
+ "matrix": [
+  {
+   "mode": "detumble",
+   "option": "mtq",
+   "alg": null,
+   "feasible": true,
+   "failing": {},
+   "objective": 63.54,
+   "objective_id": "detumble_time"
+  },
+  {
+   "mode": "detumble",
+   "option": "rcs",
+   "alg": null,
+   "feasible": true,
+   "failing": {},
+   "objective": 1.1083333333333334,
+   "objective_id": "detumble_time"
+  },
+  {
+   "mode": "sun_acquisition",
+   "option": "mtq",
+   "alg": "sunspin_damped",
+   "feasible": false,
+   "failing": {
+    "sun_acquisition_time": "performance",
+    "sun_angle_p95": "performance"
+   },
+   "objective": 98.47333333333334,
+   "objective_id": "sun_acquisition_time"
+  },
+  {
+   "mode": "sun_acquisition",
+   "option": "rw",
+   "alg": null,
+   "feasible": true,
+   "failing": {},
+   "objective": 2.275,
+   "objective_id": "sun_acquisition_time"
+  },
+  {
+   "mode": "sun_acquisition",
+   "option": "cmg",
+   "alg": null,
+   "feasible": true,
+   "failing": {},
+   "objective": 2.275,
+   "objective_id": "sun_acquisition_time"
+  },
+  {
+   "mode": "sun_acquisition",
+   "option": "vscmg",
+   "alg": null,
+   "feasible": true,
+   "failing": {},
+   "objective": 2.3583333333333334,
+   "objective_id": "sun_acquisition_time"
+  },
+  {
+   "mode": "sun_acquisition",
+   "option": "fmr",
+   "alg": null,
+   "feasible": true,
+   "failing": {},
+   "objective": 2.275,
+   "objective_id": "sun_acquisition_time"
+  },
+  {
+   "mode": "sun_referencing",
+   "option": "mtq",
+   "alg": "mtq_rate_damp",
+   "feasible": false,
+   "failing": {
+    "sun_ape_p9973": "performance"
+   },
+   "objective": 141.80593774589596,
+   "objective_id": "sun_ape_p9973"
+  },
+  {
+   "mode": "sun_referencing",
+   "option": "rw+mtq",
+   "alg": null,
+   "feasible": true,
+   "failing": {},
+   "objective": 0.00865043851036177,
+   "objective_id": "sun_ape_p9973"
+  },
+  {
+   "mode": "sun_referencing",
+   "option": "rw+rcs",
+   "alg": null,
+   "feasible": true,
+   "failing": {},
+   "objective": 0.008624288539353382,
+   "objective_id": "sun_ape_p9973"
+  },
+  {
+   "mode": "sun_referencing",
+   "option": "cmg+mtq",
+   "alg": null,
+   "feasible": true,
+   "failing": {},
+   "objective": 0.008669875196557595,
+   "objective_id": "sun_ape_p9973"
+  },
+  {
+   "mode": "sun_referencing",
+   "option": "cmg+rcs",
+   "alg": null,
+   "feasible": true,
+   "failing": {},
+   "objective": 0.008654175194348307,
+   "objective_id": "sun_ape_p9973"
+  },
+  {
+   "mode": "sun_referencing",
+   "option": "vscmg+mtq",
+   "alg": null,
+   "feasible": true,
+   "failing": {},
+   "objective": 0.008684615334399055,
+   "objective_id": "sun_ape_p9973"
+  },
+  {
+   "mode": "sun_referencing",
+   "option": "vscmg+rcs",
+   "alg": null,
+   "feasible": true,
+   "failing": {},
+   "objective": 0.008508447344195424,
+   "objective_id": "sun_ape_p9973"
+  },
+  {
+   "mode": "sun_referencing",
+   "option": "fmr+mtq",
+   "alg": null,
+   "feasible": true,
+   "failing": {},
+   "objective": 0.008976505153726243,
+   "objective_id": "sun_ape_p9973"
+  },
+  {
+   "mode": "sun_referencing",
+   "option": "fmr+rcs",
+   "alg": null,
+   "feasible": false,
+   "failing": {
+    "power_mean": "power"
+   },
+   "objective": 0.008952662240243991,
+   "objective_id": "sun_ape_p9973"
+  },
+  {
+   "mode": "nadir_pointing",
+   "option": "mtq",
+   "alg": "mtq_rate_damp",
+   "feasible": false,
+   "failing": {
+    "ape_los_p9973": "performance",
+    "ake_los_p9973": "knowledge",
+    "rate_stability_p9973": "performance"
+   },
+   "objective": 132.37645436439328,
+   "objective_id": "ape_los_p9973"
+  },
+  {
+   "mode": "nadir_pointing",
+   "option": "rw+mtq",
+   "alg": "pid@bw2.5",
+   "feasible": false,
+   "failing": {
+    "rate_stability_p9973": "performance"
+   },
+   "objective": 0.003915164752365401,
+   "objective_id": "ape_los_p9973"
+  },
+  {
+   "mode": "nadir_pointing",
+   "option": "rw+rcs",
+   "alg": "lqr",
+   "feasible": false,
+   "failing": {
+    "rate_stability_p9973": "performance"
+   },
+   "objective": 0.0032045657688164015,
+   "objective_id": "ape_los_p9973"
+  },
+  {
+   "mode": "nadir_pointing",
+   "option": "cmg+mtq",
+   "alg": "lqr",
+   "feasible": false,
+   "failing": {
+    "rate_stability_p9973": "performance"
+   },
+   "objective": 0.0032212363743177115,
+   "objective_id": "ape_los_p9973"
+  },
+  {
+   "mode": "nadir_pointing",
+   "option": "cmg+rcs",
+   "alg": "lqr",
+   "feasible": false,
+   "failing": {
+    "rate_stability_p9973": "performance"
+   },
+   "objective": 0.0032273149768549465,
+   "objective_id": "ape_los_p9973"
+  },
+  {
+   "mode": "nadir_pointing",
+   "option": "vscmg+mtq",
+   "alg": "lqr",
+   "feasible": false,
+   "failing": {
+    "rate_stability_p9973": "performance"
+   },
+   "objective": 0.003997628512048192,
+   "objective_id": "ape_los_p9973"
+  },
+  {
+   "mode": "nadir_pointing",
+   "option": "vscmg+rcs",
+   "alg": "pid",
+   "feasible": false,
+   "failing": {
+    "rate_stability_p9973": "performance"
+   },
+   "objective": 0.005144894257827886,
+   "objective_id": "ape_los_p9973"
+  },
+  {
+   "mode": "nadir_pointing",
+   "option": "fmr+mtq",
+   "alg": "pid@bw4",
+   "feasible": false,
+   "failing": {
+    "rate_stability_p9973": "performance"
+   },
+   "objective": 0.0035353592506677297,
+   "objective_id": "ape_los_p9973"
+  },
+  {
+   "mode": "nadir_pointing",
+   "option": "fmr+rcs",
+   "alg": "pid@bw4",
+   "feasible": false,
+   "failing": {
+    "rate_stability_p9973": "performance",
+    "power_mean": "power"
+   },
+   "objective": 0.0035510080997896427,
+   "objective_id": "ape_los_p9973"
+  }
+ ]
+}

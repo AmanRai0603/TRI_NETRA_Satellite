@@ -1,0 +1,13 @@
+{
+ "scale": {
+  "mtqp": 1.0,
+  "cmg": 1.0,
+  "rw": 1.0,
+  "vscmg": 1.5,
+  "fmr": 0.84375
+ },
+ "gyro_grade": 1.0,
+ "fmr_flow_sigma": 0.0002,
+ "st_heads": 2,
+ "fmr_lambda": 0.03333333333333333
+}
