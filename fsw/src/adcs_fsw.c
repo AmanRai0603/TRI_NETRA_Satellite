@@ -9,6 +9,9 @@
 #include "adcs_fsw.h"
 #include "adcs_params.h"
 #include "adcs_gnc.h"
+
+/* bang-bang B-dot boundary layer: proportional gain inside it = BDOT_BL_GAIN x the B-dot gain */
+#define BDOT_BL_GAIN 4.0
 #include "adcs_env.h"
 #include "adcs_drv.h"
 
@@ -374,9 +377,13 @@ int32_t adcs_fsw_step(uint64_t now_ns)
                 } else if (law == 1) {
                     if (S.b1_ok) adcs_bdot(S.b1, b, p->mtq_period, adcs_norm3(z->B), p->bdot_k, p->m_max, m_body);
                 } else if (law == 2) {
+                    /* bang-bang with a boundary layer: full dipole against d(b)/dt outside it, a
+                     * proportional law BDOT_BL_GAIN x the B-dot gain inside it (pure sign switching
+                     * limit-cycles around the detumble exit rate: 4 of 12 seeds never settle) */
+                    adcs_real bl = p->m_max*adcs_norm3(z->B)/(BDOT_BL_GAIN*p->bdot_k), r;
                     if (S.b1_ok) for (i = 0; i < 3; i++) {
-                        adcs_real bd = (b[i] - S.b1[i])/p->mtq_period;
-                        m_body[i] = (fabs(bd) > 1e-4) ? -p->m_max*adcs_sign(bd) : 0.0;
+                        r = ((b[i] - S.b1[i])/p->mtq_period)/bl;
+                        m_body[i] = -p->m_max*(r > 1.0 ? 1.0 : (r < -1.0 ? -1.0 : r));
                     }
                 } else {
                     adcs_real Bav[3], Bd[3], zero[3] = {0, 0, 0}, mx;

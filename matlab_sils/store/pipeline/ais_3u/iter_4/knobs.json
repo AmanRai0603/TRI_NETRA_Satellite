@@ -1,6 +1,7 @@
 {
  "scale": {
+  "fmr": 1.0,
   "mtqp": 1.0
  },
- "fmr_pm": true
+ "fmr_lambda": 0.9000000000000001
 }

@@ -10,7 +10,7 @@
   "feasible_options": 1,
   "options": 25,
   "changes": [
-   "nadir_pointing/fmr+mtq: power -> permanent-magnet pump yoke on the fluid loop",
+   "nadir_pointing/fmr+mtq: power -> electromagnetic pump with more copper (lambda 0.1 -> 0.3 kg/W)",
    "nadir_pointing/mtq: fly every mtq_pointing algorithm",
    "sun_acquisition/mtq: fly every sun_acquisition algorithm",
    "sun_referencing/mtq: fly every mtq_pointing algorithm",
@@ -21,19 +21,15 @@
    "detumble/rcs: power fails at the sized authority (rcs); the part's standby power is the floor",
    "nadir_pointing/cmg+mtq: power fails at the sized authority (cmg); the part's standby power is the floor",
    "nadir_pointing/cmg+rcs: power fails at the sized authority (cmg); the part's standby power is the floor",
-   "nadir_pointing/fmr+rcs: power fails at the sized authority (fmr); the part's standby power is the floor",
    "nadir_pointing/rw+mtq: power fails at the sized authority (rw); the part's standby power is the floor",
    "nadir_pointing/rw+rcs: power fails at the sized authority (rw); the part's standby power is the floor",
    "nadir_pointing/vscmg+mtq: power fails at the sized authority (vscmg); the part's standby power is the floor",
    "nadir_pointing/vscmg+rcs: power fails at the sized authority (vscmg); the part's standby power is the floor",
    "sun_acquisition/cmg: power fails at the sized authority (cmg); the part's standby power is the floor",
-   "sun_acquisition/fmr: power fails at the sized authority (fmr); the part's standby power is the floor",
    "sun_acquisition/rw: power fails at the sized authority (rw); the part's standby power is the floor",
    "sun_acquisition/vscmg: power fails at the sized authority (vscmg); the part's standby power is the floor",
    "sun_referencing/cmg+mtq: power fails at the sized authority (cmg); the part's standby power is the floor",
    "sun_referencing/cmg+rcs: power fails at the sized authority (cmg); the part's standby power is the floor",
-   "sun_referencing/fmr+mtq: power fails at the sized authority (fmr); the part's standby power is the floor",
-   "sun_referencing/fmr+rcs: power fails at the sized authority (fmr); the part's standby power is the floor",
    "sun_referencing/rw+mtq: power fails at the sized authority (rw); the part's standby power is the floor",
    "sun_referencing/rw+rcs: power fails at the sized authority (rw); the part's standby power is the floor"
   ],
@@ -57,13 +53,13 @@
      "sun_acquisition: power_mean (power)",
      "sun_referencing: power_mean (power)",
      "nadir_pointing: power_mean (power)",
-     "budget: mass_kg 0.688 > 0.35",
-     "budget: volume_L 0.477 > 0.3"
+     "budget: mass_kg 1.08 > 0.35",
+     "budget: volume_L 0.537 > 0.3"
     ],
     "budget": {
-     "mass_kg": 0.687554554277183,
-     "power_W": 10.231306548435608,
-     "volume_L": 0.47712759734192733
+     "mass_kg": 1.0823005861655,
+     "power_W": 4.817332434852088,
+     "volume_L": 0.5371275973419273
     }
    },
    "mtq_fmr_rcs": {
@@ -72,13 +68,13 @@
      "sun_acquisition: power_mean (power)",
      "sun_referencing: power_mean (power)",
      "nadir_pointing: power_mean (power)",
-     "budget: mass_kg 1.21 > 0.35",
-     "budget: volume_L 1.46 > 0.3"
+     "budget: mass_kg 1.6 > 0.35",
+     "budget: volume_L 1.52 > 0.3"
     ],
     "budget": {
-     "mass_kg": 1.2060154174189581,
-     "power_W": 10.281306548435609,
-     "volume_L": 1.4591900411347951
+     "mass_kg": 1.600761449307275,
+     "power_W": 4.867332434852088,
+     "volume_L": 1.5191900411347952
     }
    },
    "mtq_rw": {
@@ -333,7 +329,7 @@
     "failing": {
      "power_mean": "power"
     },
-    "objective": 0.24685656915575302,
+    "objective": 0.2467640875210528,
     "objective_id": "sun_ape_p9973"
    },
    {
@@ -344,7 +340,7 @@
     "failing": {
      "power_mean": "power"
     },
-    "objective": 0.24696583280478868,
+    "objective": 0.24682522308494353,
     "objective_id": "sun_ape_p9973"
    },
    {
@@ -432,7 +428,7 @@
     "failing": {
      "power_mean": "power"
     },
-    "objective": 0.14778789388426405,
+    "objective": 0.14907148868462333,
     "objective_id": "ape_los_p9973"
    },
    {
@@ -443,7 +439,7 @@
     "failing": {
      "power_mean": "power"
     },
-    "objective": 0.14782806289169448,
+    "objective": 0.14908217571241192,
     "objective_id": "ape_los_p9973"
    }
   ]
@@ -452,20 +448,22 @@
   "iteration": 2,
   "knobs": {
    "scale": {},
-   "fmr_pm": true
+   "fmr_lambda": 0.30000000000000004
   },
   "class": "coarse",
   "selected": "mtq_fmr",
   "status": "closest (not feasible)",
-  "feasible_options": 6,
+  "feasible_options": 4,
   "options": 25,
   "changes": [
+   "mass (mtq_fmr): fluid-loop momentum x1 -> x0.75",
    "mtqp: authority x1 -> x1.5 (performance)"
   ],
   "blocked": [
    "detumble/rcs: power fails at the sized authority (rcs); the part's standby power is the floor",
    "nadir_pointing/cmg+mtq: power fails at the sized authority (cmg); the part's standby power is the floor",
    "nadir_pointing/cmg+rcs: power fails at the sized authority (cmg); the part's standby power is the floor",
+   "nadir_pointing/fmr+rcs: power is the thrusters' valve power (RCS dumping), not the pump",
    "nadir_pointing/rw+mtq: power fails at the sized authority (rw); the part's standby power is the floor",
    "nadir_pointing/rw+rcs: power fails at the sized authority (rw); the part's standby power is the floor",
    "nadir_pointing/vscmg+mtq: power fails at the sized authority (vscmg); the part's standby power is the floor",
@@ -475,6 +473,7 @@
    "sun_acquisition/vscmg: power fails at the sized authority (vscmg); the part's standby power is the floor",
    "sun_referencing/cmg+mtq: power fails at the sized authority (cmg); the part's standby power is the floor",
    "sun_referencing/cmg+rcs: power fails at the sized authority (cmg); the part's standby power is the floor",
+   "sun_referencing/fmr+rcs: power is the thrusters' valve power (RCS dumping), not the pump",
    "sun_referencing/rw+mtq: power fails at the sized authority (rw); the part's standby power is the floor",
    "sun_referencing/rw+rcs: power fails at the sized authority (rw); the part's standby power is the floor",
    "sun_referencing/vscmg+mtq: performance and power both fail \u2014 no authority change helps",
@@ -497,25 +496,25 @@
    "mtq_fmr": {
     "feasible": false,
     "gaps": [
-     "budget: mass_kg 0.855 > 0.35",
-     "budget: volume_L 0.477 > 0.3"
+     "budget: mass_kg 1.45 > 0.35",
+     "budget: volume_L 0.537 > 0.3"
     ],
     "budget": {
-     "mass_kg": 0.8546057483598011,
-     "power_W": 1.8787468443047084,
-     "volume_L": 0.47712759734192733
+     "mass_kg": 1.4460787006161835,
+     "power_W": 2.537983789464423,
+     "volume_L": 0.5371275973419273
     }
    },
    "mtq_fmr_rcs": {
     "feasible": false,
     "gaps": [
-     "budget: mass_kg 1.37 > 0.35",
-     "budget: volume_L 1.46 > 0.3"
+     "budget: mass_kg 1.96 > 0.35",
+     "budget: volume_L 1.52 > 0.3"
     ],
     "budget": {
-     "mass_kg": 1.373066611501576,
-     "power_W": 1.9287468443047084,
-     "volume_L": 1.4591900411347951
+     "mass_kg": 1.9645395637579586,
+     "power_W": 2.5879837894644226,
+     "volume_L": 1.5191900411347952
     }
    },
    "mtq_rw": {
@@ -624,7 +623,7 @@
     "failing": {
      "power_peak": "power"
     },
-    "objective": 1.125,
+    "objective": 1.875,
     "objective_id": "detumble_time"
    },
    {
@@ -751,12 +750,12 @@
    {
     "mode": "sun_referencing",
     "option": "vscmg+rcs",
-    "alg": "lqr",
+    "alg": "pid@bw4",
     "feasible": false,
     "failing": {
      "power_mean": "power"
     },
-    "objective": 2.0502292160037534,
+    "objective": 1.2382566129978465,
     "objective_id": "sun_ape_p9973"
    },
    {
@@ -765,16 +764,18 @@
     "alg": null,
     "feasible": true,
     "failing": {},
-    "objective": 0.24685656915575302,
+    "objective": 0.2513325094425192,
     "objective_id": "sun_ape_p9973"
    },
    {
     "mode": "sun_referencing",
     "option": "fmr+rcs",
     "alg": null,
-    "feasible": true,
-    "failing": {},
-    "objective": 0.24696583280478868,
+    "feasible": false,
+    "failing": {
+     "power_mean": "power"
+    },
+    "objective": 0.25119062643119716,
     "objective_id": "sun_ape_p9973"
    },
    {
@@ -860,16 +861,18 @@
     "alg": null,
     "feasible": true,
     "failing": {},
-    "objective": 0.14778789388426405,
+    "objective": 0.15140443642662954,
     "objective_id": "ape_los_p9973"
    },
    {
     "mode": "nadir_pointing",
     "option": "fmr+rcs",
     "alg": null,
-    "feasible": true,
-    "failing": {},
-    "objective": 0.14782806289169448,
+    "feasible": false,
+    "failing": {
+     "power_mean": "power"
+    },
+    "objective": 0.15133197009388233,
     "objective_id": "ape_los_p9973"
    }
   ]
@@ -878,22 +881,26 @@
   "iteration": 3,
   "knobs": {
    "scale": {
+    "fmr": 0.75,
     "mtqp": 1.5
    },
-   "fmr_pm": true
+   "fmr_lambda": 0.30000000000000004
   },
   "class": "coarse",
-  "selected": "mtq_fmr",
+  "selected": "mtq",
   "status": "closest (not feasible)",
-  "feasible_options": 6,
+  "feasible_options": 3,
   "options": 25,
   "changes": [
-   "mtqp: authority back to x1 (no improvement)"
+   "mtqp: authority back to x1 (no improvement)",
+   "sun_referencing/fmr+mtq: power -> electromagnetic pump with more copper (lambda 0.3 -> 0.9 kg/W)",
+   "mass lever scale.fmr undone: it broke sun_referencing/fmr+mtq, requirement violation 0 -> 0.0247"
   ],
   "blocked": [
    "detumble/rcs: power fails at the sized authority (rcs); the part's standby power is the floor",
    "nadir_pointing/cmg+mtq: power fails at the sized authority (cmg); the part's standby power is the floor",
    "nadir_pointing/cmg+rcs: power fails at the sized authority (cmg); the part's standby power is the floor",
+   "nadir_pointing/fmr+rcs: power is the thrusters' valve power (RCS dumping), not the pump",
    "nadir_pointing/rw+mtq: power fails at the sized authority (rw); the part's standby power is the floor",
    "nadir_pointing/rw+rcs: power fails at the sized authority (rw); the part's standby power is the floor",
    "nadir_pointing/vscmg+mtq: power fails at the sized authority (vscmg); the part's standby power is the floor",
@@ -926,25 +933,27 @@
    "mtq_fmr": {
     "feasible": false,
     "gaps": [
-     "budget: mass_kg 0.855 > 0.35",
-     "budget: volume_L 0.477 > 0.3"
+     "sun_referencing: power_mean (power)",
+     "budget: mass_kg 1.13 > 0.35",
+     "budget: volume_L 0.537 > 0.3"
     ],
     "budget": {
-     "mass_kg": 0.8546057483598011,
-     "power_W": 1.8787468443047084,
-     "volume_L": 0.47712759734192733
+     "mass_kg": 1.1349758166890562,
+     "power_W": 2.532978966737707,
+     "volume_L": 0.5371275973419273
     }
    },
    "mtq_fmr_rcs": {
     "feasible": false,
     "gaps": [
-     "budget: mass_kg 1.37 > 0.35",
-     "budget: volume_L 1.46 > 0.3"
+     "sun_referencing: power_mean (power)",
+     "budget: mass_kg 1.65 > 0.35",
+     "budget: volume_L 1.52 > 0.3"
     ],
     "budget": {
-     "mass_kg": 1.373066611501576,
-     "power_W": 1.9287468443047084,
-     "volume_L": 1.4591900411347951
+     "mass_kg": 1.653436679830831,
+     "power_W": 2.582978966737707,
+     "volume_L": 1.5191900411347952
     }
    },
    "mtq_rw": {
@@ -1053,7 +1062,7 @@
     "failing": {
      "power_peak": "power"
     },
-    "objective": 1.125,
+    "objective": 1.3416666666666666,
     "objective_id": "detumble_time"
    },
    {
@@ -1180,30 +1189,34 @@
    {
     "mode": "sun_referencing",
     "option": "vscmg+rcs",
-    "alg": "lqr",
+    "alg": "pid@bw4",
     "feasible": false,
     "failing": {
      "power_mean": "power"
     },
-    "objective": 2.0502292160037534,
+    "objective": 1.2382566129978465,
     "objective_id": "sun_ape_p9973"
    },
    {
     "mode": "sun_referencing",
     "option": "fmr+mtq",
     "alg": null,
-    "feasible": true,
-    "failing": {},
-    "objective": 0.24685656915575302,
+    "feasible": false,
+    "failing": {
+     "power_mean": "power"
+    },
+    "objective": 0.2618442053282149,
     "objective_id": "sun_ape_p9973"
    },
    {
     "mode": "sun_referencing",
     "option": "fmr+rcs",
     "alg": null,
-    "feasible": true,
-    "failing": {},
-    "objective": 0.24696583280478868,
+    "feasible": false,
+    "failing": {
+     "power_mean": "power"
+    },
+    "objective": 0.26192807764033227,
     "objective_id": "sun_ape_p9973"
    },
    {
@@ -1289,16 +1302,18 @@
     "alg": null,
     "feasible": true,
     "failing": {},
-    "objective": 0.14778789388426405,
+    "objective": 0.14878338070792657,
     "objective_id": "ape_los_p9973"
    },
    {
     "mode": "nadir_pointing",
     "option": "fmr+rcs",
     "alg": null,
-    "feasible": true,
-    "failing": {},
-    "objective": 0.14782806289169448,
+    "feasible": false,
+    "failing": {
+     "power_mean": "power"
+    },
+    "objective": 0.14878558437682515,
     "objective_id": "ape_los_p9973"
    }
   ]
@@ -1307,9 +1322,10 @@
   "iteration": 4,
   "knobs": {
    "scale": {
+    "fmr": 1.0,
     "mtqp": 1.0
    },
-   "fmr_pm": true
+   "fmr_lambda": 0.9000000000000001
   },
   "class": "coarse",
   "selected": "mtq_fmr",
@@ -1334,6 +1350,7 @@
    "sun_referencing/rw+rcs: power fails at the sized authority (rw); the part's standby power is the floor",
    "sun_referencing/vscmg+mtq: performance and power both fail \u2014 no authority change helps",
    "sun_referencing/vscmg+rcs: power fails at the sized authority (vscmg); the part's standby power is the floor",
+   "mass (mtq_fmr): no lever left (budget: mass_kg 1.6 > 0.35 budget: volume_L 0.537 > 0.3)",
    "mtqp: more authority did not reduce the performance violation (39.9 -> 41); kept at x1"
   ],
   "families": {
@@ -1353,25 +1370,25 @@
    "mtq_fmr": {
     "feasible": false,
     "gaps": [
-     "budget: mass_kg 0.855 > 0.35",
-     "budget: volume_L 0.477 > 0.3"
+     "budget: mass_kg 1.6 > 0.35",
+     "budget: volume_L 0.537 > 0.3"
     ],
     "budget": {
-     "mass_kg": 0.8546057483598011,
-     "power_W": 1.8787468443047084,
-     "volume_L": 0.47712759734192733
+     "mass_kg": 1.6004925418497764,
+     "power_W": 2.2408142134550255,
+     "volume_L": 0.5371275973419273
     }
    },
    "mtq_fmr_rcs": {
     "feasible": false,
     "gaps": [
-     "budget: mass_kg 1.37 > 0.35",
-     "budget: volume_L 1.46 > 0.3"
+     "budget: mass_kg 2.12 > 0.35",
+     "budget: volume_L 1.52 > 0.3"
     ],
     "budget": {
-     "mass_kg": 1.373066611501576,
-     "power_W": 1.9287468443047084,
-     "volume_L": 1.4591900411347951
+     "mass_kg": 2.118953404991551,
+     "power_W": 2.290814213455026,
+     "volume_L": 1.5191900411347952
     }
    },
    "mtq_rw": {
@@ -1480,7 +1497,7 @@
     "failing": {
      "power_peak": "power"
     },
-    "objective": 1.125,
+    "objective": 1.875,
     "objective_id": "detumble_time"
    },
    {
@@ -1607,12 +1624,12 @@
    {
     "mode": "sun_referencing",
     "option": "vscmg+rcs",
-    "alg": "lqr",
+    "alg": "pid@bw4",
     "feasible": false,
     "failing": {
      "power_mean": "power"
     },
-    "objective": 2.0502292160037534,
+    "objective": 1.2382566129978465,
     "objective_id": "sun_ape_p9973"
    },
    {
@@ -1621,7 +1638,7 @@
     "alg": null,
     "feasible": true,
     "failing": {},
-    "objective": 0.24685656915575302,
+    "objective": 0.2513325094425192,
     "objective_id": "sun_ape_p9973"
    },
    {
@@ -1630,7 +1647,7 @@
     "alg": null,
     "feasible": true,
     "failing": {},
-    "objective": 0.24696583280478868,
+    "objective": 0.25119062643119716,
     "objective_id": "sun_ape_p9973"
    },
    {
@@ -1716,7 +1733,7 @@
     "alg": null,
     "feasible": true,
     "failing": {},
-    "objective": 0.14778789388426405,
+    "objective": 0.15140443642662954,
     "objective_id": "ape_los_p9973"
    },
    {
@@ -1725,7 +1742,7 @@
     "alg": null,
     "feasible": true,
     "failing": {},
-    "objective": 0.14782806289169448,
+    "objective": 0.15133197009388233,
     "objective_id": "ape_los_p9973"
    }
   ]

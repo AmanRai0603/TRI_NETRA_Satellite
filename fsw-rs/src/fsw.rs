@@ -11,6 +11,9 @@ use crate::m::*;
 use crate::math::*;
 use crate::params::{Mode, Params, MAX_COUPLES as NC, MAX_GIMBALS as NG, MAX_ROTORS as NR, MODE_NONE};
 
+/// bang-bang B-dot boundary layer: proportional gain inside it = BDOT_BL_GAIN x the B-dot gain
+const BDOT_BL_GAIN: f64 = 4.0;
+
 pub const ABI_VERSION: u32 = 1;
 pub const BUILD_ID: &str = "trinetra-fsw-rs/1.0.0 (adcs-fswcfg/1)";
 const MODE_COUNT: u8 = 11;
@@ -391,10 +394,13 @@ impl Fsw {
                         } else if law == 1 {
                             if let Some(b1) = self.b1 { m_body = ctl::bdot(&b1, &b, p.mtq_period, norm3(&z.b), p.bdot_k, p.m_max); }
                         } else if law == 2 {
+                            // bang-bang with a boundary layer (06_detumble_sunspin.md): full dipole
+                            // outside it, BDOT_BL_GAIN x the B-dot gain inside it
+                            let bl = p.m_max*norm3(&z.b)/(BDOT_BL_GAIN*p.bdot_k);
                             if let Some(b1) = self.b1 {
                                 for i in 0..3 {
-                                    let bd = (b[i] - b1[i])/p.mtq_period;
-                                    m_body[i] = if fabs(bd) > 1e-4 { -p.m_max*sign(bd) } else { 0.0 };
+                                    let r = ((b[i] - b1[i])/p.mtq_period)/bl;
+                                    m_body[i] = -p.m_max*(if r > 1.0 { 1.0 } else if r < -1.0 { -1.0 } else { r });
                                 }
                             }
                         } else {

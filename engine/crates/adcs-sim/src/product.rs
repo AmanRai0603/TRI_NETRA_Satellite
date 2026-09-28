@@ -86,7 +86,9 @@ impl Dev {
                     let (elo, ehi) = lohi(&ds, "pump_efficiency", 1.0);
                     let fp = json::f(&nm, "field_power_W", 0.0);
                     for a in axes(f.get("axes_body")) {
-                        add(&mut x, Kind::Fmr, a, 0, hmax, 2.0*hmax/tsd, k_hv, 0.0, 0.0, 0.0, 0.0, flo, fhi, sig(&ds, "axis_misalignment_rad"));
+                        // an electromagnetic pump designed by adcs-design states its pressure-limited torque
+                        let tq = json::f(&nm, "pump_torque_max_Nm", f64::NAN);
+                        add(&mut x, Kind::Fmr, a, 0, hmax, if tq.is_finite() && tq > 0.0 { tq } else { 2.0*hmax/tsd }, k_hv, 0.0, 0.0, 0.0, 0.0, flo, fhi, sig(&ds, "axis_misalignment_rad"));
                         let i = x.n - 1;
                         x.t_sd[i] = tsd; x.k_hv[i] = k_hv; x.ac[i] = ac; x.s[i] = s; x.l[i] = n("channel_length_m");
                         x.flow_noise_h[i] = k_hv*sig(&ds, "flow_sensor_noise_m_s");

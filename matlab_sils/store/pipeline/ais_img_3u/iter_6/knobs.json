@@ -1,10 +1,8 @@
 {
  "scale": {
-  "cmg": 4.0,
-  "fmr": 4.0,
-  "mtqp": 4.0,
-  "rw": 4.0,
-  "vscmg": 4.0
+  "mtqp": 1.0,
+  "vscmg": 1.5
  },
- "fmr_pm": true
+ "gyro_grade": 0.1,
+ "fmr_flow_sigma": 0.000125
 }

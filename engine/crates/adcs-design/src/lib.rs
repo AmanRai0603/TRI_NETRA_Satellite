@@ -3,8 +3,8 @@
 //! (ours: MTQ, fluid loop, N2O RCS; benchmarks: RW, CMG, VSCMG), one product per family and
 //! its mass / power / volume budget. A port of matlab_sils/+asils/+sizing (demand, mtq, rw,
 //! cmg, fmr, rcs, size_all) with the laws unchanged, plus the KNOBS the convergence loop turns
-//! (tools/pipeline.py): per-part authority scales, the margins, the fluid loop's permanent-magnet
-//! pump, a star tracker on a coarse-class product.
+//! (tools/pipeline.py): per-part authority scales, the margins, the fluid loop's electromagnetic pump
+//! (mass/power rate lambda, flow-sensor grade), star-tracker heads, gyro grade.
 //! Owner: Agastya. Copyright (c) 2026 Agastya. All rights reserved.
 use adcs_fsw::ctl::{boresight_offset, guidance, Guid};
 use adcs_sim::config::Config;
@@ -18,6 +18,8 @@ use std::collections::BTreeMap;
 use std::f64::consts::PI;
 use std::path::Path;
 
+pub mod empump;
+
 /// What the convergence loop may change between iterations.
 #[derive(Clone, Debug)]
 pub struct Knobs {
@@ -25,13 +27,19 @@ pub struct Knobs {
     pub scale: BTreeMap<String, f64>,
     /// momentum margin (default 2, or 1/(1 - req.hsat)); torque margin (default 1.5)
     pub k_h: Option<f64>, pub k_tau: f64,
-    /// fluid loop with a permanent-magnet pump yoke: no field power, a heavier yoke
-    pub fmr_pm: bool,
+    /// fluid loop: mass/power exchange rate of the electromagnetic pump design [kg/W] (empump.rs)
+    pub fmr_lambda: f64,
     /// fit the star tracker on a coarse-class product too (knowledge upgrade)
     pub star_tracker: bool,
+    /// star-tracker heads (2 by default; 1 saves a head's mass where knowledge allows)
+    pub st_heads: u8,
+    /// fluid-loop flow sensor noise, 1 sigma [m/s] (the in-house loop's sensor requirement)
+    pub fmr_flow_sigma: f64,
+    /// gyro grade: noise scale on the precision gyro (1 = TRN-GYRO-P1; 0.3, 0.1 = FOG class)
+    pub gyro_grade: f64,
 }
 impl Default for Knobs {
-    fn default() -> Self { Knobs { scale: BTreeMap::new(), k_h: None, k_tau: 1.5, fmr_pm: false, star_tracker: false } }
+    fn default() -> Self { Knobs { scale: BTreeMap::new(), k_h: None, k_tau: 1.5, fmr_lambda: 0.1, star_tracker: false, st_heads: 2, fmr_flow_sigma: 0.002, gyro_grade: 1.0 } }
 }
 impl Knobs {
     pub fn from_json(v: &Value) -> Knobs {
@@ -39,11 +47,14 @@ impl Knobs {
         if let Some(o) = v.get("scale").and_then(|x| x.as_object()) { for (a, b) in o { if let Some(x) = b.as_f64() { k.scale.insert(a.clone(), x); } } }
         k.k_h = v.get("k_h").and_then(|x| x.as_f64());
         k.k_tau = json::f(v, "k_tau", 1.5);
-        k.fmr_pm = json::b(v, "fmr_pm", false);
+        k.fmr_lambda = json::f(v, "fmr_lambda", 0.1);
+        k.st_heads = json::f(v, "st_heads", 2.0) as u8;
+        k.fmr_flow_sigma = json::f(v, "fmr_flow_sigma", 0.002);
+        k.gyro_grade = json::f(v, "gyro_grade", 1.0);
         k.star_tracker = json::b(v, "star_tracker", false);
         k
     }
-    pub fn json(&self) -> Value { json!({"scale": self.scale, "k_h": self.k_h, "k_tau": self.k_tau, "fmr_pm": self.fmr_pm, "star_tracker": self.star_tracker}) }
+    pub fn json(&self) -> Value { json!({"scale": self.scale, "k_h": self.k_h, "k_tau": self.k_tau, "fmr_lambda": self.fmr_lambda, "star_tracker": self.star_tracker, "st_heads": self.st_heads, "fmr_flow_sigma": self.fmr_flow_sigma, "gyro_grade": self.gyro_grade}) }
     fn s(&self, p: &str) -> f64 { self.scale.get(p).copied().unwrap_or(1.0) }
 }
 
@@ -222,42 +233,33 @@ pub fn cmg(d: &Demand, k: &Knobs, variable: bool) -> Value {
     p
 }
 
-/// asils.sizing.fmr: X, Y, Z rings. With fmr_pm the pump yoke is a permanent magnet: no field
-/// power (power_steady_permanent_magnet_W of the MATLAB law), NdFeB yoke +40 g x d/3 mm.
+/// The fluid loop, X, Y, Z rings, each designed with its electromagnetic DC conduction pump
+/// (empump.rs): momentum h_req, torque tau_req, for the knob fmr_lambda [kg/W].
 pub fn fmr(d: &Demand, k: &Knobs, bx: [f64; 3]) -> Vec<Value> {
-    let (rho, mu, eta) = (6440.0, 0.0024, 0.10);
     let faces = [bx[1]*bx[2], bx[0]*bx[2], bx[0]*bx[1]];
     let per = [2.0*(bx[1] + bx[2]), 2.0*(bx[0] + bx[2]), 2.0*(bx[0] + bx[1])];
     let h = d.h_req.max(2e-4)*k.s("fmr");
+    let tau = d.tau_req.max(1e-5)*k.s("fmr");
     let ax = ["X", "Y", "Z"];
     (0..3).map(|i| {
-        let (s, l1) = (0.8*faces[i], 0.8*per[i]);
-        let (mut v, mut nl) = (0.5, 1.0);
-        let mut dd = (4.0*h/(rho*PI*2.0*s*v)).sqrt();
-        if dd > 0.006 { dd = 0.006; v = (h/(rho*PI*dd*dd/4.0*2.0*s)).min(1.0); }
-        let a = PI*dd*dd/4.0;
-        if rho*a*2.0*s*v < h { nl = (h/(rho*a*2.0*s*v)).ceil(); }
-        dd = dd.max(0.002); let a = PI*dd*dd/4.0;
-        let hmax = nl*rho*a*2.0*s*v; let l = nl*l1;
-        let vc = 0.4*v; let re = rho*vc*dd/mu;
-        let f = if re < 2300.0 { 64.0/re } else { 0.316*re.powf(-0.25) };
-        let dp = f*(l/dd)*rho*vc*vc/2.0; let ph = dp*a*vc;
-        let pfield = if k.fmr_pm { 0.0 } else { 2.0*(dd/0.003) };
-        let mfl = rho*a*l;
-        let yoke = if k.fmr_pm { 0.10*(dd/0.003) } else { 0.06*(dd/0.003) };
+        let (s0, l1) = (0.8*faces[i], 0.8*per[i]);
+        let ds = empump::design(h, tau, s0, l1, k.fmr_lambda).expect("no feasible pump design");
+        let mut nm = ds.json(k.fmr_lambda);
+        for (key, val) in [("fluid", json!("galinstan")), ("fluid_density_kg_m3", json!(6440.0)), ("fluid_viscosity_Pa_s", json!(0.0024)),
+                           ("pump_type", json!("dc-conduction, electromagnet")), ("melt_point_K", json!(254)), ("dipole_max_Am2", json!(0)),
+                           ("dipole_per_amp_Am2_per_A", json!(0)), ("current_max_A", json!(0)), ("volume_L", json!(faces[i]*0.006*1e3 + 0.02))] {
+            nm[key] = val;
+        }
+        let eta = ds.eta_cruise.max(0.01);
         let mut p = json!({"part_number": format!("SZ-{}-FMR-{}", d.case, ax[i]), "kind": "magneto_fluidic_panel",
-            "name": format!("Sized fluid momentum loop, {} axis (our product) — {}", ax[i], d.case), "status": "sized",
-            "source": "adcs-design (asils.sizing laws)", "made": "in-house", "descriptor_version": 1});
-        p["nominal"] = json!({"bore_m": dd, "enclosed_area_m2": nl*s, "loops": nl, "channel_length_m": l, "fluid": "galinstan",
-            "fluid_density_kg_m3": rho, "fluid_viscosity_Pa_s": mu, "fluid_mass_kg": mfl, "v_cruise_m_s": vc, "v_max_m_s": v, "h_max_Nms": hmax,
-            "reynolds_cruise": re, "pump_type": if k.fmr_pm { "dc-conduction, permanent-magnet yoke" } else { "dc-conduction-yoke" },
-            "pump_efficiency": eta, "field_power_W": pfield, "hydraulic_power_cruise_W": ph, "power_steady_W": pfield + ph/eta,
-            "power_steady_permanent_magnet_W": ph/eta, "melt_point_K": 254, "dipole_max_Am2": 0, "dipole_per_amp_Am2_per_A": 0, "current_max_A": 0,
-            "mass_kg": mfl + 0.03 + yoke, "volume_L": faces[i]*0.006*1e3});
-        p["dispersion"] = json!({"friction_scale": {"dist": "uniform", "lo": 0.8, "hi": 1.2}, "pump_efficiency": {"dist": "uniform", "lo": 0.05, "hi": 0.15},
-            "flow_sensor_noise_m_s": {"dist": "normal", "mean": 0, "sigma": 0.002}, "axis_misalignment_rad": {"dist": "normal", "mean": 0, "sigma": 0.005}});
-        p["sizing"] = json!({"h_req_Nms": d.h_req, "face_m2": faces[i], "laminar": re < 2300.0, "scale": k.s("fmr"), "permanent_magnet": k.fmr_pm,
-            "law": "h = N rho A 2 S v; Darcy loss; field power 2 W x d/3mm (IDMAS v2 §03C, to be measured)"});
+            "name": format!("Sized fluid momentum loop with electromagnetic pump, {} axis (our product) — {}", ax[i], d.case), "status": "sized",
+            "source": "adcs-design (empump)", "made": "in-house", "descriptor_version": 1});
+        p["nominal"] = nm;
+        p["dispersion"] = json!({"friction_scale": {"dist": "uniform", "lo": 0.8, "hi": 1.2}, "pump_efficiency": {"dist": "uniform", "lo": 0.7*eta, "hi": 1.3*eta},
+            "flow_sensor_noise_m_s": {"dist": "normal", "mean": 0, "sigma": k.fmr_flow_sigma}, "axis_misalignment_rad": {"dist": "normal", "mean": 0, "sigma": 0.005}});
+        p["sizing"] = json!({"h_req_Nms": d.h_req, "tau_req_Nm": d.tau_req, "flow_sensor_sigma_m_s": k.fmr_flow_sigma, "face_m2": faces[i], "scale": k.s("fmr"), "lambda_kg_per_W": k.fmr_lambda,
+            "pareto": empump::pareto(h, tau, s0, l1),
+            "law": "galinstan loop + DC conduction pump with an electromagnet, designed together: least mass + lambda x steady power (empump.rs)"});
         p
     }).collect()
 }
@@ -336,6 +338,22 @@ pub fn size_all(root: &Path, case_file: &Path, k: &Knobs, out: &Path) -> Result<
         std::fs::write(out.join("parts").join(format!("{pn}.json")), serde_json::to_string(p).unwrap()).map_err(|e| e.to_string())?;
         by_pn.insert(pn, p.clone());
     }
+    // a better gyro than the catalogue's precision unit when the loop asks for it: noise x grade,
+    // mass and power / grade (anchored on the small fibre-optic class: noise x0.3 ~ 0.2 kg, 1 W)
+    let mut gyro_id = "TRN-GYRO-P1".to_string();
+    if d.fine && k.gyro_grade < 0.999 {
+        let mut g = json::read(&adcs_sim::product::find(root, "parts", "TRN-GYRO-P1")?)?;
+        let gr = k.gyro_grade;
+        for key in ["arw_rad_per_sqrt_s", "rrw_rad_per_s_sqrt_s", "bias_instability_rad_s"] {
+            if let Some(x) = g["nominal"][key].as_f64() { g["nominal"][key] = json!(x*gr); }
+        }
+        for key in ["mass_kg", "power_W"] { if let Some(x) = g["nominal"][key].as_f64() { g["nominal"][key] = json!(x/gr); } }
+        gyro_id = format!("SZ-{case}-GYRO");
+        g["part_number"] = json!(gyro_id); g["status"] = json!("sized"); g["source"] = json!("adcs-design (gyro grade)");
+        g["name"] = json!(format!("Gyro, noise x{gr} of TRN-GYRO-P1 (fibre-optic class) — {case}"));
+        std::fs::write(out.join("parts").join(format!("{gyro_id}.json")), serde_json::to_string(&g).unwrap()).map_err(|e| e.to_string())?;
+        by_pn.insert(gyro_id.clone(), g);
+    }
     let pn = |key: &str| parts.iter().find(|x| x.0 == key).map(|x| json::s(&x.1, "part_number", "").to_string()).unwrap_or_default();
     let lookup = |id: &str| -> Result<Value, String> {
         if let Some(p) = by_pn.get(id) { return Ok(p.clone()); }
@@ -370,12 +388,13 @@ pub fn size_all(root: &Path, case_file: &Path, k: &Knobs, out: &Path) -> Result<
         let bs = if d.fine { [0, 1, 0] } else { [1, 0, 0] };
         if st_fit {
             // heads away from nadir: on -Y for the imaging class (payload +Y), on -X for the coarse class (payload +X)
-            let heads = if d.fine { json!([[0, -0.9063, 0.4226], [0, -0.9063, -0.4226]]) } else { json!([[-0.9063, 0, 0.4226], [-0.9063, 0, -0.4226]]) };
+            let mut heads = if d.fine { json!([[0, -0.9063, 0.4226], [0, -0.9063, -0.4226]]) } else { json!([[-0.9063, 0, 0.4226], [-0.9063, 0, -0.4226]]) };
+            if k.st_heads == 1 { heads = json!([heads[0].clone()]); }
             fill.push(json!({"slot": "star_tracker", "part": "SYN-ST-1", "boresights_body": heads, "calibrated_residual_rad": 1e-5}));
         }
         fill.push(json!({"slot": "magnetometer", "part": "SYN-MAG-1"}));
         fill.push(json!({"slot": "sun_sensors", "part": "SYN-SUN-1", "normals_body": [[1, 0, 0], [-1, 0, 0], [0, 1, 0], [0, -1, 0], [0, 0, 1], [0, 0, -1]]}));
-        fill.push(json!({"slot": "gyro", "part": if d.fine { "TRN-GYRO-P1" } else { "SYN-GYRO-1" }}));
+        fill.push(json!({"slot": "gyro", "part": if d.fine { gyro_id.as_str() } else { "SYN-GYRO-1" }}));
         fill.push(json!({"slot": "gnss", "part": "TRN-GPS-1"}));
         fill.push(json!({"slot": "earth_sensor", "part": "SYN-ES-1", "boresight_body": bs}));
         let label = json::s(fa, "label", id);

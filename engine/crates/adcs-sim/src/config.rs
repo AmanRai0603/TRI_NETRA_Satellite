@@ -166,7 +166,7 @@ impl Config {
         // Standard Code L1/L2 spin
         p.ss_k_l1 = json::f(&fsw, "l1_gain", 1e6); p.ss_spin_dps = json::f(&fsw, "spin_rate_dps", 6.0); p.ss_sigma0 = 1.0;
         p.ss_z_in_dps = 0.5; p.ss_perp_in_dps = 0.5; p.ss_sun_min = 0.05; p.ss_t_check_s = 60.0; p.ss_omega_max_dps = 100.0;
-        p.ss_dwell_in_s = 60.0; p.ss_k1 = 0.01; p.ss_k2 = 0.05; p.ss_perp_out_dps = 1.0; p.ss_omega_exit_dps = 2.0; p.ss_dwell_out_s = 30.0;
+        p.ss_dwell_in_s = 60.0; p.ss_k1 = 0.01; p.ss_k2 = 0.05; p.ss_perp_out_dps = json::f(&fsw, "sun_spin_perp_out_dps", 1.0); p.ss_omega_exit_dps = 2.0; p.ss_dwell_out_s = json::f(&fsw, "sun_spin_dwell_out_s", 30.0);
         p.sa_w_max_deg_s = json::f(&fsw, "sun_acq_rate_deg_s", 1.0); p.sa_kd = 0.1; p.sa_done_deg = 10.0; p.sa_done_hold_s = 60.0;
         // momentum devices (NOMINAL geometry)
         let x = &dev.mex;

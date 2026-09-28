@@ -11,7 +11,7 @@
   "pass_engine": null,
   "agree": null,
   "wall_matlab_s": 55.428386926651,
-  "wall_engine_s": 0.136948121
+  "wall_engine_s": 2.167568589
  },
  {
   "scenario": "agile_slew_cmg",
@@ -25,7 +25,7 @@
   "pass_engine": 1,
   "agree": true,
   "wall_matlab_s": 55.428386926651,
-  "wall_engine_s": 0.136948121
+  "wall_engine_s": 2.167568589
  },
  {
   "scenario": "agile_slew_cmg",
@@ -39,7 +39,7 @@
   "pass_engine": null,
   "agree": null,
   "wall_matlab_s": 55.428386926651,
-  "wall_engine_s": 0.136948121
+  "wall_engine_s": 2.167568589
  },
  {
   "scenario": "agile_slew_fmr_rcs",
@@ -53,7 +53,7 @@
   "pass_engine": null,
   "agree": null,
   "wall_matlab_s": 50.83361101150513,
-  "wall_engine_s": 0.141724079
+  "wall_engine_s": 2.196119888
  },
  {
   "scenario": "agile_slew_fmr_rcs",
@@ -67,7 +67,7 @@
   "pass_engine": 1,
   "agree": true,
   "wall_matlab_s": 50.83361101150513,
-  "wall_engine_s": 0.141724079
+  "wall_engine_s": 2.196119888
  },
  {
   "scenario": "agile_slew_fmr_rcs",
@@ -81,7 +81,7 @@
   "pass_engine": null,
   "agree": null,
   "wall_matlab_s": 50.83361101150513,
-  "wall_engine_s": 0.141724079
+  "wall_engine_s": 2.196119888
  },
  {
   "scenario": "agile_slew_img",
@@ -95,7 +95,7 @@
   "pass_engine": null,
   "agree": null,
   "wall_matlab_s": 47.56780004501343,
-  "wall_engine_s": 0.123758095
+  "wall_engine_s": 1.529553414
  },
  {
   "scenario": "agile_slew_img",
@@ -109,7 +109,7 @@
   "pass_engine": 1,
   "agree": true,
   "wall_matlab_s": 47.56780004501343,
-  "wall_engine_s": 0.123758095
+  "wall_engine_s": 1.529553414
  },
  {
   "scenario": "agile_slew_img",
@@ -123,7 +123,7 @@
   "pass_engine": null,
   "agree": null,
   "wall_matlab_s": 47.56780004501343,
-  "wall_engine_s": 0.123758095
+  "wall_engine_s": 1.529553414
  },
  {
   "scenario": "agile_slew_rw_rcs",
@@ -137,7 +137,7 @@
   "pass_engine": null,
   "agree": null,
   "wall_matlab_s": 54.53016495704651,
-  "wall_engine_s": 0.181824767
+  "wall_engine_s": 1.5229102719999998
  },
  {
   "scenario": "agile_slew_rw_rcs",
@@ -151,7 +151,7 @@
   "pass_engine": 1,
   "agree": true,
   "wall_matlab_s": 54.53016495704651,
-  "wall_engine_s": 0.181824767
+  "wall_engine_s": 1.5229102719999998
  },
  {
   "scenario": "agile_slew_rw_rcs",
@@ -165,7 +165,7 @@
   "pass_engine": null,
   "agree": null,
   "wall_matlab_s": 54.53016495704651,
-  "wall_engine_s": 0.181824767
+  "wall_engine_s": 1.5229102719999998
  },
  {
   "scenario": "agile_slew_vscmg",
@@ -179,7 +179,7 @@
   "pass_engine": null,
   "agree": null,
   "wall_matlab_s": 60.52176880836487,
-  "wall_engine_s": 0.150515344
+  "wall_engine_s": 0.201446051
  },
  {
   "scenario": "agile_slew_vscmg",
@@ -193,7 +193,7 @@
   "pass_engine": 0,
   "agree": true,
   "wall_matlab_s": 60.52176880836487,
-  "wall_engine_s": 0.150515344
+  "wall_engine_s": 0.201446051
  },
  {
   "scenario": "agile_slew_vscmg",
@@ -207,7 +207,7 @@
   "pass_engine": null,
   "agree": null,
   "wall_matlab_s": 60.52176880836487,
-  "wall_engine_s": 0.150515344
+  "wall_engine_s": 0.201446051
  },
  {
   "scenario": "detumble_ais",
@@ -221,7 +221,7 @@
   "pass_engine": 1,
   "agree": true,
   "wall_matlab_s": 496.02754306793213,
-  "wall_engine_s": 0.328028724
+  "wall_engine_s": 0.971300145
  },
  {
   "scenario": "detumble_ais",
@@ -235,7 +235,7 @@
   "pass_engine": 1,
   "agree": true,
   "wall_matlab_s": 496.02754306793213,
-  "wall_engine_s": 0.328028724
+  "wall_engine_s": 0.971300145
  },
  {
   "scenario": "detumble_ais",
@@ -249,49 +249,49 @@
   "pass_engine": 1,
   "agree": true,
   "wall_matlab_s": 496.02754306793213,
-  "wall_engine_s": 0.328028724
+  "wall_engine_s": 0.971300145
  },
  {
   "scenario": "detumble_ais_bangbang",
   "metric": "detumble_time",
   "unit": "min",
-  "matlab": null,
-  "engine": 32.20666666666667,
-  "ratio": null,
+  "matlab": 65.12333333333333,
+  "engine": 54.02333333333333,
+  "ratio": 0.8295541792496289,
   "req": 284,
-  "pass_matlab": 0,
+  "pass_matlab": 1,
   "pass_engine": 1,
-  "agree": false,
-  "wall_matlab_s": 497.8236529827118,
-  "wall_engine_s": 0.326605788
+  "agree": true,
+  "wall_matlab_s": 848.0742828845978,
+  "wall_engine_s": 0.736058855
  },
  {
   "scenario": "detumble_ais_bangbang",
   "metric": "power_mean",
   "unit": "W",
-  "matlab": 0.7118580016683625,
-  "engine": 0.7114314758350445,
-  "ratio": 0.9994008273668086,
+  "matlab": 0.4399020014484809,
+  "engine": 0.4365991380950216,
+  "ratio": 0.9924918201267923,
   "req": 0.5,
-  "pass_matlab": 0,
-  "pass_engine": 0,
+  "pass_matlab": 1,
+  "pass_engine": 1,
   "agree": true,
-  "wall_matlab_s": 497.8236529827118,
-  "wall_engine_s": 0.326605788
+  "wall_matlab_s": 848.0742828845978,
+  "wall_engine_s": 0.736058855
  },
  {
   "scenario": "detumble_ais_bangbang",
   "metric": "power_peak",
   "unit": "W",
-  "matlab": 0.7199780273437499,
-  "engine": 0.72,
-  "ratio": 1.000030518509476,
+  "matlab": 0.7169421386718751,
+  "engine": 0.7169603564561906,
+  "ratio": 1.0000254103969244,
   "req": 1.5,
   "pass_matlab": 1,
   "pass_engine": 1,
   "agree": true,
-  "wall_matlab_s": 497.8236529827118,
-  "wall_engine_s": 0.326605788
+  "wall_matlab_s": 848.0742828845978,
+  "wall_engine_s": 0.736058855
  },
  {
   "scenario": "detumble_ais_mag",
@@ -305,7 +305,7 @@
   "pass_engine": 1,
   "agree": true,
   "wall_matlab_s": 526.1754651069641,
-  "wall_engine_s": 0.31705421
+  "wall_engine_s": 1.342652993
  },
  {
   "scenario": "detumble_ais_mag",
@@ -319,7 +319,7 @@
   "pass_engine": 1,
   "agree": true,
   "wall_matlab_s": 526.1754651069641,
-  "wall_engine_s": 0.31705421
+  "wall_engine_s": 1.342652993
  },
  {
   "scenario": "detumble_ais_mag",
@@ -333,7 +333,7 @@
   "pass_engine": 1,
   "agree": true,
   "wall_matlab_s": 526.1754651069641,
-  "wall_engine_s": 0.31705421
+  "wall_engine_s": 1.342652993
  },
  {
   "scenario": "detumble_img",
@@ -347,7 +347,7 @@
   "pass_engine": 1,
   "agree": true,
   "wall_matlab_s": 971.630609035492,
-  "wall_engine_s": 1.9071596739999999
+  "wall_engine_s": 4.091131558
  },
  {
   "scenario": "fault_coil_ais",
@@ -361,7 +361,7 @@
   "pass_engine": 1,
   "agree": true,
   "wall_matlab_s": 533.3220629692078,
-  "wall_engine_s": 0.323134694
+  "wall_engine_s": 0.587457723
  },
  {
   "scenario": "fault_coil_ais",
@@ -375,7 +375,7 @@
   "pass_engine": 1,
   "agree": true,
   "wall_matlab_s": 533.3220629692078,
-  "wall_engine_s": 0.323134694
+  "wall_engine_s": 0.587457723
  },
  {
   "scenario": "fault_coil_ais",
@@ -389,7 +389,7 @@
   "pass_engine": 1,
   "agree": true,
   "wall_matlab_s": 533.3220629692078,
-  "wall_engine_s": 0.323134694
+  "wall_engine_s": 0.587457723
  },
  {
   "scenario": "fault_gimbal_cmg",
@@ -403,7 +403,7 @@
   "pass_engine": 1,
   "agree": true,
   "wall_matlab_s": 464.55497193336487,
-  "wall_engine_s": 1.143987807
+  "wall_engine_s": 2.02032883
  },
  {
   "scenario": "fault_gimbal_cmg",
@@ -417,7 +417,7 @@
   "pass_engine": null,
   "agree": null,
   "wall_matlab_s": 464.55497193336487,
-  "wall_engine_s": 1.143987807
+  "wall_engine_s": 2.02032883
  },
  {
   "scenario": "fault_gimbal_cmg",
@@ -431,7 +431,7 @@
   "pass_engine": null,
   "agree": null,
   "wall_matlab_s": 464.55497193336487,
-  "wall_engine_s": 1.143987807
+  "wall_engine_s": 2.02032883
  },
  {
   "scenario": "fault_gimbal_cmg",
@@ -445,7 +445,7 @@
   "pass_engine": 1,
   "agree": true,
   "wall_matlab_s": 464.55497193336487,
-  "wall_engine_s": 1.143987807
+  "wall_engine_s": 2.02032883
  },
  {
   "scenario": "fault_gimbal_cmg",
@@ -459,7 +459,7 @@
   "pass_engine": 0,
   "agree": true,
   "wall_matlab_s": 464.55497193336487,
-  "wall_engine_s": 1.143987807
+  "wall_engine_s": 2.02032883
  },
  {
   "scenario": "fault_gimbal_cmg",
@@ -473,7 +473,7 @@
   "pass_engine": null,
   "agree": null,
   "wall_matlab_s": 464.55497193336487,
-  "wall_engine_s": 1.143987807
+  "wall_engine_s": 2.02032883
  },
  {
   "scenario": "fault_gimbal_cmg",
@@ -487,7 +487,7 @@
   "pass_engine": null,
   "agree": null,
   "wall_matlab_s": 464.55497193336487,
-  "wall_engine_s": 1.143987807
+  "wall_engine_s": 2.02032883
  },
  {
   "scenario": "fault_gimbal_cmg",
@@ -501,7 +501,7 @@
   "pass_engine": 1,
   "agree": true,
   "wall_matlab_s": 464.55497193336487,
-  "wall_engine_s": 1.143987807
+  "wall_engine_s": 2.02032883
  },
  {
   "scenario": "fault_gyro_ais",
@@ -515,7 +515,7 @@
   "pass_engine": null,
   "agree": null,
   "wall_matlab_s": 579.2471899986267,
-  "wall_engine_s": 0.37745015
+  "wall_engine_s": 1.20427947
  },
  {
   "scenario": "fault_gyro_ais",
@@ -529,7 +529,7 @@
   "pass_engine": 0,
   "agree": true,
   "wall_matlab_s": 579.2471899986267,
-  "wall_engine_s": 0.37745015
+  "wall_engine_s": 1.20427947
  },
  {
   "scenario": "fault_gyro_ais",
@@ -543,7 +543,7 @@
   "pass_engine": 0,
   "agree": true,
   "wall_matlab_s": 579.2471899986267,
-  "wall_engine_s": 0.37745015
+  "wall_engine_s": 1.20427947
  },
  {
   "scenario": "fault_gyro_ais",
@@ -557,7 +557,7 @@
   "pass_engine": 1,
   "agree": true,
   "wall_matlab_s": 579.2471899986267,
-  "wall_engine_s": 0.37745015
+  "wall_engine_s": 1.20427947
  },
  {
   "scenario": "fault_st_img",
@@ -571,7 +571,7 @@
   "pass_engine": 0,
   "agree": true,
   "wall_matlab_s": 388.5329067707062,
-  "wall_engine_s": 0.799096507
+  "wall_engine_s": 1.742333634
  },
  {
   "scenario": "fault_st_img",
@@ -585,7 +585,7 @@
   "pass_engine": null,
   "agree": null,
   "wall_matlab_s": 388.5329067707062,
-  "wall_engine_s": 0.799096507
+  "wall_engine_s": 1.742333634
  },
  {
   "scenario": "fault_st_img",
@@ -599,7 +599,7 @@
   "pass_engine": null,
   "agree": null,
   "wall_matlab_s": 388.5329067707062,
-  "wall_engine_s": 0.799096507
+  "wall_engine_s": 1.742333634
  },
  {
   "scenario": "fault_st_img",
@@ -613,7 +613,7 @@
   "pass_engine": 0,
   "agree": true,
   "wall_matlab_s": 388.5329067707062,
-  "wall_engine_s": 0.799096507
+  "wall_engine_s": 1.742333634
  },
  {
   "scenario": "fault_st_img",
@@ -627,7 +627,7 @@
   "pass_engine": 0,
   "agree": true,
   "wall_matlab_s": 388.5329067707062,
-  "wall_engine_s": 0.799096507
+  "wall_engine_s": 1.742333634
  },
  {
   "scenario": "fault_st_img",
@@ -641,7 +641,7 @@
   "pass_engine": null,
   "agree": null,
   "wall_matlab_s": 388.5329067707062,
-  "wall_engine_s": 0.799096507
+  "wall_engine_s": 1.742333634
  },
  {
   "scenario": "fault_st_img",
@@ -655,7 +655,7 @@
   "pass_engine": null,
   "agree": null,
   "wall_matlab_s": 388.5329067707062,
-  "wall_engine_s": 0.799096507
+  "wall_engine_s": 1.742333634
  },
  {
   "scenario": "fault_st_img",
@@ -669,7 +669,7 @@
   "pass_engine": 1,
   "agree": true,
   "wall_matlab_s": 388.5329067707062,
-  "wall_engine_s": 0.799096507
+  "wall_engine_s": 1.742333634
  },
  {
   "scenario": "fault_wheel_img",
@@ -683,7 +683,7 @@
   "pass_engine": 0,
   "agree": true,
   "wall_matlab_s": 414.3348820209503,
-  "wall_engine_s": 1.160620778
+  "wall_engine_s": 2.1533124949999998
  },
  {
   "scenario": "fault_wheel_img",
@@ -697,7 +697,7 @@
   "pass_engine": null,
   "agree": null,
   "wall_matlab_s": 414.3348820209503,
-  "wall_engine_s": 1.160620778
+  "wall_engine_s": 2.1533124949999998
  },
  {
   "scenario": "fault_wheel_img",
@@ -711,7 +711,7 @@
   "pass_engine": null,
   "agree": null,
   "wall_matlab_s": 414.3348820209503,
-  "wall_engine_s": 1.160620778
+  "wall_engine_s": 2.1533124949999998
  },
  {
   "scenario": "fault_wheel_img",
@@ -725,7 +725,7 @@
   "pass_engine": 1,
   "agree": true,
   "wall_matlab_s": 414.3348820209503,
-  "wall_engine_s": 1.160620778
+  "wall_engine_s": 2.1533124949999998
  },
  {
   "scenario": "fault_wheel_img",
@@ -739,7 +739,7 @@
   "pass_engine": 0,
   "agree": true,
   "wall_matlab_s": 414.3348820209503,
-  "wall_engine_s": 1.160620778
+  "wall_engine_s": 2.1533124949999998
  },
  {
   "scenario": "fault_wheel_img",
@@ -753,7 +753,7 @@
   "pass_engine": null,
   "agree": null,
   "wall_matlab_s": 414.3348820209503,
-  "wall_engine_s": 1.160620778
+  "wall_engine_s": 2.1533124949999998
  },
  {
   "scenario": "fault_wheel_img",
@@ -767,7 +767,7 @@
   "pass_engine": null,
   "agree": null,
   "wall_matlab_s": 414.3348820209503,
-  "wall_engine_s": 1.160620778
+  "wall_engine_s": 2.1533124949999998
  },
  {
   "scenario": "fault_wheel_img",
@@ -781,7 +781,7 @@
   "pass_engine": 1,
   "agree": true,
   "wall_matlab_s": 414.3348820209503,
-  "wall_engine_s": 1.160620778
+  "wall_engine_s": 2.1533124949999998
  },
  {
   "scenario": "fine_hold_cmg",
@@ -795,7 +795,7 @@
   "pass_engine": 1,
   "agree": true,
   "wall_matlab_s": 468.44412994384766,
-  "wall_engine_s": 1.014018686
+  "wall_engine_s": 2.57710355
  },
  {
   "scenario": "fine_hold_cmg",
@@ -809,7 +809,7 @@
   "pass_engine": null,
   "agree": null,
   "wall_matlab_s": 468.44412994384766,
-  "wall_engine_s": 1.014018686
+  "wall_engine_s": 2.57710355
  },
  {
   "scenario": "fine_hold_cmg",
@@ -823,7 +823,7 @@
   "pass_engine": null,
   "agree": null,
   "wall_matlab_s": 468.44412994384766,
-  "wall_engine_s": 1.014018686
+  "wall_engine_s": 2.57710355
  },
  {
   "scenario": "fine_hold_cmg",
@@ -837,7 +837,7 @@
   "pass_engine": 1,
   "agree": true,
   "wall_matlab_s": 468.44412994384766,
-  "wall_engine_s": 1.014018686
+  "wall_engine_s": 2.57710355
  },
  {
   "scenario": "fine_hold_cmg",
@@ -851,7 +851,7 @@
   "pass_engine": 0,
   "agree": true,
   "wall_matlab_s": 468.44412994384766,
-  "wall_engine_s": 1.014018686
+  "wall_engine_s": 2.57710355
  },
  {
   "scenario": "fine_hold_cmg",
@@ -865,7 +865,7 @@
   "pass_engine": null,
   "agree": null,
   "wall_matlab_s": 468.44412994384766,
-  "wall_engine_s": 1.014018686
+  "wall_engine_s": 2.57710355
  },
  {
   "scenario": "fine_hold_cmg",
@@ -879,7 +879,7 @@
   "pass_engine": null,
   "agree": null,
   "wall_matlab_s": 468.44412994384766,
-  "wall_engine_s": 1.014018686
+  "wall_engine_s": 2.57710355
  },
  {
   "scenario": "fine_hold_cmg",
@@ -893,7 +893,7 @@
   "pass_engine": 1,
   "agree": true,
   "wall_matlab_s": 468.44412994384766,
-  "wall_engine_s": 1.014018686
+  "wall_engine_s": 2.57710355
  },
  {
   "scenario": "fine_hold_fmr",
@@ -907,7 +907,7 @@
   "pass_engine": 1,
   "agree": true,
   "wall_matlab_s": 658.9512960910797,
-  "wall_engine_s": 1.001835204
+  "wall_engine_s": 1.7748696069999998
  },
  {
   "scenario": "fine_hold_fmr",
@@ -921,7 +921,7 @@
   "pass_engine": null,
   "agree": null,
   "wall_matlab_s": 658.9512960910797,
-  "wall_engine_s": 1.001835204
+  "wall_engine_s": 1.7748696069999998
  },
  {
   "scenario": "fine_hold_fmr",
@@ -935,7 +935,7 @@
   "pass_engine": null,
   "agree": null,
   "wall_matlab_s": 658.9512960910797,
-  "wall_engine_s": 1.001835204
+  "wall_engine_s": 1.7748696069999998
  },
  {
   "scenario": "fine_hold_fmr",
@@ -949,7 +949,7 @@
   "pass_engine": 1,
   "agree": true,
   "wall_matlab_s": 658.9512960910797,
-  "wall_engine_s": 1.001835204
+  "wall_engine_s": 1.7748696069999998
  },
  {
   "scenario": "fine_hold_fmr",
@@ -963,7 +963,7 @@
   "pass_engine": 0,
   "agree": true,
   "wall_matlab_s": 658.9512960910797,
-  "wall_engine_s": 1.001835204
+  "wall_engine_s": 1.7748696069999998
  },
  {
   "scenario": "fine_hold_fmr",
@@ -977,7 +977,7 @@
   "pass_engine": null,
   "agree": null,
   "wall_matlab_s": 658.9512960910797,
-  "wall_engine_s": 1.001835204
+  "wall_engine_s": 1.7748696069999998
  },
  {
   "scenario": "fine_hold_fmr",
@@ -991,7 +991,7 @@
   "pass_engine": null,
   "agree": null,
   "wall_matlab_s": 658.9512960910797,
-  "wall_engine_s": 1.001835204
+  "wall_engine_s": 1.7748696069999998
  },
  {
   "scenario": "fine_hold_fmr",
@@ -1005,7 +1005,7 @@
   "pass_engine": 1,
   "agree": false,
   "wall_matlab_s": 658.9512960910797,
-  "wall_engine_s": 1.001835204
+  "wall_engine_s": 1.7748696069999998
  },
  {
   "scenario": "fine_hold_fmr_rcs",
@@ -1019,7 +1019,7 @@
   "pass_engine": 1,
   "agree": true,
   "wall_matlab_s": 523.1565821170807,
-  "wall_engine_s": 0.986105535
+  "wall_engine_s": 2.276864941
  },
  {
   "scenario": "fine_hold_fmr_rcs",
@@ -1033,7 +1033,7 @@
   "pass_engine": null,
   "agree": null,
   "wall_matlab_s": 523.1565821170807,
-  "wall_engine_s": 0.986105535
+  "wall_engine_s": 2.276864941
  },
  {
   "scenario": "fine_hold_fmr_rcs",
@@ -1047,7 +1047,7 @@
   "pass_engine": null,
   "agree": null,
   "wall_matlab_s": 523.1565821170807,
-  "wall_engine_s": 0.986105535
+  "wall_engine_s": 2.276864941
  },
  {
   "scenario": "fine_hold_fmr_rcs",
@@ -1061,7 +1061,7 @@
   "pass_engine": 1,
   "agree": true,
   "wall_matlab_s": 523.1565821170807,
-  "wall_engine_s": 0.986105535
+  "wall_engine_s": 2.276864941
  },
  {
   "scenario": "fine_hold_fmr_rcs",
@@ -1075,7 +1075,7 @@
   "pass_engine": 0,
   "agree": true,
   "wall_matlab_s": 523.1565821170807,
-  "wall_engine_s": 0.986105535
+  "wall_engine_s": 2.276864941
  },
  {
   "scenario": "fine_hold_fmr_rcs",
@@ -1089,7 +1089,7 @@
   "pass_engine": null,
   "agree": null,
   "wall_matlab_s": 523.1565821170807,
-  "wall_engine_s": 0.986105535
+  "wall_engine_s": 2.276864941
  },
  {
   "scenario": "fine_hold_fmr_rcs",
@@ -1103,7 +1103,7 @@
   "pass_engine": null,
   "agree": null,
   "wall_matlab_s": 523.1565821170807,
-  "wall_engine_s": 0.986105535
+  "wall_engine_s": 2.276864941
  },
  {
   "scenario": "fine_hold_fmr_rcs",
@@ -1117,7 +1117,7 @@
   "pass_engine": 1,
   "agree": false,
   "wall_matlab_s": 523.1565821170807,
-  "wall_engine_s": 0.986105535
+  "wall_engine_s": 2.276864941
  },
  {
   "scenario": "fine_hold_img",
@@ -1131,7 +1131,7 @@
   "pass_engine": 0,
   "agree": false,
   "wall_matlab_s": 389.71645307540894,
-  "wall_engine_s": 0.98039751
+  "wall_engine_s": 1.381267814
  },
  {
   "scenario": "fine_hold_img",
@@ -1145,7 +1145,7 @@
   "pass_engine": null,
   "agree": null,
   "wall_matlab_s": 389.71645307540894,
-  "wall_engine_s": 0.98039751
+  "wall_engine_s": 1.381267814
  },
  {
   "scenario": "fine_hold_img",
@@ -1159,7 +1159,7 @@
   "pass_engine": null,
   "agree": null,
   "wall_matlab_s": 389.71645307540894,
-  "wall_engine_s": 0.98039751
+  "wall_engine_s": 1.381267814
  },
  {
   "scenario": "fine_hold_img",
@@ -1173,7 +1173,7 @@
   "pass_engine": 1,
   "agree": true,
   "wall_matlab_s": 389.71645307540894,
-  "wall_engine_s": 0.98039751
+  "wall_engine_s": 1.381267814
  },
  {
   "scenario": "fine_hold_img",
@@ -1187,7 +1187,7 @@
   "pass_engine": 0,
   "agree": true,
   "wall_matlab_s": 389.71645307540894,
-  "wall_engine_s": 0.98039751
+  "wall_engine_s": 1.381267814
  },
  {
   "scenario": "fine_hold_img",
@@ -1201,7 +1201,7 @@
   "pass_engine": null,
   "agree": null,
   "wall_matlab_s": 389.71645307540894,
-  "wall_engine_s": 0.98039751
+  "wall_engine_s": 1.381267814
  },
  {
   "scenario": "fine_hold_img",
@@ -1215,7 +1215,7 @@
   "pass_engine": null,
   "agree": null,
   "wall_matlab_s": 389.71645307540894,
-  "wall_engine_s": 0.98039751
+  "wall_engine_s": 1.381267814
  },
  {
   "scenario": "fine_hold_img",
@@ -1229,7 +1229,7 @@
   "pass_engine": 1,
   "agree": true,
   "wall_matlab_s": 389.71645307540894,
-  "wall_engine_s": 0.98039751
+  "wall_engine_s": 1.381267814
  },
  {
   "scenario": "fine_hold_img_lqr",
@@ -1243,7 +1243,7 @@
   "pass_engine": 1,
   "agree": true,
   "wall_matlab_s": 387.77910590171814,
-  "wall_engine_s": 1.091463444
+  "wall_engine_s": 1.907325492
  },
  {
   "scenario": "fine_hold_img_lqr",
@@ -1257,7 +1257,7 @@
   "pass_engine": null,
   "agree": null,
   "wall_matlab_s": 387.77910590171814,
-  "wall_engine_s": 1.091463444
+  "wall_engine_s": 1.907325492
  },
  {
   "scenario": "fine_hold_img_lqr",
@@ -1271,7 +1271,7 @@
   "pass_engine": null,
   "agree": null,
   "wall_matlab_s": 387.77910590171814,
-  "wall_engine_s": 1.091463444
+  "wall_engine_s": 1.907325492
  },
  {
   "scenario": "fine_hold_img_lqr",
@@ -1285,7 +1285,7 @@
   "pass_engine": 1,
   "agree": true,
   "wall_matlab_s": 387.77910590171814,
-  "wall_engine_s": 1.091463444
+  "wall_engine_s": 1.907325492
  },
  {
   "scenario": "fine_hold_img_lqr",
@@ -1299,7 +1299,7 @@
   "pass_engine": 0,
   "agree": true,
   "wall_matlab_s": 387.77910590171814,
-  "wall_engine_s": 1.091463444
+  "wall_engine_s": 1.907325492
  },
  {
   "scenario": "fine_hold_img_lqr",
@@ -1313,7 +1313,7 @@
   "pass_engine": null,
   "agree": null,
   "wall_matlab_s": 387.77910590171814,
-  "wall_engine_s": 1.091463444
+  "wall_engine_s": 1.907325492
  },
  {
   "scenario": "fine_hold_img_lqr",
@@ -1327,7 +1327,7 @@
   "pass_engine": null,
   "agree": null,
   "wall_matlab_s": 387.77910590171814,
-  "wall_engine_s": 1.091463444
+  "wall_engine_s": 1.907325492
  },
  {
   "scenario": "fine_hold_img_lqr",
@@ -1341,7 +1341,7 @@
   "pass_engine": 1,
   "agree": true,
   "wall_matlab_s": 387.77910590171814,
-  "wall_engine_s": 1.091463444
+  "wall_engine_s": 1.907325492
  },
  {
   "scenario": "fine_hold_img_smc",
@@ -1355,7 +1355,7 @@
   "pass_engine": 0,
   "agree": true,
   "wall_matlab_s": 388.04844999313354,
-  "wall_engine_s": 0.994326733
+  "wall_engine_s": 1.366446624
  },
  {
   "scenario": "fine_hold_img_smc",
@@ -1369,7 +1369,7 @@
   "pass_engine": null,
   "agree": null,
   "wall_matlab_s": 388.04844999313354,
-  "wall_engine_s": 0.994326733
+  "wall_engine_s": 1.366446624
  },
  {
   "scenario": "fine_hold_img_smc",
@@ -1383,7 +1383,7 @@
   "pass_engine": null,
   "agree": null,
   "wall_matlab_s": 388.04844999313354,
-  "wall_engine_s": 0.994326733
+  "wall_engine_s": 1.366446624
  },
  {
   "scenario": "fine_hold_img_smc",
@@ -1397,7 +1397,7 @@
   "pass_engine": 1,
   "agree": true,
   "wall_matlab_s": 388.04844999313354,
-  "wall_engine_s": 0.994326733
+  "wall_engine_s": 1.366446624
  },
  {
   "scenario": "fine_hold_img_smc",
@@ -1411,7 +1411,7 @@
   "pass_engine": 0,
   "agree": true,
   "wall_matlab_s": 388.04844999313354,
-  "wall_engine_s": 0.994326733
+  "wall_engine_s": 1.366446624
  },
  {
   "scenario": "fine_hold_img_smc",
@@ -1425,7 +1425,7 @@
   "pass_engine": null,
   "agree": null,
   "wall_matlab_s": 388.04844999313354,
-  "wall_engine_s": 0.994326733
+  "wall_engine_s": 1.366446624
  },
  {
   "scenario": "fine_hold_img_smc",
@@ -1439,7 +1439,7 @@
   "pass_engine": null,
   "agree": null,
   "wall_matlab_s": 388.04844999313354,
-  "wall_engine_s": 0.994326733
+  "wall_engine_s": 1.366446624
  },
  {
   "scenario": "fine_hold_img_smc",
@@ -1453,7 +1453,7 @@
   "pass_engine": 1,
   "agree": true,
   "wall_matlab_s": 388.04844999313354,
-  "wall_engine_s": 0.994326733
+  "wall_engine_s": 1.366446624
  },
  {
   "scenario": "fine_hold_rw_rcs",
@@ -1467,7 +1467,7 @@
   "pass_engine": 0,
   "agree": false,
   "wall_matlab_s": 394.2328910827637,
-  "wall_engine_s": 1.000292875
+  "wall_engine_s": 1.721334312
  },
  {
   "scenario": "fine_hold_rw_rcs",
@@ -1481,7 +1481,7 @@
   "pass_engine": null,
   "agree": null,
   "wall_matlab_s": 394.2328910827637,
-  "wall_engine_s": 1.000292875
+  "wall_engine_s": 1.721334312
  },
  {
   "scenario": "fine_hold_rw_rcs",
@@ -1495,7 +1495,7 @@
   "pass_engine": null,
   "agree": null,
   "wall_matlab_s": 394.2328910827637,
-  "wall_engine_s": 1.000292875
+  "wall_engine_s": 1.721334312
  },
  {
   "scenario": "fine_hold_rw_rcs",
@@ -1509,7 +1509,7 @@
   "pass_engine": 1,
   "agree": true,
   "wall_matlab_s": 394.2328910827637,
-  "wall_engine_s": 1.000292875
+  "wall_engine_s": 1.721334312
  },
  {
   "scenario": "fine_hold_rw_rcs",
@@ -1523,7 +1523,7 @@
   "pass_engine": 0,
   "agree": true,
   "wall_matlab_s": 394.2328910827637,
-  "wall_engine_s": 1.000292875
+  "wall_engine_s": 1.721334312
  },
  {
   "scenario": "fine_hold_rw_rcs",
@@ -1537,7 +1537,7 @@
   "pass_engine": null,
   "agree": null,
   "wall_matlab_s": 394.2328910827637,
-  "wall_engine_s": 1.000292875
+  "wall_engine_s": 1.721334312
  },
  {
   "scenario": "fine_hold_rw_rcs",
@@ -1551,7 +1551,7 @@
   "pass_engine": null,
   "agree": null,
   "wall_matlab_s": 394.2328910827637,
-  "wall_engine_s": 1.000292875
+  "wall_engine_s": 1.721334312
  },
  {
   "scenario": "fine_hold_rw_rcs",
@@ -1565,7 +1565,7 @@
   "pass_engine": 1,
   "agree": true,
   "wall_matlab_s": 394.2328910827637,
-  "wall_engine_s": 1.000292875
+  "wall_engine_s": 1.721334312
  },
  {
   "scenario": "fine_hold_vscmg",
@@ -1579,7 +1579,7 @@
   "pass_engine": 1,
   "agree": true,
   "wall_matlab_s": 475.56675696372986,
-  "wall_engine_s": 1.083572544
+  "wall_engine_s": 2.227928929
  },
  {
   "scenario": "fine_hold_vscmg",
@@ -1593,7 +1593,7 @@
   "pass_engine": null,
   "agree": null,
   "wall_matlab_s": 475.56675696372986,
-  "wall_engine_s": 1.083572544
+  "wall_engine_s": 2.227928929
  },
  {
   "scenario": "fine_hold_vscmg",
@@ -1607,7 +1607,7 @@
   "pass_engine": null,
   "agree": null,
   "wall_matlab_s": 475.56675696372986,
-  "wall_engine_s": 1.083572544
+  "wall_engine_s": 2.227928929
  },
  {
   "scenario": "fine_hold_vscmg",
@@ -1621,7 +1621,7 @@
   "pass_engine": 1,
   "agree": true,
   "wall_matlab_s": 475.56675696372986,
-  "wall_engine_s": 1.083572544
+  "wall_engine_s": 2.227928929
  },
  {
   "scenario": "fine_hold_vscmg",
@@ -1635,7 +1635,7 @@
   "pass_engine": 0,
   "agree": true,
   "wall_matlab_s": 475.56675696372986,
-  "wall_engine_s": 1.083572544
+  "wall_engine_s": 2.227928929
  },
  {
   "scenario": "fine_hold_vscmg",
@@ -1649,7 +1649,7 @@
   "pass_engine": null,
   "agree": null,
   "wall_matlab_s": 475.56675696372986,
-  "wall_engine_s": 1.083572544
+  "wall_engine_s": 2.227928929
  },
  {
   "scenario": "fine_hold_vscmg",
@@ -1663,7 +1663,7 @@
   "pass_engine": null,
   "agree": null,
   "wall_matlab_s": 475.56675696372986,
-  "wall_engine_s": 1.083572544
+  "wall_engine_s": 2.227928929
  },
  {
   "scenario": "fine_hold_vscmg",
@@ -1677,7 +1677,7 @@
   "pass_engine": 0,
   "agree": true,
   "wall_matlab_s": 475.56675696372986,
-  "wall_engine_s": 1.083572544
+  "wall_engine_s": 2.227928929
  },
  {
   "scenario": "mission_ais",
@@ -1691,7 +1691,7 @@
   "pass_engine": 1,
   "agree": true,
   "wall_matlab_s": 905.6205930709839,
-  "wall_engine_s": 0.549798939
+  "wall_engine_s": 0.781847824
  },
  {
   "scenario": "mission_ais",
@@ -1705,7 +1705,7 @@
   "pass_engine": 1,
   "agree": true,
   "wall_matlab_s": 905.6205930709839,
-  "wall_engine_s": 0.549798939
+  "wall_engine_s": 0.781847824
  },
  {
   "scenario": "mission_ais",
@@ -1719,7 +1719,7 @@
   "pass_engine": null,
   "agree": null,
   "wall_matlab_s": 905.6205930709839,
-  "wall_engine_s": 0.549798939
+  "wall_engine_s": 0.781847824
  },
  {
   "scenario": "mission_ais",
@@ -1733,7 +1733,7 @@
   "pass_engine": 1,
   "agree": true,
   "wall_matlab_s": 905.6205930709839,
-  "wall_engine_s": 0.549798939
+  "wall_engine_s": 0.781847824
  },
  {
   "scenario": "mission_cmg",
@@ -1747,7 +1747,7 @@
   "pass_engine": 1,
   "agree": true,
   "wall_matlab_s": 1420.6372439861298,
-  "wall_engine_s": 2.680594222
+  "wall_engine_s": 5.668181875
  },
  {
   "scenario": "mission_cmg",
@@ -1761,7 +1761,7 @@
   "pass_engine": 1,
   "agree": true,
   "wall_matlab_s": 1420.6372439861298,
-  "wall_engine_s": 2.680594222
+  "wall_engine_s": 5.668181875
  },
  {
   "scenario": "mission_fmr",
@@ -1775,7 +1775,7 @@
   "pass_engine": 1,
   "agree": true,
   "wall_matlab_s": 1622.2781040668488,
-  "wall_engine_s": 2.420296159
+  "wall_engine_s": 4.494707
  },
  {
   "scenario": "mission_fmr",
@@ -1789,7 +1789,7 @@
   "pass_engine": 1,
   "agree": true,
   "wall_matlab_s": 1622.2781040668488,
-  "wall_engine_s": 2.420296159
+  "wall_engine_s": 4.494707
  },
  {
   "scenario": "mission_fmr_rcs",
@@ -1803,7 +1803,7 @@
   "pass_engine": 1,
   "agree": true,
   "wall_matlab_s": 1619.4550411701202,
-  "wall_engine_s": 2.744157848
+  "wall_engine_s": 4.819471195
  },
  {
   "scenario": "mission_fmr_rcs",
@@ -1817,7 +1817,7 @@
   "pass_engine": 1,
   "agree": true,
   "wall_matlab_s": 1619.4550411701202,
-  "wall_engine_s": 2.744157848
+  "wall_engine_s": 4.819471195
  },
  {
   "scenario": "mission_img",
@@ -1831,7 +1831,7 @@
   "pass_engine": 1,
   "agree": true,
   "wall_matlab_s": 1235.396849155426,
-  "wall_engine_s": 2.71783036
+  "wall_engine_s": 4.007350274
  },
  {
   "scenario": "mission_img",
@@ -1845,7 +1845,7 @@
   "pass_engine": 0,
   "agree": false,
   "wall_matlab_s": 1235.396849155426,
-  "wall_engine_s": 2.71783036
+  "wall_engine_s": 4.007350274
  },
  {
   "scenario": "mission_rw_rcs",
@@ -1859,7 +1859,7 @@
   "pass_engine": 1,
   "agree": true,
   "wall_matlab_s": 1262.6471700668335,
-  "wall_engine_s": 2.652764627
+  "wall_engine_s": 4.945500358
  },
  {
   "scenario": "mission_rw_rcs",
@@ -1873,7 +1873,7 @@
   "pass_engine": 1,
   "agree": true,
   "wall_matlab_s": 1262.6471700668335,
-  "wall_engine_s": 2.652764627
+  "wall_engine_s": 4.945500358
  },
  {
   "scenario": "mission_vscmg",
@@ -1887,7 +1887,7 @@
   "pass_engine": 1,
   "agree": true,
   "wall_matlab_s": 1461.0418908596039,
-  "wall_engine_s": 2.967417517
+  "wall_engine_s": 5.91862125
  },
  {
   "scenario": "mission_vscmg",
@@ -1901,7 +1901,7 @@
   "pass_engine": 1,
   "agree": false,
   "wall_matlab_s": 1461.0418908596039,
-  "wall_engine_s": 2.967417517
+  "wall_engine_s": 5.91862125
  },
  {
   "scenario": "nadir_hold_ais",
@@ -1915,7 +1915,7 @@
   "pass_engine": null,
   "agree": null,
   "wall_matlab_s": 569.4380128383636,
-  "wall_engine_s": 0.361925993
+  "wall_engine_s": 0.638618919
  },
  {
   "scenario": "nadir_hold_ais",
@@ -1929,7 +1929,7 @@
   "pass_engine": 0,
   "agree": false,
   "wall_matlab_s": 569.4380128383636,
-  "wall_engine_s": 0.361925993
+  "wall_engine_s": 0.638618919
  },
  {
   "scenario": "nadir_hold_ais",
@@ -1943,7 +1943,7 @@
   "pass_engine": 0,
   "agree": false,
   "wall_matlab_s": 569.4380128383636,
-  "wall_engine_s": 0.361925993
+  "wall_engine_s": 0.638618919
  },
  {
   "scenario": "nadir_hold_ais",
@@ -1957,7 +1957,7 @@
   "pass_engine": 1,
   "agree": true,
   "wall_matlab_s": 569.4380128383636,
-  "wall_engine_s": 0.361925993
+  "wall_engine_s": 0.638618919
  },
  {
   "scenario": "nadir_hold_ais_css",
@@ -1971,7 +1971,7 @@
   "pass_engine": null,
   "agree": null,
   "wall_matlab_s": 550.4637899398804,
-  "wall_engine_s": 0.400654527
+  "wall_engine_s": 0.658348268
  },
  {
   "scenario": "nadir_hold_ais_css",
@@ -1985,7 +1985,7 @@
   "pass_engine": 0,
   "agree": true,
   "wall_matlab_s": 550.4637899398804,
-  "wall_engine_s": 0.400654527
+  "wall_engine_s": 0.658348268
  },
  {
   "scenario": "nadir_hold_ais_css",
@@ -1999,7 +1999,7 @@
   "pass_engine": 0,
   "agree": true,
   "wall_matlab_s": 550.4637899398804,
-  "wall_engine_s": 0.400654527
+  "wall_engine_s": 0.658348268
  },
  {
   "scenario": "nadir_hold_ais_css",
@@ -2013,7 +2013,7 @@
   "pass_engine": 1,
   "agree": true,
   "wall_matlab_s": 550.4637899398804,
-  "wall_engine_s": 0.400654527
+  "wall_engine_s": 0.658348268
  },
  {
   "scenario": "slew_cmg",
@@ -2027,7 +2027,7 @@
   "pass_engine": 1,
   "agree": true,
   "wall_matlab_s": 54.34743690490723,
-  "wall_engine_s": 0.172850982
+  "wall_engine_s": 0.541928126
  },
  {
   "scenario": "slew_cmg",
@@ -2041,7 +2041,7 @@
   "pass_engine": 1,
   "agree": true,
   "wall_matlab_s": 54.34743690490723,
-  "wall_engine_s": 0.172850982
+  "wall_engine_s": 0.541928126
  },
  {
   "scenario": "slew_cmg",
@@ -2055,7 +2055,7 @@
   "pass_engine": null,
   "agree": null,
   "wall_matlab_s": 54.34743690490723,
-  "wall_engine_s": 0.172850982
+  "wall_engine_s": 0.541928126
  },
  {
   "scenario": "slew_fmr",
@@ -2069,7 +2069,7 @@
   "pass_engine": 1,
   "agree": true,
   "wall_matlab_s": 78.75554490089417,
-  "wall_engine_s": 0.154821622
+  "wall_engine_s": 0.22001658
  },
  {
   "scenario": "slew_fmr",
@@ -2083,7 +2083,7 @@
   "pass_engine": 1,
   "agree": true,
   "wall_matlab_s": 78.75554490089417,
-  "wall_engine_s": 0.154821622
+  "wall_engine_s": 0.22001658
  },
  {
   "scenario": "slew_fmr",
@@ -2097,7 +2097,7 @@
   "pass_engine": null,
   "agree": null,
   "wall_matlab_s": 78.75554490089417,
-  "wall_engine_s": 0.154821622
+  "wall_engine_s": 0.22001658
  },
  {
   "scenario": "slew_fmr_rcs",
@@ -2111,7 +2111,7 @@
   "pass_engine": 1,
   "agree": true,
   "wall_matlab_s": 55.8882110118866,
-  "wall_engine_s": 0.145944508
+  "wall_engine_s": 0.224549192
  },
  {
   "scenario": "slew_fmr_rcs",
@@ -2125,7 +2125,7 @@
   "pass_engine": 1,
   "agree": true,
   "wall_matlab_s": 55.8882110118866,
-  "wall_engine_s": 0.145944508
+  "wall_engine_s": 0.224549192
  },
  {
   "scenario": "slew_fmr_rcs",
@@ -2139,7 +2139,7 @@
   "pass_engine": null,
   "agree": null,
   "wall_matlab_s": 55.8882110118866,
-  "wall_engine_s": 0.145944508
+  "wall_engine_s": 0.224549192
  },
  {
   "scenario": "slew_img",
@@ -2153,7 +2153,7 @@
   "pass_engine": 1,
   "agree": true,
   "wall_matlab_s": 45.909926891326904,
-  "wall_engine_s": 0.15390814
+  "wall_engine_s": 0.622243079
  },
  {
   "scenario": "slew_img",
@@ -2167,7 +2167,7 @@
   "pass_engine": 1,
   "agree": true,
   "wall_matlab_s": 45.909926891326904,
-  "wall_engine_s": 0.15390814
+  "wall_engine_s": 0.622243079
  },
  {
   "scenario": "slew_img",
@@ -2181,7 +2181,7 @@
   "pass_engine": null,
   "agree": null,
   "wall_matlab_s": 45.909926891326904,
-  "wall_engine_s": 0.15390814
+  "wall_engine_s": 0.622243079
  },
  {
   "scenario": "slew_img_lqr",
@@ -2195,7 +2195,7 @@
   "pass_engine": 1,
   "agree": true,
   "wall_matlab_s": 45.53564810752869,
-  "wall_engine_s": 0.146360316
+  "wall_engine_s": 0.592762107
  },
  {
   "scenario": "slew_img_lqr",
@@ -2209,7 +2209,7 @@
   "pass_engine": 1,
   "agree": true,
   "wall_matlab_s": 45.53564810752869,
-  "wall_engine_s": 0.146360316
+  "wall_engine_s": 0.592762107
  },
  {
   "scenario": "slew_img_lqr",
@@ -2223,7 +2223,7 @@
   "pass_engine": null,
   "agree": null,
   "wall_matlab_s": 45.53564810752869,
-  "wall_engine_s": 0.146360316
+  "wall_engine_s": 0.592762107
  },
  {
   "scenario": "slew_img_smc",
@@ -2237,7 +2237,7 @@
   "pass_engine": 0,
   "agree": false,
   "wall_matlab_s": 45.1879620552063,
-  "wall_engine_s": 0.147131601
+  "wall_engine_s": 0.235947639
  },
  {
   "scenario": "slew_img_smc",
@@ -2251,7 +2251,7 @@
   "pass_engine": 0,
   "agree": true,
   "wall_matlab_s": 45.1879620552063,
-  "wall_engine_s": 0.147131601
+  "wall_engine_s": 0.235947639
  },
  {
   "scenario": "slew_img_smc",
@@ -2265,7 +2265,7 @@
   "pass_engine": null,
   "agree": null,
   "wall_matlab_s": 45.1879620552063,
-  "wall_engine_s": 0.147131601
+  "wall_engine_s": 0.235947639
  },
  {
   "scenario": "slew_rw_rcs",
@@ -2279,7 +2279,7 @@
   "pass_engine": 1,
   "agree": true,
   "wall_matlab_s": 46.26804995536804,
-  "wall_engine_s": 0.145699638
+  "wall_engine_s": 0.177954697
  },
  {
   "scenario": "slew_rw_rcs",
@@ -2293,7 +2293,7 @@
   "pass_engine": 1,
   "agree": true,
   "wall_matlab_s": 46.26804995536804,
-  "wall_engine_s": 0.145699638
+  "wall_engine_s": 0.177954697
  },
  {
   "scenario": "slew_rw_rcs",
@@ -2307,7 +2307,7 @@
   "pass_engine": null,
   "agree": null,
   "wall_matlab_s": 46.26804995536804,
-  "wall_engine_s": 0.145699638
+  "wall_engine_s": 0.177954697
  },
  {
   "scenario": "slew_vscmg",
@@ -2321,7 +2321,7 @@
   "pass_engine": 1,
   "agree": true,
   "wall_matlab_s": 55.96863889694214,
-  "wall_engine_s": 0.146849392
+  "wall_engine_s": 0.333157702
  },
  {
   "scenario": "slew_vscmg",
@@ -2335,7 +2335,7 @@
   "pass_engine": 0,
   "agree": true,
   "wall_matlab_s": 55.96863889694214,
-  "wall_engine_s": 0.146849392
+  "wall_engine_s": 0.333157702
  },
  {
   "scenario": "slew_vscmg",
@@ -2349,7 +2349,7 @@
   "pass_engine": null,
   "agree": null,
   "wall_matlab_s": 55.96863889694214,
-  "wall_engine_s": 0.146849392
+  "wall_engine_s": 0.333157702
  },
  {
   "scenario": "sun_spin_ais",
@@ -2363,7 +2363,7 @@
   "pass_engine": 0,
   "agree": false,
   "wall_matlab_s": 500.98096203804016,
-  "wall_engine_s": 0.32091836
+  "wall_engine_s": 0.619281342
  },
  {
   "scenario": "sun_spin_ais",
@@ -2377,7 +2377,7 @@
   "pass_engine": 0,
   "agree": false,
   "wall_matlab_s": 500.98096203804016,
-  "wall_engine_s": 0.32091836
+  "wall_engine_s": 0.619281342
  },
  {
   "scenario": "sun_spin_ais",
@@ -2391,7 +2391,7 @@
   "pass_engine": 0,
   "agree": false,
   "wall_matlab_s": 500.98096203804016,
-  "wall_engine_s": 0.32091836
+  "wall_engine_s": 0.619281342
  },
  {
   "scenario": "sun_spin_ais",
@@ -2405,7 +2405,7 @@
   "pass_engine": 0,
   "agree": true,
   "wall_matlab_s": 500.98096203804016,
-  "wall_engine_s": 0.32091836
+  "wall_engine_s": 0.619281342
  },
  {
   "scenario": "sun_spin_ais",
@@ -2419,6 +2419,6 @@
   "pass_engine": 1,
   "agree": true,
   "wall_matlab_s": 500.98096203804016,
-  "wall_engine_s": 0.32091836
+  "wall_engine_s": 0.619281342
  }
 ]
