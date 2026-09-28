@@ -4,7 +4,9 @@
 Contents (repository layout kept, so it builds as unpacked):
   fsw/            pseudocode, embedded C flight software, params.toml, tests, twin_map.toml
   fsw-rs/         the Rust flight software (no_std; C ABI feature)
-  engine/         the Rust SILS engine (adcs-sim-core, adcs-fsw-abi, adcs-sim, adcs-cli)
+  engine/         the Rust SILS engine (adcs-pop = the POP port, adcs-sim-core, adcs-fsw-abi, adcs-sim, adcs-cli)
+  fsw/targets/    the virtual OBC (adcs-link/1; POSIX process, QEMU Cortex-M4F firmware)
+  matlab_sils/pop/.../de440s.bsp   the DE440 kernel adcs-pop reads
   tools/          engine.py (orchestration), gen_fsw_params.py (params -> C + Rust)
   matlab_sils/data, matlab_sils/cases   the cases, scenarios, products and parts the engine reads
   docs/LANGUAGES.md, results/ENGINE_PARITY.md, NOTICE.md, MANIFEST.sha256
@@ -20,7 +22,9 @@ out = ROOT / "dist" / f"{name}.zip"
 out.parent.mkdir(exist_ok=True)
 
 trees = ["fsw", "fsw-rs", "engine", "matlab_sils/data", "matlab_sils/cases"]
-singles = ["tools/engine.py", "tools/gen_fsw_params.py", "docs/LANGUAGES.md", "results/ENGINE_PARITY.md", "NOTICE.md", "README.md"]
+singles = ["tools/engine.py", "tools/gen_fsw_params.py", "tools/fswcfg.py", "docs/LANGUAGES.md", "docs/VIRTUAL_OBC.md", "results/ENGINE_PARITY.md",
+           "results/VIRTUAL_OBC.md", "results/ENGINE_SOLUTIONS.md", "NOTICE.md", "README.md",
+           "matlab_sils/pop/03_frames_time/ephemeris/data/de440s.bsp"]
 skip = {"target", "build", "__pycache__"}
 files = []
 for t in trees:

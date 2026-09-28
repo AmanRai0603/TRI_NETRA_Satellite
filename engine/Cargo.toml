@@ -6,7 +6,7 @@ resolver = "2"
 members = ["crates/adcs-sim-core", "crates/adcs-pop", "crates/adcs-fsw-abi", "crates/adcs-sim", "crates/adcs-cli"]
 
 [workspace.package]
-version = "1.0.0"
+version = "1.1.0"
 edition = "2021"
 authors = ["Agastya"]
 publish = false

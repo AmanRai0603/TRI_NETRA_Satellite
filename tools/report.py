@@ -615,13 +615,19 @@ def engine_section():
             vb = [r[mid] for r in sb["runs"] if isinstance(r.get(mid), (int, float))]
             if va and vb:
                 have.append((camp, scen, lab, req, [x for x in va if x is not None], vb))
-    out = ["<h2 id='engine'>Flight software in C and Rust, engine in Rust</h2>",
+    vo = (OUT / "VIRTUAL_OBC.md").read_text() if (OUT / "VIRTUAL_OBC.md").exists() else ""
+    n_vo = vo.count("| bit-identical |"); n_vt = sum(1 for l in vo.splitlines() if l.startswith("| ") and "---" not in l and "scenario" not in l)
+    out = ["<h2 id='engine'>Flight software in C and Rust, engine in Rust, OBC in the loop</h2>",
            "<p>The flight software is written once as pseudocode (<code>fsw/pseudocode</code>) and flown in two builds: "
-           "embedded C (<code>fsw/</code>, C99, the OBC build) and Rust (<code>fsw-rs/</code>, <code>no_std</code>). The plant, orbit, "
-           "environment and every device run in the Rust engine (<code>engine/</code>), and each device speaks its own bytes (I2C "
+           "embedded C (<code>fsw/</code>, C99, the OBC build) and Rust (<code>fsw-rs/</code>, <code>no_std</code>). The plant and every "
+           "device run in the Rust engine (<code>engine/</code>), with the <b>full POP propagator ported to Rust</b> (<code>adcs-pop</code>: "
+           "time scales, frames, DE440, spherical-harmonic gravity, tides, SRP/ERP, relativity, DTM2020/JB2008 drag, integrators, each "
+           "bit-exact against Octave) stepped in the loop as the MATLAB twin steps POP. Each device speaks its own bytes (I2C "
            "registers, SPI, UART frames with CRC, CAN), so the flight drivers are exercised as on the OBC. Python orchestrates and "
            "reports; MATLAB stays the SILS twin (docs/LANGUAGES.md, fsw/twin_map.toml).</p>",
            f"<div class='kv'><div><b>C vs Rust flight software</b>bit-identical closed-loop trajectories on every scenario tried (<code>adcs parity</code>)</div>"
+           f"<div><b>Truth environment vs MATLAB</b>orbit, Sun, Moon, shadow, density and field identical on every recorded sample of all {len(walls)} scenarios</div>"
+           f"<div><b>Virtual OBC</b>{n_vo} of {n_vt} runs bit-identical: the flight software as a process and as Cortex-M4F firmware in QEMU over adcs-link/1</div>"
            f"<div><b>Engine vs MATLAB, single runs</b>{agree} of {len(judged)} requirement verdicts agree over {len(walls)} scenarios</div>"
            f"<div><b>Speed, one core</b>{sp[len(sp)//2]:.0f}× faster than the Octave twin (median; {sp[0]:.0f}–{sp[-1]:.0f}×)</div>"
            f"<div><b>Distributions</b>Monte Carlo on both sides agree where the dispersions match (figure)</div></div>"]
