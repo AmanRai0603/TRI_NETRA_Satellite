@@ -1,0 +1,10 @@
+[package]
+name = "adcs-pop"
+description = "Precision Orbit Propagator (POP v51) in Rust: time scales, frames, DE440 SPK, spherical-harmonic gravity, third body, SRP, ERP, relativity, tides, DTM2020/JB2008 drag, integrators -- the MATLAB POP of matlab_sils/pop ported model by model"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+publish.workspace = true
+
+[dependencies]
+serde_json = "1"

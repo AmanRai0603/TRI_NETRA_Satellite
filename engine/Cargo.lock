@@ -29,6 +29,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "adcs-pop"
+version = "1.0.0"
+dependencies = [
+ "serde_json",
+]
+
+[[package]]
 name = "adcs-sim"
 version = "1.0.0"
 dependencies = [
