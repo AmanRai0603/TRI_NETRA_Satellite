@@ -1,0 +1,8352 @@
+{
+ "owner": "Agastya",
+ "scenarios": {
+  "detumble_ais": {
+   "case": "ais_3u",
+   "product": "TRN-P-3U-AIS",
+   "label": "3U AIS \u2014 B-dot detumble from a 10 deg/s tumble (coils only)",
+   "metrics": [
+    {
+     "id": "detumble_time",
+     "kind": "time_to_rate",
+     "value": 58.25666666666667,
+     "unit": "min",
+     "req": 284,
+     "req_key": "req.detumble",
+     "pass": 1
+    },
+    {
+     "id": "power_mean",
+     "kind": "power_mean",
+     "value": 0.02455017050857238,
+     "unit": "W",
+     "req": 0.5,
+     "req_key": "req.pavg",
+     "pass": 1
+    },
+    {
+     "id": "power_peak",
+     "kind": "power_peak",
+     "value": 0.363907470703125,
+     "unit": "W",
+     "req": 1.5,
+     "req_key": "req.ppk",
+     "pass": 1
+    }
+   ],
+   "wall_s": 496.02754306793213,
+   "duration_s": 17220,
+   "mode_log": [
+    {
+     "t": 0,
+     "mode": "detumble"
+    }
+   ],
+   "figures": [
+    "detumble_ais_1_attitude.png",
+    "detumble_ais_2_disturbances.png",
+    "detumble_ais_3_actuators.png",
+    "detumble_ais_4_environment.png",
+    "detumble_ais_5_groundtrack.png",
+    "detumble_ais_6_modes.png"
+   ]
+  },
+  "nadir_hold_ais": {
+   "case": "ais_3u",
+   "product": "TRN-P-3U-AIS",
+   "label": "3U AIS \u2014 nadir hold with magnetorquers only (10 deg requirement)",
+   "metrics": [
+    {
+     "id": "ape_3axis_last_orbit",
+     "kind": "ape",
+     "value": 49.93332045239301,
+     "unit": "deg",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    },
+    {
+     "id": "ape_los_last_orbit",
+     "kind": "ape_los",
+     "value": 7.2484288392594065,
+     "unit": "deg",
+     "req": 10,
+     "req_key": "req.ape",
+     "pass": 1
+    },
+    {
+     "id": "ake_los_last_orbit",
+     "kind": "ake_los",
+     "value": 3.863572749542529,
+     "unit": "deg",
+     "req": 5,
+     "req_key": "req.ake",
+     "pass": 1
+    },
+    {
+     "id": "power_mean",
+     "kind": "power_mean",
+     "value": 0.01080065146035819,
+     "unit": "W",
+     "req": 0.5,
+     "req_key": "req.pavg",
+     "pass": 1
+    }
+   ],
+   "wall_s": 569.4380128383636,
+   "duration_s": 17220,
+   "mode_log": [
+    {
+     "t": 0,
+     "mode": "nadir_mtq"
+    }
+   ],
+   "figures": [
+    "nadir_hold_ais_1_attitude.png",
+    "nadir_hold_ais_2_disturbances.png",
+    "nadir_hold_ais_3_actuators.png",
+    "nadir_hold_ais_4_environment.png",
+    "nadir_hold_ais_5_groundtrack.png",
+    "nadir_hold_ais_6_modes.png"
+   ]
+  },
+  "nadir_hold_ais_css": {
+   "case": "ais_3u",
+   "product": "TRN-P-3U-AIS-CSS",
+   "label": "3U AIS \u2014 nadir hold with coarse cosine sun sensors (albedo)",
+   "metrics": [
+    {
+     "id": "ape_3axis_last_orbit",
+     "kind": "ape",
+     "value": 179.93705848443003,
+     "unit": "deg",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    },
+    {
+     "id": "ape_los_last_orbit",
+     "kind": "ape_los",
+     "value": 36.56429111543798,
+     "unit": "deg",
+     "req": 10,
+     "req_key": "req.ape",
+     "pass": 0
+    },
+    {
+     "id": "ake_los_last_orbit",
+     "kind": "ake_los",
+     "value": 41.555159338531766,
+     "unit": "deg",
+     "req": 5,
+     "req_key": "req.ake",
+     "pass": 0
+    },
+    {
+     "id": "power_mean",
+     "kind": "power_mean",
+     "value": 0.010714231548350292,
+     "unit": "W",
+     "req": 0.5,
+     "req_key": "req.pavg",
+     "pass": 1
+    }
+   ],
+   "wall_s": 550.4637899398804,
+   "duration_s": 17220,
+   "mode_log": [
+    {
+     "t": 0,
+     "mode": "nadir_mtq"
+    }
+   ],
+   "figures": [
+    "nadir_hold_ais_css_1_attitude.png",
+    "nadir_hold_ais_css_2_disturbances.png",
+    "nadir_hold_ais_css_3_actuators.png"
+   ]
+  },
+  "sun_spin_ais": {
+   "case": "ais_3u",
+   "product": "TRN-P-3U-AIS",
+   "label": "3U AIS \u2014 coils-only Sun acquisition: detumble, spin-up, Sun-pointing spin",
+   "metrics": [
+    {
+     "id": "sun_spin_entry",
+     "kind": "time_to_mode",
+     "value": 40.440000000000005,
+     "unit": "min",
+     "req": 95,
+     "req_key": "scenario",
+     "pass": 1
+    },
+    {
+     "id": "sun_angle_last_orbit",
+     "kind": "sun_angle",
+     "value": 6.50275913917671,
+     "unit": "deg",
+     "req": 20,
+     "req_key": "scenario",
+     "pass": 1
+    },
+    {
+     "id": "spin_rate_error_last_orbit",
+     "kind": "spin_rate_error",
+     "value": 0.04568075655051495,
+     "unit": "deg/s",
+     "req": 0.5,
+     "req_key": "scenario",
+     "pass": 1
+    },
+    {
+     "id": "sun_spin_share_last_orbit",
+     "kind": "mode_fraction",
+     "value": 78.81163965847708,
+     "unit": "%",
+     "req": 90,
+     "req_key": "scenario",
+     "pass": 0
+    },
+    {
+     "id": "power_mean",
+     "kind": "power_mean",
+     "value": 0.20619345495575098,
+     "unit": "W",
+     "req": 0.5,
+     "req_key": "req.pavg",
+     "pass": 1
+    }
+   ],
+   "wall_s": 500.98096203804016,
+   "duration_s": 17220,
+   "mode_log": [
+    {
+     "t": 0,
+     "mode": "detumble"
+    },
+    {
+     "t": 855.4000000000001,
+     "mode": "spinup"
+    },
+    {
+     "t": 2426,
+     "mode": "sun_spin"
+    },
+    {
+     "t": 2541.8,
+     "mode": "spinup"
+    },
+    {
+     "t": 3695.2000000000003,
+     "mode": "sun_spin"
+    },
+    {
+     "t": 3743.8,
+     "mode": "spinup"
+    },
+    {
+     "t": 4072.6000000000004,
+     "mode": "sun_spin"
+    },
+    {
+     "t": 6902.8,
+     "mode": "spinup"
+    },
+    {
+     "t": 7920.400000000001,
+     "mode": "sun_spin"
+    },
+    {
+     "t": 12391.2,
+     "mode": "spinup"
+    },
+    {
+     "t": 13606.800000000001,
+     "mode": "sun_spin"
+    }
+   ],
+   "figures": [
+    "sun_spin_ais_1_attitude.png",
+    "sun_spin_ais_2_disturbances.png",
+    "sun_spin_ais_3_actuators.png",
+    "sun_spin_ais_7_sunspin.png",
+    "sun_spin_ais_4_environment.png",
+    "sun_spin_ais_5_groundtrack.png",
+    "sun_spin_ais_6_modes.png"
+   ]
+  },
+  "mission_ais": {
+   "case": "ais_3u",
+   "product": "TRN-P-3U-AIS",
+   "label": "3U AIS \u2014 integrated chain: detumble then nadir hold (auto mode switch)",
+   "metrics": [
+    {
+     "id": "detumble_time",
+     "kind": "time_to_rate",
+     "value": 58.25666666666667,
+     "unit": "min",
+     "req": 284,
+     "req_key": "req.detumble",
+     "pass": 1
+    },
+    {
+     "id": "ape_los_last_orbit",
+     "kind": "ape_los",
+     "value": 9.113536600442313,
+     "unit": "deg",
+     "req": 10,
+     "req_key": "req.ape",
+     "pass": 1
+    },
+    {
+     "id": "ape_3axis_last_orbit",
+     "kind": "ape",
+     "value": 77.1337938320774,
+     "unit": "deg",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    },
+    {
+     "id": "ake_los_last_orbit",
+     "kind": "ake_los",
+     "value": 4.045744084618963,
+     "unit": "deg",
+     "req": 5,
+     "req_key": "req.ake",
+     "pass": 1
+    }
+   ],
+   "wall_s": 905.6205930709839,
+   "duration_s": 28700,
+   "mode_log": [
+    {
+     "t": 0,
+     "mode": "detumble"
+    },
+    {
+     "t": 5010.8,
+     "mode": "nadir_mtq"
+    }
+   ],
+   "figures": [
+    "mission_ais_1_attitude.png",
+    "mission_ais_2_disturbances.png",
+    "mission_ais_3_actuators.png",
+    "mission_ais_4_environment.png",
+    "mission_ais_5_groundtrack.png",
+    "mission_ais_6_modes.png"
+   ]
+  },
+  "fault_coil_ais": {
+   "case": "ais_3u",
+   "product": "TRN-P-3U-AIS",
+   "label": "3U AIS \u2014 X coil fails during detumble",
+   "metrics": [
+    {
+     "id": "detumble_time",
+     "kind": "time_to_rate",
+     "value": 128.34,
+     "unit": "min",
+     "req": 284,
+     "req_key": "req.detumble",
+     "pass": 1
+    },
+    {
+     "id": "power_mean",
+     "kind": "power_mean",
+     "value": 0.02199375426157996,
+     "unit": "W",
+     "req": 0.5,
+     "req_key": "req.pavg",
+     "pass": 1
+    },
+    {
+     "id": "power_peak",
+     "kind": "power_peak",
+     "value": 0.31628540039062497,
+     "unit": "W",
+     "req": 1.5,
+     "req_key": "req.ppk",
+     "pass": 1
+    }
+   ],
+   "wall_s": 533.3220629692078,
+   "duration_s": 17220,
+   "mode_log": [
+    {
+     "t": 0,
+     "mode": "detumble"
+    },
+    {
+     "t": 60,
+     "mode": "FAULT injected: coil_fail 1"
+    }
+   ],
+   "figures": [
+    "fault_coil_ais_1_attitude.png",
+    "fault_coil_ais_2_disturbances.png",
+    "fault_coil_ais_3_actuators.png"
+   ]
+  },
+  "fault_gyro_ais": {
+   "case": "ais_3u",
+   "product": "TRN-P-3U-AIS",
+   "label": "3U AIS \u2014 gyro bias step of 0.1 deg/s during nadir hold",
+   "metrics": [
+    {
+     "id": "ape_3axis_last_orbit",
+     "kind": "ape",
+     "value": 179.99428013445777,
+     "unit": "deg",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    },
+    {
+     "id": "ape_los_last_orbit",
+     "kind": "ape_los",
+     "value": 56.78921750727072,
+     "unit": "deg",
+     "req": 10,
+     "req_key": "req.ape",
+     "pass": 0
+    },
+    {
+     "id": "ake_los_last_orbit",
+     "kind": "ake_los",
+     "value": 42.58781910428527,
+     "unit": "deg",
+     "req": 5,
+     "req_key": "req.ake",
+     "pass": 0
+    },
+    {
+     "id": "power_mean",
+     "kind": "power_mean",
+     "value": 0.010768278549581524,
+     "unit": "W",
+     "req": 0.5,
+     "req_key": "req.pavg",
+     "pass": 1
+    }
+   ],
+   "wall_s": 579.2471899986267,
+   "duration_s": 17220,
+   "mode_log": [
+    {
+     "t": 0,
+     "mode": "nadir_mtq"
+    },
+    {
+     "t": 6000,
+     "mode": "FAULT injected: gyro_bias_step 0"
+    }
+   ],
+   "figures": [
+    "fault_gyro_ais_1_attitude.png",
+    "fault_gyro_ais_2_disturbances.png",
+    "fault_gyro_ais_3_actuators.png"
+   ]
+  },
+  "detumble_img": {
+   "case": "ais_img_3u",
+   "product": "TRN-P-3U-IMG",
+   "label": "3U imaging \u2014 B-dot detumble from a 10 deg/s tumble",
+   "metrics": [
+    {
+     "id": "detumble_time",
+     "kind": "time_to_rate",
+     "value": 21.975,
+     "unit": "min",
+     "req": 284,
+     "req_key": "req.detumble",
+     "pass": 1
+    }
+   ],
+   "wall_s": 971.630609035492,
+   "duration_s": 17220,
+   "mode_log": [
+    {
+     "t": 0,
+     "mode": "detumble"
+    }
+   ],
+   "figures": [
+    "detumble_img_1_attitude.png",
+    "detumble_img_2_disturbances.png",
+    "detumble_img_3_actuators.png",
+    "detumble_img_4_environment.png",
+    "detumble_img_5_groundtrack.png",
+    "detumble_img_6_modes.png"
+   ]
+  },
+  "fine_hold_img": {
+   "case": "ais_img_3u",
+   "product": "TRN-P-3U-IMG",
+   "label": "3U imaging \u2014 fine nadir hold, reaction wheels + star tracker (0.01 deg)",
+   "metrics": [
+    {
+     "id": "ape_los_p9973",
+     "kind": "ape_los",
+     "value": 0.009166008505534255,
+     "unit": "deg",
+     "req": 0.01,
+     "req_key": "req.ape",
+     "pass": 1
+    },
+    {
+     "id": "ape_los_max",
+     "kind": "ape_los",
+     "value": 0.010924857468998192,
+     "unit": "deg",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    },
+    {
+     "id": "ape_3ax_p9973",
+     "kind": "ape",
+     "value": 0.00959540290245215,
+     "unit": "deg",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    },
+    {
+     "id": "ake_los_p9973",
+     "kind": "ake_los",
+     "value": 0.0033331261920540377,
+     "unit": "deg",
+     "req": 0.005,
+     "req_key": "req.ake",
+     "pass": 1
+    },
+    {
+     "id": "rate_stability_p9973",
+     "kind": "rate_stability",
+     "value": 0.0036700407696835767,
+     "unit": "deg/s",
+     "req": 0.001,
+     "req_key": "req.rks",
+     "pass": 0
+    },
+    {
+     "id": "time_to_0p01_deg",
+     "kind": "time_to_threshold",
+     "value": 83.5,
+     "unit": "s",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    },
+    {
+     "id": "wheel_momentum_peak",
+     "kind": "wheel_momentum_peak",
+     "value": 0.003256767272330742,
+     "unit": "N m s",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    },
+    {
+     "id": "power_mean",
+     "kind": "power_mean",
+     "value": 1.5572084379521545,
+     "unit": "W",
+     "req": 2,
+     "req_key": "req.pavg",
+     "pass": 1
+    }
+   ],
+   "wall_s": 389.71645307540894,
+   "duration_s": 5740,
+   "mode_log": [
+    {
+     "t": 0,
+     "mode": "nadir_fine"
+    }
+   ],
+   "figures": [
+    "fine_hold_img_1_attitude.png",
+    "fine_hold_img_2_disturbances.png",
+    "fine_hold_img_3_actuators.png",
+    "fine_hold_img_4_environment.png",
+    "fine_hold_img_5_groundtrack.png",
+    "fine_hold_img_6_modes.png"
+   ]
+  },
+  "slew_img": {
+   "case": "ais_img_3u",
+   "product": "TRN-P-3U-IMG",
+   "label": "3U imaging \u2014 30 deg target slew in 60 s and settle",
+   "metrics": [
+    {
+     "id": "settle_time_after_slew",
+     "kind": "time_to_threshold",
+     "value": 12.600000000000023,
+     "unit": "s",
+     "req": 20,
+     "req_key": "req.settle",
+     "pass": 1
+    },
+    {
+     "id": "ape_los_on_target_p9973",
+     "kind": "ape_los",
+     "value": 0.009893840675525643,
+     "unit": "deg",
+     "req": 0.01,
+     "req_key": "req.ape",
+     "pass": 1
+    },
+    {
+     "id": "wheel_momentum_peak",
+     "kind": "wheel_momentum_peak",
+     "value": 0.0033383376503035396,
+     "unit": "N m s",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    }
+   ],
+   "wall_s": 45.909926891326904,
+   "duration_s": 600,
+   "mode_log": [
+    {
+     "t": 0,
+     "mode": "slew_fine"
+    }
+   ],
+   "figures": [
+    "slew_img_1_attitude.png",
+    "slew_img_2_disturbances.png",
+    "slew_img_3_actuators.png",
+    "slew_img_4_environment.png",
+    "slew_img_5_groundtrack.png",
+    "slew_img_6_modes.png"
+   ]
+  },
+  "agile_slew_img": {
+   "case": "ais_img_3u",
+   "product": "TRN-P-3U-IMG",
+   "label": "3U imaging \u2014 (img): 90 deg pitch in 15 s",
+   "metrics": [
+    {
+     "id": "settle_time_after_slew",
+     "kind": "time_to_threshold",
+     "value": 51.80000000000001,
+     "unit": "s",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    },
+    {
+     "id": "ape_los_on_target_p9973",
+     "kind": "ape_los",
+     "value": 0.009879696665701352,
+     "unit": "deg",
+     "req": 0.01,
+     "req_key": "req.ape",
+     "pass": 1
+    },
+    {
+     "id": "wheel_momentum_peak",
+     "kind": "wheel_momentum_peak",
+     "value": 0.006920054725925468,
+     "unit": "N m s",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    }
+   ],
+   "wall_s": 47.56780004501343,
+   "duration_s": 600,
+   "mode_log": [
+    {
+     "t": 0,
+     "mode": "slew_fine"
+    }
+   ],
+   "figures": [
+    "agile_slew_img_1_attitude.png",
+    "agile_slew_img_2_disturbances.png",
+    "agile_slew_img_3_actuators.png"
+   ]
+  },
+  "mission_img": {
+   "case": "ais_img_3u",
+   "product": "TRN-P-3U-IMG",
+   "label": "3U imaging \u2014 integrated chain: detumble then fine nadir hold",
+   "metrics": [
+    {
+     "id": "detumble_time",
+     "kind": "time_to_rate",
+     "value": 23.675,
+     "unit": "min",
+     "req": 284,
+     "req_key": "req.detumble",
+     "pass": 1
+    },
+    {
+     "id": "ape_los_last_half_orbit_p9973",
+     "kind": "ape_los",
+     "value": 0.007627071269811129,
+     "unit": "deg",
+     "req": 0.01,
+     "req_key": "req.ape",
+     "pass": 1
+    }
+   ],
+   "wall_s": 1235.396849155426,
+   "duration_s": 17220,
+   "mode_log": [
+    {
+     "t": 0,
+     "mode": "detumble"
+    },
+    {
+     "t": 1378,
+     "mode": "nadir_fine"
+    }
+   ],
+   "figures": [
+    "mission_img_1_attitude.png",
+    "mission_img_2_disturbances.png",
+    "mission_img_3_actuators.png",
+    "mission_img_4_environment.png",
+    "mission_img_5_groundtrack.png",
+    "mission_img_6_modes.png"
+   ]
+  },
+  "fault_wheel_img": {
+   "case": "ais_img_3u",
+   "product": "TRN-P-3U-IMG",
+   "label": "3U imaging \u2014 reaction wheel 1 fails during fine hold (FDIR + coils)",
+   "metrics": [
+    {
+     "id": "ape_los_p9973",
+     "kind": "ape_los",
+     "value": 15.834071884764585,
+     "unit": "deg",
+     "req": 0.01,
+     "req_key": "req.ape",
+     "pass": 0
+    },
+    {
+     "id": "ape_los_max",
+     "kind": "ape_los",
+     "value": 15.870191978841307,
+     "unit": "deg",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    },
+    {
+     "id": "ape_3ax_p9973",
+     "kind": "ape",
+     "value": 15.834071946375513,
+     "unit": "deg",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    },
+    {
+     "id": "ake_los_p9973",
+     "kind": "ake_los",
+     "value": 0.0036485982565832007,
+     "unit": "deg",
+     "req": 0.005,
+     "req_key": "req.ake",
+     "pass": 1
+    },
+    {
+     "id": "rate_stability_p9973",
+     "kind": "rate_stability",
+     "value": 0.3826983981962098,
+     "unit": "deg/s",
+     "req": 0.001,
+     "req_key": "req.rks",
+     "pass": 0
+    },
+    {
+     "id": "time_to_0p01_deg",
+     "kind": "time_to_threshold",
+     "value": 83.5,
+     "unit": "s",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    },
+    {
+     "id": "wheel_momentum_peak",
+     "kind": "wheel_momentum_peak",
+     "value": 0.003674758260242864,
+     "unit": "N m s",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    },
+    {
+     "id": "power_mean",
+     "kind": "power_mean",
+     "value": 1.1907937149274128,
+     "unit": "W",
+     "req": 2,
+     "req_key": "req.pavg",
+     "pass": 1
+    }
+   ],
+   "wall_s": 414.3348820209503,
+   "duration_s": 5740,
+   "mode_log": [
+    {
+     "t": 0,
+     "mode": "nadir_fine"
+    },
+    {
+     "t": 1200,
+     "mode": "FAULT injected: rotor_fail 1"
+    },
+    {
+     "t": 1211.7,
+     "mode": "FDIR: rotor 1 isolated"
+    }
+   ],
+   "figures": [
+    "fault_wheel_img_1_attitude.png",
+    "fault_wheel_img_2_disturbances.png",
+    "fault_wheel_img_3_actuators.png"
+   ]
+  },
+  "fault_st_img": {
+   "case": "ais_img_3u",
+   "product": "TRN-P-3U-IMG",
+   "label": "3U imaging \u2014 star-tracker head 2 fails during fine hold",
+   "metrics": [
+    {
+     "id": "ape_los_p9973",
+     "kind": "ape_los",
+     "value": 0.18425753045740917,
+     "unit": "deg",
+     "req": 0.01,
+     "req_key": "req.ape",
+     "pass": 0
+    },
+    {
+     "id": "ape_los_max",
+     "kind": "ape_los",
+     "value": 0.18917101157196248,
+     "unit": "deg",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    },
+    {
+     "id": "ape_3ax_p9973",
+     "kind": "ape",
+     "value": 0.18579874815385622,
+     "unit": "deg",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    },
+    {
+     "id": "ake_los_p9973",
+     "kind": "ake_los",
+     "value": 0.18474702064878892,
+     "unit": "deg",
+     "req": 0.005,
+     "req_key": "req.ake",
+     "pass": 0
+    },
+    {
+     "id": "rate_stability_p9973",
+     "kind": "rate_stability",
+     "value": 0.0040821295910020445,
+     "unit": "deg/s",
+     "req": 0.001,
+     "req_key": "req.rks",
+     "pass": 0
+    },
+    {
+     "id": "time_to_0p01_deg",
+     "kind": "time_to_threshold",
+     "value": 83.5,
+     "unit": "s",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    },
+    {
+     "id": "wheel_momentum_peak",
+     "kind": "wheel_momentum_peak",
+     "value": 0.0032568486930182813,
+     "unit": "N m s",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    },
+    {
+     "id": "power_mean",
+     "kind": "power_mean",
+     "value": 1.5572130951267216,
+     "unit": "W",
+     "req": 2,
+     "req_key": "req.pavg",
+     "pass": 1
+    }
+   ],
+   "wall_s": 388.5329067707062,
+   "duration_s": 5740,
+   "mode_log": [
+    {
+     "t": 0,
+     "mode": "nadir_fine"
+    },
+    {
+     "t": 1200,
+     "mode": "FAULT injected: st_head_fail 2"
+    }
+   ],
+   "figures": [
+    "fault_st_img_1_attitude.png",
+    "fault_st_img_2_disturbances.png",
+    "fault_st_img_3_actuators.png"
+   ]
+  },
+  "fine_hold_fmr": {
+   "case": "ais_img_3u",
+   "product": "TRN-P-3U-FMR",
+   "label": "3U imaging \u2014 fine nadir hold, coils + fluid momentum rings (IDMAS split)",
+   "metrics": [
+    {
+     "id": "ape_los_p9973",
+     "kind": "ape_los",
+     "value": 0.00603292951574543,
+     "unit": "deg",
+     "req": 0.01,
+     "req_key": "req.ape",
+     "pass": 1
+    },
+    {
+     "id": "ape_los_max",
+     "kind": "ape_los",
+     "value": 0.007836066252184623,
+     "unit": "deg",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    },
+    {
+     "id": "ape_3ax_p9973",
+     "kind": "ape",
+     "value": 0.007028014079554227,
+     "unit": "deg",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    },
+    {
+     "id": "ake_los_p9973",
+     "kind": "ake_los",
+     "value": 0.0033213614275627314,
+     "unit": "deg",
+     "req": 0.005,
+     "req_key": "req.ake",
+     "pass": 1
+    },
+    {
+     "id": "rate_stability_p9973",
+     "kind": "rate_stability",
+     "value": 0.00465410757830101,
+     "unit": "deg/s",
+     "req": 0.001,
+     "req_key": "req.rks",
+     "pass": 0
+    },
+    {
+     "id": "time_to_0p01_deg",
+     "kind": "time_to_threshold",
+     "value": 84.30000000000001,
+     "unit": "s",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    },
+    {
+     "id": "wheel_momentum_peak",
+     "kind": "wheel_momentum_peak",
+     "value": 0.00016236690596763747,
+     "unit": "N m s",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    },
+    {
+     "id": "power_mean",
+     "kind": "power_mean",
+     "value": 4.348422003296978,
+     "unit": "W",
+     "req": 2,
+     "req_key": "req.pavg",
+     "pass": 0
+    }
+   ],
+   "wall_s": 658.9512960910797,
+   "duration_s": 5740,
+   "mode_log": [
+    {
+     "t": 0,
+     "mode": "nadir_fine"
+    }
+   ],
+   "figures": [
+    "fine_hold_fmr_1_attitude.png",
+    "fine_hold_fmr_2_disturbances.png",
+    "fine_hold_fmr_3_actuators.png"
+   ]
+  },
+  "slew_fmr": {
+   "case": "ais_img_3u",
+   "product": "TRN-P-3U-FMR",
+   "label": "3U imaging \u2014 30 deg target slew in 60 s, coils + fluid momentum rings (IDMAS split)",
+   "metrics": [
+    {
+     "id": "settle_time_after_slew",
+     "kind": "time_to_threshold",
+     "value": 14,
+     "unit": "s",
+     "req": 20,
+     "req_key": "req.settle",
+     "pass": 1
+    },
+    {
+     "id": "ape_los_on_target_p9973",
+     "kind": "ape_los",
+     "value": 0.008052660245847734,
+     "unit": "deg",
+     "req": 0.01,
+     "req_key": "req.ape",
+     "pass": 1
+    },
+    {
+     "id": "wheel_momentum_peak",
+     "kind": "wheel_momentum_peak",
+     "value": 0.00011202724306451886,
+     "unit": "N m s",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    }
+   ],
+   "wall_s": 78.75554490089417,
+   "duration_s": 600,
+   "mode_log": [
+    {
+     "t": 0,
+     "mode": "slew_fine"
+    }
+   ],
+   "figures": [
+    "slew_fmr_1_attitude.png",
+    "slew_fmr_2_disturbances.png",
+    "slew_fmr_3_actuators.png"
+   ]
+  },
+  "mission_fmr": {
+   "case": "ais_img_3u",
+   "product": "TRN-P-3U-FMR",
+   "label": "3U imaging \u2014 tumble, detumble, fine hold: coils + fluid momentum rings (IDMAS split)",
+   "metrics": [
+    {
+     "id": "detumble_time",
+     "kind": "time_to_rate",
+     "value": 24.475,
+     "unit": "min",
+     "req": 284,
+     "req_key": "req.detumble",
+     "pass": 1
+    },
+    {
+     "id": "ape_los_last_half_orbit_p9973",
+     "kind": "ape_los",
+     "value": 0.006388460280472044,
+     "unit": "deg",
+     "req": 0.01,
+     "req_key": "req.ape",
+     "pass": 1
+    }
+   ],
+   "wall_s": 1622.2781040668488,
+   "duration_s": 17220,
+   "mode_log": [
+    {
+     "t": 0,
+     "mode": "detumble"
+    },
+    {
+     "t": 1411.4,
+     "mode": "nadir_fine"
+    }
+   ],
+   "figures": [
+    "mission_fmr_1_attitude.png",
+    "mission_fmr_2_disturbances.png",
+    "mission_fmr_3_actuators.png",
+    "mission_fmr_4_environment.png",
+    "mission_fmr_5_groundtrack.png",
+    "mission_fmr_6_modes.png"
+   ]
+  },
+  "fine_hold_fmr_rcs": {
+   "case": "ais_img_3u",
+   "product": "TRN-P-3U-FMR-RCS",
+   "label": "3U imaging \u2014 fine nadir hold, coils + fluid rings + cold-gas RCS",
+   "metrics": [
+    {
+     "id": "ape_los_p9973",
+     "kind": "ape_los",
+     "value": 0.006160034370312438,
+     "unit": "deg",
+     "req": 0.01,
+     "req_key": "req.ape",
+     "pass": 1
+    },
+    {
+     "id": "ape_los_max",
+     "kind": "ape_los",
+     "value": 0.006973045717786635,
+     "unit": "deg",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    },
+    {
+     "id": "ape_3ax_p9973",
+     "kind": "ape",
+     "value": 0.006877888579606446,
+     "unit": "deg",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    },
+    {
+     "id": "ake_los_p9973",
+     "kind": "ake_los",
+     "value": 0.0034800530184713775,
+     "unit": "deg",
+     "req": 0.005,
+     "req_key": "req.ake",
+     "pass": 1
+    },
+    {
+     "id": "rate_stability_p9973",
+     "kind": "rate_stability",
+     "value": 0.004643436735126702,
+     "unit": "deg/s",
+     "req": 0.001,
+     "req_key": "req.rks",
+     "pass": 0
+    },
+    {
+     "id": "time_to_0p01_deg",
+     "kind": "time_to_threshold",
+     "value": 88.2,
+     "unit": "s",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    },
+    {
+     "id": "wheel_momentum_peak",
+     "kind": "wheel_momentum_peak",
+     "value": 0.00016301644726447092,
+     "unit": "N m s",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    },
+    {
+     "id": "power_mean",
+     "kind": "power_mean",
+     "value": 4.366967824664844,
+     "unit": "W",
+     "req": 2,
+     "req_key": "req.pavg",
+     "pass": 0
+    }
+   ],
+   "wall_s": 523.1565821170807,
+   "duration_s": 5740,
+   "mode_log": [
+    {
+     "t": 0,
+     "mode": "nadir_fine"
+    }
+   ],
+   "figures": [
+    "fine_hold_fmr_rcs_1_attitude.png",
+    "fine_hold_fmr_rcs_2_disturbances.png",
+    "fine_hold_fmr_rcs_3_actuators.png"
+   ]
+  },
+  "slew_fmr_rcs": {
+   "case": "ais_img_3u",
+   "product": "TRN-P-3U-FMR-RCS",
+   "label": "3U imaging \u2014 30 deg target slew in 60 s, coils + fluid rings + cold-gas RCS",
+   "metrics": [
+    {
+     "id": "settle_time_after_slew",
+     "kind": "time_to_threshold",
+     "value": 12.900000000000034,
+     "unit": "s",
+     "req": 20,
+     "req_key": "req.settle",
+     "pass": 1
+    },
+    {
+     "id": "ape_los_on_target_p9973",
+     "kind": "ape_los",
+     "value": 0.007078166329372722,
+     "unit": "deg",
+     "req": 0.01,
+     "req_key": "req.ape",
+     "pass": 1
+    },
+    {
+     "id": "wheel_momentum_peak",
+     "kind": "wheel_momentum_peak",
+     "value": 0.00011182048732812648,
+     "unit": "N m s",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    }
+   ],
+   "wall_s": 55.8882110118866,
+   "duration_s": 600,
+   "mode_log": [
+    {
+     "t": 0,
+     "mode": "slew_fine"
+    }
+   ],
+   "figures": [
+    "slew_fmr_rcs_1_attitude.png",
+    "slew_fmr_rcs_2_disturbances.png",
+    "slew_fmr_rcs_3_actuators.png"
+   ]
+  },
+  "agile_slew_fmr_rcs": {
+   "case": "ais_img_3u",
+   "product": "TRN-P-3U-FMR-RCS",
+   "label": "3U imaging \u2014 (fmr_rcs): 90 deg pitch in 15 s",
+   "metrics": [
+    {
+     "id": "settle_time_after_slew",
+     "kind": "time_to_threshold",
+     "value": 39.900000000000006,
+     "unit": "s",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    },
+    {
+     "id": "ape_los_on_target_p9973",
+     "kind": "ape_los",
+     "value": 0.007225077734476367,
+     "unit": "deg",
+     "req": 0.01,
+     "req_key": "req.ape",
+     "pass": 1
+    },
+    {
+     "id": "wheel_momentum_peak",
+     "kind": "wheel_momentum_peak",
+     "value": 0.0009451876427477859,
+     "unit": "N m s",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    }
+   ],
+   "wall_s": 50.83361101150513,
+   "duration_s": 600,
+   "mode_log": [
+    {
+     "t": 0,
+     "mode": "slew_fine"
+    }
+   ],
+   "figures": [
+    "agile_slew_fmr_rcs_1_attitude.png",
+    "agile_slew_fmr_rcs_2_disturbances.png",
+    "agile_slew_fmr_rcs_3_actuators.png"
+   ]
+  },
+  "mission_fmr_rcs": {
+   "case": "ais_img_3u",
+   "product": "TRN-P-3U-FMR-RCS",
+   "label": "3U imaging \u2014 tumble, detumble, fine hold: coils + fluid rings + cold-gas RCS",
+   "metrics": [
+    {
+     "id": "detumble_time",
+     "kind": "time_to_rate",
+     "value": 64.125,
+     "unit": "min",
+     "req": 284,
+     "req_key": "req.detumble",
+     "pass": 1
+    },
+    {
+     "id": "ape_los_last_half_orbit_p9973",
+     "kind": "ape_los",
+     "value": 0.006252813433310592,
+     "unit": "deg",
+     "req": 0.01,
+     "req_key": "req.ape",
+     "pass": 1
+    }
+   ],
+   "wall_s": 1619.4550411701202,
+   "duration_s": 17220,
+   "mode_log": [
+    {
+     "t": 0,
+     "mode": "detumble"
+    },
+    {
+     "t": 3793.2000000000003,
+     "mode": "nadir_fine"
+    }
+   ],
+   "figures": [
+    "mission_fmr_rcs_1_attitude.png",
+    "mission_fmr_rcs_2_disturbances.png",
+    "mission_fmr_rcs_3_actuators.png",
+    "mission_fmr_rcs_4_environment.png",
+    "mission_fmr_rcs_5_groundtrack.png",
+    "mission_fmr_rcs_6_modes.png"
+   ]
+  },
+  "fine_hold_rw_rcs": {
+   "case": "ais_img_3u",
+   "product": "TRN-P-3U-RW-RCS",
+   "label": "3U imaging \u2014 fine nadir hold, coils + reaction wheels + cold-gas RCS",
+   "metrics": [
+    {
+     "id": "ape_los_p9973",
+     "kind": "ape_los",
+     "value": 0.008375133573049651,
+     "unit": "deg",
+     "req": 0.01,
+     "req_key": "req.ape",
+     "pass": 1
+    },
+    {
+     "id": "ape_los_max",
+     "kind": "ape_los",
+     "value": 0.009925551806824372,
+     "unit": "deg",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    },
+    {
+     "id": "ape_3ax_p9973",
+     "kind": "ape",
+     "value": 0.008487583636785232,
+     "unit": "deg",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    },
+    {
+     "id": "ake_los_p9973",
+     "kind": "ake_los",
+     "value": 0.0034386011043511847,
+     "unit": "deg",
+     "req": 0.005,
+     "req_key": "req.ake",
+     "pass": 1
+    },
+    {
+     "id": "rate_stability_p9973",
+     "kind": "rate_stability",
+     "value": 0.0036042922017832796,
+     "unit": "deg/s",
+     "req": 0.001,
+     "req_key": "req.rks",
+     "pass": 0
+    },
+    {
+     "id": "time_to_0p01_deg",
+     "kind": "time_to_threshold",
+     "value": 87.2,
+     "unit": "s",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    },
+    {
+     "id": "wheel_momentum_peak",
+     "kind": "wheel_momentum_peak",
+     "value": 0.002802646524888059,
+     "unit": "N m s",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    },
+    {
+     "id": "power_mean",
+     "kind": "power_mean",
+     "value": 1.5100855484708615,
+     "unit": "W",
+     "req": 2,
+     "req_key": "req.pavg",
+     "pass": 1
+    }
+   ],
+   "wall_s": 394.2328910827637,
+   "duration_s": 5740,
+   "mode_log": [
+    {
+     "t": 0,
+     "mode": "nadir_fine"
+    }
+   ],
+   "figures": [
+    "fine_hold_rw_rcs_1_attitude.png",
+    "fine_hold_rw_rcs_2_disturbances.png",
+    "fine_hold_rw_rcs_3_actuators.png"
+   ]
+  },
+  "slew_rw_rcs": {
+   "case": "ais_img_3u",
+   "product": "TRN-P-3U-RW-RCS",
+   "label": "3U imaging \u2014 30 deg target slew in 60 s, coils + reaction wheels + cold-gas RCS",
+   "metrics": [
+    {
+     "id": "settle_time_after_slew",
+     "kind": "time_to_threshold",
+     "value": 11.199999999999989,
+     "unit": "s",
+     "req": 20,
+     "req_key": "req.settle",
+     "pass": 1
+    },
+    {
+     "id": "ape_los_on_target_p9973",
+     "kind": "ape_los",
+     "value": 0.007829084510809332,
+     "unit": "deg",
+     "req": 0.01,
+     "req_key": "req.ape",
+     "pass": 1
+    },
+    {
+     "id": "wheel_momentum_peak",
+     "kind": "wheel_momentum_peak",
+     "value": 0.0034193980108853704,
+     "unit": "N m s",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    }
+   ],
+   "wall_s": 46.26804995536804,
+   "duration_s": 600,
+   "mode_log": [
+    {
+     "t": 0,
+     "mode": "slew_fine"
+    }
+   ],
+   "figures": [
+    "slew_rw_rcs_1_attitude.png",
+    "slew_rw_rcs_2_disturbances.png",
+    "slew_rw_rcs_3_actuators.png"
+   ]
+  },
+  "agile_slew_rw_rcs": {
+   "case": "ais_img_3u",
+   "product": "TRN-P-3U-RW-RCS",
+   "label": "3U imaging \u2014 (rw_rcs): 90 deg pitch in 15 s",
+   "metrics": [
+    {
+     "id": "settle_time_after_slew",
+     "kind": "time_to_threshold",
+     "value": 39.5,
+     "unit": "s",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    },
+    {
+     "id": "ape_los_on_target_p9973",
+     "kind": "ape_los",
+     "value": 0.008113682421798288,
+     "unit": "deg",
+     "req": 0.01,
+     "req_key": "req.ape",
+     "pass": 1
+    },
+    {
+     "id": "wheel_momentum_peak",
+     "kind": "wheel_momentum_peak",
+     "value": 0.0033627741269587194,
+     "unit": "N m s",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    }
+   ],
+   "wall_s": 54.53016495704651,
+   "duration_s": 600,
+   "mode_log": [
+    {
+     "t": 0,
+     "mode": "slew_fine"
+    }
+   ],
+   "figures": [
+    "agile_slew_rw_rcs_1_attitude.png",
+    "agile_slew_rw_rcs_2_disturbances.png",
+    "agile_slew_rw_rcs_3_actuators.png"
+   ]
+  },
+  "mission_rw_rcs": {
+   "case": "ais_img_3u",
+   "product": "TRN-P-3U-RW-RCS",
+   "label": "3U imaging \u2014 tumble, detumble, fine hold: coils + reaction wheels + cold-gas RCS",
+   "metrics": [
+    {
+     "id": "detumble_time",
+     "kind": "time_to_rate",
+     "value": 24.258333333333333,
+     "unit": "min",
+     "req": 284,
+     "req_key": "req.detumble",
+     "pass": 1
+    },
+    {
+     "id": "ape_los_last_half_orbit_p9973",
+     "kind": "ape_los",
+     "value": 0.007672929647481026,
+     "unit": "deg",
+     "req": 0.01,
+     "req_key": "req.ape",
+     "pass": 1
+    }
+   ],
+   "wall_s": 1262.6471700668335,
+   "duration_s": 17220,
+   "mode_log": [
+    {
+     "t": 0,
+     "mode": "detumble"
+    },
+    {
+     "t": 1407.8000000000002,
+     "mode": "nadir_fine"
+    }
+   ],
+   "figures": [
+    "mission_rw_rcs_1_attitude.png",
+    "mission_rw_rcs_2_disturbances.png",
+    "mission_rw_rcs_3_actuators.png",
+    "mission_rw_rcs_4_environment.png",
+    "mission_rw_rcs_5_groundtrack.png",
+    "mission_rw_rcs_6_modes.png"
+   ]
+  },
+  "fine_hold_cmg": {
+   "case": "ais_img_3u",
+   "product": "TRN-P-3U-CMG",
+   "label": "3U imaging \u2014 fine nadir hold, coils + 4 SGCMG pyramid",
+   "metrics": [
+    {
+     "id": "ape_los_p9973",
+     "kind": "ape_los",
+     "value": 0.005523152850647309,
+     "unit": "deg",
+     "req": 0.01,
+     "req_key": "req.ape",
+     "pass": 1
+    },
+    {
+     "id": "ape_los_max",
+     "kind": "ape_los",
+     "value": 0.006413984962130652,
+     "unit": "deg",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    },
+    {
+     "id": "ape_3ax_p9973",
+     "kind": "ape",
+     "value": 0.006145768956612303,
+     "unit": "deg",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    },
+    {
+     "id": "ake_los_p9973",
+     "kind": "ake_los",
+     "value": 0.0034099247014481187,
+     "unit": "deg",
+     "req": 0.005,
+     "req_key": "req.ake",
+     "pass": 1
+    },
+    {
+     "id": "rate_stability_p9973",
+     "kind": "rate_stability",
+     "value": 0.002424524566174475,
+     "unit": "deg/s",
+     "req": 0.001,
+     "req_key": "req.rks",
+     "pass": 0
+    },
+    {
+     "id": "time_to_0p01_deg",
+     "kind": "time_to_threshold",
+     "value": 83.5,
+     "unit": "s",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    },
+    {
+     "id": "wheel_momentum_peak",
+     "kind": "wheel_momentum_peak",
+     "value": 0.004,
+     "unit": "N m s",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    },
+    {
+     "id": "power_mean",
+     "kind": "power_mean",
+     "value": 1.6098528884943926,
+     "unit": "W",
+     "req": 2,
+     "req_key": "req.pavg",
+     "pass": 1
+    }
+   ],
+   "wall_s": 468.44412994384766,
+   "duration_s": 5740,
+   "mode_log": [
+    {
+     "t": 0,
+     "mode": "nadir_fine"
+    }
+   ],
+   "figures": [
+    "fine_hold_cmg_1_attitude.png",
+    "fine_hold_cmg_2_disturbances.png",
+    "fine_hold_cmg_3_actuators.png"
+   ]
+  },
+  "slew_cmg": {
+   "case": "ais_img_3u",
+   "product": "TRN-P-3U-CMG",
+   "label": "3U imaging \u2014 30 deg target slew in 60 s, coils + 4 SGCMG pyramid",
+   "metrics": [
+    {
+     "id": "settle_time_after_slew",
+     "kind": "time_to_threshold",
+     "value": 11.400000000000034,
+     "unit": "s",
+     "req": 20,
+     "req_key": "req.settle",
+     "pass": 1
+    },
+    {
+     "id": "ape_los_on_target_p9973",
+     "kind": "ape_los",
+     "value": 0.004542425720625455,
+     "unit": "deg",
+     "req": 0.01,
+     "req_key": "req.ape",
+     "pass": 1
+    },
+    {
+     "id": "wheel_momentum_peak",
+     "kind": "wheel_momentum_peak",
+     "value": 0.004,
+     "unit": "N m s",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    }
+   ],
+   "wall_s": 54.34743690490723,
+   "duration_s": 600,
+   "mode_log": [
+    {
+     "t": 0,
+     "mode": "slew_fine"
+    }
+   ],
+   "figures": [
+    "slew_cmg_1_attitude.png",
+    "slew_cmg_2_disturbances.png",
+    "slew_cmg_3_actuators.png"
+   ]
+  },
+  "agile_slew_cmg": {
+   "case": "ais_img_3u",
+   "product": "TRN-P-3U-CMG",
+   "label": "3U imaging \u2014 (cmg): 90 deg pitch in 15 s",
+   "metrics": [
+    {
+     "id": "settle_time_after_slew",
+     "kind": "time_to_threshold",
+     "value": 38.70000000000002,
+     "unit": "s",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    },
+    {
+     "id": "ape_los_on_target_p9973",
+     "kind": "ape_los",
+     "value": 0.005492148222782869,
+     "unit": "deg",
+     "req": 0.01,
+     "req_key": "req.ape",
+     "pass": 1
+    },
+    {
+     "id": "wheel_momentum_peak",
+     "kind": "wheel_momentum_peak",
+     "value": 0.004,
+     "unit": "N m s",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    }
+   ],
+   "wall_s": 55.428386926651,
+   "duration_s": 600,
+   "mode_log": [
+    {
+     "t": 0,
+     "mode": "slew_fine"
+    }
+   ],
+   "figures": [
+    "agile_slew_cmg_1_attitude.png",
+    "agile_slew_cmg_2_disturbances.png",
+    "agile_slew_cmg_3_actuators.png"
+   ]
+  },
+  "mission_cmg": {
+   "case": "ais_img_3u",
+   "product": "TRN-P-3U-CMG",
+   "label": "3U imaging \u2014 tumble, detumble, fine hold: coils + 4 SGCMG pyramid",
+   "metrics": [
+    {
+     "id": "detumble_time",
+     "kind": "time_to_rate",
+     "value": 59.458333333333336,
+     "unit": "min",
+     "req": 284,
+     "req_key": "req.detumble",
+     "pass": 1
+    },
+    {
+     "id": "ape_los_last_half_orbit_p9973",
+     "kind": "ape_los",
+     "value": 0.005659207494260749,
+     "unit": "deg",
+     "req": 0.01,
+     "req_key": "req.ape",
+     "pass": 1
+    }
+   ],
+   "wall_s": 1420.6372439861298,
+   "duration_s": 17220,
+   "mode_log": [
+    {
+     "t": 0,
+     "mode": "detumble"
+    },
+    {
+     "t": 3516.5,
+     "mode": "nadir_fine"
+    }
+   ],
+   "figures": [
+    "mission_cmg_1_attitude.png",
+    "mission_cmg_2_disturbances.png",
+    "mission_cmg_3_actuators.png",
+    "mission_cmg_4_environment.png",
+    "mission_cmg_5_groundtrack.png",
+    "mission_cmg_6_modes.png"
+   ]
+  },
+  "fault_gimbal_cmg": {
+   "case": "ais_img_3u",
+   "product": "TRN-P-3U-CMG",
+   "label": "3U imaging \u2014 one CMG gimbal sticks during fine hold",
+   "metrics": [
+    {
+     "id": "ape_los_p9973",
+     "kind": "ape_los",
+     "value": 0.006361828317053155,
+     "unit": "deg",
+     "req": 0.01,
+     "req_key": "req.ape",
+     "pass": 1
+    },
+    {
+     "id": "ape_los_max",
+     "kind": "ape_los",
+     "value": 0.0073521244187336075,
+     "unit": "deg",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    },
+    {
+     "id": "ape_3ax_p9973",
+     "kind": "ape",
+     "value": 0.00668934109183948,
+     "unit": "deg",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    },
+    {
+     "id": "ake_los_p9973",
+     "kind": "ake_los",
+     "value": 0.003430368909254262,
+     "unit": "deg",
+     "req": 0.005,
+     "req_key": "req.ake",
+     "pass": 1
+    },
+    {
+     "id": "rate_stability_p9973",
+     "kind": "rate_stability",
+     "value": 0.0029508118757482545,
+     "unit": "deg/s",
+     "req": 0.001,
+     "req_key": "req.rks",
+     "pass": 0
+    },
+    {
+     "id": "time_to_0p01_deg",
+     "kind": "time_to_threshold",
+     "value": 83.5,
+     "unit": "s",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    },
+    {
+     "id": "wheel_momentum_peak",
+     "kind": "wheel_momentum_peak",
+     "value": 0.004,
+     "unit": "N m s",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    },
+    {
+     "id": "power_mean",
+     "kind": "power_mean",
+     "value": 1.6098324684433705,
+     "unit": "W",
+     "req": 2,
+     "req_key": "req.pavg",
+     "pass": 1
+    }
+   ],
+   "wall_s": 464.55497193336487,
+   "duration_s": 5740,
+   "mode_log": [
+    {
+     "t": 0,
+     "mode": "nadir_fine"
+    },
+    {
+     "t": 1200,
+     "mode": "FAULT injected: gimbal_stuck 1"
+    }
+   ],
+   "figures": [
+    "fault_gimbal_cmg_1_attitude.png",
+    "fault_gimbal_cmg_2_disturbances.png",
+    "fault_gimbal_cmg_3_actuators.png"
+   ]
+  },
+  "fine_hold_vscmg": {
+   "case": "ais_img_3u",
+   "product": "TRN-P-3U-VSCMG",
+   "label": "3U imaging \u2014 fine nadir hold, coils + 4 VSCMG pyramid",
+   "metrics": [
+    {
+     "id": "ape_los_p9973",
+     "kind": "ape_los",
+     "value": 0.009129105781604186,
+     "unit": "deg",
+     "req": 0.01,
+     "req_key": "req.ape",
+     "pass": 1
+    },
+    {
+     "id": "ape_los_max",
+     "kind": "ape_los",
+     "value": 0.010355817039760051,
+     "unit": "deg",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    },
+    {
+     "id": "ape_3ax_p9973",
+     "kind": "ape",
+     "value": 0.009207657096371013,
+     "unit": "deg",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    },
+    {
+     "id": "ake_los_p9973",
+     "kind": "ake_los",
+     "value": 0.00355785825812482,
+     "unit": "deg",
+     "req": 0.005,
+     "req_key": "req.ake",
+     "pass": 1
+    },
+    {
+     "id": "rate_stability_p9973",
+     "kind": "rate_stability",
+     "value": 0.004557086755770034,
+     "unit": "deg/s",
+     "req": 0.001,
+     "req_key": "req.rks",
+     "pass": 0
+    },
+    {
+     "id": "time_to_0p01_deg",
+     "kind": "time_to_threshold",
+     "value": 89.30000000000001,
+     "unit": "s",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    },
+    {
+     "id": "wheel_momentum_peak",
+     "kind": "wheel_momentum_peak",
+     "value": 0.004200910331586307,
+     "unit": "N m s",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    },
+    {
+     "id": "power_mean",
+     "kind": "power_mean",
+     "value": 2.0145844571681404,
+     "unit": "W",
+     "req": 2,
+     "req_key": "req.pavg",
+     "pass": 0
+    }
+   ],
+   "wall_s": 475.56675696372986,
+   "duration_s": 5740,
+   "mode_log": [
+    {
+     "t": 0,
+     "mode": "nadir_fine"
+    }
+   ],
+   "figures": [
+    "fine_hold_vscmg_1_attitude.png",
+    "fine_hold_vscmg_2_disturbances.png",
+    "fine_hold_vscmg_3_actuators.png"
+   ]
+  },
+  "slew_vscmg": {
+   "case": "ais_img_3u",
+   "product": "TRN-P-3U-VSCMG",
+   "label": "3U imaging \u2014 30 deg target slew in 60 s, coils + 4 VSCMG pyramid",
+   "metrics": [
+    {
+     "id": "settle_time_after_slew",
+     "kind": "time_to_threshold",
+     "value": 14.400000000000034,
+     "unit": "s",
+     "req": 20,
+     "req_key": "req.settle",
+     "pass": 1
+    },
+    {
+     "id": "ape_los_on_target_p9973",
+     "kind": "ape_los",
+     "value": 0.010272801930334453,
+     "unit": "deg",
+     "req": 0.01,
+     "req_key": "req.ape",
+     "pass": 0
+    },
+    {
+     "id": "wheel_momentum_peak",
+     "kind": "wheel_momentum_peak",
+     "value": 0.0040509197348247775,
+     "unit": "N m s",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    }
+   ],
+   "wall_s": 55.96863889694214,
+   "duration_s": 600,
+   "mode_log": [
+    {
+     "t": 0,
+     "mode": "slew_fine"
+    }
+   ],
+   "figures": [
+    "slew_vscmg_1_attitude.png",
+    "slew_vscmg_2_disturbances.png",
+    "slew_vscmg_3_actuators.png"
+   ]
+  },
+  "agile_slew_vscmg": {
+   "case": "ais_img_3u",
+   "product": "TRN-P-3U-VSCMG",
+   "label": "3U imaging \u2014 (vscmg): 90 deg pitch in 15 s",
+   "metrics": [
+    {
+     "id": "settle_time_after_slew",
+     "kind": "time_to_threshold",
+     "value": 51.60000000000002,
+     "unit": "s",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    },
+    {
+     "id": "ape_los_on_target_p9973",
+     "kind": "ape_los",
+     "value": 0.010065815802804863,
+     "unit": "deg",
+     "req": 0.01,
+     "req_key": "req.ape",
+     "pass": 0
+    },
+    {
+     "id": "wheel_momentum_peak",
+     "kind": "wheel_momentum_peak",
+     "value": 0.0080869413838314,
+     "unit": "N m s",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    }
+   ],
+   "wall_s": 60.52176880836487,
+   "duration_s": 600,
+   "mode_log": [
+    {
+     "t": 0,
+     "mode": "slew_fine"
+    }
+   ],
+   "figures": [
+    "agile_slew_vscmg_1_attitude.png",
+    "agile_slew_vscmg_2_disturbances.png",
+    "agile_slew_vscmg_3_actuators.png"
+   ]
+  },
+  "mission_vscmg": {
+   "case": "ais_img_3u",
+   "product": "TRN-P-3U-VSCMG",
+   "label": "3U imaging \u2014 tumble, detumble, fine hold: coils + 4 VSCMG pyramid",
+   "metrics": [
+    {
+     "id": "detumble_time",
+     "kind": "time_to_rate",
+     "value": 59.541666666666664,
+     "unit": "min",
+     "req": 284,
+     "req_key": "req.detumble",
+     "pass": 1
+    },
+    {
+     "id": "ape_los_last_half_orbit_p9973",
+     "kind": "ape_los",
+     "value": 0.011108323890360422,
+     "unit": "deg",
+     "req": 0.01,
+     "req_key": "req.ape",
+     "pass": 0
+    }
+   ],
+   "wall_s": 1461.0418908596039,
+   "duration_s": 17220,
+   "mode_log": [
+    {
+     "t": 0,
+     "mode": "detumble"
+    },
+    {
+     "t": 3526.1000000000004,
+     "mode": "nadir_fine"
+    }
+   ],
+   "figures": [
+    "mission_vscmg_1_attitude.png",
+    "mission_vscmg_2_disturbances.png",
+    "mission_vscmg_3_actuators.png",
+    "mission_vscmg_4_environment.png",
+    "mission_vscmg_5_groundtrack.png",
+    "mission_vscmg_6_modes.png"
+   ]
+  }
+ },
+ "campaigns": {
+  "mc_detumble_ais": {
+   "summary": {
+    "schema": "adcs-campaign-result/1",
+    "owner": "Agastya",
+    "id": "mc_detumble_ais",
+    "scenario": "detumble_ais",
+    "case": "ais_3u",
+    "runs": 24,
+    "stats": [
+     {
+      "id": "detumble_time",
+      "unit": "min",
+      "req": 284,
+      "values": [
+       49.07333333333334,
+       47.77333333333333,
+       51.57333333333334,
+       70.65666666666668,
+       38.806666666666665,
+       75.24000000000001,
+       61.806666666666665,
+       31.15666666666667,
+       56.690000000000005,
+       53.20666666666667,
+       33.940000000000005,
+       41.223333333333336,
+       55.17333333333333,
+       54.75666666666667,
+       43.32333333333334,
+       55.34,
+       23.540000000000003,
+       40.056666666666665,
+       51.32333333333334,
+       40.45666666666667,
+       42.49,
+       55.67333333333333,
+       37.190000000000005,
+       53.473333333333336
+      ],
+      "mean": 48.49763888888889,
+      "std": 11.990370511540743,
+      "min": 23.540000000000003,
+      "max": 75.24000000000001,
+      "level": 95,
+      "pct": 70.65666666666668,
+      "n_valid": 24,
+      "pass_rate": 1,
+      "pass": true
+     },
+     {
+      "id": "power_mean",
+      "unit": "W",
+      "req": 0.5,
+      "values": [
+       0.02737361751463693,
+       0.015298352347424476,
+       0.014688752919225294,
+       0.03261273147108538,
+       0.018671279161631135,
+       0.031656164005340215,
+       0.01680761667714584,
+       0.014265443888101838,
+       0.026009255143348464,
+       0.03549603225233525,
+       0.015723708217312747,
+       0.018635614024835843,
+       0.021917131960719143,
+       0.0318036926923423,
+       0.033379437975139634,
+       0.02283214799349207,
+       0.011430147329010959,
+       0.019649642892503125,
+       0.016119089398210877,
+       0.01999218073780859,
+       0.02781724118924767,
+       0.026472305126404545,
+       0.019137418700597784,
+       0.026298897022798435
+      ],
+      "mean": 0.022670329193362437,
+      "std": 0.007014905054450818,
+      "min": 0.011430147329010959,
+      "max": 0.03549603225233525,
+      "level": 95,
+      "pct": 0.033379437975139634,
+      "n_valid": 24,
+      "pass_rate": 1,
+      "pass": true
+     },
+     {
+      "id": "power_peak",
+      "unit": "W",
+      "req": 1.5,
+      "values": [
+       0.6297802734375,
+       0.20595336914062495,
+       0.170496826171875,
+       0.6299853515625,
+       0.412825927734375,
+       0.46389404296875,
+       0.4674060058593749,
+       0.216060791015625,
+       0.347955322265625,
+       0.6140478515625,
+       0.31411743164062494,
+       0.47622436523437506,
+       0.40027221679687497,
+       0.44609252929687504,
+       0.62511474609375,
+       0.28193481445312496,
+       0.132366943359375,
+       0.256494140625,
+       0.20218505859375,
+       0.553326416015625,
+       0.6380273437499999,
+       0.33191162109374994,
+       0.1265185546875,
+       0.422684326171875
+      ],
+      "mean": 0.3902365112304687,
+      "std": 0.16891816359539924,
+      "min": 0.1265185546875,
+      "max": 0.6380273437499999,
+      "level": 95,
+      "pct": 0.6299853515625,
+      "n_valid": 24,
+      "pass_rate": 1,
+      "pass": true
+     }
+    ]
+   },
+   "figures": [
+    "mc_detumble_ais_detumble_time.png",
+    "mc_detumble_ais_power_mean.png",
+    "mc_detumble_ais_power_peak.png",
+    "mc_detumble_ais_scatter.png"
+   ]
+  },
+  "mc_nadir_ais": {
+   "summary": {
+    "schema": "adcs-campaign-result/1",
+    "owner": "Agastya",
+    "id": "mc_nadir_ais",
+    "scenario": "nadir_hold_ais",
+    "case": "ais_3u",
+    "runs": 24,
+    "stats": [
+     {
+      "id": "ape_3axis_last_orbit",
+      "unit": "deg",
+      "req": null,
+      "values": [
+       179.86839904730516,
+       179.9682635458021,
+       149.5707353211537,
+       179.9773939949974,
+       179.93761770939201,
+       179.06739523346297,
+       179.9082814737604,
+       179.98418395757088,
+       179.99936102652822,
+       179.99387481653494,
+       179.99845228292227,
+       179.97330643185035,
+       179.94757752355483,
+       179.96975793447987,
+       179.93186854977097,
+       179.95391027964877,
+       179.9940250735937,
+       179.92894717140723,
+       179.9965479755661,
+       179.99887662330386,
+       179.9034500023836,
+       158.7371948624809,
+       179.97032815012582,
+       179.97569495152322
+      ],
+      "mean": 177.77314349746325,
+      "std": 7.401415519330474,
+      "min": 149.5707353211537,
+      "max": 179.99936102652822,
+      "level": 95,
+      "pct": 179.99887662330386,
+      "n_valid": 24,
+      "pass_rate": null,
+      "pass": null
+     },
+     {
+      "id": "ape_los_last_orbit",
+      "unit": "deg",
+      "req": 10,
+      "values": [
+       116.26102803441482,
+       57.78858556896758,
+       73.76448513615534,
+       71.28642132968827,
+       23.831610578954198,
+       112.5789335794071,
+       63.88502617161076,
+       69.41663805551597,
+       97.29172408599827,
+       99.4095715382831,
+       115.49032879774093,
+       83.74223864743219,
+       73.18647860525593,
+       114.09159176176318,
+       131.903123554411,
+       118.1437038724816,
+       32.50651141803914,
+       16.210846053360203,
+       79.26353012942772,
+       79.63179449148308,
+       165.1532367540183,
+       70.2081407623656,
+       123.86826873484159,
+       163.6169032503462
+      ],
+      "mean": 89.68878003799841,
+      "std": 38.53480887278721,
+      "min": 16.210846053360203,
+      "max": 165.1532367540183,
+      "level": 95,
+      "pct": 163.6169032503462,
+      "n_valid": 24,
+      "pass_rate": 0,
+      "pass": false
+     },
+     {
+      "id": "ake_los_last_orbit",
+      "unit": "deg",
+      "req": 5,
+      "values": [
+       3.3102349498567016,
+       4.882909980251591,
+       1.4200527001988963,
+       1.99649963600647,
+       1.912878457673643,
+       2.5072511154420467,
+       2.7355715705682018,
+       1.5787545696884213,
+       2.24071598871858,
+       2.205937741386195,
+       5.168381552695295,
+       6.076638604767614,
+       2.72624953202638,
+       2.326940229179362,
+       6.253269218587053,
+       4.818894974432536,
+       5.575652637502,
+       1.0963511314993244,
+       5.596080716590394,
+       1.1030408057074508,
+       3.0845278524231183,
+       1.2416344020634051,
+       5.395838627428424,
+       3.9535001307617734
+      ],
+      "mean": 3.3003252968939534,
+      "std": 1.72744501759443,
+      "min": 1.0963511314993244,
+      "max": 6.253269218587053,
+      "level": 95,
+      "pct": 6.076638604767614,
+      "n_valid": 24,
+      "pass_rate": 0.75,
+      "pass": false
+     },
+     {
+      "id": "power_mean",
+      "unit": "W",
+      "req": 0.5,
+      "values": [
+       0.014326333912415076,
+       0.01263655862641266,
+       0.012612647900607583,
+       0.009402324675516912,
+       0.00988063934860447,
+       0.013715579808147688,
+       0.013277012147447453,
+       0.01230441892617422,
+       0.015885622828443538,
+       0.01343494185025809,
+       0.008983121123860857,
+       0.012589850703574226,
+       0.006455390397892415,
+       0.011350119027326399,
+       0.012055188157336057,
+       0.011464431639093962,
+       0.006323474717570058,
+       0.007685871268801476,
+       0.009680200342039308,
+       0.012816414096693644,
+       0.014492395469280836,
+       0.010870877104700142,
+       0.009712282474339388,
+       0.012876607806681883
+      ],
+      "mean": 0.011451346014717432,
+      "std": 0.0024961477851264276,
+      "min": 0.006323474717570058,
+      "max": 0.015885622828443538,
+      "level": 95,
+      "pct": 0.014492395469280836,
+      "n_valid": 24,
+      "pass_rate": 1,
+      "pass": true
+     }
+    ]
+   },
+   "figures": [
+    "mc_nadir_ais_ape_3axis_last_orbit.png",
+    "mc_nadir_ais_ape_los_last_orbit.png",
+    "mc_nadir_ais_ake_los_last_orbit.png",
+    "mc_nadir_ais_power_mean.png",
+    "mc_nadir_ais_scatter.png"
+   ]
+  },
+  "edge_nadir_ais": {
+   "summary": {
+    "schema": "adcs-campaign-result/1",
+    "owner": "Agastya",
+    "id": "edge_nadir_ais",
+    "scenario": "nadir_hold_ais",
+    "case": "ais_3u",
+    "runs": 17,
+    "stats": [
+     {
+      "id": "ape_3axis_last_orbit",
+      "unit": "deg",
+      "req": null,
+      "values": [
+       89.49022340861353,
+       51.125734784859254,
+       146.24753439276316,
+       179.95712790253515,
+       32.96958488881187,
+       87.92327389298282,
+       132.30034663109782,
+       73.29982189051256,
+       74.90585377237858,
+       154.18540535718142,
+       179.94565423773108,
+       156.5356130410842,
+       56.828771156564734,
+       100.5629443413304,
+       63.19798077163474,
+       148.29421604057197,
+       179.97914060824263
+      ],
+      "mean": 112.22054277169977,
+      "std": 49.99266549848147,
+      "min": 32.96958488881187,
+      "max": 179.97914060824263,
+      "level": 95,
+      "pct": 179.97914060824263,
+      "n_valid": 17,
+      "pass_rate": null,
+      "pass": null
+     },
+     {
+      "id": "ape_los_last_orbit",
+      "unit": "deg",
+      "req": 10,
+      "values": [
+       9.200263921175306,
+       7.2317338670369855,
+       34.86831717013644,
+       155.09877310969642,
+       7.044703880067965,
+       9.069920559388258,
+       10.321341808513706,
+       9.78772411299805,
+       10.436931183444386,
+       15.339146000432395,
+       9.212190313719798,
+       8.960374546092787,
+       10.274028185171261,
+       8.866500897853069,
+       8.152689756453244,
+       9.194184690429605,
+       100.33020208003408
+      ],
+      "mean": 24.90523682839081,
+      "std": 40.395451321928384,
+      "min": 7.044703880067965,
+      "max": 155.09877310969642,
+      "level": 95,
+      "pct": 155.09877310969642,
+      "n_valid": 17,
+      "pass_rate": 0.5882352941176471,
+      "pass": false
+     },
+     {
+      "id": "ake_los_last_orbit",
+      "unit": "deg",
+      "req": 5,
+      "values": [
+       1.5071990456197,
+       5.852640926874912,
+       1.1220132030946246,
+       4.176390094376772,
+       3.717456805965005,
+       3.2132167824872,
+       4.273809658875364,
+       0.9593364264922575,
+       2.5010919819990773,
+       2.388331566107904,
+       11.79408031317765,
+       3.2380277536017337,
+       3.4094454715549256,
+       1.7201676491762232,
+       2.3890294229372895,
+       6.279994051262847,
+       4.568245373630192
+      ],
+      "mean": 3.712380972190216,
+      "std": 2.578865833131355,
+      "min": 0.9593364264922575,
+      "max": 11.79408031317765,
+      "level": 95,
+      "pct": 11.79408031317765,
+      "n_valid": 17,
+      "pass_rate": 0.8235294117647058,
+      "pass": false
+     },
+     {
+      "id": "power_mean",
+      "unit": "W",
+      "req": 0.5,
+      "values": [
+       0.010500381425868064,
+       0.010770681524264317,
+       0.006771136568705858,
+       0.012890144948209281,
+       0.010737093209535038,
+       0.010646306006254914,
+       0.010318752475217201,
+       0.010499693404796536,
+       0.010628883156478608,
+       0.010662032885684795,
+       0.010325203988519088,
+       0.010278852356610956,
+       0.010733082145569301,
+       0.010590047445065493,
+       0.010709914303897472,
+       0.01029697279659736,
+       0.012362101375200102
+      ],
+      "mean": 0.010571840000969083,
+      "std": 0.0012106476444848629,
+      "min": 0.006771136568705858,
+      "max": 0.012890144948209281,
+      "level": 95,
+      "pct": 0.012890144948209281,
+      "n_valid": 17,
+      "pass_rate": 1,
+      "pass": true
+     }
+    ]
+   },
+   "figures": [
+    "edge_nadir_ais_ape_3axis_last_orbit.png",
+    "edge_nadir_ais_ape_los_last_orbit.png",
+    "edge_nadir_ais_ake_los_last_orbit.png",
+    "edge_nadir_ais_power_mean.png",
+    "edge_nadir_ais_scatter.png"
+   ]
+  },
+  "mc_fine_img": {
+   "summary": {
+    "schema": "adcs-campaign-result/1",
+    "owner": "Agastya",
+    "id": "mc_fine_img",
+    "scenario": "fine_hold_img",
+    "case": "ais_img_3u",
+    "runs": 24,
+    "stats": [
+     {
+      "id": "ape_los_p9973",
+      "unit": "deg",
+      "req": 0.01,
+      "values": [
+       0.015555459331543809,
+       0.019414158406764696,
+       0.0200661127343787,
+       0.010681751370786322,
+       0.009176658825564449,
+       0.011046055680766689,
+       0.007152273266683942,
+       0.007152923052120195,
+       0.011912278985427535,
+       0.019311262148559948,
+       0.008416549848357208,
+       0.014239972001357248,
+       0.01379329717698727,
+       0.010866457688168364,
+       0.0102661460448552,
+       0.018227236405705304,
+       0.009592508301481164,
+       0.014828571056828872,
+       0.007407708682718066,
+       0.017040176809020473,
+       0.008260932392629412,
+       0.017157887970765284,
+       0.01864547397964734,
+       0.015309287886440967
+      ],
+      "mean": 0.013146714168648268,
+      "std": 0.0043355049641685675,
+      "min": 0.007152273266683942,
+      "max": 0.0200661127343787,
+      "level": 99.73,
+      "pct": 0.0200661127343787,
+      "n_valid": 24,
+      "pass_rate": 0.2916666666666667,
+      "pass": false
+     },
+     {
+      "id": "ape_los_max",
+      "unit": "deg",
+      "req": null,
+      "values": [
+       0.01713801047169383,
+       0.020725128785971353,
+       0.02348680467388809,
+       0.013265816917417314,
+       0.011151808856812218,
+       0.01328062328122384,
+       0.00906094566166576,
+       0.008501410009225406,
+       0.014753464851968288,
+       0.02172971361113283,
+       0.011843412946454478,
+       0.017547379354005892,
+       0.01527836677817084,
+       0.012494236892400064,
+       0.01627927746659064,
+       0.021074211583100855,
+       0.01628539881125703,
+       0.017303784580113897,
+       0.011336135916345462,
+       0.020239925279734908,
+       0.010198050890981674,
+       0.020516395887911116,
+       0.02099004113298904,
+       0.019260376397719558
+      ],
+      "mean": 0.015989196709948934,
+      "std": 0.00440463753064898,
+      "min": 0.008501410009225406,
+      "max": 0.02348680467388809,
+      "level": 95,
+      "pct": 0.02172971361113283,
+      "n_valid": 24,
+      "pass_rate": null,
+      "pass": null
+     },
+     {
+      "id": "ape_3ax_p9973",
+      "unit": "deg",
+      "req": null,
+      "values": [
+       0.01591070394719063,
+       0.019565125111326267,
+       0.02023878576208961,
+       0.010682474958313825,
+       0.009279858644259016,
+       0.011101463473001444,
+       0.007504094931074427,
+       0.007551106015890001,
+       0.012438527550270532,
+       0.019331271352734474,
+       0.009086619984941627,
+       0.014348713156706161,
+       0.01401615053659544,
+       0.011151599185859562,
+       0.010478582083497404,
+       0.01829001405504725,
+       0.010220308897848945,
+       0.014951682610661007,
+       0.007845572019122733,
+       0.017356471544346705,
+       0.008317411156770678,
+       0.017181654141356,
+       0.01874056010933529,
+       0.015421031952239239
+      ],
+      "mean": 0.013375407632519926,
+      "std": 0.004247437871319655,
+      "min": 0.007504094931074427,
+      "max": 0.02023878576208961,
+      "level": 95,
+      "pct": 0.019565125111326267,
+      "n_valid": 24,
+      "pass_rate": null,
+      "pass": null
+     },
+     {
+      "id": "ake_los_p9973",
+      "unit": "deg",
+      "req": 0.005,
+      "values": [
+       0.002032805648242702,
+       0.0020330539517683017,
+       0.002718961044262773,
+       0.0022439562383543693,
+       0.002248976889626838,
+       0.0026171347352065637,
+       0.002759767020247117,
+       0.003117321084838741,
+       0.0033174863414632675,
+       0.0035564475933695283,
+       0.003116680085410344,
+       0.003051038578946029,
+       0.003886896113837713,
+       0.0020001314594869667,
+       0.0029783117512678344,
+       0.003121846074376081,
+       0.0031528354540669773,
+       0.0040796332590764236,
+       0.0031990847261728897,
+       0.0023229662209914297,
+       0.003526600280284854,
+       0.0027968737246963334,
+       0.003520012348930277,
+       0.002064523716352412
+      ],
+      "mean": 0.0028943060142198654,
+      "std": 0.0006048494369837583,
+      "min": 0.0020001314594869667,
+      "max": 0.0040796332590764236,
+      "level": 99.73,
+      "pct": 0.0040796332590764236,
+      "n_valid": 24,
+      "pass_rate": 1,
+      "pass": true
+     },
+     {
+      "id": "rate_stability_p9973",
+      "unit": "deg/s",
+      "req": 0.001,
+      "values": [
+       0.003683508209595235,
+       0.0037820985976872532,
+       0.003919523557470457,
+       0.0037278167305621643,
+       0.003739013875028397,
+       0.003747937740700816,
+       0.00375078031338163,
+       0.003689863260423967,
+       0.0037345512093590496,
+       0.0038584412003669693,
+       0.0036485824636699367,
+       0.003691672497680697,
+       0.0036298556771633046,
+       0.0036075218233763843,
+       0.003737615314992862,
+       0.00377808890062881,
+       0.003906806300912862,
+       0.003726837037758786,
+       0.0035594340741264257,
+       0.00396229872234288,
+       0.003723896201017543,
+       0.003688521431083331,
+       0.0037199449480493758,
+       0.003704230608257917
+      ],
+      "mean": 0.0037382850289848775,
+      "std": 9.56585587787143e-05,
+      "min": 0.0035594340741264257,
+      "max": 0.00396229872234288,
+      "level": 99.73,
+      "pct": 0.00396229872234288,
+      "n_valid": 24,
+      "pass_rate": 0,
+      "pass": false
+     },
+     {
+      "id": "time_to_0p01_deg",
+      "unit": "s",
+      "req": null,
+      "values": [
+       80.30000000000001,
+       68.5,
+       71.60000000000001,
+       59,
+       65.8,
+       67.9,
+       82.5,
+       65.10000000000001,
+       76.60000000000001,
+       34.9,
+       84.30000000000001,
+       70.7,
+       68.10000000000001,
+       72.5,
+       64.9,
+       76.7,
+       59.300000000000004,
+       62.7,
+       63.5,
+       72.7,
+       63.5,
+       86.60000000000001,
+       84.80000000000001,
+       61.300000000000004
+      ],
+      "mean": 69.32499999999999,
+      "std": 11.061969712173484,
+      "min": 34.9,
+      "max": 86.60000000000001,
+      "level": 95,
+      "pct": 84.80000000000001,
+      "n_valid": 24,
+      "pass_rate": null,
+      "pass": null
+     },
+     {
+      "id": "wheel_momentum_peak",
+      "unit": "N m s",
+      "req": null,
+      "values": [
+       0.0034001017753207286,
+       0.002980375729519886,
+       0.0031867940845892277,
+       0.003123872119167719,
+       0.0029776201952683265,
+       0.0033550070180716775,
+       0.0030709579475687995,
+       0.003568272325717318,
+       0.0033211781784965944,
+       0.0028164663122011227,
+       0.0029097534781555995,
+       0.003286149243108223,
+       0.0029924494266725106,
+       0.0033436917479503017,
+       0.0028523732187191605,
+       0.0029042936497514897,
+       0.003230470265765158,
+       0.002837496773145247,
+       0.002767545779546941,
+       0.002869663520928882,
+       0.002925098953497942,
+       0.0029813525562835453,
+       0.0031655428672831714,
+       0.002930787752707328
+      ],
+      "mean": 0.0030748881216432038,
+      "std": 0.00021822445341153514,
+      "min": 0.002767545779546941,
+      "max": 0.003568272325717318,
+      "level": 95,
+      "pct": 0.0034001017753207286,
+      "n_valid": 24,
+      "pass_rate": null,
+      "pass": null
+     },
+     {
+      "id": "power_mean",
+      "unit": "W",
+      "req": 2,
+      "values": [
+       1.554034248101855,
+       1.5557602548579594,
+       1.5606301599218728,
+       1.5558906925144982,
+       1.5571215456911893,
+       1.5559188691381411,
+       1.5594426918856097,
+       1.5554184007681466,
+       1.562707061424432,
+       1.5590307087368522,
+       1.5597249011225054,
+       1.5560905173864035,
+       1.5573381739223744,
+       1.5585827840062618,
+       1.5605535214412294,
+       1.557032576060673,
+       1.5599015868230155,
+       1.5582889006184075,
+       1.5598647156661898,
+       1.5555036531493083,
+       1.556302597866278,
+       1.5584622935693195,
+       1.5587503040707387,
+       1.558863651618306
+      ],
+      "mean": 1.5579672837650653,
+      "std": 0.0021040339560029313,
+      "min": 1.554034248101855,
+      "max": 1.562707061424432,
+      "level": 95,
+      "pct": 1.5606301599218728,
+      "n_valid": 24,
+      "pass_rate": 1,
+      "pass": true
+     }
+    ]
+   },
+   "figures": [
+    "mc_fine_img_ape_los_p9973.png",
+    "mc_fine_img_ape_los_max.png",
+    "mc_fine_img_ape_3ax_p9973.png",
+    "mc_fine_img_ake_los_p9973.png",
+    "mc_fine_img_rate_stability_p9973.png",
+    "mc_fine_img_time_to_0p01_deg.png",
+    "mc_fine_img_wheel_momentum_peak.png",
+    "mc_fine_img_power_mean.png",
+    "mc_fine_img_scatter.png"
+   ]
+  },
+  "edge_fine_img": {
+   "summary": {
+    "schema": "adcs-campaign-result/1",
+    "owner": "Agastya",
+    "id": "edge_fine_img",
+    "scenario": "fine_hold_img",
+    "case": "ais_img_3u",
+    "runs": 15,
+    "stats": [
+     {
+      "id": "ape_los_p9973",
+      "unit": "deg",
+      "req": 0.01,
+      "values": [
+       0.0154872465227079,
+       0.019900945369898875,
+       0.020382410395014365,
+       0.009262548392518687,
+       0.010336910559926348,
+       0.012734565131848914,
+       0.007503482652103164,
+       0.0065938222756124765,
+       0.00839046093955514,
+       0.02034589754807098,
+       0.008339895488707217,
+       0.0121512804663755,
+       0.012867444262978577,
+       0.012864161140699538,
+       0.008180458919267088
+      ],
+      "mean": 0.012356102004352316,
+      "std": 0.004746300642939963,
+      "min": 0.0065938222756124765,
+      "max": 0.020382410395014365,
+      "level": 99.73,
+      "pct": 0.020382410395014365,
+      "n_valid": 15,
+      "pass_rate": 0.4,
+      "pass": false
+     },
+     {
+      "id": "ape_los_max",
+      "unit": "deg",
+      "req": null,
+      "values": [
+       0.01764323583666539,
+       0.0224058415074633,
+       0.023675976925125415,
+       0.012216539815967663,
+       0.013040441970550865,
+       0.015583833519536114,
+       0.010103362222574309,
+       0.007742248028667274,
+       0.010775326993859137,
+       0.023357470076779196,
+       0.011477050727428497,
+       0.014725052656187463,
+       0.016105418021559757,
+       0.014956657575672288,
+       0.009335077351704026
+      ],
+      "mean": 0.01487623554864938,
+      "std": 0.005063549799959698,
+      "min": 0.007742248028667274,
+      "max": 0.023675976925125415,
+      "level": 95,
+      "pct": 0.023675976925125415,
+      "n_valid": 15,
+      "pass_rate": null,
+      "pass": null
+     },
+     {
+      "id": "ape_3ax_p9973",
+      "unit": "deg",
+      "req": null,
+      "values": [
+       0.015520587665119179,
+       0.019999928748773075,
+       0.02055363159822206,
+       0.009327068478876717,
+       0.010480070641967395,
+       0.01280593373061128,
+       0.00871549032955435,
+       0.007054179398549671,
+       0.008696008111799367,
+       0.02048724445197757,
+       0.008345445543787989,
+       0.012182882656735162,
+       0.013315179200126434,
+       0.012952448918525789,
+       0.008256561677552269
+      ],
+      "mean": 0.012579510743478555,
+      "std": 0.004651136757355009,
+      "min": 0.007054179398549671,
+      "max": 0.02055363159822206,
+      "level": 95,
+      "pct": 0.02055363159822206,
+      "n_valid": 15,
+      "pass_rate": null,
+      "pass": null
+     },
+     {
+      "id": "ake_los_p9973",
+      "unit": "deg",
+      "req": 0.005,
+      "values": [
+       0.0032189416682774433,
+       0.002792362613019764,
+       0.0028159840299178413,
+       0.0028452372802142464,
+       0.004003468531687116,
+       0.0035351258442990214,
+       0.003245675063162594,
+       0.0033973893425269016,
+       0.0035788879614739675,
+       0.003194134834747908,
+       0.002813964242398759,
+       0.00341585628010484,
+       0.004166393000502703,
+       0.0035016355960098347,
+       0.0030726173643845366
+      ],
+      "mean": 0.0033065115768484976,
+      "std": 0.00041823905868128346,
+      "min": 0.002792362613019764,
+      "max": 0.004166393000502703,
+      "level": 99.73,
+      "pct": 0.004166393000502703,
+      "n_valid": 15,
+      "pass_rate": 1,
+      "pass": true
+     },
+     {
+      "id": "rate_stability_p9973",
+      "unit": "deg/s",
+      "req": 0.001,
+      "values": [
+       0.0038084132099386846,
+       0.0036978006557324542,
+       0.003841682006228976,
+       0.0035686856735206015,
+       0.0036087004571027682,
+       0.0037130217707804073,
+       0.0035928428609604567,
+       0.003704761777679441,
+       0.003687500810115272,
+       0.003893128063271951,
+       0.003676822749438126,
+       0.0035664676146147886,
+       0.0038515182194086626,
+       0.0035956327564157313,
+       0.0035222187437237464
+      ],
+      "mean": 0.0036886131579288045,
+      "std": 0.00011601118503918697,
+      "min": 0.0035222187437237464,
+      "max": 0.003893128063271951,
+      "level": 99.73,
+      "pct": 0.003893128063271951,
+      "n_valid": 15,
+      "pass_rate": 0,
+      "pass": false
+     },
+     {
+      "id": "time_to_0p01_deg",
+      "unit": "s",
+      "req": null,
+      "values": [
+       66.9,
+       67.3,
+       66.60000000000001,
+       88.7,
+       67.4,
+       67.8,
+       66.4,
+       86.2,
+       66.10000000000001,
+       83.2,
+       68.9,
+       67.9,
+       57.400000000000006,
+       86.80000000000001,
+       67.3
+      ],
+      "mean": 71.66000000000001,
+      "std": 9.51380951189225,
+      "min": 57.400000000000006,
+      "max": 88.7,
+      "level": 95,
+      "pct": 88.7,
+      "n_valid": 15,
+      "pass_rate": null,
+      "pass": null
+     },
+     {
+      "id": "wheel_momentum_peak",
+      "unit": "N m s",
+      "req": null,
+      "values": [
+       0.003275401921802741,
+       0.003284751786406322,
+       0.003442833416611283,
+       0.0036511446119665077,
+       0.0032722993902323623,
+       0.003288087123606338,
+       0.003311998805277049,
+       0.003281113651123278,
+       0.00330369070453631,
+       0.003286348028169598,
+       0.003272983349749416,
+       0.0033076501372468485,
+       0.0032842932120027086,
+       0.003255288693859423,
+       0.0036389599596849936
+      ],
+      "mean": 0.003343789652818345,
+      "std": 0.000129646904365572,
+      "min": 0.003255288693859423,
+      "max": 0.0036511446119665077,
+      "level": 95,
+      "pct": 0.0036511446119665077,
+      "n_valid": 15,
+      "pass_rate": null,
+      "pass": null
+     },
+     {
+      "id": "power_mean",
+      "unit": "W",
+      "req": 2,
+      "values": [
+       1.5572752937304102,
+       1.556738722747774,
+       1.5567526466220711,
+       1.5642713546809506,
+       1.5572882831562271,
+       1.5566639091827223,
+       1.5566920363451981,
+       1.5564459936598216,
+       1.5571927592040669,
+       1.5568408160135652,
+       1.5567380194603295,
+       1.556737270133947,
+       1.5562233893569999,
+       1.5565732015793994,
+       1.560884508117425
+      ],
+      "mean": 1.557554546932727,
+      "std": 0.002157009671306743,
+      "min": 1.5562233893569999,
+      "max": 1.5642713546809506,
+      "level": 95,
+      "pct": 1.5642713546809506,
+      "n_valid": 15,
+      "pass_rate": 1,
+      "pass": true
+     }
+    ]
+   },
+   "figures": [
+    "edge_fine_img_ape_los_p9973.png",
+    "edge_fine_img_ape_los_max.png",
+    "edge_fine_img_ape_3ax_p9973.png",
+    "edge_fine_img_ake_los_p9973.png",
+    "edge_fine_img_rate_stability_p9973.png",
+    "edge_fine_img_time_to_0p01_deg.png",
+    "edge_fine_img_wheel_momentum_peak.png",
+    "edge_fine_img_power_mean.png",
+    "edge_fine_img_scatter.png"
+   ]
+  },
+  "mc_slew_img": {
+   "summary": {
+    "schema": "adcs-campaign-result/1",
+    "owner": "Agastya",
+    "id": "mc_slew_img",
+    "scenario": "slew_img",
+    "case": "ais_img_3u",
+    "runs": 40,
+    "stats": [
+     {
+      "id": "settle_time_after_slew",
+      "unit": "s",
+      "req": 20,
+      "values": [
+       12.800000000000011,
+       11.800000000000011,
+       12.600000000000023,
+       14.400000000000034,
+       12.600000000000023,
+       14.100000000000023,
+       12,
+       13.900000000000034,
+       14.300000000000011,
+       13.5,
+       11.800000000000011,
+       12.300000000000011,
+       14.5,
+       13.900000000000034,
+       12.5,
+       11.100000000000023,
+       11.600000000000023,
+       14.300000000000011,
+       11.400000000000034,
+       13.800000000000011,
+       13.300000000000011,
+       12.300000000000011,
+       12.800000000000011,
+       13.300000000000011,
+       12.800000000000011,
+       13.400000000000034,
+       12,
+       11.800000000000011,
+       12.699999999999989,
+       12.100000000000023,
+       13.300000000000011,
+       12.900000000000034,
+       13.100000000000023,
+       14.900000000000034,
+       13.699999999999989,
+       12.600000000000023,
+       14.100000000000023,
+       14.199999999999989,
+       13.400000000000034,
+       13.300000000000011
+      ],
+      "mean": 13.030000000000015,
+      "std": 0.959487042442672,
+      "min": 11.100000000000023,
+      "max": 14.900000000000034,
+      "level": 95,
+      "pct": 14.400000000000034,
+      "n_valid": 40,
+      "pass_rate": 1,
+      "pass": true
+     },
+     {
+      "id": "ape_los_on_target_p9973",
+      "unit": "deg",
+      "req": 0.01,
+      "values": [
+       0.00786198815258464,
+       0.007932115697412322,
+       0.006359548309769429,
+       0.009486728384752962,
+       0.009591526771511821,
+       0.010089919937845063,
+       0.008550677086293404,
+       0.008038485638986119,
+       0.009372904338183451,
+       0.007363041592923382,
+       0.0077895320121109494,
+       0.008058855382273696,
+       0.00600992259067851,
+       0.006742644713309271,
+       0.00783755288767786,
+       0.007949490919686416,
+       0.0065208595316375425,
+       0.007955551215216166,
+       0.007724629211333086,
+       0.009248468501763621,
+       0.006963371948666292,
+       0.009289125237757804,
+       0.007034704993663575,
+       0.008105816391919898,
+       0.011137434625933388,
+       0.007156693516485885,
+       0.007791171280776356,
+       0.0070751058425418956,
+       0.008521991172195442,
+       0.009422310104026511,
+       0.006655168916886913,
+       0.008227961750544733,
+       0.008304877319187288,
+       0.00880946391525814,
+       0.010088686343651542,
+       0.008459398168560273,
+       0.008819710546490854,
+       0.00790299864044068,
+       0.006631313611412668,
+       0.009136818873402416
+      ],
+      "mean": 0.008150464151893806,
+      "std": 0.0011481968379974245,
+      "min": 0.00600992259067851,
+      "max": 0.011137434625933388,
+      "level": 99.73,
+      "pct": 0.011137434625933388,
+      "n_valid": 40,
+      "pass_rate": 0.925,
+      "pass": false
+     },
+     {
+      "id": "wheel_momentum_peak",
+      "unit": "N m s",
+      "req": null,
+      "values": [
+       0.003704095014591107,
+       0.003055769063501751,
+       0.003554958166225563,
+       0.003667928038114322,
+       0.0034693256456257977,
+       0.0036840039261138696,
+       0.003574872504242339,
+       0.0034795133659827346,
+       0.003216107138115564,
+       0.003021417845363275,
+       0.0030791401016638615,
+       0.003096434589084856,
+       0.0037320424642273533,
+       0.0037466297388104738,
+       0.00362735993189941,
+       0.00363139572634593,
+       0.003366966139202637,
+       0.0036663262216158005,
+       0.0037700899111334355,
+       0.003680065065832808,
+       0.003072935005789329,
+       0.003504296076350131,
+       0.0030954731178849137,
+       0.0029524376133797272,
+       0.003693684394326918,
+       0.0036065090620488647,
+       0.003780518785691877,
+       0.0037617286550931358,
+       0.003094606155656524,
+       0.0036869503578581147,
+       0.003600307784843087,
+       0.003701669856504636,
+       0.003616695667112521,
+       0.003157154760627925,
+       0.003587964958880608,
+       0.0036446469007286506,
+       0.0030723056222346757,
+       0.0034698349510390663,
+       0.0031891703590762937,
+       0.00386824413747427
+      ],
+      "mean": 0.003474539370507354,
+      "std": 0.0002727562890878525,
+      "min": 0.0029524376133797272,
+      "max": 0.00386824413747427,
+      "level": 95,
+      "pct": 0.0037700899111334355,
+      "n_valid": 40,
+      "pass_rate": null,
+      "pass": null
+     }
+    ]
+   },
+   "figures": [
+    "mc_slew_img_settle_time_after_slew.png",
+    "mc_slew_img_ape_los_on_target_p9973.png",
+    "mc_slew_img_wheel_momentum_peak.png",
+    "mc_slew_img_scatter.png"
+   ]
+  },
+  "mc_slew_cmg": {
+   "summary": {
+    "schema": "adcs-campaign-result/1",
+    "owner": "Agastya",
+    "id": "mc_slew_cmg",
+    "scenario": "slew_cmg",
+    "case": "ais_img_3u",
+    "runs": 20,
+    "stats": [
+     {
+      "id": "settle_time_after_slew",
+      "unit": "s",
+      "req": 20,
+      "values": [
+       14.300000000000011,
+       13.800000000000011,
+       13.800000000000011,
+       13.5,
+       12.800000000000011,
+       13,
+       12.900000000000034,
+       12.900000000000034,
+       13.100000000000023,
+       13.100000000000023,
+       12.400000000000034,
+       12.800000000000011,
+       12.800000000000011,
+       13.400000000000034,
+       13.400000000000034,
+       13.199999999999989,
+       13.199999999999989,
+       13,
+       12.600000000000023,
+       12.699999999999989
+      ],
+      "mean": 13.135000000000014,
+      "std": 0.4602916695451155,
+      "min": 12.400000000000034,
+      "max": 14.300000000000011,
+      "level": 95,
+      "pct": 13.800000000000011,
+      "n_valid": 20,
+      "pass_rate": 1,
+      "pass": true
+     },
+     {
+      "id": "ape_los_on_target_p9973",
+      "unit": "deg",
+      "req": 0.01,
+      "values": [
+       0.002885872884441348,
+       0.004165908523167665,
+       0.004001112614095786,
+       0.003518500536402395,
+       0.003227737989600814,
+       0.0035762518455229905,
+       0.004057440303966911,
+       0.004419301133229235,
+       0.003914879698818392,
+       0.004324339077527894,
+       0.004481585552306949,
+       0.0036776641475126967,
+       0.005956509268326826,
+       0.004133136828662657,
+       0.004192004694822349,
+       0.0033793711230824196,
+       0.003689963079687714,
+       0.0038933699663804373,
+       0.0037824727988660656,
+       0.0033431892229922495
+      ],
+      "mean": 0.003931030564470689,
+      "std": 0.0006350612793096191,
+      "min": 0.002885872884441348,
+      "max": 0.005956509268326826,
+      "level": 99.73,
+      "pct": 0.005956509268326826,
+      "n_valid": 20,
+      "pass_rate": 1,
+      "pass": true
+     },
+     {
+      "id": "wheel_momentum_peak",
+      "unit": "N m s",
+      "req": null,
+      "values": [
+       0.004,
+       0.004,
+       0.004,
+       0.004,
+       0.004,
+       0.004,
+       0.004,
+       0.004,
+       0.004,
+       0.004,
+       0.004,
+       0.004,
+       0.004,
+       0.004,
+       0.004,
+       0.004,
+       0.004,
+       0.004,
+       0.004,
+       0.004
+      ],
+      "mean": 0.004000000000000002,
+      "std": 0,
+      "min": 0.004,
+      "max": 0.004,
+      "level": 95,
+      "pct": 0.004,
+      "n_valid": 20,
+      "pass_rate": null,
+      "pass": null
+     }
+    ]
+   },
+   "figures": [
+    "mc_slew_cmg_settle_time_after_slew.png",
+    "mc_slew_cmg_ape_los_on_target_p9973.png",
+    "mc_slew_cmg_wheel_momentum_peak.png",
+    "mc_slew_cmg_scatter.png"
+   ]
+  },
+  "mc_agile_rw_rcs": {
+   "summary": {
+    "schema": "adcs-campaign-result/1",
+    "owner": "Agastya",
+    "id": "mc_agile_rw_rcs",
+    "scenario": "agile_slew_rw_rcs",
+    "case": "ais_img_3u",
+    "runs": 20,
+    "stats": [
+     {
+      "id": "settle_time_after_slew",
+      "unit": "s",
+      "req": null,
+      "values": [
+       42.60000000000002,
+       40.5,
+       39.60000000000002,
+       37.80000000000001,
+       37.900000000000006,
+       38.10000000000002,
+       42.400000000000034,
+       38.70000000000002,
+       36.20000000000002,
+       38.900000000000006,
+       40.70000000000002,
+       40.10000000000002,
+       38.70000000000002,
+       39.400000000000006,
+       40.30000000000001,
+       36.900000000000006,
+       38.20000000000002,
+       37.400000000000006,
+       29.600000000000023,
+       39.10000000000002
+      ],
+      "mean": 38.65500000000002,
+      "std": 2.696679244435353,
+      "min": 29.600000000000023,
+      "max": 42.60000000000002,
+      "level": 95,
+      "pct": 42.400000000000034,
+      "n_valid": 20,
+      "pass_rate": null,
+      "pass": null
+     },
+     {
+      "id": "ape_los_on_target_p9973",
+      "unit": "deg",
+      "req": 0.01,
+      "values": [
+       0.007249884313318129,
+       0.008676899558953484,
+       0.008883023977563268,
+       0.007846605761420756,
+       0.008122805483484732,
+       0.008275209738942723,
+       0.0097700975448546,
+       0.008368577970921068,
+       0.007485053282431914,
+       0.008253029135294057,
+       0.00832872309606695,
+       0.008600898939855607,
+       0.007631775608556518,
+       0.009531013805910182,
+       0.0074055348228266905,
+       0.009200231070198642,
+       0.008470825031006317,
+       0.00890480724156493,
+       0.007334570786321002,
+       0.00840648095205724
+      ],
+      "mean": 0.00833730240607744,
+      "std": 0.0007118851708875846,
+      "min": 0.007249884313318129,
+      "max": 0.0097700975448546,
+      "level": 99.73,
+      "pct": 0.0097700975448546,
+      "n_valid": 20,
+      "pass_rate": 1,
+      "pass": true
+     },
+     {
+      "id": "wheel_momentum_peak",
+      "unit": "N m s",
+      "req": null,
+      "values": [
+       0.0033533376650381743,
+       0.0034608353505211223,
+       0.0033596864642858287,
+       0.003397542908725917,
+       0.003374897668549898,
+       0.0033409505276676232,
+       0.0034371033308030906,
+       0.0033276692836587286,
+       0.003372181704125066,
+       0.0034042344166576905,
+       0.0034063178776280456,
+       0.003344732947645279,
+       0.0034396287788750193,
+       0.0033266389332219787,
+       0.003404449061145636,
+       0.003419134089598057,
+       0.003328548674410548,
+       0.003395748840979625,
+       0.003470619859474035,
+       0.0034593784033100866
+      ],
+      "mean": 0.0033911818393160724,
+      "std": 4.6758257075556306e-05,
+      "min": 0.0033266389332219787,
+      "max": 0.003470619859474035,
+      "level": 95,
+      "pct": 0.0034608353505211223,
+      "n_valid": 20,
+      "pass_rate": null,
+      "pass": null
+     }
+    ]
+   },
+   "figures": [
+    "mc_agile_rw_rcs_settle_time_after_slew.png",
+    "mc_agile_rw_rcs_ape_los_on_target_p9973.png",
+    "mc_agile_rw_rcs_wheel_momentum_peak.png",
+    "mc_agile_rw_rcs_scatter.png"
+   ]
+  }
+ },
+ "trades": [
+  {
+   "id": "trade_detumble_ais",
+   "label": "AIS 3U \u2014 detumble law (coils only)",
+   "question": "Which B-dot variant brings a 10 deg/s tumble below 0.5 deg/s fastest, within the power budget?",
+   "kind": "algorithm",
+   "slot": "detumble",
+   "promote_to": "TRN-P-3U-AIS",
+   "objective": {
+    "metric": "detumble_time",
+    "sense": "min"
+   },
+   "tie_break": {
+    "metric": "power_mean",
+    "sense": "min"
+   },
+   "seeds": [
+    1,
+    2,
+    3
+   ],
+   "ranking": [
+    "genbdot_l1",
+    "bdot_gyro",
+    "bdot_mag",
+    "bdot_bangbang"
+   ],
+   "selected": "genbdot_l1",
+   "rationale": "genbdot_l1: feasible on all 3 seeds, worst detumble_time 48.04 min, power_mean 0.428",
+   "status": "PROPOSED \u00b7 awaiting a person",
+   "candidates": [
+    {
+     "id": "genbdot_l1",
+     "label": "Standard Code L1 generalised B-dot (w_d = 0)",
+     "scenario": "detumble_ais",
+     "product": "TRN-P-3U-AIS",
+     "algorithms": {
+      "detumble": "genbdot_l1",
+      "attitude": "mekf",
+      "pointing": "",
+      "mtq_pointing": "mtq_pd",
+      "sun_spin": "sunspin_l1l2",
+      "allocation": "",
+      "thrusters": ""
+     },
+     "n": 3,
+     "n_err": 0,
+     "obj": 48.04,
+     "obj_mean": 45.067777777777785,
+     "obj_seeds": [
+      44.10666666666667,
+      48.04,
+      43.056666666666665
+     ],
+     "tie": 0.42757429628128957,
+     "pass_rate": 100,
+     "feasible": true,
+     "metrics": {
+      "detumble_time": {
+       "mean": 45.067777777777785,
+       "worst": 48.04,
+       "values": [
+        44.10666666666667,
+        48.04,
+        43.056666666666665
+       ],
+       "unit": "min",
+       "pass": [
+        1,
+        1,
+        1
+       ]
+      },
+      "power_mean": {
+       "mean": 0.42757429628128957,
+       "worst": 0.48076563635538005,
+       "values": [
+        0.48076563635538005,
+        0.3742819953083166,
+        0.4276752571801721
+       ],
+       "unit": "W",
+       "pass": [
+        1,
+        1,
+        1
+       ]
+      },
+      "power_peak": {
+       "mean": 0.6950170898437499,
+       "worst": 0.7041247558593751,
+       "values": [
+        0.7041247558593751,
+        0.6792260742187499,
+        0.701700439453125
+       ],
+       "unit": "W",
+       "pass": [
+        1,
+        1,
+        1
+       ]
+      }
+     },
+     "errors": []
+    },
+    {
+     "id": "bdot_gyro",
+     "label": "B-dot, gyro-fed db/dt = -w x b",
+     "scenario": "detumble_ais",
+     "product": "TRN-P-3U-AIS",
+     "algorithms": {
+      "detumble": "bdot_gyro",
+      "attitude": "mekf",
+      "pointing": "",
+      "mtq_pointing": "mtq_pd",
+      "sun_spin": "sunspin_l1l2",
+      "allocation": "",
+      "thrusters": ""
+     },
+     "n": 3,
+     "n_err": 0,
+     "obj": 60.07333333333334,
+     "obj_mean": 57.40666666666667,
+     "obj_seeds": [
+      58.25666666666667,
+      53.89,
+      60.07333333333334
+     ],
+     "tie": 0.02913789896503584,
+     "pass_rate": 100,
+     "feasible": true,
+     "metrics": {
+      "detumble_time": {
+       "mean": 57.40666666666667,
+       "worst": 60.07333333333334,
+       "values": [
+        58.25666666666667,
+        53.89,
+        60.07333333333334
+       ],
+       "unit": "min",
+       "pass": [
+        1,
+        1,
+        1
+       ]
+      },
+      "power_mean": {
+       "mean": 0.02913789896503584,
+       "worst": 0.031574226979459136,
+       "values": [
+        0.031574226979459136,
+        0.029179637740478718,
+        0.02665983217516967
+       ],
+       "unit": "W",
+       "pass": [
+        1,
+        1,
+        1
+       ]
+      },
+      "power_peak": {
+       "mean": 0.470592041015625,
+       "worst": 0.5470935058593749,
+       "values": [
+        0.363907470703125,
+        0.500775146484375,
+        0.5470935058593749
+       ],
+       "unit": "W",
+       "pass": [
+        1,
+        1,
+        1
+       ]
+      }
+     },
+     "errors": []
+    },
+    {
+     "id": "bdot_mag",
+     "label": "B-dot, magnetometer finite difference",
+     "scenario": "detumble_ais",
+     "product": "TRN-P-3U-AIS",
+     "algorithms": {
+      "detumble": "bdot_mag",
+      "attitude": "mekf",
+      "pointing": "",
+      "mtq_pointing": "mtq_pd",
+      "sun_spin": "sunspin_l1l2",
+      "allocation": "",
+      "thrusters": ""
+     },
+     "n": 3,
+     "n_err": 0,
+     "obj": 61.32333333333334,
+     "obj_mean": 57.94555555555556,
+     "obj_seeds": [
+      58.54,
+      53.973333333333336,
+      61.32333333333334
+     ],
+     "tie": 0.08095917590662689,
+     "pass_rate": 100,
+     "feasible": true,
+     "metrics": {
+      "detumble_time": {
+       "mean": 57.94555555555556,
+       "worst": 61.32333333333334,
+       "values": [
+        58.54,
+        53.973333333333336,
+        61.32333333333334
+       ],
+       "unit": "min",
+       "pass": [
+        1,
+        1,
+        1
+       ]
+      },
+      "power_mean": {
+       "mean": 0.08095917590662689,
+       "worst": 0.08431013017090726,
+       "values": [
+        0.07814432136689146,
+        0.08431013017090726,
+        0.08042307618208198
+       ],
+       "unit": "W",
+       "pass": [
+        1,
+        1,
+        1
+       ]
+      },
+      "power_peak": {
+       "mean": 0.64536376953125,
+       "worst": 0.680247802734375,
+       "values": [
+        0.593118896484375,
+        0.680247802734375,
+        0.6627246093749999
+       ],
+       "unit": "W",
+       "pass": [
+        1,
+        1,
+        1
+       ]
+      }
+     },
+     "errors": []
+    },
+    {
+     "id": "bdot_bangbang",
+     "label": "bang-bang B-dot (full dipole)",
+     "scenario": "detumble_ais",
+     "product": "TRN-P-3U-AIS",
+     "algorithms": {
+      "detumble": "bdot_bangbang",
+      "attitude": "mekf",
+      "pointing": "",
+      "mtq_pointing": "mtq_pd",
+      "sun_spin": "sunspin_l1l2",
+      "allocation": "",
+      "thrusters": ""
+     },
+     "n": 3,
+     "n_err": 0,
+     "obj": null,
+     "obj_mean": null,
+     "obj_seeds": [
+      null,
+      null,
+      null
+     ],
+     "tie": 0.7118450336044043,
+     "pass_rate": 33.333333333333336,
+     "feasible": false,
+     "metrics": {
+      "detumble_time": {
+       "mean": null,
+       "worst": null,
+       "values": [
+        null,
+        null,
+        null
+       ],
+       "unit": "min",
+       "pass": [
+        0,
+        0,
+        0
+       ]
+      },
+      "power_mean": {
+       "mean": 0.7118450336044043,
+       "worst": 0.711913154707853,
+       "values": [
+        0.711913154707853,
+        0.711865249366788,
+        0.7117566967385722
+       ],
+       "unit": "W",
+       "pass": [
+        0,
+        0,
+        0
+       ]
+      },
+      "power_peak": {
+       "mean": 0.7189660644531249,
+       "worst": 0.7199780273437499,
+       "values": [
+        0.7199780273437499,
+        0.7169421386718751,
+        0.7199780273437499
+       ],
+       "unit": "W",
+       "pass": [
+        1,
+        1,
+        1
+       ]
+      }
+     },
+     "errors": []
+    }
+   ],
+   "figure": "trade_detumble_ais.png"
+  },
+  {
+   "id": "trade_mtq_pointing_ais",
+   "label": "AIS 3U \u2014 magnetic pointing law (coils only, 10 deg)",
+   "question": "Which coils-only three-axis law gives the smallest antenna pointing error over the last orbit?",
+   "kind": "algorithm",
+   "slot": "mtq_pointing",
+   "promote_to": "TRN-P-3U-AIS",
+   "objective": {
+    "metric": "ape_los_last_orbit",
+    "sense": "min"
+   },
+   "tie_break": {
+    "metric": "power_mean",
+    "sense": "min"
+   },
+   "seeds": [
+    1,
+    2,
+    3
+   ],
+   "ranking": [
+    "mtq_pd",
+    "mtq_rate_damp",
+    "mtq_smc",
+    "mtq_lqr"
+   ],
+   "selected": "mtq_pd",
+   "rationale": "mtq_pd: feasible on all 3 seeds, worst ape_los_last_orbit 9.625 deg, power_mean 0.0107",
+   "status": "PROPOSED \u00b7 awaiting a person",
+   "candidates": [
+    {
+     "id": "mtq_pd",
+     "label": "quaternion PD, projected on the field",
+     "scenario": "nadir_hold_ais",
+     "product": "TRN-P-3U-AIS",
+     "algorithms": {
+      "detumble": "bdot_gyro",
+      "attitude": "mekf",
+      "pointing": "",
+      "mtq_pointing": "mtq_pd",
+      "sun_spin": "sunspin_l1l2",
+      "allocation": "",
+      "thrusters": ""
+     },
+     "n": 3,
+     "n_err": 0,
+     "obj": 9.62540475588545,
+     "obj_mean": 8.062760244211253,
+     "obj_seeds": [
+      7.2484288392594065,
+      7.314447137488903,
+      9.62540475588545
+     ],
+     "tie": 0.010699462252663943,
+     "pass_rate": 100,
+     "feasible": true,
+     "metrics": {
+      "ape_3axis_last_orbit": {
+       "mean": 59.76798913848205,
+       "worst": 72.96018524099289,
+       "values": [
+        49.93332045239301,
+        56.410461722060276,
+        72.96018524099289
+       ],
+       "unit": "deg",
+       "pass": [
+        null,
+        null,
+        null
+       ]
+      },
+      "ape_los_last_orbit": {
+       "mean": 8.062760244211253,
+       "worst": 9.62540475588545,
+       "values": [
+        7.2484288392594065,
+        7.314447137488903,
+        9.62540475588545
+       ],
+       "unit": "deg",
+       "pass": [
+        1,
+        1,
+        1
+       ]
+      },
+      "ake_los_last_orbit": {
+       "mean": 3.160400955074796,
+       "worst": 3.863572749542529,
+       "values": [
+        3.863572749542529,
+        3.500813347560771,
+        2.1168167681210885
+       ],
+       "unit": "deg",
+       "pass": [
+        1,
+        1,
+        1
+       ]
+      },
+      "power_mean": {
+       "mean": 0.010699462252663943,
+       "worst": 0.01080065146035819,
+       "values": [
+        0.01080065146035819,
+        0.010514438718420702,
+        0.010783296579212932
+       ],
+       "unit": "W",
+       "pass": [
+        1,
+        1,
+        1
+       ]
+      }
+     },
+     "errors": []
+    },
+    {
+     "id": "mtq_rate_damp",
+     "label": "rate damping only + gravity gradient",
+     "scenario": "nadir_hold_ais",
+     "product": "TRN-P-3U-AIS",
+     "algorithms": {
+      "detumble": "bdot_gyro",
+      "attitude": "mekf",
+      "pointing": "",
+      "mtq_pointing": "mtq_rate_damp",
+      "sun_spin": "sunspin_l1l2",
+      "allocation": "",
+      "thrusters": ""
+     },
+     "n": 3,
+     "n_err": 0,
+     "obj": 17.11664739688878,
+     "obj_mean": 15.268631882948947,
+     "obj_seeds": [
+      15.305451550824358,
+      13.383796701133708,
+      17.11664739688878
+     ],
+     "tie": 0.010618082942201743,
+     "pass_rate": 66.66666666666667,
+     "feasible": false,
+     "metrics": {
+      "ape_3axis_last_orbit": {
+       "mean": 105.01079125033716,
+       "worst": 111.91954652156335,
+       "values": [
+        109.65690598020143,
+        93.45592124924673,
+        111.91954652156335
+       ],
+       "unit": "deg",
+       "pass": [
+        null,
+        null,
+        null
+       ]
+      },
+      "ape_los_last_orbit": {
+       "mean": 15.268631882948947,
+       "worst": 17.11664739688878,
+       "values": [
+        15.305451550824358,
+        13.383796701133708,
+        17.11664739688878
+       ],
+       "unit": "deg",
+       "pass": [
+        0,
+        0,
+        0
+       ]
+      },
+      "ake_los_last_orbit": {
+       "mean": 1.6119477554868897,
+       "worst": 1.6881647866895093,
+       "values": [
+        1.6146647036579789,
+        1.5330137761131806,
+        1.6881647866895093
+       ],
+       "unit": "deg",
+       "pass": [
+        1,
+        1,
+        1
+       ]
+      },
+      "power_mean": {
+       "mean": 0.010618082942201743,
+       "worst": 0.010683711063958063,
+       "values": [
+        0.010670506757737635,
+        0.01050003100490953,
+        0.010683711063958063
+       ],
+       "unit": "W",
+       "pass": [
+        1,
+        1,
+        1
+       ]
+      }
+     },
+     "errors": []
+    },
+    {
+     "id": "mtq_smc",
+     "label": "sliding mode, projected",
+     "scenario": "nadir_hold_ais",
+     "product": "TRN-P-3U-AIS",
+     "algorithms": {
+      "detumble": "bdot_gyro",
+      "attitude": "mekf",
+      "pointing": "",
+      "mtq_pointing": "mtq_smc",
+      "sun_spin": "sunspin_l1l2",
+      "allocation": "",
+      "thrusters": ""
+     },
+     "n": 3,
+     "n_err": 0,
+     "obj": 18.354128353348944,
+     "obj_mean": 11.913053651228049,
+     "obj_seeds": [
+      5.681123050784533,
+      18.354128353348944,
+      11.70390954955067
+     ],
+     "tie": 0.010513596538882397,
+     "pass_rate": 66.66666666666667,
+     "feasible": false,
+     "metrics": {
+      "ape_3axis_last_orbit": {
+       "mean": 147.56168286260896,
+       "worst": 179.99240900400775,
+       "values": [
+        82.71757836180878,
+        179.97506122201037,
+        179.99240900400775
+       ],
+       "unit": "deg",
+       "pass": [
+        null,
+        null,
+        null
+       ]
+      },
+      "ape_los_last_orbit": {
+       "mean": 11.913053651228049,
+       "worst": 18.354128353348944,
+       "values": [
+        5.681123050784533,
+        18.354128353348944,
+        11.70390954955067
+       ],
+       "unit": "deg",
+       "pass": [
+        1,
+        0,
+        0
+       ]
+      },
+      "ake_los_last_orbit": {
+       "mean": 5.176906810792953,
+       "worst": 8.980888891406844,
+       "values": [
+        3.1943726701404964,
+        8.980888891406844,
+        3.3554588708315176
+       ],
+       "unit": "deg",
+       "pass": [
+        1,
+        0,
+        1
+       ]
+      },
+      "power_mean": {
+       "mean": 0.010513596538882397,
+       "worst": 0.010774327271436415,
+       "values": [
+        0.010774327271436415,
+        0.010266624855168658,
+        0.01049983749004212
+       ],
+       "unit": "W",
+       "pass": [
+        1,
+        1,
+        1
+       ]
+      }
+     },
+     "errors": []
+    },
+    {
+     "id": "mtq_lqr",
+     "label": "LQR (Bryson weights), projected",
+     "scenario": "nadir_hold_ais",
+     "product": "TRN-P-3U-AIS",
+     "algorithms": {
+      "detumble": "bdot_gyro",
+      "attitude": "mekf",
+      "pointing": "",
+      "mtq_pointing": "mtq_lqr",
+      "sun_spin": "sunspin_l1l2",
+      "allocation": "",
+      "thrusters": ""
+     },
+     "n": 3,
+     "n_err": 0,
+     "obj": 24.133480069700163,
+     "obj_mean": 20.59649494316271,
+     "obj_seeds": [
+      24.133480069700163,
+      19.14789389535335,
+      18.508110864434624
+     ],
+     "tie": 0.010320037581296125,
+     "pass_rate": 66.66666666666667,
+     "feasible": false,
+     "metrics": {
+      "ape_3axis_last_orbit": {
+       "mean": 159.32664182696917,
+       "worst": 179.99133004908754,
+       "values": [
+        179.99133004908754,
+        118.03169072352685,
+        179.95690470829314
+       ],
+       "unit": "deg",
+       "pass": [
+        null,
+        null,
+        null
+       ]
+      },
+      "ape_los_last_orbit": {
+       "mean": 20.59649494316271,
+       "worst": 24.133480069700163,
+       "values": [
+        24.133480069700163,
+        19.14789389535335,
+        18.508110864434624
+       ],
+       "unit": "deg",
+       "pass": [
+        0,
+        0,
+        0
+       ]
+      },
+      "ake_los_last_orbit": {
+       "mean": 3.027383993120497,
+       "worst": 3.471190461725094,
+       "values": [
+        3.3170784536953617,
+        2.2938830639410357,
+        3.471190461725094
+       ],
+       "unit": "deg",
+       "pass": [
+        1,
+        1,
+        1
+       ]
+      },
+      "power_mean": {
+       "mean": 0.010320037581296125,
+       "worst": 0.010454330023458868,
+       "values": [
+        0.010218228700718833,
+        0.010287554019710673,
+        0.010454330023458868
+       ],
+       "unit": "W",
+       "pass": [
+        1,
+        1,
+        1
+       ]
+      }
+     },
+     "errors": []
+    }
+   ],
+   "figure": "trade_mtq_pointing_ais.png"
+  },
+  {
+   "id": "trade_sun_spin_ais",
+   "label": "AIS 3U \u2014 Sun-pointing spin law (coils only)",
+   "question": "Which L1/L2 variant keeps the bus in the Sun-pointing spin (and -Z_B on the Sun) for the largest share of an orbit, eclipses included?",
+   "kind": "algorithm",
+   "slot": "sun_spin",
+   "promote_to": "TRN-P-3U-AIS",
+   "objective": {
+    "metric": "sun_spin_share_last_orbit",
+    "sense": "max"
+   },
+   "tie_break": {
+    "metric": "sun_angle_last_orbit",
+    "sense": "min"
+   },
+   "seeds": [
+    1,
+    2
+   ],
+   "ranking": [
+    "sunspin_damped",
+    "sunspin_l1l2",
+    "sunspin_l1l2_e2"
+   ],
+   "selected": "sunspin_damped",
+   "rationale": "sunspin_damped: feasible on all 2 seeds, worst sun_spin_share_last_orbit 100 %, sun_angle_last_orbit 4.82",
+   "status": "PROPOSED \u00b7 awaiting a person",
+   "candidates": [
+    {
+     "id": "sunspin_damped",
+     "label": "E2 + nutation damping on both transverse axes",
+     "scenario": "sun_spin_ais",
+     "product": "TRN-P-3U-AIS",
+     "algorithms": {
+      "detumble": "genbdot_l1",
+      "attitude": "mekf",
+      "pointing": "",
+      "mtq_pointing": "mtq_pd",
+      "sun_spin": "sunspin_damped",
+      "allocation": "",
+      "thrusters": ""
+     },
+     "n": 2,
+     "n_err": 0,
+     "obj": 100,
+     "obj_mean": 100,
+     "obj_seeds": [
+      100,
+      100
+     ],
+     "tie": 4.822521914846028,
+     "pass_rate": 100,
+     "feasible": true,
+     "metrics": {
+      "sun_spin_entry": {
+       "mean": 38.84,
+       "worst": 40.440000000000005,
+       "values": [
+        40.440000000000005,
+        37.24
+       ],
+       "unit": "min",
+       "pass": [
+        1,
+        1
+       ]
+      },
+      "sun_angle_last_orbit": {
+       "mean": 4.822521914846028,
+       "worst": 6.201587491910298,
+       "values": [
+        3.443456337781758,
+        6.201587491910298
+       ],
+       "unit": "deg",
+       "pass": [
+        1,
+        1
+       ]
+      },
+      "spin_rate_error_last_orbit": {
+       "mean": 0.043618288560743936,
+       "worst": 0.06861811896817198,
+       "values": [
+        0.018618458153315892,
+        0.06861811896817198
+       ],
+       "unit": "deg/s",
+       "pass": [
+        1,
+        1
+       ]
+      },
+      "sun_spin_share_last_orbit": {
+       "mean": 100,
+       "worst": 100,
+       "values": [
+        100,
+        100
+       ],
+       "unit": "%",
+       "pass": [
+        1,
+        1
+       ]
+      },
+      "power_mean": {
+       "mean": 0.22186909605987334,
+       "worst": 0.27932177745716463,
+       "values": [
+        0.16441641466258206,
+        0.27932177745716463
+       ],
+       "unit": "W",
+       "pass": [
+        1,
+        1
+       ]
+      }
+     },
+     "errors": []
+    },
+    {
+     "id": "sunspin_l1l2",
+     "label": "Standard Code port: L1 spin-up + He et al. L2, eclipse E1 (coils off)",
+     "scenario": "sun_spin_ais",
+     "product": "TRN-P-3U-AIS",
+     "algorithms": {
+      "detumble": "genbdot_l1",
+      "attitude": "mekf",
+      "pointing": "",
+      "mtq_pointing": "mtq_pd",
+      "sun_spin": "sunspin_l1l2",
+      "allocation": "",
+      "thrusters": ""
+     },
+     "n": 2,
+     "n_err": 0,
+     "obj": 64.55828541557763,
+     "obj_mean": 71.68496253702736,
+     "obj_seeds": [
+      78.81163965847708,
+      64.55828541557763
+     ],
+     "tie": 11.987966207951319,
+     "pass_rate": 80,
+     "feasible": false,
+     "metrics": {
+      "sun_spin_entry": {
+       "mean": 38.84,
+       "worst": 40.440000000000005,
+       "values": [
+        40.440000000000005,
+        37.24
+       ],
+       "unit": "min",
+       "pass": [
+        1,
+        1
+       ]
+      },
+      "sun_angle_last_orbit": {
+       "mean": 11.987966207951319,
+       "worst": 17.473173276725927,
+       "values": [
+        6.50275913917671,
+        17.473173276725927
+       ],
+       "unit": "deg",
+       "pass": [
+        1,
+        1
+       ]
+      },
+      "spin_rate_error_last_orbit": {
+       "mean": 0.05836658225296522,
+       "worst": 0.07105240795541548,
+       "values": [
+        0.04568075655051495,
+        0.07105240795541548
+       ],
+       "unit": "deg/s",
+       "pass": [
+        1,
+        1
+       ]
+      },
+      "sun_spin_share_last_orbit": {
+       "mean": 71.68496253702736,
+       "worst": 64.55828541557763,
+       "values": [
+        78.81163965847708,
+        64.55828541557763
+       ],
+       "unit": "%",
+       "pass": [
+        0,
+        0
+       ]
+      },
+      "power_mean": {
+       "mean": 0.19557189672044892,
+       "worst": 0.20619345495575098,
+       "values": [
+        0.20619345495575098,
+        0.18495033848514686
+       ],
+       "unit": "W",
+       "pass": [
+        1,
+        1
+       ]
+      }
+     },
+     "errors": []
+    },
+    {
+     "id": "sunspin_l1l2_e2",
+     "label": "the same with eclipse E2 (gyro-propagated Sun)",
+     "scenario": "sun_spin_ais",
+     "product": "TRN-P-3U-AIS",
+     "algorithms": {
+      "detumble": "genbdot_l1",
+      "attitude": "mekf",
+      "pointing": "",
+      "mtq_pointing": "mtq_pd",
+      "sun_spin": "sunspin_l1l2_e2",
+      "allocation": "",
+      "thrusters": ""
+     },
+     "n": 2,
+     "n_err": 0,
+     "obj": 50.54887611082069,
+     "obj_mean": 72.4777835859906,
+     "obj_seeds": [
+      94.40669106116049,
+      50.54887611082069
+     ],
+     "tie": 13.181919451404369,
+     "pass_rate": 90,
+     "feasible": false,
+     "metrics": {
+      "sun_spin_entry": {
+       "mean": 38.84,
+       "worst": 40.440000000000005,
+       "values": [
+        40.440000000000005,
+        37.24
+       ],
+       "unit": "min",
+       "pass": [
+        1,
+        1
+       ]
+      },
+      "sun_angle_last_orbit": {
+       "mean": 13.181919451404369,
+       "worst": 17.094968973166992,
+       "values": [
+        9.268869929641744,
+        17.094968973166992
+       ],
+       "unit": "deg",
+       "pass": [
+        1,
+        1
+       ]
+      },
+      "spin_rate_error_last_orbit": {
+       "mean": 0.056354768349998946,
+       "worst": 0.07217914615350333,
+       "values": [
+        0.040530390546494564,
+        0.07217914615350333
+       ],
+       "unit": "deg/s",
+       "pass": [
+        1,
+        1
+       ]
+      },
+      "sun_spin_share_last_orbit": {
+       "mean": 72.4777835859906,
+       "worst": 50.54887611082069,
+       "values": [
+        94.40669106116049,
+        50.54887611082069
+       ],
+       "unit": "%",
+       "pass": [
+        1,
+        0
+       ]
+      },
+      "power_mean": {
+       "mean": 0.17358604371343617,
+       "worst": 0.19239483735791346,
+       "values": [
+        0.15477725006895887,
+        0.19239483735791346
+       ],
+       "unit": "W",
+       "pass": [
+        1,
+        1
+       ]
+      }
+     },
+     "errors": []
+    }
+   ],
+   "figure": "trade_sun_spin_ais.png"
+  },
+  {
+   "id": "trade_sun_sensor_ais",
+   "label": "AIS 3U \u2014 fine Sun-sensor heads vs coarse cosine cells",
+   "question": "Do six cheap cosine Sun cells (with Earth albedo) still meet the 10 deg / 5 deg AIS requirement?",
+   "kind": "hardware",
+   "slot": "sun",
+   "promote_to": "",
+   "objective": {
+    "metric": "ape_los_last_orbit",
+    "sense": "min"
+   },
+   "tie_break": {
+    "metric": "power_mean",
+    "sense": "min"
+   },
+   "seeds": [
+    1,
+    2,
+    3
+   ],
+   "ranking": [
+    "fine_sun_heads",
+    "coarse_css"
+   ],
+   "selected": "fine_sun_heads",
+   "rationale": "fine_sun_heads: feasible on all 3 seeds, worst ape_los_last_orbit 9.625 deg, power_mean 0.0107",
+   "status": "PROPOSED \u00b7 awaiting a person",
+   "candidates": [
+    {
+     "id": "fine_sun_heads",
+     "label": "TRN-P-3U-AIS: 6 fine Sun-sensor heads",
+     "scenario": "nadir_hold_ais",
+     "product": "TRN-P-3U-AIS",
+     "algorithms": {
+      "detumble": "bdot_gyro",
+      "attitude": "mekf",
+      "pointing": "",
+      "mtq_pointing": "mtq_pd",
+      "sun_spin": "sunspin_l1l2",
+      "allocation": "",
+      "thrusters": ""
+     },
+     "n": 3,
+     "n_err": 0,
+     "obj": 9.62540475588545,
+     "obj_mean": 8.062760244211253,
+     "obj_seeds": [
+      7.2484288392594065,
+      7.314447137488903,
+      9.62540475588545
+     ],
+     "tie": 0.010699462252663943,
+     "pass_rate": 100,
+     "feasible": true,
+     "metrics": {
+      "ape_3axis_last_orbit": {
+       "mean": 59.76798913848205,
+       "worst": 72.96018524099289,
+       "values": [
+        49.93332045239301,
+        56.410461722060276,
+        72.96018524099289
+       ],
+       "unit": "deg",
+       "pass": [
+        null,
+        null,
+        null
+       ]
+      },
+      "ape_los_last_orbit": {
+       "mean": 8.062760244211253,
+       "worst": 9.62540475588545,
+       "values": [
+        7.2484288392594065,
+        7.314447137488903,
+        9.62540475588545
+       ],
+       "unit": "deg",
+       "pass": [
+        1,
+        1,
+        1
+       ]
+      },
+      "ake_los_last_orbit": {
+       "mean": 3.160400955074796,
+       "worst": 3.863572749542529,
+       "values": [
+        3.863572749542529,
+        3.500813347560771,
+        2.1168167681210885
+       ],
+       "unit": "deg",
+       "pass": [
+        1,
+        1,
+        1
+       ]
+      },
+      "power_mean": {
+       "mean": 0.010699462252663943,
+       "worst": 0.01080065146035819,
+       "values": [
+        0.01080065146035819,
+        0.010514438718420702,
+        0.010783296579212932
+       ],
+       "unit": "W",
+       "pass": [
+        1,
+        1,
+        1
+       ]
+      }
+     },
+     "errors": []
+    },
+    {
+     "id": "coarse_css",
+     "label": "TRN-P-3U-AIS-CSS: 6 cosine cells",
+     "scenario": "nadir_hold_ais_css",
+     "product": "TRN-P-3U-AIS-CSS",
+     "algorithms": {
+      "detumble": "bdot_gyro",
+      "attitude": "mekf",
+      "pointing": "",
+      "mtq_pointing": "mtq_pd",
+      "sun_spin": "sunspin_l1l2",
+      "allocation": "",
+      "thrusters": ""
+     },
+     "n": 3,
+     "n_err": 0,
+     "obj": 36.56429111543798,
+     "obj_mean": 24.112179922897337,
+     "obj_seeds": [
+      36.56429111543798,
+      10.182038174480708,
+      25.590210478773308
+     ],
+     "tie": 0.010561915996230976,
+     "pass_rate": 33.333333333333336,
+     "feasible": false,
+     "metrics": {
+      "ape_3axis_last_orbit": {
+       "mean": 149.76100759806687,
+       "worst": 179.9920147484357,
+       "values": [
+        179.93705848443003,
+        89.35394956133484,
+        179.9920147484357
+       ],
+       "unit": "deg",
+       "pass": [
+        null,
+        null,
+        null
+       ]
+      },
+      "ape_los_last_orbit": {
+       "mean": 24.112179922897337,
+       "worst": 36.56429111543798,
+       "values": [
+        36.56429111543798,
+        10.182038174480708,
+        25.590210478773308
+       ],
+       "unit": "deg",
+       "pass": [
+        0,
+        0,
+        0
+       ]
+      },
+      "ake_los_last_orbit": {
+       "mean": 28.126544315193403,
+       "worst": 41.555159338531766,
+       "values": [
+        41.555159338531766,
+        13.226802808026846,
+        29.597670799021603
+       ],
+       "unit": "deg",
+       "pass": [
+        0,
+        0,
+        0
+       ]
+      },
+      "power_mean": {
+       "mean": 0.010561915996230976,
+       "worst": 0.010714231548350292,
+       "values": [
+        0.010714231548350292,
+        0.010605000061244244,
+        0.01036651637909839
+       ],
+       "unit": "W",
+       "pass": [
+        1,
+        1,
+        1
+       ]
+      }
+     },
+     "errors": []
+    }
+   ],
+   "figure": "trade_sun_sensor_ais.png"
+  },
+  {
+   "id": "trade_pointing_img",
+   "label": "Imaging 3U, reaction wheels \u2014 fine-pointing law (0.01 deg)",
+   "question": "Which control law gives the smallest 3-sigma payload APE on a nadir hold with the reaction wheels?",
+   "kind": "algorithm",
+   "slot": "pointing",
+   "promote_to": "TRN-P-3U-IMG",
+   "objective": {
+    "metric": "ape_los_p9973",
+    "sense": "min"
+   },
+   "tie_break": {
+    "metric": "power_mean",
+    "sense": "min"
+   },
+   "seeds": [
+    1,
+    2
+   ],
+   "ranking": [
+    "lqr",
+    "pid",
+    "smc"
+   ],
+   "selected": "lqr",
+   "rationale": "lqr: feasible on all 2 seeds, worst ape_los_p9973 0.004838 deg, power_mean 1.56",
+   "status": "PROPOSED \u00b7 awaiting a person",
+   "candidates": [
+    {
+     "id": "lqr",
+     "label": "LQR (Bryson weights)",
+     "scenario": "fine_hold_img",
+     "product": "TRN-P-3U-IMG",
+     "algorithms": {
+      "detumble": "bdot_gyro",
+      "attitude": "mekf",
+      "pointing": "lqr",
+      "mtq_pointing": "mtq_pd",
+      "sun_spin": "sunspin_l1l2",
+      "allocation": "rotor_pinv",
+      "thrusters": ""
+     },
+     "n": 2,
+     "n_err": 0,
+     "obj": 0.004838318079808267,
+     "obj_mean": 0.0046522885148101815,
+     "obj_seeds": [
+      0.004838318079808267,
+      0.004466258949812096
+     ],
+     "tie": 1.557925221900332,
+     "pass_rate": 100,
+     "feasible": true,
+     "metrics": {
+      "ape_los_p9973": {
+       "mean": 0.0046522885148101815,
+       "worst": 0.004838318079808267,
+       "values": [
+        0.004838318079808267,
+        0.004466258949812096
+       ],
+       "unit": "deg",
+       "pass": [
+        1,
+        1
+       ]
+      },
+      "ape_los_max": {
+       "mean": 0.0060508957595021735,
+       "worst": 0.007000245856801578,
+       "values": [
+        0.007000245856801578,
+        0.005101545662202768
+       ],
+       "unit": "deg",
+       "pass": [
+        null,
+        null
+       ]
+      },
+      "ape_3ax_p9973": {
+       "mean": 0.007119426791497902,
+       "worst": 0.007392819250101237,
+       "values": [
+        0.006846034332894568,
+        0.007392819250101237
+       ],
+       "unit": "deg",
+       "pass": [
+        null,
+        null
+       ]
+      },
+      "ake_los_p9973": {
+       "mean": 0.0031721302284536436,
+       "worst": 0.0033212391821586724,
+       "values": [
+        0.0033212391821586724,
+        0.003023021274748615
+       ],
+       "unit": "deg",
+       "pass": [
+        1,
+        1
+       ]
+      },
+      "rate_stability_p9973": {
+       "mean": 0.006587743098933792,
+       "worst": 0.006652364489007636,
+       "values": [
+        0.006652364489007636,
+        0.006523121708859949
+       ],
+       "unit": "deg/s",
+       "pass": [
+        0,
+        0
+       ]
+      },
+      "time_to_0p01_deg": {
+       "mean": 8.5,
+       "worst": 9.700000000000001,
+       "values": [
+        9.700000000000001,
+        7.300000000000001
+       ],
+       "unit": "s",
+       "pass": [
+        null,
+        null
+       ]
+      },
+      "wheel_momentum_peak": {
+       "mean": 0.0032598282894535004,
+       "worst": 0.0032611312221605513,
+       "values": [
+        0.003258525356746449,
+        0.0032611312221605513
+       ],
+       "unit": "N m s",
+       "pass": [
+        null,
+        null
+       ]
+      },
+      "power_mean": {
+       "mean": 1.557925221900332,
+       "worst": 1.5580439339896566,
+       "values": [
+        1.5578065098110074,
+        1.5580439339896566
+       ],
+       "unit": "W",
+       "pass": [
+        1,
+        1
+       ]
+      }
+     },
+     "errors": []
+    },
+    {
+     "id": "pid",
+     "label": "PID (Standard Code nadirPointing)",
+     "scenario": "fine_hold_img",
+     "product": "TRN-P-3U-IMG",
+     "algorithms": {
+      "detumble": "bdot_gyro",
+      "attitude": "mekf",
+      "pointing": "pid",
+      "mtq_pointing": "mtq_pd",
+      "sun_spin": "sunspin_l1l2",
+      "allocation": "rotor_pinv",
+      "thrusters": ""
+     },
+     "n": 2,
+     "n_err": 0,
+     "obj": 0.021750508547923684,
+     "obj_mean": 0.015458258526728968,
+     "obj_seeds": [
+      0.009166008505534255,
+      0.021750508547923684
+     ],
+     "tie": 1.5573246127764804,
+     "pass_rate": 75,
+     "feasible": false,
+     "metrics": {
+      "ape_los_p9973": {
+       "mean": 0.015458258526728968,
+       "worst": 0.021750508547923684,
+       "values": [
+        0.009166008505534255,
+        0.021750508547923684
+       ],
+       "unit": "deg",
+       "pass": [
+        1,
+        0
+       ]
+      },
+      "ape_los_max": {
+       "mean": 0.018278423573572525,
+       "worst": 0.025631989678146855,
+       "values": [
+        0.010924857468998192,
+        0.025631989678146855
+       ],
+       "unit": "deg",
+       "pass": [
+        null,
+        null
+       ]
+      },
+      "ape_3ax_p9973": {
+       "mean": 0.015743378629298834,
+       "worst": 0.021891354356145518,
+       "values": [
+        0.00959540290245215,
+        0.021891354356145518
+       ],
+       "unit": "deg",
+       "pass": [
+        null,
+        null
+       ]
+      },
+      "ake_los_p9973": {
+       "mean": 0.003171785889611844,
+       "worst": 0.0033331261920540377,
+       "values": [
+        0.0033331261920540377,
+        0.0030104455871696506
+       ],
+       "unit": "deg",
+       "pass": [
+        1,
+        1
+       ]
+      },
+      "rate_stability_p9973": {
+       "mean": 0.003800751009653418,
+       "worst": 0.003931461249623259,
+       "values": [
+        0.0036700407696835767,
+        0.003931461249623259
+       ],
+       "unit": "deg/s",
+       "pass": [
+        0,
+        0
+       ]
+      },
+      "time_to_0p01_deg": {
+       "mean": 83.1,
+       "worst": 83.5,
+       "values": [
+        83.5,
+        82.7
+       ],
+       "unit": "s",
+       "pass": [
+        null,
+        null
+       ]
+      },
+      "wheel_momentum_peak": {
+       "mean": 0.003257149012471922,
+       "worst": 0.0032575307526131014,
+       "values": [
+        0.003256767272330742,
+        0.0032575307526131014
+       ],
+       "unit": "N m s",
+       "pass": [
+        null,
+        null
+       ]
+      },
+      "power_mean": {
+       "mean": 1.5573246127764804,
+       "worst": 1.5574407876008063,
+       "values": [
+        1.5572084379521545,
+        1.5574407876008063
+       ],
+       "unit": "W",
+       "pass": [
+        1,
+        1
+       ]
+      }
+     },
+     "errors": []
+    },
+    {
+     "id": "smc",
+     "label": "sliding mode (Crassidis & Markley)",
+     "scenario": "fine_hold_img",
+     "product": "TRN-P-3U-IMG",
+     "algorithms": {
+      "detumble": "bdot_gyro",
+      "attitude": "mekf",
+      "pointing": "smc",
+      "mtq_pointing": "mtq_pd",
+      "sun_spin": "sunspin_l1l2",
+      "allocation": "rotor_pinv",
+      "thrusters": ""
+     },
+     "n": 2,
+     "n_err": 0,
+     "obj": 0.0278108214796069,
+     "obj_mean": 0.021033120344766804,
+     "obj_seeds": [
+      0.01425541920992671,
+      0.0278108214796069
+     ],
+     "tie": 1.5573339740308854,
+     "pass_rate": 50,
+     "feasible": false,
+     "metrics": {
+      "ape_los_p9973": {
+       "mean": 0.021033120344766804,
+       "worst": 0.0278108214796069,
+       "values": [
+        0.01425541920992671,
+        0.0278108214796069
+       ],
+       "unit": "deg",
+       "pass": [
+        0,
+        0
+       ]
+      },
+      "ape_los_max": {
+       "mean": 0.02241632671321635,
+       "worst": 0.02910987337042958,
+       "values": [
+        0.01572278005600312,
+        0.02910987337042958
+       ],
+       "unit": "deg",
+       "pass": [
+        null,
+        null
+       ]
+      },
+      "ape_3ax_p9973": {
+       "mean": 0.02160690846198824,
+       "worst": 0.028193140552625295,
+       "values": [
+        0.015020676371351183,
+        0.028193140552625295
+       ],
+       "unit": "deg",
+       "pass": [
+        null,
+        null
+       ]
+      },
+      "ake_los_p9973": {
+       "mean": 0.0031503995605334442,
+       "worst": 0.003315047943593345,
+       "values": [
+        0.003315047943593345,
+        0.0029857511774735433
+       ],
+       "unit": "deg",
+       "pass": [
+        1,
+        1
+       ]
+      },
+      "rate_stability_p9973": {
+       "mean": 0.0037640749478085904,
+       "worst": 0.003910118462305318,
+       "values": [
+        0.003618031433311863,
+        0.003910118462305318
+       ],
+       "unit": "deg/s",
+       "pass": [
+        0,
+        0
+       ]
+      },
+      "time_to_0p01_deg": {
+       "mean": null,
+       "worst": 124.7,
+       "values": [
+        124.7,
+        null
+       ],
+       "unit": "s",
+       "pass": [
+        null,
+        null
+       ]
+      },
+      "wheel_momentum_peak": {
+       "mean": 0.0032563580109230385,
+       "worst": 0.0032564068078491442,
+       "values": [
+        0.0032564068078491442,
+        0.0032563092139969332
+       ],
+       "unit": "N m s",
+       "pass": [
+        null,
+        null
+       ]
+      },
+      "power_mean": {
+       "mean": 1.5573339740308854,
+       "worst": 1.5574525948521027,
+       "values": [
+        1.557215353209668,
+        1.5574525948521027
+       ],
+       "unit": "W",
+       "pass": [
+        1,
+        1
+       ]
+      }
+     },
+     "errors": []
+    }
+   ],
+   "figure": "trade_pointing_img.png"
+  },
+  {
+   "id": "trade_slew_img",
+   "label": "Imaging 3U, reaction wheels \u2014 slew law",
+   "question": "Which control law settles the target slew to 0.01 deg soonest?",
+   "kind": "algorithm",
+   "slot": "pointing",
+   "promote_to": "TRN-P-3U-IMG",
+   "objective": {
+    "metric": "settle_time_after_slew",
+    "sense": "min"
+   },
+   "tie_break": {
+    "metric": "power_mean",
+    "sense": "min"
+   },
+   "seeds": [
+    1,
+    2
+   ],
+   "ranking": [
+    "lqr",
+    "pid",
+    "smc"
+   ],
+   "selected": "lqr",
+   "rationale": "lqr: feasible on all 2 seeds, worst settle_time_after_slew 0 s",
+   "status": "PROPOSED \u00b7 awaiting a person",
+   "candidates": [
+    {
+     "id": "lqr",
+     "label": "lqr",
+     "scenario": "slew_img",
+     "product": "TRN-P-3U-IMG",
+     "algorithms": {
+      "detumble": "bdot_gyro",
+      "attitude": "mekf",
+      "pointing": "lqr",
+      "mtq_pointing": "mtq_pd",
+      "sun_spin": "sunspin_l1l2",
+      "allocation": "rotor_pinv",
+      "thrusters": ""
+     },
+     "n": 2,
+     "n_err": 0,
+     "obj": 0,
+     "obj_mean": 0,
+     "obj_seeds": [
+      0,
+      0
+     ],
+     "tie": null,
+     "pass_rate": 100,
+     "feasible": true,
+     "metrics": {
+      "settle_time_after_slew": {
+       "mean": 0,
+       "worst": 0,
+       "values": [
+        0,
+        0
+       ],
+       "unit": "s",
+       "pass": [
+        1,
+        1
+       ]
+      },
+      "ape_los_on_target_p9973": {
+       "mean": 0.004680340154259854,
+       "worst": 0.005326293837436087,
+       "values": [
+        0.005326293837436087,
+        0.004034386471083621
+       ],
+       "unit": "deg",
+       "pass": [
+        1,
+        1
+       ]
+      },
+      "wheel_momentum_peak": {
+       "mean": 0.0033432121476168804,
+       "worst": 0.003348021909256334,
+       "values": [
+        0.0033384023859774265,
+        0.003348021909256334
+       ],
+       "unit": "N m s",
+       "pass": [
+        null,
+        null
+       ]
+      }
+     },
+     "errors": []
+    },
+    {
+     "id": "pid",
+     "label": "pid",
+     "scenario": "slew_img",
+     "product": "TRN-P-3U-IMG",
+     "algorithms": {
+      "detumble": "bdot_gyro",
+      "attitude": "mekf",
+      "pointing": "pid",
+      "mtq_pointing": "mtq_pd",
+      "sun_spin": "sunspin_l1l2",
+      "allocation": "rotor_pinv",
+      "thrusters": ""
+     },
+     "n": 2,
+     "n_err": 0,
+     "obj": 12.600000000000023,
+     "obj_mean": 12.250000000000028,
+     "obj_seeds": [
+      12.600000000000023,
+      11.900000000000034
+     ],
+     "tie": null,
+     "pass_rate": 100,
+     "feasible": true,
+     "metrics": {
+      "settle_time_after_slew": {
+       "mean": 12.250000000000028,
+       "worst": 12.600000000000023,
+       "values": [
+        12.600000000000023,
+        11.900000000000034
+       ],
+       "unit": "s",
+       "pass": [
+        1,
+        1
+       ]
+      },
+      "ape_los_on_target_p9973": {
+       "mean": 0.008816554571915354,
+       "worst": 0.009893840675525643,
+       "values": [
+        0.009893840675525643,
+        0.007739268468305065
+       ],
+       "unit": "deg",
+       "pass": [
+        1,
+        1
+       ]
+      },
+      "wheel_momentum_peak": {
+       "mean": 0.0033421757021804537,
+       "worst": 0.0033460137540573683,
+       "values": [
+        0.0033383376503035396,
+        0.0033460137540573683
+       ],
+       "unit": "N m s",
+       "pass": [
+        null,
+        null
+       ]
+      }
+     },
+     "errors": []
+    },
+    {
+     "id": "smc",
+     "label": "smc",
+     "scenario": "slew_img",
+     "product": "TRN-P-3U-IMG",
+     "algorithms": {
+      "detumble": "bdot_gyro",
+      "attitude": "mekf",
+      "pointing": "smc",
+      "mtq_pointing": "mtq_pd",
+      "sun_spin": "sunspin_l1l2",
+      "allocation": "rotor_pinv",
+      "thrusters": ""
+     },
+     "n": 2,
+     "n_err": 0,
+     "obj": 3.1999999999999886,
+     "obj_mean": null,
+     "obj_seeds": [
+      3.1999999999999886,
+      null
+     ],
+     "tie": null,
+     "pass_rate": 0,
+     "feasible": false,
+     "metrics": {
+      "settle_time_after_slew": {
+       "mean": null,
+       "worst": 3.1999999999999886,
+       "values": [
+        3.1999999999999886,
+        null
+       ],
+       "unit": "s",
+       "pass": [
+        1,
+        0
+       ]
+      },
+      "ape_los_on_target_p9973": {
+       "mean": 0.020220540370757205,
+       "worst": 0.02810624964578629,
+       "values": [
+        0.01233483109572812,
+        0.02810624964578629
+       ],
+       "unit": "deg",
+       "pass": [
+        0,
+        0
+       ]
+      },
+      "wheel_momentum_peak": {
+       "mean": 0.0033422934036184335,
+       "worst": 0.003346249757813456,
+       "values": [
+        0.0033383370494234114,
+        0.003346249757813456
+       ],
+       "unit": "N m s",
+       "pass": [
+        null,
+        null
+       ]
+      }
+     },
+     "errors": []
+    }
+   ],
+   "figure": "trade_slew_img.png"
+  },
+  {
+   "id": "trade_pointing_cmg",
+   "label": "Imaging 3U, CMG pyramid \u2014 fine-pointing law (0.01 deg)",
+   "question": "Which control law gives the smallest 3-sigma payload APE on a nadir hold with the CMG pyramid?",
+   "kind": "algorithm",
+   "slot": "pointing",
+   "promote_to": "TRN-P-3U-CMG",
+   "objective": {
+    "metric": "ape_los_p9973",
+    "sense": "min"
+   },
+   "tie_break": {
+    "metric": "power_mean",
+    "sense": "min"
+   },
+   "seeds": [
+    1,
+    2
+   ],
+   "ranking": [
+    "lqr",
+    "smc",
+    "pid"
+   ],
+   "selected": "lqr",
+   "rationale": "lqr: feasible on all 2 seeds, worst ape_los_p9973 0.00409 deg, power_mean 1.61",
+   "status": "PROPOSED \u00b7 awaiting a person",
+   "candidates": [
+    {
+     "id": "lqr",
+     "label": "LQR (Bryson weights)",
+     "scenario": "fine_hold_cmg",
+     "product": "TRN-P-3U-CMG",
+     "algorithms": {
+      "detumble": "bdot_gyro",
+      "attitude": "mekf",
+      "pointing": "lqr",
+      "mtq_pointing": "mtq_pd",
+      "sun_spin": "sunspin_l1l2",
+      "allocation": "cmg_sr",
+      "thrusters": ""
+     },
+     "n": 2,
+     "n_err": 0,
+     "obj": 0.004090144047863253,
+     "obj_mean": 0.0039165898167262125,
+     "obj_seeds": [
+      0.004090144047863253,
+      0.003743035585589173
+     ],
+     "tie": 1.610139059971023,
+     "pass_rate": 100,
+     "feasible": true,
+     "metrics": {
+      "ape_los_p9973": {
+       "mean": 0.0039165898167262125,
+       "worst": 0.004090144047863253,
+       "values": [
+        0.004090144047863253,
+        0.003743035585589173
+       ],
+       "unit": "deg",
+       "pass": [
+        1,
+        1
+       ]
+      },
+      "ape_los_max": {
+       "mean": 0.005094123318344747,
+       "worst": 0.0052487770016102315,
+       "values": [
+        0.004939469635079262,
+        0.0052487770016102315
+       ],
+       "unit": "deg",
+       "pass": [
+        null,
+        null
+       ]
+      },
+      "ape_3ax_p9973": {
+       "mean": 0.007163928175733874,
+       "worst": 0.007569206425417944,
+       "values": [
+        0.006758649926049802,
+        0.007569206425417944
+       ],
+       "unit": "deg",
+       "pass": [
+        null,
+        null
+       ]
+      },
+      "ake_los_p9973": {
+       "mean": 0.0032690178409784847,
+       "worst": 0.0034093190456954948,
+       "values": [
+        0.0034093190456954948,
+        0.003128716636261475
+       ],
+       "unit": "deg",
+       "pass": [
+        1,
+        1
+       ]
+      },
+      "rate_stability_p9973": {
+       "mean": 0.006597534348248895,
+       "worst": 0.006689106854832405,
+       "values": [
+        0.006505961841665385,
+        0.006689106854832405
+       ],
+       "unit": "deg/s",
+       "pass": [
+        0,
+        0
+       ]
+      },
+      "time_to_0p01_deg": {
+       "mean": 7.700000000000001,
+       "worst": 7.800000000000001,
+       "values": [
+        7.800000000000001,
+        7.6000000000000005
+       ],
+       "unit": "s",
+       "pass": [
+        null,
+        null
+       ]
+      },
+      "wheel_momentum_peak": {
+       "mean": 0.004,
+       "worst": 0.004,
+       "values": [
+        0.004,
+        0.004
+       ],
+       "unit": "N m s",
+       "pass": [
+        null,
+        null
+       ]
+      },
+      "power_mean": {
+       "mean": 1.610139059971023,
+       "worst": 1.6101656330879812,
+       "values": [
+        1.610112486854065,
+        1.6101656330879812
+       ],
+       "unit": "W",
+       "pass": [
+        1,
+        1
+       ]
+      }
+     },
+     "errors": []
+    },
+    {
+     "id": "smc",
+     "label": "sliding mode (Crassidis & Markley)",
+     "scenario": "fine_hold_cmg",
+     "product": "TRN-P-3U-CMG",
+     "algorithms": {
+      "detumble": "bdot_gyro",
+      "attitude": "mekf",
+      "pointing": "smc",
+      "mtq_pointing": "mtq_pd",
+      "sun_spin": "sunspin_l1l2",
+      "allocation": "cmg_sr",
+      "thrusters": ""
+     },
+     "n": 2,
+     "n_err": 0,
+     "obj": 0.00540122176329636,
+     "obj_mean": 0.005384605557291203,
+     "obj_seeds": [
+      0.005367989351286046,
+      0.00540122176329636
+     ],
+     "tie": 1.6098806068778115,
+     "pass_rate": 100,
+     "feasible": true,
+     "metrics": {
+      "ape_los_p9973": {
+       "mean": 0.005384605557291203,
+       "worst": 0.00540122176329636,
+       "values": [
+        0.005367989351286046,
+        0.00540122176329636
+       ],
+       "unit": "deg",
+       "pass": [
+        1,
+        1
+       ]
+      },
+      "ape_los_max": {
+       "mean": 0.006099355999022615,
+       "worst": 0.006293064951618552,
+       "values": [
+        0.006293064951618552,
+        0.005905647046426679
+       ],
+       "unit": "deg",
+       "pass": [
+        null,
+        null
+       ]
+      },
+      "ape_3ax_p9973": {
+       "mean": 0.00636743845290718,
+       "worst": 0.006392364703609293,
+       "values": [
+        0.006392364703609293,
+        0.006342512202205066
+       ],
+       "unit": "deg",
+       "pass": [
+        null,
+        null
+       ]
+      },
+      "ake_los_p9973": {
+       "mean": 0.003269070154049133,
+       "worst": 0.003414074387064576,
+       "values": [
+        0.003414074387064576,
+        0.00312406592103369
+       ],
+       "unit": "deg",
+       "pass": [
+        1,
+        1
+       ]
+      },
+      "rate_stability_p9973": {
+       "mean": 0.0024079829094822004,
+       "worst": 0.002442942055005338,
+       "values": [
+        0.002373023763959063,
+        0.002442942055005338
+       ],
+       "unit": "deg/s",
+       "pass": [
+        0,
+        0
+       ]
+      },
+      "time_to_0p01_deg": {
+       "mean": 48.650000000000006,
+       "worst": 49,
+       "values": [
+        48.300000000000004,
+        49
+       ],
+       "unit": "s",
+       "pass": [
+        null,
+        null
+       ]
+      },
+      "wheel_momentum_peak": {
+       "mean": 0.004,
+       "worst": 0.004,
+       "values": [
+        0.004,
+        0.004
+       ],
+       "unit": "N m s",
+       "pass": [
+        null,
+        null
+       ]
+      },
+      "power_mean": {
+       "mean": 1.6098806068778115,
+       "worst": 1.6099060261154565,
+       "values": [
+        1.6098551876401666,
+        1.6099060261154565
+       ],
+       "unit": "W",
+       "pass": [
+        1,
+        1
+       ]
+      }
+     },
+     "errors": []
+    },
+    {
+     "id": "pid",
+     "label": "PID (Standard Code nadirPointing)",
+     "scenario": "fine_hold_cmg",
+     "product": "TRN-P-3U-CMG",
+     "algorithms": {
+      "detumble": "bdot_gyro",
+      "attitude": "mekf",
+      "pointing": "pid",
+      "mtq_pointing": "mtq_pd",
+      "sun_spin": "sunspin_l1l2",
+      "allocation": "cmg_sr",
+      "thrusters": ""
+     },
+     "n": 2,
+     "n_err": 0,
+     "obj": 0.005523152850647309,
+     "obj_mean": 0.0053227840239721495,
+     "obj_seeds": [
+      0.005523152850647309,
+      0.005122415197296991
+     ],
+     "tie": 1.6098783430605714,
+     "pass_rate": 100,
+     "feasible": true,
+     "metrics": {
+      "ape_los_p9973": {
+       "mean": 0.0053227840239721495,
+       "worst": 0.005523152850647309,
+       "values": [
+        0.005523152850647309,
+        0.005122415197296991
+       ],
+       "unit": "deg",
+       "pass": [
+        1,
+        1
+       ]
+      },
+      "ape_los_max": {
+       "mean": 0.006104626688698524,
+       "worst": 0.006413984962130652,
+       "values": [
+        0.006413984962130652,
+        0.005795268415266396
+       ],
+       "unit": "deg",
+       "pass": [
+        null,
+        null
+       ]
+      },
+      "ape_3ax_p9973": {
+       "mean": 0.006332674438725281,
+       "worst": 0.006519579920838259,
+       "values": [
+        0.006145768956612303,
+        0.006519579920838259
+       ],
+       "unit": "deg",
+       "pass": [
+        null,
+        null
+       ]
+      },
+      "ake_los_p9973": {
+       "mean": 0.00328675943270063,
+       "worst": 0.0034099247014481187,
+       "values": [
+        0.0034099247014481187,
+        0.003163594163953141
+       ],
+       "unit": "deg",
+       "pass": [
+        1,
+        1
+       ]
+      },
+      "rate_stability_p9973": {
+       "mean": 0.0024763842053398964,
+       "worst": 0.002528243844505318,
+       "values": [
+        0.002424524566174475,
+        0.002528243844505318
+       ],
+       "unit": "deg/s",
+       "pass": [
+        0,
+        0
+       ]
+      },
+      "time_to_0p01_deg": {
+       "mean": 75.95,
+       "worst": 83.5,
+       "values": [
+        83.5,
+        68.4
+       ],
+       "unit": "s",
+       "pass": [
+        null,
+        null
+       ]
+      },
+      "wheel_momentum_peak": {
+       "mean": 0.004,
+       "worst": 0.004,
+       "values": [
+        0.004,
+        0.004
+       ],
+       "unit": "N m s",
+       "pass": [
+        null,
+        null
+       ]
+      },
+      "power_mean": {
+       "mean": 1.6098783430605714,
+       "worst": 1.6099037976267503,
+       "values": [
+        1.6098528884943926,
+        1.6099037976267503
+       ],
+       "unit": "W",
+       "pass": [
+        1,
+        1
+       ]
+      }
+     },
+     "errors": []
+    }
+   ],
+   "figure": "trade_pointing_cmg.png"
+  },
+  {
+   "id": "trade_pointing_vscmg",
+   "label": "Imaging 3U, VSCMG pyramid \u2014 fine-pointing law (0.01 deg)",
+   "question": "Which control law gives the smallest 3-sigma payload APE on a nadir hold with the VSCMG pyramid?",
+   "kind": "algorithm",
+   "slot": "pointing",
+   "promote_to": "TRN-P-3U-VSCMG",
+   "objective": {
+    "metric": "ape_los_p9973",
+    "sense": "min"
+   },
+   "tie_break": {
+    "metric": "power_mean",
+    "sense": "min"
+   },
+   "seeds": [
+    1,
+    2
+   ],
+   "ranking": [
+    "lqr",
+    "pid",
+    "smc"
+   ],
+   "selected": "lqr",
+   "rationale": "lqr: feasible on all 2 seeds, worst ape_los_p9973 0.005546 deg, power_mean 2.02",
+   "status": "PROPOSED \u00b7 awaiting a person",
+   "candidates": [
+    {
+     "id": "lqr",
+     "label": "LQR (Bryson weights)",
+     "scenario": "fine_hold_vscmg",
+     "product": "TRN-P-3U-VSCMG",
+     "algorithms": {
+      "detumble": "bdot_gyro",
+      "attitude": "mekf",
+      "pointing": "lqr",
+      "mtq_pointing": "mtq_pd",
+      "sun_spin": "sunspin_l1l2",
+      "allocation": "vscmg_sr",
+      "thrusters": ""
+     },
+     "n": 2,
+     "n_err": 0,
+     "obj": 0.005546280128377559,
+     "obj_mean": 0.0052791797327963646,
+     "obj_seeds": [
+      0.005546280128377559,
+      0.00501207933721517
+     ],
+     "tie": 2.0189212442089293,
+     "pass_rate": 100,
+     "feasible": true,
+     "metrics": {
+      "ape_los_p9973": {
+       "mean": 0.0052791797327963646,
+       "worst": 0.005546280128377559,
+       "values": [
+        0.005546280128377559,
+        0.00501207933721517
+       ],
+       "unit": "deg",
+       "pass": [
+        1,
+        1
+       ]
+      },
+      "ape_los_max": {
+       "mean": 0.007054175653083073,
+       "worst": 0.0073631692502717965,
+       "values": [
+        0.0073631692502717965,
+        0.006745182055894349
+       ],
+       "unit": "deg",
+       "pass": [
+        null,
+        null
+       ]
+      },
+      "ape_3ax_p9973": {
+       "mean": 0.007426707780423197,
+       "worst": 0.007663204585186927,
+       "values": [
+        0.007190210975659466,
+        0.007663204585186927
+       ],
+       "unit": "deg",
+       "pass": [
+        null,
+        null
+       ]
+      },
+      "ake_los_p9973": {
+       "mean": 0.003424184434405276,
+       "worst": 0.0035426999762510586,
+       "values": [
+        0.0035426999762510586,
+        0.0033056688925594937
+       ],
+       "unit": "deg",
+       "pass": [
+        1,
+        1
+       ]
+      },
+      "rate_stability_p9973": {
+       "mean": 0.007228442852703916,
+       "worst": 0.0073558923936511145,
+       "values": [
+        0.0071009933117567176,
+        0.0073558923936511145
+       ],
+       "unit": "deg/s",
+       "pass": [
+        0,
+        0
+       ]
+      },
+      "time_to_0p01_deg": {
+       "mean": 10.05,
+       "worst": 10.100000000000001,
+       "values": [
+        10,
+        10.100000000000001
+       ],
+       "unit": "s",
+       "pass": [
+        null,
+        null
+       ]
+      },
+      "wheel_momentum_peak": {
+       "mean": 0.0048657628100798895,
+       "worst": 0.004871118970756516,
+       "values": [
+        0.004860406649403262,
+        0.004871118970756516
+       ],
+       "unit": "N m s",
+       "pass": [
+        null,
+        null
+       ]
+      },
+      "power_mean": {
+       "mean": 2.0189212442089293,
+       "worst": 2.0190125030507433,
+       "values": [
+        2.0188299853671148,
+        2.0190125030507433
+       ],
+       "unit": "W",
+       "pass": [
+        0,
+        0
+       ]
+      }
+     },
+     "errors": []
+    },
+    {
+     "id": "pid",
+     "label": "PID (Standard Code nadirPointing)",
+     "scenario": "fine_hold_vscmg",
+     "product": "TRN-P-3U-VSCMG",
+     "algorithms": {
+      "detumble": "bdot_gyro",
+      "attitude": "mekf",
+      "pointing": "pid",
+      "mtq_pointing": "mtq_pd",
+      "sun_spin": "sunspin_l1l2",
+      "allocation": "vscmg_sr",
+      "thrusters": ""
+     },
+     "n": 2,
+     "n_err": 0,
+     "obj": 0.009129105781604186,
+     "obj_mean": 0.008345626702267541,
+     "obj_seeds": [
+      0.009129105781604186,
+      0.007562147622930896
+     ],
+     "tie": 2.0146957559500667,
+     "pass_rate": 100,
+     "feasible": true,
+     "metrics": {
+      "ape_los_p9973": {
+       "mean": 0.008345626702267541,
+       "worst": 0.009129105781604186,
+       "values": [
+        0.009129105781604186,
+        0.007562147622930896
+       ],
+       "unit": "deg",
+       "pass": [
+        1,
+        1
+       ]
+      },
+      "ape_los_max": {
+       "mean": 0.010193763229497835,
+       "worst": 0.010355817039760051,
+       "values": [
+        0.010355817039760051,
+        0.01003170941923562
+       ],
+       "unit": "deg",
+       "pass": [
+        null,
+        null
+       ]
+      },
+      "ape_3ax_p9973": {
+       "mean": 0.009331521772109287,
+       "worst": 0.00945538644784756,
+       "values": [
+        0.009207657096371013,
+        0.00945538644784756
+       ],
+       "unit": "deg",
+       "pass": [
+        null,
+        null
+       ]
+      },
+      "ake_los_p9973": {
+       "mean": 0.0034376002838803436,
+       "worst": 0.00355785825812482,
+       "values": [
+        0.00355785825812482,
+        0.003317342309635867
+       ],
+       "unit": "deg",
+       "pass": [
+        1,
+        1
+       ]
+      },
+      "rate_stability_p9973": {
+       "mean": 0.004545231053516825,
+       "worst": 0.004557086755770034,
+       "values": [
+        0.004557086755770034,
+        0.0045333753512636155
+       ],
+       "unit": "deg/s",
+       "pass": [
+        0,
+        0
+       ]
+      },
+      "time_to_0p01_deg": {
+       "mean": 86.05000000000001,
+       "worst": 89.30000000000001,
+       "values": [
+        89.30000000000001,
+        82.80000000000001
+       ],
+       "unit": "s",
+       "pass": [
+        null,
+        null
+       ]
+      },
+      "wheel_momentum_peak": {
+       "mean": 0.004201400583888345,
+       "worst": 0.004201890836190382,
+       "values": [
+        0.004200910331586307,
+        0.004201890836190382
+       ],
+       "unit": "N m s",
+       "pass": [
+        null,
+        null
+       ]
+      },
+      "power_mean": {
+       "mean": 2.0146957559500667,
+       "worst": 2.014807054731993,
+       "values": [
+        2.0145844571681404,
+        2.014807054731993
+       ],
+       "unit": "W",
+       "pass": [
+        0,
+        0
+       ]
+      }
+     },
+     "errors": []
+    },
+    {
+     "id": "smc",
+     "label": "sliding mode (Crassidis & Markley)",
+     "scenario": "fine_hold_vscmg",
+     "product": "TRN-P-3U-VSCMG",
+     "algorithms": {
+      "detumble": "bdot_gyro",
+      "attitude": "mekf",
+      "pointing": "smc",
+      "mtq_pointing": "mtq_pd",
+      "sun_spin": "sunspin_l1l2",
+      "allocation": "vscmg_sr",
+      "thrusters": ""
+     },
+     "n": 2,
+     "n_err": 0,
+     "obj": 0.027974536523951894,
+     "obj_mean": 0.025446076454934727,
+     "obj_seeds": [
+      0.022917616385917557,
+      0.027974536523951894
+     ],
+     "tie": 2.0145731913895837,
+     "pass_rate": 50,
+     "feasible": false,
+     "metrics": {
+      "ape_los_p9973": {
+       "mean": 0.025446076454934727,
+       "worst": 0.027974536523951894,
+       "values": [
+        0.022917616385917557,
+        0.027974536523951894
+       ],
+       "unit": "deg",
+       "pass": [
+        0,
+        0
+       ]
+      },
+      "ape_los_max": {
+       "mean": 0.027268274225509023,
+       "worst": 0.0293465841682494,
+       "values": [
+        0.025189964282768644,
+        0.0293465841682494
+       ],
+       "unit": "deg",
+       "pass": [
+        null,
+        null
+       ]
+      },
+      "ape_3ax_p9973": {
+       "mean": 0.02592721686326077,
+       "worst": 0.028718983616008425,
+       "values": [
+        0.023135450110513114,
+        0.028718983616008425
+       ],
+       "unit": "deg",
+       "pass": [
+        null,
+        null
+       ]
+      },
+      "ake_los_p9973": {
+       "mean": 0.0034633976869385477,
+       "worst": 0.0036065547342447866,
+       "values": [
+        0.0036065547342447866,
+        0.003320240639632309
+       ],
+       "unit": "deg",
+       "pass": [
+        1,
+        1
+       ]
+      },
+      "rate_stability_p9973": {
+       "mean": 0.00440936666891748,
+       "worst": 0.004426109014939539,
+       "values": [
+        0.004392624322895422,
+        0.004426109014939539
+       ],
+       "unit": "deg/s",
+       "pass": [
+        0,
+        0
+       ]
+      },
+      "time_to_0p01_deg": {
+       "mean": null,
+       "worst": null,
+       "values": [
+        null,
+        null
+       ],
+       "unit": "s",
+       "pass": [
+        null,
+        null
+       ]
+      },
+      "wheel_momentum_peak": {
+       "mean": 0.004088175505558973,
+       "worst": 0.00408937331191475,
+       "values": [
+        0.00408937331191475,
+        0.004086977699203195
+       ],
+       "unit": "N m s",
+       "pass": [
+        null,
+        null
+       ]
+      },
+      "power_mean": {
+       "mean": 2.0145731913895837,
+       "worst": 2.0146892616852408,
+       "values": [
+        2.014457121093927,
+        2.0146892616852408
+       ],
+       "unit": "W",
+       "pass": [
+        0,
+        0
+       ]
+      }
+     },
+     "errors": []
+    }
+   ],
+   "figure": "trade_pointing_vscmg.png"
+  },
+  {
+   "id": "trade_pointing_fmr",
+   "label": "Imaging 3U, fluid rings (IDMAS) \u2014 fine-pointing law (0.01 deg)",
+   "question": "Which control law gives the smallest 3-sigma payload APE on a nadir hold with the fluid rings (IDMAS)?",
+   "kind": "algorithm",
+   "slot": "pointing",
+   "promote_to": "TRN-P-3U-FMR",
+   "objective": {
+    "metric": "ape_los_p9973",
+    "sense": "min"
+   },
+   "tie_break": {
+    "metric": "power_mean",
+    "sense": "min"
+   },
+   "seeds": [
+    1,
+    2
+   ],
+   "ranking": [
+    "pid",
+    "lqr",
+    "smc"
+   ],
+   "selected": "pid",
+   "rationale": "pid: feasible on all 2 seeds, worst ape_los_p9973 0.006033 deg, power_mean 4.35",
+   "status": "PROPOSED \u00b7 awaiting a person",
+   "candidates": [
+    {
+     "id": "pid",
+     "label": "PID (Standard Code nadirPointing)",
+     "scenario": "fine_hold_fmr",
+     "product": "TRN-P-3U-FMR",
+     "algorithms": {
+      "detumble": "bdot_gyro",
+      "attitude": "mekf",
+      "pointing": "pid",
+      "mtq_pointing": "mtq_pd",
+      "sun_spin": "sunspin_l1l2",
+      "allocation": "idmas_split",
+      "thrusters": ""
+     },
+     "n": 2,
+     "n_err": 0,
+     "obj": 0.00603292951574543,
+     "obj_mean": 0.005880929545538447,
+     "obj_seeds": [
+      0.00603292951574543,
+      0.005728929575331464
+     ],
+     "tie": 4.352488348338322,
+     "pass_rate": 100,
+     "feasible": true,
+     "metrics": {
+      "ape_los_p9973": {
+       "mean": 0.005880929545538447,
+       "worst": 0.00603292951574543,
+       "values": [
+        0.00603292951574543,
+        0.005728929575331464
+       ],
+       "unit": "deg",
+       "pass": [
+        1,
+        1
+       ]
+      },
+      "ape_los_max": {
+       "mean": 0.0074469110419326575,
+       "worst": 0.007836066252184623,
+       "values": [
+        0.007836066252184623,
+        0.007057755831680693
+       ],
+       "unit": "deg",
+       "pass": [
+        null,
+        null
+       ]
+      },
+      "ape_3ax_p9973": {
+       "mean": 0.007219177117591592,
+       "worst": 0.007410340155628957,
+       "values": [
+        0.007028014079554227,
+        0.007410340155628957
+       ],
+       "unit": "deg",
+       "pass": [
+        null,
+        null
+       ]
+      },
+      "ake_los_p9973": {
+       "mean": 0.003176617913142275,
+       "worst": 0.0033213614275627314,
+       "values": [
+        0.0033213614275627314,
+        0.003031874398721818
+       ],
+       "unit": "deg",
+       "pass": [
+        1,
+        1
+       ]
+      },
+      "rate_stability_p9973": {
+       "mean": 0.004584375263772205,
+       "worst": 0.00465410757830101,
+       "values": [
+        0.00465410757830101,
+        0.0045146429492434
+       ],
+       "unit": "deg/s",
+       "pass": [
+        0,
+        0
+       ]
+      },
+      "time_to_0p01_deg": {
+       "mean": 75.75,
+       "worst": 84.30000000000001,
+       "values": [
+        84.30000000000001,
+        67.2
+       ],
+       "unit": "s",
+       "pass": [
+        null,
+        null
+       ]
+      },
+      "wheel_momentum_peak": {
+       "mean": 0.00016837624666424272,
+       "worst": 0.00017438558736084797,
+       "values": [
+        0.00016236690596763747,
+        0.00017438558736084797
+       ],
+       "unit": "N m s",
+       "pass": [
+        null,
+        null
+       ]
+      },
+      "power_mean": {
+       "mean": 4.352488348338322,
+       "worst": 4.356554693379666,
+       "values": [
+        4.348422003296978,
+        4.356554693379666
+       ],
+       "unit": "W",
+       "pass": [
+        0,
+        0
+       ]
+      }
+     },
+     "errors": []
+    },
+    {
+     "id": "lqr",
+     "label": "LQR (Bryson weights)",
+     "scenario": "fine_hold_fmr",
+     "product": "TRN-P-3U-FMR",
+     "algorithms": {
+      "detumble": "bdot_gyro",
+      "attitude": "mekf",
+      "pointing": "lqr",
+      "mtq_pointing": "mtq_pd",
+      "sun_spin": "sunspin_l1l2",
+      "allocation": "idmas_split",
+      "thrusters": ""
+     },
+     "n": 2,
+     "n_err": 0,
+     "obj": 0.005896536063887009,
+     "obj_mean": 0.005395743993026033,
+     "obj_seeds": [
+      0.005896536063887009,
+      0.004894951922165055
+     ],
+     "tie": 4.381489648381447,
+     "pass_rate": 100,
+     "feasible": true,
+     "metrics": {
+      "ape_los_p9973": {
+       "mean": 0.005395743993026033,
+       "worst": 0.005896536063887009,
+       "values": [
+        0.005896536063887009,
+        0.004894951922165055
+       ],
+       "unit": "deg",
+       "pass": [
+        1,
+        1
+       ]
+      },
+      "ape_los_max": {
+       "mean": 0.006889356303796555,
+       "worst": 0.007649228457737103,
+       "values": [
+        0.007649228457737103,
+        0.006129484149856008
+       ],
+       "unit": "deg",
+       "pass": [
+        null,
+        null
+       ]
+      },
+      "ape_3ax_p9973": {
+       "mean": 0.007217338544682833,
+       "worst": 0.007348442025151617,
+       "values": [
+        0.007086235064214049,
+        0.007348442025151617
+       ],
+       "unit": "deg",
+       "pass": [
+        null,
+        null
+       ]
+      },
+      "ake_los_p9973": {
+       "mean": 0.003207264941452832,
+       "worst": 0.003378659778354447,
+       "values": [
+        0.003378659778354447,
+        0.003035870104551217
+       ],
+       "unit": "deg",
+       "pass": [
+        1,
+        1
+       ]
+      },
+      "rate_stability_p9973": {
+       "mean": 0.007783609006084843,
+       "worst": 0.008176385164454179,
+       "values": [
+        0.008176385164454179,
+        0.007390832847715506
+       ],
+       "unit": "deg/s",
+       "pass": [
+        0,
+        0
+       ]
+      },
+      "time_to_0p01_deg": {
+       "mean": 9.3,
+       "worst": 9.4,
+       "values": [
+        9.4,
+        9.200000000000001
+       ],
+       "unit": "s",
+       "pass": [
+        null,
+        null
+       ]
+      },
+      "wheel_momentum_peak": {
+       "mean": 0.0010686066278322933,
+       "worst": 0.0010696442333758556,
+       "values": [
+        0.0010696442333758556,
+        0.0010675690222887312
+       ],
+       "unit": "N m s",
+       "pass": [
+        null,
+        null
+       ]
+      },
+      "power_mean": {
+       "mean": 4.381489648381447,
+       "worst": 4.45361712388473,
+       "values": [
+        4.45361712388473,
+        4.309362172878164
+       ],
+       "unit": "W",
+       "pass": [
+        0,
+        0
+       ]
+      }
+     },
+     "errors": []
+    },
+    {
+     "id": "smc",
+     "label": "sliding mode (Crassidis & Markley)",
+     "scenario": "fine_hold_fmr",
+     "product": "TRN-P-3U-FMR",
+     "algorithms": {
+      "detumble": "bdot_gyro",
+      "attitude": "mekf",
+      "pointing": "smc",
+      "mtq_pointing": "mtq_pd",
+      "sun_spin": "sunspin_l1l2",
+      "allocation": "idmas_split",
+      "thrusters": ""
+     },
+     "n": 2,
+     "n_err": 0,
+     "obj": 0.006379512835438882,
+     "obj_mean": 0.005990799608609531,
+     "obj_seeds": [
+      0.005602086381780179,
+      0.006379512835438882
+     ],
+     "tie": 3.989419635705788,
+     "pass_rate": 100,
+     "feasible": true,
+     "metrics": {
+      "ape_los_p9973": {
+       "mean": 0.005990799608609531,
+       "worst": 0.006379512835438882,
+       "values": [
+        0.005602086381780179,
+        0.006379512835438882
+       ],
+       "unit": "deg",
+       "pass": [
+        1,
+        1
+       ]
+      },
+      "ape_los_max": {
+       "mean": 0.007623298021763109,
+       "worst": 0.008003371529225332,
+       "values": [
+        0.007243224514300886,
+        0.008003371529225332
+       ],
+       "unit": "deg",
+       "pass": [
+        null,
+        null
+       ]
+      },
+      "ape_3ax_p9973": {
+       "mean": 0.0069482132022652176,
+       "worst": 0.007282245988657996,
+       "values": [
+        0.006614180415872439,
+        0.007282245988657996
+       ],
+       "unit": "deg",
+       "pass": [
+        null,
+        null
+       ]
+      },
+      "ake_los_p9973": {
+       "mean": 0.0031684931606799187,
+       "worst": 0.00331363026150915,
+       "values": [
+        0.00331363026150915,
+        0.003023356059850688
+       ],
+       "unit": "deg",
+       "pass": [
+        1,
+        1
+       ]
+      },
+      "rate_stability_p9973": {
+       "mean": 0.004488150910647085,
+       "worst": 0.004565161914839584,
+       "values": [
+        0.004565161914839584,
+        0.004411139906454587
+       ],
+       "unit": "deg/s",
+       "pass": [
+        0,
+        0
+       ]
+      },
+      "time_to_0p01_deg": {
+       "mean": 47.400000000000006,
+       "worst": 48.5,
+       "values": [
+        46.300000000000004,
+        48.5
+       ],
+       "unit": "s",
+       "pass": [
+        null,
+        null
+       ]
+      },
+      "wheel_momentum_peak": {
+       "mean": 5.416345413767152e-05,
+       "worst": 5.510291685957885e-05,
+       "values": [
+        5.3223991415764204e-05,
+        5.510291685957885e-05
+       ],
+       "unit": "N m s",
+       "pass": [
+        null,
+        null
+       ]
+      },
+      "power_mean": {
+       "mean": 3.989419635705788,
+       "worst": 3.9948216439785047,
+       "values": [
+        3.9948216439785047,
+        3.984017627433071
+       ],
+       "unit": "W",
+       "pass": [
+        0,
+        0
+       ]
+      }
+     },
+     "errors": []
+    }
+   ],
+   "figure": "trade_pointing_fmr.png"
+  },
+  {
+   "id": "trade_allocation_fmr",
+   "label": "Imaging 3U, fluid rings \u2014 allocation (IDMAS split vs rings only)",
+   "question": "Does handing the across-field torque to the coils (IDMAS) improve the fluid-ring fine hold?",
+   "kind": "algorithm",
+   "slot": "allocation",
+   "promote_to": "TRN-P-3U-FMR",
+   "objective": {
+    "metric": "ape_los_p9973",
+    "sense": "min"
+   },
+   "tie_break": {
+    "metric": "power_mean",
+    "sense": "min"
+   },
+   "seeds": [
+    1,
+    2
+   ],
+   "ranking": [
+    "rotor_pinv",
+    "idmas_split"
+   ],
+   "selected": "rotor_pinv",
+   "rationale": "rotor_pinv: feasible on all 2 seeds, worst ape_los_p9973 0.005972 deg, power_mean 4.23",
+   "status": "PROPOSED \u00b7 awaiting a person",
+   "candidates": [
+    {
+     "id": "rotor_pinv",
+     "label": "rings take all the torque, coils only dump",
+     "scenario": "fine_hold_fmr",
+     "product": "TRN-P-3U-FMR",
+     "algorithms": {
+      "detumble": "bdot_gyro",
+      "attitude": "mekf",
+      "pointing": "pid",
+      "mtq_pointing": "mtq_pd",
+      "sun_spin": "sunspin_l1l2",
+      "allocation": "rotor_pinv",
+      "thrusters": ""
+     },
+     "n": 2,
+     "n_err": 0,
+     "obj": 0.00597224607107806,
+     "obj_mean": 0.005729452276588478,
+     "obj_seeds": [
+      0.00597224607107806,
+      0.0054866584820988966
+     ],
+     "tie": 4.232527017891817,
+     "pass_rate": 100,
+     "feasible": true,
+     "metrics": {
+      "ape_los_p9973": {
+       "mean": 0.005729452276588478,
+       "worst": 0.00597224607107806,
+       "values": [
+        0.00597224607107806,
+        0.0054866584820988966
+       ],
+       "unit": "deg",
+       "pass": [
+        1,
+        1
+       ]
+      },
+      "ape_los_max": {
+       "mean": 0.007155742284139463,
+       "worst": 0.0077521472250829055,
+       "values": [
+        0.0077521472250829055,
+        0.006559337343196021
+       ],
+       "unit": "deg",
+       "pass": [
+        null,
+        null
+       ]
+      },
+      "ape_3ax_p9973": {
+       "mean": 0.007102352427025302,
+       "worst": 0.007326099876331472,
+       "values": [
+        0.006878604977719133,
+        0.007326099876331472
+       ],
+       "unit": "deg",
+       "pass": [
+        null,
+        null
+       ]
+      },
+      "ake_los_p9973": {
+       "mean": 0.0031738054932387563,
+       "worst": 0.003324644568422588,
+       "values": [
+        0.003324644568422588,
+        0.003022966418054925
+       ],
+       "unit": "deg",
+       "pass": [
+        1,
+        1
+       ]
+      },
+      "rate_stability_p9973": {
+       "mean": 0.004434193157733284,
+       "worst": 0.004587271126002829,
+       "values": [
+        0.004587271126002829,
+        0.004281115189463738
+       ],
+       "unit": "deg/s",
+       "pass": [
+        0,
+        0
+       ]
+      },
+      "time_to_0p01_deg": {
+       "mean": 75.85,
+       "worst": 84.2,
+       "values": [
+        84.2,
+        67.5
+       ],
+       "unit": "s",
+       "pass": [
+        null,
+        null
+       ]
+      },
+      "wheel_momentum_peak": {
+       "mean": 0.0001719095009515543,
+       "worst": 0.0001779376867682219,
+       "values": [
+        0.00016588131513488668,
+        0.0001779376867682219
+       ],
+       "unit": "N m s",
+       "pass": [
+        null,
+        null
+       ]
+      },
+      "power_mean": {
+       "mean": 4.232527017891817,
+       "worst": 4.288255883996546,
+       "values": [
+        4.176798151787089,
+        4.288255883996546
+       ],
+       "unit": "W",
+       "pass": [
+        0,
+        0
+       ]
+      }
+     },
+     "errors": []
+    },
+    {
+     "id": "idmas_split",
+     "label": "IDMAS: coils take tau across B, rings the rest",
+     "scenario": "fine_hold_fmr",
+     "product": "TRN-P-3U-FMR",
+     "algorithms": {
+      "detumble": "bdot_gyro",
+      "attitude": "mekf",
+      "pointing": "pid",
+      "mtq_pointing": "mtq_pd",
+      "sun_spin": "sunspin_l1l2",
+      "allocation": "idmas_split",
+      "thrusters": ""
+     },
+     "n": 2,
+     "n_err": 0,
+     "obj": 0.00603292951574543,
+     "obj_mean": 0.005880929545538447,
+     "obj_seeds": [
+      0.00603292951574543,
+      0.005728929575331464
+     ],
+     "tie": 4.352488348338322,
+     "pass_rate": 100,
+     "feasible": true,
+     "metrics": {
+      "ape_los_p9973": {
+       "mean": 0.005880929545538447,
+       "worst": 0.00603292951574543,
+       "values": [
+        0.00603292951574543,
+        0.005728929575331464
+       ],
+       "unit": "deg",
+       "pass": [
+        1,
+        1
+       ]
+      },
+      "ape_los_max": {
+       "mean": 0.0074469110419326575,
+       "worst": 0.007836066252184623,
+       "values": [
+        0.007836066252184623,
+        0.007057755831680693
+       ],
+       "unit": "deg",
+       "pass": [
+        null,
+        null
+       ]
+      },
+      "ape_3ax_p9973": {
+       "mean": 0.007219177117591592,
+       "worst": 0.007410340155628957,
+       "values": [
+        0.007028014079554227,
+        0.007410340155628957
+       ],
+       "unit": "deg",
+       "pass": [
+        null,
+        null
+       ]
+      },
+      "ake_los_p9973": {
+       "mean": 0.003176617913142275,
+       "worst": 0.0033213614275627314,
+       "values": [
+        0.0033213614275627314,
+        0.003031874398721818
+       ],
+       "unit": "deg",
+       "pass": [
+        1,
+        1
+       ]
+      },
+      "rate_stability_p9973": {
+       "mean": 0.004584375263772205,
+       "worst": 0.00465410757830101,
+       "values": [
+        0.00465410757830101,
+        0.0045146429492434
+       ],
+       "unit": "deg/s",
+       "pass": [
+        0,
+        0
+       ]
+      },
+      "time_to_0p01_deg": {
+       "mean": 75.75,
+       "worst": 84.30000000000001,
+       "values": [
+        84.30000000000001,
+        67.2
+       ],
+       "unit": "s",
+       "pass": [
+        null,
+        null
+       ]
+      },
+      "wheel_momentum_peak": {
+       "mean": 0.00016837624666424272,
+       "worst": 0.00017438558736084797,
+       "values": [
+        0.00016236690596763747,
+        0.00017438558736084797
+       ],
+       "unit": "N m s",
+       "pass": [
+        null,
+        null
+       ]
+      },
+      "power_mean": {
+       "mean": 4.352488348338322,
+       "worst": 4.356554693379666,
+       "values": [
+        4.348422003296978,
+        4.356554693379666
+       ],
+       "unit": "W",
+       "pass": [
+        0,
+        0
+       ]
+      }
+     },
+     "errors": []
+    }
+   ],
+   "figure": "trade_allocation_fmr.png"
+  },
+  {
+   "id": "trade_hardware_fine",
+   "label": "Imaging 3U \u2014 actuator family for the 0.01 deg fine hold",
+   "question": "Which momentum-exchange family (each with coils) holds the camera best, and at what power?",
+   "kind": "hardware",
+   "slot": "actuators",
+   "promote_to": "",
+   "objective": {
+    "metric": "ape_los_p9973",
+    "sense": "min"
+   },
+   "tie_break": {
+    "metric": "power_mean",
+    "sense": "min"
+   },
+   "seeds": [
+    1,
+    2
+   ],
+   "ranking": [
+    "mtq_cmg",
+    "mtq_fmr_rcs",
+    "mtq_fmr",
+    "mtq_vscmg",
+    "mtq_rw_rcs",
+    "mtq_rw"
+   ],
+   "selected": "mtq_cmg",
+   "rationale": "mtq_cmg: feasible on all 2 seeds, worst ape_los_p9973 0.005523 deg, power_mean 1.61",
+   "status": "PROPOSED \u00b7 awaiting a person",
+   "candidates": [
+    {
+     "id": "mtq_cmg",
+     "label": "coils + 4-CMG pyramid",
+     "scenario": "fine_hold_cmg",
+     "product": "TRN-P-3U-CMG",
+     "algorithms": {
+      "detumble": "bdot_gyro",
+      "attitude": "mekf",
+      "pointing": "pid",
+      "mtq_pointing": "mtq_pd",
+      "sun_spin": "sunspin_l1l2",
+      "allocation": "cmg_sr",
+      "thrusters": ""
+     },
+     "n": 2,
+     "n_err": 0,
+     "obj": 0.005523152850647309,
+     "obj_mean": 0.0053227840239721495,
+     "obj_seeds": [
+      0.005523152850647309,
+      0.005122415197296991
+     ],
+     "tie": 1.6098783430605714,
+     "pass_rate": 100,
+     "feasible": true,
+     "metrics": {
+      "ape_los_p9973": {
+       "mean": 0.0053227840239721495,
+       "worst": 0.005523152850647309,
+       "values": [
+        0.005523152850647309,
+        0.005122415197296991
+       ],
+       "unit": "deg",
+       "pass": [
+        1,
+        1
+       ]
+      },
+      "ape_los_max": {
+       "mean": 0.006104626688698524,
+       "worst": 0.006413984962130652,
+       "values": [
+        0.006413984962130652,
+        0.005795268415266396
+       ],
+       "unit": "deg",
+       "pass": [
+        null,
+        null
+       ]
+      },
+      "ape_3ax_p9973": {
+       "mean": 0.006332674438725281,
+       "worst": 0.006519579920838259,
+       "values": [
+        0.006145768956612303,
+        0.006519579920838259
+       ],
+       "unit": "deg",
+       "pass": [
+        null,
+        null
+       ]
+      },
+      "ake_los_p9973": {
+       "mean": 0.00328675943270063,
+       "worst": 0.0034099247014481187,
+       "values": [
+        0.0034099247014481187,
+        0.003163594163953141
+       ],
+       "unit": "deg",
+       "pass": [
+        1,
+        1
+       ]
+      },
+      "rate_stability_p9973": {
+       "mean": 0.0024763842053398964,
+       "worst": 0.002528243844505318,
+       "values": [
+        0.002424524566174475,
+        0.002528243844505318
+       ],
+       "unit": "deg/s",
+       "pass": [
+        0,
+        0
+       ]
+      },
+      "time_to_0p01_deg": {
+       "mean": 75.95,
+       "worst": 83.5,
+       "values": [
+        83.5,
+        68.4
+       ],
+       "unit": "s",
+       "pass": [
+        null,
+        null
+       ]
+      },
+      "wheel_momentum_peak": {
+       "mean": 0.004,
+       "worst": 0.004,
+       "values": [
+        0.004,
+        0.004
+       ],
+       "unit": "N m s",
+       "pass": [
+        null,
+        null
+       ]
+      },
+      "power_mean": {
+       "mean": 1.6098783430605714,
+       "worst": 1.6099037976267503,
+       "values": [
+        1.6098528884943926,
+        1.6099037976267503
+       ],
+       "unit": "W",
+       "pass": [
+        1,
+        1
+       ]
+      }
+     },
+     "errors": []
+    },
+    {
+     "id": "mtq_fmr_rcs",
+     "label": "coils + fluid rings + RCS",
+     "scenario": "fine_hold_fmr_rcs",
+     "product": "TRN-P-3U-FMR-RCS",
+     "algorithms": {
+      "detumble": "bdot_gyro",
+      "attitude": "mekf",
+      "pointing": "pid",
+      "mtq_pointing": "mtq_pd",
+      "sun_spin": "sunspin_l1l2",
+      "allocation": "idmas_split",
+      "thrusters": "rcs_pwm"
+     },
+     "n": 2,
+     "n_err": 0,
+     "obj": 0.006204447517527822,
+     "obj_mean": 0.00618224094392013,
+     "obj_seeds": [
+      0.006160034370312438,
+      0.006204447517527822
+     ],
+     "tie": 4.186167511294374,
+     "pass_rate": 100,
+     "feasible": true,
+     "metrics": {
+      "ape_los_p9973": {
+       "mean": 0.00618224094392013,
+       "worst": 0.006204447517527822,
+       "values": [
+        0.006160034370312438,
+        0.006204447517527822
+       ],
+       "unit": "deg",
+       "pass": [
+        1,
+        1
+       ]
+      },
+      "ape_los_max": {
+       "mean": 0.0070831840633069545,
+       "worst": 0.007193322408827274,
+       "values": [
+        0.006973045717786635,
+        0.007193322408827274
+       ],
+       "unit": "deg",
+       "pass": [
+        null,
+        null
+       ]
+      },
+      "ape_3ax_p9973": {
+       "mean": 0.007464206898287638,
+       "worst": 0.008050525216968831,
+       "values": [
+        0.006877888579606446,
+        0.008050525216968831
+       ],
+       "unit": "deg",
+       "pass": [
+        null,
+        null
+       ]
+      },
+      "ake_los_p9973": {
+       "mean": 0.003388292533163976,
+       "worst": 0.0034800530184713775,
+       "values": [
+        0.0034800530184713775,
+        0.003296532047856574
+       ],
+       "unit": "deg",
+       "pass": [
+        1,
+        1
+       ]
+      },
+      "rate_stability_p9973": {
+       "mean": 0.004588884999440036,
+       "worst": 0.004643436735126702,
+       "values": [
+        0.004643436735126702,
+        0.00453433326375337
+       ],
+       "unit": "deg/s",
+       "pass": [
+        0,
+        0
+       ]
+      },
+      "time_to_0p01_deg": {
+       "mean": 77.45,
+       "worst": 88.2,
+       "values": [
+        88.2,
+        66.7
+       ],
+       "unit": "s",
+       "pass": [
+        null,
+        null
+       ]
+      },
+      "wheel_momentum_peak": {
+       "mean": 0.0001676133534204349,
+       "worst": 0.0001722102595763989,
+       "values": [
+        0.00016301644726447092,
+        0.0001722102595763989
+       ],
+       "unit": "N m s",
+       "pass": [
+        null,
+        null
+       ]
+      },
+      "power_mean": {
+       "mean": 4.186167511294374,
+       "worst": 4.366967824664844,
+       "values": [
+        4.366967824664844,
+        4.0053671979239045
+       ],
+       "unit": "W",
+       "pass": [
+        0,
+        0
+       ]
+      }
+     },
+     "errors": []
+    },
+    {
+     "id": "mtq_fmr",
+     "label": "coils + 3 fluid rings (IDMAS)",
+     "scenario": "fine_hold_fmr",
+     "product": "TRN-P-3U-FMR",
+     "algorithms": {
+      "detumble": "bdot_gyro",
+      "attitude": "mekf",
+      "pointing": "pid",
+      "mtq_pointing": "mtq_pd",
+      "sun_spin": "sunspin_l1l2",
+      "allocation": "idmas_split",
+      "thrusters": ""
+     },
+     "n": 2,
+     "n_err": 0,
+     "obj": 0.00603292951574543,
+     "obj_mean": 0.005880929545538447,
+     "obj_seeds": [
+      0.00603292951574543,
+      0.005728929575331464
+     ],
+     "tie": 4.352488348338322,
+     "pass_rate": 100,
+     "feasible": true,
+     "metrics": {
+      "ape_los_p9973": {
+       "mean": 0.005880929545538447,
+       "worst": 0.00603292951574543,
+       "values": [
+        0.00603292951574543,
+        0.005728929575331464
+       ],
+       "unit": "deg",
+       "pass": [
+        1,
+        1
+       ]
+      },
+      "ape_los_max": {
+       "mean": 0.0074469110419326575,
+       "worst": 0.007836066252184623,
+       "values": [
+        0.007836066252184623,
+        0.007057755831680693
+       ],
+       "unit": "deg",
+       "pass": [
+        null,
+        null
+       ]
+      },
+      "ape_3ax_p9973": {
+       "mean": 0.007219177117591592,
+       "worst": 0.007410340155628957,
+       "values": [
+        0.007028014079554227,
+        0.007410340155628957
+       ],
+       "unit": "deg",
+       "pass": [
+        null,
+        null
+       ]
+      },
+      "ake_los_p9973": {
+       "mean": 0.003176617913142275,
+       "worst": 0.0033213614275627314,
+       "values": [
+        0.0033213614275627314,
+        0.003031874398721818
+       ],
+       "unit": "deg",
+       "pass": [
+        1,
+        1
+       ]
+      },
+      "rate_stability_p9973": {
+       "mean": 0.004584375263772205,
+       "worst": 0.00465410757830101,
+       "values": [
+        0.00465410757830101,
+        0.0045146429492434
+       ],
+       "unit": "deg/s",
+       "pass": [
+        0,
+        0
+       ]
+      },
+      "time_to_0p01_deg": {
+       "mean": 75.75,
+       "worst": 84.30000000000001,
+       "values": [
+        84.30000000000001,
+        67.2
+       ],
+       "unit": "s",
+       "pass": [
+        null,
+        null
+       ]
+      },
+      "wheel_momentum_peak": {
+       "mean": 0.00016837624666424272,
+       "worst": 0.00017438558736084797,
+       "values": [
+        0.00016236690596763747,
+        0.00017438558736084797
+       ],
+       "unit": "N m s",
+       "pass": [
+        null,
+        null
+       ]
+      },
+      "power_mean": {
+       "mean": 4.352488348338322,
+       "worst": 4.356554693379666,
+       "values": [
+        4.348422003296978,
+        4.356554693379666
+       ],
+       "unit": "W",
+       "pass": [
+        0,
+        0
+       ]
+      }
+     },
+     "errors": []
+    },
+    {
+     "id": "mtq_vscmg",
+     "label": "coils + 4-VSCMG pyramid",
+     "scenario": "fine_hold_vscmg",
+     "product": "TRN-P-3U-VSCMG",
+     "algorithms": {
+      "detumble": "bdot_gyro",
+      "attitude": "mekf",
+      "pointing": "pid",
+      "mtq_pointing": "mtq_pd",
+      "sun_spin": "sunspin_l1l2",
+      "allocation": "vscmg_sr",
+      "thrusters": ""
+     },
+     "n": 2,
+     "n_err": 0,
+     "obj": 0.009129105781604186,
+     "obj_mean": 0.008345626702267541,
+     "obj_seeds": [
+      0.009129105781604186,
+      0.007562147622930896
+     ],
+     "tie": 2.0146957559500667,
+     "pass_rate": 100,
+     "feasible": true,
+     "metrics": {
+      "ape_los_p9973": {
+       "mean": 0.008345626702267541,
+       "worst": 0.009129105781604186,
+       "values": [
+        0.009129105781604186,
+        0.007562147622930896
+       ],
+       "unit": "deg",
+       "pass": [
+        1,
+        1
+       ]
+      },
+      "ape_los_max": {
+       "mean": 0.010193763229497835,
+       "worst": 0.010355817039760051,
+       "values": [
+        0.010355817039760051,
+        0.01003170941923562
+       ],
+       "unit": "deg",
+       "pass": [
+        null,
+        null
+       ]
+      },
+      "ape_3ax_p9973": {
+       "mean": 0.009331521772109287,
+       "worst": 0.00945538644784756,
+       "values": [
+        0.009207657096371013,
+        0.00945538644784756
+       ],
+       "unit": "deg",
+       "pass": [
+        null,
+        null
+       ]
+      },
+      "ake_los_p9973": {
+       "mean": 0.0034376002838803436,
+       "worst": 0.00355785825812482,
+       "values": [
+        0.00355785825812482,
+        0.003317342309635867
+       ],
+       "unit": "deg",
+       "pass": [
+        1,
+        1
+       ]
+      },
+      "rate_stability_p9973": {
+       "mean": 0.004545231053516825,
+       "worst": 0.004557086755770034,
+       "values": [
+        0.004557086755770034,
+        0.0045333753512636155
+       ],
+       "unit": "deg/s",
+       "pass": [
+        0,
+        0
+       ]
+      },
+      "time_to_0p01_deg": {
+       "mean": 86.05000000000001,
+       "worst": 89.30000000000001,
+       "values": [
+        89.30000000000001,
+        82.80000000000001
+       ],
+       "unit": "s",
+       "pass": [
+        null,
+        null
+       ]
+      },
+      "wheel_momentum_peak": {
+       "mean": 0.004201400583888345,
+       "worst": 0.004201890836190382,
+       "values": [
+        0.004200910331586307,
+        0.004201890836190382
+       ],
+       "unit": "N m s",
+       "pass": [
+        null,
+        null
+       ]
+      },
+      "power_mean": {
+       "mean": 2.0146957559500667,
+       "worst": 2.014807054731993,
+       "values": [
+        2.0145844571681404,
+        2.014807054731993
+       ],
+       "unit": "W",
+       "pass": [
+        0,
+        0
+       ]
+      }
+     },
+     "errors": []
+    },
+    {
+     "id": "mtq_rw_rcs",
+     "label": "coils + wheels + cold-gas RCS",
+     "scenario": "fine_hold_rw_rcs",
+     "product": "TRN-P-3U-RW-RCS",
+     "algorithms": {
+      "detumble": "bdot_gyro",
+      "attitude": "mekf",
+      "pointing": "pid",
+      "mtq_pointing": "mtq_pd",
+      "sun_spin": "sunspin_l1l2",
+      "allocation": "rotor_pinv",
+      "thrusters": "rcs_pwm"
+     },
+     "n": 2,
+     "n_err": 0,
+     "obj": 0.02092361473884742,
+     "obj_mean": 0.014649374155948535,
+     "obj_seeds": [
+      0.008375133573049651,
+      0.02092361473884742
+     ],
+     "tie": 1.5100719971276755,
+     "pass_rate": 75,
+     "feasible": false,
+     "metrics": {
+      "ape_los_p9973": {
+       "mean": 0.014649374155948535,
+       "worst": 0.02092361473884742,
+       "values": [
+        0.008375133573049651,
+        0.02092361473884742
+       ],
+       "unit": "deg",
+       "pass": [
+        1,
+        0
+       ]
+      },
+      "ape_los_max": {
+       "mean": 0.016230182374875994,
+       "worst": 0.02253481294292762,
+       "values": [
+        0.009925551806824372,
+        0.02253481294292762
+       ],
+       "unit": "deg",
+       "pass": [
+        null,
+        null
+       ]
+      },
+      "ape_3ax_p9973": {
+       "mean": 0.014764166763043263,
+       "worst": 0.021040749889301293,
+       "values": [
+        0.008487583636785232,
+        0.021040749889301293
+       ],
+       "unit": "deg",
+       "pass": [
+        null,
+        null
+       ]
+      },
+      "ake_los_p9973": {
+       "mean": 0.0033524061275796426,
+       "worst": 0.0034386011043511847,
+       "values": [
+        0.0034386011043511847,
+        0.0032662111508081006
+       ],
+       "unit": "deg",
+       "pass": [
+        1,
+        1
+       ]
+      },
+      "rate_stability_p9973": {
+       "mean": 0.0038149948157274022,
+       "worst": 0.004025697429671525,
+       "values": [
+        0.0036042922017832796,
+        0.004025697429671525
+       ],
+       "unit": "deg/s",
+       "pass": [
+        0,
+        0
+       ]
+      },
+      "time_to_0p01_deg": {
+       "mean": 77.15,
+       "worst": 87.2,
+       "values": [
+        87.2,
+        67.10000000000001
+       ],
+       "unit": "s",
+       "pass": [
+        null,
+        null
+       ]
+      },
+      "wheel_momentum_peak": {
+       "mean": 0.0028013908994885973,
+       "worst": 0.002802646524888059,
+       "values": [
+        0.002802646524888059,
+        0.002800135274089136
+       ],
+       "unit": "N m s",
+       "pass": [
+        null,
+        null
+       ]
+      },
+      "power_mean": {
+       "mean": 1.5100719971276755,
+       "worst": 1.5100855484708615,
+       "values": [
+        1.5100855484708615,
+        1.5100584457844892
+       ],
+       "unit": "W",
+       "pass": [
+        1,
+        1
+       ]
+      }
+     },
+     "errors": []
+    },
+    {
+     "id": "mtq_rw",
+     "label": "coils + 3 reaction wheels",
+     "scenario": "fine_hold_img",
+     "product": "TRN-P-3U-IMG",
+     "algorithms": {
+      "detumble": "bdot_gyro",
+      "attitude": "mekf",
+      "pointing": "pid",
+      "mtq_pointing": "mtq_pd",
+      "sun_spin": "sunspin_l1l2",
+      "allocation": "rotor_pinv",
+      "thrusters": ""
+     },
+     "n": 2,
+     "n_err": 0,
+     "obj": 0.021750508547923684,
+     "obj_mean": 0.015458258526728968,
+     "obj_seeds": [
+      0.009166008505534255,
+      0.021750508547923684
+     ],
+     "tie": 1.5573246127764804,
+     "pass_rate": 75,
+     "feasible": false,
+     "metrics": {
+      "ape_los_p9973": {
+       "mean": 0.015458258526728968,
+       "worst": 0.021750508547923684,
+       "values": [
+        0.009166008505534255,
+        0.021750508547923684
+       ],
+       "unit": "deg",
+       "pass": [
+        1,
+        0
+       ]
+      },
+      "ape_los_max": {
+       "mean": 0.018278423573572525,
+       "worst": 0.025631989678146855,
+       "values": [
+        0.010924857468998192,
+        0.025631989678146855
+       ],
+       "unit": "deg",
+       "pass": [
+        null,
+        null
+       ]
+      },
+      "ape_3ax_p9973": {
+       "mean": 0.015743378629298834,
+       "worst": 0.021891354356145518,
+       "values": [
+        0.00959540290245215,
+        0.021891354356145518
+       ],
+       "unit": "deg",
+       "pass": [
+        null,
+        null
+       ]
+      },
+      "ake_los_p9973": {
+       "mean": 0.003171785889611844,
+       "worst": 0.0033331261920540377,
+       "values": [
+        0.0033331261920540377,
+        0.0030104455871696506
+       ],
+       "unit": "deg",
+       "pass": [
+        1,
+        1
+       ]
+      },
+      "rate_stability_p9973": {
+       "mean": 0.003800751009653418,
+       "worst": 0.003931461249623259,
+       "values": [
+        0.0036700407696835767,
+        0.003931461249623259
+       ],
+       "unit": "deg/s",
+       "pass": [
+        0,
+        0
+       ]
+      },
+      "time_to_0p01_deg": {
+       "mean": 83.1,
+       "worst": 83.5,
+       "values": [
+        83.5,
+        82.7
+       ],
+       "unit": "s",
+       "pass": [
+        null,
+        null
+       ]
+      },
+      "wheel_momentum_peak": {
+       "mean": 0.003257149012471922,
+       "worst": 0.0032575307526131014,
+       "values": [
+        0.003256767272330742,
+        0.0032575307526131014
+       ],
+       "unit": "N m s",
+       "pass": [
+        null,
+        null
+       ]
+      },
+      "power_mean": {
+       "mean": 1.5573246127764804,
+       "worst": 1.5574407876008063,
+       "values": [
+        1.5572084379521545,
+        1.5574407876008063
+       ],
+       "unit": "W",
+       "pass": [
+        1,
+        1
+       ]
+      }
+     },
+     "errors": []
+    }
+   ],
+   "figure": "trade_hardware_fine.png"
+  },
+  {
+   "id": "trade_hardware_agile",
+   "label": "Imaging 3U \u2014 actuator family for the agile 90 deg slew",
+   "question": "Which family completes the 90 deg retarget and settles to 0.01 deg soonest?",
+   "kind": "hardware",
+   "slot": "actuators",
+   "promote_to": "",
+   "objective": {
+    "metric": "settle_time_after_slew",
+    "sense": "min"
+   },
+   "tie_break": {
+    "metric": "power_mean",
+    "sense": "min"
+   },
+   "seeds": [
+    1,
+    2
+   ],
+   "ranking": [
+    "mtq_cmg",
+    "mtq_rw_rcs",
+    "mtq_fmr_rcs",
+    "mtq_rw",
+    "mtq_vscmg"
+   ],
+   "selected": "mtq_cmg",
+   "rationale": "mtq_cmg: feasible on all 2 seeds, worst settle_time_after_slew 38.7 s",
+   "status": "PROPOSED \u00b7 awaiting a person",
+   "candidates": [
+    {
+     "id": "mtq_cmg",
+     "label": "coils + CMG pyramid",
+     "scenario": "agile_slew_cmg",
+     "product": "TRN-P-3U-CMG",
+     "algorithms": {
+      "detumble": "bdot_gyro",
+      "attitude": "mekf",
+      "pointing": "pid",
+      "mtq_pointing": "mtq_pd",
+      "sun_spin": "sunspin_l1l2",
+      "allocation": "cmg_sr",
+      "thrusters": ""
+     },
+     "n": 2,
+     "n_err": 0,
+     "obj": 38.70000000000002,
+     "obj_mean": 33.35000000000001,
+     "obj_seeds": [
+      38.70000000000002,
+      28
+     ],
+     "tie": null,
+     "pass_rate": 100,
+     "feasible": true,
+     "metrics": {
+      "settle_time_after_slew": {
+       "mean": 33.35000000000001,
+       "worst": 38.70000000000002,
+       "values": [
+        38.70000000000002,
+        28
+       ],
+       "unit": "s",
+       "pass": [
+        null,
+        null
+       ]
+      },
+      "ape_los_on_target_p9973": {
+       "mean": 0.0047049909042621,
+       "worst": 0.005492148222782869,
+       "values": [
+        0.005492148222782869,
+        0.00391783358574133
+       ],
+       "unit": "deg",
+       "pass": [
+        1,
+        1
+       ]
+      },
+      "wheel_momentum_peak": {
+       "mean": 0.004,
+       "worst": 0.004,
+       "values": [
+        0.004,
+        0.004
+       ],
+       "unit": "N m s",
+       "pass": [
+        null,
+        null
+       ]
+      }
+     },
+     "errors": []
+    },
+    {
+     "id": "mtq_rw_rcs",
+     "label": "coils + wheels + RCS",
+     "scenario": "agile_slew_rw_rcs",
+     "product": "TRN-P-3U-RW-RCS",
+     "algorithms": {
+      "detumble": "bdot_gyro",
+      "attitude": "mekf",
+      "pointing": "pid",
+      "mtq_pointing": "mtq_pd",
+      "sun_spin": "sunspin_l1l2",
+      "allocation": "rotor_pinv",
+      "thrusters": "rcs_pwm"
+     },
+     "n": 2,
+     "n_err": 0,
+     "obj": 39.5,
+     "obj_mean": 39,
+     "obj_seeds": [
+      39.5,
+      38.5
+     ],
+     "tie": null,
+     "pass_rate": 100,
+     "feasible": true,
+     "metrics": {
+      "settle_time_after_slew": {
+       "mean": 39,
+       "worst": 39.5,
+       "values": [
+        39.5,
+        38.5
+       ],
+       "unit": "s",
+       "pass": [
+        null,
+        null
+       ]
+      },
+      "ape_los_on_target_p9973": {
+       "mean": 0.007700510379714082,
+       "worst": 0.008113682421798288,
+       "values": [
+        0.008113682421798288,
+        0.007287338337629877
+       ],
+       "unit": "deg",
+       "pass": [
+        1,
+        1
+       ]
+      },
+      "wheel_momentum_peak": {
+       "mean": 0.003374378405631354,
+       "worst": 0.0033859826843039885,
+       "values": [
+        0.0033627741269587194,
+        0.0033859826843039885
+       ],
+       "unit": "N m s",
+       "pass": [
+        null,
+        null
+       ]
+      }
+     },
+     "errors": []
+    },
+    {
+     "id": "mtq_fmr_rcs",
+     "label": "coils + fluid rings + RCS",
+     "scenario": "agile_slew_fmr_rcs",
+     "product": "TRN-P-3U-FMR-RCS",
+     "algorithms": {
+      "detumble": "bdot_gyro",
+      "attitude": "mekf",
+      "pointing": "pid",
+      "mtq_pointing": "mtq_pd",
+      "sun_spin": "sunspin_l1l2",
+      "allocation": "idmas_split",
+      "thrusters": "rcs_pwm"
+     },
+     "n": 2,
+     "n_err": 0,
+     "obj": 39.900000000000006,
+     "obj_mean": 39.250000000000014,
+     "obj_seeds": [
+      39.900000000000006,
+      38.60000000000002
+     ],
+     "tie": null,
+     "pass_rate": 100,
+     "feasible": true,
+     "metrics": {
+      "settle_time_after_slew": {
+       "mean": 39.250000000000014,
+       "worst": 39.900000000000006,
+       "values": [
+        39.900000000000006,
+        38.60000000000002
+       ],
+       "unit": "s",
+       "pass": [
+        null,
+        null
+       ]
+      },
+      "ape_los_on_target_p9973": {
+       "mean": 0.007633994235164866,
+       "worst": 0.008042910735853365,
+       "values": [
+        0.007225077734476367,
+        0.008042910735853365
+       ],
+       "unit": "deg",
+       "pass": [
+        1,
+        1
+       ]
+      },
+      "wheel_momentum_peak": {
+       "mean": 0.0009689229173859267,
+       "worst": 0.0009926581920240674,
+       "values": [
+        0.0009451876427477859,
+        0.0009926581920240674
+       ],
+       "unit": "N m s",
+       "pass": [
+        null,
+        null
+       ]
+      }
+     },
+     "errors": []
+    },
+    {
+     "id": "mtq_rw",
+     "label": "coils + wheels",
+     "scenario": "agile_slew_img",
+     "product": "TRN-P-3U-IMG",
+     "algorithms": {
+      "detumble": "bdot_gyro",
+      "attitude": "mekf",
+      "pointing": "pid",
+      "mtq_pointing": "mtq_pd",
+      "sun_spin": "sunspin_l1l2",
+      "allocation": "rotor_pinv",
+      "thrusters": ""
+     },
+     "n": 2,
+     "n_err": 0,
+     "obj": 54.60000000000002,
+     "obj_mean": 53.20000000000002,
+     "obj_seeds": [
+      51.80000000000001,
+      54.60000000000002
+     ],
+     "tie": null,
+     "pass_rate": 100,
+     "feasible": true,
+     "metrics": {
+      "settle_time_after_slew": {
+       "mean": 53.20000000000002,
+       "worst": 54.60000000000002,
+       "values": [
+        51.80000000000001,
+        54.60000000000002
+       ],
+       "unit": "s",
+       "pass": [
+        null,
+        null
+       ]
+      },
+      "ape_los_on_target_p9973": {
+       "mean": 0.00861912355642052,
+       "worst": 0.009879696665701352,
+       "values": [
+        0.009879696665701352,
+        0.007358550447139689
+       ],
+       "unit": "deg",
+       "pass": [
+        1,
+        1
+       ]
+      },
+      "wheel_momentum_peak": {
+       "mean": 0.006912474725316899,
+       "worst": 0.006920054725925468,
+       "values": [
+        0.006920054725925468,
+        0.006904894724708328
+       ],
+       "unit": "N m s",
+       "pass": [
+        null,
+        null
+       ]
+      }
+     },
+     "errors": []
+    },
+    {
+     "id": "mtq_vscmg",
+     "label": "coils + VSCMG pyramid",
+     "scenario": "agile_slew_vscmg",
+     "product": "TRN-P-3U-VSCMG",
+     "algorithms": {
+      "detumble": "bdot_gyro",
+      "attitude": "mekf",
+      "pointing": "pid",
+      "mtq_pointing": "mtq_pd",
+      "sun_spin": "sunspin_l1l2",
+      "allocation": "vscmg_sr",
+      "thrusters": ""
+     },
+     "n": 2,
+     "n_err": 0,
+     "obj": 52.10000000000002,
+     "obj_mean": 51.85000000000002,
+     "obj_seeds": [
+      51.60000000000002,
+      52.10000000000002
+     ],
+     "tie": null,
+     "pass_rate": 50,
+     "feasible": false,
+     "metrics": {
+      "settle_time_after_slew": {
+       "mean": 51.85000000000002,
+       "worst": 52.10000000000002,
+       "values": [
+        51.60000000000002,
+        52.10000000000002
+       ],
+       "unit": "s",
+       "pass": [
+        null,
+        null
+       ]
+      },
+      "ape_los_on_target_p9973": {
+       "mean": 0.009723893008112878,
+       "worst": 0.010065815802804863,
+       "values": [
+        0.010065815802804863,
+        0.009381970213420892
+       ],
+       "unit": "deg",
+       "pass": [
+        0,
+        1
+       ]
+      },
+      "wheel_momentum_peak": {
+       "mean": 0.008093428435090701,
+       "worst": 0.008099915486350003,
+       "values": [
+        0.0080869413838314,
+        0.008099915486350003
+       ],
+       "unit": "N m s",
+       "pass": [
+        null,
+        null
+       ]
+      }
+     },
+     "errors": []
+    }
+   ],
+   "figure": "trade_hardware_agile.png"
+  }
+ ]
+}

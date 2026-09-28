@@ -10,7 +10,8 @@ function [hdot, gdot, P_W, D] = mex(cmd_r, cmd_g, h, d, D, m, dt)
 %           T_sd = rho d^2/(32 mu) (0.75 s). The driver adds the loss it
 %           estimates from its filtered flow sensor and servoes the flow to the
 %           integrated command (closed-loop driver), limited by the pump; |v| <= v_max.
-%           Power = pump pressure x flow / pump efficiency.
+%           Power = pump pressure x flow / pump efficiency, plus the pump
+%           field power while pumping (m.field_power).
 %   'cmg'   control-moment-gyro rotor: constant momentum h0 held by a speed loop;
 %           the torque comes from its gimbal (rate limit m.gimbal_rate_max).
 %   'vscmg' variable-speed CMG: a CMG whose rotor is also torqued like a wheel.
@@ -45,6 +46,10 @@ function [hdot, gdot, P_W, D] = mex(cmd_r, cmd_g, h, d, D, m, dt)
                 v = h(i)/m.k_hv(i);                                 % flow speed [m/s]
                 dp = pump*m.l(i)/(2*m.S(i)*m.Ac(i));                % pump pressure [Pa]
                 P_W = P_W + abs(dp*m.Ac(i)*v)/D.eta(i);
+                % pump field (yoke electromagnet) is on while the pump drives the
+                % loop (IDMAS v2 §03C: 1-3 W per unit); the loop spins down in
+                % ~1 s, so it is on whenever the ring holds momentum
+                if abs(pump) > 1e-3*m.torque_max(i), P_W = P_W + m.field_power(i); end
             case 'cmg'
                 hdot(i) = max(-m.torque_max(i), min(m.torque_max(i), -m.k_speed*(h(i) - m.h0(i))));
                 P_W = P_W + m.p_steady(i);
