@@ -27,7 +27,8 @@ pub struct Row {
 
 pub struct Record { pub rows: Vec<Row>, pub nr: usize, pub ng: usize, pub raan_rad: f64, pub mode_log: Vec<(f64, String)>, pub wall_s: f64, pub fsw_build: String, pub fsw_impl: Impl }
 
-pub struct Opts { pub fsw: Impl, pub quiet: bool }
+pub struct Opts { pub fsw: Impl, pub quiet: bool, /// pace ticks to wall-clock time (OILS / HILS with a real OBC)
+    pub realtime: bool }
 
 fn mode_changes(log: &mut Vec<(f64, String)>, t: f64, m: u8) {
     let name = crate::config::MODES.get(m as usize).copied().unwrap_or("none").to_string();
@@ -74,7 +75,7 @@ pub fn run(c: &Config, o: &Opts) -> Result<Record, String> {
 
     // ---- flight software behind the bus ----
     let mut bus = Bus::default();
-    let mut fsw = Fsw::init(o.fsw, &c.blob(), 0, &mut bus)?;
+    let mut fsw = Fsw::init(o.fsw.clone(), &c.blob(), 0, &mut bus)?;
     let fsw_build = fsw.build_id();
 
     // ---- initial state (asils.run initial_) ----
@@ -254,6 +255,11 @@ pub fn run(c: &Config, o: &Opts) -> Result<Record, String> {
             });
         }
         if k == n { break; }
+        if o.realtime {
+            let due = std::time::Duration::from_secs_f64(t + dt);
+            let el = wall.elapsed();
+            if due > el { std::thread::sleep(due - el); }
+        }
         let tau_ext = add(&add(&tau_d, &tau_mtq), &tau_rcs);
         x = plant::step(&x, dt, &body, &tau_ext, &hdot, &gdot);
         if !o.quiet && last_print.elapsed().as_secs_f64() > 10.0 {
@@ -263,5 +269,5 @@ pub fn run(c: &Config, o: &Opts) -> Result<Record, String> {
         }
     }
     let _ = (can_rx_count, GUID);
-    Ok(Record { rows, nr, ng, raan_rad: raan, mode_log: log, wall_s: wall.elapsed().as_secs_f64(), fsw_build, fsw_impl: o.fsw })
+    Ok(Record { rows, nr, ng, raan_rad: raan, mode_log: log, wall_s: wall.elapsed().as_secs_f64(), fsw_build, fsw_impl: o.fsw.clone() })
 }

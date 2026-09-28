@@ -14,6 +14,7 @@ use std::collections::VecDeque;
 use std::sync::{Mutex, MutexGuard};
 
 pub use adcs_fsw::devices as proto;
+pub mod link;
 
 /// The emulated buses between the device emulators and the flight software.
 #[derive(Default, Clone)]
@@ -118,13 +119,44 @@ extern "C" {
 }
 
 /// Which flight software runs behind the bus.
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum Impl { C, Rust }
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub enum Impl {
+    /// the C flight software linked into the engine process
+    C,
+    /// the Rust flight software linked into the engine process
+    Rust,
+    /// a virtual or real OBC on adcs-link/1 (process, QEMU Cortex-M4, TCP)
+    Obc(link::Target),
+}
+
+/// The repository root ($ADCS_REPO, else the ancestor of the working directory holding fsw/).
+pub fn repo_root() -> std::path::PathBuf {
+    if let Ok(r) = std::env::var("ADCS_REPO") { return r.into(); }
+    let mut d = std::env::current_dir().unwrap_or_default();
+    loop {
+        if d.join("fsw/include/adcs_fsw.h").is_file() { return d; }
+        if !d.pop() { return ".".into(); }
+    }
+}
 
 impl std::str::FromStr for Impl {
     type Err = String;
     fn from_str(s: &str) -> Result<Impl, String> {
-        match s { "c" | "C" => Ok(Impl::C), "rust" | "rs" | "Rust" => Ok(Impl::Rust), _ => Err(format!("unknown flight software '{s}' (c | rust)")) }
+        let repo = repo_root();
+        let fsw = |f: &str| repo.join("fsw/build").join(f).display().to_string();
+        let qemu = |elf: String| vec!["qemu-system-arm".into(), "-M".into(), "mps2-an386".into(), "-cpu".into(), "cortex-m4".into(),
+            "-display".into(), "none".into(), "-monitor".into(), "none".into(), "-serial".into(), "stdio".into(), "-semihosting".into(), "-kernel".into(), elf];
+        match s {
+            "c" | "C" => Ok(Impl::C),
+            "rust" | "rs" | "Rust" => Ok(Impl::Rust),
+            "obc-posix" => Ok(Impl::Obc(link::Target::Spawn(vec![fsw("obc_posix")]))),
+            "obc-posix-rs" => Ok(Impl::Obc(link::Target::Spawn(vec![fsw("obc_posix_rs")]))),
+            "qemu" => Ok(Impl::Obc(link::Target::Spawn(qemu(fsw("obc_qemu.elf"))))),
+            "qemu-rs" => Ok(Impl::Obc(link::Target::Spawn(qemu(fsw("obc_qemu_rs.elf"))))),
+            x if x.starts_with("spawn:") => Ok(Impl::Obc(link::Target::Spawn(x[6..].split_whitespace().map(String::from).collect()))),
+            x if x.starts_with("tcp:") => Ok(Impl::Obc(link::Target::Tcp(x[4..].to_string()))),
+            _ => Err(format!("unknown flight software '{s}' (c | rust | obc-posix | obc-posix-rs | qemu | qemu-rs | spawn:<cmd> | tcp:<host:port>)")),
+        }
     }
 }
 
@@ -133,6 +165,7 @@ impl std::str::FromStr for Impl {
 pub enum Fsw {
     C(MutexGuard<'static, ()>),
     Rust(Box<adcs_fsw::Fsw>),
+    Obc(Box<link::Link>),
 }
 
 static C_LOCK: Mutex<()> = Mutex::new(());
@@ -154,6 +187,12 @@ impl Fsw {
                 f.init(adcs_fsw::ABI_VERSION, blob, start_ns).map_err(|e| format!("adcs-fsw (Rust) refused the configuration: {e:?}"))?;
                 Ok(Fsw::Rust(f))
             }
+            Impl::Obc(t) => {
+                let mut l = Box::new(link::Link::open(&t)?);
+                let rc = l.config(blob, start_ns)?;
+                if rc != 0 { return Err(format!("the OBC refused the configuration: {rc}")); }
+                Ok(Fsw::Obc(l))
+            }
         }
     }
     fn with<R>(bus: &mut Bus, f: impl FnOnce() -> R) -> R {
@@ -166,27 +205,39 @@ impl Fsw {
         match self {
             Fsw::C(_) => Self::with(bus, || unsafe { adcs_fsw_step(now_ns) }),
             Fsw::Rust(f) => f.step(bus, now_ns),
+            Fsw::Obc(l) => l.tick(bus, now_ns).unwrap_or_else(|e| { eprintln!("{e}"); -100 }),
         }
     }
     pub fn command(&mut self, tc: &[u8]) -> i32 {
-        match self { Fsw::C(_) => unsafe { adcs_fsw_command(tc.as_ptr(), tc.len()) }, Fsw::Rust(f) => f.command(tc) }
+        match self { Fsw::C(_) => unsafe { adcs_fsw_command(tc.as_ptr(), tc.len()) }, Fsw::Rust(f) => f.command(tc), Fsw::Obc(l) => l.command(tc).unwrap_or(-100) }
     }
     pub fn peek(&self) -> Option<adcs_fsw::State> {
         match self {
             Fsw::C(_) => { let mut s = adcs_fsw::State::default(); (unsafe { adcs_fsw_peek(&mut s) } == 0).then_some(s) }
             Fsw::Rust(f) => f.peek(),
+            Fsw::Obc(l) => {
+                // faults are not on the link; report what the debug vector carries
+                let d = &l.debug;
+                if d.len() < 7 { return None; }
+                Some(adcs_fsw::State { mode: d[1] as u16, q_est: [d[6] as f32, d[3] as f32, d[4] as f32, d[5] as f32], ..Default::default() })
+            }
         }
     }
     /// t, mode, ad_ok, q[4], b[3], w_est[3], q_ref[4], tau_req[3], m[3], cmd_r[8], cmd_g[4], duty[6]
     pub fn debug(&self) -> [f64; DEBUG_LEN] {
         let mut v = [0.0; DEBUG_LEN];
-        match self { Fsw::C(_) => { unsafe { adcs_fsw_debug(v.as_mut_ptr(), DEBUG_LEN as i32) }; } Fsw::Rust(f) => { f.debug(&mut v); } }
+        match self {
+            Fsw::C(_) => { unsafe { adcs_fsw_debug(v.as_mut_ptr(), DEBUG_LEN as i32) }; }
+            Fsw::Rust(f) => { f.debug(&mut v); }
+            Fsw::Obc(l) => { for (i, x) in l.debug.iter().take(DEBUG_LEN).enumerate() { v[i] = *x; } }
+        }
         v
     }
     pub fn build_id(&self) -> String {
         match self {
             Fsw::C(_) => unsafe { std::ffi::CStr::from_ptr(adcs_fsw_build_id()) }.to_string_lossy().into_owned(),
             Fsw::Rust(_) => adcs_fsw::BUILD_ID.to_string(),
+            Fsw::Obc(l) => format!("{} via adcs-link/1", l.build_id),
         }
     }
 }

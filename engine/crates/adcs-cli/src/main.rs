@@ -2,7 +2,10 @@
 //!
 //!   adcs run <scenario> [--case F] [--fsw c|rust] [--seed N] [--out DIR] [--set k=v]... [--alg slot=id]... [--quiet]
 //!   adcs params <scenario> [--case F] [--set k=v]... --out blob.bin     the adcs-fswcfg/1 blob (OILS / OBC upload)
-//!   adcs parity <scenario> [--case F] [--seed N] [--set k=v]...        C vs Rust flight software, same loop, same bytes
+//!   adcs parity <scenario> [--fsw A --against B] ...                  two flight-software targets, same loop, same bytes
+//!
+//! --fsw: c | rust (in-process) | obc-posix | obc-posix-rs (virtual OBC process) | qemu | qemu-rs
+//! (virtual Cortex-M4 OBC in QEMU) | spawn:<cmd> | tcp:<host:port> (a real OBC); --realtime paces ticks to wall time.
 //!
 //! Scenario ids are matlab_sils/data/scenarios/*.json (or a path); the case defaults to
 //! cases/<scenario.case>.csv. Overrides: `--set fsw.rw_bandwidth=0.5` edits the scenario,
@@ -13,19 +16,21 @@ use adcs_sim::{config::Config, data_root, metrics, rec, run};
 use std::path::PathBuf;
 use std::process::ExitCode;
 
-struct Args { cmd: String, scenario: String, case: Option<String>, fsw: Impl, seed: u64, out: Option<PathBuf>, set: Vec<(String, String)>, quiet: bool }
+struct Args { cmd: String, scenario: String, case: Option<String>, fsw: Impl, fsw_b: Option<Impl>, seed: u64, out: Option<PathBuf>, set: Vec<(String, String)>, quiet: bool, realtime: bool }
 
 fn parse() -> Result<Args, String> {
     let mut it = std::env::args().skip(1);
     let cmd = it.next().ok_or_else(usage)?;
     if cmd == "-h" || cmd == "--help" { return Err(usage()); }
     let scenario = it.next().ok_or_else(usage)?;
-    let mut a = Args { cmd, scenario, case: None, fsw: Impl::C, seed: 1, out: None, set: vec![], quiet: false };
+    let mut a = Args { cmd, scenario, case: None, fsw: Impl::C, fsw_b: None, seed: 1, out: None, set: vec![], quiet: false, realtime: false };
     while let Some(k) = it.next() {
         let mut val = || it.next().ok_or(format!("{k} needs a value"));
         match k.as_str() {
             "--case" => a.case = Some(val()?),
             "--fsw" => a.fsw = val()?.parse()?,
+            "--against" => a.fsw_b = Some(val()?.parse()?),
+            "--realtime" => a.realtime = true,
             "--seed" => a.seed = val()?.parse().map_err(|_| "--seed: not an integer")?,
             "--out" => a.out = Some(val()?.into()),
             "--set" => { let s = val()?; let (k, v) = s.split_once('=').ok_or("--set k=v")?; a.set.push((k.into(), v.into())); }
@@ -38,7 +43,7 @@ fn parse() -> Result<Args, String> {
 }
 
 fn usage() -> String {
-    "usage: adcs run|params|parity <scenario> [--case F] [--fsw c|rust] [--seed N] [--out DIR] [--set k=v]... [--alg slot=id]... [--quiet]".into()
+    "usage: adcs run|params|parity <scenario> [--case F] [--fsw c|rust|obc-posix|obc-posix-rs|qemu|qemu-rs|spawn:<cmd>|tcp:<host:port>] [--against <fsw>] [--realtime] [--seed N] [--out DIR] [--set k=v]... [--alg slot=id]... [--quiet]".into()
 }
 
 fn config(a: &Args) -> Result<Config, String> {
@@ -75,7 +80,7 @@ fn main() -> ExitCode {
             }
             "run" => {
                 if !a.quiet { eprintln!("[adcs] {} on {} ({}), fsw {:?}, seed {}, {:.0} s", c.id, c.case.id, c.dev.id, a.fsw, a.seed, c.duration_s); }
-                let r = run::run(&c, &run::Opts { fsw: a.fsw, quiet: a.quiet })?;
+                let r = run::run(&c, &run::Opts { fsw: a.fsw.clone(), quiet: a.quiet, realtime: a.realtime })?;
                 let d = metrics::derive(&c, &r);
                 let ms = metrics::evaluate(&c, &r, &d);
                 let out = a.out.clone().unwrap_or_else(|| data_root().join("store/results_engine").join(&c.id));
@@ -84,8 +89,10 @@ fn main() -> ExitCode {
                 print_metrics(&ms);
             }
             "parity" => {
-                let rc = run::run(&c, &run::Opts { fsw: Impl::C, quiet: true })?;
-                let rr = run::run(&c, &run::Opts { fsw: Impl::Rust, quiet: true })?;
+                // default: C vs Rust in-process; --fsw A --against B compares any two (e.g. c vs qemu)
+                let (ia, ib) = match &a.fsw_b { Some(b) => (a.fsw.clone(), b.clone()), None => (Impl::C, Impl::Rust) };
+                let rc = run::run(&c, &run::Opts { fsw: ia, quiet: true, realtime: false })?;
+                let rr = run::run(&c, &run::Opts { fsw: ib, quiet: true, realtime: false })?;
                 let mut dq: f64 = 0.0;
                 let mut dw: f64 = 0.0;
                 let mut first = None;
@@ -95,8 +102,8 @@ fn main() -> ExitCode {
                     if (q > 0.0 || w > 0.0 || x.mode != y.mode) && first.is_none() { first = Some(j); }
                     dq = dq.max(q); dw = dw.max(w);
                 }
-                println!("[parity] {} {:.0} s: C ({}) vs Rust ({}): max quaternion component difference {:.3e}, max rate difference {:.3e} deg/s, {}",
-                    c.id, c.duration_s, rc.fsw_build, rr.fsw_build, dq, dw.to_degrees(),
+                println!("[parity] {} {:.0} s: {} vs {}: max quaternion component difference {:.3e}, max rate difference {:.3e} deg/s, {}",
+                    c.id, c.duration_s, rec::impl_label(&rc.fsw_impl), rec::impl_label(&rr.fsw_impl), dq, dw.to_degrees(),
                     match first { None => "bit-identical trajectories".to_string(), Some(j) => format!("first difference at t = {} s", rc.rows[j].t) });
             }
             _ => return Err(usage()),

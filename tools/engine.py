@@ -15,6 +15,10 @@ software in C (fsw/) or Rust (fsw-rs/), all from one pseudocode (fsw/pseudocode)
   python3 tools/engine.py dispatch [case ...]                       the recommended solution's flight configuration:
                                                                     dist/dispatch/<case>/<family>/fsw/ (adcs-fswcfg/1 blob,
                                                                     decoded JSON, build notes) + an engine mission check
+  python3 tools/engine.py vobc [scen ...] [--duration S]           virtual-OBC loop: the flight software as a separate
+                                                                    process and on QEMU Cortex-M4 (C and Rust) over
+                                                                    adcs-link/1, compared with the in-process builds
+                                                                    -> results/VIRTUAL_OBC.md
   python3 tools/engine.py twin-parity                               engine vs MATLAB twin, metric by metric
                                                                     -> results/ENGINE_PARITY.md, results/engine_parity.json
 
@@ -300,7 +304,7 @@ def solutions(a):
                 res.setdefault(c, {}).setdefault(M["id"], {})[o["id"]] = {"feasible": feas, "objective": obj, "failing": sorted(fails)}
                 tw = twin.get((M["id"], o["id"]), {})
                 tf = tw.get("feasible")
-                tobj = tw.get("objective", tw.get("worst"))
+                tobj = tw.get("obj", tw.get("objective"))
                 fmt = lambda x: "—" if x is None else (f"{x:.4g}" if isinstance(x, (int, float)) else str(x))
                 L.append(f"| {M['label']} | {o['id']} | {'yes' if feas else 'no'} | {fmt(obj)} {M['objective']} | {', '.join(sorted(fails)) or '—'} | "
                          f"{'—' if tf is None else ('yes' if tf else 'no')} | {fmt(tobj)} |")
@@ -390,6 +394,34 @@ Then OILS: the same blob on the OBC with the engine's device emulators on the wi
         print(f"{c}: {fam} -> {dd.relative_to(ROOT)}  (engine check: " + ", ".join(f"{k} rc={v['rc']}" for k, v in res.items()) + ")")
 
 
+VOBC_PAIRS = [("c", "obc-posix"), ("rust", "obc-posix-rs"), ("c", "qemu"), ("rust", "qemu-rs"), ("c", "rust")]
+
+
+def vobc(a):
+    sh(["make", "-s", "-C", "fsw", "obc"])
+    scen = a.scenarios or ["detumble_ais", "mission_ais", "fine_hold_img", "slew_img", "fine_hold_cmg", "fine_hold_fmr_rcs", "sun_spin_ais"]
+    L = ["# Virtual OBC loop", "", "Owner: Agastya. `tools/engine.py vobc` -- the Rust engine drives the flight software over",
+         "adcs-link/1 (fsw/targets/link) running as a separate host process and as bare-metal firmware on an",
+         "emulated Cortex-M4F (QEMU mps2-an386, arm-none-eabi-gcc + newlib for C, rustc thumbv7em-none-eabihf for",
+         f"Rust), and compares every recorded sample with the in-process build ({a.duration:.0f} s per scenario).", "",
+         "| scenario | reference | virtual OBC | result | wall [s] |", "|---|---|---|---|---:|"]
+    for s in scenario_list(scen):
+        for ref, tgt in VOBC_PAIRS:
+            t0 = time.time()
+            p = subprocess.run([str(BIN), "parity", s, "--fsw", ref, "--against", tgt, "--set", f"engine.duration_s={a.duration}"],
+                               capture_output=True, text=True)
+            line = (p.stdout + p.stderr).strip().splitlines()[-1] if (p.stdout + p.stderr).strip() else "no output"
+            res = "bit-identical" if "bit-identical" in line else re.sub(r".*: max", "max", line)
+            print(f"{s:20s} {ref:5s} vs {tgt:13s} {res}")
+            L.append(f"| {s} | {ref} (in-process) | {tgt} | {res} | {time.time() - t0:.1f} |")
+    (OUT / "VIRTUAL_OBC.md").write_text("\n".join(L) + "\n")
+    print("wrote results/VIRTUAL_OBC.md")
+
+
+def scenario_list(x):
+    return x
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sp = ap.add_subparsers(dest="cmd", required=True)
@@ -400,6 +432,7 @@ def main():
     p.add_argument("--jobs", type=int, default=os.cpu_count()); p.set_defaults(f=mc)
     p = sp.add_parser("fsw-parity"); p.add_argument("scenarios", nargs="*"); p.add_argument("--duration", type=float, default=1800); p.set_defaults(f=fsw_parity)
     sp.add_parser("twin-parity").set_defaults(f=twin_parity)
+    p = sp.add_parser("vobc"); p.add_argument("scenarios", nargs="*"); p.add_argument("--duration", type=float, default=600); p.set_defaults(f=vobc)
     p = sp.add_parser("dispatch"); p.add_argument("cases", nargs="*"); p.set_defaults(f=dispatch)
     p = sp.add_parser("solutions"); p.add_argument("cases", nargs="*"); p.add_argument("--seeds", default="1,2"); p.add_argument("--fsw", default="c")
     p.add_argument("--jobs", type=int, default=os.cpu_count()); p.set_defaults(f=solutions)

@@ -103,3 +103,9 @@ pub extern "C" fn adcs_fsw_debug(out: *mut f64, n: i32) -> i32 {
         _ => -1,
     }
 }
+
+/// Hosted no_std builds (a POSIX virtual OBC) link against a `core` compiled with
+/// unwinding tables; with panic = "abort" the personality routine is never called.
+#[cfg(all(not(feature = "std"), not(target_os = "none")))]
+#[no_mangle]
+pub extern "C" fn rust_eh_personality() {}

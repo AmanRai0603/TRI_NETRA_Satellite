@@ -75,7 +75,7 @@ pub fn write(dir: &Path, c: &Config, rec: &Record, d: &Derived, metrics: &[Value
         "scenario": c.id, "case": c.case.id, "case_title": c.case.title, "product": c.dev.id, "family": c.dev.family,
         "label": crate::json::s(&c.scenario, "label", ""), "algorithms": alg, "seed": c.seed, "epoch_utc": c.epoch_utc,
         "duration_s": c.duration_s, "dt_s": c.dt, "wall_s": rec.wall_s,
-        "fsw": {"impl": format!("{:?}", rec.fsw_impl).to_lowercase(), "build_id": rec.fsw_build},
+        "fsw": {"impl": impl_label(&rec.fsw_impl), "build_id": rec.fsw_build},
         "orbit": {"alt_km": c.alt_km, "inc_deg": c.inc_deg, "ltan_h": c.ltan_h, "raan_deg": rec.raan_rad.to_degrees(), "period_s": c.period_s,
                   "atmosphere": format!("exponential x{}", c.density_scale)},
         "boresight_body": c.dev.boresight, "metrics": metrics,
@@ -93,5 +93,16 @@ mod t {
                        (123456789.0, "123456789"), (1234567891.0, "1.23456789e+09"), (1e-5, "1e-05"), (0.0001, "0.0001")] {
             assert_eq!(super::g9(x), s);
         }
+    }
+}
+
+/// Short label of where the flight software ran.
+pub fn impl_label(i: &adcs_fsw_abi::Impl) -> String {
+    use adcs_fsw_abi::{link::Target, Impl};
+    match i {
+        Impl::C => "c (in-process)".into(),
+        Impl::Rust => "rust (in-process)".into(),
+        Impl::Obc(Target::Spawn(c)) => format!("virtual OBC: {}", c.iter().map(|x| x.rsplit('/').next().unwrap_or(x)).collect::<Vec<_>>().join(" ")),
+        Impl::Obc(Target::Tcp(a)) => format!("OBC at tcp:{a}"),
     }
 }
