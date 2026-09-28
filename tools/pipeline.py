@@ -158,18 +158,21 @@ def node_assess(tests, modes):
     for t in tests:
         M = Mby[t["mode"]]
         mans = [json.loads((CACHE / k / "manifest.json").read_text()) for k in t["keys"] if (CACHE / k / "manifest.json").exists()]
-        fails, obj, metrics = {}, None, {}
+        fails, obj, metrics, viol = {}, None, {}, {}
         for m in mans:
             for x in m["metrics"]:
                 metrics.setdefault(x["id"], []).append(x.get("value"))
                 if x.get("pass") == 0:
                     fails[x["id"]] = cls(x["id"])
+                    v, q = x.get("value"), x.get("req")
+                    over = (v / q - 1) if isinstance(v, (int, float)) and isinstance(q, (int, float)) and q > 0 and math.isfinite(v) else 10.0
+                    viol[x["id"]] = max(viol.get(x["id"], 0.0), over)
                 if x["id"] == M["objective"] and x.get("value") is not None:
                     v = x["value"]
                     obj = v if obj is None else max(obj, v)
         feas = not fails and len(mans) == len(t["keys"])
         worst = {k: (max((v for v in vs if v is not None), default=None)) for k, vs in metrics.items()}
-        r = {**t, "feasible": feas, "failing": fails, "objective": obj, "objective_id": M["objective"], "metrics": worst,
+        r = {**t, "feasible": feas, "failing": fails, "violation": viol, "objective": obj, "objective_id": M["objective"], "metrics": worst,
              "algorithms": (mans[0].get("algorithms") if mans else {})}
         key = (t["mode"], t["option"])
         cur = res.get(key)
@@ -185,6 +188,20 @@ def node_converge(case, res, knobs, variants_on, history, fine, modes):
     v = set(variants_on)
     changes, blocked = [], []
     Mby = {M["id"]: M for M in modes}
+    # did the last authority increase help? performance violation of the options each part serves, before vs now
+    frozen = history.setdefault("_frozen", {})
+    for part, (prev_scale, prev_res) in list(history.pop("_last_up", {}).items()):
+        before = now = 0.0
+        for key, r0 in prev_res.items():
+            o = next(x for x in Mby[key[0]]["options"] if x["id"] == key[1])
+            if auth_part(key[0], o) != part or r0["feasible"]:
+                continue
+            perf = lambda z: sum(val for mid, val in z.get("violation", {}).items() if cls(mid) == "performance")
+            before += perf(r0); now += perf(res.get(key, r0))
+        if before > 0 and now > 0.95 * before:
+            k.setdefault("scale", {})[part] = prev_scale
+            frozen[part] = f"more authority did not reduce the performance violation ({before:.3g} -> {now:.3g}); kept at x{prev_scale:g}"
+            changes.append(f"{part}: authority back to x{prev_scale:g} (no improvement)")
     want = {}                                  # part -> "up" | "down"
     for (mode, oid), r in sorted(res.items()):
         if r["feasible"]:
@@ -213,8 +230,11 @@ def node_converge(case, res, knobs, variants_on, history, fine, modes):
                 blocked.append(f"{mode}/{oid}: power fails at the sized authority ({part}); the part's standby power is the floor")
         if "propellant" in kinds:
             want["rcs"] = "up"
+    last_up = {}
     for part, d in sorted(want.items()):
         s = k.setdefault("scale", {}).get(part, 1.0)
+        if part in frozen:
+            blocked.append(f"{part}: {frozen[part]}"); continue
         tried = history.setdefault(part, [])
         if d == "up":
             if s >= SCALE_MAX:
@@ -229,8 +249,11 @@ def node_converge(case, res, knobs, variants_on, history, fine, modes):
                 blocked.append(f"{part}: power needs less authority, performance needs more — conflict"); continue
             ns = max(SCALE_MIN, s * DOWN)
         tried.append(d)
+        if d == "up":
+            last_up[part] = (s, res)
         k["scale"][part] = ns
         changes.append(f"{part}: authority x{s:g} -> x{ns:g} ({'performance' if d == 'up' else 'power'})")
+    history["_last_up"] = last_up
     return k, v, changes, blocked
 
 
@@ -385,8 +408,19 @@ def node_mc(case, disp, sized, runs, jobs):
     return res
 
 
-def node_soft_oils(case, disp, sized):
-    out = {}
+def node_key(disp, sized, build, extra=""):
+    pid = json.loads(pathlib.Path(disp["scenario"]).read_text())["product"]
+    prod, parts = product_blob(sized, pid)
+    return sha(json.loads(pathlib.Path(disp["scenario"]).read_text()), prod, parts, build, extra)
+
+
+def node_soft_oils(case, disp, sized, build):
+    key = node_key(disp, sized, build, "soft_oils")
+    prev = jl_(PIPE / case / "soft_oils.json")
+    if prev and prev.get("_key") == key:
+        print("  soft_oils: unchanged configuration, cached")
+        return prev
+    out = {"_key": key}
     env = dict(os.environ, ADCS_SIZED_DIR=str(sized))
 
     def one(job):
@@ -405,6 +439,10 @@ def node_soft_oils(case, disp, sized):
             out[mode] = r
     write(PIPE / case / "soft_oils.json", out)
     return out
+
+
+def jl_(p):
+    return json.loads(p.read_text()) if p.exists() else None
 
 
 # ---------------------------------------------------------------- the loop
@@ -445,7 +483,7 @@ def run_case(case, a, modes, families, build):
     disp = node_dispatch(case, sel, sized, modes, build)
     write(state / "dispatch.json", disp)
     mc = node_mc(case, disp, sized, a.mc_runs, a.jobs) if a.mc_runs else None
-    so = node_soft_oils(case, disp, sized) if not a.no_oils else None
+    so = node_soft_oils(case, disp, sized, build) if not a.no_oils else None
     ledger(case, sel, log, disp, mc, so, sizing)
 
 

@@ -134,12 +134,12 @@ NOTES = [
      "the MATLAB runs (3.9-4.0 deg) are inside the distribution."),
     ("detumble_* and mission_* · detumble_time",
      "Random initial tumble direction; at distribution level the MATLAB campaign (48.5 +/- 12 min) and the engine "
-     "Monte Carlo (53 +/- 7.6 min) overlap (table above); the engine has no inertia/dipole dispersion yet."),
+     "campaign mc_detumble_ais with the full dispersions (56.3 +/- 11.4 min) overlap; results/ENGINE_CAMPAIGNS.md."),
     ("mc_nadir_ais · ape_los",
      "Like-for-like since the engine campaigns (tools/engine.py campaign, results/ENGINE_CAMPAIGNS.md) disperse the "
      "residual dipole, inertia, CM offset, flux, Kp, accommodation and reflectivity exactly as asils.campaign.draw: "
      "MATLAB mean 89.7 deg vs engine 93.0 deg; the coils-only nadir hold cannot absorb the dispersed dipole."),
-]]
+]
 
 
 def twin_parity(_):
