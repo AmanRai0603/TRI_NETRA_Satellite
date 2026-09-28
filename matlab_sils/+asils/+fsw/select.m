@@ -5,7 +5,7 @@ function alg = select(dev, S)
 %   One job, several algorithms, several kinds of hardware: every algorithm is
 %   registered once in catalogue/algorithms/<id>.toml with its SLOT (the job:
 %   detumble, attitude, pointing (momentum devices), mtq_pointing (coils),
-%   sun_spin, allocation, thrusters) and what it
+%   sun_acquisition (alias sun_spin), allocation, thrusters) and what it
 %   NEEDS (coils, magnetometer, gyro, sun, momentum, wheels_or_rings, rings,
 %   cmg, vscmg, rcs, attitude). The choice for a run is, in order:
 %     1 the scenario's [fsw.algorithms] table (a trade or a test fixes it)

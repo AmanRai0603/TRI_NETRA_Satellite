@@ -7,7 +7,18 @@ use adcs_sim_core::la::*;
 use serde_json::{json, Value};
 
 #[derive(Clone, Debug, Default)]
-pub struct Derived { pub ape_3ax: Vec<f64>, pub ape_los: Vec<f64>, pub ake_3ax: Vec<f64>, pub ake_los: Vec<f64>, pub rate: Vec<f64>, pub rks: Vec<f64>, pub sun_angle: Vec<f64>, pub spin_z: Vec<f64> }
+pub struct Derived { pub ape_3ax: Vec<f64>, pub ape_los: Vec<f64>, pub ake_3ax: Vec<f64>, pub ake_los: Vec<f64>, pub rate: Vec<f64>, pub rks: Vec<f64>, pub sun_angle: Vec<f64>, pub sun_angle_geo: Vec<f64>, pub spin_z: Vec<f64>, pub rate_err: Vec<f64> }
+
+impl Derived {
+    /// A derived channel by its asils.metrics.derive name.
+    pub fn channel(&self, name: &str) -> Option<&Vec<f64>> {
+        Some(match name {
+            "ape_3ax" => &self.ape_3ax, "ape_los" => &self.ape_los, "ake_3ax" => &self.ake_3ax, "ake_los" => &self.ake_los,
+            "rate" => &self.rate, "rks" => &self.rks, "sun_angle" => &self.sun_angle, "sun_angle_geo" => &self.sun_angle_geo,
+            "spin_z" => &self.spin_z, "rate_err" => &self.rate_err, _ => return None,
+        })
+    }
+}
 
 fn acosd(x: f64) -> f64 { x.clamp(-1.0, 1.0).acos().to_degrees() }
 
@@ -36,7 +47,9 @@ pub fn derive(c: &Config, rec: &Record) -> Derived {
         }
     }
     d.rate = rec.rows.iter().map(|r| norm(&r.w).to_degrees()).collect();
-    d.sun_angle = rec.rows.iter().map(|r| if r.nu < 0.5 { f64::NAN } else { acosd(dot(&c.dev.sun_axis, &r.sun_body)) }).collect();
+    d.sun_angle_geo = rec.rows.iter().map(|r| acosd(dot(&c.dev.sun_axis, &r.sun_body))).collect();
+    d.sun_angle = rec.rows.iter().zip(&d.sun_angle_geo).map(|(r, &a)| if r.nu < 0.5 { f64::NAN } else { a }).collect();
+    d.rate_err = vec![f64::NAN; n];
     d.spin_z = rec.rows.iter().map(|r| r.w[2].to_degrees()).collect();
     let lag = ((1.0/c.record_dt.max(1e-9)).round() as usize).max(1);
     for j in lag..n {
@@ -112,7 +125,8 @@ pub fn evaluate(c: &Config, rec: &Record, d: &Derived) -> Vec<Value> {
             "time_to_threshold" => {
                 unit = "s";
                 let t0 = json::f(m, "from_s", 0.0);
-                let ch = match json::s(m, "channel", "ape_los") { "ape_3ax" => &d.ape_3ax, "ake_los" => &d.ake_los, "ake_3ax" => &d.ake_3ax, "rate" => &d.rate, _ => &d.ape_los };
+                let name = json::s(m, "channel", "ape_los");
+                let Some(ch) = d.channel(name) else { out.push(json!({"id": json::s(m, "id", ""), "kind": kind, "value": Value::Null, "unit": "", "req": Value::Null, "req_key": format!("unknown channel {name}"), "pass": Value::Null})); continue; };
                 let ks: Vec<usize> = (0..t.len()).filter(|&j| t[j] >= t0).collect();
                 let tt: Vec<f64> = ks.iter().map(|&j| t[j] - t0).collect();
                 let xx: Vec<f64> = ks.iter().map(|&j| ch[j]).collect();

@@ -110,7 +110,7 @@ keeps these apart in three layers:
 
 1. **Registry** — `catalogue/algorithms/<id>.toml`: one file per algorithm with its
    `slot` (the job) and `needs` (the hardware or capability it requires).
-   Slots: `detumble`, `attitude`, `mtq_pointing`, `pointing`, `sun_spin`,
+   Slots: `detumble`, `attitude`, `mtq_pointing`, `pointing`, `sun_acquisition` (alias `sun_spin`),
    `allocation`, `thrusters`.
 2. **Selection** — `asils.fsw.select`, once per run: scenario `[fsw] algorithms`
    → product `[selected]` → first compatible default; an incompatible choice is

@@ -55,7 +55,7 @@ as in the Standard Code Sun spin).
 |---|---|---|---|---|
 | detumble | `mtq` | coils | — | `detumble` (B-dot family, L1) |
 | detumble | `rcs` | thrusters | — | `rcs_rate` |
-| sun acquisition | `mtq` | coils | — | `sun_spin` (L1 spin-up + L2 He et al.) |
+| sun acquisition | `mtq` | coils | — | `sun_acquisition` slot: `sunspin_l1l2` or `sunspin_damped` (L1 spin-up + L2 He et al.) |
 | sun acquisition | `rw` `cmg` `vscmg` `fmr` | that rotor set | coils | `sun_acq_rotor` + allocation |
 | sun referencing, nadir | `mtq` | coils | — | `mtq_pointing` |
 | sun referencing, nadir | `rw` `cmg` `vscmg` `fmr` | that rotor set | coils **or** RCS (`+mtq` / `+rcs`) | `pointing` + allocation + `thrusters` |

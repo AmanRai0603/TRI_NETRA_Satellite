@@ -770,7 +770,7 @@ def write_selection(trades):
          "**proposal**: the product's `[selected]` table is edited only when a person confirms it.", "",
          "## How one job, several algorithms and several hardware sets are managed", "",
          "1. **Registry.** Every algorithm is one file in `catalogue/algorithms/<id>.toml` with its `slot`",
-         "   (the job: `detumble`, `attitude`, `mtq_pointing`, `pointing`, `sun_spin`, `allocation`, `thrusters`)",
+         "   (the job: `detumble`, `attitude`, `mtq_pointing`, `pointing`, `sun_acquisition` (formerly `sun_spin`), `allocation`, `thrusters`)",
          "   and what it `needs` (`coils`, `magnetometer`, `gyro`, `sun`, `star_tracker`, `attitude`, `momentum`,",
          "   `wheels_or_rings`, `rings`, `cmg`, `vscmg`, `rcs`).",
          "2. **Resolution** (`asils.fsw.select`, once per run, before the loop): the scenario's",

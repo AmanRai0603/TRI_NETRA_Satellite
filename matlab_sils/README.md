@@ -85,7 +85,7 @@ with its **slot** (the job it does) and what hardware it **needs**:
 |---|---|
 | `detumble` | `bdot_gyro`, `bdot_mag`, `bdot_bangbang`, `genbdot_l1` (Standard Code L1) |
 | `mtq_pointing` (coils) | `mtq_pd`, `mtq_lqr`, `mtq_smc`, `mtq_rate_damp` |
-| `sun_spin` (coils) | `sunspin_l1l2` (Standard Code spin-up L1 + He et al. L2) |
+| `sun_acquisition` (coils; alias `sun_spin`) | `sunspin_l1l2` (Standard Code spin-up L1 + He et al. L2) |
 | `pointing` (momentum devices) | `pid`, `lqr`, `smc` |
 | `allocation` | `rotor_pinv`, `idmas_split`, `cmg_sr`, `vscmg_sr` |
 | `thrusters`, `attitude` | `rcs_pwm`, `mekf` |

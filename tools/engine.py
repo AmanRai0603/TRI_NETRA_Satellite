@@ -9,6 +9,9 @@ software in C (fsw/) or Rust (fsw-rs/), all from one pseudocode (fsw/pseudocode)
   python3 tools/engine.py run [scen ...] [--fsw c|rust] [--jobs N] [--seed S]
   python3 tools/engine.py mc <scen> --seeds N [--fsw c|rust] [--jobs N]
   python3 tools/engine.py fsw-parity [scen ...] [--duration S]     C vs Rust flight software, same loop, same bytes
+  python3 tools/engine.py solutions [case ...] [--seeds 1,2]       the customer-case solution matrix on the engine
+                                                                    (every mode x option x seed, sized products)
+                                                                    -> results/ENGINE_SOLUTIONS.md
   python3 tools/engine.py twin-parity                               engine vs MATLAB twin, metric by metric
                                                                     -> results/ENGINE_PARITY.md, results/engine_parity.json
 
@@ -204,6 +207,107 @@ def twin_parity(_):
     print(f"verdict agreement {agree}/{len(judged)}; wrote results/ENGINE_PARITY.md")
 
 
+MODES_DIR = ROOT / "matlab_sils" / "data" / "modes"
+SOL = ROOT / "matlab_sils" / "store" / "solutions_engine"
+
+
+def case_value(case, key):
+    for line in (ROOT / "matlab_sils" / "cases" / f"{case}.csv").read_text().splitlines():
+        f = line.split(",")
+        if len(f) > 4 and f[1] == key:
+            return float(f[4])
+    raise KeyError(key)
+
+
+def mode_scenario(case, M, o):
+    """asils.solution.scenario: one mode test of one option on the case's sized product."""
+    a = 6378137 + case_value(case, "orbit.alt") * 1e3
+    T = 2 * math.pi * math.sqrt(a ** 3 / 3.986004418e14)
+    orbits = o.get("duration_orbits", M["test"]["duration_orbits"])
+    win = o.get("window", M["test"]["window"])
+    g = M["guidance"] if M["guidance"] not in ("none", "sun_vector") else "nadir"
+    fsw = {"start_mode": o["fsw_mode"], "guidance": {"kind": g}, "rcs_dump": 1.0 if o.get("dump") == "rcs" else 0.0}
+    if "algorithms" in o:
+        fsw["algorithms"] = o["algorithms"]
+    if o["actuator"] == "fmr":
+        fsw["dump_gain"] = 0.03
+    ms = [dict(m, window=win) if m.get("window") == M["test"]["window"] else m for m in M["metrics"]]
+    return {"schema": "adcs-scenario/1", "id": f"{case}__{M['id']}__{o['id'].replace('+', '_')}", "case": case,
+            "label": f"{case} — {M['label']} with {o['id']}", "product": f"SZ-{case}-{o['family']}",
+            "time": {"duration_s": round(orbits * T), "dt_s": o["dt_s"], "record_dt_s": 1.0},
+            "initial": {"attitude": M["test"]["attitude"], "rate": M["test"]["rate"]}, "fsw": fsw, "metrics": ms}
+
+
+def sol_job(args):
+    case, scen_path, seed, out, fsw = args
+    p = subprocess.run([str(BIN), "run", str(scen_path), "--case", str(ROOT / "matlab_sils" / "cases" / f"{case}.csv"),
+                        "--seed", str(seed), "--fsw", fsw, "--out", str(out), "--quiet"], capture_output=True, text=True)
+    return args, p.returncode, (p.stdout + p.stderr).strip()
+
+
+def solutions(a):
+    cases = a.cases or ["ais_3u", "ais_img_3u"]
+    seeds = [int(x) for x in a.seeds.split(",")]
+    modes = sorted((json.loads(f.read_text()) for f in MODES_DIR.glob("*.json")), key=lambda M: M["order"])
+    jobs = []
+    for c in cases:
+        for M in modes:
+            for o in M["options"]:
+                d = SOL / c / M["id"] / o["id"].replace("+", "_")
+                d.mkdir(parents=True, exist_ok=True)
+                sp = d / "scenario.json"
+                sp.write_text(json.dumps(mode_scenario(c, M, o), indent=1))
+                jobs += [(c, sp, s, d / f"seed_{s}", a.fsw) for s in seeds]
+    t0 = time.time()
+    with cf.ProcessPoolExecutor(a.jobs) as ex:
+        for (c, sp, s, out, _), rc, txt in ex.map(sol_job, jobs):
+            if rc:
+                print(f"[FAIL] {sp.parent.relative_to(SOL)} seed {s}: {txt.splitlines()[-1] if txt else ''}")
+    print(f"{len(jobs)} mode tests in {time.time() - t0:.0f} s wall")
+    # score: an option is feasible when every requirement-bound metric passes on every seed
+    res = {}
+    L = ["# Solution matrix on the Rust engine", "", "Owner: Agastya. `tools/engine.py solutions` -- every mission mode x option of",
+         "each case, flown on the case's sized products (matlab_sils/store/sized) with the C flight software,",
+         f"seeds {a.seeds}; the MATLAB column is `matlab_sils/store/solutions/<case>/solution.json` when collected.", ""]
+    for c in cases:
+        twin = {}
+        tj = ROOT / "matlab_sils" / "store" / "solutions" / c / "solution.json"
+        if tj.exists():
+            T = json.loads(tj.read_text())
+            for mid, mv in T.get("modes", {}).items():
+                opts = mv.get("options", [])
+                for o in (opts if isinstance(opts, list) else [opts]):
+                    twin[(mid, o.get("id"))] = o
+        L += [f"## {c}", "", "| mode | option | engine feasible | objective (worst seed) | failing on the engine | MATLAB feasible | MATLAB objective |", "|---|---|---|---:|---|---|---:|"]
+        for M in modes:
+            for o in M["options"]:
+                d = SOL / c / M["id"] / o["id"].replace("+", "_")
+                mans = [json.loads((d / f"seed_{s}" / "manifest.json").read_text()) for s in seeds if (d / f"seed_{s}" / "manifest.json").exists()]
+                if not mans:
+                    continue
+                fails, obj = set(), None
+                for m in mans:
+                    for x in m["metrics"]:
+                        if x.get("pass") == 0:
+                            fails.add(x["id"])
+                        if x["id"] == M["objective"] and x.get("value") is not None:
+                            v = x["value"]
+                            obj = v if obj is None else (min(obj, v) if M["objective"].endswith("share_last_orbit") else max(obj, v))
+                feas = not fails and len(mans) == len(seeds)
+                res.setdefault(c, {}).setdefault(M["id"], {})[o["id"]] = {"feasible": feas, "objective": obj, "failing": sorted(fails)}
+                tw = twin.get((M["id"], o["id"]), {})
+                tf = tw.get("feasible")
+                tobj = tw.get("objective", tw.get("worst"))
+                fmt = lambda x: "—" if x is None else (f"{x:.4g}" if isinstance(x, (int, float)) else str(x))
+                L.append(f"| {M['label']} | {o['id']} | {'yes' if feas else 'no'} | {fmt(obj)} {M['objective']} | {', '.join(sorted(fails)) or '—'} | "
+                         f"{'—' if tf is None else ('yes' if tf else 'no')} | {fmt(tobj)} |")
+        L.append("")
+    OUT.mkdir(exist_ok=True)
+    (OUT / "engine_solutions.json").write_text(json.dumps(res, indent=1))
+    (OUT / "ENGINE_SOLUTIONS.md").write_text("\n".join(L) + "\n")
+    print("wrote results/ENGINE_SOLUTIONS.md")
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sp = ap.add_subparsers(dest="cmd", required=True)
@@ -214,6 +318,8 @@ def main():
     p.add_argument("--jobs", type=int, default=os.cpu_count()); p.set_defaults(f=mc)
     p = sp.add_parser("fsw-parity"); p.add_argument("scenarios", nargs="*"); p.add_argument("--duration", type=float, default=1800); p.set_defaults(f=fsw_parity)
     sp.add_parser("twin-parity").set_defaults(f=twin_parity)
+    p = sp.add_parser("solutions"); p.add_argument("cases", nargs="*"); p.add_argument("--seeds", default="1,2"); p.add_argument("--fsw", default="c")
+    p.add_argument("--jobs", type=int, default=os.cpu_count()); p.set_defaults(f=solutions)
     a = ap.parse_args()
     if a.cmd not in ("build",) and not BIN.exists():
         sys.exit("engine not built: python3 tools/engine.py build")
