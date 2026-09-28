@@ -33,19 +33,44 @@ Every node is a step with a file: `matlab_sils/store/pipeline/<case>/...`.
 
 ## The knobs and the rules
 
-| failure | cause class | knob change |
+| failure | cause class | what the loop changes (in this order) |
 |---|---|---|
-| time, APE, Sun angle, rate stability | performance | first fly every algorithm of the option's slot (detumble: B-dot gyro / mag / bang-bang / generalised; coils pointing: PD / LQR / SMC / rate damping; rotor pointing: PID / LQR / SMC; Sun acquisition: the Sun-spin variants); then the option's actuator authority ×1.5 (bounds ×0.5 … ×4) |
-| AKE | knowledge | fit the star tracker on a coarse-class product |
-| mean / peak power on the fluid loop | power | the permanent-magnet pump yoke (no field power, heavier yoke) |
-| mean power on the coils-only family, performance passing | power | coil authority ×0.75 |
-| power on a rotor | power | blocked: the rotor's standby power is the floor, no authority change helps |
-| performance and power on the same option | — | blocked: conflict |
+| time, APE, Sun angle | performance | 1. every algorithm of the option's slot, and for rotor/fluid pointing the bandwidth-tuned laws (`pid@bw2.5`, `pid@bw4`)<br>2. fluid loop: a quieter flow sensor, 2 → 0.5 → 0.2 mm/s (1σ), the loop's in-house sensor requirement<br>3. the option's actuator authority ×1.5 (bounds ×0.5 … ×4), undone if the violation does not fall by 5 % |
+| rate stability (fine class) | performance | gyro grade: noise ×0.3, then ×0.1, at mass and power ÷ grade (fibre-optic class); undone if rate stability does not improve |
+| AKE | knowledge | the star tracker on a coarse-class product |
+| mean / peak power on a fluid-loop option | power | the electromagnetic pump with more copper: λ ×3 (bound 3 kg/W); not when the power is the RCS valves' |
+| mean power, coils-only family, performance passing | power | coil authority ×0.75 |
+| power on a rotor | power | blocked: the rotor's standby power is the floor |
+| mass budget of the closest solution family | mass | 1. one star-tracker head instead of two<br>2. a lighter pump (λ ÷3) while power allows<br>3. less fluid-loop momentum (×0.75)<br>each undone, and its lever closed, if it breaks a mode of that family or raises its requirement violation by more than 5 % |
 | propellant | propellant | RCS ×1.5 |
 
-A part that one failure pushes up and another pushes down is frozen and reported as a conflict.
-The loop stops when no change is proposed; `results/DESIGN_<case>.md` lists every iteration, every
-change and, for the last one, why each remaining failure cannot be fixed by a knob.
+A part that one failure pushes up and another pushes down is frozen and reported as a
+conflict. The loop stops when no change is proposed. `results/DESIGN_<case>.md` lists every
+iteration, every change and, for the last one, why each remaining failure cannot be fixed by a knob.
+
+## The fluid loop's electromagnetic pump (`engine/crates/adcs-design/src/empump.rs`)
+
+Our fluid loop is pumped by a DC conduction (Faraday) pump with an electromagnet. There is no
+permanent magnet. The loop and its pump are designed together, per ring:
+
+- **Loop.** h = N ρ A 2 S v. The loop cruises at 0.4 v_max; friction is Darcy (64/Re laminar),
+  and a torque τ needs ρ L dv/dt of pressure.
+- **Pump.** The bore is flattened to a b × a duct in the magnet gap, and Δp = B I / b. The
+  electrode current is at most 10 A, which a practical low-voltage driver can supply.
+  - Fluid resistance: R = ρ_e a / (b L_p).
+  - Electrical power: P_e = (I² R + Δp Q) / (0.7 bypass × 0.85 driver).
+  - Torque capacity: Δp_max × 2 S A / L. This covers both holding momentum against viscous
+    spin-down and accelerating the fluid.
+- **Electromagnet.** C-core; gap = b + 1 mm of walls; NI = 1.3 B g / μ0.
+  - Coil power × copper mass is fixed by the geometry. For a mass/power rate λ [kg/W], the best
+    coil is m_cu = √(λK), P_c = √(K/λ).
+  - The iron carries the flux at 1.2 T.
+- **Design.** A grid over v_max, bore, B and pump length keeps the design with the least
+  mass + λ × steady power. The part records its Pareto front of mass against power over λ, and
+  the design loop moves λ.
+
+The engine flies the designed ring: coil power while the ring holds momentum, electrode power
+from the hydraulic load and the designed efficiency, and the pressure-limited torque.
 
 ## Why the sizing is in Rust now
 

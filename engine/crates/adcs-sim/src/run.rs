@@ -96,11 +96,13 @@ pub struct Opts { pub fsw: Impl, pub quiet: bool, /// pace ticks to wall-clock t
 /// exact instruction count on QEMU (-icount) x CPI / core clock, or the host-measured time on a
 /// process OBC. A latency of a whole period or more is an overrun: the command lands a tick late.
 #[derive(Clone, Debug)]
-pub struct OilsModel { pub cpu_hz: f64, pub cpi: f64, pub i2c_hz: f64, pub spi_hz: f64, pub can_bps: f64 }
+pub struct OilsModel { pub cpu_hz: f64, pub cpi: f64, pub i2c_hz: f64, pub spi_hz: f64, pub can_bps: f64,
+    /// a fixed command latency [s] instead of the OBC model (latency studies; works with the in-process builds)
+    pub fixed_s: Option<f64> }
 impl Default for OilsModel {
     /// A Cortex-M4F OBC at 168 MHz (STM32F4 class, flash accelerator on: CPI ~1.25),
     /// I2C fast mode, SPI 1 MHz, CAN 1 Mbit/s.
-    fn default() -> Self { OilsModel { cpu_hz: 168e6, cpi: 1.25, i2c_hz: 400e3, spi_hz: 1e6, can_bps: 1e6 } }
+    fn default() -> Self { OilsModel { cpu_hz: 168e6, cpi: 1.25, i2c_hz: 400e3, spi_hz: 1e6, can_bps: 1e6, fixed_s: None } }
 }
 
 #[derive(Clone, Debug, Default)]
@@ -233,7 +235,7 @@ pub fn run(c: &Config, o: &Opts) -> Result<Record, String> {
     let mut can_rx_count = 0usize;
     // soft OILS: the actuation that holds until this tick's command lands
     let mut oils = o.oils.as_ref().map(|m| OilsStats { model: Some((m.cpu_hz, m.cpi, m.i2c_hz, m.spi_hz, m.can_bps)), ..Default::default() });
-    if oils.is_some() && !matches!(o.fsw, Impl::Obc(_)) { return Err("soft OILS needs the flight software on a virtual OBC (--fsw qemu | qemu-rs | obc-posix ...)".into()); }
+    if oils.is_some() && o.oils.as_ref().map(|m| m.fixed_s.is_none()).unwrap_or(false) && !matches!(o.fsw, Impl::Obc(_)) { return Err("soft OILS needs the flight software on a virtual OBC (--fsw qemu | qemu-rs | obc-posix ...)".into()); }
     let (mut held_m, mut held_hdot, mut held_gdot, mut held_rcs) = ([0.0; 3], [0.0; NR], [0.0; NG], [0.0; 3]);
     for k in 0..=n {
         let t = k as f64*dt;
@@ -320,7 +322,7 @@ pub fn run(c: &Config, o: &Opts) -> Result<Record, String> {
             let i2c = [bus.mag.is_some(), bus.sun.is_some(), bus.es.is_some()].iter().filter(|x| **x).count() as f64;
             let io = i2c*10.0*9.0/m.i2c_hz + if bus.gyro.is_some() { 13.0*8.0/m.spi_hz } else { 0.0 }
                 + bus.can_tx.len() as f64*130.0/m.can_bps;
-            lat = io + exec;
+            lat = match m.fixed_s { Some(f) => f, None => io + exec };
             st.ticks += 1; st.exec_s.push(exec); st.io_s.push(io); st.lat_s.push(lat);
             if let Some(n) = insn { st.insn.push(n); }
             if lat >= dt { st.overruns += 1; }

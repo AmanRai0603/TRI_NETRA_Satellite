@@ -33,6 +33,7 @@ fn parse() -> Result<Args, String> {
         let num = |s: String| s.parse::<f64>().map_err(|_| format!("{k}: not a number"));
         match k.as_str() {
             "--oils" => { a.oils.get_or_insert_with(Default::default); }
+            "--latency-ms" => { let x = num(val()?)?; a.oils.get_or_insert_with(Default::default).fixed_s = Some(x*1e-3); }
             "--obc-mhz" => { let x = num(val()?)?; a.oils.get_or_insert_with(Default::default).cpu_hz = x*1e6; }
             "--cpi" => { let x = num(val()?)?; a.oils.get_or_insert_with(Default::default).cpi = x; }
             "--i2c-khz" => { let x = num(val()?)?; a.oils.get_or_insert_with(Default::default).i2c_hz = x*1e3; }

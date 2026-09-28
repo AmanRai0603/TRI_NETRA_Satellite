@@ -66,13 +66,32 @@ script, modelled on `fsw/targets/qemu-mps2/main.c`. The engine then connects wit
 `--fsw tcp:<host:port>` (or a serial-to-TCP bridge) and `--realtime`. The comparison against SILS
 and against soft OILS is the same ledger.
 
-## What the matrix found
+## What the matrix found, and what was fixed
 
-- Soft OILS matches SILS on 104 of 107 requirement verdicts over the 40 scenarios. The worst OBC load
-  is 6.8 % of the control period (VSCMG steering, ~0.92 M instructions per step), with no overrun
-  anywhere (`results/SOFT_OILS.md`).
-- **Bang-bang B-dot does not survive the latency.** It detumbles in 32 min in SILS. With the OBC's
-  2–8 ms command delay it settles into a 0.7–1.0 deg/s limit cycle, so it never holds below
-  0.5 deg/s. The proportional laws are unaffected. This is exactly the kind of result SILS cannot show.
-- The other two flips are knife edges: `agile_slew_vscmg` APE (0.01008 vs 0.00997 deg against
-  0.01 deg), and the known Sun-spin sign-flip lock-up, which the latency happens to avoid in this seed.
+The first matrix showed 104 of 107 verdicts agreeing between SILS and soft OILS. Each of the
+three disagreements was then traced to its root cause:
+
+- **Bang-bang B-dot: a defect in the law, now fixed.** A latency sweep with `--latency-ms`
+  (0.5, 1, 2, 4, 8, 20, 50 ms, in-process) gave non-monotonic results: 165 min, never, 192 min,
+  26 min, and so on. A 12-seed sweep with **zero** latency then showed 4 of 12 seeds never
+  settling.
+  - Cause: pure sign switching leaves a limit cycle around the 0.5 deg/s exit rate. Soft OILS had
+    only picked a different realisation.
+  - Fix: a boundary layer. Full dipole outside it; inside it, a proportional law at 4 × the B-dot
+    gain.
+  - Result: 12 of 12 seeds detumble (17–106 min) at 0, 4 and 8 ms latency. The fix is identical
+    in C, Rust, MATLAB and the pseudocode (`06_detumble_sunspin.md`), and C and Rust remain
+    bit-identical.
+- **Sun spin: same statistics with and without the OBC.** 24 seeds give 17/24 passing in both.
+  - Seed 1 fails in SILS too: Sun spin is entered with the Sun only 28° below the body XY plane.
+    The L2 precession transient reaches 1.05 deg/s transverse rate and trips the 1 deg/s exit
+    guard, so the controller falls back to spin-up.
+  - This is Sun-acquisition tuning, not an OILS effect. The exit guard's rate and dwell are now
+    scenario keys (`fsw.sun_spin_perp_out_dps`, `fsw.sun_spin_dwell_out_s`) for that trade.
+- **VSCMG agile slew: a knife edge.** Across 12 seeds, the APE with 0, 3 and 8 ms latency differs
+  by under 1 %, and all of them sit at 0.010 deg against 0.010 deg. It is a design-margin
+  question, not the OBC.
+
+The OBC is never the limit: the worst load is 6.8 % of the control period (VSCMG steering,
+~0.92 M instructions per step), with no overrun anywhere. The current matrix is in
+`results/SOFT_OILS.md`.

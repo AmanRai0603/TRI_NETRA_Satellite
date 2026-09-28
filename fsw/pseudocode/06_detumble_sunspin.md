@@ -12,7 +12,10 @@ runs once, and the dipole is held for the rest of the cycle. `first` is the firs
 b = unit(mean(B_i/|B_i|)) over the window;  B_av = mean(B_i)
 bdot_gyro:     ḃ = −cross(ω_meas, b);  m = −(k/|B|) (b − (b − ḃ))           # = −(k/|B|) ḃ
 bdot_mag:      m = −(k/|B|) (b − b_prev)/T_c                                  # once b_prev exists
-bdot_bangbang: ḃ = (b − b_prev)/T_c;  m_i = −m_max sign(ḃ_i) if |ḃ_i| > 1e-4 else 0
+bdot_bangbang: ḃ = (b − b_prev)/T_c;  ḃ_bl = m_max |B| / (4 k);  m_i = −m_max sat(ḃ_i / ḃ_bl)
+               # boundary layer: full dipole outside, 4 x the B-dot gain inside. Pure sign switching
+               # (the Standard Code law) limit-cycles around the 0.5 deg/s exit rate: 4 of 12 seeds
+               # never settle, with or without OBC latency (docs/SOFT_OILS.md).
 genbdot_l1:    m = −k_l1 ((B_av − B_prev)/T_c + cross(0, B_av))            # ω_d = 0
 k = gain_scale · 2 n (1 + sin i) J_min        (Avanzini & Giulietti 2012), computed at config
 m *= min(1, min_i(m_max/|m_i|))   # direction-preserving (act.saturateDipole)

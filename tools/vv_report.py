@@ -108,7 +108,11 @@ def design():
             out.append("<div class='find'><b>Open gaps of the selected family:</b> " + e("; ".join(F["gaps"])) + "</div>")
         rows = []
         for it in log:
-            kn = ", ".join([f"{k} ×{v:.3g}" for k, v in it["knobs"].get("scale", {}).items()] + [k for k in ("fmr_pm", "star_tracker") if it["knobs"].get(k)]) or "laws as written"
+            kn = ", ".join([f"{k} ×{v:.3g}" for k, v in it["knobs"].get("scale", {}).items()] + [k for k in ("star_tracker",) if it["knobs"].get(k)] +
+                      [f"pump λ {it['knobs']['fmr_lambda']:g} kg/W" for _ in [0] if "fmr_lambda" in it["knobs"]] +
+                      ["1 ST head" for _ in [0] if it["knobs"].get("st_heads") == 1] +
+                      [f"flow sensor {it['knobs']['fmr_flow_sigma'] * 1e3:g} mm/s" for _ in [0] if it["knobs"].get("fmr_flow_sigma")] +
+                      [f"gyro noise x{it['knobs']['gyro_grade']:g}" for _ in [0] if it["knobs"].get("gyro_grade", 1) < 1]) or "laws as written"
             rows.append([it["iteration"], e(kn), f"{it['feasible_options']}/{it['options']}", e(f"{it['selected']} ({it['status']})"),
                          "<br>".join(e(x) for x in it["changes"]) or "—", len(it["blocked"])])
         out.append(table(["iter", "knobs", "options feasible", "selection", "changes for the next iteration", "blocked"], rows, num=(0, 2, 5)))
@@ -121,6 +125,9 @@ def design():
         rows = [[e(m), f"<code>{e(r['option'])}</code>", verdict(r["feasible"]), f"{fmt(r['objective'])} {e(r['objective_id'])}",
                  e(", ".join(f"{k}={v}" for k, v in (r["algorithms"] or {}).items() if v))] for m, r in F["modes"].items() if r]
         out.append("<p>Selected method per mission mode:</p>" + table(["mode", "option", "feasible", "objective (worst seed)", "algorithms"], rows))
+        fig = pump_front(c, sel)
+        if fig:
+            out.append(fig)
         mc = jl(PIPE / c / "mc" / "summary.json")
         if mc:
             rows = [[e(s["id"]), fmt(s["req"]), f"{fmt(s['mean'])} ± {fmt(s['std'], 3)}", f"[{fmt(s['min'])}, {fmt(s['max'])}]",
@@ -136,6 +143,33 @@ def design():
             out.append("<p>The dispatched mission in SILS and in soft OILS (flight software as Cortex-M4F firmware, C and Rust builds):</p>" +
                        table(["metric", "req", "SILS", "soft OILS, C", "soft OILS, Rust"], rows, num=(1,)))
     return "\n".join(out)
+
+
+def pump_front(c, sel):
+    """The electromagnetic pump's mass / steady-power front per ring (empump.rs), the chosen design marked."""
+    its = sorted((PIPE / c).glob("iter_*/sized/sizing.json"), key=lambda p: int(p.parent.parent.name.split("_")[1]))
+    if not its or "fmr" not in sel["selected"] and "fmr" not in " ".join(sel["families"]):
+        return ""
+    z = jl(its[-1])
+    parts = z.get("parts", {})
+    if "fmr_x" not in parts or "pareto" not in parts["fmr_x"].get("sizing", {}):
+        return ""
+    plt = mpl()
+    fig, ax = plt.subplots(figsize=(7.2, 3.0))
+    for key, lab, col, mk in (("fmr_x", "X ring", C_TWIN, "o"), ("fmr_y", "Y ring", C_ENG, "s"), ("fmr_z", "Z ring", "#1baf7a", "^")):
+        pf = parts[key]["sizing"]["pareto"]
+        xs, ys = [q["power_W"] for q in pf], [q["mass_kg"] for q in pf]
+        ax.plot(xs, ys, color=col, lw=1.6, marker=mk, ms=4, label=lab)
+        nm = parts[key]["nominal"]
+        ax.scatter([nm["power_steady_W"]], [nm["mass_kg"]], s=70, facecolors="none", edgecolors=INK, linewidths=1.4, zorder=4)
+        ax.annotate(lab, (xs[0], ys[0]), xytext=(4, 0), textcoords="offset points", fontsize=7, color=INK, va="center")
+    ax.set_xscale("log")
+    ax.set_xlabel("steady pump power per ring [W] (coil + electrodes, log scale)")
+    ax.set_ylabel("ring mass [kg]")
+    ax.legend(frameon=False, fontsize=7, loc="upper right")
+    lam = z.get("knobs", {}).get("fmr_lambda", 0.1)
+    return (f"<figure>{png(fig)}<figcaption>Electromagnetic pump design, {e(c)}: each ring's mass against steady power as the "
+            f"mass/power rate λ runs from 0.003 to 3 kg/W; circles mark the converged designs (λ = {lam:g} kg/W).</figcaption></figure>")
 
 
 def sils():
@@ -282,16 +316,14 @@ def open_items():
             items.append(f"<b>{e(c)}</b>: the selected <code>{e(sel['selected'])}</code> leaves " + e("; ".join(sel["families"][sel["selected"]]["gaps"])) +
                          ". Either the case relaxes these (several are marked UNCONFIRMED in the case file) or the next design lever is needed.")
     notes = [
-        "Soft OILS finding: bang-bang B-dot (detumble_ais_bangbang) detumbles in 32 min in SILS but, with the OBC's 2-8 ms command latency, "
-        "settles into a 0.7-1.0 deg/s limit cycle and never holds below 0.5 deg/s. The proportional B-dot laws are unaffected. Keep the "
-        "proportional law as the flight default, or add a dead band / latency compensation to the bang-bang law before OILS.",
-        "Soft OILS knife edges (verdict flips, not trends): agile_slew_vscmg APE 0.01008 vs 0.00997 deg against 0.01 deg; sun_spin_ais "
-        "entry time (the known sign-flip lock-up, which the latency happens to avoid in this seed).",
-        "Fine hold (imaging 3U): rate stability p99.73 is ~3.7e-3 deg/s against 1e-3 deg/s in every configuration and every campaign "
-        "(MATLAB and engine alike): a requirement/controller-bandwidth conflict to resolve before OILS.",
-        "Fluid-loop field power: the 2 W electromagnet pump dominates the power of our FMR families; the permanent-magnet yoke removes it "
-        "(the loop's power lever). It needs a measured prototype (IDMAS v2 §03C).",
-        "Sun-spin sign flip: a spin reversal instead of a hemisphere manoeuvre locks up in 3 of 24 seeds (identical in MATLAB, C and Rust).",
+        "Bang-bang B-dot (fixed): pure sign switching limit-cycled around the 0.5 deg/s exit rate in 4 of 12 seeds with or without OBC "
+        "latency; a boundary layer (4 x the B-dot gain inside it) detumbles 12 of 12 at 0, 4 and 8 ms. C, Rust, MATLAB and pseudocode updated.",
+        "Rate stability (imaging, 0.001 deg/s, UNCONFIRMED): limited by gyro noise for every actuator (0.0025-0.004 deg/s with TRN-GYRO-P1); "
+        "a gyro with 0.3 x the noise (fibre-optic class, ~+0.14 kg, +0.7 W) reaches 0.0009 deg/s. The loop proposes it; the mass budget decides.",
+        "Fluid loop fine pointing: limited by the loop's flow sensor, not the pump. At 0.2 mm/s (1 sigma) the loop reaches ~0.004 deg APE, as "
+        "wheels do; this is a requirement on the in-house flow sensor.",
+        "Sun spin: 17 of 24 seeds pass with and without the OBC; failures are Sun-spin entry with the Sun near the XY plane tripping the 1 deg/s "
+        "exit guard during the L2 precession transient -- a tuning trade (fsw.sun_spin_perp_out_dps, fsw.sun_spin_dwell_out_s).",
         "Soft OILS models the OBC's CPU and buses; real OILS still needs the board target (fsw/targets/<board>/main.c: UART/Ethernet, clock, "
         "linker script, modelled on fsw/targets/qemu-mps2) and --realtime on adcs-link/1.",
     ]
@@ -346,6 +378,14 @@ def main():
         campaigns=campaigns(), parity=parity(), oils=oils(), vobc=vobc(), open=open_items())
     h = OUT / "TRINETRA_ADCS_VV_report.html"
     h.write_text(doc)
+    # the published page: the same report without the document wrapper (the artifact adds it),
+    # linking the full results index (results.html) that sits beside it with its figures
+    title = re.search(r"<title>.*?</title>", doc, re.S).group(0)
+    style = re.search(r"<style>.*?</style>", doc, re.S).group(0)
+    body = re.search(r"<body>(.*)</body>", doc, re.S).group(1)
+    nav = ('<nav class="wrap" style="padding-block:10px;font-size:9.5pt;color:#5b6477">Full results with every figure: '
+           '<a href="results.html">results page</a> · PDF and code: <code>dist/TRINETRA_ADCS_VV_report.pdf</code> in the repository</nav>')
+    (OUT / "vv_artifact.html").write_text(title + "\n" + style.replace("body { margin: 0;", "body { margin: 0; min-height: 100%;") + "\n" + nav + body)
     chrome = next(iter(glob.glob("/opt/pw-browsers/chromium*/chrome-linux/chrome")), None) or shutil.which("chromium") or shutil.which("google-chrome")
     pdf = OUT / "TRINETRA_ADCS_VV_report.pdf"
     if chrome:

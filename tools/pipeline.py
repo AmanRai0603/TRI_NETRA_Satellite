@@ -12,8 +12,9 @@
   assess     per option: feasible on every seed? failing requirements -> cause class
              (performance, knowledge, power, propellant)
   converge   knob changes the failures call for: more authority for a performance failure,
-             the star tracker for a knowledge failure, the permanent-magnet pump or less
-             authority for a power failure; blocked when a part is at its bound or a
+             the star tracker for a knowledge failure, more pump copper (lambda) or less
+             authority for a power failure, one star-tracker head / a lighter pump / less
+             fluid-loop momentum for a mass gap (undone if it breaks a mode); blocked when a part is at its bound or a
              performance/power conflict is found. Converged when nothing is left to change.
   select     the simplest SOLUTION family (mtq -> mtq_fmr -> mtq_fmr_rcs) whose best option
              passes every mode and whose budget meets req.mass / req.vol; benchmarks scored alike
@@ -51,12 +52,22 @@ for m in ("sun_referencing", "nadir_pointing"):
 CANDIDATES = {"detumble": ["bdot_gyro", "bdot_mag", "bdot_bangbang", "genbdot_l1"],
               "sun_acquisition": ["sunspin_damped", "sunspin_l1l2", "sunspin_l1l2_e2"],
               "mtq_pointing": ["mtq_pd", "mtq_lqr", "mtq_smc", "mtq_rate_damp"],
-              "pointing": ["pid", "lqr", "smc"]}
+              "pointing": ["pid", "lqr", "smc", "pid@bw2.5", "pid@bw4"]}
+# a candidate "law@bwX" is the law with its pointing bandwidth tuned to X rad/s (fsw.rw_bandwidth)
+def split_alg(a):
+    if a and "@bw" in a:
+        law, bw = a.split("@bw")
+        return law, {"rw_bandwidth": float(bw)}
+    return a, {}
 # the sized part that gives an option its authority
 def auth_part(mode, o):
     a = o["actuator"]
     return {"mtq": "mtqp", "rw": "rw", "cmg": "cmg", "vscmg": "vscmg", "fmr": "fmr", "rcs": "rcs"}[a]
 SCALE_MIN, SCALE_MAX, UP, DOWN = 0.5, 4.0, 1.5, 0.75
+LAMBDA_MIN, LAMBDA_MAX = 0.01, 3.0
+FLOW_SIGMA_MIN = 0.0002
+GYRO_MIN = 0.1
+FAMILIES = []
 
 
 def cls(metric):
@@ -129,8 +140,10 @@ def node_matrix(case, it, sized, modes, variants_on, seeds, jobs, build):
             for alg in algs:
                 s = json.loads(json.dumps(base))
                 if alg:
-                    s["fsw"].setdefault("algorithms", {})[slot] = alg
-                    s["id"] = f"{s['id']}__{alg}"
+                    law, tune = split_alg(alg)
+                    s["fsw"].setdefault("algorithms", {})[slot] = law
+                    s["fsw"].update(tune)
+                    s["id"] = f"{s['id']}__{alg.replace('@', '_')}"
                 prod, parts = product_blob(sized, s["product"])
                 d = PIPE / case / f"iter_{it}" / "scenarios"
                 d.mkdir(parents=True, exist_ok=True)
@@ -182,13 +195,20 @@ def node_assess(tests, modes):
     return res
 
 
-def node_converge(case, res, knobs, variants_on, history, fine, modes):
+def node_converge(case, res, knobs, variants_on, history, fine, modes, sel=None):
     """The knob changes the failures call for. Returns (new knobs, new variants, changes, blocked)."""
     k = json.loads(json.dumps(knobs))
     v = set(variants_on)
     changes, blocked = [], []
     Mby = {M["id"]: M for M in modes}
     # did the last authority increase help? performance violation of the options each part serves, before vs now
+    lg = history.pop("_last_gyro", None)
+    if lg:
+        g0, vb = lg
+        vn = rate_violation(res)
+        if vn > 0.95 * vb:
+            k["gyro_grade"] = g0; history["_closed_gyro_grade"] = True
+            changes.append(f"gyro grade back to x{g0:g}: rate-stability violation {vb:.3g} -> {vn:.3g}")
     frozen = history.setdefault("_frozen", {})
     for part, (prev_scale, prev_res) in list(history.pop("_last_up", {}).items()):
         before = now = 0.0
@@ -214,6 +234,17 @@ def node_converge(case, res, knobs, variants_on, history, fine, modes):
                 v.add((mode, oid)); changes.append(f"{mode}/{oid}: fly every {r['slot']} algorithm")
             elif "power" in kinds:
                 blocked.append(f"{mode}/{oid}: performance and power both fail — no authority change helps")
+            elif fine and any(m.startswith("rate_stability") for m in r["failing"]) and k.get("gyro_grade", 1.0) > GYRO_MIN * 1.01 \
+                    and not history.get("_closed_gyro_grade"):
+                if k.get("gyro_grade", 1.0) == knobs.get("gyro_grade", 1.0):
+                    g0 = k.get("gyro_grade", 1.0); k["gyro_grade"] = max(GYRO_MIN, round(g0 * 0.3, 3))
+                    history["_last_gyro"] = (g0, rate_violation(res))
+                    changes.append(f"rate stability: gyro noise x{g0:g} -> x{k['gyro_grade']:g} (fibre-optic class)")
+            elif o["actuator"] == "fmr" and k.get("fmr_flow_sigma", 0.002) > FLOW_SIGMA_MIN * 1.01:
+                sg = k.get("fmr_flow_sigma", 0.002)
+                if sg == knobs.get("fmr_flow_sigma", 0.002):
+                    k["fmr_flow_sigma"] = max(FLOW_SIGMA_MIN, sg / 4)
+                    changes.append(f"{mode}/{oid}: fluid-loop flow sensor {sg * 1e3:g} -> {k['fmr_flow_sigma'] * 1e3:g} mm/s (1 sigma)")
             else:
                 want.setdefault(part, "up")
         if "knowledge" in kinds:
@@ -222,14 +253,66 @@ def node_converge(case, res, knobs, variants_on, history, fine, modes):
             else:
                 blocked.append(f"{mode}/{oid}: knowledge fails with the star tracker fitted")
         if "power" in kinds:
-            if o["actuator"] == "fmr" and not k.get("fmr_pm"):
-                k["fmr_pm"] = True; changes.append(f"{mode}/{oid}: power -> permanent-magnet pump yoke on the fluid loop")
+            lam = k.get("fmr_lambda", 0.1)
+            if o["actuator"] == "fmr" and k.get("fmr_lambda", 0.1) != knobs.get("fmr_lambda", 0.1):
+                pass                                   # already raised this iteration
+            elif o["actuator"] == "fmr" and o.get("dump") == "rcs":
+                blocked.append(f"{mode}/{oid}: power is the thrusters' valve power (RCS dumping), not the pump")
+            elif o["actuator"] == "fmr" and lam < LAMBDA_MAX and not history.get("_lam_down"):
+                k["fmr_lambda"] = min(LAMBDA_MAX, lam * 3); history["_lam_up"] = True
+                changes.append(f"{mode}/{oid}: power -> electromagnetic pump with more copper (lambda {lam:g} -> {k['fmr_lambda']:g} kg/W)")
+            elif o["actuator"] == "fmr":
+                blocked.append(f"{mode}/{oid}: power fails with the pump at lambda {lam:g} kg/W" + (" (mass needs it lower: conflict)" if history.get("_lam_down") else " (bound)"))
             elif "performance" not in kinds and part in ("mtqp",):
                 want.setdefault(part, "down")
             elif "performance" not in kinds:
                 blocked.append(f"{mode}/{oid}: power fails at the sized authority ({part}); the part's standby power is the floor")
         if "propellant" in kinds:
             want["rcs"] = "up"
+    # a mass move that broke an option which passed before is undone, and that lever is closed
+    lm = history.pop("_last_mass", None)
+    if lm:
+        key, old, before, acts, v_before = lm
+        fam_opts = {kk: r for kk, r in res.items() if usable(next(x for x in Mby[kk[0]]["options"] if x["id"] == kk[1]), acts)}
+        lost = sorted(f"{m}/{o}" for (m, o) in before if (m, o) in fam_opts and not fam_opts[(m, o)]["feasible"])
+        v_now = fam_violation(fam_opts, modes)
+        if v_now > 1.05 * v_before + 1e-9:
+            lost.append(f"requirement violation {v_before:.3g} -> {v_now:.3g}")
+        if lost:
+            if key == "scale.fmr":
+                k.setdefault("scale", {})["fmr"] = old
+            else:
+                k[key] = old
+            history[f"_closed_{key}"] = True
+            changes.append(f"mass lever {key} undone: it broke {', '.join(lost)}")
+    closed = lambda key: history.get(f"_closed_{key}")
+    # mass budget of the solution families (the closest one first): one star-tracker head, a
+    # lighter pump (lower lambda) when power allows, less fluid-loop authority when performance allows
+    if sel and not changes:
+        order = sorted((f for f, x in sel["families"].items() if x["role"] == "solution"), key=lambda f: (len(sel["families"][f]["gaps"]), sel["families"][f]["simplicity"]))
+        for f in order[:1]:
+            g = " ".join(sel["families"][f]["gaps"])
+            if "mass_kg" not in g:
+                continue
+            fam_has_fmr = "fmr" in f
+            acts = next(fa for fa in FAMILIES if fa["id"] == f)["actuators"]
+            fam_opts = {kk: r for kk, r in res.items() if usable(next(x for x in Mby[kk[0]]["options"] if x["id"] == kk[1]), acts)}
+            feas_now = [key for key, r in fam_opts.items() if r["feasible"]]
+            vb = fam_violation(fam_opts, modes)
+            if fine and k.get("st_heads", 2) == 2 and not history.get("_st2") and not closed("st_heads"):
+                history["_last_mass"] = ("st_heads", 2, feas_now, acts, vb)
+                k["st_heads"] = 1; changes.append(f"mass ({f}): one star-tracker head instead of two")
+            elif fam_has_fmr and "power" not in g and k.get("fmr_lambda", 0.1) > LAMBDA_MIN and not history.get("_lam_up") and not closed("fmr_lambda"):
+                lam = k.get("fmr_lambda", 0.1); history["_last_mass"] = ("fmr_lambda", lam, feas_now, acts, vb)
+                k["fmr_lambda"] = max(LAMBDA_MIN, lam / 3); history["_lam_down"] = True
+                changes.append(f"mass ({f}): lighter pump, less copper (lambda {lam:g} -> {k['fmr_lambda']:g} kg/W)")
+            elif fam_has_fmr and not closed("scale.fmr") and k.get("scale", {}).get("fmr", 1.0) > SCALE_MIN:
+                s0 = k.setdefault("scale", {}).get("fmr", 1.0); history["_last_mass"] = ("scale.fmr", s0, feas_now, acts, vb)
+                k["scale"]["fmr"] = max(SCALE_MIN, s0 * DOWN)
+                history.setdefault("fmr", []).append("down")
+                changes.append(f"mass ({f}): fluid-loop momentum x{s0:g} -> x{k['scale']['fmr']:g}")
+            else:
+                blocked.append(f"mass ({f}): no lever left ({g})")
     last_up = {}
     for part, d in sorted(want.items()):
         s = k.setdefault("scale", {}).get(part, 1.0)
@@ -257,6 +340,20 @@ def node_converge(case, res, knobs, variants_on, history, fine, modes):
     return k, v, changes, blocked
 
 
+def rate_violation(res):
+    return sum(min(v, 10.0) for r in res.values() for m, v in r.get("violation", {}).items() if m.startswith("rate_stability"))
+
+
+def fam_violation(fam_opts, modes):
+    """Sum over the modes of the best usable option's requirement violation (0 when a mode passes)."""
+    tot = 0.0
+    for M in modes:
+        rs = [r for (m, _), r in fam_opts.items() if m == M["id"]]
+        if rs:
+            tot += min(sum(r.get("violation", {}).values()) if not r["feasible"] else 0.0 for r in rs)
+    return tot
+
+
 def usable(o, fam_acts):
     need = {o["actuator"]} | ({o["dump"]} if o.get("dump") else set())
     return need <= set(fam_acts)
@@ -273,7 +370,7 @@ def node_select(case, res, sizing, modes, families):
             cands = [r for (m, oid), r in res.items() if m == M["id"] and usable(next(x for x in M["options"] if x["id"] == oid), acts)]
             cands.sort(key=lambda z: (not z["feasible"], len(z["failing"]), z["objective"] if z["objective"] is not None else math.inf))
             best = cands[0] if cands else None
-            per_mode[M["id"]] = best and {"option": best["option"], "feasible": best["feasible"], "failing": best["failing"],
+            per_mode[M["id"]] = best and {"option": best["option"], "alg": best["alg"], "feasible": best["feasible"], "failing": best["failing"],
                                           "objective": best["objective"], "objective_id": best["objective_id"], "algorithms": best["algorithms"],
                                           "metrics": best["metrics"]}
             if not best or not best["feasible"]:
@@ -301,8 +398,11 @@ def node_dispatch(case, sel, sized, modes, build):
     Mby = {M["id"]: M for M in modes}
     opt = lambda m: next(o for o in Mby[m]["options"] if o["id"] == meth[m])
     algs, dt = {}, 0.2
+    tune = {}
     for m in meth:
         algs.update({k: v for k, v in (F["modes"][m].get("algorithms") or {}).items() if k in (SLOT.get((m, meth[m])),)})
+        if m == "nadir_pointing":
+            tune = split_alg(F["modes"][m].get("alg"))[1]
         dt = min(dt, opt(m)["dt_s"])
     det, acq, fine = opt("detumble"), opt("sun_acquisition"), opt("nadir_pointing")
     a_ = 6378137 + E.case_value(case, "orbit.alt") * 1e3
@@ -313,7 +413,7 @@ def node_dispatch(case, sel, sized, modes, build):
             "initial": {"attitude": {"kind": "random"}, "rate": {"kind": "random_direction", "magnitude_deg_s": "case:mission.w0"}},
             "fsw": {"start_mode": det["fsw_mode"], "auto_next": acq["fsw_mode"], "guidance": {"kind": "nadir"}, "algorithms": algs,
                     "schedule": [{"t_s": round(2 * T), "mode": fine["fsw_mode"]}],
-                    "rcs_dump": 1.0 if fine.get("dump") == "rcs" else 0.0, **({"dump_gain": 0.03} if fine["actuator"] == "fmr" else {})},
+                    "rcs_dump": 1.0 if fine.get("dump") == "rcs" else 0.0, **({"dump_gain": 0.03} if fine["actuator"] == "fmr" else {}), **tune},
             "metrics": [{"id": "detumble_time", "kind": "time_to_rate", "rate_threshold_deg_s": 0.5, "hold_s": 600.0, "requirement": "req.detumble"},
                         {"id": "ape_los_p9973", "kind": "ape_los", "window": "last_half_orbit", "statistic": "p99.73", "requirement": "req.ape"},
                         {"id": "ake_los_p9973", "kind": "ake_los", "window": "last_half_orbit", "statistic": "p99.73", "requirement": "req.ake"},
@@ -459,7 +559,7 @@ def run_case(case, a, modes, families, build):
         tests = node_matrix(case, it, sized, modes, variants_on, [int(s) for s in a.seeds.split(",")], a.jobs, build)
         res = node_assess(tests, modes)
         sel = node_select(case, res, sizing, modes, families)
-        knobs2, variants2, changes, blocked = node_converge(case, res, knobs, variants_on, history, sizing["class"] == "fine", modes)
+        knobs2, variants2, changes, blocked = node_converge(case, res, knobs, variants_on, history, sizing["class"] == "fine", modes, sel)
         entry = {"iteration": it, "knobs": knobs, "class": sizing["class"], "selected": sel["selected"], "status": sel["status"],
                  "feasible_options": sum(r["feasible"] for r in res.values()), "options": len(res), "changes": changes, "blocked": blocked,
                  "families": {f: {"feasible": v["feasible"], "gaps": v["gaps"], "budget": v["budget"]} for f, v in sel["families"].items()},
@@ -501,7 +601,11 @@ def ledger(case, sel, log, disp, mc, so, sizing):
         L += ["Open requirement gaps of the selected family (what the case must relax, or the next design lever):", ""] + [f"- {g}" for g in F["gaps"]] + [""]
     L += ["## Iterations", "", "| iteration | knobs | options feasible | selected | changes | blocked |", "|---:|---|---:|---|---|---|"]
     for e in log:
-        kn = ", ".join([f"{k} x{v:.3g}" for k, v in e["knobs"].get("scale", {}).items()] + [k for k in ("fmr_pm", "star_tracker") if e["knobs"].get(k)]) or "laws as written"
+        kn = ", ".join([f"{k} x{v:.3g}" for k, v in e["knobs"].get("scale", {}).items()] + [k for k in ("star_tracker",) if e["knobs"].get(k)] +
+                      [f"pump lambda {e['knobs']['fmr_lambda']:g} kg/W" for _ in [0] if "fmr_lambda" in e["knobs"]] +
+                      [f"{e['knobs']['st_heads']} ST head" for _ in [0] if e["knobs"].get("st_heads") == 1] +
+                      [f"flow sensor {e['knobs']['fmr_flow_sigma'] * 1e3:g} mm/s" for _ in [0] if e["knobs"].get("fmr_flow_sigma")] +
+                      [f"gyro noise x{e['knobs']['gyro_grade']:g}" for _ in [0] if e["knobs"].get("gyro_grade", 1) < 1]) or "laws as written"
         L.append(f"| {e['iteration']} | {kn} | {e['feasible_options']}/{e['options']} | {e['selected']} ({e['status']}) | "
                  f"{'<br>'.join(e['changes']) or '—'} | {len(e['blocked'])} |")
     if log[-1]["blocked"]:
@@ -554,7 +658,7 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("cases", nargs="*")
     ap.add_argument("--seeds", default="1,2")
-    ap.add_argument("--max-iter", type=int, default=6)
+    ap.add_argument("--max-iter", type=int, default=16)
     ap.add_argument("--jobs", type=int, default=os.cpu_count())
     ap.add_argument("--mc-runs", type=int, default=12)
     ap.add_argument("--no-oils", action="store_true")
@@ -563,6 +667,7 @@ def main():
         sys.exit("engine not built: python3 tools/engine.py build")
     modes = sorted((json.loads(f.read_text()) for f in (MS / "data" / "modes").glob("*.json")), key=lambda M: M["order"])
     fams = json.loads((MS / "data" / "families.json").read_text())["family"]
+    FAMILIES[:] = fams
     build = sha(BIN.read_bytes())
     for c in a.cases or ["ais_3u", "ais_img_3u"]:
         run_case(c, a, modes, fams, build)

@@ -139,10 +139,13 @@ function [F, out] = step(F, z, t, P, D) %#ok<INUSD>
                             m_body = asils.fsw.bdot(b - bd, b, 1, norm(z.B), G.bdot_k, dev.mtq.m_max);
                         case 'mag'       % difference of consecutive coil-off windows
                             if ~isempty(F.b1), m_body = asils.fsw.bdot(F.b1, b, G.mtq_period, norm(z.B), G.bdot_k, dev.mtq.m_max); end
-                        case 'bangbang'  % Standard Code ctrl.bdot TC == 0: full dipole against d(b)/dt
+                        case 'bangbang'  % Standard Code ctrl.bdot TC == 0: full dipole against d(b)/dt,
+                                         % with a boundary layer (4 x the B-dot gain inside it): pure sign
+                                         % switching limit-cycles around the detumble exit rate
                             if ~isempty(F.b1)
                                 bd = (b - F.b1)/G.mtq_period;
-                                m_body = -dev.mtq.m_max*sign(bd).*(abs(bd) > 1e-4);
+                                bl = dev.mtq.m_max*norm(z.B)/(4*G.bdot_k);
+                                m_body = -dev.mtq.m_max*min(1, max(-1, bd/bl));
                             end
                         case 'l1'        % Standard Code ctrl.genBdot with omega_d = 0, on the raw field [T]
                             Bav = F.bsum_raw/F.bn;
