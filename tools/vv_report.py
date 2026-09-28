@@ -117,7 +117,8 @@ def design():
                          "<br>".join(e(x) for x in it["changes"]) or "—", len(it["blocked"])])
         out.append(table(["iter", "knobs", "options feasible", "selection", "changes for the next iteration", "blocked"], rows, num=(0, 2, 5)))
         if log and log[-1]["blocked"]:
-            out.append("<p class='note'>Stopped because: " + e("; ".join(sorted(set(log[-1]["blocked"])))) + "</p>")
+            out.append("<p class='note'>Why the loop stopped (nothing left that a knob can change):</p><ul class='note'>" +
+                       "".join(f"<li>{e(b)}</li>" for b in sorted(set(log[-1]["blocked"]))) + "</ul>")
         rows = [[f"<code>{e(f)}</code>", e(v["role"]), verdict(v["feasible"]), fmt(v["budget"]["mass_kg"], 3), fmt(v["budget"]["power_W"], 3),
                  fmt(v["budget"]["volume_L"], 3), e("; ".join(v["gaps"])) or "—"] for f, v in sel["families"].items()]
         out.append("<p>Every family, scored the same way (benchmarks for comparison only):</p>" +

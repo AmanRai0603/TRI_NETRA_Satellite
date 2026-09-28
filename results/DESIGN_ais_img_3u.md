@@ -4,12 +4,11 @@ Owner: Agastya. `tools/pipeline.py ais_img_3u` — sizing (Rust, adcs-design) ->
 C flight software) -> assess -> converge, repeated until nothing is left to change; then select, dispatch, Monte Carlo and
 soft OILS of the selected configuration. Flow: `docs/figures/flow_design_to_hils.svg`, method: `docs/DESIGN_LOOP.md`.
 
-**Selected: `mtq_fmr` — Magnetorquers + fluid momentum loop — closest (not feasible)**, NOT converged after 16 iteration(s). Knowledge class: fine. Sensors: star_tracker, magnetometer, sun_sensors, gyro, gnss, earth_sensor.
+**Selected: `mtq_fmr` — Magnetorquers + fluid momentum loop — closest (not feasible)**, converged after 18 iteration(s). Knowledge class: fine. Sensors: star_tracker, magnetometer, sun_sensors, gyro, gnss, earth_sensor.
 
 Open requirement gaps of the selected family (what the case must relax, or the next design lever):
 
-- nadir_pointing: rate_stability_p9973 (performance)
-- budget: mass_kg 2.03 > 1
+- budget: mass_kg 1.75 > 1
 
 ## Iterations
 
@@ -31,10 +30,12 @@ Open requirement gaps of the selected family (what the case must relax, or the n
 | 14 | mtqp x1, vscmg x2.25, fmr x1.5, cmg x1.5, rw x1.5, pump lambda 0.0333333 kg/W, flow sensor 0.05 mm/s, gyro noise x0.1 | 19/25 | mtq_fmr (closest (not feasible)) | mass (mtq_fmr): fluid-loop momentum x1.5 -> x1.125 | 4 |
 | 15 | mtqp x1, vscmg x2.25, fmr x1.12, cmg x1.5, rw x1.5, pump lambda 0.0333333 kg/W, flow sensor 0.05 mm/s, gyro noise x0.1 | 19/25 | mtq_fmr (closest (not feasible)) | mass (mtq_fmr): fluid-loop momentum x1.125 -> x0.84375 | 4 |
 | 16 | mtqp x1, vscmg x2.25, fmr x0.844, cmg x1.5, rw x1.5, pump lambda 0.0333333 kg/W, flow sensor 0.05 mm/s, gyro noise x0.1 | 19/25 | mtq_fmr (closest (not feasible)) | mass (mtq_fmr): fluid-loop momentum x0.84375 -> x0.632812 | 4 |
+| 17 | mtqp x1, vscmg x2.25, fmr x0.633, cmg x1.5, rw x1.5, pump lambda 0.0333333 kg/W, flow sensor 0.05 mm/s, gyro noise x0.1 | 21/25 | mtq_fmr (closest (not feasible)) | mass (mtq_fmr): fluid-loop momentum x0.632812 -> x0.5 | 3 |
+| 18 | mtqp x1, vscmg x2.25, fmr x0.5, cmg x1.5, rw x1.5, pump lambda 0.0333333 kg/W, flow sensor 0.05 mm/s, gyro noise x0.1 | 21/25 | mtq_fmr (closest (not feasible)) | — | 4 |
 
 Why the loop stopped (nothing left that a knob can change):
 
-- fmr: more authority did not reduce the performance violation (1.32 -> 3.54); kept at x1.5
+- mass (mtq_fmr): no lever left (budget: mass_kg 1.75 > 1)
 - mtqp: more authority did not reduce the performance violation (1.35e+04 -> 1.36e+04); kept at x1
 - nadir_pointing/mtq: knowledge fails with the star tracker fitted
 - sun_referencing/fmr+rcs: power is the thrusters' valve power (RCS dumping), not the pump
@@ -44,8 +45,8 @@ Why the loop stopped (nothing left that a knob can change):
 | family | role | feasible | mass [kg] | power [W] | volume [L] | gaps |
 |---|---|---|---:|---:|---:|---|
 | mtq | solution | no | 1.370 | 6.60 | 0.012 | sun_acquisition: sun_acquisition_time (performance), sun_angle_p95 (performance); sun_referencing: sun_ape_p9973 (performance); nadir_pointing: ape_los_p9973 (performance), ake_los_p9973 (knowledge), rate_stability_p9973 (performance); budget: mass_kg 1.37 > 1 |
-| mtq_fmr | solution | no | 2.031 | 11.95 | 0.534 | nadir_pointing: rate_stability_p9973 (performance); budget: mass_kg 2.03 > 1 |
-| mtq_fmr_rcs | solution | no | 2.497 | 12.00 | 1.376 | nadir_pointing: rate_stability_p9973 (performance); budget: mass_kg 2.5 > 1; budget: volume_L 1.38 > 0.6 |
+| mtq_fmr | solution | no | 1.755 | 9.26 | 0.534 | budget: mass_kg 1.75 > 1 |
+| mtq_fmr_rcs | solution | no | 2.221 | 9.31 | 1.376 | budget: mass_kg 2.22 > 1; budget: volume_L 1.38 > 0.6 |
 | mtq_rw | benchmark | no | 1.646 | 7.27 | 0.164 | budget: mass_kg 1.65 > 1 |
 | mtq_rw_rcs | benchmark | no | 2.112 | 7.32 | 1.005 | budget: mass_kg 2.11 > 1; budget: volume_L 1.01 > 0.6 |
 | mtq_cmg | benchmark | no | 1.733 | 7.44 | 0.316 | budget: mass_kg 1.73 > 1 |
@@ -59,8 +60,8 @@ Why the loop stopped (nothing left that a knob can change):
 |---|---|---|---:|---|---|
 | detumble | mtq | yes | 63.54 detumble_time | attitude=mekf, detumble=bdot_gyro, mtq_pointing=mtq_pd, sun_acquisition=sunspin_l1l2 | — |
 | sun_acquisition | fmr | yes | 2.275 sun_acquisition_time | allocation=idmas_split, attitude=mekf, detumble=bdot_gyro, mtq_pointing=mtq_pd, pointing=pid, sun_acquisition=sunspin_l1l2 | — |
-| sun_referencing | fmr+mtq | yes | 0.004906 sun_ape_p9973 | allocation=idmas_split, attitude=mekf, detumble=bdot_gyro, mtq_pointing=mtq_pd, pointing=pid, sun_acquisition=sunspin_l1l2 | — |
-| nadir_pointing | fmr+mtq | no | 0.001254 ape_los_p9973 | allocation=idmas_split, attitude=mekf, detumble=bdot_gyro, mtq_pointing=mtq_pd, pointing=pid, sun_acquisition=sunspin_l1l2 | rate_stability_p9973 |
+| sun_referencing | fmr+mtq | yes | 0.00474 sun_ape_p9973 | allocation=idmas_split, attitude=mekf, detumble=bdot_gyro, mtq_pointing=mtq_pd, pointing=pid, sun_acquisition=sunspin_l1l2 | — |
+| nadir_pointing | fmr+mtq | yes | 0.0013 ape_los_p9973 | allocation=idmas_split, attitude=mekf, detumble=bdot_gyro, mtq_pointing=mtq_pd, pointing=smc, sun_acquisition=sunspin_l1l2 | — |
 
 ## Mode matrix (last iteration, best algorithm per option)
 
@@ -70,8 +71,8 @@ Why the loop stopped (nothing left that a knob can change):
 | detumble | rcs | default | yes | 1.108 | — |
 | nadir_pointing | cmg+mtq | smc | yes | 0.001261 | — |
 | nadir_pointing | cmg+rcs | smc | yes | 0.001254 | — |
-| nadir_pointing | fmr+mtq | pid@bw2.5 | no | 0.001254 | rate_stability_p9973 (performance) |
-| nadir_pointing | fmr+rcs | smc | no | 0.00142 | rate_stability_p9973 (performance) |
+| nadir_pointing | fmr+mtq | smc | yes | 0.0013 | — |
+| nadir_pointing | fmr+rcs | smc | yes | 0.001286 | — |
 | nadir_pointing | mtq | mtq_rate_damp | no | 133.4 | ape_los_p9973 (performance), ake_los_p9973 (knowledge), rate_stability_p9973 (performance) |
 | nadir_pointing | rw+mtq | pid | yes | 0.004843 | — |
 | nadir_pointing | rw+rcs | pid | yes | 0.001557 | — |
@@ -84,8 +85,8 @@ Why the loop stopped (nothing left that a knob can change):
 | sun_acquisition | vscmg | default | yes | 2.408 | — |
 | sun_referencing | cmg+mtq | default | yes | 0.004651 | — |
 | sun_referencing | cmg+rcs | default | yes | 0.00465 | — |
-| sun_referencing | fmr+mtq | default | yes | 0.004906 | — |
-| sun_referencing | fmr+rcs | default | no | 0.004895 | power_mean (power) |
+| sun_referencing | fmr+mtq | default | yes | 0.00474 | — |
+| sun_referencing | fmr+rcs | default | no | 0.004758 | power_mean (power) |
 | sun_referencing | mtq | mtq_rate_damp | no | 141.8 | sun_ape_p9973 (performance) |
 | sun_referencing | rw+mtq | default | yes | 0.004891 | — |
 | sun_referencing | rw+rcs | default | yes | 0.00487 | — |
@@ -96,11 +97,11 @@ Why the loop stopped (nothing left that a knob can change):
 
 | metric | req | mean ± std | [min, max] | pass rate |
 |---|---:|---|---|---:|
-| detumble_time (min) | 284 | 73.2 ± 15.6 | [44.46, 92.34] | 100 % |
-| ape_los_p9973 (deg) | 0.01 | 0.001295 ± 0.000363 | [0.0008519, 0.002044] | 100 % |
-| ake_los_p9973 (deg) | 0.005 | 0.001202 ± 0.000371 | [0.0007663, 0.001922] | 100 % |
-| power_mean (W) | 2 | 1.826 ± 0.75 | [0.4222, 2.838] | 58 % |
-| power_peak (W) | — | 5.591 ± 0.0102 | [5.574, 5.605] | — |
+| detumble_time (min) | 284 | 73.22 ± 15.6 | [44.46, 92.33] | 100 % |
+| ape_los_p9973 (deg) | 0.01 | 0.007674 ± 0.00543 | [0.001366, 0.01746] | 83 % |
+| ake_los_p9973 (deg) | 0.005 | 0.001205 ± 0.000383 | [0.0007565, 0.001958] | 100 % |
+| power_mean (W) | 2 | 1.173 ± 0.41 | [0.2061, 1.669] | 100 % |
+| power_peak (W) | — | 2.904 ± 0.0111 | [2.886, 2.918] | — |
 | propellant (g) | — | 0 ± 0 | [0, 0] | — |
 
 ## SILS and soft OILS of the dispatched mission
@@ -111,16 +112,16 @@ C and Rust builds, with exact per-step instruction counts and the command latenc
 | metric | req | SILS | soft OILS (C on M4F) | soft OILS (Rust on M4F) |
 |---|---:|---:|---:|---:|
 | detumble_time | 284 | 81.84 ✓ | 82.78 ✓ | 82.72 ✓ |
-| ape_los_p9973 | 0.01 | 0.00133 ✓ | 0.001325 ✓ | 0.001335 ✓ |
-| ake_los_p9973 | 0.005 | 0.001116 ✓ | 0.001116 ✓ | 0.001114 ✓ |
-| power_mean | 2 | 1.926 ✓ | 1.984 ✓ | 2.192 ✗ |
-| power_peak | — | 5.583  | 5.591  | 5.59  |
+| ape_los_p9973 | 0.01 | 0.001184 ✓ | 0.001136 ✓ | 0.001113 ✓ |
+| ake_los_p9973 | 0.005 | 0.001159 ✓ | 0.001152 ✓ | 0.001158 ✓ |
+| power_mean | 2 | 1.349 ✓ | 1.388 ✓ | 1.456 ✓ |
+| power_peak | — | 2.897  | 2.906  | 2.905  |
 | propellant | — | 0  | 0  | 0  |
 
 | OBC build | instructions/step mean / max | exec max [ms] | latency mean / max [ms] | CPU load max | overruns |
 |---|---:|---:|---:|---:|---:|
-| C (arm-none-eabi-gcc -O2) | 2.158e+05 / 8.452e+05 | 6.289 | 2.775 / 7.458 | 6.3 % | 0 |
-| Rust (thumbv7em-none-eabihf) | 2.897e+05 / 9.857e+05 | 7.334 | 3.325 / 8.503 | 7.3 % | 0 |
+| C (arm-none-eabi-gcc -O2) | 2.167e+05 / 8.475e+05 | 6.306 | 2.781 / 7.475 | 6.3 % | 0 |
+| Rust (thumbv7em-none-eabihf) | 2.904e+05 / 9.879e+05 | 7.351 | 3.330 / 8.520 | 7.4 % | 0 |
 
 Dispatch: `dist/dispatch/ais_img_3u/mtq_fmr/converged` (blob, sized products, BUILD.md). C = Rust flight software bitwise on the engine: True.
 
