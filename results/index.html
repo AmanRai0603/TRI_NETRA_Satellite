@@ -1,0 +1,739 @@
+<title>TRI-NETRA SILS Results</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;600;700&display=swap">
+<style>
+:root{--bg:#f7f8f9;--surface:#ffffff;--text:#15191e;--muted:#56606b;--line:#dde2e7;--accent:#2a78d6;--pass:#0a7a3a;--fail:#b3261e;--chip:#eef2f6}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){color-scheme:dark;--bg:#14171a;--surface:#1b1f23;--text:#eef1f4;--muted:#a3adb8;--line:#2f353c;--accent:#5a9ce8;--pass:#5bd08a;--fail:#ff8a80;--chip:#252b31}}
+:root[data-theme="dark"]{color-scheme:dark;--bg:#14171a;--surface:#1b1f23;--text:#eef1f4;--muted:#a3adb8;--line:#2f353c;--accent:#5a9ce8;--pass:#5bd08a;--fail:#ff8a80;--chip:#252b31}
+body{background:var(--bg);color:var(--text);font:15px/1.55 "IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif}
+main{max-width:1080px;margin:0 auto;padding-inline:16px;padding-block:28px 64px}
+h3{font-size:17px;margin:30px 0 4px}
+h1{font-size:30px;line-height:1.15;margin:0 0 6px;text-wrap:balance} h2{font-size:21px;margin:44px 0 6px;padding-top:22px;border-top:1px solid var(--line);text-wrap:balance}
+.muted{color:var(--muted)} p{max-width:72ch} code,.mono{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:.92em}
+.lede{font-size:16px}
+table{border-collapse:collapse;width:100%;margin:10px 0 14px;font-variant-numeric:tabular-nums;background:var(--surface)}
+th,td{border-bottom:1px solid var(--line);padding:7px 10px;text-align:left;vertical-align:top} th{color:var(--muted);font-weight:600;font-size:13px;text-transform:uppercase;letter-spacing:.04em}
+.pass{color:var(--pass);font-weight:600}.fail{color:var(--fail);font-weight:600}
+figure{margin:10px 0 18px} img{display:block;max-width:100%;height:auto;border:1px solid var(--line);border-radius:4px;background:#fcfcfb}
+nav{display:flex;flex-wrap:wrap;gap:6px;margin:16px 0}
+nav a{font:13px "IBM Plex Mono",monospace;color:var(--text);background:var(--chip);border:1px solid var(--line);border-radius:3px;padding:3px 8px;text-decoration:none}
+nav a:hover,nav a:focus-visible{border-color:var(--accent);outline:none}
+.scroll{overflow-x:auto}
+.kv{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px;margin:14px 0}
+.kv div{background:var(--surface);border:1px solid var(--line);border-radius:4px;padding:10px 12px}.kv b{display:block;font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;font-weight:600}
+</style><main>
+<h1>TRI-NETRA ADCS: SILS results</h1><p class='lede muted'>Two 3U cases at 550 km sun-synchronous orbit, closed loop, with the Precision Orbit Propagator (POP v51) stepped inside the attitude loop. Owner: <b>Agastya</b>. Every number was produced by <code>matlab_sils</code> in GNU Octave 8.4 and can be re-derived from the filed channels.</p>
+<div class='kv'><div><b>AIS 3U</b>10° APE · SSO dawn–dusk (LTAN 06:00) · coils only</div><div><b>Imaging 3U</b>0.01° APE 3σ · SSO LTAN 10:00 · wheels + 2 star trackers</div><div><b>Orbit truth</b>POP RK4 in the loop · J2–J6 · DE440 Sun/Moon · DTM2020 drag · SRP</div><div><b>Epoch</b>2027-01-01 06:00 UTC (case mission.epoch)</div></div>
+<h2 id='verdicts'>Verdicts at a glance</h2><p class='muted'>Every requirement-bound metric of every scenario (single nominal run, seed 1). Monte Carlo and edge-case statistics follow at the end.</p>
+<div class='scroll'><table><tr><th>scenario</th><th>product</th><th>requirement checks</th></tr>
+<tr><td><a href='#detumble_ais'>detumble_ais</a></td><td class='mono'>TRN-P-3U-AIS</td><td><span class='pass'>✔</span> detumble_time 58.3 min<br><span class='pass'>✔</span> power_mean 0.0246 W<br><span class='pass'>✔</span> power_peak 0.364 W</td></tr>
+<tr><td><a href='#nadir_hold_ais'>nadir_hold_ais</a></td><td class='mono'>TRN-P-3U-AIS</td><td><span class='pass'>✔</span> ape_los_last_orbit 7.25 deg<br><span class='pass'>✔</span> ake_los_last_orbit 3.86 deg<br><span class='pass'>✔</span> power_mean 0.0108 W</td></tr>
+<tr><td><a href='#nadir_hold_ais_css'>nadir_hold_ais_css</a></td><td class='mono'>TRN-P-3U-AIS-CSS</td><td><span class='fail'>✖</span> ape_los_last_orbit 36.6 deg<br><span class='fail'>✖</span> ake_los_last_orbit 41.6 deg<br><span class='pass'>✔</span> power_mean 0.0107 W</td></tr>
+<tr><td><a href='#sun_spin_ais'>sun_spin_ais</a></td><td class='mono'>TRN-P-3U-AIS</td><td><span class='pass'>✔</span> sun_spin_entry 40.4 min<br><span class='pass'>✔</span> sun_angle_last_orbit 6.5 deg<br><span class='pass'>✔</span> spin_rate_error_last_orbit 0.0457 deg/s<br><span class='fail'>✖</span> sun_spin_share_last_orbit 78.8 %<br><span class='pass'>✔</span> power_mean 0.206 W</td></tr>
+<tr><td><a href='#mission_ais'>mission_ais</a></td><td class='mono'>TRN-P-3U-AIS</td><td><span class='pass'>✔</span> detumble_time 58.3 min<br><span class='pass'>✔</span> ape_los_last_orbit 9.11 deg<br><span class='pass'>✔</span> ake_los_last_orbit 4.05 deg</td></tr>
+<tr><td><a href='#fault_coil_ais'>fault_coil_ais</a></td><td class='mono'>TRN-P-3U-AIS</td><td><span class='pass'>✔</span> detumble_time 128 min<br><span class='pass'>✔</span> power_mean 0.022 W<br><span class='pass'>✔</span> power_peak 0.316 W</td></tr>
+<tr><td><a href='#fault_gyro_ais'>fault_gyro_ais</a></td><td class='mono'>TRN-P-3U-AIS</td><td><span class='fail'>✖</span> ape_los_last_orbit 56.8 deg<br><span class='fail'>✖</span> ake_los_last_orbit 42.6 deg<br><span class='pass'>✔</span> power_mean 0.0108 W</td></tr>
+<tr><td><a href='#detumble_img'>detumble_img</a></td><td class='mono'>TRN-P-3U-IMG</td><td><span class='pass'>✔</span> detumble_time 22 min</td></tr>
+<tr><td><a href='#fine_hold_img'>fine_hold_img</a></td><td class='mono'>TRN-P-3U-IMG</td><td><span class='pass'>✔</span> ape_los_p9973 0.00917 deg<br><span class='pass'>✔</span> ake_los_p9973 0.00333 deg<br><span class='fail'>✖</span> rate_stability_p9973 0.00367 deg/s<br><span class='pass'>✔</span> power_mean 1.56 W</td></tr>
+<tr><td><a href='#slew_img'>slew_img</a></td><td class='mono'>TRN-P-3U-IMG</td><td><span class='pass'>✔</span> settle_time_after_slew 12.6 s<br><span class='pass'>✔</span> ape_los_on_target_p9973 0.00989 deg</td></tr>
+<tr><td><a href='#agile_slew_img'>agile_slew_img</a></td><td class='mono'>TRN-P-3U-IMG</td><td><span class='pass'>✔</span> ape_los_on_target_p9973 0.00988 deg</td></tr>
+<tr><td><a href='#mission_img'>mission_img</a></td><td class='mono'>TRN-P-3U-IMG</td><td><span class='pass'>✔</span> detumble_time 23.7 min<br><span class='pass'>✔</span> ape_los_last_half_orbit_p9973 0.00763 deg</td></tr>
+<tr><td><a href='#fault_wheel_img'>fault_wheel_img</a></td><td class='mono'>TRN-P-3U-IMG</td><td><span class='fail'>✖</span> ape_los_p9973 15.8 deg<br><span class='pass'>✔</span> ake_los_p9973 0.00365 deg<br><span class='fail'>✖</span> rate_stability_p9973 0.383 deg/s<br><span class='pass'>✔</span> power_mean 1.19 W</td></tr>
+<tr><td><a href='#fault_st_img'>fault_st_img</a></td><td class='mono'>TRN-P-3U-IMG</td><td><span class='fail'>✖</span> ape_los_p9973 0.184 deg<br><span class='fail'>✖</span> ake_los_p9973 0.185 deg<br><span class='fail'>✖</span> rate_stability_p9973 0.00408 deg/s<br><span class='pass'>✔</span> power_mean 1.56 W</td></tr>
+<tr><td><a href='#fine_hold_fmr'>fine_hold_fmr</a></td><td class='mono'>TRN-P-3U-FMR</td><td><span class='pass'>✔</span> ape_los_p9973 0.00603 deg<br><span class='pass'>✔</span> ake_los_p9973 0.00332 deg<br><span class='fail'>✖</span> rate_stability_p9973 0.00465 deg/s<br><span class='fail'>✖</span> power_mean 4.35 W</td></tr>
+<tr><td><a href='#slew_fmr'>slew_fmr</a></td><td class='mono'>TRN-P-3U-FMR</td><td><span class='pass'>✔</span> settle_time_after_slew 14 s<br><span class='pass'>✔</span> ape_los_on_target_p9973 0.00805 deg</td></tr>
+<tr><td><a href='#mission_fmr'>mission_fmr</a></td><td class='mono'>TRN-P-3U-FMR</td><td><span class='pass'>✔</span> detumble_time 24.5 min<br><span class='pass'>✔</span> ape_los_last_half_orbit_p9973 0.00639 deg</td></tr>
+<tr><td><a href='#fine_hold_fmr_rcs'>fine_hold_fmr_rcs</a></td><td class='mono'>TRN-P-3U-FMR-RCS</td><td><span class='pass'>✔</span> ape_los_p9973 0.00616 deg<br><span class='pass'>✔</span> ake_los_p9973 0.00348 deg<br><span class='fail'>✖</span> rate_stability_p9973 0.00464 deg/s<br><span class='fail'>✖</span> power_mean 4.37 W</td></tr>
+<tr><td><a href='#slew_fmr_rcs'>slew_fmr_rcs</a></td><td class='mono'>TRN-P-3U-FMR-RCS</td><td><span class='pass'>✔</span> settle_time_after_slew 12.9 s<br><span class='pass'>✔</span> ape_los_on_target_p9973 0.00708 deg</td></tr>
+<tr><td><a href='#agile_slew_fmr_rcs'>agile_slew_fmr_rcs</a></td><td class='mono'>TRN-P-3U-FMR-RCS</td><td><span class='pass'>✔</span> ape_los_on_target_p9973 0.00723 deg</td></tr>
+<tr><td><a href='#mission_fmr_rcs'>mission_fmr_rcs</a></td><td class='mono'>TRN-P-3U-FMR-RCS</td><td><span class='pass'>✔</span> detumble_time 64.1 min<br><span class='pass'>✔</span> ape_los_last_half_orbit_p9973 0.00625 deg</td></tr>
+<tr><td><a href='#fine_hold_rw_rcs'>fine_hold_rw_rcs</a></td><td class='mono'>TRN-P-3U-RW-RCS</td><td><span class='pass'>✔</span> ape_los_p9973 0.00838 deg<br><span class='pass'>✔</span> ake_los_p9973 0.00344 deg<br><span class='fail'>✖</span> rate_stability_p9973 0.0036 deg/s<br><span class='pass'>✔</span> power_mean 1.51 W</td></tr>
+<tr><td><a href='#slew_rw_rcs'>slew_rw_rcs</a></td><td class='mono'>TRN-P-3U-RW-RCS</td><td><span class='pass'>✔</span> settle_time_after_slew 11.2 s<br><span class='pass'>✔</span> ape_los_on_target_p9973 0.00783 deg</td></tr>
+<tr><td><a href='#agile_slew_rw_rcs'>agile_slew_rw_rcs</a></td><td class='mono'>TRN-P-3U-RW-RCS</td><td><span class='pass'>✔</span> ape_los_on_target_p9973 0.00811 deg</td></tr>
+<tr><td><a href='#mission_rw_rcs'>mission_rw_rcs</a></td><td class='mono'>TRN-P-3U-RW-RCS</td><td><span class='pass'>✔</span> detumble_time 24.3 min<br><span class='pass'>✔</span> ape_los_last_half_orbit_p9973 0.00767 deg</td></tr>
+<tr><td><a href='#fine_hold_cmg'>fine_hold_cmg</a></td><td class='mono'>TRN-P-3U-CMG</td><td><span class='pass'>✔</span> ape_los_p9973 0.00552 deg<br><span class='pass'>✔</span> ake_los_p9973 0.00341 deg<br><span class='fail'>✖</span> rate_stability_p9973 0.00242 deg/s<br><span class='pass'>✔</span> power_mean 1.61 W</td></tr>
+<tr><td><a href='#slew_cmg'>slew_cmg</a></td><td class='mono'>TRN-P-3U-CMG</td><td><span class='pass'>✔</span> settle_time_after_slew 11.4 s<br><span class='pass'>✔</span> ape_los_on_target_p9973 0.00454 deg</td></tr>
+<tr><td><a href='#agile_slew_cmg'>agile_slew_cmg</a></td><td class='mono'>TRN-P-3U-CMG</td><td><span class='pass'>✔</span> ape_los_on_target_p9973 0.00549 deg</td></tr>
+<tr><td><a href='#mission_cmg'>mission_cmg</a></td><td class='mono'>TRN-P-3U-CMG</td><td><span class='pass'>✔</span> detumble_time 59.5 min<br><span class='pass'>✔</span> ape_los_last_half_orbit_p9973 0.00566 deg</td></tr>
+<tr><td><a href='#fault_gimbal_cmg'>fault_gimbal_cmg</a></td><td class='mono'>TRN-P-3U-CMG</td><td><span class='pass'>✔</span> ape_los_p9973 0.00636 deg<br><span class='pass'>✔</span> ake_los_p9973 0.00343 deg<br><span class='fail'>✖</span> rate_stability_p9973 0.00295 deg/s<br><span class='pass'>✔</span> power_mean 1.61 W</td></tr>
+<tr><td><a href='#fine_hold_vscmg'>fine_hold_vscmg</a></td><td class='mono'>TRN-P-3U-VSCMG</td><td><span class='pass'>✔</span> ape_los_p9973 0.00913 deg<br><span class='pass'>✔</span> ake_los_p9973 0.00356 deg<br><span class='fail'>✖</span> rate_stability_p9973 0.00456 deg/s<br><span class='fail'>✖</span> power_mean 2.01 W</td></tr>
+<tr><td><a href='#slew_vscmg'>slew_vscmg</a></td><td class='mono'>TRN-P-3U-VSCMG</td><td><span class='pass'>✔</span> settle_time_after_slew 14.4 s<br><span class='fail'>✖</span> ape_los_on_target_p9973 0.0103 deg</td></tr>
+<tr><td><a href='#agile_slew_vscmg'>agile_slew_vscmg</a></td><td class='mono'>TRN-P-3U-VSCMG</td><td><span class='fail'>✖</span> ape_los_on_target_p9973 0.0101 deg</td></tr>
+<tr><td><a href='#mission_vscmg'>mission_vscmg</a></td><td class='mono'>TRN-P-3U-VSCMG</td><td><span class='pass'>✔</span> detumble_time 59.5 min<br><span class='fail'>✖</span> ape_los_last_half_orbit_p9973 0.0111 deg</td></tr>
+</table></div>
+<h2 id='trades'>Trades: one job, several algorithms, several hardware sets</h2>
+<p>Every algorithm is registered once (<code>catalogue/algorithms</code>) with the job it does (its <i>slot</i>) and the hardware it <i>needs</i>. A run's algorithm for each slot comes from the scenario, else the product's promoted <code>[selected]</code> table, else the first compatible default, and a choice the hardware cannot fly is refused before the run. A trade flies every candidate on the same seeds, ranks the ones that meet every requirement by their worst objective value, and <b>proposes</b> a winner for a person to confirm.</p>
+<div class='scroll'><table><tr><th>trade</th><th>slot</th><th>product</th><th>proposed</th><th>why</th></tr>
+<tr><td><a href='#trade_detumble_ais'>AIS 3U — detumble law (coils only)</a></td><td><code>detumble</code></td><td class='mono'>TRN-P-3U-AIS</td><td><b>genbdot_l1</b></td><td class='muted'>genbdot_l1: feasible on all 3 seeds, worst detumble_time 48.04 min, power_mean 0.428</td></tr>
+<tr><td><a href='#trade_mtq_pointing_ais'>AIS 3U — magnetic pointing law (coils only, 10 deg)</a></td><td><code>mtq_pointing</code></td><td class='mono'>TRN-P-3U-AIS</td><td><b>mtq_pd</b></td><td class='muted'>mtq_pd: feasible on all 3 seeds, worst ape_los_last_orbit 9.625 deg, power_mean 0.0107</td></tr>
+<tr><td><a href='#trade_sun_spin_ais'>AIS 3U — Sun-pointing spin law (coils only)</a></td><td><code>sun_spin</code></td><td class='mono'>TRN-P-3U-AIS</td><td><b>sunspin_damped</b></td><td class='muted'>sunspin_damped: feasible on all 2 seeds, worst sun_spin_share_last_orbit 100 %, sun_angle_last_orbit 4.82</td></tr>
+<tr><td><a href='#trade_sun_sensor_ais'>AIS 3U — fine Sun-sensor heads vs coarse cosine cells</a></td><td><code>sun</code></td><td class='mono'>—</td><td><b>fine_sun_heads</b></td><td class='muted'>fine_sun_heads: feasible on all 3 seeds, worst ape_los_last_orbit 9.625 deg, power_mean 0.0107</td></tr>
+<tr><td><a href='#trade_pointing_img'>Imaging 3U, reaction wheels — fine-pointing law (0.01 deg)</a></td><td><code>pointing</code></td><td class='mono'>TRN-P-3U-IMG</td><td><b>lqr</b></td><td class='muted'>lqr: feasible on all 2 seeds, worst ape_los_p9973 0.004838 deg, power_mean 1.56</td></tr>
+<tr><td><a href='#trade_slew_img'>Imaging 3U, reaction wheels — slew law</a></td><td><code>pointing</code></td><td class='mono'>TRN-P-3U-IMG</td><td><b>lqr</b></td><td class='muted'>lqr: feasible on all 2 seeds, worst settle_time_after_slew 0 s</td></tr>
+<tr><td><a href='#trade_pointing_cmg'>Imaging 3U, CMG pyramid — fine-pointing law (0.01 deg)</a></td><td><code>pointing</code></td><td class='mono'>TRN-P-3U-CMG</td><td><b>lqr</b></td><td class='muted'>lqr: feasible on all 2 seeds, worst ape_los_p9973 0.00409 deg, power_mean 1.61</td></tr>
+<tr><td><a href='#trade_pointing_vscmg'>Imaging 3U, VSCMG pyramid — fine-pointing law (0.01 deg)</a></td><td><code>pointing</code></td><td class='mono'>TRN-P-3U-VSCMG</td><td><b>lqr</b></td><td class='muted'>lqr: feasible on all 2 seeds, worst ape_los_p9973 0.005546 deg, power_mean 2.02</td></tr>
+<tr><td><a href='#trade_pointing_fmr'>Imaging 3U, fluid rings (IDMAS) — fine-pointing law (0.01 deg)</a></td><td><code>pointing</code></td><td class='mono'>TRN-P-3U-FMR</td><td><b>pid</b></td><td class='muted'>pid: feasible on all 2 seeds, worst ape_los_p9973 0.006033 deg, power_mean 4.35</td></tr>
+<tr><td><a href='#trade_allocation_fmr'>Imaging 3U, fluid rings — allocation (IDMAS split vs rings only)</a></td><td><code>allocation</code></td><td class='mono'>TRN-P-3U-FMR</td><td><b>rotor_pinv</b></td><td class='muted'>rotor_pinv: feasible on all 2 seeds, worst ape_los_p9973 0.005972 deg, power_mean 4.23</td></tr>
+<tr><td><a href='#trade_hardware_fine'>Imaging 3U — actuator family for the 0.01 deg fine hold</a></td><td><code>actuators</code></td><td class='mono'>—</td><td><b>mtq_cmg</b></td><td class='muted'>mtq_cmg: feasible on all 2 seeds, worst ape_los_p9973 0.005523 deg, power_mean 1.61</td></tr>
+<tr><td><a href='#trade_hardware_agile'>Imaging 3U — actuator family for the agile 90 deg slew</a></td><td><code>actuators</code></td><td class='mono'>—</td><td><b>mtq_cmg</b></td><td class='muted'>mtq_cmg: feasible on all 2 seeds, worst settle_time_after_slew 38.7 s</td></tr>
+</table></div>
+<h3 id='trade_detumble_ais'>AIS 3U — detumble law (coils only)</h3>
+<p class='muted'>Which B-dot variant brings a 10 deg/s tumble below 0.5 deg/s fastest, within the power budget? · algorithm trade for slot <code>detumble</code> on <b>TRN-P-3U-AIS</b> · seeds [1, 2, 3] · ranked by the worst <code>detumble_time</code> over the seeds, ties by <code>power_mean</code></p>
+<div class='scroll'><table><tr><th>rank</th><th>candidate</th><th>product / algorithms</th><th>objective worst</th><th>mean</th><th>requirement checks passed</th><th>tie-break</th></tr>
+<tr><td>1</td><td><b>genbdot_l1</b><br><span class='muted'>Standard Code L1 generalised B-dot (w_d = 0)</span></td><td class='mono'>TRN-P-3U-AIS<br><span class='muted'>detumble=genbdot_l1, attitude=mekf, mtq_pointing=mtq_pd, sun_spin=sunspin_l1l2</span></td><td>48.04</td><td>45.07</td><td class='pass'>100%</td><td>0.428</td></tr>
+<tr><td>2</td><td><b>bdot_gyro</b><br><span class='muted'>B-dot, gyro-fed db/dt = -w x b</span></td><td class='mono'>TRN-P-3U-AIS<br><span class='muted'>detumble=bdot_gyro, attitude=mekf, mtq_pointing=mtq_pd, sun_spin=sunspin_l1l2</span></td><td>60.07</td><td>57.41</td><td class='pass'>100%</td><td>0.0291</td></tr>
+<tr><td>3</td><td><b>bdot_mag</b><br><span class='muted'>B-dot, magnetometer finite difference</span></td><td class='mono'>TRN-P-3U-AIS<br><span class='muted'>detumble=bdot_mag, attitude=mekf, mtq_pointing=mtq_pd, sun_spin=sunspin_l1l2</span></td><td>61.32</td><td>57.95</td><td class='pass'>100%</td><td>0.081</td></tr>
+<tr><td>4</td><td><b>bdot_bangbang</b><br><span class='muted'>bang-bang B-dot (full dipole)</span></td><td class='mono'>TRN-P-3U-AIS<br><span class='muted'>detumble=bdot_bangbang, attitude=mekf, mtq_pointing=mtq_pd, sun_spin=sunspin_l1l2</span></td><td>nan</td><td>nan</td><td class='fail'>33%</td><td>0.712</td></tr>
+</table></div>
+<p><b>Proposed: genbdot_l1</b> — genbdot_l1: feasible on all 3 seeds, worst detumble_time 48.04 min, power_mean 0.428 <span class='muted'>(PROPOSED · awaiting a person)</span></p>
+<figure><img src='figures/trade_detumble_ais.png' alt='trade_detumble_ais' loading='lazy'></figure>
+<h3 id='trade_mtq_pointing_ais'>AIS 3U — magnetic pointing law (coils only, 10 deg)</h3>
+<p class='muted'>Which coils-only three-axis law gives the smallest antenna pointing error over the last orbit? · algorithm trade for slot <code>mtq_pointing</code> on <b>TRN-P-3U-AIS</b> · seeds [1, 2, 3] · ranked by the worst <code>ape_los_last_orbit</code> over the seeds, ties by <code>power_mean</code></p>
+<div class='scroll'><table><tr><th>rank</th><th>candidate</th><th>product / algorithms</th><th>objective worst</th><th>mean</th><th>requirement checks passed</th><th>tie-break</th></tr>
+<tr><td>1</td><td><b>mtq_pd</b><br><span class='muted'>quaternion PD, projected on the field</span></td><td class='mono'>TRN-P-3U-AIS<br><span class='muted'>detumble=bdot_gyro, attitude=mekf, mtq_pointing=mtq_pd, sun_spin=sunspin_l1l2</span></td><td>9.625</td><td>8.063</td><td class='pass'>100%</td><td>0.0107</td></tr>
+<tr><td>2</td><td><b>mtq_rate_damp</b><br><span class='muted'>rate damping only + gravity gradient</span></td><td class='mono'>TRN-P-3U-AIS<br><span class='muted'>detumble=bdot_gyro, attitude=mekf, mtq_pointing=mtq_rate_damp, sun_spin=sunspin_l1l2</span></td><td>17.12</td><td>15.27</td><td class='fail'>67%</td><td>0.0106</td></tr>
+<tr><td>3</td><td><b>mtq_smc</b><br><span class='muted'>sliding mode, projected</span></td><td class='mono'>TRN-P-3U-AIS<br><span class='muted'>detumble=bdot_gyro, attitude=mekf, mtq_pointing=mtq_smc, sun_spin=sunspin_l1l2</span></td><td>18.35</td><td>11.91</td><td class='fail'>67%</td><td>0.0105</td></tr>
+<tr><td>4</td><td><b>mtq_lqr</b><br><span class='muted'>LQR (Bryson weights), projected</span></td><td class='mono'>TRN-P-3U-AIS<br><span class='muted'>detumble=bdot_gyro, attitude=mekf, mtq_pointing=mtq_lqr, sun_spin=sunspin_l1l2</span></td><td>24.13</td><td>20.6</td><td class='fail'>67%</td><td>0.0103</td></tr>
+</table></div>
+<p><b>Proposed: mtq_pd</b> — mtq_pd: feasible on all 3 seeds, worst ape_los_last_orbit 9.625 deg, power_mean 0.0107 <span class='muted'>(PROPOSED · awaiting a person)</span></p>
+<figure><img src='figures/trade_mtq_pointing_ais.png' alt='trade_mtq_pointing_ais' loading='lazy'></figure>
+<h3 id='trade_sun_spin_ais'>AIS 3U — Sun-pointing spin law (coils only)</h3>
+<p class='muted'>Which L1/L2 variant keeps the bus in the Sun-pointing spin (and -Z_B on the Sun) for the largest share of an orbit, eclipses included? · algorithm trade for slot <code>sun_spin</code> on <b>TRN-P-3U-AIS</b> · seeds [1, 2] · ranked by the worst <code>sun_spin_share_last_orbit</code> over the seeds, ties by <code>sun_angle_last_orbit</code></p>
+<div class='scroll'><table><tr><th>rank</th><th>candidate</th><th>product / algorithms</th><th>objective worst</th><th>mean</th><th>requirement checks passed</th><th>tie-break</th></tr>
+<tr><td>1</td><td><b>sunspin_damped</b><br><span class='muted'>E2 + nutation damping on both transverse axes</span></td><td class='mono'>TRN-P-3U-AIS<br><span class='muted'>detumble=genbdot_l1, attitude=mekf, mtq_pointing=mtq_pd, sun_spin=sunspin_damped</span></td><td>100</td><td>100</td><td class='pass'>100%</td><td>4.82</td></tr>
+<tr><td>2</td><td><b>sunspin_l1l2</b><br><span class='muted'>Standard Code port: L1 spin-up + He et al. L2, eclipse E1 (coils off)</span></td><td class='mono'>TRN-P-3U-AIS<br><span class='muted'>detumble=genbdot_l1, attitude=mekf, mtq_pointing=mtq_pd, sun_spin=sunspin_l1l2</span></td><td>64.56</td><td>71.68</td><td class='fail'>80%</td><td>12</td></tr>
+<tr><td>3</td><td><b>sunspin_l1l2_e2</b><br><span class='muted'>the same with eclipse E2 (gyro-propagated Sun)</span></td><td class='mono'>TRN-P-3U-AIS<br><span class='muted'>detumble=genbdot_l1, attitude=mekf, mtq_pointing=mtq_pd, sun_spin=sunspin_l1l2_e2</span></td><td>50.55</td><td>72.48</td><td class='fail'>90%</td><td>13.2</td></tr>
+</table></div>
+<p><b>Proposed: sunspin_damped</b> — sunspin_damped: feasible on all 2 seeds, worst sun_spin_share_last_orbit 100 %, sun_angle_last_orbit 4.82 <span class='muted'>(PROPOSED · awaiting a person)</span></p>
+<figure><img src='figures/trade_sun_spin_ais.png' alt='trade_sun_spin_ais' loading='lazy'></figure>
+<h3 id='trade_sun_sensor_ais'>AIS 3U — fine Sun-sensor heads vs coarse cosine cells</h3>
+<p class='muted'>Do six cheap cosine Sun cells (with Earth albedo) still meet the 10 deg / 5 deg AIS requirement? · hardware trade for slot <code>sun</code> · seeds [1, 2, 3] · ranked by the worst <code>ape_los_last_orbit</code> over the seeds, ties by <code>power_mean</code></p>
+<div class='scroll'><table><tr><th>rank</th><th>candidate</th><th>product / algorithms</th><th>objective worst</th><th>mean</th><th>requirement checks passed</th><th>tie-break</th></tr>
+<tr><td>1</td><td><b>fine_sun_heads</b><br><span class='muted'>TRN-P-3U-AIS: 6 fine Sun-sensor heads</span></td><td class='mono'>TRN-P-3U-AIS<br><span class='muted'>detumble=bdot_gyro, attitude=mekf, mtq_pointing=mtq_pd, sun_spin=sunspin_l1l2</span></td><td>9.625</td><td>8.063</td><td class='pass'>100%</td><td>0.0107</td></tr>
+<tr><td>2</td><td><b>coarse_css</b><br><span class='muted'>TRN-P-3U-AIS-CSS: 6 cosine cells</span></td><td class='mono'>TRN-P-3U-AIS-CSS<br><span class='muted'>detumble=bdot_gyro, attitude=mekf, mtq_pointing=mtq_pd, sun_spin=sunspin_l1l2</span></td><td>36.56</td><td>24.11</td><td class='fail'>33%</td><td>0.0106</td></tr>
+</table></div>
+<p><b>Proposed: fine_sun_heads</b> — fine_sun_heads: feasible on all 3 seeds, worst ape_los_last_orbit 9.625 deg, power_mean 0.0107 <span class='muted'>(PROPOSED · awaiting a person)</span></p>
+<figure><img src='figures/trade_sun_sensor_ais.png' alt='trade_sun_sensor_ais' loading='lazy'></figure>
+<h3 id='trade_pointing_img'>Imaging 3U, reaction wheels — fine-pointing law (0.01 deg)</h3>
+<p class='muted'>Which control law gives the smallest 3-sigma payload APE on a nadir hold with the reaction wheels? · algorithm trade for slot <code>pointing</code> on <b>TRN-P-3U-IMG</b> · seeds [1, 2] · ranked by the worst <code>ape_los_p9973</code> over the seeds, ties by <code>power_mean</code></p>
+<div class='scroll'><table><tr><th>rank</th><th>candidate</th><th>product / algorithms</th><th>objective worst</th><th>mean</th><th>requirement checks passed</th><th>tie-break</th></tr>
+<tr><td>1</td><td><b>lqr</b><br><span class='muted'>LQR (Bryson weights)</span></td><td class='mono'>TRN-P-3U-IMG<br><span class='muted'>detumble=bdot_gyro, attitude=mekf, pointing=lqr, mtq_pointing=mtq_pd, sun_spin=sunspin_l1l2, allocation=rotor_pinv</span></td><td>0.004838</td><td>0.004652</td><td class='pass'>100%</td><td>1.56</td></tr>
+<tr><td>2</td><td><b>pid</b><br><span class='muted'>PID (Standard Code nadirPointing)</span></td><td class='mono'>TRN-P-3U-IMG<br><span class='muted'>detumble=bdot_gyro, attitude=mekf, pointing=pid, mtq_pointing=mtq_pd, sun_spin=sunspin_l1l2, allocation=rotor_pinv</span></td><td>0.02175</td><td>0.01546</td><td class='fail'>75%</td><td>1.56</td></tr>
+<tr><td>3</td><td><b>smc</b><br><span class='muted'>sliding mode (Crassidis &amp; Markley)</span></td><td class='mono'>TRN-P-3U-IMG<br><span class='muted'>detumble=bdot_gyro, attitude=mekf, pointing=smc, mtq_pointing=mtq_pd, sun_spin=sunspin_l1l2, allocation=rotor_pinv</span></td><td>0.02781</td><td>0.02103</td><td class='fail'>50%</td><td>1.56</td></tr>
+</table></div>
+<p><b>Proposed: lqr</b> — lqr: feasible on all 2 seeds, worst ape_los_p9973 0.004838 deg, power_mean 1.56 <span class='muted'>(PROPOSED · awaiting a person)</span></p>
+<figure><img src='figures/trade_pointing_img.png' alt='trade_pointing_img' loading='lazy'></figure>
+<h3 id='trade_slew_img'>Imaging 3U, reaction wheels — slew law</h3>
+<p class='muted'>Which control law settles the target slew to 0.01 deg soonest? · algorithm trade for slot <code>pointing</code> on <b>TRN-P-3U-IMG</b> · seeds [1, 2] · ranked by the worst <code>settle_time_after_slew</code> over the seeds, ties by <code>power_mean</code></p>
+<div class='scroll'><table><tr><th>rank</th><th>candidate</th><th>product / algorithms</th><th>objective worst</th><th>mean</th><th>requirement checks passed</th><th>tie-break</th></tr>
+<tr><td>1</td><td><b>lqr</b><br><span class='muted'>lqr</span></td><td class='mono'>TRN-P-3U-IMG<br><span class='muted'>detumble=bdot_gyro, attitude=mekf, pointing=lqr, mtq_pointing=mtq_pd, sun_spin=sunspin_l1l2, allocation=rotor_pinv</span></td><td>0</td><td>0</td><td class='pass'>100%</td><td>nan</td></tr>
+<tr><td>2</td><td><b>pid</b><br><span class='muted'>pid</span></td><td class='mono'>TRN-P-3U-IMG<br><span class='muted'>detumble=bdot_gyro, attitude=mekf, pointing=pid, mtq_pointing=mtq_pd, sun_spin=sunspin_l1l2, allocation=rotor_pinv</span></td><td>12.6</td><td>12.25</td><td class='pass'>100%</td><td>nan</td></tr>
+<tr><td>3</td><td><b>smc</b><br><span class='muted'>smc</span></td><td class='mono'>TRN-P-3U-IMG<br><span class='muted'>detumble=bdot_gyro, attitude=mekf, pointing=smc, mtq_pointing=mtq_pd, sun_spin=sunspin_l1l2, allocation=rotor_pinv</span></td><td>3.2</td><td>nan</td><td class='fail'>0%</td><td>nan</td></tr>
+</table></div>
+<p><b>Proposed: lqr</b> — lqr: feasible on all 2 seeds, worst settle_time_after_slew 0 s <span class='muted'>(PROPOSED · awaiting a person)</span></p>
+<figure><img src='figures/trade_slew_img.png' alt='trade_slew_img' loading='lazy'></figure>
+<h3 id='trade_pointing_cmg'>Imaging 3U, CMG pyramid — fine-pointing law (0.01 deg)</h3>
+<p class='muted'>Which control law gives the smallest 3-sigma payload APE on a nadir hold with the CMG pyramid? · algorithm trade for slot <code>pointing</code> on <b>TRN-P-3U-CMG</b> · seeds [1, 2] · ranked by the worst <code>ape_los_p9973</code> over the seeds, ties by <code>power_mean</code></p>
+<div class='scroll'><table><tr><th>rank</th><th>candidate</th><th>product / algorithms</th><th>objective worst</th><th>mean</th><th>requirement checks passed</th><th>tie-break</th></tr>
+<tr><td>1</td><td><b>lqr</b><br><span class='muted'>LQR (Bryson weights)</span></td><td class='mono'>TRN-P-3U-CMG<br><span class='muted'>detumble=bdot_gyro, attitude=mekf, pointing=lqr, mtq_pointing=mtq_pd, sun_spin=sunspin_l1l2, allocation=cmg_sr</span></td><td>0.00409</td><td>0.003917</td><td class='pass'>100%</td><td>1.61</td></tr>
+<tr><td>2</td><td><b>smc</b><br><span class='muted'>sliding mode (Crassidis &amp; Markley)</span></td><td class='mono'>TRN-P-3U-CMG<br><span class='muted'>detumble=bdot_gyro, attitude=mekf, pointing=smc, mtq_pointing=mtq_pd, sun_spin=sunspin_l1l2, allocation=cmg_sr</span></td><td>0.005401</td><td>0.005385</td><td class='pass'>100%</td><td>1.61</td></tr>
+<tr><td>3</td><td><b>pid</b><br><span class='muted'>PID (Standard Code nadirPointing)</span></td><td class='mono'>TRN-P-3U-CMG<br><span class='muted'>detumble=bdot_gyro, attitude=mekf, pointing=pid, mtq_pointing=mtq_pd, sun_spin=sunspin_l1l2, allocation=cmg_sr</span></td><td>0.005523</td><td>0.005323</td><td class='pass'>100%</td><td>1.61</td></tr>
+</table></div>
+<p><b>Proposed: lqr</b> — lqr: feasible on all 2 seeds, worst ape_los_p9973 0.00409 deg, power_mean 1.61 <span class='muted'>(PROPOSED · awaiting a person)</span></p>
+<figure><img src='figures/trade_pointing_cmg.png' alt='trade_pointing_cmg' loading='lazy'></figure>
+<h3 id='trade_pointing_vscmg'>Imaging 3U, VSCMG pyramid — fine-pointing law (0.01 deg)</h3>
+<p class='muted'>Which control law gives the smallest 3-sigma payload APE on a nadir hold with the VSCMG pyramid? · algorithm trade for slot <code>pointing</code> on <b>TRN-P-3U-VSCMG</b> · seeds [1, 2] · ranked by the worst <code>ape_los_p9973</code> over the seeds, ties by <code>power_mean</code></p>
+<div class='scroll'><table><tr><th>rank</th><th>candidate</th><th>product / algorithms</th><th>objective worst</th><th>mean</th><th>requirement checks passed</th><th>tie-break</th></tr>
+<tr><td>1</td><td><b>lqr</b><br><span class='muted'>LQR (Bryson weights)</span></td><td class='mono'>TRN-P-3U-VSCMG<br><span class='muted'>detumble=bdot_gyro, attitude=mekf, pointing=lqr, mtq_pointing=mtq_pd, sun_spin=sunspin_l1l2, allocation=vscmg_sr</span></td><td>0.005546</td><td>0.005279</td><td class='pass'>100%</td><td>2.02</td></tr>
+<tr><td>2</td><td><b>pid</b><br><span class='muted'>PID (Standard Code nadirPointing)</span></td><td class='mono'>TRN-P-3U-VSCMG<br><span class='muted'>detumble=bdot_gyro, attitude=mekf, pointing=pid, mtq_pointing=mtq_pd, sun_spin=sunspin_l1l2, allocation=vscmg_sr</span></td><td>0.009129</td><td>0.008346</td><td class='pass'>100%</td><td>2.01</td></tr>
+<tr><td>3</td><td><b>smc</b><br><span class='muted'>sliding mode (Crassidis &amp; Markley)</span></td><td class='mono'>TRN-P-3U-VSCMG<br><span class='muted'>detumble=bdot_gyro, attitude=mekf, pointing=smc, mtq_pointing=mtq_pd, sun_spin=sunspin_l1l2, allocation=vscmg_sr</span></td><td>0.02797</td><td>0.02545</td><td class='fail'>50%</td><td>2.01</td></tr>
+</table></div>
+<p><b>Proposed: lqr</b> — lqr: feasible on all 2 seeds, worst ape_los_p9973 0.005546 deg, power_mean 2.02 <span class='muted'>(PROPOSED · awaiting a person)</span></p>
+<figure><img src='figures/trade_pointing_vscmg.png' alt='trade_pointing_vscmg' loading='lazy'></figure>
+<h3 id='trade_pointing_fmr'>Imaging 3U, fluid rings (IDMAS) — fine-pointing law (0.01 deg)</h3>
+<p class='muted'>Which control law gives the smallest 3-sigma payload APE on a nadir hold with the fluid rings (IDMAS)? · algorithm trade for slot <code>pointing</code> on <b>TRN-P-3U-FMR</b> · seeds [1, 2] · ranked by the worst <code>ape_los_p9973</code> over the seeds, ties by <code>power_mean</code></p>
+<div class='scroll'><table><tr><th>rank</th><th>candidate</th><th>product / algorithms</th><th>objective worst</th><th>mean</th><th>requirement checks passed</th><th>tie-break</th></tr>
+<tr><td>1</td><td><b>pid</b><br><span class='muted'>PID (Standard Code nadirPointing)</span></td><td class='mono'>TRN-P-3U-FMR<br><span class='muted'>detumble=bdot_gyro, attitude=mekf, pointing=pid, mtq_pointing=mtq_pd, sun_spin=sunspin_l1l2, allocation=idmas_split</span></td><td>0.006033</td><td>0.005881</td><td class='pass'>100%</td><td>4.35</td></tr>
+<tr><td>2</td><td><b>lqr</b><br><span class='muted'>LQR (Bryson weights)</span></td><td class='mono'>TRN-P-3U-FMR<br><span class='muted'>detumble=bdot_gyro, attitude=mekf, pointing=lqr, mtq_pointing=mtq_pd, sun_spin=sunspin_l1l2, allocation=idmas_split</span></td><td>0.005897</td><td>0.005396</td><td class='pass'>100%</td><td>4.38</td></tr>
+<tr><td>3</td><td><b>smc</b><br><span class='muted'>sliding mode (Crassidis &amp; Markley)</span></td><td class='mono'>TRN-P-3U-FMR<br><span class='muted'>detumble=bdot_gyro, attitude=mekf, pointing=smc, mtq_pointing=mtq_pd, sun_spin=sunspin_l1l2, allocation=idmas_split</span></td><td>0.00638</td><td>0.005991</td><td class='pass'>100%</td><td>3.99</td></tr>
+</table></div>
+<p><b>Proposed: pid</b> — pid: feasible on all 2 seeds, worst ape_los_p9973 0.006033 deg, power_mean 4.35 <span class='muted'>(PROPOSED · awaiting a person)</span></p>
+<figure><img src='figures/trade_pointing_fmr.png' alt='trade_pointing_fmr' loading='lazy'></figure>
+<h3 id='trade_allocation_fmr'>Imaging 3U, fluid rings — allocation (IDMAS split vs rings only)</h3>
+<p class='muted'>Does handing the across-field torque to the coils (IDMAS) improve the fluid-ring fine hold? · algorithm trade for slot <code>allocation</code> on <b>TRN-P-3U-FMR</b> · seeds [1, 2] · ranked by the worst <code>ape_los_p9973</code> over the seeds, ties by <code>power_mean</code></p>
+<div class='scroll'><table><tr><th>rank</th><th>candidate</th><th>product / algorithms</th><th>objective worst</th><th>mean</th><th>requirement checks passed</th><th>tie-break</th></tr>
+<tr><td>1</td><td><b>rotor_pinv</b><br><span class='muted'>rings take all the torque, coils only dump</span></td><td class='mono'>TRN-P-3U-FMR<br><span class='muted'>detumble=bdot_gyro, attitude=mekf, pointing=pid, mtq_pointing=mtq_pd, sun_spin=sunspin_l1l2, allocation=rotor_pinv</span></td><td>0.005972</td><td>0.005729</td><td class='pass'>100%</td><td>4.23</td></tr>
+<tr><td>2</td><td><b>idmas_split</b><br><span class='muted'>IDMAS: coils take tau across B, rings the rest</span></td><td class='mono'>TRN-P-3U-FMR<br><span class='muted'>detumble=bdot_gyro, attitude=mekf, pointing=pid, mtq_pointing=mtq_pd, sun_spin=sunspin_l1l2, allocation=idmas_split</span></td><td>0.006033</td><td>0.005881</td><td class='pass'>100%</td><td>4.35</td></tr>
+</table></div>
+<p><b>Proposed: rotor_pinv</b> — rotor_pinv: feasible on all 2 seeds, worst ape_los_p9973 0.005972 deg, power_mean 4.23 <span class='muted'>(PROPOSED · awaiting a person)</span></p>
+<figure><img src='figures/trade_allocation_fmr.png' alt='trade_allocation_fmr' loading='lazy'></figure>
+<h3 id='trade_hardware_fine'>Imaging 3U — actuator family for the 0.01 deg fine hold</h3>
+<p class='muted'>Which momentum-exchange family (each with coils) holds the camera best, and at what power? · hardware trade for slot <code>actuators</code> · seeds [1, 2] · ranked by the worst <code>ape_los_p9973</code> over the seeds, ties by <code>power_mean</code></p>
+<div class='scroll'><table><tr><th>rank</th><th>candidate</th><th>product / algorithms</th><th>objective worst</th><th>mean</th><th>requirement checks passed</th><th>tie-break</th></tr>
+<tr><td>1</td><td><b>mtq_cmg</b><br><span class='muted'>coils + 4-CMG pyramid</span></td><td class='mono'>TRN-P-3U-CMG<br><span class='muted'>detumble=bdot_gyro, attitude=mekf, pointing=pid, mtq_pointing=mtq_pd, sun_spin=sunspin_l1l2, allocation=cmg_sr</span></td><td>0.005523</td><td>0.005323</td><td class='pass'>100%</td><td>1.61</td></tr>
+<tr><td>2</td><td><b>mtq_fmr_rcs</b><br><span class='muted'>coils + fluid rings + RCS</span></td><td class='mono'>TRN-P-3U-FMR-RCS<br><span class='muted'>detumble=bdot_gyro, attitude=mekf, pointing=pid, mtq_pointing=mtq_pd, sun_spin=sunspin_l1l2, allocation=idmas_split, thrusters=rcs_pwm</span></td><td>0.006204</td><td>0.006182</td><td class='pass'>100%</td><td>4.19</td></tr>
+<tr><td>3</td><td><b>mtq_fmr</b><br><span class='muted'>coils + 3 fluid rings (IDMAS)</span></td><td class='mono'>TRN-P-3U-FMR<br><span class='muted'>detumble=bdot_gyro, attitude=mekf, pointing=pid, mtq_pointing=mtq_pd, sun_spin=sunspin_l1l2, allocation=idmas_split</span></td><td>0.006033</td><td>0.005881</td><td class='pass'>100%</td><td>4.35</td></tr>
+<tr><td>4</td><td><b>mtq_vscmg</b><br><span class='muted'>coils + 4-VSCMG pyramid</span></td><td class='mono'>TRN-P-3U-VSCMG<br><span class='muted'>detumble=bdot_gyro, attitude=mekf, pointing=pid, mtq_pointing=mtq_pd, sun_spin=sunspin_l1l2, allocation=vscmg_sr</span></td><td>0.009129</td><td>0.008346</td><td class='pass'>100%</td><td>2.01</td></tr>
+<tr><td>5</td><td><b>mtq_rw_rcs</b><br><span class='muted'>coils + wheels + cold-gas RCS</span></td><td class='mono'>TRN-P-3U-RW-RCS<br><span class='muted'>detumble=bdot_gyro, attitude=mekf, pointing=pid, mtq_pointing=mtq_pd, sun_spin=sunspin_l1l2, allocation=rotor_pinv, thrusters=rcs_pwm</span></td><td>0.02092</td><td>0.01465</td><td class='fail'>75%</td><td>1.51</td></tr>
+<tr><td>6</td><td><b>mtq_rw</b><br><span class='muted'>coils + 3 reaction wheels</span></td><td class='mono'>TRN-P-3U-IMG<br><span class='muted'>detumble=bdot_gyro, attitude=mekf, pointing=pid, mtq_pointing=mtq_pd, sun_spin=sunspin_l1l2, allocation=rotor_pinv</span></td><td>0.02175</td><td>0.01546</td><td class='fail'>75%</td><td>1.56</td></tr>
+</table></div>
+<p><b>Proposed: mtq_cmg</b> — mtq_cmg: feasible on all 2 seeds, worst ape_los_p9973 0.005523 deg, power_mean 1.61 <span class='muted'>(PROPOSED · awaiting a person)</span></p>
+<figure><img src='figures/trade_hardware_fine.png' alt='trade_hardware_fine' loading='lazy'></figure>
+<h3 id='trade_hardware_agile'>Imaging 3U — actuator family for the agile 90 deg slew</h3>
+<p class='muted'>Which family completes the 90 deg retarget and settles to 0.01 deg soonest? · hardware trade for slot <code>actuators</code> · seeds [1, 2] · ranked by the worst <code>settle_time_after_slew</code> over the seeds, ties by <code>power_mean</code></p>
+<div class='scroll'><table><tr><th>rank</th><th>candidate</th><th>product / algorithms</th><th>objective worst</th><th>mean</th><th>requirement checks passed</th><th>tie-break</th></tr>
+<tr><td>1</td><td><b>mtq_cmg</b><br><span class='muted'>coils + CMG pyramid</span></td><td class='mono'>TRN-P-3U-CMG<br><span class='muted'>detumble=bdot_gyro, attitude=mekf, pointing=pid, mtq_pointing=mtq_pd, sun_spin=sunspin_l1l2, allocation=cmg_sr</span></td><td>38.7</td><td>33.35</td><td class='pass'>100%</td><td>nan</td></tr>
+<tr><td>2</td><td><b>mtq_rw_rcs</b><br><span class='muted'>coils + wheels + RCS</span></td><td class='mono'>TRN-P-3U-RW-RCS<br><span class='muted'>detumble=bdot_gyro, attitude=mekf, pointing=pid, mtq_pointing=mtq_pd, sun_spin=sunspin_l1l2, allocation=rotor_pinv, thrusters=rcs_pwm</span></td><td>39.5</td><td>39</td><td class='pass'>100%</td><td>nan</td></tr>
+<tr><td>3</td><td><b>mtq_fmr_rcs</b><br><span class='muted'>coils + fluid rings + RCS</span></td><td class='mono'>TRN-P-3U-FMR-RCS<br><span class='muted'>detumble=bdot_gyro, attitude=mekf, pointing=pid, mtq_pointing=mtq_pd, sun_spin=sunspin_l1l2, allocation=idmas_split, thrusters=rcs_pwm</span></td><td>39.9</td><td>39.25</td><td class='pass'>100%</td><td>nan</td></tr>
+<tr><td>4</td><td><b>mtq_rw</b><br><span class='muted'>coils + wheels</span></td><td class='mono'>TRN-P-3U-IMG<br><span class='muted'>detumble=bdot_gyro, attitude=mekf, pointing=pid, mtq_pointing=mtq_pd, sun_spin=sunspin_l1l2, allocation=rotor_pinv</span></td><td>54.6</td><td>53.2</td><td class='pass'>100%</td><td>nan</td></tr>
+<tr><td>5</td><td><b>mtq_vscmg</b><br><span class='muted'>coils + VSCMG pyramid</span></td><td class='mono'>TRN-P-3U-VSCMG<br><span class='muted'>detumble=bdot_gyro, attitude=mekf, pointing=pid, mtq_pointing=mtq_pd, sun_spin=sunspin_l1l2, allocation=vscmg_sr</span></td><td>52.1</td><td>51.85</td><td class='fail'>50%</td><td>nan</td></tr>
+</table></div>
+<p><b>Proposed: mtq_cmg</b> — mtq_cmg: feasible on all 2 seeds, worst settle_time_after_slew 38.7 s <span class='muted'>(PROPOSED · awaiting a person)</span></p>
+<figure><img src='figures/trade_hardware_agile.png' alt='trade_hardware_agile' loading='lazy'></figure>
+<h2 id='compare'>Comparisons</h2>
+<figure><img src='figures/compare_families.png' alt='compare_families' loading='lazy'></figure>
+<nav><a href='#g0'>AIS 3U</a><a href='#g1'>Imaging 3U</a><a href='#g2'>Imaging 3U</a><a href='#g3'>Imaging 3U</a><a href='#g4'>Imaging 3U</a><a href='#g5'>Imaging 3U, magnetorquers + 4 SGCMG</a><a href='#g6'>Imaging 3U, magnetorquers + 4 VSCMG</a><a href='#g7'>Monte Carlo and edge-case campaigns</a></nav>
+<h2 id='g0'>AIS 3U, magnetorquers only (10°, SSO dawn–dusk)</h2>
+<h3 id='detumble_ais'>detumble_ais</h3>
+<p class='muted'>3U AIS — B-dot detumble from a 10 deg/s tumble (coils only) · product <b>TRN-P-3U-AIS</b> · 287 min simulated in 8.3 min wall · events: 0 s detumble</p>
+<div class='scroll'><table><tr><th>metric</th><th>value</th><th>required</th><th>verdict</th></tr>
+<tr><td>detumble_time</td><td>58.26 min</td><td>284</td><td class='pass'>✔ PASS</td></tr>
+<tr><td>power_mean</td><td>0.02455 W</td><td>0.5</td><td class='pass'>✔ PASS</td></tr>
+<tr><td>power_peak</td><td>0.3639 W</td><td>1.5</td><td class='pass'>✔ PASS</td></tr>
+</table></div>
+<figure><img src='figures/detumble_ais_1_attitude.png' alt='detumble ais 1 attitude' loading='lazy'></figure>
+<figure><img src='figures/detumble_ais_2_disturbances.png' alt='detumble ais 2 disturbances' loading='lazy'></figure>
+<figure><img src='figures/detumble_ais_3_actuators.png' alt='detumble ais 3 actuators' loading='lazy'></figure>
+<figure><img src='figures/detumble_ais_4_environment.png' alt='detumble ais 4 environment' loading='lazy'></figure>
+<figure><img src='figures/detumble_ais_5_groundtrack.png' alt='detumble ais 5 groundtrack' loading='lazy'></figure>
+<figure><img src='figures/detumble_ais_6_modes.png' alt='detumble ais 6 modes' loading='lazy'></figure>
+<h3 id='nadir_hold_ais'>nadir_hold_ais</h3>
+<p class='muted'>3U AIS — nadir hold with magnetorquers only (10 deg requirement) · product <b>TRN-P-3U-AIS</b> · 287 min simulated in 9.5 min wall · events: 0 s nadir_mtq</p>
+<div class='scroll'><table><tr><th>metric</th><th>value</th><th>required</th><th>verdict</th></tr>
+<tr><td>ape_3axis_last_orbit</td><td>49.93 deg</td><td>—</td><td class=''>—</td></tr>
+<tr><td>ape_los_last_orbit</td><td>7.248 deg</td><td>10</td><td class='pass'>✔ PASS</td></tr>
+<tr><td>ake_los_last_orbit</td><td>3.864 deg</td><td>5</td><td class='pass'>✔ PASS</td></tr>
+<tr><td>power_mean</td><td>0.0108 W</td><td>0.5</td><td class='pass'>✔ PASS</td></tr>
+</table></div>
+<figure><img src='figures/nadir_hold_ais_1_attitude.png' alt='nadir hold ais 1 attitude' loading='lazy'></figure>
+<figure><img src='figures/nadir_hold_ais_2_disturbances.png' alt='nadir hold ais 2 disturbances' loading='lazy'></figure>
+<figure><img src='figures/nadir_hold_ais_3_actuators.png' alt='nadir hold ais 3 actuators' loading='lazy'></figure>
+<figure><img src='figures/nadir_hold_ais_4_environment.png' alt='nadir hold ais 4 environment' loading='lazy'></figure>
+<figure><img src='figures/nadir_hold_ais_5_groundtrack.png' alt='nadir hold ais 5 groundtrack' loading='lazy'></figure>
+<figure><img src='figures/nadir_hold_ais_6_modes.png' alt='nadir hold ais 6 modes' loading='lazy'></figure>
+<h3 id='nadir_hold_ais_css'>nadir_hold_ais_css</h3>
+<p class='muted'>3U AIS — nadir hold with coarse cosine sun sensors (albedo) · product <b>TRN-P-3U-AIS-CSS</b> · 287 min simulated in 9.2 min wall · events: 0 s nadir_mtq</p>
+<div class='scroll'><table><tr><th>metric</th><th>value</th><th>required</th><th>verdict</th></tr>
+<tr><td>ape_3axis_last_orbit</td><td>179.9 deg</td><td>—</td><td class=''>—</td></tr>
+<tr><td>ape_los_last_orbit</td><td>36.56 deg</td><td>10</td><td class='fail'>✖ FAIL</td></tr>
+<tr><td>ake_los_last_orbit</td><td>41.56 deg</td><td>5</td><td class='fail'>✖ FAIL</td></tr>
+<tr><td>power_mean</td><td>0.01071 W</td><td>0.5</td><td class='pass'>✔ PASS</td></tr>
+</table></div>
+<figure><img src='figures/nadir_hold_ais_css_1_attitude.png' alt='nadir hold ais css 1 attitude' loading='lazy'></figure>
+<figure><img src='figures/nadir_hold_ais_css_2_disturbances.png' alt='nadir hold ais css 2 disturbances' loading='lazy'></figure>
+<figure><img src='figures/nadir_hold_ais_css_3_actuators.png' alt='nadir hold ais css 3 actuators' loading='lazy'></figure>
+<h3 id='sun_spin_ais'>sun_spin_ais</h3>
+<p class='muted'>3U AIS — coils-only Sun acquisition: detumble, spin-up, Sun-pointing spin · product <b>TRN-P-3U-AIS</b> · 287 min simulated in 8.3 min wall · events: 0 s detumble; 855 s spinup; 2426 s sun_spin; 2542 s spinup; 3695 s sun_spin; 3744 s spinup; 4073 s sun_spin; 6903 s spinup; 7920 s sun_spin; 12391 s spinup; 13607 s sun_spin</p>
+<div class='scroll'><table><tr><th>metric</th><th>value</th><th>required</th><th>verdict</th></tr>
+<tr><td>sun_spin_entry</td><td>40.44 min</td><td>95</td><td class='pass'>✔ PASS</td></tr>
+<tr><td>sun_angle_last_orbit</td><td>6.503 deg</td><td>20</td><td class='pass'>✔ PASS</td></tr>
+<tr><td>spin_rate_error_last_orbit</td><td>0.04568 deg/s</td><td>0.5</td><td class='pass'>✔ PASS</td></tr>
+<tr><td>sun_spin_share_last_orbit</td><td>78.81 %</td><td>90</td><td class='fail'>✖ FAIL</td></tr>
+<tr><td>power_mean</td><td>0.2062 W</td><td>0.5</td><td class='pass'>✔ PASS</td></tr>
+</table></div>
+<figure><img src='figures/sun_spin_ais_1_attitude.png' alt='sun spin ais 1 attitude' loading='lazy'></figure>
+<figure><img src='figures/sun_spin_ais_2_disturbances.png' alt='sun spin ais 2 disturbances' loading='lazy'></figure>
+<figure><img src='figures/sun_spin_ais_3_actuators.png' alt='sun spin ais 3 actuators' loading='lazy'></figure>
+<figure><img src='figures/sun_spin_ais_7_sunspin.png' alt='sun spin ais 7 sunspin' loading='lazy'></figure>
+<figure><img src='figures/sun_spin_ais_4_environment.png' alt='sun spin ais 4 environment' loading='lazy'></figure>
+<figure><img src='figures/sun_spin_ais_5_groundtrack.png' alt='sun spin ais 5 groundtrack' loading='lazy'></figure>
+<figure><img src='figures/sun_spin_ais_6_modes.png' alt='sun spin ais 6 modes' loading='lazy'></figure>
+<h3 id='mission_ais'>mission_ais</h3>
+<p class='muted'>3U AIS — integrated chain: detumble then nadir hold (auto mode switch) · product <b>TRN-P-3U-AIS</b> · 478 min simulated in 15.1 min wall · events: 0 s detumble; 5011 s nadir_mtq</p>
+<div class='scroll'><table><tr><th>metric</th><th>value</th><th>required</th><th>verdict</th></tr>
+<tr><td>detumble_time</td><td>58.26 min</td><td>284</td><td class='pass'>✔ PASS</td></tr>
+<tr><td>ape_los_last_orbit</td><td>9.114 deg</td><td>10</td><td class='pass'>✔ PASS</td></tr>
+<tr><td>ape_3axis_last_orbit</td><td>77.13 deg</td><td>—</td><td class=''>—</td></tr>
+<tr><td>ake_los_last_orbit</td><td>4.046 deg</td><td>5</td><td class='pass'>✔ PASS</td></tr>
+</table></div>
+<figure><img src='figures/mission_ais_1_attitude.png' alt='mission ais 1 attitude' loading='lazy'></figure>
+<figure><img src='figures/mission_ais_2_disturbances.png' alt='mission ais 2 disturbances' loading='lazy'></figure>
+<figure><img src='figures/mission_ais_3_actuators.png' alt='mission ais 3 actuators' loading='lazy'></figure>
+<figure><img src='figures/mission_ais_4_environment.png' alt='mission ais 4 environment' loading='lazy'></figure>
+<figure><img src='figures/mission_ais_5_groundtrack.png' alt='mission ais 5 groundtrack' loading='lazy'></figure>
+<figure><img src='figures/mission_ais_6_modes.png' alt='mission ais 6 modes' loading='lazy'></figure>
+<h3 id='fault_coil_ais'>fault_coil_ais</h3>
+<p class='muted'>3U AIS — X coil fails during detumble · product <b>TRN-P-3U-AIS</b> · 287 min simulated in 8.9 min wall · events: 0 s detumble; 60 s FAULT injected: coil_fail 1</p>
+<div class='scroll'><table><tr><th>metric</th><th>value</th><th>required</th><th>verdict</th></tr>
+<tr><td>detumble_time</td><td>128.3 min</td><td>284</td><td class='pass'>✔ PASS</td></tr>
+<tr><td>power_mean</td><td>0.02199 W</td><td>0.5</td><td class='pass'>✔ PASS</td></tr>
+<tr><td>power_peak</td><td>0.3163 W</td><td>1.5</td><td class='pass'>✔ PASS</td></tr>
+</table></div>
+<figure><img src='figures/fault_coil_ais_1_attitude.png' alt='fault coil ais 1 attitude' loading='lazy'></figure>
+<figure><img src='figures/fault_coil_ais_2_disturbances.png' alt='fault coil ais 2 disturbances' loading='lazy'></figure>
+<figure><img src='figures/fault_coil_ais_3_actuators.png' alt='fault coil ais 3 actuators' loading='lazy'></figure>
+<h3 id='fault_gyro_ais'>fault_gyro_ais</h3>
+<p class='muted'>3U AIS — gyro bias step of 0.1 deg/s during nadir hold · product <b>TRN-P-3U-AIS</b> · 287 min simulated in 9.7 min wall · events: 0 s nadir_mtq; 6000 s FAULT injected: gyro_bias_step 0</p>
+<div class='scroll'><table><tr><th>metric</th><th>value</th><th>required</th><th>verdict</th></tr>
+<tr><td>ape_3axis_last_orbit</td><td>180 deg</td><td>—</td><td class=''>—</td></tr>
+<tr><td>ape_los_last_orbit</td><td>56.79 deg</td><td>10</td><td class='fail'>✖ FAIL</td></tr>
+<tr><td>ake_los_last_orbit</td><td>42.59 deg</td><td>5</td><td class='fail'>✖ FAIL</td></tr>
+<tr><td>power_mean</td><td>0.01077 W</td><td>0.5</td><td class='pass'>✔ PASS</td></tr>
+</table></div>
+<figure><img src='figures/fault_gyro_ais_1_attitude.png' alt='fault gyro ais 1 attitude' loading='lazy'></figure>
+<figure><img src='figures/fault_gyro_ais_2_disturbances.png' alt='fault gyro ais 2 disturbances' loading='lazy'></figure>
+<figure><img src='figures/fault_gyro_ais_3_actuators.png' alt='fault gyro ais 3 actuators' loading='lazy'></figure>
+<h2 id='g1'>Imaging 3U, magnetorquers + reaction wheels (0.01°, SSO 10:00)</h2>
+<h3 id='detumble_img'>detumble_img</h3>
+<p class='muted'>3U imaging — B-dot detumble from a 10 deg/s tumble · product <b>TRN-P-3U-IMG</b> · 287 min simulated in 16.2 min wall · events: 0 s detumble</p>
+<div class='scroll'><table><tr><th>metric</th><th>value</th><th>required</th><th>verdict</th></tr>
+<tr><td>detumble_time</td><td>21.98 min</td><td>284</td><td class='pass'>✔ PASS</td></tr>
+</table></div>
+<figure><img src='figures/detumble_img_1_attitude.png' alt='detumble img 1 attitude' loading='lazy'></figure>
+<figure><img src='figures/detumble_img_2_disturbances.png' alt='detumble img 2 disturbances' loading='lazy'></figure>
+<figure><img src='figures/detumble_img_3_actuators.png' alt='detumble img 3 actuators' loading='lazy'></figure>
+<figure><img src='figures/detumble_img_4_environment.png' alt='detumble img 4 environment' loading='lazy'></figure>
+<figure><img src='figures/detumble_img_5_groundtrack.png' alt='detumble img 5 groundtrack' loading='lazy'></figure>
+<figure><img src='figures/detumble_img_6_modes.png' alt='detumble img 6 modes' loading='lazy'></figure>
+<h3 id='fine_hold_img'>fine_hold_img</h3>
+<p class='muted'>3U imaging — fine nadir hold, reaction wheels + star tracker (0.01 deg) · product <b>TRN-P-3U-IMG</b> · 96 min simulated in 6.5 min wall · events: 0 s nadir_fine</p>
+<div class='scroll'><table><tr><th>metric</th><th>value</th><th>required</th><th>verdict</th></tr>
+<tr><td>ape_los_p9973</td><td>0.009166 deg</td><td>0.01</td><td class='pass'>✔ PASS</td></tr>
+<tr><td>ape_los_max</td><td>0.01092 deg</td><td>—</td><td class=''>—</td></tr>
+<tr><td>ape_3ax_p9973</td><td>0.009595 deg</td><td>—</td><td class=''>—</td></tr>
+<tr><td>ake_los_p9973</td><td>0.003333 deg</td><td>0.005</td><td class='pass'>✔ PASS</td></tr>
+<tr><td>rate_stability_p9973</td><td>0.00367 deg/s</td><td>0.001</td><td class='fail'>✖ FAIL</td></tr>
+<tr><td>time_to_0p01_deg</td><td>83.5 s</td><td>—</td><td class=''>—</td></tr>
+<tr><td>wheel_momentum_peak</td><td>0.003257 N m s</td><td>—</td><td class=''>—</td></tr>
+<tr><td>power_mean</td><td>1.557 W</td><td>2</td><td class='pass'>✔ PASS</td></tr>
+</table></div>
+<figure><img src='figures/fine_hold_img_1_attitude.png' alt='fine hold img 1 attitude' loading='lazy'></figure>
+<figure><img src='figures/fine_hold_img_2_disturbances.png' alt='fine hold img 2 disturbances' loading='lazy'></figure>
+<figure><img src='figures/fine_hold_img_3_actuators.png' alt='fine hold img 3 actuators' loading='lazy'></figure>
+<figure><img src='figures/fine_hold_img_4_environment.png' alt='fine hold img 4 environment' loading='lazy'></figure>
+<figure><img src='figures/fine_hold_img_5_groundtrack.png' alt='fine hold img 5 groundtrack' loading='lazy'></figure>
+<figure><img src='figures/fine_hold_img_6_modes.png' alt='fine hold img 6 modes' loading='lazy'></figure>
+<h3 id='slew_img'>slew_img</h3>
+<p class='muted'>3U imaging — 30 deg target slew in 60 s and settle · product <b>TRN-P-3U-IMG</b> · 10 min simulated in 0.8 min wall · events: 0 s slew_fine</p>
+<div class='scroll'><table><tr><th>metric</th><th>value</th><th>required</th><th>verdict</th></tr>
+<tr><td>settle_time_after_slew</td><td>12.6 s</td><td>20</td><td class='pass'>✔ PASS</td></tr>
+<tr><td>ape_los_on_target_p9973</td><td>0.009894 deg</td><td>0.01</td><td class='pass'>✔ PASS</td></tr>
+<tr><td>wheel_momentum_peak</td><td>0.003338 N m s</td><td>—</td><td class=''>—</td></tr>
+</table></div>
+<figure><img src='figures/slew_img_1_attitude.png' alt='slew img 1 attitude' loading='lazy'></figure>
+<figure><img src='figures/slew_img_2_disturbances.png' alt='slew img 2 disturbances' loading='lazy'></figure>
+<figure><img src='figures/slew_img_3_actuators.png' alt='slew img 3 actuators' loading='lazy'></figure>
+<figure><img src='figures/slew_img_4_environment.png' alt='slew img 4 environment' loading='lazy'></figure>
+<figure><img src='figures/slew_img_5_groundtrack.png' alt='slew img 5 groundtrack' loading='lazy'></figure>
+<figure><img src='figures/slew_img_6_modes.png' alt='slew img 6 modes' loading='lazy'></figure>
+<h3 id='agile_slew_img'>agile_slew_img</h3>
+<p class='muted'>3U imaging — (img): 90 deg pitch in 15 s · product <b>TRN-P-3U-IMG</b> · 10 min simulated in 0.8 min wall · events: 0 s slew_fine</p>
+<div class='scroll'><table><tr><th>metric</th><th>value</th><th>required</th><th>verdict</th></tr>
+<tr><td>settle_time_after_slew</td><td>51.8 s</td><td>—</td><td class=''>—</td></tr>
+<tr><td>ape_los_on_target_p9973</td><td>0.00988 deg</td><td>0.01</td><td class='pass'>✔ PASS</td></tr>
+<tr><td>wheel_momentum_peak</td><td>0.00692 N m s</td><td>—</td><td class=''>—</td></tr>
+</table></div>
+<figure><img src='figures/agile_slew_img_1_attitude.png' alt='agile slew img 1 attitude' loading='lazy'></figure>
+<figure><img src='figures/agile_slew_img_2_disturbances.png' alt='agile slew img 2 disturbances' loading='lazy'></figure>
+<figure><img src='figures/agile_slew_img_3_actuators.png' alt='agile slew img 3 actuators' loading='lazy'></figure>
+<h3 id='mission_img'>mission_img</h3>
+<p class='muted'>3U imaging — integrated chain: detumble then fine nadir hold · product <b>TRN-P-3U-IMG</b> · 287 min simulated in 20.6 min wall · events: 0 s detumble; 1378 s nadir_fine</p>
+<div class='scroll'><table><tr><th>metric</th><th>value</th><th>required</th><th>verdict</th></tr>
+<tr><td>detumble_time</td><td>23.68 min</td><td>284</td><td class='pass'>✔ PASS</td></tr>
+<tr><td>ape_los_last_half_orbit_p9973</td><td>0.007627 deg</td><td>0.01</td><td class='pass'>✔ PASS</td></tr>
+</table></div>
+<figure><img src='figures/mission_img_1_attitude.png' alt='mission img 1 attitude' loading='lazy'></figure>
+<figure><img src='figures/mission_img_2_disturbances.png' alt='mission img 2 disturbances' loading='lazy'></figure>
+<figure><img src='figures/mission_img_3_actuators.png' alt='mission img 3 actuators' loading='lazy'></figure>
+<figure><img src='figures/mission_img_4_environment.png' alt='mission img 4 environment' loading='lazy'></figure>
+<figure><img src='figures/mission_img_5_groundtrack.png' alt='mission img 5 groundtrack' loading='lazy'></figure>
+<figure><img src='figures/mission_img_6_modes.png' alt='mission img 6 modes' loading='lazy'></figure>
+<h3 id='fault_wheel_img'>fault_wheel_img</h3>
+<p class='muted'>3U imaging — reaction wheel 1 fails during fine hold (FDIR + coils) · product <b>TRN-P-3U-IMG</b> · 96 min simulated in 6.9 min wall · events: 0 s nadir_fine; 1200 s FAULT injected: rotor_fail 1; 1212 s FDIR: rotor 1 isolated</p>
+<div class='scroll'><table><tr><th>metric</th><th>value</th><th>required</th><th>verdict</th></tr>
+<tr><td>ape_los_p9973</td><td>15.83 deg</td><td>0.01</td><td class='fail'>✖ FAIL</td></tr>
+<tr><td>ape_los_max</td><td>15.87 deg</td><td>—</td><td class=''>—</td></tr>
+<tr><td>ape_3ax_p9973</td><td>15.83 deg</td><td>—</td><td class=''>—</td></tr>
+<tr><td>ake_los_p9973</td><td>0.003649 deg</td><td>0.005</td><td class='pass'>✔ PASS</td></tr>
+<tr><td>rate_stability_p9973</td><td>0.3827 deg/s</td><td>0.001</td><td class='fail'>✖ FAIL</td></tr>
+<tr><td>time_to_0p01_deg</td><td>83.5 s</td><td>—</td><td class=''>—</td></tr>
+<tr><td>wheel_momentum_peak</td><td>0.003675 N m s</td><td>—</td><td class=''>—</td></tr>
+<tr><td>power_mean</td><td>1.191 W</td><td>2</td><td class='pass'>✔ PASS</td></tr>
+</table></div>
+<figure><img src='figures/fault_wheel_img_1_attitude.png' alt='fault wheel img 1 attitude' loading='lazy'></figure>
+<figure><img src='figures/fault_wheel_img_2_disturbances.png' alt='fault wheel img 2 disturbances' loading='lazy'></figure>
+<figure><img src='figures/fault_wheel_img_3_actuators.png' alt='fault wheel img 3 actuators' loading='lazy'></figure>
+<h3 id='fault_st_img'>fault_st_img</h3>
+<p class='muted'>3U imaging — star-tracker head 2 fails during fine hold · product <b>TRN-P-3U-IMG</b> · 96 min simulated in 6.5 min wall · events: 0 s nadir_fine; 1200 s FAULT injected: st_head_fail 2</p>
+<div class='scroll'><table><tr><th>metric</th><th>value</th><th>required</th><th>verdict</th></tr>
+<tr><td>ape_los_p9973</td><td>0.1843 deg</td><td>0.01</td><td class='fail'>✖ FAIL</td></tr>
+<tr><td>ape_los_max</td><td>0.1892 deg</td><td>—</td><td class=''>—</td></tr>
+<tr><td>ape_3ax_p9973</td><td>0.1858 deg</td><td>—</td><td class=''>—</td></tr>
+<tr><td>ake_los_p9973</td><td>0.1847 deg</td><td>0.005</td><td class='fail'>✖ FAIL</td></tr>
+<tr><td>rate_stability_p9973</td><td>0.004082 deg/s</td><td>0.001</td><td class='fail'>✖ FAIL</td></tr>
+<tr><td>time_to_0p01_deg</td><td>83.5 s</td><td>—</td><td class=''>—</td></tr>
+<tr><td>wheel_momentum_peak</td><td>0.003257 N m s</td><td>—</td><td class=''>—</td></tr>
+<tr><td>power_mean</td><td>1.557 W</td><td>2</td><td class='pass'>✔ PASS</td></tr>
+</table></div>
+<figure><img src='figures/fault_st_img_1_attitude.png' alt='fault st img 1 attitude' loading='lazy'></figure>
+<figure><img src='figures/fault_st_img_2_disturbances.png' alt='fault st img 2 disturbances' loading='lazy'></figure>
+<figure><img src='figures/fault_st_img_3_actuators.png' alt='fault st img 3 actuators' loading='lazy'></figure>
+<h2 id='g2'>Imaging 3U, magnetorquers + fluid momentum rings (IDMAS)</h2>
+<h3 id='fine_hold_fmr'>fine_hold_fmr</h3>
+<p class='muted'>3U imaging — fine nadir hold, coils + fluid momentum rings (IDMAS split) · product <b>TRN-P-3U-FMR</b> · 96 min simulated in 11.0 min wall · events: 0 s nadir_fine</p>
+<div class='scroll'><table><tr><th>metric</th><th>value</th><th>required</th><th>verdict</th></tr>
+<tr><td>ape_los_p9973</td><td>0.006033 deg</td><td>0.01</td><td class='pass'>✔ PASS</td></tr>
+<tr><td>ape_los_max</td><td>0.007836 deg</td><td>—</td><td class=''>—</td></tr>
+<tr><td>ape_3ax_p9973</td><td>0.007028 deg</td><td>—</td><td class=''>—</td></tr>
+<tr><td>ake_los_p9973</td><td>0.003321 deg</td><td>0.005</td><td class='pass'>✔ PASS</td></tr>
+<tr><td>rate_stability_p9973</td><td>0.004654 deg/s</td><td>0.001</td><td class='fail'>✖ FAIL</td></tr>
+<tr><td>time_to_0p01_deg</td><td>84.3 s</td><td>—</td><td class=''>—</td></tr>
+<tr><td>wheel_momentum_peak</td><td>0.0001624 N m s</td><td>—</td><td class=''>—</td></tr>
+<tr><td>power_mean</td><td>4.348 W</td><td>2</td><td class='fail'>✖ FAIL</td></tr>
+</table></div>
+<figure><img src='figures/fine_hold_fmr_1_attitude.png' alt='fine hold fmr 1 attitude' loading='lazy'></figure>
+<figure><img src='figures/fine_hold_fmr_2_disturbances.png' alt='fine hold fmr 2 disturbances' loading='lazy'></figure>
+<figure><img src='figures/fine_hold_fmr_3_actuators.png' alt='fine hold fmr 3 actuators' loading='lazy'></figure>
+<h3 id='slew_fmr'>slew_fmr</h3>
+<p class='muted'>3U imaging — 30 deg target slew in 60 s, coils + fluid momentum rings (IDMAS split) · product <b>TRN-P-3U-FMR</b> · 10 min simulated in 1.3 min wall · events: 0 s slew_fine</p>
+<div class='scroll'><table><tr><th>metric</th><th>value</th><th>required</th><th>verdict</th></tr>
+<tr><td>settle_time_after_slew</td><td>14 s</td><td>20</td><td class='pass'>✔ PASS</td></tr>
+<tr><td>ape_los_on_target_p9973</td><td>0.008053 deg</td><td>0.01</td><td class='pass'>✔ PASS</td></tr>
+<tr><td>wheel_momentum_peak</td><td>0.000112 N m s</td><td>—</td><td class=''>—</td></tr>
+</table></div>
+<figure><img src='figures/slew_fmr_1_attitude.png' alt='slew fmr 1 attitude' loading='lazy'></figure>
+<figure><img src='figures/slew_fmr_2_disturbances.png' alt='slew fmr 2 disturbances' loading='lazy'></figure>
+<figure><img src='figures/slew_fmr_3_actuators.png' alt='slew fmr 3 actuators' loading='lazy'></figure>
+<h3 id='mission_fmr'>mission_fmr</h3>
+<p class='muted'>3U imaging — tumble, detumble, fine hold: coils + fluid momentum rings (IDMAS split) · product <b>TRN-P-3U-FMR</b> · 287 min simulated in 27.0 min wall · events: 0 s detumble; 1411 s nadir_fine</p>
+<div class='scroll'><table><tr><th>metric</th><th>value</th><th>required</th><th>verdict</th></tr>
+<tr><td>detumble_time</td><td>24.48 min</td><td>284</td><td class='pass'>✔ PASS</td></tr>
+<tr><td>ape_los_last_half_orbit_p9973</td><td>0.006388 deg</td><td>0.01</td><td class='pass'>✔ PASS</td></tr>
+</table></div>
+<figure><img src='figures/mission_fmr_1_attitude.png' alt='mission fmr 1 attitude' loading='lazy'></figure>
+<figure><img src='figures/mission_fmr_2_disturbances.png' alt='mission fmr 2 disturbances' loading='lazy'></figure>
+<figure><img src='figures/mission_fmr_3_actuators.png' alt='mission fmr 3 actuators' loading='lazy'></figure>
+<figure><img src='figures/mission_fmr_4_environment.png' alt='mission fmr 4 environment' loading='lazy'></figure>
+<figure><img src='figures/mission_fmr_5_groundtrack.png' alt='mission fmr 5 groundtrack' loading='lazy'></figure>
+<figure><img src='figures/mission_fmr_6_modes.png' alt='mission fmr 6 modes' loading='lazy'></figure>
+<h2 id='g3'>Imaging 3U, magnetorquers + fluid rings + cold-gas RCS</h2>
+<h3 id='fine_hold_fmr_rcs'>fine_hold_fmr_rcs</h3>
+<p class='muted'>3U imaging — fine nadir hold, coils + fluid rings + cold-gas RCS · product <b>TRN-P-3U-FMR-RCS</b> · 96 min simulated in 8.7 min wall · events: 0 s nadir_fine</p>
+<div class='scroll'><table><tr><th>metric</th><th>value</th><th>required</th><th>verdict</th></tr>
+<tr><td>ape_los_p9973</td><td>0.00616 deg</td><td>0.01</td><td class='pass'>✔ PASS</td></tr>
+<tr><td>ape_los_max</td><td>0.006973 deg</td><td>—</td><td class=''>—</td></tr>
+<tr><td>ape_3ax_p9973</td><td>0.006878 deg</td><td>—</td><td class=''>—</td></tr>
+<tr><td>ake_los_p9973</td><td>0.00348 deg</td><td>0.005</td><td class='pass'>✔ PASS</td></tr>
+<tr><td>rate_stability_p9973</td><td>0.004643 deg/s</td><td>0.001</td><td class='fail'>✖ FAIL</td></tr>
+<tr><td>time_to_0p01_deg</td><td>88.2 s</td><td>—</td><td class=''>—</td></tr>
+<tr><td>wheel_momentum_peak</td><td>0.000163 N m s</td><td>—</td><td class=''>—</td></tr>
+<tr><td>power_mean</td><td>4.367 W</td><td>2</td><td class='fail'>✖ FAIL</td></tr>
+</table></div>
+<figure><img src='figures/fine_hold_fmr_rcs_1_attitude.png' alt='fine hold fmr rcs 1 attitude' loading='lazy'></figure>
+<figure><img src='figures/fine_hold_fmr_rcs_2_disturbances.png' alt='fine hold fmr rcs 2 disturbances' loading='lazy'></figure>
+<figure><img src='figures/fine_hold_fmr_rcs_3_actuators.png' alt='fine hold fmr rcs 3 actuators' loading='lazy'></figure>
+<h3 id='slew_fmr_rcs'>slew_fmr_rcs</h3>
+<p class='muted'>3U imaging — 30 deg target slew in 60 s, coils + fluid rings + cold-gas RCS · product <b>TRN-P-3U-FMR-RCS</b> · 10 min simulated in 0.9 min wall · events: 0 s slew_fine</p>
+<div class='scroll'><table><tr><th>metric</th><th>value</th><th>required</th><th>verdict</th></tr>
+<tr><td>settle_time_after_slew</td><td>12.9 s</td><td>20</td><td class='pass'>✔ PASS</td></tr>
+<tr><td>ape_los_on_target_p9973</td><td>0.007078 deg</td><td>0.01</td><td class='pass'>✔ PASS</td></tr>
+<tr><td>wheel_momentum_peak</td><td>0.0001118 N m s</td><td>—</td><td class=''>—</td></tr>
+</table></div>
+<figure><img src='figures/slew_fmr_rcs_1_attitude.png' alt='slew fmr rcs 1 attitude' loading='lazy'></figure>
+<figure><img src='figures/slew_fmr_rcs_2_disturbances.png' alt='slew fmr rcs 2 disturbances' loading='lazy'></figure>
+<figure><img src='figures/slew_fmr_rcs_3_actuators.png' alt='slew fmr rcs 3 actuators' loading='lazy'></figure>
+<h3 id='agile_slew_fmr_rcs'>agile_slew_fmr_rcs</h3>
+<p class='muted'>3U imaging — (fmr_rcs): 90 deg pitch in 15 s · product <b>TRN-P-3U-FMR-RCS</b> · 10 min simulated in 0.8 min wall · events: 0 s slew_fine</p>
+<div class='scroll'><table><tr><th>metric</th><th>value</th><th>required</th><th>verdict</th></tr>
+<tr><td>settle_time_after_slew</td><td>39.9 s</td><td>—</td><td class=''>—</td></tr>
+<tr><td>ape_los_on_target_p9973</td><td>0.007225 deg</td><td>0.01</td><td class='pass'>✔ PASS</td></tr>
+<tr><td>wheel_momentum_peak</td><td>0.0009452 N m s</td><td>—</td><td class=''>—</td></tr>
+</table></div>
+<figure><img src='figures/agile_slew_fmr_rcs_1_attitude.png' alt='agile slew fmr rcs 1 attitude' loading='lazy'></figure>
+<figure><img src='figures/agile_slew_fmr_rcs_2_disturbances.png' alt='agile slew fmr rcs 2 disturbances' loading='lazy'></figure>
+<figure><img src='figures/agile_slew_fmr_rcs_3_actuators.png' alt='agile slew fmr rcs 3 actuators' loading='lazy'></figure>
+<h3 id='mission_fmr_rcs'>mission_fmr_rcs</h3>
+<p class='muted'>3U imaging — tumble, detumble, fine hold: coils + fluid rings + cold-gas RCS · product <b>TRN-P-3U-FMR-RCS</b> · 287 min simulated in 27.0 min wall · events: 0 s detumble; 3793 s nadir_fine</p>
+<div class='scroll'><table><tr><th>metric</th><th>value</th><th>required</th><th>verdict</th></tr>
+<tr><td>detumble_time</td><td>64.12 min</td><td>284</td><td class='pass'>✔ PASS</td></tr>
+<tr><td>ape_los_last_half_orbit_p9973</td><td>0.006253 deg</td><td>0.01</td><td class='pass'>✔ PASS</td></tr>
+</table></div>
+<figure><img src='figures/mission_fmr_rcs_1_attitude.png' alt='mission fmr rcs 1 attitude' loading='lazy'></figure>
+<figure><img src='figures/mission_fmr_rcs_2_disturbances.png' alt='mission fmr rcs 2 disturbances' loading='lazy'></figure>
+<figure><img src='figures/mission_fmr_rcs_3_actuators.png' alt='mission fmr rcs 3 actuators' loading='lazy'></figure>
+<figure><img src='figures/mission_fmr_rcs_4_environment.png' alt='mission fmr rcs 4 environment' loading='lazy'></figure>
+<figure><img src='figures/mission_fmr_rcs_5_groundtrack.png' alt='mission fmr rcs 5 groundtrack' loading='lazy'></figure>
+<figure><img src='figures/mission_fmr_rcs_6_modes.png' alt='mission fmr rcs 6 modes' loading='lazy'></figure>
+<h2 id='g4'>Imaging 3U, magnetorquers + reaction wheels + cold-gas RCS</h2>
+<h3 id='fine_hold_rw_rcs'>fine_hold_rw_rcs</h3>
+<p class='muted'>3U imaging — fine nadir hold, coils + reaction wheels + cold-gas RCS · product <b>TRN-P-3U-RW-RCS</b> · 96 min simulated in 6.6 min wall · events: 0 s nadir_fine</p>
+<div class='scroll'><table><tr><th>metric</th><th>value</th><th>required</th><th>verdict</th></tr>
+<tr><td>ape_los_p9973</td><td>0.008375 deg</td><td>0.01</td><td class='pass'>✔ PASS</td></tr>
+<tr><td>ape_los_max</td><td>0.009926 deg</td><td>—</td><td class=''>—</td></tr>
+<tr><td>ape_3ax_p9973</td><td>0.008488 deg</td><td>—</td><td class=''>—</td></tr>
+<tr><td>ake_los_p9973</td><td>0.003439 deg</td><td>0.005</td><td class='pass'>✔ PASS</td></tr>
+<tr><td>rate_stability_p9973</td><td>0.003604 deg/s</td><td>0.001</td><td class='fail'>✖ FAIL</td></tr>
+<tr><td>time_to_0p01_deg</td><td>87.2 s</td><td>—</td><td class=''>—</td></tr>
+<tr><td>wheel_momentum_peak</td><td>0.002803 N m s</td><td>—</td><td class=''>—</td></tr>
+<tr><td>power_mean</td><td>1.51 W</td><td>2</td><td class='pass'>✔ PASS</td></tr>
+</table></div>
+<figure><img src='figures/fine_hold_rw_rcs_1_attitude.png' alt='fine hold rw rcs 1 attitude' loading='lazy'></figure>
+<figure><img src='figures/fine_hold_rw_rcs_2_disturbances.png' alt='fine hold rw rcs 2 disturbances' loading='lazy'></figure>
+<figure><img src='figures/fine_hold_rw_rcs_3_actuators.png' alt='fine hold rw rcs 3 actuators' loading='lazy'></figure>
+<h3 id='slew_rw_rcs'>slew_rw_rcs</h3>
+<p class='muted'>3U imaging — 30 deg target slew in 60 s, coils + reaction wheels + cold-gas RCS · product <b>TRN-P-3U-RW-RCS</b> · 10 min simulated in 0.8 min wall · events: 0 s slew_fine</p>
+<div class='scroll'><table><tr><th>metric</th><th>value</th><th>required</th><th>verdict</th></tr>
+<tr><td>settle_time_after_slew</td><td>11.2 s</td><td>20</td><td class='pass'>✔ PASS</td></tr>
+<tr><td>ape_los_on_target_p9973</td><td>0.007829 deg</td><td>0.01</td><td class='pass'>✔ PASS</td></tr>
+<tr><td>wheel_momentum_peak</td><td>0.003419 N m s</td><td>—</td><td class=''>—</td></tr>
+</table></div>
+<figure><img src='figures/slew_rw_rcs_1_attitude.png' alt='slew rw rcs 1 attitude' loading='lazy'></figure>
+<figure><img src='figures/slew_rw_rcs_2_disturbances.png' alt='slew rw rcs 2 disturbances' loading='lazy'></figure>
+<figure><img src='figures/slew_rw_rcs_3_actuators.png' alt='slew rw rcs 3 actuators' loading='lazy'></figure>
+<h3 id='agile_slew_rw_rcs'>agile_slew_rw_rcs</h3>
+<p class='muted'>3U imaging — (rw_rcs): 90 deg pitch in 15 s · product <b>TRN-P-3U-RW-RCS</b> · 10 min simulated in 0.9 min wall · events: 0 s slew_fine</p>
+<div class='scroll'><table><tr><th>metric</th><th>value</th><th>required</th><th>verdict</th></tr>
+<tr><td>settle_time_after_slew</td><td>39.5 s</td><td>—</td><td class=''>—</td></tr>
+<tr><td>ape_los_on_target_p9973</td><td>0.008114 deg</td><td>0.01</td><td class='pass'>✔ PASS</td></tr>
+<tr><td>wheel_momentum_peak</td><td>0.003363 N m s</td><td>—</td><td class=''>—</td></tr>
+</table></div>
+<figure><img src='figures/agile_slew_rw_rcs_1_attitude.png' alt='agile slew rw rcs 1 attitude' loading='lazy'></figure>
+<figure><img src='figures/agile_slew_rw_rcs_2_disturbances.png' alt='agile slew rw rcs 2 disturbances' loading='lazy'></figure>
+<figure><img src='figures/agile_slew_rw_rcs_3_actuators.png' alt='agile slew rw rcs 3 actuators' loading='lazy'></figure>
+<h3 id='mission_rw_rcs'>mission_rw_rcs</h3>
+<p class='muted'>3U imaging — tumble, detumble, fine hold: coils + reaction wheels + cold-gas RCS · product <b>TRN-P-3U-RW-RCS</b> · 287 min simulated in 21.0 min wall · events: 0 s detumble; 1408 s nadir_fine</p>
+<div class='scroll'><table><tr><th>metric</th><th>value</th><th>required</th><th>verdict</th></tr>
+<tr><td>detumble_time</td><td>24.26 min</td><td>284</td><td class='pass'>✔ PASS</td></tr>
+<tr><td>ape_los_last_half_orbit_p9973</td><td>0.007673 deg</td><td>0.01</td><td class='pass'>✔ PASS</td></tr>
+</table></div>
+<figure><img src='figures/mission_rw_rcs_1_attitude.png' alt='mission rw rcs 1 attitude' loading='lazy'></figure>
+<figure><img src='figures/mission_rw_rcs_2_disturbances.png' alt='mission rw rcs 2 disturbances' loading='lazy'></figure>
+<figure><img src='figures/mission_rw_rcs_3_actuators.png' alt='mission rw rcs 3 actuators' loading='lazy'></figure>
+<figure><img src='figures/mission_rw_rcs_4_environment.png' alt='mission rw rcs 4 environment' loading='lazy'></figure>
+<figure><img src='figures/mission_rw_rcs_5_groundtrack.png' alt='mission rw rcs 5 groundtrack' loading='lazy'></figure>
+<figure><img src='figures/mission_rw_rcs_6_modes.png' alt='mission rw rcs 6 modes' loading='lazy'></figure>
+<h2 id='g5'>Imaging 3U, magnetorquers + 4 SGCMG</h2>
+<h3 id='fine_hold_cmg'>fine_hold_cmg</h3>
+<p class='muted'>3U imaging — fine nadir hold, coils + 4 SGCMG pyramid · product <b>TRN-P-3U-CMG</b> · 96 min simulated in 7.8 min wall · events: 0 s nadir_fine</p>
+<div class='scroll'><table><tr><th>metric</th><th>value</th><th>required</th><th>verdict</th></tr>
+<tr><td>ape_los_p9973</td><td>0.005523 deg</td><td>0.01</td><td class='pass'>✔ PASS</td></tr>
+<tr><td>ape_los_max</td><td>0.006414 deg</td><td>—</td><td class=''>—</td></tr>
+<tr><td>ape_3ax_p9973</td><td>0.006146 deg</td><td>—</td><td class=''>—</td></tr>
+<tr><td>ake_los_p9973</td><td>0.00341 deg</td><td>0.005</td><td class='pass'>✔ PASS</td></tr>
+<tr><td>rate_stability_p9973</td><td>0.002425 deg/s</td><td>0.001</td><td class='fail'>✖ FAIL</td></tr>
+<tr><td>time_to_0p01_deg</td><td>83.5 s</td><td>—</td><td class=''>—</td></tr>
+<tr><td>wheel_momentum_peak</td><td>0.004 N m s</td><td>—</td><td class=''>—</td></tr>
+<tr><td>power_mean</td><td>1.61 W</td><td>2</td><td class='pass'>✔ PASS</td></tr>
+</table></div>
+<figure><img src='figures/fine_hold_cmg_1_attitude.png' alt='fine hold cmg 1 attitude' loading='lazy'></figure>
+<figure><img src='figures/fine_hold_cmg_2_disturbances.png' alt='fine hold cmg 2 disturbances' loading='lazy'></figure>
+<figure><img src='figures/fine_hold_cmg_3_actuators.png' alt='fine hold cmg 3 actuators' loading='lazy'></figure>
+<h3 id='slew_cmg'>slew_cmg</h3>
+<p class='muted'>3U imaging — 30 deg target slew in 60 s, coils + 4 SGCMG pyramid · product <b>TRN-P-3U-CMG</b> · 10 min simulated in 0.9 min wall · events: 0 s slew_fine</p>
+<div class='scroll'><table><tr><th>metric</th><th>value</th><th>required</th><th>verdict</th></tr>
+<tr><td>settle_time_after_slew</td><td>11.4 s</td><td>20</td><td class='pass'>✔ PASS</td></tr>
+<tr><td>ape_los_on_target_p9973</td><td>0.004542 deg</td><td>0.01</td><td class='pass'>✔ PASS</td></tr>
+<tr><td>wheel_momentum_peak</td><td>0.004 N m s</td><td>—</td><td class=''>—</td></tr>
+</table></div>
+<figure><img src='figures/slew_cmg_1_attitude.png' alt='slew cmg 1 attitude' loading='lazy'></figure>
+<figure><img src='figures/slew_cmg_2_disturbances.png' alt='slew cmg 2 disturbances' loading='lazy'></figure>
+<figure><img src='figures/slew_cmg_3_actuators.png' alt='slew cmg 3 actuators' loading='lazy'></figure>
+<h3 id='agile_slew_cmg'>agile_slew_cmg</h3>
+<p class='muted'>3U imaging — (cmg): 90 deg pitch in 15 s · product <b>TRN-P-3U-CMG</b> · 10 min simulated in 0.9 min wall · events: 0 s slew_fine</p>
+<div class='scroll'><table><tr><th>metric</th><th>value</th><th>required</th><th>verdict</th></tr>
+<tr><td>settle_time_after_slew</td><td>38.7 s</td><td>—</td><td class=''>—</td></tr>
+<tr><td>ape_los_on_target_p9973</td><td>0.005492 deg</td><td>0.01</td><td class='pass'>✔ PASS</td></tr>
+<tr><td>wheel_momentum_peak</td><td>0.004 N m s</td><td>—</td><td class=''>—</td></tr>
+</table></div>
+<figure><img src='figures/agile_slew_cmg_1_attitude.png' alt='agile slew cmg 1 attitude' loading='lazy'></figure>
+<figure><img src='figures/agile_slew_cmg_2_disturbances.png' alt='agile slew cmg 2 disturbances' loading='lazy'></figure>
+<figure><img src='figures/agile_slew_cmg_3_actuators.png' alt='agile slew cmg 3 actuators' loading='lazy'></figure>
+<h3 id='mission_cmg'>mission_cmg</h3>
+<p class='muted'>3U imaging — tumble, detumble, fine hold: coils + 4 SGCMG pyramid · product <b>TRN-P-3U-CMG</b> · 287 min simulated in 23.7 min wall · events: 0 s detumble; 3516 s nadir_fine</p>
+<div class='scroll'><table><tr><th>metric</th><th>value</th><th>required</th><th>verdict</th></tr>
+<tr><td>detumble_time</td><td>59.46 min</td><td>284</td><td class='pass'>✔ PASS</td></tr>
+<tr><td>ape_los_last_half_orbit_p9973</td><td>0.005659 deg</td><td>0.01</td><td class='pass'>✔ PASS</td></tr>
+</table></div>
+<figure><img src='figures/mission_cmg_1_attitude.png' alt='mission cmg 1 attitude' loading='lazy'></figure>
+<figure><img src='figures/mission_cmg_2_disturbances.png' alt='mission cmg 2 disturbances' loading='lazy'></figure>
+<figure><img src='figures/mission_cmg_3_actuators.png' alt='mission cmg 3 actuators' loading='lazy'></figure>
+<figure><img src='figures/mission_cmg_4_environment.png' alt='mission cmg 4 environment' loading='lazy'></figure>
+<figure><img src='figures/mission_cmg_5_groundtrack.png' alt='mission cmg 5 groundtrack' loading='lazy'></figure>
+<figure><img src='figures/mission_cmg_6_modes.png' alt='mission cmg 6 modes' loading='lazy'></figure>
+<h3 id='fault_gimbal_cmg'>fault_gimbal_cmg</h3>
+<p class='muted'>3U imaging — one CMG gimbal sticks during fine hold · product <b>TRN-P-3U-CMG</b> · 96 min simulated in 7.7 min wall · events: 0 s nadir_fine; 1200 s FAULT injected: gimbal_stuck 1</p>
+<div class='scroll'><table><tr><th>metric</th><th>value</th><th>required</th><th>verdict</th></tr>
+<tr><td>ape_los_p9973</td><td>0.006362 deg</td><td>0.01</td><td class='pass'>✔ PASS</td></tr>
+<tr><td>ape_los_max</td><td>0.007352 deg</td><td>—</td><td class=''>—</td></tr>
+<tr><td>ape_3ax_p9973</td><td>0.006689 deg</td><td>—</td><td class=''>—</td></tr>
+<tr><td>ake_los_p9973</td><td>0.00343 deg</td><td>0.005</td><td class='pass'>✔ PASS</td></tr>
+<tr><td>rate_stability_p9973</td><td>0.002951 deg/s</td><td>0.001</td><td class='fail'>✖ FAIL</td></tr>
+<tr><td>time_to_0p01_deg</td><td>83.5 s</td><td>—</td><td class=''>—</td></tr>
+<tr><td>wheel_momentum_peak</td><td>0.004 N m s</td><td>—</td><td class=''>—</td></tr>
+<tr><td>power_mean</td><td>1.61 W</td><td>2</td><td class='pass'>✔ PASS</td></tr>
+</table></div>
+<figure><img src='figures/fault_gimbal_cmg_1_attitude.png' alt='fault gimbal cmg 1 attitude' loading='lazy'></figure>
+<figure><img src='figures/fault_gimbal_cmg_2_disturbances.png' alt='fault gimbal cmg 2 disturbances' loading='lazy'></figure>
+<figure><img src='figures/fault_gimbal_cmg_3_actuators.png' alt='fault gimbal cmg 3 actuators' loading='lazy'></figure>
+<h2 id='g6'>Imaging 3U, magnetorquers + 4 VSCMG</h2>
+<h3 id='fine_hold_vscmg'>fine_hold_vscmg</h3>
+<p class='muted'>3U imaging — fine nadir hold, coils + 4 VSCMG pyramid · product <b>TRN-P-3U-VSCMG</b> · 96 min simulated in 7.9 min wall · events: 0 s nadir_fine</p>
+<div class='scroll'><table><tr><th>metric</th><th>value</th><th>required</th><th>verdict</th></tr>
+<tr><td>ape_los_p9973</td><td>0.009129 deg</td><td>0.01</td><td class='pass'>✔ PASS</td></tr>
+<tr><td>ape_los_max</td><td>0.01036 deg</td><td>—</td><td class=''>—</td></tr>
+<tr><td>ape_3ax_p9973</td><td>0.009208 deg</td><td>—</td><td class=''>—</td></tr>
+<tr><td>ake_los_p9973</td><td>0.003558 deg</td><td>0.005</td><td class='pass'>✔ PASS</td></tr>
+<tr><td>rate_stability_p9973</td><td>0.004557 deg/s</td><td>0.001</td><td class='fail'>✖ FAIL</td></tr>
+<tr><td>time_to_0p01_deg</td><td>89.3 s</td><td>—</td><td class=''>—</td></tr>
+<tr><td>wheel_momentum_peak</td><td>0.004201 N m s</td><td>—</td><td class=''>—</td></tr>
+<tr><td>power_mean</td><td>2.015 W</td><td>2</td><td class='fail'>✖ FAIL</td></tr>
+</table></div>
+<figure><img src='figures/fine_hold_vscmg_1_attitude.png' alt='fine hold vscmg 1 attitude' loading='lazy'></figure>
+<figure><img src='figures/fine_hold_vscmg_2_disturbances.png' alt='fine hold vscmg 2 disturbances' loading='lazy'></figure>
+<figure><img src='figures/fine_hold_vscmg_3_actuators.png' alt='fine hold vscmg 3 actuators' loading='lazy'></figure>
+<h3 id='slew_vscmg'>slew_vscmg</h3>
+<p class='muted'>3U imaging — 30 deg target slew in 60 s, coils + 4 VSCMG pyramid · product <b>TRN-P-3U-VSCMG</b> · 10 min simulated in 0.9 min wall · events: 0 s slew_fine</p>
+<div class='scroll'><table><tr><th>metric</th><th>value</th><th>required</th><th>verdict</th></tr>
+<tr><td>settle_time_after_slew</td><td>14.4 s</td><td>20</td><td class='pass'>✔ PASS</td></tr>
+<tr><td>ape_los_on_target_p9973</td><td>0.01027 deg</td><td>0.01</td><td class='fail'>✖ FAIL</td></tr>
+<tr><td>wheel_momentum_peak</td><td>0.004051 N m s</td><td>—</td><td class=''>—</td></tr>
+</table></div>
+<figure><img src='figures/slew_vscmg_1_attitude.png' alt='slew vscmg 1 attitude' loading='lazy'></figure>
+<figure><img src='figures/slew_vscmg_2_disturbances.png' alt='slew vscmg 2 disturbances' loading='lazy'></figure>
+<figure><img src='figures/slew_vscmg_3_actuators.png' alt='slew vscmg 3 actuators' loading='lazy'></figure>
+<h3 id='agile_slew_vscmg'>agile_slew_vscmg</h3>
+<p class='muted'>3U imaging — (vscmg): 90 deg pitch in 15 s · product <b>TRN-P-3U-VSCMG</b> · 10 min simulated in 1.0 min wall · events: 0 s slew_fine</p>
+<div class='scroll'><table><tr><th>metric</th><th>value</th><th>required</th><th>verdict</th></tr>
+<tr><td>settle_time_after_slew</td><td>51.6 s</td><td>—</td><td class=''>—</td></tr>
+<tr><td>ape_los_on_target_p9973</td><td>0.01007 deg</td><td>0.01</td><td class='fail'>✖ FAIL</td></tr>
+<tr><td>wheel_momentum_peak</td><td>0.008087 N m s</td><td>—</td><td class=''>—</td></tr>
+</table></div>
+<figure><img src='figures/agile_slew_vscmg_1_attitude.png' alt='agile slew vscmg 1 attitude' loading='lazy'></figure>
+<figure><img src='figures/agile_slew_vscmg_2_disturbances.png' alt='agile slew vscmg 2 disturbances' loading='lazy'></figure>
+<figure><img src='figures/agile_slew_vscmg_3_actuators.png' alt='agile slew vscmg 3 actuators' loading='lazy'></figure>
+<h3 id='mission_vscmg'>mission_vscmg</h3>
+<p class='muted'>3U imaging — tumble, detumble, fine hold: coils + 4 VSCMG pyramid · product <b>TRN-P-3U-VSCMG</b> · 287 min simulated in 24.4 min wall · events: 0 s detumble; 3526 s nadir_fine</p>
+<div class='scroll'><table><tr><th>metric</th><th>value</th><th>required</th><th>verdict</th></tr>
+<tr><td>detumble_time</td><td>59.54 min</td><td>284</td><td class='pass'>✔ PASS</td></tr>
+<tr><td>ape_los_last_half_orbit_p9973</td><td>0.01111 deg</td><td>0.01</td><td class='fail'>✖ FAIL</td></tr>
+</table></div>
+<figure><img src='figures/mission_vscmg_1_attitude.png' alt='mission vscmg 1 attitude' loading='lazy'></figure>
+<figure><img src='figures/mission_vscmg_2_disturbances.png' alt='mission vscmg 2 disturbances' loading='lazy'></figure>
+<figure><img src='figures/mission_vscmg_3_actuators.png' alt='mission vscmg 3 actuators' loading='lazy'></figure>
+<figure><img src='figures/mission_vscmg_4_environment.png' alt='mission vscmg 4 environment' loading='lazy'></figure>
+<figure><img src='figures/mission_vscmg_5_groundtrack.png' alt='mission vscmg 5 groundtrack' loading='lazy'></figure>
+<figure><img src='figures/mission_vscmg_6_modes.png' alt='mission vscmg 6 modes' loading='lazy'></figure>
+<h2 id='g7'>Monte Carlo and edge-case campaigns</h2>
+<h3 id='mc_detumble_ais'>mc_detumble_ais</h3>
+<p class='muted'>Monte Carlo · scenario <b>detumble_ais</b> · case <b>ais_3u</b> · 24 runs · dispersed: mass properties, magnetic dipole, CM offset, surface properties, space weather, initial conditions, and every part error from its descriptor.</p>
+<div class='scroll'><table><tr><th>metric</th><th>mean</th><th>std</th><th>ensemble percentile</th><th>required</th><th>runs passing</th><th>verdict</th></tr>
+<tr><td>detumble_time</td><td>48.5</td><td>12</td><td>p95: 70.66 min</td><td>284</td><td>100%</td><td class='pass'>✔ PASS</td></tr>
+<tr><td>power_mean</td><td>0.02267</td><td>0.00701</td><td>p95: 0.03338 W</td><td>0.5</td><td>100%</td><td class='pass'>✔ PASS</td></tr>
+<tr><td>power_peak</td><td>0.3902</td><td>0.169</td><td>p95: 0.63 W</td><td>1.5</td><td>100%</td><td class='pass'>✔ PASS</td></tr>
+</table></div>
+<figure><img src='figures/mc_detumble_ais_detumble_time.png' alt='mc detumble ais detumble time' loading='lazy'></figure>
+<figure><img src='figures/mc_detumble_ais_power_mean.png' alt='mc detumble ais power mean' loading='lazy'></figure>
+<figure><img src='figures/mc_detumble_ais_power_peak.png' alt='mc detumble ais power peak' loading='lazy'></figure>
+<figure><img src='figures/mc_detumble_ais_scatter.png' alt='mc detumble ais scatter' loading='lazy'></figure>
+<h3 id='mc_nadir_ais'>mc_nadir_ais</h3>
+<p class='muted'>Monte Carlo · scenario <b>nadir_hold_ais</b> · case <b>ais_3u</b> · 24 runs · dispersed: mass properties, magnetic dipole, CM offset, surface properties, space weather, initial conditions, and every part error from its descriptor.</p>
+<div class='scroll'><table><tr><th>metric</th><th>mean</th><th>std</th><th>ensemble percentile</th><th>required</th><th>runs passing</th><th>verdict</th></tr>
+<tr><td>ape_3axis_last_orbit</td><td>177.8</td><td>7.4</td><td>p95: 180 deg</td><td>—</td><td>—</td><td class=''>—</td></tr>
+<tr><td>ape_los_last_orbit</td><td>89.69</td><td>38.5</td><td>p95: 163.6 deg</td><td>10</td><td>0%</td><td class='fail'>✖ FAIL</td></tr>
+<tr><td>ake_los_last_orbit</td><td>3.3</td><td>1.73</td><td>p95: 6.077 deg</td><td>5</td><td>75%</td><td class='fail'>✖ FAIL</td></tr>
+<tr><td>power_mean</td><td>0.01145</td><td>0.0025</td><td>p95: 0.01449 W</td><td>0.5</td><td>100%</td><td class='pass'>✔ PASS</td></tr>
+</table></div>
+<figure><img src='figures/mc_nadir_ais_ape_3axis_last_orbit.png' alt='mc nadir ais ape 3axis last orbit' loading='lazy'></figure>
+<figure><img src='figures/mc_nadir_ais_ape_los_last_orbit.png' alt='mc nadir ais ape los last orbit' loading='lazy'></figure>
+<figure><img src='figures/mc_nadir_ais_ake_los_last_orbit.png' alt='mc nadir ais ake los last orbit' loading='lazy'></figure>
+<figure><img src='figures/mc_nadir_ais_power_mean.png' alt='mc nadir ais power mean' loading='lazy'></figure>
+<figure><img src='figures/mc_nadir_ais_scatter.png' alt='mc nadir ais scatter' loading='lazy'></figure>
+<h3 id='edge_nadir_ais'>edge_nadir_ais</h3>
+<p class='muted'>edge cases (each dispersion at its bounds, then all adverse) · scenario <b>nadir_hold_ais</b> · case <b>ais_3u</b> · 17 runs · dispersed: mass properties, magnetic dipole, CM offset, surface properties, space weather, initial conditions, and every part error from its descriptor.</p>
+<div class='scroll'><table><tr><th>metric</th><th>mean</th><th>std</th><th>ensemble percentile</th><th>required</th><th>runs passing</th><th>verdict</th></tr>
+<tr><td>ape_3axis_last_orbit</td><td>112.2</td><td>50</td><td>p95: 180 deg</td><td>—</td><td>—</td><td class=''>—</td></tr>
+<tr><td>ape_los_last_orbit</td><td>24.91</td><td>40.4</td><td>p95: 155.1 deg</td><td>10</td><td>59%</td><td class='fail'>✖ FAIL</td></tr>
+<tr><td>ake_los_last_orbit</td><td>3.712</td><td>2.58</td><td>p95: 11.79 deg</td><td>5</td><td>82%</td><td class='fail'>✖ FAIL</td></tr>
+<tr><td>power_mean</td><td>0.01057</td><td>0.00121</td><td>p95: 0.01289 W</td><td>0.5</td><td>100%</td><td class='pass'>✔ PASS</td></tr>
+</table></div>
+<figure><img src='figures/edge_nadir_ais_ape_3axis_last_orbit.png' alt='edge nadir ais ape 3axis last orbit' loading='lazy'></figure>
+<figure><img src='figures/edge_nadir_ais_ape_los_last_orbit.png' alt='edge nadir ais ape los last orbit' loading='lazy'></figure>
+<figure><img src='figures/edge_nadir_ais_ake_los_last_orbit.png' alt='edge nadir ais ake los last orbit' loading='lazy'></figure>
+<figure><img src='figures/edge_nadir_ais_power_mean.png' alt='edge nadir ais power mean' loading='lazy'></figure>
+<figure><img src='figures/edge_nadir_ais_scatter.png' alt='edge nadir ais scatter' loading='lazy'></figure>
+<h3 id='mc_fine_img'>mc_fine_img</h3>
+<p class='muted'>Monte Carlo · scenario <b>fine_hold_img</b> · case <b>ais_img_3u</b> · 24 runs · dispersed: mass properties, magnetic dipole, CM offset, surface properties, space weather, initial conditions, and every part error from its descriptor.</p>
+<div class='scroll'><table><tr><th>metric</th><th>mean</th><th>std</th><th>ensemble percentile</th><th>required</th><th>runs passing</th><th>verdict</th></tr>
+<tr><td>ape_los_p9973</td><td>0.01315</td><td>0.00434</td><td>p99.73: 0.02007 deg</td><td>0.01</td><td>29%</td><td class='fail'>✖ FAIL</td></tr>
+<tr><td>ape_los_max</td><td>0.01599</td><td>0.0044</td><td>p95: 0.02173 deg</td><td>—</td><td>—</td><td class=''>—</td></tr>
+<tr><td>ape_3ax_p9973</td><td>0.01338</td><td>0.00425</td><td>p95: 0.01957 deg</td><td>—</td><td>—</td><td class=''>—</td></tr>
+<tr><td>ake_los_p9973</td><td>0.002894</td><td>0.000605</td><td>p99.73: 0.00408 deg</td><td>0.005</td><td>100%</td><td class='pass'>✔ PASS</td></tr>
+<tr><td>rate_stability_p9973</td><td>0.003738</td><td>9.57e-05</td><td>p99.73: 0.003962 deg/s</td><td>0.001</td><td>0%</td><td class='fail'>✖ FAIL</td></tr>
+<tr><td>time_to_0p01_deg</td><td>69.32</td><td>11.1</td><td>p95: 84.8 s</td><td>—</td><td>—</td><td class=''>—</td></tr>
+<tr><td>wheel_momentum_peak</td><td>0.003075</td><td>0.000218</td><td>p95: 0.0034 N m s</td><td>—</td><td>—</td><td class=''>—</td></tr>
+<tr><td>power_mean</td><td>1.558</td><td>0.0021</td><td>p95: 1.561 W</td><td>2</td><td>100%</td><td class='pass'>✔ PASS</td></tr>
+</table></div>
+<figure><img src='figures/mc_fine_img_ape_los_p9973.png' alt='mc fine img ape los p9973' loading='lazy'></figure>
+<figure><img src='figures/mc_fine_img_ape_los_max.png' alt='mc fine img ape los max' loading='lazy'></figure>
+<figure><img src='figures/mc_fine_img_ape_3ax_p9973.png' alt='mc fine img ape 3ax p9973' loading='lazy'></figure>
+<figure><img src='figures/mc_fine_img_ake_los_p9973.png' alt='mc fine img ake los p9973' loading='lazy'></figure>
+<figure><img src='figures/mc_fine_img_rate_stability_p9973.png' alt='mc fine img rate stability p9973' loading='lazy'></figure>
+<figure><img src='figures/mc_fine_img_time_to_0p01_deg.png' alt='mc fine img time to 0p01 deg' loading='lazy'></figure>
+<figure><img src='figures/mc_fine_img_wheel_momentum_peak.png' alt='mc fine img wheel momentum peak' loading='lazy'></figure>
+<figure><img src='figures/mc_fine_img_power_mean.png' alt='mc fine img power mean' loading='lazy'></figure>
+<figure><img src='figures/mc_fine_img_scatter.png' alt='mc fine img scatter' loading='lazy'></figure>
+<h3 id='edge_fine_img'>edge_fine_img</h3>
+<p class='muted'>edge cases (each dispersion at its bounds, then all adverse) · scenario <b>fine_hold_img</b> · case <b>ais_img_3u</b> · 15 runs · dispersed: mass properties, magnetic dipole, CM offset, surface properties, space weather, initial conditions, and every part error from its descriptor.</p>
+<div class='scroll'><table><tr><th>metric</th><th>mean</th><th>std</th><th>ensemble percentile</th><th>required</th><th>runs passing</th><th>verdict</th></tr>
+<tr><td>ape_los_p9973</td><td>0.01236</td><td>0.00475</td><td>p99.73: 0.02038 deg</td><td>0.01</td><td>40%</td><td class='fail'>✖ FAIL</td></tr>
+<tr><td>ape_los_max</td><td>0.01488</td><td>0.00506</td><td>p95: 0.02368 deg</td><td>—</td><td>—</td><td class=''>—</td></tr>
+<tr><td>ape_3ax_p9973</td><td>0.01258</td><td>0.00465</td><td>p95: 0.02055 deg</td><td>—</td><td>—</td><td class=''>—</td></tr>
+<tr><td>ake_los_p9973</td><td>0.003307</td><td>0.000418</td><td>p99.73: 0.004166 deg</td><td>0.005</td><td>100%</td><td class='pass'>✔ PASS</td></tr>
+<tr><td>rate_stability_p9973</td><td>0.003689</td><td>0.000116</td><td>p99.73: 0.003893 deg/s</td><td>0.001</td><td>0%</td><td class='fail'>✖ FAIL</td></tr>
+<tr><td>time_to_0p01_deg</td><td>71.66</td><td>9.51</td><td>p95: 88.7 s</td><td>—</td><td>—</td><td class=''>—</td></tr>
+<tr><td>wheel_momentum_peak</td><td>0.003344</td><td>0.00013</td><td>p95: 0.003651 N m s</td><td>—</td><td>—</td><td class=''>—</td></tr>
+<tr><td>power_mean</td><td>1.558</td><td>0.00216</td><td>p95: 1.564 W</td><td>2</td><td>100%</td><td class='pass'>✔ PASS</td></tr>
+</table></div>
+<figure><img src='figures/edge_fine_img_ape_los_p9973.png' alt='edge fine img ape los p9973' loading='lazy'></figure>
+<figure><img src='figures/edge_fine_img_ape_los_max.png' alt='edge fine img ape los max' loading='lazy'></figure>
+<figure><img src='figures/edge_fine_img_ape_3ax_p9973.png' alt='edge fine img ape 3ax p9973' loading='lazy'></figure>
+<figure><img src='figures/edge_fine_img_ake_los_p9973.png' alt='edge fine img ake los p9973' loading='lazy'></figure>
+<figure><img src='figures/edge_fine_img_rate_stability_p9973.png' alt='edge fine img rate stability p9973' loading='lazy'></figure>
+<figure><img src='figures/edge_fine_img_time_to_0p01_deg.png' alt='edge fine img time to 0p01 deg' loading='lazy'></figure>
+<figure><img src='figures/edge_fine_img_wheel_momentum_peak.png' alt='edge fine img wheel momentum peak' loading='lazy'></figure>
+<figure><img src='figures/edge_fine_img_power_mean.png' alt='edge fine img power mean' loading='lazy'></figure>
+<figure><img src='figures/edge_fine_img_scatter.png' alt='edge fine img scatter' loading='lazy'></figure>
+<h3 id='mc_slew_img'>mc_slew_img</h3>
+<p class='muted'>Monte Carlo · scenario <b>slew_img</b> · case <b>ais_img_3u</b> · 40 runs · dispersed: mass properties, magnetic dipole, CM offset, surface properties, space weather, initial conditions, and every part error from its descriptor.</p>
+<div class='scroll'><table><tr><th>metric</th><th>mean</th><th>std</th><th>ensemble percentile</th><th>required</th><th>runs passing</th><th>verdict</th></tr>
+<tr><td>settle_time_after_slew</td><td>13.03</td><td>0.959</td><td>p95: 14.4 s</td><td>20</td><td>100%</td><td class='pass'>✔ PASS</td></tr>
+<tr><td>ape_los_on_target_p9973</td><td>0.00815</td><td>0.00115</td><td>p99.73: 0.01114 deg</td><td>0.01</td><td>92%</td><td class='fail'>✖ FAIL</td></tr>
+<tr><td>wheel_momentum_peak</td><td>0.003475</td><td>0.000273</td><td>p95: 0.00377 N m s</td><td>—</td><td>—</td><td class=''>—</td></tr>
+</table></div>
+<figure><img src='figures/mc_slew_img_settle_time_after_slew.png' alt='mc slew img settle time after slew' loading='lazy'></figure>
+<figure><img src='figures/mc_slew_img_ape_los_on_target_p9973.png' alt='mc slew img ape los on target p9973' loading='lazy'></figure>
+<figure><img src='figures/mc_slew_img_wheel_momentum_peak.png' alt='mc slew img wheel momentum peak' loading='lazy'></figure>
+<figure><img src='figures/mc_slew_img_scatter.png' alt='mc slew img scatter' loading='lazy'></figure>
+<h3 id='mc_slew_cmg'>mc_slew_cmg</h3>
+<p class='muted'>Monte Carlo · scenario <b>slew_cmg</b> · case <b>ais_img_3u</b> · 20 runs · dispersed: mass properties, magnetic dipole, CM offset, surface properties, space weather, initial conditions, and every part error from its descriptor.</p>
+<div class='scroll'><table><tr><th>metric</th><th>mean</th><th>std</th><th>ensemble percentile</th><th>required</th><th>runs passing</th><th>verdict</th></tr>
+<tr><td>settle_time_after_slew</td><td>13.14</td><td>0.46</td><td>p95: 13.8 s</td><td>20</td><td>100%</td><td class='pass'>✔ PASS</td></tr>
+<tr><td>ape_los_on_target_p9973</td><td>0.003931</td><td>0.000635</td><td>p99.73: 0.005957 deg</td><td>0.01</td><td>100%</td><td class='pass'>✔ PASS</td></tr>
+<tr><td>wheel_momentum_peak</td><td>0.004</td><td>0</td><td>p95: 0.004 N m s</td><td>—</td><td>—</td><td class=''>—</td></tr>
+</table></div>
+<figure><img src='figures/mc_slew_cmg_settle_time_after_slew.png' alt='mc slew cmg settle time after slew' loading='lazy'></figure>
+<figure><img src='figures/mc_slew_cmg_ape_los_on_target_p9973.png' alt='mc slew cmg ape los on target p9973' loading='lazy'></figure>
+<figure><img src='figures/mc_slew_cmg_wheel_momentum_peak.png' alt='mc slew cmg wheel momentum peak' loading='lazy'></figure>
+<figure><img src='figures/mc_slew_cmg_scatter.png' alt='mc slew cmg scatter' loading='lazy'></figure>
+<h3 id='mc_agile_rw_rcs'>mc_agile_rw_rcs</h3>
+<p class='muted'>Monte Carlo · scenario <b>agile_slew_rw_rcs</b> · case <b>ais_img_3u</b> · 20 runs · dispersed: mass properties, magnetic dipole, CM offset, surface properties, space weather, initial conditions, and every part error from its descriptor.</p>
+<div class='scroll'><table><tr><th>metric</th><th>mean</th><th>std</th><th>ensemble percentile</th><th>required</th><th>runs passing</th><th>verdict</th></tr>
+<tr><td>settle_time_after_slew</td><td>38.66</td><td>2.7</td><td>p95: 42.4 s</td><td>—</td><td>—</td><td class=''>—</td></tr>
+<tr><td>ape_los_on_target_p9973</td><td>0.008337</td><td>0.000712</td><td>p99.73: 0.00977 deg</td><td>0.01</td><td>100%</td><td class='pass'>✔ PASS</td></tr>
+<tr><td>wheel_momentum_peak</td><td>0.003391</td><td>4.68e-05</td><td>p95: 0.003461 N m s</td><td>—</td><td>—</td><td class=''>—</td></tr>
+</table></div>
+<figure><img src='figures/mc_agile_rw_rcs_settle_time_after_slew.png' alt='mc agile rw rcs settle time after slew' loading='lazy'></figure>
+<figure><img src='figures/mc_agile_rw_rcs_ape_los_on_target_p9973.png' alt='mc agile rw rcs ape los on target p9973' loading='lazy'></figure>
+<figure><img src='figures/mc_agile_rw_rcs_wheel_momentum_peak.png' alt='mc agile rw rcs wheel momentum peak' loading='lazy'></figure>
+<figure><img src='figures/mc_agile_rw_rcs_scatter.png' alt='mc agile rw rcs scatter' loading='lazy'></figure>
+<p class='muted'>Copyright © 2026 Agastya. All rights reserved.</p></main>

@@ -40,6 +40,8 @@ MODES = ["detumble", "nadir_mtq", "nadir_fine", "target_fine", "slew_fine", "spi
 
 def load_run(d):
     man = json.loads((d / "manifest.json").read_text())
+    for k in ("metrics", "mode_log"):          # a one-element struct array is written as an object
+        if isinstance(man.get(k), dict): man[k] = [man[k]]
     with open(d / "channels.csv") as f:
         r = csv.reader(f)
         hdr = next(r)
@@ -561,6 +563,15 @@ def write_selection(trades):
          "   power or propellant.",
          "5. **Promotion.** The confirmed winner goes into the product's `[selected]` table, so every later",
          "   scenario and campaign on that product flies it without restating it.", "",
+         "## Corrections in this batch", "",
+         "- **Fluid-ring pump field power.** The ring model now counts the pump's field power while the",
+         "  loop pumps (IDMAS v2 §03C: 1–3 W per unit, 2 W for SYN-MFP-1). A loop spins down in about 1 s,",
+         "  so it pumps whenever it holds momentum. Earlier runs left this out (about 0.05 W instead of",
+         "  about 4 W for three rings), and that flipped the fine-hold hardware trade: the CMG pyramid now",
+         "  holds the camera as well as the rings at under half their power. The pump field power is the",
+         "  number to engineer down for the fluid loop, for example with a permanent-magnet yoke.",
+         "- **Rings with and without RCS tie on the fine hold.** The thrusters are not used while holding.",
+         "  RCS pays off in agility (the agile-slew trade) and in momentum dumping.", "",
          "## Proposals", "", "| trade | slot | product | proposed | rationale |", "|---|---|---|---|---|"]
     for T in trades:
         L.append(f"| {T['label']} | `{T.get('slot','')}` | {T.get('promote_to','') or '—'} | **{T.get('selected') or 'none'}** | {T.get('rationale','')} |")
