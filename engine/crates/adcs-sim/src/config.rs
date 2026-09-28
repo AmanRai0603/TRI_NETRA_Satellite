@@ -225,6 +225,19 @@ impl Config {
                 cfg.orbit_model = val.clone();
                 continue;
             }
+            // truth dispersions (asils.campaign.draw): the plant changes, the flight software keeps
+            // the nominal (ground-calibrated) inertia and residual dipole it was loaded with
+            if val.trim_start().starts_with('[') {
+                let a: Vec<f64> = serde_json::from_str(&val).map_err(|_| format!("{k}: not a [x, y, z] vector"))?;
+                if a.len() != 3 { return Err(format!("{k}: needs 3 values")); }
+                match k.as_str() {
+                    "engine.inertia_scale" => for i in 0..3 { cfg.inertia[i][i] *= a[i]; },
+                    "engine.cm_offset_m" => cfg.cm_offset_m = [a[0], a[1], a[2]],
+                    "engine.m_res" => cfg.m_res = [a[0], a[1], a[2]],
+                    _ => return Err(format!("unknown engine vector override {k}")),
+                }
+                continue;
+            }
             let x: f64 = val.parse().map_err(|_| format!("{k}: not a number"))?;
             match k.as_str() {
                 "engine.density_scale" => cfg.density_scale = x,
@@ -236,6 +249,9 @@ impl Config {
                 "engine.f107a" => cfg.f107a = x,
                 "engine.kp" => cfg.kp = x,
                 "engine.ap" => cfg.ap = x,
+                "engine.accommodation" => { cfg.sigma_n = x; cfg.sigma_t = x; }
+                "engine.refl" => cfg.refl = x,
+                "engine.mass_kg" => cfg.mass_kg = x,
                 _ => return Err(format!("unknown engine override {k}")),
             }
         }

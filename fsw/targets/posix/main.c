@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 #include <unistd.h>
 #include <netinet/in.h>
 #include <netinet/tcp.h>
@@ -34,10 +35,17 @@ static void write_(void *c, const uint8_t *b, size_t n)
     flush_(s);
 }
 
+static uint32_t clock_(void *c)
+{
+    struct timespec t; (void)c;
+    clock_gettime(CLOCK_MONOTONIC, &t);
+    return (uint32_t)((uint64_t)t.tv_sec*1000000000u + (uint64_t)t.tv_nsec);
+}
+
 int main(int argc, char **argv)
 {
     static io_t s;
-    adcs_link_io_t io = { getc_, write_, &s };
+    adcs_link_io_t io = { getc_, write_, &s, clock_, 1000000000u, 0xFFFFFFFFu };
     s.fd_in = 0; s.fd_out = 1;
     if (argc == 3 && strcmp(argv[1], "--listen") == 0) {
         int ls = socket(AF_INET, SOCK_STREAM, 0), one = 1, c;

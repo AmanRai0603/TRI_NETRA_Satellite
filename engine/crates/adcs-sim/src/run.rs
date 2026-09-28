@@ -82,10 +82,54 @@ pub struct Row {
     pub sun_ok: bool, pub st_ok: bool, pub ad_ok: bool, pub sun_eci: V3, pub sun_body: V3,
 }
 
-pub struct Record { pub rows: Vec<Row>, pub nr: usize, pub ng: usize, pub raan_rad: f64, pub mode_log: Vec<(f64, String)>, pub wall_s: f64, pub fsw_build: String, pub fsw_impl: Impl }
+pub struct Record { pub rows: Vec<Row>, pub nr: usize, pub ng: usize, pub raan_rad: f64, pub mode_log: Vec<(f64, String)>, pub wall_s: f64, pub fsw_build: String, pub fsw_impl: Impl,
+    pub oils: Option<OilsStats> }
 
 pub struct Opts { pub fsw: Impl, pub quiet: bool, /// pace ticks to wall-clock time (OILS / HILS with a real OBC)
-    pub realtime: bool }
+    pub realtime: bool,
+    /// soft OILS: the OBC's execution and bus time delay each command inside its control period
+    pub oils: Option<OilsModel> }
+
+/// Soft-OILS timing model (docs/SOFT_OILS.md). Per tick the command reaches the actuators
+///   latency = sensor reads on the buses + OBC execution + CAN command frames
+/// after the sample; until then the previous command holds. The OBC execution is the step's
+/// exact instruction count on QEMU (-icount) x CPI / core clock, or the host-measured time on a
+/// process OBC. A latency of a whole period or more is an overrun: the command lands a tick late.
+#[derive(Clone, Debug)]
+pub struct OilsModel { pub cpu_hz: f64, pub cpi: f64, pub i2c_hz: f64, pub spi_hz: f64, pub can_bps: f64 }
+impl Default for OilsModel {
+    /// A Cortex-M4F OBC at 168 MHz (STM32F4 class, flash accelerator on: CPI ~1.25),
+    /// I2C fast mode, SPI 1 MHz, CAN 1 Mbit/s.
+    fn default() -> Self { OilsModel { cpu_hz: 168e6, cpi: 1.25, i2c_hz: 400e3, spi_hz: 1e6, can_bps: 1e6 } }
+}
+
+#[derive(Clone, Debug, Default)]
+pub struct OilsStats {
+    pub model: Option<(f64, f64, f64, f64, f64)>,
+    pub ticks: u64, pub overruns: u64,
+    pub exec_s: Vec<f64>, pub io_s: Vec<f64>, pub lat_s: Vec<f64>, pub insn: Vec<f64>,
+}
+impl OilsStats {
+    fn pct(v: &[f64], p: f64) -> f64 {
+        if v.is_empty() { return f64::NAN; }
+        let mut s = v.to_vec(); s.sort_by(|a, b| a.partial_cmp(b).unwrap());
+        s[((p/100.0*(s.len() - 1) as f64).round() as usize).min(s.len() - 1)]
+    }
+    fn mean(v: &[f64]) -> f64 { if v.is_empty() { f64::NAN } else { v.iter().sum::<f64>()/v.len() as f64 } }
+    fn max(v: &[f64]) -> f64 { v.iter().cloned().fold(f64::NAN, f64::max) }
+    pub fn json(&self, dt: f64) -> serde_json::Value {
+        let s = |v: &[f64]| serde_json::json!({"mean": Self::mean(v), "p99": Self::pct(v, 99.0), "max": Self::max(v)});
+        let (hz, cpi, i2c, spi, can) = self.model.unwrap_or_default();
+        serde_json::json!({
+            "model": {"cpu_hz": hz, "cpi": cpi, "i2c_hz": i2c, "spi_hz": spi, "can_bps": can},
+            "ticks": self.ticks, "overruns": self.overruns, "control_period_s": dt,
+            "exec_s": s(&self.exec_s), "bus_s": s(&self.io_s), "latency_s": s(&self.lat_s),
+            "instructions": if self.insn.is_empty() { serde_json::Value::Null } else { s(&self.insn) },
+            "cpu_load_mean": Self::mean(&self.exec_s)/dt, "cpu_load_max": Self::max(&self.exec_s)/dt,
+            "deadline_margin_min_s": dt - Self::max(&self.lat_s),
+        })
+    }
+}
 
 fn mode_changes(log: &mut Vec<(f64, String)>, t: f64, m: u8) {
     let name = crate::config::MODES.get(m as usize).copied().unwrap_or("none").to_string();
@@ -187,6 +231,10 @@ pub fn run(c: &Config, o: &Opts) -> Result<Record, String> {
     let (mut b_eci, mut sun_rel, mut nu, mut v_rel, mut rho, mut psrp) = ([0.0; 3], [1.0, 0.0, 0.0], 1.0, [0.0; 3], 0.0, 0.0);
     let mut last_print = std::time::Instant::now();
     let mut can_rx_count = 0usize;
+    // soft OILS: the actuation that holds until this tick's command lands
+    let mut oils = o.oils.as_ref().map(|m| OilsStats { model: Some((m.cpu_hz, m.cpi, m.i2c_hz, m.spi_hz, m.can_bps)), ..Default::default() });
+    if oils.is_some() && !matches!(o.fsw, Impl::Obc(_)) { return Err("soft OILS needs the flight software on a virtual OBC (--fsw qemu | qemu-rs | obc-posix ...)".into()); }
+    let (mut held_m, mut held_hdot, mut held_gdot, mut held_rcs) = ([0.0; 3], [0.0; NR], [0.0; NG], [0.0; 3]);
     for k in 0..=n {
         let t = k as f64*dt;
         let (r, v) = orb.state(t)?;
@@ -260,6 +308,23 @@ pub fn run(c: &Config, o: &Opts) -> Result<Record, String> {
         let now = bus.now_ns;
         let rc = fsw.step(&mut bus, now);
         if rc != 0 { return Err(format!("flight software step returned {rc} at t = {t}")); }
+        // soft OILS: when does this command reach the actuators?
+        let mut lat = 0.0;
+        if let (Some(st), Some(m)) = (oils.as_mut(), o.oils.as_ref()) {
+            let (exec, insn) = match fsw.obc_exec() {
+                Some((_, Some(n))) => (n*m.cpi/m.cpu_hz, Some(n)),
+                Some((s, None)) => (s, None),
+                None => (0.0, None),
+            };
+            // synchronous reads inside the step: I2C (addr + reg, restart, 7 bytes), SPI gyro (13 bytes)
+            let i2c = [bus.mag.is_some(), bus.sun.is_some(), bus.es.is_some()].iter().filter(|x| **x).count() as f64;
+            let io = i2c*10.0*9.0/m.i2c_hz + if bus.gyro.is_some() { 13.0*8.0/m.spi_hz } else { 0.0 }
+                + bus.can_tx.len() as f64*130.0/m.can_bps;
+            lat = io + exec;
+            st.ticks += 1; st.exec_s.push(exec); st.io_s.push(io); st.lat_s.push(lat);
+            if let Some(n) = insn { st.insn.push(n); }
+            if lat >= dt { st.overruns += 1; }
+        }
         let mut cmd = Commands::default();
         emu::decode_pwm(&bus.pwm, if d.mtq.fitted { d.mtq.m_max } else { 1.0 }, &mut cmd);
         for f in bus.can_tx.drain(..) { emu::decode_can(f.id, &f.data, &tmax, p.gim_rate_max, dt, &mut cmd); }
@@ -307,7 +372,19 @@ pub fn run(c: &Config, o: &Opts) -> Result<Record, String> {
             if due > el { std::thread::sleep(due - el); }
         }
         let tau_ext = add(&add(&tau_d, &tau_mtq), &tau_rcs);
-        x = plant::step(&x, dt, &body, &tau_ext, &hdot, &gdot);
+        if oils.is_some() {
+            // the previous actuation holds for the latency, then this tick's command acts
+            let held_ext = add(&add(&tau_d, &cross(&held_m, &b_b)), &held_rcs);
+            if lat >= dt {
+                x = plant::step(&x, dt, &body, &held_ext, &held_hdot, &held_gdot);
+            } else {
+                if lat > 0.0 { x = plant::step(&x, lat, &body, &held_ext, &held_hdot, &held_gdot); }
+                x = plant::step(&x, dt - lat, &body, &tau_ext, &hdot, &gdot);
+            }
+            held_m = m_b; held_hdot = hdot; held_gdot = gdot; held_rcs = tau_rcs;
+        } else {
+            x = plant::step(&x, dt, &body, &tau_ext, &hdot, &gdot);
+        }
         if !o.quiet && last_print.elapsed().as_secs_f64() > 10.0 {
             last_print = std::time::Instant::now();
             eprintln!("  t = {:7.0} / {:.0} s  mode {:<13} |w| {:.3} deg/s  ({:.0} s wall)", t, c.duration_s,
@@ -315,5 +392,5 @@ pub fn run(c: &Config, o: &Opts) -> Result<Record, String> {
         }
     }
     let _ = (can_rx_count, GUID);
-    Ok(Record { rows, nr, ng, raan_rad: raan, mode_log: log, wall_s: wall.elapsed().as_secs_f64(), fsw_build, fsw_impl: o.fsw.clone() })
+    Ok(Record { rows, nr, ng, raan_rad: raan, mode_log: log, wall_s: wall.elapsed().as_secs_f64(), fsw_build, fsw_impl: o.fsw.clone(), oils })
 }

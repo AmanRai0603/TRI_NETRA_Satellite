@@ -7,6 +7,16 @@
 
 int32_t adcs_fsw_debug(double *out, int n);      /* extension, both builds export it */
 
+/* Step markers for the QEMU instruction counter (fsw/targets/qemu-mps2/insn_count.c):
+ * `mov r9, r9` and `mov r10, r10` do nothing and no compiler emits them. */
+#if defined(__thumb__)
+#define MARK_START() __asm volatile (".hword 0x46C9" ::: "memory")
+#define MARK_STOP()  __asm volatile (".hword 0x46D2" ::: "memory")
+#else
+#define MARK_START() ((void)0)
+#define MARK_STOP()  ((void)0)
+#endif
+
 #define RXCAP 1024
 static struct {
     uint64_t now;
@@ -122,6 +132,7 @@ static void ack(const adcs_link_io_t *io, int32_t rc, const char *id)
 static void tick(const adcs_link_io_t *io, const uint8_t *p, uint16_t len)
 {
     int k = 0, i, port, n, rc;
+    uint32_t c0, c1;
     double dbg[48];
     uint8_t *o = out + 5;
     union { double d; uint64_t u; } cv;
@@ -137,7 +148,11 @@ static void tick(const adcs_link_io_t *io, const uint8_t *p, uint16_t len)
     L.ncan = p[k++]; L.can_i = 0; if (L.ncan > 32) L.ncan = 32;
     for (i = 0; i < L.ncan; i++) { L.canq[i].id = r32(p + k); L.canq[i].extended = 0; L.canq[i].dlc = p[k + 4]; cpy(L.canq[i].data, p + k + 5, 8); k += 13; }
     L.ntx = 0;
+    c0 = io->clock ? io->clock(io->ctx) : 0u;
+    MARK_START();
     rc = adcs_fsw_step(L.now);
+    MARK_STOP();
+    c1 = io->clock ? io->clock(io->ctx) : 0u;
     k = 0;
     w32(o, (uint32_t)rc); k = 4;
     for (i = 0; i < 8; i++) { w16(o + k, (uint16_t)L.pwm[i]); k += 2; }
@@ -146,6 +161,8 @@ static void tick(const adcs_link_io_t *io, const uint8_t *p, uint16_t len)
     n = adcs_fsw_debug(dbg, 48); if (n > 48) n = 48; if (n < 0) n = 0;
     o[k++] = (uint8_t)n;
     for (i = 0; i < n; i++) { cv.d = dbg[i]; w32(o + k, (uint32_t)cv.u); w32(o + k + 4, (uint32_t)(cv.u >> 32)); k += 8; }
+    w32(o + k, io->clock ? (c1 - c0) & io->clock_mask : 0u); k += 4;
+    w32(o + k, io->clock ? io->clock_hz : 0u); k += 4;
     send(io, LINK_OUT, (size_t)k);
 }
 

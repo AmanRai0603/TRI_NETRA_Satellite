@@ -29,9 +29,9 @@ fn lqr_matches_matlab() {
 #[test]
 fn run_twice_identical_and_c_equals_rust() {
     let c = cfg("fine_hold_img", 300.0);
-    let a = run::run(&c, &run::Opts { fsw: Impl::C, quiet: true, realtime: false }).unwrap();
-    let b = run::run(&c, &run::Opts { fsw: Impl::C, quiet: true, realtime: false }).unwrap();
-    let r = run::run(&c, &run::Opts { fsw: Impl::Rust, quiet: true, realtime: false }).unwrap();
+    let a = run::run(&c, &run::Opts { fsw: Impl::C, quiet: true, realtime: false, oils: None }).unwrap();
+    let b = run::run(&c, &run::Opts { fsw: Impl::C, quiet: true, realtime: false, oils: None }).unwrap();
+    let r = run::run(&c, &run::Opts { fsw: Impl::Rust, quiet: true, realtime: false, oils: None }).unwrap();
     assert_eq!(a.rows.len(), r.rows.len());
     for ((x, y), z) in a.rows.iter().zip(&b.rows).zip(&r.rows) {
         assert_eq!((x.q, x.w, x.h_w, x.m), (y.q, y.w, y.h_w, y.m), "same process, same run, same bytes");
@@ -42,7 +42,7 @@ fn run_twice_identical_and_c_equals_rust() {
 #[test]
 fn detumble_reduces_rate() {
     let c = cfg("detumble_ais", 3600.0);
-    let r = run::run(&c, &run::Opts { fsw: Impl::Rust, quiet: true, realtime: false }).unwrap();
+    let r = run::run(&c, &run::Opts { fsw: Impl::Rust, quiet: true, realtime: false, oils: None }).unwrap();
     let (w0, w1) = (norm(&r.rows[0].w), norm(&r.rows.last().unwrap().w));
     assert!(w1 < 0.2*w0, "B-dot: {} -> {} deg/s", w0.to_degrees(), w1.to_degrees());
 }
