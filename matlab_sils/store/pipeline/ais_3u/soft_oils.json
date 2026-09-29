@@ -1,13 +1,13 @@
 {
- "_key": "1bbd734fb4b40a4d",
+ "_key": "36233ea2a4f828f8",
  "sils": {
   "rc": 0,
-  "wall_s": 0.8677968978881836,
+  "wall_s": 0.8194804191589355,
   "metrics": [
    {
     "id": "detumble_time",
     "kind": "time_to_rate",
-    "value": 55.641666666666666,
+    "value": 53.458333333333336,
     "unit": "min",
     "req": 284.0,
     "req_key": "req.detumble",
@@ -67,12 +67,12 @@
  },
  "oils": {
   "rc": 0,
-  "wall_s": 1172.3998548984528,
+  "wall_s": 1169.9987754821777,
   "metrics": [
    {
     "id": "detumble_time",
     "kind": "time_to_rate",
-    "value": 55.708333333333336,
+    "value": 53.458333333333336,
     "unit": "min",
     "req": 284.0,
     "req_key": "req.detumble",
@@ -166,12 +166,12 @@
  },
  "oils_rs": {
   "rc": 0,
-  "wall_s": 1205.5328290462494,
+  "wall_s": 1209.0053172111511,
   "metrics": [
    {
     "id": "detumble_time",
     "kind": "time_to_rate",
-    "value": 55.708333333333336,
+    "value": 53.458333333333336,
     "unit": "min",
     "req": 284.0,
     "req_key": "req.detumble",

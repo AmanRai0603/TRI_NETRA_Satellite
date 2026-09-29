@@ -1,0 +1,263 @@
+{
+ "c": {
+  "rc": 0,
+  "build_id": "trinetra-fsw-c/1.0.0 (adcs-fswcfg/1)",
+  "metrics": [
+   {
+    "id": "detumble_time",
+    "kind": "time_to_rate",
+    "value": 49.95666666666667,
+    "unit": "min",
+    "req": 284.0,
+    "req_key": "req.detumble",
+    "pass": 1
+   },
+   {
+    "id": "ape_los_p9973",
+    "kind": "ape_los",
+    "value": 174.15586610629066,
+    "unit": "deg",
+    "req": 10.0,
+    "req_key": "req.ape",
+    "pass": 0
+   },
+   {
+    "id": "ake_los_p9973",
+    "kind": "ake_los",
+    "value": 1.479125515542044,
+    "unit": "deg",
+    "req": 5.0,
+    "req_key": "req.ake",
+    "pass": 1
+   },
+   {
+    "id": "power_mean",
+    "kind": "power_mean",
+    "value": 0.14950523027604673,
+    "unit": "W",
+    "req": 0.5,
+    "req_key": "req.pavg",
+    "pass": 1
+   },
+   {
+    "id": "power_peak",
+    "kind": "power_peak",
+    "value": 0.3539503246115453,
+    "unit": "W",
+    "req": null,
+    "req_key": "",
+    "pass": null
+   },
+   {
+    "id": "propellant",
+    "kind": "propellant",
+    "value": 0.0,
+    "unit": "g",
+    "req": null,
+    "req_key": "",
+    "pass": null
+   }
+  ],
+  "mode_log": [
+   {
+    "t": 0.0,
+    "mode": "detumble"
+   },
+   {
+    "t": 2996.8,
+    "mode": "spinup"
+   },
+   {
+    "t": 5185.8,
+    "mode": "sun_spin"
+   },
+   {
+    "t": 5246.0,
+    "mode": "spinup"
+   },
+   {
+    "t": 5380.8,
+    "mode": "sun_spin"
+   },
+   {
+    "t": 5436.8,
+    "mode": "spinup"
+   },
+   {
+    "t": 6265.200000000001,
+    "mode": "sun_spin"
+   },
+   {
+    "t": 6324.6,
+    "mode": "spinup"
+   },
+   {
+    "t": 7872.8,
+    "mode": "sun_spin"
+   },
+   {
+    "t": 8264.4,
+    "mode": "spinup"
+   },
+   {
+    "t": 8841.2,
+    "mode": "sun_spin"
+   },
+   {
+    "t": 8890.0,
+    "mode": "spinup"
+   },
+   {
+    "t": 9016.6,
+    "mode": "sun_spin"
+   },
+   {
+    "t": 9136.800000000001,
+    "mode": "spinup"
+   },
+   {
+    "t": 9376.2,
+    "mode": "sun_spin"
+   },
+   {
+    "t": 10976.6,
+    "mode": "spinup"
+   },
+   {
+    "t": 11478.0,
+    "mode": "nadir_mtq"
+   }
+  ]
+ },
+ "rust": {
+  "rc": 0,
+  "build_id": "trinetra-fsw-rs/1.0.0 (adcs-fswcfg/1)",
+  "metrics": [
+   {
+    "id": "detumble_time",
+    "kind": "time_to_rate",
+    "value": 49.95666666666667,
+    "unit": "min",
+    "req": 284.0,
+    "req_key": "req.detumble",
+    "pass": 1
+   },
+   {
+    "id": "ape_los_p9973",
+    "kind": "ape_los",
+    "value": 174.15586610629066,
+    "unit": "deg",
+    "req": 10.0,
+    "req_key": "req.ape",
+    "pass": 0
+   },
+   {
+    "id": "ake_los_p9973",
+    "kind": "ake_los",
+    "value": 1.479125515542044,
+    "unit": "deg",
+    "req": 5.0,
+    "req_key": "req.ake",
+    "pass": 1
+   },
+   {
+    "id": "power_mean",
+    "kind": "power_mean",
+    "value": 0.14950523027604673,
+    "unit": "W",
+    "req": 0.5,
+    "req_key": "req.pavg",
+    "pass": 1
+   },
+   {
+    "id": "power_peak",
+    "kind": "power_peak",
+    "value": 0.3539503246115453,
+    "unit": "W",
+    "req": null,
+    "req_key": "",
+    "pass": null
+   },
+   {
+    "id": "propellant",
+    "kind": "propellant",
+    "value": 0.0,
+    "unit": "g",
+    "req": null,
+    "req_key": "",
+    "pass": null
+   }
+  ],
+  "mode_log": [
+   {
+    "t": 0.0,
+    "mode": "detumble"
+   },
+   {
+    "t": 2996.8,
+    "mode": "spinup"
+   },
+   {
+    "t": 5185.8,
+    "mode": "sun_spin"
+   },
+   {
+    "t": 5246.0,
+    "mode": "spinup"
+   },
+   {
+    "t": 5380.8,
+    "mode": "sun_spin"
+   },
+   {
+    "t": 5436.8,
+    "mode": "spinup"
+   },
+   {
+    "t": 6265.200000000001,
+    "mode": "sun_spin"
+   },
+   {
+    "t": 6324.6,
+    "mode": "spinup"
+   },
+   {
+    "t": 7872.8,
+    "mode": "sun_spin"
+   },
+   {
+    "t": 8264.4,
+    "mode": "spinup"
+   },
+   {
+    "t": 8841.2,
+    "mode": "sun_spin"
+   },
+   {
+    "t": 8890.0,
+    "mode": "spinup"
+   },
+   {
+    "t": 9016.6,
+    "mode": "sun_spin"
+   },
+   {
+    "t": 9136.800000000001,
+    "mode": "spinup"
+   },
+   {
+    "t": 9376.2,
+    "mode": "sun_spin"
+   },
+   {
+    "t": 10976.6,
+    "mode": "spinup"
+   },
+   {
+    "t": 11478.0,
+    "mode": "nadir_mtq"
+   }
+  ]
+ },
+ "c_equals_rust_bitwise": true
+}

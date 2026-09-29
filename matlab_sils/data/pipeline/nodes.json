@@ -290,7 +290,8 @@
    "does": "The knob changes the failures call for; converged when nothing is left to change.",
    "inputs": [
     "assess",
-    "select"
+    "select",
+    "mc (robustness feedback)"
    ],
    "outputs": [
     "loop.json"
@@ -378,18 +379,48 @@
    "id": "mc",
    "stage": "verification",
    "runs_in": "Rust engine",
-   "does": "Monte Carlo of the dispatched mission with the case's dispersions (truth dispersed, flight software nominal).",
+   "does": "Monte Carlo of the dispatched mission with the case's dispersions (truth dispersed, flight software nominal). It feeds back: a requirement that fails in any dispersed run is a failure the loop must fix.",
    "inputs": [
     "dispatch"
    ],
    "outputs": [
-    "matlab_sils/store/pipeline/<case>/mc/summary.json"
+    "matlab_sils/store/pipeline/<case>/mc/summary.json",
+    "selection.json -> robustness"
    ],
    "parameters": {
-    "runs": 12
+    "runs": 12,
+    "robustness_passes": 3
    },
    "rules": [
-    "dispersions as asils.campaign.draw"
+    "dispersions as asils.campaign.draw",
+    "every requirement metric must pass in every run; otherwise, for the selected family:",
+    "power -> pump with more copper (lambda x3) and the lighter-pump lever closed",
+    "performance -> the family's authority x1.5 and its authority-down lever closed",
+    "knowledge -> the star tracker on a coarse product",
+    "the loop then runs on from the new knobs (sizing, matrix, converge, select, dispatch, mc) up to robustness_passes times"
+   ]
+  },
+  {
+   "id": "family_missions",
+   "stage": "verification",
+   "runs_in": "Rust engine + C and Rust flight software",
+   "does": "Every one of our solution families, selected or not (coils only, coils + fluid loop, coils + fluid loop + RCS), dispatched and flown as the full mission (detumble -> Sun acquisition -> nadir) with its best methods from the loop, in C and Rust, and by Monte Carlo, so each family's behaviour is on record beside the selection.",
+   "inputs": [
+    "select",
+    "budget"
+   ],
+   "outputs": [
+    "matlab_sils/store/pipeline/<case>/families.json",
+    "matlab_sils/store/pipeline/<case>/families/<family>/{package,dispatch,mc}/"
+   ],
+   "parameters": {
+    "role": "solution",
+    "monte_carlo_runs": "as node mc"
+   },
+   "rules": [
+    "the selected family reuses its dispatch and mc outputs",
+    "a family that is not feasible is still flown: its gaps show in its mission metrics",
+    "C and Rust must agree bit for bit for every family"
    ]
   },
   {

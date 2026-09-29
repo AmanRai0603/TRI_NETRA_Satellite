@@ -1,0 +1,1419 @@
+{
+ "passed": 199,
+ "checks": 199,
+ "nodes": [
+  "case",
+  "catalogue",
+  "demand",
+  "size_mtq",
+  "size_fmr",
+  "size_rcs",
+  "select_rotor",
+  "size_sensors",
+  "budget",
+  "matrix",
+  "assess",
+  "converge",
+  "select",
+  "dispatch",
+  "mc",
+  "family_missions",
+  "soft_oils",
+  "report"
+ ],
+ "rows": [
+  {
+   "node": "nodes",
+   "case": "\u2014",
+   "check": "registry: unique node ids with inputs, outputs and rules",
+   "ok": true,
+   "detail": "18 nodes"
+  },
+  {
+   "node": "case",
+   "case": "ais_3u",
+   "check": "case file with mass and volume budgets",
+   "ok": true,
+   "detail": "1.6 kg, 1.0 L"
+  },
+  {
+   "node": "case",
+   "case": "ais_img_3u",
+   "check": "case file with mass and volume budgets",
+   "ok": true,
+   "detail": "1.6 kg, 1.0 L"
+  },
+  {
+   "node": "catalogue",
+   "case": "\u2014",
+   "check": "catalogue files present",
+   "ok": true,
+   "detail": "19 models"
+  },
+  {
+   "node": "catalogue",
+   "case": "\u2014",
+   "check": "CAT-AAC-CLYDE-SPACE-RW222-3: source and schema",
+   "ok": true,
+   "detail": "manufacturer datasheet"
+  },
+  {
+   "node": "catalogue",
+   "case": "\u2014",
+   "check": "CAT-AAC-CLYDE-SPACE-RW222-3: selectable iff momentum, torque, mass and steady power are stated",
+   "ok": true,
+   "detail": "missing mass_g, power_steady_W"
+  },
+  {
+   "node": "catalogue",
+   "case": "\u2014",
+   "check": "CAT-AAC-CLYDE-SPACE-RW222-6: source and schema",
+   "ok": true,
+   "detail": "manufacturer datasheet"
+  },
+  {
+   "node": "catalogue",
+   "case": "\u2014",
+   "check": "CAT-AAC-CLYDE-SPACE-RW222-6: selectable iff momentum, torque, mass and steady power are stated",
+   "ok": true,
+   "detail": "missing mass_g, power_steady_W"
+  },
+  {
+   "node": "catalogue",
+   "case": "\u2014",
+   "check": "CAT-AAC-CLYDE-SPACE-RW400-15: source and schema",
+   "ok": true,
+   "detail": "manufacturer datasheet"
+  },
+  {
+   "node": "catalogue",
+   "case": "\u2014",
+   "check": "CAT-AAC-CLYDE-SPACE-RW400-15: selectable iff momentum, torque, mass and steady power are stated",
+   "ok": true,
+   "detail": "missing torque_mNm, mass_g, power_steady_W"
+  },
+  {
+   "node": "catalogue",
+   "case": "\u2014",
+   "check": "CAT-AAC-CLYDE-SPACE-RW400-30: source and schema",
+   "ok": true,
+   "detail": "manufacturer datasheet"
+  },
+  {
+   "node": "catalogue",
+   "case": "\u2014",
+   "check": "CAT-AAC-CLYDE-SPACE-RW400-30: selectable iff momentum, torque, mass and steady power are stated",
+   "ok": true,
+   "detail": "missing torque_mNm, mass_g, power_steady_W"
+  },
+  {
+   "node": "catalogue",
+   "case": "\u2014",
+   "check": "CAT-AAC-CLYDE-SPACE-RW400-50: source and schema",
+   "ok": true,
+   "detail": "manufacturer datasheet"
+  },
+  {
+   "node": "catalogue",
+   "case": "\u2014",
+   "check": "CAT-AAC-CLYDE-SPACE-RW400-50: selectable iff momentum, torque, mass and steady power are stated",
+   "ok": true,
+   "detail": "missing torque_mNm, power_steady_W"
+  },
+  {
+   "node": "catalogue",
+   "case": "\u2014",
+   "check": "CAT-CUBESPACE-CUBEWHEEL-CW0017: source and schema",
+   "ok": true,
+   "detail": "manufacturer datasheet (distributor mirror)"
+  },
+  {
+   "node": "catalogue",
+   "case": "\u2014",
+   "check": "CAT-CUBESPACE-CUBEWHEEL-CW0017: selectable iff momentum, torque, mass and steady power are stated",
+   "ok": true,
+   "detail": "selectable"
+  },
+  {
+   "node": "catalogue",
+   "case": "\u2014",
+   "check": "CAT-CUBESPACE-CUBEWHEEL-CW0017: derived values follow the datasheet",
+   "ok": true,
+   "detail": "h, torque, mass, power, J w = h"
+  },
+  {
+   "node": "catalogue",
+   "case": "\u2014",
+   "check": "CAT-CUBESPACE-CUBEWHEEL-CW0057: source and schema",
+   "ok": true,
+   "detail": "manufacturer datasheet (distributor mirror)"
+  },
+  {
+   "node": "catalogue",
+   "case": "\u2014",
+   "check": "CAT-CUBESPACE-CUBEWHEEL-CW0057: selectable iff momentum, torque, mass and steady power are stated",
+   "ok": true,
+   "detail": "selectable"
+  },
+  {
+   "node": "catalogue",
+   "case": "\u2014",
+   "check": "CAT-CUBESPACE-CUBEWHEEL-CW0057: derived values follow the datasheet",
+   "ok": true,
+   "detail": "h, torque, mass, power, J w = h"
+  },
+  {
+   "node": "catalogue",
+   "case": "\u2014",
+   "check": "CAT-CUBESPACE-CUBEWHEEL-CW0162: source and schema",
+   "ok": true,
+   "detail": "manufacturer datasheet (distributor mirror)"
+  },
+  {
+   "node": "catalogue",
+   "case": "\u2014",
+   "check": "CAT-CUBESPACE-CUBEWHEEL-CW0162: selectable iff momentum, torque, mass and steady power are stated",
+   "ok": true,
+   "detail": "selectable"
+  },
+  {
+   "node": "catalogue",
+   "case": "\u2014",
+   "check": "CAT-CUBESPACE-CUBEWHEEL-CW0162: derived values follow the datasheet",
+   "ok": true,
+   "detail": "h, torque, mass, power, J w = h"
+  },
+  {
+   "node": "catalogue",
+   "case": "\u2014",
+   "check": "CAT-CUBESPACE-CUBEWHEEL-CW0500: source and schema",
+   "ok": true,
+   "detail": "manufacturer datasheet (distributor mirror)"
+  },
+  {
+   "node": "catalogue",
+   "case": "\u2014",
+   "check": "CAT-CUBESPACE-CUBEWHEEL-CW0500: selectable iff momentum, torque, mass and steady power are stated",
+   "ok": true,
+   "detail": "selectable"
+  },
+  {
+   "node": "catalogue",
+   "case": "\u2014",
+   "check": "CAT-CUBESPACE-CUBEWHEEL-CW0500: derived values follow the datasheet",
+   "ok": true,
+   "detail": "h, torque, mass, power, J w = h"
+  },
+  {
+   "node": "catalogue",
+   "case": "\u2014",
+   "check": "CAT-CUBESPACE-CUBEWHEEL-CW1200: source and schema",
+   "ok": true,
+   "detail": "manufacturer datasheet (distributor mirror)"
+  },
+  {
+   "node": "catalogue",
+   "case": "\u2014",
+   "check": "CAT-CUBESPACE-CUBEWHEEL-CW1200: selectable iff momentum, torque, mass and steady power are stated",
+   "ok": true,
+   "detail": "selectable"
+  },
+  {
+   "node": "catalogue",
+   "case": "\u2014",
+   "check": "CAT-CUBESPACE-CUBEWHEEL-CW1200: derived values follow the datasheet",
+   "ok": true,
+   "detail": "h, torque, mass, power, J w = h"
+  },
+  {
+   "node": "catalogue",
+   "case": "\u2014",
+   "check": "CAT-CUBESPACE-CUBEWHEEL-CW2500: source and schema",
+   "ok": true,
+   "detail": "manufacturer datasheet (distributor mirror)"
+  },
+  {
+   "node": "catalogue",
+   "case": "\u2014",
+   "check": "CAT-CUBESPACE-CUBEWHEEL-CW2500: selectable iff momentum, torque, mass and steady power are stated",
+   "ok": true,
+   "detail": "selectable"
+  },
+  {
+   "node": "catalogue",
+   "case": "\u2014",
+   "check": "CAT-CUBESPACE-CUBEWHEEL-CW2500: derived values follow the datasheet",
+   "ok": true,
+   "detail": "h, torque, mass, power, J w = h"
+  },
+  {
+   "node": "catalogue",
+   "case": "\u2014",
+   "check": "CAT-CUBESPACE-CUBEWHEEL-CW5000: source and schema",
+   "ok": true,
+   "detail": "manufacturer datasheet (distributor mirror)"
+  },
+  {
+   "node": "catalogue",
+   "case": "\u2014",
+   "check": "CAT-CUBESPACE-CUBEWHEEL-CW5000: selectable iff momentum, torque, mass and steady power are stated",
+   "ok": true,
+   "detail": "selectable"
+  },
+  {
+   "node": "catalogue",
+   "case": "\u2014",
+   "check": "CAT-CUBESPACE-CUBEWHEEL-CW5000: derived values follow the datasheet",
+   "ok": true,
+   "detail": "h, torque, mass, power, J w = h"
+  },
+  {
+   "node": "catalogue",
+   "case": "\u2014",
+   "check": "CAT-ROCKET-LAB-RW3-0-06: source and schema",
+   "ok": true,
+   "detail": "manufacturer datasheet (distributor mirror)"
+  },
+  {
+   "node": "catalogue",
+   "case": "\u2014",
+   "check": "CAT-ROCKET-LAB-RW3-0-06: selectable iff momentum, torque, mass and steady power are stated",
+   "ok": true,
+   "detail": "selectable"
+  },
+  {
+   "node": "catalogue",
+   "case": "\u2014",
+   "check": "CAT-ROCKET-LAB-RW3-0-06: derived values follow the datasheet",
+   "ok": true,
+   "detail": "h, torque, mass, power, J w = h"
+  },
+  {
+   "node": "catalogue",
+   "case": "\u2014",
+   "check": "CAT-ROCKET-LAB-RW3-1-0: source and schema",
+   "ok": true,
+   "detail": "manufacturer datasheet (distributor mirror)"
+  },
+  {
+   "node": "catalogue",
+   "case": "\u2014",
+   "check": "CAT-ROCKET-LAB-RW3-1-0: selectable iff momentum, torque, mass and steady power are stated",
+   "ok": true,
+   "detail": "selectable"
+  },
+  {
+   "node": "catalogue",
+   "case": "\u2014",
+   "check": "CAT-ROCKET-LAB-RW3-1-0: derived values follow the datasheet",
+   "ok": true,
+   "detail": "h, torque, mass, power, J w = h"
+  },
+  {
+   "node": "catalogue",
+   "case": "\u2014",
+   "check": "CAT-ROCKET-LAB-RW-0-003: source and schema",
+   "ok": true,
+   "detail": "manufacturer datasheet (distributor mirror)"
+  },
+  {
+   "node": "catalogue",
+   "case": "\u2014",
+   "check": "CAT-ROCKET-LAB-RW-0-003: selectable iff momentum, torque, mass and steady power are stated",
+   "ok": true,
+   "detail": "missing power_steady_W"
+  },
+  {
+   "node": "catalogue",
+   "case": "\u2014",
+   "check": "CAT-ROCKET-LAB-RW-0-01: source and schema",
+   "ok": true,
+   "detail": "manufacturer datasheet (distributor mirror)"
+  },
+  {
+   "node": "catalogue",
+   "case": "\u2014",
+   "check": "CAT-ROCKET-LAB-RW-0-01: selectable iff momentum, torque, mass and steady power are stated",
+   "ok": true,
+   "detail": "selectable"
+  },
+  {
+   "node": "catalogue",
+   "case": "\u2014",
+   "check": "CAT-ROCKET-LAB-RW-0-01: derived values follow the datasheet",
+   "ok": true,
+   "detail": "h, torque, mass, power, J w = h"
+  },
+  {
+   "node": "catalogue",
+   "case": "\u2014",
+   "check": "CAT-ROCKET-LAB-RW-0-03: source and schema",
+   "ok": true,
+   "detail": "manufacturer datasheet"
+  },
+  {
+   "node": "catalogue",
+   "case": "\u2014",
+   "check": "CAT-ROCKET-LAB-RW-0-03: selectable iff momentum, torque, mass and steady power are stated",
+   "ok": true,
+   "detail": "selectable"
+  },
+  {
+   "node": "catalogue",
+   "case": "\u2014",
+   "check": "CAT-ROCKET-LAB-RW-0-03: derived values follow the datasheet",
+   "ok": true,
+   "detail": "h, torque, mass, power, J w = h"
+  },
+  {
+   "node": "catalogue",
+   "case": "\u2014",
+   "check": "CAT-TENSOR-TECH-ADCS400: source and schema",
+   "ok": true,
+   "detail": "manufacturer datasheet (distributor mirror)"
+  },
+  {
+   "node": "catalogue",
+   "case": "\u2014",
+   "check": "CAT-TENSOR-TECH-ADCS400: selectable iff momentum, torque, mass and steady power are stated",
+   "ok": true,
+   "detail": "selectable"
+  },
+  {
+   "node": "catalogue",
+   "case": "\u2014",
+   "check": "CAT-TENSOR-TECH-ADCS400: derived values follow the datasheet",
+   "ok": true,
+   "detail": "h, torque, mass, power, J w = h"
+  },
+  {
+   "node": "catalogue",
+   "case": "\u2014",
+   "check": "CAT-TENSOR-TECH-TENSORCMG-10M: source and schema",
+   "ok": true,
+   "detail": "manufacturer datasheet"
+  },
+  {
+   "node": "catalogue",
+   "case": "\u2014",
+   "check": "CAT-TENSOR-TECH-TENSORCMG-10M: selectable iff momentum, torque, mass and steady power are stated",
+   "ok": true,
+   "detail": "missing mass_g, power_steady_W"
+  },
+  {
+   "node": "demand",
+   "case": "ais_3u",
+   "check": "sizing of the final iteration (iter_4) present",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "node": "demand",
+   "case": "ais_3u",
+   "check": "momentum and torque demand positive and finite",
+   "ok": true,
+   "detail": "h_req 1.466e-03 N m s, tau_req 5.757e-05 N m"
+  },
+  {
+   "node": "demand",
+   "case": "ais_3u",
+   "check": "class from req.ake (fine when <= 0.05 deg)",
+   "ok": true,
+   "detail": "coarse"
+  },
+  {
+   "node": "demand",
+   "case": "ais_img_3u",
+   "check": "sizing of the final iteration (iter_9) present",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "node": "demand",
+   "case": "ais_img_3u",
+   "check": "momentum and torque demand positive and finite",
+   "ok": true,
+   "detail": "h_req 1.552e-03 N m s, tau_req 5.757e-05 N m"
+  },
+  {
+   "node": "demand",
+   "case": "ais_img_3u",
+   "check": "class from req.ake (fine when <= 0.05 deg)",
+   "ok": true,
+   "detail": "fine"
+  },
+  {
+   "node": "size_mtq",
+   "case": "ais_3u",
+   "check": "SZ-ais_3u-MTQ: designed part with positive mass",
+   "ok": true,
+   "detail": "0.007606 kg"
+  },
+  {
+   "node": "size_mtq",
+   "case": "ais_3u",
+   "check": "SZ-ais_3u-MTQP: designed part with positive mass",
+   "ok": true,
+   "detail": "0.01521 kg"
+  },
+  {
+   "node": "size_mtq",
+   "case": "ais_img_3u",
+   "check": "SZ-ais_img_3u-MTQ: designed part with positive mass",
+   "ok": true,
+   "detail": "0.005346 kg"
+  },
+  {
+   "node": "size_mtq",
+   "case": "ais_img_3u",
+   "check": "SZ-ais_img_3u-MTQP: designed part with positive mass",
+   "ok": true,
+   "detail": "0.009854 kg"
+  },
+  {
+   "node": "size_fmr",
+   "case": "ais_3u",
+   "check": "SZ-ais_3u-FMR-X: designed part with positive mass",
+   "ok": true,
+   "detail": "0.4901 kg"
+  },
+  {
+   "node": "size_fmr",
+   "case": "ais_3u",
+   "check": "SZ-ais_3u-FMR-Y: designed part with positive mass",
+   "ok": true,
+   "detail": "0.3716 kg"
+  },
+  {
+   "node": "size_fmr",
+   "case": "ais_3u",
+   "check": "SZ-ais_3u-FMR-Z: designed part with positive mass",
+   "ok": true,
+   "detail": "0.3716 kg"
+  },
+  {
+   "node": "size_fmr",
+   "case": "ais_3u",
+   "check": "electromagnetic pump (no permanent magnet), electrode current within the bound",
+   "ok": true,
+   "detail": "DC conduction pump, electromagnet C-core, electrode current 9.83 A, lambda 0.3 kg/W"
+  },
+  {
+   "node": "size_fmr",
+   "case": "ais_img_3u",
+   "check": "SZ-ais_img_3u-FMR-X: designed part with positive mass",
+   "ok": true,
+   "detail": "0.2596 kg"
+  },
+  {
+   "node": "size_fmr",
+   "case": "ais_img_3u",
+   "check": "SZ-ais_img_3u-FMR-Y: designed part with positive mass",
+   "ok": true,
+   "detail": "0.229 kg"
+  },
+  {
+   "node": "size_fmr",
+   "case": "ais_img_3u",
+   "check": "SZ-ais_img_3u-FMR-Z: designed part with positive mass",
+   "ok": true,
+   "detail": "0.229 kg"
+  },
+  {
+   "node": "size_fmr",
+   "case": "ais_img_3u",
+   "check": "electromagnetic pump (no permanent magnet), electrode current within the bound",
+   "ok": true,
+   "detail": "DC conduction pump, electromagnet C-core, electrode current 9.10 A, lambda 0.1 kg/W"
+  },
+  {
+   "node": "size_rcs",
+   "case": "ais_3u",
+   "check": "SZ-ais_3u-RCS: designed part with positive mass",
+   "ok": true,
+   "detail": "0.5185 kg"
+  },
+  {
+   "node": "size_rcs",
+   "case": "ais_img_3u",
+   "check": "SZ-ais_img_3u-RCS: designed part with positive mass",
+   "ok": true,
+   "detail": "0.4659 kg"
+  },
+  {
+   "node": "select_rotor",
+   "case": "ais_3u",
+   "check": "RW: lightest selectable catalogue model meeting the need",
+   "ok": true,
+   "detail": "need h 1.466e-03 N m s, tau 5.757e-05 N m per unit -> CAT-CUBESPACE-CUBEWHEEL-CW0017"
+  },
+  {
+   "node": "select_rotor",
+   "case": "ais_3u",
+   "check": "RW: fitted part carries the datasheet's mass and power",
+   "ok": true,
+   "detail": "0.06 kg, 0.3 W (verified)"
+  },
+  {
+   "node": "select_rotor",
+   "case": "ais_3u",
+   "check": "CMG: lightest selectable catalogue model meeting the need",
+   "ok": true,
+   "detail": "need h 7.330e-04 N m s, tau 2.879e-05 N m per unit -> CAT-TENSOR-TECH-ADCS400"
+  },
+  {
+   "node": "select_rotor",
+   "case": "ais_3u",
+   "check": "CMG: fitted part carries the datasheet's mass and power",
+   "ok": true,
+   "detail": "0.3 kg, 1.0 W (verified)"
+  },
+  {
+   "node": "select_rotor",
+   "case": "ais_3u",
+   "check": "VSCMG: lightest selectable catalogue model meeting the need",
+   "ok": true,
+   "detail": "need h 7.330e-04 N m s, tau 2.879e-05 N m per unit -> CAT-TENSOR-TECH-ADCS400"
+  },
+  {
+   "node": "select_rotor",
+   "case": "ais_3u",
+   "check": "VSCMG: fitted part carries the datasheet's mass and power",
+   "ok": true,
+   "detail": "0.3 kg, 1.0 W (verified)"
+  },
+  {
+   "node": "select_rotor",
+   "case": "ais_img_3u",
+   "check": "RW: lightest selectable catalogue model meeting the need",
+   "ok": true,
+   "detail": "need h 1.552e-03 N m s, tau 5.757e-05 N m per unit -> CAT-CUBESPACE-CUBEWHEEL-CW0017"
+  },
+  {
+   "node": "select_rotor",
+   "case": "ais_img_3u",
+   "check": "RW: fitted part carries the datasheet's mass and power",
+   "ok": true,
+   "detail": "0.06 kg, 0.3 W (verified)"
+  },
+  {
+   "node": "select_rotor",
+   "case": "ais_img_3u",
+   "check": "CMG: lightest selectable catalogue model meeting the need",
+   "ok": true,
+   "detail": "need h 7.760e-04 N m s, tau 2.879e-05 N m per unit -> CAT-TENSOR-TECH-ADCS400"
+  },
+  {
+   "node": "select_rotor",
+   "case": "ais_img_3u",
+   "check": "CMG: fitted part carries the datasheet's mass and power",
+   "ok": true,
+   "detail": "0.3 kg, 1.0 W (verified)"
+  },
+  {
+   "node": "select_rotor",
+   "case": "ais_img_3u",
+   "check": "VSCMG: lightest selectable catalogue model meeting the need",
+   "ok": true,
+   "detail": "need h 7.760e-04 N m s, tau 2.879e-05 N m per unit -> CAT-TENSOR-TECH-ADCS400"
+  },
+  {
+   "node": "select_rotor",
+   "case": "ais_img_3u",
+   "check": "VSCMG: fitted part carries the datasheet's mass and power",
+   "ok": true,
+   "detail": "0.3 kg, 1.0 W (verified)"
+  },
+  {
+   "node": "size_sensors",
+   "case": "ais_3u",
+   "check": "mtq: sensor set (star tracker on the fine class)",
+   "ok": true,
+   "detail": "magnetometer, sun_sensors, gyro, gnss, earth_sensor"
+  },
+  {
+   "node": "size_sensors",
+   "case": "ais_3u",
+   "check": "mtq_fmr: sensor set (star tracker on the fine class)",
+   "ok": true,
+   "detail": "rings, rings, rings, magnetometer, sun_sensors, gyro, gnss, earth_sensor"
+  },
+  {
+   "node": "size_sensors",
+   "case": "ais_3u",
+   "check": "mtq_fmr_rcs: sensor set (star tracker on the fine class)",
+   "ok": true,
+   "detail": "rings, rings, rings, rcs, magnetometer, sun_sensors, gyro, gnss, earth_sensor"
+  },
+  {
+   "node": "size_sensors",
+   "case": "ais_3u",
+   "check": "mtq_rw: sensor set (star tracker on the fine class)",
+   "ok": true,
+   "detail": "wheels, magnetometer, sun_sensors, gyro, gnss, earth_sensor"
+  },
+  {
+   "node": "size_sensors",
+   "case": "ais_3u",
+   "check": "mtq_rw_rcs: sensor set (star tracker on the fine class)",
+   "ok": true,
+   "detail": "wheels, rcs, magnetometer, sun_sensors, gyro, gnss, earth_sensor"
+  },
+  {
+   "node": "size_sensors",
+   "case": "ais_3u",
+   "check": "mtq_cmg: sensor set (star tracker on the fine class)",
+   "ok": true,
+   "detail": "cmg, magnetometer, sun_sensors, gyro, gnss, earth_sensor"
+  },
+  {
+   "node": "size_sensors",
+   "case": "ais_3u",
+   "check": "mtq_cmg_rcs: sensor set (star tracker on the fine class)",
+   "ok": true,
+   "detail": "cmg, rcs, magnetometer, sun_sensors, gyro, gnss, earth_sensor"
+  },
+  {
+   "node": "size_sensors",
+   "case": "ais_3u",
+   "check": "mtq_vscmg: sensor set (star tracker on the fine class)",
+   "ok": true,
+   "detail": "vscmg, magnetometer, sun_sensors, gyro, gnss, earth_sensor"
+  },
+  {
+   "node": "size_sensors",
+   "case": "ais_3u",
+   "check": "mtq_vscmg_rcs: sensor set (star tracker on the fine class)",
+   "ok": true,
+   "detail": "vscmg, rcs, magnetometer, sun_sensors, gyro, gnss, earth_sensor"
+  },
+  {
+   "node": "size_sensors",
+   "case": "ais_img_3u",
+   "check": "mtq: sensor set (star tracker on the fine class)",
+   "ok": true,
+   "detail": "star_tracker, magnetometer, sun_sensors, gyro, gnss, earth_sensor"
+  },
+  {
+   "node": "size_sensors",
+   "case": "ais_img_3u",
+   "check": "mtq_fmr: sensor set (star tracker on the fine class)",
+   "ok": true,
+   "detail": "rings, rings, rings, star_tracker, magnetometer, sun_sensors, gyro, gnss, earth_sensor"
+  },
+  {
+   "node": "size_sensors",
+   "case": "ais_img_3u",
+   "check": "mtq_fmr_rcs: sensor set (star tracker on the fine class)",
+   "ok": true,
+   "detail": "rings, rings, rings, rcs, star_tracker, magnetometer, sun_sensors, gyro, gnss, earth_sensor"
+  },
+  {
+   "node": "size_sensors",
+   "case": "ais_img_3u",
+   "check": "mtq_rw: sensor set (star tracker on the fine class)",
+   "ok": true,
+   "detail": "wheels, star_tracker, magnetometer, sun_sensors, gyro, gnss, earth_sensor"
+  },
+  {
+   "node": "size_sensors",
+   "case": "ais_img_3u",
+   "check": "mtq_rw_rcs: sensor set (star tracker on the fine class)",
+   "ok": true,
+   "detail": "wheels, rcs, star_tracker, magnetometer, sun_sensors, gyro, gnss, earth_sensor"
+  },
+  {
+   "node": "size_sensors",
+   "case": "ais_img_3u",
+   "check": "mtq_cmg: sensor set (star tracker on the fine class)",
+   "ok": true,
+   "detail": "cmg, star_tracker, magnetometer, sun_sensors, gyro, gnss, earth_sensor"
+  },
+  {
+   "node": "size_sensors",
+   "case": "ais_img_3u",
+   "check": "mtq_cmg_rcs: sensor set (star tracker on the fine class)",
+   "ok": true,
+   "detail": "cmg, rcs, star_tracker, magnetometer, sun_sensors, gyro, gnss, earth_sensor"
+  },
+  {
+   "node": "size_sensors",
+   "case": "ais_img_3u",
+   "check": "mtq_vscmg: sensor set (star tracker on the fine class)",
+   "ok": true,
+   "detail": "vscmg, star_tracker, magnetometer, sun_sensors, gyro, gnss, earth_sensor"
+  },
+  {
+   "node": "size_sensors",
+   "case": "ais_img_3u",
+   "check": "mtq_vscmg_rcs: sensor set (star tracker on the fine class)",
+   "ok": true,
+   "detail": "vscmg, rcs, star_tracker, magnetometer, sun_sensors, gyro, gnss, earth_sensor"
+  },
+  {
+   "node": "budget",
+   "case": "ais_3u",
+   "check": "mtq: mass, power and volume are the sums of the fitted units",
+   "ok": true,
+   "detail": "0.236 kg, 2.06 W, 0.018 L"
+  },
+  {
+   "node": "budget",
+   "case": "ais_3u",
+   "check": "mtq_fmr: mass, power and volume are the sums of the fitted units",
+   "ok": true,
+   "detail": "1.446 kg, 2.54 W, 0.537 L"
+  },
+  {
+   "node": "budget",
+   "case": "ais_3u",
+   "check": "mtq_fmr_rcs: mass, power and volume are the sums of the fitted units",
+   "ok": true,
+   "detail": "1.965 kg, 2.59 W, 1.519 L"
+  },
+  {
+   "node": "budget",
+   "case": "ais_3u",
+   "check": "mtq_rw: mass, power and volume are the sums of the fitted units",
+   "ok": true,
+   "detail": "0.393 kg, 2.73 W, 0.070 L"
+  },
+  {
+   "node": "budget",
+   "case": "ais_3u",
+   "check": "mtq_rw_rcs: mass, power and volume are the sums of the fitted units",
+   "ok": true,
+   "detail": "0.911 kg, 2.78 W, 1.052 L"
+  },
+  {
+   "node": "budget",
+   "case": "ais_3u",
+   "check": "mtq_cmg: mass, power and volume are the sums of the fitted units",
+   "ok": true,
+   "detail": "1.413 kg, 5.83 W, 0.809 L"
+  },
+  {
+   "node": "budget",
+   "case": "ais_3u",
+   "check": "mtq_cmg_rcs: mass, power and volume are the sums of the fitted units",
+   "ok": true,
+   "detail": "1.931 kg, 5.88 W, 1.791 L"
+  },
+  {
+   "node": "budget",
+   "case": "ais_3u",
+   "check": "mtq_vscmg: mass, power and volume are the sums of the fitted units",
+   "ok": true,
+   "detail": "1.413 kg, 5.83 W, 0.809 L"
+  },
+  {
+   "node": "budget",
+   "case": "ais_3u",
+   "check": "mtq_vscmg_rcs: mass, power and volume are the sums of the fitted units",
+   "ok": true,
+   "detail": "1.931 kg, 5.88 W, 1.791 L"
+  },
+  {
+   "node": "budget",
+   "case": "ais_img_3u",
+   "check": "mtq: mass, power and volume are the sums of the fitted units",
+   "ok": true,
+   "detail": "0.830 kg, 3.90 W, 0.012 L"
+  },
+  {
+   "node": "budget",
+   "case": "ais_img_3u",
+   "check": "mtq_fmr: mass, power and volume are the sums of the fitted units",
+   "ok": true,
+   "detail": "1.534 kg, 6.46 W, 0.534 L"
+  },
+  {
+   "node": "budget",
+   "case": "ais_img_3u",
+   "check": "mtq_fmr_rcs: mass, power and volume are the sums of the fitted units",
+   "ok": true,
+   "detail": "2.000 kg, 6.51 W, 1.376 L"
+  },
+  {
+   "node": "budget",
+   "case": "ais_img_3u",
+   "check": "mtq_rw: mass, power and volume are the sums of the fitted units",
+   "ok": true,
+   "detail": "0.996 kg, 4.66 W, 0.068 L"
+  },
+  {
+   "node": "budget",
+   "case": "ais_img_3u",
+   "check": "mtq_rw_rcs: mass, power and volume are the sums of the fitted units",
+   "ok": true,
+   "detail": "1.462 kg, 4.71 W, 0.909 L"
+  },
+  {
+   "node": "budget",
+   "case": "ais_img_3u",
+   "check": "mtq_cmg: mass, power and volume are the sums of the fitted units",
+   "ok": true,
+   "detail": "2.016 kg, 7.76 W, 0.806 L"
+  },
+  {
+   "node": "budget",
+   "case": "ais_img_3u",
+   "check": "mtq_cmg_rcs: mass, power and volume are the sums of the fitted units",
+   "ok": true,
+   "detail": "2.482 kg, 7.81 W, 1.648 L"
+  },
+  {
+   "node": "budget",
+   "case": "ais_img_3u",
+   "check": "mtq_vscmg: mass, power and volume are the sums of the fitted units",
+   "ok": true,
+   "detail": "2.016 kg, 7.76 W, 0.806 L"
+  },
+  {
+   "node": "budget",
+   "case": "ais_img_3u",
+   "check": "mtq_vscmg_rcs: mass, power and volume are the sums of the fitted units",
+   "ok": true,
+   "detail": "2.482 kg, 7.81 W, 1.648 L"
+  },
+  {
+   "node": "matrix",
+   "case": "ais_3u",
+   "check": "every mode x option flown in the last iteration",
+   "ok": true,
+   "detail": "25 of 25 mode tests"
+  },
+  {
+   "node": "matrix",
+   "case": "ais_img_3u",
+   "check": "every mode x option flown in the last iteration",
+   "ok": true,
+   "detail": "25 of 25 mode tests"
+  },
+  {
+   "node": "assess",
+   "case": "ais_3u",
+   "check": "an option is feasible exactly when nothing fails",
+   "ok": true,
+   "detail": "4 feasible"
+  },
+  {
+   "node": "assess",
+   "case": "ais_3u",
+   "check": "every failing requirement has a cause class",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "node": "assess",
+   "case": "ais_img_3u",
+   "check": "an option is feasible exactly when nothing fails",
+   "ok": true,
+   "detail": "11 feasible"
+  },
+  {
+   "node": "assess",
+   "case": "ais_img_3u",
+   "check": "every failing requirement has a cause class",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "node": "converge",
+   "case": "ais_3u",
+   "check": "converged: the last iteration proposes no change",
+   "ok": true,
+   "detail": "4 iteration(s)"
+  },
+  {
+   "node": "converge",
+   "case": "ais_3u",
+   "check": "within the iteration cap",
+   "ok": true,
+   "detail": "cap 24"
+  },
+  {
+   "node": "converge",
+   "case": "ais_3u",
+   "check": "every authority scale inside its bounds",
+   "ok": true,
+   "detail": "{\"mtqp\": 1.0}"
+  },
+  {
+   "node": "converge",
+   "case": "ais_3u",
+   "check": "every family was flown and scored in every iteration",
+   "ok": true,
+   "detail": "9 families x 4 iterations"
+  },
+  {
+   "node": "converge",
+   "case": "ais_img_3u",
+   "check": "converged: the last iteration proposes no change",
+   "ok": true,
+   "detail": "9 iteration(s)"
+  },
+  {
+   "node": "converge",
+   "case": "ais_img_3u",
+   "check": "within the iteration cap",
+   "ok": true,
+   "detail": "cap 24"
+  },
+  {
+   "node": "converge",
+   "case": "ais_img_3u",
+   "check": "every authority scale inside its bounds",
+   "ok": true,
+   "detail": "{\"mtqp\": 1.0, \"fmr\": 0.75}"
+  },
+  {
+   "node": "converge",
+   "case": "ais_img_3u",
+   "check": "every family was flown and scored in every iteration",
+   "ok": true,
+   "detail": "9 families x 9 iterations"
+  },
+  {
+   "node": "select",
+   "case": "ais_3u",
+   "check": "selection.json and loop.json present",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "node": "select",
+   "case": "ais_3u",
+   "check": "mtq: feasible exactly when no mode and no budget gap",
+   "ok": true,
+   "detail": "sun_acquisition: sun_acquisition_time (performance), sun_angle_p95 (performance); sun_referencing: sun_ape_p9973 (performance); nadir_pointing: ape_los_p9973 (performance)"
+  },
+  {
+   "node": "select",
+   "case": "ais_3u",
+   "check": "mtq_fmr: feasible exactly when no mode and no budget gap",
+   "ok": true,
+   "detail": "no gap"
+  },
+  {
+   "node": "select",
+   "case": "ais_3u",
+   "check": "mtq_fmr_rcs: feasible exactly when no mode and no budget gap",
+   "ok": true,
+   "detail": "budget: mass_kg 1.96 > 1.6; budget: volume_L 1.52 > 1"
+  },
+  {
+   "node": "select",
+   "case": "ais_3u",
+   "check": "mtq_rw: feasible exactly when no mode and no budget gap",
+   "ok": true,
+   "detail": "sun_acquisition: power_mean (power); sun_referencing: power_mean (power); nadir_pointing: power_mean (power)"
+  },
+  {
+   "node": "select",
+   "case": "ais_3u",
+   "check": "mtq_rw_rcs: feasible exactly when no mode and no budget gap",
+   "ok": true,
+   "detail": "sun_acquisition: power_mean (power); sun_referencing: power_mean (power); nadir_pointing: power_mean (power); budget: volume_L 1.05 > 1"
+  },
+  {
+   "node": "select",
+   "case": "ais_3u",
+   "check": "mtq_cmg: feasible exactly when no mode and no budget gap",
+   "ok": true,
+   "detail": "sun_acquisition: power_mean (power); sun_referencing: power_mean (power); nadir_pointing: power_mean (power)"
+  },
+  {
+   "node": "select",
+   "case": "ais_3u",
+   "check": "mtq_cmg_rcs: feasible exactly when no mode and no budget gap",
+   "ok": true,
+   "detail": "sun_acquisition: power_mean (power); sun_referencing: power_mean (power); nadir_pointing: power_mean (power); budget: mass_kg 1.93 > 1.6; budget: volume_L 1.79 > 1"
+  },
+  {
+   "node": "select",
+   "case": "ais_3u",
+   "check": "mtq_vscmg: feasible exactly when no mode and no budget gap",
+   "ok": true,
+   "detail": "sun_acquisition: power_mean (power); sun_referencing: power_mean (power); nadir_pointing: power_mean (power)"
+  },
+  {
+   "node": "select",
+   "case": "ais_3u",
+   "check": "mtq_vscmg_rcs: feasible exactly when no mode and no budget gap",
+   "ok": true,
+   "detail": "sun_acquisition: power_mean (power); sun_referencing: power_mean (power); nadir_pointing: power_mean (power); budget: mass_kg 1.93 > 1.6; budget: volume_L 1.79 > 1"
+  },
+  {
+   "node": "select",
+   "case": "ais_3u",
+   "check": "selected: solution family by the rule (mass_kg, power_W, volume_L, simplicity)",
+   "ok": true,
+   "detail": "mtq_fmr"
+  },
+  {
+   "node": "select",
+   "case": "ais_3u",
+   "check": "benchmark: benchmark family by the rule (mass_kg, power_W, volume_L, simplicity)",
+   "ok": true,
+   "detail": "mtq_rw"
+  },
+  {
+   "node": "select",
+   "case": "ais_img_3u",
+   "check": "selection.json and loop.json present",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "node": "select",
+   "case": "ais_img_3u",
+   "check": "mtq: feasible exactly when no mode and no budget gap",
+   "ok": true,
+   "detail": "sun_acquisition: sun_acquisition_time (performance), sun_angle_p95 (performance); sun_referencing: sun_ape_p9973 (performance); nadir_pointing: ape_los_p9973 (performance), ake_los_p9973 (knowledge), rate_stability_p9973 (performance)"
+  },
+  {
+   "node": "select",
+   "case": "ais_img_3u",
+   "check": "mtq_fmr: feasible exactly when no mode and no budget gap",
+   "ok": true,
+   "detail": "no gap"
+  },
+  {
+   "node": "select",
+   "case": "ais_img_3u",
+   "check": "mtq_fmr_rcs: feasible exactly when no mode and no budget gap",
+   "ok": true,
+   "detail": "budget: mass_kg 2 > 1.6; budget: volume_L 1.38 > 1"
+  },
+  {
+   "node": "select",
+   "case": "ais_img_3u",
+   "check": "mtq_rw: feasible exactly when no mode and no budget gap",
+   "ok": true,
+   "detail": "no gap"
+  },
+  {
+   "node": "select",
+   "case": "ais_img_3u",
+   "check": "mtq_rw_rcs: feasible exactly when no mode and no budget gap",
+   "ok": true,
+   "detail": "no gap"
+  },
+  {
+   "node": "select",
+   "case": "ais_img_3u",
+   "check": "mtq_cmg: feasible exactly when no mode and no budget gap",
+   "ok": true,
+   "detail": "sun_acquisition: power_mean (power); sun_referencing: power_mean (power); nadir_pointing: power_mean (power); budget: mass_kg 2.02 > 1.6"
+  },
+  {
+   "node": "select",
+   "case": "ais_img_3u",
+   "check": "mtq_cmg_rcs: feasible exactly when no mode and no budget gap",
+   "ok": true,
+   "detail": "sun_acquisition: power_mean (power); sun_referencing: power_mean (power); nadir_pointing: power_mean (power); budget: mass_kg 2.48 > 1.6; budget: volume_L 1.65 > 1"
+  },
+  {
+   "node": "select",
+   "case": "ais_img_3u",
+   "check": "mtq_vscmg: feasible exactly when no mode and no budget gap",
+   "ok": true,
+   "detail": "sun_acquisition: power_mean (power); sun_referencing: power_mean (power); nadir_pointing: power_mean (power); budget: mass_kg 2.02 > 1.6"
+  },
+  {
+   "node": "select",
+   "case": "ais_img_3u",
+   "check": "mtq_vscmg_rcs: feasible exactly when no mode and no budget gap",
+   "ok": true,
+   "detail": "sun_acquisition: power_mean (power); sun_referencing: power_mean (power); nadir_pointing: power_mean (power); budget: mass_kg 2.48 > 1.6; budget: volume_L 1.65 > 1"
+  },
+  {
+   "node": "select",
+   "case": "ais_img_3u",
+   "check": "selected: solution family by the rule (mass_kg, power_W, volume_L, simplicity)",
+   "ok": true,
+   "detail": "mtq_fmr"
+  },
+  {
+   "node": "select",
+   "case": "ais_img_3u",
+   "check": "benchmark: benchmark family by the rule (mass_kg, power_W, volume_L, simplicity)",
+   "ok": true,
+   "detail": "mtq_rw"
+  },
+  {
+   "node": "dispatch",
+   "case": "ais_3u",
+   "check": "package: mission scenario, config blob, products",
+   "ok": true,
+   "detail": "dist/dispatch/ais_3u/mtq_fmr/converged"
+  },
+  {
+   "node": "dispatch",
+   "case": "ais_3u",
+   "check": "C and Rust flight software bit-identical on the mission",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "node": "dispatch",
+   "case": "ais_img_3u",
+   "check": "package: mission scenario, config blob, products",
+   "ok": true,
+   "detail": "dist/dispatch/ais_img_3u/mtq_fmr/converged"
+  },
+  {
+   "node": "dispatch",
+   "case": "ais_img_3u",
+   "check": "C and Rust flight software bit-identical on the mission",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "node": "mc",
+   "case": "ais_3u",
+   "check": "Monte Carlo ran every run (12)",
+   "ok": true,
+   "detail": "12 runs"
+  },
+  {
+   "node": "mc",
+   "case": "ais_3u",
+   "check": "every requirement metric passes in every run",
+   "ok": true,
+   "detail": "all pass"
+  },
+  {
+   "node": "mc",
+   "case": "ais_img_3u",
+   "check": "Monte Carlo ran every run (12)",
+   "ok": true,
+   "detail": "12 runs"
+  },
+  {
+   "node": "mc",
+   "case": "ais_img_3u",
+   "check": "every requirement metric passes in every run",
+   "ok": true,
+   "detail": "all pass"
+  },
+  {
+   "node": "family_missions",
+   "case": "ais_3u",
+   "check": "every solution family flown as the mission",
+   "ok": true,
+   "detail": "mtq, mtq_fmr, mtq_fmr_rcs"
+  },
+  {
+   "node": "family_missions",
+   "case": "ais_3u",
+   "check": "mtq: C = Rust bit for bit",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "node": "family_missions",
+   "case": "ais_3u",
+   "check": "mtq: Monte Carlo ran",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "node": "family_missions",
+   "case": "ais_3u",
+   "check": "mtq: mission verdict matches the loop's feasibility (informational for families that are not feasible)",
+   "ok": true,
+   "detail": "fails ape_los_p9973"
+  },
+  {
+   "node": "family_missions",
+   "case": "ais_3u",
+   "check": "mtq_fmr: C = Rust bit for bit",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "node": "family_missions",
+   "case": "ais_3u",
+   "check": "mtq_fmr: Monte Carlo ran",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "node": "family_missions",
+   "case": "ais_3u",
+   "check": "mtq_fmr: mission verdict matches the loop's feasibility (informational for families that are not feasible)",
+   "ok": true,
+   "detail": "mission passes"
+  },
+  {
+   "node": "family_missions",
+   "case": "ais_3u",
+   "check": "mtq_fmr_rcs: C = Rust bit for bit",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "node": "family_missions",
+   "case": "ais_3u",
+   "check": "mtq_fmr_rcs: Monte Carlo ran",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "node": "family_missions",
+   "case": "ais_3u",
+   "check": "mtq_fmr_rcs: mission verdict matches the loop's feasibility (informational for families that are not feasible)",
+   "ok": true,
+   "detail": "mission passes"
+  },
+  {
+   "node": "family_missions",
+   "case": "ais_img_3u",
+   "check": "every solution family flown as the mission",
+   "ok": true,
+   "detail": "mtq, mtq_fmr, mtq_fmr_rcs"
+  },
+  {
+   "node": "family_missions",
+   "case": "ais_img_3u",
+   "check": "mtq: C = Rust bit for bit",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "node": "family_missions",
+   "case": "ais_img_3u",
+   "check": "mtq: Monte Carlo ran",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "node": "family_missions",
+   "case": "ais_img_3u",
+   "check": "mtq: mission verdict matches the loop's feasibility (informational for families that are not feasible)",
+   "ok": true,
+   "detail": "fails ape_los_p9973, ake_los_p9973"
+  },
+  {
+   "node": "family_missions",
+   "case": "ais_img_3u",
+   "check": "mtq_fmr: C = Rust bit for bit",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "node": "family_missions",
+   "case": "ais_img_3u",
+   "check": "mtq_fmr: Monte Carlo ran",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "node": "family_missions",
+   "case": "ais_img_3u",
+   "check": "mtq_fmr: mission verdict matches the loop's feasibility (informational for families that are not feasible)",
+   "ok": true,
+   "detail": "mission passes"
+  },
+  {
+   "node": "family_missions",
+   "case": "ais_img_3u",
+   "check": "mtq_fmr_rcs: C = Rust bit for bit",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "node": "family_missions",
+   "case": "ais_img_3u",
+   "check": "mtq_fmr_rcs: Monte Carlo ran",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "node": "family_missions",
+   "case": "ais_img_3u",
+   "check": "mtq_fmr_rcs: mission verdict matches the loop's feasibility (informational for families that are not feasible)",
+   "ok": true,
+   "detail": "mission passes"
+  },
+  {
+   "node": "soft_oils",
+   "case": "ais_3u",
+   "check": "SILS and soft OILS (C and Rust firmware) ran",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "node": "soft_oils",
+   "case": "ais_3u",
+   "check": "no overrun on either firmware",
+   "ok": true,
+   "detail": "oils: CPU max 6.1 %, oils_rs: CPU max 7.1 %"
+  },
+  {
+   "node": "soft_oils",
+   "case": "ais_3u",
+   "check": "oils: every requirement verdict equals SILS",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "node": "soft_oils",
+   "case": "ais_3u",
+   "check": "oils_rs: every requirement verdict equals SILS",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "node": "soft_oils",
+   "case": "ais_img_3u",
+   "check": "SILS and soft OILS (C and Rust firmware) ran",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "node": "soft_oils",
+   "case": "ais_img_3u",
+   "check": "no overrun on either firmware",
+   "ok": true,
+   "detail": "oils: CPU max 6.3 %, oils_rs: CPU max 7.3 %"
+  },
+  {
+   "node": "soft_oils",
+   "case": "ais_img_3u",
+   "check": "oils: every requirement verdict equals SILS",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "node": "soft_oils",
+   "case": "ais_img_3u",
+   "check": "oils_rs: every requirement verdict equals SILS",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "node": "report",
+   "case": "ais_3u",
+   "check": "design ledger names the selection",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "node": "report",
+   "case": "ais_img_3u",
+   "check": "design ledger names the selection",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "node": "report",
+   "case": "\u2014",
+   "check": "V&V report (HTML and PDF)",
+   "ok": true,
+   "detail": ""
+  }
+ ]
+}

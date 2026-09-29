@@ -1245,5 +1245,6 @@
    "mission.life blank: 3 years taken"
   ],
   "class": "coarse"
- }
+ },
+ "robustness": []
 }

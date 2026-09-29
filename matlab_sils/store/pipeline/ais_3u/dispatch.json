@@ -1,6 +1,8 @@
 {
  "family": "mtq_fmr",
+ "selected": true,
  "dir": "dist/dispatch/ais_3u/mtq_fmr/converged",
+ "check_dir": "matlab_sils/store/pipeline/ais_3u/dispatch",
  "scenario": "/home/user/TRI_NETRA_Satellite/dist/dispatch/ais_3u/mtq_fmr/converged/mission_scenario.json",
  "check": {
   "c": {
@@ -10,7 +12,7 @@
     {
      "id": "detumble_time",
      "kind": "time_to_rate",
-     "value": 55.641666666666666,
+     "value": 53.458333333333336,
      "unit": "min",
      "req": 284.0,
      "req_key": "req.detumble",
@@ -84,7 +86,7 @@
     {
      "id": "detumble_time",
      "kind": "time_to_rate",
-     "value": 55.641666666666666,
+     "value": 53.458333333333336,
      "unit": "min",
      "req": 284.0,
      "req_key": "req.detumble",

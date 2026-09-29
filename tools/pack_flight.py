@@ -23,7 +23,7 @@ out = ROOT / "dist" / f"{name}.zip"
 out.parent.mkdir(exist_ok=True)
 
 trees = ["fsw", "fsw-rs", "engine", "matlab_sils/data", "matlab_sils/cases", "docs/figures", "tools/figures", "tools/templates"]
-singles = ["tools/engine.py", "tools/pipeline.py", "tools/rescore.py", "tools/catalogue.py", "tools/nodes_doc.py", "docs/NODES.md", "docs/CATALOGUE.md", "tools/vv_report.py", "tools/gen_fsw_params.py", "tools/fswcfg.py", "docs/LANGUAGES.md",
+singles = ["tools/engine.py", "tools/pipeline.py", "tools/rescore.py", "tools/catalogue.py", "tools/nodes_doc.py", "tools/verify_nodes.py", "docs/NODES.md", "docs/CATALOGUE.md", "tools/vv_report.py", "tools/gen_fsw_params.py", "tools/fswcfg.py", "docs/LANGUAGES.md",
            "docs/VIRTUAL_OBC.md", "docs/DESIGN_LOOP.md", "docs/SOFT_OILS.md", "docs/OILS_HILS.md", "results/ENGINE_PARITY.md",
            "results/ENGINE_CAMPAIGNS.md", "results/SOFT_OILS.md", "results/DESIGN_ais_3u.md", "results/DESIGN_ais_img_3u.md",
            "dist/TRINETRA_ADCS_VV_report.pdf",

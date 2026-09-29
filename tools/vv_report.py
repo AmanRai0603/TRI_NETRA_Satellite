@@ -130,6 +130,99 @@ def catalogue():
             "benchmark's mass and power are conservative.</p>")
 
 
+def mtq_only(c, sel):
+    """The coils-only family's behaviour per mode, stated from the stored runs (kept as designed; the
+    owner will improve coils-only nadir pointing from the literature later)."""
+    F = sel["families"].get("mtq")
+    if not F:
+        return ""
+    M = {m: r for m, r in F["modes"].items() if r}
+    g = lambda m, k: (M.get(m) or {}).get("metrics", {}).get(k)
+    req = sel["demand"]["req"]
+    fm = (jl(PIPE / c / "families.json") or {}).get("mtq")
+    mis = {x["id"]: x for x in (fm or {}).get("mission", {}).get("c") or []}
+    mcs = {x["id"]: x for x in ((fm or {}).get("mc") or {}).get("stats", [])}
+    sa, sp = g("sun_acquisition", "sun_acquisition_time"), g("sun_acquisition", "sun_angle_p95")
+    L = [f"<b>Detumble</b>: {fmt(g('detumble', 'detumble_time'))} min in the mode test and {fmt((mis.get('detumble_time') or {}).get('value'))} min in the mission "
+         f"(requirement {fmt(req.get('detumble'))} min); it passes" + (f" in {100 * mcs['detumble_time']['pass_rate']:.0f} % of the Monte Carlo runs" if "detumble_time" in mcs else "") + ".",
+         f"<b>Sun acquisition</b> (Sun-spin, {e(M['sun_acquisition']['alg'] or 'default')}): the coils spin the body up about the Sun line and bring the power face "
+         f"towards the Sun, so coils alone are largely sufficient here. They do not meet the case's line, though: the power face within 20 deg "
+         + (f"after {fmt(sa)} min" if sa is not None else "not within the 1.5-orbit test") + f" (requirement {fmt(req.get('sunacq'))} min), "
+         f"and a 95th-percentile Sun angle of {fmt(sp)} deg over the last half orbit (limit 20 deg).",
+         f"<b>Sun referencing</b>: {fmt(g('sun_referencing', 'sun_ape_p9973'))} deg (p99.73) with {e(M['sun_referencing']['alg'] or 'default')}; the coils cannot hold a three-axis Sun attitude.",
+         f"<b>Nadir pointing</b> is where the coils fall short. From a settled start the best law ({e(M['nadir_pointing']['alg'] or 'default')}) holds the line of "
+         f"sight to {fmt(g('nadir_pointing', 'ape_los_p9973'))} deg (p99.73) against {fmt(req.get('ape'))} deg. In the full mission nadir is commanded while the "
+         f"Sun-spin is still turning, and the coils cannot take that momentum out in time: {fmt((mis.get('ape_los_p9973') or {}).get('value'))} deg."]
+    return ("<div class='find'><b>Coils only (<code>mtq</code>), how it behaves.</b> It is kept as designed; coils-only nadir pointing is "
+            "to be improved later from the owner's references.<ul>" + "".join(f"<li>{x}</li>" for x in L) + "</ul></div>")
+
+
+def family_missions(c, sel):
+    """Every one of our solution families flown as the full mission (node family_missions): a table of
+    its verdicts and one timeline figure, so e.g. the coils-only behaviour is on record beside the pick."""
+    fm = jl(PIPE / c / "families.json")
+    if not fm:
+        return ""
+    ids = ("detumble_time", "ape_los_p9973", "ake_los_p9973", "power_mean")
+    rows = []
+    for f, v in fm.items():
+        met = {x["id"]: x for x in v["mission"]["c"] or []}
+        mcs = {x["id"]: x for x in (v["mc"] or {}).get("stats", [])}
+        cell = lambda i: "—" if i not in met else f"{fmt(met[i]['value'])} {verdict(met[i]['pass'])}" + (
+            f"<br><span class='note'>MC {100 * mcs[i]['pass_rate']:.0f} % pass</span>" if i in mcs and mcs[i]["pass_rate"] is not None else "")
+        rows.append([f"<code>{e(f)}</code>" + (" <b>(selected)</b>" if v["selected"] else ""), verdict(v["feasible"]), fmt(v["budget"]["mass_kg"], 3),
+                     e(", ".join(f"{m}={o}" for m, o in v["methods"].items()))] + [cell(i) for i in ids] + [verdict(v["c_equals_rust_bitwise"])])
+    out = ("<p>Every one of our solution families flown as the full mission (detumble → Sun acquisition → nadir), with its best "
+           "methods from the loop. Whether or not it is selected, this is how it behaves (node <code>family_missions</code>):</p>" +
+           table(["family", "feasible", "mass [kg]", "methods", "detumble [min]", "APE [deg]", "AKE [deg]", "mean power [W]", "C = Rust"], rows, num=(2,)))
+    plt = mpl()
+    cols = ["#2a78d6", "#eb6834", "#1baf7a"]
+    fig, ax = plt.subplots(4, 1, figsize=(7.4, 7.2), sharex=True)
+    req = {m["id"]: m.get("req") for m in (next(iter(fm.values()))["mission"]["c"] or [])}
+    for (f, v), col in zip(fm.items(), cols):
+        ch = ROOT / v["check_dir"] / "c" / "channels.csv"
+        if not ch.exists():
+            continue
+        t, ape, w, pw, mode = [], [], [], [], []
+        with open(ch) as fh:
+            for i, r in enumerate(csv.DictReader(fh)):
+                if i % 10:
+                    continue
+                t.append(float(r["t_s"]) / 3600); ape.append(max(float(r["ape_los_deg"]), 1e-4)); w.append(float(r["rate_degps"]))
+                pw.append(float(r["P_mtq_W"]) + float(r["P_rw_W"]) + float(r["P_rcs_W"])); mode.append(float(r["mode"]))
+        lab = f + (" (selected)" if v["selected"] else "")
+        ax[0].semilogy(t, w, color=col, lw=1, label=lab); ax[1].semilogy(t, ape, color=col, lw=1)
+        ax[2].plot(t, pw, color=col, lw=0.8); ax[3].step(t, mode, color=col, lw=1, where="post")
+    for a_, yl in zip(ax, ("body rate [deg/s]", "APE, line of sight [deg]", "ADCS power [W]", "FSW mode")):
+        a_.set_ylabel(yl)
+    if req.get("ape_los_p9973"):
+        ax[1].axhline(req["ape_los_p9973"], color=C_REQ, lw=0.8, ls="--"); ax[1].text(0.01, req["ape_los_p9973"], " APE requirement", color=C_REQ, fontsize=7, va="bottom", transform=ax[1].get_yaxis_transform())
+    if req.get("power_mean"):
+        ax[2].axhline(req["power_mean"], color=C_REQ, lw=0.8, ls="--"); ax[2].text(0.01, req["power_mean"], " orbit-average power requirement", color=C_REQ, fontsize=7, va="bottom", transform=ax[2].get_yaxis_transform())
+    ax[3].set_xlabel("mission time [h]")
+    ax[0].legend(loc="upper right", frameon=False, fontsize=7)
+    fig.suptitle(f"{c}: every solution family flown as the dispatched mission (C flight software)", x=0.01, ha="left", fontsize=9, fontweight="bold")
+    fig.tight_layout()
+    return out + f"<figure>{png(fig)}<figcaption>{e(c)}: body rate, pointing error, power and flight-software mode through the mission, one line per family.</figcaption></figure>"
+
+
+def verification():
+    """Section 12: tools/verify_nodes.py, every node's decision recomputed from its stored inputs."""
+    v = jl(ROOT / "results" / "node_verification.json")
+    if not v:
+        return "<p class='note'>Not run (python3 tools/verify_nodes.py).</p>"
+    by = {}
+    for r in v["rows"]:
+        b = by.setdefault(r["node"], [0, 0, []]); b[0] += r["ok"]; b[1] += 1
+        if not r["ok"]:
+            b[2].append(f"[{r['case']}] {r['check']}: {r['detail']}")
+    rows = [[f"<code>{e(n)}</code>", f"{a}/{t}", verdict(a == t), e("; ".join(f)) or "—"] for n, (a, t, f) in by.items()]
+    return (f"<p><b>{v['passed']} of {v['checks']} checks pass</b> over {len(v['nodes'])} nodes. Each check recomputes a node's decision "
+            "from what it stored and the rules in the node registry (the catalogue pick from the datasheets, the selection from the family "
+            "scores, the budgets from their units, each feasibility from its failures), rather than reading the node's own verdict. "
+            "Every check is listed in <code>results/NODE_VERIFICATION.md</code>.</p>" + table(["node", "checks passed", "verdict", "failures"], rows, num=(1,)))
+
+
 def design():
     out = []
     for c in CASES:
@@ -178,6 +271,11 @@ def design():
         rows = [[e(m), f"<code>{e(r['option'])}</code>", verdict(r["feasible"]), f"{fmt(r['objective'])} {e(r['objective_id'])}",
                  e(", ".join(f"{k}={v}" for k, v in (r["algorithms"] or {}).items() if v))] for m, r in F["modes"].items() if r]
         out.append("<p>Selected method per mission mode:</p>" + table(["mode", "option", "feasible", "objective (worst seed)", "algorithms"], rows))
+        for r in sel.get("robustness", []):
+            out.append("<div class='find'><b>Robustness (Monte Carlo feedback) after iteration " + str(r["after_iteration"]) + ":</b> " +
+                       e(", ".join(f"{k} passed in {100 * v:.0f} % of dispersed runs" for k, v in r["mc_failing"].items()) + ". " + " ".join(r["changes"] + r["blocked"])) + "</div>")
+        out.append(family_missions(c, sel))
+        out.append(mtq_only(c, sel))
         fig = pump_front(c, sel)
         if fig:
             out.append(fig)
@@ -380,6 +478,9 @@ def open_items():
         "0.005 deg/s line now falls between them, so this verdict disagrees. The gap is the wheel-plus-RCS model, not the requirement.",
         "Sun spin: 17 of 24 seeds pass with and without the OBC; failures are Sun-spin entry with the Sun near the XY plane tripping the 1 deg/s "
         "exit guard during the L2 precession transient -- a tuning trade (fsw.sun_spin_perp_out_dps, fsw.sun_spin_dwell_out_s).",
+        "Coils only (mtq): largely sufficient for detumble and for Sun acquisition by Sun-spin (the power face is brought towards the Sun, "
+        "though not within the cases' 95 min / 20 deg line), and not sufficient for nadir pointing, above all from the spinning state the "
+        "mission hands over. Kept as designed; the owner will improve coils-only nadir pointing from the literature later.",
         "Bought against designed (both cases, same budget of 1.6 kg and 1.0 L): on ais_img_3u three CubeSpace CW0017 wheels are feasible "
         "at 1.0 kg against our fluid loop's 1.6 kg, so the lightest configuration overall is a benchmark; the fluid loop is selected "
         "because the selection is among our solutions, and its 0.6 kg is the price of not buying wheels. On ais_3u every rotor fails "
@@ -442,7 +543,7 @@ def main():
         docno=f"TRN-ADCS-VV-{datetime.date.today():%Y%m%d}", date=f"{datetime.datetime.now(datetime.timezone.utc):%Y-%m-%d %H:%M} UTC", commit=e(commit),
         engine=e(eng.group(1) if eng else "adcs-engine-rs"), fsw="trinetra-fsw-c/1.0.0 and trinetra-fsw-rs (C99 and Rust no_std, adcs-fswcfg/1)",
         cases=e(", ".join(CASES)), verdicts=cards, summary=summ, fig_flow=svg_inline("docs/figures/flow_design_to_hils.svg"),
-        fig_arch=svg_inline("docs/figures/architecture_languages.svg"), nodes=nodes(), catalogue=catalogue(), requirements=requirements(), design=design(), sils=sils(),
+        fig_arch=svg_inline("docs/figures/architecture_languages.svg"), nodes=nodes(), catalogue=catalogue(), requirements=requirements(), design=design(), sils=sils(), verification=verification(),
         campaigns=campaigns(), parity=parity(), oils=oils(), vobc=vobc(), open=open_items())
     h = OUT / "TRINETRA_ADCS_VV_report.html"
     h.write_text(doc)
