@@ -102,6 +102,20 @@ p99.73, against the 10° AIS requirement.
 | PD | 22–40° | 7.3–14.3° |
 | SMC | 7.6–57.6° | 4.2–12.7° |
 
+**The capture is now part of the design loop.**
+- **Capture test:** the coils-only nadir mode test starts as the mission hands over: an arbitrary attitude and 6 °/s
+  in a random direction, the top of the Sun-spin grid. It runs three orbits and scores the last half. The other
+  options keep the 10° test (`test_initial` in `matlab_sils/data/modes/nadir_pointing.json`, read by the engine and
+  by the MATLAB twin).
+- **Tuned hand-over:** node `tune` flies the exit threshold `handover_out_dps` ∈ {0.25, 0.5, 1} °/s together with
+  the proportional and rate gains. So the dispatched gains and hand-over are chosen to capture from the spin, and
+  then to hold.
+- **What stays fixed:** the entry threshold (1 °/s) and the dwell (60 s). Only whether the despin starts depends on
+  the entry threshold, and from the spin it always starts.
+
+On this test, before tuning, Celani 2026 with gains ×4/×0.25 captures and holds at 2.6–4.1° over four seeds. At
+nominal gains it reaches 7.3–51.8°, and PD 6.5–14.6°.
+
 The boresight law already captures from the spin by itself, since its rotation about the boresight is free. The
 despin is what makes the three-axis laws usable after the spin, so it stays on for every law.
 
@@ -132,8 +146,6 @@ is cancelled by `m_res_est`. The difference is the gravity gradient.
   the full mission (about 1.5 to 2 h after detumble on the coarse case), so the mode test under-rates them against the
   boresight law.
 - P12 to P15 are paywalled; their laws cannot be written from the abstracts.
-- The hand-over thresholds (1 and 0.5 °/s, 60 s) are fixed, not tuned by node `tune`. The mode tests start at 10°,
-  so the tuned gains are chosen for holding, not for the capture after the spin.
 - The certificate is local and numerical, on an aligned-dipole field model, as in the papers.
 - On the Cortex-M4F firmware (QEMU), the design loop's coils-only nadir mode tests differ from the host in the last
   bits (newlib's double-precision math functions). This is the same for the pre-existing PD law. The standard

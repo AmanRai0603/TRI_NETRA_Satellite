@@ -236,7 +236,7 @@ Bruni & Celani 2017 (P7) min-max gain selection: for a coils-only option that st
 
 | parameter | value |
 |---|---|
-| `grids` | mtq_pointing: mtq_gain_p: 0.25, 1, 4<br>mtq_gain_d: 0.25, 1, 4<br>sun_acquisition: spin_rate_dps: 2, 4, 6<br>ss_gain: 0.3, 1, 3 |
+| `grids` | mtq_pointing: mtq_gain_p: 0.25, 1, 4<br>mtq_gain_d: 0.25, 1, 4<br>handover_out_dps: 0.25, 0.5, 1.0<br>sun_acquisition: spin_rate_dps: 2, 4, 6<br>ss_gain: 0.3, 1, 3 |
 | `extra_seeds` | 3, 4 |
 | `actuators` | mtq |
 | `objective` | worst seed: (not feasible, failing count, objective) |
@@ -246,6 +246,7 @@ Rules:
 - mtq_gain_p / mtq_gain_d scale the proportional and rate gains of every magnetic pointing law (for Avanzini: lambda and k)
 - spin_rate_dps sets the commanded spin (Roldugin: wobble grows with it) and ss_gain the Sun-law gains
 - the grid is a derivative-free search as in the paper, coarse (3 x 3) to keep the matrix inside minutes
+- handover_out_dps is the rate error below which the pointing law takes over from the despin after the Sun spin (05_control.md); it is tuned with the gains because the coils-only nadir test starts from the spin
 
 ## converge
 

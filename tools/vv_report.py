@@ -246,7 +246,9 @@ def literature():
                "(Avanzini &amp; Giulietti 2012). The spin-up's high gain only drags the rate along the turning field. The "
                "pointing law takes over below 0.5 °/s, held for 60 s. The magnetic capture then takes about 1.5 orbits, so "
                "node <code>dispatch</code> gives a coils-only nadir three orbits after the command, and the metrics take "
-               "the last half orbit. Coils-only mission nadir APE (p99.73): " +
+               "the last half orbit. The coils-only nadir mode test starts the same way (arbitrary attitude, 6 °/s), and node "
+               "<code>tune</code> flies the hand-over exit threshold with the gains, so the dispatched gains capture as "
+               "well as hold. Coils-only mission nadir APE (p99.73): " +
                ("; ".join(f"{e(c)} {fmt(m['value'])}° {verdict(m['pass'])}" for c, m in fam.items()) or "not run") + ".</p>"
                "<h3>Why Sun referencing is worse than nadir with coils only</h3><p>The coils are not short of dipole. The "
                "difference is the gravity gradient. At nadir the long, minimum-inertia axis sits at the gradient's "
