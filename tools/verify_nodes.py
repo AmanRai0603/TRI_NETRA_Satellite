@@ -143,6 +143,11 @@ def verify_case(C, case, cat):
         if vs:
             best = min(vs, key=rank)
             C("tune", case, f"{m_}/{o_}: the kept variant is the best worst seed", rank(best) == rank(r), f"{r['alg']} ({r['objective_id']} {r['objective']})")
+    tuned = [list(x) for x in last.get("tuned", [])]
+    thin = [f"{x['mode']}/{x['option']}" for x in last["matrix"] if x["option"] == "mtq" and x["mode"] in ("nadir_pointing", "sun_referencing", "sun_acquisition")
+            and x["feasible"] and isinstance(x.get("objective_req"), (int, float)) and x["objective"] is not None
+            and x["objective"] > P["tune"]["margin"] * x["objective_req"] and [x["mode"], x["option"]] not in tuned]
+    C("tune", case, f"every coils-only option passing with less than the {P['tune']['margin']:g} margin was tuned", not thin, ", ".join(thin) or "none left")
     # certify: every law's verdict follows from its multipliers
     fq = jl(PIPE / case / "floquet.json")
     if C("certify", case, "Floquet multipliers for every magnetic law of the coils-only family", fq and len(fq["laws"]) >= 5,

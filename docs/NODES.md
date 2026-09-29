@@ -228,7 +228,7 @@ Rules:
 
 ## tune
 
-Bruni & Celani 2017 (P7) min-max gain selection: for a coils-only option that still fails on performance after every law of its slot has flown, every law is flown at every point of a gain grid, on extra seeds; each law keeps the gains whose worst seed is best, and assess then ranks the laws by that worst case.
+Bruni & Celani 2017 (P7) min-max gain selection: for a coils-only option that still fails on performance after every law of its slot has flown, or passes with a thin margin,, every law is flown at every point of a gain grid, on extra seeds; each law keeps the gains whose worst seed is best, and assess then ranks the laws by that worst case.
 
 - **Stage:** SILS. **Runs in:** Rust engine + C flight software (through matrix).
 - **Inputs:** converge (the options to tune), matrix.
@@ -240,6 +240,7 @@ Bruni & Celani 2017 (P7) min-max gain selection: for a coils-only option that st
 | `extra_seeds` | 3, 4 |
 | `actuators` | mtq |
 | `objective` | worst seed: (not feasible, failing count, objective) |
+| `margin` | 0.5 |
 
 Rules:
 
@@ -247,6 +248,7 @@ Rules:
 - spin_rate_dps sets the commanded spin (Roldugin: wobble grows with it) and ss_gain the Sun-law gains
 - the grid is a derivative-free search as in the paper, coarse (3 x 3) to keep the matrix inside minutes
 - handover_out_dps is the rate error below which the pointing law takes over from the despin after the Sun spin (05_control.md); it is tuned with the gains because the coils-only nadir test starts from the spin
+- an option that passes but whose worst seed uses more than margin x its requirement is tuned too (the Monte Carlo finds thin margins)
 
 ## converge
 
