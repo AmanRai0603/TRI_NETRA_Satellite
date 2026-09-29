@@ -51,6 +51,33 @@ mtq_lqr/smc:   control_law with the magnetic gains, dt = coil period, H_dev = 0
 mtq_rate_damp: τ = −Kd∘(ω − dcm(q_e) ω_ref)
 ```
 
+### Magnetorquer-only literature laws (docs/MTQ_LITERATURE.md)
+
+Common: `q_e = qconj(q_ref) ⊗ q`, `s = sign(q_e.w)` (1 if 0), `ω_r = dcm(q_e) ω_ref`, `ω_e = ω − ω_r`.
+Every law returns a torque; `torque2dipole` applies the projection Γ(t) = I − b bᵀ (m = B × τ/|B|²),
+which is the Lovera–Astolfi input reformulation. Gains are torque-level (normalised Γ), computed on the ground.
+
+```
+mtq_lovera2004 (P1, Prop. 1):  τ = −(ε² k_p s q_e.v + ε k_v J ω_e)
+mtq_celani2015 (P4, Thm 2):    τ = −(ε² k_1 s q_e.v + ε k_2 ω_e)            # no inertia in the law
+mtq_avanzini2021 (P16):        n = |ω_ref|;  if n < 1e-9: use mtq_celani2015
+                               e_p = ω_ref/n;  σ = dcm(q_e) e_p;  J_p = e_pᵀ J e_p
+                               θ = 2 s (q_e.v · e_p)                          # pitch error, first order
+                               η = J_p n (1 − λ θ)
+                               τ = k (η σ − J ω) + k (η e_p − J ω)            # k_ζ = k_ε = k
+mtq_celani2026 (P8):           e3 = sun_axis (Sun state) or payload boresight (nadir state)
+                               a = unit(s_prop) in the Sun state with a Sun, else dcm(q_e) e3
+                               τ = k_p (e3 × a) − k_d ω_e                    # rotation about e3 free
+mtq_tango2013 (P3):            θ = 2 s q_e.v;  τ = −(P_θ θ + P_ω ω_e)        # P_θ = P21/r, P_ω = P22/r
+```
+
+Ground gains (engine config, fsw.mtq_gain_p / mtq_gain_d scale them, node `tune`):
+ε = 10⁻³, k_1 = g_p J̄ ω_n²/ε², k_2 = g_d 2ζ J̄ ω_n/ε (Lovera: g_d 2ζ ω_n/ε, the J is in the law);
+k = g_d 0.84 n, λ = g_p 0.08 (Avanzini's case); k_p = g_p J̄ ω_n², k_d = g_d 2ζ J̄ ω_n (Celani 2026);
+TANGO: per-axis double-integrator CARE with the orbit-averaged B_u R⁻¹ B_uᵀ, isotropic field average
+E[Γ J⁻² Γ]_ii = (7/15) J_i⁻² + tr(J⁻²)/15, Q chosen so the average axis has ω_n, ζ (the paper's Q, R are
+unpublished); P12 = √(q_θ/m_i), P22 = √((q_ω + 2 P12)/m_i).
+
 ## Torque to dipole (`torque2dipole`, Standard Code act.torque2dipole)
 
 ```

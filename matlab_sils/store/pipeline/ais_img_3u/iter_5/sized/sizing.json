@@ -100,7 +100,7 @@
     "k_tau": 1.5,
     "fmr_lambda": 0.1,
     "star_tracker": false,
-    "st_heads": 1,
+    "st_heads": 2,
     "fmr_flow_sigma": 0.0005,
     "gyro_grade": 1.0
   },
@@ -109,8 +109,8 @@
       "product": "SZ-ais_img_3u-mtq",
       "role": "solution",
       "label": "Magnetorquers only",
-      "mass_kg": 0.5295611292035013,
-      "power_W": 2.895611292035013,
+      "mass_kg": 0.8295611292035014,
+      "power_W": 3.8956112920350123,
       "volume_L": 0.011824451681400512,
       "items": [
         {
@@ -124,9 +124,9 @@
         {
           "slot": "star_tracker",
           "part": "SYN-ST-1",
-          "n": 1.0,
-          "mass_kg": 0.3,
-          "power_W": 1.0,
+          "n": 2.0,
+          "mass_kg": 0.6,
+          "power_W": 2.0,
           "volume_L": 0.0
         },
         {
@@ -175,8 +175,8 @@
       "product": "SZ-ais_img_3u-mtq_fmr",
       "role": "solution",
       "label": "Magnetorquers + fluid momentum loop",
-      "mass_kg": 1.4273198532328386,
-      "power_W": 5.876812587204763,
+      "mass_kg": 1.7273198532328387,
+      "power_W": 6.876812587204763,
       "volume_L": 0.534415333603444,
       "items": [
         {
@@ -214,9 +214,9 @@
         {
           "slot": "star_tracker",
           "part": "SYN-ST-1",
-          "n": 1.0,
-          "mass_kg": 0.3,
-          "power_W": 1.0,
+          "n": 2.0,
+          "mass_kg": 0.6,
+          "power_W": 2.0,
           "volume_L": 0.0
         },
         {
@@ -265,8 +265,8 @@
       "product": "SZ-ais_img_3u-mtq_fmr_rcs",
       "role": "solution",
       "label": "Magnetorquers + fluid loop + N2O cold-gas RCS",
-      "mass_kg": 1.89323664408971,
-      "power_W": 5.926812587204763,
+      "mass_kg": 2.1932366440897093,
+      "power_W": 6.926812587204763,
       "volume_L": 1.375932994320427,
       "items": [
         {
@@ -312,9 +312,9 @@
         {
           "slot": "star_tracker",
           "part": "SYN-ST-1",
-          "n": 1.0,
-          "mass_kg": 0.3,
-          "power_W": 1.0,
+          "n": 2.0,
+          "mass_kg": 0.6,
+          "power_W": 2.0,
           "volume_L": 0.0
         },
         {
@@ -363,8 +363,8 @@
       "product": "SZ-ais_img_3u-mtq_rw",
       "role": "benchmark",
       "label": "Magnetorquers + reaction wheels",
-      "mass_kg": 0.6960383340086098,
-      "power_W": 3.660383340086098,
+      "mass_kg": 0.9960383340086099,
+      "power_W": 4.6603833400860974,
       "volume_L": 0.0675673336034439,
       "items": [
         {
@@ -386,9 +386,9 @@
         {
           "slot": "star_tracker",
           "part": "SYN-ST-1",
-          "n": 1.0,
-          "mass_kg": 0.3,
-          "power_W": 1.0,
+          "n": 2.0,
+          "mass_kg": 0.6,
+          "power_W": 2.0,
           "volume_L": 0.0
         },
         {
@@ -437,8 +437,8 @@
       "product": "SZ-ais_img_3u-mtq_rw_rcs",
       "role": "benchmark",
       "label": "Magnetorquers + reaction wheels + N2O cold-gas RCS",
-      "mass_kg": 1.1619551248654814,
-      "power_W": 3.7103833400860977,
+      "mass_kg": 1.4619551248654812,
+      "power_W": 4.710383340086097,
       "volume_L": 0.9090849943204269,
       "items": [
         {
@@ -468,9 +468,9 @@
         {
           "slot": "star_tracker",
           "part": "SYN-ST-1",
-          "n": 1.0,
-          "mass_kg": 0.3,
-          "power_W": 1.0,
+          "n": 2.0,
+          "mass_kg": 0.6,
+          "power_W": 2.0,
           "volume_L": 0.0
         },
         {
@@ -519,8 +519,8 @@
       "product": "SZ-ais_img_3u-mtq_cmg",
       "role": "benchmark",
       "label": "Magnetorquers + 4 single-gimbal CMG (pyramid)",
-      "mass_kg": 1.71603833400861,
-      "power_W": 6.760383340086096,
+      "mass_kg": 2.01603833400861,
+      "power_W": 7.760383340086096,
       "volume_L": 0.806415333603444,
       "items": [
         {
@@ -542,9 +542,9 @@
         {
           "slot": "star_tracker",
           "part": "SYN-ST-1",
-          "n": 1.0,
-          "mass_kg": 0.3,
-          "power_W": 1.0,
+          "n": 2.0,
+          "mass_kg": 0.6,
+          "power_W": 2.0,
           "volume_L": 0.0
         },
         {
@@ -593,8 +593,8 @@
       "product": "SZ-ais_img_3u-mtq_cmg_rcs",
       "role": "benchmark",
       "label": "Magnetorquers + 4 CMG + N2O cold-gas RCS",
-      "mass_kg": 2.181955124865481,
-      "power_W": 6.810383340086096,
+      "mass_kg": 2.4819551248654808,
+      "power_W": 7.810383340086096,
       "volume_L": 1.6479329943204268,
       "items": [
         {
@@ -624,9 +624,9 @@
         {
           "slot": "star_tracker",
           "part": "SYN-ST-1",
-          "n": 1.0,
-          "mass_kg": 0.3,
-          "power_W": 1.0,
+          "n": 2.0,
+          "mass_kg": 0.6,
+          "power_W": 2.0,
           "volume_L": 0.0
         },
         {
@@ -675,8 +675,8 @@
       "product": "SZ-ais_img_3u-mtq_vscmg",
       "role": "benchmark",
       "label": "Magnetorquers + 4 variable-speed CMG (pyramid)",
-      "mass_kg": 1.71603833400861,
-      "power_W": 6.760383340086096,
+      "mass_kg": 2.01603833400861,
+      "power_W": 7.760383340086096,
       "volume_L": 0.806415333603444,
       "items": [
         {
@@ -698,9 +698,9 @@
         {
           "slot": "star_tracker",
           "part": "SYN-ST-1",
-          "n": 1.0,
-          "mass_kg": 0.3,
-          "power_W": 1.0,
+          "n": 2.0,
+          "mass_kg": 0.6,
+          "power_W": 2.0,
           "volume_L": 0.0
         },
         {
@@ -749,8 +749,8 @@
       "product": "SZ-ais_img_3u-mtq_vscmg_rcs",
       "role": "benchmark",
       "label": "Magnetorquers + 4 VSCMG + N2O cold-gas RCS",
-      "mass_kg": 2.181955124865481,
-      "power_W": 6.810383340086096,
+      "mass_kg": 2.4819551248654808,
+      "power_W": 7.810383340086096,
       "volume_L": 1.6479329943204268,
       "items": [
         {
@@ -780,9 +780,9 @@
         {
           "slot": "star_tracker",
           "part": "SYN-ST-1",
-          "n": 1.0,
-          "mass_kg": 0.3,
-          "power_W": 1.0,
+          "n": 2.0,
+          "mass_kg": 0.6,
+          "power_W": 2.0,
           "volume_L": 0.0
         },
         {

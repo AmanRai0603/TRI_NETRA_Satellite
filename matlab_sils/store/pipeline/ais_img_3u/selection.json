@@ -14,7 +14,7 @@
    "gaps": [
     "sun_acquisition: sun_acquisition_time (performance), sun_angle_p95 (performance)",
     "sun_referencing: sun_ape_p9973 (performance)",
-    "nadir_pointing: ape_los_p9973 (performance), ake_los_p9973 (knowledge), rate_stability_p9973 (performance)"
+    "nadir_pointing: ape_los_p9973 (performance), rate_stability_p9973 (performance)"
    ],
    "modes": {
     "detumble": {
@@ -42,13 +42,13 @@
     },
     "sun_acquisition": {
      "option": "mtq",
-     "alg": "sunspin_damped",
+     "alg": "sunspin_damped@spin_rate_dps=2,ss_gain=3",
      "feasible": false,
      "failing": {
       "sun_acquisition_time": "performance",
       "sun_angle_p95": "performance"
      },
-     "objective": 98.47333333333334,
+     "objective": 72.54,
      "objective_id": "sun_acquisition_time",
      "algorithms": {
       "allocation": "",
@@ -60,71 +60,70 @@
       "thrusters": ""
      },
      "metrics": {
-      "sun_acquisition_time": 98.47333333333334,
-      "sun_angle_p95": 51.95069646401631,
-      "power_mean": 0.14363763129815482,
-      "power_peak": 0.22741328791472487,
+      "sun_acquisition_time": 72.54,
+      "sun_angle_p95": 128.24813805304728,
+      "power_mean": 0.15037903004205572,
+      "power_peak": 0.23509128458641487,
       "propellant": 0.0
      }
     },
     "sun_referencing": {
      "option": "mtq",
-     "alg": "mtq_rate_damp",
+     "alg": "mtq_celani2026@mtq_gain_p=4,mtq_gain_d=0.25",
      "feasible": false,
      "failing": {
       "sun_ape_p9973": "performance"
      },
-     "objective": 141.80593774589596,
+     "objective": 27.628206197998434,
      "objective_id": "sun_ape_p9973",
      "algorithms": {
       "allocation": "",
       "attitude": "mekf",
       "detumble": "bdot_gyro",
-      "mtq_pointing": "mtq_rate_damp",
+      "mtq_pointing": "mtq_celani2026",
       "pointing": "",
       "sun_acquisition": "sunspin_l1l2",
       "thrusters": ""
      },
      "metrics": {
-      "sun_ape_p9973": 141.80593774589596,
-      "ape_3ax_p9973": 178.99837273642115,
-      "ake_3ax_p9973": 0.6405734703561033,
-      "rate_stability_p9973": 0.1784413274304319,
+      "sun_ape_p9973": 27.628206197998434,
+      "ape_3ax_p9973": 179.80070744687023,
+      "ake_3ax_p9973": 0.3101315227607757,
+      "rate_stability_p9973": 0.1628800014782899,
       "jitter": null,
       "momentum_peak": null,
-      "power_mean": 0.011851403314550094,
-      "power_peak": 0.05500058276928588,
+      "power_mean": 0.011965010549504777,
+      "power_peak": 0.029084487157260152,
       "propellant": 0.0
      }
     },
     "nadir_pointing": {
      "option": "mtq",
-     "alg": "mtq_rate_damp",
+     "alg": "mtq_celani2026@mtq_gain_p=4,mtq_gain_d=0.25",
      "feasible": false,
      "failing": {
       "ape_los_p9973": "performance",
-      "ake_los_p9973": "knowledge",
       "rate_stability_p9973": "performance"
      },
-     "objective": 132.37645436439328,
+     "objective": 3.4050593390708093,
      "objective_id": "ape_los_p9973",
      "algorithms": {
       "allocation": "",
       "attitude": "mekf",
       "detumble": "bdot_gyro",
-      "mtq_pointing": "mtq_rate_damp",
+      "mtq_pointing": "mtq_celani2026",
       "pointing": "",
       "sun_acquisition": "sunspin_l1l2",
       "thrusters": ""
      },
      "metrics": {
-      "ape_los_p9973": 132.37645436439328,
-      "ake_los_p9973": 0.17514229586033273,
-      "rate_stability_p9973": 0.2386547672702901,
+      "ape_los_p9973": 3.4050593390708093,
+      "ake_los_p9973": 0.002590676914843892,
+      "rate_stability_p9973": 0.05420183824520116,
       "jitter": null,
       "momentum_peak": null,
-      "power_mean": 0.010681383575160481,
-      "power_peak": 0.01485800013923146,
+      "power_mean": 0.010678774413883815,
+      "power_peak": 0.01579384244074717,
       "propellant": 0.0
      }
     }
@@ -1126,7 +1125,7 @@
   }
  },
  "converged": true,
- "iterations": 9,
+ "iterations": 10,
  "knobs": {
   "scale": {
    "mtqp": 1.0,
@@ -1237,7 +1236,7 @@
  },
  "robustness": [
   {
-   "after_iteration": 7,
+   "after_iteration": 8,
    "family": "mtq_fmr",
    "mc_failing": {
     "power_mean": 0.75

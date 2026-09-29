@@ -10,14 +10,15 @@
  "options": 25,
  "changes": [
   "rate stability: gyro noise x1 -> x0.3 (fibre-optic class)",
-  "mtqp: authority x1 -> x1.5 (performance)"
+  "nadir_pointing/mtq: tune every mtq_pointing law's gains, min over the gains of the worst seed (Bruni & Celani 2017)",
+  "sun_acquisition/mtq: tune every sun_acquisition law's gains, min over the gains of the worst seed (Bruni & Celani 2017)",
+  "sun_referencing/mtq: tune every mtq_pointing law's gains, min over the gains of the worst seed (Bruni & Celani 2017)"
  ],
  "blocked": [
   "nadir_pointing/cmg+mtq: power fails at the sized authority (cmg); the part's standby power is the floor",
   "nadir_pointing/cmg+rcs: power fails at the sized authority (cmg); the part's standby power is the floor",
   "nadir_pointing/fmr+rcs: performance and power both fail \u2014 no authority change helps",
   "nadir_pointing/fmr+rcs: power is the thrusters' valve power (RCS dumping), not the pump",
-  "nadir_pointing/mtq: knowledge fails with the star tracker fitted",
   "nadir_pointing/vscmg+mtq: power fails at the sized authority (vscmg); the part's standby power is the floor",
   "nadir_pointing/vscmg+rcs: power fails at the sized authority (vscmg); the part's standby power is the floor",
   "sun_acquisition/cmg: power fails at the sized authority (cmg); the part's standby power is the floor",
@@ -34,7 +35,7 @@
    "gaps": [
     "sun_acquisition: sun_acquisition_time (performance), sun_angle_p95 (performance)",
     "sun_referencing: sun_ape_p9973 (performance)",
-    "nadir_pointing: ape_los_p9973 (performance), ake_los_p9973 (knowledge), rate_stability_p9973 (performance)"
+    "nadir_pointing: ape_los_p9973 (performance), rate_stability_p9973 (performance)"
    ],
    "budget": {
     "mass_kg": 0.8295611292035014,
@@ -173,7 +174,59 @@
     "sun_angle_p95": "performance"
    },
    "objective": 98.47333333333334,
-   "objective_id": "sun_acquisition_time"
+   "objective_id": "sun_acquisition_time",
+   "variants": [
+    {
+     "alg": "sunspin_damped",
+     "feasible": false,
+     "failing": {
+      "sun_acquisition_time": "performance",
+      "sun_angle_p95": "performance"
+     },
+     "objective": 98.47333333333334,
+     "violation": 11.597534823200816
+    },
+    {
+     "alg": "sunspin_l1l2",
+     "feasible": false,
+     "failing": {
+      "sun_acquisition_time": "performance",
+      "sun_angle_p95": "performance"
+     },
+     "objective": 112.67333333333335,
+     "violation": 1.3723426653224382
+    },
+    {
+     "alg": "sunspin_l1l2_e2",
+     "feasible": false,
+     "failing": {
+      "sun_acquisition_time": "performance",
+      "sun_angle_p95": "performance"
+     },
+     "objective": 112.67333333333335,
+     "violation": 1.3723426653224382
+    },
+    {
+     "alg": "sunspin_deruiter2011",
+     "feasible": false,
+     "failing": {
+      "sun_acquisition_time": "performance",
+      "sun_angle_p95": "performance"
+     },
+     "objective": 110.19000000000001,
+     "violation": 11.87858035609332
+    },
+    {
+     "alg": "sun_boresight_celani2026",
+     "feasible": false,
+     "failing": {
+      "sun_angle_p95": "performance",
+      "sun_acquisition_time": "performance"
+     },
+     "objective": 104.24000000000001,
+     "violation": 2.648391055094244
+    }
+   ]
   },
   {
    "mode": "sun_acquisition",
@@ -218,13 +271,96 @@
   {
    "mode": "sun_referencing",
    "option": "mtq",
-   "alg": "mtq_rate_damp",
+   "alg": "mtq_celani2026",
    "feasible": false,
    "failing": {
     "sun_ape_p9973": "performance"
    },
-   "objective": 141.80593774589596,
-   "objective_id": "sun_ape_p9973"
+   "objective": 63.648594270381366,
+   "objective_id": "sun_ape_p9973",
+   "variants": [
+    {
+     "alg": "mtq_pd",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 157.82301400970425,
+     "violation": 30.56460280194085
+    },
+    {
+     "alg": "mtq_lqr",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 176.38289484186348,
+     "violation": 34.2765789683727
+    },
+    {
+     "alg": "mtq_smc",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 174.65532760350615,
+     "violation": 33.93106552070123
+    },
+    {
+     "alg": "mtq_rate_damp",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 141.80593774589596,
+     "violation": 27.361187549179192
+    },
+    {
+     "alg": "mtq_lovera2004",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 170.38513721389953,
+     "violation": 33.07702744277991
+    },
+    {
+     "alg": "mtq_celani2015",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 91.94322572441104,
+     "violation": 17.388645144882208
+    },
+    {
+     "alg": "mtq_avanzini2021",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 91.94322572441104,
+     "violation": 17.388645144882208
+    },
+    {
+     "alg": "mtq_celani2026",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 63.648594270381366,
+     "violation": 11.729718854076273
+    },
+    {
+     "alg": "mtq_tango2013",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 161.6152179581759,
+     "violation": 31.323043591635177
+    }
+   ]
   },
   {
    "mode": "sun_referencing",
@@ -311,15 +447,114 @@
   {
    "mode": "nadir_pointing",
    "option": "mtq",
-   "alg": "mtq_rate_damp",
+   "alg": "mtq_celani2026",
    "feasible": false,
    "failing": {
     "ape_los_p9973": "performance",
-    "ake_los_p9973": "knowledge",
     "rate_stability_p9973": "performance"
    },
-   "objective": 132.37645436439328,
-   "objective_id": "ape_los_p9973"
+   "objective": 14.504977281914172,
+   "objective_id": "ape_los_p9973",
+   "variants": [
+    {
+     "alg": "mtq_pd",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance",
+      "ake_los_p9973": "knowledge",
+      "rate_stability_p9973": "performance"
+     },
+     "objective": 172.81541150462354,
+     "violation": 17481.607650154114
+    },
+    {
+     "alg": "mtq_lqr",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance",
+      "ake_los_p9973": "knowledge",
+      "rate_stability_p9973": "performance"
+     },
+     "objective": 164.5085091040043,
+     "violation": 16882.191674229092
+    },
+    {
+     "alg": "mtq_smc",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance",
+      "ake_los_p9973": "knowledge",
+      "rate_stability_p9973": "performance"
+     },
+     "objective": 177.98031070845877,
+     "violation": 18012.28001599649
+    },
+    {
+     "alg": "mtq_rate_damp",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance",
+      "ake_los_p9973": "knowledge",
+      "rate_stability_p9973": "performance"
+     },
+     "objective": 132.37645436439328,
+     "violation": 13317.404849065453
+    },
+    {
+     "alg": "mtq_lovera2004",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance",
+      "ake_los_p9973": "knowledge",
+      "rate_stability_p9973": "performance"
+     },
+     "objective": 160.05917873521284,
+     "violation": 16226.92748891652
+    },
+    {
+     "alg": "mtq_celani2015",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance",
+      "ake_los_p9973": "knowledge",
+      "rate_stability_p9973": "performance"
+     },
+     "objective": 126.82706032321697,
+     "violation": 12742.36130866527
+    },
+    {
+     "alg": "mtq_avanzini2021",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance",
+      "ake_los_p9973": "knowledge",
+      "rate_stability_p9973": "performance"
+     },
+     "objective": 107.89767513035936,
+     "violation": 10842.471519374696
+    },
+    {
+     "alg": "mtq_celani2026",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance",
+      "rate_stability_p9973": "performance"
+     },
+     "objective": 14.504977281914172,
+     "violation": 1454.6633273266932
+    },
+    {
+     "alg": "mtq_tango2013",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance",
+      "ake_los_p9973": "knowledge",
+      "rate_stability_p9973": "performance"
+     },
+     "objective": 136.43962627317288,
+     "violation": 13771.705604558816
+    }
+   ]
   },
   {
    "mode": "nadir_pointing",
@@ -408,5 +643,19 @@
    "objective": 0.010055397051088589,
    "objective_id": "ape_los_p9973"
   }
+ ],
+ "tuned": [
+  [
+   "nadir_pointing",
+   "mtq"
+  ],
+  [
+   "sun_acquisition",
+   "mtq"
+  ],
+  [
+   "sun_referencing",
+   "mtq"
+  ]
  ]
 }

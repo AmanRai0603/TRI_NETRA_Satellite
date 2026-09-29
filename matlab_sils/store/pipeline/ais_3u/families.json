@@ -3,14 +3,13 @@
   "selected": false,
   "feasible": false,
   "gaps": [
-   "sun_acquisition: sun_acquisition_time (performance), sun_angle_p95 (performance)",
-   "sun_referencing: sun_ape_p9973 (performance)",
-   "nadir_pointing: ape_los_p9973 (performance)"
+   "sun_acquisition: sun_angle_p95 (performance)",
+   "sun_referencing: sun_ape_p9973 (performance)"
   ],
   "budget": {
-   "mass_kg": 0.23563798670963648,
-   "power_W": 2.056379867096365,
-   "volume_L": 0.018255194683854604
+   "mass_kg": 0.2926854700966821,
+   "power_W": 2.6268547009668217,
+   "volume_L": 0.04107418803867285
   },
   "methods": {
    "detumble": "mtq",
@@ -21,7 +20,7 @@
   "algorithms": {
    "detumble": "bdot_gyro",
    "sun_acquisition": "sunspin_damped",
-   "mtq_pointing": "mtq_smc"
+   "mtq_pointing": "mtq_celani2026"
   },
   "package": "matlab_sils/store/pipeline/ais_3u/families/mtq/package",
   "check_dir": "matlab_sils/store/pipeline/ais_3u/families/mtq/dispatch",
@@ -31,7 +30,7 @@
     {
      "id": "detumble_time",
      "kind": "time_to_rate",
-     "value": 49.95666666666667,
+     "value": 40.49,
      "unit": "min",
      "req": 284.0,
      "req_key": "req.detumble",
@@ -40,7 +39,7 @@
     {
      "id": "ape_los_p9973",
      "kind": "ape_los",
-     "value": 174.15586610629066,
+     "value": 33.722036848070914,
      "unit": "deg",
      "req": 10.0,
      "req_key": "req.ape",
@@ -49,7 +48,7 @@
     {
      "id": "ake_los_p9973",
      "kind": "ake_los",
-     "value": 1.479125515542044,
+     "value": 0.24636157368801664,
      "unit": "deg",
      "req": 5.0,
      "req_key": "req.ake",
@@ -58,7 +57,7 @@
     {
      "id": "power_mean",
      "kind": "power_mean",
-     "value": 0.14950523027604673,
+     "value": 0.11778052257100391,
      "unit": "W",
      "req": 0.5,
      "req_key": "req.pavg",
@@ -67,7 +66,7 @@
     {
      "id": "power_peak",
      "kind": "power_peak",
-     "value": 0.3539503246115453,
+     "value": 0.7719027478369769,
      "unit": "W",
      "req": null,
      "req_key": "",
@@ -87,7 +86,7 @@
     {
      "id": "detumble_time",
      "kind": "time_to_rate",
-     "value": 49.95666666666667,
+     "value": 40.49,
      "unit": "min",
      "req": 284.0,
      "req_key": "req.detumble",
@@ -96,7 +95,7 @@
     {
      "id": "ape_los_p9973",
      "kind": "ape_los",
-     "value": 174.15586610629066,
+     "value": 33.722036848070914,
      "unit": "deg",
      "req": 10.0,
      "req_key": "req.ape",
@@ -105,7 +104,7 @@
     {
      "id": "ake_los_p9973",
      "kind": "ake_los",
-     "value": 1.479125515542044,
+     "value": 0.24636157368801664,
      "unit": "deg",
      "req": 5.0,
      "req_key": "req.ake",
@@ -114,7 +113,7 @@
     {
      "id": "power_mean",
      "kind": "power_mean",
-     "value": 0.14950523027604673,
+     "value": 0.11778052257100391,
      "unit": "W",
      "req": 0.5,
      "req_key": "req.pavg",
@@ -123,7 +122,7 @@
     {
      "id": "power_peak",
      "kind": "power_peak",
-     "value": 0.3539503246115453,
+     "value": 0.7719027478369769,
      "unit": "W",
      "req": null,
      "req_key": "",
@@ -146,64 +145,12 @@
     "mode": "detumble"
    },
    {
-    "t": 2996.8,
+    "t": 2429.0,
     "mode": "spinup"
    },
    {
-    "t": 5185.8,
+    "t": 4842.2,
     "mode": "sun_spin"
-   },
-   {
-    "t": 5246.0,
-    "mode": "spinup"
-   },
-   {
-    "t": 5380.8,
-    "mode": "sun_spin"
-   },
-   {
-    "t": 5436.8,
-    "mode": "spinup"
-   },
-   {
-    "t": 6265.200000000001,
-    "mode": "sun_spin"
-   },
-   {
-    "t": 6324.6,
-    "mode": "spinup"
-   },
-   {
-    "t": 7872.8,
-    "mode": "sun_spin"
-   },
-   {
-    "t": 8264.4,
-    "mode": "spinup"
-   },
-   {
-    "t": 8841.2,
-    "mode": "sun_spin"
-   },
-   {
-    "t": 8890.0,
-    "mode": "spinup"
-   },
-   {
-    "t": 9016.6,
-    "mode": "sun_spin"
-   },
-   {
-    "t": 9136.800000000001,
-    "mode": "spinup"
-   },
-   {
-    "t": 9376.2,
-    "mode": "sun_spin"
-   },
-   {
-    "t": 10976.6,
-    "mode": "spinup"
    },
    {
     "t": 11478.0,
@@ -216,50 +163,50 @@
     {
      "id": "detumble_time",
      "req": 284.0,
-     "mean": 48.13722222222222,
-     "std": 14.55623167139698,
-     "min": 20.40666666666667,
-     "max": 69.52333333333334,
+     "mean": 46.34138888888889,
+     "std": 14.175322593256762,
+     "min": 19.540000000000003,
+     "max": 66.84,
      "pass_rate": 1.0,
      "pass": true
     },
     {
      "id": "ape_los_p9973",
      "req": 10.0,
-     "mean": 151.27032458090721,
-     "std": 25.200649064342375,
-     "min": 103.13440178015809,
-     "max": 177.38801622650954,
+     "mean": 40.38156615258874,
+     "std": 19.102488667635527,
+     "min": 11.18459538861645,
+     "max": 64.60089961920595,
      "pass_rate": 0.0,
      "pass": false
     },
     {
      "id": "ake_los_p9973",
      "req": 5.0,
-     "mean": 1.958329685830395,
-     "std": 1.9600066946025436,
-     "min": 0.22193141820129642,
-     "max": 6.370798194570023,
-     "pass_rate": 0.8333333333333334,
-     "pass": false
+     "mean": 0.7428300976140223,
+     "std": 0.8227641993187985,
+     "min": 0.22272645583875472,
+     "max": 3.12630099728884,
+     "pass_rate": 1.0,
+     "pass": true
     },
     {
      "id": "power_mean",
      "req": 0.5,
-     "mean": 0.1323648422964019,
-     "std": 0.021293046215380588,
-     "min": 0.08531927871049669,
-     "max": 0.1720312882713716,
+     "mean": 0.2520033615838388,
+     "std": 0.06892516630505367,
+     "min": 0.08043847363886543,
+     "max": 0.3116414395884978,
      "pass_rate": 1.0,
      "pass": true
     },
     {
      "id": "power_peak",
      "req": null,
-     "mean": 0.34817111932816514,
-     "std": 0.008450180661102742,
-     "min": 0.33200345827510996,
-     "max": 0.3586338579420995,
+     "mean": 0.7737252309941033,
+     "std": 0.018575745572740453,
+     "min": 0.7253845094228668,
+     "max": 0.7949216084696306,
      "pass_rate": null,
      "pass": null
     },

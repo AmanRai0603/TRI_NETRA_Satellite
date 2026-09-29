@@ -1,0 +1,1779 @@
+{
+  "schema": "adcs-sizing/1",
+  "case": "ais_img_3u",
+  "class": "fine",
+  "star_tracker": true,
+  "demand": {
+    "case": "ais_img_3u",
+    "orbit_period_s": 5738.992815014798,
+    "attitudes": [
+      "X_nadir",
+      "Y_nadir",
+      "Z_nadir",
+      "sun"
+    ],
+    "tau_peak": [
+      3.941981605631784e-7,
+      3.76432168578706e-7,
+      4.240198137881266e-7,
+      4.366621659980974e-7
+    ],
+    "h_cyclic": [
+      0.0006465637723756259,
+      0.0006794878073459394,
+      0.0007582378343305619,
+      0.0003514967401640297
+    ],
+    "h_secular_orbit": [
+      0.00009424392293543646,
+      0.00011921772673822654,
+      0.00007112831864736238,
+      0.0006231701398634264
+    ],
+    "tau_axis_peak": [
+      [
+        1.4190306783526507e-7,
+        2.518726874348503e-7,
+        3.130549677752685e-7,
+        3.0301647738045216e-7
+      ],
+      [
+        2.5186803471858665e-7,
+        1.8507544670895478e-7,
+        3.0547266242859106e-7,
+        3.6128367704800254e-7
+      ],
+      [
+        3.0414754090547383e-7,
+        3.050587201723304e-7,
+        1.49575783190547e-7,
+        3.478202084738827e-7
+      ]
+    ],
+    "tau_dist": 4.366621659980974e-7,
+    "worst_attitude": "sun",
+    "h_dist": 0.0007760199139924026,
+    "h_secular": 0.0006231701398634264,
+    "B_min": 0.0000236343970755422,
+    "B_mean": 0.000035763214743913464,
+    "eclipse_frac": 0.3606271777003484,
+    "w0_deg_s": 10.0,
+    "J": [
+      0.0067,
+      0.042,
+      0.042
+    ],
+    "h_detumble": 0.007330382858376184,
+    "slew_deg": 30.0,
+    "slew_s": 60.0,
+    "w_slew": 0.017453292519943295,
+    "a_slew": 0.0009138522593601257,
+    "h_slew": 0.0007330382858376184,
+    "tau_slew": 0.00003838179489312528,
+    "life_yr": 3.0,
+    "slews_per_day": 10.0,
+    "k_h": 2.0,
+    "k_tau": 1.5,
+    "h_req": 0.0015520398279848051,
+    "tau_req": 0.000057572692339687917,
+    "req": {
+      "ake": 0.005,
+      "ape": 0.01,
+      "detumble": 284.0,
+      "mass": 1.6,
+      "pavg": 2.0,
+      "ppk": 4.0,
+      "rks": 0.005,
+      "sunacq": 95.0,
+      "vol": 1.0
+    },
+    "notes": [
+      "mission.life blank: 3 years taken"
+    ],
+    "class": "fine"
+  },
+  "knobs": {
+    "scale": {
+      "fmr": 0.75,
+      "mtqp": 1.0
+    },
+    "k_h": null,
+    "k_tau": 1.5,
+    "fmr_lambda": 0.1,
+    "star_tracker": false,
+    "st_heads": 2,
+    "fmr_flow_sigma": 0.000125,
+    "gyro_grade": 1.0
+  },
+  "families": {
+    "mtq": {
+      "product": "SZ-ais_img_3u-mtq",
+      "role": "solution",
+      "label": "Magnetorquers only",
+      "mass_kg": 0.8295611292035014,
+      "power_W": 3.8956112920350123,
+      "volume_L": 0.011824451681400512,
+      "items": [
+        {
+          "slot": "coils",
+          "part": "SZ-ais_img_3u-MTQP",
+          "n": 3.0,
+          "mass_kg": 0.029561129203501284,
+          "power_W": 0.29561129203501285,
+          "volume_L": 0.011824451681400512
+        },
+        {
+          "slot": "star_tracker",
+          "part": "SYN-ST-1",
+          "n": 2.0,
+          "mass_kg": 0.6,
+          "power_W": 2.0,
+          "volume_L": 0.0
+        },
+        {
+          "slot": "magnetometer",
+          "part": "SYN-MAG-1",
+          "n": 1.0,
+          "mass_kg": 0.02,
+          "power_W": 0.1,
+          "volume_L": 0.0
+        },
+        {
+          "slot": "sun_sensors",
+          "part": "SYN-SUN-1",
+          "n": 6.0,
+          "mass_kg": 0.06,
+          "power_W": 0.30000000000000004,
+          "volume_L": 0.0
+        },
+        {
+          "slot": "gyro",
+          "part": "TRN-GYRO-P1",
+          "n": 1.0,
+          "mass_kg": 0.06,
+          "power_W": 0.3,
+          "volume_L": 0.0
+        },
+        {
+          "slot": "gnss",
+          "part": "TRN-GPS-1",
+          "n": 1.0,
+          "mass_kg": 0.03,
+          "power_W": 0.8,
+          "volume_L": 0.0
+        },
+        {
+          "slot": "earth_sensor",
+          "part": "SYN-ES-1",
+          "n": 1.0,
+          "mass_kg": 0.03,
+          "power_W": 0.1,
+          "volume_L": 0.0
+        }
+      ]
+    },
+    "mtq_fmr": {
+      "product": "SZ-ais_img_3u-mtq_fmr",
+      "role": "solution",
+      "label": "Magnetorquers + fluid momentum loop",
+      "mass_kg": 1.5336922509030777,
+      "power_W": 6.463636498876253,
+      "volume_L": 0.534415333603444,
+      "items": [
+        {
+          "slot": "coils",
+          "part": "SZ-ais_img_3u-MTQ",
+          "n": 3.0,
+          "mass_kg": 0.016038334008609767,
+          "power_W": 0.16038334008609767,
+          "volume_L": 0.0064153336034439064
+        },
+        {
+          "slot": "rings",
+          "part": "SZ-ais_img_3u-FMR-X",
+          "n": 1.0,
+          "mass_kg": 0.25960305827860425,
+          "power_W": 0.8407833729905786,
+          "volume_L": 0.08000000000000002
+        },
+        {
+          "slot": "rings",
+          "part": "SZ-ais_img_3u-FMR-Y",
+          "n": 1.0,
+          "mass_kg": 0.22902542930793185,
+          "power_W": 0.9312348928997892,
+          "volume_L": 0.224
+        },
+        {
+          "slot": "rings",
+          "part": "SZ-ais_img_3u-FMR-Z",
+          "n": 1.0,
+          "mass_kg": 0.22902542930793185,
+          "power_W": 0.9312348928997892,
+          "volume_L": 0.224
+        },
+        {
+          "slot": "star_tracker",
+          "part": "SYN-ST-1",
+          "n": 2.0,
+          "mass_kg": 0.6,
+          "power_W": 2.0,
+          "volume_L": 0.0
+        },
+        {
+          "slot": "magnetometer",
+          "part": "SYN-MAG-1",
+          "n": 1.0,
+          "mass_kg": 0.02,
+          "power_W": 0.1,
+          "volume_L": 0.0
+        },
+        {
+          "slot": "sun_sensors",
+          "part": "SYN-SUN-1",
+          "n": 6.0,
+          "mass_kg": 0.06,
+          "power_W": 0.30000000000000004,
+          "volume_L": 0.0
+        },
+        {
+          "slot": "gyro",
+          "part": "TRN-GYRO-P1",
+          "n": 1.0,
+          "mass_kg": 0.06,
+          "power_W": 0.3,
+          "volume_L": 0.0
+        },
+        {
+          "slot": "gnss",
+          "part": "TRN-GPS-1",
+          "n": 1.0,
+          "mass_kg": 0.03,
+          "power_W": 0.8,
+          "volume_L": 0.0
+        },
+        {
+          "slot": "earth_sensor",
+          "part": "SYN-ES-1",
+          "n": 1.0,
+          "mass_kg": 0.03,
+          "power_W": 0.1,
+          "volume_L": 0.0
+        }
+      ]
+    },
+    "mtq_fmr_rcs": {
+      "product": "SZ-ais_img_3u-mtq_fmr_rcs",
+      "role": "solution",
+      "label": "Magnetorquers + fluid loop + N2O cold-gas RCS",
+      "mass_kg": 1.9996090417599492,
+      "power_W": 6.513636498876253,
+      "volume_L": 1.375932994320427,
+      "items": [
+        {
+          "slot": "coils",
+          "part": "SZ-ais_img_3u-MTQ",
+          "n": 3.0,
+          "mass_kg": 0.016038334008609767,
+          "power_W": 0.16038334008609767,
+          "volume_L": 0.0064153336034439064
+        },
+        {
+          "slot": "rings",
+          "part": "SZ-ais_img_3u-FMR-X",
+          "n": 1.0,
+          "mass_kg": 0.25960305827860425,
+          "power_W": 0.8407833729905786,
+          "volume_L": 0.08000000000000002
+        },
+        {
+          "slot": "rings",
+          "part": "SZ-ais_img_3u-FMR-Y",
+          "n": 1.0,
+          "mass_kg": 0.22902542930793185,
+          "power_W": 0.9312348928997892,
+          "volume_L": 0.224
+        },
+        {
+          "slot": "rings",
+          "part": "SZ-ais_img_3u-FMR-Z",
+          "n": 1.0,
+          "mass_kg": 0.22902542930793185,
+          "power_W": 0.9312348928997892,
+          "volume_L": 0.224
+        },
+        {
+          "slot": "rcs",
+          "part": "SZ-ais_img_3u-RCS",
+          "n": 1.0,
+          "mass_kg": 0.4659167908568713,
+          "power_W": 0.05,
+          "volume_L": 0.841517660716983
+        },
+        {
+          "slot": "star_tracker",
+          "part": "SYN-ST-1",
+          "n": 2.0,
+          "mass_kg": 0.6,
+          "power_W": 2.0,
+          "volume_L": 0.0
+        },
+        {
+          "slot": "magnetometer",
+          "part": "SYN-MAG-1",
+          "n": 1.0,
+          "mass_kg": 0.02,
+          "power_W": 0.1,
+          "volume_L": 0.0
+        },
+        {
+          "slot": "sun_sensors",
+          "part": "SYN-SUN-1",
+          "n": 6.0,
+          "mass_kg": 0.06,
+          "power_W": 0.30000000000000004,
+          "volume_L": 0.0
+        },
+        {
+          "slot": "gyro",
+          "part": "TRN-GYRO-P1",
+          "n": 1.0,
+          "mass_kg": 0.06,
+          "power_W": 0.3,
+          "volume_L": 0.0
+        },
+        {
+          "slot": "gnss",
+          "part": "TRN-GPS-1",
+          "n": 1.0,
+          "mass_kg": 0.03,
+          "power_W": 0.8,
+          "volume_L": 0.0
+        },
+        {
+          "slot": "earth_sensor",
+          "part": "SYN-ES-1",
+          "n": 1.0,
+          "mass_kg": 0.03,
+          "power_W": 0.1,
+          "volume_L": 0.0
+        }
+      ]
+    },
+    "mtq_rw": {
+      "product": "SZ-ais_img_3u-mtq_rw",
+      "role": "benchmark",
+      "label": "Magnetorquers + reaction wheels",
+      "mass_kg": 0.9960383340086099,
+      "power_W": 4.6603833400860974,
+      "volume_L": 0.0675673336034439,
+      "items": [
+        {
+          "slot": "coils",
+          "part": "SZ-ais_img_3u-MTQ",
+          "n": 3.0,
+          "mass_kg": 0.016038334008609767,
+          "power_W": 0.16038334008609767,
+          "volume_L": 0.0064153336034439064
+        },
+        {
+          "slot": "wheels",
+          "part": "CAT-CUBESPACE-CUBEWHEEL-CW0017",
+          "n": 3.0,
+          "mass_kg": 0.18,
+          "power_W": 0.8999999999999999,
+          "volume_L": 0.061152
+        },
+        {
+          "slot": "star_tracker",
+          "part": "SYN-ST-1",
+          "n": 2.0,
+          "mass_kg": 0.6,
+          "power_W": 2.0,
+          "volume_L": 0.0
+        },
+        {
+          "slot": "magnetometer",
+          "part": "SYN-MAG-1",
+          "n": 1.0,
+          "mass_kg": 0.02,
+          "power_W": 0.1,
+          "volume_L": 0.0
+        },
+        {
+          "slot": "sun_sensors",
+          "part": "SYN-SUN-1",
+          "n": 6.0,
+          "mass_kg": 0.06,
+          "power_W": 0.30000000000000004,
+          "volume_L": 0.0
+        },
+        {
+          "slot": "gyro",
+          "part": "TRN-GYRO-P1",
+          "n": 1.0,
+          "mass_kg": 0.06,
+          "power_W": 0.3,
+          "volume_L": 0.0
+        },
+        {
+          "slot": "gnss",
+          "part": "TRN-GPS-1",
+          "n": 1.0,
+          "mass_kg": 0.03,
+          "power_W": 0.8,
+          "volume_L": 0.0
+        },
+        {
+          "slot": "earth_sensor",
+          "part": "SYN-ES-1",
+          "n": 1.0,
+          "mass_kg": 0.03,
+          "power_W": 0.1,
+          "volume_L": 0.0
+        }
+      ]
+    },
+    "mtq_rw_rcs": {
+      "product": "SZ-ais_img_3u-mtq_rw_rcs",
+      "role": "benchmark",
+      "label": "Magnetorquers + reaction wheels + N2O cold-gas RCS",
+      "mass_kg": 1.4619551248654812,
+      "power_W": 4.710383340086097,
+      "volume_L": 0.9090849943204269,
+      "items": [
+        {
+          "slot": "coils",
+          "part": "SZ-ais_img_3u-MTQ",
+          "n": 3.0,
+          "mass_kg": 0.016038334008609767,
+          "power_W": 0.16038334008609767,
+          "volume_L": 0.0064153336034439064
+        },
+        {
+          "slot": "wheels",
+          "part": "CAT-CUBESPACE-CUBEWHEEL-CW0017",
+          "n": 3.0,
+          "mass_kg": 0.18,
+          "power_W": 0.8999999999999999,
+          "volume_L": 0.061152
+        },
+        {
+          "slot": "rcs",
+          "part": "SZ-ais_img_3u-RCS",
+          "n": 1.0,
+          "mass_kg": 0.4659167908568713,
+          "power_W": 0.05,
+          "volume_L": 0.841517660716983
+        },
+        {
+          "slot": "star_tracker",
+          "part": "SYN-ST-1",
+          "n": 2.0,
+          "mass_kg": 0.6,
+          "power_W": 2.0,
+          "volume_L": 0.0
+        },
+        {
+          "slot": "magnetometer",
+          "part": "SYN-MAG-1",
+          "n": 1.0,
+          "mass_kg": 0.02,
+          "power_W": 0.1,
+          "volume_L": 0.0
+        },
+        {
+          "slot": "sun_sensors",
+          "part": "SYN-SUN-1",
+          "n": 6.0,
+          "mass_kg": 0.06,
+          "power_W": 0.30000000000000004,
+          "volume_L": 0.0
+        },
+        {
+          "slot": "gyro",
+          "part": "TRN-GYRO-P1",
+          "n": 1.0,
+          "mass_kg": 0.06,
+          "power_W": 0.3,
+          "volume_L": 0.0
+        },
+        {
+          "slot": "gnss",
+          "part": "TRN-GPS-1",
+          "n": 1.0,
+          "mass_kg": 0.03,
+          "power_W": 0.8,
+          "volume_L": 0.0
+        },
+        {
+          "slot": "earth_sensor",
+          "part": "SYN-ES-1",
+          "n": 1.0,
+          "mass_kg": 0.03,
+          "power_W": 0.1,
+          "volume_L": 0.0
+        }
+      ]
+    },
+    "mtq_cmg": {
+      "product": "SZ-ais_img_3u-mtq_cmg",
+      "role": "benchmark",
+      "label": "Magnetorquers + 4 single-gimbal CMG (pyramid)",
+      "mass_kg": 2.01603833400861,
+      "power_W": 7.760383340086096,
+      "volume_L": 0.806415333603444,
+      "items": [
+        {
+          "slot": "coils",
+          "part": "SZ-ais_img_3u-MTQ",
+          "n": 3.0,
+          "mass_kg": 0.016038334008609767,
+          "power_W": 0.16038334008609767,
+          "volume_L": 0.0064153336034439064
+        },
+        {
+          "slot": "cmg",
+          "part": "CAT-TENSOR-TECH-ADCS400",
+          "n": 4.0,
+          "mass_kg": 1.2,
+          "power_W": 4.0,
+          "volume_L": 0.8
+        },
+        {
+          "slot": "star_tracker",
+          "part": "SYN-ST-1",
+          "n": 2.0,
+          "mass_kg": 0.6,
+          "power_W": 2.0,
+          "volume_L": 0.0
+        },
+        {
+          "slot": "magnetometer",
+          "part": "SYN-MAG-1",
+          "n": 1.0,
+          "mass_kg": 0.02,
+          "power_W": 0.1,
+          "volume_L": 0.0
+        },
+        {
+          "slot": "sun_sensors",
+          "part": "SYN-SUN-1",
+          "n": 6.0,
+          "mass_kg": 0.06,
+          "power_W": 0.30000000000000004,
+          "volume_L": 0.0
+        },
+        {
+          "slot": "gyro",
+          "part": "TRN-GYRO-P1",
+          "n": 1.0,
+          "mass_kg": 0.06,
+          "power_W": 0.3,
+          "volume_L": 0.0
+        },
+        {
+          "slot": "gnss",
+          "part": "TRN-GPS-1",
+          "n": 1.0,
+          "mass_kg": 0.03,
+          "power_W": 0.8,
+          "volume_L": 0.0
+        },
+        {
+          "slot": "earth_sensor",
+          "part": "SYN-ES-1",
+          "n": 1.0,
+          "mass_kg": 0.03,
+          "power_W": 0.1,
+          "volume_L": 0.0
+        }
+      ]
+    },
+    "mtq_cmg_rcs": {
+      "product": "SZ-ais_img_3u-mtq_cmg_rcs",
+      "role": "benchmark",
+      "label": "Magnetorquers + 4 CMG + N2O cold-gas RCS",
+      "mass_kg": 2.4819551248654808,
+      "power_W": 7.810383340086096,
+      "volume_L": 1.6479329943204268,
+      "items": [
+        {
+          "slot": "coils",
+          "part": "SZ-ais_img_3u-MTQ",
+          "n": 3.0,
+          "mass_kg": 0.016038334008609767,
+          "power_W": 0.16038334008609767,
+          "volume_L": 0.0064153336034439064
+        },
+        {
+          "slot": "cmg",
+          "part": "CAT-TENSOR-TECH-ADCS400",
+          "n": 4.0,
+          "mass_kg": 1.2,
+          "power_W": 4.0,
+          "volume_L": 0.8
+        },
+        {
+          "slot": "rcs",
+          "part": "SZ-ais_img_3u-RCS",
+          "n": 1.0,
+          "mass_kg": 0.4659167908568713,
+          "power_W": 0.05,
+          "volume_L": 0.841517660716983
+        },
+        {
+          "slot": "star_tracker",
+          "part": "SYN-ST-1",
+          "n": 2.0,
+          "mass_kg": 0.6,
+          "power_W": 2.0,
+          "volume_L": 0.0
+        },
+        {
+          "slot": "magnetometer",
+          "part": "SYN-MAG-1",
+          "n": 1.0,
+          "mass_kg": 0.02,
+          "power_W": 0.1,
+          "volume_L": 0.0
+        },
+        {
+          "slot": "sun_sensors",
+          "part": "SYN-SUN-1",
+          "n": 6.0,
+          "mass_kg": 0.06,
+          "power_W": 0.30000000000000004,
+          "volume_L": 0.0
+        },
+        {
+          "slot": "gyro",
+          "part": "TRN-GYRO-P1",
+          "n": 1.0,
+          "mass_kg": 0.06,
+          "power_W": 0.3,
+          "volume_L": 0.0
+        },
+        {
+          "slot": "gnss",
+          "part": "TRN-GPS-1",
+          "n": 1.0,
+          "mass_kg": 0.03,
+          "power_W": 0.8,
+          "volume_L": 0.0
+        },
+        {
+          "slot": "earth_sensor",
+          "part": "SYN-ES-1",
+          "n": 1.0,
+          "mass_kg": 0.03,
+          "power_W": 0.1,
+          "volume_L": 0.0
+        }
+      ]
+    },
+    "mtq_vscmg": {
+      "product": "SZ-ais_img_3u-mtq_vscmg",
+      "role": "benchmark",
+      "label": "Magnetorquers + 4 variable-speed CMG (pyramid)",
+      "mass_kg": 2.01603833400861,
+      "power_W": 7.760383340086096,
+      "volume_L": 0.806415333603444,
+      "items": [
+        {
+          "slot": "coils",
+          "part": "SZ-ais_img_3u-MTQ",
+          "n": 3.0,
+          "mass_kg": 0.016038334008609767,
+          "power_W": 0.16038334008609767,
+          "volume_L": 0.0064153336034439064
+        },
+        {
+          "slot": "vscmg",
+          "part": "CAT-TENSOR-TECH-ADCS400-VSCMG",
+          "n": 4.0,
+          "mass_kg": 1.2,
+          "power_W": 4.0,
+          "volume_L": 0.8
+        },
+        {
+          "slot": "star_tracker",
+          "part": "SYN-ST-1",
+          "n": 2.0,
+          "mass_kg": 0.6,
+          "power_W": 2.0,
+          "volume_L": 0.0
+        },
+        {
+          "slot": "magnetometer",
+          "part": "SYN-MAG-1",
+          "n": 1.0,
+          "mass_kg": 0.02,
+          "power_W": 0.1,
+          "volume_L": 0.0
+        },
+        {
+          "slot": "sun_sensors",
+          "part": "SYN-SUN-1",
+          "n": 6.0,
+          "mass_kg": 0.06,
+          "power_W": 0.30000000000000004,
+          "volume_L": 0.0
+        },
+        {
+          "slot": "gyro",
+          "part": "TRN-GYRO-P1",
+          "n": 1.0,
+          "mass_kg": 0.06,
+          "power_W": 0.3,
+          "volume_L": 0.0
+        },
+        {
+          "slot": "gnss",
+          "part": "TRN-GPS-1",
+          "n": 1.0,
+          "mass_kg": 0.03,
+          "power_W": 0.8,
+          "volume_L": 0.0
+        },
+        {
+          "slot": "earth_sensor",
+          "part": "SYN-ES-1",
+          "n": 1.0,
+          "mass_kg": 0.03,
+          "power_W": 0.1,
+          "volume_L": 0.0
+        }
+      ]
+    },
+    "mtq_vscmg_rcs": {
+      "product": "SZ-ais_img_3u-mtq_vscmg_rcs",
+      "role": "benchmark",
+      "label": "Magnetorquers + 4 VSCMG + N2O cold-gas RCS",
+      "mass_kg": 2.4819551248654808,
+      "power_W": 7.810383340086096,
+      "volume_L": 1.6479329943204268,
+      "items": [
+        {
+          "slot": "coils",
+          "part": "SZ-ais_img_3u-MTQ",
+          "n": 3.0,
+          "mass_kg": 0.016038334008609767,
+          "power_W": 0.16038334008609767,
+          "volume_L": 0.0064153336034439064
+        },
+        {
+          "slot": "vscmg",
+          "part": "CAT-TENSOR-TECH-ADCS400-VSCMG",
+          "n": 4.0,
+          "mass_kg": 1.2,
+          "power_W": 4.0,
+          "volume_L": 0.8
+        },
+        {
+          "slot": "rcs",
+          "part": "SZ-ais_img_3u-RCS",
+          "n": 1.0,
+          "mass_kg": 0.4659167908568713,
+          "power_W": 0.05,
+          "volume_L": 0.841517660716983
+        },
+        {
+          "slot": "star_tracker",
+          "part": "SYN-ST-1",
+          "n": 2.0,
+          "mass_kg": 0.6,
+          "power_W": 2.0,
+          "volume_L": 0.0
+        },
+        {
+          "slot": "magnetometer",
+          "part": "SYN-MAG-1",
+          "n": 1.0,
+          "mass_kg": 0.02,
+          "power_W": 0.1,
+          "volume_L": 0.0
+        },
+        {
+          "slot": "sun_sensors",
+          "part": "SYN-SUN-1",
+          "n": 6.0,
+          "mass_kg": 0.06,
+          "power_W": 0.30000000000000004,
+          "volume_L": 0.0
+        },
+        {
+          "slot": "gyro",
+          "part": "TRN-GYRO-P1",
+          "n": 1.0,
+          "mass_kg": 0.06,
+          "power_W": 0.3,
+          "volume_L": 0.0
+        },
+        {
+          "slot": "gnss",
+          "part": "TRN-GPS-1",
+          "n": 1.0,
+          "mass_kg": 0.03,
+          "power_W": 0.8,
+          "volume_L": 0.0
+        },
+        {
+          "slot": "earth_sensor",
+          "part": "SYN-ES-1",
+          "n": 1.0,
+          "mass_kg": 0.03,
+          "power_W": 0.1,
+          "volume_L": 0.0
+        }
+      ]
+    }
+  },
+  "parts": {
+    "mtq": {
+      "part_number": "SZ-ais_img_3u-MTQ",
+      "kind": "coil_tile",
+      "name": "Sized magnetorquer coil (our product) — ais_img_3u",
+      "status": "sized",
+      "source": "adcs-design (asils.sizing laws)",
+      "made": "in-house",
+      "descriptor_version": 1,
+      "nominal": {
+        "dipole_max_Am2": 0.08019167004304883,
+        "dipole_per_amp_Am2_per_A": 4.5,
+        "current_max_A": 0.017820371120677518,
+        "resistance_ohm": 30,
+        "time_constant_s": 0.005,
+        "mass_kg": 0.005346111336203256,
+        "power_at_max_W": 0.053461113362032554,
+        "volume_L": 0.0021384445344813023
+      },
+      "dispersion": {
+        "dipole_scale": {
+          "dist": "normal",
+          "mean": 1,
+          "sigma": 0.02
+        },
+        "axis_misalignment_rad": {
+          "dist": "normal",
+          "mean": 0,
+          "sigma": 0.005
+        }
+      },
+      "sizing": {
+        "m_dump_Am2": 0.07390282300875321,
+        "m_momentum_Am2": 0.020241521062201874,
+        "m_detumble_Am2": 0.08019167004304883,
+        "scale": 1.0,
+        "law": "max(dumping, momentum, detumble) dipole; mass and power linear in the dipole (SYN-CT-1 anchor)"
+      }
+    },
+    "mtqp": {
+      "part_number": "SZ-ais_img_3u-MTQP",
+      "kind": "coil_tile",
+      "name": "Sized pointing-grade magnetorquer coil (our product, coils-only family) — ais_img_3u",
+      "status": "sized",
+      "source": "adcs-design (asils.sizing laws)",
+      "made": "in-house",
+      "descriptor_version": 1,
+      "nominal": {
+        "dipole_max_Am2": 0.14780564601750643,
+        "dipole_per_amp_Am2_per_A": 4.5,
+        "current_max_A": 0.03284569911500143,
+        "resistance_ohm": 30,
+        "time_constant_s": 0.005,
+        "mass_kg": 0.009853709734500428,
+        "power_at_max_W": 0.09853709734500428,
+        "volume_L": 0.003941483893800171
+      },
+      "dispersion": {
+        "dipole_scale": {
+          "dist": "normal",
+          "mean": 1,
+          "sigma": 0.02
+        },
+        "axis_misalignment_rad": {
+          "dist": "normal",
+          "mean": 0,
+          "sigma": 0.005
+        }
+      },
+      "sizing": {
+        "m_dump_Am2": 0.07390282300875321,
+        "m_momentum_Am2": 0.020241521062201874,
+        "m_detumble_Am2": 0.08019167004304883,
+        "scale": 1.0,
+        "law": "max(dumping, momentum, detumble) dipole; mass and power linear in the dipole (SYN-CT-1 anchor)"
+      }
+    },
+    "rw": {
+      "part_number": "CAT-CUBESPACE-CUBEWHEEL-CW0017",
+      "kind": "reaction_wheel",
+      "name": "CubeSpace CubeWheel CW0017 (Gen2) (RW, one of 3)",
+      "status": "catalogue",
+      "source": "https://satcatalog.s3.amazonaws.com/components/1404/SatCatalog_-_CubeSpace_-_Gen2_CubeTorquer_Range_-_Datasheet.pdf?lastmod=20260129005456",
+      "made": "bought",
+      "descriptor_version": 1,
+      "vendor": "CubeSpace",
+      "model": "CubeWheel CW0017 (Gen2)",
+      "verification": "verified",
+      "assumptions": [
+        "rotor mass 0.4 x unit mass, balance ISO 1940 G2.5 (imbalance model)",
+        "friction: Coulomb 1e-5 sqrt(h / 0.01 Nms) N m, viscous 1e-8 N m s (not on datasheets)"
+      ],
+      "nominal": {
+        "h_max_Nms": 0.00177,
+        "torque_max_Nm": 0.00023,
+        "speed_max_rad_s": 628.3185307179587,
+        "rotor_inertia_kgm2": 2.8170424927265475e-6,
+        "rotor_radius_m": 0.011420097807047247,
+        "rotor_mass_kg": 0.024,
+        "friction_coulomb_Nm": 4.2071367935925265e-6,
+        "friction_viscous_Nms": 1e-8,
+        "static_imbalance_kgm": 9.54929658551372e-8,
+        "dynamic_imbalance_kgm2": 5.45269504975345e-10,
+        "power_steady_W": 0.3,
+        "power_peak_W": 0.85,
+        "mass_kg": 0.06,
+        "volume_L": 0.020384
+      },
+      "dispersion": {
+        "torque_scale": {
+          "dist": "normal",
+          "mean": 1,
+          "sigma": 0.01
+        },
+        "friction_scale": {
+          "dist": "uniform",
+          "lo": 0.5,
+          "hi": 2.0
+        },
+        "axis_misalignment_rad": {
+          "dist": "normal",
+          "mean": 0,
+          "sigma": 0.001
+        }
+      },
+      "sizing": {
+        "node": "select_rotor",
+        "h_req_Nms": 0.0015520398279848051,
+        "tau_req_Nm": 0.000057572692339687917,
+        "scale": 1.0,
+        "units": 3,
+        "need_per_unit": {
+          "h_Nms": 0.0015520398279848051,
+          "tau_Nm": 0.000057572692339687917
+        },
+        "gap": null,
+        "rule": "lightest selectable catalogue model meeting the per-unit need (then steady power, volume)",
+        "candidates": [
+          {
+            "part_number": "CAT-CUBESPACE-CUBEWHEEL-CW0017",
+            "vendor": "CubeSpace",
+            "model": "CubeWheel CW0017 (Gen2)",
+            "h_Nms": 0.00177,
+            "tau_Nm": 0.00023,
+            "mass_kg": 0.06,
+            "power_W": 0.3,
+            "meets": true
+          },
+          {
+            "part_number": "CAT-CUBESPACE-CUBEWHEEL-CW0057",
+            "vendor": "CubeSpace",
+            "model": "CubeWheel CW0057 (Gen2)",
+            "h_Nms": 0.0057,
+            "tau_Nm": 0.002,
+            "mass_kg": 0.115,
+            "power_W": 0.77,
+            "meets": true
+          },
+          {
+            "part_number": "CAT-CUBESPACE-CUBEWHEEL-CW0162",
+            "vendor": "CubeSpace",
+            "model": "CubeWheel CW0162 (Gen2)",
+            "h_Nms": 0.0162,
+            "tau_Nm": 0.007,
+            "mass_kg": 0.14400000000000002,
+            "power_W": 0.77,
+            "meets": true
+          },
+          {
+            "part_number": "CAT-CUBESPACE-CUBEWHEEL-CW0500",
+            "vendor": "CubeSpace",
+            "model": "CubeWheel CW0500 (Gen2)",
+            "h_Nms": 0.05,
+            "tau_Nm": 0.016,
+            "mass_kg": 0.31,
+            "power_W": 5.3,
+            "meets": true
+          },
+          {
+            "part_number": "CAT-CUBESPACE-CUBEWHEEL-CW1200",
+            "vendor": "CubeSpace",
+            "model": "CubeWheel CW1200 (Gen2)",
+            "h_Nms": 0.12,
+            "tau_Nm": 0.02,
+            "mass_kg": 0.45,
+            "power_W": 4.7,
+            "meets": true
+          },
+          {
+            "part_number": "CAT-CUBESPACE-CUBEWHEEL-CW2500",
+            "vendor": "CubeSpace",
+            "model": "CubeWheel CW2500 (Gen2)",
+            "h_Nms": 0.25,
+            "tau_Nm": 0.027,
+            "mass_kg": 0.75,
+            "power_W": 9.0,
+            "meets": true
+          },
+          {
+            "part_number": "CAT-CUBESPACE-CUBEWHEEL-CW5000",
+            "vendor": "CubeSpace",
+            "model": "CubeWheel CW5000 (Gen2)",
+            "h_Nms": 0.5,
+            "tau_Nm": 0.037,
+            "mass_kg": 0.97,
+            "power_W": 9.0,
+            "meets": true
+          },
+          {
+            "part_number": "CAT-ROCKET-LAB-RW3-0-06",
+            "vendor": "Rocket Lab",
+            "model": "RW3-0.06",
+            "h_Nms": 0.06,
+            "tau_Nm": 0.02,
+            "mass_kg": 0.226,
+            "power_W": 0.5,
+            "meets": true
+          },
+          {
+            "part_number": "CAT-ROCKET-LAB-RW3-1-0",
+            "vendor": "Rocket Lab",
+            "model": "RW3-1.0",
+            "h_Nms": 1.0,
+            "tau_Nm": 0.05,
+            "mass_kg": 0.97,
+            "power_W": 2.4,
+            "meets": true
+          },
+          {
+            "part_number": "CAT-ROCKET-LAB-RW-0-01",
+            "vendor": "Rocket Lab",
+            "model": "RW-0.01",
+            "h_Nms": 0.01,
+            "tau_Nm": 0.001,
+            "mass_kg": 0.12,
+            "power_W": 0.11,
+            "meets": true
+          },
+          {
+            "part_number": "CAT-ROCKET-LAB-RW-0-03",
+            "vendor": "Rocket Lab",
+            "model": "RW-0.03",
+            "h_Nms": 0.03,
+            "tau_Nm": 0.002,
+            "mass_kg": 0.183,
+            "power_W": 0.1,
+            "meets": true
+          }
+        ]
+      }
+    },
+    "cmg": {
+      "part_number": "CAT-TENSOR-TECH-ADCS400",
+      "kind": "cmg",
+      "name": "Tensor Tech ADCS400 (4 x RS100 variable-speed CMG pyramid) (CMG, one of 4)",
+      "status": "catalogue",
+      "source": "https://satcatalog.s3.amazonaws.com/components/99/SatCatalog_-_Tensor_Tech_-_ADCS100_-_Integrated_ADCS_with_Reaction_Sphere_-_Datasheet.pdf?lastmod=20210828231627",
+      "made": "bought",
+      "descriptor_version": 1,
+      "vendor": "Tensor Tech",
+      "model": "ADCS400 (4 x RS100 variable-speed CMG pyramid)",
+      "verification": "verified",
+      "assumptions": [
+        "speed at the nominal momentum: 6000 rpm (not stated)",
+        "volume: 0.2 L per unit (datasheet: '0.2U+ tuna can')",
+        "rotor mass 0.4 x unit mass, balance ISO 1940 G2.5 (imbalance model)",
+        "friction: Coulomb 1e-5 sqrt(h / 0.01 Nms) N m, viscous 1e-8 N m s (not on datasheets)",
+        "gimbal rate: output torque / rotor momentum",
+        "rotor torque: 0.2 x output torque",
+        "gimbal power inside the steady power (the datasheet's figure is the whole unit)",
+        "as a VSCMG the rotor runs at half its momentum so the speed can move both ways (h_max = the datasheet's)"
+      ],
+      "nominal": {
+        "h_max_Nms": 0.01,
+        "torque_max_Nm": 0.001,
+        "speed_max_rad_s": 628.3185307179587,
+        "rotor_inertia_kgm2": 0.000015915494309189534,
+        "rotor_radius_m": 0.012139427006578656,
+        "rotor_mass_kg": 0.12,
+        "friction_coulomb_Nm": 0.00001,
+        "friction_viscous_Nms": 1e-8,
+        "static_imbalance_kgm": 4.774648292756859e-7,
+        "dynamic_imbalance_kgm2": 2.898074721600364e-9,
+        "power_steady_W": 1.0,
+        "power_peak_W": 1.0,
+        "mass_kg": 0.3,
+        "volume_L": 0.2,
+        "rotor_momentum_Nms": 0.01,
+        "rotor_speed_rad_s": 628.3185307179587,
+        "rotor_torque_max_Nm": 0.0002,
+        "gimbal_rate_max_rad_s": 0.1,
+        "gimbal_power_W": 0.0,
+        "vscmg_rotor_momentum_Nms": 0.005
+      },
+      "dispersion": {
+        "torque_scale": {
+          "dist": "normal",
+          "mean": 1,
+          "sigma": 0.01
+        },
+        "friction_scale": {
+          "dist": "uniform",
+          "lo": 0.5,
+          "hi": 2.0
+        },
+        "axis_misalignment_rad": {
+          "dist": "normal",
+          "mean": 0,
+          "sigma": 0.001
+        }
+      },
+      "sizing": {
+        "node": "select_rotor",
+        "h_req_Nms": 0.0015520398279848051,
+        "tau_req_Nm": 0.000057572692339687917,
+        "scale": 1.0,
+        "units": 4,
+        "need_per_unit": {
+          "h_Nms": 0.0007760199139924026,
+          "tau_Nm": 0.000028786346169843958
+        },
+        "gap": null,
+        "rule": "lightest selectable catalogue model meeting the per-unit need (then steady power, volume)",
+        "candidates": [
+          {
+            "part_number": "CAT-TENSOR-TECH-ADCS400",
+            "vendor": "Tensor Tech",
+            "model": "ADCS400 (4 x RS100 variable-speed CMG pyramid)",
+            "h_Nms": 0.01,
+            "tau_Nm": 0.001,
+            "mass_kg": 0.3,
+            "power_W": 1.0,
+            "meets": true
+          }
+        ]
+      }
+    },
+    "vscmg": {
+      "part_number": "CAT-TENSOR-TECH-ADCS400-VSCMG",
+      "kind": "vscmg",
+      "name": "Tensor Tech ADCS400 (4 x RS100 variable-speed CMG pyramid) (VSCMG, one of 4)",
+      "status": "catalogue",
+      "source": "https://satcatalog.s3.amazonaws.com/components/99/SatCatalog_-_Tensor_Tech_-_ADCS100_-_Integrated_ADCS_with_Reaction_Sphere_-_Datasheet.pdf?lastmod=20210828231627",
+      "made": "bought",
+      "descriptor_version": 1,
+      "vendor": "Tensor Tech",
+      "model": "ADCS400 (4 x RS100 variable-speed CMG pyramid)",
+      "verification": "verified",
+      "assumptions": [
+        "speed at the nominal momentum: 6000 rpm (not stated)",
+        "volume: 0.2 L per unit (datasheet: '0.2U+ tuna can')",
+        "rotor mass 0.4 x unit mass, balance ISO 1940 G2.5 (imbalance model)",
+        "friction: Coulomb 1e-5 sqrt(h / 0.01 Nms) N m, viscous 1e-8 N m s (not on datasheets)",
+        "gimbal rate: output torque / rotor momentum",
+        "rotor torque: 0.2 x output torque",
+        "gimbal power inside the steady power (the datasheet's figure is the whole unit)",
+        "as a VSCMG the rotor runs at half its momentum so the speed can move both ways (h_max = the datasheet's)"
+      ],
+      "nominal": {
+        "h_max_Nms": 0.01,
+        "torque_max_Nm": 0.001,
+        "speed_max_rad_s": 628.3185307179587,
+        "rotor_inertia_kgm2": 0.000015915494309189534,
+        "rotor_radius_m": 0.012139427006578656,
+        "rotor_mass_kg": 0.12,
+        "friction_coulomb_Nm": 0.00001,
+        "friction_viscous_Nms": 1e-8,
+        "static_imbalance_kgm": 4.774648292756859e-7,
+        "dynamic_imbalance_kgm2": 2.898074721600364e-9,
+        "power_steady_W": 1.0,
+        "power_peak_W": 1.0,
+        "mass_kg": 0.3,
+        "volume_L": 0.2,
+        "rotor_momentum_Nms": 0.005,
+        "rotor_speed_rad_s": 628.3185307179587,
+        "rotor_torque_max_Nm": 0.0002,
+        "gimbal_rate_max_rad_s": 0.1,
+        "gimbal_power_W": 0.0,
+        "vscmg_rotor_momentum_Nms": 0.005
+      },
+      "dispersion": {
+        "torque_scale": {
+          "dist": "normal",
+          "mean": 1,
+          "sigma": 0.01
+        },
+        "friction_scale": {
+          "dist": "uniform",
+          "lo": 0.5,
+          "hi": 2.0
+        },
+        "axis_misalignment_rad": {
+          "dist": "normal",
+          "mean": 0,
+          "sigma": 0.001
+        }
+      },
+      "sizing": {
+        "node": "select_rotor",
+        "h_req_Nms": 0.0015520398279848051,
+        "tau_req_Nm": 0.000057572692339687917,
+        "scale": 1.0,
+        "units": 4,
+        "need_per_unit": {
+          "h_Nms": 0.0007760199139924026,
+          "tau_Nm": 0.000028786346169843958
+        },
+        "gap": null,
+        "rule": "lightest selectable catalogue model meeting the per-unit need (then steady power, volume)",
+        "candidates": [
+          {
+            "part_number": "CAT-TENSOR-TECH-ADCS400",
+            "vendor": "Tensor Tech",
+            "model": "ADCS400 (4 x RS100 variable-speed CMG pyramid)",
+            "h_Nms": 0.01,
+            "tau_Nm": 0.001,
+            "mass_kg": 0.3,
+            "power_W": 1.0,
+            "meets": true
+          }
+        ]
+      }
+    },
+    "fmr_x": {
+      "part_number": "SZ-ais_img_3u-FMR-X",
+      "kind": "magneto_fluidic_panel",
+      "name": "Sized fluid momentum loop with electromagnetic pump, X axis (our product) — ais_img_3u",
+      "status": "sized",
+      "source": "adcs-design (empump)",
+      "made": "in-house",
+      "descriptor_version": 1,
+      "nominal": {
+        "bore_m": 0.006,
+        "loops": 2.0,
+        "v_max_m_s": 0.2,
+        "h_max_Nms": 0.0011653549452932126,
+        "enclosed_area_m2": 0.016000000000000004,
+        "channel_length_m": 0.6400000000000001,
+        "reynolds_cruise": 1288.0000000000002,
+        "v_cruise_m_s": 0.08000000000000002,
+        "pump": {
+          "type": "DC conduction pump, electromagnet C-core",
+          "B_gap_T": 0.2,
+          "active_length_m": 0.01,
+          "gap_m": 0.004,
+          "ampere_turns": 827.6057040778559,
+          "electrode_current_design_A": 9.10302875318531,
+          "electrode_current_cruise_A": 1.6384000000000005,
+          "dp_design_Pa": 606.8685835456873,
+          "dp_cruise_Pa": 109.22666666666672,
+          "coil_power_W": 0.839958527792406,
+          "electrode_power_cruise_W": 0.0008248451981726422,
+          "copper_kg": 0.08399585277924061,
+          "iron_kg": 0.007071710970042392,
+          "lambda_kg_per_W": 0.1,
+          "efficiency_cruise": 0.2995288084626537
+        },
+        "pump_torque_max_Nm": 0.0009424777960769379,
+        "field_power_W": 0.839958527792406,
+        "power_steady_W": 0.8407833729905786,
+        "power_peak_W": 0.8583707200502988,
+        "pump_efficiency": 0.2995288084626537,
+        "fluid_mass_kg": 0.11653549452932124,
+        "mass_kg": 0.25960305827860425,
+        "fluid": "galinstan",
+        "fluid_density_kg_m3": 6440.0,
+        "fluid_viscosity_Pa_s": 0.0024,
+        "pump_type": "dc-conduction, electromagnet",
+        "melt_point_K": 254,
+        "dipole_max_Am2": 0,
+        "dipole_per_amp_Am2_per_A": 0,
+        "current_max_A": 0,
+        "volume_L": 0.08000000000000002
+      },
+      "dispersion": {
+        "friction_scale": {
+          "dist": "uniform",
+          "lo": 0.8,
+          "hi": 1.2
+        },
+        "pump_efficiency": {
+          "dist": "uniform",
+          "lo": 0.20967016592385757,
+          "hi": 0.3893874510014498
+        },
+        "flow_sensor_noise_m_s": {
+          "dist": "normal",
+          "mean": 0,
+          "sigma": 0.000125
+        },
+        "axis_misalignment_rad": {
+          "dist": "normal",
+          "mean": 0,
+          "sigma": 0.005
+        }
+      },
+      "sizing": {
+        "h_req_Nms": 0.0015520398279848051,
+        "tau_req_Nm": 0.000057572692339687917,
+        "flow_sensor_sigma_m_s": 0.000125,
+        "face_m2": 0.010000000000000002,
+        "scale": 0.75,
+        "lambda_kg_per_W": 0.1,
+        "pareto": [
+          {
+            "lambda": 0.003,
+            "mass_kg": 0.13370556030700445,
+            "power_W": 8.278811777021476,
+            "coil_W": 8.276748862426754,
+            "v_max": 0.4,
+            "bore_m": 0.006,
+            "B_T": 0.30000000000000004,
+            "loops": 1.0
+          },
+          {
+            "lambda": 0.01,
+            "mass_kg": 0.15420893426728777,
+            "power_W": 4.5354249693510775,
+            "coil_W": 4.533362054756355,
+            "v_max": 0.4,
+            "bore_m": 0.006,
+            "B_T": 0.30000000000000004,
+            "loops": 1.0
+          },
+          {
+            "lambda": 0.03,
+            "mass_kg": 0.1873954477991527,
+            "power_W": 2.619400717242339,
+            "coil_W": 2.617337802647617,
+            "v_max": 0.4,
+            "bore_m": 0.006,
+            "B_T": 0.30000000000000004,
+            "loops": 1.0
+          },
+          {
+            "lambda": 0.1,
+            "mass_kg": 0.25960305827860425,
+            "power_W": 0.8407833729905786,
+            "coil_W": 0.839958527792406,
+            "v_max": 0.2,
+            "bore_m": 0.006,
+            "B_T": 0.2,
+            "loops": 2.0
+          },
+          {
+            "lambda": 0.3,
+            "mass_kg": 0.3722846224770978,
+            "power_W": 0.20077198429997217,
+            "coil_W": 0.19892592644478038,
+            "v_max": 0.1,
+            "bore_m": 0.006,
+            "B_T": 0.1,
+            "loops": 4.0
+          },
+          {
+            "lambda": 1.0,
+            "mass_kg": 0.4215630617300834,
+            "power_W": 0.11080227504161144,
+            "coil_W": 0.10895621718641965,
+            "v_max": 0.1,
+            "bore_m": 0.006,
+            "B_T": 0.1,
+            "loops": 4.0
+          },
+          {
+            "lambda": 3.0,
+            "mass_kg": 0.5013245485110519,
+            "power_W": 0.0647519591776545,
+            "coil_W": 0.06290590132246271,
+            "v_max": 0.1,
+            "bore_m": 0.006,
+            "B_T": 0.1,
+            "loops": 4.0
+          }
+        ],
+        "law": "galinstan loop + DC conduction pump with an electromagnet, designed together: least mass + lambda x steady power (empump.rs)"
+      }
+    },
+    "fmr_y": {
+      "part_number": "SZ-ais_img_3u-FMR-Y",
+      "kind": "magneto_fluidic_panel",
+      "name": "Sized fluid momentum loop with electromagnetic pump, Y axis (our product) — ais_img_3u",
+      "status": "sized",
+      "source": "adcs-design (empump)",
+      "made": "in-house",
+      "descriptor_version": 1,
+      "nominal": {
+        "bore_m": 0.005,
+        "loops": 1.0,
+        "v_max_m_s": 0.2,
+        "h_max_Nms": 0.0013757662548600424,
+        "enclosed_area_m2": 0.027200000000000002,
+        "channel_length_m": 0.7040000000000002,
+        "reynolds_cruise": 1073.3333333333335,
+        "v_cruise_m_s": 0.08000000000000002,
+        "pump": {
+          "type": "DC conduction pump, electromagnet C-core",
+          "B_gap_T": 0.25,
+          "active_length_m": 0.01,
+          "gap_m": 0.0035,
+          "ampere_turns": 905.1937388351548,
+          "electrode_current_design_A": 8.24686213466189,
+          "electrode_current_cruise_A": 1.7301504000000012,
+          "dp_design_Pa": 824.6862134661891,
+          "dp_cruise_Pa": 173.0150400000001,
+          "coil_power_W": 0.9303213633237317,
+          "electrode_power_cruise_W": 0.0009135295760574535,
+          "copper_kg": 0.09303213633237317,
+          "iron_kg": 0.006973123543438254,
+          "lambda_kg_per_W": 0.1,
+          "efficiency_cruise": 0.2974959940379426
+        },
+        "pump_torque_max_Nm": 0.0015172464520177978,
+        "field_power_W": 0.9303213633237317,
+        "power_steady_W": 0.9312348928997892,
+        "power_peak_W": 0.9461421494222433,
+        "pump_efficiency": 0.2974959940379426,
+        "fluid_mass_kg": 0.08902016943212042,
+        "mass_kg": 0.22902542930793185,
+        "fluid": "galinstan",
+        "fluid_density_kg_m3": 6440.0,
+        "fluid_viscosity_Pa_s": 0.0024,
+        "pump_type": "dc-conduction, electromagnet",
+        "melt_point_K": 254,
+        "dipole_max_Am2": 0,
+        "dipole_per_amp_Am2_per_A": 0,
+        "current_max_A": 0,
+        "volume_L": 0.224
+      },
+      "dispersion": {
+        "friction_scale": {
+          "dist": "uniform",
+          "lo": 0.8,
+          "hi": 1.2
+        },
+        "pump_efficiency": {
+          "dist": "uniform",
+          "lo": 0.2082471958265598,
+          "hi": 0.38674479224932534
+        },
+        "flow_sensor_noise_m_s": {
+          "dist": "normal",
+          "mean": 0,
+          "sigma": 0.000125
+        },
+        "axis_misalignment_rad": {
+          "dist": "normal",
+          "mean": 0,
+          "sigma": 0.005
+        }
+      },
+      "sizing": {
+        "h_req_Nms": 0.0015520398279848051,
+        "tau_req_Nm": 0.000057572692339687917,
+        "flow_sensor_sigma_m_s": 0.000125,
+        "face_m2": 0.034,
+        "scale": 0.75,
+        "lambda_kg_per_W": 0.1,
+        "pareto": [
+          {
+            "lambda": 0.003,
+            "mass_kg": 0.13438196519728593,
+            "power_W": 9.31286580535301,
+            "coil_W": 9.311342470230096,
+            "v_max": 0.30000000000000004,
+            "bore_m": 0.004,
+            "B_T": 0.45,
+            "loops": 1.0
+          },
+          {
+            "lambda": 0.01,
+            "mass_kg": 0.16541263761571895,
+            "power_W": 2.942847993592084,
+            "coil_W": 2.9419344640160268,
+            "v_max": 0.2,
+            "bore_m": 0.005,
+            "B_T": 0.25,
+            "loops": 1.0
+          },
+          {
+            "lambda": 0.03,
+            "mass_kg": 0.1869490926176954,
+            "power_W": 1.6994401843139482,
+            "coil_W": 1.6985266547378908,
+            "v_max": 0.2,
+            "bore_m": 0.005,
+            "B_T": 0.25,
+            "loops": 1.0
+          },
+          {
+            "lambda": 0.1,
+            "mass_kg": 0.22902542930793185,
+            "power_W": 0.9312348928997892,
+            "coil_W": 0.9303213633237317,
+            "v_max": 0.2,
+            "bore_m": 0.005,
+            "B_T": 0.25,
+            "loops": 1.0
+          },
+          {
+            "lambda": 0.3,
+            "mass_kg": 0.3174376363060787,
+            "power_W": 0.27887526520065997,
+            "coil_W": 0.2773780777192495,
+            "v_max": 0.1,
+            "bore_m": 0.005,
+            "B_T": 0.15000000000000002,
+            "loops": 2.0
+          },
+          {
+            "lambda": 1.0,
+            "mass_kg": 0.4208701606359476,
+            "power_W": 0.11116710925932673,
+            "coil_W": 0.10895621718641965,
+            "v_max": 0.1,
+            "bore_m": 0.006,
+            "B_T": 0.1,
+            "loops": 2.0
+          },
+          {
+            "lambda": 3.0,
+            "mass_kg": 0.5006316474169161,
+            "power_W": 0.06511679339536978,
+            "coil_W": 0.06290590132246271,
+            "v_max": 0.1,
+            "bore_m": 0.006,
+            "B_T": 0.1,
+            "loops": 2.0
+          }
+        ],
+        "law": "galinstan loop + DC conduction pump with an electromagnet, designed together: least mass + lambda x steady power (empump.rs)"
+      }
+    },
+    "fmr_z": {
+      "part_number": "SZ-ais_img_3u-FMR-Z",
+      "kind": "magneto_fluidic_panel",
+      "name": "Sized fluid momentum loop with electromagnetic pump, Z axis (our product) — ais_img_3u",
+      "status": "sized",
+      "source": "adcs-design (empump)",
+      "made": "in-house",
+      "descriptor_version": 1,
+      "nominal": {
+        "bore_m": 0.005,
+        "loops": 1.0,
+        "v_max_m_s": 0.2,
+        "h_max_Nms": 0.0013757662548600424,
+        "enclosed_area_m2": 0.027200000000000002,
+        "channel_length_m": 0.7040000000000002,
+        "reynolds_cruise": 1073.3333333333335,
+        "v_cruise_m_s": 0.08000000000000002,
+        "pump": {
+          "type": "DC conduction pump, electromagnet C-core",
+          "B_gap_T": 0.25,
+          "active_length_m": 0.01,
+          "gap_m": 0.0035,
+          "ampere_turns": 905.1937388351548,
+          "electrode_current_design_A": 8.24686213466189,
+          "electrode_current_cruise_A": 1.7301504000000012,
+          "dp_design_Pa": 824.6862134661891,
+          "dp_cruise_Pa": 173.0150400000001,
+          "coil_power_W": 0.9303213633237317,
+          "electrode_power_cruise_W": 0.0009135295760574535,
+          "copper_kg": 0.09303213633237317,
+          "iron_kg": 0.006973123543438254,
+          "lambda_kg_per_W": 0.1,
+          "efficiency_cruise": 0.2974959940379426
+        },
+        "pump_torque_max_Nm": 0.0015172464520177978,
+        "field_power_W": 0.9303213633237317,
+        "power_steady_W": 0.9312348928997892,
+        "power_peak_W": 0.9461421494222433,
+        "pump_efficiency": 0.2974959940379426,
+        "fluid_mass_kg": 0.08902016943212042,
+        "mass_kg": 0.22902542930793185,
+        "fluid": "galinstan",
+        "fluid_density_kg_m3": 6440.0,
+        "fluid_viscosity_Pa_s": 0.0024,
+        "pump_type": "dc-conduction, electromagnet",
+        "melt_point_K": 254,
+        "dipole_max_Am2": 0,
+        "dipole_per_amp_Am2_per_A": 0,
+        "current_max_A": 0,
+        "volume_L": 0.224
+      },
+      "dispersion": {
+        "friction_scale": {
+          "dist": "uniform",
+          "lo": 0.8,
+          "hi": 1.2
+        },
+        "pump_efficiency": {
+          "dist": "uniform",
+          "lo": 0.2082471958265598,
+          "hi": 0.38674479224932534
+        },
+        "flow_sensor_noise_m_s": {
+          "dist": "normal",
+          "mean": 0,
+          "sigma": 0.000125
+        },
+        "axis_misalignment_rad": {
+          "dist": "normal",
+          "mean": 0,
+          "sigma": 0.005
+        }
+      },
+      "sizing": {
+        "h_req_Nms": 0.0015520398279848051,
+        "tau_req_Nm": 0.000057572692339687917,
+        "flow_sensor_sigma_m_s": 0.000125,
+        "face_m2": 0.034,
+        "scale": 0.75,
+        "lambda_kg_per_W": 0.1,
+        "pareto": [
+          {
+            "lambda": 0.003,
+            "mass_kg": 0.13438196519728593,
+            "power_W": 9.31286580535301,
+            "coil_W": 9.311342470230096,
+            "v_max": 0.30000000000000004,
+            "bore_m": 0.004,
+            "B_T": 0.45,
+            "loops": 1.0
+          },
+          {
+            "lambda": 0.01,
+            "mass_kg": 0.16541263761571895,
+            "power_W": 2.942847993592084,
+            "coil_W": 2.9419344640160268,
+            "v_max": 0.2,
+            "bore_m": 0.005,
+            "B_T": 0.25,
+            "loops": 1.0
+          },
+          {
+            "lambda": 0.03,
+            "mass_kg": 0.1869490926176954,
+            "power_W": 1.6994401843139482,
+            "coil_W": 1.6985266547378908,
+            "v_max": 0.2,
+            "bore_m": 0.005,
+            "B_T": 0.25,
+            "loops": 1.0
+          },
+          {
+            "lambda": 0.1,
+            "mass_kg": 0.22902542930793185,
+            "power_W": 0.9312348928997892,
+            "coil_W": 0.9303213633237317,
+            "v_max": 0.2,
+            "bore_m": 0.005,
+            "B_T": 0.25,
+            "loops": 1.0
+          },
+          {
+            "lambda": 0.3,
+            "mass_kg": 0.3174376363060787,
+            "power_W": 0.27887526520065997,
+            "coil_W": 0.2773780777192495,
+            "v_max": 0.1,
+            "bore_m": 0.005,
+            "B_T": 0.15000000000000002,
+            "loops": 2.0
+          },
+          {
+            "lambda": 1.0,
+            "mass_kg": 0.4208701606359476,
+            "power_W": 0.11116710925932673,
+            "coil_W": 0.10895621718641965,
+            "v_max": 0.1,
+            "bore_m": 0.006,
+            "B_T": 0.1,
+            "loops": 2.0
+          },
+          {
+            "lambda": 3.0,
+            "mass_kg": 0.5006316474169161,
+            "power_W": 0.06511679339536978,
+            "coil_W": 0.06290590132246271,
+            "v_max": 0.1,
+            "bore_m": 0.006,
+            "B_T": 0.1,
+            "loops": 2.0
+          }
+        ],
+        "law": "galinstan loop + DC conduction pump with an electromagnet, designed together: least mass + lambda x steady power (empump.rs)"
+      }
+    },
+    "rcs": {
+      "part_number": "SZ-ais_img_3u-RCS",
+      "kind": "rcs",
+      "name": "Sized N2O cold-gas RCS, 6 couples (our product) — ais_img_3u",
+      "status": "sized",
+      "source": "adcs-design (asils.sizing laws)",
+      "made": "in-house",
+      "descriptor_version": 1,
+      "nominal": {
+        "thrust_N": 0.005,
+        "isp_s": 70,
+        "propellant": "N2O",
+        "thrusters": 12,
+        "mib_s": 0.005,
+        "valve_res_s": 0.001,
+        "arm_long_m": 0.15300000000000002,
+        "arm_short_m": 0.045000000000000005,
+        "propellant_kg": 0.24700485609744163,
+        "tank_volume_L": 0.4144376780158417,
+        "tank_radius_m": 0.046251257053089155,
+        "tank_wall_m": 0.0006475175987432481,
+        "tank_pressure_bar": 50,
+        "meop_bar": 70,
+        "valve_power_W": 1.0,
+        "power_steady_W": 0.05,
+        "dry_mass_kg": 0.21891193475942966,
+        "mass_kg": 0.4659167908568713,
+        "volume_L": 0.841517660716983
+      },
+      "dispersion": {
+        "thrust_scale": {
+          "dist": "normal",
+          "mean": 1,
+          "sigma": 0.03
+        },
+        "isp_s": {
+          "dist": "uniform",
+          "lo": 60,
+          "hi": 80
+        },
+        "axis_misalignment_rad": {
+          "dist": "normal",
+          "mean": 0,
+          "sigma": 0.01
+        }
+      },
+      "sizing": {
+        "F_req_N": 0.00018814605339767288,
+        "impulse_detumble_Ns": 0.1724795966676749,
+        "impulse_dumping_Ns": 120.94202900573113,
+        "impulse_slews_Ns": 188.9945180486048,
+        "propellant_if_slews_on_rcs_kg": 0.38544154843622397,
+        "life_yr": 3.0,
+        "isp_budget_s": 60.0,
+        "scale": 1.0,
+        "law": "N2O self-pressurised, Isp 60 s budget (60-80 s), Al-7075 sphere at 70 bar MEOP"
+      }
+    }
+  }
+}

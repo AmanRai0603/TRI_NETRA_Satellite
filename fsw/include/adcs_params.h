@@ -5,8 +5,8 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#define ADCS_PARAMS_PAYLOAD 1901u
-#define ADCS_PARAMS_BLOB_SIZE 1917u
+#define ADCS_PARAMS_PAYLOAD 2126u
+#define ADCS_PARAMS_BLOB_SIZE 2142u
 #define ADCS_MAX_ROTORS 8
 #define ADCS_MAX_GIMBALS 4
 #define ADCS_MAX_COUPLES 6
@@ -40,10 +40,11 @@ typedef struct {
     uint8_t sched_mode[8];  /* commanded states */
     uint8_t bdot_law;  /* 0 gyro, 1 mag, 2 bangbang, 3 L1 generalised B-dot */
     uint8_t rw_law;  /* fine pointing law: 0 pid, 1 lqr, 2 smc */
-    uint8_t mtq_law;  /* magnetic pointing law: 0 pd, 1 lqr, 2 smc, 3 rate damping */
+    uint8_t mtq_law;  /* magnetic pointing law: 0 pd, 1 lqr, 2 smc, 3 rate damping, 4 Lovera-Astolfi 2004, 5 Celani 2015, 6 Avanzini 2021 (nadir), 7 Celani 2026 boresight, 8 TANGO frozen-Riccati LQR */
     uint8_t alloc;  /* allocation: 0 rotor pinv, 1 IDMAS split, 2 CMG SR, 3 VSCMG SR */
     uint8_t ss_eclipse;  /* Sun spin eclipse policy: 1 E1 (coils off), 2 E2 (gyro-propagated Sun) */
     double ss_rz_floor;  /* Sun spin R_z floor as a fraction of J_zz (0 = published law) */
+    uint8_t ss_law;  /* coils-only Sun acquisition: 0 He et al. 2023 Sun spin, 1 de Ruiter 2011 spin law on the Sun line, 2 Celani 2026 boresight on the Sun (no spin) */
     uint8_t gd_kind;  /* guidance of the fine / magnetic states: 0 nadir, 1 target, 2 slew, 3 inertial, 4 sun */
     double gd_q_off[4];  /* payload boresight offset quaternion (x y z w) */
     double gd_roll_deg;  /* target offset / slew angle [deg] */
@@ -100,6 +101,18 @@ typedef struct {
     double sa_kd;
     double sa_done_deg;
     double sa_done_hold_s;
+    double mtq_eps;  /* time-scale parameter epsilon of the averaging-based laws (Lovera-Astolfi, Celani) */
+    double mtq_k1;  /* proportional gain k_p / k_1 (torque-level after the normalised projection) */
+    double mtq_k2;  /* derivative gain k_v / k_2 */
+    double mtq_k16;  /* Avanzini 2021 gain k (k_zeta = k_eps) [1/s] */
+    double mtq_lam16;  /* Avanzini 2021 pitch-correction rate lambda */
+    double mtq_Pth[3][3];  /* TANGO frozen-Riccati gain on the attitude error, P21 / r */
+    double mtq_Pw[3][3];  /* TANGO frozen-Riccati gain on the rate error, P22 / r */
+    double ss_dr_k;  /* de Ruiter 2011 overall gain k [1/s] */
+    double ss_dr_k1;  /* de Ruiter 2011 spin-rate weight k1 (> 1) */
+    double ss_dr_k2;  /* de Ruiter 2011 nutation weight k2 (> 0) [kg m^2] */
+    double sb_kp;  /* Celani 2026 boresight gain k_p on e3 x a [N m] */
+    double sb_kd;  /* Celani 2026 boresight rate gain k_d [N m s] */
     uint8_t nr;  /* rotors */
     uint8_t ng;  /* gimbals */
     uint8_t rot_kind[8];  /* 0 wheel, 1 fluid loop, 2 CMG rotor, 3 VSCMG rotor */

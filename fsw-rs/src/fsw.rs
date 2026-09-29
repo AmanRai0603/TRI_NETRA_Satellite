@@ -156,6 +156,22 @@ impl Fsw {
             let mut t = [0.0; 3];
             for i in 0..3 { t[i] = -self.g_mtq.kd[i]*(self.w_est[i] - wr[i]); }
             t
+        } else if p.mtq_law == 4 {
+            ctl::mtq_lovera(&self.k.q, &self.w_est, &self.q_ref, &self.w_ref, &p.J, p.mtq_eps, p.mtq_k1, p.mtq_k2)
+        } else if p.mtq_law == 5 || p.mtq_law == 6 {
+            let av = if p.mtq_law == 6 { ctl::mtq_avanzini(&self.k.q, &self.w_est, &self.q_ref, &self.w_ref, &p.J, p.mtq_k16, p.mtq_lam16) } else { None };
+            match av { Some(t) => t, None => ctl::mtq_celani(&self.k.q, &self.w_est, &self.q_ref, &self.w_ref, p.mtq_eps, p.mtq_k1, p.mtq_k2) }
+        } else if p.mtq_law == 7 {
+            let qe = qmult(&qconj(&self.q_ref), &self.k.q);
+            let a3 = dcm(&qe);
+            let wr = mat3_vec(&a3, &self.w_ref);
+            let mut we = [0.0; 3];
+            for i in 0..3 { we[i] = self.w_est[i] - wr[i]; }
+            let e3 = if self.mode == SUN_MTQ { p.sun_axis } else { p.roll_axis };
+            let a = match (self.mode == SUN_MTQ, self.s_prop) { (true, Some(sp)) => unit(&sp), _ => mat3_vec(&a3, &e3) };
+            ctl::mtq_boresight(&e3, &a, &we, p.sb_kp, p.sb_kd)
+        } else if p.mtq_law == 8 {
+            ctl::mtq_tango(&self.k.q, &self.w_est, &self.q_ref, &self.w_ref, &p.mtq_Pth, &p.mtq_Pw)
         } else {
             ctl::control_law(&self.k.q, &self.w_est, &self.q_ref, &self.w_ref, &mut self.i_q, p.mtq_period, &self.g_mtq, &p.J, &[0.0; 3], &[0.0; 3])
         };
@@ -357,7 +373,7 @@ impl Fsw {
             if norm3(&z.w) < p.detumble_exit { self.hold += dt; } else { self.hold = 0.0; }
             if self.hold >= p.detumble_hold_s { self.enter(p.auto_next); }
         }
-        if self.mode == SPINUP || self.mode == SUN_SPIN { self.spin_guards(dt); }
+        if (self.mode == SPINUP || self.mode == SUN_SPIN) && self.p.ss_law != 2 { self.spin_guards(dt); }
         if self.mode == SPINUP || self.mode == SUN_SPIN || self.mode == SUN_ACQ_ROTOR {
             if z.sun_ok { self.s_prop = Some(z.sun); }
             else if let Some(sp) = self.s_prop {
@@ -562,8 +578,24 @@ impl Fsw {
                         } else {
                             let ecl = (!z.sun_ok && p.ss_eclipse == 1) || self.s_prop.is_none();
                             let s = self.s_prop.unwrap_or([0.0; 3]);
-                            ctl::sun_spin(&bav, &self.w_est, &s, ecl, &p.J, p.ss_spin_dps, p.ss_k1, p.ss_k2, p.ss_rz_floor)
+                            if p.ss_law == 1 {
+                                ctl::sun_spin_deruiter(&bav, &self.w_est, &s, ecl, &p.J, p.ss_spin_dps, p.ss_dr_k, p.ss_dr_k1, p.ss_dr_k2)
+                            } else {
+                                ctl::sun_spin(&bav, &self.w_est, &s, ecl, &p.J, p.ss_spin_dps, p.ss_k1, p.ss_k2, p.ss_rz_floor)
+                            }
                         };
+                        // P8 Celani 2026: power face onto the Sun, no spin
+                        let m0 = if p.ss_law == 2 {
+                            let bs = dot(&bav, &bav);
+                            match self.s_prop {
+                                Some(sp) if bs >= 1e-18 => {
+                                    let tau = ctl::mtq_boresight(&p.sun_axis, &unit(&sp), &self.w_est, p.sb_kp, p.sb_kd);
+                                    let c = cross(&bav, &tau);
+                                    [c[0]/bs, c[1]/bs, c[2]/bs]
+                                }
+                                _ => [0.0; 3],
+                            }
+                        } else { m0 };
                         self.b1raw = Some(bav);
                         if !is_zero3(&m0) { m_body = ctl::sat_dipole(&sub3(&m0, &p.m_res_est), p.m_max); }
                     }

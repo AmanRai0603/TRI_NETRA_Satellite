@@ -36,6 +36,21 @@ sun_spin: E1 in eclipse (Sun invalid): m0 = 0
 m = sat(m0 − m_res_est)
 ```
 
+The chain spin-up → Sun spin above is P11 (UPMSat-2, flown: m = −k(Ḃ + ω_d × B)) → P5 (He et al. 2023),
+with the rate band of P9 (Roldugin et al.) as the switch (`ss_law = 0`). Two more Sun laws from the
+literature review share the modes (docs/MTQ_LITERATURE.md):
+
+```
+ss_law = 1, P2 de Ruiter 2011 on the Sun line (sun_spin state):
+          ws = |ω_s|;  σ = sign(ω_z) (1 if 0);  h = J ω
+          e_hz = h_z − σ J_zz ws
+          x = h + σ J_zz ws s;  x_z += k1 e_hz;  x_x += k2 ω_x;  x_y += k2 ω_y   # P = diag(1, 1, 0)
+          A = cross(B, x);  m0 = −k A/|B|²                                        # k1 > 1, k2 > 0
+ss_law = 2, P8 Celani 2026 boresight on the Sun (both spin states, no spin guards):
+          if s_prop known and |B|² ≥ 1e-18: τ = k_p (sun_axis × unit(s_prop)) − k_d ω;  m0 = cross(B, τ)/|B|²
+          else m0 = 0
+```
+
 ## Spin guards (modes.transitions rows, applied each tick)
 
 ```

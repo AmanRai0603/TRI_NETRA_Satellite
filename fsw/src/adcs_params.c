@@ -45,6 +45,7 @@ int32_t adcs_params_decode(const uint8_t *blob, size_t len, adcs_params_t *out)
     out->alloc = p[0]; p += 1;
     out->ss_eclipse = p[0]; p += 1;
     out->ss_rz_floor = rd_f64(p); p += 8;
+    out->ss_law = p[0]; p += 1;
     out->gd_kind = p[0]; p += 1;
     for (i = 0; i < 4u; i++) { ((double *)out->gd_q_off)[i] = rd_f64(p); p += 8; }
     out->gd_roll_deg = rd_f64(p); p += 8;
@@ -101,6 +102,18 @@ int32_t adcs_params_decode(const uint8_t *blob, size_t len, adcs_params_t *out)
     out->sa_kd = rd_f64(p); p += 8;
     out->sa_done_deg = rd_f64(p); p += 8;
     out->sa_done_hold_s = rd_f64(p); p += 8;
+    out->mtq_eps = rd_f64(p); p += 8;
+    out->mtq_k1 = rd_f64(p); p += 8;
+    out->mtq_k2 = rd_f64(p); p += 8;
+    out->mtq_k16 = rd_f64(p); p += 8;
+    out->mtq_lam16 = rd_f64(p); p += 8;
+    for (i = 0; i < 9u; i++) { ((double *)out->mtq_Pth)[i] = rd_f64(p); p += 8; }
+    for (i = 0; i < 9u; i++) { ((double *)out->mtq_Pw)[i] = rd_f64(p); p += 8; }
+    out->ss_dr_k = rd_f64(p); p += 8;
+    out->ss_dr_k1 = rd_f64(p); p += 8;
+    out->ss_dr_k2 = rd_f64(p); p += 8;
+    out->sb_kp = rd_f64(p); p += 8;
+    out->sb_kd = rd_f64(p); p += 8;
     out->nr = p[0]; p += 1;
     out->ng = p[0]; p += 1;
     for (i = 0; i < 8u; i++) { ((uint8_t *)out->rot_kind)[i] = p[0]; p += 1; }
@@ -176,6 +189,7 @@ size_t adcs_params_encode(const adcs_params_t *in, uint8_t *buf, size_t cap)
     p[0] = in->alloc; p += 1;
     p[0] = in->ss_eclipse; p += 1;
     wr_f64(p, in->ss_rz_floor); p += 8;
+    p[0] = in->ss_law; p += 1;
     p[0] = in->gd_kind; p += 1;
     for (i = 0; i < 4u; i++) { wr_f64(p, ((const double *)in->gd_q_off)[i]); p += 8; }
     wr_f64(p, in->gd_roll_deg); p += 8;
@@ -232,6 +246,18 @@ size_t adcs_params_encode(const adcs_params_t *in, uint8_t *buf, size_t cap)
     wr_f64(p, in->sa_kd); p += 8;
     wr_f64(p, in->sa_done_deg); p += 8;
     wr_f64(p, in->sa_done_hold_s); p += 8;
+    wr_f64(p, in->mtq_eps); p += 8;
+    wr_f64(p, in->mtq_k1); p += 8;
+    wr_f64(p, in->mtq_k2); p += 8;
+    wr_f64(p, in->mtq_k16); p += 8;
+    wr_f64(p, in->mtq_lam16); p += 8;
+    for (i = 0; i < 9u; i++) { wr_f64(p, ((const double *)in->mtq_Pth)[i]); p += 8; }
+    for (i = 0; i < 9u; i++) { wr_f64(p, ((const double *)in->mtq_Pw)[i]); p += 8; }
+    wr_f64(p, in->ss_dr_k); p += 8;
+    wr_f64(p, in->ss_dr_k1); p += 8;
+    wr_f64(p, in->ss_dr_k2); p += 8;
+    wr_f64(p, in->sb_kp); p += 8;
+    wr_f64(p, in->sb_kd); p += 8;
     p[0] = in->nr; p += 1;
     p[0] = in->ng; p += 1;
     for (i = 0; i < 8u; i++) { p[0] = ((const uint8_t *)in->rot_kind)[i]; p += 1; }

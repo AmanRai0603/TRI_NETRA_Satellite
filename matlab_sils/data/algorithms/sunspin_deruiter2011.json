@@ -1,0 +1,21 @@
+{
+ "confirmed_by": "UNCONFIRMED \u00b7 awaiting a person",
+ "fsw": "reference",
+ "id": "sunspin_deruiter2011",
+ "label": "P11 spin-up then P2 de Ruiter 2011 momentum-error spin law on the Sun line (coils only, no attitude solution)",
+ "needs": [
+  "coils",
+  "magnetometer",
+  "gyro",
+  "sun"
+ ],
+ "number": 45,
+ "prototype": true,
+ "schema": "adcs-algorithm/1",
+ "slot": "sun_acquisition",
+ "source": "A. de Ruiter, Acta Astronautica 68(1-2) 160-171, 2011, doi:10.1016/j.actaastro.2010.07.012; spin-up: Porras-Hermoso et al. 2024 (UPMSat-2)",
+ "literature": {
+  "read": "deck author's PDF reading",
+  "review": "literature_review_v2.pptx (Agastya Research Collective, 19 Sep 2026)"
+ }
+}

@@ -127,6 +127,30 @@ def verify_case(C, case, cat):
       json.dumps(sel["knobs"].get("scale", {})))
     C("converge", case, "every family was flown and scored in every iteration", all(set(e["families"]) == set(sel["families"]) for e in log),
       f"{len(sel['families'])} families x {len(log)} iterations")
+    # tune: every tuned option flew every law of its slot at every grid point, and assess kept the min-max best
+    grids = P["tune"]["grids"]
+    cands = P["matrix"]["algorithm_candidates"]
+    rank = lambda z: (not z["feasible"], len(z["failing"]), z["objective"] if z["objective"] is not None else math.inf)
+    for m_, o_ in last.get("tuned", []):
+        r = next((x for x in last["matrix"] if x["mode"] == m_ and x["option"] == o_), None)
+        slot = {"sun_acquisition": "sun_acquisition"}.get(m_, "mtq_pointing")
+        npts = 1
+        for v in grids[slot].values():
+            npts *= len(v)
+        want = len(cands[slot]) * (npts + 1)
+        vs = (r or {}).get("variants", [])
+        C("tune", case, f"{m_}/{o_}: every {slot} law flown at every grid point", len(vs) == want, f"{len(vs)} of {want} variants")
+        if vs:
+            best = min(vs, key=rank)
+            C("tune", case, f"{m_}/{o_}: the kept variant is the best worst seed", rank(best) == rank(r), f"{r['alg']} ({r['objective_id']} {r['objective']})")
+    # certify: every law's verdict follows from its multipliers
+    fq = jl(PIPE / case / "floquet.json")
+    if C("certify", case, "Floquet multipliers for every magnetic law of the coils-only family", fq and len(fq["laws"]) >= 5,
+         fq and f"{len(fq['laws'])} laws; dispatched {fq['dispatched_law']}"):
+        for x in fq["laws"]:
+            C("certify", case, f"{x['law']}: certified exactly when every multiplier outside the free directions is inside the unit circle",
+              x["certified"] == (max(x["mu_abs"][x["free_directions"]:]) < 1.0), f"max |mu| {x['max_mu']:.4g}")
+        C("certify", case, "the dispatched law is among them", any(x["dispatched"] for x in fq["laws"]) or not fq["dispatched_law"])
     # select: recompute from the family scores
     F = sel["families"]
     for f, v in F.items():

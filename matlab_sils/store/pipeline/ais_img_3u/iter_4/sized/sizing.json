@@ -94,7 +94,7 @@
   },
   "knobs": {
     "scale": {
-      "mtqp": 1.0
+      "mtqp": 1.5
     },
     "k_h": null,
     "k_tau": 1.5,
@@ -109,17 +109,17 @@
       "product": "SZ-ais_img_3u-mtq",
       "role": "solution",
       "label": "Magnetorquers only",
-      "mass_kg": 0.8295611292035014,
-      "power_W": 3.8956112920350123,
-      "volume_L": 0.011824451681400512,
+      "mass_kg": 0.8443416938052519,
+      "power_W": 4.043416938052519,
+      "volume_L": 0.01773667752210077,
       "items": [
         {
           "slot": "coils",
           "part": "SZ-ais_img_3u-MTQP",
           "n": 3.0,
-          "mass_kg": 0.029561129203501284,
-          "power_W": 0.29561129203501285,
-          "volume_L": 0.011824451681400512
+          "mass_kg": 0.04434169380525192,
+          "power_W": 0.4434169380525192,
+          "volume_L": 0.01773667752210077
         },
         {
           "slot": "star_tracker",
@@ -876,14 +876,14 @@
       "made": "in-house",
       "descriptor_version": 1,
       "nominal": {
-        "dipole_max_Am2": 0.14780564601750643,
+        "dipole_max_Am2": 0.22170846902625962,
         "dipole_per_amp_Am2_per_A": 4.5,
-        "current_max_A": 0.03284569911500143,
+        "current_max_A": 0.04926854867250214,
         "resistance_ohm": 30,
         "time_constant_s": 0.005,
-        "mass_kg": 0.009853709734500428,
-        "power_at_max_W": 0.09853709734500428,
-        "volume_L": 0.003941483893800171
+        "mass_kg": 0.01478056460175064,
+        "power_at_max_W": 0.1478056460175064,
+        "volume_L": 0.005912225840700257
       },
       "dispersion": {
         "dipole_scale": {
@@ -901,7 +901,7 @@
         "m_dump_Am2": 0.07390282300875321,
         "m_momentum_Am2": 0.020241521062201874,
         "m_detumble_Am2": 0.08019167004304883,
-        "scale": 1.0,
+        "scale": 1.5,
         "law": "max(dumping, momentum, detumble) dipole; mass and power linear in the dipole (SYN-CT-1 anchor)"
       }
     },

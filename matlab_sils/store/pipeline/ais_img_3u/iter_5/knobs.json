@@ -3,6 +3,5 @@
   "mtqp": 1.0
  },
  "gyro_grade": 1.0,
- "fmr_flow_sigma": 0.0005,
- "st_heads": 1
+ "fmr_flow_sigma": 0.0005
 }

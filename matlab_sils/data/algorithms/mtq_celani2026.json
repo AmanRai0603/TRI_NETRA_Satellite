@@ -1,0 +1,20 @@
+{
+ "confirmed_by": "UNCONFIRMED \u00b7 awaiting a person",
+ "fsw": "reference",
+ "id": "mtq_celani2026",
+ "label": "P8 Celani 2026: reduced-attitude boresight law (payload or power axis onto the target, rotation about it free)",
+ "needs": [
+  "coils",
+  "magnetometer",
+  "attitude"
+ ],
+ "number": 43,
+ "prototype": true,
+ "schema": "adcs-algorithm/1",
+ "slot": "mtq_pointing",
+ "source": "F. Celani, J. Guid. Control Dyn. 49(3) 906-914, 2026, doi:10.2514/1.G009085",
+ "literature": {
+  "read": "full text (author accepted version)",
+  "review": "literature_review_v2.pptx (Agastya Research Collective, 19 Sep 2026)"
+ }
+}
