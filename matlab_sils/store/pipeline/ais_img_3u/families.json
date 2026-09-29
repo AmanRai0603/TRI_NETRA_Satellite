@@ -31,11 +31,11 @@
     {
      "id": "detumble_time",
      "kind": "time_to_rate",
-     "value": null,
+     "value": 65.04,
      "unit": "min",
      "req": 284.0,
      "req_key": "req.detumble",
-     "pass": 0
+     "pass": 1
     },
     {
      "id": "ape_los_p9973",
@@ -87,11 +87,11 @@
     {
      "id": "detumble_time",
      "kind": "time_to_rate",
-     "value": null,
+     "value": 65.04,
      "unit": "min",
      "req": 284.0,
      "req_key": "req.detumble",
-     "pass": 0
+     "pass": 1
     },
     {
      "id": "ape_los_p9973",
@@ -176,12 +176,12 @@
     {
      "id": "detumble_time",
      "req": 284.0,
-     "mean": 224.78000000000003,
-     "std": 37.16570738672352,
-     "min": 190.77333333333337,
-     "max": 274.29,
-     "pass_rate": 0.4166666666666667,
-     "pass": false
+     "mean": 57.32194444444445,
+     "std": 9.882980622081122,
+     "min": 41.35666666666667,
+     "max": 68.17333333333333,
+     "pass_rate": 1.0,
+     "pass": true
     },
     {
      "id": "ape_los_p9973",
@@ -263,7 +263,7 @@
     {
      "id": "detumble_time",
      "kind": "time_to_rate",
-     "value": 81.89166666666667,
+     "value": 81.20833333333333,
      "unit": "min",
      "req": 284.0,
      "req_key": "req.detumble",
@@ -319,7 +319,7 @@
     {
      "id": "detumble_time",
      "kind": "time_to_rate",
-     "value": 81.89166666666667,
+     "value": 81.20833333333333,
      "unit": "min",
      "req": 284.0,
      "req_key": "req.detumble",
@@ -392,10 +392,10 @@
     {
      "id": "detumble_time",
      "req": 284.0,
-     "mean": 73.24722222222222,
-     "std": 15.579432072566178,
-     "min": 44.49166666666667,
-     "max": 92.39166666666667,
+     "mean": 71.61944444444445,
+     "std": 15.520625464678117,
+     "min": 42.925,
+     "max": 91.15833333333333,
      "pass_rate": 1.0,
      "pass": true
     },
@@ -481,7 +481,7 @@
     {
      "id": "detumble_time",
      "kind": "time_to_rate",
-     "value": 2.475,
+     "value": 2.0416666666666665,
      "unit": "min",
      "req": 284.0,
      "req_key": "req.detumble",
@@ -537,7 +537,7 @@
     {
      "id": "detumble_time",
      "kind": "time_to_rate",
-     "value": 2.475,
+     "value": 2.0416666666666665,
      "unit": "min",
      "req": 284.0,
      "req_key": "req.detumble",
@@ -610,10 +610,10 @@
     {
      "id": "detumble_time",
      "req": 284.0,
-     "mean": 3.1277777777777778,
-     "std": 1.3320795873130205,
+     "mean": 1.9041666666666668,
+     "std": 0.6318613276453444,
      "min": 0.975,
-     "max": 4.641666666666667,
+     "max": 3.308333333333333,
      "pass_rate": 1.0,
      "pass": true
     },
