@@ -19,12 +19,13 @@ Every node of the design loop and verification chain: what it reads, what it wri
 | 9 | [`budget`](#budget) | design | Rust (adcs-design::budget) | size_mtq<br>size_fmr<br>size_rcs<br>select_rotor<br>size_sensors | sizing.json -> families.<id>.{mass_kg, power_W, volume_L, items} |
 | 10 | [`matrix`](#matrix) | SILS | Rust engine + C flight software (adcs run) | budget (products)<br>matlab_sils/data/modes/*.json | matlab_sils/store/pipeline/cache/<key>/manifest.json |
 | 11 | [`assess`](#assess) | SILS | Python (tools/pipeline.py) | matrix | iter_k/assess.json |
-| 12 | [`converge`](#converge) | design | Python (tools/pipeline.py) | assess<br>select | loop.json |
+| 12 | [`converge`](#converge) | design | Python (tools/pipeline.py) | assess<br>select<br>mc (robustness feedback) | loop.json |
 | 13 | [`select`](#select) | selection | Python (tools/pipeline.py) | assess<br>budget<br>case (req.mass, req.vol) | selection.json |
 | 14 | [`dispatch`](#dispatch) | dispatch | Rust (adcs dispatch) | select<br>budget | dist/dispatch/<case>/<family>/converged/ |
-| 15 | [`mc`](#mc) | verification | Rust engine | dispatch | matlab_sils/store/pipeline/<case>/mc/summary.json |
-| 16 | [`soft_oils`](#soft_oils) | verification | Rust engine + QEMU (Cortex-M4F) | dispatch | matlab_sils/store/pipeline/<case>/soft_oils.json |
-| 17 | [`report`](#report) | report | Python | select<br>dispatch<br>mc<br>soft_oils<br>nodes | results/DESIGN_<case>.md<br>results/vv/<br>dist/TRINETRA_ADCS_VV_report.pdf |
+| 15 | [`mc`](#mc) | verification | Rust engine | dispatch | matlab_sils/store/pipeline/<case>/mc/summary.json<br>selection.json -> robustness |
+| 16 | [`family_missions`](#family_missions) | verification | Rust engine + C and Rust flight software | select<br>budget | matlab_sils/store/pipeline/<case>/families.json<br>matlab_sils/store/pipeline/<case>/families/<family>/{package,dispatch,mc}/ |
+| 17 | [`soft_oils`](#soft_oils) | verification | Rust engine + QEMU (Cortex-M4F) | dispatch | matlab_sils/store/pipeline/<case>/soft_oils.json |
+| 18 | [`report`](#report) | report | Python | select<br>dispatch<br>mc<br>soft_oils<br>nodes | results/DESIGN_<case>.md<br>results/vv/<br>dist/TRINETRA_ADCS_VV_report.pdf |
 
 ## case
 
@@ -227,7 +228,7 @@ Rules:
 The knob changes the failures call for; converged when nothing is left to change.
 
 - **Stage:** design. **Runs in:** Python (tools/pipeline.py).
-- **Inputs:** assess, select.
+- **Inputs:** assess, select, mc (robustness feedback).
 - **Outputs:** loop.json.
 
 | parameter | value |
@@ -291,19 +292,44 @@ Rules:
 
 ## mc
 
-Monte Carlo of the dispatched mission with the case's dispersions (truth dispersed, flight software nominal).
+Monte Carlo of the dispatched mission with the case's dispersions (truth dispersed, flight software nominal). It feeds back: a requirement that fails in any dispersed run is a failure the loop must fix.
 
 - **Stage:** verification. **Runs in:** Rust engine.
 - **Inputs:** dispatch.
-- **Outputs:** matlab_sils/store/pipeline/<case>/mc/summary.json.
+- **Outputs:** matlab_sils/store/pipeline/<case>/mc/summary.json, selection.json -> robustness.
 
 | parameter | value |
 |---|---|
 | `runs` | 12 |
+| `robustness_passes` | 3 |
 
 Rules:
 
 - dispersions as asils.campaign.draw
+- every requirement metric must pass in every run; otherwise, for the selected family:
+- power -> pump with more copper (lambda x3) and the lighter-pump lever closed
+- performance -> the family's authority x1.5 and its authority-down lever closed
+- knowledge -> the star tracker on a coarse product
+- the loop then runs on from the new knobs (sizing, matrix, converge, select, dispatch, mc) up to robustness_passes times
+
+## family_missions
+
+Every one of our solution families, selected or not (coils only, coils + fluid loop, coils + fluid loop + RCS), dispatched and flown as the full mission (detumble -> Sun acquisition -> nadir) with its best methods from the loop, in C and Rust, and by Monte Carlo, so each family's behaviour is on record beside the selection.
+
+- **Stage:** verification. **Runs in:** Rust engine + C and Rust flight software.
+- **Inputs:** select, budget.
+- **Outputs:** matlab_sils/store/pipeline/<case>/families.json, matlab_sils/store/pipeline/<case>/families/<family>/{package,dispatch,mc}/.
+
+| parameter | value |
+|---|---|
+| `role` | solution |
+| `monte_carlo_runs` | as node mc |
+
+Rules:
+
+- the selected family reuses its dispatch and mc outputs
+- a family that is not feasible is still flown: its gaps show in its mission metrics
+- C and Rust must agree bit for bit for every family
 
 ## soft_oils
 

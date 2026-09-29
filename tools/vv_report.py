@@ -130,6 +130,72 @@ def catalogue():
             "benchmark's mass and power are conservative.</p>")
 
 
+def family_missions(c, sel):
+    """Every one of our solution families flown as the full mission (node family_missions): a table of
+    its verdicts and one timeline figure, so e.g. the coils-only behaviour is on record beside the pick."""
+    fm = jl(PIPE / c / "families.json")
+    if not fm:
+        return ""
+    ids = ("detumble_time", "ape_los_p9973", "ake_los_p9973", "power_mean")
+    rows = []
+    for f, v in fm.items():
+        met = {x["id"]: x for x in v["mission"]["c"] or []}
+        mcs = {x["id"]: x for x in (v["mc"] or {}).get("stats", [])}
+        cell = lambda i: "—" if i not in met else f"{fmt(met[i]['value'])} {verdict(met[i]['pass'])}" + (
+            f"<br><span class='note'>MC {100 * mcs[i]['pass_rate']:.0f} % pass</span>" if i in mcs and mcs[i]["pass_rate"] is not None else "")
+        rows.append([f"<code>{e(f)}</code>" + (" <b>(selected)</b>" if v["selected"] else ""), verdict(v["feasible"]), fmt(v["budget"]["mass_kg"], 3),
+                     e(", ".join(f"{m}={o}" for m, o in v["methods"].items()))] + [cell(i) for i in ids] + [verdict(v["c_equals_rust_bitwise"])])
+    out = ("<p>Every one of our solution families flown as the full mission (detumble → Sun acquisition → nadir), with its best "
+           "methods from the loop. Whether or not it is selected, this is how it behaves (node <code>family_missions</code>):</p>" +
+           table(["family", "feasible", "mass [kg]", "methods", "detumble [min]", "APE [deg]", "AKE [deg]", "mean power [W]", "C = Rust"], rows, num=(2,)))
+    plt = mpl()
+    cols = ["#2a78d6", "#eb6834", "#1baf7a"]
+    fig, ax = plt.subplots(4, 1, figsize=(7.4, 7.2), sharex=True)
+    req = {m["id"]: m.get("req") for m in (next(iter(fm.values()))["mission"]["c"] or [])}
+    for (f, v), col in zip(fm.items(), cols):
+        ch = ROOT / v["check_dir"] / "c" / "channels.csv"
+        if not ch.exists():
+            continue
+        t, ape, w, pw, mode = [], [], [], [], []
+        with open(ch) as fh:
+            for i, r in enumerate(csv.DictReader(fh)):
+                if i % 10:
+                    continue
+                t.append(float(r["t_s"]) / 3600); ape.append(max(float(r["ape_los_deg"]), 1e-4)); w.append(float(r["rate_degps"]))
+                pw.append(float(r["P_mtq_W"]) + float(r["P_rw_W"]) + float(r["P_rcs_W"])); mode.append(float(r["mode"]))
+        lab = f + (" (selected)" if v["selected"] else "")
+        ax[0].semilogy(t, w, color=col, lw=1, label=lab); ax[1].semilogy(t, ape, color=col, lw=1)
+        ax[2].plot(t, pw, color=col, lw=0.8); ax[3].step(t, mode, color=col, lw=1, where="post")
+    for a_, yl in zip(ax, ("body rate [deg/s]", "APE, line of sight [deg]", "ADCS power [W]", "FSW mode")):
+        a_.set_ylabel(yl)
+    if req.get("ape_los_p9973"):
+        ax[1].axhline(req["ape_los_p9973"], color=C_REQ, lw=0.8, ls="--"); ax[1].text(0.01, req["ape_los_p9973"], " APE requirement", color=C_REQ, fontsize=7, va="bottom", transform=ax[1].get_yaxis_transform())
+    if req.get("power_mean"):
+        ax[2].axhline(req["power_mean"], color=C_REQ, lw=0.8, ls="--"); ax[2].text(0.01, req["power_mean"], " orbit-average power requirement", color=C_REQ, fontsize=7, va="bottom", transform=ax[2].get_yaxis_transform())
+    ax[3].set_xlabel("mission time [h]")
+    ax[0].legend(loc="upper right", frameon=False, fontsize=7)
+    fig.suptitle(f"{c}: every solution family flown as the dispatched mission (C flight software)", x=0.01, ha="left", fontsize=9, fontweight="bold")
+    fig.tight_layout()
+    return out + f"<figure>{png(fig)}<figcaption>{e(c)}: body rate, pointing error, power and flight-software mode through the mission, one line per family.</figcaption></figure>"
+
+
+def verification():
+    """Section 12: tools/verify_nodes.py, every node's decision recomputed from its stored inputs."""
+    v = jl(ROOT / "results" / "node_verification.json")
+    if not v:
+        return "<p class='note'>Not run (python3 tools/verify_nodes.py).</p>"
+    by = {}
+    for r in v["rows"]:
+        b = by.setdefault(r["node"], [0, 0, []]); b[0] += r["ok"]; b[1] += 1
+        if not r["ok"]:
+            b[2].append(f"[{r['case']}] {r['check']}: {r['detail']}")
+    rows = [[f"<code>{e(n)}</code>", f"{a}/{t}", verdict(a == t), e("; ".join(f)) or "—"] for n, (a, t, f) in by.items()]
+    return (f"<p><b>{v['passed']} of {v['checks']} checks pass</b> over {len(v['nodes'])} nodes. Each check recomputes a node's decision "
+            "from what it stored and the rules in the node registry (the catalogue pick from the datasheets, the selection from the family "
+            "scores, the budgets from their units, each feasibility from its failures), rather than reading the node's own verdict. "
+            "Every check is listed in <code>results/NODE_VERIFICATION.md</code>.</p>" + table(["node", "checks passed", "verdict", "failures"], rows, num=(1,)))
+
+
 def design():
     out = []
     for c in CASES:
@@ -178,6 +244,10 @@ def design():
         rows = [[e(m), f"<code>{e(r['option'])}</code>", verdict(r["feasible"]), f"{fmt(r['objective'])} {e(r['objective_id'])}",
                  e(", ".join(f"{k}={v}" for k, v in (r["algorithms"] or {}).items() if v))] for m, r in F["modes"].items() if r]
         out.append("<p>Selected method per mission mode:</p>" + table(["mode", "option", "feasible", "objective (worst seed)", "algorithms"], rows))
+        for r in sel.get("robustness", []):
+            out.append("<div class='find'><b>Robustness (Monte Carlo feedback) after iteration " + str(r["after_iteration"]) + ":</b> " +
+                       e(", ".join(f"{k} passed in {100 * v:.0f} % of dispersed runs" for k, v in r["mc_failing"].items()) + ". " + " ".join(r["changes"] + r["blocked"])) + "</div>")
+        out.append(family_missions(c, sel))
         fig = pump_front(c, sel)
         if fig:
             out.append(fig)
@@ -442,7 +512,7 @@ def main():
         docno=f"TRN-ADCS-VV-{datetime.date.today():%Y%m%d}", date=f"{datetime.datetime.now(datetime.timezone.utc):%Y-%m-%d %H:%M} UTC", commit=e(commit),
         engine=e(eng.group(1) if eng else "adcs-engine-rs"), fsw="trinetra-fsw-c/1.0.0 and trinetra-fsw-rs (C99 and Rust no_std, adcs-fswcfg/1)",
         cases=e(", ".join(CASES)), verdicts=cards, summary=summ, fig_flow=svg_inline("docs/figures/flow_design_to_hils.svg"),
-        fig_arch=svg_inline("docs/figures/architecture_languages.svg"), nodes=nodes(), catalogue=catalogue(), requirements=requirements(), design=design(), sils=sils(),
+        fig_arch=svg_inline("docs/figures/architecture_languages.svg"), nodes=nodes(), catalogue=catalogue(), requirements=requirements(), design=design(), sils=sils(), verification=verification(),
         campaigns=campaigns(), parity=parity(), oils=oils(), vobc=vobc(), open=open_items())
     h = OUT / "TRINETRA_ADCS_VV_report.html"
     h.write_text(doc)
