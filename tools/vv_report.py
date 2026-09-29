@@ -130,6 +130,33 @@ def catalogue():
             "benchmark's mass and power are conservative.</p>")
 
 
+def mtq_only(c, sel):
+    """The coils-only family's behaviour per mode, stated from the stored runs (kept as designed; the
+    owner will improve coils-only nadir pointing from the literature later)."""
+    F = sel["families"].get("mtq")
+    if not F:
+        return ""
+    M = {m: r for m, r in F["modes"].items() if r}
+    g = lambda m, k: (M.get(m) or {}).get("metrics", {}).get(k)
+    req = sel["demand"]["req"]
+    fm = (jl(PIPE / c / "families.json") or {}).get("mtq")
+    mis = {x["id"]: x for x in (fm or {}).get("mission", {}).get("c") or []}
+    mcs = {x["id"]: x for x in ((fm or {}).get("mc") or {}).get("stats", [])}
+    sa, sp = g("sun_acquisition", "sun_acquisition_time"), g("sun_acquisition", "sun_angle_p95")
+    L = [f"<b>Detumble</b>: {fmt(g('detumble', 'detumble_time'))} min in the mode test and {fmt((mis.get('detumble_time') or {}).get('value'))} min in the mission "
+         f"(requirement {fmt(req.get('detumble'))} min); it passes" + (f" in {100 * mcs['detumble_time']['pass_rate']:.0f} % of the Monte Carlo runs" if "detumble_time" in mcs else "") + ".",
+         f"<b>Sun acquisition</b> (Sun-spin, {e(M['sun_acquisition']['alg'] or 'default')}): the coils spin the body up about the Sun line and bring the power face "
+         f"towards the Sun, so coils alone are largely sufficient here. They do not meet the case's line, though: the power face within 20 deg "
+         + (f"after {fmt(sa)} min" if sa is not None else "not within the 1.5-orbit test") + f" (requirement {fmt(req.get('sunacq'))} min), "
+         f"and a 95th-percentile Sun angle of {fmt(sp)} deg over the last half orbit (limit 20 deg).",
+         f"<b>Sun referencing</b>: {fmt(g('sun_referencing', 'sun_ape_p9973'))} deg (p99.73) with {e(M['sun_referencing']['alg'] or 'default')}; the coils cannot hold a three-axis Sun attitude.",
+         f"<b>Nadir pointing</b> is where the coils fall short. From a settled start the best law ({e(M['nadir_pointing']['alg'] or 'default')}) holds the line of "
+         f"sight to {fmt(g('nadir_pointing', 'ape_los_p9973'))} deg (p99.73) against {fmt(req.get('ape'))} deg. In the full mission nadir is commanded while the "
+         f"Sun-spin is still turning, and the coils cannot take that momentum out in time: {fmt((mis.get('ape_los_p9973') or {}).get('value'))} deg."]
+    return ("<div class='find'><b>Coils only (<code>mtq</code>), how it behaves.</b> It is kept as designed; coils-only nadir pointing is "
+            "to be improved later from the owner's references.<ul>" + "".join(f"<li>{x}</li>" for x in L) + "</ul></div>")
+
+
 def family_missions(c, sel):
     """Every one of our solution families flown as the full mission (node family_missions): a table of
     its verdicts and one timeline figure, so e.g. the coils-only behaviour is on record beside the pick."""
@@ -248,6 +275,7 @@ def design():
             out.append("<div class='find'><b>Robustness (Monte Carlo feedback) after iteration " + str(r["after_iteration"]) + ":</b> " +
                        e(", ".join(f"{k} passed in {100 * v:.0f} % of dispersed runs" for k, v in r["mc_failing"].items()) + ". " + " ".join(r["changes"] + r["blocked"])) + "</div>")
         out.append(family_missions(c, sel))
+        out.append(mtq_only(c, sel))
         fig = pump_front(c, sel)
         if fig:
             out.append(fig)
@@ -450,6 +478,9 @@ def open_items():
         "0.005 deg/s line now falls between them, so this verdict disagrees. The gap is the wheel-plus-RCS model, not the requirement.",
         "Sun spin: 17 of 24 seeds pass with and without the OBC; failures are Sun-spin entry with the Sun near the XY plane tripping the 1 deg/s "
         "exit guard during the L2 precession transient -- a tuning trade (fsw.sun_spin_perp_out_dps, fsw.sun_spin_dwell_out_s).",
+        "Coils only (mtq): largely sufficient for detumble and for Sun acquisition by Sun-spin (the power face is brought towards the Sun, "
+        "though not within the cases' 95 min / 20 deg line), and not sufficient for nadir pointing, above all from the spinning state the "
+        "mission hands over. Kept as designed; the owner will improve coils-only nadir pointing from the literature later.",
         "Bought against designed (both cases, same budget of 1.6 kg and 1.0 L): on ais_img_3u three CubeSpace CW0017 wheels are feasible "
         "at 1.0 kg against our fluid loop's 1.6 kg, so the lightest configuration overall is a benchmark; the fluid loop is selected "
         "because the selection is among our solutions, and its 0.6 kg is the price of not buying wheels. On ais_3u every rotor fails "

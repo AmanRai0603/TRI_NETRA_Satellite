@@ -44,6 +44,7 @@
    "kind": "time_to_rate",
    "rate_threshold_deg_s": 0.5,
    "hold_s": 600.0,
+   "end_at_mode_exit": true,
    "requirement": "req.detumble"
   },
   {
