@@ -6,11 +6,11 @@
    {
     "id": "detumble_time",
     "kind": "time_to_rate",
-    "value": null,
+    "value": 65.04,
     "unit": "min",
     "req": 284.0,
     "req_key": "req.detumble",
-    "pass": 0
+    "pass": 1
    },
    {
     "id": "ape_los_p9973",
@@ -96,11 +96,11 @@
    {
     "id": "detumble_time",
     "kind": "time_to_rate",
-    "value": null,
+    "value": 65.04,
     "unit": "min",
     "req": 284.0,
     "req_key": "req.detumble",
-    "pass": 0
+    "pass": 1
    },
    {
     "id": "ape_los_p9973",

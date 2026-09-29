@@ -18,26 +18,26 @@
    "unit": "min",
    "req": 284.0,
    "values": [
-    null,
-    190.77333333333337,
-    208.10666666666668,
-    274.29,
-    null,
-    196.74000000000004,
-    null,
-    null,
-    null,
-    253.99000000000004,
-    null,
-    null
+    52.57333333333334,
+    41.35666666666667,
+    47.940000000000005,
+    42.92333333333333,
+    54.85666666666667,
+    65.64,
+    66.89,
+    68.17333333333333,
+    66.59,
+    51.973333333333336,
+    64.10666666666667,
+    64.84
    ],
-   "mean": 224.78000000000003,
-   "std": 37.16570738672352,
-   "min": 190.77333333333337,
-   "max": 274.29,
-   "n_valid": 5,
-   "pass_rate": 0.4166666666666667,
-   "pass": false
+   "mean": 57.32194444444445,
+   "std": 9.882980622081122,
+   "min": 41.35666666666667,
+   "max": 68.17333333333333,
+   "n_valid": 12,
+   "pass_rate": 1.0,
+   "pass": true
   },
   {
    "id": "ape_los_p9973",
@@ -177,11 +177,11 @@
     {
      "id": "detumble_time",
      "kind": "time_to_rate",
-     "value": null,
+     "value": 52.57333333333334,
      "unit": "min",
      "req": 284.0,
      "req_key": "req.detumble",
-     "pass": 0
+     "pass": 1
     },
     {
      "id": "ape_los_p9973",
@@ -247,7 +247,7 @@
     {
      "id": "detumble_time",
      "kind": "time_to_rate",
-     "value": 190.77333333333337,
+     "value": 41.35666666666667,
      "unit": "min",
      "req": 284.0,
      "req_key": "req.detumble",
@@ -317,7 +317,7 @@
     {
      "id": "detumble_time",
      "kind": "time_to_rate",
-     "value": 208.10666666666668,
+     "value": 47.940000000000005,
      "unit": "min",
      "req": 284.0,
      "req_key": "req.detumble",
@@ -387,7 +387,7 @@
     {
      "id": "detumble_time",
      "kind": "time_to_rate",
-     "value": 274.29,
+     "value": 42.92333333333333,
      "unit": "min",
      "req": 284.0,
      "req_key": "req.detumble",
@@ -457,11 +457,11 @@
     {
      "id": "detumble_time",
      "kind": "time_to_rate",
-     "value": null,
+     "value": 54.85666666666667,
      "unit": "min",
      "req": 284.0,
      "req_key": "req.detumble",
-     "pass": 0
+     "pass": 1
     },
     {
      "id": "ape_los_p9973",
@@ -527,7 +527,7 @@
     {
      "id": "detumble_time",
      "kind": "time_to_rate",
-     "value": 196.74000000000004,
+     "value": 65.64,
      "unit": "min",
      "req": 284.0,
      "req_key": "req.detumble",
@@ -597,11 +597,11 @@
     {
      "id": "detumble_time",
      "kind": "time_to_rate",
-     "value": null,
+     "value": 66.89,
      "unit": "min",
      "req": 284.0,
      "req_key": "req.detumble",
-     "pass": 0
+     "pass": 1
     },
     {
      "id": "ape_los_p9973",
@@ -667,11 +667,11 @@
     {
      "id": "detumble_time",
      "kind": "time_to_rate",
-     "value": null,
+     "value": 68.17333333333333,
      "unit": "min",
      "req": 284.0,
      "req_key": "req.detumble",
-     "pass": 0
+     "pass": 1
     },
     {
      "id": "ape_los_p9973",
@@ -737,11 +737,11 @@
     {
      "id": "detumble_time",
      "kind": "time_to_rate",
-     "value": null,
+     "value": 66.59,
      "unit": "min",
      "req": 284.0,
      "req_key": "req.detumble",
-     "pass": 0
+     "pass": 1
     },
     {
      "id": "ape_los_p9973",
@@ -807,7 +807,7 @@
     {
      "id": "detumble_time",
      "kind": "time_to_rate",
-     "value": 253.99000000000004,
+     "value": 51.973333333333336,
      "unit": "min",
      "req": 284.0,
      "req_key": "req.detumble",
@@ -877,11 +877,11 @@
     {
      "id": "detumble_time",
      "kind": "time_to_rate",
-     "value": null,
+     "value": 64.10666666666667,
      "unit": "min",
      "req": 284.0,
      "req_key": "req.detumble",
-     "pass": 0
+     "pass": 1
     },
     {
      "id": "ape_los_p9973",
@@ -947,11 +947,11 @@
     {
      "id": "detumble_time",
      "kind": "time_to_rate",
-     "value": null,
+     "value": 64.84,
      "unit": "min",
      "req": 284.0,
      "req_key": "req.detumble",
-     "pass": 0
+     "pass": 1
     },
     {
      "id": "ape_los_p9973",
