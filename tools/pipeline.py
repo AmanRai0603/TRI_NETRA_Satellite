@@ -195,7 +195,7 @@ def node_matrix(case, it, sized, modes, variants_on, seeds, jobs, build, tuned=(
 
 def node_assess(tests, modes):
     Mby = {M["id"]: M for M in modes}
-    res = {}
+    res, allv = {}, {}
     for t in tests:
         M = Mby[t["mode"]]
         mans = [json.loads((CACHE / k / "manifest.json").read_text()) for k in t["keys"] if (CACHE / k / "manifest.json").exists()]
@@ -218,8 +218,13 @@ def node_assess(tests, modes):
         key = (t["mode"], t["option"])
         cur = res.get(key)
         rank = lambda z: (not z["feasible"], len(z["failing"]), z["objective"] if z["objective"] is not None else math.inf)
+        allv.setdefault(key, []).append({"alg": t["alg"], "feasible": feas, "failing": fails, "objective": obj, "violation": sum(viol.values())})
         if cur is None or rank(r) < rank(cur):
             res[key] = r
+    # every variant's worst case, kept for the options that flew more than one (the literature table)
+    for key, vs in allv.items():
+        if len(vs) > 1 and key in res:
+            res[key]["variants"] = vs
     return res
 
 
@@ -680,7 +685,9 @@ def run_case(case, a, modes, families, build):
           entry = {"iteration": it, "knobs": knobs, "class": sizing["class"], "selected": sel["selected"], "status": sel["status"],
                    "feasible_options": sum(r["feasible"] for r in res.values()), "options": len(res), "changes": changes, "blocked": blocked,
                    "families": {f: {"feasible": v["feasible"], "gaps": v["gaps"], "budget": v["budget"]} for f, v in sel["families"].items()},
-                   "matrix": [{k: r[k] for k in ("mode", "option", "alg", "feasible", "failing", "objective", "objective_id")} for r in res.values()]}
+                   "matrix": [{**{k: r[k] for k in ("mode", "option", "alg", "feasible", "failing", "objective", "objective_id")},
+                             **({"variants": r["variants"]} if r["option"] == "mtq" and "variants" in r else {})} for r in res.values()],
+                 "tuned": history.get("_tuned", [])}
           log.append(entry)
           write(state / f"iter_{it}" / "assess.json", entry)
           print(f"  -> {sel['selected']} ({sel['status']}), {entry['feasible_options']}/{entry['options']} options feasible; "
@@ -718,6 +725,30 @@ def run_case(case, a, modes, families, build):
     node_certify(case)
     so = node_soft_oils(case, disp, sized, build) if not a.no_oils else None
     ledger(case, sel, log, disp, mc, so, sizing)
+
+
+PAPER = {"mtq_lovera2004": "P1 Lovera & Astolfi 2004", "mtq_celani2015": "P4 Celani 2015", "mtq_avanzini2021": "P16 Avanzini et al. 2021",
+         "mtq_celani2026": "P8 Celani 2026", "mtq_tango2013": "P3 TANGO 2013 (flown)", "sunspin_l1l2": "P11 UPMSat-2 -> P5 He et al. 2023",
+         "sunspin_deruiter2011": "P11 -> P2 de Ruiter 2011", "sun_boresight_celani2026": "P8 Celani 2026", "sunspin_l1l2_e2": "P11 -> P5, eclipse E2",
+         "sunspin_damped": "P11 -> P5, R_z floor", "mtq_pd": "baseline PD", "mtq_lqr": "baseline LQR", "mtq_smc": "baseline SMC", "mtq_rate_damp": "baseline rate damping"}
+
+
+def literature_table(log):
+    """Best variant per law (over its tuned gains) for the coils-only option of each mode, last iteration."""
+    rows = []
+    rank = lambda z: (not z["feasible"], len(z["failing"]), z["objective"] if z["objective"] is not None else math.inf)
+    for r in log[-1]["matrix"]:
+        if r["option"] != "mtq" or not r.get("variants"):
+            continue
+        best = {}
+        for v in r["variants"]:
+            law, tune = split_alg(v["alg"]) if v["alg"] else ("default", {})
+            if law not in best or rank(v) < rank(best[law][0]):
+                best[law] = (v, tune)
+        for law, (v, tune) in sorted(best.items(), key=lambda x: rank(x[1][0])):
+            rows.append({"mode": r["mode"], "law": law, "paper": PAPER.get(law, "—"), "gains": ", ".join(f"{k} {x:g}" for k, x in tune.items()) or "nominal",
+                         "feasible": v["feasible"], "objective": v["objective"], "objective_id": r["objective_id"], "failing": list(v["failing"])})
+    return rows
 
 
 def ledger(case, sel, log, disp, mc, so, sizing):
@@ -778,6 +809,15 @@ def ledger(case, sel, log, disp, mc, so, sizing):
             L.append(f"| {f} | {'yes' if v['selected'] else 'no'} | {'yes' if v['feasible'] else 'no'} | {v['budget']['mass_kg']:.3f} | "
                      f"{', '.join(f'{m}={o}' for m, o in v['methods'].items())} | " + " | ".join(cell(i) for i in ("detumble_time", "ape_los_p9973", "ake_los_p9973", "power_mean")) +
                      f" | {v['c_equals_rust_bitwise']} | {mcs} |")
+    lit = literature_table(log)
+    if lit:
+        L += ["", "## Coils only: every law of the literature, each at its best gains (nodes `matrix` + `tune`)", "",
+              "Each law's result is its worst seed at the gains that make that worst seed best (Bruni & Celani's min-max); "
+              "the laws are listed by mode, best first. Sources: docs/MTQ_LITERATURE.md.", "",
+              "| mode | law | paper | best gains | feasible | objective (worst seed) | failing |", "|---|---|---|---|---|---:|---|"]
+        for row in lit:
+            L.append(f"| {row['mode']} | {row['law']} | {row['paper']} | {row['gains']} | {'yes' if row['feasible'] else 'no'} | "
+                     f"{fmt(row['objective'])} {row['objective_id']} | {', '.join(row['failing']) or '—'} |")
     fq = jl_(PIPE / case / "floquet.json")
     if fq:
         L += ["", "## Coils-only nadir loop certificate (node `certify`, Floquet multipliers, Celani 2026's method)", "",

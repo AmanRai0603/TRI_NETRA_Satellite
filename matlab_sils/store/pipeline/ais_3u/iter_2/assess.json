@@ -10,7 +10,9 @@
  "feasible_options": 4,
  "options": 25,
  "changes": [
-  "mtqp: authority x1 -> x1.5 (performance)"
+  "nadir_pointing/mtq: tune every mtq_pointing law's gains, min over the gains of the worst seed (Bruni & Celani 2017)",
+  "sun_acquisition/mtq: tune every sun_acquisition law's gains, min over the gains of the worst seed (Bruni & Celani 2017)",
+  "sun_referencing/mtq: tune every mtq_pointing law's gains, min over the gains of the worst seed (Bruni & Celani 2017)"
  ],
  "blocked": [
   "detumble/rcs: power fails at the sized authority (rcs); the part's standby power is the floor",
@@ -36,7 +38,7 @@
   "mtq": {
    "feasible": false,
    "gaps": [
-    "sun_acquisition: sun_acquisition_time (performance), sun_angle_p95 (performance)",
+    "sun_acquisition: sun_angle_p95 (performance)",
     "sun_referencing: sun_ape_p9973 (performance)",
     "nadir_pointing: ape_los_p9973 (performance)"
    ],
@@ -175,13 +177,12 @@
   {
    "mode": "sun_acquisition",
    "option": "mtq",
-   "alg": "sunspin_damped",
+   "alg": "sun_boresight_celani2026",
    "feasible": false,
    "failing": {
-    "sun_acquisition_time": "performance",
     "sun_angle_p95": "performance"
    },
-   "objective": null,
+   "objective": 32.406666666666666,
    "objective_id": "sun_acquisition_time"
   },
   {
@@ -229,12 +230,12 @@
   {
    "mode": "sun_referencing",
    "option": "mtq",
-   "alg": "mtq_rate_damp",
+   "alg": "mtq_celani2026",
    "feasible": false,
    "failing": {
     "sun_ape_p9973": "performance"
    },
-   "objective": 127.22146233076187,
+   "objective": 93.03891073342196,
    "objective_id": "sun_ape_p9973"
   },
   {
