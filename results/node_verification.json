@@ -1,6 +1,6 @@
 {
- "passed": 178,
- "checks": 181,
+ "passed": 199,
+ "checks": 199,
  "nodes": [
   "case",
   "catalogue",
@@ -424,7 +424,7 @@
   {
    "node": "demand",
    "case": "ais_img_3u",
-   "check": "sizing of the final iteration (iter_7) present",
+   "check": "sizing of the final iteration (iter_9) present",
    "ok": true,
    "detail": ""
   },
@@ -496,35 +496,35 @@
    "case": "ais_3u",
    "check": "electromagnetic pump (no permanent magnet), electrode current within the bound",
    "ok": true,
-   "detail": "dc-conduction, electromagnet"
+   "detail": "DC conduction pump, electromagnet C-core, electrode current 9.83 A, lambda 0.3 kg/W"
   },
   {
    "node": "size_fmr",
    "case": "ais_img_3u",
    "check": "SZ-ais_img_3u-FMR-X: designed part with positive mass",
    "ok": true,
-   "detail": "0.3322 kg"
+   "detail": "0.2596 kg"
   },
   {
    "node": "size_fmr",
    "case": "ais_img_3u",
    "check": "SZ-ais_img_3u-FMR-Y: designed part with positive mass",
    "ok": true,
-   "detail": "0.2238 kg"
+   "detail": "0.229 kg"
   },
   {
    "node": "size_fmr",
    "case": "ais_img_3u",
    "check": "SZ-ais_img_3u-FMR-Z: designed part with positive mass",
    "ok": true,
-   "detail": "0.2238 kg"
+   "detail": "0.229 kg"
   },
   {
    "node": "size_fmr",
    "case": "ais_img_3u",
    "check": "electromagnetic pump (no permanent magnet), electrode current within the bound",
    "ok": true,
-   "detail": "dc-conduction, electromagnet"
+   "detail": "DC conduction pump, electromagnet C-core, electrode current 9.10 A, lambda 0.1 kg/W"
   },
   {
    "node": "size_rcs",
@@ -825,14 +825,14 @@
    "case": "ais_img_3u",
    "check": "mtq_fmr: mass, power and volume are the sums of the fitted units",
    "ok": true,
-   "detail": "1.596 kg, 9.16 W, 0.534 L"
+   "detail": "1.534 kg, 6.46 W, 0.534 L"
   },
   {
    "node": "budget",
    "case": "ais_img_3u",
    "check": "mtq_fmr_rcs: mass, power and volume are the sums of the fitted units",
    "ok": true,
-   "detail": "2.062 kg, 9.21 W, 1.376 L"
+   "detail": "2.000 kg, 6.51 W, 1.376 L"
   },
   {
    "node": "budget",
@@ -951,7 +951,7 @@
    "case": "ais_img_3u",
    "check": "converged: the last iteration proposes no change",
    "ok": true,
-   "detail": "7 iteration(s)"
+   "detail": "9 iteration(s)"
   },
   {
    "node": "converge",
@@ -965,14 +965,14 @@
    "case": "ais_img_3u",
    "check": "every authority scale inside its bounds",
    "ok": true,
-   "detail": "{\"mtqp\": 1.0}"
+   "detail": "{\"mtqp\": 1.0, \"fmr\": 0.75}"
   },
   {
    "node": "converge",
    "case": "ais_img_3u",
    "check": "every family was flown and scored in every iteration",
    "ok": true,
-   "detail": "9 families x 7 iterations"
+   "detail": "9 families x 9 iterations"
   },
   {
    "node": "select",
@@ -1084,7 +1084,7 @@
    "case": "ais_img_3u",
    "check": "mtq_fmr_rcs: feasible exactly when no mode and no budget gap",
    "ok": true,
-   "detail": "budget: mass_kg 2.06 > 1.6; budget: volume_L 1.38 > 1"
+   "detail": "budget: mass_kg 2 > 1.6; budget: volume_L 1.38 > 1"
   },
   {
    "node": "select",
@@ -1195,22 +1195,148 @@
    "node": "mc",
    "case": "ais_img_3u",
    "check": "every requirement metric passes in every run",
-   "ok": false,
-   "detail": "power_mean"
+   "ok": true,
+   "detail": "all pass"
   },
   {
    "node": "family_missions",
    "case": "ais_3u",
    "check": "every solution family flown as the mission",
-   "ok": false,
+   "ok": true,
+   "detail": "mtq, mtq_fmr, mtq_fmr_rcs"
+  },
+  {
+   "node": "family_missions",
+   "case": "ais_3u",
+   "check": "mtq: C = Rust bit for bit",
+   "ok": true,
    "detail": ""
+  },
+  {
+   "node": "family_missions",
+   "case": "ais_3u",
+   "check": "mtq: Monte Carlo ran",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "node": "family_missions",
+   "case": "ais_3u",
+   "check": "mtq: mission verdict matches the loop's feasibility (informational for families that are not feasible)",
+   "ok": true,
+   "detail": "fails ape_los_p9973"
+  },
+  {
+   "node": "family_missions",
+   "case": "ais_3u",
+   "check": "mtq_fmr: C = Rust bit for bit",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "node": "family_missions",
+   "case": "ais_3u",
+   "check": "mtq_fmr: Monte Carlo ran",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "node": "family_missions",
+   "case": "ais_3u",
+   "check": "mtq_fmr: mission verdict matches the loop's feasibility (informational for families that are not feasible)",
+   "ok": true,
+   "detail": "mission passes"
+  },
+  {
+   "node": "family_missions",
+   "case": "ais_3u",
+   "check": "mtq_fmr_rcs: C = Rust bit for bit",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "node": "family_missions",
+   "case": "ais_3u",
+   "check": "mtq_fmr_rcs: Monte Carlo ran",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "node": "family_missions",
+   "case": "ais_3u",
+   "check": "mtq_fmr_rcs: mission verdict matches the loop's feasibility (informational for families that are not feasible)",
+   "ok": true,
+   "detail": "mission passes"
   },
   {
    "node": "family_missions",
    "case": "ais_img_3u",
    "check": "every solution family flown as the mission",
-   "ok": false,
+   "ok": true,
+   "detail": "mtq, mtq_fmr, mtq_fmr_rcs"
+  },
+  {
+   "node": "family_missions",
+   "case": "ais_img_3u",
+   "check": "mtq: C = Rust bit for bit",
+   "ok": true,
    "detail": ""
+  },
+  {
+   "node": "family_missions",
+   "case": "ais_img_3u",
+   "check": "mtq: Monte Carlo ran",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "node": "family_missions",
+   "case": "ais_img_3u",
+   "check": "mtq: mission verdict matches the loop's feasibility (informational for families that are not feasible)",
+   "ok": true,
+   "detail": "fails ape_los_p9973, ake_los_p9973"
+  },
+  {
+   "node": "family_missions",
+   "case": "ais_img_3u",
+   "check": "mtq_fmr: C = Rust bit for bit",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "node": "family_missions",
+   "case": "ais_img_3u",
+   "check": "mtq_fmr: Monte Carlo ran",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "node": "family_missions",
+   "case": "ais_img_3u",
+   "check": "mtq_fmr: mission verdict matches the loop's feasibility (informational for families that are not feasible)",
+   "ok": true,
+   "detail": "mission passes"
+  },
+  {
+   "node": "family_missions",
+   "case": "ais_img_3u",
+   "check": "mtq_fmr_rcs: C = Rust bit for bit",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "node": "family_missions",
+   "case": "ais_img_3u",
+   "check": "mtq_fmr_rcs: Monte Carlo ran",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "node": "family_missions",
+   "case": "ais_img_3u",
+   "check": "mtq_fmr_rcs: mission verdict matches the loop's feasibility (informational for families that are not feasible)",
+   "ok": true,
+   "detail": "mission passes"
   },
   {
    "node": "soft_oils",
