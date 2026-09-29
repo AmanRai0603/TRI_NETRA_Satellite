@@ -308,11 +308,14 @@ The selected family's mission (detumble -> Sun acquisition -> nadir), its adcs-f
 
 | parameter | value |
 |---|---|
-| `duration_orbits` | detumble + acquisition + nadir |
+| `nadir_at_orbits` | 2 |
+| `nadir_orbits` | rotors: 1<br>coils_only: 3 |
+| `duration_orbits` | nadir_at_orbits + nadir_orbits: detumble and Sun acquisition, then nadir (the metrics take the last half orbit) |
 
 Rules:
 
 - the C and Rust flight software must agree bit for bit
+- a coils-only nadir is given three orbits after the command: the Sun-spin hand-over (despin, then magnetic capture) takes about two
 
 ## certify
 

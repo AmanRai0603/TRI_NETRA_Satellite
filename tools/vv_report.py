@@ -234,6 +234,28 @@ def literature():
            "the P11 → P5 chain already in place (UPMSat-2 spin-up, He et al. Sun spin). Bruni &amp; Celani's min–max tuning "
            "is node <code>tune</code>; Celani's Floquet certificate is node <code>certify</code>. The paper-by-paper record, "
            "including what was not implemented and why, is <code>docs/MTQ_LITERATURE.md</code>.</p>"]
+    fam = {}
+    for c in CASES:
+        v = (jl(PIPE / c / "families.json") or {}).get("mtq")
+        met = {x["id"]: x for x in ((v or {}).get("mission") or {}).get("c") or []}
+        if "ape_los_p9973" in met:
+            fam[c] = met["ape_los_p9973"]
+    out.append("<h3>The Sun-spin → nadir hand-over</h3><p>The coils-only mission commands nadir from a body spinning at about "
+               "4 °/s, while the pointing laws are tuned from 10° at the orbit rate. The magnetic states now despin first. "
+               "Above 1 °/s of rate error they run the B-dot law on that error with the detumble's optimal gain "
+               "(Avanzini &amp; Giulietti 2012). The spin-up's high gain only drags the rate along the turning field. The "
+               "pointing law takes over below 0.5 °/s, held for 60 s. The magnetic capture then takes about 1.5 orbits, so "
+               "node <code>dispatch</code> gives a coils-only nadir three orbits after the command, and the metrics take "
+               "the last half orbit. Coils-only mission nadir APE (p99.73): " +
+               ("; ".join(f"{e(c)} {fmt(m['value'])}° {verdict(m['pass'])}" for c, m in fam.items()) or "not run") + ".</p>"
+               "<h3>Why Sun referencing is worse than nadir with coils only</h3><p>The coils are not short of dipole. The "
+               "difference is the gravity gradient. At nadir the long, minimum-inertia axis sits at the gradient's "
+               "equilibrium, so the gradient is a restoring stiffness. Under Sun referencing the attitude is inertial, so the "
+               "gradient becomes a forcing at twice the orbit rate. A magnetic torque is perpendicular to B, so the part of "
+               "that forcing along B cannot be rejected at that instant. The Sun state now cancels the modelled gradient "
+               "(<code>mtq_gg_ff</code>); on ais_3u with Celani 2026 the Sun-pointing error went from 80.6° to 66.8°. It "
+               "is still not the 5° line, which agrees with the flown and published figures (TANGO 16°, Celani 2026 24°). "
+               "The coils-only power attitude remains the Sun spin.</p>")
     if "pipeline" not in _s.modules:
         pl = importlib.util.module_from_spec(spec); _s.path.insert(0, str(ROOT / "tools")); spec.loader.exec_module(pl)
     else:

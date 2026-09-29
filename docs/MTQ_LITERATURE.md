@@ -69,12 +69,62 @@ worst case.
   - Lowering the spin rate helped every spin law, as Roldugin's wobble analysis predicts.
 - **Sun referencing (three-axis on the Sun), coils only: none holds 5°.** The best is Celani 2026 (27.6° imaging,
   84.7° AIS).
-- **Coils-only mission (dispatched with the best laws):**
-  - ais_3u: detumble 40 min, then Sun spin, then nadir with Celani 2026. Nadir comes to 33.7° in the mission's last half
-    orbit, down from 174° with the previous law.
-  - ais_img_3u: nadir 11.6°.
-  - The gap to the mode-test 3.7° is the hand-over. Nadir is commanded at 2 orbits from a spinning body, and the review
-    lists that same Sun-spin → nadir transition as open for P16. It is kept as is, as asked.
+- **Coils-only mission (dispatched with the best laws):** detumble, then Sun spin, then nadir by schedule at
+  2 orbits, with the hand-over below. The final figures of each case are in `results/DESIGN_<case>.md` and in the
+  V&V report.
+
+## The Sun-spin → nadir hand-over (coils only)
+
+The review leaves this transition open for P16. Before this change the coils-only mission reached only 33.7° in its
+last half orbit. The mode test, which starts 10° off nadir, gives 3.7°. There were three causes, found on the
+ais_3u trace:
+
+1. **The body arrives spinning at about 4 °/s,** and every pointing law was tuned from a 10° error at the orbit
+   rate. The magnetic states now despin first. When the rate error ω_e exceeds 1 °/s, the coils run the B-dot law on
+   the rate error, m = (k/|B|)(ω_e × b̂). The pointing law takes over once |ω_e| < 0.5 °/s has held 60 s
+   (`fsw/pseudocode/05_control.md`; C, Rust and the config blob fields `ho_in_dps`, `ho_out_dps`, `ho_hold_s`).
+2. **The despin gain matters (P11, and Avanzini & Giulietti 2012).**
+   - With the spin-up's high gain, the coils remove the rate across B at once. The rate along the field line is
+     only carried round as the field turns: 3.9 → 0.3 °/s in one orbit, and the despin never handed over.
+   - With the detumble's optimal gain, k = 3·2n(1 + sin i)J_min, the rate falls to 0.5 °/s in 0.4 orbit.
+   - A 0.2 °/s exit is below what the field's own rotation leaves, so the exit is 0.5 °/s.
+3. **The magnetic capture from an arbitrary attitude takes about 1.5 orbits,** because the coils have no authority
+   along B. The mission ended one orbit after the nadir command, so its last half orbit still held the transient.
+   Node `dispatch` now gives a coils-only nadir three orbits after the command (`nadir_orbits.coils_only`). The
+   rotor families keep one.
+
+On the ais_3u coils-only mission (Celani 2026 with the tuned gains, four seeds, five orbits) nadir holds 2.1–6.0°
+p99.73, against the 10° AIS requirement.
+
+| law | no despin (4 seeds) | despin, hand-over at 0.5 °/s |
+|---|---|---|
+| Celani 2026, tuned | 2.0–3.9° | 2.1–6.0° |
+| PD | 22–40° | 7.3–14.3° |
+| SMC | 7.6–57.6° | 4.2–12.7° |
+
+The boresight law already captures from the spin by itself, since its rotation about the boresight is free. The
+despin is what makes the three-axis laws usable after the spin, so it stays on for every law.
+
+## Why Sun referencing is worse than nadir with coils only
+
+The trace shows the coils are not short of dipole: they peak at 0.044 A·m² of their rating, and the residual dipole
+is cancelled by `m_res_est`. The difference is the gravity gradient.
+
+- **At nadir, the gravity gradient helps.** The long, minimum-inertia +X axis sits at its equilibrium, so the
+  gradient is a restoring stiffness of order 3n²ΔJ. The residual torque is about 4·10⁻⁹ N·m, and the loop holds
+  1–2°.
+- **Under Sun referencing, the gravity gradient is a disturbance.** The attitude is inertial, so the gradient
+  becomes a periodic forcing at twice the orbit rate, about 4.5·10⁻⁸ N·m. A magnetic torque is always
+  perpendicular to B, so the component of that forcing along B cannot be rejected at that instant, only later, as
+  the field turns. The error swings by tens of degrees.
+- **The literature agrees.** TANGO/PRISMA (P3) flew 16° with coils only, and Celani 2026 (P8) reports 24°. The review
+  recommends a Sun spin, not three-axis Sun referencing, as the coils-only power attitude.
+- **What was added:** a gravity-gradient feed-forward in the Sun state (`mtq_gg_ff`, bit 0). It cancels the modelled
+  3μ/|r|⁵ (r_b × J r_b) inside the law's torque, so only the along-B part is left to the loop. On ais_3u with Celani
+  2026 it takes the Sun-pointing error from 80.6° to 66.8°. It is still not the 5° line, and the physics above says
+  it will not be.
+- **At nadir the feed-forward stays off,** because cancelling the restoring gradient would remove the help it gives.
+- **The coils-only power attitude remains the Sun spin (P11 → P5).**
 
 ## What stays open
 
@@ -82,6 +132,8 @@ worst case.
   the full mission (about 1.5 to 2 h after detumble on the coarse case), so the mode test under-rates them against the
   boresight law.
 - P12 to P15 are paywalled; their laws cannot be written from the abstracts.
+- The hand-over thresholds (1 and 0.5 °/s, 60 s) are fixed, not tuned by node `tune`. The mode tests start at 10°,
+  so the tuned gains are chosen for holding, not for the capture after the spin.
 - The certificate is local and numerical, on an aligned-dipole field model, as in the papers.
 - On the Cortex-M4F firmware (QEMU), the design loop's coils-only nadir mode tests differ from the host in the last
   bits (newlib's double-precision math functions). This is the same for the pre-existing PD law. The standard
