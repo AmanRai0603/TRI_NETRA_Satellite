@@ -1,0 +1,83 @@
+{
+ "schema": "adcs-scenario/1",
+ "id": "ais_3u__nadir_pointing__mtq__mtq_pd_mtq_gain_p0.25_mtq_gain_d1_handover_out_dps0.5",
+ "case": "ais_3u",
+ "label": "ais_3u \u2014 Nadir pointing with mtq",
+ "product": "SZ-ais_3u-mtq",
+ "time": {
+  "duration_s": 17217,
+  "dt_s": 0.2,
+  "record_dt_s": 1.0
+ },
+ "initial": {
+  "attitude": {
+   "kind": "random"
+  },
+  "rate": {
+   "kind": "random_direction",
+   "magnitude_deg_s": 6.0
+  }
+ },
+ "fsw": {
+  "start_mode": "nadir_mtq",
+  "guidance": {
+   "kind": "nadir"
+  },
+  "rcs_dump": 0.0,
+  "algorithms": {
+   "mtq_pointing": "mtq_pd"
+  },
+  "mtq_gain_p": 0.25,
+  "mtq_gain_d": 1.0,
+  "handover_out_dps": 0.5
+ },
+ "metrics": [
+  {
+   "id": "ape_los_p9973",
+   "kind": "ape_los",
+   "requirement": "req.ape",
+   "statistic": "p99.73",
+   "window": "last_half_orbit"
+  },
+  {
+   "id": "ake_los_p9973",
+   "kind": "ake_los",
+   "requirement": "req.ake",
+   "statistic": "p99.73",
+   "window": "last_half_orbit"
+  },
+  {
+   "id": "rate_stability_p9973",
+   "kind": "rate_stability",
+   "requirement": "req.rks",
+   "statistic": "p99.73",
+   "window": "last_half_orbit"
+  },
+  {
+   "id": "jitter",
+   "kind": "jitter",
+   "window": "last_half_orbit"
+  },
+  {
+   "id": "momentum_peak",
+   "kind": "wheel_momentum_peak",
+   "window": "all"
+  },
+  {
+   "id": "power_mean",
+   "kind": "power_mean",
+   "requirement": "req.pavg",
+   "window": "all"
+  },
+  {
+   "id": "power_peak",
+   "kind": "power_peak",
+   "window": "all"
+  },
+  {
+   "id": "propellant",
+   "kind": "propellant",
+   "window": "all"
+  }
+ ]
+}

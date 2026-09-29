@@ -10,6 +10,7 @@
  "feasible_options": 5,
  "options": 25,
  "changes": [
+  "nadir_pointing/mtq: thin margin (7.27 of 10): tune every mtq_pointing law's gains (Bruni & Celani 2017)",
   "sun_acquisition/mtq: tune every sun_acquisition law's gains, min over the gains of the worst seed (Bruni & Celani 2017)",
   "sun_referencing/mtq: tune every mtq_pointing law's gains, min over the gains of the worst seed (Bruni & Celani 2017)"
  ],
@@ -153,7 +154,8 @@
    "feasible": true,
    "failing": {},
    "objective": 48.74,
-   "objective_id": "detumble_time"
+   "objective_id": "detumble_time",
+   "objective_req": 284.0
   },
   {
    "mode": "detumble",
@@ -164,7 +166,8 @@
     "power_peak": "power"
    },
    "objective": 1.875,
-   "objective_id": "detumble_time"
+   "objective_id": "detumble_time",
+   "objective_req": 284.0
   },
   {
    "mode": "sun_acquisition",
@@ -176,6 +179,7 @@
    },
    "objective": 32.406666666666666,
    "objective_id": "sun_acquisition_time",
+   "objective_req": 95.0,
    "variants": [
     {
      "alg": "sunspin_damped",
@@ -237,7 +241,8 @@
     "power_mean": "power"
    },
    "objective": 2.2916666666666665,
-   "objective_id": "sun_acquisition_time"
+   "objective_id": "sun_acquisition_time",
+   "objective_req": 95.0
   },
   {
    "mode": "sun_acquisition",
@@ -248,7 +253,8 @@
     "power_mean": "power"
    },
    "objective": 2.275,
-   "objective_id": "sun_acquisition_time"
+   "objective_id": "sun_acquisition_time",
+   "objective_req": 95.0
   },
   {
    "mode": "sun_acquisition",
@@ -259,7 +265,8 @@
     "power_mean": "power"
    },
    "objective": 2.3916666666666666,
-   "objective_id": "sun_acquisition_time"
+   "objective_id": "sun_acquisition_time",
+   "objective_req": 95.0
   },
   {
    "mode": "sun_acquisition",
@@ -268,7 +275,8 @@
    "feasible": true,
    "failing": {},
    "objective": 2.2916666666666665,
-   "objective_id": "sun_acquisition_time"
+   "objective_id": "sun_acquisition_time",
+   "objective_req": 95.0
   },
   {
    "mode": "sun_referencing",
@@ -280,6 +288,7 @@
    },
    "objective": 92.71491978428124,
    "objective_id": "sun_ape_p9973",
+   "objective_req": 5.0,
    "variants": [
     {
      "alg": "mtq_pd",
@@ -373,7 +382,8 @@
     "power_mean": "power"
    },
    "objective": 0.2467557211449337,
-   "objective_id": "sun_ape_p9973"
+   "objective_id": "sun_ape_p9973",
+   "objective_req": 5.0
   },
   {
    "mode": "sun_referencing",
@@ -384,7 +394,8 @@
     "power_mean": "power"
    },
    "objective": 0.24634391954113763,
-   "objective_id": "sun_ape_p9973"
+   "objective_id": "sun_ape_p9973",
+   "objective_req": 5.0
   },
   {
    "mode": "sun_referencing",
@@ -395,7 +406,8 @@
     "power_mean": "power"
    },
    "objective": 0.2463844785264064,
-   "objective_id": "sun_ape_p9973"
+   "objective_id": "sun_ape_p9973",
+   "objective_req": 5.0
   },
   {
    "mode": "sun_referencing",
@@ -406,7 +418,8 @@
     "power_mean": "power"
    },
    "objective": 0.24635829069549853,
-   "objective_id": "sun_ape_p9973"
+   "objective_id": "sun_ape_p9973",
+   "objective_req": 5.0
   },
   {
    "mode": "sun_referencing",
@@ -417,7 +430,8 @@
     "power_mean": "power"
    },
    "objective": 4.8753040917625645,
-   "objective_id": "sun_ape_p9973"
+   "objective_id": "sun_ape_p9973",
+   "objective_req": 5.0
   },
   {
    "mode": "sun_referencing",
@@ -428,7 +442,8 @@
     "power_mean": "power"
    },
    "objective": 2.53642174757796,
-   "objective_id": "sun_ape_p9973"
+   "objective_id": "sun_ape_p9973",
+   "objective_req": 5.0
   },
   {
    "mode": "sun_referencing",
@@ -437,7 +452,8 @@
    "feasible": true,
    "failing": {},
    "objective": 0.2513325094425192,
-   "objective_id": "sun_ape_p9973"
+   "objective_id": "sun_ape_p9973",
+   "objective_req": 5.0
   },
   {
    "mode": "sun_referencing",
@@ -448,7 +464,8 @@
     "power_mean": "power"
    },
    "objective": 0.25119062643119716,
-   "objective_id": "sun_ape_p9973"
+   "objective_id": "sun_ape_p9973",
+   "objective_req": 5.0
   },
   {
    "mode": "nadir_pointing",
@@ -458,6 +475,7 @@
    "failing": {},
    "objective": 7.265995749106008,
    "objective_id": "ape_los_p9973",
+   "objective_req": 10.0,
    "variants": [
     {
      "alg": "mtq_pd",
@@ -547,7 +565,8 @@
     "power_mean": "power"
    },
    "objective": 0.14816778314929338,
-   "objective_id": "ape_los_p9973"
+   "objective_id": "ape_los_p9973",
+   "objective_req": 10.0
   },
   {
    "mode": "nadir_pointing",
@@ -558,7 +577,8 @@
     "power_mean": "power"
    },
    "objective": 0.1481359702758785,
-   "objective_id": "ape_los_p9973"
+   "objective_id": "ape_los_p9973",
+   "objective_req": 10.0
   },
   {
    "mode": "nadir_pointing",
@@ -569,7 +589,8 @@
     "power_mean": "power"
    },
    "objective": 0.14805170699097642,
-   "objective_id": "ape_los_p9973"
+   "objective_id": "ape_los_p9973",
+   "objective_req": 10.0
   },
   {
    "mode": "nadir_pointing",
@@ -580,7 +601,8 @@
     "power_mean": "power"
    },
    "objective": 0.1480810285271264,
-   "objective_id": "ape_los_p9973"
+   "objective_id": "ape_los_p9973",
+   "objective_req": 10.0
   },
   {
    "mode": "nadir_pointing",
@@ -591,7 +613,8 @@
     "power_mean": "power"
    },
    "objective": 0.14806692484152972,
-   "objective_id": "ape_los_p9973"
+   "objective_id": "ape_los_p9973",
+   "objective_req": 10.0
   },
   {
    "mode": "nadir_pointing",
@@ -602,7 +625,8 @@
     "power_mean": "power"
    },
    "objective": 0.14808518356883763,
-   "objective_id": "ape_los_p9973"
+   "objective_id": "ape_los_p9973",
+   "objective_req": 10.0
   },
   {
    "mode": "nadir_pointing",
@@ -611,7 +635,8 @@
    "feasible": true,
    "failing": {},
    "objective": 0.15140443642662954,
-   "objective_id": "ape_los_p9973"
+   "objective_id": "ape_los_p9973",
+   "objective_req": 10.0
   },
   {
    "mode": "nadir_pointing",
@@ -622,10 +647,15 @@
     "power_mean": "power"
    },
    "objective": 0.15133197009388233,
-   "objective_id": "ape_los_p9973"
+   "objective_id": "ape_los_p9973",
+   "objective_req": 10.0
   }
  ],
  "tuned": [
+  [
+   "nadir_pointing",
+   "mtq"
+  ],
   [
    "sun_acquisition",
    "mtq"
