@@ -5,8 +5,8 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#define ADCS_PARAMS_PAYLOAD 2151u
-#define ADCS_PARAMS_BLOB_SIZE 2167u
+#define ADCS_PARAMS_PAYLOAD 2185u
+#define ADCS_PARAMS_BLOB_SIZE 2201u
 #define ADCS_MAX_ROTORS 8
 #define ADCS_MAX_GIMBALS 4
 #define ADCS_MAX_COUPLES 6
@@ -117,6 +117,12 @@ typedef struct {
     double ho_out_dps;  /* hand-over: rate error below which the pointing law takes over, held ho_hold_s [deg/s] */
     double ho_hold_s;  /* hand-over dwell [s] */
     uint8_t mtq_gg_ff;  /* gravity-gradient feed-forward in the magnetic pointing states: bit 0 Sun state, bit 1 nadir state */
+    double mekf_gate;  /* MEKF vector-update innovation gate on y' S^-1 y (chi-square, 3 dof; 0 = off) */
+    double mekf_rej_max;  /* consecutive gated vector updates after which the estimate is dropped and re-initialised by TRIAD */
+    double mekf_mag_err_T;  /* magnetometer error not modelled by mekf_sig_mag (bias, noise) [T]; sigma = sqrt(sig_mag^2 + (err/|B|)^2) */
+    uint8_t gnss_ecef;  /* GNSS fix frame: 1 ECEF (receiver standard, converted onboard), 0 J2000 */
+    uint8_t gd_yaw_flip;  /* nadir-family guidance: 1 = turn 180 deg about the boresight when the power face would look away from the Sun */
+    double gd_flip_hyst;  /* yaw-flip hysteresis on the cosine between the power face and the Sun */
     uint8_t nr;  /* rotors */
     uint8_t ng;  /* gimbals */
     uint8_t rot_kind[8];  /* 0 wheel, 1 fluid loop, 2 CMG rotor, 3 VSCMG rotor */

@@ -17,7 +17,7 @@ typedef struct {
 
 void adcs_mekf_init(adcs_mekf_t *k, const adcs_real q0[4], adcs_real sig_att0, adcs_real sig_bias0, adcs_real arw, adcs_real rrw);
 void adcs_mekf_predict(adcs_mekf_t *k, const adcs_real w_meas[3], adcs_real dt);
-void adcs_mekf_vector(adcs_mekf_t *k, const adcs_real b_meas[3], const adcs_real r_ref[3], adcs_real sigma);
+int adcs_mekf_vector(adcs_mekf_t *k, const adcs_real b_meas[3], const adcs_real r_ref[3], adcs_real sigma, adcs_real gate);
 void adcs_mekf_quat(adcs_mekf_t *k, const adcs_real q_meas[4], adcs_real sig_cross, adcs_real sig_roll, const adcs_real bs[3]);
 void adcs_triad(const adcs_real b1[3], const adcs_real b2[3], const adcs_real r1[3], const adcs_real r2[3], adcs_real q[4]);
 /* q-method on n <= 16 vector pairs; returns the loss sum(w) - lambda_max */
@@ -28,11 +28,13 @@ void adcs_latency(const adcs_real q_st[4], const adcs_real w[3], adcs_real lat, 
 typedef struct {
     int kind;                 /* 0 nadir, 1 target, 2 slew, 3 inertial, 4 sun */
     adcs_real q_off[4], roll_deg, t0, T, axis[3], q_inertial[4], sun_axis[3], roll_axis[3], sun_eci[3];
+    int flip;                 /* nadir family turned 180 deg about the boresight (power face towards the Sun) */
 } adcs_guid_t;
 
 void adcs_guidance(int kind, const adcs_real r[3], const adcs_real v[3], adcs_real t, const adcs_guid_t *g,
                    adcs_real q_ref[4], adcs_real w_ref[3], adcs_real wd_ref[3]);
 void adcs_boresight_offset(const adcs_real bs[3], adcs_real q[4]);
+void adcs_yaw_flip(adcs_guid_t *g, const adcs_real r[3], const adcs_real v[3], adcs_real hyst);
 
 /* ---- control (05) ---- */
 typedef struct {

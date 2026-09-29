@@ -29,16 +29,19 @@ function [F, out] = step(F, z, t, P, D) %#ok<INUSD>
     %% 1 onboard orbit ----------------------------------------------------
     if z.gps_ok
         F.r = z.r_gps; F.v = z.v_gps; F.t_fix = t;
-    elseif ~isempty(F.r)
-        a = -P.mu*F.r/norm(F.r)^3;
-        F.r = F.r + F.v*dt + 0.5*a*dt^2; F.v = F.v + a*dt;
+    elseif ~isempty(F.r)                                % two-body + J2 by velocity Verlet (02)
+        a0 = orbit_acc_(F.r, P.mu);
+        F.r = F.r + F.v*dt + 0.5*a0*dt^2;
+        F.v = F.v + 0.5*(a0 + orbit_acc_(F.r, P.mu))*dt;
     end
 
     %% 2 attitude determination -------------------------------------------
     s_ref = asils.fsw.sun_model(jd);
     F.gd.sun_eci = s_ref;                                % Sun-referencing guidance uses the onboard model
+    if G.gd_yaw_flip && ~isempty(F.r), F.gd = asils.fsw.yaw_flip(F.gd, F.r, F.v, 0.1); end
     phase = mod(t + 1e-9, G.mtq_period);
     first = phase < dt - 1e-9;                          % start of an MTQ cycle (coils off)
+    if first, F.mag_done = false; end
     if first && ~isempty(F.r) && (t - F.t_Bref) >= 0.999
         if isempty(F.gh), F.gh = asils.env.igrf_gh(asils.util.decyear(jd), P.igrf); end
         C = asils.fsw.gmst_rot(jd);
@@ -71,7 +74,8 @@ function [F, out] = step(F, z, t, P, D) %#ok<INUSD>
                 if z.sun_ok && first
                     F.K = asils.fsw.mekf_vector(F.K, z.sun, s_ref, G.mekf.sig_sun);
                 end
-                if z.clean && first && ~isempty(F.Bref)
+                if z.clean && ~F.mag_done && ~isempty(F.Bref)   % first clean tick of the cycle (the coils drive after it)
+                    F.mag_done = true;
                     F.K = asils.fsw.mekf_vector(F.K, z.B, F.Bref, G.mekf.sig_mag);
                 end
                 if z.es_ok && first && ~isempty(F.r)             % Earth sensor: nadir vector
@@ -426,6 +430,7 @@ end
 function F = enter_(F, mode, t)
     if strcmp(mode, 'spinup'), F.sz_sum = 0; F.sz_n = 0; F.sz_t0 = t; end
     F.mode = mode; F.t_mode = t; F.hold = 0; F.ho = false; F.ho_t = 0; F.I_q = zeros(3,1);
+    if any(strcmp(mode, {'detumble', 'detumble_rcs', 'spinup', 'sun_spin'})), F.ad_ok = false; end   % re-initialise after
     F.log(end+1).t = t; F.log(end).mode = mode;
 end
 
@@ -433,4 +438,11 @@ function q = latency_(q_st, w, lat)
 %LATENCY_  Bring a star-tracker attitude from t - latency to t with the gyro
 %   (Standard Code sdp.starTrackerLatency, constant-rate form).
     q = asils.quat.norm(asils.quat.mult(q_st, asils.quat.fromrotvec(w*lat)));
+end
+
+function a = orbit_acc_(r, mu)
+%ORBIT_ACC_  Two-body + J2 acceleration (02_time_frames_models.md).
+    J2 = 1.08262668e-3; RE = 6378137.0;
+    rn = norm(r); zr = r(3)^2/rn^2;
+    a = -mu*r/rn^3 - 1.5*J2*mu*RE^2/rn^5*[r(1)*(1 - 5*zr); r(2)*(1 - 5*zr); r(3)*(3 - 5*zr)];
 end

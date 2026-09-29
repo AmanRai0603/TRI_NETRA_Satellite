@@ -354,6 +354,30 @@ doc = "hand-over dwell [s]"
 name = "mtq_gg_ff"
 type = "u8"
 doc = "gravity-gradient feed-forward in the magnetic pointing states: bit 0 Sun state, bit 1 nadir state"
+[[field]]
+name = "mekf_gate"
+type = "f64"
+doc = "MEKF vector-update innovation gate on y' S^-1 y (chi-square, 3 dof; 0 = off)"
+[[field]]
+name = "mekf_rej_max"
+type = "f64"
+doc = "consecutive gated vector updates after which the estimate is dropped and re-initialised by TRIAD"
+[[field]]
+name = "mekf_mag_err_T"
+type = "f64"
+doc = "magnetometer error not modelled by mekf_sig_mag (bias, noise) [T]; sigma = sqrt(sig_mag^2 + (err/|B|)^2)"
+[[field]]
+name = "gnss_ecef"
+type = "u8"
+doc = "GNSS fix frame: 1 ECEF (receiver standard, converted onboard), 0 J2000"
+[[field]]
+name = "gd_yaw_flip"
+type = "u8"
+doc = "nadir-family guidance: 1 = turn 180 deg about the boresight when the power face would look away from the Sun"
+[[field]]
+name = "gd_flip_hyst"
+type = "f64"
+doc = "yaw-flip hysteresis on the cosine between the power face and the Sun"
 # ---- momentum devices
 [[field]]
 name = "nr"

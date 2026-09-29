@@ -22,6 +22,10 @@ function [q_ref, w_ref, wd_ref] = guidance(kind, r, v, t, gd)
     R = [-ram'; -rh'; -nrm'];
     q_nad = asils.quat.fromdcm(R);
     if isfield(gd, 'q_off'), q_nad = asils.quat.mult(q_nad, gd.q_off); R = asils.quat.dcm(q_nad); end
+    if isfield(gd, 'flip') && gd.flip                  % yaw flip: 180 deg about the boresight (power face to the Sun)
+        u = [1; 0; 0]; if isfield(gd, 'roll_axis'), u = gd.roll_axis(:)/norm(gd.roll_axis); end
+        q_nad = asils.quat.mult(q_nad, [u; 0]); R = asils.quat.dcm(q_nad);
+    end
     w_orb = asils.util.cross3(r, v)/(r'*r);
     wd_ref = zeros(3,1);                 % reference angular acceleration (slew feedforward)
     ax_ = [1; 0; 0];                     % slew / target offset axis (body): gd.axis, default roll about X
@@ -44,8 +48,9 @@ function [q_ref, w_ref, wd_ref] = guidance(kind, r, v, t, gd)
             s_ = tau - sin(2*pi*tau)/(2*pi);
             ph = gd.roll_deg*pi/180;
             q_ref = asils.quat.mult(q_nad, asils.quat.fromrotvec(ax_*ph*s_));
-            w_ref = asils.quat.dcm(q_ref)*w_orb + ax_*ph*sd;
-            wd_ref = ax_*ph*sdd;
+            wo = asils.quat.dcm(q_ref)*w_orb;
+            w_ref = wo + ax_*ph*sd;
+            wd_ref = ax_*ph*sdd - asils.util.cross3(ax_*ph*sd, wo);   % transport term: the slew frame turns in the orbit frame
         case 'inertial'
             q_ref = gd.q_inertial; w_ref = zeros(3,1);
         case 'sun'

@@ -176,7 +176,18 @@ impl Config {
             // gravity-gradient feed-forward in the Sun state (at nadir the gradient is the restoring spring)
             p.ho_in_dps = json::f(&fsw, "handover_in_dps", 1.0); p.ho_out_dps = json::f(&fsw, "handover_out_dps", 0.5);
             p.ho_hold_s = json::f(&fsw, "handover_hold_s", 60.0);
-            p.mtq_gg_ff = json::f(&fsw, "mtq_gg_ff", 1.0) as u8;
+            // the gradient restores the nadir attitude only inside the Lagrange region J_normal >= J_along > J_nadir;
+            // outside it (e.g. a long axis along track) the nadir state cancels it too (bit 1)
+            let gg_stable = {
+                use adcs_fsw::ctl::{guidance, Guid};
+                let (r, v) = ([7.0e6, 0.0, 0.0], [0.0, 7.5e3, 0.0]);
+                let q = guidance(0, &r, &v, 0.0, &Guid { q_off: p.gd_q_off, ..Default::default() }).q;
+                let a = adcs_fsw::math::dcm(&q);
+                let ax = |u: [f64; 3]| { let b = adcs_fsw::math::mat3_vec(&a, &u); let jb = adcs_fsw::math::mat3_vec(&inertia, &b); b[0]*jb[0] + b[1]*jb[1] + b[2]*jb[2] };
+                let (jz, ja, jn) = (ax([-1.0, 0.0, 0.0]), ax([0.0, 1.0, 0.0]), ax([0.0, 0.0, 1.0]));
+                jn >= ja*(1.0 - 1e-9) && ja > jz*(1.0 + 1e-9)          // equal transverse inertias: neutral, not unstable
+            };
+            p.mtq_gg_ff = json::f(&fsw, "mtq_gg_ff", if gg_stable { 1.0 } else { 3.0 }) as u8;
             // TANGO frozen Riccati: P from the CARE with the orbit-averaged B_u R^-1 B_u^T; an isotropic field
             // average gives E[Gamma D Gamma]_ii = (7/15) D_i + tr(D)/15, D = J^-2 (per-axis double-integrator
             // CARE). Q is chosen (inverse LQR) so the average axis gets the common bandwidth wn, zeta; each axis
@@ -244,7 +255,18 @@ impl Config {
         for h in 0..dev.st.nh { p.st_bs[h] = dev.st.bs[h]; }
         p.st_noise_cross = dev.st.noise_cross; p.st_noise_roll = dev.st.noise_roll; p.st_latency = dev.st.latency; p.st_coast_s = 900.0;
         p.gyro_arw = dev.gyro.arw; p.gyro_rrw = dev.gyro.rrw; p.es_noise = dev.es.noise;
-        p.mekf_sig_mag = 0.03; p.mekf_sig_sun = 0.012; p.mekf_meas_scale = 1.0;
+        // measurement sigmas from the fitted devices: the fine Sun sensor's accuracy and bias, the coarse cells'
+        // albedo error (0.3 albedo puts the vector up to ~8 deg off); the magnetometer's direction error plus its
+        // bias and noise over the field strength (applied onboard, 1-3 deg at 18-50 uT)
+        let hyp = |a: f64, b: f64| { let (a, b) = (if a.is_finite() { a } else { 0.0 }, if b.is_finite() { b } else { 0.0 }); (a*a + b*b).sqrt() };
+        p.mekf_sig_sun = if dev.sun.fitted { hyp(dev.sun.noise, dev.sun.bias_sigma).max(0.005) } else { (0.5*dev.css.albedo).max(0.1) };
+        p.mekf_sig_mag = hyp(dev.mag.misalign, dev.mag.sf_sigma).max(0.01);
+        let fin = |x: f64| if x.is_finite() { x } else { 0.0 };
+        p.mekf_mag_err_T = (fin(dev.mag.bias_t).powi(2) + 3.0*fin(dev.mag.bias_sigma).powi(2) + 3.0*fin(dev.mag.noise).powi(2)).sqrt();
+        p.mekf_gate = json::f(&fsw, "mekf_gate", 16.27); p.mekf_rej_max = json::f(&fsw, "mekf_rej_max", 30.0);
+        p.mekf_meas_scale = 1.0;
+        p.gnss_ecef = 1;
+        p.gd_yaw_flip = json::b(&fsw, "yaw_flip", true) as u8; p.gd_flip_hyst = 0.1;
         p.rate_lpf_s = json::f(&fsw, "rate_lpf_s", 0.3); p.igrf_nmax = 10;
         if !p.st_noise_cross.is_finite() { p.st_noise_cross = 0.0; }
         for x in [&mut p.st_noise_roll, &mut p.st_latency, &mut p.gyro_arw, &mut p.gyro_rrw, &mut p.es_noise, &mut p.rcs_mib, &mut p.rcs_res] { if !x.is_finite() { *x = 0.0; } }

@@ -178,6 +178,7 @@ end
 
 function [q0, w0] = initial_(P, r, v, F)
     S = P.scenario.initial;
+    if F.P.gd_yaw_flip, F.gd = asils.fsw.yaw_flip(F.gd, r, v, 0.1); end   % the reference the software will fly
     [q_ref, ~] = asils.fsw.guidance('nadir', r, v, 0, F.gd);
     switch S.attitude.kind
         case 'random'
@@ -201,7 +202,10 @@ function [q0, w0] = initial_(P, r, v, F)
             Rq = asils.quat.dcm(q0); w0 = Rq*(asils.util.cross3(r, v)/(r'*r));
         case 'guidance'           % the tested mode's reference rate plus a random extra
             w0 = zeros(3,1);
-            if ~isempty(F.gd_kind0), [~, w0] = asils.fsw.guidance(F.gd_kind0, r, v, 0, F.gd); end
+            if ~isempty(F.gd_kind0)            % w_ref is in the reference frame: the body turns with dcm(q_e) w_ref
+                [qg, wg] = asils.fsw.guidance(F.gd_kind0, r, v, 0, F.gd);
+                w0 = asils.quat.dcm(asils.quat.mult(asils.quat.conj(qg), q0))*wg;
+            end
             dd = randn(3,1); w0 = w0 + dd/norm(dd)*asils.util.getf(S.rate, 'extra_deg_s', 0)*pi/180;
         otherwise
             w0 = S.rate.value_deg_s(:)*pi/180;

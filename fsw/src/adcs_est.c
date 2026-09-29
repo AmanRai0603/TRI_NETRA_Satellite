@@ -45,14 +45,17 @@ void adcs_mekf_predict(adcs_mekf_t *k, const adcs_real wm[3], adcs_real dt)
     for (i = 0; i < 6; i++) for (j = 0; j < 6; j++) k->P[i][j] = Pn[i][j];
 }
 
-/* Joseph-form update with a 3-row measurement: H (3x6), R (3x3), innovation y */
-static void update3(adcs_mekf_t *k, adcs_real H[3][6], adcs_real R[3][3], const adcs_real y[3])
+/* Joseph-form update with a 3-row measurement: H (3x6), R (3x3), innovation y. With gate > 0 an
+ * innovation whose y' S^-1 y exceeds the gate is rejected (returns 0) and the state is left as is. */
+static int update3(adcs_mekf_t *k, adcs_real H[3][6], adcs_real R[3][3], const adcs_real y[3], adcs_real gate)
 {
-    adcs_real PHt[6][3], S[3][3], Si[3][3], G[6][3], dx[6], IKH[6][6], T[6][6], Pn[6][6], dq[4];
+    adcs_real PHt[6][3], S[3][3], Si[3][3], G[6][3], dx[6], IKH[6][6], T[6][6], Pn[6][6], dq[4], chi = 0;
     int i, j, l;
     for (i = 0; i < 6; i++) for (j = 0; j < 3; j++) { PHt[i][j] = 0; for (l = 0; l < 6; l++) PHt[i][j] += k->P[i][l]*H[j][l]; }
     for (i = 0; i < 3; i++) for (j = 0; j < 3; j++) { S[i][j] = R[i][j]; for (l = 0; l < 6; l++) S[i][j] += H[i][l]*PHt[l][j]; }
     adcs_inv3(S, Si);
+    for (i = 0; i < 3; i++) for (j = 0; j < 3; j++) chi += y[i]*Si[i][j]*y[j];
+    if (gate > 0 && chi > gate) return 0;
     for (i = 0; i < 6; i++) for (j = 0; j < 3; j++) { G[i][j] = 0; for (l = 0; l < 3; l++) G[i][j] += PHt[i][l]*Si[l][j]; }
     for (i = 0; i < 6; i++) { dx[i] = 0; for (l = 0; l < 3; l++) dx[i] += G[i][l]*y[l]; }
     dq[0] = 0.5*dx[0]; dq[1] = 0.5*dx[1]; dq[2] = 0.5*dx[2]; dq[3] = 1.0;
@@ -72,9 +75,10 @@ static void update3(adcs_mekf_t *k, adcs_real H[3][6], adcs_real R[3][3], const 
             for (a = 0; a < 3; a++) for (c = 0; c < 3; c++) Pn[i][j] += G[i][a]*R[a][c]*G[j][c];
         }
     for (i = 0; i < 6; i++) for (j = 0; j < 6; j++) k->P[i][j] = Pn[i][j];
+    return 1;
 }
 
-void adcs_mekf_vector(adcs_mekf_t *k, const adcs_real bm[3], const adcs_real rr[3], adcs_real sigma)
+int adcs_mekf_vector(adcs_mekf_t *k, const adcs_real bm[3], const adcs_real rr[3], adcs_real sigma, adcs_real gate)
 {
     adcs_real b[3], r[3], bh[3], A[3][3], Sk[3][3], H[3][6], R[3][3], y[3];
     int i, j;
@@ -84,7 +88,7 @@ void adcs_mekf_vector(adcs_mekf_t *k, const adcs_real bm[3], const adcs_real rr[
     for (i = 0; i < 3; i++) for (j = 0; j < 6; j++) H[i][j] = (j < 3) ? Sk[i][j] : 0.0;
     for (i = 0; i < 3; i++) for (j = 0; j < 3; j++) R[i][j] = (i == j) ? sigma*sigma : 0.0;
     adcs_sub3(b, bh, y);
-    update3(k, H, R, y);
+    return update3(k, H, R, y, gate);
 }
 
 void adcs_mekf_quat(adcs_mekf_t *k, const adcs_real qm[4], adcs_real sc, adcs_real sr, const adcs_real bs[3])
@@ -95,7 +99,7 @@ void adcs_mekf_quat(adcs_mekf_t *k, const adcs_real qm[4], adcs_real sc, adcs_re
     for (i = 0; i < 3; i++) y[i] = 2.0*dq[i];
     for (i = 0; i < 3; i++) for (j = 0; j < 6; j++) H[i][j] = (i == j) ? 1.0 : 0.0;
     for (i = 0; i < 3; i++) for (j = 0; j < 3; j++) R[i][j] = (i == j ? sc*sc : 0.0) + (sr*sr - sc*sc)*bs[i]*bs[j];
-    update3(k, H, R, y);
+    (void)update3(k, H, R, y, 0.0);
 }
 
 void adcs_triad(const adcs_real b1[3], const adcs_real b2[3], const adcs_real r1[3], const adcs_real r2[3], adcs_real q[4])

@@ -37,10 +37,20 @@ pub fn gmst(jd_ut1: f64) -> f64 {
     if g < 0.0 { g += 86400.0; }
     g/240.0*D2R
 }
-/// ECI -> ECEF.
+/// J2000 -> mean of date (IAU-76 precession): P = R3(-z) R2(theta) R3(-zeta).
+pub fn precession(jd: f64) -> M3 {
+    let t = (jd - 2451545.0)/36525.0;
+    let as_ = D2R/3600.0;
+    let ze = (2306.2181*t + 0.30188*t*t + 0.017998*t*t*t)*as_;
+    let z = (2306.2181*t + 1.09468*t*t + 0.018203*t*t*t)*as_;
+    let th = (2004.3109*t - 0.42665*t*t - 0.041833*t*t*t)*as_;
+    let (cz, sz, cc, sc, ct, st) = (cos(ze), sin(ze), cos(z), sin(z), cos(th), sin(th));
+    [[cc*ct*cz - sc*sz, -cc*ct*sz - sc*cz, -cc*st], [sc*ct*cz + cc*sz, -sc*ct*sz + cc*cz, -sc*st], [st*cz, -st*sz, ct]]
+}
+/// J2000 -> ECEF: IAU-76 precession to the mean equator of date, then GMST (nutation, polar motion omitted).
 pub fn eci2ecef(jd_ut1: f64) -> M3 {
     let g = gmst(jd_ut1);
-    [[cos(g), sin(g), 0.0], [-sin(g), cos(g), 0.0], [0.0, 0.0, 1.0]]
+    crate::la::mm(&[[cos(g), sin(g), 0.0], [-sin(g), cos(g), 0.0], [0.0, 0.0, 1.0]], &precession(jd_ut1))
 }
 /// TT - UTC [s] for the 2017-2035 leap-second epoch (TAI - UTC = 37 s).
 pub const TT_MINUS_UTC_S: f64 = 69.184;

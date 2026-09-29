@@ -6,6 +6,8 @@ use crate::math::*;
 pub struct Guid {
     pub q_off: Q, pub roll_deg: f64, pub t0: f64, pub t_slew: f64, pub axis: V3, pub q_inertial: Q,
     pub sun_axis: V3, pub roll_axis: V3, pub sun_eci: V3,
+    /// nadir family turned 180 deg about the boresight (power face towards the Sun)
+    pub flip: bool,
 }
 
 #[derive(Clone, Copy, Debug, Default)]
@@ -28,6 +30,10 @@ pub fn guidance(kind: i32, r: &V3, v: &V3, t: f64, g: &Guid) -> Ref {
     for i in 0..3 { rm[0][i] = -ram[i]; rm[1][i] = -rh[i]; rm[2][i] = -nrm[i]; }
     let mut q_nad = fromdcm(&rm);
     if g.q_off.iter().any(|&x| x != 0.0) { q_nad = qmult(&q_nad, &g.q_off); }
+    if g.flip {
+        let u = if norm3(&g.roll_axis) > 0.0 { unit(&g.roll_axis) } else { [1.0, 0.0, 0.0] };
+        q_nad = qmult(&q_nad, &[u[0], u[1], u[2], 0.0]);
+    }
     let w_orb = scale3(&cross(r, v), 1.0/dot(r, r));
     let mut wd = [0.0; 3];
     let ax = if norm3(&g.axis) > 0.0 { unit(&g.axis) } else { [1.0, 0.0, 0.0] };
@@ -48,7 +54,9 @@ pub fn guidance(kind: i32, r: &V3, v: &V3, t: f64, g: &Guid) -> Ref {
             let q = qmult(&q_nad, &fromrotvec(&scale3(&ax, ph*s)));
             let wo = mat3_vec(&dcm(&q), &w_orb);
             let mut w = [0.0; 3];
-            for i in 0..3 { w[i] = wo[i] + ax[i]*ph*sd; wd[i] = ax[i]*ph*sdd; }
+            // the slew frame turns at ax ph s_dot relative to the orbiting frame: transport term on w_orb
+            let tr = cross(&scale3(&ax, ph*sd), &wo);
+            for i in 0..3 { w[i] = wo[i] + ax[i]*ph*sd; wd[i] = ax[i]*ph*sdd - tr[i]; }
             Ref { q, w, wd }
         }
         3 => Ref { q: g.q_inertial, w: [0.0; 3], wd },
@@ -72,6 +80,18 @@ pub fn guidance(kind: i32, r: &V3, v: &V3, t: f64, g: &Guid) -> Ref {
         }
         _ => Ref { q: q_nad, w: mat3_vec(&dcm(&q_nad), &w_orb), wd },
     }
+}
+
+/// Nadir-family yaw flip with hysteresis: turn 180 deg about the boresight when the power face would
+/// look away from the Sun (04_guidance.md).
+pub fn yaw_flip(g: &mut Guid, r: &V3, v: &V3, hyst: f64) {
+    let mut g0 = *g;
+    g0.flip = false;
+    let q = guidance(0, r, v, 0.0, &g0).q;
+    let sb = mat3_vec(&dcm(&q), &unit(&g.sun_eci));
+    let a = if norm3(&g.sun_axis) > 0.0 { unit(&g.sun_axis) } else { [0.0, 0.0, -1.0] };
+    let d = dot(&a, &sb);
+    if d < -hyst { g.flip = true; } else if d > hyst { g.flip = false; }
 }
 
 /// Rotation taking body +y onto the boresight.

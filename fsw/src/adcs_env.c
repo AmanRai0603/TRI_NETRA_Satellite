@@ -14,6 +14,27 @@ void adcs_gmst_rot(double jd, adcs_real C[3][3])
     C[2][0] = 0;       C[2][1] = 0;      C[2][2] = 1;
 }
 
+/* J2000 -> mean of date (IAU-76 precession): P = R3(-z) R2(theta) R3(-zeta) */
+void adcs_prec_rot(double jd, adcs_real P[3][3])
+{
+    double t = (jd - 2451545.0)/36525.0, as_ = ADCS_PI/(180.0*3600.0);
+    double ze = (2306.2181*t + 0.30188*t*t + 0.017998*t*t*t)*as_;
+    double z = (2306.2181*t + 1.09468*t*t + 0.018203*t*t*t)*as_;
+    double th = (2004.3109*t - 0.42665*t*t - 0.041833*t*t*t)*as_;
+    double cz = cos(ze), sz = sin(ze), cc = cos(z), sc = sin(z), ct = cos(th), st = sin(th);
+    P[0][0] = cc*ct*cz - sc*sz;  P[0][1] = -cc*ct*sz - sc*cz; P[0][2] = -cc*st;
+    P[1][0] = sc*ct*cz + cc*sz;  P[1][1] = -sc*ct*sz + cc*cz; P[1][2] = -sc*st;
+    P[2][0] = st*cz;             P[2][1] = -st*sz;            P[2][2] = ct;
+}
+
+/* J2000 -> ECEF: precession to the mean equator of date, then GMST (nutation and polar motion omitted) */
+void adcs_eci2ecef(double jd, adcs_real C[3][3])
+{
+    adcs_real G[3][3], P[3][3];
+    adcs_gmst_rot(jd, G); adcs_prec_rot(jd, P);
+    adcs_mat3_mul(G, P, C);
+}
+
 double adcs_decyear(double jd) { return 2000.0 + (jd - 2451544.5)/365.25; }
 
 static double mod360(double x) { x = fmod(x, 360.0); return x < 0 ? x + 360.0 : x; }
@@ -118,7 +139,7 @@ void adcs_field_eci(const adcs_real r_eci[3], double jd, const adcs_real gh[195]
 {
     adcs_real C[3][3], re[3], lat, lon, h, Bn[3], Be[3];
     double sl, cl, so, co;
-    adcs_gmst_rot(jd, C);
+    adcs_eci2ecef(jd, C);
     adcs_mat3_vec(C, r_eci, re);
     adcs_geodetic(re, &lat, &lon, &h);
     adcs_igrf_ned(gh, lat, lon, h/1000.0, nmax, Bn);

@@ -106,10 +106,15 @@ body keeps a rate along the field line, which the turning field only rotates, so
 orbit). The pointing law then takes over at ho_out = 0.5 °/s; at 0.2 °/s it hands over late or not at all, because the
 field's own rotation keeps a rate of that order.
 
-Why the feed-forward is on only in the Sun state: at nadir the long (minimum-inertia) axis sits at the
-gravity-gradient equilibrium, so the gradient is a restoring stiffness that helps the loop. Cancelling it would
-remove that help. Under Sun referencing the attitude is inertial, so the gradient is a periodic forcing at twice
-the orbit rate, of the order of 3n²ΔJ, and the coils cannot reject its component along B.
+When the feed-forward runs (bit 0 Sun state always; bit 1 nadir state set on the ground):
+- **Sun state:** always. The attitude is inertial, so the gradient is a periodic forcing at twice the orbit
+  rate, of the order of 3n²ΔJ, and the coils cannot reject its component along B.
+- **Nadir state:** only when the nadir attitude lies outside the gradient's Lagrange region,
+  J_normal ≥ J_along > J_nadir.
+  - Inside it (ais_3u, where the long minimum-inertia axis is the payload axis on nadir) the gradient is a
+    restoring stiffness that helps the loop, and cancelling it would remove that help.
+  - Outside it (ais_img_3u, where the long axis lies along track) pitch is unstable, with stiffness
+    −3n²(J_nadir − J_along). Cancelling the modelled gradient removes that drive.
 
 ## Torque to dipole (`torque2dipole`, Standard Code act.torque2dipole)
 

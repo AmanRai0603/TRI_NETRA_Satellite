@@ -41,7 +41,8 @@ pub struct Fsw {
     drv: Drv,
     clean: bool,
     have_r: bool, r: V3, v: V3,
-    k: Mekf, ad_ok: bool, t_st: f64,
+    k: Mekf, ad_ok: bool, t_st: f64, mag_done: bool, n_rej: f64, gh_jd: f64,
+    es_n: V3, es_t: f64,
     w_est: V3,
     gh: Option<[f64; 195]>, bref: Option<V3>, t_bref: f64,
     bsum: V3, bsum_raw: V3, bn: u32,
@@ -96,12 +97,12 @@ impl Fsw {
         self.p = p;
         self.start_ns = start_ns;
         self.mode = p.start_mode;
-        self.t_st = -1e9; self.t_bref = -1e9; self.last_ctrl = -1e9;
+        self.t_st = -1e9; self.t_bref = -1e9; self.last_ctrl = -1e9; self.es_t = -1e9;
         self.sigma = p.ss_sigma0;
         self.clean = true;
         self.gd = Guid {
             q_off: p.gd_q_off, roll_deg: p.gd_roll_deg, t0: p.gd_t0, t_slew: p.gd_T, axis: p.gd_axis,
-            q_inertial: p.gd_q_inertial, sun_axis: p.sun_axis, roll_axis: p.roll_axis, sun_eci: env::sun_model(p.jd0),
+            q_inertial: p.gd_q_inertial, sun_axis: p.sun_axis, roll_axis: p.roll_axis, sun_eci: env::sun_model(p.jd0), flip: false,
         };
         self.g_rw = gains(p.rw_law, &p.rw_Kp, &p.rw_Kd, &p.rw_Ki, &p.rw_Klqr, p.rw_lambda, p.rw_phi, &p.rw_Gs, p.rw_err_max, p.rw_int_max);
         let ml = if p.mtq_law == 1 { 1 } else if p.mtq_law == 2 { 2 } else { 0 };
@@ -146,6 +147,8 @@ impl Fsw {
         self.hold = 0.0;
         self.ho = false;
         self.ho_t = 0.0;
+        // the states that skip estimation freeze the attitude: the next pointing state re-initialises it
+        if mode == DETUMBLE || mode == DETUMBLE_RCS || mode == SPINUP || mode == SUN_SPIN { self.ad_ok = false; self.n_rej = 0.0; }
         self.i_q = [0.0; 3];
     }
 
@@ -302,20 +305,31 @@ impl Fsw {
         if !z.gyro_ok && p.has_gyro == 0 { z.w = [0.0; 3]; }
         self.z = z;
 
-        // 1 onboard orbit
-        if z.gps_ok { self.r = z.r; self.v = z.v; self.have_r = true; }
-        else if self.have_r {
-            let rn = norm3(&self.r);
-            let a = scale3(&self.r, -p.mu/(rn*rn*rn));
-            for i in 0..3 { self.r[i] += self.v[i]*dt + 0.5*a[i]*dt*dt; self.v[i] += a[i]*dt; }
+        // 1 onboard orbit (02): the GNSS fix, else two-body + J2 by velocity Verlet
+        if z.gps_ok {
+            if p.gnss_ecef != 0 {
+                // receiver fix in ECEF: r = C' r_e, v = C' (v_e + w_E x r_e)
+                let c = env::eci2ecef(self.jd);
+                let ve = add3(&z.v, &cross(&[0.0, 0.0, OMEGA_E], &z.r));
+                self.r = mat3t_vec(&c, &z.r); self.v = mat3t_vec(&c, &ve);
+            } else { self.r = z.r; self.v = z.v; }
+            self.have_r = true;
+        } else if self.have_r {
+            let a0 = orbit_acc(&self.r, p.mu);
+            for i in 0..3 { self.r[i] += self.v[i]*dt + 0.5*a0[i]*dt*dt; }
+            let a1 = orbit_acc(&self.r, p.mu);
+            for i in 0..3 { self.v[i] += 0.5*(a0[i] + a1[i])*dt; }
         }
 
         // 2 estimation
         self.gd.sun_eci = env::sun_model(self.jd);
+        if p.gd_yaw_flip != 0 && self.have_r { ctl::yaw_flip(&mut self.gd, &self.r, &self.v, p.gd_flip_hyst); }
         let phase = fmod(self.t + 1e-9, p.mtq_period);
         let first = phase < dt - 1e-9;
+        if first { self.mag_done = false; }
+        if z.es_ok { self.es_n = z.nadir; self.es_t = self.t; }
         if first && self.have_r && (self.t - self.t_bref) >= 0.999 {
-            if self.gh.is_none() { self.gh = Some(env::igrf_gh(env::decyear(self.jd))); }
+            if self.gh.is_none() || fabs(self.jd - self.gh_jd) > 1.0 { self.gh = Some(env::igrf_gh(env::decyear(self.jd))); self.gh_jd = self.jd; }
             let gh = self.gh.as_ref().unwrap();
             self.bref = Some(env::field_eci(&self.r, self.jd, gh, p.igrf_nmax as i32));
             self.t_bref = self.t;
@@ -349,14 +363,28 @@ impl Fsw {
                 } else if p.has_st != 0 && self.t - self.t_st < p.st_coast_s {
                     // short star-tracker outage: coast on the gyro
                 } else {
-                    if z.sun_ok && first { self.k.vector(&z.sun, &self.gd.sun_eci, p.mekf_sig_sun); }
-                    if self.clean && first {
-                        if let Some(br) = self.bref { self.k.vector(&z.b, &br, p.mekf_sig_mag); }
+                    // vector updates once per coil cycle; the field on the first clean tick of the cycle
+                    let (mut tried, mut took) = (0.0, 0.0);
+                    if z.sun_ok && first { tried += 1.0; if self.k.vector(&z.sun, &self.gd.sun_eci, p.mekf_sig_sun, p.mekf_gate) { took += 1.0; } }
+                    if self.clean && !self.mag_done {
+                        if let Some(br) = self.bref {
+                            let bn = norm3(&z.b);
+                            let e = p.mekf_mag_err_T/(if bn > 1e-9 { bn } else { 1e-9 });
+                            self.mag_done = true; tried += 1.0;
+                            if self.k.vector(&z.b, &br, sqrt(p.mekf_sig_mag*p.mekf_sig_mag + e*e), p.mekf_gate) { took += 1.0; }
+                        }
                     }
-                    if z.es_ok && first && self.have_r {
+                    if first && self.have_r && self.t - self.es_t < p.mtq_period {
+                        // latest Earth-sensor sample of the cycle
                         let sg = if p.es_noise > 1e-3 { p.es_noise } else { 1e-3 };
-                        self.k.vector(&z.nadir, &scale3(&self.r, -1.0), 2.0*sg);
+                        let esn = self.es_n;
+                        tried += 1.0;
+                        if self.k.vector(&esn, &scale3(&self.r, -1.0), 2.0*sg, p.mekf_gate) { took += 1.0; }
+                        self.es_t = -1e9;
                     }
+                    // every update gated for mekf_rej_max in a row: the estimate has diverged, re-initialise
+                    if tried > 0.0 { if took > 0.0 { self.n_rej = 0.0; } else { self.n_rej += tried; } }
+                    if p.mekf_rej_max > 0.0 && self.n_rej >= p.mekf_rej_max { self.ad_ok = false; self.n_rej = 0.0; }
                 }
             }
         }
@@ -685,4 +713,14 @@ impl Fsw {
 
     pub fn mode(&self) -> u8 { self.mode }
     pub fn time(&self) -> f64 { self.t }
+}
+
+/// Two-body + J2 acceleration in J2000 (the pole of date is 0.4 deg off: second order on J2).
+fn orbit_acc(r: &V3, mu: f64) -> V3 {
+    let rn = norm3(r);
+    let r2 = rn*rn;
+    let zr = r[2]*r[2]/r2;
+    let k = -mu/(r2*rn);
+    let f = -1.5*J2*mu*RE*RE/(r2*r2*rn);
+    [k*r[0] + f*r[0]*(1.0 - 5.0*zr), k*r[1] + f*r[1]*(1.0 - 5.0*zr), k*r[2] + f*r[2]*(3.0 - 5.0*zr)]
 }

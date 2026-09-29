@@ -50,14 +50,16 @@ impl Truth {
     }
     /// asils.run's env refresh: field at the POP position (op.geodetic), Sun, shadow,
     /// atmosphere-relative velocity, density and SRP pressure.
-    pub fn env(&self, t: f64, r: &V3, v: &V3, gh: &field::Gh, nmax: usize) -> Env {
+    pub fn env(&self, t: f64, jd0: f64, r: &V3, v: &V3, gh: &field::Gh, nmax: usize) -> Env {
         match self {
             Truth::Pop(o) => {
                 let x = o.context(t);
-                let re = mv(&x.c, r);
+                // the field in J2000: precession to the equator of date, then POP's Earth rotation
+                let cp = mm(&x.c, &time::precession(jd0 + t/86400.0));
+                let re = mv(&cp, r);
                 let (lat, lon, h) = adcs_pop::geodetic::geodetic(&re);
                 let w = o.omega_e;
-                Env { b_eci: field::eci_at(lat, lon, h, &x.c, gh, nmax), sun_rel: sub(&x.sun_eci, r), nu: ephem::shadow(r, &x.sun_eci),
+                Env { b_eci: field::eci_at(lat, lon, h, &cp, gh, nmax), sun_rel: sub(&x.sun_eci, r), nu: ephem::shadow(r, &x.sun_eci),
                       v_rel: [v[0] + w*r[1], v[1] - w*r[0], v[2]], rho: x.rho, p_srp: x.p_srp }
             }
             Truth::Fast(o, jd0) => {
@@ -176,8 +178,9 @@ pub fn run(c: &Config, o: &Opts) -> Result<Record, String> {
 
     // ---- initial state (asils.run initial_) ----
     let (r, v) = orb.state(0.0)?;
-    let gd = Guid { q_off: p.gd_q_off, roll_deg: p.gd_roll_deg, t0: p.gd_t0, t_slew: p.gd_T, axis: p.gd_axis, q_inertial: p.gd_q_inertial,
-        sun_axis: p.sun_axis, roll_axis: p.roll_axis, sun_eci: adcs_fsw::env::sun_model(c.jd0) };
+    let mut gd = Guid { q_off: p.gd_q_off, roll_deg: p.gd_roll_deg, t0: p.gd_t0, t_slew: p.gd_T, axis: p.gd_axis, q_inertial: p.gd_q_inertial,
+        sun_axis: p.sun_axis, roll_axis: p.roll_axis, sun_eci: adcs_fsw::env::sun_model(c.jd0), flip: false };
+    if p.gd_yaw_flip != 0 { adcs_fsw::ctl::yaw_flip(&mut gd, &r, &v, p.gd_flip_hyst); }
     let mut ir = rs("initial");
     let ini = c.scenario.get("initial").cloned().unwrap_or_default();
     let att = ini.get("attitude").cloned().unwrap_or_default();
@@ -202,7 +205,11 @@ pub fn run(c: &Config, o: &Opts) -> Result<Record, String> {
         }
         "lvlh" => mv(&dcm(&q0), &scale(&cross(&r, &v), 1.0/dot(&r, &r))),
         "guidance" => {
-            let mut w = if c.gd_kind0 >= 0 { guidance(c.gd_kind0, &r, &v, 0.0, &gd).w } else { [0.0; 3] };
+            // the reference rate is in the reference frame: the body at q0 turns with it at dcm(q_e) w_ref
+            let mut w = if c.gd_kind0 >= 0 {
+                let g = guidance(c.gd_kind0, &r, &v, 0.0, &gd);
+                mv(&dcm(&qmult(&qconj(&g.q), &q0)), &g.w)
+            } else { [0.0; 3] };
             w = add(&w, &scale(&unit(&ir.normal3()), crate::json::f(&rate, "extra_deg_s", 0.0).to_radians()));
             w
         }
@@ -241,7 +248,7 @@ pub fn run(c: &Config, o: &Opts) -> Result<Record, String> {
         let t = k as f64*dt;
         let (r, v) = orb.state(t)?;
         if k % env_every == 0 {
-            let ev = orb.env(t, &r, &v, &gh, c.igrf_nmax);
+            let ev = orb.env(t, c.jd0, &r, &v, &gh, c.igrf_nmax);
             b_eci = ev.b_eci; sun_rel = ev.sun_rel; nu = ev.nu; v_rel = ev.v_rel; rho = ev.rho; psrp = ev.p_srp;
             orb.set_attitude(transpose(&dcm(&x.q)));      // attitude -> POP (box-wing / panel models read it)
         }
@@ -293,7 +300,11 @@ pub fn run(c: &Config, o: &Opts) -> Result<Record, String> {
             bus.es = Some(emu::unit_regs(z.is_some(), &z.unwrap_or([0.0; 3])));
         }
         if d.gps.fitted && k % gps_every == 0 && !gps.dead {
-            let (rg, vg) = gps.sample(&r, &v);
+            // a receiver fixes in ECEF (WGS-84): r_e = C r, v_e = C v - w_E x r_e
+            let ce = time::eci2ecef(c.jd0 + t/86400.0);
+            let re_ = mv(&ce, &r);
+            let ve_ = sub(&mv(&ce, &v), &cross(&[0.0, 0.0, orbit::OMEGA_E], &re_));
+            let (rg, vg) = gps.sample(&re_, &ve_);
             let mut buf = [0u8; 64];
             let len = emu::gps_frame(true, &rg, &vg, &mut buf);
             bus.push_uart(proto::GPS_UART, &buf[..len]);

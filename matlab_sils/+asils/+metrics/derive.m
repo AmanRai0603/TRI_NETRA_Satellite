@@ -21,8 +21,12 @@ function rec = derive(rec)
     gd.sun_axis = rec.P.dev.sun_axis; gd.roll_axis = bs;
     rec.q_ref_true = nan(4,n); rec.e_vec = nan(3,n);
     rec.ape_3ax = nan(1,n); rec.ape_los = nan(1,n); rec.ake_3ax = nan(1,n); rec.ake_los = nan(1,n);
+    gd.flip = false; flip_on = isfield(rec.P.fsw, 'gd_yaw_flip') && rec.P.fsw.gd_yaw_flip;
     for j = 1:n
         q = rec.q(:,j); qe = rec.q_est(:,j);
+        if flip_on                                          % the flight software's yaw flip, same hysteresis
+            gd.sun_eci = rec.sun_eci(:,j); gd = asils.fsw.yaw_flip(gd, rec.r(:,j), rec.v(:,j), 0.1);
+        end
         b_true = asils.quat.dcm(q)'*bs;
         if ~isempty(kinds{rec.mode(j)})
             gd.sun_eci = rec.sun_eci(:,j);                  % TRUE Sun for the true reference
