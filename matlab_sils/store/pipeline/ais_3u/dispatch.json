@@ -1,6 +1,8 @@
 {
  "family": "mtq_fmr",
+ "selected": true,
  "dir": "dist/dispatch/ais_3u/mtq_fmr/converged",
+ "check_dir": "matlab_sils/store/pipeline/ais_3u/dispatch",
  "scenario": "/home/user/TRI_NETRA_Satellite/dist/dispatch/ais_3u/mtq_fmr/converged/mission_scenario.json",
  "check": {
   "c": {

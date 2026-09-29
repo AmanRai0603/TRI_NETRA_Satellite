@@ -1,0 +1,673 @@
+{
+ "mtq": {
+  "selected": false,
+  "feasible": false,
+  "gaps": [
+   "sun_acquisition: sun_acquisition_time (performance), sun_angle_p95 (performance)",
+   "sun_referencing: sun_ape_p9973 (performance)",
+   "nadir_pointing: ape_los_p9973 (performance), ake_los_p9973 (knowledge), rate_stability_p9973 (performance)"
+  ],
+  "budget": {
+   "mass_kg": 0.8295611292035014,
+   "power_W": 3.8956112920350123,
+   "volume_L": 0.011824451681400512
+  },
+  "methods": {
+   "detumble": "mtq",
+   "sun_acquisition": "mtq",
+   "sun_referencing": "mtq",
+   "nadir_pointing": "mtq"
+  },
+  "algorithms": {
+   "detumble": "bdot_gyro",
+   "sun_acquisition": "sunspin_damped",
+   "mtq_pointing": "mtq_rate_damp"
+  },
+  "package": "matlab_sils/store/pipeline/ais_img_3u/families/mtq/package",
+  "check_dir": "matlab_sils/store/pipeline/ais_img_3u/families/mtq/dispatch",
+  "c_equals_rust_bitwise": true,
+  "mission": {
+   "c": [
+    {
+     "id": "detumble_time",
+     "kind": "time_to_rate",
+     "value": null,
+     "unit": "min",
+     "req": 284.0,
+     "req_key": "req.detumble",
+     "pass": 0
+    },
+    {
+     "id": "ape_los_p9973",
+     "kind": "ape_los",
+     "value": 175.99455234486183,
+     "unit": "deg",
+     "req": 0.01,
+     "req_key": "req.ape",
+     "pass": 0
+    },
+    {
+     "id": "ake_los_p9973",
+     "kind": "ake_los",
+     "value": 1.0145684879600143,
+     "unit": "deg",
+     "req": 0.005,
+     "req_key": "req.ake",
+     "pass": 0
+    },
+    {
+     "id": "power_mean",
+     "kind": "power_mean",
+     "value": 0.09473206900707064,
+     "unit": "W",
+     "req": 2.0,
+     "req_key": "req.pavg",
+     "pass": 1
+    },
+    {
+     "id": "power_peak",
+     "kind": "power_peak",
+     "value": 0.22970116973668234,
+     "unit": "W",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    },
+    {
+     "id": "propellant",
+     "kind": "propellant",
+     "value": 0.0,
+     "unit": "g",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    }
+   ],
+   "rust": [
+    {
+     "id": "detumble_time",
+     "kind": "time_to_rate",
+     "value": null,
+     "unit": "min",
+     "req": 284.0,
+     "req_key": "req.detumble",
+     "pass": 0
+    },
+    {
+     "id": "ape_los_p9973",
+     "kind": "ape_los",
+     "value": 175.99455234486183,
+     "unit": "deg",
+     "req": 0.01,
+     "req_key": "req.ape",
+     "pass": 0
+    },
+    {
+     "id": "ake_los_p9973",
+     "kind": "ake_los",
+     "value": 1.0145684879600143,
+     "unit": "deg",
+     "req": 0.005,
+     "req_key": "req.ake",
+     "pass": 0
+    },
+    {
+     "id": "power_mean",
+     "kind": "power_mean",
+     "value": 0.09473206900707064,
+     "unit": "W",
+     "req": 2.0,
+     "req_key": "req.pavg",
+     "pass": 1
+    },
+    {
+     "id": "power_peak",
+     "kind": "power_peak",
+     "value": 0.22970116973668234,
+     "unit": "W",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    },
+    {
+     "id": "propellant",
+     "kind": "propellant",
+     "value": 0.0,
+     "unit": "g",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    }
+   ]
+  },
+  "mode_log": [
+   {
+    "t": 0.0,
+    "mode": "detumble"
+   },
+   {
+    "t": 3902.2000000000003,
+    "mode": "spinup"
+   },
+   {
+    "t": 9633.2,
+    "mode": "sun_spin"
+   },
+   {
+    "t": 9740.0,
+    "mode": "spinup"
+   },
+   {
+    "t": 10155.6,
+    "mode": "sun_spin"
+   },
+   {
+    "t": 10434.0,
+    "mode": "spinup"
+   },
+   {
+    "t": 11478.0,
+    "mode": "nadir_mtq"
+   }
+  ],
+  "mc": {
+   "runs": 12,
+   "stats": [
+    {
+     "id": "detumble_time",
+     "req": 284.0,
+     "mean": 224.78000000000003,
+     "std": 37.16570738672352,
+     "min": 190.77333333333337,
+     "max": 274.29,
+     "pass_rate": 0.4166666666666667,
+     "pass": false
+    },
+    {
+     "id": "ape_los_p9973",
+     "req": 0.01,
+     "mean": 158.75506977434634,
+     "std": 22.656499449603317,
+     "min": 90.57701643354515,
+     "max": 174.05993174321952,
+     "pass_rate": 0.0,
+     "pass": false
+    },
+    {
+     "id": "ake_los_p9973",
+     "req": 0.005,
+     "mean": 0.5699227549795643,
+     "std": 0.6805171662616438,
+     "min": 0.015065269734535378,
+     "max": 2.314566086238632,
+     "pass_rate": 0.0,
+     "pass": false
+    },
+    {
+     "id": "power_mean",
+     "req": 2.0,
+     "mean": 0.07327984350657632,
+     "std": 0.014376523463920477,
+     "min": 0.043523389411618964,
+     "max": 0.08460535249894266,
+     "pass_rate": 1.0,
+     "pass": true
+    },
+    {
+     "id": "power_peak",
+     "req": null,
+     "mean": 0.22018306411802105,
+     "std": 0.0069799279295788205,
+     "min": 0.2082838533118915,
+     "max": 0.2333723660146077,
+     "pass_rate": null,
+     "pass": null
+    },
+    {
+     "id": "propellant",
+     "req": null,
+     "mean": 0.0,
+     "std": 0.0,
+     "min": 0.0,
+     "max": 0.0,
+     "pass_rate": null,
+     "pass": null
+    }
+   ]
+  }
+ },
+ "mtq_fmr": {
+  "selected": true,
+  "feasible": true,
+  "gaps": [],
+  "budget": {
+   "mass_kg": 1.5336922509030777,
+   "power_W": 6.463636498876253,
+   "volume_L": 0.534415333603444
+  },
+  "methods": {
+   "detumble": "mtq",
+   "sun_acquisition": "fmr",
+   "sun_referencing": "fmr+mtq",
+   "nadir_pointing": "fmr+mtq"
+  },
+  "algorithms": {
+   "detumble": "bdot_gyro",
+   "pointing": "pid"
+  },
+  "package": "dist/dispatch/ais_img_3u/mtq_fmr/converged",
+  "check_dir": "matlab_sils/store/pipeline/ais_img_3u/dispatch",
+  "c_equals_rust_bitwise": true,
+  "mission": {
+   "c": [
+    {
+     "id": "detumble_time",
+     "kind": "time_to_rate",
+     "value": 81.89166666666667,
+     "unit": "min",
+     "req": 284.0,
+     "req_key": "req.detumble",
+     "pass": 1
+    },
+    {
+     "id": "ape_los_p9973",
+     "kind": "ape_los",
+     "value": 0.003543136150721946,
+     "unit": "deg",
+     "req": 0.01,
+     "req_key": "req.ape",
+     "pass": 1
+    },
+    {
+     "id": "ake_los_p9973",
+     "kind": "ake_los",
+     "value": 0.00292612343537532,
+     "unit": "deg",
+     "req": 0.005,
+     "req_key": "req.ake",
+     "pass": 1
+    },
+    {
+     "id": "power_mean",
+     "kind": "power_mean",
+     "value": 0.9227990685117817,
+     "unit": "W",
+     "req": 2.0,
+     "req_key": "req.pavg",
+     "pass": 1
+    },
+    {
+     "id": "power_peak",
+     "kind": "power_peak",
+     "value": 2.810218733857778,
+     "unit": "W",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    },
+    {
+     "id": "propellant",
+     "kind": "propellant",
+     "value": 0.0,
+     "unit": "g",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    }
+   ],
+   "rust": [
+    {
+     "id": "detumble_time",
+     "kind": "time_to_rate",
+     "value": 81.89166666666667,
+     "unit": "min",
+     "req": 284.0,
+     "req_key": "req.detumble",
+     "pass": 1
+    },
+    {
+     "id": "ape_los_p9973",
+     "kind": "ape_los",
+     "value": 0.003543136150721946,
+     "unit": "deg",
+     "req": 0.01,
+     "req_key": "req.ape",
+     "pass": 1
+    },
+    {
+     "id": "ake_los_p9973",
+     "kind": "ake_los",
+     "value": 0.00292612343537532,
+     "unit": "deg",
+     "req": 0.005,
+     "req_key": "req.ake",
+     "pass": 1
+    },
+    {
+     "id": "power_mean",
+     "kind": "power_mean",
+     "value": 0.9227990685117817,
+     "unit": "W",
+     "req": 2.0,
+     "req_key": "req.pavg",
+     "pass": 1
+    },
+    {
+     "id": "power_peak",
+     "kind": "power_peak",
+     "value": 2.810218733857778,
+     "unit": "W",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    },
+    {
+     "id": "propellant",
+     "kind": "propellant",
+     "value": 0.0,
+     "unit": "g",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    }
+   ]
+  },
+  "mode_log": [
+   {
+    "t": 0.0,
+    "mode": "detumble"
+   },
+   {
+    "t": 4872.1,
+    "mode": "sun_acq_rotor"
+   },
+   {
+    "t": 11478.0,
+    "mode": "nadir_fine"
+   }
+  ],
+  "mc": {
+   "runs": 12,
+   "stats": [
+    {
+     "id": "detumble_time",
+     "req": 284.0,
+     "mean": 73.24722222222222,
+     "std": 15.579432072566178,
+     "min": 44.49166666666667,
+     "max": 92.39166666666667,
+     "pass_rate": 1.0,
+     "pass": true
+    },
+    {
+     "id": "ape_los_p9973",
+     "req": 0.01,
+     "mean": 0.0033804589936534644,
+     "std": 0.00033815186000772006,
+     "min": 0.002840692119251725,
+     "max": 0.004080266881599531,
+     "pass_rate": 1.0,
+     "pass": true
+    },
+    {
+     "id": "ake_los_p9973",
+     "req": 0.005,
+     "mean": 0.0026556429773928066,
+     "std": 0.0003461836397708703,
+     "min": 0.001954859958980483,
+     "max": 0.0033345636754088096,
+     "pass_rate": 1.0,
+     "pass": true
+    },
+    {
+     "id": "power_mean",
+     "req": 2.0,
+     "mean": 0.9999124400226412,
+     "std": 0.3620830391744132,
+     "min": 0.3903722787891568,
+     "max": 1.6148056624716187,
+     "pass_rate": 1.0,
+     "pass": true
+    },
+    {
+     "id": "power_peak",
+     "req": null,
+     "mean": 2.8109279263953226,
+     "std": 0.007569253084690452,
+     "min": 2.798809942510744,
+     "max": 2.8230450338101987,
+     "pass_rate": null,
+     "pass": null
+    },
+    {
+     "id": "propellant",
+     "req": null,
+     "mean": 0.0,
+     "std": 0.0,
+     "min": 0.0,
+     "max": 0.0,
+     "pass_rate": null,
+     "pass": null
+    }
+   ]
+  }
+ },
+ "mtq_fmr_rcs": {
+  "selected": false,
+  "feasible": false,
+  "gaps": [
+   "budget: mass_kg 2 > 1.6",
+   "budget: volume_L 1.38 > 1"
+  ],
+  "budget": {
+   "mass_kg": 1.9996090417599492,
+   "power_W": 6.513636498876253,
+   "volume_L": 1.375932994320427
+  },
+  "methods": {
+   "detumble": "rcs",
+   "sun_acquisition": "fmr",
+   "sun_referencing": "fmr+mtq",
+   "nadir_pointing": "fmr+mtq"
+  },
+  "algorithms": {
+   "pointing": "pid"
+  },
+  "package": "matlab_sils/store/pipeline/ais_img_3u/families/mtq_fmr_rcs/package",
+  "check_dir": "matlab_sils/store/pipeline/ais_img_3u/families/mtq_fmr_rcs/dispatch",
+  "c_equals_rust_bitwise": true,
+  "mission": {
+   "c": [
+    {
+     "id": "detumble_time",
+     "kind": "time_to_rate",
+     "value": 2.475,
+     "unit": "min",
+     "req": 284.0,
+     "req_key": "req.detumble",
+     "pass": 1
+    },
+    {
+     "id": "ape_los_p9973",
+     "kind": "ape_los",
+     "value": 0.003545941300500008,
+     "unit": "deg",
+     "req": 0.01,
+     "req_key": "req.ape",
+     "pass": 1
+    },
+    {
+     "id": "ake_los_p9973",
+     "kind": "ake_los",
+     "value": 0.0029252008320156133,
+     "unit": "deg",
+     "req": 0.005,
+     "req_key": "req.ake",
+     "pass": 1
+    },
+    {
+     "id": "power_mean",
+     "kind": "power_mean",
+     "value": 1.0140010858958002,
+     "unit": "W",
+     "req": 2.0,
+     "req_key": "req.pavg",
+     "pass": 1
+    },
+    {
+     "id": "power_peak",
+     "kind": "power_peak",
+     "value": 3.8668812758289084,
+     "unit": "W",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    },
+    {
+     "id": "propellant",
+     "kind": "propellant",
+     "value": 0.08598493321473466,
+     "unit": "g",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    }
+   ],
+   "rust": [
+    {
+     "id": "detumble_time",
+     "kind": "time_to_rate",
+     "value": 2.475,
+     "unit": "min",
+     "req": 284.0,
+     "req_key": "req.detumble",
+     "pass": 1
+    },
+    {
+     "id": "ape_los_p9973",
+     "kind": "ape_los",
+     "value": 0.003545941300500008,
+     "unit": "deg",
+     "req": 0.01,
+     "req_key": "req.ape",
+     "pass": 1
+    },
+    {
+     "id": "ake_los_p9973",
+     "kind": "ake_los",
+     "value": 0.0029252008320156133,
+     "unit": "deg",
+     "req": 0.005,
+     "req_key": "req.ake",
+     "pass": 1
+    },
+    {
+     "id": "power_mean",
+     "kind": "power_mean",
+     "value": 1.0140010858958002,
+     "unit": "W",
+     "req": 2.0,
+     "req_key": "req.pavg",
+     "pass": 1
+    },
+    {
+     "id": "power_peak",
+     "kind": "power_peak",
+     "value": 3.8668812758289084,
+     "unit": "W",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    },
+    {
+     "id": "propellant",
+     "kind": "propellant",
+     "value": 0.08598493321473466,
+     "unit": "g",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    }
+   ]
+  },
+  "mode_log": [
+   {
+    "t": 0.0,
+    "mode": "detumble_rcs"
+   },
+   {
+    "t": 122.0,
+    "mode": "sun_acq_rotor"
+   },
+   {
+    "t": 11478.0,
+    "mode": "nadir_fine"
+   }
+  ],
+  "mc": {
+   "runs": 12,
+   "stats": [
+    {
+     "id": "detumble_time",
+     "req": 284.0,
+     "mean": 3.1277777777777778,
+     "std": 1.3320795873130205,
+     "min": 0.975,
+     "max": 4.641666666666667,
+     "pass_rate": 1.0,
+     "pass": true
+    },
+    {
+     "id": "ape_los_p9973",
+     "req": 0.01,
+     "mean": 0.0033797302587991597,
+     "std": 0.00033962277844442983,
+     "min": 0.00284852233800865,
+     "max": 0.00409256110214097,
+     "pass_rate": 1.0,
+     "pass": true
+    },
+    {
+     "id": "ake_los_p9973",
+     "req": 0.005,
+     "mean": 0.0026569565977913154,
+     "std": 0.00034605704188477244,
+     "min": 0.0019582846644357953,
+     "max": 0.003338582585063907,
+     "pass_rate": 1.0,
+     "pass": true
+    },
+    {
+     "id": "power_mean",
+     "req": 2.0,
+     "mean": 1.2387713776691376,
+     "std": 0.3243605648234746,
+     "min": 0.5126703452593058,
+     "max": 1.7749397408359224,
+     "pass_rate": 1.0,
+     "pass": true
+    },
+    {
+     "id": "power_peak",
+     "req": null,
+     "mean": 3.719385615049687,
+     "std": 0.32196318541909386,
+     "min": 3.1567717621977436,
+     "max": 4.079906278693983,
+     "pass_rate": null,
+     "pass": null
+    },
+    {
+     "id": "propellant",
+     "req": null,
+     "mean": 0.09532178904968862,
+     "std": 0.016421478827759822,
+     "min": 0.06752284051896171,
+     "max": 0.12326897725822183,
+     "pass_rate": null,
+     "pass": null
+    }
+   ]
+  }
+ }
+}

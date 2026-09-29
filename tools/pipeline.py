@@ -440,7 +440,7 @@ def node_dispatch(case, sel, sized, modes, build, fam=None):
             "fsw": {"start_mode": det["fsw_mode"], "auto_next": acq["fsw_mode"], "guidance": {"kind": "nadir"}, "algorithms": algs,
                     "schedule": [{"t_s": round(2 * T), "mode": fine["fsw_mode"]}],
                     "rcs_dump": 1.0 if fine.get("dump") == "rcs" else 0.0, **({"dump_gain": 0.03} if fine["actuator"] == "fmr" else {}), **tune},
-            "metrics": [{"id": "detumble_time", "kind": "time_to_rate", "rate_threshold_deg_s": 0.5, "hold_s": 600.0, "requirement": "req.detumble"},
+            "metrics": [{"id": "detumble_time", "kind": "time_to_rate", "rate_threshold_deg_s": 0.5, "hold_s": 600.0, "end_at_mode_exit": True, "requirement": "req.detumble"},
                         {"id": "ape_los_p9973", "kind": "ape_los", "window": "last_half_orbit", "statistic": "p99.73", "requirement": "req.ape"},
                         {"id": "ake_los_p9973", "kind": "ake_los", "window": "last_half_orbit", "statistic": "p99.73", "requirement": "req.ake"},
                         {"id": "power_mean", "kind": "power_mean", "requirement": "req.pavg", "window": "all"},

@@ -116,7 +116,20 @@ pub fn evaluate(c: &Config, rec: &Record, d: &Derived) -> Vec<Value> {
         let kind = json::s(m, "kind", "");
         let mut unit = "deg";
         let val = match kind {
-            "time_to_rate" => { unit = "min"; time_to(&t, &d.rate, json::f(m, "rate_threshold_deg_s", 0.5), json::f(m, "hold_s", 0.0))/60.0 }
+            "time_to_rate" => {
+                unit = "min";
+                let thr = json::f(m, "rate_threshold_deg_s", 0.5);
+                let mut v = time_to(&t, &d.rate, thr, json::f(m, "hold_s", 0.0));
+                // a mission hands over to the next mode when detumble is done; that hand-over (below the
+                // threshold) completes the detumble even if the next mode then spins the body up again
+                if json::b(m, "end_at_mode_exit", false) && !rec.rows.is_empty() {
+                    let m0 = rec.rows[0].mode;
+                    if let Some(j) = (0..t.len()).find(|&j| rec.rows[j].mode != m0) {
+                        if d.rate[j] < thr && !(v <= t[j]) { v = t[j]; }
+                    }
+                }
+                v/60.0
+            }
             "ape" => stat(pick(&d.ape_3ax).into_iter(), st),
             "ape_los" => stat(pick(&d.ape_los).into_iter(), st),
             "ake" => stat(pick(&d.ake_3ax).into_iter(), st),

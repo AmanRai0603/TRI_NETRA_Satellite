@@ -1,0 +1,1015 @@
+{
+ "schema": "adcs-campaign-result/1",
+ "id": "mc_dispatch_ais_img_3u",
+ "case": "ais_img_3u",
+ "runs": 12,
+ "dispersions": [
+  "inertia",
+  "residual_dipole",
+  "cm_offset",
+  "solar_flux",
+  "accommodation",
+  "reflectivity",
+  "arg_lat_deg"
+ ],
+ "stats": [
+  {
+   "id": "detumble_time",
+   "unit": "min",
+   "req": 284.0,
+   "values": [
+    null,
+    190.77333333333337,
+    208.10666666666668,
+    274.29,
+    null,
+    196.74000000000004,
+    null,
+    null,
+    null,
+    253.99000000000004,
+    null,
+    null
+   ],
+   "mean": 224.78000000000003,
+   "std": 37.16570738672352,
+   "min": 190.77333333333337,
+   "max": 274.29,
+   "n_valid": 5,
+   "pass_rate": 0.4166666666666667,
+   "pass": false
+  },
+  {
+   "id": "ape_los_p9973",
+   "unit": "deg",
+   "req": 0.01,
+   "values": [
+    166.42293156588,
+    90.57701643354515,
+    156.05792385919693,
+    173.48881831690525,
+    160.14758128038793,
+    155.11754542138698,
+    161.94156833070377,
+    172.95118344182498,
+    165.54368000601409,
+    174.05993174321952,
+    155.8701418301859,
+    172.88251506290564
+   ],
+   "mean": 158.75506977434634,
+   "std": 22.656499449603317,
+   "min": 90.57701643354515,
+   "max": 174.05993174321952,
+   "n_valid": 12,
+   "pass_rate": 0.0,
+   "pass": false
+  },
+  {
+   "id": "ake_los_p9973",
+   "unit": "deg",
+   "req": 0.005,
+   "values": [
+    0.3846009402654094,
+    0.015065269734535378,
+    0.2536123555961988,
+    0.7590039348775602,
+    2.314566086238632,
+    0.04839444925595192,
+    1.5121667747539387,
+    0.2994420245366614,
+    0.288353809773679,
+    0.1580177339868616,
+    0.2713087043099742,
+    0.5345409764253696
+   ],
+   "mean": 0.5699227549795643,
+   "std": 0.6805171662616438,
+   "min": 0.015065269734535378,
+   "max": 2.314566086238632,
+   "n_valid": 12,
+   "pass_rate": 0.0,
+   "pass": false
+  },
+  {
+   "id": "power_mean",
+   "unit": "W",
+   "req": 2.0,
+   "values": [
+    0.043523389411618964,
+    0.07702395729491159,
+    0.08460535249894266,
+    0.04628085565636833,
+    0.0641212236235965,
+    0.0756108512810674,
+    0.0806828697555582,
+    0.07680150143694014,
+    0.0841592496376629,
+    0.08323648317774808,
+    0.08277597304684328,
+    0.0805364152576578
+   ],
+   "mean": 0.07327984350657632,
+   "std": 0.014376523463920477,
+   "min": 0.043523389411618964,
+   "max": 0.08460535249894266,
+   "n_valid": 12,
+   "pass_rate": 1.0,
+   "pass": true
+  },
+  {
+   "id": "power_peak",
+   "unit": "W",
+   "req": null,
+   "values": [
+    0.2144690732532717,
+    0.21432833604340368,
+    0.2333723660146077,
+    0.22799548286836702,
+    0.21955245315842,
+    0.21486241571162085,
+    0.2082838533118915,
+    0.2211101855240535,
+    0.2266783269298584,
+    0.21728502033276823,
+    0.22060136638068442,
+    0.22365788988730576
+   ],
+   "mean": 0.22018306411802105,
+   "std": 0.0069799279295788205,
+   "min": 0.2082838533118915,
+   "max": 0.2333723660146077,
+   "n_valid": 12,
+   "pass_rate": null,
+   "pass": null
+  },
+  {
+   "id": "propellant",
+   "unit": "g",
+   "req": null,
+   "values": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+   ],
+   "mean": 0.0,
+   "std": 0.0,
+   "min": 0.0,
+   "max": 0.0,
+   "n_valid": 12,
+   "pass_rate": null,
+   "pass": null
+  }
+ ],
+ "per_run": [
+  {
+   "k": 1,
+   "metrics": [
+    {
+     "id": "detumble_time",
+     "kind": "time_to_rate",
+     "value": null,
+     "unit": "min",
+     "req": 284.0,
+     "req_key": "req.detumble",
+     "pass": 0
+    },
+    {
+     "id": "ape_los_p9973",
+     "kind": "ape_los",
+     "value": 166.42293156588,
+     "unit": "deg",
+     "req": 0.01,
+     "req_key": "req.ape",
+     "pass": 0
+    },
+    {
+     "id": "ake_los_p9973",
+     "kind": "ake_los",
+     "value": 0.3846009402654094,
+     "unit": "deg",
+     "req": 0.005,
+     "req_key": "req.ake",
+     "pass": 0
+    },
+    {
+     "id": "power_mean",
+     "kind": "power_mean",
+     "value": 0.043523389411618964,
+     "unit": "W",
+     "req": 2.0,
+     "req_key": "req.pavg",
+     "pass": 1
+    },
+    {
+     "id": "power_peak",
+     "kind": "power_peak",
+     "value": 0.2144690732532717,
+     "unit": "W",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    },
+    {
+     "id": "propellant",
+     "kind": "propellant",
+     "value": 0.0,
+     "unit": "g",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    }
+   ],
+   "draws": {
+    "inertia_scale_x": 1.0284870663330086,
+    "inertia_scale_y": 0.963694310683894,
+    "inertia_scale_z": 1.0551059660509368,
+    "residual_dipole_Am2": 0.011940399579176059,
+    "cm_offset_mm": 12.485248690908525,
+    "F107": 111.42336894900072,
+    "sigma_accom": 0.9583494319491823,
+    "reflectivity": 0.35499400767524547,
+    "arg_lat_deg": 23.120711013802058
+   }
+  },
+  {
+   "k": 2,
+   "metrics": [
+    {
+     "id": "detumble_time",
+     "kind": "time_to_rate",
+     "value": 190.77333333333337,
+     "unit": "min",
+     "req": 284.0,
+     "req_key": "req.detumble",
+     "pass": 1
+    },
+    {
+     "id": "ape_los_p9973",
+     "kind": "ape_los",
+     "value": 90.57701643354515,
+     "unit": "deg",
+     "req": 0.01,
+     "req_key": "req.ape",
+     "pass": 0
+    },
+    {
+     "id": "ake_los_p9973",
+     "kind": "ake_los",
+     "value": 0.015065269734535378,
+     "unit": "deg",
+     "req": 0.005,
+     "req_key": "req.ake",
+     "pass": 0
+    },
+    {
+     "id": "power_mean",
+     "kind": "power_mean",
+     "value": 0.07702395729491159,
+     "unit": "W",
+     "req": 2.0,
+     "req_key": "req.pavg",
+     "pass": 1
+    },
+    {
+     "id": "power_peak",
+     "kind": "power_peak",
+     "value": 0.21432833604340368,
+     "unit": "W",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    },
+    {
+     "id": "propellant",
+     "kind": "propellant",
+     "value": 0.0,
+     "unit": "g",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    }
+   ],
+   "draws": {
+    "inertia_scale_x": 1.0902531669544369,
+    "inertia_scale_y": 1.0633187329319918,
+    "inertia_scale_z": 0.9938060746012249,
+    "residual_dipole_Am2": 0.018551601560898145,
+    "cm_offset_mm": 13.742848209026324,
+    "F107": 142.60862155175667,
+    "sigma_accom": 0.8972033689145564,
+    "reflectivity": 0.8404933627367208,
+    "arg_lat_deg": 130.94123008261215
+   }
+  },
+  {
+   "k": 3,
+   "metrics": [
+    {
+     "id": "detumble_time",
+     "kind": "time_to_rate",
+     "value": 208.10666666666668,
+     "unit": "min",
+     "req": 284.0,
+     "req_key": "req.detumble",
+     "pass": 1
+    },
+    {
+     "id": "ape_los_p9973",
+     "kind": "ape_los",
+     "value": 156.05792385919693,
+     "unit": "deg",
+     "req": 0.01,
+     "req_key": "req.ape",
+     "pass": 0
+    },
+    {
+     "id": "ake_los_p9973",
+     "kind": "ake_los",
+     "value": 0.2536123555961988,
+     "unit": "deg",
+     "req": 0.005,
+     "req_key": "req.ake",
+     "pass": 0
+    },
+    {
+     "id": "power_mean",
+     "kind": "power_mean",
+     "value": 0.08460535249894266,
+     "unit": "W",
+     "req": 2.0,
+     "req_key": "req.pavg",
+     "pass": 1
+    },
+    {
+     "id": "power_peak",
+     "kind": "power_peak",
+     "value": 0.2333723660146077,
+     "unit": "W",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    },
+    {
+     "id": "propellant",
+     "kind": "propellant",
+     "value": 0.0,
+     "unit": "g",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    }
+   ],
+   "draws": {
+    "inertia_scale_x": 1.0969031046042206,
+    "inertia_scale_y": 1.0835895661173374,
+    "inertia_scale_z": 1.08230006873075,
+    "residual_dipole_Am2": 0.018126824485857788,
+    "cm_offset_mm": 10.47707554210541,
+    "F107": 101.82821972387401,
+    "sigma_accom": 0.9212495434754844,
+    "reflectivity": 0.36657285860586314,
+    "arg_lat_deg": 64.34410324392728
+   }
+  },
+  {
+   "k": 4,
+   "metrics": [
+    {
+     "id": "detumble_time",
+     "kind": "time_to_rate",
+     "value": 274.29,
+     "unit": "min",
+     "req": 284.0,
+     "req_key": "req.detumble",
+     "pass": 1
+    },
+    {
+     "id": "ape_los_p9973",
+     "kind": "ape_los",
+     "value": 173.48881831690525,
+     "unit": "deg",
+     "req": 0.01,
+     "req_key": "req.ape",
+     "pass": 0
+    },
+    {
+     "id": "ake_los_p9973",
+     "kind": "ake_los",
+     "value": 0.7590039348775602,
+     "unit": "deg",
+     "req": 0.005,
+     "req_key": "req.ake",
+     "pass": 0
+    },
+    {
+     "id": "power_mean",
+     "kind": "power_mean",
+     "value": 0.04628085565636833,
+     "unit": "W",
+     "req": 2.0,
+     "req_key": "req.pavg",
+     "pass": 1
+    },
+    {
+     "id": "power_peak",
+     "kind": "power_peak",
+     "value": 0.22799548286836702,
+     "unit": "W",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    },
+    {
+     "id": "propellant",
+     "kind": "propellant",
+     "value": 0.0,
+     "unit": "g",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    }
+   ],
+   "draws": {
+    "inertia_scale_x": 0.9278543279954234,
+    "inertia_scale_y": 0.9790302355643018,
+    "inertia_scale_z": 1.0864590441944024,
+    "residual_dipole_Am2": 0.014924954279318703,
+    "cm_offset_mm": 20.29314949745812,
+    "F107": 186.89250071235185,
+    "sigma_accom": 0.8326003287745524,
+    "reflectivity": 0.5699256932148609,
+    "arg_lat_deg": 88.67687202358174
+   }
+  },
+  {
+   "k": 5,
+   "metrics": [
+    {
+     "id": "detumble_time",
+     "kind": "time_to_rate",
+     "value": null,
+     "unit": "min",
+     "req": 284.0,
+     "req_key": "req.detumble",
+     "pass": 0
+    },
+    {
+     "id": "ape_los_p9973",
+     "kind": "ape_los",
+     "value": 160.14758128038793,
+     "unit": "deg",
+     "req": 0.01,
+     "req_key": "req.ape",
+     "pass": 0
+    },
+    {
+     "id": "ake_los_p9973",
+     "kind": "ake_los",
+     "value": 2.314566086238632,
+     "unit": "deg",
+     "req": 0.005,
+     "req_key": "req.ake",
+     "pass": 0
+    },
+    {
+     "id": "power_mean",
+     "kind": "power_mean",
+     "value": 0.0641212236235965,
+     "unit": "W",
+     "req": 2.0,
+     "req_key": "req.pavg",
+     "pass": 1
+    },
+    {
+     "id": "power_peak",
+     "kind": "power_peak",
+     "value": 0.21955245315842,
+     "unit": "W",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    },
+    {
+     "id": "propellant",
+     "kind": "propellant",
+     "value": 0.0,
+     "unit": "g",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    }
+   ],
+   "draws": {
+    "inertia_scale_x": 0.9482798624344873,
+    "inertia_scale_y": 0.9433601385888334,
+    "inertia_scale_z": 1.072037265367967,
+    "residual_dipole_Am2": 0.009264916120614804,
+    "cm_offset_mm": 17.555075264626325,
+    "F107": 170.4796650585758,
+    "sigma_accom": 0.798790099232658,
+    "reflectivity": 0.7211359801874624,
+    "arg_lat_deg": 324.26799985129
+   }
+  },
+  {
+   "k": 6,
+   "metrics": [
+    {
+     "id": "detumble_time",
+     "kind": "time_to_rate",
+     "value": 196.74000000000004,
+     "unit": "min",
+     "req": 284.0,
+     "req_key": "req.detumble",
+     "pass": 1
+    },
+    {
+     "id": "ape_los_p9973",
+     "kind": "ape_los",
+     "value": 155.11754542138698,
+     "unit": "deg",
+     "req": 0.01,
+     "req_key": "req.ape",
+     "pass": 0
+    },
+    {
+     "id": "ake_los_p9973",
+     "kind": "ake_los",
+     "value": 0.04839444925595192,
+     "unit": "deg",
+     "req": 0.005,
+     "req_key": "req.ake",
+     "pass": 0
+    },
+    {
+     "id": "power_mean",
+     "kind": "power_mean",
+     "value": 0.0756108512810674,
+     "unit": "W",
+     "req": 2.0,
+     "req_key": "req.pavg",
+     "pass": 1
+    },
+    {
+     "id": "power_peak",
+     "kind": "power_peak",
+     "value": 0.21486241571162085,
+     "unit": "W",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    },
+    {
+     "id": "propellant",
+     "kind": "propellant",
+     "value": 0.0,
+     "unit": "g",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    }
+   ],
+   "draws": {
+    "inertia_scale_x": 0.968073016702202,
+    "inertia_scale_y": 1.0486731424811353,
+    "inertia_scale_z": 0.9992604237003611,
+    "residual_dipole_Am2": 0.007343018607911065,
+    "cm_offset_mm": 28.025082604011878,
+    "F107": 192.77813234022636,
+    "sigma_accom": 0.8513915020017755,
+    "reflectivity": 0.47197790180949406,
+    "arg_lat_deg": 327.8291237108319
+   }
+  },
+  {
+   "k": 7,
+   "metrics": [
+    {
+     "id": "detumble_time",
+     "kind": "time_to_rate",
+     "value": null,
+     "unit": "min",
+     "req": 284.0,
+     "req_key": "req.detumble",
+     "pass": 0
+    },
+    {
+     "id": "ape_los_p9973",
+     "kind": "ape_los",
+     "value": 161.94156833070377,
+     "unit": "deg",
+     "req": 0.01,
+     "req_key": "req.ape",
+     "pass": 0
+    },
+    {
+     "id": "ake_los_p9973",
+     "kind": "ake_los",
+     "value": 1.5121667747539387,
+     "unit": "deg",
+     "req": 0.005,
+     "req_key": "req.ake",
+     "pass": 0
+    },
+    {
+     "id": "power_mean",
+     "kind": "power_mean",
+     "value": 0.0806828697555582,
+     "unit": "W",
+     "req": 2.0,
+     "req_key": "req.pavg",
+     "pass": 1
+    },
+    {
+     "id": "power_peak",
+     "kind": "power_peak",
+     "value": 0.2082838533118915,
+     "unit": "W",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    },
+    {
+     "id": "propellant",
+     "kind": "propellant",
+     "value": 0.0,
+     "unit": "g",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    }
+   ],
+   "draws": {
+    "inertia_scale_x": 0.906182704988121,
+    "inertia_scale_y": 1.0257072495783388,
+    "inertia_scale_z": 0.937836653926422,
+    "residual_dipole_Am2": 0.013260118868136002,
+    "cm_offset_mm": 18.37977209421368,
+    "F107": 152.5883976116055,
+    "sigma_accom": 0.7397275907908092,
+    "reflectivity": 0.8629152730525977,
+    "arg_lat_deg": 278.70507623136183
+   }
+  },
+  {
+   "k": 8,
+   "metrics": [
+    {
+     "id": "detumble_time",
+     "kind": "time_to_rate",
+     "value": null,
+     "unit": "min",
+     "req": 284.0,
+     "req_key": "req.detumble",
+     "pass": 0
+    },
+    {
+     "id": "ape_los_p9973",
+     "kind": "ape_los",
+     "value": 172.95118344182498,
+     "unit": "deg",
+     "req": 0.01,
+     "req_key": "req.ape",
+     "pass": 0
+    },
+    {
+     "id": "ake_los_p9973",
+     "kind": "ake_los",
+     "value": 0.2994420245366614,
+     "unit": "deg",
+     "req": 0.005,
+     "req_key": "req.ake",
+     "pass": 0
+    },
+    {
+     "id": "power_mean",
+     "kind": "power_mean",
+     "value": 0.07680150143694014,
+     "unit": "W",
+     "req": 2.0,
+     "req_key": "req.pavg",
+     "pass": 1
+    },
+    {
+     "id": "power_peak",
+     "kind": "power_peak",
+     "value": 0.2211101855240535,
+     "unit": "W",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    },
+    {
+     "id": "propellant",
+     "kind": "propellant",
+     "value": 0.0,
+     "unit": "g",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    }
+   ],
+   "draws": {
+    "inertia_scale_x": 0.9031120574269149,
+    "inertia_scale_y": 1.0272358510565467,
+    "inertia_scale_z": 0.9880771474518392,
+    "residual_dipole_Am2": 0.006028843112357625,
+    "cm_offset_mm": 10.303982519584347,
+    "F107": 170.2575688223016,
+    "sigma_accom": 0.9613484992827497,
+    "reflectivity": 0.5586826885102406,
+    "arg_lat_deg": 42.06252016789885
+   }
+  },
+  {
+   "k": 9,
+   "metrics": [
+    {
+     "id": "detumble_time",
+     "kind": "time_to_rate",
+     "value": null,
+     "unit": "min",
+     "req": 284.0,
+     "req_key": "req.detumble",
+     "pass": 0
+    },
+    {
+     "id": "ape_los_p9973",
+     "kind": "ape_los",
+     "value": 165.54368000601409,
+     "unit": "deg",
+     "req": 0.01,
+     "req_key": "req.ape",
+     "pass": 0
+    },
+    {
+     "id": "ake_los_p9973",
+     "kind": "ake_los",
+     "value": 0.288353809773679,
+     "unit": "deg",
+     "req": 0.005,
+     "req_key": "req.ake",
+     "pass": 0
+    },
+    {
+     "id": "power_mean",
+     "kind": "power_mean",
+     "value": 0.0841592496376629,
+     "unit": "W",
+     "req": 2.0,
+     "req_key": "req.pavg",
+     "pass": 1
+    },
+    {
+     "id": "power_peak",
+     "kind": "power_peak",
+     "value": 0.2266783269298584,
+     "unit": "W",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    },
+    {
+     "id": "propellant",
+     "kind": "propellant",
+     "value": 0.0,
+     "unit": "g",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    }
+   ],
+   "draws": {
+    "inertia_scale_x": 0.9438689461000362,
+    "inertia_scale_y": 0.9635914664835112,
+    "inertia_scale_z": 1.0979789588024138,
+    "residual_dipole_Am2": 0.01421535814643044,
+    "cm_offset_mm": 18.176448345867993,
+    "F107": 219.73480390624928,
+    "sigma_accom": 0.8169334451249866,
+    "reflectivity": 0.3242500808295981,
+    "arg_lat_deg": 358.2623605065539
+   }
+  },
+  {
+   "k": 10,
+   "metrics": [
+    {
+     "id": "detumble_time",
+     "kind": "time_to_rate",
+     "value": 253.99000000000004,
+     "unit": "min",
+     "req": 284.0,
+     "req_key": "req.detumble",
+     "pass": 1
+    },
+    {
+     "id": "ape_los_p9973",
+     "kind": "ape_los",
+     "value": 174.05993174321952,
+     "unit": "deg",
+     "req": 0.01,
+     "req_key": "req.ape",
+     "pass": 0
+    },
+    {
+     "id": "ake_los_p9973",
+     "kind": "ake_los",
+     "value": 0.1580177339868616,
+     "unit": "deg",
+     "req": 0.005,
+     "req_key": "req.ake",
+     "pass": 0
+    },
+    {
+     "id": "power_mean",
+     "kind": "power_mean",
+     "value": 0.08323648317774808,
+     "unit": "W",
+     "req": 2.0,
+     "req_key": "req.pavg",
+     "pass": 1
+    },
+    {
+     "id": "power_peak",
+     "kind": "power_peak",
+     "value": 0.21728502033276823,
+     "unit": "W",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    },
+    {
+     "id": "propellant",
+     "kind": "propellant",
+     "value": 0.0,
+     "unit": "g",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    }
+   ],
+   "draws": {
+    "inertia_scale_x": 1.076300569901127,
+    "inertia_scale_y": 0.9255175809956,
+    "inertia_scale_z": 0.9145486528124487,
+    "residual_dipole_Am2": 0.018034085389824792,
+    "cm_offset_mm": 23.00505667811382,
+    "F107": 85.86618553705146,
+    "sigma_accom": 0.7680982357935893,
+    "reflectivity": 0.8467196272503841,
+    "arg_lat_deg": 16.604256813141735
+   }
+  },
+  {
+   "k": 11,
+   "metrics": [
+    {
+     "id": "detumble_time",
+     "kind": "time_to_rate",
+     "value": null,
+     "unit": "min",
+     "req": 284.0,
+     "req_key": "req.detumble",
+     "pass": 0
+    },
+    {
+     "id": "ape_los_p9973",
+     "kind": "ape_los",
+     "value": 155.8701418301859,
+     "unit": "deg",
+     "req": 0.01,
+     "req_key": "req.ape",
+     "pass": 0
+    },
+    {
+     "id": "ake_los_p9973",
+     "kind": "ake_los",
+     "value": 0.2713087043099742,
+     "unit": "deg",
+     "req": 0.005,
+     "req_key": "req.ake",
+     "pass": 0
+    },
+    {
+     "id": "power_mean",
+     "kind": "power_mean",
+     "value": 0.08277597304684328,
+     "unit": "W",
+     "req": 2.0,
+     "req_key": "req.pavg",
+     "pass": 1
+    },
+    {
+     "id": "power_peak",
+     "kind": "power_peak",
+     "value": 0.22060136638068442,
+     "unit": "W",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    },
+    {
+     "id": "propellant",
+     "kind": "propellant",
+     "value": 0.0,
+     "unit": "g",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    }
+   ],
+   "draws": {
+    "inertia_scale_x": 0.9240556265841348,
+    "inertia_scale_y": 0.9157015177578883,
+    "inertia_scale_z": 0.9090812590132294,
+    "residual_dipole_Am2": 0.01586031646956984,
+    "cm_offset_mm": 28.888530533063918,
+    "F107": 213.47129287117158,
+    "sigma_accom": 0.7683295823961157,
+    "reflectivity": 0.6446466108262465,
+    "arg_lat_deg": 348.09575167011366
+   }
+  },
+  {
+   "k": 12,
+   "metrics": [
+    {
+     "id": "detumble_time",
+     "kind": "time_to_rate",
+     "value": null,
+     "unit": "min",
+     "req": 284.0,
+     "req_key": "req.detumble",
+     "pass": 0
+    },
+    {
+     "id": "ape_los_p9973",
+     "kind": "ape_los",
+     "value": 172.88251506290564,
+     "unit": "deg",
+     "req": 0.01,
+     "req_key": "req.ape",
+     "pass": 0
+    },
+    {
+     "id": "ake_los_p9973",
+     "kind": "ake_los",
+     "value": 0.5345409764253696,
+     "unit": "deg",
+     "req": 0.005,
+     "req_key": "req.ake",
+     "pass": 0
+    },
+    {
+     "id": "power_mean",
+     "kind": "power_mean",
+     "value": 0.0805364152576578,
+     "unit": "W",
+     "req": 2.0,
+     "req_key": "req.pavg",
+     "pass": 1
+    },
+    {
+     "id": "power_peak",
+     "kind": "power_peak",
+     "value": 0.22365788988730576,
+     "unit": "W",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    },
+    {
+     "id": "propellant",
+     "kind": "propellant",
+     "value": 0.0,
+     "unit": "g",
+     "req": null,
+     "req_key": "",
+     "pass": null
+    }
+   ],
+   "draws": {
+    "inertia_scale_x": 0.9821746507008556,
+    "inertia_scale_y": 0.9390430191258116,
+    "inertia_scale_z": 1.03941156795182,
+    "residual_dipole_Am2": 0.006662872017068538,
+    "cm_offset_mm": 11.629130680416617,
+    "F107": 171.92382172662735,
+    "sigma_accom": 0.8698729715997486,
+    "reflectivity": 0.5880936635608263,
+    "arg_lat_deg": 102.35197667134454
+   }
+  }
+ ]
+}

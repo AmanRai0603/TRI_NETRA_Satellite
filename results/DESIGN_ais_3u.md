@@ -62,6 +62,16 @@ Selection rule (node `select`, docs/NODES.md): least mass_kg, then power_W, then
 | sun_referencing | fmr+mtq | yes | 0.2513 sun_ape_p9973 | allocation=idmas_split, attitude=mekf, detumble=bdot_gyro, mtq_pointing=mtq_pd, pointing=pid, sun_acquisition=sunspin_l1l2 | — |
 | nadir_pointing | fmr+mtq | yes | 0.1514 ape_los_p9973 | allocation=idmas_split, attitude=mekf, detumble=bdot_gyro, mtq_pointing=mtq_pd, pointing=pid, sun_acquisition=sunspin_l1l2 | — |
 
+## Every solution family flown as the mission (node `family_missions`)
+
+Detumble -> Sun acquisition -> nadir with each family's best methods from the loop, C flight software (C = Rust bit for bit), and the Monte Carlo pass rate of each requirement metric.
+
+| family | selected | feasible | mass [kg] | methods | detumble_time | ape_los_p9973 | ake_los_p9973 | power_mean | C = Rust | MC pass rates |
+|---|---|---|---:|---|---:|---:|---:|---:|---|---|
+| mtq | no | no | 0.236 | detumble=mtq, sun_acquisition=mtq, sun_referencing=mtq, nadir_pointing=mtq | — | 174.2 ✗ | 1.479 ✓ | 0.1495 ✓ | True | detumble_time 50 %; ape_los_p9973 0 %; ake_los_p9973 83 %; power_mean 100 % |
+| mtq_fmr | yes | yes | 1.446 | detumble=mtq, sun_acquisition=fmr, sun_referencing=fmr+mtq, nadir_pointing=fmr+mtq | 55.64 ✓ | 0.1516 ✓ | 0.15 ✓ | 0.233 ✓ | True | detumble_time 100 %; ape_los_p9973 100 %; ake_los_p9973 100 %; power_mean 100 % |
+| mtq_fmr_rcs | no | no | 1.965 | detumble=mtq, sun_acquisition=fmr, sun_referencing=fmr+mtq, nadir_pointing=fmr+mtq | 55.64 ✓ | 0.1516 ✓ | 0.1499 ✓ | 0.2791 ✓ | True | detumble_time 100 %; ape_los_p9973 100 %; ake_los_p9973 100 %; power_mean 100 % |
+
 ## Mode matrix (last iteration, best algorithm per option)
 
 | mode | option | algorithm | feasible | objective | failing (cause) |
