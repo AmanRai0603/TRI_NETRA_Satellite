@@ -223,6 +223,39 @@ def verification():
             "Every check is listed in <code>results/NODE_VERIFICATION.md</code>.</p>" + table(["node", "checks passed", "verdict", "failures"], rows, num=(1,)))
 
 
+def literature():
+    """Section 7: the coils-only laws of the literature review, flown, tuned and certified per case."""
+    import importlib.util, sys as _s
+    spec = importlib.util.spec_from_file_location("pipeline", ROOT / "tools" / "pipeline.py")
+    out = ["<p>Sixteen magnetorquer-only papers were reviewed (literature_review_v2.pptx). Every law that the accessible text "
+           "specifies is now in the flight software, in C and Rust (bit for bit identical), in the pseudocode, and in the "
+           "registry as a candidate of its slot: Lovera &amp; Astolfi 2004, Celani 2015, Avanzini et al. 2021, Celani 2026 "
+           "(boresight, for the payload and for the power face), TANGO's frozen-Riccati LQR (flown), de Ruiter 2011, and "
+           "the P11 → P5 chain already in place (UPMSat-2 spin-up, He et al. Sun spin). Bruni &amp; Celani's min–max tuning "
+           "is node <code>tune</code>; Celani's Floquet certificate is node <code>certify</code>. The paper-by-paper record, "
+           "including what was not implemented and why, is <code>docs/MTQ_LITERATURE.md</code>.</p>"]
+    if "pipeline" not in _s.modules:
+        pl = importlib.util.module_from_spec(spec); _s.path.insert(0, str(ROOT / "tools")); spec.loader.exec_module(pl)
+    else:
+        pl = _s.modules["pipeline"]
+    for c in CASES:
+        log = jl(PIPE / c / "loop.json")
+        rows = pl.literature_table(log) if log else []
+        if rows:
+            out.append(f"<h3>{e(c)}: coils only, every law at its best gains</h3>" + table(
+                ["mode", "law", "paper", "best gains", "feasible", "objective (worst seed)", "failing"],
+                [[e(r["mode"]), f"<code>{e(r['law'])}</code>", e(r["paper"]), e(r["gains"]), verdict(r["feasible"]),
+                  f"{fmt(r['objective'])} {e(r['objective_id'])}", e(", ".join(r["failing"])) or "—"] for r in rows], num=(5,)))
+        fq = jl(PIPE / c / "floquet.json")
+        if fq:
+            out.append(f"<p>{e(c)}: Floquet multipliers of the coils-only nadir loop (linearised with gyroscopic and gravity-gradient "
+                       "terms, coil duty and the field along one orbit); all |μ| &lt; 1 certifies the periodic loop.</p>" + table(
+                ["law", "gains", "max |μ|", "certified"],
+                [[f"<code>{e(x['law'])}</code>" + (" <b>(dispatched)</b>" if x["dispatched"] else ""), e(str(x["gains"])), f"{x['max_mu']:.4f}",
+                  verdict(x["certified"])] for x in fq["laws"]], num=(2,)))
+    return "\n".join(out)
+
+
 def design():
     out = []
     for c in CASES:
@@ -543,7 +576,7 @@ def main():
         docno=f"TRN-ADCS-VV-{datetime.date.today():%Y%m%d}", date=f"{datetime.datetime.now(datetime.timezone.utc):%Y-%m-%d %H:%M} UTC", commit=e(commit),
         engine=e(eng.group(1) if eng else "adcs-engine-rs"), fsw="trinetra-fsw-c/1.0.0 and trinetra-fsw-rs (C99 and Rust no_std, adcs-fswcfg/1)",
         cases=e(", ".join(CASES)), verdicts=cards, summary=summ, fig_flow=svg_inline("docs/figures/flow_design_to_hils.svg"),
-        fig_arch=svg_inline("docs/figures/architecture_languages.svg"), nodes=nodes(), catalogue=catalogue(), requirements=requirements(), design=design(), sils=sils(), verification=verification(),
+        fig_arch=svg_inline("docs/figures/architecture_languages.svg"), nodes=nodes(), catalogue=catalogue(), literature=literature(), requirements=requirements(), design=design(), sils=sils(), verification=verification(),
         campaigns=campaigns(), parity=parity(), oils=oils(), vobc=vobc(), open=open_items())
     h = OUT / "TRINETRA_ADCS_VV_report.html"
     h.write_text(doc)
