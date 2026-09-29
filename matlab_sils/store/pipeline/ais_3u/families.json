@@ -20,7 +20,7 @@
   "algorithms": {
    "detumble": "bdot_gyro",
    "sun_acquisition": "sunspin_damped",
-   "mtq_pointing": "mtq_pd"
+   "mtq_pointing": "mtq_celani2026"
   },
   "package": "matlab_sils/store/pipeline/ais_3u/families/mtq/package",
   "check_dir": "matlab_sils/store/pipeline/ais_3u/families/mtq/dispatch",
@@ -39,7 +39,7 @@
     {
      "id": "ape_los_p9973",
      "kind": "ape_los",
-     "value": 8.672108880766942,
+     "value": 8.099265130609094,
      "unit": "deg",
      "req": 10.0,
      "req_key": "req.ape",
@@ -48,7 +48,7 @@
     {
      "id": "ake_los_p9973",
      "kind": "ake_los",
-     "value": 0.2548402729802666,
+     "value": 0.2841287104831018,
      "unit": "deg",
      "req": 5.0,
      "req_key": "req.ake",
@@ -57,7 +57,7 @@
     {
      "id": "power_mean",
      "kind": "power_mean",
-     "value": 0.07312921212459299,
+     "value": 0.07560563163701436,
      "unit": "W",
      "req": 0.5,
      "req_key": "req.pavg",
@@ -95,7 +95,7 @@
     {
      "id": "ape_los_p9973",
      "kind": "ape_los",
-     "value": 8.672108880766942,
+     "value": 8.099265130609094,
      "unit": "deg",
      "req": 10.0,
      "req_key": "req.ape",
@@ -104,7 +104,7 @@
     {
      "id": "ake_los_p9973",
      "kind": "ake_los",
-     "value": 0.2548402729802666,
+     "value": 0.2841287104831018,
      "unit": "deg",
      "req": 5.0,
      "req_key": "req.ake",
@@ -113,7 +113,7 @@
     {
      "id": "power_mean",
      "kind": "power_mean",
-     "value": 0.07312921212459299,
+     "value": 0.07560563163701436,
      "unit": "W",
      "req": 0.5,
      "req_key": "req.pavg",
@@ -173,30 +173,30 @@
     {
      "id": "ape_los_p9973",
      "req": 10.0,
-     "mean": 78.71793307425595,
-     "std": 48.06146320079106,
-     "min": 28.647584115845127,
-     "max": 179.42710302351887,
+     "mean": 20.69495989721072,
+     "std": 8.963024678771408,
+     "min": 10.58667092251342,
+     "max": 42.72133666406294,
      "pass_rate": 0.0,
      "pass": false
     },
     {
      "id": "ake_los_p9973",
      "req": 5.0,
-     "mean": 0.8510618800487051,
-     "std": 0.6000070823384731,
-     "min": 0.3279343806320237,
-     "max": 2.01347596701497,
+     "mean": 0.3527117096228866,
+     "std": 0.10636784612796148,
+     "min": 0.2035039018491476,
+     "max": 0.4992340060089743,
      "pass_rate": 1.0,
      "pass": true
     },
     {
      "id": "power_mean",
      "req": 0.5,
-     "mean": 0.15205747360268554,
-     "std": 0.04206884943761895,
-     "min": 0.04837482394529599,
-     "max": 0.19071404013740573,
+     "mean": 0.15509534509176534,
+     "std": 0.04285290595118015,
+     "min": 0.05062882903537175,
+     "max": 0.19981455521069869,
      "pass_rate": 1.0,
      "pass": true
     },

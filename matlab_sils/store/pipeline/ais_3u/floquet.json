@@ -1,7 +1,7 @@
 {
  "case": "ais_3u",
  "family": "mtq",
- "dispatched_law": "mtq_pd",
+ "dispatched_law": "mtq_celani2026",
  "C_body_orbit": [
   [
    0.003263147894462558,
@@ -22,7 +22,7 @@
  "laws": [
   {
    "law": "mtq_pd",
-   "dispatched": true,
+   "dispatched": false,
    "gains": "nominal",
    "mu_abs": [
     0.599150769470278,
@@ -102,17 +102,20 @@
   },
   {
    "law": "mtq_celani2026",
-   "dispatched": false,
-   "gains": "nominal",
+   "dispatched": true,
+   "gains": {
+    "mtq_gain_p": 4.0,
+    "mtq_gain_d": 0.25
+   },
    "mu_abs": [
-    0.7960625378097763,
-    0.68936761105186,
-    0.010685912498428375,
-    4.007135940557189e-05,
-    2.620650467679107e-16,
-    5.011306229238998e-18
+    0.7232659259090887,
+    0.01655429712822227,
+    0.00032105071434993914,
+    0.00032105071434993914,
+    0.00018080837596245618,
+    3.3661371329795076e-15
    ],
-   "max_mu": 0.68936761105186,
+   "max_mu": 0.01655429712822227,
    "free_directions": 1,
    "certified": true
   },

@@ -1,0 +1,5521 @@
+{
+ "iteration": 6,
+ "knobs": {
+  "scale": {
+   "mtqp": 3.375
+  },
+  "fmr_lambda": 0.30000000000000004
+ },
+ "class": "coarse",
+ "selected": "mtq_fmr",
+ "status": "feasible",
+ "feasible_options": 5,
+ "options": 25,
+ "changes": [
+  "mtqp: authority back to x2.25 (no improvement)"
+ ],
+ "blocked": [
+  "detumble/rcs: power fails at the sized authority (rcs); the part's standby power is the floor",
+  "nadir_pointing/cmg+mtq: power fails at the sized authority (cmg); the part's standby power is the floor",
+  "nadir_pointing/cmg+rcs: power fails at the sized authority (cmg); the part's standby power is the floor",
+  "nadir_pointing/fmr+rcs: power is the thrusters' valve power (RCS dumping), not the pump",
+  "nadir_pointing/rw+mtq: power fails at the sized authority (rw); the part's standby power is the floor",
+  "nadir_pointing/rw+rcs: power fails at the sized authority (rw); the part's standby power is the floor",
+  "nadir_pointing/vscmg+mtq: power fails at the sized authority (vscmg); the part's standby power is the floor",
+  "nadir_pointing/vscmg+rcs: power fails at the sized authority (vscmg); the part's standby power is the floor",
+  "sun_acquisition/cmg: power fails at the sized authority (cmg); the part's standby power is the floor",
+  "sun_acquisition/rw: power fails at the sized authority (rw); the part's standby power is the floor",
+  "sun_acquisition/vscmg: power fails at the sized authority (vscmg); the part's standby power is the floor",
+  "sun_referencing/cmg+mtq: power fails at the sized authority (cmg); the part's standby power is the floor",
+  "sun_referencing/cmg+rcs: power fails at the sized authority (cmg); the part's standby power is the floor",
+  "sun_referencing/fmr+rcs: power is the thrusters' valve power (RCS dumping), not the pump",
+  "sun_referencing/rw+mtq: power fails at the sized authority (rw); the part's standby power is the floor",
+  "sun_referencing/rw+rcs: power fails at the sized authority (rw); the part's standby power is the floor",
+  "sun_referencing/vscmg+mtq: power fails at the sized authority (vscmg); the part's standby power is the floor",
+  "sun_referencing/vscmg+rcs: power fails at the sized authority (vscmg); the part's standby power is the floor",
+  "mtqp: more authority did not reduce the performance violation (16.4 -> 30); kept at x2.25"
+ ],
+ "families": {
+  "mtq": {
+   "feasible": false,
+   "gaps": [
+    "sun_acquisition: sun_angle_p95 (performance), sun_acquisition_time (performance)",
+    "sun_referencing: sun_ape_p9973 (performance)"
+   ],
+   "budget": {
+    "mass_kg": 0.3440282051450232,
+    "power_W": 3.140282051450232,
+    "volume_L": 0.06161128205800928
+   }
+  },
+  "mtq_fmr": {
+   "feasible": true,
+   "gaps": [],
+   "budget": {
+    "mass_kg": 1.4460787006161835,
+    "power_W": 2.537983789464423,
+    "volume_L": 0.5371275973419273
+   }
+  },
+  "mtq_fmr_rcs": {
+   "feasible": false,
+   "gaps": [
+    "budget: mass_kg 1.96 > 1.6",
+    "budget: volume_L 1.52 > 1"
+   ],
+   "budget": {
+    "mass_kg": 1.9645395637579586,
+    "power_W": 2.5879837894644226,
+    "volume_L": 1.5191900411347952
+   }
+  },
+  "mtq_rw": {
+   "feasible": false,
+   "gaps": [
+    "sun_acquisition: power_mean (power)",
+    "sun_referencing: power_mean (power)"
+   ],
+   "budget": {
+    "mass_kg": 0.3928189933548182,
+    "power_W": 2.7281899335481827,
+    "volume_L": 0.0702795973419273
+   }
+  },
+  "mtq_rw_rcs": {
+   "feasible": false,
+   "gaps": [
+    "sun_acquisition: power_mean (power)",
+    "sun_referencing: power_mean (power)",
+    "budget: volume_L 1.05 > 1"
+   ],
+   "budget": {
+    "mass_kg": 0.9112798564965934,
+    "power_W": 2.7781899335481826,
+    "volume_L": 1.052342041134795
+   }
+  },
+  "mtq_cmg": {
+   "feasible": false,
+   "gaps": [
+    "sun_acquisition: power_mean (power)",
+    "sun_referencing: power_mean (power)"
+   ],
+   "budget": {
+    "mass_kg": 1.4128189933548183,
+    "power_W": 5.828189933548181,
+    "volume_L": 0.8091275973419273
+   }
+  },
+  "mtq_cmg_rcs": {
+   "feasible": false,
+   "gaps": [
+    "sun_acquisition: power_mean (power)",
+    "sun_referencing: power_mean (power)",
+    "budget: mass_kg 1.93 > 1.6",
+    "budget: volume_L 1.79 > 1"
+   ],
+   "budget": {
+    "mass_kg": 1.9312798564965934,
+    "power_W": 5.878189933548181,
+    "volume_L": 1.791190041134795
+   }
+  },
+  "mtq_vscmg": {
+   "feasible": false,
+   "gaps": [
+    "sun_acquisition: power_mean (power)",
+    "sun_referencing: power_mean (power)"
+   ],
+   "budget": {
+    "mass_kg": 1.4128189933548183,
+    "power_W": 5.828189933548181,
+    "volume_L": 0.8091275973419273
+   }
+  },
+  "mtq_vscmg_rcs": {
+   "feasible": false,
+   "gaps": [
+    "sun_acquisition: power_mean (power)",
+    "sun_referencing: power_mean (power)",
+    "budget: mass_kg 1.93 > 1.6",
+    "budget: volume_L 1.79 > 1"
+   ],
+   "budget": {
+    "mass_kg": 1.9312798564965934,
+    "power_W": 5.878189933548181,
+    "volume_L": 1.791190041134795
+   }
+  }
+ },
+ "matrix": [
+  {
+   "mode": "detumble",
+   "option": "mtq",
+   "alg": null,
+   "feasible": true,
+   "failing": {},
+   "objective": 39.556666666666665,
+   "objective_id": "detumble_time",
+   "objective_req": 284.0
+  },
+  {
+   "mode": "detumble",
+   "option": "rcs",
+   "alg": null,
+   "feasible": false,
+   "failing": {
+    "power_peak": "power"
+   },
+   "objective": 1.875,
+   "objective_id": "detumble_time",
+   "objective_req": 284.0
+  },
+  {
+   "mode": "sun_acquisition",
+   "option": "mtq",
+   "alg": "sun_boresight_celani2026",
+   "feasible": false,
+   "failing": {
+    "sun_angle_p95": "performance",
+    "sun_acquisition_time": "performance"
+   },
+   "objective": 79.92333333333335,
+   "objective_id": "sun_acquisition_time",
+   "objective_req": 95.0,
+   "variants": [
+    {
+     "alg": "sunspin_damped",
+     "feasible": false,
+     "failing": {
+      "sun_acquisition_time": "performance",
+      "sun_angle_p95": "performance",
+      "power_mean": "power"
+     },
+     "objective": 102.85666666666667,
+     "violation": 15.093276614152822
+    },
+    {
+     "alg": "sunspin_l1l2",
+     "feasible": false,
+     "failing": {
+      "sun_acquisition_time": "performance",
+      "sun_angle_p95": "performance",
+      "power_mean": "power"
+     },
+     "objective": 134.15666666666667,
+     "violation": 15.120750372197874
+    },
+    {
+     "alg": "sunspin_l1l2_e2",
+     "feasible": false,
+     "failing": {
+      "sun_acquisition_time": "performance",
+      "sun_angle_p95": "performance",
+      "power_mean": "power"
+     },
+     "objective": 48.623333333333335,
+     "violation": 15.120750372197874
+    },
+    {
+     "alg": "sunspin_deruiter2011",
+     "feasible": false,
+     "failing": {
+      "sun_acquisition_time": "performance",
+      "sun_angle_p95": "performance",
+      "power_mean": "power"
+     },
+     "objective": 57.92333333333333,
+     "violation": 15.667337386155397
+    },
+    {
+     "alg": "sun_boresight_celani2026",
+     "feasible": false,
+     "failing": {
+      "sun_angle_p95": "performance",
+      "sun_acquisition_time": "performance"
+     },
+     "objective": 79.92333333333335,
+     "violation": 13.74402364725394
+    },
+    {
+     "alg": "sunspin_damped@spin_rate_dps=2,ss_gain=0.3",
+     "feasible": false,
+     "failing": {
+      "sun_acquisition_time": "performance",
+      "sun_angle_p95": "performance",
+      "power_mean": "power"
+     },
+     "objective": 127.72333333333334,
+     "violation": 18.11374738888934
+    },
+    {
+     "alg": "sunspin_damped@spin_rate_dps=2,ss_gain=1",
+     "feasible": false,
+     "failing": {
+      "sun_acquisition_time": "performance",
+      "sun_angle_p95": "performance",
+      "power_mean": "power"
+     },
+     "objective": null,
+     "violation": 18.154314730360312
+    },
+    {
+     "alg": "sunspin_damped@spin_rate_dps=2,ss_gain=3",
+     "feasible": false,
+     "failing": {
+      "sun_acquisition_time": "performance",
+      "sun_angle_p95": "performance",
+      "power_mean": "power"
+     },
+     "objective": 99.92333333333335,
+     "violation": 18.11374738888934
+    },
+    {
+     "alg": "sunspin_damped@spin_rate_dps=4,ss_gain=0.3",
+     "feasible": false,
+     "failing": {
+      "sun_acquisition_time": "performance",
+      "sun_angle_p95": "performance",
+      "power_mean": "power"
+     },
+     "objective": 83.77333333333334,
+     "violation": 17.633441232169904
+    },
+    {
+     "alg": "sunspin_damped@spin_rate_dps=4,ss_gain=1",
+     "feasible": false,
+     "failing": {
+      "sun_angle_p95": "performance",
+      "power_mean": "power",
+      "sun_acquisition_time": "performance"
+     },
+     "objective": 80.04,
+     "violation": 18.29877250263835
+    },
+    {
+     "alg": "sunspin_damped@spin_rate_dps=4,ss_gain=3",
+     "feasible": false,
+     "failing": {
+      "sun_angle_p95": "performance",
+      "power_mean": "power",
+      "sun_acquisition_time": "performance"
+     },
+     "objective": 86.75666666666667,
+     "violation": 15.58718990838916
+    },
+    {
+     "alg": "sunspin_damped@spin_rate_dps=6,ss_gain=0.3",
+     "feasible": false,
+     "failing": {
+      "sun_acquisition_time": "performance",
+      "sun_angle_p95": "performance",
+      "power_mean": "power"
+     },
+     "objective": 77.35666666666667,
+     "violation": 14.471479219128208
+    },
+    {
+     "alg": "sunspin_damped@spin_rate_dps=6,ss_gain=1",
+     "feasible": false,
+     "failing": {
+      "sun_acquisition_time": "performance",
+      "sun_angle_p95": "performance",
+      "power_mean": "power"
+     },
+     "objective": 102.85666666666667,
+     "violation": 15.093276614152822
+    },
+    {
+     "alg": "sunspin_damped@spin_rate_dps=6,ss_gain=3",
+     "feasible": false,
+     "failing": {
+      "sun_acquisition_time": "performance",
+      "sun_angle_p95": "performance",
+      "power_mean": "power"
+     },
+     "objective": 87.97333333333334,
+     "violation": 15.735639206270616
+    },
+    {
+     "alg": "sunspin_l1l2@spin_rate_dps=2,ss_gain=0.3",
+     "feasible": false,
+     "failing": {
+      "sun_acquisition_time": "performance",
+      "sun_angle_p95": "performance",
+      "power_mean": "power"
+     },
+     "objective": 80.40666666666668,
+     "violation": 18.11374738888934
+    },
+    {
+     "alg": "sunspin_l1l2@spin_rate_dps=2,ss_gain=1",
+     "feasible": false,
+     "failing": {
+      "sun_acquisition_time": "performance",
+      "sun_angle_p95": "performance",
+      "power_mean": "power"
+     },
+     "objective": 92.64000000000001,
+     "violation": 18.11374738888934
+    },
+    {
+     "alg": "sunspin_l1l2@spin_rate_dps=2,ss_gain=3",
+     "feasible": false,
+     "failing": {
+      "sun_acquisition_time": "performance",
+      "sun_angle_p95": "performance",
+      "power_mean": "power"
+     },
+     "objective": 88.55666666666667,
+     "violation": 18.11374738888934
+    },
+    {
+     "alg": "sunspin_l1l2@spin_rate_dps=4,ss_gain=0.3",
+     "feasible": false,
+     "failing": {
+      "sun_angle_p95": "performance",
+      "power_mean": "power",
+      "sun_acquisition_time": "performance"
+     },
+     "objective": 91.07333333333334,
+     "violation": 16.270609552383505
+    },
+    {
+     "alg": "sunspin_l1l2@spin_rate_dps=4,ss_gain=1",
+     "feasible": false,
+     "failing": {
+      "sun_angle_p95": "performance",
+      "power_mean": "power",
+      "sun_acquisition_time": "performance"
+     },
+     "objective": 80.25666666666667,
+     "violation": 18.179570124400257
+    },
+    {
+     "alg": "sunspin_l1l2@spin_rate_dps=4,ss_gain=3",
+     "feasible": false,
+     "failing": {
+      "sun_angle_p95": "performance",
+      "power_mean": "power",
+      "sun_acquisition_time": "performance"
+     },
+     "objective": 79.42333333333335,
+     "violation": 17.908219980086038
+    },
+    {
+     "alg": "sunspin_l1l2@spin_rate_dps=6,ss_gain=0.3",
+     "feasible": false,
+     "failing": {
+      "sun_acquisition_time": "performance",
+      "sun_angle_p95": "performance",
+      "power_mean": "power"
+     },
+     "objective": 102.04,
+     "violation": 14.503615075748453
+    },
+    {
+     "alg": "sunspin_l1l2@spin_rate_dps=6,ss_gain=1",
+     "feasible": false,
+     "failing": {
+      "sun_acquisition_time": "performance",
+      "sun_angle_p95": "performance",
+      "power_mean": "power"
+     },
+     "objective": 134.15666666666667,
+     "violation": 15.120750372197874
+    },
+    {
+     "alg": "sunspin_l1l2@spin_rate_dps=6,ss_gain=3",
+     "feasible": false,
+     "failing": {
+      "sun_acquisition_time": "performance",
+      "sun_angle_p95": "performance",
+      "power_mean": "power"
+     },
+     "objective": 58.873333333333335,
+     "violation": 15.404888889787816
+    },
+    {
+     "alg": "sunspin_l1l2_e2@spin_rate_dps=2,ss_gain=0.3",
+     "feasible": false,
+     "failing": {
+      "sun_acquisition_time": "performance",
+      "sun_angle_p95": "performance",
+      "power_mean": "power"
+     },
+     "objective": 80.40666666666668,
+     "violation": 18.11374738888934
+    },
+    {
+     "alg": "sunspin_l1l2_e2@spin_rate_dps=2,ss_gain=1",
+     "feasible": false,
+     "failing": {
+      "sun_acquisition_time": "performance",
+      "sun_angle_p95": "performance",
+      "power_mean": "power"
+     },
+     "objective": 92.64000000000001,
+     "violation": 18.11374738888934
+    },
+    {
+     "alg": "sunspin_l1l2_e2@spin_rate_dps=2,ss_gain=3",
+     "feasible": false,
+     "failing": {
+      "sun_acquisition_time": "performance",
+      "sun_angle_p95": "performance",
+      "power_mean": "power"
+     },
+     "objective": 88.55666666666667,
+     "violation": 18.11374738888934
+    },
+    {
+     "alg": "sunspin_l1l2_e2@spin_rate_dps=4,ss_gain=0.3",
+     "feasible": false,
+     "failing": {
+      "sun_angle_p95": "performance",
+      "power_mean": "power",
+      "sun_acquisition_time": "performance"
+     },
+     "objective": 91.07333333333334,
+     "violation": 16.270609552383505
+    },
+    {
+     "alg": "sunspin_l1l2_e2@spin_rate_dps=4,ss_gain=1",
+     "feasible": false,
+     "failing": {
+      "sun_angle_p95": "performance",
+      "power_mean": "power",
+      "sun_acquisition_time": "performance"
+     },
+     "objective": 80.25666666666667,
+     "violation": 18.179570124400257
+    },
+    {
+     "alg": "sunspin_l1l2_e2@spin_rate_dps=4,ss_gain=3",
+     "feasible": false,
+     "failing": {
+      "power_mean": "power",
+      "sun_acquisition_time": "performance",
+      "sun_angle_p95": "performance"
+     },
+     "objective": 79.42333333333335,
+     "violation": 17.908219980086038
+    },
+    {
+     "alg": "sunspin_l1l2_e2@spin_rate_dps=6,ss_gain=0.3",
+     "feasible": false,
+     "failing": {
+      "sun_acquisition_time": "performance",
+      "sun_angle_p95": "performance",
+      "power_mean": "power"
+     },
+     "objective": 102.04,
+     "violation": 14.503615075748453
+    },
+    {
+     "alg": "sunspin_l1l2_e2@spin_rate_dps=6,ss_gain=1",
+     "feasible": false,
+     "failing": {
+      "sun_acquisition_time": "performance",
+      "sun_angle_p95": "performance",
+      "power_mean": "power"
+     },
+     "objective": 48.623333333333335,
+     "violation": 15.120750372197874
+    },
+    {
+     "alg": "sunspin_l1l2_e2@spin_rate_dps=6,ss_gain=3",
+     "feasible": false,
+     "failing": {
+      "sun_acquisition_time": "performance",
+      "sun_angle_p95": "performance",
+      "power_mean": "power"
+     },
+     "objective": 58.873333333333335,
+     "violation": 15.404888889787816
+    },
+    {
+     "alg": "sunspin_deruiter2011@spin_rate_dps=2,ss_gain=0.3",
+     "feasible": false,
+     "failing": {
+      "sun_acquisition_time": "performance",
+      "sun_angle_p95": "performance",
+      "power_mean": "power"
+     },
+     "objective": null,
+     "violation": 18.208779725062314
+    },
+    {
+     "alg": "sunspin_deruiter2011@spin_rate_dps=2,ss_gain=1",
+     "feasible": false,
+     "failing": {
+      "sun_acquisition_time": "performance",
+      "sun_angle_p95": "performance",
+      "power_mean": "power"
+     },
+     "objective": 102.64000000000001,
+     "violation": 18.17795740882123
+    },
+    {
+     "alg": "sunspin_deruiter2011@spin_rate_dps=2,ss_gain=3",
+     "feasible": false,
+     "failing": {
+      "sun_acquisition_time": "performance",
+      "sun_angle_p95": "performance",
+      "power_mean": "power"
+     },
+     "objective": null,
+     "violation": 18.158986192243326
+    },
+    {
+     "alg": "sunspin_deruiter2011@spin_rate_dps=4,ss_gain=0.3",
+     "feasible": false,
+     "failing": {
+      "sun_acquisition_time": "performance",
+      "sun_angle_p95": "performance",
+      "power_mean": "power"
+     },
+     "objective": 101.20666666666668,
+     "violation": 17.91716240739508
+    },
+    {
+     "alg": "sunspin_deruiter2011@spin_rate_dps=4,ss_gain=1",
+     "feasible": false,
+     "failing": {
+      "sun_acquisition_time": "performance",
+      "sun_angle_p95": "performance",
+      "power_mean": "power"
+     },
+     "objective": 81.42333333333335,
+     "violation": 18.004481609378686
+    },
+    {
+     "alg": "sunspin_deruiter2011@spin_rate_dps=4,ss_gain=3",
+     "feasible": false,
+     "failing": {
+      "sun_angle_p95": "performance",
+      "power_mean": "power",
+      "sun_acquisition_time": "performance"
+     },
+     "objective": 89.55666666666667,
+     "violation": 17.82916881313125
+    },
+    {
+     "alg": "sunspin_deruiter2011@spin_rate_dps=6,ss_gain=0.3",
+     "feasible": false,
+     "failing": {
+      "sun_acquisition_time": "performance",
+      "sun_angle_p95": "performance",
+      "power_mean": "power"
+     },
+     "objective": 80.19000000000001,
+     "violation": 14.62524662671114
+    },
+    {
+     "alg": "sunspin_deruiter2011@spin_rate_dps=6,ss_gain=1",
+     "feasible": false,
+     "failing": {
+      "sun_acquisition_time": "performance",
+      "sun_angle_p95": "performance",
+      "power_mean": "power"
+     },
+     "objective": 57.92333333333333,
+     "violation": 15.667337386155397
+    },
+    {
+     "alg": "sunspin_deruiter2011@spin_rate_dps=6,ss_gain=3",
+     "feasible": false,
+     "failing": {
+      "sun_acquisition_time": "performance",
+      "sun_angle_p95": "performance",
+      "power_mean": "power"
+     },
+     "objective": null,
+     "violation": 17.095596865921653
+    },
+    {
+     "alg": "sun_boresight_celani2026@spin_rate_dps=2,ss_gain=0.3",
+     "feasible": false,
+     "failing": {
+      "sun_angle_p95": "performance",
+      "sun_acquisition_time": "performance"
+     },
+     "objective": 79.92333333333335,
+     "violation": 13.74402364725394
+    },
+    {
+     "alg": "sun_boresight_celani2026@spin_rate_dps=2,ss_gain=1",
+     "feasible": false,
+     "failing": {
+      "sun_angle_p95": "performance",
+      "sun_acquisition_time": "performance"
+     },
+     "objective": 79.92333333333335,
+     "violation": 13.74402364725394
+    },
+    {
+     "alg": "sun_boresight_celani2026@spin_rate_dps=2,ss_gain=3",
+     "feasible": false,
+     "failing": {
+      "sun_angle_p95": "performance",
+      "sun_acquisition_time": "performance"
+     },
+     "objective": 79.92333333333335,
+     "violation": 13.74402364725394
+    },
+    {
+     "alg": "sun_boresight_celani2026@spin_rate_dps=4,ss_gain=0.3",
+     "feasible": false,
+     "failing": {
+      "sun_angle_p95": "performance",
+      "sun_acquisition_time": "performance"
+     },
+     "objective": 79.92333333333335,
+     "violation": 13.74402364725394
+    },
+    {
+     "alg": "sun_boresight_celani2026@spin_rate_dps=4,ss_gain=1",
+     "feasible": false,
+     "failing": {
+      "sun_angle_p95": "performance",
+      "sun_acquisition_time": "performance"
+     },
+     "objective": 79.92333333333335,
+     "violation": 13.74402364725394
+    },
+    {
+     "alg": "sun_boresight_celani2026@spin_rate_dps=4,ss_gain=3",
+     "feasible": false,
+     "failing": {
+      "sun_angle_p95": "performance",
+      "sun_acquisition_time": "performance"
+     },
+     "objective": 79.92333333333335,
+     "violation": 13.74402364725394
+    },
+    {
+     "alg": "sun_boresight_celani2026@spin_rate_dps=6,ss_gain=0.3",
+     "feasible": false,
+     "failing": {
+      "sun_angle_p95": "performance",
+      "sun_acquisition_time": "performance"
+     },
+     "objective": 79.92333333333335,
+     "violation": 13.74402364725394
+    },
+    {
+     "alg": "sun_boresight_celani2026@spin_rate_dps=6,ss_gain=1",
+     "feasible": false,
+     "failing": {
+      "sun_angle_p95": "performance",
+      "sun_acquisition_time": "performance"
+     },
+     "objective": 79.92333333333335,
+     "violation": 13.74402364725394
+    },
+    {
+     "alg": "sun_boresight_celani2026@spin_rate_dps=6,ss_gain=3",
+     "feasible": false,
+     "failing": {
+      "sun_angle_p95": "performance",
+      "sun_acquisition_time": "performance"
+     },
+     "objective": 79.92333333333335,
+     "violation": 13.74402364725394
+    }
+   ]
+  },
+  {
+   "mode": "sun_acquisition",
+   "option": "rw",
+   "alg": null,
+   "feasible": false,
+   "failing": {
+    "power_mean": "power"
+   },
+   "objective": 2.2916666666666665,
+   "objective_id": "sun_acquisition_time",
+   "objective_req": 95.0
+  },
+  {
+   "mode": "sun_acquisition",
+   "option": "cmg",
+   "alg": null,
+   "feasible": false,
+   "failing": {
+    "power_mean": "power"
+   },
+   "objective": 2.275,
+   "objective_id": "sun_acquisition_time",
+   "objective_req": 95.0
+  },
+  {
+   "mode": "sun_acquisition",
+   "option": "vscmg",
+   "alg": null,
+   "feasible": false,
+   "failing": {
+    "power_mean": "power"
+   },
+   "objective": 2.3916666666666666,
+   "objective_id": "sun_acquisition_time",
+   "objective_req": 95.0
+  },
+  {
+   "mode": "sun_acquisition",
+   "option": "fmr",
+   "alg": null,
+   "feasible": true,
+   "failing": {},
+   "objective": 2.2916666666666665,
+   "objective_id": "sun_acquisition_time",
+   "objective_req": 95.0
+  },
+  {
+   "mode": "sun_referencing",
+   "option": "mtq",
+   "alg": "mtq_celani2015@mtq_gain_p=0.25,mtq_gain_d=1,handover_out_dps=0.25",
+   "feasible": false,
+   "failing": {
+    "sun_ape_p9973": "performance"
+   },
+   "objective": 86.14201185603899,
+   "objective_id": "sun_ape_p9973",
+   "objective_req": 5.0,
+   "variants": [
+    {
+     "alg": "mtq_pd",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 147.35232609503157,
+     "violation": 28.470465219006314
+    },
+    {
+     "alg": "mtq_lqr",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 173.68426351911606,
+     "violation": 33.73685270382321
+    },
+    {
+     "alg": "mtq_smc",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 178.2116576673028,
+     "violation": 34.64233153346056
+    },
+    {
+     "alg": "mtq_rate_damp",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 153.26638229082693,
+     "violation": 29.653276458165386
+    },
+    {
+     "alg": "mtq_lovera2004",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 142.44517767356427,
+     "violation": 27.489035534712855
+    },
+    {
+     "alg": "mtq_celani2015",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 103.88128903702004,
+     "violation": 19.776257807404008
+    },
+    {
+     "alg": "mtq_avanzini2021",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 103.88128903702004,
+     "violation": 19.776257807404008
+    },
+    {
+     "alg": "mtq_celani2026",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 122.0586491505863,
+     "violation": 23.41172983011726
+    },
+    {
+     "alg": "mtq_tango2013",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 158.45431150516904,
+     "violation": 30.69086230103381
+    },
+    {
+     "alg": "mtq_pd@mtq_gain_p=0.25,mtq_gain_d=0.25,handover_out_dps=0.25",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 147.35232609503157,
+     "violation": 28.470465219006314
+    },
+    {
+     "alg": "mtq_pd@mtq_gain_p=0.25,mtq_gain_d=0.25,handover_out_dps=0.5",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 147.35232609503157,
+     "violation": 28.470465219006314
+    },
+    {
+     "alg": "mtq_pd@mtq_gain_p=0.25,mtq_gain_d=0.25,handover_out_dps=1",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 147.35232609503157,
+     "violation": 28.470465219006314
+    },
+    {
+     "alg": "mtq_pd@mtq_gain_p=0.25,mtq_gain_d=1,handover_out_dps=0.25",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 147.35232609503157,
+     "violation": 28.470465219006314
+    },
+    {
+     "alg": "mtq_pd@mtq_gain_p=0.25,mtq_gain_d=1,handover_out_dps=0.5",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 147.35232609503157,
+     "violation": 28.470465219006314
+    },
+    {
+     "alg": "mtq_pd@mtq_gain_p=0.25,mtq_gain_d=1,handover_out_dps=1",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 147.35232609503157,
+     "violation": 28.470465219006314
+    },
+    {
+     "alg": "mtq_pd@mtq_gain_p=0.25,mtq_gain_d=4,handover_out_dps=0.25",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 147.35232609503157,
+     "violation": 28.470465219006314
+    },
+    {
+     "alg": "mtq_pd@mtq_gain_p=0.25,mtq_gain_d=4,handover_out_dps=0.5",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 147.35232609503157,
+     "violation": 28.470465219006314
+    },
+    {
+     "alg": "mtq_pd@mtq_gain_p=0.25,mtq_gain_d=4,handover_out_dps=1",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 147.35232609503157,
+     "violation": 28.470465219006314
+    },
+    {
+     "alg": "mtq_pd@mtq_gain_p=1,mtq_gain_d=0.25,handover_out_dps=0.25",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 147.35232609503157,
+     "violation": 28.470465219006314
+    },
+    {
+     "alg": "mtq_pd@mtq_gain_p=1,mtq_gain_d=0.25,handover_out_dps=0.5",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 147.35232609503157,
+     "violation": 28.470465219006314
+    },
+    {
+     "alg": "mtq_pd@mtq_gain_p=1,mtq_gain_d=0.25,handover_out_dps=1",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 147.35232609503157,
+     "violation": 28.470465219006314
+    },
+    {
+     "alg": "mtq_pd@mtq_gain_p=1,mtq_gain_d=1,handover_out_dps=0.25",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 147.35232609503157,
+     "violation": 28.470465219006314
+    },
+    {
+     "alg": "mtq_pd@mtq_gain_p=1,mtq_gain_d=1,handover_out_dps=0.5",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 147.35232609503157,
+     "violation": 28.470465219006314
+    },
+    {
+     "alg": "mtq_pd@mtq_gain_p=1,mtq_gain_d=1,handover_out_dps=1",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 147.35232609503157,
+     "violation": 28.470465219006314
+    },
+    {
+     "alg": "mtq_pd@mtq_gain_p=1,mtq_gain_d=4,handover_out_dps=0.25",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 147.35232609503157,
+     "violation": 28.470465219006314
+    },
+    {
+     "alg": "mtq_pd@mtq_gain_p=1,mtq_gain_d=4,handover_out_dps=0.5",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 147.35232609503157,
+     "violation": 28.470465219006314
+    },
+    {
+     "alg": "mtq_pd@mtq_gain_p=1,mtq_gain_d=4,handover_out_dps=1",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 147.35232609503157,
+     "violation": 28.470465219006314
+    },
+    {
+     "alg": "mtq_pd@mtq_gain_p=4,mtq_gain_d=0.25,handover_out_dps=0.25",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 147.35232609503157,
+     "violation": 28.470465219006314
+    },
+    {
+     "alg": "mtq_pd@mtq_gain_p=4,mtq_gain_d=0.25,handover_out_dps=0.5",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 147.35232609503157,
+     "violation": 28.470465219006314
+    },
+    {
+     "alg": "mtq_pd@mtq_gain_p=4,mtq_gain_d=0.25,handover_out_dps=1",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 147.35232609503157,
+     "violation": 28.470465219006314
+    },
+    {
+     "alg": "mtq_pd@mtq_gain_p=4,mtq_gain_d=1,handover_out_dps=0.25",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 147.35232609503157,
+     "violation": 28.470465219006314
+    },
+    {
+     "alg": "mtq_pd@mtq_gain_p=4,mtq_gain_d=1,handover_out_dps=0.5",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 147.35232609503157,
+     "violation": 28.470465219006314
+    },
+    {
+     "alg": "mtq_pd@mtq_gain_p=4,mtq_gain_d=1,handover_out_dps=1",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 147.35232609503157,
+     "violation": 28.470465219006314
+    },
+    {
+     "alg": "mtq_pd@mtq_gain_p=4,mtq_gain_d=4,handover_out_dps=0.25",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 147.35232609503157,
+     "violation": 28.470465219006314
+    },
+    {
+     "alg": "mtq_pd@mtq_gain_p=4,mtq_gain_d=4,handover_out_dps=0.5",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 147.35232609503157,
+     "violation": 28.470465219006314
+    },
+    {
+     "alg": "mtq_pd@mtq_gain_p=4,mtq_gain_d=4,handover_out_dps=1",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 147.35232609503157,
+     "violation": 28.470465219006314
+    },
+    {
+     "alg": "mtq_lqr@mtq_gain_p=0.25,mtq_gain_d=0.25,handover_out_dps=0.25",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 176.02525138335315,
+     "violation": 34.20505027667063
+    },
+    {
+     "alg": "mtq_lqr@mtq_gain_p=0.25,mtq_gain_d=0.25,handover_out_dps=0.5",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 173.68426351911606,
+     "violation": 33.73685270382321
+    },
+    {
+     "alg": "mtq_lqr@mtq_gain_p=0.25,mtq_gain_d=0.25,handover_out_dps=1",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 175.52480473955143,
+     "violation": 34.104960947910286
+    },
+    {
+     "alg": "mtq_lqr@mtq_gain_p=0.25,mtq_gain_d=1,handover_out_dps=0.25",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 176.02525138335315,
+     "violation": 34.20505027667063
+    },
+    {
+     "alg": "mtq_lqr@mtq_gain_p=0.25,mtq_gain_d=1,handover_out_dps=0.5",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 173.68426351911606,
+     "violation": 33.73685270382321
+    },
+    {
+     "alg": "mtq_lqr@mtq_gain_p=0.25,mtq_gain_d=1,handover_out_dps=1",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 175.52480473955143,
+     "violation": 34.104960947910286
+    },
+    {
+     "alg": "mtq_lqr@mtq_gain_p=0.25,mtq_gain_d=4,handover_out_dps=0.25",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 176.02525138335315,
+     "violation": 34.20505027667063
+    },
+    {
+     "alg": "mtq_lqr@mtq_gain_p=0.25,mtq_gain_d=4,handover_out_dps=0.5",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 173.68426351911606,
+     "violation": 33.73685270382321
+    },
+    {
+     "alg": "mtq_lqr@mtq_gain_p=0.25,mtq_gain_d=4,handover_out_dps=1",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 175.52480473955143,
+     "violation": 34.104960947910286
+    },
+    {
+     "alg": "mtq_lqr@mtq_gain_p=1,mtq_gain_d=0.25,handover_out_dps=0.25",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 176.02525138335315,
+     "violation": 34.20505027667063
+    },
+    {
+     "alg": "mtq_lqr@mtq_gain_p=1,mtq_gain_d=0.25,handover_out_dps=0.5",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 173.68426351911606,
+     "violation": 33.73685270382321
+    },
+    {
+     "alg": "mtq_lqr@mtq_gain_p=1,mtq_gain_d=0.25,handover_out_dps=1",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 175.52480473955143,
+     "violation": 34.104960947910286
+    },
+    {
+     "alg": "mtq_lqr@mtq_gain_p=1,mtq_gain_d=1,handover_out_dps=0.25",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 176.02525138335315,
+     "violation": 34.20505027667063
+    },
+    {
+     "alg": "mtq_lqr@mtq_gain_p=1,mtq_gain_d=1,handover_out_dps=0.5",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 173.68426351911606,
+     "violation": 33.73685270382321
+    },
+    {
+     "alg": "mtq_lqr@mtq_gain_p=1,mtq_gain_d=1,handover_out_dps=1",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 175.52480473955143,
+     "violation": 34.104960947910286
+    },
+    {
+     "alg": "mtq_lqr@mtq_gain_p=1,mtq_gain_d=4,handover_out_dps=0.25",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 176.02525138335315,
+     "violation": 34.20505027667063
+    },
+    {
+     "alg": "mtq_lqr@mtq_gain_p=1,mtq_gain_d=4,handover_out_dps=0.5",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 173.68426351911606,
+     "violation": 33.73685270382321
+    },
+    {
+     "alg": "mtq_lqr@mtq_gain_p=1,mtq_gain_d=4,handover_out_dps=1",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 175.52480473955143,
+     "violation": 34.104960947910286
+    },
+    {
+     "alg": "mtq_lqr@mtq_gain_p=4,mtq_gain_d=0.25,handover_out_dps=0.25",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 176.02525138335315,
+     "violation": 34.20505027667063
+    },
+    {
+     "alg": "mtq_lqr@mtq_gain_p=4,mtq_gain_d=0.25,handover_out_dps=0.5",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 173.68426351911606,
+     "violation": 33.73685270382321
+    },
+    {
+     "alg": "mtq_lqr@mtq_gain_p=4,mtq_gain_d=0.25,handover_out_dps=1",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 175.52480473955143,
+     "violation": 34.104960947910286
+    },
+    {
+     "alg": "mtq_lqr@mtq_gain_p=4,mtq_gain_d=1,handover_out_dps=0.25",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 176.02525138335315,
+     "violation": 34.20505027667063
+    },
+    {
+     "alg": "mtq_lqr@mtq_gain_p=4,mtq_gain_d=1,handover_out_dps=0.5",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 173.68426351911606,
+     "violation": 33.73685270382321
+    },
+    {
+     "alg": "mtq_lqr@mtq_gain_p=4,mtq_gain_d=1,handover_out_dps=1",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 175.52480473955143,
+     "violation": 34.104960947910286
+    },
+    {
+     "alg": "mtq_lqr@mtq_gain_p=4,mtq_gain_d=4,handover_out_dps=0.25",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 176.02525138335315,
+     "violation": 34.20505027667063
+    },
+    {
+     "alg": "mtq_lqr@mtq_gain_p=4,mtq_gain_d=4,handover_out_dps=0.5",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 173.68426351911606,
+     "violation": 33.73685270382321
+    },
+    {
+     "alg": "mtq_lqr@mtq_gain_p=4,mtq_gain_d=4,handover_out_dps=1",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 175.52480473955143,
+     "violation": 34.104960947910286
+    },
+    {
+     "alg": "mtq_smc@mtq_gain_p=0.25,mtq_gain_d=0.25,handover_out_dps=0.25",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 178.2116576673028,
+     "violation": 34.64233153346056
+    },
+    {
+     "alg": "mtq_smc@mtq_gain_p=0.25,mtq_gain_d=0.25,handover_out_dps=0.5",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 178.2116576673028,
+     "violation": 34.64233153346056
+    },
+    {
+     "alg": "mtq_smc@mtq_gain_p=0.25,mtq_gain_d=0.25,handover_out_dps=1",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 178.2116576673028,
+     "violation": 34.64233153346056
+    },
+    {
+     "alg": "mtq_smc@mtq_gain_p=0.25,mtq_gain_d=1,handover_out_dps=0.25",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 178.2116576673028,
+     "violation": 34.64233153346056
+    },
+    {
+     "alg": "mtq_smc@mtq_gain_p=0.25,mtq_gain_d=1,handover_out_dps=0.5",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 178.2116576673028,
+     "violation": 34.64233153346056
+    },
+    {
+     "alg": "mtq_smc@mtq_gain_p=0.25,mtq_gain_d=1,handover_out_dps=1",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 178.2116576673028,
+     "violation": 34.64233153346056
+    },
+    {
+     "alg": "mtq_smc@mtq_gain_p=0.25,mtq_gain_d=4,handover_out_dps=0.25",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 178.2116576673028,
+     "violation": 34.64233153346056
+    },
+    {
+     "alg": "mtq_smc@mtq_gain_p=0.25,mtq_gain_d=4,handover_out_dps=0.5",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 178.2116576673028,
+     "violation": 34.64233153346056
+    },
+    {
+     "alg": "mtq_smc@mtq_gain_p=0.25,mtq_gain_d=4,handover_out_dps=1",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 178.2116576673028,
+     "violation": 34.64233153346056
+    },
+    {
+     "alg": "mtq_smc@mtq_gain_p=1,mtq_gain_d=0.25,handover_out_dps=0.25",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 178.2116576673028,
+     "violation": 34.64233153346056
+    },
+    {
+     "alg": "mtq_smc@mtq_gain_p=1,mtq_gain_d=0.25,handover_out_dps=0.5",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 178.2116576673028,
+     "violation": 34.64233153346056
+    },
+    {
+     "alg": "mtq_smc@mtq_gain_p=1,mtq_gain_d=0.25,handover_out_dps=1",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 178.2116576673028,
+     "violation": 34.64233153346056
+    },
+    {
+     "alg": "mtq_smc@mtq_gain_p=1,mtq_gain_d=1,handover_out_dps=0.25",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 178.2116576673028,
+     "violation": 34.64233153346056
+    },
+    {
+     "alg": "mtq_smc@mtq_gain_p=1,mtq_gain_d=1,handover_out_dps=0.5",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 178.2116576673028,
+     "violation": 34.64233153346056
+    },
+    {
+     "alg": "mtq_smc@mtq_gain_p=1,mtq_gain_d=1,handover_out_dps=1",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 178.2116576673028,
+     "violation": 34.64233153346056
+    },
+    {
+     "alg": "mtq_smc@mtq_gain_p=1,mtq_gain_d=4,handover_out_dps=0.25",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 178.2116576673028,
+     "violation": 34.64233153346056
+    },
+    {
+     "alg": "mtq_smc@mtq_gain_p=1,mtq_gain_d=4,handover_out_dps=0.5",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 178.2116576673028,
+     "violation": 34.64233153346056
+    },
+    {
+     "alg": "mtq_smc@mtq_gain_p=1,mtq_gain_d=4,handover_out_dps=1",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 178.2116576673028,
+     "violation": 34.64233153346056
+    },
+    {
+     "alg": "mtq_smc@mtq_gain_p=4,mtq_gain_d=0.25,handover_out_dps=0.25",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 178.2116576673028,
+     "violation": 34.64233153346056
+    },
+    {
+     "alg": "mtq_smc@mtq_gain_p=4,mtq_gain_d=0.25,handover_out_dps=0.5",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 178.2116576673028,
+     "violation": 34.64233153346056
+    },
+    {
+     "alg": "mtq_smc@mtq_gain_p=4,mtq_gain_d=0.25,handover_out_dps=1",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 178.2116576673028,
+     "violation": 34.64233153346056
+    },
+    {
+     "alg": "mtq_smc@mtq_gain_p=4,mtq_gain_d=1,handover_out_dps=0.25",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 178.2116576673028,
+     "violation": 34.64233153346056
+    },
+    {
+     "alg": "mtq_smc@mtq_gain_p=4,mtq_gain_d=1,handover_out_dps=0.5",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 178.2116576673028,
+     "violation": 34.64233153346056
+    },
+    {
+     "alg": "mtq_smc@mtq_gain_p=4,mtq_gain_d=1,handover_out_dps=1",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 178.2116576673028,
+     "violation": 34.64233153346056
+    },
+    {
+     "alg": "mtq_smc@mtq_gain_p=4,mtq_gain_d=4,handover_out_dps=0.25",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 178.2116576673028,
+     "violation": 34.64233153346056
+    },
+    {
+     "alg": "mtq_smc@mtq_gain_p=4,mtq_gain_d=4,handover_out_dps=0.5",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 178.2116576673028,
+     "violation": 34.64233153346056
+    },
+    {
+     "alg": "mtq_smc@mtq_gain_p=4,mtq_gain_d=4,handover_out_dps=1",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 178.2116576673028,
+     "violation": 34.64233153346056
+    },
+    {
+     "alg": "mtq_rate_damp@mtq_gain_p=0.25,mtq_gain_d=0.25,handover_out_dps=0.25",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 153.26638229082693,
+     "violation": 29.653276458165386
+    },
+    {
+     "alg": "mtq_rate_damp@mtq_gain_p=0.25,mtq_gain_d=0.25,handover_out_dps=0.5",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 153.26638229082693,
+     "violation": 29.653276458165386
+    },
+    {
+     "alg": "mtq_rate_damp@mtq_gain_p=0.25,mtq_gain_d=0.25,handover_out_dps=1",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 153.26638229082693,
+     "violation": 29.653276458165386
+    },
+    {
+     "alg": "mtq_rate_damp@mtq_gain_p=0.25,mtq_gain_d=1,handover_out_dps=0.25",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 153.26638229082693,
+     "violation": 29.653276458165386
+    },
+    {
+     "alg": "mtq_rate_damp@mtq_gain_p=0.25,mtq_gain_d=1,handover_out_dps=0.5",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 153.26638229082693,
+     "violation": 29.653276458165386
+    },
+    {
+     "alg": "mtq_rate_damp@mtq_gain_p=0.25,mtq_gain_d=1,handover_out_dps=1",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 153.26638229082693,
+     "violation": 29.653276458165386
+    },
+    {
+     "alg": "mtq_rate_damp@mtq_gain_p=0.25,mtq_gain_d=4,handover_out_dps=0.25",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 153.26638229082693,
+     "violation": 29.653276458165386
+    },
+    {
+     "alg": "mtq_rate_damp@mtq_gain_p=0.25,mtq_gain_d=4,handover_out_dps=0.5",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 153.26638229082693,
+     "violation": 29.653276458165386
+    },
+    {
+     "alg": "mtq_rate_damp@mtq_gain_p=0.25,mtq_gain_d=4,handover_out_dps=1",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 153.26638229082693,
+     "violation": 29.653276458165386
+    },
+    {
+     "alg": "mtq_rate_damp@mtq_gain_p=1,mtq_gain_d=0.25,handover_out_dps=0.25",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 153.26638229082693,
+     "violation": 29.653276458165386
+    },
+    {
+     "alg": "mtq_rate_damp@mtq_gain_p=1,mtq_gain_d=0.25,handover_out_dps=0.5",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 153.26638229082693,
+     "violation": 29.653276458165386
+    },
+    {
+     "alg": "mtq_rate_damp@mtq_gain_p=1,mtq_gain_d=0.25,handover_out_dps=1",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 153.26638229082693,
+     "violation": 29.653276458165386
+    },
+    {
+     "alg": "mtq_rate_damp@mtq_gain_p=1,mtq_gain_d=1,handover_out_dps=0.25",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 153.26638229082693,
+     "violation": 29.653276458165386
+    },
+    {
+     "alg": "mtq_rate_damp@mtq_gain_p=1,mtq_gain_d=1,handover_out_dps=0.5",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 153.26638229082693,
+     "violation": 29.653276458165386
+    },
+    {
+     "alg": "mtq_rate_damp@mtq_gain_p=1,mtq_gain_d=1,handover_out_dps=1",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 153.26638229082693,
+     "violation": 29.653276458165386
+    },
+    {
+     "alg": "mtq_rate_damp@mtq_gain_p=1,mtq_gain_d=4,handover_out_dps=0.25",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 153.26638229082693,
+     "violation": 29.653276458165386
+    },
+    {
+     "alg": "mtq_rate_damp@mtq_gain_p=1,mtq_gain_d=4,handover_out_dps=0.5",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 153.26638229082693,
+     "violation": 29.653276458165386
+    },
+    {
+     "alg": "mtq_rate_damp@mtq_gain_p=1,mtq_gain_d=4,handover_out_dps=1",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 153.26638229082693,
+     "violation": 29.653276458165386
+    },
+    {
+     "alg": "mtq_rate_damp@mtq_gain_p=4,mtq_gain_d=0.25,handover_out_dps=0.25",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 153.26638229082693,
+     "violation": 29.653276458165386
+    },
+    {
+     "alg": "mtq_rate_damp@mtq_gain_p=4,mtq_gain_d=0.25,handover_out_dps=0.5",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 153.26638229082693,
+     "violation": 29.653276458165386
+    },
+    {
+     "alg": "mtq_rate_damp@mtq_gain_p=4,mtq_gain_d=0.25,handover_out_dps=1",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 153.26638229082693,
+     "violation": 29.653276458165386
+    },
+    {
+     "alg": "mtq_rate_damp@mtq_gain_p=4,mtq_gain_d=1,handover_out_dps=0.25",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 153.26638229082693,
+     "violation": 29.653276458165386
+    },
+    {
+     "alg": "mtq_rate_damp@mtq_gain_p=4,mtq_gain_d=1,handover_out_dps=0.5",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 153.26638229082693,
+     "violation": 29.653276458165386
+    },
+    {
+     "alg": "mtq_rate_damp@mtq_gain_p=4,mtq_gain_d=1,handover_out_dps=1",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 153.26638229082693,
+     "violation": 29.653276458165386
+    },
+    {
+     "alg": "mtq_rate_damp@mtq_gain_p=4,mtq_gain_d=4,handover_out_dps=0.25",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 153.26638229082693,
+     "violation": 29.653276458165386
+    },
+    {
+     "alg": "mtq_rate_damp@mtq_gain_p=4,mtq_gain_d=4,handover_out_dps=0.5",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 153.26638229082693,
+     "violation": 29.653276458165386
+    },
+    {
+     "alg": "mtq_rate_damp@mtq_gain_p=4,mtq_gain_d=4,handover_out_dps=1",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 153.26638229082693,
+     "violation": 29.653276458165386
+    },
+    {
+     "alg": "mtq_lovera2004@mtq_gain_p=0.25,mtq_gain_d=0.25,handover_out_dps=0.25",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 148.68016572176157,
+     "violation": 28.736033144352312
+    },
+    {
+     "alg": "mtq_lovera2004@mtq_gain_p=0.25,mtq_gain_d=0.25,handover_out_dps=0.5",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 148.68016572176157,
+     "violation": 28.736033144352312
+    },
+    {
+     "alg": "mtq_lovera2004@mtq_gain_p=0.25,mtq_gain_d=0.25,handover_out_dps=1",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 148.68016572176157,
+     "violation": 28.736033144352312
+    },
+    {
+     "alg": "mtq_lovera2004@mtq_gain_p=0.25,mtq_gain_d=1,handover_out_dps=0.25",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 172.38156784879712,
+     "violation": 33.47631356975943
+    },
+    {
+     "alg": "mtq_lovera2004@mtq_gain_p=0.25,mtq_gain_d=1,handover_out_dps=0.5",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 172.38156784879712,
+     "violation": 33.47631356975943
+    },
+    {
+     "alg": "mtq_lovera2004@mtq_gain_p=0.25,mtq_gain_d=1,handover_out_dps=1",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 172.38156784879712,
+     "violation": 33.47631356975943
+    },
+    {
+     "alg": "mtq_lovera2004@mtq_gain_p=0.25,mtq_gain_d=4,handover_out_dps=0.25",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 160.5764307597747,
+     "violation": 31.11528615195494
+    },
+    {
+     "alg": "mtq_lovera2004@mtq_gain_p=0.25,mtq_gain_d=4,handover_out_dps=0.5",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 160.5764307597747,
+     "violation": 31.11528615195494
+    },
+    {
+     "alg": "mtq_lovera2004@mtq_gain_p=0.25,mtq_gain_d=4,handover_out_dps=1",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 160.5764307597747,
+     "violation": 31.11528615195494
+    },
+    {
+     "alg": "mtq_lovera2004@mtq_gain_p=1,mtq_gain_d=0.25,handover_out_dps=0.25",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 147.80429230080426,
+     "violation": 28.56085846016085
+    },
+    {
+     "alg": "mtq_lovera2004@mtq_gain_p=1,mtq_gain_d=0.25,handover_out_dps=0.5",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 147.80429230080426,
+     "violation": 28.56085846016085
+    },
+    {
+     "alg": "mtq_lovera2004@mtq_gain_p=1,mtq_gain_d=0.25,handover_out_dps=1",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 147.80429230080426,
+     "violation": 28.56085846016085
+    },
+    {
+     "alg": "mtq_lovera2004@mtq_gain_p=1,mtq_gain_d=1,handover_out_dps=0.25",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 142.44517767356427,
+     "violation": 27.489035534712855
+    },
+    {
+     "alg": "mtq_lovera2004@mtq_gain_p=1,mtq_gain_d=1,handover_out_dps=0.5",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 142.44517767356427,
+     "violation": 27.489035534712855
+    },
+    {
+     "alg": "mtq_lovera2004@mtq_gain_p=1,mtq_gain_d=1,handover_out_dps=1",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 142.44517767356427,
+     "violation": 27.489035534712855
+    },
+    {
+     "alg": "mtq_lovera2004@mtq_gain_p=1,mtq_gain_d=4,handover_out_dps=0.25",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 169.00039659017415,
+     "violation": 32.80007931803483
+    },
+    {
+     "alg": "mtq_lovera2004@mtq_gain_p=1,mtq_gain_d=4,handover_out_dps=0.5",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 169.00039659017415,
+     "violation": 32.80007931803483
+    },
+    {
+     "alg": "mtq_lovera2004@mtq_gain_p=1,mtq_gain_d=4,handover_out_dps=1",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 169.00039659017415,
+     "violation": 32.80007931803483
+    },
+    {
+     "alg": "mtq_lovera2004@mtq_gain_p=4,mtq_gain_d=0.25,handover_out_dps=0.25",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 155.7056679333746,
+     "violation": 30.14113358667492
+    },
+    {
+     "alg": "mtq_lovera2004@mtq_gain_p=4,mtq_gain_d=0.25,handover_out_dps=0.5",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 164.03334169223785,
+     "violation": 31.806668338447572
+    },
+    {
+     "alg": "mtq_lovera2004@mtq_gain_p=4,mtq_gain_d=0.25,handover_out_dps=1",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 165.20614171514788,
+     "violation": 32.04122834302957
+    },
+    {
+     "alg": "mtq_lovera2004@mtq_gain_p=4,mtq_gain_d=1,handover_out_dps=0.25",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 157.88204154892347,
+     "violation": 30.576408309784693
+    },
+    {
+     "alg": "mtq_lovera2004@mtq_gain_p=4,mtq_gain_d=1,handover_out_dps=0.5",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 157.88204154892347,
+     "violation": 30.576408309784693
+    },
+    {
+     "alg": "mtq_lovera2004@mtq_gain_p=4,mtq_gain_d=1,handover_out_dps=1",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 157.88204154892347,
+     "violation": 30.576408309784693
+    },
+    {
+     "alg": "mtq_lovera2004@mtq_gain_p=4,mtq_gain_d=4,handover_out_dps=0.25",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 173.31093592406265,
+     "violation": 33.66218718481253
+    },
+    {
+     "alg": "mtq_lovera2004@mtq_gain_p=4,mtq_gain_d=4,handover_out_dps=0.5",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 173.31093592406265,
+     "violation": 33.66218718481253
+    },
+    {
+     "alg": "mtq_lovera2004@mtq_gain_p=4,mtq_gain_d=4,handover_out_dps=1",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 173.31093592406265,
+     "violation": 33.66218718481253
+    },
+    {
+     "alg": "mtq_celani2015@mtq_gain_p=0.25,mtq_gain_d=0.25,handover_out_dps=0.25",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 103.85724995394166,
+     "violation": 19.771449990788334
+    },
+    {
+     "alg": "mtq_celani2015@mtq_gain_p=0.25,mtq_gain_d=0.25,handover_out_dps=0.5",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 103.85724995394166,
+     "violation": 19.771449990788334
+    },
+    {
+     "alg": "mtq_celani2015@mtq_gain_p=0.25,mtq_gain_d=0.25,handover_out_dps=1",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 103.85724995394166,
+     "violation": 19.771449990788334
+    },
+    {
+     "alg": "mtq_celani2015@mtq_gain_p=0.25,mtq_gain_d=1,handover_out_dps=0.25",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 86.14201185603899,
+     "violation": 16.2284023712078
+    },
+    {
+     "alg": "mtq_celani2015@mtq_gain_p=0.25,mtq_gain_d=1,handover_out_dps=0.5",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 86.14201185603899,
+     "violation": 16.2284023712078
+    },
+    {
+     "alg": "mtq_celani2015@mtq_gain_p=0.25,mtq_gain_d=1,handover_out_dps=1",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 86.14201185603899,
+     "violation": 16.2284023712078
+    },
+    {
+     "alg": "mtq_celani2015@mtq_gain_p=0.25,mtq_gain_d=4,handover_out_dps=0.25",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 125.42660838848336,
+     "violation": 24.085321677696673
+    },
+    {
+     "alg": "mtq_celani2015@mtq_gain_p=0.25,mtq_gain_d=4,handover_out_dps=0.5",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 125.42660838848336,
+     "violation": 24.085321677696673
+    },
+    {
+     "alg": "mtq_celani2015@mtq_gain_p=0.25,mtq_gain_d=4,handover_out_dps=1",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 125.42660838848336,
+     "violation": 24.085321677696673
+    },
+    {
+     "alg": "mtq_celani2015@mtq_gain_p=1,mtq_gain_d=0.25,handover_out_dps=0.25",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 138.80860396035612,
+     "violation": 26.761720792071223
+    },
+    {
+     "alg": "mtq_celani2015@mtq_gain_p=1,mtq_gain_d=0.25,handover_out_dps=0.5",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 138.80860396035612,
+     "violation": 26.761720792071223
+    },
+    {
+     "alg": "mtq_celani2015@mtq_gain_p=1,mtq_gain_d=0.25,handover_out_dps=1",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 138.80860396035612,
+     "violation": 26.761720792071223
+    },
+    {
+     "alg": "mtq_celani2015@mtq_gain_p=1,mtq_gain_d=1,handover_out_dps=0.25",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 103.88128903702004,
+     "violation": 19.776257807404008
+    },
+    {
+     "alg": "mtq_celani2015@mtq_gain_p=1,mtq_gain_d=1,handover_out_dps=0.5",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 103.88128903702004,
+     "violation": 19.776257807404008
+    },
+    {
+     "alg": "mtq_celani2015@mtq_gain_p=1,mtq_gain_d=1,handover_out_dps=1",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 103.88128903702004,
+     "violation": 19.776257807404008
+    },
+    {
+     "alg": "mtq_celani2015@mtq_gain_p=1,mtq_gain_d=4,handover_out_dps=0.25",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 173.21286928414187,
+     "violation": 33.64257385682838
+    },
+    {
+     "alg": "mtq_celani2015@mtq_gain_p=1,mtq_gain_d=4,handover_out_dps=0.5",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 173.21286928414187,
+     "violation": 33.64257385682838
+    },
+    {
+     "alg": "mtq_celani2015@mtq_gain_p=1,mtq_gain_d=4,handover_out_dps=1",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 173.21286928414187,
+     "violation": 33.64257385682838
+    },
+    {
+     "alg": "mtq_celani2015@mtq_gain_p=4,mtq_gain_d=0.25,handover_out_dps=0.25",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 174.44860880196137,
+     "violation": 33.88972176039228
+    },
+    {
+     "alg": "mtq_celani2015@mtq_gain_p=4,mtq_gain_d=0.25,handover_out_dps=0.5",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 174.44860880196137,
+     "violation": 33.88972176039228
+    },
+    {
+     "alg": "mtq_celani2015@mtq_gain_p=4,mtq_gain_d=0.25,handover_out_dps=1",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 174.44860880196137,
+     "violation": 33.88972176039228
+    },
+    {
+     "alg": "mtq_celani2015@mtq_gain_p=4,mtq_gain_d=1,handover_out_dps=0.25",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 174.03529886910982,
+     "violation": 33.80705977382196
+    },
+    {
+     "alg": "mtq_celani2015@mtq_gain_p=4,mtq_gain_d=1,handover_out_dps=0.5",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 174.03529886910982,
+     "violation": 33.80705977382196
+    },
+    {
+     "alg": "mtq_celani2015@mtq_gain_p=4,mtq_gain_d=1,handover_out_dps=1",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 174.03529886910982,
+     "violation": 33.80705977382196
+    },
+    {
+     "alg": "mtq_celani2015@mtq_gain_p=4,mtq_gain_d=4,handover_out_dps=0.25",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 157.92154126804533,
+     "violation": 30.584308253609066
+    },
+    {
+     "alg": "mtq_celani2015@mtq_gain_p=4,mtq_gain_d=4,handover_out_dps=0.5",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 157.92154126804533,
+     "violation": 30.584308253609066
+    },
+    {
+     "alg": "mtq_celani2015@mtq_gain_p=4,mtq_gain_d=4,handover_out_dps=1",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 157.92154126804533,
+     "violation": 30.584308253609066
+    },
+    {
+     "alg": "mtq_avanzini2021@mtq_gain_p=0.25,mtq_gain_d=0.25,handover_out_dps=0.25",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 103.85724995394166,
+     "violation": 19.771449990788334
+    },
+    {
+     "alg": "mtq_avanzini2021@mtq_gain_p=0.25,mtq_gain_d=0.25,handover_out_dps=0.5",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 103.85724995394166,
+     "violation": 19.771449990788334
+    },
+    {
+     "alg": "mtq_avanzini2021@mtq_gain_p=0.25,mtq_gain_d=0.25,handover_out_dps=1",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 103.85724995394166,
+     "violation": 19.771449990788334
+    },
+    {
+     "alg": "mtq_avanzini2021@mtq_gain_p=0.25,mtq_gain_d=1,handover_out_dps=0.25",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 86.14201185603899,
+     "violation": 16.2284023712078
+    },
+    {
+     "alg": "mtq_avanzini2021@mtq_gain_p=0.25,mtq_gain_d=1,handover_out_dps=0.5",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 86.14201185603899,
+     "violation": 16.2284023712078
+    },
+    {
+     "alg": "mtq_avanzini2021@mtq_gain_p=0.25,mtq_gain_d=1,handover_out_dps=1",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 86.14201185603899,
+     "violation": 16.2284023712078
+    },
+    {
+     "alg": "mtq_avanzini2021@mtq_gain_p=0.25,mtq_gain_d=4,handover_out_dps=0.25",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 125.42660838848336,
+     "violation": 24.085321677696673
+    },
+    {
+     "alg": "mtq_avanzini2021@mtq_gain_p=0.25,mtq_gain_d=4,handover_out_dps=0.5",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 125.42660838848336,
+     "violation": 24.085321677696673
+    },
+    {
+     "alg": "mtq_avanzini2021@mtq_gain_p=0.25,mtq_gain_d=4,handover_out_dps=1",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 125.42660838848336,
+     "violation": 24.085321677696673
+    },
+    {
+     "alg": "mtq_avanzini2021@mtq_gain_p=1,mtq_gain_d=0.25,handover_out_dps=0.25",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 138.80860396035612,
+     "violation": 26.761720792071223
+    },
+    {
+     "alg": "mtq_avanzini2021@mtq_gain_p=1,mtq_gain_d=0.25,handover_out_dps=0.5",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 138.80860396035612,
+     "violation": 26.761720792071223
+    },
+    {
+     "alg": "mtq_avanzini2021@mtq_gain_p=1,mtq_gain_d=0.25,handover_out_dps=1",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 138.80860396035612,
+     "violation": 26.761720792071223
+    },
+    {
+     "alg": "mtq_avanzini2021@mtq_gain_p=1,mtq_gain_d=1,handover_out_dps=0.25",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 103.88128903702004,
+     "violation": 19.776257807404008
+    },
+    {
+     "alg": "mtq_avanzini2021@mtq_gain_p=1,mtq_gain_d=1,handover_out_dps=0.5",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 103.88128903702004,
+     "violation": 19.776257807404008
+    },
+    {
+     "alg": "mtq_avanzini2021@mtq_gain_p=1,mtq_gain_d=1,handover_out_dps=1",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 103.88128903702004,
+     "violation": 19.776257807404008
+    },
+    {
+     "alg": "mtq_avanzini2021@mtq_gain_p=1,mtq_gain_d=4,handover_out_dps=0.25",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 173.21286928414187,
+     "violation": 33.64257385682838
+    },
+    {
+     "alg": "mtq_avanzini2021@mtq_gain_p=1,mtq_gain_d=4,handover_out_dps=0.5",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 173.21286928414187,
+     "violation": 33.64257385682838
+    },
+    {
+     "alg": "mtq_avanzini2021@mtq_gain_p=1,mtq_gain_d=4,handover_out_dps=1",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 173.21286928414187,
+     "violation": 33.64257385682838
+    },
+    {
+     "alg": "mtq_avanzini2021@mtq_gain_p=4,mtq_gain_d=0.25,handover_out_dps=0.25",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 174.44860880196137,
+     "violation": 33.88972176039228
+    },
+    {
+     "alg": "mtq_avanzini2021@mtq_gain_p=4,mtq_gain_d=0.25,handover_out_dps=0.5",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 174.44860880196137,
+     "violation": 33.88972176039228
+    },
+    {
+     "alg": "mtq_avanzini2021@mtq_gain_p=4,mtq_gain_d=0.25,handover_out_dps=1",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 174.44860880196137,
+     "violation": 33.88972176039228
+    },
+    {
+     "alg": "mtq_avanzini2021@mtq_gain_p=4,mtq_gain_d=1,handover_out_dps=0.25",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 174.03529886910982,
+     "violation": 33.80705977382196
+    },
+    {
+     "alg": "mtq_avanzini2021@mtq_gain_p=4,mtq_gain_d=1,handover_out_dps=0.5",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 174.03529886910982,
+     "violation": 33.80705977382196
+    },
+    {
+     "alg": "mtq_avanzini2021@mtq_gain_p=4,mtq_gain_d=1,handover_out_dps=1",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 174.03529886910982,
+     "violation": 33.80705977382196
+    },
+    {
+     "alg": "mtq_avanzini2021@mtq_gain_p=4,mtq_gain_d=4,handover_out_dps=0.25",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 157.92154126804533,
+     "violation": 30.584308253609066
+    },
+    {
+     "alg": "mtq_avanzini2021@mtq_gain_p=4,mtq_gain_d=4,handover_out_dps=0.5",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 157.92154126804533,
+     "violation": 30.584308253609066
+    },
+    {
+     "alg": "mtq_avanzini2021@mtq_gain_p=4,mtq_gain_d=4,handover_out_dps=1",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 157.92154126804533,
+     "violation": 30.584308253609066
+    },
+    {
+     "alg": "mtq_celani2026@mtq_gain_p=0.25,mtq_gain_d=0.25,handover_out_dps=0.25",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 104.7142522975097,
+     "violation": 19.94285045950194
+    },
+    {
+     "alg": "mtq_celani2026@mtq_gain_p=0.25,mtq_gain_d=0.25,handover_out_dps=0.5",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 104.7142522975097,
+     "violation": 19.94285045950194
+    },
+    {
+     "alg": "mtq_celani2026@mtq_gain_p=0.25,mtq_gain_d=0.25,handover_out_dps=1",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 104.7142522975097,
+     "violation": 19.94285045950194
+    },
+    {
+     "alg": "mtq_celani2026@mtq_gain_p=0.25,mtq_gain_d=1,handover_out_dps=0.25",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 86.72910626475402,
+     "violation": 16.345821252950806
+    },
+    {
+     "alg": "mtq_celani2026@mtq_gain_p=0.25,mtq_gain_d=1,handover_out_dps=0.5",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 86.72910626475402,
+     "violation": 16.345821252950806
+    },
+    {
+     "alg": "mtq_celani2026@mtq_gain_p=0.25,mtq_gain_d=1,handover_out_dps=1",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 86.72910626475402,
+     "violation": 16.345821252950806
+    },
+    {
+     "alg": "mtq_celani2026@mtq_gain_p=0.25,mtq_gain_d=4,handover_out_dps=0.25",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 146.5859677761402,
+     "violation": 28.317193555228037
+    },
+    {
+     "alg": "mtq_celani2026@mtq_gain_p=0.25,mtq_gain_d=4,handover_out_dps=0.5",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 146.5859677761402,
+     "violation": 28.317193555228037
+    },
+    {
+     "alg": "mtq_celani2026@mtq_gain_p=0.25,mtq_gain_d=4,handover_out_dps=1",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 146.5859677761402,
+     "violation": 28.317193555228037
+    },
+    {
+     "alg": "mtq_celani2026@mtq_gain_p=1,mtq_gain_d=0.25,handover_out_dps=0.25",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 164.7681793774023,
+     "violation": 31.953635875480458
+    },
+    {
+     "alg": "mtq_celani2026@mtq_gain_p=1,mtq_gain_d=0.25,handover_out_dps=0.5",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 164.7681793774023,
+     "violation": 31.953635875480458
+    },
+    {
+     "alg": "mtq_celani2026@mtq_gain_p=1,mtq_gain_d=0.25,handover_out_dps=1",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 164.7681793774023,
+     "violation": 31.953635875480458
+    },
+    {
+     "alg": "mtq_celani2026@mtq_gain_p=1,mtq_gain_d=1,handover_out_dps=0.25",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 122.0586491505863,
+     "violation": 23.41172983011726
+    },
+    {
+     "alg": "mtq_celani2026@mtq_gain_p=1,mtq_gain_d=1,handover_out_dps=0.5",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 122.0586491505863,
+     "violation": 23.41172983011726
+    },
+    {
+     "alg": "mtq_celani2026@mtq_gain_p=1,mtq_gain_d=1,handover_out_dps=1",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 122.0586491505863,
+     "violation": 23.41172983011726
+    },
+    {
+     "alg": "mtq_celani2026@mtq_gain_p=1,mtq_gain_d=4,handover_out_dps=0.25",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 139.26236606167092,
+     "violation": 26.852473212334182
+    },
+    {
+     "alg": "mtq_celani2026@mtq_gain_p=1,mtq_gain_d=4,handover_out_dps=0.5",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 139.26236606167092,
+     "violation": 26.852473212334182
+    },
+    {
+     "alg": "mtq_celani2026@mtq_gain_p=1,mtq_gain_d=4,handover_out_dps=1",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 139.26236606167092,
+     "violation": 26.852473212334182
+    },
+    {
+     "alg": "mtq_celani2026@mtq_gain_p=4,mtq_gain_d=0.25,handover_out_dps=0.25",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 161.44357903544284,
+     "violation": 31.288715807088565
+    },
+    {
+     "alg": "mtq_celani2026@mtq_gain_p=4,mtq_gain_d=0.25,handover_out_dps=0.5",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 176.65177587377974,
+     "violation": 34.33035517475595
+    },
+    {
+     "alg": "mtq_celani2026@mtq_gain_p=4,mtq_gain_d=0.25,handover_out_dps=1",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 175.93788395932353,
+     "violation": 34.18757679186471
+    },
+    {
+     "alg": "mtq_celani2026@mtq_gain_p=4,mtq_gain_d=1,handover_out_dps=0.25",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 176.38769753684332,
+     "violation": 34.277539507368665
+    },
+    {
+     "alg": "mtq_celani2026@mtq_gain_p=4,mtq_gain_d=1,handover_out_dps=0.5",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 176.38769753684332,
+     "violation": 34.277539507368665
+    },
+    {
+     "alg": "mtq_celani2026@mtq_gain_p=4,mtq_gain_d=1,handover_out_dps=1",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 176.38769753684332,
+     "violation": 34.277539507368665
+    },
+    {
+     "alg": "mtq_celani2026@mtq_gain_p=4,mtq_gain_d=4,handover_out_dps=0.25",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 156.27172479789704,
+     "violation": 30.254344959579406
+    },
+    {
+     "alg": "mtq_celani2026@mtq_gain_p=4,mtq_gain_d=4,handover_out_dps=0.5",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 156.27172479789704,
+     "violation": 30.254344959579406
+    },
+    {
+     "alg": "mtq_celani2026@mtq_gain_p=4,mtq_gain_d=4,handover_out_dps=1",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 156.27172479789704,
+     "violation": 30.254344959579406
+    },
+    {
+     "alg": "mtq_tango2013@mtq_gain_p=0.25,mtq_gain_d=0.25,handover_out_dps=0.25",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 178.31047635234899,
+     "violation": 34.6620952704698
+    },
+    {
+     "alg": "mtq_tango2013@mtq_gain_p=0.25,mtq_gain_d=0.25,handover_out_dps=0.5",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 178.31047635234899,
+     "violation": 34.6620952704698
+    },
+    {
+     "alg": "mtq_tango2013@mtq_gain_p=0.25,mtq_gain_d=0.25,handover_out_dps=1",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 178.31047635234899,
+     "violation": 34.6620952704698
+    },
+    {
+     "alg": "mtq_tango2013@mtq_gain_p=0.25,mtq_gain_d=1,handover_out_dps=0.25",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 137.7476189906446,
+     "violation": 26.549523798128924
+    },
+    {
+     "alg": "mtq_tango2013@mtq_gain_p=0.25,mtq_gain_d=1,handover_out_dps=0.5",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 137.7476189906446,
+     "violation": 26.549523798128924
+    },
+    {
+     "alg": "mtq_tango2013@mtq_gain_p=0.25,mtq_gain_d=1,handover_out_dps=1",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 137.7476189906446,
+     "violation": 26.549523798128924
+    },
+    {
+     "alg": "mtq_tango2013@mtq_gain_p=0.25,mtq_gain_d=4,handover_out_dps=0.25",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 178.95916856370118,
+     "violation": 34.791833712740235
+    },
+    {
+     "alg": "mtq_tango2013@mtq_gain_p=0.25,mtq_gain_d=4,handover_out_dps=0.5",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 178.95916856370118,
+     "violation": 34.791833712740235
+    },
+    {
+     "alg": "mtq_tango2013@mtq_gain_p=0.25,mtq_gain_d=4,handover_out_dps=1",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 178.95916856370118,
+     "violation": 34.791833712740235
+    },
+    {
+     "alg": "mtq_tango2013@mtq_gain_p=1,mtq_gain_d=0.25,handover_out_dps=0.25",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 175.16014371144414,
+     "violation": 34.03202874228883
+    },
+    {
+     "alg": "mtq_tango2013@mtq_gain_p=1,mtq_gain_d=0.25,handover_out_dps=0.5",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 175.16014371144414,
+     "violation": 34.03202874228883
+    },
+    {
+     "alg": "mtq_tango2013@mtq_gain_p=1,mtq_gain_d=0.25,handover_out_dps=1",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 173.30677497588266,
+     "violation": 33.66135499517653
+    },
+    {
+     "alg": "mtq_tango2013@mtq_gain_p=1,mtq_gain_d=1,handover_out_dps=0.25",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 158.45431150516904,
+     "violation": 30.69086230103381
+    },
+    {
+     "alg": "mtq_tango2013@mtq_gain_p=1,mtq_gain_d=1,handover_out_dps=0.5",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 158.45431150516904,
+     "violation": 30.69086230103381
+    },
+    {
+     "alg": "mtq_tango2013@mtq_gain_p=1,mtq_gain_d=1,handover_out_dps=1",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 158.45431150516904,
+     "violation": 30.69086230103381
+    },
+    {
+     "alg": "mtq_tango2013@mtq_gain_p=1,mtq_gain_d=4,handover_out_dps=0.25",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 177.8268031306409,
+     "violation": 34.56536062612818
+    },
+    {
+     "alg": "mtq_tango2013@mtq_gain_p=1,mtq_gain_d=4,handover_out_dps=0.5",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 177.8268031306409,
+     "violation": 34.56536062612818
+    },
+    {
+     "alg": "mtq_tango2013@mtq_gain_p=1,mtq_gain_d=4,handover_out_dps=1",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 177.8268031306409,
+     "violation": 34.56536062612818
+    },
+    {
+     "alg": "mtq_tango2013@mtq_gain_p=4,mtq_gain_d=0.25,handover_out_dps=0.25",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 172.9516082954356,
+     "violation": 33.59032165908712
+    },
+    {
+     "alg": "mtq_tango2013@mtq_gain_p=4,mtq_gain_d=0.25,handover_out_dps=0.5",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 172.0528662858878,
+     "violation": 33.41057325717756
+    },
+    {
+     "alg": "mtq_tango2013@mtq_gain_p=4,mtq_gain_d=0.25,handover_out_dps=1",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 173.3806614923926,
+     "violation": 33.67613229847852
+    },
+    {
+     "alg": "mtq_tango2013@mtq_gain_p=4,mtq_gain_d=1,handover_out_dps=0.25",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 175.7949038752276,
+     "violation": 34.15898077504552
+    },
+    {
+     "alg": "mtq_tango2013@mtq_gain_p=4,mtq_gain_d=1,handover_out_dps=0.5",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 170.99432551032007,
+     "violation": 33.19886510206401
+    },
+    {
+     "alg": "mtq_tango2013@mtq_gain_p=4,mtq_gain_d=1,handover_out_dps=1",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 177.47670787309377,
+     "violation": 34.495341574618756
+    },
+    {
+     "alg": "mtq_tango2013@mtq_gain_p=4,mtq_gain_d=4,handover_out_dps=0.25",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 175.0894727436069,
+     "violation": 34.01789454872138
+    },
+    {
+     "alg": "mtq_tango2013@mtq_gain_p=4,mtq_gain_d=4,handover_out_dps=0.5",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 163.7475204288289,
+     "violation": 31.74950408576578
+    },
+    {
+     "alg": "mtq_tango2013@mtq_gain_p=4,mtq_gain_d=4,handover_out_dps=1",
+     "feasible": false,
+     "failing": {
+      "sun_ape_p9973": "performance"
+     },
+     "objective": 177.39832743252748,
+     "violation": 34.479665486505496
+    }
+   ]
+  },
+  {
+   "mode": "sun_referencing",
+   "option": "rw+mtq",
+   "alg": null,
+   "feasible": false,
+   "failing": {
+    "power_mean": "power"
+   },
+   "objective": 0.2467557211449337,
+   "objective_id": "sun_ape_p9973",
+   "objective_req": 5.0
+  },
+  {
+   "mode": "sun_referencing",
+   "option": "rw+rcs",
+   "alg": null,
+   "feasible": false,
+   "failing": {
+    "power_mean": "power"
+   },
+   "objective": 0.24634391954113763,
+   "objective_id": "sun_ape_p9973",
+   "objective_req": 5.0
+  },
+  {
+   "mode": "sun_referencing",
+   "option": "cmg+mtq",
+   "alg": null,
+   "feasible": false,
+   "failing": {
+    "power_mean": "power"
+   },
+   "objective": 0.2463844785264064,
+   "objective_id": "sun_ape_p9973",
+   "objective_req": 5.0
+  },
+  {
+   "mode": "sun_referencing",
+   "option": "cmg+rcs",
+   "alg": null,
+   "feasible": false,
+   "failing": {
+    "power_mean": "power"
+   },
+   "objective": 0.24635829069549853,
+   "objective_id": "sun_ape_p9973",
+   "objective_req": 5.0
+  },
+  {
+   "mode": "sun_referencing",
+   "option": "vscmg+mtq",
+   "alg": null,
+   "feasible": false,
+   "failing": {
+    "power_mean": "power"
+   },
+   "objective": 4.8753040917625645,
+   "objective_id": "sun_ape_p9973",
+   "objective_req": 5.0
+  },
+  {
+   "mode": "sun_referencing",
+   "option": "vscmg+rcs",
+   "alg": null,
+   "feasible": false,
+   "failing": {
+    "power_mean": "power"
+   },
+   "objective": 2.53642174757796,
+   "objective_id": "sun_ape_p9973",
+   "objective_req": 5.0
+  },
+  {
+   "mode": "sun_referencing",
+   "option": "fmr+mtq",
+   "alg": null,
+   "feasible": true,
+   "failing": {},
+   "objective": 0.2513325094425192,
+   "objective_id": "sun_ape_p9973",
+   "objective_req": 5.0
+  },
+  {
+   "mode": "sun_referencing",
+   "option": "fmr+rcs",
+   "alg": null,
+   "feasible": false,
+   "failing": {
+    "power_mean": "power"
+   },
+   "objective": 0.25119062643119716,
+   "objective_id": "sun_ape_p9973",
+   "objective_req": 5.0
+  },
+  {
+   "mode": "nadir_pointing",
+   "option": "mtq",
+   "alg": "mtq_celani2026@mtq_gain_p=4,mtq_gain_d=0.25,handover_out_dps=0.25",
+   "feasible": true,
+   "failing": {},
+   "objective": 3.8738681962594868,
+   "objective_id": "ape_los_p9973",
+   "objective_req": 10.0,
+   "variants": [
+    {
+     "alg": "mtq_pd",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 14.59529280367851,
+     "violation": 0.459529280367851
+    },
+    {
+     "alg": "mtq_lqr",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 18.469189564503385,
+     "violation": 0.8469189564503385
+    },
+    {
+     "alg": "mtq_smc",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 10.65692382196294,
+     "violation": 0.06569238219629403
+    },
+    {
+     "alg": "mtq_rate_damp",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 178.5541351409055,
+     "violation": 16.85541351409055
+    },
+    {
+     "alg": "mtq_lovera2004",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 36.17922214382544,
+     "violation": 2.6179222143825442
+    },
+    {
+     "alg": "mtq_celani2015",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 24.508390197989264,
+     "violation": 1.4508390197989263
+    },
+    {
+     "alg": "mtq_avanzini2021",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 176.8507275895325,
+     "violation": 16.68507275895325
+    },
+    {
+     "alg": "mtq_celani2026",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 51.78329377620912,
+     "violation": 4.178329377620912
+    },
+    {
+     "alg": "mtq_tango2013",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 17.050364677520143,
+     "violation": 0.7050364677520142
+    },
+    {
+     "alg": "mtq_pd@mtq_gain_p=0.25,mtq_gain_d=0.25,handover_out_dps=0.25",
+     "feasible": true,
+     "failing": {},
+     "objective": 9.626110087526113,
+     "violation": 0
+    },
+    {
+     "alg": "mtq_pd@mtq_gain_p=0.25,mtq_gain_d=0.25,handover_out_dps=0.5",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 14.59529280367851,
+     "violation": 0.459529280367851
+    },
+    {
+     "alg": "mtq_pd@mtq_gain_p=0.25,mtq_gain_d=0.25,handover_out_dps=1",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 19.07131950655126,
+     "violation": 0.9071319506551259
+    },
+    {
+     "alg": "mtq_pd@mtq_gain_p=0.25,mtq_gain_d=1,handover_out_dps=0.25",
+     "feasible": true,
+     "failing": {},
+     "objective": 9.626110087526113,
+     "violation": 0
+    },
+    {
+     "alg": "mtq_pd@mtq_gain_p=0.25,mtq_gain_d=1,handover_out_dps=0.5",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 14.59529280367851,
+     "violation": 0.459529280367851
+    },
+    {
+     "alg": "mtq_pd@mtq_gain_p=0.25,mtq_gain_d=1,handover_out_dps=1",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 19.07131950655126,
+     "violation": 0.9071319506551259
+    },
+    {
+     "alg": "mtq_pd@mtq_gain_p=0.25,mtq_gain_d=4,handover_out_dps=0.25",
+     "feasible": true,
+     "failing": {},
+     "objective": 9.626110087526113,
+     "violation": 0
+    },
+    {
+     "alg": "mtq_pd@mtq_gain_p=0.25,mtq_gain_d=4,handover_out_dps=0.5",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 14.59529280367851,
+     "violation": 0.459529280367851
+    },
+    {
+     "alg": "mtq_pd@mtq_gain_p=0.25,mtq_gain_d=4,handover_out_dps=1",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 19.07131950655126,
+     "violation": 0.9071319506551259
+    },
+    {
+     "alg": "mtq_pd@mtq_gain_p=1,mtq_gain_d=0.25,handover_out_dps=0.25",
+     "feasible": true,
+     "failing": {},
+     "objective": 9.626110087526113,
+     "violation": 0
+    },
+    {
+     "alg": "mtq_pd@mtq_gain_p=1,mtq_gain_d=0.25,handover_out_dps=0.5",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 14.59529280367851,
+     "violation": 0.459529280367851
+    },
+    {
+     "alg": "mtq_pd@mtq_gain_p=1,mtq_gain_d=0.25,handover_out_dps=1",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 19.07131950655126,
+     "violation": 0.9071319506551259
+    },
+    {
+     "alg": "mtq_pd@mtq_gain_p=1,mtq_gain_d=1,handover_out_dps=0.25",
+     "feasible": true,
+     "failing": {},
+     "objective": 9.626110087526113,
+     "violation": 0
+    },
+    {
+     "alg": "mtq_pd@mtq_gain_p=1,mtq_gain_d=1,handover_out_dps=0.5",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 14.59529280367851,
+     "violation": 0.459529280367851
+    },
+    {
+     "alg": "mtq_pd@mtq_gain_p=1,mtq_gain_d=1,handover_out_dps=1",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 19.07131950655126,
+     "violation": 0.9071319506551259
+    },
+    {
+     "alg": "mtq_pd@mtq_gain_p=1,mtq_gain_d=4,handover_out_dps=0.25",
+     "feasible": true,
+     "failing": {},
+     "objective": 9.626110087526113,
+     "violation": 0
+    },
+    {
+     "alg": "mtq_pd@mtq_gain_p=1,mtq_gain_d=4,handover_out_dps=0.5",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 14.59529280367851,
+     "violation": 0.459529280367851
+    },
+    {
+     "alg": "mtq_pd@mtq_gain_p=1,mtq_gain_d=4,handover_out_dps=1",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 19.07131950655126,
+     "violation": 0.9071319506551259
+    },
+    {
+     "alg": "mtq_pd@mtq_gain_p=4,mtq_gain_d=0.25,handover_out_dps=0.25",
+     "feasible": true,
+     "failing": {},
+     "objective": 9.626110087526113,
+     "violation": 0
+    },
+    {
+     "alg": "mtq_pd@mtq_gain_p=4,mtq_gain_d=0.25,handover_out_dps=0.5",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 14.59529280367851,
+     "violation": 0.459529280367851
+    },
+    {
+     "alg": "mtq_pd@mtq_gain_p=4,mtq_gain_d=0.25,handover_out_dps=1",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 19.07131950655126,
+     "violation": 0.9071319506551259
+    },
+    {
+     "alg": "mtq_pd@mtq_gain_p=4,mtq_gain_d=1,handover_out_dps=0.25",
+     "feasible": true,
+     "failing": {},
+     "objective": 9.626110087526113,
+     "violation": 0
+    },
+    {
+     "alg": "mtq_pd@mtq_gain_p=4,mtq_gain_d=1,handover_out_dps=0.5",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 14.59529280367851,
+     "violation": 0.459529280367851
+    },
+    {
+     "alg": "mtq_pd@mtq_gain_p=4,mtq_gain_d=1,handover_out_dps=1",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 19.07131950655126,
+     "violation": 0.9071319506551259
+    },
+    {
+     "alg": "mtq_pd@mtq_gain_p=4,mtq_gain_d=4,handover_out_dps=0.25",
+     "feasible": true,
+     "failing": {},
+     "objective": 9.626110087526113,
+     "violation": 0
+    },
+    {
+     "alg": "mtq_pd@mtq_gain_p=4,mtq_gain_d=4,handover_out_dps=0.5",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 14.59529280367851,
+     "violation": 0.459529280367851
+    },
+    {
+     "alg": "mtq_pd@mtq_gain_p=4,mtq_gain_d=4,handover_out_dps=1",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 19.07131950655126,
+     "violation": 0.9071319506551259
+    },
+    {
+     "alg": "mtq_lqr@mtq_gain_p=0.25,mtq_gain_d=0.25,handover_out_dps=0.25",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 33.579237262827746,
+     "violation": 2.357923726282775
+    },
+    {
+     "alg": "mtq_lqr@mtq_gain_p=0.25,mtq_gain_d=0.25,handover_out_dps=0.5",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 18.469189564503385,
+     "violation": 0.8469189564503385
+    },
+    {
+     "alg": "mtq_lqr@mtq_gain_p=0.25,mtq_gain_d=0.25,handover_out_dps=1",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 40.453828709984,
+     "violation": 3.0453828709984005
+    },
+    {
+     "alg": "mtq_lqr@mtq_gain_p=0.25,mtq_gain_d=1,handover_out_dps=0.25",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 33.579237262827746,
+     "violation": 2.357923726282775
+    },
+    {
+     "alg": "mtq_lqr@mtq_gain_p=0.25,mtq_gain_d=1,handover_out_dps=0.5",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 18.469189564503385,
+     "violation": 0.8469189564503385
+    },
+    {
+     "alg": "mtq_lqr@mtq_gain_p=0.25,mtq_gain_d=1,handover_out_dps=1",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 40.453828709984,
+     "violation": 3.0453828709984005
+    },
+    {
+     "alg": "mtq_lqr@mtq_gain_p=0.25,mtq_gain_d=4,handover_out_dps=0.25",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 33.579237262827746,
+     "violation": 2.357923726282775
+    },
+    {
+     "alg": "mtq_lqr@mtq_gain_p=0.25,mtq_gain_d=4,handover_out_dps=0.5",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 18.469189564503385,
+     "violation": 0.8469189564503385
+    },
+    {
+     "alg": "mtq_lqr@mtq_gain_p=0.25,mtq_gain_d=4,handover_out_dps=1",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 40.453828709984,
+     "violation": 3.0453828709984005
+    },
+    {
+     "alg": "mtq_lqr@mtq_gain_p=1,mtq_gain_d=0.25,handover_out_dps=0.25",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 33.579237262827746,
+     "violation": 2.357923726282775
+    },
+    {
+     "alg": "mtq_lqr@mtq_gain_p=1,mtq_gain_d=0.25,handover_out_dps=0.5",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 18.469189564503385,
+     "violation": 0.8469189564503385
+    },
+    {
+     "alg": "mtq_lqr@mtq_gain_p=1,mtq_gain_d=0.25,handover_out_dps=1",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 40.453828709984,
+     "violation": 3.0453828709984005
+    },
+    {
+     "alg": "mtq_lqr@mtq_gain_p=1,mtq_gain_d=1,handover_out_dps=0.25",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 33.579237262827746,
+     "violation": 2.357923726282775
+    },
+    {
+     "alg": "mtq_lqr@mtq_gain_p=1,mtq_gain_d=1,handover_out_dps=0.5",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 18.469189564503385,
+     "violation": 0.8469189564503385
+    },
+    {
+     "alg": "mtq_lqr@mtq_gain_p=1,mtq_gain_d=1,handover_out_dps=1",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 40.453828709984,
+     "violation": 3.0453828709984005
+    },
+    {
+     "alg": "mtq_lqr@mtq_gain_p=1,mtq_gain_d=4,handover_out_dps=0.25",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 33.579237262827746,
+     "violation": 2.357923726282775
+    },
+    {
+     "alg": "mtq_lqr@mtq_gain_p=1,mtq_gain_d=4,handover_out_dps=0.5",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 18.469189564503385,
+     "violation": 0.8469189564503385
+    },
+    {
+     "alg": "mtq_lqr@mtq_gain_p=1,mtq_gain_d=4,handover_out_dps=1",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 40.453828709984,
+     "violation": 3.0453828709984005
+    },
+    {
+     "alg": "mtq_lqr@mtq_gain_p=4,mtq_gain_d=0.25,handover_out_dps=0.25",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 33.579237262827746,
+     "violation": 2.357923726282775
+    },
+    {
+     "alg": "mtq_lqr@mtq_gain_p=4,mtq_gain_d=0.25,handover_out_dps=0.5",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 18.469189564503385,
+     "violation": 0.8469189564503385
+    },
+    {
+     "alg": "mtq_lqr@mtq_gain_p=4,mtq_gain_d=0.25,handover_out_dps=1",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 40.453828709984,
+     "violation": 3.0453828709984005
+    },
+    {
+     "alg": "mtq_lqr@mtq_gain_p=4,mtq_gain_d=1,handover_out_dps=0.25",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 33.579237262827746,
+     "violation": 2.357923726282775
+    },
+    {
+     "alg": "mtq_lqr@mtq_gain_p=4,mtq_gain_d=1,handover_out_dps=0.5",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 18.469189564503385,
+     "violation": 0.8469189564503385
+    },
+    {
+     "alg": "mtq_lqr@mtq_gain_p=4,mtq_gain_d=1,handover_out_dps=1",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 40.453828709984,
+     "violation": 3.0453828709984005
+    },
+    {
+     "alg": "mtq_lqr@mtq_gain_p=4,mtq_gain_d=4,handover_out_dps=0.25",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 33.579237262827746,
+     "violation": 2.357923726282775
+    },
+    {
+     "alg": "mtq_lqr@mtq_gain_p=4,mtq_gain_d=4,handover_out_dps=0.5",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 18.469189564503385,
+     "violation": 0.8469189564503385
+    },
+    {
+     "alg": "mtq_lqr@mtq_gain_p=4,mtq_gain_d=4,handover_out_dps=1",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 40.453828709984,
+     "violation": 3.0453828709984005
+    },
+    {
+     "alg": "mtq_smc@mtq_gain_p=0.25,mtq_gain_d=0.25,handover_out_dps=0.25",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 10.478911062708518,
+     "violation": 0.0478911062708518
+    },
+    {
+     "alg": "mtq_smc@mtq_gain_p=0.25,mtq_gain_d=0.25,handover_out_dps=0.5",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 10.65692382196294,
+     "violation": 0.06569238219629403
+    },
+    {
+     "alg": "mtq_smc@mtq_gain_p=0.25,mtq_gain_d=0.25,handover_out_dps=1",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 12.374409686748036,
+     "violation": 0.23744096867480358
+    },
+    {
+     "alg": "mtq_smc@mtq_gain_p=0.25,mtq_gain_d=1,handover_out_dps=0.25",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 10.478911062708518,
+     "violation": 0.0478911062708518
+    },
+    {
+     "alg": "mtq_smc@mtq_gain_p=0.25,mtq_gain_d=1,handover_out_dps=0.5",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 10.65692382196294,
+     "violation": 0.06569238219629403
+    },
+    {
+     "alg": "mtq_smc@mtq_gain_p=0.25,mtq_gain_d=1,handover_out_dps=1",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 12.374409686748036,
+     "violation": 0.23744096867480358
+    },
+    {
+     "alg": "mtq_smc@mtq_gain_p=0.25,mtq_gain_d=4,handover_out_dps=0.25",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 10.478911062708518,
+     "violation": 0.0478911062708518
+    },
+    {
+     "alg": "mtq_smc@mtq_gain_p=0.25,mtq_gain_d=4,handover_out_dps=0.5",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 10.65692382196294,
+     "violation": 0.06569238219629403
+    },
+    {
+     "alg": "mtq_smc@mtq_gain_p=0.25,mtq_gain_d=4,handover_out_dps=1",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 12.374409686748036,
+     "violation": 0.23744096867480358
+    },
+    {
+     "alg": "mtq_smc@mtq_gain_p=1,mtq_gain_d=0.25,handover_out_dps=0.25",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 10.478911062708518,
+     "violation": 0.0478911062708518
+    },
+    {
+     "alg": "mtq_smc@mtq_gain_p=1,mtq_gain_d=0.25,handover_out_dps=0.5",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 10.65692382196294,
+     "violation": 0.06569238219629403
+    },
+    {
+     "alg": "mtq_smc@mtq_gain_p=1,mtq_gain_d=0.25,handover_out_dps=1",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 12.374409686748036,
+     "violation": 0.23744096867480358
+    },
+    {
+     "alg": "mtq_smc@mtq_gain_p=1,mtq_gain_d=1,handover_out_dps=0.25",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 10.478911062708518,
+     "violation": 0.0478911062708518
+    },
+    {
+     "alg": "mtq_smc@mtq_gain_p=1,mtq_gain_d=1,handover_out_dps=0.5",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 10.65692382196294,
+     "violation": 0.06569238219629403
+    },
+    {
+     "alg": "mtq_smc@mtq_gain_p=1,mtq_gain_d=1,handover_out_dps=1",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 12.374409686748036,
+     "violation": 0.23744096867480358
+    },
+    {
+     "alg": "mtq_smc@mtq_gain_p=1,mtq_gain_d=4,handover_out_dps=0.25",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 10.478911062708518,
+     "violation": 0.0478911062708518
+    },
+    {
+     "alg": "mtq_smc@mtq_gain_p=1,mtq_gain_d=4,handover_out_dps=0.5",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 10.65692382196294,
+     "violation": 0.06569238219629403
+    },
+    {
+     "alg": "mtq_smc@mtq_gain_p=1,mtq_gain_d=4,handover_out_dps=1",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 12.374409686748036,
+     "violation": 0.23744096867480358
+    },
+    {
+     "alg": "mtq_smc@mtq_gain_p=4,mtq_gain_d=0.25,handover_out_dps=0.25",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 10.478911062708518,
+     "violation": 0.0478911062708518
+    },
+    {
+     "alg": "mtq_smc@mtq_gain_p=4,mtq_gain_d=0.25,handover_out_dps=0.5",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 10.65692382196294,
+     "violation": 0.06569238219629403
+    },
+    {
+     "alg": "mtq_smc@mtq_gain_p=4,mtq_gain_d=0.25,handover_out_dps=1",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 12.374409686748036,
+     "violation": 0.23744096867480358
+    },
+    {
+     "alg": "mtq_smc@mtq_gain_p=4,mtq_gain_d=1,handover_out_dps=0.25",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 10.478911062708518,
+     "violation": 0.0478911062708518
+    },
+    {
+     "alg": "mtq_smc@mtq_gain_p=4,mtq_gain_d=1,handover_out_dps=0.5",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 10.65692382196294,
+     "violation": 0.06569238219629403
+    },
+    {
+     "alg": "mtq_smc@mtq_gain_p=4,mtq_gain_d=1,handover_out_dps=1",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 12.374409686748036,
+     "violation": 0.23744096867480358
+    },
+    {
+     "alg": "mtq_smc@mtq_gain_p=4,mtq_gain_d=4,handover_out_dps=0.25",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 10.478911062708518,
+     "violation": 0.0478911062708518
+    },
+    {
+     "alg": "mtq_smc@mtq_gain_p=4,mtq_gain_d=4,handover_out_dps=0.5",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 10.65692382196294,
+     "violation": 0.06569238219629403
+    },
+    {
+     "alg": "mtq_smc@mtq_gain_p=4,mtq_gain_d=4,handover_out_dps=1",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 12.374409686748036,
+     "violation": 0.23744096867480358
+    },
+    {
+     "alg": "mtq_rate_damp@mtq_gain_p=0.25,mtq_gain_d=0.25,handover_out_dps=0.25",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 178.10775636545037,
+     "violation": 16.81077563654504
+    },
+    {
+     "alg": "mtq_rate_damp@mtq_gain_p=0.25,mtq_gain_d=0.25,handover_out_dps=0.5",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 178.5541351409055,
+     "violation": 16.85541351409055
+    },
+    {
+     "alg": "mtq_rate_damp@mtq_gain_p=0.25,mtq_gain_d=0.25,handover_out_dps=1",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 179.62710156590487,
+     "violation": 16.962710156590486
+    },
+    {
+     "alg": "mtq_rate_damp@mtq_gain_p=0.25,mtq_gain_d=1,handover_out_dps=0.25",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 178.10775636545037,
+     "violation": 16.81077563654504
+    },
+    {
+     "alg": "mtq_rate_damp@mtq_gain_p=0.25,mtq_gain_d=1,handover_out_dps=0.5",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 178.5541351409055,
+     "violation": 16.85541351409055
+    },
+    {
+     "alg": "mtq_rate_damp@mtq_gain_p=0.25,mtq_gain_d=1,handover_out_dps=1",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 179.62710156590487,
+     "violation": 16.962710156590486
+    },
+    {
+     "alg": "mtq_rate_damp@mtq_gain_p=0.25,mtq_gain_d=4,handover_out_dps=0.25",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 178.10775636545037,
+     "violation": 16.81077563654504
+    },
+    {
+     "alg": "mtq_rate_damp@mtq_gain_p=0.25,mtq_gain_d=4,handover_out_dps=0.5",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 178.5541351409055,
+     "violation": 16.85541351409055
+    },
+    {
+     "alg": "mtq_rate_damp@mtq_gain_p=0.25,mtq_gain_d=4,handover_out_dps=1",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 179.62710156590487,
+     "violation": 16.962710156590486
+    },
+    {
+     "alg": "mtq_rate_damp@mtq_gain_p=1,mtq_gain_d=0.25,handover_out_dps=0.25",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 178.10775636545037,
+     "violation": 16.81077563654504
+    },
+    {
+     "alg": "mtq_rate_damp@mtq_gain_p=1,mtq_gain_d=0.25,handover_out_dps=0.5",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 178.5541351409055,
+     "violation": 16.85541351409055
+    },
+    {
+     "alg": "mtq_rate_damp@mtq_gain_p=1,mtq_gain_d=0.25,handover_out_dps=1",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 179.62710156590487,
+     "violation": 16.962710156590486
+    },
+    {
+     "alg": "mtq_rate_damp@mtq_gain_p=1,mtq_gain_d=1,handover_out_dps=0.25",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 178.10775636545037,
+     "violation": 16.81077563654504
+    },
+    {
+     "alg": "mtq_rate_damp@mtq_gain_p=1,mtq_gain_d=1,handover_out_dps=0.5",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 178.5541351409055,
+     "violation": 16.85541351409055
+    },
+    {
+     "alg": "mtq_rate_damp@mtq_gain_p=1,mtq_gain_d=1,handover_out_dps=1",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 179.62710156590487,
+     "violation": 16.962710156590486
+    },
+    {
+     "alg": "mtq_rate_damp@mtq_gain_p=1,mtq_gain_d=4,handover_out_dps=0.25",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 178.10775636545037,
+     "violation": 16.81077563654504
+    },
+    {
+     "alg": "mtq_rate_damp@mtq_gain_p=1,mtq_gain_d=4,handover_out_dps=0.5",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 178.5541351409055,
+     "violation": 16.85541351409055
+    },
+    {
+     "alg": "mtq_rate_damp@mtq_gain_p=1,mtq_gain_d=4,handover_out_dps=1",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 179.62710156590487,
+     "violation": 16.962710156590486
+    },
+    {
+     "alg": "mtq_rate_damp@mtq_gain_p=4,mtq_gain_d=0.25,handover_out_dps=0.25",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 178.10775636545037,
+     "violation": 16.81077563654504
+    },
+    {
+     "alg": "mtq_rate_damp@mtq_gain_p=4,mtq_gain_d=0.25,handover_out_dps=0.5",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 178.5541351409055,
+     "violation": 16.85541351409055
+    },
+    {
+     "alg": "mtq_rate_damp@mtq_gain_p=4,mtq_gain_d=0.25,handover_out_dps=1",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 179.62710156590487,
+     "violation": 16.962710156590486
+    },
+    {
+     "alg": "mtq_rate_damp@mtq_gain_p=4,mtq_gain_d=1,handover_out_dps=0.25",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 178.10775636545037,
+     "violation": 16.81077563654504
+    },
+    {
+     "alg": "mtq_rate_damp@mtq_gain_p=4,mtq_gain_d=1,handover_out_dps=0.5",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 178.5541351409055,
+     "violation": 16.85541351409055
+    },
+    {
+     "alg": "mtq_rate_damp@mtq_gain_p=4,mtq_gain_d=1,handover_out_dps=1",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 179.62710156590487,
+     "violation": 16.962710156590486
+    },
+    {
+     "alg": "mtq_rate_damp@mtq_gain_p=4,mtq_gain_d=4,handover_out_dps=0.25",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 178.10775636545037,
+     "violation": 16.81077563654504
+    },
+    {
+     "alg": "mtq_rate_damp@mtq_gain_p=4,mtq_gain_d=4,handover_out_dps=0.5",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 178.5541351409055,
+     "violation": 16.85541351409055
+    },
+    {
+     "alg": "mtq_rate_damp@mtq_gain_p=4,mtq_gain_d=4,handover_out_dps=1",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 179.62710156590487,
+     "violation": 16.962710156590486
+    },
+    {
+     "alg": "mtq_lovera2004@mtq_gain_p=0.25,mtq_gain_d=0.25,handover_out_dps=0.25",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 24.48223328447019,
+     "violation": 1.448223328447019
+    },
+    {
+     "alg": "mtq_lovera2004@mtq_gain_p=0.25,mtq_gain_d=0.25,handover_out_dps=0.5",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 50.330839052594975,
+     "violation": 4.033083905259497
+    },
+    {
+     "alg": "mtq_lovera2004@mtq_gain_p=0.25,mtq_gain_d=0.25,handover_out_dps=1",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 30.264290796917102,
+     "violation": 2.0264290796917104
+    },
+    {
+     "alg": "mtq_lovera2004@mtq_gain_p=0.25,mtq_gain_d=1,handover_out_dps=0.25",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 164.71363631575485,
+     "violation": 15.471363631575485
+    },
+    {
+     "alg": "mtq_lovera2004@mtq_gain_p=0.25,mtq_gain_d=1,handover_out_dps=0.5",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 148.2815474536364,
+     "violation": 13.828154745363639
+    },
+    {
+     "alg": "mtq_lovera2004@mtq_gain_p=0.25,mtq_gain_d=1,handover_out_dps=1",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance",
+      "ake_los_p9973": "knowledge"
+     },
+     "objective": 129.74227681698707,
+     "violation": 12.284060158482568
+    },
+    {
+     "alg": "mtq_lovera2004@mtq_gain_p=0.25,mtq_gain_d=4,handover_out_dps=0.25",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 165.85913545024115,
+     "violation": 15.585913545024116
+    },
+    {
+     "alg": "mtq_lovera2004@mtq_gain_p=0.25,mtq_gain_d=4,handover_out_dps=0.5",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 142.42737191151227,
+     "violation": 13.242737191151226
+    },
+    {
+     "alg": "mtq_lovera2004@mtq_gain_p=0.25,mtq_gain_d=4,handover_out_dps=1",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance",
+      "ake_los_p9973": "knowledge"
+     },
+     "objective": 146.9848271510576,
+     "violation": 14.162767742584974
+    },
+    {
+     "alg": "mtq_lovera2004@mtq_gain_p=1,mtq_gain_d=0.25,handover_out_dps=0.25",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 102.3529909784493,
+     "violation": 9.23529909784493
+    },
+    {
+     "alg": "mtq_lovera2004@mtq_gain_p=1,mtq_gain_d=0.25,handover_out_dps=0.5",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 85.37398967893174,
+     "violation": 7.537398967893173
+    },
+    {
+     "alg": "mtq_lovera2004@mtq_gain_p=1,mtq_gain_d=0.25,handover_out_dps=1",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 93.70318407607508,
+     "violation": 8.370318407607508
+    },
+    {
+     "alg": "mtq_lovera2004@mtq_gain_p=1,mtq_gain_d=1,handover_out_dps=0.25",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 29.562634956864482,
+     "violation": 1.9562634956864482
+    },
+    {
+     "alg": "mtq_lovera2004@mtq_gain_p=1,mtq_gain_d=1,handover_out_dps=0.5",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 36.17922214382544,
+     "violation": 2.6179222143825442
+    },
+    {
+     "alg": "mtq_lovera2004@mtq_gain_p=1,mtq_gain_d=1,handover_out_dps=1",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 48.454406452844594,
+     "violation": 3.8454406452844596
+    },
+    {
+     "alg": "mtq_lovera2004@mtq_gain_p=1,mtq_gain_d=4,handover_out_dps=0.25",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance",
+      "ake_los_p9973": "knowledge"
+     },
+     "objective": 139.12808398288036,
+     "violation": 13.278129274277951
+    },
+    {
+     "alg": "mtq_lovera2004@mtq_gain_p=1,mtq_gain_d=4,handover_out_dps=0.5",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 53.09597332305072,
+     "violation": 4.3095973323050725
+    },
+    {
+     "alg": "mtq_lovera2004@mtq_gain_p=1,mtq_gain_d=4,handover_out_dps=1",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance",
+      "ake_los_p9973": "knowledge"
+     },
+     "objective": 147.9736315871088,
+     "violation": 14.78998522430988
+    },
+    {
+     "alg": "mtq_lovera2004@mtq_gain_p=4,mtq_gain_d=0.25,handover_out_dps=0.25",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 173.8219476776472,
+     "violation": 16.38219476776472
+    },
+    {
+     "alg": "mtq_lovera2004@mtq_gain_p=4,mtq_gain_d=0.25,handover_out_dps=0.5",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 130.4177663746239,
+     "violation": 12.041776637462391
+    },
+    {
+     "alg": "mtq_lovera2004@mtq_gain_p=4,mtq_gain_d=0.25,handover_out_dps=1",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 122.34381055180685,
+     "violation": 11.234381055180686
+    },
+    {
+     "alg": "mtq_lovera2004@mtq_gain_p=4,mtq_gain_d=1,handover_out_dps=0.25",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 169.71859053723588,
+     "violation": 15.971859053723588
+    },
+    {
+     "alg": "mtq_lovera2004@mtq_gain_p=4,mtq_gain_d=1,handover_out_dps=0.5",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 162.02862130153378,
+     "violation": 15.202862130153378
+    },
+    {
+     "alg": "mtq_lovera2004@mtq_gain_p=4,mtq_gain_d=1,handover_out_dps=1",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 175.40356849989462,
+     "violation": 16.54035684998946
+    },
+    {
+     "alg": "mtq_lovera2004@mtq_gain_p=4,mtq_gain_d=4,handover_out_dps=0.25",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 139.9088106267345,
+     "violation": 12.990881062673449
+    },
+    {
+     "alg": "mtq_lovera2004@mtq_gain_p=4,mtq_gain_d=4,handover_out_dps=0.5",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 117.61133925830897,
+     "violation": 10.761133925830897
+    },
+    {
+     "alg": "mtq_lovera2004@mtq_gain_p=4,mtq_gain_d=4,handover_out_dps=1",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance",
+      "ake_los_p9973": "knowledge"
+     },
+     "objective": 166.57666405329198,
+     "violation": 15.70788689257819
+    },
+    {
+     "alg": "mtq_celani2015@mtq_gain_p=0.25,mtq_gain_d=0.25,handover_out_dps=0.25",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 25.852901935795416,
+     "violation": 1.5852901935795414
+    },
+    {
+     "alg": "mtq_celani2015@mtq_gain_p=0.25,mtq_gain_d=0.25,handover_out_dps=0.5",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 25.515386589848596,
+     "violation": 1.5515386589848594
+    },
+    {
+     "alg": "mtq_celani2015@mtq_gain_p=0.25,mtq_gain_d=0.25,handover_out_dps=1",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 26.021651073416006,
+     "violation": 1.6021651073416008
+    },
+    {
+     "alg": "mtq_celani2015@mtq_gain_p=0.25,mtq_gain_d=1,handover_out_dps=0.25",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 72.835201798205,
+     "violation": 6.283520179820501
+    },
+    {
+     "alg": "mtq_celani2015@mtq_gain_p=0.25,mtq_gain_d=1,handover_out_dps=0.5",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 26.62792040489993,
+     "violation": 1.6627920404899927
+    },
+    {
+     "alg": "mtq_celani2015@mtq_gain_p=0.25,mtq_gain_d=1,handover_out_dps=1",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 158.28168477781117,
+     "violation": 14.828168477781116
+    },
+    {
+     "alg": "mtq_celani2015@mtq_gain_p=0.25,mtq_gain_d=4,handover_out_dps=0.25",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 176.66416558030983,
+     "violation": 16.66641655803098
+    },
+    {
+     "alg": "mtq_celani2015@mtq_gain_p=0.25,mtq_gain_d=4,handover_out_dps=0.5",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 150.2175475211299,
+     "violation": 14.021754752112988
+    },
+    {
+     "alg": "mtq_celani2015@mtq_gain_p=0.25,mtq_gain_d=4,handover_out_dps=1",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 91.349100976426,
+     "violation": 8.1349100976426
+    },
+    {
+     "alg": "mtq_celani2015@mtq_gain_p=1,mtq_gain_d=0.25,handover_out_dps=0.25",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 74.75922661548918,
+     "violation": 6.4759226615489185
+    },
+    {
+     "alg": "mtq_celani2015@mtq_gain_p=1,mtq_gain_d=0.25,handover_out_dps=0.5",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 73.94695917951478,
+     "violation": 6.394695917951478
+    },
+    {
+     "alg": "mtq_celani2015@mtq_gain_p=1,mtq_gain_d=0.25,handover_out_dps=1",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 81.59567279284992,
+     "violation": 7.1595672792849925
+    },
+    {
+     "alg": "mtq_celani2015@mtq_gain_p=1,mtq_gain_d=1,handover_out_dps=0.25",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 50.449241682562544,
+     "violation": 4.044924168256254
+    },
+    {
+     "alg": "mtq_celani2015@mtq_gain_p=1,mtq_gain_d=1,handover_out_dps=0.5",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 24.508390197989264,
+     "violation": 1.4508390197989263
+    },
+    {
+     "alg": "mtq_celani2015@mtq_gain_p=1,mtq_gain_d=1,handover_out_dps=1",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 98.70480576092744,
+     "violation": 8.870480576092744
+    },
+    {
+     "alg": "mtq_celani2015@mtq_gain_p=1,mtq_gain_d=4,handover_out_dps=0.25",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 130.3208970982986,
+     "violation": 12.032089709829858
+    },
+    {
+     "alg": "mtq_celani2015@mtq_gain_p=1,mtq_gain_d=4,handover_out_dps=0.5",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 90.30260234598678,
+     "violation": 8.030260234598678
+    },
+    {
+     "alg": "mtq_celani2015@mtq_gain_p=1,mtq_gain_d=4,handover_out_dps=1",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance",
+      "ake_los_p9973": "knowledge"
+     },
+     "objective": 172.98964418313957,
+     "violation": 16.38574122934789
+    },
+    {
+     "alg": "mtq_celani2015@mtq_gain_p=4,mtq_gain_d=0.25,handover_out_dps=0.25",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 149.10240174634077,
+     "violation": 13.910240174634078
+    },
+    {
+     "alg": "mtq_celani2015@mtq_gain_p=4,mtq_gain_d=0.25,handover_out_dps=0.5",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 112.54643333813821,
+     "violation": 10.25464333381382
+    },
+    {
+     "alg": "mtq_celani2015@mtq_gain_p=4,mtq_gain_d=0.25,handover_out_dps=1",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 141.155544066017,
+     "violation": 13.1155544066017
+    },
+    {
+     "alg": "mtq_celani2015@mtq_gain_p=4,mtq_gain_d=1,handover_out_dps=0.25",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 163.82467770866165,
+     "violation": 15.382467770866164
+    },
+    {
+     "alg": "mtq_celani2015@mtq_gain_p=4,mtq_gain_d=1,handover_out_dps=0.5",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 165.51915743742097,
+     "violation": 15.551915743742097
+    },
+    {
+     "alg": "mtq_celani2015@mtq_gain_p=4,mtq_gain_d=1,handover_out_dps=1",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 159.3826606710942,
+     "violation": 14.938266067109419
+    },
+    {
+     "alg": "mtq_celani2015@mtq_gain_p=4,mtq_gain_d=4,handover_out_dps=0.25",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 160.49075162278524,
+     "violation": 15.049075162278523
+    },
+    {
+     "alg": "mtq_celani2015@mtq_gain_p=4,mtq_gain_d=4,handover_out_dps=0.5",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 145.18346721174981,
+     "violation": 13.518346721174982
+    },
+    {
+     "alg": "mtq_celani2015@mtq_gain_p=4,mtq_gain_d=4,handover_out_dps=1",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 160.5001734417526,
+     "violation": 15.05001734417526
+    },
+    {
+     "alg": "mtq_avanzini2021@mtq_gain_p=0.25,mtq_gain_d=0.25,handover_out_dps=0.25",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 174.41241964082468,
+     "violation": 16.44124196408247
+    },
+    {
+     "alg": "mtq_avanzini2021@mtq_gain_p=0.25,mtq_gain_d=0.25,handover_out_dps=0.5",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 155.03236111269362,
+     "violation": 14.503236111269363
+    },
+    {
+     "alg": "mtq_avanzini2021@mtq_gain_p=0.25,mtq_gain_d=0.25,handover_out_dps=1",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 165.8225513511246,
+     "violation": 15.582255135112458
+    },
+    {
+     "alg": "mtq_avanzini2021@mtq_gain_p=0.25,mtq_gain_d=1,handover_out_dps=0.25",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 174.288490848389,
+     "violation": 16.428849084838898
+    },
+    {
+     "alg": "mtq_avanzini2021@mtq_gain_p=0.25,mtq_gain_d=1,handover_out_dps=0.5",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 174.45347557523473,
+     "violation": 16.445347557523473
+    },
+    {
+     "alg": "mtq_avanzini2021@mtq_gain_p=0.25,mtq_gain_d=1,handover_out_dps=1",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 175.5562900484231,
+     "violation": 16.55562900484231
+    },
+    {
+     "alg": "mtq_avanzini2021@mtq_gain_p=0.25,mtq_gain_d=4,handover_out_dps=0.25",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 141.59604730791628,
+     "violation": 13.159604730791628
+    },
+    {
+     "alg": "mtq_avanzini2021@mtq_gain_p=0.25,mtq_gain_d=4,handover_out_dps=0.5",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 167.95023586216715,
+     "violation": 15.795023586216715
+    },
+    {
+     "alg": "mtq_avanzini2021@mtq_gain_p=0.25,mtq_gain_d=4,handover_out_dps=1",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 154.15890578806642,
+     "violation": 14.415890578806643
+    },
+    {
+     "alg": "mtq_avanzini2021@mtq_gain_p=1,mtq_gain_d=0.25,handover_out_dps=0.25",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 176.91363972082968,
+     "violation": 16.691363972082968
+    },
+    {
+     "alg": "mtq_avanzini2021@mtq_gain_p=1,mtq_gain_d=0.25,handover_out_dps=0.5",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 175.37515197361404,
+     "violation": 16.537515197361405
+    },
+    {
+     "alg": "mtq_avanzini2021@mtq_gain_p=1,mtq_gain_d=0.25,handover_out_dps=1",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 164.4737023384561,
+     "violation": 15.44737023384561
+    },
+    {
+     "alg": "mtq_avanzini2021@mtq_gain_p=1,mtq_gain_d=1,handover_out_dps=0.25",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 176.1430951297028,
+     "violation": 16.61430951297028
+    },
+    {
+     "alg": "mtq_avanzini2021@mtq_gain_p=1,mtq_gain_d=1,handover_out_dps=0.5",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 176.8507275895325,
+     "violation": 16.68507275895325
+    },
+    {
+     "alg": "mtq_avanzini2021@mtq_gain_p=1,mtq_gain_d=1,handover_out_dps=1",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 176.67443680262966,
+     "violation": 16.667443680262966
+    },
+    {
+     "alg": "mtq_avanzini2021@mtq_gain_p=1,mtq_gain_d=4,handover_out_dps=0.25",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 179.68044236670855,
+     "violation": 16.968044236670856
+    },
+    {
+     "alg": "mtq_avanzini2021@mtq_gain_p=1,mtq_gain_d=4,handover_out_dps=0.5",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 152.8253769684369,
+     "violation": 14.28253769684369
+    },
+    {
+     "alg": "mtq_avanzini2021@mtq_gain_p=1,mtq_gain_d=4,handover_out_dps=1",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 179.37592629989553,
+     "violation": 16.937592629989553
+    },
+    {
+     "alg": "mtq_avanzini2021@mtq_gain_p=4,mtq_gain_d=0.25,handover_out_dps=0.25",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 176.42391172254077,
+     "violation": 16.642391172254076
+    },
+    {
+     "alg": "mtq_avanzini2021@mtq_gain_p=4,mtq_gain_d=0.25,handover_out_dps=0.5",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 172.74109119990592,
+     "violation": 16.27410911999059
+    },
+    {
+     "alg": "mtq_avanzini2021@mtq_gain_p=4,mtq_gain_d=0.25,handover_out_dps=1",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 178.21316980302254,
+     "violation": 16.821316980302253
+    },
+    {
+     "alg": "mtq_avanzini2021@mtq_gain_p=4,mtq_gain_d=1,handover_out_dps=0.25",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 177.49704760532745,
+     "violation": 16.749704760532744
+    },
+    {
+     "alg": "mtq_avanzini2021@mtq_gain_p=4,mtq_gain_d=1,handover_out_dps=0.5",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 153.41199064866476,
+     "violation": 14.341199064866476
+    },
+    {
+     "alg": "mtq_avanzini2021@mtq_gain_p=4,mtq_gain_d=1,handover_out_dps=1",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 154.90369455758537,
+     "violation": 14.490369455758536
+    },
+    {
+     "alg": "mtq_avanzini2021@mtq_gain_p=4,mtq_gain_d=4,handover_out_dps=0.25",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 132.55879074694133,
+     "violation": 12.255879074694132
+    },
+    {
+     "alg": "mtq_avanzini2021@mtq_gain_p=4,mtq_gain_d=4,handover_out_dps=0.5",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 144.892549281961,
+     "violation": 13.4892549281961
+    },
+    {
+     "alg": "mtq_avanzini2021@mtq_gain_p=4,mtq_gain_d=4,handover_out_dps=1",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 129.9423215179543,
+     "violation": 11.99423215179543
+    },
+    {
+     "alg": "mtq_celani2026@mtq_gain_p=0.25,mtq_gain_d=0.25,handover_out_dps=0.25",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 19.096645008720458,
+     "violation": 0.9096645008720459
+    },
+    {
+     "alg": "mtq_celani2026@mtq_gain_p=0.25,mtq_gain_d=0.25,handover_out_dps=0.5",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 17.665450462887243,
+     "violation": 0.7665450462887242
+    },
+    {
+     "alg": "mtq_celani2026@mtq_gain_p=0.25,mtq_gain_d=0.25,handover_out_dps=1",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 20.431907624890798,
+     "violation": 1.04319076248908
+    },
+    {
+     "alg": "mtq_celani2026@mtq_gain_p=0.25,mtq_gain_d=1,handover_out_dps=0.25",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 179.7799474608266,
+     "violation": 16.97799474608266
+    },
+    {
+     "alg": "mtq_celani2026@mtq_gain_p=0.25,mtq_gain_d=1,handover_out_dps=0.5",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 36.438868111242165,
+     "violation": 2.6438868111242164
+    },
+    {
+     "alg": "mtq_celani2026@mtq_gain_p=0.25,mtq_gain_d=1,handover_out_dps=1",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 160.00207696524262,
+     "violation": 15.000207696524264
+    },
+    {
+     "alg": "mtq_celani2026@mtq_gain_p=0.25,mtq_gain_d=4,handover_out_dps=0.25",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 102.64869925896706,
+     "violation": 9.264869925896706
+    },
+    {
+     "alg": "mtq_celani2026@mtq_gain_p=0.25,mtq_gain_d=4,handover_out_dps=0.5",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 138.76400850020903,
+     "violation": 12.876400850020904
+    },
+    {
+     "alg": "mtq_celani2026@mtq_gain_p=0.25,mtq_gain_d=4,handover_out_dps=1",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 138.90206071279422,
+     "violation": 12.890206071279422
+    },
+    {
+     "alg": "mtq_celani2026@mtq_gain_p=1,mtq_gain_d=0.25,handover_out_dps=0.25",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 15.115593203625423,
+     "violation": 0.5115593203625424
+    },
+    {
+     "alg": "mtq_celani2026@mtq_gain_p=1,mtq_gain_d=0.25,handover_out_dps=0.5",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 10.995085225614957,
+     "violation": 0.09950852256149578
+    },
+    {
+     "alg": "mtq_celani2026@mtq_gain_p=1,mtq_gain_d=0.25,handover_out_dps=1",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 13.304305626201879,
+     "violation": 0.330430562620188
+    },
+    {
+     "alg": "mtq_celani2026@mtq_gain_p=1,mtq_gain_d=1,handover_out_dps=0.25",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 59.0285492358101,
+     "violation": 4.9028549235810095
+    },
+    {
+     "alg": "mtq_celani2026@mtq_gain_p=1,mtq_gain_d=1,handover_out_dps=0.5",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 51.78329377620912,
+     "violation": 4.178329377620912
+    },
+    {
+     "alg": "mtq_celani2026@mtq_gain_p=1,mtq_gain_d=1,handover_out_dps=1",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 55.20602609826279,
+     "violation": 4.520602609826279
+    },
+    {
+     "alg": "mtq_celani2026@mtq_gain_p=1,mtq_gain_d=4,handover_out_dps=0.25",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 77.58121314500607,
+     "violation": 6.758121314500608
+    },
+    {
+     "alg": "mtq_celani2026@mtq_gain_p=1,mtq_gain_d=4,handover_out_dps=0.5",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 68.24818528638103,
+     "violation": 5.824818528638103
+    },
+    {
+     "alg": "mtq_celani2026@mtq_gain_p=1,mtq_gain_d=4,handover_out_dps=1",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 175.12085098552305,
+     "violation": 16.512085098552305
+    },
+    {
+     "alg": "mtq_celani2026@mtq_gain_p=4,mtq_gain_d=0.25,handover_out_dps=0.25",
+     "feasible": true,
+     "failing": {},
+     "objective": 3.8738681962594868,
+     "violation": 0
+    },
+    {
+     "alg": "mtq_celani2026@mtq_gain_p=4,mtq_gain_d=0.25,handover_out_dps=0.5",
+     "feasible": true,
+     "failing": {},
+     "objective": 4.102679011188505,
+     "violation": 0
+    },
+    {
+     "alg": "mtq_celani2026@mtq_gain_p=4,mtq_gain_d=0.25,handover_out_dps=1",
+     "feasible": true,
+     "failing": {},
+     "objective": 7.270762566600237,
+     "violation": 0
+    },
+    {
+     "alg": "mtq_celani2026@mtq_gain_p=4,mtq_gain_d=1,handover_out_dps=0.25",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 72.15027708281225,
+     "violation": 6.215027708281225
+    },
+    {
+     "alg": "mtq_celani2026@mtq_gain_p=4,mtq_gain_d=1,handover_out_dps=0.5",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 83.88779858872044,
+     "violation": 7.388779858872045
+    },
+    {
+     "alg": "mtq_celani2026@mtq_gain_p=4,mtq_gain_d=1,handover_out_dps=1",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 78.00328455628826,
+     "violation": 6.800328455628827
+    },
+    {
+     "alg": "mtq_celani2026@mtq_gain_p=4,mtq_gain_d=4,handover_out_dps=0.25",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 92.66988626748503,
+     "violation": 8.266988626748503
+    },
+    {
+     "alg": "mtq_celani2026@mtq_gain_p=4,mtq_gain_d=4,handover_out_dps=0.5",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 134.3429339595367,
+     "violation": 12.43429339595367
+    },
+    {
+     "alg": "mtq_celani2026@mtq_gain_p=4,mtq_gain_d=4,handover_out_dps=1",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 104.27179578960433,
+     "violation": 9.427179578960432
+    },
+    {
+     "alg": "mtq_tango2013@mtq_gain_p=0.25,mtq_gain_d=0.25,handover_out_dps=0.25",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 21.204578950620803,
+     "violation": 1.1204578950620805
+    },
+    {
+     "alg": "mtq_tango2013@mtq_gain_p=0.25,mtq_gain_d=0.25,handover_out_dps=0.5",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 17.171279297449992,
+     "violation": 0.7171279297449993
+    },
+    {
+     "alg": "mtq_tango2013@mtq_gain_p=0.25,mtq_gain_d=0.25,handover_out_dps=1",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 19.798128270454388,
+     "violation": 0.9798128270454387
+    },
+    {
+     "alg": "mtq_tango2013@mtq_gain_p=0.25,mtq_gain_d=1,handover_out_dps=0.25",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 25.615669137742426,
+     "violation": 1.5615669137742425
+    },
+    {
+     "alg": "mtq_tango2013@mtq_gain_p=0.25,mtq_gain_d=1,handover_out_dps=0.5",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 94.79234039094894,
+     "violation": 8.479234039094894
+    },
+    {
+     "alg": "mtq_tango2013@mtq_gain_p=0.25,mtq_gain_d=1,handover_out_dps=1",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 21.850061578703777,
+     "violation": 1.1850061578703777
+    },
+    {
+     "alg": "mtq_tango2013@mtq_gain_p=0.25,mtq_gain_d=4,handover_out_dps=0.25",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 132.07484015353538,
+     "violation": 12.207484015353538
+    },
+    {
+     "alg": "mtq_tango2013@mtq_gain_p=0.25,mtq_gain_d=4,handover_out_dps=0.5",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 106.66988502618923,
+     "violation": 9.666988502618924
+    },
+    {
+     "alg": "mtq_tango2013@mtq_gain_p=0.25,mtq_gain_d=4,handover_out_dps=1",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 140.46052314873077,
+     "violation": 13.046052314873076
+    },
+    {
+     "alg": "mtq_tango2013@mtq_gain_p=1,mtq_gain_d=0.25,handover_out_dps=0.25",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 168.39038894238857,
+     "violation": 15.839038894238858
+    },
+    {
+     "alg": "mtq_tango2013@mtq_gain_p=1,mtq_gain_d=0.25,handover_out_dps=0.5",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 174.1325248909749,
+     "violation": 16.41325248909749
+    },
+    {
+     "alg": "mtq_tango2013@mtq_gain_p=1,mtq_gain_d=0.25,handover_out_dps=1",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 165.6888496972954,
+     "violation": 15.568884969729542
+    },
+    {
+     "alg": "mtq_tango2013@mtq_gain_p=1,mtq_gain_d=1,handover_out_dps=0.25",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 20.447338781374018,
+     "violation": 1.0447338781374018
+    },
+    {
+     "alg": "mtq_tango2013@mtq_gain_p=1,mtq_gain_d=1,handover_out_dps=0.5",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 17.050364677520143,
+     "violation": 0.7050364677520142
+    },
+    {
+     "alg": "mtq_tango2013@mtq_gain_p=1,mtq_gain_d=1,handover_out_dps=1",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 85.18842455411897,
+     "violation": 7.518842455411896
+    },
+    {
+     "alg": "mtq_tango2013@mtq_gain_p=1,mtq_gain_d=4,handover_out_dps=0.25",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 148.9800002044052,
+     "violation": 13.89800002044052
+    },
+    {
+     "alg": "mtq_tango2013@mtq_gain_p=1,mtq_gain_d=4,handover_out_dps=0.5",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 115.85969544136321,
+     "violation": 10.585969544136322
+    },
+    {
+     "alg": "mtq_tango2013@mtq_gain_p=1,mtq_gain_d=4,handover_out_dps=1",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 152.2761569849221,
+     "violation": 14.22761569849221
+    },
+    {
+     "alg": "mtq_tango2013@mtq_gain_p=4,mtq_gain_d=0.25,handover_out_dps=0.25",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 134.40841413070856,
+     "violation": 12.440841413070856
+    },
+    {
+     "alg": "mtq_tango2013@mtq_gain_p=4,mtq_gain_d=0.25,handover_out_dps=0.5",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 175.42537016159227,
+     "violation": 16.542537016159226
+    },
+    {
+     "alg": "mtq_tango2013@mtq_gain_p=4,mtq_gain_d=0.25,handover_out_dps=1",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 138.21988045497105,
+     "violation": 12.821988045497104
+    },
+    {
+     "alg": "mtq_tango2013@mtq_gain_p=4,mtq_gain_d=1,handover_out_dps=0.25",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 167.22829522308575,
+     "violation": 15.722829522308576
+    },
+    {
+     "alg": "mtq_tango2013@mtq_gain_p=4,mtq_gain_d=1,handover_out_dps=0.5",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 159.36707431587274,
+     "violation": 14.936707431587275
+    },
+    {
+     "alg": "mtq_tango2013@mtq_gain_p=4,mtq_gain_d=1,handover_out_dps=1",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 101.68134422584285,
+     "violation": 9.168134422584284
+    },
+    {
+     "alg": "mtq_tango2013@mtq_gain_p=4,mtq_gain_d=4,handover_out_dps=0.25",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 139.646743716738,
+     "violation": 12.9646743716738
+    },
+    {
+     "alg": "mtq_tango2013@mtq_gain_p=4,mtq_gain_d=4,handover_out_dps=0.5",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 28.74884579626016,
+     "violation": 1.8748845796260158
+    },
+    {
+     "alg": "mtq_tango2013@mtq_gain_p=4,mtq_gain_d=4,handover_out_dps=1",
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 169.1940738029534,
+     "violation": 15.91940738029534
+    }
+   ]
+  },
+  {
+   "mode": "nadir_pointing",
+   "option": "rw+mtq",
+   "alg": null,
+   "feasible": false,
+   "failing": {
+    "power_mean": "power"
+   },
+   "objective": 0.14816778314929338,
+   "objective_id": "ape_los_p9973",
+   "objective_req": 10.0
+  },
+  {
+   "mode": "nadir_pointing",
+   "option": "rw+rcs",
+   "alg": null,
+   "feasible": false,
+   "failing": {
+    "power_mean": "power"
+   },
+   "objective": 0.1481359702758785,
+   "objective_id": "ape_los_p9973",
+   "objective_req": 10.0
+  },
+  {
+   "mode": "nadir_pointing",
+   "option": "cmg+mtq",
+   "alg": null,
+   "feasible": false,
+   "failing": {
+    "power_mean": "power"
+   },
+   "objective": 0.14805170699097642,
+   "objective_id": "ape_los_p9973",
+   "objective_req": 10.0
+  },
+  {
+   "mode": "nadir_pointing",
+   "option": "cmg+rcs",
+   "alg": null,
+   "feasible": false,
+   "failing": {
+    "power_mean": "power"
+   },
+   "objective": 0.1480810285271264,
+   "objective_id": "ape_los_p9973",
+   "objective_req": 10.0
+  },
+  {
+   "mode": "nadir_pointing",
+   "option": "vscmg+mtq",
+   "alg": null,
+   "feasible": false,
+   "failing": {
+    "power_mean": "power"
+   },
+   "objective": 0.14806692484152972,
+   "objective_id": "ape_los_p9973",
+   "objective_req": 10.0
+  },
+  {
+   "mode": "nadir_pointing",
+   "option": "vscmg+rcs",
+   "alg": null,
+   "feasible": false,
+   "failing": {
+    "power_mean": "power"
+   },
+   "objective": 0.14808518356883763,
+   "objective_id": "ape_los_p9973",
+   "objective_req": 10.0
+  },
+  {
+   "mode": "nadir_pointing",
+   "option": "fmr+mtq",
+   "alg": null,
+   "feasible": true,
+   "failing": {},
+   "objective": 0.15140443642662954,
+   "objective_id": "ape_los_p9973",
+   "objective_req": 10.0
+  },
+  {
+   "mode": "nadir_pointing",
+   "option": "fmr+rcs",
+   "alg": null,
+   "feasible": false,
+   "failing": {
+    "power_mean": "power"
+   },
+   "objective": 0.15133197009388233,
+   "objective_id": "ape_los_p9973",
+   "objective_req": 10.0
+  }
+ ],
+ "tuned": [
+  [
+   "nadir_pointing",
+   "mtq"
+  ],
+  [
+   "sun_acquisition",
+   "mtq"
+  ],
+  [
+   "sun_referencing",
+   "mtq"
+  ]
+ ]
+}
