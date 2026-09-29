@@ -281,12 +281,12 @@
   {
    "mode": "sun_referencing",
    "option": "mtq",
-   "alg": "mtq_celani2026",
+   "alg": "mtq_celani2015",
    "feasible": false,
    "failing": {
     "sun_ape_p9973": "performance"
    },
-   "objective": 93.03891073342196,
+   "objective": 92.71491978428124,
    "objective_id": "sun_ape_p9973",
    "variants": [
     {
@@ -295,8 +295,8 @@
      "failing": {
       "sun_ape_p9973": "performance"
      },
-     "objective": 159.2184996137078,
-     "violation": 30.843699922741557
+     "objective": 147.36168773896136,
+     "violation": 28.47233754779227
     },
     {
      "alg": "mtq_lqr",
@@ -304,8 +304,8 @@
      "failing": {
       "sun_ape_p9973": "performance"
      },
-     "objective": 172.41838488852693,
-     "violation": 33.483676977705386
+     "objective": 176.85681076996306,
+     "violation": 34.371362153992614
     },
     {
      "alg": "mtq_smc",
@@ -313,8 +313,8 @@
      "failing": {
       "sun_ape_p9973": "performance"
      },
-     "objective": 174.2621712023275,
-     "violation": 33.8524342404655
+     "objective": 177.430553747203,
+     "violation": 34.4861107494406
     },
     {
      "alg": "mtq_rate_damp",
@@ -322,8 +322,8 @@
      "failing": {
       "sun_ape_p9973": "performance"
      },
-     "objective": 127.22146233076187,
-     "violation": 24.444292466152373
+     "objective": 137.5986219576718,
+     "violation": 26.51972439153436
     },
     {
      "alg": "mtq_lovera2004",
@@ -331,8 +331,8 @@
      "failing": {
       "sun_ape_p9973": "performance"
      },
-     "objective": 177.46874518314917,
-     "violation": 34.493749036629836
+     "objective": 137.73032656629877,
+     "violation": 26.546065313259753
     },
     {
      "alg": "mtq_celani2015",
@@ -340,8 +340,8 @@
      "failing": {
       "sun_ape_p9973": "performance"
      },
-     "objective": 97.24929041907833,
-     "violation": 18.449858083815666
+     "objective": 92.71491978428124,
+     "violation": 17.542983956856247
     },
     {
      "alg": "mtq_avanzini2021",
@@ -349,8 +349,8 @@
      "failing": {
       "sun_ape_p9973": "performance"
      },
-     "objective": 97.24929041907833,
-     "violation": 18.449858083815666
+     "objective": 92.71491978428124,
+     "violation": 17.542983956856247
     },
     {
      "alg": "mtq_celani2026",
@@ -358,8 +358,8 @@
      "failing": {
       "sun_ape_p9973": "performance"
      },
-     "objective": 93.03891073342196,
-     "violation": 17.607782146684393
+     "objective": 122.05635157596116,
+     "violation": 23.411270315192233
     },
     {
      "alg": "mtq_tango2013",
@@ -367,8 +367,8 @@
      "failing": {
       "sun_ape_p9973": "performance"
      },
-     "objective": 129.43841019594532,
-     "violation": 24.887682039189066
+     "objective": 130.17888296207835,
+     "violation": 25.03577659241567
     }
    ]
   },
