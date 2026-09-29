@@ -635,10 +635,19 @@ def ledger(case, sel, log, disp, mc, so, sizing):
                  f"{'<br>'.join(e['changes']) or '—'} | {len(e['blocked'])} |")
     if log[-1]["blocked"]:
         L += ["", "Why the loop stopped (nothing left that a knob can change):", ""] + [f"- {b}" for b in sorted(set(log[-1]["blocked"]))]
-    L += ["", "## Families (last iteration)", "", "| family | role | feasible | mass [kg] | power [W] | volume [L] | gaps |", "|---|---|---|---:|---:|---:|---|"]
-    for f, v in sel["families"].items():
+    L += ["", "## Every configuration compared (last iteration)", "",
+          f"Selection rule (node `select`, docs/NODES.md): {sel.get('rule', '')}. The benchmarks are ranked by the same rule; "
+          f"best benchmark: **`{sel.get('benchmark')}`** ({sel.get('benchmark_status', '')}).", "",
+          "| family | role | rank | feasible | mass [kg] | power [W] | volume [L] | momentum actuator | gaps |", "|---|---|---:|---|---:|---:|---:|---|---|"]
+    order = sorted(sel["families"], key=lambda f: (sel["families"][f]["role"] != "solution", not sel["families"][f]["feasible"],
+                                                   sel["families"][f]["budget"]["mass_kg"]))
+    for f in order:
+        v = sel["families"][f]
         b = v["budget"]
-        L.append(f"| {f} | {v['role']} | {'yes' if v['feasible'] else 'no'} | {b['mass_kg']:.3f} | {b['power_W']:.2f} | {b['volume_L']:.3f} | {'; '.join(v['gaps']) or '—'} |")
+        its = [x for x in sizing["families"][f]["items"] if x["slot"] in ("wheels", "cmg", "vscmg", "rings")]
+        act = ", ".join(sorted({f"{x['part']} x{x['n']:g}" if x["slot"] != "rings" else "fluid loop (3 rings)" for x in its})) or "coils only"
+        L.append(f"| {f} | {v['role']} | {v.get('rank', '—')} | {'yes' if v['feasible'] else 'no'} | {b['mass_kg']:.3f} | {b['power_W']:.2f} | "
+                 f"{b['volume_L']:.3f} | {act} | {'; '.join(v['gaps']) or '—'} |")
     L += ["", f"## Selected methods ({sel['selected']})", "", "| mode | option | feasible | objective | algorithms | failing |", "|---|---|---|---:|---|---|"]
     for m, r in F["modes"].items():
         if r:
