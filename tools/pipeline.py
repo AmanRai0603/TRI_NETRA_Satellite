@@ -87,6 +87,11 @@ def sha(*parts):
     return h.hexdigest()[:16]
 
 
+def case_bytes(case):
+    # the runs score against the case's requirements, so a changed case must not hit the cache
+    return (MS / "cases" / f"{case}.csv").read_bytes()
+
+
 def write(p, obj):
     p.parent.mkdir(parents=True, exist_ok=True)
     p.write_text(json.dumps(obj, indent=1))
@@ -146,13 +151,14 @@ def node_matrix(case, it, sized, modes, variants_on, seeds, jobs, build):
                     s["fsw"].update(tune)
                     s["id"] = f"{s['id']}__{alg.replace('@', '_')}"
                 prod, parts = product_blob(sized, s["product"])
+                creq = case_bytes(case)
                 d = PIPE / case / f"iter_{it}" / "scenarios"
                 d.mkdir(parents=True, exist_ok=True)
                 sp = d / f"{s['id']}.json"
                 sp.write_text(json.dumps(s, indent=1))
                 keys = []
                 for sd in seeds:
-                    k = sha(s, prod, parts, sd, "c", build)
+                    k = sha(s, prod, parts, sd, "c", build, creq)
                     keys.append(k)
                     runs.append((k, sp, case, sd, "c", sized))
                 tests.append({"mode": M["id"], "option": o["id"], "alg": alg, "slot": slot, "keys": keys, "product": s["product"]})
@@ -515,9 +521,9 @@ def node_mc(case, disp, sized, runs, jobs):
 
 
 def node_key(disp, sized, build, extra=""):
-    pid = json.loads(pathlib.Path(disp["scenario"]).read_text())["product"]
-    prod, parts = product_blob(sized, pid)
-    return sha(json.loads(pathlib.Path(disp["scenario"]).read_text()), prod, parts, build, extra)
+    scen = json.loads(pathlib.Path(disp["scenario"]).read_text())
+    prod, parts = product_blob(sized, scen["product"])
+    return sha(scen, prod, parts, build, extra, case_bytes(scen["case"]))
 
 
 def node_soft_oils(case, disp, sized, build):
