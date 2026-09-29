@@ -380,6 +380,15 @@ def open_items():
         "0.005 deg/s line now falls between them, so this verdict disagrees. The gap is the wheel-plus-RCS model, not the requirement.",
         "Sun spin: 17 of 24 seeds pass with and without the OBC; failures are Sun-spin entry with the Sun near the XY plane tripping the 1 deg/s "
         "exit guard during the L2 precession transient -- a tuning trade (fsw.sun_spin_perp_out_dps, fsw.sun_spin_dwell_out_s).",
+        "Bought against designed (both cases, same budget of 1.6 kg and 1.0 L): on ais_img_3u three CubeSpace CW0017 wheels are feasible "
+        "at 1.0 kg against our fluid loop's 1.6 kg, so the lightest configuration overall is a benchmark; the fluid loop is selected "
+        "because the selection is among our solutions, and its 0.6 kg is the price of not buying wheels. On ais_3u every rotor fails "
+        "the 0.5 W orbit-average power (three CW0017 draw 0.9 W steady) and the fluid loop, feasible at 1.45 kg, is the only one that passes. "
+        "The Tensor Tech CMG cluster fails power in both cases on its whole-ADCS datasheet figure (4 W upper bound).",
+        "Catalogue data: the vendor sites were not reachable from the build environment. CubeSpace Gen2, Rocket Lab RW-0.01, RW3-0.06, "
+        "RW3-1.0 and Tensor Tech ADCS100/400 numbers were read from the full datasheets (distributor mirror); AAC Clyde Space RW222/RW400, "
+        "Rocket Lab RW-0.03 and Tensor Tech CMG-10m from search excerpts. AAC Clyde Space models lack mass or power on what could be read, "
+        "so they are listed but not selectable; confirm with the vendors before a buy decision.",
         "Soft OILS models the OBC's CPU and buses; real OILS still needs the board target (fsw/targets/<board>/main.c: UART/Ethernet, clock, "
         "linker script, modelled on fsw/targets/qemu-mps2) and --realtime on adcs-link/1.",
     ]
