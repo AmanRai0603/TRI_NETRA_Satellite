@@ -324,11 +324,11 @@
    "scenario": "fault_gimbal_cmg",
    "metric": "rate_stability_p9973",
    "unit": "deg/s",
-   "req": 0.001,
+   "req": 0.005,
    "sils": 0.0029629452945429307,
    "oils": 0.00297901485048709,
-   "pass_sils": 0,
-   "pass_oils": 0
+   "pass_sils": 1,
+   "pass_oils": 1
   },
   {
    "scenario": "fault_gimbal_cmg",
@@ -444,11 +444,11 @@
    "scenario": "fault_st_img",
    "metric": "rate_stability_p9973",
    "unit": "deg/s",
-   "req": 0.001,
+   "req": 0.005,
    "sils": 0.0037712623100350246,
    "oils": 0.0037641337675121777,
-   "pass_sils": 0,
-   "pass_oils": 0
+   "pass_sils": 1,
+   "pass_oils": 1
   },
   {
    "scenario": "fault_st_img",
@@ -524,7 +524,7 @@
    "scenario": "fault_wheel_img",
    "metric": "rate_stability_p9973",
    "unit": "deg/s",
-   "req": 0.001,
+   "req": 0.005,
    "sils": 0.6244137380838454,
    "oils": 0.6298493650489823,
    "pass_sils": 0,
@@ -604,11 +604,11 @@
    "scenario": "fine_hold_cmg",
    "metric": "rate_stability_p9973",
    "unit": "deg/s",
-   "req": 0.001,
+   "req": 0.005,
    "sils": 0.0024372972116540755,
    "oils": 0.0024619132795478025,
-   "pass_sils": 0,
-   "pass_oils": 0
+   "pass_sils": 1,
+   "pass_oils": 1
   },
   {
    "scenario": "fine_hold_cmg",
@@ -684,11 +684,11 @@
    "scenario": "fine_hold_fmr",
    "metric": "rate_stability_p9973",
    "unit": "deg/s",
-   "req": 0.001,
+   "req": 0.005,
    "sils": 0.004728905497182666,
    "oils": 0.004792472333976237,
-   "pass_sils": 0,
-   "pass_oils": 0
+   "pass_sils": 1,
+   "pass_oils": 1
   },
   {
    "scenario": "fine_hold_fmr",
@@ -764,11 +764,11 @@
    "scenario": "fine_hold_fmr_rcs",
    "metric": "rate_stability_p9973",
    "unit": "deg/s",
-   "req": 0.001,
+   "req": 0.005,
    "sils": 0.004728905497182666,
    "oils": 0.0047960769961654034,
-   "pass_sils": 0,
-   "pass_oils": 0
+   "pass_sils": 1,
+   "pass_oils": 1
   },
   {
    "scenario": "fine_hold_fmr_rcs",
@@ -844,11 +844,11 @@
    "scenario": "fine_hold_img",
    "metric": "rate_stability_p9973",
    "unit": "deg/s",
-   "req": 0.001,
+   "req": 0.005,
    "sils": 0.0035517891985791376,
    "oils": 0.003548074045326213,
-   "pass_sils": 0,
-   "pass_oils": 0
+   "pass_sils": 1,
+   "pass_oils": 1
   },
   {
    "scenario": "fine_hold_img",
@@ -924,7 +924,7 @@
    "scenario": "fine_hold_img_lqr",
    "metric": "rate_stability_p9973",
    "unit": "deg/s",
-   "req": 0.001,
+   "req": 0.005,
    "sils": 0.006703833797701828,
    "oils": 0.006809656506559568,
    "pass_sils": 0,
@@ -1004,11 +1004,11 @@
    "scenario": "fine_hold_img_smc",
    "metric": "rate_stability_p9973",
    "unit": "deg/s",
-   "req": 0.001,
+   "req": 0.005,
    "sils": 0.003481571379738736,
    "oils": 0.0034985221167858085,
-   "pass_sils": 0,
-   "pass_oils": 0
+   "pass_sils": 1,
+   "pass_oils": 1
   },
   {
    "scenario": "fine_hold_img_smc",
@@ -1084,7 +1084,7 @@
    "scenario": "fine_hold_rw_rcs",
    "metric": "rate_stability_p9973",
    "unit": "deg/s",
-   "req": 0.001,
+   "req": 0.005,
    "sils": 0.005640505712910319,
    "oils": 0.005640568685175169,
    "pass_sils": 0,
@@ -1164,11 +1164,11 @@
    "scenario": "fine_hold_vscmg",
    "metric": "rate_stability_p9973",
    "unit": "deg/s",
-   "req": 0.001,
+   "req": 0.005,
    "sils": 0.004762354725018702,
    "oils": 0.004785977912799065,
-   "pass_sils": 0,
-   "pass_oils": 0
+   "pass_sils": 1,
+   "pass_oils": 1
   },
   {
    "scenario": "fine_hold_vscmg",

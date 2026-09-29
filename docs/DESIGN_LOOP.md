@@ -79,3 +79,18 @@ survey and every part and family budget match the MATLAB sizing to 1e-14. It run
 second, where the MATLAB survey takes minutes, which is what makes a loop of many sizings possible.
 The MATLAB sizing stays as the reference; `ADCS_SIZED_DIR` keeps the loop's products separate from
 the MATLAB ones.
+
+## When a requirement changes
+
+The case file is part of every cached run's key, so after a requirement changes the loop flies
+the matrix again rather than reusing verdicts judged against the old value. Runs stored outside
+the loop (SILS scenarios, campaigns, parity, soft OILS) do not need re-flying: a requirement is a
+threshold on a recorded metric. `python3 tools/rescore.py` re-judges every stored metric record,
+and every campaign's statistics, against the case files as they are now. After that, regenerate
+the ledgers (`tools/engine.py twin-parity | campaign-ledger | oils-ledger`, `tools/report.py`,
+`tools/vv_report.py`).
+
+Example: on ais_img_3u the owner relaxed rate stability from 0.001 to 0.005 deg/s and set the ADCS
+budget to 1.6 kg and 1.0 L (1U of the 3U). The loop converged in 7 iterations on `mtq_fmr` at
+1.596 kg and 0.534 L. That design uses the catalogue gyro, two star-tracker heads, a 0.125 mm/s flow
+sensor and λ = 0.033 kg/W.
