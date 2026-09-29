@@ -15,7 +15,7 @@
    {
     "id": "ape_los_p9973",
     "kind": "ape_los",
-    "value": 175.99455234486183,
+    "value": 11.641016743188764,
     "unit": "deg",
     "req": 0.01,
     "req_key": "req.ape",
@@ -24,16 +24,16 @@
    {
     "id": "ake_los_p9973",
     "kind": "ake_los",
-    "value": 1.0145684879600143,
+    "value": 0.0025253168267419467,
     "unit": "deg",
     "req": 0.005,
     "req_key": "req.ake",
-    "pass": 0
+    "pass": 1
    },
    {
     "id": "power_mean",
     "kind": "power_mean",
-    "value": 0.09473206900707064,
+    "value": 0.07492303212595895,
     "unit": "W",
     "req": 2.0,
     "req_key": "req.pavg",
@@ -42,7 +42,7 @@
    {
     "id": "power_peak",
     "kind": "power_peak",
-    "value": 0.22970116973668234,
+    "value": 0.22795699064002703,
     "unit": "W",
     "req": null,
     "req_key": "",
@@ -68,20 +68,288 @@
     "mode": "spinup"
    },
    {
-    "t": 9633.2,
+    "t": 4405.8,
     "mode": "sun_spin"
    },
    {
-    "t": 9740.0,
+    "t": 4436.0,
     "mode": "spinup"
    },
    {
-    "t": 10155.6,
+    "t": 4496.0,
     "mode": "sun_spin"
    },
    {
-    "t": 10434.0,
+    "t": 4526.2,
     "mode": "spinup"
+   },
+   {
+    "t": 4586.2,
+    "mode": "sun_spin"
+   },
+   {
+    "t": 4616.400000000001,
+    "mode": "spinup"
+   },
+   {
+    "t": 4676.400000000001,
+    "mode": "sun_spin"
+   },
+   {
+    "t": 4706.6,
+    "mode": "spinup"
+   },
+   {
+    "t": 4771.6,
+    "mode": "sun_spin"
+   },
+   {
+    "t": 4801.8,
+    "mode": "spinup"
+   },
+   {
+    "t": 4907.2,
+    "mode": "sun_spin"
+   },
+   {
+    "t": 4937.400000000001,
+    "mode": "spinup"
+   },
+   {
+    "t": 5679.8,
+    "mode": "sun_spin"
+   },
+   {
+    "t": 5710.0,
+    "mode": "spinup"
+   },
+   {
+    "t": 5770.0,
+    "mode": "sun_spin"
+   },
+   {
+    "t": 5800.200000000001,
+    "mode": "spinup"
+   },
+   {
+    "t": 5860.200000000001,
+    "mode": "sun_spin"
+   },
+   {
+    "t": 5890.400000000001,
+    "mode": "spinup"
+   },
+   {
+    "t": 5950.400000000001,
+    "mode": "sun_spin"
+   },
+   {
+    "t": 5980.6,
+    "mode": "spinup"
+   },
+   {
+    "t": 6040.6,
+    "mode": "sun_spin"
+   },
+   {
+    "t": 6070.8,
+    "mode": "spinup"
+   },
+   {
+    "t": 6130.8,
+    "mode": "sun_spin"
+   },
+   {
+    "t": 6161.0,
+    "mode": "spinup"
+   },
+   {
+    "t": 6221.0,
+    "mode": "sun_spin"
+   },
+   {
+    "t": 6251.200000000001,
+    "mode": "spinup"
+   },
+   {
+    "t": 6311.200000000001,
+    "mode": "sun_spin"
+   },
+   {
+    "t": 6341.400000000001,
+    "mode": "spinup"
+   },
+   {
+    "t": 6401.400000000001,
+    "mode": "sun_spin"
+   },
+   {
+    "t": 6919.200000000001,
+    "mode": "spinup"
+   },
+   {
+    "t": 6979.200000000001,
+    "mode": "sun_spin"
+   },
+   {
+    "t": 7034.400000000001,
+    "mode": "spinup"
+   },
+   {
+    "t": 7094.400000000001,
+    "mode": "sun_spin"
+   },
+   {
+    "t": 7184.0,
+    "mode": "spinup"
+   },
+   {
+    "t": 9226.800000000001,
+    "mode": "sun_spin"
+   },
+   {
+    "t": 9778.0,
+    "mode": "spinup"
+   },
+   {
+    "t": 9838.0,
+    "mode": "sun_spin"
+   },
+   {
+    "t": 9868.2,
+    "mode": "spinup"
+   },
+   {
+    "t": 9928.2,
+    "mode": "sun_spin"
+   },
+   {
+    "t": 10002.400000000001,
+    "mode": "spinup"
+   },
+   {
+    "t": 10062.400000000001,
+    "mode": "sun_spin"
+   },
+   {
+    "t": 10151.2,
+    "mode": "spinup"
+   },
+   {
+    "t": 10211.2,
+    "mode": "sun_spin"
+   },
+   {
+    "t": 10241.400000000001,
+    "mode": "spinup"
+   },
+   {
+    "t": 10301.400000000001,
+    "mode": "sun_spin"
+   },
+   {
+    "t": 10331.6,
+    "mode": "spinup"
+   },
+   {
+    "t": 10391.6,
+    "mode": "sun_spin"
+   },
+   {
+    "t": 10421.800000000001,
+    "mode": "spinup"
+   },
+   {
+    "t": 10481.800000000001,
+    "mode": "sun_spin"
+   },
+   {
+    "t": 10512.0,
+    "mode": "spinup"
+   },
+   {
+    "t": 10572.0,
+    "mode": "sun_spin"
+   },
+   {
+    "t": 10602.2,
+    "mode": "spinup"
+   },
+   {
+    "t": 10662.2,
+    "mode": "sun_spin"
+   },
+   {
+    "t": 10692.400000000001,
+    "mode": "spinup"
+   },
+   {
+    "t": 10752.400000000001,
+    "mode": "sun_spin"
+   },
+   {
+    "t": 10782.6,
+    "mode": "spinup"
+   },
+   {
+    "t": 10842.6,
+    "mode": "sun_spin"
+   },
+   {
+    "t": 10872.800000000001,
+    "mode": "spinup"
+   },
+   {
+    "t": 10932.800000000001,
+    "mode": "sun_spin"
+   },
+   {
+    "t": 10963.0,
+    "mode": "spinup"
+   },
+   {
+    "t": 11023.0,
+    "mode": "sun_spin"
+   },
+   {
+    "t": 11053.2,
+    "mode": "spinup"
+   },
+   {
+    "t": 11113.2,
+    "mode": "sun_spin"
+   },
+   {
+    "t": 11143.400000000001,
+    "mode": "spinup"
+   },
+   {
+    "t": 11203.400000000001,
+    "mode": "sun_spin"
+   },
+   {
+    "t": 11233.6,
+    "mode": "spinup"
+   },
+   {
+    "t": 11293.6,
+    "mode": "sun_spin"
+   },
+   {
+    "t": 11323.800000000001,
+    "mode": "spinup"
+   },
+   {
+    "t": 11383.800000000001,
+    "mode": "sun_spin"
+   },
+   {
+    "t": 11414.0,
+    "mode": "spinup"
+   },
+   {
+    "t": 11474.0,
+    "mode": "sun_spin"
    },
    {
     "t": 11478.0,
@@ -105,7 +373,7 @@
    {
     "id": "ape_los_p9973",
     "kind": "ape_los",
-    "value": 175.99455234486183,
+    "value": 11.641016743188764,
     "unit": "deg",
     "req": 0.01,
     "req_key": "req.ape",
@@ -114,16 +382,16 @@
    {
     "id": "ake_los_p9973",
     "kind": "ake_los",
-    "value": 1.0145684879600143,
+    "value": 0.0025253168267419467,
     "unit": "deg",
     "req": 0.005,
     "req_key": "req.ake",
-    "pass": 0
+    "pass": 1
    },
    {
     "id": "power_mean",
     "kind": "power_mean",
-    "value": 0.09473206900707064,
+    "value": 0.07492303212595895,
     "unit": "W",
     "req": 2.0,
     "req_key": "req.pavg",
@@ -132,7 +400,7 @@
    {
     "id": "power_peak",
     "kind": "power_peak",
-    "value": 0.22970116973668234,
+    "value": 0.22795699064002703,
     "unit": "W",
     "req": null,
     "req_key": "",
@@ -158,20 +426,288 @@
     "mode": "spinup"
    },
    {
-    "t": 9633.2,
+    "t": 4405.8,
     "mode": "sun_spin"
    },
    {
-    "t": 9740.0,
+    "t": 4436.0,
     "mode": "spinup"
    },
    {
-    "t": 10155.6,
+    "t": 4496.0,
     "mode": "sun_spin"
    },
    {
-    "t": 10434.0,
+    "t": 4526.2,
     "mode": "spinup"
+   },
+   {
+    "t": 4586.2,
+    "mode": "sun_spin"
+   },
+   {
+    "t": 4616.400000000001,
+    "mode": "spinup"
+   },
+   {
+    "t": 4676.400000000001,
+    "mode": "sun_spin"
+   },
+   {
+    "t": 4706.6,
+    "mode": "spinup"
+   },
+   {
+    "t": 4771.6,
+    "mode": "sun_spin"
+   },
+   {
+    "t": 4801.8,
+    "mode": "spinup"
+   },
+   {
+    "t": 4907.2,
+    "mode": "sun_spin"
+   },
+   {
+    "t": 4937.400000000001,
+    "mode": "spinup"
+   },
+   {
+    "t": 5679.8,
+    "mode": "sun_spin"
+   },
+   {
+    "t": 5710.0,
+    "mode": "spinup"
+   },
+   {
+    "t": 5770.0,
+    "mode": "sun_spin"
+   },
+   {
+    "t": 5800.200000000001,
+    "mode": "spinup"
+   },
+   {
+    "t": 5860.200000000001,
+    "mode": "sun_spin"
+   },
+   {
+    "t": 5890.400000000001,
+    "mode": "spinup"
+   },
+   {
+    "t": 5950.400000000001,
+    "mode": "sun_spin"
+   },
+   {
+    "t": 5980.6,
+    "mode": "spinup"
+   },
+   {
+    "t": 6040.6,
+    "mode": "sun_spin"
+   },
+   {
+    "t": 6070.8,
+    "mode": "spinup"
+   },
+   {
+    "t": 6130.8,
+    "mode": "sun_spin"
+   },
+   {
+    "t": 6161.0,
+    "mode": "spinup"
+   },
+   {
+    "t": 6221.0,
+    "mode": "sun_spin"
+   },
+   {
+    "t": 6251.200000000001,
+    "mode": "spinup"
+   },
+   {
+    "t": 6311.200000000001,
+    "mode": "sun_spin"
+   },
+   {
+    "t": 6341.400000000001,
+    "mode": "spinup"
+   },
+   {
+    "t": 6401.400000000001,
+    "mode": "sun_spin"
+   },
+   {
+    "t": 6919.200000000001,
+    "mode": "spinup"
+   },
+   {
+    "t": 6979.200000000001,
+    "mode": "sun_spin"
+   },
+   {
+    "t": 7034.400000000001,
+    "mode": "spinup"
+   },
+   {
+    "t": 7094.400000000001,
+    "mode": "sun_spin"
+   },
+   {
+    "t": 7184.0,
+    "mode": "spinup"
+   },
+   {
+    "t": 9226.800000000001,
+    "mode": "sun_spin"
+   },
+   {
+    "t": 9778.0,
+    "mode": "spinup"
+   },
+   {
+    "t": 9838.0,
+    "mode": "sun_spin"
+   },
+   {
+    "t": 9868.2,
+    "mode": "spinup"
+   },
+   {
+    "t": 9928.2,
+    "mode": "sun_spin"
+   },
+   {
+    "t": 10002.400000000001,
+    "mode": "spinup"
+   },
+   {
+    "t": 10062.400000000001,
+    "mode": "sun_spin"
+   },
+   {
+    "t": 10151.2,
+    "mode": "spinup"
+   },
+   {
+    "t": 10211.2,
+    "mode": "sun_spin"
+   },
+   {
+    "t": 10241.400000000001,
+    "mode": "spinup"
+   },
+   {
+    "t": 10301.400000000001,
+    "mode": "sun_spin"
+   },
+   {
+    "t": 10331.6,
+    "mode": "spinup"
+   },
+   {
+    "t": 10391.6,
+    "mode": "sun_spin"
+   },
+   {
+    "t": 10421.800000000001,
+    "mode": "spinup"
+   },
+   {
+    "t": 10481.800000000001,
+    "mode": "sun_spin"
+   },
+   {
+    "t": 10512.0,
+    "mode": "spinup"
+   },
+   {
+    "t": 10572.0,
+    "mode": "sun_spin"
+   },
+   {
+    "t": 10602.2,
+    "mode": "spinup"
+   },
+   {
+    "t": 10662.2,
+    "mode": "sun_spin"
+   },
+   {
+    "t": 10692.400000000001,
+    "mode": "spinup"
+   },
+   {
+    "t": 10752.400000000001,
+    "mode": "sun_spin"
+   },
+   {
+    "t": 10782.6,
+    "mode": "spinup"
+   },
+   {
+    "t": 10842.6,
+    "mode": "sun_spin"
+   },
+   {
+    "t": 10872.800000000001,
+    "mode": "spinup"
+   },
+   {
+    "t": 10932.800000000001,
+    "mode": "sun_spin"
+   },
+   {
+    "t": 10963.0,
+    "mode": "spinup"
+   },
+   {
+    "t": 11023.0,
+    "mode": "sun_spin"
+   },
+   {
+    "t": 11053.2,
+    "mode": "spinup"
+   },
+   {
+    "t": 11113.2,
+    "mode": "sun_spin"
+   },
+   {
+    "t": 11143.400000000001,
+    "mode": "spinup"
+   },
+   {
+    "t": 11203.400000000001,
+    "mode": "sun_spin"
+   },
+   {
+    "t": 11233.6,
+    "mode": "spinup"
+   },
+   {
+    "t": 11293.6,
+    "mode": "sun_spin"
+   },
+   {
+    "t": 11323.800000000001,
+    "mode": "spinup"
+   },
+   {
+    "t": 11383.800000000001,
+    "mode": "sun_spin"
+   },
+   {
+    "t": 11414.0,
+    "mode": "spinup"
+   },
+   {
+    "t": 11474.0,
+    "mode": "sun_spin"
    },
    {
     "t": 11478.0,
