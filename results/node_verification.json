@@ -1,6 +1,6 @@
 {
- "passed": 199,
- "checks": 199,
+ "passed": 229,
+ "checks": 229,
  "nodes": [
   "case",
   "catalogue",
@@ -13,9 +13,11 @@
   "budget",
   "matrix",
   "assess",
+  "tune",
   "converge",
   "select",
   "dispatch",
+  "certify",
   "mc",
   "family_missions",
   "soft_oils",
@@ -27,7 +29,7 @@
    "case": "\u2014",
    "check": "registry: unique node ids with inputs, outputs and rules",
    "ok": true,
-   "detail": "18 nodes"
+   "detail": "20 nodes"
   },
   {
    "node": "case",
@@ -403,7 +405,7 @@
   {
    "node": "demand",
    "case": "ais_3u",
-   "check": "sizing of the final iteration (iter_4) present",
+   "check": "sizing of the final iteration (iter_7) present",
    "ok": true,
    "detail": ""
   },
@@ -424,7 +426,7 @@
   {
    "node": "demand",
    "case": "ais_img_3u",
-   "check": "sizing of the final iteration (iter_9) present",
+   "check": "sizing of the final iteration (iter_10) present",
    "ok": true,
    "detail": ""
   },
@@ -454,7 +456,7 @@
    "case": "ais_3u",
    "check": "SZ-ais_3u-MTQP: designed part with positive mass",
    "ok": true,
-   "detail": "0.01521 kg"
+   "detail": "0.03423 kg"
   },
   {
    "node": "size_mtq",
@@ -755,7 +757,7 @@
    "case": "ais_3u",
    "check": "mtq: mass, power and volume are the sums of the fitted units",
    "ok": true,
-   "detail": "0.236 kg, 2.06 W, 0.018 L"
+   "detail": "0.293 kg, 2.63 W, 0.041 L"
   },
   {
    "node": "budget",
@@ -895,7 +897,7 @@
    "case": "ais_3u",
    "check": "an option is feasible exactly when nothing fails",
    "ok": true,
-   "detail": "4 feasible"
+   "detail": "5 feasible"
   },
   {
    "node": "assess",
@@ -919,11 +921,95 @@
    "detail": ""
   },
   {
+   "node": "tune",
+   "case": "ais_3u",
+   "check": "nadir_pointing/mtq: every mtq_pointing law flown at every grid point",
+   "ok": true,
+   "detail": "90 of 90 variants"
+  },
+  {
+   "node": "tune",
+   "case": "ais_3u",
+   "check": "nadir_pointing/mtq: the kept variant is the best worst seed",
+   "ok": true,
+   "detail": "mtq_celani2026@mtq_gain_p=4,mtq_gain_d=0.25 (ape_los_p9973 3.7282289429718123)"
+  },
+  {
+   "node": "tune",
+   "case": "ais_3u",
+   "check": "sun_acquisition/mtq: every sun_acquisition law flown at every grid point",
+   "ok": true,
+   "detail": "50 of 50 variants"
+  },
+  {
+   "node": "tune",
+   "case": "ais_3u",
+   "check": "sun_acquisition/mtq: the kept variant is the best worst seed",
+   "ok": true,
+   "detail": "sunspin_damped@spin_rate_dps=4,ss_gain=0.3 (sun_acquisition_time 93.09)"
+  },
+  {
+   "node": "tune",
+   "case": "ais_3u",
+   "check": "sun_referencing/mtq: every mtq_pointing law flown at every grid point",
+   "ok": true,
+   "detail": "90 of 90 variants"
+  },
+  {
+   "node": "tune",
+   "case": "ais_3u",
+   "check": "sun_referencing/mtq: the kept variant is the best worst seed",
+   "ok": true,
+   "detail": "mtq_celani2026@mtq_gain_p=0.25,mtq_gain_d=1 (sun_ape_p9973 84.6800206390245)"
+  },
+  {
+   "node": "tune",
+   "case": "ais_img_3u",
+   "check": "nadir_pointing/mtq: every mtq_pointing law flown at every grid point",
+   "ok": true,
+   "detail": "90 of 90 variants"
+  },
+  {
+   "node": "tune",
+   "case": "ais_img_3u",
+   "check": "nadir_pointing/mtq: the kept variant is the best worst seed",
+   "ok": true,
+   "detail": "mtq_celani2026@mtq_gain_p=4,mtq_gain_d=0.25 (ape_los_p9973 3.4050593390708093)"
+  },
+  {
+   "node": "tune",
+   "case": "ais_img_3u",
+   "check": "sun_acquisition/mtq: every sun_acquisition law flown at every grid point",
+   "ok": true,
+   "detail": "50 of 50 variants"
+  },
+  {
+   "node": "tune",
+   "case": "ais_img_3u",
+   "check": "sun_acquisition/mtq: the kept variant is the best worst seed",
+   "ok": true,
+   "detail": "sunspin_damped@spin_rate_dps=2,ss_gain=3 (sun_acquisition_time 72.54)"
+  },
+  {
+   "node": "tune",
+   "case": "ais_img_3u",
+   "check": "sun_referencing/mtq: every mtq_pointing law flown at every grid point",
+   "ok": true,
+   "detail": "90 of 90 variants"
+  },
+  {
+   "node": "tune",
+   "case": "ais_img_3u",
+   "check": "sun_referencing/mtq: the kept variant is the best worst seed",
+   "ok": true,
+   "detail": "mtq_celani2026@mtq_gain_p=4,mtq_gain_d=0.25 (sun_ape_p9973 27.628206197998434)"
+  },
+  {
    "node": "converge",
    "case": "ais_3u",
    "check": "converged: the last iteration proposes no change",
    "ok": true,
-   "detail": "4 iteration(s)"
+   "detail": "7 iteration(s)"
   },
   {
    "node": "converge",
@@ -937,21 +1023,21 @@
    "case": "ais_3u",
    "check": "every authority scale inside its bounds",
    "ok": true,
-   "detail": "{\"mtqp\": 1.0}"
+   "detail": "{\"mtqp\": 2.25}"
   },
   {
    "node": "converge",
    "case": "ais_3u",
    "check": "every family was flown and scored in every iteration",
    "ok": true,
-   "detail": "9 families x 4 iterations"
+   "detail": "9 families x 7 iterations"
   },
   {
    "node": "converge",
    "case": "ais_img_3u",
    "check": "converged: the last iteration proposes no change",
    "ok": true,
-   "detail": "9 iteration(s)"
+   "detail": "10 iteration(s)"
   },
   {
    "node": "converge",
@@ -972,7 +1058,7 @@
    "case": "ais_img_3u",
    "check": "every family was flown and scored in every iteration",
    "ok": true,
-   "detail": "9 families x 9 iterations"
+   "detail": "9 families x 10 iterations"
   },
   {
    "node": "select",
@@ -986,7 +1072,7 @@
    "case": "ais_3u",
    "check": "mtq: feasible exactly when no mode and no budget gap",
    "ok": true,
-   "detail": "sun_acquisition: sun_acquisition_time (performance), sun_angle_p95 (performance); sun_referencing: sun_ape_p9973 (performance); nadir_pointing: ape_los_p9973 (performance)"
+   "detail": "sun_acquisition: sun_angle_p95 (performance); sun_referencing: sun_ape_p9973 (performance)"
   },
   {
    "node": "select",
@@ -1007,42 +1093,42 @@
    "case": "ais_3u",
    "check": "mtq_rw: feasible exactly when no mode and no budget gap",
    "ok": true,
-   "detail": "sun_acquisition: power_mean (power); sun_referencing: power_mean (power); nadir_pointing: power_mean (power)"
+   "detail": "sun_acquisition: power_mean (power); sun_referencing: power_mean (power)"
   },
   {
    "node": "select",
    "case": "ais_3u",
    "check": "mtq_rw_rcs: feasible exactly when no mode and no budget gap",
    "ok": true,
-   "detail": "sun_acquisition: power_mean (power); sun_referencing: power_mean (power); nadir_pointing: power_mean (power); budget: volume_L 1.05 > 1"
+   "detail": "sun_acquisition: power_mean (power); sun_referencing: power_mean (power); budget: volume_L 1.05 > 1"
   },
   {
    "node": "select",
    "case": "ais_3u",
    "check": "mtq_cmg: feasible exactly when no mode and no budget gap",
    "ok": true,
-   "detail": "sun_acquisition: power_mean (power); sun_referencing: power_mean (power); nadir_pointing: power_mean (power)"
+   "detail": "sun_acquisition: power_mean (power); sun_referencing: power_mean (power)"
   },
   {
    "node": "select",
    "case": "ais_3u",
    "check": "mtq_cmg_rcs: feasible exactly when no mode and no budget gap",
    "ok": true,
-   "detail": "sun_acquisition: power_mean (power); sun_referencing: power_mean (power); nadir_pointing: power_mean (power); budget: mass_kg 1.93 > 1.6; budget: volume_L 1.79 > 1"
+   "detail": "sun_acquisition: power_mean (power); sun_referencing: power_mean (power); budget: mass_kg 1.93 > 1.6; budget: volume_L 1.79 > 1"
   },
   {
    "node": "select",
    "case": "ais_3u",
    "check": "mtq_vscmg: feasible exactly when no mode and no budget gap",
    "ok": true,
-   "detail": "sun_acquisition: power_mean (power); sun_referencing: power_mean (power); nadir_pointing: power_mean (power)"
+   "detail": "sun_acquisition: power_mean (power); sun_referencing: power_mean (power)"
   },
   {
    "node": "select",
    "case": "ais_3u",
    "check": "mtq_vscmg_rcs: feasible exactly when no mode and no budget gap",
    "ok": true,
-   "detail": "sun_acquisition: power_mean (power); sun_referencing: power_mean (power); nadir_pointing: power_mean (power); budget: mass_kg 1.93 > 1.6; budget: volume_L 1.79 > 1"
+   "detail": "sun_acquisition: power_mean (power); sun_referencing: power_mean (power); budget: mass_kg 1.93 > 1.6; budget: volume_L 1.79 > 1"
   },
   {
    "node": "select",
@@ -1070,7 +1156,7 @@
    "case": "ais_img_3u",
    "check": "mtq: feasible exactly when no mode and no budget gap",
    "ok": true,
-   "detail": "sun_acquisition: sun_acquisition_time (performance), sun_angle_p95 (performance); sun_referencing: sun_ape_p9973 (performance); nadir_pointing: ape_los_p9973 (performance), ake_los_p9973 (knowledge), rate_stability_p9973 (performance)"
+   "detail": "sun_acquisition: sun_acquisition_time (performance), sun_angle_p95 (performance); sun_referencing: sun_ape_p9973 (performance); nadir_pointing: ape_los_p9973 (performance), rate_stability_p9973 (performance)"
   },
   {
    "node": "select",
@@ -1167,6 +1253,132 @@
    "node": "dispatch",
    "case": "ais_img_3u",
    "check": "C and Rust flight software bit-identical on the mission",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "node": "certify",
+   "case": "ais_3u",
+   "check": "Floquet multipliers for every magnetic law of the coils-only family",
+   "ok": true,
+   "detail": "7 laws; dispatched mtq_celani2026"
+  },
+  {
+   "node": "certify",
+   "case": "ais_3u",
+   "check": "mtq_pd: certified exactly when every multiplier outside the free directions is inside the unit circle",
+   "ok": true,
+   "detail": "max |mu| 0.5992"
+  },
+  {
+   "node": "certify",
+   "case": "ais_3u",
+   "check": "mtq_rate_damp: certified exactly when every multiplier outside the free directions is inside the unit circle",
+   "ok": true,
+   "detail": "max |mu| 1"
+  },
+  {
+   "node": "certify",
+   "case": "ais_3u",
+   "check": "mtq_lovera2004: certified exactly when every multiplier outside the free directions is inside the unit circle",
+   "ok": true,
+   "detail": "max |mu| 1.151"
+  },
+  {
+   "node": "certify",
+   "case": "ais_3u",
+   "check": "mtq_celani2015: certified exactly when every multiplier outside the free directions is inside the unit circle",
+   "ok": true,
+   "detail": "max |mu| 0.7797"
+  },
+  {
+   "node": "certify",
+   "case": "ais_3u",
+   "check": "mtq_avanzini2021: certified exactly when every multiplier outside the free directions is inside the unit circle",
+   "ok": true,
+   "detail": "max |mu| 2.553"
+  },
+  {
+   "node": "certify",
+   "case": "ais_3u",
+   "check": "mtq_celani2026: certified exactly when every multiplier outside the free directions is inside the unit circle",
+   "ok": true,
+   "detail": "max |mu| 0.01655"
+  },
+  {
+   "node": "certify",
+   "case": "ais_3u",
+   "check": "mtq_tango2013: certified exactly when every multiplier outside the free directions is inside the unit circle",
+   "ok": true,
+   "detail": "max |mu| 0.07271"
+  },
+  {
+   "node": "certify",
+   "case": "ais_3u",
+   "check": "the dispatched law is among them",
+   "ok": true,
+   "detail": ""
+  },
+  {
+   "node": "certify",
+   "case": "ais_img_3u",
+   "check": "Floquet multipliers for every magnetic law of the coils-only family",
+   "ok": true,
+   "detail": "7 laws; dispatched mtq_celani2026"
+  },
+  {
+   "node": "certify",
+   "case": "ais_img_3u",
+   "check": "mtq_pd: certified exactly when every multiplier outside the free directions is inside the unit circle",
+   "ok": true,
+   "detail": "max |mu| 5.326"
+  },
+  {
+   "node": "certify",
+   "case": "ais_img_3u",
+   "check": "mtq_rate_damp: certified exactly when every multiplier outside the free directions is inside the unit circle",
+   "ok": true,
+   "detail": "max |mu| 3.896"
+  },
+  {
+   "node": "certify",
+   "case": "ais_img_3u",
+   "check": "mtq_lovera2004: certified exactly when every multiplier outside the free directions is inside the unit circle",
+   "ok": true,
+   "detail": "max |mu| 5.108"
+  },
+  {
+   "node": "certify",
+   "case": "ais_img_3u",
+   "check": "mtq_celani2015: certified exactly when every multiplier outside the free directions is inside the unit circle",
+   "ok": true,
+   "detail": "max |mu| 2.636"
+  },
+  {
+   "node": "certify",
+   "case": "ais_img_3u",
+   "check": "mtq_avanzini2021: certified exactly when every multiplier outside the free directions is inside the unit circle",
+   "ok": true,
+   "detail": "max |mu| 647.8"
+  },
+  {
+   "node": "certify",
+   "case": "ais_img_3u",
+   "check": "mtq_celani2026: certified exactly when every multiplier outside the free directions is inside the unit circle",
+   "ok": true,
+   "detail": "max |mu| 0.03952"
+  },
+  {
+   "node": "certify",
+   "case": "ais_img_3u",
+   "check": "mtq_tango2013: certified exactly when every multiplier outside the free directions is inside the unit circle",
+   "ok": true,
+   "detail": "max |mu| 7.41"
+  },
+  {
+   "node": "certify",
+   "case": "ais_img_3u",
+   "check": "the dispatched law is among them",
    "ok": true,
    "detail": ""
   },
@@ -1294,7 +1506,7 @@
    "case": "ais_img_3u",
    "check": "mtq: mission verdict matches the loop's feasibility (informational for families that are not feasible)",
    "ok": true,
-   "detail": "fails ape_los_p9973, ake_los_p9973"
+   "detail": "fails ape_los_p9973"
   },
   {
    "node": "family_missions",
@@ -1350,7 +1562,7 @@
    "case": "ais_3u",
    "check": "no overrun on either firmware",
    "ok": true,
-   "detail": "oils: CPU max 6.1 %, oils_rs: CPU max 7.1 %"
+   "detail": "oils: CPU max 6.1 %, oils_rs: CPU max 7.2 %"
   },
   {
    "node": "soft_oils",

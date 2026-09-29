@@ -51,6 +51,31 @@ example 50–100 A·m² and J in the thousands of kg·m²), so they are not tran
 proportional and rate gains by 0.25, 1 or 4, and the Sun laws' spin rate and gain the same way, and keeps the best
 worst case.
 
+## Results (both cases, `results/DESIGN_<case>.md`, V&V report section 7)
+
+- **Nadir pointing, coils only: Celani 2026 (P8) is the one law that holds nadir.** With the tuned gains
+  (proportional ×4, rate ×0.25) its worst seed out of four is 3.73° on ais_3u, against the 10° AIS requirement, so the
+  AIS coils-only nadir option is now feasible. On ais_img_3u it reaches 3.4°, not near the 0.01° imaging requirement.
+  - The next best on ais_3u are the baseline SMC (11.9°), TANGO (12.9°) and Lovera & Astolfi (12.9°); Celani 2015 gives
+    17.8° and Avanzini 54°.
+  - Its certificate agrees: at the dispatched gains the largest Floquet multiplier is 0.017 on ais_3u and 0.04 on
+    ais_img_3u.
+  - Of the others, only the baseline PD, Celani 2015 and TANGO are certified at nominal gains on ais_3u, and none on
+    ais_img_3u.
+- **Sun acquisition, coils only: no law meets the cases' line within the 1.5-orbit mode test.** That line is the power
+  face within 20° inside 95 min and held at the 95th percentile.
+  - P11 → P5 (He et al.) at a 2 °/s spin reaches the Sun in 56 min on ais_3u, but not on every seed.
+  - Celani 2026's boresight reaches it in 32 min on its best seed, without a spin.
+  - Lowering the spin rate helped every spin law, as Roldugin's wobble analysis predicts.
+- **Sun referencing (three-axis on the Sun), coils only: none holds 5°.** The best is Celani 2026 (27.6° imaging,
+  84.7° AIS).
+- **Coils-only mission (dispatched with the best laws):**
+  - ais_3u: detumble 40 min, then Sun spin, then nadir with Celani 2026. Nadir comes to 33.7° in the mission's last half
+    orbit, down from 174° with the previous law.
+  - ais_img_3u: nadir 11.6°.
+  - The gap to the mode-test 3.7° is the hand-over. Nadir is commanded at 2 orbits from a spinning body, and the review
+    lists that same Sun-spin → nadir transition as open for P16. It is kept as is, as asked.
+
 ## What stays open
 
 - The Sun-acquisition mode test lasts 1.5 orbits. The spin chains (P11 → P5, P11 → P2) finish their spin-up only in
