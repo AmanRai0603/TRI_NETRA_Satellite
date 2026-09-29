@@ -49,6 +49,7 @@ pub struct Fsw {
     m_hold: V3, b_dump: V3,
     sigma: f64, sz_sum: f64, sz_n: u32, sz_t0: f64,
     s_prop: Option<V3>, acq_hold: f64,
+    ho: bool, ho_t: f64,
     gd: Guid, g_rw: Gains, g_mtq: Gains,
     q_ref: Q, w_ref: V3, tau_req: V3, i_q: V3, last_ctrl: f64, capturing: bool,
     h_prev: Option<[f64; NR]>, cmd_r_prev: [f64; NR], rot_failed: [bool; NR], fd_count: [f64; NR],
@@ -143,6 +144,8 @@ impl Fsw {
         self.mode = mode;
         self.t_mode = self.t;
         self.hold = 0.0;
+        self.ho = false;
+        self.ho_t = 0.0;
         self.i_q = [0.0; 3];
     }
 
@@ -465,8 +468,30 @@ impl Fsw {
                 else if fabs(phase - p.mtq_meas) < dt/2.0 && self.ad_ok && self.have_r {
                     let rf = ctl::guidance(guid_kind_of(self.mode), &self.r, &self.v, self.t, &self.gd);
                     self.q_ref = rf.q; self.w_ref = rf.w;
-                    self.mtq_law();
-                    let md = ctl::torque2dipole(&self.tau_req, &z.b, p.m_max);
+                    // hand-over (05_control.md): the rate error is damped first with the detumble gain (Avanzini & Giulietti 2012)
+                    let qe = qmult(&qconj(&self.q_ref), &self.k.q);
+                    let wr = mat3_vec(&dcm(&qe), &self.w_ref);
+                    let we = sub3(&self.w_est, &wr);
+                    let wen = norm3(&we);
+                    if !self.ho && wen > p.ho_in_dps*D2R { self.ho = true; self.ho_t = 0.0; }
+                    if self.ho {
+                        if wen < p.ho_out_dps*D2R { self.ho_t += p.mtq_period; } else { self.ho_t = 0.0; }
+                        if self.ho_t >= p.ho_hold_s { self.ho = false; }
+                    }
+                    let md = if self.ho {
+                        self.tau_req = [0.0; 3];
+                        scale3(&cross(&we, &unit(&z.b)), p.bdot_k/norm3(&z.b))
+                    } else {
+                        self.mtq_law();
+                        if p.mtq_gg_ff & (if self.mode == SUN_MTQ { 1 } else { 2 }) != 0 {
+                            let rb = mat3_vec(&dcm(&self.k.q), &self.r);
+                            let rn = norm3(&rb);
+                            let f = 3.0*p.mu/(rn*rn*rn*rn*rn);
+                            let c = cross(&rb, &mat3_vec(&p.J, &rb));
+                            for i in 0..3 { self.tau_req[i] -= f*c[i]; }
+                        }
+                        ctl::torque2dipole(&self.tau_req, &z.b, p.m_max)
+                    };
                     m_body = ctl::sat_dipole(&sub3(&md, &p.m_res_est), p.m_max);
                 } else if phase < p.mtq_meas { m_body = [0.0; 3]; }
             }

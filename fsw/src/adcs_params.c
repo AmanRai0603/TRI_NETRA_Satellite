@@ -114,6 +114,10 @@ int32_t adcs_params_decode(const uint8_t *blob, size_t len, adcs_params_t *out)
     out->ss_dr_k2 = rd_f64(p); p += 8;
     out->sb_kp = rd_f64(p); p += 8;
     out->sb_kd = rd_f64(p); p += 8;
+    out->ho_in_dps = rd_f64(p); p += 8;
+    out->ho_out_dps = rd_f64(p); p += 8;
+    out->ho_hold_s = rd_f64(p); p += 8;
+    out->mtq_gg_ff = p[0]; p += 1;
     out->nr = p[0]; p += 1;
     out->ng = p[0]; p += 1;
     for (i = 0; i < 8u; i++) { ((uint8_t *)out->rot_kind)[i] = p[0]; p += 1; }
@@ -258,6 +262,10 @@ size_t adcs_params_encode(const adcs_params_t *in, uint8_t *buf, size_t cap)
     wr_f64(p, in->ss_dr_k2); p += 8;
     wr_f64(p, in->sb_kp); p += 8;
     wr_f64(p, in->sb_kd); p += 8;
+    wr_f64(p, in->ho_in_dps); p += 8;
+    wr_f64(p, in->ho_out_dps); p += 8;
+    wr_f64(p, in->ho_hold_s); p += 8;
+    p[0] = in->mtq_gg_ff; p += 1;
     p[0] = in->nr; p += 1;
     p[0] = in->ng; p += 1;
     for (i = 0; i < 8u; i++) { p[0] = ((const uint8_t *)in->rot_kind)[i]; p += 1; }

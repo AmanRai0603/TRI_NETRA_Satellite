@@ -42,6 +42,7 @@ typedef struct {
     /* Sun spin / acquisition */
     adcs_real sigma, sz_sum; int sz_n; double sz_t0;
     adcs_real s_prop[3]; int s_prop_ok; double acq_hold;
+    int ho; double ho_t;                      /* magnetic pointing hand-over (P11 despin) and its dwell */
     /* fine modes */
     adcs_guid_t gd;
     adcs_gains_t g_rw, g_mtq;
@@ -70,7 +71,7 @@ static int guid_kind_of(uint8_t mode)
 static void enter(uint8_t mode)
 {
     if (mode == ADCS_MODE_SPINUP) { S.sz_sum = 0; S.sz_n = 0; S.sz_t0 = S.t; }
-    S.mode = mode; S.t_mode = S.t; S.hold = 0;
+    S.mode = mode; S.t_mode = S.t; S.hold = 0; S.ho = 0; S.ho_t = 0;
     adcs_zero3(S.I_q);
 }
 
@@ -447,10 +448,36 @@ int32_t adcs_fsw_step(uint64_t now_ns)
     case ADCS_MODE_SUN_MTQ:
         if (first) adcs_zero3(m_body);
         else if (fabs(phase - p->mtq_meas) < dt/2 && S.ad_ok && S.have_r) {
-            adcs_real wd[3];
+            adcs_real wd[3], qc[4], qe[4], A[3][3], wr[3], we[3], wen;
             adcs_guidance(guid_kind_of(S.mode), S.r, S.v, S.t, &S.gd, S.q_ref, S.w_ref, wd);
-            mtq_law();
-            adcs_torque2dipole(S.tau_req, z->B, p->m_max, m_body);
+            /* hand-over (05_control.md): from a spinning body the rate error is damped first with the
+             * detumble gain (Avanzini & Giulietti 2012), m = (k/|B|) (w_e x b), torque -k w_e perp b;
+             * the spin-up gain drags the rate along the turning field instead. The pointing law takes
+             * over once the rate error has stayed below ho_out for ho_hold_s */
+            adcs_qconj(S.q_ref, qc); adcs_qmult(qc, S.K.q, qe);
+            adcs_dcm(qe, A); adcs_mat3_vec(A, S.w_ref, wr);
+            adcs_sub3(S.w_est, wr, we); wen = adcs_norm3(we);
+            if (!S.ho && wen > p->ho_in_dps*ADCS_D2R) { S.ho = 1; S.ho_t = 0; }
+            if (S.ho) {
+                if (wen < p->ho_out_dps*ADCS_D2R) S.ho_t += p->mtq_period; else S.ho_t = 0;
+                if (S.ho_t >= p->ho_hold_s) S.ho = 0;
+            }
+            if (S.ho) {
+                adcs_real bu[3], Bn = adcs_norm3(z->B);
+                adcs_unit(z->B, bu); adcs_cross(we, bu, m_body); adcs_scale3(m_body, p->bdot_k/Bn, m_body);
+                adcs_zero3(S.tau_req);
+            } else {
+                mtq_law();
+                if (p->mtq_gg_ff & (S.mode == ADCS_MODE_SUN_MTQ ? 1 : 2)) {
+                    /* cancel the modelled gravity-gradient torque, 3 mu/|r|^5 (r_b x J r_b) */
+                    adcs_real Ab[3][3], rb[3], Jr[3], c[3], rn, f;
+                    adcs_dcm(S.K.q, Ab); adcs_mat3_vec(Ab, S.r, rb);
+                    rn = adcs_norm3(rb); f = 3*p->mu/(rn*rn*rn*rn*rn);
+                    adcs_mat3_vec(p->J, rb, Jr); adcs_cross(rb, Jr, c);
+                    for (i = 0; i < 3; i++) S.tau_req[i] -= f*c[i];
+                }
+                adcs_torque2dipole(S.tau_req, z->B, p->m_max, m_body);
+            }
             adcs_sub3(m_body, p->m_res_est, m_body); adcs_sat_dipole(m_body, p->m_max);
         } else if (phase < p->mtq_meas) adcs_zero3(m_body);
         break;

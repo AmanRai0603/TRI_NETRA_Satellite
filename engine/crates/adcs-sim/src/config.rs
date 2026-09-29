@@ -172,6 +172,11 @@ impl Config {
             p.mtq_lam16 = gp*json::f(&fsw, "avanzini_lambda", 0.08);
             // Celani 2026 boresight
             p.sb_kp = gp*jm*wn*wn; p.sb_kd = gd*2.0*z*jm*wn;
+            // hand-over from a spinning body (P11 despin to the reference rate, then the law), and the
+            // gravity-gradient feed-forward in the Sun state (at nadir the gradient is the restoring spring)
+            p.ho_in_dps = json::f(&fsw, "handover_in_dps", 1.0); p.ho_out_dps = json::f(&fsw, "handover_out_dps", 0.5);
+            p.ho_hold_s = json::f(&fsw, "handover_hold_s", 60.0);
+            p.mtq_gg_ff = json::f(&fsw, "mtq_gg_ff", 1.0) as u8;
             // TANGO frozen Riccati: P from the CARE with the orbit-averaged B_u R^-1 B_u^T; an isotropic field
             // average gives E[Gamma D Gamma]_ii = (7/15) D_i + tr(D)/15, D = J^-2 (per-axis double-integrator
             // CARE). Q is chosen (inverse LQR) so the average axis gets the common bandwidth wn, zeta; each axis

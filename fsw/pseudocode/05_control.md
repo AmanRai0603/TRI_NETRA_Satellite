@@ -78,6 +78,39 @@ TANGO: per-axis double-integrator CARE with the orbit-averaged B_u R⁻¹ B_uᵀ
 E[Γ J⁻² Γ]_ii = (7/15) J_i⁻² + tr(J⁻²)/15, Q chosen so the average axis has ω_n, ζ (the paper's Q, R are
 unpublished); P12 = √(q_θ/m_i), P22 = √((q_ω + 2 P12)/m_i).
 
+## Magnetic pointing states (`NADIR_MTQ`, `SUN_MTQ`): hand-over and gravity-gradient feed-forward
+
+Once per coil cycle, at the end of the measure window, with an estimate and an orbit:
+
+```
+guidance -> q_ref, ω_ref
+q_e = qconj(q_ref) ⊗ q;  ω_r = dcm(q_e) ω_ref;  ω_e = ω − ω_r
+# hand-over: a body arriving from the Sun spin (4 °/s) is despun before any pointing law runs
+if not ho and |ω_e| > ho_in:  ho = 1; ho_t = 0
+if ho: ho_t = ho_t + T_coil if |ω_e| < ho_out else 0;  if ho_t ≥ ho_hold: ho = 0
+if ho:
+    m = (k_bdot/|B|) (ω_e × unit(B))           # torque −k_bdot ω_e⊥B: the detumble gain on the rate error
+    τ_req = 0
+else:
+    τ_req = the selected magnetic law (above)
+    if mtq_gg_ff bit (0: SUN_MTQ, 1: NADIR_MTQ):
+        r_b = dcm(q) r;  τ_req −= 3 μ/|r_b|⁵ (r_b × J r_b)    # cancel the modelled gravity gradient
+    m = torque2dipole(τ_req, B)
+m = sat(m − m_res_est)
+```
+
+Why the despin uses the detumble gain k_bdot = 3·2n(1 + sin i)J_min (Avanzini & Giulietti 2012) and not the
+spin-up gain: the coils only act across B. With a very high gain the rate across B is removed at once and the
+body keeps a rate along the field line, which the turning field only rotates, so the rate hardly decays
+(3.9 → 0.3 °/s in one orbit). The optimal B-dot gain lets that component decay (3.9 → 0.5 °/s in 0.4
+orbit). The pointing law then takes over at ho_out = 0.5 °/s; at 0.2 °/s it hands over late or not at all, because the
+field's own rotation keeps a rate of that order.
+
+Why the feed-forward is on only in the Sun state: at nadir the long (minimum-inertia) axis sits at the
+gravity-gradient equilibrium, so the gradient is a restoring stiffness that helps the loop. Cancelling it would
+remove that help. Under Sun referencing the attitude is inertial, so the gradient is a periodic forcing at twice
+the orbit rate, of the order of 3n²ΔJ, and the coils cannot reject its component along B.
+
 ## Torque to dipole (`torque2dipole`, Standard Code act.torque2dipole)
 
 ```

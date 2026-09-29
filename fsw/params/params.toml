@@ -338,6 +338,22 @@ doc = "Celani 2026 boresight gain k_p on e3 x a [N m]"
 name = "sb_kd"
 type = "f64"
 doc = "Celani 2026 boresight rate gain k_d [N m s]"
+[[field]]
+name = "ho_in_dps"
+type = "f64"
+doc = "magnetic pointing hand-over: rate error above which the despin (the detumble gain on the rate error, Avanzini & Giulietti 2012) runs first [deg/s]"
+[[field]]
+name = "ho_out_dps"
+type = "f64"
+doc = "hand-over: rate error below which the pointing law takes over, held ho_hold_s [deg/s]"
+[[field]]
+name = "ho_hold_s"
+type = "f64"
+doc = "hand-over dwell [s]"
+[[field]]
+name = "mtq_gg_ff"
+type = "u8"
+doc = "gravity-gradient feed-forward in the magnetic pointing states: bit 0 Sun state, bit 1 nadir state"
 # ---- momentum devices
 [[field]]
 name = "nr"

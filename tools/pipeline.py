@@ -461,12 +461,14 @@ def node_dispatch(case, sel, sized, modes, build, fam=None):
     det, acq, fine = opt("detumble"), opt("sun_acquisition"), opt("nadir_pointing")
     a_ = 6378137 + E.case_value(case, "orbit.alt") * 1e3
     T = 2 * math.pi * math.sqrt(a_ ** 3 / 3.986004418e14)
+    # a coils-only nadir starts from the Sun spin: the despin and the magnetic capture take about two orbits
+    DP = P("dispatch"); coils = "coils_only" if fine["fsw_mode"] == "nadir_mtq" else "rotors"
     scen = {"schema": "adcs-scenario/1", "id": f"dispatch_{case}_{fam}", "case": case, "product": f"SZ-{case}-{fam}",
             "label": f"{case} — dispatched {fam}: {det['fsw_mode']} -> {acq['fsw_mode']} (auto) -> {fine['fsw_mode']} (schedule)",
-            "time": {"duration_s": round(3 * T), "dt_s": dt, "record_dt_s": 1.0},
+            "time": {"duration_s": round((DP["nadir_at_orbits"] + DP["nadir_orbits"][coils]) * T), "dt_s": dt, "record_dt_s": 1.0},
             "initial": {"attitude": {"kind": "random"}, "rate": {"kind": "random_direction", "magnitude_deg_s": "case:mission.w0"}},
             "fsw": {"start_mode": det["fsw_mode"], "auto_next": acq["fsw_mode"], "guidance": {"kind": "nadir"}, "algorithms": algs,
-                    "schedule": [{"t_s": round(2 * T), "mode": fine["fsw_mode"]}],
+                    "schedule": [{"t_s": round(DP["nadir_at_orbits"] * T), "mode": fine["fsw_mode"]}],
                     "rcs_dump": 1.0 if fine.get("dump") == "rcs" else 0.0, **({"dump_gain": 0.03} if fine["actuator"] == "fmr" else {}), **tune},
             "metrics": [{"id": "detumble_time", "kind": "time_to_rate", "rate_threshold_deg_s": 0.5, "hold_s": 600.0, "end_at_mode_exit": True, "requirement": "req.detumble"},
                         {"id": "ape_los_p9973", "kind": "ape_los", "window": "last_half_orbit", "statistic": "p99.73", "requirement": "req.ape"},

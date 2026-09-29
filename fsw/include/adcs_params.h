@@ -5,8 +5,8 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#define ADCS_PARAMS_PAYLOAD 2126u
-#define ADCS_PARAMS_BLOB_SIZE 2142u
+#define ADCS_PARAMS_PAYLOAD 2151u
+#define ADCS_PARAMS_BLOB_SIZE 2167u
 #define ADCS_MAX_ROTORS 8
 #define ADCS_MAX_GIMBALS 4
 #define ADCS_MAX_COUPLES 6
@@ -113,6 +113,10 @@ typedef struct {
     double ss_dr_k2;  /* de Ruiter 2011 nutation weight k2 (> 0) [kg m^2] */
     double sb_kp;  /* Celani 2026 boresight gain k_p on e3 x a [N m] */
     double sb_kd;  /* Celani 2026 boresight rate gain k_d [N m s] */
+    double ho_in_dps;  /* magnetic pointing hand-over: rate error above which the despin (the detumble gain on the rate error, Avanzini & Giulietti 2012) runs first [deg/s] */
+    double ho_out_dps;  /* hand-over: rate error below which the pointing law takes over, held ho_hold_s [deg/s] */
+    double ho_hold_s;  /* hand-over dwell [s] */
+    uint8_t mtq_gg_ff;  /* gravity-gradient feed-forward in the magnetic pointing states: bit 0 Sun state, bit 1 nadir state */
     uint8_t nr;  /* rotors */
     uint8_t ng;  /* gimbals */
     uint8_t rot_kind[8];  /* 0 wheel, 1 fluid loop, 2 CMG rotor, 3 VSCMG rotor */

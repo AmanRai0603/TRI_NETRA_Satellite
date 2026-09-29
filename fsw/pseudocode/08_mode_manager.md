@@ -29,7 +29,7 @@ step(now):
          SUN_ACQ_ROTOR, auto_next set: Sun valid, angle(sun, a) < 10° and estimate ready, held 60 s -> enter
     4 control for the state (05, 06, 07); coil duty cycle; thrusters; allocation
     write actuator commands through the drivers; hold the dipole between cycles
-enter(mode): mode = mode; t_mode = t; hold = 0; I_q = 0; (SPINUP: reset the G_σ window); log the event
+enter(mode): mode = mode; t_mode = t; hold = 0; ho = 0; ho_t = 0; I_q = 0; (SPINUP: reset the G_σ window); log the event
 ```
 
 ## Fine states in one pass (`SUN_FINE`, `NADIR_FINE`, `TARGET_FINE`, `SLEW_FINE`, `SUN_ACQ_ROTOR`)
