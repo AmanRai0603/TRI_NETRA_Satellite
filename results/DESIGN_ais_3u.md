@@ -68,9 +68,9 @@ Detumble -> Sun acquisition -> nadir with each family's best methods from the lo
 
 | family | selected | feasible | mass [kg] | methods | detumble_time | ape_los_p9973 | ake_los_p9973 | power_mean | C = Rust | MC pass rates |
 |---|---|---|---:|---|---:|---:|---:|---:|---|---|
-| mtq | no | no | 0.236 | detumble=mtq, sun_acquisition=mtq, sun_referencing=mtq, nadir_pointing=mtq | — | 174.2 ✗ | 1.479 ✓ | 0.1495 ✓ | True | detumble_time 50 %; ape_los_p9973 0 %; ake_los_p9973 83 %; power_mean 100 % |
-| mtq_fmr | yes | yes | 1.446 | detumble=mtq, sun_acquisition=fmr, sun_referencing=fmr+mtq, nadir_pointing=fmr+mtq | 55.64 ✓ | 0.1516 ✓ | 0.15 ✓ | 0.233 ✓ | True | detumble_time 100 %; ape_los_p9973 100 %; ake_los_p9973 100 %; power_mean 100 % |
-| mtq_fmr_rcs | no | no | 1.965 | detumble=mtq, sun_acquisition=fmr, sun_referencing=fmr+mtq, nadir_pointing=fmr+mtq | 55.64 ✓ | 0.1516 ✓ | 0.1499 ✓ | 0.2791 ✓ | True | detumble_time 100 %; ape_los_p9973 100 %; ake_los_p9973 100 %; power_mean 100 % |
+| mtq | no | no | 0.236 | detumble=mtq, sun_acquisition=mtq, sun_referencing=mtq, nadir_pointing=mtq | 49.96 ✓ | 174.2 ✗ | 1.479 ✓ | 0.1495 ✓ | True | detumble_time 100 %; ape_los_p9973 0 %; ake_los_p9973 83 %; power_mean 100 % |
+| mtq_fmr | yes | yes | 1.446 | detumble=mtq, sun_acquisition=fmr, sun_referencing=fmr+mtq, nadir_pointing=fmr+mtq | 53.46 ✓ | 0.1516 ✓ | 0.15 ✓ | 0.233 ✓ | True | detumble_time 100 %; ape_los_p9973 100 %; ake_los_p9973 100 %; power_mean 100 % |
+| mtq_fmr_rcs | no | no | 1.965 | detumble=mtq, sun_acquisition=fmr, sun_referencing=fmr+mtq, nadir_pointing=fmr+mtq | 53.46 ✓ | 0.1516 ✓ | 0.1499 ✓ | 0.2791 ✓ | True | detumble_time 100 %; ape_los_p9973 100 %; ake_los_p9973 100 %; power_mean 100 % |
 
 ## Mode matrix (last iteration, best algorithm per option)
 
@@ -106,7 +106,7 @@ Detumble -> Sun acquisition -> nadir with each family's best methods from the lo
 
 | metric | req | mean ± std | [min, max] | pass rate |
 |---|---:|---|---|---:|
-| detumble_time (min) | 284 | 58.22 ± 22.1 | [9.858, 94.17] | 100 % |
+| detumble_time (min) | 284 | 56.77 ± 22.3 | [7.792, 92.28] | 100 % |
 | ape_los_p9973 (deg) | 10 | 0.2426 ± 0.0731 | [0.1603, 0.3825] | 100 % |
 | ake_los_p9973 (deg) | 5 | 0.2393 ± 0.0732 | [0.1574, 0.3818] | 100 % |
 | power_mean (W) | 0.5 | 0.3186 ± 0.0923 | [0.2113, 0.493] | 100 % |
@@ -120,7 +120,7 @@ C and Rust builds, with exact per-step instruction counts and the command latenc
 
 | metric | req | SILS | soft OILS (C on M4F) | soft OILS (Rust on M4F) |
 |---|---:|---:|---:|---:|
-| detumble_time | 284 | 55.64 ✓ | 55.71 ✓ | 55.71 ✓ |
+| detumble_time | 284 | 53.46 ✓ | 53.46 ✓ | 53.46 ✓ |
 | ape_los_p9973 | 10 | 0.1516 ✓ | 0.1217 ✓ | 0.1274 ✓ |
 | ake_los_p9973 | 5 | 0.15 ✓ | 0.1184 ✓ | 0.1234 ✓ |
 | power_mean | 0.5 | 0.233 ✓ | 0.2175 ✓ | 0.2189 ✓ |
