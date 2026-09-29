@@ -12,7 +12,7 @@
     {
      "id": "detumble_time",
      "kind": "time_to_rate",
-     "value": 55.641666666666666,
+     "value": 53.458333333333336,
      "unit": "min",
      "req": 284.0,
      "req_key": "req.detumble",
@@ -86,7 +86,7 @@
     {
      "id": "detumble_time",
      "kind": "time_to_rate",
-     "value": 55.641666666666666,
+     "value": 53.458333333333336,
      "unit": "min",
      "req": 284.0,
      "req_key": "req.detumble",
