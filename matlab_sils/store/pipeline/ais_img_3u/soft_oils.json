@@ -1,8 +1,8 @@
 {
- "_key": "e21cdbea3b46cc10",
+ "_key": "b8e6e79433d8445b",
  "sils": {
   "rc": 0,
-  "wall_s": 2.6630606651306152,
+  "wall_s": 2.544038772583008,
   "metrics": [
    {
     "id": "detumble_time",
@@ -67,7 +67,7 @@
  },
  "oils": {
   "rc": 0,
-  "wall_s": 1695.0603914260864,
+  "wall_s": 1338.8611106872559,
   "metrics": [
    {
     "id": "detumble_time",
@@ -166,7 +166,7 @@
  },
  "oils_rs": {
   "rc": 0,
-  "wall_s": 1755.1942410469055,
+  "wall_s": 1390.3789467811584,
   "metrics": [
    {
     "id": "detumble_time",

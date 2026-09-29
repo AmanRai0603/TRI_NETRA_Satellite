@@ -1,0 +1,38 @@
+{
+ "schema": "adcs-datasheet/1",
+ "part_number": "CAT-ROCKET-LAB-RW-0-003",
+ "vendor": "Rocket Lab",
+ "model": "RW-0.003",
+ "type": "reaction_wheel",
+ "source_url": "https://satcatalog.s3.amazonaws.com/components/246/SatCatalog_-_Sinclair_Interplanetary_-_RW-0.003_-_Datasheet.pdf?lastmod=20211207035853",
+ "source_kind": "manufacturer datasheet (distributor mirror)",
+ "verification": "verified",
+ "quote": "Sinclair Interplanetary (now Rocket Lab) Rev 2018a: 'Nominal: 0.003 Nms @ 8,500 rpm / Peak: 0.005 Nms', '+/-1 mNm', 'Mass: <50 g'; no power figure on this revision",
+ "retrieved": "2026-09-29",
+ "datasheet": {
+  "h_mNms": 3,
+  "h_speed_rpm": 8500,
+  "torque_mNm": 1,
+  "speed_max_rpm": null,
+  "mass_g": 50,
+  "dims_mm": "33.5 x 33.5 x 17",
+  "power_steady_W": null,
+  "power_steady_note": null,
+  "power_peak_W": null,
+  "voltage_V": "4.5-9.0",
+  "interface": "UART or I2C",
+  "units_in_cluster": null,
+  "cluster_h_mNms": null,
+  "cluster_torque_mNm": null,
+  "cluster_mass_g": null,
+  "variable_speed": null
+ },
+ "selectable": false,
+ "missing": [
+  "power_steady_W"
+ ],
+ "derived": {},
+ "assumptions": [
+  "not selectable: the datasheet does not state power_steady_W"
+ ]
+}

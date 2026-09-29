@@ -90,6 +90,46 @@ def requirements():
     return "\n".join(out)
 
 
+def nodes():
+    """Section 3: the node registry (matlab_sils/data/pipeline/nodes.json), the single definition of every node."""
+    R = jl(ROOT / "matlab_sils" / "data" / "pipeline" / "nodes.json")
+    fv = lambda v: "; ".join(f"{k}: {fv(x)}" for k, x in v.items()) if isinstance(v, dict) else ", ".join(map(fv, v)) if isinstance(v, list) else str(v)
+    rows = [[i, f"<code>{e(n['id'])}</code>", e(n["stage"]), e(n["runs_in"]), e(n["does"]),
+             "<br>".join(e(f"{k} = {fv(v)}") for k, v in n["parameters"].items()) or "—",
+             "<br>".join(e(r) for r in n["rules"]) or "—"] for i, n in enumerate(R["nodes"], 1)]
+    return ("<p>Every step of the chain is a node with its inputs, outputs, parameters and rules in one registry "
+            "(<code>matlab_sils/data/pipeline/nodes.json</code>; <code>docs/NODES.md</code>). The pipeline reads its parameters "
+            "from it, so this table is what ran.</p>" + table(["#", "node", "stage", "runs in", "what it does", "parameters", "rules"], rows, num=(0,)))
+
+
+def catalogue():
+    """Section 4: the bought momentum actuators as their datasheets state them, and which one each case chose."""
+    cat = [jl(p) for p in sorted((ROOT / "matlab_sils" / "data" / "catalogue").glob("*.json"))]
+    chosen = {}
+    for c in CASES:
+        sel = jl(PIPE / c / "selection.json")
+        z = sel and jl(PIPE / c / f"iter_{sel['iterations']}" / "sized" / "sizing.json")
+        for k in ("rw", "cmg", "vscmg"):
+            if z:
+                chosen.setdefault(z["parts"][k]["part_number"].replace("-VSCMG", ""), []).append(f"{c} {k.upper()}")
+    g = lambda d, k: "—" if d.get(k) is None else fmt(d[k], 4)
+    rows = [[e(c["vendor"]), e(c["model"]), e(c["type"]), g(c["datasheet"], "h_mNms"), g(c["datasheet"], "torque_mNm"), g(c["datasheet"], "mass_g"),
+             g(c["datasheet"], "power_steady_W"), g(c["datasheet"], "power_peak_W"), e(c["datasheet"].get("dims_mm") or "—"),
+             "yes" if c["selectable"] else "no: " + e(", ".join(c["missing"])), e(", ".join(chosen.get(c["part_number"], []))) or "—",
+             f"<a href='{e(c['source_url'])}'>{e(c['source_kind'])}</a><br><span class='note'>{e(c['verification'])}</span>"] for c in cat]
+    return ("<p>Reaction wheels, CMGs and VSCMGs are bought, so the benchmarks fly real products: the <code>select_rotor</code> node takes the "
+            "lightest catalogue model that meets the case's per-unit momentum and torque (three wheels; a four-unit CMG pyramid, two units "
+            "per axis). We design only the magnetorquers, the fluid loop and the RCS. Numbers are the vendors'; a model whose datasheet lacks "
+            "momentum, torque, mass or steady power is listed but not selectable. Values the engine needs and datasheets omit (rotor "
+            "inertia, friction, imbalance) are derived with the rules in each file (<code>tools/catalogue.py</code>, <code>docs/CATALOGUE.md</code>).</p>" +
+            table(["vendor", "model", "type", "h [mNms]", "torque [mNm]", "mass [g]", "steady [W]", "peak [W]", "size [mm]", "selectable", "chosen in", "source"],
+                  rows, num=(3, 4, 5, 6, 7)) +
+            "<p class='note'>The vendor sites could not be reached from the build environment; numbers marked verified were read from the "
+            "full datasheet PDFs (distributor mirror), the others from search excerpts of the cited page and should be confirmed with the vendor. "
+            "Tensor Tech's ADCS400 figures are the whole integrated ADCS (CMGs, magnetorquer, sun sensors, gyro) as upper bounds, so the CMG "
+            "benchmark's mass and power are conservative.</p>")
+
+
 def design():
     out = []
     for c in CASES:
@@ -119,10 +159,22 @@ def design():
         if log and log[-1]["blocked"]:
             out.append("<p class='note'>Why the loop stopped (nothing left that a knob can change):</p><ul class='note'>" +
                        "".join(f"<li>{e(b)}</li>" for b in sorted(set(log[-1]["blocked"]))) + "</ul>")
-        rows = [[f"<code>{e(f)}</code>", e(v["role"]), verdict(v["feasible"]), fmt(v["budget"]["mass_kg"], 3), fmt(v["budget"]["power_W"], 3),
-                 fmt(v["budget"]["volume_L"], 3), e("; ".join(v["gaps"])) or "—"] for f, v in sel["families"].items()]
-        out.append("<p>Every family, scored the same way (benchmarks for comparison only):</p>" +
-                   table(["family", "role", "feasible", "mass [kg]", "power [W]", "volume [L]", "gaps"], rows, num=(3, 4, 5)))
+        z = jl(PIPE / c / f"iter_{sel['iterations']}" / "sized" / "sizing.json") or {"families": {}, "parts": {}}
+        pname = {p["part_number"]: p["name"] for p in z["parts"].values()}
+
+        def act(f):
+            its = [x for x in z["families"].get(f, {}).get("items", []) if x["slot"] in ("wheels", "cmg", "vscmg", "rings", "rcs")]
+            return "<br>".join(sorted({e("fluid loop, 3 rings (ours)") if x["slot"] == "rings" else
+                                       e(f"{pname.get(x['part'], x['part']).split(' (')[0].split(' — ')[0]} ×{x['n']:g}") for x in its})) or "coils only"
+        order = sorted(sel["families"], key=lambda f: (sel["families"][f]["role"] != "solution", not sel["families"][f]["feasible"],
+                                                       sel["families"][f]["budget"]["mass_kg"]))
+        rows = [[f"<code>{e(f)}</code>", e(sel["families"][f]["role"]), sel["families"][f].get("rank", "—"), verdict(sel["families"][f]["feasible"]),
+                 fmt(sel["families"][f]["budget"]["mass_kg"], 3), fmt(sel["families"][f]["budget"]["power_W"], 3), fmt(sel["families"][f]["budget"]["volume_L"], 3),
+                 act(f), e("; ".join(sel["families"][f]["gaps"])) or "—"] for f in order]
+        out.append(f"<p>Every configuration, ours and the benchmarks, flown and scored the same way. Selection rule (node <code>select</code>): "
+                   f"{e(sel.get('rule', 'simplest feasible solution'))}. Selected: <b><code>{e(sel['selected'])}</code></b>; the benchmarks "
+                   f"ranked by the same rule give <b><code>{e(sel.get('benchmark') or '—')}</code></b> ({e(sel.get('benchmark_status', ''))}).</p>" +
+                   table(["family", "role", "rank", "feasible", "mass [kg]", "steady power [W]", "volume [L]", "momentum / thrust actuators", "gaps"], rows, num=(2, 4, 5, 6)))
         rows = [[e(m), f"<code>{e(r['option'])}</code>", verdict(r["feasible"]), f"{fmt(r['objective'])} {e(r['objective_id'])}",
                  e(", ".join(f"{k}={v}" for k, v in (r["algorithms"] or {}).items() if v))] for m, r in F["modes"].items() if r]
         out.append("<p>Selected method per mission mode:</p>" + table(["mode", "option", "feasible", "objective (worst seed)", "algorithms"], rows))
@@ -328,6 +380,15 @@ def open_items():
         "0.005 deg/s line now falls between them, so this verdict disagrees. The gap is the wheel-plus-RCS model, not the requirement.",
         "Sun spin: 17 of 24 seeds pass with and without the OBC; failures are Sun-spin entry with the Sun near the XY plane tripping the 1 deg/s "
         "exit guard during the L2 precession transient -- a tuning trade (fsw.sun_spin_perp_out_dps, fsw.sun_spin_dwell_out_s).",
+        "Bought against designed (both cases, same budget of 1.6 kg and 1.0 L): on ais_img_3u three CubeSpace CW0017 wheels are feasible "
+        "at 1.0 kg against our fluid loop's 1.6 kg, so the lightest configuration overall is a benchmark; the fluid loop is selected "
+        "because the selection is among our solutions, and its 0.6 kg is the price of not buying wheels. On ais_3u every rotor fails "
+        "the 0.5 W orbit-average power (three CW0017 draw 0.9 W steady) and the fluid loop, feasible at 1.45 kg, is the only one that passes. "
+        "The Tensor Tech CMG cluster fails power in both cases on its whole-ADCS datasheet figure (4 W upper bound).",
+        "Catalogue data: the vendor sites were not reachable from the build environment. CubeSpace Gen2, Rocket Lab RW-0.01, RW3-0.06, "
+        "RW3-1.0 and Tensor Tech ADCS100/400 numbers were read from the full datasheets (distributor mirror); AAC Clyde Space RW222/RW400, "
+        "Rocket Lab RW-0.03 and Tensor Tech CMG-10m from search excerpts. AAC Clyde Space models lack mass or power on what could be read, "
+        "so they are listed but not selectable; confirm with the vendors before a buy decision.",
         "Soft OILS models the OBC's CPU and buses; real OILS still needs the board target (fsw/targets/<board>/main.c: UART/Ethernet, clock, "
         "linker script, modelled on fsw/targets/qemu-mps2) and --realtime on adcs-link/1.",
     ]
@@ -364,7 +425,10 @@ def summary():
         finds.append(f"<p><b>{e(c)}</b> ({e(sel['class'])} class): the loop selects <code>{e(sel['selected'])}</code> ({e(F['label'])}), "
                      f"{e(sel['status'])}, after {sel['iterations']} iteration(s). Methods: " +
                      e(", ".join(f"{m} = {r['option']}" for m, r in F["modes"].items() if r)) + ". Budget: "
-                     f"{F['budget']['mass_kg']:.3f} kg, {F['budget']['volume_L']:.3f} L." + (" Gaps: " + e("; ".join(F["gaps"])) if F["gaps"] else "") + "</p>")
+                     f"{F['budget']['mass_kg']:.3f} kg, {F['budget']['volume_L']:.3f} L." + (" Gaps: " + e("; ".join(F["gaps"])) if F["gaps"] else "") +
+                     (lambda b: f" Best benchmark (catalogue actuators, same rule): <code>{e(b)}</code>, {e(sel.get('benchmark_status', ''))}, "
+                                f"{sel['families'][b]['budget']['mass_kg']:.3f} kg" + (f" — {e('; '.join(sel['families'][b]['gaps']))}" if sel['families'][b]['gaps'] else "") + "."
+                      if b else "")(sel.get("benchmark")) + "</p>")
     return "".join(finds), "".join(cards)
 
 
@@ -378,7 +442,7 @@ def main():
         docno=f"TRN-ADCS-VV-{datetime.date.today():%Y%m%d}", date=f"{datetime.datetime.now(datetime.timezone.utc):%Y-%m-%d %H:%M} UTC", commit=e(commit),
         engine=e(eng.group(1) if eng else "adcs-engine-rs"), fsw="trinetra-fsw-c/1.0.0 and trinetra-fsw-rs (C99 and Rust no_std, adcs-fswcfg/1)",
         cases=e(", ".join(CASES)), verdicts=cards, summary=summ, fig_flow=svg_inline("docs/figures/flow_design_to_hils.svg"),
-        fig_arch=svg_inline("docs/figures/architecture_languages.svg"), requirements=requirements(), design=design(), sils=sils(),
+        fig_arch=svg_inline("docs/figures/architecture_languages.svg"), nodes=nodes(), catalogue=catalogue(), requirements=requirements(), design=design(), sils=sils(),
         campaigns=campaigns(), parity=parity(), oils=oils(), vobc=vobc(), open=open_items())
     h = OUT / "TRINETRA_ADCS_VV_report.html"
     h.write_text(doc)

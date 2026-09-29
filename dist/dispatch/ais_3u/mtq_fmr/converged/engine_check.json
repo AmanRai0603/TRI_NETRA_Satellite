@@ -33,7 +33,7 @@
    {
     "id": "power_mean",
     "kind": "power_mean",
-    "value": 0.15929584800229787,
+    "value": 0.23302473462999204,
     "unit": "W",
     "req": 0.5,
     "req_key": "req.pavg",
@@ -42,7 +42,7 @@
    {
     "id": "power_peak",
     "kind": "power_peak",
-    "value": 0.5413690110381522,
+    "value": 0.8385385870475492,
     "unit": "W",
     "req": null,
     "req_key": "",
@@ -107,7 +107,7 @@
    {
     "id": "power_mean",
     "kind": "power_mean",
-    "value": 0.15929584800229787,
+    "value": 0.23302473462999204,
     "unit": "W",
     "req": 0.5,
     "req_key": "req.pavg",
@@ -116,7 +116,7 @@
    {
     "id": "power_peak",
     "kind": "power_peak",
-    "value": 0.5413690110381522,
+    "value": 0.8385385870475492,
     "unit": "W",
     "req": null,
     "req_key": "",

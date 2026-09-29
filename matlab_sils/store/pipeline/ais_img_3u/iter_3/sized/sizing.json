@@ -363,9 +363,9 @@
       "product": "SZ-ais_img_3u-mtq_rw",
       "role": "benchmark",
       "label": "Magnetorquers + reaction wheels",
-      "mass_kg": 1.222579887198067,
-      "power_W": 5.20006692460473,
-      "volume_L": 0.1415765586722607,
+      "mass_kg": 1.1360383340086098,
+      "power_W": 5.360383340086098,
+      "volume_L": 0.0675673336034439,
       "items": [
         {
           "slot": "coils",
@@ -377,11 +377,11 @@
         },
         {
           "slot": "wheels",
-          "part": "SZ-ais_img_3u-RW",
+          "part": "CAT-CUBESPACE-CUBEWHEEL-CW0017",
           "n": 3.0,
-          "mass_kg": 0.26654155318945727,
-          "power_W": 0.7396835845186325,
-          "volume_L": 0.1351612250688168
+          "mass_kg": 0.18,
+          "power_W": 0.8999999999999999,
+          "volume_L": 0.061152
         },
         {
           "slot": "star_tracker",
@@ -437,9 +437,9 @@
       "product": "SZ-ais_img_3u-mtq_rw_rcs",
       "role": "benchmark",
       "label": "Magnetorquers + reaction wheels + N2O cold-gas RCS",
-      "mass_kg": 1.6884966780549384,
-      "power_W": 5.25006692460473,
-      "volume_L": 0.9830942193892437,
+      "mass_kg": 1.601955124865481,
+      "power_W": 5.4103833400860974,
+      "volume_L": 0.9090849943204269,
       "items": [
         {
           "slot": "coils",
@@ -451,11 +451,11 @@
         },
         {
           "slot": "wheels",
-          "part": "SZ-ais_img_3u-RW",
+          "part": "CAT-CUBESPACE-CUBEWHEEL-CW0017",
           "n": 3.0,
-          "mass_kg": 0.26654155318945727,
-          "power_W": 0.7396835845186325,
-          "volume_L": 0.1351612250688168
+          "mass_kg": 0.18,
+          "power_W": 0.8999999999999999,
+          "volume_L": 0.061152
         },
         {
           "slot": "rcs",
@@ -519,9 +519,9 @@
       "product": "SZ-ais_img_3u-mtq_cmg",
       "role": "benchmark",
       "label": "Magnetorquers + 4 single-gimbal CMG (pyramid)",
-      "mass_kg": 1.3035137121933165,
-      "power_W": 5.380383340086097,
-      "volume_L": 0.2719880503941047,
+      "mass_kg": 2.15603833400861,
+      "power_W": 8.460383340086096,
+      "volume_L": 0.806415333603444,
       "items": [
         {
           "slot": "coils",
@@ -533,11 +533,11 @@
         },
         {
           "slot": "cmg",
-          "part": "SZ-ais_img_3u-CMG",
+          "part": "CAT-TENSOR-TECH-ADCS400",
           "n": 4.0,
-          "mass_kg": 0.3474753781847067,
-          "power_W": 0.92,
-          "volume_L": 0.26557271679066075
+          "mass_kg": 1.2,
+          "power_W": 4.0,
+          "volume_L": 0.8
         },
         {
           "slot": "star_tracker",
@@ -593,9 +593,9 @@
       "product": "SZ-ais_img_3u-mtq_cmg_rcs",
       "role": "benchmark",
       "label": "Magnetorquers + 4 CMG + N2O cold-gas RCS",
-      "mass_kg": 1.7694305030501878,
-      "power_W": 5.430383340086098,
-      "volume_L": 1.1135057111110878,
+      "mass_kg": 2.621955124865481,
+      "power_W": 8.510383340086097,
+      "volume_L": 1.6479329943204268,
       "items": [
         {
           "slot": "coils",
@@ -607,11 +607,11 @@
         },
         {
           "slot": "cmg",
-          "part": "SZ-ais_img_3u-CMG",
+          "part": "CAT-TENSOR-TECH-ADCS400",
           "n": 4.0,
-          "mass_kg": 0.3474753781847067,
-          "power_W": 0.92,
-          "volume_L": 0.26557271679066075
+          "mass_kg": 1.2,
+          "power_W": 4.0,
+          "volume_L": 0.8
         },
         {
           "slot": "rcs",
@@ -675,9 +675,9 @@
       "product": "SZ-ais_img_3u-mtq_vscmg",
       "role": "benchmark",
       "label": "Magnetorquers + 4 variable-speed CMG (pyramid)",
-      "mass_kg": 1.3382612500117872,
-      "power_W": 5.7803833400860976,
-      "volume_L": 0.2719880503941047,
+      "mass_kg": 2.15603833400861,
+      "power_W": 8.460383340086096,
+      "volume_L": 0.806415333603444,
       "items": [
         {
           "slot": "coils",
@@ -689,11 +689,11 @@
         },
         {
           "slot": "vscmg",
-          "part": "SZ-ais_img_3u-VSCMG",
+          "part": "CAT-TENSOR-TECH-ADCS400-VSCMG",
           "n": 4.0,
-          "mass_kg": 0.38222291600317737,
-          "power_W": 1.32,
-          "volume_L": 0.26557271679066075
+          "mass_kg": 1.2,
+          "power_W": 4.0,
+          "volume_L": 0.8
         },
         {
           "slot": "star_tracker",
@@ -749,9 +749,9 @@
       "product": "SZ-ais_img_3u-mtq_vscmg_rcs",
       "role": "benchmark",
       "label": "Magnetorquers + 4 VSCMG + N2O cold-gas RCS",
-      "mass_kg": 1.8041780408686585,
-      "power_W": 5.830383340086097,
-      "volume_L": 1.1135057111110878,
+      "mass_kg": 2.621955124865481,
+      "power_W": 8.510383340086097,
+      "volume_L": 1.6479329943204268,
       "items": [
         {
           "slot": "coils",
@@ -763,11 +763,11 @@
         },
         {
           "slot": "vscmg",
-          "part": "SZ-ais_img_3u-VSCMG",
+          "part": "CAT-TENSOR-TECH-ADCS400-VSCMG",
           "n": 4.0,
-          "mass_kg": 0.38222291600317737,
-          "power_W": 1.32,
-          "volume_L": 0.26557271679066075
+          "mass_kg": 1.2,
+          "power_W": 4.0,
+          "volume_L": 0.8
         },
         {
           "slot": "rcs",
@@ -906,28 +906,35 @@
       }
     },
     "rw": {
-      "part_number": "SZ-ais_img_3u-RW",
+      "part_number": "CAT-CUBESPACE-CUBEWHEEL-CW0017",
       "kind": "reaction_wheel",
-      "name": "Sized reaction wheel (benchmark) — ais_img_3u",
-      "status": "sized",
-      "source": "adcs-design (asils.sizing laws)",
+      "name": "CubeSpace CubeWheel CW0017 (Gen2) (RW, one of 3)",
+      "status": "catalogue",
+      "source": "https://satcatalog.s3.amazonaws.com/components/1404/SatCatalog_-_CubeSpace_-_Gen2_CubeTorquer_Range_-_Datasheet.pdf?lastmod=20260129005456",
       "made": "bought",
       "descriptor_version": 1,
+      "vendor": "CubeSpace",
+      "model": "CubeWheel CW0017 (Gen2)",
+      "verification": "verified",
+      "assumptions": [
+        "rotor mass 0.4 x unit mass, balance ISO 1940 G2.5 (imbalance model)",
+        "friction: Coulomb 1e-5 sqrt(h / 0.01 Nms) N m, viscous 1e-8 N m s (not on datasheets)"
+      ],
       "nominal": {
-        "h_max_Nms": 0.0015520398279848051,
-        "torque_max_Nm": 0.0001,
+        "h_max_Nms": 0.00177,
+        "torque_max_Nm": 0.00023,
         "speed_max_rad_s": 628.3185307179587,
-        "rotor_inertia_kgm2": 2.470148104992767e-6,
-        "rotor_radius_m": 0.014467712404965097,
-        "rotor_mass_kg": 0.013112356543857163,
-        "friction_coulomb_Nm": 3.939593669383691e-6,
+        "rotor_inertia_kgm2": 2.8170424927265475e-6,
+        "rotor_radius_m": 0.011420097807047247,
+        "rotor_mass_kg": 0.024,
+        "friction_coulomb_Nm": 4.2071367935925265e-6,
         "friction_viscous_Nms": 1e-8,
-        "static_imbalance_kgm": 5.217240898845571e-8,
-        "dynamic_imbalance_kgm2": 3.7740770435959657e-10,
-        "power_steady_W": 0.24656119483954417,
-        "power_peak_W": 0.3722249009831359,
-        "mass_kg": 0.08884718439648576,
-        "volume_L": 0.0450537416896056
+        "static_imbalance_kgm": 9.54929658551372e-8,
+        "dynamic_imbalance_kgm2": 5.45269504975345e-10,
+        "power_steady_W": 0.3,
+        "power_peak_W": 0.85,
+        "mass_kg": 0.06,
+        "volume_L": 0.020384
       },
       "dispersion": {
         "torque_scale": {
@@ -947,105 +954,301 @@
         }
       },
       "sizing": {
+        "node": "select_rotor",
         "h_req_Nms": 0.0015520398279848051,
         "tau_req_Nm": 0.000057572692339687917,
         "scale": 1.0,
-        "floor": "h >= 1 mNms, tau >= 0.1 mNm",
-        "law": "rim flywheel 6000 rpm, ISO 1940 G2.5, anchored on SYN-RW-10"
+        "units": 3,
+        "need_per_unit": {
+          "h_Nms": 0.0015520398279848051,
+          "tau_Nm": 0.000057572692339687917
+        },
+        "gap": null,
+        "rule": "lightest selectable catalogue model meeting the per-unit need (then steady power, volume)",
+        "candidates": [
+          {
+            "part_number": "CAT-CUBESPACE-CUBEWHEEL-CW0017",
+            "vendor": "CubeSpace",
+            "model": "CubeWheel CW0017 (Gen2)",
+            "h_Nms": 0.00177,
+            "tau_Nm": 0.00023,
+            "mass_kg": 0.06,
+            "power_W": 0.3,
+            "meets": true
+          },
+          {
+            "part_number": "CAT-CUBESPACE-CUBEWHEEL-CW0057",
+            "vendor": "CubeSpace",
+            "model": "CubeWheel CW0057 (Gen2)",
+            "h_Nms": 0.0057,
+            "tau_Nm": 0.002,
+            "mass_kg": 0.115,
+            "power_W": 0.77,
+            "meets": true
+          },
+          {
+            "part_number": "CAT-CUBESPACE-CUBEWHEEL-CW0162",
+            "vendor": "CubeSpace",
+            "model": "CubeWheel CW0162 (Gen2)",
+            "h_Nms": 0.0162,
+            "tau_Nm": 0.007,
+            "mass_kg": 0.14400000000000002,
+            "power_W": 0.77,
+            "meets": true
+          },
+          {
+            "part_number": "CAT-CUBESPACE-CUBEWHEEL-CW0500",
+            "vendor": "CubeSpace",
+            "model": "CubeWheel CW0500 (Gen2)",
+            "h_Nms": 0.05,
+            "tau_Nm": 0.016,
+            "mass_kg": 0.31,
+            "power_W": 5.3,
+            "meets": true
+          },
+          {
+            "part_number": "CAT-CUBESPACE-CUBEWHEEL-CW1200",
+            "vendor": "CubeSpace",
+            "model": "CubeWheel CW1200 (Gen2)",
+            "h_Nms": 0.12,
+            "tau_Nm": 0.02,
+            "mass_kg": 0.45,
+            "power_W": 4.7,
+            "meets": true
+          },
+          {
+            "part_number": "CAT-CUBESPACE-CUBEWHEEL-CW2500",
+            "vendor": "CubeSpace",
+            "model": "CubeWheel CW2500 (Gen2)",
+            "h_Nms": 0.25,
+            "tau_Nm": 0.027,
+            "mass_kg": 0.75,
+            "power_W": 9.0,
+            "meets": true
+          },
+          {
+            "part_number": "CAT-CUBESPACE-CUBEWHEEL-CW5000",
+            "vendor": "CubeSpace",
+            "model": "CubeWheel CW5000 (Gen2)",
+            "h_Nms": 0.5,
+            "tau_Nm": 0.037,
+            "mass_kg": 0.97,
+            "power_W": 9.0,
+            "meets": true
+          },
+          {
+            "part_number": "CAT-ROCKET-LAB-RW3-0-06",
+            "vendor": "Rocket Lab",
+            "model": "RW3-0.06",
+            "h_Nms": 0.06,
+            "tau_Nm": 0.02,
+            "mass_kg": 0.226,
+            "power_W": 0.5,
+            "meets": true
+          },
+          {
+            "part_number": "CAT-ROCKET-LAB-RW3-1-0",
+            "vendor": "Rocket Lab",
+            "model": "RW3-1.0",
+            "h_Nms": 1.0,
+            "tau_Nm": 0.05,
+            "mass_kg": 0.97,
+            "power_W": 2.4,
+            "meets": true
+          },
+          {
+            "part_number": "CAT-ROCKET-LAB-RW-0-01",
+            "vendor": "Rocket Lab",
+            "model": "RW-0.01",
+            "h_Nms": 0.01,
+            "tau_Nm": 0.001,
+            "mass_kg": 0.12,
+            "power_W": 0.11,
+            "meets": true
+          },
+          {
+            "part_number": "CAT-ROCKET-LAB-RW-0-03",
+            "vendor": "Rocket Lab",
+            "model": "RW-0.03",
+            "h_Nms": 0.03,
+            "tau_Nm": 0.002,
+            "mass_kg": 0.183,
+            "power_W": 0.1,
+            "meets": true
+          }
+        ]
       }
     },
     "cmg": {
-      "part_number": "SZ-ais_img_3u-CMG",
+      "part_number": "CAT-TENSOR-TECH-ADCS400",
       "kind": "cmg",
-      "name": "Sized single-gimbal CMG (benchmark, one of 4) — ais_img_3u",
-      "status": "sized",
-      "source": "adcs-design (asils.sizing laws)",
+      "name": "Tensor Tech ADCS400 (4 x RS100 variable-speed CMG pyramid) (CMG, one of 4)",
+      "status": "catalogue",
+      "source": "https://satcatalog.s3.amazonaws.com/components/99/SatCatalog_-_Tensor_Tech_-_ADCS100_-_Integrated_ADCS_with_Reaction_Sphere_-_Datasheet.pdf?lastmod=20210828231627",
       "made": "bought",
       "descriptor_version": 1,
+      "vendor": "Tensor Tech",
+      "model": "ADCS400 (4 x RS100 variable-speed CMG pyramid)",
+      "verification": "verified",
+      "assumptions": [
+        "speed at the nominal momentum: 6000 rpm (not stated)",
+        "volume: 0.2 L per unit (datasheet: '0.2U+ tuna can')",
+        "rotor mass 0.4 x unit mass, balance ISO 1940 G2.5 (imbalance model)",
+        "friction: Coulomb 1e-5 sqrt(h / 0.01 Nms) N m, viscous 1e-8 N m s (not on datasheets)",
+        "gimbal rate: output torque / rotor momentum",
+        "rotor torque: 0.2 x output torque",
+        "gimbal power inside the steady power (the datasheet's figure is the whole unit)",
+        "as a VSCMG the rotor runs at half its momentum so the speed can move both ways (h_max = the datasheet's)"
+      ],
       "nominal": {
-        "rotor_momentum_Nms": 0.001,
-        "rotor_inertia_kgm2": 1.25e-6,
-        "rotor_radius_m": 0.011367874248827984,
-        "rotor_mass_kg": 0.01074753781847067,
-        "rotor_speed_rad_s": 800.0,
-        "rotor_torque_max_Nm": 0.0001,
-        "gimbal_rate_max_rad_s": 0.5,
-        "gimbal_power_W": 0.09999999999999999,
-        "power_steady_W": 0.23,
-        "static_imbalance_kgm": 3.358605568272084e-8,
-        "dynamic_imbalance_kgm2": 1.909010287576525e-10,
-        "mass_kg": 0.08686884454617667,
-        "volume_L": 0.06639317919766519
-      },
-      "dispersion": {
-        "torque_scale": {
-          "dist": "normal",
-          "mean": 1,
-          "sigma": 0.01
-        },
-        "axis_misalignment_rad": {
-          "dist": "normal",
-          "mean": 0,
-          "sigma": 0.001
-        }
-      },
-      "sizing": {
-        "h_req_Nms": 0.0015520398279848051,
-        "tau_req_Nm": 0.000057572692339687917,
-        "units": 4,
-        "scale": 1.0,
-        "law": "pyramid 54.74 deg, h0 = h_req/2, rotor 800 rad/s, ISO 1940 G2.5, anchored on TRN-CMG-1"
-      }
-    },
-    "vscmg": {
-      "part_number": "SZ-ais_img_3u-VSCMG",
-      "kind": "vscmg",
-      "name": "Sized variable-speed CMG (benchmark, one of 4) — ais_img_3u",
-      "status": "sized",
-      "source": "adcs-design (asils.sizing laws)",
-      "made": "bought",
-      "descriptor_version": 1,
-      "nominal": {
-        "rotor_momentum_Nms": 0.001,
-        "rotor_inertia_kgm2": 1.25e-6,
-        "rotor_radius_m": 0.011367874248827984,
-        "rotor_mass_kg": 0.01074753781847067,
-        "rotor_speed_rad_s": 800.0,
-        "rotor_torque_max_Nm": 0.0001,
-        "gimbal_rate_max_rad_s": 0.5,
-        "gimbal_power_W": 0.09999999999999999,
-        "power_steady_W": 0.33,
-        "static_imbalance_kgm": 3.358605568272084e-8,
-        "dynamic_imbalance_kgm2": 1.909010287576525e-10,
-        "mass_kg": 0.09555572900079434,
-        "volume_L": 0.06639317919766519,
-        "h_max_Nms": 0.002,
+        "h_max_Nms": 0.01,
+        "torque_max_Nm": 0.001,
+        "speed_max_rad_s": 628.3185307179587,
+        "rotor_inertia_kgm2": 0.000015915494309189534,
+        "rotor_radius_m": 0.012139427006578656,
+        "rotor_mass_kg": 0.12,
         "friction_coulomb_Nm": 0.00001,
-        "friction_viscous_Nms": 1e-8
+        "friction_viscous_Nms": 1e-8,
+        "static_imbalance_kgm": 4.774648292756859e-7,
+        "dynamic_imbalance_kgm2": 2.898074721600364e-9,
+        "power_steady_W": 1.0,
+        "power_peak_W": 1.0,
+        "mass_kg": 0.3,
+        "volume_L": 0.2,
+        "rotor_momentum_Nms": 0.01,
+        "rotor_speed_rad_s": 628.3185307179587,
+        "rotor_torque_max_Nm": 0.0002,
+        "gimbal_rate_max_rad_s": 0.1,
+        "gimbal_power_W": 0.0,
+        "vscmg_rotor_momentum_Nms": 0.005
       },
       "dispersion": {
         "torque_scale": {
           "dist": "normal",
           "mean": 1,
           "sigma": 0.01
-        },
-        "axis_misalignment_rad": {
-          "dist": "normal",
-          "mean": 0,
-          "sigma": 0.001
         },
         "friction_scale": {
           "dist": "uniform",
           "lo": 0.5,
           "hi": 2.0
+        },
+        "axis_misalignment_rad": {
+          "dist": "normal",
+          "mean": 0,
+          "sigma": 0.001
         }
       },
       "sizing": {
+        "node": "select_rotor",
         "h_req_Nms": 0.0015520398279848051,
         "tau_req_Nm": 0.000057572692339687917,
-        "units": 4,
         "scale": 1.0,
-        "law": "pyramid 54.74 deg, h0 = h_req/2, rotor 800 rad/s, ISO 1940 G2.5, anchored on TRN-CMG-1"
+        "units": 4,
+        "need_per_unit": {
+          "h_Nms": 0.0007760199139924026,
+          "tau_Nm": 0.000028786346169843958
+        },
+        "gap": null,
+        "rule": "lightest selectable catalogue model meeting the per-unit need (then steady power, volume)",
+        "candidates": [
+          {
+            "part_number": "CAT-TENSOR-TECH-ADCS400",
+            "vendor": "Tensor Tech",
+            "model": "ADCS400 (4 x RS100 variable-speed CMG pyramid)",
+            "h_Nms": 0.01,
+            "tau_Nm": 0.001,
+            "mass_kg": 0.3,
+            "power_W": 1.0,
+            "meets": true
+          }
+        ]
+      }
+    },
+    "vscmg": {
+      "part_number": "CAT-TENSOR-TECH-ADCS400-VSCMG",
+      "kind": "vscmg",
+      "name": "Tensor Tech ADCS400 (4 x RS100 variable-speed CMG pyramid) (VSCMG, one of 4)",
+      "status": "catalogue",
+      "source": "https://satcatalog.s3.amazonaws.com/components/99/SatCatalog_-_Tensor_Tech_-_ADCS100_-_Integrated_ADCS_with_Reaction_Sphere_-_Datasheet.pdf?lastmod=20210828231627",
+      "made": "bought",
+      "descriptor_version": 1,
+      "vendor": "Tensor Tech",
+      "model": "ADCS400 (4 x RS100 variable-speed CMG pyramid)",
+      "verification": "verified",
+      "assumptions": [
+        "speed at the nominal momentum: 6000 rpm (not stated)",
+        "volume: 0.2 L per unit (datasheet: '0.2U+ tuna can')",
+        "rotor mass 0.4 x unit mass, balance ISO 1940 G2.5 (imbalance model)",
+        "friction: Coulomb 1e-5 sqrt(h / 0.01 Nms) N m, viscous 1e-8 N m s (not on datasheets)",
+        "gimbal rate: output torque / rotor momentum",
+        "rotor torque: 0.2 x output torque",
+        "gimbal power inside the steady power (the datasheet's figure is the whole unit)",
+        "as a VSCMG the rotor runs at half its momentum so the speed can move both ways (h_max = the datasheet's)"
+      ],
+      "nominal": {
+        "h_max_Nms": 0.01,
+        "torque_max_Nm": 0.001,
+        "speed_max_rad_s": 628.3185307179587,
+        "rotor_inertia_kgm2": 0.000015915494309189534,
+        "rotor_radius_m": 0.012139427006578656,
+        "rotor_mass_kg": 0.12,
+        "friction_coulomb_Nm": 0.00001,
+        "friction_viscous_Nms": 1e-8,
+        "static_imbalance_kgm": 4.774648292756859e-7,
+        "dynamic_imbalance_kgm2": 2.898074721600364e-9,
+        "power_steady_W": 1.0,
+        "power_peak_W": 1.0,
+        "mass_kg": 0.3,
+        "volume_L": 0.2,
+        "rotor_momentum_Nms": 0.005,
+        "rotor_speed_rad_s": 628.3185307179587,
+        "rotor_torque_max_Nm": 0.0002,
+        "gimbal_rate_max_rad_s": 0.1,
+        "gimbal_power_W": 0.0,
+        "vscmg_rotor_momentum_Nms": 0.005
+      },
+      "dispersion": {
+        "torque_scale": {
+          "dist": "normal",
+          "mean": 1,
+          "sigma": 0.01
+        },
+        "friction_scale": {
+          "dist": "uniform",
+          "lo": 0.5,
+          "hi": 2.0
+        },
+        "axis_misalignment_rad": {
+          "dist": "normal",
+          "mean": 0,
+          "sigma": 0.001
+        }
+      },
+      "sizing": {
+        "node": "select_rotor",
+        "h_req_Nms": 0.0015520398279848051,
+        "tau_req_Nm": 0.000057572692339687917,
+        "scale": 1.0,
+        "units": 4,
+        "need_per_unit": {
+          "h_Nms": 0.0007760199139924026,
+          "tau_Nm": 0.000028786346169843958
+        },
+        "gap": null,
+        "rule": "lightest selectable catalogue model meeting the per-unit need (then steady power, volume)",
+        "candidates": [
+          {
+            "part_number": "CAT-TENSOR-TECH-ADCS400",
+            "vendor": "Tensor Tech",
+            "model": "ADCS400 (4 x RS100 variable-speed CMG pyramid)",
+            "h_Nms": 0.01,
+            "tau_Nm": 0.001,
+            "mass_kg": 0.3,
+            "power_W": 1.0,
+            "meets": true
+          }
+        ]
       }
     },
     "fmr_x": {

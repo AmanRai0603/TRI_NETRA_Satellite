@@ -1,0 +1,53 @@
+{
+ "schema": "adcs-datasheet/1",
+ "part_number": "CAT-ROCKET-LAB-RW-0-03",
+ "vendor": "Rocket Lab",
+ "model": "RW-0.03",
+ "type": "reaction_wheel",
+ "source_url": "https://rocketlabcorp.com/assets/Uploads/RL-RW-0.03-Data-Sheet.pdf",
+ "source_kind": "manufacturer datasheet",
+ "verification": "search excerpt (page not reachable); mass from the mechanical ICD Rev 1.3 (185 g)",
+ "quote": "'+/-2 mNm at 0.02 Nms', '0.1 W @ 0.01 Nms steady; 0.3 W @ 0.04 Nms', '1.8 W @ 0.02 Nms, +2 mNm'",
+ "retrieved": "2026-09-29",
+ "datasheet": {
+  "h_mNms": 30,
+  "h_speed_rpm": null,
+  "torque_mNm": 2,
+  "speed_max_rpm": null,
+  "mass_g": 183,
+  "dims_mm": "50 x 50 x 40",
+  "power_steady_W": 0.1,
+  "power_steady_note": "@ 0.01 Nms; 0.3 W @ 0.04 Nms",
+  "power_peak_W": 1.8,
+  "voltage_V": "3.5-6.0",
+  "interface": null,
+  "units_in_cluster": null,
+  "cluster_h_mNms": null,
+  "cluster_torque_mNm": null,
+  "cluster_mass_g": null,
+  "variable_speed": null
+ },
+ "selectable": true,
+ "missing": [],
+ "derived": {
+  "h_max_Nms": 0.03,
+  "torque_max_Nm": 0.002,
+  "speed_max_rad_s": 628.3185307179587,
+  "rotor_inertia_kgm2": 4.77464829275686e-05,
+  "rotor_radius_m": 0.026921167981390017,
+  "rotor_mass_kg": 0.0732,
+  "friction_coulomb_Nm": 1.7320508075688774e-05,
+  "friction_viscous_Nms": 1e-08,
+  "static_imbalance_kgm": 2.912535458581685e-07,
+  "dynamic_imbalance_kgm2": 3.9204428166116175e-09,
+  "power_steady_W": 0.1,
+  "power_peak_W": 1.8,
+  "mass_kg": 0.183,
+  "volume_L": 0.09999999999999999
+ },
+ "assumptions": [
+  "speed at the nominal momentum: 6000 rpm (not stated)",
+  "rotor mass 0.4 x unit mass, balance ISO 1940 G2.5 (imbalance model)",
+  "friction: Coulomb 1e-5 sqrt(h / 0.01 Nms) N m, viscous 1e-8 N m s (not on datasheets)"
+ ]
+}

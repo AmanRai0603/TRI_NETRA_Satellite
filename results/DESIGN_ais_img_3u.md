@@ -10,33 +10,45 @@ soft OILS of the selected configuration. Flow: `docs/figures/flow_design_to_hils
 
 | iteration | knobs | options feasible | selected | changes | blocked |
 |---:|---|---:|---|---|---|
-| 1 | laws as written | 19/25 | mtq_fmr (closest (not feasible)) | nadir_pointing/fmr+mtq: fly every pointing algorithm<br>nadir_pointing/fmr+rcs: fly every pointing algorithm<br>nadir_pointing/mtq: fly every mtq_pointing algorithm<br>sun_acquisition/mtq: fly every sun_acquisition algorithm<br>sun_referencing/mtq: fly every mtq_pointing algorithm | 3 |
-| 2 | laws as written | 19/25 | mtq_fmr (closest (not feasible)) | rate stability: gyro noise x1 -> x0.3 (fibre-optic class)<br>mtqp: authority x1 -> x1.5 (performance) | 4 |
-| 3 | mtqp x1.5, gyro noise x0.3 | 19/25 | mtq_fmr (closest (not feasible)) | gyro grade back to x1: rate-stability violation 13.8 -> 13.8<br>mtqp: authority back to x1 (no improvement)<br>nadir_pointing/fmr+mtq: fluid-loop flow sensor 2 -> 0.5 mm/s (1 sigma) | 5 |
-| 4 | mtqp x1, flow sensor 0.5 mm/s | 20/25 | mtq_fmr (closest (not feasible)) | mass (mtq_fmr): one star-tracker head instead of two | 4 |
-| 5 | mtqp x1, 1 ST head, flow sensor 0.5 mm/s | 13/25 | mtq_fmr (closest (not feasible)) | nadir_pointing/cmg+mtq: fly every pointing algorithm<br>nadir_pointing/cmg+rcs: fly every pointing algorithm<br>nadir_pointing/fmr+mtq: fluid-loop flow sensor 0.5 -> 0.125 mm/s (1 sigma)<br>nadir_pointing/rw+mtq: fly every pointing algorithm<br>nadir_pointing/rw+rcs: fly every pointing algorithm<br>nadir_pointing/vscmg+mtq: fly every pointing algorithm<br>nadir_pointing/vscmg+rcs: fly every pointing algorithm<br>mass lever st_heads undone: it broke nadir_pointing/fmr+mtq, requirement violation 0 -> 41.1 | 11 |
-| 6 | mtqp x1, flow sensor 0.125 mm/s | 22/25 | mtq_fmr (closest (not feasible)) | mass (mtq_fmr): lighter pump, less copper (lambda 0.1 -> 0.0333333 kg/W) | 2 |
-| 7 | mtqp x1, pump lambda 0.0333333 kg/W, flow sensor 0.125 mm/s | 21/25 | mtq_fmr (feasible) | — | 3 |
+| 1 | laws as written | 9/25 | mtq_fmr (closest (not feasible)) | nadir_pointing/fmr+mtq: fly every pointing algorithm<br>nadir_pointing/fmr+rcs: fly every pointing algorithm<br>nadir_pointing/mtq: fly every mtq_pointing algorithm<br>sun_acquisition/mtq: fly every sun_acquisition algorithm<br>sun_referencing/mtq: fly every mtq_pointing algorithm | 13 |
+| 2 | laws as written | 9/25 | mtq_fmr (closest (not feasible)) | rate stability: gyro noise x1 -> x0.3 (fibre-optic class)<br>mtqp: authority x1 -> x1.5 (performance) | 14 |
+| 3 | mtqp x1.5, gyro noise x0.3 | 9/25 | mtq_fmr (closest (not feasible)) | gyro grade back to x1: rate-stability violation 13.8 -> 13.8<br>mtqp: authority back to x1 (no improvement)<br>nadir_pointing/fmr+mtq: fluid-loop flow sensor 2 -> 0.5 mm/s (1 sigma) | 15 |
+| 4 | mtqp x1, flow sensor 0.5 mm/s | 10/25 | mtq_fmr (closest (not feasible)) | mass (mtq_fmr): one star-tracker head instead of two | 14 |
+| 5 | mtqp x1, 1 ST head, flow sensor 0.5 mm/s | 7/25 | mtq_fmr (closest (not feasible)) | nadir_pointing/cmg+mtq: fly every pointing algorithm<br>nadir_pointing/cmg+rcs: fly every pointing algorithm<br>nadir_pointing/fmr+mtq: fluid-loop flow sensor 0.5 -> 0.125 mm/s (1 sigma)<br>nadir_pointing/rw+mtq: fly every pointing algorithm<br>nadir_pointing/rw+rcs: fly every pointing algorithm<br>nadir_pointing/vscmg+mtq: fly every pointing algorithm<br>nadir_pointing/vscmg+rcs: fly every pointing algorithm<br>mass lever st_heads undone: it broke nadir_pointing/fmr+mtq, requirement violation 0 -> 41.1 | 17 |
+| 6 | mtqp x1, flow sensor 0.125 mm/s | 12/25 | mtq_fmr (closest (not feasible)) | mass (mtq_fmr): lighter pump, less copper (lambda 0.1 -> 0.0333333 kg/W) | 12 |
+| 7 | mtqp x1, pump lambda 0.0333333 kg/W, flow sensor 0.125 mm/s | 11/25 | mtq_fmr (feasible) | — | 13 |
 
 Why the loop stopped (nothing left that a knob can change):
 
 - mtqp: more authority did not reduce the performance violation (1.33e+04 -> 1.34e+04); kept at x1
+- nadir_pointing/cmg+mtq: power fails at the sized authority (cmg); the part's standby power is the floor
+- nadir_pointing/cmg+rcs: power fails at the sized authority (cmg); the part's standby power is the floor
 - nadir_pointing/mtq: knowledge fails with the star tracker fitted
+- nadir_pointing/vscmg+mtq: power fails at the sized authority (vscmg); the part's standby power is the floor
+- nadir_pointing/vscmg+rcs: power fails at the sized authority (vscmg); the part's standby power is the floor
+- sun_acquisition/cmg: power fails at the sized authority (cmg); the part's standby power is the floor
+- sun_acquisition/vscmg: power fails at the sized authority (vscmg); the part's standby power is the floor
+- sun_referencing/cmg+mtq: power fails at the sized authority (cmg); the part's standby power is the floor
+- sun_referencing/cmg+rcs: power fails at the sized authority (cmg); the part's standby power is the floor
 - sun_referencing/fmr+rcs: power is the thrusters' valve power (RCS dumping), not the pump
+- sun_referencing/vscmg+mtq: power fails at the sized authority (vscmg); the part's standby power is the floor
+- sun_referencing/vscmg+rcs: power fails at the sized authority (vscmg); the part's standby power is the floor
 
-## Families (last iteration)
+## Every configuration compared (last iteration)
 
-| family | role | feasible | mass [kg] | power [W] | volume [L] | gaps |
-|---|---|---|---:|---:|---:|---|
-| mtq | solution | no | 0.830 | 3.90 | 0.012 | sun_acquisition: sun_acquisition_time (performance), sun_angle_p95 (performance); sun_referencing: sun_ape_p9973 (performance); nadir_pointing: ape_los_p9973 (performance), ake_los_p9973 (knowledge), rate_stability_p9973 (performance) |
-| mtq_fmr | solution | yes | 1.596 | 9.16 | 0.534 | — |
-| mtq_fmr_rcs | solution | no | 2.062 | 9.21 | 1.376 | budget: mass_kg 2.06 > 1.6; budget: volume_L 1.38 > 1 |
-| mtq_rw | benchmark | yes | 1.083 | 4.50 | 0.142 | — |
-| mtq_rw_rcs | benchmark | yes | 1.548 | 4.55 | 0.983 | — |
-| mtq_cmg | benchmark | yes | 1.164 | 4.68 | 0.272 | — |
-| mtq_cmg_rcs | benchmark | no | 1.629 | 4.73 | 1.114 | budget: mass_kg 1.63 > 1.6; budget: volume_L 1.11 > 1 |
-| mtq_vscmg | benchmark | yes | 1.198 | 5.08 | 0.272 | — |
-| mtq_vscmg_rcs | benchmark | no | 1.664 | 5.13 | 1.114 | budget: mass_kg 1.66 > 1.6; budget: volume_L 1.11 > 1 |
+Selection rule (node `select`, docs/NODES.md): least mass_kg, then power_W, then volume_L, then simplicity among feasible solution families. The benchmarks are ranked by the same rule; best benchmark: **`mtq_rw`** (feasible).
+
+| family | role | rank | feasible | mass [kg] | power [W] | volume [L] | momentum actuator | gaps |
+|---|---|---:|---|---:|---:|---:|---|---|
+| mtq_fmr | solution | 1 | yes | 1.596 | 9.16 | 0.534 | fluid loop (3 rings) | — |
+| mtq | solution | — | no | 0.830 | 3.90 | 0.012 | coils only | sun_acquisition: sun_acquisition_time (performance), sun_angle_p95 (performance); sun_referencing: sun_ape_p9973 (performance); nadir_pointing: ape_los_p9973 (performance), ake_los_p9973 (knowledge), rate_stability_p9973 (performance) |
+| mtq_fmr_rcs | solution | — | no | 2.062 | 9.21 | 1.376 | fluid loop (3 rings) | budget: mass_kg 2.06 > 1.6; budget: volume_L 1.38 > 1 |
+| mtq_rw | benchmark | 1 | yes | 0.996 | 4.66 | 0.068 | CAT-CUBESPACE-CUBEWHEEL-CW0017 x3 | — |
+| mtq_rw_rcs | benchmark | 2 | yes | 1.462 | 4.71 | 0.909 | CAT-CUBESPACE-CUBEWHEEL-CW0017 x3 | — |
+| mtq_cmg | benchmark | — | no | 2.016 | 7.76 | 0.806 | CAT-TENSOR-TECH-ADCS400 x4 | sun_acquisition: power_mean (power); sun_referencing: power_mean (power); nadir_pointing: power_mean (power); budget: mass_kg 2.02 > 1.6 |
+| mtq_vscmg | benchmark | — | no | 2.016 | 7.76 | 0.806 | CAT-TENSOR-TECH-ADCS400-VSCMG x4 | sun_acquisition: power_mean (power); sun_referencing: power_mean (power); nadir_pointing: power_mean (power); budget: mass_kg 2.02 > 1.6 |
+| mtq_cmg_rcs | benchmark | — | no | 2.482 | 7.81 | 1.648 | CAT-TENSOR-TECH-ADCS400 x4 | sun_acquisition: power_mean (power); sun_referencing: power_mean (power); nadir_pointing: power_mean (power); budget: mass_kg 2.48 > 1.6; budget: volume_L 1.65 > 1 |
+| mtq_vscmg_rcs | benchmark | — | no | 2.482 | 7.81 | 1.648 | CAT-TENSOR-TECH-ADCS400-VSCMG x4 | sun_acquisition: power_mean (power); sun_referencing: power_mean (power); nadir_pointing: power_mean (power); budget: mass_kg 2.48 > 1.6; budget: volume_L 1.65 > 1 |
 
 ## Selected methods (mtq_fmr)
 
@@ -53,29 +65,29 @@ Why the loop stopped (nothing left that a knob can change):
 |---|---|---|---|---:|---|
 | detumble | mtq | default | yes | 63.54 | — |
 | detumble | rcs | default | yes | 1.108 | — |
-| nadir_pointing | cmg+mtq | pid@bw4 | yes | 0.003385 | — |
-| nadir_pointing | cmg+rcs | pid@bw4 | yes | 0.003386 | — |
+| nadir_pointing | cmg+mtq | pid@bw4 | no | 0.003386 | power_mean (power) |
+| nadir_pointing | cmg+rcs | pid@bw4 | no | 0.003385 | power_mean (power) |
 | nadir_pointing | fmr+mtq | pid@bw4 | yes | 0.003535 | — |
 | nadir_pointing | fmr+rcs | smc | yes | 0.005546 | — |
 | nadir_pointing | mtq | mtq_rate_damp | no | 132.4 | ape_los_p9973 (performance), ake_los_p9973 (knowledge), rate_stability_p9973 (performance) |
-| nadir_pointing | rw+mtq | pid@bw2.5 | yes | 0.003915 | — |
-| nadir_pointing | rw+rcs | pid@bw4 | yes | 0.003377 | — |
-| nadir_pointing | vscmg+mtq | pid | yes | 0.007184 | — |
-| nadir_pointing | vscmg+rcs | pid@bw2.5 | yes | 0.004091 | — |
-| sun_acquisition | cmg | default | yes | 2.275 | — |
+| nadir_pointing | rw+mtq | pid@bw4 | yes | 0.003379 | — |
+| nadir_pointing | rw+rcs | pid@bw4 | yes | 0.00339 | — |
+| nadir_pointing | vscmg+mtq | pid@bw4 | no | 0.003379 | power_mean (power) |
+| nadir_pointing | vscmg+rcs | pid@bw4 | no | 0.003377 | power_mean (power) |
+| sun_acquisition | cmg | default | no | 2.275 | power_mean (power) |
 | sun_acquisition | fmr | default | yes | 2.275 | — |
 | sun_acquisition | mtq | sunspin_damped | no | 98.47 | sun_acquisition_time (performance), sun_angle_p95 (performance) |
 | sun_acquisition | rw | default | yes | 2.275 | — |
-| sun_acquisition | vscmg | default | yes | 2.975 | — |
-| sun_referencing | cmg+mtq | default | yes | 0.00867 | — |
-| sun_referencing | cmg+rcs | default | yes | 0.008654 | — |
+| sun_acquisition | vscmg | default | no | 2.375 | power_mean (power) |
+| sun_referencing | cmg+mtq | default | no | 0.008673 | power_mean (power) |
+| sun_referencing | cmg+rcs | default | no | 0.008625 | power_mean (power) |
 | sun_referencing | fmr+mtq | default | yes | 0.008977 | — |
 | sun_referencing | fmr+rcs | default | no | 0.008949 | power_mean (power) |
 | sun_referencing | mtq | mtq_rate_damp | no | 141.8 | sun_ape_p9973 (performance) |
-| sun_referencing | rw+mtq | default | yes | 0.00865 | — |
-| sun_referencing | rw+rcs | default | yes | 0.008624 | — |
-| sun_referencing | vscmg+mtq | default | yes | 0.0085 | — |
-| sun_referencing | vscmg+rcs | default | yes | 1.888 | — |
+| sun_referencing | rw+mtq | default | yes | 0.008679 | — |
+| sun_referencing | rw+rcs | default | yes | 0.008676 | — |
+| sun_referencing | vscmg+mtq | default | no | 0.008665 | power_mean (power) |
+| sun_referencing | vscmg+rcs | default | no | 0.008652 | power_mean (power) |
 
 ## Monte Carlo of the dispatched mission (12 runs; dispersions: inertia, residual_dipole, cm_offset, solar_flux, accommodation, reflectivity, arg_lat_deg)
 

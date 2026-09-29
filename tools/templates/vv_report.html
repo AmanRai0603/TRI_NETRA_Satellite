@@ -67,7 +67,8 @@
 <section class="toc">
   <h2>Contents</h2>
   <ol>
-    <li>Summary and findings</li><li>Architecture and flow</li><li>Requirements</li><li>Design loop per case</li>
+    <li>Summary and findings</li><li>Architecture and flow</li><li>Nodes</li><li>Actuator catalogue (datasheets)</li><li>Requirements</li>
+    <li>Design loop per case: every configuration compared</li>
     <li>SILS scenario verification</li><li>Monte Carlo and edge campaigns vs the MATLAB twin</li>
     <li>Engine vs MATLAB twin parity</li><li>Soft OILS</li><li>Virtual OBC bit-identity</li><li>Open items</li>
   </ol>
@@ -78,34 +79,40 @@ $summary
 
 <h2 class="pb">2. Architecture and flow</h2>
 <p>The design loop sizes every actuator option to the case, flies every mission mode with every option in the SILS,
-converges the sizing, sensors and algorithms, selects the simplest of our solution families that passes, dispatches its
+converges the sizing, sensors and algorithms, selects the lightest of our solution families that passes, dispatches its
 flight configuration and verifies it by Monte Carlo and in soft OILS. The same flight software (C99 and Rust, one
 pseudocode contract) runs in every rung behind one byte-level HAL.</p>
 <figure>$fig_flow<figcaption>Figure 1. From customer case to flight: design loop, verification, hardware rungs.</figcaption></figure>
 <figure>$fig_arch<figcaption>Figure 2. Languages and layers.</figcaption></figure>
 
-<h2 class="pb">3. Requirements</h2>
+<h2 class="pb">3. Nodes</h2>
+$nodes
+
+<h2 class="pb">4. Actuator catalogue (datasheets)</h2>
+$catalogue
+
+<h2 class="pb">5. Requirements</h2>
 $requirements
 
-<h2 class="pb">4. Design loop per case</h2>
+<h2 class="pb">6. Design loop per case: every configuration compared</h2>
 $design
 
-<h2 class="pb">5. SILS scenario verification</h2>
+<h2 class="pb">7. SILS scenario verification</h2>
 $sils
 
-<h2 class="pb">6. Monte Carlo and edge campaigns vs the MATLAB twin</h2>
+<h2 class="pb">8. Monte Carlo and edge campaigns vs the MATLAB twin</h2>
 $campaigns
 
-<h2 class="pb">7. Engine vs MATLAB twin parity</h2>
+<h2 class="pb">9. Engine vs MATLAB twin parity</h2>
 $parity
 
-<h2 class="pb">8. Soft OILS</h2>
+<h2 class="pb">10. Soft OILS</h2>
 $oils
 
-<h2>9. Virtual OBC bit-identity</h2>
+<h2>11. Virtual OBC bit-identity</h2>
 $vobc
 
-<h2>10. Open items</h2>
+<h2>12. Open items</h2>
 $open
 </div>
 </body>

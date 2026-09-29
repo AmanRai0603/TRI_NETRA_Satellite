@@ -1,0 +1,52 @@
+{
+ "schema": "adcs-datasheet/1",
+ "part_number": "CAT-CUBESPACE-CUBEWHEEL-CW0057",
+ "vendor": "CubeSpace",
+ "model": "CubeWheel CW0057 (Gen2)",
+ "type": "reaction_wheel",
+ "source_url": "https://satcatalog.s3.amazonaws.com/components/1404/SatCatalog_-_CubeSpace_-_Gen2_CubeTorquer_Range_-_Datasheet.pdf?lastmod=20260129005456",
+ "source_kind": "manufacturer datasheet (distributor mirror)",
+ "verification": "verified",
+ "quote": "CubeSpace 'ADCS ACTUATORS' Gen2 datasheet (2023), read in full from the SatCatalog mirror; same document as cubesatshop.com/wp-content/uploads/2023/05/CubeSpace-GEN-2-ACTUATORS-2023.pdf",
+ "retrieved": "2026-09-29",
+ "datasheet": {
+  "h_mNms": 5.7,
+  "h_speed_rpm": 6000,
+  "torque_mNm": 2,
+  "speed_max_rpm": 10000,
+  "mass_g": 115,
+  "dims_mm": "35 x 35 x 24",
+  "power_steady_W": 0.77,
+  "power_steady_note": "average @6000 rpm incl. digital; 0.336 W @2000 rpm",
+  "power_peak_W": 2.7,
+  "voltage_V": "12 (6.4-16.8)",
+  "interface": "CAN / UART / RS-485",
+  "units_in_cluster": null,
+  "cluster_h_mNms": null,
+  "cluster_torque_mNm": null,
+  "cluster_mass_g": null,
+  "variable_speed": null
+ },
+ "selectable": true,
+ "missing": [],
+ "derived": {
+  "h_max_Nms": 0.0057,
+  "torque_max_Nm": 0.002,
+  "speed_max_rad_s": 628.3185307179587,
+  "rotor_inertia_kgm2": 9.071831756238034e-06,
+  "rotor_radius_m": 0.01480291764901852,
+  "rotor_mass_kg": 0.046000000000000006,
+  "friction_coulomb_Nm": 7.5498344352707505e-06,
+  "friction_viscous_Nms": 1e-08,
+  "static_imbalance_kgm": 1.8302818455567965e-07,
+  "dynamic_imbalance_kgm2": 1.3546755717135446e-09,
+  "power_steady_W": 0.77,
+  "power_peak_W": 2.7,
+  "mass_kg": 0.115,
+  "volume_L": 0.0294
+ },
+ "assumptions": [
+  "rotor mass 0.4 x unit mass, balance ISO 1940 G2.5 (imbalance model)",
+  "friction: Coulomb 1e-5 sqrt(h / 0.01 Nms) N m, viscous 1e-8 N m s (not on datasheets)"
+ ]
+}

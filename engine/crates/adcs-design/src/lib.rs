@@ -1,6 +1,7 @@
 //! The design node of the pipeline (docs/DESIGN_LOOP.md): what the case asks of an actuator
 //! (demand survey on the POP orbit, the SILS torque models), every actuator option sized to it
-//! (ours: MTQ, fluid loop, N2O RCS; benchmarks: RW, CMG, VSCMG), one product per family and
+//! (ours: MTQ, fluid loop, N2O RCS, designed; benchmarks: RW, CMG, VSCMG, chosen from the datasheet
+//! catalogue), one product per family and
 //! its mass / power / volume budget. A port of matlab_sils/+asils/+sizing (demand, mtq, rw,
 //! cmg, fmr, rcs, size_all) with the laws unchanged, plus the KNOBS the convergence loop turns
 //! (tools/pipeline.py): per-part authority scales, the margins, the fluid loop's electromagnetic pump
@@ -188,49 +189,57 @@ pub fn mtq(d: &Demand, k: &Knobs) -> (Value, Value) {
      coil(m.max(2.0*m_dump)*k.s("mtqp"), "MTQP", "Sized pointing-grade magnetorquer coil (our product, coils-only family)"))
 }
 
-/// asils.sizing.rw
-pub fn rw(d: &Demand, k: &Knobs) -> Value {
-    let s = k.s("rw");
-    let (h, tau) = (d.h_req.max(1e-3)*s, d.tau_req.max(1e-4)*s);
-    let w = 6000.0*2.0*PI/60.0; let j = h/w;
-    let r = 0.021*(h/0.01).powf(0.2); let mr = j/(0.9*r*r);
-    let us = mr*2.5e-3/w; let ud = us*r/2.0;
-    let pst = 0.2 + 30.0*h; let ppk = pst + tau*w/0.5;
-    let (dia, hgt) = (2.4*r + 0.010, 0.6*r + 0.020);
-    let mut p = part(&d.case, "RW", "reaction_wheel", "Sized reaction wheel (benchmark)", "bought");
-    p["nominal"] = json!({"h_max_Nms": h, "torque_max_Nm": tau, "speed_max_rad_s": w, "rotor_inertia_kgm2": j, "rotor_radius_m": r, "rotor_mass_kg": mr,
-        "friction_coulomb_Nm": 1e-5*(h/0.01).sqrt(), "friction_viscous_Nms": 1e-8, "static_imbalance_kgm": us, "dynamic_imbalance_kgm2": ud,
-        "power_steady_W": pst, "power_peak_W": ppk, "mass_kg": 2.2*mr + 0.06, "volume_L": PI*dia*dia/4.0*hgt*1e3});
+/// The select_rotor node (docs/NODES.md): the benchmarks' momentum actuators are bought, so they
+/// are chosen from the datasheet catalogue (matlab_sils/data/catalogue, tools/catalogue.py), never
+/// sized by a law. `which` is rw (three orthogonal wheels) or cmg / vscmg (a four-unit pyramid).
+/// Per unit: a wheel must hold h_req and give tau_req; a pyramid unit half of each (two units act on
+/// any axis). The lightest selectable model that meets the need wins (then steady power, volume);
+/// when none does, the largest is taken and the gap is recorded.
+pub fn rotor(root: &Path, d: &Demand, k: &Knobs, which: &str) -> Result<Value, String> {
+    let s = k.s(which);
+    let types: &[&str] = if which == "rw" { &["reaction_wheel"] } else { &["cmg", "cmg_cluster"] };
+    let share = if which == "rw" { 1.0 } else { 0.5 };
+    let (h_need, tau_need) = (share*d.h_req*s, share*d.tau_req*s);
+    let mut cands: Vec<Value> = vec![];
+    let dir = root.join("data/catalogue");
+    let mut files: Vec<_> = std::fs::read_dir(&dir).map_err(|e| format!("{}: {e}", dir.display()))?.filter_map(|e| e.ok().map(|e| e.path())).collect();
+    files.sort();
+    for f in files {
+        let c = json::read(&f)?;
+        if !types.contains(&json::s(&c, "type", "")) || !json::b(&c, "selectable", false) { continue; }
+        cands.push(c);
+    }
+    if cands.is_empty() { return Err(format!("catalogue: no selectable {which} model in {}", dir.display())); }
+    let g = |c: &Value, key: &str| c["derived"][key].as_f64().unwrap_or(f64::NAN);
+    let meets = |c: &Value| g(c, "h_max_Nms") >= h_need && g(c, "torque_max_Nm") >= tau_need;
+    let key = |c: &Value| (g(c, "mass_kg"), g(c, "power_steady_W"), g(c, "volume_L"));
+    let mut ok: Vec<&Value> = cands.iter().filter(|c| meets(c)).collect();
+    ok.sort_by(|a, b| key(a).partial_cmp(&key(b)).unwrap());
+    let (pick, gap) = match ok.first() {
+        Some(c) => ((*c).clone(), Value::Null),
+        None => {
+            let c = cands.iter().max_by(|a, b| g(a, "h_max_Nms").partial_cmp(&g(b, "h_max_Nms")).unwrap()).unwrap().clone();
+            (c, json!(format!("no catalogue {which} meets h {:.3e} N m s, tau {:.3e} N m per unit; the largest is fitted", h_need, tau_need)))
+        }
+    };
+    let x = &pick["derived"];
+    let mut nm = x.clone();
+    let (kind, suffix, units) = match which { "rw" => ("reaction_wheel", "", 3), "cmg" => ("cmg", "", 4), _ => ("vscmg", "-VSCMG", 4) };
+    if which == "vscmg" { nm["rotor_momentum_Nms"] = x["vscmg_rotor_momentum_Nms"].clone(); }
+    let pn = format!("{}{suffix}", json::s(&pick, "part_number", ""));
+    let mut p = json!({"part_number": pn, "kind": kind, "name": format!("{} {} ({}, one of {units})", json::s(&pick, "vendor", ""), json::s(&pick, "model", ""), which.to_uppercase()),
+        "status": "catalogue", "source": pick["source_url"], "made": "bought", "descriptor_version": 1, "vendor": pick["vendor"], "model": pick["model"],
+        "verification": pick["verification"], "assumptions": pick["assumptions"]});
+    p["nominal"] = nm;
     p["dispersion"] = json!({"torque_scale": {"dist": "normal", "mean": 1, "sigma": 0.01}, "friction_scale": {"dist": "uniform", "lo": 0.5, "hi": 2.0},
         "axis_misalignment_rad": {"dist": "normal", "mean": 0, "sigma": 0.001}});
-    p["sizing"] = json!({"h_req_Nms": d.h_req, "tau_req_Nm": d.tau_req, "scale": s, "floor": "h >= 1 mNms, tau >= 0.1 mNm",
-        "law": "rim flywheel 6000 rpm, ISO 1940 G2.5, anchored on SYN-RW-10"});
-    p
-}
-
-/// asils.sizing.cmg (variable: VSCMG)
-pub fn cmg(d: &Demand, k: &Knobs, variable: bool) -> Value {
-    let s = k.s(if variable { "vscmg" } else { "cmg" });
-    let h0 = (d.h_req/2.0).max(1e-3)*s; let tau = d.tau_req.max(1e-4)*s;
-    let w = 800.0; let j = h0/w; let r = 0.015*(h0/0.004).powf(0.2); let mr = j/(0.9*r*r);
-    let gr = (1.2*tau/h0).max(0.5).min(3.0);
-    let us = mr*2.5e-3/w; let ud = us*r/2.0;
-    let (dia, hgt) = (2.4*r + 0.015, 2.4*r + 0.020);
-    let (mut m, mut pst) = (2.5*mr + 0.06, 0.2 + 30.0*h0);
-    let (tag, kind, name) = if variable { m *= 1.1; pst += 0.1; ("VSCMG", "vscmg", "Sized variable-speed CMG (benchmark, one of 4)") }
-                            else { ("CMG", "cmg", "Sized single-gimbal CMG (benchmark, one of 4)") };
-    let mut p = part(&d.case, tag, kind, name, "bought");
-    p["nominal"] = json!({"rotor_momentum_Nms": h0, "rotor_inertia_kgm2": j, "rotor_radius_m": r, "rotor_mass_kg": mr, "rotor_speed_rad_s": w,
-        "rotor_torque_max_Nm": (0.2*tau).max(1e-4), "gimbal_rate_max_rad_s": gr, "gimbal_power_W": 0.3*gr/1.5, "power_steady_W": pst,
-        "static_imbalance_kgm": us, "dynamic_imbalance_kgm2": ud, "mass_kg": m, "volume_L": PI*dia*dia/4.0*hgt*1e3});
-    p["dispersion"] = json!({"torque_scale": {"dist": "normal", "mean": 1, "sigma": 0.01}, "axis_misalignment_rad": {"dist": "normal", "mean": 0, "sigma": 0.001}});
-    if variable {
-        p["nominal"]["h_max_Nms"] = json!(2.0*h0); p["nominal"]["friction_coulomb_Nm"] = json!(1e-5); p["nominal"]["friction_viscous_Nms"] = json!(1e-8);
-        p["dispersion"]["friction_scale"] = json!({"dist": "uniform", "lo": 0.5, "hi": 2.0});
-    }
-    p["sizing"] = json!({"h_req_Nms": d.h_req, "tau_req_Nm": d.tau_req, "units": 4, "scale": s,
-        "law": "pyramid 54.74 deg, h0 = h_req/2, rotor 800 rad/s, ISO 1940 G2.5, anchored on TRN-CMG-1"});
-    p
+    p["sizing"] = json!({"node": "select_rotor", "h_req_Nms": d.h_req, "tau_req_Nm": d.tau_req, "scale": s, "units": units,
+        "need_per_unit": {"h_Nms": h_need, "tau_Nm": tau_need}, "gap": gap,
+        "rule": "lightest selectable catalogue model meeting the per-unit need (then steady power, volume)",
+        "candidates": cands.iter().map(|c| json!({"part_number": c["part_number"], "vendor": c["vendor"], "model": c["model"],
+            "h_Nms": g(c, "h_max_Nms"), "tau_Nm": g(c, "torque_max_Nm"), "mass_kg": g(c, "mass_kg"), "power_W": g(c, "power_steady_W"),
+            "meets": meets(c)})).collect::<Vec<_>>()});
+    Ok(p)
 }
 
 /// The fluid loop, X, Y, Z rings, each designed with its electromagnetic DC conduction pump
@@ -329,7 +338,7 @@ pub fn size_all(root: &Path, case_file: &Path, k: &Knobs, out: &Path) -> Result<
     let bx = [0.34, 0.10, 0.10];
     let (pm, pmp) = mtq(&d, k);
     let fm = fmr(&d, k, bx);
-    let parts: Vec<(&str, Value)> = vec![("mtq", pm), ("mtqp", pmp), ("rw", rw(&d, k)), ("cmg", cmg(&d, k, false)), ("vscmg", cmg(&d, k, true)),
+    let parts: Vec<(&str, Value)> = vec![("mtq", pm), ("mtqp", pmp), ("rw", rotor(root, &d, k, "rw")?), ("cmg", rotor(root, &d, k, "cmg")?), ("vscmg", rotor(root, &d, k, "vscmg")?),
         ("fmr_x", fm[0].clone()), ("fmr_y", fm[1].clone()), ("fmr_z", fm[2].clone()), ("rcs", rcs(&d, k, bx))];
     for dir in ["parts", "products"] { std::fs::create_dir_all(out.join(dir)).map_err(|e| e.to_string())?; }
     let mut by_pn: BTreeMap<String, Value> = BTreeMap::new();
@@ -411,4 +420,39 @@ pub fn size_all(root: &Path, case_file: &Path, k: &Knobs, out: &Path) -> Result<
         "parts": parts.iter().map(|(a, b)| (a.to_string(), b.clone())).collect::<serde_json::Map<_, _>>()});
     std::fs::write(out.join("sizing.json"), serde_json::to_string_pretty(&z).unwrap()).map_err(|e| e.to_string())?;
     Ok(z)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    fn root() -> std::path::PathBuf { Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../matlab_sils") }
+
+    #[test]
+    fn select_rotor_takes_the_lightest_model_that_meets_the_need() {
+        let mut d = Demand { case: "t".into(), h_req: 1.5e-3, tau_req: 5e-5, ..Default::default() };
+        let k = Knobs::default();
+        let p = rotor(&root(), &d, &k, "rw").unwrap();
+        assert_eq!(p["part_number"], "CAT-CUBESPACE-CUBEWHEEL-CW0017");
+        assert!(p["sizing"]["gap"].is_null());
+        // more momentum than CW0017 holds: the next lightest that meets it
+        d.h_req = 5e-3;
+        let p = rotor(&root(), &d, &k, "rw").unwrap();
+        assert_eq!(p["part_number"], "CAT-CUBESPACE-CUBEWHEEL-CW0057");
+        // an authority knob raises the need the same way: x4 asks 6 mNms, above CW0057's 5.7
+        d.h_req = 1.5e-3;
+        let mut k2 = Knobs::default(); k2.scale.insert("rw".into(), 4.0);
+        assert_eq!(rotor(&root(), &d, &k2, "rw").unwrap()["part_number"], "CAT-ROCKET-LAB-RW-0-01");
+        // nothing large enough: the largest is fitted and the gap recorded
+        d.h_req = 10.0;
+        assert!(rotor(&root(), &d, &k, "cmg").unwrap()["sizing"]["gap"].is_string());
+    }
+
+    #[test]
+    fn vscmg_runs_its_rotor_at_half_momentum() {
+        let d = Demand { case: "t".into(), h_req: 1e-3, tau_req: 5e-5, ..Default::default() };
+        let v = rotor(&root(), &d, &Knobs::default(), "vscmg").unwrap();
+        let n = &v["nominal"];
+        assert!((n["rotor_momentum_Nms"].as_f64().unwrap() - n["h_max_Nms"].as_f64().unwrap()/2.0).abs() < 1e-12);
+        assert!(v["part_number"].as_str().unwrap().ends_with("-VSCMG"));
+    }
 }
