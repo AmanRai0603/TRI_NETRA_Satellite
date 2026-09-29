@@ -67,58 +67,58 @@
     },
     "sun_referencing": {
      "option": "mtq",
-     "alg": "mtq_celani2026@mtq_gain_p=0.25,mtq_gain_d=1",
+     "alg": "mtq_celani2015@mtq_gain_p=0.25,mtq_gain_d=1,handover_out_dps=0.25",
      "feasible": false,
      "failing": {
       "sun_ape_p9973": "performance"
      },
-     "objective": 84.6800206390245,
+     "objective": 86.14134908882917,
      "objective_id": "sun_ape_p9973",
      "algorithms": {
       "allocation": "",
       "attitude": "mekf",
       "detumble": "bdot_gyro",
-      "mtq_pointing": "mtq_celani2026",
+      "mtq_pointing": "mtq_celani2015",
       "pointing": "",
       "sun_acquisition": "sunspin_l1l2",
       "thrusters": ""
      },
      "metrics": {
-      "sun_ape_p9973": 84.6800206390245,
-      "ape_3ax_p9973": 179.90056582793548,
-      "ake_3ax_p9973": 2.6050615434631657,
-      "rate_stability_p9973": 0.20679830238869762,
+      "sun_ape_p9973": 86.14134908882917,
+      "ape_3ax_p9973": 107.806374793696,
+      "ake_3ax_p9973": 2.857839127234048,
+      "rate_stability_p9973": 0.16127903190463092,
       "jitter": null,
       "momentum_peak": null,
-      "power_mean": 0.011619625642170025,
-      "power_peak": 0.08334256565237064,
+      "power_mean": 0.011697365034647304,
+      "power_peak": 0.08452923408941432,
       "propellant": 0.0
      }
     },
     "nadir_pointing": {
      "option": "mtq",
-     "alg": "mtq_celani2026@mtq_gain_p=4,mtq_gain_d=0.25",
+     "alg": "mtq_pd",
      "feasible": true,
      "failing": {},
-     "objective": 3.7282289429718123,
+     "objective": 9.055668556937855,
      "objective_id": "ape_los_p9973",
      "algorithms": {
       "allocation": "",
       "attitude": "mekf",
       "detumble": "bdot_gyro",
-      "mtq_pointing": "mtq_celani2026",
+      "mtq_pointing": "mtq_pd",
       "pointing": "",
       "sun_acquisition": "sunspin_l1l2",
       "thrusters": ""
      },
      "metrics": {
-      "ape_los_p9973": 3.7282289429718123,
-      "ake_los_p9973": 0.37192411256767854,
-      "rate_stability_p9973": 0.16247549338585263,
+      "ape_los_p9973": 9.055668556937855,
+      "ake_los_p9973": 0.23102720753888492,
+      "rate_stability_p9973": 0.07339291384676187,
       "jitter": null,
       "momentum_peak": null,
-      "power_mean": 0.010736155650779157,
-      "power_peak": 0.019663597411012545,
+      "power_mean": 0.017688033859193018,
+      "power_peak": 0.32268188985611024,
       "propellant": 0.0
      }
     }
@@ -459,28 +459,28 @@
     },
     "nadir_pointing": {
      "option": "mtq",
-     "alg": "mtq_celani2026@mtq_gain_p=4,mtq_gain_d=0.25",
+     "alg": "mtq_pd",
      "feasible": true,
      "failing": {},
-     "objective": 3.7282289429718123,
+     "objective": 9.055668556937855,
      "objective_id": "ape_los_p9973",
      "algorithms": {
       "allocation": "",
       "attitude": "mekf",
       "detumble": "bdot_gyro",
-      "mtq_pointing": "mtq_celani2026",
+      "mtq_pointing": "mtq_pd",
       "pointing": "",
       "sun_acquisition": "sunspin_l1l2",
       "thrusters": ""
      },
      "metrics": {
-      "ape_los_p9973": 3.7282289429718123,
-      "ake_los_p9973": 0.37192411256767854,
-      "rate_stability_p9973": 0.16247549338585263,
+      "ape_los_p9973": 9.055668556937855,
+      "ake_los_p9973": 0.23102720753888492,
+      "rate_stability_p9973": 0.07339291384676187,
       "jitter": null,
       "momentum_peak": null,
-      "power_mean": 0.010736155650779157,
-      "power_peak": 0.019663597411012545,
+      "power_mean": 0.017688033859193018,
+      "power_peak": 0.32268188985611024,
       "propellant": 0.0
      }
     }
@@ -584,28 +584,28 @@
     },
     "nadir_pointing": {
      "option": "mtq",
-     "alg": "mtq_celani2026@mtq_gain_p=4,mtq_gain_d=0.25",
+     "alg": "mtq_pd",
      "feasible": true,
      "failing": {},
-     "objective": 3.7282289429718123,
+     "objective": 9.055668556937855,
      "objective_id": "ape_los_p9973",
      "algorithms": {
       "allocation": "",
       "attitude": "mekf",
       "detumble": "bdot_gyro",
-      "mtq_pointing": "mtq_celani2026",
+      "mtq_pointing": "mtq_pd",
       "pointing": "",
       "sun_acquisition": "sunspin_l1l2",
       "thrusters": ""
      },
      "metrics": {
-      "ape_los_p9973": 3.7282289429718123,
-      "ake_los_p9973": 0.37192411256767854,
-      "rate_stability_p9973": 0.16247549338585263,
+      "ape_los_p9973": 9.055668556937855,
+      "ake_los_p9973": 0.23102720753888492,
+      "rate_stability_p9973": 0.07339291384676187,
       "jitter": null,
       "momentum_peak": null,
-      "power_mean": 0.010736155650779157,
-      "power_peak": 0.019663597411012545,
+      "power_mean": 0.017688033859193018,
+      "power_peak": 0.32268188985611024,
       "propellant": 0.0
      }
     }
@@ -708,28 +708,28 @@
     },
     "nadir_pointing": {
      "option": "mtq",
-     "alg": "mtq_celani2026@mtq_gain_p=4,mtq_gain_d=0.25",
+     "alg": "mtq_pd",
      "feasible": true,
      "failing": {},
-     "objective": 3.7282289429718123,
+     "objective": 9.055668556937855,
      "objective_id": "ape_los_p9973",
      "algorithms": {
       "allocation": "",
       "attitude": "mekf",
       "detumble": "bdot_gyro",
-      "mtq_pointing": "mtq_celani2026",
+      "mtq_pointing": "mtq_pd",
       "pointing": "",
       "sun_acquisition": "sunspin_l1l2",
       "thrusters": ""
      },
      "metrics": {
-      "ape_los_p9973": 3.7282289429718123,
-      "ake_los_p9973": 0.37192411256767854,
-      "rate_stability_p9973": 0.16247549338585263,
+      "ape_los_p9973": 9.055668556937855,
+      "ake_los_p9973": 0.23102720753888492,
+      "rate_stability_p9973": 0.07339291384676187,
       "jitter": null,
       "momentum_peak": null,
-      "power_mean": 0.010736155650779157,
-      "power_peak": 0.019663597411012545,
+      "power_mean": 0.017688033859193018,
+      "power_peak": 0.32268188985611024,
       "propellant": 0.0
      }
     }
@@ -834,28 +834,28 @@
     },
     "nadir_pointing": {
      "option": "mtq",
-     "alg": "mtq_celani2026@mtq_gain_p=4,mtq_gain_d=0.25",
+     "alg": "mtq_pd",
      "feasible": true,
      "failing": {},
-     "objective": 3.7282289429718123,
+     "objective": 9.055668556937855,
      "objective_id": "ape_los_p9973",
      "algorithms": {
       "allocation": "",
       "attitude": "mekf",
       "detumble": "bdot_gyro",
-      "mtq_pointing": "mtq_celani2026",
+      "mtq_pointing": "mtq_pd",
       "pointing": "",
       "sun_acquisition": "sunspin_l1l2",
       "thrusters": ""
      },
      "metrics": {
-      "ape_los_p9973": 3.7282289429718123,
-      "ake_los_p9973": 0.37192411256767854,
-      "rate_stability_p9973": 0.16247549338585263,
+      "ape_los_p9973": 9.055668556937855,
+      "ake_los_p9973": 0.23102720753888492,
+      "rate_stability_p9973": 0.07339291384676187,
       "jitter": null,
       "momentum_peak": null,
-      "power_mean": 0.010736155650779157,
-      "power_peak": 0.019663597411012545,
+      "power_mean": 0.017688033859193018,
+      "power_peak": 0.32268188985611024,
       "propellant": 0.0
      }
     }
@@ -958,28 +958,28 @@
     },
     "nadir_pointing": {
      "option": "mtq",
-     "alg": "mtq_celani2026@mtq_gain_p=4,mtq_gain_d=0.25",
+     "alg": "mtq_pd",
      "feasible": true,
      "failing": {},
-     "objective": 3.7282289429718123,
+     "objective": 9.055668556937855,
      "objective_id": "ape_los_p9973",
      "algorithms": {
       "allocation": "",
       "attitude": "mekf",
       "detumble": "bdot_gyro",
-      "mtq_pointing": "mtq_celani2026",
+      "mtq_pointing": "mtq_pd",
       "pointing": "",
       "sun_acquisition": "sunspin_l1l2",
       "thrusters": ""
      },
      "metrics": {
-      "ape_los_p9973": 3.7282289429718123,
-      "ake_los_p9973": 0.37192411256767854,
-      "rate_stability_p9973": 0.16247549338585263,
+      "ape_los_p9973": 9.055668556937855,
+      "ake_los_p9973": 0.23102720753888492,
+      "rate_stability_p9973": 0.07339291384676187,
       "jitter": null,
       "momentum_peak": null,
-      "power_mean": 0.010736155650779157,
-      "power_peak": 0.019663597411012545,
+      "power_mean": 0.017688033859193018,
+      "power_peak": 0.32268188985611024,
       "propellant": 0.0
      }
     }
@@ -1084,28 +1084,28 @@
     },
     "nadir_pointing": {
      "option": "mtq",
-     "alg": "mtq_celani2026@mtq_gain_p=4,mtq_gain_d=0.25",
+     "alg": "mtq_pd",
      "feasible": true,
      "failing": {},
-     "objective": 3.7282289429718123,
+     "objective": 9.055668556937855,
      "objective_id": "ape_los_p9973",
      "algorithms": {
       "allocation": "",
       "attitude": "mekf",
       "detumble": "bdot_gyro",
-      "mtq_pointing": "mtq_celani2026",
+      "mtq_pointing": "mtq_pd",
       "pointing": "",
       "sun_acquisition": "sunspin_l1l2",
       "thrusters": ""
      },
      "metrics": {
-      "ape_los_p9973": 3.7282289429718123,
-      "ake_los_p9973": 0.37192411256767854,
-      "rate_stability_p9973": 0.16247549338585263,
+      "ape_los_p9973": 9.055668556937855,
+      "ake_los_p9973": 0.23102720753888492,
+      "rate_stability_p9973": 0.07339291384676187,
       "jitter": null,
       "momentum_peak": null,
-      "power_mean": 0.010736155650779157,
-      "power_peak": 0.019663597411012545,
+      "power_mean": 0.017688033859193018,
+      "power_peak": 0.32268188985611024,
       "propellant": 0.0
      }
     }

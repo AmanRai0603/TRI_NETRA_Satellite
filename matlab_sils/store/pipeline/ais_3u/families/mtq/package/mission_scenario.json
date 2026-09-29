@@ -5,7 +5,7 @@
  "product": "SZ-ais_3u-mtq",
  "label": "ais_3u \u2014 dispatched mtq: detumble -> spinup (auto) -> nadir_mtq (schedule)",
  "time": {
-  "duration_s": 17217,
+  "duration_s": 28695,
   "dt_s": 0.2,
   "record_dt_s": 1.0
  },
@@ -27,7 +27,7 @@
   "algorithms": {
    "detumble": "bdot_gyro",
    "sun_acquisition": "sunspin_damped",
-   "mtq_pointing": "mtq_celani2026"
+   "mtq_pointing": "mtq_pd"
   },
   "schedule": [
    {
@@ -37,9 +37,7 @@
   ],
   "rcs_dump": 0.0,
   "spin_rate_dps": 4.0,
-  "ss_gain": 0.3,
-  "mtq_gain_p": 4.0,
-  "mtq_gain_d": 0.25
+  "ss_gain": 0.3
  },
  "metrics": [
   {
