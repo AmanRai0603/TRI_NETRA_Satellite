@@ -9,12 +9,12 @@ Every node of the design loop and verification chain: what it reads, what it wri
 | # | node | stage | runs in | inputs | outputs |
 |---:|---|---|---|---|---|
 | 1 | [`case`](#case) | input | file | — | matlab_sils/cases/<case>.csv |
-| 2 | [`catalogue`](#catalogue) | input | file | vendor datasheets and product pages (source_url in every file) | matlab_sils/data/catalogue/<vendor>_<model>.json (adcs-datasheet/1) |
+| 2 | [`catalogue`](#catalogue) | input | file + Python (tools/catalogue.py derives the modelling block) | vendor datasheets and product pages (source_url in every file) | matlab_sils/data/catalogue/<vendor>_<model>.json (adcs-datasheet/1) |
 | 3 | [`demand`](#demand) | design | Rust (adcs-design::demand) | case | iter_k/sized/sizing.json -> demand |
 | 4 | [`size_mtq`](#size_mtq) | design | Rust (adcs-design::mtq) | demand<br>knobs.scale.mtq, knobs.scale.mtqp | parts/SZ-<case>-MTQ.json<br>parts/SZ-<case>-MTQP.json |
 | 5 | [`size_fmr`](#size_fmr) | design | Rust (adcs-design::fmr, empump) | demand<br>knobs.scale.fmr, knobs.fmr_lambda, knobs.fmr_flow_sigma | parts/SZ-<case>-FMR-{X,Y,Z}.json |
 | 6 | [`size_rcs`](#size_rcs) | design | Rust (adcs-design::rcs) | demand<br>knobs.scale.rcs | parts/SZ-<case>-RCS.json |
-| 7 | [`select_rotor`](#select_rotor) | design | Rust (adcs-design::catalogue) | demand<br>catalogue<br>knobs.scale.rw, knobs.scale.cmg, knobs.scale.vscmg | parts/<catalogue part>.json (the chosen model, with the modelling block the engine flies) |
+| 7 | [`select_rotor`](#select_rotor) | design | Rust (adcs-design::catalogue) | demand<br>catalogue (selectable models only)<br>knobs.scale.rw, knobs.scale.cmg, knobs.scale.vscmg | parts/CAT-<vendor>-<model>.json (-VSCMG for the variable-speed use), with the candidates and the rule in its sizing block |
 | 8 | [`size_sensors`](#size_sensors) | design | Rust (adcs-design::size_all) | demand<br>knobs.star_tracker, knobs.st_heads, knobs.gyro_grade | products/SZ-<case>-<family>.json |
 | 9 | [`budget`](#budget) | design | Rust (adcs-design::budget) | size_mtq<br>size_fmr<br>size_rcs<br>select_rotor<br>size_sensors | sizing.json -> families.<id>.{mass_kg, power_W, volume_L, items} |
 | 10 | [`matrix`](#matrix) | SILS | Rust engine + C flight software (adcs run) | budget (products)<br>matlab_sils/data/modes/*.json | matlab_sils/store/pipeline/cache/<key>/manifest.json |
@@ -43,7 +43,7 @@ Rules:
 
 Bought actuators as their datasheets state them: CubeSpace, AAC Clyde Space and Rocket Lab reaction wheels, Tensor Tech control moment gyroscopes. One file per model with the datasheet numbers, the source URL and the model parameters derived from them (each derived value says how).
 
-- **Stage:** input. **Runs in:** file.
+- **Stage:** input. **Runs in:** file + Python (tools/catalogue.py derives the modelling block).
 - **Inputs:** vendor datasheets and product pages (source_url in every file).
 - **Outputs:** matlab_sils/data/catalogue/<vendor>_<model>.json (adcs-datasheet/1).
 
@@ -138,16 +138,17 @@ Rules:
 The benchmarks' momentum actuators chosen from the catalogue: for RW three orthogonal wheels, for CMG and VSCMG a four-unit 54.74 deg pyramid.
 
 - **Stage:** design. **Runs in:** Rust (adcs-design::catalogue).
-- **Inputs:** demand, catalogue, knobs.scale.rw, knobs.scale.cmg, knobs.scale.vscmg.
-- **Outputs:** parts/<catalogue part>.json (the chosen model, with the modelling block the engine flies).
+- **Inputs:** demand, catalogue (selectable models only), knobs.scale.rw, knobs.scale.cmg, knobs.scale.vscmg.
+- **Outputs:** parts/CAT-<vendor>-<model>.json (-VSCMG for the variable-speed use), with the candidates and the rule in its sizing block.
 
 | parameter | value |
 |---|---|
 | `rw_units` | 3 |
 | `cmg_units` | 4 |
 | `pyramid_deg` | 54.74 |
-| `per_unit_need` | rw: h >= h_req x scale, tau >= tau_req x scale<br>cmg: rotor h >= h_req/2 x scale, gimbal torque h x gimbal rate >= tau_req x scale<br>vscmg: as cmg; a CMG whose datasheet allows a variable rotor speed, else the CMG operated at variable speed (marked assumption) |
+| `per_unit_need` | rw: h_max >= h_req x scale and torque >= tau_req x scale (three wheels, one per axis)<br>cmg: h_max >= h_req/2 x scale and torque >= tau_req/2 x scale (a pyramid puts about two units on any axis)<br>vscmg: as cmg; the rotor runs at half its momentum so its speed can move both ways |
 | `choose` | the lightest model that meets the need; ties by steady power, then volume |
+| `selectable` | a catalogue model whose datasheet states momentum, torque, mass and steady power (tools/catalogue.py) |
 
 Rules:
 

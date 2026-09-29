@@ -1,0 +1,53 @@
+{
+ "schema": "adcs-datasheet/1",
+ "part_number": "CAT-ROCKET-LAB-RW3-0-06",
+ "vendor": "Rocket Lab",
+ "model": "RW3-0.06",
+ "type": "reaction_wheel",
+ "source_url": "https://satcatalog.s3.amazonaws.com/components/250/SatCatalog_-_Sinclair_Interplanetary_-_RW3-0.06_-_Datasheet.pdf",
+ "source_kind": "manufacturer datasheet (distributor mirror)",
+ "verification": "verified",
+ "quote": "Rev 2019a: 'Nominal: 0.06 Nms / Peak: 0.18 Nms', '+/-20 mNm at 0.12 Nms', '0.5 W @ 0.06 Nms steady', '23.4 W @ 0.12 Nms, +10 mNm'",
+ "retrieved": "2026-09-29",
+ "datasheet": {
+  "h_mNms": 60,
+  "h_speed_rpm": null,
+  "torque_mNm": 20,
+  "speed_max_rpm": null,
+  "mass_g": 226,
+  "dims_mm": "77 x 65 x 38",
+  "power_steady_W": 0.5,
+  "power_steady_note": "@ 0.06 Nms; 0.9 W @ 0.12 Nms",
+  "power_peak_W": 23.4,
+  "voltage_V": "7.5-34",
+  "interface": "RS-485, CAN",
+  "units_in_cluster": null,
+  "cluster_h_mNms": null,
+  "cluster_torque_mNm": null,
+  "cluster_mass_g": null,
+  "variable_speed": null
+ },
+ "selectable": true,
+ "missing": [],
+ "derived": {
+  "h_max_Nms": 0.06,
+  "torque_max_Nm": 0.02,
+  "speed_max_rad_s": 628.3185307179587,
+  "rotor_inertia_kgm2": 9.54929658551372e-05,
+  "rotor_radius_m": 0.0342594369459239,
+  "rotor_mass_kg": 0.09040000000000001,
+  "friction_coulomb_Nm": 2.449489742783178e-05,
+  "friction_viscous_Nms": 1e-08,
+  "static_imbalance_kgm": 3.596901713876835e-07,
+  "dynamic_imbalance_kgm2": 6.161391373362451e-09,
+  "power_steady_W": 0.5,
+  "power_peak_W": 23.4,
+  "mass_kg": 0.226,
+  "volume_L": 0.19019
+ },
+ "assumptions": [
+  "speed at the nominal momentum: 6000 rpm (not stated)",
+  "rotor mass 0.4 x unit mass, balance ISO 1940 G2.5 (imbalance model)",
+  "friction: Coulomb 1e-5 sqrt(h / 0.01 Nms) N m, viscous 1e-8 N m s (not on datasheets)"
+ ]
+}

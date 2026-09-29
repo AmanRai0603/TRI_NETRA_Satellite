@@ -1,0 +1,39 @@
+{
+ "schema": "adcs-datasheet/1",
+ "part_number": "CAT-AAC-CLYDE-SPACE-RW400-50",
+ "vendor": "AAC Clyde Space",
+ "model": "RW400-50",
+ "type": "reaction_wheel",
+ "source_url": "https://www.aac-clyde.space/wp-content/uploads/2021/11/RW400-1.pdf",
+ "source_kind": "manufacturer datasheet",
+ "verification": "search excerpt (page not reachable)",
+ "quote": "torque stated as 8 to 12 mNm depending on the source; idle power 75 mW; per-variant mass not confirmed (375 g quoted without a variant)",
+ "retrieved": "2026-09-29",
+ "datasheet": {
+  "h_mNms": 50,
+  "h_speed_rpm": null,
+  "torque_mNm": null,
+  "speed_max_rpm": 5000,
+  "mass_g": 375,
+  "dims_mm": "50 x 50 x 27",
+  "power_steady_W": null,
+  "power_steady_note": "idle 0.075 W (not a steady-speed figure)",
+  "power_peak_W": 15,
+  "voltage_V": "5",
+  "interface": "I2C + RS422",
+  "units_in_cluster": null,
+  "cluster_h_mNms": null,
+  "cluster_torque_mNm": null,
+  "cluster_mass_g": null,
+  "variable_speed": null
+ },
+ "selectable": false,
+ "missing": [
+  "torque_mNm",
+  "power_steady_W"
+ ],
+ "derived": {},
+ "assumptions": [
+  "not selectable: the datasheet does not state torque_mNm, power_steady_W"
+ ]
+}

@@ -1,0 +1,39 @@
+{
+ "schema": "adcs-datasheet/1",
+ "part_number": "CAT-AAC-CLYDE-SPACE-RW222-6",
+ "vendor": "AAC Clyde Space",
+ "model": "RW222-6",
+ "type": "reaction_wheel",
+ "source_url": "https://www.aac-clyde.space/wp-content/uploads/2023/02/RW222-1.pdf",
+ "source_kind": "manufacturer datasheet",
+ "verification": "search excerpt (page not reachable)",
+ "quote": "'available with either 3.0 or 6.0 mN.m.s of momentum storage', 'up to 2 mN.m torque, and an I2C interface'; mass and power TBC on the datasheet",
+ "retrieved": "2026-09-29",
+ "datasheet": {
+  "h_mNms": 6.0,
+  "h_speed_rpm": null,
+  "torque_mNm": 2,
+  "speed_max_rpm": null,
+  "mass_g": null,
+  "dims_mm": "25 x 25 x 15",
+  "power_steady_W": null,
+  "power_steady_note": null,
+  "power_peak_W": null,
+  "voltage_V": "3.3",
+  "interface": "I2C",
+  "units_in_cluster": null,
+  "cluster_h_mNms": null,
+  "cluster_torque_mNm": null,
+  "cluster_mass_g": null,
+  "variable_speed": null
+ },
+ "selectable": false,
+ "missing": [
+  "mass_g",
+  "power_steady_W"
+ ],
+ "derived": {},
+ "assumptions": [
+  "not selectable: the datasheet does not state mass_g, power_steady_W"
+ ]
+}

@@ -1,0 +1,39 @@
+{
+ "schema": "adcs-datasheet/1",
+ "part_number": "CAT-TENSOR-TECH-TENSORCMG-10M",
+ "vendor": "Tensor Tech",
+ "model": "TensorCMG-10m",
+ "type": "cmg",
+ "source_url": "https://tensortech.co/files/share//CMG/Datasheet%20for%20CMG-10m%20V1.0.2b.pdf",
+ "source_kind": "manufacturer datasheet",
+ "verification": "search excerpt (page not reachable)",
+ "quote": "'Momentum: 13 mNms on x,y-axis; Torque (Gyroscopic): 15 ~ 100 mNm; Torque (Acceleration): 1 mNm; Slew Rate: 5 deg/s'; variable-speed single-gimbal; mass, size and power not found",
+ "retrieved": "2026-09-29",
+ "datasheet": {
+  "h_mNms": 13,
+  "h_speed_rpm": null,
+  "torque_mNm": 100,
+  "speed_max_rpm": null,
+  "mass_g": null,
+  "dims_mm": null,
+  "power_steady_W": null,
+  "power_steady_note": null,
+  "power_peak_W": null,
+  "voltage_V": "6-14",
+  "interface": null,
+  "units_in_cluster": null,
+  "cluster_h_mNms": null,
+  "cluster_torque_mNm": null,
+  "cluster_mass_g": null,
+  "variable_speed": true
+ },
+ "selectable": false,
+ "missing": [
+  "mass_g",
+  "power_steady_W"
+ ],
+ "derived": {},
+ "assumptions": [
+  "not selectable: the datasheet does not state mass_g, power_steady_W"
+ ]
+}
