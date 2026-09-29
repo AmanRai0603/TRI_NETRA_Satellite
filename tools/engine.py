@@ -269,7 +269,7 @@ def mode_scenario(case, M, o):
     return {"schema": "adcs-scenario/1", "id": f"{case}__{M['id']}__{o['id'].replace('+', '_')}", "case": case,
             "label": f"{case} — {M['label']} with {o['id']}", "product": f"SZ-{case}-{o['family']}",
             "time": {"duration_s": round(orbits * T), "dt_s": o["dt_s"], "record_dt_s": 1.0},
-            "initial": {"attitude": M["test"]["attitude"], "rate": M["test"]["rate"]}, "fsw": fsw, "metrics": ms}
+            "initial": o.get("test_initial") or {"attitude": M["test"]["attitude"], "rate": M["test"]["rate"]}, "fsw": fsw, "metrics": ms}
 
 
 def sol_job(args):

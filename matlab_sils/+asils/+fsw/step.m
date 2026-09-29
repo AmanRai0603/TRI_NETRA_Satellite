@@ -195,8 +195,25 @@ function [F, out] = step(F, z, t, P, D) %#ok<INUSD>
                 m_body = zeros(3,1);
             elseif abs(phase - G.mtq_meas) < dt/2 && F.ad_ok && ~isempty(F.r)
                 [F.q_ref, F.w_ref] = asils.fsw.guidance(strrep(F.mode, '_mtq', ''), F.r, F.v, t, F.gd);
-                F = mtq_law_(F, G, P);
-                m_body = asils.fsw.torque2dipole(F.tau_req, z.B, dev.mtq.m_max) - G.m_res_est;
+                % hand-over: despin with the detumble gain on the rate error, then the pointing law
+                qe = asils.quat.mult(asils.quat.conj(F.q_ref), F.K.q);
+                we = F.w_est - asils.quat.dcm(qe)*F.w_ref;
+                if ~F.ho && norm(we) > G.ho_in, F.ho = true; F.ho_t = 0; end
+                if F.ho
+                    if norm(we) < G.ho_out, F.ho_t = F.ho_t + G.mtq_period; else, F.ho_t = 0; end
+                    if F.ho_t >= G.ho_hold_s, F.ho = false; end
+                end
+                if F.ho
+                    F.tau_req = zeros(3,1);
+                    m_body = (G.bdot_k/norm(z.B))*cross(we, z.B/norm(z.B)) - G.m_res_est;
+                else
+                    F = mtq_law_(F, G, P);
+                    if bitand(G.mtq_gg_ff, 1 + strcmp(F.mode, 'nadir_mtq'))      % bit 0 Sun state, bit 1 nadir state
+                        rb = asils.quat.dcm(F.K.q)*F.r;
+                        F.tau_req = F.tau_req - 3*P.mu/norm(rb)^5*cross(rb, P.sc.I*rb);
+                    end
+                    m_body = asils.fsw.torque2dipole(F.tau_req, z.B, dev.mtq.m_max) - G.m_res_est;
+                end
                 m_body = m_body*min(1, dev.mtq.m_max/max(abs(m_body)));   % residual-dipole compensation
             elseif phase < G.mtq_meas
                 m_body = zeros(3,1);
@@ -408,7 +425,7 @@ end
 
 function F = enter_(F, mode, t)
     if strcmp(mode, 'spinup'), F.sz_sum = 0; F.sz_n = 0; F.sz_t0 = t; end
-    F.mode = mode; F.t_mode = t; F.hold = 0; F.I_q = zeros(3,1);
+    F.mode = mode; F.t_mode = t; F.hold = 0; F.ho = false; F.ho_t = 0; F.I_q = zeros(3,1);
     F.log(end+1).t = t; F.log(end).mode = mode;
 end
 
