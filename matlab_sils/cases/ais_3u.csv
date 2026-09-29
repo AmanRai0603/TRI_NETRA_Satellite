@@ -21,10 +21,10 @@ req,req.faults,Faults tolerated,Count,,,,,
 req,req.recover,Recovery time after a single fault,Minute,,,,,
 req,req.hsat,Momentum saturation margin,One,,,,,"fraction of the stored momentum left unused, 0 to 1"
 req,req.dump,Momentum dump interval,Hour,,,,,
-req,req.mass,ADCS mass,Kilogram,0.35,,,,UNCONFIRMED · plan reference: a coils-and-magnetometer ADCS in a 3U
+req,req.mass,ADCS mass,Kilogram,1.6,,,,"set by the user (Agastya): the same ADCS budget in every 3U case, 1U of the 3U, 1.5-1.7 kg; 1.6 keeps 0.1 kg to the 1.7 ceiling"
 req,req.pavg,ADCS orbit-average power,Watt,0.5,,,,UNCONFIRMED · plan reference: leaves the AIS receiver its share of a 3U power budget
 req,req.ppk,ADCS peak power,Watt,1.5,,,,UNCONFIRMED · plan reference: all coils at full current
-req,req.vol,ADCS volume,Litre,0.3,,,,UNCONFIRMED · plan reference: under a third of 1U
+req,req.vol,ADCS volume,Litre,1.0,,,,"set by the user (Agastya): 1U of the 3U is the ADCS"
 req,req.prop,RCS propellant per year,Kilogram,,,,,
 mission,mission.life,Mission lifetime,Year,,,,,
 mission,mission.epoch,Launch epoch,Year,27.0,,,,"UNCONFIRMED · adcs_ref_c1: years after J2000.0, early 2027"

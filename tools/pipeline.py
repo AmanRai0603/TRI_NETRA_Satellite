@@ -49,10 +49,10 @@ for m in ("sun_referencing", "nadir_pointing"):
     for o in ("rw", "cmg", "vscmg", "fmr"):
         for d in ("mtq", "rcs"):
             SLOT[(m, f"{o}+{d}")] = "pointing"
-CANDIDATES = {"detumble": ["bdot_gyro", "bdot_mag", "bdot_bangbang", "genbdot_l1"],
-              "sun_acquisition": ["sunspin_damped", "sunspin_l1l2", "sunspin_l1l2_e2"],
-              "mtq_pointing": ["mtq_pd", "mtq_lqr", "mtq_smc", "mtq_rate_damp"],
-              "pointing": ["pid", "lqr", "smc", "pid@bw2.5", "pid@bw4"]}
+# every node's parameters come from the node registry (matlab_sils/data/pipeline/nodes.json, docs/NODES.md)
+NODES = {n["id"]: n for n in json.loads((MS / "data" / "pipeline" / "nodes.json").read_text())["nodes"]}
+P = lambda node: NODES[node]["parameters"]
+CANDIDATES = P("matrix")["algorithm_candidates"]
 # a candidate "law@bwX" is the law with its pointing bandwidth tuned to X rad/s (fsw.rw_bandwidth)
 def split_alg(a):
     if a and "@bw" in a:
@@ -63,10 +63,11 @@ def split_alg(a):
 def auth_part(mode, o):
     a = o["actuator"]
     return {"mtq": "mtqp", "rw": "rw", "cmg": "cmg", "vscmg": "vscmg", "fmr": "fmr", "rcs": "rcs"}[a]
-SCALE_MIN, SCALE_MAX, UP, DOWN = 0.5, 4.0, 1.5, 0.75
-LAMBDA_MIN, LAMBDA_MAX = 0.01, 3.0
-FLOW_SIGMA_MIN = 0.00005
-GYRO_MIN = 0.1
+(SCALE_MIN, SCALE_MAX), UP, DOWN = P("converge")["scale_bounds"], P("converge")["scale_up"], P("converge")["scale_down"]
+LAMBDA_MIN, LAMBDA_MAX = P("converge")["fmr_lambda_bounds_kg_W"]
+FLOW_SIGMA_MIN = P("converge")["fmr_flow_sigma_min_m_s"]
+GYRO_MIN = P("converge")["gyro_grade_min"]
+IMPROVE = 1.0 - P("converge")["improvement_needed"]
 FAMILIES = []
 
 
@@ -213,7 +214,7 @@ def node_converge(case, res, knobs, variants_on, history, fine, modes, sel=None)
     if lg:
         g0, vb = lg
         vn = rate_violation(res)
-        if vn > 0.95 * vb:
+        if vn > IMPROVE * vb:
             k["gyro_grade"] = g0; history["_closed_gyro_grade"] = True
             changes.append(f"gyro grade back to x{g0:g}: rate-stability violation {vb:.3g} -> {vn:.3g}")
     frozen = history.setdefault("_frozen", {})
@@ -225,7 +226,7 @@ def node_converge(case, res, knobs, variants_on, history, fine, modes, sel=None)
                 continue
             perf = lambda z: sum(val for mid, val in z.get("violation", {}).items() if cls(mid) == "performance")
             before += perf(r0); now += perf(res.get(key, r0))
-        if before > 0 and now > 0.95 * before:
+        if before > 0 and now > IMPROVE * before:
             k.setdefault("scale", {})[part] = prev_scale
             frozen[part] = f"more authority did not reduce the performance violation ({before:.3g} -> {now:.3g}); kept at x{prev_scale:g}"
             changes.append(f"{part}: authority back to x{prev_scale:g} (no improvement)")
@@ -283,7 +284,7 @@ def node_converge(case, res, knobs, variants_on, history, fine, modes, sel=None)
         fam_opts = {kk: r for kk, r in res.items() if usable(next(x for x in Mby[kk[0]]["options"] if x["id"] == kk[1]), acts)}
         lost = sorted(f"{m}/{o}" for (m, o) in before if (m, o) in fam_opts and not fam_opts[(m, o)]["feasible"])
         v_now = fam_violation(fam_opts, modes)
-        if v_now > 1.05 * v_before + 1e-9:
+        if v_now > (2.0 - IMPROVE) * v_before + 1e-9:
             lost.append(f"requirement violation {v_before:.3g} -> {v_now:.3g}")
         if lost:
             if key == "scale.fmr":
@@ -392,14 +393,25 @@ def node_select(case, res, sizing, modes, families):
                 gaps.append(f"budget: {name} {bud[name]:.3g} > {lim:g}")
         out[fa["id"]] = {"role": fa["role"], "simplicity": fa.get("simplicity", 9), "label": fa["label"], "feasible": not gaps, "gaps": gaps,
                          "modes": per_mode, "budget": {k: bud[k] for k in ("mass_kg", "power_W", "volume_L")}, "product": bud["product"]}
-    sol = sorted([f for f in out if out[f]["role"] == "solution"], key=lambda f: out[f]["simplicity"])
-    feas = [f for f in sol if out[f]["feasible"]]
-    if feas:
-        pick, status = feas[0], "feasible"
-    else:
-        pick = min(sol, key=lambda f: (len(out[f]["gaps"]), out[f]["simplicity"]))
-        status = "closest (not feasible)"
-    return {"case": case, "selected": pick, "status": status, "families": out}
+    sp = P("select")
+    rank_f = lambda f: tuple(out[f]["simplicity"] if k == "simplicity" else out[f]["budget"][k] for k in sp["rank_feasible"])
+    rank_i = lambda f: tuple(len(out[f]["gaps"]) if k == "gap_count" else out[f]["budget"][k] for k in sp["rank_infeasible"])
+
+    def pick_of(role):
+        fs = [f for f in out if out[f]["role"] == role]
+        feas = sorted((f for f in fs if out[f]["feasible"]), key=rank_f)
+        if feas:
+            return feas[0], "feasible", feas
+        return (min(fs, key=rank_i) if fs else None), "closest (not feasible)", []
+
+    pick, status, ranked = pick_of(sp["select_role"])
+    bench, bstatus, branked = pick_of(sp["compare_role"])
+    for i, f in enumerate(ranked):
+        out[f]["rank"] = i + 1
+    for i, f in enumerate(branked):
+        out[f]["rank"] = i + 1
+    return {"case": case, "selected": pick, "status": status, "benchmark": bench, "benchmark_status": bstatus,
+            "rule": f"least {', then '.join(sp['rank_feasible'])} among feasible {sp['select_role']} families", "families": out}
 
 
 def node_dispatch(case, sel, sized, modes, build):
@@ -670,10 +682,10 @@ def ledger(case, sel, log, disp, mc, so, sizing):
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("cases", nargs="*")
-    ap.add_argument("--seeds", default="1,2")
-    ap.add_argument("--max-iter", type=int, default=24)
+    ap.add_argument("--seeds", default=",".join(map(str, P("matrix")["seeds"])))
+    ap.add_argument("--max-iter", type=int, default=P("converge")["max_iterations"])
     ap.add_argument("--jobs", type=int, default=os.cpu_count())
-    ap.add_argument("--mc-runs", type=int, default=12)
+    ap.add_argument("--mc-runs", type=int, default=P("mc")["runs"])
     ap.add_argument("--no-oils", action="store_true")
     a = ap.parse_args()
     if not BIN.exists():
