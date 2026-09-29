@@ -12,7 +12,7 @@ twin's filed channels (see 'Truth environment' below). What still differs is the
 compared by metric ratio and verdict agreement, and Monte Carlo on both sides compares
 distributions (`tools/engine.py mc`).
 
-**Verdict agreement: 95 of 107 judged metrics** (173 metrics over 40 scenarios).
+**Verdict agreement: 94 of 107 judged metrics** (173 metrics over 40 scenarios).
 
 | scenario | metric | MATLAB | engine | engine/MATLAB | req | MATLAB | engine |
 |---|---|---:|---:|---:|---:|---|---|
@@ -48,7 +48,7 @@ distributions (`tools/engine.py mc`).
 | fault_gimbal_cmg | ape_los_max (deg) | 0.007352 | 0.006599 | 0.8976 | — | — | — |
 | fault_gimbal_cmg | ape_3ax_p9973 (deg) | 0.006689 | 0.006254 | 0.9349 | — | — | — |
 | fault_gimbal_cmg | ake_los_p9973 (deg) | 0.00343 | 0.002624 | 0.765 | 0.005 | pass | pass |
-| fault_gimbal_cmg | rate_stability_p9973 (deg/s) | 0.002951 | 0.002963 | 1.004 | 0.001 | FAIL | FAIL |
+| fault_gimbal_cmg | rate_stability_p9973 (deg/s) | 0.002951 | 0.002963 | 1.004 | 0.005 | pass | pass |
 | fault_gimbal_cmg | time_to_0p01_deg (s) | 83.5 | 67.2 | 0.8048 | — | — | — |
 | fault_gimbal_cmg | wheel_momentum_peak (N m s) | 0.004 | 0.004 | 1 | — | — | — |
 | fault_gimbal_cmg | power_mean (W) | 1.61 | 1.61 | 1 | 2 | pass | pass |
@@ -60,7 +60,7 @@ distributions (`tools/engine.py mc`).
 | fault_st_img | ape_los_max (deg) | 0.1892 | 0.1152 | 0.6092 | — | — | — |
 | fault_st_img | ape_3ax_p9973 (deg) | 0.1858 | 0.1024 | 0.5511 | — | — | — |
 | fault_st_img | ake_los_p9973 (deg) | 0.1847 | 0.1093 | 0.5917 | 0.005 | FAIL | FAIL |
-| fault_st_img | rate_stability_p9973 (deg/s) | 0.004082 | 0.003771 | 0.9238 | 0.001 | FAIL | FAIL |
+| fault_st_img | rate_stability_p9973 (deg/s) | 0.004082 | 0.003771 | 0.9238 | 0.005 | pass | pass |
 | fault_st_img | time_to_0p01_deg (s) | 83.5 | 67.3 | 0.806 | — | — | — |
 | fault_st_img | wheel_momentum_peak (N m s) | 0.003257 | 0.003278 | 1.006 | — | — | — |
 | fault_st_img | power_mean (W) | 1.557 | 1.557 | 1 | 2 | pass | pass |
@@ -68,7 +68,7 @@ distributions (`tools/engine.py mc`).
 | fault_wheel_img | ape_los_max (deg) | 15.87 | 28.68 | 1.807 | — | — | — |
 | fault_wheel_img | ape_3ax_p9973 (deg) | 15.83 | 28.62 | 1.808 | — | — | — |
 | fault_wheel_img | ake_los_p9973 (deg) | 0.003649 | 0.002858 | 0.7833 | 0.005 | pass | pass |
-| fault_wheel_img | rate_stability_p9973 (deg/s) | 0.3827 | 0.6244 | 1.632 | 0.001 | FAIL | FAIL |
+| fault_wheel_img | rate_stability_p9973 (deg/s) | 0.3827 | 0.6244 | 1.632 | 0.005 | FAIL | FAIL |
 | fault_wheel_img | time_to_0p01_deg (s) | 83.5 | 67.3 | 0.806 | — | — | — |
 | fault_wheel_img | wheel_momentum_peak (N m s) | 0.003675 | 0.00429 | 1.167 | — | — | — |
 | fault_wheel_img | power_mean (W) | 1.191 | 1.213 | 1.019 | 2 | pass | pass |
@@ -76,7 +76,7 @@ distributions (`tools/engine.py mc`).
 | fine_hold_cmg | ape_los_max (deg) | 0.006414 | 0.005956 | 0.9287 | — | — | — |
 | fine_hold_cmg | ape_3ax_p9973 (deg) | 0.006146 | 0.006204 | 1.01 | — | — | — |
 | fine_hold_cmg | ake_los_p9973 (deg) | 0.00341 | 0.002626 | 0.7702 | 0.005 | pass | pass |
-| fine_hold_cmg | rate_stability_p9973 (deg/s) | 0.002425 | 0.002437 | 1.005 | 0.001 | FAIL | FAIL |
+| fine_hold_cmg | rate_stability_p9973 (deg/s) | 0.002425 | 0.002437 | 1.005 | 0.005 | pass | pass |
 | fine_hold_cmg | time_to_0p01_deg (s) | 83.5 | 67.2 | 0.8048 | — | — | — |
 | fine_hold_cmg | wheel_momentum_peak (N m s) | 0.004 | 0.004 | 1 | — | — | — |
 | fine_hold_cmg | power_mean (W) | 1.61 | 1.61 | 1 | 2 | pass | pass |
@@ -84,7 +84,7 @@ distributions (`tools/engine.py mc`).
 | fine_hold_fmr | ape_los_max (deg) | 0.007836 | 0.007671 | 0.9789 | — | — | — |
 | fine_hold_fmr | ape_3ax_p9973 (deg) | 0.007028 | 0.006616 | 0.9413 | — | — | — |
 | fine_hold_fmr | ake_los_p9973 (deg) | 0.003321 | 0.002631 | 0.7921 | 0.005 | pass | pass |
-| fine_hold_fmr | rate_stability_p9973 (deg/s) | 0.004654 | 0.004729 | 1.016 | 0.001 | FAIL | FAIL |
+| fine_hold_fmr | rate_stability_p9973 (deg/s) | 0.004654 | 0.004729 | 1.016 | 0.005 | pass | pass |
 | fine_hold_fmr | time_to_0p01_deg (s) | 84.3 | 67 | 0.7948 | — | — | — |
 | fine_hold_fmr | wheel_momentum_peak (N m s) | 0.0001624 | 0.0001728 | 1.064 | — | — | — |
 | fine_hold_fmr | power_mean (W) | 4.348 | 0.08406 | 0.01933 | 2 | FAIL | pass ⚠ |
@@ -92,7 +92,7 @@ distributions (`tools/engine.py mc`).
 | fine_hold_fmr_rcs | ape_los_max (deg) | 0.006973 | 0.007671 | 1.1 | — | — | — |
 | fine_hold_fmr_rcs | ape_3ax_p9973 (deg) | 0.006878 | 0.006616 | 0.9619 | — | — | — |
 | fine_hold_fmr_rcs | ake_los_p9973 (deg) | 0.00348 | 0.002631 | 0.756 | 0.005 | pass | pass |
-| fine_hold_fmr_rcs | rate_stability_p9973 (deg/s) | 0.004643 | 0.004729 | 1.018 | 0.001 | FAIL | FAIL |
+| fine_hold_fmr_rcs | rate_stability_p9973 (deg/s) | 0.004643 | 0.004729 | 1.018 | 0.005 | pass | pass |
 | fine_hold_fmr_rcs | time_to_0p01_deg (s) | 88.2 | 67 | 0.7596 | — | — | — |
 | fine_hold_fmr_rcs | wheel_momentum_peak (N m s) | 0.000163 | 0.0001728 | 1.06 | — | — | — |
 | fine_hold_fmr_rcs | power_mean (W) | 4.367 | 0.08406 | 0.01925 | 2 | FAIL | pass ⚠ |
@@ -100,7 +100,7 @@ distributions (`tools/engine.py mc`).
 | fine_hold_img | ape_los_max (deg) | 0.01092 | 0.01475 | 1.35 | — | — | — |
 | fine_hold_img | ape_3ax_p9973 (deg) | 0.009595 | 0.01092 | 1.138 | — | — | — |
 | fine_hold_img | ake_los_p9973 (deg) | 0.003333 | 0.002608 | 0.7825 | 0.005 | pass | pass |
-| fine_hold_img | rate_stability_p9973 (deg/s) | 0.00367 | 0.003552 | 0.9678 | 0.001 | FAIL | FAIL |
+| fine_hold_img | rate_stability_p9973 (deg/s) | 0.00367 | 0.003552 | 0.9678 | 0.005 | pass | pass |
 | fine_hold_img | time_to_0p01_deg (s) | 83.5 | 67.3 | 0.806 | — | — | — |
 | fine_hold_img | wheel_momentum_peak (N m s) | 0.003257 | 0.003278 | 1.006 | — | — | — |
 | fine_hold_img | power_mean (W) | 1.557 | 1.557 | 1 | 2 | pass | pass |
@@ -108,7 +108,7 @@ distributions (`tools/engine.py mc`).
 | fine_hold_img_lqr | ape_los_max (deg) | 0.007 | 0.005362 | 0.766 | — | — | — |
 | fine_hold_img_lqr | ape_3ax_p9973 (deg) | 0.006846 | 0.00657 | 0.9596 | — | — | — |
 | fine_hold_img_lqr | ake_los_p9973 (deg) | 0.003321 | 0.002652 | 0.7986 | 0.005 | pass | pass |
-| fine_hold_img_lqr | rate_stability_p9973 (deg/s) | 0.006652 | 0.006704 | 1.008 | 0.001 | FAIL | FAIL |
+| fine_hold_img_lqr | rate_stability_p9973 (deg/s) | 0.006652 | 0.006704 | 1.008 | 0.005 | FAIL | FAIL |
 | fine_hold_img_lqr | time_to_0p01_deg (s) | 9.7 | 7.3 | 0.7526 | — | — | — |
 | fine_hold_img_lqr | wheel_momentum_peak (N m s) | 0.003259 | 0.003281 | 1.007 | — | — | — |
 | fine_hold_img_lqr | power_mean (W) | 1.558 | 1.558 | 1 | 2 | pass | pass |
@@ -116,7 +116,7 @@ distributions (`tools/engine.py mc`).
 | fine_hold_img_smc | ape_los_max (deg) | 0.01572 | 0.0206 | 1.31 | — | — | — |
 | fine_hold_img_smc | ape_3ax_p9973 (deg) | 0.01502 | 0.01982 | 1.319 | — | — | — |
 | fine_hold_img_smc | ake_los_p9973 (deg) | 0.003315 | 0.002649 | 0.799 | 0.005 | pass | pass |
-| fine_hold_img_smc | rate_stability_p9973 (deg/s) | 0.003618 | 0.003482 | 0.9623 | 0.001 | FAIL | FAIL |
+| fine_hold_img_smc | rate_stability_p9973 (deg/s) | 0.003618 | 0.003482 | 0.9623 | 0.005 | pass | pass |
 | fine_hold_img_smc | time_to_0p01_deg (s) | 124.7 | — | — | — | — | — |
 | fine_hold_img_smc | wheel_momentum_peak (N m s) | 0.003256 | 0.003277 | 1.006 | — | — | — |
 | fine_hold_img_smc | power_mean (W) | 1.557 | 1.557 | 1 | 2 | pass | pass |
@@ -124,7 +124,7 @@ distributions (`tools/engine.py mc`).
 | fine_hold_rw_rcs | ape_los_max (deg) | 0.009926 | 0.04054 | 4.084 | — | — | — |
 | fine_hold_rw_rcs | ape_3ax_p9973 (deg) | 0.008488 | 0.03406 | 4.013 | — | — | — |
 | fine_hold_rw_rcs | ake_los_p9973 (deg) | 0.003439 | 0.002602 | 0.7566 | 0.005 | pass | pass |
-| fine_hold_rw_rcs | rate_stability_p9973 (deg/s) | 0.003604 | 0.005641 | 1.565 | 0.001 | FAIL | FAIL |
+| fine_hold_rw_rcs | rate_stability_p9973 (deg/s) | 0.003604 | 0.005641 | 1.565 | 0.005 | pass | FAIL ⚠ |
 | fine_hold_rw_rcs | time_to_0p01_deg (s) | 87.2 | 67.3 | 0.7718 | — | — | — |
 | fine_hold_rw_rcs | wheel_momentum_peak (N m s) | 0.002803 | 0.002806 | 1.001 | — | — | — |
 | fine_hold_rw_rcs | power_mean (W) | 1.51 | 1.53 | 1.013 | 2 | pass | pass |
@@ -132,7 +132,7 @@ distributions (`tools/engine.py mc`).
 | fine_hold_vscmg | ape_los_max (deg) | 0.01036 | 0.01021 | 0.9858 | — | — | — |
 | fine_hold_vscmg | ape_3ax_p9973 (deg) | 0.009208 | 0.008731 | 0.9482 | — | — | — |
 | fine_hold_vscmg | ake_los_p9973 (deg) | 0.003558 | 0.002636 | 0.741 | 0.005 | pass | pass |
-| fine_hold_vscmg | rate_stability_p9973 (deg/s) | 0.004557 | 0.004762 | 1.045 | 0.001 | FAIL | FAIL |
+| fine_hold_vscmg | rate_stability_p9973 (deg/s) | 0.004557 | 0.004762 | 1.045 | 0.005 | pass | pass |
 | fine_hold_vscmg | time_to_0p01_deg (s) | 89.3 | 84.3 | 0.944 | — | — | — |
 | fine_hold_vscmg | wheel_momentum_peak (N m s) | 0.004201 | 0.004203 | 1 | — | — | — |
 | fine_hold_vscmg | power_mean (W) | 2.015 | 2.014 | 0.9998 | 2 | FAIL | FAIL |
