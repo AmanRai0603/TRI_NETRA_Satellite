@@ -6,7 +6,7 @@
  "class": "fine",
  "selected": "mtq_fmr",
  "status": "closest (not feasible)",
- "feasible_options": 13,
+ "feasible_options": 19,
  "options": 25,
  "changes": [
   "rate stability: gyro noise x1 -> x0.3 (fibre-optic class)",
@@ -36,7 +36,7 @@
    "feasible": false,
    "gaps": [
     "nadir_pointing: ape_los_p9973 (performance), rate_stability_p9973 (performance)",
-    "budget: mass_kg 1.73 > 1"
+    "budget: mass_kg 1.73 > 1.6"
    ],
    "budget": {
     "mass_kg": 1.7273198532328387,
@@ -48,8 +48,8 @@
    "feasible": false,
    "gaps": [
     "nadir_pointing: ape_los_p9973 (performance), rate_stability_p9973 (performance)",
-    "budget: mass_kg 2.19 > 1",
-    "budget: volume_L 1.38 > 0.6"
+    "budget: mass_kg 2.19 > 1.6",
+    "budget: volume_L 1.38 > 1"
    ],
    "budget": {
     "mass_kg": 2.1932366440897093,
@@ -58,11 +58,8 @@
    }
   },
   "mtq_rw": {
-   "feasible": false,
-   "gaps": [
-    "nadir_pointing: rate_stability_p9973 (performance)",
-    "budget: mass_kg 1.08 > 1"
-   ],
+   "feasible": true,
+   "gaps": [],
    "budget": {
     "mass_kg": 1.0825798871980672,
     "power_W": 4.50006692460473,
@@ -70,12 +67,8 @@
    }
   },
   "mtq_rw_rcs": {
-   "feasible": false,
-   "gaps": [
-    "nadir_pointing: rate_stability_p9973 (performance)",
-    "budget: mass_kg 1.55 > 1",
-    "budget: volume_L 0.983 > 0.6"
-   ],
+   "feasible": true,
+   "gaps": [],
    "budget": {
     "mass_kg": 1.5484966780549385,
     "power_W": 4.55006692460473,
@@ -83,11 +76,8 @@
    }
   },
   "mtq_cmg": {
-   "feasible": false,
-   "gaps": [
-    "nadir_pointing: rate_stability_p9973 (performance)",
-    "budget: mass_kg 1.16 > 1"
-   ],
+   "feasible": true,
+   "gaps": [],
    "budget": {
     "mass_kg": 1.1635137121933166,
     "power_W": 4.680383340086097,
@@ -97,9 +87,8 @@
   "mtq_cmg_rcs": {
    "feasible": false,
    "gaps": [
-    "nadir_pointing: rate_stability_p9973 (performance)",
-    "budget: mass_kg 1.63 > 1",
-    "budget: volume_L 1.11 > 0.6"
+    "budget: mass_kg 1.63 > 1.6",
+    "budget: volume_L 1.11 > 1"
    ],
    "budget": {
     "mass_kg": 1.6294305030501879,
@@ -108,11 +97,8 @@
    }
   },
   "mtq_vscmg": {
-   "feasible": false,
-   "gaps": [
-    "nadir_pointing: rate_stability_p9973 (performance)",
-    "budget: mass_kg 1.2 > 1"
-   ],
+   "feasible": true,
+   "gaps": [],
    "budget": {
     "mass_kg": 1.1982612500117873,
     "power_W": 5.080383340086097,
@@ -122,9 +108,8 @@
   "mtq_vscmg_rcs": {
    "feasible": false,
    "gaps": [
-    "nadir_pointing: rate_stability_p9973 (performance)",
-    "budget: mass_kg 1.66 > 1",
-    "budget: volume_L 1.11 > 0.6"
+    "budget: mass_kg 1.66 > 1.6",
+    "budget: volume_L 1.11 > 1"
    ],
    "budget": {
     "mass_kg": 1.6641780408686586,
@@ -301,67 +286,55 @@
   {
    "mode": "nadir_pointing",
    "option": "rw+mtq",
-   "alg": "pid@bw2.5",
-   "feasible": false,
-   "failing": {
-    "rate_stability_p9973": "performance"
-   },
-   "objective": 0.003915164752365401,
+   "alg": null,
+   "feasible": true,
+   "failing": {},
+   "objective": 0.004932608212572191,
    "objective_id": "ape_los_p9973"
   },
   {
    "mode": "nadir_pointing",
    "option": "rw+rcs",
-   "alg": "lqr",
-   "feasible": false,
-   "failing": {
-    "rate_stability_p9973": "performance"
-   },
-   "objective": 0.0032045657688164015,
+   "alg": null,
+   "feasible": true,
+   "failing": {},
+   "objective": 0.004866288248260768,
    "objective_id": "ape_los_p9973"
   },
   {
    "mode": "nadir_pointing",
    "option": "cmg+mtq",
-   "alg": "lqr",
-   "feasible": false,
-   "failing": {
-    "rate_stability_p9973": "performance"
-   },
-   "objective": 0.0032212363743177115,
+   "alg": null,
+   "feasible": true,
+   "failing": {},
+   "objective": 0.00498906164284485,
    "objective_id": "ape_los_p9973"
   },
   {
    "mode": "nadir_pointing",
    "option": "cmg+rcs",
-   "alg": "lqr",
-   "feasible": false,
-   "failing": {
-    "rate_stability_p9973": "performance"
-   },
-   "objective": 0.0032273149768549465,
+   "alg": null,
+   "feasible": true,
+   "failing": {},
+   "objective": 0.005002537383929028,
    "objective_id": "ape_los_p9973"
   },
   {
    "mode": "nadir_pointing",
    "option": "vscmg+mtq",
-   "alg": "lqr",
-   "feasible": false,
-   "failing": {
-    "rate_stability_p9973": "performance"
-   },
-   "objective": 0.0043199318235670765,
+   "alg": null,
+   "feasible": true,
+   "failing": {},
+   "objective": 0.007184358882473602,
    "objective_id": "ape_los_p9973"
   },
   {
    "mode": "nadir_pointing",
    "option": "vscmg+rcs",
-   "alg": "pid@bw2.5",
-   "feasible": false,
-   "failing": {
-    "rate_stability_p9973": "performance"
-   },
-   "objective": 0.004090770696704996,
+   "alg": null,
+   "feasible": true,
+   "failing": {},
+   "objective": 0.005099051011393161,
    "objective_id": "ape_los_p9973"
   },
   {

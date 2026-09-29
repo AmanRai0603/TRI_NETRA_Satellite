@@ -80,12 +80,12 @@
       "ake": 0.005,
       "ape": 0.01,
       "detumble": 284.0,
-      "mass": 1.0,
+      "mass": 1.6,
       "pavg": 2.0,
       "ppk": 4.0,
-      "rks": 0.001,
+      "rks": 0.005,
       "sunacq": 95.0,
-      "vol": 0.6
+      "vol": 1.0
     },
     "notes": [
       "mission.life blank: 3 years taken"
