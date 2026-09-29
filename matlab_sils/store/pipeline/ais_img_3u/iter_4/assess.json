@@ -2,25 +2,24 @@
  "iteration": 4,
  "knobs": {
   "scale": {
-   "mtqp": 1.0,
-   "vscmg": 1.5
+   "mtqp": 1.0
   },
-  "gyro_grade": 0.1
+  "gyro_grade": 1.0,
+  "fmr_flow_sigma": 0.0005
  },
  "class": "fine",
  "selected": "mtq_fmr",
  "status": "closest (not feasible)",
- "feasible_options": 19,
+ "feasible_options": 20,
  "options": 25,
  "changes": [
-  "nadir_pointing/fmr+mtq: fluid-loop flow sensor 2 -> 0.5 mm/s (1 sigma)"
+  "mass (mtq_fmr): one star-tracker head instead of two"
  ],
  "blocked": [
-  "nadir_pointing/fmr+rcs: performance and power both fail \u2014 no authority change helps",
   "nadir_pointing/fmr+rcs: power is the thrusters' valve power (RCS dumping), not the pump",
   "nadir_pointing/mtq: knowledge fails with the star tracker fitted",
   "sun_referencing/fmr+rcs: power is the thrusters' valve power (RCS dumping), not the pump",
-  "mtqp: more authority did not reduce the performance violation (1.35e+04 -> 1.36e+04); kept at x1"
+  "mtqp: more authority did not reduce the performance violation (1.33e+04 -> 1.34e+04); kept at x1"
  ],
  "families": {
   "mtq": {
@@ -28,107 +27,95 @@
    "gaps": [
     "sun_acquisition: sun_acquisition_time (performance), sun_angle_p95 (performance)",
     "sun_referencing: sun_ape_p9973 (performance)",
-    "nadir_pointing: ape_los_p9973 (performance), ake_los_p9973 (knowledge), rate_stability_p9973 (performance)",
-    "budget: mass_kg 1.37 > 1"
+    "nadir_pointing: ape_los_p9973 (performance), ake_los_p9973 (knowledge), rate_stability_p9973 (performance)"
    ],
    "budget": {
-    "mass_kg": 1.3695611292035013,
-    "power_W": 6.595611292035012,
+    "mass_kg": 0.8295611292035014,
+    "power_W": 3.8956112920350123,
     "volume_L": 0.011824451681400512
    }
   },
   "mtq_fmr": {
    "feasible": false,
    "gaps": [
-    "nadir_pointing: rate_stability_p9973 (performance)",
-    "budget: mass_kg 2.27 > 1"
+    "budget: mass_kg 1.73 > 1.6"
    ],
    "budget": {
-    "mass_kg": 2.2673198532328382,
-    "power_W": 9.576812587204763,
+    "mass_kg": 1.7273198532328387,
+    "power_W": 6.876812587204763,
     "volume_L": 0.534415333603444
    }
   },
   "mtq_fmr_rcs": {
    "feasible": false,
    "gaps": [
-    "nadir_pointing: rate_stability_p9973 (performance)",
-    "budget: mass_kg 2.73 > 1",
-    "budget: volume_L 1.38 > 0.6"
+    "budget: mass_kg 2.19 > 1.6",
+    "budget: volume_L 1.38 > 1"
    ],
    "budget": {
-    "mass_kg": 2.7332366440897093,
-    "power_W": 9.626812587204764,
+    "mass_kg": 2.1932366440897093,
+    "power_W": 6.926812587204763,
     "volume_L": 1.375932994320427
    }
   },
   "mtq_rw": {
-   "feasible": false,
-   "gaps": [
-    "budget: mass_kg 1.62 > 1"
-   ],
+   "feasible": true,
+   "gaps": [],
    "budget": {
-    "mass_kg": 1.622579887198067,
-    "power_W": 7.200066924604729,
+    "mass_kg": 1.0825798871980672,
+    "power_W": 4.50006692460473,
     "volume_L": 0.1415765586722607
    }
   },
   "mtq_rw_rcs": {
-   "feasible": false,
-   "gaps": [
-    "budget: mass_kg 2.09 > 1",
-    "budget: volume_L 0.983 > 0.6"
-   ],
+   "feasible": true,
+   "gaps": [],
    "budget": {
-    "mass_kg": 2.088496678054938,
-    "power_W": 7.25006692460473,
+    "mass_kg": 1.5484966780549385,
+    "power_W": 4.55006692460473,
     "volume_L": 0.9830942193892437
    }
   },
   "mtq_cmg": {
-   "feasible": false,
-   "gaps": [
-    "budget: mass_kg 1.7 > 1"
-   ],
+   "feasible": true,
+   "gaps": [],
    "budget": {
-    "mass_kg": 1.7035137121933164,
-    "power_W": 7.380383340086097,
+    "mass_kg": 1.1635137121933166,
+    "power_W": 4.680383340086097,
     "volume_L": 0.2719880503941047
    }
   },
   "mtq_cmg_rcs": {
    "feasible": false,
    "gaps": [
-    "budget: mass_kg 2.17 > 1",
-    "budget: volume_L 1.11 > 0.6"
+    "budget: mass_kg 1.63 > 1.6",
+    "budget: volume_L 1.11 > 1"
    ],
    "budget": {
-    "mass_kg": 2.1694305030501875,
-    "power_W": 7.430383340086098,
+    "mass_kg": 1.6294305030501879,
+    "power_W": 4.730383340086098,
     "volume_L": 1.1135057111110878
    }
   },
   "mtq_vscmg": {
-   "feasible": false,
-   "gaps": [
-    "budget: mass_kg 1.77 > 1"
-   ],
+   "feasible": true,
+   "gaps": [],
    "budget": {
-    "mass_kg": 1.7708227376144872,
-    "power_W": 7.840383340086096,
-    "volume_L": 0.3161210780829559
+    "mass_kg": 1.1982612500117873,
+    "power_W": 5.080383340086097,
+    "volume_L": 0.2719880503941047
    }
   },
   "mtq_vscmg_rcs": {
    "feasible": false,
    "gaps": [
-    "budget: mass_kg 2.24 > 1",
-    "budget: volume_L 1.16 > 0.6"
+    "budget: mass_kg 1.66 > 1.6",
+    "budget: volume_L 1.11 > 1"
    ],
    "budget": {
-    "mass_kg": 2.2367395284713583,
-    "power_W": 7.890383340086097,
-    "volume_L": 1.157638738799939
+    "mass_kg": 1.6641780408686586,
+    "power_W": 5.130383340086097,
+    "volume_L": 1.1135057111110878
    }
   }
  },
@@ -148,7 +135,7 @@
    "alg": null,
    "feasible": true,
    "failing": {},
-   "objective": 1.0583333333333333,
+   "objective": 1.0916666666666666,
    "objective_id": "detumble_time"
   },
   {
@@ -187,7 +174,7 @@
    "alg": null,
    "feasible": true,
    "failing": {},
-   "objective": 2.3583333333333334,
+   "objective": 2.975,
    "objective_id": "sun_acquisition_time"
   },
   {
@@ -207,7 +194,7 @@
    "failing": {
     "sun_ape_p9973": "performance"
    },
-   "objective": 141.78441792301066,
+   "objective": 141.80593774589596,
    "objective_id": "sun_ape_p9973"
   },
   {
@@ -216,7 +203,7 @@
    "alg": null,
    "feasible": true,
    "failing": {},
-   "objective": 0.004794294434170519,
+   "objective": 0.00865043851036177,
    "objective_id": "sun_ape_p9973"
   },
   {
@@ -225,7 +212,7 @@
    "alg": null,
    "feasible": true,
    "failing": {},
-   "objective": 0.0047907911933146,
+   "objective": 0.008624288539353382,
    "objective_id": "sun_ape_p9973"
   },
   {
@@ -234,7 +221,7 @@
    "alg": null,
    "feasible": true,
    "failing": {},
-   "objective": 0.0046587429336741055,
+   "objective": 0.008669875196557595,
    "objective_id": "sun_ape_p9973"
   },
   {
@@ -243,7 +230,7 @@
    "alg": null,
    "feasible": true,
    "failing": {},
-   "objective": 0.004662066782137551,
+   "objective": 0.008654175194348307,
    "objective_id": "sun_ape_p9973"
   },
   {
@@ -252,7 +239,7 @@
    "alg": null,
    "feasible": true,
    "failing": {},
-   "objective": 0.0049169100788803615,
+   "objective": 0.008499642464758355,
    "objective_id": "sun_ape_p9973"
   },
   {
@@ -261,7 +248,7 @@
    "alg": null,
    "feasible": true,
    "failing": {},
-   "objective": 0.004907339264558775,
+   "objective": 1.8879478709533353,
    "objective_id": "sun_ape_p9973"
   },
   {
@@ -270,7 +257,7 @@
    "alg": null,
    "feasible": true,
    "failing": {},
-   "objective": 0.036840778300602235,
+   "objective": 0.012559966191770102,
    "objective_id": "sun_ape_p9973"
   },
   {
@@ -281,7 +268,7 @@
    "failing": {
     "power_mean": "power"
    },
-   "objective": 0.03685717781938703,
+   "objective": 0.012560632716856132,
    "objective_id": "sun_ape_p9973"
   },
   {
@@ -294,72 +281,70 @@
     "ake_los_p9973": "knowledge",
     "rate_stability_p9973": "performance"
    },
-   "objective": 133.43710283389248,
+   "objective": 132.37645436439328,
    "objective_id": "ape_los_p9973"
   },
   {
    "mode": "nadir_pointing",
    "option": "rw+mtq",
-   "alg": "pid",
+   "alg": null,
    "feasible": true,
    "failing": {},
-   "objective": 0.003376298809445672,
+   "objective": 0.004932608212572191,
    "objective_id": "ape_los_p9973"
   },
   {
    "mode": "nadir_pointing",
    "option": "rw+rcs",
-   "alg": "pid",
+   "alg": null,
    "feasible": true,
    "failing": {},
-   "objective": 0.0014059134988688863,
+   "objective": 0.004866288248260768,
    "objective_id": "ape_los_p9973"
   },
   {
    "mode": "nadir_pointing",
    "option": "cmg+mtq",
-   "alg": "smc",
+   "alg": null,
    "feasible": true,
    "failing": {},
-   "objective": 0.0012618552092834338,
+   "objective": 0.00498906164284485,
    "objective_id": "ape_los_p9973"
   },
   {
    "mode": "nadir_pointing",
    "option": "cmg+rcs",
-   "alg": "smc",
+   "alg": null,
    "feasible": true,
    "failing": {},
-   "objective": 0.0012644903644405412,
+   "objective": 0.005002537383929028,
    "objective_id": "ape_los_p9973"
   },
   {
    "mode": "nadir_pointing",
    "option": "vscmg+mtq",
-   "alg": "pid",
+   "alg": null,
    "feasible": true,
    "failing": {},
-   "objective": 0.0015723949498477544,
+   "objective": 0.007184358882473602,
    "objective_id": "ape_los_p9973"
   },
   {
    "mode": "nadir_pointing",
    "option": "vscmg+rcs",
-   "alg": "pid",
+   "alg": null,
    "feasible": true,
    "failing": {},
-   "objective": 0.0015704729351519219,
+   "objective": 0.005099051011393161,
    "objective_id": "ape_los_p9973"
   },
   {
    "mode": "nadir_pointing",
    "option": "fmr+mtq",
    "alg": "pid@bw4",
-   "feasible": false,
-   "failing": {
-    "rate_stability_p9973": "performance"
-   },
-   "objective": 0.00972605602420169,
+   "feasible": true,
+   "failing": {},
+   "objective": 0.004004668495769855,
    "objective_id": "ape_los_p9973"
   },
   {
@@ -368,10 +353,9 @@
    "alg": "pid@bw4",
    "feasible": false,
    "failing": {
-    "rate_stability_p9973": "performance",
     "power_mean": "power"
    },
-   "objective": 0.009747402676583824,
+   "objective": 0.004011090742532067,
    "objective_id": "ape_los_p9973"
   }
  ]

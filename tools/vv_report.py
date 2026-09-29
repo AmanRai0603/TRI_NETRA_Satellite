@@ -319,10 +319,13 @@ def open_items():
     notes = [
         "Bang-bang B-dot (fixed): pure sign switching limit-cycled around the 0.5 deg/s exit rate in 4 of 12 seeds with or without OBC "
         "latency; a boundary layer (4 x the B-dot gain inside it) detumbles 12 of 12 at 0, 4 and 8 ms. C, Rust, MATLAB and pseudocode updated.",
-        "Rate stability (imaging, 0.001 deg/s, UNCONFIRMED): limited by gyro noise for every actuator (0.0025-0.004 deg/s with TRN-GYRO-P1); "
-        "a gyro with 0.3 x the noise (fibre-optic class, ~+0.14 kg, +0.7 W) reaches 0.0009 deg/s. The loop proposes it; the mass budget decides.",
-        "Fluid loop fine pointing: limited by the loop's flow sensor, not the pump. At 0.2 mm/s (1 sigma) the loop reaches ~0.004 deg APE, as "
-        "wheels do; this is a requirement on the in-house flow sensor.",
+        "Rate stability (imaging): relaxed by the owner from 0.001 to 0.005 deg/s (18 arcsec/s, ~0.5 m smear in a 10 ms exposure at 550 km). "
+        "At 0.001 deg/s it was set by gyro noise for every actuator (0.0025-0.004 deg/s with TRN-GYRO-P1) and needed a fibre-optic-class "
+        "gyro (0.6 kg); at 0.005 deg/s the catalogue gyro holds it. The ADCS budget is 1.6 kg / 1.0 L (1U of the 3U; ceiling 1.7 kg).",
+        "Fluid loop fine pointing: limited by the loop's flow sensor, not the pump. The converged imaging design carries a 0.125 mm/s (1 sigma) "
+        "flow sensor; this is a requirement on the in-house sensor. One star-tracker head instead of two breaks nadir pointing, so both stay.",
+        "Engine vs MATLAB on fine_hold_rw_rcs rate stability: 0.0056 against 0.0036 deg/s (ratio 1.56, as before the relaxation); the new "
+        "0.005 deg/s line now falls between them, so this verdict disagrees. The gap is the wheel-plus-RCS model, not the requirement.",
         "Sun spin: 17 of 24 seeds pass with and without the OBC; failures are Sun-spin entry with the Sun near the XY plane tripping the 1 deg/s "
         "exit guard during the L2 precession transient -- a tuning trade (fsw.sun_spin_perp_out_dps, fsw.sun_spin_dwell_out_s).",
         "Soft OILS models the OBC's CPU and buses; real OILS still needs the board target (fsw/targets/<board>/main.c: UART/Ethernet, clock, "

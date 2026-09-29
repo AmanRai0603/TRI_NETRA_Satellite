@@ -8,7 +8,7 @@ req,req.ape,Absolute pointing error (APE),Degree,0.01,,,99.73,"stated by the use
 req,req.ake,Absolute knowledge error (AKE),Degree,0.005,,,99.73,UNCONFIRMED · plan reference: half the APE
 req,req.rpe,Relative pointing error (RPE),Degree,,,,,
 req,req.pde,Pointing drift error (PDE),Degree,,,,,
-req,req.rks,Rate stability,DegreePerSecond,0.001,,,99.73,"UNCONFIRMED · plan reference: 3.6 arcsec/s, to hold smear under an exposure"
+req,req.rks,Rate stability,DegreePerSecond,0.005,,,99.73,"relaxed by the user (Agastya) from 0.001: 18 arcsec/s; at 550 km that is 48 m/s of ground motion, 0.5 m of smear in a 10 ms exposure"
 req,req.rke,Relative knowledge error (RKE),Degree,,,,,
 req,req.slew,Reference slew time,Second,60.0,,,,"UNCONFIRMED · adcs_ref_c1: mission.sangle in 60 s, target to target"
 req,req.settle,Settling time after a slew,Second,20.0,,,,UNCONFIRMED · plan reference: back inside the APE after a slew
@@ -21,10 +21,10 @@ req,req.faults,Faults tolerated,Count,,,,,
 req,req.recover,Recovery time after a single fault,Minute,,,,,
 req,req.hsat,Momentum saturation margin,One,,,,,"fraction of the stored momentum left unused, 0 to 1"
 req,req.dump,Momentum dump interval,Hour,,,,,
-req,req.mass,ADCS mass,Kilogram,1.0,,,,"UNCONFIRMED · plan reference: wheels, star tracker and coils in a 3U"
+req,req.mass,ADCS mass,Kilogram,1.6,,,,"raised by the user (Agastya): 1.5-1.7 kg with 1U of the 3U for the ADCS; 1.6 keeps 0.1 kg to the 1.7 ceiling"
 req,req.pavg,ADCS orbit-average power,Watt,2.0,,,,UNCONFIRMED · plan reference
 req,req.ppk,ADCS peak power,Watt,4.0,,,,UNCONFIRMED · plan reference
-req,req.vol,ADCS volume,Litre,0.6,,,,UNCONFIRMED · plan reference: about half of 1U
+req,req.vol,ADCS volume,Litre,1.0,,,,"raised by the user (Agastya): 1U of the 3U is the ADCS"
 req,req.prop,RCS propellant per year,Kilogram,,,,,
 mission,mission.life,Mission lifetime,Year,,,,,
 mission,mission.epoch,Launch epoch,Year,27.0,,,,"UNCONFIRMED · adcs_ref_c1: years after J2000.0, early 2027"

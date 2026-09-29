@@ -7,7 +7,7 @@ Contents (repository layout kept, so it builds as unpacked):
   engine/         the Rust SILS engine (adcs-pop = the POP port, adcs-sim-core, adcs-fsw-abi, adcs-sim, adcs-cli)
   fsw/targets/    the virtual OBC (adcs-link/1; POSIX process, QEMU Cortex-M4F firmware)
   matlab_sils/pop/.../de440s.bsp   the DE440 kernel adcs-pop reads
-  tools/          pipeline.py (design loop), engine.py (orchestration), vv_report.py + templates/, gen_fsw_params.py
+  tools/          pipeline.py (design loop), engine.py (orchestration), rescore.py, vv_report.py + templates/, gen_fsw_params.py
   matlab_sils/data, matlab_sils/cases   the cases, scenarios, products and parts the engine reads
   docs/ (LANGUAGES, DESIGN_LOOP, SOFT_OILS, VIRTUAL_OBC, OILS_HILS, figures/), results ledgers, the V&V report PDF,
   NOTICE.md, MANIFEST.sha256
@@ -23,7 +23,7 @@ out = ROOT / "dist" / f"{name}.zip"
 out.parent.mkdir(exist_ok=True)
 
 trees = ["fsw", "fsw-rs", "engine", "matlab_sils/data", "matlab_sils/cases", "docs/figures", "tools/figures", "tools/templates"]
-singles = ["tools/engine.py", "tools/pipeline.py", "tools/vv_report.py", "tools/gen_fsw_params.py", "tools/fswcfg.py", "docs/LANGUAGES.md",
+singles = ["tools/engine.py", "tools/pipeline.py", "tools/rescore.py", "tools/vv_report.py", "tools/gen_fsw_params.py", "tools/fswcfg.py", "docs/LANGUAGES.md",
            "docs/VIRTUAL_OBC.md", "docs/DESIGN_LOOP.md", "docs/SOFT_OILS.md", "docs/OILS_HILS.md", "results/ENGINE_PARITY.md",
            "results/ENGINE_CAMPAIGNS.md", "results/SOFT_OILS.md", "results/DESIGN_ais_3u.md", "results/DESIGN_ais_img_3u.md",
            "dist/TRINETRA_ADCS_VV_report.pdf",

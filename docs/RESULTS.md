@@ -93,7 +93,7 @@ Events: 0 s nadir_mtq; 6000 s FAULT injected: gyro_bias_step 0
 | ape_los_max | 0.01092 deg | — | — |
 | ape_3ax_p9973 | 0.009595 deg | — | — |
 | ake_los_p9973 | 0.003333 deg | 0.005 | ✔ PASS |
-| rate_stability_p9973 | 0.00367 deg/s | 0.001 | ✖ FAIL |
+| rate_stability_p9973 | 0.00367 deg/s | 0.005 | ✔ PASS |
 | time_to_0p01_deg | 83.5 s | — | — |
 | wheel_momentum_peak | 0.003257 N m s | — | — |
 | power_mean | 1.557 W | 2 | ✔ PASS |
@@ -131,7 +131,7 @@ Events: 0 s detumble; 1378 s nadir_fine
 | ape_los_max | 15.87 deg | — | — |
 | ape_3ax_p9973 | 15.83 deg | — | — |
 | ake_los_p9973 | 0.003649 deg | 0.005 | ✔ PASS |
-| rate_stability_p9973 | 0.3827 deg/s | 0.001 | ✖ FAIL |
+| rate_stability_p9973 | 0.3827 deg/s | 0.005 | ✖ FAIL |
 | time_to_0p01_deg | 83.5 s | — | — |
 | wheel_momentum_peak | 0.003675 N m s | — | — |
 | power_mean | 1.191 W | 2 | ✔ PASS |
@@ -146,7 +146,7 @@ Events: 0 s nadir_fine; 1200 s FAULT injected: rotor_fail 1; 1212 s FDIR: rotor 
 | ape_los_max | 0.1892 deg | — | — |
 | ape_3ax_p9973 | 0.1858 deg | — | — |
 | ake_los_p9973 | 0.1847 deg | 0.005 | ✖ FAIL |
-| rate_stability_p9973 | 0.004082 deg/s | 0.001 | ✖ FAIL |
+| rate_stability_p9973 | 0.004082 deg/s | 0.005 | ✔ PASS |
 | time_to_0p01_deg | 83.5 s | — | — |
 | wheel_momentum_peak | 0.003257 N m s | — | — |
 | power_mean | 1.557 W | 2 | ✔ PASS |
@@ -163,7 +163,7 @@ Events: 0 s nadir_fine; 1200 s FAULT injected: st_head_fail 2
 | ape_los_max | 0.007836 deg | — | — |
 | ape_3ax_p9973 | 0.007028 deg | — | — |
 | ake_los_p9973 | 0.003321 deg | 0.005 | ✔ PASS |
-| rate_stability_p9973 | 0.004654 deg/s | 0.001 | ✖ FAIL |
+| rate_stability_p9973 | 0.004654 deg/s | 0.005 | ✔ PASS |
 | time_to_0p01_deg | 84.3 s | — | — |
 | wheel_momentum_peak | 0.0001624 N m s | — | — |
 | power_mean | 4.348 W | 2 | ✖ FAIL |
@@ -195,7 +195,7 @@ Events: 0 s detumble; 1411 s nadir_fine
 | ape_los_max | 0.006973 deg | — | — |
 | ape_3ax_p9973 | 0.006878 deg | — | — |
 | ake_los_p9973 | 0.00348 deg | 0.005 | ✔ PASS |
-| rate_stability_p9973 | 0.004643 deg/s | 0.001 | ✖ FAIL |
+| rate_stability_p9973 | 0.004643 deg/s | 0.005 | ✔ PASS |
 | time_to_0p01_deg | 88.2 s | — | — |
 | wheel_momentum_peak | 0.000163 N m s | — | — |
 | power_mean | 4.367 W | 2 | ✖ FAIL |
@@ -235,7 +235,7 @@ Events: 0 s detumble; 3793 s nadir_fine
 | ape_los_max | 0.009926 deg | — | — |
 | ape_3ax_p9973 | 0.008488 deg | — | — |
 | ake_los_p9973 | 0.003439 deg | 0.005 | ✔ PASS |
-| rate_stability_p9973 | 0.003604 deg/s | 0.001 | ✖ FAIL |
+| rate_stability_p9973 | 0.003604 deg/s | 0.005 | ✔ PASS |
 | time_to_0p01_deg | 87.2 s | — | — |
 | wheel_momentum_peak | 0.002803 N m s | — | — |
 | power_mean | 1.51 W | 2 | ✔ PASS |
@@ -275,7 +275,7 @@ Events: 0 s detumble; 1408 s nadir_fine
 | ape_los_max | 0.006414 deg | — | — |
 | ape_3ax_p9973 | 0.006146 deg | — | — |
 | ake_los_p9973 | 0.00341 deg | 0.005 | ✔ PASS |
-| rate_stability_p9973 | 0.002425 deg/s | 0.001 | ✖ FAIL |
+| rate_stability_p9973 | 0.002425 deg/s | 0.005 | ✔ PASS |
 | time_to_0p01_deg | 83.5 s | — | — |
 | wheel_momentum_peak | 0.004 N m s | — | — |
 | power_mean | 1.61 W | 2 | ✔ PASS |
@@ -313,7 +313,7 @@ Events: 0 s detumble; 3516 s nadir_fine
 | ape_los_max | 0.007352 deg | — | — |
 | ape_3ax_p9973 | 0.006689 deg | — | — |
 | ake_los_p9973 | 0.00343 deg | 0.005 | ✔ PASS |
-| rate_stability_p9973 | 0.002951 deg/s | 0.001 | ✖ FAIL |
+| rate_stability_p9973 | 0.002951 deg/s | 0.005 | ✔ PASS |
 | time_to_0p01_deg | 83.5 s | — | — |
 | wheel_momentum_peak | 0.004 N m s | — | — |
 | power_mean | 1.61 W | 2 | ✔ PASS |
@@ -330,7 +330,7 @@ Events: 0 s nadir_fine; 1200 s FAULT injected: gimbal_stuck 1
 | ape_los_max | 0.01036 deg | — | — |
 | ape_3ax_p9973 | 0.009208 deg | — | — |
 | ake_los_p9973 | 0.003558 deg | 0.005 | ✔ PASS |
-| rate_stability_p9973 | 0.004557 deg/s | 0.001 | ✖ FAIL |
+| rate_stability_p9973 | 0.004557 deg/s | 0.005 | ✔ PASS |
 | time_to_0p01_deg | 89.3 s | — | — |
 | wheel_momentum_peak | 0.004201 N m s | — | — |
 | power_mean | 2.015 W | 2 | ✖ FAIL |
@@ -396,7 +396,7 @@ Events: 0 s detumble; 3526 s nadir_fine
 | ape_los_max | 0.01599 | 0.0044 | p95: 0.02173 deg | — | — | — |
 | ape_3ax_p9973 | 0.01338 | 0.00425 | p95: 0.01957 deg | — | — | — |
 | ake_los_p9973 | 0.002894 | 0.000605 | p99.73: 0.00408 deg | 0.005 | 100% | ✔ PASS |
-| rate_stability_p9973 | 0.003738 | 9.57e-05 | p99.73: 0.003962 deg/s | 0.001 | 0% | ✖ FAIL |
+| rate_stability_p9973 | 0.003738 | 9.57e-05 | p99.73: 0.003962 deg/s | 0.005 | 100% | ✔ PASS |
 | time_to_0p01_deg | 69.32 | 11.1 | p95: 84.8 s | — | — | — |
 | wheel_momentum_peak | 0.003075 | 0.000218 | p95: 0.0034 N m s | — | — | — |
 | power_mean | 1.558 | 0.0021 | p95: 1.561 W | 2 | 100% | ✔ PASS |
@@ -409,7 +409,7 @@ Events: 0 s detumble; 3526 s nadir_fine
 | ape_los_max | 0.01488 | 0.00506 | p95: 0.02368 deg | — | — | — |
 | ape_3ax_p9973 | 0.01258 | 0.00465 | p95: 0.02055 deg | — | — | — |
 | ake_los_p9973 | 0.003307 | 0.000418 | p99.73: 0.004166 deg | 0.005 | 100% | ✔ PASS |
-| rate_stability_p9973 | 0.003689 | 0.000116 | p99.73: 0.003893 deg/s | 0.001 | 0% | ✖ FAIL |
+| rate_stability_p9973 | 0.003689 | 0.000116 | p99.73: 0.003893 deg/s | 0.005 | 100% | ✔ PASS |
 | time_to_0p01_deg | 71.66 | 9.51 | p95: 88.7 s | — | — | — |
 | wheel_momentum_peak | 0.003344 | 0.00013 | p95: 0.003651 N m s | — | — | — |
 | power_mean | 1.558 | 0.00216 | p95: 1.564 W | 2 | 100% | ✔ PASS |

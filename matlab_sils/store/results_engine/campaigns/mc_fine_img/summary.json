@@ -164,7 +164,7 @@
   {
    "id": "rate_stability_p9973",
    "unit": "deg/s",
-   "req": 0.001,
+   "req": 0.005,
    "values": [
     0.003805424050179001,
     0.003596473552308005,
@@ -196,8 +196,8 @@
    "min": 0.003506552354705914,
    "max": 0.00395306483290717,
    "n_valid": 24,
-   "pass_rate": 0.0,
-   "pass": false
+   "pass_rate": 1.0,
+   "pass": true
   },
   {
    "id": "time_to_0p01_deg",
@@ -359,9 +359,9 @@
      "kind": "rate_stability",
      "value": 0.003805424050179001,
      "unit": "deg/s",
-     "req": 0.001,
+     "req": 0.005,
      "req_key": "req.rks",
-     "pass": 0
+     "pass": 1
     },
     {
      "id": "time_to_0p01_deg",
@@ -449,9 +449,9 @@
      "kind": "rate_stability",
      "value": 0.003596473552308005,
      "unit": "deg/s",
-     "req": 0.001,
+     "req": 0.005,
      "req_key": "req.rks",
-     "pass": 0
+     "pass": 1
     },
     {
      "id": "time_to_0p01_deg",
@@ -539,9 +539,9 @@
      "kind": "rate_stability",
      "value": 0.003939225729184301,
      "unit": "deg/s",
-     "req": 0.001,
+     "req": 0.005,
      "req_key": "req.rks",
-     "pass": 0
+     "pass": 1
     },
     {
      "id": "time_to_0p01_deg",
@@ -629,9 +629,9 @@
      "kind": "rate_stability",
      "value": 0.003881099605403285,
      "unit": "deg/s",
-     "req": 0.001,
+     "req": 0.005,
      "req_key": "req.rks",
-     "pass": 0
+     "pass": 1
     },
     {
      "id": "time_to_0p01_deg",
@@ -719,9 +719,9 @@
      "kind": "rate_stability",
      "value": 0.003725184232412327,
      "unit": "deg/s",
-     "req": 0.001,
+     "req": 0.005,
      "req_key": "req.rks",
-     "pass": 0
+     "pass": 1
     },
     {
      "id": "time_to_0p01_deg",
@@ -809,9 +809,9 @@
      "kind": "rate_stability",
      "value": 0.003806576682783583,
      "unit": "deg/s",
-     "req": 0.001,
+     "req": 0.005,
      "req_key": "req.rks",
-     "pass": 0
+     "pass": 1
     },
     {
      "id": "time_to_0p01_deg",
@@ -899,9 +899,9 @@
      "kind": "rate_stability",
      "value": 0.00395306483290717,
      "unit": "deg/s",
-     "req": 0.001,
+     "req": 0.005,
      "req_key": "req.rks",
-     "pass": 0
+     "pass": 1
     },
     {
      "id": "time_to_0p01_deg",
@@ -989,9 +989,9 @@
      "kind": "rate_stability",
      "value": 0.003927092232146148,
      "unit": "deg/s",
-     "req": 0.001,
+     "req": 0.005,
      "req_key": "req.rks",
-     "pass": 0
+     "pass": 1
     },
     {
      "id": "time_to_0p01_deg",
@@ -1079,9 +1079,9 @@
      "kind": "rate_stability",
      "value": 0.0037311456360008734,
      "unit": "deg/s",
-     "req": 0.001,
+     "req": 0.005,
      "req_key": "req.rks",
-     "pass": 0
+     "pass": 1
     },
     {
      "id": "time_to_0p01_deg",
@@ -1169,9 +1169,9 @@
      "kind": "rate_stability",
      "value": 0.0038410506420737123,
      "unit": "deg/s",
-     "req": 0.001,
+     "req": 0.005,
      "req_key": "req.rks",
-     "pass": 0
+     "pass": 1
     },
     {
      "id": "time_to_0p01_deg",
@@ -1259,9 +1259,9 @@
      "kind": "rate_stability",
      "value": 0.003638994738299277,
      "unit": "deg/s",
-     "req": 0.001,
+     "req": 0.005,
      "req_key": "req.rks",
-     "pass": 0
+     "pass": 1
     },
     {
      "id": "time_to_0p01_deg",
@@ -1349,9 +1349,9 @@
      "kind": "rate_stability",
      "value": 0.0038630747983453154,
      "unit": "deg/s",
-     "req": 0.001,
+     "req": 0.005,
      "req_key": "req.rks",
-     "pass": 0
+     "pass": 1
     },
     {
      "id": "time_to_0p01_deg",
@@ -1439,9 +1439,9 @@
      "kind": "rate_stability",
      "value": 0.0038039304978153294,
      "unit": "deg/s",
-     "req": 0.001,
+     "req": 0.005,
      "req_key": "req.rks",
-     "pass": 0
+     "pass": 1
     },
     {
      "id": "time_to_0p01_deg",
@@ -1529,9 +1529,9 @@
      "kind": "rate_stability",
      "value": 0.003864556260027412,
      "unit": "deg/s",
-     "req": 0.001,
+     "req": 0.005,
      "req_key": "req.rks",
-     "pass": 0
+     "pass": 1
     },
     {
      "id": "time_to_0p01_deg",
@@ -1619,9 +1619,9 @@
      "kind": "rate_stability",
      "value": 0.0039045101839216595,
      "unit": "deg/s",
-     "req": 0.001,
+     "req": 0.005,
      "req_key": "req.rks",
-     "pass": 0
+     "pass": 1
     },
     {
      "id": "time_to_0p01_deg",
@@ -1709,9 +1709,9 @@
      "kind": "rate_stability",
      "value": 0.00355084046807219,
      "unit": "deg/s",
-     "req": 0.001,
+     "req": 0.005,
      "req_key": "req.rks",
-     "pass": 0
+     "pass": 1
     },
     {
      "id": "time_to_0p01_deg",
@@ -1799,9 +1799,9 @@
      "kind": "rate_stability",
      "value": 0.003787843758587689,
      "unit": "deg/s",
-     "req": 0.001,
+     "req": 0.005,
      "req_key": "req.rks",
-     "pass": 0
+     "pass": 1
     },
     {
      "id": "time_to_0p01_deg",
@@ -1889,9 +1889,9 @@
      "kind": "rate_stability",
      "value": 0.003646485509108519,
      "unit": "deg/s",
-     "req": 0.001,
+     "req": 0.005,
      "req_key": "req.rks",
-     "pass": 0
+     "pass": 1
     },
     {
      "id": "time_to_0p01_deg",
@@ -1979,9 +1979,9 @@
      "kind": "rate_stability",
      "value": 0.0036480696840791283,
      "unit": "deg/s",
-     "req": 0.001,
+     "req": 0.005,
      "req_key": "req.rks",
-     "pass": 0
+     "pass": 1
     },
     {
      "id": "time_to_0p01_deg",
@@ -2069,9 +2069,9 @@
      "kind": "rate_stability",
      "value": 0.003579130806252775,
      "unit": "deg/s",
-     "req": 0.001,
+     "req": 0.005,
      "req_key": "req.rks",
-     "pass": 0
+     "pass": 1
     },
     {
      "id": "time_to_0p01_deg",
@@ -2159,9 +2159,9 @@
      "kind": "rate_stability",
      "value": 0.0036800328187057327,
      "unit": "deg/s",
-     "req": 0.001,
+     "req": 0.005,
      "req_key": "req.rks",
-     "pass": 0
+     "pass": 1
     },
     {
      "id": "time_to_0p01_deg",
@@ -2249,9 +2249,9 @@
      "kind": "rate_stability",
      "value": 0.0036937806694536655,
      "unit": "deg/s",
-     "req": 0.001,
+     "req": 0.005,
      "req_key": "req.rks",
-     "pass": 0
+     "pass": 1
     },
     {
      "id": "time_to_0p01_deg",
@@ -2339,9 +2339,9 @@
      "kind": "rate_stability",
      "value": 0.0037424458483957313,
      "unit": "deg/s",
-     "req": 0.001,
+     "req": 0.005,
      "req_key": "req.rks",
-     "pass": 0
+     "pass": 1
     },
     {
      "id": "time_to_0p01_deg",
@@ -2429,9 +2429,9 @@
      "kind": "rate_stability",
      "value": 0.003506552354705914,
      "unit": "deg/s",
-     "req": 0.001,
+     "req": 0.005,
      "req_key": "req.rks",
-     "pass": 0
+     "pass": 1
     },
     {
      "id": "time_to_0p01_deg",
