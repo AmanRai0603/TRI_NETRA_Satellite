@@ -78,8 +78,9 @@ from the hydraulic load and the designed efficiency, and the pressure-limited to
 
 `adcs-design` is a port of `+asils/+sizing`. Its demand survey and the coil, fluid-loop and RCS laws
 matched the MATLAB sizing to 1e-14 on both cases. The benchmarks' wheels and CMGs now come from the datasheet catalogue,
-not from the MATLAB rotor laws. Those laws gave units smaller and lighter than anything sold (a 1.5 mNms wheel), so the
-MATLAB twin keeps them only for its own reference scenarios. It runs in well under a
+not from the MATLAB rotor laws. Those laws made a notional unit sized exactly to the demand, with mass
+and power from a scaling anchor. A bought unit comes in fixed sizes, with the mass, power and volume on its datasheet.
+The MATLAB twin keeps the laws only for its own reference scenarios. It runs in well under a
 second, where the MATLAB survey takes minutes, which is what makes a loop of many sizings possible.
 The MATLAB sizing stays as the reference; `ADCS_SIZED_DIR` keeps the loop's products separate from
 the MATLAB ones.
