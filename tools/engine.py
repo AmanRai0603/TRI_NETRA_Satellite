@@ -50,9 +50,12 @@ def build(_):
     sh(["make", "-s", "clean"], cwd=ROOT / "fsw")
     sh(["make", "-s", "test"], cwd=ROOT / "fsw")
     sh(["make", "-s", "check"], cwd=ROOT / "fsw")
-    sh(["make", "-s", "obc"], cwd=ROOT / "fsw")            # virtual OBC firmware (process, QEMU) and the insn plugin
     sh(["cargo", "test", "--release", "-q"], cwd=ROOT / "fsw-rs")
+    # the OBC links the C-ABI static library: build it (host and Cortex-M) before make obc, since a plain
+    # cargo build leaves a newer libadcs_fsw.a without the exports that make would not rebuild
     sh(["cargo", "build", "--release", "-q", "--no-default-features", "--features", "cabi"], cwd=ROOT / "fsw-rs")
+    sh(["cargo", "build", "--release", "-q", "--no-default-features", "--features", "cabi", "--target", "thumbv7em-none-eabihf"], cwd=ROOT / "fsw-rs")
+    sh(["make", "-s", "obc"], cwd=ROOT / "fsw")            # virtual OBC firmware (process, QEMU) and the insn plugin
     sh(["cargo", "test", "--release", "-q"], cwd=ROOT / "engine")
     sh(["cargo", "build", "--release", "-q"], cwd=ROOT / "engine")
 
