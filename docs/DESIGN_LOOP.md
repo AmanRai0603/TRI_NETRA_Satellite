@@ -15,17 +15,19 @@ python3 tools/pipeline.py [case ...] [--seeds 1,2] [--max-iter 6] [--mc-runs 12]
 
 ## Nodes
 
-Every node is a step with a file: `matlab_sils/store/pipeline/<case>/...`.
+Every node is a step with a file: `matlab_sils/store/pipeline/<case>/...`. Each node's inputs, outputs, parameters
+and rules are defined once in `matlab_sils/data/pipeline/nodes.json`; the pipeline reads its parameters from there,
+and `docs/NODES.md` is generated from it (`python3 tools/nodes_doc.py`).
 
 | # | node | runs in | what it does | output |
 |---|---|---|---|---|
 | 1 | case | — | `adcs-case/1`: orbit, mass properties, surfaces, requirements | `matlab_sils/cases/<case>.csv` |
 | 2 | demand | Rust (`adcs-design`) | one orbit on the POP orbit at four held attitudes (each axis on nadir, Sun referencing), the SILS torque models: peak disturbance, cyclic and secular momentum, weakest field, detumble and slew momentum | `iter_k/sized/sizing.json` → `demand` |
-| 3 | size | Rust (`adcs size`) | MTQ, fluid loop, N2O RCS (ours), RW, CMG, VSCMG (benchmarks) sized to the demand with the current **knobs**; one product per family; mass / power / volume budget | `iter_k/sized/{parts,products}/` |
+| 3 | size / select_rotor | Rust (`adcs size`) | MTQ, fluid loop, N2O RCS (ours) designed to the demand with the current **knobs**; RW, CMG, VSCMG (benchmarks) **chosen from the datasheet catalogue** (`matlab_sils/data/catalogue`, `docs/CATALOGUE.md`): the lightest model that meets the per-unit need; one product per family; mass / power / volume budget | `iter_k/sized/{parts,products}/` |
 | 4 | matrix | Rust engine, C flight software | every mission mode × option × seed on the sized products (`ADCS_SIZED_DIR`); options that failed on performance also fly every algorithm of their slot | cached runs `cache/<hash>/` |
 | 5 | assess | Python | per option: feasible on every seed? each failing requirement classed as performance, knowledge, power or propellant | `iter_k/assess.json` |
 | 6 | converge | Python | the knob changes the failures call for (below); converged when nothing is left to change | `loop.json` |
-| 7 | select | Python | the simplest **solution** family whose best usable option passes every mode and whose budget meets `req.mass` / `req.vol`; benchmarks scored the same way. When none passes, the closest one is named with its gaps. | `selection.json` |
+| 7 | select | Python | every family scored on the same modes and budget; the **lightest feasible solution** family is selected (then steady power, volume); the benchmarks are ranked by the same rule and the best one is reported beside it. When no solution passes, the closest one is named with its gaps. | `selection.json` |
 | 8 | dispatch | Rust | the selected family's mission (detumble → Sun acquisition → nadir), its adcs-fswcfg/1 blob, the converged sized products, a C and Rust check (bit-identical) | `dist/dispatch/<case>/<family>/` |
 | 9 | mc | Rust engine | Monte Carlo of the dispatched mission with the case's dispersions | `mc/summary.json` |
 | 10 | soft_oils | Rust engine + QEMU | the dispatched mission with the flight software as Cortex-M4F firmware (C and Rust), exact instruction timing, next to its SILS run (`docs/SOFT_OILS.md`) | `soft_oils.json` |
@@ -35,12 +37,12 @@ Every node is a step with a file: `matlab_sils/store/pipeline/<case>/...`.
 
 | failure | cause class | what the loop changes (in this order) |
 |---|---|---|
-| time, APE, Sun angle | performance | 1. every algorithm of the option's slot, and for rotor/fluid pointing the bandwidth-tuned laws (`pid@bw2.5`, `pid@bw4`)<br>2. fluid loop: a quieter flow sensor, 2 → 0.5 → 0.12 → 0.05 mm/s (1σ), the loop's in-house sensor requirement<br>3. the option's actuator authority ×1.5 (bounds ×0.5 … ×4), undone if the violation does not fall by 5 % |
+| time, APE, Sun angle | performance | 1. every algorithm of the option's slot, and for rotor/fluid pointing the bandwidth-tuned laws (`pid@bw2.5`, `pid@bw4`)<br>2. fluid loop: a quieter flow sensor, 2 → 0.5 → 0.12 → 0.05 mm/s (1σ), the loop's in-house sensor requirement<br>3. the option's actuator authority ×1.5 (bounds ×0.5 … ×4), undone if the violation does not fall by 5 %; for a bought rotor this raises the need, so the next catalogue model up is chosen |
 | rate stability (fine class) | performance | gyro grade: noise ×0.3, then ×0.1, at mass and power ÷ grade (fibre-optic class); undone if rate stability does not improve |
 | AKE | knowledge | the star tracker on a coarse-class product |
 | mean / peak power on a fluid-loop option | power | the electromagnetic pump with more copper: λ ×3 (bound 3 kg/W); not when the power is the RCS valves' |
 | mean power, coils-only family, performance passing | power | coil authority ×0.75 |
-| power on a rotor | power | blocked: the rotor's standby power is the floor |
+| power on a rotor | power | blocked: the catalogue model's standby power is the floor |
 | mass budget of the closest solution family | mass | 1. a lighter gyro (grade ×3 back towards the catalogue unit)<br>2. one star-tracker head instead of two<br>3. a lighter pump (λ ÷3) while power allows<br>4. less fluid-loop momentum (×0.75)<br>each undone, and its lever closed, if it breaks a mode of that family or raises its requirement violation by more than 5 % |
 | propellant | propellant | RCS ×1.5 |
 
@@ -74,8 +76,10 @@ from the hydraulic load and the designed efficiency, and the pressure-limited to
 
 ## Why the sizing is in Rust now
 
-`adcs-design` is a port of `+asils/+sizing` with the laws unchanged. On the two cases its demand
-survey and every part and family budget match the MATLAB sizing to 1e-14. It runs in well under a
+`adcs-design` is a port of `+asils/+sizing`. Its demand survey and the coil, fluid-loop and RCS laws
+matched the MATLAB sizing to 1e-14 on both cases. The benchmarks' wheels and CMGs now come from the datasheet catalogue,
+not from the MATLAB rotor laws. Those laws gave units smaller and lighter than anything sold (a 1.5 mNms wheel), so the
+MATLAB twin keeps them only for its own reference scenarios. It runs in well under a
 second, where the MATLAB survey takes minutes, which is what makes a loop of many sizings possible.
 The MATLAB sizing stays as the reference; `ADCS_SIZED_DIR` keeps the loop's products separate from
 the MATLAB ones.
