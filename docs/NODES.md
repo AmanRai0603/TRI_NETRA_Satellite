@@ -19,13 +19,15 @@ Every node of the design loop and verification chain: what it reads, what it wri
 | 9 | [`budget`](#budget) | design | Rust (adcs-design::budget) | size_mtq<br>size_fmr<br>size_rcs<br>select_rotor<br>size_sensors | sizing.json -> families.<id>.{mass_kg, power_W, volume_L, items} |
 | 10 | [`matrix`](#matrix) | SILS | Rust engine + C flight software (adcs run) | budget (products)<br>matlab_sils/data/modes/*.json | matlab_sils/store/pipeline/cache/<key>/manifest.json |
 | 11 | [`assess`](#assess) | SILS | Python (tools/pipeline.py) | matrix | iter_k/assess.json |
-| 12 | [`converge`](#converge) | design | Python (tools/pipeline.py) | assess<br>select<br>mc (robustness feedback) | loop.json |
-| 13 | [`select`](#select) | selection | Python (tools/pipeline.py) | assess<br>budget<br>case (req.mass, req.vol) | selection.json |
-| 14 | [`dispatch`](#dispatch) | dispatch | Rust (adcs dispatch) | select<br>budget | dist/dispatch/<case>/<family>/converged/ |
-| 15 | [`mc`](#mc) | verification | Rust engine | dispatch | matlab_sils/store/pipeline/<case>/mc/summary.json<br>selection.json -> robustness |
-| 16 | [`family_missions`](#family_missions) | verification | Rust engine + C and Rust flight software | select<br>budget | matlab_sils/store/pipeline/<case>/families.json<br>matlab_sils/store/pipeline/<case>/families/<family>/{package,dispatch,mc}/ |
-| 17 | [`soft_oils`](#soft_oils) | verification | Rust engine + QEMU (Cortex-M4F) | dispatch | matlab_sils/store/pipeline/<case>/soft_oils.json |
-| 18 | [`report`](#report) | report | Python | select<br>dispatch<br>mc<br>soft_oils<br>nodes | results/DESIGN_<case>.md<br>results/vv/<br>dist/TRINETRA_ADCS_VV_report.pdf |
+| 12 | [`tune`](#tune) | SILS | Rust engine + C flight software (through matrix) | converge (the options to tune)<br>matrix | the tuned variants law@key=value,... in the matrix and in the dispatched mission's fsw block |
+| 13 | [`converge`](#converge) | design | Python (tools/pipeline.py) | assess<br>select<br>mc (robustness feedback) | loop.json |
+| 14 | [`select`](#select) | selection | Python (tools/pipeline.py) | assess<br>budget<br>case (req.mass, req.vol) | selection.json |
+| 15 | [`dispatch`](#dispatch) | dispatch | Rust (adcs dispatch) | select<br>budget | dist/dispatch/<case>/<family>/converged/ |
+| 16 | [`certify`](#certify) | verification | Python (tools/floquet.py) | family_missions (the coils-only package and its mission run) | matlab_sils/store/pipeline/<case>/floquet.json |
+| 17 | [`mc`](#mc) | verification | Rust engine | dispatch | matlab_sils/store/pipeline/<case>/mc/summary.json<br>selection.json -> robustness |
+| 18 | [`family_missions`](#family_missions) | verification | Rust engine + C and Rust flight software | select<br>budget | matlab_sils/store/pipeline/<case>/families.json<br>matlab_sils/store/pipeline/<case>/families/<family>/{package,dispatch,mc}/ |
+| 19 | [`soft_oils`](#soft_oils) | verification | Rust engine + QEMU (Cortex-M4F) | dispatch | matlab_sils/store/pipeline/<case>/soft_oils.json |
+| 20 | [`report`](#report) | report | Python | select<br>dispatch<br>mc<br>soft_oils<br>nodes | results/DESIGN_<case>.md<br>results/vv/<br>dist/TRINETRA_ADCS_VV_report.pdf |
 
 ## case
 
@@ -199,12 +201,13 @@ Every mission mode x actuator option x seed on the sized products; options that 
 |---|---|
 | `seeds` | 1, 2 |
 | `cache_key` | scenario, product, parts, seed, flight-software build, case file |
-| `algorithm_candidates` | detumble: bdot_gyro, bdot_mag, bdot_bangbang, genbdot_l1<br>sun_acquisition: sunspin_damped, sunspin_l1l2, sunspin_l1l2_e2<br>mtq_pointing: mtq_pd, mtq_lqr, mtq_smc, mtq_rate_damp<br>pointing: pid, lqr, smc, pid@bw2.5, pid@bw4 |
+| `algorithm_candidates` | detumble: bdot_gyro, bdot_mag, bdot_bangbang, genbdot_l1<br>sun_acquisition: sunspin_damped, sunspin_l1l2, sunspin_l1l2_e2, sunspin_deruiter2011, sun_boresight_celani2026<br>mtq_pointing: mtq_pd, mtq_lqr, mtq_smc, mtq_rate_damp, mtq_lovera2004, mtq_celani2015, mtq_avanzini2021, mtq_celani2026, mtq_tango2013<br>pointing: pid, lqr, smc, pid@bw2.5, pid@bw4 |
 
 Rules:
 
 - a run is scored against the case's requirements at run time
 - channels are deleted after scoring (the manifest is kept)
+- the coils-only laws of the magnetorquer literature review (docs/MTQ_LITERATURE.md) are candidates of their slots like every other law
 
 ## assess
 
@@ -222,6 +225,27 @@ Per option: feasible on every seed? Each failing requirement classed; the best a
 Rules:
 
 - rank an option's variants by (not feasible, failing count, worst objective)
+
+## tune
+
+Bruni & Celani 2017 (P7) min-max gain selection: for a coils-only option that still fails on performance after every law of its slot has flown, every law is flown at every point of a gain grid, on extra seeds; each law keeps the gains whose worst seed is best, and assess then ranks the laws by that worst case.
+
+- **Stage:** SILS. **Runs in:** Rust engine + C flight software (through matrix).
+- **Inputs:** converge (the options to tune), matrix.
+- **Outputs:** the tuned variants law@key=value,... in the matrix and in the dispatched mission's fsw block.
+
+| parameter | value |
+|---|---|
+| `grids` | mtq_pointing: mtq_gain_p: 0.25, 1, 4<br>mtq_gain_d: 0.25, 1, 4<br>sun_acquisition: spin_rate_dps: 2, 4, 6<br>ss_gain: 0.3, 1, 3 |
+| `extra_seeds` | 3, 4 |
+| `actuators` | mtq |
+| `objective` | worst seed: (not feasible, failing count, objective) |
+
+Rules:
+
+- mtq_gain_p / mtq_gain_d scale the proportional and rate gains of every magnetic pointing law (for Avanzini: lambda and k)
+- spin_rate_dps sets the commanded spin (Roldugin: wobble grows with it) and ss_gain the Sun-law gains
+- the grid is a derivative-free search as in the paper, coarse (3 x 3) to keep the matrix inside minutes
 
 ## converge
 
@@ -289,6 +313,25 @@ The selected family's mission (detumble -> Sun acquisition -> nadir), its adcs-f
 Rules:
 
 - the C and Rust flight software must agree bit for bit
+
+## certify
+
+Celani 2026 (P8) method: Floquet multipliers of the coils-only nadir loop linearised about the reference, with the gains the coils-only family dispatches and the magnetic field along one orbit; all |mu| < 1 certifies local exponential stability of the periodic loop.
+
+- **Stage:** verification. **Runs in:** Python (tools/floquet.py).
+- **Inputs:** family_missions (the coils-only package and its mission run).
+- **Outputs:** matlab_sils/store/pipeline/<case>/floquet.json.
+
+| parameter | value |
+|---|---|
+| `field` | aligned dipole, 7.94e15 T m^3, in the orbit frame |
+| `frame` | reference body frame from the mission's own nadir phase (truth attitude) |
+| `steps_per_orbit` | 2000 |
+
+Rules:
+
+- theta_dot = w, J w_dot = Gamma(t) tau(theta, w) with Gamma = I - b b^T; gyroscopic and gravity-gradient terms left out, as in the papers' averaging analyses
+- a boresight law leaves the rotation about its boresight free: one multiplier stays at 1 by design
 
 ## mc
 

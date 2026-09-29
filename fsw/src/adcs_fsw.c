@@ -148,6 +148,23 @@ static void mtq_law(void)
         adcs_qconj(S.q_ref, qc); adcs_qmult(qc, S.K.q, qe);
         adcs_dcm(qe, A); adcs_mat3_vec(A, S.w_ref, wr);
         for (i = 0; i < 3; i++) S.tau_req[i] = -S.g_mtq.Kd[i]*(S.w_est[i] - wr[i]);
+    } else if (p->mtq_law == 4) {             /* P1 Lovera & Astolfi 2004 */
+        adcs_mtq_lovera(S.K.q, S.w_est, S.q_ref, S.w_ref, S.p.J, p->mtq_eps, p->mtq_k1, p->mtq_k2, S.tau_req);
+    } else if (p->mtq_law == 5 ||             /* P4 Celani 2015; also P16 when the reference does not rotate */
+               (p->mtq_law == 6 && !adcs_mtq_avanzini(S.K.q, S.w_est, S.q_ref, S.w_ref, S.p.J, p->mtq_k16, p->mtq_lam16, S.tau_req))) {
+        adcs_mtq_celani(S.K.q, S.w_est, S.q_ref, S.w_ref, p->mtq_eps, p->mtq_k1, p->mtq_k2, S.tau_req);
+    } else if (p->mtq_law == 6) {             /* P16 Avanzini 2021: tau set by the call above */
+    } else if (p->mtq_law == 7) {             /* P8 Celani 2026 boresight */
+        adcs_real qc[4], qe[4], A[3][3], wr[3], we[3], e3[3], a[3]; int i;
+        adcs_qconj(S.q_ref, qc); adcs_qmult(qc, S.K.q, qe);
+        adcs_dcm(qe, A); adcs_mat3_vec(A, S.w_ref, wr);
+        for (i = 0; i < 3; i++) we[i] = S.w_est[i] - wr[i];
+        adcs_copy3(S.mode == ADCS_MODE_SUN_MTQ ? p->sun_axis : p->roll_axis, e3);
+        if (S.mode == ADCS_MODE_SUN_MTQ && S.s_prop_ok) adcs_unit(S.s_prop, a);
+        else adcs_mat3_vec(A, e3, a);
+        adcs_mtq_boresight(e3, a, we, p->sb_kp, p->sb_kd, S.tau_req);
+    } else if (p->mtq_law == 8) {             /* P3 TANGO frozen-Riccati LQR */
+        adcs_mtq_tango(S.K.q, S.w_est, S.q_ref, S.w_ref, S.p.mtq_Pth, S.p.mtq_Pw, S.tau_req);
     } else {
         adcs_control_law(S.K.q, S.w_est, S.q_ref, S.w_ref, S.I_q, p->mtq_period, &S.g_mtq, S.p.J, zero, zero, S.tau_req);
     }
@@ -338,7 +355,7 @@ int32_t adcs_fsw_step(uint64_t now_ns)
         if (adcs_norm3(z->w) < p->detumble_exit) S.hold += dt; else S.hold = 0;
         if (S.hold >= p->detumble_hold_s) enter(p->auto_next);
     }
-    if (S.mode == ADCS_MODE_SPINUP || S.mode == ADCS_MODE_SUN_SPIN) spin_guards(dt);
+    if ((S.mode == ADCS_MODE_SPINUP || S.mode == ADCS_MODE_SUN_SPIN) && p->ss_law != 2) spin_guards(dt);
     if (S.mode == ADCS_MODE_SPINUP || S.mode == ADCS_MODE_SUN_SPIN || S.mode == ADCS_MODE_SUN_ACQ_ROTOR) {
         if (z->sun_ok) { adcs_copy3(z->sun, S.s_prop); S.s_prop_ok = 1; }
         else if (S.s_prop_ok) {
@@ -535,7 +552,20 @@ int32_t adcs_fsw_step(uint64_t now_ns)
                     adcs_gen_bdot(Bav, bd, wd, p->ss_k_l1, m0);
                 } else {
                     int ecl = (!z->sun_ok && p->ss_eclipse == 1) || !S.s_prop_ok;
-                    adcs_sun_spin(Bav, S.w_est, S.s_prop, ecl, p->J, p->ss_spin_dps, p->ss_k1, p->ss_k2, p->ss_rz_floor, m0);
+                    if (p->ss_law == 1)
+                        adcs_sun_spin_deruiter(Bav, S.w_est, S.s_prop, ecl, p->J, p->ss_spin_dps, p->ss_dr_k, p->ss_dr_k1, p->ss_dr_k2, m0);
+                    else
+                        adcs_sun_spin(Bav, S.w_est, S.s_prop, ecl, p->J, p->ss_spin_dps, p->ss_k1, p->ss_k2, p->ss_rz_floor, m0);
+                }
+                if (p->ss_law == 2) {                 /* P8 Celani 2026: power face onto the Sun, no spin */
+                    adcs_real a[3], tau[3], Bs = adcs_dot(Bav, Bav);
+                    adcs_zero3(m0);
+                    if (S.s_prop_ok && Bs >= 1e-18) {
+                        adcs_unit(S.s_prop, a);
+                        adcs_mtq_boresight(p->sun_axis, a, S.w_est, p->sb_kp, p->sb_kd, tau);
+                        adcs_cross(Bav, tau, m0);
+                        for (i = 0; i < 3; i++) m0[i] = m0[i]/Bs;
+                    }
                 }
                 adcs_copy3(Bav, S.B1raw); S.B1raw_ok = 1;
                 if (m0[0] != 0 || m0[1] != 0 || m0[2] != 0) { adcs_sub3(m0, p->m_res_est, m_body); adcs_sat_dipole(m_body, p->m_max); }

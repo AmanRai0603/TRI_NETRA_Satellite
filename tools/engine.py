@@ -50,6 +50,7 @@ def build(_):
     sh(["make", "-s", "clean"], cwd=ROOT / "fsw")
     sh(["make", "-s", "test"], cwd=ROOT / "fsw")
     sh(["make", "-s", "check"], cwd=ROOT / "fsw")
+    sh(["make", "-s", "obc"], cwd=ROOT / "fsw")            # virtual OBC firmware (process, QEMU) and the insn plugin
     sh(["cargo", "test", "--release", "-q"], cwd=ROOT / "fsw-rs")
     sh(["cargo", "build", "--release", "-q", "--no-default-features", "--features", "cabi"], cwd=ROOT / "fsw-rs")
     sh(["cargo", "test", "--release", "-q"], cwd=ROOT / "engine")

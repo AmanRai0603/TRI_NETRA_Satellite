@@ -188,3 +188,89 @@ pub fn sun_spin(b: &V3, w: &V3, s: &V3, eclipse: bool, j: &M3, spin_dps: f64, k1
     if bs < 1e-18 { return [0.0; 3]; }
     [-a[0]/bs, -a[1]/bs, -a[2]/bs]
 }
+
+// ---- magnetorquer-only literature laws (05_control.md, docs/MTQ_LITERATURE.md) ----
+// Mirrors fsw/src/adcs_ctl.c operation for operation (C = Rust bit for bit).
+fn mtq_err(q: &Q, w: &V3, q_ref: &Q, w_ref: &V3) -> (Q, f64, V3) {
+    let qe = qmult(&qconj(q_ref), q);
+    let mut s = sign(qe[3]);
+    if s == 0.0 { s = 1.0; }
+    let wr = mat3_vec(&dcm(&qe), w_ref);
+    let mut we = [0.0; 3];
+    for i in 0..3 { we[i] = w[i] - wr[i]; }
+    (qe, s, we)
+}
+
+/// P1 Lovera & Astolfi 2004, Prop. 1: u = -(eps^2 k_p q_v + eps k_v J w).
+#[allow(clippy::too_many_arguments)]
+pub fn mtq_lovera(q: &Q, w: &V3, q_ref: &Q, w_ref: &V3, j: &M3, eps: f64, kp: f64, kv: f64) -> V3 {
+    let (qe, s, we) = mtq_err(q, w, q_ref, w_ref);
+    let jw = mat3_vec(j, &we);
+    let mut t = [0.0; 3];
+    for i in 0..3 { t[i] = -(eps*eps*kp*(s*qe[i]) + eps*kv*jw[i]); }
+    t
+}
+
+/// P4 Celani 2015, Thm 2: u = -(eps^2 k1 q_v + eps k2 w), no inertia in the law.
+pub fn mtq_celani(q: &Q, w: &V3, q_ref: &Q, w_ref: &V3, eps: f64, k1: f64, k2: f64) -> V3 {
+    let (qe, s, we) = mtq_err(q, w, q_ref, w_ref);
+    let mut t = [0.0; 3];
+    for i in 0..3 { t[i] = -(eps*eps*k1*(s*qe[i]) + eps*k2*we[i]); }
+    t
+}
+
+/// P16 Avanzini, de Angelis & Giulietti 2021 (see adcs_ctl.c); None when the reference does not rotate.
+#[allow(clippy::too_many_arguments)]
+pub fn mtq_avanzini(q: &Q, w: &V3, q_ref: &Q, w_ref: &V3, j: &M3, k: f64, lam: f64) -> Option<V3> {
+    let n = norm3(w_ref);
+    if n < 1e-9 { return None; }
+    let (qe, s, _we) = mtq_err(q, w, q_ref, w_ref);
+    let mut ep = [0.0; 3];
+    for i in 0..3 { ep[i] = w_ref[i]/n; }
+    let sg = mat3_vec(&dcm(&qe), &ep);
+    let jep = mat3_vec(j, &ep);
+    let jp = dot(&ep, &jep);
+    let th = 2.0*s*dot(&[qe[0], qe[1], qe[2]], &ep);
+    let eta = jp*n*(1.0 - lam*th);
+    let jw = mat3_vec(j, w);
+    let mut t = [0.0; 3];
+    for i in 0..3 { t[i] = k*(eta*sg[i] - jw[i]) + k*(eta*ep[i] - jw[i]); }
+    Some(t)
+}
+
+/// P8 Celani 2026: boresight e3 onto the target a (body), rotation about e3 free.
+pub fn mtq_boresight(e3: &V3, a: &V3, we: &V3, kp: f64, kd: f64) -> V3 {
+    let c = cross(e3, a);
+    let mut t = [0.0; 3];
+    for i in 0..3 { t[i] = kp*c[i] - kd*we[i]; }
+    t
+}
+
+/// P3 TANGO frozen-Riccati LQR: tau = -(P21/r theta + P22/r w), theta = 2 q_v.
+pub fn mtq_tango(q: &Q, w: &V3, q_ref: &Q, w_ref: &V3, pth: &M3, pw: &M3) -> V3 {
+    let (qe, s, we) = mtq_err(q, w, q_ref, w_ref);
+    let mut th = [0.0; 3];
+    for i in 0..3 { th[i] = 2.0*s*qe[i]; }
+    let a = mat3_vec(pth, &th);
+    let b = mat3_vec(pw, &we);
+    [-(a[0] + b[0]), -(a[1] + b[1]), -(a[2] + b[2])]
+}
+
+/// P2 de Ruiter 2011 on the Sun line (see adcs_ctl.c).
+#[allow(clippy::too_many_arguments)]
+pub fn sun_spin_deruiter(b: &V3, w: &V3, s: &V3, eclipse: bool, j: &M3, spin_dps: f64, k: f64, k1: f64, k2: f64) -> V3 {
+    if eclipse { return [0.0; 3]; }
+    let ws = fabs(spin_dps*D2R);
+    let mut sg = sign(w[2]);
+    if sg == 0.0 { sg = 1.0; }
+    let h = mat3_vec(j, w);
+    let ehz = h[2] - sg*j[2][2]*ws;
+    let mut x = [0.0; 3];
+    for i in 0..3 { x[i] = h[i] + sg*j[2][2]*ws*s[i]; }
+    x[2] += k1*ehz;
+    x[0] += k2*w[0]; x[1] += k2*w[1];
+    let a = cross(b, &x);
+    let bs = dot(b, b);
+    if bs < 1e-18 { return [0.0; 3]; }
+    [-k*a[0]/bs, -k*a[1]/bs, -k*a[2]/bs]
+}

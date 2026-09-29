@@ -46,6 +46,16 @@ void adcs_control_law(const adcs_real q[4], const adcs_real w[3], const adcs_rea
 void adcs_mtq_pd(const adcs_real q[4], const adcs_real w[3], const adcs_real q_ref[4], const adcs_real w_ref[3],
                  const adcs_gains_t *g, adcs_real tau[3]);
 void adcs_torque2dipole(const adcs_real tau[3], const adcs_real B[3], adcs_real m_max, adcs_real m[3]);
+/* magnetorquer-only literature laws (05_control.md) */
+void adcs_mtq_lovera(const adcs_real q[4], const adcs_real w[3], const adcs_real q_ref[4], const adcs_real w_ref[3],
+                     adcs_real J[3][3], adcs_real eps, adcs_real kp, adcs_real kv, adcs_real tau[3]);
+void adcs_mtq_celani(const adcs_real q[4], const adcs_real w[3], const adcs_real q_ref[4], const adcs_real w_ref[3],
+                     adcs_real eps, adcs_real k1, adcs_real k2, adcs_real tau[3]);
+int adcs_mtq_avanzini(const adcs_real q[4], const adcs_real w[3], const adcs_real q_ref[4], const adcs_real w_ref[3],
+                      adcs_real J[3][3], adcs_real k, adcs_real lam, adcs_real tau[3]);
+void adcs_mtq_boresight(const adcs_real e3[3], const adcs_real a[3], const adcs_real we[3], adcs_real kp, adcs_real kd, adcs_real tau[3]);
+void adcs_mtq_tango(const adcs_real q[4], const adcs_real w[3], const adcs_real q_ref[4], const adcs_real w_ref[3],
+                    adcs_real Pth[3][3], adcs_real Pw[3][3], adcs_real tau[3]);
 void adcs_sat_dipole(adcs_real m[3], adcs_real m_max);
 
 /* ---- detumble and Sun spin (06) ---- */
@@ -53,6 +63,8 @@ void adcs_bdot(const adcs_real b1[3], const adcs_real b2[3], adcs_real dt, adcs_
 void adcs_gen_bdot(const adcs_real B[3], const adcs_real Bdot[3], const adcs_real wd[3], adcs_real k, adcs_real m0[3]);
 void adcs_sun_spin(const adcs_real B[3], const adcs_real w[3], const adcs_real s[3], int eclipse, adcs_real J[3][3],
                    adcs_real spin_dps, adcs_real k1, adcs_real k2, adcs_real rz_floor, adcs_real m0[3]);
+void adcs_sun_spin_deruiter(const adcs_real B[3], const adcs_real w[3], const adcs_real s[3], int eclipse, adcs_real J[3][3],
+                            adcs_real spin_dps, adcs_real k, adcs_real k1, adcs_real k2, adcs_real m0[3]);
 
 /* ---- allocation (07) ---- */
 void adcs_rotor_axes(const adcs_params_t *p, const adcs_real delta[4], adcs_real A[3][8]);

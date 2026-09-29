@@ -121,10 +121,17 @@ impl Config {
         }
         p.bdot_law = match a_("detumble").as_str() { "bdot_gyro" => 0, "bdot_bangbang" => 2, "genbdot_l1" => 3, _ => 1 };
         p.rw_law = match a_("pointing").as_str() { "lqr" => 1, "smc" => 2, _ => 0 };
-        p.mtq_law = match a_("mtq_pointing").as_str() { "mtq_lqr" => 1, "mtq_smc" => 2, "mtq_rate_damp" => 3, _ => 0 };
+        p.mtq_law = match a_("mtq_pointing").as_str() {
+            "mtq_lqr" => 1, "mtq_smc" => 2, "mtq_rate_damp" => 3,
+            // magnetorquer-only literature (docs/MTQ_LITERATURE.md)
+            "mtq_lovera2004" => 4, "mtq_celani2015" => 5, "mtq_avanzini2021" => 6, "mtq_celani2026" => 7, "mtq_tango2013" => 8,
+            _ => 0 };
         p.alloc = match a_("allocation").as_str() { "idmas_split" => 1, "cmg_sr" => 2, "vscmg_sr" => 3, _ => 0 };
-        let (ecl, rzf) = match a_("sun_acquisition").as_str() { "sunspin_l1l2_e2" => (2, 0.0), "sunspin_damped" => (2, 0.5), _ => (1, 0.0) };
-        p.ss_eclipse = ecl; p.ss_rz_floor = rzf;
+        let (ecl, rzf, sl) = match a_("sun_acquisition").as_str() {
+            "sunspin_l1l2_e2" => (2, 0.0, 0), "sunspin_damped" => (2, 0.5, 0),
+            "sunspin_deruiter2011" => (1, 0.0, 1), "sun_boresight_celani2026" => (2, 0.0, 2),
+            _ => (1, 0.0, 0) };
+        p.ss_eclipse = ecl; p.ss_rz_floor = rzf; p.ss_law = sl;
         let g = get(&fsw, "guidance").cloned().unwrap_or(Value::Null);
         p.gd_kind = match json::s(&g, "kind", "nadir") { "target" => 1, "slew" => 2, "inertial" => 3, "sun" => 4, _ => 0 };
         p.gd_q_off = adcs_fsw::ctl::boresight_offset(&dev.boresight);
@@ -150,6 +157,38 @@ impl Config {
             p.mtq_Klqr[ax] = lqr::chain3(1.0/ii[ax], q, r, wn);
         }
         p.mtq_err_max = 0.5; p.mtq_int_max = 0.05;
+        // magnetorquer-only literature laws, torque-level gains on the same bandwidth (wn, z) so the
+        // laws compare on structure; fsw.mtq_gain_p / mtq_gain_d scale them (the tune node, Bruni & Celani)
+        {
+            let (gp, gd) = (json::f(&fsw, "mtq_gain_p", 1.0), json::f(&fsw, "mtq_gain_d", 1.0));
+            let jm = (ii[0] + ii[1] + ii[2])/3.0;
+            let eps = 1e-3;                                  // the papers' time-scale parameter
+            p.mtq_eps = eps;
+            p.mtq_k1 = gp*jm*wn*wn/(eps*eps);
+            // Lovera & Astolfi multiply the rate by J; Celani does not
+            p.mtq_k2 = if p.mtq_law == 4 { gd*2.0*z*wn/eps } else { gd*2.0*z*jm*wn/eps };
+            // Avanzini 2021: k below 0.5 (1 + 2 sin xi_m) n; the paper flies k ~ 0.84 n, lambda 0.08
+            p.mtq_k16 = gd*json::f(&fsw, "avanzini_k_over_n", 0.84)*n;
+            p.mtq_lam16 = gp*json::f(&fsw, "avanzini_lambda", 0.08);
+            // Celani 2026 boresight
+            p.sb_kp = gp*jm*wn*wn; p.sb_kd = gd*2.0*z*jm*wn;
+            // TANGO frozen Riccati: P from the CARE with the orbit-averaged B_u R^-1 B_u^T; an isotropic field
+            // average gives E[Gamma D Gamma]_ii = (7/15) D_i + tr(D)/15, D = J^-2 (per-axis double-integrator
+            // CARE). Q is chosen (inverse LQR) so the average axis gets the common bandwidth wn, zeta; each axis
+            // then gets the gain its averaged authority calls for. The paper's Q, R are unpublished.
+            let r = 1.0;
+            let d = [1.0/(ii[0]*ii[0]), 1.0/(ii[1]*ii[1]), 1.0/(ii[2]*ii[2])];
+            let trd = d[0] + d[1] + d[2];
+            let mi: Vec<f64> = (0..3).map(|ax| ((7.0/15.0)*d[ax] + trd/15.0)/r).collect();
+            let mref = (mi[0] + mi[1] + mi[2])/3.0;
+            let qt = mref*(jm*wn*wn*r).powi(2);
+            let qw = (mref*(2.0*z*jm*wn*r).powi(2) - 2.0*(qt/mref).sqrt()).max(0.0);
+            for ax in 0..3 {
+                let p12 = (qt/mi[ax]).sqrt();
+                let p22 = ((qw + 2.0*p12)/mi[ax]).sqrt();
+                p.mtq_Pth[ax][ax] = gp*p12/r; p.mtq_Pw[ax][ax] = gd*p22/r;
+            }
+        }
         p.mtq_lambda = wn/(2.0*z)*2.0; p.mtq_phi = 5e-4; p.mtq_Gs = [2.0*z*wn*p.mtq_phi; 3];
         // fine pointing
         let (wn, z) = (json::f(&fsw, "rw_bandwidth", 0.9), json::f(&fsw, "rw_damping", 2.0));
@@ -166,7 +205,9 @@ impl Config {
         // Standard Code L1/L2 spin
         p.ss_k_l1 = json::f(&fsw, "l1_gain", 1e6); p.ss_spin_dps = json::f(&fsw, "spin_rate_dps", 6.0); p.ss_sigma0 = 1.0;
         p.ss_z_in_dps = 0.5; p.ss_perp_in_dps = 0.5; p.ss_sun_min = 0.05; p.ss_t_check_s = 60.0; p.ss_omega_max_dps = 100.0;
-        p.ss_dwell_in_s = 60.0; p.ss_k1 = 0.01; p.ss_k2 = 0.05; p.ss_perp_out_dps = json::f(&fsw, "sun_spin_perp_out_dps", 1.0); p.ss_omega_exit_dps = 2.0; p.ss_dwell_out_s = json::f(&fsw, "sun_spin_dwell_out_s", 30.0);
+        p.ss_dwell_in_s = 60.0; p.ss_k1 = 0.01*json::f(&fsw, "ss_gain", 1.0); p.ss_k2 = 0.05*json::f(&fsw, "ss_gain", 1.0);
+        // de Ruiter 2011: k1 > 1, k2 > 0 (paper 1.5, 0.5, with k2 in inertia units here: 0.5 J_zz); k like He's k1
+        p.ss_dr_k = 0.01*json::f(&fsw, "ss_gain", 1.0); p.ss_dr_k1 = 1.5; p.ss_dr_k2 = 0.5*inertia[2][2]; p.ss_perp_out_dps = json::f(&fsw, "sun_spin_perp_out_dps", 1.0); p.ss_omega_exit_dps = 2.0; p.ss_dwell_out_s = json::f(&fsw, "sun_spin_dwell_out_s", 30.0);
         p.sa_w_max_deg_s = json::f(&fsw, "sun_acq_rate_deg_s", 1.0); p.sa_kd = 0.1; p.sa_done_deg = 10.0; p.sa_done_hold_s = 60.0;
         // momentum devices (NOMINAL geometry)
         let x = &dev.mex;

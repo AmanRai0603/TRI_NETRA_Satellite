@@ -53,12 +53,27 @@ for m in ("sun_referencing", "nadir_pointing"):
 NODES = {n["id"]: n for n in json.loads((MS / "data" / "pipeline" / "nodes.json").read_text())["nodes"]}
 P = lambda node: NODES[node]["parameters"]
 CANDIDATES = P("matrix")["algorithm_candidates"]
-# a candidate "law@bwX" is the law with its pointing bandwidth tuned to X rad/s (fsw.rw_bandwidth)
+TUNE = P("tune")
+# a candidate "law@bwX" is the law with its pointing bandwidth tuned to X rad/s (fsw.rw_bandwidth);
+# "law@key=value,key=value" is the law with those fsw gain scales (node tune)
 def split_alg(a):
     if a and "@bw" in a:
         law, bw = a.split("@bw")
         return law, {"rw_bandwidth": float(bw)}
+    if a and "@" in a:
+        law, kv = a.split("@", 1)
+        return law, {k: float(v) for k, v in (x.split("=") for x in kv.split(","))}
     return a, {}
+
+
+def tune_grid(slot):
+    """Node tune (Bruni & Celani 2017): every law of the slot at every point of its gain grid."""
+    g = TUNE["grids"][slot]
+    keys = list(g)
+    pts = [[]]
+    for k in keys:
+        pts = [x + [v] for x in pts for v in g[k]]
+    return [f"{law}@" + ",".join(f"{k}={v:g}" for k, v in zip(keys, pt)) for law in CANDIDATES[slot] for pt in pts]
 # the sized part that gives an option its authority
 def auth_part(mode, o):
     a = o["actuator"]
@@ -135,22 +150,27 @@ def run_job(args):
     return key, p.returncode, (p.stdout + p.stderr).strip()[-500:]
 
 
-def node_matrix(case, it, sized, modes, variants_on, seeds, jobs, build):
+def node_matrix(case, it, sized, modes, variants_on, seeds, jobs, build, tuned=()):
     tests, runs = [], []
+    seeds0 = seeds
     for M in modes:
         for o in M["options"]:
             base = E.mode_scenario(case, M, o)
             slot = SLOT.get((M["id"], o["id"]))
-            algs = [None]
+            algs, seeds = [None], seeds0
             if slot and (M["id"], o["id"]) in variants_on:
                 algs = CANDIDATES[slot]
+            if slot and [M["id"], o["id"]] in [list(x) for x in tuned]:
+                # min over the gains of the worst case over the seeds: extra seeds widen the worst case
+                algs = CANDIDATES[slot] + tune_grid(slot)
+                seeds = list(seeds0) + [x for x in TUNE["extra_seeds"] if x not in seeds0]
             for alg in algs:
                 s = json.loads(json.dumps(base))
                 if alg:
                     law, tune = split_alg(alg)
                     s["fsw"].setdefault("algorithms", {})[slot] = law
                     s["fsw"].update(tune)
-                    s["id"] = f"{s['id']}__{alg.replace('@', '_')}"
+                    s["id"] = f"{s['id']}__{alg.replace('@', '_').replace('=', '').replace(',', '_')}"
                 prod, parts = product_blob(sized, s["product"])
                 creq = case_bytes(case)
                 d = PIPE / case / f"iter_{it}" / "scenarios"
@@ -240,6 +260,9 @@ def node_converge(case, res, knobs, variants_on, history, fine, modes, sel=None)
         if "performance" in kinds:
             if r["slot"] and (mode, oid) not in v:
                 v.add((mode, oid)); changes.append(f"{mode}/{oid}: fly every {r['slot']} algorithm")
+            elif r["slot"] in TUNE["grids"] and o["actuator"] in TUNE["actuators"] and [mode, oid] not in history.setdefault("_tuned", []):
+                history["_tuned"].append([mode, oid])
+                changes.append(f"{mode}/{oid}: tune every {r['slot']} law's gains, min over the gains of the worst seed (Bruni & Celani 2017)")
             elif "power" in kinds:
                 blocked.append(f"{mode}/{oid}: performance and power both fail — no authority change helps")
             elif fine and any(m.startswith("rate_stability") for m in r["failing"]) and k.get("gyro_grade", 1.0) > GYRO_MIN * 1.01 \
@@ -427,8 +450,8 @@ def node_dispatch(case, sel, sized, modes, build, fam=None):
     tune = {}
     for m in meth:
         algs.update({k: v for k, v in (F["modes"][m].get("algorithms") or {}).items() if k in (SLOT.get((m, meth[m])),)})
-        if m == "nadir_pointing":
-            tune = split_alg(F["modes"][m].get("alg"))[1]
+        if m in ("sun_acquisition", "nadir_pointing"):          # the mission flies these two: their tuned gains
+            tune.update(split_alg(F["modes"][m].get("alg"))[1])
         dt = min(dt, opt(m)["dt_s"])
     det, acq, fine = opt("detumble"), opt("sun_acquisition"), opt("nadir_pointing")
     a_ = 6378137 + E.case_value(case, "orbit.alt") * 1e3
@@ -569,6 +592,15 @@ def node_robust(sel, fails, knobs, history):
     return k, changes, blocked
 
 
+def node_certify(case):
+    """Node certify (Celani 2026's method): Floquet multipliers of the coils-only nadir loop, every law."""
+    import floquet
+    r = floquet.certify(case)
+    if r:
+        print("  certify: " + ", ".join(f"{x['law']} |mu| {x['max_mu']:.3g}{'*' if x['dispatched'] else ''}" for x in r["laws"]))
+    return r
+
+
 def node_family_missions(case, sel, sized, modes, build, runs, jobs, disp, mc):
     """Every solution family, selected or not, flown as the dispatched mission (C and Rust) and by
     Monte Carlo, so each one's behaviour is on record: the selected one reuses its dispatch and mc."""
@@ -641,7 +673,7 @@ def run_case(case, a, modes, families, build):
       for it in range(first, a.max_iter + 1):
           print(f" iteration {it}: knobs {json.dumps(knobs)}")
           sized, sizing = node_size(case, it, knobs)
-          tests = node_matrix(case, it, sized, modes, variants_on, [int(s) for s in a.seeds.split(",")], a.jobs, build)
+          tests = node_matrix(case, it, sized, modes, variants_on, [int(s) for s in a.seeds.split(",")], a.jobs, build, history.get("_tuned", []))
           res = node_assess(tests, modes)
           sel = node_select(case, res, sizing, modes, families)
           knobs2, variants2, changes, blocked = node_converge(case, res, knobs, variants_on, history, sizing["class"] == "fine", modes, sel)
@@ -683,6 +715,7 @@ def run_case(case, a, modes, families, build):
     write(state / "loop.json", log)
     write(state / "dispatch.json", disp)
     node_family_missions(case, sel, sized, modes, build, a.mc_runs, a.jobs, disp, mc)
+    node_certify(case)
     so = node_soft_oils(case, disp, sized, build) if not a.no_oils else None
     ledger(case, sel, log, disp, mc, so, sizing)
 
@@ -745,6 +778,14 @@ def ledger(case, sel, log, disp, mc, so, sizing):
             L.append(f"| {f} | {'yes' if v['selected'] else 'no'} | {'yes' if v['feasible'] else 'no'} | {v['budget']['mass_kg']:.3f} | "
                      f"{', '.join(f'{m}={o}' for m, o in v['methods'].items())} | " + " | ".join(cell(i) for i in ("detumble_time", "ape_los_p9973", "ake_los_p9973", "power_mean")) +
                      f" | {v['c_equals_rust_bitwise']} | {mcs} |")
+    fq = jl_(PIPE / case / "floquet.json")
+    if fq:
+        L += ["", "## Coils-only nadir loop certificate (node `certify`, Floquet multipliers, Celani 2026's method)", "",
+              "The loop linearised about nadir with the gyroscopic and gravity-gradient terms, the coil duty and the field along one orbit; "
+              "all |mu| < 1 certifies the periodic loop (a boresight law keeps one multiplier at 1 by design).", "",
+              "| law | gains | max abs(mu) | certified |", "|---|---|---:|---|"]
+        for x in fq["laws"]:
+            L.append(f"| {x['law']}{' (dispatched)' if x['dispatched'] else ''} | {x['gains']} | {x['max_mu']:.4f} | {'yes' if x['certified'] else 'no'} |")
     last = log[-1]
     L += ["", "## Mode matrix (last iteration, best algorithm per option)", "", "| mode | option | algorithm | feasible | objective | failing (cause) |", "|---|---|---|---|---:|---|"]
     for r in sorted(last["matrix"], key=lambda z: (z["mode"], z["option"])):

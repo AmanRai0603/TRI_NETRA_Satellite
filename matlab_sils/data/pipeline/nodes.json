@@ -237,13 +237,20 @@
      "sun_acquisition": [
       "sunspin_damped",
       "sunspin_l1l2",
-      "sunspin_l1l2_e2"
+      "sunspin_l1l2_e2",
+      "sunspin_deruiter2011",
+      "sun_boresight_celani2026"
      ],
      "mtq_pointing": [
       "mtq_pd",
       "mtq_lqr",
       "mtq_smc",
-      "mtq_rate_damp"
+      "mtq_rate_damp",
+      "mtq_lovera2004",
+      "mtq_celani2015",
+      "mtq_avanzini2021",
+      "mtq_celani2026",
+      "mtq_tango2013"
      ],
      "pointing": [
       "pid",
@@ -256,7 +263,8 @@
    },
    "rules": [
     "a run is scored against the case's requirements at run time",
-    "channels are deleted after scoring (the manifest is kept)"
+    "channels are deleted after scoring (the manifest is kept)",
+    "the coils-only laws of the magnetorquer literature review (docs/MTQ_LITERATURE.md) are candidates of their slots like every other law"
    ]
   },
   {
@@ -281,6 +289,60 @@
    },
    "rules": [
     "rank an option's variants by (not feasible, failing count, worst objective)"
+   ]
+  },
+  {
+   "id": "tune",
+   "stage": "SILS",
+   "runs_in": "Rust engine + C flight software (through matrix)",
+   "does": "Bruni & Celani 2017 (P7) min-max gain selection: for a coils-only option that still fails on performance after every law of its slot has flown, every law is flown at every point of a gain grid, on extra seeds; each law keeps the gains whose worst seed is best, and assess then ranks the laws by that worst case.",
+   "inputs": [
+    "converge (the options to tune)",
+    "matrix"
+   ],
+   "outputs": [
+    "the tuned variants law@key=value,... in the matrix and in the dispatched mission's fsw block"
+   ],
+   "parameters": {
+    "grids": {
+     "mtq_pointing": {
+      "mtq_gain_p": [
+       0.25,
+       1,
+       4
+      ],
+      "mtq_gain_d": [
+       0.25,
+       1,
+       4
+      ]
+     },
+     "sun_acquisition": {
+      "spin_rate_dps": [
+       2,
+       4,
+       6
+      ],
+      "ss_gain": [
+       0.3,
+       1,
+       3
+      ]
+     }
+    },
+    "extra_seeds": [
+     3,
+     4
+    ],
+    "actuators": [
+     "mtq"
+    ],
+    "objective": "worst seed: (not feasible, failing count, objective)"
+   },
+   "rules": [
+    "mtq_gain_p / mtq_gain_d scale the proportional and rate gains of every magnetic pointing law (for Avanzini: lambda and k)",
+    "spin_rate_dps sets the commanded spin (Roldugin: wobble grows with it) and ss_gain the Sun-law gains",
+    "the grid is a derivative-free search as in the paper, coarse (3 x 3) to keep the matrix inside minutes"
    ]
   },
   {
@@ -373,6 +435,27 @@
    },
    "rules": [
     "the C and Rust flight software must agree bit for bit"
+   ]
+  },
+  {
+   "id": "certify",
+   "stage": "verification",
+   "runs_in": "Python (tools/floquet.py)",
+   "does": "Celani 2026 (P8) method: Floquet multipliers of the coils-only nadir loop linearised about the reference, with the gains the coils-only family dispatches and the magnetic field along one orbit; all |mu| < 1 certifies local exponential stability of the periodic loop.",
+   "inputs": [
+    "family_missions (the coils-only package and its mission run)"
+   ],
+   "outputs": [
+    "matlab_sils/store/pipeline/<case>/floquet.json"
+   ],
+   "parameters": {
+    "field": "aligned dipole, 7.94e15 T m^3, in the orbit frame",
+    "frame": "reference body frame from the mission's own nadir phase (truth attitude)",
+    "steps_per_orbit": 2000
+   },
+   "rules": [
+    "theta_dot = w, J w_dot = Gamma(t) tau(theta, w) with Gamma = I - b b^T; gyroscopic and gravity-gradient terms left out, as in the papers' averaging analyses",
+    "a boresight law leaves the rotation about its boresight free: one multiplier stays at 1 by design"
    ]
   },
   {
