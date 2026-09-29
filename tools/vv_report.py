@@ -535,9 +535,16 @@ def open_items():
         "0.005 deg/s line now falls between them, so this verdict disagrees. The gap is the wheel-plus-RCS model, not the requirement.",
         "Sun spin: 17 of 24 seeds pass with and without the OBC; failures are Sun-spin entry with the Sun near the XY plane tripping the 1 deg/s "
         "exit guard during the L2 precession transient -- a tuning trade (fsw.sun_spin_perp_out_dps, fsw.sun_spin_dwell_out_s).",
-        "Coils only (mtq): largely sufficient for detumble and for Sun acquisition by Sun-spin (the power face is brought towards the Sun, "
-        "though not within the cases' 95 min / 20 deg line), and not sufficient for nadir pointing, above all from the spinning state the "
-        "mission hands over. Kept as designed; the owner will improve coils-only nadir pointing from the literature later.",
+        "Coils only (mtq): sufficient for detumble and for Sun acquisition by Sun spin (the power face comes towards the Sun, though not "
+        "within the cases' 95 min / 20 deg line). Nadir: with the hand-over (despin, then capture) and the capture test, see section 7 for "
+        "the tuned laws and the mission figure. Three-axis Sun referencing stays out of reach with coils only (gravity gradient along B).",
+        "Navigation and guidance audit (docs/NAV_GUIDANCE_AUDIT.md), corrected in C, Rust and the spec: the magnetometer update never ran "
+        "while the coils actuated; the estimate was never dropped after the spin states; no innovation gating and fixed Sun/field sigmas; "
+        "two-body-only onboard orbit; GNSS taken as J2000 and the field frame without precession (0.37 deg); in nadir the power face "
+        "pointed away from the Sun on both cases (now yaw-flipped, 90 deg - |beta|); nadir gravity-gradient feed-forward for ais_img_3u.",
+        "Open from the audit: the Celani 2026 boresight law leaves the roll about the payload axis free, so the power face in coils-only "
+        "nadir is not held; gyro scale factor aliases into bias after the despin; IGRF-13 is extrapolated for 2027 (load IGRF-14); "
+        "nadir is geocentric, not geodetic; the MATLAB twin keeps J2000 GNSS, GMST-only frames and no gating.",
         "Bought against designed (both cases, same budget of 1.6 kg and 1.0 L): on ais_img_3u three CubeSpace CW0017 wheels are feasible "
         "at 1.0 kg against our fluid loop's 1.6 kg, so the lightest configuration overall is a benchmark; the fluid loop is selected "
         "because the selection is among our solutions, and its 0.6 kg is the price of not buying wheels. On ais_3u every rotor fails "
