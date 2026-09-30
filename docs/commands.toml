@@ -396,3 +396,13 @@ steps = ["check the kit and the systems", "write every file with its executable 
 reads = ["python/trinetra_adcs/", "a files-only kit", "each system's adcs and trinetra-app"]
 writes = ["dist/trinetra_adcs-<version>-py3-none-any.whl (or --out)"]
 runs = []
+
+[[command]]
+tool = "adcs-sim"
+name = "scenario-schema"
+usage = "ADCS_WRITE_SCHEMA=1 cargo test -p adcs-sim schema_json   (in engine/)"
+what = "The scenario schema for the MATLAB twin: every scenario key the engine reads, with its type, written from the engine's own table so the twin refuses exactly what the engine refuses."
+steps = ["serialise the engine's scenario schema (engine/crates/adcs-sim/src/schema.rs)", "write it when asked; otherwise fail the test if the file differs"]
+reads = ["engine/crates/adcs-sim/src/schema.rs"]
+writes = ["matlab_sils/data/scenario_schema.json"]
+runs = ["cargo"]

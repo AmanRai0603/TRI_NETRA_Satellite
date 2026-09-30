@@ -108,3 +108,103 @@ fn a_case_the_engine_cannot_fly_is_refused_by_name() {
     }
     let _ = std::fs::remove_dir_all(&d);
 }
+
+/// A copy of a shipped scenario with one change, flown from a temporary file.
+fn edited(name: &str, edit: impl Fn(&mut serde_json::Value)) -> Result<Config, adcs_sim::Error> {
+    let mut v: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(root().join("data/scenarios").join(format!("{name}.json"))).unwrap()).unwrap();
+    edit(&mut v);
+    static N: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
+    let f = std::env::temp_dir().join(format!("adcs-scen-{}-{}.json", std::process::id(), N.fetch_add(1, std::sync::atomic::Ordering::Relaxed)));
+    std::fs::write(&f, v.to_string()).unwrap();
+    let r = Config::build(&root(), &f.display().to_string(), &case_for(name), 1, &[]);
+    let _ = std::fs::remove_file(&f);
+    r
+}
+
+fn says(r: Result<Config, adcs_sim::Error>, words: &str) {
+    match r {
+        Ok(_) => panic!("accepted; expected a refusal saying {words:?}"),
+        Err(e) => {
+            assert!(e.message().contains(words), "{e:?} does not say {words:?}");
+            assert_eq!(e.kind, adcs_sim::Kind::Refused, "{e:?}: refused, not failed");
+        }
+    }
+}
+
+#[test]
+fn a_scenario_key_the_engine_does_not_read_is_refused() {
+    says(edited("nadir_hold_ais", |v| { v["fsw"]["rw_bandwith"] = 0.5.into(); }), "fsw.rw_bandwith: the engine does not read this key");
+    says(edited("nadir_hold_ais", |v| { v["tiem"] = serde_json::json!({"dt_s": 0.1}); }), "tiem: the engine does not read this key");
+    says(edited("nadir_hold_ais", |v| { v["time"]["dt_s"] = "0.5".into(); }), "time.dt_s = \"0.5\": must be a finite number");
+    says(edited("nadir_hold_ais", |v| { v["fsw"]["start_mode"] = "nadir".into(); }), "fsw.start_mode = \"nadir\": must be a mode");
+    says(edited("nadir_hold_ais", |v| { v["fsw"]["yaw_flip"] = 0.5.into(); }), "fsw.yaw_flip = 0.5: must be true or false");
+    says(edited("nadir_hold_ais", |v| { v["initial"]["rate"]["kind"] = "spin".into(); }), "initial.rate.kind");
+}
+
+#[test]
+fn an_override_on_a_key_the_engine_does_not_read_is_refused() {
+    refused("nadir_hold_ais", &[("fsw.rw_bandwith", "0.5")], "the engine does not read this key");
+    refused("nadir_hold_ais", &[("fsw.algorithms.pointng", "\"lqr\"")], "the engine does not read this key");
+    build("nadir_hold_ais", &[("fsw.rw_bandwidth", "0.5"), ("fsw.algorithms.mtq_pointing", "\"mtq_lqr\"")]).unwrap();
+}
+
+#[test]
+fn a_metric_that_cannot_be_judged_as_written_is_refused() {
+    says(edited("nadir_hold_ais", |v| { v["metrics"][0]["requirement"] = "req.apee".into(); }), "has no such requirement");
+    says(edited("nadir_hold_ais", |v| { v["metrics"][0]["kind"] = "apee".into(); }), "must be one of");
+    says(edited("nadir_hold_ais", |v| { v["metrics"][0]["window"] = "last_orbits".into(); }), "after_s:<seconds>");
+    says(edited("nadir_hold_ais", |v| { v["metrics"][0]["window"] = "after_s:soon".into(); }), "after_s:<seconds>");
+    says(edited("nadir_hold_ais", |v| { v["metrics"][0]["statistic"] = "p99".into(); }), "must be one of");
+    says(edited("nadir_hold_ais", |v| {
+        v["metrics"].as_array_mut().unwrap().push(serde_json::json!({"id": "j", "kind": "jitter", "limit": 1.0}));
+    }), "jitter is not computed");
+    edited("nadir_hold_ais", |v| { v["metrics"].as_array_mut().unwrap().push(serde_json::json!({"id": "j", "kind": "jitter"})); }).unwrap();
+}
+
+#[test]
+fn an_algorithm_the_engine_does_not_fly_is_refused() {
+    says(edited("nadir_hold_ais", |v| { v["fsw"]["algorithms"] = serde_json::json!({"pointng": "pid"}); }), "no such slot");
+    says(edited("nadir_hold_ais", |v| { v["fsw"]["algorithms"] = serde_json::json!({"allocation": "pd_alloc"}); }), "the engine does not fly it");
+}
+
+#[test]
+fn limits_of_the_flight_software_are_refused_not_cut() {
+    says(edited("nadir_hold_ais", |v| {
+        v["fsw"]["schedule"] = serde_json::Value::Array((0..9).map(|k| serde_json::json!({"t_s": k as f64 * 10.0, "mode": "nadir_mtq"})).collect());
+    }), "the flight software holds at most 8");
+    says(edited("fault_gyro_ais", |v| { v["faults"][0]["value"] = 0.001.into(); }), "value must be the bias step");
+    says(edited("nadir_hold_ais", |v| { v["faults"] = serde_json::json!([{"t_s": 10.0, "kind": "rotor_fail", "index": 1}]); }), "has no rotors");
+    says(edited("nadir_hold_ais", |v| { v["faults"] = serde_json::json!([{"t_s": 10.0, "kind": "coil_fail", "index": 9}]); }), "magnetorquer coils 1 to 3");
+    says(edited("nadir_hold_ais", |v| { v["faults"] = serde_json::json!([{"t_s": 10.0, "kind": "coil_fail", "index": 0}]); }), "a unit number from 1");
+}
+
+#[test]
+fn a_product_beyond_the_engines_capacity_or_missing_a_value_is_refused() {
+    use adcs_sim::product::Dev;
+    let d = std::env::temp_dir().join(format!("adcs-sized-{}", std::process::id()));
+    std::fs::create_dir_all(d.join("products")).unwrap();
+    std::fs::create_dir_all(d.join("parts")).unwrap();
+    std::env::set_var("ADCS_SIZED_DIR", &d);
+    let base: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(root().join("data/products/TRN-P-3U-RW-RCS.json")).unwrap()).unwrap();
+    let put = |id: &str, v: &serde_json::Value| std::fs::write(d.join("products").join(format!("{id}.json")), v.to_string()).unwrap();
+    // nine wheels
+    let mut p = base.clone();
+    p["id"] = "T-NINE".into();
+    for f in p["fill"].as_array_mut().unwrap() {
+        if f["slot"] == "wheels" { f["axes_body"] = serde_json::Value::Array((0..9).map(|_| serde_json::json!([1, 0, 0])).collect()); }
+    }
+    put("T-NINE", &p);
+    assert!(Dev::load(&root(), "T-NINE").unwrap_err().message().contains("9 rotors; the engine holds at most 8"));
+    // a wheel part that does not state its torque
+    let wheel = base["fill"].as_array().unwrap().iter().find(|f| f["slot"] == "wheels").unwrap()["part"].as_str().unwrap().to_string();
+    let mut part: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(root().join("data/parts").join(format!("{wheel}.json"))).unwrap()).unwrap();
+    part["nominal"].as_object_mut().unwrap().remove("torque_max_Nm");
+    std::fs::write(d.join("parts").join("T-WHEEL.json"), part.to_string()).unwrap();
+    let mut p = base.clone();
+    p["id"] = "T-NOTORQUE".into();
+    for f in p["fill"].as_array_mut().unwrap() { if f["slot"] == "wheels" { f["part"] = "T-WHEEL".into(); } }
+    put("T-NOTORQUE", &p);
+    assert!(Dev::load(&root(), "T-NOTORQUE").unwrap_err().message().contains("does not state torque_max_Nm"));
+    std::env::remove_var("ADCS_SIZED_DIR");
+    let _ = std::fs::remove_dir_all(&d);
+}

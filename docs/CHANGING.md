@@ -16,6 +16,7 @@ run it; `docs/COMMANDS.md` lists them all.
 |---|---|---|---|
 | a part, product, algorithm, mode, component or family | `catalogue/**/*.toml` | `python3 tools/export_catalogue.py` | `export_catalogue.py --check`: every JSON is its TOML |
 | a scenario, campaign or trade | `scenarios/`, `campaigns/`, `trades/` (`*.toml`) | `python3 tools/export_catalogue.py` | the same, and `tests/inputs.rs`: every shipped scenario builds |
+| a new scenario key (the engine reads a new setting) | read it in `engine/crates/adcs-sim/src/config.rs`, add it to `schema.rs` | `ADCS_WRITE_SCHEMA=1 cargo test -p adcs-sim schema_json` (the twin's copy) | an unknown key is refused by engine and twin; `schema_json_is_current` fails until the copy is written |
 | a customer case | `matlab_sils/cases/<case>.csv` (adcs-case/1) | `adcs run <scenario> --case ...` | the case readers refuse a bad value by name (engine and twin alike) |
 | a flight-software parameter | `fsw/params/params.toml` | `python3 tools/gen_fsw_params.py` | `gen_fsw_params.py --check`; `make -C fsw test`; C = Rust parity |
 | a flight-software algorithm | `fsw/pseudocode/` first, then `fsw/src/` (C) and `fsw-rs/src/` (Rust) in the same change | `python3 tools/engine.py build` | `engine.py fsw-parity` (bit-identical C and Rust) |

@@ -51,11 +51,15 @@ fn decode(s: &str) -> String {
 
 fn read_request(s: &mut TcpStream) -> Result<Request, (u16, &'static str)> {
     let _ = s.set_read_timeout(Some(Duration::from_secs(10)));
+    // the whole request within 15 s: a client sending a byte at a time cannot hold a connection
+    let deadline = std::time::Instant::now() + Duration::from_secs(15);
+    let late = || std::time::Instant::now() > deadline;
     let mut buf = Vec::with_capacity(4096);
     let mut chunk = [0u8; 4096];
     let head_end = loop {
         if let Some(i) = buf.windows(4).position(|w| w == b"\r\n\r\n") { break i; }
         if buf.len() > MAX_HEAD { return Err((431, "the request head is too large")); }
+        if late() { return Err((408, "the request took too long to arrive")); }
         let n = s.read(&mut chunk).map_err(|_| (408, "the request did not arrive"))?;
         if n == 0 { return Err((400, "the connection closed early")); }
         buf.extend_from_slice(&chunk[..n]);
@@ -70,6 +74,7 @@ fn read_request(s: &mut TcpStream) -> Result<Request, (u16, &'static str)> {
     if len > MAX_BODY { return Err((413, "the request body is too large")); }
     let mut body = buf[head_end + 4..].to_vec();
     while body.len() < len {
+        if late() { return Err((408, "the request took too long to arrive")); }
         let n = s.read(&mut chunk).map_err(|_| (408, "the request body did not arrive"))?;
         if n == 0 { break; }
         body.extend_from_slice(&chunk[..n]);

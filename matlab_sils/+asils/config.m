@@ -15,6 +15,7 @@ function P = config(scenarioId, caseFile, opts)
     if ~exist(caseFile, 'file'), caseFile = fullfile(R, caseFile); end
     if isstruct(scenarioId), S = scenarioId; else, S = asils.scenario.load(scenarioId); end   % a mode test builds its scenario in memory
     C = asils.case.read(caseFile);
+    asils.scenario.check(S, C);             % the engine's rules: unknown keys, wrong types, missing requirements refused
     v = C.v;
     P.scenario = S; P.case = C; P.id = S.id;
     P.faults = asils.util.getf(S, 'faults', []);          % scheduled fault injection (asils.faults.apply)

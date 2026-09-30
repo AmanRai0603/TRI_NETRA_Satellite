@@ -1,0 +1,502 @@
+{
+  "schema": "adcs-scenario-schema/1",
+  "generated_by": "engine/crates/adcs-sim/src/schema.rs (ADCS_WRITE_SCHEMA=1 cargo test -p adcs-sim schema_json)",
+  "keys": [
+    {
+      "path": "schema",
+      "type": "one_of",
+      "values": [
+        "adcs-scenario/1"
+      ]
+    },
+    {
+      "path": "id",
+      "type": "str"
+    },
+    {
+      "path": "label",
+      "type": "str"
+    },
+    {
+      "path": "case",
+      "type": "str"
+    },
+    {
+      "path": "product",
+      "type": "str"
+    },
+    {
+      "path": "time.dt_s",
+      "type": "num"
+    },
+    {
+      "path": "time.duration_s",
+      "type": "num"
+    },
+    {
+      "path": "time.record_dt_s",
+      "type": "num"
+    },
+    {
+      "path": "initial.arg_lat_deg",
+      "type": "num"
+    },
+    {
+      "path": "initial.wheel_momentum_Nms",
+      "type": "num"
+    },
+    {
+      "path": "initial.attitude.kind",
+      "type": "one_of",
+      "values": [
+        "nadir",
+        "random",
+        "error_from_target",
+        "error_from_guidance"
+      ]
+    },
+    {
+      "path": "initial.attitude.angle_deg",
+      "type": "num"
+    },
+    {
+      "path": "initial.attitude.axis_body",
+      "type": "vec3"
+    },
+    {
+      "path": "initial.rate.kind",
+      "type": "one_of",
+      "values": [
+        "random_direction",
+        "lvlh",
+        "guidance",
+        "body"
+      ]
+    },
+    {
+      "path": "initial.rate.magnitude_deg_s",
+      "type": "numorcase"
+    },
+    {
+      "path": "initial.rate.extra_deg_s",
+      "type": "num"
+    },
+    {
+      "path": "initial.rate.value_deg_s",
+      "type": "vec3"
+    },
+    {
+      "path": "fsw.start_mode",
+      "type": "one_of",
+      "values": [
+        "detumble",
+        "nadir_mtq",
+        "nadir_fine",
+        "target_fine",
+        "slew_fine",
+        "spinup",
+        "sun_spin",
+        "detumble_rcs",
+        "sun_acq_rotor",
+        "sun_mtq",
+        "sun_fine",
+        ""
+      ]
+    },
+    {
+      "path": "fsw.auto_next",
+      "type": "one_of",
+      "values": [
+        "detumble",
+        "nadir_mtq",
+        "nadir_fine",
+        "target_fine",
+        "slew_fine",
+        "spinup",
+        "sun_spin",
+        "detumble_rcs",
+        "sun_acq_rotor",
+        "sun_mtq",
+        "sun_fine",
+        ""
+      ]
+    },
+    {
+      "path": "fsw.schedule",
+      "type": "list"
+    },
+    {
+      "path": "fsw.schedule[].t_s",
+      "type": "num"
+    },
+    {
+      "path": "fsw.schedule[].mode",
+      "type": "one_of",
+      "values": [
+        "detumble",
+        "nadir_mtq",
+        "nadir_fine",
+        "target_fine",
+        "slew_fine",
+        "spinup",
+        "sun_spin",
+        "detumble_rcs",
+        "sun_acq_rotor",
+        "sun_mtq",
+        "sun_fine",
+        ""
+      ]
+    },
+    {
+      "path": "fsw.guidance.kind",
+      "type": "one_of",
+      "values": [
+        "nadir",
+        "target",
+        "slew",
+        "inertial",
+        "sun"
+      ]
+    },
+    {
+      "path": "fsw.guidance.T_s",
+      "type": "num"
+    },
+    {
+      "path": "fsw.guidance.t0",
+      "type": "num"
+    },
+    {
+      "path": "fsw.guidance.roll_deg",
+      "type": "num"
+    },
+    {
+      "path": "fsw.guidance.axis",
+      "type": "vec3"
+    },
+    {
+      "path": "fsw.guidance.q_inertial",
+      "type": "quat"
+    },
+    {
+      "path": "fsw.rcs_assist",
+      "type": "flag"
+    },
+    {
+      "path": "fsw.rcs_dump",
+      "type": "flag"
+    },
+    {
+      "path": "fsw.yaw_flip",
+      "type": "flag"
+    },
+    {
+      "path": "fsw.avanzini_k_over_n",
+      "type": "num"
+    },
+    {
+      "path": "fsw.avanzini_lambda",
+      "type": "num"
+    },
+    {
+      "path": "fsw.bdot_gain_scale",
+      "type": "num"
+    },
+    {
+      "path": "fsw.capture_deg",
+      "type": "num"
+    },
+    {
+      "path": "fsw.capture_rate_deg_s",
+      "type": "num"
+    },
+    {
+      "path": "fsw.detumble_exit_deg_s",
+      "type": "num"
+    },
+    {
+      "path": "fsw.detumble_hold_s",
+      "type": "num"
+    },
+    {
+      "path": "fsw.dump_gain",
+      "type": "num"
+    },
+    {
+      "path": "fsw.handover_hold_s",
+      "type": "num"
+    },
+    {
+      "path": "fsw.handover_in_dps",
+      "type": "num"
+    },
+    {
+      "path": "fsw.handover_out_dps",
+      "type": "num"
+    },
+    {
+      "path": "fsw.l1_gain",
+      "type": "num"
+    },
+    {
+      "path": "fsw.mekf_gate",
+      "type": "num"
+    },
+    {
+      "path": "fsw.mekf_rej_max",
+      "type": "num"
+    },
+    {
+      "path": "fsw.mtq_gain_d",
+      "type": "num"
+    },
+    {
+      "path": "fsw.mtq_gain_p",
+      "type": "num"
+    },
+    {
+      "path": "fsw.mtq_gg_ff",
+      "type": "num"
+    },
+    {
+      "path": "fsw.mtq_wn",
+      "type": "num"
+    },
+    {
+      "path": "fsw.mtq_zeta",
+      "type": "num"
+    },
+    {
+      "path": "fsw.rate_lpf_s",
+      "type": "num"
+    },
+    {
+      "path": "fsw.rcs_damp_s",
+      "type": "num"
+    },
+    {
+      "path": "fsw.roll_gain",
+      "type": "num"
+    },
+    {
+      "path": "fsw.roll_gate_deg",
+      "type": "num"
+    },
+    {
+      "path": "fsw.roll_wn_orbits",
+      "type": "num"
+    },
+    {
+      "path": "fsw.roll_zeta",
+      "type": "num"
+    },
+    {
+      "path": "fsw.rw_bandwidth",
+      "type": "num"
+    },
+    {
+      "path": "fsw.rw_damping",
+      "type": "num"
+    },
+    {
+      "path": "fsw.rw_rate_hz",
+      "type": "num"
+    },
+    {
+      "path": "fsw.spin_rate_dps",
+      "type": "num"
+    },
+    {
+      "path": "fsw.ss_gain",
+      "type": "num"
+    },
+    {
+      "path": "fsw.sun_acq_rate_deg_s",
+      "type": "num"
+    },
+    {
+      "path": "fsw.sun_spin_dwell_out_s",
+      "type": "num"
+    },
+    {
+      "path": "fsw.sun_spin_perp_out_dps",
+      "type": "num"
+    },
+    {
+      "path": "fsw.wheel_bias_Nms",
+      "type": "num"
+    },
+    {
+      "path": "faults",
+      "type": "list"
+    },
+    {
+      "path": "faults[].t_s",
+      "type": "num"
+    },
+    {
+      "path": "faults[].kind",
+      "type": "one_of",
+      "values": [
+        "rotor_fail",
+        "gimbal_stuck",
+        "st_head_fail",
+        "coil_fail",
+        "gyro_bias_step",
+        "gps_outage",
+        "rcs_valve_fail",
+        "mag_fail"
+      ]
+    },
+    {
+      "path": "faults[].index",
+      "type": "num"
+    },
+    {
+      "path": "faults[].value",
+      "type": "numorvec3"
+    },
+    {
+      "path": "metrics",
+      "type": "list"
+    },
+    {
+      "path": "metrics[].id",
+      "type": "str"
+    },
+    {
+      "path": "metrics[].kind",
+      "type": "one_of",
+      "values": [
+        "time_to_rate",
+        "ape",
+        "ape_los",
+        "ake",
+        "ake_los",
+        "rate_stability",
+        "time_to_threshold",
+        "wheel_momentum_peak",
+        "time_to_mode",
+        "sun_angle",
+        "spin_rate_error",
+        "mode_fraction",
+        "propellant",
+        "power_mean",
+        "power_peak",
+        "jitter"
+      ]
+    },
+    {
+      "path": "metrics[].window",
+      "type": "str"
+    },
+    {
+      "path": "metrics[].statistic",
+      "type": "one_of",
+      "values": [
+        "max",
+        "rms",
+        "mean",
+        "p95",
+        "p99.73"
+      ]
+    },
+    {
+      "path": "metrics[].channel",
+      "type": "one_of",
+      "values": [
+        "ape_3ax",
+        "ape_los",
+        "ake_3ax",
+        "ake_los",
+        "rate",
+        "rks",
+        "sun_angle",
+        "sun_angle_geo",
+        "spin_z",
+        "rate_err"
+      ]
+    },
+    {
+      "path": "metrics[].mode",
+      "type": "one_of",
+      "values": [
+        "detumble",
+        "nadir_mtq",
+        "nadir_fine",
+        "target_fine",
+        "slew_fine",
+        "spinup",
+        "sun_spin",
+        "detumble_rcs",
+        "sun_acq_rotor",
+        "sun_mtq",
+        "sun_fine",
+        ""
+      ]
+    },
+    {
+      "path": "metrics[].from_s",
+      "type": "num"
+    },
+    {
+      "path": "metrics[].hold_s",
+      "type": "num"
+    },
+    {
+      "path": "metrics[].rate_threshold_deg_s",
+      "type": "num"
+    },
+    {
+      "path": "metrics[].threshold_deg",
+      "type": "num"
+    },
+    {
+      "path": "metrics[].requirement",
+      "type": "str"
+    },
+    {
+      "path": "metrics[].limit",
+      "type": "num"
+    },
+    {
+      "path": "metrics[].sense",
+      "type": "one_of",
+      "values": [
+        "max",
+        "min"
+      ]
+    },
+    {
+      "path": "metrics[].unit_min",
+      "type": "flag"
+    },
+    {
+      "path": "metrics[].end_at_mode_exit",
+      "type": "flag"
+    }
+  ],
+  "algorithm_slots": [
+    "detumble",
+    "attitude",
+    "pointing",
+    "mtq_pointing",
+    "sun_acquisition",
+    "allocation",
+    "thrusters",
+    "sun_spin"
+  ],
+  "metric_windows": [
+    "all",
+    "last_orbit",
+    "last_half_orbit",
+    "pointing"
+  ],
+  "max_schedule": 8,
+  "not_computed": [
+    {
+      "kind": "jitter",
+      "why": "jitter is not computed by the engine yet (a wheel-imbalance model is needed)"
+    }
+  ]
+}

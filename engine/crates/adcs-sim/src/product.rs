@@ -58,13 +58,34 @@ impl Dev {
             x.t_sd[i] = f64::INFINITY; x.k_hv[i] = 1.0; x.ac[i] = 1.0; x.s[i] = 1.0; x.l[i] = 1.0; x.eta_lo[i] = 1.0; x.eta_hi[i] = 1.0;
             x.n += 1;
         };
+        use adcs_sim_core::{NG, NH, NR, NS};
         for f in &fills {
             let part = json::s(f, "part", "");
             let p = json::read(&find(root, "parts", part)?)?;
             let nm = p.get("nominal").cloned().unwrap_or(Value::Null);
             let ds = p.get("dispersion").cloned().unwrap_or(Value::Null);
-            let n = |k: &str| json::f(&nm, k, f64::NAN);
-            match json::s(f, "slot", "") {
+            // every value a fitted device reads must be stated by its part: none becomes NaN, then 0
+            let missing = std::cell::RefCell::new(Vec::<String>::new());
+            let n = |k: &str| { let v = json::f(&nm, k, f64::NAN); if !v.is_finite() { missing.borrow_mut().push(k.to_string()); } v };
+            let slot = json::s(f, "slot", "");
+            // capacities: what the engine and the flight software hold, refused by name, never overrun or cut
+            let count = |key: &str| f.get(key).map(json::vecs).map(|v| v.len()).unwrap_or(0);
+            let over = |what: &str, have: usize, cap: usize| -> Result<(), Error> {
+                if have > cap { Err(Error::refused(format!("product {id}: {have} {what}; the engine holds at most {cap}"))) } else { Ok(()) }
+            };
+            match slot {
+                "coils" => over("magnetorquer coils", count("axes_body"), NS)?,
+                "wheels" | "rings" => over("rotors", x.n + count("axes_body"), NR)?,
+                "cmg" | "vscmg" => { over("rotors", x.n + count("spin_axes_body"), NR)?; over("gimbals", x.ng + count("gimbal_axes_body"), NG)?; }
+                "star_tracker" => over("star-tracker heads", count("boresights_body").max(count("boresight_body")), NH)?,
+                "sun_sensors" | "coarse_sun_sensors" => over("Sun sensor heads", count("normals_body"), NS)?,
+                "rcs" => {
+                    let t = json::f(&nm, "thrusters", f64::NAN);
+                    if t != 12.0 { return Err(Error::refused(format!("part {part}: {t} thrusters; the engine models 12 (six couples)"))); }
+                }
+                _ => {}
+            }
+            match slot {
                 "coils" => {
                     let a = axes(f.get("axes_body"));
                     let mut m = MtqDesc { fitted: true, n: a.len(), m_max: n("dipole_max_Am2"), p_max: n("power_at_max_W"), scale_sigma: sig(&ds, "dipole_scale"), misalign: sig(&ds, "axis_misalignment_rad"), ..Default::default() };
@@ -125,7 +146,7 @@ impl Dev {
                 }
                 "star_tracker" => {
                     let bs = if f.get("boresights_body").is_some() { axes(f.get("boresights_body")) } else { axes(f.get("boresight_body")) };
-                    let mut s = StDesc { fitted: true, nh: bs.len().min(2), noise_cross: n("noise_cross_rad"), noise_roll: n("noise_roll_rad"), rate_hz: n("rate_Hz"),
+                    let mut s = StDesc { fitted: true, nh: bs.len(), noise_cross: n("noise_cross_rad"), noise_roll: n("noise_roll_rad"), rate_hz: n("rate_Hz"),
                         latency: n("latency_s"), max_rate: n("max_rate_rad_s"), sun_excl: n("sun_exclusion_rad"), earth_excl: n("earth_exclusion_rad"),
                         fov: n("fov_half_angle_rad"), model: if json::s(f, "model", "quest") == "noise" { 0 } else { 1 },
                         bias_sigma: sig(&ds, "bias_rad"), misalign_sigma: sig(&ds, "axis_misalignment_rad"), ..Default::default() };
@@ -153,6 +174,10 @@ impl Dev {
                 }
                 "gnss" => d.gps = GpsDesc { fitted: true, pos_sigma: n("pos_sigma_m"), vel_sigma: n("vel_sigma_m_s"), rate_hz: n("rate_Hz") },
                 other => return Err(Error::refused(format!("product {id}: unknown slot {other}"))),
+            }
+            let miss = missing.into_inner();
+            if !miss.is_empty() {
+                return Err(Error::refused(format!("part {part} ({slot} of product {id}) does not state {}, which the engine needs", miss.join(", "))));
             }
         }
         d.mex = x;

@@ -73,6 +73,9 @@ fn run_dir(r: &Request) -> Result<PathBuf, Response> {
     }
     let d = store_root().join(rel_path);
     if !d.join("manifest.json").is_file() { return Err(Response::error(404, "no such run")); }
+    // a symbolic link inside the store must not lead out of it
+    let (canon, root) = (std::fs::canonicalize(&d), std::fs::canonicalize(store_root()));
+    if !matches!((canon, root), (Ok(c), Ok(r)) if c.starts_with(&r)) { return Err(Response::error(404, "no such run")); }
     Ok(d)
 }
 
@@ -102,7 +105,9 @@ fn one_run(r: &Request) -> Response {
 
 fn export(r: &Request) -> Response {
     let d = match run_dir(r) { Ok(d) => d, Err(e) => return e };
-    let tmp = std::env::temp_dir().join(format!("trinetra-export-{}-{}.trinetra", std::process::id(), crate::now()));
+    static SERIAL: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
+    let tmp = std::env::temp_dir().join(format!("trinetra-export-{}-{}-{}.trinetra", std::process::id(), crate::now(),
+        SERIAL.fetch_add(1, std::sync::atomic::Ordering::Relaxed)));
     match store::export(&d, &tmp) {
         Ok(_) => {
             let body = std::fs::read(&tmp).unwrap_or_default();
@@ -116,7 +121,12 @@ fn export(r: &Request) -> Response {
 
 /// Fly one scenario: {"scenario", "case"?, "fsw": "c" | "rust", "seed"?, "duration_s"?}
 fn fly(r: &Request) -> Response {
-    let Ok(_guard) = FLYING.try_lock() else { return Response::error(409, "a flight is already running: wait for it to finish") };
+    // one flight at a time; a flight that panicked leaves the lock poisoned, which is not a flight running
+    let _guard = match FLYING.try_lock() {
+        Ok(g) => g,
+        Err(std::sync::TryLockError::Poisoned(p)) => p.into_inner(),
+        Err(std::sync::TryLockError::WouldBlock) => return Response::error(409, "a flight is already running: wait for it to finish"),
+    };
     crate::seen();
     let body: Value = match serde_json::from_slice(&r.body) { Ok(v) => v, Err(_) => return Response::error(400, "the request is not JSON") };
     let root = data_root();
@@ -124,7 +134,9 @@ fn fly(r: &Request) -> Response {
     if let Err(e) = adcs_sim::config::check_id("scenario", &scenario) { return failed(&e); }
     let scen_file = root.join("data/scenarios").join(format!("{scenario}.json"));
     let Some(sv) = std::fs::read_to_string(&scen_file).ok().and_then(|s| serde_json::from_str::<Value>(&s).ok()) else { return Response::error(404, &format!("no scenario {scenario}")) };
-    let case = body["case"].as_str().filter(|c| !c.is_empty()).map(String::from).unwrap_or_else(|| sv["case"].as_str().unwrap_or("ais_3u").to_string());
+    let Some(case) = body["case"].as_str().filter(|c| !c.is_empty()).or_else(|| sv["case"].as_str()).map(String::from) else {
+        return Response::error(400, &format!("scenario {scenario} names no case: choose one"));
+    };
     if let Err(e) = adcs_sim::config::check_id("case", &case) { return failed(&e); }
     let case_file = root.join("cases").join(format!("{case}.csv"));
     if !case_file.is_file() { return Response::error(404, &format!("no case {case}")); }

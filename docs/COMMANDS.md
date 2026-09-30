@@ -44,6 +44,7 @@
 | [`make_icon.py make-icon`](#make_iconpy-make-icon) | Draw the desktop app's icon (three eyes on an orbit) as PNG, ICO and ICNS; run only to change it. |
 | [`macapp.py macapp`](#macapppy-macapp) | The macOS desktop app, TRI-NETRA ADCS.app, from a macOS kit: the app program in Contents/MacOS, the kit's data in Contents/Resources, the icon, Info.plist and PkgInfo. The release workflow signs it and zips it. |
 | [`build_wheel.py build-wheel`](#build_wheelpy-build-wheel) | One Python package for every computer: the front end (python/trinetra_adcs), the engine and the desktop app for each system given, and the data; it installs trinetra-adcs and trinetra-adcs-app and compiles nothing. |
+| [`adcs-sim scenario-schema`](#adcs-sim-scenario-schema) | The scenario schema for the MATLAB twin: every scenario key the engine reads, with its type, written from the engine's own table so the twin refuses exactly what the engine refuses. |
 
 ## adcs run
 
@@ -656,3 +657,18 @@ One Python package for every computer: the front end (python/trinetra_adcs), the
 - **Reads:** `python/trinetra_adcs/`; a files-only kit; each system's adcs and trinetra-app
 - **Writes:** `dist/trinetra_adcs-<version>-py3-none-any.whl (or --out)`
 - **Starts:** nothing
+
+## adcs-sim scenario-schema
+
+The scenario schema for the MATLAB twin: every scenario key the engine reads, with its type, written from the engine's own table so the twin refuses exactly what the engine refuses.
+
+    ADCS_WRITE_SCHEMA=1 cargo test -p adcs-sim schema_json   (in engine/)
+
+**Steps**
+
+1. serialise the engine's scenario schema (engine/crates/adcs-sim/src/schema.rs)
+2. write it when asked; otherwise fail the test if the file differs
+
+- **Reads:** `engine/crates/adcs-sim/src/schema.rs`
+- **Writes:** `matlab_sils/data/scenario_schema.json`
+- **Starts:** cargo

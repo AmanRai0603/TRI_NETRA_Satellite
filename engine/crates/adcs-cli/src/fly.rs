@@ -17,7 +17,9 @@ pub fn config(a: &Args) -> Result<Config, Error> {
             }
             let s: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(&sp).map_err(|e| Error::io(&sp, e))?)
                 .map_err(|e| Error::malformed(format!("{}: {e}", sp.display())))?;
-            root.join("cases").join(format!("{}.csv", s["case"].as_str().unwrap_or("ais_3u")))
+            let id = s["case"].as_str().ok_or_else(|| Error::refused(format!("{} names no case: give --case F", sp.display())))?;
+            adcs_sim::config::check_id("case", id)?;
+            root.join("cases").join(format!("{id}.csv"))
         }
     };
     Config::build(&root, &a.scenario, &case, a.seed, &a.set)

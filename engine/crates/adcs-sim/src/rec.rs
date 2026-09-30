@@ -80,6 +80,10 @@ pub fn write(dir: &Path, c: &Config, rec: &Record, d: &Derived, metrics: &[Value
                   "atmosphere": if c.orbit_model == "pop" { format!("dtm2020 (F10.7 {}, Kp {})", c.f107, c.kp) } else { format!("exponential x{}", c.density_scale) },
                   "propagator": if c.orbit_model == "pop" { "POP v51 port (adcs-pop): degree-6 field, DE440 Sun/Moon (Battin), DTM2020 drag, conical SRP, RK4 10 s + Hermite" } else { "analytic (adcs-sim-core): J2-J6, Montenbruck-Gill Sun/Moon, exponential drag, SRP" }},
         "boresight_body": c.dev.boresight, "metrics": metrics,
+        // values the engine uses that no case or part states yet (docs/UPGRADE_PLAN.md B2.7): named, not hidden
+        "assumptions": {"body_box_m": c.box_m, "cm_offset_m": c.cm_offset_m, "accommodation_normal": c.sigma_n, "accommodation_tangential": c.sigma_t,
+                        "vb_ratio": c.vb_ratio, "specular_fraction": c.spec_frac, "magnetometer_coil_coupling_T_per_Am2": c.dev.mag.k_coil,
+                        "note": "fixed in the engine for a 3U body; to come from the case and the parts"},
         "mode_log": rec.mode_log.iter().map(|(t, m)| json!({"t": t, "mode": m})).collect::<Vec<_>>(),
         "oils": rec.oils.as_ref().map(|s| s.json(c.dt)),
     });

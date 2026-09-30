@@ -18,6 +18,7 @@ pub mod rec;
 pub mod fsio;
 pub mod store;
 pub mod error;
+pub mod schema;
 
 pub use error::{Error, Kind};
 

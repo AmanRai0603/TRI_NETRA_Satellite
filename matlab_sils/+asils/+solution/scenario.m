@@ -19,7 +19,7 @@ function S = scenario(caseId, modeId, optionId)
     S = struct();
     S.id = sprintf('%s__%s__%s', caseId, modeId, strrep(optionId, '+', '_'));
     S.label = sprintf('%s — %s with %s', caseId, M.label, optionId);
-    S.case_id = caseId; S.mode = modeId; S.option = optionId;
+    S.case_id = caseId;                  % a mode test is named by S.id; the scenario format has no mode or option key
     S.product = sprintf('SZ-%s-%s', caseId, opt.family);
     S.time = struct('duration_s', round(orbits*T), 'dt_s', opt.dt_s, 'record_dt_s', 1.0);
     S.initial = struct('attitude', M.test.attitude, 'rate', M.test.rate);

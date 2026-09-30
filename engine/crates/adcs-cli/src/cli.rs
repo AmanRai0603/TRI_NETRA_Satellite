@@ -73,19 +73,19 @@ pub struct RunArgs {
     #[arg(long)]
     pub oils: bool,
     /// soft OILS with this fixed latency instead [ms]
-    #[arg(long, value_name = "MS", value_parser = finite)]
+    #[arg(long, value_name = "MS", value_parser = non_negative)]
     pub latency_ms: Option<f64>,
     /// soft OILS: the OBC's clock [MHz]
-    #[arg(long, value_name = "MHZ", value_parser = finite)]
+    #[arg(long, value_name = "MHZ", value_parser = positive)]
     pub obc_mhz: Option<f64>,
     /// soft OILS: cycles per instruction
-    #[arg(long, value_name = "CPI", value_parser = finite)]
+    #[arg(long, value_name = "CPI", value_parser = positive)]
     pub cpi: Option<f64>,
     /// soft OILS: the I2C bus clock [kHz]
-    #[arg(long, value_name = "KHZ", value_parser = finite)]
+    #[arg(long, value_name = "KHZ", value_parser = positive)]
     pub i2c_khz: Option<f64>,
     /// soft OILS: the CAN bus rate [kbit/s]
-    #[arg(long, value_name = "KBPS", value_parser = finite)]
+    #[arg(long, value_name = "KBPS", value_parser = positive)]
     pub can_kbps: Option<f64>,
     /// print only the verdicts
     #[arg(long, short)]
@@ -170,6 +170,14 @@ fn key_value(s: &str) -> Result<(String, String), String> {
 
 fn finite(s: &str) -> Result<f64, String> {
     match s.parse::<f64>() { Ok(x) if x.is_finite() => Ok(x), _ => Err(format!("{s:?} is not a finite number")) }
+}
+
+fn positive(s: &str) -> Result<f64, String> {
+    finite(s).and_then(|x| if x > 0.0 { Ok(x) } else { Err(format!("{s:?} must be above 0")) })
+}
+
+fn non_negative(s: &str) -> Result<f64, String> {
+    finite(s).and_then(|x| if x >= 0.0 { Ok(x) } else { Err(format!("{s:?} must be 0 or more")) })
 }
 
 fn fsw(s: &str) -> Result<Impl, String> { s.parse() }
@@ -269,7 +277,7 @@ mod t {
     fn what_a_command_cannot_take_is_refused() {
         for bad in ["adcs run", "adcs run s --seed x", "adcs run s --set novalue", "adcs run s --latency-ms nan", "adcs run s --bogus",
                     "adcs params s", "adcs parity s --fsw rust", "adcs parity s --out x", "adcs size", "adcs results thin",
-                    "adcs results export r", "adcs run s --fsw nowhere"] {
+                    "adcs results export r", "adcs run s --fsw nowhere", "adcs run s --cpi 0", "adcs run s --obc-mhz -5", "adcs run s --latency-ms -1"] {
             assert!(parse(bad).is_err(), "accepted: {bad}");
         }
     }

@@ -47,6 +47,19 @@ pub struct Config {
     pub scenario_file: String, pub overrides: Vec<(String, String)>,
 }
 
+/// The algorithms the engine flies, per slot: each id maps to a law in the flight software
+/// (the `match` arms in `Config::build`). An algorithm in the registry but not here flies only
+/// in the MATLAB twin, and a scenario that asks for it on the engine is refused.
+pub const FLOWN: [(&str, &[&str]); 7] = [
+    ("detumble", &["bdot_gyro", "bdot_mag", "bdot_bangbang", "genbdot_l1"]),
+    ("attitude", &["mekf"]),
+    ("pointing", &["pid", "lqr", "smc"]),
+    ("mtq_pointing", &["mtq_pd", "mtq_lqr", "mtq_smc", "mtq_rate_damp", "mtq_lovera2004", "mtq_celani2015", "mtq_avanzini2021", "mtq_celani2026", "mtq_tango2013"]),
+    ("sun_acquisition", &["sunspin_l1l2", "sunspin_l1l2_e2", "sunspin_damped", "sunspin_deruiter2011", "sun_boresight_celani2026"]),
+    ("allocation", &["rotor_pinv", "idmas_split", "cmg_sr", "vscmg_sr"]),
+    ("thrusters", &["rcs_pwm"]),
+];
+
 fn select(root: &Path, dev: &Dev, s: &Value) -> Result<BTreeMap<String, String>, Error> {
     let has = dev.caps();
     let dflt: [(&str, &[&str]); 7] = [("detumble", &["bdot_gyro", "bdot_mag"]), ("attitude", &["mekf"]), ("pointing", &["pid"]), ("mtq_pointing", &["mtq_pd"]),
@@ -56,6 +69,14 @@ fn select(root: &Path, dev: &Dev, s: &Value) -> Result<BTreeMap<String, String>,
         if let Some(o) = src.as_object() { for (k, v) in o { if let Some(x) = v.as_str() { pick.insert(k.clone(), x.into()); } } }
     }
     if let Some(x) = pick.remove("sun_spin") { pick.entry("sun_acquisition".into()).or_insert(x); }   // legacy slot name
+    for (slot, id) in &pick {
+        let Some((_, ids)) = FLOWN.iter().find(|(sl, _)| sl == slot) else {
+            return Err(Error::refused(format!("algorithm slot {slot:?}: no such slot; the slots are {}", FLOWN.iter().map(|x| x.0).collect::<Vec<_>>().join(", "))));
+        };
+        if !ids.contains(&id.as_str()) {
+            return Err(Error::refused(format!("algorithm {id} ({slot}): the engine does not fly it (it flies {}); it runs in the MATLAB twin only", ids.join(", "))));
+        }
+    }
     let load = |id: &str| -> Result<(String, Vec<String>), Error> {
         let a = json::read(&root.join("data/algorithms").join(format!("{id}.json"))).map_err(|_| Error::refused(format!("no algorithm {id} in the registry")))?;
         let needs = match a.get("needs") { Some(Value::Array(x)) => x.iter().filter_map(|v| v.as_str().map(String::from)).collect(), Some(Value::String(x)) => vec![x.clone()], _ => vec![] };
@@ -101,6 +122,9 @@ pub fn set_override(s: &mut Value, k: &str, v: &str) -> Result<(), Error> {
     }
     if !SCENARIO_SECTIONS.contains(&parts[0]) {
         return Err(Error::refused(format!("--set {k}: a scenario has no section {:?}; it has {}; engine settings are engine.<name>", parts[0], SCENARIO_SECTIONS.join(", "))));
+    }
+    if !crate::schema::settable(k) {
+        return Err(Error::refused(format!("--set {k}: the engine does not read this key (misspelt? the keys are in engine/crates/adcs-sim/src/schema.rs)")));
     }
     let lower = v.trim().to_ascii_lowercase();
     if ["nan", "inf", "+inf", "-inf", "infinity", "+infinity", "-infinity"].contains(&lower.as_str()) {
@@ -200,6 +224,7 @@ impl Config {
         }
         let cf = if case_file.is_file() { case_file.to_path_buf() } else { root.join(case_file) };
         let c = Case::read(&cf)?;
+        crate::schema::check_scenario(&s, &c)?;
         let dev = Dev::load(root, json::s(&s, "product", ""))?;
         let fsw = s.get("fsw").cloned().unwrap_or(Value::Null);
         let init = s.get("initial").cloned().unwrap_or(Value::Null);
@@ -396,6 +421,26 @@ impl Config {
             Some(Value::Array(a)) => a.iter().map(|f| Fault { t_s: json::f(f, "t_s", 0.0), kind: json::s(f, "kind", "").into(), index: json::f(f, "index", 0.0) as usize, value: get(f, "value").and_then(json::v3).unwrap_or([0.0; 3]) }).collect(),
             _ => vec![],
         };
+        // every fault names a device the product carries, and a unit it has (numbered from 1)
+        for (i, f) in faults.iter().enumerate() {
+            let raw = s.pointer(&format!("/faults/{i}")).cloned().unwrap_or(Value::Null);
+            let (units, what) = match f.kind.as_str() {
+                "rotor_fail" => (dev.mex.n, "rotors"), "gimbal_stuck" => (dev.mex.ng, "gimbals"),
+                "st_head_fail" => (if dev.st.fitted { dev.st.nh } else { 0 }, "star-tracker heads"),
+                "coil_fail" => (if dev.mtq.fitted { dev.mtq.n } else { 0 }, "magnetorquer coils"),
+                "rcs_valve_fail" => (if dev.rcs.fitted { dev.rcs.nc } else { 0 }, "thruster couples"),
+                "gyro_bias_step" => (dev.gyro.fitted as usize, "gyros"), "gps_outage" => (dev.gps.fitted as usize, "GNSS receivers"),
+                "mag_fail" => (dev.mag.fitted as usize, "magnetometers"),
+                k => return Err(Error::refused(format!("faults[{i}].kind = {k:?}: no such fault"))),
+            };
+            if units == 0 { return Err(Error::refused(format!("faults[{i}] {}: product {} has no {what}", f.kind, dev.id))); }
+            if matches!(f.kind.as_str(), "rotor_fail" | "gimbal_stuck" | "st_head_fail" | "coil_fail" | "rcs_valve_fail") && !(1..=units).contains(&f.index) {
+                return Err(Error::refused(format!("faults[{i}] {}: index {} — product {} has {what} 1 to {units}", f.kind, f.index, dev.id)));
+            }
+            if f.kind == "gyro_bias_step" && raw.get("value").and_then(json::v3).is_none() {
+                return Err(Error::refused(format!("faults[{i}] gyro_bias_step: value must be the bias step [x, y, z] in rad/s")));
+            }
+        }
         let gd_kind0 = GUID[p.start_mode as usize];
         let mut cfg = Config {
             id: json::s(&s, "id", scenario).into(), case: c.clone(), dev, seed, epoch_utc: epoch, jd0,

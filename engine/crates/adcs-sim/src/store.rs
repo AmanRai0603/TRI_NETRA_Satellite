@@ -145,6 +145,8 @@ pub fn list(root: &Path) -> Result<Vec<Found>, Error> {
         let rd = match std::fs::read_dir(&d) { Ok(r) => r, Err(_) => continue };
         for e in rd.flatten() {
             let p = e.path();
+            // folders are followed, links to folders are not: a link cannot loop the walk or lead outside
+            if e.file_type().map(|t| t.is_symlink()).unwrap_or(true) { continue; }
             if p.is_dir() { stack.push(p); continue; }
             if p.file_name().and_then(|n| n.to_str()) != Some("manifest.json") { continue; }
             let key = d.strip_prefix(root).unwrap_or(&d).display().to_string().replace('\\', "/");
