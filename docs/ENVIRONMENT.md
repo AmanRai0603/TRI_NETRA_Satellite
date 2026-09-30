@@ -12,9 +12,11 @@
 |---|---|---|
 | `ADCS_ROOT` | the data folder (cases, scenarios, catalogue) | `matlab_sils` found from the working folder, or the kit beside the program |
 | `TRINETRA_STORE` | where runs are kept | `~/.trinetra/store` for a kit, `matlab_sils/store` in a checkout |
+| `TRINETRA_RETENTION_DAYS` | days a run's time series (and a twin run's `rec.mat`) is kept in the store after the run; older unpinned runs keep their manifest only; `0` keeps everything | 30 for an installed kit; everything in a repository checkout |
 | `TRINETRA_LOG` | where crash reports go | `~/.trinetra/log` |
 | `ADCS_DE440` | the DE440 ephemeris kernel the orbit propagator reads | `pop/03_frames_time/ephemeris/data/de440s.bsp` in the data folder |
 | `ADCS_REPO` | the repository root, for `adcs` commands that build or load the flight software | the ancestor of the working folder holding `fsw/` |
+| `ADCS_LINK_TIMEOUT_S` | seconds the engine waits for any reply from an OBC on adcs-link/1 before it stops the run | 60 |
 | `ADCS_SIZED_DIR` | a folder of sized products flown before the stored ones (set by the design loop for its current iteration) | none |
 
 ## The app (`TRI-NETRA ADCS`, `trinetra-app`)

@@ -87,7 +87,7 @@ pub fn write(dir: &Path, c: &Config, rec: &Record, d: &Derived, metrics: &[Value
         "mode_log": rec.mode_log.iter().map(|(t, m)| json!({"t": t, "mode": m})).collect::<Vec<_>>(),
         "oils": rec.oils.as_ref().map(|s| s.json(c.dt)),
     });
-    if let (Some(o), Value::Object(p)) = (man.as_object_mut(), crate::store::provenance(c, &impl_label(&rec.fsw_impl))) { o.extend(p); }
+    if let (Some(o), Value::Object(p)) = (man.as_object_mut(), crate::store::provenance(c, &impl_label(&rec.fsw_impl), &impl_id(&rec.fsw_impl))) { o.extend(p); }
     // the inputs it flew, kept once by fingerprint, so it can be flown again exactly
     let inputs = crate::store::inputs_dir(dir);
     for (kind, file, key, ext) in [("case", &c.case.file, "case_fingerprint", "csv"), ("scenario", &c.scenario_file, "scenario_file_fingerprint", "json")] {
@@ -112,6 +112,22 @@ mod t {
 }
 
 /// Short label of where the flight software ran.
+/// The --fsw value that flies this flight software again (the named targets by name).
+pub fn impl_id(i: &adcs_fsw_abi::Impl) -> String {
+    use adcs_fsw_abi::{link::Target, Impl};
+    let ends = |x: &str, f: &str| x.replace('\\', "/").ends_with(&format!("fsw/build/{f}"));
+    match i {
+        Impl::C => "c".into(),
+        Impl::Rust => "rust".into(),
+        Impl::Obc(Target::Spawn(c)) if c[0].contains("qemu-system") && c.last().is_some_and(|x| ends(x, "obc_qemu.elf")) => "qemu".into(),
+        Impl::Obc(Target::Spawn(c)) if c[0].contains("qemu-system") && c.last().is_some_and(|x| ends(x, "obc_qemu_rs.elf")) => "qemu-rs".into(),
+        Impl::Obc(Target::Spawn(c)) if c.len() == 1 && ends(&c[0], "obc_posix") => "obc-posix".into(),
+        Impl::Obc(Target::Spawn(c)) if c.len() == 1 && ends(&c[0], "obc_posix_rs") => "obc-posix-rs".into(),
+        Impl::Obc(Target::Spawn(c)) => format!("spawn:{}", c.join(" ")),
+        Impl::Obc(Target::Tcp(a)) => format!("tcp:{a}"),
+    }
+}
+
 pub fn impl_label(i: &adcs_fsw_abi::Impl) -> String {
     use adcs_fsw_abi::{link::Target, Impl};
     match i {

@@ -12,3 +12,5 @@ adcs-pop = { path = "../adcs-pop" }
 adcs-fsw-abi = { path = "../adcs-fsw-abi" }
 adcs-fsw = { path = "../../../fsw-rs" }
 serde_json = { version = "1", features = ["preserve_order"] }
+# the results index (index.rs); bundled: SQLite compiled in, nothing to install
+rusqlite = { version = "0.40", features = ["bundled"] }

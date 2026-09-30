@@ -12,6 +12,8 @@ pub struct Dev {
     pub boresight: [f64; 3], pub sun_axis: [f64; 3],
     pub gyro: GyroDesc, pub mag: MagDesc, pub sun: SunDesc, pub css: CssDesc, pub st: StDesc, pub es: EsDesc, pub gps: GpsDesc,
     pub mtq: MtqDesc, pub mex: MexDesc, pub rcs: RcsDesc,
+    /// the product and part files it was read from (their fingerprint goes in the run's provenance)
+    pub files: Vec<PathBuf>,
 }
 
 /// data/<kind>/<id>.json, else store/sized/*/<kind>/<id>.json.
@@ -41,7 +43,8 @@ fn axes(v: Option<&Value>) -> Vec<[f64; 3]> { v.map(json::vecs).unwrap_or_defaul
 
 impl Dev {
     pub fn load(root: &Path, id: &str) -> Result<Dev, Error> {
-        let pr = json::read(&find(root, "products", id)?)?;
+        let pf = find(root, "products", id)?;
+        let pr = json::read(&pf)?;
         let mut d = Dev {
             id: json::s(&pr, "id", id).into(), label: json::s(&pr, "label", "").into(), family: json::s(&pr, "family", "").into(),
             algorithms: pr.get("algorithms").and_then(|a| a.as_array()).map(|a| a.iter().filter_map(|x| x.as_str().map(String::from)).collect()).unwrap_or_default(),
@@ -59,9 +62,12 @@ impl Dev {
             x.n += 1;
         };
         use adcs_sim_core::{NG, NH, NR, NS};
+        let mut files = vec![pf];
         for f in &fills {
             let part = json::s(f, "part", "");
-            let p = json::read(&find(root, "parts", part)?)?;
+            let partf = find(root, "parts", part)?;
+            let p = json::read(&partf)?;
+            files.push(partf);
             let nm = p.get("nominal").cloned().unwrap_or(Value::Null);
             let ds = p.get("dispersion").cloned().unwrap_or(Value::Null);
             // every value a fitted device reads must be stated by its part: none becomes NaN, then 0
@@ -181,6 +187,7 @@ impl Dev {
             }
         }
         d.mex = x;
+        d.files = files;
         Ok(d)
     }
 

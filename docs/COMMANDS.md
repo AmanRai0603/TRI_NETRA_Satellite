@@ -10,7 +10,7 @@
 | [`adcs params`](#adcs-params) | The flight software's parameter blob (adcs-fswcfg/1) for a scenario, as an OBC boots from it. |
 | [`adcs size`](#adcs-size) | The demand survey on the case's orbit, then every actuator option sized to it (magnetorquers, fluid loop, RCS, wheels, CMG, VSCMG). |
 | [`adcs parity`](#adcs-parity) | Fly the same scenario with two flight-software targets and report the largest difference in attitude and rate; bit-identical is the expected answer for C and Rust, and any difference exits with status 1. |
-| [`adcs results`](#adcs-results) | The results store: every run with its provenance, one line each; one run in full; runs kept (pinned) or thinned to their manifest when old; a run as one share file, and back. |
+| [`adcs results`](#adcs-results) | The results store: every run with its provenance, one line each; one run in full; runs kept (pinned) or thinned to their manifest when old; a run as one share file, and back; any read-only question to its SQLite index; the runs another engine or other inputs flew; a stored run flown again with what changed. |
 | [`engine.py build`](#enginepy-build) | Build and test everything that flies: the C flight software, the Rust flight software (host and Cortex-M), the virtual OBC firmware and the Rust engine. |
 | [`engine.py run`](#enginepy-run) | Fly scenarios on the engine in parallel (every scenario when none is named). |
 | [`engine.py mc`](#enginepy-mc) | A seed sweep of one scenario: the same scenario flown with N sensor-noise seeds. |
@@ -29,6 +29,7 @@
 | [`pack_matlab.py pack-matlab`](#pack_matlabpy-pack-matlab) | The downloadable MATLAB SILS zip, deterministic (sorted files, fixed timestamps), with its SHA-256 manifest. |
 | [`pack_flight.py pack-flight`](#pack_flightpy-pack-flight) | The flight software and Rust engine zip, in the repository's layout so it builds as unpacked. |
 | [`gen_fsw_params.py gen-fsw-params`](#gen_fsw_paramspy-gen-fsw-params) | The flight software's parameter and table sources, C and Rust, from their one definition. --check says which generated file is stale, and changes nothing. |
+| [`fsw_stack.py fsw-stack`](#fsw_stackpy-fsw-stack) | The flight software's deepest stack on the Cortex-M4 firmware, from GCC's call graph, against the stack the linker script reserves. Recursion and unbounded frames are refused; a library routine is charged a fixed frame and named. |
 | [`export_catalogue.py export-catalogue`](#export_cataloguepy-export-catalogue) | The catalogue, scenarios, campaigns and trades from TOML to the JSON the MATLAB twin and the engine read. --check says which JSON has drifted from its TOML, and changes nothing. |
 | [`nodes_doc.py nodes-doc`](#nodes_docpy-nodes-doc) | docs/NODES.md and docs/CATALOGUE.md from the node registry and the datasheet catalogue. |
 | [`components_doc.py components-doc`](#components_docpy-components-doc) | docs/COMPONENTS.md: every sensor and actuator, the model the SILS flies, and its processing chain. |
@@ -59,7 +60,8 @@ Fly one scenario on one case: the plant, the environment and the POP orbit in Ru
 3. fly the closed loop for the scenario's duration
 4. derive the metrics and judge them against the case's requirements
 5. keep the case and scenario files it flew, once each by fingerprint, in the store's inputs/
-6. write channels.csv, then manifest.json with the run's provenance
+6. write channels.csv, then manifest.json with the run's provenance (engine source, case, scenario and product fingerprints)
+7. apply the store's retention when the run went into the store (a kit: time series older than 30 days, pinned runs aside; TRINETRA_RETENTION_DAYS)
 
 - **Reads:** `matlab_sils/data/scenarios/<scenario>.json`; `matlab_sils/cases/<case>.csv`; `matlab_sils/data/products, parts, algorithms`; `matlab_sils/pop/.../de440s.bsp`
 - **Writes:** `matlab_sils/store/results_engine/<scenario>/ (or --out): channels.csv, manifest.json`; `matlab_sils/store/inputs/ (or <out>/inputs/)`
@@ -115,20 +117,23 @@ Fly the same scenario with two flight-software targets and report the largest di
 
 ## adcs results
 
-The results store: every run with its provenance, one line each; one run in full; runs kept (pinned) or thinned to their manifest when old; a run as one share file, and back.
+The results store: every run with its provenance, one line each; one run in full; runs kept (pinned) or thinned to their manifest when old; a run as one share file, and back; any read-only question to its SQLite index; the runs another engine or other inputs flew; a stored run flown again with what changed.
 
-    adcs results list [DIR] | show <run> | pin|unpin <run> | thin --older-than DAYS [DIR] [--dry-run] | export <run> --out F.trinetra | import F.trinetra --out DIR
+    adcs results list [DIR] | show <run> | pin|unpin <run> | thin --older-than DAYS [DIR] [--dry-run] | export <run> --out F.trinetra | import F.trinetra --out DIR | query --sql SELECT [DIR] | stale [DIR] | refly <run> [--out DIR] [--fsw T]
 
 **Steps**
 
-1. list: find every manifest.json (adcs-rec/1) under the folder, reading only those new or changed since its index (.adcs-index.json)
+1. list: find every manifest.json (adcs-rec/1) under the folder, reading only those new or changed since its index (.adcs-index.sqlite), then bring the index to exactly what is there
 2. show: print the run's provenance and requirement metrics and the command that flies it again, from the inputs it kept
-3. pin: mark a run to keep; thin: remove the time series of unpinned runs older than DAYS, keeping every manifest
+3. pin: mark a run to keep; thin: remove the bulk (channels.csv, the twin's rec.mat and run_*.mat) of unpinned runs older than DAYS, keeping every manifest
 4. export: write README, manifest, channels and the kept inputs into one zip
 5. import: check every entry's name and checksum, then write them into the folder
+6. query: bring the index up to date, then run one read-only SQL statement on its runs and metrics tables
+7. stale: compare every run's engine source, case, scenario and product fingerprints with today's and name what differs; exit 1 when any run is stale
+8. refly: fly the run again from its kept inputs into <store>/refly/<run> and print every metric stored against now
 
-- **Reads:** `matlab_sils/store/results_engine/ (or DIR)`
-- **Writes:** `list: <folder>/.adcs-index.json; pin: <run>/PINNED; thin: removes <run>/channels.csv; export: the .trinetra file; import: the folder`
+- **Reads:** `matlab_sils/store/results_engine/ (or DIR)`; the case, scenario and product files the runs name (stale); the run's kept inputs (refly)
+- **Writes:** `list, query, stale: <folder>/.adcs-index.sqlite; pin: <run>/PINNED; thin: removes the bulk files; export: the .trinetra file; import: the folder; refly: <store>/refly/<run>/ (or --out)`
 - **Starts:** nothing
 
 ## engine.py build
@@ -421,6 +426,22 @@ The flight software's parameter and table sources, C and Rust, from their one de
 - **Reads:** `fsw/params/params.toml`; `matlab_sils/data/igrf13.json`
 - **Writes:** `fsw/include/adcs_params.h`; `fsw/src/adcs_params.c`; `fsw-rs/src/params.rs`; `fsw/include/adcs_igrf13.h`; `fsw-rs/src/igrf13.rs`
 - **Starts:** nothing
+
+## fsw_stack.py fsw-stack
+
+The flight software's deepest stack on the Cortex-M4 firmware, from GCC's call graph, against the stack the linker script reserves. Recursion and unbounded frames are refused; a library routine is charged a fixed frame and named.
+
+    python3 tools/fsw_stack.py
+
+**Steps**
+
+1. compile the firmware sources with -fstack-usage -fcallgraph-info=su
+2. walk the call graph from Reset_Handler and add the frames along the deepest path
+3. fail if it is over _stack_size in link.ld
+
+- **Reads:** `fsw/src/`; `fsw/targets/link/`; `fsw/targets/qemu-mps2/`
+- **Writes:** nothing
+- **Starts:** arm-none-eabi-gcc
 
 ## export_catalogue.py export-catalogue
 

@@ -161,6 +161,29 @@ pub enum ResultsCmd {
         #[arg(long, value_name = "DIR")]
         out: PathBuf,
     },
+    /// ask the results index one read-only SQL question (tables runs and metrics)
+    Query {
+        /// one SELECT, e.g. "SELECT scenario, value FROM metrics JOIN runs USING (folder) WHERE id LIKE 'ape%'"
+        #[arg(long, value_name = "SELECT")]
+        sql: String,
+        /// the folder (default: <store>/results_engine)
+        dir: Option<PathBuf>,
+    },
+    /// every stored run another engine or other inputs flew, and why; exit 1 when any
+    Stale {
+        /// the folder (default: <store>/results_engine)
+        dir: Option<PathBuf>,
+    },
+    /// fly a stored run again from the inputs it kept, and show what changed
+    Refly {
+        run: PathBuf,
+        /// where the new run goes (default: <store>/refly/<run folder name>)
+        #[arg(long, value_name = "DIR")]
+        out: Option<PathBuf>,
+        /// fly it on this flight software instead of the one it flew (c | rust | obc-posix | qemu | ...)
+        #[arg(long, value_name = "T")]
+        fsw: Option<String>,
+    },
 }
 
 fn key_value(s: &str) -> Result<(String, String), String> {

@@ -14,7 +14,7 @@ tool = "adcs"
 name = "run"
 usage = "adcs run <scenario> [--case F] [--fsw c|rust|obc-posix|qemu|...] [--seed N] [--out DIR] [--set k=v]... [--oils] [--quiet]"
 what = "Fly one scenario on one case: the plant, the environment and the POP orbit in Rust, the flight software (C or Rust, or a virtual OBC) behind the byte HAL, then the metrics and their verdicts."
-steps = ["check the scenario id, the case and every --set (refused by name, never guessed)", "build the configuration: case + scenario + product, the flight-software parameters", "fly the closed loop for the scenario's duration", "derive the metrics and judge them against the case's requirements", "keep the case and scenario files it flew, once each by fingerprint, in the store's inputs/", "write channels.csv, then manifest.json with the run's provenance"]
+steps = ["check the scenario id, the case and every --set (refused by name, never guessed)", "build the configuration: case + scenario + product, the flight-software parameters", "fly the closed loop for the scenario's duration", "derive the metrics and judge them against the case's requirements", "keep the case and scenario files it flew, once each by fingerprint, in the store's inputs/", "write channels.csv, then manifest.json with the run's provenance (engine source, case, scenario and product fingerprints)", "apply the store's retention when the run went into the store (a kit: time series older than 30 days, pinned runs aside; TRINETRA_RETENTION_DAYS)"]
 reads = ["matlab_sils/data/scenarios/<scenario>.json", "matlab_sils/cases/<case>.csv", "matlab_sils/data/products, parts, algorithms", "matlab_sils/pop/.../de440s.bsp"]
 writes = ["matlab_sils/store/results_engine/<scenario>/ (or --out): channels.csv, manifest.json", "matlab_sils/store/inputs/ (or <out>/inputs/)"]
 runs = []
@@ -52,11 +52,11 @@ runs = ["the virtual OBC or QEMU, when a target names one"]
 [[command]]
 tool = "adcs"
 name = "results"
-usage = "adcs results list [DIR] | show <run> | pin|unpin <run> | thin --older-than DAYS [DIR] [--dry-run] | export <run> --out F.trinetra | import F.trinetra --out DIR"
-what = "The results store: every run with its provenance, one line each; one run in full; runs kept (pinned) or thinned to their manifest when old; a run as one share file, and back."
-steps = ["list: find every manifest.json (adcs-rec/1) under the folder, reading only those new or changed since its index (.adcs-index.json)", "show: print the run's provenance and requirement metrics and the command that flies it again, from the inputs it kept", "pin: mark a run to keep; thin: remove the time series of unpinned runs older than DAYS, keeping every manifest", "export: write README, manifest, channels and the kept inputs into one zip", "import: check every entry's name and checksum, then write them into the folder"]
-reads = ["matlab_sils/store/results_engine/ (or DIR)"]
-writes = ["list: <folder>/.adcs-index.json; pin: <run>/PINNED; thin: removes <run>/channels.csv; export: the .trinetra file; import: the folder"]
+usage = "adcs results list [DIR] | show <run> | pin|unpin <run> | thin --older-than DAYS [DIR] [--dry-run] | export <run> --out F.trinetra | import F.trinetra --out DIR | query --sql SELECT [DIR] | stale [DIR] | refly <run> [--out DIR] [--fsw T]"
+what = "The results store: every run with its provenance, one line each; one run in full; runs kept (pinned) or thinned to their manifest when old; a run as one share file, and back; any read-only question to its SQLite index; the runs another engine or other inputs flew; a stored run flown again with what changed."
+steps = ["list: find every manifest.json (adcs-rec/1) under the folder, reading only those new or changed since its index (.adcs-index.sqlite), then bring the index to exactly what is there", "show: print the run's provenance and requirement metrics and the command that flies it again, from the inputs it kept", "pin: mark a run to keep; thin: remove the bulk (channels.csv, the twin's rec.mat and run_*.mat) of unpinned runs older than DAYS, keeping every manifest", "export: write README, manifest, channels and the kept inputs into one zip", "import: check every entry's name and checksum, then write them into the folder", "query: bring the index up to date, then run one read-only SQL statement on its runs and metrics tables", "stale: compare every run's engine source, case, scenario and product fingerprints with today's and name what differs; exit 1 when any run is stale", "refly: fly the run again from its kept inputs into <store>/refly/<run> and print every metric stored against now"]
+reads = ["matlab_sils/store/results_engine/ (or DIR)", "the case, scenario and product files the runs name (stale)", "the run's kept inputs (refly)"]
+writes = ["list, query, stale: <folder>/.adcs-index.sqlite; pin: <run>/PINNED; thin: removes the bulk files; export: the .trinetra file; import: the folder; refly: <store>/refly/<run>/ (or --out)"]
 runs = []
 
 # ---------------------------------------------------------------- orchestration (Python)
@@ -244,6 +244,16 @@ steps = ["read fsw/params/params.toml and the IGRF table", "write the C header a
 reads = ["fsw/params/params.toml", "matlab_sils/data/igrf13.json"]
 writes = ["fsw/include/adcs_params.h", "fsw/src/adcs_params.c", "fsw-rs/src/params.rs", "fsw/include/adcs_igrf13.h", "fsw-rs/src/igrf13.rs"]
 runs = []
+
+[[command]]
+tool = "fsw_stack.py"
+name = "fsw-stack"
+usage = "python3 tools/fsw_stack.py"
+what = "The flight software's deepest stack on the Cortex-M4 firmware, from GCC's call graph, against the stack the linker script reserves. Recursion and unbounded frames are refused; a library routine is charged a fixed frame and named."
+steps = ["compile the firmware sources with -fstack-usage -fcallgraph-info=su", "walk the call graph from Reset_Handler and add the frames along the deepest path", "fail if it is over _stack_size in link.ld"]
+reads = ["fsw/src/", "fsw/targets/link/", "fsw/targets/qemu-mps2/"]
+writes = []
+runs = ["arm-none-eabi-gcc"]
 
 [[command]]
 tool = "export_catalogue.py"

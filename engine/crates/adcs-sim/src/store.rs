@@ -12,13 +12,20 @@
 //!   flown again exactly after the case or the scenario has changed.
 //! - **list / show.** `adcs results list [DIR]` finds every run under a folder (the
 //!   engine's store by default) and prints one line each; `show` prints one run's
-//!   provenance and requirement metrics. `list` keeps an index (`.adcs-index.json`) of what
-//!   it read from each manifest, keyed by the manifest's size and time, so it reads only
-//!   runs that are new or changed; the index can never be stale, only slower.
-//! - **pin / thin.** `pin` marks a run to keep. `thin --older-than DAYS` removes the time
-//!   series (channels.csv, the bulk of a run) from runs older than that which are not pinned;
-//!   the manifest stays, so the verdicts and the provenance remain, and `show` gives the
-//!   command that flies the same run again.
+//!   provenance and requirement metrics. `list` keeps an index (`.adcs-index.sqlite`, index.rs)
+//!   of what it read from each manifest, keyed by the manifest's size and time, so it reads
+//!   only runs that are new or changed; the index can never be stale, only slower, and
+//!   `query --sql` asks it anything (read only).
+//! - **Fresh or stale.** A run records the fingerprint of the engine's and the flight
+//!   software's sources, of its case, scenario and product files. `stale` names every stored
+//!   run one of them no longer matches: a verdict flown on another engine or other inputs.
+//!   `refly` flies a stored run again from the inputs it kept and shows what changed.
+//! - **pin / thin / retention.** `pin` marks a run to keep. `thin --older-than DAYS` removes
+//!   the time series (channels.csv, the bulk of a run) from runs older than that which are not
+//!   pinned; the manifest stays, so the verdicts and the provenance remain, and `show` gives
+//!   the command that flies the same run again. Every run written into the store applies the
+//!   retention on its own: an installed kit keeps time series 30 days and summaries for ever;
+//!   a repository checkout keeps everything; `TRINETRA_RETENTION_DAYS` sets it (0 = keep all).
 //! - **export / import.** `adcs results export <run> --out F.trinetra` writes the run's
 //!   manifest and channels, with a README, into one zip file any unzip tool opens;
 //!   `import` puts one back into a folder.
@@ -64,14 +71,30 @@ pub fn find_input(dir: &Path, name: &str) -> Option<PathBuf> {
     dir.ancestors().map(|a| a.join("inputs").join(name)).find(|p| p.is_file())
 }
 
+/// The fingerprint of the engine's and the flight software's sources this program was built from (build.rs).
+pub const ENGINE_SOURCE: &str = env!("ADCS_ENGINE_SOURCE");
+
+/// One fingerprint over the files a product was read from (names and bytes, in order).
+pub fn product_fingerprint(files: &[PathBuf]) -> u64 {
+    let mut all = vec![];
+    for f in files {
+        all.extend_from_slice(f.file_name().map(|n| n.to_string_lossy().into_owned()).unwrap_or_default().as_bytes());
+        all.push(0);
+        all.extend(std::fs::read(f).unwrap_or_default().into_iter().filter(|b| *b != b'\r'));
+    }
+    fnv(&all)
+}
+
 /// The provenance block of a run's manifest.
-pub fn provenance(c: &crate::config::Config, fsw: &str) -> Value {
+pub fn provenance(c: &crate::config::Config, fsw: &str, fsw_id: &str) -> Value {
     let case_bytes = std::fs::read(&c.case.file).unwrap_or_default();
     let scen_file_h = fnv(&std::fs::read(&c.scenario_file).unwrap_or_default());
     let scen = serde_json::to_string(&c.scenario).unwrap_or_default();
     let (case_h, scen_h) = (fnv(&case_bytes), fnv(scen.as_bytes()));
     let ov: Vec<String> = c.overrides.iter().map(|(k, v)| format!("{k}={v}")).collect();
-    let id = fnv(format!("{}|{}|{}|{}|{}|{}", env!("CARGO_PKG_VERSION"), hex(case_h), hex(scen_h), ov.join(";"), c.seed, fsw).as_bytes());
+    let prod_h = product_fingerprint(&c.dev.files);
+    let id = fnv(format!("{}|{}|{}|{}|{}|{}|{}|{}", env!("CARGO_PKG_VERSION"), ENGINE_SOURCE, hex(case_h), hex(scen_h), hex(prod_h),
+        ov.join(";"), c.seed, fsw).as_bytes());
     // paths inside the data folder are recorded relative to it, so a manifest names no machine
     let root = crate::data_root();
     let rel = |p: &str| -> String {
@@ -84,9 +107,12 @@ pub fn provenance(c: &crate::config::Config, fsw: &str) -> Value {
         "result_id": hex(id),
         "created_utc": crate::fsio::utc_now().1,
         "engine_version": env!("CARGO_PKG_VERSION"),
+        "engine_source": ENGINE_SOURCE,
+        "product_fingerprint": hex(prod_h),
+        "product_files": c.dev.files.iter().map(|f| rel(&f.display().to_string())).collect::<Vec<_>>(),
         "inputs": {"case_file": rel(&c.case.file), "case_fingerprint": hex(case_h), "scenario_file": rel(&c.scenario_file),
                    "scenario_fingerprint": hex(scen_h), "scenario_file_fingerprint": hex(scen_file_h),
-                   "overrides": ov, "seed": c.seed, "fsw": fsw},
+                   "overrides": ov, "seed": c.seed, "fsw": fsw, "fsw_id": fsw_id},
     })
 }
 
@@ -94,13 +120,26 @@ pub fn provenance(c: &crate::config::Config, fsw: &str) -> Value {
 #[derive(Debug, Clone)]
 pub struct Found { pub dir: PathBuf, pub m: Value }
 
+/// The bulk of a run, which `thin` removes: the engine's and the twin's time series and the
+/// twin's full recording (rec.mat, run_*.mat). The manifest, the figures and the page stay.
+pub fn bulk(dir: &Path) -> Vec<PathBuf> {
+    let mut v: Vec<PathBuf> = ["channels.csv", "rec.mat"].iter().map(|f| dir.join(f)).filter(|p| p.is_file()).collect();
+    if let Ok(rd) = std::fs::read_dir(dir) {
+        let mut runs: Vec<PathBuf> = rd.flatten().map(|e| e.path())
+            .filter(|p| p.is_file() && p.file_name().and_then(|n| n.to_str()).is_some_and(|n| n.starts_with("run_") && n.ends_with(".mat"))).collect();
+        runs.sort();
+        v.extend(runs);
+    }
+    v
+}
+
 /// The file that marks a run as kept: `thin` never touches a run that has it.
 pub const PIN: &str = "PINNED";
 
 impl Found {
     pub fn pinned(&self) -> bool { self.dir.join(PIN).is_file() }
-    /// Thinned: the manifest without its time series.
-    pub fn thinned(&self) -> bool { !self.dir.join("channels.csv").is_file() }
+    /// Thinned: the manifest without its time series (no bulk file left).
+    pub fn thinned(&self) -> bool { bulk(&self.dir).is_empty() }
     fn s(&self, k: &str) -> String { self.m.get(k).and_then(|v| v.as_str()).unwrap_or("").to_string() }
     /// (passed, failed) requirement metrics.
     pub fn verdicts(&self) -> (usize, usize) {
@@ -111,14 +150,19 @@ impl Found {
     }
 }
 
-/// The index `list` keeps in the folder it lists.
-pub const INDEX: &str = ".adcs-index.json";
+/// The index `list` keeps in the folder it lists (index.rs).
+pub use crate::index::FILE as INDEX;
+/// The plain-file index of earlier versions: removed when the SQLite one is written.
+const OLD_INDEX: &str = ".adcs-index.json";
 
-/// What `list` keeps of a manifest: enough for the table, `thin` and the app.
+/// What `list` keeps of a manifest: enough for the table, `thin`, `stale`, the queries and the app.
 fn summary(m: &Value) -> Value {
-    let metrics: Vec<Value> = m["metrics"].as_array().map(|a| a.iter().map(|x| json!({"pass": x["pass"]})).collect()).unwrap_or_default();
-    json!({"schema": m["schema"], "scenario": m["scenario"], "case": m["case"], "created_utc": m["created_utc"],
-           "result_id": m["result_id"], "fsw": {"impl": m["fsw"]["impl"]}, "metrics": metrics})
+    let metrics: Vec<Value> = m["metrics"].as_array().map(|a| a.iter().map(|x| json!({
+        "id": x["id"], "kind": x["kind"], "unit": x["unit"], "value": x["value"], "req": x["req"], "pass": x["pass"]})).collect()).unwrap_or_default();
+    json!({"schema": m["schema"], "scenario": m["scenario"], "case": m["case"], "product": m["product"], "created_utc": m["created_utc"],
+           "result_id": m["result_id"], "engine": m["engine"], "engine_version": m["engine_version"], "engine_source": m["engine_source"],
+           "product_fingerprint": m["product_fingerprint"], "product_files": m["product_files"],
+           "fsw": {"impl": m["fsw"]["impl"]}, "inputs": m["inputs"], "metrics": metrics})
 }
 
 /// A manifest's identity for the index: its size and modification time.
@@ -133,12 +177,9 @@ fn stamp(p: &Path) -> Option<String> {
 /// (and left alone where the folder cannot be written).
 pub fn list(root: &Path) -> Result<Vec<Found>, Error> {
     if !root.is_dir() { return Err(Error::refused(format!("{} is not a folder", root.display()))); }
-    let ix_path = root.join(INDEX);
-    let old: serde_json::Map<String, Value> = std::fs::read_to_string(&ix_path).ok()
-        .and_then(|s| serde_json::from_str::<Value>(&s).ok())
-        .filter(|v| v["schema"] == "adcs-index/1")
-        .and_then(|v| v["runs"].as_object().cloned()).unwrap_or_default();
-    let mut new = serde_json::Map::new();
+    let mut ix = crate::index::Index::open(root);
+    let old = ix.known();
+    let mut rows = vec![];
     let mut out = vec![];
     let mut stack = vec![root.to_path_buf()];
     while let Some(d) = stack.pop() {
@@ -151,7 +192,7 @@ pub fn list(root: &Path) -> Result<Vec<Found>, Error> {
             if p.file_name().and_then(|n| n.to_str()) != Some("manifest.json") { continue; }
             let key = d.strip_prefix(root).unwrap_or(&d).display().to_string().replace('\\', "/");
             let Some(st) = stamp(&p) else { continue };
-            let known = old.get(&key).filter(|v| v["stamp"].as_str() == Some(st.as_str())).map(|v| v["m"].clone());
+            let known = old.get(&key).filter(|(s, _)| *s == st).map(|(_, m)| m.clone());
             let m = match known {
                 Some(m) => m,
                 None => match std::fs::read_to_string(&p).ok().and_then(|s| serde_json::from_str::<Value>(&s).ok()) {
@@ -160,13 +201,13 @@ pub fn list(root: &Path) -> Result<Vec<Found>, Error> {
                 },
             };
             if m.get("schema").and_then(|v| v.as_str()) != Some("adcs-rec/1") { continue; }
-            new.insert(key, json!({"stamp": st, "m": m.clone()}));
-            out.push(Found { dir: d.clone(), m });
+            let f = Found { dir: d.clone(), m };
+            rows.push(crate::index::Row { folder: key, stamp: st, summary: f.m.clone(), pinned: f.pinned(), thinned: f.thinned() });
+            out.push(f);
         }
     }
-    if new != old {
-        let _ = crate::fsio::write(&ix_path, serde_json::to_string(&json!({"schema": "adcs-index/1", "runs": new})).unwrap_or_default() + "\n");
-    }
+    // the index only saves reading: a folder it cannot be written in is listed all the same
+    if ix.sync(&rows).is_ok() { let _ = std::fs::remove_file(root.join(OLD_INDEX)); }
     out.sort_by(|a, b| a.dir.cmp(&b.dir));
     Ok(out)
 }
@@ -320,12 +361,117 @@ pub fn thin(root: &Path, days: u64, dry: bool) -> Result<(Vec<PathBuf>, u64), Er
         if f.pinned() || f.thinned() { continue; }
         let Some(t) = created_secs(&f.m) else { continue };   // a run with no date is left alone
         if now.saturating_sub(t) < days*86400 { continue; }
-        let c = f.dir.join("channels.csv");
-        freed += std::fs::metadata(&c).map(|m| m.len()).unwrap_or(0);
-        if !dry { std::fs::remove_file(&c).map_err(|e| Error::io(&c, e))?; }
+        for c in bulk(&f.dir) {
+            freed += std::fs::metadata(&c).map(|m| m.len()).unwrap_or(0);
+            if !dry { std::fs::remove_file(&c).map_err(|e| Error::io(&c, e))?; }
+        }
         done.push(f.dir.clone());
     }
     Ok((done, freed))
+}
+
+/// Why a stored run no longer stands for what today's engine and inputs would fly (empty when it
+/// does): another engine or flight-software source, a changed or missing case, scenario or product
+/// file, or a run recorded before runs named them.
+pub fn stale(f: &Found) -> Vec<String> {
+    let m = &f.m;
+    let mut why = vec![];
+    if m["engine"].as_str().is_some_and(|e| e.starts_with("asils")) {
+        return vec!["a MATLAB twin run: the twin records no source fingerprint yet".into()];
+    }
+    match m["engine_source"].as_str() {
+        None => why.push("recorded before runs named their engine source".to_string()),
+        Some(e) if e != ENGINE_SOURCE => why.push(format!("flown on engine source {e}, this engine is {ENGINE_SOURCE}")),
+        _ => {}
+    }
+    let i = &m["inputs"];
+    if i.is_null() { why.push("recorded before runs named their inputs".into()); return why; }
+    let root = crate::data_root();
+    let now = |key: &str| -> Option<Option<String>> {
+        let f = i[key].as_str()?;
+        let p = if Path::new(f).is_absolute() { PathBuf::from(f) } else { root.join(f) };
+        Some(std::fs::read(&p).ok().map(|b| hex(fnv(&b))))
+    };
+    for (what, file, fp) in [("case", "case_file", "case_fingerprint"), ("scenario", "scenario_file", "scenario_file_fingerprint")] {
+        match now(file) {
+            Some(None) => why.push(format!("its {what} file {} is gone", i[file].as_str().unwrap_or("?"))),
+            Some(Some(h)) if Some(h.as_str()) != i[fp].as_str() => why.push(format!("its {what} file {} changed since", i[file].as_str().unwrap_or("?"))),
+            _ => {}
+        }
+    }
+    match (m["product_fingerprint"].as_str(), m["product_files"].as_array()) {
+        (Some(fp), Some(files)) => {
+            let fs: Vec<PathBuf> = files.iter().filter_map(|x| x.as_str()).map(|x| if Path::new(x).is_absolute() { PathBuf::from(x) } else { root.join(x) }).collect();
+            if fs.iter().any(|p| !p.is_file()) { why.push("a product or part file it was read from is gone".into()); }
+            else if hex(product_fingerprint(&fs)) != fp { why.push(format!("its product {} or one of its parts changed since", m["product"].as_str().unwrap_or("?"))); }
+        }
+        _ => why.push("recorded before runs named their product files".into()),
+    }
+    why
+}
+
+/// Days a run's time series is kept in the store: $TRINETRA_RETENTION_DAYS; else 30 for an
+/// installed kit's store, and every series in a repository checkout (whose rendered pages are
+/// drawn from its local series). 0 keeps every series (None).
+pub fn retention_days() -> Result<Option<u64>, Error> {
+    let default = if crate::data_root().join("VERSION").is_file() { Some(30) } else { None };
+    match std::env::var("TRINETRA_RETENTION_DAYS") {
+        Err(_) => Ok(default),
+        Ok(v) if v.trim().is_empty() => Ok(default),
+        Ok(v) => match v.trim().parse::<u64>() {
+            Ok(0) => Ok(None),
+            Ok(n) => Ok(Some(n)),
+            Err(_) => Err(Error::refused(format!("TRINETRA_RETENTION_DAYS = {v:?}: a whole number of days (0 keeps every time series)"))),
+        },
+    }
+}
+
+/// The retention of the store, applied after a run is written into it: runs older than the
+/// retention that are not pinned lose their time series, never their manifest.
+pub fn apply_retention(root: &Path) -> Result<(Vec<PathBuf>, u64), Error> {
+    match retention_days()? {
+        Some(d) if root.is_dir() => thin(root, d, false),
+        _ => Ok((vec![], 0)),
+    }
+}
+
+/// kept_inputs without the flight software (the caller names it).
+pub fn kept_inputs_any(dir: &Path) -> Result<(PathBuf, PathBuf, u64, Vec<(String, String)>, String), Error> {
+    let p = dir.join("manifest.json");
+    let mut m: Value = serde_json::from_str(&std::fs::read_to_string(&p).map_err(|e| Error::io(&p, e))?)
+        .map_err(|e| Error::malformed(format!("{}: {e}", p.display())))?;
+    m["inputs"]["fsw_id"] = json!("c");
+    kept_inputs_from(dir, &m)
+}
+
+/// What a stored run flew, from the inputs it kept: (scenario file, case file, seed, overrides,
+/// flight software). Refused when the run kept no copy (the files it names may have changed).
+pub fn kept_inputs(dir: &Path) -> Result<(PathBuf, PathBuf, u64, Vec<(String, String)>, String), Error> {
+    let p = dir.join("manifest.json");
+    if !p.is_file() { return Err(Error::refused(format!("{} is not a run: it has no manifest.json", dir.display()))); }
+    let m: Value = serde_json::from_str(&std::fs::read_to_string(&p).map_err(|e| Error::io(&p, e))?)
+        .map_err(|e| Error::malformed(format!("{}: {e}", p.display())))?;
+    kept_inputs_from(dir, &m)
+}
+
+fn kept_inputs_from(dir: &Path, m: &Value) -> Result<(PathBuf, PathBuf, u64, Vec<(String, String)>, String), Error> {
+    let p = dir.join("manifest.json");
+    let i = &m["inputs"];
+    if i.is_null() { return Err(Error::refused(format!("{} was recorded before runs named their inputs: fly its scenario again instead", dir.display()))); }
+    let kept = |kind: &str, key: &str, ext: &str| i[key].as_str().and_then(|fp| find_input(dir, &input_name(kind, fp, ext)))
+        .ok_or_else(|| Error::refused(format!("{} kept no copy of its {kind} file (the file it names may have changed): fly it with `adcs run` instead", dir.display())));
+    let scen = kept("scenario", "scenario_file_fingerprint", "json")?;
+    let case = kept("case", "case_fingerprint", "csv")?;
+    let seed = i["seed"].as_u64().ok_or_else(|| Error::malformed(format!("{}: inputs.seed is not a number", p.display())))?;
+    let ov = i["overrides"].as_array().map(|a| a.iter().filter_map(|x| x.as_str()).filter_map(|o| o.split_once('=')).map(|(k, v)| (k.to_string(), v.to_string())).collect()).unwrap_or_default();
+    // the --fsw that flies it again: recorded since fsw_id, else read from the label of the two in-process builds
+    let fsw = match (i["fsw_id"].as_str(), i["fsw"].as_str()) {
+        (Some(id), _) => id.to_string(),
+        (None, Some(l)) if l.starts_with("c (") => "c".into(),
+        (None, Some(l)) if l.starts_with("rust (") => "rust".into(),
+        (None, l) => return Err(Error::refused(format!("{} flew {}: give the flight software to fly it on with --fsw", dir.display(), l.unwrap_or("an unnamed flight software")))),
+    };
+    Ok((scen, case, seed, ov, fsw))
 }
 
 /// Write a run as one `.trinetra` file.
@@ -438,15 +584,18 @@ mod t {
         let _ = std::fs::remove_dir_all(&d);
         let put = |name: &str, scen: &str| {
             std::fs::create_dir_all(d.join(name)).unwrap();
-            std::fs::write(d.join(name).join("manifest.json"), json!({"schema": "adcs-rec/1", "scenario": scen, "metrics": [{"pass": 1}]}).to_string()).unwrap();
+            std::fs::write(d.join(name).join("manifest.json"), json!({"schema": "adcs-rec/1", "scenario": scen,
+                "metrics": [{"id": "ape", "value": 1.5, "req": 2.0, "pass": 1}]}).to_string()).unwrap();
         };
+        std::fs::create_dir_all(&d).unwrap();
+        std::fs::write(d.join(OLD_INDEX), "{}").unwrap();
         put("a", "first");
         assert_eq!(list(&d).unwrap()[0].m["scenario"], "first");
-        let ix = std::fs::read_to_string(d.join(INDEX)).unwrap();
-        assert!(ix.contains("adcs-index/1") && ix.contains("\"a\""));
-        // a planted index entry whose stamp matches is used as it is: the manifest is not read again
-        let st = stamp(&d.join("a/manifest.json")).unwrap();
-        std::fs::write(d.join(INDEX), json!({"schema": "adcs-index/1", "runs": {"a": {"stamp": st, "m": {"schema": "adcs-rec/1", "scenario": "from the index"}}}}).to_string()).unwrap();
+        assert!(d.join(INDEX).is_file() && !d.join(OLD_INDEX).exists(), "the SQLite index replaces the plain-file one");
+        // an index row whose stamp matches is used as it is: the manifest is not read again
+        let c = rusqlite::Connection::open(d.join(INDEX)).unwrap();
+        c.execute("UPDATE runs SET summary = ?1 WHERE folder = 'a'", [json!({"schema": "adcs-rec/1", "scenario": "from the index", "metrics": []}).to_string()]).unwrap();
+        drop(c);
         assert_eq!(list(&d).unwrap()[0].m["scenario"], "from the index");
         // a changed manifest, a new run and a removed run are all seen
         std::thread::sleep(std::time::Duration::from_millis(20));
@@ -454,9 +603,57 @@ mod t {
         put("b", "new");
         let got: Vec<String> = list(&d).unwrap().iter().map(|f| f.m["scenario"].as_str().unwrap().to_string()).collect();
         assert_eq!(got, ["second longer", "new"]);
+        let (cols, rows) = crate::index::query(&d, "SELECT folder, id, value, pass FROM metrics ORDER BY folder").unwrap();
+        assert_eq!(cols, ["folder", "id", "value", "pass"]);
+        assert_eq!(rows, [["a", "ape", "1.5", "1"], ["b", "ape", "1.5", "1"]]);
+        assert!(crate::index::query(&d, "DELETE FROM runs").unwrap_err().message().contains("only reads"), "a query cannot write");
         std::fs::remove_dir_all(d.join("b")).unwrap();
         assert_eq!(list(&d).unwrap().len(), 1);
-        assert!(!std::fs::read_to_string(d.join(INDEX)).unwrap().contains("\"b\""), "a removed run leaves the index");
+        assert_eq!(crate::index::query(&d, "SELECT count(*) FROM metrics").unwrap().1, [["1"]], "a removed run leaves the index, its metrics too");
+        // a damaged index is rebuilt, never trusted
+        std::fs::write(d.join(INDEX), "not a database").unwrap();
+        assert_eq!(list(&d).unwrap()[0].m["scenario"], "second longer");
+        let _ = std::fs::remove_dir_all(&d);
+    }
+    #[test]
+    fn a_run_says_why_it_is_stale() {
+        let f = |m: Value| Found { dir: PathBuf::from("x"), m };
+        let old = stale(&f(json!({"schema": "adcs-rec/1"})));
+        assert!(old.iter().any(|w| w.contains("engine source")) && old.iter().any(|w| w.contains("inputs")));
+        let other = stale(&f(json!({"engine_source": "0000000000000000", "inputs": {}})));
+        assert!(other[0].contains("this engine is"), "{other:?}");
+        let d = std::env::temp_dir().join(format!("adcs-stale-{}", std::process::id()));
+        std::fs::create_dir_all(&d).unwrap();
+        let (cf, pf) = (d.join("c.csv"), d.join("p.json"));
+        std::fs::write(&cf, "a").unwrap();
+        std::fs::write(&pf, "{}").unwrap();
+        let pfp = hex(product_fingerprint(&[pf.clone()]));
+        let m = |case_fp: &str| json!({"engine_source": ENGINE_SOURCE, "product": "p",
+            "product_fingerprint": pfp, "product_files": [pf.display().to_string()],
+            "inputs": {"case_file": cf.display().to_string(), "case_fingerprint": case_fp}});
+        assert!(stale(&f(m(&hex(fnv(b"a"))))).is_empty(), "same engine, same files: fresh");
+        assert!(stale(&f(m("feedfeedfeedfeed")))[0].contains("changed since"));
+        std::fs::write(&pf, "{\"x\": 1}").unwrap();
+        assert!(stale(&f(m(&hex(fnv(b"a")))))[0].contains("product p"));
+        std::fs::remove_file(&cf).unwrap();
+        assert!(stale(&f(m(&hex(fnv(b"a"))))).iter().any(|w| w.contains("is gone")));
+        let _ = std::fs::remove_dir_all(&d);
+    }
+    #[test]
+    fn a_refly_needs_the_inputs_the_run_kept() {
+        let d = std::env::temp_dir().join(format!("adcs-refly-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&d);
+        std::fs::create_dir_all(d.join("run")).unwrap();
+        let man = |m: Value| std::fs::write(d.join("run/manifest.json"), m.to_string()).unwrap();
+        man(json!({"schema": "adcs-rec/1"}));
+        assert!(kept_inputs(&d.join("run")).unwrap_err().message().contains("before runs named their inputs"));
+        man(json!({"schema": "adcs-rec/1", "inputs": {"case_fingerprint": "c1", "scenario_file_fingerprint": "s1", "seed": 7, "overrides": ["a.b=2"], "fsw": "rust (in-process)", "fsw_id": "rust"}}));
+        assert!(kept_inputs(&d.join("run")).unwrap_err().message().contains("kept no copy"));
+        std::fs::create_dir_all(d.join("inputs")).unwrap();
+        std::fs::write(d.join("inputs/case-c1.csv"), "x").unwrap();
+        std::fs::write(d.join("inputs/scenario-s1.json"), "{}").unwrap();
+        let (s, c, seed, ov, fsw) = kept_inputs(&d.join("run")).unwrap();
+        assert_eq!((s, c, seed, ov, fsw.as_str()), (d.join("inputs/scenario-s1.json"), d.join("inputs/case-c1.csv"), 7, vec![("a.b".into(), "2".into())], "rust"));
         let _ = std::fs::remove_dir_all(&d);
     }
     #[test]

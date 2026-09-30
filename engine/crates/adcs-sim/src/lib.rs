@@ -17,6 +17,7 @@ pub mod metrics;
 pub mod rec;
 pub mod fsio;
 pub mod store;
+pub mod index;
 pub mod error;
 pub mod schema;
 

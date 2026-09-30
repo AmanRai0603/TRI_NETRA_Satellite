@@ -100,15 +100,14 @@ Legend: ✅ done · ❌ not done · 🟡 partly. Sizes: S ≤ 1 day, M 2–4 day
 
 ## Phase 7 — Storage and outputs
 
-✅ Done: the result package (folder + `.trinetra` share file); inputs kept once by fingerprint; summary always kept, time series thinned, pinned runs whole; an index behind one interface (plain file, never stale); a shared folder via `TRINETRA_STORE`; export/import.
+✅ Done: the result package (folder + `.trinetra` share file); inputs kept once by fingerprint; summary always kept, time series thinned, pinned runs whole; a shared folder via `TRINETRA_STORE`; export/import. **The results database:** a SQLite index per listed folder (`.adcs-index.sqlite`: a `runs` table with provenance and verdict counts, a `metrics` table with every value, requirement and verdict), still only a cache over the manifests (never stale, rebuilt when damaged) and asked anything read-only with `adcs results query --sql`.
 
-❌ Not done:
-1. Retention defaults (time series 30 days, summaries forever) applied without asking. (S)
-2. Opening a thinned run re-flies it and shows what changed if the engine moved on. (S)
-3. Output types: figures also as SVG/PDF; a report per run with SVG figures. (M)
-4. ✔ **Results older than the engine.** Flying `nadir_hold_ais` now gives APE 10.8°, the committed run 12.6°. A freshness check (every stored result's engine, flight-software and input fingerprints against today's) and a full re-fly. (M)
-5. Repository weight: the V&V PDF tracked twice; duplicate data files (DTCFILE, SOLFSMY, two 1.4 MB HTML); `de440s.bsp` 32.7 MB; 6,600 committed run files. (S, owner decides)
-6. Twin runs (1.2 GB `rec.mat`) go through the same store rules. (S)
+1. ✅ Retention applied without asking: every run written into the store thins the unpinned runs older than the retention; an installed kit keeps time series 30 days and summaries for ever, a repository checkout keeps everything (its pages are drawn from local series); `TRINETRA_RETENTION_DAYS` sets it. (Owner to confirm 30 days.)
+2. ✅ `adcs results refly <run>` flies a stored run again from the inputs it kept (optionally on another `--fsw`) and prints every metric stored against now, flagging changed values and verdicts.
+3. ❌ Output types: figures also as SVG/PDF; a report per run with SVG figures. (M)
+4. 🟡 ✔ **Results older than the engine.** Flying `nadir_hold_ais` now gives APE 10.8°, the committed run 12.6°. **Done:** runs record the fingerprint of the engine's and the flight software's sources (`engine_source`, built by `build.rs`) and of their product and part files, both in the result id; `adcs results stale` names every run another engine, case, scenario or product flew (all 448 committed runs today: they predate provenance). **Not done:** the full re-fly of the committed results (wave 2, with Phase 2). (M)
+5. ❌ Repository weight: the V&V PDF tracked twice; duplicate data files (DTCFILE, SOLFSMY, two 1.4 MB HTML); `de440s.bsp` 32.7 MB; 6,600 committed run files. (S, owner decides)
+6. 🟡 Twin runs go through the same store rules: listed, queried and thinned like engine runs (`thin` removes `rec.mat` and `run_*.mat` too). **Not done:** the twin records no source fingerprint yet, so `stale` can only say so. (S)
 
 ## Phase 8 — Component library and lesson pages
 
@@ -143,23 +142,26 @@ Legend: ✅ done · ❌ not done · 🟡 partly. Sizes: S ≤ 1 day, M 2–4 day
 
 ## Phase 11 — When first needed: Parquet, SQLite, animation, 3D
 
-✅ Correctly not started: nothing needs them yet (the store is small; the plain-file index works).
+✅ The SQLite results index is built (Phase 7). The rest is correctly not started: nothing needs it yet.
 
-❌ Build when the trigger is met: SQLite index (above ~50,000 results or when queries are wanted); Parquet for large series; attitude animation and the 3D geometry viewer (these become needed with Part B7 items 6–7).
+✅ SQLite index: built (queries were wanted; see Phase 7). ❌ Build when the trigger is met: Parquet for large series; attitude animation and the 3D geometry viewer (these become needed with Part B7 items 6–7).
 
 ---
 
 # Part B — extra work TRI-NETRA needs
 
 ## B1. Flight software safety (L)
-1. ✔ Decoded parameters trusted after the CRC: counts and indices up to 255 overrun C arrays (`adcs_fsw.c:128,276,348,404`, `adcs_drv.c:105,124`) and NaN/0 reach the laws. A generated `validate()` in C and Rust from `params.toml` with min/max; `adcs_fsw_init` refuses an invalid blob.
-2. ✔ No NaN guard before actuators; NaN→int in `q15` is undefined in C and 0 in Rust, so the builds diverge (`adcs_drv.c:110-139`, `fsw-rs/src/drv.rs:129`). A last guard: non-finite command → zero and a fault.
-3. Divisions without guards (field magnitude, `dt`, periods, maxima: `adcs_fsw.c:336-544`, `adcs_ctl.c:36-189`, `adcs_alloc.c:56-84`).
-4. ✔ Sensor dropout ignored: `mag_ok` never read, a failed gyro's stale rate used (`adcs_drv.c:65`, `adcs_fsw.c:314`). Staleness timers; laws stop using a lost sensor.
-5. Safe mode and FDIR: none today. Invalid attitude, lost orbit, stale sensor for N s → magnetorquer-only detumble; watchdog kick; Rust panic resets instead of `loop {}` (`fsw-rs/src/lib.rs:147`); a mode 11–254 no longer holds the last dipole (`adcs_fsw.c:653`).
-6. Estimator guards: singular innovation rejects the update (`adcs_est.c:56`), star-tracker updates gated (`:102`), quaternion norm checked, TRIAD refuses parallel vectors.
-7. Telecommands: only "set mode" exists and it does not check the fitted hardware (`adcs_fsw.c:667`). Add feasibility checks (TM/TC design is in B5).
-8. Resources: stack region, guard and `-fstack-usage` budget; one libm for both firmware builds; `CFLAGS ?=` can drop the determinism flags (`fsw/Makefile:6`).
+1. ✅ ✔ Decoded parameters trusted after the CRC: counts and indices up to 255 overrun C arrays and NaN/0 reach the laws. **Done:** a generated `validate()` in C and Rust from `params.toml`; `adcs_fsw_init` refuses an invalid blob (-12) and names the field.
+2. ✅ ✔ No NaN guard before actuators (NaN→int undefined in C, 0 in Rust). **Done:** a non-finite coil, rotor or gimbal command drives 0, a non-finite valve duty keeps the valve closed, in both builds, with a test each.
+3. ✅ Divisions without guards. **Done:** orbit acceleration at |r| ≈ 0, a GNSS fix inside the Earth (dropped, the orbit propagated), the rate hand-over at zero field, a thruster couple with no torque about its axis; the rest were already guarded or divide by a parameter `validate()` now keeps positive.
+4. ✅ ✔ Sensor dropout ignored. **Done:** a field reading outside 0.25–4 × the model field is a stuck or dead magnetometer; the last good field is held, used by the coils for at most two coil cycles, never fed to the MEKF, TRIAD or the coil-cycle sums; B-dot falls back to the field-derivative law while the gyro is not fresh.
+5. 🟡 Safe mode and FDIR. **Done:** a magnetometer or gyro silent 60 s raises a fault bit (8, 9) and holds magnetorquer detumble until it answers; a Rust panic resets the Cortex-M (SYSRESETREQ) or aborts on a host; a state outside the table commands no dipole. **Not done:** the watchdog kick (needs a HAL call, with the OILS board in B5). Invalid attitude is deliberately not a trigger: a pointing state starts without attitude at every eclipse start, and the magnetic hand-over already covers it.
+6. ✅ Estimator guards. **Done:** a singular innovation covariance or a NaN χ² rejects the update; TRIAD refuses pairs within 0.06° of parallel; a star-tracker quaternion off unit length is not a reading. The star-tracker innovation gate was tried and left out: after a slew or a coast the covariance is too small and the gate rejected the updates that correct it (knowledge 0.004° → 0.77° in `fault_wheel_img`); gating waits on a consistent filter (B3).
+7. ✅ Telecommands. **Done:** a state the fitted hardware cannot fly is refused by telecommand (-3) and at init in the start, next or schedule (-13): fine states need rotors or thrusters, `SUN_ACQ_ROTOR` rotors, `DETUMBLE_RCS` thrusters.
+8. 🟡 Resources. **Done:** `link.ld` reserves 32 KiB of stack and the linker refuses a `.data + .bss` that leaves less; `tools/fsw_stack.py` walks GCC's call graph (deepest path about 4.9 KiB, 15 %) and is a `check_all` check; the determinism flags are always on whatever `CFLAGS` a caller passes. **Not done:** one libm for both firmware builds (C = Rust is bit-identical on all 40 scenarios today, so nothing differs yet).
+9. ✅ The OBC link (`adcs_link.c`, `link.rs`). **Done:** the firmware bounds every read by the frame length and answers every frame it cannot take (bad CRC, over length, short, over capacity, unknown type) with a refusal code instead of silence; the engine checks each reply's type and length before anything reaches the bus, waits at most `ADCS_LINK_TIMEOUT_S` (60 s), refuses to drop CAN frames beyond 32, stops a silent OBC rather than waiting on it, and names the link fault in the run's error.
+
+**Proof:** all 40 shipped scenarios fly byte-identical channels before and after, in the C and the Rust build; C in-process = both POSIX OBCs = both QEMU Cortex-M4 firmwares, bit for bit; a test per rule in C (45 checks), Rust and Python (`tests/test_link.py`).
 
 **Done when:** fuzzing (Phase 2.4) runs clean; a test per FDIR rule flies the fault and sees safe mode; C = Rust stays bit-identical.
 
@@ -249,7 +251,7 @@ Each wave ends with `check_all` and CI green and this file's ticks updated.
 | decision | suggested |
 |---|---|
 | Licence of published downloads (NOTICE.md says all rights reserved) | decide before wave 7 |
-| Safe-mode policy (B1.5) | magnetorquer-only detumble after 60 s of invalid attitude or stale field |
+| Safe-mode policy (B1.5) | as built: magnetorquer-only detumble after a magnetometer or gyro is silent 60 s; invalid attitude is not a trigger (see B1.5) — owner to confirm |
 | Lesson pages (Phase 8) | yes, B-dot first |
 | Retention of time series (Phase 7) | 30 days |
 | `de440s.bsp` and committed run files (Phase 7) | fetch by checksum; keep ledgers, thin runs |

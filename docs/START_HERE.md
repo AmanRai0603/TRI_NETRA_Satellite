@@ -73,6 +73,11 @@ software on a virtual on-board computer, Monte Carlo seeds) is on the command li
     adcs run nadir_hold_ais        fly a scenario
     adcs size ais_3u               size every actuator option for a case
     adcs results list              every run you have kept
+    adcs results stale             the runs an older engine or other inputs flew
+    adcs results query --sql "SELECT scenario, id, value FROM metrics JOIN runs USING (folder) WHERE pass = 0"
+
+Runs older than 30 days keep their verdicts and provenance but lose their time series, unless
+pinned (`adcs results pin <run>`); `TRINETRA_RETENTION_DAYS` changes that (0 keeps everything).
 
 From the Python package the command is `trinetra-adcs` instead of `adcs`. `COMMANDS.md`,
 beside this file, describes every command and what it reads and writes.

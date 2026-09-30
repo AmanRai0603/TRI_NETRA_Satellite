@@ -70,6 +70,16 @@ pub fn main(a: &Args) -> Result<(), Error> {
                 let ms = metrics::evaluate(&c, &r, &d);
                 let out = a.out.clone().unwrap_or_else(|| adcs_sim::store_root().join("results_engine").join(&c.id));
                 rec::write(&out, &c, &r, &d, &ms)?;
+                // the store keeps its own retention: old time series go, every manifest stays
+                let store = adcs_sim::store_root();
+                let inside = |p: &std::path::Path| std::fs::canonicalize(p).ok().zip(std::fs::canonicalize(&store).ok()).is_some_and(|(p, s)| p.starts_with(s));
+                if inside(&out) {
+                    let (gone, freed) = adcs_sim::store::apply_retention(&store)?;
+                    if !gone.is_empty() && !a.quiet {
+                        eprintln!("[adcs] retention: {} run(s) older than {} days lost their time series ({:.1} MB); verdicts and provenance stay",
+                            gone.len(), adcs_sim::store::retention_days()?.unwrap_or(0), freed as f64/1e6);
+                    }
+                }
                 println!("[adcs] {} done in {:.1} s wall ({:.0}x real time), fsw {} -> {}", c.id, r.wall_s, c.duration_s/r.wall_s.max(1e-9), r.fsw_build, out.display());
                 print_metrics(&ms);
                 if let Some(s) = &r.oils {
