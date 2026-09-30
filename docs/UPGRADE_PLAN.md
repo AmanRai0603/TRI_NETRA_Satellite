@@ -1,170 +1,258 @@
-# TRI-NETRA ADCS: the upgrade plan, phases 1 to 11
+# TRI-NETRA ADCS: the upgrade plan before the first release
 
-> **Answer first.** The release (v1.0.0) waits until all eleven phases are done. The plan
-> comes from four independent audits of this repository (flight software and OBC link;
-> engine and app; tools, twin and evidence; CI, release and process), each citing file and
-> line; the most serious claims were then re-checked against the code. It follows the VLEO
-> review's phases where they apply to TRI-NETRA, and adds what that review could not see
-> here: the flight software, the OBC link, the evidence behind the numbers, and requirement
-> traceability.
+> **Answer first.** Part A is the owner's eleven phases, numbered as given (the review's
+> phases 1–4, then phases 5–11), each with what is already done in TRI-NETRA and what is
+> not. Part B is the extra work TRI-NETRA needs that those phases do not name: flight
+> software, design, SILS, soft OILS, OILS, HILS, visualisation, evidence, release. The
+> v1.0.0 release waits until all of it is done. The findings come from eight independent
+> audits of this repository (each citing file and line); the most serious were re-checked
+> in the code (marked ✔).
 >
 > **Kind:** plan · **For:** the owner and whoever does the work · **Status:** open (30 Sep 2026)
 
-## Where TRI-NETRA stands
+Legend: ✅ done · ❌ not done · 🟡 partly. Sizes: S ≤ 1 day, M 2–4 days, L a week or more.
 
-Already done (commits on `claude/brave-dijkstra-rshrb7`, PR #12): inputs refused by name
-for case CSV, ids, `--set` types and engine limits; whole-file writes and crash reports;
-provenance, kept inputs, index, pin/thin, `.trinetra` share files; the commands registry
-with `explain`, `why`, `--dry-run` (engine.py, pipeline.py), steps announced as they run;
-clap and typed engine errors; structural checks of the registry (ast, TOML); the desktop
-app with Host/Origin checks; CI with time limits; the release workflow, kits, one wheel.
+---
 
-Found open by the audits (re-checked items marked ✔):
+# Part A — the eleven phases
 
-| area | the worst of it |
-|---|---|
-| flight software | ✔ decoded parameters are trusted after the CRC: counts and indices up to 255 overrun fixed arrays in C (`adcs_fsw.c:128`, `adcs_drv.c:105`), NaN and zero reach the laws; ✔ the OBC link ignores the frame length (`adcs_link.c:139`) and a short CONFIG underflows (`:181`); ✔ no `isfinite` anywhere before the actuators, and NaN→int in `q15` is undefined in C (`adcs_drv.c:110`); ✔ `mag_ok` is never read (`adcs_drv.c:65`); no safe mode, no watchdog, Rust panic = `loop {}` (`fsw-rs/src/lib.rs:147`) |
-| engine | ✔ a misspelt `--set fsw.…` key is accepted and never read (`config.rs:117`); `json::f/s/b` return the default for missing *and* wrong-typed keys (`json.rs:10-14`); ✔ a misspelt `requirement` in a scenario leaves the requirement unjudged (`metrics.rs:170`); ✔ schedule cut to 8 (`config.rs:233`); more than 8 rotors / 4 gimbals / 8 coils panic (`product.rs:56,104,71`); missing part values become 0 (`config.rs:382-393`); box size, CM direction and accommodation hard-coded (`config.rs:217,406-407`) |
-| app | ✔ a panic during a flight poisons `FLYING`, and every later flight answers 409 (`routes.rs:18,119`) |
-| tools | ✔ campaign and MC folders are not cleared, so a failed run's old manifest is read as new (`engine_campaigns.py:144`); ✔ `engine.py` exits 0 whatever fails (`engine.py:96`); `rescore.py` keeps stale verdicts (`:43`); `vv_report.py` can ship an old PDF (`:632-637`) |
-| evidence | 0 of 31 algorithms confirmed or checked against a published case; 14 of 14 parts synthetic; catalogue numbers untested; the orbit propagator validated only against its own twin (`pop/08_test/run_all_tests.m:237`); ✔ the committed engine results predate the engine (flying `nadir_hold_ais` now gives APE 10.8°, committed 12.6°) |
-| traceability | no requirement → metric → scenario → result matrix; ✔ `req.slew` has no metric; 66 of 173 metrics are unjudged |
-| release | `prove` runs neither the twin nor the QEMU parity (`release.yml:54`); NOT RUN still passes (`check_all.py:116`); versions disagree (VERSION 1.0.0, engine 1.2.0, hand-written `ENGINE` string); no `--locked`; the wheel is tagged `any` but carries native programs; ✔ NOTICE.md says "all rights reserved, no licence" while the release publishes downloads |
+## Phase 1 — Safety and correctness
 
-## The phases
+✅ Done: the app checks Host and Origin, requires its own header on POST, caps sizes and connections, decodes `%` safely; text written into generated C/Rust is refused unless safe; no external `date` program; case CSV values, ids, `--set` types, engine settings and run limits refused by name.
 
-Each phase lists its work, the check that says it is done, and a size (S ≤ 1 day, M 2–4
-days, L a week or more). Order matters: 1–3 make the tool trustworthy, 4–5 prove it,
-6–10 make it followable and maintainable, 11 ships it.
+❌ Not done:
+1. ✔ **Strict loading.** Scenario, product, part, algorithm, catalogue and knobs JSON are read with defaults: a missing *or wrong-typed* key silently takes a default (`adcs-sim/src/json.rs:10-14`); unknown keys are never refused. Typed, strict loaders with named refusals. (M)
+2. ✔ **`--set` on a key the engine never reads is accepted** (`config.rs:117`). A registry of read keys; anything else refused. (S)
+3. ✔ **Hidden limits.** Schedule cut to 8 (`config.rs:233`); more than 8 rotors, 4 gimbals, 8 coils or Sun heads panic (`product.rs:56,104,71,140`); star-tracker heads `.min(2)`, RCS always 6 thrusters (`product.rs:121,128`); `q_inertial` length and fault index unchecked (`config.rs:254`, `run.rs:259-267`). All refused by name. (S)
+4. ✔ **Metrics.** A misspelt `requirement` key leaves the requirement unjudged (`metrics.rs:170`); unknown kind, window or statistic gives NaN or "all". Refused. (S)
+5. **Algorithms.** Unknown slot ignored, no fitting candidate gives `""`, an unmapped id silently gets law 0 or 1 (`config.rs:55-75,236-247`). Refused. (S)
+6. **Values replaced by 0 or literals.** Unstated part values become 0 (`config.rs:382-393`); box size, CM direction, accommodation, `vb_ratio`, `spec_frac`, magnetometer coil coupling hard-coded (`config.rs:217,406-407`, `product.rs:136`). From the case or part, or refused. (M)
+7. **Default case "ais_3u"** in the CLI and the app (`fly.rs:20`, `routes.rs:127`). Removed. (S)
+8. **The MATLAB twin** accepts unknown `set` paths (`+asils/util/setpaths.m:7`) and has 27 silent `getf` defaults (`config.m`). Same rules as the engine. (M)
+9. **App safety still open:** a panic during a flight poisons the flight lock and every later flight answers 409 ✔ (`routes.rs:18,119`); export temp file name collides (`routes.rs:105`); connection-cap race (`main.rs:126`); symlinks followed in the store (`store.rs:148`). (S)
 
-### Phase 1 — Refuse, never guess, everywhere (M)
-1. Typed, strict loading of scenario, product, part, algorithm, catalogue and knobs JSON: unknown keys and wrong types refused by name; a default only where the schema says one exists. (`json.rs:10-14`, `config.rs`, `product.rs`)
-2. A registry of the keys the engine reads; `--set` on any other key is refused. (`config.rs:117`)
-3. Capacities refused by name, never truncated or overrun: schedule entries, rotors, gimbals, coils, Sun heads, star-tracker heads, RCS thrusters, `q_inertial` length, fault index. (`config.rs:233-254`, `product.rs:56-146`, `run.rs:259-267`)
-4. Metrics: an unknown kind, window, statistic, or requirement key is refused. (`metrics.rs:95-175`)
-5. Algorithms: an unknown slot, an id with no law mapped, or no fitting candidate is refused. (`config.rs:55-75,236-247`)
-6. Physics from the case or the part, not from literals: box size, CM offset direction, accommodation, `vb_ratio`, `spec_frac`, magnetometer coil coupling; a part value that is not stated is refused, not set to 0. (`config.rs:217,382-407`, `product.rs:136`)
-7. No default case: the scenario names its case or the run is refused. (`fly.rs:20`, `routes.rs:127`)
-8. The twin does the same: `setpaths` refuses unknown paths, `getf` defaults only where the schema allows. (`+asils/util/setpaths.m:7`, `getf.m:3`, `config.m`)
-9. Soft-OILS inputs `--cpi`, `--obc-mhz` refused at 0 or below. (`cli.rs`)
+**Done when:** a test per rule breaks one shipped input at a time and gets a named refusal, in engine and twin; every shipped input still flies.
 
-**Done when:** a test per rule breaks a shipped scenario, product and case one key at a time and gets a named refusal, in the engine and in the twin; every shipped input still flies.
+## Phase 2 — Test the enforcers
 
-### Phase 2 — Flight software that cannot be driven into undefined behaviour (L) · *new for TRI-NETRA*
-1. A generated `adcs_params_validate()` / `Params::validate()` after decode (C and Rust, from `params.toml` with min/max added): counts and indices within capacity, modes valid, every float finite, every divisor positive. `adcs_fsw_init` refuses an invalid blob.
-2. The OBC link: every read in TICK bounded by the frame length; CONFIG shorter than 8 refused; oversize data refused loudly, not dropped. (`adcs_link.c:108-181`)
-3. The engine side of the link: replies length- and type-checked, read timeouts, BYE with a timeout. (`adcs-fsw-abi/src/link.rs:83-199`)
-4. A last guard before the actuators: a non-finite command is zeroed and raises a fault; `q15` and the valve conversion are NaN-safe in C and Rust alike. (`adcs_ctl.c:166`, `adcs_drv.c:110-139`, `fsw-rs/src/drv.rs:129`)
-5. Guards on every division the audit lists (field magnitude, `dt`, periods, maxima). (`adcs_fsw.c:336-544`, `adcs_ctl.c:36-189`, `adcs_alloc.c:56-84`)
-6. Sensor dropout: `mag_ok`, `gyro_ok` and star-tracker validity used, with staleness timers; the laws that need a lost sensor stop using it.
-7. A safe mode and FDIR policy: invalid attitude, lost orbit or a stale sensor for N seconds → magnetorquer-only detumble; a watchdog kick in the step; the Rust panic handler resets instead of spinning. Telecommands check that the requested mode can fly with the fitted hardware. (`adcs_fsw.c:653,667`)
-8. Estimator guards: a singular innovation rejects the update; star-tracker updates gated; quaternion norm checked; TRIAD refuses parallel vectors. (`adcs_est.c:56-110`)
-9. Resources: a stack region with a guard, `-fstack-usage` checked against a budget; soft-OILS overruns fail the run; one libm for both firmware builds.
+✅ Done: tests for the node verifier, the generators, the command registry, the step announcements (ast), the registry against clap (TOML parser); temp-copy integration tests; Python lint; each check proven by breaking its target.
 
-**Done when:** fuzzing (phase 4) of decode, link, UART and telecommands runs clean; a test per FDIR rule flies the fault and sees the safe-mode entry; C = Rust stays bit-identical; every shipped scenario's verdicts are unchanged or explained.
+❌ Not done:
+1. Unit tests for `adcs-sim-core` (none), `metrics`, `Dev::load`, `rec::write`, export/import round trip, the app's `routes.rs`, the CLI's `fly.rs`. (M)
+2. Tests for the untested tools: `pipeline*` (converge, select), `report*`, `vv_report`, `rescore`, `run_matrix`, `floquet`, `kit`, `pack_*`, `check_all`, `fswcfg`, the engine's `draw`/`summarise`. (M)
+3. Mutation testing (cargo-mutants) on `adcs-sim-core` and the flight software's control and estimation, with a recorded kill rate. (M)
+4. Fuzzing (cargo-fuzz): parameter blob, adcs-link frames, UART frames, telecommands, `.trinetra` import, the app's request parser. (M)
+5. `make check` in CI and a real recursion/stack check in the C build (`fsw/Makefile:4,29`). (S)
+6. Twin: seed the random tests (`run_all_tests.m:25-108`); tests for `campaign.draw`, `metrics.evaluate`, `solution.*` (27 tests for 147 functions). (M)
 
-### Phase 3 — Failure handling in the tools and the app (M)
-1. Campaign, Monte Carlo and matrix runs clear their run folders first; a failed run counts as a failed run, never dropped and never read from an old manifest. (`engine_campaigns.py:144-162`, `pipeline_verify.py:151-175`, `run_matrix.py:65-94`)
-2. Every tool exits non-zero when anything it ran failed: `engine.py` commands, `run_matrix`, `vobc`, `fsw-parity`. (`engine.py:96`, `engine_runs.py:50-125`)
-3. `rescore.py` clears a removed requirement's verdict and reports unreadable files. (`:30,43,88`)
-4. `vv_report.py` deletes the old PDF first and checks Chromium's exit status. (`:632-637`)
-5. Silent skips become named failures (`engine_twin.py:57,64`, `vv_report.py:32`, `kit.py:77-88`, the `except: pass` blocks); every write goes through `common.write_*`.
-6. The app recovers from a panic in a flight (poisoned mutex handled), exports to a unique temp file, holds the connection cap without a race, and stops following symlinks out of the store. (`routes.rs:18,105`, `main.rs:126`, `store.rs:148`)
-7. Typed errors in `adcs-pop` and `adcs-fsw-abi`, so a bad input to the propagator is a refusal, not a run failure; the app no longer passes "already running" as a string. (`error.rs:48`, `main.rs:110`)
+**Done when:** every enforced rule has a passing and a failing test; fuzzers run clean for a set time; the mutation kill rate is in `check_all`.
 
-**Done when:** a test per item makes the failure happen and sees the exit status, the named message and no stale file used.
+## Phase 3 — Structure
 
-### Phase 4 — Test the enforcers, fuzz the boundaries (L)
-1. Unit tests for `adcs-sim-core` (none today), `metrics` (derive, evaluate, windows), `Dev::load`, `rec::write`, export/import round trip, `routes.rs`, `fly.rs`.
-2. Fuzz targets (cargo-fuzz): parameter blob decode, adcs-link frames, UART frames, telecommands, `.trinetra` import, the app's request parser.
-3. Mutation testing (cargo-mutants) on `adcs-sim-core` and the flight software's control and estimation code, with a floor on the kill rate.
-4. `make check` in CI, and a real recursion and stack check in the C build. (`Makefile:4,29`)
-5. Tests for the untested tools: `pipeline*`, `report*`, `rescore`, `run_matrix`, `floquet`, `kit`, `pack_*`, `check_all`, `fswcfg`, and the engine's `draw`/`summarise`.
-6. Twin tests seeded; tests for `campaign.draw`, `metrics.evaluate`, `solution.*`. (`run_all_tests.m:25-108`)
+✅ Done: clap for `adcs`; typed errors in `adcs-sim` and `adcs-design`; `engine.py`, `report.py`, `pipeline.py` split by concern; shared `tools/common.py`; page HTML out of code strings; one build helper (one `build.rs`).
 
-**Done when:** every check the repository enforces has a passing and a failing test; the fuzzers ran a set time with no crash; mutation kill rate recorded in `check_all`.
+❌ Not done:
+1. Split the longest functions: `run` 267 lines, `Config::build` 262, `Dev::load` 118 (`run.rs:144`, `config.rs:190`, `product.rs:43`). (M)
+2. One run pipeline shared by the CLI and the app (case resolution, run, derive, evaluate, write) instead of two copies (`fly.rs:8-70`, `routes.rs:118-145`). (S)
+3. Typed errors in `adcs-pop` and `adcs-fsw-abi`; the app's "already running" passed as a parsed string (`main.rs:110`). (S)
+4. One case-CSV parser in Python (six today), one `ROOT` (seventeen tools redefine it). (S)
+5. Dead code (`config.rs:461`, `run.rs:243,319,408`). (S)
 
-### Phase 5 — Evidence and traceability (L) · *expanded for TRI-NETRA*
-1. A requirements traceability matrix, generated: every stated `req.*` → the metric(s) that judge it → the scenarios → the latest result. A stated requirement with no metric fails the check; add the missing `req.slew` metric; decide for each of the 66 unjudged metrics whether it is judged or informative.
-2. Results freshness: a check that every committed result was flown by the current engine, flight software and inputs (fingerprints in the manifest); stale results listed, then every stored result re-flown.
-3. External validation of the orbit propagator: the CHAMP / ITSG orbit determination comparison stored as a ledger with its numbers, and published test cases (Vallado, SOFA time and frames, published DTM2020/JB2008 densities) as automated tests.
-4. Published cases for the algorithms: at least B-dot, MEKF, LQR and QUEST checked against values from their papers, not only property tests.
-5. The catalogue: each datasheet number traced to its source page and checked; the synthetic parts replaced by real units as they are chosen.
-6. `status` headline expanded: rows without an outside reference, requirements without a metric, stale results.
-7. Owner work (not code): confirm the 31 algorithms, choose real parts.
+**Done when:** no engine function above 120 lines; the CLI and the app call one pipeline; no `Result<_, String>` in the engine's crates.
 
-**Done when:** the matrix shows every stated requirement judged; freshness passes; the propagator and four algorithms have outside-reference tests; `status` shows the remaining debt by name.
+## Phase 4 — Right-size the process
 
-### Phase 6 — Scripts you can follow, completed (M)
-1. `--dry-run` on every tool that writes; the module-level writers (`components_doc.py:35`, `pack_flight.py:51`) and argument-less tools get argparse.
-2. On failure, every tool says which step stopped, whether files are unchanged or were put back, and the command to retry.
-3. Registry fields for what each command checks, how to undo it, and where its code is (file and function); a test holds them true.
-4. `trinetra.py trace` shows the last run of any tool; `why <file>` adds the file's history (which run wrote it, when, from which inputs).
-5. One diagram of a change's journey: edit → generate → check → fly → verify → PR → CI → release.
-6. Steps announced by every tool that runs for more than a moment, not only engine.py and the design loop.
+✅ Done: CODEOWNERS names the real owner; `vX.Y.Z` tags checked against `VERSION`; CI jobs with time limits; no approval gate that cannot pass; a glossary; `START_HERE`, `CHANGING`, `ENVIRONMENT`.
 
-**Done when:** `tests/test_steps.py` and the registry tests cover every writing tool; a forced failure in each prints step, file state and retry.
+❌ Not done:
+1. The release proves less than CI: `prove` runs neither the twin nor the QEMU parity, and nothing requires the tagged commit to be green (`release.yml:54`); NOT RUN still passes (`check_all.py:116`) — add `--strict`. (S)
+2. One version: `VERSION` 1.0.0, Cargo 1.2.0, a hand-written `ENGINE` string, zip names mixing both (`adcs-sim/src/lib.rs:24`, `pack_flight.py:21`). One source, checked in `prove`. (S)
+3. Reproducible builds: `--locked`, `rust-toolchain.toml`, actions pinned by SHA, `setup-python` in every job, pinned `pyflakes`. (S)
+4. Branch protection and one human review before merge (nothing enforces it today). (S)
+5. Docs merged into one path: 23 documents overlap (ARCHITECTURE_PLAN, DESIGN_LOOP, SOLUTION_PIPELINE, NODES tell one flow; SOFT_OILS and VIRTUAL_OBC exist in `docs/` and `results/`); stale text (RESULTS.md "Produced by matlab_sils", SOFT_OILS.md 104 vs 105/107, `realsat/README.md:37` `_retired/`, `spec/` naming `ADCS_PLATFORM`, `_package/`, `xtask`, two different `pack_matlab.py`). (M)
+6. Licence and policy: ✔ NOTICE.md says all rights reserved and no licence, while the release publishes the wheel, kits and source zips; add the matching `LICENSE` (or publish only to collaborators), `SECURITY.md`, `CHANGELOG`, release notes generated from `VERSION`. (S, owner decides)
 
-### Phase 7 — Storage and outputs (M)
-1. Retention defaults: summaries forever; time series 30 days (to confirm); pinned and exported runs forever; `thin` runs by default age.
-2. Opening a thinned run re-flies it and shows what changed if the engine has moved on.
-3. Figures as SVG (smaller, diffable, sharp in the report); the results page and V&V report use them.
-4. Repository weight: the V&V PDF tracked once, duplicate data files (DTCFILE, SOLFSMY, the two 1.4 MB HTML files) kept once, `de440s.bsp` (32.7 MB) moved to LFS or fetched with a checksum; a decision on the 6,600 committed run files.
-5. A shared results folder documented for several machines (`TRINETRA_STORE`), and an index that can move to SQLite later behind the same interface.
-6. Deferred until needed, as planned: Parquet for large series, SQLite index, animation, 3D.
+## Phase 5 — Failure handling
 
-**Done when:** the store's size for a year of use is estimated from measured sizes, thinning and re-flying are tested, figures are SVG.
+✅ Done: panics leave a crash report; every engine write is whole-file; app requests catch panics; empty environment variables mean unset; typed engine errors with exit 2 (refused) or 1 (failed).
 
-### Phase 8 — One page system, and lesson pages (L) · *decision needed*
-1. One component set (HTML, one script, one stylesheet, bundled fonts) used by the results page, the V&V report and the app page; no page builds a component by hand.
-2. Lesson pages for the ADCS, one per mode or algorithm (`lesson.toml` beside its data, outside the result fingerprints): what it does, the equations, the paper, where it breaks, and "try it" widgets declared as inputs and outputs, computed by the engine itself (compiled to WebAssembly from `adcs-sim-core`, which is already `no_std`), so a page never shows a number the engine would not compute.
-3. Pages work offline; no page contacts an outside host.
+❌ Not done:
+1. ✔ **Stale results read as new.** Campaign, Monte Carlo and matrix folders are not cleared; a failed run's old manifest is read (`engine_campaigns.py:144-162`, `pipeline_verify.py:151-175`); failed runs drop out of pass rates instead of counting as failures. (S)
+2. ✔ **`engine.py` exits 0 whatever fails** (`engine.py:96`); so do `run_matrix`, `vobc`, `fsw-parity` (`engine_runs.py:50-125`, `run_matrix.py:65-94`). (S)
+3. `rescore.py` keeps a removed requirement's old verdict and skips unreadable files (`:30,43,88`). (S)
+4. `vv_report.py` can ship an old PDF: Chromium's exit status ignored, old file accepted (`:632-637`). (S)
+5. Silent skips and swallowed errors: `engine_twin.py:57,64`, `vv_report.py:32`, `kit.py:77-88`, `except: pass` in three tools; writes that bypass the whole-file writer (`vv_report.py:637`, `kit.py:58-89`, `macapp.py:54-60`, `pipeline_verify.py:101`, `report_base.py:83`). (S)
+6. The OBC link fails forever instead of loudly: no read timeouts, a bad-CRC frame dropped with no reply so the engine blocks, no reconnection (`link.rs:104-122`, `adcs_link.c:176`). (S; the protocol work is in Part B5)
 
-**Done when:** the first lesson (B-dot detumble suggested) is generated from its `lesson.toml` with a working try-it widget, and the three existing pages use the component set.
+**Done when:** a test per item forces the failure and sees a non-zero exit, a named message, and no stale file used.
 
-### Phase 9 — One source for every number (M)
-1. Logic written more than once becomes one: Kp→ap (three places), campaign draws (Python and MATLAB), statistics, the pass rule (three places), scenario building, orbit period (three places), the case CSV parser (six in Python). The engine or one shared module computes; the others call it or are tested against it.
-2. Figures drawn from engine outputs only, never re-derived in the report; selected figures checked against reference values or pictures.
-3. Constants (Earth radius, μ, unit conversions) from one place; km/m and deg/rad consistent across `field.rs`, `config.rs`, `run.rs`.
+## Phase 6 — Scripts you can follow
 
-**Done when:** a test fails if any duplicated formula reappears (ast/TOML checks), and each shared number has one definition.
+✅ Done: the pipeline table (`docs/commands.toml`), `explain`, generated `COMMANDS.md` with a test; numbered steps from the registry in `engine.py` and the design loop, held to the registry by an ast test; `--dry-run` in `engine.py`, `pipeline.py`, `rescore.py`; a trace log; `why <file>`.
 
-### Phase 10 — Structure, units, speed and readability (M)
-1. Split the longest functions: `run` (267 lines), `Config::build` (262), `Dev::load` (118).
-2. One run pipeline in `adcs-sim` used by the CLI and the app (case resolution, run, derive, evaluate, write), instead of two copies. (`fly.rs:8-70`, `routes.rs:118-145`)
-3. Unit types for the quantities that cross module boundaries (length, angle, rate, field), starting where km/m and deg/rad already mix.
-4. Speed: no per-tick allocation (`run.rs:140`), bounded soft-OILS statistics (`run.rs:338`), a ring buffer for the star-tracker history (`sensors.rs:156`); a run of 30 days holds bounded memory.
-5. Dead code removed (`config.rs:461`, `run.rs:243,319,408`).
-6. A readability guide (one page), and the docs merged into one path: README → START_HERE → ARCHITECTURE (merging ARCHITECTURE_PLAN, DESIGN_LOOP, SOLUTION_PIPELINE) → CHANGING → GLOSSARY; stale text fixed (RESULTS.md "Produced by matlab_sils", the `_retired/` link, `spec/` references to `ADCS_PLATFORM`, `_package/`, `xtask`; the two `pack_matlab.py`).
+❌ Not done:
+1. `--dry-run` on every tool that writes (about 15 tools: `report`, `vv_report`, `pack_*`, `gen_fsw_params`, `export_catalogue`, `catalogue`, `floquet`, `kit`, `macapp`, `make_icon`, `nodes_doc`, `components_doc`, `run_matrix`, `verify_nodes`, `build_wheel`); `components_doc.py:35` and `pack_flight.py:51` work at import, with no argparse. (M)
+2. On failure: which step stopped, whether files are unchanged or put back, the exact command to retry. (M)
+3. Registry fields for what each command checks, how to undo it, and where its code is (file, function), held true by a test. (S)
+4. `trinetra.py trace` to show the last run; `why` with history (which run wrote a file, when, from which inputs). (S)
+5. The journey diagram: edit → generate → check → fly → verify → PR → CI → release. (S)
+6. Numbered steps in every tool that runs for more than a moment. (S)
 
-**Done when:** no function above 120 lines in the engine's own crates; a 30-day run's memory is measured and bounded; docs have one entry path with every link checked.
+## Phase 7 — Storage and outputs
 
-### Phase 11 — Process, CI and the release (M)
-1. One version: `VERSION` drives the Cargo workspace, the `ENGINE` string, the flight software build ids, the zips, the wheel and the app; `prove` checks they agree.
-2. The release proves what CI proves: `prove` requires CI green on the tagged commit (twin, QEMU parity) and `check_all --strict` fails on NOT RUN.
-3. Reproducible builds: `--locked`, a `rust-toolchain.toml`, actions pinned by SHA, `setup-python` in every job, pinned Python tools, `SOURCE_DATE_EPOCH` for Cargo.
-4. The wheel tagged per platform (or the unsupported ones refused at install), and installed and run on Windows and macOS too; macOS binaries in the wheel signed like the kit's.
-5. C and Rust parity run on Windows (MinGW) and macOS in CI, not only at release.
-6. Licence and policy: a `LICENSE` that matches what is published (NOTICE.md says all rights reserved), `SECURITY.md`, a `CHANGELOG`, release notes generated from `VERSION`.
-7. CODEOWNERS and branch protection matching the real team; one human review before merge.
-8. Then the v1.0.0 release: merge PR #12, tag, watch every job, publish.
+✅ Done: the result package (folder + `.trinetra` share file); inputs kept once by fingerprint; summary always kept, time series thinned, pinned runs whole; an index behind one interface (plain file, never stale); a shared folder via `TRINETRA_STORE`; export/import.
 
-**Done when:** a tag on a green commit builds, tests on three systems, and publishes every download with matching versions and checksums.
+❌ Not done:
+1. Retention defaults (time series 30 days, summaries forever) applied without asking. (S)
+2. Opening a thinned run re-flies it and shows what changed if the engine moved on. (S)
+3. Output types: figures also as SVG/PDF; a report per run with SVG figures. (M)
+4. ✔ **Results older than the engine.** Flying `nadir_hold_ais` now gives APE 10.8°, the committed run 12.6°. A freshness check (every stored result's engine, flight-software and input fingerprints against today's) and a full re-fly. (M)
+5. Repository weight: the V&V PDF tracked twice; duplicate data files (DTCFILE, SOLFSMY, two 1.4 MB HTML); `de440s.bsp` 32.7 MB; 6,600 committed run files. (S, owner decides)
+6. Twin runs (1.2 GB `rec.mat`) go through the same store rules. (S)
+
+## Phase 8 — Component library and lesson pages
+
+✅ Done: nothing of this phase yet (three pages are built separately: results page, V&V report, app page).
+
+❌ Not done:
+1. One component set (HTML, one script, one stylesheet, bundled fonts): station, say-simply, real-thing, where-it-breaks, try-it, figure, table, equation, story, check-yourself, references, claim tag; every page assembled from it, and a check that refuses hand-built components. (L)
+2. `lesson.toml` per mode or algorithm (B-dot first), outside the result fingerprints. (M)
+3. "Try it" widgets declared (sliders for inputs, outputs, a figure), computed by the engine compiled to WebAssembly (`adcs-sim-core` is already `no_std`). (L)
+4. A lesson form with preview through the same review flow; pages work offline, no outside hosts (the report page loads Google Fonts today, `report_pages.py:98`). (M)
+
+## Phase 9 — Figure numbers from the kernel, checked against references
+
+✅ Done: figures are drawn from recorded runs, not typed-in numbers; the truth environment is bit-identical between engine and twin on all 40 scenarios.
+
+❌ Not done:
+1. **Engine runs are never plotted** — the report reads only the twin store (`report_base.py:123`). One plotting path over both stores. (M)
+2. Numbers typed into figures and report text instead of read from the case or the runs: requirement lines 0.01 and 20 (`report_runs.py:213-215`, `report_pages.py:28-30`), 0.5°/s and 20° (`report_runs.py:34,92`), literature numbers and "identical" cards (`vv_report.py:265,580,590`), versions and epoch (`report_pages.py:101-102`). (S)
+3. Logic written more than once becomes one source: Kp→ap (three places), campaign draws (Python and MATLAB), statistics, the pass rule (three), scenario building, orbit period (three). (M)
+4. Selected figures checked against reference values or pictures (orbit, field, density, detumble curves). (M)
+5. Constants and units from one place: Earth radius and μ repeated as literals (`config.rs:212-213`, `run.rs:277`), height in km in one function and m in another (`field.rs:44,111`). (S)
+
+## Phase 10 — Readability guide, file splits, typed errors
+
+✅ Done: the big files split (largest hand-written source 820 lines); typed errors in the engine library.
+
+❌ Not done:
+1. A one-page readability guide (how code and docs are written here). (S)
+2. The function splits and remaining typed errors of phase 3 (tracked there). 
+3. Unit types for quantities that cross module boundaries (length, angle, rate, field). (M)
+4. Speed: per-tick allocations (`run.rs:140`), unbounded soft-OILS statistics (`run.rs:338`), a shifting 64-entry star-tracker history (`sensors.rs:156`); memory of a 30-day run measured and bounded. (S)
+
+## Phase 11 — When first needed: Parquet, SQLite, animation, 3D
+
+✅ Correctly not started: nothing needs them yet (the store is small; the plain-file index works).
+
+❌ Build when the trigger is met: SQLite index (above ~50,000 results or when queries are wanted); Parquet for large series; attitude animation and the 3D geometry viewer (these become needed with Part B7 items 6–7).
+
+---
+
+# Part B — extra work TRI-NETRA needs
+
+## B1. Flight software safety (L)
+1. ✔ Decoded parameters trusted after the CRC: counts and indices up to 255 overrun C arrays (`adcs_fsw.c:128,276,348,404`, `adcs_drv.c:105,124`) and NaN/0 reach the laws. A generated `validate()` in C and Rust from `params.toml` with min/max; `adcs_fsw_init` refuses an invalid blob.
+2. ✔ No NaN guard before actuators; NaN→int in `q15` is undefined in C and 0 in Rust, so the builds diverge (`adcs_drv.c:110-139`, `fsw-rs/src/drv.rs:129`). A last guard: non-finite command → zero and a fault.
+3. Divisions without guards (field magnitude, `dt`, periods, maxima: `adcs_fsw.c:336-544`, `adcs_ctl.c:36-189`, `adcs_alloc.c:56-84`).
+4. ✔ Sensor dropout ignored: `mag_ok` never read, a failed gyro's stale rate used (`adcs_drv.c:65`, `adcs_fsw.c:314`). Staleness timers; laws stop using a lost sensor.
+5. Safe mode and FDIR: none today. Invalid attitude, lost orbit, stale sensor for N s → magnetorquer-only detumble; watchdog kick; Rust panic resets instead of `loop {}` (`fsw-rs/src/lib.rs:147`); a mode 11–254 no longer holds the last dipole (`adcs_fsw.c:653`).
+6. Estimator guards: singular innovation rejects the update (`adcs_est.c:56`), star-tracker updates gated (`:102`), quaternion norm checked, TRIAD refuses parallel vectors.
+7. Telecommands: only "set mode" exists and it does not check the fitted hardware (`adcs_fsw.c:667`). Add feasibility checks (TM/TC design is in B5).
+8. Resources: stack region, guard and `-fstack-usage` budget; one libm for both firmware builds; `CFLAGS ?=` can drop the determinism flags (`fsw/Makefile:6`).
+
+**Done when:** fuzzing (Phase 2.4) runs clean; a test per FDIR rule flies the fault and sees safe mode; C = Rust stays bit-identical.
+
+## B2. Design (L)
+The design loop runs end to end and picks an actuator family; it does not yet do an analysis-level ADCS design.
+1. **Requirement flow-down and traceability**: tag each case key and metric with its spec row id; ✔ 26 of 58 case keys are never read (e.g. `req.rpe`, `req.pde`, `req.dump`, `req.prop`, `req.faults`, `req.recover`, `mission.duty`, `mass.iunc`, `magnetic.dunc`, `flex.*`, `resources.*`, `pointing.et`) — each gets code or is refused as unsupported.
+2. **Pointing error budget** (spec rows gp_0–gp_5, no code): knowledge + control + alignment + thermal + jitter, allocated against APE/RPE; ✔ jitter returns NaN (`metrics.rs:165`) — port `jitter.m`.
+3. **Lifetime environment and momentum**: sweep beta angle and season, solar cycle over `mission.life`; replace the arbitrary `0.25` secular factor (`adcs-design/src/lib.rs:124`); momentum dumping sized from `req.dump`/`req.hsat`.
+4. **Power, thermal and data budgets**: orbit-average and peak power with duty and eclipse, checked against `resources.*` in select (only mass and volume are checked today, `pipeline_verify.py:32-35`).
+5. **Sensor trade**: choose sensors from a catalogue against the knowledge allocation (every product gets the same fixed suite today, `lib.rs:405-409`).
+6. **Redundancy and FDIR in selection**: fault campaigns count toward feasibility.
+7. **Beyond 3U**: box size, class and survey product from the case (`lib.rs:80,339,412`); Monte Carlo dispersions generated from the case, not looked up for two known cases (`pipeline_verify.py:147`); products of inertia in the case.
+8. **Sizing laws** documented with sources and margins (coil 0.5·B_min/0.3·B_mean, RCS Isp 60 s, slew propellant left out, `lib.rs:175-297`); fix the selection-order mismatch (`pipeline.py:18` "simplest" vs "lightest").
+9. **The spec package**: about 90 of 243 system rows have code and none is linked by id; a spec → code → test matrix, and `spec/` brought up to date.
+
+## B3. SILS (L)
+1. **ECSS-E-ST-60-10 pointing metrics**: APE, RPE, AKE, MKE, PDE, PRE with windows and the temporal/ensemble/mixed interpretation and confidence level, in engine and twin.
+2. **Power model**: solar arrays from attitude and shadow, battery state of charge, eclipse depth of discharge (only consumption is modelled today, `run.rs:365`).
+3. **Monte Carlo statistics**: ✔ 15–40 runs per campaign cannot support 99.73 % claims (about 1,100 failure-free runs needed at 95 % confidence); run counts sized for the claim; disperse epoch, season, beta, products of inertia, latency, orbit; the same inertia knowledge in the flight software on both sides.
+4. **Missing dynamics**: wheel imbalance and jitter in the loop; one or two flexible modes; fuel slosh when RCS carries propellant.
+5. **Device fidelity**: magnetorquer RL dynamics, hysteresis, eddy currents; wheel stiction/Dahl friction, back-EMF, speed limit; star tracker Moon exclusion, blinding recovery, rate-dependent noise; GNSS latency and outages; outgassing, albedo and IR pressure torques; self-shadowing of appendages.
+6. **Scenarios**: target pointing, Sun modes (`sun_mtq`, `sun_fine`), RCS detumble and rotor Sun acquisition as start modes, safe-mode entry and recovery, eclipse transitions, magnetometer/GNSS/RCS-valve faults.
+7. **The 13 engine-vs-twin disagreements** fixed at their traced causes: FMR field-power switch hysteresis, RCS dump thrust-scale compensation, the Sun-spin sign-flip lock, the coils-only MEKF spread (`results/ENGINE_PARITY.md:228-232`).
+8. **Port to the engine** what only the twin has: star-tracker image chain, CSS chain, jitter.
+
+## B4. Soft OILS (M)
+1. Overruns and deadline margin become pass/fail (they are only counted, `run.rs:340`).
+2. CPI range sweep and an interrupt/jitter allowance; SPI rate as an option; link and HAL-copy overhead counted.
+3. QEMU run with `-icount` as the link header promises (`adcs-fsw-abi/src/lib.rs:149`).
+4. Calibration against a real board (B5.2): measured execution times replace the assumed CPI.
+
+## B5. OILS with a real OBC (L)
+1. **Harden the link**: timeouts, a NAK on a bad CRC, TICK sequence numbers and retry, heartbeat, reconnect-or-abort with a named error, wall-clock slip recorded per tick; an RS-422/UART transport beside TCP.
+2. **A reference board target** (e.g. `fsw/targets/stm32f4/`: startup, linker script, UART link, cycle-counter trailer) — only QEMU, POSIX and the link server exist today.
+3. **A real-bus HAL for that board** (I2C, SPI, CAN, PWM, UART), replacing the link-served HAL calls.
+4. **HAL v2**: watchdog, non-volatile storage (calibration, parameters), power switches and latch-up reset, bus reset, sensor timestamps, faults on the link (`adcs_hal.h:51-104` has none).
+5. **TM/TC**: ✔ `fsw/tm` and `fsw/tc` do not exist and nothing calls `adcs_hal_tm_emit`; housekeeping packets, parameter-table and calibration upload with CRC, event reports, command verification.
+6. **Time**: PPS or clock-drift handling; the OBC clock is the engine's `now_ns` today.
+
+## B6. HILS (L)
+HILS is documentation only today.
+1. **Interface emulation unit**: an engine-driven device box (second MCU or USB-I2C/CAN adapter) that answers the OBC's real buses from TICK data — the step from OILS to real buses.
+2. **Stimulus drivers**: Helmholtz-cage currents, Sun-simulator pointing, air-bearing telemetry in; the missing `write_stimulus` (`+asils/+hal/stimulus.m:7`); the MATLAB UDP backend replaced by adcs-link (no CRC, sequence or timeout today).
+3. **One device at a time**: magnetometer, then coils, then wheels, each with an acceptance test against SILS.
+
+## B7. Visualisation and reports (L)
+1. **The app shows time series**: a channels endpoint; attitude error, rates, modes, momentum and power with requirement lines and eclipse bands, zoom and hover (the app draws no plots today).
+2. **One plotting module** for engine and twin runs, one palette and figure numbering, the full 11-mode axis (✔ MATLAB clips at 5, Python labels 7: `+asils/+viz/run.m:32`, `report_base.py:151`).
+3. **Requirement verification matrix in the V&V report**: requirement → method → run/ledger → verdict, test procedures, deviations; open items from a data file, not code (`vv_report.py:533-567`); stale section cross-references fixed (`:401-402,467`).
+4. **Pointing budget figure**, mission-long momentum/saturation and power/duty timelines, eclipse bands on every time plot.
+5. **Monte Carlo envelopes** with p50/p95/p99.73 bands and confidence intervals; run-to-run overlays (twin vs engine, C vs Rust, SILS vs OILS); NaN no longer drawn as zero (`report_solutions.py:95`).
+6. **3D attitude and geometry viewer**: body axes, sensor fields of view, Sun/Earth/Moon exclusion cones (Phase 11 trigger).
+7. Figures exported as SVG/PDF; dark-mode aware; no outside fonts.
+
+## B8. Evidence and traceability (L)
+1. **A requirements traceability matrix**, generated: every stated requirement → metric → scenario → latest result; ✔ `req.slew` has no metric; 66 of 173 metrics are unjudged — each decided.
+2. **Outside validation of the orbit propagator**: the CHAMP/ITSG orbit-determination comparison stored as a ledger; published cases (Vallado, SOFA, published DTM2020/JB2008) as tests. Today it is checked only against its own MATLAB original (`pop/08_test/run_all_tests.m:237`).
+3. **Published cases for the algorithms**: at least B-dot, MEKF, LQR and QUEST against numbers from their papers.
+4. **Catalogue**: each datasheet number traced to its page and tested; the 14 synthetic parts replaced by real units.
+5. **`status` headline** extended: rows without an outside reference, requirements without a metric, stale results.
+6. Owner work: confirm the 31 algorithms (all UNCONFIRMED), choose real parts.
+
+## B9. Release (M) — the last step
+1. The wheel tagged per platform (it is tagged `any` but carries native programs) and installed and run on Windows and macOS too; macOS binaries in the wheel signed like the kit's.
+2. C/Rust parity run on Windows (MinGW) and macOS in CI, not only at release.
+3. Release notes generated from `VERSION` (file names are hard-coded today).
+4. Then: merge PR #12, tag `v1.0.0`, watch every job, publish.
+
+---
+
+## Order
+
+| wave | work | about |
+|---|---|---|
+| 1 | Phase 1, Phase 5, B1 (flight software safety) | 2 weeks |
+| 2 | Phase 2, Phase 3, B8 (evidence, traceability, freshness) | 3 weeks |
+| 3 | B2 design, B3 SILS, B4 soft OILS | 4 weeks |
+| 4 | Phase 6, Phase 7, Phase 9, Phase 10, B7 visualisation | 3 weeks |
+| 5 | Phase 8 lesson pages | 2 weeks |
+| 6 | B5 OILS, B6 HILS (need a board and hardware) | from 3 weeks, hardware-paced |
+| 7 | Phase 4, B9, release | 1 week |
+
+Each wave ends with `check_all` and CI green and this file's ticks updated.
 
 ## Decisions the owner makes
 
-| decision | options | suggested |
-|---|---|---|
-| Licence of the published downloads | keep all rights reserved and publish only to collaborators (private repository releases); or choose a licence | decide before phase 11 |
-| Safe-mode policy (phase 2.7) | which conditions, how long before safe mode, what safe mode flies | magnetorquer-only detumble after 60 s of invalid attitude or stale field |
-| Lesson pages (phase 8) | yes, one per mode/algorithm; or skip phase 8 | yes, starting with B-dot |
-| Retention of time series (phase 7) | 30 days, other | 30 days |
-| `de440s.bsp` and committed runs (phase 7) | LFS; fetch by checksum; keep as is | fetch by checksum |
-| Real parts and algorithm confirmation (phase 5) | owner's engineering work | as parts are chosen |
-
-## Order and size
-
-Phases 1–3 first (they make results trustworthy; about two weeks), then 4–5 (proof and
-evidence; about three weeks), then 6–10 in any order (about three weeks), then 11 and the
-release (a few days). Each phase ends with `check_all` green, CI green and a note in the
-PR; the plan's tables are updated as items close.
+| decision | suggested |
+|---|---|
+| Licence of published downloads (NOTICE.md says all rights reserved) | decide before wave 7 |
+| Safe-mode policy (B1.5) | magnetorquer-only detumble after 60 s of invalid attitude or stale field |
+| Lesson pages (Phase 8) | yes, B-dot first |
+| Retention of time series (Phase 7) | 30 days |
+| `de440s.bsp` and committed run files (Phase 7) | fetch by checksum; keep ledgers, thin runs |
+| Reference OBC board for OILS (B5.2) | an STM32F4 class board, or the owner's flight OBC |
+| HILS equipment available (B6) | owner lists what exists (cage, air bearing, Sun simulator) |
+| Does v1.0.0 wait for B5/B6 (hardware-paced)? | release after waves 1–5 and 7; OILS/HILS in v1.1 — owner's call |
