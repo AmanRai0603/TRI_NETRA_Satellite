@@ -40,6 +40,8 @@
 | [`fswcfg.py fswcfg`](#fswcfgpy-fswcfg) | Decode and check a flight-software parameter blob (adcs-fswcfg/1) and print every field as JSON. |
 | [`trinetra.py explain`](#trinetrapy-explain) | This registry: every command, what it does before it does it; `docs` writes docs/COMMANDS.md from it. |
 | [`check_all.py check-all`](#check_allpy-check-all) | Every check the repository has, one line each with a verdict: the Python tests, the generated files, the C and Rust flight software, the engine, the specification package and the stored design loop; --octave adds the MATLAB twin's suites. |
+| [`kit.py kit`](#kitpy-kit) | The tool as a team member gets it: the programs beside exactly the files they read (data, cases, the ephemeris), with VERSION and the first-run documents; --files-only leaves the programs out, for the Python package. |
+| [`make_icon.py make-icon`](#make_iconpy-make-icon) | Draw the desktop app's icon (three eyes on an orbit) as PNG, ICO and ICNS; run only to change it. |
 
 ## adcs run
 
@@ -579,3 +581,35 @@ Every check the repository has, one line each with a verdict: the Python tests, 
 - **Reads:** the repository
 - **Writes:** `fsw/build/, fsw-rs/target/, engine/target/ (the builds the tests need)`
 - **Starts:** python3; make; gcc; cargo; octave-cli (with --octave)
+
+## kit.py kit
+
+The tool as a team member gets it: the programs beside exactly the files they read (data, cases, the ephemeris), with VERSION and the first-run documents; --files-only leaves the programs out, for the Python package.
+
+    python3 tools/kit.py [--bin DIR] [--out DIR] [--files-only]
+
+**Steps**
+
+1. empty the output folder
+2. copy the release-built programs (the desktop app named for Windows when it is a .exe)
+3. copy data/, cases/ and the DE440 ephemeris
+4. write VERSION with each part's version, and the documents
+
+- **Reads:** `engine/target/<target>/release/ (or --bin)`; `matlab_sils/data, matlab_sils/cases, the ephemeris`; `docs/START_HERE.md, FIRST_RUN.md, COMMANDS.md`
+- **Writes:** `dist/kit/trinetra-adcs-<version>/ (or --out)`
+- **Starts:** nothing
+
+## make_icon.py make-icon
+
+Draw the desktop app's icon (three eyes on an orbit) as PNG, ICO and ICNS; run only to change it.
+
+    python3 tools/make_icon.py
+
+**Steps**
+
+1. draw the icon at 1024 px
+2. write the PNG, the multi-size ICO and the ICNS
+
+- **Reads:** nothing
+- **Writes:** `engine/crates/trinetra-app/icon/trinetra.png, .ico, .icns`
+- **Starts:** nothing

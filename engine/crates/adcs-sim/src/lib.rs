@@ -23,13 +23,36 @@ pub const ENGINE: &str = "adcs-engine-rs/1.2.0 (adcs-case/1, POP v51 port in-loo
 /// The data root (matlab_sils): $ADCS_ROOT, else the first ancestor of the
 /// working directory holding matlab_sils/data.
 pub fn data_root() -> std::path::PathBuf {
-    if let Ok(r) = std::env::var("ADCS_ROOT") { return r.into(); }
+    if let Some(r) = std::env::var_os("ADCS_ROOT").filter(|r| !r.is_empty()) { return r.into(); }
     let mut d = std::env::current_dir().unwrap_or_default();
     loop {
         if d.join("matlab_sils/data").is_dir() { return d.join("matlab_sils"); }
         if d.join("data/scenarios").is_dir() { return d; }
-        if !d.pop() { return "matlab_sils".into(); }
+        if !d.pop() { break; }
     }
+    // a released kit: the data sits beside the program, whatever folder it is run from
+    if let Some(k) = kit_root() { return k; }
+    "matlab_sils".into()
+}
+
+/// The folder of a released kit or installed package: the program's own folder (or its
+/// parent) when it holds `data/scenarios` and the kit's `VERSION` file.
+pub fn kit_root() -> Option<std::path::PathBuf> {
+    let exe = std::env::current_exe().ok()?.canonicalize().ok()?;
+    exe.ancestors().skip(1).take(3).find(|d| d.join("data/scenarios").is_dir() && d.join("VERSION").is_file()).map(|d| d.to_path_buf())
+}
+
+/// Where runs and sized designs are written: `$TRINETRA_STORE`; else, for a released kit,
+/// `.trinetra/store` in the home folder, so the kit itself is never written to and a new
+/// version finds the old results; else `store/` in the data folder (a checkout).
+pub fn store_root() -> std::path::PathBuf {
+    if let Some(s) = std::env::var_os("TRINETRA_STORE").filter(|s| !s.is_empty()) { return s.into(); }
+    let root = data_root();
+    if root.join("VERSION").is_file() {
+        let home = std::env::var_os("HOME").or_else(|| std::env::var_os("USERPROFILE")).filter(|h| !h.is_empty());
+        if let Some(h) = home { return std::path::PathBuf::from(h).join(".trinetra").join("store"); }
+    }
+    root.join("store")
 }
 
 /// The DE440 kernel the POP port reads: $ADCS_DE440, else matlab_sils/pop/03_frames_time/ephemeris/data/de440s.bsp.

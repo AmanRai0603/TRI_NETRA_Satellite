@@ -356,3 +356,23 @@ steps = ["run each check in turn, showing what it proves", "report a check whose
 reads = ["the repository"]
 writes = ["fsw/build/, fsw-rs/target/, engine/target/ (the builds the tests need)"]
 runs = ["python3", "make", "gcc", "cargo", "octave-cli (with --octave)"]
+
+[[command]]
+tool = "kit.py"
+name = "kit"
+usage = "python3 tools/kit.py [--bin DIR] [--out DIR] [--files-only]"
+what = "The tool as a team member gets it: the programs beside exactly the files they read (data, cases, the ephemeris), with VERSION and the first-run documents; --files-only leaves the programs out, for the Python package."
+steps = ["empty the output folder", "copy the release-built programs (the desktop app named for Windows when it is a .exe)", "copy data/, cases/ and the DE440 ephemeris", "write VERSION with each part's version, and the documents"]
+reads = ["engine/target/<target>/release/ (or --bin)", "matlab_sils/data, matlab_sils/cases, the ephemeris", "docs/START_HERE.md, FIRST_RUN.md, COMMANDS.md"]
+writes = ["dist/kit/trinetra-adcs-<version>/ (or --out)"]
+runs = []
+
+[[command]]
+tool = "make_icon.py"
+name = "make-icon"
+usage = "python3 tools/make_icon.py"
+what = "Draw the desktop app's icon (three eyes on an orbit) as PNG, ICO and ICNS; run only to change it."
+steps = ["draw the icon at 1024 px", "write the PNG, the multi-size ICO and the ICNS"]
+reads = []
+writes = ["engine/crates/trinetra-app/icon/trinetra.png, .ico, .icns"]
+runs = []

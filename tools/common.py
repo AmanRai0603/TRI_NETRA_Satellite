@@ -23,6 +23,15 @@ def _tmp_beside(path):
     path = pathlib.Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
     fd, tmp = tempfile.mkstemp(prefix="." + path.name + ".", suffix=".tmp", dir=path.parent)
+    # mkstemp makes the file private (0600); give it the mode the target has, or the mode a
+    # new file gets, so writing whole never changes who can read the file
+    try:
+        mode = path.stat().st_mode & 0o7777
+    except FileNotFoundError:
+        umask = os.umask(0)
+        os.umask(umask)
+        mode = 0o666 & ~umask
+    os.chmod(tmp, mode)
     return fd, pathlib.Path(tmp)
 
 

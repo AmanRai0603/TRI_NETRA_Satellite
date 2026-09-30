@@ -27,6 +27,15 @@ class AtomicWrites(unittest.TestCase):
         self.assertEqual(f.read_text(), "old")
         self.assertEqual(os.listdir(self.d), ["ledger.json"])
 
+    def test_a_write_keeps_the_mode_a_file_has_or_gets(self):
+        f = self.d / "new.txt"
+        common.write_text(f, "x")
+        umask = os.umask(0); os.umask(umask)
+        self.assertEqual(f.stat().st_mode & 0o777, 0o666 & ~umask)
+        os.chmod(f, 0o755)
+        common.write_text(f, "y")
+        self.assertEqual(f.stat().st_mode & 0o777, 0o755)
+
     def test_atomic_path_renames_only_on_success(self):
         f = self.d / "out.zip"
         with self.assertRaises(RuntimeError):

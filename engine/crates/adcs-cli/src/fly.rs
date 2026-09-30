@@ -39,7 +39,7 @@ pub fn main(a: &Args) -> Result<(), String> {
                 Some((_, f)) => adcs_design::Knobs::from_json(&adcs_sim::json::read(std::path::Path::new(f))?),
                 None => adcs_design::Knobs::default(),
             };
-            let out = a.out.clone().unwrap_or_else(|| root.join("store/design").join(&a.scenario).join("sized"));
+            let out = a.out.clone().unwrap_or_else(|| adcs_sim::store_root().join("design").join(&a.scenario).join("sized"));
             let z = adcs_design::size_all(&root, &case_file, &knobs, &out)?;
             let d = &z["demand"];
             println!("[size] {} ({} class): tau_dist {:.3e} N m, h_req {:.3e} N m s, tau_req {:.3e} N m, B_min {:.3e} T -> {}",
@@ -62,7 +62,7 @@ pub fn main(a: &Args) -> Result<(), String> {
                 let r = run::run(&c, &run::Opts { fsw: a.fsw.clone(), quiet: a.quiet, realtime: a.realtime, oils: a.oils.clone() })?;
                 let d = metrics::derive(&c, &r);
                 let ms = metrics::evaluate(&c, &r, &d);
-                let out = a.out.clone().unwrap_or_else(|| data_root().join("store/results_engine").join(&c.id));
+                let out = a.out.clone().unwrap_or_else(|| adcs_sim::store_root().join("results_engine").join(&c.id));
                 rec::write(&out, &c, &r, &d, &ms)?;
                 println!("[adcs] {} done in {:.1} s wall ({:.0}x real time), fsw {} -> {}", c.id, r.wall_s, c.duration_s/r.wall_s.max(1e-9), r.fsw_build, out.display());
                 print_metrics(&ms);

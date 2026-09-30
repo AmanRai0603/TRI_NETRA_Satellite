@@ -1,6 +1,6 @@
 //! `adcs results list [DIR] | show <run> | export <run> --out F.trinetra | import F.trinetra --out DIR`
 //! Owner: Agastya. Copyright (c) 2026 Agastya. All rights reserved.
-use adcs_sim::{data_root, store};
+use adcs_sim::store;
 use std::path::{Path, PathBuf};
 
 pub fn main(args: &[String]) -> Result<(), String> {
@@ -11,7 +11,7 @@ pub fn main(args: &[String]) -> Result<(), String> {
     match args.first().map(String::as_str) {
         Some("list") => {
             if args.len() > 2 { return Err(usage); }
-            let root = args.get(1).map(PathBuf::from).unwrap_or_else(|| data_root().join("store/results_engine"));
+            let root = args.get(1).map(PathBuf::from).unwrap_or_else(|| adcs_sim::store_root().join("results_engine"));
             print!("{}", store::table(&store::list(&root)?, &root));
         }
         Some("show") => {
