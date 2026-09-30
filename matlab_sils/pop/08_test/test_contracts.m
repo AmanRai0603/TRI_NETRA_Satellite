@@ -23,7 +23,7 @@ function nfail = test_contracts()
 %   reader that assumes a shape is wrong even when today's data happens to fit.
 %
 %   Add a case here whenever a struct crosses a function boundary.
-setup_paths; addpath('/tmp/octshim'); warning('off','all');
+setup_paths; warning('off','all');
 nfail = 0;
 K = de440.constants();
 

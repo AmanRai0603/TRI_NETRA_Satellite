@@ -55,7 +55,7 @@ OCTAVE = [
     ("twin", "the MATLAB twin's test suite (GNU Octave)",
      ["octave-cli", "--no-gui", "-q", "--eval", "startup_asils; addpath tests; ok = run_all_tests(); exit(double(~ok))"], "matlab_sils", ["octave-cli"]),
     ("propagator", "the propagator's regression suite (GNU Octave)",
-     ["octave-cli", "--no-gui", "-q", "--eval", "setup_paths; addpath('08_test'); run_all_tests; exit(double(nfail > 0))"], "matlab_sils/pop", ["octave-cli"]),
+     ["octave-cli", "--no-gui", "-q", "--eval", "setup_paths; addpath('08_test'); run_all_tests; exit(double(nfail > 0))"], "matlab_sils/pop", ["octave-cli", "gnuplot"]),
 ]
 
 
