@@ -102,10 +102,12 @@ mod t {
         let r = std::thread::spawn(|| panic!("the plant diverged")).join();
         let _ = std::panic::take_hook();
         assert!(r.is_err());
-        let reports: Vec<_> = std::fs::read_dir(&d).unwrap().map(|e| e.unwrap().path()).collect();
-        assert_eq!(reports.len(), 1, "{reports:?}");
-        let body = std::fs::read_to_string(&reports[0]).unwrap();
-        assert!(body.contains("what     the plant diverged") && body.contains("fsio.rs"), "{body}");
+        // the hook is process-wide while it is installed, so another test's panic can leave a report
+        // here too: find this test's own report by what it says
+        let reports: Vec<String> = std::fs::read_dir(&d).unwrap().map(|e| std::fs::read_to_string(e.unwrap().path()).unwrap()).collect();
+        let mine: Vec<&String> = reports.iter().filter(|b| b.contains("what     the plant diverged")).collect();
+        assert_eq!(mine.len(), 1, "{reports:?}");
+        assert!(mine[0].contains("fsio.rs") && mine[0].contains("adcs-test crash report"), "{}", mine[0]);
         let _ = std::fs::remove_dir_all(&d);
     }
     #[test]

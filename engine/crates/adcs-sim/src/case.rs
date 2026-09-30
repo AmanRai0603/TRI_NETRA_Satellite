@@ -73,7 +73,10 @@ impl Case {
 mod t {
     use super::*;
     fn read(body: &str) -> Result<Case, String> {
-        let d = std::env::temp_dir().join(format!("adcs-case-test-{}-{}", std::process::id(), body.len()));
+        // one file per call: the tests run in parallel, so a name must never be shared
+        static N: std::sync::atomic::AtomicUsize = std::sync::atomic::AtomicUsize::new(0);
+        let n = N.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+        let d = std::env::temp_dir().join(format!("adcs-case-test-{}-{n}", std::process::id()));
         std::fs::write(&d, format!("section,key,label,unit,value,lo,hi,level,note\nmeta,meta.schema,,,adcs-case/1,,,,\nmeta,meta.case_id,,,t,,,,\n{body}")).unwrap();
         let r = Case::read(&d);
         let _ = std::fs::remove_file(&d);
