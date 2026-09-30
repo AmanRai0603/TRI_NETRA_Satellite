@@ -48,31 +48,31 @@ every dispersion of the AIS nadir hold at its low and high bound, one at a time,
 
 | metric | req | MATLAB mean ± std [min, max] | MATLAB pass | engine mean ± std [min, max] | engine pass |
 |---|---:|---|---:|---|---:|
-| ape_los_last_orbit (deg) | 10 | 24.91 ± 40.4 [7.045, 155.1] | 59 % | 24.19 ± 39.4 [6.94, 161.9] | 65 % |
-| ake_los_last_orbit (deg) | 5 | 3.712 ± 2.58 [0.9593, 11.79] | 82 % | 3.713 ± 1.82 [2.078, 9.036] | 82 % |
-| power_mean (W) | 0.5 | 0.01057 ± 0.00121 [0.006771, 0.01289] | 100 % | 0.01069 ± 0.00144 [0.00697, 0.01404] | 100 % |
+| ape_los_last_orbit (deg) | 10 | 24.91 ± 40.4 [7.045, 155.1] | 59 % | 21.49 ± 29 [5.769, 125.5] | 29 % |
+| ake_los_last_orbit (deg) | 5 | 3.712 ± 2.58 [0.9593, 11.79] | 82 % | 1.899 ± 0.905 [0.4541, 3.879] | 100 % |
+| power_mean (W) | 0.5 | 0.01057 ± 0.00121 [0.006771, 0.01289] | 100 % | 0.01096 ± 0.00194 [0.006811, 0.01726] | 100 % |
 
 Edge runs (requirement metrics; run 2j-1 low / 2j high bound of dispersion j, last run all adverse):
 
 | run | case | ape_los_last_orbit MATLAB / engine | ake_los_last_orbit MATLAB / engine | power_mean MATLAB / engine |
 |---|---|---|---|---|
-| 1 | inertia low | 9.2 / 10.08 | 1.507 / 4.021 | 0.0105 / 0.01034 |
-| 2 | inertia high | 7.232 / 6.94 | 5.853 / 3.208 | 0.01077 / 0.01076 |
-| 3 | residual_dipole low | 34.87 / 55.69 | 1.122 / 9.036 | 0.006771 / 0.00697 |
-| 4 | residual_dipole high | 155.1 / 161.9 | 4.176 / 3.907 | 0.01289 / 0.01404 |
-| 5 | cm_offset low | 7.045 / 8.423 | 3.717 / 5.593 | 0.01074 / 0.01066 |
-| 6 | cm_offset high | 9.07 / 13.82 | 3.213 / 2.476 | 0.01065 / 0.01037 |
-| 7 | solar_flux low | 10.32 / 9.077 | 4.274 / 2.078 | 0.01032 / 0.01054 |
-| 8 | solar_flux high | 9.788 / 9.502 | 0.9593 / 3.413 | 0.0105 / 0.01058 |
-| 9 | kp low | 10.44 / 9.763 | 2.501 / 2.858 | 0.01063 / 0.01063 |
-| 10 | kp high | 15.34 / 7.564 | 2.388 / 2.106 | 0.01066 / 0.01083 |
-| 11 | accommodation low | 9.212 / 8.765 | 11.79 / 2.573 | 0.01033 / 0.01034 |
-| 12 | accommodation high | 8.96 / 8.956 | 3.238 / 2.566 | 0.01028 / 0.01036 |
-| 13 | reflectivity low | 10.27 / 11.19 | 3.409 / 3.726 | 0.01073 / 0.01056 |
-| 14 | reflectivity high | 8.867 / 8.078 | 1.72 / 2.942 | 0.01059 / 0.0106 |
-| 15 | initial_error_deg low | 8.153 / 8.353 | 2.389 / 6.647 | 0.01071 / 0.01028 |
-| 16 | initial_error_deg high | 9.194 / 8.004 | 6.28 / 3.276 | 0.0103 / 0.0104 |
-| 17 | all adverse | 100.3 / 65.19 | 4.568 / 2.697 | 0.01236 / 0.01341 |
+| 1 | inertia low | 9.2 / 16.18 | 1.507 / 2.602 | 0.0105 / 0.01058 |
+| 2 | inertia high | 7.232 / 9.084 | 5.853 / 2.927 | 0.01077 / 0.01089 |
+| 3 | residual_dipole low | 34.87 / 28.82 | 1.122 / 2.018 | 0.006771 / 0.006811 |
+| 4 | residual_dipole high | 155.1 / 125.5 | 4.176 / 1.874 | 0.01289 / 0.01726 |
+| 5 | cm_offset low | 7.045 / 6.557 | 3.717 / 0.8748 | 0.01074 / 0.01057 |
+| 6 | cm_offset high | 9.07 / 14.24 | 3.213 / 2.318 | 0.01065 / 0.01089 |
+| 7 | solar_flux low | 10.32 / 10.08 | 4.274 / 1.448 | 0.01032 / 0.01054 |
+| 8 | solar_flux high | 9.788 / 20.52 | 0.9593 / 3.879 | 0.0105 / 0.01067 |
+| 9 | kp low | 10.44 / 9.7 | 2.501 / 1.785 | 0.01063 / 0.01072 |
+| 10 | kp high | 15.34 / 13.94 | 2.388 / 0.4541 | 0.01066 / 0.01072 |
+| 11 | accommodation low | 9.212 / 5.769 | 11.79 / 0.7401 | 0.01033 / 0.01057 |
+| 12 | accommodation high | 8.96 / 12.13 | 3.238 / 3.007 | 0.01028 / 0.0107 |
+| 13 | reflectivity low | 10.27 / 11.7 | 3.409 / 0.7029 | 0.01073 / 0.01056 |
+| 14 | reflectivity high | 8.867 / 10.07 | 1.72 / 1.818 | 0.01059 / 0.01085 |
+| 15 | initial_error_deg low | 8.153 / 10.46 | 2.389 / 1.956 | 0.01071 / 0.01079 |
+| 16 | initial_error_deg high | 9.194 / 8.581 | 6.28 / 1.766 | 0.0103 / 0.01076 |
+| 17 | all adverse | 100.3 / 51.96 | 4.568 / 2.114 | 0.01236 / 0.01239 |
 
 ## mc_agile_rw_rcs — agile_slew_rw_rcs on ais_img_3u (montecarlo, 20 runs)
 
@@ -111,9 +111,9 @@ Magnetic-only nadir hold of the AIS 3U (10 deg) across mass-property, magnetic, 
 
 | metric | req | MATLAB mean ± std [min, max] | MATLAB pass | engine mean ± std [min, max] | engine pass |
 |---|---:|---|---:|---|---:|
-| ape_los_last_orbit (deg) | 10 | 89.69 ± 38.5 [16.21, 165.2] | 0 % | 92.98 ± 42.3 [27.76, 169.8] | 0 % |
-| ake_los_last_orbit (deg) | 5 | 3.3 ± 1.73 [1.096, 6.253] | 75 % | 2.829 ± 1.69 [0.8248, 7.135] | 88 % |
-| power_mean (W) | 0.5 | 0.01145 ± 0.0025 [0.006323, 0.01589] | 100 % | 0.01004 ± 0.0029 [0.005947, 0.01518] | 100 % |
+| ape_los_last_orbit (deg) | 10 | 89.69 ± 38.5 [16.21, 165.2] | 0 % | 88.47 ± 43.7 [27.49, 165.3] | 0 % |
+| ake_los_last_orbit (deg) | 5 | 3.3 ± 1.73 [1.096, 6.253] | 75 % | 1.651 ± 0.729 [0.4513, 2.876] | 100 % |
+| power_mean (W) | 0.5 | 0.01145 ± 0.0025 [0.006323, 0.01589] | 100 % | 0.01013 ± 0.00302 [0.005447, 0.01585] | 100 % |
 
 ## mc_slew_cmg — slew_cmg on ais_img_3u (montecarlo, 20 runs)
 
