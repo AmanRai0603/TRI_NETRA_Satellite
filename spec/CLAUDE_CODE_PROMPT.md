@@ -2,12 +2,7 @@
 
 Give Claude Code one phase at a time. Each phase ends on its own acceptance test and stop points (SPEC.md §19). Start the next phase only after a person has read the phase report and dealt with the stop points.
 
-Before P0, create an empty repository named `ADCS_PLATFORM` and put this whole package in it at `_package/`, unchanged. Each phase copies from `_package/` into the repository's own paths (SPEC.md §0), so the package's README and the new repository's README never collide. Then clone VLEO_SIMULATOR beside the repository, as a scratch checkout outside it, at the pinned commit:
-
-```
-git clone https://github.com/AmanRai0603/VLEO_SIMULATOR ../VLEO_SIMULATOR
-git -C ../VLEO_SIMULATOR checkout abf79ee
-```
+Before P0, create an empty repository named `ADCS_PLATFORM` and put this whole package in it at `_package/`, unchanged. Each phase copies from `_package/` into the repository's own paths (SPEC.md §0), so the package's README and the new repository's README never collide. The package is all the builder needs: nothing is cloned or copied from any other repository.
 
 ---
 
@@ -21,13 +16,11 @@ for its developer team. The package in _package/ is read-only; copy from it, nev
 
 Read first, in this order: _package/SPEC.md §0 to §4 in full (§1.6 is the operating model),
 then §5.10 to §5.13 (the node form, intake, the explanation standard, de-risking), then §19's P<N> section, then every section
-P<N> refers to. VLEO_SIMULATOR is checked out at ../VLEO_SIMULATOR (commit abf79ee), outside
-this repository. Treat it as read-only: port from it by copying, as §3 says.
+P<N> refers to. §3 is the engine's method: build it as written there.
 
 Rules that override anything else you would do (SPEC.md §0.2):
-- Copy VLEO files verbatim and change only the names in §3.3 and the domain nouns.
-  Keep each file's template, ordering and comments. Remove completely every editing path
-  §3.4 lists: the released software never writes its own content.
+- Build what §3.4 lists, named as §3.3 says. No editing path §3.4 excludes may exist:
+  the released software never writes its own content.
 - Node content arrives only through intake: `cargo xtask intake write` from a request that
   passed `intake check`, then `intake verify`. Never write a sheet any other way — not by hand,
   not by script. That includes the 82 seed forms in P1.
@@ -37,7 +30,7 @@ Rules that override anything else you would do (SPEC.md §0.2):
 - Never widen a tolerance, skip a test, or edit a generated file outside a HOLE.
 - A refusal is never a substitution. Several refusals are this phase's correct result.
 - At a stop point in §19 or a decision in §20: prepare what a person needs, then stop.
-- Record every disagreement between SPEC.md and VLEO's code in docs/SPEC_DEVIATIONS.md.
+- Record every disagreement between SPEC.md and the built code in docs/SPEC_DEVIATIONS.md.
 - Keep manual/user/ and manual/developer/ true: a command, route, view or case key you add,
   remove or rename is changed on its manual page in the same commit.
 - Every page a person reads follows adcs-explain/1 (§5.12): a view or template you write carries
@@ -92,5 +85,5 @@ If the request cannot be implemented as written, stop and say why.
 - **Products come from the designer, into the store.** `adcs design` saves candidates as data, never into `catalogue/`. A candidate reaches the catalogue by request, and is offered only on a recorded H14 decision, never one holding a synthetic or placeholder part.
 - **P3**: if you hand over the existing detumble C code, it goes behind `adcs_fsw.h` first, before the reference flight software (§19 P3).
 - **Low credibility is expected.** UNCONFIRMED on every seeded row until an engineer confirms it by form, InputPedigree 0 on every result that flew a synthetic part (P4), and a certificate that refuses to issue (P8) are acceptance results, not failures.
-- **Change the plan with its tools, never by hand.** From P1 the repository owns its copies of `plan/` and the tools. Before any sheet is published, a change to the tree's shape is: edit `tools/build_tree.py`, run it, run `tools/validate_plan.py` and `tools/check_seed_with_vleo.py ../VLEO_SIMULATOR --write`, and reseed. After that, a new group is added with `tools/seed_tree.py --add-group` (§5.7), and its nodes arrive as new-node requests. Node content is never changed either way: it is a request. `_package/` stays as it was delivered, as the record of the starting point.
+- **Change the plan with its tools, never by hand.** From P1 the repository owns its copies of `plan/` and the tools. Before any sheet is published, a change to the tree's shape is: edit `tools/build_tree.py`, run it, run `tools/validate_plan.py`, reseed, and record the new node ids in `plan/expected_node_ids.json`. After that, a new group is added with `tools/seed_tree.py --add-group` (§5.7), and its nodes arrive as new-node requests. Node content is never changed either way: it is a request. `_package/` stays as it was delivered, as the record of the starting point.
 - **Stop points by phase** (SPEC.md §19–§20): P0 D10, D12 · P1 D4, D5, D9, D11, D25, D26, D27, the IGRF file and two bundles · P2 D1, D7, D13, D18, D21, the default 3U cases' reference requirements (a person) · P3 D5 if still open · P3M D23, D24, twin parity causes (H15) · P4 H15, algorithm bounds (H14), D22 · P5 panel sign-off, D2 · P6 D14 · P7 bring-up and H-rig · P8 D15 · P9 D6, D16, D17, D19, D20 · P10 D3, D8.

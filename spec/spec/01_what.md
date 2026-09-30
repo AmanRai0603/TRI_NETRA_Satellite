@@ -56,7 +56,7 @@ OILS and HILS results reach the client only after the purchase order, and always
 
 ### 1.4 What the repository contains, in twelve parts
 
-1. **The engine**, ported from VLEO_SIMULATOR: units, kernel, sheet generators, gate, bus, data bundles, faces (§3), with every in-software editing path removed (§3.4).
+1. **The engine**: units, kernel, sheet generators, gate, bus, data bundles, faces (§3), with no in-software editing path (§3.4).
 2. **The ADCS tree**: four layers, 608 node sheets once seeded, 22 KPIs each closed by evidence and 16 of them also by analysis (§5). Every node's content arrives through intake.
 3. **The node form and intake** (§5.10, §5.11): the one way the software's content changes. A team member fills a form. The developer team runs the checker, the implementation agent writes the change, the checker verifies it, a person reviews, and the release carries it.
 4. **Units and physics** for attitude work (§6).

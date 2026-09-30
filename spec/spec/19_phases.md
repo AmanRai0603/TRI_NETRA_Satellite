@@ -37,7 +37,7 @@ The MATLAB twin is not a phase of its own. Each phase from P1 writes its SILS el
 
 - **Units and physics.** Add the units and quantities of §6.1 and the frame types. Write `adcs-core::physics` per §6.2, with property tests only: zero at count zero, monotonic where the relation is, and dimension checks. No expected values are invented.
 - **The twin, from the start (§10.8.7).** Copy `_package/matlab_sils/`, `_package/plan/twin_map.toml` (with `plan/`, below) and `_package/tools/{pack_matlab,twin_check}.py`. Write `cargo xtask twin check|list`, porting `twin_check.py` rule for rule. Every physics function is written in the same change as its twin, `matlab_sils/+asils/+physics/+<module>/<name>.m`, and both run its fixtures; `asils.case.read` and `asils.case.template` are written with `adcs-case`. Add the CI jobs `twin`, `matlab-pack` (with `--phase` set to the phase reached) and `matlab-twin` (§18).
-- **The tree's shape.** Copy `_package/plan/` to `plan/`, `_package/catalogue/` to `catalogue/` and `_package/designs/` to `designs/` (the case checker reads `meta.class` and `meta.families` against them), and `_package/tools/{build_tree,validate_plan,check_seed_with_vleo,plan_model}.py` to `tools/`. The validator checks only the directories copied so far. Write `tools/plan_rows.py` and adapt `tools/seed_tree.py` per §5.7, then seed. Every row is `seeded` and answers `NotRun`.
+- **The tree's shape.** Copy `_package/plan/` to `plan/`, `_package/catalogue/` to `catalogue/` and `_package/designs/` to `designs/` (the case checker reads `meta.class` and `meta.families` against them), and `_package/tools/{build_tree,validate_plan,plan_model}.py` to `tools/`. The validator checks only the directories copied so far. Write `tools/plan_rows.py` and adapt `tools/seed_tree.py` per §5.7, then seed. Every row is `seeded` and answers `NotRun`.
 - **Check the seeding.** Assert that every node id equals `plan/expected_node_ids.json`. Generate `sources/`, `layers/` (every group's `cases` list empty, §5.6) and `CODEOWNERS`.
 - **Cases.** Write `adcs-catalogue` (reading the working copy), then `adcs-case` (§8.3): the checker, the CSV reader and writer against `plan/case_inputs.toml`, import, export, the distribution report, the case store, and `adcs case template|check|import|export|report`. Add `Case.unstated`, `Case.assumed`, `Case.range` and `Case.level`, the `NotStated` and `NotFitted` answers, and `zero_when_absent` with gate check 7h (H7). Load cases at run time from the store (F16). Copy `_package/tools/check_case.py`, which CI keeps until `adcs case check` replaces it. The reference cases are imported after the seed forms (below), because the importer reads the reference values of `default` inputs (`orbit.ecc`, `surface.refl`, `surface.cd`) from their sheets.
 - **Platform extensions.** Implement evidence rows and gate check 7g (§5.5); the `tier` field; the `[request]` table and `requests/` in a node folder (H7); the compiled bundle data in `adcs-core/build.rs` (§6); the KPI closures, written by the seeder from `plan/kpis.toml` (§5.5); and the UNCONFIRMED handling in the gap pass, `ready` and credibility (§5.8).
@@ -203,7 +203,7 @@ The MATLAB twin is not a phase of its own. Each phase from P1 writes its SILS el
 
 ### P10 — Hardening
 
-- Finish `docs/manual.toml` for everything. Complete both manuals (§16.4) against the software as built, with real outputs pasted where a page shows one. Write `docs/USING_IT.md` as a walkthrough, as VLEO's is.
+- Finish `docs/manual.toml` for everything. Complete both manuals (§16.4) against the software as built, with real outputs pasted where a page shows one. Write `docs/USING_IT.md` as a walkthrough.
 - Finish the devcontainer; do a release dry run through the `release` environment; review `docs/SPEC_DEVIATIONS.md` line by line with a person.
 - **Green:** everything, in both profiles, plus a full nightly run.
 - **Acceptance:**
@@ -216,7 +216,7 @@ The MATLAB twin is not a phase of its own. Each phase from P1 writes its SILS el
 
 ## 20. Decisions the builder must not take
 
-The builder prepares each one: options, costs, a recommendation if asked. It then stops. D1–D9 are VLEO's DELIVERY_PLAN list, carried over because each still applies.
+The builder prepares each one: options, costs, a recommendation if asked. It then stops.
 
 | | Decision | Needed by |
 |---|---|---|
@@ -229,7 +229,7 @@ The builder prepares each one: options, costs, a recommendation if asked. It the
 | D7 | bundle boundaries (one catalogue bundle, or one per family) | P2 |
 | D8 | signing-key custody | P10 |
 | D9 | the licence-expiry policy for bundles | P1 |
-| D10 | extract a shared platform used by VLEO and ADCS, or keep two repositories in step by hand | P0 |
+| D10 | extract the engine's method into a library other products share, or keep it inside this repository | P0 |
 | D11 | the exact rule of gate check 10b (F7): what a hole body may contain | P1 |
 | D12 | the GitHub team behind each owner | P0 |
 | D13 | the currency and who owns the price table | P2 |
@@ -266,7 +266,7 @@ A risk's level moves only through a belief record, and goes down only when a tes
 | R-05 A PC is not a hard real-time target | model | L3 | 1 kHz over UDP on commodity hardware can jitter. | Measure at commissioning (SPEC.md §12.3); move the plant to the PolarFire SoC if it cannot hold. | the commissioning run records deadline misses per hour below the facility's allowance for the whole of a campaign |
 | R-06 An air bearing is not orbit | model | L3 | Its residual torque exceeds a CubeSat's orbital disturbances. | HILS is compared with the lab twin, never with the orbit run (SPEC.md §12.6); adcs rig fit refuses a HILS campaign whose bearing, cage or stimulators fall short of what the case needs (SPEC.md §12.10). | a HILS campaign and its lab twin agree within D23's tolerances on every metric the certificate states |
 | R-07 Customer flight code keeps hidden state | algorithm | L3 | C statics break repeatability across runs. | The init-twice test (SPEC.md §9.6) refuses such a build by name. | the init-twice test passes on every customer build a campaign runs |
-| R-08 Intellectual property leaves through the browser or an FMU | output | L4 | VLEO's WASM ships the whole kernel (F3); an FMU is native code. | F3 is fixed; FMUs run only in a sandbox (SPEC.md §15.6); restricted content is excluded by test (SPEC.md §14.6). | the restricted-content test passes on every artefact a release publishes, and D20's external review finds no route out |
+| R-08 Intellectual property leaves through the browser or an FMU | output | L4 | A browser build can ship the whole kernel (F3); an FMU is native code. | F3 is fixed; FMUs run only in a sandbox (SPEC.md §15.6); restricted content is excluded by test (SPEC.md §14.6). | the restricted-content test passes on every artefact a release publishes, and D20's external review finds no route out |
 | R-09 Synthetic or demonstration numbers reach a client as evidence | output | L5 | Round test values look plausible. | SYN-* naming, the status rule, InputPedigree 0, a CI refusal (SPEC.md §7.3); demo results are marked at the top and never evidence. | the CI refusal and the result viewer's demo banner are shown, by test, to stop every synthetic path the release has |
 | R-10 The MATLAB twin drifts from the platform | model | L3 | Two implementations of one engine diverge unless something checks them. | One set of definitions, exported; every SILS element written in both engines in the same change from P1, as plan/twin_map.toml lists them, and the twin job refusing a one-sided change (SPEC.md §10.8.7); the same fixtures and draws; the matlab-parity job on every push. | matlab-parity green on every push for a whole quarter, with every ledger line explained by a person |
 | R-11 Tuning fits the case, not the physics | algorithm | L4 | A search over gains finds whatever the plant model rewards. | Tune on nominal plus edge corners; confirm with a Monte Carlo never tuned on (SPEC.md §8.5). | a tuned product's HILS result agrees with its confirming Monte Carlo within D23's tolerances |
@@ -283,8 +283,6 @@ A risk's level moves only through a belief record, and goes down only when a tes
 
 ## 22. Sources
 
-- VLEO_SIMULATOR at `abf79ee`: [README](https://github.com/AmanRai0603/VLEO_SIMULATOR/blob/main/README.md), [AGENTS.md](https://github.com/AmanRai0603/VLEO_SIMULATOR/blob/main/AGENTS.md), [docs/ARCHITECTURE.md](https://github.com/AmanRai0603/VLEO_SIMULATOR/blob/main/docs/ARCHITECTURE.md), [docs/DELIVERY_PLAN.md](https://github.com/AmanRai0603/VLEO_SIMULATOR/blob/main/docs/DELIVERY_PLAN.md), [docs/NODE_AUTHORING.md](https://github.com/AmanRai0603/VLEO_SIMULATOR/blob/main/docs/NODE_AUTHORING.md), [crates/vleo-bus/src/lib.rs](https://github.com/AmanRai0603/VLEO_SIMULATOR/blob/main/crates/vleo-bus/src/lib.rs), and the files named in §3; read in full for this document.
-- CD-06 · VLEO Integrated Design Tool: plan and working model (the source document of VLEO's tree).
 - IDMAS v2 Exploration: from magnetorquer pointing to an actuator system for any satellite (Orbitt Space, 2026).
 - *Eight Loops, One Beam* (v2), an RF ion thruster taught with the learner's loop and thirteen explainer's techniques, supplied with this plan. Used for: the explanation standard `adcs-explain/1` (§5.12).
 - ECSS-M-ST-80C, Space project management — Risk management (ECSS, 31 July 2008). Used for: scoring a risk by severity and likelihood, which the five risk levels map onto by decision D26 (§5.13).

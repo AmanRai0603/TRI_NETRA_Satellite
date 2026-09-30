@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Builds plan/tree.json, the ADCS tree, in the exact seven-key shape that
-VLEO_SIMULATOR's cd06/tree.json uses, so the same seeder consumes it.
+the seeder (tools/seed_tree.py, tools/plan_rows.py) consumes.
 
 Why a script and not a hand-written JSON file: the tree is reviewed as a
 decomposition, and a decomposition is easier to read as nested Python than as
@@ -12,7 +12,7 @@ thing a person edits. Re-run it after any edit:
     python3 tools/build_tree.py --check    # compares all three without writing
     python3 tools/validate_plan.py         # checks them
 
-Shape rules inherited from the VLEO seeder (tools/cd06_rows.py there):
+Shape rules of the seeder (tools/plan_rows.py):
 
 * HN_MGT is rooted at "mgm", HN_SYS at "prg". Both ids are hard-coded in the
   seeder's install().
@@ -1242,7 +1242,7 @@ def main():
         shape.append({"id": sid, "label": label, "group": grp, "targets": t, "nodes": total})
 
     tree = {
-        "_source": "ADCS platform plan, tools/build_tree.py — the ADCS equivalent of VLEO_SIMULATOR cd06/tree.json",
+        "_source": "ADCS platform plan, tools/build_tree.py — the ADCS tree",
         "_note": "Layers 1 and 2 are named in full. Layer 3 is shape only, as in CD-06: interface, one required and one achieved row per layer-2 target, and the rest to be named. The 5th field of each row names the configuration families it is in play for; empty means all.",
         "layer3_shape": shape,
         "HN_MGT": hn_mgt,

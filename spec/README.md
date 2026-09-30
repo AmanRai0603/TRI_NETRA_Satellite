@@ -2,7 +2,7 @@
 
 Everything needed to build the ADCS platform repository with Claude Code. It goes into the new repository at `_package/` (see `CLAUDE_CODE_PROMPT.md`).
 
-The platform is VLEO_SIMULATOR's engine and method (commit `abf79ee`) with an ADCS tree in it. It adds:
+The platform is a sheet-driven engine (SPEC.md §3) with an ADCS tree in it, and:
 
 - case import from a fixed CSV;
 - a solver and designer over a catalogue of products;
@@ -51,7 +51,6 @@ bash tools/assemble_spec.sh --check                              # SPEC.md is th
 python3 tools/twin_check.py                                      # the twin map is whole: every SILS element, both sides
 python3 tools/twin_check.py --selftest                           # each break in the lockstep caught (TW01-TW06)
 python3 tools/pack_matlab.py --out /tmp/twin                     # the MATLAB SILS zip, deterministic, with TWIN.md
-python3 tools/check_seed_with_vleo.py /path/to/VLEO_SIMULATOR    # must print 0 id difference(s)
 ```
 
 These need Python 3.11 or newer (`tomllib`); the browser and explanation checks need Playwright with Chromium; the narrative's `.xlsx` needs `openpyxl`. The flight software headers compile clean as C99 and C++17:
@@ -69,19 +68,19 @@ gcc -std=c99 -Wall -Wextra -Wpedantic -Werror -Ifsw/include -fsyntax-only /tmp/h
 | `SPEC.md` | the build specification, §0 to §22; §1.6 is the operating model |
 | `CLAUDE_CODE_PROMPT.md` | the per-phase prompt, and notes for the person driving it |
 | `manual/user/`, `manual/developer/` | the two manuals, complete; shipped with every release |
-| `plan/tree.json` | the ADCS tree (418 rows, 307 edges, one door), built by `tools/build_tree.py`, in VLEO's `cd06/tree.json` shape |
+| `plan/tree.json` | the ADCS tree (418 rows, 307 edges, one door), built by `tools/build_tree.py` |
 | `plan/case_template.csv`, `plan/case_inputs.toml` | the fixed case format `adcs-case/1`, every key explained, and its registry (generated) |
 | `plan/cases/*.csv` | four reference cases: the default 3U AIS (10°) and 3U AIS + imaging (0.01°) cases, a 150 kg bus, an unstated 12U |
 | `plan/seed_content.toml` | the content of the 82 seed forms: the pilot thread and the Risk management branch, from 26 cited sources, with 7 transcribed test vectors and the worked example's explanation |
 | `derisk/` | the risk register (18 risks, levels proposed until D26), 16 belief records for this package's own decisions, the narrative template, and where a quarter's prose goes |
 | `plan/units.toml`, `plan/physics.toml` | the units and quantities a node may declare; the physics functions a step may call |
 | `plan/kpis.toml` | the 22 KPIs: each requirement row, its evidence row, its analysis row and metric kind |
-| `plan/expected_node_ids.json` | the node id VLEO's seeding code gives each row |
+| `plan/expected_node_ids.json` | the node id the seeder gives each row |
 | `catalogue/` | the module descriptor standard, 4 families with their slots and algorithms, 13 parts (6 IDMAS, 7 synthetic), 5 seeded products, 4 algorithms with tuning bounds, 7 satellite classes |
 | `scenarios/`, `campaigns/`, `designs/` | 5 scenarios, 7 campaigns (every campaign type), two design jobs |
 | `devices/`, `rig/`, `fsw/include/` | an example device protocol; the OILS/HILS device map and two labs, as plants and as facilities (rig host, IEU, field cage, air bearing, stimulators, test stands, safety); `adcs_hal.h` and `adcs_fsw.h` |
 | `forms/` | `node_form.html` (the node's document and the request form), `case_editor.html` (writes the case CSV), `library.html` (the node library's index), and examples written by `tools/make_examples.py`: node forms (`gf_7`, the standard's worked example; `p1k_0`; `rk4_0`), a seed form, a new-node request, a returned request with its belief record, the case editor |
 | `results/` | `template.html`, the result document every finished run is saved as, and two demonstration results from a toy model (never evidence) |
 | `matlab_sils/`, `plan/twin_map.toml` | the MATLAB SILS twin's README and package contents, and the twin map: every SILS element's platform side and MATLAB side, the phase that writes both, the test both pass |
-| `tools/` | `plan_model.py` (the plan, read-only), `build_tree.py`, `validate_plan.py`, `forms.py` (forms, seed forms, library, case editor), `intake.py` (checker, sheet writer, verifier, replies), `derisk.py` (the ledger: check, rollup, narrative), `explain_kit.py` and `explain_check.py` (the explanation standard), `make_examples.py`, `check_case.py`, `results.py` (result documents and the local store), `manual_pages.py`, `form_browser_check.py`, `pack_matlab.py`, `twin_check.py` (the lockstep), `check_seed_with_vleo.py`, `assemble_spec.sh` |
+| `tools/` | `plan_model.py` (the plan, read-only), `build_tree.py`, `validate_plan.py`, `forms.py` (forms, seed forms, library, case editor), `intake.py` (checker, sheet writer, verifier, replies), `derisk.py` (the ledger: check, rollup, narrative), `explain_kit.py` and `explain_check.py` (the explanation standard), `make_examples.py`, `check_case.py`, `results.py` (result documents and the local store), `manual_pages.py`, `form_browser_check.py`, `pack_matlab.py`, `twin_check.py` (the lockstep), `assemble_spec.sh` |
 | `spec/` | the sections `SPEC.md` is assembled from; edit these, then run `tools/assemble_spec.sh` |

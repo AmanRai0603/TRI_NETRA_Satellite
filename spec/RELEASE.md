@@ -64,7 +64,6 @@ Every command in README's "Check the package" was run on the final tree. Each re
 - `twin_check.py`: 99 elements, 96 on both sides and 3 one-sided by design. Its `--selftest` passed.
 - `manual_pages.py --check` and `explain_kit.py --check`: current. `explain_check.py`: 19 manual pages and 12 rendered pages. Its `--selftest` passed.
 - `check_case.py` on the four reference cases: passed. `form_browser_check.py` in headless Chromium: passed.
-- `check_seed_with_vleo.py` against VLEO_SIMULATOR `abf79ee`: 0 id differences.
 - `assemble_spec.sh --check`: current.
 - `pack_matlab.py` built twice gave identical bytes. `--phase P1` refuses, naming the missing twins, which is correct because no MATLAB code is written yet.
 

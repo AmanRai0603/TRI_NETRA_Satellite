@@ -82,7 +82,7 @@ The solver reads parts and products. The rig, the EEPROM image and the as-built 
 
 ### 7.6 Publishing
 
-`xtask bundle publish catalogue/` writes `bundles/catalogue/<YYYY.MM.DD>/` with its manifest and content hash. Publishing is irreversible and needs two reviewers (VLEO CONTRIBUTING). A quote records the catalogue version it was made against, and a new version never changes an old quote (§15.7).
+`xtask bundle publish catalogue/` writes `bundles/catalogue/<YYYY.MM.DD>/` with its manifest and content hash. Publishing is irreversible and needs two reviewers (CONTRIBUTING). A quote records the catalogue version it was made against, and a new version never changes an old quote (§15.7).
 
 ### 7.7 Products
 

@@ -5,7 +5,6 @@
 | Document | ADCS-SPEC-01 · the build specification for the ADCS platform repository |
 | Version | 2.0 · 27 September 2026 |
 | Owner | Aman Kumar Rai |
-| Built on | VLEO_SIMULATOR at commit `abf79ee` (https://github.com/AmanRai0603/VLEO_SIMULATOR) |
 | Product content from | IDMAS v2 Exploration (IDMAS V1 coils, V2 fluid rings, V3 RCS) |
 | Read by | Claude Code, which builds the repository from it; the developer team, who maintain it |
 
@@ -15,7 +14,7 @@ This document, and the files beside it, are everything needed to build one repos
 - **As a test facility**, it tests that ADCS in SILS, PIL, OILS and HILS on one scenario template, and issues the certificate.
 - **Towards the client**, it offers SILS with visualisation before the order. After the purchase order, it gives OILS and HILS results with visualisation, plus the certification.
 
-The repository is VLEO_SIMULATOR's machinery with an ADCS tree in it. It adds seven things VLEO_SIMULATOR does not have:
+The repository is a sheet-driven engine with an ADCS tree in it (§3). Beside the engine it has seven parts:
 
 1. case import from a fixed CSV;
 2. a solver and designer over a catalogue of products;
@@ -25,7 +24,7 @@ The repository is VLEO_SIMULATOR's machinery with an ADCS tree in it. It adds se
 6. a plain-MATLAB twin of the SILS engine;
 7. an intake that turns a team member's node form into checked, implemented and released software.
 
-Where VLEO_SIMULATOR already solved a problem, this document says "port it" and names the file. Where it did not, this document specifies the new part.
+This document specifies every part: the engine's method in §3, the rest in the sections that follow.
 
 **How the software is run and changed (§1.6).** The developer team builds, maintains and upgrades the software. Nobody else changes it, and the released software never changes itself. Everyone else uses it and gets two things:
 
@@ -47,15 +46,15 @@ Two things run through all of it. **Every page a person reads explains itself** 
 | `RELEASE.md` | the package's release notes: what it adds, its counts, the checks run with their results | the developer team |
 | `manual/user/` | the user manual: what a team member reads to use the released software and to send a request (§16.4) | team members; shipped in every release and in the MATLAB zip |
 | `manual/developer/` | the developer manual: how the developer team receives a request, checks it, implements it, verifies, reviews, releases and replies (§16.4) | the developer team |
-| `plan/tree.json` | the ADCS tree in VLEO's seven-key `cd06/tree.json` shape: 418 rows, 307 edges, one door | the seeder (§5.7) |
+| `plan/tree.json` | the ADCS tree in its seven-key shape: 418 rows, 307 edges, one door | the seeder (§5.7) |
 | `plan/case_template.csv`, `plan/case_inputs.toml` | the fixed case format `adcs-case/1`: the blank template (54 inputs, 5 meta rows, each explained in its note) and its registry, which also records the supplier of every declared layer-2 row; both generated | the case importer (§8.3), the case editor, the case checker |
 | `plan/cases/*.csv` | four reference cases in that format: the two default 3U cases, `ais_3u` (10° pointing) and `ais_img_3u` (0.01°), plus a 150 kg bus and an unstated 12U | `adcs case import`, the pilot |
-| `plan/expected_node_ids.json` | the node id VLEO's seeding code gives each tree row, recorded by running it | cross-checks in P1 |
+| `plan/expected_node_ids.json` | the node id the seeder gives each tree row | cross-checks in P1 |
 | `plan/seed_content.toml` | the pilot thread's 61 rows and the risk branch's 21, written from cited sources (26 in all, the OILS and HILS facility references among them), with 7 test vectors transcribed from them and the spin-down node's own explanation (the standard's worked example). It is the content of the 82 seed forms (§5.8). | `tools/forms.py seeds`, then intake |
 | `plan/kpis.toml` | the 22 KPIs: requirement, evidence row, analysis row, metric, usual sense, closure slug | the seeder's closures, the campaign runner, `validate_plan.py` |
 | `derisk/risks.toml`, `derisk/beliefs/*.toml` | the risk register (18 risks, from §21, levels proposed until D26) and 16 belief records for the decisions this package took, most honestly untested (§5.13) | `tools/derisk.py`, the Risk management rows, intake |
 | `derisk/narrative_template.xlsx` | the company's quarterly de-risking narrative template, its seven columns | the narrative (§5.13) |
-| `plan/units.toml`, `plan/physics.toml` | the units and quantities a node may declare (VLEO's registry plus §6.1), and the functions of `adcs-core::physics` (§6.2) | the node form's pick-lists, the intake checker |
+| `plan/units.toml`, `plan/physics.toml` | the units and quantities a node may declare (the base registry plus §6.1), and the functions of `adcs-core::physics` (§6.2) | the node form's pick-lists, the intake checker |
 | `catalogue/schema.toml` | the module descriptor standard | solver, loop engine, FSW config, EEPROM |
 | `catalogue/families.toml` | the four configuration families, their slots and the algorithms each may carry | solver |
 | `catalogue/products/*.toml` | 5 seeded products, all `candidate`: configuration, counts, mounts, algorithms | solver, loop engine |
@@ -89,7 +88,6 @@ Two things run through all of it. **Every page a person reads explains itself** 
 | `tools/form_browser_check.py` | opens the node form, the case editor, the library and the results in headless Chromium and proves each loop (§5.10.8) | CI |
 | `tools/pack_matlab.py` | builds the twin's download, `adcs_sils_matlab_<version>.zip`, deterministically, from the repository, with the twin map and `TWIN.md`; refuses a zip missing a twin the phase builds | CI, the developer team |
 | `tools/twin_check.py` | the lockstep check (§10.8.7): the map is whole (TW01–TW04), a checkout has both sides of every element its phase builds (TW05), a pull request changes both sides or says why not (TW06); the stand-in for `cargo xtask twin` | CI, the developer team |
-| `tools/check_seed_with_vleo.py` | runs VLEO_SIMULATOR's own seeding code over `plan/tree.json` and checks every node id against `plan/expected_node_ids.json` | CI, the developer team |
 | `spec/`, `tools/assemble_spec.sh` | the sections this document is assembled from, and the script that joins them (`--check` compares) | whoever edits the package |
 
 Run `python3 tools/validate_plan.py` after any edit to the package. It must print `0 finding(s)`.
@@ -100,14 +98,14 @@ The package lives in the new repository at `_package/`, read-only. Each phase co
 
 The builder is Claude Code, working for the developer team. These rules hold in every phase, and they are the same rules the implementation agent works under after release (§5.11).
 
-1. **Port, do not rewrite.** Copy VLEO_SIMULATOR files verbatim and change only what §3.3 lists: the `vleo` → `adcs` names and the domain nouns. Keep each file's template, ordering and comments. A file this document does not mention is copied unchanged or not at all, as §3.4 says. What §3.4 removes is removed completely, not left dormant.
-2. **Never write a person's name.** A node's `confirmed_by`, a panel's `confirmed_by`, a promotion's `by` and a certificate's signatory are a person's attestation. A node's `confirmed_by` is written only by `cargo xtask intake write`, from the `attested_by` a person typed into a node form; every other person's decision only by `cargo xtask decision record`, from that person's own record (§17.2). Otherwise it is `UNCONFIRMED · <what it is> · awaiting a person` (§5.8). VLEO's `seed_tree.py` writes "A. Rai / 2026-09-01" into KPI rows; the port must not carry that string.
+1. **Build what §3.4 lists, named as §3.3 says.** A file this document does not call for is not written. What §3.4 says is never present is absent completely, not left dormant.
+2. **Never write a person's name.** A node's `confirmed_by`, a panel's `confirmed_by`, a promotion's `by` and a certificate's signatory are a person's attestation. A node's `confirmed_by` is written only by `cargo xtask intake write`, from the `attested_by` a person typed into a node form; every other person's decision only by `cargo xtask decision record`, from that person's own record (§17.2). Otherwise it is `UNCONFIRMED · <what it is> · awaiting a person` (§5.8).
 3. **Never produce an expected value.** A test vector's `expect` is transcribed from a page of a cited source by a person, in a node form, or it is not written. `plan/seed_content.toml` holds seven such vectors. This includes parity references: IDMAS v2 §13's numbers are a second opinion, never something to tune toward.
-4. **Never widen a tolerance, skip a test, or edit a generated file outside a HOLE.** Unchanged from VLEO.
+4. **Never widen a tolerance, skip a test, or edit a generated file outside a HOLE.**
 5. **A refusal is never a substitution.** A part with a `nan` field, a scenario that needs it, a row with no theory, a verified closure with no campaign behind it: each is refused by name. That is a correct result, and the phases in §19 expect several of them.
 6. **Node content arrives only through intake.** No sheet is written by hand, by a script, or by an agent except through `cargo xtask intake write` from a request that passed `cargo xtask intake check`, followed by `intake verify`. That includes the first 82 rows, which arrive as seed forms (§5.8). Two tools write a sheet's *shape*, never its content: the seeder (every row's identity, place and edges, and the closures and requirement rows that `plan/kpis.toml` fixes, §5.5, §5.7) and `cargo xtask new`, run only as the first step of a new-node request.
 7. **Stop at the decisions in §20.** They belong to a person. Do the preparatory work, write what is needed to decide, and stop.
-8. **When this document and VLEO_SIMULATOR's code disagree:** the code wins on mechanism (how a sheet is loaded, how the resolver orders nodes), and this document wins on ADCS content (which rows exist, what a scenario means) and on the operating model (§1.6). Record every such disagreement in `docs/SPEC_DEVIATIONS.md` with the file, the line and the choice made.
+8. **When this document and the built code disagree:** the code wins on mechanism (how a sheet is loaded, how the resolver orders nodes), and this document wins on ADCS content (which rows exist, what a scenario means) and on the operating model (§1.6). Record every such disagreement in `docs/SPEC_DEVIATIONS.md` with the file, the line and the choice made.
 9. **Say what you did not do.** Every phase report lists what is not built yet, what is mocked, and what needs hardware or a person.
 
 ### 0.3 Reading order
@@ -171,7 +169,7 @@ OILS and HILS results reach the client only after the purchase order, and always
 
 ### 1.4 What the repository contains, in twelve parts
 
-1. **The engine**, ported from VLEO_SIMULATOR: units, kernel, sheet generators, gate, bus, data bundles, faces (§3), with every in-software editing path removed (§3.4).
+1. **The engine**: units, kernel, sheet generators, gate, bus, data bundles, faces (§3), with no in-software editing path (§3.4).
 2. **The ADCS tree**: four layers, 608 node sheets once seeded, 22 KPIs each closed by evidence and 16 of them also by analysis (§5). Every node's content arrives through intake.
 3. **The node form and intake** (§5.10, §5.11): the one way the software's content changes. A team member fills a form. The developer team runs the checker, the implementation agent writes the change, the checker verifies it, a person reviews, and the release carries it.
 4. **Units and physics** for attitude work (§6).
@@ -284,15 +282,13 @@ One gap is stated rather than hidden: step-and-stare agility on large buses (IDM
 
 ---
 
-## 3. What is inherited from VLEO_SIMULATOR
+## 3. The method and the workspace
 
-### 3.1 The pin
+### 3.1 One repository, built from this package
 
-Clone `https://github.com/AmanRai0603/VLEO_SIMULATOR` at commit `abf79ee` into a scratch directory. Treat it as read-only. The new repository is created empty, and files are copied into it phase by phase (§19). VLEO_SIMULATOR is not a git submodule or a dependency of the new repository. The two products share a method, not a build. Extracting a shared platform later is decision D10 (§20).
+The repository is built from this package alone, phase by phase (§19). It has no upstream: nothing is cloned, pinned or copied from another product, and no other repository is a submodule or a dependency. Whether the engine's method is later extracted into a library other products share is decision D10 (§20).
 
 ### 3.2 The five rules, for ADCS
-
-Four carry over word for word; rule 1 gains how the sheet is written, and rule 3 changes only its crate name.
 
 1. **The sheet is the only source.** Its content is written by `cargo xtask intake write` from a checked request, and by nothing else; its shape by the seeder and, for a new node, `cargo xtask new` (§0.2 rule 6). Every other file in a node folder is generated, except the typed lines inside its numbered HOLE blocks.
 2. **An expected value may never come from the code under test.** The gate refuses `self-snapshot` and `agent-generated`.
@@ -300,87 +296,72 @@ Four carry over word for word; rule 1 gains how the sheet is written, and rule 3
 4. **Portable maths only.** `adcs_core::units::pmath` in the kernel, in `adcs-sim-core`, and in every hole body.
 5. **A refusal is never a substitution.**
 
-### 3.3 The rename map
+### 3.3 Names
 
-| VLEO_SIMULATOR | ADCS platform |
+| Thing | Name |
 |---|---|
-| crate prefix `vleo-` / `vleo_` | `adcs-` / `adcs_` (every crate, every generated `use` line) |
-| `vleo-mod-*` node crates | `adcs-mod-*` (§5.4 lists them) |
-| `struct Vleo` in `vleo-modules` | `struct Adcs` in `adcs-modules` |
-| binary `vleo`, cargo alias `vleo` | binary `adcs`, cargo alias `adcs` |
-| binary `vleo-daemon` | `adcs-daemon`: the workbench, at http://127.0.0.1:7787 |
-| `VLEO_DATA`, `VLEO_PORT` | `ADCS_DATA`, `ADCS_PORT` |
-| `VLEO_ALLOW_WRITE` | removed, with every route and control it guarded (§3.4) |
-| default port 7777 | 7787, so both tools can run on one machine |
-| default case `"nominal"` (hard-coded in `vleo-cli`, `vleo-daemon`, `vleo-ffi`, `vleo-py`) | `"ais_3u"`, the 3U AIS default case; the ADCS plan has no `nominal` case |
-| store `~/.vleo/data`, `vleo.lock`, `/.vleo/` | `~/.adcs/data` (bundles), `~/.adcs/store` (cases and results, §13.5.4), `adcs.lock`, `/.adcs/` |
-| `cd06/tree.json` | `plan/tree.json` (authored, from `tools/build_tree.py`) |
-| `tools/cd06_rows.py` | `tools/plan_rows.py` (maps in §5.7) |
-| `tools/cd06_extract.py` | dropped: the tree is authored, not extracted from HTML |
-| `layers/root.toml` label "VLEO multipayload programme" | "ADCS products and test facility" |
-| `matlab/+vleo`, `vleo_install.m` | `matlab/+adcs`, `adcs_install.m` (add the missing `version.m`) |
-| fault text ``run `vleo data sync` `` | ``run `adcs data sync` `` |
-| `.devcontainer` port label "VLEO design tool" | "ADCS platform" |
+| crate prefix | `adcs-` / `adcs_` (every crate, every generated `use` line) |
+| node crates | `adcs-mod-*` (§5.4 lists them) |
+| the kernel's model type | `struct Adcs` in `adcs-modules` |
+| command-line binary, cargo alias | `adcs` |
+| the workbench | `adcs-daemon`, at http://127.0.0.1:7787 |
+| settings | `ADCS_DATA`, `ADCS_PORT`; there is no setting that allows writing (§3.4) |
+| default case | `"ais_3u"`, the 3U AIS reference case |
+| local store | `~/.adcs/data` (bundles), `~/.adcs/store` (cases and results, §13.5.4), `adcs.lock`, `/.adcs/` |
+| the tree | `plan/tree.json` (authored, from `tools/build_tree.py`) |
+| the seeder's maps | `tools/plan_rows.py` (§5.7) |
+| the root layer's label | "ADCS products and test facility" |
+| the MATLAB package | `matlab/+adcs`, installed by `adcs_install.m`, with `version.m` |
+| the fault text for missing data | ``run `adcs data sync` `` |
+| the dev container's port label | "ADCS platform" |
 
-Commit scopes are derived from crate names by `tools/commit_message.py` (`removeprefix`), so change the prefix there and the scopes follow. Reset `ADOPTED_AFTER` to the new repository's first commit.
+Commit scopes are derived from crate names by `tools/commit_message.py` (`removeprefix("adcs-")`). `ADOPTED_AFTER` is the repository's first commit.
 
-### 3.4 Copy, adapt, drop
+### 3.4 The workspace
 
-**Copy verbatim, then rename (§3.3) only:**
+**The engine.** `crates/adcs-units`, `adcs-core`, `adcs-bus`, `adcs-data`, `adcs-modules`, `adcs-ffi`, `adcs-wasm` and `adcs-py`; `adcs-sheet` (sheet loading and generation), `adcs-cli`, `adcs-daemon`, `xtask/` and `web/`; `.cargo/`, `rustfmt.toml`, `rust-toolchain.toml`, `.gitignore`, `.claude/hooks/*.sh` and `.claude/settings.json`.
 
-- `crates/vleo-units`, `vleo-core` (minus the physics modules below), `vleo-bus`, `vleo-data`, `vleo-modules`, `vleo-ffi`, `vleo-wasm`, `vleo-py`;
-- `.cargo/`, `rustfmt.toml`, `rust-toolchain.toml`, `.gitignore`;
-- `.claude/hooks/*.sh` and `.claude/settings.json`;
-- from `tools/`: `branch_audit.py`, `commit_message.py`, `crate_skeleton.py` (with its `ALIAS` map set to `{"x_closure": "closure"}`), `input_check.py`, `instruction_lint.py`, `manual_check.py`, `node_crate_build.rs`, `panel_check.py`, `panel_review.py`, `release_notes.py`, `review_report.py`, `seed_helpers.py`, `template_check.py`, `theory_check.py`, `githooks/commit-msg`, and `selftest_panels/` (which `panel_check.py --selftest` reads);
-- `.github/pull_request_template.md`, `.github/dependabot.yml`;
-- `panels/tree.toml`, `matrix.toml`, `paths.toml`, `panels/README.md`.
+**The tools.** In `tools/`: `branch_audit.py`, `commit_message.py`, `crate_skeleton.py` (with its `ALIAS` map set to `{"x_closure": "closure"}`), `input_check.py`, `instruction_lint.py`, `manual_check.py`, `node_crate_build.rs`, `panel_check.py`, `panel_review.py`, `release_notes.py`, `review_report.py`, `seed_helpers.py`, `seed_tree.py`, `plan_rows.py`, `template_check.py`, `theory_check.py`, `sil_parity.py` (§10.7), `githooks/commit-msg`, and `selftest_panels/` (which `panel_check.py --selftest` reads); `.github/pull_request_template.md`, `.github/dependabot.yml`; `panels/tree.toml`, `matrix.toml`, `paths.toml`, `panels/README.md`.
 
-**Copy and rename, then remove every editing path:** `crates/vleo-sheet`, `vleo-cli`, `vleo-daemon`, `xtask/` and `web/`. The released software reads and runs; it never writes its own content (§1.6). Each removal is complete: the code, its tests, its manual entries and its help text go, and `the_manual_is_true` proves nothing still names them.
+**No editing path.** The released software reads and runs; it never writes its own content (§1.6). The faces are built without any route, control, command or setting that changes a sheet. `the_manual_is_true` proves nothing in the manual or the help text names one.
 
-| Where | What is removed | What stays |
+| Where | Never present | Present |
 |---|---|---|
-| `vleo-sheet/src/form.rs` | `save`, `save_block`, `preview`, `propose`, `set_view` and `publish`, and every caller | `FIELDS`, `ARRAYS`, `structural`, `normalise`, `value_allowed` and the pure `set`: `cargo xtask intake write` renders a sheet with them (§5.11), and the node form's asks are FIELDS' asks |
-| `vleo-daemon` | `POST /v1/propose`, `/v1/preview/…`, `/v1/sheet/…`, `/v1/block/…`, `/v1/view/…`, `/v1/publish/…`, and `VLEO_ALLOW_WRITE` | every `GET` route, `/v1/run`, `/v1/sweep`, `/v1/probe`, `/v1/levers`, the read-only `GET /v1/declare/…` |
-| `vleo-sheet/src/manual.rs` | `Route.writes` and the "writes" effect | the manual, and `the_manual_is_true` |
-| `web/js/sheet.js` | the edit form, the paste-and-preview box, "put these edits on a branch" | the sheet's read-only view |
-| `web/js/manual.js` | the text telling a user how to edit or propose from the page | everything else |
-| `xtask` | `declare` (as an editing loop), `fill`, `confirm` | `docs`, `assemble`, `gate`, `status`, `active`, `reach`, `gap`, `graph`, `new` (used only by intake), `ready`, `codeowners`, `bundle`, `variables`, `setup`, `mutate`, `differential`; added: `intake`, `form`, `manual`, `decision` and `rng-reference` (§16.2) |
-| `vleo-cli` | any subcommand that writes a sheet | every read and run subcommand |
+| `adcs-sheet/src/form.rs` | `save`, `save_block`, `preview`, `propose`, `set_view`, `publish` | `FIELDS`, `ARRAYS`, `structural`, `normalise`, `value_allowed` and the pure `set`: `cargo xtask intake write` renders a sheet with them (§5.11), and the node form's asks are FIELDS' asks |
+| `adcs-daemon` | any route that writes: propose, preview, sheet, block, view, publish; any setting that allows writing | every `GET` route, `/v1/run`, `/v1/sweep`, `/v1/probe`, `/v1/levers`, the read-only `GET /v1/declare/…` |
+| `adcs-sheet/src/manual.rs` | a "writes" effect on a route | the manual, and `the_manual_is_true` |
+| `web/js/sheet.js` | an edit form, a paste-and-preview box, "put these edits on a branch" | the sheet's read-only view |
+| `web/js/manual.js` | text telling a user how to edit or propose from the page | everything else |
+| `xtask` | `declare` as an editing loop, `fill`, `confirm` | `docs`, `assemble`, `gate`, `status`, `active`, `reach`, `gap`, `graph`, `new` (used only by intake), `ready`, `codeowners`, `bundle`, `variables`, `setup`, `mutate`, `differential`, `intake`, `form`, `manual`, `decision` and `rng-reference` (§16.2) |
+| `adcs-cli` | any subcommand that writes a sheet | every read and run subcommand |
 
-`web/` is copied except `js/solar.js` (F13 and F14 are the two edits that removal needs) and the removals above.
+**Written for ADCS.** `AGENTS.md` (the standing instructions of the builder and the implementation agent, §17.4), `CONTRIBUTING.md`, `README.md`, `ADOPTION.lock`, `areas/*.md`, `docs/ARCHITECTURE.md`, `docs/NODE_AUTHORING.md` (how a node is specified in a node form, and what intake writes from it), `docs/USING_IT.md`, `docs/RUNBOOK.md`, `docs/RELEASE_SETUP.md`, `docs/DELIVERY_PLAN.md`, `docs/manual.toml`, `.github/workflows/*.yml`, `.devcontainer/*`, `matlab/`, and `adcs-core/src/physics/`, whose `gnc.rs` and `mission.rs` hold the base functions (`mission.rs` defines `Sense`, `Closure` and `closure()`; gate check 7e reads the literal strings `Sense::AtMost` and `Sense::AtLeast`). `docs/BUILD_EVIDENCE.md` starts empty.
 
-**Copy the structure, rewrite the content:**
-`AGENTS.md` (now the standing instructions of the builder and the implementation agent, §17.4), `CONTRIBUTING.md`, `README.md`, `ADOPTION.lock`, `areas/*.md`, `docs/ARCHITECTURE.md`, `docs/NODE_AUTHORING.md` (now how a node is specified in a node form, and what intake writes from it), `docs/USING_IT.md`, `docs/RUNBOOK.md`, `docs/RELEASE_SETUP.md`, `docs/DELIVERY_PLAN.md`, `docs/manual.toml`, `.github/workflows/*.yml`, `.devcontainer/*`, `tools/seed_tree.py`, `tools/cd06_rows.py` (as `plan_rows.py`), `matlab/`, `vleo-core/src/physics/gnc.rs` (kept and extended), `vleo-core/src/physics/mission.rs` (keep `Sense`, `Closure`, `closure()` exactly: gate check 7e reads the literal strings `Sense::AtMost` and `Sense::AtLeast`).
+**Not part of it.** No fleet of specialised agents: node content comes from people through forms, and code from one general implementation agent under a brief (§17.4). No content outside ADCS: every node folder, physics module, bundle, case and layer file is the ADCS platform's own.
 
-**Drop:**
+### 3.5 Faults the build must not have
 
-- **The agent fleet**: `agents/lanes.toml`, `agents/provenance.toml`, `.claude/agents/*.md` (the declaration-drafter, hole-filler, fixture-recorder, test-author, diagnostician, systems-backend and frontend agents), `tools/agent_lanes.py`, `tools/fleet_report.py`, and `docs/WORK_MODEL.md`. Node content comes from people through forms. Code comes from one general implementation agent under a brief (§17.4).
-- **VLEO's own content**: every `crates/vleo-mod-*/nodes/*` folder; `vleo-core/src/physics/{aero,comms,cost,env,mass,orbit,payload,power,prop,thermal}.rs` (the ADCS equivalents are written fresh in §6.2, reading these for style); `bundles/solar-*`; `cases/*.toml`; `layers/*.toml`; `sources/sources.toml`; `cd06/`; the 11 solar panel specs and their reference images.
-- **VLEO's own documents and scripts**: `docs/MATLAB_PORT_PLAN.md`, `docs/SOLAR_INVENTORY.md`, `docs/SOLAR_ROWS.md`, `docs/GITLAB_TRANSFER.md`, `docs/VARIABLES.md` (regenerated), `docs/AGENT_EVIDENCE.md` (restarted empty as `docs/BUILD_EVIDENCE.md`), `tools/nodes/*.py`, `tools/cd06_extract.py`, `tools/band_confidence_cost.py`, `tools/kp_slot_cost.py`, `tools/rotation_residuals.py`, `tools/solar_inventory.py`, `tools/solar_rows.py`, `tools/matlab_parity.py`. `tools/mat_parity.py` is rewritten as `tools/sil_parity.py` (§10.7).
+Each is a way a platform of this kind goes wrong. Each is designed out from the start and recorded in `docs/SPEC_DEVIATIONS.md` if the build departs from it. The ones that touch the generator or the gate are H7 changes, so two reviewers.
 
-### 3.5 Defects in VLEO_SIMULATOR to fix while porting
-
-These were found by reading the code at `abf79ee`. Each is fixed in the port and recorded in `docs/SPEC_DEVIATIONS.md`. The ones that touch the generator or the gate are H7 changes, so two reviewers.
-
-| # | In VLEO_SIMULATOR | Fix in the ADCS port |
+| # | The fault | What the platform does |
 |---|---|---|
-| F1 | `emit.rs::kind_variant` turns an unknown `kind` into `Kind::Computed`; `state_variant` turns an unknown `state` into `State::Published`. A typo becomes a runnable row silently, which breaks rule 5. | Unknown `kind` or `state` is a load error naming the sheet and the value. |
-| F2 | `prov_variant` maps an unknown provenance to `AgentGenerated`. It fails safe, but says the wrong thing. | Unknown provenance is a load error naming the string. |
-| F3 | `vleo-wasm` links the full `vleo-modules` and filters by the `DEMONSTRATION` list at run time, so the whole kernel ships in the browser. | `adcs-wasm` compiles only the demonstration subset, behind a cargo feature and a generated subset table. A client-facing page must not carry the restricted rows (D1, D2). V13 reads the subset from the generated table. |
-| F4 | `DELIVERY_PLAN.md` describes a `user` build profile; the root `Cargo.toml` has none. | Add `[profile.user]` (inherits release; strip, lto fat, panic abort, one codegen unit) and build it on every merge, as the plan already says. |
-| F5 | Root `Cargo.toml` declares `vleo-graph` and `vleo-testkit` workspace dependencies that do not exist. | Omit them. |
-| F6 | `governing_node(store, subtree_root)` scans every node; `subtree_root` is not a filter. | Filter to the dependency closure of `subtree_root`. The portal reports the governing factor per KPI, so this becomes load-bearing. |
-| F7 | Docs claim a gate check refusing a formula inside a node; only `portable-maths` scans hole bodies. | Implement check 10b: a hole body may call `physics::` functions, arithmetic on its bindings and named constants, and nothing that computes a relation. The exact rule is H7; stop at §20 D11. With the implementation agent writing every hole, this check is what keeps rule 3 true. |
+| F1 | An unknown `kind` becomes `Kind::Computed`, or an unknown `state` becomes `State::Published`: a typo becomes a runnable row silently, which breaks rule 5. | Unknown `kind` or `state` is a load error naming the sheet and the value. |
+| F2 | An unknown provenance maps to `AgentGenerated`. It fails safe, but says the wrong thing. | Unknown provenance is a load error naming the string. |
+| F3 | The browser build links the whole kernel and filters the demonstration list at run time, so the whole kernel ships in the browser. | `adcs-wasm` compiles only the demonstration subset, behind a cargo feature and a generated subset table. A client-facing page must not carry the restricted rows (D1, D2). V13 reads the subset from the generated table. |
+| F4 | A `user` build profile is described but never defined. | `[profile.user]` (inherits release; strip, lto fat, panic abort, one codegen unit), built on every merge. |
+| F5 | The root `Cargo.toml` declares workspace dependencies that do not exist. | Declare only crates that exist. |
+| F6 | `governing_node(store, subtree_root)` scans every node; `subtree_root` is not a filter. | Filter to the dependency closure of `subtree_root`. The portal reports the governing factor per KPI, so this is load-bearing. |
+| F7 | Docs claim a gate check refusing a formula inside a node while only `portable-maths` scans hole bodies. | Implement check 10b: a hole body may call `physics::` functions, arithmetic on its bindings and named constants, and nothing that computes a relation. The exact rule is H7; stop at §20 D11. With the implementation agent writing every hole, this check is what keeps rule 3 true. |
 | F8 | `Fault::DataUnverified` exists and is never raised. | Raise it when a bundle's hash does not match `adcs.lock`. |
-| F9 | Help text and the CODEOWNERS gate step say "from the layer files"; the generator reads each sheet's `owner`. | Correct the wording; the behaviour is right. |
-| F10 | `WORK_MODEL.md` says four agents; seven are defined. `provenance.toml` cites H10, which WORK_MODEL never defines. Prose row counts disagree (1396, 1329). | The fleet and `WORK_MODEL.md` are dropped (§3.4). Every H-number used is defined in §17.2; counts are written from `xtask status`; `instruction_lint.py` checks both. |
-| F11 | `matlab/+vleo/Contents.m` documents `version.m`, which does not exist. | Write `matlab/+adcs/version.m`. |
+| F9 | Help text says owners come "from the layer files" while the generator reads each sheet's `owner`. | The wording says the sheet's `owner`, which is what the generator reads. |
+| F10 | Prose counts disagree with the software (agents, rows), and an H-number is cited that is never defined. | Every H-number used is defined in §17.2; counts are written from `xtask status`; `instruction_lint.py` checks both. |
+| F11 | A MATLAB `Contents.m` documents a `version.m` that does not exist. | Write `matlab/+adcs/version.m`. |
 | F12 | The Uncertainty credibility factor is a proxy keyed on the node id containing "uncertainty". | Keep the proxy for closure rows; for evidence rows (§5.5), score Uncertainty from the campaign's run count and stated confidence (§5.5 table). Built in P4. |
-| F13 | `web/js/node.js` imports `solar.js`, and `app.js` imports `node.js`. Dropping `solar.js` breaks the whole module graph, so the page does not load. | Remove the import and its calls from `node.js`. |
-| F14 | `web/js/state.js` reads `S.index.cases[0].id`; with no cases (P0) it throws. The case filter also shows a group only when its `cases` list names the selected case, which cannot work for cases the portal creates at run time. | Guard the empty list. Filter groups by hardware tags (§5.6): a group is shown when its tags meet the fitted-hardware tags of the loaded candidate (the case with its product). |
-| F15 | Gate check V13 fails when the `DEMONSTRATION` list is empty, and fails any listed row that is not `published`. An empty tree (P0) and a tree of seeded rows (P1–P4) can never pass it. | V13 passes on an empty list until D2 decides the subset; a listed row must be runnable (`verified` or later), not `published`. H7. |
-| F16 | VLEO compiles its cases into the binary: `vleo-sheet/src/load.rs` `load_cases` feeds a static table that `vleo-modules` iterates. That cannot serve cases a portal creates at run time. | Cases become data loaded at run time from the case store (§8.3), never compiled in. `adcs-modules` loses its `CASES` table. `--case <id>` resolves through the store. Every face keeps its default case `ais_3u`, which is imported, not compiled. H7. |
-| F17 | The daemon and the web face can write sheets (`VLEO_ALLOW_WRITE`), and `xtask fill`, `confirm` and `declare` let anyone at a terminal change a sheet outside any check. Two write paths that bypass review are two ways for a released tool to drift from its repository. | Every such path is removed (§3.4). A sheet changes only through `cargo xtask intake write` from a checked request, and `intake verify` proves the result. H7. |
+| F13 | One web module imports a module the build does not have, and the whole module graph fails to load. | Every import resolves; the panels job loads the page. |
+| F14 | The web state reads `S.index.cases[0].id` and throws with no cases (P0); a case filter shows a group only when its `cases` list names the selected case, which cannot work for cases the portal creates at run time. | Guard the empty list. Filter groups by hardware tags (§5.6): a group is shown when its tags meet the fitted-hardware tags of the loaded candidate (the case with its product). |
+| F15 | Gate check V13 fails when the `DEMONSTRATION` list is empty, and fails any listed row that is not `published`, so an empty tree (P0) and a tree of seeded rows (P1–P4) can never pass it. | V13 passes on an empty list until D2 decides the subset; a listed row must be runnable (`verified` or later), not `published`. H7. |
+| F16 | Cases compiled into the binary as a static table cannot serve cases a portal creates at run time. | Cases are data loaded at run time from the case store (§8.3), never compiled in. `adcs-modules` has no `CASES` table. `--case <id>` resolves through the store. Every face keeps its default case `ais_3u`, which is imported, not compiled. H7. |
+| F17 | A face or a terminal command that writes sheets outside any check is a way for a released tool to drift from its repository. | No such path exists (§3.4). A sheet changes only through `cargo xtask intake write` from a checked request, and `intake verify` proves the result. H7. |
 
 ---
 
@@ -495,7 +476,7 @@ adcs-units -> adcs-core -> adcs-bus -> adcs-mod-* -> adcs-modules -> faces
 | 3 subsystem | 14 subsystem layers (12 for the ADCS, 2 for its test rigs), plus the closure addition | 368 rows, plus 38 closures and the closure layer's interface row | `adcs-mod-<sid>`, `adcs-mod-closure` |
 | 4 the run | what one evaluation or one campaign produced | — | — |
 
-Every case reaches layer 2 through one row, `Satellite ADCS` under Case intake; the note "the door into this case's engineering layer" makes it cross to `sys_satellite_adcs`. There is exactly one door, and `tools/validate_plan.py` refuses a second. Each subsystem reaches layer 2 through its one `l3_<sid>_interface` row. This is the same shape as VLEO, and VLEO's seeding code accepts it. `tools/validate_plan.py` checks the shape. `tools/check_seed_with_vleo.py` runs VLEO's own `cd06_rows.install`, `LAYER3_SOURCE` and `install_edges` over `plan/tree.json`. That wires 46 relations, 238 derivation edges and 23 contribution edges, skips none, creates one crossing, and passes all 14 layer-3 target assertions. In all, 734 node sheets once seeded: 327 in layers 1 and 2, 368 in the subsystem layers, and 39 in the closure addition.
+Every case reaches layer 2 through one row, `Satellite ADCS` under Case intake; the note "the door into this case's engineering layer" makes it cross to `sys_satellite_adcs`. There is exactly one door, and `tools/validate_plan.py` refuses a second. Each subsystem reaches layer 2 through its one `l3_<sid>_interface` row. `tools/validate_plan.py` checks the shape. Seeding it (`install`, `LAYER3_SOURCE` and `install_edges`, §5.7) wires 46 relations, 238 derivation edges and 23 contribution edges, skips none, creates one crossing, and passes all 14 layer-3 target assertions. In all, 734 node sheets once seeded: 327 in layers 1 and 2, 368 in the subsystem layers, and 39 in the closure addition.
 
 ### 5.2 Layer 1 — the company
 
@@ -513,7 +494,7 @@ Every case reaches layer 2 through one row, `Satellite ADCS` under Case intake; 
 
 **Risk management concludes the tree.** Its 18 declared rows are counted from the de-risking ledger (`derisk/`) at every release, by the supplier `derisk`, and never set by a form (V01). Its three computed rows (`risk::highest_level`, `risk::net_closed`, `risk::share_tested`, §6.2) are the platform's conclusion about itself: how much of what it rests on has met evidence, and what is still open. Two relations join it to the rest: the catalogue records the beliefs its products rest on, and the open levels feed the quality verdict under Standards & compliance.
 
-No customer is a branch of this tree. VLEO's tree carried its reference customers as layer-1 groups; that does not scale past a handful, so here every customer is a **case**. It is uploaded as one CSV in the fixed format (§8.3), imported into the case store, and runs through the single door (CD-06 §33, "one architecture + case id"). The reference cases are four such files in `plan/cases/`. The two defaults are one 3U satellite with two missions: `ais_3u` (AIS, 10° pointing) and `ais_img_3u` (AIS and imaging, 0.01° pointing) (§8.9). The other two are `ref_c2_150kg`, a 150 kg bus, and `ref_c3_12u`, a 12U not yet stated.
+No customer is a branch of this tree. A tree that carries its reference customers as layer-1 groups does not scale past a handful, so here every customer is a **case**. It is uploaded as one CSV in the fixed format (§8.3), imported into the case store, and runs through the single door (CD-06 §33, "one architecture + case id"). The reference cases are four such files in `plan/cases/`. The two defaults are one 3U satellite with two missions: `ais_3u` (AIS, 10° pointing) and `ais_img_3u` (AIS and imaging, 0.01° pointing) (§8.9). The other two are `ref_c2_150kg`, a 150 kg bus, and `ref_c3_12u`, a 12U not yet stated.
 
 ### 5.3 Layer 2 — the satellite's ADCS
 
@@ -555,7 +536,7 @@ The 22 KPIs are listed in `plan/kpis.toml`, which is the machine-readable source
 
 "Evidence only" is a real answer. Those KPIs have no honest closed-form relation at system level, so the tree does not pretend to one. Their analysis closure is never generated, and the evidence closure is how they close.
 
-An analysis row is narrower than a contribution edge. `tree.json`'s KE edges say which variables feed a KPI, which is VLEO's coverage graph, and several evidence-only KPIs keep theirs: settling time feeds rate stability, for instance, without answering it. Only `plan/kpis.toml` says what answers a KPI.
+An analysis row is narrower than a contribution edge. `tree.json`'s KE edges say which variables feed a KPI, which is the coverage graph, and several evidence-only KPIs keep theirs: settling time feeds rate stability, for instance, without answering it. Only `plan/kpis.toml` says what answers a KPI.
 
 **What each rung's rig must do, for this case.** The two groups `v3` OILS rig needs and `v4` HILS rig needs are computed from the case's own satellite, so a case says what testing its unit will demand before any rig time is booked. The OILS rows turn the flight loop into a real-time plant step, a port count, a latency allowance and a link rate. The HILS rows turn the orbit into a cage field range, accuracy and slew rate; the control authority and the mass into the bearing's allowed residual torque and balance offset (a residual torque is the weight on the bearing times its centre-of-mass offset [Schwartz, Peck and Hall 2003]); the sensors into the Sun simulator's irradiance and collimation and the star stimulator's error and frame rate; and each fitted actuator family into what its test stand must show. The family rows are tagged, so a product without wheels shows no wheel row. The facility's side, what the bay can actually do, is layer 1 (`fa2`, `fa3`, `fa5`–`fa8`). Layers never read across (C04), so the two meet in `adcs rig fit` (§12.10), which refuses a HILS or OILS campaign by name when the lab cannot meet a need. None of these rows is written yet: they arrive through node forms, like every other row.
 
@@ -579,22 +560,22 @@ An analysis row is narrower than a contribution edge. `tree.json`'s KE edges say
 | `hils` | HILS rig | `v4` HILS rig needs | 16 | 48 | verification | `adcs-mod-hils` |
 | `x_closure` | KPI closures (addition) | — | — | 39 | systems | `adcs-mod-closure` |
 
-Each layer holds its interface row, one required and one achieved row per target (VLEO's seeder derives these), and `rows − 1 − 2·targets` internal rows labelled "to be named". The internal budget is 166 rows across the fourteen layers. The fluid-ring and control layers get the most, 15 each. IDMAS v2 §03–§07 already names the ring's internal relations: pump pressure per stage, conduction and induction pump laws, Reynolds number, turbulent loss, freeze and thaw. §12 names the control stack's: the split projection, allocation weights, dump gain and the mode laws L1–L6. The two rig layers hold the lab's own models, which the lab twin (§12.6) runs: the cage's coil and field-error model, the bearing's residual-torque and drag model, the stimulators' rendering and latency, and each test stand's measurement model.
+Each layer holds its interface row, one required and one achieved row per target (the seeder derives these), and `rows − 1 − 2·targets` internal rows labelled "to be named". The internal budget is 166 rows across the fourteen layers. The fluid-ring and control layers get the most, 15 each. IDMAS v2 §03–§07 already names the ring's internal relations: pump pressure per stage, conduction and induction pump laws, Reynolds number, turbulent loss, freeze and thaw. §12 names the control stack's: the split projection, allocation weights, dump gain and the mode laws L1–L6. The two rig layers hold the lab's own models, which the lab twin (§12.6) runs: the cage's coil and field-error model, the bearing's residual-torque and drag model, the stimulators' rendering and latency, and each test stand's measurement model.
 
 ### 5.5 Closures, and rows that only evidence can answer
 
 Every KPI is closed by evidence, and the 16 with an analysis row are also closed by analysis: 38 closures.
 
-- **The analysis closure**, `kpi_<slug>_analysis` in `l3_x_closure`, compares the requirement row with the KPI's analysis row (`plan/kpis.toml`). It runs whenever the tree does. `<slug>` is the `slug` field of `plan/kpis.toml`, which is VLEO's `slug()` of the KPI's label: `kpi_absolute_pointing_error_ape_analysis`, for example.
+- **The analysis closure**, `kpi_<slug>_analysis` in `l3_x_closure`, compares the requirement row with the KPI's analysis row (`plan/kpis.toml`). It runs whenever the tree does. `<slug>` is the `slug` field of `plan/kpis.toml`, which is the seeder's `slug()` of the KPI's label: `kpi_absolute_pointing_error_ape_analysis`, for example.
 - **The evidence closure**, `kpi_<slug>_verified`, compares the requirement row with the achieved row (`p1a_0` and so on). An achieved KPI row is an **evidence row**. Only a campaign can give it a value.
 
-Both closures use `mission::closure(req, ach, Sense::AtMost | Sense::AtLeast)` exactly as VLEO's KPI rows do. The requirement row is written as `kind = "declared"` with a top-level `sense` (VLEO's convention for written requirements; gate check 7d).
+Both closures use `mission::closure(req, ach, Sense::AtMost | Sense::AtLeast)` exactly as every KPI row does. The requirement row is written as `kind = "declared"` with a top-level `sense` (the convention for written requirements; gate check 7d).
 
-**Who writes the closures.** The seeder writes all 38 in full, and every requirement row's shape with them, from `plan/kpis.toml` and `plan/case_inputs.toml`, as VLEO's `KPI()` does (§0.2 rule 6). A closure's content is fixed by the KPI list; nothing in it is a person's statement, so it needs no form. The seeder writes each closure `specified`, and the gate's closure checks (7d, 7e) and a `cargo xtask intake mark verified --closures` at the end of seeding make it `verified`, so closures run from P1. It does not wait for a requirement value, because the value comes from each case, not the sheet.
+**Who writes the closures.** The seeder writes all 38 in full, and every requirement row's shape with them, from `plan/kpis.toml` and `plan/case_inputs.toml`, with the seeder's `KPI()` (§0.2 rule 6). A closure's content is fixed by the KPI list; nothing in it is a person's statement, so it needs no form. The seeder writes each closure `specified`, and the gate's closure checks (7d, 7e) and a `cargo xtask intake mark verified --closures` at the end of seeding make it `verified`, so closures run from P1. It does not wait for a requirement value, because the value comes from each case, not the sheet.
 
 - inputs `req` and `ach`, one step, and the hole `Ratio::new(mission::closure(req.get(), ach.get(), mission::Sense::AtMost).margin)`, with `AtMost` or `AtLeast` read from the requirement's `sense` (gate 7e);
 - a fixed `[theory]` text stating that a closure compares achieved with required in the requirement's sense;
-- bounds −100 to 1000 with VLEO's reasons.
+- bounds −100 to 1000, each with its reason.
 
 A requirement row written this way has kind `declared`, the KPI's `sense`, the unit of its case key, and `lower = 0` ("a requirement is a magnitude"). Its upper bound is 180° for an angle and 1 for a fraction. Any other quantity (a time, a count, a rate, a mass, a power, a volume) gets no upper bound until an engineer sets one, with its reason, in a node form. It carries no reference value, except `p1k_0` and `p2k_0`, whose seed forms carry the reference 3U satellite's values (source `adcs_ref_c1`) for runs without a case. Either way a case decides: a case that leaves a requirement blank lists it in `unstated`, and the row answers `NotStated` for that case whatever its sheet holds. The gate accepts a declared requirement row with no value (an H7 change beside check 7d). The analysis closure exists only when `analysis` is not "none".
 
@@ -634,7 +615,7 @@ rungs = ["sils", "oils", "hils"] # which rungs may supply it
 
 The fifth field of each tree row holds **hardware tags**: `mtq`, `rw`, `fmr` and `rcs`. An empty field means the row is in play whatever is fitted. Each family in `catalogue/families.toml` lists its `tags`. A group is **in play** for a candidate (a case plus a product or part combination) when the group's tags meet the tags whose count row (`cf_*`) is above zero.
 
-- **Seeding** leaves every group's `cases` list empty, which in VLEO means every case. Which groups are in play depends on the product, not the case, so it is decided at run time from the counts.
+- **Seeding** leaves every group's `cases` list empty, which means every case. Which groups are in play depends on the product, not the case, so it is decided at run time from the counts.
 - **The face** hides a group that is not in play. It filters by tags as F14 describes, so the same rule works for the portal's cases too.
 - **The resolver** answers `NotFitted { slot }` for every `product` or `tuned` row the candidate does not supply: the per-unit rows of an empty slot, and a tuned row no algorithm of the product sets. `NotFitted` is not a number. A row that reads it answers `NotFitted` too, naming the slot, so "knowledge error with the star tracker" on a product with no star tracker says so rather than answering with zero noise. The one exception is the zero-answer rule below. A sheet may declare `zero_when_absent = ["cf_1"]`, naming the count rows it reads. When those counts are zero, the `NotFitted` inputs whose hardware tags match those counts contribute exactly zero. This is an H7 kernel extension, with gate check 7h: a `zero_when_absent` row must read the counts it names. `ge_5`, knowledge error with the sensors fitted, uses the same mechanism: it declares `zero_when_absent = ["cf_4"]`, so with no star tracker it reads the magnetometer-and-sun knowledge, and a coils-only product still has an AKE to judge.
 - **A run without a product** (the tree alone, as P1's acceptance runs it) reads the `product` and `tuned` rows' sheet values. Those are the reference configuration, IDMAS V2 as the seed content states it for the reference 3U satellite (source `adcs_ref_c1`), and the run says so. A candidate run replaces every one of them (§8.2).
@@ -643,7 +624,7 @@ The fifth field of each tree row holds **hardware tags**: `mtq`, `rw`, `fmr` and
 
 ### 5.7 Seeding the tree
 
-The seeder is VLEO's `tools/seed_tree.py` with `tools/cd06_rows.py` renamed `tools/plan_rows.py`. Change only the following.
+The seeder is `tools/seed_tree.py`, with its maps in `tools/plan_rows.py`.
 
 `tools/plan_rows.py`:
 
@@ -663,13 +644,13 @@ LAYER3_OWNER = {"dist": "environment", "sens": "sensing", "est": "gnc", "mtq": "
                 "pnt": "gnc", "modes": "gnc", "fsw": "avionics", "budget": "systems"}
 ```
 
-These are the maps used to run VLEO's code over the tree for this document. With them, the node ids come out exactly as recorded in `plan/expected_node_ids.json`, and P1 checks that they still do.
+With these maps the node ids come out exactly as recorded in `plan/expected_node_ids.json`, and P1 checks that they still do.
 
 `tools/seed_tree.py`:
 
 - the root label is "ADCS products and test facility";
-- drop the `from nodes import (...)` list, `REPARENT`, every `amend()` call, the `l3_x_envorbit` addition and the VLEO `KPI(...)` calls;
-- keep the `l3_x_closure` addition, which VLEO's seeder gives an interface row, `l3_x_closure_interface`, and generate the 38 closure rows of §5.5 in it, seeded;
+- it has no `REPARENT`, no `amend()` calls and no `l3_x_envorbit` layer;
+- it has the `l3_x_closure` layer, which the seeder gives an interface row, `l3_x_closure_interface`, and generate the 38 closure rows of §5.5 in it, seeded;
 - `SOURCES` come from `plan/seed_content.toml [[source]]`; later sources arrive through intake, each from a request's `new_sources`;
 - the seeder writes no cases. Drop `CASES` and the case-writing half of `emit_supporting()`. After seeding, `adcs case import plan/cases/*.csv --into cases/` writes them through the one importer the portal also uses (§8.3), so there is one implementation of the format;
 - the ADCS tree declares no cycle yet. Remove `CYCLE`, and remove the code in `emit_supporting()` that writes an `[[iterate]]` block into every case from it. `layers/cycles.toml` holds only its header comment;
@@ -677,7 +658,7 @@ These are the maps used to run VLEO's code over the tree for this document. With
 
 `seed_tree.py` still refuses to run on a tree that has a published sheet. It runs once, and what it writes is the tree's shape: every row's identity, place, owner, kind and the edges the tree declares, with no content. The one exception is the closures and requirement rows of §5.5, which the KPI list fixes. Every other seeded row answers `NotRun` until its content arrives through intake (§5.8).
 
-**Changing the shape later** is the developer team's own work, never a form's. A new group is added with `tools/seed_tree.py --add-group <id> --under <parent>`, which writes that one group into `layers/` and nothing else, and refuses a group that exists. It is reviewed like any layer change, and the group's nodes then arrive as new-node requests (N01 accepts a group `layers/` declares, even with no nodes yet). A full reseed is possible only before any sheet is published, as VLEO's seeder already enforces.
+**Changing the shape later** is the developer team's own work, never a form's. A new group is added with `tools/seed_tree.py --add-group <id> --under <parent>`, which writes that one group into `layers/` and nothing else, and refuses a group that exists. It is reviewed like any layer change, and the group's nodes then arrive as new-node requests (N01 accepts a group `layers/` declares, even with no nodes yet). A full reseed is possible only before any sheet is published, as the seeder enforces.
 
 ### 5.8 Node content: seed forms, attestation, and what UNCONFIRMED means
 
@@ -693,7 +674,7 @@ cargo xtask intake mark verified <request>          # in CI, when both pass
 
 `--seed` accepts the request type `seed` and the package's own requester, and only for a node whose state is still `seeded`: a seed form can never overwrite content a person has sent since. There is no second path. The same checker, sheet writer and verifier then serve every request for the rest of the software's life, which is why they are built and proven on the first 82. Each seeded row starts its version history at version 1, "first build" (§5.13).
 
-**States.** A row moves through VLEO's states, and intake decides which:
+**States.** A row moves through these states, and intake decides which:
 
 | State | Means | Reached by |
 |---|---|---|
@@ -704,7 +685,7 @@ cargo xtask intake mark verified <request>          # in CI, when both pass
 
 `state` is the one field besides the content that intake writes, and only through `mark`. `mark` never lowers a state, so a confirmation of a `published` node leaves it `published`. `intake verify` never compares it.
 
-Only `verified`, `published` and `deprecated` rows run (VLEO `State::runnable`).
+Only `verified`, `published` and `deprecated` rows run (`State::runnable`).
 
 **Attestation.** A node form has a field "Checked by": the engineer who has checked the relation against its source, and the values, and stands behind them. `intake write` copies that name, with the date and the request id, into `[maths] confirmed_by` and, for a declared row, `[value] confirmed_by`. Nothing else ever writes a name there: not the builder, not the implementation agent, not a script (rule 2). A request with the field empty writes `UNCONFIRMED · via <request id> · awaiting a person`. Seed forms always leave it empty, because the package's author is not a person who can attest.
 
@@ -716,7 +697,7 @@ A relation or value with nobody's name against it is not a failure; it is honest
 
 It becomes somebody's when an engineer sends a node form of type **confirm**: no change, their name under "Checked by", and their reason. The checker refuses a confirmation that changes anything (F05). A confirmation needs no code and no agent: the checker writes `confirm.md` instead of a brief, and a developer runs `cargo xtask intake write request.json`, which in confirm mode writes only `[maths] confirmed_by`, `[value] confirmed_by` and `[request] last`, leaves the state as it is, and is verified and reviewed like any request.
 
-**What credibility a seeded-then-specified row shows.** Take `gf_7` after its seed form is verified, scored by VLEO's `credibility.rs`:
+**What credibility a seeded-then-specified row shows.** Take `gf_7` after its seed form is verified, scored by `credibility.rs`:
 
 | Factor | Score | Why |
 |---|---|---|
@@ -725,7 +706,7 @@ It becomes somebody's when an engineer sends a node form of type **confirm**: no
 | Verification | 4 | the row is verified |
 | Validation | 2 | tier B, test vectors pass |
 | InputPedigree | 1 | it reads UNCONFIRMED declared values |
-| Uncertainty | 1 | inherited: its declared inputs score 1 under VLEO's proxy, and the rollup takes the minimum |
+| Uncertainty | 1 | inherited: its declared inputs score 1 under the proxy, and the rollup takes the minimum |
 | Understanding | 3 | one step |
 | Reproducibility | 4 | data ok |
 
@@ -733,7 +714,7 @@ The lowest is 1, shared by Mathematics, InputPedigree and Uncertainty. Ties go t
 
 ### 5.9 Owners
 
-`CODEOWNERS` is generated from each sheet's `owner` (VLEO F9). The owners are `systems`, `environment`, `sensing`, `actuators`, `gnc`, `avionics`, `verification`, `sales`, `programme`, `facility` and `quality`. Mapping each to a GitHub team is decision D12. The generator's fixed header gains the new crates (§4), `catalogue/`, `scenarios/`, `rig/`, `forms/`, `manual/` and `intake/`.
+`CODEOWNERS` is generated from each sheet's `owner` (F9). The owners are `systems`, `environment`, `sensing`, `actuators`, `gnc`, `avionics`, `verification`, `sales`, `programme`, `facility` and `quality`. Mapping each to a GitHub team is decision D12. The generator's fixed header gains the new crates (§4), `catalogue/`, `scenarios/`, `rig/`, `forms/`, `manual/` and `intake/`.
 
 Each owner maps to a reviewer group inside the developer team (D12). That group reviews the intake branches of the nodes it owns (§5.11, step 4): that the implementation is what the form asked for, that the HOLEs compose physics functions and nothing else, and that the tests and downstream nodes pass. Whether the relation itself is right is not the reviewer's to assume. It is attested in the form by the engineer under "Checked by" (§5.8), and a relation nobody has checked is released as UNCONFIRMED, visibly, until someone does.
 
@@ -772,7 +753,7 @@ A door, an interface row and a closure are fixed by the tree's shape. Their form
 
 #### 5.10.3 The sections, and what each field asks
 
-Every field shows three things: the question it asks, why the answer matters, and an example. The asks and whys of the sheet's fields are VLEO's own, from `form.rs` `FIELDS` and `ARRAYS`, so the form and the sheet say the same thing in the same words.
+Every field shows three things: the question it asks, why the answer matters, and an example. The asks and whys of the sheet's fields come from `form.rs` `FIELDS` and `ARRAYS`, so the form and the sheet say the same thing in the same words.
 
 | Section | Fields | Shown for |
 |---|---|---|
@@ -968,12 +949,12 @@ The checker reads only the JSON block of the file. It never opens the page, so a
 On a pass, the checker writes `brief.md`. It is the implementation agent's whole task, and nothing outside it is in scope (§17.4):
 
 - **scope**: the node, its crate, and the files it may change: `node.toml`, `fixtures.toml`, `versions.toml`, `versions/` and `derisk/` only through `cargo xtask intake write`, the node's HOLE blocks, and `adcs-core::physics` with its MATLAB twin `matlab_sils/+asils/+physics/` only for the new functions the request describes;
-- **in order**: `intake write`; `cargo xtask docs <node>`; each HOLE, one per step, calling the physics function the step names with the bindings in declared order (or writing the new function first, in VLEO's style, with property tests only, and its MATLAB twin in the same commit, run on the request's test vectors); `intake verify`; the gate and the tests, including every downstream node; a commit on `intake/<request id>` with the trailer `Request:`, the request file copied into the node folder; no push;
+- **in order**: `intake write`; `cargo xtask docs <node>`; each HOLE, one per step, calling the physics function the step names with the bindings in declared order (or writing the new function first, in the style of `adcs-core::physics`, with property tests only, and its MATLAB twin in the same commit, run on the request's test vectors); `intake verify`; the gate and the tests, including every downstream node; a commit on `intake/<request id>` with the trailer `Request:`, the request file copied into the node folder; no push;
 - **never**: supply an expected value; write a person's name; widen a tolerance or skip a test; put a formula in a HOLE (F7's check 10b enforces it); edit outside the scope. If the request cannot be implemented as written, the agent stops and says why, and the developer replies to the requester.
 
 #### 5.11.4 The sheet writer and the verifier
 
-**`cargo xtask intake write request.json`** is the only path by which a request's declarative content reaches a sheet, a node's version history, or the risk ledger. A requirement is written as VLEO writes one, `kind = "declared"` with a top-level `sense` (§5.5). It renders `node.toml` and `fixtures.toml` in VLEO's sheet shape with `form.rs`'s pure `set`, `normalise` and `value_allowed`: the question and note; the relation and source; the theory, its steps and the assumptions; the output with its bounds and reasons; a declared value; a requirement's sense; an evidence row's metric and rungs; the inputs; the algorithm steps; hardware tags; zero-when-absent; `[request] last = "<request id>"`; and `confirmed_by` from `attested_by`, or `UNCONFIRMED · via <request id> · awaiting a person` (§5.8). It sets the state to `specified`. In confirm mode it writes only the `confirmed_by` fields and `[request] last`. It refuses a request that does not pass the check. `tools/intake.py sheet` is its stand-in; the stand-in reads the form file, where the repository's command reads `request.json`.
+**`cargo xtask intake write request.json`** is the only path by which a request's declarative content reaches a sheet, a node's version history, or the risk ledger. A requirement is written `kind = "declared"` with a top-level `sense` (§5.5). It renders `node.toml` and `fixtures.toml` in the sheet shape with `form.rs`'s pure `set`, `normalise` and `value_allowed`: the question and note; the relation and source; the theory, its steps and the assumptions; the output with its bounds and reasons; a declared value; a requirement's sense; an evidence row's metric and rungs; the inputs; the algorithm steps; hardware tags; zero-when-absent; `[request] last = "<request id>"`; and `confirmed_by` from `attested_by`, or `UNCONFIRMED · via <request id> · awaiting a person` (§5.8). It sets the state to `specified`. In confirm mode it writes only the `confirmed_by` fields and `[request] last`. It refuses a request that does not pass the check. `tools/intake.py sheet` is its stand-in; the stand-in reads the form file, where the repository's command reads `request.json`.
 
 Besides the sheet it writes what §5.13 names: the previous sheet copied to `versions/<n>/` and version *n + 1* appended to `versions.toml` (request id, belief, previous issue, benefit, `release` empty until `mark published`); the belief record `derisk/beliefs/<request id>.toml`; and each risk move as a history entry of `derisk/risks.toml`, a new risk taking the next free `R-nn`. The node's `[explain]` table (§5.12.3) is written with the sheet. A confirmation writes no version; a held belief it carries is recorded in `derisk/beliefs/`. The package's `tools/intake.py sheet` writes the three ledger parts as `belief.toml`, `versions.entry.toml` and `risk_moves.toml` beside the sheet.
 
@@ -1179,11 +1160,11 @@ In this package:
 
 ### 6.1 Units and quantities to add
 
-`adcs-units` is VLEO's `vleo-units` plus the following. Each one goes in the `units!` table or the `QUANTITIES` registry. `tests/the_registry_matches_the_types.rs` then keeps the two in step, as it does in VLEO. `plan/units.toml` lists the whole registry, VLEO's and these, with the quantities each unit may state: it is what the node form's pick-lists and the intake checker read in this package (O02, O03), and in the built repository `adcs-intake` reads `adcs-units` itself.
+`adcs-units` is the base units registry plus the following. Each one goes in the `units!` table or the `QUANTITIES` registry. `tests/the_registry_matches_the_types.rs` then keeps the two in step. `plan/units.toml` lists the whole registry, the base and these, with the quantities each unit may state: it is what the node form's pick-lists and the intake checker read in this package (O02, O03), and in the built repository `adcs-intake` reads `adcs-units` itself.
 
 | Add | Kind | SI factor | Why |
 |---|---|---|---|
-| `MomentOfInertia` | quantity (kg·m²) | — | VLEO declared inertia as `Ratio`/`One`; a unit is a type, and inertia is not a ratio |
+| `MomentOfInertia` | quantity (kg·m²) | — | inertia declared as `Ratio`/`One` would be wrong: a unit is a type, and inertia is not a ratio |
 | `DynamicViscosity` | quantity (Pa·s) | — | ring fluid |
 | `AngularAcceleration` | quantity (rad/s²) | — | slew and wheel dynamics |
 | `AngleRandomWalk` | quantity (rad/√s) | — | gyro noise |
@@ -1204,33 +1185,33 @@ In this package:
 | `IndianRupee` | unit of `Money` | 1 | layer 1 prices; the currency convention is decision D13 |
 | `RiskLevel` | quantity and unit (L) | 1 | the risk rows of layer 1 (§5.13): 0 none open, 1 negligible to 5 would stop delivery. Ordinal: `risk::` compares and takes maxima of it, and nothing adds it |
 
-Attitude types go in `adcs-units/src/frames.rs` beside VLEO's `Body`, `Eci`, `Ecef` and `Lvlh`. `Quat<To, From>` is scalar-first, unit-norm, and typed by its frames, so composing `Quat<Body, Eci>` with `Quat<Eci, Ecef>` compiles and composing it with `Quat<Body, Ecef>` does not. `Dcm<To, From>` works the same way. Every rotation uses `pmath`. These types are shared by `adcs-core` and `adcs-sim-core`, and the Mars Climate Orbiter argument that made units types applies equally to frames.
+Attitude types go in `adcs-units/src/frames.rs` beside `Body`, `Eci`, `Ecef` and `Lvlh`. `Quat<To, From>` is scalar-first, unit-norm, and typed by its frames, so composing `Quat<Body, Eci>` with `Quat<Eci, Ecef>` compiles and composing it with `Quat<Body, Ecef>` does not. `Dcm<To, From>` works the same way. Every rotation uses `pmath`. These types are shared by `adcs-core` and `adcs-sim-core`, and the Mars Climate Orbiter argument that made units types applies equally to frames.
 
 ### 6.2 `adcs-core::physics`
 
-Every relation a sheet or the plant uses lives here (rule 3). Keep `gnc.rs` and `mission.rs` from VLEO, and write the rest fresh in VLEO's style: `no_std`, typed arguments, `pmath` only, a doc comment giving the relation and its source id. Every function that takes a count returns zero at count zero (§5.6).
+Every relation a sheet or the plant uses lives here (rule 3). `gnc.rs` and `mission.rs` hold the base functions; every module is written in one style: `no_std`, typed arguments, `pmath` only, a doc comment giving the relation and its source id. Every function that takes a count returns zero at count zero (§5.6).
 
 | Module | Functions (the seed row that calls each) | Source |
 |---|---|---|
 | `orbit` | `radius(h)` (m2_4) · `circular_period(r)` (m2_5) · `mean_motion(t_orb)` (m2_6) · `circular_speed(r)` (m3_4) · `eclipse_fraction(r, beta)` · `beta_angle(inc, ltan, epoch)` | vallado2013 |
 | `env` | `max_magnetic_latitude(i)` (m3_2) · `dipole_field_equator(r)` (m3_0) · `dipole_field_max(r, lambda_max)` (m3_1) · `density_at(h, t_epoch)` (m3_3) · `solar_pressure(t_epoch)` (m3_5) · `sun_distance_au(t_epoch)` | wertz1978, igrf14, nrlmsis2, kopp2011 |
-| `gnc` (kept) | VLEO's functions, signatures unchanged: `magnetic_torque(residual_dipole, field)` (gd_3) · `total_disturbance_torque(aerodynamic, gravity_gradient, solar, magnetic)` (gd_4) · `magnetorquer_dipole_required(momentum, field, dump_time)` (gm_2) · `pointing_error_rss(terms: &[Angle])` (gp_5, called with one slice) | wertz1978, smad2011 |
-| `gnc` (added) | `gravity_gradient_torque_worst(r, i_max, i_min)` (gd_0; typed inertias, θ = 45°) · `aero_torque(rho, v, c_d, a_fr, c_pa)` (gd_1) · `solar_pressure_torque_at(p_srp, a_sun, q, c_ps)` (gd_2; normal incidence) · `secular_momentum_per_orbit(tau_d, t_orb)` (gd_5). VLEO's `gravity_gradient_torque` and `solar_pressure_torque` stay as they are; their signatures do not fit these rows. | wertz1978, smad2011 |
+| `gnc` (base) | the base functions, signatures fixed: `magnetic_torque(residual_dipole, field)` (gd_3) · `total_disturbance_torque(aerodynamic, gravity_gradient, solar, magnetic)` (gd_4) · `magnetorquer_dipole_required(momentum, field, dump_time)` (gm_2) · `pointing_error_rss(terms: &[Angle])` (gp_5, called with one slice) | wertz1978, smad2011 |
+| `gnc` (added) | `gravity_gradient_torque_worst(r, i_max, i_min)` (gd_0; typed inertias, θ = 45°) · `aero_torque(rho, v, c_d, a_fr, c_pa)` (gd_1) · `solar_pressure_torque_at(p_srp, a_sun, q, c_ps)` (gd_2; normal incidence) · `secular_momentum_per_orbit(tau_d, t_orb)` (gd_5). The base `gravity_gradient_torque` and `solar_pressure_torque` stay as they are; their signatures do not fit these rows. | wertz1978, smad2011 |
 | `mtq` | `dipole_to_reject(tau_d, b_min)` (gm_1) · `torque_authority(m_av, b_min, n_mtq)` (gm_3) · `coil_dipole(n_turns, current, area)` | smad2011, idmas_v2 |
 | `rw` | `bang_bang_peak_momentum(i_max, theta, t_slew)` (gw_3) · `bang_bang_peak_torque(i_max, theta, t_slew)` (gw_4) · `cyclic_momentum_quarter_orbit(tau, t_orb)` | idmas_v2, smad2011 |
 | `fmr` | `ring_momentum(d, s, rho, v)` (gf_6) · `spin_down_time(d, rho, mu)` (gf_7) · `holding_power_laminar(h, mu, l, rho, d, s)` (gf_8) · `pump_pressure_for_torque(tau, l, s, d)` (gf_9) · `reynolds(rho, v, d, mu)` · `conduction_pump_pressure(n, i, b, h)` | idmas_v2 |
 | `rcs` | `propellant_per_slew(h, r, isp)` (gr_3) · `propellant_per_year(m_p, n_day, n_rcs)` (gr_4; zero when `n_rcs` is zero) | idmas_v2 |
 | `ctl` | `settling_time_2pct(w_n, zeta)` (gc_2) | ogata2010 |
 | `risk` | `highest_level(levels)` (rk4_0; a slice, the highest open level over the areas) · `net_closed(closed, opened)` (rk4_1) · `share_tested(untested, total)` (rk4_2; zero beliefs recorded is `Undefined`, not 1) | ecss_m_st_80c, adcs_derisk_method |
-| `mission` (kept) | `Sense`, `Closure`, `closure(req, ach, sense)`, exactly as in VLEO | — |
+| `mission` (base) | `Sense`, `Closure`, `closure(req, ach, sense)` | — |
 
 `plan/physics.toml` lists every function here with its arguments and the rows that call it; `tools/validate_plan.py` checks that the file and this table name the same functions. That file is the package's registry. From P1 the registry is `adcs-core::physics` itself: `cargo xtask docs` writes a generated table of its public functions, their arguments and their source ids, which `adcs-intake` checks steps against and the form exporter puts in the node form's pick-list. A new function the implementation agent writes therefore appears in the next release's forms with nothing else to edit, and in the twin map's physics family, so the `twin` job asks for its MATLAB twin in the same pull request (§10.8.7). Argument names are the calling rows' binding names, and argument order is their input order. A node form's step names one of these functions, and the implementation agent writes that step's HOLE as exactly `physics::<module>::<fn>(<bindings in order>)`; `intake verify` checks the call.
 
-A kept VLEO function is never changed. Where a node needs something different, its form describes a new function, as the four `gnc` additions above were, and the implementation agent writes it here, in this style, with property tests and its own review.
+A base function is never changed. Where a node needs something different, its form describes a new function, as the four `gnc` additions above were, and the implementation agent writes it here, in this style, with property tests and its own review.
 
 ### 6.3 Reference-data bundles
 
-Each is a VLEO bundle: `bundles/<name>/<version>/` holding a `manifest.toml` (name, version, provenance, `licence_until`, `stale_after_days`, files, `content_hash`), published with `xtask bundle publish` and verified at sync.
+Each is a bundle: `bundles/<name>/<version>/` holding a `manifest.toml` (name, version, provenance, `licence_until`, `stale_after_days`, files, `content_hash`), published with `xtask bundle publish` and verified at sync.
 
 | Bundle | Contents | Built by | Read by |
 |---|---|---|---|
@@ -1238,7 +1219,7 @@ Each is a VLEO bundle: `bundles/<name>/<version>/` holding a `manifest.toml` (na
 | `atmos-density` | a table of log density against altitude, 150–2000 km, at low, mean and high solar activity | `tools/atmos_table.py`, running NRLMSIS 2.0 through the `pymsis` package (ADOPTION.lock) | `env::density_at`, the plant's drag model |
 | `catalogue` | every part, product, algorithm and class file and `families.toml`, as published | `xtask bundle publish catalogue/` | solver, loop engine, FSW config generator |
 
-**How bundle data reaches a physics function.** Never as a hole argument. VLEO compiles its measured solar data into `physics/env.rs` as constants, marked "MEASURED DATA, not a published relation". A node's `[data] bundles` makes a run refuse when that bundle is missing from `Case.data`. The ADCS kernel does the same, generated rather than typed:
+**How bundle data reaches a physics function.** Never as a hole argument. Measured data compiled into the kernel is marked "MEASURED DATA, not a published relation". A node's `[data] bundles` makes a run refuse when that bundle is missing from `Case.data`. The ADCS kernel compiles its data, generated rather than typed:
 
 - `adcs-core/build.rs` reads `bundles/igrf14/<version>/` and `bundles/atmos-density/<version>/` at build time, and emits `const` tables: the IGRF-14 degree-1 terms, and the density table;
 - the build records each bundle's content hash as a constant in the kernel;
@@ -1246,7 +1227,7 @@ Each is a VLEO bundle: `bundles/<name>/<version>/` holding a `manifest.toml` (na
 
 So the kernel stays `no_std` with no files, the data is reviewed as a bundle, and the numbers a run used are the numbers the kernel hash names. The dipole strength is taken at the IGRF-14 model epoch 2025.0, which is an assumption stated on `m3_0`.
 
-The IGRF coefficients file is fetched by a person and recorded with its URL and date in the manifest's `provenance`. The builder does not fetch data at build time; the network rule of VLEO's DELIVERY_PLAN holds, so a campaign makes zero network calls.
+The IGRF coefficients file is fetched by a person and recorded with its URL and date in the manifest's `provenance`. The builder does not fetch data at build time; the network rule of `docs/DELIVERY_PLAN.md` holds, so a campaign makes zero network calls.
 
 The field model in `adcs-sim-core` is a spherical-harmonic synthesis to degree 13 with Schmidt semi-normalised Legendre functions, in `pmath`. Its fixtures come from NOAA's own IGRF calculator, recorded by a person (provenance `independent-tool`), never from this code.
 
@@ -1333,7 +1314,7 @@ The solver reads parts and products. The rig, the EEPROM image and the as-built 
 
 ### 7.6 Publishing
 
-`xtask bundle publish catalogue/` writes `bundles/catalogue/<YYYY.MM.DD>/` with its manifest and content hash. Publishing is irreversible and needs two reviewers (VLEO CONTRIBUTING). A quote records the catalogue version it was made against, and a new version never changes an old quote (§15.7).
+`xtask bundle publish catalogue/` writes `bundles/catalogue/<YYYY.MM.DD>/` with its manifest and content hash. Publishing is irreversible and needs two reviewers (CONTRIBUTING). A quote records the catalogue version it was made against, and a new version never changes an old quote (§15.7).
 
 ### 7.7 Products
 
@@ -1525,7 +1506,7 @@ A blank is not an error: nothing is guessed, and the report says what it blocks.
 
 - checks the file (§8.3.4) and refuses it on any format error;
 - converts every value to SI, keyed by node id;
-- writes the case in VLEO's case format, extended with `unstated`, `assumed`, `range` and `level`, into the **case store**: `~/.adcs/store/cases/<case id>/<sha12>.csv` for the CLI, the workbench and the MATLAB tool (the same layout as the results store, §13.5.4), `cases/` in the repository for the reference cases, and the portal's artefact directory, indexed by tenant and project. A case is stored by the hash of its CSV, and `--case <id>` resolves through the store's index, never through compiled code (F16). Case ids are unique within a tenant;
+- writes the case in the case format, with `unstated`, `assumed`, `range` and `level`, into the **case store**: `~/.adcs/store/cases/<case id>/<sha12>.csv` for the CLI, the workbench and the MATLAB tool (the same layout as the results store, §13.5.4), `cases/` in the repository for the reference cases, and the portal's artefact directory, indexed by tenant and project. A case is stored by the hash of its CSV, and `--case <id>` resolves through the store's index, never through compiled code (F16). Case ids are unique within a tenant;
 - hashes the case.
 
 The importer maps tree ids to node ids, and reads sheet reference values for `default` inputs, through `adcs-modules`' generated tables.
@@ -1691,7 +1672,7 @@ For scale: 0.01° is at the edge of what a 3U has flown. MinXSS-1's wheel-and-st
 | `adcs-sim` | no | the scenario loader, multirate scheduler, device emulators, recorder, metrics and campaign runner |
 | `adcs-fsw-abi` | no | implements `adcs_hal.h` in Rust (`extern "C"`) over the device emulators; compiles and links the flight C code with the `cc` crate |
 
-VLEO's kernel rule, "no files, no clock, no drawing", holds for `adcs-sim-core` without exception. Time is an input: `step(&mut State, &Inputs, dt) -> Outputs`, where `dt` is fixed per run. The clock belongs to the scheduler in `adcs-sim`, or to the real-time loop in `adcs-rig`, never to the plant. That is what lets one plant serve SILS faster than real time and OILS at exactly real time.
+The kernel rule, "no files, no clock, no drawing", holds for `adcs-sim-core` without exception. Time is an input: `step(&mut State, &Inputs, dt) -> Outputs`, where `dt` is fixed per run. The clock belongs to the scheduler in `adcs-sim`, or to the real-time loop in `adcs-rig`, never to the plant. That is what lets one plant serve SILS faster than real time and OILS at exactly real time.
 
 ### 9.2 State and dynamics
 
@@ -1783,7 +1764,7 @@ A run directory in `adcs-rec/1` format contains:
 - `events.csv` for mode changes, faults and refusals;
 - a content hash over all of it.
 
-Four families of channels are kept apart and never mixed in one column: **truth**, **measured**, **estimated** and **commanded**. The views (§13) read a downsampled stream (at most 20 Hz) while the run is live, and the recorder's files afterwards. Parquet is deferred with the trigger VLEO already wrote: "the first bundle that does not fit comfortably as text".
+Four families of channels are kept apart and never mixed in one column: **truth**, **measured**, **estimated** and **commanded**. The views (§13) read a downsampled stream (at most 20 Hz) while the run is live, and the recorder's files afterwards. Parquet is deferred until its trigger: "the first bundle that does not fit comfortably as text".
 
 ### 9.9 Performance, measured and never assumed
 
@@ -1862,7 +1843,7 @@ A campaign is a scenario and a rule for deriving runs from it. Every type below 
 | `fault` | the nominal run with each listed fault injected in turn | `faults`, `pass` |
 | `labtwin` | the scenario with the plant replaced by the lab (§12.6) | `lab` |
 
-The campaign runner expands a campaign into a run list, hashes it, and writes it before running anything. A campaign that is interrupted resumes from its list. A run that fails to start is recorded as refused, with its reason, and never silently dropped (VLEO: "a sweep records refused points; it never drops them").
+The campaign runner expands a campaign into a run list, hashes it, and writes it before running anything. A campaign that is interrupted resumes from its list. A run that fails to start is recorded as refused, with its reason, and never silently dropped ("a sweep records refused points; it never drops them").
 
 ### 10.3 Metrics
 
@@ -1913,11 +1894,11 @@ A campaign never writes to any of them.
 
 ### 10.6 The campaign manifest
 
-`campaign_hash = hash(scenario hash, case hash, product id, tuned-set hash, catalogue bundle version and hash (or `unpublished` and the working copy's content hash, §7.2), serial descriptors hash (or `none` before a unit is built), flight software build id, engine kernel hash, adcs-sim-core hash, seed, run list hash)`. Two campaigns with the same hash are the same campaign (VLEO: "two runs with the same chain hash are the same run"). The evidence row's Reproducibility factor is 4 only when every one of those is present and every bundle verified.
+`campaign_hash = hash(scenario hash, case hash, product id, tuned-set hash, catalogue bundle version and hash (or `unpublished` and the working copy's content hash, §7.2), serial descriptors hash (or `none` before a unit is built), flight software build id, engine kernel hash, adcs-sim-core hash, seed, run list hash)`. Two campaigns with the same hash are the same campaign ("two runs with the same chain hash are the same run"). The evidence row's Reproducibility factor is 4 only when every one of those is present and every bundle verified.
 
 ### 10.7 Parity references are not fixtures
 
-`[parity_reference]` holds numbers another tool published: IDMAS v2 §13's MATLAB simulation, or the company's MATLAB SIL. `tools/sil_parity.py` is VLEO's `mat_parity.py`, rewritten for runs. It compares a campaign's metrics with the scenario's parity reference and writes the difference and its cause to the parity ledger (§14.2). The rule is VLEO's, unchanged: a MATLAB number is a second opinion and never a fixture. "Where the two tools disagree, the disagreement is recorded with its size and its reason rather than tuned away."
+`[parity_reference]` holds numbers another tool published: IDMAS v2 §13's MATLAB simulation, or the company's MATLAB SIL. `tools/sil_parity.py` does it for runs. It compares a campaign's metrics with the scenario's parity reference and writes the difference and its cause to the parity ledger (§14.2). The rule: a MATLAB number is a second opinion and never a fixture. "Where the two tools disagree, the disagreement is recorded with its size and its reason rather than tuned away."
 
 The first expected parity result is informative either way. IDMAS v2 §13 reports 0.044° RMS and 210 s to 0.1°, with 10–30 % feed-forward errors, a friction model 20 % low and a pump efficiency of 10 %. The loop engine with the reference flight software will land near or far from that, and the ledger says which and why.
 
@@ -2100,7 +2081,7 @@ The rule codes, generated from `tools/twin_check.py`:
 
 ## 11. The loop contract — `adcs-bus::loop`
 
-VLEO's bus crate was already written so that "the identical message types reach the rig and a flight target" (`vleo-bus/src/lib.rs`). The loop contract is a new module in it, `no_std` with `alloc`, `#![forbid(unsafe_code)]`, one struct per message.
+The bus crate is written so that "the identical message types reach the rig and a flight target" (`adcs-bus/src/lib.rs`). The loop contract is a new module in it, `no_std` with `alloc`, `#![forbid(unsafe_code)]`, one struct per message.
 
 ### 11.1 Messages
 
@@ -2283,7 +2264,7 @@ Every view follows the explanation standard (§5.12): a breadcrumb, an answer-fi
 
 ### 13.3 How it is built
 
-It is VLEO's web face, extended: one `index.html`, one `app.css`, ES modules served individually, no bundler, `app.js` owning every listener, and views emitting `data-` attributes. The new modules are:
+It is the web face: one `index.html`, one `app.css`, ES modules served individually, no bundler, `app.js` owning every listener, and views emitting `data-` attributes. The new modules are:
 
 - `sim.js`: the run view;
 - `campaign.js`: the dashboard;
@@ -2298,18 +2279,18 @@ It is VLEO's web face, extended: one `index.html`, one `app.css`, ES modules ser
 - `solve.js`: the solution view;
 - `catalogue.js`: the internal catalogue view.
 
-The node page (VLEO's, ported, read-only) gains "Ask for a change", which serves the node's form (§5.10). No page of the web face writes anything to the repository or to a sheet (§3.4); the only things a user puts into the software are a case CSV, a result document to view, and, in the portal, a client's FMU.
+The node page (read-only) gains "Ask for a change", which serves the node's form (§5.10). No page of the web face writes anything to the repository or to a sheet (§3.4); the only things a user puts into the software are a case CSV, a result document to view, and, in the portal, a client's FMU.
 
 - **3D:** `three.js`, vendored as one ES module file under `web/vendor/`, MIT licence, recorded in `ADOPTION.lock` with its version and fallback. The fallback is a 2D projection of the same scene.
-- **Charts:** VLEO's `chart.js` canvas routine and its measured light and dark `SCHEMES`, extended with a streaming time series that keeps a fixed window.
+- **Charts:** The `chart.js` canvas routine and its measured light and dark `SCHEMES`, extended with a streaming time series that keeps a fixed window.
 - **Live data:** server-sent events, `GET /v1/stream/<run>`: one-way, simple, and they pass through proxies. At most 20 Hz of downsampled channels; the recorder keeps full rate.
 - **Replay:** the same view reads the recorder's files; the time slider scrubs, and the 3D and the plots move together.
-- **Colour and tokens:** VLEO's `app.css` tokens and dark override, unchanged. The rung badge colours are new tokens, validated like the rest.
-- **Units:** the face converts for display only. Everything it receives is SI (VLEO `areas/faces.md`).
+- **Colour and tokens:** The `app.css` tokens and dark override. The rung badge colours are new tokens, validated like the rest.
+- **Units:** the face converts for display only. Everything it receives is SI (`areas/faces.md`).
 
 ### 13.4 Panels, checked in a real browser
 
-Every new view is a declared panel in `panels/<id>.toml` and passes VLEO's `panel_check.py` checks:
+Every new view is a declared panel in `panels/<id>.toml` and passes `panel_check.py`'s checks:
 
 - it renders;
 - it moves when each declared input moves;
@@ -2532,7 +2513,7 @@ Which clauses are tailored is a person's decision per order, recorded as layer-1
 
 ### 15.1 Shape
 
-VLEO's daemon stays what it is: one local process on loopback, the engineer's workbench. The portal is a separate service for everyone else, and it never computes a number itself.
+The daemon is one local process on loopback, the engineer's workbench. The portal is a separate service for everyone else, and it never computes a number itself.
 
 ```
 browser --TLS--> reverse proxy --> adcs-portal (axum + tokio)  --SQL--> PostgreSQL (operational data)
@@ -2545,7 +2526,7 @@ browser --TLS--> reverse proxy --> adcs-portal (axum + tokio)  --SQL--> PostgreS
 facility network --outbound only--> adcs-portal /internal/rig/stream   (live OILS/HILS witness)
 ```
 
-- **No database on the physics path.** This is VLEO's rule, kept: workers read verified bundles from the local store and write run artefacts. PostgreSQL holds identity, entitlement, projects, the queue, the ledger index, quotes and orders: the "operational data" of VLEO's DELIVERY_PLAN.
+- **No database on the physics path.** The rule: workers read verified bundles from the local store and write run artefacts. PostgreSQL holds identity, entitlement, projects, the queue, the ledger index, quotes and orders: the "operational data" of `docs/DELIVERY_PLAN.md`.
 - **The queue is a table.** Workers claim jobs with `SELECT … FOR UPDATE SKIP LOCKED`, so there is no second broker. A job runs in its own subprocess (§9.6: one flight software instance per process), with CPU, memory and time limits.
 - **The rig pushes; the portal never reaches in.** The facility network makes outbound, authenticated connections to the portal to stream witness data. Nothing on the internet can address a rig host.
 
@@ -2640,7 +2621,7 @@ No route changes a node, a scenario, a product file or any other part of the sof
 ### 15.7 Quote to purchase order
 
 - **Price** comes from `price_table` (sales), never from the tree. The tree's layer-1 cost rows are the company's view of cost; the price table is what it charges.
-- **A quote's identity** is `SHA-256` over the canonical JSON of: the case hash, the product id and file hash, the tuned-set hash, the kernel and graph hashes, the catalogue bundle version and hash, the price-table version, the currency and the validity date. A quote is a commercial record, so its hash is cryptographic. FNV stays the engine's cache key, as in VLEO.
+- **A quote's identity** is `SHA-256` over the canonical JSON of: the case hash, the product id and file hash, the tuned-set hash, the kernel and graph hashes, the catalogue bundle version and hash, the price-table version, the currency and the validity date. A quote is a commercial record, so its hash is cryptographic. FNV stays the engine's cache key.
 - **Issuing a quote** is H-quote: a person in sales confirms the price and the export-classification check before the client sees it.
 - **The purchase order** is a document the client uploads against a quote id and hash. Sales accepts it, and the order starts. A PO against a voided or expired quote is refused by name.
 
@@ -2663,7 +2644,7 @@ A first deployment is one server: reverse proxy with TLS, `adcs-portal`, two or 
 
 The ported faces keep every read and run command and route they have, renamed (§3.3). Every command and route that wrote a sheet is removed (§3.4, F17). What a face may put into the software is a case CSV, a result document to view and, in the portal, a client's FMU. The software's content changes only through intake, in a developer's checkout.
 
-**CLI (`adcs`).** VLEO's `campaign` subcommand already means "every stored case against one row", so the simulator's commands live under `sim` and never clobber it.
+**CLI (`adcs`).** The `campaign` subcommand means "every stored case against one row", so the simulator's commands live under `sim` and never clobber it.
 
 ```
 adcs case template                          # the blank template CSV, every key explained in its note
@@ -2689,7 +2670,7 @@ adcs rig fit <case> --lab <file> [--product <p>] [--rung oils|hils]   # needs ag
 adcs rig arm|run|abort <campaign> --devices <map>    # rig host only; refuses elsewhere, and refuses a campaign whose fit is short
 ```
 
-**Daemon routes (workbench).** `/v1/parity/<…>` already serves parity files in VLEO, so the ledger gets its own route. There is no write route and no `ADCS_ALLOW_WRITE`.
+**Daemon routes (workbench).** `/v1/parity/<…>` serves parity files, so the ledger gets its own route. There is no write route and no `ADCS_ALLOW_WRITE`.
 
 ```
 POST /v1/case/check         POST /v1/case/import        GET  /v1/case/<id>/report
@@ -2709,7 +2690,7 @@ GET  /v1/ledger/<campaign>  GET  /v1/manual/<page>
 
 ### 16.2 The developer's commands
 
-`xtask` is the developer team's, in a checkout. It keeps VLEO's reading and building commands (§3.4) and adds:
+`xtask` is the developer team's, in a checkout. It has the reading and building commands (§3.4) and:
 
 ```
 cargo xtask intake check <file> [--out intake/requests] [--seed]     # §5.11.2
@@ -2740,7 +2721,7 @@ The tree's shape changes with `tools/seed_tree.py --add-group <id> --under <pare
 
 ### 16.3 `docs/manual.toml`
 
-It documents every command, route and setting the software has, for users and developers, and says which is which. VLEO's `the_manual_is_true` test enforces it in both directions, and its parsers are extended to the `sim`, `result`, `case`, `rig` and `intake` dispatch. It is the source of the user manual's command reference (§16.4), so the manual can never name a command the software does not have.
+It documents every command, route and setting the software has, for users and developers, and says which is which. The `the_manual_is_true` test enforces it in both directions, and its parsers are extended to the `sim`, `result`, `case`, `rig` and `intake` dispatch. It is the source of the user manual's command reference (§16.4), so the manual can never name a command the software does not have.
 
 ### 16.4 The two manuals
 
@@ -2775,7 +2756,7 @@ The package carries both manuals in full, written for the software as this docum
 | `08_derisking.md` | how-to | keeping the ledger, the rollup at release, the quarterly narrative; the ledger's rules (generated) |
 | `09_twin.md` | how-to | the MATLAB twin in lockstep: the twin map, changing an element on both sides, prototypes, `twin:none`; the rules (generated) |
 
-**Checked.** `cargo xtask manual --check` (built in P1; `tools/manual_pages.py --check` is its stand-in in this package) regenerates `05_case_keys.md` from the case registry, the codes table in `developer/01_intake.md` from the checker and the rules table in `developer/08_derisking.md` from the ledger, the twin rules in `developer/09_twin.md` and §10.8.7 from the twin check, and fails on any difference; `cargo xtask explain check` checks every page's kind line, one-line answer and sections; it is green from P1. `tools/manual_check.py` (VLEO's) runs every command a manual page shows and compares the output it claims. The manuals are written for the finished software, so a page may show a command a later phase builds: every command block is tagged with the phase that builds it (`<!-- since P3 -->`, as the package's pages already are), and `manual_check.py` runs a block only once its phase is green. The command reference itself is `docs/manual.toml`, which the web face shows under Help → Commands.
+**Checked.** `cargo xtask manual --check` (built in P1; `tools/manual_pages.py --check` is its stand-in in this package) regenerates `05_case_keys.md` from the case registry, the codes table in `developer/01_intake.md` from the checker and the rules table in `developer/08_derisking.md` from the ledger, the twin rules in `developer/09_twin.md` and §10.8.7 from the twin check, and fails on any difference; `cargo xtask explain check` checks every page's kind line, one-line answer and sections; it is green from P1. `tools/manual_check.py` runs every command a manual page shows and compares the output it claims. The manuals are written for the finished software, so a page may show a command a later phase builds: every command block is tagged with the phase that builds it (`<!-- since P3 -->`, as the package's pages already are), and `manual_check.py` runs a block only once its phase is green. The command reference itself is `docs/manual.toml`, which the web face shows under Help → Commands.
 
 ---
 
@@ -2785,7 +2766,7 @@ The package carries both manuals in full, written for the software as this docum
 
 - `AGENTS.md`: the standing instructions of every agent working in the repository, which are now two: the builder during the phases, and the implementation agent after (§17.4). It holds §3.2's five rules, §0.2's rules, and four sections: evidence rows (§5.5), scenarios and campaigns (§10), the rig's safety rule (§12.8), and intake (§5.11): "a node's content comes only from a passing request, through `intake write`".
 - `intake/AGENT.md`: the implementation agent's own page: how to read a brief, the scope hook, and the list of things it never does.
-- `areas/`: VLEO's six files, plus six:
+- `areas/`: one file per area of the engine, and six more:
   - `simulation.md` for `adcs-sim-core`, `adcs-sim`, `adcs-fsw-abi` and `matlab_sils/`: determinism (§9.7), "the plant never reads a clock", and "the twin follows the platform's equations; a difference is a ledger line, never a silent fix in one of them";
   - `rig.md` for `adcs-rig`, `rig/` and `devices/`: hardware interlocks, mocks and bring-up;
   - `portal.md` for `adcs-portal` and `adcs-worker`: tenant isolation, no engine in the portal, restricted content, no route that changes the software;
@@ -2795,7 +2776,7 @@ The package carries both manuals in full, written for the software as this docum
 
 ### 17.2 Human decisions
 
-VLEO's H1–H9 are unchanged. H1 (a relation) and H2 (a test vector) are made in a node form by the engineer under "Checked by", and reviewed on the intake branch. H10 is defined, as F10 requires. Seven more follow:
+H1–H9 are the engine's human decisions. H1 (a relation) and H2 (a test vector) are made in a node form by the engineer under "Checked by", and reviewed on the intake branch. H10 is defined, as F10 requires. Seven more follow:
 
 | | Decision | Who | How often |
 |---|---|---|---|
@@ -2816,7 +2797,7 @@ VLEO's H1–H9 are unchanged. H1 (a relation) and H2 (a test vector) are made in
 
 ### 17.3 Reviewer counts
 
-These are added to VLEO's CONTRIBUTING table, which remains the only place the policy is stated:
+These are in the CONTRIBUTING table, which remains the only place the policy is stated:
 
 | Change | Reviewers | Why |
 |---|---|---|
@@ -2839,7 +2820,7 @@ These are added to VLEO's CONTRIBUTING table, which remains the only place the p
 
 ### 17.4 The implementation agent
 
-VLEO worked with a fleet of seven agents, each in a lane: one drafted declarations, one filled holes, one recorded fixtures, and so on. The ADCS platform drops the fleet (§3.4). Declarations and test vectors now come from people, through node forms. What remains for an agent is the part a person should not have to type: turning a checked request into code.
+The ADCS platform has no fleet of specialised agents (§3.4). Declarations and test vectors now come from people, through node forms. What remains for an agent is the part a person should not have to type: turning a checked request into code.
 
 **One general agent.** The implementation agent is Claude Code, started by a developer in a checkout, with one brief (§5.11.3). It is not specialised: the same agent implements a declared value, a relation with a new physics function, or a new node, because the brief says exactly what to do and where. It works under:
 
@@ -2857,13 +2838,13 @@ No agent promotes a product, confirms a node or signs anything. `adcs design` sa
 
 ### 17.5 Commit scopes
 
-They are derived from crate names as in VLEO, plus `catalogue`, `designs`, `scenarios`, `campaigns`, `rig`, `devices`, `fsw`, `plan`, `forms`, `manual`, `intake`, `matlab_sils` and `deploy`. An intake commit's scope is its node's crate, and its trailer is `Request: <request id>`.
+They are derived from crate names, plus `catalogue`, `designs`, `scenarios`, `campaigns`, `rig`, `devices`, `fsw`, `plan`, `forms`, `manual`, `intake`, `matlab_sils` and `deploy`. An intake commit's scope is its node's crate, and its trailer is `Request: <request id>`.
 
 ---
 
 ## 18. Continuous integration
 
-`gate.yml` keeps VLEO's jobs, renamed. Its `tooling` job keeps VLEO's explicit list of selftests. Not every script has one: `seed_tree.py` refuses arguments by design, `build_tree.py` takes only `--check`, and `check_seed_with_vleo.py` needs a VLEO checkout. So the job names each script it runs, as VLEO's does, and never globs `tools/*.py`. The jobs are: `gate`, `tooling`, `review` (advisory), `mutants`, `panels`, `excluded-faces`, `shipping-profile` (now also building `--profile user`, F4) and `no-std`. The `no-std` job extends to `adcs-sim-core` on `thumbv7em-none-eabihf`. It adds:
+`gate.yml`'s `tooling` job keeps an explicit list of selftests. Not every script has one: `seed_tree.py` refuses arguments by design, `build_tree.py` takes only `--check`. So the job names each script it runs, and never globs `tools/*.py`. The jobs are: `gate`, `tooling`, `review` (advisory), `mutants`, `panels`, `excluded-faces`, `shipping-profile` (now also building `--profile user`, F4) and `no-std`. The `no-std` job extends to `adcs-sim-core` on `thumbv7em-none-eabihf`. It adds:
 
 | Job | Runs | Green means |
 |---|---|---|
@@ -2892,9 +2873,9 @@ They are derived from crate names as in VLEO, plus `catalogue`, `designs`, `scen
 
 - `inertial_hold_mc500` in full, its metric distributions compared with the last ledger entry; a moved distribution opens an issue for the developer team, never fails silently;
 - the parity report against every scenario's parity reference;
-- VLEO's `mutate` and `bundle verify`.
+- `mutate` and `bundle verify`.
 
-`release.yml` keeps VLEO's prove → build → publish with its fail-closed approval, preceded by one release-preparation commit: `cargo xtask intake mark published --release <v>` for every node whose request the release carries, so the sheets that are built say `published` and each new version carries its release; and `cargo xtask derisk rollup`, which writes `derisk/rollup.toml` for the Risk management rows. Its artefacts are the CLI, the daemon, the FFI library, `adcs-rig` (Linux only), a container image with `adcs-portal` and `adcs-worker`, `adcs_sils_matlab_<version>.zip`, the node library, the user manual and the quarter's de-risking narrative. Its release notes list every request the release carries, by request id and node, with the belief each rested on, so each requester can find theirs.
+`release.yml` is prove → build → publish with its fail-closed approval, preceded by one release-preparation commit: `cargo xtask intake mark published --release <v>` for every node whose request the release carries, so the sheets that are built say `published` and each new version carries its release; and `cargo xtask derisk rollup`, which writes `derisk/rollup.toml` for the Risk management rows. Its artefacts are the CLI, the daemon, the FFI library, `adcs-rig` (Linux only), a container image with `adcs-portal` and `adcs-worker`, `adcs_sils_matlab_<version>.zip`, the node library, the user manual and the quarter's de-risking narrative. Its release notes list every request the release carries, by request id and node, with the belief each rested on, so each requester can find theirs.
 
 ---
 
@@ -2934,7 +2915,7 @@ The MATLAB twin is not a phase of its own. Each phase from P1 writes its SILS el
 
 - **Units and physics.** Add the units and quantities of §6.1 and the frame types. Write `adcs-core::physics` per §6.2, with property tests only: zero at count zero, monotonic where the relation is, and dimension checks. No expected values are invented.
 - **The twin, from the start (§10.8.7).** Copy `_package/matlab_sils/`, `_package/plan/twin_map.toml` (with `plan/`, below) and `_package/tools/{pack_matlab,twin_check}.py`. Write `cargo xtask twin check|list`, porting `twin_check.py` rule for rule. Every physics function is written in the same change as its twin, `matlab_sils/+asils/+physics/+<module>/<name>.m`, and both run its fixtures; `asils.case.read` and `asils.case.template` are written with `adcs-case`. Add the CI jobs `twin`, `matlab-pack` (with `--phase` set to the phase reached) and `matlab-twin` (§18).
-- **The tree's shape.** Copy `_package/plan/` to `plan/`, `_package/catalogue/` to `catalogue/` and `_package/designs/` to `designs/` (the case checker reads `meta.class` and `meta.families` against them), and `_package/tools/{build_tree,validate_plan,check_seed_with_vleo,plan_model}.py` to `tools/`. The validator checks only the directories copied so far. Write `tools/plan_rows.py` and adapt `tools/seed_tree.py` per §5.7, then seed. Every row is `seeded` and answers `NotRun`.
+- **The tree's shape.** Copy `_package/plan/` to `plan/`, `_package/catalogue/` to `catalogue/` and `_package/designs/` to `designs/` (the case checker reads `meta.class` and `meta.families` against them), and `_package/tools/{build_tree,validate_plan,plan_model}.py` to `tools/`. The validator checks only the directories copied so far. Write `tools/plan_rows.py` and adapt `tools/seed_tree.py` per §5.7, then seed. Every row is `seeded` and answers `NotRun`.
 - **Check the seeding.** Assert that every node id equals `plan/expected_node_ids.json`. Generate `sources/`, `layers/` (every group's `cases` list empty, §5.6) and `CODEOWNERS`.
 - **Cases.** Write `adcs-catalogue` (reading the working copy), then `adcs-case` (§8.3): the checker, the CSV reader and writer against `plan/case_inputs.toml`, import, export, the distribution report, the case store, and `adcs case template|check|import|export|report`. Add `Case.unstated`, `Case.assumed`, `Case.range` and `Case.level`, the `NotStated` and `NotFitted` answers, and `zero_when_absent` with gate check 7h (H7). Load cases at run time from the store (F16). Copy `_package/tools/check_case.py`, which CI keeps until `adcs case check` replaces it. The reference cases are imported after the seed forms (below), because the importer reads the reference values of `default` inputs (`orbit.ecc`, `surface.refl`, `surface.cd`) from their sheets.
 - **Platform extensions.** Implement evidence rows and gate check 7g (§5.5); the `tier` field; the `[request]` table and `requests/` in a node folder (H7); the compiled bundle data in `adcs-core/build.rs` (§6); the KPI closures, written by the seeder from `plan/kpis.toml` (§5.5); and the UNCONFIRMED handling in the gap pass, `ready` and credibility (§5.8).
@@ -3100,7 +3081,7 @@ The MATLAB twin is not a phase of its own. Each phase from P1 writes its SILS el
 
 ### P10 — Hardening
 
-- Finish `docs/manual.toml` for everything. Complete both manuals (§16.4) against the software as built, with real outputs pasted where a page shows one. Write `docs/USING_IT.md` as a walkthrough, as VLEO's is.
+- Finish `docs/manual.toml` for everything. Complete both manuals (§16.4) against the software as built, with real outputs pasted where a page shows one. Write `docs/USING_IT.md` as a walkthrough.
 - Finish the devcontainer; do a release dry run through the `release` environment; review `docs/SPEC_DEVIATIONS.md` line by line with a person.
 - **Green:** everything, in both profiles, plus a full nightly run.
 - **Acceptance:**
@@ -3113,7 +3094,7 @@ The MATLAB twin is not a phase of its own. Each phase from P1 writes its SILS el
 
 ## 20. Decisions the builder must not take
 
-The builder prepares each one: options, costs, a recommendation if asked. It then stops. D1–D9 are VLEO's DELIVERY_PLAN list, carried over because each still applies.
+The builder prepares each one: options, costs, a recommendation if asked. It then stops.
 
 | | Decision | Needed by |
 |---|---|---|
@@ -3126,7 +3107,7 @@ The builder prepares each one: options, costs, a recommendation if asked. It the
 | D7 | bundle boundaries (one catalogue bundle, or one per family) | P2 |
 | D8 | signing-key custody | P10 |
 | D9 | the licence-expiry policy for bundles | P1 |
-| D10 | extract a shared platform used by VLEO and ADCS, or keep two repositories in step by hand | P0 |
+| D10 | extract the engine's method into a library other products share, or keep it inside this repository | P0 |
 | D11 | the exact rule of gate check 10b (F7): what a hole body may contain | P1 |
 | D12 | the GitHub team behind each owner | P0 |
 | D13 | the currency and who owns the price table | P2 |
@@ -3163,7 +3144,7 @@ A risk's level moves only through a belief record, and goes down only when a tes
 | R-05 A PC is not a hard real-time target | model | L3 | 1 kHz over UDP on commodity hardware can jitter. | Measure at commissioning (SPEC.md §12.3); move the plant to the PolarFire SoC if it cannot hold. | the commissioning run records deadline misses per hour below the facility's allowance for the whole of a campaign |
 | R-06 An air bearing is not orbit | model | L3 | Its residual torque exceeds a CubeSat's orbital disturbances. | HILS is compared with the lab twin, never with the orbit run (SPEC.md §12.6); adcs rig fit refuses a HILS campaign whose bearing, cage or stimulators fall short of what the case needs (SPEC.md §12.10). | a HILS campaign and its lab twin agree within D23's tolerances on every metric the certificate states |
 | R-07 Customer flight code keeps hidden state | algorithm | L3 | C statics break repeatability across runs. | The init-twice test (SPEC.md §9.6) refuses such a build by name. | the init-twice test passes on every customer build a campaign runs |
-| R-08 Intellectual property leaves through the browser or an FMU | output | L4 | VLEO's WASM ships the whole kernel (F3); an FMU is native code. | F3 is fixed; FMUs run only in a sandbox (SPEC.md §15.6); restricted content is excluded by test (SPEC.md §14.6). | the restricted-content test passes on every artefact a release publishes, and D20's external review finds no route out |
+| R-08 Intellectual property leaves through the browser or an FMU | output | L4 | A browser build can ship the whole kernel (F3); an FMU is native code. | F3 is fixed; FMUs run only in a sandbox (SPEC.md §15.6); restricted content is excluded by test (SPEC.md §14.6). | the restricted-content test passes on every artefact a release publishes, and D20's external review finds no route out |
 | R-09 Synthetic or demonstration numbers reach a client as evidence | output | L5 | Round test values look plausible. | SYN-* naming, the status rule, InputPedigree 0, a CI refusal (SPEC.md §7.3); demo results are marked at the top and never evidence. | the CI refusal and the result viewer's demo banner are shown, by test, to stop every synthetic path the release has |
 | R-10 The MATLAB twin drifts from the platform | model | L3 | Two implementations of one engine diverge unless something checks them. | One set of definitions, exported; every SILS element written in both engines in the same change from P1, as plan/twin_map.toml lists them, and the twin job refusing a one-sided change (SPEC.md §10.8.7); the same fixtures and draws; the matlab-parity job on every push. | matlab-parity green on every push for a whole quarter, with every ledger line explained by a person |
 | R-11 Tuning fits the case, not the physics | algorithm | L4 | A search over gains finds whatever the plant model rewards. | Tune on nominal plus edge corners; confirm with a Monte Carlo never tuned on (SPEC.md §8.5). | a tuned product's HILS result agrees with its confirming Monte Carlo within D23's tolerances |
@@ -3180,8 +3161,6 @@ A risk's level moves only through a belief record, and goes down only when a tes
 
 ## 22. Sources
 
-- VLEO_SIMULATOR at `abf79ee`: [README](https://github.com/AmanRai0603/VLEO_SIMULATOR/blob/main/README.md), [AGENTS.md](https://github.com/AmanRai0603/VLEO_SIMULATOR/blob/main/AGENTS.md), [docs/ARCHITECTURE.md](https://github.com/AmanRai0603/VLEO_SIMULATOR/blob/main/docs/ARCHITECTURE.md), [docs/DELIVERY_PLAN.md](https://github.com/AmanRai0603/VLEO_SIMULATOR/blob/main/docs/DELIVERY_PLAN.md), [docs/NODE_AUTHORING.md](https://github.com/AmanRai0603/VLEO_SIMULATOR/blob/main/docs/NODE_AUTHORING.md), [crates/vleo-bus/src/lib.rs](https://github.com/AmanRai0603/VLEO_SIMULATOR/blob/main/crates/vleo-bus/src/lib.rs), and the files named in §3; read in full for this document.
-- CD-06 · VLEO Integrated Design Tool: plan and working model (the source document of VLEO's tree).
 - IDMAS v2 Exploration: from magnetorquer pointing to an actuator system for any satellite (Orbitt Space, 2026).
 - *Eight Loops, One Beam* (v2), an RF ion thruster taught with the learner's loop and thirteen explainer's techniques, supplied with this plan. Used for: the explanation standard `adcs-explain/1` (§5.12).
 - ECSS-M-ST-80C, Space project management — Risk management (ECSS, 31 July 2008). Used for: scoring a risk by severity and likelihood, which the five risk levels map onto by decision D26 (§5.13).

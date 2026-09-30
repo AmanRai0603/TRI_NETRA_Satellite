@@ -35,8 +35,8 @@ except ImportError:  # pragma: no cover
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-# Row owner by branch (SPEC.md §5.9). The same maps tools/check_seed_with_vleo.py
-# patches into VLEO's seeder, so the owner a form shows is the owner the seeder writes.
+# Row owner by branch (SPEC.md §5.9). The same maps as tools/plan_rows.py (§5.7),
+# so the owner a form shows is the owner the seeder writes.
 OWNER = {"svc": "systems", "cpt": "systems", "msn": "environment", "sat": "systems",
          "sub": "gnc", "ver": "verification",
          "sb0": "environment", "sb1": "sensing", "sb2": "actuators", "sb3": "gnc", "sb4": "avionics",

@@ -42,7 +42,7 @@ Who runs what (C / Rust / Python / MATLAB): `docs/figures/architecture_languages
 | `results/index.html` | the report with every figure |
 | `dist/` | the downloadable MATLAB SILS zip and the flight-software + Rust-engine zip; `dist/dispatch/` holds the dispatch packages |
 | `tools/` | `pipeline.py` (the design loop, node by node), `engine.py` (build, run, Monte Carlo, campaigns, soft OILS and parity on the Rust engine), `vv_report.py` + `templates/vv_report.html` (the V&V report, HTML + PDF), `figures/` (the two diagrams), `gen_fsw_params.py` (params → C + Rust), `export_catalogue.py` (TOML → JSON), `run_matrix.py` (parallel runner), `report.py`, `pack_matlab.py`, `pack_flight.py` (flight software + engine zip), `components_doc.py` |
-| `spec/` | the platform architecture package (reference, unchanged) |
+| `spec/` | the ADCS platform's build specification: a standalone package, with its own tools and checks |
 
 ## Run it
 

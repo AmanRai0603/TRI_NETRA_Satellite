@@ -7,7 +7,7 @@
 
 The ported faces keep every read and run command and route they have, renamed (§3.3). Every command and route that wrote a sheet is removed (§3.4, F17). What a face may put into the software is a case CSV, a result document to view and, in the portal, a client's FMU. The software's content changes only through intake, in a developer's checkout.
 
-**CLI (`adcs`).** VLEO's `campaign` subcommand already means "every stored case against one row", so the simulator's commands live under `sim` and never clobber it.
+**CLI (`adcs`).** The `campaign` subcommand means "every stored case against one row", so the simulator's commands live under `sim` and never clobber it.
 
 ```
 adcs case template                          # the blank template CSV, every key explained in its note
@@ -33,7 +33,7 @@ adcs rig fit <case> --lab <file> [--product <p>] [--rung oils|hils]   # needs ag
 adcs rig arm|run|abort <campaign> --devices <map>    # rig host only; refuses elsewhere, and refuses a campaign whose fit is short
 ```
 
-**Daemon routes (workbench).** `/v1/parity/<…>` already serves parity files in VLEO, so the ledger gets its own route. There is no write route and no `ADCS_ALLOW_WRITE`.
+**Daemon routes (workbench).** `/v1/parity/<…>` serves parity files, so the ledger gets its own route. There is no write route and no `ADCS_ALLOW_WRITE`.
 
 ```
 POST /v1/case/check         POST /v1/case/import        GET  /v1/case/<id>/report
@@ -53,7 +53,7 @@ GET  /v1/ledger/<campaign>  GET  /v1/manual/<page>
 
 ### 16.2 The developer's commands
 
-`xtask` is the developer team's, in a checkout. It keeps VLEO's reading and building commands (§3.4) and adds:
+`xtask` is the developer team's, in a checkout. It has the reading and building commands (§3.4) and:
 
 ```
 cargo xtask intake check <file> [--out intake/requests] [--seed]     # §5.11.2
@@ -84,7 +84,7 @@ The tree's shape changes with `tools/seed_tree.py --add-group <id> --under <pare
 
 ### 16.3 `docs/manual.toml`
 
-It documents every command, route and setting the software has, for users and developers, and says which is which. VLEO's `the_manual_is_true` test enforces it in both directions, and its parsers are extended to the `sim`, `result`, `case`, `rig` and `intake` dispatch. It is the source of the user manual's command reference (§16.4), so the manual can never name a command the software does not have.
+It documents every command, route and setting the software has, for users and developers, and says which is which. The `the_manual_is_true` test enforces it in both directions, and its parsers are extended to the `sim`, `result`, `case`, `rig` and `intake` dispatch. It is the source of the user manual's command reference (§16.4), so the manual can never name a command the software does not have.
 
 ### 16.4 The two manuals
 
@@ -119,7 +119,7 @@ The package carries both manuals in full, written for the software as this docum
 | `08_derisking.md` | how-to | keeping the ledger, the rollup at release, the quarterly narrative; the ledger's rules (generated) |
 | `09_twin.md` | how-to | the MATLAB twin in lockstep: the twin map, changing an element on both sides, prototypes, `twin:none`; the rules (generated) |
 
-**Checked.** `cargo xtask manual --check` (built in P1; `tools/manual_pages.py --check` is its stand-in in this package) regenerates `05_case_keys.md` from the case registry, the codes table in `developer/01_intake.md` from the checker and the rules table in `developer/08_derisking.md` from the ledger, the twin rules in `developer/09_twin.md` and §10.8.7 from the twin check, and fails on any difference; `cargo xtask explain check` checks every page's kind line, one-line answer and sections; it is green from P1. `tools/manual_check.py` (VLEO's) runs every command a manual page shows and compares the output it claims. The manuals are written for the finished software, so a page may show a command a later phase builds: every command block is tagged with the phase that builds it (`<!-- since P3 -->`, as the package's pages already are), and `manual_check.py` runs a block only once its phase is green. The command reference itself is `docs/manual.toml`, which the web face shows under Help → Commands.
+**Checked.** `cargo xtask manual --check` (built in P1; `tools/manual_pages.py --check` is its stand-in in this package) regenerates `05_case_keys.md` from the case registry, the codes table in `developer/01_intake.md` from the checker and the rules table in `developer/08_derisking.md` from the ledger, the twin rules in `developer/09_twin.md` and §10.8.7 from the twin check, and fails on any difference; `cargo xtask explain check` checks every page's kind line, one-line answer and sections; it is green from P1. `tools/manual_check.py` runs every command a manual page shows and compares the output it claims. The manuals are written for the finished software, so a page may show a command a later phase builds: every command block is tagged with the phase that builds it (`<!-- since P3 -->`, as the package's pages already are), and `manual_check.py` runs a block only once its phase is green. The command reference itself is `docs/manual.toml`, which the web face shows under Help → Commands.
 
 ---
 
@@ -129,7 +129,7 @@ The package carries both manuals in full, written for the software as this docum
 
 - `AGENTS.md`: the standing instructions of every agent working in the repository, which are now two: the builder during the phases, and the implementation agent after (§17.4). It holds §3.2's five rules, §0.2's rules, and four sections: evidence rows (§5.5), scenarios and campaigns (§10), the rig's safety rule (§12.8), and intake (§5.11): "a node's content comes only from a passing request, through `intake write`".
 - `intake/AGENT.md`: the implementation agent's own page: how to read a brief, the scope hook, and the list of things it never does.
-- `areas/`: VLEO's six files, plus six:
+- `areas/`: one file per area of the engine, and six more:
   - `simulation.md` for `adcs-sim-core`, `adcs-sim`, `adcs-fsw-abi` and `matlab_sils/`: determinism (§9.7), "the plant never reads a clock", and "the twin follows the platform's equations; a difference is a ledger line, never a silent fix in one of them";
   - `rig.md` for `adcs-rig`, `rig/` and `devices/`: hardware interlocks, mocks and bring-up;
   - `portal.md` for `adcs-portal` and `adcs-worker`: tenant isolation, no engine in the portal, restricted content, no route that changes the software;
@@ -139,7 +139,7 @@ The package carries both manuals in full, written for the software as this docum
 
 ### 17.2 Human decisions
 
-VLEO's H1–H9 are unchanged. H1 (a relation) and H2 (a test vector) are made in a node form by the engineer under "Checked by", and reviewed on the intake branch. H10 is defined, as F10 requires. Seven more follow:
+H1–H9 are the engine's human decisions. H1 (a relation) and H2 (a test vector) are made in a node form by the engineer under "Checked by", and reviewed on the intake branch. H10 is defined, as F10 requires. Seven more follow:
 
 | | Decision | Who | How often |
 |---|---|---|---|
@@ -160,7 +160,7 @@ VLEO's H1–H9 are unchanged. H1 (a relation) and H2 (a test vector) are made in
 
 ### 17.3 Reviewer counts
 
-These are added to VLEO's CONTRIBUTING table, which remains the only place the policy is stated:
+These are in the CONTRIBUTING table, which remains the only place the policy is stated:
 
 | Change | Reviewers | Why |
 |---|---|---|
@@ -183,7 +183,7 @@ These are added to VLEO's CONTRIBUTING table, which remains the only place the p
 
 ### 17.4 The implementation agent
 
-VLEO worked with a fleet of seven agents, each in a lane: one drafted declarations, one filled holes, one recorded fixtures, and so on. The ADCS platform drops the fleet (§3.4). Declarations and test vectors now come from people, through node forms. What remains for an agent is the part a person should not have to type: turning a checked request into code.
+The ADCS platform has no fleet of specialised agents (§3.4). Declarations and test vectors now come from people, through node forms. What remains for an agent is the part a person should not have to type: turning a checked request into code.
 
 **One general agent.** The implementation agent is Claude Code, started by a developer in a checkout, with one brief (§5.11.3). It is not specialised: the same agent implements a declared value, a relation with a new physics function, or a new node, because the brief says exactly what to do and where. It works under:
 
@@ -201,13 +201,13 @@ No agent promotes a product, confirms a node or signs anything. `adcs design` sa
 
 ### 17.5 Commit scopes
 
-They are derived from crate names as in VLEO, plus `catalogue`, `designs`, `scenarios`, `campaigns`, `rig`, `devices`, `fsw`, `plan`, `forms`, `manual`, `intake`, `matlab_sils` and `deploy`. An intake commit's scope is its node's crate, and its trailer is `Request: <request id>`.
+They are derived from crate names, plus `catalogue`, `designs`, `scenarios`, `campaigns`, `rig`, `devices`, `fsw`, `plan`, `forms`, `manual`, `intake`, `matlab_sils` and `deploy`. An intake commit's scope is its node's crate, and its trailer is `Request: <request id>`.
 
 ---
 
 ## 18. Continuous integration
 
-`gate.yml` keeps VLEO's jobs, renamed. Its `tooling` job keeps VLEO's explicit list of selftests. Not every script has one: `seed_tree.py` refuses arguments by design, `build_tree.py` takes only `--check`, and `check_seed_with_vleo.py` needs a VLEO checkout. So the job names each script it runs, as VLEO's does, and never globs `tools/*.py`. The jobs are: `gate`, `tooling`, `review` (advisory), `mutants`, `panels`, `excluded-faces`, `shipping-profile` (now also building `--profile user`, F4) and `no-std`. The `no-std` job extends to `adcs-sim-core` on `thumbv7em-none-eabihf`. It adds:
+`gate.yml`'s `tooling` job keeps an explicit list of selftests. Not every script has one: `seed_tree.py` refuses arguments by design, `build_tree.py` takes only `--check`. So the job names each script it runs, and never globs `tools/*.py`. The jobs are: `gate`, `tooling`, `review` (advisory), `mutants`, `panels`, `excluded-faces`, `shipping-profile` (now also building `--profile user`, F4) and `no-std`. The `no-std` job extends to `adcs-sim-core` on `thumbv7em-none-eabihf`. It adds:
 
 | Job | Runs | Green means |
 |---|---|---|
@@ -236,6 +236,6 @@ They are derived from crate names as in VLEO, plus `catalogue`, `designs`, `scen
 
 - `inertial_hold_mc500` in full, its metric distributions compared with the last ledger entry; a moved distribution opens an issue for the developer team, never fails silently;
 - the parity report against every scenario's parity reference;
-- VLEO's `mutate` and `bundle verify`.
+- `mutate` and `bundle verify`.
 
-`release.yml` keeps VLEO's prove → build → publish with its fail-closed approval, preceded by one release-preparation commit: `cargo xtask intake mark published --release <v>` for every node whose request the release carries, so the sheets that are built say `published` and each new version carries its release; and `cargo xtask derisk rollup`, which writes `derisk/rollup.toml` for the Risk management rows. Its artefacts are the CLI, the daemon, the FFI library, `adcs-rig` (Linux only), a container image with `adcs-portal` and `adcs-worker`, `adcs_sils_matlab_<version>.zip`, the node library, the user manual and the quarter's de-risking narrative. Its release notes list every request the release carries, by request id and node, with the belief each rested on, so each requester can find theirs.
+`release.yml` is prove → build → publish with its fail-closed approval, preceded by one release-preparation commit: `cargo xtask intake mark published --release <v>` for every node whose request the release carries, so the sheets that are built say `published` and each new version carries its release; and `cargo xtask derisk rollup`, which writes `derisk/rollup.toml` for the Risk management rows. Its artefacts are the CLI, the daemon, the FFI library, `adcs-rig` (Linux only), a container image with `adcs-portal` and `adcs-worker`, `adcs_sils_matlab_<version>.zip`, the node library, the user manual and the quarter's de-risking narrative. Its release notes list every request the release carries, by request id and node, with the belief each rested on, so each requester can find theirs.
