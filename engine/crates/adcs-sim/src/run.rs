@@ -321,7 +321,10 @@ pub fn run(c: &Config, o: &Opts) -> Result<Record, Error> {
         // ---- flight software ----
         let now = bus.now_ns;
         let rc = fsw.step(&mut bus, now);
-        if rc != 0 { return Err(Error::run(format!("flight software step returned {rc} at t = {t}"))); }
+        if rc != 0 {
+            let why = fsw.link_error().map(|e| format!(": {e}")).unwrap_or_default();
+            return Err(Error::run(format!("flight software step returned {rc} at t = {t}{why}")));
+        }
         // soft OILS: when does this command reach the actuators?
         let mut lat = 0.0;
         if let (Some(st), Some(m)) = (oils.as_mut(), o.oils.as_ref()) {

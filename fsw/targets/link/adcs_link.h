@@ -14,6 +14,11 @@
  *   0x03 CMD    tc[]                           0x81 ACK   i32 rc, u8 0
  *   0x04 BYE                                    0x81 ACK   i32 0, u8 0   (then the server returns)
  *
+ * A frame the OBC cannot take is answered, never ignored, so the engine never waits on a reply
+ * that will not come: ACK with rc LINK_E_* (a bad CRC, a length over ADCS_LINK_MAX, a payload
+ * shorter or longer than its counts, UART bytes or CAN frames beyond what the OBC holds, an
+ * unknown type). The engine stops the run on any of them.
+ *
  * present: bit0 magnetometer, bit1 gyro, bit2 Sun sensors, bit3 Earth sensor (an absent
  * device answers ADCS_E_NODEV, as on the bus). The OBC side implements adcs_hal.h from the
  * last TICK, so the flight software's drivers run unchanged.
@@ -33,6 +38,7 @@
 #define ADCS_LINK_SYNC1 0xA5u
 #define ADCS_LINK_SYNC2 0x5Au
 #define ADCS_LINK_MAX 4096
+enum { LINK_E_CRC = -91, LINK_E_LONG = -92, LINK_E_SHORT = -93, LINK_E_FULL = -94, LINK_E_TYPE = -99 };
 enum { LINK_CONFIG = 0x01, LINK_TICK = 0x02, LINK_CMD = 0x03, LINK_BYE = 0x04, LINK_ACK = 0x81, LINK_OUT = 0x82 };
 
 /* the transport: blocking byte I/O supplied by the platform (POSIX pipe/socket, a UART) */

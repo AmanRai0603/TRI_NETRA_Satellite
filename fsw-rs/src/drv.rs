@@ -124,7 +124,9 @@ impl Drv {
     }
 }
 
+/// A command that is not a finite number drives nothing (as adcs_drv.c: zero, never a saturated output).
 fn q15(x: f64) -> i16 {
+    if !(x*Q15).is_finite() { return 0; }
     let v = (x*Q15).clamp(-Q15, Q15);
     (if v < 0.0 { v - 0.5 } else { v + 0.5 }) as i16
 }
@@ -145,7 +147,7 @@ pub fn write<H: Hal>(hal: &mut H, p: &Params, m_body: &[f64; 3], cmd_r: &[f64; M
         let mut f = CanFrame { id: CAN_VALVES, extended: 0, dlc: 8, data: [0; 8] };
         for i in 0..(p.nc as usize).min(MAX_COUPLES) {
             let ms = duty[i]*p.dt/VALVE_LSB_S + 0.5;
-            f.data[i] = if ms > 255.0 { 255 } else if ms < 0.0 { 0 } else { ms as u8 };
+            f.data[i] = if !ms.is_finite() { 0 } else if ms > 255.0 { 255 } else if ms < 0.0 { 0 } else { ms as u8 };
         }
         hal.can_send(CAN_PORT, &f);
     }

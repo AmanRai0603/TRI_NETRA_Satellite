@@ -46,16 +46,17 @@ void adcs_mekf_predict(adcs_mekf_t *k, const adcs_real wm[3], adcs_real dt)
 }
 
 /* Joseph-form update with a 3-row measurement: H (3x6), R (3x3), innovation y. With gate > 0 an
- * innovation whose y' S^-1 y exceeds the gate is rejected (returns 0) and the state is left as is. */
+ * innovation whose y' S^-1 y exceeds the gate is rejected (returns 0) and the state is left as is.
+ * A singular innovation covariance, or an innovation that is not a number, is rejected the same way. */
 static int update3(adcs_mekf_t *k, adcs_real H[3][6], adcs_real R[3][3], const adcs_real y[3], adcs_real gate)
 {
     adcs_real PHt[6][3], S[3][3], Si[3][3], G[6][3], dx[6], IKH[6][6], T[6][6], Pn[6][6], dq[4], chi = 0;
     int i, j, l;
     for (i = 0; i < 6; i++) for (j = 0; j < 3; j++) { PHt[i][j] = 0; for (l = 0; l < 6; l++) PHt[i][j] += k->P[i][l]*H[j][l]; }
     for (i = 0; i < 3; i++) for (j = 0; j < 3; j++) { S[i][j] = R[i][j]; for (l = 0; l < 6; l++) S[i][j] += H[i][l]*PHt[l][j]; }
-    adcs_inv3(S, Si);
+    if (adcs_inv3(S, Si) != 0) return 0;
     for (i = 0; i < 3; i++) for (j = 0; j < 3; j++) chi += y[i]*Si[i][j]*y[j];
-    if (gate > 0 && chi > gate) return 0;
+    if (!(chi == chi) || (gate > 0 && chi > gate)) return 0;
     for (i = 0; i < 6; i++) for (j = 0; j < 3; j++) { G[i][j] = 0; for (l = 0; l < 3; l++) G[i][j] += PHt[i][l]*Si[l][j]; }
     for (i = 0; i < 6; i++) { dx[i] = 0; for (l = 0; l < 3; l++) dx[i] += G[i][l]*y[l]; }
     dq[0] = 0.5*dx[0]; dq[1] = 0.5*dx[1]; dq[2] = 0.5*dx[2]; dq[3] = 1.0;
@@ -91,7 +92,7 @@ int adcs_mekf_vector(adcs_mekf_t *k, const adcs_real bm[3], const adcs_real rr[3
     return update3(k, H, R, y, gate);
 }
 
-void adcs_mekf_quat(adcs_mekf_t *k, const adcs_real qm[4], adcs_real sc, adcs_real sr, const adcs_real bs[3])
+int adcs_mekf_quat(adcs_mekf_t *k, const adcs_real qm[4], adcs_real sc, adcs_real sr, const adcs_real bs[3], adcs_real gate)
 {
     adcs_real dq[4], y[3], H[3][6], R[3][3];
     int i, j;
@@ -99,19 +100,24 @@ void adcs_mekf_quat(adcs_mekf_t *k, const adcs_real qm[4], adcs_real sc, adcs_re
     for (i = 0; i < 3; i++) y[i] = 2.0*dq[i];
     for (i = 0; i < 3; i++) for (j = 0; j < 6; j++) H[i][j] = (i == j) ? 1.0 : 0.0;
     for (i = 0; i < 3; i++) for (j = 0; j < 3; j++) R[i][j] = (i == j ? sc*sc : 0.0) + (sr*sr - sc*sc)*bs[i]*bs[j];
-    (void)update3(k, H, R, y, 0.0);
+    return update3(k, H, R, y, gate);
 }
 
-void adcs_triad(const adcs_real b1[3], const adcs_real b2[3], const adcs_real r1[3], const adcs_real r2[3], adcs_real q[4])
+#define TRIAD_MIN_SIN 1e-3                 /* 0.06 deg: closer to parallel fixes no attitude */
+
+int adcs_triad(const adcs_real b1[3], const adcs_real b2[3], const adcs_real r1[3], const adcs_real r2[3], adcs_real q[4])
 {
     adcs_real tb[3][3], tr[3][3], c[3], A[3][3];
     int i, j;
+    adcs_cross(b1, b2, c); if (!(adcs_norm3(c) > TRIAD_MIN_SIN*adcs_norm3(b1)*adcs_norm3(b2))) return -1;
+    adcs_cross(r1, r2, c); if (!(adcs_norm3(c) > TRIAD_MIN_SIN*adcs_norm3(r1)*adcs_norm3(r2))) return -1;
     adcs_unit(b1, tb[0]); adcs_cross(b1, b2, c); adcs_unit(c, tb[1]); adcs_cross(tb[0], tb[1], tb[2]);
     adcs_unit(r1, tr[0]); adcs_cross(r1, r2, c); adcs_unit(c, tr[1]); adcs_cross(tr[0], tr[1], tr[2]);
     /* A = [t1b t2b t3b] [t1r t2r t3r]' : columns are the triad vectors */
     for (i = 0; i < 3; i++)
         for (j = 0; j < 3; j++) A[i][j] = tb[0][i]*tr[0][j] + tb[1][i]*tr[1][j] + tb[2][i]*tr[2][j];
     adcs_fromdcm(A, q);
+    return 0;
 }
 
 adcs_real adcs_quest(adcs_real b[][3], adcs_real r[][3], const adcs_real *w, int n, adcs_real q[4])

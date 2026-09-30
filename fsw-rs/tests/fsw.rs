@@ -89,8 +89,9 @@ fn estimation() {
     }
     let (qm, _) = est::quest(&b, &r, None);
     assert!(qangle(&q, &qm) < 1e-9, "QUEST");
-    let qt = est::triad(&b[0], &b[1], &r[0], &r[1]);
+    let qt = est::triad(&b[0], &b[1], &r[0], &r[1]).unwrap();
     assert!(qangle(&q, &qt) < 1e-9, "TRIAD");
+    assert!(est::triad(&b[0], &scale3(&b[0], 2.0), &r[0], &r[1]).is_none(), "TRIAD on parallel vectors fixes no attitude");
     let q0 = qmult(&q, &fromrotvec(&[0.1, -0.12, 0.08]));
     let mut k = est::Mekf::new(&q0, 0.2, 1e-3, 1e-6, 1e-8);
     for _ in 0..200 {
@@ -233,4 +234,74 @@ fn st_frame() {
     let mut z = Meas::default();
     drv.read(&mut hal, &p, &mut z);
     assert!(z.st_ok && z.st_valid[0] && (z.q_st[0][2] + 0.3).abs() < 1e-8);
+}
+
+/// A NaN or an infinite command drives nothing (= t_nonfinite in test_fsw.c).
+#[test]
+fn a_non_finite_command_drives_nothing() {
+    let mut p = Params::default();
+    p.m_max = 0.2; p.nr = 1; p.rot_tmax[0] = 1e-3; p.nc = 2; p.dt = 0.1;
+    let (mut r, g, mut d) = ([0.0; adcs_fsw::params::MAX_ROTORS], [0.0; adcs_fsw::params::MAX_GIMBALS], [0.0; adcs_fsw::params::MAX_COUPLES]);
+    r[0] = f64::NAN; d[0] = f64::NAN; d[1] = f64::NEG_INFINITY;
+    let mut hal = Stub::default();
+    adcs_fsw::drv::write(&mut hal, &p, &[f64::NAN, f64::INFINITY, 0.1], &r, &g, &d);
+    assert_eq!(&hal.pwm[..3], &[0, 0, 16384]);
+    assert_eq!(hal.can_tx.len(), 2);
+    assert_eq!(&hal.can_tx[0].data[..2], &[0, 0]);
+    assert_eq!(&hal.can_tx[1].data[..2], &[0, 0]);
+}
+
+/// The magnetometer stops answering (= t_safe in test_fsw.c): in detumble the coils act on the field,
+/// then stop; a pointing state holds for 60 s, then it is magnetorquer detumble with the fault raised;
+/// the fault clears when the magnetometer answers again.
+#[test]
+fn a_silent_magnetometer_brings_safe_mode() {
+    let (mut on_before, mut on_after, mut mode59) = (false, false, None);
+    for start in [Mode::Detumble as u8, Mode::NadirMtq as u8] {
+        let mut p = Params::default();
+        p.jd0 = 2461407.25; p.dt = 0.1; p.mu = 3.986004418e14; p.start_mode = start; p.auto_next = 255;
+        p.mtq_period = 1.0; p.mtq_meas = 0.2; p.m_max = 0.2; p.bdot_k = 1e-3; p.has_gyro = 1;
+        p.J[0][0] = 0.0067; p.J[1][1] = 0.042; p.J[2][2] = 0.042; p.igrf_nmax = 10; p.rate_lpf_s = 0.3;
+        p.ss_eclipse = 1; p.gd_T = 1.0; p.mtq_phi = 0.01; p.rw_phi = 0.01; p.rw_dt = 0.1; p.fdir_s = 3.0; p.rcsd_T_damp_s = 20.0; p.rcsd_period_s = 1.0;
+        p.st_coast_s = 900.0; p.mekf_sig_mag = 0.01; p.mekf_sig_sun = 0.005; p.mekf_meas_scale = 1.0;
+        let mut blob = vec![0u8; adcs_fsw::params::BLOB_SIZE];
+        p.encode(&mut blob);
+        let mut hal = Stub::default();
+        let mut f = Fsw::new();
+        f.init(ABI_VERSION, &blob, 0).expect("init");
+        for k in 0..720u64 {
+            let (b, w) = ([2e-5, -1e-5, 3e-5], [0.05, -0.02, 0.1]);
+            hal.now_ns = k*100_000_000;
+            hal.mag[0] = (k < 30 || k == 719) as u8; for i in 0..3 { put16(&mut hal.mag[1 + 2*i..], b[i]/MAG_LSB_T); }
+            hal.gyro[0] = 1; for i in 0..3 { put32(&mut hal.gyro[1 + 4*i..], w[i]/GYRO_LSB); }
+            let now = hal.now_ns; f.step(&mut hal, now);
+            let on = hal.pwm[..3].iter().any(|x| *x != 0);
+            if start == Mode::Detumble as u8 && k < 30 && on { on_before = true; }
+            if start == Mode::Detumble as u8 && (30..719).contains(&k) && on { on_after = true; }
+            if start == Mode::NadirMtq as u8 && k == 620 { mode59 = Some(f.peek().unwrap().mode); }
+            if k == 718 {
+                let s = f.peek().unwrap();
+                assert!(s.mode == Mode::Detumble as u16 && s.faults & 0x100 != 0, "silent 60 s: mode {} faults {:x}", s.mode, s.faults);
+            }
+        }
+        assert_eq!(f.peek().unwrap().faults & 0x100, 0, "the fault clears when the magnetometer answers");
+    }
+    assert!(on_before && !on_after, "coils act on the field, then stop ({on_before} {on_after})");
+    // no rotors, no thrusters: fine pointing is refused by telecommand and at init
+    let mut p = Params::default();
+    p.jd0 = 2461407.25; p.dt = 0.1; p.mu = 3.986004418e14; p.start_mode = Mode::NadirMtq as u8; p.auto_next = 255;
+    p.mtq_period = 1.0; p.mtq_meas = 0.2; p.m_max = 0.2; p.bdot_k = 1e-3; p.has_gyro = 1;
+    p.J[0][0] = 0.0067; p.J[1][1] = 0.042; p.J[2][2] = 0.042; p.igrf_nmax = 10; p.rate_lpf_s = 0.3;
+    p.ss_eclipse = 1; p.gd_T = 1.0; p.mtq_phi = 0.01; p.rw_phi = 0.01; p.rw_dt = 0.1; p.fdir_s = 3.0; p.rcsd_T_damp_s = 20.0; p.rcsd_period_s = 1.0;
+    p.st_coast_s = 900.0; p.mekf_sig_mag = 0.01; p.mekf_sig_sun = 0.005; p.mekf_meas_scale = 1.0;
+    let mut blob = vec![0u8; adcs_fsw::params::BLOB_SIZE];
+    p.encode(&mut blob);
+    let mut f = Fsw::new();
+    f.init(ABI_VERSION, &blob, 0).expect("init");
+    assert_eq!(f.command(&[0x01, Mode::NadirFine as u8]), -3);
+    assert_eq!(f.command(&[0x01, Mode::NadirMtq as u8]), 0);
+    p.start_mode = Mode::NadirFine as u8;
+    p.encode(&mut blob);
+    assert!(matches!(f.init(ABI_VERSION, &blob, 0), Err(adcs_fsw::fsw::InitError::Infeasible(_))));
+    assert_eq!(mode59, Some(Mode::NadirMtq as u16));
 }

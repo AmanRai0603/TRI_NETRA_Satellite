@@ -29,6 +29,8 @@ typedef struct {
     /* sensors (latest) */
     adcs_meas_t z;
     int clean;                           /* coils were off during the last tick */
+    /* sensor health: seconds since the last good sample, the last good field */
+    double mag_age, gyro_age; int mag_seen; adcs_real B_good[3];
     /* orbit */
     int have_r; adcs_real r[3], v[3];
     /* estimation */
@@ -59,11 +61,29 @@ typedef struct {
 
 static fsw_t S;
 
+#define GNSS_R_MIN (0.9*ADCS_RE)                        /* a fix below this radius is refused */
+/* Sensor health (fsw/pseudocode: safe mode). A field reading outside [MAG_LO, MAG_HI] x the model
+ * field is a stuck or dead magnetometer, not a reading. The last good field is held through a
+ * short dropout; the coils act on it for at most MAG_HOLD_CYCLES coil cycles. A magnetometer or a
+ * gyro silent for SAFE_STALE_S puts the spacecraft in magnetorquer detumble until it answers. */
+#define MAG_LO 0.25
+#define MAG_HI 4.0
+#define MAG_HOLD_CYCLES 2.0
+#define SAFE_STALE_S 60.0
+#define FAULT_MAG_STALE  (1u << 8)
+#define FAULT_GYRO_STALE (1u << 9)
+/* A star-tracker quaternion further than ST_NORM_TOL from unit length is not a reading. (Its
+ * innovation is not gated: after a slew or a coast the filter's covariance is too small, and a
+ * gate rejects the very updates that correct it; gating waits on a consistent filter.) */
+#define ST_NORM_TOL 1e-3
+
 /* two-body + J2 acceleration in J2000 (the pole of date is 0.4 deg off: second order on J2) */
 static void orbit_acc(const adcs_real r[3], adcs_real mu, adcs_real a[3])
 {
-    adcs_real rn = adcs_norm3(r), r2 = rn*rn, zr = r[2]*r[2]/r2, k = -mu/(r2*rn);
-    adcs_real f = -1.5*ADCS_J2*mu*ADCS_RE*ADCS_RE/(r2*r2*rn);
+    adcs_real rn = adcs_norm3(r), r2, zr, k, f;
+    if (!(rn > 1.0)) { adcs_zero3(a); return; }         /* no orbit to speak of: no acceleration, not a division by zero */
+    r2 = rn*rn; zr = r[2]*r[2]/r2; k = -mu/(r2*rn);
+    f = -1.5*ADCS_J2*mu*ADCS_RE*ADCS_RE/(r2*r2*rn);
     a[0] = k*r[0] + f*r[0]*(1 - 5*zr);
     a[1] = k*r[1] + f*r[1]*(1 - 5*zr);
     a[2] = k*r[2] + f*r[2]*(3 - 5*zr);
@@ -90,6 +110,20 @@ static void enter(uint8_t mode)
     adcs_zero3(S.I_q);
 }
 
+/* Can the fitted hardware fly this state? Fine pointing needs momentum devices or thrusters, the
+ * rotor Sun acquisition needs rotors, the thruster detumble thrusters; the coil states need only
+ * the coils every configuration has. A state it cannot fly is refused at init and by telecommand. */
+static int feasible(const adcs_params_t *p, unsigned m)
+{
+    switch (m) {
+    case ADCS_MODE_NADIR_FINE: case ADCS_MODE_TARGET_FINE: case ADCS_MODE_SLEW_FINE: case ADCS_MODE_SUN_FINE:
+        return p->nr > 0 || p->nc > 0;
+    case ADCS_MODE_SUN_ACQ_ROTOR: return p->nr > 0;
+    case ADCS_MODE_DETUMBLE_RCS: return p->nc > 0;
+    default: return m < ADCS_MODE_COUNT;
+    }
+}
+
 static void set_gains(adcs_gains_t *g, int law, const double Kp[3], const double Kd[3], const double Ki[3], double Klqr[3][3],
                       double lambda, double phi, const double Gs[3], double err_max, double int_max)
 {
@@ -112,6 +146,8 @@ int32_t adcs_fsw_init(const adcs_fsw_init_t *init)
     if (!init || init->abi_version != ADCS_FSW_ABI_VERSION) return -10;
     if (adcs_params_decode(init->config_blob, init->config_len, &S.p) != 0) return -11;
     if (adcs_params_validate(&S.p) != 0) { S.ready = 0; return -12; }   /* a value outside its rule (params.toml) */
+    if (!feasible(&S.p, S.p.start_mode) || (S.p.auto_next != ADCS_MODE_NONE && !feasible(&S.p, S.p.auto_next))) return -13;
+    for (i = 0; i < S.p.n_sched; i++) if (!feasible(&S.p, S.p.sched_mode[i])) return -13;
     p = &S.p;
     S.start_ns = init->start_ns;
     S.mode = p->start_mode; S.t_st = -1e9; S.t_Bref = -1e9; S.last_ctrl = -1e9; S.es_t = -1e9;
@@ -312,10 +348,18 @@ int32_t adcs_fsw_step(uint64_t now_ns)
     S.t = (double)(now_ns - S.start_ns)*1e-9;
     S.jd = p->jd0 + S.t/86400.0;
     adcs_drv_read(p, z);
+    if (z->mag_ok && S.bref_ok) {
+        adcs_real bn = adcs_norm3(z->B), rn = adcs_norm3(S.Bref);
+        if (!(bn > MAG_LO*rn && bn < MAG_HI*rn)) z->mag_ok = 0;
+    }
+    if (z->mag_ok) { adcs_copy3(z->B, S.B_good); S.mag_age = 0; S.mag_seen = 1; }
+    else { adcs_copy3(S.B_good, z->B); S.mag_age += dt; }
+    if (!p->has_gyro || z->gyro_ok) S.gyro_age = 0; else S.gyro_age += dt;
     if (!z->gyro_ok && !p->has_gyro) adcs_zero3(z->w);
 
     /* 1 onboard orbit (02): the GNSS fix, else two-body + J2 by velocity Verlet */
-    if (z->gps_ok) {
+    /* a fix inside the Earth is not a fix: it is dropped and the orbit is propagated as without one */
+    if (z->gps_ok && adcs_norm3(z->r) > GNSS_R_MIN) {
         if (p->gnss_ecef) {          /* receiver fix in ECEF: r = C' r_e, v = C' (v_e + w_E x r_e) */
             adcs_real C[3][3], wr[3], ve[3], we[3] = {0, 0, ADCS_OMEGA_E};
             adcs_eci2ecef(S.jd, C);
@@ -350,23 +394,26 @@ int32_t adcs_fsw_step(uint64_t now_ns)
                 adcs_latency(z->q_st[h], z->w, p->st_latency, q0);
                 adcs_mekf_init(&S.K, q0, 1e-3, 2e-4, p->gyro_arw, p->gyro_rrw);
                 S.ad_ok = 1; S.t_st = S.t;
-            } else if (z->sun_ok && S.clean && S.bref_ok) {
+            } else if (z->sun_ok && z->mag_ok && S.clean && S.bref_ok) {
                 adcs_real q0[4];
-                adcs_triad(z->sun, z->B, S.gd.sun_eci, S.Bref, q0);
-                adcs_mekf_init(&S.K, q0, 0.05, 2e-4, p->gyro_arw, p->gyro_rrw);
-                S.ad_ok = 1;
+                if (adcs_triad(z->sun, z->B, S.gd.sun_eci, S.Bref, q0) == 0) {       /* Sun and field not parallel */
+                    adcs_mekf_init(&S.K, q0, 0.05, 2e-4, p->gyro_arw, p->gyro_rrw);
+                    S.ad_ok = 1;
+                }
             }
         } else {
             adcs_mekf_predict(&S.K, z->w, dt);
             if (p->has_st && z->st_ok) {
                 int h;
                 for (h = 0; h < p->n_heads; h++) {
-                    if (z->st_valid[h]) {
+                    const adcs_real *qs = z->q_st[h];
+                    adcs_real qn = sqrt(qs[0]*qs[0] + qs[1]*qs[1] + qs[2]*qs[2] + qs[3]*qs[3]);
+                    if (z->st_valid[h] && fabs(qn - 1.0) < ST_NORM_TOL) {         /* a unit quaternion, or no reading */
                         adcs_real wb[3], ql[4], bs[3];
                         adcs_sub3(z->w, S.K.b, wb);
                         adcs_latency(z->q_st[h], wb, p->st_latency, ql);
                         for (i = 0; i < 3; i++) bs[i] = p->st_bs[h][i];
-                        adcs_mekf_quat(&S.K, ql, p->st_noise_cross*p->mekf_meas_scale, p->st_noise_roll*p->mekf_meas_scale, bs);
+                        (void)adcs_mekf_quat(&S.K, ql, p->st_noise_cross*p->mekf_meas_scale, p->st_noise_roll*p->mekf_meas_scale, bs, 0.0);
                     }
                 }
                 S.t_st = S.t;
@@ -377,7 +424,7 @@ int32_t adcs_fsw_step(uint64_t now_ns)
                  * coils are off from the cycle start, and the magnetometer sees the previous tick's dipole) */
                 int tried = 0, took = 0;
                 if (z->sun_ok && first) { tried++; took += adcs_mekf_vector(&S.K, z->sun, S.gd.sun_eci, p->mekf_sig_sun, p->mekf_gate); }
-                if (S.clean && !S.mag_done && S.bref_ok) {
+                if (S.clean && !S.mag_done && S.bref_ok && z->mag_ok) {
                     adcs_real Bn = adcs_norm3(z->B), e = p->mekf_mag_err_T/(Bn > 1e-9 ? Bn : 1e-9);
                     S.mag_done = 1; tried++;
                     took += adcs_mekf_vector(&S.K, z->B, S.Bref, sqrt(p->mekf_sig_mag*p->mekf_sig_mag + e*e), p->mekf_gate);
@@ -403,7 +450,15 @@ int32_t adcs_fsw_step(uint64_t now_ns)
 
     /* 3 mode manager */
     while (S.sched_i < p->n_sched && S.t >= p->sched_t[S.sched_i]) { enter(p->sched_mode[S.sched_i]); S.sched_i++; }
-    if ((S.mode == ADCS_MODE_DETUMBLE || S.mode == ADCS_MODE_DETUMBLE_RCS) && p->auto_next != ADCS_MODE_NONE) {
+    {   /* safe mode: a sensor silent too long holds the spacecraft in magnetorquer detumble */
+        uint16_t f = 0;
+        if (S.mag_seen && S.mag_age > SAFE_STALE_S) f |= FAULT_MAG_STALE;
+        if (S.gyro_age > SAFE_STALE_S) f |= FAULT_GYRO_STALE;
+        S.faults = (uint16_t)((S.faults & ~(FAULT_MAG_STALE | FAULT_GYRO_STALE)) | f);
+        if (f && S.mode != ADCS_MODE_DETUMBLE) enter(ADCS_MODE_DETUMBLE);
+    }
+    if ((S.mode == ADCS_MODE_DETUMBLE || S.mode == ADCS_MODE_DETUMBLE_RCS) && p->auto_next != ADCS_MODE_NONE
+        && !(S.faults & (FAULT_MAG_STALE | FAULT_GYRO_STALE))) {
         if (adcs_norm3(z->w) < p->detumble_exit) S.hold += dt; else S.hold = 0;
         if (S.hold >= p->detumble_hold_s) enter(p->auto_next);
     }
@@ -432,12 +487,13 @@ int32_t adcs_fsw_step(uint64_t now_ns)
         if (phase < p->mtq_meas + dt/2) {
             adcs_zero3(m_body);
             if (first) { adcs_zero3(S.bsum); adcs_zero3(S.bsum_raw); S.bn = 0; }
-            {   adcs_real u[3]; adcs_unit(z->B, u); adcs_add3(S.bsum, u, S.bsum); adcs_add3(S.bsum_raw, z->B, S.bsum_raw); S.bn++; }
-            if (fabs(phase - p->mtq_meas) < dt/2) {
+            if (z->mag_ok) { adcs_real u[3]; adcs_unit(z->B, u); adcs_add3(S.bsum, u, S.bsum); adcs_add3(S.bsum_raw, z->B, S.bsum_raw); S.bn++; }
+            if (fabs(phase - p->mtq_meas) < dt/2 && S.bn == 0) { S.b1_ok = 0; S.B1raw_ok = 0; }   /* no field this cycle: no dipole, no rate across the gap */
+            else if (fabs(phase - p->mtq_meas) < dt/2) {
                 adcs_real b[3];
                 int law = p->bdot_law;
                 adcs_scale3(S.bsum, 1.0/S.bn, b); adcs_unit(b, b);
-                if (law == 0 && !p->has_gyro) law = 1;
+                if (law == 0 && (!p->has_gyro || S.gyro_age > 0)) law = 1;     /* no fresh rate: the field-derivative law */
                 if (law == 0) {
                     adcs_real bd[3], bm[3];
                     adcs_cross(z->w, b, bd); adcs_scale3(bd, -1.0, bd);
@@ -515,7 +571,8 @@ int32_t adcs_fsw_step(uint64_t now_ns)
             }
             if (S.ho) {
                 adcs_real bu[3], Bn = adcs_norm3(z->B);
-                adcs_unit(z->B, bu); adcs_cross(we, bu, m_body); adcs_scale3(m_body, p->bdot_k/Bn, m_body);
+                adcs_unit(z->B, bu); adcs_cross(we, bu, m_body);
+                adcs_scale3(m_body, Bn > 1e-9 ? p->bdot_k/Bn : 0.0, m_body);     /* no field: no dipole */
                 adcs_zero3(S.tau_req);
             } else {
                 mtq_law();
@@ -619,8 +676,9 @@ int32_t adcs_fsw_step(uint64_t now_ns)
         if (phase < p->mtq_meas + dt/2) {
             adcs_zero3(m_body);
             if (first) { adcs_zero3(S.bsum_raw); S.bn = 0; }
-            adcs_add3(S.bsum_raw, z->B, S.bsum_raw); S.bn++;
-            if (fabs(phase - p->mtq_meas) < dt/2) {
+            if (z->mag_ok) { adcs_add3(S.bsum_raw, z->B, S.bsum_raw); S.bn++; }
+            if (fabs(phase - p->mtq_meas) < dt/2 && S.bn == 0) S.B1raw_ok = 0;
+            else if (fabs(phase - p->mtq_meas) < dt/2) {
                 adcs_real Bav[3], m0[3];
                 adcs_scale3(S.bsum_raw, 1.0/S.bn, Bav);
                 if (S.mode == ADCS_MODE_SPINUP) {
@@ -651,9 +709,11 @@ int32_t adcs_fsw_step(uint64_t now_ns)
         }
         if (nr > 0) idle_rotors(cmd_r, 0);
         break;
-    default:
+    default:                                           /* no such state (refused at init and by command): coils off */
+        adcs_zero3(m_body);
         break;
     }
+    if (S.mag_seen && S.mag_age > MAG_HOLD_CYCLES*p->mtq_period) adcs_zero3(m_body);   /* no field to act on */
     adcs_copy3(m_body, S.m_hold);
     S.clean = (m_body[0] == 0 && m_body[1] == 0 && m_body[2] == 0);
     adcs_drv_write(p, m_body, cmd_r, cmd_g, duty);
@@ -669,7 +729,7 @@ int32_t adcs_fsw_command(const uint8_t *tc, size_t len)
 {
     /* TC 0x01: set controller state (tc[1]) */
     if (!S.ready || !tc || len < 2) return -1;
-    if (tc[0] == 0x01 && tc[1] < ADCS_MODE_COUNT) { enter(tc[1]); return 0; }
+    if (tc[0] == 0x01 && tc[1] < ADCS_MODE_COUNT) { if (!feasible(&S.p, tc[1])) return -3; enter(tc[1]); return 0; }
     return -2;
 }
 

@@ -168,6 +168,17 @@ impl std::str::FromStr for Impl {
     }
 }
 
+/// What adcs_fsw_init's refusal codes mean (adcs_fsw.c).
+pub fn init_refusal(rc: i32) -> &'static str {
+    match rc {
+        -10 => "the ABI version differs",
+        -11 => "the configuration blob does not decode (size or CRC)",
+        -12 => "a parameter is outside its rule in fsw/params/params.toml",
+        -13 => "a mode in the start, next or schedule needs hardware the configuration does not fit",
+        _ => "an unknown refusal",
+    }
+}
+
 /// One flight-software instance. The C build keeps its state in statics, so one
 /// C instance exists per process at a time (a lock enforces it; spec §9.6).
 pub enum Fsw {
@@ -187,7 +198,7 @@ impl Fsw {
                 let g = C_LOCK.lock().unwrap_or_else(|e| e.into_inner());
                 let a = CInit { abi_version: adcs_fsw::ABI_VERSION, config_blob: blob.as_ptr(), config_len: blob.len(), start_ns };
                 let rc = Self::with(bus, || unsafe { adcs_fsw_init(&a) });
-                if rc != 0 { return Err(format!("adcs_fsw_init (C) refused the configuration: {rc}")); }
+                if rc != 0 { return Err(format!("adcs_fsw_init (C) refused the configuration: {rc} ({})", init_refusal(rc))); }
                 Ok(Fsw::C(g))
             }
             Impl::Rust => {
@@ -198,7 +209,7 @@ impl Fsw {
             Impl::Obc(t) => {
                 let mut l = Box::new(link::Link::open(&t)?);
                 let rc = l.config(blob, start_ns)?;
-                if rc != 0 { return Err(format!("the OBC refused the configuration: {rc}")); }
+                if rc != 0 { return Err(format!("the OBC refused the configuration: {rc} ({})", init_refusal(rc))); }
                 Ok(Fsw::Obc(l))
             }
         }
@@ -213,11 +224,15 @@ impl Fsw {
         match self {
             Fsw::C(_) => Self::with(bus, || unsafe { adcs_fsw_step(now_ns) }),
             Fsw::Rust(f) => f.step(bus, now_ns),
-            Fsw::Obc(l) => l.tick(bus, now_ns).unwrap_or_else(|e| { eprintln!("{e}"); -100 }),
+            Fsw::Obc(l) => l.tick(bus, now_ns).unwrap_or_else(|e| { l.error = Some(e); -100 }),
         }
     }
     pub fn command(&mut self, tc: &[u8]) -> i32 {
-        match self { Fsw::C(_) => unsafe { adcs_fsw_command(tc.as_ptr(), tc.len()) }, Fsw::Rust(f) => f.command(tc), Fsw::Obc(l) => l.command(tc).unwrap_or(-100) }
+        match self { Fsw::C(_) => unsafe { adcs_fsw_command(tc.as_ptr(), tc.len()) }, Fsw::Rust(f) => f.command(tc), Fsw::Obc(l) => l.command(tc).unwrap_or_else(|e| { l.error = Some(e); -100 }) }
+    }
+    /// Why the OBC link failed, when a step or command returned -100 for it.
+    pub fn link_error(&self) -> Option<&str> {
+        match self { Fsw::Obc(l) => l.error.as_deref(), _ => None }
     }
     pub fn peek(&self) -> Option<adcs_fsw::State> {
         match self {

@@ -76,7 +76,7 @@ void adcs_rcs_duty(const adcs_real req[3], const adcs_params_t *p, adcs_real T, 
         adcs_real u = req[ax], on;
         if (u == 0) continue;
         k = (u > 0) ? 2*ax : 2*ax + 1;
-        if (k >= p->nc) continue;
+        if (k >= p->nc || !(fabs(p->rcs_tau[k][ax]) > 0)) continue;     /* no couple for this axis and sense */
         on = fabs(u)/fabs(p->rcs_tau[k][ax]); if (on > 1) on = 1;
         on *= T;
         if (on < p->rcs_mib) continue;

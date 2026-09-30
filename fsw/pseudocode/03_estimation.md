@@ -82,3 +82,13 @@ Ground values (engine config): sig_sun = hypot(accuracy, bias) of the fine Sun s
 max(0.1, 0.5 albedo) for coarse cells (albedo alone puts their vector up to ~8° off); sig_mag =
 hypot(misalignment, scale factor) (≥ 0.01 rad); mag_err_T = sqrt(bias² + 3 σ_bias² + 3 σ_noise²).
 ```
+
+## Guards
+
+- An update whose innovation covariance S is singular, or whose χ² is not a number, is rejected
+  like a gated one (the state is left as is).
+- TRIAD returns nothing when either pair is within 0.06° of parallel (|a × b| ≤ 1e-3 |a||b|);
+  the estimate then waits for the next cycle.
+- A star-tracker quaternion further than 1e-3 from unit length is not a reading. Its innovation
+  is not gated: after a slew or a coast the covariance is too small and a gate would reject the
+  updates that correct it.

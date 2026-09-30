@@ -3,7 +3,9 @@
 #   make test       run them
 #   make check      strict warnings, no malloc/time/rand/recursion scan
 CC ?= gcc
-CFLAGS ?= -std=c99 -O2 -ffp-contract=off -fno-fast-math -Wall -Wextra -pedantic -Iinclude
+CFLAGS ?= -O2 -Wall -Wextra -pedantic
+# the determinism flags: every build keeps them whatever CFLAGS a caller passes (C = Rust bit for bit)
+override CFLAGS += -std=c99 -ffp-contract=off -fno-fast-math -Iinclude
 SRC = src/adcs_math.c src/adcs_env.c src/adcs_est.c src/adcs_ctl.c src/adcs_alloc.c src/adcs_drv.c src/adcs_params.c src/adcs_fsw.c
 OBJ = $(SRC:src/%.c=build/%.o)
 
