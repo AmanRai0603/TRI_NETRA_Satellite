@@ -73,7 +73,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: GNU Octave, and gnuplot for the propagator suite's figures
-        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends octave gnuplot-nox
+      - name: GNU Octave, with the gnuplot and the font its figures need (Octave recommends both)
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends octave gnuplot-nox fonts-freefont-otf
       - name: the twin's suite and the propagator's regression suite
         run: python3 tools/check_all.py --only twin propagator
