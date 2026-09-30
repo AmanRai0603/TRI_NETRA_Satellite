@@ -63,6 +63,7 @@ fn config(a: &Args) -> Result<Config, String> {
     let case = match &a.case {
         Some(c) => PathBuf::from(c),
         None => {
+            if !a.scenario.ends_with(".json") { adcs_sim::config::check_id("scenario", &a.scenario)?; }
             let sp = if a.scenario.ends_with(".json") { PathBuf::from(&a.scenario) } else { root.join("data/scenarios").join(format!("{}.json", a.scenario)) };
             let s: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(&sp).map_err(|e| format!("{}: {e}", sp.display()))?).map_err(|e| e.to_string())?;
             root.join("cases").join(format!("{}.csv", s["case"].as_str().unwrap_or("ais_3u")))
@@ -86,7 +87,9 @@ fn main() -> ExitCode {
         if a.cmd == "size" {
             // adcs size <case> [--out DIR] [--knobs knobs.json]: demand survey + every option sized (adcs-design)
             let root = data_root();
+            adcs_sim::config::check_id("case", &a.scenario)?;
             let case_file = root.join("cases").join(format!("{}.csv", a.scenario));
+            if !case_file.is_file() { return Err(format!("no case {}: {} does not exist", a.scenario, case_file.display())); }
             let knobs = match a.set.iter().find(|(k, _)| k == "knobs") {
                 Some((_, f)) => adcs_design::Knobs::from_json(&adcs_sim::json::read(std::path::Path::new(f))?),
                 None => adcs_design::Knobs::default(),
@@ -102,6 +105,7 @@ fn main() -> ExitCode {
             }
             return Ok(());
         }
+        if !["run", "params", "parity"].contains(&a.cmd.as_str()) { return Err(format!("unknown command {}\n{}", a.cmd, usage())); }
         let c = config(&a)?;
         match a.cmd.as_str() {
             "params" => {

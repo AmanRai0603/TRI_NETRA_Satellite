@@ -40,7 +40,7 @@ function [set, d] = draw(C, P0, k)
             case 'solar_flux'
                 v = U(s.lo, s.hi); set.env__F107 = v; set.env__F107a = v; d.F107 = v;
             case 'kp'
-                v = U(s.lo, s.hi); set.env__Kp = v; set.env__ap = round(exp(1.07*v + 0.9)); d.Kp = v;
+                v = U(s.lo, s.hi); set.env__Kp = v; set.env__ap = kp2ap(v); d.Kp = v;
             case 'accommodation'
                 v = U(s.lo, s.hi); set.sc__sigma_n = v; set.sc__sigma_t = v; d.sigma_accom = v;
             case 'reflectivity'
@@ -62,4 +62,12 @@ end
 
 function v = edge_(a, b, hi)
     if hi, v = b; else, v = a; end
+end
+
+function ap = kp2ap(Kp)
+%KP2AP  The standard Kp -> ap table, nearest node: the propagator's kp2ap
+%   (atmos.spaceweather). ap ends at 400 (Kp 9).
+    kpv = [0 .33 .67 1 1.33 1.67 2 2.33 2.67 3 3.33 3.67 4 4.33 4.67 5 5.33 5.67 6 6.33 6.67 7 7.33 7.67 8 8.33 8.67 9];
+    apv = [0 2 3 4 5 6 7 9 12 15 18 22 27 32 39 48 56 67 80 94 111 132 154 179 207 236 300 400];
+    ap = interp1(kpv, apv, max(0, min(9, Kp)), 'nearest');
 end

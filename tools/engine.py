@@ -482,7 +482,7 @@ def draw(C, k):
         elif kind == "solar_flux":
             v = U(s["lo"], s["hi"]); sets += [("engine.f107", v), ("engine.f107a", v)]; d["F107"] = v
         elif kind == "kp":
-            v = U(s["lo"], s["hi"]); sets += [("engine.kp", v), ("engine.ap", round(math.exp(1.07 * v + 0.9)))]; d["Kp"] = v
+            v = U(s["lo"], s["hi"]); sets += [("engine.kp", v), ("engine.ap", kp2ap(v))]; d["Kp"] = v
         elif kind == "accommodation":
             v = U(s["lo"], s["hi"]); sets.append(("engine.accommodation", v)); d["sigma_accom"] = v
         elif kind == "reflectivity":
@@ -497,6 +497,25 @@ def draw(C, k):
         else:
             raise ValueError(f"unknown dispersion {kind}")
     return [f"{a}={json.dumps(b)}" for a, b in sets], d
+
+
+# The standard Kp -> ap table, nearest node: kp2ap of the propagator (atmos.spaceweather,
+# adcs_pop::spaceweather::kp2ap). ap ends at 400 (Kp 9); an exponential fit does not.
+KP_NODES = [0, .33, .67, 1, 1.33, 1.67, 2, 2.33, 2.67, 3, 3.33, 3.67, 4, 4.33, 4.67, 5, 5.33, 5.67, 6, 6.33, 6.67, 7, 7.33, 7.67, 8, 8.33, 8.67, 9]
+AP_NODES = [0, 2, 3, 4, 5, 6, 7, 9, 12, 15, 18, 22, 27, 32, 39, 48, 56, 67, 80, 94, 111, 132, 154, 179, 207, 236, 300, 400]
+
+
+def kp2ap(kp):
+    kp = max(0.0, min(9.0, kp))
+    # interp1 "nearest" as Octave and adcs_pop::atmos::octave::interp1_nearest decide it:
+    # past the midpoint (x[i] + x[i+1])/2 of two nodes, the upper one
+    k = 0
+    for i in range(len(KP_NODES) - 1):
+        if (KP_NODES[i] + KP_NODES[i + 1]) / 2.0 <= kp:
+            k = i + 1
+        else:
+            break
+    return AP_NODES[k]
 
 
 def camp_job(args):
