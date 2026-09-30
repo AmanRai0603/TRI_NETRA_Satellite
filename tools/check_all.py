@@ -46,11 +46,13 @@ CHECKS = [
     ("design-loop", "every stored design-loop decision recomputed from its inputs",
      [PY, "tools/verify_nodes.py"], ".", []),
 ]
+# The two suites report a failure in what they return (ok) or leave (nfail); Octave's own exit
+# status is 0 either way, so each command turns that into its exit status.
 OCTAVE = [
     ("twin", "the MATLAB twin's test suite (GNU Octave)",
-     ["octave-cli", "--no-gui", "-q", "--eval", "startup_asils; addpath tests; run_all_tests"], "matlab_sils", ["octave-cli"]),
+     ["octave-cli", "--no-gui", "-q", "--eval", "startup_asils; addpath tests; ok = run_all_tests(); exit(double(~ok))"], "matlab_sils", ["octave-cli"]),
     ("propagator", "the propagator's regression suite (GNU Octave)",
-     ["octave-cli", "--no-gui", "-q", "--eval", "setup_paths; addpath('08_test'); run_all_tests"], "matlab_sils/pop", ["octave-cli"]),
+     ["octave-cli", "--no-gui", "-q", "--eval", "setup_paths; addpath('08_test'); run_all_tests; exit(double(nfail > 0))"], "matlab_sils/pop", ["octave-cli"]),
 ]
 
 
