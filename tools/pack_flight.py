@@ -39,6 +39,12 @@ for t in trees:
             continue
         files.append(rel)
 files += [pathlib.Path(s) for s in singles if (ROOT / s).exists()]
+# what the packed tools import: the shared helpers, the command registry (--dry-run), and each
+# tool's own modules (engine_*.py, pipeline_*.py, report_*.py) -- found, not listed, so a new one
+# cannot be left out
+files += [pathlib.Path("tools/common.py"), pathlib.Path("tools/trinetra.py"), pathlib.Path("docs/commands.toml")]
+files += sorted(p.relative_to(ROOT) for g in ("engine_*.py", "pipeline_*.py") for p in (ROOT / "tools").glob(g))
+files = list(dict.fromkeys(files))
 FIXED = (2026, 9, 28, 0, 0, 0)
 man = []
 # the zip is written beside its name and renamed into place when whole
@@ -51,3 +57,16 @@ with atomic_path(out) as part, zipfile.ZipFile(part, "w", zipfile.ZIP_DEFLATED, 
     zi = zipfile.ZipInfo(f"{name}/MANIFEST.sha256", FIXED); zi.compress_type = zipfile.ZIP_DEFLATED
     z.writestr(zi, "\n".join(man) + "\n")
 print(out, f"{out.stat().st_size/1e6:.1f} MB, {len(man)} files")
+
+# the packed tools must run from the zip alone: unpack it and import them, or refuse it
+import os, subprocess, sys, tempfile
+with tempfile.TemporaryDirectory() as tmp:
+    with zipfile.ZipFile(out) as z:
+        z.extractall(tmp)
+    tools = pathlib.Path(tmp) / name / "tools"
+    r = subprocess.run([sys.executable, "-c", "import engine, pipeline, rescore, verify_nodes, trinetra"], cwd=tools,
+                       capture_output=True, text=True, env={**os.environ, "TRINETRA_TRACE": "0"})
+    if r.returncode:
+        out.unlink()
+        sys.exit(f"the packed tools do not import from the zip alone, so it was not kept:\n{r.stderr.strip()[-800:]}")
+print("the packed tools import from the zip alone")
