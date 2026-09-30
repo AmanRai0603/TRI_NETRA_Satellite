@@ -34,11 +34,12 @@ class Check:
 def case_req(case):
     import csv
     out = {}
-    for r in csv.DictReader(open(MS / "cases" / f"{case}.csv")):
-        try:
-            out[r["key"]] = float(r["value"])
-        except (TypeError, ValueError):
-            pass
+    with open(MS / "cases" / f"{case}.csv", newline="") as f:
+        for r in csv.DictReader(f):
+            try:
+                out[r["key"]] = float(r["value"])
+            except (TypeError, ValueError):
+                pass
     return out
 
 
