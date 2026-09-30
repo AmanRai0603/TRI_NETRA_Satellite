@@ -17,7 +17,7 @@ pub struct Dev {
 /// $ADCS_SIZED_DIR/<kind>/<id>.json first when set: the design loop's current iteration
 /// (tools/pipeline.py) flies its own sized products without touching the MATLAB ones.
 pub fn find(root: &Path, kind: &str, id: &str) -> Result<PathBuf, String> {
-    if let Ok(d) = std::env::var("ADCS_SIZED_DIR") {
+    if let Some(d) = std::env::var_os("ADCS_SIZED_DIR").filter(|d| !d.is_empty()) {
         let g = Path::new(&d).join(kind).join(format!("{id}.json"));
         if g.is_file() { return Ok(g); }
     }

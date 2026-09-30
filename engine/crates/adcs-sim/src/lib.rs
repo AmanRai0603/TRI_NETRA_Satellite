@@ -60,6 +60,6 @@ pub fn store_root() -> std::path::PathBuf {
 
 /// The DE440 kernel the POP port reads: $ADCS_DE440, else matlab_sils/pop/03_frames_time/ephemeris/data/de440s.bsp.
 pub fn pop_kernel() -> std::path::PathBuf {
-    if let Ok(p) = std::env::var("ADCS_DE440") { return p.into(); }
+    if let Some(p) = std::env::var_os("ADCS_DE440").filter(|p| !p.is_empty()) { return p.into(); }
     data_root().join("pop/03_frames_time/ephemeris/data/de440s.bsp")
 }

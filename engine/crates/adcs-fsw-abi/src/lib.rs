@@ -131,7 +131,7 @@ pub enum Impl {
 
 /// The repository root ($ADCS_REPO, else the ancestor of the working directory holding fsw/).
 pub fn repo_root() -> std::path::PathBuf {
-    if let Ok(r) = std::env::var("ADCS_REPO") { return r.into(); }
+    if let Some(r) = std::env::var_os("ADCS_REPO").filter(|r| !r.is_empty()) { return r.into(); }
     let mut d = std::env::current_dir().unwrap_or_default();
     loop {
         if d.join("fsw/include/adcs_fsw.h").is_file() { return d; }

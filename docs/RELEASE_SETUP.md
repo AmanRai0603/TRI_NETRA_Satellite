@@ -58,7 +58,7 @@ which carries no identity but keeps Apple-silicon Macs from calling it damaged.
 ## What each download is
 
 - `trinetra-adcs-<v>-<system>.zip`: a kit, with `adcs`, the app, the data, the cases, the
-  ephemeris, `VERSION`, `START_HERE.md`, `FIRST_RUN.md` and `COMMANDS.md`.
+  ephemeris, `VERSION`, `START_HERE.md`, `FIRST_RUN.md`, `COMMANDS.md` and `ENVIRONMENT.md`.
 - `TRI-NETRA-ADCS-<v>-macos-arm64.zip`: the macOS app.
 - `trinetra_adcs-<v>-py3-none-any.whl`: the Python package, for Windows, macOS and Linux.
 - `TRINETRA_ADCS_SILS_matlab_*.zip`, `TRINETRA_ADCS_flight_engine_*.zip`,

@@ -58,6 +58,7 @@ Who runs what (C / Rust / Python / MATLAB): `docs/figures/architecture_languages
 | `tests/`, `tools/check_all.py` | the tools' tests, and every check in one command (`python3 tools/check_all.py`; CI runs it) |
 | `docs/commands.toml`, `docs/COMMANDS.md` | every command: what it does, its steps, what it reads and writes (`python3 tools/trinetra.py explain <command>`) |
 | `docs/GLOSSARY.md` | every term the repository uses, in plain words |
+| `docs/ENVIRONMENT.md` | the environment variables that move the data, the store and the log, or change a default |
 | `docs/CHANGING.md` | for each kind of change: what to edit, what to regenerate, which check proves it |
 | `tools/kit.py`, `tools/macapp.py`, `tools/build_wheel.py` | the release downloads: the kits, the macOS app, the Python package (`docs/RELEASE_SETUP.md`) |
 | `spec/` | the ADCS platform's build specification: a standalone package, with its own tools and checks |

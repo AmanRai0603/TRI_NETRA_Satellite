@@ -112,6 +112,8 @@ def source_date():
     the same document; the wall clock only outside a git checkout."""
     import datetime
     s = os.environ.get("SOURCE_DATE_EPOCH", "").strip()
+    if s and not s.isdigit():
+        raise SystemExit(f"SOURCE_DATE_EPOCH={s} is not a whole number of seconds since 1970")
     if not s:
         s = subprocess.run(["git", "log", "-1", "--format=%ct"], cwd=ROOT, capture_output=True, text=True).stdout.strip()
     try:

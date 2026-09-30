@@ -35,8 +35,16 @@ pub const FIRST_PORT: u16 = 7788;
 pub fn now() -> u64 { std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|d| d.as_secs()).unwrap_or(0) }
 pub fn seen() { LAST_SEEN.store(now(), Ordering::Relaxed); }
 
-fn idle_limit_s() -> u64 {
-    std::env::var("TRINETRA_APP_IDLE_MINUTES").ok().and_then(|m| m.trim().parse::<u64>().ok()).filter(|m| *m > 0).unwrap_or(5) * 60
+/// How long the app waits with no page open before it ends: $TRINETRA_APP_IDLE_MINUTES
+/// (a whole number 1..=10080), else 5 minutes. Anything else is refused, never guessed.
+fn idle_limit_s() -> Result<u64, String> {
+    match std::env::var("TRINETRA_APP_IDLE_MINUTES").ok().filter(|m| !m.trim().is_empty()) {
+        None => Ok(5 * 60),
+        Some(m) => match m.trim().parse::<u64>() {
+            Ok(n) if (1..=10080).contains(&n) => Ok(n * 60),
+            _ => Err(format!("TRINETRA_APP_IDLE_MINUTES={m} is not a whole number of minutes from 1 to 10080")),
+        },
+    }
 }
 
 /// Is a TRI-NETRA app already answering on `port`? (It says so in /v1/version.)
@@ -52,7 +60,7 @@ fn running_on(port: u16) -> bool {
 }
 
 pub fn open_browser(url: &str) {
-    if std::env::var_os("TRINETRA_NO_BROWSER").is_some() { return; }
+    if std::env::var_os("TRINETRA_NO_BROWSER").is_some_and(|v| !v.is_empty()) { return; }
     #[cfg(target_os = "windows")]
     let r = std::process::Command::new("rundll32").args(["url.dll,FileProtocolHandler", url]).spawn();
     #[cfg(target_os = "macos")]
@@ -93,6 +101,10 @@ fn main() {
         start_failed(&format!("the tool's data is not beside the program (looked for data/scenarios in {}). Unzip the whole kit and open the program from it.", root.display()));
         std::process::exit(1);
     }
+    let limit = match idle_limit_s() {
+        Ok(l) => l,
+        Err(e) => { start_failed(&e); std::process::exit(1); }
+    };
     let (listener, port) = match bind() {
         Ok(x) => x,
         Err(e) if e.starts_with("already running:") => {
@@ -106,7 +118,6 @@ fn main() {
     seen();
     open_browser(&url);
     let _ = listener.set_nonblocking(true);
-    let limit = idle_limit_s();
     loop {
         if QUIT.load(Ordering::Relaxed) { std::thread::sleep(Duration::from_millis(300)); return; }
         if now().saturating_sub(LAST_SEEN.load(Ordering::Relaxed)) > limit { return; }
