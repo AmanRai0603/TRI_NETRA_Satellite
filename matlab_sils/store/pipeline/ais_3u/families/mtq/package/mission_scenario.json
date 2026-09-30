@@ -40,7 +40,7 @@
   "ss_gain": 0.3,
   "mtq_gain_p": 4.0,
   "mtq_gain_d": 0.25,
-  "handover_out_dps": 0.25
+  "handover_out_dps": 0.5
  },
  "metrics": [
   {

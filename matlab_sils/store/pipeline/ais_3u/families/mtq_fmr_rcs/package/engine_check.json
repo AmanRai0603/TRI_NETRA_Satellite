@@ -15,7 +15,7 @@
    {
     "id": "ape_los_p9973",
     "kind": "ape_los",
-    "value": 0.1516194407980836,
+    "value": 0.16239548499872905,
     "unit": "deg",
     "req": 10.0,
     "req_key": "req.ape",
@@ -24,7 +24,7 @@
    {
     "id": "ake_los_p9973",
     "kind": "ake_los",
-    "value": 0.14994128823265276,
+    "value": 0.1604929348897458,
     "unit": "deg",
     "req": 5.0,
     "req_key": "req.ake",
@@ -33,7 +33,7 @@
    {
     "id": "power_mean",
     "kind": "power_mean",
-    "value": 0.27909982750745155,
+    "value": 0.25138609277691926,
     "unit": "W",
     "req": 0.5,
     "req_key": "req.pavg",
@@ -42,7 +42,7 @@
    {
     "id": "power_peak",
     "kind": "power_peak",
-    "value": 1.204162435580217,
+    "value": 1.0773469316165172,
     "unit": "W",
     "req": null,
     "req_key": "",
@@ -51,7 +51,7 @@
    {
     "id": "propellant",
     "kind": "propellant",
-    "value": 0.0033185540430364802,
+    "value": 0.0032491285476206706,
     "unit": "g",
     "req": null,
     "req_key": "",
@@ -89,7 +89,7 @@
    {
     "id": "ape_los_p9973",
     "kind": "ape_los",
-    "value": 0.1516194407980836,
+    "value": 0.16239548499872905,
     "unit": "deg",
     "req": 10.0,
     "req_key": "req.ape",
@@ -98,7 +98,7 @@
    {
     "id": "ake_los_p9973",
     "kind": "ake_los",
-    "value": 0.14994128823265276,
+    "value": 0.1604929348897458,
     "unit": "deg",
     "req": 5.0,
     "req_key": "req.ake",
@@ -107,7 +107,7 @@
    {
     "id": "power_mean",
     "kind": "power_mean",
-    "value": 0.27909982750745155,
+    "value": 0.25138609277691926,
     "unit": "W",
     "req": 0.5,
     "req_key": "req.pavg",
@@ -116,7 +116,7 @@
    {
     "id": "power_peak",
     "kind": "power_peak",
-    "value": 1.204162435580217,
+    "value": 1.0773469316165172,
     "unit": "W",
     "req": null,
     "req_key": "",
@@ -125,7 +125,7 @@
    {
     "id": "propellant",
     "kind": "propellant",
-    "value": 0.0033185540430364802,
+    "value": 0.0032491285476206706,
     "unit": "g",
     "req": null,
     "req_key": "",
