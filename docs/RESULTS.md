@@ -3,7 +3,7 @@
 **Owner: Agastya.** Copyright (c) 2026 Agastya. All rights reserved.
 
 Produced by `matlab_sils` (GNU Octave 8.4) with the Precision Orbit Propagator stepped inside the attitude loop.
-Figures: `results/index.html` and `results/figures/`, built by `python3 tools/report.py` (CI keeps them as the `pages` artifact). Single runs are the nominal case, seed 1.
+Figures: `results/index.html` (open in a browser) and `results/figures/`. Single runs are the nominal case, seed 1.
 
 ## AIS 3U, magnetorquers only (10°, SSO dawn–dusk)
 

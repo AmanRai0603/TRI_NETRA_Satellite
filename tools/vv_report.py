@@ -625,7 +625,7 @@ def main():
     style = re.search(r"<style>.*?</style>", doc, re.S).group(0)
     body = re.search(r"<body>(.*)</body>", doc, re.S).group(1)
     nav = ('<nav class="wrap" style="padding-block:10px;font-size:9.5pt;color:#5b6477">Full results with every figure: '
-           '<a href="results.html">results page</a> · PDF: <code>TRINETRA_ADCS_VV_report.pdf</code> on the release page</nav>')
+           '<a href="results.html">results page</a> · PDF: <code>dist/TRINETRA_ADCS_VV_report.pdf</code> in the repository and on every release</nav>')
     write_text(OUT / "vv_artifact.html", title + "\n" + style.replace("body { margin: 0;", "body { margin: 0; min-height: 100%;") + "\n" + nav + body)
     chrome = next(iter(glob.glob("/opt/pw-browsers/chromium*/chrome-linux/chrome")), None) or shutil.which("chromium") or shutil.which("google-chrome")
     pdf = OUT / "TRINETRA_ADCS_VV_report.pdf"

@@ -260,13 +260,6 @@ jobs:
           pattern: "{kit-*,wheel}"
           merge-multiple: true
           path: out
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - name: the V&V report and the results pages, built from the committed results
-        run: |
-          python3 -m pip install -q numpy matplotlib
-          python3 tools/check_all.py --only pages
       - name: the MATLAB SILS and flight-software zips, the V&V report, the checksums
         run: |
           python3 tools/pack_matlab.py

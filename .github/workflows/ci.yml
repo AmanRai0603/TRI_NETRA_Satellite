@@ -77,24 +77,3 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y --no-install-recommends octave gnuplot-nox fonts-freefont-otf
       - name: the twin's suite and the propagator's regression suite
         run: python3 tools/check_all.py --only twin propagator
-
-  pages:
-    name: the rendered pages (figures, results page, V&V report)
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - name: build them from the committed results (they are not kept in git)
-        run: |
-          python3 -m pip install -q numpy matplotlib
-          python3 tools/check_all.py --only pages
-      - uses: actions/upload-artifact@v4
-        with:
-          name: pages
-          path: |
-            results/index.html
-            results/figures/
-            results/vv/

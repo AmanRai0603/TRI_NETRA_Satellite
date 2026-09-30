@@ -3,7 +3,7 @@
 
     python3 tools/check_all.py                 the fast checks (a few minutes)
     python3 tools/check_all.py --octave        and the MATLAB twin's suites in GNU Octave
-    python3 tools/check_all.py --pages         and build the rendered pages (figures, results page, V&V report)
+    python3 tools/check_all.py --pages         and rebuild the rendered pages (needs the runs' time series)
     python3 tools/check_all.py --only NAME...  just those checks (names as printed)
 
 The checks: the Python tests (tests/), the generated files against their definitions, the
@@ -51,11 +51,12 @@ CHECKS = [
     ("design-loop", "every stored design-loop decision recomputed from its inputs",
      [PY, "tools/verify_nodes.py"], ".", []),
 ]
-# The rendered pages (figures, the results page, the V&V report HTML and PDF): built from the
-# committed ledgers and runs, not kept in git. CI builds them and keeps them as an artifact.
+# The rendered pages (figures, the results page, the V&V report HTML and PDF), rebuilt and
+# committed. They read the runs' time series (channels.csv), which git does not keep, so this
+# runs where the runs were flown and says NOT RUN elsewhere (CI, a fresh clone).
 PAGES = [
-    ("pages", "the figures, results/index.html and the V&V report (HTML and PDF) build from the committed results",
-     ["bash", "-c", "python3 tools/report.py && python3 tools/vv_report.py"], ".", ["py:numpy", "py:matplotlib", "browser"]),
+    ("pages", "the figures, results/index.html and the V&V report (HTML and PDF) rebuild from the stored runs",
+     ["bash", "-c", "python3 tools/report.py && python3 tools/vv_report.py"], ".", ["py:numpy", "py:matplotlib", "browser", "time series"]),
 ]
 
 # The two suites report a failure in what they return (ok) or leave (nfail); Octave's own exit
@@ -73,6 +74,8 @@ def have(need):
     that prints PDFs (the one vv_report.py looks for)?"""
     if need.startswith("py:"):
         return importlib.util.find_spec(need[3:]) is not None
+    if need == "time series":
+        return any((ROOT / "matlab_sils" / "store" / "results").glob("*/channels.csv"))
     if need == "browser":
         return bool(glob.glob("/opt/pw-browsers/chromium*/chrome-linux/chrome") or shutil.which("chromium") or shutil.which("google-chrome"))
     return shutil.which(need) is not None
