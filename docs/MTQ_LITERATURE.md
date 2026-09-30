@@ -56,19 +56,21 @@ worst case.
 These figures are from the run with the capture test, the tuned hand-over and the navigation and guidance audit
 fixes (`docs/NAV_GUIDANCE_AUDIT.md`).
 
-**Nadir pointing, coils only, capture test (from the Sun spin).**
+**Nadir pointing, coils only, capture test (from the Sun spin), with the power-face roll term at 3n, ζ 1.**
 - ais_3u: Celani 2026 (P8) with proportional ×4, rate ×0.25 and hand-over at 0.5 °/s captures and holds. Its
-  worst of four seeds is 3.84° against the 10° AIS requirement. Its Floquet multiplier at those gains is 0.012
-  (certified).
-- ais_img_3u: no law captures. The best, Celani 2026 ×4/×4 with hand-over at 0.25 °/s, reaches 83°. Its
-  certificate fails (|μ| 1.35). This case's long axis lies along track, so pitch is gravity-gradient unstable and
-  the coils have little authority about that axis.
+  worst of four seeds is 6.28° against the 10° requirement; without the roll term it was 3.84°. The Floquet
+  multiplier at those gains, roll term included, is 0.913 (certified).
+- ais_img_3u: still no law captures. Celani 2026 now reaches 26.8° (83° before the roll term), and its
+  certificate fails (|μ| 2.75). This case's long axis lies along track, so pitch is gravity-gradient unstable.
 
 **Coils-only mission (dispatched with the tuned laws).**
-- ais_3u: nadir 2.36° p99.73 in the nominal run. The twelve dispersed Monte Carlo runs give 13.9–65°, **none
-  within 10°**. Coils-only nadir holds on the nominal spacecraft but is not robust to the case's dispersions.
-  Knowledge stays at 0.16° nominal and 0.27–1.27° dispersed.
-- ais_img_3u: nadir 86°. Coils only is not an imaging option.
+- ais_3u:
+  - Nadir 6.63° p99.73 in the nominal run, with the power face 86° from the Sun on average in the last orbit
+    (it was shaded, 115–150°, without the roll term).
+  - Monte Carlo: 13.8–46°, none of the twelve dispersed runs within 10° (13.9–65° without the roll term).
+    Coils-only nadir holds on the nominal spacecraft but is not robust to the case's dispersions.
+  - Knowledge: 0.14° nominal.
+- ais_img_3u: nadir 23.3° (86° before). Coils only is not an imaging option.
 
 **Sun acquisition, coils only.**
 - ais_3u: now passes its mode test. The chain is P11 → P5 with damping, at a 4 °/s spin.
@@ -79,7 +81,7 @@ seed is 85.9° on ais_3u (Celani 2015) and 18.8° on ais_img_3u (Celani 2026), a
 
 **Selected design (both cases): the fluid loop with coils (`mtq_fmr`).**
 - ais_3u: 0.16° nadir.
-- ais_img_3u: 0.003°.
+- ais_img_3u: 0.004°.
 - Both meet every requirement in all twelve Monte Carlo runs. C and Rust are bit-identical on every dispatched
   mission.
 

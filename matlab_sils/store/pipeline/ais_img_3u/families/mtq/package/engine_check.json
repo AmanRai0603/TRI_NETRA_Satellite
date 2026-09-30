@@ -6,7 +6,7 @@
    {
     "id": "detumble_time",
     "kind": "time_to_rate",
-    "value": 60.623333333333335,
+    "value": 59.99,
     "unit": "min",
     "req": 284.0,
     "req_key": "req.detumble",
@@ -15,7 +15,7 @@
    {
     "id": "ape_los_p9973",
     "kind": "ape_los",
-    "value": 86.17950240430052,
+    "value": 23.335909511313556,
     "unit": "deg",
     "req": 0.01,
     "req_key": "req.ape",
@@ -24,7 +24,7 @@
    {
     "id": "ake_los_p9973",
     "kind": "ake_los",
-    "value": 0.009100175218348047,
+    "value": 0.016753824432534384,
     "unit": "deg",
     "req": 0.005,
     "req_key": "req.ake",
@@ -33,7 +33,7 @@
    {
     "id": "power_mean",
     "kind": "power_mean",
-    "value": 0.07323469468267271,
+    "value": 0.0592041350958999,
     "unit": "W",
     "req": 2.0,
     "req_key": "req.pavg",
@@ -42,7 +42,7 @@
    {
     "id": "power_peak",
     "kind": "power_peak",
-    "value": 0.34900225949708324,
+    "value": 0.23141021438473303,
     "unit": "W",
     "req": null,
     "req_key": "",
@@ -64,191 +64,31 @@
     "mode": "detumble"
    },
    {
-    "t": 3637.0,
+    "t": 3598.6000000000004,
     "mode": "spinup"
    },
    {
-    "t": 4712.400000000001,
+    "t": 7020.6,
     "mode": "sun_spin"
    },
    {
-    "t": 4742.6,
+    "t": 7050.8,
     "mode": "spinup"
    },
    {
-    "t": 4802.6,
+    "t": 9226.800000000001,
     "mode": "sun_spin"
    },
    {
-    "t": 4832.8,
+    "t": 9277.4,
     "mode": "spinup"
    },
    {
-    "t": 4892.8,
+    "t": 9927.6,
     "mode": "sun_spin"
    },
    {
-    "t": 4923.0,
-    "mode": "spinup"
-   },
-   {
-    "t": 4983.0,
-    "mode": "sun_spin"
-   },
-   {
-    "t": 5013.200000000001,
-    "mode": "spinup"
-   },
-   {
-    "t": 5073.200000000001,
-    "mode": "sun_spin"
-   },
-   {
-    "t": 5103.400000000001,
-    "mode": "spinup"
-   },
-   {
-    "t": 5163.400000000001,
-    "mode": "sun_spin"
-   },
-   {
-    "t": 5193.6,
-    "mode": "spinup"
-   },
-   {
-    "t": 5253.6,
-    "mode": "sun_spin"
-   },
-   {
-    "t": 5283.8,
-    "mode": "spinup"
-   },
-   {
-    "t": 5343.8,
-    "mode": "sun_spin"
-   },
-   {
-    "t": 5374.0,
-    "mode": "spinup"
-   },
-   {
-    "t": 5434.0,
-    "mode": "sun_spin"
-   },
-   {
-    "t": 5464.200000000001,
-    "mode": "spinup"
-   },
-   {
-    "t": 5524.200000000001,
-    "mode": "sun_spin"
-   },
-   {
-    "t": 5554.400000000001,
-    "mode": "spinup"
-   },
-   {
-    "t": 5614.400000000001,
-    "mode": "sun_spin"
-   },
-   {
-    "t": 5644.6,
-    "mode": "spinup"
-   },
-   {
-    "t": 5704.6,
-    "mode": "sun_spin"
-   },
-   {
-    "t": 5734.8,
-    "mode": "spinup"
-   },
-   {
-    "t": 6294.400000000001,
-    "mode": "sun_spin"
-   },
-   {
-    "t": 6324.6,
-    "mode": "spinup"
-   },
-   {
-    "t": 6384.6,
-    "mode": "sun_spin"
-   },
-   {
-    "t": 6414.8,
-    "mode": "spinup"
-   },
-   {
-    "t": 6474.8,
-    "mode": "sun_spin"
-   },
-   {
-    "t": 6505.0,
-    "mode": "spinup"
-   },
-   {
-    "t": 6565.0,
-    "mode": "sun_spin"
-   },
-   {
-    "t": 6595.200000000001,
-    "mode": "spinup"
-   },
-   {
-    "t": 6655.200000000001,
-    "mode": "sun_spin"
-   },
-   {
-    "t": 6685.400000000001,
-    "mode": "spinup"
-   },
-   {
-    "t": 6745.400000000001,
-    "mode": "sun_spin"
-   },
-   {
-    "t": 6775.6,
-    "mode": "spinup"
-   },
-   {
-    "t": 6835.6,
-    "mode": "sun_spin"
-   },
-   {
-    "t": 6870.400000000001,
-    "mode": "spinup"
-   },
-   {
-    "t": 6939.400000000001,
-    "mode": "sun_spin"
-   },
-   {
-    "t": 6969.6,
-    "mode": "spinup"
-   },
-   {
-    "t": 7029.6,
-    "mode": "sun_spin"
-   },
-   {
-    "t": 7059.8,
-    "mode": "spinup"
-   },
-   {
-    "t": 9476.0,
-    "mode": "sun_spin"
-   },
-   {
-    "t": 9576.2,
-    "mode": "spinup"
-   },
-   {
-    "t": 10748.2,
-    "mode": "sun_spin"
-   },
-   {
-    "t": 10778.400000000001,
+    "t": 9960.6,
     "mode": "spinup"
    },
    {
@@ -264,7 +104,7 @@
    {
     "id": "detumble_time",
     "kind": "time_to_rate",
-    "value": 60.623333333333335,
+    "value": 59.99,
     "unit": "min",
     "req": 284.0,
     "req_key": "req.detumble",
@@ -273,7 +113,7 @@
    {
     "id": "ape_los_p9973",
     "kind": "ape_los",
-    "value": 86.17950240430052,
+    "value": 23.335909511313556,
     "unit": "deg",
     "req": 0.01,
     "req_key": "req.ape",
@@ -282,7 +122,7 @@
    {
     "id": "ake_los_p9973",
     "kind": "ake_los",
-    "value": 0.009100175218348047,
+    "value": 0.016753824432534384,
     "unit": "deg",
     "req": 0.005,
     "req_key": "req.ake",
@@ -291,7 +131,7 @@
    {
     "id": "power_mean",
     "kind": "power_mean",
-    "value": 0.07323469468267271,
+    "value": 0.0592041350958999,
     "unit": "W",
     "req": 2.0,
     "req_key": "req.pavg",
@@ -300,7 +140,7 @@
    {
     "id": "power_peak",
     "kind": "power_peak",
-    "value": 0.34900225949708324,
+    "value": 0.23141021438473303,
     "unit": "W",
     "req": null,
     "req_key": "",
@@ -322,191 +162,31 @@
     "mode": "detumble"
    },
    {
-    "t": 3637.0,
+    "t": 3598.6000000000004,
     "mode": "spinup"
    },
    {
-    "t": 4712.400000000001,
+    "t": 7020.6,
     "mode": "sun_spin"
    },
    {
-    "t": 4742.6,
+    "t": 7050.8,
     "mode": "spinup"
    },
    {
-    "t": 4802.6,
+    "t": 9226.800000000001,
     "mode": "sun_spin"
    },
    {
-    "t": 4832.8,
+    "t": 9277.4,
     "mode": "spinup"
    },
    {
-    "t": 4892.8,
+    "t": 9927.6,
     "mode": "sun_spin"
    },
    {
-    "t": 4923.0,
-    "mode": "spinup"
-   },
-   {
-    "t": 4983.0,
-    "mode": "sun_spin"
-   },
-   {
-    "t": 5013.200000000001,
-    "mode": "spinup"
-   },
-   {
-    "t": 5073.200000000001,
-    "mode": "sun_spin"
-   },
-   {
-    "t": 5103.400000000001,
-    "mode": "spinup"
-   },
-   {
-    "t": 5163.400000000001,
-    "mode": "sun_spin"
-   },
-   {
-    "t": 5193.6,
-    "mode": "spinup"
-   },
-   {
-    "t": 5253.6,
-    "mode": "sun_spin"
-   },
-   {
-    "t": 5283.8,
-    "mode": "spinup"
-   },
-   {
-    "t": 5343.8,
-    "mode": "sun_spin"
-   },
-   {
-    "t": 5374.0,
-    "mode": "spinup"
-   },
-   {
-    "t": 5434.0,
-    "mode": "sun_spin"
-   },
-   {
-    "t": 5464.200000000001,
-    "mode": "spinup"
-   },
-   {
-    "t": 5524.200000000001,
-    "mode": "sun_spin"
-   },
-   {
-    "t": 5554.400000000001,
-    "mode": "spinup"
-   },
-   {
-    "t": 5614.400000000001,
-    "mode": "sun_spin"
-   },
-   {
-    "t": 5644.6,
-    "mode": "spinup"
-   },
-   {
-    "t": 5704.6,
-    "mode": "sun_spin"
-   },
-   {
-    "t": 5734.8,
-    "mode": "spinup"
-   },
-   {
-    "t": 6294.400000000001,
-    "mode": "sun_spin"
-   },
-   {
-    "t": 6324.6,
-    "mode": "spinup"
-   },
-   {
-    "t": 6384.6,
-    "mode": "sun_spin"
-   },
-   {
-    "t": 6414.8,
-    "mode": "spinup"
-   },
-   {
-    "t": 6474.8,
-    "mode": "sun_spin"
-   },
-   {
-    "t": 6505.0,
-    "mode": "spinup"
-   },
-   {
-    "t": 6565.0,
-    "mode": "sun_spin"
-   },
-   {
-    "t": 6595.200000000001,
-    "mode": "spinup"
-   },
-   {
-    "t": 6655.200000000001,
-    "mode": "sun_spin"
-   },
-   {
-    "t": 6685.400000000001,
-    "mode": "spinup"
-   },
-   {
-    "t": 6745.400000000001,
-    "mode": "sun_spin"
-   },
-   {
-    "t": 6775.6,
-    "mode": "spinup"
-   },
-   {
-    "t": 6835.6,
-    "mode": "sun_spin"
-   },
-   {
-    "t": 6870.400000000001,
-    "mode": "spinup"
-   },
-   {
-    "t": 6939.400000000001,
-    "mode": "sun_spin"
-   },
-   {
-    "t": 6969.6,
-    "mode": "spinup"
-   },
-   {
-    "t": 7029.6,
-    "mode": "sun_spin"
-   },
-   {
-    "t": 7059.8,
-    "mode": "spinup"
-   },
-   {
-    "t": 9476.0,
-    "mode": "sun_spin"
-   },
-   {
-    "t": 9576.2,
-    "mode": "spinup"
-   },
-   {
-    "t": 10748.2,
-    "mode": "sun_spin"
-   },
-   {
-    "t": 10778.400000000001,
+    "t": 9960.6,
     "mode": "spinup"
    },
    {

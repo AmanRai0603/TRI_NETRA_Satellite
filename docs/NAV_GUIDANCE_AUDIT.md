@@ -32,10 +32,9 @@ pseudocode was updated to match (02, 03, 04, 05, 09).
 
 ## What stays open
 
-- **The Celani 2026 boresight law leaves the rotation about the payload axis free** (it is the paper's design,
-  and why it certifies). With it, the power face in nadir goes wherever that rotation settles: on the coils-only
-  ais_3u mission, 29–149° from the Sun over the nadir orbits, while the payload stays on nadir. If the energy
-  balance needs the face held, a weak roll term, or a three-axis law in nadir, is the lever.
+- **The Celani 2026 boresight law leaves the rotation about the payload axis free.** A weak roll PD (3n, ζ 1)
+  now holds the power face (86° mean on ais_3u in the last orbit, where it was shaded). It costs pointing margin:
+  6.6° nominal, 6.28° worst capture seed. See `docs/MTQ_LITERATURE.md`.
 - **Gyro scale factor.** At the Sun-spin rate, 0.2 % of scale factor looks like 2e-4 rad/s of bias, and the bias
   state re-adapts slowly after the despin. The bias process noise does not use the catalogue's bias instability.
 - **IGRF-13** is extrapolated for 2027. Load IGRF-14 for flight.

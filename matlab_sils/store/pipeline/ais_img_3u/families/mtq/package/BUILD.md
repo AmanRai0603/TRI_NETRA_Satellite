@@ -7,7 +7,7 @@ The MATLAB solution pipeline's package for this family is the parent folder.
 - `sized/`: the converged sized parts and products (adcs-design), `sizing.json` with the demand and the knobs.
 - `fsw/adcs_fswcfg.bin`: the adcs-fswcfg/1 blob the flight software boots from; `fsw/adcs_fswcfg.json` decodes it.
 - `mission_scenario.json`: detumble at boot, spinup when detumble completes, nadir_mtq by schedule at 2 orbits.
-- Methods per mode: detumble = mtq, sun_acquisition = mtq, sun_referencing = mtq, nadir_pointing = mtq. Algorithms chosen by the loop: {"detumble": "bdot_gyro", "sun_acquisition": "sunspin_damped", "mtq_pointing": "mtq_celani2026"}.
+- Methods per mode: detumble = mtq, sun_acquisition = mtq, sun_referencing = mtq, nadir_pointing = mtq. Algorithms chosen by the loop: {"detumble": "bdot_gyro", "sun_acquisition": "sunspin_deruiter2011", "mtq_pointing": "mtq_celani2026"}.
 - Units fitted: coils, star_tracker, magnetometer, sun_sensors, gyro, gnss, earth_sensor.
 
 Build: `make -C fsw` (C, libadcs_fsw.a) or `cd fsw-rs && cargo build --release --no-default-features --features cabi
