@@ -32,7 +32,7 @@ Results land in matlab_sils/store/results_engine/<scenario>/ (adcs-rec/1, the
 format tools/report.py reads). Copyright (c) 2026 Agastya. All rights reserved.
 """
 import argparse, concurrent.futures as cf, json, math, os, pathlib, re, statistics, subprocess, sys, time
-from common import write_text
+from common import sh, write_text
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 BIN = ROOT / "engine" / "target" / "release" / "adcs"
@@ -42,9 +42,6 @@ ENG = ROOT / "matlab_sils" / "store" / "results_engine"
 OUT = ROOT / "results"
 
 
-def sh(cmd, cwd=ROOT, check=True):
-    print("$", " ".join(map(str, cmd)), flush=True)
-    return subprocess.run(cmd, cwd=cwd, check=check)
 
 
 def build(_):
