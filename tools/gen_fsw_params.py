@@ -204,13 +204,24 @@ def igrf():
     return "\n".join(c), "\n".join(r)
 
 
-if __name__ == "__main__":
-    (ROOT / "fsw" / "src").mkdir(parents=True, exist_ok=True)
-    (ROOT / "fsw-rs" / "src").mkdir(parents=True, exist_ok=True)
-    write_text(ROOT / "fsw" / "include" / "adcs_params.h", c_header())
-    write_text(ROOT / "fsw" / "src" / "adcs_params.c", c_source())
-    write_text(ROOT / "fsw-rs" / "src" / "params.rs", rs_source())
+def outputs():
+    """Every generated file and its text."""
     ch, rs = igrf()
-    write_text(ROOT / "fsw" / "include" / "adcs_igrf13.h", ch)
-    write_text(ROOT / "fsw-rs" / "src" / "igrf13.rs", rs)
+    return [(ROOT / "fsw" / "include" / "adcs_params.h", c_header()), (ROOT / "fsw" / "src" / "adcs_params.c", c_source()),
+            (ROOT / "fsw-rs" / "src" / "params.rs", rs_source()),
+            (ROOT / "fsw" / "include" / "adcs_igrf13.h", ch), (ROOT / "fsw-rs" / "src" / "igrf13.rs", rs)]
+
+
+if __name__ == "__main__":
+    import sys
+    if sys.argv[1:] == ["--check"]:
+        stale = [p for p, text in outputs() if not p.exists() or p.read_text() != text]
+        for p in stale:
+            print(f"{p.relative_to(ROOT)} is not what its definition gives: run python3 tools/gen_fsw_params.py")
+        print(f"gen_fsw_params --check: {'every generated file is current' if not stale else f'{len(stale)} stale'}")
+        sys.exit(1 if stale else 0)
+    if sys.argv[1:]:
+        sys.exit("usage: python3 tools/gen_fsw_params.py [--check]")
+    for p, text in outputs():
+        write_text(p, text)
     print(f"params: {len(F)} fields, payload {PAYLOAD} bytes, blob {BLOB} bytes; IGRF tables written")

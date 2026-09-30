@@ -238,8 +238,8 @@ runs = []
 [[command]]
 tool = "gen_fsw_params.py"
 name = "gen-fsw-params"
-usage = "python3 tools/gen_fsw_params.py"
-what = "The flight software's parameter and table sources, C and Rust, from their one definition."
+usage = "python3 tools/gen_fsw_params.py [--check]"
+what = "The flight software's parameter and table sources, C and Rust, from their one definition. --check says which generated file is stale, and changes nothing."
 steps = ["read fsw/params/params.toml and the IGRF table", "write the C header and source and the Rust module"]
 reads = ["fsw/params/params.toml", "matlab_sils/data/igrf13.json"]
 writes = ["fsw/include/adcs_params.h", "fsw/src/adcs_params.c", "fsw-rs/src/params.rs", "fsw/include/adcs_igrf13.h", "fsw-rs/src/igrf13.rs"]
@@ -346,3 +346,13 @@ steps = ["read docs/commands.toml", "print, explain, or write the document"]
 reads = ["docs/commands.toml"]
 writes = ["docs/COMMANDS.md (docs only)"]
 runs = []
+
+[[command]]
+tool = "check_all.py"
+name = "check-all"
+usage = "python3 tools/check_all.py [--octave] [--only NAME...]"
+what = "Every check the repository has, one line each with a verdict: the Python tests, the generated files, the C and Rust flight software, the engine, the specification package and the stored design loop; --octave adds the MATLAB twin's suites."
+steps = ["run each check in turn, showing what it proves", "report a check whose program is missing as not run, never as passed", "print the table and exit 1 if any check failed"]
+reads = ["the repository"]
+writes = ["fsw/build/, fsw-rs/target/, engine/target/ (the builds the tests need)"]
+runs = ["python3", "make", "gcc", "cargo", "octave-cli (with --octave)"]

@@ -28,7 +28,7 @@
 | [`vv_report.py vv-report`](#vv_reportpy-vv-report) | The downloadable V&V report: the template filled from the filed results, as self-contained HTML and as a PDF. |
 | [`pack_matlab.py pack-matlab`](#pack_matlabpy-pack-matlab) | The downloadable MATLAB SILS zip, deterministic (sorted files, fixed timestamps), with its SHA-256 manifest. |
 | [`pack_flight.py pack-flight`](#pack_flightpy-pack-flight) | The flight software and Rust engine zip, in the repository's layout so it builds as unpacked. |
-| [`gen_fsw_params.py gen-fsw-params`](#gen_fsw_paramspy-gen-fsw-params) | The flight software's parameter and table sources, C and Rust, from their one definition. |
+| [`gen_fsw_params.py gen-fsw-params`](#gen_fsw_paramspy-gen-fsw-params) | The flight software's parameter and table sources, C and Rust, from their one definition. --check says which generated file is stale, and changes nothing. |
 | [`export_catalogue.py export-catalogue`](#export_cataloguepy-export-catalogue) | The catalogue, scenarios, campaigns and trades from TOML to the JSON the MATLAB twin and the engine read. --check says which JSON has drifted from its TOML, and changes nothing. |
 | [`nodes_doc.py nodes-doc`](#nodes_docpy-nodes-doc) | docs/NODES.md and docs/CATALOGUE.md from the node registry and the datasheet catalogue. |
 | [`components_doc.py components-doc`](#components_docpy-components-doc) | docs/COMPONENTS.md: every sensor and actuator, the model the SILS flies, and its processing chain. |
@@ -39,6 +39,7 @@
 | [`run_matrix.py run-matrix`](#run_matrixpy-run-matrix) | The whole MATLAB-twin test matrix in GNU Octave on N workers, longest jobs first; campaigns and trades collected at the end. |
 | [`fswcfg.py fswcfg`](#fswcfgpy-fswcfg) | Decode and check a flight-software parameter blob (adcs-fswcfg/1) and print every field as JSON. |
 | [`trinetra.py explain`](#trinetrapy-explain) | This registry: every command, what it does before it does it; `docs` writes docs/COMMANDS.md from it. |
+| [`check_all.py check-all`](#check_allpy-check-all) | Every check the repository has, one line each with a verdict: the Python tests, the generated files, the C and Rust flight software, the engine, the specification package and the stored design loop; --octave adds the MATLAB twin's suites. |
 
 ## adcs run
 
@@ -396,9 +397,9 @@ The flight software and Rust engine zip, in the repository's layout so it builds
 
 ## gen_fsw_params.py gen-fsw-params
 
-The flight software's parameter and table sources, C and Rust, from their one definition.
+The flight software's parameter and table sources, C and Rust, from their one definition. --check says which generated file is stale, and changes nothing.
 
-    python3 tools/gen_fsw_params.py
+    python3 tools/gen_fsw_params.py [--check]
 
 **Steps**
 
@@ -562,3 +563,19 @@ This registry: every command, what it does before it does it; `docs` writes docs
 - **Reads:** `docs/commands.toml`
 - **Writes:** `docs/COMMANDS.md (docs only)`
 - **Starts:** nothing
+
+## check_all.py check-all
+
+Every check the repository has, one line each with a verdict: the Python tests, the generated files, the C and Rust flight software, the engine, the specification package and the stored design loop; --octave adds the MATLAB twin's suites.
+
+    python3 tools/check_all.py [--octave] [--only NAME...]
+
+**Steps**
+
+1. run each check in turn, showing what it proves
+2. report a check whose program is missing as not run, never as passed
+3. print the table and exit 1 if any check failed
+
+- **Reads:** the repository
+- **Writes:** `fsw/build/, fsw-rs/target/, engine/target/ (the builds the tests need)`
+- **Starts:** python3; make; gcc; cargo; octave-cli (with --octave)
