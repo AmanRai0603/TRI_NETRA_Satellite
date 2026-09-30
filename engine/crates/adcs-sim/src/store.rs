@@ -6,9 +6,15 @@
 //!   every override, the overrides, the seed and the flight software. `result_id` is
 //!   the fingerprint of all of them, so two runs with the same `result_id` flew the same
 //!   inputs on the same engine.
+//! - **Inputs kept once.** A run keeps a copy of the case file and the scenario file it flew,
+//!   named by their fingerprints, in the store's `inputs/` folder (or the run's own
+//!   `inputs/` outside a store): a hundred runs of one case keep one copy, and a run can be
+//!   flown again exactly after the case or the scenario has changed.
 //! - **list / show.** `adcs results list [DIR]` finds every run under a folder (the
 //!   engine's store by default) and prints one line each; `show` prints one run's
-//!   provenance and requirement metrics.
+//!   provenance and requirement metrics. `list` keeps an index (`.adcs-index.json`) of what
+//!   it read from each manifest, keyed by the manifest's size and time, so it reads only
+//!   runs that are new or changed; the index can never be stale, only slower.
 //! - **pin / thin.** `pin` marks a run to keep. `thin --older-than DAYS` removes the time
 //!   series (channels.csv, the bulk of a run) from runs older than that which are not pinned;
 //!   the manifest stays, so the verdicts and the provenance remain, and `show` gives the
@@ -28,9 +34,39 @@ pub fn fnv(bytes: &[u8]) -> u64 {
 }
 pub fn hex(h: u64) -> String { format!("{h:016x}") }
 
+/// The name a kept input has: `case-<fingerprint>.csv`, `scenario-<fingerprint>.json`.
+pub fn input_name(kind: &str, fp: &str, ext: &str) -> String { format!("{kind}-{fp}.{ext}") }
+
+/// Where a run under `dir` keeps its inputs: the store's `inputs/` when `dir` is in the
+/// engine's store, else `dir/inputs`.
+pub fn inputs_dir(dir: &Path) -> PathBuf {
+    let store = crate::store_root();
+    let canon = |p: &Path| std::fs::canonicalize(p).unwrap_or_else(|_| p.to_path_buf());
+    let (d, s) = (canon(dir), canon(&store));
+    if d.starts_with(&s) { s.join("inputs") } else { dir.join("inputs") }
+}
+
+/// Keep one copy of `bytes` as `name` in `inputs`: written once, and refused if a file of
+/// that name is already there with other contents (a fingerprint that names two files).
+pub fn keep_input(inputs: &Path, name: &str, bytes: &[u8]) -> Result<PathBuf, String> {
+    let f = inputs.join(name);
+    match std::fs::read(&f) {
+        Ok(have) if have == bytes => Ok(f),
+        Ok(_) => Err(format!("{}: already holds other contents under the same fingerprint; refusing to overwrite it", f.display())),
+        Err(_) => { crate::fsio::write(&f, bytes)?; Ok(f) }
+    }
+}
+
+/// A kept input of the run in `dir`: `dir/<name>` (an imported run) or `<ancestor>/inputs/<name>`.
+pub fn find_input(dir: &Path, name: &str) -> Option<PathBuf> {
+    if dir.join(name).is_file() { return Some(dir.join(name)); }
+    dir.ancestors().map(|a| a.join("inputs").join(name)).find(|p| p.is_file())
+}
+
 /// The provenance block of a run's manifest.
 pub fn provenance(c: &crate::config::Config, fsw: &str) -> Value {
     let case_bytes = std::fs::read(&c.case.file).unwrap_or_default();
+    let scen_file_h = fnv(&std::fs::read(&c.scenario_file).unwrap_or_default());
     let scen = serde_json::to_string(&c.scenario).unwrap_or_default();
     let (case_h, scen_h) = (fnv(&case_bytes), fnv(scen.as_bytes()));
     let ov: Vec<String> = c.overrides.iter().map(|(k, v)| format!("{k}={v}")).collect();
@@ -48,7 +84,8 @@ pub fn provenance(c: &crate::config::Config, fsw: &str) -> Value {
         "created_utc": crate::fsio::utc_now().1,
         "engine_version": env!("CARGO_PKG_VERSION"),
         "inputs": {"case_file": rel(&c.case.file), "case_fingerprint": hex(case_h), "scenario_file": rel(&c.scenario_file),
-                   "scenario_fingerprint": hex(scen_h), "overrides": ov, "seed": c.seed, "fsw": fsw},
+                   "scenario_fingerprint": hex(scen_h), "scenario_file_fingerprint": hex(scen_file_h),
+                   "overrides": ov, "seed": c.seed, "fsw": fsw},
     })
 }
 
@@ -73,9 +110,34 @@ impl Found {
     }
 }
 
-/// Every adcs-rec/1 run directory under `root`, sorted by path.
+/// The index `list` keeps in the folder it lists.
+pub const INDEX: &str = ".adcs-index.json";
+
+/// What `list` keeps of a manifest: enough for the table, `thin` and the app.
+fn summary(m: &Value) -> Value {
+    let metrics: Vec<Value> = m["metrics"].as_array().map(|a| a.iter().map(|x| json!({"pass": x["pass"]})).collect()).unwrap_or_default();
+    json!({"schema": m["schema"], "scenario": m["scenario"], "case": m["case"], "created_utc": m["created_utc"],
+           "result_id": m["result_id"], "fsw": {"impl": m["fsw"]["impl"]}, "metrics": metrics})
+}
+
+/// A manifest's identity for the index: its size and modification time.
+fn stamp(p: &Path) -> Option<String> {
+    let md = std::fs::metadata(p).ok()?;
+    let t = md.modified().ok()?.duration_since(std::time::UNIX_EPOCH).ok()?;
+    Some(format!("{}:{}.{:09}", md.len(), t.as_secs(), t.subsec_nanos()))
+}
+
+/// Every adcs-rec/1 run directory under `root`, sorted by path. A manifest whose size and
+/// time the index already holds is not read again; the index is rewritten when it changed
+/// (and left alone where the folder cannot be written).
 pub fn list(root: &Path) -> Result<Vec<Found>, String> {
     if !root.is_dir() { return Err(format!("{} is not a folder", root.display())); }
+    let ix_path = root.join(INDEX);
+    let old: serde_json::Map<String, Value> = std::fs::read_to_string(&ix_path).ok()
+        .and_then(|s| serde_json::from_str::<Value>(&s).ok())
+        .filter(|v| v["schema"] == "adcs-index/1")
+        .and_then(|v| v["runs"].as_object().cloned()).unwrap_or_default();
+    let mut new = serde_json::Map::new();
     let mut out = vec![];
     let mut stack = vec![root.to_path_buf()];
     while let Some(d) = stack.pop() {
@@ -84,10 +146,23 @@ pub fn list(root: &Path) -> Result<Vec<Found>, String> {
             let p = e.path();
             if p.is_dir() { stack.push(p); continue; }
             if p.file_name().and_then(|n| n.to_str()) != Some("manifest.json") { continue; }
-            let m: Value = match std::fs::read_to_string(&p).ok().and_then(|s| serde_json::from_str(&s).ok()) { Some(m) => m, None => continue };
+            let key = d.strip_prefix(root).unwrap_or(&d).display().to_string().replace('\\', "/");
+            let Some(st) = stamp(&p) else { continue };
+            let known = old.get(&key).filter(|v| v["stamp"].as_str() == Some(st.as_str())).map(|v| v["m"].clone());
+            let m = match known {
+                Some(m) => m,
+                None => match std::fs::read_to_string(&p).ok().and_then(|s| serde_json::from_str::<Value>(&s).ok()) {
+                    Some(m) => summary(&m),
+                    None => continue,
+                },
+            };
             if m.get("schema").and_then(|v| v.as_str()) != Some("adcs-rec/1") { continue; }
+            new.insert(key, json!({"stamp": st, "m": m.clone()}));
             out.push(Found { dir: d.clone(), m });
         }
+    }
+    if new != old {
+        let _ = crate::fsio::write(&ix_path, serde_json::to_string(&json!({"schema": "adcs-index/1", "runs": new})).unwrap_or_default() + "\n");
     }
     out.sort_by(|a, b| a.dir.cmp(&b.dir));
     Ok(out)
@@ -128,11 +203,9 @@ pub fn show(dir: &Path) -> Result<String, String> {
     if dir.join(PIN).is_file() { s += "  kept          pinned: `adcs results thin` leaves it whole\n"; }
     if !dir.join("channels.csv").is_file() {
         s += "  thinned       the time series was removed; the verdicts and provenance below remain\n";
-        if let Some(i) = m.get("inputs") {
-            let ov: String = i["overrides"].as_array().map(|a| a.iter().filter_map(|x| x.as_str()).map(|o| format!(" --set {o}")).collect()).unwrap_or_default();
-            s += &format!("  fly it again  adcs run {} --case {} --seed {}{ov}\n", g("scenario"), i["case_file"].as_str().unwrap_or("?"), i["seed"]);
-        }
+        if m.get("inputs").is_some() { s += &fly_again(dir, &m); }
     }
+    if dir.join("channels.csv").is_file() && m.get("inputs").is_some() { s += &fly_again(dir, &m); }
     s += "  requirement metrics:\n";
     for x in m["metrics"].as_array().cloned().unwrap_or_default() {
         if x["req"].is_null() { continue; }
@@ -141,6 +214,21 @@ pub fn show(dir: &Path) -> Result<String, String> {
         s += &format!("    {:<26} {:>12} {:<6} req {:<8} {}\n", x["id"].as_str().unwrap_or(""), v, x["unit"].as_str().unwrap_or(""), x["req"], p);
     }
     Ok(s)
+}
+
+/// The command that flies the run in `dir` again: from its kept inputs when they are there,
+/// else from the files it names (which may have changed since).
+fn fly_again(dir: &Path, m: &Value) -> String {
+    let i = &m["inputs"];
+    let ov: String = i["overrides"].as_array().map(|a| a.iter().filter_map(|x| x.as_str()).map(|o| format!(" --set {o}")).collect()).unwrap_or_default();
+    let kept = |kind: &str, key: &str, ext: &str| i[key].as_str().and_then(|fp| find_input(dir, &input_name(kind, fp, ext)));
+    let (case, scen) = (kept("case", "case_fingerprint", "csv"), kept("scenario", "scenario_file_fingerprint", "json"));
+    match (case, scen) {
+        (Some(c), Some(sc)) => format!("  fly it again  adcs run {} --case {} --seed {}{ov}\n                (the inputs it flew, kept by fingerprint)\n",
+            sc.display(), c.display(), i["seed"]),
+        _ => format!("  fly it again  adcs run {} --case {} --seed {}{ov}\n                (the files it names: they may have changed since; this run kept no copy)\n",
+            m["scenario"].as_str().unwrap_or("?"), i["case_file"].as_str().unwrap_or("?"), i["seed"]),
+    }
 }
 
 // ---- the .trinetra share file: a zip (stored, no compression), readable by any unzip ----
@@ -245,9 +333,16 @@ pub fn export(dir: &Path, out: &Path) -> Result<usize, String> {
         if n == "channels.csv" && !p.is_file() { continue; }   // a thinned run sends its verdicts and provenance
         files.push((n.to_string(), std::fs::read(&p).map_err(|e| format!("{}: {e}", p.display()))?));
     }
+    if let Ok(m) = serde_json::from_slice::<Value>(&files[0].1) {
+        for (kind, key, ext) in [("case", "case_fingerprint", "csv"), ("scenario", "scenario_file_fingerprint", "json")] {
+            let Some(fp) = m["inputs"][key].as_str() else { continue };
+            let name = input_name(kind, fp, ext);
+            if let Some(p) = find_input(dir, &name) { files.push((name, std::fs::read(&p).map_err(|e| format!("{}: {e}", p.display()))?)); }
+        }
+    }
     files.insert(0, ("README.txt".into(), format!("A TRI-NETRA ADCS run, exported by `adcs results export`.\n\
         Open it with `adcs results import <file> --out <folder>`, or unzip it: manifest.json is the run's\n\
-        provenance and metrics, channels.csv its time series.\n\n{summary}").into_bytes()));
+        provenance and metrics, channels.csv its time series, case-*.csv and scenario-*.json the inputs it flew.\n\n{summary}").into_bytes()));
     let z = zip(&files);
     crate::fsio::write(out, &z)?;
     Ok(z.len())
@@ -313,6 +408,51 @@ mod t {
         assert!(freed > 0 && d.join("old/manifest.json").is_file() && !d.join("old/channels.csv").exists());
         assert!(d.join("kept/channels.csv").is_file() && d.join("new/channels.csv").is_file());
         assert!(show(&d.join("old")).unwrap().contains("thinned"));
+        let _ = std::fs::remove_dir_all(&d);
+    }
+    #[test]
+    fn an_input_is_kept_once_and_a_clash_is_refused() {
+        let d = std::env::temp_dir().join(format!("adcs-keep-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&d);
+        let f = keep_input(&d, "case-1.csv", b"a,b\n").unwrap();
+        assert_eq!(keep_input(&d, "case-1.csv", b"a,b\n").unwrap(), f, "the same bytes again keep the one copy");
+        assert!(keep_input(&d, "case-1.csv", b"other").unwrap_err().contains("refusing to overwrite"));
+        assert_eq!(std::fs::read(&f).unwrap(), b"a,b\n");
+        let run = d.join("results/r1");
+        std::fs::create_dir_all(&run).unwrap();
+        assert_eq!(find_input(&run, "case-1.csv"), None, "inputs/ is looked for in the ancestors, not beside them");
+        std::fs::create_dir_all(d.join("results/inputs")).unwrap();
+        std::fs::write(d.join("results/inputs/case-1.csv"), "x").unwrap();
+        assert_eq!(find_input(&run, "case-1.csv"), Some(d.join("results/inputs/case-1.csv")));
+        std::fs::write(run.join("case-1.csv"), "y").unwrap();
+        assert_eq!(find_input(&run, "case-1.csv"), Some(run.join("case-1.csv")), "an imported run's own copy comes first");
+        let _ = std::fs::remove_dir_all(&d);
+    }
+    #[test]
+    fn the_index_is_reused_and_never_stale() {
+        let d = std::env::temp_dir().join(format!("adcs-index-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&d);
+        let put = |name: &str, scen: &str| {
+            std::fs::create_dir_all(d.join(name)).unwrap();
+            std::fs::write(d.join(name).join("manifest.json"), json!({"schema": "adcs-rec/1", "scenario": scen, "metrics": [{"pass": 1}]}).to_string()).unwrap();
+        };
+        put("a", "first");
+        assert_eq!(list(&d).unwrap()[0].m["scenario"], "first");
+        let ix = std::fs::read_to_string(d.join(INDEX)).unwrap();
+        assert!(ix.contains("adcs-index/1") && ix.contains("\"a\""));
+        // a planted index entry whose stamp matches is used as it is: the manifest is not read again
+        let st = stamp(&d.join("a/manifest.json")).unwrap();
+        std::fs::write(d.join(INDEX), json!({"schema": "adcs-index/1", "runs": {"a": {"stamp": st, "m": {"schema": "adcs-rec/1", "scenario": "from the index"}}}}).to_string()).unwrap();
+        assert_eq!(list(&d).unwrap()[0].m["scenario"], "from the index");
+        // a changed manifest, a new run and a removed run are all seen
+        std::thread::sleep(std::time::Duration::from_millis(20));
+        put("a", "second longer");
+        put("b", "new");
+        let got: Vec<String> = list(&d).unwrap().iter().map(|f| f.m["scenario"].as_str().unwrap().to_string()).collect();
+        assert_eq!(got, ["second longer", "new"]);
+        std::fs::remove_dir_all(d.join("b")).unwrap();
+        assert_eq!(list(&d).unwrap().len(), 1);
+        assert!(!std::fs::read_to_string(d.join(INDEX)).unwrap().contains("\"b\""), "a removed run leaves the index");
         let _ = std::fs::remove_dir_all(&d);
     }
     #[test]

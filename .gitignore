@@ -25,3 +25,4 @@ dist/app/
 dist/*.whl
 # what each tool ran and wrote (tools/common.py trace)
 .trace/
+.adcs-index.json

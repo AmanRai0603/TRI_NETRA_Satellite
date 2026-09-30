@@ -57,10 +57,11 @@ Fly one scenario on one case: the plant, the environment and the POP orbit in Ru
 2. build the configuration: case + scenario + product, the flight-software parameters
 3. fly the closed loop for the scenario's duration
 4. derive the metrics and judge them against the case's requirements
-5. write channels.csv, then manifest.json with the run's provenance
+5. keep the case and scenario files it flew, once each by fingerprint, in the store's inputs/
+6. write channels.csv, then manifest.json with the run's provenance
 
 - **Reads:** `matlab_sils/data/scenarios/<scenario>.json`; `matlab_sils/cases/<case>.csv`; `matlab_sils/data/products, parts, algorithms`; `matlab_sils/pop/.../de440s.bsp`
-- **Writes:** `matlab_sils/store/results_engine/<scenario>/ (or --out): channels.csv, manifest.json`
+- **Writes:** `matlab_sils/store/results_engine/<scenario>/ (or --out): channels.csv, manifest.json`; `matlab_sils/store/inputs/ (or <out>/inputs/)`
 - **Starts:** nothing
 
 ## adcs params
@@ -119,14 +120,14 @@ The results store: every run with its provenance, one line each; one run in full
 
 **Steps**
 
-1. list: find every manifest.json (adcs-rec/1) under the folder
-2. show: print the run's provenance and requirement metrics (and, for a thinned run, the command that flies it again)
+1. list: find every manifest.json (adcs-rec/1) under the folder, reading only those new or changed since its index (.adcs-index.json)
+2. show: print the run's provenance and requirement metrics and the command that flies it again, from the inputs it kept
 3. pin: mark a run to keep; thin: remove the time series of unpinned runs older than DAYS, keeping every manifest
-4. export: write README, manifest and channels into one zip
+4. export: write README, manifest, channels and the kept inputs into one zip
 5. import: check every entry's name and checksum, then write them into the folder
 
 - **Reads:** `matlab_sils/store/results_engine/ (or DIR)`
-- **Writes:** `pin: <run>/PINNED; thin: removes <run>/channels.csv; export: the .trinetra file; import: the folder`
+- **Writes:** `list: <folder>/.adcs-index.json; pin: <run>/PINNED; thin: removes <run>/channels.csv; export: the .trinetra file; import: the folder`
 - **Starts:** nothing
 
 ## engine.py build

@@ -30,6 +30,7 @@
 | **refusal** | An input the engine cannot fly (text for a number, an orbit outside LEO, a limit exceeded) is refused with its name and range, never clamped or guessed. | `engine/crates/adcs-sim/src/config.rs` |
 | **provenance** | What a run records about itself: when, which engine, and fingerprints of the case, the scenario, the overrides and the seed. | `adcs results show` |
 | **store** | Where runs are kept: `matlab_sils/store` in a checkout, `~/.trinetra/store` for a release, or `$TRINETRA_STORE`. | `adcs_sim::store_root` |
+| **kept inputs** | The case and scenario files a run flew, copied once by fingerprint into the store's `inputs/`, so the run can be flown again exactly after either has changed. | `adcs results show` |
 | **pinned**, **thinned** | A pinned run is kept whole; a thinned run has lost its time series but keeps its verdicts and provenance. | `adcs results pin`, `thin` |
 | **`.trinetra` file** | One run as one zip file, to send to someone. | `adcs results export` |
 | **kit** | A release download: the programs beside exactly the data they read, with `VERSION`. | `tools/kit.py` |

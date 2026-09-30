@@ -84,6 +84,13 @@ pub fn write(dir: &Path, c: &Config, rec: &Record, d: &Derived, metrics: &[Value
         "oils": rec.oils.as_ref().map(|s| s.json(c.dt)),
     });
     if let (Some(o), Value::Object(p)) = (man.as_object_mut(), crate::store::provenance(c, &impl_label(&rec.fsw_impl))) { o.extend(p); }
+    // the inputs it flew, kept once by fingerprint, so it can be flown again exactly
+    let inputs = crate::store::inputs_dir(dir);
+    for (kind, file, key, ext) in [("case", &c.case.file, "case_fingerprint", "csv"), ("scenario", &c.scenario_file, "scenario_file_fingerprint", "json")] {
+        let bytes = std::fs::read(file).map_err(|e| format!("{file}: {e}"))?;
+        let fp = man["inputs"][key].as_str().unwrap_or_default().to_string();
+        crate::store::keep_input(&inputs, &crate::store::input_name(kind, &fp, ext), &bytes)?;
+    }
     // the manifest last: a run directory with a manifest has its channels too
     crate::fsio::write(&dir.join("manifest.json"), serde_json::to_string(&man).map_err(|e| e.to_string())? + "\n")?;
     Ok(())

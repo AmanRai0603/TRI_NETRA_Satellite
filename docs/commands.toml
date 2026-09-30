@@ -14,9 +14,9 @@ tool = "adcs"
 name = "run"
 usage = "adcs run <scenario> [--case F] [--fsw c|rust|obc-posix|qemu|...] [--seed N] [--out DIR] [--set k=v]... [--oils] [--quiet]"
 what = "Fly one scenario on one case: the plant, the environment and the POP orbit in Rust, the flight software (C or Rust, or a virtual OBC) behind the byte HAL, then the metrics and their verdicts."
-steps = ["check the scenario id, the case and every --set (refused by name, never guessed)", "build the configuration: case + scenario + product, the flight-software parameters", "fly the closed loop for the scenario's duration", "derive the metrics and judge them against the case's requirements", "write channels.csv, then manifest.json with the run's provenance"]
+steps = ["check the scenario id, the case and every --set (refused by name, never guessed)", "build the configuration: case + scenario + product, the flight-software parameters", "fly the closed loop for the scenario's duration", "derive the metrics and judge them against the case's requirements", "keep the case and scenario files it flew, once each by fingerprint, in the store's inputs/", "write channels.csv, then manifest.json with the run's provenance"]
 reads = ["matlab_sils/data/scenarios/<scenario>.json", "matlab_sils/cases/<case>.csv", "matlab_sils/data/products, parts, algorithms", "matlab_sils/pop/.../de440s.bsp"]
-writes = ["matlab_sils/store/results_engine/<scenario>/ (or --out): channels.csv, manifest.json"]
+writes = ["matlab_sils/store/results_engine/<scenario>/ (or --out): channels.csv, manifest.json", "matlab_sils/store/inputs/ (or <out>/inputs/)"]
 runs = []
 
 [[command]]
@@ -54,9 +54,9 @@ tool = "adcs"
 name = "results"
 usage = "adcs results list [DIR] | show <run> | pin|unpin <run> | thin --older-than DAYS [DIR] [--dry-run] | export <run> --out F.trinetra | import F.trinetra --out DIR"
 what = "The results store: every run with its provenance, one line each; one run in full; runs kept (pinned) or thinned to their manifest when old; a run as one share file, and back."
-steps = ["list: find every manifest.json (adcs-rec/1) under the folder", "show: print the run's provenance and requirement metrics (and, for a thinned run, the command that flies it again)", "pin: mark a run to keep; thin: remove the time series of unpinned runs older than DAYS, keeping every manifest", "export: write README, manifest and channels into one zip", "import: check every entry's name and checksum, then write them into the folder"]
+steps = ["list: find every manifest.json (adcs-rec/1) under the folder, reading only those new or changed since its index (.adcs-index.json)", "show: print the run's provenance and requirement metrics and the command that flies it again, from the inputs it kept", "pin: mark a run to keep; thin: remove the time series of unpinned runs older than DAYS, keeping every manifest", "export: write README, manifest, channels and the kept inputs into one zip", "import: check every entry's name and checksum, then write them into the folder"]
 reads = ["matlab_sils/store/results_engine/ (or DIR)"]
-writes = ["pin: <run>/PINNED; thin: removes <run>/channels.csv; export: the .trinetra file; import: the folder"]
+writes = ["list: <folder>/.adcs-index.json; pin: <run>/PINNED; thin: removes <run>/channels.csv; export: the .trinetra file; import: the folder"]
 runs = []
 
 # ---------------------------------------------------------------- orchestration (Python)
