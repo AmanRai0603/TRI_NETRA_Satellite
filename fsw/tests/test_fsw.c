@@ -79,7 +79,7 @@ static void t_estimation(void)
         adcs_mekf_init(&K, q0, 0.2, 1e-3, 1e-6, 1e-8);
         for (k = 0; k < 200; k++) {
             adcs_mekf_predict(&K, w, 0.1);
-            adcs_mekf_vector(&K, b[0], r[0], 1e-3); adcs_mekf_vector(&K, b[1], r[1], 1e-3);
+            adcs_mekf_vector(&K, b[0], r[0], 1e-3, 0); adcs_mekf_vector(&K, b[1], r[1], 1e-3, 0);
         }
         e = adcs_qangle(q, K.q)*180/ADCS_PI;
         CHECK(e < 0.01, "MEKF two-vector %g deg", e);

@@ -95,8 +95,8 @@ fn estimation() {
     let mut k = est::Mekf::new(&q0, 0.2, 1e-3, 1e-6, 1e-8);
     for _ in 0..200 {
         k.predict(&[0.0; 3], 0.1);
-        k.vector(&b[0], &r[0], 1e-3);
-        k.vector(&b[1], &r[1], 1e-3);
+        k.vector(&b[0], &r[0], 1e-3, 0.0);
+        k.vector(&b[1], &r[1], 1e-3, 0.0);
     }
     assert!(qangle(&q, &k.q)*180.0/PI < 0.01, "MEKF");
 }

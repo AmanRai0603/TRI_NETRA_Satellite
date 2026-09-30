@@ -80,6 +80,10 @@ function P = config(scenarioId, caseFile, opts)
     F.mtq_period = 1.0; F.mtq_meas = 0.2;          % measure-then-drive duty (Standard Code bdotScheduler idea)
     Jmin = min(diag(P.sc.I));
     F.bdot_k = asils.util.getf(S.fsw, 'bdot_gain_scale', 3.0) * 2*P.orbit.n*(1 + sind(v.orbit_inc))*Jmin;
+    % Sun-spin -> magnetic pointing hand-over and the Sun-state gravity-gradient feed-forward (05_control.md)
+    F.ho_in = asils.util.getf(S.fsw, 'handover_in_dps', 1.0)*pi/180; F.ho_out = asils.util.getf(S.fsw, 'handover_out_dps', 0.5)*pi/180;
+    F.ho_hold_s = asils.util.getf(S.fsw, 'handover_hold_s', 60.0); F.mtq_gg_ff = asils.util.getf(S.fsw, 'mtq_gg_ff', 1);
+    F.gd_yaw_flip = asils.util.getf(S.fsw, 'yaw_flip', true);     % nadir family: power face towards the Sun
     I = diag(P.sc.I);
     wn = asils.util.getf(S.fsw, 'mtq_wn', 0.005); z = asils.util.getf(S.fsw, 'mtq_zeta', 2.0);   % SILS sweep (docs/RESULTS.md)
     F.mtq.Kp = I*wn^2; F.mtq.Kd = 2*z*I*wn;

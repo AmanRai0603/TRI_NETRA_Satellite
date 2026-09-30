@@ -228,7 +228,7 @@ Rules:
 
 ## tune
 
-Bruni & Celani 2017 (P7) min-max gain selection: for a coils-only option that still fails on performance after every law of its slot has flown, every law is flown at every point of a gain grid, on extra seeds; each law keeps the gains whose worst seed is best, and assess then ranks the laws by that worst case.
+Bruni & Celani 2017 (P7) min-max gain selection: for a coils-only option that still fails on performance after every law of its slot has flown, or passes with a thin margin,, every law is flown at every point of a gain grid, on extra seeds; each law keeps the gains whose worst seed is best, and assess then ranks the laws by that worst case.
 
 - **Stage:** SILS. **Runs in:** Rust engine + C flight software (through matrix).
 - **Inputs:** converge (the options to tune), matrix.
@@ -236,16 +236,19 @@ Bruni & Celani 2017 (P7) min-max gain selection: for a coils-only option that st
 
 | parameter | value |
 |---|---|
-| `grids` | mtq_pointing: mtq_gain_p: 0.25, 1, 4<br>mtq_gain_d: 0.25, 1, 4<br>sun_acquisition: spin_rate_dps: 2, 4, 6<br>ss_gain: 0.3, 1, 3 |
+| `grids` | mtq_pointing: mtq_gain_p: 0.25, 1, 4<br>mtq_gain_d: 0.25, 1, 4<br>handover_out_dps: 0.25, 0.5, 1.0<br>sun_acquisition: spin_rate_dps: 2, 4, 6<br>ss_gain: 0.3, 1, 3 |
 | `extra_seeds` | 3, 4 |
 | `actuators` | mtq |
 | `objective` | worst seed: (not feasible, failing count, objective) |
+| `margin` | 0.5 |
 
 Rules:
 
 - mtq_gain_p / mtq_gain_d scale the proportional and rate gains of every magnetic pointing law (for Avanzini: lambda and k)
 - spin_rate_dps sets the commanded spin (Roldugin: wobble grows with it) and ss_gain the Sun-law gains
 - the grid is a derivative-free search as in the paper, coarse (3 x 3) to keep the matrix inside minutes
+- handover_out_dps is the rate error below which the pointing law takes over from the despin after the Sun spin (05_control.md); it is tuned with the gains because the coils-only nadir test starts from the spin
+- an option that passes but whose worst seed uses more than margin x its requirement is tuned too (the Monte Carlo finds thin margins)
 
 ## converge
 
@@ -308,11 +311,14 @@ The selected family's mission (detumble -> Sun acquisition -> nadir), its adcs-f
 
 | parameter | value |
 |---|---|
-| `duration_orbits` | detumble + acquisition + nadir |
+| `nadir_at_orbits` | 2 |
+| `nadir_orbits` | rotors: 1<br>coils_only: 3 |
+| `duration_orbits` | nadir_at_orbits + nadir_orbits: detumble and Sun acquisition, then nadir (the metrics take the last half orbit) |
 
 Rules:
 
 - the C and Rust flight software must agree bit for bit
+- a coils-only nadir is given three orbits after the command: the Sun-spin hand-over (despin, then magnetic capture) takes about two
 
 ## certify
 

@@ -40,13 +40,17 @@ impl Mekf {
         self.p = pn;
     }
 
-    /// Joseph-form update with a 3-row measurement.
-    fn update3(&mut self, h: &[[f64; 6]; 3], r: &M3, y: &V3) {
+    /// Joseph-form update with a 3-row measurement; with gate > 0 an innovation whose y' S^-1 y exceeds
+    /// the gate is rejected (false) and the state is left as is.
+    fn update3(&mut self, h: &[[f64; 6]; 3], r: &M3, y: &V3, gate: f64) -> bool {
         let mut pht = [[0.0; 3]; 6];
         for i in 0..6 { for j in 0..3 { for l in 0..6 { pht[i][j] += self.p[i][l]*h[j][l]; } } }
         let mut s = *r;
         for i in 0..3 { for j in 0..3 { for l in 0..6 { s[i][j] += h[i][l]*pht[l][j]; } } }
         let (si, _) = inv3(&s);
+        let mut chi = 0.0;
+        for i in 0..3 { for j in 0..3 { chi += y[i]*si[i][j]*y[j]; } }
+        if gate > 0.0 && chi > gate { return false; }
         let mut g = [[0.0; 3]; 6];
         for i in 0..6 { for j in 0..3 { for l in 0..3 { g[i][j] += pht[i][l]*si[l][j]; } } }
         let mut dx = [0.0; 6];
@@ -67,9 +71,10 @@ impl Mekf {
         for i in 0..6 { for j in 0..6 { for l in 0..6 { pn[i][j] += t[i][l]*ikh[j][l]; } } }
         for i in 0..6 { for j in 0..6 { for a in 0..3 { for c in 0..3 { pn[i][j] += g[i][a]*r[a][c]*g[j][c]; } } } }
         self.p = pn;
+        true
     }
 
-    pub fn vector(&mut self, bm: &V3, rr: &V3, sigma: f64) {
+    pub fn vector(&mut self, bm: &V3, rr: &V3, sigma: f64, gate: f64) -> bool {
         let b = unit(bm);
         let r = unit(rr);
         let bh = mat3_vec(&dcm(&self.q), &r);
@@ -78,7 +83,7 @@ impl Mekf {
         for i in 0..3 { for j in 0..3 { h[i][j] = sk[i][j]; } }
         let mut rm = [[0.0; 3]; 3];
         for i in 0..3 { rm[i][i] = sigma*sigma; }
-        self.update3(&h, &rm, &sub3(&b, &bh));
+        self.update3(&h, &rm, &sub3(&b, &bh), gate)
     }
 
     pub fn quat(&mut self, qm: &Q, sc: f64, sr: f64, bs: &V3) {
@@ -90,7 +95,7 @@ impl Mekf {
             h[i][i] = 1.0;
             for j in 0..3 { r[i][j] = (if i == j { sc*sc } else { 0.0 }) + (sr*sr - sc*sc)*bs[i]*bs[j]; }
         }
-        self.update3(&h, &r, &y);
+        self.update3(&h, &r, &y, 0.0);
     }
 }
 

@@ -15,6 +15,13 @@ void adcs_guidance(int kind, const adcs_real r[3], const adcs_real v[3], adcs_re
     for (i = 0; i < 3; i++) { R[0][i] = -ram[i]; R[1][i] = -rh[i]; R[2][i] = -nrm[i]; }
     adcs_fromdcm(R, q_nad);
     if (g->q_off[0] != 0 || g->q_off[1] != 0 || g->q_off[2] != 0 || g->q_off[3] != 0) adcs_qmult(q_nad, g->q_off, q_nad);
+    if (g->flip) {           /* 180 deg about the boresight: q_f = [u, 0] */
+        adcs_real u[3], qf[4];
+        u[0] = 1; u[1] = 0; u[2] = 0;
+        if (adcs_norm3(g->roll_axis) > 0) adcs_unit(g->roll_axis, u);
+        qf[0] = u[0]; qf[1] = u[1]; qf[2] = u[2]; qf[3] = 0;
+        adcs_qmult(q_nad, qf, q_nad);
+    }
     adcs_cross(r, v, w_orb); adcs_scale3(w_orb, 1.0/adcs_dot(r, r), w_orb);
     adcs_zero3(wd_ref);
     ax[0] = 1; ax[1] = 0; ax[2] = 0;
@@ -30,7 +37,11 @@ void adcs_guidance(int kind, const adcs_real r[3], const adcs_real v[3], adcs_re
         s = tau - sin(2*ADCS_PI*tau)/(2*ADCS_PI);
         adcs_scale3(ax, ph*s, th); adcs_fromrotvec(th, dq); adcs_qmult(q_nad, dq, q_ref);
         adcs_dcm(q_ref, A); adcs_mat3_vec(A, w_orb, wo);
-        for (i = 0; i < 3; i++) { w_ref[i] = wo[i] + ax[i]*ph*sd; wd_ref[i] = ax[i]*ph*sdd; }
+        {   /* the slew frame turns at ax ph s_dot relative to the orbiting frame: transport term on w_orb */
+            adcs_real wr[3], tr[3];
+            adcs_scale3(ax, ph*sd, wr); adcs_cross(wr, wo, tr);
+            for (i = 0; i < 3; i++) { w_ref[i] = wo[i] + ax[i]*ph*sd; wd_ref[i] = ax[i]*ph*sdd - tr[i]; }
+        }
         break; }
     case 3:          /* inertial */
         for (i = 0; i < 4; i++) q_ref[i] = g->q_inertial[i];
@@ -64,6 +75,22 @@ void adcs_guidance(int kind, const adcs_real r[3], const adcs_real v[3], adcs_re
         adcs_dcm(q_nad, A); adcs_mat3_vec(A, w_orb, w_ref);
         break;
     }
+}
+
+/* Nadir-family yaw flip with hysteresis: turn 180 deg about the boresight when the power face would look
+ * away from the Sun (04_guidance.md) */
+void adcs_yaw_flip(adcs_guid_t *g, const adcs_real r[3], const adcs_real v[3], adcs_real hyst)
+{
+    adcs_guid_t g0 = *g;
+    adcs_real q[4], w[3], wd[3], A[3][3], s[3], sb[3], a[3], d;
+    g0.flip = 0;
+    adcs_guidance(0, r, v, 0.0, &g0, q, w, wd);
+    adcs_unit(g->sun_eci, s); adcs_dcm(q, A); adcs_mat3_vec(A, s, sb);
+    a[0] = 0; a[1] = 0; a[2] = -1;
+    if (adcs_norm3(g->sun_axis) > 0) adcs_unit(g->sun_axis, a);
+    d = adcs_dot(a, sb);
+    if (d < -hyst) g->flip = 1;
+    else if (d > hyst) g->flip = 0;
 }
 
 void adcs_boresight_offset(const adcs_real bs_in[3], adcs_real q[4])

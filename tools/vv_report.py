@@ -234,6 +234,36 @@ def literature():
            "the P11 → P5 chain already in place (UPMSat-2 spin-up, He et al. Sun spin). Bruni &amp; Celani's min–max tuning "
            "is node <code>tune</code>; Celani's Floquet certificate is node <code>certify</code>. The paper-by-paper record, "
            "including what was not implemented and why, is <code>docs/MTQ_LITERATURE.md</code>.</p>"]
+    fam, mcs = {}, {}
+    for c in CASES:
+        v = (jl(PIPE / c / "families.json") or {}).get("mtq")
+        st = {x["id"]: x for x in ((v or {}).get("mc") or {}).get("stats", [])}
+        if st.get("ape_los_p9973", {}).get("pass_rate") is not None:
+            mcs[c] = st["ape_los_p9973"]
+        met = {x["id"]: x for x in ((v or {}).get("mission") or {}).get("c") or []}
+        if "ape_los_p9973" in met:
+            fam[c] = met["ape_los_p9973"]
+    out.append("<h3>The Sun-spin → nadir hand-over</h3><p>The coils-only mission commands nadir from a body spinning at about "
+               "4 °/s. The magnetic states now despin first. "
+               "Above 1 °/s of rate error they run the B-dot law on that error with the detumble's optimal gain "
+               "(Avanzini &amp; Giulietti 2012). The spin-up's high gain only drags the rate along the turning field. The "
+               "pointing law takes over below 0.5 °/s, held for 60 s. The magnetic capture then takes about 1.5 orbits, so "
+               "node <code>dispatch</code> gives a coils-only nadir three orbits after the command, and the metrics take "
+               "the last half orbit. The coils-only nadir mode test starts the same way (arbitrary attitude, 6 °/s), and node "
+               "<code>tune</code> flies the hand-over exit threshold with the gains, so the dispatched gains capture as "
+               "well as hold. Coils-only mission nadir APE (p99.73): " +
+               ("; ".join(f"{e(c)} {fmt(m['value'])}° {verdict(m['pass'])}" for c, m in fam.items()) or "not run") + ". "
+               + " ".join(f"{e(c)} Monte Carlo: {100 * x['pass_rate']:.0f} % of runs within {fmt(x['req'])}° ({fmt(x['min'])}–{fmt(x['max'])}°)."
+                          for c, x in mcs.items()) + "</p>"
+               "<h3>Why Sun referencing is worse than nadir with coils only</h3><p>The coils are not short of dipole. The "
+               "difference is the gravity gradient. At nadir on ais_3u the long, minimum-inertia axis is the payload axis, at the "
+               "gradient's equilibrium, so the gradient is a restoring stiffness (ais_img_3u flies its long axis along track, "
+               "pitch is unstable, and the nadir state cancels the gradient too). Under Sun referencing the attitude is inertial, so the "
+               "gradient becomes a forcing at twice the orbit rate. A magnetic torque is perpendicular to B, so the part of "
+               "that forcing along B cannot be rejected at that instant. The Sun state now cancels the modelled gradient "
+               "(<code>mtq_gg_ff</code>); on ais_3u with Celani 2026 the Sun-pointing error went from 80.6° to 66.8°. It "
+               "is still not the 5° line, which agrees with the flown and published figures (TANGO 16°, Celani 2026 24°). "
+               "The coils-only power attitude remains the Sun spin.</p>")
     if "pipeline" not in _s.modules:
         pl = importlib.util.module_from_spec(spec); _s.path.insert(0, str(ROOT / "tools")); spec.loader.exec_module(pl)
     else:
@@ -511,9 +541,16 @@ def open_items():
         "0.005 deg/s line now falls between them, so this verdict disagrees. The gap is the wheel-plus-RCS model, not the requirement.",
         "Sun spin: 17 of 24 seeds pass with and without the OBC; failures are Sun-spin entry with the Sun near the XY plane tripping the 1 deg/s "
         "exit guard during the L2 precession transient -- a tuning trade (fsw.sun_spin_perp_out_dps, fsw.sun_spin_dwell_out_s).",
-        "Coils only (mtq): largely sufficient for detumble and for Sun acquisition by Sun-spin (the power face is brought towards the Sun, "
-        "though not within the cases' 95 min / 20 deg line), and not sufficient for nadir pointing, above all from the spinning state the "
-        "mission hands over. Kept as designed; the owner will improve coils-only nadir pointing from the literature later.",
+        "Coils only (mtq): sufficient for detumble and for Sun acquisition by Sun spin (the power face comes towards the Sun, though not "
+        "within the cases' 95 min / 20 deg line). Nadir: with the hand-over (despin, then capture) and the capture test, see section 7 for "
+        "the tuned laws and the mission figure. Three-axis Sun referencing stays out of reach with coils only (gravity gradient along B).",
+        "Navigation and guidance audit (docs/NAV_GUIDANCE_AUDIT.md), corrected in C, Rust and the spec: the magnetometer update never ran "
+        "while the coils actuated; the estimate was never dropped after the spin states; no innovation gating and fixed Sun/field sigmas; "
+        "two-body-only onboard orbit; GNSS taken as J2000 and the field frame without precession (0.37 deg); in nadir the power face "
+        "pointed away from the Sun on both cases (now yaw-flipped, 90 deg - |beta|); nadir gravity-gradient feed-forward for ais_img_3u.",
+        "Open from the audit: the Celani 2026 boresight law leaves the roll about the payload axis free, so the power face in coils-only "
+        "nadir is not held; gyro scale factor aliases into bias after the despin; IGRF-13 is extrapolated for 2027 (load IGRF-14); "
+        "nadir is geocentric, not geodetic; the MATLAB twin keeps J2000 GNSS, GMST-only frames and no gating.",
         "Bought against designed (both cases, same budget of 1.6 kg and 1.0 L): on ais_img_3u three CubeSpace CW0017 wheels are feasible "
         "at 1.0 kg against our fluid loop's 1.6 kg, so the lightest configuration overall is a benchmark; the fluid loop is selected "
         "because the selection is among our solutions, and its 0.6 kg is the price of not buying wheels. On ais_3u every rotor fails "

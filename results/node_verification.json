@@ -1,6 +1,6 @@
 {
- "passed": 229,
- "checks": 229,
+ "passed": 231,
+ "checks": 231,
  "nodes": [
   "case",
   "catalogue",
@@ -405,7 +405,7 @@
   {
    "node": "demand",
    "case": "ais_3u",
-   "check": "sizing of the final iteration (iter_7) present",
+   "check": "sizing of the final iteration (iter_6) present",
    "ok": true,
    "detail": ""
   },
@@ -426,7 +426,7 @@
   {
    "node": "demand",
    "case": "ais_img_3u",
-   "check": "sizing of the final iteration (iter_10) present",
+   "check": "sizing of the final iteration (iter_7) present",
    "ok": true,
    "detail": ""
   },
@@ -435,7 +435,7 @@
    "case": "ais_img_3u",
    "check": "momentum and torque demand positive and finite",
    "ok": true,
-   "detail": "h_req 1.552e-03 N m s, tau_req 5.757e-05 N m"
+   "detail": "h_req 1.553e-03 N m s, tau_req 5.757e-05 N m"
   },
   {
    "node": "demand",
@@ -449,28 +449,28 @@
    "case": "ais_3u",
    "check": "SZ-ais_3u-MTQ: designed part with positive mass",
    "ok": true,
-   "detail": "0.007606 kg"
+   "detail": "0.007602 kg"
   },
   {
    "node": "size_mtq",
    "case": "ais_3u",
    "check": "SZ-ais_3u-MTQP: designed part with positive mass",
    "ok": true,
-   "detail": "0.03423 kg"
+   "detail": "0.0228 kg"
   },
   {
    "node": "size_mtq",
    "case": "ais_img_3u",
    "check": "SZ-ais_img_3u-MTQ: designed part with positive mass",
    "ok": true,
-   "detail": "0.005346 kg"
+   "detail": "0.005341 kg"
   },
   {
    "node": "size_mtq",
    "case": "ais_img_3u",
    "check": "SZ-ais_img_3u-MTQP: designed part with positive mass",
    "ok": true,
-   "detail": "0.009854 kg"
+   "detail": "0.01479 kg"
   },
   {
    "node": "size_fmr",
@@ -505,42 +505,42 @@
    "case": "ais_img_3u",
    "check": "SZ-ais_img_3u-FMR-X: designed part with positive mass",
    "ok": true,
-   "detail": "0.2596 kg"
+   "detail": "0.3928 kg"
   },
   {
    "node": "size_fmr",
    "case": "ais_img_3u",
    "check": "SZ-ais_img_3u-FMR-Y: designed part with positive mass",
    "ok": true,
-   "detail": "0.229 kg"
+   "detail": "0.2593 kg"
   },
   {
    "node": "size_fmr",
    "case": "ais_img_3u",
    "check": "SZ-ais_img_3u-FMR-Z: designed part with positive mass",
    "ok": true,
-   "detail": "0.229 kg"
+   "detail": "0.2593 kg"
   },
   {
    "node": "size_fmr",
    "case": "ais_img_3u",
    "check": "electromagnetic pump (no permanent magnet), electrode current within the bound",
    "ok": true,
-   "detail": "DC conduction pump, electromagnet C-core, electrode current 9.10 A, lambda 0.1 kg/W"
+   "detail": "DC conduction pump, electromagnet C-core, electrode current 9.05 A, lambda 0.1 kg/W"
   },
   {
    "node": "size_rcs",
    "case": "ais_3u",
    "check": "SZ-ais_3u-RCS: designed part with positive mass",
    "ok": true,
-   "detail": "0.5185 kg"
+   "detail": "0.5184 kg"
   },
   {
    "node": "size_rcs",
    "case": "ais_img_3u",
    "check": "SZ-ais_img_3u-RCS: designed part with positive mass",
    "ok": true,
-   "detail": "0.4659 kg"
+   "detail": "0.4655 kg"
   },
   {
    "node": "select_rotor",
@@ -589,7 +589,7 @@
    "case": "ais_img_3u",
    "check": "RW: lightest selectable catalogue model meeting the need",
    "ok": true,
-   "detail": "need h 1.552e-03 N m s, tau 5.757e-05 N m per unit -> CAT-CUBESPACE-CUBEWHEEL-CW0017"
+   "detail": "need h 1.553e-03 N m s, tau 5.757e-05 N m per unit -> CAT-CUBESPACE-CUBEWHEEL-CW0017"
   },
   {
    "node": "select_rotor",
@@ -603,7 +603,7 @@
    "case": "ais_img_3u",
    "check": "CMG: lightest selectable catalogue model meeting the need",
    "ok": true,
-   "detail": "need h 7.760e-04 N m s, tau 2.879e-05 N m per unit -> CAT-TENSOR-TECH-ADCS400"
+   "detail": "need h 7.765e-04 N m s, tau 2.879e-05 N m per unit -> CAT-TENSOR-TECH-ADCS400"
   },
   {
    "node": "select_rotor",
@@ -617,7 +617,7 @@
    "case": "ais_img_3u",
    "check": "VSCMG: lightest selectable catalogue model meeting the need",
    "ok": true,
-   "detail": "need h 7.760e-04 N m s, tau 2.879e-05 N m per unit -> CAT-TENSOR-TECH-ADCS400"
+   "detail": "need h 7.765e-04 N m s, tau 2.879e-05 N m per unit -> CAT-TENSOR-TECH-ADCS400"
   },
   {
    "node": "select_rotor",
@@ -757,7 +757,7 @@
    "case": "ais_3u",
    "check": "mtq: mass, power and volume are the sums of the fitted units",
    "ok": true,
-   "detail": "0.293 kg, 2.63 W, 0.041 L"
+   "detail": "0.258 kg, 2.28 W, 0.027 L"
   },
   {
    "node": "budget",
@@ -820,63 +820,63 @@
    "case": "ais_img_3u",
    "check": "mtq: mass, power and volume are the sums of the fitted units",
    "ok": true,
-   "detail": "0.830 kg, 3.90 W, 0.012 L"
+   "detail": "0.684 kg, 3.74 W, 0.018 L"
   },
   {
    "node": "budget",
    "case": "ais_img_3u",
    "check": "mtq_fmr: mass, power and volume are the sums of the fitted units",
    "ok": true,
-   "detail": "1.534 kg, 6.46 W, 0.534 L"
+   "detail": "1.567 kg, 6.58 W, 0.534 L"
   },
   {
    "node": "budget",
    "case": "ais_img_3u",
    "check": "mtq_fmr_rcs: mass, power and volume are the sums of the fitted units",
    "ok": true,
-   "detail": "2.000 kg, 6.51 W, 1.376 L"
+   "detail": "2.033 kg, 6.63 W, 1.375 L"
   },
   {
    "node": "budget",
    "case": "ais_img_3u",
    "check": "mtq_rw: mass, power and volume are the sums of the fitted units",
    "ok": true,
-   "detail": "0.996 kg, 4.66 W, 0.068 L"
+   "detail": "0.836 kg, 4.36 W, 0.068 L"
   },
   {
    "node": "budget",
    "case": "ais_img_3u",
    "check": "mtq_rw_rcs: mass, power and volume are the sums of the fitted units",
    "ok": true,
-   "detail": "1.462 kg, 4.71 W, 0.909 L"
+   "detail": "1.302 kg, 4.41 W, 0.908 L"
   },
   {
    "node": "budget",
    "case": "ais_img_3u",
    "check": "mtq_cmg: mass, power and volume are the sums of the fitted units",
    "ok": true,
-   "detail": "2.016 kg, 7.76 W, 0.806 L"
+   "detail": "1.856 kg, 7.46 W, 0.806 L"
   },
   {
    "node": "budget",
    "case": "ais_img_3u",
    "check": "mtq_cmg_rcs: mass, power and volume are the sums of the fitted units",
    "ok": true,
-   "detail": "2.482 kg, 7.81 W, 1.648 L"
+   "detail": "2.322 kg, 7.51 W, 1.647 L"
   },
   {
    "node": "budget",
    "case": "ais_img_3u",
    "check": "mtq_vscmg: mass, power and volume are the sums of the fitted units",
    "ok": true,
-   "detail": "2.016 kg, 7.76 W, 0.806 L"
+   "detail": "1.856 kg, 7.46 W, 0.806 L"
   },
   {
    "node": "budget",
    "case": "ais_img_3u",
    "check": "mtq_vscmg_rcs: mass, power and volume are the sums of the fitted units",
    "ok": true,
-   "detail": "2.482 kg, 7.81 W, 1.648 L"
+   "detail": "2.322 kg, 7.51 W, 1.647 L"
   },
   {
    "node": "matrix",
@@ -897,7 +897,7 @@
    "case": "ais_3u",
    "check": "an option is feasible exactly when nothing fails",
    "ok": true,
-   "detail": "5 feasible"
+   "detail": "6 feasible"
   },
   {
    "node": "assess",
@@ -911,7 +911,7 @@
    "case": "ais_img_3u",
    "check": "an option is feasible exactly when nothing fails",
    "ok": true,
-   "detail": "11 feasible"
+   "detail": "10 feasible"
   },
   {
    "node": "assess",
@@ -925,14 +925,14 @@
    "case": "ais_3u",
    "check": "nadir_pointing/mtq: every mtq_pointing law flown at every grid point",
    "ok": true,
-   "detail": "90 of 90 variants"
+   "detail": "252 of 252 variants"
   },
   {
    "node": "tune",
    "case": "ais_3u",
    "check": "nadir_pointing/mtq: the kept variant is the best worst seed",
    "ok": true,
-   "detail": "mtq_celani2026@mtq_gain_p=4,mtq_gain_d=0.25 (ape_los_p9973 3.7282289429718123)"
+   "detail": "mtq_celani2026@mtq_gain_p=4,mtq_gain_d=0.25,handover_out_dps=0.5 (ape_los_p9973 3.843670823689173)"
   },
   {
    "node": "tune",
@@ -946,35 +946,42 @@
    "case": "ais_3u",
    "check": "sun_acquisition/mtq: the kept variant is the best worst seed",
    "ok": true,
-   "detail": "sunspin_damped@spin_rate_dps=4,ss_gain=0.3 (sun_acquisition_time 93.09)"
+   "detail": "sunspin_damped@spin_rate_dps=4,ss_gain=0.3 (sun_acquisition_time 82.32333333333334)"
   },
   {
    "node": "tune",
    "case": "ais_3u",
    "check": "sun_referencing/mtq: every mtq_pointing law flown at every grid point",
    "ok": true,
-   "detail": "90 of 90 variants"
+   "detail": "252 of 252 variants"
   },
   {
    "node": "tune",
    "case": "ais_3u",
    "check": "sun_referencing/mtq: the kept variant is the best worst seed",
    "ok": true,
-   "detail": "mtq_celani2026@mtq_gain_p=0.25,mtq_gain_d=1 (sun_ape_p9973 84.6800206390245)"
+   "detail": "mtq_celani2015@mtq_gain_p=0.25,mtq_gain_d=1,handover_out_dps=0.25 (sun_ape_p9973 85.94416685915245)"
+  },
+  {
+   "node": "tune",
+   "case": "ais_3u",
+   "check": "every coils-only option passing with less than the 0.5 margin was tuned",
+   "ok": true,
+   "detail": "none left"
   },
   {
    "node": "tune",
    "case": "ais_img_3u",
    "check": "nadir_pointing/mtq: every mtq_pointing law flown at every grid point",
    "ok": true,
-   "detail": "90 of 90 variants"
+   "detail": "252 of 252 variants"
   },
   {
    "node": "tune",
    "case": "ais_img_3u",
    "check": "nadir_pointing/mtq: the kept variant is the best worst seed",
    "ok": true,
-   "detail": "mtq_celani2026@mtq_gain_p=4,mtq_gain_d=0.25 (ape_los_p9973 3.4050593390708093)"
+   "detail": "mtq_celani2026@mtq_gain_p=4,mtq_gain_d=4,handover_out_dps=0.25 (ape_los_p9973 83.47385086177974)"
   },
   {
    "node": "tune",
@@ -988,59 +995,66 @@
    "case": "ais_img_3u",
    "check": "sun_acquisition/mtq: the kept variant is the best worst seed",
    "ok": true,
-   "detail": "sunspin_damped@spin_rate_dps=2,ss_gain=3 (sun_acquisition_time 72.54)"
+   "detail": "sunspin_damped@spin_rate_dps=2,ss_gain=0.3 (sun_acquisition_time 26.506666666666668)"
   },
   {
    "node": "tune",
    "case": "ais_img_3u",
    "check": "sun_referencing/mtq: every mtq_pointing law flown at every grid point",
    "ok": true,
-   "detail": "90 of 90 variants"
+   "detail": "252 of 252 variants"
   },
   {
    "node": "tune",
    "case": "ais_img_3u",
    "check": "sun_referencing/mtq: the kept variant is the best worst seed",
    "ok": true,
-   "detail": "mtq_celani2026@mtq_gain_p=4,mtq_gain_d=0.25 (sun_ape_p9973 27.628206197998434)"
+   "detail": "mtq_celani2026@mtq_gain_p=4,mtq_gain_d=0.25,handover_out_dps=0.25 (sun_ape_p9973 18.841054064318918)"
+  },
+  {
+   "node": "tune",
+   "case": "ais_img_3u",
+   "check": "every coils-only option passing with less than the 0.5 margin was tuned",
+   "ok": true,
+   "detail": "none left"
   },
   {
    "node": "converge",
    "case": "ais_3u",
+   "check": "converged: the last iteration proposes no change",
+   "ok": true,
+   "detail": "6 iteration(s)"
+  },
+  {
+   "node": "converge",
+   "case": "ais_3u",
+   "check": "within the iteration cap",
+   "ok": true,
+   "detail": "cap 24"
+  },
+  {
+   "node": "converge",
+   "case": "ais_3u",
+   "check": "every authority scale inside its bounds",
+   "ok": true,
+   "detail": "{\"mtqp\": 1.5}"
+  },
+  {
+   "node": "converge",
+   "case": "ais_3u",
+   "check": "every family was flown and scored in every iteration",
+   "ok": true,
+   "detail": "9 families x 6 iterations"
+  },
+  {
+   "node": "converge",
+   "case": "ais_img_3u",
    "check": "converged: the last iteration proposes no change",
    "ok": true,
    "detail": "7 iteration(s)"
   },
   {
    "node": "converge",
-   "case": "ais_3u",
-   "check": "within the iteration cap",
-   "ok": true,
-   "detail": "cap 24"
-  },
-  {
-   "node": "converge",
-   "case": "ais_3u",
-   "check": "every authority scale inside its bounds",
-   "ok": true,
-   "detail": "{\"mtqp\": 2.25}"
-  },
-  {
-   "node": "converge",
-   "case": "ais_3u",
-   "check": "every family was flown and scored in every iteration",
-   "ok": true,
-   "detail": "9 families x 7 iterations"
-  },
-  {
-   "node": "converge",
-   "case": "ais_img_3u",
-   "check": "converged: the last iteration proposes no change",
-   "ok": true,
-   "detail": "10 iteration(s)"
-  },
-  {
-   "node": "converge",
    "case": "ais_img_3u",
    "check": "within the iteration cap",
    "ok": true,
@@ -1051,14 +1065,14 @@
    "case": "ais_img_3u",
    "check": "every authority scale inside its bounds",
    "ok": true,
-   "detail": "{\"mtqp\": 1.0, \"fmr\": 0.75}"
+   "detail": "{\"mtqp\": 1.5}"
   },
   {
    "node": "converge",
    "case": "ais_img_3u",
    "check": "every family was flown and scored in every iteration",
    "ok": true,
-   "detail": "9 families x 10 iterations"
+   "detail": "9 families x 7 iterations"
   },
   {
    "node": "select",
@@ -1072,7 +1086,7 @@
    "case": "ais_3u",
    "check": "mtq: feasible exactly when no mode and no budget gap",
    "ok": true,
-   "detail": "sun_acquisition: sun_angle_p95 (performance); sun_referencing: sun_ape_p9973 (performance)"
+   "detail": "sun_referencing: sun_ape_p9973 (performance)"
   },
   {
    "node": "select",
@@ -1093,42 +1107,42 @@
    "case": "ais_3u",
    "check": "mtq_rw: feasible exactly when no mode and no budget gap",
    "ok": true,
-   "detail": "sun_acquisition: power_mean (power); sun_referencing: power_mean (power)"
+   "detail": "sun_referencing: power_mean (power)"
   },
   {
    "node": "select",
    "case": "ais_3u",
    "check": "mtq_rw_rcs: feasible exactly when no mode and no budget gap",
    "ok": true,
-   "detail": "sun_acquisition: power_mean (power); sun_referencing: power_mean (power); budget: volume_L 1.05 > 1"
+   "detail": "sun_referencing: power_mean (power); budget: volume_L 1.05 > 1"
   },
   {
    "node": "select",
    "case": "ais_3u",
    "check": "mtq_cmg: feasible exactly when no mode and no budget gap",
    "ok": true,
-   "detail": "sun_acquisition: power_mean (power); sun_referencing: power_mean (power)"
+   "detail": "sun_referencing: power_mean (power)"
   },
   {
    "node": "select",
    "case": "ais_3u",
    "check": "mtq_cmg_rcs: feasible exactly when no mode and no budget gap",
    "ok": true,
-   "detail": "sun_acquisition: power_mean (power); sun_referencing: power_mean (power); budget: mass_kg 1.93 > 1.6; budget: volume_L 1.79 > 1"
+   "detail": "sun_referencing: power_mean (power); budget: mass_kg 1.93 > 1.6; budget: volume_L 1.79 > 1"
   },
   {
    "node": "select",
    "case": "ais_3u",
    "check": "mtq_vscmg: feasible exactly when no mode and no budget gap",
    "ok": true,
-   "detail": "sun_acquisition: power_mean (power); sun_referencing: power_mean (power)"
+   "detail": "sun_referencing: power_mean (power)"
   },
   {
    "node": "select",
    "case": "ais_3u",
    "check": "mtq_vscmg_rcs: feasible exactly when no mode and no budget gap",
    "ok": true,
-   "detail": "sun_acquisition: power_mean (power); sun_referencing: power_mean (power); budget: mass_kg 1.93 > 1.6; budget: volume_L 1.79 > 1"
+   "detail": "sun_referencing: power_mean (power); budget: mass_kg 1.93 > 1.6; budget: volume_L 1.79 > 1"
   },
   {
    "node": "select",
@@ -1170,7 +1184,7 @@
    "case": "ais_img_3u",
    "check": "mtq_fmr_rcs: feasible exactly when no mode and no budget gap",
    "ok": true,
-   "detail": "budget: mass_kg 2 > 1.6; budget: volume_L 1.38 > 1"
+   "detail": "budget: mass_kg 2.03 > 1.6; budget: volume_L 1.37 > 1"
   },
   {
    "node": "select",
@@ -1191,28 +1205,28 @@
    "case": "ais_img_3u",
    "check": "mtq_cmg: feasible exactly when no mode and no budget gap",
    "ok": true,
-   "detail": "sun_acquisition: power_mean (power); sun_referencing: power_mean (power); nadir_pointing: power_mean (power); budget: mass_kg 2.02 > 1.6"
+   "detail": "sun_acquisition: power_mean (power); sun_referencing: power_mean (power); nadir_pointing: power_mean (power); budget: mass_kg 1.86 > 1.6"
   },
   {
    "node": "select",
    "case": "ais_img_3u",
    "check": "mtq_cmg_rcs: feasible exactly when no mode and no budget gap",
    "ok": true,
-   "detail": "sun_acquisition: power_mean (power); sun_referencing: power_mean (power); nadir_pointing: power_mean (power); budget: mass_kg 2.48 > 1.6; budget: volume_L 1.65 > 1"
+   "detail": "sun_acquisition: power_mean (power); sun_referencing: power_mean (power); nadir_pointing: power_mean (power); budget: mass_kg 2.32 > 1.6; budget: volume_L 1.65 > 1"
   },
   {
    "node": "select",
    "case": "ais_img_3u",
    "check": "mtq_vscmg: feasible exactly when no mode and no budget gap",
    "ok": true,
-   "detail": "sun_acquisition: power_mean (power); sun_referencing: power_mean (power); nadir_pointing: power_mean (power); budget: mass_kg 2.02 > 1.6"
+   "detail": "sun_acquisition: power_mean (power); sun_referencing: power_mean (power); nadir_pointing: power_mean (power); budget: mass_kg 1.86 > 1.6"
   },
   {
    "node": "select",
    "case": "ais_img_3u",
    "check": "mtq_vscmg_rcs: feasible exactly when no mode and no budget gap",
    "ok": true,
-   "detail": "sun_acquisition: power_mean (power); sun_referencing: power_mean (power); nadir_pointing: power_mean (power); budget: mass_kg 2.48 > 1.6; budget: volume_L 1.65 > 1"
+   "detail": "sun_acquisition: power_mean (power); sun_referencing: power_mean (power); nadir_pointing: power_mean (power); budget: mass_kg 2.32 > 1.6; budget: volume_L 1.65 > 1"
   },
   {
    "node": "select",
@@ -1268,7 +1282,7 @@
    "case": "ais_3u",
    "check": "mtq_pd: certified exactly when every multiplier outside the free directions is inside the unit circle",
    "ok": true,
-   "detail": "max |mu| 0.5992"
+   "detail": "max |mu| 0.5435"
   },
   {
    "node": "certify",
@@ -1282,35 +1296,35 @@
    "case": "ais_3u",
    "check": "mtq_lovera2004: certified exactly when every multiplier outside the free directions is inside the unit circle",
    "ok": true,
-   "detail": "max |mu| 1.151"
+   "detail": "max |mu| 1.147"
   },
   {
    "node": "certify",
    "case": "ais_3u",
    "check": "mtq_celani2015: certified exactly when every multiplier outside the free directions is inside the unit circle",
    "ok": true,
-   "detail": "max |mu| 0.7797"
+   "detail": "max |mu| 0.7831"
   },
   {
    "node": "certify",
    "case": "ais_3u",
    "check": "mtq_avanzini2021: certified exactly when every multiplier outside the free directions is inside the unit circle",
    "ok": true,
-   "detail": "max |mu| 2.553"
+   "detail": "max |mu| 2.519"
   },
   {
    "node": "certify",
    "case": "ais_3u",
    "check": "mtq_celani2026: certified exactly when every multiplier outside the free directions is inside the unit circle",
    "ok": true,
-   "detail": "max |mu| 0.01655"
+   "detail": "max |mu| 0.01235"
   },
   {
    "node": "certify",
    "case": "ais_3u",
    "check": "mtq_tango2013: certified exactly when every multiplier outside the free directions is inside the unit circle",
    "ok": true,
-   "detail": "max |mu| 0.07271"
+   "detail": "max |mu| 0.07017"
   },
   {
    "node": "certify",
@@ -1331,49 +1345,49 @@
    "case": "ais_img_3u",
    "check": "mtq_pd: certified exactly when every multiplier outside the free directions is inside the unit circle",
    "ok": true,
-   "detail": "max |mu| 5.326"
+   "detail": "max |mu| 4.903"
   },
   {
    "node": "certify",
    "case": "ais_img_3u",
    "check": "mtq_rate_damp: certified exactly when every multiplier outside the free directions is inside the unit circle",
    "ok": true,
-   "detail": "max |mu| 3.896"
+   "detail": "max |mu| 1.982"
   },
   {
    "node": "certify",
    "case": "ais_img_3u",
    "check": "mtq_lovera2004: certified exactly when every multiplier outside the free directions is inside the unit circle",
    "ok": true,
-   "detail": "max |mu| 5.108"
+   "detail": "max |mu| 4.822"
   },
   {
    "node": "certify",
    "case": "ais_img_3u",
    "check": "mtq_celani2015: certified exactly when every multiplier outside the free directions is inside the unit circle",
    "ok": true,
-   "detail": "max |mu| 2.636"
+   "detail": "max |mu| 2.413"
   },
   {
    "node": "certify",
    "case": "ais_img_3u",
    "check": "mtq_avanzini2021: certified exactly when every multiplier outside the free directions is inside the unit circle",
    "ok": true,
-   "detail": "max |mu| 647.8"
+   "detail": "max |mu| 7.039"
   },
   {
    "node": "certify",
    "case": "ais_img_3u",
    "check": "mtq_celani2026: certified exactly when every multiplier outside the free directions is inside the unit circle",
    "ok": true,
-   "detail": "max |mu| 0.03952"
+   "detail": "max |mu| 1.351"
   },
   {
    "node": "certify",
    "case": "ais_img_3u",
    "check": "mtq_tango2013: certified exactly when every multiplier outside the free directions is inside the unit circle",
    "ok": true,
-   "detail": "max |mu| 7.41"
+   "detail": "max |mu| 7.148"
   },
   {
    "node": "certify",
@@ -1436,7 +1450,7 @@
    "case": "ais_3u",
    "check": "mtq: mission verdict matches the loop's feasibility (informational for families that are not feasible)",
    "ok": true,
-   "detail": "fails ape_los_p9973"
+   "detail": "mission passes"
   },
   {
    "node": "family_missions",
@@ -1506,7 +1520,7 @@
    "case": "ais_img_3u",
    "check": "mtq: mission verdict matches the loop's feasibility (informational for families that are not feasible)",
    "ok": true,
-   "detail": "fails ape_los_p9973"
+   "detail": "fails ape_los_p9973, ake_los_p9973"
   },
   {
    "node": "family_missions",
@@ -1562,7 +1576,7 @@
    "case": "ais_3u",
    "check": "no overrun on either firmware",
    "ok": true,
-   "detail": "oils: CPU max 6.1 %, oils_rs: CPU max 7.2 %"
+   "detail": "oils: CPU max 6.6 %, oils_rs: CPU max 7.8 %"
   },
   {
    "node": "soft_oils",
@@ -1590,7 +1604,7 @@
    "case": "ais_img_3u",
    "check": "no overrun on either firmware",
    "ok": true,
-   "detail": "oils: CPU max 6.3 %, oils_rs: CPU max 7.3 %"
+   "detail": "oils: CPU max 5.7 %, oils_rs: CPU max 6.5 %"
   },
   {
    "node": "soft_oils",

@@ -32,7 +32,8 @@ typedef struct {
     /* orbit */
     int have_r; adcs_real r[3], v[3];
     /* estimation */
-    adcs_mekf_t K; int ad_ok; double t_st;
+    adcs_mekf_t K; int ad_ok; double t_st; int mag_done, n_rej; double gh_jd;
+    adcs_real es_n[3]; double es_t;           /* latest valid Earth-sensor sample and its time */
     adcs_real w_est[3];
     adcs_real gh[195]; int gh_ok; adcs_real Bref[3]; int bref_ok; double t_Bref;
     /* coil cycle */
@@ -42,6 +43,7 @@ typedef struct {
     /* Sun spin / acquisition */
     adcs_real sigma, sz_sum; int sz_n; double sz_t0;
     adcs_real s_prop[3]; int s_prop_ok; double acq_hold;
+    int ho; double ho_t;                      /* magnetic pointing hand-over (P11 despin) and its dwell */
     /* fine modes */
     adcs_guid_t gd;
     adcs_gains_t g_rw, g_mtq;
@@ -57,6 +59,16 @@ typedef struct {
 
 static fsw_t S;
 
+/* two-body + J2 acceleration in J2000 (the pole of date is 0.4 deg off: second order on J2) */
+static void orbit_acc(const adcs_real r[3], adcs_real mu, adcs_real a[3])
+{
+    adcs_real rn = adcs_norm3(r), r2 = rn*rn, zr = r[2]*r[2]/r2, k = -mu/(r2*rn);
+    adcs_real f = -1.5*ADCS_J2*mu*ADCS_RE*ADCS_RE/(r2*r2*rn);
+    a[0] = k*r[0] + f*r[0]*(1 - 5*zr);
+    a[1] = k*r[1] + f*r[1]*(1 - 5*zr);
+    a[2] = k*r[2] + f*r[2]*(3 - 5*zr);
+}
+
 static int guid_kind_of(uint8_t mode)
 {
     switch (mode) {
@@ -70,7 +82,11 @@ static int guid_kind_of(uint8_t mode)
 static void enter(uint8_t mode)
 {
     if (mode == ADCS_MODE_SPINUP) { S.sz_sum = 0; S.sz_n = 0; S.sz_t0 = S.t; }
-    S.mode = mode; S.t_mode = S.t; S.hold = 0;
+    S.mode = mode; S.t_mode = S.t; S.hold = 0; S.ho = 0; S.ho_t = 0;
+    /* the states that skip estimation freeze the attitude: the next pointing state re-initialises it */
+    if (mode == ADCS_MODE_DETUMBLE || mode == ADCS_MODE_DETUMBLE_RCS || mode == ADCS_MODE_SPINUP || mode == ADCS_MODE_SUN_SPIN) {
+        S.ad_ok = 0; S.n_rej = 0;
+    }
     adcs_zero3(S.I_q);
 }
 
@@ -97,7 +113,7 @@ int32_t adcs_fsw_init(const adcs_fsw_init_t *init)
     if (adcs_params_decode(init->config_blob, init->config_len, &S.p) != 0) return -11;
     p = &S.p;
     S.start_ns = init->start_ns;
-    S.mode = p->start_mode; S.t_st = -1e9; S.t_Bref = -1e9; S.last_ctrl = -1e9;
+    S.mode = p->start_mode; S.t_st = -1e9; S.t_Bref = -1e9; S.last_ctrl = -1e9; S.es_t = -1e9;
     S.sigma = p->ss_sigma0; S.clean = 1;
     for (i = 0; i < 4; i++) { S.q_ref[i] = 0; S.gd.q_off[i] = p->gd_q_off[i]; S.gd.q_inertial[i] = p->gd_q_inertial[i]; }
     for (i = 0; i < 3; i++) {
@@ -285,20 +301,32 @@ int32_t adcs_fsw_step(uint64_t now_ns)
     adcs_drv_read(p, z);
     if (!z->gyro_ok && !p->has_gyro) adcs_zero3(z->w);
 
-    /* 1 onboard orbit */
-    if (z->gps_ok) { adcs_copy3(z->r, S.r); adcs_copy3(z->v, S.v); S.have_r = 1; }
-    else if (S.have_r) {
-        adcs_real rn = adcs_norm3(S.r), a[3];
-        adcs_scale3(S.r, -p->mu/(rn*rn*rn), a);
-        for (i = 0; i < 3; i++) { S.r[i] += S.v[i]*dt + 0.5*a[i]*dt*dt; S.v[i] += a[i]*dt; }
+    /* 1 onboard orbit (02): the GNSS fix, else two-body + J2 by velocity Verlet */
+    if (z->gps_ok) {
+        if (p->gnss_ecef) {          /* receiver fix in ECEF: r = C' r_e, v = C' (v_e + w_E x r_e) */
+            adcs_real C[3][3], wr[3], ve[3], we[3] = {0, 0, ADCS_OMEGA_E};
+            adcs_eci2ecef(S.jd, C);
+            adcs_cross(we, z->r, wr); adcs_add3(z->v, wr, ve);
+            adcs_mat3t_vec(C, z->r, S.r); adcs_mat3t_vec(C, ve, S.v);
+        } else { adcs_copy3(z->r, S.r); adcs_copy3(z->v, S.v); }
+        S.have_r = 1;
+    } else if (S.have_r) {
+        adcs_real a0[3], a1[3];
+        orbit_acc(S.r, p->mu, a0);
+        for (i = 0; i < 3; i++) S.r[i] += S.v[i]*dt + 0.5*a0[i]*dt*dt;
+        orbit_acc(S.r, p->mu, a1);
+        for (i = 0; i < 3; i++) S.v[i] += 0.5*(a0[i] + a1[i])*dt;
     }
 
     /* 2 estimation */
     adcs_sun_model(S.jd, S.gd.sun_eci);
+    if (p->gd_yaw_flip && S.have_r) adcs_yaw_flip(&S.gd, S.r, S.v, p->gd_flip_hyst);
     phase = fmod(S.t + 1e-9, p->mtq_period);
     first = phase < dt - 1e-9;
+    if (first) S.mag_done = 0;
+    if (z->es_ok) { adcs_copy3(z->nadir, S.es_n); S.es_t = S.t; }
     if (first && S.have_r && (S.t - S.t_Bref) >= 0.999) {
-        if (!S.gh_ok) { adcs_igrf_gh(adcs_decyear(S.jd), S.gh); S.gh_ok = 1; }
+        if (!S.gh_ok || fabs(S.jd - S.gh_jd) > 1.0) { adcs_igrf_gh(adcs_decyear(S.jd), S.gh); S.gh_ok = 1; S.gh_jd = S.jd; }
         adcs_field_eci(S.r, S.jd, S.gh, p->igrf_nmax, S.Bref); S.bref_ok = 1; S.t_Bref = S.t;
     }
     if (!(S.mode == ADCS_MODE_DETUMBLE || S.mode == ADCS_MODE_DETUMBLE_RCS || S.mode == ADCS_MODE_SPINUP || S.mode == ADCS_MODE_SUN_SPIN)) {
@@ -332,13 +360,24 @@ int32_t adcs_fsw_step(uint64_t now_ns)
             } else if (p->has_st && S.t - S.t_st < p->st_coast_s) {
                 /* short star-tracker outage: coast on the gyro */
             } else {
-                if (z->sun_ok && first) adcs_mekf_vector(&S.K, z->sun, S.gd.sun_eci, p->mekf_sig_sun);
-                if (S.clean && first && S.bref_ok) adcs_mekf_vector(&S.K, z->B, S.Bref, p->mekf_sig_mag);
-                if (z->es_ok && first && S.have_r) {
+                /* vector updates once per coil cycle; the field on the first clean tick of the cycle (the
+                 * coils are off from the cycle start, and the magnetometer sees the previous tick's dipole) */
+                int tried = 0, took = 0;
+                if (z->sun_ok && first) { tried++; took += adcs_mekf_vector(&S.K, z->sun, S.gd.sun_eci, p->mekf_sig_sun, p->mekf_gate); }
+                if (S.clean && !S.mag_done && S.bref_ok) {
+                    adcs_real Bn = adcs_norm3(z->B), e = p->mekf_mag_err_T/(Bn > 1e-9 ? Bn : 1e-9);
+                    S.mag_done = 1; tried++;
+                    took += adcs_mekf_vector(&S.K, z->B, S.Bref, sqrt(p->mekf_sig_mag*p->mekf_sig_mag + e*e), p->mekf_gate);
+                }
+                if (first && S.have_r && S.t - S.es_t < p->mtq_period) {    /* latest Earth-sensor sample of the cycle */
                     adcs_real nr_[3], sg = p->es_noise > 1e-3 ? p->es_noise : 1e-3;
                     adcs_scale3(S.r, -1.0, nr_);
-                    adcs_mekf_vector(&S.K, z->nadir, nr_, 2*sg);
+                    tried++; took += adcs_mekf_vector(&S.K, S.es_n, nr_, 2*sg, p->mekf_gate);
+                    S.es_t = -1e9;
                 }
+                /* every update gated for mekf_rej_max in a row: the estimate has diverged, re-initialise */
+                if (tried) { if (took) S.n_rej = 0; else S.n_rej += tried; }
+                if (p->mekf_rej_max > 0 && S.n_rej >= p->mekf_rej_max) { S.ad_ok = 0; S.n_rej = 0; }
             }
         }
     }
@@ -447,10 +486,36 @@ int32_t adcs_fsw_step(uint64_t now_ns)
     case ADCS_MODE_SUN_MTQ:
         if (first) adcs_zero3(m_body);
         else if (fabs(phase - p->mtq_meas) < dt/2 && S.ad_ok && S.have_r) {
-            adcs_real wd[3];
+            adcs_real wd[3], qc[4], qe[4], A[3][3], wr[3], we[3], wen;
             adcs_guidance(guid_kind_of(S.mode), S.r, S.v, S.t, &S.gd, S.q_ref, S.w_ref, wd);
-            mtq_law();
-            adcs_torque2dipole(S.tau_req, z->B, p->m_max, m_body);
+            /* hand-over (05_control.md): from a spinning body the rate error is damped first with the
+             * detumble gain (Avanzini & Giulietti 2012), m = (k/|B|) (w_e x b), torque -k w_e perp b;
+             * the spin-up gain drags the rate along the turning field instead. The pointing law takes
+             * over once the rate error has stayed below ho_out for ho_hold_s */
+            adcs_qconj(S.q_ref, qc); adcs_qmult(qc, S.K.q, qe);
+            adcs_dcm(qe, A); adcs_mat3_vec(A, S.w_ref, wr);
+            adcs_sub3(S.w_est, wr, we); wen = adcs_norm3(we);
+            if (!S.ho && wen > p->ho_in_dps*ADCS_D2R) { S.ho = 1; S.ho_t = 0; }
+            if (S.ho) {
+                if (wen < p->ho_out_dps*ADCS_D2R) S.ho_t += p->mtq_period; else S.ho_t = 0;
+                if (S.ho_t >= p->ho_hold_s) S.ho = 0;
+            }
+            if (S.ho) {
+                adcs_real bu[3], Bn = adcs_norm3(z->B);
+                adcs_unit(z->B, bu); adcs_cross(we, bu, m_body); adcs_scale3(m_body, p->bdot_k/Bn, m_body);
+                adcs_zero3(S.tau_req);
+            } else {
+                mtq_law();
+                if (p->mtq_gg_ff & (S.mode == ADCS_MODE_SUN_MTQ ? 1 : 2)) {
+                    /* cancel the modelled gravity-gradient torque, 3 mu/|r|^5 (r_b x J r_b) */
+                    adcs_real Ab[3][3], rb[3], Jr[3], c[3], rn, f;
+                    adcs_dcm(S.K.q, Ab); adcs_mat3_vec(Ab, S.r, rb);
+                    rn = adcs_norm3(rb); f = 3*p->mu/(rn*rn*rn*rn*rn);
+                    adcs_mat3_vec(p->J, rb, Jr); adcs_cross(rb, Jr, c);
+                    for (i = 0; i < 3; i++) S.tau_req[i] -= f*c[i];
+                }
+                adcs_torque2dipole(S.tau_req, z->B, p->m_max, m_body);
+            }
             adcs_sub3(m_body, p->m_res_est, m_body); adcs_sat_dipole(m_body, p->m_max);
         } else if (phase < p->mtq_meas) adcs_zero3(m_body);
         break;

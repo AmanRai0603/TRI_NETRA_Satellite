@@ -3,8 +3,8 @@ function S = scenario(caseId, modeId, optionId)
 %   (catalogue/modes/<mode>.toml) with one of its options, on the product
 %   sized to the case for that option's family (asils.sizing.size_all).
 %   S = asils.solution.scenario('ais_3u', 'nadir_pointing', 'fmr+rcs')
-%   Every option of a mode starts from the same [test] conditions and is
-%   judged by the same [[metrics]], so a mode's table compares actuators.
+%   Every option of a mode starts from the same [test] conditions (unless the
+%   option sets test_initial) and is judged by the same [[metrics]].
     M = asils.solution.mode(modeId);
     opt = [];
     for i = 1:numel(M.options)
@@ -23,6 +23,7 @@ function S = scenario(caseId, modeId, optionId)
     S.product = sprintf('SZ-%s-%s', caseId, opt.family);
     S.time = struct('duration_s', round(orbits*T), 'dt_s', opt.dt_s, 'record_dt_s', 1.0);
     S.initial = struct('attitude', M.test.attitude, 'rate', M.test.rate);
+    if isfield(opt, 'test_initial'), S.initial = opt.test_initial; end   % e.g. coils-only nadir: from the Sun spin
     g = M.guidance; if any(strcmp(g, {'none', 'sun_vector'})), g = 'nadir'; end
     S.fsw = struct('start_mode', opt.fsw_mode, 'guidance', struct('kind', g));
     if isfield(opt, 'algorithms'), S.fsw.algorithms = opt.algorithms; end

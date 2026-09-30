@@ -15,7 +15,7 @@ A real part replaces its entry with its ICD. All multi-byte fields are little-en
 | Sun sensor set SYN-SUN-1 | I2C bus 1 | 0x60, reg 0x00 | status u8 (bit0 valid), sx, sy, sz int16 (body) | Q15 |
 | Earth sensor SYN-ES-1 | I2C bus 1 | 0x30, reg 0x00 | status u8 (bit0 valid), nx, ny, nz int16 (body) | Q15 |
 | star tracker SYN-ST-1 | UART 1 | frame `EB 90 len` | per head: valid u8, q int32 ×4 (scalar last, ECI→body) + CRC-16/CCITT | Q30 |
-| GNSS TRN-GPS-1 | UART 2 | frame `EB 91 len` | fix u8, r int32 ×3, v int32 ×3 + CRC-16 | 1 cm, 1 mm/s |
+| GNSS TRN-GPS-1 | UART 2 | frame `EB 91 len` | fix u8, r int32 ×3, v int32 ×3 (ECEF, WGS-84) + CRC-16 | 1 cm, 1 mm/s |
 | momentum devices | CAN 0 | tx 0x100+i: τ cmd int16 Q15 of τmax · 0x140+j: δ̇ cmd int16 Q15 of δ̇max | rx 0x200+i: h int32 (1e-9 N m s), δ int32 (1e-7 rad) | |
 | coils | PWM 0..2 | channel = coil | duty int16 Q15 of m_max | |
 | N2O valves | CAN 0 | tx 0x300: on-time u8 per couple (1 ms) | — | 1 ms |

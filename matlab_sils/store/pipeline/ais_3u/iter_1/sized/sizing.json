@@ -13,49 +13,49 @@
       "sun"
     ],
     "tau_peak": [
-      4.126122648448278e-7,
-      4.2761496710666863e-7,
-      4.50035349934796e-7,
-      5.63524613754007e-7
+      4.1236330172558487e-7,
+      4.27393497837321e-7,
+      4.499781391923416e-7,
+      5.633828701617145e-7
     ],
     "h_cyclic": [
-      0.0006443350647405703,
-      0.0006512950412507647,
-      0.0006920116898101288,
-      0.0002744394356998035
+      0.0006437683315425362,
+      0.0006513165795015381,
+      0.0006922745805893998,
+      0.000274133936671868
     ],
     "h_secular_orbit": [
-      0.00009668472808320527,
-      0.00006285114510139188,
-      0.00007146834766782044,
-      0.0007339803239692526
+      0.00009648025246729559,
+      0.00006265716139055318,
+      0.00007137038516244906,
+      0.0007339391500134894
     ],
     "tau_axis_peak": [
       [
-        1.683439926438717e-7,
-        2.7772690116887843e-7,
-        3.0892702672275417e-7,
-        2.801098614401046e-7
+        1.6820510053485608e-7,
+        2.7743499231046613e-7,
+        3.0905080074902e-7,
+        2.8013383663002575e-7
       ],
       [
-        2.762356059473819e-7,
-        1.6330861855813633e-7,
-        3.418881757484578e-7,
-        4.284205967705587e-7
+        2.759436970889697e-7,
+        1.6364558098599484e-7,
+        3.417316218822922e-7,
+        4.2854934564567926e-7
       ],
       [
-        3.160416898299155e-7,
-        3.3307331130575666e-7,
-        1.4888848228425378e-7,
-        4.342512592892906e-7
+        3.159635914023827e-7,
+        3.329395614348325e-7,
+        1.4872572986744186e-7,
+        4.3393848777081745e-7
       ]
     ],
-    "tau_dist": 5.63524613754007e-7,
+    "tau_dist": 5.633828701617145e-7,
     "worst_attitude": "sun",
-    "h_dist": 0.000709878776727084,
-    "h_secular": 0.0007339803239692526,
-    "B_min": 0.000019756335610133944,
-    "B_mean": 0.00003449717735098752,
+    "h_dist": 0.0007101171768800121,
+    "h_secular": 0.0007339391500134894,
+    "B_min": 0.00001976380663961474,
+    "B_mean": 0.00003449485865643493,
     "eclipse_frac": 0.2229965156794425,
     "w0_deg_s": 10.0,
     "J": [
@@ -108,17 +108,17 @@
       "product": "SZ-ais_3u-mtq",
       "role": "solution",
       "label": "Magnetorquers only",
-      "mass_kg": 0.23563798670963648,
-      "power_W": 2.056379867096365,
-      "volume_L": 0.018255194683854604,
+      "mass_kg": 0.23560925983013536,
+      "power_W": 2.056092598301354,
+      "volume_L": 0.018243703932054146,
       "items": [
         {
           "slot": "coils",
           "part": "SZ-ais_3u-MTQP",
           "n": 3.0,
-          "mass_kg": 0.0456379867096365,
-          "power_W": 0.456379867096365,
-          "volume_L": 0.018255194683854604
+          "mass_kg": 0.04560925983013536,
+          "power_W": 0.45609259830135357,
+          "volume_L": 0.018243703932054146
         },
         {
           "slot": "magnetometer",
@@ -166,17 +166,17 @@
       "product": "SZ-ais_3u-mtq_fmr",
       "role": "solution",
       "label": "Magnetorquers + fluid momentum loop",
-      "mass_kg": 1.0823005861655,
-      "power_W": 4.817332434852088,
-      "volume_L": 0.5371275973419273,
+      "mass_kg": 1.0822862227257493,
+      "power_W": 4.817188800454582,
+      "volume_L": 0.5371218519660271,
       "items": [
         {
           "slot": "coils",
           "part": "SZ-ais_3u-MTQ",
           "n": 3.0,
-          "mass_kg": 0.02281899335481825,
-          "power_W": 0.2281899335481825,
-          "volume_L": 0.009127597341927302
+          "mass_kg": 0.02280462991506768,
+          "power_W": 0.22804629915067678,
+          "volume_L": 0.009121851966027073
         },
         {
           "slot": "rings",
@@ -248,17 +248,17 @@
       "product": "SZ-ais_3u-mtq_fmr_rcs",
       "role": "solution",
       "label": "Magnetorquers + fluid loop + N2O cold-gas RCS",
-      "mass_kg": 1.600761449307275,
-      "power_W": 4.867332434852088,
-      "volume_L": 1.5191900411347952,
+      "mass_kg": 1.600727561964326,
+      "power_W": 4.867188800454582,
+      "volume_L": 1.5191320732603244,
       "items": [
         {
           "slot": "coils",
           "part": "SZ-ais_3u-MTQ",
           "n": 3.0,
-          "mass_kg": 0.02281899335481825,
-          "power_W": 0.2281899335481825,
-          "volume_L": 0.009127597341927302
+          "mass_kg": 0.02280462991506768,
+          "power_W": 0.22804629915067678,
+          "volume_L": 0.009121851966027073
         },
         {
           "slot": "rings",
@@ -288,9 +288,9 @@
           "slot": "rcs",
           "part": "SZ-ais_3u-RCS",
           "n": 1.0,
-          "mass_kg": 0.518460863141775,
+          "mass_kg": 0.5184413392385767,
           "power_W": 0.05,
-          "volume_L": 0.9820624437928678
+          "volume_L": 0.9820102212942972
         },
         {
           "slot": "magnetometer",
@@ -338,17 +338,17 @@
       "product": "SZ-ais_3u-mtq_rw",
       "role": "benchmark",
       "label": "Magnetorquers + reaction wheels",
-      "mass_kg": 0.3928189933548182,
-      "power_W": 2.7281899335481827,
-      "volume_L": 0.0702795973419273,
+      "mass_kg": 0.3928046299150677,
+      "power_W": 2.728046299150677,
+      "volume_L": 0.07027385196602708,
       "items": [
         {
           "slot": "coils",
           "part": "SZ-ais_3u-MTQ",
           "n": 3.0,
-          "mass_kg": 0.02281899335481825,
-          "power_W": 0.2281899335481825,
-          "volume_L": 0.009127597341927302
+          "mass_kg": 0.02280462991506768,
+          "power_W": 0.22804629915067678,
+          "volume_L": 0.009121851966027073
         },
         {
           "slot": "wheels",
@@ -404,17 +404,17 @@
       "product": "SZ-ais_3u-mtq_rw_rcs",
       "role": "benchmark",
       "label": "Magnetorquers + reaction wheels + N2O cold-gas RCS",
-      "mass_kg": 0.9112798564965934,
-      "power_W": 2.7781899335481826,
-      "volume_L": 1.052342041134795,
+      "mass_kg": 0.9112459691536445,
+      "power_W": 2.778046299150677,
+      "volume_L": 1.0522840732603242,
       "items": [
         {
           "slot": "coils",
           "part": "SZ-ais_3u-MTQ",
           "n": 3.0,
-          "mass_kg": 0.02281899335481825,
-          "power_W": 0.2281899335481825,
-          "volume_L": 0.009127597341927302
+          "mass_kg": 0.02280462991506768,
+          "power_W": 0.22804629915067678,
+          "volume_L": 0.009121851966027073
         },
         {
           "slot": "wheels",
@@ -428,9 +428,9 @@
           "slot": "rcs",
           "part": "SZ-ais_3u-RCS",
           "n": 1.0,
-          "mass_kg": 0.518460863141775,
+          "mass_kg": 0.5184413392385767,
           "power_W": 0.05,
-          "volume_L": 0.9820624437928678
+          "volume_L": 0.9820102212942972
         },
         {
           "slot": "magnetometer",
@@ -478,17 +478,17 @@
       "product": "SZ-ais_3u-mtq_cmg",
       "role": "benchmark",
       "label": "Magnetorquers + 4 single-gimbal CMG (pyramid)",
-      "mass_kg": 1.4128189933548183,
-      "power_W": 5.828189933548181,
-      "volume_L": 0.8091275973419273,
+      "mass_kg": 1.4128046299150678,
+      "power_W": 5.828046299150675,
+      "volume_L": 0.8091218519660272,
       "items": [
         {
           "slot": "coils",
           "part": "SZ-ais_3u-MTQ",
           "n": 3.0,
-          "mass_kg": 0.02281899335481825,
-          "power_W": 0.2281899335481825,
-          "volume_L": 0.009127597341927302
+          "mass_kg": 0.02280462991506768,
+          "power_W": 0.22804629915067678,
+          "volume_L": 0.009121851966027073
         },
         {
           "slot": "cmg",
@@ -544,17 +544,17 @@
       "product": "SZ-ais_3u-mtq_cmg_rcs",
       "role": "benchmark",
       "label": "Magnetorquers + 4 CMG + N2O cold-gas RCS",
-      "mass_kg": 1.9312798564965934,
-      "power_W": 5.878189933548181,
-      "volume_L": 1.791190041134795,
+      "mass_kg": 1.9312459691536445,
+      "power_W": 5.878046299150675,
+      "volume_L": 1.7911320732603242,
       "items": [
         {
           "slot": "coils",
           "part": "SZ-ais_3u-MTQ",
           "n": 3.0,
-          "mass_kg": 0.02281899335481825,
-          "power_W": 0.2281899335481825,
-          "volume_L": 0.009127597341927302
+          "mass_kg": 0.02280462991506768,
+          "power_W": 0.22804629915067678,
+          "volume_L": 0.009121851966027073
         },
         {
           "slot": "cmg",
@@ -568,9 +568,9 @@
           "slot": "rcs",
           "part": "SZ-ais_3u-RCS",
           "n": 1.0,
-          "mass_kg": 0.518460863141775,
+          "mass_kg": 0.5184413392385767,
           "power_W": 0.05,
-          "volume_L": 0.9820624437928678
+          "volume_L": 0.9820102212942972
         },
         {
           "slot": "magnetometer",
@@ -618,17 +618,17 @@
       "product": "SZ-ais_3u-mtq_vscmg",
       "role": "benchmark",
       "label": "Magnetorquers + 4 variable-speed CMG (pyramid)",
-      "mass_kg": 1.4128189933548183,
-      "power_W": 5.828189933548181,
-      "volume_L": 0.8091275973419273,
+      "mass_kg": 1.4128046299150678,
+      "power_W": 5.828046299150675,
+      "volume_L": 0.8091218519660272,
       "items": [
         {
           "slot": "coils",
           "part": "SZ-ais_3u-MTQ",
           "n": 3.0,
-          "mass_kg": 0.02281899335481825,
-          "power_W": 0.2281899335481825,
-          "volume_L": 0.009127597341927302
+          "mass_kg": 0.02280462991506768,
+          "power_W": 0.22804629915067678,
+          "volume_L": 0.009121851966027073
         },
         {
           "slot": "vscmg",
@@ -684,17 +684,17 @@
       "product": "SZ-ais_3u-mtq_vscmg_rcs",
       "role": "benchmark",
       "label": "Magnetorquers + 4 VSCMG + N2O cold-gas RCS",
-      "mass_kg": 1.9312798564965934,
-      "power_W": 5.878189933548181,
-      "volume_L": 1.791190041134795,
+      "mass_kg": 1.9312459691536445,
+      "power_W": 5.878046299150675,
+      "volume_L": 1.7911320732603242,
       "items": [
         {
           "slot": "coils",
           "part": "SZ-ais_3u-MTQ",
           "n": 3.0,
-          "mass_kg": 0.02281899335481825,
-          "power_W": 0.2281899335481825,
-          "volume_L": 0.009127597341927302
+          "mass_kg": 0.02280462991506768,
+          "power_W": 0.22804629915067678,
+          "volume_L": 0.009121851966027073
         },
         {
           "slot": "vscmg",
@@ -708,9 +708,9 @@
           "slot": "rcs",
           "part": "SZ-ais_3u-RCS",
           "n": 1.0,
-          "mass_kg": 0.518460863141775,
+          "mass_kg": 0.5184413392385767,
           "power_W": 0.05,
-          "volume_L": 0.9820624437928678
+          "volume_L": 0.9820102212942972
         },
         {
           "slot": "magnetometer",
@@ -765,14 +765,14 @@
       "made": "in-house",
       "descriptor_version": 1,
       "nominal": {
-        "dipole_max_Am2": 0.11409496677409126,
+        "dipole_max_Am2": 0.1140231495753384,
         "dipole_per_amp_Am2_per_A": 4.5,
-        "current_max_A": 0.025354437060909167,
+        "current_max_A": 0.025338477683408536,
         "resistance_ohm": 30,
         "time_constant_s": 0.005,
-        "mass_kg": 0.00760633111827275,
-        "power_at_max_W": 0.07606331118272751,
-        "volume_L": 0.0030425324473091005
+        "mass_kg": 0.00760154330502256,
+        "power_at_max_W": 0.0760154330502256,
+        "volume_L": 0.0030406173220090243
       },
       "dispersion": {
         "dipole_scale": {
@@ -787,9 +787,9 @@
         }
       },
       "sizing": {
-        "m_dump_Am2": 0.11409496677409126,
-        "m_momentum_Am2": 0.024715756979058714,
-        "m_detumble_Am2": 0.08313468337549391,
+        "m_dump_Am2": 0.1140231495753384,
+        "m_momentum_Am2": 0.02471603176817439,
+        "m_detumble_Am2": 0.08314027156877785,
         "scale": 1.0,
         "law": "max(dumping, momentum, detumble) dipole; mass and power linear in the dipole (SYN-CT-1 anchor)"
       }
@@ -803,14 +803,14 @@
       "made": "in-house",
       "descriptor_version": 1,
       "nominal": {
-        "dipole_max_Am2": 0.2281899335481825,
+        "dipole_max_Am2": 0.2280462991506768,
         "dipole_per_amp_Am2_per_A": 4.5,
-        "current_max_A": 0.050708874121818334,
+        "current_max_A": 0.05067695536681707,
         "resistance_ohm": 30,
         "time_constant_s": 0.005,
-        "mass_kg": 0.0152126622365455,
-        "power_at_max_W": 0.15212662236545502,
-        "volume_L": 0.006085064894618201
+        "mass_kg": 0.01520308661004512,
+        "power_at_max_W": 0.1520308661004512,
+        "volume_L": 0.0060812346440180486
       },
       "dispersion": {
         "dipole_scale": {
@@ -825,9 +825,9 @@
         }
       },
       "sizing": {
-        "m_dump_Am2": 0.11409496677409126,
-        "m_momentum_Am2": 0.024715756979058714,
-        "m_detumble_Am2": 0.08313468337549391,
+        "m_dump_Am2": 0.1140231495753384,
+        "m_momentum_Am2": 0.02471603176817439,
+        "m_detumble_Am2": 0.08314027156877785,
         "scale": 1.0,
         "law": "max(dumping, momentum, detumble) dipole; mass and power linear in the dipole (SYN-CT-1 anchor)"
       }
@@ -1660,17 +1660,17 @@
         "valve_res_s": 0.001,
         "arm_long_m": 0.15300000000000002,
         "arm_short_m": 0.045000000000000005,
-        "propellant_kg": 0.29086394559325773,
-        "tank_volume_L": 0.4880267543511036,
-        "tank_radius_m": 0.048841051728526146,
-        "tank_wall_m": 0.000683774724199366,
+        "propellant_kg": 0.29084764878601677,
+        "tank_volume_L": 0.48799941071479325,
+        "tank_radius_m": 0.048840139540217875,
+        "tank_wall_m": 0.0006837619535630502,
         "tank_pressure_bar": 50,
         "meop_bar": 70,
         "valve_power_W": 1.0,
         "power_steady_W": 0.05,
-        "dry_mass_kg": 0.22759691754851724,
-        "mass_kg": 0.518460863141775,
-        "volume_L": 0.9820624437928678
+        "dry_mass_kg": 0.22759369045255995,
+        "mass_kg": 0.5184413392385767,
+        "volume_L": 0.9820102212942972
       },
       "dispersion": {
         "thrust_scale": {
@@ -1692,7 +1692,7 @@
       "sizing": {
         "F_req_N": 0.00018814605339767288,
         "impulse_detumble_Ns": 0.1724795966676749,
-        "impulse_dumping_Ns": 142.44756600593837,
+        "impulse_dumping_Ns": 142.4395751517019,
         "impulse_slews_Ns": 188.9945180486048,
         "propellant_if_slews_on_rcs_kg": 0.38544154843622397,
         "life_yr": 3.0,

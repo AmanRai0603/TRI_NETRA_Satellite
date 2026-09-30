@@ -5,11 +5,11 @@
 
 For each magnetic pointing law the closed loop, as flown (the law's nonlinear form, rigid-body
 gyroscopic coupling, gravity gradient, the coil duty d = 1 - mtq_meas/mtq_period), is linearised
-numerically about the nadir reference, where the body turns at the orbit rate about the orbit normal:
+numerically about the nadir reference, where the body turns at the orbit rate about the orbit normal (the reference is the flight software's own nadir frame, with its yaw flip):
 
     x = [error rotation, body rate],   J w_dot = -w x J w + 3 n^2 c x J c + d Gamma(t) tau(q_e, w),   Gamma = I - b b^T b(t) is the unit field in the reference body frame along one circular orbit,
 from an aligned dipole in the orbit frame (x along track, y = -orbit normal, z = nadir). The body-to-orbit
-rotation is read from the dispatched mission's own nadir phase (truth attitude and position). The monodromy
+rotation is the guidance frame itself (boresight offset, and the yaw flip if the mission flew it). The monodromy
 matrix over one orbit gives the multipliers; all |mu| < 1 certifies local exponential stability of that
 periodic linear loop. A boresight law leaves the rotation about its boresight free, so one multiplier
 stays at 1 by design. The gains are the ones the flight software boots with: each law's config blob is
@@ -29,10 +29,18 @@ import fswcfg                                          # noqa: E402
 LAWS = {0: "mtq_pd", 3: "mtq_rate_damp", 4: "mtq_lovera2004", 5: "mtq_celani2015", 6: "mtq_avanzini2021", 7: "mtq_celani2026", 8: "mtq_tango2013"}
 
 
-def body_from_orbit(channels, boresight):
-    """Mean rotation from the orbit frame to the body over the last orbit of a nadir-pointing run."""
-    rows = list(csv.DictReader(open(channels)))
-    rows = rows[-len(rows) // 3:]
+def body_from_orbit(channels, q_off, roll_axis):
+    """The flight software's nadir reference, body <- orbit (x along track, y = -orbit normal, z = nadir).
+
+    Guidance builds the reference rows [-ram, -r, -n] (04_guidance.md), i.e. R0 below in orbit axes, then
+    applies the boresight offset q_off and, when the yaw flip is on, 180 deg about the boresight. Which of the
+    two the mission flew is read from its nadir phase: the candidate nearest the mean truth attitude there."""
+    R0 = np.array([[-1.0, 0, 0], [0, 0, 1], [0, 1, 0]])
+    u = np.array(roll_axis) / np.linalg.norm(roll_axis)
+    A0 = dcm(np.array(q_off)) @ R0
+    cands = [A0, dcm(np.array([u[0], u[1], u[2], 0.0])) @ A0]
+    rows = [r for r in csv.DictReader(open(channels)) if int(float(r["mode"])) - 1 in (1, 2)]   # nadir_mtq, nadir_fine
+    rows = rows[-len(rows) // 2:]
     acc = np.zeros((3, 3))
     for k in range(1, len(rows)):
         r0 = np.array([float(rows[k - 1][f"r_{a}_m"]) for a in "xyz"])
@@ -42,16 +50,9 @@ def body_from_orbit(channels, boresight):
         h = np.cross(r1, v); y = -h / np.linalg.norm(h)
         x = np.cross(y, z)
         Co = np.vstack([x, y, z])                       # rows: orbit axes in ECI
-        qx, qy, qz, qw = (float(rows[k][c]) for c in ("q_x", "q_y", "q_z", "q_w"))
-        A = np.array([[1 - 2 * (qy * qy + qz * qz), 2 * (qx * qy + qz * qw), 2 * (qx * qz - qy * qw)],
-                      [2 * (qx * qy - qz * qw), 1 - 2 * (qx * qx + qz * qz), 2 * (qy * qz + qx * qw)],
-                      [2 * (qx * qz + qy * qw), 2 * (qy * qz - qx * qw), 1 - 2 * (qx * qx + qy * qy)]])
-        # the quaternion convention is fixed by the physics: the boresight must look at nadir
-        if np.dot(A.T @ np.array(boresight), z) < 0:
-            A = A.T
-        acc += A @ Co.T                                 # body <- orbit
-    u, _, vt = np.linalg.svd(acc)
-    return u @ vt
+        q = np.array([float(rows[k][c]) for c in ("q_x", "q_y", "q_z", "q_w")])
+        acc += dcm(q) @ Co.T                             # body <- orbit (the same passive dcm as the flight software)
+    return max(cands, key=lambda C: np.trace(C.T @ acc))
 
 
 def qmul(a, b):
@@ -120,6 +121,8 @@ def monodromy(law, P, C_bo, inc, n, steps=1500):
         G = np.eye(3) - np.outer(b, b)
         tau = law_torque(law, P, qe, w, wref_r, e3, None)
         c = A @ nad
+        if int(P["mtq_gg_ff"]) & 2:                     # nadir-state gravity-gradient feed-forward (05_control.md)
+            tau = tau - 3 * n * n * np.cross(c, J @ c)
         wdot = Ji @ (-np.cross(w, J @ w) + 3 * n * n * np.cross(c, J @ c) + duty * (G @ tau))
         we = w - A @ wref_r
         return np.concatenate([we, wdot])                 # small-rotation kinematics of the error
@@ -151,8 +154,11 @@ def certify(case):
     scen = json.loads((pkg / "mission_scenario.json").read_text())
     # the reference frame from a mission that holds nadir: the selected family's
     ref = ROOT / fm[sel["selected"]]["check_dir"] / "c" / "channels.csv"
-    prod = json.loads((pkg / "sized" / "products" / f"SZ-{case}-mtq.json").read_text())
-    C_bo = body_from_orbit(ref, prod["payload_boresight_body"])
+    sp0 = PIPE / case / "floquet" / "_boot.json"; sp0.parent.mkdir(parents=True, exist_ok=True); sp0.write_text(json.dumps(scen))
+    subprocess.run([str(E.BIN), "params", str(sp0), "--case", str(MS / "cases" / f"{case}.csv"), "--out", str(sp0.with_suffix(".bin"))], cwd=MS,
+                   check=True, capture_output=True, env={**__import__("os").environ, "ADCS_SIZED_DIR": str(pkg / "sized")})
+    P0 = fswcfg.decode(sp0.with_suffix(".bin").read_bytes())
+    C_bo = body_from_orbit(ref, P0["gd_q_off"], P0["roll_axis"])
     inc = math.radians(E.case_value(case, "orbit.inc"))
     a = 6378137 + E.case_value(case, "orbit.alt") * 1e3
     n = math.sqrt(3.986004418e14 / a ** 3)

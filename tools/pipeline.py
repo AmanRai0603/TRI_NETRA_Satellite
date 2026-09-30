@@ -199,7 +199,7 @@ def node_assess(tests, modes):
     for t in tests:
         M = Mby[t["mode"]]
         mans = [json.loads((CACHE / k / "manifest.json").read_text()) for k in t["keys"] if (CACHE / k / "manifest.json").exists()]
-        fails, obj, metrics, viol = {}, None, {}, {}
+        fails, obj, metrics, viol, oreq = {}, None, {}, {}, None
         for m in mans:
             for x in m["metrics"]:
                 metrics.setdefault(x["id"], []).append(x.get("value"))
@@ -211,9 +211,10 @@ def node_assess(tests, modes):
                 if x["id"] == M["objective"] and x.get("value") is not None:
                     v = x["value"]
                     obj = v if obj is None else max(obj, v)
+                    oreq = x.get("req")
         feas = not fails and len(mans) == len(t["keys"])
         worst = {k: (max((v for v in vs if v is not None), default=None)) for k, vs in metrics.items()}
-        r = {**t, "feasible": feas, "failing": fails, "violation": viol, "objective": obj, "objective_id": M["objective"], "metrics": worst,
+        r = {**t, "feasible": feas, "failing": fails, "violation": viol, "objective": obj, "objective_id": M["objective"], "objective_req": oreq, "metrics": worst,
              "algorithms": (mans[0].get("algorithms") if mans else {})}
         key = (t["mode"], t["option"])
         cur = res.get(key)
@@ -257,9 +258,19 @@ def node_converge(case, res, knobs, variants_on, history, fine, modes, sel=None)
             changes.append(f"{part}: authority back to x{prev_scale:g} (no improvement)")
     want = {}                                  # part -> "up" | "down"
     for (mode, oid), r in sorted(res.items()):
-        if r["feasible"]:
-            continue
         o = next(x for x in Mby[mode]["options"] if x["id"] == oid)
+        if r["feasible"]:
+            # a coils-only option that passes with less than the tune margin left (worst seed above margin x req) is
+            # tuned too: it flies from two seeds here, and the Monte Carlo would find the thin margin
+            q = r.get("objective_req")
+            if r["slot"] in TUNE["grids"] and o["actuator"] in TUNE["actuators"] and isinstance(q, (int, float)) and q > 0 \
+                    and r["objective"] is not None and r["objective"] > TUNE["margin"] * q:
+                if (mode, oid) not in v:
+                    v.add((mode, oid)); changes.append(f"{mode}/{oid}: thin margin ({r['objective']:.3g} of {q:g}): fly every {r['slot']} algorithm")
+                elif [mode, oid] not in history.setdefault("_tuned", []):
+                    history["_tuned"].append([mode, oid])
+                    changes.append(f"{mode}/{oid}: thin margin ({r['objective']:.3g} of {q:g}): tune every {r['slot']} law's gains (Bruni & Celani 2017)")
+            continue
         kinds = set(r["failing"].values())
         part = auth_part(mode, o)
         if "performance" in kinds:
@@ -461,12 +472,14 @@ def node_dispatch(case, sel, sized, modes, build, fam=None):
     det, acq, fine = opt("detumble"), opt("sun_acquisition"), opt("nadir_pointing")
     a_ = 6378137 + E.case_value(case, "orbit.alt") * 1e3
     T = 2 * math.pi * math.sqrt(a_ ** 3 / 3.986004418e14)
+    # a coils-only nadir starts from the Sun spin: the despin and the magnetic capture take about two orbits
+    DP = P("dispatch"); coils = "coils_only" if fine["fsw_mode"] == "nadir_mtq" else "rotors"
     scen = {"schema": "adcs-scenario/1", "id": f"dispatch_{case}_{fam}", "case": case, "product": f"SZ-{case}-{fam}",
             "label": f"{case} — dispatched {fam}: {det['fsw_mode']} -> {acq['fsw_mode']} (auto) -> {fine['fsw_mode']} (schedule)",
-            "time": {"duration_s": round(3 * T), "dt_s": dt, "record_dt_s": 1.0},
+            "time": {"duration_s": round((DP["nadir_at_orbits"] + DP["nadir_orbits"][coils]) * T), "dt_s": dt, "record_dt_s": 1.0},
             "initial": {"attitude": {"kind": "random"}, "rate": {"kind": "random_direction", "magnitude_deg_s": "case:mission.w0"}},
             "fsw": {"start_mode": det["fsw_mode"], "auto_next": acq["fsw_mode"], "guidance": {"kind": "nadir"}, "algorithms": algs,
-                    "schedule": [{"t_s": round(2 * T), "mode": fine["fsw_mode"]}],
+                    "schedule": [{"t_s": round(DP["nadir_at_orbits"] * T), "mode": fine["fsw_mode"]}],
                     "rcs_dump": 1.0 if fine.get("dump") == "rcs" else 0.0, **({"dump_gain": 0.03} if fine["actuator"] == "fmr" else {}), **tune},
             "metrics": [{"id": "detumble_time", "kind": "time_to_rate", "rate_threshold_deg_s": 0.5, "hold_s": 600.0, "end_at_mode_exit": True, "requirement": "req.detumble"},
                         {"id": "ape_los_p9973", "kind": "ape_los", "window": "last_half_orbit", "statistic": "p99.73", "requirement": "req.ape"},
@@ -685,7 +698,7 @@ def run_case(case, a, modes, families, build):
           entry = {"iteration": it, "knobs": knobs, "class": sizing["class"], "selected": sel["selected"], "status": sel["status"],
                    "feasible_options": sum(r["feasible"] for r in res.values()), "options": len(res), "changes": changes, "blocked": blocked,
                    "families": {f: {"feasible": v["feasible"], "gaps": v["gaps"], "budget": v["budget"]} for f, v in sel["families"].items()},
-                   "matrix": [{**{k: r[k] for k in ("mode", "option", "alg", "feasible", "failing", "objective", "objective_id")},
+                   "matrix": [{**{k: r[k] for k in ("mode", "option", "alg", "feasible", "failing", "objective", "objective_id", "objective_req")},
                              **({"variants": r["variants"]} if r["option"] == "mtq" and "variants" in r else {})} for r in res.values()],
                  "tuned": history.get("_tuned", [])}
           log.append(entry)

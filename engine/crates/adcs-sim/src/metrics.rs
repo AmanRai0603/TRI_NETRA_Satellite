@@ -2,7 +2,7 @@
 use crate::config::{Config, GUID, MODES};
 use crate::json;
 use crate::run::Record;
-use adcs_fsw::ctl::{guidance, Guid};
+use adcs_fsw::ctl::{guidance, yaw_flip, Guid};
 use adcs_sim_core::la::*;
 use serde_json::{json, Value};
 
@@ -28,12 +28,18 @@ pub fn derive(c: &Config, rec: &Record) -> Derived {
     let p = &c.params;
     let mut d = Derived { ape_3ax: vec![f64::NAN; n], ape_los: vec![f64::NAN; n], ake_3ax: vec![f64::NAN; n], ake_los: vec![f64::NAN; n], rks: vec![f64::NAN; n], ..Default::default() };
     let mut e_vec = vec![[f64::NAN; 3]; n];
+    let mut flip = false;                      // the nadir-family yaw flip, with the flight software's hysteresis
     for (j, row) in rec.rows.iter().enumerate() {
+        if p.gd_yaw_flip != 0 {
+            let mut g = Guid { q_off: p.gd_q_off, sun_axis: c.dev.sun_axis, roll_axis: bs, sun_eci: row.sun_eci, flip, ..Default::default() };
+            yaw_flip(&mut g, &row.r, &row.v, p.gd_flip_hyst);
+            flip = g.flip;
+        }
         let b_true = mtv(&dcm(&row.q), &bs);
         let k = GUID.get(row.mode as usize).copied().unwrap_or(-1);
         if k >= 0 {
             let gd = Guid { q_off: p.gd_q_off, roll_deg: p.gd_roll_deg, t0: p.gd_t0, t_slew: p.gd_T, axis: p.gd_axis, q_inertial: p.gd_q_inertial,
-                sun_axis: c.dev.sun_axis, roll_axis: bs, sun_eci: row.sun_eci };
+                sun_axis: c.dev.sun_axis, roll_axis: bs, sun_eci: row.sun_eci, flip };
             let qr = guidance(k, &row.r, &row.v, row.t, &gd).q;
             let mut dq = qmult(&qconj(&qr), &row.q);
             if dq[3] < 0.0 { dq = [-dq[0], -dq[1], -dq[2], -dq[3]]; }

@@ -4,7 +4,9 @@
 #define ADCS_ENV_H
 #include "adcs_math.h"
 
-void adcs_gmst_rot(double jd, adcs_real C[3][3]);          /* ECI -> ECEF */
+void adcs_gmst_rot(double jd, adcs_real C[3][3]);          /* mean of date -> ECEF (GMST) */
+void adcs_prec_rot(double jd, adcs_real P[3][3]);          /* J2000 -> mean of date (IAU-76) */
+void adcs_eci2ecef(double jd, adcs_real C[3][3]);          /* J2000 -> ECEF */
 double adcs_decyear(double jd);
 void adcs_sun_model(double jd, adcs_real s[3]);             /* unit, J2000 */
 void adcs_geodetic(const adcs_real r_ecef[3], adcs_real *lat, adcs_real *lon, adcs_real *h);

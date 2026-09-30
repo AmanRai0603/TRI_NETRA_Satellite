@@ -11,6 +11,20 @@ pub fn gmst_rot(jd: f64) -> M3 {
     g = g/240.0*D2R;
     [[cos(g), sin(g), 0.0], [-sin(g), cos(g), 0.0], [0.0, 0.0, 1.0]]
 }
+/// J2000 -> mean of date (IAU-76 precession): P = R3(-z) R2(theta) R3(-zeta).
+pub fn prec_rot(jd: f64) -> M3 {
+    let t = (jd - 2451545.0)/36525.0;
+    let as_ = PI/(180.0*3600.0);
+    let ze = (2306.2181*t + 0.30188*t*t + 0.017998*t*t*t)*as_;
+    let z = (2306.2181*t + 1.09468*t*t + 0.018203*t*t*t)*as_;
+    let th = (2004.3109*t - 0.42665*t*t - 0.041833*t*t*t)*as_;
+    let (cz, sz, cc, sc, ct, st) = (cos(ze), sin(ze), cos(z), sin(z), cos(th), sin(th));
+    [[cc*ct*cz - sc*sz, -cc*ct*sz - sc*cz, -cc*st],
+     [sc*ct*cz + cc*sz, -sc*ct*sz + cc*cz, -sc*st],
+     [st*cz, -st*sz, ct]]
+}
+/// J2000 -> ECEF: precession to the mean equator of date, then GMST (nutation and polar motion omitted).
+pub fn eci2ecef(jd: f64) -> M3 { mat3_mul(&gmst_rot(jd), &prec_rot(jd)) }
 pub fn decyear(jd: f64) -> f64 { 2000.0 + (jd - 2451544.5)/365.25 }
 fn mod360(x: f64) -> f64 { let x = fmod(x, 360.0); if x < 0.0 { x + 360.0 } else { x } }
 
@@ -126,7 +140,7 @@ pub fn igrf_ned(gh: &[f64; 195], lat: f64, lon: f64, alt_km: f64, nmax: i32) -> 
 
 /// Field in ECI [T] at r_eci [m].
 pub fn field_eci(r_eci: &V3, jd: f64, gh: &[f64; 195], nmax: i32) -> V3 {
-    let c = gmst_rot(jd);
+    let c = eci2ecef(jd);
     let re = mat3_vec(&c, r_eci);
     let (lat, lon, h) = geodetic(&re);
     let mut bn = igrf_ned(gh, lat, lon, h/1000.0, nmax);

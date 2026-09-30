@@ -8,6 +8,10 @@ pub type Q = [f64; 4];
 
 pub const PI: f64 = core::f64::consts::PI;
 pub const D2R: f64 = PI / 180.0;
+/// Earth rotation rate [rad/s], J2 and equatorial radius [m] (adcs_math.h).
+pub const OMEGA_E: f64 = 7.2921158553e-5;
+pub const J2: f64 = 1.08262668e-3;
+pub const RE: f64 = 6378137.0;
 
 #[inline] pub fn dot(a: &V3, b: &V3) -> f64 { a[0]*b[0] + a[1]*b[1] + a[2]*b[2] }
 #[inline] pub fn cross(a: &V3, b: &V3) -> V3 { [a[1]*b[2] - a[2]*b[1], a[2]*b[0] - a[0]*b[2], a[0]*b[1] - a[1]*b[0]] }

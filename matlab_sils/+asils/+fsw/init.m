@@ -12,7 +12,7 @@ function F = init(P, jd0)
     F.B1raw = []; F.bsum_raw = zeros(3,1); F.s_prop = [];
     ssv = struct('sunspin_l1l2', {{'E1', 0}}, 'sunspin_l1l2_e2', {{'E2', 0}}, 'sunspin_damped', {{'E2', 0.5}});
     if isfield(ssv, a.sun_acquisition), v = ssv.(a.sun_acquisition); F.P.ss.eclipse = v{1}; F.P.ss.rz_floor = v{2}; end
-    F.mode = F.P.start_mode; F.t_mode = 0; F.hold = 0;
+    F.mode = F.P.start_mode; F.t_mode = 0; F.hold = 0; F.ho = false; F.ho_t = 0;
     F.K = []; F.ad_ok = false; F.t_st = -1e9;
     F.r = []; F.v = []; F.t_fix = -1;
     F.b1 = []; F.bsum = zeros(3,1); F.bn = 0; F.m_body = zeros(3,1); F.m_hold = zeros(3,1);
@@ -49,7 +49,8 @@ function F = init(P, jd0)
     F.I_q = zeros(3,1); F.q_ref = nan(4,1); F.w_ref = nan(3,1);
     F.gd = F.P.guidance; F.gh = []; F.Bref = []; F.t_Bref = -1e9;
     F.gd.sun_axis = dev.sun_axis; F.gd.roll_axis = dev.boresight;   % Sun referencing: power face, roll axis
-    F.gd.sun_eci = asils.fsw.sun_model(jd0);
+    F.gd.sun_eci = asils.fsw.sun_model(jd0); F.gd.flip = false;
+    F.mag_done = false;
     MT = asils.fsw.modes(); F.gd_kind0 = MT.guidance{strcmp(MT.state, F.mode)};
     F.sched = asils.util.getf(F.P, 'schedule', []); F.sched_i = 1;   % commanded mode changes [t_s, mode]
     F.acq_hold = 0; F.capturing = false; F.rcs_left = [];

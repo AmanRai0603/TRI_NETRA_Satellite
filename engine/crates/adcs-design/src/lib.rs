@@ -97,7 +97,7 @@ pub fn demand(root: &Path, case_file: &Path, k: &Knobs) -> Result<Demand, String
     for kk in 0..n {
         let t = kk as f64*dt;
         let (r, vv) = orb.state(t)?;
-        let e = orb.env(t, &r, &vv, &gh, 13);
+        let e = orb.env(t, c.jd0, &r, &vv, &gh, 13);
         bm[kk] = norm(&e.b_eci); nu[kk] = e.nu;
         for a in 0..4 {
             let g = if a < 3 { Guid { q_off: offs[a], ..Default::default() } }
