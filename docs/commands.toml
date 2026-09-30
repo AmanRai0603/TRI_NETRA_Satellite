@@ -376,3 +376,23 @@ steps = ["draw the icon at 1024 px", "write the PNG, the multi-size ICO and the 
 reads = []
 writes = ["engine/crates/trinetra-app/icon/trinetra.png, .ico, .icns"]
 runs = []
+
+[[command]]
+tool = "macapp.py"
+name = "macapp"
+usage = "python3 tools/macapp.py --kit <macOS kit> [--out DIR]"
+what = "The macOS desktop app, TRI-NETRA ADCS.app, from a macOS kit: the app program in Contents/MacOS, the kit's data in Contents/Resources, the icon, Info.plist and PkgInfo. The release workflow signs it and zips it."
+steps = ["refuse a kit with no trinetra-app program", "empty <out>/TRI-NETRA ADCS.app", "copy the program, the data and the documents, the icon", "write Info.plist (name, version, bundle id) and PkgInfo"]
+reads = ["the macOS kit", "engine/crates/trinetra-app/icon/trinetra.icns"]
+writes = ["dist/app/TRI-NETRA ADCS.app (or --out)"]
+runs = []
+
+[[command]]
+tool = "build_wheel.py"
+name = "build-wheel"
+usage = "python3 tools/build_wheel.py --kit <files-only kit> --bin SYSTEM=DIR... [--out DIR] | --selftest"
+what = "One Python package for every computer: the front end (python/trinetra_adcs), the engine and the desktop app for each system given, and the data; it installs trinetra-adcs and trinetra-adcs-app and compiles nothing."
+steps = ["check the kit and the systems", "write every file with its executable bit and its SHA-256 in RECORD", "write METADATA, WHEEL and the entry points", "verify the RECORD against the wheel"]
+reads = ["python/trinetra_adcs/", "a files-only kit", "each system's adcs and trinetra-app"]
+writes = ["dist/trinetra_adcs-<version>-py3-none-any.whl (or --out)"]
+runs = []

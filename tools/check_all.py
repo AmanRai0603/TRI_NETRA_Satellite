@@ -26,6 +26,8 @@ CHECKS = [
     # name, what it proves, command, working folder, programs it needs
     ("python-tests", "the tools' own tests: the registry, generated files, the Kp -> ap table, atomic writes",
      [PY, "-m", "unittest", "discover", "-s", "tests", "-t", "tests"], ".", []),
+    ("wheel", "the Python package builder: RECORD, entry points, executable bits, a changed byte caught",
+     [PY, "tools/build_wheel.py", "--selftest"], ".", []),
     ("catalogue", "every JSON the engine and the twin read is its TOML",
      [PY, "tools/export_catalogue.py", "--check"], ".", []),
     ("fsw-params", "the C and Rust parameter tables are their definition",

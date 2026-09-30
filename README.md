@@ -3,6 +3,17 @@ Complete Satellite ADCS Design and Simulation (MBSE/SILS/OILS/HILS) Codebase
 
 **Owner: Agastya.** Copyright (c) 2026 Agastya. All rights reserved. See `NOTICE.md`.
 
+## Use it without building anything
+
+Download the app for your system (Windows, macOS, Linux) or the one Python package from the
+[latest release](https://github.com/AmanRai0603/TRI_NETRA_Satellite/releases/latest), open
+**TRI-NETRA ADCS**, pick a case and a scenario, and read the verdicts. `docs/START_HERE.md`
+walks through it; `docs/FIRST_RUN.md` says what an unsigned program's first start asks.
+
+    python -m pip install trinetra_adcs-<version>-py3-none-any.whl
+    trinetra-adcs-app          # the desktop app
+    trinetra-adcs help         # the engine's command line (adcs)
+
 ## What it does
 
 A customer gives one **case**: orbit, mass properties, surfaces and pointing requirements
@@ -42,9 +53,18 @@ Who runs what (C / Rust / Python / MATLAB): `docs/figures/architecture_languages
 | `results/index.html` | the report with every figure |
 | `dist/` | the downloadable MATLAB SILS zip and the flight-software + Rust-engine zip; `dist/dispatch/` holds the dispatch packages |
 | `tools/` | `pipeline.py` (the design loop, node by node), `engine.py` (build, run, Monte Carlo, campaigns, soft OILS and parity on the Rust engine), `vv_report.py` + `templates/vv_report.html` (the V&V report, HTML + PDF), `figures/` (the two diagrams), `gen_fsw_params.py` (params → C + Rust), `export_catalogue.py` (TOML → JSON), `run_matrix.py` (parallel runner), `report.py`, `pack_matlab.py`, `pack_flight.py` (flight software + engine zip), `components_doc.py` |
+| `engine/crates/trinetra-app/` | the desktop app: a local page to pick a case and a scenario, fly it, keep and export runs |
+| `python/trinetra_adcs/` | the Python package's front end: it runs the engine and the app it carries for the computer it is on |
+| `tests/`, `tools/check_all.py` | the tools' tests, and every check in one command (`python3 tools/check_all.py`; CI runs it) |
+| `docs/commands.toml`, `docs/COMMANDS.md` | every command: what it does, its steps, what it reads and writes (`python3 tools/trinetra.py explain <command>`) |
+| `docs/CHANGING.md` | for each kind of change: what to edit, what to regenerate, which check proves it |
+| `tools/kit.py`, `tools/macapp.py`, `tools/build_wheel.py` | the release downloads: the kits, the macOS app, the Python package (`docs/RELEASE_SETUP.md`) |
 | `spec/` | the ADCS platform's build specification: a standalone package, with its own tools and checks |
 
 ## Run it
+
+Before pushing, `python3 tools/check_all.py` runs every check. `--dry-run` on `engine.py` and
+`pipeline.py` says what a command will do before it does it.
 
 ```bash
 python3 tools/engine.py build && python3 tools/engine.py run   # flight software (C + Rust) and the Rust engine

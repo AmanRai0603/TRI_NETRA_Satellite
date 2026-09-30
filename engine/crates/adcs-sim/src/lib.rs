@@ -35,11 +35,14 @@ pub fn data_root() -> std::path::PathBuf {
     "matlab_sils".into()
 }
 
-/// The folder of a released kit or installed package: the program's own folder (or its
-/// parent) when it holds `data/scenarios` and the kit's `VERSION` file.
+/// The folder of a released kit or installed package: the program's own folder (or one
+/// above it, or a bundle's Contents/Resources) when it holds `data/scenarios` and the kit's
+/// `VERSION` file.
 pub fn kit_root() -> Option<std::path::PathBuf> {
     let exe = std::env::current_exe().ok()?.canonicalize().ok()?;
-    exe.ancestors().skip(1).take(3).find(|d| d.join("data/scenarios").is_dir() && d.join("VERSION").is_file()).map(|d| d.to_path_buf())
+    let is_kit = |d: &std::path::Path| d.join("data/scenarios").is_dir() && d.join("VERSION").is_file();
+    // a kit folder, or a macOS app bundle (the program in Contents/MacOS, the data in Contents/Resources)
+    exe.ancestors().skip(1).take(3).flat_map(|d| [d.to_path_buf(), d.join("Resources")]).find(|d| is_kit(d))
 }
 
 /// Where runs and sized designs are written: `$TRINETRA_STORE`; else, for a released kit,

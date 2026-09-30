@@ -19,3 +19,7 @@ matlab_sils/store/solutions_engine/**/channels.csv
 .claude/
 matlab_sils/store/pipeline/cache/
 matlab_sils/store/pipeline/**/channels.csv
+# release builds (tools/kit.py, tools/macapp.py, tools/build_wheel.py): made by the release workflow
+dist/kit/
+dist/app/
+dist/*.whl

@@ -42,6 +42,8 @@
 | [`check_all.py check-all`](#check_allpy-check-all) | Every check the repository has, one line each with a verdict: the Python tests, the generated files, the C and Rust flight software, the engine, the specification package and the stored design loop; --octave adds the MATLAB twin's suites. |
 | [`kit.py kit`](#kitpy-kit) | The tool as a team member gets it: the programs beside exactly the files they read (data, cases, the ephemeris), with VERSION and the first-run documents; --files-only leaves the programs out, for the Python package. |
 | [`make_icon.py make-icon`](#make_iconpy-make-icon) | Draw the desktop app's icon (three eyes on an orbit) as PNG, ICO and ICNS; run only to change it. |
+| [`macapp.py macapp`](#macapppy-macapp) | The macOS desktop app, TRI-NETRA ADCS.app, from a macOS kit: the app program in Contents/MacOS, the kit's data in Contents/Resources, the icon, Info.plist and PkgInfo. The release workflow signs it and zips it. |
+| [`build_wheel.py build-wheel`](#build_wheelpy-build-wheel) | One Python package for every computer: the front end (python/trinetra_adcs), the engine and the desktop app for each system given, and the data; it installs trinetra-adcs and trinetra-adcs-app and compiles nothing. |
 
 ## adcs run
 
@@ -612,4 +614,38 @@ Draw the desktop app's icon (three eyes on an orbit) as PNG, ICO and ICNS; run o
 
 - **Reads:** nothing
 - **Writes:** `engine/crates/trinetra-app/icon/trinetra.png, .ico, .icns`
+- **Starts:** nothing
+
+## macapp.py macapp
+
+The macOS desktop app, TRI-NETRA ADCS.app, from a macOS kit: the app program in Contents/MacOS, the kit's data in Contents/Resources, the icon, Info.plist and PkgInfo. The release workflow signs it and zips it.
+
+    python3 tools/macapp.py --kit <macOS kit> [--out DIR]
+
+**Steps**
+
+1. refuse a kit with no trinetra-app program
+2. empty <out>/TRI-NETRA ADCS.app
+3. copy the program, the data and the documents, the icon
+4. write Info.plist (name, version, bundle id) and PkgInfo
+
+- **Reads:** the macOS kit; `engine/crates/trinetra-app/icon/trinetra.icns`
+- **Writes:** `dist/app/TRI-NETRA ADCS.app (or --out)`
+- **Starts:** nothing
+
+## build_wheel.py build-wheel
+
+One Python package for every computer: the front end (python/trinetra_adcs), the engine and the desktop app for each system given, and the data; it installs trinetra-adcs and trinetra-adcs-app and compiles nothing.
+
+    python3 tools/build_wheel.py --kit <files-only kit> --bin SYSTEM=DIR... [--out DIR] | --selftest
+
+**Steps**
+
+1. check the kit and the systems
+2. write every file with its executable bit and its SHA-256 in RECORD
+3. write METADATA, WHEEL and the entry points
+4. verify the RECORD against the wheel
+
+- **Reads:** `python/trinetra_adcs/`; a files-only kit; each system's adcs and trinetra-app
+- **Writes:** `dist/trinetra_adcs-<version>-py3-none-any.whl (or --out)`
 - **Starts:** nothing

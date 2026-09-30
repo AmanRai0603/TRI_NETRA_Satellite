@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TRI-NETRA ADCS</title>
+<link rel="icon" href="/icon.png">
+<style>
+:root { --bg:#f6f7f9; --panel:#fff; --ink:#1b2430; --dim:#5b6675; --line:#dfe3e8; --accent:#2462a8; --pass:#1e7a3c; --fail:#b3261e; --chip:#eef2f7; }
+@media (prefers-color-scheme: dark) { :root { --bg:#12161c; --panel:#1b2129; --ink:#e7ebf0; --dim:#9aa6b4; --line:#2c3440; --accent:#6aa7ec; --pass:#5cc17f; --fail:#f07b72; --chip:#232b36; } }
+* { box-sizing:border-box }
+body { margin:0; background:var(--bg); color:var(--ink); font:15px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif }
+header { display:flex; align-items:center; gap:12px; padding:12px 20px; background:var(--panel); border-bottom:1px solid var(--line) }
+header img { width:34px; height:34px }
+header h1 { font-size:18px; margin:0 }
+header .ver { color:var(--dim); font-size:13px }
+header button { margin-left:auto }
+main { display:grid; grid-template-columns:minmax(280px, 360px) 1fr; gap:16px; padding:16px 20px; max-width:1200px; margin:0 auto }
+@media (max-width: 800px) { main { grid-template-columns:1fr } }
+section { background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:16px }
+h2 { font-size:15px; margin:0 0 10px }
+label { display:block; font-size:13px; color:var(--dim); margin:10px 0 4px }
+select, input { width:100%; padding:7px 8px; border:1px solid var(--line); border-radius:6px; background:var(--bg); color:var(--ink); font:inherit }
+.row { display:flex; gap:10px } .row > div { flex:1 }
+button { padding:8px 14px; border-radius:6px; border:1px solid var(--line); background:var(--chip); color:var(--ink); font:inherit; cursor:pointer }
+button.primary { background:var(--accent); border-color:var(--accent); color:#fff; width:100%; margin-top:14px }
+button:disabled { opacity:.6; cursor:wait }
+.hint { color:var(--dim); font-size:13px; margin:6px 0 0 }
+table { width:100%; border-collapse:collapse; font-size:14px }
+th, td { text-align:left; padding:6px 8px; border-bottom:1px solid var(--line); vertical-align:top }
+th { color:var(--dim); font-weight:600; font-size:12px }
+td.num { text-align:right; font-variant-numeric:tabular-nums }
+.badge { display:inline-block; padding:1px 8px; border-radius:10px; font-size:12px; font-weight:600 }
+.PASS { background:color-mix(in srgb, var(--pass) 18%, transparent); color:var(--pass) }
+.FAIL { background:color-mix(in srgb, var(--fail) 18%, transparent); color:var(--fail) }
+.err { color:var(--fail); white-space:pre-wrap }
+pre { white-space:pre-wrap; background:var(--bg); border:1px solid var(--line); border-radius:6px; padding:10px; font-size:13px; overflow:auto }
+a { color:var(--accent) }
+.stack > section + section { margin-top:16px }
+</style>
+</head>
+<body>
+<header>
+  <img src="/icon.png" alt="">
+  <div><h1>TRI-NETRA ADCS</h1><div class="ver" id="ver">&nbsp;</div></div>
+  <button id="quit" title="End the app">Quit</button>
+</header>
+<main>
+  <section>
+    <h2>Fly a scenario</h2>
+    <label for="case">Case (the satellite and its requirements)</label>
+    <select id="case"></select>
+    <label for="scen">Scenario</label>
+    <select id="scen"></select>
+    <p class="hint" id="scenhint"></p>
+    <div class="row">
+      <div><label for="fsw">Flight software</label><select id="fsw"><option value="c">C</option><option value="rust">Rust</option></select></div>
+      <div><label for="seed">Seed</label><input id="seed" type="number" min="0" step="1" value="1"></div>
+    </div>
+    <label for="dur">Duration, seconds (blank: the scenario's own)</label>
+    <input id="dur" type="number" min="1" step="1" placeholder="">
+    <button class="primary" id="go">Fly it</button>
+    <p class="hint">The engine flies the plant, the environment and the orbit with the flight software in the loop, then judges every metric against the case's requirements.</p>
+  </section>
+  <div class="stack">
+    <section>
+      <h2 id="restitle">Verdicts</h2>
+      <div id="result"><p class="hint">Pick a case and a scenario, then fly it.</p></div>
+    </section>
+    <section>
+      <h2>Your runs</h2>
+      <div id="runs"><p class="hint">None yet.</p></div>
+      <div id="detail"></div>
+    </section>
+  </div>
+</main>
+<script>
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const post = (url, body) => fetch(url, {method: "POST", headers: {"Content-Type": "application/json", "X-Trinetra": "1"}, body: JSON.stringify(body || {})});
+let CAT = {cases: [], scenarios: []};
+
+function fmt(v) {
+  if (v === null || v === undefined || Number.isNaN(v)) return "—";
+  const a = Math.abs(v);
+  return (a !== 0 && (a < 1e-3 || a >= 1e5)) ? v.toExponential(3) : v.toPrecision(4).replace(/\.?0+$/, "");
+}
+
+function fillScenarios() {
+  const c = $("case").value;
+  const list = CAT.scenarios.filter(s => s.case === c);
+  $("scen").innerHTML = list.map(s => `<option value="${esc(s.id)}">${esc(s.id)} — ${esc(s.label)}</option>`).join("");
+  showHint();
+}
+function showHint() {
+  const s = CAT.scenarios.find(x => x.id === $("scen").value);
+  $("scenhint").textContent = s ? `product ${s.product}; ${Math.round(s.duration_s)} s (${(s.duration_s / 60).toFixed(0)} min) of flight` : "";
+}
+
+function metricsTable(ms) {
+  const rows = (ms || []).map(m => {
+    const v = m.pass === 1 ? "PASS" : m.pass === 0 ? "FAIL" : "";
+    return `<tr><td>${esc(m.id)}</td><td class="num">${fmt(m.value)}</td><td>${esc(m.unit)}</td><td class="num">${m.req === null ? "—" : fmt(m.req)}</td><td>${v ? `<span class="badge ${v}">${v}</span>` : ""}</td></tr>`;
+  }).join("");
+  return `<table><tr><th>metric</th><th style="text-align:right">value</th><th>unit</th><th style="text-align:right">requirement</th><th>verdict</th></tr>${rows}</table>`;
+}
+
+async function loadRuns() {
+  const r = await (await fetch("/v1/runs")).json();
+  if (!r.runs.length) { $("runs").innerHTML = `<p class="hint">None yet. Runs are kept in ${esc(r.store)}.</p>`; return; }
+  $("runs").innerHTML = `<table><tr><th>when (UTC)</th><th>scenario</th><th>case</th><th>pass / fail</th><th></th></tr>` +
+    r.runs.slice(0, 50).map(x => `<tr><td>${esc((x.created || "").replace("T", " ").replace("Z", ""))}</td><td>${esc(x.scenario)}</td><td>${esc(x.case)}</td>` +
+      `<td><span class="badge PASS">${x.pass}</span> <span class="badge FAIL">${x.fail}</span></td>` +
+      `<td><a href="#" data-show="${esc(x.run)}">show</a> · <a href="/v1/export?run=${encodeURIComponent(x.run)}">export</a></td></tr>`).join("") +
+    `</table><p class="hint">Kept in ${esc(r.store)}. Export writes one .trinetra file to send; <code>adcs results import</code> opens it.</p>`;
+}
+
+async function show(run) {
+  const r = await (await fetch("/v1/run?run=" + encodeURIComponent(run))).json();
+  $("detail").innerHTML = r.ok === false ? `<p class="err">${esc(r.error)}</p>` : `<pre>${esc(r.text)}</pre>`;
+}
+
+async function fly() {
+  const body = {scenario: $("scen").value, case: $("case").value, fsw: $("fsw").value, seed: Number($("seed").value || 1)};
+  if ($("dur").value) body.duration_s = Number($("dur").value);
+  $("go").disabled = true; $("go").textContent = "Flying…";
+  $("result").innerHTML = `<p class="hint">Flying ${esc(body.scenario)} on ${esc(body.case)}…</p>`;
+  try {
+    const r = await (await post("/v1/run", body)).json();
+    if (!r.ok) { $("result").innerHTML = `<p class="err">${esc(r.error)}</p>`; return; }
+    $("restitle").textContent = `Verdicts — ${r.scenario} on ${r.case}`;
+    $("result").innerHTML = metricsTable(r.metrics) +
+      `<p class="hint">${fmt(r.duration_s)} s of flight in ${fmt(r.wall_s)} s; flight software ${esc(r.fsw)}; kept as ${esc(r.run)}.</p>`;
+    loadRuns();
+  } catch (e) {
+    $("result").innerHTML = `<p class="err">The app did not answer: ${esc(e)}. If you pressed Quit, open it again.</p>`;
+  } finally { $("go").disabled = false; $("go").textContent = "Fly it"; }
+}
+
+async function start() {
+  const v = await (await fetch("/v1/version")).json();
+  $("ver").textContent = `version ${v.version} · ${v.engine}`;
+  CAT = await (await fetch("/v1/catalogue")).json();
+  $("case").innerHTML = CAT.cases.map(c => `<option value="${esc(c.id)}">${esc(c.id)} — ${esc(c.title)}</option>`).join("");
+  fillScenarios();
+  loadRuns();
+}
+
+$("case").addEventListener("change", fillScenarios);
+$("scen").addEventListener("change", showHint);
+$("go").addEventListener("click", fly);
+$("runs").addEventListener("click", e => { const t = e.target.closest("[data-show]"); if (t) { e.preventDefault(); show(t.dataset.show); } });
+$("quit").addEventListener("click", async () => {
+  await post("/v1/quit");
+  document.body.innerHTML = `<main style="display:block"><section><h2>TRI-NETRA ADCS has ended.</h2><p class="hint">You can close this tab. Your runs are kept; open the app again to see them.</p></section></main>`;
+});
+setInterval(() => post("/v1/ping").catch(() => {}), 20000);
+start().catch(e => { $("result").innerHTML = `<p class="err">${esc(e)}</p>`; });
+</script>
+</body>
+</html>
