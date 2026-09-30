@@ -179,9 +179,11 @@ On ais_3u, over the last three of six orbits from the Sun spin, with four seeds:
 | 3n, ζ 1 | 8.4–10.5° | 59–92° |
 | 4n, ζ 2 | 14–17.6° | 59–81° |
 
-The term ships switched off (`fsw.roll_gain` 0). It is switched on per mission by `roll_gain` 1 with
-`roll_wn_orbits` and `roll_zeta`. Which point of the trade to fly is a requirement decision: pointing margin
-against power-face illumination. The case files carry no power-face requirement.
+**Flown: 3n, ζ 1** (`roll_gain` 1, `roll_wn_orbits` 3, `roll_zeta` 1; the owner's choice of the trade).
+- It holds the power face at roughly 60–90° from the Sun instead of shaded.
+- It certifies with a largest Floquet multiplier of 0.913 (stable, thinner margin than the 2n option).
+- Its worst seed sits at the 10° pointing line.
+- `roll_gain` 0 switches it off.
 
 ## What stays open
 

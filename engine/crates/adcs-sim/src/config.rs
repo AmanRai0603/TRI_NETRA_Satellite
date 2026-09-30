@@ -176,8 +176,8 @@ impl Config {
             // inertia at roll_wn orbit rates, damping roll_zeta. A bare fraction of the boresight gain is not enough:
             // at the tuned rate gain the Floquet multiplier of the loop grows to 4 per orbit (docs/MTQ_LITERATURE.md)
             let ea = dev.boresight; let je = (0..3).map(|i| ea[i]*(0..3).map(|j| inertia[i][j]*ea[j]).sum::<f64>()).sum::<f64>();
-            let wr = json::f(&fsw, "roll_wn_orbits", 2.0)*n; let zr = json::f(&fsw, "roll_zeta", 2.0);
-            p.sb_kroll = json::f(&fsw, "roll_gain", 0.0)*je*wr*wr; p.sb_kdroll = 2.0*zr*je*wr;
+            let wr = json::f(&fsw, "roll_wn_orbits", 3.0)*n; let zr = json::f(&fsw, "roll_zeta", 1.0);
+            p.sb_kroll = json::f(&fsw, "roll_gain", 1.0)*je*wr*wr; p.sb_kdroll = 2.0*zr*je*wr;
             p.sb_roll_gate = (json::f(&fsw, "roll_gate_deg", 15.0)*PI/180.0).cos();
             // hand-over from a spinning body (P11 despin to the reference rate, then the law), and the
             // gravity-gradient feed-forward in the Sun state (at nadir the gradient is the restoring spring)
