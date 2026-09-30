@@ -114,6 +114,9 @@ int32_t adcs_params_decode(const uint8_t *blob, size_t len, adcs_params_t *out)
     out->ss_dr_k2 = rd_f64(p); p += 8;
     out->sb_kp = rd_f64(p); p += 8;
     out->sb_kd = rd_f64(p); p += 8;
+    out->sb_kroll = rd_f64(p); p += 8;
+    out->sb_kdroll = rd_f64(p); p += 8;
+    out->sb_roll_gate = rd_f64(p); p += 8;
     out->ho_in_dps = rd_f64(p); p += 8;
     out->ho_out_dps = rd_f64(p); p += 8;
     out->ho_hold_s = rd_f64(p); p += 8;
@@ -268,6 +271,9 @@ size_t adcs_params_encode(const adcs_params_t *in, uint8_t *buf, size_t cap)
     wr_f64(p, in->ss_dr_k2); p += 8;
     wr_f64(p, in->sb_kp); p += 8;
     wr_f64(p, in->sb_kd); p += 8;
+    wr_f64(p, in->sb_kroll); p += 8;
+    wr_f64(p, in->sb_kdroll); p += 8;
+    wr_f64(p, in->sb_roll_gate); p += 8;
     wr_f64(p, in->ho_in_dps); p += 8;
     wr_f64(p, in->ho_out_dps); p += 8;
     wr_f64(p, in->ho_hold_s); p += 8;

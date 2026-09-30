@@ -10,7 +10,8 @@
  "feasible_options": 9,
  "options": 25,
  "changes": [
-  "rate stability: gyro noise x0.3 -> x0.1 (fibre-optic class)",
+  "gyro grade back to x1: rate-stability violation 13.6 -> 13.7",
+  "nadir_pointing/fmr+mtq: fluid-loop flow sensor 2 -> 0.5 mm/s (1 sigma)",
   "mtqp: authority x1 -> x1.5 (performance)"
  ],
  "blocked": [
@@ -3107,7 +3108,7 @@
     "ape_los_p9973": "performance",
     "rate_stability_p9973": "performance"
    },
-   "objective": 4.598688585555621,
+   "objective": 25.442391487654763,
    "objective_id": "ape_los_p9973",
    "objective_req": 0.01,
    "variants": [
@@ -3196,8 +3197,8 @@
       "ake_los_p9973": "knowledge",
       "rate_stability_p9973": "performance"
      },
-     "objective": 34.38843141789575,
-     "violation": 3455.504763679674
+     "objective": 65.17368658849777,
+     "violation": 6548.250322762995
     },
     {
      "alg": "mtq_tango2013",
@@ -5288,40 +5289,41 @@
       "ape_los_p9973": "performance",
       "rate_stability_p9973": "performance"
      },
-     "objective": 59.69166083745247,
-     "violation": 5984.844140258199
+     "objective": 66.47036141792259,
+     "violation": 6664.8079427960165
     },
     {
      "alg": "mtq_celani2026@mtq_gain_p=0.25,mtq_gain_d=0.25,handover_out_dps=0.5",
      "feasible": false,
      "failing": {
       "ape_los_p9973": "performance",
-      "rate_stability_p9973": "performance",
-      "ake_los_p9973": "knowledge"
+      "ake_los_p9973": "knowledge",
+      "rate_stability_p9973": "performance"
      },
-     "objective": 32.069067304777654,
-     "violation": 3215.9136096146067
+     "objective": 60.73828960657992,
+     "violation": 6130.565811937668
     },
     {
      "alg": "mtq_celani2026@mtq_gain_p=0.25,mtq_gain_d=0.25,handover_out_dps=1",
      "feasible": false,
      "failing": {
       "ape_los_p9973": "performance",
-      "rate_stability_p9973": "performance"
+      "rate_stability_p9973": "performance",
+      "ake_los_p9973": "knowledge"
      },
-     "objective": 58.05500524850298,
-     "violation": 5820.80796763263
+     "objective": 54.72277015505862,
+     "violation": 5489.719699737272
     },
     {
      "alg": "mtq_celani2026@mtq_gain_p=0.25,mtq_gain_d=1,handover_out_dps=0.25",
      "feasible": false,
      "failing": {
       "ape_los_p9973": "performance",
-      "rate_stability_p9973": "performance",
-      "ake_los_p9973": "knowledge"
+      "ake_los_p9973": "knowledge",
+      "rate_stability_p9973": "performance"
      },
      "objective": 115.49060207369872,
-     "violation": 11624.51023807605
+     "violation": 11625.749274008702
     },
     {
      "alg": "mtq_celani2026@mtq_gain_p=0.25,mtq_gain_d=1,handover_out_dps=0.5",
@@ -5364,7 +5366,7 @@
       "rate_stability_p9973": "performance"
      },
      "objective": 172.92138459782265,
-     "violation": 17478.246518898646
+     "violation": 17473.06891330029
     },
     {
      "alg": "mtq_celani2026@mtq_gain_p=0.25,mtq_gain_d=4,handover_out_dps=1",
@@ -5374,8 +5376,8 @@
       "rate_stability_p9973": "performance",
       "ake_los_p9973": "knowledge"
      },
-     "objective": 166.1075889838152,
-     "violation": 16700.566367875963
+     "objective": 136.75049180039375,
+     "violation": 13736.730058333438
     },
     {
      "alg": "mtq_celani2026@mtq_gain_p=1,mtq_gain_d=0.25,handover_out_dps=0.25",
@@ -5384,28 +5386,30 @@
       "ape_los_p9973": "performance",
       "rate_stability_p9973": "performance"
      },
-     "objective": 20.18009486048614,
-     "violation": 2027.6999609265765
+     "objective": 54.29987650273694,
+     "violation": 5453.342084099908
     },
     {
      "alg": "mtq_celani2026@mtq_gain_p=1,mtq_gain_d=0.25,handover_out_dps=0.5",
      "feasible": false,
      "failing": {
       "ape_los_p9973": "performance",
-      "rate_stability_p9973": "performance"
+      "rate_stability_p9973": "performance",
+      "ake_los_p9973": "knowledge"
      },
-     "objective": 11.7367352363962,
-     "violation": 1179.622240919548
+     "objective": 31.551565662702213,
+     "violation": 3204.921642456103
     },
     {
      "alg": "mtq_celani2026@mtq_gain_p=1,mtq_gain_d=0.25,handover_out_dps=1",
      "feasible": false,
      "failing": {
       "ape_los_p9973": "performance",
-      "rate_stability_p9973": "performance"
+      "rate_stability_p9973": "performance",
+      "ake_los_p9973": "knowledge"
      },
-     "objective": 12.262042837229789,
-     "violation": 1233.3703581385093
+     "objective": 59.34120613995303,
+     "violation": 5980.601220733511
     },
     {
      "alg": "mtq_celani2026@mtq_gain_p=1,mtq_gain_d=1,handover_out_dps=0.25",
@@ -5414,8 +5418,8 @@
       "ape_los_p9973": "performance",
       "rate_stability_p9973": "performance"
      },
-     "objective": 50.57420117827502,
-     "violation": 5069.797814282624
+     "objective": 61.972507260673964,
+     "violation": 6226.546472655588
     },
     {
      "alg": "mtq_celani2026@mtq_gain_p=1,mtq_gain_d=1,handover_out_dps=0.5",
@@ -5425,8 +5429,8 @@
       "ake_los_p9973": "knowledge",
       "rate_stability_p9973": "performance"
      },
-     "objective": 34.38843141789575,
-     "violation": 3455.504763679674
+     "objective": 65.17368658849777,
+     "violation": 6548.250322762995
     },
     {
      "alg": "mtq_celani2026@mtq_gain_p=1,mtq_gain_d=1,handover_out_dps=1",
@@ -5436,8 +5440,8 @@
       "ake_los_p9973": "knowledge",
       "rate_stability_p9973": "performance"
      },
-     "objective": 32.79557876566139,
-     "violation": 3298.573303177606
+     "objective": 57.42468547789,
+     "violation": 5771.297395891841
     },
     {
      "alg": "mtq_celani2026@mtq_gain_p=1,mtq_gain_d=4,handover_out_dps=0.25",
@@ -5458,8 +5462,8 @@
       "rate_stability_p9973": "performance",
       "ake_los_p9973": "knowledge"
      },
-     "objective": 164.34298329806535,
-     "violation": 16546.717729025608
+     "objective": 159.28034827127834,
+     "violation": 16103.36557484584
     },
     {
      "alg": "mtq_celani2026@mtq_gain_p=1,mtq_gain_d=4,handover_out_dps=1",
@@ -5469,8 +5473,8 @@
       "rate_stability_p9973": "performance",
       "ake_los_p9973": "knowledge"
      },
-     "objective": 98.46400516021585,
-     "violation": 9870.154898378481
+     "objective": 72.15867215972135,
+     "violation": 7232.979242290891
     },
     {
      "alg": "mtq_celani2026@mtq_gain_p=4,mtq_gain_d=0.25,handover_out_dps=0.25",
@@ -5479,8 +5483,8 @@
       "ape_los_p9973": "performance",
       "rate_stability_p9973": "performance"
      },
-     "objective": 4.665541147091445,
-     "violation": 475.5817430395398
+     "objective": 33.86223238838515,
+     "violation": 3428.669343144046
     },
     {
      "alg": "mtq_celani2026@mtq_gain_p=4,mtq_gain_d=0.25,handover_out_dps=0.5",
@@ -5489,8 +5493,8 @@
       "ape_los_p9973": "performance",
       "rate_stability_p9973": "performance"
      },
-     "objective": 4.598688585555621,
-     "violation": 465.76243711944545
+     "objective": 25.442391487654763,
+     "violation": 2578.9515434321006
     },
     {
      "alg": "mtq_celani2026@mtq_gain_p=4,mtq_gain_d=0.25,handover_out_dps=1",
@@ -5499,8 +5503,8 @@
       "ape_los_p9973": "performance",
       "rate_stability_p9973": "performance"
      },
-     "objective": 8.411358150134065,
-     "violation": 854.4165330700489
+     "objective": 34.02674154144449,
+     "violation": 3467.7518809745384
     },
     {
      "alg": "mtq_celani2026@mtq_gain_p=4,mtq_gain_d=1,handover_out_dps=0.25",
@@ -5509,8 +5513,8 @@
       "ape_los_p9973": "performance",
       "rate_stability_p9973": "performance"
      },
-     "objective": 50.3333331810854,
-     "violation": 5055.9730142696
+     "objective": 45.282842614900694,
+     "violation": 4562.6979930577045
     },
     {
      "alg": "mtq_celani2026@mtq_gain_p=4,mtq_gain_d=1,handover_out_dps=0.5",
@@ -5519,8 +5523,8 @@
       "ape_los_p9973": "performance",
       "rate_stability_p9973": "performance"
      },
-     "objective": 10.720205129472156,
-     "violation": 1082.7200815969159
+     "objective": 40.1767043894539,
+     "violation": 4056.3852678508024
     },
     {
      "alg": "mtq_celani2026@mtq_gain_p=4,mtq_gain_d=1,handover_out_dps=1",
@@ -5529,8 +5533,8 @@
       "ape_los_p9973": "performance",
       "rate_stability_p9973": "performance"
      },
-     "objective": 69.98350069805174,
-     "violation": 7034.068783093477
+     "objective": 62.52675120573475,
+     "violation": 6284.976739007427
     },
     {
      "alg": "mtq_celani2026@mtq_gain_p=4,mtq_gain_d=4,handover_out_dps=0.25",
@@ -5540,28 +5544,29 @@
       "rate_stability_p9973": "performance"
      },
      "objective": 90.1069185722921,
-     "violation": 9036.149864763147
+     "violation": 9044.569562052257
     },
     {
      "alg": "mtq_celani2026@mtq_gain_p=4,mtq_gain_d=4,handover_out_dps=0.5",
      "feasible": false,
      "failing": {
       "ape_los_p9973": "performance",
-      "rate_stability_p9973": "performance",
-      "ake_los_p9973": "knowledge"
+      "ake_los_p9973": "knowledge",
+      "rate_stability_p9973": "performance"
      },
-     "objective": 115.09006708398061,
-     "violation": 11599.315246536204
+     "objective": 111.40925822039377,
+     "violation": 11174.11469340562
     },
     {
      "alg": "mtq_celani2026@mtq_gain_p=4,mtq_gain_d=4,handover_out_dps=1",
      "feasible": false,
      "failing": {
       "ape_los_p9973": "performance",
-      "rate_stability_p9973": "performance"
+      "rate_stability_p9973": "performance",
+      "ake_los_p9973": "knowledge"
      },
-     "objective": 91.8117846338127,
-     "violation": 9206.481220244508
+     "objective": 101.37913155711378,
+     "violation": 10188.835428381099
     },
     {
      "alg": "mtq_tango2013@mtq_gain_p=0.25,mtq_gain_d=0.25,handover_out_dps=0.25",

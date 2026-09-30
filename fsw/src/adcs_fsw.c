@@ -179,6 +179,18 @@ static void mtq_law(void)
         if (S.mode == ADCS_MODE_SUN_MTQ && S.s_prop_ok) adcs_unit(S.s_prop, a);
         else adcs_mat3_vec(A, e3, a);
         adcs_mtq_boresight(e3, a, we, p->sb_kp, p->sb_kd, S.tau_req);
+        if (S.mode == ADCS_MODE_NADIR_MTQ && p->sb_kroll > 0 && adcs_dot(e3, a) > p->sb_roll_gate) {
+            /* weak roll about the boresight: the power face p (made normal to e3) to its reference dcm(q_e) p */
+            adcs_real pa[3], pd[3], c[3], d, r;
+            d = adcs_dot(p->sun_axis, e3);
+            for (i = 0; i < 3; i++) pa[i] = p->sun_axis[i] - d*e3[i];
+            if (adcs_norm3(pa) > 1e-6) {
+                adcs_unit(pa, pa); adcs_mat3_vec(A, pa, pd); adcs_cross(pa, pd, c);
+                /* the roll angle itself (atan2): a sine form gives no torque near 180 deg, where the face starts */
+                r = p->sb_kroll*atan2(adcs_dot(c, e3), adcs_dot(pa, pd)) - p->sb_kdroll*adcs_dot(we, e3);
+                for (i = 0; i < 3; i++) S.tau_req[i] += r*e3[i];
+            }
+        }
     } else if (p->mtq_law == 8) {             /* P3 TANGO frozen-Riccati LQR */
         adcs_mtq_tango(S.K.q, S.w_est, S.q_ref, S.w_ref, S.p.mtq_Pth, S.p.mtq_Pw, S.tau_req);
     } else {

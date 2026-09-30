@@ -548,8 +548,9 @@ def open_items():
         "while the coils actuated; the estimate was never dropped after the spin states; no innovation gating and fixed Sun/field sigmas; "
         "two-body-only onboard orbit; GNSS taken as J2000 and the field frame without precession (0.37 deg); in nadir the power face "
         "pointed away from the Sun on both cases (now yaw-flipped, 90 deg - |beta|); nadir gravity-gradient feed-forward for ais_img_3u.",
-        "Open from the audit: the Celani 2026 boresight law leaves the roll about the payload axis free, so the power face in coils-only "
-        "nadir is not held; gyro scale factor aliases into bias after the despin; IGRF-13 is extrapolated for 2027 (load IGRF-14); "
+        "Power face in coils-only nadir: Celani 2026 leaves the roll about the payload axis free; a weak roll PD (3n, zeta 1, certified "
+        "|mu| 0.913) now turns the face towards the Sun (86 deg mean on ais_3u, was shaded) at the cost of pointing margin (6.6 deg nominal), "
+        "since the coils' along-B shortfall lands on roll. Open from the audit: gyro scale factor aliases into bias after the despin; IGRF-13 is extrapolated for 2027 (load IGRF-14); "
         "nadir is geocentric, not geodetic; the MATLAB twin keeps J2000 GNSS, GMST-only frames and no gating.",
         "Bought against designed (both cases, same budget of 1.6 kg and 1.0 L): on ais_img_3u three CubeSpace CW0017 wheels are feasible "
         "at 1.0 kg against our fluid loop's 1.6 kg, so the lightest configuration overall is a benchmark; the fluid loop is selected "

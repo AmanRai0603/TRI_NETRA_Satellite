@@ -15,7 +15,7 @@
    {
     "id": "ape_los_p9973",
     "kind": "ape_los",
-    "value": 2.3596586903785424,
+    "value": 6.625606195760513,
     "unit": "deg",
     "req": 10.0,
     "req_key": "req.ape",
@@ -24,7 +24,7 @@
    {
     "id": "ake_los_p9973",
     "kind": "ake_los",
-    "value": 0.16266192083932232,
+    "value": 0.14372011881053484,
     "unit": "deg",
     "req": 5.0,
     "req_key": "req.ake",
@@ -33,7 +33,7 @@
    {
     "id": "power_mean",
     "kind": "power_mean",
-    "value": 0.09059805963462711,
+    "value": 0.09054824519215934,
     "unit": "W",
     "req": 0.5,
     "req_key": "req.pavg",
@@ -93,7 +93,7 @@
    {
     "id": "ape_los_p9973",
     "kind": "ape_los",
-    "value": 2.3596586903785424,
+    "value": 6.625606195760513,
     "unit": "deg",
     "req": 10.0,
     "req_key": "req.ape",
@@ -102,7 +102,7 @@
    {
     "id": "ake_los_p9973",
     "kind": "ake_los",
-    "value": 0.16266192083932232,
+    "value": 0.14372011881053484,
     "unit": "deg",
     "req": 5.0,
     "req_key": "req.ake",
@@ -111,7 +111,7 @@
    {
     "id": "power_mean",
     "kind": "power_mean",
-    "value": 0.09059805963462711,
+    "value": 0.09054824519215934,
     "unit": "W",
     "req": 0.5,
     "req_key": "req.pavg",

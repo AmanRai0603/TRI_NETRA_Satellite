@@ -26,7 +26,7 @@
   },
   "algorithms": {
    "detumble": "bdot_gyro",
-   "sun_acquisition": "sunspin_damped",
+   "sun_acquisition": "sunspin_deruiter2011",
    "mtq_pointing": "mtq_celani2026"
   },
   "schedule": [
@@ -37,10 +37,10 @@
   ],
   "rcs_dump": 0.0,
   "spin_rate_dps": 2.0,
-  "ss_gain": 0.3,
+  "ss_gain": 3.0,
   "mtq_gain_p": 4.0,
-  "mtq_gain_d": 4.0,
-  "handover_out_dps": 0.25
+  "mtq_gain_d": 0.25,
+  "handover_out_dps": 0.5
  },
  "metrics": [
   {

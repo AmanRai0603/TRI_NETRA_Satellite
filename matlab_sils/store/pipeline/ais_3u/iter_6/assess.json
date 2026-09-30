@@ -3097,7 +3097,7 @@
    "alg": "mtq_celani2026@mtq_gain_p=4,mtq_gain_d=0.25,handover_out_dps=0.5",
    "feasible": true,
    "failing": {},
-   "objective": 3.843670823689173,
+   "objective": 6.277531988072198,
    "objective_id": "ape_los_p9973",
    "objective_req": 10.0,
    "variants": [
@@ -3170,8 +3170,8 @@
      "failing": {
       "ape_los_p9973": "performance"
      },
-     "objective": 53.18467488123908,
-     "violation": 4.3184674881239085
+     "objective": 53.28210364378436,
+     "violation": 4.328210364378436
     },
     {
      "alg": "mtq_tango2013",
@@ -4871,8 +4871,8 @@
      "failing": {
       "ape_los_p9973": "performance"
      },
-     "objective": 17.224347514276182,
-     "violation": 0.7224347514276181
+     "objective": 21.80326610652462,
+     "violation": 1.180326610652462
     },
     {
      "alg": "mtq_celani2026@mtq_gain_p=0.25,mtq_gain_d=0.25,handover_out_dps=0.5",
@@ -4880,8 +4880,8 @@
      "failing": {
       "ape_los_p9973": "performance"
      },
-     "objective": 19.009822346671562,
-     "violation": 0.9009822346671563
+     "objective": 18.72018672763428,
+     "violation": 0.8720186727634283
     },
     {
      "alg": "mtq_celani2026@mtq_gain_p=0.25,mtq_gain_d=0.25,handover_out_dps=1",
@@ -4889,8 +4889,8 @@
      "failing": {
       "ape_los_p9973": "performance"
      },
-     "objective": 18.843316210749354,
-     "violation": 0.8843316210749355
+     "objective": 21.845587298396296,
+     "violation": 1.1845587298396296
     },
     {
      "alg": "mtq_celani2026@mtq_gain_p=0.25,mtq_gain_d=1,handover_out_dps=0.25",
@@ -4907,8 +4907,8 @@
      "failing": {
       "ape_los_p9973": "performance"
      },
-     "objective": 28.62078653722695,
-     "violation": 1.862078653722695
+     "objective": 35.54635239803997,
+     "violation": 2.5546352398039973
     },
     {
      "alg": "mtq_celani2026@mtq_gain_p=0.25,mtq_gain_d=1,handover_out_dps=1",
@@ -4916,8 +4916,8 @@
      "failing": {
       "ape_los_p9973": "performance"
      },
-     "objective": 167.4578464953669,
-     "violation": 15.745784649536692
+     "objective": 170.03721312043507,
+     "violation": 16.003721312043506
     },
     {
      "alg": "mtq_celani2026@mtq_gain_p=0.25,mtq_gain_d=4,handover_out_dps=0.25",
@@ -4934,8 +4934,8 @@
      "failing": {
       "ape_los_p9973": "performance"
      },
-     "objective": 178.27737185431977,
-     "violation": 16.827737185431978
+     "objective": 178.24874910989462,
+     "violation": 16.82487491098946
     },
     {
      "alg": "mtq_celani2026@mtq_gain_p=0.25,mtq_gain_d=4,handover_out_dps=1",
@@ -4943,8 +4943,8 @@
      "failing": {
       "ape_los_p9973": "performance"
      },
-     "objective": 152.63941204938413,
-     "violation": 14.263941204938414
+     "objective": 152.64897715126025,
+     "violation": 14.264897715126025
     },
     {
      "alg": "mtq_celani2026@mtq_gain_p=1,mtq_gain_d=0.25,handover_out_dps=0.25",
@@ -4952,8 +4952,8 @@
      "failing": {
       "ape_los_p9973": "performance"
      },
-     "objective": 15.259698505592915,
-     "violation": 0.5259698505592916
+     "objective": 15.27443358580523,
+     "violation": 0.5274433585805229
     },
     {
      "alg": "mtq_celani2026@mtq_gain_p=1,mtq_gain_d=0.25,handover_out_dps=0.5",
@@ -4961,8 +4961,8 @@
      "failing": {
       "ape_los_p9973": "performance"
      },
-     "objective": 15.219183827203357,
-     "violation": 0.5219183827203357
+     "objective": 15.960139403361493,
+     "violation": 0.5960139403361493
     },
     {
      "alg": "mtq_celani2026@mtq_gain_p=1,mtq_gain_d=0.25,handover_out_dps=1",
@@ -4970,8 +4970,8 @@
      "failing": {
       "ape_los_p9973": "performance"
      },
-     "objective": 12.208480931967845,
-     "violation": 0.22084809319678445
+     "objective": 15.924319717767037,
+     "violation": 0.5924319717767037
     },
     {
      "alg": "mtq_celani2026@mtq_gain_p=1,mtq_gain_d=1,handover_out_dps=0.25",
@@ -4979,8 +4979,8 @@
      "failing": {
       "ape_los_p9973": "performance"
      },
-     "objective": 55.361969110378276,
-     "violation": 4.536196911037828
+     "objective": 55.522404003120506,
+     "violation": 4.5522404003120505
     },
     {
      "alg": "mtq_celani2026@mtq_gain_p=1,mtq_gain_d=1,handover_out_dps=0.5",
@@ -4988,8 +4988,8 @@
      "failing": {
       "ape_los_p9973": "performance"
      },
-     "objective": 53.18467488123908,
-     "violation": 4.3184674881239085
+     "objective": 53.28210364378436,
+     "violation": 4.328210364378436
     },
     {
      "alg": "mtq_celani2026@mtq_gain_p=1,mtq_gain_d=1,handover_out_dps=1",
@@ -4997,8 +4997,8 @@
      "failing": {
       "ape_los_p9973": "performance"
      },
-     "objective": 50.98550535792507,
-     "violation": 4.098550535792507
+     "objective": 51.222476423762465,
+     "violation": 4.122247642376246
     },
     {
      "alg": "mtq_celani2026@mtq_gain_p=1,mtq_gain_d=4,handover_out_dps=0.25",
@@ -5006,8 +5006,8 @@
      "failing": {
       "ape_los_p9973": "performance"
      },
-     "objective": 71.16563565536683,
-     "violation": 6.116563565536683
+     "objective": 71.34281348256194,
+     "violation": 6.134281348256193
     },
     {
      "alg": "mtq_celani2026@mtq_gain_p=1,mtq_gain_d=4,handover_out_dps=0.5",
@@ -5015,8 +5015,8 @@
      "failing": {
       "ape_los_p9973": "performance"
      },
-     "objective": 86.7358772555249,
-     "violation": 7.6735877255524905
+     "objective": 86.71001871604457,
+     "violation": 7.671001871604457
     },
     {
      "alg": "mtq_celani2026@mtq_gain_p=1,mtq_gain_d=4,handover_out_dps=1",
@@ -5024,29 +5024,31 @@
      "failing": {
       "ape_los_p9973": "performance"
      },
-     "objective": 177.99251222844075,
-     "violation": 16.799251222844074
+     "objective": 177.94314242992144,
+     "violation": 16.794314242992144
     },
     {
      "alg": "mtq_celani2026@mtq_gain_p=4,mtq_gain_d=0.25,handover_out_dps=0.25",
      "feasible": true,
      "failing": {},
-     "objective": 8.592480956449567,
+     "objective": 6.927634574605949,
      "violation": 0
     },
     {
      "alg": "mtq_celani2026@mtq_gain_p=4,mtq_gain_d=0.25,handover_out_dps=0.5",
      "feasible": true,
      "failing": {},
-     "objective": 3.843670823689173,
+     "objective": 6.277531988072198,
      "violation": 0
     },
     {
      "alg": "mtq_celani2026@mtq_gain_p=4,mtq_gain_d=0.25,handover_out_dps=1",
-     "feasible": true,
-     "failing": {},
-     "objective": 8.700738270400468,
-     "violation": 0
+     "feasible": false,
+     "failing": {
+      "ape_los_p9973": "performance"
+     },
+     "objective": 11.8786958805443,
+     "violation": 0.18786958805442988
     },
     {
      "alg": "mtq_celani2026@mtq_gain_p=4,mtq_gain_d=1,handover_out_dps=0.25",
@@ -5054,8 +5056,8 @@
      "failing": {
       "ape_los_p9973": "performance"
      },
-     "objective": 72.1812910313677,
-     "violation": 6.2181291031367705
+     "objective": 72.25601127333925,
+     "violation": 6.225601127333926
     },
     {
      "alg": "mtq_celani2026@mtq_gain_p=4,mtq_gain_d=1,handover_out_dps=0.5",
@@ -5063,8 +5065,8 @@
      "failing": {
       "ape_los_p9973": "performance"
      },
-     "objective": 82.36290173734649,
-     "violation": 7.236290173734648
+     "objective": 83.32441571106807,
+     "violation": 7.332441571106807
     },
     {
      "alg": "mtq_celani2026@mtq_gain_p=4,mtq_gain_d=1,handover_out_dps=1",
@@ -5072,8 +5074,8 @@
      "failing": {
       "ape_los_p9973": "performance"
      },
-     "objective": 78.129196795897,
-     "violation": 6.8129196795897
+     "objective": 77.47700455706642,
+     "violation": 6.747700455706642
     },
     {
      "alg": "mtq_celani2026@mtq_gain_p=4,mtq_gain_d=4,handover_out_dps=0.25",
@@ -5081,8 +5083,8 @@
      "failing": {
       "ape_los_p9973": "performance"
      },
-     "objective": 165.48397579942844,
-     "violation": 15.548397579942844
+     "objective": 112.20904136920173,
+     "violation": 10.220904136920172
     },
     {
      "alg": "mtq_celani2026@mtq_gain_p=4,mtq_gain_d=4,handover_out_dps=0.5",
@@ -5090,8 +5092,8 @@
      "failing": {
       "ape_los_p9973": "performance"
      },
-     "objective": 171.3575310158098,
-     "violation": 16.13575310158098
+     "objective": 178.1879021330071,
+     "violation": 16.81879021330071
     },
     {
      "alg": "mtq_celani2026@mtq_gain_p=4,mtq_gain_d=4,handover_out_dps=1",
@@ -5099,8 +5101,8 @@
      "failing": {
       "ape_los_p9973": "performance"
      },
-     "objective": 179.1087626359013,
-     "violation": 16.91087626359013
+     "objective": 178.9051556998241,
+     "violation": 16.89051556998241
     },
     {
      "alg": "mtq_tango2013@mtq_gain_p=0.25,mtq_gain_d=0.25,handover_out_dps=0.25",

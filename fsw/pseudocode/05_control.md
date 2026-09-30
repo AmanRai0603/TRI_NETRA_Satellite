@@ -68,6 +68,10 @@ mtq_avanzini2021 (P16):        n = |ω_ref|;  if n < 1e-9: use mtq_celani2015
 mtq_celani2026 (P8):           e3 = sun_axis (Sun state) or payload boresight (nadir state)
                                a = unit(s_prop) in the Sun state with a Sun, else dcm(q_e) e3
                                τ = k_p (e3 × a) − k_d ω_e                    # rotation about e3 free
+                               nadir state, k_roll > 0 and e3·a > cos(roll_gate):   # optional weak roll: power face held
+                                   p = unit(sun_axis − (sun_axis·e3) e3);  p_d = dcm(q_e) p
+                                   φ = atan2((p × p_d)·e3, p·p_d)          # the angle, not its sine: torque up to 180°
+                                   τ += (k_roll φ − k_droll (ω_e·e3)) e3
 mtq_tango2013 (P3):            θ = 2 s q_e.v;  τ = −(P_θ θ + P_ω ω_e)        # P_θ = P21/r, P_ω = P22/r
 ```
 

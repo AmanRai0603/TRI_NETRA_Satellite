@@ -339,6 +339,18 @@ name = "sb_kd"
 type = "f64"
 doc = "Celani 2026 boresight rate gain k_d [N m s]"
 [[field]]
+name = "sb_kroll"
+type = "f64"
+doc = "Celani 2026 boresight law, nadir state: weak roll gain that turns the power face to its reference about the boresight [N m]"
+[[field]]
+name = "sb_kdroll"
+type = "f64"
+doc = "rate damping of the weak roll about the boresight, on top of the law's own [N m s]"
+[[field]]
+name = "sb_roll_gate"
+type = "f64"
+doc = "the roll term runs only once the boresight is within this angle of its reference (cosine; point first, then roll)"
+[[field]]
 name = "ho_in_dps"
 type = "f64"
 doc = "magnetic pointing hand-over: rate error above which the despin (the detumble gain on the rate error, Avanzini & Giulietti 2012) runs first [deg/s]"

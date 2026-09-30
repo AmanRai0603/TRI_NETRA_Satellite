@@ -63,13 +63,13 @@
 | `demand` | ais_3u | sizing of the final iteration (iter_6) present | pass |  |
 | `demand` | ais_3u | momentum and torque demand positive and finite | pass | h_req 1.466e-03 N m s, tau_req 5.757e-05 N m |
 | `demand` | ais_3u | class from req.ake (fine when <= 0.05 deg) | pass | coarse |
-| `demand` | ais_img_3u | sizing of the final iteration (iter_7) present | pass |  |
+| `demand` | ais_img_3u | sizing of the final iteration (iter_6) present | pass |  |
 | `demand` | ais_img_3u | momentum and torque demand positive and finite | pass | h_req 1.553e-03 N m s, tau_req 5.757e-05 N m |
 | `demand` | ais_img_3u | class from req.ake (fine when <= 0.05 deg) | pass | fine |
 | `size_mtq` | ais_3u | SZ-ais_3u-MTQ: designed part with positive mass | pass | 0.007602 kg |
 | `size_mtq` | ais_3u | SZ-ais_3u-MTQP: designed part with positive mass | pass | 0.0228 kg |
 | `size_mtq` | ais_img_3u | SZ-ais_img_3u-MTQ: designed part with positive mass | pass | 0.005341 kg |
-| `size_mtq` | ais_img_3u | SZ-ais_img_3u-MTQP: designed part with positive mass | pass | 0.01479 kg |
+| `size_mtq` | ais_img_3u | SZ-ais_img_3u-MTQP: designed part with positive mass | pass | 0.009861 kg |
 | `size_fmr` | ais_3u | SZ-ais_3u-FMR-X: designed part with positive mass | pass | 0.4901 kg |
 | `size_fmr` | ais_3u | SZ-ais_3u-FMR-Y: designed part with positive mass | pass | 0.3716 kg |
 | `size_fmr` | ais_3u | SZ-ais_3u-FMR-Z: designed part with positive mass | pass | 0.3716 kg |
@@ -119,15 +119,15 @@
 | `budget` | ais_3u | mtq_cmg_rcs: mass, power and volume are the sums of the fitted units | pass | 1.931 kg, 5.88 W, 1.791 L |
 | `budget` | ais_3u | mtq_vscmg: mass, power and volume are the sums of the fitted units | pass | 1.413 kg, 5.83 W, 0.809 L |
 | `budget` | ais_3u | mtq_vscmg_rcs: mass, power and volume are the sums of the fitted units | pass | 1.931 kg, 5.88 W, 1.791 L |
-| `budget` | ais_img_3u | mtq: mass, power and volume are the sums of the fitted units | pass | 0.684 kg, 3.74 W, 0.018 L |
-| `budget` | ais_img_3u | mtq_fmr: mass, power and volume are the sums of the fitted units | pass | 1.567 kg, 6.58 W, 0.534 L |
-| `budget` | ais_img_3u | mtq_fmr_rcs: mass, power and volume are the sums of the fitted units | pass | 2.033 kg, 6.63 W, 1.375 L |
-| `budget` | ais_img_3u | mtq_rw: mass, power and volume are the sums of the fitted units | pass | 0.836 kg, 4.36 W, 0.068 L |
-| `budget` | ais_img_3u | mtq_rw_rcs: mass, power and volume are the sums of the fitted units | pass | 1.302 kg, 4.41 W, 0.908 L |
-| `budget` | ais_img_3u | mtq_cmg: mass, power and volume are the sums of the fitted units | pass | 1.856 kg, 7.46 W, 0.806 L |
-| `budget` | ais_img_3u | mtq_cmg_rcs: mass, power and volume are the sums of the fitted units | pass | 2.322 kg, 7.51 W, 1.647 L |
-| `budget` | ais_img_3u | mtq_vscmg: mass, power and volume are the sums of the fitted units | pass | 1.856 kg, 7.46 W, 0.806 L |
-| `budget` | ais_img_3u | mtq_vscmg_rcs: mass, power and volume are the sums of the fitted units | pass | 2.322 kg, 7.51 W, 1.647 L |
+| `budget` | ais_img_3u | mtq: mass, power and volume are the sums of the fitted units | pass | 0.530 kg, 2.90 W, 0.012 L |
+| `budget` | ais_img_3u | mtq_fmr: mass, power and volume are the sums of the fitted units | pass | 1.427 kg, 5.88 W, 0.534 L |
+| `budget` | ais_img_3u | mtq_fmr_rcs: mass, power and volume are the sums of the fitted units | pass | 1.893 kg, 5.93 W, 1.375 L |
+| `budget` | ais_img_3u | mtq_rw: mass, power and volume are the sums of the fitted units | pass | 0.696 kg, 3.66 W, 0.068 L |
+| `budget` | ais_img_3u | mtq_rw_rcs: mass, power and volume are the sums of the fitted units | pass | 1.162 kg, 3.71 W, 0.908 L |
+| `budget` | ais_img_3u | mtq_cmg: mass, power and volume are the sums of the fitted units | pass | 1.716 kg, 6.76 W, 0.806 L |
+| `budget` | ais_img_3u | mtq_cmg_rcs: mass, power and volume are the sums of the fitted units | pass | 2.182 kg, 6.81 W, 1.647 L |
+| `budget` | ais_img_3u | mtq_vscmg: mass, power and volume are the sums of the fitted units | pass | 1.716 kg, 6.76 W, 0.806 L |
+| `budget` | ais_img_3u | mtq_vscmg_rcs: mass, power and volume are the sums of the fitted units | pass | 2.182 kg, 6.81 W, 1.647 L |
 | `matrix` | ais_3u | every mode x option flown in the last iteration | pass | 25 of 25 mode tests |
 | `matrix` | ais_img_3u | every mode x option flown in the last iteration | pass | 25 of 25 mode tests |
 | `assess` | ais_3u | an option is feasible exactly when nothing fails | pass | 6 feasible |
@@ -135,27 +135,27 @@
 | `assess` | ais_img_3u | an option is feasible exactly when nothing fails | pass | 10 feasible |
 | `assess` | ais_img_3u | every failing requirement has a cause class | pass |  |
 | `tune` | ais_3u | nadir_pointing/mtq: every mtq_pointing law flown at every grid point | pass | 252 of 252 variants |
-| `tune` | ais_3u | nadir_pointing/mtq: the kept variant is the best worst seed | pass | mtq_celani2026@mtq_gain_p=4,mtq_gain_d=0.25,handover_out_dps=0.5 (ape_los_p9973 3.843670823689173) |
+| `tune` | ais_3u | nadir_pointing/mtq: the kept variant is the best worst seed | pass | mtq_celani2026@mtq_gain_p=4,mtq_gain_d=0.25,handover_out_dps=0.5 (ape_los_p9973 6.277531988072198) |
 | `tune` | ais_3u | sun_acquisition/mtq: every sun_acquisition law flown at every grid point | pass | 50 of 50 variants |
 | `tune` | ais_3u | sun_acquisition/mtq: the kept variant is the best worst seed | pass | sunspin_damped@spin_rate_dps=4,ss_gain=0.3 (sun_acquisition_time 82.32333333333334) |
 | `tune` | ais_3u | sun_referencing/mtq: every mtq_pointing law flown at every grid point | pass | 252 of 252 variants |
 | `tune` | ais_3u | sun_referencing/mtq: the kept variant is the best worst seed | pass | mtq_celani2015@mtq_gain_p=0.25,mtq_gain_d=1,handover_out_dps=0.25 (sun_ape_p9973 85.94416685915245) |
 | `tune` | ais_3u | every coils-only option passing with less than the 0.5 margin was tuned | pass | none left |
 | `tune` | ais_img_3u | nadir_pointing/mtq: every mtq_pointing law flown at every grid point | pass | 252 of 252 variants |
-| `tune` | ais_img_3u | nadir_pointing/mtq: the kept variant is the best worst seed | pass | mtq_celani2026@mtq_gain_p=4,mtq_gain_d=4,handover_out_dps=0.25 (ape_los_p9973 83.47385086177974) |
+| `tune` | ais_img_3u | nadir_pointing/mtq: the kept variant is the best worst seed | pass | mtq_celani2026@mtq_gain_p=4,mtq_gain_d=0.25,handover_out_dps=0.5 (ape_los_p9973 26.77969453819282) |
 | `tune` | ais_img_3u | sun_acquisition/mtq: every sun_acquisition law flown at every grid point | pass | 50 of 50 variants |
-| `tune` | ais_img_3u | sun_acquisition/mtq: the kept variant is the best worst seed | pass | sunspin_damped@spin_rate_dps=2,ss_gain=0.3 (sun_acquisition_time 26.506666666666668) |
+| `tune` | ais_img_3u | sun_acquisition/mtq: the kept variant is the best worst seed | pass | sunspin_deruiter2011@spin_rate_dps=2,ss_gain=3 (sun_acquisition_time 34.49) |
 | `tune` | ais_img_3u | sun_referencing/mtq: every mtq_pointing law flown at every grid point | pass | 252 of 252 variants |
-| `tune` | ais_img_3u | sun_referencing/mtq: the kept variant is the best worst seed | pass | mtq_celani2026@mtq_gain_p=4,mtq_gain_d=0.25,handover_out_dps=0.25 (sun_ape_p9973 18.841054064318918) |
+| `tune` | ais_img_3u | sun_referencing/mtq: the kept variant is the best worst seed | pass | mtq_celani2026@mtq_gain_p=4,mtq_gain_d=0.25,handover_out_dps=0.25 (sun_ape_p9973 19.26295767595691) |
 | `tune` | ais_img_3u | every coils-only option passing with less than the 0.5 margin was tuned | pass | none left |
 | `converge` | ais_3u | converged: the last iteration proposes no change | pass | 6 iteration(s) |
 | `converge` | ais_3u | within the iteration cap | pass | cap 24 |
 | `converge` | ais_3u | every authority scale inside its bounds | pass | {"mtqp": 1.5} |
 | `converge` | ais_3u | every family was flown and scored in every iteration | pass | 9 families x 6 iterations |
-| `converge` | ais_img_3u | converged: the last iteration proposes no change | pass | 7 iteration(s) |
+| `converge` | ais_img_3u | converged: the last iteration proposes no change | pass | 6 iteration(s) |
 | `converge` | ais_img_3u | within the iteration cap | pass | cap 24 |
-| `converge` | ais_img_3u | every authority scale inside its bounds | pass | {"mtqp": 1.5} |
-| `converge` | ais_img_3u | every family was flown and scored in every iteration | pass | 9 families x 7 iterations |
+| `converge` | ais_img_3u | every authority scale inside its bounds | pass | {"mtqp": 1.0} |
+| `converge` | ais_img_3u | every family was flown and scored in every iteration | pass | 9 families x 6 iterations |
 | `select` | ais_3u | selection.json and loop.json present | pass |  |
 | `select` | ais_3u | mtq: feasible exactly when no mode and no budget gap | pass | sun_referencing: sun_ape_p9973 (performance) |
 | `select` | ais_3u | mtq_fmr: feasible exactly when no mode and no budget gap | pass | no gap |
@@ -171,13 +171,13 @@
 | `select` | ais_img_3u | selection.json and loop.json present | pass |  |
 | `select` | ais_img_3u | mtq: feasible exactly when no mode and no budget gap | pass | sun_acquisition: sun_acquisition_time (performance), sun_angle_p95 (performance); sun_referencing: sun_ape_p9973 (performance); nadir_pointing: ape_los_p9973 (performance), rate_stability_p9973 (performance) |
 | `select` | ais_img_3u | mtq_fmr: feasible exactly when no mode and no budget gap | pass | no gap |
-| `select` | ais_img_3u | mtq_fmr_rcs: feasible exactly when no mode and no budget gap | pass | budget: mass_kg 2.03 > 1.6; budget: volume_L 1.37 > 1 |
+| `select` | ais_img_3u | mtq_fmr_rcs: feasible exactly when no mode and no budget gap | pass | budget: mass_kg 1.89 > 1.6; budget: volume_L 1.37 > 1 |
 | `select` | ais_img_3u | mtq_rw: feasible exactly when no mode and no budget gap | pass | no gap |
 | `select` | ais_img_3u | mtq_rw_rcs: feasible exactly when no mode and no budget gap | pass | no gap |
-| `select` | ais_img_3u | mtq_cmg: feasible exactly when no mode and no budget gap | pass | sun_acquisition: power_mean (power); sun_referencing: power_mean (power); nadir_pointing: power_mean (power); budget: mass_kg 1.86 > 1.6 |
-| `select` | ais_img_3u | mtq_cmg_rcs: feasible exactly when no mode and no budget gap | pass | sun_acquisition: power_mean (power); sun_referencing: power_mean (power); nadir_pointing: power_mean (power); budget: mass_kg 2.32 > 1.6; budget: volume_L 1.65 > 1 |
-| `select` | ais_img_3u | mtq_vscmg: feasible exactly when no mode and no budget gap | pass | sun_acquisition: power_mean (power); sun_referencing: power_mean (power); nadir_pointing: power_mean (power); budget: mass_kg 1.86 > 1.6 |
-| `select` | ais_img_3u | mtq_vscmg_rcs: feasible exactly when no mode and no budget gap | pass | sun_acquisition: power_mean (power); sun_referencing: power_mean (power); nadir_pointing: power_mean (power); budget: mass_kg 2.32 > 1.6; budget: volume_L 1.65 > 1 |
+| `select` | ais_img_3u | mtq_cmg: feasible exactly when no mode and no budget gap | pass | sun_acquisition: power_mean (power); sun_referencing: power_mean (power); nadir_pointing: power_mean (power); budget: mass_kg 1.72 > 1.6 |
+| `select` | ais_img_3u | mtq_cmg_rcs: feasible exactly when no mode and no budget gap | pass | sun_acquisition: power_mean (power); sun_referencing: power_mean (power); nadir_pointing: power_mean (power); budget: mass_kg 2.18 > 1.6; budget: volume_L 1.65 > 1 |
+| `select` | ais_img_3u | mtq_vscmg: feasible exactly when no mode and no budget gap | pass | sun_acquisition: power_mean (power); sun_referencing: power_mean (power); nadir_pointing: power_mean (power); budget: mass_kg 1.72 > 1.6 |
+| `select` | ais_img_3u | mtq_vscmg_rcs: feasible exactly when no mode and no budget gap | pass | sun_acquisition: power_mean (power); sun_referencing: power_mean (power); nadir_pointing: power_mean (power); budget: mass_kg 2.18 > 1.6; budget: volume_L 1.65 > 1 |
 | `select` | ais_img_3u | selected: solution family by the rule (mass_kg, power_W, volume_L, simplicity) | pass | mtq_fmr |
 | `select` | ais_img_3u | benchmark: benchmark family by the rule (mass_kg, power_W, volume_L, simplicity) | pass | mtq_rw |
 | `dispatch` | ais_3u | package: mission scenario, config blob, products | pass | dist/dispatch/ais_3u/mtq_fmr/converged |
@@ -190,7 +190,7 @@
 | `certify` | ais_3u | mtq_lovera2004: certified exactly when every multiplier outside the free directions is inside the unit circle | pass | max |mu| 1.147 |
 | `certify` | ais_3u | mtq_celani2015: certified exactly when every multiplier outside the free directions is inside the unit circle | pass | max |mu| 0.7831 |
 | `certify` | ais_3u | mtq_avanzini2021: certified exactly when every multiplier outside the free directions is inside the unit circle | pass | max |mu| 2.519 |
-| `certify` | ais_3u | mtq_celani2026: certified exactly when every multiplier outside the free directions is inside the unit circle | pass | max |mu| 0.01235 |
+| `certify` | ais_3u | mtq_celani2026: certified exactly when every multiplier outside the free directions is inside the unit circle | pass | max |mu| 0.9128 |
 | `certify` | ais_3u | mtq_tango2013: certified exactly when every multiplier outside the free directions is inside the unit circle | pass | max |mu| 0.07017 |
 | `certify` | ais_3u | the dispatched law is among them | pass |  |
 | `certify` | ais_img_3u | Floquet multipliers for every magnetic law of the coils-only family | pass | 7 laws; dispatched mtq_celani2026 |
@@ -199,7 +199,7 @@
 | `certify` | ais_img_3u | mtq_lovera2004: certified exactly when every multiplier outside the free directions is inside the unit circle | pass | max |mu| 4.822 |
 | `certify` | ais_img_3u | mtq_celani2015: certified exactly when every multiplier outside the free directions is inside the unit circle | pass | max |mu| 2.413 |
 | `certify` | ais_img_3u | mtq_avanzini2021: certified exactly when every multiplier outside the free directions is inside the unit circle | pass | max |mu| 7.039 |
-| `certify` | ais_img_3u | mtq_celani2026: certified exactly when every multiplier outside the free directions is inside the unit circle | pass | max |mu| 1.351 |
+| `certify` | ais_img_3u | mtq_celani2026: certified exactly when every multiplier outside the free directions is inside the unit circle | pass | max |mu| 2.752 |
 | `certify` | ais_img_3u | mtq_tango2013: certified exactly when every multiplier outside the free directions is inside the unit circle | pass | max |mu| 7.148 |
 | `certify` | ais_img_3u | the dispatched law is among them | pass |  |
 | `mc` | ais_3u | Monte Carlo ran every run (12) | pass | 12 runs |

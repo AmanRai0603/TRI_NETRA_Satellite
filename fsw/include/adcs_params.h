@@ -5,8 +5,8 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#define ADCS_PARAMS_PAYLOAD 2185u
-#define ADCS_PARAMS_BLOB_SIZE 2201u
+#define ADCS_PARAMS_PAYLOAD 2209u
+#define ADCS_PARAMS_BLOB_SIZE 2225u
 #define ADCS_MAX_ROTORS 8
 #define ADCS_MAX_GIMBALS 4
 #define ADCS_MAX_COUPLES 6
@@ -113,6 +113,9 @@ typedef struct {
     double ss_dr_k2;  /* de Ruiter 2011 nutation weight k2 (> 0) [kg m^2] */
     double sb_kp;  /* Celani 2026 boresight gain k_p on e3 x a [N m] */
     double sb_kd;  /* Celani 2026 boresight rate gain k_d [N m s] */
+    double sb_kroll;  /* Celani 2026 boresight law, nadir state: weak roll gain that turns the power face to its reference about the boresight [N m] */
+    double sb_kdroll;  /* rate damping of the weak roll about the boresight, on top of the law's own [N m s] */
+    double sb_roll_gate;  /* the roll term runs only once the boresight is within this angle of its reference (cosine; point first, then roll) */
     double ho_in_dps;  /* magnetic pointing hand-over: rate error above which the despin (the detumble gain on the rate error, Avanzini & Giulietti 2012) runs first [deg/s] */
     double ho_out_dps;  /* hand-over: rate error below which the pointing law takes over, held ho_hold_s [deg/s] */
     double ho_hold_s;  /* hand-over dwell [s] */

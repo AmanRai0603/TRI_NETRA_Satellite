@@ -12,7 +12,7 @@ from an aligned dipole in the orbit frame (x along track, y = -orbit normal, z =
 rotation is the guidance frame itself (boresight offset, and the yaw flip if the mission flew it). The monodromy
 matrix over one orbit gives the multipliers; all |mu| < 1 certifies local exponential stability of that
 periodic linear loop. A boresight law leaves the rotation about its boresight free, so one multiplier
-stays at 1 by design. The gains are the ones the flight software boots with: each law's config blob is
+stays at 1 by design, unless its weak roll term (sb_kroll) holds the power face. The gains are the ones the flight software boots with: each law's config blob is
 built with `adcs params` and decoded, so they are the dispatched values and not recomputed here.
 Copyright (c) 2026 Agastya. All rights reserved.
 """
@@ -96,7 +96,14 @@ def law_torque(law, P, qe, w, wref_r, e3, s_body):
         return k * (eta * sgm - Jw) + k * (eta * ep - Jw)
     if law == 7:
         a = A @ e3
-        return P["sb_kp"] * np.cross(e3, a) - P["sb_kd"] * we
+        tau = P["sb_kp"] * np.cross(e3, a) - P["sb_kd"] * we
+        if P.get("sb_kroll", 0) > 0 and e3 @ a > P["sb_roll_gate"]:      # weak roll: the power face to its reference
+            pa = np.array(P["sun_axis"]) - (np.array(P["sun_axis"]) @ e3) * e3
+            if np.linalg.norm(pa) > 1e-6:
+                pa = pa / np.linalg.norm(pa)
+                pd = A @ pa
+                tau = tau + (P["sb_kroll"] * math.atan2(np.cross(pa, pd) @ e3, pa @ pd) - P["sb_kdroll"] * (we @ e3)) * e3
+        return tau
     if law == 8:
         return -(np.array(P["mtq_Pth"]) @ (2 * sg * qv) + np.array(P["mtq_Pw"]) @ we)
     raise ValueError(law)
@@ -179,7 +186,7 @@ def certify(case):
         P = fswcfg.decode(blob.read_bytes())
         mu = monodromy(law_id, P, C_bo, inc, n)
         am = sorted(abs(mu), reverse=True)
-        free = 1 if law_id == 7 else 0
+        free = 1 if law_id == 7 and not P.get("sb_kroll", 0) > 0 else 0    # the roll term closes the boresight's free direction
         cert = max(am[free:]) < 1.0
         out["laws"].append({"law": law, "dispatched": law == out["dispatched_law"], "gains": {k: v for k, v in s["fsw"].items() if k.startswith("mtq_gain")} or "nominal",
                             "mu_abs": [float(x) for x in am], "max_mu": float(am[free]), "free_directions": free, "certified": bool(cert)})

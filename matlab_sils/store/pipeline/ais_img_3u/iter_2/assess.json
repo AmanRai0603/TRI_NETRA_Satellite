@@ -471,7 +471,7 @@
     "ake_los_p9973": "knowledge",
     "rate_stability_p9973": "performance"
    },
-   "objective": 25.12722531989983,
+   "objective": 33.302194951877844,
    "objective_id": "ape_los_p9973",
    "objective_req": 0.01,
    "variants": [
@@ -560,8 +560,8 @@
       "ake_los_p9973": "knowledge",
       "rate_stability_p9973": "performance"
      },
-     "objective": 25.12722531989983,
-     "violation": 2530.6456191763505
+     "objective": 33.302194951877844,
+     "violation": 3353.494739166196
     },
     {
      "alg": "mtq_tango2013",
