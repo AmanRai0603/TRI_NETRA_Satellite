@@ -58,22 +58,22 @@
   "campaign": "edge_nadir_ais",
   "metric": "ape_los_last_orbit",
   "req": 10.0,
-  "matlab_pass_rate": 0.5882352941176471,
+  "matlab_pass_rate": 0.4117647058823529,
   "engine_pass_rate": 0.29411764705882354,
-  "matlab_mean": 24.90523682839081,
+  "matlab_mean": 22.157999727269576,
   "engine_mean": 21.48840588179969,
-  "matlab_std": 40.395451321928384,
+  "matlab_std": 28.240228352800575,
   "engine_std": 28.9770493987996
  },
  {
   "campaign": "edge_nadir_ais",
   "metric": "ake_los_last_orbit",
   "req": 5.0,
-  "matlab_pass_rate": 0.8235294117647058,
+  "matlab_pass_rate": 0.9411764705882353,
   "engine_pass_rate": 1.0,
-  "matlab_mean": 3.712380972190216,
+  "matlab_mean": 2.5772782238876424,
   "engine_mean": 1.8990881785445897,
-  "matlab_std": 2.578865833131355,
+  "matlab_std": 1.3669079292104247,
   "engine_std": 0.9046321477276409
  },
  {
@@ -82,9 +82,9 @@
   "req": 0.5,
   "matlab_pass_rate": 1,
   "engine_pass_rate": 1.0,
-  "matlab_mean": 0.010571840000969083,
+  "matlab_mean": 0.010738157222704828,
   "engine_mean": 0.01095767244571644,
-  "matlab_std": 0.0012106476444848629,
+  "matlab_std": 0.001428361255913486,
   "engine_std": 0.001938718565528014
  },
  {
@@ -203,20 +203,20 @@
   "req": 10.0,
   "matlab_pass_rate": 0,
   "engine_pass_rate": 0.0,
-  "matlab_mean": 89.68878003799841,
+  "matlab_mean": 91.94675903509545,
   "engine_mean": 88.47282543227628,
-  "matlab_std": 38.53480887278721,
+  "matlab_std": 46.43885831294705,
   "engine_std": 43.68572855041138
  },
  {
   "campaign": "mc_nadir_ais",
   "metric": "ake_los_last_orbit",
   "req": 5.0,
-  "matlab_pass_rate": 0.75,
+  "matlab_pass_rate": 0.9583333333333334,
   "engine_pass_rate": 1.0,
-  "matlab_mean": 3.3003252968939534,
+  "matlab_mean": 2.0861722946440726,
   "engine_mean": 1.6508731485238657,
-  "matlab_std": 1.72744501759443,
+  "matlab_std": 1.0181088787854984,
   "engine_std": 0.7290433731260324
  },
  {
@@ -225,9 +225,9 @@
   "req": 0.5,
   "matlab_pass_rate": 1,
   "engine_pass_rate": 1.0,
-  "matlab_mean": 0.011451346014717432,
+  "matlab_mean": 0.011647192765046438,
   "engine_mean": 0.010128334771499133,
-  "matlab_std": 0.0024961477851264276,
+  "matlab_std": 0.002878932246041487,
   "engine_std": 0.0030205378374848807
  },
  {

@@ -374,19 +374,19 @@ Events: 0 s detumble; 3526 s nadir_fine
 
 | metric | mean | std | ensemble percentile | required | runs passing | verdict |
 |---|---|---|---|---|---|---|
-| ape_3axis_last_orbit | 177.8 | 7.4 | p95: 180 deg | — | — | — |
-| ape_los_last_orbit | 89.69 | 38.5 | p95: 163.6 deg | 10 | 0% | ✖ FAIL |
-| ake_los_last_orbit | 3.3 | 1.73 | p95: 6.077 deg | 5 | 75% | ✖ FAIL |
-| power_mean | 0.01145 | 0.0025 | p95: 0.01449 W | 0.5 | 100% | ✔ PASS |
+| ape_3axis_last_orbit | 161.3 | 30.5 | p95: 180 deg | — | — | — |
+| ape_los_last_orbit | 91.95 | 46.4 | p95: 163.9 deg | 10 | 0% | ✖ FAIL |
+| ake_los_last_orbit | 2.086 | 1.02 | p95: 3.685 deg | 5 | 96% | ✔ PASS |
+| power_mean | 0.01165 | 0.00288 | p95: 0.01603 W | 0.5 | 100% | ✔ PASS |
 
 ### `edge_nadir_ais` — 17 runs of `nadir_hold_ais`
 
 | metric | mean | std | ensemble percentile | required | runs passing | verdict |
 |---|---|---|---|---|---|---|
-| ape_3axis_last_orbit | 112.2 | 50 | p95: 180 deg | — | — | — |
-| ape_los_last_orbit | 24.91 | 40.4 | p95: 155.1 deg | 10 | 59% | ✖ FAIL |
-| ake_los_last_orbit | 3.712 | 2.58 | p95: 11.79 deg | 5 | 82% | ✖ FAIL |
-| power_mean | 0.01057 | 0.00121 | p95: 0.01289 W | 0.5 | 100% | ✔ PASS |
+| ape_3axis_last_orbit | 169.2 | 22.9 | p95: 180 deg | — | — | — |
+| ape_los_last_orbit | 22.16 | 28.2 | p95: 97.4 deg | 10 | 41% | ✖ FAIL |
+| ake_los_last_orbit | 2.577 | 1.37 | p95: 5.153 deg | 5 | 94% | ✖ FAIL |
+| power_mean | 0.01074 | 0.00143 | p95: 0.01328 W | 0.5 | 100% | ✔ PASS |
 
 ### `mc_fine_img` — 24 runs of `fine_hold_img`
 
