@@ -151,6 +151,38 @@ is cancelled by `m_res_est`. The difference is the gravity gradient.
 - **At nadir the feed-forward stays off,** because cancelling the restoring gradient would remove the help it gives.
 - **The coils-only power attitude remains the Sun spin (P11 → P5).**
 
+## Holding the power face in coils-only nadir (optional roll term)
+
+Celani 2026 leaves the rotation about the payload axis free. It certifies because of that, and it is also why
+the power face in coils-only nadir goes wherever that rotation settles (101–125° from the Sun on average on
+ais_3u, i.e. shaded).
+
+**The roll term (C, Rust, spec).** It turns the power face to its (yaw-flipped) reference about the payload
+axis:
+- It runs only in the nadir state, once the payload axis is within `roll_gate_deg` (15°) of nadir.
+- It is a PD on the roll angle (atan2, so the torque does not vanish near 180°) with its own damping. Both are
+  sized on the roll-axis inertia at `roll_wn_orbits` × the orbit rate and damping `roll_zeta`.
+- A bare fraction of the boresight gain is not enough: at the tuned rate gain the Floquet multiplier grows to 4.2
+  per orbit. With the roll-axis PD the loop certifies (0.113 at 2n, damping ratio 2).
+
+**Why it trades against pointing.** Coils give torque only across B: two controllable axes out of three at any
+instant. Holding the payload on nadir takes that authority, and the part of the pointing torque along B that
+the coils cannot make shows up about the roll axis (1e-7 to 5e-7 N·m). A roll loop weak enough to leave
+pointing alone settles where that residual pushes it. A stronger one takes authority from pointing.
+
+On ais_3u, over the last three of six orbits from the Sun spin, with four seeds:
+
+| roll loop | pointing p99.73 (req 10°) | power face to Sun, mean |
+|---|---|---|
+| off (paper law) | 3.2–5.1° | 101–125° |
+| 2n, ζ 1 | 3.0–8.0° | 100–118° |
+| 3n, ζ 1 | 8.4–10.5° | 59–92° |
+| 4n, ζ 2 | 14–17.6° | 59–81° |
+
+The term ships switched off (`fsw.roll_gain` 0). It is switched on per mission by `roll_gain` 1 with
+`roll_wn_orbits` and `roll_zeta`. Which point of the trade to fly is a requirement decision: pointing margin
+against power-face illumination. The case files carry no power-face requirement.
+
 ## What stays open
 
 - The Sun-acquisition mode test lasts 1.5 orbits. The spin chains (P11 → P5, P11 → P2) finish their spin-up only in

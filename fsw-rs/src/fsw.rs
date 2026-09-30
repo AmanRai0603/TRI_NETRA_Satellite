@@ -175,7 +175,21 @@ impl Fsw {
             for i in 0..3 { we[i] = self.w_est[i] - wr[i]; }
             let e3 = if self.mode == SUN_MTQ { p.sun_axis } else { p.roll_axis };
             let a = match (self.mode == SUN_MTQ, self.s_prop) { (true, Some(sp)) => unit(&sp), _ => mat3_vec(&a3, &e3) };
-            ctl::mtq_boresight(&e3, &a, &we, p.sb_kp, p.sb_kd)
+            let mut tau = ctl::mtq_boresight(&e3, &a, &we, p.sb_kp, p.sb_kd);
+            if self.mode == NADIR_MTQ && p.sb_kroll > 0.0 && dot(&e3, &a) > p.sb_roll_gate {
+                // weak roll about the boresight: the power face p (made normal to e3) to its reference dcm(q_e) p
+                let d = dot(&p.sun_axis, &e3);
+                let pa = [p.sun_axis[0] - d*e3[0], p.sun_axis[1] - d*e3[1], p.sun_axis[2] - d*e3[2]];
+                if norm3(&pa) > 1e-6 {
+                    let pa = unit(&pa);
+                    let pd = mat3_vec(&a3, &pa);
+                    let c = cross(&pa, &pd);
+                    // the roll angle itself (atan2): a sine form gives no torque near 180 deg, where the face starts
+                    let r = p.sb_kroll*atan2(dot(&c, &e3), dot(&pa, &pd)) - p.sb_kdroll*dot(&we, &e3);
+                    for i in 0..3 { tau[i] += r*e3[i]; }
+                }
+            }
+            tau
         } else if p.mtq_law == 8 {
             ctl::mtq_tango(&self.k.q, &self.w_est, &self.q_ref, &self.w_ref, &p.mtq_Pth, &p.mtq_Pw)
         } else {
