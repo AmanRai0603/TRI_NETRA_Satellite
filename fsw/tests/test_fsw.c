@@ -131,6 +131,9 @@ static int run_detumble(int16_t pwm_log[30][3])
     p.jd0 = 2461407.25; p.dt = 0.1; p.mu = 3.986004418e14; p.start_mode = ADCS_MODE_DETUMBLE; p.auto_next = ADCS_MODE_NONE;
     p.bdot_law = 0; p.mtq_period = 1.0; p.mtq_meas = 0.2; p.m_max = 0.2; p.bdot_k = 1e-3; p.has_gyro = 1;
     p.J[0][0] = 0.0067; p.J[1][1] = 0.042; p.J[2][2] = 0.042; p.igrf_nmax = 10; p.rate_lpf_s = 0.3;
+    /* the values params.toml requires to be positive (the flight software refuses a blob without them) */
+    p.ss_eclipse = 1; p.gd_T = 1.0; p.mtq_phi = 0.01; p.rw_phi = 0.01; p.rw_dt = 0.1; p.fdir_s = 3.0; p.rcsd_T_damp_s = 20.0; p.rcsd_period_s = 1.0;
+    p.st_coast_s = 900.0; p.mekf_sig_mag = 0.01; p.mekf_sig_sun = 0.005; p.mekf_meas_scale = 1.0;
     adcs_params_encode(&p, blob, sizeof blob);
     hal_stub_reset();
     in.abi_version = ADCS_FSW_ABI_VERSION; in.config_blob = blob; in.config_len = sizeof blob; in.start_ns = 0;
@@ -168,6 +171,25 @@ static void t_abi(void)
         memset(&p, 0, sizeof p); adcs_params_encode(&p, blob, sizeof blob); blob[100] ^= 1;
         in.abi_version = ADCS_FSW_ABI_VERSION; in.config_blob = blob; in.config_len = sizeof blob; in.start_ns = 0;
         CHECK(adcs_fsw_init(&in) != 0, "bad CRC refused");
+    }
+    {   /* a blob with a good CRC but a value outside its rule (params.toml) is refused at init */
+        static adcs_params_t p; static uint8_t blob[ADCS_PARAMS_BLOB_SIZE]; adcs_fsw_init_t in; int k;
+        for (k = 0; k < 4; k++) {
+            memset(&p, 0, sizeof p);
+            p.jd0 = 2461407.25; p.dt = 0.1; p.mu = 3.986004418e14; p.start_mode = ADCS_MODE_DETUMBLE; p.auto_next = ADCS_MODE_NONE;
+            p.mtq_period = 1.0; p.mtq_meas = 0.2; p.m_max = 0.2; p.bdot_k = 1e-3; p.J[0][0] = 0.0067; p.J[1][1] = 0.042; p.J[2][2] = 0.042;
+            p.igrf_nmax = 10; p.ss_eclipse = 1; p.gd_T = 1.0; p.mtq_phi = 0.01; p.rw_phi = 0.01; p.rw_dt = 0.1; p.fdir_s = 3.0;
+            p.rcsd_T_damp_s = 20.0; p.rcsd_period_s = 1.0; p.st_coast_s = 900.0; p.mekf_sig_mag = 0.01; p.mekf_sig_sun = 0.005; p.mekf_meas_scale = 1.0;
+            if (k == 1) p.nr = 9;                      /* more rotors than the arrays hold */
+            if (k == 2) p.m_max = 0.0/0.0;             /* NaN */
+            if (k == 3) p.start_mode = 11;             /* no such controller state */
+            adcs_params_encode(&p, blob, sizeof blob);
+            in.abi_version = ADCS_FSW_ABI_VERSION; in.config_blob = blob; in.config_len = sizeof blob; in.start_ns = 0;
+            if (k == 0) CHECK(adcs_fsw_init(&in) == 0 && adcs_params_validate(&p) == 0, "a blob within every rule is accepted");
+            else CHECK(adcs_fsw_init(&in) == -12, "a value outside its rule is refused at init");
+        }
+        p.start_mode = ADCS_MODE_DETUMBLE; p.nr = 9;
+        CHECK(strcmp(adcs_params_field(adcs_params_validate(&p)), "nr") == 0, "the refused field is named");
     }
 }
 

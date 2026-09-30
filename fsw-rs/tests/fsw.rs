@@ -130,6 +130,26 @@ fn laws() {
 }
 
 #[test]
+fn a_value_outside_its_rule_is_refused_at_init() {
+    let good = detumble_blob();
+    let mut f = Fsw::new();
+    assert!(f.init(ABI_VERSION, &good, 0).is_ok());
+    for (field, set) in [("nr", Box::new(|p: &mut Params| p.nr = 9) as Box<dyn Fn(&mut Params)>),
+                         ("m_max", Box::new(|p: &mut Params| p.m_max = f64::NAN)),
+                         ("start_mode", Box::new(|p: &mut Params| p.start_mode = 11)),
+                         ("rot_gi", Box::new(|p: &mut Params| { p.nr = 1; p.rot_tmax[0] = 0.01; p.rot_gi[0] = 1; }))] {
+        let mut p = Params::decode(&good).unwrap();
+        set(&mut p);
+        let mut blob = vec![0u8; adcs_fsw::params::BLOB_SIZE];
+        p.encode(&mut blob);
+        match f.init(ABI_VERSION, &blob, 0) {
+            Err(adcs_fsw::fsw::InitError::Invalid(name)) => assert_eq!(name, field),
+            other => panic!("{field}: {other:?}"),
+        }
+    }
+}
+
+#[test]
 fn rcs_duty_with_mib() {
     let mut p = Params::default();
     p.nc = 6; p.rcs_mib = 0.005; p.rcs_res = 0.001;
@@ -146,6 +166,9 @@ fn detumble_blob() -> Vec<u8> {
     p.jd0 = 2461407.25; p.dt = 0.1; p.mu = 3.986004418e14; p.start_mode = Mode::Detumble as u8; p.auto_next = 255;
     p.bdot_law = 0; p.mtq_period = 1.0; p.mtq_meas = 0.2; p.m_max = 0.2; p.bdot_k = 1e-3; p.has_gyro = 1;
     p.J[0][0] = 0.0067; p.J[1][1] = 0.042; p.J[2][2] = 0.042; p.igrf_nmax = 10; p.rate_lpf_s = 0.3;
+    // the values params.toml requires to be positive (the flight software refuses a blob without them)
+    p.ss_eclipse = 1; p.gd_T = 1.0; p.mtq_phi = 0.01; p.rw_phi = 0.01; p.rw_dt = 0.1; p.fdir_s = 3.0; p.rcsd_T_damp_s = 20.0; p.rcsd_period_s = 1.0;
+    p.st_coast_s = 900.0; p.mekf_sig_mag = 0.01; p.mekf_sig_sun = 0.005; p.mekf_meas_scale = 1.0;
     let mut blob = vec![0u8; adcs_fsw::params::BLOB_SIZE];
     p.encode(&mut blob);
     blob

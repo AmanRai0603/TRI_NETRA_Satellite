@@ -111,6 +111,7 @@ int32_t adcs_fsw_init(const adcs_fsw_init_t *init)
     adcs_drv_reset();
     if (!init || init->abi_version != ADCS_FSW_ABI_VERSION) return -10;
     if (adcs_params_decode(init->config_blob, init->config_len, &S.p) != 0) return -11;
+    if (adcs_params_validate(&S.p) != 0) { S.ready = 0; return -12; }   /* a value outside its rule (params.toml) */
     p = &S.p;
     S.start_ns = init->start_ns;
     S.mode = p->start_mode; S.t_st = -1e9; S.t_Bref = -1e9; S.last_ctrl = -1e9; S.es_t = -1e9;

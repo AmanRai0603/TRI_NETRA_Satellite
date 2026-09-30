@@ -181,5 +181,8 @@ int32_t adcs_params_decode(const uint8_t *blob, size_t len, adcs_params_t *out);
 /* Encode into buf (cap >= ADCS_PARAMS_BLOB_SIZE); returns the blob length or 0. Ground and test use. */
 size_t adcs_params_encode(const adcs_params_t *in, uint8_t *buf, size_t cap);
 uint32_t adcs_crc32(const uint8_t *p, size_t n);
+/* Every rule of params.toml after decoding: 0, or the 1-based number of the first field that breaks one. */
+int32_t adcs_params_validate(const adcs_params_t *p);
+const char *adcs_params_field(int32_t k);
 
 #endif

@@ -61,10 +61,96 @@ def check_definition(P):
         doc = f.get("doc", "")
         if not isinstance(doc, str) or "*/" in doc or "/*" in doc or any(c in doc for c in "\r\n") or not doc.isprintable():
             bad.append(f"{at}: doc must be one printable line without /* or */")
-        extra = set(f) - {"name", "type", "shape", "doc"}
+        extra = set(f) - {"name", "type", "shape", "doc"} - set(RULE_KEYS)
         if extra:
             bad.append(f"{at}: unknown key(s) {', '.join(sorted(extra))}")
     return bad
+
+
+RULE_KEYS = ("min", "max", "positive", "mode", "upto", "when", "max_field", "diag_positive")
+
+
+def rules(f):
+    """The checks one field gets after decoding: (element condition that FAILS, as C and as Rust)."""
+    out = []
+    num = f["type"] == "f64"
+    if num:
+        out.append(("!isfinite({x})", "!{x}.is_finite()"))
+    if "min" in f:
+        out.append((f"{{x}} < {f['min']}", f"{{x}} < {f['min']}{'.0' if num and isinstance(f['min'], int) else ''}"))
+    if "max" in f:
+        out.append((f"{{x}} > {f['max']}", f"{{x}} > {f['max']}{'.0' if num and isinstance(f['max'], int) else ''}"))
+    if f.get("positive"):
+        out.append(("!({x} > 0.0)", "!({x} > 0.0)"))
+    if f.get("mode") == "valid":
+        out.append((f"{{x}} >= {len(MODES)}", f"{{x}} >= {len(MODES)}"))
+    if f.get("mode") == "or_none":
+        out.append((f"({{x}} >= {len(MODES)} && {{x}} != 255)", f"{{x}} >= {len(MODES)} && {{x}} != 255"))
+    if "max_field" in f:
+        out.append((f"{{x}} > p->{f['max_field']}", f"{{x}} > self.{f['max_field']}"))
+    return out
+
+
+def c_validate():
+    """adcs_params_validate: every rule of params.toml, in table order; 0 or the failing field's number."""
+    L = ["", "/* Every rule of params.toml, checked after decoding: 0 when all hold, else the 1-based table",
+         "   number of the first field that breaks one (adcs_params_field names it). */",
+         "int32_t adcs_params_validate(const adcs_params_t *p)", "{", "    size_t i, j;", "    (void)i; (void)j;"]
+    for k, f in enumerate(F, 1):
+        R = rules(f)
+        diag = f.get("diag_positive")
+        if not R and not diag:
+            continue
+        sh = f.get("shape", [])
+        cond = lambda x: " || ".join(c.format(x=x) for c, _ in R) or "0"
+        guard = f"p->{f['when']} > 0 && " if "when" in f else ""
+        if not sh:
+            L.append(f"    if ({guard}({cond('p->' + f['name'])})) return {k};")
+            continue
+        n0 = sh[0]
+        lim = f"i < {n0}u && i < (size_t)p->{f['upto']}" if "upto" in f else f"i < {n0}u"
+        pre = f"if (p->{f['when']} > 0) " if "when" in f else ""
+        if len(sh) == 1:
+            L.append(f"    {pre}for (i = 0; {lim}; i++) if ({cond('p->' + f['name'] + '[i]')}) return {k};")
+        else:
+            d = f" || (i == j && !(p->{f['name']}[i][j] > 0.0))" if diag else ""
+            L.append(f"    {pre}for (i = 0; {lim}; i++) for (j = 0; j < {sh[1]}u; j++) if (({cond('p->' + f['name'] + '[i][j]')}){d}) return {k};")
+    L += ["    return 0;", "}", "",
+          "const char *adcs_params_field(int32_t k)", "{",
+          "    static const char *const names[] = {" + ", ".join(f'"{f["name"]}"' for f in F) + "};",
+          f"    return (k >= 1 && k <= {len(F)}) ? names[k - 1] : \"?\";", "}", ""]
+    return "\n".join(L)
+
+
+def rs_validate():
+    L = ["", "impl Params {",
+         "    /// Every rule of params.toml, checked after decoding: Err names the first field that breaks one.",
+         "    pub fn validate(&self) -> Result<(), &'static str> {"]
+    for f in F:
+        R = rules(f)
+        diag = f.get("diag_positive")
+        if not R and not diag:
+            continue
+        sh = f.get("shape", [])
+        cond = lambda x: " || ".join(r.format(x=x) for _, r in R) or "false"
+        rcond = lambda x: cond(x).replace("p->", "self.")
+        guard = f"self.{f['when']} > 0 && " if "when" in f else ""
+        name = f["name"]
+        if not sh:
+            c = rcond('self.' + name)
+            L.append(f"        if {guard}({c}) {{ return Err(\"{name}\"); }}" if guard else f"        if {c} {{ return Err(\"{name}\"); }}")
+            continue
+        n0 = sh[0]
+        lim = f"(self.{f['upto']} as usize).min({n0})" if "upto" in f else f"{n0}"
+        pre = f"if self.{f['when']} > 0 " if "when" in f else ""
+        if len(sh) == 1:
+            body = f"for i in 0..{lim} {{ let x = self.{name}[i]; if {rcond('x')} {{ return Err(\"{name}\"); }} }}"
+        else:
+            d = " || (i == j && !(x > 0.0))" if diag else ""
+            body = f"for i in 0..{lim} {{ for j in 0..{sh[1]} {{ let x = self.{name}[i][j]; if {rcond('x')}{d} {{ return Err(\"{name}\"); }} }} }}"
+        L.append(f"        {pre}{{ {body} }}" if pre else f"        {body}")
+    L += ["        Ok(())", "    }", "}", ""]
+    return "\n".join(L)
 
 
 def check_igrf(d):
@@ -115,12 +201,14 @@ def c_header():
           "int32_t adcs_params_decode(const uint8_t *blob, size_t len, adcs_params_t *out);",
           "/* Encode into buf (cap >= ADCS_PARAMS_BLOB_SIZE); returns the blob length or 0. Ground and test use. */",
           "size_t adcs_params_encode(const adcs_params_t *in, uint8_t *buf, size_t cap);",
-          "uint32_t adcs_crc32(const uint8_t *p, size_t n);", "", "#endif", ""]
+          "uint32_t adcs_crc32(const uint8_t *p, size_t n);",
+          "/* Every rule of params.toml after decoding: 0, or the 1-based number of the first field that breaks one. */",
+          "int32_t adcs_params_validate(const adcs_params_t *p);", "const char *adcs_params_field(int32_t k);", "", "#endif", ""]
     return "\n".join(L)
 
 
 def c_source():
-    L = [f"/* adcs_params.c -- {HDR} */", '#include "adcs_params.h"', "#include <string.h>", "",
+    L = [f"/* adcs_params.c -- {HDR} */", '#include "adcs_params.h"', "#include <math.h>", "#include <string.h>", "",
          "uint32_t adcs_crc32(const uint8_t *p, size_t n)", "{",
          "    uint32_t c = 0xFFFFFFFFu;", "    size_t i; int k;",
          "    for (i = 0; i < n; i++) {", "        c ^= p[i];",
@@ -160,7 +248,7 @@ def c_source():
             flat = f"((const {CT[t]} *)in->{f['name']})"
             L.append(f"    for (i = 0; i < {n}u; i++) {{ {wr.format(v=flat + '[i]')}; p += {SIZE[t]}; }}")
     L += ["    wr_u32(p, adcs_crc32(buf + 12, ADCS_PARAMS_PAYLOAD));", "    return ADCS_PARAMS_BLOB_SIZE;", "}", ""]
-    return "\n".join(L)
+    return "\n".join(L) + c_validate()
 
 
 def rs_source():
@@ -241,7 +329,7 @@ def rs_source():
     for f in F:
         L += walk(f, "w")
     L += ["        let crc = crc32(&w.b[12..12 + PAYLOAD]);", "        w.u32(crc);", "        w.i", "    }", "}", ""]
-    return "\n".join(L)
+    return "\n".join(L) + rs_validate()
 
 
 def igrf():

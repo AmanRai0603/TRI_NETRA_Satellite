@@ -207,6 +207,9 @@ impl Config {
         within("engine.ap", self.ap, 0.0, 400.0)?;
         within("engine.accommodation", self.sigma_n, 0.0, 1.0)?;
         within("engine.refl", self.refl, 0.0, 2.0)?;
+        // the flight software checks its parameters at init; the engine says which one first, by name
+        self.params.validate().map_err(|f| Error::refused(format!(
+            "flight-software parameter {f} is outside its rule in fsw/params/params.toml (the flight software would refuse this configuration)")))?;
         Ok(())
     }
 

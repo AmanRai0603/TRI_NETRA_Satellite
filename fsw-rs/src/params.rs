@@ -751,3 +751,154 @@ impl Params {
         w.i
     }
 }
+
+impl Params {
+    /// Every rule of params.toml, checked after decoding: Err names the first field that breaks one.
+    pub fn validate(&self) -> Result<(), &'static str> {
+        if !self.jd0.is_finite() || !(self.jd0 > 0.0) { return Err("jd0"); }
+        if !self.dt.is_finite() || !(self.dt > 0.0) { return Err("dt"); }
+        if !self.mu.is_finite() || !(self.mu > 0.0) { return Err("mu"); }
+        if self.start_mode >= 11 { return Err("start_mode"); }
+        if self.auto_next >= 11 && self.auto_next != 255 { return Err("auto_next"); }
+        if self.n_sched > 8 { return Err("n_sched"); }
+        for i in 0..8 { let x = self.sched_t[i]; if !x.is_finite() { return Err("sched_t"); } }
+        for i in 0..(self.n_sched as usize).min(8) { let x = self.sched_mode[i]; if x >= 11 { return Err("sched_mode"); } }
+        if self.bdot_law > 3 { return Err("bdot_law"); }
+        if self.rw_law > 2 { return Err("rw_law"); }
+        if self.mtq_law > 8 { return Err("mtq_law"); }
+        if self.alloc > 3 { return Err("alloc"); }
+        if self.ss_eclipse < 1 || self.ss_eclipse > 2 { return Err("ss_eclipse"); }
+        if !self.ss_rz_floor.is_finite() { return Err("ss_rz_floor"); }
+        if self.ss_law > 2 { return Err("ss_law"); }
+        if self.gd_kind > 4 { return Err("gd_kind"); }
+        for i in 0..4 { let x = self.gd_q_off[i]; if !x.is_finite() { return Err("gd_q_off"); } }
+        if !self.gd_roll_deg.is_finite() { return Err("gd_roll_deg"); }
+        if !self.gd_t0.is_finite() { return Err("gd_t0"); }
+        if !self.gd_T.is_finite() || !(self.gd_T > 0.0) { return Err("gd_T"); }
+        for i in 0..3 { let x = self.gd_axis[i]; if !x.is_finite() { return Err("gd_axis"); } }
+        for i in 0..4 { let x = self.gd_q_inertial[i]; if !x.is_finite() { return Err("gd_q_inertial"); } }
+        for i in 0..3 { let x = self.sun_axis[i]; if !x.is_finite() { return Err("sun_axis"); } }
+        for i in 0..3 { let x = self.roll_axis[i]; if !x.is_finite() { return Err("roll_axis"); } }
+        for i in 0..3 { for j in 0..3 { let x = self.J[i][j]; if !x.is_finite() || (i == j && !(x > 0.0)) { return Err("J"); } } }
+        for i in 0..3 { let x = self.m_res_est[i]; if !x.is_finite() { return Err("m_res_est"); } }
+        if !self.mtq_period.is_finite() || !(self.mtq_period > 0.0) { return Err("mtq_period"); }
+        if !self.mtq_meas.is_finite() || self.mtq_meas < 0.0 { return Err("mtq_meas"); }
+        if !self.m_max.is_finite() || !(self.m_max > 0.0) { return Err("m_max"); }
+        if !self.bdot_k.is_finite() { return Err("bdot_k"); }
+        if !self.detumble_exit.is_finite() { return Err("detumble_exit"); }
+        if !self.detumble_hold_s.is_finite() || self.detumble_hold_s < 0.0 { return Err("detumble_hold_s"); }
+        for i in 0..3 { let x = self.mtq_Kp[i]; if !x.is_finite() { return Err("mtq_Kp"); } }
+        for i in 0..3 { let x = self.mtq_Kd[i]; if !x.is_finite() { return Err("mtq_Kd"); } }
+        for i in 0..3 { let x = self.mtq_Ki[i]; if !x.is_finite() { return Err("mtq_Ki"); } }
+        for i in 0..3 { for j in 0..3 { let x = self.mtq_Klqr[i][j]; if !x.is_finite() { return Err("mtq_Klqr"); } } }
+        if !self.mtq_lambda.is_finite() { return Err("mtq_lambda"); }
+        if !self.mtq_phi.is_finite() || !(self.mtq_phi > 0.0) { return Err("mtq_phi"); }
+        for i in 0..3 { let x = self.mtq_Gs[i]; if !x.is_finite() { return Err("mtq_Gs"); } }
+        if !self.mtq_err_max.is_finite() { return Err("mtq_err_max"); }
+        if !self.mtq_int_max.is_finite() { return Err("mtq_int_max"); }
+        for i in 0..3 { let x = self.rw_Kp[i]; if !x.is_finite() { return Err("rw_Kp"); } }
+        for i in 0..3 { let x = self.rw_Kd[i]; if !x.is_finite() { return Err("rw_Kd"); } }
+        for i in 0..3 { let x = self.rw_Ki[i]; if !x.is_finite() { return Err("rw_Ki"); } }
+        for i in 0..3 { for j in 0..3 { let x = self.rw_Klqr[i][j]; if !x.is_finite() { return Err("rw_Klqr"); } } }
+        if !self.rw_lambda.is_finite() { return Err("rw_lambda"); }
+        if !self.rw_phi.is_finite() || !(self.rw_phi > 0.0) { return Err("rw_phi"); }
+        for i in 0..3 { let x = self.rw_Gs[i]; if !x.is_finite() { return Err("rw_Gs"); } }
+        if !self.rw_err_max.is_finite() { return Err("rw_err_max"); }
+        if !self.rw_int_max.is_finite() { return Err("rw_int_max"); }
+        if !self.rw_dt.is_finite() || !(self.rw_dt > 0.0) { return Err("rw_dt"); }
+        if !self.capture_deg.is_finite() { return Err("capture_deg"); }
+        if !self.capture_rate_deg_s.is_finite() { return Err("capture_rate_deg_s"); }
+        if !self.ss_k_l1.is_finite() { return Err("ss_k_l1"); }
+        if !self.ss_spin_dps.is_finite() { return Err("ss_spin_dps"); }
+        if !self.ss_sigma0.is_finite() { return Err("ss_sigma0"); }
+        if !self.ss_z_in_dps.is_finite() { return Err("ss_z_in_dps"); }
+        if !self.ss_perp_in_dps.is_finite() { return Err("ss_perp_in_dps"); }
+        if !self.ss_sun_min.is_finite() { return Err("ss_sun_min"); }
+        if !self.ss_t_check_s.is_finite() { return Err("ss_t_check_s"); }
+        if !self.ss_omega_max_dps.is_finite() { return Err("ss_omega_max_dps"); }
+        if !self.ss_dwell_in_s.is_finite() { return Err("ss_dwell_in_s"); }
+        if !self.ss_k1.is_finite() { return Err("ss_k1"); }
+        if !self.ss_k2.is_finite() { return Err("ss_k2"); }
+        if !self.ss_perp_out_dps.is_finite() { return Err("ss_perp_out_dps"); }
+        if !self.ss_omega_exit_dps.is_finite() { return Err("ss_omega_exit_dps"); }
+        if !self.ss_dwell_out_s.is_finite() { return Err("ss_dwell_out_s"); }
+        if !self.sa_w_max_deg_s.is_finite() { return Err("sa_w_max_deg_s"); }
+        if !self.sa_kd.is_finite() { return Err("sa_kd"); }
+        if !self.sa_done_deg.is_finite() { return Err("sa_done_deg"); }
+        if !self.sa_done_hold_s.is_finite() { return Err("sa_done_hold_s"); }
+        if !self.mtq_eps.is_finite() { return Err("mtq_eps"); }
+        if !self.mtq_k1.is_finite() { return Err("mtq_k1"); }
+        if !self.mtq_k2.is_finite() { return Err("mtq_k2"); }
+        if !self.mtq_k16.is_finite() { return Err("mtq_k16"); }
+        if !self.mtq_lam16.is_finite() { return Err("mtq_lam16"); }
+        for i in 0..3 { for j in 0..3 { let x = self.mtq_Pth[i][j]; if !x.is_finite() { return Err("mtq_Pth"); } } }
+        for i in 0..3 { for j in 0..3 { let x = self.mtq_Pw[i][j]; if !x.is_finite() { return Err("mtq_Pw"); } } }
+        if !self.ss_dr_k.is_finite() { return Err("ss_dr_k"); }
+        if !self.ss_dr_k1.is_finite() { return Err("ss_dr_k1"); }
+        if !self.ss_dr_k2.is_finite() { return Err("ss_dr_k2"); }
+        if !self.sb_kp.is_finite() { return Err("sb_kp"); }
+        if !self.sb_kd.is_finite() { return Err("sb_kd"); }
+        if !self.sb_kroll.is_finite() { return Err("sb_kroll"); }
+        if !self.sb_kdroll.is_finite() { return Err("sb_kdroll"); }
+        if !self.sb_roll_gate.is_finite() { return Err("sb_roll_gate"); }
+        if !self.ho_in_dps.is_finite() { return Err("ho_in_dps"); }
+        if !self.ho_out_dps.is_finite() { return Err("ho_out_dps"); }
+        if !self.ho_hold_s.is_finite() { return Err("ho_hold_s"); }
+        if self.mtq_gg_ff > 3 { return Err("mtq_gg_ff"); }
+        if !self.mekf_gate.is_finite() || self.mekf_gate < 0.0 { return Err("mekf_gate"); }
+        if !self.mekf_rej_max.is_finite() || self.mekf_rej_max < 0.0 { return Err("mekf_rej_max"); }
+        if !self.mekf_mag_err_T.is_finite() { return Err("mekf_mag_err_T"); }
+        if self.gnss_ecef > 1 { return Err("gnss_ecef"); }
+        if self.gd_yaw_flip > 1 { return Err("gd_yaw_flip"); }
+        if !self.gd_flip_hyst.is_finite() { return Err("gd_flip_hyst"); }
+        if self.nr > 8 { return Err("nr"); }
+        if self.ng > 4 { return Err("ng"); }
+        for i in 0..(self.nr as usize).min(8) { let x = self.rot_kind[i]; if x > 3 { return Err("rot_kind"); } }
+        for i in 0..8 { for j in 0..3 { let x = self.rot_a0[i][j]; if !x.is_finite() { return Err("rot_a0"); } } }
+        for i in 0..(self.nr as usize).min(8) { let x = self.rot_gi[i]; if x > self.ng { return Err("rot_gi"); } }
+        for i in 0..4 { for j in 0..3 { let x = self.gim_axis[i][j]; if !x.is_finite() { return Err("gim_axis"); } } }
+        for i in 0..(self.nr as usize).min(8) { let x = self.rot_tmax[i]; if !x.is_finite() || !(x > 0.0) { return Err("rot_tmax"); } }
+        for i in 0..8 { let x = self.rot_hmax[i]; if !x.is_finite() { return Err("rot_hmax"); } }
+        for i in 0..8 { let x = self.rot_h0[i]; if !x.is_finite() { return Err("rot_h0"); } }
+        if self.ng > 0 && (!self.gim_rate_max.is_finite() || !(self.gim_rate_max > 0.0)) { return Err("gim_rate_max"); }
+        if !self.h_bias.is_finite() { return Err("h_bias"); }
+        if !self.dump_k.is_finite() { return Err("dump_k"); }
+        if !self.cmg_lam0.is_finite() { return Err("cmg_lam0"); }
+        if !self.cmg_mu.is_finite() { return Err("cmg_mu"); }
+        if !self.cmg_k_null.is_finite() { return Err("cmg_k_null"); }
+        if !self.fdir_s.is_finite() || !(self.fdir_s > 0.0) { return Err("fdir_s"); }
+        if self.nc > 6 { return Err("nc"); }
+        for i in 0..6 { for j in 0..3 { let x = self.rcs_tau[i][j]; if !x.is_finite() { return Err("rcs_tau"); } } }
+        if !self.rcs_mib.is_finite() || self.rcs_mib < 0.0 { return Err("rcs_mib"); }
+        if self.nc > 0 && (!self.rcs_res.is_finite() || !(self.rcs_res > 0.0)) { return Err("rcs_res"); }
+        if self.rcs_assist > 1 { return Err("rcs_assist"); }
+        if !self.rcs_assist_frac.is_finite() { return Err("rcs_assist_frac"); }
+        if self.rcs_dump > 1 { return Err("rcs_dump"); }
+        if !self.rcs_dump_hi.is_finite() { return Err("rcs_dump_hi"); }
+        if !self.rcs_dump_lo.is_finite() { return Err("rcs_dump_lo"); }
+        if !self.rcs_dump_k.is_finite() { return Err("rcs_dump_k"); }
+        if !self.rcsd_T_damp_s.is_finite() || !(self.rcsd_T_damp_s > 0.0) { return Err("rcsd_T_damp_s"); }
+        if !self.rcsd_deadband_deg_s.is_finite() { return Err("rcsd_deadband_deg_s"); }
+        if !self.rcsd_period_s.is_finite() || !(self.rcsd_period_s > 0.0) { return Err("rcsd_period_s"); }
+        if self.has_gyro > 1 { return Err("has_gyro"); }
+        if self.has_st > 1 { return Err("has_st"); }
+        if self.has_sun > 1 { return Err("has_sun"); }
+        if self.has_es > 1 { return Err("has_es"); }
+        if self.has_gps > 1 { return Err("has_gps"); }
+        if self.n_heads > 2 { return Err("n_heads"); }
+        for i in 0..2 { for j in 0..3 { let x = self.st_bs[i][j]; if !x.is_finite() { return Err("st_bs"); } } }
+        if !self.st_noise_cross.is_finite() { return Err("st_noise_cross"); }
+        if !self.st_noise_roll.is_finite() { return Err("st_noise_roll"); }
+        if !self.st_latency.is_finite() { return Err("st_latency"); }
+        if !self.st_coast_s.is_finite() || !(self.st_coast_s > 0.0) { return Err("st_coast_s"); }
+        if !self.gyro_arw.is_finite() { return Err("gyro_arw"); }
+        if !self.gyro_rrw.is_finite() { return Err("gyro_rrw"); }
+        if !self.es_noise.is_finite() { return Err("es_noise"); }
+        if !self.mekf_sig_mag.is_finite() || !(self.mekf_sig_mag > 0.0) { return Err("mekf_sig_mag"); }
+        if !self.mekf_sig_sun.is_finite() || !(self.mekf_sig_sun > 0.0) { return Err("mekf_sig_sun"); }
+        if !self.mekf_meas_scale.is_finite() || !(self.mekf_meas_scale > 0.0) { return Err("mekf_meas_scale"); }
+        if !self.rate_lpf_s.is_finite() || self.rate_lpf_s < 0.0 { return Err("rate_lpf_s"); }
+        if self.igrf_nmax < 1 || self.igrf_nmax > 13 { return Err("igrf_nmax"); }
+        Ok(())
+    }
+}

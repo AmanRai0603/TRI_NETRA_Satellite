@@ -72,6 +72,7 @@ pub extern "C" fn adcs_fsw_init(init: *const InitArgs) -> i32 {
         Ok(()) => 0,
         Err(crate::fsw::InitError::Abi) => -10,
         Err(crate::fsw::InitError::Config) => -11,
+        Err(crate::fsw::InitError::Invalid(_)) => -12,
     }
 }
 

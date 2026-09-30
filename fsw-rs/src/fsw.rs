@@ -19,7 +19,7 @@ pub const BUILD_ID: &str = "trinetra-fsw-rs/1.0.0 (adcs-fswcfg/1)";
 const MODE_COUNT: u8 = 11;
 
 #[derive(Debug, PartialEq, Eq)]
-pub enum InitError { Abi, Config }
+pub enum InitError { Abi, Config, Invalid(&'static str) }
 
 /// What adcs_fsw_peek reports (floats, quaternion scalar first).
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
@@ -94,6 +94,7 @@ impl Fsw {
         *self = Fsw::default();
         if abi_version != ABI_VERSION { return Err(InitError::Abi); }
         let p = Params::decode(blob).map_err(|_| InitError::Config)?;
+        p.validate().map_err(InitError::Invalid)?;   // a value outside its rule (params.toml)
         self.p = p;
         self.start_ns = start_ns;
         self.mode = p.start_mode;
