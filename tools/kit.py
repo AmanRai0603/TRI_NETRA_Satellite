@@ -18,7 +18,6 @@ No git history, no generators, no build files. Zip the folder and share it.
 Copyright (c) 2026 Agastya. All rights reserved.
 """
 import argparse
-import json
 import pathlib
 import shutil
 import sys

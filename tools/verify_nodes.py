@@ -88,7 +88,6 @@ def verify_case(C, case, cat):
     # select_rotor: recompute the pick from the catalogue and the need
     for k in ("rw", "cmg", "vscmg"):
         p = parts[k]
-        s = p["sizing"]
         share = 1.0 if k == "rw" else 0.5
         scale = z["knobs"]["scale"].get(k, 1.0)
         hn, tn = share * d["h_req"] * scale, share * d["tau_req"] * scale

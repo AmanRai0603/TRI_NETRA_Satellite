@@ -49,7 +49,9 @@ jobs:
           fi
           echo "version=$v" >> "$GITHUB_OUTPUT"
       - name: every check
-        run: python3 tools/check_all.py
+        run: |
+          python3 -m pip install -q pyflakes
+          python3 tools/check_all.py
 
   linux:
     needs: prove

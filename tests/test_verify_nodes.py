@@ -15,8 +15,10 @@ import shutil
 import tempfile
 import unittest
 
-from _path import ROOT
+import _path  # puts tools/ on the import path
 import verify_nodes as V
+
+_ = _path  # imported for its effect: tools/ on sys.path
 
 CASE = "ais_3u"
 

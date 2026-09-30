@@ -4,8 +4,10 @@ import pathlib
 import tempfile
 import unittest
 
-from _path import ROOT
+import _path  # puts tools/ on the import path
 import common
+
+_ = _path  # imported for its effect: tools/ on sys.path
 
 
 class AtomicWrites(unittest.TestCase):

@@ -14,6 +14,7 @@ Exit status 1 when any check fails.
 Copyright (c) 2026 Agastya. All rights reserved.
 """
 import argparse
+import importlib.util
 import shutil
 import subprocess
 import sys
@@ -23,7 +24,9 @@ from common import ROOT
 
 PY = sys.executable
 CHECKS = [
-    # name, what it proves, command, working folder, programs it needs
+    # name, what it proves, command, working folder, programs it needs (py:<module> for a Python module)
+    ("lint", "no unused name, undefined name or dead import in the tools and tests (pyflakes)",
+     [PY, "-m", "pyflakes", "tools", "tests"], ".", ["py:pyflakes"]),
     ("python-tests", "the tools' own tests: the registry, generated files, the Kp -> ap table, atomic writes",
      [PY, "-m", "unittest", "discover", "-s", "tests", "-t", "tests"], ".", []),
     ("wheel", "the Python package builder: RECORD, entry points, executable bits, a changed byte caught",
@@ -69,7 +72,7 @@ def main(argv=None):
         todo = [c for c in todo if c[0] in a.only]
     rows, failed = [], []
     for name, what, cmd, cwd, needs in todo:
-        missing = [n for n in needs if not shutil.which(n)]
+        missing = [n for n in needs if not (importlib.util.find_spec(n[3:]) if n.startswith("py:") else shutil.which(n))]
         if missing:
             rows.append((name, "NOT RUN", f"needs {', '.join(missing)}", 0.0))
             continue
