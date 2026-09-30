@@ -5,6 +5,7 @@ status, and where in-house development plugs in.
 Copyright (c) 2026 Agastya. All rights reserved.
 """
 import pathlib, tomllib
+from common import write_text
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 C = [tomllib.loads(f.read_text()) for f in sorted((ROOT / "catalogue" / "components").glob("*.toml"))]
@@ -31,5 +32,5 @@ for c in C:
         L += ["", "| node | file | status | what |", "|---|---|---|---|"]
         for n in c["chain"]:
             L.append(f"| {n['node']} | `{n['file']}` | {n['status']} | {n['what']} |")
-(ROOT / "docs" / "COMPONENTS.md").write_text("\n".join(L) + "\n")
+write_text(ROOT / "docs" / "COMPONENTS.md", "\n".join(L) + "\n")
 print("wrote docs/COMPONENTS.md", len(C), "components")

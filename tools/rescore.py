@@ -15,6 +15,7 @@ import argparse, json, math, pathlib, sys
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "tools"))
 import engine as E                                   # noqa: E402  (summarise, case_values)
+from common import write_text
 
 STORES = ["matlab_sils/store/results", "matlab_sils/store/results_engine", "matlab_sils/store/solutions",
           "matlab_sils/store/solutions_engine", "matlab_sils/store/pipeline", "dist/dispatch"]
@@ -98,7 +99,7 @@ def main():
             changed += n[0]
             if not a.dry_run:
                 # keep each file's own layout (compact records, indented ledgers) so the diff is the verdicts
-                p.write_text(json.dumps(d, indent=1) if txt.startswith("{\n") or txt.startswith("[\n")
+                write_text(p, json.dumps(d, indent=1) if txt.startswith("{\n") or txt.startswith("[\n")
                              else json.dumps(d, separators=(",", ":")))
     print(f"rescore: {changed} verdict(s) in {files} file(s){' (dry run)' if a.dry_run else ''}")
 

@@ -10,6 +10,7 @@ MATLAB users: run_scenarios and run_campaign (parfor) do the same.
 Copyright (c) 2026 Agastya. All rights reserved.
 """
 import argparse, json, pathlib, subprocess, time, concurrent.futures as cf
+from common import write_text
 
 ROOT = pathlib.Path(__file__).resolve().parents[1] / "matlab_sils"
 LOG = ROOT / "store" / "logs"
@@ -90,7 +91,7 @@ def main():
         for c in a.cases.split(","):
             rc = octave(f"asils.solution.collect('{c}');", LOG / f"collect_solution_{c}.log")
             print(f"collected solution {c} rc={rc}", flush=True)
-    (LOG / "matrix.done").write_text("done\n")
+    write_text(LOG / "matrix.done", "done\n")
 
 if __name__ == "__main__":
     main()

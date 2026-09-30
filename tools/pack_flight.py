@@ -15,6 +15,7 @@ Build: python3 tools/engine.py build (needs gcc, make, cargo). Deterministic zip
 Copyright (c) 2026 Agastya. All rights reserved.
 """
 import hashlib, pathlib, re, zipfile
+from common import atomic_path
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 ver = re.search(r'^version = "([0-9.]+)"', (ROOT / "engine" / "Cargo.toml").read_text(), re.M).group(1)
@@ -40,7 +41,8 @@ for t in trees:
 files += [pathlib.Path(s) for s in singles if (ROOT / s).exists()]
 FIXED = (2026, 9, 28, 0, 0, 0)
 man = []
-with zipfile.ZipFile(out, "w", zipfile.ZIP_DEFLATED, compresslevel=9) as z:
+# the zip is written beside its name and renamed into place when whole
+with atomic_path(out) as part, zipfile.ZipFile(part, "w", zipfile.ZIP_DEFLATED, compresslevel=9) as z:
     for rel in files:
         data = (ROOT / rel).read_bytes()
         arc = f"{name}/{rel.as_posix()}"

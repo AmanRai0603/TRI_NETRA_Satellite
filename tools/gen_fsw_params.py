@@ -11,6 +11,7 @@ Generated files carry a header saying so; they are never edited by hand.
 Copyright (c) 2026 Agastya. All rights reserved.
 """
 import json, pathlib, tomllib
+from common import write_text
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 P = tomllib.loads((ROOT / "fsw" / "params" / "params.toml").read_text())
@@ -206,10 +207,10 @@ def igrf():
 if __name__ == "__main__":
     (ROOT / "fsw" / "src").mkdir(parents=True, exist_ok=True)
     (ROOT / "fsw-rs" / "src").mkdir(parents=True, exist_ok=True)
-    (ROOT / "fsw" / "include" / "adcs_params.h").write_text(c_header())
-    (ROOT / "fsw" / "src" / "adcs_params.c").write_text(c_source())
-    (ROOT / "fsw-rs" / "src" / "params.rs").write_text(rs_source())
+    write_text(ROOT / "fsw" / "include" / "adcs_params.h", c_header())
+    write_text(ROOT / "fsw" / "src" / "adcs_params.c", c_source())
+    write_text(ROOT / "fsw-rs" / "src" / "params.rs", rs_source())
     ch, rs = igrf()
-    (ROOT / "fsw" / "include" / "adcs_igrf13.h").write_text(ch)
-    (ROOT / "fsw-rs" / "src" / "igrf13.rs").write_text(rs)
+    write_text(ROOT / "fsw" / "include" / "adcs_igrf13.h", ch)
+    write_text(ROOT / "fsw-rs" / "src" / "igrf13.rs", rs)
     print(f"params: {len(F)} fields, payload {PAYLOAD} bytes, blob {BLOB} bytes; IGRF tables written")

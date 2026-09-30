@@ -66,7 +66,7 @@ pub fn write(dir: &Path, c: &Config, rec: &Record, d: &Derived, metrics: &[Value
         for (i, c) in cols.iter().enumerate() { if i > 0 { s.push(','); } let _ = write!(s, "{}", g9(c.1[j])); }
         s.push('\n');
     }
-    std::fs::write(dir.join("channels.csv"), s).map_err(|e| e.to_string())?;
+    crate::fsio::write(&dir.join("channels.csv"), s)?;
 
     let mut alg = serde_json::Map::new();
     for (k, v) in &c.alg { alg.insert(k.clone(), json!(v)); }
@@ -83,7 +83,8 @@ pub fn write(dir: &Path, c: &Config, rec: &Record, d: &Derived, metrics: &[Value
         "mode_log": rec.mode_log.iter().map(|(t, m)| json!({"t": t, "mode": m})).collect::<Vec<_>>(),
         "oils": rec.oils.as_ref().map(|s| s.json(c.dt)),
     });
-    std::fs::write(dir.join("manifest.json"), serde_json::to_string(&man).unwrap() + "\n").map_err(|e| e.to_string())?;
+    // the manifest last: a run directory with a manifest has its channels too
+    crate::fsio::write(&dir.join("manifest.json"), serde_json::to_string(&man).map_err(|e| e.to_string())? + "\n")?;
     Ok(())
 }
 

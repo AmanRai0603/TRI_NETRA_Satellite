@@ -18,6 +18,7 @@ import numpy as np
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+from common import write_text
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 STORE = ROOT / "matlab_sils" / "store" / "results"
@@ -510,7 +511,7 @@ def write_solutions_md(sols):
             for o in M["options"]:
                 L.append(f"| {o['id']} | {', '.join(aslist(o['uses']))} | {'yes' if o['feasible'] else 'no'} | {fnum(o['obj']):.4g} | {fnum(o['power']):.2f} | {', '.join(aslist(o.get('failed'))) or '—'} |")
         L.append("")
-    (ROOT / "docs" / "SOLUTIONS.md").write_text("\n".join(L) + "\n")
+    write_text(ROOT / "docs" / "SOLUTIONS.md", "\n".join(L) + "\n")
 
 
 def main():
@@ -560,7 +561,7 @@ def main():
         sol_html.append(solution_html(S, rows, figs))
         report.setdefault("solutions", {})[S["case"]] = {"recommended": S["recommended"], "verdict": S["verdict"], "families": rows}
     if sols: write_solutions_md(sols)
-    (OUT / "summary.json").write_text(json.dumps(report, indent=1, default=float))
+    write_text(OUT / "summary.json", json.dumps(report, indent=1, default=float))
     write_html(sections, cmp_figs, report, trades, sol_html)
     write_md(sections, cmp_figs)
     write_selection(trades)
@@ -737,7 +738,7 @@ nav a:hover,nav a:focus-visible{border-color:var(--accent);outline:none}
             for f in figs:
                 out.append(f"<figure><img src='figures/{f}' alt='{html.escape(f.replace('_', ' ')[:-4])}' loading='lazy'></figure>")
     out.append("<p class='muted'>Copyright © 2026 Agastya. All rights reserved.</p></main>")
-    (OUT / "index.html").write_text("\n".join(out))
+    write_text(OUT / "index.html", "\n".join(out))
 
 
 def write_md(sections, cmp_figs):
@@ -766,7 +767,7 @@ def write_md(sections, cmp_figs):
                     pr = "—" if st["pass_rate"] is None or not np.isfinite(st["pass_rate"]) else f"{100*st['pass_rate']:.0f}%"
                     L.append(f"| {st['id']} | {st['mean']:.4g} | {st['std']:.3g} | p{st['level']:g}: {st['pct']:.4g} {st['unit']} | {req} | {pr} | {v} |")
                 L.append("")
-    (ROOT / "docs" / "RESULTS.md").write_text("\n".join(L) + "\n")
+    write_text(ROOT / "docs" / "RESULTS.md", "\n".join(L) + "\n")
 
 
 def write_selection(trades):
@@ -808,7 +809,7 @@ def write_selection(trades):
               "| rank | candidate | product | objective worst | mean | checks passed |", "|---|---|---|---|---|---|"]
         for i, c in enumerate(T["candidates"]):
             L.append(f"| {i+1} | {c['id']} | {c.get('product','')} | {fnum(c['obj']):.4g} | {fnum(c['obj_mean']):.4g} | {fnum(c.get('pass_rate')):.0f}% |")
-    (ROOT / "docs" / "SELECTION.md").write_text("\n".join(L) + "\n")
+    write_text(ROOT / "docs" / "SELECTION.md", "\n".join(L) + "\n")
 
 
 if __name__ == "__main__":

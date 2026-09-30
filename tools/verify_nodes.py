@@ -12,6 +12,7 @@ results/node_verification.json, and exits non-zero when a check fails.
 Copyright (c) 2026 Agastya. All rights reserved.
 """
 import json, math, pathlib, sys
+from common import write_text
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 MS = ROOT / "matlab_sils"
@@ -226,8 +227,8 @@ def main():
          f"**{npass} of {len(rows)} checks pass** over {len(covered)} of {len(ids)} nodes ({', '.join(cases)}).", "",
          "| node | case | check | result | detail |", "|---|---|---|---|---|"]
     L += [f"| `{r['node']}` | {r['case']} | {r['check']} | {'pass' if r['ok'] else '**FAIL**'} | {r['detail']} |" for r in rows]
-    (ROOT / "results" / "NODE_VERIFICATION.md").write_text("\n".join(L) + "\n")
-    (ROOT / "results" / "node_verification.json").write_text(json.dumps({"passed": npass, "checks": len(rows), "nodes": covered, "rows": rows}, indent=1))
+    write_text(ROOT / "results" / "NODE_VERIFICATION.md", "\n".join(L) + "\n")
+    write_text(ROOT / "results" / "node_verification.json", json.dumps({"passed": npass, "checks": len(rows), "nodes": covered, "rows": rows}, indent=1))
     print(f"verify_nodes: {npass}/{len(rows)} checks pass over {len(covered)}/{len(ids)} nodes; wrote results/NODE_VERIFICATION.md")
     for r in rows:
         if not r["ok"]:

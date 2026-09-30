@@ -15,6 +15,7 @@ pub mod config;
 pub mod run;
 pub mod metrics;
 pub mod rec;
+pub mod fsio;
 
 pub const ENGINE: &str = "adcs-engine-rs/1.2.0 (adcs-case/1, POP v51 port in-loop, adcs-design, soft OILS)";
 

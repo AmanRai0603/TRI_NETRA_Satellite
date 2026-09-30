@@ -13,6 +13,7 @@ selectable models.
 Copyright (c) 2026 Agastya. All rights reserved.
 """
 import json, math, pathlib, re, subprocess, sys
+from common import write_text
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 CAT = ROOT / "matlab_sils" / "data" / "catalogue"
@@ -82,7 +83,7 @@ def main():
     n = 0
     for p in sorted(CAT.glob("*.json")):
         c = derive(json.loads(p.read_text()))
-        p.write_text(json.dumps(c, indent=1) + "\n")
+        write_text(p, json.dumps(c, indent=1) + "\n")
         n += 1
         print(f"  {c['part_number']:<42} {'selectable' if c['selectable'] else 'not selectable (' + ', '.join(c['missing']) + ')'}")
     print(f"catalogue: {n} models")

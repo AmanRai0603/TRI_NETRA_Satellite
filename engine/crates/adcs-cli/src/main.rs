@@ -82,6 +82,7 @@ fn print_metrics(ms: &[serde_json::Value]) {
 }
 
 fn main() -> ExitCode {
+    adcs_sim::fsio::install_crash_report("adcs");
     let a = match parse() { Ok(a) => a, Err(e) => { eprintln!("{e}"); return ExitCode::from(2); } };
     let r = (|| -> Result<(), String> {
         if a.cmd == "size" {
@@ -110,7 +111,7 @@ fn main() -> ExitCode {
         match a.cmd.as_str() {
             "params" => {
                 let out = a.out.clone().ok_or("params needs --out")?;
-                std::fs::write(&out, c.blob()).map_err(|e| e.to_string())?;
+                adcs_sim::fsio::write(&out, c.blob())?;
                 println!("wrote {} ({} bytes, adcs-fswcfg/1)", out.display(), adcs_fsw::params::BLOB_SIZE);
             }
             "run" => {

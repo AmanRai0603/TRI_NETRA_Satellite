@@ -9,6 +9,7 @@ their datasheets state them. Both documents are generated, never typed.
 Copyright (c) 2026 Agastya. All rights reserved.
 """
 import json, pathlib
+from common import write_text
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 DATA = ROOT / "matlab_sils" / "data"
@@ -38,7 +39,7 @@ def nodes_md():
             L += ["", "| parameter | value |", "|---|---|"] + [f"| `{k}` | {fmt(v)} |" for k, v in n["parameters"].items()]
         if n["rules"]:
             L += ["", "Rules:", ""] + [f"- {r}" for r in n["rules"]]
-    (ROOT / "docs" / "NODES.md").write_text("\n".join(L) + "\n")
+    write_text(ROOT / "docs" / "NODES.md", "\n".join(L) + "\n")
 
 
 def catalogue_md():
@@ -64,7 +65,7 @@ def catalogue_md():
         c = json.loads(f.read_text())
         m = c["derived"]
         L.append(f"| {c['model']} | {m.get('rotor_inertia_kgm2', 0):.3g} | {m.get('volume_L', 0):.3g} | {m.get('mass_kg', 0):.3g} | {'; '.join(c.get('assumptions', []))} |")
-    (ROOT / "docs" / "CATALOGUE.md").write_text("\n".join(L) + "\n")
+    write_text(ROOT / "docs" / "CATALOGUE.md", "\n".join(L) + "\n")
 
 
 if __name__ == "__main__":

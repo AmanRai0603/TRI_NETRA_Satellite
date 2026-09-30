@@ -14,6 +14,7 @@ Sources (whatever exists is reported; a missing source is named, never invented)
 Owner: Agastya. Copyright (c) 2026 Agastya. All rights reserved.
 """
 import base64, csv, datetime, glob, html, io, json, math, pathlib, re, shutil, string, subprocess
+from common import write_text
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 MS = ROOT / "matlab_sils"
@@ -617,7 +618,7 @@ def main():
         fig_arch=svg_inline("docs/figures/architecture_languages.svg"), nodes=nodes(), catalogue=catalogue(), literature=literature(), requirements=requirements(), design=design(), sils=sils(), verification=verification(),
         campaigns=campaigns(), parity=parity(), oils=oils(), vobc=vobc(), open=open_items())
     h = OUT / "TRINETRA_ADCS_VV_report.html"
-    h.write_text(doc)
+    write_text(h, doc)
     # the published page: the same report without the document wrapper (the artifact adds it),
     # linking the full results index (results.html) that sits beside it with its figures
     title = re.search(r"<title>.*?</title>", doc, re.S).group(0)
@@ -625,7 +626,7 @@ def main():
     body = re.search(r"<body>(.*)</body>", doc, re.S).group(1)
     nav = ('<nav class="wrap" style="padding-block:10px;font-size:9.5pt;color:#5b6477">Full results with every figure: '
            '<a href="results.html">results page</a> · PDF and code: <code>dist/TRINETRA_ADCS_VV_report.pdf</code> in the repository</nav>')
-    (OUT / "vv_artifact.html").write_text(title + "\n" + style.replace("body { margin: 0;", "body { margin: 0; min-height: 100%;") + "\n" + nav + body)
+    write_text(OUT / "vv_artifact.html", title + "\n" + style.replace("body { margin: 0;", "body { margin: 0; min-height: 100%;") + "\n" + nav + body)
     chrome = next(iter(glob.glob("/opt/pw-browsers/chromium*/chrome-linux/chrome")), None) or shutil.which("chromium") or shutil.which("google-chrome")
     pdf = OUT / "TRINETRA_ADCS_VV_report.pdf"
     if chrome:

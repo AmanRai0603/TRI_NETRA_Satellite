@@ -344,7 +344,7 @@ pub fn size_all(root: &Path, case_file: &Path, k: &Knobs, out: &Path) -> Result<
     let mut by_pn: BTreeMap<String, Value> = BTreeMap::new();
     for (_, p) in &parts {
         let pn = json::s(p, "part_number", "").to_string();
-        std::fs::write(out.join("parts").join(format!("{pn}.json")), serde_json::to_string(p).unwrap()).map_err(|e| e.to_string())?;
+        adcs_sim::fsio::write(&out.join("parts").join(format!("{pn}.json")), serde_json::to_string(p).map_err(|e| e.to_string())?)?;
         by_pn.insert(pn, p.clone());
     }
     // a better gyro than the catalogue's precision unit when the loop asks for it: noise x grade,
@@ -360,7 +360,7 @@ pub fn size_all(root: &Path, case_file: &Path, k: &Knobs, out: &Path) -> Result<
         gyro_id = format!("SZ-{case}-GYRO");
         g["part_number"] = json!(gyro_id); g["status"] = json!("sized"); g["source"] = json!("adcs-design (gyro grade)");
         g["name"] = json!(format!("Gyro, noise x{gr} of TRN-GYRO-P1 (fibre-optic class) — {case}"));
-        std::fs::write(out.join("parts").join(format!("{gyro_id}.json")), serde_json::to_string(&g).unwrap()).map_err(|e| e.to_string())?;
+        adcs_sim::fsio::write(&out.join("parts").join(format!("{gyro_id}.json")), serde_json::to_string(&g).map_err(|e| e.to_string())?)?;
         by_pn.insert(gyro_id.clone(), g);
     }
     let pn = |key: &str| parts.iter().find(|x| x.0 == key).map(|x| json::s(&x.1, "part_number", "").to_string()).unwrap_or_default();
@@ -410,7 +410,7 @@ pub fn size_all(root: &Path, case_file: &Path, k: &Knobs, out: &Path) -> Result<
         let pr = json!({"schema": "adcs-product/1", "id": format!("SZ-{case}-{id}"), "label": format!("{label} — sized to {case}"), "family": id,
             "role": fa["role"], "classes": ["cubesat_3u"], "status": "sized", "origin": "designed", "source": "adcs-design",
             "algorithms": algs, "sun_axis_body": [0, 0, -1], "payload_boresight_body": bs, "fill": fill, "knobs": k.json()});
-        std::fs::write(out.join("products").join(format!("SZ-{case}-{id}.json")), serde_json::to_string(&pr).unwrap()).map_err(|e| e.to_string())?;
+        adcs_sim::fsio::write(&out.join("products").join(format!("SZ-{case}-{id}.json")), serde_json::to_string(&pr).map_err(|e| e.to_string())?)?;
         let b = budget(pr["fill"].as_array().unwrap(), &lookup)?;
         families.insert(id.to_string(), json!({"product": format!("SZ-{case}-{id}"), "role": fa["role"], "label": label,
             "mass_kg": b["mass_kg"], "power_W": b["power_W"], "volume_L": b["volume_L"], "items": b["items"]}));
@@ -418,7 +418,7 @@ pub fn size_all(root: &Path, case_file: &Path, k: &Knobs, out: &Path) -> Result<
     let z = json!({"schema": "adcs-sizing/1", "case": case, "class": if d.fine { "fine" } else { "coarse" }, "star_tracker": st_fit,
         "demand": d.json(), "knobs": k.json(), "families": families,
         "parts": parts.iter().map(|(a, b)| (a.to_string(), b.clone())).collect::<serde_json::Map<_, _>>()});
-    std::fs::write(out.join("sizing.json"), serde_json::to_string_pretty(&z).unwrap()).map_err(|e| e.to_string())?;
+    adcs_sim::fsio::write(&out.join("sizing.json"), serde_json::to_string_pretty(&z).map_err(|e| e.to_string())?)?;
     Ok(z)
 }
 
