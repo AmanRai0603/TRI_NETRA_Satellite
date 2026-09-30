@@ -234,14 +234,17 @@ def literature():
            "the P11 → P5 chain already in place (UPMSat-2 spin-up, He et al. Sun spin). Bruni &amp; Celani's min–max tuning "
            "is node <code>tune</code>; Celani's Floquet certificate is node <code>certify</code>. The paper-by-paper record, "
            "including what was not implemented and why, is <code>docs/MTQ_LITERATURE.md</code>.</p>"]
-    fam = {}
+    fam, mcs = {}, {}
     for c in CASES:
         v = (jl(PIPE / c / "families.json") or {}).get("mtq")
+        st = {x["id"]: x for x in ((v or {}).get("mc") or {}).get("stats", [])}
+        if st.get("ape_los_p9973", {}).get("pass_rate") is not None:
+            mcs[c] = st["ape_los_p9973"]
         met = {x["id"]: x for x in ((v or {}).get("mission") or {}).get("c") or []}
         if "ape_los_p9973" in met:
             fam[c] = met["ape_los_p9973"]
     out.append("<h3>The Sun-spin → nadir hand-over</h3><p>The coils-only mission commands nadir from a body spinning at about "
-               "4 °/s, while the pointing laws are tuned from 10° at the orbit rate. The magnetic states now despin first. "
+               "4 °/s. The magnetic states now despin first. "
                "Above 1 °/s of rate error they run the B-dot law on that error with the detumble's optimal gain "
                "(Avanzini &amp; Giulietti 2012). The spin-up's high gain only drags the rate along the turning field. The "
                "pointing law takes over below 0.5 °/s, held for 60 s. The magnetic capture then takes about 1.5 orbits, so "
@@ -249,10 +252,13 @@ def literature():
                "the last half orbit. The coils-only nadir mode test starts the same way (arbitrary attitude, 6 °/s), and node "
                "<code>tune</code> flies the hand-over exit threshold with the gains, so the dispatched gains capture as "
                "well as hold. Coils-only mission nadir APE (p99.73): " +
-               ("; ".join(f"{e(c)} {fmt(m['value'])}° {verdict(m['pass'])}" for c, m in fam.items()) or "not run") + ".</p>"
+               ("; ".join(f"{e(c)} {fmt(m['value'])}° {verdict(m['pass'])}" for c, m in fam.items()) or "not run") + ". "
+               + " ".join(f"{e(c)} Monte Carlo: {100 * x['pass_rate']:.0f} % of runs within {fmt(x['req'])}° ({fmt(x['min'])}–{fmt(x['max'])}°)."
+                          for c, x in mcs.items()) + "</p>"
                "<h3>Why Sun referencing is worse than nadir with coils only</h3><p>The coils are not short of dipole. The "
-               "difference is the gravity gradient. At nadir the long, minimum-inertia axis sits at the gradient's "
-               "equilibrium, so the gradient is a restoring stiffness. Under Sun referencing the attitude is inertial, so the "
+               "difference is the gravity gradient. At nadir on ais_3u the long, minimum-inertia axis is the payload axis, at the "
+               "gradient's equilibrium, so the gradient is a restoring stiffness (ais_img_3u flies its long axis along track, "
+               "pitch is unstable, and the nadir state cancels the gradient too). Under Sun referencing the attitude is inertial, so the "
                "gradient becomes a forcing at twice the orbit rate. A magnetic torque is perpendicular to B, so the part of "
                "that forcing along B cannot be rejected at that instant. The Sun state now cancels the modelled gradient "
                "(<code>mtq_gg_ff</code>); on ais_3u with Celani 2026 the Sun-pointing error went from 80.6° to 66.8°. It "
