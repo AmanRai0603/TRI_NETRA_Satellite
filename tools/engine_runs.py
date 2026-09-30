@@ -3,20 +3,26 @@
 Copyright (c) 2026 Agastya. All rights reserved.
 """
 import concurrent.futures as cf, json, math, re, statistics, subprocess, time
-from common import sh, write_text
+from common import Steps, sh, write_text
 from engine_base import BIN, DATA, ENG, OUT, ROOT
 
 
 def build(_):
+    S = Steps("engine.py", "build")
+    S(1)
     sh(["make", "-s", "clean"], cwd=ROOT / "fsw")
     sh(["make", "-s", "test"], cwd=ROOT / "fsw")
     sh(["make", "-s", "check"], cwd=ROOT / "fsw")
+    S(2)
     sh(["cargo", "test", "--release", "-q"], cwd=ROOT / "fsw-rs")
+    S(3)
     # the OBC links the C-ABI static library: build it (host and Cortex-M) before make obc, since a plain
     # cargo build leaves a newer libadcs_fsw.a without the exports that make would not rebuild
     sh(["cargo", "build", "--release", "-q", "--no-default-features", "--features", "cabi"], cwd=ROOT / "fsw-rs")
     sh(["cargo", "build", "--release", "-q", "--no-default-features", "--features", "cabi", "--target", "thumbv7em-none-eabihf"], cwd=ROOT / "fsw-rs")
+    S(4)
     sh(["make", "-s", "obc"], cwd=ROOT / "fsw")            # virtual OBC firmware (process, QEMU) and the insn plugin
+    S(5)
     sh(["cargo", "test", "--release", "-q"], cwd=ROOT / "engine")
     sh(["cargo", "build", "--release", "-q"], cwd=ROOT / "engine")
 
@@ -36,7 +42,10 @@ def one(args):
 
 
 def run(a):
+    S = Steps("engine.py", "run")
     jobs = [(s, a.fsw, a.seed, None, []) for s in scenarios(a.scenarios)]
+    S(1, f"{len(jobs)} scenario(s) on {a.jobs} processes")
+    S(2, "as each finishes")
     with cf.ProcessPoolExecutor(a.jobs) as ex:
         for scen, _, rc, dt, txt in ex.map(one, jobs):
             print(f"[{'ok' if rc == 0 else 'FAIL'}] {scen:24s} {dt:6.1f} s wall")
@@ -47,6 +56,8 @@ def run(a):
 def mc(a):
     base = ENG / f"mc_{a.scenario}"
     jobs = [(a.scenario, a.fsw, s, base / f"seed_{s:03d}", []) for s in range(1, a.seeds + 1)]
+    S = Steps("engine.py", "mc")
+    S(1, f"{a.scenario}, {a.seeds} seeds")
     rows = []
     with cf.ProcessPoolExecutor(a.jobs) as ex:
         for scen, seed, rc, dt, txt in ex.map(one, jobs):
@@ -55,6 +66,7 @@ def mc(a):
                 continue
             m = json.loads((base / f"seed_{seed:03d}" / "manifest.json").read_text())
             rows.append({x["id"]: x["value"] for x in m["metrics"]} | {"seed": seed})
+    S(2)
     ids = [k for k in rows[0] if k != "seed"] if rows else []
     summ = {}
     for k in ids:
@@ -67,15 +79,23 @@ def mc(a):
 
 
 def fsw_parity(a):
+    S = Steps("engine.py", "fsw-parity")
+    S(1, f"{a.duration:.0f} s each")
+    lines = []
     for s in scenarios(a.scenarios):
         p = subprocess.run([str(BIN), "parity", s, "--set", f"engine.duration_s={a.duration}"], capture_output=True, text=True)
-        print(re.sub(r"\(trinetra[^)]*\)\)", "", parity_line(p)))
+        lines.append(re.sub(r"\(trinetra[^)]*\)\)", "", parity_line(p)))
+    S(2)
+    for line in lines:
+        print(line)
 
 
 VOBC_PAIRS = [("c", "obc-posix"), ("rust", "obc-posix-rs"), ("c", "qemu"), ("rust", "qemu-rs"), ("c", "rust")]
 
 
 def vobc(a):
+    S = Steps("engine.py", "vobc")
+    S(1)
     sh(["make", "-s", "-C", "fsw", "obc"])
     scen = a.scenarios or ["detumble_ais", "mission_ais", "fine_hold_img", "slew_img", "fine_hold_cmg", "fine_hold_fmr_rcs", "sun_spin_ais"]
     L = ["# Virtual OBC loop", "", "Owner: Agastya. `tools/engine.py vobc` -- the Rust engine drives the flight software over",
@@ -83,6 +103,7 @@ def vobc(a):
          "emulated Cortex-M4F (QEMU mps2-an386, arm-none-eabi-gcc + newlib for C, rustc thumbv7em-none-eabihf for",
          f"Rust), and compares every recorded sample with the in-process build ({a.duration:.0f} s per scenario).", "",
          "| scenario | reference | virtual OBC | result | wall [s] |", "|---|---|---|---|---:|"]
+    S(2, f"{len(scen)} scenario(s) x {len(VOBC_PAIRS)} pairs")
     for s in scenario_list(scen):
         for ref, tgt in VOBC_PAIRS:
             t0 = time.time()
@@ -92,6 +113,7 @@ def vobc(a):
             res = "bit-identical" if "bit-identical" in line else re.sub(r".*: max", "max", line)
             print(f"{s:20s} {ref:5s} vs {tgt:13s} {res}")
             L.append(f"| {s} | {ref} (in-process) | {tgt} | {res} | {time.time() - t0:.1f} |")
+    S(3)
     write_text(OUT / "VIRTUAL_OBC.md", "\n".join(L) + "\n")
     print("wrote results/VIRTUAL_OBC.md")
 

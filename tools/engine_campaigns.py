@@ -3,7 +3,7 @@
 Copyright (c) 2026 Agastya. All rights reserved.
 """
 import concurrent.futures as cf, json, math, statistics, subprocess, time
-from common import write_text
+from common import Steps, write_text
 from engine_base import BIN, ENG, OUT, ROOT, TWIN
 
 
@@ -137,21 +137,25 @@ def summarise(runs, levels=None):
 
 def campaign(a):
     ids = a.ids or sorted(p.stem for p in CAMP.glob("*.json"))
+    S = Steps("engine.py", "campaign")
     rows = {}
     for cid in ids:
         C = json.loads((CAMP / f"{cid}.json").read_text())
         base = ENG / "campaigns" / cid
         jobs = []
         draws = {}
+        S(1, f"{cid}, {C['runs']} runs")
         for k in range(1, C["runs"] + 1):
             sets, d = draw(C, k)
             draws[k] = d
             jobs.append((cid, C["scenario"], C["case"], C["seed"] + 7919 * k, k, sets, base / f"run_{k:04d}", a.fsw))
         t0 = time.time()
+        S(2, cid)
         with cf.ProcessPoolExecutor(a.jobs) as ex:
             for k, rc, txt in ex.map(camp_job, jobs):
                 if rc:
                     print(f"[FAIL] {cid} run {k}: {txt.splitlines()[-1] if txt else ''}")
+        S(3, cid)
         runs = []
         for k in range(1, C["runs"] + 1):
             f = base / f"run_{k:04d}" / "manifest.json"
@@ -164,11 +168,15 @@ def campaign(a):
         write_text(base / "summary.json", json.dumps(res, indent=1))
         rows[cid] = res
         print(f"{cid}: {len(runs)}/{C['runs']} runs in {time.time() - t0:.0f} s wall")
+    S(4)
     campaign_ledger()
 
 
-def campaign_ledger():
-    """results/ENGINE_CAMPAIGNS.md: every campaign, engine vs MATLAB twin, requirement metrics."""
+def campaign_ledger(announce=False):
+    """results/ENGINE_CAMPAIGNS.md: every campaign, engine vs MATLAB twin, requirement metrics.
+    `announce`: say its own steps (when it is the command, not the last step of `campaign`)."""
+    S = Steps("engine.py", "campaign-ledger", show=announce)
+    S(1)
     fmt = lambda x: "—" if x is None else (f"{x:.4g}" if isinstance(x, (int, float)) else str(x))
     pr = lambda p: "—" if p is None else f"{100 * p:.0f} %"
     L = ["# Monte Carlo and edge-case campaigns: Rust engine vs MATLAB twin", "",
@@ -217,6 +225,7 @@ def campaign_ledger():
                 L.append(f"| {k} | {lab} | " + " | ".join(cells) + " |")
         L.append("")
     OUT.mkdir(exist_ok=True)
+    S(2)
     write_text(OUT / "engine_campaigns.json", json.dumps(allrows, indent=1))
     write_text(OUT / "ENGINE_CAMPAIGNS.md", "\n".join(L) + "\n")
     print("wrote results/ENGINE_CAMPAIGNS.md")

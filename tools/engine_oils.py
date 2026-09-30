@@ -3,7 +3,7 @@
 Copyright (c) 2026 Agastya. All rights reserved.
 """
 import concurrent.futures as cf, json, subprocess, time
-from common import sh, write_text
+from common import Steps, sh, write_text
 from engine_base import BIN, DATA, ENG, OUT
 from engine_runs import scenarios
 
@@ -20,6 +20,8 @@ def oils_job(args):
 
 
 def oils(a):
+    S = Steps("engine.py", "oils")
+    S(1)
     sh(["make", "-s", "-C", "fsw", "obc"])
     scen = scenarios(a.scenarios)
     base = ENG / "soft_oils"
@@ -31,15 +33,19 @@ def oils(a):
     # longest first so the pool stays busy
     dur = {s: json.loads((DATA / f"{s}.json").read_text())["time"]["duration_s"] / json.loads((DATA / f"{s}.json").read_text())["time"]["dt_s"] for s in scen}
     jobs.sort(key=lambda j: -dur[j[0]] * (50 if j[1] == "oils" else 1))
+    S(2, f"{len(scen)} scenario(s)")
     with cf.ProcessPoolExecutor(a.jobs) as ex:
         for s, mode, rc, dt, txt in ex.map(oils_job, jobs):
             print(f"[{'ok' if rc == 0 else 'FAIL'}] {s:22s} {mode:4s} {dt:7.1f} s wall", flush=True)
             if rc:
                 print(txt[-2000:])
+    S(3)
     oils_ledger(scen, a.fsw)
 
 
-def oils_ledger(scen=None, fsw="qemu"):
+def oils_ledger(scen=None, fsw="qemu", announce=False):
+    S = Steps("engine.py", "oils-ledger", show=announce)
+    S(1)
     base = ENG / "soft_oils"
     scen = scen or sorted(p.name for p in base.iterdir() if (p / "oils" / "manifest.json").exists())
     fmt = lambda x: "—" if x is None else (f"{x:.4g}" if isinstance(x, (int, float)) else str(x))
@@ -89,6 +95,7 @@ def oils_ledger(scen=None, fsw="qemu"):
         flag = "" if r["pass_sils"] == r["pass_oils"] else " ⚠"
         L.append(f"| {r['scenario']} | {r['metric']} ({r['unit']}) | {fmt(r['req'])} | {fmt(r['sils'])} | {fmt(r['oils'])} | {v(r['pass_sils'])} | {v(r['pass_oils'])}{flag} |")
     OUT.mkdir(exist_ok=True)
+    S(2)
     write_text(OUT / "soft_oils.json", json.dumps({"metrics": rows, "timing": tim}, indent=1))
     write_text(OUT / "SOFT_OILS.md", "\n".join(L) + "\n")
     print(f"soft OILS verdict agreement {agree}/{len(judged)}; wrote results/SOFT_OILS.md")

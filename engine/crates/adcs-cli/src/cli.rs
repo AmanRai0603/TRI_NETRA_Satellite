@@ -228,6 +228,35 @@ mod t {
         }
     }
 
+    /// docs/commands.toml, read as TOML: the adcs commands it describes are the commands clap
+    /// declares, and every option and subcommand its usage lines name exists.
+    #[test]
+    fn the_registry_describes_exactly_these_commands() {
+        let reg: toml::Value = toml::from_str(&std::fs::read_to_string(concat!(env!("CARGO_MANIFEST_DIR"), "/../../../docs/commands.toml")).unwrap()).unwrap();
+        let cmd = Cli::command();
+        let ours: std::collections::BTreeSet<String> = cmd.get_subcommands().map(|c| c.get_name().to_string()).filter(|n| n != "help").collect();
+        let mut theirs = std::collections::BTreeSet::new();
+        for c in reg["command"].as_array().unwrap().iter().filter(|c| c["tool"].as_str() == Some("adcs")) {
+            let name = c["name"].as_str().unwrap();
+            theirs.insert(name.to_string());
+            let sc = cmd.find_subcommand(name).unwrap_or_else(|| panic!("the registry has adcs {name}; clap does not"));
+            let usage = c["usage"].as_str().unwrap();
+            assert!(usage.starts_with(&format!("adcs {name}")), "{name}: {usage}");
+            // every --option in the usage is one clap knows, on the command or one of its subcommands
+            let mut known: Vec<String> = sc.get_arguments().filter_map(|a| a.get_long().map(String::from)).collect();
+            for sub in sc.get_subcommands() {
+                known.extend(sub.get_arguments().filter_map(|a| a.get_long().map(String::from)));
+                assert!(usage.contains(sub.get_name()), "adcs {name} {}: not in the registry's usage", sub.get_name());
+            }
+            for word in usage.split(|c: char| c.is_whitespace() || c == '[' || c == ']') {
+                if let Some(opt) = word.strip_prefix("--") {
+                    assert!(known.iter().any(|k| k == opt), "adcs {name}: the registry names --{opt}, which clap does not declare");
+                }
+            }
+        }
+        assert_eq!(ours, theirs, "clap's commands and the registry's differ");
+    }
+
     #[test]
     fn a_run_reads_as_before() {
         let a = args(&parse("adcs run detumble_ais --seed 3 --set engine.duration_s=300 --alg pointing=lqr --latency-ms 2 -q").unwrap().cmd).unwrap();

@@ -34,6 +34,7 @@ import sys
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1] / "tools"))
 import argparse, json, os, shutil, sys
+from common import Steps
 from pipeline_base import (
     BIN, CACHE, CANDIDATES, DOWN, FAMILIES, FLOW_SIGMA_MIN,
     GYRO_MIN, IMPROVE, LAMBDA_MAX, LAMBDA_MIN, MS, NODES,
@@ -71,6 +72,7 @@ __all__ = [
 # ---------------------------------------------------------------- the loop
 def run_case(case, a, modes, families, build):
     print(f"== {case}")
+    S = Steps("pipeline.py", "pipeline")
     state = PIPE / case
     state.mkdir(parents=True, exist_ok=True)
     for old in state.glob("iter_*"):                    # a new loop starts from the laws as written
@@ -80,10 +82,15 @@ def run_case(case, a, modes, families, build):
     for rpass in range(P("mc")["robustness_passes"] + 1):
       for it in range(first, a.max_iter + 1):
           print(f" iteration {it}: knobs {json.dumps(knobs)}")
+          S(1, f"{case}, iteration {it}")
           sized, sizing = node_size(case, it, knobs)
+          S(2, f"{case}, iteration {it}")
           tests = node_matrix(case, it, sized, modes, variants_on, [int(s) for s in a.seeds.split(",")], a.jobs, build, history.get("_tuned", []))
+          S(3, f"{case}, iteration {it}")
           res = node_assess(tests, modes)
+          S(4, f"{case}, iteration {it}")
           sel = node_select(case, res, sizing, modes, families)
+          S(5, f"{case}, iteration {it}")
           knobs2, variants2, changes, blocked = node_converge(case, res, knobs, variants_on, history, sizing["class"] == "fine", modes, sel)
           entry = {"iteration": it, "knobs": knobs, "class": sizing["class"], "selected": sel["selected"], "status": sel["status"],
                    "feasible_options": sum(r["feasible"] for r in res.values()), "options": len(res), "changes": changes, "blocked": blocked,
@@ -106,12 +113,15 @@ def run_case(case, a, modes, families, build):
       sel["sensors"] = [f["slot"] for f in json.loads((sized / "products" / f"SZ-{case}-{sel['selected']}.json").read_text())["fill"]
                         if f["slot"] not in ("coils", "wheels", "rings", "cmg", "vscmg", "rcs")]
       sel["demand"] = sizing["demand"]
+      S(6, f"{case}: {sel['selected']}")
       disp = node_dispatch(case, sel, sized, modes, build)
+      S(7, f"{case}: {a.mc_runs} runs" if a.mc_runs else f"{case}: skipped (--mc-runs 0)")
       mc = node_mc(case, disp, sized, a.mc_runs, a.jobs) if a.mc_runs else None
       # robustness: a requirement the Monte Carlo breaks is a failure the loop must fix (node mc)
       fails = [x for x in (mc or {}).get("stats", []) if x["pass"] is False]
       if not fails or not converged:
           break
+      S(8, case)
       knobs2, changes, blocked = node_robust(sel, fails, knobs, history)
       robust.append({"after_iteration": it, "family": sel["selected"], "mc_failing": {x["id"]: x["pass_rate"] for x in fails},
                      "changes": changes, "blocked": blocked})
@@ -124,9 +134,13 @@ def run_case(case, a, modes, families, build):
     write(state / "selection.json", sel)
     write(state / "loop.json", log)
     write(state / "dispatch.json", disp)
+    S(9, case)
     node_family_missions(case, sel, sized, modes, build, a.mc_runs, a.jobs, disp, mc)
+    S(10, case)
     node_certify(case)
+    S(11, case if not a.no_oils else f"{case}: skipped (--no-oils)")
     so = node_soft_oils(case, disp, sized, build) if not a.no_oils else None
+    S(12, case)
     ledger(case, sel, log, disp, mc, so, sizing)
 
 

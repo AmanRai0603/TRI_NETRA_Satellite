@@ -3,7 +3,7 @@
 Copyright (c) 2026 Agastya. All rights reserved.
 """
 import concurrent.futures as cf, json, math, subprocess, sys, time
-from common import sh, write_text
+from common import Steps, sh, write_text
 from engine_base import BIN, OUT, ROOT
 
 
@@ -51,6 +51,8 @@ def solutions(a):
     cases = a.cases or ["ais_3u", "ais_img_3u"]
     seeds = [int(x) for x in a.seeds.split(",")]
     modes = sorted((json.loads(f.read_text()) for f in MODES_DIR.glob("*.json")), key=lambda M: M["order"])
+    S = Steps("engine.py", "solutions")
+    S(1, ", ".join(cases))
     jobs = []
     for c in cases:
         for M in modes:
@@ -61,11 +63,13 @@ def solutions(a):
                 write_text(sp, json.dumps(mode_scenario(c, M, o), indent=1))
                 jobs += [(c, sp, s, d / f"seed_{s}", a.fsw) for s in seeds]
     t0 = time.time()
+    S(2, f"{len(jobs)} runs")
     with cf.ProcessPoolExecutor(a.jobs) as ex:
         for (c, sp, s, out, _), rc, txt in ex.map(sol_job, jobs):
             if rc:
                 print(f"[FAIL] {sp.parent.relative_to(SOL)} seed {s}: {txt.splitlines()[-1] if txt else ''}")
     print(f"{len(jobs)} mode tests in {time.time() - t0:.0f} s wall")
+    S(3)
     # score: an option is feasible when every requirement-bound metric passes on every seed
     res = {}
     L = ["# Solution matrix on the Rust engine", "", "Owner: Agastya. `tools/engine.py solutions` -- every mission mode x option of",
@@ -113,7 +117,9 @@ def solutions(a):
 def dispatch(a):
     sys.path.insert(0, str(ROOT / "tools"))
     import fswcfg
+    S = Steps("engine.py", "dispatch")
     for c in a.cases or ["ais_3u", "ais_img_3u"]:
+        S(1, c)
         sj = ROOT / "matlab_sils" / "store" / "solutions" / c / "solution.json"
         if not sj.exists():
             print(f"{c}: no solution.json yet (asils.solution.collect) -- skipped"); continue
@@ -143,11 +149,13 @@ def dispatch(a):
                 "metrics": [{"id": "detumble_time", "kind": "time_to_rate", "rate_threshold_deg_s": 0.5, "hold_s": 600.0, "requirement": "req.detumble"},
                             {"id": "power_mean", "kind": "power_mean", "requirement": "req.pavg", "window": "all"}]}
         sp = dd / "mission_scenario.json"
+        S(2, f"{c} / {fam}")
         write_text(sp, json.dumps(scen, indent=1))
         case_csv = str(ROOT / "matlab_sils" / "cases" / f"{c}.csv")
         blob = dd / "adcs_fswcfg.bin"
         sh([str(BIN), "params", str(sp), "--case", case_csv, "--out", str(blob)])
         write_text(dd / "adcs_fswcfg.json", json.dumps(fswcfg.decode(blob.read_bytes()), indent=1))
+        S(3, f"{c} / {fam}")
         res = {}
         for impl in ("c", "rust"):
             out = SOL / c / "dispatch" / impl

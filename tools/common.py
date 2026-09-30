@@ -106,6 +106,32 @@ def trace(what):
         pass
 
 
+class Steps:
+    """A command's steps as docs/commands.toml lists them, announced as the command reaches
+    each one: `[2/4] one `adcs run` per run: mc_nadir_ais`. The registry is the one place a
+    step is described; `python3 tools/trinetra.py explain` prints the same list before a
+    run, and tests/test_steps.py holds every announcement in the tools to it.
+    show=False makes every call silent (a ledger written as the last step of another command)."""
+
+    def __init__(self, tool, name, show=True):
+        import tomllib
+        cs = tomllib.loads((ROOT / "docs" / "commands.toml").read_text())["command"]
+        c = next((c for c in cs if c["tool"] == tool and c["name"] == name), None)
+        if c is None:
+            raise SystemExit(f"{tool} {name} is not in docs/commands.toml")
+        self.tool, self.name, self.steps, self.show = tool, name, c["steps"], show
+        if show:
+            print(f"{tool} {name}: {len(self.steps)} steps (python3 tools/trinetra.py explain {name})", flush=True)
+
+    def __call__(self, n, detail=""):
+        if not 1 <= n <= len(self.steps):
+            raise ValueError(f"{self.tool} {self.name} has {len(self.steps)} steps, not {n}")
+        if self.show:
+            line = f"[{n}/{len(self.steps)}] {self.steps[n - 1]}" + (f": {detail}" if detail else "")
+            print(line, flush=True)
+            trace(f"{self.tool} {self.name} {line}")
+
+
 def source_date():
     """The date a generated document carries: $SOURCE_DATE_EPOCH (the reproducible-builds
     convention) when set, else the time of the last commit, so the same commit always gives

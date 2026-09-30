@@ -3,7 +3,7 @@
 Copyright (c) 2026 Agastya. All rights reserved.
 """
 import json, math
-from common import write_text
+from common import Steps, write_text
 from engine_base import ENG, OUT, TWIN
 from engine_runs import scenarios
 
@@ -49,6 +49,8 @@ def twin_parity(_):
     One realisation each: the random streams differ (MATLAB twister vs counter-based
     SplitMix64), so a value-by-value match is not expected; the ledger records the
     verdict agreement and the ratio, and the model differences named in fsw/twin_map.toml."""
+    S = Steps("engine.py", "twin-parity")
+    S(1)
     rows = []
     for s in scenarios([]):
         a, b = TWIN / s / "manifest.json", ENG / s / "manifest.json"
@@ -69,6 +71,7 @@ def twin_parity(_):
                          "pass_matlab": m.get("pass"), "pass_engine": e.get("pass"),
                          "agree": (m.get("pass") == e.get("pass")) if m.get("pass") is not None else None,
                          "wall_matlab_s": ma.get("wall_s"), "wall_engine_s": mb.get("wall_s")})
+    S(2, f"{len(rows)} metric pairs")
     OUT.mkdir(exist_ok=True)
     write_text(OUT / "engine_parity.json", json.dumps(rows, indent=1))
     judged = [r for r in rows if r["agree"] is not None]

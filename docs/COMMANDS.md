@@ -186,7 +186,7 @@ C against Rust flight software on the same loop, same bytes, scenario by scenari
 
 **Steps**
 
-1. `adcs parity` per scenario
+1. fly each scenario with the C and the Rust flight software (`adcs parity`)
 2. print the largest differences
 
 - **Reads:** the scenarios
@@ -201,8 +201,8 @@ The engine's metrics against the MATLAB twin's, scenario by scenario and metric 
 
 **Steps**
 
-1. read each scenario's engine and twin manifests
-2. compare every metric and verdict
+1. read each scenario's engine and twin manifests and pair their metrics
+2. tabulate verdict agreement and ratios, and write the ledger
 
 - **Reads:** `matlab_sils/store/results_engine/`; `matlab_sils/store/results/`
 - **Writes:** `results/ENGINE_PARITY.md`; `results/engine_parity.json`
@@ -216,8 +216,9 @@ The flight software as a separate process and as Cortex-M4 firmware in QEMU, ove
 
 **Steps**
 
-1. fly each scenario in-process and on each virtual OBC
-2. compare the trajectories
+1. build the virtual OBC firmware (make obc)
+2. fly each scenario in-process and on each virtual OBC with `adcs parity`, which compares the trajectories
+3. write results/VIRTUAL_OBC.md
 
 - **Reads:** the scenarios; `fsw/build/ (the OBC firmware)`
 - **Writes:** `results/VIRTUAL_OBC.md`
@@ -231,9 +232,9 @@ The recommended solution's flight configuration for each case, and a mission che
 
 **Steps**
 
-1. read the case's selection
-2. write the parameter blob, its decoded JSON and the build notes
-3. fly the mission with C and with Rust and compare
+1. read the case's recommended solution
+2. write the mission scenario, the parameter blob and its decoded JSON
+3. fly the mission with C and with Rust, and write the check and the build notes
 
 - **Reads:** `matlab_sils/store/pipeline/<case>/`
 - **Writes:** `dist/dispatch/<case>/<family>/fsw/`
@@ -279,8 +280,8 @@ SILS and soft OILS side by side: the flight software as Cortex-M4F firmware, wit
 
 **Steps**
 
-1. fly each scenario in SILS
-2. fly it with --oils on QEMU
+1. build the virtual OBC firmware (make obc)
+2. fly each scenario in SILS and with --oils on QEMU
 3. tabulate latency, CPU load and the metric differences
 
 - **Reads:** the scenarios; `fsw/build/ (the firmware)`
@@ -310,7 +311,7 @@ The customer-case solution matrix on the engine: every mission mode x option x s
 
 **Steps**
 
-1. size each case
+1. write each case's mode x option scenarios
 2. fly every mode, option and seed
 3. tabulate feasibility and budgets
 
@@ -329,11 +330,15 @@ The design loop, node by node: from a customer case to a selected, dispatched, v
 1. size: the demand survey and every option sized
 2. matrix: every mode x option x seed flown with the sized products
 3. assess: each failing requirement classed (performance, knowledge, power, propellant)
-4. converge: resize or upgrade what failed, and repeat until nothing is left to change
-5. select: the simplest solution family that passes every mode within the mass and volume budget
-6. dispatch: its flight configuration, checked with C and Rust
+4. select: the simplest solution family that passes every mode within the mass and volume budget
+5. converge: resize or upgrade what failed, and repeat from size until nothing is left to change
+6. dispatch: the selected family's flight configuration, checked with C and Rust
 7. mc: a Monte Carlo of the dispatched mission
-8. soft_oils: the dispatched mission on the Cortex-M4F firmware (unless --no-oils)
+8. robust: a requirement the Monte Carlo breaks sends the loop back to size with more margin
+9. family_missions: every solution family's mission flown (SILS C and Rust, and a Monte Carlo)
+10. certify: the Floquet certificate of each magnetic pointing law
+11. soft_oils: the dispatched mission on the Cortex-M4F firmware (unless --no-oils)
+12. ledger: the design ledger and its JSON
 
 - **Reads:** `matlab_sils/cases/<case>.csv`; `matlab_sils/data/`
 - **Writes:** `matlab_sils/store/pipeline/<case>/<node>.json`; `dist/dispatch/<case>/`

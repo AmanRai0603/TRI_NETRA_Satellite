@@ -2,7 +2,6 @@
 nothing in it is missing from the tool, and docs/COMMANDS.md is what it generates.
 Copyright (c) 2026 Agastya. All rights reserved."""
 import argparse
-import re
 import unittest
 
 from _path import ROOT
@@ -31,13 +30,7 @@ class Registry(unittest.TestCase):
             argparse.ArgumentParser.parse_args = real
         self.assertEqual(set(seen), reg("engine.py"))
 
-    def test_adcs_commands_are_the_registry(self):
-        # clap names each command after a variant of `enum Cmd` in cli.rs (Run -> run) and dispatches it
-        src = (ROOT / "engine/crates/adcs-cli/src/cli.rs").read_text()
-        block = src[src.index("pub enum Cmd {"):src.index("\n}", src.index("pub enum Cmd {"))]
-        have = {v.lower() for v in re.findall(r"^    ([A-Z][a-z]+)\(", block, re.M)}
-        self.assertEqual(len(have), 5, "the Cmd enum in cli.rs moved: update this test")
-        self.assertEqual(have, reg("adcs"))
+    # the adcs commands against the registry: engine/crates/adcs-cli/src/cli.rs, the_registry_describes_exactly_these_commands
 
     def test_every_python_tool_named_exists(self):
         for c in trinetra.commands():
