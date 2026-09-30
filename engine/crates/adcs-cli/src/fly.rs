@@ -91,6 +91,9 @@ pub fn main(a: &Args) -> Result<(), String> {
                 println!("[parity] {} {:.0} s: {} vs {}: max quaternion component difference {:.3e}, max rate difference {:.3e} deg/s, {}",
                     c.id, c.duration_s, rec::impl_label(&rc.fsw_impl), rec::impl_label(&rr.fsw_impl), dq, dw.to_degrees(),
                     match first { None => "bit-identical trajectories".to_string(), Some(j) => format!("first difference at t = {} s", rc.rows[j].t) });
+                if let Some(j) = first {
+                    return Err(format!("the two targets differ from t = {} s", rc.rows[j].t));
+                }
             }
             _ => return Err(crate::help::overview()),
         }

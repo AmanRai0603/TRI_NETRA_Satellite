@@ -1,0 +1,8 @@
+# Who reviews what. One owner today; split a line when a part gets its own reviewer.
+# The flight software and the engine's physics are the parts a wrong change costs most.
+*                    @AmanRai0603
+/fsw/                @AmanRai0603
+/fsw-rs/             @AmanRai0603
+/engine/             @AmanRai0603
+/matlab_sils/        @AmanRai0603
+/.github/            @AmanRai0603

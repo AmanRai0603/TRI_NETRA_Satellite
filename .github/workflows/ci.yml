@@ -1,0 +1,77 @@
+# Every pull request and every push to main: the same checks a contributor runs with
+# `python3 tools/check_all.py` (docs/CHANGING.md), the flight software as Cortex-M4 firmware
+# flown on QEMU against the in-process build, and the MATLAB twin's suites in GNU Octave.
+# Every job has a time limit, so a hung run fails instead of holding the queue.
+name: ci
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CARGO_TERM_COLOR: always
+  CARGO_INCREMENTAL: "0"
+
+jobs:
+  checks:
+    name: every check (tools/check_all.py)
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: |
+            engine
+            fsw-rs
+      - name: python3 tools/check_all.py
+        run: python3 tools/check_all.py
+
+  firmware:
+    name: the flight software on a virtual Cortex-M4 (QEMU)
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: thumbv7em-none-eabihf
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: |
+            engine
+            fsw-rs
+      - name: the ARM compiler and QEMU
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends gcc-arm-none-eabi libnewlib-arm-none-eabi qemu-system-arm
+      - name: the firmware (C and Rust), the OBC processes and the instruction counter
+        run: make -C fsw obc
+      - name: the engine
+        run: cargo build --release --manifest-path engine/Cargo.toml
+      - name: C in-process against C on QEMU, and Rust in-process against Rust on QEMU
+        run: |
+          engine/target/release/adcs parity nadir_hold_ais --fsw c --against qemu --set engine.duration_s=300
+          engine/target/release/adcs parity nadir_hold_ais --fsw rust --against qemu-rs --set engine.duration_s=300
+
+  twin:
+    name: the MATLAB twin in GNU Octave
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: GNU Octave
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends octave
+      - name: the twin's suite and the propagator's regression suite
+        run: python3 tools/check_all.py --only twin propagator

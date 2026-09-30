@@ -9,7 +9,7 @@
 | [`adcs run`](#adcs-run) | Fly one scenario on one case: the plant, the environment and the POP orbit in Rust, the flight software (C or Rust, or a virtual OBC) behind the byte HAL, then the metrics and their verdicts. |
 | [`adcs params`](#adcs-params) | The flight software's parameter blob (adcs-fswcfg/1) for a scenario, as an OBC boots from it. |
 | [`adcs size`](#adcs-size) | The demand survey on the case's orbit, then every actuator option sized to it (magnetorquers, fluid loop, RCS, wheels, CMG, VSCMG). |
-| [`adcs parity`](#adcs-parity) | Fly the same scenario with two flight-software targets and report the largest difference in attitude and rate; bit-identical is the expected answer for C and Rust. |
+| [`adcs parity`](#adcs-parity) | Fly the same scenario with two flight-software targets and report the largest difference in attitude and rate; bit-identical is the expected answer for C and Rust, and any difference exits with status 1. |
 | [`adcs results`](#adcs-results) | The results store: every run with its provenance, one line each; one run in full; a run as one share file, and back. |
 | [`engine.py build`](#enginepy-build) | Build and test everything that flies: the C flight software, the Rust flight software (host and Cortex-M), the virtual OBC firmware and the Rust engine. |
 | [`engine.py run`](#enginepy-run) | Fly scenarios on the engine in parallel (every scenario when none is named). |
@@ -93,7 +93,7 @@ The demand survey on the case's orbit, then every actuator option sized to it (m
 
 ## adcs parity
 
-Fly the same scenario with two flight-software targets and report the largest difference in attitude and rate; bit-identical is the expected answer for C and Rust.
+Fly the same scenario with two flight-software targets and report the largest difference in attitude and rate; bit-identical is the expected answer for C and Rust, and any difference exits with status 1.
 
     adcs parity <scenario> [--fsw A --against B] [--set k=v]...
 

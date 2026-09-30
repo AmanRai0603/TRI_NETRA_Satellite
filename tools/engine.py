@@ -106,7 +106,7 @@ def mc(a):
 def fsw_parity(a):
     for s in scenarios(a.scenarios):
         p = subprocess.run([str(BIN), "parity", s, "--set", f"engine.duration_s={a.duration}"], capture_output=True, text=True)
-        print(re.sub(r"\(trinetra[^)]*\)\)", "", (p.stdout + p.stderr).strip().splitlines()[-1]))
+        print(re.sub(r"\(trinetra[^)]*\)\)", "", parity_line(p)))
 
 
 # MATLAB campaign <-> engine Monte Carlo of the same scenario (tools/engine.py mc <scenario>)
@@ -737,12 +737,19 @@ def vobc(a):
             t0 = time.time()
             p = subprocess.run([str(BIN), "parity", s, "--fsw", ref, "--against", tgt, "--set", f"engine.duration_s={a.duration}"],
                                capture_output=True, text=True)
-            line = (p.stdout + p.stderr).strip().splitlines()[-1] if (p.stdout + p.stderr).strip() else "no output"
+            line = parity_line(p)
             res = "bit-identical" if "bit-identical" in line else re.sub(r".*: max", "max", line)
             print(f"{s:20s} {ref:5s} vs {tgt:13s} {res}")
             L.append(f"| {s} | {ref} (in-process) | {tgt} | {res} | {time.time() - t0:.1f} |")
     write_text(OUT / "VIRTUAL_OBC.md", "\n".join(L) + "\n")
     print("wrote results/VIRTUAL_OBC.md")
+
+
+def parity_line(p):
+    """The `[parity]` line of an `adcs parity` run (it exits 1 when the targets differ, and
+    says so after it), else its last line."""
+    lines = (p.stdout + p.stderr).strip().splitlines()
+    return next((l for l in lines if l.startswith("[parity]")), lines[-1] if lines else "no output")
 
 
 def scenario_list(x):

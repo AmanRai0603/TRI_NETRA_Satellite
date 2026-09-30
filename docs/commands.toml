@@ -43,7 +43,7 @@ runs = []
 tool = "adcs"
 name = "parity"
 usage = "adcs parity <scenario> [--fsw A --against B] [--set k=v]..."
-what = "Fly the same scenario with two flight-software targets and report the largest difference in attitude and rate; bit-identical is the expected answer for C and Rust."
+what = "Fly the same scenario with two flight-software targets and report the largest difference in attitude and rate; bit-identical is the expected answer for C and Rust, and any difference exits with status 1."
 steps = ["fly the loop with target A", "fly it with target B", "compare every recorded step"]
 reads = ["as `adcs run`"]
 writes = []
