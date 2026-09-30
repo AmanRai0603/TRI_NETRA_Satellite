@@ -1,4 +1,5 @@
 //! Product + parts -> device descriptors (asils.product.load).
+use crate::error::Error;
 use crate::json::{self, get};
 use adcs_sim_core::actuators::{Kind, MexDesc, MtqDesc, RcsDesc};
 use adcs_sim_core::sensors::*;
@@ -16,7 +17,7 @@ pub struct Dev {
 /// data/<kind>/<id>.json, else store/sized/*/<kind>/<id>.json.
 /// $ADCS_SIZED_DIR/<kind>/<id>.json first when set: the design loop's current iteration
 /// (tools/pipeline.py) flies its own sized products without touching the MATLAB ones.
-pub fn find(root: &Path, kind: &str, id: &str) -> Result<PathBuf, String> {
+pub fn find(root: &Path, kind: &str, id: &str) -> Result<PathBuf, Error> {
     if let Some(d) = std::env::var_os("ADCS_SIZED_DIR").filter(|d| !d.is_empty()) {
         let g = Path::new(&d).join(kind).join(format!("{id}.json"));
         if g.is_file() { return Ok(g); }
@@ -28,7 +29,7 @@ pub fn find(root: &Path, kind: &str, id: &str) -> Result<PathBuf, String> {
         ds.sort();
         for d in ds { let g = d.join(kind).join(format!("{id}.json")); if g.is_file() { return Ok(g); } }
     }
-    Err(format!("no {} record {id} (data/{kind} or store/sized/*/{kind})", kind.trim_end_matches('s')))
+    Err(Error::refused(format!("no {} record {id} (data/{kind} or store/sized/*/{kind})", kind.trim_end_matches('s'))))
 }
 
 fn sig(ds: &Value, k: &str) -> f64 { ds.get(k).and_then(|x| x.get("sigma")).and_then(|x| x.as_f64()).unwrap_or(0.0) }
@@ -39,7 +40,7 @@ fn lohi(ds: &Value, k: &str, d: f64) -> (f64, f64) {
 fn axes(v: Option<&Value>) -> Vec<[f64; 3]> { v.map(json::vecs).unwrap_or_default().into_iter().map(json::unit).collect() }
 
 impl Dev {
-    pub fn load(root: &Path, id: &str) -> Result<Dev, String> {
+    pub fn load(root: &Path, id: &str) -> Result<Dev, Error> {
         let pr = json::read(&find(root, "products", id)?)?;
         let mut d = Dev {
             id: json::s(&pr, "id", id).into(), label: json::s(&pr, "label", "").into(), family: json::s(&pr, "family", "").into(),
@@ -151,7 +152,7 @@ impl Dev {
                     d.es = EsDesc { fitted: true, bs, noise: n("accuracy_rad"), fov: n("fov_half_angle_rad"), rate_hz: n("rate_Hz"), bias_sigma: sig(&ds, "bias_rad") };
                 }
                 "gnss" => d.gps = GpsDesc { fitted: true, pos_sigma: n("pos_sigma_m"), vel_sigma: n("vel_sigma_m_s"), rate_hz: n("rate_Hz") },
-                other => return Err(format!("product {id}: unknown slot {other}")),
+                other => return Err(Error::refused(format!("product {id}: unknown slot {other}"))),
             }
         }
         d.mex = x;

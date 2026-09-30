@@ -5,7 +5,7 @@
 //!   adcs size <case> [--knobs k.json] [--out DIR]                        demand survey + every actuator option sized (adcs-design)
 //!   adcs parity <scenario> [--fsw A --against B] ...                  two flight-software targets, same loop, same bytes
 //!   adcs results list [DIR] | show <run> | export <run> --out F.trinetra | import F.trinetra --out DIR
-//!   adcs help [command]                                                   what each command does
+//!   adcs help [command]                                                   what each command does (clap, from cli.rs)
 //!
 //! --fsw: c | rust (in-process) | obc-posix | obc-posix-rs (virtual OBC process) | qemu | qemu-rs
 //! (virtual Cortex-M4 OBC in QEMU) | spawn:<cmd> | tcp:<host:port> (a real OBC); --realtime paces ticks to wall time.
@@ -17,36 +17,21 @@
 //! `--set engine.duration_s=600` (also density_scale, orbit_step_s, zonal_max, igrf_nmax) the engine.
 //! Owner: Agastya. Copyright (c) 2026 Agastya. All rights reserved.
 mod args;
+mod cli;
 mod fly;
-mod help;
 mod results;
 
+use clap::Parser;
 use std::process::ExitCode;
 
 fn main() -> ExitCode {
     adcs_sim::fsio::install_crash_report("adcs");
-    let argv: Vec<String> = std::env::args().skip(1).collect();
-    let cmd = argv.first().map(String::as_str).unwrap_or("");
-    let rest = if argv.is_empty() { &argv[..] } else { &argv[1..] };
-    // help: `adcs`, `adcs help [command]`, `adcs --help`, `adcs <command> --help`
-    if cmd.is_empty() || cmd == "--help" || cmd == "-h" || (cmd == "help" && rest.is_empty()) {
-        print!("{}", help::overview());
-        return if cmd.is_empty() { ExitCode::from(2) } else { ExitCode::SUCCESS };
-    }
-    if cmd == "help" || rest.iter().any(|a| a == "--help" || a == "-h") {
-        let name = if cmd == "help" { rest[0].as_str() } else { cmd };
-        return match help::command(name) {
-            Some(h) => { print!("{h}"); ExitCode::SUCCESS }
-            None => { eprintln!("error: no command {name}\n\n{}", help::overview()); ExitCode::from(2) }
-        };
-    }
-    let r = match cmd {
-        "results" => results::main(rest),
-        "run" | "params" | "parity" | "size" => match args::parse(cmd, rest) {
-            Ok(a) => fly::main(&a),
-            Err(e) => { eprintln!("{e}"); return ExitCode::from(2); }
-        },
-        _ => { eprintln!("error: unknown command {cmd}\n\n{}", help::overview()); return ExitCode::from(2); }
+    // help and malformed command lines: clap prints them (exit 0 for help, 2 for an error)
+    let cli = cli::Cli::parse();
+    let r = match &cli.cmd {
+        cli::Cmd::Results(c) => results::main(c),
+        other => fly::main(&cli::args(other).expect("a flying command")),
     };
-    match r { Ok(()) => ExitCode::SUCCESS, Err(e) => { eprintln!("error: {e}"); ExitCode::FAILURE } }
+    // a refused input exits 2 (as a malformed command line does), a failure 1
+    match r { Ok(()) => ExitCode::SUCCESS, Err(e) => { eprintln!("error: {e}"); ExitCode::from(e.exit_code()) } }
 }

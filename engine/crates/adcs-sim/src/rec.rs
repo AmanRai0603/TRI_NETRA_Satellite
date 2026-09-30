@@ -23,8 +23,8 @@ pub fn g9(x: f64) -> String {
     }
 }
 
-pub fn write(dir: &Path, c: &Config, rec: &Record, d: &Derived, metrics: &[Value]) -> Result<(), String> {
-    std::fs::create_dir_all(dir).map_err(|e| format!("{}: {e}", dir.display()))?;
+pub fn write(dir: &Path, c: &Config, rec: &Record, d: &Derived, metrics: &[Value]) -> Result<(), crate::Error> {
+    std::fs::create_dir_all(dir).map_err(|e| crate::Error::io(dir, e))?;
     let rows = &rec.rows;
     let mut cols: Vec<(String, Vec<f64>)> = vec![];
     let mut col = |name: &str, f: &dyn Fn(usize) -> f64| cols.push((name.to_string(), (0..rows.len()).map(f).collect()));
@@ -87,12 +87,12 @@ pub fn write(dir: &Path, c: &Config, rec: &Record, d: &Derived, metrics: &[Value
     // the inputs it flew, kept once by fingerprint, so it can be flown again exactly
     let inputs = crate::store::inputs_dir(dir);
     for (kind, file, key, ext) in [("case", &c.case.file, "case_fingerprint", "csv"), ("scenario", &c.scenario_file, "scenario_file_fingerprint", "json")] {
-        let bytes = std::fs::read(file).map_err(|e| format!("{file}: {e}"))?;
+        let bytes = std::fs::read(file).map_err(|e| crate::Error::io(std::path::Path::new(file), e))?;
         let fp = man["inputs"][key].as_str().unwrap_or_default().to_string();
         crate::store::keep_input(&inputs, &crate::store::input_name(kind, &fp, ext), &bytes)?;
     }
     // the manifest last: a run directory with a manifest has its channels too
-    crate::fsio::write(&dir.join("manifest.json"), serde_json::to_string(&man).map_err(|e| e.to_string())? + "\n")?;
+    crate::fsio::write(&dir.join("manifest.json"), serde_json::to_string(&man).map_err(|e| crate::Error::run(e.to_string()))? + "\n")?;
     Ok(())
 }
 

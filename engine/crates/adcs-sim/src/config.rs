@@ -1,5 +1,6 @@
 //! Case + scenario + product -> everything a run needs (asils.config + asils.fsw.init/select):
 //! the plant's truth parameters and the flight software's adcs-fswcfg/1 parameters.
+use crate::error::Error;
 use crate::case::Case;
 use crate::json::{self, get};
 use crate::lqr;
@@ -18,9 +19,9 @@ pub const MISSION: [&str; 11] = ["detumble", "nadir_pointing", "nadir_pointing",
 /// Guidance law of each state (-1 none; 0 nadir, 1 target, 2 slew, 3 inertial, 4 sun).
 pub const GUID: [i32; 11] = [-1, 0, 0, 1, 2, -1, -1, -1, -1, 4, 4];
 
-pub fn mode_index(name: &str) -> Result<u8, String> {
+pub fn mode_index(name: &str) -> Result<u8, Error> {
     let n = match name { "nadir_rw" => "nadir_fine", "target_rw" => "target_fine", "slew_rw" => "slew_fine", x => x };
-    MODES.iter().position(|&m| m == n).map(|i| i as u8).ok_or_else(|| format!("unknown controller state {name}"))
+    MODES.iter().position(|&m| m == n).map(|i| i as u8).ok_or_else(|| Error::refused(format!("unknown controller state {name}")))
 }
 
 #[derive(Clone, Debug)]
@@ -46,7 +47,7 @@ pub struct Config {
     pub scenario_file: String, pub overrides: Vec<(String, String)>,
 }
 
-fn select(root: &Path, dev: &Dev, s: &Value) -> Result<BTreeMap<String, String>, String> {
+fn select(root: &Path, dev: &Dev, s: &Value) -> Result<BTreeMap<String, String>, Error> {
     let has = dev.caps();
     let dflt: [(&str, &[&str]); 7] = [("detumble", &["bdot_gyro", "bdot_mag"]), ("attitude", &["mekf"]), ("pointing", &["pid"]), ("mtq_pointing", &["mtq_pd"]),
         ("sun_acquisition", &["sunspin_l1l2"]), ("allocation", &["cmg_sr", "vscmg_sr", "idmas_split", "rotor_pinv"]), ("thrusters", &["rcs_pwm"])];
@@ -55,8 +56,8 @@ fn select(root: &Path, dev: &Dev, s: &Value) -> Result<BTreeMap<String, String>,
         if let Some(o) = src.as_object() { for (k, v) in o { if let Some(x) = v.as_str() { pick.insert(k.clone(), x.into()); } } }
     }
     if let Some(x) = pick.remove("sun_spin") { pick.entry("sun_acquisition".into()).or_insert(x); }   // legacy slot name
-    let load = |id: &str| -> Result<(String, Vec<String>), String> {
-        let a = json::read(&root.join("data/algorithms").join(format!("{id}.json"))).map_err(|_| format!("no algorithm {id} in the registry"))?;
+    let load = |id: &str| -> Result<(String, Vec<String>), Error> {
+        let a = json::read(&root.join("data/algorithms").join(format!("{id}.json"))).map_err(|_| Error::refused(format!("no algorithm {id} in the registry")))?;
         let needs = match a.get("needs") { Some(Value::Array(x)) => x.iter().filter_map(|v| v.as_str().map(String::from)).collect(), Some(Value::String(x)) => vec![x.clone()], _ => vec![] };
         Ok((json::s(&a, "slot", "").to_string(), needs))
     };
@@ -65,8 +66,8 @@ fn select(root: &Path, dev: &Dev, s: &Value) -> Result<BTreeMap<String, String>,
         if let Some(id) = pick.get(sl) {
             let (slot, needs) = load(id)?;
             let miss: Vec<_> = needs.iter().filter(|n| !has.contains(&n.as_str())).cloned().collect();
-            if !miss.is_empty() { return Err(format!("algorithm {id} ({sl}) cannot fly on {}: it needs {}", dev.id, miss.join(", "))); }
-            if slot != sl { return Err(format!("algorithm {id} does {slot}, not {sl}")); }
+            if !miss.is_empty() { return Err(Error::refused(format!("algorithm {id} ({sl}) cannot fly on {}: it needs {}", dev.id, miss.join(", ")))); }
+            if slot != sl { return Err(Error::refused(format!("algorithm {id} does {slot}, not {sl}"))); }
             alg.insert(sl.to_string(), id.clone());
         } else {
             let mut got = String::new();
@@ -80,10 +81,10 @@ fn select(root: &Path, dev: &Dev, s: &Value) -> Result<BTreeMap<String, String>,
 /// An id that names a file inside one of the data folders (a scenario, a case): letters,
 /// digits, `_`, `-` and `.`, never a path. A path is given as a path (`--case F`,
 /// `<scenario>.json`), so an id can never reach outside the folder it names.
-pub fn check_id(what: &str, id: &str) -> Result<(), String> {
+pub fn check_id(what: &str, id: &str) -> Result<(), Error> {
     let ok = !id.is_empty() && id.len() <= 128 && !id.starts_with('.')
         && id.chars().all(|c| c.is_ascii_alphanumeric() || matches!(c, '_' | '-' | '.'));
-    if ok { Ok(()) } else { Err(format!("{what} {id:?} is not an id: use letters, digits, _ - and . only, or give a path to the file")) }
+    if ok { Ok(()) } else { Err(Error::refused(format!("{what} {id:?} is not an id: use letters, digits, _ - and . only, or give a path to the file"))) }
 }
 
 /// The sections a scenario has; an override outside them would be read by nothing.
@@ -93,17 +94,17 @@ pub const SCENARIO_SECTIONS: [&str; 10] = ["case", "fsw", "id", "initial", "labe
 /// section the scenario has; the value is JSON (a number, true/false, a list) or plain
 /// text. It must keep the type of what it replaces, so `time.dt_s=abc` is refused rather
 /// than read as "not given" and silently replaced by the default.
-pub fn set_override(s: &mut Value, k: &str, v: &str) -> Result<(), String> {
+pub fn set_override(s: &mut Value, k: &str, v: &str) -> Result<(), Error> {
     let parts: Vec<&str> = k.split('.').collect();
     if parts.iter().any(|p| p.is_empty() || !p.chars().all(|c| c.is_ascii_alphanumeric() || c == '_')) {
-        return Err(format!("--set {k}: a key is dotted names (letters, digits, _), such as fsw.rw_bandwidth"));
+        return Err(Error::refused(format!("--set {k}: a key is dotted names (letters, digits, _), such as fsw.rw_bandwidth")));
     }
     if !SCENARIO_SECTIONS.contains(&parts[0]) {
-        return Err(format!("--set {k}: a scenario has no section {:?}; it has {}; engine settings are engine.<name>", parts[0], SCENARIO_SECTIONS.join(", ")));
+        return Err(Error::refused(format!("--set {k}: a scenario has no section {:?}; it has {}; engine settings are engine.<name>", parts[0], SCENARIO_SECTIONS.join(", "))));
     }
     let lower = v.trim().to_ascii_lowercase();
     if ["nan", "inf", "+inf", "-inf", "infinity", "+infinity", "-infinity"].contains(&lower.as_str()) {
-        return Err(format!("--set {k}={v}: not a finite number"));
+        return Err(Error::refused(format!("--set {k}={v}: not a finite number")));
     }
     let parsed: Value = serde_json::from_str(v).unwrap_or_else(|_| Value::String(v.to_string()));
     let mut cur = &*s;
@@ -114,23 +115,23 @@ pub fn set_override(s: &mut Value, k: &str, v: &str) -> Result<(), String> {
     // "case:<key>" means "read it from the case"; a number given here replaces that reference
     let reference = cur.as_str().map(|x| x.starts_with("case:")).unwrap_or(false) && parsed.is_number();
     if !cur.is_null() && !reference && kind(cur) != kind(&parsed) {
-        return Err(format!("--set {k}={v}: the scenario has {} here, and {v:?} is {}", kind(cur), kind(&parsed)));
+        return Err(Error::refused(format!("--set {k}={v}: the scenario has {} here, and {v:?} is {}", kind(cur), kind(&parsed))));
     }
     json::set_path(s, k, v);
     Ok(())
 }
 
 /// A number the engine reads from an override: finite, or refused.
-fn finite(k: &str, v: &str) -> Result<f64, String> {
+fn finite(k: &str, v: &str) -> Result<f64, Error> {
     match v.trim().parse::<f64>() {
         Ok(x) if x.is_finite() => Ok(x),
-        _ => Err(format!("{k}={v}: not a finite number")),
+        _ => Err(Error::refused(format!("{k}={v}: not a finite number"))),
     }
 }
 
 /// A whole number the engine reads from an override, within its range.
-fn whole(k: &str, x: f64, lo: usize, hi: usize) -> Result<usize, String> {
-    if x.fract() != 0.0 || x < lo as f64 || x > hi as f64 { return Err(format!("{k}={x}: a whole number from {lo} to {hi}")); }
+fn whole(k: &str, x: f64, lo: usize, hi: usize) -> Result<usize, Error> {
+    if x.fract() != 0.0 || x < lo as f64 || x > hi as f64 { return Err(Error::refused(format!("{k}={x}: a whole number from {lo} to {hi}"))); }
     Ok(x as usize)
 }
 
@@ -150,29 +151,29 @@ pub const DURATION_MAX_S: f64 = 30.0*86400.0;
 impl Config {
     /// Every value a run depends on is inside the range the engine models, or the run is
     /// refused with the value and the range: never clamped, never run on NaN.
-    pub fn check(&self) -> Result<(), String> {
+    pub fn check(&self) -> Result<(), Error> {
         let c = &self.case;
         let miss: Vec<&str> = CASE_NEEDS.iter().copied().filter(|k| !c.get(k).is_finite()).collect();
-        if !miss.is_empty() { return Err(format!("case {} does not state {}, which every run needs", c.id, miss.join(", "))); }
-        let within = |what: &str, x: f64, lo: f64, hi: f64| -> Result<(), String> {
-            if x.is_finite() && x >= lo && x <= hi { Ok(()) } else { Err(format!("{what} = {x}: the engine models {lo} to {hi}")) }
+        if !miss.is_empty() { return Err(Error::refused(format!("case {} does not state {}, which every run needs", c.id, miss.join(", ")))); }
+        let within = |what: &str, x: f64, lo: f64, hi: f64| -> Result<(), Error> {
+            if x.is_finite() && x >= lo && x <= hi { Ok(()) } else { Err(Error::refused(format!("{what} = {x}: the engine models {lo} to {hi}"))) }
         };
         within("orbit.alt (km)", c.get("orbit.alt"), ALT_KM.0, ALT_KM.1)?;
         within("orbit.inc (deg)", c.get("orbit.inc"), 0.0, 180.0)?;
         within("orbit.ecc", c.get("orbit.ecc"), 0.0, 0.1)?;
         within("orbit.ltan (h)", c.get("orbit.ltan"), 0.0, 24.0)?;
-        if !(self.mass_kg > 0.0) { return Err(format!("mass = {} kg: a mass is positive", self.mass_kg)); }
+        if !(self.mass_kg > 0.0) { return Err(Error::refused(format!("mass = {} kg: a mass is positive", self.mass_kg))); }
         for (i, row) in self.inertia.iter().enumerate() {
-            if !(row[i] > 0.0) { return Err(format!("inertia axis {} = {} kg m^2: a principal inertia is positive", i + 1, row[i])); }
+            if !(row[i] > 0.0) { return Err(Error::refused(format!("inertia axis {} = {} kg m^2: a principal inertia is positive", i + 1, row[i]))); }
         }
         if !(self.duration_s > 0.0 && self.duration_s <= DURATION_MAX_S) {
-            return Err(format!("duration {} s: a run lasts more than 0 s and at most {} s (30 days)", self.duration_s, DURATION_MAX_S));
+            return Err(Error::refused(format!("duration {} s: a run lasts more than 0 s and at most {} s (30 days)", self.duration_s, DURATION_MAX_S)));
         }
         if !(self.dt > 0.0 && self.dt <= 10.0 && self.dt <= self.duration_s) {
-            return Err(format!("time.dt_s = {} s: the control step is more than 0, at most 10 s and at most the duration", self.dt));
+            return Err(Error::refused(format!("time.dt_s = {} s: the control step is more than 0, at most 10 s and at most the duration", self.dt)));
         }
         if !(self.record_dt >= self.dt && self.record_dt <= self.duration_s.max(self.dt)) {
-            return Err(format!("time.record_dt_s = {} s: the record step is at least the control step ({} s) and at most the duration", self.record_dt, self.dt));
+            return Err(Error::refused(format!("time.record_dt_s = {} s: the record step is at least the control step ({} s) and at most the duration", self.record_dt, self.dt)));
         }
         within("engine.orbit_step_s", self.orbit_step_s, 1e-3, 600.0)?;
         within("engine.density_scale", self.density_scale, 0.0, 100.0)?;
@@ -186,11 +187,11 @@ impl Config {
     }
 
     /// scenario: a data/scenarios id or a path; overrides: dotted paths into the scenario ("fsw.rw_bandwidth=0.5").
-    pub fn build(root: &Path, scenario: &str, case_file: &Path, seed: u64, overrides: &[(String, String)]) -> Result<Config, String> {
+    pub fn build(root: &Path, scenario: &str, case_file: &Path, seed: u64, overrides: &[(String, String)]) -> Result<Config, Error> {
         if !scenario.ends_with(".json") { check_id("scenario", scenario)?; }
         let sp = if scenario.ends_with(".json") { scenario.into() } else { root.join("data/scenarios").join(format!("{scenario}.json")) };
         if !sp.is_file() && !scenario.ends_with(".json") {
-            return Err(format!("no scenario {scenario}: {} does not exist (the scenarios are data/scenarios/*.json)", sp.display()));
+            return Err(Error::refused(format!("no scenario {scenario}: {} does not exist (the scenarios are data/scenarios/*.json)", sp.display())));
         }
         let mut s = json::read(&sp)?;
         let mut eng: Vec<(String, String)> = vec![];
@@ -410,21 +411,21 @@ impl Config {
         };
         for (k, val) in eng {
             if k == "engine.orbit" {
-                if val != "pop" && val != "fast" { return Err("engine.orbit: pop | fast".into()); }
+                if val != "pop" && val != "fast" { return Err(Error::refused("engine.orbit: pop | fast")); }
                 cfg.orbit_model = val.clone();
                 continue;
             }
             // truth dispersions (asils.campaign.draw): the plant changes, the flight software keeps
             // the nominal (ground-calibrated) inertia and residual dipole it was loaded with
             if val.trim_start().starts_with('[') {
-                let a: Vec<f64> = serde_json::from_str(&val).map_err(|_| format!("{k}: not a [x, y, z] vector"))?;
-                if a.len() != 3 { return Err(format!("{k}: needs 3 values")); }
-                if a.iter().any(|x| !x.is_finite()) { return Err(format!("{k}: every value is a finite number")); }
+                let a: Vec<f64> = serde_json::from_str(&val).map_err(|_| Error::refused(format!("{k}: not a [x, y, z] vector")))?;
+                if a.len() != 3 { return Err(Error::refused(format!("{k}: needs 3 values"))); }
+                if a.iter().any(|x| !x.is_finite()) { return Err(Error::refused(format!("{k}: every value is a finite number"))); }
                 match k.as_str() {
                     "engine.inertia_scale" => for i in 0..3 { cfg.inertia[i][i] *= a[i]; },
                     "engine.cm_offset_m" => cfg.cm_offset_m = [a[0], a[1], a[2]],
                     "engine.m_res" => cfg.m_res = [a[0], a[1], a[2]],
-                    _ => return Err(format!("unknown engine vector override {k}")),
+                    _ => return Err(Error::refused(format!("unknown engine vector override {k}"))),
                 }
                 continue;
             }
@@ -442,7 +443,7 @@ impl Config {
                 "engine.accommodation" => { cfg.sigma_n = x; cfg.sigma_t = x; }
                 "engine.refl" => cfg.refl = x,
                 "engine.mass_kg" => cfg.mass_kg = x,
-                _ => return Err(format!("unknown engine override {k}: the engine reads {}", ENGINE_KEYS.join(", "))),
+                _ => return Err(Error::refused(format!("unknown engine override {k}: the engine reads {}", ENGINE_KEYS.join(", ")))),
             }
         }
         cfg.check()?;

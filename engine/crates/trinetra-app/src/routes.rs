@@ -88,10 +88,16 @@ fn runs() -> Response {
     Response::json(200, &json!({"store": root.display().to_string(), "runs": out}))
 }
 
+/// An engine error as an answer: a refused input is the page's to fix (400), anything
+/// else is a failure here (500).
+fn failed(e: &adcs_sim::Error) -> Response {
+    Response::error(if e.kind == adcs_sim::Kind::Refused { 400 } else { 500 }, e.message())
+}
+
 fn one_run(r: &Request) -> Response {
     let d = match run_dir(r) { Ok(d) => d, Err(e) => return e };
     let m: Value = std::fs::read_to_string(d.join("manifest.json")).ok().and_then(|s| serde_json::from_str(&s).ok()).unwrap_or(Value::Null);
-    Response::json(200, &json!({"text": store::show(&d).unwrap_or_else(|e| e), "metrics": m["metrics"], "inputs": m["inputs"]}))
+    Response::json(200, &json!({"text": store::show(&d).unwrap_or_else(String::from), "metrics": m["metrics"], "inputs": m["inputs"]}))
 }
 
 fn export(r: &Request) -> Response {
@@ -104,7 +110,7 @@ fn export(r: &Request) -> Response {
             let name = d.file_name().and_then(|n| n.to_str()).unwrap_or("run").replace(|c: char| !c.is_ascii_alphanumeric() && c != '-' && c != '_', "_");
             Response { status: 200, kind: "application/zip", body, extra: vec![("Content-Disposition".into(), format!("attachment; filename=\"{name}.trinetra\""))] }
         }
-        Err(e) => Response::error(500, &e),
+        Err(e) => failed(&e),
     }
 }
 
@@ -115,11 +121,11 @@ fn fly(r: &Request) -> Response {
     let body: Value = match serde_json::from_slice(&r.body) { Ok(v) => v, Err(_) => return Response::error(400, "the request is not JSON") };
     let root = data_root();
     let scenario = body["scenario"].as_str().unwrap_or("").to_string();
-    if let Err(e) = adcs_sim::config::check_id("scenario", &scenario) { return Response::error(400, &e); }
+    if let Err(e) = adcs_sim::config::check_id("scenario", &scenario) { return failed(&e); }
     let scen_file = root.join("data/scenarios").join(format!("{scenario}.json"));
     let Some(sv) = std::fs::read_to_string(&scen_file).ok().and_then(|s| serde_json::from_str::<Value>(&s).ok()) else { return Response::error(404, &format!("no scenario {scenario}")) };
     let case = body["case"].as_str().filter(|c| !c.is_empty()).map(String::from).unwrap_or_else(|| sv["case"].as_str().unwrap_or("ais_3u").to_string());
-    if let Err(e) = adcs_sim::config::check_id("case", &case) { return Response::error(400, &e); }
+    if let Err(e) = adcs_sim::config::check_id("case", &case) { return failed(&e); }
     let case_file = root.join("cases").join(format!("{case}.csv"));
     if !case_file.is_file() { return Response::error(404, &format!("no case {case}")); }
     let fsw = match body["fsw"].as_str().unwrap_or("c") { "c" => adcs_fsw_abi::Impl::C, "rust" => adcs_fsw_abi::Impl::Rust, x => return Response::error(400, &format!("fsw {x:?}: c or rust")) };
@@ -129,14 +135,14 @@ fn fly(r: &Request) -> Response {
         Value::Null => {}
         v => match v.as_f64() { Some(d) => sets.push(("engine.duration_s".to_string(), d.to_string())), None => return Response::error(400, "duration_s: a number of seconds") },
     }
-    let c = match Config::build(&root, &scenario, &case_file, seed, &sets) { Ok(c) => c, Err(e) => return Response::error(400, &e) };
-    let rec_ = match run::run(&c, &run::Opts { fsw, quiet: true, realtime: false, oils: None }) { Ok(x) => x, Err(e) => return Response::error(500, &e) };
+    let c = match Config::build(&root, &scenario, &case_file, seed, &sets) { Ok(c) => c, Err(e) => return failed(&e) };
+    let rec_ = match run::run(&c, &run::Opts { fsw, quiet: true, realtime: false, oils: None }) { Ok(x) => x, Err(e) => return failed(&e) };
     let d = metrics::derive(&c, &rec_);
     let ms = metrics::evaluate(&c, &rec_, &d);
     let (_, when) = adcs_sim::fsio::utc_now();
     let rel = format!("app/{scenario}-{case}-{}", when.replace([':', '-'], "").trim_end_matches('Z'));
     let out = store_root().join(&rel);
-    if let Err(e) = rec::write(&out, &c, &rec_, &d, &ms) { return Response::error(500, &e); }
+    if let Err(e) = rec::write(&out, &c, &rec_, &d, &ms) { return failed(&e); }
     Response::json(200, &json!({"ok": true, "run": rel, "scenario": scenario, "case": case, "metrics": ms,
         "wall_s": rec_.wall_s, "duration_s": c.duration_s, "fsw": rec_.fsw_build}))
 }

@@ -32,14 +32,12 @@ class Registry(unittest.TestCase):
         self.assertEqual(set(seen), reg("engine.py"))
 
     def test_adcs_commands_are_the_registry(self):
-        src = (ROOT / "engine/crates/adcs-cli/src/help.rs").read_text()
-        block = src[src.index("pub const COMMANDS"):src.index("];", src.index("pub const COMMANDS"))]
-        have = set(re.findall(r'^    \("([a-z]+)", "', block, re.M))
-        self.assertEqual(len(have), 5, "the command table in help.rs moved: update this test")
+        # clap names each command after a variant of `enum Cmd` in cli.rs (Run -> run) and dispatches it
+        src = (ROOT / "engine/crates/adcs-cli/src/cli.rs").read_text()
+        block = src[src.index("pub enum Cmd {"):src.index("\n}", src.index("pub enum Cmd {"))]
+        have = {v.lower() for v in re.findall(r"^    ([A-Z][a-z]+)\(", block, re.M)}
+        self.assertEqual(len(have), 5, "the Cmd enum in cli.rs moved: update this test")
         self.assertEqual(have, reg("adcs"))
-        main = (ROOT / "engine/crates/adcs-cli/src/main.rs").read_text()
-        for c in have:
-            self.assertIn(f'"{c}"', main, f"adcs {c} has help but main.rs does not dispatch it")
 
     def test_every_python_tool_named_exists(self):
         for c in trinetra.commands():

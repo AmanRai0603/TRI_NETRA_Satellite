@@ -2,17 +2,21 @@
 //! Owner: Agastya. Copyright (c) 2026 Agastya. All rights reserved.
 use crate::args::Args;
 use adcs_fsw_abi::Impl;
-use adcs_sim::{config::Config, data_root, metrics, rec, run};
+use adcs_sim::{config::Config, data_root, metrics, rec, run, Error};
 use std::path::PathBuf;
 
-pub fn config(a: &Args) -> Result<Config, String> {
+pub fn config(a: &Args) -> Result<Config, Error> {
     let root = data_root();
     let case = match &a.case {
         Some(c) => PathBuf::from(c),
         None => {
             if !a.scenario.ends_with(".json") { adcs_sim::config::check_id("scenario", &a.scenario)?; }
             let sp = if a.scenario.ends_with(".json") { PathBuf::from(&a.scenario) } else { root.join("data/scenarios").join(format!("{}.json", a.scenario)) };
-            let s: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(&sp).map_err(|e| format!("{}: {e}", sp.display()))?).map_err(|e| e.to_string())?;
+            if !sp.is_file() {
+                return Err(Error::refused(format!("no scenario {}: {} does not exist (the scenarios are data/scenarios/*.json)", a.scenario, sp.display())));
+            }
+            let s: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(&sp).map_err(|e| Error::io(&sp, e))?)
+                .map_err(|e| Error::malformed(format!("{}: {e}", sp.display())))?;
             root.join("cases").join(format!("{}.csv", s["case"].as_str().unwrap_or("ais_3u")))
         }
     };
@@ -28,13 +32,13 @@ fn print_metrics(ms: &[serde_json::Value]) {
     }
 }
 
-pub fn main(a: &Args) -> Result<(), String> {
+pub fn main(a: &Args) -> Result<(), Error> {
         if a.cmd == "size" {
             // adcs size <case> [--out DIR] [--knobs knobs.json]: demand survey + every option sized (adcs-design)
             let root = data_root();
             adcs_sim::config::check_id("case", &a.scenario)?;
             let case_file = root.join("cases").join(format!("{}.csv", a.scenario));
-            if !case_file.is_file() { return Err(format!("no case {}: {} does not exist", a.scenario, case_file.display())); }
+            if !case_file.is_file() { return Err(Error::refused(format!("no case {}: {} does not exist", a.scenario, case_file.display()))); }
             let knobs = match a.set.iter().find(|(k, _)| k == "knobs") {
                 Some((_, f)) => adcs_design::Knobs::from_json(&adcs_sim::json::read(std::path::Path::new(f))?),
                 None => adcs_design::Knobs::default(),
@@ -53,7 +57,7 @@ pub fn main(a: &Args) -> Result<(), String> {
         let c = config(a)?;
         match a.cmd.as_str() {
             "params" => {
-                let out = a.out.clone().ok_or("params needs --out")?;
+                let out = a.out.clone().ok_or_else(|| Error::refused("params needs --out"))?;
                 adcs_sim::fsio::write(&out, c.blob())?;
                 println!("wrote {} ({} bytes, adcs-fswcfg/1)", out.display(), adcs_fsw::params::BLOB_SIZE);
             }
@@ -92,10 +96,10 @@ pub fn main(a: &Args) -> Result<(), String> {
                     c.id, c.duration_s, rec::impl_label(&rc.fsw_impl), rec::impl_label(&rr.fsw_impl), dq, dw.to_degrees(),
                     match first { None => "bit-identical trajectories".to_string(), Some(j) => format!("first difference at t = {} s", rc.rows[j].t) });
                 if let Some(j) = first {
-                    return Err(format!("the two targets differ from t = {} s", rc.rows[j].t));
+                    return Err(Error::run(format!("the two targets differ from t = {} s", rc.rows[j].t)));
                 }
             }
-            _ => return Err(crate::help::overview()),
+            other => return Err(Error::refused(format!("{other} is not a flying command"))),
         }
         Ok(())
 }

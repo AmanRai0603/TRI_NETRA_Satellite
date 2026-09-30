@@ -11,7 +11,7 @@ fn case_for(s: &str) -> PathBuf {
     root().join("cases").join(format!("{}.csv", v["case"].as_str().unwrap_or("ais_3u")))
 }
 
-fn build(s: &str, sets: &[(&str, &str)]) -> Result<Config, String> {
+fn build(s: &str, sets: &[(&str, &str)]) -> Result<Config, adcs_sim::Error> {
     let sets: Vec<(String, String)> = sets.iter().map(|(k, v)| (k.to_string(), v.to_string())).collect();
     Config::build(&root(), s, &case_for(s), 1, &sets)
 }
@@ -19,7 +19,10 @@ fn build(s: &str, sets: &[(&str, &str)]) -> Result<Config, String> {
 fn refused(s: &str, sets: &[(&str, &str)], says: &str) {
     match build(s, sets) {
         Ok(_) => panic!("{sets:?} was accepted"),
-        Err(e) => assert!(e.contains(says), "{sets:?}: {e:?} does not say {says:?}"),
+        Err(e) => {
+            assert!(e.message().contains(says), "{sets:?}: {e:?} does not say {says:?}");
+            assert_eq!(e.kind, adcs_sim::Kind::Refused, "{sets:?}: refused, not failed");
+        }
     }
 }
 
@@ -40,12 +43,12 @@ fn every_shipped_scenario_builds() {
 fn an_id_never_reaches_outside_its_folder() {
     for bad in ["../x", "a/b", "a\\b", "", ".hidden", "x y"] { assert!(check_id("scenario", bad).is_err(), "{bad:?}"); }
     for ok in ["nadir_hold_ais", "mission-fmr.v2"] { assert!(check_id("scenario", ok).is_ok(), "{ok:?}"); }
-    assert!(Config::build(&root(), "../../etc/passwd", &root().join("cases/ais_3u.csv"), 1, &[]).unwrap_err().contains("not an id"));
+    assert!(Config::build(&root(), "../../etc/passwd", &root().join("cases/ais_3u.csv"), 1, &[]).unwrap_err().message().contains("not an id"));
 }
 
 #[test]
 fn a_missing_scenario_is_named() {
-    assert!(Config::build(&root(), "no_such_scenario", &root().join("cases/ais_3u.csv"), 1, &[]).unwrap_err().contains("no scenario no_such_scenario"));
+    assert!(Config::build(&root(), "no_such_scenario", &root().join("cases/ais_3u.csv"), 1, &[]).unwrap_err().message().contains("no scenario no_such_scenario"));
 }
 
 #[test]
@@ -101,7 +104,7 @@ fn a_case_the_engine_cannot_fly_is_refused_by_name() {
         let f = d.join("case.csv");
         std::fs::write(&f, with(key, val)).unwrap();
         let e = Config::build(&root(), "nadir_hold_ais", &f, 1, &[]).unwrap_err();
-        assert!(e.contains(says), "{key}={val}: {e:?}");
+        assert!(e.message().contains(says) && e.kind == adcs_sim::Kind::Refused, "{key}={val}: {e:?}");
     }
     let _ = std::fs::remove_dir_all(&d);
 }

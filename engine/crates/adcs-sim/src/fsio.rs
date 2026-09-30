@@ -18,9 +18,9 @@ static SERIAL: AtomicU64 = AtomicU64::new(0);
 
 /// Write `bytes` to `path` whole: a temporary file in the same folder, flushed, then
 /// renamed over the target. The folder is created if it does not exist.
-pub fn write(path: &Path, bytes: impl AsRef<[u8]>) -> Result<(), String> {
+pub fn write(path: &Path, bytes: impl AsRef<[u8]>) -> Result<(), crate::Error> {
     let dir = path.parent().filter(|d| !d.as_os_str().is_empty()).unwrap_or(Path::new("."));
-    std::fs::create_dir_all(dir).map_err(|e| format!("{}: {e}", dir.display()))?;
+    std::fs::create_dir_all(dir).map_err(|e| crate::Error::io(dir, e))?;
     let name = path.file_name().map(|n| n.to_string_lossy().into_owned()).unwrap_or_default();
     let tmp = dir.join(format!(".{name}.{}.{}.tmp", std::process::id(), SERIAL.fetch_add(1, Ordering::Relaxed)));
     let r = (|| -> std::io::Result<()> {
@@ -32,7 +32,7 @@ pub fn write(path: &Path, bytes: impl AsRef<[u8]>) -> Result<(), String> {
     })();
     if let Err(e) = r {
         let _ = std::fs::remove_file(&tmp);
-        return Err(format!("{}: {e}", path.display()));
+        return Err(crate::Error::io(path, e));
     }
     Ok(())
 }

@@ -7,6 +7,7 @@
 //! (tools/pipeline.py): per-part authority scales, the margins, the fluid loop's electromagnetic pump
 //! (mass/power rate lambda, flow-sensor grade), star-tracker heads, gyro grade.
 //! Owner: Agastya. Copyright (c) 2026 Agastya. All rights reserved.
+use adcs_sim::Error;
 use adcs_fsw::ctl::{boresight_offset, guidance, Guid};
 use adcs_sim::config::Config;
 use adcs_sim::json;
@@ -74,13 +75,13 @@ pub struct Demand {
 
 const ATT: [&str; 4] = ["X_nadir", "Y_nadir", "Z_nadir", "sun"];
 
-pub fn demand(root: &Path, case_file: &Path, k: &Knobs) -> Result<Demand, String> {
+pub fn demand(root: &Path, case_file: &Path, k: &Knobs) -> Result<Demand, Error> {
     // the survey scenario of asils.sizing.demand: nadir, 10 s, one orbit
     let s = json!({"schema": "adcs-scenario/1", "id": "sizing_survey", "product": "TRN-P-3U-AIS", "label": "sizing survey",
         "time": {"duration_s": 5740, "dt_s": 10, "record_dt_s": 10}, "initial": {"attitude": {"kind": "nadir"}, "rate": {"kind": "lvlh"}},
         "fsw": {"start_mode": "detumble", "guidance": {"kind": "nadir"}}, "metrics": []});
     let tmp = std::env::temp_dir().join(format!("adcs-survey-{}.json", std::process::id()));
-    std::fs::write(&tmp, s.to_string()).map_err(|e| e.to_string())?;
+    std::fs::write(&tmp, s.to_string()).map_err(|e| Error::io(&tmp, e))?;
     let c = Config::build(root, &tmp.display().to_string(), case_file, 1, &[]);
     let _ = std::fs::remove_file(&tmp);
     let c = c?;
@@ -195,21 +196,21 @@ pub fn mtq(d: &Demand, k: &Knobs) -> (Value, Value) {
 /// Per unit: a wheel must hold h_req and give tau_req; a pyramid unit half of each (two units act on
 /// any axis). The lightest selectable model that meets the need wins (then steady power, volume);
 /// when none does, the largest is taken and the gap is recorded.
-pub fn rotor(root: &Path, d: &Demand, k: &Knobs, which: &str) -> Result<Value, String> {
+pub fn rotor(root: &Path, d: &Demand, k: &Knobs, which: &str) -> Result<Value, Error> {
     let s = k.s(which);
     let types: &[&str] = if which == "rw" { &["reaction_wheel"] } else { &["cmg", "cmg_cluster"] };
     let share = if which == "rw" { 1.0 } else { 0.5 };
     let (h_need, tau_need) = (share*d.h_req*s, share*d.tau_req*s);
     let mut cands: Vec<Value> = vec![];
     let dir = root.join("data/catalogue");
-    let mut files: Vec<_> = std::fs::read_dir(&dir).map_err(|e| format!("{}: {e}", dir.display()))?.filter_map(|e| e.ok().map(|e| e.path())).collect();
+    let mut files: Vec<_> = std::fs::read_dir(&dir).map_err(|e| Error::io(&dir, e))?.filter_map(|e| e.ok().map(|e| e.path())).collect();
     files.sort();
     for f in files {
         let c = json::read(&f)?;
         if !types.contains(&json::s(&c, "type", "")) || !json::b(&c, "selectable", false) { continue; }
         cands.push(c);
     }
-    if cands.is_empty() { return Err(format!("catalogue: no selectable {which} model in {}", dir.display())); }
+    if cands.is_empty() { return Err(Error::refused(format!("catalogue: no selectable {which} model in {}", dir.display()))); }
     let g = |c: &Value, key: &str| c["derived"][key].as_f64().unwrap_or(f64::NAN);
     let meets = |c: &Value| g(c, "h_max_Nms") >= h_need && g(c, "torque_max_Nm") >= tau_need;
     let key = |c: &Value| (g(c, "mass_kg"), g(c, "power_steady_W"), g(c, "volume_L"));
@@ -310,7 +311,7 @@ pub fn rcs(d: &Demand, k: &Knobs, bx: [f64; 3]) -> Value {
 fn num(v: &Value, k: &str) -> Option<f64> { v.get(k).and_then(|x| x.as_f64()) }
 
 /// asils.product.load budget_: ADCS mass / nominal power / volume per fill.
-fn budget(fill: &[Value], lookup: &dyn Fn(&str) -> Result<Value, String>) -> Result<Value, String> {
+fn budget(fill: &[Value], lookup: &dyn Fn(&str) -> Result<Value, Error>) -> Result<Value, Error> {
     let (mut m, mut p, mut vol) = (0.0, 0.0, 0.0);
     let mut items = vec![];
     for f in fill {
@@ -332,7 +333,7 @@ fn budget(fill: &[Value], lookup: &dyn Fn(&str) -> Result<Value, String>) -> Res
 
 /// asils.sizing.size_all: every part, one product per family, budgets. Writes
 /// <out>/parts/*.json, <out>/products/*.json, <out>/sizing.json.
-pub fn size_all(root: &Path, case_file: &Path, k: &Knobs, out: &Path) -> Result<Value, String> {
+pub fn size_all(root: &Path, case_file: &Path, k: &Knobs, out: &Path) -> Result<Value, Error> {
     let d = demand(root, case_file, k)?;
     let case = d.case.clone();
     let bx = [0.34, 0.10, 0.10];
@@ -340,11 +341,11 @@ pub fn size_all(root: &Path, case_file: &Path, k: &Knobs, out: &Path) -> Result<
     let fm = fmr(&d, k, bx);
     let parts: Vec<(&str, Value)> = vec![("mtq", pm), ("mtqp", pmp), ("rw", rotor(root, &d, k, "rw")?), ("cmg", rotor(root, &d, k, "cmg")?), ("vscmg", rotor(root, &d, k, "vscmg")?),
         ("fmr_x", fm[0].clone()), ("fmr_y", fm[1].clone()), ("fmr_z", fm[2].clone()), ("rcs", rcs(&d, k, bx))];
-    for dir in ["parts", "products"] { std::fs::create_dir_all(out.join(dir)).map_err(|e| e.to_string())?; }
+    for dir in ["parts", "products"] { std::fs::create_dir_all(out.join(dir)).map_err(|e| Error::io(&out.join(dir), e))?; }
     let mut by_pn: BTreeMap<String, Value> = BTreeMap::new();
     for (_, p) in &parts {
         let pn = json::s(p, "part_number", "").to_string();
-        adcs_sim::fsio::write(&out.join("parts").join(format!("{pn}.json")), serde_json::to_string(p).map_err(|e| e.to_string())?)?;
+        adcs_sim::fsio::write(&out.join("parts").join(format!("{pn}.json")), serde_json::to_string(p).map_err(|e| Error::run(e.to_string()))?)?;
         by_pn.insert(pn, p.clone());
     }
     // a better gyro than the catalogue's precision unit when the loop asks for it: noise x grade,
@@ -360,11 +361,11 @@ pub fn size_all(root: &Path, case_file: &Path, k: &Knobs, out: &Path) -> Result<
         gyro_id = format!("SZ-{case}-GYRO");
         g["part_number"] = json!(gyro_id); g["status"] = json!("sized"); g["source"] = json!("adcs-design (gyro grade)");
         g["name"] = json!(format!("Gyro, noise x{gr} of TRN-GYRO-P1 (fibre-optic class) — {case}"));
-        adcs_sim::fsio::write(&out.join("parts").join(format!("{gyro_id}.json")), serde_json::to_string(&g).map_err(|e| e.to_string())?)?;
+        adcs_sim::fsio::write(&out.join("parts").join(format!("{gyro_id}.json")), serde_json::to_string(&g).map_err(|e| Error::run(e.to_string()))?)?;
         by_pn.insert(gyro_id.clone(), g);
     }
     let pn = |key: &str| parts.iter().find(|x| x.0 == key).map(|x| json::s(&x.1, "part_number", "").to_string()).unwrap_or_default();
-    let lookup = |id: &str| -> Result<Value, String> {
+    let lookup = |id: &str| -> Result<Value, Error> {
         if let Some(p) = by_pn.get(id) { return Ok(p.clone()); }
         json::read(&adcs_sim::product::find(root, "parts", id)?)
     };
@@ -410,7 +411,7 @@ pub fn size_all(root: &Path, case_file: &Path, k: &Knobs, out: &Path) -> Result<
         let pr = json!({"schema": "adcs-product/1", "id": format!("SZ-{case}-{id}"), "label": format!("{label} — sized to {case}"), "family": id,
             "role": fa["role"], "classes": ["cubesat_3u"], "status": "sized", "origin": "designed", "source": "adcs-design",
             "algorithms": algs, "sun_axis_body": [0, 0, -1], "payload_boresight_body": bs, "fill": fill, "knobs": k.json()});
-        adcs_sim::fsio::write(&out.join("products").join(format!("SZ-{case}-{id}.json")), serde_json::to_string(&pr).map_err(|e| e.to_string())?)?;
+        adcs_sim::fsio::write(&out.join("products").join(format!("SZ-{case}-{id}.json")), serde_json::to_string(&pr).map_err(|e| Error::run(e.to_string()))?)?;
         let b = budget(pr["fill"].as_array().unwrap(), &lookup)?;
         families.insert(id.to_string(), json!({"product": format!("SZ-{case}-{id}"), "role": fa["role"], "label": label,
             "mass_kg": b["mass_kg"], "power_W": b["power_W"], "volume_L": b["volume_L"], "items": b["items"]}));
@@ -418,7 +419,7 @@ pub fn size_all(root: &Path, case_file: &Path, k: &Knobs, out: &Path) -> Result<
     let z = json!({"schema": "adcs-sizing/1", "case": case, "class": if d.fine { "fine" } else { "coarse" }, "star_tracker": st_fit,
         "demand": d.json(), "knobs": k.json(), "families": families,
         "parts": parts.iter().map(|(a, b)| (a.to_string(), b.clone())).collect::<serde_json::Map<_, _>>()});
-    adcs_sim::fsio::write(&out.join("sizing.json"), serde_json::to_string_pretty(&z).map_err(|e| e.to_string())?)?;
+    adcs_sim::fsio::write(&out.join("sizing.json"), serde_json::to_string_pretty(&z).map_err(|e| Error::run(e.to_string()))?)?;
     Ok(z)
 }
 

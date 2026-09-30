@@ -17,6 +17,9 @@ pub mod metrics;
 pub mod rec;
 pub mod fsio;
 pub mod store;
+pub mod error;
+
+pub use error::{Error, Kind};
 
 pub const ENGINE: &str = "adcs-engine-rs/1.2.0 (adcs-case/1, POP v51 port in-loop, adcs-design, soft OILS)";
 

@@ -23,6 +23,7 @@
 //!   manifest and channels, with a README, into one zip file any unzip tool opens;
 //!   `import` puts one back into a folder.
 //! Owner: Agastya. Copyright (c) 2026 Agastya. All rights reserved.
+use crate::error::Error;
 use serde_json::{json, Value};
 use std::path::{Path, PathBuf};
 
@@ -48,11 +49,11 @@ pub fn inputs_dir(dir: &Path) -> PathBuf {
 
 /// Keep one copy of `bytes` as `name` in `inputs`: written once, and refused if a file of
 /// that name is already there with other contents (a fingerprint that names two files).
-pub fn keep_input(inputs: &Path, name: &str, bytes: &[u8]) -> Result<PathBuf, String> {
+pub fn keep_input(inputs: &Path, name: &str, bytes: &[u8]) -> Result<PathBuf, Error> {
     let f = inputs.join(name);
     match std::fs::read(&f) {
         Ok(have) if have == bytes => Ok(f),
-        Ok(_) => Err(format!("{}: already holds other contents under the same fingerprint; refusing to overwrite it", f.display())),
+        Ok(_) => Err(Error::malformed(format!("{}: already holds other contents under the same fingerprint; refusing to overwrite it", f.display()))),
         Err(_) => { crate::fsio::write(&f, bytes)?; Ok(f) }
     }
 }
@@ -130,8 +131,8 @@ fn stamp(p: &Path) -> Option<String> {
 /// Every adcs-rec/1 run directory under `root`, sorted by path. A manifest whose size and
 /// time the index already holds is not read again; the index is rewritten when it changed
 /// (and left alone where the folder cannot be written).
-pub fn list(root: &Path) -> Result<Vec<Found>, String> {
-    if !root.is_dir() { return Err(format!("{} is not a folder", root.display())); }
+pub fn list(root: &Path) -> Result<Vec<Found>, Error> {
+    if !root.is_dir() { return Err(Error::refused(format!("{} is not a folder", root.display()))); }
     let ix_path = root.join(INDEX);
     let old: serde_json::Map<String, Value> = std::fs::read_to_string(&ix_path).ok()
         .and_then(|s| serde_json::from_str::<Value>(&s).ok())
@@ -182,11 +183,12 @@ pub fn table(found: &[Found], root: &Path) -> String {
 }
 
 /// A run's provenance and requirement metrics, for a person to read.
-pub fn show(dir: &Path) -> Result<String, String> {
+pub fn show(dir: &Path) -> Result<String, Error> {
     let p = dir.join("manifest.json");
-    let m: Value = serde_json::from_str(&std::fs::read_to_string(&p).map_err(|e| format!("{}: {e}", p.display()))?)
-        .map_err(|e| format!("{}: {e}", p.display()))?;
-    if m.get("schema").and_then(|v| v.as_str()) != Some("adcs-rec/1") { return Err(format!("{} is not a run (schema adcs-rec/1)", p.display())); }
+    if !p.is_file() { return Err(Error::refused(format!("{} is not a run: it has no manifest.json", dir.display()))); }
+    let m: Value = serde_json::from_str(&std::fs::read_to_string(&p).map_err(|e| Error::io(&p, e))?)
+        .map_err(|e| Error::malformed(format!("{}: {e}", p.display())))?;
+    if m.get("schema").and_then(|v| v.as_str()) != Some("adcs-rec/1") { return Err(Error::refused(format!("{} is not a run (schema adcs-rec/1)", p.display()))); }
     let g = |k: &str| m.get(k).map(|v| v.as_str().map(String::from).unwrap_or_else(|| v.to_string())).unwrap_or_else(|| "—".into());
     let mut s = format!("{} on {} ({}), product {}, fsw {}\n", g("scenario"), g("case"), g("case_title"), g("product"),
         m["fsw"]["impl"].as_str().unwrap_or("?"));
@@ -286,10 +288,10 @@ fn unzip(bytes: &[u8]) -> Result<Vec<(String, Vec<u8>)>, String> {
 }
 
 /// Mark a run to keep (`on`), or let `thin` treat it like any other.
-pub fn pin(dir: &Path, on: bool) -> Result<(), String> {
-    if !dir.join("manifest.json").is_file() { return Err(format!("{} is not a run", dir.display())); }
+pub fn pin(dir: &Path, on: bool) -> Result<(), Error> {
+    if !dir.join("manifest.json").is_file() { return Err(Error::refused(format!("{} is not a run", dir.display()))); }
     let f = dir.join(PIN);
-    if on { crate::fsio::write(&f, "kept: `adcs results thin` leaves this run whole\n") } else { match std::fs::remove_file(&f) { Ok(()) => Ok(()), Err(e) if e.kind() == std::io::ErrorKind::NotFound => Ok(()), Err(e) => Err(format!("{}: {e}", f.display())) } }
+    if on { crate::fsio::write(&f, "kept: `adcs results thin` leaves this run whole\n") } else { match std::fs::remove_file(&f) { Ok(()) => Ok(()), Err(e) if e.kind() == std::io::ErrorKind::NotFound => Ok(()), Err(e) => Err(Error::io(&f, e)) } }
 }
 
 /// Seconds since 1970 of a manifest's `created_utc` (YYYY-MM-DDTHH:MM:SSZ), or None.
@@ -309,7 +311,7 @@ pub fn created_secs(m: &Value) -> Option<u64> {
 
 /// Thin every run under `root` older than `days` that is not pinned: remove its time series,
 /// keep its manifest. Returns the runs thinned and the bytes freed; `dry` changes nothing.
-pub fn thin(root: &Path, days: u64, dry: bool) -> Result<(Vec<PathBuf>, u64), String> {
+pub fn thin(root: &Path, days: u64, dry: bool) -> Result<(Vec<PathBuf>, u64), Error> {
     let now = crate::fsio::utc_now().0;
     let (mut done, mut freed) = (vec![], 0u64);
     for f in list(root)? {
@@ -318,26 +320,26 @@ pub fn thin(root: &Path, days: u64, dry: bool) -> Result<(Vec<PathBuf>, u64), St
         if now.saturating_sub(t) < days*86400 { continue; }
         let c = f.dir.join("channels.csv");
         freed += std::fs::metadata(&c).map(|m| m.len()).unwrap_or(0);
-        if !dry { std::fs::remove_file(&c).map_err(|e| format!("{}: {e}", c.display()))?; }
+        if !dry { std::fs::remove_file(&c).map_err(|e| Error::io(&c, e))?; }
         done.push(f.dir.clone());
     }
     Ok((done, freed))
 }
 
 /// Write a run as one `.trinetra` file.
-pub fn export(dir: &Path, out: &Path) -> Result<usize, String> {
+pub fn export(dir: &Path, out: &Path) -> Result<usize, Error> {
     let summary = show(dir)?;
     let mut files = vec![];
     for n in ["manifest.json", "channels.csv"] {
         let p = dir.join(n);
         if n == "channels.csv" && !p.is_file() { continue; }   // a thinned run sends its verdicts and provenance
-        files.push((n.to_string(), std::fs::read(&p).map_err(|e| format!("{}: {e}", p.display()))?));
+        files.push((n.to_string(), std::fs::read(&p).map_err(|e| Error::io(&p, e))?));
     }
     if let Ok(m) = serde_json::from_slice::<Value>(&files[0].1) {
         for (kind, key, ext) in [("case", "case_fingerprint", "csv"), ("scenario", "scenario_file_fingerprint", "json")] {
             let Some(fp) = m["inputs"][key].as_str() else { continue };
             let name = input_name(kind, fp, ext);
-            if let Some(p) = find_input(dir, &name) { files.push((name, std::fs::read(&p).map_err(|e| format!("{}: {e}", p.display()))?)); }
+            if let Some(p) = find_input(dir, &name) { files.push((name, std::fs::read(&p).map_err(|e| Error::io(&p, e))?)); }
         }
     }
     files.insert(0, ("README.txt".into(), format!("A TRI-NETRA ADCS run, exported by `adcs results export`.\n\
@@ -349,11 +351,11 @@ pub fn export(dir: &Path, out: &Path) -> Result<usize, String> {
 }
 
 /// Put a `.trinetra` file back into a folder, refusing any name that is not a plain file name.
-pub fn import(file: &Path, out: &Path) -> Result<usize, String> {
-    let files = unzip(&std::fs::read(file).map_err(|e| format!("{}: {e}", file.display()))?).map_err(|e| format!("{}: {e}", file.display()))?;
+pub fn import(file: &Path, out: &Path) -> Result<usize, Error> {
+    let files = unzip(&std::fs::read(file).map_err(|e| Error::io(file, e))?).map_err(|e| Error::malformed(format!("{}: {e}", file.display())))?;
     for (name, data) in &files {
         if name.contains('/') || name.contains('\\') || name.starts_with('.') || name.is_empty() {
-            return Err(format!("{}: refuses entry {name:?}, which is not a plain file name", file.display()));
+            return Err(Error::refused(format!("{}: refuses entry {name:?}, which is not a plain file name", file.display())));
         }
         crate::fsio::write(&out.join(name), data)?;
     }
@@ -380,7 +382,7 @@ mod t {
         std::fs::create_dir_all(&d).unwrap();
         let f = d.join("bad.trinetra");
         std::fs::write(&f, zip(&[("../evil".to_string(), b"x".to_vec())])).unwrap();
-        assert!(import(&f, &d.join("out")).unwrap_err().contains("not a plain file name"));
+        assert!(import(&f, &d.join("out")).unwrap_err().message().contains("not a plain file name"));
         let _ = std::fs::remove_dir_all(&d);
     }
     #[test]
@@ -416,7 +418,7 @@ mod t {
         let _ = std::fs::remove_dir_all(&d);
         let f = keep_input(&d, "case-1.csv", b"a,b\n").unwrap();
         assert_eq!(keep_input(&d, "case-1.csv", b"a,b\n").unwrap(), f, "the same bytes again keep the one copy");
-        assert!(keep_input(&d, "case-1.csv", b"other").unwrap_err().contains("refusing to overwrite"));
+        assert!(keep_input(&d, "case-1.csv", b"other").unwrap_err().message().contains("refusing to overwrite"));
         assert_eq!(std::fs::read(&f).unwrap(), b"a,b\n");
         let run = d.join("results/r1");
         std::fs::create_dir_all(&run).unwrap();

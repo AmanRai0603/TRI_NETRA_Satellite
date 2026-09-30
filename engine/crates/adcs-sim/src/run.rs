@@ -1,6 +1,7 @@
 //! One closed-loop SILS run (asils.run): the tick order of spec §9.3 --
 //! environment, sensors -> device emulators -> bytes, flight software step,
 //! bytes -> actuator commands, actuators, torques, plant, recorder.
+use crate::error::Error;
 use crate::config::{Config, GUID};
 use adcs_fsw::ctl::{guidance, Guid};
 use adcs_fsw_abi::{Bus, Fsw, Impl};
@@ -23,7 +24,7 @@ pub struct Env { pub b_eci: V3, pub sun_rel: V3, pub nu: f64, pub v_rel: V3, pub
 pub enum Truth { Pop(Box<adcs_pop::accel::InLoop>), Fast(Orbit, f64) }
 
 impl Truth {
-    pub fn new(c: &Config) -> Result<(Truth, f64), String> {
+    pub fn new(c: &Config) -> Result<(Truth, f64), Error> {
         if c.orbit_model == "pop" {
             use adcs_pop::accel::{sso_initial, Forces, InLoop, Sc, World};
             let cr = 1.0 + c.refl;
@@ -45,8 +46,8 @@ impl Truth {
             Ok((Truth::Fast(o, c.jd0), raan))
         }
     }
-    pub fn state(&mut self, t: f64) -> Result<(V3, V3), String> {
-        match self { Truth::Pop(o) => o.state(t), Truth::Fast(o, _) => Ok(o.state(t)) }
+    pub fn state(&mut self, t: f64) -> Result<(V3, V3), Error> {
+        match self { Truth::Pop(o) => o.state(t).map_err(Error::from), Truth::Fast(o, _) => Ok(o.state(t)) }
     }
     /// asils.run's env refresh: field at the POP position (op.geodetic), Sun, shadow,
     /// atmosphere-relative velocity, density and SRP pressure.
@@ -140,7 +141,7 @@ fn mode_changes(log: &mut Vec<(f64, String)>, t: f64, m: u8) {
     if log.last().map(|x| x.1 != name).unwrap_or(true) { log.push((t, name)); }
 }
 
-pub fn run(c: &Config, o: &Opts) -> Result<Record, String> {
+pub fn run(c: &Config, o: &Opts) -> Result<Record, Error> {
     let wall = std::time::Instant::now();
     let seed = c.seed;
     let rs = |name: &str| Rng::new(seed, stream_id(name));
@@ -242,7 +243,7 @@ pub fn run(c: &Config, o: &Opts) -> Result<Record, String> {
     let mut can_rx_count = 0usize;
     // soft OILS: the actuation that holds until this tick's command lands
     let mut oils = o.oils.as_ref().map(|m| OilsStats { model: Some((m.cpu_hz, m.cpi, m.i2c_hz, m.spi_hz, m.can_bps)), ..Default::default() });
-    if oils.is_some() && o.oils.as_ref().map(|m| m.fixed_s.is_none()).unwrap_or(false) && !matches!(o.fsw, Impl::Obc(_)) { return Err("soft OILS needs the flight software on a virtual OBC (--fsw qemu | qemu-rs | obc-posix ...)".into()); }
+    if oils.is_some() && o.oils.as_ref().map(|m| m.fixed_s.is_none()).unwrap_or(false) && !matches!(o.fsw, Impl::Obc(_)) { return Err(Error::run("soft OILS needs the flight software on a virtual OBC (--fsw qemu | qemu-rs | obc-posix ...)")); }
     let (mut held_m, mut held_hdot, mut held_gdot, mut held_rcs) = ([0.0; 3], [0.0; NR], [0.0; NG], [0.0; 3]);
     for k in 0..=n {
         let t = k as f64*dt;
@@ -265,7 +266,7 @@ pub fn run(c: &Config, o: &Opts) -> Result<Record, String> {
                 "gps_outage" => gps.dead = true,
                 "rcs_valve_fail" => if let Some(r) = rcs.as_mut() { r.failed[ix] = true },
                 "mag_fail" => mag.dead = true,
-                other => return Err(format!("unknown fault {other}")),
+                other => return Err(Error::run(format!("unknown fault {other}"))),
             }
             log.push((t, format!("FAULT injected: {} {}", f.kind, f.index)));
         }
@@ -320,7 +321,7 @@ pub fn run(c: &Config, o: &Opts) -> Result<Record, String> {
         // ---- flight software ----
         let now = bus.now_ns;
         let rc = fsw.step(&mut bus, now);
-        if rc != 0 { return Err(format!("flight software step returned {rc} at t = {t}")); }
+        if rc != 0 { return Err(Error::run(format!("flight software step returned {rc} at t = {t}"))); }
         // soft OILS: when does this command reach the actuators?
         let mut lat = 0.0;
         if let (Some(st), Some(m)) = (oils.as_mut(), o.oils.as_ref()) {
