@@ -5,6 +5,8 @@
     python3 tools/trinetra.py explain <command>    what it does, its steps, what it reads and
                                                    writes and which programs it starts
     python3 tools/trinetra.py why <file>           which command writes that file, and how
+    python3 tools/trinetra.py status               the evidence debt first: what is not yet confirmed
+                                                   by a person, proven in flight code, or agreed by the twin
     python3 tools/trinetra.py docs [--check]       write docs/COMMANDS.md from the registry
                                                    (--check: exit 1 if it is not current)
 
@@ -104,6 +106,49 @@ def writers(path):
     return out
 
 
+def status():
+    """What the repository still owes as evidence, then what stands proven."""
+    import glob
+    import json
+    D = ROOT / "matlab_sils" / "data"
+    js = lambda pat: [json.loads(pathlib.Path(f).read_text()) for f in sorted(glob.glob(str(D / pat)))]
+    alg, cat, parts = js("algorithms/*.json"), js("catalogue/*.json"), js("parts/*.json")
+    unconf = [a["id"] for a in alg if "UNCONFIRMED" in str(a.get("confirmed_by", ""))]
+    # flown by the engine (and so by the C and Rust flight software) when the engine maps its id;
+    # the data's `prototype` flag is descriptive, and where it disagrees that is itself a finding
+    mapped = (ROOT / "engine" / "crates" / "adcs-sim" / "src" / "config.rs").read_text()
+    proto = [a["id"] for a in alg if f'"{a["id"]}"' not in mapped]
+    stale = [a["id"] for a in alg if a.get("prototype") and f'"{a["id"]}"' in mapped]
+    notsel = [c["part_number"] for c in cat if not c.get("selectable")]
+    synth = [p.get("part_number", "?") for p in parts if p.get("status") == "synthetic"]
+    par = ROOT / "results" / "engine_parity.json"
+    rows = json.loads(par.read_text()) if par.exists() else []
+    disagree = [f"{r['scenario']}/{r['metric']}" for r in rows if r.get("agree") is False]
+    nv = ROOT / "results" / "node_verification.json"
+    v = json.loads(nv.read_text()) if nv.exists() else {"passed": 0, "checks": 0}
+    debt = [
+        (len(unconf), len(alg), "algorithms not yet confirmed by a person (confirmed_by is UNCONFIRMED)"),
+        (len(proto), len(alg), "algorithms the engine does not fly (MATLAB twin only: no C or Rust yet)"),
+        (len(synth), len(parts), "parts that are synthetic (no bought or built unit behind them)"),
+        (len(notsel), len(cat), "catalogue models the datasheet leaves unselectable (a needed number is not stated)"),
+        (len(disagree), len(rows), "engine-versus-twin verdicts that disagree"),
+        (v["checks"] - v["passed"], v["checks"], "design-loop checks that fail (tools/verify_nodes.py)"),
+    ]
+    owed = sum(n for n, _, _ in debt)
+    L = [f"evidence debt: {owed} item(s) owed" if owed else "evidence debt: none", ""]
+    L += [f"  {n:>4} of {of:<4} {what}" for n, of, what in debt]
+    L += ["", "the owed items, by name:"]
+    for label, items in (("unconfirmed", unconf), ("twin only", proto), ("unselectable", notsel), ("disagree", disagree),
+                         ("stale flag", stale)):
+        if items:
+            L.append(f"  {label:<13} " + ", ".join(items[:12]) + (f" (+{len(items) - 12} more)" if len(items) > 12 else ""))
+    if stale:
+        L += ["", f"  ({len(stale)} algorithm file(s) say prototype = true although the engine flies them in C and Rust:",
+              "   the flag is descriptive only; set it false in catalogue/algorithms/<id>.toml once a person confirms it)"]
+    L += ["", f"proven: {v['passed']}/{v['checks']} design-loop checks; the generated files, the registry and the tests: python3 tools/check_all.py"]
+    return "\n".join(L)
+
+
 def dry_run(tool, name):
     """For a tool's --dry-run: print the explanation of `tool name` and stop."""
     print(explain(find([tool, name])))
@@ -120,6 +165,8 @@ def main(argv):
         print(listing())
     elif cmd == "explain" and rest:
         print(explain(find(rest)))
+    elif cmd == "status" and not rest:
+        print(status())
     elif cmd == "why" and len(rest) == 1:
         ws = writers(rest[0])
         if not ws:

@@ -38,7 +38,7 @@
 | [`floquet.py floquet`](#floquetpy-floquet) | Floquet multipliers of the coils-only nadir loop: the certificate that the periodic magnetic control is stable. |
 | [`run_matrix.py run-matrix`](#run_matrixpy-run-matrix) | The whole MATLAB-twin test matrix in GNU Octave on N workers, longest jobs first; campaigns and trades collected at the end. |
 | [`fswcfg.py fswcfg`](#fswcfgpy-fswcfg) | Decode and check a flight-software parameter blob (adcs-fswcfg/1) and print every field as JSON. |
-| [`trinetra.py explain`](#trinetrapy-explain) | This registry: every command, what it does before it does it; `docs` writes docs/COMMANDS.md from it. |
+| [`trinetra.py explain`](#trinetrapy-explain) | This registry: every command, what it does before it does it; `why` names the command that writes a file; `status` puts the evidence debt first (unconfirmed algorithms, synthetic parts, unselectable catalogue models, engine-twin disagreements, failing design-loop checks); `docs` writes docs/COMMANDS.md. |
 | [`check_all.py check-all`](#check_allpy-check-all) | Every check the repository has, one line each with a verdict: the Python tests, the generated files, the C and Rust flight software, the engine, the specification package and the stored design loop; --octave adds the MATLAB twin's suites. |
 | [`kit.py kit`](#kitpy-kit) | The tool as a team member gets it: the programs beside exactly the files they read (data, cases, the ephemeris), with VERSION and the first-run documents; --files-only leaves the programs out, for the Python package. |
 | [`make_icon.py make-icon`](#make_iconpy-make-icon) | Draw the desktop app's icon (three eyes on an orbit) as PNG, ICO and ICNS; run only to change it. |
@@ -556,9 +556,9 @@ Decode and check a flight-software parameter blob (adcs-fswcfg/1) and print ever
 
 ## trinetra.py explain
 
-This registry: every command, what it does before it does it; `docs` writes docs/COMMANDS.md from it.
+This registry: every command, what it does before it does it; `why` names the command that writes a file; `status` puts the evidence debt first (unconfirmed algorithms, synthetic parts, unselectable catalogue models, engine-twin disagreements, failing design-loop checks); `docs` writes docs/COMMANDS.md.
 
-    python3 tools/trinetra.py list | explain <command> | docs [--check]
+    python3 tools/trinetra.py list | explain <command> | why <file> | status | docs [--check]
 
 **Steps**
 

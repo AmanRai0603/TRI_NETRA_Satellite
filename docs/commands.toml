@@ -340,8 +340,8 @@ runs = []
 [[command]]
 tool = "trinetra.py"
 name = "explain"
-usage = "python3 tools/trinetra.py list | explain <command> | docs [--check]"
-what = "This registry: every command, what it does before it does it; `docs` writes docs/COMMANDS.md from it."
+usage = "python3 tools/trinetra.py list | explain <command> | why <file> | status | docs [--check]"
+what = "This registry: every command, what it does before it does it; `why` names the command that writes a file; `status` puts the evidence debt first (unconfirmed algorithms, synthetic parts, unselectable catalogue models, engine-twin disagreements, failing design-loop checks); `docs` writes docs/COMMANDS.md."
 steps = ["read docs/commands.toml", "print, explain, or write the document"]
 reads = ["docs/commands.toml"]
 writes = ["docs/COMMANDS.md (docs only)"]
