@@ -42,6 +42,8 @@ pub struct Config {
     pub duration_s: f64, pub dt: f64, pub record_dt: f64,
     pub params: Params, pub alg: BTreeMap<String, String>, pub faults: Vec<Fault>, pub gd_kind0: i32, pub h_t_rot: [f64; NR],
     pub spin_dps: f64,
+    /// the scenario file this run was built from, and the overrides given with it
+    pub scenario_file: String, pub overrides: Vec<(String, String)>,
 }
 
 fn select(root: &Path, dev: &Dev, s: &Value) -> Result<BTreeMap<String, String>, String> {
@@ -404,6 +406,7 @@ impl Config {
             aref_m2: v("surface.afr"), cd: v("surface.cd"), refl: v("surface.refl"), sigma_n: 0.8, sigma_t: 0.8, vb_ratio: 0.05, spec_frac: 0.5, m_res,
             duration_s: json::f(&tm, "duration_s", 600.0), dt, record_dt: json::f(&tm, "record_dt_s", 1.0),
             params: p, alg, faults, gd_kind0, h_t_rot, spin_dps: json::f(&fsw, "spin_rate_dps", 6.0), scenario: s,
+            scenario_file: sp.display().to_string(), overrides: overrides.to_vec(),
         };
         for (k, val) in eng {
             if k == "engine.orbit" {

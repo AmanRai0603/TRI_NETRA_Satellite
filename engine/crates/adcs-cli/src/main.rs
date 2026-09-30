@@ -4,6 +4,7 @@
 //!   adcs params <scenario> [--case F] [--set k=v]... --out blob.bin     the adcs-fswcfg/1 blob (OILS / OBC upload)
 //!   adcs size <case> [--knobs k.json] [--out DIR]                        demand survey + every actuator option sized (adcs-design)
 //!   adcs parity <scenario> [--fsw A --against B] ...                  two flight-software targets, same loop, same bytes
+//!   adcs results list [DIR] | show <run> | export <run> --out F.trinetra | import F.trinetra --out DIR
 //!
 //! --fsw: c | rust (in-process) | obc-posix | obc-posix-rs (virtual OBC process) | qemu | qemu-rs
 //! (virtual Cortex-M4 OBC in QEMU) | spawn:<cmd> | tcp:<host:port> (a real OBC); --realtime paces ticks to wall time.
@@ -81,8 +82,44 @@ fn print_metrics(ms: &[serde_json::Value]) {
     }
 }
 
+/// `adcs results list [DIR] | show <run> | export <run> --out F.trinetra | import F.trinetra --out DIR`
+fn results(args: &[String]) -> Result<(), String> {
+    use adcs_sim::store;
+    let usage = "usage: adcs results list [DIR] | show <run-folder> | export <run-folder> --out <file>.trinetra | import <file>.trinetra --out <folder>";
+    let out_of = |rest: &[String]| -> Result<PathBuf, String> {
+        match rest { [flag, v] if flag == "--out" => Ok(PathBuf::from(v)), _ => Err(format!("needs --out <path>\n{usage}")) }
+    };
+    match args.first().map(String::as_str) {
+        Some("list") => {
+            if args.len() > 2 { return Err(usage.into()); }
+            let root = args.get(1).map(PathBuf::from).unwrap_or_else(|| data_root().join("store/results_engine"));
+            let found = store::list(&root)?;
+            print!("{}", store::table(&found, &root));
+        }
+        Some("show") => { let d = args.get(1).ok_or(usage)?; if args.len() > 2 { return Err(usage.into()); } print!("{}", store::show(std::path::Path::new(d))?); }
+        Some("export") => {
+            let d = args.get(1).ok_or(usage)?;
+            let out = out_of(&args[2..])?;
+            let n = store::export(std::path::Path::new(d), &out)?;
+            println!("wrote {} ({n} bytes): send it as it is; `adcs results import` opens it", out.display());
+        }
+        Some("import") => {
+            let f = args.get(1).ok_or(usage)?;
+            let out = out_of(&args[2..])?;
+            let n = store::import(std::path::Path::new(f), &out)?;
+            println!("imported {n} file(s) into {}; `adcs results show {}` reads it", out.display(), out.display());
+        }
+        _ => return Err(usage.into()),
+    }
+    Ok(())
+}
+
 fn main() -> ExitCode {
     adcs_sim::fsio::install_crash_report("adcs");
+    let argv: Vec<String> = std::env::args().skip(1).collect();
+    if argv.first().map(String::as_str) == Some("results") {
+        return match results(&argv[1..]) { Ok(()) => ExitCode::SUCCESS, Err(e) => { eprintln!("error: {e}"); ExitCode::from(2) } };
+    }
     let a = match parse() { Ok(a) => a, Err(e) => { eprintln!("{e}"); return ExitCode::from(2); } };
     let r = (|| -> Result<(), String> {
         if a.cmd == "size" {

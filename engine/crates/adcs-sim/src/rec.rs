@@ -70,7 +70,7 @@ pub fn write(dir: &Path, c: &Config, rec: &Record, d: &Derived, metrics: &[Value
 
     let mut alg = serde_json::Map::new();
     for (k, v) in &c.alg { alg.insert(k.clone(), json!(v)); }
-    let man = json!({
+    let mut man = json!({
         "schema": "adcs-rec/1", "engine": crate::ENGINE, "owner": "Agastya",
         "scenario": c.id, "case": c.case.id, "case_title": c.case.title, "product": c.dev.id, "family": c.dev.family,
         "label": crate::json::s(&c.scenario, "label", ""), "algorithms": alg, "seed": c.seed, "epoch_utc": c.epoch_utc,
@@ -83,6 +83,7 @@ pub fn write(dir: &Path, c: &Config, rec: &Record, d: &Derived, metrics: &[Value
         "mode_log": rec.mode_log.iter().map(|(t, m)| json!({"t": t, "mode": m})).collect::<Vec<_>>(),
         "oils": rec.oils.as_ref().map(|s| s.json(c.dt)),
     });
+    if let (Some(o), Value::Object(p)) = (man.as_object_mut(), crate::store::provenance(c, &impl_label(&rec.fsw_impl))) { o.extend(p); }
     // the manifest last: a run directory with a manifest has its channels too
     crate::fsio::write(&dir.join("manifest.json"), serde_json::to_string(&man).map_err(|e| e.to_string())? + "\n")?;
     Ok(())
