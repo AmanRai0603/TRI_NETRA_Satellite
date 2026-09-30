@@ -4,7 +4,7 @@ function atm = exponential(alt_km, varargin)
 %   Returns a struct ready for drag.force:
 %     atm.rho   total mass density [kg/m^3]
 %     atm.T     ambient temperature [K]  (coarse thermospheric estimate)
-%     atm.Mmol  mean molar mass [kg/kmol] (16 = atomic-O dominated in VLEO)
+%     atm.Mmol  mean molar mass [kg/kmol] (16 = atomic-O dominated in low LEO)
 %     atm.nO    atomic-oxygen number density [m^-3] (for DRIA/SESAM accommodation)
 %
 %   Uses the standard Vallado exponential-atmosphere table (base altitude,
@@ -13,7 +13,7 @@ function atm = exponential(alt_km, varargin)
 %   studies, and offline demos.  For real density use atmos.provider(...,'nrlmsise'|
 %   'jb2008'|'dtm2020'), which call the GOCE-study models (needs their data on path).
 %
-%   NOTE: this ignores diurnal/latitudinal/solar variation, so absolute VLEO
+%   NOTE: this ignores diurnal/latitudinal/solar variation, so absolute low LEO
 %   density can be off by a factor of a few; it is a SHAPE/SANITY model, not a
 %   space-weather model.
     h = alt_km;

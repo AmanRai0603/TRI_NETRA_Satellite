@@ -1,5 +1,5 @@
 % ATMOS_DRAG_GOLDEN  Cross-check inputs for force_data/16U_dria_dtm2020_srp-boxwing_erp-boxwing.
-%   Rebuilds the TEMPLATE_16U world (sgeom.vleo16u, ram attitude, DRIA on DTM2020,
+%   Rebuilds the TEMPLATE_16U world (sgeom.sat16u, ram attitude, DRIA on DTM2020,
 %   manual space weather F10.7 = F10.7a = 90, ap = 8, Kp = 2, epoch 2007-01-01) and,
 %   for every row of the golden state.csv, runs op.accel and records the DragInput the
 %   Rust port needs (r, v, op.geodetic(r_ecef), utc, doy, omega_eci, Sun, R_bi) with
@@ -23,7 +23,7 @@ end
 warning('off', 'all');
 here = fileparts(mfilename('fullpath'));
 gdir = fullfile(here, '..', '..', '..', '..', 'matlab_sils', 'pop', 'force_data', '16U_dria_dtm2020_srp-boxwing_erp-boxwing');
-SC16 = sgeom.vleo16u();
+SC16 = sgeom.sat16u();
 SC   = struct('mass', SC16.mass, 'Aref', 0.20*0.20, 'Cd', 2.2, 'Cr', 1.3, 'facets', SC16.facets, 'R_bi', eye(3));
 cfg = config.defaultConfig();
 cfg.epoch = [2007 1 1 0 0 0];

@@ -29,7 +29,7 @@ K = de440.constants();
 
 % ---- 1. validation.provenance across every model combination ----------------
 printf('[1] validation.provenance over model combos\n');
-S = sgeom.vleo16u();
+S = sgeom.sat16u();
 combos = {'cannonball','cannonball','knocke'; 'dria','boxwing','boxwing'; ...
           'sentman','cannonball','ceres'; 'cll','boxwing','simple'; 'sesam','cannonball','knocke'};
 for i = 1:size(combos,1)

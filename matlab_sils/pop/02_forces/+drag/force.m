@@ -1,6 +1,6 @@
 function out = force(r, v, atm, facets, model, gsi, opts)
 %DRAG.FORCE  Total free-molecular aerodynamic force (DRAG + LIFT + SIDE) on a
-%   box-wing satellite, multi-species, attitude-dependent. Works for LEO & VLEO.
+%   box-wing satellite, multi-species, attitude-dependent. Works for LEO.
 %   Density/composition/temperature are INPUTS from your atmosphere model.
 %
 %   atm  : .T [K], and EITHER  .rho [kg/m^3] + .Mmol [kg/kmol]  (single/mean)
@@ -48,7 +48,7 @@ function out = force(r, v, atm, facets, model, gsi, opts)
         % is what SESAM supplies from the local atomic-oxygen environment. So 'sesam'
         % is not a separate model here; it is an ALIAS, kept because people ask for it
         % by that name. The real distinction is 'sentman' (you TYPE aT, usually 0.9)
-        % vs 'dria'/'sesam' (aT comes from nO and T). At VLEO that difference is the
+        % vs 'dria'/'sesam' (aT comes from nO and T). At low LEO that difference is the
         % physics, not a detail: adsorbed O drives aT and it is rarely 0.9.
         case {'dria','sesam'}, aT=drag.sesam(nO,atm.T);
         case 'sentman',        aT=gsi.aT;

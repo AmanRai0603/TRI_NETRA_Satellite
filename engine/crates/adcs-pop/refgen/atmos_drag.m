@@ -366,9 +366,9 @@ end
 wlist(fid, 'attitude', C);
 
 %% ---------------- drag.force (panel models) ----------------------------------
-V16 = sgeom.vleo16u();
+V16 = sgeom.sat16u();
 geoms = {V16.facets, dgeom.addArray(dgeom.buildBox(0.34, 0.20, 0.20), [0;0;1], 0.12), struct('n',[1;0;0],'A',0.04)};
-gnames = {'vleo16u', 'box_array', 'plate'};
+gnames = {'sat16u', 'box_array', 'plate'};
 models = {'sentman', 'dria', 'sesam', 'cll'};
 rand('seed', 21);
 C = {};
@@ -414,7 +414,7 @@ wlist(fid, 'panel', C);
 %% ---------------- forces.drag end to end -------------------------------------
 rand('seed', 22);
 C = {};
-SC16 = sgeom.vleo16u();
+SC16 = sgeom.sat16u();
 for i = 1:160
     kind = mod(i-1, 8);
     r = randorbit(); v = randvel(r);
@@ -456,7 +456,7 @@ for i = 1:160
     [a, info] = forces.drag(ctx);
     [lat, lon, alt] = op.geodetic(ctx.r_ecef);
     gj = '"none"';
-    if isfield(sc, 'facets'), if kind == 7, gj = '"box_0.3_0.1_0.1"'; else, gj = '"vleo16u"'; end, end
+    if isfield(sc, 'facets'), if kind == 7, gj = '"box_0.3_0.1_0.1"'; else, gj = '"sat16u"'; end, end
     cdj = 'null'; if isfield(d, 'Cd'), cdj = jn(d.Cd); end
     gsij = 'null'; if isfield(d, 'gsi'), gsij = ['[' jn(d.gsi.Tw) ',' jn(d.gsi.aT) ',' jn(d.gsi.sig_n) ',' jn(d.gsi.sig_t) ']']; end
     omj = 'null'; if isfield(ctx, 'omega_eci'), omj = jv(ctx.omega_eci); end

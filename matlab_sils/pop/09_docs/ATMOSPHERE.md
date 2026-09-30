@@ -17,7 +17,7 @@ atm = atmos.provider(model, geo, sw);
 | `dtm2020` | GOCE-study `dtm2020_oper_density` + coeff `.dat` | species + `.T .rho` |
 
 The default `exponential` model is altitude-only (no diurnal/solar variation);
-it is a shape/sanity model and can be off by a factor of a few in absolute VLEO
+it is a shape/sanity model and can be off by a factor of a few in absolute low LEO
 density. For real work point `cfg.forces.drag.atmos` at one of the GOCE-study
 models and make sure that study's code + data files are on the MATLAB path.
 

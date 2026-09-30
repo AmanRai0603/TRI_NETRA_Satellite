@@ -1,5 +1,5 @@
 function E = ephemInputs(jdTDB, eph)
-%EPHEMINPUTS  All ephemeris-derived quantities the VLEO force/torque stack needs,
+%EPHEMINPUTS  All ephemeris-derived quantities the low LEO force/torque stack needs,
 %   packaged and labelled by consumer. This is the single interface point:
 %   every force/torque model pulls its Sun/Moon inputs from this struct.
 %

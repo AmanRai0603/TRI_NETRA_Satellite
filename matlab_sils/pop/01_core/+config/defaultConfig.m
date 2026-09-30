@@ -1,7 +1,7 @@
 function cfg = defaultConfig()
 %CONFIG.DEFAULTCONFIG  Baseline configuration for op.propagate.
 %   cfg = config.defaultConfig()
-%   A sensible VLEO/LEO default: spherical-harmonic gravity (degree 6 zonal
+%   A sensible LEO default: spherical-harmonic gravity (degree 6 zonal
 %   default field), Sun+Moon third body, cannonball drag on the exponential
 %   atmosphere, cannonball SRP with conical eclipse, RK78 adaptive integrator,
 %   offline GMST frame.  Edit fields, or start from config.forcePresets(name).
@@ -15,7 +15,7 @@ function cfg = defaultConfig()
     cfg.v0 = [0; 7668.6; 0];                   % m/s
     cfg.tspan = 6000;                          % s  (duration) or [t0 tf]
 
-    % ---- spacecraft (16U-class VLEO default) ----
+    % ---- spacecraft (16U-class low LEO default) ----
     cfg.spacecraft = struct( ...
         'mass', 24.0, ...                      % kg
         'Aref', 0.04, ...                      % m^2 frontal (0.2 x 0.2)

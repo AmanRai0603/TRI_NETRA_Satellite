@@ -62,7 +62,7 @@ same. **Zero scripts in the tree still carry local functions.**
 ## 5. Known-hidden, still open
 
 - **`atmos/jb2008.m`**: `Mmol = 16` and `atm.T = 1000 K` hardcoded. The 16 is a
-  defensible VLEO choice (atomic-O dominated, same as `dgeom/vleo16u`) but it is a
+  defensible low LEO choice (atomic-O dominated, same as `dgeom/sat16u`) but it is a
   *geometry/GSI* property living in an atmosphere adapter. The 1000 K is a pure
   placeholder — JB2008's core returns `TEMP`, and `jb2008_density` drops it.
 - **`dUT1` defaults to 0 everywhere** (`getf(W.frame,'dUT1',0)`). Harmless for A/B/C
@@ -294,7 +294,7 @@ Same facet, same atmosphere, 350 km:
 
 A **39% spread**, against CHAMP's catalog `Cd = 3.0` and the cannonball default 2.2.
 The real distinction is not "which GSI model" but **whether aT is typed in or
-computed**. At VLEO adsorbed atomic oxygen drives accommodation and it is rarely 0.9 —
+computed**. At low LEO adsorbed atomic oxygen drives accommodation and it is rarely 0.9 —
 that is the physics, not a detail.
 
 **This does not close the 8x on CHAMP by itself** (Cd 2.2 -> 3.46 is ~1.6x, not 8x).
@@ -361,7 +361,7 @@ alt    | rho        | nO [m^-3] | SESAM aT | Cd sent  | Cd dria/sesam
 550 km | 8.341e-14 | 2.767e+12 | 0.1579   | 2.5055   | 3.3537
 ```
 
-That is the textbook VLEO behaviour: atomic O thins with altitude, accommodation
+That is the textbook low LEO behaviour: atomic O thins with altitude, accommodation
 falls, Cd rises from ~2.2 toward ~3.4. `sentman` with a typed aT=0.9 is flat at ~2.49
 by construction and **cannot show this** -- which is the whole argument for computing
 aT instead of typing it.
@@ -668,7 +668,7 @@ are created.
 ## Geometry: searched, not assumed
 
 Grepped the whole tree, the docs and the three uploaded projects. **No CHAMP, GRACE
-or Swarm dimensions exist anywhere.** The only real geometry is `dgeom/sgeom.vleo16u`
+or Swarm dimensions exist anywhere.** The only real geometry is `dgeom/sgeom.sat16u`
 (0.34 x 0.20 x 0.20 m) -- the 16U CubeSat.
 
 So the catalog now SAYS so, rather than the knowledge living in my head or a comment:
@@ -775,7 +775,7 @@ explain the 8x in metric [3]**. That is worth knowing before chasing it.
 
 ## Two 16Us, and a solar panel that returned NaN
 
-**`dgeom.vleo16u` and `sgeom.vleo16u` described DIFFERENT SPACECRAFT.**
+**`dgeom.sat16u` and `sgeom.sat16u` described DIFFERENT SPACECRAFT.**
 ```
 dgeom: buildBox(0.34, 0.20, 0.20)   -> long axis on BODY X
 sgeom: Lx=0.20, Ly=0.20, Lz=0.34    -> long axis on BODY Z
@@ -783,7 +783,7 @@ sgeom: Lx=0.20, Ly=0.20, Lz=0.34    -> long axis on BODY Z
 With +x defined as ram, the drag version flew the 16U **broadside**: a 0.34x0.20 ram
 face against SRP's 0.20x0.20. 1.7x apart, and nothing complained -- drag read one,
 SRP read the other, each internally consistent. The "two facet sets = two spacecraft"
-failure in its purest form. `dgeom.vleo16u` now forwards to `sgeom.vleo16u` and warns.
+failure in its purest form. `dgeom.sat16u` now forwards to `sgeom.sat16u` and warns.
 
 **`drag.force` returned NaN on any tracking array.** `srp.addArray` stores
 `n = [0;0;0]` by construction -- an array's normal is computed per call by
@@ -1217,7 +1217,7 @@ knob and asking "did anything change?" tests that the code does what it *says*.
 
 ## The 16U base is realistic on purpose
 
-`sgeom.vleo16u` -- the real geometry (0.20x0.20x0.34 m bus + two tracking arrays,
+`sgeom.sat16u` -- the real geometry (0.20x0.20x0.34 m bus + two tracking arrays,
 MLI and solar-cell optics), 24 kg, 350 km, drag=dria/dtm2020, srp=boxwing,
 erp=boxwing, attitude=ram. Not a toy: it is the one spacecraft here where every model
 has the inputs it needs, which is what makes it the right base for a knob sweep.
@@ -1328,7 +1328,7 @@ MEASURED: nothing. There is no flight data for this spacecraft. Not one number i
           compared against an instrument. That is the file's PURPOSE, not a defect
           -- but "the ladder looks right" is the strongest claim available, and
           "the drag is correct" is not.
-REAL    : THE GEOMETRY. sgeom.vleo16u is the only real geometry in the toolbox,
+REAL    : THE GEOMETRY. sgeom.sat16u is the only real geometry in the toolbox,
           which is why it is the only spacecraft where box-wing runs without
           assuming a shape.
 ```
@@ -3536,7 +3536,7 @@ Operation terminated by user during ... websave ... In data.gravity (line 32)
 That is Ctrl-C during the EGM2008 download -- a 100 MB .gfc from ICGEM, once, then
 cached. Not a bug. If it is hanging rather than slow, `GRAV_FIELD = 'default'` runs
 degree 6 with no download (and the header says so, loudly, because degree 6 is not a
-VLEO gravity field).
+low LEO gravity field).
 
 ## State
 

@@ -20,7 +20,7 @@ function atm = nrlmsise(geo, sw)
     %   2. flags(9) = 1 tells atmosnrlmsise00 to use the DAILY Ap and IGNORE aph
     %      entirely. flags(9) = -1 is what switches the aph array on. So even a
     %      correctly-filled aph would have been thrown away.
-    % At VLEO the storm response is not a refinement: density can double in hours.
+    % At low LEO the storm response is not a refinement: density can double in hours.
     % >> THIS CHANGES RESULTS vs every previous run. <<
     % ---------------------------------------------------------------------
     % PROVEN DEFAULT. run_comparison_study.m does  Aph = D.ap .* ones(n,7)  and

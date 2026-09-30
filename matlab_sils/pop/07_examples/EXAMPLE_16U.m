@@ -1,7 +1,7 @@
 %% ============================================================================
 %  EXAMPLE_16U.m  —  THE MASTER PROPAGATOR. ONE FILE. EVERY KNOB.
 %  ----------------------------------------------------------------------------
-%  A 16U-class VLEO satellite, propagated with the full force model. Change any
+%  A 16U-class low LEO satellite, propagated with the full force model. Change any
 %  value below and re-run to see the effect. Nothing is decided behind your back:
 %  every parameter the engine would otherwise pick silently is written out here at
 %  its default, with the consequence stated next to it.
@@ -14,7 +14,7 @@
 %                    value. Set SWEEP.on = false for a single run.
 %    * Section 11  = every decision actually in force, printed AND saved.
 %
-%  WHAT "VLEO" CHANGES (why the defaults are what they are)
+%  WHAT "low LEO" CHANGES (why the defaults are what they are)
 %    At 250-350 km drag is no longer a perturbation -- it is the second force after
 %    gravity, and it varies by a factor of ~10 with solar activity. So: the density
 %    model matters more than the gravity degree; the ballistic coefficient Cd*A/m
@@ -30,7 +30,7 @@ SC.mass_kg  = 24.0;          % 16U at ~1.5 kg/U
 SC.Aref_m2  = 0.08;          % 20x40 cm broadside. Use 0.04 for 20x20 nadir-pointing.
                              %   -> Aref is the single biggest lever on lifetime.
 SC.Cd       = 2.2;           % 2.0-2.4 typical for a compact body in free-molecular
-                             %   flow. At VLEO the REAL Cd depends on gas-surface
+                             %   flow. At low LEO the REAL Cd depends on gas-surface
                              %   interaction (see DRAG_MODEL below) -- 2.2 is the
                              %   cannonball stand-in, not physics.
 SC.Cr       = 1.3;           % SRP reflectivity: 1.0 = fully absorbing, 2.0 = mirror
@@ -39,7 +39,7 @@ SC.Cr       = 1.3;           % SRP reflectivity: 1.0 = fully absorbing, 2.0 = mi
 %   -> this 16U is ~1.7x "draggier" per unit mass than CHAMP.
 
 %% --------------------------------------------------------- 2. THE ORBIT -----
-ALT_KM   = 300;              % VLEO. Try 250 / 300 / 400 to see the drag cliff.
+ALT_KM   = 300;              % low LEO. Try 250 / 300 / 400 to see the drag cliff.
 INC_DEG  = 96.7;             % ~sun-synchronous at this altitude
 RAAN_DEG = 0;
 ECC      = 0.0;              % near-circular: drag circularises quickly anyway
@@ -60,7 +60,7 @@ FORCES = struct( ...
                       'atmos','nrlmsise', ...             % exponential|nrlmsise|dtm2020|dtm2020_research|jb2008
                       'corotate',true), ...               % false = ignore the wind the
                                                           % rotating atmosphere imparts
-                                                          % (~5% of drag at VLEO)
+                                                          % (~5% of drag at low LEO)
   'thirdbody', struct('on',true, 'model','battin'), ...   % Sun+Moon via DE440
   'srp',       struct('on',true, 'model','cannonball','Cr',SC.Cr), ...
   'relativity',struct('on',true, 'terms',{{'schwarzschild'}}), ...
@@ -69,7 +69,7 @@ FORCES = struct( ...
 GRAV_FIELD = 'EGM2008';      % 'default' SILENTLY caps at degree 6 -- section 11 flags it
 
 %% ------------------------------------------------- 4. SPACE WEATHER --------
-% The single largest uncertainty at VLEO. F10.7 swings 65 -> 250 over a solar cycle,
+% The single largest uncertainty at low LEO. F10.7 swings 65 -> 250 over a solar cycle,
 % and density with it by ~10x. A "300 km orbit" has no single lifetime -- it has a
 % RANGE, and this is the knob that sets it.
 SW_MODE = 'measured';        % 'measured' = real F10.7/ap for EPOCH (needs network)

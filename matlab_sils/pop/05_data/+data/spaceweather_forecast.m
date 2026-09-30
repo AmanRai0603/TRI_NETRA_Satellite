@@ -14,7 +14,7 @@ function SW = spaceweather_forecast(startDate, endDate, opts)
 %                        (daily Ap + F10.7)
 %   Geomagnetic activity is NOT predictable years ahead, so beyond the 45-day
 %   window Ap/Kp fall back to a nominal value (opts.apNominal, default 15 ~ quiet-
-%   to-moderate). F10.7 is the dominant VLEO-drag driver and IS forecast.
+%   to-moderate). F10.7 is the dominant driver of drag in low LEO and IS forecast.
 %
 %   opts.band : 'predicted' (default) | 'high' | 'low'  -- which F10.7 curve to
 %               use, so you can BRACKET decay for worst/best-case solar activity.

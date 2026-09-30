@@ -159,7 +159,7 @@ fprintf('\n[6] all forces finite + attitude actually reaches them\n');
 try
     K = de440.constants(); a = K.Re_earth+300e3;
     r = [a;0;0]; v = [0;sqrt(K.mu_earth/a);0];
-    S = sgeom.vleo16u();
+    S = sgeom.sat16u();
     cfg = config.defaultConfig();
     cfg.epoch=[2007 1 1 0 0 0]; cfg.r0=r; cfg.v0=v; cfg.tspan=60;
     cfg.output=struct('times',[0;60]);
