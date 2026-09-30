@@ -3,6 +3,10 @@
  "fsw": "reference",
  "id": "sun_boresight_celani2026",
  "label": "P8 Celani 2026 boresight law with the power face onto the measured Sun (no spin, no attitude solution)",
+ "literature": {
+  "read": "full text (author accepted version)",
+  "review": "literature_review_v2.pptx (Agastya Research Collective, 19 Sep 2026)"
+ },
  "needs": [
   "coils",
   "magnetometer",
@@ -13,9 +17,5 @@
  "prototype": true,
  "schema": "adcs-algorithm/1",
  "slot": "sun_acquisition",
- "source": "F. Celani, J. Guid. Control Dyn. 49(3) 906-914, 2026, doi:10.2514/1.G009085",
- "literature": {
-  "read": "full text (author accepted version)",
-  "review": "literature_review_v2.pptx (Agastya Research Collective, 19 Sep 2026)"
- }
+ "source": "F. Celani, J. Guid. Control Dyn. 49(3) 906-914, 2026, doi:10.2514/1.G009085"
 }

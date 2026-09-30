@@ -1,0 +1,56 @@
+# adcs-scenario/1: the source of matlab_sils/data/scenarios/slew_img_smc.json; export_catalogue.py writes the JSON from it.
+case = "ais_img_3u"
+id = "slew_img_smc"
+label = "3U imaging — 30 deg slew, SMC controller"
+product = "TRN-P-3U-IMG"
+schema = "adcs-scenario/1"
+
+[fsw]
+rw_bandwidth = 0.9
+rw_damping = 0.9
+start_mode = "slew_fine"
+
+[fsw.algorithms]
+pointing = "smc"
+
+[fsw.guidance]
+T_s = 60.0
+kind = "slew"
+roll_deg = 30.0
+t0 = 200.0
+
+[initial]
+
+[initial.attitude]
+angle_deg = 0.5
+axis_body = [0.577, 0.577, 0.577]
+kind = "error_from_target"
+
+[initial.rate]
+kind = "lvlh"
+
+[time]
+dt_s = 0.1
+duration_s = 600.0
+record_dt_s = 0.1
+
+[[metrics]]
+channel = "ape_los"
+from_s = 260.0
+hold_s = 30.0
+id = "settle_time_after_slew"
+kind = "time_to_threshold"
+requirement = "req.settle"
+threshold_deg = 0.01
+
+[[metrics]]
+id = "ape_los_on_target_p9973"
+kind = "ape_los"
+requirement = "req.ape"
+statistic = "p99.73"
+window = "after_s:320"
+
+[[metrics]]
+id = "wheel_momentum_peak"
+kind = "wheel_momentum_peak"
+window = "all"

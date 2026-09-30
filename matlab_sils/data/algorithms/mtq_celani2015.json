@@ -3,6 +3,10 @@
  "fsw": "reference",
  "id": "mtq_celani2015",
  "label": "P4 Celani 2015: the same PD with the inertia deleted (robust to inertia bounds)",
+ "literature": {
+  "read": "full text (arXiv 1411.2756)",
+  "review": "literature_review_v2.pptx (Agastya Research Collective, 19 Sep 2026)"
+ },
  "needs": [
   "coils",
   "magnetometer",
@@ -12,9 +16,5 @@
  "prototype": true,
  "schema": "adcs-algorithm/1",
  "slot": "mtq_pointing",
- "source": "F. Celani, Acta Astronautica 107, 87-96, 2015, doi:10.1016/j.actaastro.2014.11.027 (Thm 2)",
- "literature": {
-  "read": "full text (arXiv 1411.2756)",
-  "review": "literature_review_v2.pptx (Agastya Research Collective, 19 Sep 2026)"
- }
+ "source": "F. Celani, Acta Astronautica 107, 87-96, 2015, doi:10.1016/j.actaastro.2014.11.027 (Thm 2)"
 }

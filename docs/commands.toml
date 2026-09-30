@@ -1,0 +1,348 @@
+# Every command in this repository: what it is for, the steps it takes, what it reads,
+# what it writes and which programs it starts. One definition, read by
+#   python3 tools/trinetra.py list | explain <command>     (and --dry-run on engine.py and pipeline.py)
+# and turned into docs/COMMANDS.md by `python3 tools/trinetra.py docs` (checked by `docs --check`).
+# tests/test_commands.py holds it to the code: every subcommand a tool has is here, and nothing
+# here is missing from the tool.
+#
+# Owner: Agastya. Copyright (c) 2026 Agastya. All rights reserved.
+
+# ---------------------------------------------------------------- the engine (Rust)
+
+[[command]]
+tool = "adcs"
+name = "run"
+usage = "adcs run <scenario> [--case F] [--fsw c|rust|obc-posix|qemu|...] [--seed N] [--out DIR] [--set k=v]... [--oils] [--quiet]"
+what = "Fly one scenario on one case: the plant, the environment and the POP orbit in Rust, the flight software (C or Rust, or a virtual OBC) behind the byte HAL, then the metrics and their verdicts."
+steps = ["check the scenario id, the case and every --set (refused by name, never guessed)", "build the configuration: case + scenario + product, the flight-software parameters", "fly the closed loop for the scenario's duration", "derive the metrics and judge them against the case's requirements", "write channels.csv, then manifest.json with the run's provenance"]
+reads = ["matlab_sils/data/scenarios/<scenario>.json", "matlab_sils/cases/<case>.csv", "matlab_sils/data/products, parts, algorithms", "matlab_sils/pop/.../de440s.bsp"]
+writes = ["matlab_sils/store/results_engine/<scenario>/ (or --out): channels.csv, manifest.json"]
+runs = []
+
+[[command]]
+tool = "adcs"
+name = "params"
+usage = "adcs params <scenario> [--case F] [--set k=v]... --out blob.bin"
+what = "The flight software's parameter blob (adcs-fswcfg/1) for a scenario, as an OBC boots from it."
+steps = ["build the configuration as `adcs run` does", "encode the parameters with their CRC-32"]
+reads = ["the scenario, the case, the product"]
+writes = ["the --out file"]
+runs = []
+
+[[command]]
+tool = "adcs"
+name = "size"
+usage = "adcs size <case> [--knobs k.json] [--out DIR]"
+what = "The demand survey on the case's orbit, then every actuator option sized to it (magnetorquers, fluid loop, RCS, wheels, CMG, VSCMG)."
+steps = ["check the case id", "fly the one-orbit survey to find the disturbance torque and momentum demand", "size every option with the knobs, pick bought wheels and CMGs from the datasheet catalogue", "write the sized parts, products and the summary"]
+reads = ["matlab_sils/cases/<case>.csv", "matlab_sils/data/catalogue, parts, families.json"]
+writes = ["matlab_sils/store/design/<case>/sized/ (or --out): parts/, products/, sizing.json"]
+runs = []
+
+[[command]]
+tool = "adcs"
+name = "parity"
+usage = "adcs parity <scenario> [--fsw A --against B] [--set k=v]..."
+what = "Fly the same scenario with two flight-software targets and report the largest difference in attitude and rate; bit-identical is the expected answer for C and Rust."
+steps = ["fly the loop with target A", "fly it with target B", "compare every recorded step"]
+reads = ["as `adcs run`"]
+writes = []
+runs = ["the virtual OBC or QEMU, when a target names one"]
+
+[[command]]
+tool = "adcs"
+name = "results"
+usage = "adcs results list [DIR] | show <run> | export <run> --out F.trinetra | import F.trinetra --out DIR"
+what = "The results store: every run with its provenance, one line each; one run in full; a run as one share file, and back."
+steps = ["list: find every manifest.json (adcs-rec/1) under the folder", "show: print the run's provenance and requirement metrics", "export: write README, manifest and channels into one zip", "import: check every entry's name and checksum, then write them into the folder"]
+reads = ["matlab_sils/store/results_engine/ (or DIR)"]
+writes = ["export: the .trinetra file; import: the folder"]
+runs = []
+
+# ---------------------------------------------------------------- orchestration (Python)
+
+[[command]]
+tool = "engine.py"
+name = "build"
+usage = "python3 tools/engine.py build"
+what = "Build and test everything that flies: the C flight software, the Rust flight software (host and Cortex-M), the virtual OBC firmware and the Rust engine."
+steps = ["make clean, make test and make check in fsw/ (the C flight software's checks)", "cargo test the Rust flight software", "build its C-ABI library for the host and for thumbv7em-none-eabihf", "make obc: the virtual OBC firmware (process and QEMU) and the instruction plugin", "cargo test and cargo build --release the engine"]
+reads = ["fsw/, fsw-rs/, engine/"]
+writes = ["fsw/build/, fsw-rs/target/, engine/target/"]
+runs = ["make", "gcc", "arm-none-eabi-gcc", "cargo"]
+
+[[command]]
+tool = "engine.py"
+name = "run"
+usage = "python3 tools/engine.py run [scenario ...] [--fsw c|rust] [--jobs N] [--seed S]"
+what = "Fly scenarios on the engine in parallel (every scenario when none is named)."
+steps = ["one `adcs run` per scenario, on --jobs processes", "print each run's verdicts"]
+reads = ["matlab_sils/data/scenarios/"]
+writes = ["matlab_sils/store/results_engine/<scenario>/"]
+runs = ["adcs run"]
+
+[[command]]
+tool = "engine.py"
+name = "mc"
+usage = "python3 tools/engine.py mc <scenario> --seeds N [--fsw c|rust] [--jobs N]"
+what = "A seed sweep of one scenario: the same scenario flown with N sensor-noise seeds."
+steps = ["one `adcs run` per seed", "summarise every metric over the seeds"]
+reads = ["the scenario and its case"]
+writes = ["matlab_sils/store/results_engine/mc_<scenario>/summary.json"]
+runs = ["adcs run"]
+
+[[command]]
+tool = "engine.py"
+name = "fsw-parity"
+usage = "python3 tools/engine.py fsw-parity [scenario ...] [--duration S]"
+what = "C against Rust flight software on the same loop, same bytes, scenario by scenario."
+steps = ["`adcs parity` per scenario", "print the largest differences"]
+reads = ["the scenarios"]
+writes = []
+runs = ["adcs parity"]
+
+[[command]]
+tool = "engine.py"
+name = "twin-parity"
+usage = "python3 tools/engine.py twin-parity"
+what = "The engine's metrics against the MATLAB twin's, scenario by scenario and metric by metric."
+steps = ["read each scenario's engine and twin manifests", "compare every metric and verdict"]
+reads = ["matlab_sils/store/results_engine/", "matlab_sils/store/results/"]
+writes = ["results/ENGINE_PARITY.md", "results/engine_parity.json"]
+runs = []
+
+[[command]]
+tool = "engine.py"
+name = "vobc"
+usage = "python3 tools/engine.py vobc [scenario ...] [--duration S]"
+what = "The flight software as a separate process and as Cortex-M4 firmware in QEMU, over adcs-link/1, compared with the in-process builds."
+steps = ["fly each scenario in-process and on each virtual OBC", "compare the trajectories"]
+reads = ["the scenarios", "fsw/build/ (the OBC firmware)"]
+writes = ["results/VIRTUAL_OBC.md"]
+runs = ["adcs parity", "qemu-system-arm"]
+
+[[command]]
+tool = "engine.py"
+name = "dispatch"
+usage = "python3 tools/engine.py dispatch [case ...]"
+what = "The recommended solution's flight configuration for each case, and a mission check of it on the engine."
+steps = ["read the case's selection", "write the parameter blob, its decoded JSON and the build notes", "fly the mission with C and with Rust and compare"]
+reads = ["matlab_sils/store/pipeline/<case>/"]
+writes = ["dist/dispatch/<case>/<family>/fsw/"]
+runs = ["adcs params", "adcs run"]
+
+[[command]]
+tool = "engine.py"
+name = "campaign"
+usage = "python3 tools/engine.py campaign [campaign ...] [--fsw c|rust] [--jobs N]"
+what = "Every Monte Carlo and edge campaign (or those named) on the engine, with the twin's draws: the same dispersions, bounds, run count and per-run seeds."
+steps = ["draw each run's dispersions (the Kp -> ap table included)", "one `adcs run` per run", "summarise the campaign", "rewrite the engine-vs-twin campaign ledger"]
+reads = ["matlab_sils/data/campaigns/", "matlab_sils/store/results/<campaign>/summary.json (the twin)"]
+writes = ["matlab_sils/store/results_engine/campaigns/<campaign>/", "results/ENGINE_CAMPAIGNS.md", "results/engine_campaigns.json"]
+runs = ["adcs run"]
+
+[[command]]
+tool = "engine.py"
+name = "campaign-ledger"
+usage = "python3 tools/engine.py campaign-ledger"
+what = "Rewrite the engine-vs-twin campaign ledger from the stored summaries, without flying anything."
+steps = ["read every campaign summary, engine and twin", "write the ledger"]
+reads = ["matlab_sils/store/results_engine/campaigns/", "matlab_sils/store/results/"]
+writes = ["results/ENGINE_CAMPAIGNS.md", "results/engine_campaigns.json"]
+runs = []
+
+[[command]]
+tool = "engine.py"
+name = "oils"
+usage = "python3 tools/engine.py oils [scenario ...] [--fsw qemu|qemu-rs] [--duration S] [--jobs N]"
+what = "SILS and soft OILS side by side: the flight software as Cortex-M4F firmware, with exact instruction timing and command latency."
+steps = ["fly each scenario in SILS", "fly it with --oils on QEMU", "tabulate latency, CPU load and the metric differences"]
+reads = ["the scenarios", "fsw/build/ (the firmware)"]
+writes = ["matlab_sils/store/results_engine/soft_oils/", "results/SOFT_OILS.md", "results/soft_oils.json"]
+runs = ["adcs run --oils", "qemu-system-arm"]
+
+[[command]]
+tool = "engine.py"
+name = "oils-ledger"
+usage = "python3 tools/engine.py oils-ledger"
+what = "Rewrite the soft-OILS ledger from the stored runs, without flying anything."
+steps = ["read the stored SILS and OILS runs", "write the ledger"]
+reads = ["matlab_sils/store/results_engine/soft_oils/"]
+writes = ["results/SOFT_OILS.md", "results/soft_oils.json"]
+runs = []
+
+[[command]]
+tool = "engine.py"
+name = "solutions"
+usage = "python3 tools/engine.py solutions [case ...] [--seeds 1,2] [--fsw c|rust] [--jobs N]"
+what = "The customer-case solution matrix on the engine: every mission mode x option x seed, with the sized products."
+steps = ["size each case", "fly every mode, option and seed", "tabulate feasibility and budgets"]
+reads = ["matlab_sils/cases/", "matlab_sils/data/modes/"]
+writes = ["matlab_sils/store/solutions_engine/", "results/ENGINE_SOLUTIONS.md"]
+runs = ["adcs size", "adcs run"]
+
+[[command]]
+tool = "pipeline.py"
+name = "pipeline"
+usage = "python3 tools/pipeline.py [case ...] [--seeds 1,2] [--max-iter 5] [--jobs N] [--mc-runs 12] [--no-oils]"
+what = "The design loop, node by node: from a customer case to a selected, dispatched, verified ADCS (docs/DESIGN_LOOP.md)."
+steps = ["size: the demand survey and every option sized", "matrix: every mode x option x seed flown with the sized products", "assess: each failing requirement classed (performance, knowledge, power, propellant)", "converge: resize or upgrade what failed, and repeat until nothing is left to change", "select: the simplest solution family that passes every mode within the mass and volume budget", "dispatch: its flight configuration, checked with C and Rust", "mc: a Monte Carlo of the dispatched mission", "soft_oils: the dispatched mission on the Cortex-M4F firmware (unless --no-oils)"]
+reads = ["matlab_sils/cases/<case>.csv", "matlab_sils/data/"]
+writes = ["matlab_sils/store/pipeline/<case>/<node>.json", "dist/dispatch/<case>/"]
+runs = ["adcs size", "adcs run", "adcs params", "qemu-system-arm"]
+
+# ---------------------------------------------------------------- reports and packages
+
+[[command]]
+tool = "report.py"
+name = "report"
+usage = "python3 tools/report.py"
+what = "The results report from the filed runs: figures, verdict tables, the summary and the results documents. It reads; it never flies."
+steps = ["read every filed run, campaign and trade", "draw each test's figures", "write the page, the summary and the documents"]
+reads = ["matlab_sils/store/results/", "matlab_sils/store/trades/"]
+writes = ["results/figures/", "results/index.html", "results/summary.json", "docs/RESULTS.md", "docs/SELECTION.md"]
+runs = []
+
+[[command]]
+tool = "vv_report.py"
+name = "vv-report"
+usage = "python3 tools/vv_report.py"
+what = "The downloadable V&V report: the template filled from the filed results, as self-contained HTML and as a PDF."
+steps = ["collect every source that exists (a missing one is named, never invented)", "fill tools/templates/vv_report.html", "print it to PDF with headless Chromium"]
+reads = ["matlab_sils/store/pipeline/", "matlab_sils/store/results_engine/", "matlab_sils/store/results/", "results/*.json"]
+writes = ["results/vv/TRINETRA_ADCS_VV_report.html", "results/vv/TRINETRA_ADCS_VV_report.pdf", "dist/TRINETRA_ADCS_VV_report.pdf"]
+runs = ["chromium (headless)"]
+
+[[command]]
+tool = "pack_matlab.py"
+name = "pack-matlab"
+usage = "python3 tools/pack_matlab.py"
+what = "The downloadable MATLAB SILS zip, deterministic (sorted files, fixed timestamps), with its SHA-256 manifest."
+steps = ["collect matlab_sils/ and the documents", "write the zip beside its name, then rename it into place"]
+reads = ["matlab_sils/", "docs/"]
+writes = ["dist/TRINETRA_ADCS_SILS_matlab_<version>.zip"]
+runs = []
+
+[[command]]
+tool = "pack_flight.py"
+name = "pack-flight"
+usage = "python3 tools/pack_flight.py"
+what = "The flight software and Rust engine zip, in the repository's layout so it builds as unpacked."
+steps = ["collect fsw/, fsw-rs/, engine/, the data and the tools", "write the zip beside its name, then rename it into place"]
+reads = ["fsw/", "fsw-rs/", "engine/", "matlab_sils/data", "tools/"]
+writes = ["dist/TRINETRA_ADCS_flight_engine_<version>.zip"]
+runs = []
+
+# ---------------------------------------------------------------- generators (their outputs are never edited by hand)
+
+[[command]]
+tool = "gen_fsw_params.py"
+name = "gen-fsw-params"
+usage = "python3 tools/gen_fsw_params.py"
+what = "The flight software's parameter and table sources, C and Rust, from their one definition."
+steps = ["read fsw/params/params.toml and the IGRF table", "write the C header and source and the Rust module"]
+reads = ["fsw/params/params.toml", "matlab_sils/data/igrf13.json"]
+writes = ["fsw/include/adcs_params.h", "fsw/src/adcs_params.c", "fsw-rs/src/params.rs", "fsw/include/adcs_igrf13.h", "fsw-rs/src/igrf13.rs"]
+runs = []
+
+[[command]]
+tool = "export_catalogue.py"
+name = "export-catalogue"
+usage = "python3 tools/export_catalogue.py [--check]"
+what = "The catalogue, scenarios, campaigns and trades from TOML to the JSON the MATLAB twin and the engine read. --check says which JSON has drifted from its TOML, and changes nothing."
+steps = ["read every TOML source", "write (or, with --check, compare) the JSON"]
+reads = ["catalogue/", "scenarios/", "campaigns/", "trades/"]
+writes = ["matlab_sils/data/*/<id>.json", "matlab_sils/data/families.json"]
+runs = []
+
+[[command]]
+tool = "nodes_doc.py"
+name = "nodes-doc"
+usage = "python3 tools/nodes_doc.py"
+what = "docs/NODES.md and docs/CATALOGUE.md from the node registry and the datasheet catalogue."
+steps = ["read the node registry and the catalogue", "write both documents"]
+reads = ["matlab_sils/data/pipeline/nodes.json", "matlab_sils/data/catalogue/"]
+writes = ["docs/NODES.md", "docs/CATALOGUE.md"]
+runs = []
+
+[[command]]
+tool = "components_doc.py"
+name = "components-doc"
+usage = "python3 tools/components_doc.py"
+what = "docs/COMPONENTS.md: every sensor and actuator, the model the SILS flies, and its processing chain."
+steps = ["read the component files", "write the document"]
+reads = ["catalogue/components/"]
+writes = ["docs/COMPONENTS.md"]
+runs = []
+
+[[command]]
+tool = "catalogue.py"
+name = "catalogue"
+usage = "python3 tools/catalogue.py"
+what = "Re-derive each bought wheel's and CMG's modelling block from its datasheet numbers (never guessed), then the catalogue document."
+steps = ["derive every model's engine parameters by rule", "mark a model not selectable when its datasheet lacks a number the selection needs"]
+reads = ["matlab_sils/data/catalogue/"]
+writes = ["matlab_sils/data/catalogue/*.json", "docs/CATALOGUE.md"]
+runs = []
+
+# ---------------------------------------------------------------- checks and analysis
+
+[[command]]
+tool = "verify_nodes.py"
+name = "verify-nodes"
+usage = "python3 tools/verify_nodes.py [case ...]"
+what = "Node-by-node verification of the design loop: each decision recomputed from the node's stored inputs, not trusted from its verdict."
+steps = ["read every node's outputs per case", "recompute each decision and compare", "exit non-zero when a check fails"]
+reads = ["matlab_sils/data/pipeline/nodes.json", "matlab_sils/store/pipeline/"]
+writes = ["results/NODE_VERIFICATION.md", "results/node_verification.json"]
+runs = []
+
+[[command]]
+tool = "rescore.py"
+name = "rescore"
+usage = "python3 tools/rescore.py [--dry-run]"
+what = "Re-judge stored runs against the case files as they are now: a changed requirement changes a verdict, not a trajectory."
+steps = ["read every stored metric record", "apply the case's current requirement", "recompute campaign statistics"]
+reads = ["matlab_sils/store/", "matlab_sils/cases/"]
+writes = ["the stored manifests and summaries (not with --dry-run)"]
+runs = []
+
+[[command]]
+tool = "floquet.py"
+name = "floquet"
+usage = "python3 tools/floquet.py <case>"
+what = "Floquet multipliers of the coils-only nadir loop: the certificate that the periodic magnetic control is stable."
+steps = ["linearise the closed loop about the nadir reference along one orbit", "integrate the monodromy matrix", "write the multipliers and the verdict"]
+reads = ["matlab_sils/cases/<case>.csv", "the flight-software parameters"]
+writes = ["matlab_sils/store/pipeline/<case>/floquet.json"]
+runs = []
+
+[[command]]
+tool = "run_matrix.py"
+name = "run-matrix"
+usage = "python3 tools/run_matrix.py --workers N [--only scenarios|campaigns|trades|solutions]"
+what = "The whole MATLAB-twin test matrix in GNU Octave on N workers, longest jobs first; campaigns and trades collected at the end."
+steps = ["list every scenario, campaign run and trade job", "run them on N Octave workers", "collect and plot the campaigns and trades"]
+reads = ["matlab_sils/data/"]
+writes = ["matlab_sils/store/results/", "matlab_sils/store/trades/", "matlab_sils/store/logs/"]
+runs = ["octave-cli"]
+
+[[command]]
+tool = "fswcfg.py"
+name = "fswcfg"
+usage = "python3 tools/fswcfg.py <blob>"
+what = "Decode and check a flight-software parameter blob (adcs-fswcfg/1) and print every field as JSON."
+steps = ["check the magic, length and CRC-32", "decode each field in table order"]
+reads = ["the blob", "fsw/params/params.toml"]
+writes = []
+runs = []
+
+[[command]]
+tool = "trinetra.py"
+name = "explain"
+usage = "python3 tools/trinetra.py list | explain <command> | docs [--check]"
+what = "This registry: every command, what it does before it does it; `docs` writes docs/COMMANDS.md from it."
+steps = ["read docs/commands.toml", "print, explain, or write the document"]
+reads = ["docs/commands.toml"]
+writes = ["docs/COMMANDS.md (docs only)"]
+runs = []

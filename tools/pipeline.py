@@ -883,7 +883,11 @@ def main():
     ap.add_argument("--jobs", type=int, default=os.cpu_count())
     ap.add_argument("--mc-runs", type=int, default=P("mc")["runs"])
     ap.add_argument("--no-oils", action="store_true")
+    ap.add_argument("--dry-run", action="store_true", help="say what the design loop would do, and do nothing")
     a = ap.parse_args()
+    if a.dry_run:
+        import trinetra
+        trinetra.dry_run("pipeline.py", "pipeline")
     if not BIN.exists():
         sys.exit("engine not built: python3 tools/engine.py build")
     modes = sorted((json.loads(f.read_text()) for f in (MS / "data" / "modes").glob("*.json")), key=lambda M: M["order"])

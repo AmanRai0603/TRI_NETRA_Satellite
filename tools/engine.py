@@ -772,7 +772,12 @@ def main():
     sp.add_parser("oils-ledger").set_defaults(f=lambda a: oils_ledger())
     p = sp.add_parser("solutions"); p.add_argument("cases", nargs="*"); p.add_argument("--seeds", default="1,2"); p.add_argument("--fsw", default="c")
     p.add_argument("--jobs", type=int, default=os.cpu_count()); p.set_defaults(f=solutions)
+    for p in sp.choices.values():
+        p.add_argument("--dry-run", action="store_true", help="say what this command would do, and do nothing")
     a = ap.parse_args()
+    if a.dry_run:
+        import trinetra
+        trinetra.dry_run("engine.py", a.cmd)
     if a.cmd not in ("build",) and not BIN.exists():
         sys.exit("engine not built: python3 tools/engine.py build")
     a.f(a)

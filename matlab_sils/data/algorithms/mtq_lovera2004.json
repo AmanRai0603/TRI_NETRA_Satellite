@@ -3,6 +3,10 @@
  "fsw": "reference",
  "id": "mtq_lovera2004",
  "label": "P1 Lovera & Astolfi 2004: eps-scaled PD on the averaged system, rate term through J",
+ "literature": {
+  "read": "deck author's PDF reading",
+  "review": "literature_review_v2.pptx (Agastya Research Collective, 19 Sep 2026)"
+ },
  "needs": [
   "coils",
   "magnetometer",
@@ -12,9 +16,5 @@
  "prototype": true,
  "schema": "adcs-algorithm/1",
  "slot": "mtq_pointing",
- "source": "M. Lovera, A. Astolfi, Automatica 40(8) 1405-1414, 2004, doi:10.1016/j.automatica.2004.02.022 (Prop. 1)",
- "literature": {
-  "read": "deck author's PDF reading",
-  "review": "literature_review_v2.pptx (Agastya Research Collective, 19 Sep 2026)"
- }
+ "source": "M. Lovera, A. Astolfi, Automatica 40(8) 1405-1414, 2004, doi:10.1016/j.automatica.2004.02.022 (Prop. 1)"
 }

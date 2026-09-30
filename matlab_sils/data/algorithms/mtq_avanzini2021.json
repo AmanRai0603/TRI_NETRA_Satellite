@@ -3,6 +3,10 @@
  "fsw": "reference",
  "id": "mtq_avanzini2021",
  "label": "P16 Avanzini et al. 2021: two-timescale nadir law (pitch spun at orbit rate and aligned with the orbit normal, pitch error through eta)",
+ "literature": {
+  "read": "full text (open postprint)",
+  "review": "literature_review_v2.pptx (Agastya Research Collective, 19 Sep 2026)"
+ },
  "needs": [
   "coils",
   "magnetometer",
@@ -12,9 +16,5 @@
  "prototype": true,
  "schema": "adcs-algorithm/1",
  "slot": "mtq_pointing",
- "source": "G. Avanzini, E.L. de Angelis, F. Giulietti, Aerosp. Sci. Technol. 116, 106884, 2021, doi:10.1016/j.ast.2021.106884",
- "literature": {
-  "read": "full text (open postprint)",
-  "review": "literature_review_v2.pptx (Agastya Research Collective, 19 Sep 2026)"
- }
+ "source": "G. Avanzini, E.L. de Angelis, F. Giulietti, Aerosp. Sci. Technol. 116, 106884, 2021, doi:10.1016/j.ast.2021.106884"
 }
