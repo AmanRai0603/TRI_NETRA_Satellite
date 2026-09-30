@@ -11,7 +11,7 @@ soft OILS of the selected configuration. Flow: `docs/figures/flow_design_to_hils
 | iteration | knobs | options feasible | selected | changes | blocked |
 |---:|---|---:|---|---|---|
 | 1 | laws as written | 2/25 | mtq (closest (not feasible)) | nadir_pointing/fmr+mtq: power -> electromagnetic pump with more copper (lambda 0.1 -> 0.3 kg/W)<br>nadir_pointing/mtq: thin margin (9.04 of 10): fly every mtq_pointing algorithm<br>sun_acquisition/mtq: fly every sun_acquisition algorithm<br>sun_referencing/mtq: fly every mtq_pointing algorithm | 16 |
-| 2 | pump lambda 0.3 kg/W | 5/25 | mtq_fmr (feasible) | nadir_pointing/mtq: thin margin (8.78 of 10): tune every mtq_pointing law's gains (Bruni & Celani 2017)<br>sun_acquisition/mtq: tune every sun_acquisition law's gains, min over the gains of the worst seed (Bruni & Celani 2017)<br>sun_referencing/mtq: tune every mtq_pointing law's gains, min over the gains of the worst seed (Bruni & Celani 2017) | 18 |
+| 2 | pump lambda 0.3 kg/W | 5/25 | mtq_fmr (feasible) | nadir_pointing/mtq: thin margin (9.04 of 10): tune every mtq_pointing law's gains (Bruni & Celani 2017)<br>sun_acquisition/mtq: tune every sun_acquisition law's gains, min over the gains of the worst seed (Bruni & Celani 2017)<br>sun_referencing/mtq: tune every mtq_pointing law's gains, min over the gains of the worst seed (Bruni & Celani 2017) | 18 |
 | 3 | pump lambda 0.3 kg/W | 5/25 | mtq_fmr (feasible) | mtqp: authority x1 -> x1.5 (performance) | 18 |
 | 4 | mtqp x1.5, pump lambda 0.3 kg/W | 6/25 | mtq_fmr (feasible) | mtqp: authority x1.5 -> x2.25 (performance) | 18 |
 | 5 | mtqp x2.25, pump lambda 0.3 kg/W | 5/25 | mtq_fmr (feasible) | mtqp: authority back to x1.5 (no improvement) | 19 |
@@ -70,7 +70,7 @@ Detumble -> Sun acquisition -> nadir with each family's best methods from the lo
 
 | family | selected | feasible | mass [kg] | methods | detumble_time | ape_los_p9973 | ake_los_p9973 | power_mean | C = Rust | MC pass rates |
 |---|---|---|---:|---|---:|---:|---:|---:|---|---|
-| mtq | no | no | 0.258 | detumble=mtq, sun_acquisition=mtq, sun_referencing=mtq, nadir_pointing=mtq | 40.46 ✓ | 2.36 ✓ | 0.1627 ✓ | 0.0906 ✓ | True | detumble_time 100 %; ape_los_p9973 0 %; ake_los_p9973 100 %; power_mean 100 % |
+| mtq | no | no | 0.258 | detumble=mtq, sun_acquisition=mtq, sun_referencing=mtq, nadir_pointing=mtq | 40.46 ✓ | 6.626 ✓ | 0.1437 ✓ | 0.09055 ✓ | True | detumble_time 100 %; ape_los_p9973 0 %; ake_los_p9973 100 %; power_mean 100 % |
 | mtq_fmr | yes | yes | 1.446 | detumble=mtq, sun_acquisition=fmr, sun_referencing=fmr+mtq, nadir_pointing=fmr+mtq | 53.46 ✓ | 0.1624 ✓ | 0.1605 ✓ | 0.2223 ✓ | True | detumble_time 100 %; ape_los_p9973 100 %; ake_los_p9973 100 %; power_mean 100 % |
 | mtq_fmr_rcs | no | no | 1.965 | detumble=mtq, sun_acquisition=fmr, sun_referencing=fmr+mtq, nadir_pointing=fmr+mtq | 53.46 ✓ | 0.1624 ✓ | 0.1605 ✓ | 0.2514 ✓ | True | detumble_time 100 %; ape_los_p9973 100 %; ake_los_p9973 100 %; power_mean 100 % |
 
@@ -94,7 +94,7 @@ Each law's result is its worst seed at the gains that make that worst seed best 
 | sun_referencing | mtq_rate_damp | baseline rate damping | nominal | no | 162.8 sun_ape_p9973 | sun_ape_p9973 |
 | sun_referencing | mtq_lqr | baseline LQR | mtq_gain_p 0.25, mtq_gain_d 0.25, handover_out_dps 0.25 | no | 173.6 sun_ape_p9973 | sun_ape_p9973 |
 | sun_referencing | mtq_smc | baseline SMC | nominal | no | 179 sun_ape_p9973 | sun_ape_p9973 |
-| nadir_pointing | mtq_celani2026 | P8 Celani 2026 | mtq_gain_p 4, mtq_gain_d 0.25, handover_out_dps 0.5 | yes | 3.844 ape_los_p9973 | — |
+| nadir_pointing | mtq_celani2026 | P8 Celani 2026 | mtq_gain_p 4, mtq_gain_d 0.25, handover_out_dps 0.5 | yes | 6.278 ape_los_p9973 | — |
 | nadir_pointing | mtq_pd | baseline PD | mtq_gain_p 0.25, mtq_gain_d 0.25, handover_out_dps 1 | yes | 7.989 ape_los_p9973 | — |
 | nadir_pointing | mtq_smc | baseline SMC | mtq_gain_p 0.25, mtq_gain_d 0.25, handover_out_dps 0.25 | no | 12 ape_los_p9973 | ape_los_p9973 |
 | nadir_pointing | mtq_tango2013 | P3 TANGO 2013 (flown) | mtq_gain_p 0.25, mtq_gain_d 0.25, handover_out_dps 1 | no | 23.86 ape_los_p9973 | ape_los_p9973 |
@@ -115,7 +115,7 @@ The loop linearised about nadir with the gyroscopic and gravity-gradient terms, 
 | mtq_lovera2004 | nominal | 1.1470 | no |
 | mtq_celani2015 | nominal | 0.7831 | yes |
 | mtq_avanzini2021 | nominal | 2.5192 | no |
-| mtq_celani2026 (dispatched) | {'mtq_gain_p': 4.0, 'mtq_gain_d': 0.25} | 0.0123 | yes |
+| mtq_celani2026 (dispatched) | {'mtq_gain_p': 4.0, 'mtq_gain_d': 0.25} | 0.9128 | yes |
 | mtq_tango2013 | nominal | 0.0702 | yes |
 
 ## Mode matrix (last iteration, best algorithm per option)
@@ -128,7 +128,7 @@ The loop linearised about nadir with the gyroscopic and gravity-gradient terms, 
 | nadir_pointing | cmg+rcs | default | no | 0.1464 | power_mean (power) |
 | nadir_pointing | fmr+mtq | default | yes | 0.1471 | — |
 | nadir_pointing | fmr+rcs | default | no | 0.1471 | power_mean (power) |
-| nadir_pointing | mtq | mtq_celani2026@mtq_gain_p=4,mtq_gain_d=0.25,handover_out_dps=0.5 | yes | 3.844 | — |
+| nadir_pointing | mtq | mtq_celani2026@mtq_gain_p=4,mtq_gain_d=0.25,handover_out_dps=0.5 | yes | 6.278 | — |
 | nadir_pointing | rw+mtq | default | no | 0.1465 | power_mean (power) |
 | nadir_pointing | rw+rcs | default | no | 0.1465 | power_mean (power) |
 | nadir_pointing | vscmg+mtq | default | no | 0.1464 | power_mean (power) |
@@ -167,15 +167,15 @@ C and Rust builds, with exact per-step instruction counts and the command latenc
 | metric | req | SILS | soft OILS (C on M4F) | soft OILS (Rust on M4F) |
 |---|---:|---:|---:|---:|
 | detumble_time | 284 | 53.46 ✓ | 53.46 ✓ | 53.46 ✓ |
-| ape_los_p9973 | 10 | 0.1624 ✓ | 0.1466 ✓ | 0.1473 ✓ |
-| ake_los_p9973 | 5 | 0.1605 ✓ | 0.1468 ✓ | 0.1456 ✓ |
-| power_mean | 0.5 | 0.2223 ✓ | 0.2048 ✓ | 0.2028 ✓ |
+| ape_los_p9973 | 10 | 0.1624 ✓ | 0.1467 ✓ | 0.1402 ✓ |
+| ake_los_p9973 | 5 | 0.1605 ✓ | 0.1468 ✓ | 0.1413 ✓ |
+| power_mean | 0.5 | 0.2223 ✓ | 0.2048 ✓ | 0.2027 ✓ |
 | power_peak | — | 0.858  | 0.8615  | 0.8622  |
 | propellant | — | 0  | 0  | 0  |
 
 | OBC build | instructions/step mean / max | exec max [ms] | latency mean / max [ms] | CPU load max | overruns |
 |---|---:|---:|---:|---:|---:|
-| C (arm-none-eabi-gcc -O2) | 2.135e+05 / 8.934e+05 | 6.647 | 2.757 / 7.816 | 6.6 % | 0 |
+| C (arm-none-eabi-gcc -O2) | 2.135e+05 / 8.936e+05 | 6.649 | 2.757 / 7.818 | 6.6 % | 0 |
 | Rust (thumbv7em-none-eabihf) | 2.686e+05 / 1.05e+06 | 7.812 | 3.168 / 8.981 | 7.8 % | 0 |
 
 Dispatch: `dist/dispatch/ais_3u/mtq_fmr/converged` (blob, sized products, BUILD.md). C = Rust flight software bitwise on the engine: True.
