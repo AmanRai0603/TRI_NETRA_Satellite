@@ -216,7 +216,6 @@ def main():
     cat = verify_catalogue(C)
     for c in cases:
         verify_case(C, c, cat)
-    C("report", "—", "V&V report (HTML and PDF)", (ROOT / "results" / "vv" / "TRINETRA_ADCS_VV_report.html").exists() and (ROOT / "dist" / "TRINETRA_ADCS_VV_report.pdf").exists())
     rows = C.rows
     order = {n: i for i, n in enumerate(["nodes"] + ids)}
     rows.sort(key=lambda r: (order.get(r["node"], 99), r["case"]))

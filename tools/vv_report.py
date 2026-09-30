@@ -625,7 +625,7 @@ def main():
     style = re.search(r"<style>.*?</style>", doc, re.S).group(0)
     body = re.search(r"<body>(.*)</body>", doc, re.S).group(1)
     nav = ('<nav class="wrap" style="padding-block:10px;font-size:9.5pt;color:#5b6477">Full results with every figure: '
-           '<a href="results.html">results page</a> · PDF and code: <code>dist/TRINETRA_ADCS_VV_report.pdf</code> in the repository</nav>')
+           '<a href="results.html">results page</a> · PDF: <code>TRINETRA_ADCS_VV_report.pdf</code> on the release page</nav>')
     write_text(OUT / "vv_artifact.html", title + "\n" + style.replace("body { margin: 0;", "body { margin: 0; min-height: 100%;") + "\n" + nav + body)
     chrome = next(iter(glob.glob("/opt/pw-browsers/chromium*/chrome-linux/chrome")), None) or shutil.which("chromium") or shutil.which("google-chrome")
     pdf = OUT / "TRINETRA_ADCS_VV_report.pdf"
@@ -637,7 +637,8 @@ def main():
         shutil.copy(pdf, ROOT / "dist" / "TRINETRA_ADCS_VV_report.pdf")
         print(f"wrote {h.relative_to(ROOT)}, {pdf.relative_to(ROOT)} ({pdf.stat().st_size / 1e6:.1f} MB), dist/TRINETRA_ADCS_VV_report.pdf")
     else:
-        print(f"wrote {h.relative_to(ROOT)} (no Chromium for the PDF)")
+        raise SystemExit(f"vv_report: wrote {h.relative_to(ROOT)} but no PDF: " +
+                         ("Chromium did not print it" if chrome else "it needs Chromium or Google Chrome to print the PDF"))
 
 
 if __name__ == "__main__":

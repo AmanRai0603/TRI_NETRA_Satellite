@@ -3,6 +3,7 @@
 
     python3 tools/check_all.py                 the fast checks (a few minutes)
     python3 tools/check_all.py --octave        and the MATLAB twin's suites in GNU Octave
+    python3 tools/check_all.py --pages         and build the rendered pages (figures, results page, V&V report)
     python3 tools/check_all.py --only NAME...  just those checks (names as printed)
 
 The checks: the Python tests (tests/), the generated files against their definitions, the
@@ -14,6 +15,7 @@ Exit status 1 when any check fails.
 Copyright (c) 2026 Agastya. All rights reserved.
 """
 import argparse
+import glob
 import importlib.util
 import shutil
 import subprocess
@@ -49,6 +51,13 @@ CHECKS = [
     ("design-loop", "every stored design-loop decision recomputed from its inputs",
      [PY, "tools/verify_nodes.py"], ".", []),
 ]
+# The rendered pages (figures, the results page, the V&V report HTML and PDF): built from the
+# committed ledgers and runs, not kept in git. CI builds them and keeps them as an artifact.
+PAGES = [
+    ("pages", "the figures, results/index.html and the V&V report (HTML and PDF) build from the committed results",
+     ["bash", "-c", "python3 tools/report.py && python3 tools/vv_report.py"], ".", ["py:numpy", "py:matplotlib", "browser"]),
+]
+
 # The two suites report a failure in what they return (ok) or leave (nfail); Octave's own exit
 # status is 0 either way, so each command turns that into its exit status.
 OCTAVE = [
@@ -59,20 +68,32 @@ OCTAVE = [
 ]
 
 
+def have(need):
+    """Is a check's need here: a program on PATH, a Python module (py:<name>), or a browser
+    that prints PDFs (the one vv_report.py looks for)?"""
+    if need.startswith("py:"):
+        return importlib.util.find_spec(need[3:]) is not None
+    if need == "browser":
+        return bool(glob.glob("/opt/pw-browsers/chromium*/chrome-linux/chrome") or shutil.which("chromium") or shutil.which("google-chrome"))
+    return shutil.which(need) is not None
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--octave", action="store_true", help="also run the MATLAB twin's suites in GNU Octave")
+    ap.add_argument("--pages", action="store_true", help="also build the rendered pages (figures, results page, V&V report)")
     ap.add_argument("--only", nargs="+", metavar="NAME", help="run only these checks")
     a = ap.parse_args(argv)
-    todo = CHECKS + (OCTAVE if a.octave or (a.only and set(a.only) & {n for n, *_ in OCTAVE}) else [])
+    wants = lambda group, flag: flag or bool(a.only and set(a.only) & {n for n, *_ in group})
+    todo = CHECKS + (OCTAVE if wants(OCTAVE, a.octave) else []) + (PAGES if wants(PAGES, a.pages) else [])
     if a.only:
         unknown = set(a.only) - {c[0] for c in todo}
         if unknown:
-            ap.error("no check " + ", ".join(sorted(unknown)) + "; the checks are " + ", ".join(c[0] for c in CHECKS + OCTAVE))
+            ap.error("no check " + ", ".join(sorted(unknown)) + "; the checks are " + ", ".join(c[0] for c in CHECKS + OCTAVE + PAGES))
         todo = [c for c in todo if c[0] in a.only]
     rows, failed = [], []
     for name, what, cmd, cwd, needs in todo:
-        missing = [n for n in needs if not (importlib.util.find_spec(n[3:]) if n.startswith("py:") else shutil.which(n))]
+        missing = [n for n in needs if not have(n)]
         if missing:
             rows.append((name, "NOT RUN", f"needs {', '.join(missing)}", 0.0))
             continue

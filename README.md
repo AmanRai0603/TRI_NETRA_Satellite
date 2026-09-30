@@ -30,7 +30,7 @@ case -> demand -> sizing -> SILS mode matrix -> assess -> converge (resize / upg
 ```
 
 The whole loop runs with one command, `python3 tools/pipeline.py` (`docs/DESIGN_LOOP.md`), and the
-downloadable V&V report (`dist/TRINETRA_ADCS_VV_report.pdf`) is written by `python3 tools/vv_report.py`.
+downloadable V&V report (`TRINETRA_ADCS_VV_report.pdf`, on every release) is written by `python3 tools/vv_report.py`.
 Who runs what (C / Rust / Python / MATLAB): `docs/figures/architecture_languages.svg`, `docs/LANGUAGES.md`.
 
 - **Our solutions:** magnetorquers only · + fluid momentum loop · + fluid loop + N2O cold-gas RCS.
@@ -50,7 +50,7 @@ Who runs what (C / Rust / Python / MATLAB): `docs/figures/architecture_languages
 | `catalogue/` | parts, products, algorithms (slot + hardware needs), `families.toml` (solution / benchmark), `modes/`, `components/` |
 | `scenarios/`, `campaigns/`, `trades/` | test scenarios, Monte Carlo / edge campaigns, algorithm and hardware trades |
 | `docs/` | `DESIGN_LOOP.md` (start here), `NODES.md` (every node: inputs, outputs, parameters, rules), `MTQ_LITERATURE.md` (the sixteen magnetorquer-only papers in the flight software), `NAV_GUIDANCE_AUDIT.md` (navigation and guidance assumptions audited and corrected), `CATALOGUE.md` (bought wheels and CMGs from datasheets), `SOFT_OILS.md`, `figures/`, `SOLUTION_PIPELINE.md`, `LANGUAGES.md` (C / Rust / Python / MATLAB roles), `VIRTUAL_OBC.md`, `ARCHITECTURE_PLAN.md`, `COMPONENTS.md`, `OILS_HILS.md`, `RESULTS.md`, `SELECTION.md`, `SOLUTIONS.md` |
-| `results/index.html` | the report with every figure |
+| `results/index.html` | the report with every figure: built by `python3 tools/report.py`, kept by CI as the `pages` artifact (not in git) |
 | `dist/` | the downloadable MATLAB SILS zip and the flight-software + Rust-engine zip; `dist/dispatch/` holds the dispatch packages |
 | `tools/` | `pipeline.py` (the design loop, node by node), `engine.py` (build, run, Monte Carlo, campaigns, soft OILS and parity on the Rust engine), `vv_report.py` + `templates/vv_report.html` (the V&V report, HTML + PDF), `figures/` (the two diagrams), `gen_fsw_params.py` (params → C + Rust), `export_catalogue.py` (TOML → JSON), `run_matrix.py` (parallel runner), `report.py`, `pack_matlab.py`, `pack_flight.py` (flight software + engine zip), `components_doc.py` |
 | `engine/crates/trinetra-app/` | the desktop app: a local page to pick a case and a scenario, fly it, keep and export runs |

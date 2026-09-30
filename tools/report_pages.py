@@ -166,7 +166,7 @@ def write_md(sections, cmp_figs):
     """docs/RESULTS.md: the verdict tables (the HTML report carries the figures)."""
     L = ["# TRI-NETRA ADCS — SILS results", "", "**Owner: Agastya.** Copyright (c) 2026 Agastya. All rights reserved.", "",
          "Produced by `matlab_sils` (GNU Octave 8.4) with the Precision Orbit Propagator stepped inside the attitude loop.",
-         "Figures: `results/index.html` (open in a browser) and `results/figures/`. Single runs are the nominal case, seed 1.", ""]
+         "Figures: `results/index.html` and `results/figures/`, built by `python3 tools/report.py` (CI keeps them as the `pages` artifact). Single runs are the nominal case, seed 1.", ""]
     for gname, items in sections:
         L += [f"## {gname}", ""]
         for kind, sid, obj, figs in items:

@@ -26,3 +26,9 @@ dist/*.whl
 # what each tool ran and wrote (tools/common.py trace)
 .trace/
 .adcs-index.json
+# rendered pages and packages: built by report.py, vv_report.py, pack_*.py (CI and the release build them)
+results/figures/
+results/index.html
+results/vv/
+dist/*.zip
+dist/*.pdf

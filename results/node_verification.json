@@ -1,6 +1,6 @@
 {
- "passed": 231,
- "checks": 231,
+ "passed": 230,
+ "checks": 230,
  "nodes": [
   "case",
   "catalogue",
@@ -1631,13 +1631,6 @@
    "node": "report",
    "case": "ais_img_3u",
    "check": "design ledger names the selection",
-   "ok": true,
-   "detail": ""
-  },
-  {
-   "node": "report",
-   "case": "\u2014",
-   "check": "V&V report (HTML and PDF)",
    "ok": true,
    "detail": ""
   }
