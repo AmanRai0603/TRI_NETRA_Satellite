@@ -52,11 +52,11 @@ runs = ["the virtual OBC or QEMU, when a target names one"]
 [[command]]
 tool = "adcs"
 name = "results"
-usage = "adcs results list [DIR] | show <run> | export <run> --out F.trinetra | import F.trinetra --out DIR"
-what = "The results store: every run with its provenance, one line each; one run in full; a run as one share file, and back."
-steps = ["list: find every manifest.json (adcs-rec/1) under the folder", "show: print the run's provenance and requirement metrics", "export: write README, manifest and channels into one zip", "import: check every entry's name and checksum, then write them into the folder"]
+usage = "adcs results list [DIR] | show <run> | pin|unpin <run> | thin --older-than DAYS [DIR] [--dry-run] | export <run> --out F.trinetra | import F.trinetra --out DIR"
+what = "The results store: every run with its provenance, one line each; one run in full; runs kept (pinned) or thinned to their manifest when old; a run as one share file, and back."
+steps = ["list: find every manifest.json (adcs-rec/1) under the folder", "show: print the run's provenance and requirement metrics (and, for a thinned run, the command that flies it again)", "pin: mark a run to keep; thin: remove the time series of unpinned runs older than DAYS, keeping every manifest", "export: write README, manifest and channels into one zip", "import: check every entry's name and checksum, then write them into the folder"]
 reads = ["matlab_sils/store/results_engine/ (or DIR)"]
-writes = ["export: the .trinetra file; import: the folder"]
+writes = ["pin: <run>/PINNED; thin: removes <run>/channels.csv; export: the .trinetra file; import: the folder"]
 runs = []
 
 # ---------------------------------------------------------------- orchestration (Python)

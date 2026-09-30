@@ -36,6 +36,14 @@ class AtomicWrites(unittest.TestCase):
         common.write_text(f, "y")
         self.assertEqual(f.stat().st_mode & 0o777, 0o755)
 
+    def test_a_document_date_comes_from_the_commit_not_the_clock(self):
+        os.environ["SOURCE_DATE_EPOCH"] = "1790000000"
+        try:
+            self.assertEqual(common.source_date().strftime("%Y-%m-%d"), "2026-09-21")
+        finally:
+            del os.environ["SOURCE_DATE_EPOCH"]
+        self.assertEqual(common.source_date(), common.source_date())
+
     def test_atomic_path_renames_only_on_success(self):
         f = self.d / "out.zip"
         with self.assertRaises(RuntimeError):

@@ -10,7 +10,7 @@
 | [`adcs params`](#adcs-params) | The flight software's parameter blob (adcs-fswcfg/1) for a scenario, as an OBC boots from it. |
 | [`adcs size`](#adcs-size) | The demand survey on the case's orbit, then every actuator option sized to it (magnetorquers, fluid loop, RCS, wheels, CMG, VSCMG). |
 | [`adcs parity`](#adcs-parity) | Fly the same scenario with two flight-software targets and report the largest difference in attitude and rate; bit-identical is the expected answer for C and Rust, and any difference exits with status 1. |
-| [`adcs results`](#adcs-results) | The results store: every run with its provenance, one line each; one run in full; a run as one share file, and back. |
+| [`adcs results`](#adcs-results) | The results store: every run with its provenance, one line each; one run in full; runs kept (pinned) or thinned to their manifest when old; a run as one share file, and back. |
 | [`engine.py build`](#enginepy-build) | Build and test everything that flies: the C flight software, the Rust flight software (host and Cortex-M), the virtual OBC firmware and the Rust engine. |
 | [`engine.py run`](#enginepy-run) | Fly scenarios on the engine in parallel (every scenario when none is named). |
 | [`engine.py mc`](#enginepy-mc) | A seed sweep of one scenario: the same scenario flown with N sensor-noise seeds. |
@@ -113,19 +113,20 @@ Fly the same scenario with two flight-software targets and report the largest di
 
 ## adcs results
 
-The results store: every run with its provenance, one line each; one run in full; a run as one share file, and back.
+The results store: every run with its provenance, one line each; one run in full; runs kept (pinned) or thinned to their manifest when old; a run as one share file, and back.
 
-    adcs results list [DIR] | show <run> | export <run> --out F.trinetra | import F.trinetra --out DIR
+    adcs results list [DIR] | show <run> | pin|unpin <run> | thin --older-than DAYS [DIR] [--dry-run] | export <run> --out F.trinetra | import F.trinetra --out DIR
 
 **Steps**
 
 1. list: find every manifest.json (adcs-rec/1) under the folder
-2. show: print the run's provenance and requirement metrics
-3. export: write README, manifest and channels into one zip
-4. import: check every entry's name and checksum, then write them into the folder
+2. show: print the run's provenance and requirement metrics (and, for a thinned run, the command that flies it again)
+3. pin: mark a run to keep; thin: remove the time series of unpinned runs older than DAYS, keeping every manifest
+4. export: write README, manifest and channels into one zip
+5. import: check every entry's name and checksum, then write them into the folder
 
 - **Reads:** `matlab_sils/store/results_engine/ (or DIR)`
-- **Writes:** `export: the .trinetra file; import: the folder`
+- **Writes:** `pin: <run>/PINNED; thin: removes <run>/channels.csv; export: the .trinetra file; import: the folder`
 - **Starts:** nothing
 
 ## engine.py build

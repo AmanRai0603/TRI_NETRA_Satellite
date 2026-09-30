@@ -9,6 +9,10 @@
 //! - **list / show.** `adcs results list [DIR]` finds every run under a folder (the
 //!   engine's store by default) and prints one line each; `show` prints one run's
 //!   provenance and requirement metrics.
+//! - **pin / thin.** `pin` marks a run to keep. `thin --older-than DAYS` removes the time
+//!   series (channels.csv, the bulk of a run) from runs older than that which are not pinned;
+//!   the manifest stays, so the verdicts and the provenance remain, and `show` gives the
+//!   command that flies the same run again.
 //! - **export / import.** `adcs results export <run> --out F.trinetra` writes the run's
 //!   manifest and channels, with a README, into one zip file any unzip tool opens;
 //!   `import` puts one back into a folder.
@@ -52,7 +56,13 @@ pub fn provenance(c: &crate::config::Config, fsw: &str) -> Value {
 #[derive(Debug, Clone)]
 pub struct Found { pub dir: PathBuf, pub m: Value }
 
+/// The file that marks a run as kept: `thin` never touches a run that has it.
+pub const PIN: &str = "PINNED";
+
 impl Found {
+    pub fn pinned(&self) -> bool { self.dir.join(PIN).is_file() }
+    /// Thinned: the manifest without its time series.
+    pub fn thinned(&self) -> bool { !self.dir.join("channels.csv").is_file() }
     fn s(&self, k: &str) -> String { self.m.get(k).and_then(|v| v.as_str()).unwrap_or("").to_string() }
     /// (passed, failed) requirement metrics.
     pub fn verdicts(&self) -> (usize, usize) {
@@ -85,12 +95,13 @@ pub fn list(root: &Path) -> Result<Vec<Found>, String> {
 
 /// One line per run: scenario, case, verdicts, when, where.
 pub fn table(found: &[Found], root: &Path) -> String {
-    let mut s = format!("{:<34} {:<12} {:>9}  {:<20}  {}\n", "scenario", "case", "pass/fail", "created (UTC)", "folder");
+    let mut s = format!("{:<34} {:<12} {:>9}  {:<20} {:<7} {}\n", "scenario", "case", "pass/fail", "created (UTC)", "kept", "folder");
     for f in found {
         let (p, x) = f.verdicts();
         let when = f.s("created_utc");
         let rel = f.dir.strip_prefix(root).unwrap_or(&f.dir).display().to_string();
-        s += &format!("{:<34} {:<12} {:>4}/{:<4}  {:<20}  {}\n", f.s("scenario"), f.s("case"), p, x, if when.is_empty() { "(before provenance)".into() } else { when }, rel);
+        let kept = if f.pinned() { "pinned" } else if f.thinned() { "thinned" } else { "" };
+        s += &format!("{:<34} {:<12} {:>4}/{:<4}  {:<20} {:<7} {}\n", f.s("scenario"), f.s("case"), p, x, if when.is_empty() { "(before provenance)".into() } else { when }, kept, rel);
     }
     s + &format!("{} run(s)\n", found.len())
 }
@@ -113,6 +124,14 @@ pub fn show(dir: &Path) -> Result<String, String> {
         s += &format!("  overrides     {}\n", if ov.is_empty() { "none".into() } else { ov.join(" ") });
     } else {
         s += "  (written before runs recorded their inputs: run it again for its provenance)\n";
+    }
+    if dir.join(PIN).is_file() { s += "  kept          pinned: `adcs results thin` leaves it whole\n"; }
+    if !dir.join("channels.csv").is_file() {
+        s += "  thinned       the time series was removed; the verdicts and provenance below remain\n";
+        if let Some(i) = m.get("inputs") {
+            let ov: String = i["overrides"].as_array().map(|a| a.iter().filter_map(|x| x.as_str()).map(|o| format!(" --set {o}")).collect()).unwrap_or_default();
+            s += &format!("  fly it again  adcs run {} --case {} --seed {}{ov}\n", g("scenario"), i["case_file"].as_str().unwrap_or("?"), i["seed"]);
+        }
     }
     s += "  requirement metrics:\n";
     for x in m["metrics"].as_array().cloned().unwrap_or_default() {
@@ -178,12 +197,52 @@ fn unzip(bytes: &[u8]) -> Result<Vec<(String, Vec<u8>)>, String> {
     Ok(out)
 }
 
+/// Mark a run to keep (`on`), or let `thin` treat it like any other.
+pub fn pin(dir: &Path, on: bool) -> Result<(), String> {
+    if !dir.join("manifest.json").is_file() { return Err(format!("{} is not a run", dir.display())); }
+    let f = dir.join(PIN);
+    if on { crate::fsio::write(&f, "kept: `adcs results thin` leaves this run whole\n") } else { match std::fs::remove_file(&f) { Ok(()) => Ok(()), Err(e) if e.kind() == std::io::ErrorKind::NotFound => Ok(()), Err(e) => Err(format!("{}: {e}", f.display())) } }
+}
+
+/// Seconds since 1970 of a manifest's `created_utc` (YYYY-MM-DDTHH:MM:SSZ), or None.
+pub fn created_secs(m: &Value) -> Option<u64> {
+    let s = m.get("created_utc")?.as_str()?;
+    let n = |a: usize, b: usize| s.get(a..b)?.parse::<i64>().ok();
+    let (y, mo, d, h, mi, se) = (n(0, 4)?, n(5, 7)?, n(8, 10)?, n(11, 13)?, n(14, 16)?, n(17, 19)?);
+    // days from civil (Hinnant), the inverse of fsio::utc_now
+    let y2 = if mo <= 2 { y - 1 } else { y };
+    let era = y2.div_euclid(400);
+    let yoe = y2 - era*400;
+    let doy = (153*(if mo > 2 { mo - 3 } else { mo + 9 }) + 2)/5 + d - 1;
+    let doe = yoe*365 + yoe/4 - yoe/100 + doy;
+    let days = era*146097 + doe - 719468;
+    u64::try_from(days*86400 + h*3600 + mi*60 + se).ok()
+}
+
+/// Thin every run under `root` older than `days` that is not pinned: remove its time series,
+/// keep its manifest. Returns the runs thinned and the bytes freed; `dry` changes nothing.
+pub fn thin(root: &Path, days: u64, dry: bool) -> Result<(Vec<PathBuf>, u64), String> {
+    let now = crate::fsio::utc_now().0;
+    let (mut done, mut freed) = (vec![], 0u64);
+    for f in list(root)? {
+        if f.pinned() || f.thinned() { continue; }
+        let Some(t) = created_secs(&f.m) else { continue };   // a run with no date is left alone
+        if now.saturating_sub(t) < days*86400 { continue; }
+        let c = f.dir.join("channels.csv");
+        freed += std::fs::metadata(&c).map(|m| m.len()).unwrap_or(0);
+        if !dry { std::fs::remove_file(&c).map_err(|e| format!("{}: {e}", c.display()))?; }
+        done.push(f.dir.clone());
+    }
+    Ok((done, freed))
+}
+
 /// Write a run as one `.trinetra` file.
 pub fn export(dir: &Path, out: &Path) -> Result<usize, String> {
     let summary = show(dir)?;
     let mut files = vec![];
     for n in ["manifest.json", "channels.csv"] {
         let p = dir.join(n);
+        if n == "channels.csv" && !p.is_file() { continue; }   // a thinned run sends its verdicts and provenance
         files.push((n.to_string(), std::fs::read(&p).map_err(|e| format!("{}: {e}", p.display()))?));
     }
     files.insert(0, ("README.txt".into(), format!("A TRI-NETRA ADCS run, exported by `adcs results export`.\n\
@@ -227,6 +286,33 @@ mod t {
         let f = d.join("bad.trinetra");
         std::fs::write(&f, zip(&[("../evil".to_string(), b"x".to_vec())])).unwrap();
         assert!(import(&f, &d.join("out")).unwrap_err().contains("not a plain file name"));
+        let _ = std::fs::remove_dir_all(&d);
+    }
+    #[test]
+    fn a_manifest_date_reads_back_to_its_second() {
+        let (s, w) = crate::fsio::utc_now();
+        assert_eq!(created_secs(&serde_json::json!({"created_utc": w})), Some(s));
+        assert_eq!(created_secs(&serde_json::json!({"created_utc": "1970-01-02T00:00:00Z"})), Some(86400));
+        assert_eq!(created_secs(&serde_json::json!({})), None);
+    }
+    #[test]
+    fn thin_keeps_the_manifest_and_leaves_pinned_and_recent_runs_whole() {
+        let d = std::env::temp_dir().join(format!("adcs-thin-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&d);
+        for (name, when) in [("old", "2020-01-01T00:00:00Z"), ("kept", "2020-01-01T00:00:00Z"), ("new", crate::fsio::utc_now().1.as_str())] {
+            let r = d.join(name);
+            std::fs::create_dir_all(&r).unwrap();
+            std::fs::write(r.join("manifest.json"), serde_json::json!({"schema": "adcs-rec/1", "created_utc": when, "metrics": []}).to_string()).unwrap();
+            std::fs::write(r.join("channels.csv"), "t_s\n0\n").unwrap();
+        }
+        pin(&d.join("kept"), true).unwrap();
+        let (dry, _) = thin(&d, 30, true).unwrap();
+        assert!(d.join("old/channels.csv").is_file() && dry.len() == 1, "a dry run changes nothing");
+        let (done, freed) = thin(&d, 30, false).unwrap();
+        assert_eq!(done, vec![d.join("old")]);
+        assert!(freed > 0 && d.join("old/manifest.json").is_file() && !d.join("old/channels.csv").exists());
+        assert!(d.join("kept/channels.csv").is_file() && d.join("new/channels.csv").is_file());
+        assert!(show(&d.join("old")).unwrap().contains("thinned"));
         let _ = std::fs::remove_dir_all(&d);
     }
     #[test]

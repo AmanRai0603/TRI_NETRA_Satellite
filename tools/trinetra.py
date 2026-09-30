@@ -4,6 +4,7 @@
     python3 tools/trinetra.py list                 every command, one line each, by tool
     python3 tools/trinetra.py explain <command>    what it does, its steps, what it reads and
                                                    writes and which programs it starts
+    python3 tools/trinetra.py why <file>           which command writes that file, and how
     python3 tools/trinetra.py docs [--check]       write docs/COMMANDS.md from the registry
                                                    (--check: exit 1 if it is not current)
 
@@ -83,6 +84,26 @@ def document():
     return "\n".join(L) + "\n"
 
 
+def writers(path):
+    """The commands whose `writes` name `path` (a file or folder in the repository)."""
+    import fnmatch
+    import re
+    p = pathlib.PurePosixPath(str(path).replace("\\", "/")).as_posix().lstrip("./")
+    out = []
+    for c in commands():
+        for w in c.get("writes") or []:
+            for part in re.split(r";\s*", w):
+                pat = re.sub(r"\s*\(.*?\)\s*$", "", part).split(":")[-1].strip()   # drop "(or --out)" and "export:" labels
+                pat = re.sub(r"<[^>]+>", "*", pat).rstrip("/")
+                if pat and (fnmatch.fnmatch(p, pat) or fnmatch.fnmatch(p, pat + "/*") or p.startswith(pat + "/")):
+                    out.append(c)
+                    break
+            else:
+                continue
+            break
+    return out
+
+
 def dry_run(tool, name):
     """For a tool's --dry-run: print the explanation of `tool name` and stop."""
     print(explain(find([tool, name])))
@@ -99,6 +120,13 @@ def main(argv):
         print(listing())
     elif cmd == "explain" and rest:
         print(explain(find(rest)))
+    elif cmd == "why" and len(rest) == 1:
+        ws = writers(rest[0])
+        if not ws:
+            print(f"no command in docs/commands.toml writes {rest[0]}: it is a source, edited by hand (docs/CHANGING.md says where)")
+            return 1
+        for c in ws:
+            print(f"{rest[0]} is written by `{c['tool']} {c['name']}`: {c['what']}\n    {c['usage']}\n")
     elif cmd == "docs" and rest in ([], ["--check"]):
         text = document()
         if rest:

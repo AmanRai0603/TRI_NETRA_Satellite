@@ -14,7 +14,7 @@ Sources (whatever exists is reported; a missing source is named, never invented)
 Owner: Agastya. Copyright (c) 2026 Agastya. All rights reserved.
 """
 import base64, csv, datetime, glob, html, io, json, math, pathlib, re, shutil, string, subprocess
-from common import write_text
+from common import source_date, write_text
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 MS = ROOT / "matlab_sils"
@@ -612,7 +612,7 @@ def main():
     eng = re.search(r'ENGINE: &str = "([^"]+)"', (ROOT / "engine" / "crates" / "adcs-sim" / "src" / "lib.rs").read_text())
     summ, cards = summary()
     doc = tpl.substitute(
-        docno=f"TRN-ADCS-VV-{datetime.date.today():%Y%m%d}", date=f"{datetime.datetime.now(datetime.timezone.utc):%Y-%m-%d %H:%M} UTC", commit=e(commit),
+        docno=f"TRN-ADCS-VV-{source_date():%Y%m%d}", date=f"{source_date():%Y-%m-%d %H:%M} UTC", commit=e(commit),
         engine=e(eng.group(1) if eng else "adcs-engine-rs"), fsw="trinetra-fsw-c/1.0.0 and trinetra-fsw-rs (C99 and Rust no_std, adcs-fswcfg/1)",
         cases=e(", ".join(CASES)), verdicts=cards, summary=summ, fig_flow=svg_inline("docs/figures/flow_design_to_hils.svg"),
         fig_arch=svg_inline("docs/figures/architecture_languages.svg"), nodes=nodes(), catalogue=catalogue(), literature=literature(), requirements=requirements(), design=design(), sils=sils(), verification=verification(),

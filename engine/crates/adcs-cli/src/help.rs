@@ -37,9 +37,12 @@ pub const COMMANDS: [(&str, &str, &str, &[Opt]); 5] = [
        ("--knobs F", "the sizing knobs (authority scales, margins, pump type, star tracker) as JSON"),
        ("--out DIR", "where the sized parts and products go (default: <store>/design/<case>/sized)")]),
     ("results", "list, show, export or import runs",
-     "adcs results list [DIR] | show <run> | export <run> --out F.trinetra | import F.trinetra --out DIR",
+     "adcs results list [DIR] | show <run> | pin|unpin <run> | thin --older-than DAYS [DIR] [--dry-run] | export <run> --out F.trinetra | import F.trinetra --out DIR",
      &[("list [DIR]", "every run under DIR (default: <store>/results_engine), one line each"),
        ("show <run>", "a run's provenance (what it flew, when, on which engine) and its requirement metrics"),
+       ("pin, unpin <run>", "keep a run whole, or let thin treat it like any other"),
+       ("thin --older-than N", "remove the time series of unpinned runs older than N days; every manifest (verdicts,"),
+       ("", "provenance) stays, and show gives the command that flies it again; --dry-run says what it would do"),
        ("export", "the run as one .trinetra file, a zip any unzip tool opens"),
        ("import", "a .trinetra file back into a folder, each entry's name and checksum checked")]),
 ];

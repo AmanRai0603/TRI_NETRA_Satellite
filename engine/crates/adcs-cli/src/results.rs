@@ -30,6 +30,29 @@ pub fn main(args: &[String]) -> Result<(), String> {
             let n = store::import(Path::new(f), &out)?;
             println!("imported {n} file(s) into {}; `adcs results show {}` reads it", out.display(), out.display());
         }
+        Some(v @ ("pin" | "unpin")) => {
+            if args.len() != 2 { return Err(usage); }
+            store::pin(Path::new(&args[1]), v == "pin")?;
+            println!("{} {}", if v == "pin" { "pinned" } else { "unpinned" }, args[1]);
+        }
+        Some("thin") => {
+            let (mut days, mut dry, mut dir) = (None, false, None);
+            let mut it = args[1..].iter();
+            while let Some(a) = it.next() {
+                match a.as_str() {
+                    "--older-than" => days = Some(it.next().and_then(|d| d.parse::<u64>().ok()).ok_or("--older-than DAYS: a whole number of days")?),
+                    "--dry-run" => dry = true,
+                    d if dir.is_none() && !d.starts_with("--") => dir = Some(PathBuf::from(d)),
+                    _ => return Err(usage),
+                }
+            }
+            let days = days.ok_or("thin needs --older-than DAYS")?;
+            let root = dir.unwrap_or_else(|| adcs_sim::store_root().join("results_engine"));
+            let (done, freed) = store::thin(&root, days, dry)?;
+            for d in &done { println!("  {}", d.strip_prefix(&root).unwrap_or(d).display()); }
+            println!("{} {} run(s) older than {days} days, {:.1} MB of time series{}; pinned runs and every manifest stay",
+                if dry { "would thin" } else { "thinned" }, done.len(), freed as f64/1e6, if dry { " (dry run: nothing changed)" } else { " freed" });
+        }
         _ => return Err(usage),
     }
     Ok(())

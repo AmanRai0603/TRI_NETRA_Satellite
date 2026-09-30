@@ -23,3 +23,5 @@ matlab_sils/store/pipeline/**/channels.csv
 dist/kit/
 dist/app/
 dist/*.whl
+# what each tool ran and wrote (tools/common.py trace)
+.trace/
