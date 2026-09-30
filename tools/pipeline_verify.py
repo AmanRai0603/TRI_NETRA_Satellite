@@ -8,7 +8,7 @@ import sys
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1] / "tools"))
 import json, math, os, shutil, subprocess, time
 import engine as E
-from common import write_text
+from common import write_bytes, write_text
 from pipeline_base import BIN, LAMBDA_MAX, MS, P, PIPE, ROOT, SCALE_MAX, SLOT, UP, cls, jl_, split_alg, usable, write
 from pipeline_design import node_key
 
@@ -99,7 +99,7 @@ def node_dispatch(case, sel, sized, modes, build, fam=None):
     write_text(sp, json.dumps(scen, indent=1))
     for f in ("products", "parts"):
         shutil.copytree(sized / f, dd / "sized" / f)
-    shutil.copy(sized / "sizing.json", dd / "sized" / "sizing.json")
+    write_bytes(dd / "sized" / "sizing.json", (sized / "sizing.json").read_bytes())
     env = dict(os.environ, ADCS_SIZED_DIR=str(sized))
     case_csv = str(MS / "cases" / f"{case}.csv")
     blob = dd / "fsw" / "adcs_fswcfg.bin"
@@ -149,6 +149,8 @@ def node_mc(case, disp, sized, runs, jobs, base=None):
     C = {"id": f"mc_dispatch_{case}", "case": case, "seed": C.get("seed", 1), "runs": runs, "type": "montecarlo",
          "dispersions": [d for d in (C["dispersions"] if isinstance(C["dispersions"], list) else [C["dispersions"]]) if d["kind"] != "initial_error_deg"]}
     base = base or PIPE / case / "mc"
+    if base.exists():                   # a Monte Carlo starts empty: no earlier run is read as this one's
+        shutil.rmtree(base)
     env_dir = str(sized)
     jobs_ = []
     draws = {}
@@ -165,19 +167,25 @@ def node_mc(case, disp, sized, runs, jobs, base=None):
         return k, subprocess.run(cmd, cwd=MS, env=dict(os.environ, ADCS_SIZED_DIR=env_dir), capture_output=True, text=True).returncode
 
     import concurrent.futures as tf
+    bad = set()
     with tf.ThreadPoolExecutor(jobs) as ex:
         for k, rc in ex.map(one, jobs_):
             if rc:
+                bad.add(k)
                 print(f"  [FAIL] mc run {k}")
     rr = []
     for k in range(1, runs + 1):
         f = base / f"run_{k:04d}" / "manifest.json"
-        if f.exists():
+        if k in bad or not f.exists():      # a run that failed to fly counts as failed, never dropped
+            rr.append({"k": k, "failed": True, "metrics": [], "draws": draws[k]})
+        else:
             rr.append({"k": k, "metrics": json.loads(f.read_text())["metrics"], "draws": draws[k]})
-    res = {"schema": "adcs-campaign-result/1", "id": C["id"], "case": case, "runs": len(rr), "dispersions": [d["kind"] for d in C["dispersions"]],
+    nfail = sum(1 for r in rr if r.get("failed"))
+    res = {"schema": "adcs-campaign-result/1", "id": C["id"], "case": case, "runs": len(rr) - nfail, "failed_runs": nfail,
+           "dispersions": [d["kind"] for d in C["dispersions"]],
            "stats": E.summarise(rr), "per_run": rr}
     write(base / "summary.json", res)
-    print(f"  mc: {len(rr)}/{runs} runs of the dispatched mission" + ("" if disp.get("selected", True) else f" ({disp['family']})"))
+    print(f"  mc: {len(rr) - nfail}/{runs} runs of the dispatched mission flown, {nfail} failed" + ("" if disp.get("selected", True) else f" ({disp['family']})"))
     return res
 
 

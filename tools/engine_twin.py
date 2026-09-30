@@ -51,10 +51,11 @@ def twin_parity(_):
     verdict agreement and the ratio, and the model differences named in fsw/twin_map.toml."""
     S = Steps("engine.py", "twin-parity")
     S(1)
-    rows = []
+    rows, unpaired = [], []
     for s in scenarios([]):
         a, b = TWIN / s / "manifest.json", ENG / s / "manifest.json"
         if not (a.exists() and b.exists()):
+            unpaired.append(f"{s} (no {'twin' if not a.exists() else 'engine'} run)")
             continue
         ma, mb = json.loads(a.read_text()), json.loads(b.read_text())
         lst = lambda x: x if isinstance(x, list) else [x]
@@ -71,7 +72,7 @@ def twin_parity(_):
                          "pass_matlab": m.get("pass"), "pass_engine": e.get("pass"),
                          "agree": (m.get("pass") == e.get("pass")) if m.get("pass") is not None else None,
                          "wall_matlab_s": ma.get("wall_s"), "wall_engine_s": mb.get("wall_s")})
-    S(2, f"{len(rows)} metric pairs")
+    S(2, f"{len(rows)} metric pairs" + (f"; not compared, named in the ledger: {', '.join(unpaired)}" if unpaired else ""))
     OUT.mkdir(exist_ok=True)
     write_text(OUT / "engine_parity.json", json.dumps(rows, indent=1))
     judged = [r for r in rows if r["agree"] is not None]
@@ -141,5 +142,7 @@ def twin_parity(_):
     for s, (wa, wb) in walls.items():
         if wa and wb:
             L.append(f"| {s} | {wa:.0f} | {wb:.2f} | {wa / wb:.0f}x |")
+    if unpaired:
+        L += ["", "Not compared (a run is missing on one side): " + ", ".join(unpaired) + "."]
     write_text(OUT / "ENGINE_PARITY.md", "\n".join(L) + "\n")
     print(f"verdict agreement {agree}/{len(judged)}; wrote results/ENGINE_PARITY.md")

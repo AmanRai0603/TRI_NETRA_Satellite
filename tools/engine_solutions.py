@@ -2,8 +2,8 @@
 
 Copyright (c) 2026 Agastya. All rights reserved.
 """
-import concurrent.futures as cf, json, math, subprocess, sys, time
-from common import Steps, sh, write_text
+import concurrent.futures as cf, json, math, shutil, subprocess, sys, time
+from common import Steps, case_values, sh, write_text
 from engine_base import BIN, OUT, ROOT
 
 
@@ -14,11 +14,10 @@ SOL = ROOT / "matlab_sils" / "store" / "solutions_engine"
 
 
 def case_value(case, key):
-    for line in (ROOT / "matlab_sils" / "cases" / f"{case}.csv").read_text().splitlines():
-        f = line.split(",")
-        if len(f) > 4 and f[1] == key:
-            return float(f[4])
-    raise KeyError(key)
+    v = case_values(case).get(key)
+    if v is None:
+        raise SystemExit(f"case {case} does not state {key}, which this needs")
+    return v
 
 
 def mode_scenario(case, M, o):
@@ -42,6 +41,7 @@ def mode_scenario(case, M, o):
 
 def sol_job(args):
     case, scen_path, seed, out, fsw = args
+    shutil.rmtree(out, ignore_errors=True)   # a failed run leaves nothing to be read as its result
     p = subprocess.run([str(BIN), "run", str(scen_path), "--case", str(ROOT / "matlab_sils" / "cases" / f"{case}.csv"),
                         "--seed", str(seed), "--fsw", fsw, "--out", str(out), "--quiet"], capture_output=True, text=True)
     return args, p.returncode, (p.stdout + p.stderr).strip()
@@ -64,9 +64,11 @@ def solutions(a):
                 jobs += [(c, sp, s, d / f"seed_{s}", a.fsw) for s in seeds]
     t0 = time.time()
     S(2, f"{len(jobs)} runs")
+    failed = 0
     with cf.ProcessPoolExecutor(a.jobs) as ex:
         for (c, sp, s, out, _), rc, txt in ex.map(sol_job, jobs):
             if rc:
+                failed += 1
                 print(f"[FAIL] {sp.parent.relative_to(SOL)} seed {s}: {txt.splitlines()[-1] if txt else ''}")
     print(f"{len(jobs)} mode tests in {time.time() - t0:.0f} s wall")
     S(3)
@@ -112,17 +114,19 @@ def solutions(a):
     write_text(OUT / "engine_solutions.json", json.dumps(res, indent=1))
     write_text(OUT / "ENGINE_SOLUTIONS.md", "\n".join(L) + "\n")
     print("wrote results/ENGINE_SOLUTIONS.md")
+    return failed
 
 
 def dispatch(a):
     sys.path.insert(0, str(ROOT / "tools"))
     import fswcfg
     S = Steps("engine.py", "dispatch")
+    failed = 0
     for c in a.cases or ["ais_3u", "ais_img_3u"]:
         S(1, c)
         sj = ROOT / "matlab_sils" / "store" / "solutions" / c / "solution.json"
         if not sj.exists():
-            print(f"{c}: no solution.json yet (asils.solution.collect) -- skipped"); continue
+            print(f"[FAIL] {c}: no solution.json yet (run asils.solution.collect first)"); failed += 1; continue
         S = json.loads(sj.read_text())
         fam = S["recommended"]
         E = S["families"][fam]
@@ -159,8 +163,10 @@ def dispatch(a):
         res = {}
         for impl in ("c", "rust"):
             out = SOL / c / "dispatch" / impl
+            shutil.rmtree(out, ignore_errors=True)
             p = subprocess.run([str(BIN), "run", str(sp), "--case", case_csv, "--fsw", impl, "--out", str(out), "--quiet"], capture_output=True, text=True)
             man = json.loads((out / "manifest.json").read_text()) if p.returncode == 0 else {}
+            failed += p.returncode != 0
             res[impl] = {"rc": p.returncode, "build_id": man.get("fsw", {}).get("build_id"), "metrics": man.get("metrics"), "mode_log": man.get("mode_log")}
         write_text(dd / "engine_check.json", json.dumps(res, indent=1))
         write_text(dd / "BUILD.md", f"""# Flight software for {c} / {fam}
@@ -195,3 +201,4 @@ Both builds give bit-identical outputs for the same bytes (`adcs parity`).
 Then OILS: the same blob on the OBC with the engine's device emulators on the wire (docs/OILS_HILS.md).
 """)
         print(f"{c}: {fam} -> {dd.relative_to(ROOT)}  (engine check: " + ", ".join(f"{k} rc={v['rc']}" for k, v in res.items()) + ")")
+    return failed

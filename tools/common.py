@@ -106,6 +106,31 @@ def trace(what):
         pass
 
 
+def case_values(case):
+    """The numbers a case states (matlab_sils/cases/<case>.csv, adcs-case/1): {key: float}.
+    A blank value is not stated and is left out; text is allowed only in meta.* rows; any other
+    value that is not a finite number is refused by name, as the engine and the twin refuse it."""
+    import csv
+    import math
+    p = ROOT / "matlab_sils" / "cases" / f"{case}.csv"
+    if not p.exists():
+        raise SystemExit(f"no case {case}: {_rel(p)} does not exist")
+    out = {}
+    with open(p, newline="", encoding="utf-8") as f:
+        for line, r in enumerate(csv.DictReader(f), 2):
+            k, v = (r.get("key") or "").strip(), (r.get("value") or "").strip()
+            if not k or not v or k.startswith("meta."):
+                continue
+            try:
+                x = float(v)
+            except ValueError:
+                x = math.nan
+            if not math.isfinite(x):
+                raise SystemExit(f"case {_rel(p)} line {line}: {k} = {v!r} is not a finite number (leave it blank if it is not stated)")
+            out[k] = x
+    return out
+
+
 class Steps:
     """A command's steps as docs/commands.toml lists them, announced as the command reaches
     each one: `[2/4] one `adcs run` per run: mc_nadir_ais`. The registry is the one place a

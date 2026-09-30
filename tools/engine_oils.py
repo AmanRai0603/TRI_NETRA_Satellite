@@ -2,7 +2,7 @@
 
 Copyright (c) 2026 Agastya. All rights reserved.
 """
-import concurrent.futures as cf, json, subprocess, time
+import concurrent.futures as cf, json, shutil, subprocess, time
 from common import Steps, sh, write_text
 from engine_base import BIN, DATA, ENG, OUT
 from engine_runs import scenarios
@@ -14,6 +14,7 @@ def oils_job(args):
     cmd = [str(BIN), "run", scen, "--fsw", fsw, "--out", str(out), "--quiet"] + extra
     if mode == "oils":
         cmd.append("--oils")
+    shutil.rmtree(out, ignore_errors=True)   # a failed run leaves nothing to be read as its result
     t0 = time.time()
     p = subprocess.run(cmd, capture_output=True, text=True)
     return scen, mode, p.returncode, time.time() - t0, (p.stdout + p.stderr).strip()
@@ -34,13 +35,16 @@ def oils(a):
     dur = {s: json.loads((DATA / f"{s}.json").read_text())["time"]["duration_s"] / json.loads((DATA / f"{s}.json").read_text())["time"]["dt_s"] for s in scen}
     jobs.sort(key=lambda j: -dur[j[0]] * (50 if j[1] == "oils" else 1))
     S(2, f"{len(scen)} scenario(s)")
+    failed = 0
     with cf.ProcessPoolExecutor(a.jobs) as ex:
         for s, mode, rc, dt, txt in ex.map(oils_job, jobs):
             print(f"[{'ok' if rc == 0 else 'FAIL'}] {s:22s} {mode:4s} {dt:7.1f} s wall", flush=True)
             if rc:
+                failed += 1
                 print(txt[-2000:])
     S(3)
     oils_ledger(scen, a.fsw)
+    return failed
 
 
 def oils_ledger(scen=None, fsw="qemu", announce=False):

@@ -28,7 +28,9 @@ _cases = {}
 def req(case, key):
     if case not in _cases:
         p = ROOT / "matlab_sils/cases" / f"{case}.csv"
-        _cases[case] = E.case_values(case) if p.exists() else {}
+        if not p.exists():
+            raise SystemExit(f"rescore: a result names case {case!r}, and {p.relative_to(ROOT)} does not exist")
+        _cases[case] = E.case_values(case)
     v = _cases[case].get(key)
     return v if isinstance(v, (int, float)) and math.isfinite(v) else None
 
@@ -40,7 +42,11 @@ def judge(node, case, n):
         k = node.get("req_key")
         if isinstance(k, str) and k.startswith("req.") and case and "value" in node:
             r = req(case, k)
-            if r is not None and node.get("req") != r:
+            if r is None and (node.get("req") is not None or node.get("pass") is not None):
+                # the case no longer states this requirement: the old verdict goes with it
+                node["req"], node["pass"] = None, None
+                n[0] += 1
+            elif r is not None and node.get("req") != r:
                 v = node.get("value")
                 ok = isinstance(v, (int, float)) and math.isfinite(v)
                 node["req"] = r
@@ -78,6 +84,7 @@ def main():
     ap.add_argument("--dry-run", action="store_true")
     a = ap.parse_args()
     files = changed = 0
+    unreadable = []
     for s in STORES:
         for p in sorted((ROOT / s).rglob("*.json")):
             if any(x in str(p) for x in SKIP):
@@ -85,7 +92,8 @@ def main():
             try:
                 txt = p.read_text()
                 d = json.loads(txt)
-            except (ValueError, UnicodeDecodeError):
+            except (ValueError, UnicodeDecodeError) as e:
+                unreadable.append(f"{p.relative_to(ROOT)}: {e}")
                 continue
             n = [0]
             judge(d, None, n)
@@ -102,6 +110,9 @@ def main():
                 write_text(p, json.dumps(d, indent=1) if txt.startswith("{\n") or txt.startswith("[\n")
                              else json.dumps(d, separators=(",", ":")))
     print(f"rescore: {changed} verdict(s) in {files} file(s){' (dry run)' if a.dry_run else ''}")
+    if unreadable:
+        print("\n".join(f"  [FAIL] unreadable: {u}" for u in unreadable))
+        sys.exit(f"rescore: {len(unreadable)} result file(s) could not be read, so their verdicts were not checked")
 
 
 if __name__ == "__main__":

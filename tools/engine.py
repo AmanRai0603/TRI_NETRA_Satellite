@@ -93,7 +93,9 @@ def main():
         trinetra.dry_run("engine.py", a.cmd)
     if a.cmd not in ("build",) and not BIN.exists():
         sys.exit("engine not built: python3 tools/engine.py build")
-    a.f(a)
+    failed = a.f(a) or 0
+    if failed:
+        sys.exit(f"engine.py {a.cmd}: {failed} failure(s), each marked FAIL above; nothing failed was counted as passing")
 
 
 if __name__ == "__main__":

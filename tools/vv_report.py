@@ -14,7 +14,7 @@ Sources (whatever exists is reported; a missing source is named, never invented)
 Owner: Agastya. Copyright (c) 2026 Agastya. All rights reserved.
 """
 import base64, csv, glob, html, io, json, math, pathlib, re, shutil, string, subprocess
-from common import source_date, write_text
+from common import source_date, write_bytes, write_text
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 MS = ROOT / "matlab_sils"
@@ -29,9 +29,18 @@ C_TWIN, C_ENG, C_REQ, INK, MUTED = "#2a78d6", "#eb6834", "#1f2a44", "#1f2a44", "
 e = html.escape
 
 
-def jl(p):
+MISSING = []
+
+
+def jl(p, optional=False):
+    """A ledger the report reads. A missing one is recorded (and the report refused at the end)
+    unless the report says what it shows without it (optional=True)."""
     p = pathlib.Path(p)
-    return json.loads(p.read_text()) if p.exists() else None
+    if p.exists():
+        return json.loads(p.read_text())
+    if not optional:
+        MISSING.append(str(p.relative_to(ROOT)))
+    return None
 
 
 def fmt(x, d=4):
@@ -617,6 +626,9 @@ def main():
         cases=e(", ".join(CASES)), verdicts=cards, summary=summ, fig_flow=svg_inline("docs/figures/flow_design_to_hils.svg"),
         fig_arch=svg_inline("docs/figures/architecture_languages.svg"), nodes=nodes(), catalogue=catalogue(), literature=literature(), requirements=requirements(), design=design(), sils=sils(), verification=verification(),
         campaigns=campaigns(), parity=parity(), oils=oils(), vobc=vobc(), open=open_items())
+    if MISSING:
+        raise SystemExit("vv_report: refused, the evidence these sections read is missing:\n  " + "\n  ".join(sorted(set(MISSING)))
+                         + "\n(run the command that writes each: python3 tools/trinetra.py why <file>)")
     h = OUT / "TRINETRA_ADCS_VV_report.html"
     write_text(h, doc)
     # the published page: the same report without the document wrapper (the artifact adds it),
@@ -629,12 +641,15 @@ def main():
     write_text(OUT / "vv_artifact.html", title + "\n" + style.replace("body { margin: 0;", "body { margin: 0; min-height: 100%;") + "\n" + nav + body)
     chrome = next(iter(glob.glob("/opt/pw-browsers/chromium*/chrome-linux/chrome")), None) or shutil.which("chromium") or shutil.which("google-chrome")
     pdf = OUT / "TRINETRA_ADCS_VV_report.pdf"
+    pdf.unlink(missing_ok=True)          # an old PDF is never passed off as this report's
+    rc = None
     if chrome:
-        subprocess.run([chrome, "--headless", "--no-sandbox", "--disable-gpu", "--no-pdf-header-footer", f"--print-to-pdf={pdf}", h.as_uri()],
-                       capture_output=True, timeout=300)
+        rc = subprocess.run([chrome, "--headless", "--no-sandbox", "--disable-gpu", "--no-pdf-header-footer", f"--print-to-pdf={pdf}", h.as_uri()],
+                            capture_output=True, timeout=300).returncode
+    if chrome and rc != 0:
+        raise SystemExit(f"vv_report: Chromium exited {rc} printing the PDF; no PDF was kept")
     if pdf.exists():
-        (ROOT / "dist").mkdir(exist_ok=True)
-        shutil.copy(pdf, ROOT / "dist" / "TRINETRA_ADCS_VV_report.pdf")
+        write_bytes(ROOT / "dist" / "TRINETRA_ADCS_VV_report.pdf", pdf.read_bytes())
         print(f"wrote {h.relative_to(ROOT)}, {pdf.relative_to(ROOT)} ({pdf.stat().st_size / 1e6:.1f} MB), dist/TRINETRA_ADCS_VV_report.pdf")
     else:
         raise SystemExit(f"vv_report: wrote {h.relative_to(ROOT)} but no PDF: " +

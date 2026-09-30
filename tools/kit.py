@@ -73,10 +73,8 @@ def build(out, bin_dir=None, files_only=False):
         exe = ".exe" if (bin_dir / "adcs.exe").exists() else ""
         for p in PROGRAMS:
             src = bin_dir / f"{p}{exe}"
-            if not src.exists():
-                if p == "adcs":
-                    sys.exit(f"{src} does not exist: build the engine first (cargo build --release in engine/)")
-                continue
+            if not src.exists():   # a kit without one of its programs is not a kit
+                sys.exit(f"{src} does not exist: build the engine and the app first (cargo build --release in engine/)")
             name = WINDOWS_NAME.get(p, p) if exe else p
             shutil.copy2(src, out / f"{name}{exe}")
             progs.append(f"{name}{exe}")
@@ -85,8 +83,9 @@ def build(out, bin_dir=None, files_only=False):
     write_text(out / "VERSION", f"TRI-NETRA ADCS {v}\n" + "".join(f"{k}: {x}\n" for k, x in components().items()))
     for doc, name in (("docs/START_HERE.md", "START_HERE.md"), ("docs/FIRST_RUN.md", "FIRST_RUN.md"), ("docs/COMMANDS.md", "COMMANDS.md"),
                       ("docs/ENVIRONMENT.md", "ENVIRONMENT.md")):
-        if (ROOT / doc).exists():
-            shutil.copy2(ROOT / doc, out / name)
+        if not (ROOT / doc).exists():
+            sys.exit(f"{doc} does not exist, and every kit carries it")
+        shutil.copy2(ROOT / doc, out / name)
     return v, progs, n
 
 

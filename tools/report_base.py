@@ -3,6 +3,7 @@
 Copyright (c) 2026 Agastya. All rights reserved.
 """
 import csv, json, pathlib
+from common import write_bytes
 import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
@@ -79,8 +80,11 @@ def case_req(man, key):
 
 
 def save(fig, name):
+    import io
     p = FIG / f"{name}.png"
-    fig.savefig(p, dpi=130, bbox_inches="tight")
+    b = io.BytesIO()
+    fig.savefig(b, format="png", dpi=130, bbox_inches="tight")
+    write_bytes(p, b.getvalue())          # whole or absent, as every file a tool writes
     plt.close(fig)
     return p.name
 

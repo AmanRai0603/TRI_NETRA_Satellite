@@ -2,7 +2,8 @@
 
 Copyright (c) 2026 Agastya. All rights reserved.
 """
-import concurrent.futures as cf, json, math, statistics, subprocess, time
+import concurrent.futures as cf, json, math, shutil, statistics, subprocess, time
+import common
 from common import Steps, write_text
 from engine_base import BIN, ENG, OUT, ROOT, TWIN
 
@@ -12,14 +13,7 @@ CAMP = ROOT / "matlab_sils" / "data" / "campaigns"
 
 
 def case_values(case):
-    import csv
-    out = {}
-    for row in csv.DictReader(open(ROOT / "matlab_sils" / "cases" / f"{case}.csv")):
-        try:
-            out[row["key"]] = float(row["value"])
-        except (TypeError, ValueError):
-            pass
-    return out
+    return common.case_values(case)
 
 
 def draw(C, k):
@@ -125,11 +119,15 @@ def summarise(runs, levels=None):
         vals = [next((m.get("value") for m in r["metrics"] if m["id"] == i), None) for r in runs]
         fin = [v for v in vals if isinstance(v, (int, float)) and math.isfinite(v)]
         verd = [next((m.get("pass") for m in r["metrics"] if m["id"] == i), None) for r in runs]
+        # a run that failed to fly is a failed run for every judged requirement, never left out
+        judged_metric = meta[i].get("req") is not None
+        verd = [0 if (r.get("failed") and judged_metric) else v for r, v in zip(runs, verd)]
         judged = [v for v in verd if v is not None]
         req = meta[i].get("req")
         stats.append({"id": i, "unit": meta[i].get("unit", ""), "req": req, "values": vals,
                       "mean": statistics.fmean(fin) if fin else None, "std": statistics.stdev(fin) if len(fin) > 1 else 0.0,
                       "min": min(fin) if fin else None, "max": max(fin) if fin else None, "n_valid": len(fin),
+                      "n_failed_runs": sum(1 for r in runs if r.get("failed")),
                       "pass_rate": (sum(judged) / len(judged)) if judged else None,
                       "pass": (all(judged) if judged else None)})
     return stats
@@ -138,10 +136,13 @@ def summarise(runs, levels=None):
 def campaign(a):
     ids = a.ids or sorted(p.stem for p in CAMP.glob("*.json"))
     S = Steps("engine.py", "campaign")
-    rows = {}
+    rows, failed_total = {}, 0
     for cid in ids:
         C = json.loads((CAMP / f"{cid}.json").read_text())
         base = ENG / "campaigns" / cid
+        # a campaign starts from an empty folder: no run of an earlier campaign is ever read as this one's
+        if base.exists():
+            shutil.rmtree(base)
         jobs = []
         draws = {}
         S(1, f"{cid}, {C['runs']} runs")
@@ -151,25 +152,32 @@ def campaign(a):
             jobs.append((cid, C["scenario"], C["case"], C["seed"] + 7919 * k, k, sets, base / f"run_{k:04d}", a.fsw))
         t0 = time.time()
         S(2, cid)
+        errors = {}
         with cf.ProcessPoolExecutor(a.jobs) as ex:
             for k, rc, txt in ex.map(camp_job, jobs):
                 if rc:
-                    print(f"[FAIL] {cid} run {k}: {txt.splitlines()[-1] if txt else ''}")
+                    errors[k] = txt.splitlines()[-1] if txt else f"exit status {rc}"
+                    print(f"[FAIL] {cid} run {k}: {errors[k]}")
         S(3, cid)
         runs = []
         for k in range(1, C["runs"] + 1):
             f = base / f"run_{k:04d}" / "manifest.json"
-            if f.exists():
-                m = json.loads(f.read_text())
-                runs.append({"k": k, "metrics": m["metrics"] if isinstance(m["metrics"], list) else [m["metrics"]], "draws": draws[k], "wall_s": m.get("wall_s")})
+            if k in errors or not f.exists():
+                runs.append({"k": k, "failed": True, "error": errors.get(k, "no manifest written"), "metrics": [], "draws": draws[k]})
+                continue
+            m = json.loads(f.read_text())
+            runs.append({"k": k, "metrics": m["metrics"] if isinstance(m["metrics"], list) else [m["metrics"]], "draws": draws[k], "wall_s": m.get("wall_s")})
+        nfail = sum(1 for r in runs if r.get("failed"))
+        failed_total += nfail
         res = {"schema": "adcs-campaign-result/1", "owner": "Agastya", "id": cid, "scenario": C["scenario"], "case": C["case"],
-               "type": C.get("type", "montecarlo"), "runs": len(runs), "engine": True, "fsw": a.fsw,
+               "type": C.get("type", "montecarlo"), "runs": len(runs) - nfail, "failed_runs": nfail, "engine": True, "fsw": a.fsw,
                "stats": summarise(runs), "per_run": runs, "wall_s": time.time() - t0}
         write_text(base / "summary.json", json.dumps(res, indent=1))
         rows[cid] = res
-        print(f"{cid}: {len(runs)}/{C['runs']} runs in {time.time() - t0:.0f} s wall")
+        print(f"{cid}: {len(runs) - nfail}/{C['runs']} runs flown, {nfail} failed, in {time.time() - t0:.0f} s wall")
     S(4)
     campaign_ledger()
+    return failed_total
 
 
 def campaign_ledger(announce=False):

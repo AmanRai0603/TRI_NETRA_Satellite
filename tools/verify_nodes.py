@@ -12,7 +12,7 @@ results/node_verification.json, and exits non-zero when a check fails.
 Copyright (c) 2026 Agastya. All rights reserved.
 """
 import json, math, pathlib, sys
-from common import write_text
+from common import case_values, write_text
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 MS = ROOT / "matlab_sils"
@@ -32,15 +32,7 @@ class Check:
 
 
 def case_req(case):
-    import csv
-    out = {}
-    with open(MS / "cases" / f"{case}.csv", newline="") as f:
-        for r in csv.DictReader(f):
-            try:
-                out[r["key"]] = float(r["value"])
-            except (TypeError, ValueError):
-                pass
-    return out
+    return case_values(case)
 
 
 def verify_catalogue(C):
