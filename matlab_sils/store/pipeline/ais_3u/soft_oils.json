@@ -1,8 +1,8 @@
 {
- "_key": "8237868c41b4bc22",
+ "_key": "33558732998a87b3",
  "sils": {
   "rc": 0,
-  "wall_s": 1.0742723941802979,
+  "wall_s": 2.376913070678711,
   "metrics": [
    {
     "id": "detumble_time",
@@ -66,17 +66,259 @@
   }
  },
  "oils": {
-  "rc": 2,
-  "wall_s": 0.2515230178833008,
-  "metrics": null,
-  "oils": null,
-  "fsw": null
+  "rc": 0,
+  "wall_s": 1470.8244578838348,
+  "metrics": [
+   {
+    "id": "detumble_time",
+    "kind": "time_to_rate",
+    "value": 52.291666666666664,
+    "unit": "min",
+    "req": 284.0,
+    "req_key": "req.detumble",
+    "pass": 1
+   },
+   {
+    "id": "ape_los_p9973",
+    "kind": "ape_los",
+    "value": 0.15464852399610837,
+    "unit": "deg",
+    "req": 10.0,
+    "req_key": "req.ape",
+    "pass": 1
+   },
+   {
+    "id": "ake_los_p9973",
+    "kind": "ake_los",
+    "value": 0.15342322742618564,
+    "unit": "deg",
+    "req": 5.0,
+    "req_key": "req.ake",
+    "pass": 1
+   },
+   {
+    "id": "power_mean",
+    "kind": "power_mean",
+    "value": 0.18182174510327254,
+    "unit": "W",
+    "req": 0.5,
+    "req_key": "req.pavg",
+    "pass": 1
+   },
+   {
+    "id": "power_peak",
+    "kind": "power_peak",
+    "value": 0.3965189569259942,
+    "unit": "W",
+    "req": null,
+    "req_key": "",
+    "pass": null
+   },
+   {
+    "id": "propellant",
+    "kind": "propellant",
+    "value": 0.0,
+    "unit": "g",
+    "req": null,
+    "req_key": "",
+    "pass": null
+   },
+   {
+    "id": "oils_overruns",
+    "kind": "oils_overruns",
+    "value": 0,
+    "unit": "",
+    "req": 0.0,
+    "req_key": "oils",
+    "pass": 1
+   },
+   {
+    "id": "oils_worst_case_margin",
+    "kind": "oils_deadline",
+    "value": 37.93589285714286,
+    "unit": "ms",
+    "req": 0.0,
+    "req_key": "oils",
+    "pass": 1
+   }
+  ],
+  "oils": {
+   "model": {
+    "cpu_hz": 168000000.0,
+    "cpi": 1.25,
+    "i2c_hz": 400000.0,
+    "spi_hz": 1000000.0,
+    "can_bps": 1000000.0,
+    "cpi_max": 2.0,
+    "isr_s": 5e-05,
+    "deadline_frac": 0.5,
+    "fixed_s": null
+   },
+   "ticks": 172171,
+   "overruns": 0,
+   "control_period_s": 0.1,
+   "exec_s": {
+    "mean": 0.0016348097726709841,
+    "p99": 0.006671703869047619,
+    "max": 0.006778191964285714
+   },
+   "bus_s": {
+    "mean": 0.0011690000000026866,
+    "p99": 0.0011690000000000001,
+    "max": 0.0011690000000000001
+   },
+   "latency_s": {
+    "mean": 0.002803809772671,
+    "p99": 0.00784070386904762,
+    "max": 0.007947191964285715
+   },
+   "worst_latency_s": {
+    "mean": 0.0038346956362735494,
+    "p99": 0.011893726190476189,
+    "max": 0.012064107142857142
+   },
+   "instructions": {
+    "mean": 219718.43344698002,
+    "p99": 896677.0,
+    "max": 910989.0
+   },
+   "cpu_load_mean": 0.01634809772670984,
+   "cpu_load_max": 0.06778191964285714,
+   "deadline_margin_min_s": 0.09205280803571429,
+   "deadline_s": 0.05,
+   "worst_case_margin_s": 0.03793589285714286
+  },
+  "fsw": {
+   "impl": "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu.elf",
+   "build_id": "trinetra-fsw-c/1.0.0 (adcs-fswcfg/1) via adcs-link/1"
+  }
  },
  "oils_rs": {
-  "rc": 2,
-  "wall_s": 0.21605300903320312,
-  "metrics": null,
-  "oils": null,
-  "fsw": null
+  "rc": 0,
+  "wall_s": 1491.8482904434204,
+  "metrics": [
+   {
+    "id": "detumble_time",
+    "kind": "time_to_rate",
+    "value": 52.291666666666664,
+    "unit": "min",
+    "req": 284.0,
+    "req_key": "req.detumble",
+    "pass": 1
+   },
+   {
+    "id": "ape_los_p9973",
+    "kind": "ape_los",
+    "value": 0.15785820558877794,
+    "unit": "deg",
+    "req": 10.0,
+    "req_key": "req.ape",
+    "pass": 1
+   },
+   {
+    "id": "ake_los_p9973",
+    "kind": "ake_los",
+    "value": 0.15370668120560765,
+    "unit": "deg",
+    "req": 5.0,
+    "req_key": "req.ake",
+    "pass": 1
+   },
+   {
+    "id": "power_mean",
+    "kind": "power_mean",
+    "value": 0.1818113460648242,
+    "unit": "W",
+    "req": 0.5,
+    "req_key": "req.pavg",
+    "pass": 1
+   },
+   {
+    "id": "power_peak",
+    "kind": "power_peak",
+    "value": 0.39655826299204,
+    "unit": "W",
+    "req": null,
+    "req_key": "",
+    "pass": null
+   },
+   {
+    "id": "propellant",
+    "kind": "propellant",
+    "value": 0.0,
+    "unit": "g",
+    "req": null,
+    "req_key": "",
+    "pass": null
+   },
+   {
+    "id": "oils_overruns",
+    "kind": "oils_overruns",
+    "value": 0,
+    "unit": "",
+    "req": 0.0,
+    "req_key": "oils",
+    "pass": 1
+   },
+   {
+    "id": "oils_worst_case_margin",
+    "kind": "oils_deadline",
+    "value": 36.13425,
+    "unit": "ms",
+    "req": 0.0,
+    "req_key": "oils",
+    "pass": 1
+   }
+  ],
+  "oils": {
+   "model": {
+    "cpu_hz": 168000000.0,
+    "cpi": 1.25,
+    "i2c_hz": 400000.0,
+    "spi_hz": 1000000.0,
+    "can_bps": 1000000.0,
+    "cpi_max": 2.0,
+    "isr_s": 5e-05,
+    "deadline_frac": 0.5,
+    "fixed_s": null
+   },
+   "ticks": 172171,
+   "overruns": 0,
+   "control_period_s": 0.1,
+   "exec_s": {
+    "mean": 0.0020343327285566527,
+    "p99": 0.007843385416666666,
+    "max": 0.00790421875
+   },
+   "bus_s": {
+    "mean": 0.0011690000000026866,
+    "p99": 0.0011690000000000001,
+    "max": 0.0011690000000000001
+   },
+   "latency_s": {
+    "mean": 0.003203332728556652,
+    "p99": 0.009012385416666666,
+    "max": 0.00907321875
+   },
+   "worst_latency_s": {
+    "mean": 0.004473932365690699,
+    "p99": 0.013768416666666665,
+    "max": 0.013865750000000001
+   },
+   "instructions": {
+    "mean": 273414.3187180187,
+    "p99": 1054151.0,
+    "max": 1062327.0
+   },
+   "cpu_load_mean": 0.020343327285566527,
+   "cpu_load_max": 0.0790421875,
+   "deadline_margin_min_s": 0.09092678125,
+   "deadline_s": 0.05,
+   "worst_case_margin_s": 0.03613425
+  },
+  "fsw": {
+   "impl": "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu_rs.elf",
+   "build_id": "trinetra-fsw-rs/1.0.0 (adcs-fswcfg/1) via adcs-link/1"
+  }
  }
 }
