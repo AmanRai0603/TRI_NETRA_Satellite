@@ -312,21 +312,21 @@ fn zip(files: &[(String, Vec<u8>)]) -> Vec<u8> {
     out
 }
 
-fn unzip(bytes: &[u8]) -> Result<Vec<(String, Vec<u8>)>, String> {
-    let rd16 = |i: usize| -> Result<usize, String> { bytes.get(i..i + 2).map(|b| u16::from_le_bytes([b[0], b[1]]) as usize).ok_or("the file ends early".into()) };
-    let rd32 = |i: usize| -> Result<usize, String> { bytes.get(i..i + 4).map(|b| u32::from_le_bytes([b[0], b[1], b[2], b[3]]) as usize).ok_or("the file ends early".into()) };
+fn unzip(bytes: &[u8]) -> Result<Vec<(String, Vec<u8>)>, Error> {
+    let rd16 = |i: usize| -> Result<usize, Error> { bytes.get(i..i + 2).map(|b| u16::from_le_bytes([b[0], b[1]]) as usize).ok_or_else(|| Error::malformed("the file ends early")) };
+    let rd32 = |i: usize| -> Result<usize, Error> { bytes.get(i..i + 4).map(|b| u32::from_le_bytes([b[0], b[1], b[2], b[3]]) as usize).ok_or_else(|| Error::malformed("the file ends early")) };
     let (mut i, mut out) = (0usize, vec![]);
     while i + 4 <= bytes.len() && rd32(i)? == 0x04034b50 {
         let (method, size, nlen, xlen) = (rd16(i + 8)?, rd32(i + 18)?, rd16(i + 26)?, rd16(i + 28)?);
-        if method != 0 { return Err("a compressed entry: this is not a file `adcs results export` wrote".into()); }
-        let name = String::from_utf8(bytes.get(i + 30..i + 30 + nlen).ok_or("the file ends early")?.to_vec()).map_err(|_| "a name that is not text")?;
+        if method != 0 { return Err(Error::malformed("a compressed entry: this is not a file `adcs results export` wrote")); }
+        let name = String::from_utf8(bytes.get(i + 30..i + 30 + nlen).ok_or_else(|| Error::malformed("the file ends early"))?.to_vec()).map_err(|_| Error::malformed("a name that is not text"))?;
         let start = i + 30 + nlen + xlen;
-        let data = bytes.get(start..start + size).ok_or("the file ends early")?.to_vec();
-        if crc32(&data) as usize != rd32(i + 14)? { return Err(format!("{name} is damaged (its checksum does not match)")); }
+        let data = bytes.get(start..start + size).ok_or_else(|| Error::malformed("the file ends early"))?.to_vec();
+        if crc32(&data) as usize != rd32(i + 14)? { return Err(Error::malformed(format!("{name} is damaged (its checksum does not match)"))); }
         out.push((name, data));
         i = start + size;
     }
-    if out.is_empty() { return Err("not a .trinetra file".into()); }
+    if out.is_empty() { return Err(Error::malformed("not a .trinetra file")); }
     Ok(out)
 }
 
@@ -500,7 +500,7 @@ pub fn export(dir: &Path, out: &Path) -> Result<usize, Error> {
 
 /// Put a `.trinetra` file back into a folder, refusing any name that is not a plain file name.
 pub fn import(file: &Path, out: &Path) -> Result<usize, Error> {
-    let files = unzip(&std::fs::read(file).map_err(|e| Error::io(file, e))?).map_err(|e| Error::malformed(format!("{}: {e}", file.display())))?;
+    let files = unzip(&std::fs::read(file).map_err(|e| Error::io(file, e))?).map_err(|e| Error::malformed(format!("{}: {}", file.display(), e.message())))?;
     for (name, data) in &files {
         if name.contains('/') || name.contains('\\') || name.starts_with('.') || name.is_empty() {
             return Err(Error::refused(format!("{}: refuses entry {name:?}, which is not a plain file name", file.display())));

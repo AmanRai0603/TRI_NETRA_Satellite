@@ -40,7 +40,7 @@ pub enum Cmd {
 pub struct Scenario {
     /// an id from matlab_sils/data/scenarios, or a path to a .json file
     pub scenario: String,
-    /// the case CSV (default: cases/<the scenario's case>.csv)
+    /// the case: a CSV file, or the id of a shipped case (default: the case the scenario names)
     #[arg(long, value_name = "F")]
     pub case: Option<String>,
     /// change the scenario (fsw.rw_bandwidth=0.5) or the engine (engine.duration_s=600, engine.kp=3);
@@ -203,7 +203,7 @@ fn non_negative(s: &str) -> Result<f64, String> {
     finite(s).and_then(|x| if x >= 0.0 { Ok(x) } else { Err(format!("{s:?} must be 0 or more")) })
 }
 
-fn fsw(s: &str) -> Result<Impl, String> { s.parse() }
+fn fsw(s: &str) -> Result<Impl, String> { s.parse().map_err(|e: adcs_fsw_abi::FswError| e.to_string()) }
 
 /// The engine's settings from the scenario options: --alg is a scenario setting too.
 fn settings(s: &Scenario) -> Vec<(String, String)> {

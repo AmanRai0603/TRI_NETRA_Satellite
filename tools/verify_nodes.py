@@ -11,10 +11,9 @@ their items, and every feasibility from its failing list. It writes results/NODE
 results/node_verification.json, and exits non-zero when a check fails.
 Copyright (c) 2026 Agastya. All rights reserved.
 """
-import json, math, pathlib, sys
-from common import case_values, write_text
+import json, math, sys
+from common import case_values, write_text, ROOT
 
-ROOT = pathlib.Path(__file__).resolve().parents[1]
 MS = ROOT / "matlab_sils"
 PIPE = MS / "store" / "pipeline"
 NODES = json.loads((MS / "data" / "pipeline" / "nodes.json").read_text())["nodes"]

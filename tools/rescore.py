@@ -10,12 +10,11 @@ get their statistics recomputed from their re-judged runs.
     python3 tools/rescore.py            # every store under matlab_sils/store and results/
     python3 tools/rescore.py --dry-run
 """
-import argparse, json, math, pathlib, sys
+import argparse, json, math, sys
 
-ROOT = pathlib.Path(__file__).resolve().parents[1]
+from common import write_text, ROOT
 sys.path.insert(0, str(ROOT / "tools"))
 import engine as E                                   # noqa: E402  (summarise, case_values)
-from common import write_text
 
 STORES = ["matlab_sils/store/results", "matlab_sils/store/results_engine", "matlab_sils/store/solutions",
           "matlab_sils/store/solutions_engine", "matlab_sils/store/pipeline", "dist/dispatch"]

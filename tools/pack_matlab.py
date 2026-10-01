@@ -7,9 +7,8 @@ Deterministic: files sorted, fixed timestamps. Run it from the repository.
 Copyright (c) 2026 Agastya. All rights reserved.
 """
 import hashlib, pathlib, re, zipfile
-from common import atomic_path
+from common import atomic_path, ROOT
 
-ROOT = pathlib.Path(__file__).resolve().parents[1]
 SRC = ROOT / "matlab_sils"
 ver = re.search(r"'(asils-[0-9.]+)", (SRC / "+asils" / "version.m").read_text()).group(1)
 name = f"TRINETRA_ADCS_SILS_matlab_{ver}"

@@ -8,6 +8,8 @@
 //! Owner: Agastya. Copyright (c) 2026 Agastya. All rights reserved.
 #![allow(clippy::needless_range_loop, clippy::too_many_arguments, clippy::excessive_precision, clippy::many_single_char_names)]
 
+pub mod error;
+pub use error::{PopError, PopResult};
 pub mod la;
 // time scales, Earth orientation, frames (matlab_sils/pop/03_frames_time)
 pub mod time;

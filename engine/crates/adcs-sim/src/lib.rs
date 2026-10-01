@@ -18,6 +18,7 @@ pub mod rec;
 pub mod fsio;
 pub mod store;
 pub mod index;
+pub mod flight;
 pub mod error;
 pub mod schema;
 

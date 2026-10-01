@@ -14,9 +14,8 @@ Sources (whatever exists is reported; a missing source is named, never invented)
 Owner: Agastya. Copyright (c) 2026 Agastya. All rights reserved.
 """
 import base64, csv, glob, html, io, json, math, pathlib, re, shutil, string, subprocess
-from common import source_date, write_bytes, write_text
+from common import source_date, write_bytes, write_text, ROOT, case_rows
 
-ROOT = pathlib.Path(__file__).resolve().parents[1]
 MS = ROOT / "matlab_sils"
 ENG = MS / "store" / "results_engine"
 TWIN = MS / "store" / "results"
@@ -92,10 +91,11 @@ def requirements():
     out = []
     for c in CASES:
         rows = []
-        for r in csv.DictReader(open(MS / "cases" / f"{c}.csv")):
-            if r["section"] in ("req", "orbit", "mass", "mission") and r["value"] not in ("", None):
+        crs = case_rows(c)
+        for r in crs:
+            if r["section"] in ("req", "orbit", "mass", "mission") and r["value"]:
                 rows.append([f"<code>{e(r['key'])}</code>", e(r["label"]), e(r["value"]), e(r["unit"]), f'<span class="note">{e(r["note"])}</span>'])
-        title = next((r["value"] for r in csv.DictReader(open(MS / "cases" / f"{c}.csv")) if r["key"] == "meta.title"), c)
+        title = next((r["value"] for r in crs if r["key"] == "meta.title"), c)
         out.append(f"<h3>{e(c)} — {e(title)}</h3>" + table(["key", "quantity", "value", "unit", "source / status"], rows, num=(2,)))
     return "\n".join(out)
 

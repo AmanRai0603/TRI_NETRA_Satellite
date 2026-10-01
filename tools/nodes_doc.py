@@ -8,10 +8,9 @@ writes, runs with and decides); matlab_sils/data/catalogue/*.json holds the boug
 their datasheets state them. Both documents are generated, never typed.
 Copyright (c) 2026 Agastya. All rights reserved.
 """
-import json, pathlib
-from common import write_text
+import json
+from common import write_text, ROOT
 
-ROOT = pathlib.Path(__file__).resolve().parents[1]
 DATA = ROOT / "matlab_sils" / "data"
 
 

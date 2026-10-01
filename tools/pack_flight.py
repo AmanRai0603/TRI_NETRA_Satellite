@@ -15,9 +15,8 @@ Build: python3 tools/engine.py build (needs gcc, make, cargo). Deterministic zip
 Copyright (c) 2026 Agastya. All rights reserved.
 """
 import hashlib, pathlib, re, zipfile
-from common import atomic_path
+from common import atomic_path, ROOT
 
-ROOT = pathlib.Path(__file__).resolve().parents[1]
 ver = re.search(r'^version = "([0-9.]+)"', (ROOT / "engine" / "Cargo.toml").read_text(), re.M).group(1)
 name = f"TRINETRA_ADCS_flight_engine_{ver}"
 out = ROOT / "dist" / f"{name}.zip"

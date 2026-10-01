@@ -12,10 +12,9 @@ stay listed so the gap is visible. The select_rotor node (adcs-design, docs/NODE
 selectable models.
 Copyright (c) 2026 Agastya. All rights reserved.
 """
-import json, math, pathlib, re, subprocess, sys
-from common import write_text
+import json, math, re, subprocess, sys
+from common import write_text, ROOT
 
-ROOT = pathlib.Path(__file__).resolve().parents[1]
 CAT = ROOT / "matlab_sils" / "data" / "catalogue"
 RPM = 2 * math.pi / 60
 ASSUMED_RPM = 6000.0          # speed at the nominal momentum when a datasheet does not state it

@@ -9,10 +9,11 @@ processes; campaigns are collected and plotted at the end.
 MATLAB users: run_scenarios and run_campaign (parfor) do the same.
 Copyright (c) 2026 Agastya. All rights reserved.
 """
-import argparse, json, pathlib, subprocess, sys, time, concurrent.futures as cf
+import argparse, json, subprocess, sys, time, concurrent.futures as cf
 from common import write_text
+from common import ROOT as REPO
 
-ROOT = pathlib.Path(__file__).resolve().parents[1] / "matlab_sils"
+ROOT = REPO / "matlab_sils"
 LOG = ROOT / "store" / "logs"
 
 def octave(code, log):

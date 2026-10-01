@@ -2,25 +2,15 @@
 //! Owner: Agastya. Copyright (c) 2026 Agastya. All rights reserved.
 use crate::args::Args;
 use adcs_fsw_abi::Impl;
-use adcs_sim::{config::Config, data_root, metrics, rec, run, Error};
+use adcs_sim::{config::Config, data_root, rec, run, Error};
 use std::path::PathBuf;
 
 pub fn config(a: &Args) -> Result<Config, Error> {
     let root = data_root();
+    // --case is a file here (a path or a name with an extension) or an id of a shipped case
     let case = match &a.case {
-        Some(c) => PathBuf::from(c),
-        None => {
-            if !a.scenario.ends_with(".json") { adcs_sim::config::check_id("scenario", &a.scenario)?; }
-            let sp = if a.scenario.ends_with(".json") { PathBuf::from(&a.scenario) } else { root.join("data/scenarios").join(format!("{}.json", a.scenario)) };
-            if !sp.is_file() {
-                return Err(Error::refused(format!("no scenario {}: {} does not exist (the scenarios are data/scenarios/*.json)", a.scenario, sp.display())));
-            }
-            let s: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(&sp).map_err(|e| Error::io(&sp, e))?)
-                .map_err(|e| Error::malformed(format!("{}: {e}", sp.display())))?;
-            let id = s["case"].as_str().ok_or_else(|| Error::refused(format!("{} names no case: give --case F", sp.display())))?;
-            adcs_sim::config::check_id("case", id)?;
-            root.join("cases").join(format!("{id}.csv"))
-        }
+        Some(c) if std::path::Path::new(c).is_file() => PathBuf::from(c),
+        c => adcs_sim::flight::case_file(&root, &a.scenario, c.as_deref())?,
     };
     Config::build(&root, &a.scenario, &case, a.seed, &a.set)
 }
@@ -65,20 +55,13 @@ pub fn main(a: &Args) -> Result<(), Error> {
             }
             "run" => {
                 if !a.quiet { eprintln!("[adcs] {} on {} ({}), fsw {:?}, seed {}, {:.0} s", c.id, c.case.id, c.dev.id, a.fsw, a.seed, c.duration_s); }
-                let r = run::run(&c, &run::Opts { fsw: a.fsw.clone(), quiet: a.quiet, realtime: a.realtime, oils: a.oils.clone() })?;
-                let d = metrics::derive(&c, &r);
-                let ms = metrics::evaluate(&c, &r, &d);
                 let out = a.out.clone().unwrap_or_else(|| adcs_sim::store_root().join("results_engine").join(&c.id));
-                rec::write(&out, &c, &r, &d, &ms)?;
-                // the store keeps its own retention: old time series go, every manifest stays
-                let store = adcs_sim::store_root();
-                let inside = |p: &std::path::Path| std::fs::canonicalize(p).ok().zip(std::fs::canonicalize(&store).ok()).is_some_and(|(p, s)| p.starts_with(s));
-                if inside(&out) {
-                    let (gone, freed) = adcs_sim::store::apply_retention(&store)?;
-                    if !gone.is_empty() && !a.quiet {
-                        eprintln!("[adcs] retention: {} run(s) older than {} days lost their time series ({:.1} MB); verdicts and provenance stay",
-                            gone.len(), adcs_sim::store::retention_days()?.unwrap_or(0), freed as f64/1e6);
-                    }
+                let fl = adcs_sim::flight::fly(&c, &run::Opts { fsw: a.fsw.clone(), quiet: a.quiet, realtime: a.realtime, oils: a.oils.clone() }, &out)?;
+                let (r, ms) = (&fl.record, &fl.metrics);
+                let (gone, freed) = &fl.retained;
+                if !gone.is_empty() && !a.quiet {
+                    eprintln!("[adcs] retention: {} run(s) older than {} days lost their time series ({:.1} MB); verdicts and provenance stay",
+                        gone.len(), adcs_sim::store::retention_days()?.unwrap_or(0), *freed as f64/1e6);
                 }
                 println!("[adcs] {} done in {:.1} s wall ({:.0}x real time), fsw {} -> {}", c.id, r.wall_s, c.duration_s/r.wall_s.max(1e-9), r.fsw_build, out.display());
                 print_metrics(&ms);

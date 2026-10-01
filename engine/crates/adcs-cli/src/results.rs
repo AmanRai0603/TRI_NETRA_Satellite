@@ -1,6 +1,6 @@
 //! `adcs results list [DIR] | show <run> | pin|unpin <run> | thin | export | import | query | stale | refly`
 //! Owner: Agastya. Copyright (c) 2026 Agastya. All rights reserved.
-use adcs_sim::{config::Config, metrics, rec, run, store, Error};
+use adcs_sim::{config::Config, run, store, Error};
 use crate::cli::ResultsCmd;
 
 pub fn main(cmd: &ResultsCmd) -> Result<(), Error> {
@@ -64,12 +64,9 @@ pub fn main(cmd: &ResultsCmd) -> Result<(), Error> {
             let name = dir.file_name().map(|n| n.to_string_lossy().into_owned()).unwrap_or_else(|| "run".into());
             let out = out.clone().unwrap_or_else(|| adcs_sim::store_root().join("refly").join(&name));
             let c = Config::build(&adcs_sim::data_root(), &scen.display().to_string(), &case, seed, &ov)?;
-            let which: adcs_fsw_abi::Impl = fsw.parse().map_err(|e: String| Error::refused(format!("the run flew flight software {fsw:?}: {e}")))?;
+            let which: adcs_fsw_abi::Impl = fsw.parse().map_err(|e: adcs_fsw_abi::FswError| Error::refused(format!("the run flew flight software {fsw:?}: {e}")))?;
             eprintln!("[refly] {} from its kept inputs (seed {seed}, fsw {fsw}) -> {}", c.id, out.display());
-            let r = run::run(&c, &run::Opts { fsw: which, quiet: true, realtime: false, oils: None })?;
-            let d = metrics::derive(&c, &r);
-            let ms = metrics::evaluate(&c, &r, &d);
-            rec::write(&out, &c, &r, &d, &ms)?;
+            let ms = adcs_sim::flight::fly(&c, &run::Opts { fsw: which, quiet: true, realtime: false, oils: None }, &out)?.metrics;
             let old: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(dir.join("manifest.json")).map_err(|e| Error::io(&dir.join("manifest.json"), e))?)
                 .map_err(|e| Error::malformed(format!("{}: {e}", dir.display())))?;
             print!("{}", diff(&old, &ms));

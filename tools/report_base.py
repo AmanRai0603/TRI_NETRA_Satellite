@@ -2,8 +2,8 @@
 
 Copyright (c) 2026 Agastya. All rights reserved.
 """
-import csv, json, pathlib
-from common import write_bytes
+import csv, json
+from common import write_bytes, ROOT
 import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
@@ -12,7 +12,6 @@ import matplotlib.pyplot as plt
 matplotlib.use("Agg")
 
 
-ROOT = pathlib.Path(__file__).resolve().parents[1]
 
 
 STORE = ROOT / "matlab_sils" / "store" / "results"

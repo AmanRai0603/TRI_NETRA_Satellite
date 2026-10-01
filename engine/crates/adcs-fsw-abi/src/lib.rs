@@ -118,6 +118,23 @@ extern "C" {
     fn adcs_fsw_debug(out: *mut f64, n: i32) -> i32;
 }
 
+/// The flight-software layer's error. `Refused`: the flight software, or this layer, will not take
+/// what it was given (a configuration outside its rules, a mode the hardware cannot fly, an
+/// unknown target). `Link`: talking to an OBC failed (gone, hung, a malformed reply).
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum FswError { Refused(String), Link(String) }
+
+impl FswError {
+    pub fn message(&self) -> &str { match self { FswError::Refused(m) | FswError::Link(m) => m } }
+}
+impl std::fmt::Display for FswError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result { f.write_str(self.message()) }
+}
+impl std::error::Error for FswError {}
+/// A link failure described in text (link.rs builds its messages this way).
+impl From<String> for FswError { fn from(s: String) -> Self { FswError::Link(s) } }
+impl From<&str> for FswError { fn from(s: &str) -> Self { FswError::Link(s.to_string()) } }
+
 /// Which flight software runs behind the bus.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum Impl {
@@ -140,8 +157,8 @@ pub fn repo_root() -> std::path::PathBuf {
 }
 
 impl std::str::FromStr for Impl {
-    type Err = String;
-    fn from_str(s: &str) -> Result<Impl, String> {
+    type Err = FswError;
+    fn from_str(s: &str) -> Result<Impl, FswError> {
         let repo = repo_root();
         let fsw = |f: &str| repo.join("fsw/build").join(f).display().to_string();
         let plugin = repo.join("fsw/build/insn_count.so");
@@ -163,7 +180,7 @@ impl std::str::FromStr for Impl {
             "qemu-rs" => Ok(Impl::Obc(link::Target::Spawn(qemu(fsw("obc_qemu_rs.elf"))))),
             x if x.starts_with("spawn:") => Ok(Impl::Obc(link::Target::Spawn(x[6..].split_whitespace().map(String::from).collect()))),
             x if x.starts_with("tcp:") => Ok(Impl::Obc(link::Target::Tcp(x[4..].to_string()))),
-            _ => Err(format!("unknown flight software '{s}' (c | rust | obc-posix | obc-posix-rs | qemu | qemu-rs | spawn:<cmd> | tcp:<host:port>)")),
+            _ => Err(FswError::Refused(format!("unknown flight software '{s}' (c | rust | obc-posix | obc-posix-rs | qemu | qemu-rs | spawn:<cmd> | tcp:<host:port>)"))),
         }
     }
 }
@@ -192,24 +209,24 @@ static C_LOCK: Mutex<()> = Mutex::new(());
 pub const DEBUG_LEN: usize = 41;
 
 impl Fsw {
-    pub fn init(which: Impl, blob: &[u8], start_ns: u64, bus: &mut Bus) -> Result<Fsw, String> {
+    pub fn init(which: Impl, blob: &[u8], start_ns: u64, bus: &mut Bus) -> Result<Fsw, FswError> {
         match which {
             Impl::C => {
                 let g = C_LOCK.lock().unwrap_or_else(|e| e.into_inner());
                 let a = CInit { abi_version: adcs_fsw::ABI_VERSION, config_blob: blob.as_ptr(), config_len: blob.len(), start_ns };
                 let rc = Self::with(bus, || unsafe { adcs_fsw_init(&a) });
-                if rc != 0 { return Err(format!("adcs_fsw_init (C) refused the configuration: {rc} ({})", init_refusal(rc))); }
+                if rc != 0 { return Err(FswError::Refused(format!("adcs_fsw_init (C) refused the configuration: {rc} ({})", init_refusal(rc)))); }
                 Ok(Fsw::C(g))
             }
             Impl::Rust => {
                 let mut f = Box::new(adcs_fsw::Fsw::new());
-                f.init(adcs_fsw::ABI_VERSION, blob, start_ns).map_err(|e| format!("adcs-fsw (Rust) refused the configuration: {e:?}"))?;
+                f.init(adcs_fsw::ABI_VERSION, blob, start_ns).map_err(|e| FswError::Refused(format!("adcs-fsw (Rust) refused the configuration: {e:?}")))?;
                 Ok(Fsw::Rust(f))
             }
             Impl::Obc(t) => {
                 let mut l = Box::new(link::Link::open(&t)?);
                 let rc = l.config(blob, start_ns)?;
-                if rc != 0 { return Err(format!("the OBC refused the configuration: {rc} ({})", init_refusal(rc))); }
+                if rc != 0 { return Err(FswError::Refused(format!("the OBC refused the configuration: {rc} ({})", init_refusal(rc)))); }
                 Ok(Fsw::Obc(l))
             }
         }
@@ -224,11 +241,11 @@ impl Fsw {
         match self {
             Fsw::C(_) => Self::with(bus, || unsafe { adcs_fsw_step(now_ns) }),
             Fsw::Rust(f) => f.step(bus, now_ns),
-            Fsw::Obc(l) => l.tick(bus, now_ns).unwrap_or_else(|e| { l.error = Some(e); -100 }),
+            Fsw::Obc(l) => l.tick(bus, now_ns).unwrap_or_else(|e| { l.error = Some(e.to_string()); -100 }),
         }
     }
     pub fn command(&mut self, tc: &[u8]) -> i32 {
-        match self { Fsw::C(_) => unsafe { adcs_fsw_command(tc.as_ptr(), tc.len()) }, Fsw::Rust(f) => f.command(tc), Fsw::Obc(l) => l.command(tc).unwrap_or_else(|e| { l.error = Some(e); -100 }) }
+        match self { Fsw::C(_) => unsafe { adcs_fsw_command(tc.as_ptr(), tc.len()) }, Fsw::Rust(f) => f.command(tc), Fsw::Obc(l) => l.command(tc).unwrap_or_else(|e| { l.error = Some(e.to_string()); -100 }) }
     }
     /// Why the OBC link failed, when a step or command returned -100 for it.
     pub fn link_error(&self) -> Option<&str> {

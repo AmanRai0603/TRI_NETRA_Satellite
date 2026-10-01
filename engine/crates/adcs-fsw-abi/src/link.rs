@@ -33,12 +33,12 @@ pub fn refusal(rc: i32) -> &'static str {
 
 /// How long the engine waits for any reply before it calls the OBC gone: $ADCS_LINK_TIMEOUT_S,
 /// else 60 s (QEMU boots in well under that; a real OBC answers a tick in milliseconds).
-pub fn timeout() -> Result<Duration, String> {
+pub fn timeout() -> Result<Duration, crate::FswError> {
     match std::env::var("ADCS_LINK_TIMEOUT_S") {
         Err(_) => Ok(Duration::from_secs(60)),
         Ok(v) => match v.trim().parse::<f64>() {
             Ok(x) if x.is_finite() && x > 0.0 => Ok(Duration::from_secs_f64(x)),
-            _ => Err(format!("ADCS_LINK_TIMEOUT_S = {v:?}: must be a positive number of seconds")),
+            _ => Err(crate::FswError::Refused(format!("ADCS_LINK_TIMEOUT_S = {v:?}: must be a positive number of seconds"))),
         },
     }
 }
@@ -87,13 +87,13 @@ impl Read for Timed {
 struct Cur<'a> { r: &'a [u8], k: usize, what: &'static str }
 
 impl Cur<'_> {
-    fn take(&mut self, n: usize) -> Result<&[u8], String> {
+    fn take(&mut self, n: usize) -> Result<&[u8], crate::FswError> {
         let s = self.r.get(self.k..self.k + n).ok_or_else(|| format!("link: the OBC's {} is cut short ({} bytes)", self.what, self.r.len()))?;
         self.k += n;
         Ok(s)
     }
-    fn u8(&mut self) -> Result<u8, String> { Ok(self.take(1)?[0]) }
-    fn i32(&mut self) -> Result<i32, String> { Ok(i32::from_le_bytes(self.take(4)?.try_into().unwrap())) }
+    fn u8(&mut self) -> Result<u8, crate::FswError> { Ok(self.take(1)?[0]) }
+    fn i32(&mut self) -> Result<i32, crate::FswError> { Ok(i32::from_le_bytes(self.take(4)?.try_into().unwrap())) }
 }
 
 pub fn crc(p: &[u8], mut c: u16) -> u16 {
@@ -141,10 +141,10 @@ impl Link {
 }
 
 impl Link {
-    pub fn open(t: &Target) -> Result<Link, String> { Self::open_with(t, timeout()?) }
+    pub fn open(t: &Target) -> Result<Link, crate::FswError> { Self::open_with(t, timeout()?) }
 
     /// open, waiting at most `wait` for any reply
-    pub fn open_with(t: &Target, wait: Duration) -> Result<Link, String> {
+    pub fn open_with(t: &Target, wait: Duration) -> Result<Link, crate::FswError> {
         static N: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
         let mut counts = None;
         let mut t = t.clone();
@@ -176,8 +176,8 @@ impl Link {
         Ok(Link { child, rd, wr, build_id: String::new(), debug: vec![], bytes_tx: 0, bytes_rx: 0, exec_ticks: 0, clock_hz: 0, counts, insn: None, error: None })
     }
 
-    fn send(&mut self, ty: u8, p: &[u8]) -> Result<(), String> {
-        if p.len() > MAX { return Err(format!("link: a {} byte frame is over the link's {MAX} byte limit", p.len())); }
+    fn send(&mut self, ty: u8, p: &[u8]) -> Result<(), crate::FswError> {
+        if p.len() > MAX { return Err(format!("link: a {} byte frame is over the link's {MAX} byte limit", p.len()).into()); }
         let mut f = Vec::with_capacity(p.len() + 7);
         f.extend_from_slice(&[0xA5, 0x5A, ty]);
         f.extend_from_slice(&(p.len() as u16).to_le_bytes());
@@ -189,7 +189,7 @@ impl Link {
         Ok(())
     }
 
-    fn recv(&mut self) -> Result<(u8, Vec<u8>), String> {
+    fn recv(&mut self) -> Result<(u8, Vec<u8>), crate::FswError> {
         let mut b = [0u8; 1];
         let mut prev = 0u16;
         loop {
@@ -200,7 +200,7 @@ impl Link {
         let mut h = [0u8; 3];
         self.rd.read_exact(&mut h).map_err(|e| format!("link read (the OBC is gone or hung): {e}"))?;
         let n = u16::from_le_bytes([h[1], h[2]]) as usize;
-        if n > MAX + 8 { return Err(format!("link: the OBC sent a {n} byte frame, over the link's limit")); }
+        if n > MAX + 8 { return Err(format!("link: the OBC sent a {n} byte frame, over the link's limit").into()); }
         let mut p = vec![0u8; n + 2];
         self.rd.read_exact(&mut p).map_err(|e| format!("link read (the OBC is gone or hung): {e}"))?;
         let c = crc(&p[..n], crc(&h, 0xFFFF));
@@ -211,12 +211,12 @@ impl Link {
     }
 
     /// CONFIG: boot the flight software with its adcs-fswcfg/1 blob.
-    pub fn config(&mut self, blob: &[u8], start_ns: u64) -> Result<i32, String> {
+    pub fn config(&mut self, blob: &[u8], start_ns: u64) -> Result<i32, crate::FswError> {
         let mut p = start_ns.to_le_bytes().to_vec();
         p.extend_from_slice(blob);
         self.send(CONFIG, &p)?;
         let (ty, r) = self.recv()?;
-        if ty != ACK { return Err(format!("link: expected ACK to CONFIG, got 0x{ty:02x}")); }
+        if ty != ACK { return Err(format!("link: expected ACK to CONFIG, got 0x{ty:02x}").into()); }
         let mut c = Cur { r: &r, k: 0, what: "ACK to CONFIG" };
         let rc = c.i32()?;
         let n = c.u8()? as usize;
@@ -225,7 +225,7 @@ impl Link {
     }
 
     /// TICK: bus images in, flight-software writes out (PWM, CAN) back onto the bus.
-    pub fn tick(&mut self, bus: &mut Bus, now_ns: u64) -> Result<i32, String> {
+    pub fn tick(&mut self, bus: &mut Bus, now_ns: u64) -> Result<i32, crate::FswError> {
         let mut p = Vec::with_capacity(160);
         p.extend_from_slice(&now_ns.to_le_bytes());
         let present = bus.mag.is_some() as u8 | (bus.gyro.is_some() as u8) << 1 | (bus.sun.is_some() as u8) << 2 | (bus.es.is_some() as u8) << 3;
@@ -241,7 +241,7 @@ impl Link {
         }
         // the OBC holds 32 CAN frames a tick: more would be lost, so the run stops instead
         let n = bus.can_rx.len();
-        if n > 32 { return Err(format!("link: {n} CAN frames for one tick; the OBC takes at most 32")); }
+        if n > 32 { return Err(format!("link: {n} CAN frames for one tick; the OBC takes at most 32").into()); }
         p.push(n as u8);
         for f in bus.can_rx.drain(..) {
             p.extend_from_slice(&f.id.to_le_bytes());
@@ -252,9 +252,9 @@ impl Link {
         let (ty, r) = self.recv()?;
         if ty == ACK {
             let rc = Cur { r: &r, k: 0, what: "refusal" }.i32()?;
-            return Err(format!("link: the OBC refused the tick ({rc}: {})", refusal(rc)));
+            return Err(format!("link: the OBC refused the tick ({rc}: {})", refusal(rc)).into());
         }
-        if ty != OUT { return Err(format!("link: expected OUT, got 0x{ty:02x}")); }
+        if ty != OUT { return Err(format!("link: expected OUT, got 0x{ty:02x}").into()); }
         // read the whole reply before anything reaches the bus: a short OUT changes nothing
         let mut c = Cur { r: &r, k: 0, what: "OUT" };
         let rc = c.i32()?;
@@ -273,7 +273,7 @@ impl Link {
         let (ticks, hz) = match r.len() - c.k {
             0 => (0, 0),
             8 => (c.i32()? as u32, c.i32()? as u32),
-            x => return Err(format!("link: the OBC's OUT has {x} bytes after its debug values; the timing trailer is 8")),
+            x => return Err(format!("link: the OBC's OUT has {x} bytes after its debug values; the timing trailer is 8").into()),
         };
         bus.pwm = pwm;
         bus.can_tx.extend(tx);
@@ -290,10 +290,10 @@ impl Link {
         Ok(rc)
     }
 
-    pub fn command(&mut self, tc: &[u8]) -> Result<i32, String> {
+    pub fn command(&mut self, tc: &[u8]) -> Result<i32, crate::FswError> {
         self.send(CMD, tc)?;
         let (ty, r) = self.recv()?;
-        if ty != ACK { return Err(format!("link: expected ACK to a command, got 0x{ty:02x}")); }
+        if ty != ACK { return Err(format!("link: expected ACK to a command, got 0x{ty:02x}").into()); }
         Cur { r: &r, k: 0, what: "ACK to a command" }.i32()
     }
 }
@@ -321,7 +321,7 @@ mod tests {
         let mut l = Link::open_with(&t, Duration::from_millis(300)).unwrap();
         let t0 = std::time::Instant::now();
         let e = l.config(&[], 0).unwrap_err();
-        assert!(e.contains("gone or hung"), "{e}");
+        assert!(matches!(&e, crate::FswError::Link(m) if m.contains("gone or hung")), "{e}");
         drop(l);
         assert!(t0.elapsed() < Duration::from_secs(5), "the silent OBC is stopped, not waited on");
     }
@@ -329,6 +329,6 @@ mod tests {
     #[test]
     fn a_short_reply_is_an_error_not_a_panic() {
         let mut c = Cur { r: &[1, 2, 3], k: 0, what: "OUT" };
-        assert!(c.i32().unwrap_err().contains("cut short"));
+        assert!(c.i32().unwrap_err().message().contains("cut short"));
     }
 }

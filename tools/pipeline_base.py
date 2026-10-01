@@ -8,10 +8,9 @@ import sys
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1] / "tools"))
 import hashlib, json, pathlib
 import engine as E
-from common import write_text
+from common import write_text, ROOT
 
 
-ROOT = pathlib.Path(__file__).resolve().parents[1]
 
 
 MS = ROOT / "matlab_sils"

@@ -50,14 +50,13 @@ Legend: ✅ done · ❌ not done · 🟡 partly. Sizes: S ≤ 1 day, M 2–4 day
 
 ✅ Done: clap for `adcs`; typed errors in `adcs-sim` and `adcs-design`; `engine.py`, `report.py`, `pipeline.py` split by concern; shared `tools/common.py`; page HTML out of code strings; one build helper (one `build.rs`).
 
-❌ Not done:
-1. Split the longest functions: `run` 267 lines, `Config::build` 262, `Dev::load` 118 (`run.rs:144`, `config.rs:190`, `product.rs:43`). (M)
-2. One run pipeline shared by the CLI and the app (case resolution, run, derive, evaluate, write) instead of two copies (`fly.rs:8-70`, `routes.rs:118-145`). (S)
-3. Typed errors in `adcs-pop` and `adcs-fsw-abi`; the app's "already running" passed as a parsed string (`main.rs:110`). (S)
-4. One case-CSV parser in Python (six today), one `ROOT` (seventeen tools redefine it). (S)
-5. Dead code (`config.rs:461`, `run.rs:243,319,408`). (S)
+1. ✅ The longest functions split into named stages, every shipped scenario byte-identical before and after: `run` (270 → about 110 lines: units, initial state, faults, sensors to bytes, soft-OILS latency, actuators, the recorded row, the plant step), `Config::build` (286 → about 90: the flight-software parameter table in eight stages, the faults, the engine settings), `Dev::load` (148 → about 30: capacities, actuator slots, sensor slots, a `Part` that refuses unstated values). Left whole on purpose: the ported atmosphere models (`jb2008_core`, `gldtm`, `gldtm_hp`), line-for-line transliterations kept checkable against their published sources.
+2. ✅ One flight pipeline (`adcs_sim::flight`: the case for the scenario, the run, the metrics, the record, the store's retention) called by `adcs run`, the app and `adcs results refly`.
+3. ✅ Typed errors in `adcs-pop` (`PopError`: data, unsupported, run) and `adcs-fsw-abi` (`FswError`: refused, link), mapped into the engine's kinds (a refused configuration exits 2, a dead link 1); the app's start-up outcome is an enum, not a parsed string; the `.trinetra` reader's errors are typed.
+4. ✅ One case reader in the tools (`common.case_rows`, with `case_values` on it) and one `ROOT` (`common.ROOT`; sixteen copies removed).
+5. ✅ Dead code removed (`can_rx_count`, `_unused`, the `From<String>` fallback).
 
-**Done when:** no engine function above 120 lines; the CLI and the app call one pipeline; no `Result<_, String>` in the engine's crates.
+**Done when:** no engine function above 120 lines (ported reference models aside); the CLI and the app call one pipeline; no `Result<_, String>` in the engine's crates. **Met.**
 
 ## Phase 4 — Right-size the process
 

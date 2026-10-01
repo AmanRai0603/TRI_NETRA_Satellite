@@ -34,10 +34,27 @@ impl fmt::Display for Error {
 
 impl std::error::Error for Error {}
 
-/// A message from a crate that reports errors as text (the orbit propagator, the flight
-/// software link): a failure of the run.
-impl From<String> for Error {
-    fn from(s: String) -> Self { Error::run(s) }
+/// The orbit propagator's error: a data file it could not use is the file's, an option it does not
+/// have is refused, a failed propagation is the run's.
+impl From<adcs_pop::PopError> for Error {
+    fn from(e: adcs_pop::PopError) -> Self {
+        match e {
+            adcs_pop::PopError::Data(m) => Error { kind: Kind::Io, msg: m },
+            adcs_pop::PopError::Unsupported(m) => Error::refused(m),
+            adcs_pop::PopError::Run(m) => Error::run(m),
+        }
+    }
+}
+
+/// The flight-software layer's error: a configuration the flight software refused is the
+/// caller's, a link or OBC failure is the run's.
+impl From<adcs_fsw_abi::FswError> for Error {
+    fn from(e: adcs_fsw_abi::FswError) -> Self {
+        match e {
+            adcs_fsw_abi::FswError::Refused(m) => Error::refused(m),
+            adcs_fsw_abi::FswError::Link(m) => Error::run(m),
+        }
+    }
 }
 
 /// For callers that report errors as text.

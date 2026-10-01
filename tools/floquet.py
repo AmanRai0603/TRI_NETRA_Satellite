@@ -16,16 +16,15 @@ stays at 1 by design, unless its weak roll term (sb_kroll) holds the power face.
 built with `adcs params` and decoded, so they are the dispatched values and not recomputed here.
 Copyright (c) 2026 Agastya. All rights reserved.
 """
-import csv, json, math, pathlib, subprocess, sys
+import csv, json, math, subprocess, sys
 import numpy as np
 
-ROOT = pathlib.Path(__file__).resolve().parents[1]
+from common import write_text, ROOT
 MS = ROOT / "matlab_sils"
 PIPE = MS / "store" / "pipeline"
 sys.path.insert(0, str(ROOT / "tools"))
 import engine as E                                     # noqa: E402
 import fswcfg                                          # noqa: E402
-from common import write_text
 
 LAWS = {0: "mtq_pd", 3: "mtq_rate_damp", 4: "mtq_lovera2004", 5: "mtq_celani2015", 6: "mtq_avanzini2021", 7: "mtq_celani2026", 8: "mtq_tango2013"}
 

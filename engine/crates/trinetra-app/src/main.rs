@@ -37,12 +37,12 @@ pub fn seen() { LAST_SEEN.store(now(), Ordering::Relaxed); }
 
 /// How long the app waits with no page open before it ends: $TRINETRA_APP_IDLE_MINUTES
 /// (a whole number 1..=10080), else 5 minutes. Anything else is refused, never guessed.
-fn idle_limit_s() -> Result<u64, String> {
+fn idle_limit_s() -> Result<u64, Start> {
     match std::env::var("TRINETRA_APP_IDLE_MINUTES").ok().filter(|m| !m.trim().is_empty()) {
         None => Ok(5 * 60),
         Some(m) => match m.trim().parse::<u64>() {
             Ok(n) if (1..=10080).contains(&n) => Ok(n * 60),
-            _ => Err(format!("TRINETRA_APP_IDLE_MINUTES={m} is not a whole number of minutes from 1 to 10080")),
+            _ => Err(Start::Failed(format!("TRINETRA_APP_IDLE_MINUTES={m} is not a whole number of minutes from 1 to 10080"))),
         },
     }
 }
@@ -82,16 +82,20 @@ fn start_failed(why: &str) {
     if adcs_sim::fsio::write(&f, page).is_ok() { open_browser(&format!("file://{}", f.display())); }
 }
 
-fn bind() -> Result<(TcpListener, u16), String> {
+/// Why the app does not start serving: another copy already answers (open it instead), or a
+/// reason to show the person.
+enum Start { AlreadyRunning(u16), Failed(String) }
+
+fn bind() -> Result<(TcpListener, u16), Start> {
     let first = match std::env::var("TRINETRA_PORT").ok().filter(|p| !p.trim().is_empty()) {
-        Some(p) => p.trim().parse::<u16>().map_err(|_| format!("TRINETRA_PORT={p} is not a port number"))?,
+        Some(p) => p.trim().parse::<u16>().map_err(|_| Start::Failed(format!("TRINETRA_PORT={p} is not a port number")))?,
         None => FIRST_PORT,
     };
     for port in first..first.saturating_add(12) {
-        if running_on(port) { return Err(format!("already running:{port}")); }
+        if running_on(port) { return Err(Start::AlreadyRunning(port)); }
         if let Ok(l) = TcpListener::bind(("127.0.0.1", port)) { return Ok((l, port)); }
     }
-    Err(format!("nothing in {}..{} was free on 127.0.0.1. Set TRINETRA_PORT to choose another.", first, first.saturating_add(11)))
+    Err(Start::Failed(format!("nothing in {}..{} was free on 127.0.0.1. Set TRINETRA_PORT to choose another.", first, first.saturating_add(11))))
 }
 
 fn main() {
@@ -103,15 +107,13 @@ fn main() {
     }
     let limit = match idle_limit_s() {
         Ok(l) => l,
-        Err(e) => { start_failed(&e); std::process::exit(1); }
+        Err(Start::Failed(e)) => { start_failed(&e); std::process::exit(1); }
+        Err(Start::AlreadyRunning(_)) => unreachable!("only bind() finds another copy running"),
     };
     let (listener, port) = match bind() {
         Ok(x) => x,
-        Err(e) if e.starts_with("already running:") => {
-            open_browser(&format!("http://127.0.0.1:{}", &e["already running:".len()..]));
-            return;
-        }
-        Err(e) => { start_failed(&e); std::process::exit(1); }
+        Err(Start::AlreadyRunning(port)) => { open_browser(&format!("http://127.0.0.1:{port}")); return; }
+        Err(Start::Failed(e)) => { start_failed(&e); std::process::exit(1); }
     };
     let url = format!("http://127.0.0.1:{port}");
     println!("TRI-NETRA ADCS at {url} -- Quit on the page ends it");

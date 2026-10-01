@@ -75,14 +75,14 @@ impl Field {
     /// rows with `n > maxdeg` are ignored, Fortran `D` exponents are accepted in the
     /// coefficients, and `nmax` is the size of the matrix, not the largest row seen.
     /// A file without `end_of_head` (MATLAB: empty field, nmax = -1) is an error here.
-    pub fn load_gfc(path: impl AsRef<Path>, maxdeg: Option<usize>) -> Result<Field, String> {
+    pub fn load_gfc(path: impl AsRef<Path>, maxdeg: Option<usize>) -> Result<Field, crate::PopError> {
         let path = path.as_ref();
-        let text = std::fs::read_to_string(path).map_err(|e| format!("grav:loadGFC cannot open \"{}\": {e}", path.display()))?;
+        let text = std::fs::read_to_string(path).map_err(|e| crate::PopError::Data(format!("grav:loadGFC cannot open \"{}\": {e}", path.display())))?;
         Self::parse_gfc(&text, maxdeg)
     }
 
     /// The parser of [`Field::load_gfc`] on in-memory text (`grav.loadGFC`).
-    pub fn parse_gfc(text: &str, maxdeg: Option<usize>) -> Result<Field, String> {
+    pub fn parse_gfc(text: &str, maxdeg: Option<usize>) -> Result<Field, crate::PopError> {
         let str2double = |s: &str| s.parse::<f64>().unwrap_or(f64::NAN);
         let str2num_safe = |s: &str| str2double(&s.replace(['D', 'd'], "E"));
         let (mut mu, mut re, mut name) = (f64::NAN, f64::NAN, String::from("(gfc)"));
@@ -133,7 +133,7 @@ impl Field {
                             n = 360.0;
                         }
                         if n.is_nan() || n < 0.0 {
-                            return Err(format!("grav:loadGFC bad max_degree {n}"));
+                            return Err(crate::PopError::Data(format!("grav:loadGFC bad max_degree {n}")));
                         }
                         sz = 0;
                         c.clear();
@@ -146,7 +146,7 @@ impl Field {
             }
             if key == "gfc" || key == "gfct" {
                 if tok.len() < 5 {
-                    return Err(format!("grav:loadGFC short coefficient line: {t}"));
+                    return Err(crate::PopError::Data(format!("grav:loadGFC short coefficient line: {t}")));
                 }
                 let n = str2double(tok[1]);
                 let m = str2double(tok[2]);
@@ -154,7 +154,7 @@ impl Field {
                     continue;
                 }
                 if !(n >= 0.0 && m >= 0.0 && n.fract() == 0.0 && m.fract() == 0.0) {
-                    return Err(format!("grav:loadGFC bad degree/order: {t}"));
+                    return Err(crate::PopError::Data(format!("grav:loadGFC bad degree/order: {t}")));
                 }
                 let (n, m) = (n as usize, m as usize);
                 if n + 1 > sz || m + 1 > sz {
@@ -170,7 +170,7 @@ impl Field {
             }
         }
         if sz == 0 {
-            return Err("grav:loadGFC no end_of_head / no coefficients (MATLAB would return an empty field)".into());
+            return Err(crate::PopError::Data("grav:loadGFC no end_of_head / no coefficients (MATLAB would return an empty field)".into()));
         }
         let mut f = Field { gm: mu, re, nmax: sz - 1, cbar: c, sbar: s, name, j: Vec::new() };
         f.expose_j();
@@ -221,7 +221,7 @@ pub fn registry_file(model: &str) -> Option<&'static str> {
 /// (`<data.root>/gravity/EGM2008.gfc` ...) in the same directories. Nothing is
 /// downloaded: a missing file is an error. When `degree` is `None` the MATLAB
 /// default 60 is used and its warning is printed to stderr.
-pub fn grav_load(cfg: &GravityFieldCfg, search_dirs: &[PathBuf]) -> Result<Field, String> {
+pub fn grav_load(cfg: &GravityFieldCfg, search_dirs: &[PathBuf]) -> Result<Field, crate::PopError> {
     let deg = match cfg.degree {
         Some(d) => d,
         None => {
@@ -251,7 +251,7 @@ pub fn grav_load(cfg: &GravityFieldCfg, search_dirs: &[PathBuf]) -> Result<Field
                 }
             }
         }
-        return Err(format!("data:gravity: {fname} not found locally (searched {search_dirs:?}); this port never downloads"));
+        return Err(crate::PopError::Data(format!("data:gravity: {fname} not found locally (searched {search_dirs:?}); this port never downloads")));
     }
-    Err(format!("op:gravLoad: \"{src}\" is not 'default', an existing .gfc file, or a known model name"))
+    Err(crate::PopError::Unsupported(format!("op:gravLoad: \"{src}\" is not 'default', an existing .gfc file, or a known model name")))
 }

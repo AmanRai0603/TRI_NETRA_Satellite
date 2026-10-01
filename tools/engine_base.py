@@ -2,10 +2,9 @@
 
 Copyright (c) 2026 Agastya. All rights reserved.
 """
-import pathlib
+from common import ROOT
 
 
-ROOT = pathlib.Path(__file__).resolve().parents[1]
 
 
 BIN = ROOT / "engine" / "target" / "release" / "adcs"

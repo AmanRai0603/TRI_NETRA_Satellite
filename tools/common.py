@@ -106,28 +106,40 @@ def trace(what):
         pass
 
 
+def case_rows(case):
+    """Every row of a case (matlab_sils/cases/<case>.csv, adcs-case/1) as a dict of its nine
+    columns, in file order. The one reader of the case format in the tools; a missing case or a
+    file without the adcs-case/1 header is refused by name."""
+    import csv
+    p = ROOT / "matlab_sils" / "cases" / f"{case}.csv"
+    if not p.exists():
+        raise SystemExit(f"no case {case}: {_rel(p)} does not exist")
+    need = ["section", "key", "label", "unit", "value", "lo", "hi", "level", "note"]
+    with open(p, newline="", encoding="utf-8") as f:
+        r = csv.DictReader(f)
+        if (r.fieldnames or [])[:9] != need:
+            raise SystemExit(f"case {_rel(p)}: the header must be {','.join(need)}")
+        return [{k: (row.get(k) or "") for k in need} | {"_line": n} for n, row in enumerate(r, 2)]
+
+
 def case_values(case):
     """The numbers a case states (matlab_sils/cases/<case>.csv, adcs-case/1): {key: float}.
     A blank value is not stated and is left out; text is allowed only in meta.* rows; any other
     value that is not a finite number is refused by name, as the engine and the twin refuse it."""
-    import csv
     import math
-    p = ROOT / "matlab_sils" / "cases" / f"{case}.csv"
-    if not p.exists():
-        raise SystemExit(f"no case {case}: {_rel(p)} does not exist")
+    rel = _rel(ROOT / "matlab_sils" / "cases" / f"{case}.csv")
     out = {}
-    with open(p, newline="", encoding="utf-8") as f:
-        for line, r in enumerate(csv.DictReader(f), 2):
-            k, v = (r.get("key") or "").strip(), (r.get("value") or "").strip()
-            if not k or not v or k.startswith("meta."):
-                continue
-            try:
-                x = float(v)
-            except ValueError:
-                x = math.nan
-            if not math.isfinite(x):
-                raise SystemExit(f"case {_rel(p)} line {line}: {k} = {v!r} is not a finite number (leave it blank if it is not stated)")
-            out[k] = x
+    for r in case_rows(case):
+        k, v = r["key"].strip(), r["value"].strip()
+        if not k or not v or k.startswith("meta."):
+            continue
+        try:
+            x = float(v)
+        except ValueError:
+            x = math.nan
+        if not math.isfinite(x):
+            raise SystemExit(f"case {rel} line {r['_line']}: {k} = {v!r} is not a finite number (leave it blank if it is not stated)")
+        out[k] = x
     return out
 
 

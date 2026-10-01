@@ -91,15 +91,15 @@ pub struct Parts { pub gravity: V3, pub thirdbody: V3, pub drag: V3, pub srp: V3
 impl World {
     /// op.buildWorld: the frame build ('gmst' with dUT1 = 0 when no EOP), the true Earth
     /// rate, the gravity field, the DE440 kernel (when a force needs it).
-    pub fn new(epoch: [f64; 6], build: Build, frame: FrameOpt, field: Field, forces: Forces, sc: Sc, sw_manual: Option<ManualIndices>, kernel: Option<std::path::PathBuf>) -> Result<World, String> {
+    pub fn new(epoch: [f64; 6], build: Build, frame: FrameOpt, field: Field, forces: Forces, sc: Sc, sw_manual: Option<ManualIndices>, kernel: Option<std::path::PathBuf>) -> Result<World, crate::PopError> {
         let omega_eci = frames::earth_rate_eci(epoch, build, &frame);
         let grav = Gravity::new(field, forces.gravity)?;
         let eph = if forces.need_ephem() {
-            Some(match kernel { Some(p) => Ephem::open(p), None => Ephem::open_default() }.map_err(|e| format!("DE440 kernel: {e:?}"))?)
+            Some(match kernel { Some(p) => Ephem::open(p), None => Ephem::open_default() }.map_err(|e| crate::PopError::Data(format!("DE440 kernel: {e:?}")))?)
         } else { None };
         if forces.drag.is_some() || forces.srp.is_some() {
-            if !(sc.mass > 0.0) { return Err("spacecraft.mass must be a positive scalar for drag/SRP".into()); }
-            if !(sc.aref > 0.0) { return Err("spacecraft.Aref must be a positive scalar for drag/SRP".into()); }
+            if !(sc.mass > 0.0) { return Err(crate::PopError::Unsupported("spacecraft.mass must be a positive scalar for drag/SRP".into())); }
+            if !(sc.aref > 0.0) { return Err(crate::PopError::Unsupported("spacecraft.Aref must be a positive scalar for drag/SRP".into())); }
         }
         Ok(World { epoch, build, frame, omega_eci, grav, eph, sc, sw_manual, forces })
     }
@@ -123,7 +123,7 @@ impl World {
 
     /// op.accel: total acceleration [m/s^2] at (t, r, v), the parts, the context and the
     /// drag information (asils reads info.drag.atm.rho).
-    pub fn accel(&mut self, t: f64, r: &V3, v: &V3) -> Result<(V3, Parts, Ctx, Option<DragInfo>), String> {
+    pub fn accel(&mut self, t: f64, r: &V3, v: &V3) -> Result<(V3, Parts, Ctx, Option<DragInfo>), crate::PopError> {
         let ctx = self.context(t, r, v);
         let mut p = Parts { gravity: self.grav.accel_eci(r, &ctx.c), ..Default::default() };
         let mut info = None;
@@ -139,7 +139,7 @@ impl World {
                 omega_eci: Some(self.omega_eci), sun_eci: ctx.e.as_ref().map(|e| e.sun_eci), sc: dsc, cfg: dc,
                 sw: SwSources { manual: self.sw_manual.as_ref(), ..Default::default() },
             };
-            let (a, i) = drag::accel(&inp).map_err(|e| format!("drag at t = {t}: {e:?}"))?;
+            let (a, i) = drag::accel(&inp).map_err(|e| crate::PopError::Run(format!("drag at t = {t}: {e:?}")))?;
             p.drag = a;
             info = Some(i);
         }
@@ -151,14 +151,14 @@ impl World {
         }
         if let (Some((name, cr_aom, cr, nrings, nseg)), Some(e)) = (f.erp.as_ref(), ctx.e.as_ref()) {
             let sc = self.srp_sc();
-            let model = erp::Model::from_name(name).ok_or_else(|| format!("unknown erp model {name}"))?;
+            let model = erp::Model::from_name(name).ok_or_else(|| crate::PopError::Unsupported(format!("unknown erp model {name}")))?;
             let mut inp = erp::ErpInput::new(*r, e, ctx.times.doy, &sc, model);
             inp.cr_aom = *cr_aom; inp.cr = *cr; inp.nrings = *nrings; inp.nseg = *nseg;
             p.erp = erp::force(&inp);
         }
         if let Some(terms) = f.relativity.as_ref() {
             let inp = relativity::RelativityInput::new(*r, *v, ctx.e.as_ref(), terms, self.grav.field.gm);
-            p.relativity = relativity::force(&inp).map_err(|e| e.to_string())?;
+            p.relativity = relativity::force(&inp).map_err(|e| crate::PopError::Run(e.to_string()))?;
         }
         if f.solidtides {
             if let Some(e) = ctx.e.as_ref() {
@@ -216,7 +216,7 @@ pub struct Node { pub t: f64, pub r: V3, pub v: V3, pub a: V3, pub c: M3, pub su
 pub struct EnvCtx { pub sun_eci: V3, pub moon_eci: V3, pub p_srp: f64, pub rho: f64, pub c: M3 }
 
 impl InLoop {
-    fn node(w: &mut World, t: f64, r: V3, v: V3) -> Result<Node, String> {
+    fn node(w: &mut World, t: f64, r: V3, v: V3) -> Result<Node, crate::PopError> {
         let (a, parts, ctx, info) = w.accel(t, &r, &v)?;
         let (sun_eci, p_srp, moon_eci) = match ctx.e.as_ref() {
             Some(e) => (e.sun_eci, e.p_srp, e.moon_eci),
@@ -225,11 +225,11 @@ impl InLoop {
         Ok(Node { t, r, v, a, c: ctx.c, sun_eci, moon_eci, p_srp, rho: info.map(|i| i.rho).unwrap_or(0.0), parts })
     }
 
-    fn advance(w: &mut World, n: &Node, h: f64) -> Result<Node, String> {
+    fn advance(w: &mut World, n: &Node, h: f64) -> Result<Node, crate::PopError> {
         let t = n.t;
         let y: [f64; 6] = [n.r[0], n.r[1], n.r[2], n.v[0], n.v[1], n.v[2]];
         let k1 = [n.v[0], n.v[1], n.v[2], n.a[0], n.a[1], n.a[2]];
-        let mut f = |tt: f64, yy: &[f64; 6]| -> Result<[f64; 6], String> {
+        let mut f = |tt: f64, yy: &[f64; 6]| -> Result<[f64; 6], crate::PopError> {
             let (a, ..) = w.accel(tt, &[yy[0], yy[1], yy[2]], &[yy[3], yy[4], yy[5]])?;
             Ok([yy[3], yy[4], yy[5], a[0], a[1], a[2]])
         };
@@ -245,7 +245,7 @@ impl InLoop {
     }
 
     /// asils.orbit.init after the world is built: node 0 at (r0, v0), node 1 one step on.
-    pub fn new(mut world: World, h: f64, r0: V3, v0: V3) -> Result<InLoop, String> {
+    pub fn new(mut world: World, h: f64, r0: V3, v0: V3) -> Result<InLoop, crate::PopError> {
         let n0 = InLoop::node(&mut world, 0.0, r0, v0)?;
         let n1 = InLoop::advance(&mut world, &n0, h)?;
         let omega_e = crate::ephem::constants().omega_earth;
@@ -253,7 +253,7 @@ impl InLoop {
     }
 
     /// asils.orbit.state: Hermite position/velocity at t (t non-decreasing).
-    pub fn state(&mut self, t: f64) -> Result<(V3, V3), String> {
+    pub fn state(&mut self, t: f64) -> Result<(V3, V3), crate::PopError> {
         while t > self.n1.t + 1e-9 {
             let n2 = InLoop::advance(&mut self.world, &self.n1, self.h)?;
             self.n0 = std::mem::replace(&mut self.n1, n2);
@@ -293,13 +293,13 @@ impl InLoop {
 
 /// The orbit geometry of asils.orbit.init: a = Re + alt, RAAN from the LTAN and the DE440
 /// Sun right ascension at the epoch, argument of latitude u0 -> (r0, v0, raan).
-pub fn sso_initial(w: &World, alt_km: f64, ecc: f64, inc_deg: f64, ltan_h: f64, argp_deg: f64, u0_deg: f64) -> Result<(V3, V3, f64), String> {
+pub fn sso_initial(w: &World, alt_km: f64, ecc: f64, inc_deg: f64, ltan_h: f64, argp_deg: f64, u0_deg: f64) -> Result<(V3, V3, f64), crate::PopError> {
     let k = crate::ephem::constants();
     let a = k.re_earth + alt_km*1e3;
     let inc = inc_deg*std::f64::consts::PI/180.0;
     let e = w.epoch;
     let t = time::convert_utc(e[0], e[1], e[2], e[3], e[4], e[5], 0.0);
-    let eph = w.eph.as_ref().ok_or("the SSO geometry needs the DE440 kernel")?;
+    let eph = w.eph.as_ref().ok_or_else(|| crate::PopError::Data("the SSO geometry needs the DE440 kernel".into()))?;
     let ei = eph.inputs(t.tdb_jd);
     let ra_sun = ei.sun_unit[1].atan2(ei.sun_unit[0]);
     let raan = time::omod(ra_sun + (ltan_h - 12.0)*15.0*std::f64::consts::PI/180.0, 2.0*std::f64::consts::PI);

@@ -7,7 +7,7 @@
 //!   GET  /v1/export?run=R  a run as .trinetra                     POST /v1/ping, /v1/quit
 //! Owner: Agastya. Copyright (c) 2026 Agastya. All rights reserved.
 use crate::http::{Request, Response};
-use adcs_sim::{config::Config, data_root, metrics, rec, run, store, store_root};
+use adcs_sim::{config::Config, data_root, run, store, store_root};
 use serde_json::{json, Value};
 use std::path::{Path, PathBuf};
 use std::sync::Mutex;
@@ -132,14 +132,9 @@ fn fly(r: &Request) -> Response {
     let root = data_root();
     let scenario = body["scenario"].as_str().unwrap_or("").to_string();
     if let Err(e) = adcs_sim::config::check_id("scenario", &scenario) { return failed(&e); }
-    let scen_file = root.join("data/scenarios").join(format!("{scenario}.json"));
-    let Some(sv) = std::fs::read_to_string(&scen_file).ok().and_then(|s| serde_json::from_str::<Value>(&s).ok()) else { return Response::error(404, &format!("no scenario {scenario}")) };
-    let Some(case) = body["case"].as_str().filter(|c| !c.is_empty()).or_else(|| sv["case"].as_str()).map(String::from) else {
-        return Response::error(400, &format!("scenario {scenario} names no case: choose one"));
-    };
-    if let Err(e) = adcs_sim::config::check_id("case", &case) { return failed(&e); }
-    let case_file = root.join("cases").join(format!("{case}.csv"));
-    if !case_file.is_file() { return Response::error(404, &format!("no case {case}")); }
+    // the case given, else the one the scenario names: the same rule as `adcs run` (adcs_sim::flight)
+    let case_file = match adcs_sim::flight::case_file(&root, &scenario, body["case"].as_str()) { Ok(f) => f, Err(e) => return failed(&e) };
+    let case = case_file.file_stem().and_then(|x| x.to_str()).unwrap_or("").to_string();
     let fsw = match body["fsw"].as_str().unwrap_or("c") { "c" => adcs_fsw_abi::Impl::C, "rust" => adcs_fsw_abi::Impl::Rust, x => return Response::error(400, &format!("fsw {x:?}: c or rust")) };
     let seed = match &body["seed"] { Value::Null => 1, v => match v.as_u64() { Some(s) => s, None => return Response::error(400, "seed: a whole number") } };
     let mut sets = vec![];
@@ -148,13 +143,11 @@ fn fly(r: &Request) -> Response {
         v => match v.as_f64() { Some(d) => sets.push(("engine.duration_s".to_string(), d.to_string())), None => return Response::error(400, "duration_s: a number of seconds") },
     }
     let c = match Config::build(&root, &scenario, &case_file, seed, &sets) { Ok(c) => c, Err(e) => return failed(&e) };
-    let rec_ = match run::run(&c, &run::Opts { fsw, quiet: true, realtime: false, oils: None }) { Ok(x) => x, Err(e) => return failed(&e) };
-    let d = metrics::derive(&c, &rec_);
-    let ms = metrics::evaluate(&c, &rec_, &d);
     let (_, when) = adcs_sim::fsio::utc_now();
     let rel = format!("app/{scenario}-{case}-{}", when.replace([':', '-'], "").trim_end_matches('Z'));
     let out = store_root().join(&rel);
-    if let Err(e) = rec::write(&out, &c, &rec_, &d, &ms) { return failed(&e); }
+    let fl = match adcs_sim::flight::fly(&c, &run::Opts { fsw, quiet: true, realtime: false, oils: None }, &out) { Ok(x) => x, Err(e) => return failed(&e) };
+    let (rec_, ms) = (&fl.record, &fl.metrics);
     Response::json(200, &json!({"ok": true, "run": rel, "scenario": scenario, "case": case, "metrics": ms,
         "wall_s": rec_.wall_s, "duration_s": c.duration_s, "fsw": rec_.fsw_build}))
 }

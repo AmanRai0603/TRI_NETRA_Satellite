@@ -9,10 +9,9 @@ The export is generated, never edited: run this after changing a TOML file.
                                                  no TOML), change nothing, exit 1 if any does
 Copyright (c) 2026 Agastya. All rights reserved.
 """
-import json, pathlib, sys, tomllib
-from common import write_text
+import json, sys, tomllib
+from common import write_text, ROOT
 
-ROOT = pathlib.Path(__file__).resolve().parents[1]
 KINDS = [("parts", None), ("products", None), ("algorithms", None), ("scenarios", ROOT / "scenarios"),
          ("campaigns", ROOT / "campaigns"), ("trades", ROOT / "trades"), ("modes", None), ("components", None)]
 

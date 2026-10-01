@@ -57,14 +57,14 @@ pub enum GravityModel {
 impl GravityModel {
     /// Parse the MATLAB model string (case-insensitive). `'toolbox'` (the MATLAB
     /// Aerospace Toolbox `gravitysphericalharmonic`) is not portable and is refused.
-    pub fn parse(s: &str) -> Result<GravityModel, String> {
+    pub fn parse(s: &str) -> Result<GravityModel, crate::PopError> {
         let l = s.to_lowercase();
         match l.as_str() {
             "twobody" => Ok(GravityModel::TwoBody),
             "j2" | "j3" | "j4" | "j5" | "j6" => Ok(GravityModel::Zonal((l.as_bytes()[1] - b'0') as usize)),
             "sphharm" => Ok(GravityModel::SphHarm),
-            "toolbox" => Err("forces:gravity 'toolbox' needs the MATLAB Aerospace Toolbox; not ported (use 'sphharm')".into()),
-            _ => Err(format!("forces:gravity unknown gravity model \"{s}\"")),
+            "toolbox" => Err(crate::PopError::Unsupported("forces:gravity 'toolbox' needs the MATLAB Aerospace Toolbox; not ported (use 'sphharm')".into())),
+            _ => Err(crate::PopError::Unsupported(format!("forces:gravity unknown gravity model \"{s}\""))),
         }
     }
 }
@@ -104,13 +104,13 @@ pub struct Gravity {
 impl Gravity {
     /// Build the force model; errors where the MATLAB would error at run time
     /// (`'jN'` with a field holding fewer than N-1 zonals).
-    pub fn new(field: Field, cfg: GravityForceCfg) -> Result<Gravity, String> {
+    pub fn new(field: Field, cfg: GravityForceCfg) -> Result<Gravity, crate::PopError> {
         let (mut sh, mut zonal, mut nmax, mut mmax) = (None, None, 0, 0);
         match cfg.model {
             GravityModel::TwoBody => {}
             GravityModel::Zonal(nz) => {
                 if field.j.len() < nz - 1 {
-                    return Err(format!("forces:gravity 'j{nz}' needs J2..J{nz} but the field has {} zonals", field.j.len()));
+                    return Err(crate::PopError::Unsupported(format!("forces:gravity 'j{nz}' needs J2..J{nz} but the field has {} zonals", field.j.len())));
                 }
                 zonal = Some(J2Accel::new(&field.j[..nz - 1]));
             }
@@ -147,6 +147,6 @@ impl Gravity {
 }
 
 /// One-shot `forces.gravity` (allocates the workspaces; use [`Gravity`] in loops).
-pub fn accel_eci(f: &Field, r_eci: &V3, c_eci2ecef: &M3, cfg: &GravityForceCfg) -> Result<V3, String> {
+pub fn accel_eci(f: &Field, r_eci: &V3, c_eci2ecef: &M3, cfg: &GravityForceCfg) -> Result<V3, crate::PopError> {
     Ok(Gravity::new(f.clone(), *cfg)?.accel_eci(r_eci, c_eci2ecef))
 }

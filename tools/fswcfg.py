@@ -6,8 +6,8 @@ The same layout the C decoder (fsw/src/adcs_params.c) and the Rust decoder
 (fsw-rs/src/params.rs) are generated from. Copyright (c) 2026 Agastya.
 """
 import json, pathlib, struct, sys, tomllib, zlib
+from common import ROOT
 
-ROOT = pathlib.Path(__file__).resolve().parents[1]
 SPEC = tomllib.loads((ROOT / "fsw" / "params" / "params.toml").read_text())
 FMT = {"f64": ("<d", 8), "u32": ("<I", 4), "u8": ("<B", 1)}
 
