@@ -6,6 +6,7 @@
  "case": "ais_img_3u",
  "type": "montecarlo",
  "runs": 20,
+ "failed_runs": 0,
  "engine": true,
  "fsw": "c",
  "stats": [
@@ -14,32 +15,33 @@
    "unit": "s",
    "req": null,
    "values": [
-    38.0,
-    37.60000000000002,
-    41.80000000000001,
-    35.0,
-    38.400000000000006,
-    40.0,
-    39.70000000000002,
-    39.30000000000001,
+    38.10000000000002,
+    39.5,
+    41.30000000000001,
+    43.400000000000034,
     38.20000000000002,
-    38.400000000000006,
-    40.400000000000006,
-    40.20000000000002,
-    37.30000000000001,
-    40.60000000000002,
-    42.0,
-    40.80000000000001,
+    40.0,
+    40.0,
+    39.30000000000001,
+    38.900000000000006,
+    38.80000000000001,
     39.900000000000006,
-    37.80000000000001,
-    40.5,
-    36.70000000000002
+    40.20000000000002,
+    41.0,
+    41.5,
+    42.30000000000001,
+    40.30000000000001,
+    41.0,
+    37.900000000000006,
+    40.400000000000006,
+    36.10000000000002
    ],
-   "mean": 39.13000000000001,
-   "std": 1.781217797492845,
-   "min": 35.0,
-   "max": 42.0,
+   "mean": 39.90500000000001,
+   "std": 1.6665359597869935,
+   "min": 36.10000000000002,
+   "max": 43.400000000000034,
    "n_valid": 20,
+   "n_failed_runs": 0,
    "pass_rate": null,
    "pass": null
   },
@@ -48,33 +50,34 @@
    "unit": "deg",
    "req": 0.01,
    "values": [
-    0.0075905844555079136,
-    0.007880443980120852,
-    0.010611278476515957,
-    0.00802054440361639,
-    0.006533981984259033,
-    0.006721921499282728,
-    0.009057196077627335,
-    0.010695390107238318,
-    0.00914051286777771,
-    0.009493331704173652,
-    0.009300643955968786,
-    0.008347993875111098,
-    0.006881189169698477,
-    0.009062899397497862,
-    0.007505617363281815,
-    0.009397754406658751,
-    0.006788968555097776,
-    0.008580368786610119,
-    0.009361804867977726,
-    0.007558570012269743
+    0.007270942498214526,
+    0.009687096058892447,
+    0.009658925827612274,
+    0.00783944056324211,
+    0.00656173266999939,
+    0.007380746714655605,
+    0.008724816372651243,
+    0.01164513560989883,
+    0.00889714502690276,
+    0.007248246122236806,
+    0.007329794488757814,
+    0.009084852972866838,
+    0.0074348945537333734,
+    0.006707035636754973,
+    0.008543895847680618,
+    0.00853481965213747,
+    0.006914635757517544,
+    0.008182747558662893,
+    0.008870452961546238,
+    0.007543657736675656
    ],
-   "mean": 0.008426549797314602,
-   "std": 0.0012418938924281737,
-   "min": 0.006533981984259033,
-   "max": 0.010695390107238318,
+   "mean": 0.00820305073153197,
+   "std": 0.0012427026830830023,
+   "min": 0.00656173266999939,
+   "max": 0.01164513560989883,
    "n_valid": 20,
-   "pass_rate": 0.9,
+   "n_failed_runs": 0,
+   "pass_rate": 0.95,
    "pass": false
   },
   {
@@ -82,32 +85,33 @@
    "unit": "N m s",
    "req": null,
    "values": [
-    0.003383899245721934,
-    0.003404821664724487,
-    0.0033270584366663723,
-    0.0033846837554858335,
-    0.003357728589823298,
-    0.0033844487780254288,
-    0.003425037574219442,
-    0.0033928051276717183,
-    0.003376448469324687,
-    0.0033333224933687535,
-    0.0034816506362139736,
-    0.0033369848626516553,
-    0.003393975595512206,
-    0.0033377758842853995,
-    0.0033715437854682038,
-    0.003404112045289091,
-    0.0033493246610629876,
-    0.0033580891957812583,
-    0.003304141691898179,
-    0.0033510845865992404
+    0.003369799470216537,
+    0.003442276341241389,
+    0.003334644585902616,
+    0.003366243732424795,
+    0.003542396851088398,
+    0.0035874719899673165,
+    0.003444388003251648,
+    0.0033721198964785843,
+    0.003409682244789258,
+    0.0033931477798907093,
+    0.0035518912874248974,
+    0.0033862050870826655,
+    0.0035126079123979632,
+    0.003345099658064095,
+    0.0033861169136726347,
+    0.003440855440754003,
+    0.0034209833334866778,
+    0.003333802805789192,
+    0.003356789873705159,
+    0.0033977863595036203
    ],
-   "mean": 0.003372946853989708,
-   "std": 3.98593463853281e-05,
-   "min": 0.003304141691898179,
-   "max": 0.0034816506362139736,
+   "mean": 0.003419715478356608,
+   "std": 7.474842807794852e-05,
+   "min": 0.003333802805789192,
+   "max": 0.0035874719899673165,
    "n_valid": 20,
+   "n_failed_runs": 0,
    "pass_rate": null,
    "pass": null
   }
@@ -119,7 +123,7 @@
     {
      "id": "settle_time_after_slew",
      "kind": "time_to_threshold",
-     "value": 38.0,
+     "value": 38.10000000000002,
      "unit": "s",
      "req": null,
      "req_key": "",
@@ -128,7 +132,7 @@
     {
      "id": "ape_los_on_target_p9973",
      "kind": "ape_los",
-     "value": 0.0075905844555079136,
+     "value": 0.007270942498214526,
      "unit": "deg",
      "req": 0.01,
      "req_key": "req.ape",
@@ -137,7 +141,7 @@
     {
      "id": "wheel_momentum_peak",
      "kind": "wheel_momentum_peak",
-     "value": 0.003383899245721934,
+     "value": 0.003369799470216537,
      "unit": "N m s",
      "req": null,
      "req_key": "",
@@ -153,7 +157,7 @@
     "initial_error_deg": 0.9557634039841136,
     "arg_lat_deg": 153.1819764157726
    },
-   "wall_s": 0.179863452
+   "wall_s": 0.306186131
   },
   {
    "k": 2,
@@ -161,7 +165,7 @@
     {
      "id": "settle_time_after_slew",
      "kind": "time_to_threshold",
-     "value": 37.60000000000002,
+     "value": 39.5,
      "unit": "s",
      "req": null,
      "req_key": "",
@@ -170,7 +174,7 @@
     {
      "id": "ape_los_on_target_p9973",
      "kind": "ape_los",
-     "value": 0.007880443980120852,
+     "value": 0.009687096058892447,
      "unit": "deg",
      "req": 0.01,
      "req_key": "req.ape",
@@ -179,7 +183,7 @@
     {
      "id": "wheel_momentum_peak",
      "kind": "wheel_momentum_peak",
-     "value": 0.003404821664724487,
+     "value": 0.003442276341241389,
      "unit": "N m s",
      "req": null,
      "req_key": "",
@@ -195,7 +199,7 @@
     "initial_error_deg": 0.2620660234356735,
     "arg_lat_deg": 44.712601043798166
    },
-   "wall_s": 0.424804686
+   "wall_s": 0.181825404
   },
   {
    "k": 3,
@@ -203,7 +207,7 @@
     {
      "id": "settle_time_after_slew",
      "kind": "time_to_threshold",
-     "value": 41.80000000000001,
+     "value": 41.30000000000001,
      "unit": "s",
      "req": null,
      "req_key": "",
@@ -212,16 +216,16 @@
     {
      "id": "ape_los_on_target_p9973",
      "kind": "ape_los",
-     "value": 0.010611278476515957,
+     "value": 0.009658925827612274,
      "unit": "deg",
      "req": 0.01,
      "req_key": "req.ape",
-     "pass": 0
+     "pass": 1
     },
     {
      "id": "wheel_momentum_peak",
      "kind": "wheel_momentum_peak",
-     "value": 0.0033270584366663723,
+     "value": 0.003334644585902616,
      "unit": "N m s",
      "req": null,
      "req_key": "",
@@ -237,7 +241,7 @@
     "initial_error_deg": 0.5966844101193053,
     "arg_lat_deg": 46.838470998121316
    },
-   "wall_s": 0.292993511
+   "wall_s": 0.404120911
   },
   {
    "k": 4,
@@ -245,7 +249,7 @@
     {
      "id": "settle_time_after_slew",
      "kind": "time_to_threshold",
-     "value": 35.0,
+     "value": 43.400000000000034,
      "unit": "s",
      "req": null,
      "req_key": "",
@@ -254,7 +258,7 @@
     {
      "id": "ape_los_on_target_p9973",
      "kind": "ape_los",
-     "value": 0.00802054440361639,
+     "value": 0.00783944056324211,
      "unit": "deg",
      "req": 0.01,
      "req_key": "req.ape",
@@ -263,7 +267,7 @@
     {
      "id": "wheel_momentum_peak",
      "kind": "wheel_momentum_peak",
-     "value": 0.0033846837554858335,
+     "value": 0.003366243732424795,
      "unit": "N m s",
      "req": null,
      "req_key": "",
@@ -279,7 +283,7 @@
     "initial_error_deg": 0.6535006419352062,
     "arg_lat_deg": 344.1065179341121
    },
-   "wall_s": 0.146104585
+   "wall_s": 0.329793016
   },
   {
    "k": 5,
@@ -287,7 +291,7 @@
     {
      "id": "settle_time_after_slew",
      "kind": "time_to_threshold",
-     "value": 38.400000000000006,
+     "value": 38.20000000000002,
      "unit": "s",
      "req": null,
      "req_key": "",
@@ -296,7 +300,7 @@
     {
      "id": "ape_los_on_target_p9973",
      "kind": "ape_los",
-     "value": 0.006533981984259033,
+     "value": 0.00656173266999939,
      "unit": "deg",
      "req": 0.01,
      "req_key": "req.ape",
@@ -305,7 +309,7 @@
     {
      "id": "wheel_momentum_peak",
      "kind": "wheel_momentum_peak",
-     "value": 0.003357728589823298,
+     "value": 0.003542396851088398,
      "unit": "N m s",
      "req": null,
      "req_key": "",
@@ -321,7 +325,7 @@
     "initial_error_deg": 0.5901032109710747,
     "arg_lat_deg": 30.43559026461577
    },
-   "wall_s": 0.195574318
+   "wall_s": 0.176304144
   },
   {
    "k": 6,
@@ -338,7 +342,7 @@
     {
      "id": "ape_los_on_target_p9973",
      "kind": "ape_los",
-     "value": 0.006721921499282728,
+     "value": 0.007380746714655605,
      "unit": "deg",
      "req": 0.01,
      "req_key": "req.ape",
@@ -347,7 +351,7 @@
     {
      "id": "wheel_momentum_peak",
      "kind": "wheel_momentum_peak",
-     "value": 0.0033844487780254288,
+     "value": 0.0035874719899673165,
      "unit": "N m s",
      "req": null,
      "req_key": "",
@@ -363,7 +367,7 @@
     "initial_error_deg": 0.7506419450400592,
     "arg_lat_deg": 350.5510941580371
    },
-   "wall_s": 0.321140929
+   "wall_s": 0.218387693
   },
   {
    "k": 7,
@@ -371,7 +375,7 @@
     {
      "id": "settle_time_after_slew",
      "kind": "time_to_threshold",
-     "value": 39.70000000000002,
+     "value": 40.0,
      "unit": "s",
      "req": null,
      "req_key": "",
@@ -380,7 +384,7 @@
     {
      "id": "ape_los_on_target_p9973",
      "kind": "ape_los",
-     "value": 0.009057196077627335,
+     "value": 0.008724816372651243,
      "unit": "deg",
      "req": 0.01,
      "req_key": "req.ape",
@@ -389,7 +393,7 @@
     {
      "id": "wheel_momentum_peak",
      "kind": "wheel_momentum_peak",
-     "value": 0.003425037574219442,
+     "value": 0.003444388003251648,
      "unit": "N m s",
      "req": null,
      "req_key": "",
@@ -405,7 +409,7 @@
     "initial_error_deg": 0.6001607157512814,
     "arg_lat_deg": 223.2601985054529
    },
-   "wall_s": 0.19996009
+   "wall_s": 0.207196452
   },
   {
    "k": 8,
@@ -422,7 +426,7 @@
     {
      "id": "ape_los_on_target_p9973",
      "kind": "ape_los",
-     "value": 0.010695390107238318,
+     "value": 0.01164513560989883,
      "unit": "deg",
      "req": 0.01,
      "req_key": "req.ape",
@@ -431,7 +435,7 @@
     {
      "id": "wheel_momentum_peak",
      "kind": "wheel_momentum_peak",
-     "value": 0.0033928051276717183,
+     "value": 0.0033721198964785843,
      "unit": "N m s",
      "req": null,
      "req_key": "",
@@ -447,7 +451,7 @@
     "initial_error_deg": 0.9609221827671909,
     "arg_lat_deg": 182.31714314205533
    },
-   "wall_s": 0.383240939
+   "wall_s": 0.260339624
   },
   {
    "k": 9,
@@ -455,7 +459,7 @@
     {
      "id": "settle_time_after_slew",
      "kind": "time_to_threshold",
-     "value": 38.20000000000002,
+     "value": 38.900000000000006,
      "unit": "s",
      "req": null,
      "req_key": "",
@@ -464,7 +468,7 @@
     {
      "id": "ape_los_on_target_p9973",
      "kind": "ape_los",
-     "value": 0.00914051286777771,
+     "value": 0.00889714502690276,
      "unit": "deg",
      "req": 0.01,
      "req_key": "req.ape",
@@ -473,7 +477,7 @@
     {
      "id": "wheel_momentum_peak",
      "kind": "wheel_momentum_peak",
-     "value": 0.003376448469324687,
+     "value": 0.003409682244789258,
      "unit": "N m s",
      "req": null,
      "req_key": "",
@@ -489,7 +493,7 @@
     "initial_error_deg": 0.17181798110354007,
     "arg_lat_deg": 71.64647483531037
    },
-   "wall_s": 0.192301172
+   "wall_s": 0.247736969
   },
   {
    "k": 10,
@@ -497,7 +501,7 @@
     {
      "id": "settle_time_after_slew",
      "kind": "time_to_threshold",
-     "value": 38.400000000000006,
+     "value": 38.80000000000001,
      "unit": "s",
      "req": null,
      "req_key": "",
@@ -506,7 +510,7 @@
     {
      "id": "ape_los_on_target_p9973",
      "kind": "ape_los",
-     "value": 0.009493331704173652,
+     "value": 0.007248246122236806,
      "unit": "deg",
      "req": 0.01,
      "req_key": "req.ape",
@@ -515,7 +519,7 @@
     {
      "id": "wheel_momentum_peak",
      "kind": "wheel_momentum_peak",
-     "value": 0.0033333224933687535,
+     "value": 0.0033931477798907093,
      "unit": "N m s",
      "req": null,
      "req_key": "",
@@ -531,7 +535,7 @@
     "initial_error_deg": 0.7130554846060922,
     "arg_lat_deg": 301.75903830013
    },
-   "wall_s": 0.270995255
+   "wall_s": 0.188326589
   },
   {
    "k": 11,
@@ -539,7 +543,7 @@
     {
      "id": "settle_time_after_slew",
      "kind": "time_to_threshold",
-     "value": 40.400000000000006,
+     "value": 39.900000000000006,
      "unit": "s",
      "req": null,
      "req_key": "",
@@ -548,7 +552,7 @@
     {
      "id": "ape_los_on_target_p9973",
      "kind": "ape_los",
-     "value": 0.009300643955968786,
+     "value": 0.007329794488757814,
      "unit": "deg",
      "req": 0.01,
      "req_key": "req.ape",
@@ -557,7 +561,7 @@
     {
      "id": "wheel_momentum_peak",
      "kind": "wheel_momentum_peak",
-     "value": 0.0034816506362139736,
+     "value": 0.0035518912874248974,
      "unit": "N m s",
      "req": null,
      "req_key": "",
@@ -573,7 +577,7 @@
     "initial_error_deg": 0.9630097536745001,
     "arg_lat_deg": 59.314526875751675
    },
-   "wall_s": 0.263278612
+   "wall_s": 0.159310924
   },
   {
    "k": 12,
@@ -590,7 +594,7 @@
     {
      "id": "ape_los_on_target_p9973",
      "kind": "ape_los",
-     "value": 0.008347993875111098,
+     "value": 0.009084852972866838,
      "unit": "deg",
      "req": 0.01,
      "req_key": "req.ape",
@@ -599,7 +603,7 @@
     {
      "id": "wheel_momentum_peak",
      "kind": "wheel_momentum_peak",
-     "value": 0.0033369848626516553,
+     "value": 0.0033862050870826655,
      "unit": "N m s",
      "req": null,
      "req_key": "",
@@ -615,7 +619,7 @@
     "initial_error_deg": 0.2803986889729295,
     "arg_lat_deg": 282.8512574243498
    },
-   "wall_s": 0.297783291
+   "wall_s": 0.156000903
   },
   {
    "k": 13,
@@ -623,7 +627,7 @@
     {
      "id": "settle_time_after_slew",
      "kind": "time_to_threshold",
-     "value": 37.30000000000001,
+     "value": 41.0,
      "unit": "s",
      "req": null,
      "req_key": "",
@@ -632,7 +636,7 @@
     {
      "id": "ape_los_on_target_p9973",
      "kind": "ape_los",
-     "value": 0.006881189169698477,
+     "value": 0.0074348945537333734,
      "unit": "deg",
      "req": 0.01,
      "req_key": "req.ape",
@@ -641,7 +645,7 @@
     {
      "id": "wheel_momentum_peak",
      "kind": "wheel_momentum_peak",
-     "value": 0.003393975595512206,
+     "value": 0.0035126079123979632,
      "unit": "N m s",
      "req": null,
      "req_key": "",
@@ -657,7 +661,7 @@
     "initial_error_deg": 0.8204113117984672,
     "arg_lat_deg": 358.90785177232345
    },
-   "wall_s": 0.278600097
+   "wall_s": 0.153222603
   },
   {
    "k": 14,
@@ -665,7 +669,7 @@
     {
      "id": "settle_time_after_slew",
      "kind": "time_to_threshold",
-     "value": 40.60000000000002,
+     "value": 41.5,
      "unit": "s",
      "req": null,
      "req_key": "",
@@ -674,7 +678,7 @@
     {
      "id": "ape_los_on_target_p9973",
      "kind": "ape_los",
-     "value": 0.009062899397497862,
+     "value": 0.006707035636754973,
      "unit": "deg",
      "req": 0.01,
      "req_key": "req.ape",
@@ -683,7 +687,7 @@
     {
      "id": "wheel_momentum_peak",
      "kind": "wheel_momentum_peak",
-     "value": 0.0033377758842853995,
+     "value": 0.003345099658064095,
      "unit": "N m s",
      "req": null,
      "req_key": "",
@@ -699,7 +703,7 @@
     "initial_error_deg": 0.4454851985930124,
     "arg_lat_deg": 57.080487731354786
    },
-   "wall_s": 0.34863034
+   "wall_s": 0.234780208
   },
   {
    "k": 15,
@@ -707,7 +711,7 @@
     {
      "id": "settle_time_after_slew",
      "kind": "time_to_threshold",
-     "value": 42.0,
+     "value": 42.30000000000001,
      "unit": "s",
      "req": null,
      "req_key": "",
@@ -716,7 +720,7 @@
     {
      "id": "ape_los_on_target_p9973",
      "kind": "ape_los",
-     "value": 0.007505617363281815,
+     "value": 0.008543895847680618,
      "unit": "deg",
      "req": 0.01,
      "req_key": "req.ape",
@@ -725,7 +729,7 @@
     {
      "id": "wheel_momentum_peak",
      "kind": "wheel_momentum_peak",
-     "value": 0.0033715437854682038,
+     "value": 0.0033861169136726347,
      "unit": "N m s",
      "req": null,
      "req_key": "",
@@ -741,7 +745,7 @@
     "initial_error_deg": 0.17653309256067481,
     "arg_lat_deg": 236.96045547139462
    },
-   "wall_s": 0.364000793
+   "wall_s": 0.255725163
   },
   {
    "k": 16,
@@ -749,7 +753,7 @@
     {
      "id": "settle_time_after_slew",
      "kind": "time_to_threshold",
-     "value": 40.80000000000001,
+     "value": 40.30000000000001,
      "unit": "s",
      "req": null,
      "req_key": "",
@@ -758,7 +762,7 @@
     {
      "id": "ape_los_on_target_p9973",
      "kind": "ape_los",
-     "value": 0.009397754406658751,
+     "value": 0.00853481965213747,
      "unit": "deg",
      "req": 0.01,
      "req_key": "req.ape",
@@ -767,7 +771,7 @@
     {
      "id": "wheel_momentum_peak",
      "kind": "wheel_momentum_peak",
-     "value": 0.003404112045289091,
+     "value": 0.003440855440754003,
      "unit": "N m s",
      "req": null,
      "req_key": "",
@@ -783,7 +787,7 @@
     "initial_error_deg": 0.7989561011365851,
     "arg_lat_deg": 57.90386149676636
    },
-   "wall_s": 0.156571203
+   "wall_s": 0.245610733
   },
   {
    "k": 17,
@@ -791,7 +795,7 @@
     {
      "id": "settle_time_after_slew",
      "kind": "time_to_threshold",
-     "value": 39.900000000000006,
+     "value": 41.0,
      "unit": "s",
      "req": null,
      "req_key": "",
@@ -800,7 +804,7 @@
     {
      "id": "ape_los_on_target_p9973",
      "kind": "ape_los",
-     "value": 0.006788968555097776,
+     "value": 0.006914635757517544,
      "unit": "deg",
      "req": 0.01,
      "req_key": "req.ape",
@@ -809,7 +813,7 @@
     {
      "id": "wheel_momentum_peak",
      "kind": "wheel_momentum_peak",
-     "value": 0.0033493246610629876,
+     "value": 0.0034209833334866778,
      "unit": "N m s",
      "req": null,
      "req_key": "",
@@ -825,7 +829,7 @@
     "initial_error_deg": 0.4502018863999888,
     "arg_lat_deg": 156.95575354284168
    },
-   "wall_s": 0.311572889
+   "wall_s": 0.178126359
   },
   {
    "k": 18,
@@ -833,7 +837,7 @@
     {
      "id": "settle_time_after_slew",
      "kind": "time_to_threshold",
-     "value": 37.80000000000001,
+     "value": 37.900000000000006,
      "unit": "s",
      "req": null,
      "req_key": "",
@@ -842,7 +846,7 @@
     {
      "id": "ape_los_on_target_p9973",
      "kind": "ape_los",
-     "value": 0.008580368786610119,
+     "value": 0.008182747558662893,
      "unit": "deg",
      "req": 0.01,
      "req_key": "req.ape",
@@ -851,7 +855,7 @@
     {
      "id": "wheel_momentum_peak",
      "kind": "wheel_momentum_peak",
-     "value": 0.0033580891957812583,
+     "value": 0.003333802805789192,
      "unit": "N m s",
      "req": null,
      "req_key": "",
@@ -867,7 +871,7 @@
     "initial_error_deg": 0.41834393185476215,
     "arg_lat_deg": 225.60241517280076
    },
-   "wall_s": 0.226275304
+   "wall_s": 0.240450971
   },
   {
    "k": 19,
@@ -875,7 +879,7 @@
     {
      "id": "settle_time_after_slew",
      "kind": "time_to_threshold",
-     "value": 40.5,
+     "value": 40.400000000000006,
      "unit": "s",
      "req": null,
      "req_key": "",
@@ -884,7 +888,7 @@
     {
      "id": "ape_los_on_target_p9973",
      "kind": "ape_los",
-     "value": 0.009361804867977726,
+     "value": 0.008870452961546238,
      "unit": "deg",
      "req": 0.01,
      "req_key": "req.ape",
@@ -893,7 +897,7 @@
     {
      "id": "wheel_momentum_peak",
      "kind": "wheel_momentum_peak",
-     "value": 0.003304141691898179,
+     "value": 0.003356789873705159,
      "unit": "N m s",
      "req": null,
      "req_key": "",
@@ -909,7 +913,7 @@
     "initial_error_deg": 0.657666226067304,
     "arg_lat_deg": 112.49903863493472
    },
-   "wall_s": 0.305079572
+   "wall_s": 0.154724444
   },
   {
    "k": 20,
@@ -917,7 +921,7 @@
     {
      "id": "settle_time_after_slew",
      "kind": "time_to_threshold",
-     "value": 36.70000000000002,
+     "value": 36.10000000000002,
      "unit": "s",
      "req": null,
      "req_key": "",
@@ -926,7 +930,7 @@
     {
      "id": "ape_los_on_target_p9973",
      "kind": "ape_los",
-     "value": 0.007558570012269743,
+     "value": 0.007543657736675656,
      "unit": "deg",
      "req": 0.01,
      "req_key": "req.ape",
@@ -935,7 +939,7 @@
     {
      "id": "wheel_momentum_peak",
      "kind": "wheel_momentum_peak",
-     "value": 0.0033510845865992404,
+     "value": 0.0033977863595036203,
      "unit": "N m s",
      "req": null,
      "req_key": "",
@@ -951,8 +955,8 @@
     "initial_error_deg": 0.1163027253301933,
     "arg_lat_deg": 25.867520999026517
    },
-   "wall_s": 0.227471226
+   "wall_s": 0.243653351
   }
  ],
- "wall_s": 6.749829292297363
+ "wall_s": 3.706780433654785
 }

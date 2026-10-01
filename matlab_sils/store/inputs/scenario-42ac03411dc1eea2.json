@@ -1,0 +1,74 @@
+{
+ "case": "ais_3u",
+ "faults": [
+  {
+   "kind": "gyro_bias_step",
+   "t_s": 6000.0,
+   "value": [
+    0.001745,
+    0.0,
+    0.0
+   ]
+  }
+ ],
+ "fsw": {
+  "guidance": {
+   "kind": "nadir"
+  },
+  "mtq_wn": 0.005,
+  "mtq_zeta": 2.0,
+  "start_mode": "nadir_mtq"
+ },
+ "id": "fault_gyro_ais",
+ "initial": {
+  "attitude": {
+   "angle_deg": 30.0,
+   "axis_body": [
+    0.577,
+    0.577,
+    0.577
+   ],
+   "kind": "error_from_target"
+  },
+  "rate": {
+   "kind": "lvlh"
+  }
+ },
+ "label": "3U AIS \u2014 gyro bias step of 0.1 deg/s during nadir hold",
+ "metrics": [
+  {
+   "diagnostic": "yaw about the antenna axis is not required: the line of sight is judged (ape_los_last_orbit)",
+   "id": "ape_3axis_last_orbit",
+   "kind": "ape",
+   "statistic": "max",
+   "window": "last_orbit"
+  },
+  {
+   "id": "ape_los_last_orbit",
+   "kind": "ape_los",
+   "requirement": "req.ape",
+   "statistic": "max",
+   "window": "last_orbit"
+  },
+  {
+   "id": "ake_los_last_orbit",
+   "kind": "ake_los",
+   "requirement": "req.ake",
+   "statistic": "max",
+   "window": "last_orbit"
+  },
+  {
+   "id": "power_mean",
+   "kind": "power_mean",
+   "requirement": "req.pavg",
+   "window": "all"
+  }
+ ],
+ "product": "TRN-P-3U-AIS",
+ "schema": "adcs-scenario/1",
+ "time": {
+  "dt_s": 0.2,
+  "duration_s": 17220.0,
+  "record_dt_s": 1.0
+ }
+}

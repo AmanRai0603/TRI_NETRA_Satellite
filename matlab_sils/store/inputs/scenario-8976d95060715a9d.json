@@ -1,0 +1,94 @@
+{
+ "case": "ais_img_3u",
+ "fsw": {
+  "dump_gain": 0.03,
+  "guidance": {
+   "kind": "nadir"
+  },
+  "rcs_dump": 0,
+  "rw_bandwidth": 0.9,
+  "rw_damping": 2.0,
+  "rw_rate_hz": 10.0,
+  "start_mode": "nadir_fine"
+ },
+ "id": "fine_hold_fmr_rcs",
+ "initial": {
+  "attitude": {
+   "angle_deg": 2.0,
+   "axis_body": [
+    0.577,
+    0.577,
+    0.577
+   ],
+   "kind": "error_from_target"
+  },
+  "rate": {
+   "kind": "lvlh"
+  }
+ },
+ "label": "3U imaging \u2014 fine nadir hold, coils + fluid rings + cold-gas RCS",
+ "metrics": [
+  {
+   "id": "ape_los_p9973",
+   "kind": "ape_los",
+   "requirement": "req.ape",
+   "statistic": "p99.73",
+   "window": "last_half_orbit"
+  },
+  {
+   "diagnostic": "the worst sample, beside the judged p99.73: req.ape is a 3-sigma requirement",
+   "id": "ape_los_max",
+   "kind": "ape_los",
+   "statistic": "max",
+   "window": "last_half_orbit"
+  },
+  {
+   "diagnostic": "the three-axis error, beside the judged line of sight: req.ape is on the imager's line of sight",
+   "id": "ape_3ax_p9973",
+   "kind": "ape",
+   "statistic": "p99.73",
+   "window": "last_half_orbit"
+  },
+  {
+   "id": "ake_los_p9973",
+   "kind": "ake_los",
+   "requirement": "req.ake",
+   "statistic": "p99.73",
+   "window": "last_half_orbit"
+  },
+  {
+   "id": "rate_stability_p9973",
+   "kind": "rate_stability",
+   "requirement": "req.rks",
+   "statistic": "p99.73",
+   "window": "last_half_orbit"
+  },
+  {
+   "channel": "ape_los",
+   "diagnostic": "acquisition from the initial error: no requirement states it (req.settle is after a slew)",
+   "hold_s": 60.0,
+   "id": "time_to_0p01_deg",
+   "kind": "time_to_threshold",
+   "threshold_deg": 0.01
+  },
+  {
+   "diagnostic": "momentum used, for sizing: the case does not state the margin req.hsat",
+   "id": "wheel_momentum_peak",
+   "kind": "wheel_momentum_peak",
+   "window": "all"
+  },
+  {
+   "id": "power_mean",
+   "kind": "power_mean",
+   "requirement": "req.pavg",
+   "window": "all"
+  }
+ ],
+ "product": "TRN-P-3U-FMR-RCS",
+ "schema": "adcs-scenario/1",
+ "time": {
+  "dt_s": 0.1,
+  "duration_s": 5740.0,
+  "record_dt_s": 0.1
+ }
+}

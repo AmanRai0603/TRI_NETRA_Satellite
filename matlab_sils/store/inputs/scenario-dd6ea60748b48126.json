@@ -1,0 +1,70 @@
+{
+ "case": "ais_3u",
+ "fsw": {
+  "algorithms": {
+   "detumble": "genbdot_l1",
+   "sun_spin": "sunspin_l1l2"
+  },
+  "auto_next": "spinup",
+  "detumble_exit_deg_s": 2.0,
+  "detumble_hold_s": 60.0,
+  "guidance": {
+   "kind": "nadir"
+  },
+  "start_mode": "detumble"
+ },
+ "id": "sun_spin_ais",
+ "initial": {
+  "attitude": {
+   "kind": "random"
+  },
+  "rate": {
+   "kind": "random_direction",
+   "magnitude_deg_s": "case:mission.w0"
+  }
+ },
+ "label": "3U AIS \u2014 coils-only Sun acquisition: detumble, spin-up, Sun-pointing spin",
+ "metrics": [
+  {
+   "id": "sun_spin_entry",
+   "kind": "time_to_mode",
+   "mode": "sun_spin",
+   "requirement": "req.sunacq"
+  },
+  {
+   "id": "sun_angle_last_orbit",
+   "kind": "sun_angle",
+   "limit": 20.0,
+   "statistic": "p95",
+   "window": "last_orbit"
+  },
+  {
+   "id": "spin_rate_error_last_orbit",
+   "kind": "spin_rate_error",
+   "limit": 0.5,
+   "statistic": "mean",
+   "window": "last_orbit"
+  },
+  {
+   "id": "sun_spin_share_last_orbit",
+   "kind": "mode_fraction",
+   "limit": 90.0,
+   "mode": "sun_spin",
+   "sense": "min",
+   "window": "last_orbit"
+  },
+  {
+   "id": "power_mean",
+   "kind": "power_mean",
+   "requirement": "req.pavg",
+   "window": "all"
+  }
+ ],
+ "product": "TRN-P-3U-AIS",
+ "schema": "adcs-scenario/1",
+ "time": {
+  "dt_s": 0.2,
+  "duration_s": 17220.0,
+  "record_dt_s": 1.0
+ }
+}
