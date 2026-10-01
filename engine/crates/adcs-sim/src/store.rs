@@ -261,11 +261,19 @@ pub fn show(dir: &Path) -> Result<String, Error> {
     Ok(s)
 }
 
+/// A word the shell passes through unchanged: left bare when it needs no quoting, else single-quoted
+/// (a single quote inside closes, escapes and reopens).
+fn shell_quote(w: &str) -> String {
+    if !w.is_empty() && w.chars().all(|c| c.is_ascii_alphanumeric() || "._-=/:+,@%".contains(c)) { return w.to_string(); }
+    format!("'{}'", w.replace('\'', "'\\''"))
+}
+
 /// The command that flies the run in `dir` again: from its kept inputs when they are there,
 /// else from the files it names (which may have changed since).
 fn fly_again(dir: &Path, m: &Value) -> String {
     let i = &m["inputs"];
-    let ov: String = i["overrides"].as_array().map(|a| a.iter().filter_map(|x| x.as_str()).map(|o| format!(" --set {o}")).collect()).unwrap_or_default();
+    // each override shell-quoted: a list value ("engine.m_res=[a, b, c]") holds spaces and brackets
+    let ov: String = i["overrides"].as_array().map(|a| a.iter().filter_map(|x| x.as_str()).map(|o| format!(" --set {}", shell_quote(o))).collect()).unwrap_or_default();
     let kept = |kind: &str, key: &str, ext: &str| i[key].as_str().and_then(|fp| find_input(dir, &input_name(kind, fp, ext)));
     let (case, scen) = (kept("case", "case_fingerprint", "csv"), kept("scenario", "scenario_file_fingerprint", "json"));
     match (case, scen) {
