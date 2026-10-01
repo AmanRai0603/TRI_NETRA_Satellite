@@ -18,5 +18,7 @@ function [img, truth] = render(R_eci2head, cat, cam)
         img(iy-4:iy+4, ix-4:ix+4) = img(iy-4:iy+4, ix-4:ix+4) + fl*w;
         truth(:, end+1) = [x; y; k]; %#ok<AGROW>
     end
-    img = img + sqrt(max(img, 0)).*randn(n) + cam.read_noise*randn(n);     % shot + read noise
+    if ~isfield(cam, 'noise') || cam.noise                  % cam.noise = false: the noise-free frame (parity tests)
+        img = img + sqrt(max(img, 0)).*randn(n) + cam.read_noise*randn(n);     % shot + read noise
+    end
 end

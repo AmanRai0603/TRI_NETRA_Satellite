@@ -14,7 +14,7 @@ function [s_meas, valid] = sun_sensor(s_true_B, nu, D, s)
         nz = D.n(:,j); x = cross(nz, [0;0;1]); if norm(x) < 1e-6, x = cross(nz, [1;0;0]); end
         x = x/norm(x); Rh = [x'; cross(nz, x)'; nz'];
         sb = asils.quat.dcm(asils.quat.fromrotvec(D.bias(:,j)))*s_true_B;
-        p = asils.comp.sun_sensor.head();
+        p = s.head;                                  % the part's aperture, height, noise, threshold
         [sh, valid] = asils.comp.sun_sensor.angles(asils.comp.sun_sensor.currents(Rh*sb, p), p);
         s_meas = Rh'*sh; return
     end

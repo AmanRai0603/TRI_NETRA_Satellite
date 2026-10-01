@@ -34,7 +34,7 @@ function D = init(P)
         D.st.blind_until = -Inf(1, nh);        % blind after the Sun / Moon left the exclusion cone
         if any(strcmp(s.model, {'quest', 'image'})), D.st.cat = asils.devices.star_catalogue(4000); end
         if strcmp(s.model, 'image')          % component level: camera + onboard pair table
-            D.st.cam = asils.comp.star_tracker.camera(s.fov);
+            D.st.cam = asils.comp.star_tracker.camera(s.fov, s.camera);   % every value from the part
             D.st.K = asils.comp.star_tracker.pairs(D.st.cat, s.fov);
         end
     end

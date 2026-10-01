@@ -8,7 +8,7 @@ function ok = run_all_tests()
          @t_torques, @t_plant_conservation, @t_cmg_plant, @t_mekf, @t_quest, @t_lqr, ...
          @t_fmr_spin_down, @t_cmg_steering, @t_hal_loopback, @t_select, @t_gen_bdot, @t_sun_spin_law, @t_sun_guidance, @t_sun_model, @t_st_chain, @t_sun_chain, @t_es_chain, ...
          @t_sizing, @t_modes_table, @t_orbit_vs_pop, @t_short_runs, @t_campaign_draw, @t_metrics_evaluate, @t_metrics_ecss, @t_flex_plant, @t_solution_scenario, ...
-         @t_coil_lag, @t_wheel_motor, @t_wheel_stiction, @t_st_moon_blind, @t_st_rate_noise, @t_gps_latency, @t_earth_radiation, @t_fidelity_refused};
+         @t_coil_lag, @t_wheel_motor, @t_wheel_stiction, @t_st_moon_blind, @t_st_rate_noise, @t_gps_latency, @t_earth_radiation, @t_fidelity_refused, @t_chain_parity, @t_chains_from_part};
     n = 0;
     for i = 1:numel(T)
         name = func2str(T{i});
@@ -588,4 +588,98 @@ function m = t_flex_plant()
     T = (t(end) - t(1))/(numel(t) - 1); want = sqrt(1 - p)/f;
     assert(abs(T - want) < 0.01*want, 'period %.4f s vs %.4f s', T, want);
     m = sprintf('momentum and energy kept; period %.3f s (free-free %.3f s)', T, want);
+end
+
+function m = t_chain_parity()
+%T_CHAIN_PARITY  The twin's chains on the same noise-free inputs as the engine's
+%   (engine/crates/adcs-sim-core/tests/chains.rs, the_star_tracker_chain_is_the_twins and
+%   quadrant_currents_invert_at_known_angles): the same pair table, spots and attitude.
+    cat = asils.devices.star_catalogue(4000); cam = asils.comp.star_tracker.camera(0.17); cam.noise = false;
+    K = asils.comp.star_tracker.pairs(cat, cam.fov); K.R_head_nominal = eye(3);
+    assert(numel(K.ang) == 452404 && K.i(1) == 3973 && K.j(1) == 3986, 'pair table');
+    q = asils.quat.norm([0.1; -0.2; 0.3; 0.9]);
+    S = asils.comp.star_tracker.centroid(asils.comp.star_tracker.render(asils.quat.dcm(q), cat, cam), cam);
+    eng = [402.79524679120351, 342.01110964608188, 275610.86868389987; 706.03213561477514, 423.98417144594674, 42335.81788271133; ...
+           773.00827469410081, 916.8667833984988, 14011.925350572936]';
+    assert(size(S, 2) == 20, '%d spots', size(S, 2));
+    d = S(:, [1 14 20]) - eng;
+    assert(max(max(abs(d(1:2, :)))) < 1e-9 && max(abs(d(3, :)./eng(3, :))) < 1e-9, 'spots off the engine by %.3g px', max(max(abs(d(1:2, :)))));
+    [qb, ok, info] = asils.comp.star_tracker.chain(q, eye(3), cat, K, cam);
+    qe = [0.10259925829569796; -0.20519218143710233; 0.30779129307304492; 0.92338187159088136];
+    e = asils.quat.angle(qb, qe)*180/pi*3600;
+    assert(ok && info.used == 20 && e < 1e-6, 'attitude off the engine by %.3g arcsec', e);
+    p = asils.comp.sun_sensor.head(); p.noise = 0;
+    s = [tand(12); tand(-25); 1]; s = s/norm(s);
+    I = asils.comp.sun_sensor.currents(s, p);
+    Ie = [0.12298383871970874; 0.072995743368318142; 0.25847853897287454; 0.43548680351329888];
+    assert(max(abs(I - Ie)) < 1e-15, 'currents off the engine by %.3g', max(abs(I - Ie)));
+    m = sprintf('20 spots within 1e-9 px, attitude within %.1e arcsec, currents within 1e-15', e);
+end
+
+function m = t_chains_from_part()
+%T_CHAINS_FROM_PART  model = 'image' and level = 'chain' read every value from the part:
+%   one left out is refused by name, as is a model or level there is none of; the image
+%   model answers through the device (render -> centroid -> identify -> QUEST), and the
+%   Sun-sensor chain through its head.
+    R = asils.util.root(); dd = fullfile(R, 'store', 'sized', sprintf('zz_test_%06d', randi(1e6)));
+    mkdir(fullfile(dd, 'parts')); mkdir(fullfile(dd, 'products'));
+    c = onCleanup(@() rmdir(dd, 's'));
+    base = asils.util.readjson(fullfile(R, 'data', 'products', 'TRN-P-3U-IMG.json'));
+    fills = base.fill; if ~iscell(fills), fills = num2cell(fills); end
+    ist = find(cellfun(@(f) strcmp(f.slot, 'star_tracker'), fills)); isun = find(cellfun(@(f) strcmp(f.slot, 'sun_sensors'), fills));
+    cam = struct('detector_px', 1024, 'psf_sigma_px', 1.2, 'flux_mag6_e', 3000, 'background_e', 50, 'read_noise_e', 8, ...
+        'centroid_k_sigma', 5, 'max_spots', 20, 'id_tol_rad', 2e-4, 'id_mag_tol', 0.25, 'fit_tol_rad', 1e-4);
+    hd = struct('aperture_side_m', 1e-3, 'aperture_height_m', 0.6e-3, 'current_noise_frac', 0.005, 'current_min_frac', 0.05);
+    chain_parts_(R, dd, cam, hd, ''); chain_product_(dd, base, fills, ist, isun, 'image', 'chain');
+    dv = asils.product.load('T-CHAINS');
+    assert(strcmp(dv.st.model, 'image') && dv.st.camera.detector_px == 1024 && dv.sun.head.h == 0.6e-3, 'values from the part');
+    keys = [fieldnames(cam); fieldnames(hd)];
+    for k = 1:numel(keys)
+        chain_parts_(R, dd, cam, hd, keys{k});
+        try, asils.product.load('T-CHAINS'); error('not refused'); catch e
+            assert(~isempty(strfind(e.message, keys{k})), '%s: %s', keys{k}, e.message);
+        end
+    end
+    chain_parts_(R, dd, cam, hd, '');
+    for bad = {{'pinhole', 'chain', 'the models are noise, quest and image'}, {'image', 'currents', 'the levels are model and chain'}}
+        chain_product_(dd, base, fills, ist, isun, bad{1}{1}, bad{1}{2});
+        try, asils.product.load('T-CHAINS'); error('not refused'); catch e
+            assert(~isempty(strfind(e.message, bad{1}{3})), '%s', e.message);
+        end
+    end
+    % the image model through the device, the head on body +y
+    s = struct('boresight', [0; 1; 0], 'noise_cross', 1e-4, 'noise_roll', 1e-3, 'latency', 0, 'max_rate', 1, ...
+        'sun_excl', 0.5, 'earth_excl', 0.3, 'fov', 0.17, 'model', 'image', 'moon_excl', 0.26, 'blind_s', 0, 'noise_rate_ref', 0.01);
+    D = struct('hist_t', [], 'hist_q', [], 'dead', false, 'blind_until', -Inf, 'q_bias', [0;0;0;1], 'q_mis', [0;0;0;1]);
+    D.cat = asils.devices.star_catalogue(4000); D.cam = asils.comp.star_tracker.camera(0.17, dv.st.camera);
+    D.K = asils.comp.star_tracker.pairs(D.cat, 0.17);
+    q = asils.quat.norm([0.2; 0.1; -0.3; 0.9]);
+    [z, v] = asils.devices.star_tracker(q, 0, zeros(3,1), [0;-1;0], [0;-1;0], [0;0;1], 1, D, s);
+    e = asils.quat.angle(q, z)*180/pi*3600;
+    assert(v && e < 60, 'image model: valid %d, %.1f arcsec', v, e);
+    % the Sun-sensor chain through its head
+    ss = dv.sun; Ds = struct('n', ss.normals, 'bias', zeros(3, size(ss.normals, 2)));
+    sb = [0.1; -0.2; 1]; sb = sb/norm(sb); w = 0;
+    for k = 1:100
+        [zs, ok] = asils.devices.sun_sensor(sb, 1, Ds, ss); assert(ok, 'Sun chain');
+        w = max(w, acosd(min(1, zs'*sb)));
+    end
+    assert(w < 2, 'Sun chain worst %.2f deg', w);
+    m = sprintf('%d values refused by name; image model %.1f arcsec; Sun chain worst %.2f deg', numel(keys), e, w);
+end
+
+function chain_parts_(R, dd, cam, hd, drop)
+%CHAIN_PARTS_  T-ST and T-SUN: the synthetic parts with the chains' values, all but `drop`.
+    p = asils.util.readjson(fullfile(R, 'data', 'parts', 'SYN-ST-1.json'));
+    for k = fieldnames(cam)', if ~strcmp(k{1}, drop), p.nominal.(k{1}) = cam.(k{1}); end, end
+    p.part_number = 'T-ST'; put_(fullfile(dd, 'parts', 'T-ST.json'), p);
+    p = asils.util.readjson(fullfile(R, 'data', 'parts', 'SYN-SUN-1.json'));
+    for k = fieldnames(hd)', if ~strcmp(k{1}, drop), p.nominal.(k{1}) = hd.(k{1}); end, end
+    p.part_number = 'T-SUN'; put_(fullfile(dd, 'parts', 'T-SUN.json'), p);
+end
+
+function chain_product_(dd, base, fills, ist, isun, model, level)
+%CHAIN_PRODUCT_  T-CHAINS: the imaging product on T-ST (model) and T-SUN (level).
+    pr = base; f2 = fills; f2{ist}.part = 'T-ST'; f2{ist}.model = model; f2{isun}.part = 'T-SUN'; f2{isun}.level = level;
+    pr.fill = f2; pr.id = 'T-CHAINS'; put_(fullfile(dd, 'products', 'T-CHAINS.json'), pr);
 end
