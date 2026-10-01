@@ -418,6 +418,7 @@ fn sensor_params(p: &mut Params, k: &Knowns) {
     p.mekf_gate = json::f(&fsw, "mekf_gate", 16.27); p.mekf_rej_max = json::f(&fsw, "mekf_rej_max", 30.0);
     p.mekf_meas_scale = 1.0;
     p.gnss_ecef = 1;
+    p.gps_latency = if dev.gps.fitted { dev.gps.latency } else { 0.0 };
     p.gd_yaw_flip = json::b(&fsw, "yaw_flip", true) as u8; p.gd_flip_hyst = 0.1;
     p.rate_lpf_s = json::f(&fsw, "rate_lpf_s", 0.3); p.igrf_nmax = 10;
     if !p.st_noise_cross.is_finite() { p.st_noise_cross = 0.0; }

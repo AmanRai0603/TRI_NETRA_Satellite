@@ -5,8 +5,8 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#define ADCS_PARAMS_PAYLOAD 2209u
-#define ADCS_PARAMS_BLOB_SIZE 2225u
+#define ADCS_PARAMS_PAYLOAD 2217u
+#define ADCS_PARAMS_BLOB_SIZE 2233u
 #define ADCS_MAX_ROTORS 8
 #define ADCS_MAX_GIMBALS 4
 #define ADCS_MAX_COUPLES 6
@@ -174,6 +174,7 @@ typedef struct {
     double mekf_meas_scale;
     double rate_lpf_s;
     uint8_t igrf_nmax;
+    double gps_latency;  /* age of a GNSS fix when it arrives [s]: the fix is carried forward by it (0 = taken as current) */
 } adcs_params_t;
 
 /* Decode an adcs-fswcfg/1 blob. 0 on success; -1 bad magic, -2 bad length, -3 bad CRC. */

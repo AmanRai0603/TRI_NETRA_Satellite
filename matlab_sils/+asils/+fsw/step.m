@@ -29,6 +29,12 @@ function [F, out] = step(F, z, t, P, D) %#ok<INUSD>
     %% 1 onboard orbit ----------------------------------------------------
     if z.gps_ok
         F.r = z.r_gps; F.v = z.v_gps; F.t_fix = t;
+        L = G.gps_latency;                              % the fix is the state L seconds ago: carried forward
+        if L > 0
+            a0 = orbit_acc_(F.r, P.mu);
+            F.r = F.r + F.v*L + 0.5*a0*L^2;
+            F.v = F.v + 0.5*(a0 + orbit_acc_(F.r, P.mu))*L;
+        end
     elseif ~isempty(F.r)                                % two-body + J2 by velocity Verlet (02)
         a0 = orbit_acc_(F.r, P.mu);
         F.r = F.r + F.v*dt + 0.5*a0*dt^2;

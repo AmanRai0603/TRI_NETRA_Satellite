@@ -57,7 +57,7 @@ function out = dispatch(caseId, familyId)
     F = P.fsw;
     keep = {'mtq_period', 'mtq_meas', 'bdot_k', 'ho_in', 'ho_out', 'ho_hold_s', 'mtq_gg_ff', 'gd_yaw_flip', 'detumble_exit', 'detumble_hold_s', 'mtq', 'rw', 'ss', 'cmg', 'rcs', ...
             'rcsd', 'sa', 'capture_deg', 'capture_rate_deg_s', 'dump_k', 'h_bias', 'm_res_est', 'mekf', 'st_coast_s', ...
-            'igrf_nmax', 'rate_lpf_s', 'fdir_s', 'alg'};
+            'igrf_nmax', 'rate_lpf_s', 'fdir_s', 'gps_latency', 'alg'};
     fp = struct();
     for k = keep, if isfield(F, k{1}), fp.(k{1}) = F.(k{1}); end, end
     write_(fullfile(out, 'fsw_params.json'), fp);

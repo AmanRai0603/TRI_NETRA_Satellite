@@ -360,12 +360,20 @@ int32_t adcs_fsw_step(uint64_t now_ns)
     /* 1 onboard orbit (02): the GNSS fix, else two-body + J2 by velocity Verlet */
     /* a fix inside the Earth is not a fix: it is dropped and the orbit is propagated as without one */
     if (z->gps_ok && adcs_norm3(z->r) > GNSS_R_MIN) {
-        if (p->gnss_ecef) {          /* receiver fix in ECEF: r = C' r_e, v = C' (v_e + w_E x r_e) */
+        double L = p->gps_latency;   /* the fix is the state L seconds ago */
+        if (p->gnss_ecef) {          /* receiver fix in ECEF: r = C' r_e, v = C' (v_e + w_E x r_e), C at the fix's epoch */
             adcs_real C[3][3], wr[3], ve[3], we[3] = {0, 0, ADCS_OMEGA_E};
-            adcs_eci2ecef(S.jd, C);
+            adcs_eci2ecef(S.jd - L/86400.0, C);
             adcs_cross(we, z->r, wr); adcs_add3(z->v, wr, ve);
             adcs_mat3t_vec(C, z->r, S.r); adcs_mat3t_vec(C, ve, S.v);
         } else { adcs_copy3(z->r, S.r); adcs_copy3(z->v, S.v); }
+        if (L > 0) {                 /* carried forward to now: one Verlet step of L */
+            adcs_real a0[3], a1[3];
+            orbit_acc(S.r, p->mu, a0);
+            for (i = 0; i < 3; i++) S.r[i] += S.v[i]*L + 0.5*a0[i]*L*L;
+            orbit_acc(S.r, p->mu, a1);
+            for (i = 0; i < 3; i++) S.v[i] += 0.5*(a0[i] + a1[i])*L;
+        }
         S.have_r = 1;
     } else if (S.have_r) {
         adcs_real a0[3], a1[3];

@@ -176,6 +176,7 @@ int32_t adcs_params_decode(const uint8_t *blob, size_t len, adcs_params_t *out)
     out->mekf_meas_scale = rd_f64(p); p += 8;
     out->rate_lpf_s = rd_f64(p); p += 8;
     out->igrf_nmax = p[0]; p += 1;
+    out->gps_latency = rd_f64(p); p += 8;
     return 0;
 }
 
@@ -333,6 +334,7 @@ size_t adcs_params_encode(const adcs_params_t *in, uint8_t *buf, size_t cap)
     wr_f64(p, in->mekf_meas_scale); p += 8;
     wr_f64(p, in->rate_lpf_s); p += 8;
     p[0] = in->igrf_nmax; p += 1;
+    wr_f64(p, in->gps_latency); p += 8;
     wr_u32(p, adcs_crc32(buf + 12, ADCS_PARAMS_PAYLOAD));
     return ADCS_PARAMS_BLOB_SIZE;
 }
@@ -501,11 +503,12 @@ int32_t adcs_params_validate(const adcs_params_t *p)
     if ((!isfinite(p->mekf_meas_scale) || p->mekf_meas_scale > 1e15 || p->mekf_meas_scale < -1e15 || (p->mekf_meas_scale != 0.0 && p->mekf_meas_scale < 1e-30 && p->mekf_meas_scale > -1e-30) || !(p->mekf_meas_scale > 0.0))) return 142;
     if ((!isfinite(p->rate_lpf_s) || p->rate_lpf_s > 1e15 || p->rate_lpf_s < -1e15 || (p->rate_lpf_s != 0.0 && p->rate_lpf_s < 1e-30 && p->rate_lpf_s > -1e-30) || p->rate_lpf_s < 0)) return 143;
     if ((p->igrf_nmax < 1 || p->igrf_nmax > 13)) return 144;
+    if ((!isfinite(p->gps_latency) || p->gps_latency > 1e15 || p->gps_latency < -1e15 || (p->gps_latency != 0.0 && p->gps_latency < 1e-30 && p->gps_latency > -1e-30) || p->gps_latency < 0 || p->gps_latency > 2)) return 145;
     return 0;
 }
 
 const char *adcs_params_field(int32_t k)
 {
-    static const char *const names[] = {"jd0", "dt", "mu", "start_mode", "auto_next", "n_sched", "sched_t", "sched_mode", "bdot_law", "rw_law", "mtq_law", "alloc", "ss_eclipse", "ss_rz_floor", "ss_law", "gd_kind", "gd_q_off", "gd_roll_deg", "gd_t0", "gd_T", "gd_axis", "gd_q_inertial", "sun_axis", "roll_axis", "J", "m_res_est", "mtq_period", "mtq_meas", "m_max", "bdot_k", "detumble_exit", "detumble_hold_s", "mtq_Kp", "mtq_Kd", "mtq_Ki", "mtq_Klqr", "mtq_lambda", "mtq_phi", "mtq_Gs", "mtq_err_max", "mtq_int_max", "rw_Kp", "rw_Kd", "rw_Ki", "rw_Klqr", "rw_lambda", "rw_phi", "rw_Gs", "rw_err_max", "rw_int_max", "rw_dt", "capture_deg", "capture_rate_deg_s", "ss_k_l1", "ss_spin_dps", "ss_sigma0", "ss_z_in_dps", "ss_perp_in_dps", "ss_sun_min", "ss_t_check_s", "ss_omega_max_dps", "ss_dwell_in_s", "ss_k1", "ss_k2", "ss_perp_out_dps", "ss_omega_exit_dps", "ss_dwell_out_s", "sa_w_max_deg_s", "sa_kd", "sa_done_deg", "sa_done_hold_s", "mtq_eps", "mtq_k1", "mtq_k2", "mtq_k16", "mtq_lam16", "mtq_Pth", "mtq_Pw", "ss_dr_k", "ss_dr_k1", "ss_dr_k2", "sb_kp", "sb_kd", "sb_kroll", "sb_kdroll", "sb_roll_gate", "ho_in_dps", "ho_out_dps", "ho_hold_s", "mtq_gg_ff", "mekf_gate", "mekf_rej_max", "mekf_mag_err_T", "gnss_ecef", "gd_yaw_flip", "gd_flip_hyst", "nr", "ng", "rot_kind", "rot_a0", "rot_gi", "gim_axis", "rot_tmax", "rot_hmax", "rot_h0", "gim_rate_max", "h_bias", "dump_k", "cmg_lam0", "cmg_mu", "cmg_k_null", "fdir_s", "nc", "rcs_tau", "rcs_mib", "rcs_res", "rcs_assist", "rcs_assist_frac", "rcs_dump", "rcs_dump_hi", "rcs_dump_lo", "rcs_dump_k", "rcsd_T_damp_s", "rcsd_deadband_deg_s", "rcsd_period_s", "has_gyro", "has_st", "has_sun", "has_es", "has_gps", "n_heads", "st_bs", "st_noise_cross", "st_noise_roll", "st_latency", "st_coast_s", "gyro_arw", "gyro_rrw", "es_noise", "mekf_sig_mag", "mekf_sig_sun", "mekf_meas_scale", "rate_lpf_s", "igrf_nmax"};
-    return (k >= 1 && k <= 144) ? names[k - 1] : "?";
+    static const char *const names[] = {"jd0", "dt", "mu", "start_mode", "auto_next", "n_sched", "sched_t", "sched_mode", "bdot_law", "rw_law", "mtq_law", "alloc", "ss_eclipse", "ss_rz_floor", "ss_law", "gd_kind", "gd_q_off", "gd_roll_deg", "gd_t0", "gd_T", "gd_axis", "gd_q_inertial", "sun_axis", "roll_axis", "J", "m_res_est", "mtq_period", "mtq_meas", "m_max", "bdot_k", "detumble_exit", "detumble_hold_s", "mtq_Kp", "mtq_Kd", "mtq_Ki", "mtq_Klqr", "mtq_lambda", "mtq_phi", "mtq_Gs", "mtq_err_max", "mtq_int_max", "rw_Kp", "rw_Kd", "rw_Ki", "rw_Klqr", "rw_lambda", "rw_phi", "rw_Gs", "rw_err_max", "rw_int_max", "rw_dt", "capture_deg", "capture_rate_deg_s", "ss_k_l1", "ss_spin_dps", "ss_sigma0", "ss_z_in_dps", "ss_perp_in_dps", "ss_sun_min", "ss_t_check_s", "ss_omega_max_dps", "ss_dwell_in_s", "ss_k1", "ss_k2", "ss_perp_out_dps", "ss_omega_exit_dps", "ss_dwell_out_s", "sa_w_max_deg_s", "sa_kd", "sa_done_deg", "sa_done_hold_s", "mtq_eps", "mtq_k1", "mtq_k2", "mtq_k16", "mtq_lam16", "mtq_Pth", "mtq_Pw", "ss_dr_k", "ss_dr_k1", "ss_dr_k2", "sb_kp", "sb_kd", "sb_kroll", "sb_kdroll", "sb_roll_gate", "ho_in_dps", "ho_out_dps", "ho_hold_s", "mtq_gg_ff", "mekf_gate", "mekf_rej_max", "mekf_mag_err_T", "gnss_ecef", "gd_yaw_flip", "gd_flip_hyst", "nr", "ng", "rot_kind", "rot_a0", "rot_gi", "gim_axis", "rot_tmax", "rot_hmax", "rot_h0", "gim_rate_max", "h_bias", "dump_k", "cmg_lam0", "cmg_mu", "cmg_k_null", "fdir_s", "nc", "rcs_tau", "rcs_mib", "rcs_res", "rcs_assist", "rcs_assist_frac", "rcs_dump", "rcs_dump_hi", "rcs_dump_lo", "rcs_dump_k", "rcsd_T_damp_s", "rcsd_deadband_deg_s", "rcsd_period_s", "has_gyro", "has_st", "has_sun", "has_es", "has_gps", "n_heads", "st_bs", "st_noise_cross", "st_noise_roll", "st_latency", "st_coast_s", "gyro_arw", "gyro_rrw", "es_noise", "mekf_sig_mag", "mekf_sig_sun", "mekf_meas_scale", "rate_lpf_s", "igrf_nmax", "gps_latency"};
+    return (k >= 1 && k <= 145) ? names[k - 1] : "?";
 }

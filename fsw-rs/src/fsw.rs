@@ -347,12 +347,20 @@ impl Fsw {
         // 1 onboard orbit (02): the GNSS fix, else two-body + J2 by velocity Verlet
         // a fix inside the Earth is not a fix: dropped, the orbit propagated as without one
         if z.gps_ok && norm3(&z.r) > GNSS_R_MIN {
+            let l = p.gps_latency;   // the fix is the state l seconds ago
             if p.gnss_ecef != 0 {
-                // receiver fix in ECEF: r = C' r_e, v = C' (v_e + w_E x r_e)
-                let c = env::eci2ecef(self.jd);
+                // receiver fix in ECEF: r = C' r_e, v = C' (v_e + w_E x r_e), C at the fix's epoch
+                let c = env::eci2ecef(self.jd - l/86400.0);
                 let ve = add3(&z.v, &cross(&[0.0, 0.0, OMEGA_E], &z.r));
                 self.r = mat3t_vec(&c, &z.r); self.v = mat3t_vec(&c, &ve);
             } else { self.r = z.r; self.v = z.v; }
+            if l > 0.0 {
+                // carried forward to now: one Verlet step of l
+                let a0 = orbit_acc(&self.r, p.mu);
+                for i in 0..3 { self.r[i] += self.v[i]*l + 0.5*a0[i]*l*l; }
+                let a1 = orbit_acc(&self.r, p.mu);
+                for i in 0..3 { self.v[i] += 0.5*(a0[i] + a1[i])*l; }
+            }
             self.have_r = true;
         } else if self.have_r {
             let a0 = orbit_acc(&self.r, p.mu);

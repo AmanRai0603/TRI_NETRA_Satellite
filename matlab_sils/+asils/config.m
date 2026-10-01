@@ -142,6 +142,8 @@ function P = config(scenarioId, caseFile, opts)
     F.mekf.meas_scale = 1; F.mekf.proc_scale = 1;
     F.mekf.sig_mag = 0.03; F.mekf.sig_sun = 0.012;  % direction 1-sigma [rad] incl. model error
     F.st_coast_s = 900;                             % gyro-only coasting allowed across a star-tracker outage
+    F.gps_latency = 0;                              % age of a GNSS fix [s]: the fix is carried forward by it
+    if P.dev.gps.fitted, F.gps_latency = P.dev.gps.latency; end
     F.igrf_nmax = 10;                               % onboard field model degree (truth: 13)
     F.algorithms = asils.util.getf(S.fsw, 'algorithms', struct());
     F.J = P.sc.I;                                   % the inertia the flight software was loaded with (nominal)
