@@ -485,10 +485,21 @@ def node_family_missions(case, sel, sized, modes, build, runs, jobs, disp, mc):
     return out
 
 
+def firmware_fingerprint():
+    """The two OBC firmware images the soft-OILS runs boot: a rebuilt image is a new configuration."""
+    import hashlib
+    h = hashlib.sha256()
+    for f in ("obc_qemu.elf", "obc_qemu_rs.elf"):
+        p = ROOT / "fsw" / "build" / f
+        h.update(p.read_bytes() if p.exists() else b"missing")
+    return h.hexdigest()[:16]
+
+
 def node_soft_oils(case, disp, sized, build):
-    key = node_key(disp, sized, build, "soft_oils")
+    key = node_key(disp, sized, build, "soft_oils:" + firmware_fingerprint())
     prev = jl_(PIPE / case / "soft_oils.json")
-    if prev and prev.get("_key") == key:
+    # a run that did not complete is never reused: it is flown again
+    if prev and prev.get("_key") == key and all(prev.get(m, {}).get("rc") == 0 for m in ("sils", "oils", "oils_rs")):
         print("  soft_oils: unchanged configuration, cached")
         return prev
     out = {"_key": key}
