@@ -214,12 +214,12 @@ HILS is documentation only today.
 7. Figures exported as SVG/PDF; dark-mode aware; no outside fonts.
 
 ## B8. Evidence and traceability (L)
-1. **A requirements traceability matrix**, generated: every stated requirement → metric → scenario → latest result; ✔ `req.slew` has no metric; 66 of 173 metrics are unjudged — each decided.
-2. **Outside validation of the orbit propagator**: the CHAMP/ITSG orbit-determination comparison stored as a ledger; published cases (Vallado, SOFA, published DTM2020/JB2008) as tests. Today it is checked only against its own MATLAB original (`pop/08_test/run_all_tests.m:237`).
-3. **Published cases for the algorithms**: at least B-dot, MEKF, LQR and QUEST against numbers from their papers.
-4. **Catalogue**: each datasheet number traced to its page and tested; the 14 synthetic parts replaced by real units.
-5. **`status` headline** extended: rows without an outside reference, requirements without a metric, stale results.
-6. Owner work: confirm the 31 algorithms (all UNCONFIRMED), choose real parts.
+1. ✅ **Traceability matrix**, generated (`tools/trace.py` → `results/TRACEABILITY.md`): every stated requirement of each case → what checks it (a flown scenario's metric, the design loop's budget or its mode flights, the reference slew's profile) → the latest stored verdict. All 19 stated requirements are checked. The 66 metrics that judged nothing now each say why they only report (`diagnostic`, engine and twin); `req.slew` is checked by the slew scenarios flying `mission.sangle` in `req.slew` (their settle and APE are then judged); `req.sunacq` and `req.ppk` on the imaging case by the design loop's mode flights. `trace --check` is in `check_all`.
+2. 🟡 **Propagator, outside validation.** ✅ The time and frame kernel against ERFA's (SOFA's) published test vectors (`adcs-pop/tests/published.rs`). ✅ IGRF-13 against an independent implementation (pyIGRF), which found the table ported from the Standard Code wrong by up to 75 nT; the IAGA coefficient file is now the one source of the table. ❌ Owed: a real satellite's precise orbit as a ledger, and the atmosphere models' published reference outputs (neither was reachable from the build environment).
+3. 🟡 **Algorithms against outside references** (`docs/references.toml`): ✅ LQR (SciPy's Riccati solver, the closed form), B-dot gain (Avanzini & Giulietti 2012), QUEST (SciPy's SVD solution), TRIAD, the MEKF's equations (Markley & Crassidis 2014) in closed form, guidance frames. ❌ Owed: an MEKF consistency (NEES) test (with B3), and one published case from the magnetorquer papers.
+4. ❌ **Catalogue**: each datasheet number traced to its page; the 14 synthetic parts replaced by real units (owner's choice of parts).
+5. ✅ **`status` headline** extended: requirements nothing checks, requirements not met, undecided metrics, models without an outside reference, stale stored runs.
+6. Owner work: confirm the 31 algorithms (all UNCONFIRMED), choose real parts; decide IGRF-14 (the mission epoch, 2027, is past IGRF-13's 2025: the field is extrapolated from the 2020–2025 secular variation).
 
 ## B9. Release (M) — the last step
 1. The wheel tagged per platform (it is tagged `any` but carries native programs) and installed and run on Windows and macOS too; macOS binaries in the wheel signed like the kit's.

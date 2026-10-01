@@ -1,0 +1,39 @@
+# Mutation testing of the flight software's control and estimation (tools/mutation.py): too slow for
+# every pull request, so weekly and on demand. It fails when the kill rate drops under the floor
+# the tool states, and keeps the per-function record as an artifact.
+name: mutation
+
+on:
+  schedule:
+    - cron: "17 3 * * 1"
+  workflow_dispatch:
+
+env:
+  CARGO_TERM_COLOR: always
+  CARGO_INCREMENTAL: "0"
+
+jobs:
+  mutation:
+    name: deliberate faults the flight software's tests must catch (cargo-mutants)
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: fsw-rs
+      - name: cargo-mutants
+        run: cargo install cargo-mutants --locked
+      - name: python3 tools/check_all.py --only mutation
+        run: python3 tools/check_all.py --only mutation
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: mutation
+          path: |
+            results/MUTATION.md
+            results/mutation.json

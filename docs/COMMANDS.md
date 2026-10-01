@@ -30,6 +30,7 @@
 | [`pack_flight.py pack-flight`](#pack_flightpy-pack-flight) | The flight software and Rust engine zip, in the repository's layout so it builds as unpacked. |
 | [`gen_fsw_params.py gen-fsw-params`](#gen_fsw_paramspy-gen-fsw-params) | The flight software's parameter and table sources, C and Rust, from their one definition. --check says which generated file is stale, and changes nothing. |
 | [`fsw_stack.py fsw-stack`](#fsw_stackpy-fsw-stack) | The flight software's deepest stack on the Cortex-M4 firmware, from GCC's call graph, against the stack the linker script reserves. Recursion and unbounded frames are refused; a library routine is charged a fixed frame and named. |
+| [`mutation.py mutation`](#mutationpy-mutation) | Mutation testing of the flight software's control and estimation (fsw-rs/src/ctl.rs, est.rs) with cargo-mutants: each small deliberate fault in turn, and whether the Rust flight software's tests catch it. Writes the kill rate per function and the missed mutants; --check fails under the floor the tool states. |
 | [`trace.py trace`](#tracepy-trace) | The requirements traceability matrix: every requirement a case states, what checks it (a flown scenario's metric, the design loop's budget or mode flights, the reference slew's profile) and what the latest stored result says. --check refuses a metric that neither judges nor says why it only reports, a requirement key the case lacks, and a stated requirement nothing checks; it writes nothing. |
 | [`export_catalogue.py export-catalogue`](#export_cataloguepy-export-catalogue) | The catalogue, scenarios, campaigns and trades from TOML to the JSON the MATLAB twin and the engine read. --check says which JSON has drifted from its TOML, and changes nothing. |
 | [`nodes_doc.py nodes-doc`](#nodes_docpy-nodes-doc) | docs/NODES.md and docs/CATALOGUE.md from the node registry and the datasheet catalogue. |
@@ -443,6 +444,22 @@ The flight software's deepest stack on the Cortex-M4 firmware, from GCC's call g
 - **Reads:** `fsw/src/`; `fsw/targets/link/`; `fsw/targets/qemu-mps2/`
 - **Writes:** nothing
 - **Starts:** arm-none-eabi-gcc
+
+## mutation.py mutation
+
+Mutation testing of the flight software's control and estimation (fsw-rs/src/ctl.rs, est.rs) with cargo-mutants: each small deliberate fault in turn, and whether the Rust flight software's tests catch it. Writes the kill rate per function and the missed mutants; --check fails under the floor the tool states.
+
+    python3 tools/mutation.py [--from DIR] [--check] [--jobs N]
+
+**Steps**
+
+1. make and test every mutant (cargo mutants, about 30 min)
+2. count caught and missed per function
+3. write the record; with --check, fail under the floor
+
+- **Reads:** `fsw-rs/src/ctl.rs`; `fsw-rs/src/est.rs`; `fsw-rs/tests/`
+- **Writes:** `results/MUTATION.md`; `results/mutation.json`
+- **Starts:** cargo-mutants
 
 ## trace.py trace
 

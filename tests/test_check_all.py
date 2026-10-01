@@ -13,7 +13,7 @@ import check_all
 
 _ = _path  # imported for its effect: tools/ on sys.path
 
-ALL = [c[0] for c in check_all.CHECKS + check_all.OCTAVE + check_all.PAGES]
+ALL = [c[0] for c in check_all.CHECKS + check_all.OCTAVE + check_all.PAGES + check_all.MUTATION]
 
 
 class Fake:
@@ -22,7 +22,7 @@ class Fake:
         self.ran, self.fail = [], set(fail)
 
     def __call__(self, cmd, cwd=None, **kw):
-        name = next(c[0] for c in check_all.CHECKS + check_all.OCTAVE + check_all.PAGES if c[2] == cmd and check_all.ROOT / c[3] == cwd)
+        name = next(c[0] for c in check_all.CHECKS + check_all.OCTAVE + check_all.PAGES + check_all.MUTATION if c[2] == cmd and check_all.ROOT / c[3] == cwd)
         self.ran.append(name)
         return subprocess.CompletedProcess(cmd, 1 if name in self.fail else 0, stdout=f"{name} output\nlast line of {name}\n")
 
@@ -44,8 +44,10 @@ class Choice(unittest.TestCase):
         self.assertEqual(ran, [c[0] for c in check_all.CHECKS])
         self.assertIn(f"check_all: {len(check_all.CHECKS)}/{len(check_all.CHECKS)} ok", out)
 
-    def test_flags_add_the_octave_suites_and_the_pages(self):
+    def test_flags_add_the_octave_suites_the_pages_and_mutation_testing(self):
         rc, ran, _ = run(["--octave", "--pages"])
+        self.assertEqual(ran, [n for n in ALL if n != "mutation"], "mutation testing only when asked")
+        rc, ran, _ = run(["--octave", "--pages", "--mutation"])
         self.assertEqual(ran, ALL)
 
     def test_only_runs_just_those_and_reaches_an_optional_group_by_name(self):

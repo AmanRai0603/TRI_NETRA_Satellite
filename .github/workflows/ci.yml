@@ -57,6 +57,8 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y --no-install-recommends gcc-arm-none-eabi libnewlib-arm-none-eabi qemu-system-arm
       - name: the firmware (C and Rust), the OBC processes and the instruction counter
         run: make -C fsw obc
+      - name: the deepest stack fits the stack the firmware reserves (no recursion)
+        run: python3 tools/check_all.py --only fsw-stack
       - name: the engine
         run: cargo build --release --manifest-path engine/Cargo.toml
       - name: C in-process against C on QEMU, and Rust in-process against Rust on QEMU
