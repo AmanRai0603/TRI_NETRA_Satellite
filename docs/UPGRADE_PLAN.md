@@ -277,3 +277,4 @@ Each wave ends with `check_all` and CI green and this file's ticks updated.
 | Reference OBC board for OILS (B5.2) | an STM32F4 class board, or the owner's flight OBC |
 | HILS equipment available (B6) | owner lists what exists (cage, air bearing, Sun simulator) |
 | Does v1.0.0 wait for B5/B6 (hardware-paced)? | release after waves 1–5 and 7; OILS/HILS in v1.1 — owner's call |
+| Fault policy in selection (B2.6) | **decided by the owner: `gap`**: a family that does not survive a single fault its hardware can carry is not feasible. So `ais_img_3u` has no feasible solution family until its design carries a spare (one fluid ring per axis leaves none); `mtq_fmr` is named the closest |
