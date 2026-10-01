@@ -1,0 +1,76 @@
+{
+ "case": "ais_3u",
+ "fsw": {
+  "guidance": {
+   "kind": "nadir"
+  },
+  "mtq_wn": 0.005,
+  "mtq_zeta": 2.0,
+  "start_mode": "nadir_mtq"
+ },
+ "id": "nadir_hold_ais",
+ "initial": {
+  "attitude": {
+   "angle_deg": 30.0,
+   "axis_body": [
+    0.577,
+    0.577,
+    0.577
+   ],
+   "kind": "error_from_target"
+  },
+  "rate": {
+   "kind": "lvlh"
+  }
+ },
+ "label": "3U AIS \u2014 nadir hold with magnetorquers only (10 deg requirement)",
+ "metrics": [
+  {
+   "diagnostic": "yaw about the antenna axis is not required: the line of sight is judged (ape_los_last_orbit)",
+   "id": "ape_3axis_last_orbit",
+   "kind": "ape",
+   "statistic": "max",
+   "window": "last_orbit"
+  },
+  {
+   "id": "ape_los_last_orbit",
+   "kind": "ape_los",
+   "requirement": "req.ape",
+   "statistic": "max",
+   "window": "last_orbit"
+  },
+  {
+   "id": "ake_los_last_orbit",
+   "kind": "ake_los",
+   "requirement": "req.ake",
+   "statistic": "max",
+   "window": "last_orbit"
+  },
+  {
+   "id": "power_mean",
+   "kind": "power_mean",
+   "requirement": "req.pavg",
+   "window": "all"
+  },
+  {
+   "id": "power_margin_last_orbit",
+   "kind": "power_margin",
+   "limit": 0.0,
+   "sense": "min",
+   "window": "last_orbit"
+  },
+  {
+   "diagnostic": "the deepest battery discharge over the orbit: the case does not state a depth-of-discharge limit",
+   "id": "battery_dod_last_orbit",
+   "kind": "battery_dod",
+   "window": "last_orbit"
+  }
+ ],
+ "product": "TRN-P-3U-AIS",
+ "schema": "adcs-scenario/1",
+ "time": {
+  "dt_s": 0.2,
+  "duration_s": 17220.0,
+  "record_dt_s": 1.0
+ }
+}

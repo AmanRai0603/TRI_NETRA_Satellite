@@ -1,0 +1,130 @@
+{
+ "case": "ais_img_3u",
+ "fsw": {
+  "guidance": {
+   "kind": "nadir"
+  },
+  "rw_bandwidth": 0.9,
+  "rw_damping": 2.0,
+  "rw_rate_hz": 10.0,
+  "start_mode": "nadir_fine"
+ },
+ "id": "fine_hold_img",
+ "initial": {
+  "attitude": {
+   "angle_deg": 2.0,
+   "axis_body": [
+    0.577,
+    0.577,
+    0.577
+   ],
+   "kind": "error_from_target"
+  },
+  "rate": {
+   "kind": "lvlh"
+  }
+ },
+ "label": "3U imaging \u2014 fine nadir hold, reaction wheels + star tracker (0.01 deg)",
+ "metrics": [
+  {
+   "id": "ape_los_p9973",
+   "kind": "ape_los",
+   "requirement": "req.ape",
+   "statistic": "p99.73",
+   "window": "last_half_orbit"
+  },
+  {
+   "diagnostic": "the worst sample, beside the judged p99.73: req.ape is a 3-sigma requirement",
+   "id": "ape_los_max",
+   "kind": "ape_los",
+   "statistic": "max",
+   "window": "last_half_orbit"
+  },
+  {
+   "diagnostic": "the three-axis error, beside the judged line of sight: req.ape is on the imager's line of sight",
+   "id": "ape_3ax_p9973",
+   "kind": "ape",
+   "statistic": "p99.73",
+   "window": "last_half_orbit"
+  },
+  {
+   "id": "ake_los_p9973",
+   "kind": "ake_los",
+   "requirement": "req.ake",
+   "statistic": "p99.73",
+   "window": "last_half_orbit"
+  },
+  {
+   "id": "rate_stability_p9973",
+   "kind": "rate_stability",
+   "requirement": "req.rks",
+   "statistic": "p99.73",
+   "window": "last_half_orbit"
+  },
+  {
+   "channel": "ape_los",
+   "diagnostic": "acquisition from the initial error: no requirement states it (req.settle is after a slew)",
+   "hold_s": 60.0,
+   "id": "time_to_0p01_deg",
+   "kind": "time_to_threshold",
+   "threshold_deg": 0.01
+  },
+  {
+   "diagnostic": "momentum used, for sizing: the case does not state the margin req.hsat",
+   "id": "wheel_momentum_peak",
+   "kind": "wheel_momentum_peak",
+   "window": "all"
+  },
+  {
+   "id": "power_mean",
+   "kind": "power_mean",
+   "requirement": "req.pavg",
+   "window": "all"
+  },
+  {
+   "delta_s": 10.0,
+   "diagnostic": "ECSS relative pointing error over 10 s windows: the case does not state req.rpe",
+   "id": "rpe_los_10s_p9973",
+   "kind": "rpe_los",
+   "statistic": "p99.73",
+   "window": "last_half_orbit"
+  },
+  {
+   "delta_s": 10.0,
+   "diagnostic": "ECSS pointing drift between 10 s windows 60 s apart: the case does not state req.pde",
+   "id": "pde_los_10s_60s_max",
+   "kind": "pde_los",
+   "separation_s": 60.0,
+   "statistic": "max",
+   "window": "last_half_orbit"
+  },
+  {
+   "delta_s": 10.0,
+   "diagnostic": "ECSS relative knowledge error over 10 s windows: the case does not state req.rke",
+   "id": "rke_los_10s_p9973",
+   "kind": "rke_los",
+   "statistic": "p99.73",
+   "window": "last_half_orbit"
+  },
+  {
+   "id": "power_margin_last_orbit",
+   "kind": "power_margin",
+   "limit": 0.0,
+   "sense": "min",
+   "window": "last_orbit"
+  },
+  {
+   "diagnostic": "the deepest battery discharge over the orbit: the case does not state a depth-of-discharge limit",
+   "id": "battery_dod_last_orbit",
+   "kind": "battery_dod",
+   "window": "last_orbit"
+  }
+ ],
+ "product": "TRN-P-3U-IMG",
+ "schema": "adcs-scenario/1",
+ "time": {
+  "dt_s": 0.1,
+  "duration_s": 5740.0,
+  "record_dt_s": 0.1
+ }
+}

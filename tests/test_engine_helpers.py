@@ -304,3 +304,21 @@ class Claims(unittest.TestCase):
         s = C.summarise(runs, claim=(0.9973, 0.95))[0]
         self.assertFalse(s["claim_met"], "one failure in 1109 no longer shows 99.73 %")
         self.assertNotIn("claim_met", C.summarise(runs)[0], "no claim, no verdict on it")
+
+
+class KeepInterp(unittest.TestCase):
+    def test_a_campaign_run_keeps_the_interpretation_channels_and_the_same_answer(self):
+        import json, pathlib, tempfile
+        import engine_campaigns as EC
+        with tempfile.TemporaryDirectory() as t:
+            d = pathlib.Path(t) / "run_0001"
+            d.mkdir()
+            rows = ["t_s,q_x,ape_los_deg,ake_los_deg,P_rw_W"] + [f"{i},0.1,{0.001 * i},{0.0005 * i},2" for i in range(10)]
+            (d / "channels.csv").write_text("\n".join(rows) + "\n")
+            (d / "manifest.json").write_text(json.dumps({"orbit": {"period_s": 5.0}}))
+            m = [{"id": "a", "kind": "ape_los", "statistic": "max", "window": "all"}]
+            before = EC.interpretations([d], m)
+            EC.keep_interp(d)
+            self.assertFalse((d / "channels.csv").exists())
+            self.assertEqual((d / "interp.csv").read_text().splitlines()[0], "t_s,ape_los_deg,ake_los_deg")
+            self.assertEqual(EC.interpretations([d], m), before)

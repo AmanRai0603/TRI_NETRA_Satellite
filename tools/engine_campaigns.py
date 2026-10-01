@@ -113,7 +113,24 @@ def camp_job(args):
     for s in sets:
         cmd += ["--set", s]
     p = subprocess.run(cmd, capture_output=True, text=True)
+    if p.returncode == 0:
+        keep_interp(out)
     return k, p.returncode, (p.stdout + p.stderr).strip()
+
+
+def keep_interp(run_dir):
+    """A campaign run keeps only what the campaign reads afterwards: its manifest (every verdict) and
+    interp.csv, the time and the error channels the ECSS interpretations use. The full channels.csv
+    (tens of MB a run) is removed, so a claim-sized campaign (1109 runs) fits on disk; one run is
+    flown again whole with the command its manifest records."""
+    f = run_dir / "channels.csv"
+    if not f.exists():
+        return
+    lines = f.read_text().splitlines()
+    head = lines[0].split(",")
+    cols = [i for i, h in enumerate(head) if h == "t_s" or h in INTERP_CHANNEL.values()]
+    write_text(run_dir / "interp.csv", "\n".join(",".join(r[i] for i in cols) for r in (ln.split(",") for ln in lines)) + "\n")
+    f.unlink()
 
 
 def summarise(runs, levels=None, claim=(None, None)):
@@ -225,7 +242,7 @@ def interpretations(run_dirs, metrics):
     out = []
     series = {}
     for d in run_dirs:
-        f = d / "channels.csv"
+        f = d / "interp.csv" if (d / "interp.csv").exists() else d / "channels.csv"
         man = d / "manifest.json"
         if f.exists() and man.exists():
             series[d] = (f.read_text().splitlines(), json.loads(man.read_text())["orbit"]["period_s"])
