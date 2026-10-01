@@ -87,7 +87,7 @@
  ],
  "mtq_period": 1.0,
  "mtq_meas": 0.2,
- "m_max": 0.3420694487260152,
+ "m_max": 0.24943425696878693,
  "bdot_k": 8.763791486082992e-05,
  "detumble_exit": 0.008726646259971648,
  "detumble_hold_s": 60.0,
@@ -177,7 +177,7 @@
  "capture_deg": 3.0,
  "capture_rate_deg_s": 1.0,
  "ss_k_l1": 1000000.0,
- "ss_spin_dps": 4.0,
+ "ss_spin_dps": 2.0,
  "ss_sigma0": 1.0,
  "ss_z_in_dps": 0.5,
  "ss_perp_in_dps": 0.5,
@@ -185,8 +185,8 @@
  "ss_t_check_s": 60.0,
  "ss_omega_max_dps": 100.0,
  "ss_dwell_in_s": 60.0,
- "ss_k1": 0.003,
- "ss_k2": 0.015,
+ "ss_k1": 0.03,
+ "ss_k2": 0.15000000000000002,
  "ss_perp_out_dps": 1.0,
  "ss_omega_exit_dps": 2.0,
  "ss_dwell_out_s": 30.0,
@@ -233,7 +233,7 @@
    0.00025527754155703396
   ]
  ],
- "ss_dr_k": 0.003,
+ "ss_dr_k": 0.03,
  "ss_dr_k1": 1.5,
  "ss_dr_k2": 0.021,
  "sb_kp": 3.0233333333333333e-06,
@@ -447,5 +447,6 @@
  "mekf_sig_sun": 0.00920271699010678,
  "mekf_meas_scale": 1.0,
  "rate_lpf_s": 0.3,
- "igrf_nmax": 10
+ "igrf_nmax": 10,
+ "gps_latency": 0.1
 }
