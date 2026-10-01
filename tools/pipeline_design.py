@@ -294,3 +294,16 @@ def node_key(disp, sized, build, extra=""):
     scen = json.loads(pathlib.Path(disp["scenario"]).read_text())
     prod, parts = product_blob(sized, scen["product"])
     return sha(scen, prod, parts, build, extra, case_bytes(scen["case"]))
+
+
+def node_redundancy(sel, knobs):
+    """The fault campaign's lever (node faults, select fault_policy gap): when the selected or closest
+    family carries fluid rings and loses fine pointing to a single ring failure, fit the spare ring
+    (adcs-design knob fmr_spare: a fourth, skewed ring that stands in for any one). Once only."""
+    fam = sel["families"].get(sel["selected"], {})
+    ring_gap = [g for g in fam.get("fault_gaps", []) if g.startswith("fault: rotor_fail")]
+    if "fmr" not in sel["selected"].split("_") or not ring_gap or knobs.get("fmr_spare"):
+        return knobs, []
+    k = json.loads(json.dumps(knobs))
+    k["fmr_spare"] = True
+    return k, [f"redundancy ({sel['selected']}): {ring_gap[0]} -> a spare fluid ring, skewed, that stands in for any one ring"]

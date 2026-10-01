@@ -345,6 +345,10 @@ def design():
                  e(", ".join(f"{k}={v}" for k, v in (r["algorithms"] or {}).items() if v))] for m, r in F["modes"].items() if r]
         out.append("<p>Selected method per mission mode:</p>" + table(["mode", "option", "feasible", "objective (worst seed)", "algorithms"], rows))
         for r in sel.get("robustness", []):
+            if "fault_gaps" in r:   # the redundancy step after node faults
+                out.append("<div class='find'><b>Redundancy (single-fault feedback) after iteration " + str(r["after_iteration"]) + ":</b> " +
+                           e("; ".join(r["fault_gaps"]) + ". " + " ".join(r["changes"] + r["blocked"])) + "</div>")
+                continue
             out.append("<div class='find'><b>Robustness (Monte Carlo feedback) after iteration " + str(r["after_iteration"]) + ":</b> " +
                        e(", ".join(f"{k} passed in {100 * v:.0f} % of dispersed runs" for k, v in r["mc_failing"].items()) + ". " + " ".join(r["changes"] + r["blocked"])) + "</div>")
         out.append(family_missions(c, sel))

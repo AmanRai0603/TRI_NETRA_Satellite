@@ -39,15 +39,17 @@ pub struct Knobs {
     pub fmr_flow_sigma: f64,
     /// gyro grade: noise scale on the precision gyro (1 = TRN-GYRO-P1; 0.3, 0.1 = FOG class)
     pub gyro_grade: f64,
+    /// a fourth fluid ring, skewed, that can stand in for any one of the three (single-fault tolerance)
+    pub fmr_spare: bool,
 }
 impl Default for Knobs {
-    fn default() -> Self { Knobs { scale: BTreeMap::new(), k_h: None, k_tau: 1.5, fmr_lambda: 0.1, star_tracker: false, st_heads: 2, fmr_flow_sigma: 0.002, gyro_grade: 1.0 } }
+    fn default() -> Self { Knobs { scale: BTreeMap::new(), k_h: None, k_tau: 1.5, fmr_lambda: 0.1, star_tracker: false, st_heads: 2, fmr_flow_sigma: 0.002, gyro_grade: 1.0, fmr_spare: false } }
 }
 impl Knobs {
     /// The knobs a file states; a key left out keeps its default. A key the sizing does not
     /// read, or a value of the wrong kind, is refused by name.
     pub fn from_json(v: &Value) -> Result<Knobs, Error> {
-        const KEYS: [&str; 8] = ["scale", "k_h", "k_tau", "fmr_lambda", "st_heads", "fmr_flow_sigma", "gyro_grade", "star_tracker"];
+        const KEYS: [&str; 9] = ["scale", "k_h", "k_tau", "fmr_lambda", "st_heads", "fmr_flow_sigma", "gyro_grade", "star_tracker", "fmr_spare"];
         let o = v.as_object().ok_or_else(|| Error::refused("knobs: must be a JSON object"))?;
         if let Some(k) = o.keys().find(|k| !KEYS.contains(&k.as_str())) {
             return Err(Error::refused(format!("knobs: {k} is not a knob the sizing reads ({})", KEYS.join(", "))));
@@ -78,9 +80,14 @@ impl Knobs {
             Some(Value::Bool(b)) => *b,
             Some(x) => return Err(Error::refused(format!("knobs: star_tracker = {x} is not true or false"))),
         };
+        k.fmr_spare = match o.get("fmr_spare") {
+            None | Some(Value::Null) => false,
+            Some(Value::Bool(b)) => *b,
+            Some(x) => return Err(Error::refused(format!("knobs: fmr_spare = {x} is not true or false"))),
+        };
         Ok(k)
     }
-    pub fn json(&self) -> Value { json!({"scale": self.scale, "k_h": self.k_h, "k_tau": self.k_tau, "fmr_lambda": self.fmr_lambda, "star_tracker": self.star_tracker, "st_heads": self.st_heads, "fmr_flow_sigma": self.fmr_flow_sigma, "gyro_grade": self.gyro_grade}) }
+    pub fn json(&self) -> Value { json!({"scale": self.scale, "k_h": self.k_h, "k_tau": self.k_tau, "fmr_lambda": self.fmr_lambda, "star_tracker": self.star_tracker, "st_heads": self.st_heads, "fmr_flow_sigma": self.fmr_flow_sigma, "gyro_grade": self.gyro_grade, "fmr_spare": self.fmr_spare}) }
     fn s(&self, p: &str) -> f64 { self.scale.get(p).copied().unwrap_or(1.0) }
 }
 
@@ -325,27 +332,77 @@ pub fn fmr(d: &Demand, k: &Knobs, bx: [f64; 3]) -> Vec<Value> {
     let h = d.h_req.max(2e-4)*k.s("fmr");
     let tau = d.tau_req.max(1e-5)*k.s("fmr");
     let ax = ["X", "Y", "Z"];
-    (0..3).map(|i| {
-        let (s0, l1) = (0.8*faces[i], 0.8*per[i]);
-        let ds = empump::design(h, tau, s0, l1, k.fmr_lambda).expect("no feasible pump design");
-        let mut nm = ds.json(k.fmr_lambda);
-        for (key, val) in [("fluid", json!("galinstan")), ("fluid_density_kg_m3", json!(6440.0)), ("fluid_viscosity_Pa_s", json!(0.0024)),
-                           ("pump_type", json!("dc-conduction, electromagnet")), ("melt_point_K", json!(254)), ("dipole_max_Am2", json!(0)),
-                           ("dipole_per_amp_Am2_per_A", json!(0)), ("current_max_A", json!(0)), ("volume_L", json!(faces[i]*0.006*1e3 + 0.02))] {
-            nm[key] = val;
-        }
-        let eta = ds.eta_cruise.max(0.01);
-        let mut p = json!({"part_number": format!("SZ-{}-FMR-{}", d.case, ax[i]), "kind": "magneto_fluidic_panel",
-            "name": format!("Sized fluid momentum loop with electromagnetic pump, {} axis (our product) — {}", ax[i], d.case), "status": "sized",
-            "source": "adcs-design (empump)", "made": "in-house", "descriptor_version": 1});
-        p["nominal"] = nm;
-        p["dispersion"] = json!({"friction_scale": {"dist": "uniform", "lo": 0.8, "hi": 1.2}, "pump_efficiency": {"dist": "uniform", "lo": 0.7*eta, "hi": 1.3*eta},
-            "flow_sensor_noise_m_s": {"dist": "normal", "mean": 0, "sigma": k.fmr_flow_sigma}, "axis_misalignment_rad": {"dist": "normal", "mean": 0, "sigma": 0.005}});
-        p["sizing"] = json!({"h_req_Nms": d.h_req, "tau_req_Nm": d.tau_req, "flow_sensor_sigma_m_s": k.fmr_flow_sigma, "face_m2": faces[i], "scale": k.s("fmr"), "lambda_kg_per_W": k.fmr_lambda,
-            "pareto": empump::pareto(h, tau, s0, l1),
-            "law": "galinstan loop + DC conduction pump with an electromagnet, designed together: least mass + lambda x steady power (empump.rs)"});
-        p
-    }).collect()
+    let mut rings: Vec<Value> = (0..3).map(|i| ring(d, k, h, tau, faces[i], per[i], ax[i], &format!("{} axis", ax[i]))).collect();
+    if k.fmr_spare {
+        // the spare stands in for any one ring: its axis follows the rings' momenta (all equal here,
+        // so the body diagonal) and it carries their root-sum-square, so its projection on each axis
+        // holds that ring's whole momentum and torque; its loop lies in the box's cross-section
+        // perpendicular to that axis
+        let s = spare_axis();
+        let (area, perim) = section(bx, s);
+        let n = 3f64.sqrt();
+        rings.push(ring(d, k, n*h, n*tau, area, perim, "S", "spare, skewed on the body diagonal"));
+    }
+    rings
+}
+
+/// The spare ring's axis: the unit body diagonal (the rings are sized alike).
+pub fn spare_axis() -> [f64; 3] { let r = 1.0/3f64.sqrt(); [r, r, r] }
+
+/// Area and perimeter of the cross-section of a centred box (sides `bx`) by the plane through its
+/// centre with unit normal `n`: the loop a skewed ring can enclose.
+pub fn section(bx: [f64; 3], n: [f64; 3]) -> (f64, f64) {
+    let hx = [bx[0]/2.0, bx[1]/2.0, bx[2]/2.0];
+    let mut pts: Vec<[f64; 3]> = vec![];
+    // every box edge: two coordinates at a corner value, the third free; solve n . p = 0 on it
+    for free in 0..3 {
+        let (a, b) = ((free + 1) % 3, (free + 2) % 3);
+        for sa in [-1.0, 1.0] { for sb in [-1.0, 1.0] {
+            if n[free].abs() < 1e-15 { continue; }
+            let mut p = [0.0; 3];
+            p[a] = sa*hx[a]; p[b] = sb*hx[b];
+            p[free] = -(n[a]*p[a] + n[b]*p[b])/n[free];
+            if p[free].abs() <= hx[free] + 1e-12 { pts.push(p); }
+        } }
+    }
+    // order them around the normal, then the shoelace area and the perimeter in the plane
+    let u = { let t = if n[0].abs() < 0.9 { [1.0, 0.0, 0.0] } else { [0.0, 1.0, 0.0] }; unit(&sub(&t, &scale(&n, t[0]*n[0] + t[1]*n[1] + t[2]*n[2]))) };
+    let v = [n[1]*u[2] - n[2]*u[1], n[2]*u[0] - n[0]*u[2], n[0]*u[1] - n[1]*u[0]];
+    let mut q: Vec<(f64, f64)> = pts.iter().map(|p| (p[0]*u[0] + p[1]*u[1] + p[2]*u[2], p[0]*v[0] + p[1]*v[1] + p[2]*v[2])).collect();
+    q.sort_by(|a, b| a.1.atan2(a.0).partial_cmp(&b.1.atan2(b.0)).unwrap());
+    q.dedup_by(|a, b| (a.0 - b.0).abs() < 1e-12 && (a.1 - b.1).abs() < 1e-12);
+    let m = q.len();
+    let (mut area, mut perim) = (0.0, 0.0);
+    for i in 0..m {
+        let (a, b) = (q[i], q[(i + 1) % m]);
+        area += a.0*b.1 - b.0*a.1;
+        perim += ((b.0 - a.0).powi(2) + (b.1 - a.1).powi(2)).sqrt();
+    }
+    (area.abs()/2.0, perim)
+}
+
+/// One fluid ring with its electromagnetic pump, designed for momentum `h` and torque `tau` in a
+/// loop of `face` m^2 and `perim` m (80 % of each used).
+fn ring(d: &Demand, k: &Knobs, h: f64, tau: f64, face: f64, perim: f64, tag: &str, what: &str) -> Value {
+    let (s0, l1) = (0.8*face, 0.8*perim);
+    let ds = empump::design(h, tau, s0, l1, k.fmr_lambda).expect("no feasible pump design");
+    let mut nm = ds.json(k.fmr_lambda);
+    for (key, val) in [("fluid", json!("galinstan")), ("fluid_density_kg_m3", json!(6440.0)), ("fluid_viscosity_Pa_s", json!(0.0024)),
+                       ("pump_type", json!("dc-conduction, electromagnet")), ("melt_point_K", json!(254)), ("dipole_max_Am2", json!(0)),
+                       ("dipole_per_amp_Am2_per_A", json!(0)), ("current_max_A", json!(0)), ("volume_L", json!(face*0.006*1e3 + 0.02))] {
+        nm[key] = val;
+    }
+    let eta = ds.eta_cruise.max(0.01);
+    let mut p = json!({"part_number": format!("SZ-{}-FMR-{}", d.case, tag), "kind": "magneto_fluidic_panel",
+        "name": format!("Sized fluid momentum loop with electromagnetic pump, {what} (our product) — {}", d.case), "status": "sized",
+        "source": "adcs-design (empump)", "made": "in-house", "descriptor_version": 1});
+    p["nominal"] = nm;
+    p["dispersion"] = json!({"friction_scale": {"dist": "uniform", "lo": 0.8, "hi": 1.2}, "pump_efficiency": {"dist": "uniform", "lo": 0.7*eta, "hi": 1.3*eta},
+        "flow_sensor_noise_m_s": {"dist": "normal", "mean": 0, "sigma": k.fmr_flow_sigma}, "axis_misalignment_rad": {"dist": "normal", "mean": 0, "sigma": 0.005}});
+    p["sizing"] = json!({"h_req_Nms": d.h_req, "tau_req_Nm": d.tau_req, "h_ring_Nms": h, "tau_ring_Nm": tau, "flow_sensor_sigma_m_s": k.fmr_flow_sigma, "face_m2": face, "perimeter_m": perim,
+        "scale": k.s("fmr"), "lambda_kg_per_W": k.fmr_lambda, "pareto": empump::pareto(h, tau, s0, l1),
+        "law": "galinstan loop + DC conduction pump with an electromagnet, designed together: least mass + lambda x steady power (empump.rs)"});
+    p
 }
 
 /// asils.sizing.rcs
@@ -415,6 +472,8 @@ pub fn size_all(root: &Path, case_file: &Path, k: &Knobs, out: &Path) -> Result<
     let fm = fmr(&d, k, bx);
     let parts: Vec<(&str, Value)> = vec![("mtq", pm), ("mtqp", pmp), ("rw", rotor(root, &d, k, "rw")?), ("cmg", rotor(root, &d, k, "cmg")?), ("vscmg", rotor(root, &d, k, "vscmg")?),
         ("fmr_x", fm[0].clone()), ("fmr_y", fm[1].clone()), ("fmr_z", fm[2].clone()), ("rcs", rcs(&d, k, bx))];
+    let mut parts = parts;
+    if let Some(sp) = fm.get(3) { parts.push(("fmr_s", sp.clone())); }
     for dir in ["parts", "products"] { std::fs::create_dir_all(out.join(dir)).map_err(|e| Error::io(&out.join(dir), e))?; }
     let mut by_pn: BTreeMap<String, Value> = BTreeMap::new();
     for (_, p) in &parts {
@@ -460,6 +519,7 @@ pub fn size_all(root: &Path, case_file: &Path, k: &Knobs, out: &Path) -> Result<
                 "rw" => fill.push(json!({"slot": "wheels", "part": pn("rw"), "axes_body": i3})),
                 "fmr" => {
                     for (key, axv) in [("fmr_x", [1, 0, 0]), ("fmr_y", [0, 1, 0]), ("fmr_z", [0, 0, 1])] { fill.push(json!({"slot": "rings", "part": pn(key), "axes_body": [axv]})); }
+                    if k.fmr_spare { fill.push(json!({"slot": "rings", "part": pn("fmr_s"), "axes_body": [spare_axis()]})); }
                     algs.push("idmas_split");
                 }
                 "cmg" | "vscmg" => fill.push(json!({"slot": a, "part": pn(a),
@@ -501,6 +561,30 @@ pub fn size_all(root: &Path, case_file: &Path, k: &Knobs, out: &Path) -> Result<
 mod tests {
     use super::*;
     fn root() -> std::path::PathBuf { Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../matlab_sils") }
+
+    #[test]
+    fn the_box_section_is_the_loop_a_skewed_ring_encloses() {
+        // a cube cut through its centre normal to a face: the face itself
+        let (a, p) = section([0.1, 0.1, 0.1], [0.0, 0.0, 1.0]);
+        assert!((a - 0.01).abs() < 1e-12 && (p - 0.4).abs() < 1e-12);
+        // a cube cut normal to its diagonal: the regular hexagon of side s/sqrt(2)
+        let (a, p) = section([1.0, 1.0, 1.0], spare_axis());
+        let side = 1.0/2f64.sqrt();
+        assert!((a - 1.5*3f64.sqrt()*side*side).abs() < 1e-9, "{a}");
+        assert!((p - 6.0*side).abs() < 1e-9, "{p}");
+    }
+
+    #[test]
+    fn the_spare_ring_holds_any_one_rings_momentum_on_its_axis() {
+        let d = Demand { case: "t".into(), h_req: 2e-3, tau_req: 6e-5, ..Default::default() };
+        let k = Knobs { fmr_spare: true, ..Knobs::default() };
+        let r = fmr(&d, &k, [0.34, 0.10, 0.10]);
+        assert_eq!(r.len(), 4);
+        let h = |p: &Value| p["sizing"]["h_ring_Nms"].as_f64().unwrap();
+        let ax = spare_axis();
+        for i in 0..3 { assert!((h(&r[3])*ax[i] - h(&r[i])).abs() < 1e-12, "its projection on axis {i} holds that ring's momentum"); }
+        assert_eq!(fmr(&d, &Knobs::default(), [0.34, 0.10, 0.10]).len(), 3, "no spare unless the knob asks");
+    }
 
     #[test]
     fn the_survey_sizes_for_the_worst_season_and_solar_activity() {

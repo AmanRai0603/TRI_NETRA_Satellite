@@ -51,7 +51,7 @@ from pipeline_base import (
     usable, write,
 )
 from pipeline_design import (
-    node_assess, node_converge, node_key, node_matrix, node_size, product_blob,
+    node_assess, node_converge, node_key, node_matrix, node_redundancy, node_size, product_blob,
     run_job,
 )
 from pipeline_verify import (
@@ -124,6 +124,15 @@ def run_case(case, a, modes, families, build):
       faults = node_faults(case, sel, sized, modes, build, a.jobs)
       sel.update(select_pick(case, sel["families"], faults))
       print(f"  -> {sel['selected']} ({sel['status']}) with the fault campaign counted ({sel['fault_policy']})")
+      # redundancy: a fluid-ring family that does not survive losing a ring gets the spare ring, and the
+      # loop sizes, flies and converges again (its mass levers then work against the case budget)
+      knobs2, changes = node_redundancy(sel, knobs)
+      if changes:
+          robust.append({"after_iteration": it, "family": sel["selected"], "fault_gaps": sel["families"][sel["selected"]].get("fault_gaps", []),
+                         "changes": changes, "blocked": []})
+          print("  redundancy: " + "; ".join(changes))
+          knobs, first = knobs2, it + 1
+          continue
       S(7, f"{case}: {sel['selected']}")
       disp = node_dispatch(case, sel, sized, modes, build)
       S(8, f"{case}: {a.mc_runs} runs" if a.mc_runs else f"{case}: skipped (--mc-runs 0)")

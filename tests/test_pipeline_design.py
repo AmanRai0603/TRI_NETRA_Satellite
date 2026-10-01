@@ -314,3 +314,22 @@ class NodeKey(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class Redundancy(unittest.TestCase):
+    def sel(self, fam, gaps):
+        return {"selected": fam, "families": {fam: {"fault_gaps": gaps}}}
+
+    def test_a_ring_family_that_loses_a_ring_gets_the_spare_once(self):
+        import pipeline_design as D
+        k, ch = D.node_redundancy(self.sel("mtq_fmr", ["fault: rotor_fail: ape_los_p9973"]), {"scale": {}})
+        self.assertTrue(k["fmr_spare"])
+        self.assertEqual(len(ch), 1)
+        k2, ch2 = D.node_redundancy(self.sel("mtq_fmr", ["fault: rotor_fail: ape_los_p9973"]), k)
+        self.assertEqual(ch2, [], "once only")
+
+    def test_nothing_changes_without_a_ring_fault_or_without_rings(self):
+        import pipeline_design as D
+        for sel in (self.sel("mtq_fmr", []), self.sel("mtq_fmr", ["fault: coil_fail: ape_los_p9973"]),
+                    self.sel("mtq_rw", ["fault: rotor_fail: ape_los_p9973"])):
+            self.assertEqual(D.node_redundancy(sel, {"scale": {}})[1], [])

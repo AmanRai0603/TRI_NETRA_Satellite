@@ -305,6 +305,7 @@ Rules:
 - each fault the family does not survive is one gap "fault: <kind>: <failing metrics>", counted by select under select.fault_policy
 - a fault kind the engine does not inject, a unit name that is not one, or an index the product does not have is refused
 - runs are cached by the hash of (scenario, product, parts, seed, flight-software build, case file), as the matrix's; no knob responds to a fault gap (redundancy is not a sizing knob yet)
+- redundancy: a fluid-ring family that does not survive a single ring failure gets the spare ring (adcs-design knob fmr_spare: a fourth ring on the axis of the rings' momenta, carrying their root-sum-square, in the box section normal to it) and the loop sizes, flies and converges again; once only
 
 ## select
 

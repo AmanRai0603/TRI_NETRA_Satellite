@@ -52,6 +52,10 @@ def ledger(case, sel, log, disp, mc, so, sizing):
         L.append(f"| {e['iteration']} | {kn} | {e['feasible_options']}/{e['options']} | {e['selected']} ({e['status']}) | "
                  f"{'<br>'.join(e['changes']) or '—'} | {len(e['blocked'])} |")
     for r in sel.get("robustness", []):
+        if "fault_gaps" in r:       # the redundancy step after node faults
+            L += ["", f"**Redundancy (node `faults`) after iteration {r['after_iteration']}:** `{r['family']}` did not survive "
+                  + "; ".join(r["fault_gaps"]) + ". " + " ".join(r["changes"] + r["blocked"])]
+            continue
         L += ["", f"**Robustness (node `mc`) after iteration {r['after_iteration']}:** the Monte Carlo of `{r['family']}` failed "
               + ", ".join(f"{k} ({100 * v:.0f} % of runs pass)" for k, v in r["mc_failing"].items()) + ". "
               + " ".join(r["changes"] + r["blocked"])]

@@ -465,7 +465,8 @@
     "pass rule: on every seed, every requirement metric that passes in the fault-free run still passes under the fault; a metric that already fails without the fault is recorded (also_fails_without_fault), not counted against the fault; a faulted or fault-free run that does not fly fails the fault",
     "each fault the family does not survive is one gap \"fault: <kind>: <failing metrics>\", counted by select under select.fault_policy",
     "a fault kind the engine does not inject, a unit name that is not one, or an index the product does not have is refused",
-    "runs are cached by the hash of (scenario, product, parts, seed, flight-software build, case file), as the matrix's; no knob responds to a fault gap (redundancy is not a sizing knob yet)"
+    "runs are cached by the hash of (scenario, product, parts, seed, flight-software build, case file), as the matrix's; no knob responds to a fault gap (redundancy is not a sizing knob yet)",
+    "redundancy: a fluid-ring family that does not survive a single ring failure gets the spare ring (adcs-design knob fmr_spare: a fourth ring on the axis of the rings' momenta, carrying their root-sum-square, in the box section normal to it) and the loop sizes, flies and converges again; once only"
    ]
   },
   {
