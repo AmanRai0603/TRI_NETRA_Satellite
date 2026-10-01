@@ -71,6 +71,9 @@ pub fn main(a: &Args) -> Result<(), Error> {
                     println!("  soft OILS: latency mean {:.3} ms, max {:.3} ms (exec max {:.3} ms, bus {:.3} ms) in a {:.0} ms period; CPU load max {:.1} %; overruns {}",
                         ms_("latency_s", "mean"), ms_("latency_s", "max"), ms_("exec_s", "max"), ms_("bus_s", "max"), c.dt*1e3,
                         j["cpu_load_max"].as_f64().unwrap_or(f64::NAN)*100.0, s.overruns);
+                    println!("  worst case (CPI {}, {:.0} us of interrupts): margin {:.3} ms to the {:.0} ms deadline",
+                        j["model"]["cpi_max"], j["model"]["isr_s"].as_f64().unwrap_or(f64::NAN)*1e6,
+                        j["worst_case_margin_s"].as_f64().unwrap_or(f64::NAN)*1e3, j["deadline_s"].as_f64().unwrap_or(f64::NAN)*1e3);
                 }
             }
             "parity" => {

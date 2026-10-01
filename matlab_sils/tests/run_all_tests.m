@@ -7,7 +7,7 @@ function ok = run_all_tests()
     T = {@t_quat, @t_kinematics, @t_sso, @t_case, @t_igrf, @t_shadow, ...
          @t_torques, @t_plant_conservation, @t_cmg_plant, @t_mekf, @t_quest, @t_lqr, ...
          @t_fmr_spin_down, @t_cmg_steering, @t_hal_loopback, @t_select, @t_gen_bdot, @t_sun_spin_law, @t_sun_guidance, @t_sun_model, @t_st_chain, @t_sun_chain, @t_es_chain, ...
-         @t_sizing, @t_modes_table, @t_orbit_vs_pop, @t_short_runs, @t_campaign_draw, @t_metrics_evaluate, @t_solution_scenario};
+         @t_sizing, @t_modes_table, @t_orbit_vs_pop, @t_short_runs, @t_campaign_draw, @t_metrics_evaluate, @t_metrics_ecss, @t_solution_scenario};
     n = 0;
     for i = 1:numel(T)
         name = func2str(T{i});
@@ -386,3 +386,26 @@ function m = t_solution_scenario()
     m = sprintf('%d mode options build schema-valid scenarios', n);
 end
 
+
+function m = t_metrics_ecss()
+% the ECSS indices on signals with known answers (= engine/crates/adcs-sim/tests/ecss.rs)
+    t = (0:999)*0.1; idx = 1:1000;
+    rec = struct('t', t, 'P', struct('dev', struct('boresight', [0; 0; 1])));
+    b = 1e-3; rec.e_vec = repmat([b; 0; 0], 1, 1000); rec.e_ake = rec.e_vec;
+    assert(max(asils.metrics.ecss('rpe', rec, idx, 10, NaN)) < 1e-12, 'a bias has no relative error');
+    v = asils.metrics.ecss('mpe', rec, idx, 10, NaN);
+    assert(numel(v) == 10 && all(abs(v - b*180/pi) < 1e-12), 'a bias is all mean error');
+    assert(max(asils.metrics.ecss('pde', rec, idx, 10, 30)) < 1e-12, 'a bias has no drift');
+    a = 2e-3; rec.e_vec = [zeros(1, 1000); a*sin(2*pi*2.5*t); zeros(1, 1000)];
+    assert(abs(max(asils.metrics.ecss('rpe', rec, idx, 10, NaN)) - a*180/pi) < 1e-9, 'a fast sine is all relative');
+    assert(max(asils.metrics.ecss('mpe', rec, idx, 10, NaN)) < 1e-12, 'whole periods average to zero');
+    r = 1e-5; rec.e_vec = [r*t; zeros(1, 1000); r*t];
+    v = asils.metrics.ecss('pde', rec, idx, 10, 30);
+    assert(numel(v) == 7 && all(abs(v - 30*r*sqrt(2)*180/pi) < 1e-9), 'a ramp drifts');
+    v = asils.metrics.ecss('pde_los', rec, idx, 10, 30);
+    assert(all(abs(v - 30*r*180/pi) < 1e-9), 'about the boresight is not a line-of-sight error');
+    assert(abs(max(asils.metrics.ecss('rpe_los', rec, idx, 10, NaN)) - 4.95*r*180/pi) < 1e-9, 'half a block of ramp');
+    rec.e_ake = [zeros(1, 1000); 1e-3*ones(1, 1000); zeros(1, 1000)]; rec.e_ake(:, t < 20) = NaN;
+    assert(numel(asils.metrics.ecss('mke', rec, idx, 10, NaN)) == 8, 'blocks with no estimate are skipped');
+    m = 'bias, sine, ramp and gaps give the engine''s answers';
+end

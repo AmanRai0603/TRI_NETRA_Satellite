@@ -35,15 +35,16 @@ pub enum T {
 
 pub const ALGORITHM_SLOTS: [&str; 8] = ["detumble", "attitude", "pointing", "mtq_pointing", "sun_acquisition", "allocation", "thrusters",
     "sun_spin" /* the old name of sun_acquisition */];
-pub const METRIC_KINDS: [&str; 16] = ["time_to_rate", "ape", "ape_los", "ake", "ake_los", "rate_stability", "time_to_threshold",
+pub const METRIC_KINDS: [&str; 31] = ["time_to_rate", "ape", "ape_los", "ake", "ake_los", "rate_stability", "time_to_threshold",
     "wheel_momentum_peak", "time_to_mode", "sun_angle", "spin_rate_error", "mode_fraction", "propellant", "power_mean", "power_peak",
-    "jitter"];
+    "jitter", "rpe", "rpe_los", "mpe", "mpe_los", "pde", "pde_los", "rke", "rke_los", "mke", "mke_los", "kde", "kde_los",
+    "power_margin", "battery_dod", "soc_min"];
 pub const WINDOWS: [&str; 4] = ["all", "last_orbit", "last_half_orbit", "pointing"];
 pub const STATISTICS: [&str; 5] = ["max", "rms", "mean", "p95", "p99.73"];
 pub const CHANNELS: [&str; 10] = ["ape_3ax", "ape_los", "ake_3ax", "ake_los", "rate", "rks", "sun_angle", "sun_angle_geo", "spin_z", "rate_err"];
 pub const FAULTS: [&str; 8] = ["rotor_fail", "gimbal_stuck", "st_head_fail", "coil_fail", "gyro_bias_step", "gps_outage", "rcs_valve_fail", "mag_fail"];
 /// Metric kinds the engine accepts in a file but does not compute yet: refused with the reason.
-pub const NOT_COMPUTED: [(&str, &str); 1] = [("jitter", "jitter is not computed by the engine yet (a wheel-imbalance model is needed)")];
+pub const NOT_COMPUTED: [(&str, &str); 0] = [];
 
 pub const SCENARIO: &[(&str, T)] = &[
     ("schema", T::OneOf(&["adcs-scenario/1"])), ("id", T::Str), ("label", T::Str), ("case", T::Str), ("product", T::Str),
@@ -72,6 +73,7 @@ pub const SCENARIO: &[(&str, T)] = &[
     ("metrics[].from_s", T::Num), ("metrics[].hold_s", T::Num), ("metrics[].rate_threshold_deg_s", T::Num), ("metrics[].threshold_deg", T::Num),
     ("metrics[].requirement", T::Str), ("metrics[].limit", T::Num), ("metrics[].sense", T::OneOf(&["max", "min"])),
     ("metrics[].unit_min", T::Flag), ("metrics[].end_at_mode_exit", T::Flag), ("metrics[].diagnostic", T::Str),
+    ("metrics[].delta_s", T::Num), ("metrics[].separation_s", T::Num),
 ];
 
 /// The schedule entries the flight software holds (fsw/params/params.toml max_schedule).
@@ -171,6 +173,22 @@ pub fn check_scenario(s: &Value, case: &Case) -> Result<(), Error> {
             if !r.starts_with("req.") || !case.v.contains_key(r) {
                 bad.push(format!("metrics[{i}] ({id}).requirement = {r:?}: the case {} has no such requirement", case.id));
             }
+        }
+        // the ECSS indices need their window length (and a drift its separation), stated
+        if let Some(k) = m.get("kind").and_then(Value::as_str).filter(|k| crate::metrics::ECSS_KINDS.contains(k)) {
+            let num = |key: &str| m.get(key).and_then(Value::as_f64);
+            if !num("delta_s").map(|x| x > 0.0 && x.is_finite()).unwrap_or(false) {
+                bad.push(format!("metrics[{i}] ({id}): {k} needs delta_s, the ECSS window length [s], above 0"));
+            }
+            let drift = k.starts_with("pde") || k.starts_with("kde");
+            match (drift, num("separation_s")) {
+                (true, Some(s)) if s >= num("delta_s").unwrap_or(f64::INFINITY) && s.is_finite() => {}
+                (true, _) => bad.push(format!("metrics[{i}] ({id}): {k} needs separation_s, at least delta_s")),
+                (false, Some(_)) => bad.push(format!("metrics[{i}] ({id}): separation_s is for a drift (pde, kde), not {k}")),
+                (false, None) => {}
+            }
+        } else if m.get("delta_s").is_some() || m.get("separation_s").is_some() {
+            bad.push(format!("metrics[{i}] ({id}): delta_s and separation_s are for the ECSS indices (rpe, mpe, pde, rke, mke, kde)"));
         }
         if m.get("requirement").is_some() && m.get("limit").is_some() {
             bad.push(format!("metrics[{i}] ({id}): a requirement from the case or a limit, not both"));

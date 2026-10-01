@@ -5,7 +5,7 @@ Copyright (c) 2026 Agastya. All rights reserved.
 import concurrent.futures as cf, json, math, shutil, statistics, subprocess, time
 import common
 from common import Steps, write_text
-from engine_base import BIN, ENG, OUT, ROOT, TWIN
+from engine_base import BIN, DATA, ENG, OUT, ROOT, TWIN
 
 
 # ---------------- campaigns: Monte Carlo and edge cases on the engine (asils.campaign) ----------------
@@ -69,6 +69,15 @@ def draw(C, k):
             sets += [("initial.attitude.axis_body", u), ("initial.attitude.angle_deg", v)]; d["initial_error_deg"] = v
         elif kind == "initial_rate_deg_s":
             v = U(s["lo"], s["hi"]); sets.append(("initial.rate.magnitude_deg_s", v)); d["initial_rate_deg_s"] = v
+        elif kind == "epoch_days":          # the season: the mission starts this many days later
+            v = U(s["lo"], s["hi"]); sets.append(("engine.epoch_days", v)); d["epoch_days"] = v
+        elif kind == "ltan_h":              # the beta angle: the truth orbit's local time of the ascending node
+            v = U(s["lo"], s["hi"]); sets.append(("engine.ltan_h", v)); d["ltan_h"] = v
+        elif kind == "alt_km":              # the truth orbit's altitude (the flight software keeps the nominal)
+            v = U(s["lo"], s["hi"]); sets.append(("engine.alt_km", v)); d["alt_km"] = v
+        elif kind == "inertia_products":    # Ixy, Ixz, Iyz, each a fraction of sqrt(I_ii I_jj)
+            f = [U(s["lo"], s["hi"]) for _ in range(3)]
+            sets.append(("engine.inertia_products", f)); d.update(product_xy=f[0], product_xz=f[1], product_yz=f[2])
         elif kind == "arg_lat_deg":
             v = U(0, 360); sets.append(("initial.arg_lat_deg", v)); d["arg_lat_deg"] = v
         else:
@@ -107,8 +116,10 @@ def camp_job(args):
     return k, p.returncode, (p.stdout + p.stderr).strip()
 
 
-def summarise(runs, levels=None):
-    """adcs-campaign-result/1 stats (asils.campaign.collect) from per-run manifests."""
+def summarise(runs, levels=None, claim=(None, None)):
+    """adcs-campaign-result/1 stats (asils.campaign.collect) from per-run manifests. With a claim
+    (probability, confidence), each judged metric also carries the reliability its runs show
+    (the Clopper-Pearson lower bound) and whether that meets the claim."""
     ids, meta = [], {}
     for r in runs:
         for m in r["metrics"]:
@@ -130,7 +141,121 @@ def summarise(runs, levels=None):
                       "n_failed_runs": sum(1 for r in runs if r.get("failed")),
                       "pass_rate": (sum(judged) / len(judged)) if judged else None,
                       "pass": (all(judged) if judged else None)})
+        p, conf = claim
+        if p and judged:
+            shown = reliability_lower(len(judged), len(judged) - sum(judged), conf)
+            stats[-1].update(reliability_shown=shown, claim_met=shown >= p)
     return stats
+
+
+def success_runs(p, confidence):
+    """Runs with no failure that show a probability of at least p at the confidence:
+    n = ceil(ln(1 - confidence) / ln(p)) (the success-run theorem; 1109 for 99.73 % at 95 %)."""
+    return math.ceil(math.log(1 - confidence) / math.log(p))
+
+
+def reliability_lower(n, failures, confidence):
+    """The one-sided Clopper-Pearson lower bound on the probability of passing, from `failures`
+    of `n` runs: the p at which `failures` or fewer failures would be seen only 1 - confidence
+    of the time. None for no runs."""
+    if n <= 0:
+        return None
+    if failures == 0:
+        return (1 - confidence) ** (1 / n)
+
+    def tail(p):        # P(failures or fewer | p), with q = 1 - p the failure probability
+        q = 1 - p
+        return sum(math.exp(math.lgamma(n + 1) - math.lgamma(k + 1) - math.lgamma(n - k + 1) + k * math.log(q) + (n - k) * math.log(p))
+                   for k in range(failures + 1)) if 0 < p < 1 else (1.0 if p >= 1 else 0.0)
+    lo, hi = 0.0, 1.0
+    for _ in range(100):
+        mid = (lo + hi) / 2
+        if tail(mid) < 1 - confidence:
+            lo = mid
+        else:
+            hi = mid
+    return lo
+
+
+def claim(C):
+    """The probability the campaign must show (the strictest confidence level the case states for a
+    requirement the scenario judges) and the runs that needs at the campaign's confidence; (None,
+    runs) when the campaign states no confidence or no judged requirement has a level."""
+    conf = C.get("confidence")
+    if conf is None:
+        return None, C["runs"]
+    levels = {r["key"]: r.get("level", "") for r in common.case_rows(C["case"])}
+    scen = json.loads((DATA / f"{C['scenario']}.json").read_text())
+    ps = [round(float(levels[m["requirement"]]) / 100, 12) for m in scen.get("metrics", []) if m.get("requirement") in levels and levels[m["requirement"]].strip()]
+    if not ps:
+        return None, C["runs"]
+    p = max(ps)
+    return p, max(C["runs"], success_runs(p, conf))
+
+
+# the error channels the ECSS interpretations read, by metric kind, and the statistics they apply to
+INTERP_CHANNEL = {"ape": "ape_3ax_deg", "ape_los": "ape_los_deg", "ake": "ake_3ax_deg", "ake_los": "ake_los_deg"}
+INTERP_Q = {"p99.73": 0.9973, "p95": 0.95, "max": 1.0}
+
+
+def quantile(v, q):
+    """The q-quantile as the engine takes it: the ceil(q n)-th smallest finite value (None if none)."""
+    v = sorted(x for x in v if math.isfinite(x))
+    return v[max(1, math.ceil(q * len(v))) - 1] if v else None
+
+
+def window_index(t, spec, period):
+    te = t[-1] if t else 0.0
+    if spec == "last_orbit":
+        return [j for j, x in enumerate(t) if x >= te - period]
+    if spec == "last_half_orbit":
+        return [j for j, x in enumerate(t) if x >= te - period / 2]
+    if spec.startswith("after_s:"):
+        return [j for j, x in enumerate(t) if x >= float(spec[8:])]
+    return list(range(len(t)))      # all (and 'pointing', which needs the mode: taken as all)
+
+
+def interpretations(run_dirs, metrics):
+    """ECSS-E-ST-60-10C statistical interpretations of each error metric over a campaign
+    (one value each, in the metric's unit):
+      temporal  the statistic within each run, then the worst run
+      ensemble  the quantile across runs at each instant, then the worst instant
+      mixed     the quantile over every sample of every run, pooled
+    For ape/ape_los/ake/ake_los metrics with a percentile or max statistic; the runs share one time grid."""
+    out = []
+    series = {}
+    for d in run_dirs:
+        f = d / "channels.csv"
+        man = d / "manifest.json"
+        if f.exists() and man.exists():
+            series[d] = (f.read_text().splitlines(), json.loads(man.read_text())["orbit"]["period_s"])
+    if not series:
+        return out
+    for m in metrics:
+        col, q = INTERP_CHANNEL.get(m.get("kind")), INTERP_Q.get(m.get("statistic", "max"))
+        if col is None or q is None:
+            continue
+        per_run = []
+        for lines, period in series.values():
+            head = lines[0].split(",")
+            if col not in head:
+                continue
+            k, kt = head.index(col), head.index("t_s")
+            rows = [ln.split(",") for ln in lines[1:]]
+            t = [float(r[kt]) for r in rows]
+            idx = window_index(t, m.get("window", "all"), period)
+            per_run.append([float(rows[j][k]) for j in idx])
+        if not per_run:
+            continue
+        n = min(len(x) for x in per_run)
+        temporal = [quantile(x, q) for x in per_run]
+        temporal = max((v for v in temporal if v is not None), default=None)
+        ensemble = [quantile([x[i] for x in per_run], q) for i in range(n)]
+        ensemble = max((v for v in ensemble if v is not None), default=None)
+        mixed = quantile([v for x in per_run for v in x], q)
+        out.append({"id": m["id"], "statistic": m.get("statistic", "max"), "runs": len(per_run),
+                    "temporal": temporal, "ensemble": ensemble, "mixed": mixed})
+    return out
 
 
 def campaign(a):
@@ -145,8 +270,9 @@ def campaign(a):
             shutil.rmtree(base)
         jobs = []
         draws = {}
-        S(1, f"{cid}, {C['runs']} runs")
-        for k in range(1, C["runs"] + 1):
+        p_claim, n_runs = claim(C)
+        S(1, f"{cid}, {n_runs} runs" + (f" (to show {100 * p_claim:g} % at {100 * C['confidence']:g} % confidence)" if p_claim else ""))
+        for k in range(1, n_runs + 1):
             sets, d = draw(C, k)
             draws[k] = d
             jobs.append((cid, C["scenario"], C["case"], C["seed"] + 7919 * k, k, sets, base / f"run_{k:04d}", a.fsw))
@@ -160,7 +286,7 @@ def campaign(a):
                     print(f"[FAIL] {cid} run {k}: {errors[k]}")
         S(3, cid)
         runs = []
-        for k in range(1, C["runs"] + 1):
+        for k in range(1, n_runs + 1):
             f = base / f"run_{k:04d}" / "manifest.json"
             if k in errors or not f.exists():
                 runs.append({"k": k, "failed": True, "error": errors.get(k, "no manifest written"), "metrics": [], "draws": draws[k]})
@@ -171,10 +297,13 @@ def campaign(a):
         failed_total += nfail
         res = {"schema": "adcs-campaign-result/1", "owner": "Agastya", "id": cid, "scenario": C["scenario"], "case": C["case"],
                "type": C.get("type", "montecarlo"), "runs": len(runs) - nfail, "failed_runs": nfail, "engine": True, "fsw": a.fsw,
-               "stats": summarise(runs), "per_run": runs, "wall_s": time.time() - t0}
+               "stats": summarise(runs, claim=(p_claim, C.get("confidence"))), "per_run": runs, "wall_s": time.time() - t0,
+               "claim": {"probability": p_claim, "confidence": C.get("confidence"), "runs_needed": n_runs} if p_claim else None,
+               "interpretations": interpretations([base / f"run_{r['k']:04d}" for r in runs if not r.get("failed")],
+                                                  json.loads((DATA / f"{C['scenario']}.json").read_text()).get("metrics", []))}
         write_text(base / "summary.json", json.dumps(res, indent=1))
         rows[cid] = res
-        print(f"{cid}: {len(runs) - nfail}/{C['runs']} runs flown, {nfail} failed, in {time.time() - t0:.0f} s wall")
+        print(f"{cid}: {len(runs) - nfail}/{n_runs} runs flown, {nfail} failed, in {time.time() - t0:.0f} s wall")
     S(4)
     campaign_ledger()
     return failed_total
@@ -215,6 +344,12 @@ def campaign_ledger(announce=False):
             L.append(f"| {s['id']} ({s['unit']}) | {fmt(s.get('req'))} | {mm(t) if t else '—'} | {pr(t.get('pass_rate')) if t else '—'} | {mm(s)} | {pr(s.get('pass_rate'))} |")
             allrows.append({"campaign": cid, "metric": s["id"], "req": s.get("req"), "matlab_pass_rate": t.get("pass_rate"), "engine_pass_rate": s.get("pass_rate"),
                             "matlab_mean": t.get("mean"), "engine_mean": s.get("mean"), "matlab_std": t.get("std"), "engine_std": s.get("std")})
+        if E.get("interpretations"):
+            L += ["", "ECSS-E-ST-60-10C interpretations of the error metrics (engine): temporal = the statistic in each run, worst run;",
+                  "ensemble = the quantile across runs at each instant, worst instant; mixed = the quantile of every sample pooled.", "",
+                  "| metric | statistic | runs | temporal | ensemble | mixed |", "|---|---|---:|---:|---:|---:|"]
+            for x in E["interpretations"]:
+                L.append(f"| {x['id']} | {x['statistic']} | {x['runs']} | {fmt(x['temporal'])} | {fmt(x['ensemble'])} | {fmt(x['mixed'])} |")
         if E.get("type") == "edge":
             req_ids = [s["id"] for s in E["stats"] if s.get("req") is not None]
             L += ["", "Edge runs (requirement metrics; run 2j-1 low / 2j high bound of dispersion j, last run all adverse):", "",

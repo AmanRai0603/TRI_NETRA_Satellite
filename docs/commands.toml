@@ -154,9 +154,9 @@ runs = []
 [[command]]
 tool = "engine.py"
 name = "oils"
-usage = "python3 tools/engine.py oils [scenario ...] [--fsw qemu|qemu-rs] [--duration S] [--jobs N]"
-what = "SILS and soft OILS side by side: the flight software as Cortex-M4F firmware, with exact instruction timing and command latency."
-steps = ["build the virtual OBC firmware (make obc)", "fly each scenario in SILS and with --oils on QEMU", "tabulate latency, CPU load and the metric differences"]
+usage = "python3 tools/engine.py oils [scenario ...] [--fsw qemu|qemu-rs] [--duration S] [--cpi C ...] [--jobs N]"
+what = "SILS and soft OILS side by side: the flight software as Cortex-M4F firmware, with exact instruction timing and command latency; every soft-OILS run judged on overruns and on its worst-case latency against the deadline; --cpi flies a CPI sweep."
+steps = ["build the virtual OBC firmware (make obc)", "fly each scenario in SILS and with --oils on QEMU (and at each --cpi)", "tabulate latency, CPU load, the worst-case deadline margin, the sweep and the metric differences"]
 reads = ["the scenarios", "fsw/build/ (the firmware)"]
 writes = ["matlab_sils/store/results_engine/soft_oils/", "results/SOFT_OILS.md", "results/soft_oils.json"]
 runs = ["adcs run --oils", "qemu-system-arm"]

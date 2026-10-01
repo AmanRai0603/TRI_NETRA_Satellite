@@ -80,6 +80,44 @@
    "kind": "power_mean",
    "requirement": "req.pavg",
    "window": "all"
+  },
+  {
+   "delta_s": 10.0,
+   "diagnostic": "ECSS relative pointing error over 10 s windows: the case does not state req.rpe",
+   "id": "rpe_los_10s_p9973",
+   "kind": "rpe_los",
+   "statistic": "p99.73",
+   "window": "last_half_orbit"
+  },
+  {
+   "delta_s": 10.0,
+   "diagnostic": "ECSS pointing drift between 10 s windows 60 s apart: the case does not state req.pde",
+   "id": "pde_los_10s_60s_max",
+   "kind": "pde_los",
+   "separation_s": 60.0,
+   "statistic": "max",
+   "window": "last_half_orbit"
+  },
+  {
+   "delta_s": 10.0,
+   "diagnostic": "ECSS relative knowledge error over 10 s windows: the case does not state req.rke",
+   "id": "rke_los_10s_p9973",
+   "kind": "rke_los",
+   "statistic": "p99.73",
+   "window": "last_half_orbit"
+  },
+  {
+   "id": "power_margin_last_orbit",
+   "kind": "power_margin",
+   "limit": 0.0,
+   "sense": "min",
+   "window": "last_orbit"
+  },
+  {
+   "diagnostic": "the deepest battery discharge over the orbit: the case does not state a depth-of-discharge limit",
+   "id": "battery_dod_last_orbit",
+   "kind": "battery_dod",
+   "window": "last_orbit"
   }
  ],
  "product": "TRN-P-3U-IMG",

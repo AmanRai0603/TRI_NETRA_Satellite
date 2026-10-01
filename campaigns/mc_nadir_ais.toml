@@ -7,6 +7,7 @@ what = "Magnetic-only nadir hold of the AIS 3U (10 deg) across mass-property, ma
 runs = 24
 duration_s = 11480.0           # two orbits (window: last orbit)
 seed = 20260928
+confidence = 0.95           # the runs the case\'s confidence level needs (tools/engine_campaigns.py claim)
 [[dispersions]]
 kind = "inertia"
 frac = 0.10
@@ -40,3 +41,19 @@ lo = 5.0
 hi = 40.0
 [[dispersions]]
 kind = "arg_lat_deg"
+[[dispersions]]
+kind = "inertia_products"   # Ixy, Ixz, Iyz as a fraction of sqrt(I_ii I_jj)
+lo = -0.05
+hi = 0.05
+[[dispersions]]
+kind = "epoch_days"         # the season: any day of the launch year
+lo = 0.0
+hi = 365.0
+[[dispersions]]
+kind = "ltan_h"             # the beta angle: the injection's local time of the node, +/- 0.5 h
+lo = 5.5
+hi = 6.5
+[[dispersions]]
+kind = "alt_km"             # the injection altitude, +/- 10 km
+lo = 540
+hi = 560

@@ -57,6 +57,7 @@ pub fn write(dir: &Path, c: &Config, rec: &Record, d: &Derived, metrics: &[Value
     for (i, a) in ["x", "y", "z"].iter().enumerate() { col(&format!("sun_body_{a}"), &|j| rows[j].sun_body[i]); }
     col("P_mtq_W", &|j| rows[j].p_mtq); col("P_rw_W", &|j| rows[j].p_rw);
     col("rho_kgm3", &|j| rows[j].rho); col("shadow_nu", &|j| rows[j].nu);
+    col("P_gen_W", &|j| d.p_gen[j]); col("soc", &|j| d.soc[j]);
     col("sun_ok", &|j| rows[j].sun_ok as u8 as f64); col("st_ok", &|j| rows[j].st_ok as u8 as f64); col("ad_ok", &|j| rows[j].ad_ok as u8 as f64);
 
     let mut s = String::with_capacity(rows.len()*cols.len()*12);

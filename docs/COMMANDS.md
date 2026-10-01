@@ -20,7 +20,7 @@
 | [`engine.py dispatch`](#enginepy-dispatch) | The recommended solution's flight configuration for each case, and a mission check of it on the engine. |
 | [`engine.py campaign`](#enginepy-campaign) | Every Monte Carlo and edge campaign (or those named) on the engine, with the twin's draws: the same dispersions, bounds, run count and per-run seeds. |
 | [`engine.py campaign-ledger`](#enginepy-campaign-ledger) | Rewrite the engine-vs-twin campaign ledger from the stored summaries, without flying anything. |
-| [`engine.py oils`](#enginepy-oils) | SILS and soft OILS side by side: the flight software as Cortex-M4F firmware, with exact instruction timing and command latency. |
+| [`engine.py oils`](#enginepy-oils) | SILS and soft OILS side by side: the flight software as Cortex-M4F firmware, with exact instruction timing and command latency; every soft-OILS run judged on overruns and on its worst-case latency against the deadline; --cpi flies a CPI sweep. |
 | [`engine.py oils-ledger`](#enginepy-oils-ledger) | Rewrite the soft-OILS ledger from the stored runs, without flying anything. |
 | [`engine.py solutions`](#enginepy-solutions) | The customer-case solution matrix on the engine: every mission mode x option x seed, with the sized products. |
 | [`pipeline.py pipeline`](#pipelinepy-pipeline) | The design loop, node by node: from a customer case to a selected, dispatched, verified ADCS (docs/DESIGN_LOOP.md). |
@@ -282,15 +282,15 @@ Rewrite the engine-vs-twin campaign ledger from the stored summaries, without fl
 
 ## engine.py oils
 
-SILS and soft OILS side by side: the flight software as Cortex-M4F firmware, with exact instruction timing and command latency.
+SILS and soft OILS side by side: the flight software as Cortex-M4F firmware, with exact instruction timing and command latency; every soft-OILS run judged on overruns and on its worst-case latency against the deadline; --cpi flies a CPI sweep.
 
-    python3 tools/engine.py oils [scenario ...] [--fsw qemu|qemu-rs] [--duration S] [--jobs N]
+    python3 tools/engine.py oils [scenario ...] [--fsw qemu|qemu-rs] [--duration S] [--cpi C ...] [--jobs N]
 
 **Steps**
 
 1. build the virtual OBC firmware (make obc)
-2. fly each scenario in SILS and with --oils on QEMU
-3. tabulate latency, CPU load and the metric differences
+2. fly each scenario in SILS and with --oils on QEMU (and at each --cpi)
+3. tabulate latency, CPU load, the worst-case deadline margin, the sweep and the metric differences
 
 - **Reads:** the scenarios; `fsw/build/ (the firmware)`
 - **Writes:** `matlab_sils/store/results_engine/soft_oils/`; `results/SOFT_OILS.md`; `results/soft_oils.json`

@@ -44,7 +44,9 @@ pub fn case_file(root: &Path, scenario: &str, case: Option<&str>) -> Result<Path
 pub fn fly(c: &Config, o: &Opts, out: &Path) -> Result<Flight, Error> {
     let record = run::run(c, o)?;
     let derived = metrics::derive(c, &record);
-    let metrics = metrics::evaluate(c, &record, &derived);
+    let mut metrics = metrics::evaluate(c, &record, &derived);
+    // a soft-OILS run is also judged on its timing: no overrun, the worst case inside the deadline
+    if let Some(o) = &record.oils { metrics.extend(o.metrics(c.dt)); }
     crate::rec::write(out, c, &record, &derived, &metrics)?;
     let store = crate::store_root();
     let inside = std::fs::canonicalize(out).ok().zip(std::fs::canonicalize(&store).ok()).is_some_and(|(p, s)| p.starts_with(s));

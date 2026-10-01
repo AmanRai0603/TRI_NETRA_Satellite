@@ -65,3 +65,36 @@ id = "power_mean"
 kind = "power_mean"
 window = "all"
 requirement = "req.pavg"
+[[metrics]]
+id = "rpe_los_10s_p9973"
+kind = "rpe_los"
+window = "last_half_orbit"
+statistic = "p99.73"
+delta_s = 10.0
+diagnostic = "ECSS relative pointing error over 10 s windows: the case does not state req.rpe"
+[[metrics]]
+id = "pde_los_10s_60s_max"
+kind = "pde_los"
+window = "last_half_orbit"
+statistic = "max"
+delta_s = 10.0
+separation_s = 60.0
+diagnostic = "ECSS pointing drift between 10 s windows 60 s apart: the case does not state req.pde"
+[[metrics]]
+id = "rke_los_10s_p9973"
+kind = "rke_los"
+window = "last_half_orbit"
+statistic = "p99.73"
+delta_s = 10.0
+diagnostic = "ECSS relative knowledge error over 10 s windows: the case does not state req.rke"
+[[metrics]]
+id = "power_margin_last_orbit"
+kind = "power_margin"
+window = "last_orbit"
+limit = 0.0
+sense = "min"                # energy-positive: over an orbit the arrays give at least what everything draws
+[[metrics]]
+id = "battery_dod_last_orbit"
+kind = "battery_dod"
+window = "last_orbit"
+diagnostic = "the deepest battery discharge over the orbit: the case does not state a depth-of-discharge limit"

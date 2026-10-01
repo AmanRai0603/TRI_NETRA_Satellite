@@ -98,21 +98,37 @@ pub struct Opts { pub fsw: Impl, pub quiet: bool, /// pace ticks to wall-clock t
 /// after the sample; until then the previous command holds. The OBC execution is the step's
 /// exact instruction count on QEMU (-icount) x CPI / core clock, or the host-measured time on a
 /// process OBC. A latency of a whole period or more is an overrun: the command lands a tick late.
+///
+/// The deadline is judged on the worst case, not the nominal one: the execution at `cpi_max`
+/// (wait states, cache misses) plus `isr_s` of interrupts that may preempt the step, plus the
+/// bus time; it must land within `deadline_frac` of the control period. The trajectory flies the
+/// nominal latency; the worst case only judges.
 #[derive(Clone, Debug)]
 pub struct OilsModel { pub cpu_hz: f64, pub cpi: f64, pub i2c_hz: f64, pub spi_hz: f64, pub can_bps: f64,
     /// a fixed command latency [s] instead of the OBC model (latency studies; works with the in-process builds)
-    pub fixed_s: Option<f64> }
+    pub fixed_s: Option<f64>,
+    /// the worst cycles per instruction the deadline is judged at
+    pub cpi_max: f64,
+    /// the interrupt time that may preempt one step [s]
+    pub isr_s: f64,
+    /// the share of the control period the command must land within
+    pub deadline_frac: f64 }
 impl Default for OilsModel {
-    /// A Cortex-M4F OBC at 168 MHz (STM32F4 class, flash accelerator on: CPI ~1.25),
-    /// I2C fast mode, SPI 1 MHz, CAN 1 Mbit/s.
-    fn default() -> Self { OilsModel { cpu_hz: 168e6, cpi: 1.25, i2c_hz: 400e3, spi_hz: 1e6, can_bps: 1e6, fixed_s: None } }
+    /// A Cortex-M4F OBC at 168 MHz (STM32F4 class, flash accelerator on: CPI ~1.25, 2.0 with the
+    /// accelerator missing), I2C fast mode, SPI 1 MHz, CAN 1 Mbit/s; 50 us of interrupts a step;
+    /// the command within half the period.
+    fn default() -> Self {
+        OilsModel { cpu_hz: 168e6, cpi: 1.25, i2c_hz: 400e3, spi_hz: 1e6, can_bps: 1e6, fixed_s: None, cpi_max: 2.0, isr_s: 50e-6, deadline_frac: 0.5 }
+    }
 }
 
 #[derive(Clone, Debug, Default)]
 pub struct OilsStats {
-    pub model: Option<(f64, f64, f64, f64, f64)>,
+    pub model: Option<OilsModel>,
     pub ticks: u64, pub overruns: u64,
     pub exec_s: Vec<f64>, pub io_s: Vec<f64>, pub lat_s: Vec<f64>, pub insn: Vec<f64>,
+    /// the worst-case latency of each tick (execution at cpi_max, interrupts, buses)
+    pub worst_s: Vec<f64>,
 }
 impl OilsStats {
     fn pct(v: &[f64], p: f64) -> f64 {
@@ -124,15 +140,32 @@ impl OilsStats {
     fn max(v: &[f64]) -> f64 { v.iter().cloned().fold(f64::NAN, f64::max) }
     pub fn json(&self, dt: f64) -> serde_json::Value {
         let s = |v: &[f64]| serde_json::json!({"mean": Self::mean(v), "p99": Self::pct(v, 99.0), "max": Self::max(v)});
-        let (hz, cpi, i2c, spi, can) = self.model.unwrap_or_default();
+        let m = self.model.clone().unwrap_or_default();
+        let (deadline, worst) = (m.deadline_frac*dt, Self::max(&self.worst_s));
         serde_json::json!({
-            "model": {"cpu_hz": hz, "cpi": cpi, "i2c_hz": i2c, "spi_hz": spi, "can_bps": can},
+            "model": {"cpu_hz": m.cpu_hz, "cpi": m.cpi, "i2c_hz": m.i2c_hz, "spi_hz": m.spi_hz, "can_bps": m.can_bps,
+                      "cpi_max": m.cpi_max, "isr_s": m.isr_s, "deadline_frac": m.deadline_frac, "fixed_s": m.fixed_s},
             "ticks": self.ticks, "overruns": self.overruns, "control_period_s": dt,
-            "exec_s": s(&self.exec_s), "bus_s": s(&self.io_s), "latency_s": s(&self.lat_s),
+            "exec_s": s(&self.exec_s), "bus_s": s(&self.io_s), "latency_s": s(&self.lat_s), "worst_latency_s": s(&self.worst_s),
             "instructions": if self.insn.is_empty() { serde_json::Value::Null } else { s(&self.insn) },
             "cpu_load_mean": Self::mean(&self.exec_s)/dt, "cpu_load_max": Self::max(&self.exec_s)/dt,
             "deadline_margin_min_s": dt - Self::max(&self.lat_s),
+            "deadline_s": deadline, "worst_case_margin_s": deadline - worst,
         })
+    }
+
+    /// The two soft-OILS verdicts, judged like any metric: no command lands a period late, and
+    /// the worst-case latency leaves a margin before the deadline.
+    pub fn metrics(&self, dt: f64) -> Vec<serde_json::Value> {
+        let m = self.model.clone().unwrap_or_default();
+        let margin = m.deadline_frac*dt - Self::max(&self.worst_s);
+        let num = |x: f64| if x.is_finite() { serde_json::json!(x) } else { serde_json::Value::Null };
+        vec![
+            serde_json::json!({"id": "oils_overruns", "kind": "oils_overruns", "value": self.overruns, "unit": "", "req": 0.0,
+                               "req_key": "oils", "pass": (self.overruns == 0) as i32}),
+            serde_json::json!({"id": "oils_worst_case_margin", "kind": "oils_deadline", "value": num(margin*1e3), "unit": "ms", "req": 0.0,
+                               "req_key": "oils", "pass": (margin.is_finite() && margin >= 0.0) as i32}),
+        ]
     }
 }
 
@@ -310,7 +343,8 @@ fn oils_latency(st: &mut OilsStats, m: &OilsModel, fsw: &Fsw, bus: &Bus, dt: f64
     let io = i2c*10.0*9.0/m.i2c_hz + if bus.gyro.is_some() { 13.0*8.0/m.spi_hz } else { 0.0 }
         + bus.can_tx.len() as f64*130.0/m.can_bps;
     let lat = match m.fixed_s { Some(f) => f, None => io + exec };
-    st.ticks += 1; st.exec_s.push(exec); st.io_s.push(io); st.lat_s.push(lat);
+    let worst = match m.fixed_s { Some(f) => f, None => io + exec*m.cpi_max/m.cpi + m.isr_s };
+    st.ticks += 1; st.exec_s.push(exec); st.io_s.push(io); st.lat_s.push(lat); st.worst_s.push(worst);
     if let Some(n) = insn { st.insn.push(n); }
     if lat >= dt { st.overruns += 1; }
     lat
@@ -376,6 +410,9 @@ fn step_plant(x: &State, dt: f64, body: &Body, tau_d: &V3, tau_mtq: &V3, b_b: &V
 }
 
 pub fn run(c: &Config, o: &Opts) -> Result<Record, Error> {
+    if let Some(m) = &o.oils {
+        if m.cpi_max < m.cpi { return Err(Error::refused(format!("soft OILS: the worst CPI {} is below the nominal {}", m.cpi_max, m.cpi))); }
+    }
     let wall = std::time::Instant::now();
     let seed = c.seed;
     let rs = |name: &str| Rng::new(seed, stream_id(name));
@@ -420,7 +457,7 @@ pub fn run(c: &Config, o: &Opts) -> Result<Record, Error> {
     let mut fault_done = vec![false; c.faults.len()];
     let (mut b_eci, mut sun_rel, mut nu, mut v_rel, mut rho, mut psrp) = ([0.0; 3], [1.0, 0.0, 0.0], 1.0, [0.0; 3], 0.0, 0.0);
     let mut last_print = std::time::Instant::now();
-    let mut oils = o.oils.as_ref().map(|m| OilsStats { model: Some((m.cpu_hz, m.cpi, m.i2c_hz, m.spi_hz, m.can_bps)), ..Default::default() });
+    let mut oils = o.oils.as_ref().map(|m| OilsStats { model: Some(m.clone()), ..Default::default() });
     if oils.is_some() && o.oils.as_ref().map(|m| m.fixed_s.is_none()).unwrap_or(false) && !matches!(o.fsw, Impl::Obc(_)) { return Err(Error::run("soft OILS needs the flight software on a virtual OBC (--fsw qemu | qemu-rs | obc-posix ...)")); }
     let mut held = Held::default();
     for k in 0..=rt.n {

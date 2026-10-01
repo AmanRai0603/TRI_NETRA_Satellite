@@ -130,8 +130,11 @@ function dev = load(productId)
         pj = asils.util.readjson(find_(R, 'parts', f.part)); nm = pj.nominal;
         if isfield(f, 'spin_axes_body'), a = f.spin_axes_body; else, a = f.axes_body; end
         if iscell(a), n = numel(a); elseif isvector(a), n = 1; else, n = size(a, 1); end
-        X.Us(k+1:k+n) = asils.util.getf(nm, 'static_imbalance_kgm', 0);
-        X.Ud(k+1:k+n) = asils.util.getf(nm, 'dynamic_imbalance_kgm2', 0);
+        % stated, or NaN (jitter not computed); a fluid ring has no rotating mass
+        if strcmp(f.slot, 'rings'), us = 0; ud = 0;
+        else, us = asils.util.getf(nm, 'static_imbalance_kgm', NaN); ud = asils.util.getf(nm, 'dynamic_imbalance_kgm2', NaN); end
+        X.Us(k+1:k+n) = us;
+        X.Ud(k+1:k+n) = ud;
         k = k + n;
     end
     dev.mex = X;

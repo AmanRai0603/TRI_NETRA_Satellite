@@ -383,7 +383,22 @@
         "propellant",
         "power_mean",
         "power_peak",
-        "jitter"
+        "jitter",
+        "rpe",
+        "rpe_los",
+        "mpe",
+        "mpe_los",
+        "pde",
+        "pde_los",
+        "rke",
+        "rke_los",
+        "mke",
+        "mke_los",
+        "kde",
+        "kde_los",
+        "power_margin",
+        "battery_dod",
+        "soc_min"
       ]
     },
     {
@@ -478,6 +493,14 @@
     {
       "path": "metrics[].diagnostic",
       "type": "str"
+    },
+    {
+      "path": "metrics[].delta_s",
+      "type": "num"
+    },
+    {
+      "path": "metrics[].separation_s",
+      "type": "num"
     }
   ],
   "algorithm_slots": [
@@ -497,10 +520,5 @@
     "pointing"
   ],
   "max_schedule": 8,
-  "not_computed": [
-    {
-      "kind": "jitter",
-      "why": "jitter is not computed by the engine yet (a wheel-imbalance model is needed)"
-    }
-  ]
+  "not_computed": []
 }

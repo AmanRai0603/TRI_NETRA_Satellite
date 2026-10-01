@@ -165,9 +165,9 @@ pub const CASE_NEEDS: [&str; 14] = ["orbit.alt", "orbit.inc", "orbit.ecc", "orbi
     "surface.afr", "surface.cd", "surface.refl", "surface.cpa", "magnetic.dres", "mission.epoch"];
 
 /// The engine settings `--set engine.<name>=` can change.
-pub const ENGINE_KEYS: [&str; 18] = ["engine.orbit", "engine.inertia_scale", "engine.cm_offset_m", "engine.m_res", "engine.density_scale", "engine.duration_s",
+pub const ENGINE_KEYS: [&str; 22] = ["engine.orbit", "engine.inertia_scale", "engine.cm_offset_m", "engine.m_res", "engine.density_scale", "engine.duration_s",
     "engine.orbit_step_s", "engine.zonal_max", "engine.igrf_nmax", "engine.f107", "engine.f107a", "engine.kp", "engine.ap", "engine.accommodation", "engine.refl", "engine.mass_kg",
-    "engine.vb_ratio", "engine.spec_frac"];
+    "engine.vb_ratio", "engine.spec_frac", "engine.epoch_days", "engine.ltan_h", "engine.alt_km", "engine.inertia_products"];
 
 /// The surface model's settings when no `--set engine.*` changes them (recorded in every run's
 /// manifest under "assumptions"): momentum accommodation, the ratio of the re-emitted to the
@@ -454,6 +454,18 @@ fn apply_engine(cfg: &mut Config, eng: &[(String, String)]) -> Result<(), Error>
             if a.iter().any(|x| !x.is_finite()) { return Err(Error::refused(format!("{k}: every value is a finite number"))); }
             match k.as_str() {
                 "engine.inertia_scale" => for i in 0..3 { cfg.inertia[i][i] *= a[i]; },
+                // products of inertia, each a fraction of sqrt(I_ii I_jj): [xy, xz, yz]; the body stays a body
+                "engine.inertia_products" => {
+                    for (f, (i, j)) in a.iter().zip([(0, 1), (0, 2), (1, 2)]) {
+                        if f.abs() >= 1.0 { return Err(Error::refused(format!("{k}: each product is a fraction of sqrt(I_ii I_jj) below 1, not {f}"))); }
+                        let pij = f*(cfg.inertia[i][i]*cfg.inertia[j][j]).sqrt();
+                        cfg.inertia[i][j] = pij; cfg.inertia[j][i] = pij;
+                    }
+                    let m = &cfg.inertia;
+                    let d2 = m[0][0]*m[1][1] - m[0][1]*m[1][0];
+                    let d3 = m[0][0]*(m[1][1]*m[2][2] - m[1][2]*m[2][1]) - m[0][1]*(m[1][0]*m[2][2] - m[1][2]*m[2][0]) + m[0][2]*(m[1][0]*m[2][1] - m[1][1]*m[2][0]);
+                    if !(d2 > 0.0 && d3 > 0.0) { return Err(Error::refused(format!("{k}: {a:?} gives an inertia that is not positive definite"))); }
+                }
                 "engine.cm_offset_m" => cfg.cm_offset_m = [a[0], a[1], a[2]],
                 "engine.m_res" => cfg.m_res = [a[0], a[1], a[2]],
                 _ => return Err(Error::refused(format!("unknown engine vector override {k}"))),
@@ -476,6 +488,26 @@ fn apply_engine(cfg: &mut Config, eng: &[(String, String)]) -> Result<(), Error>
             "engine.vb_ratio" => cfg.vb_ratio = x,
             "engine.spec_frac" => cfg.spec_frac = x,
             "engine.mass_kg" => cfg.mass_kg = x,
+            // the season: the mission starts this many days later; the date is known on board, so
+            // the flight software's epoch moves with the truth's
+            "engine.epoch_days" => {
+                if x.abs() > 3660.0 { return Err(Error::refused(format!("{k}: {x} days; at most ten years either way"))); }
+                cfg.jd0 += x;
+                let mut e = time::jd2utc(cfg.jd0);
+                e[5] = e[5].round();
+                cfg.epoch_utc = e;
+                cfg.jd0 = time::jd(&e);
+                cfg.params.jd0 = cfg.jd0;
+            }
+            // the truth orbit's local time of the ascending node (the beta angle) and altitude; the
+            // flight software keeps the gains it was tuned with for the nominal orbit
+            "engine.ltan_h" => { if !(0.0..24.0).contains(&x) { return Err(Error::refused(format!("{k}: {x} h, from 0 to 24"))); } cfg.ltan_h = x; }
+            "engine.alt_km" => {
+                if !(150.0..=2000.0).contains(&x) { return Err(Error::refused(format!("{k}: {x} km, from 150 to 2000 (low Earth orbit)"))); }
+                cfg.alt_km = x;
+                let a = 6378137.0 + 1e3*x;
+                cfg.period_s = 2.0*std::f64::consts::PI*(a*a*a/cfg.mu).sqrt();
+            }
             _ => return Err(Error::refused(format!("unknown engine override {k}: the engine reads {}", ENGINE_KEYS.join(", ")))),
         }
     }
@@ -496,6 +528,19 @@ impl Config {
         within("orbit.inc (deg)", c.get("orbit.inc"), 0.0, 180.0)?;
         within("orbit.ecc", c.get("orbit.ecc"), 0.0, 0.1)?;
         within("orbit.ltan (h)", c.get("orbit.ltan"), 0.0, 24.0)?;
+        // the power system: all of it or none of it, each value in its range
+        let stated: Vec<&str> = crate::metrics::POWER_KEYS.iter().copied().filter(|k| c.get(k).is_finite()).collect();
+        if !stated.is_empty() && stated.len() < crate::metrics::POWER_KEYS.len() {
+            let missing: Vec<&str> = crate::metrics::POWER_KEYS.iter().copied().filter(|k| !stated.contains(k)).collect();
+            return Err(Error::refused(format!("case {} states part of its power system: {} missing (all of it or none)", c.id, missing.join(", "))));
+        }
+        if !stated.is_empty() {
+            for k in &crate::metrics::POWER_KEYS[..6] { within(&format!("{k} (m^2)"), c.get(k), 0.0, 10.0)?; }
+            within("power.eff", c.get("power.eff"), 0.0, 1.0)?;
+            within("power.batt_wh (Wh)", c.get("power.batt_wh"), 1e-3, 1e5)?;
+            within("power.load_w (W)", c.get("power.load_w"), 0.0, 1e4)?;
+            within("power.soc0", c.get("power.soc0"), 0.0, 1.0)?;
+        }
         if !(self.mass_kg > 0.0) { return Err(Error::refused(format!("mass = {} kg: a mass is positive", self.mass_kg))); }
         for (i, row) in self.inertia.iter().enumerate() {
             if !(row[i] > 0.0) { return Err(Error::refused(format!("inertia axis {} = {} kg m^2: a principal inertia is positive", i + 1, row[i]))); }

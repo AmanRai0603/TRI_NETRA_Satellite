@@ -230,3 +230,77 @@ class Floquet(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class Interpretations(unittest.TestCase):
+    """The ECSS temporal / ensemble / mixed interpretations over a campaign's runs."""
+
+    def runs(self, series):
+        import tempfile, pathlib
+        tmp = pathlib.Path(tempfile.mkdtemp())
+        self.addCleanup(lambda: __import__("shutil").rmtree(tmp, ignore_errors=True))
+        dirs = []
+        for k, x in enumerate(series):
+            d = tmp / f"run_{k:04d}"
+            d.mkdir()
+            (d / "channels.csv").write_text("t_s,ape_los_deg\n" + "".join(f"{i},{v}\n" for i, v in enumerate(x)))
+            (d / "manifest.json").write_text(json.dumps({"orbit": {"period_s": 100.0}}))
+            dirs.append(d)
+        return dirs
+
+    def test_the_three_interpretations_of_a_max(self):
+        # run A is large early, run B large late: each run's worst is 5, but never both at once
+        A, B = [5, 1, 1, 1], [1, 1, 1, 5]
+        x = C.interpretations(self.runs([A, B]), [{"id": "e", "kind": "ape_los", "statistic": "max"}])[0]
+        self.assertEqual((x["temporal"], x["ensemble"], x["mixed"], x["runs"]), (5.0, 5.0, 5.0, 2))
+
+    def test_a_percentile_separates_them(self):
+        # 3 runs, 4 instants; at 50 %: per run the 2nd smallest, across runs the 2nd smallest at each instant
+        series = [[1, 2, 3, 9], [2, 2, 2, 2], [8, 1, 1, 1]]
+        x = C.interpretations(self.runs(series), [{"id": "e", "kind": "ape_los", "statistic": "p95"}])[0]
+        self.assertEqual(x["temporal"], 9.0, "the worst run's p95")
+        self.assertEqual(x["ensemble"], 9.0, "the p95 across 3 runs is their max; worst instant 9")
+        self.assertEqual(x["mixed"], 9.0, "pooled p95 of 12 samples is the 12th smallest")
+        C.INTERP_Q["p50"] = 0.5
+        try:
+            y = C.interpretations(self.runs(series), [{"id": "e", "kind": "ape_los", "statistic": "p50"}])[0]
+        finally:
+            del C.INTERP_Q["p50"]
+        self.assertEqual((y["temporal"], y["ensemble"], y["mixed"]), (2.0, 2.0, 2.0))
+
+    def test_a_window_and_a_metric_it_does_not_cover(self):
+        x = C.interpretations(self.runs([[9, 9, 1, 1]]), [{"id": "e", "kind": "ape_los", "statistic": "max", "window": "after_s:2"},
+                                                         {"id": "p", "kind": "power_mean"}])
+        self.assertEqual([i["id"] for i in x], ["e"])
+        self.assertEqual(x[0]["temporal"], 1.0, "only the window's samples")
+
+
+class Claims(unittest.TestCase):
+    """How many runs a probability claim needs, and the reliability a campaign's runs show."""
+
+    def test_the_success_run_count(self):
+        self.assertEqual(C.success_runs(0.9973, 0.95), 1109, "99.73 % at 95 % confidence: 1108 runs show only 99.72999 %")
+        self.assertEqual(C.success_runs(0.99, 0.90), 230)
+
+    def test_the_lower_bound_is_clopper_pearsons(self):
+        # SciPy 1.17.1: scipy.stats.beta.ppf(1 - confidence, n - failures, failures + 1)
+        for n, f, conf, want in [(10, 1, 0.9, 0.6631522766932753), (1108, 0, 0.95, 0.9972999222959197),
+                                 (1108, 3, 0.95, 0.9930171138530246), (24, 2, 0.95, 0.7601989838711982)]:
+            self.assertAlmostEqual(C.reliability_lower(n, f, conf), want, places=9, msg=f"{n} runs, {f} failed")
+        self.assertIsNone(C.reliability_lower(0, 0, 0.95))
+
+    def test_a_campaign_s_claim_comes_from_the_case_level(self):
+        c = {"case": "ais_img_3u", "scenario": "fine_hold_img", "runs": 24, "confidence": 0.95}
+        self.assertEqual(C.claim(c), (0.9973, 1109), "req.ape is stated at 99.73 %")
+        self.assertEqual(C.claim({**c, "confidence": None}), (None, 24))
+        del c["confidence"]
+        self.assertEqual(C.claim(c), (None, 24), "no confidence, no claim")
+
+    def test_a_summary_says_whether_the_runs_meet_the_claim(self):
+        runs = [{"metrics": [{"id": "ape", "value": 0.005, "req": 0.01, "pass": 1}]} for _ in range(1109)]
+        s = C.summarise(runs, claim=(0.9973, 0.95))[0]
+        self.assertTrue(s["claim_met"])
+        runs[0]["metrics"][0]["pass"] = 0
+        s = C.summarise(runs, claim=(0.9973, 0.95))[0]
+        self.assertFalse(s["claim_met"], "one failure in 1109 no longer shows 99.73 %")
+        self.assertNotIn("claim_met", C.summarise(runs)[0], "no claim, no verdict on it")

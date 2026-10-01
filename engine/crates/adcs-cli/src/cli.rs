@@ -87,6 +87,18 @@ pub struct RunArgs {
     /// soft OILS: the CAN bus rate [kbit/s]
     #[arg(long, value_name = "KBPS", value_parser = positive)]
     pub can_kbps: Option<f64>,
+    /// soft OILS: the SPI bus clock [kHz]
+    #[arg(long, value_name = "KHZ", value_parser = positive)]
+    pub spi_khz: Option<f64>,
+    /// soft OILS: the worst cycles per instruction the deadline is judged at (default 2.0)
+    #[arg(long, value_name = "CPI", value_parser = positive)]
+    pub cpi_max: Option<f64>,
+    /// soft OILS: interrupt time that may preempt one step [us] (default 50)
+    #[arg(long, value_name = "US", value_parser = non_negative)]
+    pub isr_us: Option<f64>,
+    /// soft OILS: the share of the control period the command must land within (default 0.5)
+    #[arg(long, value_name = "FRAC", value_parser = fraction)]
+    pub deadline_frac: Option<f64>,
     /// print only the verdicts
     #[arg(long, short)]
     pub quiet: bool,
@@ -195,6 +207,10 @@ fn finite(s: &str) -> Result<f64, String> {
     match s.parse::<f64>() { Ok(x) if x.is_finite() => Ok(x), _ => Err(format!("{s:?} is not a finite number")) }
 }
 
+fn fraction(s: &str) -> Result<f64, String> {
+    finite(s).and_then(|x| if x > 0.0 && x <= 1.0 { Ok(x) } else { Err(format!("{s:?} must be above 0 and at most 1")) })
+}
+
 fn positive(s: &str) -> Result<f64, String> {
     finite(s).and_then(|x| if x > 0.0 { Ok(x) } else { Err(format!("{s:?} must be above 0")) })
 }
@@ -220,7 +236,8 @@ pub fn args(cmd: &Cmd) -> Option<Args> {
     };
     Some(match cmd {
         Cmd::Run(r) => {
-            let any = r.oils || r.latency_ms.is_some() || r.obc_mhz.is_some() || r.cpi.is_some() || r.i2c_khz.is_some() || r.can_kbps.is_some();
+            let any = r.oils || r.latency_ms.is_some() || r.obc_mhz.is_some() || r.cpi.is_some() || r.i2c_khz.is_some() || r.can_kbps.is_some()
+                || r.spi_khz.is_some() || r.cpi_max.is_some() || r.isr_us.is_some() || r.deadline_frac.is_some();
             let oils = any.then(|| {
                 let mut o = run::OilsModel::default();
                 if let Some(x) = r.latency_ms { o.fixed_s = Some(x*1e-3); }
@@ -228,6 +245,10 @@ pub fn args(cmd: &Cmd) -> Option<Args> {
                 if let Some(x) = r.cpi { o.cpi = x; }
                 if let Some(x) = r.i2c_khz { o.i2c_hz = x*1e3; }
                 if let Some(x) = r.can_kbps { o.can_bps = x*1e3; }
+                if let Some(x) = r.spi_khz { o.spi_hz = x*1e3; }
+                if let Some(x) = r.cpi_max { o.cpi_max = x; }
+                if let Some(x) = r.isr_us { o.isr_s = x*1e-6; }
+                if let Some(x) = r.deadline_frac { o.deadline_frac = x; }
                 o
             });
             Args { fsw: r.fsw.clone(), seed: r.seed, out: r.out.clone(), quiet: r.quiet, realtime: r.realtime, oils, ..base("run", &r.s) }

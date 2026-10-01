@@ -163,7 +163,10 @@ impl std::str::FromStr for Impl {
         let fsw = |f: &str| repo.join("fsw/build").join(f).display().to_string();
         let plugin = repo.join("fsw/build/insn_count.so");
         let qemu = |elf: String| {
+            // -icount shift=0: the virtual clock advances one nanosecond per instruction, so the
+            // firmware's counter (the link's timing trailer) is exact and repeatable (adcs_link.h)
             let mut v: Vec<String> = vec!["qemu-system-arm".into(), "-M".into(), "mps2-an386".into(), "-cpu".into(), "cortex-m4".into(),
+                "-icount".into(), "shift=0,sleep=off".into(),
                 "-display".into(), "none".into(), "-monitor".into(), "none".into(), "-serial".into(), "stdio".into(), "-semihosting".into()];
             // soft OILS: the exact instruction count of every step (fsw/targets/qemu-mps2/insn_count.c);
             // {COUNTS} becomes a per-run file the link reads (link.rs)

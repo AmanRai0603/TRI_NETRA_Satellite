@@ -57,4 +57,14 @@ resources,resources.malloc,Mass allocated to the ADCS,Kilogram,,,,,mass the plat
 resources,resources.valloc,Volume allocated to the ADCS,Litre,,,,,volume the platform can give the ADCS
 resources,resources.vbus,Bus voltage,Volt,,,,,voltage of the bus the ADCS is powered from
 resources,resources.nif,OBC data interfaces offered,Count,,,,,OBC data interfaces offered to the ADCS
+power,power.area_px,Cell area on +X_B,SquareMetre,,,,,illuminated solar-cell area on the +X_B face (0 for none)
+power,power.area_mx,Cell area on -X_B,SquareMetre,,,,,illuminated solar-cell area on the -X_B face (0 for none)
+power,power.area_py,Cell area on +Y_B,SquareMetre,,,,,illuminated solar-cell area on the +Y_B face (0 for none)
+power,power.area_my,Cell area on -Y_B,SquareMetre,,,,,illuminated solar-cell area on the -Y_B face (0 for none)
+power,power.area_pz,Cell area on +Z_B,SquareMetre,,,,,illuminated solar-cell area on the +Z_B face (0 for none)
+power,power.area_mz,Cell area on -Z_B,SquareMetre,,,,,illuminated solar-cell area on the -Z_B face (0 for none)
+power,power.eff,Array-to-bus efficiency,One,,,,,cell efficiency times power conversion, 0 to 1
+power,power.batt_wh,Battery capacity,WattHour,,,,,usable battery energy
+power,power.load_w,Platform load without the ADCS,Watt,,,,,orbit-average power the rest of the satellite draws
+power,power.soc0,Battery state of charge at the start,One,,,,,0 (empty) to 1 (full)
 pointing,pointing.et,Thermal distortion contribution,Degree,,,,,"pointing error from thermal distortion between the payload and the ADCS sensors, if known"

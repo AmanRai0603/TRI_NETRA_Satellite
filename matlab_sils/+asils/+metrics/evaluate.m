@@ -15,6 +15,8 @@ function M = evaluate(rec)
             case 'time_to_rate'
                 thr = m.rate_threshold_deg_s; hold = m.hold_s;
                 val = asils.metrics.time_to(rec.t, rec.rate, thr, hold)/60; unit = 'min';
+            case {'rpe', 'rpe_los', 'mpe', 'mpe_los', 'pde', 'pde_los', 'rke', 'rke_los', 'mke', 'mke_los', 'kde', 'kde_los'}
+                val = stat_(asils.metrics.ecss(m.kind, rec, idx, asils.util.getf(m, 'delta_s', NaN), asils.util.getf(m, 'separation_s', NaN)), stat);
             case 'ape',      val = stat_(rec.ape_3ax(idx), stat);
             case 'ape_los',  val = stat_(rec.ape_los(idx), stat);
             case 'ake',      val = stat_(rec.ake_3ax(idx), stat);
@@ -44,7 +46,17 @@ function M = evaluate(rec)
                 pk = rec.prop_kg(isfinite(rec.prop_kg)); val = 0; if ~isempty(pk), val = 1e3*max(pk); end
                 unit = 'g';
             case 'jitter'                % rotor-imbalance pointing jitter, frequency domain [arcsec]
-                val = asils.sizing.jitter(rec, idx); unit = 'arcsec';
+                val = stat_(asils.sizing.jitter(rec, idx), stat); unit = 'arcsec';
+            case 'power_margin'          % array power less every load, over the window [W]
+                if all(isnan(rec.P_gen)), val = NaN;
+                else
+                    val = mean(rec.P_gen(idx) - rec.P.case.v.power_load_w - rec.P_mtq(idx) - rec.P_rw(idx) - p_rcs_(rec, idx));
+                end
+                unit = 'W';
+            case 'battery_dod'           % the deepest discharge in the window [%]
+                val = 100*(1 - min(rec.soc(idx))); unit = '%';
+            case 'soc_min'               % the lowest state of charge in the window [%]
+                val = 100*min(rec.soc(idx)); unit = '%';
             case 'power_mean'
                 val = mean(rec.P_mtq(idx) + rec.P_rw(idx) + p_rcs_(rec, idx)); unit = 'W';
             case 'power_peak'

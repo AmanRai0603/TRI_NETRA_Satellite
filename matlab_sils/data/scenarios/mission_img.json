@@ -36,6 +36,19 @@
    "requirement": "req.ape",
    "statistic": "p99.73",
    "window": "last_half_orbit"
+  },
+  {
+   "id": "power_margin_last_orbit",
+   "kind": "power_margin",
+   "limit": 0.0,
+   "sense": "min",
+   "window": "last_orbit"
+  },
+  {
+   "diagnostic": "the deepest battery discharge over the orbit: the case does not state a depth-of-discharge limit",
+   "id": "battery_dod_last_orbit",
+   "kind": "battery_dod",
+   "window": "last_orbit"
   }
  ],
  "product": "TRN-P-3U-IMG",

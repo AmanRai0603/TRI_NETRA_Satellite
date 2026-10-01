@@ -81,6 +81,7 @@ def main():
     p.add_argument("--jobs", type=int, default=os.cpu_count()); p.set_defaults(f=campaign)
     sp.add_parser("campaign-ledger").set_defaults(f=lambda a: campaign_ledger(announce=True))
     p = sp.add_parser("oils"); p.add_argument("scenarios", nargs="*"); p.add_argument("--fsw", default="qemu")
+    p.add_argument("--cpi", type=float, nargs="+", default=None, help="also fly each scenario at each of these CPIs (the sweep)")
     p.add_argument("--duration", type=float, default=None); p.add_argument("--jobs", type=int, default=os.cpu_count()); p.set_defaults(f=oils)
     sp.add_parser("oils-ledger").set_defaults(f=lambda a: oils_ledger(announce=True))
     p = sp.add_parser("solutions"); p.add_argument("cases", nargs="*"); p.add_argument("--seeds", default="1,2"); p.add_argument("--fsw", default="c")

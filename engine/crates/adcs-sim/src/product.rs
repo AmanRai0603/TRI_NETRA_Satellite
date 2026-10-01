@@ -12,6 +12,9 @@ pub struct Dev {
     pub boresight: [f64; 3], pub sun_axis: [f64; 3],
     pub gyro: GyroDesc, pub mag: MagDesc, pub sun: SunDesc, pub css: CssDesc, pub st: StDesc, pub es: EsDesc, pub gps: GpsDesc,
     pub mtq: MtqDesc, pub mex: MexDesc, pub rcs: RcsDesc,
+    /// each rotor's imbalance as its part states it (static [kg m], dynamic [kg m^2]), in rotor order;
+    /// None where the part does not state both (jitter is then not computed); a fluid ring has none
+    pub imbalance: Vec<Option<(f64, f64)>>, pub rotor_part: Vec<String>,
     /// the product and part files it was read from (their fingerprint goes in the run's provenance)
     pub files: Vec<PathBuf>,
 }
@@ -88,6 +91,18 @@ fn add_rotor(x: &mut MexDesc, kind: Kind, a: [f64; 3], gi: usize, hmax: f64, tma
 
 /// The actuator slots: coils, wheels, rings, CMG/VSCMG, thrusters. False when `slot` is not one.
 fn fit_actuator(d: &mut Dev, x: &mut MexDesc, slot: &str, pt: &Part) -> bool {
+    let n0 = x.n;
+    let fitted = fit_actuator_(d, x, slot, pt);
+    // the imbalance of every rotor this slot added (jitter): stated, or none for a fluid ring
+    let stated = (json::get(&pt.nm, "static_imbalance_kgm").and_then(|v| v.as_f64()), json::get(&pt.nm, "dynamic_imbalance_kgm2").and_then(|v| v.as_f64()));
+    for _ in n0..x.n {
+        d.imbalance.push(match (slot, stated) { ("rings", _) => Some((0.0, 0.0)), (_, (Some(a), Some(b))) => Some((a, b)), _ => None });
+        d.rotor_part.push(json::s(pt.f, "part", "?").to_string());
+    }
+    fitted
+}
+
+fn fit_actuator_(d: &mut Dev, x: &mut MexDesc, slot: &str, pt: &Part) -> bool {
     let (n, ds) = (|k: &str| pt.n(k), &pt.ds);
     match slot {
         "coils" => {

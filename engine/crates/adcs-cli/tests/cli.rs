@@ -90,3 +90,34 @@ fn params_parity_and_size_do_what_they_say() {
     assert!(std::fs::read_dir(&out).unwrap().count() > 0, "the sizing is written");
     let _ = std::fs::remove_dir_all(&s);
 }
+
+#[test]
+fn a_soft_oils_run_is_judged_on_its_deadline() {
+    let s = tmp("oils");
+    let verdicts = |lat: &str| -> serde_json::Value {
+        let out = s.join(format!("lat{lat}"));
+        let o = adcs(&s, &["run", "nadir_hold_ais", "--quiet", "--set", "engine.duration_s=60", "--latency-ms", lat, "--out", out.to_str().unwrap()]);
+        assert!(o.status.success(), "{}", text(&o));
+        serde_json::from_str(&std::fs::read_to_string(out.join("manifest.json")).unwrap()).unwrap()
+    };
+    let pass = |m: &serde_json::Value, id: &str| m["metrics"].as_array().unwrap().iter().find(|x| x["id"] == id).map(|x| x["pass"].clone());
+    // 200 ms period, deadline at half of it: 5 ms lands in time, 150 ms misses the deadline but not the period
+    let ok = verdicts("5");
+    assert_eq!((pass(&ok, "oils_overruns"), pass(&ok, "oils_worst_case_margin")), (Some(1.into()), Some(1.into())));
+    let late = verdicts("150");
+    assert_eq!((pass(&late, "oils_overruns"), pass(&late, "oils_worst_case_margin")), (Some(1.into()), Some(0.into())));
+    assert!((late["oils"]["deadline_s"].as_f64().unwrap() - 0.1).abs() < 1e-12);
+    // a whole period late is an overrun
+    assert_eq!(pass(&verdicts("250"), "oils_overruns"), Some(0.into()));
+    // a SILS run carries no timing verdicts
+    let sils = s.join("sils");
+    assert!(adcs(&s, &["run", "nadir_hold_ais", "--quiet", "--set", "engine.duration_s=60", "--out", sils.to_str().unwrap()]).status.success());
+    let m: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(sils.join("manifest.json")).unwrap()).unwrap();
+    assert!(pass(&m, "oils_overruns").is_none());
+    // a worst case below the nominal, or a deadline outside (0, 1], is refused
+    let o = adcs(&s, &["run", "nadir_hold_ais", "--oils", "--cpi", "1.5", "--cpi-max", "1.2"]);
+    assert_eq!(o.status.code(), Some(2), "{}", text(&o));
+    assert!(text(&o).contains("worst CPI"));
+    for f in ["0", "1.5", "-0.2"] { assert_eq!(adcs(&s, &["run", "nadir_hold_ais", "--deadline-frac", f]).status.code(), Some(2), "{f}"); }
+    let _ = std::fs::remove_dir_all(&s);
+}

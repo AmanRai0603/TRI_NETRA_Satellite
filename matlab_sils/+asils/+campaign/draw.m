@@ -52,6 +52,22 @@ function [set, d] = draw(C, P0, k)
             case 'initial_rate_deg_s'
                 v = U(s.lo, s.hi);
                 set.scenario__initial__rate__magnitude_deg_s = v; d.initial_rate_deg_s = v;
+            case 'epoch_days'          % the season: the mission starts this many days later
+                v = U(s.lo, s.hi); e = asils.util.jd2utc(asils.util.jd(P0.epoch_utc) + v); e(6) = round(e(6));
+                set.epoch_utc = e; d.epoch_days = v;
+            case 'ltan_h'              % the beta angle: the truth orbit's local time of the ascending node
+                v = U(s.lo, s.hi); set.orbit__ltan_h = v; d.ltan_h = v;
+            case 'alt_km'              % the truth orbit's altitude (the flight software keeps the nominal)
+                v = U(s.lo, s.hi); a = 6378137 + 1e3*v;
+                set.orbit__alt_km = v; set.orbit__period_s = 2*pi*sqrt(a^3/P0.mu); d.alt_km = v;
+            case 'inertia_products'    % Ixy, Ixz, Iyz, each a fraction of sqrt(I_ii I_jj)
+                f = [U(s.lo, s.hi), U(s.lo, s.hi), U(s.lo, s.hi)];
+                if isfield(set, 'sc__I'), I = set.sc__I; else, I = P0.sc.I; end
+                ij = [1 2; 1 3; 2 3];
+                for q = 1:3
+                    a = ij(q, 1); b = ij(q, 2); I(a, b) = f(q)*sqrt(I(a, a)*I(b, b)); I(b, a) = I(a, b);
+                end
+                set.sc__I = I; d.product_xy = f(1); d.product_xz = f(2); d.product_yz = f(3);
             case 'arg_lat_deg'
                 v = U(0, 360); set.orbit__u0_deg = v; d.arg_lat_deg = v;
             otherwise

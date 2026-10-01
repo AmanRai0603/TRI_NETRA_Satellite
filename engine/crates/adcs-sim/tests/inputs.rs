@@ -100,7 +100,9 @@ fn a_case_the_engine_cannot_fly_is_refused_by_name() {
         }).collect::<Vec<_>>().join("\n") + "\n"
     };
     for (key, val, says) in [("orbit.alt", "36000", "orbit.alt (km) = 36000"), ("orbit.alt", "", "does not state orbit.alt"),
-                             ("mass.imin", "-1", "a principal inertia is positive"), ("orbit.alt", "high", "not a finite number")] {
+                             ("mass.imin", "-1", "a principal inertia is positive"), ("orbit.alt", "high", "not a finite number"),
+                             ("power.eff", "", "states part of its power system: power.eff missing"), ("power.eff", "1.5", "power.eff = 1.5"),
+                             ("power.soc0", "-0.1", "power.soc0 = -0.1")] {
         let f = d.join("case.csv");
         std::fs::write(&f, with(key, val)).unwrap();
         let e = Config::build(&root(), "nadir_hold_ais", &f, 1, &[]).unwrap_err();
@@ -155,10 +157,8 @@ fn a_metric_that_cannot_be_judged_as_written_is_refused() {
     says(edited("nadir_hold_ais", |v| { v["metrics"][0]["window"] = "last_orbits".into(); }), "after_s:<seconds>");
     says(edited("nadir_hold_ais", |v| { v["metrics"][0]["window"] = "after_s:soon".into(); }), "after_s:<seconds>");
     says(edited("nadir_hold_ais", |v| { v["metrics"][0]["statistic"] = "p99".into(); }), "must be one of");
-    says(edited("nadir_hold_ais", |v| {
-        v["metrics"].as_array_mut().unwrap().push(serde_json::json!({"id": "j", "kind": "jitter", "limit": 1.0}));
-    }), "jitter is not computed");
-    edited("nadir_hold_ais", |v| { v["metrics"].as_array_mut().unwrap().push(serde_json::json!({"id": "j", "kind": "jitter"})); }).unwrap();
+    // jitter is computed now (adcs_sim::metrics::jitter), so it may be judged
+    edited("nadir_hold_ais", |v| { v["metrics"].as_array_mut().unwrap().push(serde_json::json!({"id": "j", "kind": "jitter", "limit": 1.0})); }).unwrap();
     // a diagnostic reports without judging: one that also judges is refused, its reason must be text
     says(edited("nadir_hold_ais", |v| { v["metrics"][1]["diagnostic"] = "just looking".into(); }), "judged, so not a diagnostic");
     says(edited("nadir_hold_ais", |v| { v["metrics"][0]["diagnostic"] = 1.0.into(); }), "diagnostic");

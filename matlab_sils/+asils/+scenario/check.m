@@ -26,6 +26,20 @@ function check(S, C)
                     bad{end+1} = sprintf('metrics[%d] (%s).requirement = "%s": the case %s has no such requirement', i - 1, m.id, m.requirement, C.id);
                 end
             end
+            ecss = {'rpe', 'rpe_los', 'mpe', 'mpe_los', 'pde', 'pde_los', 'rke', 'rke_los', 'mke', 'mke_los', 'kde', 'kde_los'};
+            if isfield(m, 'kind') && any(strcmp(m.kind, ecss))
+                if ~isfield(m, 'delta_s') || ~(m.delta_s > 0) || ~isfinite(m.delta_s)
+                    bad{end+1} = sprintf('metrics[%d] (%s): %s needs delta_s, the ECSS window length [s], above 0', i - 1, m.id, m.kind);
+                end
+                drift = any(strcmp(m.kind(1:3), {'pde', 'kde'}));
+                if drift && (~isfield(m, 'separation_s') || ~isfinite(m.separation_s) || ~isfield(m, 'delta_s') || m.separation_s < m.delta_s)
+                    bad{end+1} = sprintf('metrics[%d] (%s): %s needs separation_s, at least delta_s', i - 1, m.id, m.kind);
+                elseif ~drift && isfield(m, 'separation_s')
+                    bad{end+1} = sprintf('metrics[%d] (%s): separation_s is for a drift (pde, kde), not %s', i - 1, m.id, m.kind);
+                end
+            elseif isfield(m, 'delta_s') || isfield(m, 'separation_s')
+                bad{end+1} = sprintf('metrics[%d] (%s): delta_s and separation_s are for the ECSS indices (rpe, mpe, pde, rke, mke, kde)', i - 1, m.id);
+            end
             judges = (isfield(m, 'requirement') && ~isempty(m.requirement)) || isfield(m, 'limit');
             if judges && isfield(m, 'diagnostic')
                 bad{end+1} = sprintf('metrics[%d] (%s): judged, so not a diagnostic', i - 1, m.id);

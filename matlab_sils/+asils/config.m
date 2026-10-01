@@ -129,10 +129,12 @@ function P = config(scenarioId, caseFile, opts)
     F.st_coast_s = 900;                             % gyro-only coasting allowed across a star-tracker outage
     F.igrf_nmax = 10;                               % onboard field model degree (truth: 13)
     F.algorithms = asils.util.getf(S.fsw, 'algorithms', struct());
+    F.J = P.sc.I;                                   % the inertia the flight software was loaded with (nominal)
     P.fsw = F;
 
-    %  The FSW's calibrated dipole (fsw.m_res_est) is fixed BEFORE overrides, so a
-    %  dispersed true dipole (sc.m_res) leaves a realistic calibration error.
+    %  The FSW's calibrated dipole (fsw.m_res_est) and inertia (fsw.J) are fixed BEFORE overrides,
+    %  so a dispersed true dipole or inertia (sc.m_res, sc.I) leaves a realistic knowledge error,
+    %  as on the engine (the flight software keeps the ground-calibrated values).
     if isfield(opts, 'set')
         P = asils.util.setpaths(P, opts.set);
     end
