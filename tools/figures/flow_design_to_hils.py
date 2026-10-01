@@ -76,7 +76,7 @@ node(3, 2, R1, "A", "Sizing", ["Solutions: MTQ, FMR fluid loop, N2O RCS", "Bench
 node(4, 3, R1, "A", "SILS mode matrix", ["every mission mode × actuator option", "× seed: detumble, sun acquisition,", "sun referencing, nadir pointing"])
 node(5, 3, R2, "A", "Assess", ["failing requirement → cause:", "authority, momentum, power,", "knowledge"])
 node(6, 2, R2, "A", "Converge", ["resize margins / upgrade sensor", "or algorithm; repeat 3–5 until", "the selection is stable"])
-node(7, 1, R2, "A", "Select", ["simplest solution family passing", "every mode; per-mode method,", "sensors, algorithms"])
+node(7, 1, R2, "A", "Select", ["lightest solution family passing", "every mode; per-mode method,", "sensors, algorithms"])
 
 # MATLAB side note (band A, col 0, row 2)
 nx, ny = COLX[0], R2

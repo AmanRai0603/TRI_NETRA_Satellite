@@ -1,0 +1,57 @@
+{
+ "case": "ais_3u",
+ "fsw": {
+  "algorithms": {
+   "mtq_pointing": "mtq_avanzini2021"
+  },
+  "guidance": {
+   "kind": "sun"
+  },
+  "start_mode": "sun_mtq"
+ },
+ "id": "sun_mtq_ais",
+ "initial": {
+  "attitude": {
+   "angle_deg": 20.0,
+   "axis_body": [
+    0.577,
+    0.577,
+    0.577
+   ],
+   "kind": "error_from_guidance"
+  },
+  "rate": {
+   "kind": "guidance"
+  }
+ },
+ "label": "3U AIS \u2014 Sun referencing with magnetorquers only",
+ "metrics": [
+  {
+   "id": "sun_angle_last_orbit_p95",
+   "kind": "sun_angle",
+   "limit": 20.0,
+   "statistic": "p95",
+   "window": "last_orbit"
+  },
+  {
+   "id": "power_margin_last_orbit",
+   "kind": "power_margin",
+   "limit": 0.0,
+   "sense": "min",
+   "window": "last_orbit"
+  },
+  {
+   "id": "power_mean",
+   "kind": "power_mean",
+   "requirement": "req.pavg",
+   "window": "all"
+  }
+ ],
+ "product": "TRN-P-3U-AIS",
+ "schema": "adcs-scenario/1",
+ "time": {
+  "dt_s": 0.2,
+  "duration_s": 17220.0,
+  "record_dt_s": 1.0
+ }
+}

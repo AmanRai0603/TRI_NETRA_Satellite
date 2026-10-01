@@ -86,7 +86,7 @@
     <text x="411" y="331" text-anchor="middle" font-size="13" font-weight="bold" fill="#ffffff">7</text>
     <text x="435" y="332" font-size="16" font-weight="bold" fill="#1f2a44">Select</text>
     <text x="401" y="362" font-size="13" fill="#1f2a44">
-      <tspan x="401" dy="0">simplest solution family passing</tspan>
+      <tspan x="401" dy="0">lightest solution family passing</tspan>
       <tspan x="401" dy="18">every mode; per-mode method,</tspan>
       <tspan x="401" dy="18">sensors, algorithms</tspan>
     </text>

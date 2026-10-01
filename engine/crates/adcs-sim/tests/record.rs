@@ -53,7 +53,11 @@ fn a_flight_is_judged_recorded_and_shared() {
     assert_eq!(f.metrics.len(), declared);
     for m in &f.metrics {
         if let (Some(v), Some(req)) = (m["value"].as_f64(), m["req"].as_f64()) {
-            let lower_is_better = !matches!(m["kind"].as_str(), Some("mode_fraction"));
+            // the scenario's sense: "min" is a floor (a power margin), anything else a ceiling
+            let decl = c.scenario["metrics"].as_array().unwrap().iter().find(|d| d["id"] == m["id"]).unwrap();
+            let floor = decl["sense"].as_str() == Some("min");
+            let lower_is_better = !floor && !matches!(m["kind"].as_str(), Some("mode_fraction"));
+            if floor { assert_eq!(m["pass"].as_i64(), Some((v >= req) as i64), "{}: {v} vs {req}", m["id"]); }
             if lower_is_better { assert_eq!(m["pass"].as_i64(), Some((v <= req) as i64), "{}: {v} vs {req}", m["id"]); }
         }
     }

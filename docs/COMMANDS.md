@@ -338,7 +338,7 @@ The design loop, node by node: from a customer case to a selected, dispatched, v
 1. size: the demand survey and every option sized
 2. matrix: every mode x option x seed flown with the sized products
 3. assess: each failing requirement classed (performance, knowledge, power, propellant)
-4. select: the simplest solution family that passes every mode within the mass and volume budget
+4. select: the lightest solution family (then power, then volume) that passes every mode within the mass and volume budget
 5. converge: resize or upgrade what failed, and repeat from size until nothing is left to change
 6. dispatch: the selected family's flight configuration, checked with C and Rust
 7. mc: a Monte Carlo of the dispatched mission

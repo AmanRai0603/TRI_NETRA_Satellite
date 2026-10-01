@@ -95,6 +95,8 @@ pub struct Demand {
     pub slew_deg: f64, pub slew_s: f64, pub w_slew: f64, pub a_slew: f64, pub h_slew: f64, pub tau_slew: f64,
     pub life_yr: f64, pub slews_per_day: f64, pub k_h: f64, pub k_tau: f64, pub h_req: f64, pub tau_req: f64,
     pub req: BTreeMap<String, f64>, pub notes: Vec<String>, pub fine: bool,
+    /// the body of the case's class (catalogue/classes.toml): the faces and lever arms the parts are sized on
+    pub class: String, pub box_m: [f64; 3],
 }
 
 const ATT: [&str; 4] = ["X_nadir", "Y_nadir", "Z_nadir", "sun"];
@@ -132,7 +134,7 @@ pub fn demand(root: &Path, case_file: &Path, k: &Knobs) -> Result<Demand, Error>
             tau[kk][a] = add(&add(&p[0], &p[1]), &add(&p[2], &p[3]));
         }
     }
-    let mut d = Demand { case: c.case.id.clone(), period_s: t_orb, ..Default::default() };
+    let mut d = Demand { case: c.case.id.clone(), period_s: t_orb, class: c.case.class.clone(), box_m: c.box_m, ..Default::default() };
     for a in 0..4 {
         let mut h = [0.0; 3];
         let mut hs = Vec::with_capacity(n);
@@ -169,6 +171,8 @@ pub fn demand(root: &Path, case_file: &Path, k: &Knobs) -> Result<Demand, Error>
     d.h_req = d.k_h*d.h_dist.max(d.h_slew);
     d.tau_req = d.k_tau*d.tau_dist.max(d.tau_slew);
     for r in ["ape", "ake", "rks", "mass", "pavg", "ppk", "vol", "detumble", "sunacq"] { d.req.insert(r.into(), v(&format!("req.{r}"))); }
+    // what the platform allocates to the ADCS (blank: no allocation stated, nothing checked)
+    for r in ["malloc", "palloc", "valloc"] { d.req.insert(r.into(), v(&format!("resources.{r}"))); }
     d.fine = d.req["ake"].is_finite() && d.req["ake"] <= 0.05;
     d.notes = notes;
     Ok(d)
@@ -184,7 +188,7 @@ impl Demand {
             "w_slew": self.w_slew, "a_slew": self.a_slew, "h_slew": self.h_slew, "tau_slew": self.tau_slew, "life_yr": self.life_yr,
             "slews_per_day": self.slews_per_day, "k_h": self.k_h, "k_tau": self.k_tau, "h_req": self.h_req, "tau_req": self.tau_req,
             "req": self.req.iter().map(|(a, b)| (a.clone(), if b.is_finite() { json!(b) } else { Value::Null })).collect::<serde_json::Map<_, _>>(),
-            "notes": self.notes, "class": if self.fine { "fine" } else { "coarse" }})
+            "notes": self.notes, "class": if self.fine { "fine" } else { "coarse" }, "body_class": self.class, "box_m": self.box_m})
     }
 }
 
@@ -360,7 +364,7 @@ fn budget(fill: &[Value], lookup: &dyn Fn(&str) -> Result<Value, Error>) -> Resu
 pub fn size_all(root: &Path, case_file: &Path, k: &Knobs, out: &Path) -> Result<Value, Error> {
     let d = demand(root, case_file, k)?;
     let case = d.case.clone();
-    let bx = [0.34, 0.10, 0.10];
+    let bx = d.box_m;
     let (pm, pmp) = mtq(&d, k);
     let fm = fmr(&d, k, bx);
     let parts: Vec<(&str, Value)> = vec![("mtq", pm), ("mtqp", pmp), ("rw", rotor(root, &d, k, "rw")?), ("cmg", rotor(root, &d, k, "cmg")?), ("vscmg", rotor(root, &d, k, "vscmg")?),

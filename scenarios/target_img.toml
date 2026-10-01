@@ -1,0 +1,36 @@
+# Imaging 3U: target pointing, the boresight held 20 deg off nadir (rolled about the
+# along-track axis), wheels + star tracker; judged as the fine hold is.
+schema = "adcs-scenario/1"
+id = "target_img"
+label = "3U imaging — target pointing 20 deg off nadir, reaction wheels + star tracker"
+case = "ais_img_3u"
+product = "TRN-P-3U-IMG"
+[time]
+duration_s = 5740.0
+dt_s = 0.1
+record_dt_s = 0.1
+[initial]
+attitude = { kind = "error_from_target", angle_deg = 2.0, axis_body = [0.577, 0.577, 0.577] }
+rate = { kind = "lvlh" }
+[fsw]
+start_mode = "target_fine"
+guidance = { kind = "target", roll_deg = 20.0, axis = [1.0, 0.0, 0.0] }
+rw_bandwidth = 0.9
+rw_damping = 2.0
+[[metrics]]
+id = "ape_los_p9973"
+kind = "ape_los"
+window = "last_half_orbit"
+statistic = "p99.73"
+requirement = "req.ape"
+[[metrics]]
+id = "ake_los_p9973"
+kind = "ake_los"
+window = "last_half_orbit"
+statistic = "p99.73"
+requirement = "req.ake"
+[[metrics]]
+id = "power_mean"
+kind = "power_mean"
+window = "all"
+requirement = "req.pavg"

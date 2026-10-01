@@ -357,6 +357,10 @@
       "type": "numorvec3"
     },
     {
+      "path": "faults[].end_s",
+      "type": "num"
+    },
+    {
       "path": "metrics",
       "type": "list"
     },

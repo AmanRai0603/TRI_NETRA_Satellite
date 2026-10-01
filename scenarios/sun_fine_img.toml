@@ -1,0 +1,36 @@
+# Imaging 3U: Sun referencing on the wheels (power face on the Sun, roll about it toward the
+# orbit normal), the attitude a payload-off orbit holds; judged on the power budget.
+schema = "adcs-scenario/1"
+id = "sun_fine_img"
+label = "3U imaging — Sun referencing on reaction wheels (power face on the Sun)"
+case = "ais_img_3u"
+product = "TRN-P-3U-IMG"
+[time]
+duration_s = 5740.0
+dt_s = 0.1
+record_dt_s = 1.0
+[initial]
+attitude = { kind = "error_from_target", angle_deg = 5.0, axis_body = [0.577, 0.577, 0.577] }
+rate = { kind = "lvlh" }
+[fsw]
+start_mode = "sun_fine"
+guidance = { kind = "sun" }
+rw_bandwidth = 0.9
+rw_damping = 2.0
+[[metrics]]
+id = "sun_angle_p95"
+kind = "sun_angle"
+window = "last_half_orbit"
+statistic = "p95"
+limit = 5.0                  # the power face within 5 deg of the Sun (cos 5 deg = 99.6 % of the power)
+[[metrics]]
+id = "power_margin_orbit"
+kind = "power_margin"
+window = "all"
+limit = 0.0
+sense = "min"
+[[metrics]]
+id = "power_mean"
+kind = "power_mean"
+window = "all"
+requirement = "req.pavg"

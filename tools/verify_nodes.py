@@ -152,10 +152,13 @@ def verify_case(C, case, cat):
     F = sel["families"]
     for f, v in F.items():
         g = list(v["gaps"])
-        mass_gap = v["budget"]["mass_kg"] > req["req.mass"]
-        vol_gap = v["budget"]["volume_L"] > req["req.vol"]
+        over = lambda name, keys: any(req.get(k) is not None and v["budget"][name] > req[k] for k in keys)
+        mass_gap = over("mass_kg", ("req.mass", "resources.malloc"))
+        vol_gap = over("volume_L", ("req.vol", "resources.valloc"))
+        pow_gap = over("power_W", ("resources.palloc",))
         C("select", case, f"{f}: feasible exactly when no mode and no budget gap", v["feasible"] == (not g) and
-          (mass_gap == any("mass_kg" in x for x in g)) and (vol_gap == any("volume_L" in x for x in g)), "; ".join(g) or "no gap")
+          (mass_gap == any("mass_kg" in x for x in g)) and (vol_gap == any("volume_L" in x for x in g))
+          and (pow_gap == any("power_W" in x for x in g)), "; ".join(g) or "no gap")
     rank = lambda f: tuple(F[f]["simplicity"] if k == "simplicity" else F[f]["budget"][k] for k in P["select"]["rank_feasible"])
     for role, key in ((P["select"]["select_role"], "selected"), (P["select"]["compare_role"], "benchmark")):
         fs = [f for f in F if F[f]["role"] == role]

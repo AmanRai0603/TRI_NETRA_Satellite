@@ -196,10 +196,18 @@ impl Units {
         Units { gyro, mag, sun, st, mtq, es, css, mex, rcs, gps: Gps { d: d.gps, dead: false, rng: rs("gps") }, tlm: rs("telemetry") }
     }
 
-    /// Inject every fault whose time has come (once each), and log it.
+    /// Inject every fault whose time has come (once each), clear the ones that end, and log both.
     fn faults(&mut self, c: &Config, t: f64, done: &mut [bool], log: &mut Vec<(f64, String)>) -> Result<(), Error> {
         for (i, f) in c.faults.iter().enumerate() {
-            if done[i] || t < f.t_s { continue; }
+            // a device back from silence (end_s): it answers again from then on
+            if done[i] {
+                if let Some(e) = f.end_s {
+                    let dead = match f.kind.as_str() { "gps_outage" => &mut self.gps.dead, _ => &mut self.mag.dead };
+                    if t >= e && *dead { *dead = false; log.push((t, format!("FAULT cleared: {} {}", f.kind, f.index))); }
+                }
+                continue;
+            }
+            if t < f.t_s { continue; }
             done[i] = true;
             let ix = f.index.saturating_sub(1);
             match f.kind.as_str() {

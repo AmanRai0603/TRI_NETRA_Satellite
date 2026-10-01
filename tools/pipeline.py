@@ -15,8 +15,9 @@
              authority for a power failure, one star-tracker head / a lighter pump / less
              fluid-loop momentum for a mass gap (undone if it breaks a mode); blocked when a part is at its bound or a
              performance/power conflict is found. Converged when nothing is left to change.
-  select     the simplest SOLUTION family (mtq -> mtq_fmr -> mtq_fmr_rcs) whose best option
-             passes every mode and whose budget meets req.mass / req.vol; benchmarks scored alike
+  select     the lightest SOLUTION family (least mass, then power, then volume: nodes.json
+             select.rank_feasible) whose best option passes every mode and whose budget meets
+             req.mass / req.vol; benchmarks ranked by the same rule
   dispatch   the selected family's flight configuration (adcs-fswcfg/1 blob) + C and Rust engine check
   mc         Monte Carlo of the dispatched mission (case dispersions, per-run seeds)
   soft_oils  the dispatched mission with the flight software as Cortex-M4F firmware (QEMU),

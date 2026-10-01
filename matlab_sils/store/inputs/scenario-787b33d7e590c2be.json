@@ -1,0 +1,67 @@
+{
+ "case": "ais_3u",
+ "faults": [
+  {
+   "end_s": 6600.0,
+   "kind": "mag_fail",
+   "t_s": 6000.0
+  }
+ ],
+ "fsw": {
+  "auto_next": "nadir_mtq",
+  "guidance": {
+   "kind": "nadir"
+  },
+  "mtq_wn": 0.005,
+  "mtq_zeta": 2.0,
+  "start_mode": "nadir_mtq"
+ },
+ "id": "safe_mode_ais",
+ "initial": {
+  "attitude": {
+   "angle_deg": 30.0,
+   "axis_body": [
+    0.577,
+    0.577,
+    0.577
+   ],
+   "kind": "error_from_target"
+  },
+  "rate": {
+   "kind": "lvlh"
+  }
+ },
+ "label": "3U AIS \u2014 safe mode: magnetometer silent 10 min in nadir hold, entry and recovery",
+ "metrics": [
+  {
+   "diagnostic": "the minute safe mode began: the fault at 100 min plus the 60 s the flight software waits",
+   "id": "safe_mode_entry",
+   "kind": "time_to_mode",
+   "mode": "detumble"
+  },
+  {
+   "channel": "ape_los",
+   "diagnostic": "from the magnetometer's return to 10 min held inside the APE: the case does not state req.recover",
+   "from_s": 6600.0,
+   "hold_s": 600.0,
+   "id": "recovery_to_ape",
+   "kind": "time_to_threshold",
+   "threshold_deg": 10.0,
+   "unit_min": true
+  },
+  {
+   "id": "ape_los_last_orbit",
+   "kind": "ape_los",
+   "requirement": "req.ape",
+   "statistic": "max",
+   "window": "last_orbit"
+  }
+ ],
+ "product": "TRN-P-3U-AIS",
+ "schema": "adcs-scenario/1",
+ "time": {
+  "dt_s": 0.2,
+  "duration_s": 17220.0,
+  "record_dt_s": 1.0
+ }
+}

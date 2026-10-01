@@ -67,7 +67,7 @@ pub const SCENARIO: &[(&str, T)] = &[
     ("fsw.roll_gate_deg", T::Num), ("fsw.roll_wn_orbits", T::Num), ("fsw.roll_zeta", T::Num), ("fsw.rw_bandwidth", T::Num),
     ("fsw.rw_damping", T::Num), ("fsw.rw_rate_hz", T::Num), ("fsw.spin_rate_dps", T::Num), ("fsw.ss_gain", T::Num),
     ("fsw.sun_acq_rate_deg_s", T::Num), ("fsw.sun_spin_dwell_out_s", T::Num), ("fsw.sun_spin_perp_out_dps", T::Num), ("fsw.wheel_bias_Nms", T::Num),
-    ("faults", T::List), ("faults[].t_s", T::Num), ("faults[].kind", T::OneOf(&FAULTS)), ("faults[].index", T::Num), ("faults[].value", T::NumOrVec3),
+    ("faults", T::List), ("faults[].t_s", T::Num), ("faults[].kind", T::OneOf(&FAULTS)), ("faults[].index", T::Num), ("faults[].value", T::NumOrVec3), ("faults[].end_s", T::Num),
     ("metrics", T::List), ("metrics[].id", T::Str), ("metrics[].kind", T::OneOf(&METRIC_KINDS)), ("metrics[].window", T::Str),
     ("metrics[].statistic", T::OneOf(&STATISTICS)), ("metrics[].channel", T::OneOf(&CHANNELS)), ("metrics[].mode", T::Mode),
     ("metrics[].from_s", T::Num), ("metrics[].hold_s", T::Num), ("metrics[].rate_threshold_deg_s", T::Num), ("metrics[].threshold_deg", T::Num),

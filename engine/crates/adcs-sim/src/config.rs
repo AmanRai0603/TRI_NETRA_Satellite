@@ -25,7 +25,9 @@ pub fn mode_index(name: &str) -> Result<u8, Error> {
 }
 
 #[derive(Clone, Debug)]
-pub struct Fault { pub t_s: f64, pub kind: String, pub index: usize, pub value: [f64; 3] }
+pub struct Fault { pub t_s: f64, pub kind: String, pub index: usize, pub value: [f64; 3],
+    /// when the device answers again (a magnetometer or a GNSS receiver back from silence); None: for good
+    pub end_s: Option<f64> }
 
 #[derive(Clone, Debug)]
 pub struct Config {
@@ -167,6 +169,19 @@ pub const CASE_NEEDS: [&str; 14] = ["orbit.alt", "orbit.inc", "orbit.ecc", "orbi
     "surface.afr", "surface.cd", "surface.refl", "surface.cpa", "magnetic.dres", "mission.epoch"];
 
 /// The engine settings `--set engine.<name>=` can change.
+/// Case keys the models do not use yet: stating one is refused with the reason, so a value is
+/// never quietly ignored (docs/UPGRADE_PLAN.md B2.1). Requirements (`req.*`) are covered by the
+/// traceability check instead: a stated requirement must be judged by a shipped metric.
+pub const CASE_UNMODELLED: [(&str, &str); 7] = [
+    ("mission.duty", "the fine-pointing duty cycle is not modelled yet (scenarios fly their mode for their whole duration)"),
+    ("mass.cm", "the centre-of-mass offset comes from surface.cpa in the facet model; a separate mass.cm is not modelled"),
+    ("mass.iunc", "inertia uncertainty is not drawn from the case yet: Monte Carlo campaigns state their own inertia dispersion"),
+    ("magnetic.dunc", "residual-dipole uncertainty is not drawn from the case yet: Monte Carlo campaigns state their own dispersion"),
+    ("pointing.et", "the thermal-distortion pointing contribution has no model (the pointing budget is B2.2)"),
+    ("resources.vbus", "the bus voltage is not used by any device model"),
+    ("resources.nif", "the OBC data interfaces are not checked by the design loop yet (the data budget is B2.4)"),
+];
+
 pub const ENGINE_KEYS: [&str; 22] = ["engine.orbit", "engine.inertia_scale", "engine.cm_offset_m", "engine.m_res", "engine.density_scale", "engine.duration_s",
     "engine.orbit_step_s", "engine.zonal_max", "engine.igrf_nmax", "engine.f107", "engine.f107a", "engine.kp", "engine.ap", "engine.accommodation", "engine.refl", "engine.mass_kg",
     "engine.vb_ratio", "engine.spec_frac", "engine.epoch_days", "engine.ltan_h", "engine.alt_km", "engine.inertia_products"];
@@ -413,7 +428,8 @@ fn sensor_params(p: &mut Params, k: &Knowns) {
 fn faults(s: &Value, dev: &Dev) -> Result<Vec<Fault>, Error> {
 
     let faults: Vec<Fault> = match s.get("faults") {
-        Some(Value::Array(a)) => a.iter().map(|f| Fault { t_s: json::f(f, "t_s", 0.0), kind: json::s(f, "kind", "").into(), index: json::f(f, "index", 0.0) as usize, value: get(f, "value").and_then(json::v3).unwrap_or([0.0; 3]) }).collect(),
+        Some(Value::Array(a)) => a.iter().map(|f| Fault { t_s: json::f(f, "t_s", 0.0), kind: json::s(f, "kind", "").into(), index: json::f(f, "index", 0.0) as usize, value: get(f, "value").and_then(json::v3).unwrap_or([0.0; 3]),
+            end_s: get(f, "end_s").and_then(|v| v.as_f64()) }).collect(),
         _ => vec![],
     };
     // every fault names a device the product carries, and a unit it has (numbered from 1)
@@ -431,6 +447,12 @@ fn faults(s: &Value, dev: &Dev) -> Result<Vec<Fault>, Error> {
         if units == 0 { return Err(Error::refused(format!("faults[{i}] {}: product {} has no {what}", f.kind, dev.id))); }
         if matches!(f.kind.as_str(), "rotor_fail" | "gimbal_stuck" | "st_head_fail" | "coil_fail" | "rcs_valve_fail") && !(1..=units).contains(&f.index) {
             return Err(Error::refused(format!("faults[{i}] {}: index {} — product {} has {what} 1 to {units}", f.kind, f.index, dev.id)));
+        }
+        if let Some(e) = f.end_s {
+            if !matches!(f.kind.as_str(), "mag_fail" | "gps_outage") {
+                return Err(Error::refused(format!("faults[{i}] {}: end_s is for a device that can answer again (mag_fail, gps_outage)", f.kind)));
+            }
+            if !(e > f.t_s) { return Err(Error::refused(format!("faults[{i}] {}: end_s {e} s is not after t_s {} s", f.kind, f.t_s))); }
         }
         if f.kind == "gyro_bias_step" && raw.get("value").and_then(json::v3).is_none() {
             return Err(Error::refused(format!("faults[{i}] gyro_bias_step: value must be the bias step [x, y, z] in rad/s")));
@@ -555,6 +577,21 @@ impl Config {
             within("power.batt_wh (Wh)", c.get("power.batt_wh"), 1e-3, 1e5)?;
             within("power.load_w (W)", c.get("power.load_w"), 0.0, 1e4)?;
             within("power.soc0", c.get("power.soc0"), 0.0, 1.0)?;
+        }
+        // a stated value nothing models is refused, never silently dropped
+        for (k, why) in CASE_UNMODELLED {
+            if c.get(k).is_finite() { return Err(Error::refused(format!("case {} states {k} = {}: {why}", c.id, c.get(k)))); }
+        }
+        // the facet model has one centre-of-mass offset (length surface.cpa) for the aerodynamic and the
+        // solar torque, and computes the sunlit area from the box: a stated value it cannot honour is refused
+        let (cpa, cps) = (c.get("surface.cpa"), c.get("surface.cps"));
+        if cps.is_finite() && cps != cpa {
+            return Err(Error::refused(format!("case {}: surface.cps = {cps} m differs from surface.cpa = {cpa} m; the facet model has one centre-of-mass offset for both torques", c.id)));
+        }
+        let asun = c.get("surface.asun");
+        let face = [self.box_m[0]*self.box_m[1], self.box_m[1]*self.box_m[2], self.box_m[0]*self.box_m[2]].into_iter().fold(0.0, f64::max);
+        if asun.is_finite() && (asun - face).abs() > 1e-6*face.max(1e-12) {
+            return Err(Error::refused(format!("case {}: surface.asun = {asun} m^2, but the facet model lights the {} body, largest face {face} m^2 (no deployables are modelled)", c.id, c.class)));
         }
         if !(self.mass_kg > 0.0) { return Err(Error::refused(format!("mass = {} kg: a mass is positive", self.mass_kg))); }
         for (i, row) in self.inertia.iter().enumerate() {

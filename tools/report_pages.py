@@ -114,7 +114,7 @@ nav a:hover,nav a:focus-visible{border-color:var(--accent);outline:none}
     out.append("</table></div>")
     if sol_html:
         out.append("<h2 id='solutions'>From the customer's case to our ADCS</h2>")
-        out.append("<p>Each case is sized: every actuator option is scaled to what the case demands. Then every mission mode (detumble, Sun acquisition, Sun referencing, nadir pointing) is flown with every method the hardware allows, on the same seeds. Our three solutions are magnetorquers only, + fluid loop, and + fluid loop + N2O cold-gas RCS. They are scored against reaction wheels, CMG and VSCMG sized to the same case, and the simplest of ours that passes every mode is recommended (docs/SOLUTION_PIPELINE.md).</p>")
+        out.append("<p>Each case is sized: every actuator option is scaled to what the case demands. Then every mission mode (detumble, Sun acquisition, Sun referencing, nadir pointing) is flown with every method the hardware allows, on the same seeds. Our three solutions are magnetorquers only, + fluid loop, and + fluid loop + N2O cold-gas RCS. They are scored against reaction wheels, CMG and VSCMG sized to the same case, and the lightest of ours that passes every mode within the mass and volume budget is recommended (docs/SOLUTION_PIPELINE.md).</p>")
         out.extend(sol_html)
         out.append(components_html())
     if trades:

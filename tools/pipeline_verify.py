@@ -29,10 +29,11 @@ def node_select(case, res, sizing, modes, families):
                                           "metrics": best["metrics"]}
             if not best or not best["feasible"]:
                 gaps.append(f"{M['id']}: " + (", ".join(f"{a} ({b})" for a, b in best["failing"].items()) if best else "no option"))
-        for key, name in (("mass", "mass_kg"), ("vol", "volume_L")):
+        # the case's requirements, then what the platform allocates (resources.*), each when stated
+        for key, name in (("mass", "mass_kg"), ("vol", "volume_L"), ("malloc", "mass_kg"), ("valloc", "volume_L"), ("palloc", "power_W")):
             lim = req.get(key)
             if lim is not None and bud[name] > lim:
-                gaps.append(f"budget: {name} {bud[name]:.3g} > {lim:g}")
+                gaps.append(f"budget: {name} {bud[name]:.3g} > {lim:g}" + (f" (resources.{key})" if key.endswith("alloc") else ""))
         out[fa["id"]] = {"role": fa["role"], "simplicity": fa.get("simplicity", 9), "label": fa["label"], "feasible": not gaps, "gaps": gaps,
                          "modes": per_mode, "budget": {k: bud[k] for k in ("mass_kg", "power_W", "volume_L")}, "product": bud["product"]}
     sp = P("select")

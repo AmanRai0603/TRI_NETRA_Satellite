@@ -338,7 +338,7 @@ def design():
                  fmt(sel["families"][f]["budget"]["mass_kg"], 3), fmt(sel["families"][f]["budget"]["power_W"], 3), fmt(sel["families"][f]["budget"]["volume_L"], 3),
                  act(f), e("; ".join(sel["families"][f]["gaps"])) or "—"] for f in order]
         out.append(f"<p>Every configuration, ours and the benchmarks, flown and scored the same way. Selection rule (node <code>select</code>): "
-                   f"{e(sel.get('rule', 'simplest feasible solution'))}. Selected: <b><code>{e(sel['selected'])}</code></b>; the benchmarks "
+                   f"{e(sel.get('rule', 'least mass among feasible solution families'))}. Selected: <b><code>{e(sel['selected'])}</code></b>; the benchmarks "
                    f"ranked by the same rule give <b><code>{e(sel.get('benchmark') or '—')}</code></b> ({e(sel.get('benchmark_status', ''))}).</p>" +
                    table(["family", "role", "rank", "feasible", "mass [kg]", "steady power [W]", "volume [L]", "momentum / thrust actuators", "gaps"], rows, num=(2, 4, 5, 6)))
         rows = [[e(m), f"<code>{e(r['option'])}</code>", verdict(r["feasible"]), f"{fmt(r['objective'])} {e(r['objective_id'])}",

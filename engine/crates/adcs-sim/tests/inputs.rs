@@ -102,7 +102,11 @@ fn a_case_the_engine_cannot_fly_is_refused_by_name() {
     for (key, val, says) in [("orbit.alt", "36000", "orbit.alt (km) = 36000"), ("orbit.alt", "", "does not state orbit.alt"),
                              ("mass.imin", "-1", "a principal inertia is positive"), ("orbit.alt", "high", "not a finite number"),
                              ("power.eff", "", "states part of its power system: power.eff missing"), ("power.eff", "1.5", "power.eff = 1.5"),
-                             ("power.soc0", "-0.1", "power.soc0 = -0.1")] {
+                             ("power.soc0", "-0.1", "power.soc0 = -0.1"),
+                             // a stated value nothing models: refused, never quietly dropped
+                             ("mass.iunc", "0.1", "states mass.iunc = 0.1"), ("pointing.et", "0.001", "states pointing.et"),
+                             ("surface.cps", "0.05", "one centre-of-mass offset for both torques"),
+                             ("surface.asun", "0.1", "no deployables are modelled")] {
         let f = d.join("case.csv");
         std::fs::write(&f, with(key, val)).unwrap();
         let e = Config::build(&root(), "nadir_hold_ais", &f, 1, &[]).unwrap_err();

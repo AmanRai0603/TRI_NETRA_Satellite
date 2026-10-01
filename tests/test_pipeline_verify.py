@@ -57,6 +57,13 @@ class Select(unittest.TestCase):
         self.assertEqual(s["families"]["mtq"]["gaps"], ["budget: mass_kg 1.7 > 1.6"])
         self.assertFalse(s["families"]["mtq"]["feasible"])
 
+    def test_an_allocation_the_platform_states_is_a_gap_and_a_blank_one_is_not(self):
+        res = {("detumble", "mtq"): r("detumble", "mtq", True), ("nadir_pointing", "mtq"): r("nadir_pointing", "mtq", True)}
+        sz = sizing(mtq=1.2, rw=1.2, cmg=1.5)
+        sz["demand"]["req"].update({"malloc": 1.0, "palloc": 0.2, "valloc": None})
+        g = V.node_select("c", res, sz, MODES, FAMILIES)["families"]["mtq"]["gaps"]
+        self.assertEqual(g, ["budget: mass_kg 1.2 > 1 (resources.malloc)", "budget: power_W 0.3 > 0.2 (resources.palloc)"])
+
     def test_a_mode_with_no_usable_option_is_a_gap(self):
         res = {("detumble", "mtq"): r("detumble", "mtq", True)}
         s = V.node_select("c", res, sizing(mtq=0.9, rw=1.2, cmg=1.5), MODES, FAMILIES)

@@ -50,6 +50,21 @@ function P = config(scenarioId, caseFile, opts)
     P.sc.box_m = class_box(C);              % the body of the case's class (catalogue/classes.toml)
     cpa = v.surface_cpa;
     P.sc.cm_offset_m = cpa*[0.30; 0.70; -0.65]/norm([0.30; 0.70; -0.65]);   % |offset| = case CP-CM
+    % a stated value nothing models is refused, never silently dropped (= the engine's CASE_UNMODELLED)
+    um = {'mission_duty', 'mass_cm', 'mass_iunc', 'magnetic_dunc', 'pointing_et', 'resources_vbus', 'resources_nif'};
+    for i = 1:numel(um)
+        if isfield(v, um{i}) && isfinite(v.(um{i}))
+            error('asils:case:refused', 'case %s states %s = %g: the models do not use it yet', C.id, strrep(um{i}, '_', '.'), v.(um{i}));
+        end
+    end
+    % the facet model: one centre-of-mass offset for both torques, the sunlit area from the box
+    if isfield(v, 'surface_cps') && isfinite(v.surface_cps) && v.surface_cps ~= cpa
+        error('asils:case:refused', 'case %s: surface.cps = %g m differs from surface.cpa = %g m; the facet model has one centre-of-mass offset for both torques', C.id, v.surface_cps, cpa);
+    end
+    b_ = P.sc.box_m; face = max([b_(1)*b_(2), b_(2)*b_(3), b_(1)*b_(3)]);
+    if isfield(v, 'surface_asun') && isfinite(v.surface_asun) && abs(v.surface_asun - face) > 1e-6*max(face, 1e-12)
+        error('asils:case:refused', 'case %s: surface.asun = %g m^2, but the facet model lights the class body, largest face %g m^2', C.id, v.surface_asun, face);
+    end
     P.sc.aref_m2 = v.surface_afr; P.sc.cd = v.surface_cd; P.sc.refl = v.surface_refl;
     % surface-model settings, the engine's ACCOMMODATION, VB_RATIO, SPEC_FRAC (config.rs): Moe & Moe (2005) LEO
     P.sc.sigma_n = 0.8; P.sc.sigma_t = 0.8; P.sc.vb_ratio = 0.05;

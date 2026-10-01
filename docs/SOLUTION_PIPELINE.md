@@ -23,7 +23,7 @@ and how does it compare with the standard actuators, on every parameter?**
         │         sun acquisition   MTQ | RW | CMG | VSCMG | FMR
         │         sun referencing   MTQ | RW | CMG | VSCMG | FMR   x  dump by MTQ | RCS
         │         nadir pointing    MTQ | RW | CMG | VSCMG | FMR   x  dump by MTQ | RCS
- 4  SOLUTION    our families, simplest first:  mtq  ->  mtq_fmr  ->  mtq_fmr_rcs
+ 4  SOLUTION    our families, simplest to fullest:  mtq  ->  mtq_fmr  ->  mtq_fmr_rcs
         │       the first whose best method passes every mode is RECOMMENDED;
         │       the benchmark families are scored the same way, for comparison only
  5  DISPATCH    the recommended solution: sized product, per-mode method and
@@ -82,8 +82,11 @@ changing its `role`.
 
 A family's per-mode method is the best of the options its hardware allows
 (e.g. `mtq_fmr_rcs` detumbles with `mtq` or `rcs`, whichever the mode matrix
-ranks first). Recommendation rule: **the simplest solution family that passes
-every mode**, then worst margin, mass and power, as in SPEC §8.6.
+ranks first). Recommendation rule: **the lightest solution family that passes every mode
+within the mass and volume budget**, then the lower steady power, then the smaller
+volume (`matlab_sils/data/pipeline/nodes.json`, `select.rank_feasible`). SPEC §8.6
+ranks the products that pass by worst margin, then mass, then orbit-average power;
+the design loop does not rank by worst margin yet (B2.8 in docs/UPGRADE_PLAN.md).
 
 ## 3. Sizing (`+asils/+sizing`)
 

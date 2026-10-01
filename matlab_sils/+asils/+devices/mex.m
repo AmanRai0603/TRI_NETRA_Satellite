@@ -47,7 +47,12 @@ function [hdot, gdot, P_W, D] = mex(cmd_r, cmd_g, h, d, D, m, dt)
                 % loop (IDMAS v2 §03C: 1-3 W per unit); the loop spins down in
                 % ~1 s, so it is on whenever the ring holds momentum
                 % idle driver (no momentum target, no command): field off
-                if abs(D.htgt(i)) > 0.02*m.h_max(i) || abs(cmd_r(i)) > 0.02*m.torque_max(i), P_W = P_W + m.field_power(i); end
+                % switched with hysteresis (on above 2 %, off below 1 %) so a target hovering at
+                % the threshold does not decide a power budget (= the engine's Mex)
+                if ~isfield(D, 'field_on'), D.field_on = false(n, 1); end
+                ht = abs(D.htgt(i))/m.h_max(i); tq = abs(cmd_r(i))/m.torque_max(i);
+                if ht > 0.02 || tq > 0.02, D.field_on(i) = true; elseif ht < 0.01 && tq < 0.01, D.field_on(i) = false; end
+                if D.field_on(i), P_W = P_W + m.field_power(i); end
             case 'cmg'
                 hdot(i) = max(-m.torque_max(i), min(m.torque_max(i), -m.k_speed*(h(i) - m.h0(i))));
                 P_W = P_W + m.p_steady(i);

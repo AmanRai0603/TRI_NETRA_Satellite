@@ -53,6 +53,8 @@ pub struct MexDesc {
 pub struct Mex {
     pub d: MexDesc, pub a0: [V3; NR], pub tscale: [f64; NR], pub fscale: [f64; NR], pub eta: [f64; NR],
     pub failed: [bool; NR], pub gfailed: [bool; NG], htgt: [f64; NR], hf: [f64; NR], pub rng: Rng,
+    /// each ring's pump field, switched with hysteresis (on above 2 %, off below 1 %)
+    field_on: [bool; NR],
 }
 impl Mex {
     pub fn new(d: MexDesc, disp: &mut Rng, noise: Rng) -> Mex {
@@ -90,7 +92,11 @@ impl Mex {
                     let v = h[i]/m.k_hv[i];
                     let dp = pump*m.l[i]/(2.0*m.s[i]*m.ac[i]);
                     p += abs(dp*m.ac[i]*v)/self.eta[i];
-                    if abs(self.htgt[i]) > 0.02*m.h_max[i] || abs(cmd_r[i]) > 0.02*m.torque_max[i] { p += m.field_power[i]; }
+                    // the pump field is on while the driver works the loop; switched with hysteresis so
+                    // a target hovering at the threshold does not decide a power budget
+                    let (ht, tq) = (abs(self.htgt[i])/m.h_max[i], abs(cmd_r[i])/m.torque_max[i]);
+                    if ht > 0.02 || tq > 0.02 { self.field_on[i] = true; } else if ht < 0.01 && tq < 0.01 { self.field_on[i] = false; }
+                    if self.field_on[i] { p += m.field_power[i]; }
                 }
                 Kind::Cmg => {
                     hd[i] = clamp(-m.k_speed*(h[i] - m.h0[i]), -m.torque_max[i], m.torque_max[i]);
