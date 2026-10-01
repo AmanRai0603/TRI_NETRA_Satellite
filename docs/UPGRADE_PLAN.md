@@ -34,17 +34,16 @@ Legend: ✅ done · ❌ not done · 🟡 partly. Sizes: S ≤ 1 day, M 2–4 day
 
 ## Phase 2 — Test the enforcers
 
-✅ Done: tests for the node verifier, the generators, the command registry, the step announcements (ast), the registry against clap (TOML parser); temp-copy integration tests; Python lint; each check proven by breaking its target.
+✅ Done before: tests for the node verifier, the generators, the command registry, the step announcements (ast), the registry against clap (TOML parser); temp-copy integration tests; Python lint; each check proven by breaking its target.
 
-❌ Not done:
-1. Unit tests for `adcs-sim-core` (none), `metrics`, `Dev::load`, `rec::write`, export/import round trip, the app's `routes.rs`, the CLI's `fly.rs`. (M)
-2. Tests for the untested tools: `pipeline*` (converge, select), `report*`, `vv_report`, `rescore`, `run_matrix`, `floquet`, `kit`, `pack_*`, `check_all`, `fswcfg`, the engine's `draw`/`summarise`. (M)
-3. Mutation testing (cargo-mutants) on `adcs-sim-core` and the flight software's control and estimation, with a recorded kill rate. (M)
-4. Fuzzing (cargo-fuzz): parameter blob, adcs-link frames, UART frames, telecommands, `.trinetra` import, the app's request parser. (M)
-5. `make check` in CI and a real recursion/stack check in the C build (`fsw/Makefile:4,29`). (S)
-6. Twin: seed the random tests (`run_all_tests.m:25-108`); tests for `campaign.draw`, `metrics.evaluate`, `solution.*` (27 tests for 147 functions). (M)
+1. ✅ **Unit and end-to-end tests** where there were none: `adcs-sim-core` (conservation of momentum and energy, wheel exchange, the gravity-gradient closed form, a circular orbit's radius and period, quaternion/DCM round trips, the bus codecs); every shipped product loads; a flight judged, recorded, shared and read back unchanged; the `adcs` command's exit codes and every `results` subcommand; every app route (refusals, a flight, the store, an export).
+2. ✅ **Tests for the tools**: 135 new (pipeline converge/select/robust, the ledger, `fswcfg`, `check_all`, `kit`, the report helpers, campaign draws and summaries, `run_matrix`, `rescore`, `floquet`). `fswcfg` raised a raw `struct.error` on a short blob and read a payload of the wrong length; it now refuses both. `pack_*` are scripts with no functions (left as they are).
+3. ✅ **Mutation testing** (`tools/mutation.py`, `check_all --mutation`, weekly in CI) of the flight software's control and estimation, with the kill rate per function in `results/MUTATION.md`. First full run: 407 of 700 caught (58 %); estimation 222 of 226 after the closed-form tests, control laws the largest gap (tests being added).
+4. ✅ **Fuzzing** (seeded, on stable Rust; `ADCS_FUZZ_N` sets the count): parameter blobs, telecommands and bus bytes into the flight software; C against Rust bit for bit on random configurations and bus data; the app's request parser; the `.trinetra` reader; the OBC link server. Two faults found and fixed: finite but extreme parameters gave NaN commands (now refused by generic magnitude rules and unit-vector rules in both builds' generated validators), and the C driver sent uninitialised stack bytes past a CAN frame's length (now zeroed).
+5. ✅ `make check` runs in CI (through `check_all`); the stack-depth and recursion check (`tools/fsw_stack.py`) runs in CI's firmware job.
+6. ✅ **Twin**: the random tests seeded; tests for `campaign.draw`, `metrics.evaluate`, `solution.*` (30 tests).
 
-**Done when:** every enforced rule has a passing and a failing test; fuzzers run clean for a set time; the mutation kill rate is in `check_all`.
+**Done when:** every enforced rule has a passing and a failing test; fuzzers run clean for a set time; the mutation kill rate is in `check_all`. **Met.**
 
 ## Phase 3 — Structure
 
