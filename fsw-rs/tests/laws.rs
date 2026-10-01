@@ -248,6 +248,8 @@ fn avanzini_needs_a_reference_rate_of_at_least_1e_minus_9() {
     assert!(ctl::mtq_avanzini(&c.q, &c.w, &c.q_ref, &[0.0; 3], &J, 0.5, 0.08).is_none());
     assert!(ctl::mtq_avanzini(&c.q, &c.w, &c.q_ref, &[0.0, 0.9e-9, 0.0], &J, 0.5, 0.08).is_none());
     assert!(ctl::mtq_avanzini(&c.q, &c.w, &c.q_ref, &[0.0, 1.1e-9, 0.0], &J, 0.5, 0.08).is_some());
+    // the test is strict: a rate of exactly 1e-9 (representable, and its own norm) already counts
+    assert!(ctl::mtq_avanzini(&c.q, &c.w, &c.q_ref, &[0.0, 1e-9, 0.0], &J, 0.5, 0.08).is_some(), "at 1e-9");
 }
 
 #[test]
@@ -303,6 +305,10 @@ fn no_field_no_dipole_below_a_squared_field_of_1e_minus_18() {
     assert_eq!(ctl::torque2dipole(&tau, &[0.9e-9, 0.0, 0.0], 1e9), [0.0; 3]);
     let m = ctl::torque2dipole(&tau, &[1.1e-9, 0.0, 0.0], 1e9);
     near3(&m, &scale3(&cross(&[1.1e-9, 0.0, 0.0], &tau), 1.0/(1.1e-9*1.1e-9)), 0.0, "just above");
+    // the test is strict: |B|^2 of exactly 1e-18 (1e-9 squared is exact in binary64) already counts
+    let edge = [1e-9, 0.0, 0.0];
+    assert_eq!(dot(&edge, &edge), 1e-18);
+    near3(&ctl::torque2dipole(&tau, &edge, 1e9), &scale3(&cross(&edge, &tau), 1e18), 0.0, "at 1e-18");
 }
 
 // ---------------------------------------------------------------- detumble
@@ -323,7 +329,7 @@ fn bdot_is_minus_k_over_b_times_the_unit_field_derivative() {
 fn generalised_bdot_is_minus_k_times_the_field_derivative_plus_the_desired_rate_cross_b() {
     let b = [2.0e-5, -1.0e-5, 3.0e-5];
     let bd = [1.0e-7, 3.0e-7, -2.0e-7];
-    let wd = [0.0, 0.0, -0.07];
+    let wd = [0.01, -0.02, -0.07];
     let k = 3.0e3;
     let want = scale3(&add3(&bd, &cross(&wd, &b)), -k);
     near3(&ctl::gen_bdot(&b, &bd, &wd, k), &want, 0.0, "law");
@@ -420,6 +426,12 @@ fn both_sun_laws_are_off_in_eclipse_and_without_a_field() {
     near3(&ctl::sun_spin(&small, &w, &s, false, &JS1, 4.0, 0.8, 0.5, 0.2),
           &sun_spin_ref(&small, &w, &s, &JS1, 4.0, 0.8, 0.5, 0.2), 0.0, "just above the field threshold");
     assert!(norm3(&ctl::sun_spin_deruiter(&small, &w, &s, false, &JS1, 4.0, 2.0, 1.5, 0.3)) > 0.0);
+    // |B|^2 of exactly 1e-18 is not below the threshold: both laws still run
+    let edge = [1e-9, 0.0, 0.0];
+    assert_eq!(dot(&edge, &edge), 1e-18);
+    near3(&ctl::sun_spin(&edge, &w, &s, false, &JS1, 4.0, 0.8, 0.5, 0.2),
+          &sun_spin_ref(&edge, &w, &s, &JS1, 4.0, 0.8, 0.5, 0.2), 0.0, "at the field threshold");
+    assert!(norm3(&ctl::sun_spin_deruiter(&edge, &w, &s, false, &JS1, 4.0, 2.0, 1.5, 0.3)) > 0.0, "de Ruiter at the threshold");
 }
 
 // ---------------------------------------------------------------- boresight offset, guidance corners, yaw flip
