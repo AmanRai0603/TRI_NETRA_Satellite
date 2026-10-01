@@ -38,6 +38,7 @@ function rec = run(scenarioId, caseFile, varargin)
     % the FSW holds the nominal one (asils.fsw.init)
     Mt = asils.plant.geometry(zeros(3,0));
     if dev.mex.fitted, Mt = asils.plant.geometry(D.mex.A0, dev.mex.G, dev.mex.gi); end
+    Mt.flex = P.sc.flex;                          % the case's flexible mode (on = false: rigid)
     nr = Mt.nr; ng = Mt.ng;
     nc = 0; if dev.rcs.fitted, nc = size(dev.rcs.tau_couple, 2); end
     Acoil_p = pinv(dev.mtq.axes);
@@ -51,6 +52,7 @@ function rec = run(scenarioId, caseFile, varargin)
     h0 = asils.util.getf(P.scenario.initial, 'wheel_momentum_Nms', NaN);
     if isnan(h0), h0v = F.h_t_rot; else, h0v = h0*ones(nr, 1); end
     x = [q0; w0; h0v; zeros(ng, 1)];
+    if Mt.flex.on, x = [x; 0; 0]; end              % the mode starts at rest
 
     %% recording buffers ----------------------------------------------------------
     dt = P.sim.dt; N = round(P.sim.duration_s/dt);

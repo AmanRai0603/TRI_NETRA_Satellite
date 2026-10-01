@@ -143,6 +143,19 @@ function P = config(scenarioId, caseFile, opts)
     S2 = P.scenario; S2.fsw.algorithms = P.fsw.algorithms;
     P.fsw.alg = asils.fsw.select(P.dev, S2);
     P.sc.Iinv = inv(P.sc.I);
+    % the case's flexible mode on the truth body, all or none (= the engine's Config::build)
+    P.sc.flex = struct('on', false);
+    fk = {'flex_fmode', 'flex_mpart', 'flex_zeta', 'flex_axis'};
+    st = cellfun(@(k) isfield(v, k) && isfinite(v.(k)), fk);
+    if any(st) && ~all(st)
+        error('asils:case:refused', 'case %s states part of its flexible mode: %s missing (all of it or none)', ...
+              C.id, strjoin(strrep(fk(~st), '_', '.'), ', '));
+    end
+    if all(st)
+        a = v.flex_axis; dl = zeros(3, 1); dl(a) = sqrt(v.flex_mpart*P.sc.I(a, a));
+        P.sc.flex = struct('on', true, 'delta', dl, 'omega', 2*pi*v.flex_fmode, 'zeta', v.flex_zeta, ...
+                           'Minv', inv(P.sc.I - dl*dl'));
+    end
 end
 
 function b = class_box(C)

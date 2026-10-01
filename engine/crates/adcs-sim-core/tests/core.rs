@@ -60,7 +60,7 @@ fn body(i: V3, wheels: usize) -> Body {
     let a0: Vec<V3> = ax[..wheels].to_vec();
     let gi = vec![0usize; wheels];
     let inertia = diag(&i);
-    Body { i: inertia, iinv: inv(&inertia), m: Geometry::new(&a0, &[], &gi) }
+    Body::rigid(inertia, Geometry::new(&a0, &[], &gi))
 }
 
 #[test]
@@ -141,4 +141,67 @@ fn the_bus_codecs_round_trip() {
     let len = buf[2] as usize;
     let crc = u16::from_le_bytes([buf[3 + len], buf[4 + len]]);
     assert_eq!(crc, emu::crc16(&buf[3..3 + len]), "and carries the CRC of its payload");
+}
+
+fn flex_body(p: f64, f_hz: f64, zeta: f64) -> Body {
+    let i = diag(&[0.02, 0.03, 0.05]);
+    let delta = [0.0, 0.0, (p*0.05f64).sqrt()];
+    Body::flexible(i, Geometry::new(&[], &[], &[]), plant::Flex { on: true, delta, omega: 2.0*std::f64::consts::PI*f_hz, zeta })
+}
+
+#[test]
+fn a_flexible_body_keeps_its_momentum_and_energy_and_rings_at_its_free_free_frequency() {
+    let (p, f) = (0.3, 0.5);
+    let b = flex_body(p, f, 0.0);
+    let mut x = State { q: [0.0, 0.0, 0.0, 1.0], w: [0.01, -0.02, 0.0], eta: 0.01, ..Default::default() };
+    let d = b.flex.delta;
+    let energy = |x: &State| 0.5*dot(&x.w, &mv(&b.i, &x.w)) + dot(&x.w, &d)*x.etad + 0.5*x.etad*x.etad + 0.5*b.flex.omega.powi(2)*x.eta*x.eta;
+    let h_eci = |x: &State| mtv(&dcm(&x.q), &plant::momentum(x, &b));
+    let (h0, e0) = (h_eci(&x), energy(&x));
+    let dt = 0.01;
+    let mut crossings = vec![];
+    let mut last = x.eta;
+    for k in 0..20000 {
+        x = plant::step(&x, dt, &b, &[0.0; 3], &[0.0; NR], &[0.0; NG]);
+        if last > 0.0 && x.eta <= 0.0 { crossings.push(k as f64*dt); }
+        last = x.eta;
+    }
+    let h1 = h_eci(&x);
+    for k in 0..3 { assert!(close(h1[k], h0[k], 1e-8), "inertial momentum {k}: {} -> {}", h0[k], h1[k]); }
+    assert!(close(energy(&x), e0, 1e-8), "energy {e0} -> {}", energy(&x));
+    // about z the mode and the body share the motion: the free-free frequency is Omega / sqrt(1 - p)
+    let period = (crossings[crossings.len() - 1] - crossings[0])/(crossings.len() - 1) as f64;
+    let want = 1.0/(f/(1.0 - p).sqrt());
+    assert!((period - want).abs() < 0.01*want, "period {period} s vs {want} s");
+}
+
+#[test]
+fn a_damped_mode_dies_away_and_a_rigid_body_is_untouched() {
+    let b = flex_body(0.3, 0.5, 0.05);
+    let mut x = State { q: [0.0, 0.0, 0.0, 1.0], eta: 0.01, ..Default::default() };
+    for _ in 0..6000 { x = plant::step(&x, 0.1, &b, &[0.0; 3], &[0.0; NR], &[0.0; NG]); }
+    assert!(x.eta.abs() < 1e-6 && x.etad.abs() < 1e-6, "eta {} after 600 s", x.eta);
+    // a rigid body's step is the step it always was
+    let r = body([0.02, 0.03, 0.05], 0);
+    let x0 = State { q: [0.0, 0.0, 0.0, 1.0], w: [0.1, 0.02, -0.05], ..Default::default() };
+    let y = plant::step(&x0, 0.1, &r, &[1e-6, 0.0, 0.0], &[0.0; NR], &[0.0; NG]);
+    assert!(y.eta == 0.0 && y.etad == 0.0);
+}
+
+#[test]
+fn a_flexible_step_is_the_twins() {
+    // the same step in matlab_sils (asils.plant.step with M.flex), printed to 17 digits
+    let i = [[0.02, 1e-3, 0.0], [1e-3, 0.03, 0.0], [0.0, 0.0, 0.05]];
+    let delta = [0.01, 0.0, (0.2f64*0.05).sqrt()];
+    let geo = Geometry::new(&[[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]], &[], &[0, 0, 0]);
+    let b = Body::flexible(i, geo, plant::Flex { on: true, delta, omega: 2.0*std::f64::consts::PI*1.5, zeta: 0.01 });
+    let q = qnorm(&[0.1, -0.2, 0.3, 0.9]);
+    let mut h = [0.0; NR]; h[0] = 1e-3; h[1] = -2e-3; h[2] = 5e-4;
+    let mut tr = [0.0; NR]; tr[0] = 1e-5; tr[2] = -1e-5;
+    let x = State { q, w: [0.01, -0.02, 0.03], h, eta: 0.004, etad: -0.01, ..Default::default() };
+    let y = plant::step(&x, 0.1, &b, &[1e-6, -2e-6, 3e-7], &tr, &[0.0; NG]);
+    let twin = [0.10309608651184834, -0.20618708796330151, 0.31095700362999107, 0.92204328726834361, 0.024792743262954071, -0.020675163732826785,
+                0.092338264706772713, 0.0010010000000000002, -0.002, 0.00049900000000000009, 0.0011694761227773595, -0.041131871922693644];
+    let got = [y.q[0], y.q[1], y.q[2], y.q[3], y.w[0], y.w[1], y.w[2], y.h[0], y.h[1], y.h[2], y.eta, y.etad];
+    for k in 0..12 { assert!((got[k] - twin[k]).abs() < 1e-14*(1.0 + twin[k].abs()), "state {k}: {} vs the twin's {}", got[k], twin[k]); }
 }

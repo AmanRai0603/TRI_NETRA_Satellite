@@ -51,7 +51,7 @@ fn detumble_reduces_rate() {
 fn momentum_conserved_without_external_torque() {
     let geo = Geometry::new(&[[1.0, 0.0, 0.0], [0.0, 0.7071, 0.7071]], &[[0.0, 0.7071, -0.7071]], &[0, 1]);
     let i = [[0.05, 0.001, 0.0], [0.001, 0.04, 0.0], [0.0, 0.0, 0.03]];
-    let b = Body { i, iinv: inv(&i), m: geo };
+    let b = Body::rigid(i, geo);
     let mut x = State { q: [0.1, 0.2, 0.3, 0.927], w: [0.05, -0.1, 0.2], ..Default::default() };
     x.q = qnorm(&x.q);
     x.h[0] = 0.003; x.h[1] = 0.004;

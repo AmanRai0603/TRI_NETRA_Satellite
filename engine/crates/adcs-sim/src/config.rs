@@ -43,6 +43,8 @@ pub struct Config {
     pub duration_s: f64, pub dt: f64, pub record_dt: f64,
     pub params: Params, pub alg: BTreeMap<String, String>, pub faults: Vec<Fault>, pub gd_kind0: i32, pub h_t_rot: [f64; NR],
     pub spin_dps: f64,
+    /// the case's flexible mode (section `flex`, all or none); None: a rigid body
+    pub flex: Option<adcs_sim_core::plant::Flex>,
     /// the scenario file this run was built from, and the overrides given with it
     pub scenario_file: String, pub overrides: Vec<(String, String)>,
 }
@@ -528,6 +530,19 @@ impl Config {
         within("orbit.inc (deg)", c.get("orbit.inc"), 0.0, 180.0)?;
         within("orbit.ecc", c.get("orbit.ecc"), 0.0, 0.1)?;
         within("orbit.ltan (h)", c.get("orbit.ltan"), 0.0, 24.0)?;
+        // the flexible mode: all of it or none of it
+        let fk = ["flex.fmode", "flex.mpart", "flex.zeta", "flex.axis"];
+        let fs: Vec<&str> = fk.iter().copied().filter(|k| c.get(k).is_finite()).collect();
+        if !fs.is_empty() && fs.len() < fk.len() {
+            let missing: Vec<&str> = fk.iter().copied().filter(|k| !fs.contains(k)).collect();
+            return Err(Error::refused(format!("case {} states part of its flexible mode: {} missing (all of it or none)", c.id, missing.join(", "))));
+        }
+        if !fs.is_empty() {
+            within("flex.fmode (Hz)", c.get("flex.fmode"), 1e-3, 100.0)?;
+            within("flex.mpart", c.get("flex.mpart"), 0.0, 0.95)?;
+            within("flex.zeta", c.get("flex.zeta"), 0.0, 1.0)?;
+            if ![1.0, 2.0, 3.0].contains(&c.get("flex.axis")) { return Err(Error::refused(format!("flex.axis = {}: 1, 2 or 3 (X_B, Y_B, Z_B)", c.get("flex.axis")))); }
+        }
         // the power system: all of it or none of it, each value in its range
         let stated: Vec<&str> = crate::metrics::POWER_KEYS.iter().copied().filter(|k| c.get(k).is_finite()).collect();
         if !stated.is_empty() && stated.len() < crate::metrics::POWER_KEYS.len() {
@@ -628,11 +643,18 @@ impl Config {
             mass_kg: v("mass.m"), inertia, box_m, cm_offset_m: [cpa*cmd[0]/cmn, cpa*cmd[1]/cmn, cpa*cmd[2]/cmn],
             aref_m2: v("surface.afr"), cd: v("surface.cd"), refl: v("surface.refl"), sigma_n: ACCOMMODATION, sigma_t: ACCOMMODATION, vb_ratio: VB_RATIO, spec_frac: SPEC_FRAC, m_res,
             duration_s: json::f(&tm, "duration_s", 600.0), dt, record_dt: json::f(&tm, "record_dt_s", 1.0),
-            params: p, alg, faults, gd_kind0, h_t_rot, spin_dps: json::f(&fsw, "spin_rate_dps", 6.0), scenario: s,
+            params: p, alg, faults, gd_kind0, h_t_rot, spin_dps: json::f(&fsw, "spin_rate_dps", 6.0), flex: None, scenario: s,
             scenario_file: sp.display().to_string(), overrides: overrides.to_vec(),
         };
         apply_engine(&mut cfg, &eng)?;
         cfg.check()?;
+        // the flexible mode on the truth body: |delta|^2 is mpart of the coupled axis's inertia
+        if cfg.case.get("flex.fmode").is_finite() {
+            let a = cfg.case.get("flex.axis") as usize - 1;
+            let mut delta = [0.0; 3];
+            delta[a] = (cfg.case.get("flex.mpart")*cfg.inertia[a][a]).sqrt();
+            cfg.flex = Some(adcs_sim_core::plant::Flex { on: true, delta, omega: 2.0*PI*cfg.case.get("flex.fmode"), zeta: cfg.case.get("flex.zeta") });
+        }
         Ok(cfg)
     }
 

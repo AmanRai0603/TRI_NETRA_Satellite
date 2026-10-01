@@ -51,7 +51,9 @@ surface,surface.cd,Drag coefficient,One,2.2,,,,UNCONFIRMED · adcs_ref_c1
 magnetic,magnetic.dres,Residual dipole,AmpereSquareMetre,0.01,,,,UNCONFIRMED · adcs_ref_c1
 magnetic,magnetic.dunc,Residual dipole uncertainty,AmpereSquareMetre,,,,,
 flex,flex.fmode,First flexible mode frequency,Hertz,,,,,
-flex,flex.mpart,Modal participation,One,,,,,"fraction, 0 to 1"
+flex,flex.mpart,Modal participation,One,,,,,"the share of the coupled axis's inertia that takes part in the mode, 0 to 1 (below 1)"
+flex,flex.zeta,Modal damping ratio,One,,,,,"structural damping of the mode, 0 to 1 (0.005 is typical of panels)"
+flex,flex.axis,Axis the mode couples to,Count,,,,,"1, 2 or 3: the body axis X_B, Y_B or Z_B the mode bends about"
 resources,resources.palloc,Power allocated to the ADCS,Watt,,,,,
 resources,resources.malloc,Mass allocated to the ADCS,Kilogram,,,,,
 resources,resources.valloc,Volume allocated to the ADCS,Litre,,,,,

@@ -7,7 +7,7 @@ function ok = run_all_tests()
     T = {@t_quat, @t_kinematics, @t_sso, @t_case, @t_igrf, @t_shadow, ...
          @t_torques, @t_plant_conservation, @t_cmg_plant, @t_mekf, @t_quest, @t_lqr, ...
          @t_fmr_spin_down, @t_cmg_steering, @t_hal_loopback, @t_select, @t_gen_bdot, @t_sun_spin_law, @t_sun_guidance, @t_sun_model, @t_st_chain, @t_sun_chain, @t_es_chain, ...
-         @t_sizing, @t_modes_table, @t_orbit_vs_pop, @t_short_runs, @t_campaign_draw, @t_metrics_evaluate, @t_metrics_ecss, @t_solution_scenario};
+         @t_sizing, @t_modes_table, @t_orbit_vs_pop, @t_short_runs, @t_campaign_draw, @t_metrics_evaluate, @t_metrics_ecss, @t_flex_plant, @t_solution_scenario};
     n = 0;
     for i = 1:numel(T)
         name = func2str(T{i});
@@ -408,4 +408,27 @@ function m = t_metrics_ecss()
     rec.e_ake = [zeros(1, 1000); 1e-3*ones(1, 1000); zeros(1, 1000)]; rec.e_ake(:, t < 20) = NaN;
     assert(numel(asils.metrics.ecss('mke', rec, idx, 10, NaN)) == 8, 'blocks with no estimate are skipped');
     m = 'bias, sine, ramp and gaps give the engine''s answers';
+end
+
+function m = t_flex_plant()
+% one flexible mode (= engine/crates/adcs-sim-core/tests/core.rs): momentum and energy kept,
+% the free-free frequency Omega/sqrt(1 - p)
+    p = 0.3; f = 0.5; I = diag([0.02 0.03 0.05]);
+    dl = [0; 0; sqrt(p*0.05)];
+    M = asils.plant.geometry(zeros(3,0));
+    M.flex = struct('on', true, 'delta', dl, 'omega', 2*pi*f, 'zeta', 0, 'Minv', inv(I - dl*dl'));
+    x = [0; 0; 0; 1; 0.01; -0.02; 0; 0.01; 0];
+    Hi = @(x) asils.quat.dcm(x(1:4))'*(I*x(5:7) + dl*x(9));
+    E = @(x) 0.5*x(5:7)'*I*x(5:7) + x(5:7)'*dl*x(9) + 0.5*x(9)^2 + 0.5*M.flex.omega^2*x(8)^2;
+    H0 = Hi(x); E0 = E(x); dt = 0.01; t = []; last = x(8);
+    for k = 1:20000
+        x = asils.plant.step(x, dt, I, inv(I), M, zeros(3,1), zeros(0,1), zeros(0,1));
+        if last > 0 && x(8) <= 0, t(end+1) = k*dt; end %#ok<AGROW>
+        last = x(8);
+    end
+    assert(norm(Hi(x) - H0) < 1e-8*(1 + norm(H0)), 'inertial momentum %g -> %g', norm(H0), norm(Hi(x)));
+    assert(abs(E(x) - E0) < 1e-8*(1 + abs(E0)), 'energy %g -> %g', E0, E(x));
+    T = (t(end) - t(1))/(numel(t) - 1); want = sqrt(1 - p)/f;
+    assert(abs(T - want) < 0.01*want, 'period %.4f s vs %.4f s', T, want);
+    m = sprintf('momentum and energy kept; period %.3f s (free-free %.3f s)', T, want);
 end

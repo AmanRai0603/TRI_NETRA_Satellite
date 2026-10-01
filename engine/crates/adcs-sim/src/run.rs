@@ -430,7 +430,7 @@ pub fn run(c: &Config, o: &Opts) -> Result<Record, Error> {
     // plant: TRUE (misaligned) rotor geometry; the software holds the nominal one
     let (nr, ng) = (d.mex.n, d.mex.ng);
     let geo = Geometry::new(&u.mex.a0[..nr], &d.mex.g[..ng], &d.mex.gi[..nr]);
-    let body = Body { i: c.inertia, iinv: inv(&c.inertia), m: geo };
+    let body = match c.flex { Some(f) => Body::flexible(c.inertia, geo, f), None => Body::rigid(c.inertia, geo) };
 
     // ---- flight software behind the bus ----
     let mut bus = Bus::default();
