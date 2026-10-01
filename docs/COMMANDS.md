@@ -341,13 +341,14 @@ The design loop, node by node: from a customer case to a selected, dispatched, v
 3. assess: each failing requirement classed (performance, knowledge, power, propellant)
 4. select: the lightest solution family (then power, then volume) that passes every mode within the mass and volume budget
 5. converge: resize or upgrade what failed, and repeat from size until nothing is left to change
-6. dispatch: the selected family's flight configuration, checked with C and Rust
-7. mc: a Monte Carlo of the dispatched mission
-8. robust: a requirement the Monte Carlo breaks sends the loop back to size with more margin
-9. family_missions: every solution family's mission flown (SILS C and Rust, and a Monte Carlo)
-10. certify: the Floquet certificate of each magnetic pointing law
-11. soft_oils: the dispatched mission on the Cortex-M4F firmware (unless --no-oils)
-12. ledger: the design ledger and its JSON
+6. faults: each solution family's mission flown once per single fault its hardware can carry; select counts the faults it does not survive
+7. dispatch: the selected family's flight configuration, checked with C and Rust
+8. mc: a Monte Carlo of the dispatched mission
+9. robust: a requirement the Monte Carlo breaks sends the loop back to size with more margin
+10. family_missions: every solution family's mission flown (SILS C and Rust, and a Monte Carlo)
+11. certify: the Floquet certificate of each magnetic pointing law
+12. soft_oils: the dispatched mission on the Cortex-M4F firmware (unless --no-oils)
+13. ledger: the design ledger and its JSON
 
 - **Reads:** `matlab_sils/cases/<case>.csv`; `matlab_sils/data/`
 - **Writes:** `matlab_sils/store/pipeline/<case>/<node>.json`; `dist/dispatch/<case>/`

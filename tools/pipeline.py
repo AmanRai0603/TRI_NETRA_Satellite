@@ -2,7 +2,7 @@
 
     case -> [size] -> [matrix] -> [assess] -> [converge] --not converged: resize / upgrade--> [size] ...
                                                   | converged
-                                               [select] -> [dispatch] -> [mc] -> [soft_oils] -> report
+                                     [faults] -> [select] -> [dispatch] -> [mc] -> [soft_oils] -> report
 
   size       adcs size (Rust, adcs-design): demand survey on the POP orbit, every actuator option
              sized with the current knobs (authority scales, margins, pump type, star tracker)
@@ -15,9 +15,15 @@
              authority for a power failure, one star-tracker head / a lighter pump / less
              fluid-loop momentum for a mass gap (undone if it breaks a mode); blocked when a part is at its bound or a
              performance/power conflict is found. Converged when nothing is left to change.
+  faults     once converged: each solution family's mission flown fault-free and once per single
+             fault its product can carry (one coil, one rotor, the second star-tracker head, a gyro
+             bias step, a GNSS outage, one RCS valve: nodes.json faults.set); a fault that breaks a
+             requirement the fault-free run meets is a gap "fault: <kind>: <metrics>"
   select     the lightest SOLUTION family (least mass, then power, then volume: nodes.json
              select.rank_feasible) whose best option passes every mode and whose budget meets
-             req.mass / req.vol; benchmarks ranked by the same rule
+             req.mass / req.vol; benchmarks ranked by the same rule. It runs in every iteration
+             without the fault campaign and again after node faults, counting it under
+             nodes.json select.fault_policy ("gap": not feasible; "rank": fewest failed faults first)
   dispatch   the selected family's flight configuration (adcs-fswcfg/1 blob) + C and Rust engine check
   mc         Monte Carlo of the dispatched mission (case dispersions, per-run seeds)
   soft_oils  the dispatched mission with the flight software as Cortex-M4F firmware (QEMU),
@@ -49,8 +55,8 @@ from pipeline_design import (
     run_job,
 )
 from pipeline_verify import (
-    node_certify, node_dispatch, node_family_missions, node_mc, node_robust, node_select,
-    node_soft_oils,
+    node_certify, node_dispatch, node_family_missions, node_faults, node_mc, node_robust, node_select,
+    node_soft_oils, select_pick,
 )
 from pipeline_ledger import (
     PAPER, ledger, literature_table,
@@ -63,9 +69,9 @@ __all__ = [
     'OUT', 'P', 'PAPER', 'PIPE', 'ROOT', 'SCALE_MAX',
     'SCALE_MIN', 'SLOT', 'TUNE', 'UP', 'auth_part', 'case_bytes',
     'cls', 'fam_violation', 'jl_', 'ledger', 'literature_table', 'node_assess',
-    'node_certify', 'node_converge', 'node_dispatch', 'node_family_missions', 'node_key', 'node_matrix',
+    'node_certify', 'node_converge', 'node_dispatch', 'node_family_missions', 'node_faults', 'node_key', 'node_matrix',
     'node_mc', 'node_robust', 'node_select', 'node_size', 'node_soft_oils', 'product_blob',
-    'rate_violation', 'run_job', 'sha', 'split_alg', 'tune_grid', 'usable',
+    'rate_violation', 'run_job', 'select_pick', 'sha', 'split_alg', 'tune_grid', 'usable',
     'write',
 ]
 
@@ -114,15 +120,19 @@ def run_case(case, a, modes, families, build):
       sel["sensors"] = [f["slot"] for f in json.loads((sized / "products" / f"SZ-{case}-{sel['selected']}.json").read_text())["fill"]
                         if f["slot"] not in ("coils", "wheels", "rings", "cmg", "vscmg", "rcs")]
       sel["demand"] = sizing["demand"]
-      S(6, f"{case}: {sel['selected']}")
+      S(6, case)
+      faults = node_faults(case, sel, sized, modes, build, a.jobs)
+      sel.update(select_pick(case, sel["families"], faults))
+      print(f"  -> {sel['selected']} ({sel['status']}) with the fault campaign counted ({sel['fault_policy']})")
+      S(7, f"{case}: {sel['selected']}")
       disp = node_dispatch(case, sel, sized, modes, build)
-      S(7, f"{case}: {a.mc_runs} runs" if a.mc_runs else f"{case}: skipped (--mc-runs 0)")
+      S(8, f"{case}: {a.mc_runs} runs" if a.mc_runs else f"{case}: skipped (--mc-runs 0)")
       mc = node_mc(case, disp, sized, a.mc_runs, a.jobs) if a.mc_runs else None
       # robustness: a requirement the Monte Carlo breaks is a failure the loop must fix (node mc)
       fails = [x for x in (mc or {}).get("stats", []) if x["pass"] is False]
       if not fails or not converged:
           break
-      S(8, case)
+      S(9, case)
       knobs2, changes, blocked = node_robust(sel, fails, knobs, history)
       robust.append({"after_iteration": it, "family": sel["selected"], "mc_failing": {x["id"]: x["pass_rate"] for x in fails},
                      "changes": changes, "blocked": blocked})
@@ -135,13 +145,13 @@ def run_case(case, a, modes, families, build):
     write(state / "selection.json", sel)
     write(state / "loop.json", log)
     write(state / "dispatch.json", disp)
-    S(9, case)
-    node_family_missions(case, sel, sized, modes, build, a.mc_runs, a.jobs, disp, mc)
     S(10, case)
+    node_family_missions(case, sel, sized, modes, build, a.mc_runs, a.jobs, disp, mc)
+    S(11, case)
     node_certify(case)
-    S(11, case if not a.no_oils else f"{case}: skipped (--no-oils)")
+    S(12, case if not a.no_oils else f"{case}: skipped (--no-oils)")
     so = node_soft_oils(case, disp, sized, build) if not a.no_oils else None
-    S(12, case)
+    S(13, case)
     ledger(case, sel, log, disp, mc, so, sizing)
 
 

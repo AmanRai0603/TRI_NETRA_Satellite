@@ -29,7 +29,7 @@
    "case": "\u2014",
    "check": "registry: unique node ids with inputs, outputs and rules",
    "ok": true,
-   "detail": "20 nodes"
+   "detail": "21 nodes"
   },
   {
    "node": "case",

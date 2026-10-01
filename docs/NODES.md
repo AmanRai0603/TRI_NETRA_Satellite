@@ -21,13 +21,14 @@ Every node of the design loop and verification chain: what it reads, what it wri
 | 11 | [`assess`](#assess) | SILS | Python (tools/pipeline.py) | matrix | iter_k/assess.json |
 | 12 | [`tune`](#tune) | SILS | Rust engine + C flight software (through matrix) | converge (the options to tune)<br>matrix | the tuned variants law@key=value,... in the matrix and in the dispatched mission's fsw block |
 | 13 | [`converge`](#converge) | design | Python (tools/pipeline.py) | assess<br>select<br>mc (robustness feedback) | loop.json |
-| 14 | [`select`](#select) | selection | Python (tools/pipeline.py) | assess<br>budget<br>case (req.mass, req.vol) | selection.json |
-| 15 | [`dispatch`](#dispatch) | dispatch | Rust (adcs dispatch) | select<br>budget | dist/dispatch/<case>/<family>/converged/ |
-| 16 | [`certify`](#certify) | verification | Python (tools/floquet.py) | family_missions (the coils-only package and its mission run) | matlab_sils/store/pipeline/<case>/floquet.json |
-| 17 | [`mc`](#mc) | verification | Rust engine | dispatch | matlab_sils/store/pipeline/<case>/mc/summary.json<br>selection.json -> robustness |
-| 18 | [`family_missions`](#family_missions) | verification | Rust engine + C and Rust flight software | select<br>budget | matlab_sils/store/pipeline/<case>/families.json<br>matlab_sils/store/pipeline/<case>/families/<family>/{package,dispatch,mc}/ |
-| 19 | [`soft_oils`](#soft_oils) | verification | Rust engine + QEMU (Cortex-M4F) | dispatch | matlab_sils/store/pipeline/<case>/soft_oils.json |
-| 20 | [`report`](#report) | report | Python | select<br>dispatch<br>mc<br>soft_oils<br>nodes | results/DESIGN_<case>.md<br>results/vv/<br>dist/TRINETRA_ADCS_VV_report.pdf |
+| 14 | [`faults`](#faults) | selection | Rust engine + C flight software (adcs run) | converge (the converged products)<br>select (each family's best option and algorithms per mode) | matlab_sils/store/pipeline/<case>/faults.json<br>matlab_sils/store/pipeline/<case>/faults/<family>/<kind>.json (the scenarios flown) |
+| 15 | [`select`](#select) | selection | Python (tools/pipeline.py) | assess<br>budget<br>case (req.mass, req.vol)<br>faults | selection.json |
+| 16 | [`dispatch`](#dispatch) | dispatch | Rust (adcs dispatch) | select<br>budget | dist/dispatch/<case>/<family>/converged/ |
+| 17 | [`certify`](#certify) | verification | Python (tools/floquet.py) | family_missions (the coils-only package and its mission run) | matlab_sils/store/pipeline/<case>/floquet.json |
+| 18 | [`mc`](#mc) | verification | Rust engine | dispatch | matlab_sils/store/pipeline/<case>/mc/summary.json<br>selection.json -> robustness |
+| 19 | [`family_missions`](#family_missions) | verification | Rust engine + C and Rust flight software | select<br>budget | matlab_sils/store/pipeline/<case>/families.json<br>matlab_sils/store/pipeline/<case>/families/<family>/{package,dispatch,mc}/ |
+| 20 | [`soft_oils`](#soft_oils) | verification | Rust engine + QEMU (Cortex-M4F) | dispatch | matlab_sils/store/pipeline/<case>/soft_oils.json |
+| 21 | [`report`](#report) | report | Python | select<br>dispatch<br>mc<br>soft_oils<br>nodes | results/DESIGN_<case>.md<br>results/vv/<br>dist/TRINETRA_ADCS_VV_report.pdf |
 
 ## case
 
@@ -279,27 +280,57 @@ Rules:
 - propellant: RCS x1.5
 - a part pushed up by one failure and down by another is frozen and reported as a conflict
 
+## faults
+
+Redundancy and FDIR in selection (B2.6): once the loop has converged, every family of the campaign's roles flies its mission (detumble -> Sun acquisition -> nadir, as dispatch builds it, with the family's best option and algorithms per mode) once without a fault and once per single fault its product can carry; select then counts every fault the family does not survive (select.fault_policy).
+
+- **Stage:** selection. **Runs in:** Rust engine + C flight software (adcs run).
+- **Inputs:** converge (the converged products), select (each family's best option and algorithms per mode).
+- **Outputs:** matlab_sils/store/pipeline/<case>/faults.json, matlab_sils/store/pipeline/<case>/faults/<family>/<kind>.json (the scenarios flown).
+
+| parameter | value |
+|---|---|
+| `roles` | solution |
+| `seeds` | 1, 2 |
+| `lead_orbits` | 0.25 |
+| `set` | kind coil_fail; needs coils; index 1<br>kind rotor_fail; needs rotors; index 1<br>kind gimbal_stuck; needs gimbals; index 1<br>kind st_head_fail; needs st_heads; min_units 2; index 2<br>kind gyro_bias_step; needs gyros; value 0.001745, 0.0, 0.0<br>kind gps_outage; needs gnss; duration_s 1800.0<br>kind rcs_valve_fail; needs rcs_couples; index 1 |
+| `units` | coils, rotors (wheels, fluid rings, CMG/VSCMG rotors), gimbals, st_heads, gyros, gnss, magnetometers, rcs_couples: counted from the product's fill as the engine counts them |
+
+Rules:
+
+- one fault per run, injected lead_orbits (a quarter orbit) before the requirement window opens (the mission's last half orbit), so the whole judged window flies with the fault; a gps_outage lasts duration_s (1800 s, as scenarios/fault_gps_img.toml) and ends inside the window
+- a fault is flown only when the product carries at least min_units (default 1) of what it needs: one coil, one rotor (a fluid ring is a rotor), one gimbal when it has gimbals, the second star-tracker head only when it has two, a gyro bias step of 0.1 deg/s on x (as scenarios/fault_gyro_ais.toml), a GNSS outage, one RCS couple's valve when it has RCS; a skipped fault says why
+- mag_fail is not in the set: a magnetometer silent for 60 s puts the flight software in safe mode by design (B1.5), so the window would judge safe mode, not pointing; it can be added to the set
+- pass rule: on every seed, every requirement metric that passes in the fault-free run still passes under the fault; a metric that already fails without the fault is recorded (also_fails_without_fault), not counted against the fault; a faulted or fault-free run that does not fly fails the fault
+- each fault the family does not survive is one gap "fault: <kind>: <failing metrics>", counted by select under select.fault_policy
+- a fault kind the engine does not inject, a unit name that is not one, or an index the product does not have is refused
+- runs are cached by the hash of (scenario, product, parts, seed, flight-software build, case file), as the matrix's; no knob responds to a fault gap (redundancy is not a sizing knob yet)
+
 ## select
 
 Scores every family (ours and the benchmarks) on the same modes and budget, then picks the minimum feasible solution; the benchmarks are ranked by the same rule as the comparison.
 
 - **Stage:** selection. **Runs in:** Python (tools/pipeline.py).
-- **Inputs:** assess, budget, case (req.mass, req.vol).
+- **Inputs:** assess, budget, case (req.mass, req.vol), faults.
 - **Outputs:** selection.json.
 
 | parameter | value |
 |---|---|
-| `feasible` | every mode passes with a usable option on every seed, and mass <= req.mass, volume <= req.vol |
+| `feasible` | every mode passes with a usable option on every seed, and mass <= req.mass, volume <= req.vol; under fault_policy gap, also every single fault of node faults survived |
 | `rank_feasible` | mass_kg, power_W, volume_L, simplicity |
 | `rank_infeasible` | gap_count, mass_kg |
 | `select_role` | solution |
 | `compare_role` | benchmark |
+| `fault_policy` | gap |
 
 Rules:
 
 - selected = the feasible solution family first in rank_feasible order (least mass, then power, then volume)
 - when no solution family is feasible the closest one is named with its gaps
 - benchmark = the same ranking over the benchmark families, reported beside the selection
+- select runs in every iteration without the fault campaign; once the loop has converged node faults flies and select runs again counting it, before dispatch
+- fault_policy gap: a single fault the family does not survive is a gap, so the family is not feasible; fault_policy rank: a fault gap leaves feasibility alone and the number of failed faults leads both rankings
+- a family of a role the fault campaign flies that has no fault record is refused, never counted as surviving; families of other roles (the benchmarks) are not flown under faults and carry no fault gap
 
 ## dispatch
 

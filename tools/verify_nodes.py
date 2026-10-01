@@ -159,12 +159,27 @@ def verify_case(C, case, cat):
         C("select", case, f"{f}: feasible exactly when no mode and no budget gap", v["feasible"] == (not g) and
           (mass_gap == any("mass_kg" in x for x in g)) and (vol_gap == any("volume_L" in x for x in g))
           and (pow_gap == any("power_W" in x for x in g)), "; ".join(g) or "no gap")
-    rank = lambda f: tuple(F[f]["simplicity"] if k == "simplicity" else F[f]["budget"][k] for k in P["select"]["rank_feasible"])
+    fl = verify_faults(C, case, sel, it)
+    policy = sel.get("fault_policy")
+    if fl is not None:
+        C("select", case, f"the fault campaign counted under the registry's fault_policy ({P['select']['fault_policy']})", policy == P["select"]["fault_policy"], policy)
+        for f, v in F.items():
+            rec = fl["families"].get(f)
+            want = list(rec["gaps"]) if rec is not None else []
+            C("select", case, f"{f}: its fault gaps are the campaign's" + ("" if rec is not None else " (role not flown: none)"),
+              v.get("fault_gaps") == want and (rec is not None or v["role"] not in P["faults"]["roles"]), "; ".join(want) or "none")
+            g_f = [x for x in v["gaps"] if x.startswith("fault: ")]
+            C("select", case, f"{f}: fault gaps {'are' if policy == 'gap' else 'are not'} feasibility gaps (fault_policy {policy})",
+              g_f == (want if policy == "gap" else []), "; ".join(g_f) or "none in gaps")
+    lead = (lambda f: (len(F[f].get("fault_gaps", [])),)) if policy == "rank" else (lambda f: ())
+    rank = lambda f: lead(f) + tuple(F[f]["simplicity"] if k == "simplicity" else F[f]["budget"][k] for k in P["select"]["rank_feasible"])
+    rank_i = lambda f: lead(f) + tuple(len(F[f]["gaps"]) if k == "gap_count" else F[f]["budget"][k] for k in P["select"]["rank_infeasible"])
     for role, key in ((P["select"]["select_role"], "selected"), (P["select"]["compare_role"], "benchmark")):
         fs = [f for f in F if F[f]["role"] == role]
         feas = sorted((f for f in fs if F[f]["feasible"]), key=rank)
-        want = feas[0] if feas else min(fs, key=lambda f: (len(F[f]["gaps"]), F[f]["budget"]["mass_kg"]))
-        C("select", case, f"{key}: {role} family by the rule ({', '.join(P['select']['rank_feasible'])})", sel[key] == want, f"{sel[key]}")
+        want = feas[0] if feas else min(fs, key=rank_i)
+        C("select", case, f"{key}: {role} family by the rule ({', '.join(P['select']['rank_feasible'])}"
+          + ("; fewest failed faults first" if policy == "rank" else "") + ")", sel[key] == want, f"{sel[key]}")
     # dispatch
     dd = ROOT / "dist" / "dispatch" / case / sel["selected"] / "converged"
     ec = jl(dd / "engine_check.json")
@@ -202,6 +217,71 @@ def verify_case(C, case, cat):
       f"`{sel['selected']}`" in (ROOT / "results" / f"DESIGN_{case}.md").read_text())
 
 
+NOTES = []
+
+
+def carried(fill):
+    """Each unit a fault can name, counted from the product's fill (as adcs-sim product.rs counts)."""
+    n = dict.fromkeys(("coils", "rotors", "gimbals", "st_heads", "gyros", "gnss", "magnetometers", "rcs_couples"), 0)
+    for x in fill:
+        s = x["slot"]
+        n["coils"] += len(x["axes_body"]) if s == "coils" else 0
+        n["rotors"] += len(x["axes_body"]) if s in ("wheels", "rings") else len(x["spin_axes_body"]) if s in ("cmg", "vscmg") else 0
+        n["gimbals"] += len(x["gimbal_axes_body"]) if s in ("cmg", "vscmg") else 0
+        n["st_heads"] += (len(x["boresights_body"]) if "boresights_body" in x else 1) if s == "star_tracker" else 0
+        for slot, unit in (("gyro", "gyros"), ("gnss", "gnss"), ("magnetometer", "magnetometers")):
+            n[unit] += s == slot
+        n["rcs_couples"] += 6 if s == "rcs" else 0
+    return n
+
+
+def verify_faults(C, case, sel, it):
+    """Node faults: the set flown is the registry's set filtered by what each product carries, each
+    fault opens before the requirement window, and each verdict and gap follows from the stored
+    metrics by the pass rule. A selection that predates the node (no fault_policy) is noted, not checked."""
+    fl = jl(PIPE / case / "faults.json")
+    if sel.get("fault_policy") is None:
+        NOTES.append(f"{case}: the stored selection predates node faults (B2.6): no fault campaign on record; the next design-loop run flies it")
+        return None
+    if not C("faults", case, "faults.json present (the selection counted a fault campaign)", fl):
+        return None
+    FP = P["faults"]
+    alt = case_req(case)["orbit.alt"]
+    T = 2 * math.pi * math.sqrt((6378137 + alt * 1e3) ** 3 / 3.986004418e14)
+    fams = [f for f, v in sel["families"].items() if v["role"] in FP["roles"]]
+    C("faults", case, f"every family of roles {', '.join(FP['roles'])} flown", sorted(fl["families"]) == sorted(fams), ", ".join(sorted(fl["families"])))
+    for f, rec in fl["families"].items():
+        pr = jl(PIPE / case / f"iter_{it}" / "sized" / "products" / f"{rec['product']}.json")
+        have = carried(pr["fill"]) if pr else {}
+        want = [x["kind"] for x in FP["set"] if have.get(x["needs"], 0) >= x.get("min_units", 1)]
+        got = [x["kind"] for x in rec["faults"] if x.get("flown")]
+        C("faults", case, f"{f}: the set's faults its product carries are flown, the rest skipped", sorted(got) == sorted(want),
+          f"flown {', '.join(got) or 'none'}; skipped " + (", ".join(f"{x['kind']} ({x['skipped']})" for x in rec["faults"] if not x.get("flown")) or "none"))
+        scen = jl(PIPE / case / "faults" / f / "nominal.json")
+        dur = scen["time"]["duration_s"] if scen else math.nan
+        C("faults", case, f"{f}: injected {FP['lead_orbits']:g} orbit before the requirement window (the last half orbit)",
+          all(abs(x["t_s"] - (dur - (0.5 + FP["lead_orbits"]) * T)) <= 1.0 for x in rec["faults"] if x.get("flown")), f"t = {rec['t_s']} s of {dur} s")
+        gaps = []
+        for x in rec["faults"]:
+            if not x.get("flown"):
+                continue
+            failing = []
+            for sd, nm in rec["nominal"].items():
+                fm = x["metrics"].get(sd)
+                if nm is None or fm is None:
+                    failing.append("fault-free run did not fly" if nm is None else "did not fly")
+                    continue
+                fv = {m["id"]: m.get("pass") for m in fm}
+                failing += [m["id"] for m in nm if m.get("pass") == 1 and fv.get(m["id"]) != 1]
+            failing = list(dict.fromkeys(failing))
+            C("faults", case, f"{f} / {x['kind']}: passes exactly when every requirement met fault-free still holds, every seed",
+              x["pass"] == (not failing) and x["failing"] == failing, "survived" if not failing else "breaks " + ", ".join(failing))
+            if failing:
+                gaps.append(f"fault: {x['kind']}: {', '.join(failing)}")
+        C("faults", case, f"{f}: one gap per fault not survived", rec["gaps"] == gaps, "; ".join(gaps) or "none")
+    return fl
+
+
 def main():
     cases = sys.argv[1:] or ["ais_3u", "ais_img_3u"]
     C = Check()
@@ -219,11 +299,14 @@ def main():
     L = ["# Node-by-node verification", "", "**Owner: Agastya.** Generated by `tools/verify_nodes.py`. Each check recomputes a node's decision "
          "from its stored inputs and the rules in `matlab_sils/data/pipeline/nodes.json`, rather than reading the node's own verdict.", "",
          f"**{npass} of {len(rows)} checks pass** over {len(covered)} of {len(ids)} nodes ({', '.join(cases)}).", "",
+         *([f"- Not checked: {n}." for n in NOTES] + [""] if NOTES else []),
          "| node | case | check | result | detail |", "|---|---|---|---|---|"]
     L += [f"| `{r['node']}` | {r['case']} | {r['check']} | {'pass' if r['ok'] else '**FAIL**'} | {r['detail']} |" for r in rows]
     write_text(ROOT / "results" / "NODE_VERIFICATION.md", "\n".join(L) + "\n")
     write_text(ROOT / "results" / "node_verification.json", json.dumps({"passed": npass, "checks": len(rows), "nodes": covered, "rows": rows}, indent=1))
     print(f"verify_nodes: {npass}/{len(rows)} checks pass over {len(covered)}/{len(ids)} nodes; wrote results/NODE_VERIFICATION.md")
+    for n in NOTES:
+        print(f"  note: {n}")
     for r in rows:
         if not r["ok"]:
             print(f"  FAIL {r['node']} [{r['case']}] {r['check']}: {r['detail']}")
