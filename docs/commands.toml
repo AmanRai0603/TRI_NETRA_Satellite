@@ -276,6 +276,16 @@ writes = ["results/TRACEABILITY.md", "results/traceability.json"]
 runs = []
 
 [[command]]
+tool = "pointing_budget.py"
+name = "pointing-budget"
+usage = "python3 tools/pointing_budget.py"
+what = "The absolute pointing error budget (SPEC rows gp_0 to gp_5) of each fine-pointing scenario: knowledge and control from one flight on today's engine, payload alignment from the product, thermal distortion from the case, rotor jitter from the engine, their root-sum-square against req.ape, and the room req.ape leaves for alignment and thermal. A term nobody states keeps the budget incomplete."
+steps = ["fly each fine-pointing scenario once with the jitter term added", "read the product's payload alignment and the case's thermal distortion", "add the terms in quadrature and judge against req.ape", "write the budget page"]
+reads = ["matlab_sils/data/scenarios/", "matlab_sils/cases/", "catalogue/products/"]
+writes = ["results/POINTING_BUDGET.md", "results/pointing_budget.json"]
+runs = ["engine/target/release/adcs"]
+
+[[command]]
 tool = "export_catalogue.py"
 name = "export-catalogue"
 usage = "python3 tools/export_catalogue.py [--check]"

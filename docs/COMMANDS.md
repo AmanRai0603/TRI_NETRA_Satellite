@@ -32,6 +32,7 @@
 | [`fsw_stack.py fsw-stack`](#fsw_stackpy-fsw-stack) | The flight software's deepest stack on the Cortex-M4 firmware, from GCC's call graph, against the stack the linker script reserves. Recursion and unbounded frames are refused; a library routine is charged a fixed frame and named. |
 | [`mutation.py mutation`](#mutationpy-mutation) | Mutation testing of the flight software's control and estimation (fsw-rs/src/ctl.rs, est.rs) with cargo-mutants: each small deliberate fault in turn, and whether the Rust flight software's tests catch it. Writes the kill rate per function and the missed mutants; --check fails under the floor the tool states. |
 | [`trace.py trace`](#tracepy-trace) | The requirements traceability matrix: every requirement a case states, what checks it (a flown scenario's metric, the design loop's budget or mode flights, the reference slew's profile) and what the latest stored result says. --check refuses a metric that neither judges nor says why it only reports, a requirement key the case lacks, and a stated requirement nothing checks; it writes nothing. |
+| [`pointing_budget.py pointing-budget`](#pointing_budgetpy-pointing-budget) | The absolute pointing error budget (SPEC rows gp_0 to gp_5) of each fine-pointing scenario: knowledge and control from one flight on today's engine, payload alignment from the product, thermal distortion from the case, rotor jitter from the engine, their root-sum-square against req.ape, and the room req.ape leaves for alignment and thermal. A term nobody states keeps the budget incomplete. |
 | [`export_catalogue.py export-catalogue`](#export_cataloguepy-export-catalogue) | The catalogue, scenarios, campaigns and trades from TOML to the JSON the MATLAB twin and the engine read. --check says which JSON has drifted from its TOML, and changes nothing. |
 | [`nodes_doc.py nodes-doc`](#nodes_docpy-nodes-doc) | docs/NODES.md and docs/CATALOGUE.md from the node registry and the datasheet catalogue. |
 | [`components_doc.py components-doc`](#components_docpy-components-doc) | docs/COMPONENTS.md: every sensor and actuator, the model the SILS flies, and its processing chain. |
@@ -476,6 +477,23 @@ The requirements traceability matrix: every requirement a case states, what chec
 - **Reads:** `matlab_sils/cases/`; `matlab_sils/data/scenarios/`; `matlab_sils/data/modes/`; `matlab_sils/store/results_engine/`; `matlab_sils/store/pipeline/`
 - **Writes:** `results/TRACEABILITY.md`; `results/traceability.json`
 - **Starts:** nothing
+
+## pointing_budget.py pointing-budget
+
+The absolute pointing error budget (SPEC rows gp_0 to gp_5) of each fine-pointing scenario: knowledge and control from one flight on today's engine, payload alignment from the product, thermal distortion from the case, rotor jitter from the engine, their root-sum-square against req.ape, and the room req.ape leaves for alignment and thermal. A term nobody states keeps the budget incomplete.
+
+    python3 tools/pointing_budget.py
+
+**Steps**
+
+1. fly each fine-pointing scenario once with the jitter term added
+2. read the product's payload alignment and the case's thermal distortion
+3. add the terms in quadrature and judge against req.ape
+4. write the budget page
+
+- **Reads:** `matlab_sils/data/scenarios/`; `matlab_sils/cases/`; `catalogue/products/`
+- **Writes:** `results/POINTING_BUDGET.md`; `results/pointing_budget.json`
+- **Starts:** `engine/target/release/adcs`
 
 ## export_catalogue.py export-catalogue
 

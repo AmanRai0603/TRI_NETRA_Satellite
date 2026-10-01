@@ -172,12 +172,11 @@ pub const CASE_NEEDS: [&str; 14] = ["orbit.alt", "orbit.inc", "orbit.ecc", "orbi
 /// Case keys the models do not use yet: stating one is refused with the reason, so a value is
 /// never quietly ignored (docs/UPGRADE_PLAN.md B2.1). Requirements (`req.*`) are covered by the
 /// traceability check instead: a stated requirement must be judged by a shipped metric.
-pub const CASE_UNMODELLED: [(&str, &str); 7] = [
+pub const CASE_UNMODELLED: [(&str, &str); 6] = [
     ("mission.duty", "the fine-pointing duty cycle is not modelled yet (scenarios fly their mode for their whole duration)"),
     ("mass.cm", "the centre-of-mass offset comes from surface.cpa in the facet model; a separate mass.cm is not modelled"),
     ("mass.iunc", "inertia uncertainty is not drawn from the case yet: Monte Carlo campaigns state their own inertia dispersion"),
     ("magnetic.dunc", "residual-dipole uncertainty is not drawn from the case yet: Monte Carlo campaigns state their own dispersion"),
-    ("pointing.et", "the thermal-distortion pointing contribution has no model (the pointing budget is B2.2)"),
     ("resources.vbus", "the bus voltage is not used by any device model"),
     ("resources.nif", "the OBC data interfaces are not checked by the design loop yet (the data budget is B2.4)"),
 ];

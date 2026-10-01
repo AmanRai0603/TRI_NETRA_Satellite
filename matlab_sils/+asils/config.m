@@ -51,7 +51,7 @@ function P = config(scenarioId, caseFile, opts)
     cpa = v.surface_cpa;
     P.sc.cm_offset_m = cpa*[0.30; 0.70; -0.65]/norm([0.30; 0.70; -0.65]);   % |offset| = case CP-CM
     % a stated value nothing models is refused, never silently dropped (= the engine's CASE_UNMODELLED)
-    um = {'mission_duty', 'mass_cm', 'mass_iunc', 'magnetic_dunc', 'pointing_et', 'resources_vbus', 'resources_nif'};
+    um = {'mission_duty', 'mass_cm', 'mass_iunc', 'magnetic_dunc', 'resources_vbus', 'resources_nif'};
     for i = 1:numel(um)
         if isfield(v, um{i}) && isfinite(v.(um{i}))
             error('asils:case:refused', 'case %s states %s = %g: the models do not use it yet', C.id, strrep(um{i}, '_', '.'), v.(um{i}));

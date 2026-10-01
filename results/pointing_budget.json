@@ -1,0 +1,121 @@
+[
+ {
+  "scenario": "fine_hold_img",
+  "case": "ais_img_3u",
+  "product": "TRN-P-3U-IMG",
+  "flown_ape_deg": 0.006872698614672029,
+  "terms_deg": {
+   "gp_0": 0.002841851342298204,
+   "gp_1": 0.00625762472479716,
+   "gp_2": null,
+   "gp_3": null,
+   "gp_4": 8.887092642619934e-05
+  },
+  "total_deg": null,
+  "req_ape_deg": 0.01,
+  "room_gp2_gp3_deg": 0.007263478210218664,
+  "verdict": "incomplete: gp_2, gp_3 not stated"
+ },
+ {
+  "scenario": "fine_hold_rw_rcs",
+  "case": "ais_img_3u",
+  "product": "TRN-P-3U-RW-RCS",
+  "flown_ape_deg": 0.006809842095918563,
+  "terms_deg": {
+   "gp_0": 0.0028277257703111292,
+   "gp_1": 0.006194991229958511,
+   "gp_2": null,
+   "gp_3": null,
+   "gp_4": 8.887092642619934e-05
+  },
+  "total_deg": null,
+  "req_ape_deg": 0.01,
+  "room_gp2_gp3_deg": 0.0073224417093679635,
+  "verdict": "incomplete: gp_2, gp_3 not stated"
+ },
+ {
+  "scenario": "fine_hold_cmg",
+  "case": "ais_img_3u",
+  "product": "TRN-P-3U-CMG",
+  "flown_ape_deg": 0.005217901465699834,
+  "terms_deg": {
+   "gp_0": 0.0028476312918719274,
+   "gp_1": 0.004372355398558573,
+   "gp_2": null,
+   "gp_3": null,
+   "gp_4": null
+  },
+  "total_deg": null,
+  "req_ape_deg": 0.01,
+  "room_gp2_gp3_deg": null,
+  "verdict": "incomplete: gp_2, gp_3, gp_4 not stated"
+ },
+ {
+  "scenario": "fine_hold_fmr",
+  "case": "ais_img_3u",
+  "product": "TRN-P-3U-FMR",
+  "flown_ape_deg": 0.005961977239161324,
+  "terms_deg": {
+   "gp_0": 0.002868093820091756,
+   "gp_1": 0.005226778208364036,
+   "gp_2": null,
+   "gp_3": null,
+   "gp_4": 0.0
+  },
+  "total_deg": null,
+  "req_ape_deg": 0.01,
+  "room_gp2_gp3_deg": 0.008028376386276513,
+  "verdict": "incomplete: gp_2, gp_3 not stated"
+ },
+ {
+  "scenario": "fine_hold_fmr_rcs",
+  "case": "ais_img_3u",
+  "product": "TRN-P-3U-FMR-RCS",
+  "flown_ape_deg": 0.005961977239161324,
+  "terms_deg": {
+   "gp_0": 0.002868093820091756,
+   "gp_1": 0.005226778208364036,
+   "gp_2": null,
+   "gp_3": null,
+   "gp_4": 0.0
+  },
+  "total_deg": null,
+  "req_ape_deg": 0.01,
+  "room_gp2_gp3_deg": 0.008028376386276513,
+  "verdict": "incomplete: gp_2, gp_3 not stated"
+ },
+ {
+  "scenario": "fine_hold_vscmg",
+  "case": "ais_img_3u",
+  "product": "TRN-P-3U-VSCMG",
+  "flown_ape_deg": 0.00836937684281587,
+  "terms_deg": {
+   "gp_0": 0.0028518102573415415,
+   "gp_1": 0.007868522541950562,
+   "gp_2": null,
+   "gp_3": null,
+   "gp_4": null
+  },
+  "total_deg": null,
+  "req_ape_deg": 0.01,
+  "room_gp2_gp3_deg": null,
+  "verdict": "incomplete: gp_2, gp_3, gp_4 not stated"
+ },
+ {
+  "scenario": "target_img",
+  "case": "ais_img_3u",
+  "product": "TRN-P-3U-IMG",
+  "flown_ape_deg": 0.012072315785867403,
+  "terms_deg": {
+   "gp_0": 0.01149205053705737,
+   "gp_1": 0.003697780805756704,
+   "gp_2": null,
+   "gp_3": null,
+   "gp_4": 8.887092642619934e-05
+  },
+  "total_deg": null,
+  "req_ape_deg": 0.01,
+  "room_gp2_gp3_deg": 0.0,
+  "verdict": "incomplete: gp_2, gp_3 not stated"
+ }
+]
