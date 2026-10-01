@@ -294,11 +294,13 @@ def campaign(a):
         C = json.loads((CAMP / f"{cid}.json").read_text())
         base = ENG / "campaigns" / cid
         p_claim, n_runs = claim(C)
-        # --reuse: a campaign whose every run of this count already holds its manifest is summarised from
+        # --reuse: a campaign whose every run of this count already holds its manifest, all flown by this
+        # engine on today's inputs (`adcs results stale` passes on the folder), is summarised from
         # those runs (the draws come from the campaign's seed, so they are the same runs); otherwise a
         # campaign starts from an empty folder: no run of an earlier campaign is ever read as this one's
         reuse = getattr(a, "reuse", False) and all((base / f"run_{k:04d}" / "manifest.json").exists() for k in range(1, n_runs + 1)) \
-            and not (base / f"run_{n_runs + 1:04d}").exists()
+            and not (base / f"run_{n_runs + 1:04d}").exists() \
+            and subprocess.run([str(BIN), "results", "stale", str(base)], capture_output=True).returncode == 0   # flown by this engine on these inputs
         if base.exists() and not reuse:
             shutil.rmtree(base)
         jobs = []

@@ -150,9 +150,10 @@ Magnetic-only nadir hold of the AIS 3U (10 deg) across mass-property, magnetic, 
 
 | metric | req | MATLAB mean ± std [min, max] | MATLAB pass | engine mean ± std [min, max] | engine pass |
 |---|---:|---|---:|---|---:|
-| ape_los_last_orbit (deg) | 10 | 91.95 ± 46.4 [17.14, 169.3] | 0 % | 88.63 ± 43.9 [27.5, 164.5] | 0 % |
-| ake_los_last_orbit (deg) | 5 | 2.086 ± 1.02 [0.5506, 5.18] | 96 % | 1.683 ± 0.752 [0.4519, 2.837] | 100 % |
-| power_mean (W) | 0.5 | 0.01165 ± 0.00288 [0.005911, 0.01693] | 100 % | 0.01015 ± 0.00305 [0.005449, 0.01583] | 100 % |
+| ape_los_last_orbit (deg) | 10 | 91.95 ± 46.4 [17.14, 169.3] | 0 % | 74.69 ± 33.8 [28.88, 150.3] | 0 % |
+| ake_los_last_orbit (deg) | 5 | 2.086 ± 1.02 [0.5506, 5.18] | 96 % | 1.6 ± 0.752 [0.4434, 3.198] | 100 % |
+| power_mean (W) | 0.5 | 0.01165 ± 0.00288 [0.005911, 0.01693] | 100 % | 0.009984 ± 0.00307 [0.005894, 0.01589] | 100 % |
+| power_margin_last_orbit (W) | 0 | — | — | 7.338 ± 1.61 [4.45, 9.645] | 100 % |
 
 ECSS-E-ST-60-10C interpretations of the error metrics (engine): temporal = the statistic in each run, worst run;
 ensemble = the quantile across runs at each instant, worst instant; mixed = the quantile of every sample pooled.
@@ -160,8 +161,8 @@ ensemble = the quantile across runs at each instant, worst instant; mixed = the 
 | metric | statistic | runs | temporal | ensemble | mixed |
 |---|---|---:|---:|---:|---:|
 | ape_3axis_last_orbit | max | 24 | 180 | 180 | 180 |
-| ape_los_last_orbit | max | 24 | 164.5 | 164.5 | 164.5 |
-| ake_los_last_orbit | max | 24 | 2.837 | 2.837 | 2.837 |
+| ape_los_last_orbit | max | 24 | 150.3 | 150.3 | 150.3 |
+| ake_los_last_orbit | max | 24 | 3.198 | 3.198 | 3.198 |
 
 ## mc_slew_cmg — slew_cmg on ais_img_3u (montecarlo, 1109 runs)
 
