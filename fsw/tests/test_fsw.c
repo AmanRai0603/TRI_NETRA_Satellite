@@ -52,7 +52,7 @@ static void t_env(void)
     adcs_real gh[195], B[3], s[3];
     adcs_igrf_gh(2027.1, gh);
     adcs_igrf_ned(gh, 0.3, 1.2, 550, 13, B);
-    CHECK(fabs(B[0] - 29130.375576) < 1e-5 && fabs(B[1] + 193.674477) < 1e-5 && fabs(B[2] - 12967.840908) < 1e-5,
+    CHECK(fabs(B[0] - 29155.707342) < 1e-5 && fabs(B[1] + 187.025096) < 1e-5 && fabs(B[2] - 13232.587581) < 1e-5,
           "IGRF vs twin: %.6f %.6f %.6f", B[0], B[1], B[2]);
     adcs_sun_model(2461407.25, s);
     CHECK(fabs(s[0] - 0.185796268321) < 1e-11 && fabs(s[1] + 0.901530663479) < 1e-11 && fabs(s[2] + 0.390796890321) < 1e-11,

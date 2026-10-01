@@ -180,3 +180,21 @@ fn latency_carries_the_attitude_forward_by_the_rate() {
     assert!(qangle(&q2, &qmult(&q, &fromrotvec(&[0.0, 0.0, 0.1]))) < 1e-15, "about the body axis of the rate");
     assert_eq!(est::latency(&q, &w, 0.0), qnorm(&q));
 }
+
+/// QUEST against an independent solution of the same Wahba problem: SciPy 1.17.1
+/// `Rotation.align_vectors(body, ref, weights)` (Markley's SVD method) on four noisy, weighted
+/// pairs; the attitude matrix and the loss (= rssd^2 / 2) must agree.
+#[test]
+fn the_q_method_agrees_with_scipys_svd_solution() {
+    let r: [V3; 4] = [[-0.8217244197881942, 0.21101468294730036, -0.5293786749618895], [-0.23897885356207585, -0.8056573381496424, 0.5420381545941103],
+                      [0.30661331288405386, -0.512853255698442, 0.8018539857616059], [0.23388073941633325, 0.9288170114428855, 0.28739999823308277]];
+    let b: [V3; 4] = [[0.011447225542844662, 0.13969628655630945, -0.9901282283369911], [0.06931067380567359, -0.9903386542495703, 0.12010570509244624],
+                      [-0.14557758246458494, -0.7139685456552237, 0.6848766920393276], [-0.7401381839205404, 0.6360278751650547, 0.21832088932539145]];
+    let w = [1.0, 0.5, 2.0, 0.25];
+    let scipy = [[0.2753019591648183, -0.6511316785933811, -0.7072738991452874], [0.36948897955554305, 0.7508600834436641, -0.5474367808961843],
+                 [0.8875171689984458, -0.11061949296186147, 0.44729923151045603]];
+    let (q, loss) = est::quest(&b, &r, Some(&w));
+    let a = dcm(&q);
+    for i in 0..3 { for j in 0..3 { assert!((a[i][j] - scipy[i][j]).abs() < 1e-9, "A[{i}][{j}] {} vs SciPy {}", a[i][j], scipy[i][j]); } }
+    assert!(((loss - 9.098631976023341e-05)/9.098631976023341e-05).abs() < 1e-6, "loss {loss}");
+}

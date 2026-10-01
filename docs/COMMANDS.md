@@ -424,8 +424,8 @@ The flight software's parameter and table sources, C and Rust, from their one de
 1. read fsw/params/params.toml and the IGRF table
 2. write the C header and source and the Rust module
 
-- **Reads:** `fsw/params/params.toml`; `matlab_sils/data/igrf13.json`
-- **Writes:** `fsw/include/adcs_params.h`; `fsw/src/adcs_params.c`; `fsw-rs/src/params.rs`; `fsw/include/adcs_igrf13.h`; `fsw-rs/src/igrf13.rs`
+- **Reads:** `fsw/params/params.toml`; `matlab_sils/data/igrf13coeffs.txt`
+- **Writes:** `fsw/include/adcs_params.h`; `fsw/src/adcs_params.c`; `fsw-rs/src/params.rs`; `matlab_sils/data/igrf13.json`; `fsw/include/adcs_igrf13.h`; `fsw-rs/src/igrf13.rs`
 - **Starts:** nothing
 
 ## fsw_stack.py fsw-stack

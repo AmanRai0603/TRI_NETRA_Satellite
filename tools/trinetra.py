@@ -152,6 +152,9 @@ def status():
         (sum(1 for r in stated if r["status"].startswith("not met")), len(stated), "stated requirements a check finds not met (results/TRACEABILITY.md)"),
         (len(t["undecided"]), t["counts"]["metrics"], "shipped metrics that neither judge nor say why they only report"),
     ]
+    refs = tomllib.loads((ROOT / "docs" / "references.toml").read_text())["ref"]
+    owed_refs = [r["id"] for r in refs if r["status"] != "checked"]
+    debt.append((len(owed_refs), len(refs), "models and algorithms without an outside reference (docs/references.toml)"))
     stale_runs = stale_runs_named()
     if stale_runs is not None:
         debt.append((len(stale_runs), len(list((ROOT / "matlab_sils" / "store" / "results_engine").rglob("manifest.json"))),
@@ -160,7 +163,7 @@ def status():
     L = [f"evidence debt: {owed} item(s) owed" if owed else "evidence debt: none", ""]
     L += [f"  {n:>4} of {of:<4} {what}" for n, of, what in debt]
     L += ["", "the owed items, by name:"]
-    for label, items in (("unconfirmed", unconf), ("twin only", proto), ("unselectable", notsel), ("disagree", disagree),
+    for label, items in (("no reference", owed_refs), ("unconfirmed", unconf), ("twin only", proto), ("unselectable", notsel), ("disagree", disagree),
                          ("stale flag", stale)):
         if items:
             L.append(f"  {label:<13} " + ", ".join(items[:12]) + (f" (+{len(items) - 12} more)" if len(items) > 12 else ""))

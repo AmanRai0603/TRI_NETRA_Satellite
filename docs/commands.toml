@@ -241,8 +241,8 @@ name = "gen-fsw-params"
 usage = "python3 tools/gen_fsw_params.py [--check]"
 what = "The flight software's parameter and table sources, C and Rust, from their one definition. --check says which generated file is stale, and changes nothing."
 steps = ["read fsw/params/params.toml and the IGRF table", "write the C header and source and the Rust module"]
-reads = ["fsw/params/params.toml", "matlab_sils/data/igrf13.json"]
-writes = ["fsw/include/adcs_params.h", "fsw/src/adcs_params.c", "fsw-rs/src/params.rs", "fsw/include/adcs_igrf13.h", "fsw-rs/src/igrf13.rs"]
+reads = ["fsw/params/params.toml", "matlab_sils/data/igrf13coeffs.txt"]
+writes = ["fsw/include/adcs_params.h", "fsw/src/adcs_params.c", "fsw-rs/src/params.rs", "matlab_sils/data/igrf13.json", "fsw/include/adcs_igrf13.h", "fsw-rs/src/igrf13.rs"]
 runs = []
 
 [[command]]
