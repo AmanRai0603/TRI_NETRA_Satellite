@@ -37,7 +37,8 @@ class Definition(unittest.TestCase):
             ({"shape": [True]}, "shape"),
             ({"doc": "ends the comment */ early"}, "doc must be"),
             ({"doc": "two\nlines"}, "doc must be"),
-            ({"unit": "m"}, "unknown key"),
+            ({"units": "m"}, "unknown key"),
+            ({"unit": "m"}, "on f64 vectors"),
         ]
         for change, words in cases:
             with self.subTest(change=change):

@@ -51,6 +51,11 @@ fn decode(s: &str) -> String {
 
 fn read_request(s: &mut TcpStream) -> Result<Request, (u16, &'static str)> {
     let _ = s.set_read_timeout(Some(Duration::from_secs(10)));
+    read_from(s)
+}
+
+/// One request read from any byte source (the connection; the fuzzer's bytes in the tests).
+fn read_from(s: &mut impl Read) -> Result<Request, (u16, &'static str)> {
     // the whole request within 15 s: a client sending a byte at a time cannot hold a connection
     let deadline = std::time::Instant::now() + Duration::from_secs(15);
     let late = || std::time::Instant::now() > deadline;
@@ -142,6 +147,34 @@ mod t {
         let r = Request { method: "GET".into(), path: "/".into(), query: "run=app%2Fnadir+hold&x=1".into(), headers: vec![], body: vec![] };
         assert_eq!(r.param("run").as_deref(), Some("app/nadir hold"));
         assert_eq!(r.param("y"), None);
+    }
+    /// Fuzz: random and mutated requests through the parser and the query decoder. Nothing may
+    /// panic; a request is parsed or refused with a status the server answers with.
+    #[test]
+    fn random_requests_never_panic_the_parser() {
+        let mut x: u64 = 0x9e37_79b9_7f4a_7c15;
+        let mut next = || { x ^= x >> 12; x ^= x << 25; x ^= x >> 27; x.wrapping_mul(0x2545F4914F6CDD1D) };
+        let seeds: [&[u8]; 4] = [b"GET /v1/runs?run=app%2Fx HTTP/1.1\r\nHost: 127.0.0.1:7788\r\n\r\n",
+            b"POST /v1/run HTTP/1.1\r\nHost: 127.0.0.1:7788\r\nContent-Length: 18\r\nX-Trinetra: 1\r\n\r\n{\"scenario\":\"x\"}",
+            b"GET / HTTP/1.1\r\n\r\n", b"%%%41%zz+%"];
+        let n: usize = std::env::var("ADCS_FUZZ_N").ok().and_then(|v| v.parse().ok()).unwrap_or(5000);
+        for it in 0..n {
+            let mut b = seeds[(next() % 4) as usize].to_vec();
+            for _ in 0..(next() % 6) {
+                let i = (next() as usize) % (b.len() + 1);
+                match next() % 4 {
+                    0 if i < b.len() => b[i] = next() as u8,
+                    1 => b.insert(i, [b'%', b'\r', b'\n', b':', b'?', b'&', b'=', 0xff][(next() % 8) as usize]),
+                    2 if i < b.len() => { b.remove(i); }
+                    _ => b.extend((0..next() % 16).map(|_| next() as u8)),
+                }
+            }
+            match read_from(&mut std::io::Cursor::new(b.clone())) {
+                Ok(r) => { let _ = r.param("run"); let _ = r.header("Host"); let _ = host_ok(r.header("Host"), 7788); }
+                Err((status, _)) => assert!([400, 408, 413, 431].contains(&status), "it {it}: status {status}"),
+            }
+            let _ = decode(&String::from_utf8_lossy(&b));
+        }
     }
     #[test]
     fn text_is_escaped_for_a_page() { assert_eq!(esc("<b a=\"1\">&"), "&lt;b a=&quot;1&quot;&gt;&amp;"); }

@@ -124,7 +124,10 @@ void adcs_drv_write(const adcs_params_t *p, const adcs_real m_body[3], const adc
                     const adcs_real cmd_g[ADCS_MAX_GIMBALS], const adcs_real duty[ADCS_MAX_COUPLES])
 {
     adcs_can_frame_t f;
-    int i;
+    int i, j;
+    /* every byte of a frame is set: the ones past dlc are 0, never whatever the stack held
+     * (the C/Rust differential fuzzer found them leaking onto the bus) */
+    for (j = 0; j < 8; j++) f.data[j] = 0;
     for (i = 0; i < 3; i++) adcs_hal_pwm_set((uint8_t)i, q15(m_body[i]/p->m_max));
     for (i = 0; i < p->nr; i++) {
         f.id = ADCS_CAN_ROTOR_CMD + (uint32_t)i; f.extended = 0; f.dlc = 2;

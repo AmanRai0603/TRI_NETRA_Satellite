@@ -656,6 +656,28 @@ mod t {
         assert_eq!((s, c, seed, ov, fsw.as_str()), (d.join("inputs/scenario-s1.json"), d.join("inputs/case-c1.csv"), 7, vec![("a.b".into(), "2".into())], "rust"));
         let _ = std::fs::remove_dir_all(&d);
     }
+    /// Fuzz: a valid share file mutated (bytes flipped, cut, lengths and sizes changed) and random
+    /// bytes through the reader. Nothing may panic or read past the end; every damaged file is
+    /// refused or read as entries whose checksums hold.
+    #[test]
+    fn damaged_share_files_never_panic_the_reader() {
+        let files = vec![("manifest.json".to_string(), b"{\"schema\":\"adcs-rec/1\"}".to_vec()), ("channels.csv".to_string(), b"t_s\n0\n1\n".to_vec())];
+        let good = zip(&files);
+        let mut x: u64 = 0x1234_5678_9abc_def1;
+        let mut next = || { x ^= x >> 12; x ^= x << 25; x ^= x >> 27; x.wrapping_mul(0x2545F4914F6CDD1D) };
+        let n: usize = std::env::var("ADCS_FUZZ_N").ok().and_then(|v| v.parse().ok()).unwrap_or(5000);
+        for _ in 0..n {
+            let mut b = if next() % 10 == 0 { (0..next() % 300).map(|_| next() as u8).collect() } else { good.clone() };
+            for _ in 0..1 + next() % 4 {
+                if b.is_empty() { break; }
+                let i = (next() as usize) % b.len();
+                match next() % 3 { 0 => b[i] ^= 1 << (next() % 8), 1 => b[i] = next() as u8, _ => b.truncate(i) }
+            }
+            if let Ok(entries) = unzip(&b) {
+                for (_, data) in &entries { assert!(data.len() <= b.len(), "an entry larger than the file"); }
+            }
+        }
+    }
     #[test]
     fn the_fingerprint_is_fnv1a() { assert_eq!(hex(fnv(b"a")), "af63dc4c8601ec8c"); }
 }

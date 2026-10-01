@@ -6,10 +6,13 @@
 #   "ADCSCFG1" | u32 payload length | fields in this order, little-endian | u32 CRC-32 (IEEE) of the payload
 # type: f64 | u32 | u8 ; shape: [] scalar, [n] or [n, m] row-major.
 # Rules the flight software checks after decoding (adcs_params_validate / Params::validate), both
-# generated from here: every f64 finite; min / max (inclusive); positive (> 0); mode = "valid" (a
+# generated from here: every f64 finite, no larger than 1e15 and, when not 0, no smaller than 1e-30
+# (in magnitude); min / max (inclusive); positive (> 0); mode = "valid" (a
 # controller state) or "or_none" (also 255); max_field (at most another field's value); diag_positive
 # (a matrix's diagonal > 0); upto = "<count>" (arrays: only the first <count> entries); when =
-# "<count>" (only when that count is above 0). A blob that breaks one is refused at init.
+# "<count>" (only when that count is above 0); unit = "required" | "or_zero" (an axis or a
+# quaternion of unit length, rows of a matrix each; or_zero also takes all zeros: unset). A blob
+# that breaks one is refused at init.
 # Values come from asils.config (MATLAB twin) / adcs_sim::config (Rust engine).
 # Owner: Agastya. Copyright (c) 2026 Agastya. All rights reserved.
 schema = "adcs-fswcfg/1"
@@ -108,6 +111,7 @@ name = "gd_q_off"
 type = "f64"
 shape = [4]
 doc = "payload boresight offset quaternion (x y z w)"
+unit = "or_zero"
 [[field]]
 name = "gd_roll_deg"
 type = "f64"
@@ -126,21 +130,25 @@ name = "gd_axis"
 type = "f64"
 shape = [3]
 doc = "slew / target axis (body)"
+unit = "or_zero"
 [[field]]
 name = "gd_q_inertial"
 type = "f64"
 shape = [4]
 doc = "inertial hold attitude"
+unit = "or_zero"
 [[field]]
 name = "sun_axis"
 type = "f64"
 shape = [3]
 doc = "power face (body)"
+unit = "or_zero"
 [[field]]
 name = "roll_axis"
 type = "f64"
 shape = [3]
 doc = "Sun-referencing roll axis (body)"
+unit = "or_zero"
 # ---- spacecraft
 [[field]]
 name = "J"
@@ -448,6 +456,8 @@ name = "rot_a0"
 type = "f64"
 shape = [8, 3]
 doc = "nominal rotor axes (body)"
+unit = "required"
+upto = "nr"
 [[field]]
 name = "rot_gi"
 type = "u8"
@@ -459,6 +469,8 @@ upto = "nr"
 name = "gim_axis"
 type = "f64"
 shape = [4, 3]
+unit = "required"
+upto = "ng"
 [[field]]
 name = "rot_tmax"
 type = "f64"
@@ -580,6 +592,8 @@ name = "st_bs"
 type = "f64"
 shape = [2, 3]
 doc = "star-tracker head boresights (body)"
+unit = "required"
+upto = "n_heads"
 [[field]]
 name = "st_noise_cross"
 type = "f64"

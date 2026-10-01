@@ -151,3 +151,71 @@ fn fly(r: &Request) -> Response {
     Response::json(200, &json!({"ok": true, "run": rel, "scenario": scenario, "case": case, "metrics": ms,
         "wall_s": rec_.wall_s, "duration_s": c.duration_s, "fsw": rec_.fsw_build}))
 }
+
+#[cfg(test)]
+mod t {
+    use super::*;
+
+    fn req(method: &str, path: &str, query: &str, body: &str) -> Request {
+        Request { method: method.into(), path: path.into(), query: query.into(), headers: vec![], body: body.as_bytes().to_vec() }
+    }
+    fn body(r: &Response) -> Value { serde_json::from_slice(&r.body).unwrap_or(Value::Null) }
+
+    /// Every route against a store of its own: one test, since the store is named by the
+    /// environment and the tests of a binary share it.
+    #[test]
+    fn each_route_answers_or_refuses_as_it_says() {
+        let store = std::env::temp_dir().join(format!("trinetra-routes-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&store);
+        std::env::set_var("TRINETRA_STORE", &store);
+
+        let page = route(&req("GET", "/", "", ""), 7788);
+        assert!(page.status == 200 && page.kind.starts_with("text/html"));
+        assert_eq!(route(&req("GET", "/nowhere", "", ""), 7788).status, 404);
+        assert_eq!(route(&req("DELETE", "/v1/runs", "", ""), 7788).status, 404, "a method a route does not take");
+        let v = body(&route(&req("GET", "/v1/version", "", ""), 7788));
+        assert_eq!(v["port"], 7788);
+        assert_eq!(v["store"], store.display().to_string());
+
+        let cat = body(&route(&req("GET", "/v1/catalogue", "", ""), 7788));
+        assert!(cat["cases"].as_array().unwrap().iter().any(|c| c["id"] == "ais_3u"), "the shipped cases are listed");
+        assert!(cat["scenarios"].as_array().unwrap().iter().any(|s| s["id"] == "nadir_hold_ais" && s["case"] == "ais_3u"));
+
+        // a run is named by a folder inside the store, and nothing else
+        for q in ["", "run=", "run=..%2Fx", "run=%2Fetc", "run=a%2F..%2F..%2Fx"] {
+            assert_eq!(route(&req("GET", "/v1/run", q, ""), 7788).status, 400, "{q:?}");
+            assert_eq!(route(&req("GET", "/v1/export", q, ""), 7788).status, 400, "{q:?}");
+        }
+        assert_eq!(route(&req("GET", "/v1/run", "run=app%2Fno_such", ""), 7788).status, 404);
+        assert_eq!(body(&route(&req("GET", "/v1/runs", "", ""), 7788))["runs"], json!([]), "an empty store has no runs");
+
+        // a flight: what is refused is the page's to fix (400)
+        for (b, why) in [("not json", "not JSON"), (r#"{"scenario":"no_such_scenario"}"#, "no scenario"), (r#"{"scenario":"../x"}"#, "scenario"),
+                         (r#"{"scenario":"nadir_hold_ais","case":"no_such_case"}"#, "no case"), (r#"{"scenario":"nadir_hold_ais","fsw":"ada"}"#, "c or rust"),
+                         (r#"{"scenario":"nadir_hold_ais","seed":-1}"#, "seed"), (r#"{"scenario":"nadir_hold_ais","duration_s":"long"}"#, "duration_s")] {
+            let r = route(&req("POST", "/v1/run", "", b), 7788);
+            assert_eq!(r.status, 400, "{b}: {:?}", body(&r));
+            assert!(body(&r)["error"].as_str().unwrap_or("").contains(why), "{b}: {:?}", body(&r));
+        }
+
+        // and one that flies: stored, listed, shown and exported
+        let r = route(&req("POST", "/v1/run", "", r#"{"scenario":"nadir_hold_ais","fsw":"rust","duration_s":60}"#), 7788);
+        let f = body(&r);
+        assert_eq!(r.status, 200, "{f:?}");
+        assert!(f["ok"] == true && f["case"] == "ais_3u" && f["duration_s"] == 60.0 && !f["metrics"].as_array().unwrap().is_empty());
+        let run = f["run"].as_str().unwrap().to_string();
+        assert!(store.join(&run).join("manifest.json").is_file(), "the flight is in the store");
+        let runs = body(&route(&req("GET", "/v1/runs", "", ""), 7788));
+        assert_eq!(runs["runs"].as_array().unwrap().len(), 1);
+        assert_eq!(runs["runs"][0]["run"], run.as_str());
+        assert_eq!(runs["runs"][0]["scenario"], "nadir_hold_ais");
+        let q = format!("run={}", run.replace('/', "%2F"));
+        let one = body(&route(&req("GET", "/v1/run", &q, ""), 7788));
+        assert!(one["text"].as_str().unwrap().contains("nadir_hold_ais") && one["metrics"] == f["metrics"]);
+        let z = route(&req("GET", "/v1/export", &q, ""), 7788);
+        assert!(z.status == 200 && z.kind == "application/zip" && z.body.starts_with(b"PK"), "a share file is a zip");
+        assert!(z.extra.iter().any(|(k, v)| k == "Content-Disposition" && v.ends_with(".trinetra\"")));
+
+        let _ = std::fs::remove_dir_all(&store);
+    }
+}

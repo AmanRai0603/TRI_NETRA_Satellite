@@ -1,15 +1,17 @@
 function ok = run_all_tests()
 %RUN_ALL_TESTS  Unit and integration tests of the TRI-NETRA ADCS SILS.
 %   >> startup_asils; addpath tests; run_all_tests
-%   Each test prints PASS/FAIL with the number it checked.
+%   Each test prints PASS/FAIL with the number it checked. Each runs from its own seed
+%   (rng(1000 + its position)), so a random test draws the same numbers every time.
 %   Copyright (c) 2026 Agastya. All rights reserved.
     T = {@t_quat, @t_kinematics, @t_sso, @t_case, @t_igrf, @t_shadow, ...
          @t_torques, @t_plant_conservation, @t_cmg_plant, @t_mekf, @t_quest, @t_lqr, ...
          @t_fmr_spin_down, @t_cmg_steering, @t_hal_loopback, @t_select, @t_gen_bdot, @t_sun_spin_law, @t_sun_guidance, @t_sun_model, @t_st_chain, @t_sun_chain, @t_es_chain, ...
-         @t_sizing, @t_modes_table, @t_orbit_vs_pop, @t_short_runs};
+         @t_sizing, @t_modes_table, @t_orbit_vs_pop, @t_short_runs, @t_campaign_draw, @t_metrics_evaluate, @t_solution_scenario};
     n = 0;
     for i = 1:numel(T)
         name = func2str(T{i});
+        rng(1000 + i);                       % every test seeded: a failure replays exactly
         try
             msg = T{i}();
             fprintf('PASS  %-24s %s\n', name, msg); n = n + 1;
@@ -332,3 +334,55 @@ function m = t_modes_table()
     end
     m = sprintf('%d options over %d modes map to FSW states', n, numel(asils.solution.mode()));
 end
+
+function m = t_campaign_draw()
+    % a Monte Carlo run is the same run wherever it is drawn, inside its bounds; an edge run puts
+    % one dispersion at a bound and leaves the rest nominal
+    C = asils.util.readjson(fullfile(asils.util.root(), 'data', 'campaigns', 'mc_nadir_ais.json'));
+    f = intersect({'case', 'xCase', 'x_case', 'case_'}, fieldnames(C));   % 'case' is a keyword: the reader renames it
+    P0 = asils.config(C.scenario, fullfile('cases', [C.(f{1}) '.csv']), struct('seed', 1));
+    [a, da] = asils.campaign.draw(C, P0, 3); [b, db] = asils.campaign.draw(C, P0, 3); [~, dc] = asils.campaign.draw(C, P0, 4);
+    assert(isequal(a, b) && isequal(da, db), 'the same run draws the same values');
+    assert(~isequal(da, dc), 'another run draws other values');
+    for k = 1:40
+        [~, d] = asils.campaign.draw(C, P0, k);
+        if isfield(d, 'F107'), assert(d.F107 >= 70 && d.F107 <= 220, 'solar flux inside its bounds'); end
+    end
+    E = asils.util.readjson(fullfile(asils.util.root(), 'data', 'campaigns', 'edge_nadir_ais.json'));
+    ds = E.dispersions; if ~iscell(ds), ds = num2cell(ds); end
+    j = find(cellfun(@(s) strcmp(s.kind, 'solar_flux'), ds), 1);
+    [~, lo] = asils.campaign.draw(E, P0, 2*j - 1); [~, hi] = asils.campaign.draw(E, P0, 2*j);
+    assert(lo.F107 == ds{j}.lo && hi.F107 == ds{j}.hi, 'edge runs %d and %d put the solar flux at its bounds', 2*j - 1, 2*j);
+    m = sprintf('mc draws reproducible, in bounds over 40 runs; edge runs %d/%d at the flux bounds', 2*j - 1, 2*j);
+end
+
+function m = t_metrics_evaluate()
+    % the statistics and the verdict on a known channel: APE rising 0..10 deg over the window
+    rec = asils.run('nadir_hold_ais', 'cases/ais_3u.csv', 'set', struct('sim__duration_s', 20), 'quiet', true);
+    n = numel(rec.t); rec.ape_3ax = linspace(0, 10, n);
+    req = rec.P.case.v.req_ape;
+    mk = @(stat) struct('id', 'a', 'kind', 'ape', 'window', 'all', 'statistic', stat, 'requirement', 'req.ape');
+    rec.P.scenario.metrics = {mk('max'), mk('mean'), mk('rms')};
+    M = asils.metrics.evaluate(rec);
+    assert(abs(M(1).value - 10) < 1e-12, 'max is the largest sample');
+    assert(abs(M(2).value - 5) < 1e-9, 'mean of a uniform ramp is its middle');
+    assert(abs(M(3).value - sqrt(mean(rec.ape_3ax.^2))) < 1e-12, 'rms');
+    assert(M(1).req == req && M(1).pass == double(10 <= req), 'the verdict is value <= requirement');
+    m = sprintf('max/mean/rms on a 0..10 deg ramp, verdict against req.ape = %g', req);
+end
+
+function m = t_solution_scenario()
+    % every option of a mission mode builds a scenario the engine's schema accepts
+    n = 0;
+    C = asils.case.read(fullfile(asils.util.root(), 'cases', 'ais_3u.csv'));
+    for mode = {'detumble', 'nadir_pointing'}
+        M = asils.solution.mode(mode{1});
+        for i = 1:numel(M.options)
+            S = asils.solution.scenario('ais_3u', mode{1}, M.options{i}.id);
+            asils.scenario.check(S, C);
+            n = n + 1;
+        end
+    end
+    m = sprintf('%d mode options build schema-valid scenarios', n);
+end
+

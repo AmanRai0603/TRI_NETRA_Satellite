@@ -74,6 +74,27 @@ class Link(unittest.TestCase):
         self.assertEqual(self.talk(frame(0x02, tick(ncan=33, cans=bytes(13 * 33)))), [(ACK, E_FULL)])
         self.assertEqual(self.talk(frame(0x02, tick(uart1=bytes(1025)))), [(ACK, E_FULL)])
 
+    def test_random_frames_are_each_answered_and_never_crash_it(self):
+        """Fuzz: frames of every type with random payloads (valid CRC, so they reach the parsers),
+        some with the CRC broken; every one gets exactly one reply and the OBC still says goodbye."""
+        import random
+        rnd = random.Random(0xf00d)
+        n = int(__import__("os").environ.get("ADCS_FUZZ_N", "400"))
+        frames, config = [], frame(0x01, struct.pack("<Q", 0) + bytes(rnd.randrange(0, 64)))
+        for _ in range(n):
+            ty = rnd.choice([0x01, 0x02, 0x02, 0x02, 0x03, 0x7E])
+            if ty == 0x02 and rnd.random() < 0.5:
+                p = tick(uart1=bytes(rnd.randrange(256) for _ in range(rnd.randrange(40))))
+                p = bytearray(p)
+                for _ in range(rnd.randrange(4)):
+                    p[rnd.randrange(len(p))] = rnd.randrange(256)
+                p = bytes(p)
+            else:
+                p = bytes(rnd.randrange(256) for _ in range(rnd.randrange(0, 300)))
+            frames.append(frame(ty, p, good=rnd.random() > 0.1))
+        replies = self.talk(config, *frames)
+        self.assertEqual(len(replies), n + 1, "one reply per frame")
+
     def test_an_unknown_type_is_answered(self):
         self.assertEqual(self.talk(frame(0x7E, b"")), [(ACK, E_TYPE)])
 

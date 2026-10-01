@@ -10,10 +10,9 @@ little-endian | u32 CRC-32 (IEEE 802.3, reflected, init/xorout 0xFFFFFFFF) of th
 Generated files carry a header saying so; they are never edited by hand.
 Copyright (c) 2026 Agastya. All rights reserved.
 """
-import json, pathlib, tomllib
-from common import write_text
+import json, tomllib
+from common import write_text, ROOT
 
-ROOT = pathlib.Path(__file__).resolve().parents[1]
 P = tomllib.loads((ROOT / "fsw" / "params" / "params.toml").read_text())
 F = P["field"]
 MODES = ["DETUMBLE", "NADIR_MTQ", "NADIR_FINE", "TARGET_FINE", "SLEW_FINE", "SPINUP", "SUN_SPIN",
@@ -64,10 +63,20 @@ def check_definition(P):
         extra = set(f) - {"name", "type", "shape", "doc"} - set(RULE_KEYS)
         if extra:
             bad.append(f"{at}: unknown key(s) {', '.join(sorted(extra))}")
+        if "unit" in f and not (f["unit"] in ("required", "or_zero") and f.get("type") == "f64" and isinstance(sh, list) and sh and sh[-1] in (3, 4)):
+            bad.append(f"{at}: unit = {f['unit']!r}: \"required\" or \"or_zero\", on f64 vectors (shape [3], [4] or [n, 3])")
     return bad
 
 
-RULE_KEYS = ("min", "max", "positive", "mode", "upto", "when", "max_field", "diag_positive")
+RULE_KEYS = ("min", "max", "positive", "mode", "upto", "when", "max_field", "diag_positive", "unit")
+
+# Every real parameter, whatever its own rules: finite, no larger than BIG and, when not zero, no
+# smaller than TINY. Values outside are valid IEEE numbers but no physical setting; products and
+# quotients of them overflow to infinity and NaN inside the laws (found by fsw-rs/tests/fuzz.rs).
+BIG, TINY = "1e15", "1e-30"
+# An axis or a quaternion (rule `unit`): its squared length within 2e-3 of 1 (or exactly 0 with
+# unit = "or_zero", for an axis a configuration leaves unset).
+UNIT_LO, UNIT_HI = "0.998", "1.002"
 
 
 def rules(f):
@@ -76,6 +85,8 @@ def rules(f):
     num = f["type"] == "f64"
     if num:
         out.append(("!isfinite({x})", "!{x}.is_finite()"))
+        out.append((f"{{x}} > {BIG} || {{x}} < -{BIG}", f"{{x}} > {BIG} || {{x}} < -{BIG}"))
+        out.append((f"({{x}} != 0.0 && {{x}} < {TINY} && {{x}} > -{TINY})", f"({{x}} != 0.0 && {{x}} < {TINY} && {{x}} > -{TINY})"))
     if "min" in f:
         out.append((f"{{x}} < {f['min']}", f"{{x}} < {f['min']}{'.0' if num and isinstance(f['min'], int) else ''}"))
     if "max" in f:
@@ -95,7 +106,7 @@ def c_validate():
     """adcs_params_validate: every rule of params.toml, in table order; 0 or the failing field's number."""
     L = ["", "/* Every rule of params.toml, checked after decoding: 0 when all hold, else the 1-based table",
          "   number of the first field that breaks one (adcs_params_field names it). */",
-         "int32_t adcs_params_validate(const adcs_params_t *p)", "{", "    size_t i, j;", "    (void)i; (void)j;"]
+         "int32_t adcs_params_validate(const adcs_params_t *p)", "{", "    size_t i, j;", "    double n2;", "    (void)i; (void)j; (void)n2;"]
     for k, f in enumerate(F, 1):
         R = rules(f)
         diag = f.get("diag_positive")
@@ -115,6 +126,13 @@ def c_validate():
         else:
             d = f" || (i == j && !(p->{f['name']}[i][j] > 0.0))" if diag else ""
             L.append(f"    {pre}for (i = 0; {lim}; i++) for (j = 0; j < {sh[1]}u; j++) if (({cond('p->' + f['name'] + '[i][j]')}){d}) return {k};")
+        if f.get("unit"):
+            z = " && n2 != 0.0" if f["unit"] == "or_zero" else ""
+            if len(sh) == 1:
+                L.append(f"    n2 = 0.0; for (i = 0; i < {sh[0]}u; i++) n2 += p->{f['name']}[i]*p->{f['name']}[i];")
+                L.append(f"    if (!(n2 > {UNIT_LO} && n2 < {UNIT_HI}){z}) return {k};")
+            else:
+                L.append(f"    {pre}for (i = 0; {lim}; i++) {{ n2 = 0.0; for (j = 0; j < {sh[1]}u; j++) n2 += p->{f['name']}[i][j]*p->{f['name']}[i][j]; if (!(n2 > {UNIT_LO} && n2 < {UNIT_HI}){z}) return {k}; }}")
     L += ["    return 0;", "}", "",
           "const char *adcs_params_field(int32_t k)", "{",
           "    static const char *const names[] = {" + ", ".join(f'"{f["name"]}"' for f in F) + "};",
@@ -149,6 +167,13 @@ def rs_validate():
             d = " || (i == j && !(x > 0.0))" if diag else ""
             body = f"for i in 0..{lim} {{ for j in 0..{sh[1]} {{ let x = self.{name}[i][j]; if {rcond('x')}{d} {{ return Err(\"{name}\"); }} }} }}"
         L.append(f"        {pre}{{ {body} }}" if pre else f"        {body}")
+        if f.get("unit"):
+            z = " && n2 != 0.0" if f["unit"] == "or_zero" else ""
+            if len(sh) == 1:
+                L.append(f"        {{ let n2: f64 = self.{name}.iter().map(|x| x*x).sum(); if !(n2 > {UNIT_LO} && n2 < {UNIT_HI}){z} {{ return Err(\"{name}\"); }} }}")
+            else:
+                u = f"for i in 0..{lim} {{ let n2: f64 = self.{name}[i].iter().map(|x| x*x).sum(); if !(n2 > {UNIT_LO} && n2 < {UNIT_HI}){z} {{ return Err(\"{name}\"); }} }}"
+                L.append(f"        {pre}{{ {u} }}" if pre else f"        {u}")
     L += ["        Ok(())", "    }", "}", ""]
     return "\n".join(L)
 

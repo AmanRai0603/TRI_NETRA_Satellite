@@ -138,7 +138,12 @@ fn a_value_outside_its_rule_is_refused_at_init() {
     for (field, set) in [("nr", Box::new(|p: &mut Params| p.nr = 9) as Box<dyn Fn(&mut Params)>),
                          ("m_max", Box::new(|p: &mut Params| p.m_max = f64::NAN)),
                          ("start_mode", Box::new(|p: &mut Params| p.start_mode = 11)),
-                         ("rot_gi", Box::new(|p: &mut Params| { p.nr = 1; p.rot_tmax[0] = 0.01; p.rot_gi[0] = 1; }))] {
+                         ("rot_gi", Box::new(|p: &mut Params| { p.nr = 1; p.rot_a0[0] = [1.0, 0.0, 0.0]; p.rot_tmax[0] = 0.01; p.rot_gi[0] = 1; })),
+                         // finite but no physical setting: it overflows inside the laws (fuzz.rs found it)
+                         ("dump_k", Box::new(|p: &mut Params| p.dump_k = 2.8e272)),
+                         ("bdot_k", Box::new(|p: &mut Params| p.bdot_k = 1e-309)),
+                         ("rot_a0", Box::new(|p: &mut Params| { p.nr = 1; p.rot_a0[0] = [2.0, 0.0, 0.0]; p.rot_tmax[0] = 0.01; })),
+                         ("sun_axis", Box::new(|p: &mut Params| p.sun_axis = [0.0, 0.0, 0.5]))] {
         let mut p = Params::decode(&good).unwrap();
         set(&mut p);
         let mut blob = vec![0u8; adcs_fsw::params::BLOB_SIZE];
