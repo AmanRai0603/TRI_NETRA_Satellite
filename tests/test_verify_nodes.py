@@ -44,6 +44,9 @@ class Verifier(unittest.TestCase):
         files = ["selection.json", "loop.json", "floquet.json", "mc/summary.json", "families.json", "soft_oils.json",
                  f"iter_{self.it}/sized/sizing.json"]
         files += [str(p.relative_to(self.real)) for p in (self.real / f"iter_{self.it}" / "sized" / "products").glob("*.json")]
+        # the fault campaign, when the stored loop flew one (node faults, B2.6)
+        if (self.real / "faults.json").exists():
+            files += ["faults.json"] + [str(p.relative_to(self.real)) for p in (self.real / "faults").rglob("*.json")]
         for f in files:
             (dst / f).parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(self.real / f, dst / f)
@@ -151,8 +154,17 @@ class Verifier(unittest.TestCase):
         self.assertEqual(self.failed(), [])
 
     def test_a_selection_that_predates_the_campaign_is_noted_not_failed(self):
+        # a selection made before node faults existed: no fault policy, no fault gaps, no campaign
+        sel = load(self.dir / "selection.json")
+        sel.pop("fault_policy", None)
+        for f in sel["families"].values():
+            f.pop("fault_gaps", None)
+            f["gaps"] = [g for g in f["gaps"] if not g.startswith("fault:")]
+            f["feasible"] = not f["gaps"]
+        save(self.dir / "selection.json", sel)
+        (self.dir / "faults.json").unlink(missing_ok=True)
         V.NOTES.clear()
-        self.assertEqual(self.failed(), [])
+        self.assertEqual([x for x in self.failed() if x[0] in ("faults", "select")], [])
         self.assertTrue(any("predates node faults" in n for n in V.NOTES))
 
     def test_a_fault_verdict_that_contradicts_its_metrics_is_caught(self):
