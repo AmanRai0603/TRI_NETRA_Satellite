@@ -1,10 +1,11 @@
 {
  "case": "ais_img_3u",
  "selected": "mtq_fmr",
- "status": "feasible",
+ "status": "closest (not feasible)",
  "benchmark": "mtq_rw",
  "benchmark_status": "feasible",
- "rule": "least mass_kg, then power_W, then volume_L, then simplicity among feasible solution families",
+ "rule": "least mass_kg, then power_W, then volume_L, then simplicity among feasible solution families; a single fault the family does not survive is a gap (select.fault_policy gap)",
+ "fault_policy": "gap",
  "families": {
   "mtq": {
    "role": "solution",
@@ -14,7 +15,7 @@
    "gaps": [
     "sun_acquisition: sun_acquisition_time (performance), sun_angle_p95 (performance)",
     "sun_referencing: sun_ape_p9973 (performance)",
-    "nadir_pointing: ape_los_p9973 (performance), rate_stability_p9973 (performance)"
+    "nadir_pointing: ape_los_p9973 (performance), ake_los_p9973 (knowledge), rate_stability_p9973 (performance)"
    ],
    "modes": {
     "detumble": {
@@ -22,7 +23,7 @@
      "alg": null,
      "feasible": true,
      "failing": {},
-     "objective": 58.906666666666666,
+     "objective": 58.59,
      "objective_id": "detumble_time",
      "algorithms": {
       "allocation": "",
@@ -34,9 +35,9 @@
       "thrusters": ""
      },
      "metrics": {
-      "detumble_time": 58.906666666666666,
-      "power_mean": 0.027723642246722666,
-      "power_peak": 0.21809270611756887,
+      "detumble_time": 58.59,
+      "power_mean": 0.02752485708623686,
+      "power_peak": 0.3024658218934124,
       "propellant": 0.0
      }
     },
@@ -48,7 +49,7 @@
       "sun_acquisition_time": "performance",
       "sun_angle_p95": "performance"
      },
-     "objective": 34.49,
+     "objective": 76.70666666666668,
      "objective_id": "sun_acquisition_time",
      "algorithms": {
       "allocation": "",
@@ -60,10 +61,10 @@
       "thrusters": ""
      },
      "metrics": {
-      "sun_acquisition_time": 34.49,
-      "sun_angle_p95": 90.77078830543172,
-      "power_mean": 0.1516763313190516,
-      "power_peak": 0.23005113756708603,
+      "sun_acquisition_time": 76.70666666666668,
+      "sun_angle_p95": 101.65380141977494,
+      "power_mean": 0.21198568216673233,
+      "power_peak": 0.32718573016343466,
       "propellant": 0.0
      }
     },
@@ -74,7 +75,7 @@
      "failing": {
       "sun_ape_p9973": "performance"
      },
-     "objective": 19.26295767595691,
+     "objective": 18.264545151938975,
      "objective_id": "sun_ape_p9973",
      "algorithms": {
       "allocation": "",
@@ -86,26 +87,27 @@
       "thrusters": ""
      },
      "metrics": {
-      "sun_ape_p9973": 19.26295767595691,
-      "ape_3ax_p9973": 179.98419470906455,
-      "ake_3ax_p9973": 1.0127577445310014,
-      "rate_stability_p9973": 0.11095461931049805,
-      "jitter": null,
+      "sun_ape_p9973": 18.264545151938975,
+      "ape_3ax_p9973": 179.80631596608805,
+      "ake_3ax_p9973": 1.0070936043739322,
+      "rate_stability_p9973": 0.10913916589884312,
+      "jitter": 0.0,
       "momentum_peak": null,
-      "power_mean": 0.011732240925660106,
-      "power_peak": 0.02843227223738138,
+      "power_mean": 0.011722609724301987,
+      "power_peak": 0.028308749546661738,
       "propellant": 0.0
      }
     },
     "nadir_pointing": {
      "option": "mtq",
-     "alg": "mtq_celani2026@mtq_gain_p=4,mtq_gain_d=0.25,handover_out_dps=0.5",
+     "alg": "mtq_celani2026@mtq_gain_p=1,mtq_gain_d=0.25,handover_out_dps=1",
      "feasible": false,
      "failing": {
       "ape_los_p9973": "performance",
+      "ake_los_p9973": "knowledge",
       "rate_stability_p9973": "performance"
      },
-     "objective": 26.77969453819282,
+     "objective": 22.77204568885736,
      "objective_id": "ape_los_p9973",
      "algorithms": {
       "allocation": "",
@@ -117,37 +119,40 @@
       "thrusters": ""
      },
      "metrics": {
-      "ape_los_p9973": 26.77969453819282,
-      "ake_los_p9973": 0.0033539257546086284,
-      "rate_stability_p9973": 0.2781711827649937,
-      "jitter": null,
+      "ape_los_p9973": 22.77204568885736,
+      "ake_los_p9973": 0.055021598484202676,
+      "rate_stability_p9973": 0.20325408460851316,
+      "jitter": 0.0,
       "momentum_peak": null,
-      "power_mean": 0.021072160073491775,
-      "power_peak": 0.22260931924406258,
+      "power_mean": 0.019042438416625857,
+      "power_peak": 0.2669566206140368,
       "propellant": 0.0
      }
     }
    },
    "budget": {
-    "mass_kg": 0.5295833946526824,
-    "power_W": 2.895833946526825,
-    "volume_L": 0.01183335786107298
+    "mass_kg": 0.5415642174115574,
+    "power_W": 3.015642174115573,
+    "volume_L": 0.01662568696462292
    },
-   "product": "SZ-ais_img_3u-mtq"
+   "product": "SZ-ais_img_3u-mtq",
+   "fault_gaps": []
   },
   "mtq_fmr": {
    "role": "solution",
    "simplicity": 2,
    "label": "Magnetorquers + fluid momentum loop",
-   "feasible": true,
-   "gaps": [],
+   "feasible": false,
+   "gaps": [
+    "fault: rotor_fail: ape_los_p9973, ake_los_p9973"
+   ],
    "modes": {
     "detumble": {
      "option": "mtq",
      "alg": null,
      "feasible": true,
      "failing": {},
-     "objective": 58.906666666666666,
+     "objective": 58.59,
      "objective_id": "detumble_time",
      "algorithms": {
       "allocation": "",
@@ -159,9 +164,9 @@
       "thrusters": ""
      },
      "metrics": {
-      "detumble_time": 58.906666666666666,
-      "power_mean": 0.027723642246722666,
-      "power_peak": 0.21809270611756887,
+      "detumble_time": 58.59,
+      "power_mean": 0.02752485708623686,
+      "power_peak": 0.3024658218934124,
       "propellant": 0.0
      }
     },
@@ -183,9 +188,9 @@
      },
      "metrics": {
       "sun_acquisition_time": 2.2916666666666665,
-      "sun_angle_p95": 0.187060012258001,
-      "power_mean": 0.6753551575270226,
-      "power_peak": 3.2019595484224226,
+      "sun_angle_p95": 0.17699524866502114,
+      "power_mean": 1.069343197284826,
+      "power_peak": 3.216650402758306,
       "propellant": 0.0
      }
     },
@@ -194,7 +199,7 @@
      "alg": null,
      "feasible": true,
      "failing": {},
-     "objective": 0.1566420166956845,
+     "objective": 0.15706520781689964,
      "objective_id": "sun_ape_p9973",
      "algorithms": {
       "allocation": "idmas_split",
@@ -206,14 +211,14 @@
       "thrusters": ""
      },
      "metrics": {
-      "sun_ape_p9973": 0.1566420166956845,
-      "ape_3ax_p9973": 0.38009653991784076,
-      "ake_3ax_p9973": 0.3821522466048553,
-      "rate_stability_p9973": 0.012574161196798352,
-      "jitter": null,
-      "momentum_peak": 0.0004445962557896781,
-      "power_mean": 0.08898959897160505,
-      "power_peak": 3.200079332578412,
+      "sun_ape_p9973": 0.15706520781689964,
+      "ape_3ax_p9973": 0.37795824137651857,
+      "ake_3ax_p9973": 0.3800216635366313,
+      "rate_stability_p9973": 0.005015076317854369,
+      "jitter": 0.0,
+      "momentum_peak": 0.00043847473273776635,
+      "power_mean": 0.10749242136533547,
+      "power_peak": 3.227717772450495,
       "propellant": 0.0
      }
     },
@@ -222,7 +227,7 @@
      "alg": "pid@bw4",
      "feasible": true,
      "failing": {},
-     "objective": 0.004482653384330484,
+     "objective": 0.004049714986745566,
      "objective_id": "ape_los_p9973",
      "algorithms": {
       "allocation": "idmas_split",
@@ -234,24 +239,26 @@
       "thrusters": ""
      },
      "metrics": {
-      "ape_los_p9973": 0.004482653384330484,
-      "ake_los_p9973": 0.003247473265077974,
-      "rate_stability_p9973": 0.004965481091720041,
-      "jitter": null,
-      "momentum_peak": 0.00041168798216448927,
-      "power_mean": 0.2872820399282563,
-      "power_peak": 3.212174859475349,
+      "ape_los_p9973": 0.004049714986745566,
+      "ake_los_p9973": 0.003367551894879402,
+      "rate_stability_p9973": 0.004365727351065767,
+      "jitter": 0.0,
+      "momentum_peak": 0.00040661331851178526,
+      "power_mean": 0.40222177016413935,
+      "power_peak": 3.242433463327172,
       "propellant": 0.0
      }
     }
    },
    "budget": {
-    "mass_kg": 1.4273053015176518,
-    "power_W": 5.876667070052895,
-    "volume_L": 0.5344095129173693
+    "mass_kg": 1.4320636279300074,
+    "power_W": 5.924250334176452,
+    "volume_L": 0.5363128434823115
    },
    "product": "SZ-ais_img_3u-mtq_fmr",
-   "rank": 1
+   "fault_gaps": [
+    "fault: rotor_fail: ape_los_p9973, ake_los_p9973"
+   ]
   },
   "mtq_fmr_rcs": {
    "role": "solution",
@@ -259,8 +266,9 @@
    "label": "Magnetorquers + fluid loop + N2O cold-gas RCS",
    "feasible": false,
    "gaps": [
-    "budget: mass_kg 1.89 > 1.6",
-    "budget: volume_L 1.37 > 1"
+    "budget: mass_kg 1.9 > 1.6",
+    "budget: volume_L 1.38 > 1",
+    "fault: rotor_fail: ape_los_p9973, ake_los_p9973"
    ],
    "modes": {
     "detumble": {
@@ -281,9 +289,9 @@
      },
      "metrics": {
       "detumble_time": 1.125,
-      "power_mean": 0.00905926530443904,
+      "power_mean": 0.009024392238320255,
       "power_peak": 3.0,
-      "propellant": 0.09166012821518932
+      "propellant": 0.09158931979882987
      }
     },
     "sun_acquisition": {
@@ -304,9 +312,9 @@
      },
      "metrics": {
       "sun_acquisition_time": 2.2916666666666665,
-      "sun_angle_p95": 0.187060012258001,
-      "power_mean": 0.6753551575270226,
-      "power_peak": 3.2019595484224226,
+      "sun_angle_p95": 0.17699524866502114,
+      "power_mean": 1.069343197284826,
+      "power_peak": 3.216650402758306,
       "propellant": 0.0
      }
     },
@@ -315,7 +323,7 @@
      "alg": null,
      "feasible": true,
      "failing": {},
-     "objective": 0.1566420166956845,
+     "objective": 0.15706520781689964,
      "objective_id": "sun_ape_p9973",
      "algorithms": {
       "allocation": "idmas_split",
@@ -327,14 +335,14 @@
       "thrusters": ""
      },
      "metrics": {
-      "sun_ape_p9973": 0.1566420166956845,
-      "ape_3ax_p9973": 0.38009653991784076,
-      "ake_3ax_p9973": 0.3821522466048553,
-      "rate_stability_p9973": 0.012574161196798352,
-      "jitter": null,
-      "momentum_peak": 0.0004445962557896781,
-      "power_mean": 0.08898959897160505,
-      "power_peak": 3.200079332578412,
+      "sun_ape_p9973": 0.15706520781689964,
+      "ape_3ax_p9973": 0.37795824137651857,
+      "ake_3ax_p9973": 0.3800216635366313,
+      "rate_stability_p9973": 0.005015076317854369,
+      "jitter": 0.0,
+      "momentum_peak": 0.00043847473273776635,
+      "power_mean": 0.10749242136533547,
+      "power_peak": 3.227717772450495,
       "propellant": 0.0
      }
     },
@@ -343,7 +351,7 @@
      "alg": "pid@bw4",
      "feasible": true,
      "failing": {},
-     "objective": 0.004482653384330484,
+     "objective": 0.004049714986745566,
      "objective_id": "ape_los_p9973",
      "algorithms": {
       "allocation": "idmas_split",
@@ -355,23 +363,26 @@
       "thrusters": ""
      },
      "metrics": {
-      "ape_los_p9973": 0.004482653384330484,
-      "ake_los_p9973": 0.003247473265077974,
-      "rate_stability_p9973": 0.004965481091720041,
-      "jitter": null,
-      "momentum_peak": 0.00041168798216448927,
-      "power_mean": 0.2872820399282563,
-      "power_peak": 3.212174859475349,
+      "ape_los_p9973": 0.004049714986745566,
+      "ake_los_p9973": 0.003367551894879402,
+      "rate_stability_p9973": 0.004365727351065767,
+      "jitter": 0.0,
+      "momentum_peak": 0.00040661331851178526,
+      "power_mean": 0.40222177016413935,
+      "power_peak": 3.242433463327172,
       "propellant": 0.0
      }
     }
    },
    "budget": {
-    "mass_kg": 1.892790208740648,
-    "power_W": 5.926667070052896,
-    "volume_L": 1.3747719721245053
+    "mass_kg": 1.8982193481704623,
+    "power_W": 5.974250334176452,
+    "volume_L": 1.3784695920530892
    },
-   "product": "SZ-ais_img_3u-mtq_fmr_rcs"
+   "product": "SZ-ais_img_3u-mtq_fmr_rcs",
+   "fault_gaps": [
+    "fault: rotor_fail: ape_los_p9973, ake_los_p9973"
+   ]
   },
   "mtq_rw": {
    "role": "benchmark",
@@ -385,7 +396,7 @@
      "alg": null,
      "feasible": true,
      "failing": {},
-     "objective": 58.906666666666666,
+     "objective": 58.59,
      "objective_id": "detumble_time",
      "algorithms": {
       "allocation": "",
@@ -397,9 +408,9 @@
       "thrusters": ""
      },
      "metrics": {
-      "detumble_time": 58.906666666666666,
-      "power_mean": 0.027723642246722666,
-      "power_peak": 0.21809270611756887,
+      "detumble_time": 58.59,
+      "power_mean": 0.02752485708623686,
+      "power_peak": 0.3024658218934124,
       "propellant": 0.0
      }
     },
@@ -421,9 +432,9 @@
      },
      "metrics": {
       "sun_acquisition_time": 2.2583333333333333,
-      "sun_angle_p95": 1.1915037799450017,
-      "power_mean": 0.9144586357071698,
-      "power_peak": 0.9773292639777439,
+      "sun_angle_p95": 1.1975532872938213,
+      "power_mean": 0.9143017521172497,
+      "power_peak": 0.9775205918011937,
       "propellant": 0.0
      }
     },
@@ -432,7 +443,7 @@
      "alg": null,
      "feasible": true,
      "failing": {},
-     "objective": 0.15670531828750509,
+     "objective": 0.15684326905073023,
      "objective_id": "sun_ape_p9973",
      "algorithms": {
       "allocation": "rotor_pinv",
@@ -444,14 +455,14 @@
       "thrusters": ""
      },
      "metrics": {
-      "sun_ape_p9973": 0.15670531828750509,
-      "ape_3ax_p9973": 0.3800602386584982,
-      "ake_3ax_p9973": 0.3821339186698209,
-      "rate_stability_p9973": 0.004706614794310351,
-      "jitter": null,
-      "momentum_peak": 0.0009042058975771044,
-      "power_mean": 0.9109164075951487,
-      "power_peak": 1.0794798055216115,
+      "sun_ape_p9973": 0.15684326905073023,
+      "ape_3ax_p9973": 0.37800453741598644,
+      "ake_3ax_p9973": 0.38010677176007757,
+      "rate_stability_p9973": 0.004700134026755032,
+      "jitter": 0.2836716139174123,
+      "momentum_peak": 0.0009041821440432799,
+      "power_mean": 0.9109134147113488,
+      "power_peak": 1.0795901079662928,
       "propellant": 0.0
      }
     },
@@ -460,7 +471,7 @@
      "alg": null,
      "feasible": true,
      "failing": {},
-     "objective": 0.005695534235108848,
+     "objective": 0.005719640134988878,
      "objective_id": "ape_los_p9973",
      "algorithms": {
       "allocation": "rotor_pinv",
@@ -472,23 +483,24 @@
       "thrusters": ""
      },
      "metrics": {
-      "ape_los_p9973": 0.005695534235108848,
-      "ake_los_p9973": 0.0032191624494858333,
-      "rate_stability_p9973": 0.0025722264879194123,
-      "jitter": null,
-      "momentum_peak": 0.0008611072556007201,
-      "power_mean": 0.9176291812716376,
-      "power_peak": 1.0960543816697463,
+      "ape_los_p9973": 0.005719640134988878,
+      "ake_los_p9973": 0.003365625961092227,
+      "rate_stability_p9973": 0.0025633053750607464,
+      "jitter": 0.2836716139174123,
+      "momentum_peak": 0.000861032502574503,
+      "power_mean": 0.9176259005985279,
+      "power_peak": 1.0961565366473176,
       "propellant": 0.0
      }
     }
    },
    "budget": {
-    "mass_kg": 0.6960237822934232,
-    "power_W": 3.66023782293423,
-    "volume_L": 0.06756151291736923
+    "mass_kg": 0.7007821087057788,
+    "power_W": 3.7078210870577863,
+    "volume_L": 0.06946484348231145
    },
    "product": "SZ-ais_img_3u-mtq_rw",
+   "fault_gaps": [],
    "rank": 1
   },
   "mtq_rw_rcs": {
@@ -516,9 +528,9 @@
      },
      "metrics": {
       "detumble_time": 1.125,
-      "power_mean": 0.00905926530443904,
+      "power_mean": 0.009024392238320255,
       "power_peak": 3.0,
-      "propellant": 0.09166012821518932
+      "propellant": 0.09158931979882987
      }
     },
     "sun_acquisition": {
@@ -539,9 +551,9 @@
      },
      "metrics": {
       "sun_acquisition_time": 2.2583333333333333,
-      "sun_angle_p95": 1.1915037799450017,
-      "power_mean": 0.9144586357071698,
-      "power_peak": 0.9773292639777439,
+      "sun_angle_p95": 1.1975532872938213,
+      "power_mean": 0.9143017521172497,
+      "power_peak": 0.9775205918011937,
       "propellant": 0.0
      }
     },
@@ -550,7 +562,7 @@
      "alg": null,
      "feasible": true,
      "failing": {},
-     "objective": 0.15670531828750509,
+     "objective": 0.15684326905073023,
      "objective_id": "sun_ape_p9973",
      "algorithms": {
       "allocation": "rotor_pinv",
@@ -562,23 +574,23 @@
       "thrusters": ""
      },
      "metrics": {
-      "sun_ape_p9973": 0.15670531828750509,
-      "ape_3ax_p9973": 0.3800602386584982,
-      "ake_3ax_p9973": 0.3821339186698209,
-      "rate_stability_p9973": 0.004706614794310351,
-      "jitter": null,
-      "momentum_peak": 0.0009042058975771044,
-      "power_mean": 0.9109164075951487,
-      "power_peak": 1.0794798055216115,
+      "sun_ape_p9973": 0.15684326905073023,
+      "ape_3ax_p9973": 0.37800453741598644,
+      "ake_3ax_p9973": 0.38010677176007757,
+      "rate_stability_p9973": 0.004700134026755032,
+      "jitter": 0.2836716139174123,
+      "momentum_peak": 0.0009041821440432799,
+      "power_mean": 0.9109134147113488,
+      "power_peak": 1.0795901079662928,
       "propellant": 0.0
      }
     },
     "nadir_pointing": {
-     "option": "rw+rcs",
+     "option": "rw+mtq",
      "alg": null,
      "feasible": true,
      "failing": {},
-     "objective": 0.0056864365549793875,
+     "objective": 0.005719640134988878,
      "objective_id": "ape_los_p9973",
      "algorithms": {
       "allocation": "rotor_pinv",
@@ -587,26 +599,27 @@
       "mtq_pointing": "mtq_pd",
       "pointing": "pid",
       "sun_acquisition": "sunspin_l1l2",
-      "thrusters": "rcs_pwm"
+      "thrusters": ""
      },
      "metrics": {
-      "ape_los_p9973": 0.0056864365549793875,
-      "ake_los_p9973": 0.0032226906299085973,
-      "rate_stability_p9973": 0.002554574254578477,
-      "jitter": null,
-      "momentum_peak": 0.0008877458650159441,
-      "power_mean": 0.9331092390736162,
-      "power_peak": 2.0394799422430863,
-      "propellant": 0.09738977875777086
+      "ape_los_p9973": 0.005719640134988878,
+      "ake_los_p9973": 0.003365625961092227,
+      "rate_stability_p9973": 0.0025633053750607464,
+      "jitter": 0.2836716139174123,
+      "momentum_peak": 0.000861032502574503,
+      "power_mean": 0.9176259005985279,
+      "power_peak": 1.0961565366473176,
+      "propellant": 0.0
      }
     }
    },
    "budget": {
-    "mass_kg": 1.1615086895164195,
-    "power_W": 3.7102378229342308,
-    "volume_L": 0.9079239721245054
+    "mass_kg": 1.1669378289462338,
+    "power_W": 3.757821087057786,
+    "volume_L": 0.9116215920530891
    },
    "product": "SZ-ais_img_3u-mtq_rw_rcs",
+   "fault_gaps": [],
    "rank": 2
   },
   "mtq_cmg": {
@@ -626,7 +639,7 @@
      "alg": null,
      "feasible": true,
      "failing": {},
-     "objective": 58.906666666666666,
+     "objective": 58.59,
      "objective_id": "detumble_time",
      "algorithms": {
       "allocation": "",
@@ -638,9 +651,9 @@
       "thrusters": ""
      },
      "metrics": {
-      "detumble_time": 58.906666666666666,
-      "power_mean": 0.027723642246722666,
-      "power_peak": 0.21809270611756887,
+      "detumble_time": 58.59,
+      "power_mean": 0.02752485708623686,
+      "power_peak": 0.3024658218934124,
       "propellant": 0.0
      }
     },
@@ -664,9 +677,9 @@
      },
      "metrics": {
       "sun_acquisition_time": 2.275,
-      "sun_angle_p95": 0.17653046141967488,
-      "power_mean": 4.0101013537719234,
-      "power_peak": 4.04402110406845,
+      "sun_angle_p95": 0.17507716171658486,
+      "power_mean": 4.010103526924758,
+      "power_peak": 4.044088604834949,
       "propellant": 0.0
      }
     },
@@ -677,7 +690,7 @@
      "failing": {
       "power_mean": "power"
      },
-     "objective": 0.15687809586319623,
+     "objective": 0.15695952948947484,
      "objective_id": "sun_ape_p9973",
      "algorithms": {
       "allocation": "cmg_sr",
@@ -689,14 +702,14 @@
       "thrusters": ""
      },
      "metrics": {
-      "sun_ape_p9973": 0.15687809586319623,
-      "ape_3ax_p9973": 0.3802556691154841,
-      "ake_3ax_p9973": 0.3823685011701214,
-      "rate_stability_p9973": 0.004812876355961106,
-      "jitter": null,
+      "sun_ape_p9973": 0.15695952948947484,
+      "ape_3ax_p9973": 0.378133310243167,
+      "ake_3ax_p9973": 0.3802136657115892,
+      "rate_stability_p9973": 0.004806938610674616,
+      "jitter": 1.6483523420770514,
       "momentum_peak": 0.01,
-      "power_mean": 4.009847989725783,
-      "power_peak": 4.032142434845488,
+      "power_mean": 4.009848046379622,
+      "power_peak": 4.031980538711427,
       "propellant": 0.0
      }
     },
@@ -707,7 +720,7 @@
      "failing": {
       "power_mean": "power"
      },
-     "objective": 0.00556498877708793,
+     "objective": 0.005534232165974268,
      "objective_id": "ape_los_p9973",
      "algorithms": {
       "allocation": "cmg_sr",
@@ -719,23 +732,24 @@
       "thrusters": ""
      },
      "metrics": {
-      "ape_los_p9973": 0.00556498877708793,
-      "ake_los_p9973": 0.0032082086118804995,
-      "rate_stability_p9973": 0.0025152988882139837,
-      "jitter": null,
+      "ape_los_p9973": 0.005534232165974268,
+      "ake_los_p9973": 0.0033636835385139475,
+      "rate_stability_p9973": 0.0025221433583001726,
+      "jitter": 1.6483523420770514,
       "momentum_peak": 0.01,
-      "power_mean": 4.009647024990369,
-      "power_peak": 4.03202180943072,
+      "power_mean": 4.009645874886806,
+      "power_peak": 4.031919651769207,
       "propellant": 0.0
      }
     }
    },
    "budget": {
-    "mass_kg": 1.7160237822934232,
-    "power_W": 6.760237822934229,
-    "volume_L": 0.8064095129173693
+    "mass_kg": 1.7207821087057789,
+    "power_W": 6.8078210870577855,
+    "volume_L": 0.8083128434823115
    },
-   "product": "SZ-ais_img_3u-mtq_cmg"
+   "product": "SZ-ais_img_3u-mtq_cmg",
+   "fault_gaps": []
   },
   "mtq_cmg_rcs": {
    "role": "benchmark",
@@ -746,7 +760,7 @@
     "sun_acquisition: power_mean (power)",
     "sun_referencing: power_mean (power)",
     "nadir_pointing: power_mean (power)",
-    "budget: mass_kg 2.18 > 1.6",
+    "budget: mass_kg 2.19 > 1.6",
     "budget: volume_L 1.65 > 1"
    ],
    "modes": {
@@ -768,9 +782,9 @@
      },
      "metrics": {
       "detumble_time": 1.125,
-      "power_mean": 0.00905926530443904,
+      "power_mean": 0.009024392238320255,
       "power_peak": 3.0,
-      "propellant": 0.09166012821518932
+      "propellant": 0.09158931979882987
      }
     },
     "sun_acquisition": {
@@ -793,20 +807,20 @@
      },
      "metrics": {
       "sun_acquisition_time": 2.275,
-      "sun_angle_p95": 0.17653046141967488,
-      "power_mean": 4.0101013537719234,
-      "power_peak": 4.04402110406845,
+      "sun_angle_p95": 0.17507716171658486,
+      "power_mean": 4.010103526924758,
+      "power_peak": 4.044088604834949,
       "propellant": 0.0
      }
     },
     "sun_referencing": {
-     "option": "cmg+rcs",
+     "option": "cmg+mtq",
      "alg": null,
      "feasible": false,
      "failing": {
       "power_mean": "power"
      },
-     "objective": 0.15686711099031916,
+     "objective": 0.15695952948947484,
      "objective_id": "sun_ape_p9973",
      "algorithms": {
       "allocation": "cmg_sr",
@@ -815,28 +829,28 @@
       "mtq_pointing": "mtq_pd",
       "pointing": "pid",
       "sun_acquisition": "sunspin_l1l2",
-      "thrusters": "rcs_pwm"
+      "thrusters": ""
      },
      "metrics": {
-      "sun_ape_p9973": 0.15686711099031916,
-      "ape_3ax_p9973": 0.38009144179396914,
-      "ake_3ax_p9973": 0.382196778346822,
-      "rate_stability_p9973": 0.004803622697653929,
-      "jitter": null,
+      "sun_ape_p9973": 0.15695952948947484,
+      "ape_3ax_p9973": 0.378133310243167,
+      "ake_3ax_p9973": 0.3802136657115892,
+      "rate_stability_p9973": 0.004806938610674616,
+      "jitter": 1.6483523420770514,
       "momentum_peak": 0.01,
-      "power_mean": 4.008885800810978,
-      "power_peak": 4.0092366466249025,
+      "power_mean": 4.009848046379622,
+      "power_peak": 4.031980538711427,
       "propellant": 0.0
      }
     },
     "nadir_pointing": {
-     "option": "cmg+rcs",
+     "option": "cmg+mtq",
      "alg": null,
      "feasible": false,
      "failing": {
       "power_mean": "power"
      },
-     "objective": 0.00556327385515411,
+     "objective": 0.005534232165974268,
      "objective_id": "ape_los_p9973",
      "algorithms": {
       "allocation": "cmg_sr",
@@ -845,26 +859,27 @@
       "mtq_pointing": "mtq_pd",
       "pointing": "pid",
       "sun_acquisition": "sunspin_l1l2",
-      "thrusters": "rcs_pwm"
+      "thrusters": ""
      },
      "metrics": {
-      "ape_los_p9973": 0.00556327385515411,
-      "ake_los_p9973": 0.003213117879694206,
-      "rate_stability_p9973": 0.0025103238811852125,
-      "jitter": null,
+      "ape_los_p9973": 0.005534232165974268,
+      "ake_los_p9973": 0.0033636835385139475,
+      "rate_stability_p9973": 0.0025221433583001726,
+      "jitter": 1.6483523420770514,
       "momentum_peak": 0.01,
-      "power_mean": 4.008885800810978,
-      "power_peak": 4.0092366466249025,
+      "power_mean": 4.009645874886806,
+      "power_peak": 4.031919651769207,
       "propellant": 0.0
      }
     }
    },
    "budget": {
-    "mass_kg": 2.1815086895164186,
-    "power_W": 6.810237822934229,
-    "volume_L": 1.6467719721245055
+    "mass_kg": 2.1869378289462333,
+    "power_W": 6.857821087057785,
+    "volume_L": 1.6504695920530892
    },
-   "product": "SZ-ais_img_3u-mtq_cmg_rcs"
+   "product": "SZ-ais_img_3u-mtq_cmg_rcs",
+   "fault_gaps": []
   },
   "mtq_vscmg": {
    "role": "benchmark",
@@ -883,7 +898,7 @@
      "alg": null,
      "feasible": true,
      "failing": {},
-     "objective": 58.906666666666666,
+     "objective": 58.59,
      "objective_id": "detumble_time",
      "algorithms": {
       "allocation": "",
@@ -895,9 +910,9 @@
       "thrusters": ""
      },
      "metrics": {
-      "detumble_time": 58.906666666666666,
-      "power_mean": 0.027723642246722666,
-      "power_peak": 0.21809270611756887,
+      "detumble_time": 58.59,
+      "power_mean": 0.02752485708623686,
+      "power_peak": 0.3024658218934124,
       "propellant": 0.0
      }
     },
@@ -921,9 +936,9 @@
      },
      "metrics": {
       "sun_acquisition_time": 2.341666666666667,
-      "sun_angle_p95": 0.9319631626752659,
-      "power_mean": 4.011283589848935,
-      "power_peak": 4.046969633768133,
+      "sun_angle_p95": 0.9313692074321194,
+      "power_mean": 4.011285725915833,
+      "power_peak": 4.046999168257111,
       "propellant": 0.0
      }
     },
@@ -934,7 +949,7 @@
      "failing": {
       "power_mean": "power"
      },
-     "objective": 0.15709056328447815,
+     "objective": 0.15714255562394652,
      "objective_id": "sun_ape_p9973",
      "algorithms": {
       "allocation": "vscmg_sr",
@@ -946,14 +961,14 @@
       "thrusters": ""
      },
      "metrics": {
-      "sun_ape_p9973": 0.15709056328447815,
-      "ape_3ax_p9973": 0.38021369061550864,
-      "ake_3ax_p9973": 0.38237896840500923,
-      "rate_stability_p9973": 0.0047832088478755985,
-      "jitter": null,
-      "momentum_peak": 0.005638861011334878,
-      "power_mean": 4.011626401491746,
-      "power_peak": 4.275214317142075,
+      "sun_ape_p9973": 0.15714255562394652,
+      "ape_3ax_p9973": 0.3783181749817408,
+      "ake_3ax_p9973": 0.38040472120606195,
+      "rate_stability_p9973": 0.004775653799553986,
+      "jitter": 1.6483523420770518,
+      "momentum_peak": 0.005639002448861527,
+      "power_mean": 4.011629040157631,
+      "power_peak": 4.275254337637032,
       "propellant": 0.0
      }
     },
@@ -964,7 +979,7 @@
      "failing": {
       "power_mean": "power"
      },
-     "objective": 0.005977170214724661,
+     "objective": 0.005972416576425632,
      "objective_id": "ape_los_p9973",
      "algorithms": {
       "allocation": "vscmg_sr",
@@ -976,23 +991,24 @@
       "thrusters": ""
      },
      "metrics": {
-      "ape_los_p9973": 0.005977170214724661,
-      "ake_los_p9973": 0.0032186265476353212,
-      "rate_stability_p9973": 0.0025822649071111287,
-      "jitter": null,
-      "momentum_peak": 0.005690530048087323,
-      "power_mean": 4.011202780879658,
-      "power_peak": 4.3095483916844,
+      "ape_los_p9973": 0.005972416576425632,
+      "ake_los_p9973": 0.003363054166243144,
+      "rate_stability_p9973": 0.002573858920348261,
+      "jitter": 1.6483523420770518,
+      "momentum_peak": 0.0056916568736233505,
+      "power_mean": 4.011202866959416,
+      "power_peak": 4.309809162988598,
       "propellant": 0.0
      }
     }
    },
    "budget": {
-    "mass_kg": 1.7160237822934232,
-    "power_W": 6.760237822934229,
-    "volume_L": 0.8064095129173693
+    "mass_kg": 1.7207821087057789,
+    "power_W": 6.8078210870577855,
+    "volume_L": 0.8083128434823115
    },
-   "product": "SZ-ais_img_3u-mtq_vscmg"
+   "product": "SZ-ais_img_3u-mtq_vscmg",
+   "fault_gaps": []
   },
   "mtq_vscmg_rcs": {
    "role": "benchmark",
@@ -1003,7 +1019,7 @@
     "sun_acquisition: power_mean (power)",
     "sun_referencing: power_mean (power)",
     "nadir_pointing: power_mean (power)",
-    "budget: mass_kg 2.18 > 1.6",
+    "budget: mass_kg 2.19 > 1.6",
     "budget: volume_L 1.65 > 1"
    ],
    "modes": {
@@ -1025,9 +1041,9 @@
      },
      "metrics": {
       "detumble_time": 1.125,
-      "power_mean": 0.00905926530443904,
+      "power_mean": 0.009024392238320255,
       "power_peak": 3.0,
-      "propellant": 0.09166012821518932
+      "propellant": 0.09158931979882987
      }
     },
     "sun_acquisition": {
@@ -1050,20 +1066,20 @@
      },
      "metrics": {
       "sun_acquisition_time": 2.341666666666667,
-      "sun_angle_p95": 0.9319631626752659,
-      "power_mean": 4.011283589848935,
-      "power_peak": 4.046969633768133,
+      "sun_angle_p95": 0.9313692074321194,
+      "power_mean": 4.011285725915833,
+      "power_peak": 4.046999168257111,
       "propellant": 0.0
      }
     },
     "sun_referencing": {
-     "option": "vscmg+rcs",
+     "option": "vscmg+mtq",
      "alg": null,
      "feasible": false,
      "failing": {
       "power_mean": "power"
      },
-     "objective": 0.15702526972586167,
+     "objective": 0.15714255562394652,
      "objective_id": "sun_ape_p9973",
      "algorithms": {
       "allocation": "vscmg_sr",
@@ -1072,18 +1088,18 @@
       "mtq_pointing": "mtq_pd",
       "pointing": "pid",
       "sun_acquisition": "sunspin_l1l2",
-      "thrusters": "rcs_pwm"
+      "thrusters": ""
      },
      "metrics": {
-      "sun_ape_p9973": 0.15702526972586167,
-      "ape_3ax_p9973": 0.3802147472457026,
-      "ake_3ax_p9973": 0.38238740434276425,
-      "rate_stability_p9973": 0.004798030184363737,
-      "jitter": null,
-      "momentum_peak": 0.0056484392507706385,
-      "power_mean": 4.012526855136139,
-      "power_peak": 4.8650899880576794,
-      "propellant": 0.0009598864644901285
+      "sun_ape_p9973": 0.15714255562394652,
+      "ape_3ax_p9973": 0.3783181749817408,
+      "ake_3ax_p9973": 0.38040472120606195,
+      "rate_stability_p9973": 0.004775653799553986,
+      "jitter": 1.6483523420770518,
+      "momentum_peak": 0.005639002448861527,
+      "power_mean": 4.011629040157631,
+      "power_peak": 4.275254337637032,
+      "propellant": 0.0
      }
     },
     "nadir_pointing": {
@@ -1093,7 +1109,7 @@
      "failing": {
       "power_mean": "power"
      },
-     "objective": 0.005977170214724661,
+     "objective": 0.005972416576425632,
      "objective_id": "ape_los_p9973",
      "algorithms": {
       "allocation": "vscmg_sr",
@@ -1105,23 +1121,24 @@
       "thrusters": ""
      },
      "metrics": {
-      "ape_los_p9973": 0.005977170214724661,
-      "ake_los_p9973": 0.0032186265476353212,
-      "rate_stability_p9973": 0.0025822649071111287,
-      "jitter": null,
-      "momentum_peak": 0.005690530048087323,
-      "power_mean": 4.011202780879658,
-      "power_peak": 4.3095483916844,
+      "ape_los_p9973": 0.005972416576425632,
+      "ake_los_p9973": 0.003363054166243144,
+      "rate_stability_p9973": 0.002573858920348261,
+      "jitter": 1.6483523420770518,
+      "momentum_peak": 0.0056916568736233505,
+      "power_mean": 4.011202866959416,
+      "power_peak": 4.309809162988598,
       "propellant": 0.0
      }
     }
    },
    "budget": {
-    "mass_kg": 2.1815086895164186,
-    "power_W": 6.810237822934229,
-    "volume_L": 1.6467719721245055
+    "mass_kg": 2.1869378289462333,
+    "power_W": 6.857821087057785,
+    "volume_L": 1.6504695920530892
    },
-   "product": "SZ-ais_img_3u-mtq_vscmg_rcs"
+   "product": "SZ-ais_img_3u-mtq_vscmg_rcs",
+   "fault_gaps": []
   }
  },
  "converged": true,
@@ -1131,7 +1148,7 @@
    "mtqp": 1.0
   },
   "gyro_grade": 1.0,
-  "fmr_flow_sigma": 0.0005,
+  "fmr_flow_sigma": 0.000125,
   "st_heads": 1
  },
  "class": "fine",
@@ -1153,49 +1170,49 @@
    "sun"
   ],
   "tau_peak": [
-   3.940266186704832e-07,
-   3.763668479113002e-07,
-   4.2414730041634956e-07,
-   4.366858055513581e-07
+   4.4248830836181636e-07,
+   4.441323065282136e-07,
+   4.3221183331949935e-07,
+   4.6888221818267933e-07
   ],
   "h_cyclic": [
-   0.0006469304559395457,
-   0.0006801437564070488,
-   0.0007591331639574841,
-   0.00035176705546179933
+   0.0007064968826484831,
+   0.0007191882220122559,
+   0.0008011582674684177,
+   0.000436692675711792
   ],
   "h_secular_orbit": [
-   9.181754005914163e-05,
-   0.00011660029140561905,
-   6.929293607349714e-05,
-   0.000622259340549614
+   0.00038080248641347153,
+   0.00024659348531763317,
+   0.00028092799857452124,
+   0.0006236740179952858
   ],
   "tau_axis_peak": [
    [
-    1.417547024954897e-07,
-    2.514815641096959e-07,
-    3.130970370343361e-07,
-    3.0286177974751255e-07
+    2.3740579534406957e-07,
+    3.1583905079816407e-07,
+    3.1299153243051344e-07,
+    3.9668818371541913e-07
    ],
    [
-    2.514769113934323e-07,
-    1.8555217164783492e-07,
-    3.054853983289812e-07,
-    3.612826860181959e-07
+    3.1559981875323863e-07,
+    2.0203227263355288e-07,
+    3.507892163399151e-07,
+    3.615846084824761e-07
    ],
    [
-    3.041855189614687e-07,
-    3.050714560727206e-07,
-    1.494339405202061e-07,
-    3.4794710388307776e-07
+    3.193301646049315e-07,
+    3.4337875716973517e-07,
+    2.0183071653947415e-07,
+    3.694910048890383e-07
    ]
   ],
-  "tau_dist": 4.366858055513581e-07,
+  "tau_dist": 4.6888221818267933e-07,
   "worst_attitude": "sun",
-  "h_dist": 0.0007764563979758585,
-  "h_secular": 0.000622259340549614,
-  "B_min": 2.361788757122297e-05,
-  "B_mean": 3.5795692476422855e-05,
+  "h_dist": 0.000871390267112048,
+  "h_secular": 0.0006236740179952858,
+  "B_min": 1.80494568600655e-05,
+  "B_mean": 3.583568366052168e-05,
   "eclipse_frac": 0.3606271777003484,
   "w0_deg_s": 10.0,
   "J": [
@@ -1214,23 +1231,171 @@
   "slews_per_day": 10.0,
   "k_h": 2.0,
   "k_tau": 1.5,
-  "h_req": 0.001552912795951717,
+  "h_req": 0.001742780534224096,
   "tau_req": 5.7572692339687917e-05,
   "req": {
    "ake": 0.005,
    "ape": 0.01,
    "detumble": 284.0,
+   "malloc": null,
    "mass": 1.6,
+   "palloc": null,
    "pavg": 2.0,
    "ppk": 4.0,
    "rks": 0.005,
    "sunacq": 95.0,
+   "valloc": null,
    "vol": 1.0
   },
   "notes": [
+   "req.dump blank: a quarter orbit of secular momentum held between dumps taken",
    "mission.life blank: 3 years taken"
   ],
-  "class": "fine"
+  "class": "fine",
+  "body_class": "cubesat_3u",
+  "box_m": [
+   0.34,
+   0.1,
+   0.1
+  ],
+  "survey_sweep": [
+   {
+    "epoch_days": 0.0,
+    "f107": 65.0,
+    "tau_peak": [
+     3.946147396035563e-07,
+     3.7601638436520324e-07,
+     4.223210083623305e-07,
+     4.3597069362873226e-07
+    ],
+    "h_secular_orbit": [
+     0.00010463574879029339,
+     0.00010684080070446778,
+     6.77795817914141e-05,
+     0.0006224021520518955
+    ],
+    "eclipse_frac": 0.3606271777003484
+   },
+   {
+    "epoch_days": 0.0,
+    "f107": 250.0,
+    "tau_peak": [
+     3.9153862448073546e-07,
+     3.793285116044178e-07,
+     4.3221183331949935e-07,
+     4.4397562122928624e-07
+    ],
+    "h_secular_orbit": [
+     0.0001681807129275898,
+     0.00016851319459311687,
+     0.00010786965670953397,
+     0.0006216526458956978
+    ],
+    "eclipse_frac": 0.3606271777003484
+   },
+   {
+    "epoch_days": 91.3,
+    "f107": 65.0,
+    "tau_peak": [
+     4.229820627582857e-07,
+     4.441323065282136e-07,
+     4.218970390520881e-07,
+     4.5066632814701873e-07
+    ],
+    "h_secular_orbit": [
+     0.00012606214295452222,
+     0.00014219004465001152,
+     0.000185870983320184,
+     0.0004119233479893175
+    ],
+    "eclipse_frac": 0.3519163763066202
+   },
+   {
+    "epoch_days": 91.3,
+    "f107": 250.0,
+    "tau_peak": [
+     4.4248830836181636e-07,
+     4.3581228841308703e-07,
+     4.289197848832785e-07,
+     4.5771797521244614e-07
+    ],
+    "h_secular_orbit": [
+     0.00038080248641347153,
+     0.00016143166280422355,
+     0.00015122371874340168,
+     0.0004297083687758613
+    ],
+    "eclipse_frac": 0.3519163763066202
+   },
+   {
+    "epoch_days": 182.6,
+    "f107": 65.0,
+    "tau_peak": [
+     4.1974470335457565e-07,
+     4.0586622885929814e-07,
+     4.041622318746209e-07,
+     4.111571931575876e-07
+    ],
+    "h_secular_orbit": [
+     0.00025920255137804033,
+     0.00024659348531763317,
+     0.00028092799857452124,
+     0.00034181815410469664
+    ],
+    "eclipse_frac": 0.3501742160278746
+   },
+   {
+    "epoch_days": 182.6,
+    "f107": 250.0,
+    "tau_peak": [
+     4.263026768545474e-07,
+     4.0241515195280874e-07,
+     3.988810008681799e-07,
+     4.4474918836901374e-07
+    ],
+    "h_secular_orbit": [
+     0.0003576515859737039,
+     0.0002271745886349668,
+     0.0002556393638493039,
+     0.0003728314751719089
+    ],
+    "eclipse_frac": 0.3501742160278746
+   },
+   {
+    "epoch_days": 273.9,
+    "f107": 65.0,
+    "tau_peak": [
+     3.823896538189868e-07,
+     4.084552835537312e-07,
+     4.281740162050447e-07,
+     4.440564945481535e-07
+    ],
+    "h_secular_orbit": [
+     8.418441941648313e-05,
+     8.8801265236538e-05,
+     6.88200698048544e-05,
+     0.000621465210987584
+    ],
+    "eclipse_frac": 0.35365853658536583
+   },
+   {
+    "epoch_days": 273.9,
+    "f107": 250.0,
+    "tau_peak": [
+     3.7918725097913983e-07,
+     4.163276145096093e-07,
+     4.2808136921668013e-07,
+     4.6888221818267933e-07
+    ],
+    "h_secular_orbit": [
+     0.00024312973104993776,
+     0.00017521073941698234,
+     0.00010513213303939638,
+     0.0006236740179952858
+    ],
+    "eclipse_frac": 0.35365853658536583
+   }
+  ]
  },
  "robustness": []
 }

@@ -87,7 +87,7 @@
  ],
  "mtq_period": 1.0,
  "mtq_meas": 0.2,
- "m_max": 0.08011891146711529,
+ "m_max": 0.10391054352889326,
  "bdot_k": 8.763791486082992e-05,
  "detumble_exit": 0.008726646259971648,
  "detumble_hold_s": 60.0,
@@ -447,5 +447,6 @@
  "mekf_sig_sun": 0.00920271699010678,
  "mekf_meas_scale": 1.0,
  "rate_lpf_s": 0.3,
- "igrf_nmax": 10
+ "igrf_nmax": 10,
+ "gps_latency": 0.1
 }

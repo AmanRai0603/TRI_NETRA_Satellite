@@ -5,12 +5,13 @@
   "gaps": [
    "sun_acquisition: sun_acquisition_time (performance), sun_angle_p95 (performance)",
    "sun_referencing: sun_ape_p9973 (performance)",
-   "nadir_pointing: ape_los_p9973 (performance), rate_stability_p9973 (performance)"
+   "nadir_pointing: ape_los_p9973 (performance), ake_los_p9973 (knowledge), rate_stability_p9973 (performance)"
   ],
+  "fault_gaps": [],
   "budget": {
-   "mass_kg": 0.5295833946526824,
-   "power_W": 2.895833946526825,
-   "volume_L": 0.01183335786107298
+   "mass_kg": 0.5415642174115574,
+   "power_W": 3.015642174115573,
+   "volume_L": 0.01662568696462292
   },
   "methods": {
    "detumble": "mtq",
@@ -31,7 +32,7 @@
     {
      "id": "detumble_time",
      "kind": "time_to_rate",
-     "value": 59.99,
+     "value": 59.59,
      "unit": "min",
      "req": 284.0,
      "req_key": "req.detumble",
@@ -40,7 +41,7 @@
     {
      "id": "ape_los_p9973",
      "kind": "ape_los",
-     "value": 23.335909511313556,
+     "value": 15.148816587088724,
      "unit": "deg",
      "req": 0.01,
      "req_key": "req.ape",
@@ -49,16 +50,16 @@
     {
      "id": "ake_los_p9973",
      "kind": "ake_los",
-     "value": 0.016753824432534384,
+     "value": 0.002918295239140803,
      "unit": "deg",
      "req": 0.005,
      "req_key": "req.ake",
-     "pass": 0
+     "pass": 1
     },
     {
      "id": "power_mean",
      "kind": "power_mean",
-     "value": 0.0592041350958999,
+     "value": 0.07229382113895928,
      "unit": "W",
      "req": 2.0,
      "req_key": "req.pavg",
@@ -67,7 +68,7 @@
     {
      "id": "power_peak",
      "kind": "power_peak",
-     "value": 0.23141021438473303,
+     "value": 0.3188772629300953,
      "unit": "W",
      "req": null,
      "req_key": "",
@@ -87,7 +88,7 @@
     {
      "id": "detumble_time",
      "kind": "time_to_rate",
-     "value": 59.99,
+     "value": 59.59,
      "unit": "min",
      "req": 284.0,
      "req_key": "req.detumble",
@@ -96,7 +97,7 @@
     {
      "id": "ape_los_p9973",
      "kind": "ape_los",
-     "value": 23.335909511313556,
+     "value": 15.148816587088724,
      "unit": "deg",
      "req": 0.01,
      "req_key": "req.ape",
@@ -105,16 +106,16 @@
     {
      "id": "ake_los_p9973",
      "kind": "ake_los",
-     "value": 0.016753824432534384,
+     "value": 0.002918295239140803,
      "unit": "deg",
      "req": 0.005,
      "req_key": "req.ake",
-     "pass": 0
+     "pass": 1
     },
     {
      "id": "power_mean",
      "kind": "power_mean",
-     "value": 0.0592041350958999,
+     "value": 0.07229382113895928,
      "unit": "W",
      "req": 2.0,
      "req_key": "req.pavg",
@@ -123,7 +124,7 @@
     {
      "id": "power_peak",
      "kind": "power_peak",
-     "value": 0.23141021438473303,
+     "value": 0.3188772629300953,
      "unit": "W",
      "req": null,
      "req_key": "",
@@ -146,31 +147,103 @@
     "mode": "detumble"
    },
    {
-    "t": 3598.6000000000004,
+    "t": 3574.6000000000004,
     "mode": "spinup"
    },
    {
-    "t": 7020.6,
+    "t": 4092.6000000000004,
     "mode": "sun_spin"
    },
    {
-    "t": 7050.8,
+    "t": 4122.8,
     "mode": "spinup"
    },
    {
-    "t": 9226.800000000001,
+    "t": 4247.8,
     "mode": "sun_spin"
    },
    {
-    "t": 9277.4,
+    "t": 4278.0,
     "mode": "spinup"
    },
    {
-    "t": 9927.6,
+    "t": 4796.8,
     "mode": "sun_spin"
    },
    {
-    "t": 9960.6,
+    "t": 4865.0,
+    "mode": "spinup"
+   },
+   {
+    "t": 5998.6,
+    "mode": "sun_spin"
+   },
+   {
+    "t": 6028.8,
+    "mode": "spinup"
+   },
+   {
+    "t": 6088.8,
+    "mode": "sun_spin"
+   },
+   {
+    "t": 6119.0,
+    "mode": "spinup"
+   },
+   {
+    "t": 6179.0,
+    "mode": "sun_spin"
+   },
+   {
+    "t": 6209.200000000001,
+    "mode": "spinup"
+   },
+   {
+    "t": 6269.200000000001,
+    "mode": "sun_spin"
+   },
+   {
+    "t": 6515.8,
+    "mode": "spinup"
+   },
+   {
+    "t": 6670.200000000001,
+    "mode": "sun_spin"
+   },
+   {
+    "t": 6700.400000000001,
+    "mode": "spinup"
+   },
+   {
+    "t": 6760.400000000001,
+    "mode": "sun_spin"
+   },
+   {
+    "t": 6790.6,
+    "mode": "spinup"
+   },
+   {
+    "t": 7070.200000000001,
+    "mode": "sun_spin"
+   },
+   {
+    "t": 7105.0,
+    "mode": "spinup"
+   },
+   {
+    "t": 9316.0,
+    "mode": "sun_spin"
+   },
+   {
+    "t": 9392.2,
+    "mode": "spinup"
+   },
+   {
+    "t": 9666.6,
+    "mode": "sun_spin"
+   },
+   {
+    "t": 9696.800000000001,
     "mode": "spinup"
    },
    {
@@ -184,50 +257,50 @@
     {
      "id": "detumble_time",
      "req": 284.0,
-     "mean": 57.52472222222223,
-     "std": 10.474472235043331,
-     "min": 41.556666666666665,
-     "max": 72.47333333333334,
+     "mean": 54.03444444444445,
+     "std": 12.563240697965508,
+     "min": 21.89,
+     "max": 68.89000000000001,
      "pass_rate": 1.0,
      "pass": true
     },
     {
      "id": "ape_los_p9973",
      "req": 0.01,
-     "mean": 25.624006209003255,
-     "std": 17.057770112039492,
-     "min": 7.426265142133009,
-     "max": 73.04513942157865,
+     "mean": 77.02811871118286,
+     "std": 30.763984100984793,
+     "min": 30.947641331900176,
+     "max": 135.94963990372497,
      "pass_rate": 0.0,
      "pass": false
     },
     {
      "id": "ake_los_p9973",
      "req": 0.005,
-     "mean": 0.054095061940386456,
-     "std": 0.0696756860307907,
-     "min": 0.0027689894583266014,
-     "max": 0.181298814587676,
-     "pass_rate": 0.4166666666666667,
+     "mean": 0.1323758500091546,
+     "std": 0.29013294477363644,
+     "min": 0.0028827551802220303,
+     "max": 1.0361863273947858,
+     "pass_rate": 0.3333333333333333,
      "pass": false
     },
     {
      "id": "power_mean",
      "req": 2.0,
-     "mean": 0.053156404597955155,
-     "std": 0.00698067251271247,
-     "min": 0.039064011690096746,
-     "max": 0.06097947804565141,
+     "mean": 0.07342196062112927,
+     "std": 0.005435793733328512,
+     "min": 0.06267790152775618,
+     "max": 0.08420873838424478,
      "pass_rate": 1.0,
      "pass": true
     },
     {
      "id": "power_peak",
      "req": null,
-     "mean": 0.22557505197486527,
-     "std": 0.004386746094033039,
-     "min": 0.21768341814768402,
-     "max": 0.23143790151210758,
+     "mean": 0.31632645769135087,
+     "std": 0.005598061097530119,
+     "min": 0.3040027097933069,
+     "max": 0.32529461979238994,
      "pass_rate": null,
      "pass": null
     },
@@ -246,12 +319,17 @@
  },
  "mtq_fmr": {
   "selected": true,
-  "feasible": true,
-  "gaps": [],
+  "feasible": false,
+  "gaps": [
+   "fault: rotor_fail: ape_los_p9973, ake_los_p9973"
+  ],
+  "fault_gaps": [
+   "fault: rotor_fail: ape_los_p9973, ake_los_p9973"
+  ],
   "budget": {
-   "mass_kg": 1.4273053015176518,
-   "power_W": 5.876667070052895,
-   "volume_L": 0.5344095129173693
+   "mass_kg": 1.4320636279300074,
+   "power_W": 5.924250334176452,
+   "volume_L": 0.5363128434823115
   },
   "methods": {
    "detumble": "mtq",
@@ -271,7 +349,7 @@
     {
      "id": "detumble_time",
      "kind": "time_to_rate",
-     "value": 81.20833333333333,
+     "value": 73.74166666666666,
      "unit": "min",
      "req": 284.0,
      "req_key": "req.detumble",
@@ -280,7 +358,7 @@
     {
      "id": "ape_los_p9973",
      "kind": "ape_los",
-     "value": 0.004248978317906361,
+     "value": 0.004029338118804035,
      "unit": "deg",
      "req": 0.01,
      "req_key": "req.ape",
@@ -289,7 +367,7 @@
     {
      "id": "ake_los_p9973",
      "kind": "ake_los",
-     "value": 0.0031574135509882307,
+     "value": 0.003261654689860243,
      "unit": "deg",
      "req": 0.005,
      "req_key": "req.ake",
@@ -298,7 +376,7 @@
     {
      "id": "power_mean",
      "kind": "power_mean",
-     "value": 0.933599022378897,
+     "value": 0.8018623411820295,
      "unit": "W",
      "req": 2.0,
      "req_key": "req.pavg",
@@ -307,7 +385,7 @@
     {
      "id": "power_peak",
      "kind": "power_peak",
-     "value": 3.2201173804241363,
+     "value": 3.2604740219286135,
      "unit": "W",
      "req": null,
      "req_key": "",
@@ -327,7 +405,7 @@
     {
      "id": "detumble_time",
      "kind": "time_to_rate",
-     "value": 81.20833333333333,
+     "value": 73.74166666666666,
      "unit": "min",
      "req": 284.0,
      "req_key": "req.detumble",
@@ -336,7 +414,7 @@
     {
      "id": "ape_los_p9973",
      "kind": "ape_los",
-     "value": 0.004248978317906361,
+     "value": 0.004029338118804035,
      "unit": "deg",
      "req": 0.01,
      "req_key": "req.ape",
@@ -345,7 +423,7 @@
     {
      "id": "ake_los_p9973",
      "kind": "ake_los",
-     "value": 0.0031574135509882307,
+     "value": 0.003261654689860243,
      "unit": "deg",
      "req": 0.005,
      "req_key": "req.ake",
@@ -354,7 +432,7 @@
     {
      "id": "power_mean",
      "kind": "power_mean",
-     "value": 0.933599022378897,
+     "value": 0.8018623411820295,
      "unit": "W",
      "req": 2.0,
      "req_key": "req.pavg",
@@ -363,7 +441,7 @@
     {
      "id": "power_peak",
      "kind": "power_peak",
-     "value": 3.2201173804241363,
+     "value": 3.2604740219286135,
      "unit": "W",
      "req": null,
      "req_key": "",
@@ -386,7 +464,7 @@
     "mode": "detumble"
    },
    {
-    "t": 4872.1,
+    "t": 4423.6,
     "mode": "sun_acq_rotor"
    },
    {
@@ -400,50 +478,50 @@
     {
      "id": "detumble_time",
      "req": 284.0,
-     "mean": 72.61805555555556,
-     "std": 14.630301781537359,
-     "min": 42.958333333333336,
-     "max": 90.175,
+     "mean": 61.862500000000004,
+     "std": 14.394720772252274,
+     "min": 22.808333333333334,
+     "max": 79.89166666666667,
      "pass_rate": 1.0,
      "pass": true
     },
     {
      "id": "ape_los_p9973",
      "req": 0.01,
-     "mean": 0.004304175797992188,
-     "std": 0.0003874876168548053,
-     "min": 0.003872050144958791,
-     "max": 0.005259384260547966,
+     "mean": 0.004067343896601607,
+     "std": 0.0004909435631817443,
+     "min": 0.0035257516966183205,
+     "max": 0.005512374854543514,
      "pass_rate": 1.0,
      "pass": true
     },
     {
      "id": "ake_los_p9973",
      "req": 0.005,
-     "mean": 0.003295917299812009,
-     "std": 0.00044927513733129576,
-     "min": 0.0027656466987351323,
-     "max": 0.004499645266670305,
+     "mean": 0.0032699089216773683,
+     "std": 0.0005274313574430736,
+     "min": 0.0026723717947501977,
+     "max": 0.004831807625993084,
      "pass_rate": 1.0,
      "pass": true
     },
     {
      "id": "power_mean",
      "req": 2.0,
-     "mean": 0.8958538318348319,
-     "std": 0.35065236227414515,
-     "min": 0.44244816546953125,
-     "max": 1.6240724942999785,
+     "mean": 1.0993762348943783,
+     "std": 0.5420574500749087,
+     "min": 0.24273031610208196,
+     "max": 1.9049116166226685,
      "pass_rate": 1.0,
      "pass": true
     },
     {
      "id": "power_peak",
      "req": null,
-     "mean": 3.2237735396562317,
-     "std": 0.008738711104438185,
-     "min": 3.213680883239539,
-     "max": 3.237750655028318,
+     "mean": 3.261731401635481,
+     "std": 0.009805059614363537,
+     "min": 3.248120583856117,
+     "max": 3.276707677895728,
      "pass_rate": null,
      "pass": null
     },
@@ -464,13 +542,17 @@
   "selected": false,
   "feasible": false,
   "gaps": [
-   "budget: mass_kg 1.89 > 1.6",
-   "budget: volume_L 1.37 > 1"
+   "budget: mass_kg 1.9 > 1.6",
+   "budget: volume_L 1.38 > 1",
+   "fault: rotor_fail: ape_los_p9973, ake_los_p9973"
+  ],
+  "fault_gaps": [
+   "fault: rotor_fail: ape_los_p9973, ake_los_p9973"
   ],
   "budget": {
-   "mass_kg": 1.892790208740648,
-   "power_W": 5.926667070052896,
-   "volume_L": 1.3747719721245053
+   "mass_kg": 1.8982193481704623,
+   "power_W": 5.974250334176452,
+   "volume_L": 1.3784695920530892
   },
   "methods": {
    "detumble": "rcs",
@@ -489,7 +571,7 @@
     {
      "id": "detumble_time",
      "kind": "time_to_rate",
-     "value": 1.075,
+     "value": 1.0583333333333333,
      "unit": "min",
      "req": 284.0,
      "req_key": "req.detumble",
@@ -498,7 +580,7 @@
     {
      "id": "ape_los_p9973",
      "kind": "ape_los",
-     "value": 0.004241227642079585,
+     "value": 0.004014926378135761,
      "unit": "deg",
      "req": 0.01,
      "req_key": "req.ape",
@@ -507,7 +589,7 @@
     {
      "id": "ake_los_p9973",
      "kind": "ake_los",
-     "value": 0.003154347820242044,
+     "value": 0.003260763758752879,
      "unit": "deg",
      "req": 0.005,
      "req_key": "req.ake",
@@ -516,7 +598,7 @@
     {
      "id": "power_mean",
      "kind": "power_mean",
-     "value": 1.2185311397034646,
+     "value": 1.4953770180717736,
      "unit": "W",
      "req": 2.0,
      "req_key": "req.pavg",
@@ -525,7 +607,7 @@
     {
      "id": "power_peak",
      "kind": "power_peak",
-     "value": 3.885544484928018,
+     "value": 4.393244578266576,
      "unit": "W",
      "req": null,
      "req_key": "",
@@ -534,7 +616,7 @@
     {
      "id": "propellant",
      "kind": "propellant",
-     "value": 0.10013702787408912,
+     "value": 0.10254097323617693,
      "unit": "g",
      "req": null,
      "req_key": "",
@@ -545,7 +627,7 @@
     {
      "id": "detumble_time",
      "kind": "time_to_rate",
-     "value": 1.075,
+     "value": 1.0583333333333333,
      "unit": "min",
      "req": 284.0,
      "req_key": "req.detumble",
@@ -554,7 +636,7 @@
     {
      "id": "ape_los_p9973",
      "kind": "ape_los",
-     "value": 0.004241227642079585,
+     "value": 0.004014926378135761,
      "unit": "deg",
      "req": 0.01,
      "req_key": "req.ape",
@@ -563,7 +645,7 @@
     {
      "id": "ake_los_p9973",
      "kind": "ake_los",
-     "value": 0.003154347820242044,
+     "value": 0.003260763758752879,
      "unit": "deg",
      "req": 0.005,
      "req_key": "req.ake",
@@ -572,7 +654,7 @@
     {
      "id": "power_mean",
      "kind": "power_mean",
-     "value": 1.2185311397034646,
+     "value": 1.4953770180717736,
      "unit": "W",
      "req": 2.0,
      "req_key": "req.pavg",
@@ -581,7 +663,7 @@
     {
      "id": "power_peak",
      "kind": "power_peak",
-     "value": 3.885544484928018,
+     "value": 4.393244578266576,
      "unit": "W",
      "req": null,
      "req_key": "",
@@ -590,7 +672,7 @@
     {
      "id": "propellant",
      "kind": "propellant",
-     "value": 0.10013702787408912,
+     "value": 0.10254097323617693,
      "unit": "g",
      "req": null,
      "req_key": "",
@@ -604,7 +686,7 @@
     "mode": "detumble_rcs"
    },
    {
-    "t": 123.7,
+    "t": 123.0,
     "mode": "sun_acq_rotor"
    },
    {
@@ -618,60 +700,60 @@
     {
      "id": "detumble_time",
      "req": 284.0,
-     "mean": 1.788888888888889,
-     "std": 0.47587417344948335,
-     "min": 0.925,
-     "max": 2.091666666666667,
+     "mean": 1.5958333333333332,
+     "std": 0.49242365967331486,
+     "min": 0.9916666666666667,
+     "max": 2.075,
      "pass_rate": 1.0,
      "pass": true
     },
     {
      "id": "ape_los_p9973",
      "req": 0.01,
-     "mean": 0.004303082321314878,
-     "std": 0.00038986711485852526,
-     "min": 0.0038646440157688177,
-     "max": 0.005265902893487991,
+     "mean": 0.004066260839475548,
+     "std": 0.0004888273990544676,
+     "min": 0.00351926884782139,
+     "max": 0.005505010655460853,
      "pass_rate": 1.0,
      "pass": true
     },
     {
      "id": "ake_los_p9973",
      "req": 0.005,
-     "mean": 0.0032959434936332614,
-     "std": 0.0004488755023388788,
-     "min": 0.0027699588290394962,
-     "max": 0.00449706180541824,
+     "mean": 0.0032707655614345934,
+     "std": 0.0005294428821644196,
+     "min": 0.002668041415342955,
+     "max": 0.00483740779622488,
      "pass_rate": 1.0,
      "pass": true
     },
     {
      "id": "power_mean",
      "req": 2.0,
-     "mean": 1.0257147199423102,
-     "std": 0.41698576382722297,
-     "min": 0.34392920588488246,
-     "max": 1.6752869001956876,
-     "pass_rate": 1.0,
-     "pass": true
+     "mean": 1.5828956450143343,
+     "std": 0.4054115186451976,
+     "min": 0.8189818514548635,
+     "max": 2.1741514237111885,
+     "pass_rate": 0.8333333333333334,
+     "pass": false
     },
     {
      "id": "power_peak",
      "req": null,
-     "mean": 4.031026406586451,
-     "std": 0.3607786409249089,
-     "min": 3.2082189784974062,
-     "max": 4.486053416623932,
+     "mean": 4.11656359701471,
+     "std": 0.29963744180472673,
+     "min": 3.7580239185700886,
+     "max": 4.667406296830883,
      "pass_rate": null,
      "pass": null
     },
     {
      "id": "propellant",
      "req": null,
-     "mean": 0.09447023694076985,
-     "std": 0.019623500779943615,
-     "min": 0.05189743208702066,
-     "max": 0.12699276534910453,
+     "mean": 0.09506478887496343,
+     "std": 0.017483133782777452,
+     "min": 0.06033015661575207,
+     "max": 0.1251219847435362,
      "pass_rate": null,
      "pass": null
     }
