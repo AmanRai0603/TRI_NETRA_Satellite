@@ -208,3 +208,24 @@ fn a_product_beyond_the_engines_capacity_or_missing_a_value_is_refused() {
     std::env::remove_var("ADCS_SIZED_DIR");
     let _ = std::fs::remove_dir_all(&d);
 }
+
+/// The body is the class's (catalogue/classes.toml): a case naming no class, or one not there, is
+/// refused; the surface settings are refused outside [0, 1].
+#[test]
+fn the_body_comes_from_the_class_the_case_names() {
+    let c = Config::build(&root(), "nadir_hold_ais", &case_for("nadir_hold_ais"), 1, &[]).unwrap();
+    assert_eq!(c.box_m, [0.34, 0.10, 0.10]);
+    let text = std::fs::read_to_string(case_for("nadir_hold_ais")).unwrap();
+    for (class, words) in [("", "meta.class is blank"), ("cubesat_9u", "no class in catalogue/classes.toml")] {
+        let f = std::env::temp_dir().join(format!("adcs-class-{}-{}.csv", std::process::id(), class.len()));
+        let edited: String = text.lines().map(|l| if l.starts_with("meta,meta.class,") {
+            let mut x: Vec<String> = l.split(',').map(String::from).collect(); x[4] = class.into(); x.join(",")
+        } else { l.to_string() }).collect::<Vec<_>>().join("\n");
+        std::fs::write(&f, edited).unwrap();
+        let r = Config::build(&root(), "nadir_hold_ais", &f, 1, &[]);
+        let _ = std::fs::remove_file(&f);
+        says(r, words);
+    }
+    let set = [("engine.vb_ratio".to_string(), "1.5".to_string())];
+    says(Config::build(&root(), "nadir_hold_ais", &case_for("nadir_hold_ais"), 1, &set), "engine.vb_ratio");
+}

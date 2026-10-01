@@ -1,0 +1,40 @@
+{
+ "class": [
+  {
+   "box_m": [
+    0.1135,
+    0.1,
+    0.1
+   ],
+   "id": "cubesat_1u",
+   "label": "1U CubeSat"
+  },
+  {
+   "box_m": [
+    0.34,
+    0.1,
+    0.1
+   ],
+   "id": "cubesat_3u",
+   "label": "3U CubeSat"
+  },
+  {
+   "box_m": [
+    0.366,
+    0.2263,
+    0.1
+   ],
+   "id": "cubesat_6u",
+   "label": "6U CubeSat"
+  },
+  {
+   "box_m": [
+    0.366,
+    0.2263,
+    0.2263
+   ],
+   "id": "cubesat_12u",
+   "label": "12U CubeSat"
+  }
+ ]
+}

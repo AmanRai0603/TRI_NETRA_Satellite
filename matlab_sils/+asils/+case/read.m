@@ -14,7 +14,7 @@ function c = read(file)
     need = {'section','key','label','unit','value','lo','hi','level','note'};
     assert(isequal(hdr(1:9), need), 'asils:case:header', ...
         'Case %s: header must be %s', file, strjoin(need, ','));
-    c = struct('file', file, 'id', '', 'title', '', 'v', struct(), 'rows', []);
+    c = struct('file', file, 'id', '', 'title', '', 'class', '', 'v', struct(), 'rows', []);
     rows = struct('key', {}, 'label', {}, 'unit', {}, 'value', {}, 'lo', {}, 'hi', {}, 'level', {}, 'note', {});
     seen = {};
     for i = 2:numel(lines)
@@ -36,6 +36,7 @@ function c = read(file)
                     'Case %s: meta.schema must be adcs-case/1, got %s', file, r.value);
             case 'meta.case_id', c.id = r.value;
             case 'meta.title',   c.title = r.value;
+            case 'meta.class',   c.class = strtrim(r.value);
             otherwise
                 if ~strncmp(r.key, 'meta.', 5)
                     c.v.(strrep(r.key, '.', '_')) = value_(r.value, file, i, r.key);

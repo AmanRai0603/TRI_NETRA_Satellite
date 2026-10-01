@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Export catalogue/{parts,products}/*.toml, scenarios/, campaigns/ and trades/ to matlab_sils/data/*/<id>.json.
+"""Export catalogue/{parts,products}/*.toml, families.toml, classes.toml, scenarios/, campaigns/ and trades/ to matlab_sils/data/.
 
 MATLAB has no TOML reader, so the MATLAB SILS reads JSON (SPEC.md 10.8.2).
 The export is generated, never edited: run this after changing a TOML file.
@@ -25,8 +25,9 @@ def outputs():
             d = tomllib.loads(f.read_text())
             key = d.get("part_number") or d.get("id") or f.stem
             yield f, out / f"{key}.json", json.dumps(d, indent=1, sort_keys=True) + "\n"
-    fam = ROOT / "catalogue" / "families.toml"
-    yield fam, ROOT / "matlab_sils" / "data" / "families.json", json.dumps(tomllib.loads(fam.read_text()), indent=1, sort_keys=True) + "\n"
+    for name in ("families", "classes"):
+        f = ROOT / "catalogue" / f"{name}.toml"
+        yield f, ROOT / "matlab_sils" / "data" / f"{name}.json", json.dumps(tomllib.loads(f.read_text()), indent=1, sort_keys=True) + "\n"
 
 
 def check():

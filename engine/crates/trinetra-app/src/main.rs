@@ -121,14 +121,18 @@ fn main() {
     loop {
         if QUIT.load(Ordering::Relaxed) { std::thread::sleep(Duration::from_millis(300)); return; }
         if now().saturating_sub(LAST_SEEN.load(Ordering::Relaxed)) > limit { return; }
+        // at the cap, nothing more is accepted: the next connection waits in the kernel's queue
+        // until one finishes (only this loop adds to OPEN, so the count cannot overshoot)
+        if OPEN.load(Ordering::Acquire) >= MAX_OPEN { std::thread::sleep(Duration::from_millis(20)); continue; }
         match listener.accept() {
             Ok((s, _)) => {
-                if OPEN.load(Ordering::Relaxed) >= MAX_OPEN { drop(s); continue; }
-                OPEN.fetch_add(1, Ordering::Relaxed);
-                std::thread::spawn(move || {
+                OPEN.fetch_add(1, Ordering::AcqRel);
+                let spawned = std::thread::Builder::new().spawn(move || {
                     let _ = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| http::serve(s, port)));
-                    OPEN.fetch_sub(1, Ordering::Relaxed);
+                    OPEN.fetch_sub(1, Ordering::AcqRel);
                 });
+                // no thread to serve it: the connection is closed and the slot given back
+                if spawned.is_err() { OPEN.fetch_sub(1, Ordering::AcqRel); }
             }
             Err(e) if e.kind() == std::io::ErrorKind::WouldBlock => std::thread::sleep(Duration::from_millis(50)),
             Err(_) => std::thread::sleep(Duration::from_millis(200)),

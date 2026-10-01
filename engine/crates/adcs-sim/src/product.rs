@@ -160,7 +160,7 @@ impl Dev {
                     if let Some(c) = get(f, "calibrated_residual_rad").and_then(|v| v.as_f64()) { s.bias_sigma = c; s.misalign_sigma = 0.0; }
                     d.st = s;
                 }
-                "magnetometer" => d.mag = MagDesc { fitted: true, noise: n("noise_T_rms"), bias_t: n("bias_T"), bias_sigma: sig(&ds, "bias_T"), range: n("range_T"), sf_sigma: sig(&ds, "scale_factor"), misalign: sig(&ds, "axis_misalignment_rad"), k_coil: 5e-6 },
+                "magnetometer" => d.mag = MagDesc { fitted: true, noise: n("noise_T_rms"), bias_t: n("bias_T"), bias_sigma: sig(&ds, "bias_T"), range: n("range_T"), sf_sigma: sig(&ds, "scale_factor"), misalign: sig(&ds, "axis_misalignment_rad"), k_coil: n("coil_coupling_T_per_Am2") },
                 "sun_sensors" => {
                     let a = axes(f.get("normals_body"));
                     let mut s = SunDesc { fitted: true, n: a.len(), noise: n("accuracy_rad"), fov: n("fov_half_angle_rad"), bias_sigma: sig(&ds, "bias_rad"), ..Default::default() };

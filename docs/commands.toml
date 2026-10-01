@@ -262,7 +262,7 @@ usage = "python3 tools/export_catalogue.py [--check]"
 what = "The catalogue, scenarios, campaigns and trades from TOML to the JSON the MATLAB twin and the engine read. --check says which JSON has drifted from its TOML, and changes nothing."
 steps = ["read every TOML source", "write (or, with --check, compare) the JSON"]
 reads = ["catalogue/", "scenarios/", "campaigns/", "trades/"]
-writes = ["matlab_sils/data/*/<id>.json", "matlab_sils/data/families.json"]
+writes = ["matlab_sils/data/*/<id>.json", "matlab_sils/data/families.json", "matlab_sils/data/classes.json"]
 runs = []
 
 [[command]]

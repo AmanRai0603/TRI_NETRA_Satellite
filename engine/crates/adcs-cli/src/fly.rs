@@ -42,7 +42,7 @@ pub fn main(a: &Args) -> Result<(), Error> {
             let case_file = root.join("cases").join(format!("{}.csv", a.scenario));
             if !case_file.is_file() { return Err(Error::refused(format!("no case {}: {} does not exist", a.scenario, case_file.display()))); }
             let knobs = match a.set.iter().find(|(k, _)| k == "knobs") {
-                Some((_, f)) => adcs_design::Knobs::from_json(&adcs_sim::json::read(std::path::Path::new(f))?),
+                Some((_, f)) => adcs_design::Knobs::from_json(&adcs_sim::json::read(std::path::Path::new(f))?)?,
                 None => adcs_design::Knobs::default(),
             };
             let out = a.out.clone().unwrap_or_else(|| adcs_sim::store_root().join("design").join(&a.scenario).join("sized"));

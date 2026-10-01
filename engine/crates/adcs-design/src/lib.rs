@@ -44,17 +44,41 @@ impl Default for Knobs {
     fn default() -> Self { Knobs { scale: BTreeMap::new(), k_h: None, k_tau: 1.5, fmr_lambda: 0.1, star_tracker: false, st_heads: 2, fmr_flow_sigma: 0.002, gyro_grade: 1.0 } }
 }
 impl Knobs {
-    pub fn from_json(v: &Value) -> Knobs {
+    /// The knobs a file states; a key left out keeps its default. A key the sizing does not
+    /// read, or a value of the wrong kind, is refused by name.
+    pub fn from_json(v: &Value) -> Result<Knobs, Error> {
+        const KEYS: [&str; 8] = ["scale", "k_h", "k_tau", "fmr_lambda", "st_heads", "fmr_flow_sigma", "gyro_grade", "star_tracker"];
+        let o = v.as_object().ok_or_else(|| Error::refused("knobs: must be a JSON object"))?;
+        if let Some(k) = o.keys().find(|k| !KEYS.contains(&k.as_str())) {
+            return Err(Error::refused(format!("knobs: {k} is not a knob the sizing reads ({})", KEYS.join(", "))));
+        }
+        let num = |k: &str, lo: f64, hi: f64, d: f64| -> Result<f64, Error> {
+            match o.get(k) {
+                None | Some(Value::Null) => Ok(d),
+                Some(x) => x.as_f64().filter(|x| x.is_finite() && *x >= lo && *x <= hi)
+                    .ok_or_else(|| Error::refused(format!("knobs: {k} = {x} is not a number from {lo} to {hi}"))),
+            }
+        };
         let mut k = Knobs::default();
-        if let Some(o) = v.get("scale").and_then(|x| x.as_object()) { for (a, b) in o { if let Some(x) = b.as_f64() { k.scale.insert(a.clone(), x); } } }
-        k.k_h = v.get("k_h").and_then(|x| x.as_f64());
-        k.k_tau = json::f(v, "k_tau", 1.5);
-        k.fmr_lambda = json::f(v, "fmr_lambda", 0.1);
-        k.st_heads = json::f(v, "st_heads", 2.0) as u8;
-        k.fmr_flow_sigma = json::f(v, "fmr_flow_sigma", 0.002);
-        k.gyro_grade = json::f(v, "gyro_grade", 1.0);
-        k.star_tracker = json::b(v, "star_tracker", false);
-        k
+        if let Some(s) = o.get("scale") {
+            let m = s.as_object().ok_or_else(|| Error::refused("knobs: scale must be an object of part kind -> factor"))?;
+            for (a, b) in m {
+                let x = b.as_f64().filter(|x| x.is_finite() && *x > 0.0).ok_or_else(|| Error::refused(format!("knobs: scale.{a} = {b} is not a positive factor")))?;
+                k.scale.insert(a.clone(), x);
+            }
+        }
+        k.k_h = match o.get("k_h") { None | Some(Value::Null) => None, Some(_) => Some(num("k_h", 0.0, 100.0, 0.0)?) };
+        k.k_tau = num("k_tau", 0.0, 100.0, 1.5)?;
+        k.fmr_lambda = num("fmr_lambda", 0.0, 10.0, 0.1)?;
+        k.st_heads = num("st_heads", 1.0, 3.0, 2.0)? as u8;
+        k.fmr_flow_sigma = num("fmr_flow_sigma", 0.0, 1.0, 0.002)?;
+        k.gyro_grade = num("gyro_grade", 0.0, 100.0, 1.0)?;
+        k.star_tracker = match o.get("star_tracker") {
+            None | Some(Value::Null) => false,
+            Some(Value::Bool(b)) => *b,
+            Some(x) => return Err(Error::refused(format!("knobs: star_tracker = {x} is not true or false"))),
+        };
+        Ok(k)
     }
     pub fn json(&self) -> Value { json!({"scale": self.scale, "k_h": self.k_h, "k_tau": self.k_tau, "fmr_lambda": self.fmr_lambda, "star_tracker": self.star_tracker, "st_heads": self.st_heads, "fmr_flow_sigma": self.fmr_flow_sigma, "gyro_grade": self.gyro_grade}) }
     fn s(&self, p: &str) -> f64 { self.scale.get(p).copied().unwrap_or(1.0) }

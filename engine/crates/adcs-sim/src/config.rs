@@ -165,8 +165,31 @@ pub const CASE_NEEDS: [&str; 14] = ["orbit.alt", "orbit.inc", "orbit.ecc", "orbi
     "surface.afr", "surface.cd", "surface.refl", "surface.cpa", "magnetic.dres", "mission.epoch"];
 
 /// The engine settings `--set engine.<name>=` can change.
-pub const ENGINE_KEYS: [&str; 16] = ["engine.orbit", "engine.inertia_scale", "engine.cm_offset_m", "engine.m_res", "engine.density_scale", "engine.duration_s",
-    "engine.orbit_step_s", "engine.zonal_max", "engine.igrf_nmax", "engine.f107", "engine.f107a", "engine.kp", "engine.ap", "engine.accommodation", "engine.refl", "engine.mass_kg"];
+pub const ENGINE_KEYS: [&str; 18] = ["engine.orbit", "engine.inertia_scale", "engine.cm_offset_m", "engine.m_res", "engine.density_scale", "engine.duration_s",
+    "engine.orbit_step_s", "engine.zonal_max", "engine.igrf_nmax", "engine.f107", "engine.f107a", "engine.kp", "engine.ap", "engine.accommodation", "engine.refl", "engine.mass_kg",
+    "engine.vb_ratio", "engine.spec_frac"];
+
+/// The surface model's settings when no `--set engine.*` changes them (recorded in every run's
+/// manifest under "assumptions"): momentum accommodation, the ratio of the re-emitted to the
+/// incoming speed, and the specular share of the reflected light. Moe & Moe (2005), LEO.
+pub const ACCOMMODATION: f64 = 0.8;
+pub const VB_RATIO: f64 = 0.05;
+pub const SPEC_FRAC: f64 = 0.5;
+
+/// The body of a satellite class (catalogue/classes.toml, exported to data/classes.json).
+pub fn class_box(root: &Path, case: &Case) -> Result<[f64; 3], Error> {
+    let f = root.join("data/classes.json");
+    let all = json::read(&f)?;
+    let ids: Vec<&str> = all["class"].as_array().map(|a| a.iter().filter_map(|c| c["id"].as_str()).collect()).unwrap_or_default();
+    if case.class.is_empty() {
+        return Err(Error::refused(format!("case {}: meta.class is blank; the engine models the body of the class it names ({})", case.id, ids.join(", "))));
+    }
+    let c = all["class"].as_array().and_then(|a| a.iter().find(|c| c["id"].as_str() == Some(case.class.as_str())))
+        .ok_or_else(|| Error::refused(format!("case {}: meta.class = {:?} is no class in catalogue/classes.toml ({})", case.id, case.class, ids.join(", "))))?;
+    let b = json::v3(&c["box_m"]).filter(|b| b.iter().all(|x| x.is_finite() && *x > 0.0))
+        .ok_or_else(|| Error::malformed(format!("{}: class {} has no box_m of three positive lengths", f.display(), case.class)))?;
+    Ok(b)
+}
 
 /// The engine's limits. It models low Earth orbit; the loop runs at most thirty days.
 pub const ALT_KM: (f64, f64) = (150.0, 2000.0);
@@ -206,6 +229,8 @@ impl Config {
         within("engine.kp", self.kp, 0.0, 9.0)?;
         within("engine.ap", self.ap, 0.0, 400.0)?;
         within("engine.accommodation", self.sigma_n, 0.0, 1.0)?;
+        within("engine.vb_ratio", self.vb_ratio, 0.0, 1.0)?;
+        within("engine.spec_frac", self.spec_frac, 0.0, 1.0)?;
         within("engine.refl", self.refl, 0.0, 2.0)?;
         // the flight software checks its parameters at init; the engine says which one first, by name
         self.params.validate().map_err(|f| Error::refused(format!(
@@ -245,6 +270,7 @@ impl Config {
         let cmd = [0.30, 0.70, -0.65];
         let cmn = (cmd[0]*cmd[0] + cmd[1]*cmd[1] + cmd[2]*cmd[2] as f64).sqrt();
         let m_res = [v("magnetic.dres")/3f64.sqrt(); 3];
+        let box_m = class_box(root, &c)?;
 
         let alg = select(root, &dev, &s)?;
         let a_ = |k: &str| alg.get(k).cloned().unwrap_or_default();
@@ -451,8 +477,8 @@ impl Config {
             orbit_step_s: 10.0, period_s: 2.0*PI/n, mu, zonal_max: 6, third_body: true, drag: true, srp: true, density_scale: 1.0,
             orbit_model: "pop".into(), f107: 130.0, f107a: 130.0, kp: 2.0, ap: 7.0,
             igrf_nmax: 13, env_dt_s: 1.0, env_on: [true; 4],
-            mass_kg: v("mass.m"), inertia, box_m: [0.34, 0.10, 0.10], cm_offset_m: [cpa*cmd[0]/cmn, cpa*cmd[1]/cmn, cpa*cmd[2]/cmn],
-            aref_m2: v("surface.afr"), cd: v("surface.cd"), refl: v("surface.refl"), sigma_n: 0.8, sigma_t: 0.8, vb_ratio: 0.05, spec_frac: 0.5, m_res,
+            mass_kg: v("mass.m"), inertia, box_m, cm_offset_m: [cpa*cmd[0]/cmn, cpa*cmd[1]/cmn, cpa*cmd[2]/cmn],
+            aref_m2: v("surface.afr"), cd: v("surface.cd"), refl: v("surface.refl"), sigma_n: ACCOMMODATION, sigma_t: ACCOMMODATION, vb_ratio: VB_RATIO, spec_frac: SPEC_FRAC, m_res,
             duration_s: json::f(&tm, "duration_s", 600.0), dt, record_dt: json::f(&tm, "record_dt_s", 1.0),
             params: p, alg, faults, gd_kind0, h_t_rot, spin_dps: json::f(&fsw, "spin_rate_dps", 6.0), scenario: s,
             scenario_file: sp.display().to_string(), overrides: overrides.to_vec(),
@@ -490,6 +516,8 @@ impl Config {
                 "engine.ap" => cfg.ap = x,
                 "engine.accommodation" => { cfg.sigma_n = x; cfg.sigma_t = x; }
                 "engine.refl" => cfg.refl = x,
+                "engine.vb_ratio" => cfg.vb_ratio = x,
+                "engine.spec_frac" => cfg.spec_frac = x,
                 "engine.mass_kg" => cfg.mass_kg = x,
                 _ => return Err(Error::refused(format!("unknown engine override {k}: the engine reads {}", ENGINE_KEYS.join(", ")))),
             }

@@ -32,6 +32,7 @@
  "name": "Synthetic three-axis magnetometer \u2014 tests only",
  "nominal": {
   "bias_T": 5e-07,
+  "coil_coupling_T_per_Am2": 5e-06,
   "mass_kg": 0.02,
   "noise_T_rms": 1e-07,
   "power_W": 0.1,

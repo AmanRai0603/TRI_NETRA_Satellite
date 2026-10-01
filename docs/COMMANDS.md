@@ -455,7 +455,7 @@ The catalogue, scenarios, campaigns and trades from TOML to the JSON the MATLAB 
 2. write (or, with --check, compare) the JSON
 
 - **Reads:** `catalogue/`; `scenarios/`; `campaigns/`; `trades/`
-- **Writes:** `matlab_sils/data/*/<id>.json`; `matlab_sils/data/families.json`
+- **Writes:** `matlab_sils/data/*/<id>.json`; `matlab_sils/data/families.json`; `matlab_sils/data/classes.json`
 - **Starts:** nothing
 
 ## nodes_doc.py nodes-doc

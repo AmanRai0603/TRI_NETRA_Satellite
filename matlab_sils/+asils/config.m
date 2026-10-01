@@ -47,11 +47,12 @@ function P = config(scenarioId, caseFile, opts)
     %% spacecraft (case)
     P.sc.mass_kg = v.mass_m;
     P.sc.I = diag([v.mass_imin, v.mass_iint, v.mass_imax]);      % long axis = X_B
-    P.sc.box_m = [0.34 0.10 0.10];
+    P.sc.box_m = class_box(C);              % the body of the case's class (catalogue/classes.toml)
     cpa = v.surface_cpa;
     P.sc.cm_offset_m = cpa*[0.30; 0.70; -0.65]/norm([0.30; 0.70; -0.65]);   % |offset| = case CP-CM
     P.sc.aref_m2 = v.surface_afr; P.sc.cd = v.surface_cd; P.sc.refl = v.surface_refl;
-    P.sc.sigma_n = 0.8; P.sc.sigma_t = 0.8; P.sc.vb_ratio = 0.05;  % Moe & Moe (2005) LEO accommodation
+    % surface-model settings, the engine's ACCOMMODATION, VB_RATIO, SPEC_FRAC (config.rs): Moe & Moe (2005) LEO
+    P.sc.sigma_n = 0.8; P.sc.sigma_t = 0.8; P.sc.vb_ratio = 0.05;
     P.sc.spec_frac = 0.5;
     P.sc.m_res = v.magnetic_dres*[1;1;1]/sqrt(3);
 
@@ -140,4 +141,20 @@ function P = config(scenarioId, caseFile, opts)
     S2 = P.scenario; S2.fsw.algorithms = P.fsw.algorithms;
     P.fsw.alg = asils.fsw.select(P.dev, S2);
     P.sc.Iinv = inv(P.sc.I);
+end
+
+function b = class_box(C)
+%CLASS_BOX  The body of the case's satellite class, as the engine's config::class_box: a blank or
+%   unknown meta.class is refused, never assumed.
+    K = asils.util.readjson(fullfile(asils.util.root(), 'data', 'classes.json'));
+    L = K.class; if isstruct(L), L = num2cell(L); end
+    ids = cellfun(@(x) x.id, L, 'UniformOutput', false);
+    if isempty(C.class)
+        error('asils:case:class', 'case %s: meta.class is blank; the twin models the body of the class it names (%s)', C.id, strjoin(ids, ', '));
+    end
+    k = find(strcmp(ids, C.class), 1);
+    if isempty(k)
+        error('asils:case:class', 'case %s: meta.class = "%s" is no class in catalogue/classes.toml (%s)', C.id, C.class, strjoin(ids, ', '));
+    end
+    b = reshape(L{k}.box_m, 1, 3);
 end

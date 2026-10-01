@@ -4,7 +4,7 @@ use std::collections::BTreeMap;
 use std::path::Path;
 
 #[derive(Clone, Debug, Default)]
-pub struct Case { pub id: String, pub title: String, pub file: String, pub v: BTreeMap<String, f64> }
+pub struct Case { pub id: String, pub title: String, pub class: String, pub file: String, pub v: BTreeMap<String, f64> }
 
 fn split(line: &str) -> Vec<String> {
     let (mut f, mut cur, mut inq) = (vec![], String::new(), false);
@@ -59,6 +59,7 @@ impl Case {
                 "meta.schema" => if f[4] != "adcs-case/1" { return Err(Error::refused(format!("case {}: meta.schema must be adcs-case/1", p.display()))); },
                 "meta.case_id" => c.id = f[4].clone(),
                 "meta.title" => c.title = f[4].clone(),
+                "meta.class" => c.class = f[4].trim().to_string(),
                 k if k.starts_with("meta.") => {}
                 k => { c.v.insert(k.to_string(), value(&f[4]).map_err(|e| Error::refused(format!("case {} line {line}: {k} = {e}", p.display())))?); }
             }

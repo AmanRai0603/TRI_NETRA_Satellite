@@ -18,20 +18,19 @@ Legend: ✅ done · ❌ not done · 🟡 partly. Sizes: S ≤ 1 day, M 2–4 day
 
 ## Phase 1 — Safety and correctness
 
-✅ Done: the app checks Host and Origin, requires its own header on POST, caps sizes and connections, decodes `%` safely; text written into generated C/Rust is refused unless safe; no external `date` program; case CSV values, ids, `--set` types, engine settings and run limits refused by name.
+✅ Done (wave 1): the app checks Host and Origin, requires its own header on POST, caps sizes and connections, decodes `%` safely; text written into generated C/Rust is refused unless safe; no external `date` program; case CSV values, ids, `--set` types, engine settings and run limits refused by name.
 
-❌ Not done:
-1. ✔ **Strict loading.** Scenario, product, part, algorithm, catalogue and knobs JSON are read with defaults: a missing *or wrong-typed* key silently takes a default (`adcs-sim/src/json.rs:10-14`); unknown keys are never refused. Typed, strict loaders with named refusals. (M)
-2. ✔ **`--set` on a key the engine never reads is accepted** (`config.rs:117`). A registry of read keys; anything else refused. (S)
-3. ✔ **Hidden limits.** Schedule cut to 8 (`config.rs:233`); more than 8 rotors, 4 gimbals, 8 coils or Sun heads panic (`product.rs:56,104,71,140`); star-tracker heads `.min(2)`, RCS always 6 thrusters (`product.rs:121,128`); `q_inertial` length and fault index unchecked (`config.rs:254`, `run.rs:259-267`). All refused by name. (S)
-4. ✔ **Metrics.** A misspelt `requirement` key leaves the requirement unjudged (`metrics.rs:170`); unknown kind, window or statistic gives NaN or "all". Refused. (S)
-5. **Algorithms.** Unknown slot ignored, no fitting candidate gives `""`, an unmapped id silently gets law 0 or 1 (`config.rs:55-75,236-247`). Refused. (S)
-6. **Values replaced by 0 or literals.** Unstated part values become 0 (`config.rs:382-393`); box size, CM direction, accommodation, `vb_ratio`, `spec_frac`, magnetometer coil coupling hard-coded (`config.rs:217,406-407`, `product.rs:136`). From the case or part, or refused. (M)
-7. **Default case "ais_3u"** in the CLI and the app (`fly.rs:20`, `routes.rs:127`). Removed. (S)
-8. **The MATLAB twin** accepts unknown `set` paths (`+asils/util/setpaths.m:7`) and has 27 silent `getf` defaults (`config.m`). Same rules as the engine. (M)
-9. **App safety still open:** a panic during a flight poisons the flight lock and every later flight answers 409 ✔ (`routes.rs:18,119`); export temp file name collides (`routes.rs:105`); connection-cap race (`main.rs:126`); symlinks followed in the store (`store.rs:148`). (S)
+1. ✅ ✔ **Strict loading.** Scenarios are checked against one schema (`schema.rs`, exported to the twin): unknown keys and wrong types refused, a key left out takes its documented default. Products and parts: every value a fitted device reads must be stated. Design knobs: unknown keys, wrong types and out-of-range values refused (`Knobs::from_json`). Catalogue JSON is its TOML (`export_catalogue --check`).
+2. ✅ ✔ **`--set` on a key the engine never reads** is refused (the schema's settable keys; `ENGINE_KEYS` for `engine.*`).
+3. ✅ ✔ **Hidden limits** refused by name: schedule length, rotors, gimbals, coils, Sun heads, star-tracker heads, RCS thruster count, `q_inertial`, fault index and device.
+4. ✅ ✔ **Metrics**: a requirement key the case does not state, an unknown kind, window or statistic, a judged metric of a kind not computed — refused.
+5. ✅ **Algorithms**: an unknown slot, or an id the engine does not fly, is refused naming where it runs.
+6. ✅ **Values replaced by literals.** The body comes from the class the case names (`catalogue/classes.toml`, CubeSat Design Specification; a blank or unknown `meta.class` is refused); the magnetometer's coil coupling from its part (`coil_coupling_T_per_Am2`); unstated part values are refused. The surface model's accommodation, `vb_ratio` and specular share are named engine settings (`engine.accommodation`, `engine.vb_ratio`, `engine.spec_frac`, Moe & Moe 2005), recorded under every run's `assumptions` with the CM direction. Every shipped scenario flies byte-identical channels before and after.
+7. ✅ **Default case "ais_3u"** removed from the CLI and the app.
+8. ✅ **The MATLAB twin**: the same scenario schema, `set` paths that do not exist refused, the class body and the part's coupling read as the engine reads them (27/27 tests).
+9. ✅ **App safety**: a panic during a flight no longer poisons the flight lock; unique export temp names; links never followed in the store; at the connection cap nothing more is accepted (it waits in the kernel queue, as the comment always said) and a failed thread spawn gives its slot back.
 
-**Done when:** a test per rule breaks one shipped input at a time and gets a named refusal, in engine and twin; every shipped input still flies.
+**Done when:** a test per rule breaks one shipped input at a time and gets a named refusal, in engine and twin; every shipped input still flies. **Met** (`engine/crates/adcs-sim/tests/inputs.rs`, the twin's `t_scenario_check`).
 
 ## Phase 2 — Test the enforcers
 
@@ -76,15 +75,14 @@ Legend: ✅ done · ❌ not done · 🟡 partly. Sizes: S ≤ 1 day, M 2–4 day
 
 ✅ Done: panics leave a crash report; every engine write is whole-file; app requests catch panics; empty environment variables mean unset; typed engine errors with exit 2 (refused) or 1 (failed).
 
-❌ Not done:
-1. ✔ **Stale results read as new.** Campaign, Monte Carlo and matrix folders are not cleared; a failed run's old manifest is read (`engine_campaigns.py:144-162`, `pipeline_verify.py:151-175`); failed runs drop out of pass rates instead of counting as failures. (S)
-2. ✔ **`engine.py` exits 0 whatever fails** (`engine.py:96`); so do `run_matrix`, `vobc`, `fsw-parity` (`engine_runs.py:50-125`, `run_matrix.py:65-94`). (S)
-3. `rescore.py` keeps a removed requirement's old verdict and skips unreadable files (`:30,43,88`). (S)
-4. `vv_report.py` can ship an old PDF: Chromium's exit status ignored, old file accepted (`:632-637`). (S)
-5. Silent skips and swallowed errors: `engine_twin.py:57,64`, `vv_report.py:32`, `kit.py:77-88`, `except: pass` in three tools; writes that bypass the whole-file writer (`vv_report.py:637`, `kit.py:58-89`, `macapp.py:54-60`, `pipeline_verify.py:101`, `report_base.py:83`). (S)
-6. The OBC link fails forever instead of loudly: no read timeouts, a bad-CRC frame dropped with no reply so the engine blocks, no reconnection (`link.rs:104-122`, `adcs_link.c:176`). (S; the protocol work is in Part B5)
+1. ✅ ✔ **Stale results read as new.** Campaign, Monte Carlo, matrix and run folders are cleared before a run; a failed run counts as a failure in every pass rate (`n_failed_runs`), never drops out.
+2. ✅ ✔ **`engine.py`, `run_matrix`, `vobc`, `fsw-parity`** exit non-zero when anything failed.
+3. ✅ `rescore.py` clears a removed requirement's verdict, refuses a missing case and fails on unreadable files.
+4. ✅ `vv_report.py` refuses to build on a missing ledger, removes the old PDF first and checks Chromium's exit status.
+5. ✅ Silent skips and swallowed errors removed (`engine_twin`, `vv_report`, `kit`); writes go through the whole-file writer.
+6. ✅ The OBC link fails loudly: replies checked, a refusal for every bad frame, read timeouts (B1.9). Reconnection belongs to the OILS protocol work (B5).
 
-**Done when:** a test per item forces the failure and sees a non-zero exit, a named message, and no stale file used.
+**Done when:** a test per item forces the failure and sees a non-zero exit, a named message, and no stale file used. **Met** (`tests/test_failures.py`, `tests/test_link.py`, `link.rs` tests).
 
 ## Phase 6 — Scripts you can follow
 
