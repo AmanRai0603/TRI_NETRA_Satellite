@@ -5,17 +5,24 @@
 The same layout the C decoder (fsw/src/adcs_params.c) and the Rust decoder
 (fsw-rs/src/params.rs) are generated from. Copyright (c) 2026 Agastya.
 """
-import json, pathlib, struct, sys, tomllib, zlib
+import json, math, pathlib, struct, sys, tomllib, zlib
 from common import ROOT
 
 SPEC = tomllib.loads((ROOT / "fsw" / "params" / "params.toml").read_text())
 FMT = {"f64": ("<d", 8), "u32": ("<I", 4), "u8": ("<B", 1)}
+SIZE = sum(FMT[f["type"]][1] * math.prod(f.get("shape", [])) for f in SPEC["field"])
 
 
 def decode(blob: bytes) -> dict:
     if blob[:8] != b"ADCSCFG1":
         raise ValueError("not an adcs-fswcfg/1 blob")
+    if len(blob) < 12:
+        raise ValueError(f"truncated blob: {len(blob)} bytes, no payload length")
     n = struct.unpack_from("<I", blob, 8)[0]
+    if n != SIZE:   # as the C and Rust decoders: a payload of any other length is not this layout
+        raise ValueError(f"payload length {n} != layout {SIZE}")
+    if len(blob) < 16 + n:
+        raise ValueError(f"truncated blob: {len(blob)} bytes, the header says {16 + n}")
     pay = blob[12:12 + n]
     if zlib.crc32(pay) != struct.unpack_from("<I", blob, 12 + n)[0]:
         raise ValueError("CRC-32 mismatch")
