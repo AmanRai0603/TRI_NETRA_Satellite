@@ -1,7 +1,8 @@
 function check(S, C)
 %ASILS.SCENARIO.CHECK  Refuse a scenario the engine would refuse, by the engine's own rules.
 %   Every key must be one the engine reads, every value of its type, every name in its list;
-%   a metric's requirement must be a key of the case; the schedule fits the flight software.
+%   a metric's requirement must be a key of the case, and one that judges is not a diagnostic;
+%   the schedule fits the flight software.
 %   The rules are data/scenario_schema.json, written from the engine's schema
 %   (engine/crates/adcs-sim/src/schema.rs), so the twin and the engine refuse the same things.
 %   S: a scenario struct (asils.scenario.load or built in memory); C: the case (asils.case.read).
@@ -24,6 +25,10 @@ function check(S, C)
                 if ~strncmp(m.requirement, 'req.', 4) || ~isfield(C.v, k)
                     bad{end+1} = sprintf('metrics[%d] (%s).requirement = "%s": the case %s has no such requirement', i - 1, m.id, m.requirement, C.id);
                 end
+            end
+            judges = (isfield(m, 'requirement') && ~isempty(m.requirement)) || isfield(m, 'limit');
+            if judges && isfield(m, 'diagnostic')
+                bad{end+1} = sprintf('metrics[%d] (%s): judged, so not a diagnostic', i - 1, m.id);
             end
             if isfield(m, 'window') && ~any(strcmp(m.window, K.metric_windows))
                 x = regexp(m.window, '^after_s:([-+0-9.eE]+)$', 'tokens', 'once');

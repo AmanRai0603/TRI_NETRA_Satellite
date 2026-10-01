@@ -26,6 +26,7 @@
  "label": "3U AIS \u2014 nadir hold with magnetorquers only (10 deg requirement)",
  "metrics": [
   {
+   "diagnostic": "yaw about the antenna axis is not required: the line of sight is judged (ape_los_last_orbit)",
    "id": "ape_3axis_last_orbit",
    "kind": "ape",
    "statistic": "max",

@@ -71,7 +71,7 @@ pub const SCENARIO: &[(&str, T)] = &[
     ("metrics[].statistic", T::OneOf(&STATISTICS)), ("metrics[].channel", T::OneOf(&CHANNELS)), ("metrics[].mode", T::Mode),
     ("metrics[].from_s", T::Num), ("metrics[].hold_s", T::Num), ("metrics[].rate_threshold_deg_s", T::Num), ("metrics[].threshold_deg", T::Num),
     ("metrics[].requirement", T::Str), ("metrics[].limit", T::Num), ("metrics[].sense", T::OneOf(&["max", "min"])),
-    ("metrics[].unit_min", T::Flag), ("metrics[].end_at_mode_exit", T::Flag),
+    ("metrics[].unit_min", T::Flag), ("metrics[].end_at_mode_exit", T::Flag), ("metrics[].diagnostic", T::Str),
 ];
 
 /// The schedule entries the flight software holds (fsw/params/params.toml max_schedule).
@@ -174,6 +174,11 @@ pub fn check_scenario(s: &Value, case: &Case) -> Result<(), Error> {
         }
         if m.get("requirement").is_some() && m.get("limit").is_some() {
             bad.push(format!("metrics[{i}] ({id}): a requirement from the case or a limit, not both"));
+        }
+        // a diagnostic says why a metric only reports; one that judges is not one (tools/trace.py
+        // checks that every shipped metric is one or the other; stored inputs are not re-decided)
+        if m.get("diagnostic").is_some() && (m.get("requirement").is_some() || m.get("limit").is_some()) {
+            bad.push(format!("metrics[{i}] ({id}): judged, so not a diagnostic"));
         }
     }
     if bad.is_empty() { Ok(()) } else { Err(Error::refused(format!("scenario {}: {}", s.get("id").and_then(Value::as_str).unwrap_or("?"), bad.join("; ")))) }

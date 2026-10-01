@@ -48,6 +48,7 @@
    "window": "after_s:320"
   },
   {
+   "diagnostic": "momentum used, for sizing: the case does not state the margin req.hsat",
    "id": "wheel_momentum_peak",
    "kind": "wheel_momentum_peak",
    "window": "all"

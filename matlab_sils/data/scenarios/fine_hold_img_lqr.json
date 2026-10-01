@@ -37,12 +37,14 @@
    "window": "last_half_orbit"
   },
   {
+   "diagnostic": "the worst sample, beside the judged p99.73: req.ape is a 3-sigma requirement",
    "id": "ape_los_max",
    "kind": "ape_los",
    "statistic": "max",
    "window": "last_half_orbit"
   },
   {
+   "diagnostic": "the three-axis error, beside the judged line of sight: req.ape is on the imager's line of sight",
    "id": "ape_3ax_p9973",
    "kind": "ape",
    "statistic": "p99.73",
@@ -64,12 +66,14 @@
   },
   {
    "channel": "ape_los",
+   "diagnostic": "acquisition from the initial error: no requirement states it (req.settle is after a slew)",
    "hold_s": 60.0,
    "id": "time_to_0p01_deg",
    "kind": "time_to_threshold",
    "threshold_deg": 0.01
   },
   {
+   "diagnostic": "momentum used, for sizing: the case does not state the margin req.hsat",
    "id": "wheel_momentum_peak",
    "kind": "wheel_momentum_peak",
    "window": "all"

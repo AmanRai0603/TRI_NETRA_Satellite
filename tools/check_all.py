@@ -41,6 +41,8 @@ CHECKS = [
      [PY, "tools/trinetra.py", "docs", "--check"], ".", []),
     ("fsw-c", "the C flight software builds clean with every warning an error, calls nothing forbidden (malloc, time, rand), and passes its checks",
      ["make", "-s", "check", "test"], "fsw", ["make", "gcc"]),
+    ("trace", "every shipped metric judges or says why it only reports; every stated requirement is checked",
+     [PY, "tools/trace.py", "--check"], ".", []),
     ("fsw-stack", "the flight software's deepest stack fits the stack the OBC firmware reserves",
      [PY, "tools/fsw_stack.py"], ".", ["arm-none-eabi-gcc"]),
     ("fsw-rs", "the Rust flight software's tests",

@@ -106,6 +106,16 @@ def writers(path):
     return out
 
 
+def stale_runs_named():
+    """The stored engine runs `adcs results stale` names, or None when there is no engine to ask."""
+    import subprocess
+    exe = ROOT / "engine" / "target" / "release" / ("adcs.exe" if sys.platform == "win32" else "adcs")
+    if not exe.exists():
+        return None
+    p = subprocess.run([str(exe), "results", "stale"], capture_output=True, text=True, cwd=ROOT)
+    return [ln for ln in p.stdout.splitlines() if ln.strip() and not ln.startswith(" ") and " of " not in ln]
+
+
 def status():
     """What the repository still owes as evidence, then what stands proven."""
     import glob
@@ -134,6 +144,18 @@ def status():
         (len(disagree), len(rows), "engine-versus-twin verdicts that disagree"),
         (v["checks"] - v["passed"], v["checks"], "design-loop checks that fail (tools/verify_nodes.py)"),
     ]
+    import trace as T
+    t = T.build()
+    stated = [r for r in t["rows"] if r["status"] != "not stated"]
+    debt += [
+        (sum(1 for r in stated if r["status"].startswith("owed")), len(stated), "stated requirements nothing checks (tools/trace.py)"),
+        (sum(1 for r in stated if r["status"].startswith("not met")), len(stated), "stated requirements a check finds not met (results/TRACEABILITY.md)"),
+        (len(t["undecided"]), t["counts"]["metrics"], "shipped metrics that neither judge nor say why they only report"),
+    ]
+    stale_runs = stale_runs_named()
+    if stale_runs is not None:
+        debt.append((len(stale_runs), len(list((ROOT / "matlab_sils" / "store" / "results_engine").rglob("manifest.json"))),
+                     "stored engine runs another engine or other inputs flew (adcs results stale)"))
     owed = sum(n for n, _, _ in debt)
     L = [f"evidence debt: {owed} item(s) owed" if owed else "evidence debt: none", ""]
     L += [f"  {n:>4} of {of:<4} {what}" for n, of, what in debt]

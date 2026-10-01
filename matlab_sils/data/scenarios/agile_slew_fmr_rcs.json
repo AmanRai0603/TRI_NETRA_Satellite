@@ -37,6 +37,7 @@
  "metrics": [
   {
    "channel": "ape_los",
+   "diagnostic": "a 90 deg agile slew: the case states settling (req.settle) for the 30 deg reference slew, judged in slew_*",
    "from_s": 215.0,
    "hold_s": 30.0,
    "id": "settle_time_after_slew",
@@ -51,6 +52,7 @@
    "window": "after_s:300"
   },
   {
+   "diagnostic": "momentum used, for sizing: the case does not state the margin req.hsat",
    "id": "wheel_momentum_peak",
    "kind": "wheel_momentum_peak",
    "window": "all"

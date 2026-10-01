@@ -30,6 +30,7 @@
 | [`pack_flight.py pack-flight`](#pack_flightpy-pack-flight) | The flight software and Rust engine zip, in the repository's layout so it builds as unpacked. |
 | [`gen_fsw_params.py gen-fsw-params`](#gen_fsw_paramspy-gen-fsw-params) | The flight software's parameter and table sources, C and Rust, from their one definition. --check says which generated file is stale, and changes nothing. |
 | [`fsw_stack.py fsw-stack`](#fsw_stackpy-fsw-stack) | The flight software's deepest stack on the Cortex-M4 firmware, from GCC's call graph, against the stack the linker script reserves. Recursion and unbounded frames are refused; a library routine is charged a fixed frame and named. |
+| [`trace.py trace`](#tracepy-trace) | The requirements traceability matrix: every requirement a case states, what checks it (a flown scenario's metric, the design loop's budget or mode flights, the reference slew's profile) and what the latest stored result says. --check refuses a metric that neither judges nor says why it only reports, a requirement key the case lacks, and a stated requirement nothing checks; it writes nothing. |
 | [`export_catalogue.py export-catalogue`](#export_cataloguepy-export-catalogue) | The catalogue, scenarios, campaigns and trades from TOML to the JSON the MATLAB twin and the engine read. --check says which JSON has drifted from its TOML, and changes nothing. |
 | [`nodes_doc.py nodes-doc`](#nodes_docpy-nodes-doc) | docs/NODES.md and docs/CATALOGUE.md from the node registry and the datasheet catalogue. |
 | [`components_doc.py components-doc`](#components_docpy-components-doc) | docs/COMPONENTS.md: every sensor and actuator, the model the SILS flies, and its processing chain. |
@@ -442,6 +443,22 @@ The flight software's deepest stack on the Cortex-M4 firmware, from GCC's call g
 - **Reads:** `fsw/src/`; `fsw/targets/link/`; `fsw/targets/qemu-mps2/`
 - **Writes:** nothing
 - **Starts:** arm-none-eabi-gcc
+
+## trace.py trace
+
+The requirements traceability matrix: every requirement a case states, what checks it (a flown scenario's metric, the design loop's budget or mode flights, the reference slew's profile) and what the latest stored result says. --check refuses a metric that neither judges nor says why it only reports, a requirement key the case lacks, and a stated requirement nothing checks; it writes nothing.
+
+    python3 tools/trace.py [--check]
+
+**Steps**
+
+1. read the cases, the scenarios and the mode catalogue
+2. map each stated requirement to its checks and their latest stored verdicts
+3. write the matrix (or, with --check, refuse what is undecided or unchecked)
+
+- **Reads:** `matlab_sils/cases/`; `matlab_sils/data/scenarios/`; `matlab_sils/data/modes/`; `matlab_sils/store/results_engine/`; `matlab_sils/store/pipeline/`
+- **Writes:** `results/TRACEABILITY.md`; `results/traceability.json`
+- **Starts:** nothing
 
 ## export_catalogue.py export-catalogue
 

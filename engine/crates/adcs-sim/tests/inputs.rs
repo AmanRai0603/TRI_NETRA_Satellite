@@ -159,6 +159,9 @@ fn a_metric_that_cannot_be_judged_as_written_is_refused() {
         v["metrics"].as_array_mut().unwrap().push(serde_json::json!({"id": "j", "kind": "jitter", "limit": 1.0}));
     }), "jitter is not computed");
     edited("nadir_hold_ais", |v| { v["metrics"].as_array_mut().unwrap().push(serde_json::json!({"id": "j", "kind": "jitter"})); }).unwrap();
+    // a diagnostic reports without judging: one that also judges is refused, its reason must be text
+    says(edited("nadir_hold_ais", |v| { v["metrics"][1]["diagnostic"] = "just looking".into(); }), "judged, so not a diagnostic");
+    says(edited("nadir_hold_ais", |v| { v["metrics"][0]["diagnostic"] = 1.0.into(); }), "diagnostic");
 }
 
 #[test]

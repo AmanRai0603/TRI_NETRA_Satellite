@@ -256,6 +256,16 @@ writes = []
 runs = ["arm-none-eabi-gcc"]
 
 [[command]]
+tool = "trace.py"
+name = "trace"
+usage = "python3 tools/trace.py [--check]"
+what = "The requirements traceability matrix: every requirement a case states, what checks it (a flown scenario's metric, the design loop's budget or mode flights, the reference slew's profile) and what the latest stored result says. --check refuses a metric that neither judges nor says why it only reports, a requirement key the case lacks, and a stated requirement nothing checks; it writes nothing."
+steps = ["read the cases, the scenarios and the mode catalogue", "map each stated requirement to its checks and their latest stored verdicts", "write the matrix (or, with --check, refuse what is undecided or unchecked)"]
+reads = ["matlab_sils/cases/", "matlab_sils/data/scenarios/", "matlab_sils/data/modes/", "matlab_sils/store/results_engine/", "matlab_sils/store/pipeline/"]
+writes = ["results/TRACEABILITY.md", "results/traceability.json"]
+runs = []
+
+[[command]]
 tool = "export_catalogue.py"
 name = "export-catalogue"
 usage = "python3 tools/export_catalogue.py [--check]"

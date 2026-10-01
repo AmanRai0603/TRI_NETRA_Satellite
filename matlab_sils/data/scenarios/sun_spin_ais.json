@@ -28,8 +28,8 @@
   {
    "id": "sun_spin_entry",
    "kind": "time_to_mode",
-   "limit": 95.0,
-   "mode": "sun_spin"
+   "mode": "sun_spin",
+   "requirement": "req.sunacq"
   },
   {
    "id": "sun_angle_last_orbit",

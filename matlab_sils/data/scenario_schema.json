@@ -474,6 +474,10 @@
     {
       "path": "metrics[].end_at_mode_exit",
       "type": "flag"
+    },
+    {
+      "path": "metrics[].diagnostic",
+      "type": "str"
     }
   ],
   "algorithm_slots": [
