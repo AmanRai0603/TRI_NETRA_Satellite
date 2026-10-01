@@ -97,21 +97,32 @@ pub struct Demand {
     pub req: BTreeMap<String, f64>, pub notes: Vec<String>, pub fine: bool,
     /// the body of the case's class (catalogue/classes.toml): the faces and lever arms the parts are sized on
     pub class: String, pub box_m: [f64; 3],
+    /// every season and solar activity the survey flew (the worst of them is sized for)
+    pub sweep: Vec<Value>,
 }
 
 const ATT: [&str; 4] = ["X_nadir", "Y_nadir", "Z_nadir", "sun"];
 
-pub fn demand(root: &Path, case_file: &Path, k: &Knobs) -> Result<Demand, Error> {
+/// The environment the survey sweeps over the mission life: four seasons (the Sun's direction
+/// against the orbit plane, so the beta angle and the eclipses) and the long-term low and high
+/// solar activity (the density, so the aerodynamic torque): ECSS-E-ST-10-04C long-term F10.7.
+pub const SURVEY_EPOCH_DAYS: [f64; 4] = [0.0, 91.3, 182.6, 273.9];
+pub const SURVEY_F107: [f64; 2] = [65.0, 250.0];
+
+/// One orbit of disturbance at the four attitudes, for one season and one solar activity.
+struct Survey { tau_peak: [f64; 4], tau_axis_peak: [[f64; 4]; 3], h_cyclic: [f64; 4], h_secular_orbit: [f64; 4], b_min: f64, b_mean: f64, eclipse_frac: f64 }
+
+fn survey(root: &Path, case_file: &Path, sets: &[(String, String)]) -> Result<(Config, Survey), Error> {
     // the survey scenario of asils.sizing.demand: nadir, 10 s, one orbit
     let s = json!({"schema": "adcs-scenario/1", "id": "sizing_survey", "product": "TRN-P-3U-AIS", "label": "sizing survey",
         "time": {"duration_s": 5740, "dt_s": 10, "record_dt_s": 10}, "initial": {"attitude": {"kind": "nadir"}, "rate": {"kind": "lvlh"}},
         "fsw": {"start_mode": "detumble", "guidance": {"kind": "nadir"}}, "metrics": []});
-    let tmp = std::env::temp_dir().join(format!("adcs-survey-{}.json", std::process::id()));
+    static N: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
+    let tmp = std::env::temp_dir().join(format!("adcs-survey-{}-{}.json", std::process::id(), N.fetch_add(1, std::sync::atomic::Ordering::Relaxed)));
     std::fs::write(&tmp, s.to_string()).map_err(|e| Error::io(&tmp, e))?;
-    let c = Config::build(root, &tmp.display().to_string(), case_file, 1, &[]);
+    let c = Config::build(root, &tmp.display().to_string(), case_file, 1, sets);
     let _ = std::fs::remove_file(&tmp);
     let c = c?;
-    let v = |key: &str| c.case.get(key);
     let (mut orb, _) = Truth::new(&c)?;
     let gh = field::gh(time::decyear(c.jd0));
     let facets = Facets::boxed(&c.box_m, &c.cm_offset_m, c.sigma_n, c.sigma_t, c.vb_ratio, c.refl, c.spec_frac);
@@ -134,26 +145,61 @@ pub fn demand(root: &Path, case_file: &Path, k: &Knobs) -> Result<Demand, Error>
             tau[kk][a] = add(&add(&p[0], &p[1]), &add(&p[2], &p[3]));
         }
     }
-    let mut d = Demand { case: c.case.id.clone(), period_s: t_orb, class: c.case.class.clone(), box_m: c.box_m, ..Default::default() };
+    let mut sv = Survey { tau_peak: [0.0; 4], tau_axis_peak: [[0.0; 4]; 3], h_cyclic: [0.0; 4], h_secular_orbit: [0.0; 4],
+        b_min: bm.iter().cloned().fold(f64::MAX, f64::min), b_mean: bm.iter().sum::<f64>()/n as f64,
+        eclipse_frac: nu.iter().filter(|x| **x < 0.5).count() as f64/n as f64 };
     for a in 0..4 {
         let mut h = [0.0; 3];
         let mut hs = Vec::with_capacity(n);
         for kk in 0..n { for i in 0..3 { h[i] += tau[kk][a][i]*dt; } hs.push(h); }
         let hend = hs[n - 1];
-        d.tau_peak[a] = tau.iter().map(|x| norm(&x[a])).fold(0.0, f64::max);
-        for i in 0..3 { d.tau_axis_peak[i][a] = tau.iter().map(|x| x[a][i].abs()).fold(0.0, f64::max); }
-        d.h_cyclic[a] = (0..n).map(|kk| { let f = kk as f64*dt/t_orb; norm(&sub(&hs[kk], &scale(&hend, f))) }).fold(0.0, f64::max);
-        d.h_secular_orbit[a] = norm(&hend);
+        sv.tau_peak[a] = tau.iter().map(|x| norm(&x[a])).fold(0.0, f64::max);
+        for i in 0..3 { sv.tau_axis_peak[i][a] = tau.iter().map(|x| x[a][i].abs()).fold(0.0, f64::max); }
+        sv.h_cyclic[a] = (0..n).map(|kk| { let f = kk as f64*dt/t_orb; norm(&sub(&hs[kk], &scale(&hend, f))) }).fold(0.0, f64::max);
+        sv.h_secular_orbit[a] = norm(&hend);
     }
+    Ok((c, sv))
+}
+
+pub fn demand(root: &Path, case_file: &Path, k: &Knobs) -> Result<Demand, Error> {
+    // the worst of every season and solar activity, each attitude and axis on its own
+    let mut base: Option<(Config, Survey)> = None;
+    let mut sweep = vec![];
+    for ep in SURVEY_EPOCH_DAYS {
+        for f in SURVEY_F107 {
+            let sets = [("engine.epoch_days".to_string(), format!("{ep}")), ("engine.f107".to_string(), format!("{f}")), ("engine.f107a".to_string(), format!("{f}"))];
+            let (c, sv) = survey(root, case_file, &sets)?;
+            sweep.push(json!({"epoch_days": ep, "f107": f, "tau_peak": sv.tau_peak, "h_secular_orbit": sv.h_secular_orbit, "eclipse_frac": sv.eclipse_frac}));
+            base = Some(match base {
+                None => (c, sv),
+                Some((c0, mut w)) => {
+                    for a in 0..4 {
+                        w.tau_peak[a] = w.tau_peak[a].max(sv.tau_peak[a]); w.h_cyclic[a] = w.h_cyclic[a].max(sv.h_cyclic[a]);
+                        w.h_secular_orbit[a] = w.h_secular_orbit[a].max(sv.h_secular_orbit[a]);
+                        for i in 0..3 { w.tau_axis_peak[i][a] = w.tau_axis_peak[i][a].max(sv.tau_axis_peak[i][a]); }
+                    }
+                    w.b_min = w.b_min.min(sv.b_min); w.eclipse_frac = w.eclipse_frac.max(sv.eclipse_frac);
+                    (c0, w)
+                }
+            });
+        }
+    }
+    let (c, sv) = base.expect("the sweep has at least one survey");
+    let v = |key: &str| c.case.get(key);
+    let t_orb = c.period_s;
+    let mut d = Demand { case: c.case.id.clone(), period_s: t_orb, class: c.case.class.clone(), box_m: c.box_m,
+        tau_peak: sv.tau_peak, tau_axis_peak: sv.tau_axis_peak, h_cyclic: sv.h_cyclic, h_secular_orbit: sv.h_secular_orbit,
+        b_min: sv.b_min, b_mean: sv.b_mean, eclipse_frac: sv.eclipse_frac, sweep, ..Default::default() };
     let ia = (0..4).fold(0, |b, a| if d.tau_peak[a] > d.tau_peak[b] { a } else { b });
     d.tau_dist = d.tau_peak[ia]; d.worst_attitude = ATT[ia].into();
-    d.h_dist = (0..4).map(|a| d.h_cyclic[a] + 0.25*d.h_secular_orbit[a]).fold(f64::MIN, f64::max);
+    // the secular momentum held between dumps: req.dump hours of it, or a quarter orbit when the case is blank
+    let dump_h = v("req.dump");
+    let orbits_held = if dump_h.is_finite() && dump_h > 0.0 { dump_h*3600.0/t_orb } else { 0.25 };
+    d.h_dist = (0..4).map(|a| d.h_cyclic[a] + orbits_held*d.h_secular_orbit[a]).fold(f64::MIN, f64::max);
     d.h_secular = d.h_secular_orbit.iter().cloned().fold(f64::MIN, f64::max);
-    d.b_min = bm.iter().cloned().fold(f64::MAX, f64::min);
-    d.b_mean = bm.iter().sum::<f64>()/n as f64;
-    d.eclipse_frac = nu.iter().filter(|x| **x < 0.5).count() as f64/n as f64;
     let dflt = |x: f64, dv: f64, note: &str, notes: &mut Vec<String>| if x.is_nan() { notes.push(note.into()); dv } else { x };
     let mut notes = vec![];
+    if !(dump_h.is_finite() && dump_h > 0.0) { notes.push("req.dump blank: a quarter orbit of secular momentum held between dumps taken".into()); }
     d.w0_deg_s = dflt(v("mission.w0"), 10.0, "mission.w0 blank: 10 deg/s taken", &mut notes);
     d.j = [c.inertia[0][0], c.inertia[1][1], c.inertia[2][2]];
     let jmax = d.j.iter().cloned().fold(f64::MIN, f64::max);
@@ -188,7 +234,7 @@ impl Demand {
             "w_slew": self.w_slew, "a_slew": self.a_slew, "h_slew": self.h_slew, "tau_slew": self.tau_slew, "life_yr": self.life_yr,
             "slews_per_day": self.slews_per_day, "k_h": self.k_h, "k_tau": self.k_tau, "h_req": self.h_req, "tau_req": self.tau_req,
             "req": self.req.iter().map(|(a, b)| (a.clone(), if b.is_finite() { json!(b) } else { Value::Null })).collect::<serde_json::Map<_, _>>(),
-            "notes": self.notes, "class": if self.fine { "fine" } else { "coarse" }, "body_class": self.class, "box_m": self.box_m})
+            "notes": self.notes, "class": if self.fine { "fine" } else { "coarse" }, "body_class": self.class, "box_m": self.box_m, "survey_sweep": self.sweep})
     }
 }
 
@@ -455,6 +501,19 @@ pub fn size_all(root: &Path, case_file: &Path, k: &Knobs, out: &Path) -> Result<
 mod tests {
     use super::*;
     fn root() -> std::path::PathBuf { Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../matlab_sils") }
+
+    #[test]
+    fn the_survey_sizes_for_the_worst_season_and_solar_activity() {
+        let d = demand(&root(), &root().join("cases/ais_3u.csv"), &Knobs::default()).unwrap();
+        assert_eq!(d.sweep.len(), SURVEY_EPOCH_DAYS.len()*SURVEY_F107.len());
+        let worst = d.sweep.iter().flat_map(|s| s["tau_peak"].as_array().unwrap().iter().map(|x| x.as_f64().unwrap())).fold(0.0, f64::max);
+        assert_eq!(d.tau_dist, worst, "the peak torque is the worst of every survey");
+        assert_eq!(d.box_m, [0.34, 0.10, 0.10], "the 3U class body");
+        // req.dump is blank in the case: the quarter-orbit default is taken and said
+        assert!(d.notes.iter().any(|n| n.starts_with("req.dump blank")));
+        let h = (0..4).map(|a| d.h_cyclic[a] + 0.25*d.h_secular_orbit[a]).fold(f64::MIN, f64::max);
+        assert_eq!(d.h_dist, h);
+    }
 
     #[test]
     fn select_rotor_takes_the_lightest_model_that_meets_the_need() {

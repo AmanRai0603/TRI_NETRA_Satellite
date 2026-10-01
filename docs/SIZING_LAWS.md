@@ -3,20 +3,25 @@
 **Owner: Agastya.** What each actuator's size comes from, with every constant, margin and default the
 code uses. A constant marked **no source stated** is a working value the code carries without a
 reference; it is listed here so it can be confirmed or replaced, not because it is endorsed.
-The MATLAB twin's `+asils/+sizing` holds the same laws.
+The MATLAB twin's `+asils/+sizing` holds the same laws for one survey; the season and solar-activity sweep (B2.3) is the engine's only.
 
 ## 1. Demand survey (`demand`)
 
 One orbit of the case's own orbit, 10 s steps, the engine's environment and torque models (gravity
 gradient, aerodynamic, solar pressure, residual dipole), at four attitudes: +X, +Y, +Z boresight to
-nadir, and Sun-pointing (−Z to the Sun).
+nadir, and Sun-pointing (−Z to the Sun). The survey is flown at four seasons (the case epoch and
++91.3, +182.6, +273.9 days: the Sun's direction against the orbit plane, so the beta angle and the
+eclipses) and at the long-term low and high solar activity (F10.7 = F10.7a = 65 and 250 sfu,
+ECSS-E-ST-10-04C), eight surveys in all; every quantity below is the worst of them, each attitude
+and axis on its own, and the eight are recorded as `survey_sweep`. At the shipped cases' 550 km the
+season moves the peak torque by about 25 % and the solar activity by under 2 %.
 
 | Quantity | Law | Notes |
 |---|---|---|
 | peak disturbance `tau_dist` | the largest ‖τ‖ over the orbit, worst attitude | |
 | cyclic momentum `h_cyclic` | max over the orbit of ‖h(t) − (t/T)·h(T)‖ | the secular trend removed |
 | secular momentum per orbit `h_secular` | ‖h(T)‖ | |
-| design disturbance momentum `h_dist` | max over attitudes of h_cyclic + **0.25**·h_secular | 0.25: **no source stated** (B2.3 replaces it with dumping sized from `req.dump`) |
+| design disturbance momentum `h_dist` | max over attitudes of h_cyclic + n·h_secular, n = `req.dump`·3600/T orbits held between dumps | blank `req.dump`: **0.25 orbit taken** (no source stated), recorded in the notes |
 | detumble momentum `h_detumble` | J_max · `mission.w0` | blank `mission.w0`: **10 °/s taken**, recorded in the notes |
 | reference slew | bang-bang over `mission.sangle` in `req.slew`: ω = 2θ/T, α = 2πθ/T² | blank: **30° in 60 s taken**, recorded |
 | momentum margin `k_h` | 1/(1 − `req.hsat`) when 0 < hsat < 1, else **2** | the factor 2: **no source stated** |
