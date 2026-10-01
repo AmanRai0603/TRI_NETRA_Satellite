@@ -21,6 +21,9 @@ ASSUMED_RPM = 6000.0          # speed at the nominal momentum when a datasheet d
 ROTOR_FRACTION = 0.4          # rotor share of the unit mass (for the imbalance model)
 CMG_ROTOR_TORQUE = 0.2        # rotor spin-up torque as a share of the output torque
 NEED = ("h_mNms", "torque_mNm", "mass_g", "power_steady_W")
+NO_LOAD = 1.25                # motor no-load speed over the top stated speed
+STATIC_FRACTION = 1.5         # breakaway friction over the running Coulomb friction
+STRIBECK = 1.0                # Stribeck speed [rad/s]
 
 
 def volume_L(dims):
@@ -33,6 +36,31 @@ def volume_L(dims):
     if "0.2U" in dims:
         return 0.2, "volume: 0.2 L per unit (datasheet: '0.2U+ tuna can')"
     return None, None
+
+
+def wheel_motor(d, tau, w, coulomb, a):
+    """A wheel's motor and bearing values the engine's wheel model reads (B3.5), none on a
+    datasheet: the brushless motor's torque-speed line (back-EMF) and the breakaway friction.
+
+    The motor runs on the lowest supply the datasheet states (or 5 V); its no-load speed is
+    NO_LOAD x the highest speed the datasheet states, and its stall torque puts the line through
+    the datasheet torque at that speed, so the stated torque is there over the stated speed range.
+    Then k_t = V / w_nl and R = k_t V / T_stall."""
+    v = None
+    if d.get("voltage_V"):
+        n = re.findall(r"\d+(?:\.\d+)?", str(d["voltage_V"]))
+        v = float(n[0]) if n else None
+    if v is None:
+        v = 5.0; a.append("motor supply 5 V (not stated)")
+    top = d["speed_max_rpm"] * RPM if d.get("speed_max_rpm") else w
+    w_nl = NO_LOAD * top
+    t_stall = tau / (1 - top / w_nl)
+    kt = v / w_nl
+    a += [f"motor: no-load speed {NO_LOAD:g} x the top stated speed, the line through the stated torque there "
+          f"(k_t = V / w_nl, R = k_t V / stall torque, V = the lowest stated supply)",
+          f"breakaway friction {STATIC_FRACTION:g} x Coulomb, Stribeck speed {STRIBECK:g} rad/s (Bialke 1998; not on datasheets)"]
+    return {"motor_kt_Nm_per_A": kt, "motor_resistance_ohm": kt * v / t_stall, "bus_voltage_V": v,
+            "friction_static_Nm": STATIC_FRACTION * coulomb, "stribeck_speed_rad_s": STRIBECK}
 
 
 def derive(c):
@@ -64,6 +92,8 @@ def derive(c):
     x = {"h_max_Nms": h, "torque_max_Nm": tau, "speed_max_rad_s": w, "rotor_inertia_kgm2": j, "rotor_radius_m": r, "rotor_mass_kg": mr,
          "friction_coulomb_Nm": 1e-5 * math.sqrt(h / 0.01), "friction_viscous_Nms": 1e-8, "static_imbalance_kgm": us, "dynamic_imbalance_kgm2": us * r / 2,
          "power_steady_W": d["power_steady_W"], "power_peak_W": pk, "mass_kg": m, "volume_L": vol}
+    if c["type"] == "reaction_wheel":
+        x.update(wheel_motor(d, tau, w, x["friction_coulomb_Nm"], a))
     if c["type"] in ("cmg", "cmg_cluster"):
         # the datasheet's torque is the unit's output (gyroscopic) torque: h x gimbal rate
         x.update({"rotor_momentum_Nms": h, "rotor_speed_rad_s": w, "rotor_torque_max_Nm": CMG_ROTOR_TORQUE * tau,

@@ -19,7 +19,42 @@ impl Facets {
     }
 }
 
-/// [gg, aero, srp, mag] torques, body frame.
+/// The Earth's mean Bond albedo and its mean emitted (outgoing long-wave) flux [W/m^2]: the
+/// annual global means of the Earth's radiation budget (Kiehl & Trenberth 1997, BAMS 78:197:
+/// albedo 0.31, 235 W/m^2; Knocke, Ries & Tapley 1988, AIAA 88-4292, use them for satellite
+/// Earth radiation pressure).
+pub const EARTH_ALBEDO: f64 = 0.30;
+pub const EARTH_IR_W_M2: f64 = 237.0;
+const C_LIGHT: f64 = 299792458.0;
+const RE: f64 = 6378137.0;
+
+/// The pressures [N/m^2] of the Earth's albedo and infrared on a plate facing the Earth's centre
+/// at r: the view factor of a sphere to a plate facing it is (Re/r)^2; the albedo falls as the
+/// cosine of the Sun's zenith angle under the satellite (0 over the night side). `p_sun` is the
+/// Sun's pressure at the satellite (W/c, so the albedo is a W (Re/r)^2 cos / c). The Earth is
+/// taken as a point source in the nadir direction (Knocke et al.'s rings are not modelled).
+pub fn earth_pressure(r: &V3, sun_rel: &V3, p_sun: f64) -> (f64, f64) {
+    let rn = norm(r);
+    let vf = (RE/rn)*(RE/rn);
+    let cz = dot(&unit(&add(sun_rel, r)), &scale(r, 1.0/rn)).max(0.0);
+    (EARTH_ALBEDO*p_sun*vf*cz, EARTH_IR_W_M2/C_LIGHT*vf)
+}
+
+/// The torque of light of pressure p arriving from body direction `sb` (unit, towards the
+/// source) on the facets: absorbed, specular and diffuse parts (Wertz 1978, eq. 17-6).
+pub fn radiation(g: &Facets, sb: &V3, p: f64) -> V3 {
+    let mut out = [0.0; 3];
+    for j in 0..6 {
+        let c = dot(sb, &g.n[j]);
+        if c <= 0.0 { continue; }
+        let mut f = [0.0; 3];
+        for k in 0..3 { f[k] = -p*g.a[j]*c*((1.0 - g.rho_spec)*sb[k] + 2.0*(g.rho_spec*c + g.rho_diff/3.0)*g.n[j][k]); }
+        out = add(&out, &cross(&g.rho[j], &f));
+    }
+    out
+}
+
+/// [gg, aero, radiation (Sun, albedo, Earth IR), mag] torques, body frame.
 pub fn torques(q: &Q, r: &V3, v_rel: &V3, b_eci: &V3, sun_rel: &V3, nu: f64, p_srp: f64, rho: f64, i: &M3, g: &Facets, m_res: &V3, mu: f64, on: [bool; 4]) -> [V3; 4] {
     let rm = dcm(q);
     let mut out = [[0.0; 3]; 4];
@@ -41,15 +76,12 @@ pub fn torques(q: &Q, r: &V3, v_rel: &V3, b_eci: &V3, sun_rel: &V3, nu: f64, p_s
             out[1] = add(&out[1], &cross(&g.rho[j], &f));
         }
     }
-    if on[2] && nu > 0.0 {
-        let sb = unit(&mv(&rm, sun_rel));
-        for j in 0..6 {
-            let c = dot(&sb, &g.n[j]);
-            if c <= 0.0 { continue; }
-            let mut f = [0.0; 3];
-            for k in 0..3 { f[k] = -nu*p_srp*g.a[j]*c*((1.0 - g.rho_spec)*sb[k] + 2.0*(g.rho_spec*c + g.rho_diff/3.0)*g.n[j][k]); }
-            out[2] = add(&out[2], &cross(&g.rho[j], &f));
-        }
+    if on[2] {
+        // radiation pressure: the Sun, and the Earth's reflected (albedo) and emitted (IR) light
+        if nu > 0.0 { out[2] = radiation(g, &unit(&mv(&rm, sun_rel)), nu*p_srp); }
+        let (p_alb, p_ir) = earth_pressure(r, sun_rel, p_srp);
+        let eb = unit(&scale(&mv(&rm, r), -1.0));
+        out[2] = add(&out[2], &radiation(g, &eb, p_alb + p_ir));
     }
     if on[3] { out[3] = cross(m_res, &mv(&rm, b_eci)); }
     let _ = abs(0.0);

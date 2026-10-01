@@ -16,7 +16,7 @@ use adcs_sim_core::torques::{self, Facets};
 use adcs_sim_core::{ephem, field, time, NC, NG, NR};
 
 /// The environment the attitude loop reads at an env tick.
-pub struct Env { pub b_eci: V3, pub sun_rel: V3, pub nu: f64, pub v_rel: V3, pub rho: f64, pub p_srp: f64 }
+pub struct Env { pub b_eci: V3, pub sun_rel: V3, pub moon_rel: V3, pub nu: f64, pub v_rel: V3, pub rho: f64, pub p_srp: f64 }
 
 /// The truth orbit and environment. `Pop`: the Rust port of POP stepped as asils.orbit
 /// does (bit-identical to the MATLAB twin's orbit, Sun, Moon, density, frame). `Fast`:
@@ -60,13 +60,13 @@ impl Truth {
                 let re = mv(&cp, r);
                 let (lat, lon, h) = adcs_pop::geodetic::geodetic(&re);
                 let w = o.omega_e;
-                Env { b_eci: field::eci_at(lat, lon, h, &cp, gh, nmax), sun_rel: sub(&x.sun_eci, r), nu: ephem::shadow(r, &x.sun_eci),
+                Env { b_eci: field::eci_at(lat, lon, h, &cp, gh, nmax), sun_rel: sub(&x.sun_eci, r), moon_rel: sub(&x.moon_eci, r), nu: ephem::shadow(r, &x.sun_eci),
                       v_rel: [v[0] + w*r[1], v[1] - w*r[0], v[2]], rho: x.rho, p_srp: x.p_srp }
             }
             Truth::Fast(o, jd0) => {
                 let xc = o.context(t);
                 let cm = time::eci2ecef(jd0 + t/86400.0);
-                Env { b_eci: field::eci(&mv(&cm, r), &cm, gh, nmax), sun_rel: sub(&xc.sun, r), nu: ephem::shadow(r, &xc.sun),
+                Env { b_eci: field::eci(&mv(&cm, r), &cm, gh, nmax), sun_rel: sub(&xc.sun, r), moon_rel: sub(&xc.moon, r), nu: ephem::shadow(r, &xc.sun),
                       v_rel: [v[0] + orbit::OMEGA_E*r[1], v[1] - orbit::OMEGA_E*r[0], v[2]], rho: xc.rho, p_srp: xc.p_srp }
             }
         }
@@ -193,7 +193,7 @@ impl Units {
         let css = if d.css.fitted { Some(Css::new(d.css, &mut disp, rs("css"))) } else { None };
         let mex = Mex::new(d.mex, &mut disp, rs("mex"));
         let rcs = if d.rcs.fitted { Some(Rcs::new(d.rcs, &mut disp)) } else { None };
-        Units { gyro, mag, sun, st, mtq, es, css, mex, rcs, gps: Gps { d: d.gps, dead: false, rng: rs("gps") }, tlm: rs("telemetry") }
+        Units { gyro, mag, sun, st, mtq, es, css, mex, rcs, gps: Gps::new(d.gps, rs("gps")), tlm: rs("telemetry") }
     }
 
     /// Inject every fault whose time has come (once each), and log it.
@@ -280,8 +280,8 @@ fn initial_state(c: &Config, r: &V3, v: &V3, gd: &Guid, ir: &mut Rng, nr: usize)
 /// What the sensors measured this tick (the truth's view the recorder keeps).
 struct Sensed { w_meas: V3, b_meas: V3, sun_meas: Option<V3>, st_ok: bool }
 
-/// The geometry a tick's sensors see: body field, Sun and nadir directions, Earth's half-angle.
-struct Sky { b_b: V3, sb: V3, nb: V3, earth_ang: f64 }
+/// The geometry a tick's sensors see: body field, Sun, Moon and nadir directions, Earth's half-angle.
+struct Sky { b_b: V3, sb: V3, mb: V3, nb: V3, earth_ang: f64 }
 
 /// Every sensor sampled and written onto the bus as its device's bytes (registers, UART frames,
 /// CAN telemetry), in the order the units draw their noise.
@@ -299,7 +299,7 @@ fn sense(u: &mut Units, c: &Config, bus: &mut Bus, x: &State, sky: &Sky, m_b: &V
     if let Some(s) = u.st.as_mut() {
         s.history(t, &x.q);
         if k % rt.st == 0 {
-            let heads = s.sample(&x.q, t, &x.w, &sky.sb, &sky.nb, sky.earth_ang);
+            let heads = s.sample(&x.q, t, &x.w, &sky.sb, &sky.mb, &sky.nb, sky.earth_ang);
             let mut hv = [(false, [0.0, 0.0, 0.0, 1.0]); 2];
             for h in 0..d.st.nh { if let Some(q) = heads[h] { hv[h] = (true, q); st_ok = true; } }
             let mut buf = [0u8; 64];
@@ -311,11 +311,14 @@ fn sense(u: &mut Units, c: &Config, bus: &mut Bus, x: &State, sky: &Sky, m_b: &V
         let z = if k % rt.es == 0 { e.sample(&sky.nb) } else { None };
         bus.es = Some(emu::unit_regs(z.is_some(), &z.unwrap_or([0.0; 3])));
     }
+    if d.gps.fitted { u.gps.history(t, r, v); }
     if d.gps.fitted && k % rt.gps == 0 && !u.gps.dead {
-        // a receiver fixes in ECEF (WGS-84): r_e = C r, v_e = C v - w_E x r_e
-        let ce = time::eci2ecef(c.jd0 + t/86400.0);
-        let re_ = mv(&ce, r);
-        let ve_ = sub(&mv(&ce, v), &cross(&[0.0, 0.0, orbit::OMEGA_E], &re_));
+        // a receiver fixes in ECEF (WGS-84): r_e = C r, v_e = C v - w_E x r_e; the fix it reports
+        // now solves for the epoch `latency` ago
+        let (te, r, v) = u.gps.delayed(t);
+        let ce = time::eci2ecef(c.jd0 + te/86400.0);
+        let re_ = mv(&ce, &r);
+        let ve_ = sub(&mv(&ce, &v), &cross(&[0.0, 0.0, orbit::OMEGA_E], &re_));
         let (rg, vg) = u.gps.sample(&re_, &ve_);
         let mut buf = [0u8; 64];
         let len = emu::gps_frame(true, &rg, &vg, &mut buf);
@@ -352,14 +355,15 @@ fn oils_latency(st: &mut OilsStats, m: &OilsModel, fsw: &Fsw, bus: &Bus, dt: f64
 
 /// What the actuators deliver this tick, and the power they draw.
 #[derive(Default)]
-struct Actuation { m_b: V3, hdot: [f64; NR], gdot: [f64; NG], tau_rcs: V3, p_mtq: f64, p_mex: f64, p_rcs: f64 }
+struct Actuation { m_b: V3, m_coil: V3, hdot: [f64; NR], gdot: [f64; NG], tau_rcs: V3, p_mtq: f64, p_mex: f64, p_rcs: f64 }
 
 /// The commands applied to the coils, the momentum devices and the thrusters (propellant counted;
 /// an empty tank fails every valve). Unfitted devices keep what they last delivered.
 fn actuate(u: &mut Units, c: &Config, cmd: &Commands, x: &State, a: &mut Actuation, prop: &mut f64) {
     let d = &c.dev;
     let (nr, nc) = (d.mex.n, if d.rcs.fitted { d.rcs.nc } else { 0 });
-    if d.mtq.fitted { let (m, pw) = u.mtq.apply(&cmd.m_body); a.m_b = m; a.p_mtq = pw; }
+    // the coils' dipole averaged over the tick (the torque) and at its end (what the magnetometer sees next)
+    if d.mtq.fitted { let (m, me, pw) = u.mtq.apply(&cmd.m_body, c.dt); a.m_b = m; a.m_coil = me; a.p_mtq = pw; }
     if nr > 0 { let (hd, gd_, pw) = u.mex.apply(&cmd.cmd_r, &cmd.cmd_g, &x.h, c.dt); a.hdot = hd; a.gdot = gd_; a.p_mex = pw; }
     if let Some(rc_) = u.rcs.as_mut() {
         let mut duty = [0.0; NC];
@@ -446,6 +450,9 @@ pub fn run(c: &Config, o: &Opts) -> Result<Record, Error> {
 
     let dt = c.dt;
     let rt = Rates::new(c);
+    if d.gps.fitted && d.gps.latency/dt + 2.0 > GPS_HIST as f64 {
+        return Err(Error::refused(format!("GNSS latency {} s is {:.0} control steps; the engine keeps {} steps of history", d.gps.latency, d.gps.latency/dt, GPS_HIST - 2)));
+    }
     let mut tmax = [0.0; NR];
     for i in 0..nr { tmax[i] = d.mex.torque_max[i]; }
 
@@ -455,7 +462,7 @@ pub fn run(c: &Config, o: &Opts) -> Result<Record, Error> {
     let mut prop = 0.0;
     let mut eacc = [0.0; 3];
     let mut fault_done = vec![false; c.faults.len()];
-    let (mut b_eci, mut sun_rel, mut nu, mut v_rel, mut rho, mut psrp) = ([0.0; 3], [1.0, 0.0, 0.0], 1.0, [0.0; 3], 0.0, 0.0);
+    let (mut b_eci, mut sun_rel, mut moon_rel, mut nu, mut v_rel, mut rho, mut psrp) = ([0.0; 3], [1.0, 0.0, 0.0], [0.0, 1.0, 0.0], 1.0, [0.0; 3], 0.0, 0.0);
     let mut last_print = std::time::Instant::now();
     let mut oils = o.oils.as_ref().map(|m| OilsStats { model: Some(m.clone()), ..Default::default() });
     if oils.is_some() && o.oils.as_ref().map(|m| m.fixed_s.is_none()).unwrap_or(false) && !matches!(o.fsw, Impl::Obc(_)) { return Err(Error::run("soft OILS needs the flight software on a virtual OBC (--fsw qemu | qemu-rs | obc-posix ...)")); }
@@ -465,15 +472,15 @@ pub fn run(c: &Config, o: &Opts) -> Result<Record, Error> {
         let (r, v) = orb.state(t)?;
         if k % rt.env == 0 {
             let ev = orb.env(t, c.jd0, &r, &v, &gh, c.igrf_nmax);
-            b_eci = ev.b_eci; sun_rel = ev.sun_rel; nu = ev.nu; v_rel = ev.v_rel; rho = ev.rho; psrp = ev.p_srp;
+            b_eci = ev.b_eci; sun_rel = ev.sun_rel; moon_rel = ev.moon_rel; nu = ev.nu; v_rel = ev.v_rel; rho = ev.rho; psrp = ev.p_srp;
             orb.set_attitude(transpose(&dcm(&x.q)));      // attitude -> POP (box-wing / panel models read it)
         }
         u.faults(c, t, &mut fault_done, &mut log)?;
         let rb = dcm(&x.q);
-        let sky = Sky { b_b: mv(&rb, &b_eci), sb: unit(&mv(&rb, &sun_rel)), nb: scale(&mv(&rb, &r), -1.0/norm(&r)), earth_ang: (6378137.0/norm(&r)).asin() };
+        let sky = Sky { b_b: mv(&rb, &b_eci), sb: unit(&mv(&rb, &sun_rel)), mb: unit(&mv(&rb, &moon_rel)), nb: scale(&mv(&rb, &r), -1.0/norm(&r)), earth_ang: (6378137.0/norm(&r)).asin() };
 
         // ---- sensors -> bytes ----
-        let z = sense(&mut u, c, &mut bus, &x, &sky, &a.m_b, nu, t, k, &rt, &r, &v);
+        let z = sense(&mut u, c, &mut bus, &x, &sky, &a.m_coil, nu, t, k, &rt, &r, &v);
 
         // ---- flight software ----
         let now = bus.now_ns;

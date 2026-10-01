@@ -5,10 +5,24 @@ use crate::rng::Rng;
 use crate::{NC, NG, NR, NS};
 
 // ---------------- magnetorquers ----------------
+/// A coil is a series RL circuit behind a current-limited driver: its dipole follows the
+/// saturated command as a first-order lag with the coil's L/R time constant `tau` [s]
+/// (part `time_constant_s`). Air-core coils: no core, so no hysteresis.
 #[derive(Clone, Copy, Debug, Default)]
-pub struct MtqDesc { pub fitted: bool, pub n: usize, pub axes: [V3; NS], pub m_max: f64, pub p_max: f64, pub scale_sigma: f64, pub misalign: f64 }
+pub struct MtqDesc { pub fitted: bool, pub n: usize, pub axes: [V3; NS], pub m_max: f64, pub p_max: f64, pub scale_sigma: f64, pub misalign: f64, pub tau: f64 }
 #[derive(Clone, Copy, Debug, Default)]
-pub struct Mtq { pub d: MtqDesc, pub a: [V3; NS], pub scale: [f64; NS], pub dead: [bool; NS], pinv: [[f64; 3]; NS] }
+pub struct Mtq { pub d: MtqDesc, pub a: [V3; NS], pub scale: [f64; NS], pub dead: [bool; NS], pinv: [[f64; 3]; NS],
+    /// each coil's dipole now [A m^2], and the command it was last given
+    pub m: [f64; NS], pub mc: [f64; NS] }
+
+/// One step `dt` of the lag x' = (u - x)/tau with u held: (x at the end of the step, x
+/// averaged over it). The average is what a field constant over the step turns into torque.
+pub fn lag(x0: f64, u: f64, tau: f64, dt: f64) -> (f64, f64) {
+    if tau <= 0.0 { return (u, u); }
+    let e = exp(-dt/tau);
+    (u + (x0 - u)*e, u + (x0 - u)*tau/dt*(1.0 - e))
+}
+
 impl Mtq {
     pub fn new(d: MtqDesc, disp: &mut Rng) -> Mtq {
         let mut s = Mtq { d, ..Default::default() };
@@ -21,17 +35,22 @@ impl Mtq {
         for j in 0..d.n { s.pinv[j] = mtv(&ai, &d.axes[j]); }
         s
     }
-    /// Commanded body dipole -> (true body dipole, power).
-    pub fn apply(&self, m_body_cmd: &V3) -> (V3, f64) {
-        let mut m = [0.0; 3];
+    /// Commanded body dipole held for `dt` -> (true body dipole averaged over the step, true body
+    /// dipole at its end, power). Each coil saturates at m_max, then lags with tau; a failed
+    /// coil is open (its current stops at once). Power is linear in the mean drive.
+    pub fn apply(&mut self, m_body_cmd: &V3, dt: f64) -> (V3, V3, f64) {
+        let (mut m, mut me) = ([0.0; 3], [0.0; 3]);
         let mut p = 0.0;
         for j in 0..self.d.n {
             let mut mc = clamp(dot(&self.pinv[j], m_body_cmd), -self.d.m_max, self.d.m_max);
-            if self.dead[j] { mc = 0.0; }
-            p += abs(mc)/self.d.m_max*self.d.p_max;
-            m = add(&m, &scale(&self.a[j], mc*self.scale[j]));
+            if self.dead[j] { mc = 0.0; self.m[j] = 0.0; }
+            let (end, avg) = lag(self.m[j], mc, self.d.tau, dt);
+            self.m[j] = end; self.mc[j] = mc;
+            p += abs(avg)/self.d.m_max*self.d.p_max;
+            m = add(&m, &scale(&self.a[j], avg*self.scale[j]));
+            me = add(&me, &scale(&self.a[j], end*self.scale[j]));
         }
-        (m, p)
+        (m, me, p)
     }
 }
 
@@ -46,9 +65,22 @@ pub struct MexDesc {
     pub p_steady: [f64; NR], pub tsig: [f64; NR], pub flo: [f64; NR], pub fhi: [f64; NR], pub misalign: [f64; NR],
     pub t_sd: [f64; NR], pub k_hv: [f64; NR], pub ac: [f64; NR], pub s: [f64; NR], pub l: [f64; NR], pub flow_noise_h: [f64; NR],
     pub field_power: [f64; NR], pub eta_lo: [f64; NR], pub eta_hi: [f64; NR], pub h0: [f64; NR],
+    /// reaction wheel (Kind::Rw) motor and bearing: the drive's speed limit [rad/s]; the motor's
+    /// stall torque k_t V / R [N m] and no-load speed V / k_t [rad/s] (its torque-speed line);
+    /// the breakaway (static) friction [N m] and the Stribeck speed [rad/s]
+    pub speed_max: [f64; NR], pub t_stall: [f64; NR], pub w_nl: [f64; NR], pub f_static: [f64; NR], pub w_stribeck: [f64; NR],
     pub torque_noise: f64, pub friction_comp: f64, pub eta: f64, pub k_speed: f64, pub k_flow: f64, pub flow_tau: f64,
     pub gimbal_rate_max: f64, pub gimbal_power: f64,
 }
+/// The torque a wheel's motor delivers for the driver's demand `tc` at speed `om`: inside its
+/// torque-speed line (back-EMF: k_t (+-V - k_e om)/R, i.e. -T_s (1 + om/w_nl) .. T_s (1 - om/w_nl)
+/// with k_e = k_t in SI), and none that would speed it past the drive's speed limit.
+pub fn wheel_motor(m: &MexDesc, i: usize, tc: f64, om: f64) -> f64 {
+    let (ts, wn) = (m.t_stall[i], m.w_nl[i]);
+    let t = clamp(tc, (-ts*(1.0 + om/wn)).min(0.0), (ts*(1.0 - om/wn)).max(0.0));
+    if abs(om) >= m.speed_max[i] && sign(t) == sign(om) { 0.0 } else { t }
+}
+
 #[derive(Clone, Copy, Debug, Default)]
 pub struct Mex {
     pub d: MexDesc, pub a0: [V3; NR], pub tscale: [f64; NR], pub fscale: [f64; NR], pub eta: [f64; NR],
@@ -71,7 +103,25 @@ impl Mex {
         for i in 0..m.n {
             if self.failed[i] { hd[i] = -m.viscous[i]*h[i]/m.jrot[i] - m.coulomb[i]*sign(h[i]); continue; }
             match m.kind[i] {
-                Kind::Rw | Kind::Vscmg => {
+                Kind::Rw => {
+                    let om = h[i]/m.jrot[i];
+                    let fr = (m.coulomb[i]*sign(om) + m.viscous[i]*om)*self.fscale[i];
+                    let nz = m.torque_noise*m.torque_max[i]*self.rng.normal();
+                    let tc = wheel_motor(&m, i, clamp(cmd_r[i], -m.torque_max[i], m.torque_max[i])*self.tscale[i], om);
+                    // the breakaway excess over Coulomb near zero speed (Stribeck); the driver's
+                    // compensation knows only the Coulomb + viscous model
+                    let fs = m.f_static[i]*self.fscale[i];
+                    let x = om/m.w_stribeck[i];
+                    let st = (m.f_static[i] - m.coulomb[i])*self.fscale[i]*exp(-x*x)*sign(om);
+                    hd[i] = if abs(h[i]) <= fs*dt && abs(tc + nz) <= fs {
+                        -h[i]/dt                      // stuck (Karnopp): static friction holds the rotor at rest
+                    } else {
+                        tc - (1.0 - m.friction_comp)*fr - st + nz
+                    };
+                    if abs(h[i]) >= m.h_max[i] && sign(hd[i]) == sign(h[i]) { hd[i] = -(1.0 - m.friction_comp)*fr; }
+                    p += m.p_steady[i] + abs(tc*om)/m.eta;
+                }
+                Kind::Vscmg => {
                     let tc = clamp(cmd_r[i], -m.torque_max[i], m.torque_max[i])*self.tscale[i];
                     let om = h[i]/m.jrot[i];
                     let fr = (m.coulomb[i]*sign(om) + m.viscous[i]*om)*self.fscale[i];

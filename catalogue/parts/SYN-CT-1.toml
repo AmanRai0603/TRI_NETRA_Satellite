@@ -15,7 +15,7 @@ dipole_max_Am2 = 0.45
 dipole_per_amp_Am2_per_A = 4.5
 current_max_A = 0.1
 resistance_ohm = 30.0
-time_constant_s = 0.005
+time_constant_s = 0.005      # L/R of the air-core winding: the dipole lags the command by this first-order time constant
 mass_kg = 0.03
 power_at_max_W = 0.3
 

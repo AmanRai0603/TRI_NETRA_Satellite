@@ -17,6 +17,17 @@ speed_max_rad_s = 600.0
 rotor_inertia_kgm2 = 1.6e-5
 friction_coulomb_Nm = 1.0e-5
 friction_viscous_Nms = 1.0e-8
+# breakaway (static) friction and its Stribeck speed: small ball-bearing wheels break away at
+# 1.2-2x their running Coulomb torque, the excess gone within ~1 rad/s (Bialke 1998, AAS 98-063;
+# Olsson et al. 1998, Eur. J. Control 4:176)
+friction_static_Nm = 1.5e-5
+stribeck_speed_rad_s = 1.0
+# brushless motor and drive (back-EMF torque-speed line): a 4 mN.m/A, 12 ohm winding on a 5 V
+# drive, the class of 10-16 mm BLDC motors in nanosatellite wheels. Stall torque k_t V/R = 1.67 mN.m,
+# no-load speed V/k_t = 1250 rad/s: the full 1 mN.m to 500 rad/s, 0.87 mN.m at speed_max_rad_s
+motor_kt_Nm_per_A = 4.0e-3
+motor_resistance_ohm = 12.0
+bus_voltage_V = 5.0
 static_imbalance_kgm = 1.0e-7
 dynamic_imbalance_kgm2 = 1.0e-9
 power_steady_W = 0.5

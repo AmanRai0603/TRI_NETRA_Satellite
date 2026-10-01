@@ -208,6 +208,27 @@ fn a_product_beyond_the_engines_capacity_or_missing_a_value_is_refused() {
     for f in p["fill"].as_array_mut().unwrap() { if f["slot"] == "wheels" { f["part"] = "T-WHEEL".into(); } }
     put("T-NOTORQUE", &p);
     assert!(Dev::load(&root(), "T-NOTORQUE").unwrap_err().message().contains("does not state torque_max_Nm"));
+    // the device-fidelity values (B3.5): each one a part leaves out, or states out of range, is named
+    let edit = |slot: &str, key: &str, val: Option<f64>, says: &str| {
+        let f = base["fill"].as_array().unwrap().iter().find(|f| f["slot"] == slot).unwrap()["part"].as_str().unwrap().to_string();
+        let mut part: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(root().join("data/parts").join(format!("{f}.json"))).unwrap()).unwrap();
+        match val { None => { part["nominal"].as_object_mut().unwrap().remove(key); } Some(v) => part["nominal"][key] = v.into() }
+        std::fs::write(d.join("parts").join("T-EDIT.json"), part.to_string()).unwrap();
+        let mut p = base.clone();
+        p["id"] = "T-EDIT".into();
+        for g in p["fill"].as_array_mut().unwrap() { if g["slot"] == slot { g["part"] = "T-EDIT".into(); } }
+        put("T-EDIT", &p);
+        let m = Dev::load(&root(), "T-EDIT").unwrap_err().message().to_string();
+        assert!(m.contains(says), "{slot} {key}: {m}");
+    };
+    for (slot, key) in [("coils", "time_constant_s"), ("wheels", "speed_max_rad_s"), ("wheels", "motor_kt_Nm_per_A"), ("wheels", "motor_resistance_ohm"),
+                        ("wheels", "bus_voltage_V"), ("wheels", "friction_static_Nm"), ("wheels", "stribeck_speed_rad_s"), ("star_tracker", "moon_exclusion_rad"),
+                        ("star_tracker", "blind_recovery_s"), ("star_tracker", "noise_doubling_rate_rad_s"), ("gnss", "latency_s")] {
+        edit(slot, key, None, &format!("does not state {key}"));
+    }
+    edit("wheels", "motor_resistance_ohm", Some(0.0), "motor_resistance_ohm above 0");
+    edit("coils", "time_constant_s", Some(-1.0), "time_constant_s 0 or more");
+    edit("wheels", "friction_static_Nm", Some(1e-9), "friction_static_Nm of at least friction_coulomb_Nm");
     std::env::remove_var("ADCS_SIZED_DIR");
     let _ = std::fs::remove_dir_all(&d);
 }

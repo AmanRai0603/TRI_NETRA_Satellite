@@ -54,6 +54,16 @@ impl<'a> Part<'a> {
         Part { f, nm: p.get("nominal").cloned().unwrap_or(Value::Null), ds: p.get("dispersion").cloned().unwrap_or(Value::Null), missing: Default::default() }
     }
     fn n(&self, k: &str) -> f64 { let v = json::f(&self.nm, k, f64::NAN); if !v.is_finite() { self.missing.borrow_mut().push(k.to_string()); } v }
+    /// A value that must be stated and above zero (a time constant of zero would divide; a
+    /// negative one has no meaning).
+    fn pos(&self, k: &str) -> f64 { self.bounded(k, |v| v > 0.0, "above 0") }
+    fn nonneg(&self, k: &str) -> f64 { self.bounded(k, |v| v >= 0.0, "0 or more") }
+    fn bounded(&self, k: &str, ok: impl Fn(f64) -> bool, what: &str) -> f64 {
+        let v = json::f(&self.nm, k, f64::NAN);
+        if !v.is_finite() { self.missing.borrow_mut().push(k.to_string()); }
+        else if !ok(v) { self.missing.borrow_mut().push(format!("{k} {what} (it states {v})")); }
+        v
+    }
     fn sig(&self, k: &str) -> f64 { sig(&self.ds, k) }
     fn axes(&self, k: &str) -> Vec<[f64; 3]> { axes(self.f.get(k)) }
 }
@@ -107,14 +117,21 @@ fn fit_actuator_(d: &mut Dev, x: &mut MexDesc, slot: &str, pt: &Part) -> bool {
     match slot {
         "coils" => {
             let a = pt.axes("axes_body");
-            let mut m = MtqDesc { fitted: true, n: a.len(), m_max: n("dipole_max_Am2"), p_max: n("power_at_max_W"), scale_sigma: pt.sig("dipole_scale"), misalign: pt.sig("axis_misalignment_rad"), ..Default::default() };
+            let mut m = MtqDesc { fitted: true, n: a.len(), m_max: n("dipole_max_Am2"), p_max: n("power_at_max_W"), scale_sigma: pt.sig("dipole_scale"), misalign: pt.sig("axis_misalignment_rad"),
+                tau: pt.nonneg("time_constant_s"), ..Default::default() };
             for (j, v) in a.iter().enumerate() { m.axes[j] = *v; }
             d.mtq = m;
         }
         "wheels" => {
             let (flo, fhi) = lohi(ds, "friction_scale", 1.0);
+            // the motor's torque-speed line from its constants: stall torque k_t V / R, no-load speed V / k_t
+            let (kt, rw, vb) = (pt.pos("motor_kt_Nm_per_A"), pt.pos("motor_resistance_ohm"), pt.pos("bus_voltage_V"));
+            let (wmax, fst, wst) = (pt.pos("speed_max_rad_s"), pt.pos("friction_static_Nm"), pt.pos("stribeck_speed_rad_s"));
+            if fst < n("friction_coulomb_Nm") { pt.missing.borrow_mut().push(format!("friction_static_Nm of at least friction_coulomb_Nm (it states {fst})")); }
             for a in pt.axes("axes_body") {
                 add_rotor(x, Kind::Rw, a, 0, n("h_max_Nms"), n("torque_max_Nm"), n("rotor_inertia_kgm2"), n("friction_coulomb_Nm"), n("friction_viscous_Nms"), n("power_steady_W"), pt.sig("torque_scale"), flo, fhi, pt.sig("axis_misalignment_rad"));
+                let i = x.n - 1;
+                x.speed_max[i] = wmax; x.t_stall[i] = kt*vb/rw; x.w_nl[i] = vb/kt; x.f_static[i] = fst; x.w_stribeck[i] = wst;
             }
         }
         "rings" => {
@@ -177,7 +194,8 @@ fn fit_sensor(d: &mut Dev, slot: &str, pt: &Part) -> bool {
             let mut s = StDesc { fitted: true, nh: bs.len(), noise_cross: n("noise_cross_rad"), noise_roll: n("noise_roll_rad"), rate_hz: n("rate_Hz"),
                 latency: n("latency_s"), max_rate: n("max_rate_rad_s"), sun_excl: n("sun_exclusion_rad"), earth_excl: n("earth_exclusion_rad"),
                 fov: n("fov_half_angle_rad"), model: if json::s(f, "model", "quest") == "noise" { 0 } else { 1 },
-                bias_sigma: pt.sig("bias_rad"), misalign_sigma: pt.sig("axis_misalignment_rad"), ..Default::default() };
+                bias_sigma: pt.sig("bias_rad"), misalign_sigma: pt.sig("axis_misalignment_rad"),
+                moon_excl: pt.nonneg("moon_exclusion_rad"), blind_s: pt.nonneg("blind_recovery_s"), noise_rate_ref: pt.pos("noise_doubling_rate_rad_s"), ..Default::default() };
             for h in 0..s.nh { s.bs[h] = bs[h]; }
             if let Some(c) = get(f, "calibrated_residual_rad").and_then(|v| v.as_f64()) { s.bias_sigma = c; s.misalign_sigma = 0.0; }
             d.st = s;
@@ -200,7 +218,7 @@ fn fit_sensor(d: &mut Dev, slot: &str, pt: &Part) -> bool {
             let bs = get(f, "boresight_body").and_then(json::v3).map(json::unit).unwrap_or(d.boresight);
             d.es = EsDesc { fitted: true, bs, noise: n("accuracy_rad"), fov: n("fov_half_angle_rad"), rate_hz: n("rate_Hz"), bias_sigma: pt.sig("bias_rad") };
         }
-        "gnss" => d.gps = GpsDesc { fitted: true, pos_sigma: n("pos_sigma_m"), vel_sigma: n("vel_sigma_m_s"), rate_hz: n("rate_Hz") },
+        "gnss" => d.gps = GpsDesc { fitted: true, pos_sigma: n("pos_sigma_m"), vel_sigma: n("vel_sigma_m_s"), rate_hz: n("rate_Hz"), latency: pt.nonneg("latency_s") },
         _ => return false,
     }
     true
