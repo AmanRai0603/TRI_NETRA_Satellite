@@ -43,10 +43,17 @@
   "power_steady_W": 0.77,
   "power_peak_W": 7.2,
   "mass_kg": 0.14400000000000002,
-  "volume_L": 0.050783999999999996
+  "volume_L": 0.050783999999999996,
+  "motor_kt_Nm_per_A": 0.009167324722093173,
+  "motor_resistance_ohm": 3.1430827618605153,
+  "bus_voltage_V": 12.0,
+  "friction_static_Nm": 1.9091883092036783e-05,
+  "stribeck_speed_rad_s": 1.0
  },
  "assumptions": [
   "rotor mass 0.4 x unit mass, balance ISO 1940 G2.5 (imbalance model)",
-  "friction: Coulomb 1e-5 sqrt(h / 0.01 Nms) N m, viscous 1e-8 N m s (not on datasheets)"
+  "friction: Coulomb 1e-5 sqrt(h / 0.01 Nms) N m, viscous 1e-8 N m s (not on datasheets)",
+  "motor: no-load speed 1.25 x the top stated speed, the line through the stated torque there (k_t = V / w_nl, R = k_t V / stall torque, V = the lowest stated supply)",
+  "breakaway friction 1.5 x Coulomb, Stribeck speed 1 rad/s (Bialke 1998; not on datasheets)"
  ]
 }

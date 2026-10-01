@@ -136,14 +136,21 @@ pub struct StDesc {
     pub latency: f64, pub max_rate: f64, pub sun_excl: f64, pub earth_excl: f64, pub fov: f64,
     /// 0 noise model, 1 onboard QUEST on catalogue stars (the default)
     pub model: u8, pub bias_sigma: f64, pub misalign_sigma: f64,
+    /// the Moon's exclusion half-angle [rad]; the time a head stays blind after the Sun or the
+    /// Moon leaves its exclusion cone [s]; the body rate at which the noise has doubled [rad/s]
+    /// (star smear over the exposure: sigma(w) = sigma_0 (1 + |w|/w_ref))
+    pub moon_excl: f64, pub blind_s: f64, pub noise_rate_ref: f64,
 }
 const HIST: usize = 64;
 /// Star tracker unit; holds its catalogue (the onboard star table, 4000 entries).
 #[derive(Clone)]
-pub struct St { pub d: StDesc, pub q_bias: [Q; NH], pub q_mis: [Q; NH], pub dead: [bool; NH], ht: [f64; HIST], hq: [Q; HIST], hn: usize, pub rng: Rng, cat: [(V3, f64); N_STARS] }
+pub struct St { pub d: StDesc, pub q_bias: [Q; NH], pub q_mis: [Q; NH], pub dead: [bool; NH], ht: [f64; HIST], hq: [Q; HIST], hn: usize, pub rng: Rng, cat: [(V3, f64); N_STARS],
+    /// each head is blind until this time (the Sun or the Moon was in its exclusion cone)
+    pub blind_until: [f64; NH] }
 impl St {
     pub fn new(d: StDesc, disp: &mut Rng, noise: Rng) -> St {
-        let mut s = St { d, q_bias: [[0.0, 0.0, 0.0, 1.0]; NH], q_mis: [[0.0, 0.0, 0.0, 1.0]; NH], dead: [false; NH], ht: [0.0; HIST], hq: [[0.0; 4]; HIST], hn: 0, rng: noise, cat: [([0.0; 3], 0.0); N_STARS] };
+        let mut s = St { d, q_bias: [[0.0, 0.0, 0.0, 1.0]; NH], q_mis: [[0.0, 0.0, 0.0, 1.0]; NH], dead: [false; NH], ht: [0.0; HIST], hq: [[0.0; 4]; HIST], hn: 0, rng: noise, cat: [([0.0; 3], 0.0); N_STARS],
+            blind_until: [f64::NEG_INFINITY; NH] };
         if d.model == 1 { for k in 0..N_STARS { s.cat[k] = star(k, N_STARS); } }
         for h in 0..d.nh {
             s.q_bias[h] = fromrotvec(&scale(&disp.normal3(), d.bias_sigma));
@@ -159,8 +166,8 @@ impl St {
         while k < self.hn && self.ht[k] < t - 0.5 { k += 1; }
         if k > 0 { for i in k..self.hn { self.ht[i - k] = self.ht[i]; self.hq[i - k] = self.hq[i]; } self.hn -= k; }
     }
-    /// Per head: Some(q_meas) when valid.
-    pub fn sample(&mut self, q_true: &Q, t: f64, w: &V3, sun_b: &V3, nadir_b: &V3, earth_ang: f64) -> [Option<Q>; NH] {
+    /// Per head: Some(q_meas) when valid. `moon_b`: the Moon's direction in the body.
+    pub fn sample(&mut self, q_true: &Q, t: f64, w: &V3, sun_b: &V3, moon_b: &V3, nadir_b: &V3, earth_ang: f64) -> [Option<Q>; NH] {
         let tl = t - self.d.latency;
         let mut k = None;
         for i in 0..self.hn { if self.ht[i] <= tl + 1e-9 { k = Some(i); } }
@@ -170,11 +177,16 @@ impl St {
             Some(i) => slerp(&self.hq[i], &self.hq[i + 1], (tl - self.ht[i])/(self.ht[i + 1] - self.ht[i])),
         };
         let slow = norm(w) < self.d.max_rate;
+        let smear = 1.0 + norm(w)/self.d.noise_rate_ref;
         let rold = dcm(&q_old);
         let mut out = [None; NH];
         for h in 0..self.d.nh {
             let bs = self.d.bs[h];
-            let valid = slow && !self.dead[h] && acos(clamp(dot(&bs, sun_b), -1.0, 1.0)) > self.d.sun_excl
+            // the Sun or the Moon in the exclusion cone blinds the head, and it stays blind for
+            // blind_s after the body leaves it
+            let dazzled = acos(clamp(dot(&bs, sun_b), -1.0, 1.0)) <= self.d.sun_excl || acos(clamp(dot(&bs, moon_b), -1.0, 1.0)) <= self.d.moon_excl;
+            if dazzled { self.blind_until[h] = t + self.d.blind_s; }
+            let valid = slow && !self.dead[h] && !dazzled && t >= self.blind_until[h]
                 && acos(clamp(dot(&bs, nadir_b), -1.0, 1.0)) > earth_ang + self.d.earth_excl;
             let dq = qmult(&self.q_mis[h], &self.q_bias[h]);
             if self.d.model == 1 {
@@ -195,7 +207,7 @@ impl St {
                 }
                 if ns < 3 { continue; }
                 let rm = mm(&transpose(&dcm(&dq)), &rold);
-                let sc = self.d.noise_cross*sqrt(8.0);
+                let sc = self.d.noise_cross*smear*sqrt(8.0);
                 let mut bm = [[0.0; 3]; 12];
                 let mut rr = [[0.0; 3]; 12];
                 for i in 0..ns {
@@ -210,8 +222,8 @@ impl St {
             } else {
                 let n0 = self.rng.normal3();
                 let nr = self.rng.normal();
-                let e0 = scale(&n0, self.d.noise_cross);
-                let e = add(&sub(&e0, &scale(&bs, dot(&bs, &e0))), &scale(&bs, self.d.noise_roll*nr));
+                let e0 = scale(&n0, self.d.noise_cross*smear);
+                let e = add(&sub(&e0, &scale(&bs, dot(&bs, &e0))), &scale(&bs, self.d.noise_roll*smear*nr));
                 if valid { out[h] = Some(qnorm(&qmult(&q_old, &qmult(&dq, &fromrotvec(&e))))); }
             }
         }
@@ -234,11 +246,44 @@ impl Es {
 }
 
 // ---------------- GNSS ----------------
+/// `latency` [s]: a fix reaches the bus this long after the epoch it solves for, and the
+/// receiver reports it as current.
 #[derive(Clone, Copy, Debug, Default)]
-pub struct GpsDesc { pub fitted: bool, pub pos_sigma: f64, pub vel_sigma: f64, pub rate_hz: f64 }
-#[derive(Clone, Copy, Debug, Default)]
-pub struct Gps { pub d: GpsDesc, pub dead: bool, pub rng: Rng }
+pub struct GpsDesc { pub fitted: bool, pub pos_sigma: f64, pub vel_sigma: f64, pub rate_hz: f64, pub latency: f64 }
+/// The truth states the latency reaches back over (one per loop tick).
+pub const GPS_HIST: usize = 256;
+#[derive(Clone, Copy, Debug)]
+pub struct Gps { pub d: GpsDesc, pub dead: bool, pub rng: Rng, ht: [f64; GPS_HIST], hr: [V3; GPS_HIST], hv: [V3; GPS_HIST], hn: usize }
 impl Gps {
+    pub fn new(d: GpsDesc, noise: Rng) -> Gps {
+        Gps { d, dead: false, rng: noise, ht: [0.0; GPS_HIST], hr: [[0.0; 3]; GPS_HIST], hv: [[0.0; 3]; GPS_HIST], hn: 0 }
+    }
+    /// Record the truth state at t (every tick); keep what the latency reaches back to.
+    pub fn history(&mut self, t: f64, r: &V3, v: &V3) {
+        if self.hn == GPS_HIST { self.drop_front(1); }
+        self.ht[self.hn] = t; self.hr[self.hn] = *r; self.hv[self.hn] = *v; self.hn += 1;
+        // the newest entry at or before t - latency is the oldest one still needed
+        let tl = t - self.d.latency;
+        let mut k = 0;
+        while k + 1 < self.hn && self.ht[k + 1] <= tl + 1e-9 { k += 1; }
+        if k > 0 { self.drop_front(k); }
+    }
+    fn drop_front(&mut self, k: usize) {
+        for i in k..self.hn { self.ht[i - k] = self.ht[i]; self.hr[i - k] = self.hr[i]; self.hv[i - k] = self.hv[i]; }
+        self.hn -= k;
+    }
+    /// (epoch, r, v): the truth state at t - latency, linear between ticks; before the history
+    /// reaches back that far (the first `latency` of a run), its oldest state and that state's epoch.
+    pub fn delayed(&self, t: f64) -> (f64, V3, V3) {
+        let tl = t - self.d.latency;
+        if self.hn == 0 { return (t, [0.0; 3], [0.0; 3]); }
+        let mut k = 0;
+        while k + 1 < self.hn && self.ht[k + 1] <= tl + 1e-9 { k += 1; }
+        if k + 1 == self.hn || tl <= self.ht[k] { return (self.ht[k].max(tl), self.hr[k], self.hv[k]); }
+        let s = (tl - self.ht[k])/(self.ht[k + 1] - self.ht[k]);
+        let li = |a: &V3, b: &V3| [a[0] + s*(b[0] - a[0]), a[1] + s*(b[1] - a[1]), a[2] + s*(b[2] - a[2])];
+        (tl, li(&self.hr[k], &self.hr[k + 1]), li(&self.hv[k], &self.hv[k + 1]))
+    }
     pub fn sample(&mut self, r: &V3, v: &V3) -> (V3, V3) {
         let (a, b) = (self.rng.normal3(), self.rng.normal3());
         (add(r, &scale(&a, self.d.pos_sigma)), add(v, &scale(&b, self.d.vel_sigma)))

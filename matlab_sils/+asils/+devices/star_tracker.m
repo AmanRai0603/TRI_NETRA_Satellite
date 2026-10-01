@@ -1,4 +1,4 @@
-function [q_meas, valid, D] = star_tracker(q_true, t, w_true, sun_B, nadir_B, earth_ang, D, s)
+function [q_meas, valid, D] = star_tracker(q_true, t, w_true, sun_B, moon_B, nadir_B, earth_ang, D, s)
 %ASILS.DEVICES.STAR_TRACKER  Star-tracker heads -> attitude q_B/ECI per head (4 x nh)
 %   and validity (1 x nh), with latency, noise and exclusion angles.
 %   Noise: cross-boresight and roll about the boresight (SYN-ST-1), plus a
@@ -20,10 +20,15 @@ function [q_meas, valid, D] = star_tracker(q_true, t, w_true, sun_B, nadir_B, ea
     end
     nh = size(s.boresight, 2); q_meas = zeros(4, nh); valid = false(1, nh);
     slow = sqrt(w_true'*w_true) < s.max_rate;
+    smear = 1 + sqrt(w_true'*w_true)/s.noise_rate_ref;    % rate-dependent noise (star smear)
     Rold = asils.quat.dcm(q_old);
     for h = 1:nh
         bs = s.boresight(:, h);
-        valid(h) = slow && ~D.dead(h) && acos(max(-1,min(1, bs'*sun_B))) > s.sun_excl ...
+        % the Sun or the Moon in its exclusion cone blinds the head, and it
+        % stays blind for blind_s after the body leaves the cone
+        dazzled = acos(max(-1,min(1, bs'*sun_B))) <= s.sun_excl || acos(max(-1,min(1, bs'*moon_B))) <= s.moon_excl;
+        if dazzled, D.blind_until(h) = t + s.blind_s; end
+        valid(h) = slow && ~D.dead(h) && ~dazzled && t >= D.blind_until(h) ...
             && acos(max(-1,min(1, bs'*nadir_B))) > earth_ang + s.earth_excl;
         dq = asils.quat.mult(D.q_mis(:,h), D.q_bias(:,h));          % mount error of this head
         if strcmp(s.model, 'image')
@@ -43,7 +48,7 @@ function [q_meas, valid, D] = star_tracker(q_true, t, w_true, sun_B, nadir_B, ea
             [~, o] = sort(D.cat.mag(in)); in = in(o(1:min(12, numel(in))));
             if numel(in) < 3, valid(h) = false; q_meas(:,h) = q_old; continue, end
             Rm = asils.quat.dcm(dq)'*Rold;              % what the mis-mounted head believes
-            sc = s.noise_cross*sqrt(8);                 % per-star centroid noise (8 stars ~ spec accuracy)
+            sc = s.noise_cross*smear*sqrt(8);                 % per-star centroid noise (8 stars ~ spec accuracy)
             bm = zeros(3, numel(in));
             for k = 1:numel(in)
                 v = Rm*D.cat.r(:, in(k));
@@ -53,8 +58,8 @@ function [q_meas, valid, D] = star_tracker(q_true, t, w_true, sun_B, nadir_B, ea
             q_meas(:,h) = asils.fsw.quest(bm, D.cat.r(:, in));
         else
             % noise in the sensor frame: cross axes and roll about the boresight
-            e = s.noise_cross*randn(3,1);
-            e = e - (bs'*e)*bs + s.noise_roll*randn*bs;
+            e = s.noise_cross*smear*randn(3,1);
+            e = e - (bs'*e)*bs + s.noise_roll*smear*randn*bs;
             q_meas(:, h) = asils.quat.norm(asils.quat.mult(q_old, asils.quat.mult(dq, asils.quat.fromrotvec(e))));
         end
     end

@@ -7,7 +7,8 @@ function ok = run_all_tests()
     T = {@t_quat, @t_kinematics, @t_sso, @t_case, @t_igrf, @t_shadow, ...
          @t_torques, @t_plant_conservation, @t_cmg_plant, @t_mekf, @t_quest, @t_lqr, ...
          @t_fmr_spin_down, @t_cmg_steering, @t_hal_loopback, @t_select, @t_gen_bdot, @t_sun_spin_law, @t_sun_guidance, @t_sun_model, @t_st_chain, @t_sun_chain, @t_es_chain, ...
-         @t_sizing, @t_modes_table, @t_orbit_vs_pop, @t_short_runs, @t_campaign_draw, @t_metrics_evaluate, @t_metrics_ecss, @t_flex_plant, @t_solution_scenario};
+         @t_sizing, @t_modes_table, @t_orbit_vs_pop, @t_short_runs, @t_campaign_draw, @t_metrics_evaluate, @t_metrics_ecss, @t_flex_plant, @t_solution_scenario, ...
+         @t_coil_lag, @t_wheel_motor, @t_wheel_stiction, @t_st_moon_blind, @t_st_rate_noise, @t_gps_latency, @t_earth_radiation, @t_fidelity_refused};
     n = 0;
     for i = 1:numel(T)
         name = func2str(T{i});
@@ -408,6 +409,162 @@ function m = t_metrics_ecss()
     rec.e_ake = [zeros(1, 1000); 1e-3*ones(1, 1000); zeros(1, 1000)]; rec.e_ake(:, t < 20) = NaN;
     assert(numel(asils.metrics.ecss('mke', rec, idx, 10, NaN)) == 8, 'blocks with no estimate are skipped');
     m = 'bias, sine, ramp and gaps give the engine''s answers';
+end
+
+% ---------------- device fidelity (B3.5; = engine/crates/adcs-sim-core/tests/core.rs) ----------------
+
+function m = t_coil_lag()
+%T_COIL_LAG  A coil's dipole lags its command by tau (63.2 % at one tau, 1/e of
+%   it on average over that step), saturates at m_max, and an open coil stops at once.
+    t = struct('m_max', 0.4, 'p_max', 0.3, 'tau', 0.01);
+    D = struct('A', eye(3), 'scale', [1 1 1], 'dead', false(1, 3), 'm', zeros(1, 3), 'mc', zeros(1, 3));
+    [avg, P, D, e] = asils.devices.mtq([0.2; 0; 0], D, t, t.tau); %#ok<ASGLU>
+    assert(abs(e(1) - 0.2*(1 - exp(-1))) < 1e-15 && abs(e(1)/0.2 - 0.632) < 1e-3, 'end %.6f', e(1));
+    assert(abs(avg(1) - 0.2*exp(-1)) < 1e-15, 'mean %.6f', avg(1));
+    [~, ~, D, e] = asils.devices.mtq([0.2; 0; 0], D, t, t.tau);
+    assert(abs(e(1) - 0.2*(1 - exp(-2))) < 1e-15, 'second step %.6f', e(1));
+    for k = 1:50, [~, ~, D] = asils.devices.mtq([0; 0; 5], D, t, t.tau); end
+    [avg, P, D, e] = asils.devices.mtq([0; 0; 5], D, t, t.tau);
+    assert(abs(e(3) - 0.4) < 1e-12 && abs(avg(3) - 0.4) < 1e-12 && abs(P - 0.3) < 1e-9, 'saturation %.4f %.4f', e(3), P);
+    D.dead(3) = true;
+    [avg, ~, ~, e] = asils.devices.mtq([0; 0; 5], D, t, t.tau);
+    assert(avg(3) == 0 && e(3) == 0, 'open coil');
+    m = sprintf('%.1f %% at one tau, mean 1/e, saturates at 0.4 A m^2, open coil 0', 100*(1 - exp(-1)));
+end
+
+function [M, D] = one_wheel_()
+    M = struct('kind', {{'rw'}}, 'h_max', 0.01, 'torque_max', 1e-3, 'J', 1.6e-5, 'coulomb', 1e-5, 'viscous', 1e-8, ...
+        'p_steady', 0, 'friction_comp', 0.95, 'torque_noise', 0, 'eta', 0.8, ...
+        't_stall', 4e-3*5/12, 'w_nl', 5/4e-3, 'speed_max', 600, 'f_static', 1.5e-5, 'w_stribeck', 1.0, ...
+        'gimbal_rate_max', 1, 'gimbal_power', 0);
+    D = struct('failed', false, 'gfailed', false(1, 0), 'tscale', 1, 'fscale', 1);
+end
+
+function m = t_wheel_motor()
+%T_WHEEL_MOTOR  The wheel torque follows its back-EMF line T_s (1 - |w|/w_nl)
+%   above the knee, the current limit below it and when braking, and stops at the speed limit.
+    [M, D] = one_wheel_(); M.f_static = 0; M.coulomb = 0; M.viscous = 0;
+    ts = 4e-3*5/12;
+    hd = @(cmd, w) asils.devices.mex(cmd, zeros(0,1), w*1.6e-5, zeros(0,1), D, M, 0.1);
+    assert(abs(hd(1e-3, 300) - 1e-3) < 1e-15, 'below the knee');
+    for w = [520 580 -550]
+        want = ts*(1 - abs(w)/1250)*sign(w);
+        assert(abs(hd(1e-3*sign(w), w) - want) < 1e-15, 'w %g: %.6e vs %.6e', w, hd(1e-3*sign(w), w), want);
+    end
+    assert(abs(hd(-1e-3, 580) + 1e-3) < 1e-15, 'braking');
+    assert(hd(1e-3, 600) == 0 && abs(hd(-1e-3, 600) + 1e-3) < 1e-15, 'speed limit');
+    m = sprintf('on the line at 580 rad/s: %.3f mN m (stall %.3f, no-load 1250 rad/s)', 1e3*hd(1e-3, 580), 1e3*ts);
+end
+
+function m = t_wheel_stiction()
+%T_WHEEL_STICTION  At rest a wheel breaks away only above its static friction; a
+%   creeping one stops within the step; the Stribeck excess at w_s is (Fs - Fc)/e.
+    [M, D] = one_wheel_();
+    hd = @(cmd, h) asils.devices.mex(cmd, zeros(0,1), h, zeros(0,1), D, M, 0.1);
+    assert(hd(1.4e-5, 0) == 0 && hd(-1.4e-5, 0) == 0, 'held at rest');
+    assert(abs(hd(1.6e-5, 0) - 1.6e-5) < 1e-18, 'breaks away');
+    assert(abs(hd(0, 1e-7)*0.1 + 1e-7) < 1e-20, 'creep stopped');
+    want = 1e-4 - 0.05*(1e-5 + 1e-8) - (1.5e-5 - 1e-5)*exp(-1);
+    assert(abs(hd(1e-4, 1.6e-5) - want) < 1e-15, 'Stribeck %.6e vs %.6e', hd(1e-4, 1.6e-5), want);
+    m = 'held under 15 uN m, breaks away above; Stribeck (Fs - Fc)/e at 1 rad/s';
+end
+
+function [s, D] = tracker_(blind)
+    s = struct('boresight', [0; 0; 1], 'noise_cross', 1e-4, 'noise_roll', 1e-3, 'latency', 0, 'max_rate', 1, ...
+        'sun_excl', 0.5, 'earth_excl', 0.3, 'fov', 0.17, 'model', 'noise', 'moon_excl', 0.26, 'blind_s', blind, 'noise_rate_ref', 0.01);
+    D = struct('hist_t', [], 'hist_q', [], 'dead', false, 'blind_until', -Inf, 'q_bias', [0;0;0;1], 'q_mis', [0;0;0;1]);
+end
+
+function m = t_st_moon_blind()
+%T_ST_MOON_BLIND  No attitude inside the Moon's exclusion cone; blind for blind_s
+%   after the Moon (or the Sun) leaves it; back at once with no blind time.
+    [s, D] = tracker_(5); q = [0;0;0;1]; sun = [1;0;0]; nad = [0;0;-1];
+    mo = @(deg) [sind(deg); 0; cosd(deg)];
+    [~, v, D] = asils.devices.star_tracker(q, 0, zeros(3,1), sun, mo(40), nad, 1, D, s); assert(v, 'clear sky');
+    [~, v, D] = asils.devices.star_tracker(q, 1, zeros(3,1), sun, mo(14), nad, 1, D, s); assert(~v, 'Moon in the cone');
+    [~, v, D] = asils.devices.star_tracker(q, 1.2, zeros(3,1), sun, mo(16), nad, 1, D, s); assert(~v, 'still blind');
+    [~, v, D] = asils.devices.star_tracker(q, 5.9, zeros(3,1), sun, mo(20), nad, 1, D, s); assert(~v, 'blind until 6 s');
+    [~, v] = asils.devices.star_tracker(q, 6.0, zeros(3,1), sun, mo(20), nad, 1, D, s); assert(v, 'recovered at 6 s');
+    [s, D] = tracker_(0);
+    [~, v, D] = asils.devices.star_tracker(q, 0, zeros(3,1), mo(25), mo(90), nad, 1, D, s); assert(~v, 'Sun in the cone');
+    [~, v] = asils.devices.star_tracker(q, 0.2, zeros(3,1), mo(35), mo(90), nad, 1, D, s); assert(v, 'no blind time');
+    m = 'Moon cone 15 deg refused; recovered 5 s after; Sun likewise';
+end
+
+function m = t_st_rate_noise()
+%T_ST_RATE_NOISE  Cross-boresight noise rms = noise_cross (1 + |w|/w_ref).
+    q = [0;0;0;1]; r = [];
+    for c = [0 1; 0.02 3]'
+        [s, D] = tracker_(0); n = 4000; ss = 0;
+        for i = 1:n
+            [z, v, D] = asils.devices.star_tracker(q, i*0.2, [0;0;c(1)], [1;0;0], [-1;0;0], [0;0;-1], 1, D, s); assert(v);
+            ss = ss + (2*z(1))^2 + (2*z(2))^2;
+        end
+        rms = sqrt(ss/(2*n)); r(end+1) = rms; %#ok<AGROW>
+        assert(abs(rms/(1e-4*c(2)) - 1) < 0.05, 'w %g: rms %.3e vs %.3e', c(1), rms, 1e-4*c(2));
+    end
+    m = sprintf('rms %.2e at rest, %.2e at 2 w_ref (x%.2f)', r(1), r(2), r(2)/r(1));
+end
+
+function m = t_gps_latency()
+%T_GPS_LATENCY  A fix holds the truth of latency_s ago (linear between ticks).
+    G = struct('t', zeros(1,0), 'r', zeros(3,0), 'v', zeros(3,0)); L = 0.25;
+    rf = @(t) [7e6 + 100*t; -3*t; 2*t]; vf = @(t) [100; -3; 2 + t];
+    for k = 0:30, t = k*0.1; G = asils.devices.gps_history(G, t, rf(t), vf(t), L); end
+    [te, r, v] = asils.devices.gps_delayed(G, 3.0, L);
+    assert(abs(te - 2.75) < 1e-12 && norm(r - rf(2.75)) < 1e-6 && norm(v - vf(2.75)) < 1e-12, 'delayed state');
+    r3 = rf(3.0); lagm = r3(1) - r(1);
+    assert(abs(lagm - 25) < 1e-6, 'along-track lag %.3f m', lagm);
+    G2 = struct('t', zeros(1,0), 'r', zeros(3,0), 'v', zeros(3,0));
+    G2 = asils.devices.gps_history(G2, 0, rf(0), vf(0), L); G2 = asils.devices.gps_history(G2, 0.1, rf(0.1), vf(0.1), L);
+    [te, r] = asils.devices.gps_delayed(G2, 0.1, L);
+    assert(te == 0 && isequal(r, rf(0)), 'before the history reaches back');
+    m = sprintf('the fix at 3 s is the state of 2.75 s: %.1f m behind at 100 m/s', lagm);
+end
+
+function m = t_earth_radiation()
+%T_EARTH_RADIATION  Albedo and Earth infrared pressures in closed form; in
+%   eclipse only the infrared torques a box whose CM is off its centre.
+    rn = 6378137 + 500e3; vf = (6378137/rn)^2;
+    [pa, pi_] = asils.env.earth_pressure([rn;0;0], [1.5e11;0;0], 4.56e-6);
+    assert(abs(pa - 0.30*4.56e-6*vf) < 1e-20 && abs(pi_ - 237/299792458*vf) < 1e-20, 'pressures');
+    pa0 = asils.env.earth_pressure([rn;0;0], [-1.5e11;0;0], 4.56e-6); assert(pa0 == 0, 'night side');
+    sc = struct('box_m', [0.1 0.1 0.34], 'cm_offset_m', [0; 0.01; 0], 'sigma_n', 0.8, 'sigma_t', 0.8, 'vb_ratio', 0.05, 'refl', 0.6, 'spec_frac', 0.5);
+    G = asils.env.geometry(sc);
+    [~, p] = asils.env.torques([0;0;0;1], [rn;0;0], [1;0;0], [0;0;0], [-1.5e11;0;0], 0, 4.56e-6, 0, eye(3), G, [0;0;0], 3.986e14, [0 0 1 0]);
+    F = pi_*0.1*0.34*(1 + 0.3 + 2*0.3/3);
+    assert(abs(p(3,3) - 0.01*F) < 1e-12*0.01*F && abs(p(1,3)) < 1e-25 && abs(p(2,3)) < 1e-25, 'IR torque %.4e vs %.4e', p(3,3), 0.01*F);
+    m = sprintf('albedo %.2e Pa, IR %.2e Pa at 500 km; IR torque %.2e N m', pa, pi_, p(3,3));
+end
+
+function m = t_fidelity_refused()
+%T_FIDELITY_REFUSED  A part that leaves out a B3.5 value its device reads is refused by name.
+    R = asils.util.root(); dd = fullfile(R, 'store', 'sized', sprintf('zz_test_%06d', randi(1e6)));
+    mkdir(fullfile(dd, 'parts')); mkdir(fullfile(dd, 'products'));
+    c = onCleanup(@() rmdir(dd, 's'));
+    base = asils.util.readjson(fullfile(R, 'data', 'products', 'TRN-P-3U-RW-RCS.json'));
+    fills = base.fill; if ~iscell(fills), fills = num2cell(fills); end
+    cases = {'coils', 'time_constant_s'; 'wheels', 'motor_kt_Nm_per_A'; 'wheels', 'friction_static_Nm'; 'wheels', 'speed_max_rad_s'; ...
+             'star_tracker', 'moon_exclusion_rad'; 'star_tracker', 'blind_recovery_s'; 'star_tracker', 'noise_doubling_rate_rad_s'; 'gnss', 'latency_s'};
+    for k = 1:size(cases, 1)
+        slot = cases{k, 1}; key = cases{k, 2};
+        i = find(cellfun(@(f) strcmp(f.slot, slot), fills));
+        p = asils.util.readjson(fullfile(R, 'data', 'parts', [fills{i}.part '.json']));
+        p.nominal = rmfield(p.nominal, key); p.part_number = 'T-EDIT';
+        put_(fullfile(dd, 'parts', 'T-EDIT.json'), p);
+        pr = base; f2 = fills; f2{i}.part = 'T-EDIT'; pr.fill = f2; pr.id = 'T-EDIT';
+        put_(fullfile(dd, 'products', 'T-EDIT.json'), pr);
+        try
+            asils.product.load('T-EDIT'); error('not refused');
+        catch e
+            assert(~isempty(strfind(e.message, key)), '%s %s: %s', slot, key, e.message);
+        end
+    end
+    m = sprintf('%d missing values refused by name', size(cases, 1));
+end
+
+function put_(f, s)
+    fid = fopen(f, 'w'); fwrite(fid, jsonencode(s)); fclose(fid);
 end
 
 function m = t_flex_plant()

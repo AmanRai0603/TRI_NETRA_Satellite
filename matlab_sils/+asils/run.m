@@ -11,7 +11,8 @@ function rec = run(scenarioId, caseFile, varargin)
 %     sensors   gyro, magnetometer, sun sensors, star tracker, GNSS (asils.devices)
 %     fsw       onboard orbit, MEKF, mode manager, guidance, control (asils.fsw)
 %     actuators magnetorquers, reaction wheels (asils.devices)
-%     torques   gravity gradient, aero, SRP, residual dipole (asils.env.torques),
+%     torques   gravity gradient, aero, radiation (Sun, Earth albedo and IR),
+%               residual dipole (asils.env.torques),
 %               all driven by the orbit state -- "the OD information flows"
 %     plant     rigid body + wheels, RK4 (asils.plant)
 %     record    every P.sim.record_dt
@@ -69,7 +70,7 @@ function rec = run(scenarioId, caseFile, varargin)
     st_every = 1; if dev.st.fitted, st_every = max(1, round(1/(dev.st.rate_hz*dt))); end
     gps_every = max(1, round(1/dt));
     es_every = 1; if dev.es.fitted, es_every = max(1, round(1/(dev.es.rate_hz*dt))); end
-    m_B = zeros(3,1); P_mtq = 0; P_mex = 0; P_rcs = 0; hdot = zeros(nr,1); gdot = zeros(ng,1);
+    m_B = zeros(3,1); m_coil = zeros(3,1); P_mtq = 0; P_mex = 0; P_rcs = 0; hdot = zeros(nr,1); gdot = zeros(ng,1);
     tau_rcs = zeros(3,1); prop = 0;
     z = struct('gps_ok', false, 'st_ok', false, 'st_valid', false, 'sun_ok', false, 'clean', true, 'es_ok', false, 'nadir', [0;0;-1], ...
                'q_st', [0;0;0;1], 'sun', [1;0;0], 'r_gps', [], 'v_gps', [], 'h', zeros(nr,1), 'delta', zeros(ng,1));
@@ -80,7 +81,7 @@ function rec = run(scenarioId, caseFile, varargin)
         if mod(k, env_every) == 0
             X = asils.orbit.context(O, t);
             [B_eci, ~] = asils.env.field(X.C*r, X.C, gh, P.env.igrf_nmax);
-            sun_rel = X.sun_eci - r;
+            sun_rel = X.sun_eci - r; moon_rel = X.moon_eci - r;
             nu = asils.env.shadow(r, X.sun_eci);
             v_rel = v - O.omega_e*[-r(2); r(1); 0];
             rho = X.rho; Psrp = X.P_srp;
@@ -90,12 +91,12 @@ function rec = run(scenarioId, caseFile, varargin)
         q = x(1:4); w = x(5:7); h = x(8:7+nr); d = x(8+nr:7+nr+ng);
         Rb = asils.quat.dcm(q);
         B_B = Rb*B_eci;
-        sB = Rb*sun_rel; sB = sB/norm(sB); nB = -Rb*r/norm(r);
+        sB = Rb*sun_rel; sB = sB/norm(sB); nB = -Rb*r/norm(r); mB = Rb*moon_rel; mB = mB/norm(mB);
 
         %% sensors (engineering values, then across the HAL as the FSW reads them)
         if dev.gyro.fitted, [z.w, D.gyro] = asils.devices.gyro(w, D.gyro, dev.gyro, dt); else, z.w = w; end
-        z.clean = norm(m_B) == 0;
-        z.B = asils.devices.magnetometer(B_B, D.mag, dev.mag, m_B);
+        z.clean = ~dev.mtq.fitted || all(D.mtq.mc == 0);   % no coil driven over the last tick
+        z.B = asils.devices.magnetometer(B_B, D.mag, dev.mag, m_coil);   % the coils' stray field now
         if dev.sun.fitted
             [z.sun, z.sun_ok] = asils.devices.sun_sensor(sB, nu, D.sun, dev.sun);
         elseif dev.css.fitted
@@ -104,13 +105,17 @@ function rec = run(scenarioId, caseFile, varargin)
         z.st_ok = false;
         if dev.st.fitted, D.st = asils.devices.st_history(D.st, t, q, 0.5); end
         if dev.st.fitted && mod(k, st_every) == 0
-            [z.q_st, z.st_valid, D.st] = asils.devices.star_tracker(q, t, w, sB, nB, asin(6378137/norm(r)), D.st, dev.st);
+            [z.q_st, z.st_valid, D.st] = asils.devices.star_tracker(q, t, w, sB, mB, nB, asin(6378137/norm(r)), D.st, dev.st);
             z.st_ok = any(z.st_valid);
         end
         z.es_ok = false;
         if dev.es.fitted && mod(k, es_every) == 0, [z.nadir, z.es_ok] = asils.devices.earth_sensor(nB, D.es, dev.es); end
         z.gps_ok = dev.gps.fitted && mod(k, gps_every) == 0 && ~D.gps_dead;
-        if z.gps_ok, [z.r_gps, z.v_gps] = asils.devices.gps(r, v, dev.gps); end
+        if dev.gps.fitted, D.gpsh = asils.devices.gps_history(D.gpsh, t, r, v, dev.gps.latency); end
+        if z.gps_ok                    % the fix solves for the epoch latency_s ago, reported as now
+            [~, r_fix, v_fix] = asils.devices.gps_delayed(D.gpsh, t, dev.gps.latency);
+            [z.r_gps, z.v_gps] = asils.devices.gps(r_fix, v_fix, dev.gps);
+        end
         if nr > 0, z.h = h + 1e-7*randn(nr,1); end
         if ng > 0, z.delta = d + 1e-5*randn(ng,1); end
         z.q_true = q; z.w_true = w;
@@ -121,7 +126,8 @@ function rec = run(scenarioId, caseFile, varargin)
         out = asils.hal.actuators(H, out, t);
 
         %% actuators
-        [m_B, P_mtq] = asils.devices.mtq(Acoil_p*out.m_body, D.mtq, dev.mtq);
+        % the coils' dipole averaged over the tick (the torque) and at its end (the magnetometer's next view)
+        if dev.mtq.fitted, [m_B, P_mtq, D.mtq, m_coil] = asils.devices.mtq(Acoil_p*out.m_body, D.mtq, dev.mtq, dt); end
         if nr > 0, [hdot, gdot, P_mex, D.mex] = asils.devices.mex(out.cmd_r, out.cmd_g, h, d, D.mex, dev.mex, dt); end
         if nc > 0
             [tau_rcs, mdot, P_rcs] = asils.devices.rcs(out.duty, D.rcs, dev.rcs, dt);

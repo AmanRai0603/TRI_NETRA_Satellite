@@ -13,7 +13,8 @@ function [tau, parts] = torques(q, r_eci, v_rel_eci, B_eci, sun_rel_eci, nu, P_s
 %          eq. 8.34): normal and tangential momentum accommodation sigma_n,
 %          sigma_t, re-emission speed ratio vb/v; torque about the CM
 %     srp  per facet with specular/diffuse reflection (Wertz 1978, eq. 17-6),
-%          scaled by the conical-shadow factor nu
+%          scaled by the conical-shadow factor nu; plus the Earth's albedo and
+%          infrared on the same facets, arriving from nadir (asils.env.earth_pressure)
 %     mag  residual dipole  m_res x B_B
 %   on = [gg aero srp mag] switches (logical).
     R = asils.quat.dcm(q);
@@ -35,16 +36,15 @@ function [tau, parts] = torques(q, r_eci, v_rel_eci, B_eci, sun_rel_eci, nu, P_s
             tau_aero = tau_aero + [p(2)*F(3)-p(3)*F(2); p(3)*F(1)-p(1)*F(3); p(1)*F(2)-p(2)*F(1)];
         end
     end
-    if on(3) && nu > 0
-        sB = R*sun_rel_eci; sB = sB/sqrt(sB'*sB);
-        c = sB'*G.n;
-        k = find(c > 0);
-        for j = k
-            cj = c(j); nj = G.n(:,j);
-            F = -nu*P_srp*G.A(j)*cj*( (1 - G.rho_spec)*sB + 2*(G.rho_spec*cj + G.rho_diff/3)*nj );
-            p = G.rho(:,j);
-            tau_srp = tau_srp + [p(2)*F(3)-p(3)*F(2); p(3)*F(1)-p(1)*F(3); p(1)*F(2)-p(2)*F(1)];
+    if on(3)
+        % radiation: the Sun, and the Earth's reflected (albedo) and emitted (IR) light
+        if nu > 0
+            sB = R*sun_rel_eci; sB = sB/sqrt(sB'*sB);
+            tau_srp = radiation_(G, sB, nu*P_srp);
         end
+        [p_alb, p_ir] = asils.env.earth_pressure(r_eci, sun_rel_eci, P_srp);
+        eB = -rB/sqrt(rB'*rB);
+        tau_srp = tau_srp + radiation_(G, eB, p_alb + p_ir);
     end
     if on(4)
         bB = R*B_eci;
@@ -53,5 +53,18 @@ function [tau, parts] = torques(q, r_eci, v_rel_eci, B_eci, sun_rel_eci, nu, P_s
     tau = tau_gg + tau_aero + tau_srp + tau_mag;
     if nargout > 1
         parts = [tau_gg, tau_aero, tau_srp, tau_mag];
+    end
+end
+
+function tau = radiation_(G, sB, P)
+%RADIATION_  Torque of light of pressure P arriving from body direction sB (unit,
+%   towards the source) on the lit facets (Wertz 1978, eq. 17-6).
+    tau = zeros(3,1);
+    c = sB'*G.n;
+    for j = find(c > 0)
+        cj = c(j); nj = G.n(:,j);
+        F = -P*G.A(j)*cj*( (1 - G.rho_spec)*sB + 2*(G.rho_spec*cj + G.rho_diff/3)*nj );
+        p = G.rho(:,j);
+        tau = tau + [p(2)*F(3)-p(3)*F(2); p(3)*F(1)-p(1)*F(3); p(1)*F(2)-p(2)*F(1)];
     end
 end

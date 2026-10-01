@@ -8,6 +8,7 @@
  "made": "bought",
  "name": "GNSS receiver (Standard Code values) \u2014 tests only",
  "nominal": {
+  "latency_s": 0.1,
   "mass_kg": 0.03,
   "pos_sigma_m": 10.0,
   "power_W": 0.8,
