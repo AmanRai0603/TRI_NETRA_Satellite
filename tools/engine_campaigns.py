@@ -238,38 +238,49 @@ def interpretations(run_dirs, metrics):
       temporal  the statistic within each run, then the worst run
       ensemble  the quantile across runs at each instant, then the worst instant
       mixed     the quantile over every sample of every run, pooled
-    For ape/ape_los/ake/ake_los metrics with a percentile or max statistic; the runs share one time grid."""
-    out = []
-    series = {}
+    For ape/ape_los/ake/ake_los metrics with a percentile or max statistic; the runs share one time grid.
+    Each run's file is parsed once into arrays (a claim-sized campaign has 1109 runs); every quantile
+    is the engine's: the ceil(q n)-th smallest finite value."""
+    import numpy as np
+
+    def qv(a, q):
+        a = np.sort(a[np.isfinite(a)])
+        return float(a[max(1, math.ceil(q * a.size)) - 1]) if a.size else None
+
+    runs = []
     for d in run_dirs:
         f = d / "interp.csv" if (d / "interp.csv").exists() else d / "channels.csv"
         man = d / "manifest.json"
         if f.exists() and man.exists():
-            series[d] = (f.read_text().splitlines(), json.loads(man.read_text())["orbit"]["period_s"])
-    if not series:
+            with open(f) as fh:
+                head = fh.readline().strip().split(",")
+            data = np.loadtxt(f, delimiter=",", skiprows=1, ndmin=2)
+            runs.append((head, data, json.loads(man.read_text())["orbit"]["period_s"]))
+    out = []
+    if not runs:
         return out
     for m in metrics:
         col, q = INTERP_CHANNEL.get(m.get("kind")), INTERP_Q.get(m.get("statistic", "max"))
         if col is None or q is None:
             continue
         per_run = []
-        for lines, period in series.values():
-            head = lines[0].split(",")
+        for head, data, period in runs:
             if col not in head:
                 continue
-            k, kt = head.index(col), head.index("t_s")
-            rows = [ln.split(",") for ln in lines[1:]]
-            t = [float(r[kt]) for r in rows]
-            idx = window_index(t, m.get("window", "all"), period)
-            per_run.append([float(rows[j][k]) for j in idx])
+            t = data[:, head.index("t_s")]
+            idx = window_index(list(t), m.get("window", "all"), period)
+            per_run.append(data[idx, head.index(col)])
         if not per_run:
             continue
-        n = min(len(x) for x in per_run)
-        temporal = [quantile(x, q) for x in per_run]
-        temporal = max((v for v in temporal if v is not None), default=None)
-        ensemble = [quantile([x[i] for x in per_run], q) for i in range(n)]
-        ensemble = max((v for v in ensemble if v is not None), default=None)
-        mixed = quantile([v for x in per_run for v in x], q)
+        n = min(x.size for x in per_run)
+        temporal = max((v for v in (qv(x, q) for x in per_run) if v is not None), default=None)
+        M = np.sort(np.stack([x[:n] for x in per_run]), axis=0)          # NaN sorts last
+        k = np.isfinite(M).sum(axis=0)
+        ok = k > 0
+        rank = np.maximum(1, np.ceil(q * k).astype(int)) - 1
+        ens = M[rank[ok], np.nonzero(ok)[0]]
+        ensemble = float(ens.max()) if ens.size else None
+        mixed = qv(np.concatenate(per_run), q)
         out.append({"id": m["id"], "statistic": m.get("statistic", "max"), "runs": len(per_run),
                     "temporal": temporal, "ensemble": ensemble, "mixed": mixed})
     return out
@@ -282,12 +293,16 @@ def campaign(a):
     for cid in ids:
         C = json.loads((CAMP / f"{cid}.json").read_text())
         base = ENG / "campaigns" / cid
-        # a campaign starts from an empty folder: no run of an earlier campaign is ever read as this one's
-        if base.exists():
+        p_claim, n_runs = claim(C)
+        # --reuse: a campaign whose every run of this count already holds its manifest is summarised from
+        # those runs (the draws come from the campaign's seed, so they are the same runs); otherwise a
+        # campaign starts from an empty folder: no run of an earlier campaign is ever read as this one's
+        reuse = getattr(a, "reuse", False) and all((base / f"run_{k:04d}" / "manifest.json").exists() for k in range(1, n_runs + 1)) \
+            and not (base / f"run_{n_runs + 1:04d}").exists()
+        if base.exists() and not reuse:
             shutil.rmtree(base)
         jobs = []
         draws = {}
-        p_claim, n_runs = claim(C)
         S(1, f"{cid}, {n_runs} runs" + (f" (to show {100 * p_claim:g} % at {100 * C['confidence']:g} % confidence)" if p_claim else ""))
         for k in range(1, n_runs + 1):
             sets, d = draw(C, k)
@@ -297,7 +312,7 @@ def campaign(a):
         S(2, cid)
         errors = {}
         with cf.ProcessPoolExecutor(a.jobs) as ex:
-            for k, rc, txt in ex.map(camp_job, jobs):
+            for k, rc, txt in ex.map(camp_job, [] if reuse else jobs):
                 if rc:
                     errors[k] = txt.splitlines()[-1] if txt else f"exit status {rc}"
                     print(f"[FAIL] {cid} run {k}: {errors[k]}")
