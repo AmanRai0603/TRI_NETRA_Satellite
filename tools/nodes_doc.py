@@ -17,6 +17,8 @@ DATA = ROOT / "matlab_sils" / "data"
 def fmt(v):
     if isinstance(v, dict):
         return "<br>".join(f"{k}: {fmt(x)}" for k, x in v.items())
+    if isinstance(v, list) and v and all(isinstance(x, dict) for x in v):     # a list of records: one per line
+        return "<br>".join("; ".join(f"{k} {fmt(y)}" for k, y in x.items()) for x in v)
     if isinstance(v, list):
         return ", ".join(fmt(x) for x in v)
     return str(v)

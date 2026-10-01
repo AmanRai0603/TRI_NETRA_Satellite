@@ -113,6 +113,67 @@ class Verifier(unittest.TestCase):
         save(self.dir / "soft_oils.json", s)
         self.assertCaught("soft_oils", "no overrun")
 
+    # node faults (B2.6): a made-up campaign on the stored products, counted by select's own code
+    def campaign(self, broken=("mtq", "coil_fail")):
+        import math
+        import pipeline_verify as PV
+        sel = load(self.dir / "selection.json")
+        FP = V.P["faults"]
+        T = 2 * math.pi * math.sqrt((6378137 + V.case_req(CASE)["orbit.alt"] * 1e3) ** 3 / 3.986004418e14)
+        dur = 17217
+        t = round(dur - (0.5 + FP["lead_orbits"]) * T)
+        ok = [{"id": "ape_los_p9973", "pass": 1}, {"id": "ake_los_p9973", "pass": 1}, {"id": "power_peak", "pass": None}]
+        miss = [{"id": "ape_los_p9973", "pass": 0}] + ok[1:]
+        fams = {}
+        for f, v in sel["families"].items():
+            if v["role"] not in FP["roles"]:
+                continue
+            fill = load(self.dir / f"iter_{self.it}" / "sized" / "products" / f"{v['product']}.json")["fill"]
+            fly, skipped = PV.fault_set(fill, FP["set"], t)
+            for x in fly:
+                bad = (f, x["kind"]) == broken
+                x.update({"flown": True, "pass": not bad, "failing": ["ape_los_p9973"] if bad else [], "also_fails_without_fault": [],
+                          "metrics": {str(sd): (miss if bad else ok) for sd in FP["seeds"]}})
+            rec = {"product": v["product"], "t_s": t, "nominal": {str(sd): ok for sd in FP["seeds"]}, "faults": fly + skipped}
+            rec["gaps"] = PV.fault_gaps(rec)
+            fams[f] = rec
+            (self.dir / "faults" / f).mkdir(parents=True, exist_ok=True)
+            save(self.dir / "faults" / f / "nominal.json", {"time": {"duration_s": dur}})
+        fl = {"families": fams}
+        save(self.dir / "faults.json", fl)
+        sel.update(PV.select_pick(CASE, sel["families"], fl))
+        save(self.dir / "selection.json", sel)
+        return sel, fl
+
+    def test_a_counted_fault_campaign_passes_whole(self):
+        sel, _ = self.campaign()
+        self.assertEqual(sel["families"]["mtq"]["fault_gaps"], ["fault: coil_fail: ape_los_p9973"])
+        self.assertEqual(self.failed(), [])
+
+    def test_a_selection_that_predates_the_campaign_is_noted_not_failed(self):
+        V.NOTES.clear()
+        self.assertEqual(self.failed(), [])
+        self.assertTrue(any("predates node faults" in n for n in V.NOTES))
+
+    def test_a_fault_verdict_that_contradicts_its_metrics_is_caught(self):
+        _, fl = self.campaign()
+        x = next(x for x in fl["families"]["mtq"]["faults"] if x["kind"] == "coil_fail")
+        x["pass"], x["failing"] = True, []
+        save(self.dir / "faults.json", fl)
+        self.assertCaught("faults", "mtq / coil_fail: passes exactly when")
+
+    def test_a_fault_gap_select_did_not_count_is_caught(self):
+        sel, _ = self.campaign()
+        sel["families"]["mtq"]["gaps"] = [g for g in sel["families"]["mtq"]["gaps"] if not g.startswith("fault: ")]
+        save(self.dir / "selection.json", sel)
+        self.assertCaught("select", "mtq: fault gaps are feasibility gaps")
+
+    def test_a_fault_the_product_carries_left_unflown_is_caught(self):
+        _, fl = self.campaign()
+        fl["families"]["mtq_fmr"]["faults"] = [x for x in fl["families"]["mtq_fmr"]["faults"] if x["kind"] != "rotor_fail"]
+        save(self.dir / "faults.json", fl)
+        self.assertCaught("faults", "mtq_fmr: the set's faults its product carries are flown")
+
 
 if __name__ == "__main__":
     unittest.main()
