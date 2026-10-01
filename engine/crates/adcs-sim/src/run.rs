@@ -6,6 +6,7 @@ use crate::config::Config;
 use adcs_fsw::ctl::{guidance, Guid};
 use adcs_fsw_abi::{Bus, Fsw, Impl};
 use adcs_sim_core::actuators::{Mex, Mtq, Rcs};
+use adcs_sim_core::comp::star_tracker as stc;
 use adcs_sim_core::emu::{self, proto, Commands};
 use adcs_sim_core::la::*;
 use adcs_sim_core::orbit::{self, Orbit, OrbitCfg};
@@ -179,6 +180,21 @@ fn mode_changes(log: &mut Vec<(f64, String)>, t: f64, m: u8) {
 struct Units {
     gyro: Option<Gyro>, mag: Mag, sun: Option<Sun>, st: Option<St>, mtq: Mtq, es: Option<Es>, css: Option<Css>,
     mex: Mex, rcs: Option<Rcs>, gps: Gps, tlm: Rng,
+    /// the frame buffers of the image star-tracker model (model 2), built once per run
+    st_frame: Option<StFrame>,
+}
+
+/// The image star-tracker model's buffers: the frame, its scratch copy, the onboard pair table
+/// of the unit's catalogue and the vote counts (adcs-sim-core does not allocate).
+pub struct StFrame { img: Vec<f64>, scratch: Vec<(f64, u32)>, pairs: Vec<stc::Pair>, votes: Vec<u32> }
+impl StFrame {
+    pub fn new(st: &St) -> StFrame {
+        let (cat, cam) = (st.catalogue(), &st.d.cam);
+        let mut pairs = vec![stc::Pair::default(); stc::pair_count(cat, cam.fov)];
+        stc::pairs(cat, cam.fov, &mut pairs);
+        StFrame { img: vec![0.0; cam.n*cam.n], scratch: vec![(0.0, 0); cam.n*cam.n], pairs, votes: vec![0; cat.len()] }
+    }
+    pub fn work(&mut self) -> stc::Work<'_> { stc::Work { img: &mut self.img, scratch: &mut self.scratch, pairs: &self.pairs, votes: &mut self.votes } }
 }
 
 impl Units {
@@ -193,7 +209,8 @@ impl Units {
         let css = if d.css.fitted { Some(Css::new(d.css, &mut disp, rs("css"))) } else { None };
         let mex = Mex::new(d.mex, &mut disp, rs("mex"));
         let rcs = if d.rcs.fitted { Some(Rcs::new(d.rcs, &mut disp)) } else { None };
-        Units { gyro, mag, sun, st, mtq, es, css, mex, rcs, gps: Gps::new(d.gps, rs("gps")), tlm: rs("telemetry") }
+        let st_frame = st.as_ref().filter(|s| s.d.model == 2).map(StFrame::new);
+        Units { gyro, mag, sun, st, mtq, es, css, mex, rcs, gps: Gps::new(d.gps, rs("gps")), tlm: rs("telemetry"), st_frame }
     }
 
     /// Inject every fault whose time has come (once each), clear the ones that end, and log both.
@@ -307,7 +324,8 @@ fn sense(u: &mut Units, c: &Config, bus: &mut Bus, x: &State, sky: &Sky, m_b: &V
     if let Some(s) = u.st.as_mut() {
         s.history(t, &x.q);
         if k % rt.st == 0 {
-            let heads = s.sample(&x.q, t, &x.w, &sky.sb, &sky.mb, &sky.nb, sky.earth_ang);
+            let mut work = u.st_frame.as_mut().map(|f| f.work());
+            let heads = s.sample_with(&x.q, t, &x.w, &sky.sb, &sky.mb, &sky.nb, sky.earth_ang, work.as_mut());
             let mut hv = [(false, [0.0, 0.0, 0.0, 1.0]); 2];
             for h in 0..d.st.nh { if let Some(q) = heads[h] { hv[h] = (true, q); st_ok = true; } }
             let mut buf = [0u8; 64];

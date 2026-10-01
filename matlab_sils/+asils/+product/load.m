@@ -106,6 +106,12 @@ function dev = load(productId)
                 if isfield(f, 'calibrated_residual_rad')     % in-orbit alignment calibration
                     dev.st.bias_sigma = f.calibrated_residual_rad; dev.st.misalign_sigma = 0;
                 end
+                if ~any(strcmp(dev.st.model, {'noise', 'quest', 'image'}))
+                    error('asils:product:refused', 'product %s: star-tracker model %s; the models are noise, quest and image', pr.id, dev.st.model);
+                end
+                if strcmp(dev.st.model, 'image')             % the rendered-frame chain reads the camera from the part
+                    dev.st.camera = camera_(f.part, nm);
+                end
             case 'magnetometer'
                 dev.mag = struct('fitted', true, 'part', f.part, 'noise', nm.noise_T_rms, ...
                     'bias_T', nm.bias_T, 'bias_sigma', sig('bias_T', 0), 'range', nm.range_T, ...
@@ -114,7 +120,16 @@ function dev = load(productId)
             case 'sun_sensors'
                 dev.sun = struct('fitted', true, 'part', f.part, 'normals', axes_(f.normals_body), ...
                     'noise', nm.accuracy_rad, 'fov_rad', nm.fov_half_angle_rad, 'rate_hz', nm.rate_Hz, ...
-                    'bias_sigma', sig('bias_rad', 0));
+                    'bias_sigma', sig('bias_rad', 0), 'level', asils.util.getf(f, 'level', 'model'));
+                if ~any(strcmp(dev.sun.level, {'model', 'chain'}))
+                    error('asils:product:refused', 'product %s: Sun-sensor level %s; the levels are model and chain', pr.id, dev.sun.level);
+                end
+                if strcmp(dev.sun.level, 'chain')            % quadrant currents -> angles: the head from the part
+                    dev.sun.head = asils.comp.sun_sensor.head(struct('aperture_side_m', need_(f.part, nm, 'aperture_side_m', 1), ...
+                        'aperture_height_m', need_(f.part, nm, 'aperture_height_m', 1), ...
+                        'current_noise_frac', need_(f.part, nm, 'current_noise_frac', 0), ...
+                        'current_min_frac', need_(f.part, nm, 'current_min_frac', 1)));
+                end
             case 'coarse_sun_sensors'
                 dev.css = struct('fitted', true, 'part', f.part, 'normals', axes_(f.normals_body), ...
                     'noise', nm.noise_frac, 'albedo', nm.albedo, 'fov_rad', nm.fov_half_angle_rad, ...
@@ -185,6 +200,21 @@ function X = add_(X, kind, part, a, gi, hmax, tmax, J, cou, vis, pst, tsig, flo,
     X.flow_noise_h(end+1) = 0; X.field_power(end+1) = 0; X.eta_lo(end+1) = 1; X.eta_hi(end+1) = 1; X.h0(end+1) = 0;
     % the wheel motor/bearing values (set for 'rw' only; NaN: a rotor kind that does not read them)
     X.speed_max(end+1) = NaN; X.t_stall(end+1) = NaN; X.w_nl(end+1) = NaN; X.f_static(end+1) = NaN; X.w_stribeck(end+1) = NaN;
+end
+
+function v = camera_(part, nm)
+%CAMERA_  The camera and onboard-chain values the 'image' star-tracker model reads,
+%   every one stated by the part (asils.comp.star_tracker.camera).
+    v = struct();
+    for k = {'psf_sigma_px', 'flux_mag6_e', 'id_tol_rad', 'id_mag_tol', 'fit_tol_rad', 'centroid_k_sigma'}
+        v.(k{1}) = need_(part, nm, k{1}, 1);
+    end
+    for k = {'background_e', 'read_noise_e'}, v.(k{1}) = need_(part, nm, k{1}, 0); end
+    for k = {'detector_px', 'max_spots'}
+        v.(k{1}) = need_(part, nm, k{1}, 1);
+        if v.(k{1}) ~= round(v.(k{1})), error('asils:product:refused', 'part %s does not state %s as a whole number (it states %g)', part, k{1}, v.(k{1})); end
+    end
+    if v.detector_px < 16, error('asils:product:refused', 'part %s does not state detector_px of 16 or more (it states %g)', part, v.detector_px); end
 end
 
 function x = need_(part, nm, key, positive)

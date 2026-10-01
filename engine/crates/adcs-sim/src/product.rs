@@ -2,6 +2,8 @@
 use crate::error::Error;
 use crate::json::{self, get};
 use adcs_sim_core::actuators::{Kind, MexDesc, MtqDesc, RcsDesc};
+use adcs_sim_core::comp::star_tracker::{Camera, MAX_SPOTS};
+use adcs_sim_core::comp::sun_sensor::Head;
 use adcs_sim_core::sensors::*;
 use serde_json::Value;
 use std::path::{Path, PathBuf};
@@ -86,6 +88,20 @@ fn capacity(id: &str, part: &str, slot: &str, f: &Value, pt: &Part, x: &MexDesc)
             if t != 12.0 { Err(Error::refused(format!("part {part}: {t} thrusters; the engine models 12 (six couples)"))) } else { Ok(()) }
         }
         _ => Ok(()),
+    }
+}
+
+/// The model level a fill selects, refused by name when the engine has no such model.
+fn selector(id: &str, slot: &str, f: &Value) -> Result<(), Error> {
+    let (key, have): (&str, &[&str]) = match slot {
+        "star_tracker" => ("model", &["noise", "quest", "image"]),
+        "sun_sensors" => ("level", &["model", "chain"]),
+        _ => return Ok(()),
+    };
+    match f.get(key) {
+        None => Ok(()),
+        Some(Value::String(v)) if have.contains(&v.as_str()) => Ok(()),
+        Some(v) => Err(Error::refused(format!("product {id}: {slot} {key} {v}; the engine models {}", have.join(", ")))),
     }
 }
 
@@ -193,17 +209,35 @@ fn fit_sensor(d: &mut Dev, slot: &str, pt: &Part) -> bool {
             let bs = if f.get("boresights_body").is_some() { pt.axes("boresights_body") } else { pt.axes("boresight_body") };
             let mut s = StDesc { fitted: true, nh: bs.len(), noise_cross: n("noise_cross_rad"), noise_roll: n("noise_roll_rad"), rate_hz: n("rate_Hz"),
                 latency: n("latency_s"), max_rate: n("max_rate_rad_s"), sun_excl: n("sun_exclusion_rad"), earth_excl: n("earth_exclusion_rad"),
-                fov: n("fov_half_angle_rad"), model: if json::s(f, "model", "quest") == "noise" { 0 } else { 1 },
+                fov: n("fov_half_angle_rad"), model: match json::s(f, "model", "quest") { "noise" => 0, "image" => 2, _ => 1 },
                 bias_sigma: pt.sig("bias_rad"), misalign_sigma: pt.sig("axis_misalignment_rad"),
                 moon_excl: pt.nonneg("moon_exclusion_rad"), blind_s: pt.nonneg("blind_recovery_s"), noise_rate_ref: pt.pos("noise_doubling_rate_rad_s"), ..Default::default() };
             for h in 0..s.nh { s.bs[h] = bs[h]; }
             if let Some(c) = get(f, "calibrated_residual_rad").and_then(|v| v.as_f64()) { s.bias_sigma = c; s.misalign_sigma = 0.0; }
+            if s.model == 2 {
+                // the rendered-frame chain: the camera and the onboard chain's settings, from the part
+                let whole = |k: &str, lo: f64, hi: f64| {
+                    let v = pt.pos(k);
+                    if v.is_finite() && (v != v.round() || v < lo || v > hi) {
+                        pt.missing.borrow_mut().push(format!("{k} as a whole number from {lo} to {hi} (it states {v})"));
+                    }
+                    v as usize
+                };
+                s.cam = Camera::new(s.fov, whole("detector_px", 16.0, 8192.0), pt.pos("psf_sigma_px"), pt.pos("flux_mag6_e"), pt.nonneg("background_e"),
+                    pt.nonneg("read_noise_e"), pt.pos("centroid_k_sigma"), whole("max_spots", 3.0, MAX_SPOTS as f64), pt.pos("id_tol_rad"),
+                    pt.pos("id_mag_tol"), pt.pos("fit_tol_rad"));
+            }
             d.st = s;
         }
         "magnetometer" => d.mag = MagDesc { fitted: true, noise: n("noise_T_rms"), bias_t: n("bias_T"), bias_sigma: pt.sig("bias_T"), range: n("range_T"), sf_sigma: pt.sig("scale_factor"), misalign: pt.sig("axis_misalignment_rad"), k_coil: n("coil_coupling_T_per_Am2") },
         "sun_sensors" => {
             let a = pt.axes("normals_body");
             let mut s = SunDesc { fitted: true, n: a.len(), noise: n("accuracy_rad"), fov: n("fov_half_angle_rad"), bias_sigma: pt.sig("bias_rad"), ..Default::default() };
+            if json::s(f, "level", "model") == "chain" {
+                // quadrant currents -> angles: the head's aperture, height, current noise and threshold
+                s.chain = true;
+                s.head = Head { a: pt.pos("aperture_side_m"), h: pt.pos("aperture_height_m"), noise: pt.nonneg("current_noise_frac"), min_frac: pt.pos("current_min_frac") };
+            }
             for (j, v) in a.iter().enumerate() { s.normals[j] = *v; }
             d.sun = s;
         }
@@ -245,6 +279,7 @@ impl Dev {
             files.push(partf);
             let slot = json::s(f, "slot", "");
             capacity(id, part, slot, f, &pt, &x)?;
+            selector(id, slot, f)?;
             if !fit_actuator(&mut d, &mut x, slot, &pt) && !fit_sensor(&mut d, slot, &pt) {
                 return Err(Error::refused(format!("product {id}: unknown slot {slot}")));
             }

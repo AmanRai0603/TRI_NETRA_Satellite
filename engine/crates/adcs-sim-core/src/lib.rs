@@ -19,6 +19,7 @@ pub mod atmos;
 pub mod orbit;
 pub mod plant;
 pub mod torques;
+pub mod comp;
 pub mod sensors;
 pub mod actuators;
 pub mod emu;

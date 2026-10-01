@@ -35,7 +35,7 @@ function [q_meas, valid, D] = star_tracker(q_true, t, w_true, sun_B, moon_B, nad
             % COMPONENT LEVEL: the in-house chain on a rendered frame
             % (asils.comp.star_tracker: render -> centroid -> identify -> QUEST)
             Rbh = head_(bs); Rtrue = Rbh*asils.quat.dcm(dq)';       % true mount of this head
-            K = D.st.K; K.R_head_nominal = Rbh;
+            K = D.K; K.R_head_nominal = Rbh;
             [q_meas(:,h), okh] = asils.comp.star_tracker.chain(q_old, Rtrue, D.cat, K, D.cam);
             valid(h) = valid(h) && okh;
         elseif strcmp(s.model, 'quest')

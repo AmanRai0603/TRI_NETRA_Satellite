@@ -3,6 +3,7 @@
 //! out; `emu` turns them into the bytes the flight drivers read.
 use crate::la::*;
 use crate::pm::*;
+use crate::comp::{self, star_tracker as stc, sun_sensor as ssc};
 use crate::rng::Rng;
 use crate::{NH, NS};
 
@@ -56,8 +57,11 @@ impl Mag {
 }
 
 // ---------------- fine Sun sensors ----------------
+/// `chain`: the component level (the product's `level = "chain"`): the quadrant currents of
+/// `head` and back to the Sun direction (comp::sun_sensor) in place of the noise model.
 #[derive(Clone, Copy, Debug, Default)]
-pub struct SunDesc { pub fitted: bool, pub n: usize, pub normals: [V3; NS], pub noise: f64, pub fov: f64, pub bias_sigma: f64 }
+pub struct SunDesc { pub fitted: bool, pub n: usize, pub normals: [V3; NS], pub noise: f64, pub fov: f64, pub bias_sigma: f64,
+    pub chain: bool, pub head: ssc::Head }
 #[derive(Clone, Copy, Debug, Default)]
 pub struct Sun { pub d: SunDesc, pub bias: [V3; NS], pub rng: Rng }
 impl Sun {
@@ -71,6 +75,13 @@ impl Sun {
         let (mut cm, mut jm) = (-2.0, 0);
         for j in 0..self.d.n { let c = dot(s_body, &self.d.normals[j]); if c > cm { cm = c; jm = j; } }
         if cm < cos(self.d.fov) { return None; }
+        if self.d.chain {
+            // the head's own frame, the Sun through its mount bias, the four currents and back
+            let rh = comp::head_frame(&self.d.normals[jm]);
+            let sb = mv(&small_rot(&self.bias[jm]), s_body);
+            let (sh, ok) = ssc::angles(&ssc::currents(&mv(&rh, &sb), &self.d.head, Some(&mut self.rng)), &self.d.head);
+            return if ok { Some(mtv(&rh, &sh)) } else { None };
+        }
         let n = self.rng.normal3();
         let e = add(&self.bias[jm], &scale(&n, self.d.noise));
         Some(unit(&mv(&small_rot(&e), s_body)))
@@ -134,12 +145,15 @@ pub const N_STARS: usize = 4000;
 pub struct StDesc {
     pub fitted: bool, pub nh: usize, pub bs: [V3; NH], pub noise_cross: f64, pub noise_roll: f64, pub rate_hz: f64,
     pub latency: f64, pub max_rate: f64, pub sun_excl: f64, pub earth_excl: f64, pub fov: f64,
-    /// 0 noise model, 1 onboard QUEST on catalogue stars (the default)
+    /// 0 noise model, 1 onboard QUEST on catalogue stars (the default), 2 the rendered-frame
+    /// chain (comp::star_tracker; needs a [`stc::Work`] per frame, see [`St::sample_with`])
     pub model: u8, pub bias_sigma: f64, pub misalign_sigma: f64,
     /// the Moon's exclusion half-angle [rad]; the time a head stays blind after the Sun or the
     /// Moon leaves its exclusion cone [s]; the body rate at which the noise has doubled [rad/s]
     /// (star smear over the exposure: sigma(w) = sigma_0 (1 + |w|/w_ref))
     pub moon_excl: f64, pub blind_s: f64, pub noise_rate_ref: f64,
+    /// the camera and onboard chain of model 2, from the part
+    pub cam: stc::Camera,
 }
 const HIST: usize = 64;
 /// Star tracker unit; holds its catalogue (the onboard star table, 4000 entries).
@@ -151,7 +165,7 @@ impl St {
     pub fn new(d: StDesc, disp: &mut Rng, noise: Rng) -> St {
         let mut s = St { d, q_bias: [[0.0, 0.0, 0.0, 1.0]; NH], q_mis: [[0.0, 0.0, 0.0, 1.0]; NH], dead: [false; NH], ht: [0.0; HIST], hq: [[0.0; 4]; HIST], hn: 0, rng: noise, cat: [([0.0; 3], 0.0); N_STARS],
             blind_until: [f64::NEG_INFINITY; NH] };
-        if d.model == 1 { for k in 0..N_STARS { s.cat[k] = star(k, N_STARS); } }
+        if d.model >= 1 { for k in 0..N_STARS { s.cat[k] = star(k, N_STARS); } }
         for h in 0..d.nh {
             s.q_bias[h] = fromrotvec(&scale(&disp.normal3(), d.bias_sigma));
             s.q_mis[h] = fromrotvec(&scale(&disp.normal3(), d.misalign_sigma));
@@ -166,8 +180,18 @@ impl St {
         while k < self.hn && self.ht[k] < t - 0.5 { k += 1; }
         if k > 0 { for i in k..self.hn { self.ht[i - k] = self.ht[i]; self.hq[i - k] = self.hq[i]; } self.hn -= k; }
     }
+    /// The onboard star table (filled for models 1 and 2).
+    pub fn catalogue(&self) -> &[(V3, f64)] { &self.cat }
     /// Per head: Some(q_meas) when valid. `moon_b`: the Moon's direction in the body.
+    /// Models 0 and 1; model 2 needs [`St::sample_with`].
     pub fn sample(&mut self, q_true: &Q, t: f64, w: &V3, sun_b: &V3, moon_b: &V3, nadir_b: &V3, earth_ang: f64) -> [Option<Q>; NH] {
+        self.sample_with(q_true, t, w, sun_b, moon_b, nadir_b, earth_ang, None)
+    }
+    /// As [`St::sample`], with the frame buffers model 2 renders into (it panics without them:
+    /// a run never flies the image model on nothing). Model 2 renders a frame only for a head
+    /// that is valid (its noise is drawn from this unit's stream); a frame the chain cannot
+    /// solve gives no attitude.
+    pub fn sample_with(&mut self, q_true: &Q, t: f64, w: &V3, sun_b: &V3, moon_b: &V3, nadir_b: &V3, earth_ang: f64, mut work: Option<&mut stc::Work>) -> [Option<Q>; NH] {
         let tl = t - self.d.latency;
         let mut k = None;
         for i in 0..self.hn { if self.ht[i] <= tl + 1e-9 { k = Some(i); } }
@@ -189,7 +213,16 @@ impl St {
             let valid = slow && !self.dead[h] && !dazzled && t >= self.blind_until[h]
                 && acos(clamp(dot(&bs, nadir_b), -1.0, 1.0)) > earth_ang + self.d.earth_excl;
             let dq = qmult(&self.q_mis[h], &self.q_bias[h]);
-            if self.d.model == 1 {
+            if self.d.model == 2 {
+                if !valid { continue; }
+                // COMPONENT LEVEL: the unit's chain on a rendered frame, through the head's true
+                // mount; it reports the body attitude through its nominal mount
+                let wk = work.as_deref_mut().expect("the image star-tracker model needs its frame buffers (St::sample_with)");
+                let rbh = comp::head_frame(&bs);
+                let rtrue = mm(&rbh, &transpose(&dcm(&dq)));
+                let (q, ok, _) = stc::chain(&q_old, &rtrue, &rbh, &self.cat, &self.d.cam, wk, Some(&mut self.rng));
+                if ok { out[h] = Some(q); }
+            } else if self.d.model == 1 {
                 let bs_eci = mtv(&rold, &bs);
                 let cf = cos(self.d.fov);
                 // the 12 brightest catalogue stars in the field
