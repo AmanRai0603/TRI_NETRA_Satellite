@@ -53,8 +53,12 @@ fn a_flight_is_judged_recorded_and_shared() {
     assert_eq!(f.metrics.len(), declared);
     for m in &f.metrics {
         if let (Some(v), Some(req)) = (m["value"].as_f64(), m["req"].as_f64()) {
+            // a metric whose scenario entry says sense = "min" passes at or above its requirement
+            let def = c.scenario["metrics"].as_array().unwrap().iter().find(|d| d["id"] == m["id"]).unwrap();
+            let at_least = def["sense"].as_str() == Some("min");
             let lower_is_better = !matches!(m["kind"].as_str(), Some("mode_fraction"));
-            if lower_is_better { assert_eq!(m["pass"].as_i64(), Some((v <= req) as i64), "{}: {v} vs {req}", m["id"]); }
+            if at_least { assert_eq!(m["pass"].as_i64(), Some((v >= req) as i64), "{}: {v} vs {req}", m["id"]); }
+            else if lower_is_better { assert_eq!(m["pass"].as_i64(), Some((v <= req) as i64), "{}: {v} vs {req}", m["id"]); }
         }
     }
 
