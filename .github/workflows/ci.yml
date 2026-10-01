@@ -36,7 +36,7 @@ jobs:
             fsw-rs
       - name: python3 tools/check_all.py
         run: |
-          python3 -m pip install -q pyflakes
+          python3 -m pip install -q pyflakes numpy matplotlib
           python3 tools/check_all.py
 
   firmware:
