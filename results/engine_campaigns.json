@@ -237,9 +237,9 @@
   "matlab_pass_rate": 0,
   "engine_pass_rate": 0.0,
   "matlab_mean": 91.94675903509545,
-  "engine_mean": 88.62594097278946,
+  "engine_mean": 74.68557213863772,
   "matlab_std": 46.43885831294705,
-  "engine_std": 43.85254071067783
+  "engine_std": 33.774411550978876
  },
  {
   "campaign": "mc_nadir_ais",
@@ -248,9 +248,9 @@
   "matlab_pass_rate": 0.9583333333333334,
   "engine_pass_rate": 1.0,
   "matlab_mean": 2.0861722946440726,
-  "engine_mean": 1.6829210246131596,
+  "engine_mean": 1.5999277854629064,
   "matlab_std": 1.0181088787854984,
-  "engine_std": 0.7517942350501835
+  "engine_std": 0.7520813757493973
  },
  {
   "campaign": "mc_nadir_ais",
@@ -259,9 +259,20 @@
   "matlab_pass_rate": 1,
   "engine_pass_rate": 1.0,
   "matlab_mean": 0.011647192765046438,
-  "engine_mean": 0.010153670969058792,
+  "engine_mean": 0.00998355620690329,
   "matlab_std": 0.002878932246041487,
-  "engine_std": 0.0030481897402477092
+  "engine_std": 0.00307318871840532
+ },
+ {
+  "campaign": "mc_nadir_ais",
+  "metric": "power_margin_last_orbit",
+  "req": 0.0,
+  "matlab_pass_rate": null,
+  "engine_pass_rate": 1.0,
+  "matlab_mean": null,
+  "engine_mean": 7.338114089328989,
+  "matlab_std": null,
+  "engine_std": 1.6080618004574971
  },
  {
   "campaign": "mc_slew_cmg",
