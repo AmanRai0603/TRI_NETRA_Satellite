@@ -354,7 +354,7 @@ Monte Carlo of the dispatched mission with the case's dispersions (truth dispers
 
 Rules:
 
-- dispersions as asils.campaign.draw
+- dispersions generated from the case (tools/pipeline_verify.py case_dispersions, catalogue/dispersions.toml): orbit draws centred on the case orbit, inertia and residual-dipole spread from mass.iunc / magnetic.dunc when stated; drawn as asils.campaign.draw
 - every requirement metric must pass in every run; otherwise, for the selected family:
 - power -> pump with more copper (lambda x3) and the lighter-pump lever closed
 - performance -> the family's authority x1.5 and its authority-down lever closed

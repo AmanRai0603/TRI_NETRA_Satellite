@@ -193,3 +193,28 @@ class Ledger(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class Dispersions(unittest.TestCase):
+    D = {"ltan_half_h": 0.5, "alt_half_km": 10.0, "inertia_frac": 0.1, "residual_dipole": [0.5, 2.0], "dispersions": [{"kind": "kp", "lo": 0, "hi": 6}]}
+
+    def disp(self, cv):
+        with mock.patch("common.case_values", return_value=cv):
+            return {d["kind"]: d for d in V.case_dispersions("c", self.D)}
+
+    def test_the_orbit_draws_are_centred_on_the_case_and_blank_uncertainties_take_the_defaults(self):
+        d = self.disp({"orbit.ltan": 6.0, "orbit.alt": 500.0, "magnetic.dres": 0.01})
+        self.assertEqual((d["ltan_h"]["lo"], d["ltan_h"]["hi"], d["alt_km"]["lo"], d["alt_km"]["hi"]), (5.5, 6.5, 490.0, 510.0))
+        self.assertEqual((d["inertia"]["frac"], d["residual_dipole"]["lo"], d["residual_dipole"]["hi"]), (0.1, 0.5, 2.0))
+        self.assertIn("kp", d)
+
+    def test_stated_uncertainties_set_the_spread(self):
+        d = self.disp({"orbit.ltan": 6.0, "orbit.alt": 500.0, "magnetic.dres": 0.01, "mass.iunc": 0.2, "magnetic.dunc": 0.005})
+        self.assertEqual(d["inertia"]["frac"], 0.2)
+        self.assertAlmostEqual(d["residual_dipole"]["lo"], 0.5); self.assertAlmostEqual(d["residual_dipole"]["hi"], 1.5)
+
+    def test_what_the_draw_cannot_use_is_refused(self):
+        for cv in ({"orbit.alt": 500.0, "magnetic.dres": 0.01}, {"orbit.ltan": 6.0, "orbit.alt": 500.0, "magnetic.dres": 0.0, "magnetic.dunc": 0.01},
+                   {"orbit.ltan": 6.0, "orbit.alt": 500.0, "magnetic.dres": 0.01, "mass.iunc": 1.5}):
+            with self.assertRaises(SystemExit):
+                self.disp(cv)

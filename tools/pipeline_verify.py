@@ -142,13 +142,42 @@ Soft OILS of this configuration: `results/DESIGN_{case}.md`. Real OILS: `adcs ru
             "check": res, "methods": meth, "algorithms": algs}
 
 
+MC_SEED = 20260929     # the design loop's Monte Carlo seed (each run draws from seed + run)
+
+
+def case_dispersions(case, defaults=None):
+    """The design loop's Monte Carlo dispersions, generated from the case (catalogue/dispersions.toml):
+    the orbit draws centred on the case's orbit; the inertia and residual-dipole uncertainty from the
+    case's mass.iunc / magnetic.dunc when stated, else the file's defaults. A value the draw cannot
+    use is refused by name."""
+    import tomllib
+    from common import case_values
+    D = defaults or tomllib.loads((ROOT / "catalogue" / "dispersions.toml").read_text())
+    cv = case_values(case)
+    for k in ("orbit.ltan", "orbit.alt", "magnetic.dres"):
+        if k not in cv:
+            raise SystemExit(f"mc: case {case} does not state {k}, which its Monte Carlo is centred on")
+    iunc = cv.get("mass.iunc", D["inertia_frac"])
+    if not 0.0 <= iunc < 1.0:
+        raise SystemExit(f"mc: case {case} mass.iunc = {iunc}: a fraction from 0 to below 1")
+    dres, dunc = cv["magnetic.dres"], cv.get("magnetic.dunc")
+    if dunc is None:
+        lo, hi = D["residual_dipole"]
+    elif dres > 0.0 and dunc >= 0.0:
+        lo, hi = max(0.0, 1.0 - dunc/dres), 1.0 + dunc/dres
+    else:
+        raise SystemExit(f"mc: case {case} magnetic.dunc = {dunc} A m^2 needs a positive magnetic.dres (it is {dres})")
+    out = [{"kind": "inertia", "frac": iunc}, {"kind": "residual_dipole", "lo": lo, "hi": hi},
+           {"kind": "ltan_h", "lo": cv["orbit.ltan"] - D["ltan_half_h"], "hi": cv["orbit.ltan"] + D["ltan_half_h"]},
+           {"kind": "alt_km", "lo": cv["orbit.alt"] - D["alt_half_km"], "hi": cv["orbit.alt"] + D["alt_half_km"]}]
+    return out + [dict(d) for d in D["dispersions"]]
+
+
 def node_mc(case, disp, sized, runs, jobs, base=None):
-    """Monte Carlo of the dispatched mission: the case's Monte Carlo dispersions (the MC campaign
-    of the case), per-run seeds, on the converged product."""
-    camp = {"ais_3u": "mc_nadir_ais", "ais_img_3u": "mc_fine_img"}.get(case)
-    C = json.loads((E.CAMP / f"{camp}.json").read_text()) if camp else {"dispersions": []}
-    C = {"id": f"mc_dispatch_{case}", "case": case, "seed": C.get("seed", 1), "runs": runs, "type": "montecarlo",
-         "dispersions": [d for d in (C["dispersions"] if isinstance(C["dispersions"], list) else [C["dispersions"]]) if d["kind"] != "initial_error_deg"]}
+    """Monte Carlo of the dispatched mission: dispersions generated from the case (case_dispersions),
+    per-run seeds, on the converged product."""
+    C = {"id": f"mc_dispatch_{case}", "case": case, "seed": MC_SEED, "runs": runs, "type": "montecarlo",
+         "dispersions": case_dispersions(case)}
     base = base or PIPE / case / "mc"
     if base.exists():                   # a Monte Carlo starts empty: no earlier run is read as this one's
         shutil.rmtree(base)

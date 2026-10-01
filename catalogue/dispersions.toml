@@ -1,0 +1,47 @@
+# The design loop's Monte Carlo dispersions (node mc, tools/pipeline_verify.py case_dispersions):
+# generated from the case, not looked up by case name. The orbit draws are centred on the case's
+# own orbit; inertia and residual-dipole uncertainty come from the case when it states them
+# (mass.iunc, magnetic.dunc) and from this file when it does not. Every value here is the one the
+# shipped Monte Carlo campaigns (campaigns/mc_*.toml) already fly: UNCONFIRMED project defaults,
+# for the owner to confirm or replace.
+# Owner: Agastya. Copyright (c) 2026 Agastya. All rights reserved.
+schema = "adcs-dispersions/1"
+
+# around the case's orbit
+ltan_half_h = 0.5          # injection local time of the node, case orbit.ltan +/- this
+alt_half_km = 10.0         # injection altitude, case orbit.alt +/- this
+
+# when the case leaves mass.iunc / magnetic.dunc blank
+inertia_frac = 0.10        # principal inertias, each scaled by 1 +/- this
+residual_dipole = [0.5, 2.0]   # residual dipole scale, uniform
+
+[[dispersions]]
+kind = "cm_offset"
+lo = 0.5
+hi = 1.5
+[[dispersions]]
+kind = "solar_flux"
+lo = 70.0
+hi = 220.0
+[[dispersions]]
+kind = "kp"
+lo = 0.0
+hi = 6.0
+[[dispersions]]
+kind = "accommodation"
+lo = 0.7
+hi = 1.0
+[[dispersions]]
+kind = "reflectivity"
+lo = 0.3
+hi = 0.9
+[[dispersions]]
+kind = "arg_lat_deg"
+[[dispersions]]
+kind = "inertia_products"   # Ixy, Ixz, Iyz as a fraction of sqrt(I_ii I_jj)
+lo = -0.05
+hi = 0.05
+[[dispersions]]
+kind = "epoch_days"         # the season: any day of the launch year
+lo = 0.0
+hi = 365.0

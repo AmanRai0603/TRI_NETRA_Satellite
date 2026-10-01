@@ -104,7 +104,7 @@ fn a_case_the_engine_cannot_fly_is_refused_by_name() {
                              ("power.eff", "", "states part of its power system: power.eff missing"), ("power.eff", "1.5", "power.eff = 1.5"),
                              ("power.soc0", "-0.1", "power.soc0 = -0.1"),
                              // a stated value nothing models: refused, never quietly dropped
-                             ("mass.iunc", "0.1", "states mass.iunc = 0.1"), ("resources.vbus", "28", "states resources.vbus"),
+                             ("mission.duty", "0.5", "states mission.duty = 0.5"), ("resources.vbus", "28", "states resources.vbus"),
                              ("surface.cps", "0.05", "one centre-of-mass offset for both torques"),
                              ("surface.asun", "0.1", "no deployables are modelled")] {
         let f = d.join("case.csv");
