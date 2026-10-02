@@ -81,4 +81,4 @@ grade and the star tracker are the converge node's knobs.
 
 `select` takes the lightest feasible solution family, then the lower steady power, then the smaller
 volume (`matlab_sils/data/pipeline/nodes.json`, `select.rank_feasible`). SPEC §8.6 ranks by worst
-margin first; that is owed (`docs/UPGRADE_PLAN.md`, B2.8).
+margin first; that is owed (`docs/ADCS_GAPS.md`, D10).

@@ -86,7 +86,7 @@ ranks first). Recommendation rule: **the lightest solution family that passes ev
 within the mass and volume budget**, then the lower steady power, then the smaller
 volume (`matlab_sils/data/pipeline/nodes.json`, `select.rank_feasible`). SPEC §8.6
 ranks the products that pass by worst margin, then mass, then orbit-average power;
-the design loop does not rank by worst margin yet (B2.8 in docs/UPGRADE_PLAN.md).
+the design loop does not rank by worst margin yet (D10 in docs/ADCS_GAPS.md).
 
 ## 3. Sizing (`+asils/+sizing`)
 

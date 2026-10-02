@@ -8,7 +8,12 @@
 > audits of this repository (each citing file and line); the most serious were re-checked
 > in the code (marked ✔).
 >
-> **Kind:** plan · **For:** the owner and whoever does the work · **Status:** open (30 Sep 2026)
+> **Superseded as the plan (2 Oct 2026):** the owner split the work in two. The release gate is
+> [`SOFTWARE_PLAN.md`](SOFTWARE_PLAN.md) (architecture, templates, data, process); the ADCS technical
+> work is the register [`ADCS_GAPS.md`](ADCS_GAPS.md) and does not gate v1.0.0. This file stays as the
+> record of what was found and done, which both cite by item number.
+>
+> **Kind:** record · **For:** the owner and whoever does the work · **Status:** superseded (2 Oct 2026)
 
 Legend: ✅ done · ❌ not done · 🟡 partly. Sizes: S ≤ 1 day, M 2–4 days, L a week or more.
 
