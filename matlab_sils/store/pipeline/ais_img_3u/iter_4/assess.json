@@ -9,7 +9,7 @@
  },
  "class": "fine",
  "selected": "mtq_fmr",
- "status": "closest (not feasible)",
+ "status": "feasible",
  "feasible_options": 11,
  "options": 25,
  "changes": [
@@ -44,10 +44,8 @@
    }
   },
   "mtq_fmr": {
-   "feasible": false,
-   "gaps": [
-    "budget: mass_kg 1.73 > 1.6"
-   ],
+   "feasible": true,
+   "gaps": [],
    "budget": {
     "mass_kg": 1.7320636279300072,
     "power_W": 6.924250334176452,
@@ -57,7 +55,7 @@
   "mtq_fmr_rcs": {
    "feasible": false,
    "gaps": [
-    "budget: mass_kg 2.2 > 1.6",
+    "budget: mass_kg 2.2 > 1.85",
     "budget: volume_L 1.38 > 1"
    ],
    "budget": {
@@ -89,7 +87,7 @@
    "gaps": [
     "sun_referencing: power_mean (power)",
     "nadir_pointing: power_mean (power)",
-    "budget: mass_kg 2.02 > 1.6"
+    "budget: mass_kg 2.02 > 1.85"
    ],
    "budget": {
     "mass_kg": 2.0207821087057787,
@@ -102,7 +100,7 @@
    "gaps": [
     "sun_referencing: power_mean (power)",
     "nadir_pointing: power_mean (power)",
-    "budget: mass_kg 2.49 > 1.6",
+    "budget: mass_kg 2.49 > 1.85",
     "budget: volume_L 1.65 > 1"
    ],
    "budget": {
@@ -116,7 +114,7 @@
    "gaps": [
     "sun_referencing: power_mean (power)",
     "nadir_pointing: power_mean (power)",
-    "budget: mass_kg 2.02 > 1.6"
+    "budget: mass_kg 2.02 > 1.85"
    ],
    "budget": {
     "mass_kg": 2.0207821087057787,
@@ -129,7 +127,7 @@
    "gaps": [
     "sun_referencing: power_mean (power)",
     "nadir_pointing: power_mean (power)",
-    "budget: mass_kg 2.49 > 1.6",
+    "budget: mass_kg 2.49 > 1.85",
     "budget: volume_L 1.65 > 1"
    ],
    "budget": {

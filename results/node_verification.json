@@ -1,6 +1,6 @@
 {
- "passed": 315,
- "checks": 315,
+ "passed": 321,
+ "checks": 321,
  "nodes": [
   "case",
   "catalogue",
@@ -44,7 +44,7 @@
    "case": "ais_img_3u",
    "check": "case file with mass and volume budgets",
    "ok": true,
-   "detail": "1.6 kg, 1.0 L"
+   "detail": "1.85 kg, 1.0 L"
   },
   {
    "node": "catalogue",
@@ -427,7 +427,7 @@
   {
    "node": "demand",
    "case": "ais_img_3u",
-   "check": "sizing of the final iteration (iter_6) present",
+   "check": "sizing of the final iteration (iter_12) present",
    "ok": true,
    "detail": ""
   },
@@ -506,28 +506,28 @@
    "case": "ais_img_3u",
    "check": "SZ-ais_img_3u-FMR-X: designed part with positive mass",
    "ok": true,
-   "detail": "0.3928 kg"
+   "detail": "0.3723 kg"
   },
   {
    "node": "size_fmr",
    "case": "ais_img_3u",
    "check": "SZ-ais_img_3u-FMR-Y: designed part with positive mass",
    "ok": true,
-   "detail": "0.2593 kg"
+   "detail": "0.1952 kg"
   },
   {
    "node": "size_fmr",
    "case": "ais_img_3u",
    "check": "SZ-ais_img_3u-FMR-Z: designed part with positive mass",
    "ok": true,
-   "detail": "0.2593 kg"
+   "detail": "0.1952 kg"
   },
   {
    "node": "size_fmr",
    "case": "ais_img_3u",
    "check": "electromagnetic pump (no permanent magnet), electrode current within the bound",
    "ok": true,
-   "detail": "DC conduction pump, electromagnet C-core, electrode current 9.05 A, lambda 0.1 kg/W"
+   "detail": "DC conduction pump, electromagnet C-core, electrode current 8.88 A, lambda 0.3 kg/W"
   },
   {
    "node": "size_rcs",
@@ -702,14 +702,14 @@
    "case": "ais_img_3u",
    "check": "mtq_fmr: sensor set (star tracker on the fine class)",
    "ok": true,
-   "detail": "rings, rings, rings, star_tracker, magnetometer, sun_sensors, gyro, gnss, earth_sensor"
+   "detail": "rings, rings, rings, rings, star_tracker, magnetometer, sun_sensors, gyro, gnss, earth_sensor"
   },
   {
    "node": "size_sensors",
    "case": "ais_img_3u",
    "check": "mtq_fmr_rcs: sensor set (star tracker on the fine class)",
    "ok": true,
-   "detail": "rings, rings, rings, rcs, star_tracker, magnetometer, sun_sensors, gyro, gnss, earth_sensor"
+   "detail": "rings, rings, rings, rings, rcs, star_tracker, magnetometer, sun_sensors, gyro, gnss, earth_sensor"
   },
   {
    "node": "size_sensors",
@@ -828,14 +828,14 @@
    "case": "ais_img_3u",
    "check": "mtq_fmr: mass, power and volume are the sums of the fitted units",
    "ok": true,
-   "detail": "1.432 kg, 5.92 W, 0.536 L"
+   "detail": "1.794 kg, 3.52 W, 0.660 L"
   },
   {
    "node": "budget",
    "case": "ais_img_3u",
    "check": "mtq_fmr_rcs: mass, power and volume are the sums of the fitted units",
    "ok": true,
-   "detail": "1.898 kg, 5.97 W, 1.378 L"
+   "detail": "2.261 kg, 3.57 W, 1.502 L"
   },
   {
    "node": "budget",
@@ -912,7 +912,7 @@
    "case": "ais_img_3u",
    "check": "an option is feasible exactly when nothing fails",
    "ok": true,
-   "detail": "11 feasible"
+   "detail": "12 feasible"
   },
   {
    "node": "assess",
@@ -1052,7 +1052,7 @@
    "case": "ais_img_3u",
    "check": "converged: the last iteration proposes no change",
    "ok": true,
-   "detail": "6 iteration(s)"
+   "detail": "12 iteration(s)"
   },
   {
    "node": "converge",
@@ -1066,14 +1066,14 @@
    "case": "ais_img_3u",
    "check": "every authority scale inside its bounds",
    "ok": true,
-   "detail": "{\"mtqp\": 1.0}"
+   "detail": "{\"mtqp\": 1.0, \"fmr\": 0.5625}"
   },
   {
    "node": "converge",
    "case": "ais_img_3u",
    "check": "every family was flown and scored in every iteration",
    "ok": true,
-   "detail": "9 families x 6 iterations"
+   "detail": "9 families x 12 iterations"
   },
   {
    "node": "faults",
@@ -1318,7 +1318,7 @@
    "case": "ais_img_3u",
    "check": "mtq_fmr / rotor_fail: passes exactly when every requirement met fault-free still holds, every seed",
    "ok": true,
-   "detail": "breaks ape_los_p9973, ake_los_p9973"
+   "detail": "survived"
   },
   {
    "node": "faults",
@@ -1339,7 +1339,7 @@
    "case": "ais_img_3u",
    "check": "mtq_fmr: one gap per fault not survived",
    "ok": true,
-   "detail": "fault: rotor_fail: ape_los_p9973, ake_los_p9973"
+   "detail": "none"
   },
   {
    "node": "faults",
@@ -1367,7 +1367,7 @@
    "case": "ais_img_3u",
    "check": "mtq_fmr_rcs / rotor_fail: passes exactly when every requirement met fault-free still holds, every seed",
    "ok": true,
-   "detail": "breaks ape_los_p9973, ake_los_p9973"
+   "detail": "survived"
   },
   {
    "node": "faults",
@@ -1395,7 +1395,7 @@
    "case": "ais_img_3u",
    "check": "mtq_fmr_rcs: one gap per fault not survived",
    "ok": true,
-   "detail": "fault: rotor_fail: ape_los_p9973, ake_los_p9973"
+   "detail": "none"
   },
   {
    "node": "select",
@@ -1633,14 +1633,14 @@
    "case": "ais_img_3u",
    "check": "mtq_fmr: feasible exactly when no mode and no budget gap",
    "ok": true,
-   "detail": "fault: rotor_fail: ape_los_p9973, ake_los_p9973"
+   "detail": "no gap"
   },
   {
    "node": "select",
    "case": "ais_img_3u",
    "check": "mtq_fmr_rcs: feasible exactly when no mode and no budget gap",
    "ok": true,
-   "detail": "budget: mass_kg 1.9 > 1.6; budget: volume_L 1.38 > 1; fault: rotor_fail: ape_los_p9973, ake_los_p9973"
+   "detail": "budget: mass_kg 2.26 > 1.85; budget: volume_L 1.5 > 1"
   },
   {
    "node": "select",
@@ -1661,28 +1661,28 @@
    "case": "ais_img_3u",
    "check": "mtq_cmg: feasible exactly when no mode and no budget gap",
    "ok": true,
-   "detail": "sun_acquisition: power_mean (power); sun_referencing: power_mean (power); nadir_pointing: power_mean (power); budget: mass_kg 1.72 > 1.6"
+   "detail": "sun_acquisition: power_mean (power); sun_referencing: power_mean (power); nadir_pointing: power_mean (power)"
   },
   {
    "node": "select",
    "case": "ais_img_3u",
    "check": "mtq_cmg_rcs: feasible exactly when no mode and no budget gap",
    "ok": true,
-   "detail": "sun_acquisition: power_mean (power); sun_referencing: power_mean (power); nadir_pointing: power_mean (power); budget: mass_kg 2.19 > 1.6; budget: volume_L 1.65 > 1"
+   "detail": "sun_acquisition: power_mean (power); sun_referencing: power_mean (power); nadir_pointing: power_mean (power); budget: mass_kg 2.19 > 1.85; budget: volume_L 1.65 > 1"
   },
   {
    "node": "select",
    "case": "ais_img_3u",
    "check": "mtq_vscmg: feasible exactly when no mode and no budget gap",
    "ok": true,
-   "detail": "sun_acquisition: power_mean (power); sun_referencing: power_mean (power); nadir_pointing: power_mean (power); budget: mass_kg 1.72 > 1.6"
+   "detail": "sun_acquisition: power_mean (power); sun_referencing: power_mean (power); nadir_pointing: power_mean (power)"
   },
   {
    "node": "select",
    "case": "ais_img_3u",
    "check": "mtq_vscmg_rcs: feasible exactly when no mode and no budget gap",
    "ok": true,
-   "detail": "sun_acquisition: power_mean (power); sun_referencing: power_mean (power); nadir_pointing: power_mean (power); budget: mass_kg 2.19 > 1.6; budget: volume_L 1.65 > 1"
+   "detail": "sun_acquisition: power_mean (power); sun_referencing: power_mean (power); nadir_pointing: power_mean (power); budget: mass_kg 2.19 > 1.85; budget: volume_L 1.65 > 1"
   },
   {
    "node": "select",
@@ -1710,28 +1710,28 @@
    "case": "ais_img_3u",
    "check": "mtq_fmr: its fault gaps are the campaign's",
    "ok": true,
-   "detail": "fault: rotor_fail: ape_los_p9973, ake_los_p9973"
+   "detail": "none"
   },
   {
    "node": "select",
    "case": "ais_img_3u",
    "check": "mtq_fmr: fault gaps are feasibility gaps (fault_policy gap)",
    "ok": true,
-   "detail": "fault: rotor_fail: ape_los_p9973, ake_los_p9973"
+   "detail": "none in gaps"
   },
   {
    "node": "select",
    "case": "ais_img_3u",
    "check": "mtq_fmr_rcs: its fault gaps are the campaign's",
    "ok": true,
-   "detail": "fault: rotor_fail: ape_los_p9973, ake_los_p9973"
+   "detail": "none"
   },
   {
    "node": "select",
    "case": "ais_img_3u",
    "check": "mtq_fmr_rcs: fault gaps are feasibility gaps (fault_policy gap)",
    "ok": true,
-   "detail": "fault: rotor_fail: ape_los_p9973, ake_los_p9973"
+   "detail": "none in gaps"
   },
   {
    "node": "select",
@@ -1816,6 +1816,48 @@
    "check": "mtq_vscmg_rcs: fault gaps are feasibility gaps (fault_policy gap)",
    "ok": true,
    "detail": "none in gaps"
+  },
+  {
+   "node": "select",
+   "case": "ais_img_3u",
+   "check": "mtq: its shortfall is the sum of its relative overshoots",
+   "ok": true,
+   "detail": "2342.595305"
+  },
+  {
+   "node": "select",
+   "case": "ais_img_3u",
+   "check": "mtq_fmr_rcs: its shortfall is the sum of its relative overshoots",
+   "ok": true,
+   "detail": "0.724361"
+  },
+  {
+   "node": "select",
+   "case": "ais_img_3u",
+   "check": "mtq_cmg: its shortfall is the sum of its relative overshoots",
+   "ok": true,
+   "detail": "3.014799"
+  },
+  {
+   "node": "select",
+   "case": "ais_img_3u",
+   "check": "mtq_cmg_rcs: its shortfall is the sum of its relative overshoots",
+   "ok": true,
+   "detail": "3.847397"
+  },
+  {
+   "node": "select",
+   "case": "ais_img_3u",
+   "check": "mtq_vscmg: its shortfall is the sum of its relative overshoots",
+   "ok": true,
+   "detail": "3.017059"
+  },
+  {
+   "node": "select",
+   "case": "ais_img_3u",
+   "check": "mtq_vscmg_rcs: its shortfall is the sum of its relative overshoots",
+   "ok": true,
+   "detail": "3.849657"
   },
   {
    "node": "select",
@@ -2193,7 +2235,7 @@
    "case": "ais_img_3u",
    "check": "no overrun on either firmware",
    "ok": true,
-   "detail": "oils: CPU max 5.8 %, oils_rs: CPU max 6.6 %"
+   "detail": "oils: CPU max 5.9 %, oils_rs: CPU max 6.7 %"
   },
   {
    "node": "soft_oils",

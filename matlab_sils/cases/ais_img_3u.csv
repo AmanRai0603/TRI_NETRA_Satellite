@@ -21,7 +21,7 @@ req,req.faults,Faults tolerated,Count,,,,,
 req,req.recover,Recovery time after a single fault,Minute,,,,,
 req,req.hsat,Momentum saturation margin,One,,,,,"fraction of the stored momentum left unused, 0 to 1"
 req,req.dump,Momentum dump interval,Hour,,,,,
-req,req.mass,ADCS mass,Kilogram,1.6,,,,"raised by the user (Agastya): 1.5-1.7 kg with 1U of the 3U for the ADCS; 1.6 keeps 0.1 kg to the 1.7 ceiling"
+req,req.mass,ADCS mass,Kilogram,1.85,,,,"raised by the user (Agastya) to 1.85 kg so the imaging ADCS can carry a spare fluid ring against a single fault (the design loop closed at 1.806 kg on 1.8); the stated ceiling is 2.0 kg"
 req,req.pavg,ADCS orbit-average power,Watt,2.0,,,,UNCONFIRMED · plan reference
 req,req.ppk,ADCS peak power,Watt,4.0,,,,UNCONFIRMED · plan reference
 req,req.vol,ADCS volume,Litre,1.0,,,,"raised by the user (Agastya): 1U of the 3U is the ADCS"

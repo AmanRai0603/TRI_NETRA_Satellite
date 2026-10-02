@@ -7,8 +7,8 @@ The MATLAB solution pipeline's package for this family is the parent folder.
 - `sized/`: the converged sized parts and products (adcs-design), `sizing.json` with the demand and the knobs.
 - `fsw/adcs_fswcfg.bin`: the adcs-fswcfg/1 blob the flight software boots from; `fsw/adcs_fswcfg.json` decodes it.
 - `mission_scenario.json`: detumble_rcs at boot, sun_acq_rotor when detumble completes, nadir_fine by schedule at 2 orbits.
-- Methods per mode: detumble = rcs, sun_acquisition = fmr, sun_referencing = fmr+mtq, nadir_pointing = fmr+mtq. Algorithms chosen by the loop: {"pointing": "pid"}.
-- Units fitted: coils, rings, rings, rings, rcs, star_tracker, magnetometer, sun_sensors, gyro, gnss, earth_sensor.
+- Methods per mode: detumble = rcs, sun_acquisition = fmr, sun_referencing = fmr+rcs, nadir_pointing = fmr+mtq. Algorithms chosen by the loop: {"pointing": "pid"}.
+- Units fitted: coils, rings, rings, rings, rings, rcs, star_tracker, magnetometer, sun_sensors, gyro, gnss, earth_sensor.
 
 Build: `make -C fsw` (C, libadcs_fsw.a) or `cd fsw-rs && cargo build --release --no-default-features --features cabi
 --target thumbv7em-none-eabihf` (Rust, same ABI). C and Rust on the engine, same blob: bit-identical = True.

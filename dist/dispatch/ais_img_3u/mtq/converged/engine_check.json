@@ -1,0 +1,183 @@
+{
+ "c": {
+  "rc": 0,
+  "build_id": "trinetra-fsw-c/1.0.0 (adcs-fswcfg/1)",
+  "metrics": [
+   {
+    "id": "detumble_time",
+    "kind": "time_to_rate",
+    "value": 56.10666666666667,
+    "unit": "min",
+    "req": 284.0,
+    "req_key": "req.detumble",
+    "pass": 1
+   },
+   {
+    "id": "ape_los_p9973",
+    "kind": "ape_los",
+    "value": 34.238135586680436,
+    "unit": "deg",
+    "req": 0.01,
+    "req_key": "req.ape",
+    "pass": 0
+   },
+   {
+    "id": "ake_los_p9973",
+    "kind": "ake_los",
+    "value": 0.015289433043163532,
+    "unit": "deg",
+    "req": 0.005,
+    "req_key": "req.ake",
+    "pass": 0
+   },
+   {
+    "id": "power_mean",
+    "kind": "power_mean",
+    "value": 0.1085650044184372,
+    "unit": "W",
+    "req": 2.0,
+    "req_key": "req.pavg",
+    "pass": 1
+   },
+   {
+    "id": "power_peak",
+    "kind": "power_peak",
+    "value": 0.4807960225082774,
+    "unit": "W",
+    "req": null,
+    "req_key": "",
+    "pass": null
+   },
+   {
+    "id": "propellant",
+    "kind": "propellant",
+    "value": 0.0,
+    "unit": "g",
+    "req": null,
+    "req_key": "",
+    "pass": null
+   }
+  ],
+  "mode_log": [
+   {
+    "t": 0.0,
+    "mode": "detumble"
+   },
+   {
+    "t": 3366.2000000000003,
+    "mode": "spinup"
+   },
+   {
+    "t": 10068.400000000001,
+    "mode": "sun_spin"
+   },
+   {
+    "t": 10098.6,
+    "mode": "spinup"
+   },
+   {
+    "t": 10158.6,
+    "mode": "sun_spin"
+   },
+   {
+    "t": 10188.800000000001,
+    "mode": "spinup"
+   },
+   {
+    "t": 11478.0,
+    "mode": "nadir_mtq"
+   }
+  ]
+ },
+ "rust": {
+  "rc": 0,
+  "build_id": "trinetra-fsw-rs/1.0.0 (adcs-fswcfg/1)",
+  "metrics": [
+   {
+    "id": "detumble_time",
+    "kind": "time_to_rate",
+    "value": 56.10666666666667,
+    "unit": "min",
+    "req": 284.0,
+    "req_key": "req.detumble",
+    "pass": 1
+   },
+   {
+    "id": "ape_los_p9973",
+    "kind": "ape_los",
+    "value": 34.238135586680436,
+    "unit": "deg",
+    "req": 0.01,
+    "req_key": "req.ape",
+    "pass": 0
+   },
+   {
+    "id": "ake_los_p9973",
+    "kind": "ake_los",
+    "value": 0.015289433043163532,
+    "unit": "deg",
+    "req": 0.005,
+    "req_key": "req.ake",
+    "pass": 0
+   },
+   {
+    "id": "power_mean",
+    "kind": "power_mean",
+    "value": 0.1085650044184372,
+    "unit": "W",
+    "req": 2.0,
+    "req_key": "req.pavg",
+    "pass": 1
+   },
+   {
+    "id": "power_peak",
+    "kind": "power_peak",
+    "value": 0.4807960225082774,
+    "unit": "W",
+    "req": null,
+    "req_key": "",
+    "pass": null
+   },
+   {
+    "id": "propellant",
+    "kind": "propellant",
+    "value": 0.0,
+    "unit": "g",
+    "req": null,
+    "req_key": "",
+    "pass": null
+   }
+  ],
+  "mode_log": [
+   {
+    "t": 0.0,
+    "mode": "detumble"
+   },
+   {
+    "t": 3366.2000000000003,
+    "mode": "spinup"
+   },
+   {
+    "t": 10068.400000000001,
+    "mode": "sun_spin"
+   },
+   {
+    "t": 10098.6,
+    "mode": "spinup"
+   },
+   {
+    "t": 10158.6,
+    "mode": "sun_spin"
+   },
+   {
+    "t": 10188.800000000001,
+    "mode": "spinup"
+   },
+   {
+    "t": 11478.0,
+    "mode": "nadir_mtq"
+   }
+  ]
+ },
+ "c_equals_rust_bitwise": true
+}

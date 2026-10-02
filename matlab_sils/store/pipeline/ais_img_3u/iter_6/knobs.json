@@ -4,5 +4,5 @@
  },
  "gyro_grade": 1.0,
  "fmr_flow_sigma": 0.000125,
- "st_heads": 1
+ "fmr_spare": true
 }

@@ -17,7 +17,9 @@
  "blocked": [
   "nadir_pointing/cmg+mtq: power fails at the sized authority (cmg); the part's standby power is the floor",
   "nadir_pointing/cmg+rcs: power fails at the sized authority (cmg); the part's standby power is the floor",
+  "nadir_pointing/fmr+mtq: knowledge fails with the star tracker fitted",
   "nadir_pointing/fmr+rcs: performance and power both fail \u2014 no authority change helps",
+  "nadir_pointing/fmr+rcs: knowledge fails with the star tracker fitted",
   "nadir_pointing/fmr+rcs: power is the thrusters' valve power (RCS dumping), not the pump",
   "nadir_pointing/mtq: knowledge fails with the star tracker fitted",
   "nadir_pointing/vscmg+mtq: power fails at the sized authority (vscmg); the part's standby power is the floor",
@@ -47,8 +49,7 @@
   "mtq_fmr": {
    "feasible": false,
    "gaps": [
-    "nadir_pointing: ape_los_p9973 (performance), rate_stability_p9973 (performance)",
-    "budget: mass_kg 1.73 > 1.6"
+    "nadir_pointing: ape_los_p9973 (performance), ake_los_p9973 (knowledge), rate_stability_p9973 (performance)"
    ],
    "budget": {
     "mass_kg": 1.7320636279300072,
@@ -59,8 +60,8 @@
   "mtq_fmr_rcs": {
    "feasible": false,
    "gaps": [
-    "nadir_pointing: ape_los_p9973 (performance), rate_stability_p9973 (performance)",
-    "budget: mass_kg 2.2 > 1.6",
+    "nadir_pointing: ape_los_p9973 (performance), ake_los_p9973 (knowledge), rate_stability_p9973 (performance)",
+    "budget: mass_kg 2.2 > 1.85",
     "budget: volume_L 1.38 > 1"
    ],
    "budget": {
@@ -93,7 +94,7 @@
     "sun_acquisition: power_mean (power)",
     "sun_referencing: power_mean (power)",
     "nadir_pointing: power_mean (power)",
-    "budget: mass_kg 2.02 > 1.6"
+    "budget: mass_kg 2.02 > 1.85"
    ],
    "budget": {
     "mass_kg": 2.0207821087057787,
@@ -107,7 +108,7 @@
     "sun_acquisition: power_mean (power)",
     "sun_referencing: power_mean (power)",
     "nadir_pointing: power_mean (power)",
-    "budget: mass_kg 2.49 > 1.6",
+    "budget: mass_kg 2.49 > 1.85",
     "budget: volume_L 1.65 > 1"
    ],
    "budget": {
@@ -122,7 +123,7 @@
     "sun_acquisition: power_mean (power)",
     "sun_referencing: power_mean (power)",
     "nadir_pointing: power_mean (power)",
-    "budget: mass_kg 2.02 > 1.6"
+    "budget: mass_kg 2.02 > 1.85"
    ],
    "budget": {
     "mass_kg": 2.0207821087057787,
@@ -136,7 +137,7 @@
     "sun_acquisition: power_mean (power)",
     "sun_referencing: power_mean (power)",
     "nadir_pointing: power_mean (power)",
-    "budget: mass_kg 2.49 > 1.6",
+    "budget: mass_kg 2.49 > 1.85",
     "budget: volume_L 1.65 > 1"
    ],
    "budget": {
@@ -445,7 +446,7 @@
    "alg": null,
    "feasible": true,
    "failing": {},
-   "objective": 0.037307826652721775,
+   "objective": 0.45724749317422547,
    "objective_id": "sun_ape_p9973",
    "objective_req": 5.0
   },
@@ -457,7 +458,7 @@
    "failing": {
     "power_mean": "power"
    },
-   "objective": 0.03716842563366102,
+   "objective": 0.9628456187440494,
    "objective_id": "sun_ape_p9973",
    "objective_req": 5.0
   },
@@ -647,27 +648,29 @@
   {
    "mode": "nadir_pointing",
    "option": "fmr+mtq",
-   "alg": "pid@bw4",
+   "alg": "smc",
    "feasible": false,
    "failing": {
     "ape_los_p9973": "performance",
+    "ake_los_p9973": "knowledge",
     "rate_stability_p9973": "performance"
    },
-   "objective": 0.010417364387686008,
+   "objective": 4.039103075679357,
    "objective_id": "ape_los_p9973",
    "objective_req": 0.01
   },
   {
    "mode": "nadir_pointing",
    "option": "fmr+rcs",
-   "alg": "pid@bw4",
+   "alg": "smc",
    "feasible": false,
    "failing": {
     "ape_los_p9973": "performance",
+    "ake_los_p9973": "knowledge",
     "rate_stability_p9973": "performance",
     "power_mean": "power"
    },
-   "objective": 0.010398442617228157,
+   "objective": 0.10867199797032753,
    "objective_id": "ape_los_p9973",
    "objective_req": 0.01
   }

@@ -81,7 +81,7 @@
       "ape": 0.01,
       "detumble": 284.0,
       "malloc": null,
-      "mass": 1.6,
+      "mass": 1.85,
       "palloc": null,
       "pavg": 2.0,
       "ppk": 4.0,
@@ -248,7 +248,8 @@
     "star_tracker": false,
     "st_heads": 2,
     "fmr_flow_sigma": 0.002,
-    "gyro_grade": 1.0
+    "gyro_grade": 1.0,
+    "fmr_spare": false
   },
   "families": {
     "mtq": {
@@ -1480,8 +1481,11 @@
       "sizing": {
         "h_req_Nms": 0.001742780534224096,
         "tau_req_Nm": 0.000057572692339687917,
+        "h_ring_Nms": 0.001742780534224096,
+        "tau_ring_Nm": 0.000057572692339687917,
         "flow_sensor_sigma_m_s": 0.002,
         "face_m2": 0.010000000000000002,
+        "perimeter_m": 0.4,
         "scale": 1.0,
         "lambda_kg_per_W": 0.1,
         "pareto": [
@@ -1635,8 +1639,11 @@
       "sizing": {
         "h_req_Nms": 0.001742780534224096,
         "tau_req_Nm": 0.000057572692339687917,
+        "h_ring_Nms": 0.001742780534224096,
+        "tau_ring_Nm": 0.000057572692339687917,
         "flow_sensor_sigma_m_s": 0.002,
         "face_m2": 0.034,
+        "perimeter_m": 0.8800000000000001,
         "scale": 1.0,
         "lambda_kg_per_W": 0.1,
         "pareto": [
@@ -1790,8 +1797,11 @@
       "sizing": {
         "h_req_Nms": 0.001742780534224096,
         "tau_req_Nm": 0.000057572692339687917,
+        "h_ring_Nms": 0.001742780534224096,
+        "tau_ring_Nm": 0.000057572692339687917,
         "flow_sensor_sigma_m_s": 0.002,
         "face_m2": 0.034,
+        "perimeter_m": 0.8800000000000001,
         "scale": 1.0,
         "lambda_kg_per_W": 0.1,
         "pareto": [
