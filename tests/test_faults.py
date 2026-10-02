@@ -102,9 +102,12 @@ SIZING = {"demand": {"req": {"mass": 2.0, "vol": 2.0}},
           "families": {f: {"mass_kg": w, "power_W": 0.3, "volume_L": 0.5, "product": f"SZ-c-{f}"} for f, w in (("light", 1.0), ("heavy", 1.5), ("bench", 1.2))}}
 
 
-def campaign(light=(), heavy=()):
-    return {"families": {"light": {"gaps": [f"fault: {k}: ape_los_p9973" for k in light]},
-                         "heavy": {"gaps": [f"fault: {k}: ape_los_p9973" for k in heavy]}}}
+def campaign(light=(), heavy=(), ape=0.02):
+    """Each named fault fails ape_los_p9973 at `ape` against a 0.01 requirement."""
+    rec = lambda ks: {"gaps": [f"fault: {k}: ape_los_p9973" for k in ks],
+                      "faults": [{"kind": k, "flown": True, "pass": False, "failing": ["ape_los_p9973"],
+                                  "metrics": {"1": [{"id": "ape_los_p9973", "value": ape, "req": 0.01, "pass": 0}]}} for k in ks]}
+    return {"families": {"light": rec(light), "heavy": rec(heavy)}}
 
 
 def with_policy(policy):
@@ -127,7 +130,8 @@ class SelectCountsFaults(unittest.TestCase):
     def test_gap_with_every_solution_failing_a_fault_the_closest_is_named(self):
         with with_policy("gap"):
             s = V.node_select("c", RES, SIZING, MODES, FAMILIES, campaign(light=["rotor_fail", "coil_fail"], heavy=["coil_fail"]))
-        self.assertEqual((s["selected"], s["status"]), ("heavy", "closest (not feasible)"), "fewer gaps first")
+        self.assertEqual((s["selected"], s["status"]), ("heavy", "closest (not feasible)"), "less shortfall first (1.0 against 2.0)")
+        self.assertEqual((s["families"]["light"]["shortfall"], s["families"]["heavy"]["shortfall"]), (2.0, 1.0))
 
     def test_rank_a_fault_gap_leaves_feasibility_and_ranks_the_family_behind(self):
         with with_policy("rank"):

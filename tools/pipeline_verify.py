@@ -21,27 +21,56 @@ def node_select(case, res, sizing, modes, families, faults=None):
     for fa in families:
         acts = fa["actuators"] if isinstance(fa["actuators"], list) else [fa["actuators"]]
         bud = sizing["families"][fa["id"]]
-        per_mode, gaps = {}, []
+        per_mode, gaps, over = {}, [], []
         for M in modes:
             cands = [r for (m, oid), r in res.items() if m == M["id"] and usable(next(x for x in M["options"] if x["id"] == oid), acts)]
             cands.sort(key=lambda z: (not z["feasible"], len(z["failing"]), z["objective"] if z["objective"] is not None else math.inf))
             best = cands[0] if cands else None
             per_mode[M["id"]] = best and {"option": best["option"], "alg": best["alg"], "feasible": best["feasible"], "failing": best["failing"],
                                           "objective": best["objective"], "objective_id": best["objective_id"], "algorithms": best["algorithms"],
-                                          "metrics": best["metrics"]}
+                                          "metrics": best["metrics"], "violation": best.get("violation", {})}
             if not best or not best["feasible"]:
                 gaps.append(f"{M['id']}: " + (", ".join(f"{a} ({b})" for a, b in best["failing"].items()) if best else "no option"))
         # the case's requirements, then what the platform allocates (resources.*), each when stated
         for key, name in (("mass", "mass_kg"), ("vol", "volume_L"), ("malloc", "mass_kg"), ("valloc", "volume_L"), ("palloc", "power_W")):
             lim = req.get(key)
             if lim is not None and bud[name] > lim:
+                over.append(bud[name] / lim - 1 if lim > 0 else 10.0)
                 gaps.append(f"budget: {name} {bud[name]:.3g} > {lim:g}" + (f" (resources.{key})" if key.endswith("alloc") else ""))
         out[fa["id"]] = {"role": fa["role"], "simplicity": fa.get("simplicity", 9), "label": fa["label"], "feasible": not gaps, "gaps": gaps,
-                         "modes": per_mode, "budget": {k: bud[k] for k in ("mass_kg", "power_W", "volume_L")}, "product": bud["product"]}
+                         "modes": per_mode, "budget": {k: bud[k] for k in ("mass_kg", "power_W", "volume_L")}, "product": bud["product"],
+                         "budget_over": over}
     return select_pick(case, out, faults)
 
 
 FAULT_PREFIX = "fault: "
+NO_OPTION = 10.0        # the shortfall of a mode no option flies, or of a metric with no finite value (as node assess)
+
+
+def fault_over(rec):
+    """Each failed single fault's shortfall: its worst failing metric over the seeds, value/req - 1."""
+    out = []
+    for x in (rec or {}).get("faults", []):
+        if not x.get("flown") or x.get("pass") is not False:
+            continue
+        w = 0.0
+        for ms in x.get("metrics", {}).values():
+            for m in ms:
+                if m["id"] in x["failing"]:
+                    v, q = m.get("value"), m.get("req")
+                    w = max(w, (v / q - 1) if isinstance(v, (int, float)) and isinstance(q, (int, float)) and q > 0 and math.isfinite(v) else NO_OPTION)
+        out.append(w)
+    return out
+
+
+def shortfall(v, policy):
+    """How far a family is from feasible: the sum of its relative overshoots (value/req - 1) over the
+    failing mode requirements, the budget lines it exceeds and, under fault_policy gap, the single
+    faults it does not survive. A missing mode counts NO_OPTION."""
+    viol = lambda pm: pm.get("violation") or {m: NO_OPTION for m in pm["failing"]}    # a record from before violations were kept
+    tot = sum(sum(viol(pm).values()) if pm else NO_OPTION for pm in v["modes"].values() if not (pm and pm["feasible"]))
+    tot += sum(v.get("budget_over", []))
+    return tot + (sum(v.get("fault_over", [])) if policy == "gap" else 0.0)
 
 
 def select_pick(case, out, faults=None, policy=None):
@@ -66,13 +95,15 @@ def select_pick(case, out, faults=None, policy=None):
             if rec is None:
                 raise SystemExit(f"select: {case}/{f}: the fault campaign flies role {v['role']} but has no record of this family")
             fg = list(rec["gaps"])
+            v["fault_over"] = fault_over(rec)
         v["fault_gaps"] = fg
         v["gaps"] = base + (fg if policy == "gap" else [])
         v["feasible"] = not v["gaps"]
+        v["shortfall"] = 0.0 if v["feasible"] else round(shortfall(v, policy), 6)
         v.pop("rank", None)
     lead = (lambda f: (len(out[f]["fault_gaps"]),)) if policy == "rank" else (lambda f: ())
     rank_f = lambda f: lead(f) + tuple(out[f]["simplicity"] if k == "simplicity" else out[f]["budget"][k] for k in sp["rank_feasible"])
-    rank_i = lambda f: lead(f) + tuple(len(out[f]["gaps"]) if k == "gap_count" else out[f]["budget"][k] for k in sp["rank_infeasible"])
+    rank_i = lambda f: lead(f) + tuple(len(out[f]["gaps"]) if k == "gap_count" else shortfall(out[f], policy) if k == "shortfall" else out[f]["budget"][k] for k in sp["rank_infeasible"])
 
     def pick_of(role):
         fs = [f for f in out if out[f]["role"] == role]

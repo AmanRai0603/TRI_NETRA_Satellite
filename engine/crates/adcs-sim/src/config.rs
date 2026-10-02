@@ -378,6 +378,8 @@ fn rotor_params(p: &mut Params, k: &Knowns) -> [f64; NR] {
     p.gim_rate_max = if x.ng > 0 { x.gimbal_rate_max } else { 1.0 };
     p.h_bias = h_bias; p.dump_k = json::f(&fsw, "dump_gain", 2e-3);
     p.cmg_lam0 = 1e-9; p.cmg_mu = 10.0; p.cmg_k_null = 0.002; p.fdir_s = 3.0;
+    // windowed rotor FDIR (fsw/pseudocode/07): 120 s windows; a commanded change under 0.5 % of h_max is not judged
+    p.fdir_win_s = 120.0; p.fdir_h_frac = 0.005;
     h_t_rot
 }
 

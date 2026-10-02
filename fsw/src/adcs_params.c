@@ -144,6 +144,8 @@ int32_t adcs_params_decode(const uint8_t *blob, size_t len, adcs_params_t *out)
     out->cmg_mu = rd_f64(p); p += 8;
     out->cmg_k_null = rd_f64(p); p += 8;
     out->fdir_s = rd_f64(p); p += 8;
+    out->fdir_win_s = rd_f64(p); p += 8;
+    out->fdir_h_frac = rd_f64(p); p += 8;
     out->nc = p[0]; p += 1;
     for (i = 0; i < 18u; i++) { ((double *)out->rcs_tau)[i] = rd_f64(p); p += 8; }
     out->rcs_mib = rd_f64(p); p += 8;
@@ -302,6 +304,8 @@ size_t adcs_params_encode(const adcs_params_t *in, uint8_t *buf, size_t cap)
     wr_f64(p, in->cmg_mu); p += 8;
     wr_f64(p, in->cmg_k_null); p += 8;
     wr_f64(p, in->fdir_s); p += 8;
+    wr_f64(p, in->fdir_win_s); p += 8;
+    wr_f64(p, in->fdir_h_frac); p += 8;
     p[0] = in->nc; p += 1;
     for (i = 0; i < 18u; i++) { wr_f64(p, ((const double *)in->rcs_tau)[i]); p += 8; }
     wr_f64(p, in->rcs_mib); p += 8;
@@ -470,45 +474,47 @@ int32_t adcs_params_validate(const adcs_params_t *p)
     if ((!isfinite(p->cmg_mu) || p->cmg_mu > 1e15 || p->cmg_mu < -1e15 || (p->cmg_mu != 0.0 && p->cmg_mu < 1e-30 && p->cmg_mu > -1e-30))) return 110;
     if ((!isfinite(p->cmg_k_null) || p->cmg_k_null > 1e15 || p->cmg_k_null < -1e15 || (p->cmg_k_null != 0.0 && p->cmg_k_null < 1e-30 && p->cmg_k_null > -1e-30))) return 111;
     if ((!isfinite(p->fdir_s) || p->fdir_s > 1e15 || p->fdir_s < -1e15 || (p->fdir_s != 0.0 && p->fdir_s < 1e-30 && p->fdir_s > -1e-30) || !(p->fdir_s > 0.0))) return 112;
-    if ((p->nc > 6)) return 113;
-    for (i = 0; i < 6u; i++) for (j = 0; j < 3u; j++) if ((!isfinite(p->rcs_tau[i][j]) || p->rcs_tau[i][j] > 1e15 || p->rcs_tau[i][j] < -1e15 || (p->rcs_tau[i][j] != 0.0 && p->rcs_tau[i][j] < 1e-30 && p->rcs_tau[i][j] > -1e-30))) return 114;
-    if ((!isfinite(p->rcs_mib) || p->rcs_mib > 1e15 || p->rcs_mib < -1e15 || (p->rcs_mib != 0.0 && p->rcs_mib < 1e-30 && p->rcs_mib > -1e-30) || p->rcs_mib < 0)) return 115;
-    if (p->nc > 0 && (!isfinite(p->rcs_res) || p->rcs_res > 1e15 || p->rcs_res < -1e15 || (p->rcs_res != 0.0 && p->rcs_res < 1e-30 && p->rcs_res > -1e-30) || !(p->rcs_res > 0.0))) return 116;
-    if ((p->rcs_assist > 1)) return 117;
-    if ((!isfinite(p->rcs_assist_frac) || p->rcs_assist_frac > 1e15 || p->rcs_assist_frac < -1e15 || (p->rcs_assist_frac != 0.0 && p->rcs_assist_frac < 1e-30 && p->rcs_assist_frac > -1e-30))) return 118;
-    if ((p->rcs_dump > 1)) return 119;
-    if ((!isfinite(p->rcs_dump_hi) || p->rcs_dump_hi > 1e15 || p->rcs_dump_hi < -1e15 || (p->rcs_dump_hi != 0.0 && p->rcs_dump_hi < 1e-30 && p->rcs_dump_hi > -1e-30))) return 120;
-    if ((!isfinite(p->rcs_dump_lo) || p->rcs_dump_lo > 1e15 || p->rcs_dump_lo < -1e15 || (p->rcs_dump_lo != 0.0 && p->rcs_dump_lo < 1e-30 && p->rcs_dump_lo > -1e-30))) return 121;
-    if ((!isfinite(p->rcs_dump_k) || p->rcs_dump_k > 1e15 || p->rcs_dump_k < -1e15 || (p->rcs_dump_k != 0.0 && p->rcs_dump_k < 1e-30 && p->rcs_dump_k > -1e-30))) return 122;
-    if ((!isfinite(p->rcsd_T_damp_s) || p->rcsd_T_damp_s > 1e15 || p->rcsd_T_damp_s < -1e15 || (p->rcsd_T_damp_s != 0.0 && p->rcsd_T_damp_s < 1e-30 && p->rcsd_T_damp_s > -1e-30) || !(p->rcsd_T_damp_s > 0.0))) return 123;
-    if ((!isfinite(p->rcsd_deadband_deg_s) || p->rcsd_deadband_deg_s > 1e15 || p->rcsd_deadband_deg_s < -1e15 || (p->rcsd_deadband_deg_s != 0.0 && p->rcsd_deadband_deg_s < 1e-30 && p->rcsd_deadband_deg_s > -1e-30))) return 124;
-    if ((!isfinite(p->rcsd_period_s) || p->rcsd_period_s > 1e15 || p->rcsd_period_s < -1e15 || (p->rcsd_period_s != 0.0 && p->rcsd_period_s < 1e-30 && p->rcsd_period_s > -1e-30) || !(p->rcsd_period_s > 0.0))) return 125;
-    if ((p->has_gyro > 1)) return 126;
-    if ((p->has_st > 1)) return 127;
-    if ((p->has_sun > 1)) return 128;
-    if ((p->has_es > 1)) return 129;
-    if ((p->has_gps > 1)) return 130;
-    if ((p->n_heads > 2)) return 131;
-    for (i = 0; i < 2u && i < (size_t)p->n_heads; i++) for (j = 0; j < 3u; j++) if ((!isfinite(p->st_bs[i][j]) || p->st_bs[i][j] > 1e15 || p->st_bs[i][j] < -1e15 || (p->st_bs[i][j] != 0.0 && p->st_bs[i][j] < 1e-30 && p->st_bs[i][j] > -1e-30))) return 132;
-    for (i = 0; i < 2u && i < (size_t)p->n_heads; i++) { n2 = 0.0; for (j = 0; j < 3u; j++) n2 += p->st_bs[i][j]*p->st_bs[i][j]; if (!(n2 > 0.998 && n2 < 1.002)) return 132; }
-    if ((!isfinite(p->st_noise_cross) || p->st_noise_cross > 1e15 || p->st_noise_cross < -1e15 || (p->st_noise_cross != 0.0 && p->st_noise_cross < 1e-30 && p->st_noise_cross > -1e-30))) return 133;
-    if ((!isfinite(p->st_noise_roll) || p->st_noise_roll > 1e15 || p->st_noise_roll < -1e15 || (p->st_noise_roll != 0.0 && p->st_noise_roll < 1e-30 && p->st_noise_roll > -1e-30))) return 134;
-    if ((!isfinite(p->st_latency) || p->st_latency > 1e15 || p->st_latency < -1e15 || (p->st_latency != 0.0 && p->st_latency < 1e-30 && p->st_latency > -1e-30))) return 135;
-    if ((!isfinite(p->st_coast_s) || p->st_coast_s > 1e15 || p->st_coast_s < -1e15 || (p->st_coast_s != 0.0 && p->st_coast_s < 1e-30 && p->st_coast_s > -1e-30) || !(p->st_coast_s > 0.0))) return 136;
-    if ((!isfinite(p->gyro_arw) || p->gyro_arw > 1e15 || p->gyro_arw < -1e15 || (p->gyro_arw != 0.0 && p->gyro_arw < 1e-30 && p->gyro_arw > -1e-30))) return 137;
-    if ((!isfinite(p->gyro_rrw) || p->gyro_rrw > 1e15 || p->gyro_rrw < -1e15 || (p->gyro_rrw != 0.0 && p->gyro_rrw < 1e-30 && p->gyro_rrw > -1e-30))) return 138;
-    if ((!isfinite(p->es_noise) || p->es_noise > 1e15 || p->es_noise < -1e15 || (p->es_noise != 0.0 && p->es_noise < 1e-30 && p->es_noise > -1e-30))) return 139;
-    if ((!isfinite(p->mekf_sig_mag) || p->mekf_sig_mag > 1e15 || p->mekf_sig_mag < -1e15 || (p->mekf_sig_mag != 0.0 && p->mekf_sig_mag < 1e-30 && p->mekf_sig_mag > -1e-30) || !(p->mekf_sig_mag > 0.0))) return 140;
-    if ((!isfinite(p->mekf_sig_sun) || p->mekf_sig_sun > 1e15 || p->mekf_sig_sun < -1e15 || (p->mekf_sig_sun != 0.0 && p->mekf_sig_sun < 1e-30 && p->mekf_sig_sun > -1e-30) || !(p->mekf_sig_sun > 0.0))) return 141;
-    if ((!isfinite(p->mekf_meas_scale) || p->mekf_meas_scale > 1e15 || p->mekf_meas_scale < -1e15 || (p->mekf_meas_scale != 0.0 && p->mekf_meas_scale < 1e-30 && p->mekf_meas_scale > -1e-30) || !(p->mekf_meas_scale > 0.0))) return 142;
-    if ((!isfinite(p->rate_lpf_s) || p->rate_lpf_s > 1e15 || p->rate_lpf_s < -1e15 || (p->rate_lpf_s != 0.0 && p->rate_lpf_s < 1e-30 && p->rate_lpf_s > -1e-30) || p->rate_lpf_s < 0)) return 143;
-    if ((p->igrf_nmax < 1 || p->igrf_nmax > 13)) return 144;
-    if ((!isfinite(p->gps_latency) || p->gps_latency > 1e15 || p->gps_latency < -1e15 || (p->gps_latency != 0.0 && p->gps_latency < 1e-30 && p->gps_latency > -1e-30) || p->gps_latency < 0 || p->gps_latency > 2)) return 145;
+    if ((!isfinite(p->fdir_win_s) || p->fdir_win_s > 1e15 || p->fdir_win_s < -1e15 || (p->fdir_win_s != 0.0 && p->fdir_win_s < 1e-30 && p->fdir_win_s > -1e-30) || !(p->fdir_win_s > 0.0))) return 113;
+    if ((!isfinite(p->fdir_h_frac) || p->fdir_h_frac > 1e15 || p->fdir_h_frac < -1e15 || (p->fdir_h_frac != 0.0 && p->fdir_h_frac < 1e-30 && p->fdir_h_frac > -1e-30) || !(p->fdir_h_frac > 0.0))) return 114;
+    if ((p->nc > 6)) return 115;
+    for (i = 0; i < 6u; i++) for (j = 0; j < 3u; j++) if ((!isfinite(p->rcs_tau[i][j]) || p->rcs_tau[i][j] > 1e15 || p->rcs_tau[i][j] < -1e15 || (p->rcs_tau[i][j] != 0.0 && p->rcs_tau[i][j] < 1e-30 && p->rcs_tau[i][j] > -1e-30))) return 116;
+    if ((!isfinite(p->rcs_mib) || p->rcs_mib > 1e15 || p->rcs_mib < -1e15 || (p->rcs_mib != 0.0 && p->rcs_mib < 1e-30 && p->rcs_mib > -1e-30) || p->rcs_mib < 0)) return 117;
+    if (p->nc > 0 && (!isfinite(p->rcs_res) || p->rcs_res > 1e15 || p->rcs_res < -1e15 || (p->rcs_res != 0.0 && p->rcs_res < 1e-30 && p->rcs_res > -1e-30) || !(p->rcs_res > 0.0))) return 118;
+    if ((p->rcs_assist > 1)) return 119;
+    if ((!isfinite(p->rcs_assist_frac) || p->rcs_assist_frac > 1e15 || p->rcs_assist_frac < -1e15 || (p->rcs_assist_frac != 0.0 && p->rcs_assist_frac < 1e-30 && p->rcs_assist_frac > -1e-30))) return 120;
+    if ((p->rcs_dump > 1)) return 121;
+    if ((!isfinite(p->rcs_dump_hi) || p->rcs_dump_hi > 1e15 || p->rcs_dump_hi < -1e15 || (p->rcs_dump_hi != 0.0 && p->rcs_dump_hi < 1e-30 && p->rcs_dump_hi > -1e-30))) return 122;
+    if ((!isfinite(p->rcs_dump_lo) || p->rcs_dump_lo > 1e15 || p->rcs_dump_lo < -1e15 || (p->rcs_dump_lo != 0.0 && p->rcs_dump_lo < 1e-30 && p->rcs_dump_lo > -1e-30))) return 123;
+    if ((!isfinite(p->rcs_dump_k) || p->rcs_dump_k > 1e15 || p->rcs_dump_k < -1e15 || (p->rcs_dump_k != 0.0 && p->rcs_dump_k < 1e-30 && p->rcs_dump_k > -1e-30))) return 124;
+    if ((!isfinite(p->rcsd_T_damp_s) || p->rcsd_T_damp_s > 1e15 || p->rcsd_T_damp_s < -1e15 || (p->rcsd_T_damp_s != 0.0 && p->rcsd_T_damp_s < 1e-30 && p->rcsd_T_damp_s > -1e-30) || !(p->rcsd_T_damp_s > 0.0))) return 125;
+    if ((!isfinite(p->rcsd_deadband_deg_s) || p->rcsd_deadband_deg_s > 1e15 || p->rcsd_deadband_deg_s < -1e15 || (p->rcsd_deadband_deg_s != 0.0 && p->rcsd_deadband_deg_s < 1e-30 && p->rcsd_deadband_deg_s > -1e-30))) return 126;
+    if ((!isfinite(p->rcsd_period_s) || p->rcsd_period_s > 1e15 || p->rcsd_period_s < -1e15 || (p->rcsd_period_s != 0.0 && p->rcsd_period_s < 1e-30 && p->rcsd_period_s > -1e-30) || !(p->rcsd_period_s > 0.0))) return 127;
+    if ((p->has_gyro > 1)) return 128;
+    if ((p->has_st > 1)) return 129;
+    if ((p->has_sun > 1)) return 130;
+    if ((p->has_es > 1)) return 131;
+    if ((p->has_gps > 1)) return 132;
+    if ((p->n_heads > 2)) return 133;
+    for (i = 0; i < 2u && i < (size_t)p->n_heads; i++) for (j = 0; j < 3u; j++) if ((!isfinite(p->st_bs[i][j]) || p->st_bs[i][j] > 1e15 || p->st_bs[i][j] < -1e15 || (p->st_bs[i][j] != 0.0 && p->st_bs[i][j] < 1e-30 && p->st_bs[i][j] > -1e-30))) return 134;
+    for (i = 0; i < 2u && i < (size_t)p->n_heads; i++) { n2 = 0.0; for (j = 0; j < 3u; j++) n2 += p->st_bs[i][j]*p->st_bs[i][j]; if (!(n2 > 0.998 && n2 < 1.002)) return 134; }
+    if ((!isfinite(p->st_noise_cross) || p->st_noise_cross > 1e15 || p->st_noise_cross < -1e15 || (p->st_noise_cross != 0.0 && p->st_noise_cross < 1e-30 && p->st_noise_cross > -1e-30))) return 135;
+    if ((!isfinite(p->st_noise_roll) || p->st_noise_roll > 1e15 || p->st_noise_roll < -1e15 || (p->st_noise_roll != 0.0 && p->st_noise_roll < 1e-30 && p->st_noise_roll > -1e-30))) return 136;
+    if ((!isfinite(p->st_latency) || p->st_latency > 1e15 || p->st_latency < -1e15 || (p->st_latency != 0.0 && p->st_latency < 1e-30 && p->st_latency > -1e-30))) return 137;
+    if ((!isfinite(p->st_coast_s) || p->st_coast_s > 1e15 || p->st_coast_s < -1e15 || (p->st_coast_s != 0.0 && p->st_coast_s < 1e-30 && p->st_coast_s > -1e-30) || !(p->st_coast_s > 0.0))) return 138;
+    if ((!isfinite(p->gyro_arw) || p->gyro_arw > 1e15 || p->gyro_arw < -1e15 || (p->gyro_arw != 0.0 && p->gyro_arw < 1e-30 && p->gyro_arw > -1e-30))) return 139;
+    if ((!isfinite(p->gyro_rrw) || p->gyro_rrw > 1e15 || p->gyro_rrw < -1e15 || (p->gyro_rrw != 0.0 && p->gyro_rrw < 1e-30 && p->gyro_rrw > -1e-30))) return 140;
+    if ((!isfinite(p->es_noise) || p->es_noise > 1e15 || p->es_noise < -1e15 || (p->es_noise != 0.0 && p->es_noise < 1e-30 && p->es_noise > -1e-30))) return 141;
+    if ((!isfinite(p->mekf_sig_mag) || p->mekf_sig_mag > 1e15 || p->mekf_sig_mag < -1e15 || (p->mekf_sig_mag != 0.0 && p->mekf_sig_mag < 1e-30 && p->mekf_sig_mag > -1e-30) || !(p->mekf_sig_mag > 0.0))) return 142;
+    if ((!isfinite(p->mekf_sig_sun) || p->mekf_sig_sun > 1e15 || p->mekf_sig_sun < -1e15 || (p->mekf_sig_sun != 0.0 && p->mekf_sig_sun < 1e-30 && p->mekf_sig_sun > -1e-30) || !(p->mekf_sig_sun > 0.0))) return 143;
+    if ((!isfinite(p->mekf_meas_scale) || p->mekf_meas_scale > 1e15 || p->mekf_meas_scale < -1e15 || (p->mekf_meas_scale != 0.0 && p->mekf_meas_scale < 1e-30 && p->mekf_meas_scale > -1e-30) || !(p->mekf_meas_scale > 0.0))) return 144;
+    if ((!isfinite(p->rate_lpf_s) || p->rate_lpf_s > 1e15 || p->rate_lpf_s < -1e15 || (p->rate_lpf_s != 0.0 && p->rate_lpf_s < 1e-30 && p->rate_lpf_s > -1e-30) || p->rate_lpf_s < 0)) return 145;
+    if ((p->igrf_nmax < 1 || p->igrf_nmax > 13)) return 146;
+    if ((!isfinite(p->gps_latency) || p->gps_latency > 1e15 || p->gps_latency < -1e15 || (p->gps_latency != 0.0 && p->gps_latency < 1e-30 && p->gps_latency > -1e-30) || p->gps_latency < 0 || p->gps_latency > 2)) return 147;
     return 0;
 }
 
 const char *adcs_params_field(int32_t k)
 {
-    static const char *const names[] = {"jd0", "dt", "mu", "start_mode", "auto_next", "n_sched", "sched_t", "sched_mode", "bdot_law", "rw_law", "mtq_law", "alloc", "ss_eclipse", "ss_rz_floor", "ss_law", "gd_kind", "gd_q_off", "gd_roll_deg", "gd_t0", "gd_T", "gd_axis", "gd_q_inertial", "sun_axis", "roll_axis", "J", "m_res_est", "mtq_period", "mtq_meas", "m_max", "bdot_k", "detumble_exit", "detumble_hold_s", "mtq_Kp", "mtq_Kd", "mtq_Ki", "mtq_Klqr", "mtq_lambda", "mtq_phi", "mtq_Gs", "mtq_err_max", "mtq_int_max", "rw_Kp", "rw_Kd", "rw_Ki", "rw_Klqr", "rw_lambda", "rw_phi", "rw_Gs", "rw_err_max", "rw_int_max", "rw_dt", "capture_deg", "capture_rate_deg_s", "ss_k_l1", "ss_spin_dps", "ss_sigma0", "ss_z_in_dps", "ss_perp_in_dps", "ss_sun_min", "ss_t_check_s", "ss_omega_max_dps", "ss_dwell_in_s", "ss_k1", "ss_k2", "ss_perp_out_dps", "ss_omega_exit_dps", "ss_dwell_out_s", "sa_w_max_deg_s", "sa_kd", "sa_done_deg", "sa_done_hold_s", "mtq_eps", "mtq_k1", "mtq_k2", "mtq_k16", "mtq_lam16", "mtq_Pth", "mtq_Pw", "ss_dr_k", "ss_dr_k1", "ss_dr_k2", "sb_kp", "sb_kd", "sb_kroll", "sb_kdroll", "sb_roll_gate", "ho_in_dps", "ho_out_dps", "ho_hold_s", "mtq_gg_ff", "mekf_gate", "mekf_rej_max", "mekf_mag_err_T", "gnss_ecef", "gd_yaw_flip", "gd_flip_hyst", "nr", "ng", "rot_kind", "rot_a0", "rot_gi", "gim_axis", "rot_tmax", "rot_hmax", "rot_h0", "gim_rate_max", "h_bias", "dump_k", "cmg_lam0", "cmg_mu", "cmg_k_null", "fdir_s", "nc", "rcs_tau", "rcs_mib", "rcs_res", "rcs_assist", "rcs_assist_frac", "rcs_dump", "rcs_dump_hi", "rcs_dump_lo", "rcs_dump_k", "rcsd_T_damp_s", "rcsd_deadband_deg_s", "rcsd_period_s", "has_gyro", "has_st", "has_sun", "has_es", "has_gps", "n_heads", "st_bs", "st_noise_cross", "st_noise_roll", "st_latency", "st_coast_s", "gyro_arw", "gyro_rrw", "es_noise", "mekf_sig_mag", "mekf_sig_sun", "mekf_meas_scale", "rate_lpf_s", "igrf_nmax", "gps_latency"};
-    return (k >= 1 && k <= 145) ? names[k - 1] : "?";
+    static const char *const names[] = {"jd0", "dt", "mu", "start_mode", "auto_next", "n_sched", "sched_t", "sched_mode", "bdot_law", "rw_law", "mtq_law", "alloc", "ss_eclipse", "ss_rz_floor", "ss_law", "gd_kind", "gd_q_off", "gd_roll_deg", "gd_t0", "gd_T", "gd_axis", "gd_q_inertial", "sun_axis", "roll_axis", "J", "m_res_est", "mtq_period", "mtq_meas", "m_max", "bdot_k", "detumble_exit", "detumble_hold_s", "mtq_Kp", "mtq_Kd", "mtq_Ki", "mtq_Klqr", "mtq_lambda", "mtq_phi", "mtq_Gs", "mtq_err_max", "mtq_int_max", "rw_Kp", "rw_Kd", "rw_Ki", "rw_Klqr", "rw_lambda", "rw_phi", "rw_Gs", "rw_err_max", "rw_int_max", "rw_dt", "capture_deg", "capture_rate_deg_s", "ss_k_l1", "ss_spin_dps", "ss_sigma0", "ss_z_in_dps", "ss_perp_in_dps", "ss_sun_min", "ss_t_check_s", "ss_omega_max_dps", "ss_dwell_in_s", "ss_k1", "ss_k2", "ss_perp_out_dps", "ss_omega_exit_dps", "ss_dwell_out_s", "sa_w_max_deg_s", "sa_kd", "sa_done_deg", "sa_done_hold_s", "mtq_eps", "mtq_k1", "mtq_k2", "mtq_k16", "mtq_lam16", "mtq_Pth", "mtq_Pw", "ss_dr_k", "ss_dr_k1", "ss_dr_k2", "sb_kp", "sb_kd", "sb_kroll", "sb_kdroll", "sb_roll_gate", "ho_in_dps", "ho_out_dps", "ho_hold_s", "mtq_gg_ff", "mekf_gate", "mekf_rej_max", "mekf_mag_err_T", "gnss_ecef", "gd_yaw_flip", "gd_flip_hyst", "nr", "ng", "rot_kind", "rot_a0", "rot_gi", "gim_axis", "rot_tmax", "rot_hmax", "rot_h0", "gim_rate_max", "h_bias", "dump_k", "cmg_lam0", "cmg_mu", "cmg_k_null", "fdir_s", "fdir_win_s", "fdir_h_frac", "nc", "rcs_tau", "rcs_mib", "rcs_res", "rcs_assist", "rcs_assist_frac", "rcs_dump", "rcs_dump_hi", "rcs_dump_lo", "rcs_dump_k", "rcsd_T_damp_s", "rcsd_deadband_deg_s", "rcsd_period_s", "has_gyro", "has_st", "has_sun", "has_es", "has_gps", "n_heads", "st_bs", "st_noise_cross", "st_noise_roll", "st_latency", "st_coast_s", "gyro_arw", "gyro_rrw", "es_noise", "mekf_sig_mag", "mekf_sig_sun", "mekf_meas_scale", "rate_lpf_s", "igrf_nmax", "gps_latency"};
+    return (k >= 1 && k <= 147) ? names[k - 1] : "?";
 }

@@ -66,7 +66,7 @@ fn valid(which: usize) -> Params {
     p.jd0 = 2461407.25; p.dt = 0.1; p.mu = 3.986004418e14;
     p.mtq_period = 1.0; p.mtq_meas = 0.2; p.m_max = 0.2; p.bdot_k = 1e-3; p.has_gyro = 1; p.has_sun = 1;
     p.J[0][0] = 0.0067; p.J[1][1] = 0.042; p.J[2][2] = 0.042; p.igrf_nmax = 10; p.rate_lpf_s = 0.3;
-    p.ss_eclipse = 1; p.gd_T = 1.0; p.mtq_phi = 0.01; p.rw_phi = 0.01; p.rw_dt = 0.1; p.fdir_s = 3.0; p.rcsd_T_damp_s = 20.0; p.rcsd_period_s = 1.0;
+    p.ss_eclipse = 1; p.gd_T = 1.0; p.mtq_phi = 0.01; p.rw_phi = 0.01; p.rw_dt = 0.1; p.fdir_s = 3.0; p.fdir_win_s = 120.0; p.fdir_h_frac = 0.005; p.rcsd_T_damp_s = 20.0; p.rcsd_period_s = 1.0;
     p.st_coast_s = 900.0; p.mekf_sig_mag = 0.01; p.mekf_sig_sun = 0.005; p.mekf_meas_scale = 1.0; p.mekf_gate = 16.27; p.mekf_rej_max = 30.0;
     p.mtq_Kp = [1e-6; 3]; p.mtq_Kd = [1e-4; 3]; p.rw_Kp = [1e-3; 3]; p.rw_Kd = [1e-2; 3];
     p.start_mode = Mode::Detumble as u8; p.auto_next = Mode::NadirMtq as u8; p.detumble_exit = 0.01; p.detumble_hold_s = 5.0;

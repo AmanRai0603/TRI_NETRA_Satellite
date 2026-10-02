@@ -18,6 +18,7 @@
 #define NR ADCS_MAX_ROTORS
 #define NG ADCS_MAX_GIMBALS
 #define NC ADCS_MAX_COUPLES
+#define FDIR_WIN_BAD 2      /* judged momentum windows in a row a rotor misses before it is isolated */
 
 typedef struct {
     adcs_params_t p;
@@ -51,6 +52,7 @@ typedef struct {
     adcs_gains_t g_rw, g_mtq;
     adcs_real q_ref[4], w_ref[3], tau_req[3], I_q[3]; double last_ctrl; int capturing;
     adcs_real h_prev[NR]; int h_prev_ok; adcs_real cmd_r_prev[NR]; int rot_failed[NR]; adcs_real fd_count[NR];
+    adcs_real fw_E[NR], fw_h0[NR]; double fw_t0, fw_last; int fw_on, fw_bad[NR];   /* windowed rotor FDIR */
     adcs_real h_t_rot[NR], H_t[3], cap[3], hcap[3], dump_hi, dump_lo;
     int has_rcs_dump, rcs_dumping; adcs_real rcs_left[NC]; int rcs_left_ok;
     int sched_i;
@@ -613,6 +615,28 @@ int32_t adcs_fsw_step(uint64_t now_ns)
                 S.fd_count[i] = bad ? S.fd_count[i] + dt : 0;
                 if (S.fd_count[i] > p->fdir_s && !S.rot_failed[i]) { S.rot_failed[i] = 1; S.faults |= (uint16_t)(1u << i); }
             }
+            /* windowed: the momentum each fluid loop was commanded to change over fdir_win_s against the
+               change measured; catches a loop that does not follow the small commands of fine pointing.
+               Fluid loops only: their driver closes a momentum loop, so a healthy one tracks the
+               commanded change; a wheel's uncompensated friction drifts it off over a window */
+            if (!S.fw_on || S.t - S.fw_last > 1.5*dt) {
+                for (i = 0; i < nr; i++) { S.fw_E[i] = 0; S.fw_h0[i] = z->h[i]; }
+                S.fw_t0 = S.t; S.fw_on = 1;
+            } else {
+                for (i = 0; i < nr; i++) S.fw_E[i] += adcs_clamp(S.cmd_r_prev[i], -0.8*p->rot_tmax[i], 0.8*p->rot_tmax[i])*dt;
+                if (S.t - S.fw_t0 >= p->fdir_win_s - 1e-9) {
+                    for (i = 0; i < nr; i++) {
+                        adcs_real hmax = p->rot_hmax[i], E = S.fw_E[i], M = z->h[i] - S.fw_h0[i];
+                        if (p->rot_kind[i] != 1 || p->rot_gi[i] != 0 || S.rot_failed[i] || fabs(E) <= p->fdir_h_frac*hmax
+                            || fabs(z->h[i]) >= 0.9*hmax || fabs(S.fw_h0[i]) >= 0.9*hmax) continue;
+                        S.fw_bad[i] = fabs(M - E) > 0.5*fabs(E) ? S.fw_bad[i] + 1 : 0;
+                        if (S.fw_bad[i] >= FDIR_WIN_BAD) { S.rot_failed[i] = 1; S.faults |= (uint16_t)(1u << i); }
+                    }
+                    for (i = 0; i < nr; i++) { S.fw_E[i] = 0; S.fw_h0[i] = z->h[i]; }
+                    S.fw_t0 = S.t;
+                }
+            }
+            S.fw_last = S.t;
         }
         /* control law at the control rate */
         if (acq && S.t - S.last_ctrl >= p->rw_dt - 1e-9) { sun_acq_law(Hdev); S.last_ctrl = S.t; }

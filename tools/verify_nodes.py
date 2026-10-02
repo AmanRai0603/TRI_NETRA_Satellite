@@ -173,7 +173,12 @@ def verify_case(C, case, cat):
               g_f == (want if policy == "gap" else []), "; ".join(g_f) or "none in gaps")
     lead = (lambda f: (len(F[f].get("fault_gaps", [])),)) if policy == "rank" else (lambda f: ())
     rank = lambda f: lead(f) + tuple(F[f]["simplicity"] if k == "simplicity" else F[f]["budget"][k] for k in P["select"]["rank_feasible"])
-    rank_i = lambda f: lead(f) + tuple(len(F[f]["gaps"]) if k == "gap_count" else F[f]["budget"][k] for k in P["select"]["rank_infeasible"])
+    from pipeline_verify import shortfall
+    for f, v in F.items():
+        if not v["feasible"] and "budget_over" in v:
+            C("select", case, f"{f}: its shortfall is the sum of its relative overshoots", abs(v.get("shortfall", -1) - shortfall(v, policy)) < 1e-5, f"{v.get('shortfall')}")
+    rank_i = lambda f: lead(f) + tuple(len(F[f]["gaps"]) if k == "gap_count" else shortfall(F[f], policy) if k == "shortfall" else F[f]["budget"][k]
+                                       for k in P["select"]["rank_infeasible"])
     for role, key in ((P["select"]["select_role"], "selected"), (P["select"]["compare_role"], "benchmark")):
         fs = [f for f in F if F[f]["role"] == role]
         feas = sorted((f for f in fs if F[f]["feasible"]), key=rank)

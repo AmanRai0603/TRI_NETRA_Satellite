@@ -5,8 +5,8 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#define ADCS_PARAMS_PAYLOAD 2217u
-#define ADCS_PARAMS_BLOB_SIZE 2233u
+#define ADCS_PARAMS_PAYLOAD 2233u
+#define ADCS_PARAMS_BLOB_SIZE 2249u
 #define ADCS_MAX_ROTORS 8
 #define ADCS_MAX_GIMBALS 4
 #define ADCS_MAX_COUPLES 6
@@ -142,6 +142,8 @@ typedef struct {
     double cmg_mu;
     double cmg_k_null;
     double fdir_s;
+    double fdir_win_s;  /* rotor FDIR momentum window: the momentum each fixed rotor was commanded to change over it, against the change measured */
+    double fdir_h_frac;  /* rotor FDIR: the smallest commanded momentum change over a window that is judged, as a fraction of the rotor's h_max */
     uint8_t nc;  /* thruster couples */
     double rcs_tau[6][3];  /* torque of each couple at full duty (body) [N m] */
     double rcs_mib;

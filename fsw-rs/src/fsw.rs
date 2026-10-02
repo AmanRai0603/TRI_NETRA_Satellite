@@ -13,6 +13,8 @@ use crate::params::{Mode, Params, MAX_COUPLES as NC, MAX_GIMBALS as NG, MAX_ROTO
 
 /// bang-bang B-dot boundary layer: proportional gain inside it = BDOT_BL_GAIN x the B-dot gain
 const BDOT_BL_GAIN: f64 = 4.0;
+/// Judged momentum windows in a row a rotor misses before it is isolated.
+const FDIR_WIN_BAD: u32 = 2;
 
 pub const ABI_VERSION: u32 = 1;
 pub const BUILD_ID: &str = "trinetra-fsw-rs/1.0.0 (adcs-fswcfg/1)";
@@ -66,6 +68,7 @@ pub struct Fsw {
     gd: Guid, g_rw: Gains, g_mtq: Gains,
     q_ref: Q, w_ref: V3, tau_req: V3, i_q: V3, last_ctrl: f64, capturing: bool,
     h_prev: Option<[f64; NR]>, cmd_r_prev: [f64; NR], rot_failed: [bool; NR], fd_count: [f64; NR],
+    fw_e: [f64; NR], fw_h0: [f64; NR], fw_t0: f64, fw_last: f64, fw_on: bool, fw_bad: [u32; NR],   // windowed rotor FDIR
     h_t_rot: [f64; NR], h_t: V3, cap: V3, hcap: V3, dump_hi: f64, dump_lo: f64,
     has_rcs_dump: bool, rcs_dumping: bool, rcs_left: Option<[f64; NC]>,
     sched_i: usize,
@@ -605,6 +608,28 @@ impl Fsw {
                             self.fd_count[i] = if bad { self.fd_count[i] + dt } else { 0.0 };
                             if self.fd_count[i] > p.fdir_s && !self.rot_failed[i] { self.rot_failed[i] = true; self.faults |= 1u16 << i; }
                         }
+                        // windowed: the momentum each fluid loop was commanded to change over fdir_win_s against the
+                        // change measured; catches a loop that does not follow the small commands of fine pointing.
+                        // Fluid loops only: their driver closes a momentum loop, so a healthy one tracks the
+                        // commanded change; a wheel's uncompensated friction drifts it off over a window
+                        if !self.fw_on || self.t - self.fw_last > 1.5*dt {
+                            for i in 0..nr { self.fw_e[i] = 0.0; self.fw_h0[i] = z.h[i]; }
+                            self.fw_t0 = self.t; self.fw_on = true;
+                        } else {
+                            for i in 0..nr { self.fw_e[i] += clamp(self.cmd_r_prev[i], -0.8*p.rot_tmax[i], 0.8*p.rot_tmax[i])*dt; }
+                            if self.t - self.fw_t0 >= p.fdir_win_s - 1e-9 {
+                                for i in 0..nr {
+                                    let (hmax, e, m) = (p.rot_hmax[i], self.fw_e[i], z.h[i] - self.fw_h0[i]);
+                                    if p.rot_kind[i] != 1 || p.rot_gi[i] != 0 || self.rot_failed[i] || fabs(e) <= p.fdir_h_frac*hmax
+                                        || fabs(z.h[i]) >= 0.9*hmax || fabs(self.fw_h0[i]) >= 0.9*hmax { continue; }
+                                    self.fw_bad[i] = if fabs(m - e) > 0.5*fabs(e) { self.fw_bad[i] + 1 } else { 0 };
+                                    if self.fw_bad[i] >= FDIR_WIN_BAD { self.rot_failed[i] = true; self.faults |= 1u16 << i; }
+                                }
+                                for i in 0..nr { self.fw_e[i] = 0.0; self.fw_h0[i] = z.h[i]; }
+                                self.fw_t0 = self.t;
+                            }
+                        }
+                        self.fw_last = self.t;
                     }
                 }
                 // control law at the control rate

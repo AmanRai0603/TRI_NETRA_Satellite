@@ -319,7 +319,7 @@ Scores every family (ours and the benchmarks) on the same modes and budget, then
 |---|---|
 | `feasible` | every mode passes with a usable option on every seed, and mass <= req.mass, volume <= req.vol; under fault_policy gap, also every single fault of node faults survived |
 | `rank_feasible` | mass_kg, power_W, volume_L, simplicity |
-| `rank_infeasible` | gap_count, mass_kg |
+| `rank_infeasible` | shortfall, mass_kg |
 | `select_role` | solution |
 | `compare_role` | benchmark |
 | `fault_policy` | gap |
@@ -327,7 +327,7 @@ Scores every family (ours and the benchmarks) on the same modes and budget, then
 Rules:
 
 - selected = the feasible solution family first in rank_feasible order (least mass, then power, then volume)
-- when no solution family is feasible the closest one is named with its gaps
+- when no solution family is feasible the closest one is named with its gaps: the least shortfall, the sum of relative overshoots (value/req - 1) over its failing mode requirements, its budget lines and (fault_policy gap) its failed single faults
 - benchmark = the same ranking over the benchmark families, reported beside the selection
 - select runs in every iteration without the fault campaign; once the loop has converged node faults flies and select runs again counting it, before dispatch
 - fault_policy gap: a single fault the family does not survive is a gap, so the family is not feasible; fault_policy rank: a fault gap leaves feasibility alone and the number of failed faults leads both rankings

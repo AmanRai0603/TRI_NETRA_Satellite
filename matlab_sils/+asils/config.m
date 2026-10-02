@@ -135,6 +135,8 @@ function P = config(scenarioId, caseFile, opts)
     F.rcs = struct('assist', logical(asils.util.getf(S.fsw, 'rcs_assist', 1)), 'assist_frac', 0.8, ...
                    'dump', logical(asils.util.getf(S.fsw, 'rcs_dump', 1)), 'dump_hi', 4e-3, 'dump_lo', 1e-3, 'dump_k', 0.05);
     F.fdir_s = 3.0;                                  % a rotor off its command this long is isolated
+    F.fdir_win_s = 120.0;                            % windowed rotor FDIR: window length
+    F.fdir_h_frac = 0.005;                           % ... a commanded change under this x h_max is not judged
     F.rate_lpf_s = asils.util.getf(S.fsw, 'rate_lpf_s', 0.3);   % controller rate filter time constant
     F.dump_k = asils.util.getf(S.fsw, 'dump_gain', 2e-3); F.h_bias = asils.util.getf(S.fsw, 'wheel_bias_Nms', 2e-3);
     F.m_res_est = P.sc.m_res;       % ground-calibrated residual dipole the coils cancel (nominal case value)

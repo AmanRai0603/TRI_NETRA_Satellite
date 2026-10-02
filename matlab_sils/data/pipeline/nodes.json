@@ -492,7 +492,7 @@
      "simplicity"
     ],
     "rank_infeasible": [
-     "gap_count",
+     "shortfall",
      "mass_kg"
     ],
     "select_role": "solution",
@@ -501,7 +501,7 @@
    },
    "rules": [
     "selected = the feasible solution family first in rank_feasible order (least mass, then power, then volume)",
-    "when no solution family is feasible the closest one is named with its gaps",
+    "when no solution family is feasible the closest one is named with its gaps: the least shortfall, the sum of relative overshoots (value/req - 1) over its failing mode requirements, its budget lines and (fault_policy gap) its failed single faults",
     "benchmark = the same ranking over the benchmark families, reported beside the selection",
     "select runs in every iteration without the fault campaign; once the loop has converged node faults flies and select runs again counting it, before dispatch",
     "fault_policy gap: a single fault the family does not survive is a gap, so the family is not feasible; fault_policy rank: a fault gap leaves feasibility alone and the number of failed faults leads both rankings",

@@ -28,8 +28,10 @@ FAMILIES = [{"id": "mtq", "actuators": ["mtq"], "role": "solution", "label": "co
             {"id": "cmg", "actuators": ["cmg", "mtq"], "role": "benchmark", "label": "CMGs", "simplicity": 3}]
 
 
-def r(mode, option, feasible, failing=(), objective=1.0, alg=None):
+def r(mode, option, feasible, failing=(), objective=1.0, alg=None, over=0.5):
+    """over: each failing metric's relative overshoot, value/req - 1 (node assess's violation)."""
     return {"mode": mode, "option": option, "alg": alg, "feasible": feasible, "failing": {m: B.cls(m) for m in failing},
+            "violation": {m: over for m in failing},
             "objective": objective, "objective_id": "obj", "algorithms": {"x": "y"}, "metrics": {"obj": objective}}
 
 
@@ -76,9 +78,22 @@ class Select(unittest.TestCase):
                ("nadir_pointing", "rw+mtq"): r("nadir_pointing", "rw+mtq", False, ["power_mean"])}
         s = V.node_select("c", res, sizing(mtq=0.9, rw=1.2, cmg=1.5), MODES, FAMILIES)
         self.assertEqual(s["status"], "closest (not feasible)")
-        self.assertEqual(s["selected"], "mtq", "equal gap count: the lighter")
+        self.assertEqual(s["selected"], "rw", "the least shortfall (0.5 against 1.0), though heavier")
+        self.assertEqual((s["families"]["mtq"]["shortfall"], s["families"]["rw"]["shortfall"]), (1.0, 0.5))
         self.assertEqual(s["families"]["rw"]["gaps"], ["nadir_pointing: power_mean (power)"])
         self.assertNotIn("rank", s["families"]["mtq"], "an infeasible family is not ranked")
+
+    def test_closest_is_the_least_shortfall_not_the_fewest_gap_lines(self):
+        # a light family missing the pointing by thousands of times is not closer than a heavier one a few grams over
+        res = {("detumble", "mtq"): r("detumble", "mtq", True),
+               ("nadir_pointing", "mtq"): r("nadir_pointing", "mtq", False, ["ape_los_p9973"], over=7500.0),
+               ("nadir_pointing", "rw+mtq"): r("nadir_pointing", "rw+mtq", True)}
+        s = V.node_select("c", res, sizing(mtq=0.5, rw=1.61, cmg=1.7), MODES, FAMILIES)
+        self.assertEqual(s["selected"], "rw")
+        self.assertAlmostEqual(s["families"]["rw"]["shortfall"], 1.61 / 1.6 - 1, places=6)
+        res[("nadir_pointing", "rw+mtq")] = r("nadir_pointing", "rw+mtq", False, ["ape_los_p9973"], over=7500.0)
+        self.assertEqual(V.node_select("c", res, sizing(mtq=0.5, rw=1.61, cmg=1.7), MODES, FAMILIES)["selected"], "mtq",
+                         "equal mode shortfall: the budget line counts too")
 
     def test_simplicity_breaks_an_equal_budget(self):
         res = {("detumble", "mtq"): r("detumble", "mtq", True), ("nadir_pointing", "mtq"): r("nadir_pointing", "mtq", True),

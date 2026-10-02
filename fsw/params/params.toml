@@ -510,6 +510,16 @@ type = "f64"
 [[field]]
 name = "fdir_s"
 type = "f64"
+positive = true
+[[field]]
+name = "fdir_win_s"
+type = "f64"
+doc = "rotor FDIR momentum window: the momentum each fixed rotor was commanded to change over it, against the change measured"
+positive = true
+[[field]]
+name = "fdir_h_frac"
+type = "f64"
+doc = "rotor FDIR: the smallest commanded momentum change over a window that is judged, as a fraction of the rotor's h_max"
 # ---- thrusters
 positive = true
 [[field]]

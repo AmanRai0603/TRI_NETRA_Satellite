@@ -249,6 +249,28 @@ function [F, out] = step(F, z, t, P, D) %#ok<INUSD>
                     F.rot_failed(newly) = true;
                     F.log(end+1).t = t; F.log(end).mode = sprintf('FDIR: rotor %d isolated', find(newly, 1));
                 end
+                % windowed: the momentum each fixed rotor was commanded to change over fdir_win_s
+                % against the change measured; catches a rotor that does not follow the small
+                % commands of fine pointing (fsw/pseudocode/07)
+                if ~F.fw_on || t - F.fw_last > 1.5*dt
+                    F.fw_E = zeros(nr, 1); F.fw_h0 = z.h(:); F.fw_t0 = t; F.fw_on = true;
+                else
+                    F.fw_E = F.fw_E + max(-0.8*tmax, min(0.8*tmax, F.cmd_r_prev(:)))*dt;
+                    if t - F.fw_t0 >= G.fdir_win_s - 1e-9
+                        hmax = dev.mex.h_max(:); E = F.fw_E; Mh = z.h(:) - F.fw_h0;
+                        judged = strcmp(dev.mex.kind(:), 'fmr') & F.M.gi(:) == 0 & ~F.rot_failed(:) & abs(E) > G.fdir_h_frac*hmax ...
+                                 & abs(z.h(:)) < 0.9*hmax & abs(F.fw_h0) < 0.9*hmax;
+                        miss = abs(Mh - E) > 0.5*abs(E);
+                        F.fw_bad(judged) = (F.fw_bad(judged) + 1).*miss(judged);
+                        newly = judged & F.fw_bad >= 2;            % FDIR_WIN_BAD
+                        if any(newly)
+                            F.rot_failed(newly) = true;
+                            F.log(end+1).t = t; F.log(end).mode = sprintf('FDIR: rotor %d isolated (momentum window)', find(newly, 1));
+                        end
+                        F.fw_E = zeros(nr, 1); F.fw_h0 = z.h(:); F.fw_t0 = t;
+                    end
+                end
+                F.fw_last = t;
             end
             % ---- control law at the control rate
             if acq && t - F.last_ctrl >= G.rw.dt - 1e-9
