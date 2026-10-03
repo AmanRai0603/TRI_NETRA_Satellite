@@ -303,9 +303,11 @@ inside them.
 | item | state |
 |---|---|
 | Guidance, mode management and FDIR in their own modules | ✅ C: `adcs_guid.c`, `adcs_modes.c`, `adcs_fdir.c`, the state in the private `adcs_fsw_int.h`; Rust: `guid.rs`, and `modes.rs`, `fdir.rs` as children of `fsw` (they work on its private state); twin: `mode_manager.m`, `fdir.m` (guidance was already `guidance.m`). Code moved verbatim. All 48 shipped scenarios flown with C and with Rust before and after: every recorded channel bit for bit the same (96 runs), C = Rust |
-| The language: several outputs, settling loops, tables, arrays, state between ticks, units | next |
-| Checker in the browser; translators to Rust and MATLAB; interpreter | after the language |
-| Every relation in `physics.toml` and every algorithm in `fsw/pseudocode/` written in it; C and Rust reproduce the interpreter on test vectors | after the translators |
+| The language: several outputs, settling loops, tables, arrays, state between ticks, units | ✅ `docs/PSEUDOCODE_V2.md`; one implementation in JavaScript (`design/js/pcode.js`): parser, unit and type checker (every output set on every path, no recursion, inputs unchanged), interpreter; records, `proc` with `state`, `settle … until … else`, `table` (step, linear), fixed arrays, vectors, matrices |
+| Checker in the browser | ✅ `design/pcode_checker.html`: one offline page with the language inlined (checked in Chromium, phone width included) |
+| Translators to Rust and MATLAB; translator = interpreter | ✅ `design/js/pcode_gen.js`, driven by `tools/pcode.py gen`. Vectors drawn from the interpreter, every `proc` as a run of calls with its state carried: Rust and MATLAB reproduce all of them, every function without a transcendental bit for bit (physics 530 of 540 values bit for bit, worst 7e-16; the language's self-test 660 of 660) |
+| Every relation in `physics.toml` written in it | ✅ all 39, in `spec/physics/*.pc`, held to the registry (same functions, same arguments in order); translated to `engine/crates/adcs-physics` and `matlab_sils/+asils/+physics`; the 7 sourced test vectors of the seed content pass in the interpreter. Open technical items in `ADCS_GAPS.md` D14 |
+| Every algorithm in `fsw/pseudocode/` written in it; C and Rust reproduce the interpreter on test vectors | next |
 
 ## 6 · What 1.0.0 contains
 

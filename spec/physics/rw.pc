@@ -1,0 +1,18 @@
+## Reaction-wheel sizing. source: idmas_v2, smad2011
+module rw
+
+## The peak momentum of a bang-bang slew: H = 2 I theta/T.
+fn bang_bang_peak_momentum(i_max: real[kg m^2] in 0.01 .. 100, theta: real[deg] in 1 .. 180, t_slew: real[s] in 5 .. 600) -> h: real[N m s]
+    h = 2*i_max*theta/t_slew
+end
+
+## The peak torque of a bang-bang slew: tau = 4 I theta/T^2.
+fn bang_bang_peak_torque(i_max: real[kg m^2] in 0.01 .. 100, theta: real[deg] in 1 .. 180, t_slew: real[s] in 5 .. 600) -> tau: real[N m]
+    tau = 4*i_max*theta/t_slew^2
+end
+
+## The momentum a torque builds over a quarter orbit: H = tau T/4 (the cyclic part of a
+## disturbance that turns with the orbit; SMAD's 0.707 rms factor is not applied).
+fn cyclic_momentum_quarter_orbit(tau: real[N m] in 1e-8 .. 1e-4, t_orb: real[s] in 5000 .. 7000) -> h: real[N m s]
+    h = tau*t_orb/4
+end

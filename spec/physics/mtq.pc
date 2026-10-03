@@ -1,0 +1,18 @@
+## Magnetorquer sizing. source: smad2011, idmas_v2
+module mtq
+
+## The dipole that rejects a disturbance torque in the weakest field: m = tau/B_min.
+fn dipole_to_reject(tau_d: real[N m] in 1e-8 .. 1e-4, b_min: real[T] in 1e-6 .. 6e-5) -> m: real[A m^2]
+    m = tau_d/b_min
+end
+
+## The torque the coils give about the worst axis: m B_min min(n, 3)/3 (fewer than three coils
+## leave axes without authority).
+fn torque_authority(m_av: real[A m^2] in 0.01 .. 10, b_min: real[T] in 1e-6 .. 6e-5, n_mtq: int in 0 .. 6) -> tau: real[N m]
+    tau = m_av*b_min*min(n_mtq, 3)/3
+end
+
+## The dipole of a coil: m = N I A.
+fn coil_dipole(n_turns: int in 1 .. 2000, current: real[A] in 0.001 .. 1, area: real[m^2] in 1e-4 .. 0.1) -> m: real[A m^2]
+    m = n_turns*current*area
+end

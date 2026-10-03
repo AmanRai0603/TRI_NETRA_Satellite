@@ -496,3 +496,14 @@ steps = ["serialise the engine's scenario schema (engine/crates/adcs-sim/src/sch
 reads = ["engine/crates/adcs-sim/src/schema.rs"]
 writes = ["matlab_sils/data/scenario_schema.json"]
 runs = ["cargo"]
+
+[[command]]
+tool = "pcode.py"
+name = "pcode"
+usage = "python3 tools/pcode.py check FILE... | run FILE... --fn NAME --args JSON | gen [--check] | fixtures"
+what = "Pseudocode v2 (docs/PSEUDOCODE_V2.md): check a file (units, types, every output set, no recursion), run a function in the interpreter, and write or check everything it makes: the physics (spec/physics/*.pc) as a Rust crate and a MATLAB package with test vectors from the interpreter, the language's self-test the same way, the MATLAB runtime, and the browser checker page. gen --check also holds the physics to spec/plan/physics.toml; fixtures runs the seeded, sourced test vectors of the physics rows."
+steps = ["check the pseudocode", "translate it to Rust and MATLAB", "draw test vectors from the interpreter", "write or compare every generated file"]
+reads = ["spec/physics/", "design/pcode_selftest/", "design/js/pcode.js", "design/js/pcode_gen.js", "design/js/pcode_check.template.html", "spec/plan/physics.toml", "spec/plan/seed_content.toml"]
+writes = ["engine/crates/adcs-physics/", "engine/crates/pcode-selftest/", "matlab_sils/+asils/+physics/", "matlab_sils/+asils/+pcselftest/", "matlab_sils/+asils/+pc/", "matlab_sils/data/physics_vectors.json", "matlab_sils/data/pcselftest_vectors.json", "design/pcode_checker.html"]
+runs = ["node"]
+

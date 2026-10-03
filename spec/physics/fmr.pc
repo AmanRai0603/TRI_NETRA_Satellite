@@ -1,0 +1,37 @@
+## Fluid momentum rings. source: idmas_v2
+module fmr
+
+## The momentum of a ring of bore d around an area S, fluid of density rho at speed v:
+## H = 2 rho A v S, A = pi d^2/4.
+fn ring_momentum(d: real[mm] in 1 .. 20, s: real[m^2] in 0.005 .. 0.5, rho: real[kg/m^3] in 1000 .. 13600, v: real[m/s] in 0.01 .. 2) -> h: real[N m s]
+    let a = pi*d^2/4
+    h = 2*rho*a*v*s
+end
+
+## The viscous spin-down time constant of a channel: T = rho d^2/(32 mu).
+fn spin_down_time(d: real[mm] in 1 .. 20, rho: real[kg/m^3] in 1000 .. 13600, mu: real[Pa s] in 0.0005 .. 0.005) -> t: real[s]
+    t = rho*d^2/(32*mu)
+end
+
+## The power that holds a momentum against laminar friction: P = 2 pi mu L H^2/(rho^2 A^2 S^2).
+fn holding_power_laminar(h: real[N m s] in 1e-4 .. 0.1, mu: real[Pa s] in 0.0005 .. 0.005, l: real[m] in 0.1 .. 3, rho: real[kg/m^3] in 1000 .. 13600, d: real[mm] in 1 .. 20, s: real[m^2] in 0.005 .. 0.5) -> p: real[W]
+    let a = pi*d^2/4
+    p = 2*pi*mu*l*h^2/(rho^2*a^2*s^2)
+end
+
+## The pump pressure that gives a torque: dp = tau L/(2 S A), A = pi d^2/4.
+fn pump_pressure_for_torque(tau: real[N m] in 1e-6 .. 0.01, l: real[m] in 0.1 .. 3, s: real[m^2] in 0.005 .. 0.5, d: real[mm] in 1 .. 20) -> dp: real[Pa]
+    let a = pi*d^2/4
+    dp = tau*l/(2*s*a)
+end
+
+## The Reynolds number of the flow: Re = rho v d/mu.
+fn reynolds(rho: real[kg/m^3] in 1000 .. 13600, v: real[m/s] in 0.01 .. 2, d: real[mm] in 1 .. 20, mu: real[Pa s] in 0.0005 .. 0.005) -> re: real[1]
+    re = rho*v*d/mu
+end
+
+## The pressure of a conduction pump of n stages: dp = n I B/h, current I across the channel,
+## field B along h.
+fn conduction_pump_pressure(n: int in 1 .. 8, i: real[A] in 0.1 .. 20, b: real[T] in 0.01 .. 1, h: real[mm] in 1 .. 20) -> dp: real[Pa]
+    dp = n*i*b/h
+end

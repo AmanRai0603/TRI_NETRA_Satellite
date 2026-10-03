@@ -60,6 +60,8 @@ CHECKS = [
     ("design-files", "every row of the tree in exactly one group; the seeded group, node and design files check against design/schema.toml; the generated SQL and browser schema are the schema",
      [PY, "-c", "import sys; sys.path.insert(0, 'tools'); import groups, seed_design, tndb; "
       "sys.exit(groups.main(['--check']) or seed_design.main(['--check']) or tndb.main(['gen', '--check']))"], ".", []),
+    ("pseudocode", "everything the pseudocode makes is current (the physics and the language's self-test in Rust and MATLAB, their vectors, the checker page), the physics is its registry, and every sourced fixture of a physics row holds",
+     ["bash", "-c", "python3 tools/pcode.py gen --check && python3 tools/pcode.py fixtures"], ".", ["node", "bash"]),
     ("design-loop", "every stored design-loop decision recomputed from its inputs",
      [PY, "tools/verify_nodes.py"], ".", []),
 ]

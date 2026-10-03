@@ -1,0 +1,124 @@
+## The language's own test: every feature, translated to Rust and MATLAB and held to the
+## interpreter on vectors (tools/pcode.py gen). Not physics.
+module selftest
+
+const HALF_PI = pi/2
+const AXES = [1, 0, 0] [m]
+
+record Probe
+    v: vec3[m]
+    k: int
+    seen: bool
+    m: mat3[1]
+end
+
+## Newton's square root settled to 1e-12, with the steps it took; -1 if it never settles.
+fn root(a: real[1] in 0.01 .. 1000, cap: int in 1 .. 40) -> (r: real[1], steps: int, settled: bool)
+    r = a
+    steps = 0
+    settled = true
+    settle max cap until |r*r - a| < 1e-12*a
+        r = 0.5*(r + a/r)
+        steps = steps + 1
+    else
+        settled = false
+        r = -1
+    end
+end
+
+## Matrix and vector algebra: M x, M M^T, cross, dot, unit, and element assignment.
+fn algebra(x: vec3[m] in -5 .. 5, y: vec3[m] in -5 .. 5, rate: real[1/s] in 0.1 .. 2) -> (mx: vec3[m/s], mmt: mat3[1/s^2], c: vec3[m^2], d: real[m^2], u: vec3[1], s: vec3[m])
+    let M: mat3[1/s] = [[rate, 0, 0], [0, 2*rate, 0], [0, 0, 3*rate]]
+    M[0][1] = 0.5*rate
+    M[2] = [rate, rate, rate]
+    mx = M*x
+    mmt = M*transpose(M)
+    c = cross(x, y)
+    d = dot(x, y)
+    u = unit(x - y)
+    s = -x + 2*y - AXES + x/2
+end
+
+## Integers, booleans, min/max/clamp, rounding, fmod and the inline if.
+fn numbers(a: real[1] in -10 .. 10, b: real[1] in -10 .. 10, n: int in -6 .. 6, m: int in 1 .. 5) -> (lo: real[1], hi: real[1], cl: real[1], ri: real[1], fl: real[1], fm: real[1], q: real[1], ni: int, pick: real[1], pos: bool)
+    lo = min(a, b, 0)
+    hi = max(a, b)
+    cl = clamp(a, -1, b)
+    ri = round(a*2.5)
+    fl = floor(a) + ceil(b)
+    fm = fmod(a, 0.75)
+    q = n/m
+    ni = clamp(n*m, -10, 10) + max(n, m) - min(n, 2)
+    pick = if a > b then a^2 else -b^3
+    pos = a > 0 and not (b > 0) or n == 0
+end
+
+## Loops, a record, and an index that is computed.
+fn loops(v: real[m][6] in -3 .. 3, k: int in 0 .. 5) -> (sum: real[m], prod: real[1], at_k: real[m], count: int, last: vec3[m])
+    let p = Probe()
+    sum = 0
+    prod = 1
+    count = 0
+    for i in 0 .. 6
+        sum = sum + v[i]
+        prod = prod*(1 + v[i]/(10 [m]))
+        if v[i] > 0
+            count = count + 1
+            p.k = i
+            p.seen = true
+        end
+    end
+    for j in 0 .. 3
+        p.v[j] = v[j + 3]
+        p.m[j][j] = 1
+    end
+    at_k = v[k]
+    last = p.m*p.v
+    if not p.seen
+        last = [0, 0, 0] [m]
+    end
+end
+
+## A linear table, its ends held.
+table curve(x: real[s]) -> (x0: real[s], y: real[m], z: real[1]) linear
+    0, 0, 1
+    1, 10, 0.5
+    4, 25, -2
+    9, 0, 0
+end
+
+fn lookup(t: real[s] in -2 .. 12) -> (y: real[m], z: real[1])
+    let x0, yy, zz = curve(t)
+    y = yy
+    z = zz
+end
+
+## Several outputs reassigned, and a call into another function.
+fn reuse(a: real[1] in 0.5 .. 50) -> (r: real[1], steps: int, twice: real[1])
+    let ok = true
+    r, steps, ok = root(a, 30)
+    twice = 2*r
+    if not ok
+        twice = 0
+    end
+end
+
+## A filter with a dwell: state carried between ticks.
+proc dwell(x: real[1] in -2 .. 2, dt: real[s] in 0.05 .. 0.2) -> (y: real[1], held: real[s], tripped: bool, n: int)
+    state filt: real[1] = 0
+    state hold: real[s] = 0 [s]
+    state ticks: int = 0
+    state hist: real[1][3] = [0, 0, 0]
+    ticks = ticks + 1
+    filt = filt + 0.3*(x - filt)
+    hist[rem(ticks - 1, 3)] = filt + 0*real(div(ticks, 3))
+    if |filt| > 0.5
+        hold = hold + dt
+    else
+        hold = 0
+    end
+    y = filt + 0.1*(hist[0] + hist[1] + hist[2])
+    held = hold
+    tripped = hold >= 0.3 [s]
+    n = ticks
+end

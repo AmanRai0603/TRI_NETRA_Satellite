@@ -29,6 +29,7 @@ brackets point to the evidence in [`UPGRADE_PLAN.md`](UPGRADE_PLAN.md).
 | D11 | Spec package | About 90 of 243 system rows have code, none linked by id [B2.9] | **Study**: spec → code → test matrix |
 | D12 | RCS detumble floor | `detumble_rcs` stalls at 0.45–0.7°/s: the 5 ms minimum impulse bit against a 20 s damping time gives a 0.4°/s floor [B3.6] | **Study**: hand over to coil B-dot below 1°/s, or size the damping from the impulse bit |
 | D13 | Coils-only modes on AIS | `safe_mode_ais` and `nadir_hold_ais` miss the 10° APE; `sun_mtq_ais` does not hold the Sun (p95 87°) [B3.6] | **Study**: coils-only laws on this product, or accept |
+| D14 | Physics relations awaiting their bundles | `spec/physics` (pseudocode v2, P2): the dipole's strength and tilt use IGRF-13 at 2020.0 from the repository (the rows cite IGRF-14 at 2025.0); `env::density_at` is the static exponential atmosphere, with no solar activity (the row cites NRLMSIS 2.0); `env::sun_distance_au` and `orbit::beta_angle` use Vallado's low-precision Sun; `rw::cyclic_momentum_quarter_orbit` leaves out SMAD's 0.707 factor; `orbit::eclipse_fraction` is the cylindrical shadow. 7 of the 39 relations have a sourced test vector (IDMAS v2); the rest are checked for units, translation and range only | **Study**: the igrf14 and nrlmsis2 bundles; sourced test vectors for the other 32 (an engineer, from a page) |
 
 ## S. SILS fidelity and statistics
 
