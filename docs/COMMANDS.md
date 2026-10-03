@@ -11,6 +11,9 @@
 | [`adcs size`](#adcs-size) | The demand survey on the case's orbit, then every actuator option sized to it (magnetorquers, fluid loop, RCS, wheels, CMG, VSCMG). |
 | [`adcs parity`](#adcs-parity) | Fly the same scenario with two flight-software targets and report the largest difference in attitude and rate; bit-identical is the expected answer for C and Rust, and any difference exits with status 1. |
 | [`adcs results`](#adcs-results) | The results store: every run with its provenance, one line each; one run in full; runs kept (pinned) or thinned to their manifest when old; a run as one share file, and back; any read-only question to its SQLite index; the runs another engine or other inputs flew; a stored run flown again with what changed. |
+| [`adcs figures`](#adcs-figures) | A run's figures, the same for an engine run and a MATLAB twin run (both keep manifest.json and channels.csv with the same columns): attitude, disturbance torques, actuators and power, the Sun spin when the run spun up, and with --full the environment, ground track and mode timeline. Drawn by adcs-plot, the one plotting module, as SVG or PDF. |
+| [`adcs report`](#adcs-report) | A run's report: what it flew (scenario, case, product, flight software, seed, duration, engine, result id, input fingerprints), every metric against its requirement with the verdict, and every figure of `adcs figures --full`; as HTML with the figures inline (a print stylesheet, so a browser prints it to PDF) and as PDF. |
+| [`adcs plot`](#adcs-plot) | Figures described as JSON (panels stacked or in a grid; line, step, scatter, histogram and horizontal-bar series; reference lines, notes, legends; linear or log axes), drawn by adcs-plot. The report tools describe every campaign, comparison, trade and solution figure this way; the schema is in engine/crates/adcs-plot/src/lib.rs. |
 | [`engine.py build`](#enginepy-build) | Build and test everything that flies: the C flight software, the Rust flight software (host and Cortex-M), the virtual OBC firmware and the Rust engine. |
 | [`engine.py run`](#enginepy-run) | Fly scenarios on the engine in parallel (every scenario when none is named). |
 | [`engine.py mc`](#enginepy-mc) | A seed sweep of one scenario: the same scenario flown with N sensor-noise seeds. |
@@ -166,6 +169,64 @@ The results store: every run with its provenance, one line each; one run in full
 - **Starts:** nothing
 - **Checks:** each stored run's provenance against the engine and inputs that made it (stale when they changed)
 - **Undo:** list/query/stale: nothing (the index is rebuilt from the runs). pin: delete <run>/PINNED. thin: a thinned time series is gone; fly the run again.
+- **Code:** `engine/crates/adcs-cli/`
+
+## adcs figures
+
+A run's figures, the same for an engine run and a MATLAB twin run (both keep manifest.json and channels.csv with the same columns): attitude, disturbance torques, actuators and power, the Sun spin when the run spun up, and with --full the environment, ground track and mode timeline. Drawn by adcs-plot, the one plotting module, as SVG or PDF.
+
+    adcs figures RUN_DIR --out DIR [--format svg|pdf] [--full] [--prefix P]
+
+**Steps**
+
+1. read the run's manifest.json and channels.csv (a thinned run is refused with how to fly it again)
+2. build each figure, with the case's requirement lines from the manifest's metrics
+3. thin long series to the smallest and largest sample per pixel column
+4. write <prefix>_<n>_<name>.svg (or .pdf) into DIR and print each file
+
+- **Reads:** `RUN_DIR/manifest.json`; `RUN_DIR/channels.csv`
+- **Writes:** `DIR/<prefix>_<n>_<name>.svg|pdf (prefix: the run folder's name)`
+- **Starts:** nothing
+- **Checks:** the run folder holds manifest.json and channels.csv (a thinned run is refused with `adcs results refly`); every figure is well-formed SVG or PDF
+- **Undo:** Delete the files it wrote into DIR; the run is only read.
+- **Code:** `engine/crates/adcs-cli/`
+
+## adcs report
+
+A run's report: what it flew (scenario, case, product, flight software, seed, duration, engine, result id, input fingerprints), every metric against its requirement with the verdict, and every figure of `adcs figures --full`; as HTML with the figures inline (a print stylesheet, so a browser prints it to PDF) and as PDF.
+
+    adcs report RUN_DIR [--out DIR]
+
+**Steps**
+
+1. read the run as `adcs figures` does
+2. draw the full figure set
+3. write report.html (figures inline as SVG) and report.pdf (a page of provenance and verdicts, then a page per figure)
+
+- **Reads:** `RUN_DIR/manifest.json`; `RUN_DIR/channels.csv`
+- **Writes:** `DIR (default RUN_DIR)/report.html`; `DIR (default RUN_DIR)/report.pdf`
+- **Starts:** nothing
+- **Checks:** as for figures; the verdict table is the manifest's own metrics, nothing recomputed
+- **Undo:** Delete report.html and report.pdf from the run folder (or --out); the run is only read.
+- **Code:** `engine/crates/adcs-cli/`
+
+## adcs plot
+
+Figures described as JSON (panels stacked or in a grid; line, step, scatter, histogram and horizontal-bar series; reference lines, notes, legends; linear or log axes), drawn by adcs-plot. The report tools describe every campaign, comparison, trade and solution figure this way; the schema is in engine/crates/adcs-plot/src/lib.rs.
+
+    adcs plot SPEC.json --out FILE.svg|FILE.pdf
+
+**Steps**
+
+1. read the description; an unknown kind, scale or layout is refused by name
+2. lay out the panels, ticks and series
+3. write one SVG (several figures: FILE_1.svg, FILE_2.svg, ...) or one PDF with a page per figure
+
+- **Reads:** `SPEC.json`
+- **Writes:** the --out file
+- **Starts:** nothing
+- **Checks:** the JSON description: every kind, scale, layout, limit and grid named and valid (anything else refused with exit 2, by name)
+- **Undo:** Delete the --out file(s).
 - **Code:** `engine/crates/adcs-cli/`
 
 ## engine.py build
@@ -431,12 +492,12 @@ The results report from the filed runs: figures, verdict tables, the summary and
 **Steps**
 
 1. read every filed run, campaign and trade
-2. draw each test's figures
+2. draw each run's figures with `adcs figures`, and each campaign, comparison, trade and solution figure from its JSON description with `adcs plot` (SVG)
 3. write the page, the summary and the documents
 
 - **Reads:** `matlab_sils/store/results/`; `matlab_sils/store/trades/`
-- **Writes:** `results/figures/`; `results/index.html`; `results/summary.json`; `docs/RESULTS.md`; `docs/SELECTION.md`
-- **Starts:** nothing
+- **Writes:** `results/figures/*.svg`; `results/index.html`; `results/summary.json`; `docs/RESULTS.md`; `docs/SELECTION.md`
+- **Starts:** adcs figures; adcs plot
 - **Checks:** every filed run it reads exists and is current
 - **Undo:** It writes generated files only: `git checkout -- <file>` puts back the committed one, or run it again once its source is as you want it.
 - **Code:** `tools/report.py`
@@ -450,12 +511,13 @@ The downloadable V&V report: the template filled from the filed results, as self
 **Steps**
 
 1. collect every source that exists (a missing one is named, never invented)
-2. fill tools/templates/vv_report.html
-3. print it to PDF with headless Chromium
+2. draw its figures with `adcs plot`, inlined as SVG
+3. fill tools/templates/vv_report.html
+4. print it to PDF with headless Chromium
 
 - **Reads:** `matlab_sils/store/pipeline/`; `matlab_sils/store/results_engine/`; `matlab_sils/store/results/`; `results/*.json`
 - **Writes:** `results/vv/TRINETRA_ADCS_VV_report.html`; `results/vv/vv_artifact.html`; `dist/TRINETRA_ADCS_VV_report.pdf`
-- **Starts:** chromium (headless)
+- **Starts:** adcs plot; chromium (headless)
 - **Checks:** every section of the template is filled from a filed result
 - **Undo:** It writes generated files only: `git checkout -- <file>` puts back the committed one, or run it again once its source is as you want it.
 - **Code:** `tools/vv_report.py`

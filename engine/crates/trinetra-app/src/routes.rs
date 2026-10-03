@@ -6,6 +6,8 @@
 //!   GET  /v1/runs          every run         GET  /v1/run?run=R   one run's provenance and metrics
 //!   GET  /v1/export?run=R  a run as .trinetra                     POST /v1/ping, /v1/quit
 //!   GET  /v1/design        the design database's groups          GET  /v1/design/case?case=C  its rows
+//!   GET  /v1/figures?run=R its figures' names    GET  /v1/figure?run=R&name=N  one, SVG
+//!   GET  /v1/report?run=R&format=pdf|html  its report (adcs-plot, the one plotting module)
 //! Owner: Agastya. Copyright (c) 2026 Agastya. All rights reserved.
 use crate::http::{Request, Response};
 use adcs_sim::{config::Config, data_root, run, store, store_root};
@@ -25,6 +27,9 @@ pub fn route(r: &Request, port: u16) -> Response {
         ("GET", "/v1/version") => Response::json(200, &json!({"app": "trinetra", "version": version(), "engine": adcs_sim::ENGINE, "port": port,
             "data": data_root().display().to_string(), "store": store_root().display().to_string(), "design": design()})),
         ("GET", "/v1/catalogue") => catalogue(),
+        ("GET", "/v1/figures") => figures(r),
+        ("GET", "/v1/figure") => figure(r),
+        ("GET", "/v1/report") => report(r),
         ("GET", "/v1/design") => design_summary(),
         ("GET", "/v1/design/case") => design_case(r),
         ("GET", "/v1/runs") => runs(),
@@ -143,6 +148,46 @@ fn one_run(r: &Request) -> Response {
     Response::json(200, &json!({"text": store::show(&d).unwrap_or_else(String::from), "metrics": m["metrics"], "inputs": m["inputs"]}))
 }
 
+/// A run's figures, drawn by adcs-plot from its manifest and time series (refused, with how to fly
+/// it again, when its channels were thinned).
+fn drawn(r: &Request) -> Result<(Value, Vec<(String, adcs_plot::Figure)>), Response> {
+    let d = run_dir(r)?;
+    let m: Value = std::fs::read_to_string(d.join("manifest.json")).ok().and_then(|s| serde_json::from_str(&s).ok())
+        .ok_or_else(|| Response::error(500, "the run's manifest could not be read"))?;
+    let ch = std::fs::read_to_string(d.join("channels.csv"))
+        .map_err(|_| Response::error(404, "this run kept no time series (thinned): fly it again to draw it"))?;
+    let ch = adcs_plot::Channels::parse(&ch).map_err(|e| Response::error(500, &format!("channels.csv: {e}")))?;
+    Ok((m.clone(), adcs_plot::run_figures(&m, &ch, true)))
+}
+
+fn figures(r: &Request) -> Response {
+    match drawn(r) {
+        Ok((_, f)) => Response::json(200, &json!({"figures": f.iter().map(|(n, x)| json!({"name": n, "title": x.title.lines().last().unwrap_or("")})).collect::<Vec<_>>()})),
+        Err(e) if e.status == 404 => Response::json(200, &json!({"figures": [], "thinned": true})),
+        Err(e) => e,
+    }
+}
+
+fn figure(r: &Request) -> Response {
+    let name = r.param("name").unwrap_or_default();
+    match drawn(r) {
+        Ok((_, f)) => match f.into_iter().find(|(n, _)| *n == name) {
+            Some((_, x)) => Response { status: 200, kind: "image/svg+xml", body: x.to_svg().into_bytes(), extra: vec![] },
+            None => Response::error(404, &format!("no figure {name:?} for this run")),
+        },
+        Err(e) => e,
+    }
+}
+
+fn report(r: &Request) -> Response {
+    match (drawn(r), r.param("format").as_deref().unwrap_or("pdf")) {
+        (Err(e), _) => e,
+        (Ok((m, f)), "pdf") => Response { status: 200, kind: "application/pdf", body: adcs_plot::report_pdf(&m, &f), extra: vec![] },
+        (Ok((m, f)), "html") => Response { status: 200, kind: "text/html; charset=utf-8", body: adcs_plot::report_html(&m, &f).into_bytes(), extra: vec![] },
+        (_, x) => Response::error(400, &format!("format {x:?}: pdf or html")),
+    }
+}
+
 fn export(r: &Request) -> Response {
     let d = match run_dir(r) { Ok(d) => d, Err(e) => return e };
     static SERIAL: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
@@ -255,6 +300,19 @@ mod t {
         let z = route(&req("GET", "/v1/export", &q, ""), 7788);
         assert!(z.status == 200 && z.kind == "application/zip" && z.body.starts_with(b"PK"), "a share file is a zip");
         assert!(z.extra.iter().any(|(k, v)| k == "Content-Disposition" && v.ends_with(".trinetra\"")));
+
+        // its figures and its report, drawn by the one plotting module
+        let figs = body(&route(&req("GET", "/v1/figures", &q, ""), 7788));
+        let names: Vec<String> = figs["figures"].as_array().unwrap().iter().map(|f| f["name"].as_str().unwrap().to_string()).collect();
+        assert!(names.len() >= 3, "{figs:?}");
+        let svg = route(&req("GET", "/v1/figure", &format!("{q}&name={}", names[0]), ""), 7788);
+        assert!(svg.status == 200 && svg.kind == "image/svg+xml" && String::from_utf8_lossy(&svg.body).contains("<svg"));
+        assert_eq!(route(&req("GET", "/v1/figure", &format!("{q}&name=nope"), ""), 7788).status, 404);
+        let pdf = route(&req("GET", "/v1/report", &q, ""), 7788);
+        assert!(pdf.status == 200 && pdf.kind == "application/pdf" && pdf.body.starts_with(b"%PDF-"));
+        let html = route(&req("GET", "/v1/report", &format!("{q}&format=html"), ""), 7788);
+        assert!(html.status == 200 && String::from_utf8_lossy(&html.body).contains("nadir_hold_ais"));
+        assert_eq!(route(&req("GET", "/v1/report", &format!("{q}&format=docx"), ""), 7788).status, 400);
 
         let _ = std::fs::remove_dir_all(&store);
     }

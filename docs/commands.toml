@@ -69,6 +69,42 @@ runs = []
 checks = "each stored run's provenance against the engine and inputs that made it (stale when they changed)"
 undo = "list/query/stale: nothing (the index is rebuilt from the runs). pin: delete <run>/PINNED. thin: a thinned time series is gone; fly the run again."
 
+[[command]]
+tool = "adcs"
+name = "figures"
+usage = "adcs figures RUN_DIR --out DIR [--format svg|pdf] [--full] [--prefix P]"
+what = "A run's figures, the same for an engine run and a MATLAB twin run (both keep manifest.json and channels.csv with the same columns): attitude, disturbance torques, actuators and power, the Sun spin when the run spun up, and with --full the environment, ground track and mode timeline. Drawn by adcs-plot, the one plotting module, as SVG or PDF."
+steps = ["read the run's manifest.json and channels.csv (a thinned run is refused with how to fly it again)", "build each figure, with the case's requirement lines from the manifest's metrics", "thin long series to the smallest and largest sample per pixel column", "write <prefix>_<n>_<name>.svg (or .pdf) into DIR and print each file"]
+reads = ["RUN_DIR/manifest.json", "RUN_DIR/channels.csv"]
+writes = ["DIR/<prefix>_<n>_<name>.svg|pdf (prefix: the run folder's name)"]
+runs = []
+checks = "the run folder holds manifest.json and channels.csv (a thinned run is refused with `adcs results refly`); every figure is well-formed SVG or PDF"
+undo = "Delete the files it wrote into DIR; the run is only read."
+
+[[command]]
+tool = "adcs"
+name = "report"
+usage = "adcs report RUN_DIR [--out DIR]"
+what = "A run's report: what it flew (scenario, case, product, flight software, seed, duration, engine, result id, input fingerprints), every metric against its requirement with the verdict, and every figure of `adcs figures --full`; as HTML with the figures inline (a print stylesheet, so a browser prints it to PDF) and as PDF."
+steps = ["read the run as `adcs figures` does", "draw the full figure set", "write report.html (figures inline as SVG) and report.pdf (a page of provenance and verdicts, then a page per figure)"]
+reads = ["RUN_DIR/manifest.json", "RUN_DIR/channels.csv"]
+writes = ["DIR (default RUN_DIR)/report.html", "DIR (default RUN_DIR)/report.pdf"]
+runs = []
+checks = "as for figures; the verdict table is the manifest's own metrics, nothing recomputed"
+undo = "Delete report.html and report.pdf from the run folder (or --out); the run is only read."
+
+[[command]]
+tool = "adcs"
+name = "plot"
+usage = "adcs plot SPEC.json --out FILE.svg|FILE.pdf"
+what = "Figures described as JSON (panels stacked or in a grid; line, step, scatter, histogram and horizontal-bar series; reference lines, notes, legends; linear or log axes), drawn by adcs-plot. The report tools describe every campaign, comparison, trade and solution figure this way; the schema is in engine/crates/adcs-plot/src/lib.rs."
+steps = ["read the description; an unknown kind, scale or layout is refused by name", "lay out the panels, ticks and series", "write one SVG (several figures: FILE_1.svg, FILE_2.svg, ...) or one PDF with a page per figure"]
+reads = ["SPEC.json"]
+writes = ["the --out file"]
+runs = []
+checks = "the JSON description: every kind, scale, layout, limit and grid named and valid (anything else refused with exit 2, by name)"
+undo = "Delete the --out file(s)."
+
 # ---------------------------------------------------------------- orchestration (Python)
 
 [[command]]
@@ -234,10 +270,10 @@ tool = "report.py"
 name = "report"
 usage = "python3 tools/report.py"
 what = "The results report from the filed runs: figures, verdict tables, the summary and the results documents. It reads; it never flies."
-steps = ["read every filed run, campaign and trade", "draw each test's figures", "write the page, the summary and the documents"]
+steps = ["read every filed run, campaign and trade", "draw each run's figures with `adcs figures`, and each campaign, comparison, trade and solution figure from its JSON description with `adcs plot` (SVG)", "write the page, the summary and the documents"]
 reads = ["matlab_sils/store/results/", "matlab_sils/store/trades/"]
-writes = ["results/figures/", "results/index.html", "results/summary.json", "docs/RESULTS.md", "docs/SELECTION.md"]
-runs = []
+writes = ["results/figures/*.svg", "results/index.html", "results/summary.json", "docs/RESULTS.md", "docs/SELECTION.md"]
+runs = ["adcs figures", "adcs plot"]
 checks = "every filed run it reads exists and is current"
 undo = "It writes generated files only: `git checkout -- <file>` puts back the committed one, or run it again once its source is as you want it."
 
@@ -246,10 +282,10 @@ tool = "vv_report.py"
 name = "vv-report"
 usage = "python3 tools/vv_report.py"
 what = "The downloadable V&V report: the template filled from the filed results, as self-contained HTML and as a PDF."
-steps = ["collect every source that exists (a missing one is named, never invented)", "fill tools/templates/vv_report.html", "print it to PDF with headless Chromium"]
+steps = ["collect every source that exists (a missing one is named, never invented)", "draw its figures with `adcs plot`, inlined as SVG", "fill tools/templates/vv_report.html", "print it to PDF with headless Chromium"]
 reads = ["matlab_sils/store/pipeline/", "matlab_sils/store/results_engine/", "matlab_sils/store/results/", "results/*.json"]
 writes = ["results/vv/TRINETRA_ADCS_VV_report.html", "results/vv/vv_artifact.html", "dist/TRINETRA_ADCS_VV_report.pdf"]
-runs = ["chromium (headless)"]
+runs = ["adcs plot", "chromium (headless)"]
 checks = "every section of the template is filled from a filed result"
 undo = "It writes generated files only: `git checkout -- <file>` puts back the committed one, or run it again once its source is as you want it."
 

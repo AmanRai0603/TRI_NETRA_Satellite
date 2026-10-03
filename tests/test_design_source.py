@@ -9,6 +9,7 @@ Owner: Agastya. Copyright (c) 2026 Agastya. All rights reserved.
 import json
 import os
 import pathlib
+import shutil
 import sqlite3
 import subprocess
 import sys
@@ -26,6 +27,9 @@ _ = _path  # imported for its effect: tools/ on sys.path
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 BIN = ROOT / "engine" / "target" / "release" / "adcs"
 APP = ROOT / "engine" / "target" / "release" / "trinetra-app"
+NODE = shutil.which("node")
+PLAYWRIGHT = next((pathlib.Path(p) for p in (os.environ.get("PLAYWRIGHT_MODULE"), "/opt/node22/lib/node_modules/playwright/index.mjs")
+                   if p and pathlib.Path(p).is_file()), None)
 
 
 class Inputs(unittest.TestCase):
@@ -148,6 +152,30 @@ class Inputs(unittest.TestCase):
             self.assertEqual(sorted(c["id"] for c in cat["cases"]), ["ais_3u", "ais_img_3u"])
             self.assertIn("nadir_hold_ais", [s["id"] for s in cat["scenarios"]])
             self.assertEqual(len(cat["scenarios"]), len(list((design_inputs.DATA / "data" / "scenarios").glob("*.json"))))
+        finally:
+            p.terminate()
+            p.wait(timeout=10)
+
+    @unittest.skipUnless(APP.is_file() and NODE and PLAYWRIGHT, "the app, Node.js and Playwright are needed for the page's browser test")
+    def test_the_app_page_flies_and_draws_from_the_database(self):
+        bare = self.d / "bare_page"
+        bare.mkdir()
+        (bare / "pop").symlink_to(ROOT / "matlab_sils" / "pop")
+        port = 7913
+        p = subprocess.Popen([str(APP)], cwd=self.d, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+                             env={**os.environ, "ADCS_ROOT": str(bare), "TRINETRA_DESIGN": str(self.db), "TRINETRA_PORT": str(port),
+                                  "TRINETRA_NO_BROWSER": "1", "TRINETRA_STORE": str(self.d / "store_page")})
+        try:
+            for _ in range(100):
+                try:
+                    urllib.request.urlopen(f"http://127.0.0.1:{port}/v1/version", timeout=2)
+                    break
+                except OSError:
+                    time.sleep(0.1)
+            r = subprocess.run([NODE, str(ROOT / "tests" / "browser" / "app.test.mjs"), f"http://127.0.0.1:{port}"], capture_output=True, text=True,
+                               timeout=600, env={**os.environ, "PLAYWRIGHT_MODULE": str(PLAYWRIGHT)})
+            sys.stdout.write(r.stdout[-2000:])
+            self.assertEqual(r.returncode, 0, r.stdout[-4000:] + r.stderr[-2000:])
         finally:
             p.terminate()
             p.wait(timeout=10)

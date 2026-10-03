@@ -92,7 +92,7 @@ fn write_response(s: &mut TcpStream, r: &Response) {
     let reason = match r.status { 200 => "OK", 400 => "Bad Request", 403 => "Forbidden", 404 => "Not Found", 405 => "Method Not Allowed",
         408 => "Request Timeout", 409 => "Conflict", 413 => "Payload Too Large", 421 => "Misdirected Request", 431 => "Request Header Fields Too Large", _ => "Error" };
     let mut head = format!("HTTP/1.1 {} {reason}\r\nContent-Type: {}\r\nContent-Length: {}\r\nCache-Control: no-store\r\nX-Content-Type-Options: nosniff\r\n\
-        Referrer-Policy: no-referrer\r\nContent-Security-Policy: default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'\r\nConnection: close\r\n",
+        Referrer-Policy: no-referrer\r\nContent-Security-Policy: default-src 'self'; img-src 'self' data: blob:; font-src data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'\r\nConnection: close\r\n",
         r.status, r.kind, r.body.len());
     for (k, v) in &r.extra { head += &format!("{k}: {v}\r\n"); }
     head += "\r\n";

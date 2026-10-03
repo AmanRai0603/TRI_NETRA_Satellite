@@ -13,7 +13,7 @@ Sources (whatever exists is reported; a missing source is named, never invented)
 
 Owner: Agastya. Copyright (c) 2026 Agastya. All rights reserved.
 """
-import base64, csv, glob, html, io, json, math, pathlib, re, shutil, string, subprocess
+import base64, csv, glob, html, json, math, pathlib, re, shutil, string, subprocess
 from common import source_date, write_text, ROOT, case_rows
 
 MS = ROOT / "matlab_sils"
@@ -61,12 +61,10 @@ def table(head, rows, num=()):
     return f'<div class="tbl"><table><thead><tr>{h}</tr></thead><tbody>{b}</tbody></table></div>'
 
 
-def png(fig):
-    b = io.BytesIO()
-    fig.savefig(b, format="png", dpi=160, bbox_inches="tight", facecolor="white")
-    import matplotlib.pyplot as plt
-    plt.close(fig)
-    return f'<img alt="" src="data:image/png;base64,{base64.b64encode(b.getvalue()).decode()}">'
+def svg(spec):
+    """A figure described as JSON, drawn by adcs-plot (`adcs plot`), inlined as an SVG image."""
+    from report_base import plot_svg
+    return f'<img alt="" src="data:image/svg+xml;base64,{base64.b64encode(plot_svg(spec).encode()).decode()}">'
 
 
 def svg_inline(p):
@@ -74,16 +72,6 @@ def svg_inline(p):
     if not p.exists():
         return f'<p class="note">{e(str(p))} missing.</p>'
     return f'<img alt="" src="data:image/svg+xml;base64,{base64.b64encode(p.read_bytes()).decode()}">'
-
-
-def mpl():
-    import matplotlib
-    matplotlib.use("Agg")
-    import matplotlib.pyplot as plt
-    plt.rcParams.update({"font.family": "DejaVu Sans", "font.size": 8, "axes.edgecolor": "#b8bfcc", "axes.labelcolor": INK,
-                         "xtick.color": MUTED, "ytick.color": MUTED, "axes.spines.top": False, "axes.spines.right": False,
-                         "axes.grid": True, "grid.color": "#e6e9ef", "grid.linewidth": 0.6, "axes.axisbelow": True})
-    return plt
 
 
 # ------------------------------------------------------------------ sections
@@ -185,9 +173,11 @@ def family_missions(c, sel):
     out = ("<p>Every one of our solution families flown as the full mission (detumble → Sun acquisition → nadir), with its best "
            "methods from the loop. Whether or not it is selected, this is how it behaves (node <code>family_missions</code>):</p>" +
            table(["family", "feasible", "mass [kg]", "methods", "detumble [min]", "APE [deg]", "AKE [deg]", "mean power [W]", "C = Rust"], rows, num=(2,)))
-    plt = mpl()
     cols = ["#2a78d6", "#eb6834", "#1baf7a"]
-    fig, ax = plt.subplots(4, 1, figsize=(7.4, 7.2), sharex=True)
+    ax = [{"ylabel": yl, "series": []} for yl in ("body rate [deg/s]", "APE, line of sight [deg]", "ADCS power [W]", "FSW mode")]
+    ax[0]["yscale"] = ax[1]["yscale"] = "log"
+    ax[0]["legend"] = "upper right"
+    ax[3]["xlabel"] = "mission time [h]"
     req = {m["id"]: m.get("req") for m in (next(iter(fm.values()))["mission"]["c"] or [])}
     for (f, v), col in zip(fm.items(), cols):
         ch = ROOT / v["check_dir"] / "c" / "channels.csv"
@@ -201,19 +191,14 @@ def family_missions(c, sel):
                 t.append(float(r["t_s"]) / 3600); ape.append(max(float(r["ape_los_deg"]), 1e-4)); w.append(float(r["rate_degps"]))
                 pw.append(float(r["P_mtq_W"]) + float(r["P_rw_W"]) + float(r["P_rcs_W"])); mode.append(float(r["mode"]))
         lab = f + (" (selected)" if v["selected"] else "")
-        ax[0].semilogy(t, w, color=col, lw=1, label=lab); ax[1].semilogy(t, ape, color=col, lw=1)
-        ax[2].plot(t, pw, color=col, lw=0.8); ax[3].step(t, mode, color=col, lw=1, where="post")
-    for a_, yl in zip(ax, ("body rate [deg/s]", "APE, line of sight [deg]", "ADCS power [W]", "FSW mode")):
-        a_.set_ylabel(yl)
+        for a_, y, kind, lw in ((ax[0], w, "line", 1), (ax[1], ape, "line", 1), (ax[2], pw, "line", 0.8), (ax[3], mode, "step", 1)):
+            a_["series"].append({"kind": kind, "x": t, "y": y, "color": col, "width": lw, **({"label": lab} if a_ is ax[0] else {})})
     if req.get("ape_los_p9973"):
-        ax[1].axhline(req["ape_los_p9973"], color=C_REQ, lw=0.8, ls="--"); ax[1].text(0.01, req["ape_los_p9973"], " APE requirement", color=C_REQ, fontsize=7, va="bottom", transform=ax[1].get_yaxis_transform())
+        ax[1]["refs"] = [{"axis": "y", "at": req["ape_los_p9973"], "color": C_REQ, "width": 0.8, "label": "APE requirement"}]
     if req.get("power_mean"):
-        ax[2].axhline(req["power_mean"], color=C_REQ, lw=0.8, ls="--"); ax[2].text(0.01, req["power_mean"], " orbit-average power requirement", color=C_REQ, fontsize=7, va="bottom", transform=ax[2].get_yaxis_transform())
-    ax[3].set_xlabel("mission time [h]")
-    ax[0].legend(loc="upper right", frameon=False, fontsize=7)
-    fig.suptitle(f"{c}: every solution family flown as the dispatched mission (C flight software)", x=0.01, ha="left", fontsize=9, fontweight="bold")
-    fig.tight_layout()
-    return out + f"<figure>{png(fig)}<figcaption>{e(c)}: body rate, pointing error, power and flight-software mode through the mission, one line per family.</figcaption></figure>"
+        ax[2]["refs"] = [{"axis": "y", "at": req["power_mean"], "color": C_REQ, "width": 0.8, "label": "orbit-average power requirement"}]
+    fig = {"title": f"{c}: every solution family flown as the dispatched mission (C flight software)", "width": 533, "height": 518, "panels": ax}
+    return out + f"<figure>{svg(fig)}<figcaption>{e(c)}: body rate, pointing error, power and flight-software mode through the mission, one line per family.</figcaption></figure>"
 
 
 def verification():
@@ -382,21 +367,17 @@ def pump_front(c, sel):
     parts = z.get("parts", {})
     if "fmr_x" not in parts or "pareto" not in parts["fmr_x"].get("sizing", {}):
         return ""
-    plt = mpl()
-    fig, ax = plt.subplots(figsize=(7.2, 3.0))
-    for key, lab, col, mk in (("fmr_x", "X ring", C_TWIN, "o"), ("fmr_y", "Y ring", C_ENG, "s"), ("fmr_z", "Z ring", "#1baf7a", "^")):
+    ax = {"xscale": "log", "xlabel": "steady pump power per ring [W] (coil + electrodes, log scale)", "ylabel": "ring mass [kg]",
+          "legend": "upper right", "series": [], "notes": []}
+    for key, lab, col, mk in (("fmr_x", "X ring", C_TWIN, "circle"), ("fmr_y", "Y ring", C_ENG, "square"), ("fmr_z", "Z ring", "#1baf7a", "diamond")):
         pf = parts[key]["sizing"]["pareto"]
         xs, ys = [q["power_W"] for q in pf], [q["mass_kg"] for q in pf]
-        ax.plot(xs, ys, color=col, lw=1.6, marker=mk, ms=4, label=lab)
+        ax["series"].append({"kind": "line", "x": xs, "y": ys, "color": col, "width": 1.6, "marker": mk, "size": 2.6, "label": lab})
         nm = parts[key]["nominal"]
-        ax.scatter([nm["power_steady_W"]], [nm["mass_kg"]], s=70, facecolors="none", edgecolors=INK, linewidths=1.4, zorder=4)
-        ax.annotate(lab, (xs[0], ys[0]), xytext=(4, 0), textcoords="offset points", fontsize=7, color=INK, va="center")
-    ax.set_xscale("log")
-    ax.set_xlabel("steady pump power per ring [W] (coil + electrodes, log scale)")
-    ax.set_ylabel("ring mass [kg]")
-    ax.legend(frameon=False, fontsize=7, loc="upper right")
+        ax["series"].append({"kind": "scatter", "x": [nm["power_steady_W"]], "y": [nm["mass_kg"]], "color": INK, "marker": "ring", "size": 5})
+        ax["notes"].append({"x": xs[0], "y": ys[0], "text": lab, "color": INK})
     lam = z.get("knobs", {}).get("fmr_lambda", 0.1)
-    return (f"<figure>{png(fig)}<figcaption>Electromagnetic pump design, {e(c)}: each ring's mass against steady power as the "
+    return (f"<figure>{svg({'width': 518, 'height': 216, 'panels': [ax]})}<figcaption>Electromagnetic pump design, {e(c)}: each ring's mass against steady power as the "
             f"mass/power rate λ runs from 0.003 to 3 kg/W; circles mark the converged designs (λ = {lam:g} kg/W).</figcaption></figure>")
 
 
@@ -417,7 +398,6 @@ def sils():
 
 
 def campaigns():
-    plt = mpl()
     out = ["<p>Every campaign of <code>campaigns/*.toml</code> flown on the Rust engine with the draws of <code>asils.campaign.draw</code> "
            "(same dispersions, bounds, run count, per-run seeds), next to the MATLAB twin's campaign. Monte Carlo realisations differ "
            "(different random streams) so distributions are compared; edge runs are compared run by run. The engine's flight software "
@@ -445,25 +425,17 @@ def campaigns():
         n = len(panels)
         cols = 3
         rws = math.ceil(n / cols)
-        fig, axs = plt.subplots(rws, cols, figsize=(7.2, 2.0 * rws), squeeze=False)
+        ps = []
         for i, (cid, mid, req, a, b, unit) in enumerate(panels):
-            ax = axs[i // cols][i % cols]
-            ax.scatter([0.1 * ((k % 7) - 3) / 3 for k in range(len(a))], a, s=12, color=C_TWIN, marker="o", label="MATLAB twin", zorder=3, linewidths=0)
-            ax.scatter([1 + 0.1 * ((k % 7) - 3) / 3 for k in range(len(b))], b, s=14, color=C_ENG, marker="D", label="Rust engine", zorder=3, linewidths=0)
-            ax.axhline(req, color=C_REQ, lw=1, ls=(0, (4, 3)))
-            ax.text(1.45, req, "req", va="bottom", ha="right", fontsize=7, color=INK)
-            ax.set_xticks([0, 1]); ax.set_xticklabels(["MATLAB", "engine"])
-            ax.set_xlim(-0.5, 1.5)
             vals = [v for v in a + b + [req] if v and v > 0]
-            if vals and max(vals) / min(vals) > 50:
-                ax.set_yscale("log")
-            ax.set_title(f"{cid}\n{mid} [{unit}]", fontsize=7.5, color=INK, loc="left")
-        for j in range(n, rws * cols):
-            axs[j // cols][j % cols].axis("off")
-        h, l = axs[0][0].get_legend_handles_labels()
-        fig.legend(h, l, loc="upper center", ncol=2, frameon=False, bbox_to_anchor=(0.5, 1.01))
-        fig.tight_layout(rect=(0, 0, 1, 0.97))
-        out.append(f"<figure>{png(fig)}<figcaption>Figure 3. Every run of every campaign, requirement metrics: MATLAB twin (circles) and "
+            ps.append({"title": f"{cid}\n{mid} [{unit}]", "xlim": [-0.5, 1.5], "xticks": [[0, "MATLAB"], [1, "engine"]], "legend": i == 0,
+                       "yscale": "log" if vals and max(vals) / min(vals) > 50 else "linear",
+                       "refs": [{"axis": "y", "at": req, "color": C_REQ, "width": 1, "label": "req"}],
+                       "series": [{"kind": "scatter", "x": [0.1 * ((k % 7) - 3) / 3 for k in range(len(a))], "y": a, "color": C_TWIN, "size": 2, "label": "MATLAB twin"},
+                                  {"kind": "scatter", "x": [1 + 0.1 * ((k % 7) - 3) / 3 for k in range(len(b))], "y": b, "color": C_ENG, "marker": "diamond",
+                                   "size": 2.4, "label": "Rust engine"}]})
+        fig = {"layout": "grid", "rows": rws, "cols": cols, "width": 518, "height": 150 * rws, "panels": ps}
+        out.append(f"<figure>{svg(fig)}<figcaption>Figure 3. Every run of every campaign, requirement metrics: MATLAB twin (circles) and "
                    "Rust engine (diamonds), dashed line = requirement.</figcaption></figure>")
     return "\n".join(out)
 
@@ -505,18 +477,15 @@ def oils():
               f"{fmt(t['lat_mean_ms'], 3)} / {fmt(t['lat_max_ms'], 3)}", f"{100 * (t['cpu_load_max'] or 0):.1f} %", t["overruns"]] for t in tim]
     txt.append(table(["scenario", "period [ms]", "instructions/step mean / max", "exec max [ms]", "latency mean / max [ms]", "CPU load max", "overruns"],
                      trows, num=(1, 2, 3, 4, 5, 6)))
-    plt = mpl()
     tt = sorted(tim, key=lambda t: t["cpu_load_max"] or 0)
     if tt:
-        fig, ax = plt.subplots(figsize=(7.2, 0.16 * len(tt) + 0.8))
-        y = range(len(tt))
-        ax.barh(list(y), [100 * (t["cpu_load_max"] or 0) for t in tt], height=0.6, color=C_TWIN, label="worst step")
-        ax.scatter([100 * (t["cpu_load_mean"] or 0) for t in tt], list(y), s=10, color=INK, zorder=3, label="mean")
-        ax.set_yticks(list(y)); ax.set_yticklabels([t["scenario"] for t in tt], fontsize=6.5)
-        ax.set_xlabel("OBC CPU load in the control period [%] (Cortex-M4F, 168 MHz)")
-        ax.grid(axis="y", visible=False)
-        ax.legend(frameon=False, loc="lower right", fontsize=7)
-        txt.append(f"<figure>{png(fig)}<figcaption>Figure 4. OBC load per scenario: worst step (bar) and mean (dot).</figcaption></figure>")
+        load = [100 * (t["cpu_load_max"] or 0) for t in tt]
+        ax = {"xlabel": "OBC CPU load in the control period [%] (Cortex-M4F, 168 MHz)", "legend": "lower right",
+              "series": [{"kind": "hbar", "labels": [t["scenario"] for t in tt], "values": load, "color": C_TWIN, "label": "worst step",
+                          "texts": [f"{x:.1f} %" for x in load]},
+                         {"kind": "scatter", "x": [100 * (t["cpu_load_mean"] or 0) for t in tt], "y": list(range(len(tt))), "color": INK, "size": 1.8,
+                          "label": "mean"}]}
+        txt.append(f"<figure>{svg({'width': 518, 'height': 13 * len(tt) + 70, 'panels': [ax]})}<figcaption>Figure 4. OBC load per scenario: worst step (bar) and mean (dot).</figcaption></figure>")
     dis = [[e(r["scenario"]), e(r["metric"]), fmt(r["req"]), fmt(r["sils"]), fmt(r["oils"]), verdict(r["pass_sils"]), verdict(r["pass_oils"])]
            for r in judged if r["pass_sils"] != r["pass_oils"]]
     if dis:

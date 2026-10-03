@@ -576,11 +576,11 @@ function flyTab() {
     hint.textContent = s ? `product ${s.product}; ${Math.round(s.duration_s)} s (${(s.duration_s / 60).toFixed(0)} min) of flight` : "";
   };
   const scenBox = h("div", {});
-  const pickScen = (c) => { scen = choice("Scenario", scenOpts(c), { testid: "scen", help: "What happens in the flight: the mode, the start, the faults, how long.", onChange: showHint }); fill(scenBox, scen.el); showHint(); };
+  const pickScen = (c) => { scen = choice("Scenario", scenOpts(c), { value: scenOpts(c)[0]?.[0] || "", testid: "scen", help: "What happens in the flight: the mode, the start, the faults, how long.", onChange: showHint }); fill(scenBox, scen.el); showHint(); };
   const cs = choice("Case", cases.map((c) => [c.id, `${c.id} — ${c.title}`]), { value: cases[0]?.id || "", testid: "case",
     help: "The satellite and its requirements, as the design database holds them.", onChange: pickScen });
   pickScen(cs.value);
-  const fsw = choice("Flight software", [["c", "C"], ["rust", "Rust"]], { testid: "fsw", help: "Both are built from the same pseudocode and give the same bytes." });
+  const fsw = choice("Flight software", [["c", "C"], ["rust", "Rust"]], { value: "c", testid: "fsw", help: "Both are built from the same pseudocode and give the same bytes." });
   const seed = field("Seed", { value: "1", testid: "seed", help: "Which draw of the sensor noise; 1 is the scenario's own." });
   const dur = field("Duration, seconds", { testid: "dur", placeholder: "the scenario's own", help: "Leave it blank for the scenario's own length." });
   const go = button("Fly it", async () => {
@@ -639,7 +639,7 @@ function designTab() {
     const caseBox = h("div", {});
     const showCase = (id) => call(`/v1/design/case?case=${enc(id)}`).then((c) => fill(caseBox, table([{ key: "key", label: "Key", mono: true }, { key: "label", label: "What" },
       { key: "value", label: "Value" }, { key: "unit", label: "Unit" }, { key: "node", label: "Node", mono: true }], c.rows, { testid: "case-rows" })));
-    const pick = choice("Case", app.cat.cases.map((c) => [c.id, c.id]), { testid: "design-case", help: "Every value the case states, and the node that declares it.", onChange: showCase });
+    const pick = choice("Case", app.cat.cases.map((c) => [c.id, c.id]), { value: app.cat.cases[0]?.id || "", testid: "design-case", help: "Every value the case states, and the node that declares it.", onChange: showCase });
     fill(box, section("The design database", kv([["File", d.design.file], ["Inputs fingerprint", d.design.fingerprint], ["Groups", String(d.groups.length)],
       ["Nodes", String(d.groups.reduce((n, g) => n + g.nodes, 0))]])),
     section("Groups", table([{ key: "id", label: "Group", mono: true }, { key: "version", label: "Release" }, { key: "nodes", label: "Nodes" }], d.groups, { testid: "groups" })),
