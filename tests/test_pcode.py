@@ -66,6 +66,9 @@ class Checker(unittest.TestCase):
     def test_a_vector_times_a_vector_asks_for_dot_or_cross(self):
         self.refused("fn f(a: vec3[m], b: vec3[m]) -> c: real[m^2]\n    c = a*b\nend\n", "write dot(a, b), cross(a, b)")
 
+    def test_int_takes_a_plain_number(self):
+        self.refused("fn f(a: real[m]) -> n: int\n    n = int(a)\nend\n", "plain number")
+
     def test_state_belongs_to_a_proc(self):
         self.refused("fn f(a: real[1]) -> c: real[1]\n    state k: int = 0\n    c = a\nend\n", "state is kept by a proc")
 
@@ -87,6 +90,34 @@ class Interpreter(unittest.TestCase):
         self.assertEqual(run(src, "lookup", [2.5]), [17.5, -0.75])
         self.assertEqual(run(src, "lookup", [-1.0]), [0.0, 1.0])
         self.assertEqual(run(src, "lookup", [50.0]), [0.0, 0.0])
+
+    def test_int_drops_the_fraction_as_a_cast_does(self):
+        src = "fn f(x: real[1]) -> (n: int, w: int)\n    n = int(x)\n    w = int(if x < 0 then x - 0.5 else x + 0.5)\nend\n"
+        self.assertEqual(run(src, "f", [-2.7]), [-2, -3])
+        self.assertEqual(run(src, "f", [2.5]), [2, 3])
+
+    def test_bit_operations_are_exact(self):
+        src = (pcode.ROOT / "design" / "pcode_selftest" / "selftest.pc").read_text()
+        # the CRC against the same loop in Python, on the bytes of "1234"
+        c, hi, lo, sw, r, d, m = run(src, "bits", [[49, 50, 51, 52], 0x1234, -10.5])
+        self.assertEqual((hi, lo, sw, r, d, m), (0x12, 0x34, 0x3412, -11, -1, -4))
+        crc = 0xFFFF
+        for b in b"1234":
+            crc ^= b << 8
+            for _ in range(8):
+                crc = ((crc << 1) ^ 0x1021) & 0xFFFF if crc & 0x8000 else (crc << 1) & 0xFFFF
+        self.assertEqual(c, crc)
+
+    def test_inputs_can_be_drawn_through_another_function(self):
+        src = ("fn make(a: int in 0 .. 3) -> x: int\n    x = 100 + a\nend\n"
+               "## inputs from: make\nfn g(x: int in 0 .. 3, y: int in 0 .. 3) -> z: int\n    z = x + y\nend\n")
+        with tempfile.TemporaryDirectory() as d:
+            f = pathlib.Path(d) / "t.pc"
+            f.write_text(src)
+            v = pcode.cli("vectors", str(f), "--n", "6")
+        key = next(k for k in v if k.endswith("::g"))
+        sets = v[key]["sets"]
+        self.assertTrue(sets and all(100 <= s["in"][0] <= 103 and s["out"][0] == s["in"][0] + s["in"][1] for s in sets))
 
     def test_powers_are_repeated_multiplication(self):
         x = 1.1

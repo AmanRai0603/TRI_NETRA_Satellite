@@ -15,7 +15,9 @@ dependencies, serves every use:
 
 The physics relations of `spec/plan/physics.toml` are written in it (`spec/physics/*.pc`); their
 Rust translation is the crate `engine/crates/adcs-physics`, their MATLAB translation the package
-`matlab_sils/+asils/+physics`. The algorithms of `fsw/pseudocode/` follow (P2, later steps).
+`matlab_sils/+asils/+physics`. The flight algorithms of `fsw/pseudocode/` are written in it too
+(`fsw/pseudocode/*.pc`, beside the prose `.md` of each chapter); the hand-written C and Rust flight
+software are held to them (see *The flight software against its pseudocode*).
 
 ## A file
 
@@ -113,9 +115,12 @@ calls. Arrays: `+ -` element by element, a number times or over an array, matrix
 matrix times matrix.
 
 Builtins: `sqrt abs sin cos tan asin acos atan atan2 exp log log10 pow hypot min max clamp floor
-ceil round sign fmod dot cross norm unit transpose real len div rem`, and `pi`. `div(a, b)` and
-`rem(a, b)` take ints and truncate as C and Rust do. `real(n)` makes an int a
-real; an int also goes wherever a plain real is wanted.
+ceil round sign fmod dot cross norm unit transpose real int len div rem band bor bxor shl shr`,
+and `pi`. `div(a, b)` and `rem(a, b)` take ints and truncate as C and Rust do. `band bor bxor shl
+shr` take non-negative ints below 2^53 (a byte, a CRC, a bit field) and are exact. `real(n)` makes
+an int a real; an int also goes wherever a plain real is wanted. `int(x)` turns a plain real into an
+int by dropping its fraction, as a C cast does (`int(v + 0.5)` is C's `(int16_t)(v + 0.5)`); it
+stops the run on a value that is not finite or not below 2^53.
 
 ## Tables
 
@@ -182,6 +187,28 @@ input's range, from a fixed seed) into `engine/crates/adcs-physics/tests/vectors
 twin's `t_physics_vectors` run every vector through their translation. Each vector also carries
 each value's exact bits, for readers that do not parse decimals to the nearest double (Octave's
 `jsondecode`).
+
+A function with rare branches asks for more vectors with a line in its documentation,
+`## vectors: 160`; otherwise the count is the package's, fewer for a function of many values.
+
+Where random inputs would not reach the cases that matter (a byte stream almost never holds a
+frame whose CRC checks), a function draws its inputs through another one,
+`## inputs from: uart_stream`: that function runs on random inputs of its own, and its outputs give
+the inputs of the same name; the rest are drawn as usual. A record input is drawn field by field,
+each field in its own range.
+
+**The flight software against its pseudocode.** `gen` also draws vectors for every function of
+`fsw/pseudocode/*.pc` into `fsw/tests/pcode_vectors.txt`: a line per call, `name exact set nx ny`,
+then each input's and output's IEEE-754 bits in hex (a `proc`'s calls in order, its state carried).
+`fsw/tests/test_pcode.c` (in `make test`) and `fsw-rs/tests/pcode.rs` run every line through the
+hand-written flight software, through an adapter per function that calls the real code; the
+drivers go through their public paths (`adcs_drv_read`, `adcs_drv_write`, `Drv::read`,
+`drv::write`) over an in-memory HAL. A function with no transcendental must agree bit for bit,
+one with, to 1e-12 relative. A function the flight software has no function of its own for is
+listed with its reason (`NOT_IN_C`, `NOT_IN_RUST`: a private helper checked through its caller, a
+vector generator); any other function with no adapter fails the test. The mode manager, FDIR and
+the step laws work on the flight software's private state: C is held to them through `fsw_t`
+(`adcs_fsw_int.h`), and Rust to C by the closed-loop bit identity on every shipped scenario.
 
 **The physics against its sources.** `fixtures` runs every test vector `spec/plan/seed_content.toml`
 transcribes from a source (IDMAS v2 today) through the interpreter, within the source's tolerance.

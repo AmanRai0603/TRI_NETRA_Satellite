@@ -11,6 +11,9 @@ function y = call(name, x)
         case 'selftest::numbers'
             [o1, o2, o3, o4, o5, o6, o7, o8, o9, o10] = asils.pcselftest.selftest.numbers(x(1), x(2), x(3), x(4));
             y = [double(o1); double(o2); double(o3); double(o4); double(o5); double(o6); double(o7); double(o8); double(o9); double(o10)];
+        case 'selftest::bits'
+            [o1, o2, o3, o4, o5, o6, o7] = asils.pcselftest.selftest.bits(reshape(x(1:4), 4, 1), x(5), x(6));
+            y = [double(o1); double(o2); double(o3); double(o4); double(o5); double(o6); double(o7)];
         case 'selftest::loops'
             [o1, o2, o3, o4, o5] = asils.pcselftest.selftest.loops(reshape(x(1:6), 6, 1), x(7));
             y = [double(o1); double(o2); double(o3); double(o4); reshape(o5, [], 1)];

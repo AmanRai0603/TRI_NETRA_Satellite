@@ -53,6 +53,24 @@ fn numbers(a: real[1] in -10 .. 10, b: real[1] in -10 .. 10, n: int in -6 .. 6, 
     pos = a > 0 and not (b > 0) or n == 0
 end
 
+## Bits and casts: the CRC-16/CCITT of four bytes, the halves of a 16-bit word swapped, a rounding
+## by cast (half away from zero) and its quotient and remainder by 7, truncated.
+fn bits(b: int[4] in 0 .. 255, w: int in 0 .. 65535, x: real[1] in -40000 .. 40000) -> (c: int, hi: int, lo: int, sw: int, r: int, d: int, m: int)
+    c = 65535
+    for i in 0 .. 4
+        c = bxor(c, shl(b[i], 8))
+        for k in 0 .. 8
+            c = if band(c, 32768) != 0 then band(bxor(shl(c, 1), 4129), 65535) else band(shl(c, 1), 65535)
+        end
+    end
+    hi = shr(w, 8)
+    lo = band(w, 255)
+    sw = bor(shl(lo, 8), hi)
+    r = int(if x < 0 then x - 0.5 else x + 0.5)
+    d = div(r, 7)
+    m = rem(r, 7)
+end
+
 ## Loops, a record, and an index that is computed.
 fn loops(v: real[m][6] in -3 .. 3, k: int in 0 .. 5) -> (sum: real[m], prod: real[1], at_k: real[m], count: int, last: vec3[m])
     let p = Probe()

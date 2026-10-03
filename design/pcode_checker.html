@@ -375,7 +375,7 @@ function parse(src, file = "<input>") {
     }
     if (opt("kw", "record")) {
       const n = eat("id"); endLine(); const fields = [];
-      for (;;) { skipNl(); if (is("doc")) { p++; continue; } if (opt("kw", "end")) break; const f = eat("id"); eat("op", ":"); fields.push({ name: f.v, type: typ(), pos: pos(f) }); endLine(); }
+      for (;;) { skipNl(); if (is("doc")) { p++; continue; } if (opt("kw", "end")) break; fields.push(param()); endLine(); }
       endLine(); prog.items.push({ kind: "record", name: n.v, fields, doc, pos: pos(t) }); continue;
     }
     if (opt("kw", "table")) {
@@ -448,7 +448,7 @@ function unitOf(text, pos) {
 
 // ------------------------------------------------------------------ checker
 const BUILTINS = new Set(["sqrt", "abs", "sin", "cos", "tan", "asin", "acos", "atan", "atan2", "exp", "log", "log10", "min", "max", "clamp",
-  "floor", "ceil", "round", "sign", "fmod", "pow", "dot", "cross", "norm", "unit", "transpose", "real", "len", "hypot", "div", "rem"]);
+  "floor", "ceil", "round", "sign", "fmod", "pow", "dot", "cross", "norm", "unit", "transpose", "real", "len", "hypot", "int", "div", "rem", "band", "bor", "bxor", "shl", "shr"]);
 const CONSTS = { pi: Math.PI };
 
 // Check a set of parsed files together (they may call one another). Returns { program, errors }.
@@ -567,11 +567,19 @@ function check(files) {
             E("an array with a unit holds plain numbers: [1, 2, 3] [m]", e.pos);
           return { k: "arr", n: e.items.length, of: tReal(u.dim) };
         }
+        // items agree in shape and dimension; an int (or int array) sits beside plain reals
+        const compat = (a, b) => (a.k === "arr" || b.k === "arr")
+          ? a.k === b.k && a.n === b.n && compat(a.of, b.of)
+          : typeEq(a, b) || (numType(a) && numType(b) && dimEq(scalarDim(a), scalarDim(b)));
+        const realOf = (t) => (t.k === "arr" ? { k: "arr", n: t.n, of: realOf(t.of) } : t.k === "int" ? tReal(DIMLESS) : t);
         ts.forEach((t, i) => {
-          if (!isZero(e.items[i]) && !(typeEq(t, base) || (numType(t) && numType(base) && dimEq(scalarDim(t), scalarDim(base)))))
-            E(`array items differ: ${typeText(base)} and ${typeText(t)}`, e.items[i].pos);
+          if (!isZero(e.items[i]) && !compat(t, base)) E(`array items differ: ${typeText(base)} and ${typeText(t)}`, e.items[i].pos);
         });
-        if (base.k === "int" && !ts.every((t) => t.k === "int")) base = tReal(DIMLESS);   // all ints: an int array
+        const allInt = (t) => (t.k === "arr" ? allInt(t.of) : t.k === "int");
+        if (!ts.every(allInt)) {     // not every item whole: the array is real
+          base = realOf(base);
+          e.items.forEach((x) => { if (x.e === "arr" && allInt(x.ty)) x.ty = realOf(x.ty); });
+        }
         return { k: "arr", n: e.items.length, of: base };
       }
       case "index": {
@@ -729,6 +737,9 @@ function check(files) {
       }
       case "clamp": { n(3); let t = unify(ts[0], ts[1], args[0], args[1], name, e.pos); t = unify(t, ts[2], args[0], args[2], name, e.pos); return t.k === "int" ? T_INT : t; }
       case "real": n(1); if (!ts[0] || ts[0].k !== "int") E("real() turns an int into a real", e.pos); return tReal(DIMLESS);
+      case "int": n(1); dl(ts[0], 0); if (ts[0] && ts[0].k === "arr") E("int() takes a number", e.pos); return T_INT;
+      case "band": case "bor": case "bxor": case "shl": case "shr":
+        n(2); if (!(ts[0] && ts[0].k === "int" && ts[1] && ts[1].k === "int")) E(`${name} takes two ints (non-negative, below 2^53)`, e.pos); return T_INT;
       case "div": case "rem": n(2); if (!(ts[0] && ts[0].k === "int" && ts[1] && ts[1].k === "int")) E(`${name} takes two ints (whole-number division, truncated as in C)`, e.pos); return T_INT;
       case "len": n(1); if (!ts[0] || ts[0].k !== "arr") E("len() takes an array", e.pos); return T_INT;
       case "dot": { n(2); const a = vec(ts[0], 0), b = vec(ts[1], 1); if (a.n !== b.n) E(`dot: lengths ${a.n} and ${b.n}`, e.pos); return tReal(dimAdd(a.dim, b.dim)); }
@@ -876,7 +887,11 @@ function check(files) {
       if (!assigned.has(o.name) && !(touched.has(o.name) && o.ty.k !== "real" && o.ty.k !== "int" && o.ty.k !== "bool"))
         E(`${it.name}: output ${o.name} is not set on every path`, it.pos);
     }
-    for (const p of it.params) if (p.range) {
+    for (const p of it.params) checkRange(it, p);
+  }
+  for (const r of Object.values(prog.records)) for (const f of r.fields) checkRange(r, f);
+  function checkRange(it, p) {
+    if (p.range) {
       // a bound with no unit is in the input's own unit: t_slew: real[s] in 1 .. 600
       scopeStack.length = 0; scopeStack.push(new Map());
       // on an array the range bounds each element
@@ -955,6 +970,16 @@ function zeroOf(t, prog) {
 }
 class RunError extends Error {}
 
+// integer bit operations on non-negative ints below 2^53, exact (JavaScript's own operators are 32-bit)
+function bitop(f, a, b, pos) {
+  if (!(Number.isInteger(a) && Number.isInteger(b) && a >= 0 && b >= 0 && a < 2 ** 53 && b < 2 ** 53))
+    throw new RunError(`${f}(${a}, ${b}): bit operations take non-negative ints below 2^53 (line ${pos.line})`);
+  if (f === "shl") { const r = a * 2 ** b; if (r >= 2 ** 53) throw new RunError(`shl(${a}, ${b}) passes 2^53 (line ${pos.line})`); return r; }
+  if (f === "shr") return Math.floor(a / 2 ** b);
+  const A = BigInt(a), B = BigInt(b);
+  return Number(f === "band" ? A & B : f === "bor" ? A | B : A ^ B);
+}
+
 function makeInterpreter(prog) {
   const constVals = {};
   const ev = (e, env) => {
@@ -1023,6 +1048,8 @@ function makeInterpreter(prog) {
         case "max": return args.reduce((m, x) => rt.max(m, x));
         case "clamp": return rt.clamp(args[0], args[1], args[2]);
         case "real": return args[0];
+        case "int": { const v = Math.trunc(args[0]); if (!(Math.abs(v) < 2 ** 53)) throw new RunError(`int(${args[0]}): not a finite number below 2^53 (line ${e.pos.line})`); return v === 0 ? 0 : v; }
+        case "band": case "bor": case "bxor": case "shl": case "shr": return bitop(e.f, args[0], args[1], e.pos);
         case "div": if (args[1] === 0) throw new RunError(`div by zero (line ${e.pos.line})`); return Math.trunc(args[0] / args[1]);
         case "rem": if (args[1] === 0) throw new RunError(`rem by zero (line ${e.pos.line})`); return args[0] % args[1];
         case "len": return args[0].length;

@@ -29,7 +29,9 @@ if (errors.length) {
   process.exit(1);
 }
 
-const flatten = (v) => (Array.isArray(v) ? v.flatMap(flatten) : typeof v === "boolean" ? [v ? 1 : 0] : [v]);
+// a value as numbers: arrays element by element, a record field by field in declaration order
+const flatten = (v) => (Array.isArray(v) ? v.flatMap(flatten) : typeof v === "boolean" ? [v ? 1 : 0]
+  : v && typeof v === "object" ? Object.values(v).flatMap(flatten) : [v]);
 
 // a double's exact bits as [high, low] 32-bit words: for readers whose decimal parsing is not
 // correctly rounded (Octave's jsondecode)
@@ -82,10 +84,14 @@ switch (cmd) {
     // per fn: n input sets drawn inside each input's range (log-uniform for a positive range),
     // and the interpreter's outputs; a set that makes the interpreter fail is left out
     const I = makeInterpreter(program);
-    const n = +(opt.n || 12), rand = prng(+(opt.seed || 1));
+    // n vectors a function, or fewer where its inputs and outputs are many (--budget values a function)
+    const nWant = +(opt.n || 12), budget = +(opt.budget || 1e9), rand = prng(+(opt.seed || 1));
+    const width = (t) => (t.k === "arr" ? t.n * width(t.of) : t.k === "rec" ? program.records[t.name].fields.reduce((a, f) => a + width(f.ty), 0) : 1);
     const res = {};
     for (const f of Object.values(program.fns)) {
-      if (![...f.params, ...f.outs].every((x) => x.ty.k !== "rec")) continue;
+      // a function may ask for its own count in its documentation (`## vectors: 96`): a branchy one
+      const asked = (f.doc || []).map((d) => /^vectors:\s*(\d+)\s*$/.exec(d)).find(Boolean);
+      const n = asked ? +asked[1] : Math.max(4, Math.min(nWant, Math.floor(budget / [...f.params, ...f.outs].reduce((a, x) => a + width(x.ty), 0))));
       const draw = (p) => {
         const t = p.ty;
         const scalar = (lo, hi, isI) => {
@@ -94,6 +100,7 @@ switch (cmd) {
         };
         const range = p.range ? p.range.map((r) => r.bound) : null;
         const one = (tt) => {
+          if (tt.k === "rec") return Object.fromEntries(program.records[tt.name].fields.map((fl) => [fl.name, draw(fl)]));
           if (tt.k === "arr") return Array.from({ length: tt.n }, () => one(tt.of));
           if (tt.k === "bool") return rand() < 0.5;
           if (tt.k === "int") return scalar(range ? range[0] : 0, range ? range[1] : 10, true);
@@ -119,8 +126,22 @@ switch (cmd) {
         res[`${f.module}::${f.name}`] = { exact: !usesTranscendental(f), proc: true, sets };
         continue;
       }
-      for (let k = 0; k < n * 3 && sets.length < n; k++) {
+      // or that its inputs be drawn through another fn (`## inputs from: uart_stream`): that fn's
+      // outputs give the inputs of the same name, the rest are drawn as usual
+      const from = (f.doc || []).map((d) => /^inputs from:\s*(\w+)\s*$/.exec(d)).find(Boolean);
+      const g = from ? program.fns[from[1]] : null;
+      if (from && !g) { process.stderr.write(`pcode_cli: ${f.name}: inputs from ${from[1]}, which is no fn\n`); process.exit(1); }
+      const drawAll = () => {
         const ins = f.params.map(draw);
+        if (g) {
+          const go = I.call(g.name, g.params.map(draw));
+          g.outs.forEach((o, j) => { const i = f.params.findIndex((p) => p.name === o.name); if (i >= 0) ins[i] = go[j]; });
+        }
+        return ins;
+      };
+      for (let k = 0; k < n * 3 && sets.length < n; k++) {
+        let ins;
+        try { ins = drawAll(); } catch (e) { continue; }
         try {
           const o = I.call(f.name, ins);
           const fo = o.flatMap(flatten);

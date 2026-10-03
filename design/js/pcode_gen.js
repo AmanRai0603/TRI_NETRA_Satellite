@@ -139,8 +139,14 @@ export function toRust(prog, opts = {}) {
         }
         case "clamp": return isInt(e.ty) ? `rt::imin(rt::imax(${ex(a[0])}, ${ex(a[1])}), ${ex(a[2])})` : `rt::clamp(${R(0)}, ${R(1)}, ${R(2)})`;
         case "real": return `(${ex(a[0])} as f64)`;
+        case "int": return `(${R(0)} as i64)`;
         case "div": return `(${ex(a[0])} / ${ex(a[1])})`;
         case "rem": return `(${ex(a[0])} % ${ex(a[1])})`;
+        case "band": return `(${ex(a[0])} & ${ex(a[1])})`;
+        case "bor": return `(${ex(a[0])} | ${ex(a[1])})`;
+        case "bxor": return `(${ex(a[0])} ^ ${ex(a[1])})`;
+        case "shl": return `(${ex(a[0])} << ${ex(a[1])})`;
+        case "shr": return `(${ex(a[0])} >> ${ex(a[1])})`;
         case "len": return String(a[0].ty.n);
         case "dot": return `rt::dot(${ex(a[0])}, ${ex(a[1])})`;
         case "cross": return `rt::cross(${ex(a[0])}, ${ex(a[1])})`;
@@ -428,8 +434,14 @@ export function toMatlab(prog, opts = {}) {
         case "min": case "max": return a.slice(1).reduce((acc, x) => `${rtp}.f${f}(${acc}, ${x})`, a[0]);
         case "clamp": return `${rtp}.clamp(${a[0]}, ${a[1]}, ${a[2]})`;
         case "real": return a[0];
+        case "int": return `fix(${a[0]})`;
         case "div": return `fix((${a[0]}) / (${a[1]}))`;
         case "rem": return `rem(${a[0]}, ${a[1]})`;
+        case "band": return `bitand(${a[0]}, ${a[1]})`;
+        case "bor": return `bitor(${a[0]}, ${a[1]})`;
+        case "bxor": return `bitxor(${a[0]}, ${a[1]})`;
+        case "shl": return `bitshift(${a[0]}, ${a[1]})`;
+        case "shr": return `bitshift(${a[0]}, -(${a[1]}))`;
         case "len": return String(e.args[0].ty.n);
         case "dot": return `${rtp}.dot_(${a[0]}, ${a[1]})`;
         case "cross": return `${rtp}.cross_(${a[0]}, ${a[1]})`;

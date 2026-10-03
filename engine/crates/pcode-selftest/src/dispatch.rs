@@ -36,6 +36,17 @@ pub fn call(name: &str, x: &[f64]) -> Option<Vec<f64>> {
             out.push(r.8);
             out.push(if r.9 { 1.0 } else { 0.0 });
         }
+        "selftest::bits" => {
+            if x.len() != 6 { return None; }
+            let r = crate::selftest::bits([x[0] as i64, x[1] as i64, x[2] as i64, x[3] as i64], x[4] as i64, x[5]);
+            out.push(r.0 as f64);
+            out.push(r.1 as f64);
+            out.push(r.2 as f64);
+            out.push(r.3 as f64);
+            out.push(r.4 as f64);
+            out.push(r.5 as f64);
+            out.push(r.6 as f64);
+        }
         "selftest::loops" => {
             if x.len() != 7 { return None; }
             let r = crate::selftest::loops([x[0], x[1], x[2], x[3], x[4], x[5]], x[6] as i64);

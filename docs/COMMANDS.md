@@ -54,7 +54,7 @@
 | [`macapp.py macapp`](#macapppy-macapp) | The macOS desktop app, TRI-NETRA ADCS.app, from a macOS kit: the app program in Contents/MacOS, the kit's data in Contents/Resources, the icon, Info.plist and PkgInfo. The release workflow signs it and zips it. |
 | [`build_wheel.py build-wheel`](#build_wheelpy-build-wheel) | One Python package for every computer: the front end (python/trinetra_adcs), the engine and the desktop app for each system given, and the data; it installs trinetra-adcs and trinetra-adcs-app and compiles nothing. |
 | [`adcs-sim scenario-schema`](#adcs-sim-scenario-schema) | The scenario schema for the MATLAB twin: every scenario key the engine reads, with its type, written from the engine's own table so the twin refuses exactly what the engine refuses. |
-| [`pcode.py pcode`](#pcodepy-pcode) | Pseudocode v2 (docs/PSEUDOCODE_V2.md): check a file (units, types, every output set, no recursion), run a function in the interpreter, and write or check everything it makes: the physics (spec/physics/*.pc) as a Rust crate and a MATLAB package with test vectors from the interpreter, the language's self-test the same way, the MATLAB runtime, and the browser checker page. gen --check also holds the physics to spec/plan/physics.toml; fixtures runs the seeded, sourced test vectors of the physics rows. |
+| [`pcode.py pcode`](#pcodepy-pcode) | Pseudocode v2 (docs/PSEUDOCODE_V2.md): check a file (units, types, every output set, no recursion), run a function in the interpreter, and write or check everything it makes: the physics (spec/physics/*.pc) as a Rust crate and a MATLAB package with test vectors from the interpreter, the language's self-test the same way, the flight algorithms (fsw/pseudocode/*.pc) as test vectors for the C and Rust flight software, the MATLAB runtime, and the browser checker page. gen --check also holds the physics to spec/plan/physics.toml; fixtures runs the seeded, sourced test vectors of the physics rows. |
 
 ## adcs run
 
@@ -434,7 +434,7 @@ The flight software's parameter and table sources, C and Rust, from their one de
 2. write the C header and source and the Rust module
 
 - **Reads:** `fsw/params/params.toml`; `matlab_sils/data/igrf13coeffs.txt`
-- **Writes:** `fsw/include/adcs_params.h`; `fsw/src/adcs_params.c`; `fsw-rs/src/params.rs`; `matlab_sils/data/igrf13.json`; `fsw/include/adcs_igrf13.h`; `fsw-rs/src/igrf13.rs`
+- **Writes:** `fsw/include/adcs_params.h`; `fsw/src/adcs_params.c`; `fsw-rs/src/params.rs`; `matlab_sils/data/igrf13.json`; `fsw/include/adcs_igrf13.h`; `fsw-rs/src/igrf13.rs`; `fsw/pseudocode/02_igrf13.pc`
 - **Starts:** nothing
 
 ## fsw_stack.py fsw-stack
@@ -834,7 +834,7 @@ The scenario schema for the MATLAB twin: every scenario key the engine reads, wi
 
 ## pcode.py pcode
 
-Pseudocode v2 (docs/PSEUDOCODE_V2.md): check a file (units, types, every output set, no recursion), run a function in the interpreter, and write or check everything it makes: the physics (spec/physics/*.pc) as a Rust crate and a MATLAB package with test vectors from the interpreter, the language's self-test the same way, the MATLAB runtime, and the browser checker page. gen --check also holds the physics to spec/plan/physics.toml; fixtures runs the seeded, sourced test vectors of the physics rows.
+Pseudocode v2 (docs/PSEUDOCODE_V2.md): check a file (units, types, every output set, no recursion), run a function in the interpreter, and write or check everything it makes: the physics (spec/physics/*.pc) as a Rust crate and a MATLAB package with test vectors from the interpreter, the language's self-test the same way, the flight algorithms (fsw/pseudocode/*.pc) as test vectors for the C and Rust flight software, the MATLAB runtime, and the browser checker page. gen --check also holds the physics to spec/plan/physics.toml; fixtures runs the seeded, sourced test vectors of the physics rows.
 
     python3 tools/pcode.py check FILE... | run FILE... --fn NAME --args JSON | gen [--check] | fixtures
 
@@ -845,6 +845,6 @@ Pseudocode v2 (docs/PSEUDOCODE_V2.md): check a file (units, types, every output 
 3. draw test vectors from the interpreter
 4. write or compare every generated file
 
-- **Reads:** `spec/physics/`; `design/pcode_selftest/`; `design/js/pcode.js`; `design/js/pcode_gen.js`; `design/js/pcode_check.template.html`; `spec/plan/physics.toml`; `spec/plan/seed_content.toml`
-- **Writes:** `engine/crates/adcs-physics/`; `engine/crates/pcode-selftest/`; `matlab_sils/+asils/+physics/`; `matlab_sils/+asils/+pcselftest/`; `matlab_sils/+asils/+pc/`; `matlab_sils/data/physics_vectors.json`; `matlab_sils/data/pcselftest_vectors.json`; `design/pcode_checker.html`
+- **Reads:** `spec/physics/`; `design/pcode_selftest/`; `fsw/pseudocode/`; `design/js/pcode.js`; `design/js/pcode_gen.js`; `design/js/pcode_check.template.html`; `spec/plan/physics.toml`; `spec/plan/seed_content.toml`
+- **Writes:** `engine/crates/adcs-physics/`; `engine/crates/pcode-selftest/`; `matlab_sils/+asils/+physics/`; `matlab_sils/+asils/+pcselftest/`; `matlab_sils/+asils/+pc/`; `matlab_sils/data/physics_vectors.json`; `matlab_sils/data/pcselftest_vectors.json`; `fsw/tests/pcode_vectors.txt`; `design/pcode_checker.html`
 - **Starts:** node

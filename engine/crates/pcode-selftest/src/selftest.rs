@@ -117,6 +117,53 @@ pub fn numbers(a: f64, b: f64, n: i64, m: i64) -> (f64, f64, f64, f64, f64, f64,
     (lo, hi, cl, ri, fl, fm, q, ni, pick, pos)
 }
 
+/// Bits and casts: the CRC-16/CCITT of four bytes, the halves of a 16-bit word swapped, a rounding
+/// by cast (half away from zero) and its quotient and remainder by 7, truncated.
+/// - b: int[4] (passed a whole number)
+/// - w: int (passed a whole number)
+/// - x: real[1] (passed a plain number)
+/// - returns c: int (passed a whole number)
+/// - returns hi: int (passed a whole number)
+/// - returns lo: int (passed a whole number)
+/// - returns sw: int (passed a whole number)
+/// - returns r: int (passed a whole number)
+/// - returns d: int (passed a whole number)
+/// - returns m: int (passed a whole number)
+#[allow(clippy::too_many_arguments)]
+pub fn bits(b: [i64; 4], w: i64, x: f64) -> (i64, i64, i64, i64, i64, i64, i64) {
+    let mut c: i64 = 0;
+    let mut hi: i64 = 0;
+    let mut lo: i64 = 0;
+    let mut sw: i64 = 0;
+    let mut r: i64 = 0;
+    let mut d: i64 = 0;
+    let mut m: i64 = 0;
+    c = 65535;
+    {
+        let __end2: i64 = 4;
+        let mut i: i64 = 0;
+        while i < __end2 {
+            c = (c ^ (b[(i) as usize] << 8));
+            {
+                let __end3: i64 = 8;
+                let mut k: i64 = 0;
+                while k < __end3 {
+                    c = (if ((c & 32768) != 0) { (((c << 1) ^ 4129) & 65535) } else { ((c << 1) & 65535) });
+                    k += 1;
+                }
+            }
+            i += 1;
+        }
+    }
+    hi = (w >> 8);
+    lo = (w & 255);
+    sw = ((lo << 8) | hi);
+    r = ((if (x < 0.0) { (x - 0.5) } else { (x + 0.5) }) as i64);
+    d = (r / 7);
+    m = (r % 7);
+    (c, hi, lo, sw, r, d, m)
+}
+
 /// Loops, a record, and an index that is computed.
 /// - v: real[m][6] (passed in m)
 /// - k: int (passed a whole number)
@@ -137,9 +184,9 @@ pub fn loops(v: [f64; 6], k: i64) -> (f64, f64, f64, i64, [f64; 3]) {
     prod = 1.0;
     count = 0;
     {
-        let __end2: i64 = 6;
+        let __end4: i64 = 6;
         let mut i: i64 = 0;
-        while i < __end2 {
+        while i < __end4 {
             sum = (sum + v[(i) as usize]);
             prod = (prod * (1.0 + (v[(i) as usize] / 10.0)));
             if (v[(i) as usize] > 0.0) {
@@ -151,9 +198,9 @@ pub fn loops(v: [f64; 6], k: i64) -> (f64, f64, f64, i64, [f64; 3]) {
         }
     }
     {
-        let __end3: i64 = 3;
+        let __end5: i64 = 3;
         let mut j: i64 = 0;
-        while j < __end3 {
+        while j < __end5 {
             p.v[(j) as usize] = v[((j + 3)) as usize];
             p.m[(j) as usize][(j) as usize] = 1.0;
             j += 1;
@@ -204,10 +251,10 @@ pub fn reuse(a: f64) -> (f64, i64, f64) {
     let mut steps: i64 = 0;
     let mut twice: f64 = 0.0;
     let mut ok: bool = true;
-    let __t4 = crate::selftest::root(a, 30);
-    r = __t4.0;
-    steps = __t4.1;
-    ok = __t4.2;
+    let __t6 = crate::selftest::root(a, 30);
+    r = __t6.0;
+    steps = __t6.1;
+    ok = __t6.2;
     twice = (2.0 * r);
     if (!ok) {
         twice = 0.0;

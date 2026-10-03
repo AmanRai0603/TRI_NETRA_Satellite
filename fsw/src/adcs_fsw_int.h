@@ -72,6 +72,15 @@ void adcs_modes_enter(fsw_t *s, uint8_t mode);
 void adcs_modes_schedule(fsw_t *s);
 void adcs_modes_step(fsw_t *s, double dt);
 
+/* the shell's own laws over the state (adcs_fsw.c), held to fsw/pseudocode/05_control.pc,
+ * 07_allocation.pc and 02_time_frames_models.pc */
+void adcs_orbit_acc(const adcs_real r[3], adcs_real mu, adcs_real a[3]);
+void adcs_ctl_mtq(fsw_t *st);
+int adcs_ctl_capture(fsw_t *st, const adcs_real Hdev[3]);
+void adcs_ctl_sun_acq(fsw_t *st, const adcs_real Hdev[3]);
+void adcs_alloc_rotors(fsw_t *st, const adcs_real tau_rot[3], adcs_real A[3][8], adcs_real cmd_r[NR], adcs_real cmd_g[NG]);
+void adcs_alloc_idle(fsw_t *st, adcs_real cmd_r[NR], int zero_cmg);
+
 /* FDIR (adcs_fdir.c) */
 void adcs_fdir_sensors(fsw_t *s, double dt);
 void adcs_fdir_safe(fsw_t *s);

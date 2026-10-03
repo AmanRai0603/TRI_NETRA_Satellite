@@ -242,7 +242,7 @@ usage = "python3 tools/gen_fsw_params.py [--check]"
 what = "The flight software's parameter and table sources, C and Rust, from their one definition. --check says which generated file is stale, and changes nothing."
 steps = ["read fsw/params/params.toml and the IGRF table", "write the C header and source and the Rust module"]
 reads = ["fsw/params/params.toml", "matlab_sils/data/igrf13coeffs.txt"]
-writes = ["fsw/include/adcs_params.h", "fsw/src/adcs_params.c", "fsw-rs/src/params.rs", "matlab_sils/data/igrf13.json", "fsw/include/adcs_igrf13.h", "fsw-rs/src/igrf13.rs"]
+writes = ["fsw/include/adcs_params.h", "fsw/src/adcs_params.c", "fsw-rs/src/params.rs", "matlab_sils/data/igrf13.json", "fsw/include/adcs_igrf13.h", "fsw-rs/src/igrf13.rs", "fsw/pseudocode/02_igrf13.pc"]
 runs = []
 
 [[command]]
@@ -501,9 +501,9 @@ runs = ["cargo"]
 tool = "pcode.py"
 name = "pcode"
 usage = "python3 tools/pcode.py check FILE... | run FILE... --fn NAME --args JSON | gen [--check] | fixtures"
-what = "Pseudocode v2 (docs/PSEUDOCODE_V2.md): check a file (units, types, every output set, no recursion), run a function in the interpreter, and write or check everything it makes: the physics (spec/physics/*.pc) as a Rust crate and a MATLAB package with test vectors from the interpreter, the language's self-test the same way, the MATLAB runtime, and the browser checker page. gen --check also holds the physics to spec/plan/physics.toml; fixtures runs the seeded, sourced test vectors of the physics rows."
+what = "Pseudocode v2 (docs/PSEUDOCODE_V2.md): check a file (units, types, every output set, no recursion), run a function in the interpreter, and write or check everything it makes: the physics (spec/physics/*.pc) as a Rust crate and a MATLAB package with test vectors from the interpreter, the language's self-test the same way, the flight algorithms (fsw/pseudocode/*.pc) as test vectors for the C and Rust flight software, the MATLAB runtime, and the browser checker page. gen --check also holds the physics to spec/plan/physics.toml; fixtures runs the seeded, sourced test vectors of the physics rows."
 steps = ["check the pseudocode", "translate it to Rust and MATLAB", "draw test vectors from the interpreter", "write or compare every generated file"]
-reads = ["spec/physics/", "design/pcode_selftest/", "design/js/pcode.js", "design/js/pcode_gen.js", "design/js/pcode_check.template.html", "spec/plan/physics.toml", "spec/plan/seed_content.toml"]
-writes = ["engine/crates/adcs-physics/", "engine/crates/pcode-selftest/", "matlab_sils/+asils/+physics/", "matlab_sils/+asils/+pcselftest/", "matlab_sils/+asils/+pc/", "matlab_sils/data/physics_vectors.json", "matlab_sils/data/pcselftest_vectors.json", "design/pcode_checker.html"]
+reads = ["spec/physics/", "design/pcode_selftest/", "fsw/pseudocode/", "design/js/pcode.js", "design/js/pcode_gen.js", "design/js/pcode_check.template.html", "spec/plan/physics.toml", "spec/plan/seed_content.toml"]
+writes = ["engine/crates/adcs-physics/", "engine/crates/pcode-selftest/", "matlab_sils/+asils/+physics/", "matlab_sils/+asils/+pcselftest/", "matlab_sils/+asils/+pc/", "matlab_sils/data/physics_vectors.json", "matlab_sils/data/pcselftest_vectors.json", "fsw/tests/pcode_vectors.txt", "design/pcode_checker.html"]
 runs = ["node"]
 

@@ -22,7 +22,7 @@ static fsw_t S;
 #define ST_NORM_TOL 1e-3
 
 /* two-body + J2 acceleration in J2000 (the pole of date is 0.4 deg off: second order on J2) */
-static void orbit_acc(const adcs_real r[3], adcs_real mu, adcs_real a[3])
+void adcs_orbit_acc(const adcs_real r[3], adcs_real mu, adcs_real a[3])
 {
     adcs_real rn = adcs_norm3(r), r2, zr, k, f;
     if (!(rn > 1.0)) { adcs_zero3(a); return; }         /* no orbit to speak of: no acceleration, not a division by zero */
@@ -99,33 +99,33 @@ int32_t adcs_fsw_init(const adcs_fsw_init_t *init)
 }
 
 /* ---------------- helpers of the step ---------------- */
-static void mtq_law(void)
+void adcs_ctl_mtq(fsw_t *st)
 {
-    const adcs_params_t *p = &S.p;
+    const adcs_params_t *p = &st->p;
     adcs_real zero[3] = {0, 0, 0};
     if (p->mtq_law == 0) {
-        adcs_mtq_pd(S.K.q, S.w_est, S.q_ref, S.w_ref, &S.g_mtq, S.tau_req);
+        adcs_mtq_pd(st->K.q, st->w_est, st->q_ref, st->w_ref, &st->g_mtq, st->tau_req);
     } else if (p->mtq_law == 3) {             /* rate damping relative to the reference */
         adcs_real qc[4], qe[4], A[3][3], wr[3]; int i;
-        adcs_qconj(S.q_ref, qc); adcs_qmult(qc, S.K.q, qe);
-        adcs_dcm(qe, A); adcs_mat3_vec(A, S.w_ref, wr);
-        for (i = 0; i < 3; i++) S.tau_req[i] = -S.g_mtq.Kd[i]*(S.w_est[i] - wr[i]);
+        adcs_qconj(st->q_ref, qc); adcs_qmult(qc, st->K.q, qe);
+        adcs_dcm(qe, A); adcs_mat3_vec(A, st->w_ref, wr);
+        for (i = 0; i < 3; i++) st->tau_req[i] = -st->g_mtq.Kd[i]*(st->w_est[i] - wr[i]);
     } else if (p->mtq_law == 4) {             /* P1 Lovera & Astolfi 2004 */
-        adcs_mtq_lovera(S.K.q, S.w_est, S.q_ref, S.w_ref, S.p.J, p->mtq_eps, p->mtq_k1, p->mtq_k2, S.tau_req);
+        adcs_mtq_lovera(st->K.q, st->w_est, st->q_ref, st->w_ref, st->p.J, p->mtq_eps, p->mtq_k1, p->mtq_k2, st->tau_req);
     } else if (p->mtq_law == 5 ||             /* P4 Celani 2015; also P16 when the reference does not rotate */
-               (p->mtq_law == 6 && !adcs_mtq_avanzini(S.K.q, S.w_est, S.q_ref, S.w_ref, S.p.J, p->mtq_k16, p->mtq_lam16, S.tau_req))) {
-        adcs_mtq_celani(S.K.q, S.w_est, S.q_ref, S.w_ref, p->mtq_eps, p->mtq_k1, p->mtq_k2, S.tau_req);
+               (p->mtq_law == 6 && !adcs_mtq_avanzini(st->K.q, st->w_est, st->q_ref, st->w_ref, st->p.J, p->mtq_k16, p->mtq_lam16, st->tau_req))) {
+        adcs_mtq_celani(st->K.q, st->w_est, st->q_ref, st->w_ref, p->mtq_eps, p->mtq_k1, p->mtq_k2, st->tau_req);
     } else if (p->mtq_law == 6) {             /* P16 Avanzini 2021: tau set by the call above */
     } else if (p->mtq_law == 7) {             /* P8 Celani 2026 boresight */
         adcs_real qc[4], qe[4], A[3][3], wr[3], we[3], e3[3], a[3]; int i;
-        adcs_qconj(S.q_ref, qc); adcs_qmult(qc, S.K.q, qe);
-        adcs_dcm(qe, A); adcs_mat3_vec(A, S.w_ref, wr);
-        for (i = 0; i < 3; i++) we[i] = S.w_est[i] - wr[i];
-        adcs_copy3(S.mode == ADCS_MODE_SUN_MTQ ? p->sun_axis : p->roll_axis, e3);
-        if (S.mode == ADCS_MODE_SUN_MTQ && S.s_prop_ok) adcs_unit(S.s_prop, a);
+        adcs_qconj(st->q_ref, qc); adcs_qmult(qc, st->K.q, qe);
+        adcs_dcm(qe, A); adcs_mat3_vec(A, st->w_ref, wr);
+        for (i = 0; i < 3; i++) we[i] = st->w_est[i] - wr[i];
+        adcs_copy3(st->mode == ADCS_MODE_SUN_MTQ ? p->sun_axis : p->roll_axis, e3);
+        if (st->mode == ADCS_MODE_SUN_MTQ && st->s_prop_ok) adcs_unit(st->s_prop, a);
         else adcs_mat3_vec(A, e3, a);
-        adcs_mtq_boresight(e3, a, we, p->sb_kp, p->sb_kd, S.tau_req);
-        if (S.mode == ADCS_MODE_NADIR_MTQ && p->sb_kroll > 0 && adcs_dot(e3, a) > p->sb_roll_gate) {
+        adcs_mtq_boresight(e3, a, we, p->sb_kp, p->sb_kd, st->tau_req);
+        if (st->mode == ADCS_MODE_NADIR_MTQ && p->sb_kroll > 0 && adcs_dot(e3, a) > p->sb_roll_gate) {
             /* weak roll about the boresight: the power face p (made normal to e3) to its reference dcm(q_e) p */
             adcs_real pa[3], pd[3], c[3], d, r;
             d = adcs_dot(p->sun_axis, e3);
@@ -134,50 +134,50 @@ static void mtq_law(void)
                 adcs_unit(pa, pa); adcs_mat3_vec(A, pa, pd); adcs_cross(pa, pd, c);
                 /* the roll angle itself (atan2): a sine form gives no torque near 180 deg, where the face starts */
                 r = p->sb_kroll*atan2(adcs_dot(c, e3), adcs_dot(pa, pd)) - p->sb_kdroll*adcs_dot(we, e3);
-                for (i = 0; i < 3; i++) S.tau_req[i] += r*e3[i];
+                for (i = 0; i < 3; i++) st->tau_req[i] += r*e3[i];
             }
         }
     } else if (p->mtq_law == 8) {             /* P3 TANGO frozen-Riccati LQR */
-        adcs_mtq_tango(S.K.q, S.w_est, S.q_ref, S.w_ref, S.p.mtq_Pth, S.p.mtq_Pw, S.tau_req);
+        adcs_mtq_tango(st->K.q, st->w_est, st->q_ref, st->w_ref, st->p.mtq_Pth, st->p.mtq_Pw, st->tau_req);
     } else {
-        adcs_control_law(S.K.q, S.w_est, S.q_ref, S.w_ref, S.I_q, p->mtq_period, &S.g_mtq, S.p.J, zero, zero, S.tau_req);
+        adcs_control_law(st->K.q, st->w_est, st->q_ref, st->w_ref, st->I_q, p->mtq_period, &st->g_mtq, st->p.J, zero, zero, st->tau_req);
     }
 }
 
-static int capture_law(const adcs_real Hdev[3])
+int adcs_ctl_capture(fsw_t *st, const adcs_real Hdev[3])
 {
-    adcs_params_t *p = &S.p;
+    adcs_params_t *p = &st->p;
     adcs_real qe[4], th, e[3], Jm, alpha, wmax, wref[3], wc[3], A[3][3], Jw[3], H[3], gy[3], x[3], kr, mincap, minh, sp;
     int i;
-    if (S.mode == ADCS_MODE_SLEW_FINE || p->capture_deg <= 0) return 0;
-    adcs_qerr(S.q_ref, S.K.q, qe);
+    if (st->mode == ADCS_MODE_SLEW_FINE || p->capture_deg <= 0) return 0;
+    adcs_qerr(st->q_ref, st->K.q, qe);
     th = 2*acos(qe[3] > 1 ? 1 : qe[3]);
     if (th < p->capture_deg*ADCS_D2R) return 0;
     { adcs_real n = adcs_norm3(qe); if (n < 1e-12) n = 1e-12; adcs_scale3(qe, 1.0/n, e); }
     Jm = p->J[0][0]; if (p->J[1][1] > Jm) Jm = p->J[1][1]; if (p->J[2][2] > Jm) Jm = p->J[2][2];
-    mincap = S.cap[0]; minh = S.hcap[0];
-    for (i = 1; i < 3; i++) { if (S.cap[i] < mincap) mincap = S.cap[i]; if (S.hcap[i] < minh) minh = S.hcap[i]; }
+    mincap = st->cap[0]; minh = st->hcap[0];
+    for (i = 1; i < 3; i++) { if (st->cap[i] < mincap) mincap = st->cap[i]; if (st->hcap[i] < minh) minh = st->hcap[i]; }
     alpha = 0.5*mincap/Jm;
     wmax = p->capture_rate_deg_s*ADCS_D2R; if (0.5*minh/Jm < wmax) wmax = 0.5*minh/Jm;
-    adcs_dcm(qe, A); adcs_mat3_vec(A, S.w_ref, wref);
+    adcs_dcm(qe, A); adcs_mat3_vec(A, st->w_ref, wref);
     sp = sqrt(2*alpha*th); if (wmax < sp) sp = wmax;
     for (i = 0; i < 3; i++) wc[i] = wref[i] - e[i]*sp;
     kr = 4*alpha/(wmax > 1e-6 ? wmax : 1e-6); if (kr > 0.5) kr = 0.5;
-    adcs_mat3_vec(p->J, S.w_est, Jw); adcs_add3(Jw, Hdev, H); adcs_cross(S.w_est, H, gy);
-    for (i = 0; i < 3; i++) x[i] = kr*(wc[i] - S.w_est[i]);
-    adcs_mat3_vec(p->J, x, S.tau_req);
-    adcs_add3(S.tau_req, gy, S.tau_req);
+    adcs_mat3_vec(p->J, st->w_est, Jw); adcs_add3(Jw, Hdev, H); adcs_cross(st->w_est, H, gy);
+    for (i = 0; i < 3; i++) x[i] = kr*(wc[i] - st->w_est[i]);
+    adcs_mat3_vec(p->J, x, st->tau_req);
+    adcs_add3(st->tau_req, gy, st->tau_req);
     return 1;
 }
 
-static void sun_acq_law(const adcs_real Hdev[3])
+void adcs_ctl_sun_acq(fsw_t *st, const adcs_real Hdev[3])
 {
-    adcs_params_t *p = &S.p;
+    adcs_params_t *p = &st->p;
     adcs_real wmax = p->sa_w_max_deg_s*ADCS_D2R, wc[3] = {0, 0, 0}, s[3], c[3], a[3], Jw[3], H[3], gy[3], x[3], n;
     int i;
     adcs_copy3(p->sun_axis, a);
-    if (S.s_prop_ok) {
-        adcs_unit(S.s_prop, s);
+    if (st->s_prop_ok) {
+        adcs_unit(st->s_prop, s);
         adcs_cross(a, s, c);
         if (adcs_dot(s, a) < -0.95) {
             adcs_real ex[3] = {1, 0, 0}, ey[3] = {0, 1, 0};
@@ -187,18 +187,18 @@ static void sun_acq_law(const adcs_real Hdev[3])
         adcs_scale3(c, wmax/0.5, wc);
         n = adcs_norm3(wc); if (n > wmax) adcs_scale3(wc, wmax/n, wc);
     }
-    adcs_mat3_vec(p->J, S.w_est, Jw); adcs_add3(Jw, Hdev, H); adcs_cross(S.w_est, H, gy);
-    for (i = 0; i < 3; i++) x[i] = p->sa_kd*(wc[i] - S.w_est[i]);
-    adcs_mat3_vec(p->J, x, S.tau_req);
-    adcs_add3(S.tau_req, gy, S.tau_req);
+    adcs_mat3_vec(p->J, st->w_est, Jw); adcs_add3(Jw, Hdev, H); adcs_cross(st->w_est, H, gy);
+    for (i = 0; i < 3; i++) x[i] = p->sa_kd*(wc[i] - st->w_est[i]);
+    adcs_mat3_vec(p->J, x, st->tau_req);
+    adcs_add3(st->tau_req, gy, st->tau_req);
 }
 
-static void allocate(const adcs_real tau_rot[3], adcs_real A[3][8], adcs_real cmd_r[NR], adcs_real cmd_g[NG])
+void adcs_alloc_rotors(fsw_t *st, const adcs_real tau_rot[3], adcs_real A[3][8], adcs_real cmd_r[NR], adcs_real cmd_g[NG])
 {
-    const adcs_params_t *p = &S.p;
+    const adcs_params_t *p = &st->p;
     adcs_real Af[3][8], Pi[8][3];
     int fixed[NR], nf = 0, i, k;
-    for (i = 0; i < p->nr; i++) if (p->rot_gi[i] == 0 && !S.rot_failed[i]) fixed[nf++] = i;
+    for (i = 0; i < p->nr; i++) if (p->rot_gi[i] == 0 && !st->rot_failed[i]) fixed[nf++] = i;
     if (nf > 0) {
         for (i = 0; i < nf; i++) for (k = 0; k < 3; k++) Af[k][i] = A[k][fixed[i]];
         adcs_pinv_rows(Af, nf, Pi);
@@ -208,18 +208,18 @@ static void allocate(const adcs_real tau_rot[3], adcs_real A[3][8], adcs_real cm
         adcs_real hdot[NR];
         int wheels = 0;
         for (i = 0; i < p->nr; i++) if (p->rot_kind[i] == 3) wheels = 1;
-        adcs_steer_sr(tau_rot, A, S.z.h, p, wheels, cmd_g, hdot);
+        adcs_steer_sr(tau_rot, A, st->z.h, p, wheels, cmd_g, hdot);
         if (wheels)
-            for (i = 0; i < p->nr; i++) if (p->rot_gi[i] > 0) cmd_r[i] = hdot[i] - p->cmg_k_null*(S.z.h[i] - p->rot_h0[i]);
+            for (i = 0; i < p->nr; i++) if (p->rot_gi[i] > 0) cmd_r[i] = hdot[i] - p->cmg_k_null*(st->z.h[i] - p->rot_h0[i]);
     }
 }
 
-static void idle_rotors(adcs_real cmd_r[NR], int zero_cmg)
+void adcs_alloc_idle(fsw_t *st, adcs_real cmd_r[NR], int zero_cmg)
 {
     int i;
-    for (i = 0; i < S.p.nr; i++) {
-        cmd_r[i] = -0.2*(S.z.h[i] - S.h_t_rot[i]);
-        if (zero_cmg && S.p.rot_gi[i] > 0 && S.p.rot_kind[i] == 2) cmd_r[i] = 0;
+    for (i = 0; i < st->p.nr; i++) {
+        cmd_r[i] = -0.2*(st->z.h[i] - st->h_t_rot[i]);
+        if (zero_cmg && st->p.rot_gi[i] > 0 && st->p.rot_kind[i] == 2) cmd_r[i] = 0;
     }
 }
 
@@ -250,17 +250,17 @@ int32_t adcs_fsw_step(uint64_t now_ns)
         } else { adcs_copy3(z->r, S.r); adcs_copy3(z->v, S.v); }
         if (L > 0) {                 /* carried forward to now: one Verlet step of L */
             adcs_real a0[3], a1[3];
-            orbit_acc(S.r, p->mu, a0);
+            adcs_orbit_acc(S.r, p->mu, a0);
             for (i = 0; i < 3; i++) S.r[i] += S.v[i]*L + 0.5*a0[i]*L*L;
-            orbit_acc(S.r, p->mu, a1);
+            adcs_orbit_acc(S.r, p->mu, a1);
             for (i = 0; i < 3; i++) S.v[i] += 0.5*(a0[i] + a1[i])*L;
         }
         S.have_r = 1;
     } else if (S.have_r) {
         adcs_real a0[3], a1[3];
-        orbit_acc(S.r, p->mu, a0);
+        adcs_orbit_acc(S.r, p->mu, a0);
         for (i = 0; i < 3; i++) S.r[i] += S.v[i]*dt + 0.5*a0[i]*dt*dt;
-        orbit_acc(S.r, p->mu, a1);
+        adcs_orbit_acc(S.r, p->mu, a1);
         for (i = 0; i < 3; i++) S.v[i] += 0.5*(a0[i] + a1[i])*dt;
     }
 
@@ -392,7 +392,7 @@ int32_t adcs_fsw_step(uint64_t now_ns)
                 adcs_copy3(b, S.b1); S.b1_ok = 1;
             }
         }
-        if (nr > 0) idle_rotors(cmd_r, 1);
+        if (nr > 0) adcs_alloc_idle(&S, cmd_r, 1);
         break;
 
     case ADCS_MODE_DETUMBLE_RCS: {
@@ -413,7 +413,7 @@ int32_t adcs_fsw_step(uint64_t now_ns)
             S.rcs_left[i] -= dt; if (S.rcs_left[i] < 0) S.rcs_left[i] = 0;
         }
         adcs_zero3(m_body);
-        if (nr > 0) idle_rotors(cmd_r, 1);
+        if (nr > 0) adcs_alloc_idle(&S, cmd_r, 1);
         break; }
 
     case ADCS_MODE_NADIR_MTQ:
@@ -440,7 +440,7 @@ int32_t adcs_fsw_step(uint64_t now_ns)
                 adcs_scale3(m_body, Bn > 1e-9 ? p->bdot_k/Bn : 0.0, m_body);     /* no field: no dipole */
                 adcs_zero3(S.tau_req);
             } else {
-                mtq_law();
+                adcs_ctl_mtq(&S);
                 if (p->mtq_gg_ff & (S.mode == ADCS_MODE_SUN_MTQ ? 1 : 2)) {
                     /* cancel the modelled gravity-gradient torque, 3 mu/|r|^5 (r_b x J r_b) */
                     adcs_real Ab[3][3], rb[3], Jr[3], c[3], rn, f;
@@ -463,11 +463,11 @@ int32_t adcs_fsw_step(uint64_t now_ns)
         for (i = 0; i < nr; i++) { Hdev[0] += A[0][i]*z->h[i]; Hdev[1] += A[1][i]*z->h[i]; Hdev[2] += A[2][i]*z->h[i]; }
         adcs_fdir_rotors(&S, dt);
         /* control law at the control rate */
-        if (acq && S.t - S.last_ctrl >= p->rw_dt - 1e-9) { sun_acq_law(Hdev); S.last_ctrl = S.t; }
+        if (acq && S.t - S.last_ctrl >= p->rw_dt - 1e-9) { adcs_ctl_sun_acq(&S, Hdev); S.last_ctrl = S.t; }
         else if (!acq && S.ad_ok && S.have_r && S.t - S.last_ctrl >= p->rw_dt - 1e-9) {
             adcs_real wd[3];
             adcs_guidance(adcs_guid_kind(S.mode), S.r, S.v, S.t, &S.gd, S.q_ref, S.w_ref, wd);
-            S.capturing = capture_law(Hdev);
+            S.capturing = adcs_ctl_capture(&S, Hdev);
             if (S.capturing) adcs_zero3(S.I_q);
             else adcs_control_law(S.K.q, S.w_est, S.q_ref, S.w_ref, S.I_q, p->rw_dt, &S.g_rw, p->J, Hdev, wd, S.tau_req);
             S.last_ctrl = S.t;
@@ -521,7 +521,7 @@ int32_t adcs_fsw_step(uint64_t now_ns)
         }
         if (ctl_ok && (S.have_r || acq) && nr > 0) {
             for (i = 0; i < 3; i++) tr[i] = S.tau_req[i] - tau_coil[i] - tau_rcs[i];
-            allocate(tr, A, cmd_r, cmd_g);
+            adcs_alloc_rotors(&S, tr, A, cmd_r, cmd_g);
         }
         for (i = 0; i < nr; i++) { S.h_prev[i] = z->h[i]; S.cmd_r_prev[i] = cmd_r[i]; }
         S.h_prev_ok = 1;
@@ -563,7 +563,7 @@ int32_t adcs_fsw_step(uint64_t now_ns)
                 if (m0[0] != 0 || m0[1] != 0 || m0[2] != 0) { adcs_sub3(m0, p->m_res_est, m_body); adcs_sat_dipole(m_body, p->m_max); }
             }
         }
-        if (nr > 0) idle_rotors(cmd_r, 0);
+        if (nr > 0) adcs_alloc_idle(&S, cmd_r, 0);
         break;
     default:                                           /* no such state (refused at init and by command): coils off */
         adcs_zero3(m_body);

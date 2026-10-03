@@ -1,0 +1,328 @@
+## 08 - The mode manager (08_mode_manager.md) and FDIR (sensor health, safe mode, rotor FDIR of
+## 07_allocation.md), operation for operation as fsw/src/adcs_modes.c and fsw/src/adcs_fdir.c (in
+## Rust fsw-rs/src/modes.rs and fdir.rs, children of fsw). They work on the flight software's own
+## state (fsw_t): here that state is a record in and a record out. Times, rates and angles of the
+## mode manager are plain numbers as in the C (s, rad/s; the spin parameters in deg and deg/s).
+module modes
+
+## The part of the flight software's state the mode manager reads and writes.
+record Modes
+    mode: int in 0 .. 10
+    t: real[1] in 0 .. 3000
+    t_mode: real[1] in 0 .. 3000
+    hold: real[1] in 0 .. 120
+    ho: bool
+    ho_t: real[1] in 0 .. 100
+    ad_ok: bool
+    n_rej: int in 0 .. 10
+    i_q: vec3[1] in -0.1 .. 0.1
+    sz_sum: real[1] in -10 .. 10
+    sz_n: int in 0 .. 30
+    sz_t0: real[1] in 0 .. 3000
+    sigma: real[1] in -1 .. 1
+    s_prop: vec3[1] in -1 .. 1
+    s_prop_ok: bool
+    acq_hold: real[1] in 0 .. 120
+    sched_i: int in 0 .. 8
+    faults: int in 0 .. 1023
+    w_est: vec3[1] in -0.3 .. 0.3
+    mag_seen: bool
+    mag_age: real[1] in 0 .. 120
+    gyro_age: real[1] in 0 .. 120
+end
+
+## The parameters the mode manager reads (adcs_params_t; auto_next 255 is none).
+record ModeParams
+    auto_next: int in 0 .. 12
+    n_sched: int in 0 .. 8
+    sched_t: real[1][8] in 0 .. 3000
+    sched_mode: int[8] in 0 .. 10
+    detumble_exit: real[1] in 0 .. 0.1
+    detumble_hold_s: real[1] in 0 .. 100
+    ss_law: int in 0 .. 2
+    ss_omega_max_dps: real[1] in 1 .. 20
+    ss_spin_dps: real[1] in 1 .. 10
+    ss_z_in_dps: real[1] in 0.1 .. 3
+    ss_perp_in_dps: real[1] in 0.1 .. 3
+    ss_t_check_s: real[1] in 10 .. 300
+    ss_sun_min: real[1] in -1 .. 1
+    ss_dwell_in_s: real[1] in 1 .. 100
+    ss_omega_exit_dps: real[1] in 0.1 .. 3
+    ss_perp_out_dps: real[1] in 0.5 .. 5
+    ss_dwell_out_s: real[1] in 1 .. 100
+    sun_axis: vec3[1] in -1 .. 1
+    sa_done_deg: real[1] in 1 .. 60
+    sa_done_hold_s: real[1] in 1 .. 100
+end
+
+## Enter a controller state: the dwell timers reset, the integral cleared; the states that skip
+## estimation (detumble, thruster detumble, spin-up, Sun spin) drop the attitude estimate; spin-up
+## starts its spin-sign window.
+fn modes_enter(st: Modes, mode: int in 0 .. 10) -> s: Modes
+    s = st
+    if mode == 5
+        s.sz_sum = 0
+        s.sz_n = 0
+        s.sz_t0 = s.t
+    end
+    s.mode = mode
+    s.t_mode = s.t
+    s.hold = 0
+    s.ho = false
+    s.ho_t = 0
+    if mode == 0 or mode == 7 or mode == 5 or mode == 6
+        s.ad_ok = false
+        s.n_rej = 0
+    end
+    s.i_q = 0
+end
+
+## Can the fitted hardware fly a state? Fine pointing needs rotors or thrusters, the rotor Sun
+## acquisition rotors, the thruster detumble thrusters; the coil states need only the coils.
+fn modes_feasible(nr: int in 0 .. 8, nc: int in 0 .. 6, m: int in 0 .. 12) -> ok: bool
+    if m == 2 or m == 3 or m == 4 or m == 10
+        ok = nr > 0 or nc > 0
+    elif m == 8
+        ok = nr > 0
+    elif m == 7
+        ok = nc > 0
+    else
+        ok = m < 11
+    end
+end
+
+## The spin-up and Sun-spin guards (Standard Code modes.transitions) and the spin-sign flip.
+## vectors: 64
+fn spin_guards(st: Modes, mp: ModeParams, sun_ok: bool, sun: vec3[1] in -1 .. 1, dt: real[1] in 0.05 .. 1) -> s: Modes
+    s = st
+    let d = pi/180.0
+    let wz = s.w_est[2]
+    let wp = sqrt(s.w_est[0]*s.w_est[0] + s.w_est[1]*s.w_est[1])
+    if norm(s.w_est) > mp.ss_omega_max_dps*d
+        s = modes_enter(s, 0)
+    elif s.mode == 5
+        let conv = |wz - s.sigma*mp.ss_spin_dps*d| < mp.ss_z_in_dps*d and wp < mp.ss_perp_in_dps*d
+        if conv and sun_ok
+            s.sz_sum = s.sz_sum + sun[2]
+            s.sz_n = s.sz_n + 1
+        end
+        if s.t - s.sz_t0 >= mp.ss_t_check_s and s.sz_n > 0 and s.sz_sum/s.sz_n > mp.ss_sun_min
+            s.sigma = -s.sigma
+            s.sz_sum = 0
+            s.sz_n = 0
+            s.sz_t0 = s.t
+        end
+        let ok = conv and sun_ok and sun[2] < 0
+        if ok
+            s.hold = s.hold + dt
+        else
+            s.hold = 0
+        end
+        if s.hold >= mp.ss_dwell_in_s
+            s = modes_enter(s, 6)
+        end
+    else
+        let bad = |wz| < mp.ss_omega_exit_dps*d or wp > mp.ss_perp_out_dps*d
+        if bad
+            s.hold = s.hold + dt
+        else
+            s.hold = 0
+        end
+        if s.hold >= mp.ss_dwell_out_s
+            s = modes_enter(s, 5)
+        end
+    end
+end
+
+## Commanded changes: every schedule entry whose time has come, in order.
+## vectors: 48
+fn modes_schedule(st: Modes, mp: ModeParams) -> s: Modes
+    s = st
+    for k in 0 .. 8
+        if s.sched_i < mp.n_sched and s.t >= mp.sched_t[s.sched_i]
+            s = modes_enter(s, mp.sched_mode[s.sched_i])
+            s.sched_i = s.sched_i + 1
+        end
+    end
+end
+
+## The transitions of one tick (after safe mode): the detumble exit, the spin guards, the
+## gyro-propagated Sun vector of the acquisition laws, the end of the rotor Sun acquisition.
+## vectors: 96
+fn modes_step(st: Modes, mp: ModeParams, zw: vec3[1] in -0.1 .. 0.1, sun_ok: bool, sun: vec3[1] in -1 .. 1, dt: real[1] in 0.05 .. 1) -> s: Modes
+    s = st
+    if (s.mode == 0 or s.mode == 7) and mp.auto_next != 255 and band(s.faults, bor(256, 512)) == 0
+        if norm(zw) < mp.detumble_exit
+            s.hold = s.hold + dt
+        else
+            s.hold = 0
+        end
+        if s.hold >= mp.detumble_hold_s
+            s = modes_enter(s, mp.auto_next)
+        end
+    end
+    if (s.mode == 5 or s.mode == 6) and mp.ss_law != 2
+        s = spin_guards(s, mp, sun_ok, sun, dt)
+    end
+    if s.mode == 5 or s.mode == 6 or s.mode == 8
+        if sun_ok
+            s.s_prop = sun
+            s.s_prop_ok = true
+        elif s.s_prop_ok
+            let a = dcm(fromrotvec(s.w_est*dt))
+            s.s_prop = unit(a*s.s_prop)
+        end
+    end
+    if s.mode == 8 and mp.auto_next != 255
+        let ok = sun_ok and acos(clamp(dot(sun, mp.sun_axis), -1, 1)) < mp.sa_done_deg*(pi/180.0) and s.ad_ok
+        if ok
+            s.acq_hold = s.acq_hold + dt
+        else
+            s.acq_hold = 0
+        end
+        if s.acq_hold >= mp.sa_done_hold_s
+            s = modes_enter(s, mp.auto_next)
+        end
+    end
+end
+
+## Safe mode: a magnetometer (once seen) or a gyro silent more than 60 s sets its fault bit (8 and 9)
+## and holds the spacecraft in magnetorquer detumble.
+## vectors: 48
+fn fdir_safe(st: Modes) -> s: Modes
+    s = st
+    let f = 0
+    if s.mag_seen and s.mag_age > 60.0
+        f = bor(f, 256)
+    end
+    if s.gyro_age > 60.0
+        f = bor(f, 512)
+    end
+    s.faults = bor(band(s.faults, bxor(65535, bor(256, 512))), f)
+    if f != 0 and s.mode != 0
+        s = modes_enter(s, 0)
+    end
+end
+
+## Sensor health after the drivers read: a field outside [0.25, 4] x the model is no reading; the
+## last good field is held; the age of each sensor's last good sample.
+fn fdir_sensors(mag_ok0: bool, b0: vec3[1] in -6e-5 .. 6e-5, bref_ok: bool, bref: vec3[1] in -6e-5 .. 6e-5, b_good0: vec3[1] in -6e-5 .. 6e-5, \
+                mag_age0: real[1] in 0 .. 100, mag_seen0: bool, has_gyro: bool, gyro_ok: bool, w0: vec3[1] in -0.1 .. 0.1, \
+                gyro_age0: real[1] in 0 .. 100, dt: real[1] in 0.05 .. 1) \
+                -> (mag_ok: bool, b: vec3[1], w: vec3[1], b_good: vec3[1], mag_age: real[1], mag_seen: bool, gyro_age: real[1])
+    mag_ok = mag_ok0
+    b = b0
+    w = w0
+    b_good = b_good0
+    mag_age = mag_age0
+    mag_seen = mag_seen0
+    gyro_age = gyro_age0
+    if mag_ok and bref_ok
+        let bn = norm(b)
+        let rn = norm(bref)
+        if not (bn > 0.25*rn and bn < 4.0*rn)
+            mag_ok = false
+        end
+    end
+    if mag_ok
+        b_good = b
+        mag_age = 0
+        mag_seen = true
+    else
+        b = b_good
+        mag_age = mag_age + dt
+    end
+    if not has_gyro or gyro_ok
+        gyro_age = 0
+    else
+        gyro_age = gyro_age + dt
+    end
+    if not gyro_ok and not has_gyro
+        w = 0
+    end
+end
+
+## The rotor FDIR's own state (part of fsw_t).
+record RotorFdir
+    h_prev: real[N m s][8] in -0.05 .. 0.05
+    h_prev_ok: bool
+    cmd_r_prev: real[N m][8] in -0.01 .. 0.01
+    fd_count: real[s][8] in 0 .. 2
+    rot_failed: bool[8]
+    faults: int in 0 .. 1023
+    fw_e: real[N m s][8] in -0.01 .. 0.01
+    fw_h0: real[N m s][8] in -0.05 .. 0.05
+    fw_t0: real[s] in 860 .. 885
+    fw_last: real[s] in 999.95 .. 1000
+    fw_on: bool
+    fw_bad: int[8] in 0 .. 3
+end
+
+## The rotor parameters the FDIR reads.
+record RotorParams
+    nr: int in 0 .. 8
+    rot_tmax: real[N m][8] in 0.001 .. 0.01
+    rot_hmax: real[N m s][8] in 0.01 .. 0.06
+    rot_gi: int[8] in 0 .. 1
+    rot_kind: int[8] in 0 .. 1
+    fdir_s: real[s] in 0.1 .. 2
+    fdir_win_s: real[s] in 100 .. 130
+    fdir_h_frac: real[1] in 0.001 .. 0.02
+end
+
+## The rotor FDIR in the momentum-device states: a fixed rotor that does not follow its command is
+## isolated. Instantaneous: the momentum rate against the command clipped to what the rotor can do;
+## windowed (fluid loops only): the momentum change over fdir_win_s against the change commanded,
+## missed in 2 windows in a row.
+## vectors: 160
+fn fdir_rotors(st: RotorFdir, rp: RotorParams, t: real[s] in 1000 .. 1000.2, dt: real[s] in 0.1 .. 0.2, zh: real[N m s][8] in -0.05 .. 0.05) -> s: RotorFdir
+    s = st
+    let nr = rp.nr
+    if nr > 0 and s.h_prev_ok
+        for i in 0 .. nr
+            let tmax = rp.rot_tmax[i]
+            let meas = (zh[i] - s.h_prev[i])/dt
+            let expect = clamp(s.cmd_r_prev[i], -0.8*tmax, 0.8*tmax)
+            let bad = |meas - expect| > 0.5*tmax and rp.rot_gi[i] == 0 and |expect| > 0.2*tmax and |zh[i]| < 0.9*rp.rot_hmax[i]
+            s.fd_count[i] = if bad then s.fd_count[i] + dt else 0 [s]
+            if s.fd_count[i] > rp.fdir_s and not s.rot_failed[i]
+                s.rot_failed[i] = true
+                s.faults = bor(s.faults, shl(1, i))
+            end
+        end
+        if not s.fw_on or t - s.fw_last > 1.5*dt
+            for i in 0 .. nr
+                s.fw_e[i] = 0
+                s.fw_h0[i] = zh[i]
+            end
+            s.fw_t0 = t
+            s.fw_on = true
+        else
+            for i in 0 .. nr
+                s.fw_e[i] = s.fw_e[i] + clamp(s.cmd_r_prev[i], -0.8*rp.rot_tmax[i], 0.8*rp.rot_tmax[i])*dt
+            end
+            if t - s.fw_t0 >= rp.fdir_win_s - 1e-9 [s]
+                for i in 0 .. nr
+                    let hmax = rp.rot_hmax[i]
+                    let e = s.fw_e[i]
+                    let m = zh[i] - s.fw_h0[i]
+                    let skip = rp.rot_kind[i] != 1 or rp.rot_gi[i] != 0 or s.rot_failed[i] or |e| <= rp.fdir_h_frac*hmax \
+                               or |zh[i]| >= 0.9*hmax or |s.fw_h0[i]| >= 0.9*hmax
+                    if not skip
+                        s.fw_bad[i] = if |m - e| > 0.5*|e| then s.fw_bad[i] + 1 else 0
+                        if s.fw_bad[i] >= 2
+                            s.rot_failed[i] = true
+                            s.faults = bor(s.faults, shl(1, i))
+                        end
+                    end
+                end
+                for i in 0 .. nr
+                    s.fw_e[i] = 0
+                    s.fw_h0[i] = zh[i]
+                end
+                s.fw_t0 = t
+            end
+        end
+        s.fw_last = t
+    end
+end
