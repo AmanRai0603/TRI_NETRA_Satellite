@@ -33,6 +33,8 @@ You are the editor of one chapter. The map shows every section and what reads wh
 
 A node is sealed as confirmed only when a second engineer checked it as it is, the checks find nothing, its stage is signed and, if it computes, a test vector has its answer from outside the code. The rest go in UNCONFIRMED, each with why. Sealing writes `releases/<group>-<version>.tnrel`, frozen, and seals every node file.
 
+**Accepting the delivery.** After you seal, the developer side tests your release and delivers it: your group's code generated from your nodes, its tests run, a test app, and a note, all in `deliveries/`. Open the test app from disk and see every test vector pass in it. Then **Release → Deliveries → Accept…**. Your acceptance names this release and this delivery; a later release needs its own. A group whose lead has not accepted ships visibly UNCONFIRMED, named in the release notes. Groups go through in five waves, the groups yours reads first.
+
 **After a release.** **Re-issue** opens a sealed node again (as it is, or as any release had it). **Compare** shows what changed between two releases, or since the last one. **Import node forms** takes today's node forms into your node files, keeping what authors typed.
 
 ## For a stage owner

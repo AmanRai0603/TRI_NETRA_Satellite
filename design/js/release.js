@@ -22,6 +22,7 @@ import { readDoc, check, evidenceDebt, standing } from "./node_model.js";
 import { CATALOG } from "./node_catalog.js";
 
 export const RELEASES = "releases";
+export const DELIVERIES = "deliveries";   // tools/delivery.py deliver writes <group>-<version>.delivery.json there
 export const FORM_SCHEMA = "adcs-node-form/1";
 const relFile = (g, v) => `${g}-${v}.tnrel`;
 const nodeFile = (id) => `${id}.node.tndb`;
@@ -92,7 +93,7 @@ export function designContext(index) {
 }
 
 /** Every node of the group read and judged: { gid, G, nodes, cross, stages, releases, last, removed,
- *  structure, unreadable, lead, next, signatures }. */
+ *  structure, unreadable, lead, next, signatures, deliveries }. */
 export async function assemble(ws, gid) {
   const idx = await ws.refresh();
   const G = idx.groups.get(gid);
@@ -131,7 +132,8 @@ export async function assemble(ws, gid) {
   for (const x of nodes) x.since = !last ? "new" : !last.nodes.has(x.id) ? "new" : last.nodes.get(x.id).bodyFp === x.bodyFp ? "same" : "changed";
   const removed = last ? [...last.nodes.keys()].filter((id) => !nodes.some((x) => x.id === id)) : [];
   const structure = await integrity(ws.SQL, ws.root, { index: idx, scope: [gid] });
-  return { gid, G, nodes, cross, stages, releases, last, removed, structure, unreadable, lead: leadOf(G), next: nextVersion(releases), signatures };
+  const deliveries = await listDeliveries(ws, gid, G, signatures);
+  return { gid, G, nodes, cross, stages, releases, last, removed, structure, unreadable, lead: leadOf(G), next: nextVersion(releases), signatures, deliveries };
 }
 
 async function stageFingerprint(nodes) { return hashText(nodes.map((x) => `${x.id} ${x.bodyFp}`).sort().join("\n")); }
@@ -200,6 +202,25 @@ export async function listReleases(ws, gid) {
     out.push(await readRelease(ws.SQL, await readBytes(rdir, n), `${RELEASES}/${n}`));
   }
   return out.filter((r) => r.group === gid).sort((a, b) => versionOrder(a.version, b.version));
+}
+
+/** The deliveries of a group's releases (tools/delivery.py deliver), oldest first: { version, rec,
+ *  fp (SHA-256 of the delivery's JSON), accepted: { by, at } | null }. An acceptance counts only when
+ *  it is by a lead and names the release's fingerprint and the delivery's. */
+export async function listDeliveries(ws, gid, G = null, signatures = []) {
+  let ddir;
+  try { ddir = await subdir(ws.root, DELIVERIES); } catch (e) { return []; }
+  const out = [];
+  for await (const [n, h] of ddir.entries()) {
+    if (h.kind !== "file" || !n.startsWith(`${gid}-`) || !n.endsWith(".delivery.json")) continue;
+    const text = new TextDecoder().decode(await readBytes(ddir, n));
+    let rec; try { rec = JSON.parse(text); } catch (e) { continue; }
+    if (rec.group !== gid) continue;
+    const fp = await hashText(text);
+    const sig = [...signatures].reverse().find((s) => { if (s.role !== "accepted") return false; try { const st = JSON.parse(s.statement); return st.version === rec.version && st.fingerprint === rec.release_fingerprint && st.delivery === fp; } catch (e) { return false; } });
+    out.push({ version: rec.version, rec, fp, file: `${DELIVERIES}/${n}`, accepted: sig && (!G || isLead(G, sig.name)) ? { by: sig.name, at: sig.at } : null });
+  }
+  return out.sort((a, b) => versionOrder(a.version, b.version));
 }
 
 /** One release file: its row, its nodes, and the problems found re-checking its fingerprints. */
@@ -313,6 +334,11 @@ export class Releases {
     const ws = this.ws;
     a.by = ws.who;
     const d = {};
+    if (a.type === "accept") {
+      d.asm = await assemble(ws, a.group);
+      d.release = d.asm.releases.find((r) => r.version === a.version) || null;
+      d.delivery = (await listDeliveries(ws, a.group, d.asm.G, d.asm.signatures)).find((x) => x.version === a.version) || null;
+    }
     if (a.type === "seal" || a.type === "signStage") {
       d.asm = await assemble(ws, a.group);
       if (a.type === "seal") {
@@ -431,6 +457,32 @@ EXTRA.set("seal", {
         [stamp, `sealed by ${who} on ${at}`, x.confirmed ? "confirmed" : "unconfirmed", `sealed by ${who} on ${at}`, x.bodyFp, `sealed by ${who} on ${at}`]);
       db.run("UPDATE node SET state = 'sealed'");
     });
+  },
+});
+
+EXTRA.set("accept", {
+  summary: (a) => `accept the delivery of ${say(a)}`,
+  impact(index, a, { G, block, warn, info }) {
+    const d = DATA.get(a);
+    if (!d) { block("read the group first (Releases.plan)"); return; }
+    if (!isLead(G, a.by)) block(`only ${G.id}'s lead accepts its delivery: ${a.by} is not its lead (${d.asm.lead ? `the lead is ${d.asm.lead}` : "it has no lead yet"})`);
+    if (!d.release) { block(`${G.id} has no release ${a.version}`); return; }
+    if (d.release.problems.length) block(`${G.id} ${a.version} does not pass its own fingerprints: ${d.release.problems[0]}`);
+    if (!d.delivery) { block(`${G.id} ${a.version} has not been delivered yet: the developer side delivers it (tools/delivery.py deliver)`); return; }
+    const r = d.delivery.rec;
+    if (r.release_fingerprint !== d.release.fingerprint) block(`the delivery is of another ${G.id} ${a.version} than the release file holds: it is delivered again`);
+    if (r.tests && r.tests.passed === false) block(`the delivery's tests failed (${r.tests.command}): it cannot be accepted until they pass`);
+    if (r.tests && r.tests.passed === null) warn("the delivery's tests were not run: open the test app and see every vector pass before accepting");
+    if (d.delivery.accepted) block(`${G.id} ${a.version} is already accepted, by ${d.delivery.accepted.by}`);
+    const later = d.asm.releases.filter((x) => versionOrder(x.version, a.version) > 0);
+    if (later.length) warn(`${G.id} has a later release (${later.map((x) => x.version).join(", ")}): this acceptance is of ${a.version} only`);
+    info(`your signature in the group file: you opened ${r.test_app}, its ${r.code.test_vectors} test vector(s) pass, and ${G.id} ${a.version} is what the group meant to ship`);
+    info(`${r.nodes - r.confirmed} of ${r.nodes} node(s) are sealed UNCONFIRMED in it; accepting does not confirm them, it says the group ships as sealed`);
+  },
+  steps(ws, a, { g, who, at }) {
+    const d = DATA.get(a);
+    g((db) => db.run("INSERT INTO signature VALUES (?, ?, ?, ?)", ["accepted", who, at,
+      JSON.stringify({ statement: `accepted ${say(a)}`, version: a.version, fingerprint: d.release.fingerprint, delivery: d.delivery.fp })]));
   },
 });
 

@@ -16,7 +16,7 @@ import { MANUAL } from "./manual.js";
 
 const canFolders = typeof window.showDirectoryPicker === "function";
 const { main, status } = shell("TRI-NETRA Group", "A group's structure and its releases: map, nodes, stages, people, contracts, change requests; progress, assemble, seal. Nothing leaves this computer.", { onHelp: () => help() });
-const RELEASE_ACTIONS = new Set(["seal", "signStage", "reissue", "comment", "import"]);
+const RELEASE_ACTIONS = new Set(["seal", "signStage", "reissue", "comment", "import", "accept"]);
 const journal = new Journal();
 const session = crypto.getRandomValues(new Uint32Array(2)).join("-");
 const app = { SQL: null, root: null, ws: null, rel: null, asm: null, gid: null, sel: null, tab: 0, who: null, profile: null, problems: [] };
@@ -364,6 +364,14 @@ function releaseView(asm) {
       button("Compare…", () => compareDialog(asm), { disabled: !rels.length, testid: "compare" }),
       button("Re-issue a node…", () => reissueNode(null), { testid: "reissue" }),
       fileButton("Import node forms…", (files) => importForms(files), { accept: ".html,text/html", multiple: true, testid: "import" })),
+    section("Deliveries", table([{ key: "version", label: "Version", mono: true }, { key: "d", label: "Delivered", render: (x) => fmtTime(x.rec.delivered_at) },
+      { key: "t", label: "Tests", render: (x) => (x.rec.tests.passed ? badge("pass", "ok") : x.rec.tests.passed === false ? badge("fail", "error") : badge("not run", "warn")) },
+      { key: "v", label: "Test vectors", render: (x) => `${x.rec.code.test_vectors} (${x.rec.code.from_outside_the_code} from outside the code)` },
+      { key: "app", label: "Test app", mono: true, render: (x) => x.rec.test_app },
+      { key: "a", label: "Accepted", render: (x) => (x.accepted ? `${x.accepted.by}, ${fmtTime(x.accepted.at)}` : badge("not yet", "warn")) },
+      { key: "act", label: "", render: (x) => (x.accepted ? "" : button("Accept…", () => run({ type: "accept", group: asm.gid, version: x.version }), { testid: `accept-${x.version}`,
+        title: "Your signature: you opened the test app (deliveries/ in this folder), every vector passes, and the release is what the group meant to ship" })) }],
+    asm.deliveries, { empty: "Nothing delivered yet: the developer side delivers each sealed release (tools/delivery.py deliver), with a test app and a note in deliveries/.", testid: "deliveries" })),
     h("p", { class: "tn-dim" }, `Only the lead (${asm.lead || "none yet: People → a member with the role lead"}) seals. A release is frozen in ${RELEASES}/; every node file is stamped with it and sealed until it is re-issued. A node goes in as confirmed only when someone other than its author checked it, its stage owner signed its stage as it is, the checks find nothing and, for a computing node, a test vector has its answer from outside the code; the rest go in UNCONFIRMED, each with why.`)),
   ];
 }

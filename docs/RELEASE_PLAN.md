@@ -416,6 +416,31 @@ inside them.
 | Today's engine numbers unchanged | ✅ the generated crates sit beside the engine; `check_all` keeps flying the engine's own tests and parity |
 | As groups seal real releases | ⏳ `wire --design DIR` on the merged releases replaces the carried design; the loop is the same |
 
+**Progress of P11** (main app on databases; `docs/MAIN_APP.md`):
+
+| item | state |
+|---|---|
+| `design.tndb` holds the engine's inputs | ✅ format 2: every case line by line (`design_case`, each value with the node that declares it) and every input file under `data/` (`engine_input`, with its fingerprint); seed and merge fill them (`tools/design_inputs.py`); version 1 upgrades |
+| The engine and the app fly from it | ✅ `adcs-sim/src/source.rs`: with `TRINETRA_DESIGN` (or the kit's own `design.tndb`) every case and `data/` path comes from the database alone; a flight from a data folder holding no case and no input has the same result id, metrics and channels (`tests/test_design_source.py`); kits and the wheel carry `design.tndb` |
+| One component set, one plotting module | ✅ the app's page rebuilt on `tn_ui.js` (`tools/pages.py app`, compiled in; browser test `tests/browser/app.test.mjs`); `adcs-plot` draws every figure as SVG or PDF, engine and twin runs alike; matplotlib gone from `tools/` |
+| SVG/PDF and a report per run | ✅ `adcs figures`, `adcs report` (HTML and PDF), `adcs plot` (any figure as JSON); the app's `/v1/figures`, `/v1/figure`, `/v1/report` |
+| A run records its input hash and what differs | ✅ `inputs.input_hash`, `inputs.differs`, `inputs.design` in every manifest |
+| Sweeps keep only what their figures need | ✅ a campaign keeps `summary.json` and run 1 (its provenance); about 4,500 committed per-run manifests left git |
+| The Python package reads the database | ✅ `trinetra_adcs.design` (standard-library `sqlite3`) and `python -m trinetra_adcs.design` |
+| Committed pages retired | ✅ `results/index.html` and its 210 figures, and the twin's 280 figures and result pages, out of git; drawn on demand |
+| Every stale run re-flown; `adcs results stale` finds nothing | 🟡 engine runs, campaigns, Monte Carlo series and solutions re-flown and current; soft OILS, the dispatch, the design loop and the 40 twin runs (the twin now records its source fingerprint, judged by the engine) are flying |
+
+**Progress of P12** (test → deliver → accept → ship; `docs/DELIVERY.md`):
+
+| item | state |
+|---|---|
+| The five waves as data | ✅ `wave` per group in `design/groups.toml`, checked by `tools/groups.py` |
+| Delivery | ✅ `tools/delivery.py deliver`: the release verified, earlier waves first, merged, the generated code checked to be the release's, the group's tests run, its test app and a note in `deliveries/` |
+| Acceptance in the group app | ✅ **Release → Deliveries → Accept**: the lead's signature naming the release's and the delivery's fingerprints; refused to anyone else, for a version not delivered, a delivery whose tests failed, or twice |
+| Status and shipping | ✅ `tools/delivery.py status` and `ship`: every group accepted or visibly UNCONFIRMED, with why |
+| Proof | ✅ `tests/test_delivery.py` + `tests/js/waves.test.mjs`: the five waves rehearsed on the carried design with stand-in leads (sealed, delivered, accepted, one left UNCONFIRMED, the refusals) |
+| Every group accepted by its lead | ⏳ no lead named yet, so no group has sealed: today all 20 would ship UNCONFIRMED (owner's decision, §9) |
+
 ## 6 · What 1.0.0 contains
 
 - **Node app and group app:** offline, one file each, with manuals.

@@ -71,6 +71,15 @@ def stage_of(r, grp):
     return None
 
 
+# The waves of test, delivery and acceptance (docs/RELEASE_PLAN.md P12), in order.
+WAVES = {"A": "inputs", "B": "hardware", "C": "GNC", "D": "system", "E": "verification and business"}
+
+
+def wave_of(g):
+    """{group: wave} of the group map."""
+    return {grp["id"]: grp["wave"] for grp in g["group"]}
+
+
 def check(rows, g):
     errs = []
     ids = {r["id"] for r in rows}
@@ -89,6 +98,8 @@ def check(rows, g):
             stray = [b for b in s["branches"] if b not in grp["branches"]]
             if stray:
                 errs.append(f"group {grp['id']} stage {s['id']}: branches {', '.join(stray)} are not the group's")
+        if grp.get("wave") not in WAVES:
+            errs.append(f"group {grp['id']}: wave {grp.get('wave')!r} is not one of {', '.join(WAVES)}")
         for side in ("c", "rust", "twin"):
             if side not in grp.get("modules", {}):
                 errs.append(f"group {grp['id']}: no {side} modules listed (an empty list says it has none)")

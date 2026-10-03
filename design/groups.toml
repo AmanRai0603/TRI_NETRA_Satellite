@@ -10,6 +10,10 @@
 #      split between two groups, as `modes` is, splits by target);
 #   3. otherwise the group whose `branches` holds the row's branch (its layer-1/2 group, or its
 #      subsystem layer).
+#
+# `wave`: when the group goes through test, delivery and acceptance (docs/RELEASE_PLAN.md P12):
+# A inputs, B hardware, C GNC, D system, E verification and business, in dependency order, each
+# wave's outputs in the catalogue before the next (tools/group.py deliver, status, ship).
 # Rows a discipline has no node for yet (guidance, CMG, VSCMG, dynamics, onboard navigation, each
 # subsystem's sizing) are added when content is carried over (P8); their stages are here already.
 #
@@ -18,6 +22,7 @@ schema = "trinetra-groups/1"
 
 [[group]]
 id = "case"
+wave = "A"
 label = "Case and mission"
 lead = "systems"
 branches = ["ci1", "m1", "cf"]
@@ -26,6 +31,7 @@ modules = { c = [], rust = ["adcs-sim/case.rs"], twin = ["+case"] }
 
 [[group]]
 id = "dyn"
+wave = "A"
 label = "Satellite dynamics"
 lead = "systems"
 branches = ["s1", "s2", "s3", "s4"]
@@ -34,6 +40,7 @@ modules = { c = [], rust = ["adcs-sim-core/plant.rs"], twin = ["+plant"] }
 
 [[group]]
 id = "env"
+wave = "A"
 label = "Environment and disturbance torques"
 lead = "environment"
 branches = ["m2", "m3", "gd", "dist"]
@@ -47,6 +54,7 @@ modules = { c = ["adcs_env.c"], rust = ["adcs-pop", "adcs-sim-core/orbit.rs", "a
 
 [[group]]
 id = "sens"
+wave = "B"
 label = "Sensors"
 lead = "sensing"
 branches = ["gs", "sens"]
@@ -55,6 +63,7 @@ modules = { c = ["adcs_drv.c (sensor drivers)"], rust = ["adcs-sim-core/sensors.
 
 [[group]]
 id = "nav"
+wave = "C"
 label = "Navigation and attitude estimation"
 lead = "gnc"
 branches = ["ge", "est"]
@@ -63,6 +72,7 @@ modules = { c = ["adcs_est.c"], rust = ["fsw-rs/est.rs"], twin = ["+fsw/mekf_*",
 
 [[group]]
 id = "gdn"
+wave = "C"
 label = "Guidance and mode management"
 lead = "gnc"
 branches = ["modes"]
@@ -71,6 +81,7 @@ modules = { c = ["adcs_guid.c", "adcs_modes.c"], rust = ["fsw-rs/guid.rs", "fsw-
 
 [[group]]
 id = "ctl"
+wave = "C"
 label = "Controller and allocation"
 lead = "gnc"
 branches = ["gc", "ctl"]
@@ -79,6 +90,7 @@ modules = { c = ["adcs_ctl.c", "adcs_alloc.c"], rust = ["fsw-rs/ctl.rs", "fsw-rs
 
 [[group]]
 id = "fdir"
+wave = "C"
 label = "FDIR"
 lead = "gnc"
 branches = []
@@ -87,6 +99,7 @@ modules = { c = ["adcs_fdir.c"], rust = ["fsw-rs/fdir.rs"], twin = ["+fsw/fdir.m
 
 [[group]]
 id = "act"
+wave = "B"
 label = "Actuators"
 lead = "actuators"
 branches = ["gm", "mtq", "gw", "rw", "gf", "fmr", "gr", "rcs"]
@@ -103,6 +116,7 @@ modules = { c = ["adcs_drv.c (actuator drivers)"], rust = ["adcs-sim-core/actuat
 
 [[group]]
 id = "fsw"
+wave = "D"
 label = "Flight software and OBC"
 lead = "avionics"
 branches = ["gx", "fsw"]
@@ -111,6 +125,7 @@ modules = { c = ["adcs_fsw.c (shell)", "adcs_fsw_int.h", "adcs_params.c", "adcs_
 
 [[group]]
 id = "design"
+wave = "D"
 label = "Design loop"
 lead = "systems"
 branches = ["gb", "budget", "s5", "ct2", "ct3"]
@@ -130,6 +145,7 @@ modules = { c = [], rust = ["adcs-design"], twin = ["+sizing", "+solution"] }
 
 [[group]]
 id = "pnt"
+wave = "D"
 label = "Pointing error budget"
 lead = "systems"
 branches = ["gp", "pnt"]
@@ -138,6 +154,7 @@ modules = { c = [], rust = ["adcs-sim/metrics.rs (jitter)"], twin = ["+metrics"]
 
 [[group]]
 id = "kpi"
+wave = "D"
 label = "Pointing service and KPI closures"
 lead = "systems"
 branches = ["p1k", "p1a", "p2k", "p2a", "p3k", "p3a", "p4k", "p4a", "x_closure"]
@@ -150,6 +167,7 @@ modules = { c = [], rust = ["adcs-sim/metrics.rs"], twin = ["+metrics"] }
 
 [[group]]
 id = "vv"
+wave = "E"
 label = "Verification and standards"
 lead = "quality"
 branches = ["v1", "v2", "st1", "st2", "st3", "st4", "st5", "st6", "st7"]
@@ -158,6 +176,7 @@ modules = { c = [], rust = ["adcs-sim/metrics.rs"], twin = ["+metrics", "+campai
 
 [[group]]
 id = "oils"
+wave = "E"
 label = "OILS rig"
 lead = "verification"
 branches = ["v3", "oils", "fa1", "fa2"]
@@ -166,6 +185,7 @@ modules = { c = ["fsw/targets/"], rust = ["adcs-fsw-abi"], twin = ["+hal"] }
 
 [[group]]
 id = "hils"
+wave = "E"
 label = "HILS rig"
 lead = "verification"
 branches = ["v4", "hils"]
@@ -178,6 +198,7 @@ modules = { c = [], rust = [], twin = ["+hal"] }
 
 [[group]]
 id = "lab"
+wave = "E"
 label = "Test equipment"
 lead = "facility"
 branches = ["fa3", "fa4", "fa5", "fa6", "fa7", "fa8"]
@@ -186,6 +207,7 @@ modules = { c = [], rust = [], twin = [] }
 
 [[group]]
 id = "catalogue"
+wave = "D"
 label = "Catalogue and heritage"
 lead = "systems"
 branches = ["ct1", "hr1"]
@@ -194,6 +216,7 @@ modules = { c = [], rust = ["adcs-sim/product.rs"], twin = ["+product"] }
 
 [[group]]
 id = "business"
+wave = "E"
 label = "Commercial, orders and supply"
 lead = "programme"
 branches = ["cm1", "cm2", "cm3", "od1", "od2", "su1", "su2", "su3"]
@@ -202,6 +225,7 @@ modules = { c = [], rust = [], twin = [] }
 
 [[group]]
 id = "risk"
+wave = "E"
 label = "Risk management"
 lead = "quality"
 branches = ["rk1", "rk2", "rk3", "rk4"]

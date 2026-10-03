@@ -62,6 +62,7 @@
 | [`pages.py pages`](#pagespy-pages) | The offline pages (TRI-NETRA Files today; the node and group apps next): each one HTML file that runs from disk, with SQLite in WebAssembly, the fonts and the component set inside it and nothing loaded from anywhere. check builds them into a scratch folder and refuses a vendored file that is not the pinned one, a page that makes its own controls or styles, and anything that would load from an outside host. |
 | [`groupcode.py groupcode`](#groupcodepy-groupcode) | Each group's code, generated from its nodes (docs/RELEASE_PLAN.md P10, docs/GENERATORS.md): wire puts every computing row's pseudocode into a module per group (design/groups/, with shared.pc for what several groups call alike, and a wire file naming each row's function and its own test vectors), from the merged releases or from the design as seeded and carried; gen translates them to Rust (engine/crates/adcs-groups), WebAssembly (adcs-groups-wasm) and MATLAB (+asils/+groups) with the interpreter's vectors; test runs the Rust against the vectors and the nodes' own test vectors; deliver builds a test app per group. |
 | [`group.py group`](#grouppy-group) | The structure of a design folder (structure/ and nodes/, as tools/seed_design.py writes it and the group app changes it), checked from Python: every node in exactly one group with its node file saying the same group, stage, label and state; every edge kept by the group of the node that reads, from a node that exists and is not archived; every author, contract and stage owner about the group's own nodes and people; no structure action left unfinished. The same rules as the group app's own check (design/js/structure.js), written a second time. verify checks every group's latest sealed release (tools/release.py) and that it is still the group's; merge takes every latest release into design.tndb with the catalogue of every output (the contract at every group boundary); impact lists who reads a node, across groups. |
+| [`delivery.py delivery`](#deliverypy-delivery) | Test, deliver, accept, ship (docs/RELEASE_PLAN.md P12, docs/DELIVERY.md): a group's sealed release delivered in its wave's order, with its generated code checked to be the release's, its tests run, its test app and a note; its lead accepts it in the group app; the shipping record says, group by group, who accepted which version, and which group ships visibly UNCONFIRMED and why. |
 | [`manual.py manual`](#manualpy-manual) | The apps' manual (design/manual/: a guide per role, the journey of a node, the glossary, the guide to TRI-NETRA Files, and the tours in tours.toml) written as design/js/manual.js, which every app opens in place with Help, and the journey diagram as design/manual/journey.svg. --check says whether both are current and holds the rules: every page starts with its one line (the explanation standard), every tour target is in its app, every field, choice and set of checks in the apps has help beside it. |
 | [`node_catalog.py node_catalog`](#node_catalogpy-node_catalog) | The node app's catalogue (design/js/node_catalog.js), written from the spec: the units and the quantities each measures, the physics relations, the sources, the evidence metrics and rungs, the provenance and belief words, the tags and every row of the tree with its label, kind, quantity, unit and layer. The node app offers these as its choices, so they are never typed by hand. --check says whether the committed file is current. |
 | [`release.py release`](#releasepy-release) | Sealed group releases (releases/<group>-<version>.tnrel, as the group app seals them), checked from Python: each file passes tools/tndb.py check and is named for its group and version; every node's fingerprint, body fingerprint and the release's fingerprint are the SHA-256 of what they cover; its nodes are the group's as sealed, each confirmed or unconfirmed with why; a confirmed node was checked by someone other than its author and, when it computes, has a test vector from outside the code; the lead's seal names the version and the fingerprint. The same rules as design/js/release.js, written a second time. |
@@ -1147,6 +1148,30 @@ The structure of a design folder (structure/ and nodes/, as tools/seed_design.py
 - **Checks:** the structure rules over a design folder; verify: a release against its group; merge: every group's latest release
 - **Undo:** check, list, verify, impact: nothing. merge: delete or restore the design.tndb it wrote (it keeps the previous one as design.tndb.prev).
 - **Code:** `tools/group.py`
+
+## delivery.py delivery
+
+Test, deliver, accept, ship (docs/RELEASE_PLAN.md P12, docs/DELIVERY.md): a group's sealed release delivered in its wave's order, with its generated code checked to be the release's, its tests run, its test app and a note; its lead accepts it in the group app; the shipping record says, group by group, who accepted which version, and which group ships visibly UNCONFIRMED and why.
+
+    python3 tools/delivery.py deliver DIR [GROUP ...] [--wave A..E] [--no-test] [--out-of-order REASON] | status DIR [--json] | ship DIR [--out FILE] [--require-accepted]
+
+**Steps**
+
+1. deliver: verify the releases (tools/group.py verify) and the wave order
+2. merge every release into design.tndb
+3. check the generated code is the release's wiring (tools/groupcode.py)
+4. run the group's tests (cargo test -p adcs-groups)
+5. build its test app
+6. write deliveries/<group>-<version>.delivery.json and .md
+7. status: released, delivered, accepted, wave by wave
+8. ship: the shipping record (JSON and Markdown)
+
+- **Reads:** `DIR/structure/`; `DIR/releases/`; `DIR/deliveries/`; `design/groups/`; `design/groups.toml`
+- **Writes:** `DIR/design.tndb (deliver)`; `DIR/deliveries/<group>-<version>.delivery.json, .md, .test-app.html (deliver)`; `FILE and FILE.md (ship --out)`
+- **Starts:** cargo test -p adcs-groups; cargo build --target wasm32-unknown-unknown -p adcs-groups-wasm
+- **Checks:** the release passes verify; earlier waves delivered first; the generated code is the release's; the tests pass (recorded); an acceptance is by the lead and names the release's and the delivery's fingerprints
+- **Undo:** deliver: delete the delivery's three files from deliveries/ (and restore design.tndb.prev). status: nothing. ship: delete the files it wrote. An acceptance is a signature in the group file; a later release needs its own.
+- **Code:** `tools/delivery.py`
 
 ## manual.py manual
 

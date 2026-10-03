@@ -691,6 +691,18 @@ checks = "the structure rules over a design folder; verify: a release against it
 undo = "check, list, verify, impact: nothing. merge: delete or restore the design.tndb it wrote (it keeps the previous one as design.tndb.prev)."
 
 [[command]]
+tool = "delivery.py"
+name = "delivery"
+usage = "python3 tools/delivery.py deliver DIR [GROUP ...] [--wave A..E] [--no-test] [--out-of-order REASON] | status DIR [--json] | ship DIR [--out FILE] [--require-accepted]"
+what = "Test, deliver, accept, ship (docs/RELEASE_PLAN.md P12, docs/DELIVERY.md): a group's sealed release delivered in its wave's order, with its generated code checked to be the release's, its tests run, its test app and a note; its lead accepts it in the group app; the shipping record says, group by group, who accepted which version, and which group ships visibly UNCONFIRMED and why."
+steps = ["deliver: verify the releases (tools/group.py verify) and the wave order", "merge every release into design.tndb", "check the generated code is the release's wiring (tools/groupcode.py)", "run the group's tests (cargo test -p adcs-groups)", "build its test app", "write deliveries/<group>-<version>.delivery.json and .md", "status: released, delivered, accepted, wave by wave", "ship: the shipping record (JSON and Markdown)"]
+reads = ["DIR/structure/", "DIR/releases/", "DIR/deliveries/", "design/groups/", "design/groups.toml"]
+writes = ["DIR/design.tndb (deliver)", "DIR/deliveries/<group>-<version>.delivery.json, .md, .test-app.html (deliver)", "FILE and FILE.md (ship --out)"]
+runs = ["cargo test -p adcs-groups", "cargo build --target wasm32-unknown-unknown -p adcs-groups-wasm"]
+checks = "the release passes verify; earlier waves delivered first; the generated code is the release's; the tests pass (recorded); an acceptance is by the lead and names the release's and the delivery's fingerprints"
+undo = "deliver: delete the delivery's three files from deliveries/ (and restore design.tndb.prev). status: nothing. ship: delete the files it wrote. An acceptance is a signature in the group file; a later release needs its own."
+
+[[command]]
 tool = "manual.py"
 name = "manual"
 usage = "python3 tools/manual.py [--check]"

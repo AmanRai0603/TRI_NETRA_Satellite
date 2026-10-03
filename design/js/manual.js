@@ -1211,6 +1211,35 @@ export const MANUAL = {
      [
       [
        "b",
+       "Accepting the delivery."
+      ],
+      [
+       "t",
+       " After you seal, the developer side tests your release and delivers it: your group's code generated from your nodes, its tests run, a test app, and a note, all in "
+      ],
+      [
+       "code",
+       "deliveries/"
+      ],
+      [
+       "t",
+       ". Open the test app from disk and see every test vector pass in it. Then "
+      ],
+      [
+       "b",
+       "Release → Deliveries → Accept…"
+      ],
+      [
+       "t",
+       ". Your acceptance names this release and this delivery; a later release needs its own. A group whose lead has not accepted ships visibly UNCONFIRMED, named in the release notes. Groups go through in five waves, the groups yours reads first."
+      ]
+     ]
+    ],
+    [
+     "p",
+     [
+      [
+       "b",
        "After a release."
       ],
       [
