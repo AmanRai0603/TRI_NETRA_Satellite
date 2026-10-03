@@ -54,6 +54,16 @@ function dir_out = write(rec, dir_out)
                         'raan_deg', rec.orbit.raan_rad*180/pi, 'period_s', rec.P.orbit.period_s, 'atmosphere', rec.P.orbit.atmos), ...
         'boresight_body', rec.P.dev.boresight', 'metrics', rec.metrics);
     man.mode_log = rec.mode_log;
+    % what it was flown from, so `adcs results stale` can judge it (asils.util.fingerprint)
+    R = asils.util.root();
+    cf = rec.P.case.file;
+    if ~exist(cf, 'file'), cf = fullfile(R, cf); end
+    rel = strrep(cf, '\', '/');
+    rr = [strrep(R, '\', '/') '/'];
+    if strncmp(rel, rr, numel(rr)), rel = rel(numel(rr)+1:end); end
+    man.engine_source = asils.util.fingerprint('source');
+    man.inputs = struct('case_file', rel, 'case_fingerprint', asils.util.fingerprint('file', cf), ...
+                        'data_fingerprint', asils.util.fingerprint('data'), 'seed', rec.P.seed);
     fid = fopen(fullfile(dir_out, 'manifest.json'), 'w');
     fprintf(fid, '%s\n', jsonencode(man));
     fclose(fid);

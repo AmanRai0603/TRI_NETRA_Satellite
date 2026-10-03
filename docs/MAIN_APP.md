@@ -39,6 +39,25 @@ Each run's manifest (`inputs`) now also says:
 - `differs`: only what differs from the shipped scenario (its overrides, and a seed other than 1);
 - `design`: the database it flew from (its inputs fingerprint), or null for the files.
 
+## One plotting module
+
+`engine/crates/adcs-plot` (standard library and serde_json only) draws every figure of the project, as SVG or PDF, from one drawing model:
+
+| Face | What |
+|---|---|
+| `adcs figures RUN_DIR --out DIR [--format svg\|pdf] [--full]` | a run's figures: attitude, disturbances, actuators and power, the Sun spin, and with `--full` the environment, ground track and modes; an engine run or a MATLAB twin run alike (both keep `manifest.json` and `channels.csv` with the same columns) |
+| `adcs report RUN_DIR [--out DIR]` | the run's report: `report.html` (provenance, the verdict table, every figure inline, a print stylesheet) and `report.pdf` |
+| `adcs plot SPEC.json --out FILE.svg\|.pdf` | any figure described as JSON (the schema is in the crate's documentation): the results page, the campaigns, the trades, the V&V report |
+| the app | `GET /v1/figures`, `/v1/figure`, `/v1/report` |
+
+`tools/report*.py` and `tools/vv_report.py` describe their figures as JSON and draw them with `adcs`; nothing in `tools/` uses matplotlib. The twin no longer draws figures when it files a run (`asils.result.save`); `asils.viz.run(rec, '', true)` still shows them on the screen at the desk.
+
+**What is no longer committed:** `results/index.html` and `results/figures/` (210 figures), and the twin's figures and result pages (280 files). They are drawn from time series git does not keep, so they are built where the runs were flown (`python3 tools/report.py`), and one run's figures and report come on demand. The ledgers (`results/*.md`, `results/*.json`) and the V&V report stay.
+
+## Stale runs, engine and twin
+
+`adcs results stale` judges every stored run. An engine run names the engine's source fingerprint and its inputs; a twin run now names the twin's (`asils.util.fingerprint`): its source (`+asils` and POP's code), its case and the data it read, each as Adler-32 over the bytes with carriage returns removed, which the engine recomputes (`twin_tree_fp` in `store.rs`). `tests/test_twin_fingerprint.py` holds the twin, Python's `zlib.adler32` and the engine to one answer.
+
 ## Sweeps keep what their figures need
 
 A campaign's `summary.json` holds every run's metrics and draws, all its figures use. After the summary, `tools/engine.py campaign` keeps run 1 (its manifest names the engine and the inputs, so `adcs results stale` judges the campaign) and removes the other runs' folders; `--keep-runs` keeps them all. The committed campaign folders went from about 4,500 files to 16.
