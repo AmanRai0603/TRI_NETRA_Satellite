@@ -91,7 +91,14 @@ async function crash(page) {
   const dead = new Promise((r) => page.once("crash", r));
   cdp.send("Page.crash").catch(() => {});
   await Promise.race([dead, new Promise((r) => setTimeout(r, 5000))]);
-  await Promise.race([page.close({ runBeforeUnload: false }).catch(() => {}), new Promise((r) => setTimeout(r, 5000))]);
+  const ctx = page.context();
+  await Promise.race([page.close({ runBeforeUnload: false }).catch(() => {}), new Promise((r) => setTimeout(r, 30000))]);
+  // the tab is gone once the browser has let go of its locks (a crashed tab's go at once; a tab
+  // being shut, when its renderer is torn down)
+  const probe = await ctx.newPage();
+  await probe.goto(URL_);
+  await probe.evaluate(async () => { for (let i = 0; i < 300 && (await navigator.locks.query()).held.length; i++) await new Promise((r) => setTimeout(r, 100)); });
+  await probe.close();
 }
 async function fileBytes(page, name) {
   return page.evaluate(async (n) => {
