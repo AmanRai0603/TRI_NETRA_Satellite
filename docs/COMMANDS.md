@@ -48,6 +48,7 @@
 | [`run_matrix.py run-matrix`](#run_matrixpy-run-matrix) | The whole MATLAB-twin test matrix in GNU Octave on N workers, longest jobs first; campaigns and trades collected at the end. |
 | [`fswcfg.py fswcfg`](#fswcfgpy-fswcfg) | Decode and check a flight-software parameter blob (adcs-fswcfg/1) and print every field as JSON. |
 | [`trinetra.py explain`](#trinetrapy-explain) | This registry: every command, what it does before it does it; `why` names the command that writes a file; `status` puts the evidence debt first (unconfirmed algorithms, synthetic parts, unselectable catalogue models, engine-twin disagreements, failing design-loop checks); `docs` writes docs/COMMANDS.md. |
+| [`carry_over.py carry_over`](#carry_overpy-carry_over) | Carries everything the repository already says into a seeded design folder's node files (docs/RELEASE_PLAN.md P8): the spec's seed content into the nodes' own fields, each physics relation as pseudocode with what it calls and where it runs, the case keys and suppliers of declared values, the KPIs' senses and metrics, the algorithms' parameters, the tree's notes; names the internal layer-3 rows and adds the rows a discipline had no node for, from design/carry.toml. Each item is marked with its origin; a field already written is never replaced; what is still missing is listed in each node (status.gaps) with its owner team. --check seeds and carries into a temporary folder and checks every file and rule. |
 | [`check_all.py check-all`](#check_allpy-check-all) | Every check the repository has, one line each with a verdict: the Python tests, the generated files, the C and Rust flight software, the engine, the specification package and the stored design loop; --octave adds the MATLAB twin's suites. |
 | [`kit.py kit`](#kitpy-kit) | The tool as a team member gets it: the programs beside exactly the files they read (data, cases, the ephemeris), with VERSION and the first-run documents; --files-only leaves the programs out, for the Python package. |
 | [`make_icon.py make-icon`](#make_iconpy-make-icon) | Draw the desktop app's icon (three eyes on an orbit) as PNG, ICO and ICNS; run only to change it. |
@@ -739,6 +740,23 @@ This registry: every command, what it does before it does it; `why` names the co
 
 - **Reads:** `docs/commands.toml`
 - **Writes:** `docs/COMMANDS.md (docs only)`
+- **Starts:** nothing
+
+## carry_over.py carry_over
+
+Carries everything the repository already says into a seeded design folder's node files (docs/RELEASE_PLAN.md P8): the spec's seed content into the nodes' own fields, each physics relation as pseudocode with what it calls and where it runs, the case keys and suppliers of declared values, the KPIs' senses and metrics, the algorithms' parameters, the tree's notes; names the internal layer-3 rows and adds the rows a discipline had no node for, from design/carry.toml. Each item is marked with its origin; a field already written is never replaced; what is still missing is listed in each node (status.gaps) with its owner team. --check seeds and carries into a temporary folder and checks every file and rule.
+
+    python3 tools/carry_over.py DIR | --check | --report DIR
+
+**Steps**
+
+1. read the registries and design/carry.toml
+2. name the internal rows and add the new rows in the group files
+3. fill each node file, never replacing a written field
+4. list each node's gaps and owner team
+
+- **Reads:** `spec/plan/`; `spec/physics/`; `fsw/pseudocode/`; `catalogue/algorithms/`; `design/carry.toml`; `design/groups.toml`; DIR
+- **Writes:** `DIR/structure/*.group.tndb`; `DIR/nodes/*.node.tndb`
 - **Starts:** nothing
 
 ## check_all.py check-all

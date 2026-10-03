@@ -438,6 +438,16 @@ writes = ["docs/COMMANDS.md (docs only)"]
 runs = []
 
 [[command]]
+tool = "carry_over.py"
+name = "carry_over"
+usage = "python3 tools/carry_over.py DIR | --check | --report DIR"
+what = "Carries everything the repository already says into a seeded design folder's node files (docs/RELEASE_PLAN.md P8): the spec's seed content into the nodes' own fields, each physics relation as pseudocode with what it calls and where it runs, the case keys and suppliers of declared values, the KPIs' senses and metrics, the algorithms' parameters, the tree's notes; names the internal layer-3 rows and adds the rows a discipline had no node for, from design/carry.toml. Each item is marked with its origin; a field already written is never replaced; what is still missing is listed in each node (status.gaps) with its owner team. --check seeds and carries into a temporary folder and checks every file and rule."
+steps = ["read the registries and design/carry.toml", "name the internal rows and add the new rows in the group files", "fill each node file, never replacing a written field", "list each node's gaps and owner team"]
+reads = ["spec/plan/", "spec/physics/", "fsw/pseudocode/", "catalogue/algorithms/", "design/carry.toml", "design/groups.toml", "DIR"]
+writes = ["DIR/structure/*.group.tndb", "DIR/nodes/*.node.tndb"]
+runs = []
+
+[[command]]
 tool = "check_all.py"
 name = "check-all"
 usage = "python3 tools/check_all.py [--octave] [--only NAME...]"

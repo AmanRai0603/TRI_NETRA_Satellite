@@ -111,7 +111,7 @@ export async function assemble(ws, gid) {
       nodes.push({ id: n.id, row: n, doc, body, bodyFp: await hashText(body), standing: await standing(doc),
         problems: check(doc, ctx).filter((p) => p.level === "!"), debt: evidenceDebt(doc),
         author: (G.memberNodes.get(n.id) || {}).author || doc.node.author || null, sealedIn: doc.content["status.release"] || null,
-        comments: doc.comments });
+        comments: doc.comments, gaps: (() => { try { return JSON.parse(doc.content["status.gaps"] || "[]"); } catch (e) { return []; } })() });
     } finally { c.db.close(); }
   }
   let signatures = [];

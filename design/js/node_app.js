@@ -259,6 +259,11 @@ function homeView(problems, prog) {
   const nSpec = Object.keys(d.fromSpec || {}).filter((k) => k === "inputs" ? !readDocInputsHave() : d.origin[k] === SPEC_ORIGIN).length;
   if (nSpec && !s.readOnly) parts.push(banner("info", "The spec already says some of this.", `${nSpec} field(s) come from the spec package and are shown as starting values. Take them in to make them this node's own; you can change any of them after.`,
     button("Start from the spec", () => change("start from the spec", (db) => adoptSpec(db, d)), { kind: "primary", testid: "adopt" })));
+  // what was carried over into the node, and what it still lacks (tools/carry_over.py)
+  const carried = list(d, "status.carried"), gapsLeft = list(d, "status.gaps");
+  if (carried.length || gapsLeft.length) parts.push(section("Carried over, and still missing", h("div", { "data-testid": "carried" },
+    carried.length ? h("p", {}, `Carried into this node from what the repository already says: ${carried.join(", ")}. Each field shows where it came from; check it, and make it yours.`) : null,
+    gapsLeft.length ? h("div", {}, h("p", {}, `Still missing${d.content["status.owner_team"] ? ` (owner team: ${d.content["status.owner_team"]})` : ""}:`), h("ul", {}, gapsLeft.map((g) => h("li", {}, g)))) : null)));
   // contract changes waiting
   const waiting = (app.ctx.contracts || []).filter((c) => Number(c.version) > Number(d.node.contract_version || 0));
   if (waiting.length) parts.push(banner("warn", "The contract changed.", `Your group lead published ${waiting.map((c) => `${c.output} version ${c.version}`).join(", ")} for this node since you last acknowledged it (you have version ${d.node.contract_version || 0}). Check the output still matches, then acknowledge.`,

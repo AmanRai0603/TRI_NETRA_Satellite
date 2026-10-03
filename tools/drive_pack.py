@@ -7,8 +7,9 @@ It holds:
   Apps/TRI-NETRA Files.html     open, change and save one design file (docs/FILES_IN_THE_BROWSER.md)
   Apps/TRI-NETRA Group.html     a group lead's app: structure and releases (docs/GROUP_APP.md)
   Apps/TRI-NETRA Node.html      a node author's app: every step, checks, preview, sign (docs/NODE_APP.md)
-  Design/structure/             the 20 group files, seeded from the spec (tools/seed_design.py)
-  Design/nodes/                 the 734 node files
+  Design/structure/             the 20 group files, seeded from the spec (tools/seed_design.py) and
+                                carried over from the repository (tools/carry_over.py)
+  Design/nodes/                 the node files (734 from the spec, and the rows added from the code)
   Design/design.tndb            the design database as seeded
   README.txt                    what to do with it
 
@@ -24,6 +25,7 @@ import shutil
 import sys
 
 import pages
+import carry_over
 import seed_design
 from common import ROOT, write_text
 
@@ -39,7 +41,9 @@ Apps/     the three apps. Each is one file that runs offline from disk: open it 
                                 preview, mark ready; a second person signs it as checked
 Design/   the design itself, as the apps read and write it
           structure/  one file per group (20)
-          nodes/      one file per node (734)
+          nodes/      one file per node (734 from the spec, and the rows added from the code);
+                      each carries what the repository already says about it, and lists
+                      what is still missing (the node app's Home, the group app's Progress)
           releases/   each group's sealed releases (made by the group app when a lead seals)
 
 Every app has Help at the top: the guide for your role, the journey of a node, the glossary, and
@@ -63,6 +67,7 @@ def build(out, rev="this checkout"):
         shutil.move(str(p), out / "Apps" / names.get(k, f"{k}.html"))
     shutil.rmtree(out / "_pages")
     seed_design.seed(out / "Design")
+    carry_over.carry(out / "Design")
     files, errs = seed_design.check_tree(out / "Design")
     if errs:
         raise SystemExit("drive_pack: the seeded design does not check: " + "; ".join(errs[:5]))

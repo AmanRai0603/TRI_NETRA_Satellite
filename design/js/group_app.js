@@ -313,12 +313,13 @@ function progressView(asm) {
   return [
     section("Where the group stands", kv([["Nodes", String(n.length)], ["Checked by a second engineer", String(count((x) => x.standing.state === "checked"))],
       ["Marked ready", String(count((x) => x.standing.state === "ready"))], ["Drafts", String(count((x) => x.standing.state === "draft"))], ["Shells", String(count((x) => x.standing.state === "shell"))],
-      ["Would be sealed as confirmed", String(count((x) => x.confirmed))], ["Evidence debt", `${n.reduce((t, x) => t + x.debt.length, 0)} item(s)`],
+      ["Would be sealed as confirmed", String(count((x) => x.confirmed))], ["Still missing something (carried over)", String(count((x) => x.gaps.length))], ["Evidence debt", `${n.reduce((t, x) => t + x.debt.length, 0)} item(s)`],
       ["Since the last release", asm.last ? `${asm.last.version}: ${count((x) => x.since === "new")} new, ${count((x) => x.since === "changed")} changed, ${asm.removed.length} gone` : "no release yet"]])),
     table([{ key: "id", label: "Node", mono: true }, { key: "label", label: "Label", render: (x) => x.row.label || "" }, { key: "stage", label: "Stage", render: (x) => x.row.stage || "" },
       { key: "author", label: "Author", render: (x) => x.author || "—" }, { key: "work", label: "Work", render: (x) => workBadge(x.standing.state) },
       { key: "sig", label: "Signatures", render: (x) => (x.standing.checkedStale || x.standing.readyStale ? badge("stale", "warn") : x.standing.checked ? `checked by ${x.standing.checked.name}` : x.standing.ready ? `ready (${x.standing.ready.name})` : "—") },
       { key: "p", label: "Problems", render: (x) => (x.problems.length ? badge(String(x.problems.length), "warn") : "0") }, { key: "debt", label: "Debt", render: (x) => String(x.debt.length) },
+      { key: "gaps", label: "Missing", render: (x) => (x.gaps.length ? badge(String(x.gaps.length), "warn") : "0") },
       { key: "since", label: "Since last", render: (x) => sinceBadge(x.since) }],
     n, { onRow: (x) => showNode(x), testid: "progress" }),
   ];

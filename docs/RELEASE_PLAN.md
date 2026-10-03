@@ -380,6 +380,17 @@ inside them.
 | Usability session | ⏳ the kit is ready (`docs/USABILITY_SESSION.md`: tasks, what the observer writes, how findings become fixes; a findings sheet on Drive); it needs 2–3 members chosen by the owner |
 | Fixes from it | ⏳ after the session |
 
+**Progress of P8** (all content carried over; `docs/CARRY_OVER.md`):
+
+| item | state |
+|---|---|
+| Every node filled from what exists | ✅ `tools/carry_over.py`: the spec's seed content into the nodes' own fields; each physics relation as pseudocode (48 compile in the node app; every one with test vectors reproduces them); case keys and suppliers; KPI senses and metrics; algorithm parameters; the tree's notes; each item marked with its origin, nothing replaced that an author wrote |
+| Rows a discipline had no node for | ✅ 31 added from the code (`design/carry.toml`): dynamics (rigid body, kinematics, rotor coupling, flexible mode, total momentum), onboard navigation (orbit propagation, GNSS fix, time and frames, TRIAD, QUEST, gyro filter), guidance and mode management, FDIR (sensor and rotor health, safe mode), CMG and VSCMG (model, steering, axes, gimbal limits), sizing per subsystem; each with its flight pseudocode and implementations where there is one |
+| The 166 internal rows | ✅ named from the code that computes them (sensor and actuator models, disturbance torques, control laws, estimation, modes, flight software, budgets, rigs), in the group file and the node file; their kind is left to their author |
+| What does not exist | ✅ listed in every node (`status.gaps`) with its owner team, on the node app's Home and the group app's Progress; nothing invented. Most is explanation (764 nodes) and belief records (357), which only people write |
+| Proof | ✅ `tests/test_carry.py` (`check_all` as `carry`): every file and structure rule holds after the carry; origins, names, added rows, gaps; carrying again changes nothing; the node app's own code reads every node and runs every carried pseudocode. The Drive pack's Design folder is seeded and carried |
+| Drive shared drives for the 10 lead teams | ⏳ needs the owner's Drive admin: one shared drive per lead team holding its groups' files |
+
 ## 6 · What 1.0.0 contains
 
 - **Node app and group app:** offline, one file each, with manuals.

@@ -68,6 +68,8 @@ CHECKS = [
      [PY, "-m", "unittest", "discover", "-s", "tests", "-p", "test_structure.py"], ".", ["node"]),
     ("release", "the group app's release side on the whole seeded design (all 20 groups sealed 1.0, then a node of each re-issued and changed and each sealed 1.1; a damaged node file made again from a release; a node form imported) and through the page; every release held by tools/release.py, which finds each one broken on purpose",
      [PY, "-m", "unittest", "discover", "-s", "tests", "-p", "test_release.py"], ".", ["node"]),
+    ("carry", "what the repository already says carried into the node files (seed content, physics as pseudocode, case keys, KPIs, algorithms, the tree's notes; the internal rows named and the rows added from the code), each item with its origin and every gap with its owner team; every rule holds afterwards, the carried pseudocode compiles and reproduces its test vectors in the node app's own code, and carrying again changes nothing",
+     [PY, "-m", "unittest", "discover", "-s", "tests", "-p", "test_carry.py"], ".", []),
     ("design-loop", "every stored design-loop decision recomputed from its inputs",
      [PY, "tools/verify_nodes.py"], ".", []),
 ]
