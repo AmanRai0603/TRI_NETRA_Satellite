@@ -1,19 +1,24 @@
-// group_app.js -- TRI-NETRA Group, the group lead's app, structure side (docs/RELEASE_PLAN.md P4):
-// open the design folder, pick a group, and see and change its structure: the map (stages, nodes,
-// what reads what, inputs from other groups), its nodes, stages and stage owners, people and who
-// authors what (issuing node files), contracts at its boundary, change requests both ways, and
-// its history. Every change is a structure action (structure.js): its impact is shown before it is
-// done, a block stops it, and it changes every file it touches or none.
+// group_app.js -- TRI-NETRA Group, the group lead's app (docs/RELEASE_PLAN.md P4, P6): open the
+// design folder, pick a group, and see and change its structure: the map (stages, nodes, what reads
+// what, inputs from other groups), its nodes, stages and stage owners, people and who authors what
+// (issuing node files), contracts at its boundary, change requests both ways, and its history; and
+// take it to a release: every node's progress, the group assembled with the checks across its
+// nodes, stages signed by their owners, comments, releases sealed, compared and re-issued from,
+// node forms imported. Every change is an action (structure.js, release.js): its impact is shown
+// before it is done, a block stops it, and it changes every file it touches or none.
 // Owner: Agastya. Copyright (c) 2026 Agastya. All rights reserved.
 import { Journal, FileRefused } from "./tnfile.js";
 import { Workspace, integrity, summary, readersOutside, readersInside, inputsFromOutside, requestsTo, STRUCTURE, NODES } from "./structure.js";
-import { h, fill, button, field, banner, badge, table, section, toolbar, spacer, kv, dialog, ask, toast, shell, tabs, graph, impactList, choice, checks } from "./tn_ui.js";
+import { Releases, compare, nowNodes, parseForm, RELEASES } from "./release.js";
+import { renderNode } from "./node_view.js";
+import { h, fill, button, field, banner, badge, table, section, toolbar, spacer, kv, dialog, ask, toast, shell, tabs, graph, impactList, choice, checks, fileButton } from "./tn_ui.js";
 
 const canFolders = typeof window.showDirectoryPicker === "function";
-const { main, status } = shell("TRI-NETRA Group", "A group's structure: its map, nodes, stages, people, contracts and change requests. Nothing leaves this computer.");
+const { main, status } = shell("TRI-NETRA Group", "A group's structure and its releases: map, nodes, stages, people, contracts, change requests; progress, assemble, seal. Nothing leaves this computer.");
+const RELEASE_ACTIONS = new Set(["seal", "signStage", "reissue", "comment", "import"]);
 const journal = new Journal();
 const session = crypto.getRandomValues(new Uint32Array(2)).join("-");
-const app = { SQL: null, root: null, ws: null, gid: null, sel: null, tab: 0, who: null, profile: null, problems: [] };
+const app = { SQL: null, root: null, ws: null, rel: null, asm: null, gid: null, sel: null, tab: 0, who: null, profile: null, problems: [] };
 
 function remembered(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
 function remember(k, v) { try { localStorage.setItem(k, v); } catch (e) { /* private window */ } }
@@ -62,6 +67,7 @@ async function useFolder(root) {
   if (!ok) { main.prepend(banner("error", "Not a design folder.", `A design folder holds ${STRUCTURE}/ (the group files) and ${NODES}/ (the node files). Pick the folder that holds both.`)); return; }
   app.root = root;
   app.ws = new Workspace({ SQL: app.SQL, root, who: app.who, session, profile: app.profile, journal, locks: navigator.locks || null });
+  app.rel = new Releases(app.ws);
   await journal.setPref("design-folder", root).catch(() => {});
   await app.ws.refresh();
   await showGroups();
@@ -113,6 +119,7 @@ async function openGroup(gid) {
   app.gid = gid;
   app.sel = null;
   app.tab = 0;
+  app.asm = null;
   app.problems = await integrity(app.SQL, app.root, { index: app.ws.index, scope: [gid] }).catch((e) => [String(e)]);
   await showGroup();
 }
@@ -129,6 +136,9 @@ async function showGroup() {
     ["People", () => peopleView()],
     ["Contracts", () => contractsView()],
     ["Requests", () => requestsView()],
+    ["Progress", () => assembled(progressView)],
+    ["Assemble", () => assembled(assembleView)],
+    ["Release", () => assembled(releaseView)],
     ["History", () => historyView()],
   ], { testid: "tabs" });
   render(
@@ -175,7 +185,9 @@ function nodeDetail(id) {
     ["Author", author ? `${author.author} (issued ${fmtTime(author.issued_at)})` : "not issued"],
     ["Read in this group by", inR.join(", ") || "—"], ["Read by other groups", [...outR].map(([k, v]) => `${k} (${v.join(", ")})`).join("; ") || "—"],
     ["Reads", g.edges.filter((e) => e.to_node === id).map((e) => e.from_node).join(", ") || "—"]]),
+  n.state === "sealed" ? banner("info", "Sealed.", "Its author cannot change it until it is re-issued.", button("Re-issue…", () => reissueNode(id), { testid: "act-reissue" })) : null,
   live ? toolbar(
+    button("Comment…", () => commentNode(id), { testid: "act-comment" }),
     button("Rename…", () => renameNode(id), { testid: "act-rename" }),
     g.stages.length ? button("Stage…", () => stageNode(id), { testid: "act-stage" }) : null,
     button("Split…", () => splitNode(id), { testid: "act-split" }),
@@ -259,10 +271,124 @@ function historyView() {
   return box;
 }
 
+// ------------------------------------------------------------------ progress, assemble, release
+// every node file of the group read and judged (release.js assemble), kept until something changes
+function assembled(view) {
+  const box = h("div", { "data-testid": "assembling" }, "Reading every node file of the group…");
+  const gid = app.gid;
+  (app.asm && app.asm.gid === gid ? Promise.resolve(app.asm) : app.rel.assemble(gid)).then((asm) => {
+    if (app.gid !== gid) return;
+    app.asm = asm;
+    fill(box, view(asm));
+    box.setAttribute("data-testid", "assembled");
+  }).catch((e) => fill(box, banner("error", "The group could not be read.", String(e.message || e))));
+  return box;
+}
+
+const workBadge = (st) => badge(st, st === "checked" ? "ok" : st === "ready" ? "" : "warn");
+const sealBadge = (x) => badge(x.confirmed ? "confirmed" : "UNCONFIRMED", x.confirmed ? "ok" : "warn");
+const sinceBadge = (s) => badge(s, s === "same" ? "" : "warn");
+
+function progressView(asm) {
+  const n = asm.nodes, count = (f) => n.filter(f).length;
+  return [
+    section("Where the group stands", kv([["Nodes", String(n.length)], ["Checked by a second engineer", String(count((x) => x.standing.state === "checked"))],
+      ["Marked ready", String(count((x) => x.standing.state === "ready"))], ["Drafts", String(count((x) => x.standing.state === "draft"))], ["Shells", String(count((x) => x.standing.state === "shell"))],
+      ["Would be sealed as confirmed", String(count((x) => x.confirmed))], ["Evidence debt", `${n.reduce((t, x) => t + x.debt.length, 0)} item(s)`],
+      ["Since the last release", asm.last ? `${asm.last.version}: ${count((x) => x.since === "new")} new, ${count((x) => x.since === "changed")} changed, ${asm.removed.length} gone` : "no release yet"]])),
+    table([{ key: "id", label: "Node", mono: true }, { key: "label", label: "Label", render: (x) => x.row.label || "" }, { key: "stage", label: "Stage", render: (x) => x.row.stage || "" },
+      { key: "author", label: "Author", render: (x) => x.author || "—" }, { key: "work", label: "Work", render: (x) => workBadge(x.standing.state) },
+      { key: "sig", label: "Signatures", render: (x) => (x.standing.checkedStale || x.standing.readyStale ? badge("stale", "warn") : x.standing.checked ? `checked by ${x.standing.checked.name}` : x.standing.ready ? `ready (${x.standing.ready.name})` : "—") },
+      { key: "p", label: "Problems", render: (x) => (x.problems.length ? badge(String(x.problems.length), "warn") : "0") }, { key: "debt", label: "Debt", render: (x) => String(x.debt.length) },
+      { key: "since", label: "Since last", render: (x) => sinceBadge(x.since) }],
+    n, { onRow: (x) => showNode(x), testid: "progress" }),
+  ];
+}
+
+function assembleView(asm) {
+  const bad = asm.cross.filter((c) => c.level === "!");
+  return [
+    asm.structure.length || asm.unreadable.length ? banner("error", "The group cannot be sealed as it is.", [...asm.structure, ...asm.unreadable].join("\n")) : null,
+    section(`Checks across the nodes (${bad.length} problem(s), ${asm.cross.length - bad.length} note(s))`,
+      table([{ key: "node", label: "Node", mono: true }, { key: "level", label: "", render: (c) => badge(c.level === "!" ? "problem" : "note", c.level === "!" ? "error" : "") }, { key: "text", label: "What" }],
+        asm.cross, { empty: "Nothing: every input, contract and unit agrees.", testid: "cross" })),
+    section("Stages and their signatures", table([{ key: "id", label: "Stage", mono: true }, { key: "owner", label: "Owner", render: (s) => s.owner || "—" }, { key: "nodes", label: "Nodes" },
+      { key: "signed", label: "Signed", render: (s) => (s.signed ? badge(`signed by ${s.sig.name}`, "ok") : s.sig ? badge("stale: changed since", "warn") : badge("not signed", "warn")) },
+      { key: "act", label: "", render: (s) => button("Sign…", () => run({ type: "signStage", group: asm.gid, stage: s.id }), { testid: `sign-${s.id}` }) }],
+    asm.stages, { empty: "This group has no stages: its lead's seal covers it.", testid: "stages-sign" })),
+    section("Every node as it would be sealed", h("p", { class: "tn-dim" }, "Click a node to see it as the main application will show it, with what keeps it from being confirmed."),
+      table([{ key: "id", label: "Node", mono: true }, { key: "s", label: "Sealed as", render: (x) => sealBadge(x) }, { key: "why", label: "Why not confirmed", render: (x) => x.why.join("; ") }],
+        asm.nodes, { onRow: (x) => showNode(x), testid: "assemble" })),
+  ];
+}
+
+async function showNode(x) {
+  const ctx = { groupLabel: `${app.gid} · ${G().label || ""}`, readers: [...readersInside(app.ws.index, x.id).map((id) => ({ id, group: app.gid })), ...[...readersOutside(app.ws.index, x.id)].flatMap(([g, ids]) => ids.map((id) => ({ id, group: g })))],
+    pictureUrl: () => "" };
+  const v = await dialog(`${x.id} · ${x.row.label || ""}`, h("div", { class: "tn-stack", "data-testid": "node-view" },
+    x.confirmed ? banner("ok", "Would be sealed as confirmed.", "") : banner("warn", "Would be sealed UNCONFIRMED.", x.why.join("\n")),
+    x.comments.length ? section("Comments", table([{ key: "at", label: "When", render: (c) => fmtTime(c.at) }, { key: "by", label: "Who" }, { key: "body", label: "Comment" }], x.comments)) : null,
+    renderNode(x.doc, ctx, x.standing)), [["Close", null], ["Comment…", "comment", "primary"]]);
+  if (v === "comment") await commentNode(x.id);
+}
+
+function releaseView(asm) {
+  const rels = asm.releases;
+  return [
+    section(`Releases of ${asm.gid}`, table([{ key: "version", label: "Version", mono: true }, { key: "sealed_at", label: "Sealed", render: (r) => fmtTime(r.sealed_at) }, { key: "sealed_by", label: "By" },
+      { key: "c", label: "Confirmed", render: (r) => `${r.confirmed} of ${r.nodes.size}` }, { key: "ok", label: "Fingerprints", render: (r) => (r.problems.length ? badge(`${r.problems.length} problem(s)`, "error") : badge("intact", "ok")) },
+      { key: "file", label: "File", mono: true }], rels, { empty: "Not sealed yet.", testid: "releases" }),
+    toolbar(button(`Seal ${asm.next}…`, () => run({ type: "seal", group: asm.gid, version: asm.next }), { kind: "primary", testid: "seal" }),
+      button("Compare…", () => compareDialog(asm), { disabled: !rels.length, testid: "compare" }),
+      button("Re-issue a node…", () => reissueNode(null), { testid: "reissue" }),
+      fileButton("Import node forms…", (files) => importForms(files), { accept: ".html,text/html", multiple: true, testid: "import" })),
+    h("p", { class: "tn-dim" }, `Only the lead (${asm.lead || "none yet: People → a member with the role lead"}) seals. A release is frozen in ${RELEASES}/; every node file is stamped with it and sealed until it is re-issued. A node goes in as confirmed only when someone other than its author checked it, its stage owner signed its stage as it is, the checks find nothing and, for a computing node, a test vector has its answer from outside the code; the rest go in UNCONFIRMED, each with why.`)),
+  ];
+}
+
+async function compareDialog(asm) {
+  const opts = [...asm.releases.map((r) => [r.version, `${asm.gid} ${r.version}`]), ["now", "the group now"]];
+  const a = choice("From", opts, { value: asm.releases[asm.releases.length - 1].version, testid: "f-from" });
+  const b = choice("To", opts, { value: "now", testid: "f-to" });
+  const v = await form("Compare", [a, b], "Compare");
+  if (!v) return;
+  const pick = (k) => (k === "now" ? nowNodes(asm) : asm.releases.find((r) => r.version === k).nodes);
+  const rows = compare(pick(v[0]), pick(v[1])).filter((d) => d.change !== "same");
+  await dialog(`${v[0]} → ${v[1]}`, h("div", { "data-testid": "comparison" }, rows.length ? table([{ key: "id", label: "Node", mono: true }, { key: "change", label: "Change", render: (d) => badge(d.change, d.change === "changed" ? "warn" : "") },
+    { key: "fields", label: "What changed", render: (d) => d.fields.join(", ") }], rows) : h("p", {}, "No node changed.")), [["Close", null]]);
+}
+
+async function reissueNode(id) {
+  const asm = app.asm, g = G();
+  const node = id ? null : choice("Node", [...g.nodes.values()].filter((n) => n.state !== "archived").map((n) => [n.id, `${n.id} · ${n.label || ""} (${n.state})`]), { testid: "f-node" });
+  const from = choice("From", [["", "the file as it is"], ...((asm && asm.gid === g.id ? asm.releases : await app.rel.releases(g.id)).map((r) => [r.version, `as sealed in ${g.id} ${r.version}`]))], { testid: "f-from" });
+  const v = await form(`Re-issue ${id || "a node"}`, [...(node ? [node] : []), from]);
+  if (!v) return;
+  await run({ type: "reissue", group: g.id, id: id || v[0], from: v[node ? 1 : 0] || null });
+}
+
+async function commentNode(id) {
+  const body = field("Comment", { multiline: true, help: "Its author sees it on the node's Home in the node app.", testid: "f-comment" });
+  const v = await form(`Comment on ${id}`, [body], "Next");
+  if (v && v[0].trim()) await run({ type: "comment", group: app.gid, id, body: v[0].trim() });
+}
+
+async function importForms(files) {
+  for (const f of files) {
+    let form;
+    try { form = parseForm(await f.text()); } catch (e) { toast(`${f.name}: ${e.message}`, "error"); main.prepend(banner("error", `${f.name} was not imported.`, e.message)); continue; }
+    const id = (form.node || {}).tree_id;
+    if (!id) { toast(`${f.name}: the form names no node`, "error"); continue; }
+    await run({ type: "import", group: app.gid, id, name: f.name, form });
+  }
+}
+
 // ------------------------------------------------------------------ actions
 /** Show the impact; do it when nothing stops it. */
 async function run(a) {
-  const p = await guard("Checking the impact", () => app.ws.plan(a));
+  const engine = RELEASE_ACTIONS.has(a.type) ? app.rel : app.ws;
+  setStatus(`Checking the impact of: ${a.type}…`);
+  const p = await guard("Checking the impact", () => engine.plan(a));
   if (!p) return null;
   const acts = [["Cancel", null]];
   const ask4 = p.blocked && requestFor(a, p);
@@ -272,8 +398,9 @@ async function run(a) {
   if (v === "request") return raiseRequest(ask4);
   if (v !== "do") return null;
   setStatus(`Doing: ${summary(a)}…`);
-  const r = await guard(summary(a), () => app.ws.apply(a));
+  const r = await guard(summary(a), () => engine.apply(a));
   if (!r) return null;
+  app.asm = null;
   if (a.type === "move" && a.id === app.sel) app.sel = null;
   app.problems = await integrity(app.SQL, app.root, { index: app.ws.index, scope: [app.gid, ...(a.to ? [a.to] : [])].filter((x) => app.ws.index.groups.has(x)) }).catch((e) => [String(e)]);
   toast(`Done: ${r.summary} (${r.files.length} file(s))`);
@@ -415,4 +542,4 @@ const wasm = Uint8Array.from(atob(document.getElementById("tn-sqlite-wasm").text
 app.ready = Promise.all([window.initSqlJs({ wasmBinary: wasm }), profileId()]).then(([SQL, profile]) => { app.SQL = SQL; app.profile = profile; start(); });
 
 // for the browser tests (tests/browser/group.test.mjs) and for anyone automating the page
-window.tnGroup = { app, ready: app.ready, useFolder, openGroup, run, showGroups, select: async (id) => { app.sel = id; app.tab = 0; await showGroup(); } };
+window.tnGroup = { app, ready: app.ready, useFolder, openGroup, run, showGroups, importForms, select: async (id) => { app.sel = id; app.tab = 0; await showGroup(); } };

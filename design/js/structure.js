@@ -23,11 +23,15 @@ export const NODES = "nodes";
 export const ACTIONS = "actions";
 const ID = /^[a-z][a-z0-9_]{1,63}$/;
 
+/** Actions other modules add (release.js: seal, re-issue, stage signatures, comments, imports):
+ *  type -> { impact(index, a, x), steps(ws, a, x), summary(a) }, with x the helpers each side uses. */
+export const EXTRA = new Map();
+
 export async function subdir(root, name, create = false) { return root.getDirectoryHandle(name, { create }); }
 const groupFile = (g) => `${g}.group.tndb`;
 const nodeFile = (id) => `${id}.node.tndb`;
 
-async function readBytes(dir, name) {
+export async function readBytes(dir, name) {
   return new Uint8Array(await (await (await dir.getFileHandle(name)).getFile()).arrayBuffer());
 }
 
@@ -275,6 +279,7 @@ export function impact(index, a) {
       if (mine(a.id)) {
         if (!G.members.some((m) => m.name === a.author)) block(`${a.author} is not a member of ${a.group}`);
         if (node(a.id).state === "archived") block(`${a.id} is archived`);
+        if (node(a.id).state === "sealed") block(`${a.id} is sealed in a release of ${a.group}: re-issue it (Release) to open it again`);
         const prev = G.memberNodes.get(a.id);
         if (prev && prev.author !== a.author) warn(`${a.id} was issued to ${prev.author}; it goes to ${a.author}`);
         info(`${NODES}/${nodeFile(a.id)} names ${a.author} as its author`);
@@ -303,7 +308,8 @@ export function impact(index, a) {
       break;
     }
     default:
-      block(`no structure action ${a.type}`);
+      if (EXTRA.has(a.type)) EXTRA.get(a.type).impact(index, a, { G, node, mine, block, warn, info });
+      else block(`no structure action ${a.type}`);
   }
   return out;
 }
@@ -338,19 +344,23 @@ export class Workspace {
     if (a.type === "split") await this.readNode(a.id);
     if (a.type === "merge") { await this.readNode(a.keep); await this.readNode(a.gone); }
     const steps = this._steps(a);
-    const sdir = await subdir(this.root, STRUCTURE), ndir = await subdir(this.root, NODES);
-    const dirOf = (path) => (path.startsWith(STRUCTURE + "/") ? sdir : ndir);
+    const sdir = await subdir(this.root, STRUCTURE), dirs = new Map();
+    for (const st of steps) { const top = st.path.split("/")[0]; if (!dirs.has(top)) dirs.set(top, await subdir(this.root, top, !!st.create)); }
+    const dirOf = (path) => dirs.get(path.split("/")[0]);
     const base = (path) => path.split("/").pop();
     const sessions = new Map(), creates = [];
     const close = async () => { for (const s of sessions.values()) { await this.journal.delete(s.key).catch(() => {}); await s.close(); } };
     try {
       for (const st of steps) {
         if (st.create) {
-          try { await dirOf(st.path).getFileHandle(base(st.path)); throw new FileRefused(`${st.path} exists`, "exists"); }
-          catch (e) { if (e instanceof FileRefused) throw e; }
-          const made = (db) => { st.create(db); db.run("INSERT INTO revision VALUES (1, ?, ?, ?)", [this.now().toISOString(), this.who, `made: ${summary(a)}`]); };
+          // a new file; or, with overwrite, one that cannot be opened (missing or damaged), made again
+          let before = null;
+          try { before = await sha256(await readBytes(dirOf(st.path), base(st.path))); } catch (e) { before = null; }
+          if (before !== null && !st.overwrite) throw new FileRefused(`${st.path} exists`, "exists");
+          // a release file is frozen: it has no history of its own
+          const made = (db) => { st.create(db); if (st.kind !== "release") db.run("INSERT INTO revision VALUES (1, ?, ?, ?)", [this.now().toISOString(), this.who, `made: ${summary(a)}`]); };
           const bytes = newFileBytes(this.SQL, st.kind, st.id, made, { writtenBy: `TRI-NETRA group app (${this.who})` });
-          creates.push({ path: st.path, bytes, hash: await sha256(bytes) });
+          creates.push({ path: st.path, bytes, hash: await sha256(bytes), before });
           continue;
         }
         let s = sessions.get(st.path);
@@ -369,7 +379,7 @@ export class Workspace {
       const at = this.now().toISOString();
       const id = `${at.replace(/[-:.TZ]/g, "").slice(0, 14)}-${Math.random().toString(36).slice(2, 8)}`;
       const record = { id, action: a, summary: summary(a), by: this.who, at, impact: p.impact, done: false,
-        files: [...creates.map((c) => ({ path: c.path, before: null, after: c.hash, bytes: b64(c.bytes) })),
+        files: [...creates.map((c) => ({ path: c.path, before: c.before, after: c.hash, bytes: b64(c.bytes) })),
           ...prepared.map((x) => ({ path: x.path, before: x.p.before, after: x.p.hash, bytes: b64(x.p.bytes) }))] };
       const adir = await subdir(sdir, ACTIONS, true);
       await writeFile(adir, `${id}.json`, JSON.stringify(record));
@@ -412,11 +422,11 @@ export class Workspace {
   /** Complete an unfinished action: every file still as it was before gets its new bytes; one
    *  already new is left; one changed by someone since is reported and left. */
   async finish(id) {
-    const sdir = await subdir(this.root, STRUCTURE), adir = await subdir(sdir, ACTIONS), ndir = await subdir(this.root, NODES);
+    const sdir = await subdir(this.root, STRUCTURE), adir = await subdir(sdir, ACTIONS);
     const r = JSON.parse(new TextDecoder().decode(await readBytes(adir, `${id}.json`)));
     const report = [];
     for (const f of r.files) {
-      const dir = f.path.startsWith(STRUCTURE + "/") ? sdir : ndir, name = f.path.split("/").pop();
+      const dir = await subdir(this.root, f.path.split("/")[0], true), name = f.path.split("/").pop();
       let now = null;
       try { now = await sha256(await readBytes(dir, name)); } catch (e) { now = null; }
       if (now === f.after) { report.push(`${f.path}: done already`); continue; }
@@ -573,7 +583,8 @@ export class Workspace {
         g((db) => db.run("INSERT INTO change_request VALUES (?, ?, ?, ?, ?, ?)", [`${a.id}.reply`, at, who, JSON.stringify({ reply: a.id }), a.body || a.answer, a.answer]));
         break;
       default:
-        throw new FileRefused(`no structure action ${a.type}`, "blocked");
+        if (!EXTRA.has(a.type)) throw new FileRefused(`no structure action ${a.type}`, "blocked");
+        EXTRA.get(a.type).steps(this, a, { steps, g, n, np, gpath, who, at, typed });
     }
     return steps;
   }
@@ -626,7 +637,7 @@ export function summary(a) {
     case "contract": return `contract ${a.node}.${a.output}`;
     case "request": return `change request to ${a.to}: ${a.action} ${a.node || ""}`.trim();
     case "reply": return `change request ${a.id}: ${a.answer}`;
-    default: return a.type;
+    default: return EXTRA.has(a.type) ? EXTRA.get(a.type).summary(a) : a.type;
   }
 }
 

@@ -1,9 +1,11 @@
-# The group app: structure
+# The group app: structure and releases
 
 TRI-NETRA Group (`pages/group.html` in the kit; `design/js/group_app.js`) is the group lead's app.
-This part of it (`docs/RELEASE_PLAN.md` P4) is the structure of a group: its nodes, what reads what,
+It has two sides. The structure of a group (`docs/RELEASE_PLAN.md` P4): its nodes, what reads what,
 its stages and who signs them, its people and who authors which node, its contracts with other
-groups, and change requests both ways. Assembling and releasing (P6) come next.
+groups, and change requests both ways. And its releases (P6): every node's progress, the group
+assembled and checked across its nodes, stages signed, releases sealed, compared and re-issued from,
+node forms imported.
 
 It works on the files of `docs/FILES_IN_THE_BROWSER.md`, with the same rules: Chrome or Edge, a
 Drive folder, nothing sent anywhere, someone else's open file refused by name, saves read back and
@@ -13,8 +15,9 @@ checked.
 
 ```
 structure/<group>.group.tndb    one per group: stages, people, nodes, the edges into its nodes, contracts, change requests
-structure/actions/<id>.json     every structure action: what it changed and who did it
+structure/actions/<id>.json     every action: what it changed and who did it
 nodes/<id>.node.tndb            one per node; a node keeps its file when it changes group
+releases/<group>-<v>.tnrel      one per sealed release of a group: frozen, never edited
 ```
 
 `tools/seed_design.py` writes the first one from the spec (20 groups, 734 nodes).
@@ -31,7 +34,10 @@ Open the design folder, then click your group. Its tabs:
 | **People** | Members and their roles (lead, stage owner, author); who authors which node, and when it was issued |
 | **Contracts** | The nodes other groups read, and the contract published for each (output, unit, version, readers) |
 | **Requests** | Change requests to your group (accept or decline) and from it (with their state) |
-| **History** | Every structure change to the group: who, when, what, how many files |
+| **Progress** | Every node: its author, where its work stands (shell, draft, ready, checked), its signatures and whether they still stand, its problems, its evidence debt, what changed since the last release |
+| **Assemble** | The checks across the nodes (an input from a node that is gone or archived, a quantity or unit that does not match, a contract that disagrees with its node, a missing arrow); each stage and its owner's signature; every node as it would be sealed, with why it is not confirmed. Click a node to see it as the main application will show it, and to comment on it |
+| **Release** | The group's releases (version, when, who, how many confirmed, whether the fingerprints still hold); **Seal**, **Compare**, **Re-issue a node**, **Import node forms** |
+| **History** | Every change to the group: who, when, what, how many files |
 
 **Every change shows its impact first.** Each line of the impact check is one of three things:
 
@@ -62,6 +68,58 @@ and reported.
 - every edge comes from a node that exists and is not archived;
 - every author, contract and stage owner belongs to the group.
 
+## Releasing a group
+
+**Confirmed or UNCONFIRMED.** A release takes every node of the group as it is. A node goes in
+as *confirmed* only when:
+
+- someone other than its author checked it (the node app's "Sign as checked"), and it has not
+  changed since;
+- the checks find nothing in it, and nothing across the nodes points at it;
+- its stage, when the stage has an owner, is signed by that owner as it is now;
+- **a computing node has a test vector whose answer comes from outside the code** (a book, an
+  independent derivation, another tool, a physical bound). An answer the code made proves nothing.
+
+Every other node goes in *UNCONFIRMED*, with its reasons written into the release.
+
+**Who does what.**
+
+1. Authors fill their nodes in the node app and mark them ready; a second engineer signs each as
+   checked.
+2. A stage owner signs the stage (Assemble → **Sign…**). The signature covers the stage's nodes as
+   they are; a change to any of them takes it off.
+3. The lead seals (Release → **Seal 1.0…**). Only the lead can, and only when the structure holds
+   and every node file opens. The impact check says how many nodes go in confirmed, which do not,
+   and what changed since the last release.
+
+**What a seal does**, all or nothing:
+
+- `releases/<group>-<version>.tnrel` is written and never changed again. It keeps every node as it
+  was (its content, inputs, test vectors, pictures and signatures), the group's structure, the stage
+  signatures and the lead's seal, with SHA-256 fingerprints over all of it.
+- Every node file is stamped with the release ("act 1.0", confirmed or not) and **sealed**: the node
+  app opens it read-only, saying so. The stamp is a status line, so no signature goes stale.
+
+Versions go 1.0, 1.1, 1.2…. A group with nothing changed since its last release is not sealed again.
+
+**Re-issue** opens a sealed node again for its author (Map → the node → **Re-issue…**, or Release →
+**Re-issue a node…**). Choose "the file as it is", or a release: the node file then gets back what
+that release sealed, signatures included. A node file that is missing or damaged is made again from
+a release this way.
+
+**Compare** shows two releases, or a release and the group now, node by node: which were added,
+removed or changed, and which fields changed.
+
+**Comments**: on a node (Map → **Comment…**, or from its view in Progress and Assemble). The comment is
+written into the node file; its author sees it on the node's Home in the node app.
+
+**Import node forms** takes today's node forms (`adcs-node-form/1` HTML files, from the node
+library or filled by a team member) into the node files. Each form names its node; it must be one of
+this group's and not sealed. The form's answers fill the node's fields (marked as the form's, with
+its requester), its inputs when the node has none, its test vectors and attachments. A field the
+author has typed is kept, and the impact check lists it. A form that names nobody as its requester
+is refused.
+
 ## For a developer
 
 | Piece | Where |
@@ -70,8 +128,10 @@ and reported.
 | A save in two halves (prepare, commit), for actions across files | `FileSession.prepare` / `commit` in `design/js/tnfile.js` |
 | The page | `design/js/group_app.js`, `design/pages/group.template.html`; the tabs, map and impact list are components of `design/js/tn_ui.js` |
 | The same rules from Python | `tools/group.py check DIR` (written separately, so neither checker is the only judge of the other) |
+| The group assembled, the checks across nodes, seal, re-issue, stage signatures, comments, node forms, compare | `design/js/release.js` (`assemble`, `crossChecks`, `verdict`, `Releases`, `compare`, `parseForm`); its actions go through the same `Workspace` (`EXTRA` in `structure.js`) |
+| Releases checked from Python | `tools/release.py check PATH` (fingerprints, the confirmed rule, the seal), `tools/release.py list DIR` |
 
-**How it is proven** (`check_all` runs both, as `structure` and `offline-pages`):
+**How it is proven** (`check_all` runs these as `structure`, `release` and `offline-pages`):
 
 - `tests/test_structure.py` runs `tests/js/structure.test.mjs` on the whole seeded design, under Node on a
   folder on disk. It checks that:
@@ -88,3 +148,23 @@ and reported.
 - `tests/browser/group.test.mjs` does the same through the page in Chromium: the forms, the impact
   dialog, accepting requests in the other group's Requests tab, the map at phone width. The folder
   the page leaves behind is then checked by `tools/group.py`.
+- `tests/test_release.py` runs `tests/js/release.test.mjs` on the whole seeded design under Node:
+  - all 20 groups are assembled and seal 1.0; then each re-issues a node, changes it and seals 1.1,
+    and every release file checks;
+  - only the lead seals, and only a stage's owner signs it;
+  - a declared node written, marked ready and checked by someone else is confirmed only once its
+    stage is signed;
+  - a computing node is not confirmed without a test vector from outside the code;
+  - a node is re-issued, changed and checked again, and act seals 1.1; comparing 1.0 with 1.1 names
+    that node and the fields that changed;
+  - a damaged node file stops the seal and is made again from a release;
+  - a node form is imported, with the author's own field kept.
+
+  Then `tools/release.py` checks every release it wrote, and is given releases broken on purpose (a
+  node changed, a node dropped, a computing node confirmed without an outside answer, a node checked
+  by its own author): it must find each.
+- `tests/browser/release.test.mjs` does it through the page: progress and assemble for act, the
+  stage signed by its owner, the seal refused to someone else and done by the lead, a node re-issued,
+  commented on and renamed, 1.1 sealed and compared, a node form imported into env, catalogue
+  sealed; in the node app a sealed node opens read-only. The folder it leaves passes
+  `tools/tndb.py`, `tools/group.py` and `tools/release.py`.

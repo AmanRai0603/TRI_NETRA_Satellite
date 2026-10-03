@@ -58,6 +58,7 @@
 | [`pages.py pages`](#pagespy-pages) | The offline pages (TRI-NETRA Files today; the node and group apps next): each one HTML file that runs from disk, with SQLite in WebAssembly, the fonts and the component set inside it and nothing loaded from anywhere. check builds them into a scratch folder and refuses a vendored file that is not the pinned one, a page that makes its own controls or styles, and anything that would load from an outside host. |
 | [`group.py group`](#grouppy-group) | The structure of a design folder (structure/ and nodes/, as tools/seed_design.py writes it and the group app changes it), checked from Python: every node in exactly one group with its node file saying the same group, stage, label and state; every edge kept by the group of the node that reads, from a node that exists and is not archived; every author, contract and stage owner about the group's own nodes and people; no structure action left unfinished. The same rules as the group app's own check (design/js/structure.js), written a second time. |
 | [`node_catalog.py node_catalog`](#node_catalogpy-node_catalog) | The node app's catalogue (design/js/node_catalog.js), written from the spec: the units and the quantities each measures, the physics relations, the sources, the evidence metrics and rungs, the provenance and belief words, the tags and every row of the tree with its label, kind, quantity, unit and layer. The node app offers these as its choices, so they are never typed by hand. --check says whether the committed file is current. |
+| [`release.py release`](#releasepy-release) | Sealed group releases (releases/<group>-<version>.tnrel, as the group app seals them), checked from Python: each file passes tools/tndb.py check and is named for its group and version; every node's fingerprint, body fingerprint and the release's fingerprint are the SHA-256 of what they cover; its nodes are the group's as sealed, each confirmed or unconfirmed with why; a confirmed node was checked by someone other than its author and, when it computes, has a test vector from outside the code; the lead's seal names the version and the fingerprint. The same rules as design/js/release.js, written a second time. |
 | [`drive_pack.py drive-pack`](#drive_packpy-drive-pack) | The Drive pack: the two offline apps (TRI-NETRA Files, TRI-NETRA Group) and the design seeded from the spec (20 group files, 734 node files), in the layout the shared Drive folder of the design takes, with a README. CI builds it on every push as the trinetra-drive-pack artifact. |
 
 ## adcs run
@@ -899,6 +900,22 @@ The node app's catalogue (design/js/node_catalog.js), written from the spec: the
 
 - **Reads:** `spec/`
 - **Writes:** `design/js/node_catalog.js`
+- **Starts:** nothing
+
+## release.py release
+
+Sealed group releases (releases/<group>-<version>.tnrel, as the group app seals them), checked from Python: each file passes tools/tndb.py check and is named for its group and version; every node's fingerprint, body fingerprint and the release's fingerprint are the SHA-256 of what they cover; its nodes are the group's as sealed, each confirmed or unconfirmed with why; a confirmed node was checked by someone other than its author and, when it computes, has a test vector from outside the code; the lead's seal names the version and the fingerprint. The same rules as design/js/release.js, written a second time.
+
+    python3 tools/release.py check PATH... | list DIR
+
+**Steps**
+
+1. find the release files (under DIR/releases/ for a folder)
+2. check each one
+3. list every problem
+
+- **Reads:** `DIR/releases/`; PATH
+- **Writes:** nothing
 - **Starts:** nothing
 
 ## drive_pack.py drive-pack

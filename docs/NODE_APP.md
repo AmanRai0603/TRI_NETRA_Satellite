@@ -57,7 +57,9 @@ stop **Mark ready**.
 **Ready and signed.** Marking ready signs the node's content with a fingerprint (SHA-256 of its
 content, inputs, test vectors and pictures). A check signature carries the same fingerprint. Any
 later edit makes both stale, and the app says so: the node has to be marked ready and checked again.
-The app never changes what the group decides (the node's group, stage, label, author); the only
+**Sealed.** When the group's lead seals a release (`docs/GROUP_APP.md`), every node file of the
+group is sealed with it: the app opens it read-only and says which release, until the lead
+re-issues it. The app never changes what the group decides (the node's group, stage, label, author); the only
 thing it writes there is the acknowledged contract version.
 
 ## For a developer

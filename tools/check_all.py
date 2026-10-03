@@ -66,6 +66,8 @@ CHECKS = [
      [PY, "-m", "unittest", "discover", "-s", "tests", "-p", "test_pages.py"], ".", []),
     ("structure", "the group app's structure actions on the whole seeded design (all 20 groups; act and catalogue restructured; a node moved between groups) leave every rule kept, by structure.js and by tools/group.py; both checkers find the same breakage",
      [PY, "-m", "unittest", "discover", "-s", "tests", "-p", "test_structure.py"], ".", ["node"]),
+    ("release", "the group app's release side on the whole seeded design (all 20 groups sealed 1.0, then a node of each re-issued and changed and each sealed 1.1; a damaged node file made again from a release; a node form imported) and through the page; every release held by tools/release.py, which finds each one broken on purpose",
+     [PY, "-m", "unittest", "discover", "-s", "tests", "-p", "test_release.py"], ".", ["node"]),
     ("design-loop", "every stored design-loop decision recomputed from its inputs",
      [PY, "tools/verify_nodes.py"], ".", []),
 ]

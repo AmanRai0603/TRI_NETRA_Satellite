@@ -350,6 +350,22 @@ inside them.
 | Contract updates | ✅ a changed contract on an input is acknowledged on Home; a contract change asked of the owning group as a change request |
 | Proof | ✅ on the whole seeded design in Chromium (`tests/browser/node.test.mjs`, in `check_all` as part of `offline-pages`): declared, computed, KPI, evidence, closure, interface and an unnamed row filled and previewed through the page; the folder it leaves passes `tools/tndb.py check` and `tools/group.py check`. Each check rule by rule under Node (`tests/js/node_model.test.mjs`) |
 
+**Progress of P6** (group app: assemble → release; `docs/GROUP_APP.md`):
+
+| item | state |
+|---|---|
+| Assemble | ✅ every node file of the group read and judged (`design/js/release.js` `assemble`): where its work stands, its signatures and whether they still stand, its problems, its evidence debt, what changed since the last release (Progress); each node viewed as the main application will show it |
+| Checks across nodes | ✅ an input from a node that is gone or archived, a quantity that does not match its source, a contract whose unit disagrees with its node, an input with no arrow on the map, a boundary with no contract |
+| Comments | ✅ the lead comments on a node; the comment goes into the node file and its author sees it on Home in the node app |
+| Stage signatures | ✅ a stage owner (only) signs a stage; the signature covers its nodes as they are and goes stale on any change |
+| Seal | ✅ only the lead; refused while the structure is broken, a node file cannot be opened, or nothing changed; `releases/<group>-<version>.tnrel` frozen with SHA-256 fingerprints over every node; versions 1.0, 1.1, … |
+| Confirmed or UNCONFIRMED | ✅ confirmed only when checked by someone other than its author and unchanged since, no problem in it or across nodes, its stage signed; **a computing node without a test vector from outside the code is never confirmed**; every other node sealed UNCONFIRMED with its reasons |
+| Node files stamped and kept | ✅ every node file stamped with the release (a status line, so no signature goes stale) and sealed: the node app opens it read-only and says so; the release keeps each node whole (content, inputs, test vectors, pictures, signatures) |
+| Re-issue | ✅ the lead opens a sealed node again, as it is or as any release sealed it; a missing or damaged node file is made again from a release |
+| Compare | ✅ two releases, or a release and the group now, node by node, with the fields that changed |
+| Import of today's node forms | ✅ `adcs-node-form/1` files into the node files: the form's answers, inputs, test vectors, attachments and belief record; the author's own fields kept; refused while sealed or with no requester |
+| Proof | ✅ on the whole seeded design under Node (`tests/js/release.test.mjs`): every group seals 1.0, re-issues a node and seals 1.1; act shows the confirmed rule, the stage signature, re-issue from a damaged file; env imports a node form. Through the page in Chromium (`tests/browser/release.test.mjs`): act, env and catalogue. Every release checked again by `tools/release.py`, which also finds each release broken on purpose (`tests/test_release.py`, in `check_all` as `release`) |
+
 ## 6 · What 1.0.0 contains
 
 - **Node app and group app:** offline, one file each, with manuals.

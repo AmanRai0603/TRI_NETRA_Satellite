@@ -101,6 +101,17 @@ async function openNode(id, { dir = null, name = null, readOnly = false, takeOve
   const s = await guard(`Opening ${id}`, () => openFile({ SQL: app.SQL, dir: nd, name: name || `${id}.node.tndb`, who: app.who, session, profile: app.profile, journal, locks: navigator.locks || null, readOnly, takeOver }));
   if (!s) return;
   if (s.kind !== "node") { toast("That is not a node file", "error"); await s.close(); return; }
+  // a sealed node is frozen until its group's lead re-issues it (docs/GROUP_APP.md, Release)
+  const [state, stamp] = [(s.query("SELECT state FROM node")[0] || [])[0], (s.query("SELECT value FROM content WHERE section = 'status' AND field = 'release'")[0] || [])[0]];
+  if (state === "sealed" && !s.readOnly) {
+    await s.close();
+    const r = await guard(`Opening ${id}`, () => openFile({ SQL: app.SQL, dir: nd, name: name || `${id}.node.tndb`, who: app.who, session, profile: app.profile, journal, locks: navigator.locks || null, readOnly: true }));
+    if (!r) return;
+    r.readOnlyWhy = `sealed in ${stamp || "a release of its group"}: the group's lead re-issues it (group app, Release) when it is to change`;
+    app.cur = r; app.tab = 0;
+    await refresh();
+    return;
+  }
   app.cur = s; app.tab = 0;
   await refresh();
 }

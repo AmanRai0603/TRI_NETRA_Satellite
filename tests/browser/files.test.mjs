@@ -85,11 +85,13 @@ async function editValue(page, field, value) {
 }
 async function crash(page) {
   // the renderer dies at once (as in a crash or a power cut): no unload handler, no last write
+  // (some Chromium builds, as CI's headless shell, never report the crash: after 5 s the tab is
+  // shut without its unload handlers, which leaves the same state behind)
   const cdp = await page.context().newCDPSession(page);
   const dead = new Promise((r) => page.once("crash", r));
   cdp.send("Page.crash").catch(() => {});
-  await dead;
-  await page.close().catch(() => {});
+  await Promise.race([dead, new Promise((r) => setTimeout(r, 5000))]);
+  await Promise.race([page.close({ runBeforeUnload: false }).catch(() => {}), new Promise((r) => setTimeout(r, 5000))]);
 }
 async function fileBytes(page, name) {
   return page.evaluate(async (n) => {

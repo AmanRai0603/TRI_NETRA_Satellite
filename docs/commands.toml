@@ -539,6 +539,16 @@ writes = ["design/js/node_catalog.js"]
 runs = []
 
 [[command]]
+tool = "release.py"
+name = "release"
+usage = "python3 tools/release.py check PATH... | list DIR"
+what = "Sealed group releases (releases/<group>-<version>.tnrel, as the group app seals them), checked from Python: each file passes tools/tndb.py check and is named for its group and version; every node's fingerprint, body fingerprint and the release's fingerprint are the SHA-256 of what they cover; its nodes are the group's as sealed, each confirmed or unconfirmed with why; a confirmed node was checked by someone other than its author and, when it computes, has a test vector from outside the code; the lead's seal names the version and the fingerprint. The same rules as design/js/release.js, written a second time."
+steps = ["find the release files (under DIR/releases/ for a folder)", "check each one", "list every problem"]
+reads = ["DIR/releases/", "PATH"]
+writes = []
+runs = []
+
+[[command]]
 tool = "drive_pack.py"
 name = "drive-pack"
 usage = "python3 tools/drive_pack.py [--out DIR] [--rev REV]"

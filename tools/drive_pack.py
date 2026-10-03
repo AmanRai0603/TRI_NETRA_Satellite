@@ -5,7 +5,7 @@
 
 It holds:
   Apps/TRI-NETRA Files.html     open, change and save one design file (docs/FILES_IN_THE_BROWSER.md)
-  Apps/TRI-NETRA Group.html     a group lead's app: structure (docs/GROUP_APP.md)
+  Apps/TRI-NETRA Group.html     a group lead's app: structure and releases (docs/GROUP_APP.md)
   Apps/TRI-NETRA Node.html      a node author's app: every step, checks, preview, sign (docs/NODE_APP.md)
   Design/structure/             the 20 group files, seeded from the spec (tools/seed_design.py)
   Design/nodes/                 the 734 node files
@@ -33,12 +33,14 @@ README = """TRI-NETRA design on Drive
 Apps/     the three apps. Each is one file that runs offline from disk: open it in Chrome or Edge.
           TRI-NETRA Files.html  open one design file, change it, undo, save, see its history
           TRI-NETRA Group.html  a group lead's app: map, nodes, stages, people, contracts,
-                                change requests, every structure change with its impact check
+                                change requests, every structure change with its impact check;
+                                progress, assemble, sign stages, seal releases, re-issue, import
           TRI-NETRA Node.html   a node author's app: fill a node step by step, live checks,
                                 preview, mark ready; a second person signs it as checked
 Design/   the design itself, as the apps read and write it
           structure/  one file per group (20)
           nodes/      one file per node (734)
+          releases/   each group's sealed releases (made by the group app when a lead seals)
 
 To start: Drive for desktop shows this folder on your computer. Open Apps/TRI-NETRA Group.html,
 choose "Open design folder", and pick the Design folder. Type your name the first time.
