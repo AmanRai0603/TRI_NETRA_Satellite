@@ -248,6 +248,7 @@ await test("a file changed on disk since it was opened is never overwritten; the
   ok((await page.locator("main").innerText()).includes("changed on disk"), "the save is refused and says why");
   ok((await fileBytes(page, "n1.node.tndb")).length > 0 && theirs > 0, "their file is still there");
   await page.getByRole("button", { name: "Save a copy" }).first().click();
+  await page.locator(".tn-toast", { hasText: "Saved as" }).waitFor();
   const names = await page.evaluate(async () => { const out = []; for await (const [n] of window.__dir.entries()) out.push(n); return out; });
   ok(names.some((n) => /^n1-copy-asha-\d{8}-\d{4}\.node\.tndb$/.test(n)), `the copy is beside it: ${names}`);
   await ctx.close();

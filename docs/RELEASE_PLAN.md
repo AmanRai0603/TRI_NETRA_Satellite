@@ -323,6 +323,18 @@ inside them.
 | One component set, bundled fonts, no outside hosts | ✅ `design/js/tn_ui.js` + `design/css/tn.css` (light, dark, phone width); Inter and JetBrains Mono inlined; `tools/pages.py check` refuses a page with its own controls or styles and anything loaded from outside; built pages go to `build/pages/` and the kits, not to git |
 | Proof | ✅ `tests/browser/files.test.mjs` in Chromium (11 tests, in `check_all` as `offline-pages`, in CI with Playwright): a node file saves to a folder, reopens, survives a crash before a save and in the middle of one, and refuses a second editor; conflict copies, changes on disk, caps, newer formats; from disk with no request leaving the page; phone width. A real Drive folder needs a person at the folder dialog: the tests use the browser's private folder, which has the same interface. The marker reaches other computers at Drive's sync speed; inside that delay a second save is refused or Drive makes a conflict copy, both reported |
 
+**Progress of P4** (group app: structure; `docs/GROUP_APP.md`):
+
+| item | state |
+|---|---|
+| Map | ✅ the group's nodes by stage, the edges between them, the inputs from other groups dashed (`graph` in `design/js/tn_ui.js`); click a node for its readers inside and outside the group and its actions |
+| Contracts | ✅ the nodes other groups read, listed from the edges; publish or change a contract (output, unit, version, readers) |
+| Stages and stage owners | ✅ add a stage, set its owner (a member), move a node between stages |
+| People, issue node files | ✅ members and roles; issue a node to an author (the group file and the node file both name them, with the date) |
+| Every structure action with its impact check | ✅ add, rename, stage, split, merge, archive, move between groups (`design/js/structure.js`): its impact (notes, changes, stops) before it is done; all or nothing across files (each file prepared and checked, the set recorded in `structure/actions/`, then written; a crash part-way finished from the record); history per group |
+| Change requests | ✅ raised to another group, accepted or declined by its lead in its own file; moving a node into a group, and archiving or merging a node another group reads, wait for that group's acceptance |
+| Proof | ✅ on the whole seeded design (20 groups, 734 nodes): all 20 groups open; `act` (138) and `catalogue` (8) restructured with every action; a node moved from `act` to `ctl` after `ctl` accepted; what another group reads kept until it agreed; someone else's open file stops an action; afterwards every file passes `tndb check` and the structure rules hold in both checkers (`structure.js` and `tools/group.py`, written separately and given the same broken folders). Under Node (`tests/test_structure.py`) and through the page in Chromium (`tests/browser/group.test.mjs`) |
+
 ## 6 · What 1.0.0 contains
 
 - **Node app and group app:** offline, one file each, with manuals.

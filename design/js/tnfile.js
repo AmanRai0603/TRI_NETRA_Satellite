@@ -129,6 +129,21 @@ function rows(db, sql, params = []) {
   } finally { st.free(); }
 }
 
+/** The bytes of a new design file of `kind`, as tools/tndb.py create makes it: its tables, its meta,
+ *  and what fill(db) puts in. */
+export function newFileBytes(SQL, kind, id, fill, { schema = TNDB_SCHEMA, writtenBy = "TRI-NETRA apps" } = {}) {
+  const db = new SQL.Database();
+  try {
+    db.run("BEGIN");
+    for (const st of schema.ddl[kind]) db.run(st);
+    const meta = { format: kind, format_version: String(schema.formats[kind].version), id, written_by: writtenBy };
+    for (const k of Object.keys(meta).sort()) db.run('INSERT INTO meta VALUES (?, ?)', [k, meta[k]]);
+    if (fill) fill(db);
+    db.run("COMMIT");
+    return db.export();
+  } finally { db.close(); }
+}
+
 // ------------------------------------------------------------------ the journal (unsaved work)
 
 /** Unsaved work, kept in this browser's IndexedDB until it is saved or let go. */
@@ -428,6 +443,14 @@ export class FileSession {
    *  else has taken it over, when it changed on disk since it was opened or saved, or when it is
    *  over its cap; saveCopy() then keeps the work. */
   async save() {
+    const p = await this.prepare();
+    try { await this.commit(p); } catch (e) { this.unprepare(p); throw e; }
+    return this.lastSaved;
+  }
+
+  /** The first half of a save, for a change that spans files (structure.js): every check, the
+   *  revision row, the bytes to write, checked. Nothing is written. undo it with unprepare(). */
+  async prepare(summary = null) {
     if (this.readOnly) throw new FileRefused(`${this.name} is read-only here: ${this.readOnlyWhy}`, "readonly");
     const m = await this._readMarker();
     if (m && m.session !== this.session) throw new FileRefused(`${m.who} took ${this.name} over at ${m.since}; save a copy and compare`, "taken");
@@ -438,30 +461,36 @@ export class FileSession {
     }
     const at = this.now().toISOString();
     const n = (this.query("SELECT coalesce(max(n), 0) FROM revision")[0][0] || 0) + 1;
-    this.db.run("INSERT INTO revision (n, at, by, summary) VALUES (?, ?, ?, ?)", [n, at, this.who, this.pending.join("; ") || "saved"]);
+    this.db.run("INSERT INTO revision (n, at, by, summary) VALUES (?, ?, ?, ?)", [n, at, this.who, summary || this.pending.join("; ") || "saved"]);
     takeUndo(this.db);
-    let bytes, hash;
+    const p = { at, n, bytes: null, hash: null, before: this.base.hash };
     try {
-      bytes = this.bytes();
-      const problems = this._checkOut(bytes);
-      if (problems.length) throw new FileRefused(problems.join("\n"), problems.some((p) => /over the/.test(p)) ? "size" : "format");
-      await this._write(this.fh, bytes);
-      const back = new Uint8Array(await (await this.fh.getFile()).arrayBuffer());
-      hash = await sha256(bytes);
-      if ((await sha256(back)) !== hash) throw new FileRefused(`${this.name}: the file read back is not what was written; the work is kept in this browser`, "verify");
-    } catch (e) {
-      // not saved: the revision it would have added goes again
-      this.db.run("DELETE FROM revision WHERE n = ?", [n]);
-      takeUndo(this.db);
-      throw e;
-    }
+      p.bytes = this.bytes();
+      const problems = this._checkOut(p.bytes);
+      if (problems.length) throw new FileRefused(problems.join("\n"), problems.some((x) => /over the/.test(x)) ? "size" : "format");
+      p.hash = await sha256(p.bytes);
+    } catch (e) { this.unprepare(p); throw e; }
+    return p;
+  }
+
+  /** A prepared save not written after all: its revision row goes again. */
+  unprepare(p) {
+    if (!this.db) return;
+    this.db.run("DELETE FROM revision WHERE n = ?", [p.n]);
+    takeUndo(this.db);
+  }
+
+  /** The second half: write the prepared bytes, read them back and compare. */
+  async commit(p) {
+    await this._write(this.fh, p.bytes);
+    const back = new Uint8Array(await (await this.fh.getFile()).arrayBuffer());
+    if ((await sha256(back)) !== p.hash) throw new FileRefused(`${this.name}: the file read back is not what was written; the work is kept in this browser`, "verify");
     const f = await this.fh.getFile();
-    this.base = { hash, size: f.size, lastModified: f.lastModified };
+    this.base = { hash: p.hash, size: f.size, lastModified: f.lastModified };
     await this.journal.delete(this.key);
     this.pending = [];
     this.dirty = false;
-    this.lastSaved = { at, n };
-    return this.lastSaved;
+    this.lastSaved = { at: p.at, n: p.n };
   }
 
   /** The work as a new file beside this one (the original untouched); returns its name. */

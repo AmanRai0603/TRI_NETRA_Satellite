@@ -56,6 +56,7 @@
 | [`adcs-sim scenario-schema`](#adcs-sim-scenario-schema) | The scenario schema for the MATLAB twin: every scenario key the engine reads, with its type, written from the engine's own table so the twin refuses exactly what the engine refuses. |
 | [`pcode.py pcode`](#pcodepy-pcode) | Pseudocode v2 (docs/PSEUDOCODE_V2.md): check a file (units, types, every output set, no recursion), run a function in the interpreter, and write or check everything it makes: the physics (spec/physics/*.pc) as a Rust crate and a MATLAB package with test vectors from the interpreter, the language's self-test the same way, the flight algorithms (fsw/pseudocode/*.pc) as test vectors for the C and Rust flight software, the MATLAB runtime, and the browser checker page. gen --check also holds the physics to spec/plan/physics.toml; fixtures runs the seeded, sourced test vectors of the physics rows. |
 | [`pages.py pages`](#pagespy-pages) | The offline pages (TRI-NETRA Files today; the node and group apps next): each one HTML file that runs from disk, with SQLite in WebAssembly, the fonts and the component set inside it and nothing loaded from anywhere. check builds them into a scratch folder and refuses a vendored file that is not the pinned one, a page that makes its own controls or styles, and anything that would load from an outside host. |
+| [`group.py group`](#grouppy-group) | The structure of a design folder (structure/ and nodes/, as tools/seed_design.py writes it and the group app changes it), checked from Python: every node in exactly one group with its node file saying the same group, stage, label and state; every edge kept by the group of the node that reads, from a node that exists and is not archived; every author, contract and stage owner about the group's own nodes and people; no structure action left unfinished. The same rules as the group app's own check (design/js/structure.js), written a second time. |
 
 ## adcs run
 
@@ -865,4 +866,20 @@ The offline pages (TRI-NETRA Files today; the node and group apps next): each on
 
 - **Reads:** `design/pages/`; `design/js/`; `design/css/`; `design/vendor/`
 - **Writes:** `build/pages/`
+- **Starts:** nothing
+
+## group.py group
+
+The structure of a design folder (structure/ and nodes/, as tools/seed_design.py writes it and the group app changes it), checked from Python: every node in exactly one group with its node file saying the same group, stage, label and state; every edge kept by the group of the node that reads, from a node that exists and is not archived; every author, contract and stage owner about the group's own nodes and people; no structure action left unfinished. The same rules as the group app's own check (design/js/structure.js), written a second time.
+
+    python3 tools/group.py check DIR | list DIR
+
+**Steps**
+
+1. read every group file
+2. read every node file and compare it with its group
+3. list every problem
+
+- **Reads:** `DIR/structure/`; `DIR/nodes/`
+- **Writes:** nothing
 - **Starts:** nothing

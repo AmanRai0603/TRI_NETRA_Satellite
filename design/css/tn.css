@@ -99,3 +99,27 @@ textarea.tn-input { min-height: 72px; resize: vertical; }
 .tn-kv { display: grid; grid-template-columns: max-content 1fr; gap: 4px 12px; font-size: 14px; }
 .tn-kv dt { color: var(--dim); }
 .tn-kv dd { margin: 0; overflow-wrap: anywhere; }
+
+.tn-tabs { display: flex; flex-wrap: wrap; gap: 4px; border-bottom: 1px solid var(--line); margin: 0 0 var(--gap); }
+.tn-tab { font: inherit; font-size: 14px; padding: 8px 12px; border: 0; border-bottom: 2px solid transparent; background: none; color: var(--dim); cursor: pointer; }
+.tn-tab[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--accent); font-weight: 600; }
+.tn-tab:focus-visible { outline: 2px solid var(--accent); }
+
+.tn-graph-wrap { overflow: auto; max-height: 70vh; border: 1px solid var(--line); border-radius: var(--radius); background: var(--panel); }
+.tn-graph { display: block; font: 12px var(--font); }
+.tn-graph-col { fill: var(--dim); font-weight: 600; text-transform: uppercase; letter-spacing: .03em; }
+.tn-graph-edge { fill: none; stroke: var(--dim); stroke-width: 1.2; opacity: .55; }
+.tn-graph-head { fill: var(--dim); }
+.tn-graph-node rect { fill: var(--chip); stroke: var(--line); }
+.tn-graph-node text { fill: var(--ink); }
+.tn-graph-node[role=button] { cursor: pointer; }
+.tn-graph-node[role=button]:hover rect, .tn-graph-node:focus-visible rect { stroke: var(--accent); }
+.tn-graph-node.outside rect { fill: var(--panel); stroke-dasharray: 4 3; }
+.tn-graph-node.archived { opacity: .45; }
+.tn-graph-node.selected rect { stroke: var(--accent); stroke-width: 2; }
+
+.tn-impact { list-style: none; padding: 0; margin: 8px 0 0; display: grid; gap: 6px; }
+.tn-impact li { font-size: 14px; }
+.tn-checks { border: 1px solid var(--line); border-radius: var(--radius); padding: 8px 10px; max-height: 220px; overflow: auto; }
+.tn-checks legend { font-size: 13px; font-weight: 600; padding: 0 4px; }
+.tn-check { display: block; font-size: 14px; overflow-wrap: anywhere; }

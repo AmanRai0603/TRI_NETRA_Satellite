@@ -12,7 +12,7 @@ A kit holds:
   VERSION                         the release and the version of each part; its presence is
                                   what tells the programs they run from a kit, so results go
                                   to ~/.trinetra/store and never into the kit
-  pages/files.html                the offline pages (tools/pages.py): open them from disk in Chrome or Edge
+  pages/files.html, group.html    the offline pages (tools/pages.py): open them from disk in Chrome or Edge
   START_HERE.md, FIRST_RUN.md, COMMANDS.md, ENVIRONMENT.md
 No git history, no generators, no build files. Zip the folder and share it.
 

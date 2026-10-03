@@ -38,7 +38,7 @@ ROOT = pathlib.Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "tools"))
 from common import write_text  # noqa: E402
 
-PAGES = {"files": "design/pages/files.template.html"}
+PAGES = {"files": "design/pages/files.template.html", "group": "design/pages/group.template.html"}
 VENDOR = ROOT / "design" / "vendor"
 OUT = ROOT / "build" / "pages"
 UI_FILES = {"design/js/tn_ui.js", "design/css/tn.css"}

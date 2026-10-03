@@ -13,7 +13,9 @@ import tempfile
 import unittest
 
 import _path  # puts tools/ on the import path
+import group
 import pages
+import seed_design
 import tndb
 
 _ = _path  # imported for its effect: tools/ on sys.path
@@ -86,6 +88,21 @@ class Browser(unittest.TestCase):
             with sqlite3.connect(saved) as c:
                 self.assertEqual(c.execute("SELECT value FROM content WHERE field = 'value'").fetchone()[0], "0.25")
                 self.assertEqual(c.execute("SELECT by FROM revision").fetchall(), [("Asha",)])
+
+    def test_the_group_app(self):
+        with tempfile.TemporaryDirectory() as d:
+            d = pathlib.Path(d)
+            page = pages.build(d / "pages")["group"][0]
+            seed_design.seed(d / "design", sync=False)
+            r = subprocess.run([NODE, str(ROOT / "tests" / "browser" / "group.test.mjs"), str(page), str(d / "design"), str(d / "out")],
+                               capture_output=True, text=True, timeout=900, env={**os.environ, "PLAYWRIGHT_MODULE": str(PLAYWRIGHT)})
+            sys.stdout.write(r.stdout[-4000:])
+            self.assertEqual(r.returncode, 0, r.stdout[-4000:] + r.stderr[-2000:])
+            # the folder as the page left it: every file sound, every structure rule kept (tools/group.py, not the page's code)
+            self.assertEqual([e for f in sorted((d / "out").rglob("*.tndb")) for e in tndb.check(f)], [])
+            self.assertEqual(group.check(d / "out"), [])
+            groups, _ = group.load(d / "out")
+            self.assertIn("act_friction_model", groups["ctl"]["nodes"])
 
 
 if __name__ == "__main__":
