@@ -82,3 +82,26 @@ def fill(conn, got=None):
     conn.executemany("INSERT INTO engine_input VALUES (?, ?, ?)", files)
     conn.execute('INSERT OR REPLACE INTO meta VALUES (?, ?)', ("inputs_fingerprint", fp))
     return {"cases": len({r[0] for r in rows}), "case_rows": len(rows), "files": len(files), "fingerprint": fp}
+
+
+def differences(db):
+    """What differs between a design database's engine inputs and the data folder's files: [text]
+    (empty: the engine reads the same bytes from either)."""
+    import sqlite3
+    rows, files, fp = gather()
+    with sqlite3.connect(f"file:{db}?mode=ro", uri=True) as c:
+        meta = dict(c.execute('SELECT "key", "value" FROM meta'))
+        held = dict(c.execute('SELECT "path", "fingerprint" FROM engine_input'))
+        lines = {(r[0], r[1]): r[2] for r in c.execute('SELECT "case_id", "ord", "line" FROM design_case')}
+    out = []
+    now = {p: f for p, f, _ in files}
+    out += [f"{p}: in the data folder, not in the database" for p in sorted(set(now) - set(held))]
+    out += [f"{p}: in the database, not in the data folder" for p in sorted(set(held) - set(now))]
+    out += [f"{p}: changed since the database was built" for p in sorted(set(now) & set(held)) if now[p] != held[p]]
+    mine = {(r[0], r[1]): r[-1] for r in rows}
+    for case in sorted({k[0] for k in set(mine) | set(lines)}):
+        if {k: v for k, v in mine.items() if k[0] == case} != {k: v for k, v in lines.items() if k[0] == case}:
+            out.append(f"cases/{case}.csv: differs from the database's rows")
+    if not out and meta.get("inputs_fingerprint") != fp:
+        out.append("the database's inputs fingerprint is not its inputs'")
+    return out

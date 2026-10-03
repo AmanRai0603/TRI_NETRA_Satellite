@@ -63,6 +63,8 @@
 | [`groupcode.py groupcode`](#groupcodepy-groupcode) | Each group's code, generated from its nodes (docs/RELEASE_PLAN.md P10, docs/GENERATORS.md): wire puts every computing row's pseudocode into a module per group (design/groups/, with shared.pc for what several groups call alike, and a wire file naming each row's function and its own test vectors), from the merged releases or from the design as seeded and carried; gen translates them to Rust (engine/crates/adcs-groups), WebAssembly (adcs-groups-wasm) and MATLAB (+asils/+groups) with the interpreter's vectors; test runs the Rust against the vectors and the nodes' own test vectors; deliver builds a test app per group. |
 | [`group.py group`](#grouppy-group) | The structure of a design folder (structure/ and nodes/, as tools/seed_design.py writes it and the group app changes it), checked from Python: every node in exactly one group with its node file saying the same group, stage, label and state; every edge kept by the group of the node that reads, from a node that exists and is not archived; every author, contract and stage owner about the group's own nodes and people; no structure action left unfinished. The same rules as the group app's own check (design/js/structure.js), written a second time. verify checks every group's latest sealed release (tools/release.py) and that it is still the group's; merge takes every latest release into design.tndb with the catalogue of every output (the contract at every group boundary); impact lists who reads a node, across groups. |
 | [`delivery.py delivery`](#deliverypy-delivery) | Test, deliver, accept, ship (docs/RELEASE_PLAN.md P12, docs/DELIVERY.md): a group's sealed release delivered in its wave's order, with its generated code checked to be the release's, its tests run, its test app and a note; its lead accepts it in the group app; the shipping record says, group by group, who accepted which version, and which group ships visibly UNCONFIRMED and why. |
+| [`evaluate.py evaluate`](#evaluatepy-evaluate) | Every row of the design evaluated for a case, or shown as not computed and why; every KPI closure answered or blocked by name (docs/RELEASE_PLAN.md P13). A row's value is stated by the case (from design.tndb, in SI), computed by its pseudocode in the interpreter from the rows its inputs name, or supplied as evidence by the selected design's Monte Carlo; a closure compares its requirement with its evidence or its analysis row in the requirement's sense. |
+| [`end_to_end.py end-to-end`](#end_to_endpy-end-to-end) | Both cases through everything from the design database (docs/RELEASE_PLAN.md P13, docs/END_TO_END.md): the design loop and the case's campaigns with every engine run reading its inputs from design.tndb alone (TRINETRA_DESIGN), every number held to the one stored before, every row and closure evaluated, the traceability. |
 | [`manual.py manual`](#manualpy-manual) | The apps' manual (design/manual/: a guide per role, the journey of a node, the glossary, the guide to TRI-NETRA Files, and the tours in tours.toml) written as design/js/manual.js, which every app opens in place with Help, and the journey diagram as design/manual/journey.svg. --check says whether both are current and holds the rules: every page starts with its one line (the explanation standard), every tour target is in its app, every field, choice and set of checks in the apps has help beside it. |
 | [`node_catalog.py node_catalog`](#node_catalogpy-node_catalog) | The node app's catalogue (design/js/node_catalog.js), written from the spec: the units and the quantities each measures, the physics relations, the sources, the evidence metrics and rungs, the provenance and belief words, the tags and every row of the tree with its label, kind, quantity, unit and layer. The node app offers these as its choices, so they are never typed by hand. --check says whether the committed file is current. |
 | [`release.py release`](#releasepy-release) | Sealed group releases (releases/<group>-<version>.tnrel, as the group app seals them), checked from Python: each file passes tools/tndb.py check and is named for its group and version; every node's fingerprint, body fingerprint and the release's fingerprint are the SHA-256 of what they cover; its nodes are the group's as sealed, each confirmed or unconfirmed with why; a confirmed node was checked by someone other than its author and, when it computes, has a test vector from outside the code; the lead's seal names the version and the fingerprint. The same rules as design/js/release.js, written a second time. |
@@ -1172,6 +1174,50 @@ Test, deliver, accept, ship (docs/RELEASE_PLAN.md P12, docs/DELIVERY.md): a grou
 - **Checks:** the release passes verify; earlier waves delivered first; the generated code is the release's; the tests pass (recorded); an acceptance is by the lead and names the release's and the delivery's fingerprints
 - **Undo:** deliver: delete the delivery's three files from deliveries/ (and restore design.tndb.prev). status: nothing. ship: delete the files it wrote. An acceptance is a signature in the group file; a later release needs its own.
 - **Code:** `tools/delivery.py`
+
+## evaluate.py evaluate
+
+Every row of the design evaluated for a case, or shown as not computed and why; every KPI closure answered or blocked by name (docs/RELEASE_PLAN.md P13). A row's value is stated by the case (from design.tndb, in SI), computed by its pseudocode in the interpreter from the rows its inputs name, or supplied as evidence by the selected design's Monte Carlo; a closure compares its requirement with its evidence or its analysis row in the requirement's sense.
+
+    python3 tools/evaluate.py DIR [CASE ...] [--out DIR] [--check]
+
+**Steps**
+
+1. read the design (merged releases, else the node files) and the case from design.tndb
+2. state the case's values on the rows that declare them, in SI
+3. run every row's pseudocode once its inputs have values
+4. take each KPI's evidence from the design loop's Monte Carlo
+5. answer or block every closure
+6. write results/EVALUATION.md and evaluation.json
+
+- **Reads:** `DIR/design.tndb`; `DIR/nodes/`; `spec/plan/kpis.toml`; `spec/plan/case_inputs.toml`; `matlab_sils/store/pipeline/<case>/mc/summary.json`
+- **Writes:** `results/EVALUATION.md`; `results/evaluation.json`
+- **Starts:** `node design/js/pcode_cli.mjs run`
+- **Checks:** every row has a value or a reason; every closure an answer or the row that blocks it; --check: no closure that answered before is blocked now, no stated value lost
+- **Undo:** It writes generated files only: `git checkout -- <file>` puts back the committed one.
+- **Code:** `tools/evaluate.py`
+
+## end_to_end.py end-to-end
+
+Both cases through everything from the design database (docs/RELEASE_PLAN.md P13, docs/END_TO_END.md): the design loop and the case's campaigns with every engine run reading its inputs from design.tndb alone (TRINETRA_DESIGN), every number held to the one stored before, every row and closure evaluated, the traceability.
+
+    python3 tools/end_to_end.py [CASE ...] [--design DIR] [--no-loop] [--no-campaigns] [--jobs N]
+
+**Steps**
+
+1. refuse unless the database holds the data folder's own bytes
+2. snapshot the case's numbers
+3. fly the design loop and the case's campaigns from the database
+4. compare every number, and count the runs naming the database
+5. evaluate every row and closure; write the traceability
+6. write results/END_TO_END.md and end_to_end.json
+
+- **Reads:** `DIR/design.tndb`; `matlab_sils/store/`
+- **Writes:** `matlab_sils/store/pipeline/<case>/`; `matlab_sils/store/results_engine/campaigns/`; `results/END_TO_END.md`; `results/end_to_end.json`; `results/EVALUATION.md`; `results/TRACEABILITY.md`
+- **Starts:** `tools/pipeline.py`; `tools/engine.py campaign`; `tools/evaluate.py`; `tools/trace.py`
+- **Checks:** the database's inputs are the data folder's (tools/design_inputs.py differences); every run names the database; every number that differs is named
+- **Undo:** It re-flies stored runs: `git checkout -- matlab_sils/store results` puts back the committed ones.
+- **Code:** `tools/end_to_end.py`
 
 ## manual.py manual
 

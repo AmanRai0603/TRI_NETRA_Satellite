@@ -703,6 +703,30 @@ checks = "the release passes verify; earlier waves delivered first; the generate
 undo = "deliver: delete the delivery's three files from deliveries/ (and restore design.tndb.prev). status: nothing. ship: delete the files it wrote. An acceptance is a signature in the group file; a later release needs its own."
 
 [[command]]
+tool = "evaluate.py"
+name = "evaluate"
+usage = "python3 tools/evaluate.py DIR [CASE ...] [--out DIR] [--check]"
+what = "Every row of the design evaluated for a case, or shown as not computed and why; every KPI closure answered or blocked by name (docs/RELEASE_PLAN.md P13). A row's value is stated by the case (from design.tndb, in SI), computed by its pseudocode in the interpreter from the rows its inputs name, or supplied as evidence by the selected design's Monte Carlo; a closure compares its requirement with its evidence or its analysis row in the requirement's sense."
+steps = ["read the design (merged releases, else the node files) and the case from design.tndb", "state the case's values on the rows that declare them, in SI", "run every row's pseudocode once its inputs have values", "take each KPI's evidence from the design loop's Monte Carlo", "answer or block every closure", "write results/EVALUATION.md and evaluation.json"]
+reads = ["DIR/design.tndb", "DIR/nodes/", "spec/plan/kpis.toml", "spec/plan/case_inputs.toml", "matlab_sils/store/pipeline/<case>/mc/summary.json"]
+writes = ["results/EVALUATION.md", "results/evaluation.json"]
+runs = ["node design/js/pcode_cli.mjs run"]
+checks = "every row has a value or a reason; every closure an answer or the row that blocks it; --check: no closure that answered before is blocked now, no stated value lost"
+undo = "It writes generated files only: `git checkout -- <file>` puts back the committed one."
+
+[[command]]
+tool = "end_to_end.py"
+name = "end-to-end"
+usage = "python3 tools/end_to_end.py [CASE ...] [--design DIR] [--no-loop] [--no-campaigns] [--jobs N]"
+what = "Both cases through everything from the design database (docs/RELEASE_PLAN.md P13, docs/END_TO_END.md): the design loop and the case's campaigns with every engine run reading its inputs from design.tndb alone (TRINETRA_DESIGN), every number held to the one stored before, every row and closure evaluated, the traceability."
+steps = ["refuse unless the database holds the data folder's own bytes", "snapshot the case's numbers", "fly the design loop and the case's campaigns from the database", "compare every number, and count the runs naming the database", "evaluate every row and closure; write the traceability", "write results/END_TO_END.md and end_to_end.json"]
+reads = ["DIR/design.tndb", "matlab_sils/store/"]
+writes = ["matlab_sils/store/pipeline/<case>/", "matlab_sils/store/results_engine/campaigns/", "results/END_TO_END.md", "results/end_to_end.json", "results/EVALUATION.md", "results/TRACEABILITY.md"]
+runs = ["tools/pipeline.py", "tools/engine.py campaign", "tools/evaluate.py", "tools/trace.py"]
+checks = "the database's inputs are the data folder's (tools/design_inputs.py differences); every run names the database; every number that differs is named"
+undo = "It re-flies stored runs: `git checkout -- matlab_sils/store results` puts back the committed ones."
+
+[[command]]
 tool = "manual.py"
 name = "manual"
 usage = "python3 tools/manual.py [--check]"
