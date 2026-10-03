@@ -86,6 +86,35 @@ class Releases(unittest.TestCase):
         self.assertEqual(rows[("act", "1.0")], (138, 1))         # gm_0, checked and its stage signed
         self.assertEqual(rows[("act", "1.1")], (138, 1))
 
+    def test_every_group_verifies_and_merges_into_the_design(self):
+        d = self.d / "design"
+        self.assertEqual({g: p for g, p in group.verify(d).items() if p}, {})
+        summary, problems = group.merge(d, require_all=True)
+        self.assertEqual(problems, [])
+        self.assertEqual((summary["groups"], summary["nodes"], summary["not_released"]), (20, 734, []))
+        self.assertEqual(tndb.check(d / "design.tndb"), [])
+        self.assertTrue((d / "design.tndb.prev").exists(), "the seeded design database is kept beside it")
+        with sqlite3.connect(d / "design.tndb") as c:
+            self.assertEqual(c.execute("SELECT count(DISTINCT version) FROM design_group").fetchone()[0], 1)
+            self.assertEqual(c.execute("SELECT version FROM design_group LIMIT 1").fetchone()[0], "1.1")
+            self.assertEqual(c.execute("SELECT release FROM design_node WHERE id = 'gm_0'").fetchone()[0], "act 1.1")
+            n_cat = c.execute("SELECT count(*) FROM catalogue_output").fetchone()[0]
+            n_out = sum(len(json.loads(x)["body"]["output"]) for (x,) in c.execute("SELECT content FROM design_node"))
+            self.assertEqual(n_cat, n_out, "the catalogue lists every output of every node")
+            self.assertGreater(n_cat, 0)
+        owner, readers, _ = group.impact(d, "m2_4")
+        self.assertEqual(owner, "env")
+        self.assertTrue(any(g != "env" for _, g, _ in readers), "m2_4 is read across groups")
+
+    def test_a_release_the_group_has_moved_on_from_does_not_verify(self):
+        d = self.d / "stale"
+        shutil.copytree(self.d / "design", d)
+        with sqlite3.connect(d / "structure" / "catalogue.group.tndb") as c:
+            c.execute("UPDATE group_node SET state = 'archived' WHERE id = (SELECT id FROM group_node LIMIT 1)")
+        ps = group.verify(d)["catalogue"]
+        self.assertTrue(any("is no longer a node of catalogue" in p for p in ps), ps)
+        self.assertEqual(group.merge(d)[0], None)
+
     def broken(self, name, edit):
         """A copy of a release file, changed by edit(conn), and what tools/release.py finds."""
         src = self.d / "design" / "releases" / name

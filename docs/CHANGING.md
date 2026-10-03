@@ -28,6 +28,13 @@ run it; `docs/COMMANDS.md` lists them all.
 | the version | `python3 tools/version.py --set X.Y.Z` (never by hand) | — | `version.py --check`: `VERSION`, both Cargo files and the C build id agree |
 | the Rust toolchain | `rust-toolchain.toml` (one change of its own; every stored run is then re-flown) | `cargo build --locked` | the engine's and the flight software's tests on the new toolchain |
 | a Python package CI installs | `tools/requirements-ci.txt` (pinned) | `python3 -m pip install -r tools/requirements-ci.txt` | `check_all.py` |
+| a node's content (its question, relation, value, test vectors, explanation, belief record) | never in the repository: its author writes it in the node app; the group lead seals it (`docs/NODE_APP.md`, `docs/GROUP_APP.md`) | `python3 tools/group.py verify DIR`, then `merge DIR` | `tools/release.py check`; `group.py verify`: the release is the group's, what it reads exists |
+| a group's structure (nodes, stages, people, contracts) | in the group app, never by hand (every action shows its impact and changes all its files or none) | — | `python3 tools/group.py check DIR` |
+| who reads a node, across groups | — | `python3 tools/group.py impact DIR NODE` | — |
+| the design files' format | `design/schema.toml` (a new format version and its upgrade step in `tools/tndb.py`) | `python3 tools/tndb.py gen` | `tndb.py gen --check`; `tests/test_tndb.py` |
+| what is carried into new node files | `design/carry.toml` (names and added rows, each pointing at code that exists), or the registries it reads | `python3 tools/carry_over.py DIR` on a freshly seeded folder | `carry_over.py --check`; `tests/test_carry.py` |
+| the apps' manual, tours and field help | `design/manual/*.md`, `design/manual/tours.toml` | `python3 tools/manual.py` | `manual.py --check` (one line first, tour targets, help on every field) |
+| an app's page | `design/js/*.js`, `design/css/tn.css`, `design/pages/*.template.html` | `python3 tools/pages.py build` | `pages.py check` (one component set, no outside hosts); the browser tests in `tests/browser/` |
 
 ## Rules that keep it true
 
@@ -40,6 +47,10 @@ run it; `docs/COMMANDS.md` lists them all.
   (`write_text`, `write_json`, `atomic_path`), the engine through `adcs_sim::fsio::write`.
 - **Generated files are never edited by hand.** Each says so in its header; its `--check`
   finds a hand edit.
+- **A node's content comes from its group's release.** In the design files a node is written by
+  its author in the node app, checked by a second engineer, and sealed by its group's lead;
+  `group.py merge` takes sealed releases, and nothing else, into `design.tndb`. The developer
+  team never edits node content: a node that should be different goes back to its group.
 - **A result says where it came from.** A run's manifest carries its inputs' fingerprints;
   `adcs results show <run>` prints them.
 

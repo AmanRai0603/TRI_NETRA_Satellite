@@ -391,6 +391,18 @@ inside them.
 | Proof | ✅ `tests/test_carry.py` (`check_all` as `carry`): every file and structure rule holds after the carry; origins, names, added rows, gaps; carrying again changes nothing; the node app's own code reads every node and runs every carried pseudocode. The Drive pack's Design folder is seeded and carried |
 | Drive shared drives for the 10 lead teams | ⏳ needs the owner's Drive admin: one shared drive per lead team holding its groups' files |
 
+**Progress of P9** (rules and developer intake):
+
+| item | state |
+|---|---|
+| `group verify` / `group merge` → `design.tndb` | ✅ `tools/group.py verify DIR`: every group's latest release checked by `tools/release.py` and against the folder (its nodes still the group's, what they read exists, contract readers are groups); `merge DIR`: every latest release into `design.tndb` (the previous kept as `design.tndb.prev`), refused while any release does not verify |
+| The catalogue of outputs | ✅ `merge` writes `catalogue_output`: every output of every sealed node, its unit, its contract version and the groups that read it |
+| The impact listing across groups | ✅ `tools/group.py impact DIR NODE`: who reads a node, in its group and across groups, transitively, and the contracts on it |
+| Every command: explain, steps, dry run, what it checks, how to undo, where its code is | ✅ all 56 commands in `docs/commands.toml` carry `checks` and `undo`; `tools/trinetra.py explain` and `dry-run <command>` print them with the code's location; `docs/COMMANDS.md` generated; `tests/test_commands.py` requires both |
+| `CONTRIBUTING.md`, `docs/CHANGING.md` | ✅ who changes what (authors, stage owners, leads, developers), the rules nothing bends; `CHANGING.md` names the source, the command and the check for node content, structure, the design format, the carry map, the manual and the apps |
+| SPEC §3.2 and §5.10–5.11 | ⏳ the rewrite is proposed in `docs/RULES_PROPOSAL.md` and waits for the owner's approval; SPEC.md is unchanged until then |
+| Proof | ✅ `tests/test_release.py`: all 20 groups, sealed, verify and merge into `design.tndb` (734 nodes, every output in the catalogue); a release its group has moved on from does not verify and is not merged |
+
 ## 6 · What 1.0.0 contains
 
 - **Node app and group app:** offline, one file each, with manuals.

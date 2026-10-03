@@ -18,6 +18,8 @@ steps = ["check the scenario id, the case and every --set (refused by name, neve
 reads = ["matlab_sils/data/scenarios/<scenario>.json", "matlab_sils/cases/<case>.csv", "matlab_sils/data/products, parts, algorithms", "matlab_sils/pop/.../de440s.bsp"]
 writes = ["matlab_sils/store/results_engine/<scenario>/ (or --out): channels.csv, manifest.json", "matlab_sils/store/inputs/ (or <out>/inputs/)"]
 runs = []
+checks = "the scenario id, the case keys and every --set exist and are in range (refused by name, never guessed); the metrics against the case's requirements"
+undo = "Delete the run folder it wrote (the store's index forgets it at the next `adcs results list`); the inputs it kept by fingerprint are shared and harmless to leave."
 
 [[command]]
 tool = "adcs"
@@ -28,6 +30,8 @@ steps = ["build the configuration as `adcs run` does", "encode the parameters wi
 reads = ["the scenario, the case, the product"]
 writes = ["the --out file"]
 runs = []
+checks = "the scenario, case and product exist; the blob's CRC-32"
+undo = "Delete the --out file."
 
 [[command]]
 tool = "adcs"
@@ -38,6 +42,8 @@ steps = ["check the case id", "fly the one-orbit survey to find the disturbance 
 reads = ["matlab_sils/cases/<case>.csv", "matlab_sils/data/catalogue, parts, families.json"]
 writes = ["matlab_sils/store/design/<case>/sized/ (or --out): parts/, products/, sizing.json"]
 runs = []
+checks = "the case id; every bought part against the datasheet catalogue"
+undo = "Delete the sized/ folder it wrote."
 
 [[command]]
 tool = "adcs"
@@ -48,6 +54,8 @@ steps = ["fly the loop with target A", "fly it with target B", "compare every re
 reads = ["as `adcs run`"]
 writes = []
 runs = ["the virtual OBC or QEMU, when a target names one"]
+checks = "the two flight-software targets give the same attitude and rate within the stated tolerance"
+undo = "Nothing to undo: it writes nothing."
 
 [[command]]
 tool = "adcs"
@@ -58,6 +66,8 @@ steps = ["list: find every manifest.json (adcs-rec/1) under the folder, reading 
 reads = ["matlab_sils/store/results_engine/ (or DIR)", "the case, scenario and product files the runs name (stale)", "the run's kept inputs (refly)"]
 writes = ["list, query, stale: <folder>/.adcs-index.sqlite; pin: <run>/PINNED; thin: removes the bulk files; export: the .trinetra file; import: the folder; refly: <store>/refly/<run>/ (or --out)"]
 runs = []
+checks = "each stored run's provenance against the engine and inputs that made it (stale when they changed)"
+undo = "list/query/stale: nothing (the index is rebuilt from the runs). pin: delete <run>/PINNED. thin: a thinned time series is gone; fly the run again."
 
 # ---------------------------------------------------------------- orchestration (Python)
 
@@ -70,6 +80,8 @@ steps = ["make clean, make test and make check in fsw/ (the C flight software's 
 reads = ["fsw/, fsw-rs/, engine/"]
 writes = ["fsw/build/, fsw-rs/target/, engine/target/"]
 runs = ["make", "gcc", "arm-none-eabi-gcc", "cargo"]
+checks = "every build with warnings as errors; the flight software's tests"
+undo = "Delete the build folders (fsw/build/, fsw-rs/target/, engine/target/); nothing else changes."
 
 [[command]]
 tool = "engine.py"
@@ -80,6 +92,8 @@ steps = ["one `adcs run` per scenario, on --jobs processes", "print each run's v
 reads = ["matlab_sils/data/scenarios/"]
 writes = ["matlab_sils/store/results_engine/<scenario>/"]
 runs = ["adcs run"]
+checks = "as `adcs run`, for each scenario"
+undo = "Delete the run folder it wrote (the store's index forgets it at the next `adcs results list`); the inputs it kept by fingerprint are shared and harmless to leave."
 
 [[command]]
 tool = "engine.py"
@@ -90,6 +104,8 @@ steps = ["one `adcs run` per seed", "summarise every metric over the seeds"]
 reads = ["the scenario and its case"]
 writes = ["matlab_sils/store/results_engine/mc_<scenario>/summary.json"]
 runs = ["adcs run"]
+checks = "the seed sweep's spread against the scenario's requirements"
+undo = "Delete matlab_sils/store/results_engine/mc_<scenario>/."
 
 [[command]]
 tool = "engine.py"
@@ -100,6 +116,8 @@ steps = ["fly each scenario with the C and the Rust flight software (`adcs parit
 reads = ["the scenarios"]
 writes = []
 runs = ["adcs parity"]
+checks = "the C and Rust flight software give the same numbers, bit for bit where stated"
+undo = "Nothing to undo: it writes nothing."
 
 [[command]]
 tool = "engine.py"
@@ -110,6 +128,8 @@ steps = ["read each scenario's engine and twin manifests and pair their metrics"
 reads = ["matlab_sils/store/results_engine/", "matlab_sils/store/results/"]
 writes = ["results/ENGINE_PARITY.md", "results/engine_parity.json"]
 runs = []
+checks = "the engine's metrics against the MATLAB twin's, within each metric's tolerance"
+undo = "It writes generated files only: `git checkout -- <file>` puts back the committed one, or run it again once its source is as you want it."
 
 [[command]]
 tool = "engine.py"
@@ -120,6 +140,8 @@ steps = ["build the virtual OBC firmware (make obc)", "fly each scenario in-proc
 reads = ["the scenarios", "fsw/build/ (the OBC firmware)"]
 writes = ["results/VIRTUAL_OBC.md"]
 runs = ["adcs parity", "qemu-system-arm"]
+checks = "the flight software as a process and as QEMU firmware against the in-process run"
+undo = "It writes generated files only: `git checkout -- <file>` puts back the committed one, or run it again once its source is as you want it."
 
 [[command]]
 tool = "engine.py"
@@ -130,6 +152,8 @@ steps = ["read the case's recommended solution", "write the mission scenario, th
 reads = ["matlab_sils/store/pipeline/<case>/"]
 writes = ["dist/dispatch/<case>/<family>/fsw/"]
 runs = ["adcs params", "adcs run"]
+checks = "the dispatched configuration flies its mission on the engine"
+undo = "Delete dist/dispatch/<case>/."
 
 [[command]]
 tool = "engine.py"
@@ -140,6 +164,8 @@ steps = ["draw each run's dispersions (the Kp -> ap table included)", "one `adcs
 reads = ["matlab_sils/data/campaigns/", "matlab_sils/store/results/<campaign>/summary.json (the twin)"]
 writes = ["matlab_sils/store/results_engine/campaigns/<campaign>/", "results/ENGINE_CAMPAIGNS.md", "results/engine_campaigns.json"]
 runs = ["adcs run"]
+checks = "each campaign's statistics against the twin's"
+undo = "Delete the campaign folders it wrote; It writes generated files only: `git checkout -- <file>` puts back the committed one, or run it again once its source is as you want it."
 
 [[command]]
 tool = "engine.py"
@@ -150,6 +176,8 @@ steps = ["read every campaign summary, engine and twin", "write the ledger"]
 reads = ["matlab_sils/store/results_engine/campaigns/", "matlab_sils/store/results/"]
 writes = ["results/ENGINE_CAMPAIGNS.md", "results/engine_campaigns.json"]
 runs = []
+checks = "the stored summaries are complete"
+undo = "It writes generated files only: `git checkout -- <file>` puts back the committed one, or run it again once its source is as you want it."
 
 [[command]]
 tool = "engine.py"
@@ -160,6 +188,8 @@ steps = ["build the virtual OBC firmware (make obc)", "fly each scenario in SILS
 reads = ["the scenarios", "fsw/build/ (the firmware)"]
 writes = ["matlab_sils/store/results_engine/soft_oils/", "results/SOFT_OILS.md", "results/soft_oils.json"]
 runs = ["adcs run --oils", "qemu-system-arm"]
+checks = "every tick within its deadline; soft OILS against SILS"
+undo = "Delete matlab_sils/store/results_engine/soft_oils/; It writes generated files only: `git checkout -- <file>` puts back the committed one, or run it again once its source is as you want it."
 
 [[command]]
 tool = "engine.py"
@@ -170,6 +200,8 @@ steps = ["read the stored SILS and OILS runs", "write the ledger"]
 reads = ["matlab_sils/store/results_engine/soft_oils/"]
 writes = ["results/SOFT_OILS.md", "results/soft_oils.json"]
 runs = []
+checks = "the stored runs are complete"
+undo = "It writes generated files only: `git checkout -- <file>` puts back the committed one, or run it again once its source is as you want it."
 
 [[command]]
 tool = "engine.py"
@@ -180,6 +212,8 @@ steps = ["write each case's mode x option scenarios", "fly every mode, option an
 reads = ["matlab_sils/cases/", "matlab_sils/data/modes/"]
 writes = ["matlab_sils/store/solutions_engine/", "results/ENGINE_SOLUTIONS.md"]
 runs = ["adcs size", "adcs run"]
+checks = "every mode and option flown, judged against the case"
+undo = "Delete matlab_sils/store/solutions_engine/; It writes generated files only: `git checkout -- <file>` puts back the committed one, or run it again once its source is as you want it."
 
 [[command]]
 tool = "pipeline.py"
@@ -190,6 +224,8 @@ steps = ["size: the demand survey and every option sized", "matrix: every mode x
 reads = ["matlab_sils/cases/<case>.csv", "matlab_sils/data/"]
 writes = ["matlab_sils/store/pipeline/<case>/<node>.json", "dist/dispatch/<case>/"]
 runs = ["adcs size", "adcs run", "adcs params", "qemu-system-arm"]
+checks = "each node's inputs, outputs and rules (matlab_sils/data/pipeline/nodes.json); each decision recomputable"
+undo = "Delete matlab_sils/store/pipeline/<case>/ and dist/dispatch/<case>/."
 
 # ---------------------------------------------------------------- reports and packages
 
@@ -202,6 +238,8 @@ steps = ["read every filed run, campaign and trade", "draw each test's figures",
 reads = ["matlab_sils/store/results/", "matlab_sils/store/trades/"]
 writes = ["results/figures/", "results/index.html", "results/summary.json", "docs/RESULTS.md", "docs/SELECTION.md"]
 runs = []
+checks = "every filed run it reads exists and is current"
+undo = "It writes generated files only: `git checkout -- <file>` puts back the committed one, or run it again once its source is as you want it."
 
 [[command]]
 tool = "vv_report.py"
@@ -212,6 +250,8 @@ steps = ["collect every source that exists (a missing one is named, never invent
 reads = ["matlab_sils/store/pipeline/", "matlab_sils/store/results_engine/", "matlab_sils/store/results/", "results/*.json"]
 writes = ["results/vv/TRINETRA_ADCS_VV_report.html", "results/vv/vv_artifact.html", "dist/TRINETRA_ADCS_VV_report.pdf"]
 runs = ["chromium (headless)"]
+checks = "every section of the template is filled from a filed result"
+undo = "It writes generated files only: `git checkout -- <file>` puts back the committed one, or run it again once its source is as you want it."
 
 [[command]]
 tool = "pack_matlab.py"
@@ -222,6 +262,8 @@ steps = ["collect matlab_sils/ and the documents", "write the zip beside its nam
 reads = ["matlab_sils/", "docs/"]
 writes = ["dist/TRINETRA_ADCS_SILS_matlab_<version>.zip"]
 runs = []
+checks = "the zip is deterministic: its SHA-256 manifest"
+undo = "Delete the zip from dist/."
 
 [[command]]
 tool = "pack_flight.py"
@@ -232,6 +274,8 @@ steps = ["collect fsw/, fsw-rs/, engine/, the data and the tools", "write the zi
 reads = ["fsw/", "fsw-rs/", "engine/", "matlab_sils/data", "tools/"]
 writes = ["dist/TRINETRA_ADCS_flight_engine_<version>.zip"]
 runs = []
+checks = "the zip builds as unpacked"
+undo = "Delete the zip from dist/."
 
 # ---------------------------------------------------------------- generators (their outputs are never edited by hand)
 
@@ -244,6 +288,8 @@ steps = ["read fsw/params/params.toml and the IGRF table", "write the C header a
 reads = ["fsw/params/params.toml", "matlab_sils/data/igrf13coeffs.txt"]
 writes = ["fsw/include/adcs_params.h", "fsw/src/adcs_params.c", "fsw-rs/src/params.rs", "matlab_sils/data/igrf13.json", "fsw/include/adcs_igrf13.h", "fsw-rs/src/igrf13.rs", "fsw/pseudocode/02_igrf13.pc"]
 runs = []
+checks = "--check: every generated parameter file is its definition"
+undo = "It writes generated files only: `git checkout -- <file>` puts back the committed one, or run it again once its source is as you want it."
 
 [[command]]
 tool = "fsw_stack.py"
@@ -254,6 +300,8 @@ steps = ["compile the firmware sources with -fstack-usage -fcallgraph-info=su", 
 reads = ["fsw/src/", "fsw/targets/link/", "fsw/targets/qemu-mps2/"]
 writes = []
 runs = ["arm-none-eabi-gcc"]
+checks = "the deepest call path fits the stack the linker script reserves"
+undo = "Nothing to undo: it writes nothing."
 
 [[command]]
 tool = "design_rows.py"
@@ -264,6 +312,8 @@ steps = ["read the spec's tree, KPI list and long-id map", "list every row, nami
 reads = ["spec/plan/tree.json", "spec/plan/kpis.toml", "spec/plan/expected_node_ids.json"]
 writes = []
 runs = []
+checks = "every row exactly once, against the spec's expected ids"
+undo = "Nothing to undo: it writes nothing."
 
 [[command]]
 tool = "groups.py"
@@ -274,6 +324,8 @@ steps = ["read the group map and every row", "place each row (override, then its
 reads = ["design/groups.toml", "spec/plan/"]
 writes = []
 runs = []
+checks = "every row of the tree in exactly one group; the boundary rules"
+undo = "Nothing to undo: it writes nothing."
 
 [[command]]
 tool = "tndb.py"
@@ -284,6 +336,8 @@ steps = ["read the schema", "open each file, checking or upgrading its format", 
 reads = ["design/schema.toml"]
 writes = ["design/ddl.sql", "design/js/tndb_schema.js"]
 runs = []
+checks = "a file's format, version, tables and columns against design/schema.toml; caps on size and pictures"
+undo = "check: nothing, unless it upgraded an older file, which keeps the original beside it (put it back by renaming). gen: It writes generated files only: `git checkout -- <file>` puts back the committed one, or run it again once its source is as you want it."
 
 [[command]]
 tool = "seed_design.py"
@@ -294,6 +348,8 @@ steps = ["write the group files, the node files and the design database from the
 reads = ["design/groups.toml", "design/schema.toml", "spec/plan/"]
 writes = ["build/design/"]
 runs = []
+checks = "the group map holds; every file it writes checks"
+undo = "Delete the folder it wrote (build/design/ or --out). Never run it over a design folder people edit."
 
 [[command]]
 tool = "version.py"
@@ -304,6 +360,8 @@ steps = ["read VERSION and the version each part states", "check the Rust build 
 reads = ["VERSION", "engine/Cargo.toml", "fsw-rs/Cargo.toml", "fsw/src/adcs_fsw.c", "engine/crates/adcs-sim/src/lib.rs", "fsw-rs/src/fsw.rs"]
 writes = ["VERSION", "engine/Cargo.toml", "fsw-rs/Cargo.toml", "fsw/src/adcs_fsw.c"]
 runs = []
+checks = "every part carries the one version"
+undo = "It writes generated files only: `git checkout -- <file>` puts back the committed one, or run it again once its source is as you want it."
 
 [[command]]
 tool = "mutation.py"
@@ -314,6 +372,8 @@ steps = ["make and test every mutant (cargo mutants, about 30 min)", "count caug
 reads = ["fsw-rs/src/guid.rs", "fsw-rs/src/ctl.rs", "fsw-rs/src/est.rs", "fsw-rs/tests/"]
 writes = ["results/MUTATION.md", "results/mutation.json"]
 runs = ["cargo-mutants"]
+checks = "each mutant is caught by a test"
+undo = "It writes generated files only: `git checkout -- <file>` puts back the committed one, or run it again once its source is as you want it."
 
 [[command]]
 tool = "trace.py"
@@ -324,6 +384,8 @@ steps = ["read the cases, the scenarios and the mode catalogue", "map each state
 reads = ["matlab_sils/cases/", "matlab_sils/data/scenarios/", "matlab_sils/data/modes/", "matlab_sils/store/results_engine/", "matlab_sils/store/pipeline/"]
 writes = ["results/TRACEABILITY.md", "results/traceability.json"]
 runs = []
+checks = "every stated requirement is checked by a metric or says why not"
+undo = "It writes generated files only: `git checkout -- <file>` puts back the committed one, or run it again once its source is as you want it."
 
 [[command]]
 tool = "pointing_budget.py"
@@ -334,6 +396,8 @@ steps = ["fly each fine-pointing scenario once with the jitter term added", "rea
 reads = ["matlab_sils/data/scenarios/", "matlab_sils/cases/", "catalogue/products/"]
 writes = ["results/POINTING_BUDGET.md", "results/pointing_budget.json"]
 runs = ["engine/target/release/adcs"]
+checks = "the budget's total against the required pointing error"
+undo = "It writes generated files only: `git checkout -- <file>` puts back the committed one, or run it again once its source is as you want it."
 
 [[command]]
 tool = "export_catalogue.py"
@@ -344,6 +408,8 @@ steps = ["read every TOML source", "write (or, with --check, compare) the JSON"]
 reads = ["catalogue/", "scenarios/", "campaigns/", "trades/"]
 writes = ["matlab_sils/data/*/<id>.json", "matlab_sils/data/families.json", "matlab_sils/data/classes.json"]
 runs = []
+checks = "--check: every JSON is its TOML"
+undo = "It writes generated files only: `git checkout -- <file>` puts back the committed one, or run it again once its source is as you want it."
 
 [[command]]
 tool = "nodes_doc.py"
@@ -354,6 +420,8 @@ steps = ["read the node registry and the catalogue", "write both documents"]
 reads = ["matlab_sils/data/pipeline/nodes.json", "matlab_sils/data/catalogue/"]
 writes = ["docs/NODES.md", "docs/CATALOGUE.md"]
 runs = []
+checks = "the docs are their registries"
+undo = "It writes generated files only: `git checkout -- <file>` puts back the committed one, or run it again once its source is as you want it."
 
 [[command]]
 tool = "components_doc.py"
@@ -364,6 +432,8 @@ steps = ["read the component files", "write the document"]
 reads = ["catalogue/components/"]
 writes = ["docs/COMPONENTS.md"]
 runs = []
+checks = "the doc is its registry"
+undo = "It writes generated files only: `git checkout -- <file>` puts back the committed one, or run it again once its source is as you want it."
 
 [[command]]
 tool = "catalogue.py"
@@ -374,6 +444,8 @@ steps = ["derive every model's engine parameters by rule", "mark a model not sel
 reads = ["matlab_sils/data/catalogue/"]
 writes = ["matlab_sils/data/catalogue/*.json", "docs/CATALOGUE.md"]
 runs = []
+checks = "each modelling block re-derived from its datasheet numbers, never guessed"
+undo = "It writes generated files only: `git checkout -- <file>` puts back the committed one, or run it again once its source is as you want it."
 
 # ---------------------------------------------------------------- checks and analysis
 
@@ -386,6 +458,8 @@ steps = ["read every node's outputs per case", "recompute each decision and comp
 reads = ["matlab_sils/data/pipeline/nodes.json", "matlab_sils/store/pipeline/"]
 writes = ["results/NODE_VERIFICATION.md", "results/node_verification.json"]
 runs = []
+checks = "each design-loop decision recomputed from its stored inputs"
+undo = "It writes generated files only: `git checkout -- <file>` puts back the committed one, or run it again once its source is as you want it."
 
 [[command]]
 tool = "rescore.py"
@@ -396,6 +470,8 @@ steps = ["read every stored metric record", "apply the case's current requiremen
 reads = ["matlab_sils/store/", "matlab_sils/cases/"]
 writes = ["the stored manifests and summaries (not with --dry-run)"]
 runs = []
+checks = "each stored run against the case as it is now"
+undo = "--dry-run changes nothing. Otherwise run it again against the earlier case files to restore the verdicts."
 
 [[command]]
 tool = "floquet.py"
@@ -406,6 +482,8 @@ steps = ["linearise the closed loop about the nadir reference along one orbit", 
 reads = ["matlab_sils/cases/<case>.csv", "the flight-software parameters"]
 writes = ["matlab_sils/store/pipeline/<case>/floquet.json"]
 runs = []
+checks = "the multipliers lie inside the unit circle (the periodic loop is stable)"
+undo = "Delete the floquet.json it wrote."
 
 [[command]]
 tool = "run_matrix.py"
@@ -416,6 +494,8 @@ steps = ["list every scenario, campaign run and trade job", "run them on N Octav
 reads = ["matlab_sils/data/"]
 writes = ["matlab_sils/store/results/", "matlab_sils/store/trades/", "matlab_sils/store/logs/"]
 runs = ["octave-cli"]
+checks = "every job of the twin's matrix finishes and passes"
+undo = "Delete the store folders it wrote."
 
 [[command]]
 tool = "fswcfg.py"
@@ -426,6 +506,8 @@ steps = ["check the magic, length and CRC-32", "decode each field in table order
 reads = ["the blob", "fsw/params/params.toml"]
 writes = []
 runs = []
+checks = "the blob's format and CRC-32"
+undo = "Nothing to undo: it writes nothing."
 
 [[command]]
 tool = "trinetra.py"
@@ -436,6 +518,8 @@ steps = ["read docs/commands.toml", "print, explain, or write the document"]
 reads = ["docs/commands.toml"]
 writes = ["docs/COMMANDS.md (docs only)"]
 runs = []
+checks = "docs --check: docs/COMMANDS.md is this registry"
+undo = "docs: It writes generated files only: `git checkout -- <file>` puts back the committed one, or run it again once its source is as you want it. The rest writes nothing."
 
 [[command]]
 tool = "carry_over.py"
@@ -446,6 +530,8 @@ steps = ["read the registries and design/carry.toml", "name the internal rows an
 reads = ["spec/plan/", "spec/physics/", "fsw/pseudocode/", "catalogue/algorithms/", "design/carry.toml", "design/groups.toml", "DIR"]
 writes = ["DIR/structure/*.group.tndb", "DIR/nodes/*.node.tndb"]
 runs = []
+checks = "--check: every file and structure rule after the carry, design/carry.toml against the code"
+undo = "Seed a fresh folder (it is for a folder nobody has edited yet); a field already written is never replaced, so carrying again changes nothing."
 
 [[command]]
 tool = "check_all.py"
@@ -456,6 +542,8 @@ steps = ["run each check in turn, showing what it proves", "report a check whose
 reads = ["the repository"]
 writes = ["fsw/build/, fsw-rs/target/, engine/target/ (the builds the tests need)"]
 runs = ["python3", "make", "gcc", "cargo", "octave-cli (with --octave)"]
+checks = "every check the repository has"
+undo = "It writes only build folders and generated reports; delete the build folders, `git checkout` the reports."
 
 [[command]]
 tool = "kit.py"
@@ -466,6 +554,8 @@ steps = ["empty the output folder", "copy the release-built programs (the deskto
 reads = ["engine/target/<target>/release/ (or --bin)", "matlab_sils/data, matlab_sils/cases, the ephemeris", "docs/START_HERE.md, FIRST_RUN.md, COMMANDS.md"]
 writes = ["dist/kit/trinetra-adcs-<version>/ (or --out)"]
 runs = []
+checks = "the kit holds exactly the files its programs read"
+undo = "Delete the kit folder from dist/."
 
 [[command]]
 tool = "make_icon.py"
@@ -476,6 +566,8 @@ steps = ["draw the icon at 1024 px", "write the PNG, the multi-size ICO and the 
 reads = []
 writes = ["engine/crates/trinetra-app/icon/trinetra.png, .ico, .icns"]
 runs = []
+checks = "the icon files are written at every size"
+undo = "It writes generated files only: `git checkout -- <file>` puts back the committed one, or run it again once its source is as you want it."
 
 [[command]]
 tool = "macapp.py"
@@ -486,6 +578,8 @@ steps = ["refuse a kit with no trinetra-app program", "empty <out>/TRI-NETRA ADC
 reads = ["the macOS kit", "engine/crates/trinetra-app/icon/trinetra.icns"]
 writes = ["dist/app/TRI-NETRA ADCS.app (or --out)"]
 runs = []
+checks = "the app bundle's layout"
+undo = "Delete the .app from dist/."
 
 [[command]]
 tool = "build_wheel.py"
@@ -496,6 +590,8 @@ steps = ["check the kit and the systems", "write every file with its executable 
 reads = ["python/trinetra_adcs/", "a files-only kit", "each system's adcs and trinetra-app"]
 writes = ["dist/trinetra_adcs-<version>-py3-none-any.whl (or --out)"]
 runs = []
+checks = "the wheel's RECORD, entry points and executable bits"
+undo = "Delete the wheel from dist/."
 
 [[command]]
 tool = "adcs-sim"
@@ -506,6 +602,8 @@ steps = ["serialise the engine's scenario schema (engine/crates/adcs-sim/src/sch
 reads = ["engine/crates/adcs-sim/src/schema.rs"]
 writes = ["matlab_sils/data/scenario_schema.json"]
 runs = ["cargo"]
+checks = "the schema is every key the engine reads"
+undo = "It writes generated files only: `git checkout -- <file>` puts back the committed one, or run it again once its source is as you want it."
 
 [[command]]
 tool = "pcode.py"
@@ -516,6 +614,8 @@ steps = ["check the pseudocode", "translate it to Rust and MATLAB", "draw test v
 reads = ["spec/physics/", "design/pcode_selftest/", "fsw/pseudocode/", "design/js/pcode.js", "design/js/pcode_gen.js", "design/js/pcode_check.template.html", "spec/plan/physics.toml", "spec/plan/seed_content.toml"]
 writes = ["engine/crates/adcs-physics/", "engine/crates/pcode-selftest/", "matlab_sils/+asils/+physics/", "matlab_sils/+asils/+pcselftest/", "matlab_sils/+asils/+pc/", "matlab_sils/data/physics_vectors.json", "matlab_sils/data/pcselftest_vectors.json", "fsw/tests/pcode_vectors.txt", "design/pcode_checker.html"]
 runs = ["node"]
+checks = "units, types, every output set, no recursion; gen --check: everything generated is current; fixtures: every seeded test vector within its tolerance"
+undo = "check and run: nothing. gen: It writes generated files only: `git checkout -- <file>` puts back the committed one, or run it again once its source is as you want it."
 
 
 [[command]]
@@ -527,16 +627,20 @@ steps = ["check the vendored files against design/vendor/VENDOR.toml", "inline t
 reads = ["design/pages/", "design/js/", "design/css/", "design/vendor/"]
 writes = ["build/pages/"]
 runs = []
+checks = "vendored files pinned, one component set, no outside hosts"
+undo = "Delete build/pages/."
 
 [[command]]
 tool = "group.py"
 name = "group"
-usage = "python3 tools/group.py check DIR | list DIR"
-what = "The structure of a design folder (structure/ and nodes/, as tools/seed_design.py writes it and the group app changes it), checked from Python: every node in exactly one group with its node file saying the same group, stage, label and state; every edge kept by the group of the node that reads, from a node that exists and is not archived; every author, contract and stage owner about the group's own nodes and people; no structure action left unfinished. The same rules as the group app's own check (design/js/structure.js), written a second time."
-steps = ["read every group file", "read every node file and compare it with its group", "list every problem"]
-reads = ["DIR/structure/", "DIR/nodes/"]
-writes = []
+usage = "python3 tools/group.py check DIR | list DIR | verify DIR | merge DIR [--require-all] | impact DIR NODE"
+what = "The structure of a design folder (structure/ and nodes/, as tools/seed_design.py writes it and the group app changes it), checked from Python: every node in exactly one group with its node file saying the same group, stage, label and state; every edge kept by the group of the node that reads, from a node that exists and is not archived; every author, contract and stage owner about the group's own nodes and people; no structure action left unfinished. The same rules as the group app's own check (design/js/structure.js), written a second time. verify checks every group's latest sealed release (tools/release.py) and that it is still the group's; merge takes every latest release into design.tndb with the catalogue of every output (the contract at every group boundary); impact lists who reads a node, across groups."
+steps = ["read every group file", "read every node file and compare it with its group", "list every problem", "verify: check every group's latest release with tools/release.py and against the folder", "merge: write every latest release into design.tndb with the catalogue of outputs, keeping the previous one as design.tndb.prev", "impact: follow the edges from a node across groups"]
+reads = ["DIR/structure/", "DIR/nodes/", "DIR/releases/"]
+writes = ["DIR/design.tndb (merge only)", "DIR/design.tndb.prev (merge only)"]
 runs = []
+checks = "the structure rules over a design folder; verify: a release against its group; merge: every group's latest release"
+undo = "check, list, verify, impact: nothing. merge: delete or restore the design.tndb it wrote (it keeps the previous one as design.tndb.prev)."
 
 [[command]]
 tool = "manual.py"
@@ -547,6 +651,8 @@ steps = ["read the manual pages and the tours", "draw the journey", "write desig
 reads = ["design/manual/", "design/js/*_app.js", "design/js/node_model.js"]
 writes = ["design/js/manual.js", "design/manual/journey.svg"]
 runs = []
+checks = "--check: the manual's pages, tours and field help (see what)"
+undo = "It writes generated files only: `git checkout -- <file>` puts back the committed one, or run it again once its source is as you want it."
 
 [[command]]
 tool = "node_catalog.py"
@@ -557,6 +663,8 @@ steps = ["read the spec's units, quantities, physics, sources, evidence vocabula
 reads = ["spec/"]
 writes = ["design/js/node_catalog.js"]
 runs = []
+checks = "--check: the committed catalogue is current"
+undo = "It writes generated files only: `git checkout -- <file>` puts back the committed one, or run it again once its source is as you want it."
 
 [[command]]
 tool = "release.py"
@@ -567,6 +675,8 @@ steps = ["find the release files (under DIR/releases/ for a folder)", "check eac
 reads = ["DIR/releases/", "PATH"]
 writes = []
 runs = []
+checks = "each release file's fingerprints, its nodes, the confirmed rule and the seal"
+undo = "Nothing to undo: it writes nothing."
 
 [[command]]
 tool = "drive_pack.py"
@@ -577,3 +687,5 @@ steps = ["build the offline pages", "seed the design", "check every design file"
 reads = ["design/", "spec/plan/"]
 writes = ["dist/trinetra-drive-pack/"]
 runs = []
+checks = "the seeded and carried design checks"
+undo = "Delete dist/trinetra-drive-pack/."
