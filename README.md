@@ -58,7 +58,7 @@ Who runs what (C / Rust / Python / MATLAB): `docs/figures/architecture_languages
 | `tests/`, `tools/check_all.py` | the tools' tests, and every check in one command (`python3 tools/check_all.py`; CI runs it) |
 | `docs/commands.toml`, `docs/COMMANDS.md` | every command: what it does, its steps, what it reads and writes (`python3 tools/trinetra.py explain <command>`) |
 | `docs/GLOSSARY.md` | every term the repository uses, in plain words |
-| `docs/RELEASE_PLAN.md` | the plan to release 1.0.0: node app, group app, main app on the design database; 22 groups by discipline |
+| `docs/RELEASE_PLAN.md` | the plan to release 1.0.0: node app, group app, main app on the design database; 20 groups by discipline |
 | `docs/ADCS_GAPS.md` | the ADCS gaps the release ships with, and where to study them |
 | `docs/UPGRADE_PLAN.md` | the record of what the audits found and what was done |
 | `docs/ENVIRONMENT.md` | the environment variables that move the data, the store and the log, or change a default |
