@@ -309,9 +309,9 @@ runs = []
 tool = "mutation.py"
 name = "mutation"
 usage = "python3 tools/mutation.py [--from DIR] [--check] [--jobs N]"
-what = "Mutation testing of the flight software's control and estimation (fsw-rs/src/ctl.rs, est.rs) with cargo-mutants: each small deliberate fault in turn, and whether the Rust flight software's tests catch it. Writes the kill rate per function and the missed mutants; --check fails under the floor the tool states."
+what = "Mutation testing of the flight software's guidance, control and estimation (fsw-rs/src/guid.rs, ctl.rs, est.rs) with cargo-mutants: each small deliberate fault in turn, and whether the Rust flight software's tests catch it. Writes the kill rate per function and the missed mutants; --check fails under the floor the tool states."
 steps = ["make and test every mutant (cargo mutants, about 30 min)", "count caught and missed per function", "write the record; with --check, fail under the floor"]
-reads = ["fsw-rs/src/ctl.rs", "fsw-rs/src/est.rs", "fsw-rs/tests/"]
+reads = ["fsw-rs/src/guid.rs", "fsw-rs/src/ctl.rs", "fsw-rs/src/est.rs", "fsw-rs/tests/"]
 writes = ["results/MUTATION.md", "results/mutation.json"]
 runs = ["cargo-mutants"]
 

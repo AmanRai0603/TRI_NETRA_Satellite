@@ -190,23 +190,24 @@ inside them.
 
 1. **One group, one code module, in C, Rust and the twin.** Each group's generated and hand-written
    code lives in its own module on every side, so a group's change touches only its module and
-   C = Rust parity is checked group by group. Today guidance, mode management and FDIR sit inside
-   the flight software's step (`adcs_fsw.c`, `fsw.rs`, the twin's `step.m`); they are split out
-   into `adcs_guid` / `guid.rs` / `guidance.m`, `adcs_modes` / `modes.rs` / `modes.m` and
-   `adcs_fdir` / `fdir.rs` / `fdir.m`, and `fsw` keeps the shell: the scheduler, the HAL, the
-   parameter tables, the OBC link. Bit-identical before and after, on every shipped scenario.
+   C = Rust parity is checked group by group. Guidance, mode management and FDIR sat inside the
+   flight software's step (`adcs_fsw.c`, `fsw.rs`, the twin's `step.m`); P2 split them out into
+   `adcs_guid` / `guid.rs` / `guidance.m`, `adcs_modes` / `modes.rs` / `mode_manager.m` and
+   `adcs_fdir` / `fdir.rs` / `fdir.m`, and `fsw` keeps the shell: the tick, the state (private
+   header `adcs_fsw_int.h`; in Rust `modes` and `fdir` are children of `fsw`), the HAL, the
+   parameter tables, the OBC link. Bit-identical before and after on every shipped scenario.
 
    | group | C | Rust | twin |
    |---|---|---|---|
    | `env` | `adcs_env.c` (onboard models) | `adcs-pop`, `adcs-sim-core` `orbit`/`field`/`atmos`/`ephem`/`torques`, `fsw-rs` `env.rs` | `+env`, `+orbit` |
    | `sens` | `adcs_drv.c` (sensor drivers) | `adcs-sim-core` `sensors`/`comp`, `fsw-rs` `drv.rs` | `+devices`, `+comp` |
    | `nav` | `adcs_est.c` | `est.rs` | `+fsw` `mekf_*`, `triad`, `quest` |
-   | `gdn` | `adcs_guid.c`, `adcs_modes.c` (new) | `guid.rs`, `modes.rs` (new) | `guidance.m`, `modes.m`, `yaw_flip.m`, `boresight_offset.m` |
+   | `gdn` | `adcs_guid.c`, `adcs_modes.c` | `guid.rs`, `modes.rs` | `guidance.m`, `mode_manager.m`, `modes.m`, `yaw_flip.m`, `boresight_offset.m` |
    | `ctl` | `adcs_ctl.c`, `adcs_alloc.c` | `ctl.rs`, `alloc.rs` | `control_law.m`, `allocate.m`, `bdot.m`, … |
-   | `fdir` | `adcs_fdir.c` (new) | `fdir.rs` (new) | `fdir.m` (new), `+faults` |
+   | `fdir` | `adcs_fdir.c` | `fdir.rs` | `fdir.m`, `+faults` |
    | `act` | `adcs_drv.c` (actuator drivers) | `adcs-sim-core` `actuators`, `adcs-design` `empump` | `+devices`, `+plant` actuator parts |
    | `dyn` | — | `adcs-sim-core` `plant` | `+plant` |
-   | `fsw` | `adcs_fsw.c` (shell), `adcs_params.c`, `adcs_math.c` | `fsw.rs` (shell), `params.rs`, `math.rs`, `hal.rs`, `cabi.rs` | `step.m` (shell), `init.m` |
+   | `fsw` | `adcs_fsw.c` (shell), `adcs_fsw_int.h`, `adcs_params.c`, `adcs_math.c` | `fsw.rs` (shell), `params.rs`, `math.rs`, `hal.rs`, `cabi.rs` | `step.m` (shell), `init.m` |
    | `design` | — | `adcs-design` | `+sizing`, `+solution` |
    | `kpi`, `vv` | — | `adcs-sim` `metrics` | `+metrics` |
 
@@ -296,6 +297,15 @@ inside them.
 | The seeder | ✅ `tools/seed_design.py`: 20 group files, 734 node shells and the design database from the spec, each field marked with where it came from; nothing invented |
 | Proof | ✅ `tests/test_design_files.py` (every kind round-trips unchanged, an old file upgrades, a newer one is refused, a picture round-trips byte for byte); `check_all` runs `design-files` |
 | Results file in the schema | the result package (`.trinetra`) and index stay as they are; the design files point at them by result id. Belief records and the archive arrive with the apps that write them (P4, P6) |
+
+**Progress of P2** (pseudocode v2):
+
+| item | state |
+|---|---|
+| Guidance, mode management and FDIR in their own modules | ✅ C: `adcs_guid.c`, `adcs_modes.c`, `adcs_fdir.c`, the state in the private `adcs_fsw_int.h`; Rust: `guid.rs`, and `modes.rs`, `fdir.rs` as children of `fsw` (they work on its private state); twin: `mode_manager.m`, `fdir.m` (guidance was already `guidance.m`). Code moved verbatim. All 48 shipped scenarios flown with C and with Rust before and after: every recorded channel bit for bit the same (96 runs), C = Rust |
+| The language: several outputs, settling loops, tables, arrays, state between ticks, units | next |
+| Checker in the browser; translators to Rust and MATLAB; interpreter | after the language |
+| Every relation in `physics.toml` and every algorithm in `fsw/pseudocode/` written in it; C and Rust reproduce the interpreter on test vectors | after the translators |
 
 ## 6 · What 1.0.0 contains
 

@@ -1,79 +1,21 @@
 /*
- * adcs_fsw.c -- the reference flight software: adcs_fsw.h over adcs_hal.h.
- * Tick order and mode manager: fsw/pseudocode/08_mode_manager.md; one branch per
- * controller state, as asils.fsw.step (the MATLAB twin) and fsw-rs (Rust).
- * All state is in one static struct; adcs_fsw_init resets every field.
+ * adcs_fsw.c -- the reference flight software: adcs_fsw.h over adcs_hal.h, the shell.
+ * Tick order: fsw/pseudocode/08_mode_manager.md; one branch per controller state, as
+ * asils.fsw.step (the MATLAB twin) and fsw-rs (Rust). The shell owns the tick, the state and
+ * the HAL; guidance is adcs_guid.c, the mode manager adcs_modes.c, FDIR adcs_fdir.c.
+ * All state is in one static struct (adcs_fsw_int.h); adcs_fsw_init resets every field.
  * Owner: Agastya. Copyright (c) 2026 Agastya. All rights reserved.
  */
 #include <string.h>
 #include "adcs_fsw.h"
-#include "adcs_params.h"
-#include "adcs_gnc.h"
+#include "adcs_fsw_int.h"
 
 /* bang-bang B-dot boundary layer: proportional gain inside it = BDOT_BL_GAIN x the B-dot gain */
 #define BDOT_BL_GAIN 4.0
-#include "adcs_env.h"
-#include "adcs_drv.h"
-
-#define NR ADCS_MAX_ROTORS
-#define NG ADCS_MAX_GIMBALS
-#define NC ADCS_MAX_COUPLES
-#define FDIR_WIN_BAD 2      /* judged momentum windows in a row a rotor misses before it is isolated */
-
-typedef struct {
-    adcs_params_t p;
-    int ready;
-    uint64_t start_ns;
-    double t, jd;
-    uint8_t mode;
-    double t_mode, hold;
-    /* sensors (latest) */
-    adcs_meas_t z;
-    int clean;                           /* coils were off during the last tick */
-    /* sensor health: seconds since the last good sample, the last good field */
-    double mag_age, gyro_age; int mag_seen; adcs_real B_good[3];
-    /* orbit */
-    int have_r; adcs_real r[3], v[3];
-    /* estimation */
-    adcs_mekf_t K; int ad_ok; double t_st; int mag_done, n_rej; double gh_jd;
-    adcs_real es_n[3]; double es_t;           /* latest valid Earth-sensor sample and its time */
-    adcs_real w_est[3];
-    adcs_real gh[195]; int gh_ok; adcs_real Bref[3]; int bref_ok; double t_Bref;
-    /* coil cycle */
-    adcs_real bsum[3], bsum_raw[3]; int bn;
-    adcs_real b1[3]; int b1_ok; adcs_real B1raw[3]; int B1raw_ok;
-    adcs_real m_hold[3], B_dump[3];
-    /* Sun spin / acquisition */
-    adcs_real sigma, sz_sum; int sz_n; double sz_t0;
-    adcs_real s_prop[3]; int s_prop_ok; double acq_hold;
-    int ho; double ho_t;                      /* magnetic pointing hand-over (P11 despin) and its dwell */
-    /* fine modes */
-    adcs_guid_t gd;
-    adcs_gains_t g_rw, g_mtq;
-    adcs_real q_ref[4], w_ref[3], tau_req[3], I_q[3]; double last_ctrl; int capturing;
-    adcs_real h_prev[NR]; int h_prev_ok; adcs_real cmd_r_prev[NR]; int rot_failed[NR]; adcs_real fd_count[NR];
-    adcs_real fw_E[NR], fw_h0[NR]; double fw_t0, fw_last; int fw_on, fw_bad[NR];   /* windowed rotor FDIR */
-    adcs_real h_t_rot[NR], H_t[3], cap[3], hcap[3], dump_hi, dump_lo;
-    int has_rcs_dump, rcs_dumping; adcs_real rcs_left[NC]; int rcs_left_ok;
-    int sched_i;
-    /* last commands (peek) */
-    adcs_real out_m[3], out_r[NR], out_g[NG], out_duty[NC];
-    uint16_t faults;
-} fsw_t;
 
 static fsw_t S;
 
 #define GNSS_R_MIN (0.9*ADCS_RE)                        /* a fix below this radius is refused */
-/* Sensor health (fsw/pseudocode: safe mode). A field reading outside [MAG_LO, MAG_HI] x the model
- * field is a stuck or dead magnetometer, not a reading. The last good field is held through a
- * short dropout; the coils act on it for at most MAG_HOLD_CYCLES coil cycles. A magnetometer or a
- * gyro silent for SAFE_STALE_S puts the spacecraft in magnetorquer detumble until it answers. */
-#define MAG_LO 0.25
-#define MAG_HI 4.0
-#define MAG_HOLD_CYCLES 2.0
-#define SAFE_STALE_S 60.0
-#define FAULT_MAG_STALE  (1u << 8)
-#define FAULT_GYRO_STALE (1u << 9)
 /* A star-tracker quaternion further than ST_NORM_TOL from unit length is not a reading. (Its
  * innovation is not gated: after a slew or a coast the filter's covariance is too small, and a
  * gate rejects the very updates that correct it; gating waits on a consistent filter.) */
@@ -89,41 +31,6 @@ static void orbit_acc(const adcs_real r[3], adcs_real mu, adcs_real a[3])
     a[0] = k*r[0] + f*r[0]*(1 - 5*zr);
     a[1] = k*r[1] + f*r[1]*(1 - 5*zr);
     a[2] = k*r[2] + f*r[2]*(3 - 5*zr);
-}
-
-static int guid_kind_of(uint8_t mode)
-{
-    switch (mode) {
-    case ADCS_MODE_TARGET_FINE: return 1;
-    case ADCS_MODE_SLEW_FINE: return 2;
-    case ADCS_MODE_SUN_MTQ: case ADCS_MODE_SUN_FINE: return 4;
-    default: return 0;
-    }
-}
-
-static void enter(uint8_t mode)
-{
-    if (mode == ADCS_MODE_SPINUP) { S.sz_sum = 0; S.sz_n = 0; S.sz_t0 = S.t; }
-    S.mode = mode; S.t_mode = S.t; S.hold = 0; S.ho = 0; S.ho_t = 0;
-    /* the states that skip estimation freeze the attitude: the next pointing state re-initialises it */
-    if (mode == ADCS_MODE_DETUMBLE || mode == ADCS_MODE_DETUMBLE_RCS || mode == ADCS_MODE_SPINUP || mode == ADCS_MODE_SUN_SPIN) {
-        S.ad_ok = 0; S.n_rej = 0;
-    }
-    adcs_zero3(S.I_q);
-}
-
-/* Can the fitted hardware fly this state? Fine pointing needs momentum devices or thrusters, the
- * rotor Sun acquisition needs rotors, the thruster detumble thrusters; the coil states need only
- * the coils every configuration has. A state it cannot fly is refused at init and by telecommand. */
-static int feasible(const adcs_params_t *p, unsigned m)
-{
-    switch (m) {
-    case ADCS_MODE_NADIR_FINE: case ADCS_MODE_TARGET_FINE: case ADCS_MODE_SLEW_FINE: case ADCS_MODE_SUN_FINE:
-        return p->nr > 0 || p->nc > 0;
-    case ADCS_MODE_SUN_ACQ_ROTOR: return p->nr > 0;
-    case ADCS_MODE_DETUMBLE_RCS: return p->nc > 0;
-    default: return m < ADCS_MODE_COUNT;
-    }
 }
 
 static void set_gains(adcs_gains_t *g, int law, const double Kp[3], const double Kd[3], const double Ki[3], double Klqr[3][3],
@@ -148,8 +55,8 @@ int32_t adcs_fsw_init(const adcs_fsw_init_t *init)
     if (!init || init->abi_version != ADCS_FSW_ABI_VERSION) return -10;
     if (adcs_params_decode(init->config_blob, init->config_len, &S.p) != 0) return -11;
     if (adcs_params_validate(&S.p) != 0) { S.ready = 0; return -12; }   /* a value outside its rule (params.toml) */
-    if (!feasible(&S.p, S.p.start_mode) || (S.p.auto_next != ADCS_MODE_NONE && !feasible(&S.p, S.p.auto_next))) return -13;
-    for (i = 0; i < S.p.n_sched; i++) if (!feasible(&S.p, S.p.sched_mode[i])) return -13;
+    if (!adcs_modes_feasible(&S.p, S.p.start_mode) || (S.p.auto_next != ADCS_MODE_NONE && !adcs_modes_feasible(&S.p, S.p.auto_next))) return -13;
+    for (i = 0; i < S.p.n_sched; i++) if (!adcs_modes_feasible(&S.p, S.p.sched_mode[i])) return -13;
     p = &S.p;
     S.start_ns = init->start_ns;
     S.mode = p->start_mode; S.t_st = -1e9; S.t_Bref = -1e9; S.last_ctrl = -1e9; S.es_t = -1e9;
@@ -286,27 +193,6 @@ static void sun_acq_law(const adcs_real Hdev[3])
     adcs_add3(S.tau_req, gy, S.tau_req);
 }
 
-static void spin_guards(double dt)
-{
-    const adcs_params_t *p = &S.p;
-    double d = ADCS_D2R, wz = S.w_est[2], wp = sqrt(S.w_est[0]*S.w_est[0] + S.w_est[1]*S.w_est[1]);
-    if (adcs_norm3(S.w_est) > p->ss_omega_max_dps*d) { enter(ADCS_MODE_DETUMBLE); return; }
-    if (S.mode == ADCS_MODE_SPINUP) {
-        int conv = fabs(wz - S.sigma*p->ss_spin_dps*d) < p->ss_z_in_dps*d && wp < p->ss_perp_in_dps*d, ok;
-        if (conv && S.z.sun_ok) { S.sz_sum += S.z.sun[2]; S.sz_n += 1; }
-        if (S.t - S.sz_t0 >= p->ss_t_check_s && S.sz_n > 0 && S.sz_sum/S.sz_n > p->ss_sun_min) {
-            S.sigma = -S.sigma; S.sz_sum = 0; S.sz_n = 0; S.sz_t0 = S.t;
-        }
-        ok = conv && S.z.sun_ok && S.z.sun[2] < 0;
-        if (ok) S.hold += dt; else S.hold = 0;
-        if (S.hold >= p->ss_dwell_in_s) enter(ADCS_MODE_SUN_SPIN);
-    } else {
-        int bad = fabs(wz) < p->ss_omega_exit_dps*d || wp > p->ss_perp_out_dps*d;
-        if (bad) S.hold += dt; else S.hold = 0;
-        if (S.hold >= p->ss_dwell_out_s) enter(ADCS_MODE_SPINUP);
-    }
-}
-
 static void allocate(const adcs_real tau_rot[3], adcs_real A[3][8], adcs_real cmd_r[NR], adcs_real cmd_g[NG])
 {
     const adcs_params_t *p = &S.p;
@@ -350,14 +236,7 @@ int32_t adcs_fsw_step(uint64_t now_ns)
     S.t = (double)(now_ns - S.start_ns)*1e-9;
     S.jd = p->jd0 + S.t/86400.0;
     adcs_drv_read(p, z);
-    if (z->mag_ok && S.bref_ok) {
-        adcs_real bn = adcs_norm3(z->B), rn = adcs_norm3(S.Bref);
-        if (!(bn > MAG_LO*rn && bn < MAG_HI*rn)) z->mag_ok = 0;
-    }
-    if (z->mag_ok) { adcs_copy3(z->B, S.B_good); S.mag_age = 0; S.mag_seen = 1; }
-    else { adcs_copy3(S.B_good, z->B); S.mag_age += dt; }
-    if (!p->has_gyro || z->gyro_ok) S.gyro_age = 0; else S.gyro_age += dt;
-    if (!z->gyro_ok && !p->has_gyro) adcs_zero3(z->w);
+    adcs_fdir_sensors(&S, dt);
 
     /* 1 onboard orbit (02): the GNSS fix, else two-body + J2 by velocity Verlet */
     /* a fix inside the Earth is not a fix: it is dropped and the orbit is propagated as without one */
@@ -458,34 +337,10 @@ int32_t adcs_fsw_step(uint64_t now_ns)
         else for (i = 0; i < 3; i++) S.w_est[i] += a*(wr[i] - S.w_est[i]);
     }
 
-    /* 3 mode manager */
-    while (S.sched_i < p->n_sched && S.t >= p->sched_t[S.sched_i]) { enter(p->sched_mode[S.sched_i]); S.sched_i++; }
-    {   /* safe mode: a sensor silent too long holds the spacecraft in magnetorquer detumble */
-        uint16_t f = 0;
-        if (S.mag_seen && S.mag_age > SAFE_STALE_S) f |= FAULT_MAG_STALE;
-        if (S.gyro_age > SAFE_STALE_S) f |= FAULT_GYRO_STALE;
-        S.faults = (uint16_t)((S.faults & ~(FAULT_MAG_STALE | FAULT_GYRO_STALE)) | f);
-        if (f && S.mode != ADCS_MODE_DETUMBLE) enter(ADCS_MODE_DETUMBLE);
-    }
-    if ((S.mode == ADCS_MODE_DETUMBLE || S.mode == ADCS_MODE_DETUMBLE_RCS) && p->auto_next != ADCS_MODE_NONE
-        && !(S.faults & (FAULT_MAG_STALE | FAULT_GYRO_STALE))) {
-        if (adcs_norm3(z->w) < p->detumble_exit) S.hold += dt; else S.hold = 0;
-        if (S.hold >= p->detumble_hold_s) enter(p->auto_next);
-    }
-    if ((S.mode == ADCS_MODE_SPINUP || S.mode == ADCS_MODE_SUN_SPIN) && p->ss_law != 2) spin_guards(dt);
-    if (S.mode == ADCS_MODE_SPINUP || S.mode == ADCS_MODE_SUN_SPIN || S.mode == ADCS_MODE_SUN_ACQ_ROTOR) {
-        if (z->sun_ok) { adcs_copy3(z->sun, S.s_prop); S.s_prop_ok = 1; }
-        else if (S.s_prop_ok) {
-            adcs_real th[3], dq[4], A[3][3];
-            adcs_scale3(S.w_est, dt, th); adcs_fromrotvec(th, dq); adcs_dcm(dq, A);
-            adcs_mat3_vec(A, S.s_prop, S.s_prop); adcs_unit(S.s_prop, S.s_prop);
-        }
-    }
-    if (S.mode == ADCS_MODE_SUN_ACQ_ROTOR && p->auto_next != ADCS_MODE_NONE) {
-        int ok = z->sun_ok && acos(adcs_clamp(adcs_dot(z->sun, p->sun_axis), -1, 1)) < p->sa_done_deg*ADCS_D2R && S.ad_ok;
-        if (ok) S.acq_hold += dt; else S.acq_hold = 0;
-        if (S.acq_hold >= p->sa_done_hold_s) enter(p->auto_next);
-    }
+    /* 3 mode manager: commanded changes, safe mode, the transitions */
+    adcs_modes_schedule(&S);
+    adcs_fdir_safe(&S);
+    adcs_modes_step(&S, dt);
 
     /* 4 guidance / control / commands */
     adcs_copy3(S.m_hold, m_body);
@@ -566,7 +421,7 @@ int32_t adcs_fsw_step(uint64_t now_ns)
         if (first) adcs_zero3(m_body);
         else if (fabs(phase - p->mtq_meas) < dt/2 && S.ad_ok && S.have_r) {
             adcs_real wd[3], qc[4], qe[4], A[3][3], wr[3], we[3], wen;
-            adcs_guidance(guid_kind_of(S.mode), S.r, S.v, S.t, &S.gd, S.q_ref, S.w_ref, wd);
+            adcs_guidance(adcs_guid_kind(S.mode), S.r, S.v, S.t, &S.gd, S.q_ref, S.w_ref, wd);
             /* hand-over (05_control.md): from a spinning body the rate error is damped first with the
              * detumble gain (Avanzini & Giulietti 2012), m = (k/|B|) (w_e x b), torque -k w_e perp b;
              * the spin-up gain drags the rate along the turning field instead. The pointing law takes
@@ -606,43 +461,12 @@ int32_t adcs_fsw_step(uint64_t now_ns)
         adcs_real A[3][8], Hdev[3] = {0, 0, 0}, dH[3], tau_rcs[3] = {0, 0, 0}, tau_coil[3] = {0, 0, 0}, tr[3];
         adcs_rotor_axes(p, z->delta, A);
         for (i = 0; i < nr; i++) { Hdev[0] += A[0][i]*z->h[i]; Hdev[1] += A[1][i]*z->h[i]; Hdev[2] += A[2][i]*z->h[i]; }
-        /* FDIR on fixed rotors */
-        if (nr > 0 && S.h_prev_ok) {
-            for (i = 0; i < nr; i++) {
-                adcs_real tmax = p->rot_tmax[i], meas = (z->h[i] - S.h_prev[i])/dt;
-                adcs_real expect = adcs_clamp(S.cmd_r_prev[i], -0.8*tmax, 0.8*tmax);
-                int bad = fabs(meas - expect) > 0.5*tmax && p->rot_gi[i] == 0 && fabs(expect) > 0.2*tmax && fabs(z->h[i]) < 0.9*p->rot_hmax[i];
-                S.fd_count[i] = bad ? S.fd_count[i] + dt : 0;
-                if (S.fd_count[i] > p->fdir_s && !S.rot_failed[i]) { S.rot_failed[i] = 1; S.faults |= (uint16_t)(1u << i); }
-            }
-            /* windowed: the momentum each fluid loop was commanded to change over fdir_win_s against the
-               change measured; catches a loop that does not follow the small commands of fine pointing.
-               Fluid loops only: their driver closes a momentum loop, so a healthy one tracks the
-               commanded change; a wheel's uncompensated friction drifts it off over a window */
-            if (!S.fw_on || S.t - S.fw_last > 1.5*dt) {
-                for (i = 0; i < nr; i++) { S.fw_E[i] = 0; S.fw_h0[i] = z->h[i]; }
-                S.fw_t0 = S.t; S.fw_on = 1;
-            } else {
-                for (i = 0; i < nr; i++) S.fw_E[i] += adcs_clamp(S.cmd_r_prev[i], -0.8*p->rot_tmax[i], 0.8*p->rot_tmax[i])*dt;
-                if (S.t - S.fw_t0 >= p->fdir_win_s - 1e-9) {
-                    for (i = 0; i < nr; i++) {
-                        adcs_real hmax = p->rot_hmax[i], E = S.fw_E[i], M = z->h[i] - S.fw_h0[i];
-                        if (p->rot_kind[i] != 1 || p->rot_gi[i] != 0 || S.rot_failed[i] || fabs(E) <= p->fdir_h_frac*hmax
-                            || fabs(z->h[i]) >= 0.9*hmax || fabs(S.fw_h0[i]) >= 0.9*hmax) continue;
-                        S.fw_bad[i] = fabs(M - E) > 0.5*fabs(E) ? S.fw_bad[i] + 1 : 0;
-                        if (S.fw_bad[i] >= FDIR_WIN_BAD) { S.rot_failed[i] = 1; S.faults |= (uint16_t)(1u << i); }
-                    }
-                    for (i = 0; i < nr; i++) { S.fw_E[i] = 0; S.fw_h0[i] = z->h[i]; }
-                    S.fw_t0 = S.t;
-                }
-            }
-            S.fw_last = S.t;
-        }
+        adcs_fdir_rotors(&S, dt);
         /* control law at the control rate */
         if (acq && S.t - S.last_ctrl >= p->rw_dt - 1e-9) { sun_acq_law(Hdev); S.last_ctrl = S.t; }
         else if (!acq && S.ad_ok && S.have_r && S.t - S.last_ctrl >= p->rw_dt - 1e-9) {
             adcs_real wd[3];
-            adcs_guidance(guid_kind_of(S.mode), S.r, S.v, S.t, &S.gd, S.q_ref, S.w_ref, wd);
+            adcs_guidance(adcs_guid_kind(S.mode), S.r, S.v, S.t, &S.gd, S.q_ref, S.w_ref, wd);
             S.capturing = capture_law(Hdev);
             if (S.capturing) adcs_zero3(S.I_q);
             else adcs_control_law(S.K.q, S.w_est, S.q_ref, S.w_ref, S.I_q, p->rw_dt, &S.g_rw, p->J, Hdev, wd, S.tau_req);
@@ -761,7 +585,7 @@ int32_t adcs_fsw_command(const uint8_t *tc, size_t len)
 {
     /* TC 0x01: set controller state (tc[1]) */
     if (!S.ready || !tc || len < 2) return -1;
-    if (tc[0] == 0x01 && tc[1] < ADCS_MODE_COUNT) { if (!feasible(&S.p, tc[1])) return -3; enter(tc[1]); return 0; }
+    if (tc[0] == 0x01 && tc[1] < ADCS_MODE_COUNT) { if (!adcs_modes_feasible(&S.p, tc[1])) return -3; adcs_modes_enter(&S, tc[1]); return 0; }
     return -2;
 }
 

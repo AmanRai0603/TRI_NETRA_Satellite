@@ -8,7 +8,7 @@
 //! (mass/power rate lambda, flow-sensor grade), star-tracker heads, gyro grade.
 //! Owner: Agastya. Copyright (c) 2026 Agastya. All rights reserved.
 use adcs_sim::Error;
-use adcs_fsw::ctl::{boresight_offset, guidance, Guid};
+use adcs_fsw::guid::{boresight_offset, guidance, Guid};
 use adcs_sim::config::Config;
 use adcs_sim::json;
 use adcs_sim::run::Truth;

@@ -244,7 +244,7 @@ fn guidance_params(p: &mut Params, k: &Knowns) {
     let (fsw, dev) = (k.fsw, k.dev);
     let g = get(&fsw, "guidance").cloned().unwrap_or(Value::Null);
     p.gd_kind = match json::s(&g, "kind", "nadir") { "target" => 1, "slew" => 2, "inertial" => 3, "sun" => 4, _ => 0 };
-    p.gd_q_off = adcs_fsw::ctl::boresight_offset(&dev.boresight);
+    p.gd_q_off = adcs_fsw::guid::boresight_offset(&dev.boresight);
     p.gd_roll_deg = json::f(&g, "roll_deg", 0.0); p.gd_t0 = json::f(&g, "t0", 0.0); p.gd_T = json::f(&g, "T_s", 1.0);
     p.gd_axis = get(&g, "axis").and_then(json::v3).unwrap_or([0.0; 3]);
     p.gd_q_inertial = get(&g, "q_inertial").and_then(|q| q.as_array().map(|a| [a[0].as_f64().unwrap_or(0.0), a[1].as_f64().unwrap_or(0.0), a[2].as_f64().unwrap_or(0.0), a[3].as_f64().unwrap_or(1.0)])).unwrap_or([0.0, 0.0, 0.0, 1.0]);
@@ -301,7 +301,7 @@ fn mtq_gains(p: &mut Params, k: &Knowns) {
         // the gradient restores the nadir attitude only inside the Lagrange region J_normal >= J_along > J_nadir;
         // outside it (e.g. a long axis along track) the nadir state cancels it too (bit 1)
         let gg_stable = {
-            use adcs_fsw::ctl::{guidance, Guid};
+            use adcs_fsw::guid::{guidance, Guid};
             let (r, v) = ([7.0e6, 0.0, 0.0], [0.0, 7.5e3, 0.0]);
             let q = guidance(0, &r, &v, 0.0, &Guid { q_off: p.gd_q_off, ..Default::default() }).q;
             let a = adcs_fsw::math::dcm(&q);

@@ -51,9 +51,17 @@ rust = "fsw-rs/src/est.rs"
 parity = "vector (QUEST/TRIAD 1e-9 rad, MEKF convergence); closed loop bit C = Rust"
 
 [[node]]
-id = "guidance_control"
-pseudocode = "04_guidance.md, 05_control.md, 06_detumble_sunspin.md"
-matlab = "+asils/+fsw/{guidance,control_law,mtq_pd,torque2dipole,bdot,gen_bdot,sun_spin,boresight_offset}.m"
+id = "guidance"
+pseudocode = "04_guidance.md"
+matlab = "+asils/+fsw/{guidance,yaw_flip,boresight_offset}.m"
+c = "fsw/src/adcs_guid.c"
+rust = "fsw-rs/src/guid.rs"
+parity = "vector (frame properties); closed loop bit C = Rust"
+
+[[node]]
+id = "control"
+pseudocode = "05_control.md, 06_detumble_sunspin.md"
+matlab = "+asils/+fsw/{control_law,mtq_pd,torque2dipole,bdot,gen_bdot,sun_spin}.m"
 c = "fsw/src/adcs_ctl.c"
 rust = "fsw-rs/src/ctl.rs"
 parity = "vector (law properties); closed loop bit C = Rust"
@@ -69,9 +77,9 @@ parity = "vector (RCS duty with MIB); closed loop bit C = Rust"
 [[node]]
 id = "mode_manager"
 pseudocode = "08_mode_manager.md"
-matlab = "+asils/+fsw/{init,step,modes,select}.m"
-c = "fsw/src/adcs_fsw.c"
-rust = "fsw-rs/src/fsw.rs"
+matlab = "+asils/+fsw/{init,step,mode_manager,modes,select}.m"
+c = "fsw/src/adcs_fsw.c (the tick), fsw/src/adcs_modes.c (the transitions)"
+rust = "fsw-rs/src/fsw.rs (the tick), fsw-rs/src/modes.rs (the transitions)"
 parity = "bit: `adcs parity <scenario>` and engine test run_twice_identical_and_c_equals_rust compare every recorded sample"
 
 [[node]]

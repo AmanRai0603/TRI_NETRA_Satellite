@@ -67,7 +67,7 @@ label = "Guidance and mode management"
 lead = "gnc"
 branches = ["modes"]
 nodes = 21
-modules = { c = ["adcs_guid.c (P2)", "adcs_modes.c (P2)"], rust = ["fsw-rs/guid.rs (P2)", "fsw-rs/modes.rs (P2)"], twin = ["+fsw/guidance.m", "+fsw/modes.m", "+fsw/yaw_flip.m", "+fsw/boresight_offset.m"] }
+modules = { c = ["adcs_guid.c", "adcs_modes.c"], rust = ["fsw-rs/guid.rs", "fsw-rs/modes.rs"], twin = ["+fsw/guidance.m", "+fsw/mode_manager.m", "+fsw/modes.m", "+fsw/yaw_flip.m", "+fsw/boresight_offset.m"] }
 
 [[group]]
 id = "ctl"
@@ -83,7 +83,7 @@ label = "FDIR"
 lead = "gnc"
 branches = []
 nodes = 6
-modules = { c = ["adcs_fdir.c (P2)"], rust = ["fsw-rs/fdir.rs (P2)"], twin = ["+fsw/fdir.m (P2)", "+faults"] }
+modules = { c = ["adcs_fdir.c"], rust = ["fsw-rs/fdir.rs"], twin = ["+fsw/fdir.m", "+faults"] }
 
 [[group]]
 id = "act"
@@ -107,7 +107,7 @@ label = "Flight software and OBC"
 lead = "avionics"
 branches = ["gx", "fsw"]
 nodes = 27
-modules = { c = ["adcs_fsw.c (shell)", "adcs_params.c", "adcs_math.c"], rust = ["fsw-rs/fsw.rs (shell)", "fsw-rs/params.rs", "fsw-rs/math.rs", "fsw-rs/hal.rs", "fsw-rs/cabi.rs"], twin = ["+fsw/step.m (shell)", "+fsw/init.m"] }
+modules = { c = ["adcs_fsw.c (shell)", "adcs_fsw_int.h", "adcs_params.c", "adcs_math.c"], rust = ["fsw-rs/fsw.rs (shell)", "fsw-rs/params.rs", "fsw-rs/math.rs", "fsw-rs/hal.rs", "fsw-rs/cabi.rs"], twin = ["+fsw/step.m (shell)", "+fsw/init.m"] }
 
 [[group]]
 id = "design"

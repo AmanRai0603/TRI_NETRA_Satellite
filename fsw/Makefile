@@ -6,12 +6,12 @@ CC ?= gcc
 CFLAGS ?= -O2 -Wall -Wextra -pedantic
 # the determinism flags: every build keeps them whatever CFLAGS a caller passes (C = Rust bit for bit)
 override CFLAGS += -std=c99 -ffp-contract=off -fno-fast-math -Iinclude
-SRC = src/adcs_math.c src/adcs_env.c src/adcs_est.c src/adcs_ctl.c src/adcs_alloc.c src/adcs_drv.c src/adcs_params.c src/adcs_fsw.c
+SRC = src/adcs_math.c src/adcs_env.c src/adcs_est.c src/adcs_guid.c src/adcs_ctl.c src/adcs_alloc.c src/adcs_drv.c src/adcs_params.c src/adcs_modes.c src/adcs_fdir.c src/adcs_fsw.c
 OBJ = $(SRC:src/%.c=build/%.o)
 
 all: build/libadcs_fsw.a build/test_fsw
 
-build/%.o: src/%.c include/*.h | build
+build/%.o: src/%.c include/*.h src/*.h | build
 	$(CC) $(CFLAGS) -c $< -o $@
 
 build/libadcs_fsw.a: $(OBJ)

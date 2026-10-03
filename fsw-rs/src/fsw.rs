@@ -1,8 +1,10 @@
-//! The reference flight software over the Hal trait; twin of fsw/src/adcs_fsw.c.
-//! Tick order and mode manager: fsw/pseudocode/08_mode_manager.md, one branch per
-//! controller state as asils.fsw.step (MATLAB) and adcs_fsw.c (C).
+//! The reference flight software over the Hal trait, the shell; twin of fsw/src/adcs_fsw.c.
+//! Tick order: fsw/pseudocode/08_mode_manager.md, one branch per controller state as
+//! asils.fsw.step (MATLAB) and adcs_fsw.c (C). The shell owns the tick, the state and the HAL;
+//! guidance is guid.rs, the mode manager modes.rs, FDIR fdir.rs.
 use crate::alloc::{self, A38};
-use crate::ctl::{self, Gains, Guid};
+use crate::ctl::{self, Gains};
+use crate::guid::{self, Guid};
 use crate::drv::{self, Drv, Meas};
 use crate::env;
 use crate::est::{self, Mekf};
@@ -11,10 +13,14 @@ use crate::m::*;
 use crate::math::*;
 use crate::params::{Mode, Params, MAX_COUPLES as NC, MAX_GIMBALS as NG, MAX_ROTORS as NR, MODE_NONE};
 
+#[path = "modes.rs"]
+mod modes;
+#[path = "fdir.rs"]
+mod fdir;
+use modes::feasible;
+
 /// bang-bang B-dot boundary layer: proportional gain inside it = BDOT_BL_GAIN x the B-dot gain
 const BDOT_BL_GAIN: f64 = 4.0;
-/// Judged momentum windows in a row a rotor misses before it is isolated.
-const FDIR_WIN_BAD: u32 = 2;
 
 pub const ABI_VERSION: u32 = 1;
 pub const BUILD_ID: &str = concat!("trinetra-fsw-rs/", env!("CARGO_PKG_VERSION"), " (adcs-fswcfg/1)");
@@ -22,16 +28,6 @@ const MODE_COUNT: u8 = 11;
 
 #[derive(Debug, PartialEq, Eq)]
 pub enum InitError { Abi, Config, Invalid(&'static str), Infeasible(u8) }
-
-/// Can the fitted hardware fly this state? (= feasible in adcs_fsw.c)
-fn feasible(p: &Params, m: u8) -> bool {
-    match m {
-        NADIR_FINE | TARGET_FINE | SLEW_FINE | SUN_FINE => p.nr > 0 || p.nc > 0,
-        SUN_ACQ_ROTOR => p.nr > 0,
-        DETUMBLE_RCS => p.nc > 0,
-        _ => m < MODE_COUNT,
-    }
-}
 
 /// What adcs_fsw_peek reports (floats, quaternion scalar first).
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
@@ -74,15 +70,6 @@ pub struct Fsw {
     sched_i: usize,
     out_m: V3, out_r: [f64; NR], out_g: [f64; NG], out_duty: [f64; NC],
     faults: u16,
-}
-
-fn guid_kind_of(mode: u8) -> i32 {
-    match Mode::from_u8(mode) {
-        Some(Mode::TargetFine) => 1,
-        Some(Mode::SlewFine) => 2,
-        Some(Mode::SunMtq) | Some(Mode::SunFine) => 4,
-        _ => 0,
-    }
 }
 
 #[allow(clippy::too_many_arguments)]
@@ -157,18 +144,6 @@ impl Fsw {
         self.has_rcs_dump = p.nc > 0 && p.rcs_dump != 0;
         self.ready = true;
         Ok(())
-    }
-
-    fn enter(&mut self, mode: u8) {
-        if mode == SPINUP { self.sz_sum = 0.0; self.sz_n = 0; self.sz_t0 = self.t; }
-        self.mode = mode;
-        self.t_mode = self.t;
-        self.hold = 0.0;
-        self.ho = false;
-        self.ho_t = 0.0;
-        // the states that skip estimation freeze the attitude: the next pointing state re-initialises it
-        if mode == DETUMBLE || mode == DETUMBLE_RCS || mode == SPINUP || mode == SUN_SPIN { self.ad_ok = false; self.n_rej = 0.0; }
-        self.i_q = [0.0; 3];
     }
 
     fn mtq_law(&mut self) {
@@ -273,28 +248,6 @@ impl Fsw {
         self.tau_req = add3(&mat3_vec(&p.J, &x), &gy);
     }
 
-    fn spin_guards(&mut self, dt: f64) {
-        let p = self.p;
-        let d = D2R;
-        let wz = self.w_est[2];
-        let wp = sqrt(self.w_est[0]*self.w_est[0] + self.w_est[1]*self.w_est[1]);
-        if norm3(&self.w_est) > p.ss_omega_max_dps*d { self.enter(DETUMBLE); return; }
-        if self.mode == SPINUP {
-            let conv = fabs(wz - self.sigma*p.ss_spin_dps*d) < p.ss_z_in_dps*d && wp < p.ss_perp_in_dps*d;
-            if conv && self.z.sun_ok { self.sz_sum += self.z.sun[2]; self.sz_n += 1; }
-            if self.t - self.sz_t0 >= p.ss_t_check_s && self.sz_n > 0 && self.sz_sum/self.sz_n as f64 > p.ss_sun_min {
-                self.sigma = -self.sigma; self.sz_sum = 0.0; self.sz_n = 0; self.sz_t0 = self.t;
-            }
-            let ok = conv && self.z.sun_ok && self.z.sun[2] < 0.0;
-            if ok { self.hold += dt; } else { self.hold = 0.0; }
-            if self.hold >= p.ss_dwell_in_s { self.enter(SUN_SPIN); }
-        } else {
-            let bad = fabs(wz) < p.ss_omega_exit_dps*d || wp > p.ss_perp_out_dps*d;
-            if bad { self.hold += dt; } else { self.hold = 0.0; }
-            if self.hold >= p.ss_dwell_out_s { self.enter(SPINUP); }
-        }
-    }
-
     fn allocate(&self, tau_rot: &V3, a: &A38, cmd_r: &mut [f64; NR], cmd_g: &mut [f64; NG]) {
         let p = &self.p;
         let mut fixed = [0usize; NR];
@@ -335,16 +288,7 @@ impl Fsw {
         self.jd = p.jd0 + self.t/86400.0;
         let mut z = self.z;
         self.drv.read(hal, &p, &mut z);
-        if z.mag_ok {
-            if let Some(br) = self.bref {
-                let (bn, rn) = (norm3(&z.b), norm3(&br));
-                if !(bn > MAG_LO*rn && bn < MAG_HI*rn) { z.mag_ok = false; }
-            }
-        }
-        if z.mag_ok { self.b_good = z.b; self.mag_age = 0.0; self.mag_seen = true; }
-        else { z.b = self.b_good; self.mag_age += dt; }
-        if p.has_gyro == 0 || z.gyro_ok { self.gyro_age = 0.0; } else { self.gyro_age += dt; }
-        if !z.gyro_ok && p.has_gyro == 0 { z.w = [0.0; 3]; }
+        self.fdir_sensors(&mut z, dt);
         self.z = z;
 
         // 1 onboard orbit (02): the GNSS fix, else two-body + J2 by velocity Verlet
@@ -374,7 +318,7 @@ impl Fsw {
 
         // 2 estimation
         self.gd.sun_eci = env::sun_model(self.jd);
-        if p.gd_yaw_flip != 0 && self.have_r { ctl::yaw_flip(&mut self.gd, &self.r, &self.v, p.gd_flip_hyst); }
+        if p.gd_yaw_flip != 0 && self.have_r { guid::yaw_flip(&mut self.gd, &self.r, &self.v, p.gd_flip_hyst); }
         let phase = fmod(self.t + 1e-9, p.mtq_period);
         let first = phase < dt - 1e-9;
         if first { self.mag_done = false; }
@@ -450,37 +394,10 @@ impl Fsw {
             else { for i in 0..3 { self.w_est[i] += a*(wr[i] - self.w_est[i]); } }
         }
 
-        // 3 mode manager
-        while self.sched_i < p.n_sched as usize && self.t >= p.sched_t[self.sched_i] {
-            self.enter(p.sched_mode[self.sched_i]);
-            self.sched_i += 1;
-        }
-        {
-            // safe mode: a sensor silent too long holds the spacecraft in magnetorquer detumble
-            let mut f = 0u16;
-            if self.mag_seen && self.mag_age > SAFE_STALE_S { f |= FAULT_MAG_STALE; }
-            if self.gyro_age > SAFE_STALE_S { f |= FAULT_GYRO_STALE; }
-            self.faults = (self.faults & !(FAULT_MAG_STALE | FAULT_GYRO_STALE)) | f;
-            if f != 0 && self.mode != DETUMBLE { self.enter(DETUMBLE); }
-        }
-        if (self.mode == DETUMBLE || self.mode == DETUMBLE_RCS) && p.auto_next != MODE_NONE
-            && self.faults & (FAULT_MAG_STALE | FAULT_GYRO_STALE) == 0 {
-            if norm3(&z.w) < p.detumble_exit { self.hold += dt; } else { self.hold = 0.0; }
-            if self.hold >= p.detumble_hold_s { self.enter(p.auto_next); }
-        }
-        if (self.mode == SPINUP || self.mode == SUN_SPIN) && self.p.ss_law != 2 { self.spin_guards(dt); }
-        if self.mode == SPINUP || self.mode == SUN_SPIN || self.mode == SUN_ACQ_ROTOR {
-            if z.sun_ok { self.s_prop = Some(z.sun); }
-            else if let Some(sp) = self.s_prop {
-                let a = dcm(&fromrotvec(&scale3(&self.w_est, dt)));
-                self.s_prop = Some(unit(&mat3_vec(&a, &sp)));
-            }
-        }
-        if self.mode == SUN_ACQ_ROTOR && p.auto_next != MODE_NONE {
-            let ok = z.sun_ok && acos(clamp(dot(&z.sun, &p.sun_axis), -1.0, 1.0)) < p.sa_done_deg*D2R && self.ad_ok;
-            if ok { self.acq_hold += dt; } else { self.acq_hold = 0.0; }
-            if self.acq_hold >= p.sa_done_hold_s { self.enter(p.auto_next); }
-        }
+        // 3 mode manager: commanded changes, safe mode, the transitions
+        self.modes_schedule();
+        self.fdir_safe();
+        self.modes_step(&z, dt);
 
         // 4 guidance / control / commands
         let mut m_body = self.m_hold;
@@ -562,7 +479,7 @@ impl Fsw {
             NADIR_MTQ | SUN_MTQ => {
                 if first { m_body = [0.0; 3]; }
                 else if fabs(phase - p.mtq_meas) < dt/2.0 && self.ad_ok && self.have_r {
-                    let rf = ctl::guidance(guid_kind_of(self.mode), &self.r, &self.v, self.t, &self.gd);
+                    let rf = guid::guidance(guid::kind_of(self.mode), &self.r, &self.v, self.t, &self.gd);
                     self.q_ref = rf.q; self.w_ref = rf.w;
                     // hand-over (05_control.md): the rate error is damped first with the detumble gain (Avanzini & Giulietti 2012)
                     let qe = qmult(&qconj(&self.q_ref), &self.k.q);
@@ -597,45 +514,11 @@ impl Fsw {
                 let a = alloc::rotor_axes(&p, &z.delta);
                 let mut hdev = [0.0; 3];
                 for i in 0..nr { hdev[0] += a[0][i]*z.h[i]; hdev[1] += a[1][i]*z.h[i]; hdev[2] += a[2][i]*z.h[i]; }
-                // FDIR on fixed rotors
-                if nr > 0 {
-                    if let Some(hp) = self.h_prev {
-                        for i in 0..nr {
-                            let tmax = p.rot_tmax[i];
-                            let meas = (z.h[i] - hp[i])/dt;
-                            let expect = clamp(self.cmd_r_prev[i], -0.8*tmax, 0.8*tmax);
-                            let bad = fabs(meas - expect) > 0.5*tmax && p.rot_gi[i] == 0 && fabs(expect) > 0.2*tmax && fabs(z.h[i]) < 0.9*p.rot_hmax[i];
-                            self.fd_count[i] = if bad { self.fd_count[i] + dt } else { 0.0 };
-                            if self.fd_count[i] > p.fdir_s && !self.rot_failed[i] { self.rot_failed[i] = true; self.faults |= 1u16 << i; }
-                        }
-                        // windowed: the momentum each fluid loop was commanded to change over fdir_win_s against the
-                        // change measured; catches a loop that does not follow the small commands of fine pointing.
-                        // Fluid loops only: their driver closes a momentum loop, so a healthy one tracks the
-                        // commanded change; a wheel's uncompensated friction drifts it off over a window
-                        if !self.fw_on || self.t - self.fw_last > 1.5*dt {
-                            for i in 0..nr { self.fw_e[i] = 0.0; self.fw_h0[i] = z.h[i]; }
-                            self.fw_t0 = self.t; self.fw_on = true;
-                        } else {
-                            for i in 0..nr { self.fw_e[i] += clamp(self.cmd_r_prev[i], -0.8*p.rot_tmax[i], 0.8*p.rot_tmax[i])*dt; }
-                            if self.t - self.fw_t0 >= p.fdir_win_s - 1e-9 {
-                                for i in 0..nr {
-                                    let (hmax, e, m) = (p.rot_hmax[i], self.fw_e[i], z.h[i] - self.fw_h0[i]);
-                                    if p.rot_kind[i] != 1 || p.rot_gi[i] != 0 || self.rot_failed[i] || fabs(e) <= p.fdir_h_frac*hmax
-                                        || fabs(z.h[i]) >= 0.9*hmax || fabs(self.fw_h0[i]) >= 0.9*hmax { continue; }
-                                    self.fw_bad[i] = if fabs(m - e) > 0.5*fabs(e) { self.fw_bad[i] + 1 } else { 0 };
-                                    if self.fw_bad[i] >= FDIR_WIN_BAD { self.rot_failed[i] = true; self.faults |= 1u16 << i; }
-                                }
-                                for i in 0..nr { self.fw_e[i] = 0.0; self.fw_h0[i] = z.h[i]; }
-                                self.fw_t0 = self.t;
-                            }
-                        }
-                        self.fw_last = self.t;
-                    }
-                }
+                self.fdir_rotors(&z, dt);
                 // control law at the control rate
                 if acq && self.t - self.last_ctrl >= p.rw_dt - 1e-9 { self.sun_acq_law(&hdev); self.last_ctrl = self.t; }
                 else if !acq && self.ad_ok && self.have_r && self.t - self.last_ctrl >= p.rw_dt - 1e-9 {
-                    let rf = ctl::guidance(guid_kind_of(self.mode), &self.r, &self.v, self.t, &self.gd);
+                    let rf = guid::guidance(guid::kind_of(self.mode), &self.r, &self.v, self.t, &self.gd);
                     self.q_ref = rf.q; self.w_ref = rf.w;
                     self.capturing = self.capture_law(&hdev);
                     if self.capturing { self.i_q = [0.0; 3]; }
@@ -809,13 +692,9 @@ impl Fsw {
 /// Two-body + J2 acceleration in J2000 (the pole of date is 0.4 deg off: second order on J2).
 /// a GNSS fix below this radius is refused (= GNSS_R_MIN in adcs_fsw.c)
 const GNSS_R_MIN: f64 = 0.9*RE;
-/// Sensor health (= adcs_fsw.c): a field reading outside [MAG_LO, MAG_HI] x the model field is not a
-/// reading; the held field drives the coils for at most MAG_HOLD_CYCLES coil cycles; a magnetometer
-/// or gyro silent for SAFE_STALE_S holds the spacecraft in magnetorquer detumble.
-const MAG_LO: f64 = 0.25;
-const MAG_HI: f64 = 4.0;
+/// The coils act on a held field for at most this many coil cycles (fdir.rs holds it).
 const MAG_HOLD_CYCLES: f64 = 2.0;
-const SAFE_STALE_S: f64 = 60.0;
+/// Fault bits a sensor silent too long sets (fdir.rs); the mode manager reads them.
 pub const FAULT_MAG_STALE: u16 = 1 << 8;
 pub const FAULT_GYRO_STALE: u16 = 1 << 9;
 /// a star-tracker quaternion further than this from unit length is not a reading; its innovation is

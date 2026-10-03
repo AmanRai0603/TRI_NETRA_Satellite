@@ -10,9 +10,10 @@ HAL (`fsw/include/adcs_hal.h`, here the `Hal` trait).
 | `math` | 01 | `adcs_math.c` |
 | `env` | 02 | `adcs_env.c` |
 | `est` | 03 | `adcs_est.c` |
-| `ctl` | 04–06 | `adcs_ctl.c` |
+| `guid` | 04 | `adcs_guid.c` |
+| `ctl` | 05–06 | `adcs_ctl.c` |
 | `alloc` | 07 | `adcs_alloc.c` |
-| `fsw` | 08 | `adcs_fsw.c` |
+| `fsw` (shell), `fsw::modes`, `fsw::fdir` | 08, 07 (rotor FDIR) | `adcs_fsw.c`, `adcs_modes.c`, `adcs_fdir.c` (state in `adcs_fsw_int.h`) |
 | `devices`, `drv`, `hal` | 09 | `adcs_devices.h`, `adcs_drv.c`, `adcs_hal.h` |
 | `params`, `igrf13` | generated | `adcs_params.c`, `adcs_igrf13.h` |
 
