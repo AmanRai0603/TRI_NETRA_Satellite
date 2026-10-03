@@ -4,7 +4,7 @@ version = 4
 
 [[package]]
 name = "adcs-cli"
-version = "1.2.0"
+version = "1.0.0"
 dependencies = [
  "adcs-design",
  "adcs-fsw",
@@ -18,7 +18,7 @@ dependencies = [
 
 [[package]]
 name = "adcs-design"
-version = "1.2.0"
+version = "1.0.0"
 dependencies = [
  "adcs-fsw",
  "adcs-sim",
@@ -35,7 +35,7 @@ dependencies = [
 
 [[package]]
 name = "adcs-fsw-abi"
-version = "1.2.0"
+version = "1.0.0"
 dependencies = [
  "adcs-fsw",
  "cc",
@@ -43,14 +43,14 @@ dependencies = [
 
 [[package]]
 name = "adcs-pop"
-version = "1.2.0"
+version = "1.0.0"
 dependencies = [
  "serde_json",
 ]
 
 [[package]]
 name = "adcs-sim"
-version = "1.2.0"
+version = "1.0.0"
 dependencies = [
  "adcs-fsw",
  "adcs-fsw-abi",
@@ -62,7 +62,7 @@ dependencies = [
 
 [[package]]
 name = "adcs-sim-core"
-version = "1.2.0"
+version = "1.0.0"
 dependencies = [
  "libm",
 ]
@@ -615,7 +615,7 @@ checksum = "7d56353a2a665ad0f41a421187180aab746c8c325620617ad883a99a1cbe66d2"
 
 [[package]]
 name = "trinetra-app"
-version = "1.2.0"
+version = "1.0.0"
 dependencies = [
  "adcs-fsw-abi",
  "adcs-sim",

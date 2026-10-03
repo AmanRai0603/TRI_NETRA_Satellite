@@ -77,6 +77,12 @@ class Verdicts(unittest.TestCase):
         self.assertRegex(out, r"fsw-c\s+NOT RUN\s+0 s\s+needs gcc")
         self.assertEqual(rc, 0, "not run is not a failure")
 
+    def test_strict_makes_a_check_that_cannot_run_a_failure(self):
+        rc, ran, out = run(["--strict", "--only", "fsw-c", "lint"], have=lambda need: need != "gcc")
+        self.assertEqual(ran, ["lint"])
+        self.assertEqual(rc, 1)
+        self.assertIn("FAILED: fsw-c", out)
+
 
 class Have(unittest.TestCase):
     def test_a_program_is_looked_up_on_the_path(self):

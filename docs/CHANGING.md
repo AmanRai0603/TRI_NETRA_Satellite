@@ -25,6 +25,9 @@ run it; `docs/COMMANDS.md` lists them all.
 | a command, or what it does | the tool, and its entry in `docs/commands.toml` | `python3 tools/trinetra.py docs` | `tests/test_commands.py`: the registry and the tools agree |
 | a requirement threshold | `matlab_sils/cases/<case>.csv` (`req.*`) | `python3 tools/rescore.py` | stored runs re-judged; no trajectory changes |
 | the design loop | `tools/pipeline.py` and `matlab_sils/data/pipeline/nodes.json` | `python3 tools/pipeline.py` | `python3 tools/verify_nodes.py` |
+| the version | `python3 tools/version.py --set X.Y.Z` (never by hand) | — | `version.py --check`: `VERSION`, both Cargo files and the C build id agree |
+| the Rust toolchain | `rust-toolchain.toml` (one change of its own; every stored run is then re-flown) | `cargo build --locked` | the engine's and the flight software's tests on the new toolchain |
+| a Python package CI installs | `tools/requirements-ci.txt` (pinned) | `python3 -m pip install -r tools/requirements-ci.txt` | `check_all.py` |
 
 ## Rules that keep it true
 

@@ -256,6 +256,16 @@ writes = []
 runs = ["arm-none-eabi-gcc"]
 
 [[command]]
+tool = "version.py"
+name = "version"
+usage = "python3 tools/version.py [--check | --set X.Y.Z]"
+what = "One version for the repository: VERSION is the source, and the engine's Cargo workspace, the Rust flight software's Cargo package and the C flight software's build id follow it; the Rust build ids are built from their Cargo version. --check fails on any drift; --set writes a new version everywhere."
+steps = ["read VERSION and the version each part states", "check the Rust build ids take their Cargo version", "with --set, write the new version into VERSION and every part"]
+reads = ["VERSION", "engine/Cargo.toml", "fsw-rs/Cargo.toml", "fsw/src/adcs_fsw.c", "engine/crates/adcs-sim/src/lib.rs", "fsw-rs/src/fsw.rs"]
+writes = ["VERSION", "engine/Cargo.toml", "fsw-rs/Cargo.toml", "fsw/src/adcs_fsw.c"]
+runs = []
+
+[[command]]
 tool = "mutation.py"
 name = "mutation"
 usage = "python3 tools/mutation.py [--from DIR] [--check] [--jobs N]"

@@ -1,0 +1,8 @@
+# The one Rust toolchain every build uses, here and in CI and the release (docs/RELEASE_PLAN.md,
+# P0: reproducible builds). Raising it is a change of its own: every stored run is re-flown
+# when the engine it builds differs. The firmware target is part of every build of the flight
+# software; the Windows and macOS targets are added by the release jobs that need them.
+[toolchain]
+channel = "1.94.1"
+profile = "minimal"
+targets = ["thumbv7em-none-eabihf"]

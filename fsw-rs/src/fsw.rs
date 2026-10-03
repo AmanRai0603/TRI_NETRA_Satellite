@@ -17,7 +17,7 @@ const BDOT_BL_GAIN: f64 = 4.0;
 const FDIR_WIN_BAD: u32 = 2;
 
 pub const ABI_VERSION: u32 = 1;
-pub const BUILD_ID: &str = "trinetra-fsw-rs/1.0.0 (adcs-fswcfg/1)";
+pub const BUILD_ID: &str = concat!("trinetra-fsw-rs/", env!("CARGO_PKG_VERSION"), " (adcs-fswcfg/1)");
 const MODE_COUNT: u8 = 11;
 
 #[derive(Debug, PartialEq, Eq)]

@@ -30,6 +30,7 @@
 | [`pack_flight.py pack-flight`](#pack_flightpy-pack-flight) | The flight software and Rust engine zip, in the repository's layout so it builds as unpacked. |
 | [`gen_fsw_params.py gen-fsw-params`](#gen_fsw_paramspy-gen-fsw-params) | The flight software's parameter and table sources, C and Rust, from their one definition. --check says which generated file is stale, and changes nothing. |
 | [`fsw_stack.py fsw-stack`](#fsw_stackpy-fsw-stack) | The flight software's deepest stack on the Cortex-M4 firmware, from GCC's call graph, against the stack the linker script reserves. Recursion and unbounded frames are refused; a library routine is charged a fixed frame and named. |
+| [`version.py version`](#versionpy-version) | One version for the repository: VERSION is the source, and the engine's Cargo workspace, the Rust flight software's Cargo package and the C flight software's build id follow it; the Rust build ids are built from their Cargo version. --check fails on any drift; --set writes a new version everywhere. |
 | [`mutation.py mutation`](#mutationpy-mutation) | Mutation testing of the flight software's control and estimation (fsw-rs/src/ctl.rs, est.rs) with cargo-mutants: each small deliberate fault in turn, and whether the Rust flight software's tests catch it. Writes the kill rate per function and the missed mutants; --check fails under the floor the tool states. |
 | [`trace.py trace`](#tracepy-trace) | The requirements traceability matrix: every requirement a case states, what checks it (a flown scenario's metric, the design loop's budget or mode flights, the reference slew's profile) and what the latest stored result says. --check refuses a metric that neither judges nor says why it only reports, a requirement key the case lacks, and a stated requirement nothing checks; it writes nothing. |
 | [`pointing_budget.py pointing-budget`](#pointing_budgetpy-pointing-budget) | The absolute pointing error budget (SPEC rows gp_0 to gp_5) of each fine-pointing scenario: knowledge and control from one flight on today's engine, payload alignment from the product, thermal distortion from the case, rotor jitter from the engine, their root-sum-square against req.ape, and the room req.ape leaves for alignment and thermal. A term nobody states keeps the budget incomplete. |
@@ -446,6 +447,22 @@ The flight software's deepest stack on the Cortex-M4 firmware, from GCC's call g
 - **Reads:** `fsw/src/`; `fsw/targets/link/`; `fsw/targets/qemu-mps2/`
 - **Writes:** nothing
 - **Starts:** arm-none-eabi-gcc
+
+## version.py version
+
+One version for the repository: VERSION is the source, and the engine's Cargo workspace, the Rust flight software's Cargo package and the C flight software's build id follow it; the Rust build ids are built from their Cargo version. --check fails on any drift; --set writes a new version everywhere.
+
+    python3 tools/version.py [--check | --set X.Y.Z]
+
+**Steps**
+
+1. read VERSION and the version each part states
+2. check the Rust build ids take their Cargo version
+3. with --set, write the new version into VERSION and every part
+
+- **Reads:** VERSION; `engine/Cargo.toml`; `fsw-rs/Cargo.toml`; `fsw/src/adcs_fsw.c`; `engine/crates/adcs-sim/src/lib.rs`; `fsw-rs/src/fsw.rs`
+- **Writes:** VERSION; `engine/Cargo.toml`; `fsw-rs/Cargo.toml`; `fsw/src/adcs_fsw.c`
+- **Starts:** nothing
 
 ## mutation.py mutation
 

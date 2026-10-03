@@ -228,6 +228,18 @@ inside them.
 - P13 needs P12's wave D.
 - P14 comes last.
 
+**Progress of P0** (on the branch, before the merge):
+
+| item | state |
+|---|---|
+| One version source | ✅ `tools/version.py`: `VERSION` 1.0.0; the engine's Cargo workspace (was 1.2.0), the Rust and C flight software follow it; the Rust build ids take their Cargo version; `check_all` checks it |
+| Reproducible builds | ✅ `rust-toolchain.toml` (1.94.1, firmware target); every `cargo build` and test `--locked`; every action pinned to a commit SHA; `setup-python` in every job that runs Python; `tools/requirements-ci.txt` pins pyflakes, numpy, matplotlib; cargo-mutants pinned |
+| The release proves what CI proves | ✅ `check_all --strict` (NOT RUN fails) in the release's `prove`, with the ARM compiler; the release re-runs CI's firmware (QEMU parity) and twin jobs before it publishes |
+| Merge PR #12 to `main` | waiting for the owner's OK |
+| Branch protection with one human review | the owner's repository setting |
+| Licence | the owner's decision |
+| Generated pages and run files out of git | next |
+
 ## 6 · What 1.0.0 contains
 
 - **Node app and group app:** offline, one file each, with manuals.

@@ -6,11 +6,13 @@
     python3 tools/check_all.py --pages         and rebuild the rendered pages (needs the runs' time series)
     python3 tools/check_all.py --mutation      and mutation testing of the flight software (about 30 min)
     python3 tools/check_all.py --only NAME...  just those checks (names as printed)
+    python3 tools/check_all.py --strict        a check that cannot run here fails (the release runs this)
 
 The checks: the Python tests (tests/), the generated files against their definitions, the
 C flight software's checks, the Rust flight software's and the engine's tests, the platform
 specification's package checks, and the node-by-node verification of the stored design loop.
-A check that cannot run here (a missing compiler) is reported as not run, never as passed.
+A check that cannot run here (a missing compiler) is reported as not run, never as passed; with
+--strict it fails.
 Exit status 1 when any check fails.
 
 Copyright (c) 2026 Agastya. All rights reserved.
@@ -30,6 +32,8 @@ CHECKS = [
     # name, what it proves, command, working folder, programs it needs (py:<module> for a Python module)
     ("lint", "no unused name, undefined name or dead import in the tools and tests (pyflakes)",
      [PY, "-m", "pyflakes", "tools", "tests"], ".", ["py:pyflakes"]),
+    ("version", "VERSION is the version of every part: the engine, both flight softwares, their build ids",
+     [PY, "tools/version.py", "--check"], ".", []),
     ("python-tests", "the tools' own tests: the registry, generated files, the Kp -> ap table, atomic writes",
      [PY, "-m", "unittest", "discover", "-s", "tests", "-t", "tests"], ".", []),
     ("wheel", "the Python package builder: RECORD, entry points, executable bits, a changed byte caught",
@@ -47,9 +51,9 @@ CHECKS = [
     ("fsw-stack", "the flight software's deepest stack fits the stack the OBC firmware reserves",
      [PY, "tools/fsw_stack.py"], ".", ["arm-none-eabi-gcc"]),
     ("fsw-rs", "the Rust flight software's tests",
-     ["cargo", "test", "--release", "-q"], "fsw-rs", ["cargo"]),
+     ["cargo", "test", "--locked", "--release", "-q"], "fsw-rs", ["cargo"]),
     ("engine", "the engine's tests: inputs refused by name, results store, determinism, C = Rust",
-     ["cargo", "test", "--release", "-q"], "engine", ["cargo"]),
+     ["cargo", "test", "--locked", "--release", "-q"], "engine", ["cargo"]),
     ("spec", "the platform specification package is consistent",
      ["bash", "-c", "python3 tools/validate_plan.py && python3 tools/build_tree.py --check && python3 tools/intake.py selftest"
       " && python3 tools/derisk.py check && python3 tools/twin_check.py && bash tools/assemble_spec.sh --check"], "spec", ["bash"]),
@@ -98,6 +102,8 @@ def main(argv=None):
     ap.add_argument("--pages", action="store_true", help="also build the rendered pages (figures, results page, V&V report)")
     ap.add_argument("--mutation", action="store_true", help="also run mutation testing of the flight software (about 30 min)")
     ap.add_argument("--only", nargs="+", metavar="NAME", help="run only these checks")
+    ap.add_argument("--strict", action="store_true",
+                    help="a check that cannot run here (NOT RUN) fails: what the release runs, so it proves what CI proves")
     a = ap.parse_args(argv)
     wants = lambda group, flag: flag or bool(a.only and set(a.only) & {n for n, *_ in group})
     todo = CHECKS + (OCTAVE if wants(OCTAVE, a.octave) else []) + (PAGES if wants(PAGES, a.pages) else []) \
@@ -112,6 +118,8 @@ def main(argv=None):
         missing = [n for n in needs if not have(n)]
         if missing:
             rows.append((name, "NOT RUN", f"needs {', '.join(missing)}", 0.0))
+            if a.strict:
+                failed.append(name)
             continue
         print(f"== {name}: {what}", flush=True)
         t0 = time.time()
