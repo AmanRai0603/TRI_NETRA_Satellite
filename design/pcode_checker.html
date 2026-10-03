@@ -514,6 +514,9 @@ function check(files) {
   const fits = (want, got, e) => {
     if (typeEq(want, got)) return true;
     if (e && isZero(e) && shapeEq(want, got)) return true;          // a bare 0 (or array of them) takes any dimension
+    if (e && e.e === "num" && e.v === 0 && !e.unit && (want.k === "arr" || want.k === "rec")) { e.fill = want; return true; }   // 0 fills an array
+    if (e && e.e === "arr" && !e.unit && want.k === "arr" && got.k === "arr" && want.n === got.n &&
+        e.items.every((x) => fits(want.of, x.ty, x))) { e.ty = want; return true; }   // a literal takes the element type it is given to
     if (want.k === "real" && got.k === "int" && dimEq(want.dim, DIMLESS)) return true;
     if (want.k === "real" && got.k === "real" && e && e.e === "num" && !e.unit && dimEq(want.dim, DIMLESS)) return true;
     return false;
@@ -568,7 +571,7 @@ function check(files) {
           if (!isZero(e.items[i]) && !(typeEq(t, base) || (numType(t) && numType(base) && dimEq(scalarDim(t), scalarDim(base)))))
             E(`array items differ: ${typeText(base)} and ${typeText(t)}`, e.items[i].pos);
         });
-        if (base.k === "int") base = tReal(DIMLESS);
+        if (base.k === "int" && !ts.every((t) => t.k === "int")) base = tReal(DIMLESS);   // all ints: an int array
         return { k: "arr", n: e.items.length, of: base };
       }
       case "index": {
@@ -956,7 +959,7 @@ function makeInterpreter(prog) {
   const constVals = {};
   const ev = (e, env) => {
     switch (e.e) {
-      case "num": return e.si;
+      case "num": return e.fill ? zeroOf(e.fill, prog) : e.si;
       case "bool": return e.v;
       case "var": {
         if (e.kind === "const") { if (!(e.name in constVals)) constVals[e.name] = ev(prog.consts[e.name].e, new Map()); return constVals[e.name]; }

@@ -1,0 +1,205 @@
+## 01 - Math kernel (01_math.md): the operations every other module builds on, written operation for
+## operation as fsw/src/adcs_math.c and fsw-rs/src/math.rs do them. Quaternions are [x, y, z, w],
+## scalar last; dcm(q) is the passive ECI -> body matrix. (dot, cross, norm, unit are builtins with
+## the same arithmetic: unit(a) = a / max(norm(a), 1e-30).)
+module math
+
+## The largest |a_i|.
+fn maxabs3(a: vec3[1] in -10 .. 10) -> m: real[1]
+    m = |a[0]|
+    if |a[1]| > m
+        m = |a[1]|
+    end
+    if |a[2]| > m
+        m = |a[2]|
+    end
+end
+
+## M^T v, summed row by row.
+fn mat3t_vec(m: mat3[1] in -3 .. 3, v: vec3[1] in -3 .. 3) -> r: vec3[1]
+    for i in 0 .. 3
+        r[i] = m[0][i]*v[0] + m[1][i]*v[1] + m[2][i]*v[2]
+    end
+end
+
+## The skew-symmetric matrix of a: skew(a) b = a x b.
+fn skew(a: vec3[1] in -3 .. 3) -> s: mat3[1]
+    s = [[0, -a[2], a[1]], [a[2], 0, -a[0]], [-a[1], a[0], 0]]
+end
+
+## The determinant by the first row.
+fn det3(m: mat3[1] in -3 .. 3) -> d: real[1]
+    d = m[0][0]*(m[1][1]*m[2][2] - m[1][2]*m[2][1]) - m[0][1]*(m[1][0]*m[2][2] - m[1][2]*m[2][0]) \
+        + m[0][2]*(m[1][0]*m[2][1] - m[1][1]*m[2][0])
+end
+
+## The inverse by the adjugate; a singular matrix (|det| < 1e-300) gives zeros and ok = false.
+fn inv3(m: mat3[1] in -3 .. 3) -> (r: mat3[1], ok: bool)
+    let d = det3(m)
+    ok = |d| >= 1e-300
+    if ok
+        r[0] = [(m[1][1]*m[2][2] - m[1][2]*m[2][1])/d, (m[0][2]*m[2][1] - m[0][1]*m[2][2])/d, (m[0][1]*m[1][2] - m[0][2]*m[1][1])/d]
+        r[1] = [(m[1][2]*m[2][0] - m[1][0]*m[2][2])/d, (m[0][0]*m[2][2] - m[0][2]*m[2][0])/d, (m[0][2]*m[1][0] - m[0][0]*m[1][2])/d]
+        r[2] = [(m[1][0]*m[2][1] - m[1][1]*m[2][0])/d, (m[0][1]*m[2][0] - m[0][0]*m[2][1])/d, (m[0][0]*m[1][1] - m[0][1]*m[1][0])/d]
+    end
+end
+
+## The minimum-norm right inverse of the first n columns of a 3 x 8 matrix, rank-safe:
+## S = A A^T + eps I, eps = 1e-12 max(trace(S)/3, 1e-30); returns A^T S^-1 (8 x 3, rows past n zero).
+fn pinv_rows(a: real[1][8][3] in -1 .. 1, n: int in 1 .. 8) -> p: real[1][3][8]
+    let s: mat3[1] = 0
+    for i in 0 .. 3
+        for j in 0 .. 3
+            s[i][j] = 0
+            for k in 0 .. n
+                s[i][j] = s[i][j] + a[i][k]*a[j][k]
+            end
+        end
+    end
+    let tr = (s[0][0] + s[1][1] + s[2][2])/3.0
+    let eps = 1e-12*(if tr > 1e-30 then tr else 1e-30)
+    for i in 0 .. 3
+        s[i][i] = s[i][i] + eps
+    end
+    let si, ok = inv3(s)
+    for k in 0 .. n
+        for j in 0 .. 3
+            p[k][j] = a[0][k]*si[0][j] + a[1][k]*si[1][j] + a[2][k]*si[2][j]
+        end
+    end
+end
+
+## Eigen-decomposition of a symmetric 4 x 4 by cyclic Jacobi: 12 sweeps over the pairs (0,1) (0,2)
+## (0,3) (1,2) (1,3) (2,3) in that order. Returns the eigenvalues and the eigenvectors as columns.
+fn jacobi_eig4(k: real[1][4][4] in -3 .. 3) -> (lam: vec4[1], v: real[1][4][4])
+    let a = k
+    v = [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]]
+    let pp: int[6] = [0, 0, 0, 1, 1, 2]
+    let qq: int[6] = [1, 2, 3, 2, 3, 3]
+    for sweep in 0 .. 12
+        for pi_ in 0 .. 6
+            let p = pp[pi_]
+            let q = qq[pi_]
+            let apq = a[p][q]
+            if |apq| >= 1e-300
+                let th = (a[q][q] - a[p][p])/(2.0*apq)
+                let t = sign(th)/(|th| + sqrt(th*th + 1.0))
+                if th == 0
+                    t = 1.0
+                end
+                let c = 1.0/sqrt(t*t + 1.0)
+                let sn = t*c
+                for i in 0 .. 4
+                    let aip = a[i][p]
+                    let aiq = a[i][q]
+                    a[i][p] = c*aip - sn*aiq
+                    a[i][q] = sn*aip + c*aiq
+                end
+                for i in 0 .. 4
+                    let api = a[p][i]
+                    let aqi = a[q][i]
+                    a[p][i] = c*api - sn*aqi
+                    a[q][i] = sn*api + c*aqi
+                end
+                for i in 0 .. 4
+                    let vip = v[i][p]
+                    let viq = v[i][q]
+                    v[i][p] = c*vip - sn*viq
+                    v[i][q] = sn*vip + c*viq
+                end
+            end
+        end
+    end
+    for i in 0 .. 4
+        lam[i] = a[i][i]
+    end
+end
+
+## The Hamilton product a b (scalar last).
+fn qmult(a: quat in -1 .. 1, b: quat in -1 .. 1) -> r: quat
+    r = [a[3]*b[0] + b[3]*a[0] + (a[1]*b[2] - a[2]*b[1]), \
+         a[3]*b[1] + b[3]*a[1] + (a[2]*b[0] - a[0]*b[2]), \
+         a[3]*b[2] + b[3]*a[2] + (a[0]*b[1] - a[1]*b[0]), \
+         a[3]*b[3] - (a[0]*b[0] + a[1]*b[1] + a[2]*b[2])]
+end
+
+## The conjugate.
+fn qconj(q: quat in -1 .. 1) -> r: quat
+    r = [-q[0], -q[1], -q[2], q[3]]
+end
+
+## q made unit; a zero quaternion becomes the identity.
+fn qnorm(q: quat in -1 .. 1) -> r: quat
+    let n = sqrt(q[0]*q[0] + q[1]*q[1] + q[2]*q[2] + q[3]*q[3])
+    if n < 1e-30
+        r = [0, 0, 0, 1]
+    else
+        r = [q[0]/n, q[1]/n, q[2]/n, q[3]/n]
+    end
+end
+
+## The passive ECI -> body matrix of q.
+fn dcm(q: quat in -1 .. 1) -> a: mat3[1]
+    let x = q[0]
+    let y = q[1]
+    let z = q[2]
+    let w = q[3]
+    a = [[1 - 2*(y*y + z*z), 2*(x*y + z*w), 2*(x*z - y*w)], \
+         [2*(y*x - z*w), 1 - 2*(x*x + z*z), 2*(y*z + x*w)], \
+         [2*(z*x + y*w), 2*(z*y - x*w), 1 - 2*(x*x + y*y)]]
+end
+
+## The quaternion of a rotation matrix: the largest of (trace, R11, R22, R33) picks the form, then
+## it is made unit (no sign forced).
+fn fromdcm(r: mat3[1] in -1 .. 1) -> q: quat
+    let tr = r[0][0] + r[1][1] + r[2][2]
+    let idx = 0
+    let best = tr
+    if r[0][0] > best
+        best = r[0][0]
+        idx = 1
+    end
+    if r[1][1] > best
+        best = r[1][1]
+        idx = 2
+    end
+    if r[2][2] > best
+        idx = 3
+    end
+    let u: quat = 0
+    if idx == 0
+        u = [r[1][2] - r[2][1], r[2][0] - r[0][2], r[0][1] - r[1][0], 1 + tr]
+    elif idx == 1
+        u = [1 + 2*r[0][0] - tr, r[0][1] + r[1][0], r[0][2] + r[2][0], r[1][2] - r[2][1]]
+    elif idx == 2
+        u = [r[1][0] + r[0][1], 1 + 2*r[1][1] - tr, r[1][2] + r[2][1], r[2][0] - r[0][2]]
+    else
+        u = [r[2][0] + r[0][2], r[2][1] + r[1][2], 1 + 2*r[2][2] - tr, r[0][1] - r[1][0]]
+    end
+    q = qnorm(u)
+end
+
+## The quaternion of a rotation vector: [sin(|t|/2) t/|t|, cos(|t|/2)]; below 1e-12 rad
+## [t/2, 1] made unit.
+fn fromrotvec(th: vec3[1] in -3 .. 3) -> q: quat
+    let a = norm(th)
+    if a < 1e-12
+        q = qnorm([th[0]/2, th[1]/2, th[2]/2, 1.0])
+    else
+        q = [sin(a/2)*th[0]/a, sin(a/2)*th[1]/a, sin(a/2)*th[2]/a, cos(a/2)]
+    end
+end
+
+## The angle between two attitudes: 2 acos(min(1, |a . b|)).
+fn qangle(a: quat in -1 .. 1, b: quat in -1 .. 1) -> ang: real[1]
+    let d = |a[0]*b[0] + a[1]*b[1] + a[2]*b[2] + a[3]*b[3]|
+    ang = 2.0*acos(if d > 1.0 then 1.0 else d)
+end
+
+## The error quaternion conj(q_ref) q, its sign fixed so that w >= 0.
+fn qerr(q_ref: quat in -1 .. 1, q: quat in -1 .. 1) -> qe: quat
+    qe = qmult(qconj(q_ref), q)
+    if qe[3] < 0
+        qe = [-qe[0], -qe[1], -qe[2], -qe[3]]
+    end
+end

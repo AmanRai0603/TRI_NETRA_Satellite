@@ -56,12 +56,12 @@ export function toRust(prog, opts = {}) {
   // an expression, made to fit the type it is wanted as (int -> real)
   const E = (e, want) => {
     const s = ex(e);
-    if (want && isReal(want) && isInt(e.ty)) return `(${s} as f64)`;
+    if (want && isReal(want) && isInt(e.ty)) return e.e === "num" ? lit(e.v) : `(${s} as f64)`;
     return s;
   };
   const ex = (e) => {
     switch (e.e) {
-      case "num": return isInt(e.ty) ? String(e.v) : lit(e.si);
+      case "num": return e.fill ? zero(e.fill) : isInt(e.ty) ? String(e.v) : lit(e.si);
       case "bool": return String(e.v);
       case "var":
         if (e.kind === "builtin_const") return "core::f64::consts::PI";
@@ -121,17 +121,17 @@ export function toRust(prog, opts = {}) {
     if (e.builtin) {
       const f = e.f;
       switch (f) {
-        case "sqrt": return `${R(0)}.sqrt()`;
+        case "sqrt": return `f64::sqrt(${R(0)})`;
         case "abs": return isInt(e.ty) ? `(${ex(a[0])}).abs()` : `rt::fabs(${R(0)})`;
-        case "floor": case "ceil": return isInt(e.ty) ? ex(a[0]) : `${R(0)}.${f}()`;
-        case "round": return isInt(e.ty) ? ex(a[0]) : `${R(0)}.round()`;
+        case "floor": case "ceil": return isInt(e.ty) ? ex(a[0]) : `f64::${f}(${R(0)})`;
+        case "round": return isInt(e.ty) ? ex(a[0]) : `f64::round(${R(0)})`;
         case "sign": return `rt::sign(${R(0)})`;
-        case "sin": case "cos": case "tan": case "asin": case "acos": case "atan": case "exp": case "log10": return `${R(0)}.${f}()`;
-        case "log": return `${R(0)}.ln()`;
-        case "atan2": return `${R(0)}.atan2(${R(1)})`;
+        case "sin": case "cos": case "tan": case "asin": case "acos": case "atan": case "exp": case "log10": return `f64::${f}(${R(0)})`;
+        case "log": return `f64::ln(${R(0)})`;
+        case "atan2": return `f64::atan2(${R(0)}, ${R(1)})`;
         case "hypot": return `rt::hypot(${R(0)}, ${R(1)})`;
         case "fmod": return `(${R(0)} % ${R(1)})`;
-        case "pow": return `${R(0)}.powf(${R(1)})`;
+        case "pow": return `f64::powf(${R(0)}, ${R(1)})`;
         case "min": case "max": {
           const g = e.allInt ? `rt::i${f}` : `rt::f${f}`;
           const args = a.map((x) => (e.allInt ? ex(x) : E(x, { k: "real" })));
@@ -196,7 +196,7 @@ export function toRust(prog, opts = {}) {
 
   const mods = Object.values(prog.modules);
   for (const m of mods) {
-    let out = `//! ${m.name}: ${(m.doc || []).join(" ") || "the pseudocode module " + m.name}\n//! ${HEAD}\n#![allow(unused_mut, unused_variables, unused_parens, clippy::all)]\nuse crate::rt;\n\n`;
+    let out = `//! ${m.name}: ${(m.doc || []).join(" ") || "the pseudocode module " + m.name}\n//! ${HEAD}\n#![allow(unused_mut, unused_variables, unused_parens, unused_assignments, unused_imports, unreachable_code, non_snake_case, clippy::all)]\nuse crate::rt;\n\n`;
     for (const it of m.items) {
       curFn = it;
       if (it.kind === "const") {
@@ -254,7 +254,7 @@ export function toRust(prog, opts = {}) {
     return `for v in ${name}.iter() { let v = *v; ${pushOut(t.of, "v")} }`;
   };
   let disp = `//! The vector dispatcher: call a function by name with its inputs flattened (SI). ${HEAD}\n` +
-    "#![allow(clippy::all)]\n\n/// The outputs, flattened, or None when there is no such function or too few inputs.\npub fn call(name: &str, x: &[f64]) -> Option<Vec<f64>> {\n    let mut out = Vec::new();\n    match name {\n";
+    "#![allow(unused_mut, unused_variables, unreachable_code, clippy::all)]\n\n/// The outputs, flattened, or None when there is no such function or too few inputs.\npub fn call(name: &str, x: &[f64]) -> Option<Vec<f64>> {\n    let mut out = Vec::new();\n    match name {\n";
   for (const f of callable) {
     let at = 0; const args = [];
     for (const p of f.params) { const [s, n] = readArg(p.ty, at); args.push(s); at += n; }
@@ -373,7 +373,7 @@ export function toMatlab(prog, opts = {}) {
   const ml = (x) => lit(x).replace(/\.0$/, "").replace(/\.0e/, "e");
   const ex = (e) => {
     switch (e.e) {
-      case "num": return isInt(e.ty) ? String(e.v) : ml(e.si);
+      case "num": return e.fill ? zero(e.fill) : isInt(e.ty) ? String(e.v) : ml(e.si);
       case "bool": return String(e.v);
       case "var":
         if (e.kind === "builtin_const") return "pi";

@@ -1,0 +1,262 @@
+## 03 - Estimation (03_estimation.md): the multiplicative extended Kalman filter, TRIAD, the q-method
+## and the star-tracker latency, operation for operation as fsw/src/adcs_est.c and fsw-rs/src/est.rs.
+## The filter's record (adcs_mekf_t, est::Mekf) is passed as its parts: q, b, P.
+module estimation
+
+## A filter at q0, bias zero, attitude and bias variances sa^2 and sb^2.
+fn mekf_init(q0: quat in -1 .. 1, sa: real[1] in 1e-4 .. 0.1, sb: real[1] in 1e-6 .. 1e-3) -> (q: quat, b: vec3[1], p: real[1][6][6])
+    q = q0
+    b = 0
+    p = 0
+    for i in 0 .. 3
+        p[i][i] = sa*sa
+        p[i + 3][i + 3] = sb*sb
+    end
+end
+
+## The prediction over dt on the measured rate wm, with gyro angle and rate random walks arw, rrw:
+## q <- q fromrotvec((wm - b) dt), P <- Phi P Phi' + Q.
+fn mekf_predict(q0: quat in -1 .. 1, b: vec3[1] in -1e-3 .. 1e-3, p0: real[1][6][6] in -1e-4 .. 1e-4, arw: real[1] in 1e-6 .. 1e-3, \
+                rrw: real[1] in 1e-8 .. 1e-5, wm: vec3[1] in -0.1 .. 0.1, dt: real[1] in 0.01 .. 1) -> (q: quat, p: real[1][6][6])
+    let sv2 = arw*arw
+    let su2 = rrw*rrw
+    let w = wm - b
+    q = qnorm(qmult(q0, fromrotvec(w*dt)))
+    let ww = skew(w)
+    let w2 = ww*ww
+    let phi: real[1][6][6] = 0
+    for i in 0 .. 3
+        for j in 0 .. 3
+            phi[i][j] = (if i == j then 1.0 else 0.0) - ww[i][j]*dt + 0.5*w2[i][j]*dt*dt
+        end
+        phi[i][i + 3] = -dt
+        phi[i + 3][i + 3] = 1.0
+    end
+    let t: real[1][6][6] = 0
+    for i in 0 .. 6
+        for j in 0 .. 6
+            t[i][j] = 0
+            for l in 0 .. 6
+                t[i][j] = t[i][j] + phi[i][l]*p0[l][j]
+            end
+        end
+    end
+    p = 0
+    for i in 0 .. 6
+        for j in 0 .. 6
+            p[i][j] = 0
+            for l in 0 .. 6
+                p[i][j] = p[i][j] + t[i][l]*phi[j][l]
+            end
+        end
+    end
+    for i in 0 .. 3
+        p[i][i] = p[i][i] + (sv2*dt + su2*dt*dt*dt/3.0)
+        p[i][i + 3] = p[i][i + 3] + -su2*dt*dt/2.0
+        p[i + 3][i] = p[i + 3][i] + -su2*dt*dt/2.0
+        p[i + 3][i + 3] = p[i + 3][i + 3] + su2*dt
+    end
+end
+
+## The Joseph-form update with a 3-row measurement H (3 x 6), noise R and innovation y. With
+## gate > 0 an update whose chi-square y' S^-1 y passes the gate is refused (took = false).
+fn update3(q0: quat in -1 .. 1, b0: vec3[1] in -1e-3 .. 1e-3, p0: real[1][6][6] in -1e-4 .. 1e-4, h: real[1][6][3] in -1 .. 1, \
+           r: mat3[1] in 0 .. 1e-4, y: vec3[1] in -0.01 .. 0.01, gate: real[1] in 0 .. 20) -> (q: quat, b: vec3[1], p: real[1][6][6], took: bool)
+    q = q0
+    b = b0
+    p = p0
+    took = false
+    let pht: real[1][3][6] = 0
+    for i in 0 .. 6
+        for j in 0 .. 3
+            pht[i][j] = 0
+            for l in 0 .. 6
+                pht[i][j] = pht[i][j] + p0[i][l]*h[j][l]
+            end
+        end
+    end
+    let s: mat3[1] = 0
+    for i in 0 .. 3
+        for j in 0 .. 3
+            s[i][j] = r[i][j]
+            for l in 0 .. 6
+                s[i][j] = s[i][j] + h[i][l]*pht[l][j]
+            end
+        end
+    end
+    let si, ok = inv3(s)
+    if ok
+        let chi: real[1] = 0
+        for i in 0 .. 3
+            for j in 0 .. 3
+                chi = chi + y[i]*si[i][j]*y[j]
+            end
+        end
+        if chi == chi and not (gate > 0 and chi > gate)
+            took = true
+            let g: real[1][3][6] = 0
+            for i in 0 .. 6
+                for j in 0 .. 3
+                    g[i][j] = 0
+                    for l in 0 .. 3
+                        g[i][j] = g[i][j] + pht[i][l]*si[l][j]
+                    end
+                end
+            end
+            let dx: real[1][6] = 0
+            for i in 0 .. 6
+                dx[i] = 0
+                for l in 0 .. 3
+                    dx[i] = dx[i] + g[i][l]*y[l]
+                end
+            end
+            q = qnorm(qmult(q0, [0.5*dx[0], 0.5*dx[1], 0.5*dx[2], 1.0]))
+            for i in 0 .. 3
+                b[i] = b0[i] + dx[i + 3]
+            end
+            let ikh: real[1][6][6] = 0
+            for i in 0 .. 6
+                for j in 0 .. 6
+                    ikh[i][j] = if i == j then 1.0 else 0.0
+                    for l in 0 .. 3
+                        ikh[i][j] = ikh[i][j] - g[i][l]*h[l][j]
+                    end
+                end
+            end
+            let t: real[1][6][6] = 0
+            for i in 0 .. 6
+                for j in 0 .. 6
+                    t[i][j] = 0
+                    for l in 0 .. 6
+                        t[i][j] = t[i][j] + ikh[i][l]*p0[l][j]
+                    end
+                end
+            end
+            for i in 0 .. 6
+                for j in 0 .. 6
+                    p[i][j] = 0
+                    for l in 0 .. 6
+                        p[i][j] = p[i][j] + t[i][l]*ikh[j][l]
+                    end
+                end
+            end
+            ## + G R G'
+            for i in 0 .. 6
+                for j in 0 .. 6
+                    for a in 0 .. 3
+                        for c in 0 .. 3
+                            p[i][j] = p[i][j] + g[i][a]*r[a][c]*g[j][c]
+                        end
+                    end
+                end
+            end
+        end
+    end
+end
+
+## A vector measurement: the body vector bm against the reference rr (both made unit), noise sigma.
+fn mekf_vector(q0: quat in -1 .. 1, b0: vec3[1] in -1e-3 .. 1e-3, p0: real[1][6][6] in -1e-4 .. 1e-4, bm: vec3[1] in -1 .. 1, \
+               rr: vec3[1] in -1 .. 1, sigma: real[1] in 1e-3 .. 0.05, gate: real[1] in 0 .. 20) -> (q: quat, b: vec3[1], p: real[1][6][6], took: bool)
+    let bu = unit(bm)
+    let ru = unit(rr)
+    let bh = dcm(q0)*ru
+    let sk = skew(bh)
+    let h: real[1][6][3] = 0
+    for i in 0 .. 3
+        for j in 0 .. 6
+            h[i][j] = if j < 3 then sk[i][j] else 0.0
+        end
+    end
+    let r: mat3[1] = 0
+    for i in 0 .. 3
+        for j in 0 .. 3
+            r[i][j] = if i == j then sigma*sigma else 0.0
+        end
+    end
+    q, b, p, took = update3(q0, b0, p0, h, r, bu - bh, gate)
+end
+
+## A star-tracker quaternion qm with cross-boresight and roll noises sc, sr about boresight bs.
+fn mekf_quat(q0: quat in -1 .. 1, b0: vec3[1] in -1e-3 .. 1e-3, p0: real[1][6][6] in -1e-4 .. 1e-4, qm: quat in -1 .. 1, \
+             sc: real[1] in 1e-5 .. 1e-3, sr: real[1] in 1e-5 .. 1e-2, bs: vec3[1] in -1 .. 1, gate: real[1] in 0 .. 20) -> (q: quat, b: vec3[1], p: real[1][6][6], took: bool)
+    let dq = qerr(q0, qm)
+    let y: vec3[1] = 0
+    for i in 0 .. 3
+        y[i] = 2.0*dq[i]
+    end
+    let h: real[1][6][3] = 0
+    let r: mat3[1] = 0
+    for i in 0 .. 3
+        for j in 0 .. 6
+            h[i][j] = if i == j then 1.0 else 0.0
+        end
+        for j in 0 .. 3
+            r[i][j] = (if i == j then sc*sc else 0.0) + (sr*sr - sc*sc)*bs[i]*bs[j]
+        end
+    end
+    q, b, p, took = update3(q0, b0, p0, h, r, y, gate)
+end
+
+## TRIAD from two body vectors and their references; ok = false when either pair is within
+## 1e-3 (0.06 deg) of parallel, which fixes no attitude.
+fn triad(b1: vec3[1] in -1 .. 1, b2: vec3[1] in -1 .. 1, r1: vec3[1] in -1 .. 1, r2: vec3[1] in -1 .. 1) -> (q: quat, ok: bool)
+    ok = false
+    q = 0
+    if norm(cross(b1, b2)) > 1e-3*norm(b1)*norm(b2) and norm(cross(r1, r2)) > 1e-3*norm(r1)*norm(r2)
+        ok = true
+        let tb0 = unit(b1)
+        let tb1 = unit(cross(b1, b2))
+        let tb2 = cross(tb0, tb1)
+        let tr0 = unit(r1)
+        let tr1 = unit(cross(r1, r2))
+        let tr2 = cross(tr0, tr1)
+        let a: mat3[1] = 0
+        for i in 0 .. 3
+            for j in 0 .. 3
+                a[i][j] = tb0[i]*tr0[j] + tb1[i]*tr1[j] + tb2[i]*tr2[j]
+            end
+        end
+        q = fromdcm(a)
+    end
+end
+
+## The q-method on n <= 16 weighted pairs: Davenport's K, its largest eigenvalue by Jacobi; the
+## loss is the weight sum less that eigenvalue.
+fn quest(bv: real[1][3][16] in -1 .. 1, rv: real[1][3][16] in -1 .. 1, w: real[1][16] in 0.1 .. 1, n: int in 2 .. 16) -> (q: quat, loss: real[1])
+    let bb: mat3[1] = 0
+    let ws: real[1] = 0
+    for l in 0 .. n
+        let wl = w[l]
+        ws = ws + wl
+        for i in 0 .. 3
+            for j in 0 .. 3
+                bb[i][j] = bb[i][j] + wl*bv[l][i]*rv[l][j]
+            end
+        end
+    end
+    let sg = bb[0][0] + bb[1][1] + bb[2][2]
+    let z: vec3[1] = [bb[1][2] - bb[2][1], bb[2][0] - bb[0][2], bb[0][1] - bb[1][0]]
+    let k: real[1][4][4] = 0
+    for i in 0 .. 3
+        for j in 0 .. 3
+            k[i][j] = bb[i][j] + bb[j][i] - (if i == j then sg else 0.0)
+        end
+        k[i][3] = z[i]
+        k[3][i] = z[i]
+    end
+    k[3][3] = sg
+    let lam, v = jacobi_eig4(k)
+    let im = 0
+    for i in 1 .. 4
+        if lam[i] > lam[im]
+            im = i
+        end
+    end
+    q = qnorm([v[0][im], v[1][im], v[2][im], v[3][im]])
+    loss = ws - lam[im]
+end
+
+## A star-tracker attitude carried from t - lat to t with the gyro: q_st fromrotvec(w lat), unit.
+fn latency(q_st: quat in -1 .. 1, w: vec3[1] in -0.1 .. 0.1, lat: real[1] in 0 .. 0.5) -> q: quat
+    q = qnorm(qmult(q_st, fromrotvec(w*lat)))
+end
