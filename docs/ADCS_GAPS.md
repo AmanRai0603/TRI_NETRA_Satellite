@@ -1,7 +1,7 @@
 # TRI-NETRA: ADCS gaps and where to study
 
-> **Answer first.** The known ADCS technical gaps that the first release (0.5.0) ships with, each with the evidence
-> found so far and what has to be studied or decided to close it. None of these gates the 0.5.0
+> **Answer first.** The known ADCS technical gaps that the first release (1.0.0) ships with, each with the evidence
+> found so far and what has to be studied or decided to close it. None of these gates the 1.0.0
 > release (that is [`RELEASE_PLAN.md`](RELEASE_PLAN.md)); they are the work after it. The release
 > notes list this register as the release's known gaps.
 >

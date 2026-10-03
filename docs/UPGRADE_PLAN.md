@@ -9,7 +9,7 @@
 > in the code (marked ✔).
 >
 > **Superseded as the plan (2 Oct 2026):** the owner split the work in two. The release gate is
-> [`RELEASE_PLAN.md`](RELEASE_PLAN.md) (the release plan, 0.5.0); the ADCS technical
+> [`RELEASE_PLAN.md`](RELEASE_PLAN.md) (the release plan, 1.0.0); the ADCS technical
 > work is the register [`ADCS_GAPS.md`](ADCS_GAPS.md) and does not gate the release. This file stays as the
 > record of what was found and done, which both cite by item number.
 >
