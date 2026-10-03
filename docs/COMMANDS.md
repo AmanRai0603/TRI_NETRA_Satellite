@@ -384,7 +384,7 @@ The downloadable V&V report: the template filled from the filed results, as self
 3. print it to PDF with headless Chromium
 
 - **Reads:** `matlab_sils/store/pipeline/`; `matlab_sils/store/results_engine/`; `matlab_sils/store/results/`; `results/*.json`
-- **Writes:** `results/vv/TRINETRA_ADCS_VV_report.html`; `results/vv/TRINETRA_ADCS_VV_report.pdf`; `dist/TRINETRA_ADCS_VV_report.pdf`
+- **Writes:** `results/vv/TRINETRA_ADCS_VV_report.html`; `results/vv/vv_artifact.html`; `dist/TRINETRA_ADCS_VV_report.pdf`
 - **Starts:** chromium (headless)
 
 ## pack_matlab.py pack-matlab

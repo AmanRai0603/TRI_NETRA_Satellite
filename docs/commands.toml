@@ -210,7 +210,7 @@ usage = "python3 tools/vv_report.py"
 what = "The downloadable V&V report: the template filled from the filed results, as self-contained HTML and as a PDF."
 steps = ["collect every source that exists (a missing one is named, never invented)", "fill tools/templates/vv_report.html", "print it to PDF with headless Chromium"]
 reads = ["matlab_sils/store/pipeline/", "matlab_sils/store/results_engine/", "matlab_sils/store/results/", "results/*.json"]
-writes = ["results/vv/TRINETRA_ADCS_VV_report.html", "results/vv/TRINETRA_ADCS_VV_report.pdf", "dist/TRINETRA_ADCS_VV_report.pdf"]
+writes = ["results/vv/TRINETRA_ADCS_VV_report.html", "results/vv/vv_artifact.html", "dist/TRINETRA_ADCS_VV_report.pdf"]
 runs = ["chromium (headless)"]
 
 [[command]]

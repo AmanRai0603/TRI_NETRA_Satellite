@@ -2,8 +2,8 @@
 """The downloadable V&V report: tools/templates/vv_report.html filled from the filed results,
 written as self-contained HTML (figures inlined) and printed to PDF with headless Chromium.
 
-  python3 tools/vv_report.py            -> results/vv/TRINETRA_ADCS_VV_report.{html,pdf}
-                                           and dist/TRINETRA_ADCS_VV_report.pdf
+  python3 tools/vv_report.py            -> results/vv/TRINETRA_ADCS_VV_report.html
+                                           and dist/TRINETRA_ADCS_VV_report.pdf (the one PDF)
 
 Sources (whatever exists is reported; a missing source is named, never invented):
   matlab_sils/store/pipeline/<case>/     design loop (selection, loop, dispatch, mc, soft_oils)
@@ -14,7 +14,7 @@ Sources (whatever exists is reported; a missing source is named, never invented)
 Owner: Agastya. Copyright (c) 2026 Agastya. All rights reserved.
 """
 import base64, csv, glob, html, io, json, math, pathlib, re, shutil, string, subprocess
-from common import source_date, write_bytes, write_text, ROOT, case_rows
+from common import source_date, write_text, ROOT, case_rows
 
 MS = ROOT / "matlab_sils"
 ENG = MS / "store" / "results_engine"
@@ -644,8 +644,9 @@ def main():
            '<a href="results.html">results page</a> · PDF: <code>dist/TRINETRA_ADCS_VV_report.pdf</code> in the repository and on every release</nav>')
     write_text(OUT / "vv_artifact.html", title + "\n" + style.replace("body { margin: 0;", "body { margin: 0; min-height: 100%;") + "\n" + nav + body)
     chrome = next(iter(glob.glob("/opt/pw-browsers/chromium*/chrome-linux/chrome")), None) or shutil.which("chromium") or shutil.which("google-chrome")
-    pdf = OUT / "TRINETRA_ADCS_VV_report.pdf"
+    pdf = ROOT / "dist" / "TRINETRA_ADCS_VV_report.pdf"   # the one copy: published with every release
     pdf.unlink(missing_ok=True)          # an old PDF is never passed off as this report's
+    pdf.parent.mkdir(parents=True, exist_ok=True)
     rc = None
     if chrome:
         rc = subprocess.run([chrome, "--headless", "--no-sandbox", "--disable-gpu", "--no-pdf-header-footer", f"--print-to-pdf={pdf}", h.as_uri()],
@@ -653,8 +654,7 @@ def main():
     if chrome and rc != 0:
         raise SystemExit(f"vv_report: Chromium exited {rc} printing the PDF; no PDF was kept")
     if pdf.exists():
-        write_bytes(ROOT / "dist" / "TRINETRA_ADCS_VV_report.pdf", pdf.read_bytes())
-        print(f"wrote {h.relative_to(ROOT)}, {pdf.relative_to(ROOT)} ({pdf.stat().st_size / 1e6:.1f} MB), dist/TRINETRA_ADCS_VV_report.pdf")
+        print(f"wrote {h.relative_to(ROOT)}, {pdf.relative_to(ROOT)} ({pdf.stat().st_size / 1e6:.1f} MB)")
     else:
         raise SystemExit(f"vv_report: wrote {h.relative_to(ROOT)} but no PDF: " +
                          ("Chromium did not print it" if chrome else "it needs Chromium or Google Chrome to print the PDF"))
