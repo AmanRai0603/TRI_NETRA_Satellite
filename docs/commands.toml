@@ -527,3 +527,13 @@ steps = ["read every group file", "read every node file and compare it with its 
 reads = ["DIR/structure/", "DIR/nodes/"]
 writes = []
 runs = []
+
+[[command]]
+tool = "drive_pack.py"
+name = "drive-pack"
+usage = "python3 tools/drive_pack.py [--out DIR] [--rev REV]"
+what = "The Drive pack: the two offline apps (TRI-NETRA Files, TRI-NETRA Group) and the design seeded from the spec (20 group files, 734 node files), in the layout the shared Drive folder of the design takes, with a README. CI builds it on every push as the trinetra-drive-pack artifact."
+steps = ["build the offline pages", "seed the design", "check every design file", "write the README"]
+reads = ["design/", "spec/plan/"]
+writes = ["dist/trinetra-drive-pack/"]
+runs = []
