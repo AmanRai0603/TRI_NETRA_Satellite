@@ -283,7 +283,7 @@ inside them.
 | Merge PR #12 to `main` | waiting for the owner's OK |
 | Branch protection with one human review | the owner's repository setting |
 | Licence | the owner's decision |
-| Generated pages and run files out of git | next |
+| Generated pages and run files out of git | 🟡 the design loop's per-iteration scenario files (8,292) and the duplicate V&V PDF left git: tracked files 17,276 → 8,983, every check passing in a clean checkout. The campaign runs' manifests and the rendered pages stay until P11 replaces them with the result package and pages drawn from the design database |
 
 ## 6 · What 1.0.0 contains
 
