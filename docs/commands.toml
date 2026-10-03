@@ -507,3 +507,13 @@ reads = ["spec/physics/", "design/pcode_selftest/", "fsw/pseudocode/", "design/j
 writes = ["engine/crates/adcs-physics/", "engine/crates/pcode-selftest/", "matlab_sils/+asils/+physics/", "matlab_sils/+asils/+pcselftest/", "matlab_sils/+asils/+pc/", "matlab_sils/data/physics_vectors.json", "matlab_sils/data/pcselftest_vectors.json", "fsw/tests/pcode_vectors.txt", "design/pcode_checker.html"]
 runs = ["node"]
 
+
+[[command]]
+tool = "pages.py"
+name = "pages"
+usage = "python3 tools/pages.py build [--out DIR] | check"
+what = "The offline pages (TRI-NETRA Files today; the node and group apps next): each one HTML file that runs from disk, with SQLite in WebAssembly, the fonts and the component set inside it and nothing loaded from anywhere. check builds them into a scratch folder and refuses a vendored file that is not the pinned one, a page that makes its own controls or styles, and anything that would load from an outside host."
+steps = ["check the vendored files against design/vendor/VENDOR.toml", "inline the stylesheet with its fonts, SQLite with its WebAssembly, and the page's modules", "hold the page to the rules", "write it (build) or throw it away (check)"]
+reads = ["design/pages/", "design/js/", "design/css/", "design/vendor/"]
+writes = ["build/pages/"]
+runs = []

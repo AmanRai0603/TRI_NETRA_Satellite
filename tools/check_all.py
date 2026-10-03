@@ -62,6 +62,8 @@ CHECKS = [
       "sys.exit(groups.main(['--check']) or seed_design.main(['--check']) or tndb.main(['gen', '--check']))"], ".", []),
     ("pseudocode", "everything the pseudocode makes is current (the physics and the language's self-test in Rust and MATLAB, their vectors, the checker page), the physics is its registry, and every sourced fixture of a physics row holds",
      ["bash", "-c", "python3 tools/pcode.py gen --check && python3 tools/pcode.py fixtures"], ".", ["node", "bash"]),
+    ("offline-pages", "the offline pages build with their vendored files pinned, one component set and no outside hosts; TRI-NETRA Files passes its browser tests (save, reopen, crash, second editor, conflict copies, caps) when a browser is here",
+     [PY, "-m", "unittest", "discover", "-s", "tests", "-p", "test_pages.py"], ".", []),
     ("design-loop", "every stored design-loop decision recomputed from its inputs",
      [PY, "tools/verify_nodes.py"], ".", []),
 ]

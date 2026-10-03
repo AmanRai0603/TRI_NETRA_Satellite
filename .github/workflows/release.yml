@@ -54,6 +54,11 @@ jobs:
           echo "version=$v" >> "$GITHUB_OUTPUT"
       - name: the ARM compiler, for the stack check
         run: sudo apt-get update && sudo apt-get install -y --no-install-recommends gcc-arm-none-eabi libnewlib-arm-none-eabi
+      - name: Playwright and Chromium, for the pages' browser tests (tests/browser/)
+        run: |
+          npm install --no-save --prefix "$RUNNER_TEMP/pw" playwright@1.56.1
+          "$RUNNER_TEMP/pw/node_modules/.bin/playwright" install --with-deps chromium
+          echo "PLAYWRIGHT_MODULE=$RUNNER_TEMP/pw/node_modules/playwright/index.mjs" >> "$GITHUB_ENV"
       - name: every check, none of them NOT RUN
         run: |
           python3 -m pip install -q -r tools/requirements-ci.txt

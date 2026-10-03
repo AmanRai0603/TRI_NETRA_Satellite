@@ -1,0 +1,26 @@
+# Third-party files the offline pages carry inside them (tools/pages.py inlines them; no page loads
+# anything from an outside host). Each is pinned by its SHA-256: `tools/pages.py check` refuses a
+# file that differs. To update one: fetch the release named here, put the files in place, record
+# the new version and hashes, and run the browser tests (tests/browser/files.test.mjs).
+# Owner: Agastya. Copyright (c) 2026 Agastya. All rights reserved.
+
+[sqljs]
+what = "SQLite compiled to WebAssembly (sql.js): the design files in the browser"
+version = "1.14.2"
+source = "npm sql.js@1.14.2, dist/"
+licence = "MIT (sqljs/LICENSE); SQLite itself is public domain"
+files = { "sqljs/sql-wasm.js" = "f1c84000dbc856c9d87f4f3aabc4d3654bd436165db4be3da13751db3a9c20d7", "sqljs/sql-wasm.wasm" = "38c14f6e379210bc942bdc4ebca44e7bfdb4318ecc1c72ca666a28fdce96670a" }
+
+[inter]
+what = "Inter, the text face of every page (Latin, 400 and 600)"
+version = "5.3.0"
+source = "npm @fontsource/inter@5.3.0, files/"
+licence = "SIL Open Font License 1.1 (fonts/LICENSE-Inter)"
+files = { "fonts/inter-latin-400-normal.woff2" = "8909904ab6c872eb994093482a88a28eca2cd95912d7b6fecd72103b0dc07edc", "fonts/inter-latin-600-normal.woff2" = "f9a06e79cd3a2a20951c0f0e28f66dd0e6d3fda73911d640a2125c8fcb78f21a" }
+
+[jetbrains-mono]
+what = "JetBrains Mono, the face of ids, units and code (Latin, 400)"
+version = "5.3.0"
+source = "npm @fontsource/jetbrains-mono@5.3.0, files/"
+licence = "SIL Open Font License 1.1 (fonts/LICENSE-JetBrainsMono)"
+files = { "fonts/jetbrains-mono-latin-400-normal.woff2" = "14425ba9c695763c1547f48a206b7aa60350a33ae23de09f0407877f3fcd89eb" }

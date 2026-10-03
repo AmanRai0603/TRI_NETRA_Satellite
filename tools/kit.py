@@ -12,6 +12,7 @@ A kit holds:
   VERSION                         the release and the version of each part; its presence is
                                   what tells the programs they run from a kit, so results go
                                   to ~/.trinetra/store and never into the kit
+  pages/files.html                the offline pages (tools/pages.py): open them from disk in Chrome or Edge
   START_HERE.md, FIRST_RUN.md, COMMANDS.md, ENVIRONMENT.md
 No git history, no generators, no build files. Zip the folder and share it.
 
@@ -79,6 +80,9 @@ def build(out, bin_dir=None, files_only=False):
             shutil.copy2(src, out / f"{name}{exe}")
             progs.append(f"{name}{exe}")
     n = copy_data(out)
+    if not files_only:
+        import pages
+        pages.build(out / "pages")
     v = version()
     write_text(out / "VERSION", f"TRI-NETRA ADCS {v}\n" + "".join(f"{k}: {x}\n" for k, x in components().items()))
     for doc, name in (("docs/START_HERE.md", "START_HERE.md"), ("docs/FIRST_RUN.md", "FIRST_RUN.md"), ("docs/COMMANDS.md", "COMMANDS.md"),
