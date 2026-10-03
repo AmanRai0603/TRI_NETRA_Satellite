@@ -116,11 +116,89 @@ export function download(name, bytes, type = "application/octet-stream") {
 }
 
 /** The page: a header (title, line under it) and the main area; a status line fixed at the foot. */
-export function shell(title, subtitle) {
+export function shell(title, subtitle, { onHelp = null } = {}) {
   const main = h("main", {});
   const status = h("footer", { class: "tn-status", "aria-live": "polite" });
-  document.body.append(h("div", { class: "tn-shell" }, h("header", { class: "tn-head" }, h("h1", {}, title), h("p", {}, subtitle)), main), status);
+  const help = onHelp ? button("Help", onHelp, { kind: "quiet", testid: "help", title: "Guides, glossary, the journey of a node, and the tour of this screen" }) : null;
+  document.body.append(h("div", { class: "tn-shell" }, h("header", { class: "tn-head" }, h("div", { class: "tn-head-row" }, h("h1", {}, title), help), h("p", {}, subtitle)), main), status);
   return { main, status };
+}
+
+// ------------------------------------------------------------------ the manual, tours, printing
+
+/** Inline runs ([["t" | "b" | "i" | "code", text]]) as elements. */
+function inline(rs) {
+  return rs.map(([k, t]) => (k === "b" ? h("strong", {}, t) : k === "i" ? h("em", {}, t) : k === "code" ? h("code", { class: "tn-mono" }, t) : t));
+}
+
+/** A manual page's blocks (tools/manual.py) as elements; images by name from `images`. */
+export function prose(blocks, { images = {} } = {}) {
+  return h("div", { class: "tn-prose" }, blocks.map((b) => {
+    switch (b[0]) {
+      case "h2": return h("h3", {}, inline(b[1]));
+      case "h3": return h("h4", {}, inline(b[1]));
+      case "p": return h("p", {}, inline(b[1]));
+      case "ul": return h("ul", {}, b[1].map((x) => h("li", {}, inline(x))));
+      case "ol": return h("ol", {}, b[1].map((x) => h("li", {}, inline(x))));
+      case "table": return h("div", { class: "tn-table-wrap" }, h("table", { class: "tn-table" },
+        h("thead", {}, h("tr", {}, b[1].map((c) => h("th", { scope: "col" }, inline(c))))),
+        h("tbody", {}, b[2].map((r) => h("tr", {}, r.map((c) => h("td", {}, inline(c))))))));
+      case "img": return images[b[1]] ? h("img", { class: "tn-figure-img", src: images[b[1]], alt: b[2] || b[1] }) : null;
+      default: return null;
+    }
+  }));
+}
+
+/** Print one element alone (a node, a manual page): a copy of it is the only thing printed. */
+export function printEl(el) {
+  const box = h("div", { id: "tn-print" }, el.cloneNode(true));
+  document.body.append(box);
+  try { window.print(); } finally { box.remove(); }
+}
+
+/** The manual in a dialog: its pages listed, `first` open; Print this page; Take the tour (onTour). */
+export async function manualDialog(manual, { first = "journey", onTour = null } = {}) {
+  const pages = manual.pages;
+  let cur = pages.find((p) => p.id === first) || pages[0];
+  const content = h("article", { class: "tn-manual-page", "data-testid": "manual-page" });
+  const show = (p) => { cur = p; fill(content, h("h2", {}, p.title), prose(p.blocks, { images: manual.images })); for (const b of nav.querySelectorAll("button")) b.setAttribute("aria-current", b.dataset.page === p.id ? "page" : "false"); };
+  const nav = h("nav", { class: "tn-manual-nav", "aria-label": "Pages of the manual" }, pages.map((p) => {
+    const b = button(p.title, () => show(p), { kind: "quiet", testid: `manual-${p.id}` });
+    b.dataset.page = p.id;
+    return b;
+  }));
+  show(cur);
+  const acts = [["Close", null], ["Print this page", "print"]];
+  if (onTour) acts.push(["Take the tour of this screen", "tour", "primary"]);
+  const v = await dialog("Help", h("div", { class: "tn-manual" }, nav, content), acts);
+  if (v === "print") printEl(content);
+  if (v === "tour" && onTour) await onTour();
+  return v;
+}
+
+/** A tour: one card at a time, pointing at its target (a data-testid, or a selector starting
+ *  with "["), with Back, Next and Close. Resolves when it ends. */
+export function tour(steps, { name = "" } = {}) {
+  return new Promise((resolve) => {
+    let k = 0, lit = null;
+    const card = h("div", { class: "tn-tour", role: "dialog", "aria-label": "Tour", "data-testid": "tour", "data-tour": name || null });
+    const find = (t) => document.querySelector(t.startsWith("[") ? t : `[data-testid="${t}"]`);
+    const end = () => { if (lit) lit.classList.remove("tn-tour-target"); card.remove(); document.removeEventListener("keydown", key); resolve(); };
+    const key = (e) => { if (e.key === "Escape") end(); };
+    const draw = () => {
+      if (lit) lit.classList.remove("tn-tour-target");
+      const st = steps[k];
+      lit = find(st.target);
+      if (lit) { lit.classList.add("tn-tour-target"); lit.scrollIntoView({ block: "center", behavior: "smooth" }); }
+      fill(card, h("div", { class: "tn-tour-count" }, `${k + 1} of ${steps.length}`), h("h2", {}, st.title), h("p", {}, st.text),
+        h("div", { class: "tn-actions" }, button("Close the tour", end, { kind: "quiet", testid: "tour-close" }),
+          k ? button("Back", () => { k--; draw(); }, { testid: "tour-back" }) : null,
+          button(k < steps.length - 1 ? "Next" : "Done", () => { if (k < steps.length - 1) { k++; draw(); } else end(); }, { kind: "primary", testid: "tour-next" })));
+    };
+    document.addEventListener("keydown", key);
+    document.body.append(card);
+    draw();
+  });
 }
 
 /** Tabs: [[label, render()]]; render runs when its tab is chosen. Returns { el, show(i) }. */
@@ -204,10 +282,10 @@ export function choice(label, options, { value = "", testid = "", help = "", onC
 }
 
 /** Several choices: { el, values }. */
-export function checks(label, options, { testid = "", values = [], onChange = null, disabled = false } = {}) {
+export function checks(label, options, { testid = "", values = [], onChange = null, disabled = false, help = "" } = {}) {
   let get = null;
   const boxes = options.map(([v, l]) => { const b = h("input", { type: "checkbox", value: v, disabled, onchange: onChange ? () => onChange(get()) : null }); b.checked = values.includes(v); return [b, h("label", { class: "tn-check" }, b, " ", l)]; });
   get = () => boxes.filter(([b]) => b.checked).map(([b]) => b.value);
-  const el = h("fieldset", { class: "tn-field tn-checks", "data-testid": testid || null }, h("legend", {}, label), boxes.map(([, l]) => l));
+  const el = h("fieldset", { class: "tn-field tn-checks", "data-testid": testid || null }, h("legend", {}, label), boxes.map(([, l]) => l), help ? h("div", { class: "tn-help" }, help) : null);
   return { el, get values() { return boxes.filter(([b]) => b.checked).map(([b]) => b.value); } };
 }

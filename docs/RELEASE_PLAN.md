@@ -366,6 +366,20 @@ inside them.
 | Import of today's node forms | ✅ `adcs-node-form/1` files into the node files: the form's answers, inputs, test vectors, attachments and belief record; the author's own fields kept; refused while sealed or with no requester |
 | Proof | ✅ on the whole seeded design under Node (`tests/js/release.test.mjs`): every group seals 1.0, re-issues a node and seals 1.1; act shows the confirmed rule, the stage signature, re-issue from a damaged file; env imports a node form. Through the page in Chromium (`tests/browser/release.test.mjs`): act, env and catalogue. Every release checked again by `tools/release.py`, which also finds each release broken on purpose (`tests/test_release.py`, in `check_all` as `release`) |
 
+**Progress of P7** (manuals and usability; `design/manual/`, `docs/USABILITY_SESSION.md`):
+
+| item | state |
+|---|---|
+| Role guides | ✅ one manual source, `design/manual/`: the journey of a node, a guide for authors (and checkers), for group leads (and stage owners), for developers, for users, the guide to TRI-NETRA Files, the glossary; every page in the explanation standard's shape (its one line first). `tools/manual.py` writes it into the apps (`design/js/manual.js`); `--check` in `check_all` |
+| In-app manual | ✅ **Help** in every app's header opens every guide in place, the app's own role first; works offline, at phone width |
+| Tours | ✅ one per screen (`design/manual/tours.toml`), each step pointing at the thing it names; shown by itself once to someone opening the app for the first time, again from Help; every target checked to be in its app |
+| Field help | ✅ every field, choice and set of checks in the three apps has help beside it (checked by `tools/manual.py`); the node app's step fields carry their question, why it is asked and an example |
+| Print | ✅ any manual page, a node's preview (node app), a node's view (group app, Assemble and Progress) print alone, without the controls; the whole page prints without toolbars |
+| The journey diagram | ✅ author → checker → stage owner → lead seals → developer team builds → lead accepts → release, with the ways back; drawn by `tools/manual.py` (`design/manual/journey.svg`), in the manual |
+| Proof without people | ✅ `tests/browser/help.test.mjs` as a newcomer: the tours, Help, printing, help on every form field, phone width; then a walkthrough found only by what the screens say (labels, tabs, buttons): an author fills a node and marks it ready, a colleague checks it, the stage owner signs, the lead seals act 1.0 with that node confirmed |
+| Usability session | ⏳ the kit is ready (`docs/USABILITY_SESSION.md`: tasks, what the observer writes, how findings become fixes; a findings sheet on Drive); it needs 2–3 members chosen by the owner |
+| Fixes from it | ⏳ after the session |
+
 ## 6 · What 1.0.0 contains
 
 - **Node app and group app:** offline, one file each, with manuals.

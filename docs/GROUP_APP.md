@@ -120,6 +120,13 @@ its requester), its inputs when the node has none, its test vectors and attachme
 author has typed is kept, and the impact check lists it. A form that names nobody as its requester
 is refused.
 
+## Help
+
+**Help** in the header opens the guide for group leads and stage owners, the journey of a node to a
+release, the glossary and every other guide, in place and offline. Each screen has a tour, shown once
+to someone opening the app for the first time and again from Help. A node's view (Progress, Assemble)
+prints alone with **Print**.
+
 ## For a developer
 
 | Piece | Where |

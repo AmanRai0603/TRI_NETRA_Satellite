@@ -11,10 +11,11 @@ import { Journal, FileRefused } from "./tnfile.js";
 import { Workspace, integrity, summary, readersOutside, readersInside, inputsFromOutside, requestsTo, STRUCTURE, NODES } from "./structure.js";
 import { Releases, compare, nowNodes, parseForm, RELEASES } from "./release.js";
 import { renderNode } from "./node_view.js";
-import { h, fill, button, field, banner, badge, table, section, toolbar, spacer, kv, dialog, ask, toast, shell, tabs, graph, impactList, choice, checks, fileButton } from "./tn_ui.js";
+import { h, fill, button, field, banner, badge, table, section, toolbar, spacer, kv, dialog, ask, toast, shell, tabs, graph, impactList, choice, checks, fileButton, manualDialog, tour, printEl } from "./tn_ui.js";
+import { MANUAL } from "./manual.js";
 
 const canFolders = typeof window.showDirectoryPicker === "function";
-const { main, status } = shell("TRI-NETRA Group", "A group's structure and its releases: map, nodes, stages, people, contracts, change requests; progress, assemble, seal. Nothing leaves this computer.");
+const { main, status } = shell("TRI-NETRA Group", "A group's structure and its releases: map, nodes, stages, people, contracts, change requests; progress, assemble, seal. Nothing leaves this computer.", { onHelp: () => help() });
 const RELEASE_ACTIONS = new Set(["seal", "signStage", "reissue", "comment", "import"]);
 const journal = new Journal();
 const session = crypto.getRandomValues(new Uint32Array(2)).join("-");
@@ -22,6 +23,22 @@ const app = { SQL: null, root: null, ws: null, rel: null, asm: null, gid: null, 
 
 function remembered(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
 function remember(k, v) { try { localStorage.setItem(k, v); } catch (e) { /* private window */ } }
+
+// ---- help: the manual in place, and each screen's tour (shown by itself once, to someone opening
+// the app for the first time; Help shows it again)
+const firstTime = !remembered("trinetra.who");
+app.screen = "group-start";
+function help() { return manualDialog(MANUAL, { first: "lead", onTour: () => runTour(app.screen) }); }
+function runTour(name) {
+  const t = MANUAL.tours[name];
+  if (!t) return Promise.resolve();
+  remember(`trinetra.tour.${name}`, "seen");
+  return tour(t.steps, { name });
+}
+function screen(name) {
+  app.screen = name;
+  if (firstTime && !remembered(`trinetra.tour.${name}`) && !document.querySelector(".tn-tour")) setTimeout(() => runTour(name), 0);
+}
 function fmtTime(t) { return t ? new Date(t).toLocaleString() : "—"; }
 function setStatus(t) { fill(status, h("span", { "data-testid": "status" }, t)); }
 function render(...parts) { fill(main, ...parts); }
@@ -80,6 +97,7 @@ async function unfinishedBanners() {
 }
 
 async function showGroups() {
+  screen("group-list");
   app.gid = null;
   const idx = app.ws.index;
   const rows = [...idx.groups.values()].map((g) => {
@@ -127,6 +145,7 @@ async function openGroup(gid) {
 function G() { return app.ws.index.groups.get(app.gid); }
 
 async function showGroup() {
+  screen("group-open");
   const g = G();
   const live = [...g.nodes.values()].filter((n) => n.state !== "archived").length;
   const t = tabs([
@@ -325,10 +344,12 @@ function assembleView(asm) {
 async function showNode(x) {
   const ctx = { groupLabel: `${app.gid} · ${G().label || ""}`, readers: [...readersInside(app.ws.index, x.id).map((id) => ({ id, group: app.gid })), ...[...readersOutside(app.ws.index, x.id)].flatMap(([g, ids]) => ids.map((id) => ({ id, group: g })))],
     pictureUrl: () => "" };
-  const v = await dialog(`${x.id} · ${x.row.label || ""}`, h("div", { class: "tn-stack", "data-testid": "node-view" },
+  const view = h("div", { class: "tn-stack", "data-testid": "node-view" },
     x.confirmed ? banner("ok", "Would be sealed as confirmed.", "") : banner("warn", "Would be sealed UNCONFIRMED.", x.why.join("\n")),
     x.comments.length ? section("Comments", table([{ key: "at", label: "When", render: (c) => fmtTime(c.at) }, { key: "by", label: "Who" }, { key: "body", label: "Comment" }], x.comments)) : null,
-    renderNode(x.doc, ctx, x.standing)), [["Close", null], ["Comment…", "comment", "primary"]]);
+    renderNode(x.doc, ctx, x.standing));
+  const v = await dialog(`${x.id} · ${x.row.label || ""}`, view, [["Close", null], ["Print", "print"], ["Comment…", "comment", "primary"]]);
+  if (v === "print") printEl(view);
   if (v === "comment") await commentNode(x.id);
 }
 
@@ -348,8 +369,8 @@ function releaseView(asm) {
 
 async function compareDialog(asm) {
   const opts = [...asm.releases.map((r) => [r.version, `${asm.gid} ${r.version}`]), ["now", "the group now"]];
-  const a = choice("From", opts, { value: asm.releases[asm.releases.length - 1].version, testid: "f-from" });
-  const b = choice("To", opts, { value: "now", testid: "f-to" });
+  const a = choice("From", opts, { value: asm.releases[asm.releases.length - 1].version, help: "The release to compare from.", testid: "f-from" });
+  const b = choice("To", opts, { value: "now", help: "The release to compare with, or the group as it is now.", testid: "f-to" });
   const v = await form("Compare", [a, b], "Compare");
   if (!v) return;
   const pick = (k) => (k === "now" ? nowNodes(asm) : asm.releases.find((r) => r.version === k).nodes);
@@ -360,8 +381,8 @@ async function compareDialog(asm) {
 
 async function reissueNode(id) {
   const asm = app.asm, g = G();
-  const node = id ? null : choice("Node", [...g.nodes.values()].filter((n) => n.state !== "archived").map((n) => [n.id, `${n.id} · ${n.label || ""} (${n.state})`]), { testid: "f-node" });
-  const from = choice("From", [["", "the file as it is"], ...((asm && asm.gid === g.id ? asm.releases : await app.rel.releases(g.id)).map((r) => [r.version, `as sealed in ${g.id} ${r.version}`]))], { testid: "f-from" });
+  const node = id ? null : choice("Node", [...g.nodes.values()].filter((n) => n.state !== "archived").map((n) => [n.id, `${n.id} · ${n.label || ""} (${n.state})`]), { help: "The node to open again for its author.", testid: "f-node" });
+  const from = choice("From", [["", "the file as it is"], ...((asm && asm.gid === g.id ? asm.releases : await app.rel.releases(g.id)).map((r) => [r.version, `as sealed in ${g.id} ${r.version}`]))], { help: "As it is: the node opens again unchanged. A release: the node file gets back what that release sealed (this also recovers a missing or damaged file).", testid: "f-from" });
   const v = await form(`Re-issue ${id || "a node"}`, [...(node ? [node] : []), from]);
   if (!v) return;
   await run({ type: "reissue", group: g.id, id: id || v[0], from: v[node ? 1 : 0] || null });
@@ -427,22 +448,22 @@ async function form(title, fields, okLabel = "Next") {
 
 async function addNode() {
   const g = G();
-  const id = field("Id", { mono: true, help: "lowercase letters, digits and _; it never changes", testid: "f-id" }), label = field("Label", { testid: "f-label" });
-  const stage = g.stages.length ? choice("Stage", g.stages.map((s) => [s.id, s.label || s.id]), { testid: "f-stage" }) : null;
-  const kind = choice("Kind", [["leaf", "leaf (computed)"], ["kpi", "KPI"], ["closure", "closure"], ["interface", "interface"], ["evidence", "evidence"], ["declared", "declared"]], { testid: "f-kind" });
+  const id = field("Id", { mono: true, help: "lowercase letters, digits and _; it never changes", testid: "f-id" }), label = field("Label", { help: "The name readers see; it can change later.", testid: "f-label" });
+  const stage = g.stages.length ? choice("Stage", g.stages.map((s) => [s.id, s.label || s.id]), { help: "The stage it belongs to; the stage's owner signs it.", testid: "f-stage" }) : null;
+  const kind = choice("Kind", [["leaf", "leaf (computed)"], ["kpi", "KPI"], ["closure", "closure"], ["interface", "interface"], ["evidence", "evidence"], ["declared", "declared"]], { help: "What the node is: computed from other nodes, a declared value, a KPI requirement, evidence, a closure or an interface.", testid: "f-kind" });
   const v = await form("Add a node", [id, label, ...(stage ? [stage] : []), kind]);
   if (!v) return;
   await run({ type: "add", group: g.id, id: v[0].trim(), label: v[1].trim(), stage: stage ? v[2] : null, kind: v[stage ? 3 : 2] });
 }
 
 async function renameNode(id) {
-  const f = field("Label", { value: G().nodes.get(id).label || "", testid: "f-label" });
+  const f = field("Label", { value: G().nodes.get(id).label || "", help: "The name readers see. The id never changes.", testid: "f-label" });
   const v = await form(`Rename ${id}`, [f]);
   if (v) await run({ type: "rename", group: app.gid, id, label: v[0].trim() });
 }
 
 async function stageNode(id) {
-  const g = G(), c = choice("Stage", g.stages.map((s) => [s.id, s.label || s.id]), { value: g.nodes.get(id).stage || "", testid: "f-stage" });
+  const g = G(), c = choice("Stage", g.stages.map((s) => [s.id, s.label || s.id]), { value: g.nodes.get(id).stage || "", help: "Moving a node to another stage changes who signs it.", testid: "f-stage" });
   const v = await form(`Stage of ${id}`, [c]);
   if (v) await run({ type: "stage", group: app.gid, id, stage: v[0] });
 }
@@ -450,30 +471,30 @@ async function stageNode(id) {
 async function splitNode(id) {
   const rows = await guard("Reading the node", () => app.ws.readNode(id));
   if (!rows) return;
-  const newId = field("New node's id", { mono: true, testid: "f-id" }), newLabel = field("New node's label", { testid: "f-label" });
-  const fields = checks("Fields that go to the new node", rows.content.filter((c) => c.section !== "identity").map((c) => [`${c.section}.${c.field}`, `${c.section} · ${c.field}`]), { testid: "f-fields" });
-  const outs = checks("Outputs that go to it", rows.output.map((o) => [o.name, o.name]), { testid: "f-outputs" });
-  const readers = checks(`Readers in ${app.gid} that read the new node instead`, readersInside(app.ws.index, id).map((r) => [r, r]), { testid: "f-readers" });
+  const newId = field("New node's id", { mono: true, help: "Lowercase letters, digits and _; it never changes.", testid: "f-id" }), newLabel = field("New node's label", { help: "The name readers see.", testid: "f-label" });
+  const fields = checks("Fields that go to the new node", rows.content.filter((c) => c.section !== "identity").map((c) => [`${c.section}.${c.field}`, `${c.section} · ${c.field}`]), { help: "Ticked fields move to the new node; the rest stay where they are.", testid: "f-fields" });
+  const outs = checks("Outputs that go to it", rows.output.map((o) => [o.name, o.name]), { help: "Ticked outputs are answered by the new node from now on.", testid: "f-outputs" });
+  const readers = checks(`Readers in ${app.gid} that read the new node instead`, readersInside(app.ws.index, id).map((r) => [r, r]), { help: "Ticked nodes read the new node instead of the old one.", testid: "f-readers" });
   const v = await form(`Split ${id}`, [newId, newLabel, fields, outs, readers]);
   if (v) await run({ type: "split", group: app.gid, id, newId: v[0].trim(), newLabel: v[1].trim(), fields: v[2], outputs: v[3], readers: v[4] });
 }
 
 async function mergeNode(id) {
   const g = G(), others = [...g.nodes.values()].filter((n) => n.id !== id && n.state !== "archived");
-  const c = choice(`Merge ${id} into`, others.map((n) => [n.id, `${n.id} · ${n.label || ""}`]), { testid: "f-keep" });
+  const c = choice(`Merge ${id} into`, others.map((n) => [n.id, `${n.id} · ${n.label || ""}`]), { help: "The node that stays. The other is archived, and whatever read it reads this one.", testid: "f-keep" });
   const v = await form(`Merge ${id}`, [c]);
   if (v) await run({ type: "merge", group: app.gid, keep: v[0], gone: id });
 }
 
 async function moveNode(id) {
   const idx = app.ws.index, gs = [...idx.groups.values()].filter((x) => x.id !== app.gid);
-  const to = choice("To group", gs.map((x) => [x.id, `${x.id} · ${x.label || ""}`]), { testid: "f-to" });
+  const to = choice("To group", gs.map((x) => [x.id, `${x.id} · ${x.label || ""}`]), { help: "The node moves only once that group's lead has accepted a change request.", testid: "f-to" });
   const v = await form(`Move ${id} to another group`, [to]);
   if (!v) return;
   const T = idx.groups.get(v[0]);
   let stage = null;
   if (T.stages.length) {
-    const st = choice(`Stage in ${T.id}`, T.stages.map((s) => [s.id, s.label || s.id]), { testid: "f-stage" });
+    const st = choice(`Stage in ${T.id}`, T.stages.map((s) => [s.id, s.label || s.id]), { help: "The stage it goes into in the other group.", testid: "f-stage" });
     const w = await form(`Stage in ${T.id}`, [st]);
     if (!w) return;
     stage = w[0];
@@ -484,48 +505,49 @@ async function moveNode(id) {
 async function issueNode(id) {
   const g = G();
   if (!g.members.length) { toast("Add the author as a member first (People)", "error"); return; }
-  const c = choice("Author", g.members.map((m) => [m.name, `${m.name} (${m.role})`]), { value: g.memberNodes.get(id)?.author || "", testid: "f-author" });
+  const c = choice("Author", g.members.map((m) => [m.name, `${m.name} (${m.role})`]), { value: g.memberNodes.get(id)?.author || "", help: "Only this person changes the node in the node app, until the group is sealed.", testid: "f-author" });
   const v = await form(`Issue ${id}`, [c]);
   if (v) await run({ type: "issue", group: app.gid, id, author: v[0] });
 }
 
 async function addStage() {
-  const id = field("Id", { mono: true, testid: "f-id" }), label = field("Name", { testid: "f-label" });
+  const id = field("Id", { mono: true, help: "Lowercase letters, digits and _; it never changes.", testid: "f-id" }), label = field("Name", { help: "The name people see.", testid: "f-label" });
   const v = await form("Add a stage", [id, label]);
   if (v) await run({ type: "addStage", group: app.gid, stage: v[0].trim(), label: v[1].trim() });
 }
 
 async function stageOwner(sid) {
   const g = G();
-  const c = choice("Owner (signs the stage)", [["", "nobody"], ...g.members.map((m) => [m.name, m.name])], { value: g.stages.find((s) => s.id === sid).owner || "", testid: "f-owner" });
+  const c = choice("Owner (signs the stage)", [["", "nobody"], ...g.members.map((m) => [m.name, m.name])], { value: g.stages.find((s) => s.id === sid).owner || "", help: "The stage owner signs the stage before the lead seals the group.", testid: "f-owner" });
   const v = await form(`Owner of stage ${sid}`, [c]);
   if (v) await run({ type: "stageOwner", group: app.gid, stage: sid, owner: v[0] || null });
 }
 
 async function addMember() {
-  const name = field("Name", { testid: "f-name" }), role = choice("Role", [["author", "author"], ["stage owner", "stage owner"], ["lead", "lead"]], { testid: "f-role" });
+  const name = field("Name", { help: "As the person types it in the apps: signatures are matched by name.", testid: "f-name" }), role = choice("Role", [["author", "author"], ["stage owner", "stage owner"], ["lead", "lead"]], { help: "Lead: seals the group. Stage owner: signs a stage. Author: writes nodes.", testid: "f-role" });
   const v = await form("A member of the group", [name, role]);
   if (v) await run({ type: "member", group: app.gid, name: v[0].trim(), role: v[1] });
 }
 
 async function publishContract(id) {
   const out = field("Output", { mono: true, value: "*", help: "the output the other groups read (* for the node's whole answer)", testid: "f-output" });
-  const unit = field("Unit", { mono: true, testid: "f-unit" });
+  const unit = field("Unit", { mono: true, help: "The unit readers get the output in, as the catalogue names it (for example AmpereSquareMetre).", testid: "f-unit" });
   const v = await form(`Contract of ${id}`, [out, unit]);
   if (v) await run({ type: "contract", group: app.gid, node: id, output: v[0].trim(), unit: v[1].trim() || null });
 }
 
 async function raiseRequest(pre) {
   const idx = app.ws.index;
-  const to = choice("To group", [...idx.groups.values()].filter((x) => x.id !== app.gid).map((x) => [x.id, `${x.id} · ${x.label || ""}`]), { value: pre.to || "", testid: "f-to" });
-  const act = choice("Asking to", [["move", "take a node into their group"], ["archive", "stop reading a node (it is archived)"], ["merge", "read another node instead (it is merged)"], ["contract", "change a contract"], ["other", "something else"]], { value: pre.action || "other", testid: "f-action" });
-  const node = field("Node", { mono: true, value: pre.node || "", testid: "f-node" }), body = field("Why", { multiline: true, testid: "f-body" });
+  const to = choice("To group", [...idx.groups.values()].filter((x) => x.id !== app.gid).map((x) => [x.id, `${x.id} · ${x.label || ""}`]), { value: pre.to || "", help: "The group whose lead must agree.", testid: "f-to" });
+  const act = choice("Asking to", [["move", "take a node into their group"], ["archive", "stop reading a node (it is archived)"], ["merge", "read another node instead (it is merged)"], ["contract", "change a contract"], ["other", "something else"]], { value: pre.action || "other", help: "What you ask that group to do.", testid: "f-action" });
+  const node = field("Node", { mono: true, value: pre.node || "", help: "The node it is about, by its id.", testid: "f-node" }), body = field("Why", { multiline: true, help: "Say why, so the other lead can decide.", testid: "f-body" });
   const v = await form("Raise a change request", [to, act, node, body], "Raise it");
   if (v) await run({ type: "request", group: app.gid, to: v[0], action: v[1], node: v[2].trim() || null, body: v[3].trim() });
 }
 
 // ------------------------------------------------------------------ start
 function start() {
+  screen("group-start");
   render(toolbar(...topButtons()),
     canFolders ? banner("info", "Start here.", "Open the design folder: the one holding structure/ (the group files) and nodes/ (the node files), on your Drive. Then pick your group.")
       : banner("warn", "This browser cannot open folders.", "The group app changes several files at once, so it needs folder access: use Chrome or Edge."));

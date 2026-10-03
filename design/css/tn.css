@@ -145,3 +145,35 @@ textarea.tn-input { min-height: 72px; resize: vertical; }
 .tn-field-meta i { font-style: normal; color: var(--ink); }
 .tn-problems { list-style: none; padding: 0; margin: 0; display: grid; gap: 4px; }
 .tn-node-view { max-width: 900px; }
+
+/* ---- the manual, tours, printing (docs/RELEASE_PLAN.md P7) */
+.tn-head-row { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+.tn-manual { display: grid; grid-template-columns: 200px 1fr; gap: 16px; max-width: 980px; }
+.tn-manual-nav { display: flex; flex-direction: column; gap: 2px; border-right: 1px solid var(--line); padding-right: 10px; }
+.tn-manual-nav .tn-button { text-align: left; justify-content: flex-start; }
+.tn-manual-nav .tn-button[aria-current="page"] { background: var(--chip); color: var(--ink); }
+.tn-manual-page { max-height: 65vh; overflow: auto; min-width: 0; }
+.tn-manual-page > h2 { margin-top: 0; }
+.tn-prose { max-width: 72ch; }
+.tn-prose h3 { font-size: 16px; margin: 18px 0 6px; }
+.tn-prose h4 { font-size: 15px; margin: 14px 0 4px; }
+.tn-prose p, .tn-prose li { line-height: 1.6; }
+.tn-prose code { background: var(--chip); padding: 0 4px; border-radius: 4px; font-size: 13px; }
+.tn-figure-img { max-width: 100%; height: auto; border: 1px solid var(--line); border-radius: var(--radius); margin: 8px 0; }
+.tn-tour { position: fixed; z-index: 50; left: 50%; bottom: 56px; transform: translateX(-50%); width: min(460px, calc(100vw - 32px));
+  background: var(--panel); color: var(--ink); border: 2px solid var(--accent); border-radius: var(--radius); padding: 14px 16px; box-shadow: 0 8px 28px rgba(0,0,0,.25); }
+.tn-tour h2 { font-size: 16px; margin: 2px 0 6px; }
+.tn-tour p { margin: 0 0 10px; }
+.tn-tour-count { font-size: 12px; color: var(--dim); }
+.tn-tour-target { outline: 3px solid var(--accent) !important; outline-offset: 3px; border-radius: var(--radius); }
+#tn-print { display: none; }
+@media (max-width: 760px) { .tn-manual { grid-template-columns: 1fr; } .tn-manual-nav { border-right: 0; flex-direction: row; flex-wrap: wrap; } }
+@media print {
+  body > *:not(#tn-print) { display: none !important; }
+  body:not(:has(#tn-print)) > .tn-shell { display: block !important; }
+  #tn-print { display: block; }
+  html, body { background: #fff; color: #000; }
+  .tn-toolbar, .tn-tabs, .tn-status, .tn-toasts, .tn-tour, .tn-button { display: none !important; }
+  .tn-section, .tn-table-wrap { break-inside: avoid; }
+  .tn-manual-page { max-height: none; overflow: visible; }
+}

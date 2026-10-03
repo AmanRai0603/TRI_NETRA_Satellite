@@ -62,6 +62,11 @@ group is sealed with it: the app opens it read-only and says which release, unti
 re-issues it. The app never changes what the group decides (the node's group, stage, label, author); the only
 thing it writes there is the acknowledged contract version.
 
+**Help.** **Help** in the header opens the guide for authors, the journey of a node, the glossary
+and every other guide, in place and offline; **Take the tour of this screen** shows the tour again.
+Someone opening the app for the first time is shown each screen's tour once. **Preview → Print**
+prints the node alone.
+
 ## For a developer
 
 | Piece | Where |

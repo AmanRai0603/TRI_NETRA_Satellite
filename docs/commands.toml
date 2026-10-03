@@ -529,6 +529,16 @@ writes = []
 runs = []
 
 [[command]]
+tool = "manual.py"
+name = "manual"
+usage = "python3 tools/manual.py [--check]"
+what = "The apps' manual (design/manual/: a guide per role, the journey of a node, the glossary, the guide to TRI-NETRA Files, and the tours in tours.toml) written as design/js/manual.js, which every app opens in place with Help, and the journey diagram as design/manual/journey.svg. --check says whether both are current and holds the rules: every page starts with its one line (the explanation standard), every tour target is in its app, every field, choice and set of checks in the apps has help beside it."
+steps = ["read the manual pages and the tours", "draw the journey", "write design/js/manual.js and design/manual/journey.svg (or, with --check, compare)", "check the rules"]
+reads = ["design/manual/", "design/js/*_app.js", "design/js/node_model.js"]
+writes = ["design/js/manual.js", "design/manual/journey.svg"]
+runs = []
+
+[[command]]
 tool = "node_catalog.py"
 name = "node_catalog"
 usage = "python3 tools/node_catalog.py [--check]"

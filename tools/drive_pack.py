@@ -42,6 +42,9 @@ Design/   the design itself, as the apps read and write it
           nodes/      one file per node (734)
           releases/   each group's sealed releases (made by the group app when a lead seals)
 
+Every app has Help at the top: the guide for your role, the journey of a node, the glossary, and
+the tour of the screen you are on.
+
 To start: Drive for desktop shows this folder on your computer. Open Apps/TRI-NETRA Group.html,
 choose "Open design folder", and pick the Design folder. Type your name the first time.
 

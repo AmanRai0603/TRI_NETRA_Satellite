@@ -132,7 +132,7 @@ export const STEPS = [
     f("feedback.what_happened", "What happened", "If something in a release behaved unexpectedly: what happened (B01)?", "Feedback is how fixed rows still get better.", "The closure showed NotStated for a case that states the requirement.", { type: "long" }),
     f("feedback.expected", "What was expected", "What did you expect instead?", "The difference is the bug report.", "Pass, with a 12 % margin.", { type: "long" }),
     f("other.subject", "Something else: subject", "Anything else the developer team should change (B02).", "Fixed rows change through the developers.", "Add a closure for slew settling"),
-    f("other.description", "Something else: description", "Describe it (B02).", "", "", { type: "long" }),
+    f("other.description", "Something else: description", "Describe it (B02).", "So the lead and the developer team can act on it without asking you again.", "The table in the datasheet has two values for the same coil; which one applies?", { type: "long" }),
   ] },
 ];
 

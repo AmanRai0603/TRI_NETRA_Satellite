@@ -5,16 +5,33 @@
 // component set (tn_ui.js).
 // Owner: Agastya. Copyright (c) 2026 Agastya. All rights reserved.
 import { openFile, listFolder, Journal, MemoryFolder, FileRefused, MARKER_STALE_MS } from "./tnfile.js";
-import { h, fill, button, fileButton, field, banner, badge, table, section, toolbar, spacer, kv, dialog, ask, toast, shell, download } from "./tn_ui.js";
+import { h, fill, button, fileButton, field, banner, badge, table, section, toolbar, spacer, kv, dialog, ask, toast, shell, download, manualDialog, tour } from "./tn_ui.js";
+import { MANUAL } from "./manual.js";
 
 const canFolders = typeof window.showDirectoryPicker === "function";
-const { main, status } = shell("TRI-NETRA Files", "Design files on your Drive folder: open, change, save. Nothing leaves this computer.");
+const { main, status } = shell("TRI-NETRA Files", "Design files on your Drive folder: open, change, save. Nothing leaves this computer.", { onHelp: () => help() });
 const journal = new Journal();
 const session = crypto.getRandomValues(new Uint32Array(2)).join("-");
 const app = { SQL: null, dir: null, viaDownload: false, cur: null, who: null, folderNote: null };
 
 function remembered(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
 function remember(k, v) { try { localStorage.setItem(k, v); } catch (e) { /* private window: asked again next time */ } }
+
+// ---- help: the manual in place, and each screen's tour (shown by itself once, to someone opening
+// the app for the first time; Help shows it again)
+const firstTime = !remembered("trinetra.who");
+app.screen = "files-start";
+function help() { return manualDialog(MANUAL, { first: "files", onTour: () => runTour(app.screen) }); }
+function runTour(name) {
+  const t = MANUAL.tours[name];
+  if (!t) return Promise.resolve();
+  remember(`trinetra.tour.${name}`, "seen");
+  return tour(t.steps, { name });
+}
+function screen(name) {
+  app.screen = name;
+  if (firstTime && !remembered(`trinetra.tour.${name}`) && !document.querySelector(".tn-tour")) setTimeout(() => runTour(name), 0);
+}
 
 async function who() {
   if (app.who) return app.who;
@@ -182,14 +199,14 @@ function nodeView(s) {
 }
 
 async function editValue(r) {
-  const f = field(`${r.sec} · ${r.f}`, { value: r.value ?? "", multiline: true, testid: "value" });
+  const f = field(`${r.sec} · ${r.f}`, { value: r.value ?? "", multiline: true, help: "The field's text as the file stores it. Every change can be undone until you save, and Drive keeps every saved version.", testid: "value" });
   const v = await dialog("Change a value", f.el, [["Cancel", null], ["Apply", () => f.value, "primary"]]);
   if (v === null || v === r.value) return;
   await act(() => app.cur.change(`${r.sec}.${r.f}`, (db) => db.run("UPDATE content SET value = ?, origin = ? WHERE rowid = ?", [v, `typed by ${app.who}`, r.rowid])));
 }
 
 async function addField() {
-  const sec = field("Section", { testid: "new-section" }), fl = field("Field", { mono: true, testid: "new-field" }), val = field("Value", { multiline: true, testid: "new-value" });
+  const sec = field("Section", { help: "The section the field belongs to, for example explain.", testid: "new-section" }), fl = field("Field", { mono: true, help: "The field's name, for example one_line.", testid: "new-field" }), val = field("Value", { multiline: true, help: "Its text.", testid: "new-value" });
   const v = await dialog("Add a field", h("div", { class: "tn-stack" }, sec.el, fl.el, val.el), [["Cancel", null], ["Add", () => [sec.value.trim(), fl.value.trim(), val.value], "primary"]]);
   if (!v || !v[0] || !v[1]) return;
   await act(() => app.cur.change(`add ${v[0]}.${v[1]}`, (db) => db.run("INSERT INTO content (section, field, value, origin) VALUES (?, ?, ?, ?)", [v[0], v[1], v[2], `typed by ${app.who}`])));
@@ -240,6 +257,7 @@ function render(...parts) { fill(main, ...parts); }
 function rerender() { if (app.cur) showFile(); else if (app.dir) showFolder(); else start(); }
 
 function start() {
+  screen("files-start");
   render(toolbar(...topButtons()),
     canFolders ? banner("info", "Start here.", "Open the Drive folder of your group (Drive for desktop shows it as a folder on this computer). Files open one at a time; anyone else who opens one you have open sees your name.")
       : banner("warn", "This browser cannot open folders.", "You can open a file, change it and save it by downloading. To open Drive folders and save in place, use Chrome or Edge."));

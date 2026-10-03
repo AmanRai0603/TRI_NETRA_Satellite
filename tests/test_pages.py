@@ -128,6 +128,16 @@ class Browser(unittest.TestCase):
             with sqlite3.connect(d / "out" / "nodes" / "m2_4.node.tndb") as c:
                 self.assertTrue(c.execute("SELECT count(*) FROM signature").fetchone()[0] >= 1)
 
+    def test_help_tours_and_printing(self):
+        with tempfile.TemporaryDirectory() as d:
+            d = pathlib.Path(d)
+            built = pages.build(d / "pages")
+            seed_design.seed(d / "design", sync=False)
+            r = subprocess.run([NODE, str(ROOT / "tests" / "browser" / "help.test.mjs"), str(built["files"][0]), str(built["node"][0]), str(built["group"][0]), str(d / "design")],
+                               capture_output=True, text=True, timeout=1500, env={**os.environ, "PLAYWRIGHT_MODULE": str(PLAYWRIGHT)})
+            sys.stdout.write(r.stdout[-3000:])
+            self.assertEqual(r.returncode, 0, r.stdout[-4000:] + r.stderr[-2000:])
+
 
 @unittest.skipUnless(NODE, "Node.js is needed for the node model's rule tests")
 class NodeModel(unittest.TestCase):

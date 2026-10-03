@@ -6,20 +6,37 @@
 // Owner: Agastya. Copyright (c) 2026 Agastya. All rights reserved.
 import { Journal, MemoryFolder, FileRefused, openFile } from "./tnfile.js";
 import { loadIndex, readersOutside, readersInside, STRUCTURE, NODES } from "./structure.js";
-import { h, fill, button, fileButton, field, banner, badge, table, section, toolbar, spacer, kv, dialog, ask, toast, shell, tabs, choice, checks, insertAt, download } from "./tn_ui.js";
+import { h, fill, button, fileButton, field, banner, badge, table, section, toolbar, spacer, kv, dialog, ask, toast, shell, tabs, choice, checks, insertAt, download, manualDialog, tour, printEl } from "./tn_ui.js";
+import { MANUAL } from "./manual.js";
 import { KIND_LABEL, FIXED, CHOOSABLE, STEPS, stepsFor, fieldShown, readDoc, list, setField, setInputs, setFixtures, check, progress, evidenceDebt,
   tryIt, pcodeCheck, parsePasted, results, standing, fingerprint, adoptSpec, SPEC_ORIGIN } from "./node_model.js";
 import { renderNode, mathText } from "./node_view.js";
 import { CATALOG } from "./node_catalog.js";
 
 const canFolders = typeof window.showDirectoryPicker === "function";
-const { main, status } = shell("TRI-NETRA Node", "Your node, step by step: what it answers, how, and what shows it is right. Nothing leaves this computer.");
+const { main, status } = shell("TRI-NETRA Node", "Your node, step by step: what it answers, how, and what shows it is right. Nothing leaves this computer.", { onHelp: () => help() });
 const journal = new Journal();
 const session = crypto.getRandomValues(new Uint32Array(2)).join("-");
 const app = { SQL: null, root: null, index: null, cur: null, doc: null, tab: 0, who: null, profile: null, viaDownload: false, urls: [] };
 
 function remembered(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
 function remember(k, v) { try { localStorage.setItem(k, v); } catch (e) { /* private window */ } }
+
+// ---- help: the manual in place, and each screen's tour (shown by itself once, to someone opening
+// the app for the first time; Help shows it again)
+const firstTime = !remembered("trinetra.who");
+app.screen = "node-start";
+function help() { return manualDialog(MANUAL, { first: "author", onTour: () => runTour(app.screen) }); }
+function runTour(name) {
+  const t = MANUAL.tours[name];
+  if (!t) return Promise.resolve();
+  remember(`trinetra.tour.${name}`, "seen");
+  return tour(t.steps, { name });
+}
+function screen(name) {
+  app.screen = name;
+  if (firstTime && !remembered(`trinetra.tour.${name}`) && !document.querySelector(".tn-tour")) setTimeout(() => runTour(name), 0);
+}
 function fmtTime(t) { return t ? new Date(t).toLocaleString() : "—"; }
 function fmtSize(n) { return n < 1024 ? `${n} B` : n < 1048576 ? `${(n / 1024).toFixed(1)} KB` : `${(n / 1048576).toFixed(2)} MB`; }
 function setStatus(t) { fill(status, h("span", { "data-testid": "status" }, t)); }
@@ -67,6 +84,7 @@ async function openOneFile(files) {
 }
 
 async function showList(filter = "") {
+  screen("node-list");
   if (app.cur) await closeNode();
   const idx = app.index;
   const mine = [];
@@ -77,7 +95,7 @@ async function showList(filter = "") {
   const q = filter.trim().toLowerCase();
   const rows = mine.filter((r) => !q || r.id.toLowerCase().includes(q) || (r.label || "").toLowerCase().includes(q) || r.group === q || (r.author || "").toLowerCase() === q);
   const myOwn = mine.filter((r) => r.author && r.author === app.who);
-  const search = field("Find a node", { value: filter, placeholder: "id, label, group, or an author's name", testid: "search", onChange: (v) => showList(v) });
+  const search = field("Find a node", { value: filter, placeholder: "id, label, group, or an author's name", help: "By id, label, group, or an author's name.", testid: "search", onChange: (v) => showList(v) });
   render(toolbar(...topButtons()),
     myOwn.length ? section(`Issued to you (${myOwn.length})`, table(cols(), myOwn, { onRow: (r) => openNode(r.id), testid: "mine" })) : banner("info", "", `No node is issued to ${app.who} yet: your group lead issues nodes in the group app. You can open any node below.`),
     section(`All nodes (${rows.length} of ${mine.length})`, search.el, table(cols(), rows.slice(0, 200), { onRow: (r) => openNode(r.id), testid: "nodes", empty: "No node matches." }),
@@ -198,6 +216,7 @@ function showNode() {
 }
 
 function drawNode() {
+  screen("node-open");
   const s = app.cur, d = app.doc, k = d.kind;
   const problems = check(d, app.ctx);
   const prog = progress(d);
@@ -206,7 +225,7 @@ function drawNode() {
   const items = [["Home", () => homeView(problems, prog)],
     ...steps.map((st) => [`${st.title}${count(st.id) ? ` (${count(st.id)})` : ""}`, () => stepView(st, problems)]),
     [`Review${problems.filter((p) => p.level === "!").length ? ` (${problems.filter((p) => p.level === "!").length})` : ""}`, () => reviewView(problems)],
-    ["Preview", () => renderNode(d, app.ctx, app.standing)]];
+    ["Preview", () => { const v = renderNode(d, app.ctx, app.standing); return [toolbar(button("Print", () => printEl(v), { testid: "print" })), v]; }]];
   const t = tabs(items, { testid: "steps" });
   render(
     toolbar(button("◂ Nodes", async () => { if (app.root) await showList(); else { await closeNode(); start(); } }, { kind: "quiet", testid: "back" }),
@@ -378,7 +397,7 @@ function tryItView() {
 
 function resultsEditor(fd, ro) {
   const d = app.doc, r = results(d);
-  const paste = field("Paste here", { multiline: true, mono: true, readOnly: ro, testid: "f-results-paste", rows: 5,
+  const paste = field("Paste here", { multiline: true, mono: true, readOnly: ro, help: "Copy the cells in Excel or Sheets (headings in the first row) and paste them here.", testid: "f-results-paste", rows: 5,
     help: "Copy the cells in Excel (or any table) and paste them here: the first row names the columns, a second row of units is optional." });
   const preview = h("div", { "data-testid": "results-preview" });
   const show = (t) => fill(preview, t ? table(t.columns.map((col, j) => ({ key: String(j), label: col.unit ? `${col.name} [${col.unit}]` : col.name, mono: true, render: (row) => row[j] })), t.rows, { empty: "No rows." }) : "");
@@ -409,7 +428,7 @@ async function pictureWizard(file) {
     note = `Made smaller to fit: ${fmtSize(bytes.length)} → ${fmtSize(small.bytes.length)} (${small.width}×${small.height}, JPEG).`;
     bytes = small.bytes; mime = "image/jpeg"; name = name.replace(/\.[A-Za-z0-9]+$/, "") + ".jpg";
   }
-  const cap1 = field("Caption", { testid: "f-caption" }), alt = field("What it shows (for a reader who cannot see it)", { multiline: true, testid: "f-alt" });
+  const cap1 = field("Caption", { help: "One line, shown under the picture.", testid: "f-caption" }), alt = field("What it shows (for a reader who cannot see it)", { multiline: true, help: "Read out to a reader who cannot see the picture.", testid: "f-alt" });
   const v = await dialog("Add a picture", h("div", { class: "tn-stack" }, h("p", {}, `${name}, ${fmtSize(bytes.length)}. ${note}`), cap1.el, alt.el), [["Cancel", null], ["Add it", () => [cap1.value, alt.value], "primary"]]);
   if (!v) return;
   await change(`picture ${name}`, (db) => {
@@ -466,7 +485,7 @@ async function sign(role, name, statement) {
 }
 
 async function signChecked() {
-  const name = field("Your name", { value: app.who || "", testid: "f-checker" }), st = field("What you checked", { multiline: true, testid: "f-statement",
+  const name = field("Your name", { value: app.who || "", help: "Your own name. The node's author cannot sign it as checked.", testid: "f-checker" }), st = field("What you checked", { multiline: true, testid: "f-statement",
     help: "The relation against its source, the values, the test vectors: what you stand behind." });
   const v = await dialog("Checked by", h("div", { class: "tn-stack" }, h("p", {}, "A typed name, not a proof: it stands behind exactly what is written now, and comes off when anything changes."), name.el, st.el),
     [["Cancel", null], ["Sign", () => [name.value.trim(), st.value.trim()], "primary"]]);
@@ -477,7 +496,7 @@ async function signChecked() {
 }
 
 async function contractRequest() {
-  const out = field("The output", { value: app.doc.content["output.symbol"] || "", mono: true, testid: "f-output" }), body = field("What should change, and why", { multiline: true, testid: "f-body" });
+  const out = field("The output", { value: app.doc.content["output.symbol"] || "", mono: true, help: "The output of the contract you want changed.", testid: "f-output" }), body = field("What should change, and why", { multiline: true, help: "What should change and why; the lead of the group that owns it decides.", testid: "f-body" });
   const v = await dialog("Ask for a contract change", h("div", { class: "tn-stack" }, h("p", {}, "The contract is what other groups rely on: your group lead decides, and tells its readers."), out.el, body.el),
     [["Cancel", null], ["Send to the lead", () => [out.value.trim(), body.value.trim()], "primary"]]);
   if (!v || !v[1]) return;
@@ -496,6 +515,7 @@ async function save() {
 
 // ------------------------------------------------------------------ start
 function start() {
+  screen("node-start");
   render(toolbar(...topButtons()),
     canFolders ? banner("info", "Start here.", "Open the design folder on your Drive (the one holding structure/ and nodes/): the nodes issued to you are listed first. Or open one node file on its own.")
       : banner("warn", "This browser cannot open folders.", "Open one node file, fill it, and save it by downloading. Chrome and Edge open the Drive folder directly."));

@@ -57,6 +57,7 @@
 | [`pcode.py pcode`](#pcodepy-pcode) | Pseudocode v2 (docs/PSEUDOCODE_V2.md): check a file (units, types, every output set, no recursion), run a function in the interpreter, and write or check everything it makes: the physics (spec/physics/*.pc) as a Rust crate and a MATLAB package with test vectors from the interpreter, the language's self-test the same way, the flight algorithms (fsw/pseudocode/*.pc) as test vectors for the C and Rust flight software, the MATLAB runtime, and the browser checker page. gen --check also holds the physics to spec/plan/physics.toml; fixtures runs the seeded, sourced test vectors of the physics rows. |
 | [`pages.py pages`](#pagespy-pages) | The offline pages (TRI-NETRA Files today; the node and group apps next): each one HTML file that runs from disk, with SQLite in WebAssembly, the fonts and the component set inside it and nothing loaded from anywhere. check builds them into a scratch folder and refuses a vendored file that is not the pinned one, a page that makes its own controls or styles, and anything that would load from an outside host. |
 | [`group.py group`](#grouppy-group) | The structure of a design folder (structure/ and nodes/, as tools/seed_design.py writes it and the group app changes it), checked from Python: every node in exactly one group with its node file saying the same group, stage, label and state; every edge kept by the group of the node that reads, from a node that exists and is not archived; every author, contract and stage owner about the group's own nodes and people; no structure action left unfinished. The same rules as the group app's own check (design/js/structure.js), written a second time. |
+| [`manual.py manual`](#manualpy-manual) | The apps' manual (design/manual/: a guide per role, the journey of a node, the glossary, the guide to TRI-NETRA Files, and the tours in tours.toml) written as design/js/manual.js, which every app opens in place with Help, and the journey diagram as design/manual/journey.svg. --check says whether both are current and holds the rules: every page starts with its one line (the explanation standard), every tour target is in its app, every field, choice and set of checks in the apps has help beside it. |
 | [`node_catalog.py node_catalog`](#node_catalogpy-node_catalog) | The node app's catalogue (design/js/node_catalog.js), written from the spec: the units and the quantities each measures, the physics relations, the sources, the evidence metrics and rungs, the provenance and belief words, the tags and every row of the tree with its label, kind, quantity, unit and layer. The node app offers these as its choices, so they are never typed by hand. --check says whether the committed file is current. |
 | [`release.py release`](#releasepy-release) | Sealed group releases (releases/<group>-<version>.tnrel, as the group app seals them), checked from Python: each file passes tools/tndb.py check and is named for its group and version; every node's fingerprint, body fingerprint and the release's fingerprint are the SHA-256 of what they cover; its nodes are the group's as sealed, each confirmed or unconfirmed with why; a confirmed node was checked by someone other than its author and, when it computes, has a test vector from outside the code; the lead's seal names the version and the fingerprint. The same rules as design/js/release.js, written a second time. |
 | [`drive_pack.py drive-pack`](#drive_packpy-drive-pack) | The Drive pack: the two offline apps (TRI-NETRA Files, TRI-NETRA Group) and the design seeded from the spec (20 group files, 734 node files), in the layout the shared Drive folder of the design takes, with a README. CI builds it on every push as the trinetra-drive-pack artifact. |
@@ -885,6 +886,23 @@ The structure of a design folder (structure/ and nodes/, as tools/seed_design.py
 
 - **Reads:** `DIR/structure/`; `DIR/nodes/`
 - **Writes:** nothing
+- **Starts:** nothing
+
+## manual.py manual
+
+The apps' manual (design/manual/: a guide per role, the journey of a node, the glossary, the guide to TRI-NETRA Files, and the tours in tours.toml) written as design/js/manual.js, which every app opens in place with Help, and the journey diagram as design/manual/journey.svg. --check says whether both are current and holds the rules: every page starts with its one line (the explanation standard), every tour target is in its app, every field, choice and set of checks in the apps has help beside it.
+
+    python3 tools/manual.py [--check]
+
+**Steps**
+
+1. read the manual pages and the tours
+2. draw the journey
+3. write design/js/manual.js and design/manual/journey.svg (or, with --check, compare)
+4. check the rules
+
+- **Reads:** `design/manual/`; `design/js/*_app.js`; `design/js/node_model.js`
+- **Writes:** `design/js/manual.js`; `design/manual/journey.svg`
 - **Starts:** nothing
 
 ## node_catalog.py node_catalog
