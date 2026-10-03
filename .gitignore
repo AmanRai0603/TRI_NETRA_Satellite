@@ -35,3 +35,4 @@ dist/*.zip
 matlab_sils/store/pipeline/*/iter_*/scenarios/
 # The V&V report's PDF is kept once, in dist/ (published with every release).
 results/vv/TRINETRA_ADCS_VV_report.pdf
+build/

@@ -1,0 +1,13 @@
+[package]
+name = "trinetra-design"
+description = "TRI-NETRA design files (design/schema.toml): open a node, group, release or design file, check its format and tables, read its rows"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+publish.workspace = true
+
+[dependencies]
+# bundled: SQLite compiled in, nothing to install (the same as the results index)
+rusqlite = { version = "0.40", features = ["bundled"] }
+serde = { version = "1", features = ["derive"] }
+toml = "0.8"

@@ -256,6 +256,46 @@ writes = []
 runs = ["arm-none-eabi-gcc"]
 
 [[command]]
+tool = "design_rows.py"
+name = "design-rows"
+usage = "python3 tools/design_rows.py [--list]"
+what = "Every row of the ADCS tree, from the spec package: 734 rows (133 in layer 1, 194 in layer 2, 368 in the subsystem layers, 39 closures), each with its short id, the id its node file carries, its layer, kind, branch and label. Fails when the counts SPEC.md states do not hold or an id repeats."
+steps = ["read the spec's tree, KPI list and long-id map", "list every row, naming the subsystem-layer rows", "check the counts and that every id is unique"]
+reads = ["spec/plan/tree.json", "spec/plan/kpis.toml", "spec/plan/expected_node_ids.json"]
+writes = []
+runs = []
+
+[[command]]
+tool = "groups.py"
+name = "groups"
+usage = "python3 tools/groups.py [--check | --row ID]"
+what = "The group map (design/groups.toml) against every row of the tree: each row in exactly one of the 20 discipline groups, each group holding the rows it states, each stage inside its group, every override and boundary naming real rows and groups. --row says where one row goes and why."
+steps = ["read the group map and every row", "place each row (override, then its target, then its branch)", "check the placement against the map"]
+reads = ["design/groups.toml", "spec/plan/"]
+writes = []
+runs = []
+
+[[command]]
+tool = "tndb.py"
+name = "tndb"
+usage = "python3 tools/tndb.py check FILE... | dump FILE | ddl KIND | gen [--check]"
+what = "The design files (node, group, release, design database), from design/schema.toml: check a file's format, version and every table; dump it as canonical JSON; print the SQL that makes a kind; write or check the files made from the schema (design/ddl.sql, design/js/tndb_schema.js). An older file is upgraded with a copy kept; a newer one is refused."
+steps = ["read the schema", "open each file, checking or upgrading its format", "check, dump, print or generate"]
+reads = ["design/schema.toml"]
+writes = ["design/ddl.sql", "design/js/tndb_schema.js"]
+runs = []
+
+[[command]]
+tool = "seed_design.py"
+name = "seed-design"
+usage = "python3 tools/seed_design.py [--out DIR | --check]"
+what = "Seeds the design files from the spec: a group file for each of the 20 groups, a node file for each of the 734 rows (the 82 the spec seeds with their content, the rest as shells), and the starting design database. Never overwrites; --check seeds into a temporary folder and checks every file."
+steps = ["write the group files, the node files and the design database from the spec", "check every file against the schema"]
+reads = ["design/groups.toml", "design/schema.toml", "spec/plan/"]
+writes = ["build/design/"]
+runs = []
+
+[[command]]
 tool = "version.py"
 name = "version"
 usage = "python3 tools/version.py [--check | --set X.Y.Z]"

@@ -30,6 +30,10 @@
 | [`pack_flight.py pack-flight`](#pack_flightpy-pack-flight) | The flight software and Rust engine zip, in the repository's layout so it builds as unpacked. |
 | [`gen_fsw_params.py gen-fsw-params`](#gen_fsw_paramspy-gen-fsw-params) | The flight software's parameter and table sources, C and Rust, from their one definition. --check says which generated file is stale, and changes nothing. |
 | [`fsw_stack.py fsw-stack`](#fsw_stackpy-fsw-stack) | The flight software's deepest stack on the Cortex-M4 firmware, from GCC's call graph, against the stack the linker script reserves. Recursion and unbounded frames are refused; a library routine is charged a fixed frame and named. |
+| [`design_rows.py design-rows`](#design_rowspy-design-rows) | Every row of the ADCS tree, from the spec package: 734 rows (133 in layer 1, 194 in layer 2, 368 in the subsystem layers, 39 closures), each with its short id, the id its node file carries, its layer, kind, branch and label. Fails when the counts SPEC.md states do not hold or an id repeats. |
+| [`groups.py groups`](#groupspy-groups) | The group map (design/groups.toml) against every row of the tree: each row in exactly one of the 20 discipline groups, each group holding the rows it states, each stage inside its group, every override and boundary naming real rows and groups. --row says where one row goes and why. |
+| [`tndb.py tndb`](#tndbpy-tndb) | The design files (node, group, release, design database), from design/schema.toml: check a file's format, version and every table; dump it as canonical JSON; print the SQL that makes a kind; write or check the files made from the schema (design/ddl.sql, design/js/tndb_schema.js). An older file is upgraded with a copy kept; a newer one is refused. |
+| [`seed_design.py seed-design`](#seed_designpy-seed-design) | Seeds the design files from the spec: a group file for each of the 20 groups, a node file for each of the 734 rows (the 82 the spec seeds with their content, the rest as shells), and the starting design database. Never overwrites; --check seeds into a temporary folder and checks every file. |
 | [`version.py version`](#versionpy-version) | One version for the repository: VERSION is the source, and the engine's Cargo workspace, the Rust flight software's Cargo package and the C flight software's build id follow it; the Rust build ids are built from their Cargo version. --check fails on any drift; --set writes a new version everywhere. |
 | [`mutation.py mutation`](#mutationpy-mutation) | Mutation testing of the flight software's control and estimation (fsw-rs/src/ctl.rs, est.rs) with cargo-mutants: each small deliberate fault in turn, and whether the Rust flight software's tests catch it. Writes the kill rate per function and the missed mutants; --check fails under the floor the tool states. |
 | [`trace.py trace`](#tracepy-trace) | The requirements traceability matrix: every requirement a case states, what checks it (a flown scenario's metric, the design loop's budget or mode flights, the reference slew's profile) and what the latest stored result says. --check refuses a metric that neither judges nor says why it only reports, a requirement key the case lacks, and a stated requirement nothing checks; it writes nothing. |
@@ -447,6 +451,69 @@ The flight software's deepest stack on the Cortex-M4 firmware, from GCC's call g
 - **Reads:** `fsw/src/`; `fsw/targets/link/`; `fsw/targets/qemu-mps2/`
 - **Writes:** nothing
 - **Starts:** arm-none-eabi-gcc
+
+## design_rows.py design-rows
+
+Every row of the ADCS tree, from the spec package: 734 rows (133 in layer 1, 194 in layer 2, 368 in the subsystem layers, 39 closures), each with its short id, the id its node file carries, its layer, kind, branch and label. Fails when the counts SPEC.md states do not hold or an id repeats.
+
+    python3 tools/design_rows.py [--list]
+
+**Steps**
+
+1. read the spec's tree, KPI list and long-id map
+2. list every row, naming the subsystem-layer rows
+3. check the counts and that every id is unique
+
+- **Reads:** `spec/plan/tree.json`; `spec/plan/kpis.toml`; `spec/plan/expected_node_ids.json`
+- **Writes:** nothing
+- **Starts:** nothing
+
+## groups.py groups
+
+The group map (design/groups.toml) against every row of the tree: each row in exactly one of the 20 discipline groups, each group holding the rows it states, each stage inside its group, every override and boundary naming real rows and groups. --row says where one row goes and why.
+
+    python3 tools/groups.py [--check | --row ID]
+
+**Steps**
+
+1. read the group map and every row
+2. place each row (override, then its target, then its branch)
+3. check the placement against the map
+
+- **Reads:** `design/groups.toml`; `spec/plan/`
+- **Writes:** nothing
+- **Starts:** nothing
+
+## tndb.py tndb
+
+The design files (node, group, release, design database), from design/schema.toml: check a file's format, version and every table; dump it as canonical JSON; print the SQL that makes a kind; write or check the files made from the schema (design/ddl.sql, design/js/tndb_schema.js). An older file is upgraded with a copy kept; a newer one is refused.
+
+    python3 tools/tndb.py check FILE... | dump FILE | ddl KIND | gen [--check]
+
+**Steps**
+
+1. read the schema
+2. open each file, checking or upgrading its format
+3. check, dump, print or generate
+
+- **Reads:** `design/schema.toml`
+- **Writes:** `design/ddl.sql`; `design/js/tndb_schema.js`
+- **Starts:** nothing
+
+## seed_design.py seed-design
+
+Seeds the design files from the spec: a group file for each of the 20 groups, a node file for each of the 734 rows (the 82 the spec seeds with their content, the rest as shells), and the starting design database. Never overwrites; --check seeds into a temporary folder and checks every file.
+
+    python3 tools/seed_design.py [--out DIR | --check]
+
+**Steps**
+
+1. write the group files, the node files and the design database from the spec
+2. check every file against the schema
+
+- **Reads:** `design/groups.toml`; `design/schema.toml`; `spec/plan/`
+- **Writes:** `build/design/`
+- **Starts:** nothing
 
 ## version.py version
 

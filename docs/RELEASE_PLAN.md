@@ -160,9 +160,9 @@ writes the content, the loop carries its structure and explanation.
 | 4 | `sens` Sensors | sensing | layer `sens` · its `sb1` targets (`gs`) | 36 | — | `sensors.rs`, `comp.rs` (star-tracker image chain, Sun-sensor chain), magnetometer, gyro, Sun sensors, earth sensor, GNSS parts, `+devices`, `+comp` | rich |
 | 5 | `nav` Navigation and attitude estimation | gnc | layer `est` · its `sb1` targets (`ge`) | 28 | onboard orbit and time navigation (GNSS fix, onboard propagator, latency), TRIAD, QUEST, the gyro filter | `fsw/pseudocode/02`, `03`, MEKF/TRIAD/QUEST in C, Rust and twin | rich |
 | **Decide and act** | | | | | | | |
-| 6 | `gdn` Guidance and mode management | gnc | the mode-sequencing rows of layer `modes` (split from FDIR in P8) | part of 27 | nadir, target, Sun, slew and inertial guidance, yaw flip, boresight offset; the mode manager | `fsw/pseudocode/04`, `08`, guidance in C, Rust and twin, the modes catalogue | rich |
+| 6 | `gdn` Guidance and mode management | gnc | the mode-sequencing targets `gq_0`, `gq_1`, `gq_4` and their layer-3 rows (layer `modes` and `sb3`) | 21 | nadir, target, Sun, slew and inertial guidance, yaw flip, boresight offset; the mode manager | `fsw/pseudocode/04`, `08`, guidance in C, Rust and twin, the modes catalogue | rich |
 | 7 | `ctl` Controller and allocation | gnc | layer `ctl` · its `sb3` targets (`gc`) | 34 | — | `fsw/pseudocode/05`, `07`, LQR, PD, PID, SMC, the ten magnetorquer laws, B-dot, allocation, IDMAS split | rich |
-| 8 | `fdir` FDIR | gnc | the fault rows of layer `modes` · its `sb3` targets (`gq`) | part of 27 | sensor health, rotor FDIR (instantaneous and windowed), safe mode, fault injection | FDIR in C, Rust and twin, `+faults`, the fault campaign; open items in `ADCS_GAPS.md` D6 | rich |
+| 8 | `fdir` FDIR | gnc | the fault targets `gq_2`, `gq_3` and their layer-3 rows | 6 | sensor health, rotor FDIR (instantaneous and windowed), safe mode, fault injection | FDIR in C, Rust and twin, `+faults`, the fault campaign; open items in `ADCS_GAPS.md` D6 | rich |
 | 9 | `act` Actuators | actuators | layers `mtq`, `rw`, `fmr`, `rcs` · their `sb2` targets (`gm`, `gw`, `gf`, `gr`) | 138 | CMG and VSCMG (models, gimbal steering, singularity handling); one stage per actuator in the group | coil, wheel, ring, thruster, CMG and VSCMG models in engine and twin, `empump.rs`, `cmg_sr`, the datasheet catalogue (`TRN-CMG-1`, `TRN-VSCMG-1`, …), IDMAS v2 §03–§07 | rich |
 | **Host** | | | | | | | |
 | 10 | `fsw` Flight software and OBC | avionics | layer `fsw` · its `sb4` targets (`gx`) | 27 | — | `fsw/`, `fsw-rs/`, HAL, OBC link, stack check, firmware, parameter blob | rich |
@@ -273,17 +273,29 @@ inside them.
 - P13 needs P12's wave D.
 - P14 comes last.
 
-**Progress of P0** (on the branch, before the merge):
+**Progress of P0** (merged to `main` with PR #12):
 
 | item | state |
 |---|---|
 | One version source | ✅ `tools/version.py`: `VERSION` 1.0.0; the engine's Cargo workspace (was 1.2.0), the Rust and C flight software follow it; the Rust build ids take their Cargo version; `check_all` checks it |
 | Reproducible builds | ✅ `rust-toolchain.toml` (1.94.1, firmware target); every `cargo build` and test `--locked`; every action pinned to a commit SHA; `setup-python` in every job that runs Python; `tools/requirements-ci.txt` pins pyflakes, numpy, matplotlib; cargo-mutants pinned |
 | The release proves what CI proves | ✅ `check_all --strict` (NOT RUN fails) in the release's `prove`, with the ARM compiler; the release re-runs CI's firmware (QEMU parity) and twin jobs before it publishes |
-| Merge PR #12 to `main` | waiting for the owner's OK |
+| Merge PR #12 to `main` | ✅ merged |
 | Branch protection with one human review | the owner's repository setting |
 | Licence | the owner's decision |
 | Generated pages and run files out of git | 🟡 the design loop's per-iteration scenario files (8,292) and the duplicate V&V PDF left git: tracked files 17,276 → 8,983, every check passing in a clean checkout. The campaign runs' manifests and the rendered pages stay until P11 replaces them with the result package and pages drawn from the design database |
+
+**Progress of P1** (data model):
+
+| item | state |
+|---|---|
+| Every row of the tree, with a stable id | ✅ `tools/design_rows.py`: 734 rows (133 layer 1, 194 layer 2, 368 layer 3, 39 closures); layer-3 ids `l3_<layer>_interface`, `l3_<layer>_<target>_required` / `_achieved`, `l3_<layer>_row_<nn>` for the 166 rows to be named |
+| The group map as data | ✅ `design/groups.toml`: 20 groups with lead team, branches, stages, the code module of each group in C, Rust and the twin, the `modes` split (`gq_0`, `gq_1`, `gq_4` to `gdn`; `gq_2`, `gq_3` to `fdir`) and the boundary rules; `tools/groups.py --check`: every row in exactly one group |
+| The file formats | ✅ `design/schema.toml`: node, group, release and design files (SQLite), each with its format version; `tools/tndb.py` makes, opens, checks, dumps and loads them, upgrades an older file keeping the original, refuses a newer one |
+| Readers in three languages | ✅ Python (`tools/tndb.py`); Rust (`engine/crates/trinetra-design`, held to `design/ddl.sql`); the browser's schema (`design/js/tndb_schema.js`, generated; the reader on SQLite in WebAssembly comes with the apps in P3) |
+| The seeder | ✅ `tools/seed_design.py`: 20 group files, 734 node shells and the design database from the spec, each field marked with where it came from; nothing invented |
+| Proof | ✅ `tests/test_design_files.py` (every kind round-trips unchanged, an old file upgrades, a newer one is refused, a picture round-trips byte for byte); `check_all` runs `design-files` |
+| Results file in the schema | the result package (`.trinetra`) and index stay as they are; the design files point at them by result id. Belief records and the archive arrive with the apps that write them (P4, P6) |
 
 ## 6 · What 1.0.0 contains
 

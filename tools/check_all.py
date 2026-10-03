@@ -57,6 +57,9 @@ CHECKS = [
     ("spec", "the platform specification package is consistent",
      ["bash", "-c", "python3 tools/validate_plan.py && python3 tools/build_tree.py --check && python3 tools/intake.py selftest"
       " && python3 tools/derisk.py check && python3 tools/twin_check.py && bash tools/assemble_spec.sh --check"], "spec", ["bash"]),
+    ("design-files", "every row of the tree in exactly one group; the seeded group, node and design files check against design/schema.toml; the generated SQL and browser schema are the schema",
+     [PY, "-c", "import sys; sys.path.insert(0, 'tools'); import groups, seed_design, tndb; "
+      "sys.exit(groups.main(['--check']) or seed_design.main(['--check']) or tndb.main(['gen', '--check']))"], ".", []),
     ("design-loop", "every stored design-loop decision recomputed from its inputs",
      [PY, "tools/verify_nodes.py"], ".", []),
 ]
