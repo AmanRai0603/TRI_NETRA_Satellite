@@ -82,7 +82,9 @@ def build(out, bin_dir=None, files_only=False):
     n = copy_data(out)
     if not files_only:
         import pages
-        pages.build(out / "pages")
+        built = pages.build(out / "pages")
+        if "testapp" in built:
+            built["testapp"][0].unlink()     # the test apps' template: tools/groupcode.py deliver fills it per group
     v = version()
     write_text(out / "VERSION", f"TRI-NETRA ADCS {v}\n" + "".join(f"{k}: {x}\n" for k, x in components().items()))
     for doc, name in (("docs/START_HERE.md", "START_HERE.md"), ("docs/FIRST_RUN.md", "FIRST_RUN.md"), ("docs/COMMANDS.md", "COMMANDS.md"),

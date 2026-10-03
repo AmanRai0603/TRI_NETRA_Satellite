@@ -1,0 +1,53 @@
+{
+ "group": "dyn",
+ "label": "Satellite dynamics",
+ "owner_team": "systems",
+ "rows": [
+  {
+   "fn": "qmult",
+   "id": "dyn_kinematics",
+   "label": "Attitude kinematics",
+   "outputs": [
+    [
+     "r",
+     "quat"
+    ]
+   ],
+   "params": [
+    [
+     "a",
+     "quat in -1 .. 1"
+    ],
+    [
+     "b",
+     "quat in -1 .. 1"
+    ]
+   ],
+   "release": "carried",
+   "symbol": "r",
+   "vectors": []
+  }
+ ],
+ "shared": [
+  "qmult"
+ ],
+ "source": "the design as seeded and carried over (tools/seed_design.py, tools/carry_over.py); not yet sealed by its group",
+ "without_code": [
+  {
+   "id": "dyn_flexible_mode",
+   "label": "Flexible mode (hybrid coordinates)"
+  },
+  {
+   "id": "dyn_rigid_body",
+   "label": "Rigid-body attitude dynamics"
+  },
+  {
+   "id": "dyn_rotor_coupling",
+   "label": "Rotor and ring momentum coupling"
+  },
+  {
+   "id": "dyn_total_momentum",
+   "label": "Total angular momentum"
+  }
+ ]
+}

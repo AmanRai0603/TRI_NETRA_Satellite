@@ -104,7 +104,7 @@ def pc_closure(names, blocks):
             return
         seen.add(n)
         body = "\n".join(x for x in blocks[n][2].split("\n") if not x.startswith("##"))
-        for tok in set(re.findall(r"[A-Za-z_][A-Za-z0-9_]*", body)):
+        for tok in dict.fromkeys(re.findall(r"[A-Za-z_][A-Za-z0-9_]*", body)):     # in order: the same text every run
             if tok != n:
                 visit(tok)
         order.append(n)

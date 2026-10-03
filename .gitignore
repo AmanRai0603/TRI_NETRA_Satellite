@@ -17,7 +17,8 @@ fsw-rs/target/
 matlab_sils/store/results_engine/**/channels.csv
 matlab_sils/store/results_engine/**/interp.csv
 matlab_sils/store/solutions_engine/**/channels.csv
-.claude/
+.claude/worktrees/
+.claude/settings.local.json
 matlab_sils/store/pipeline/cache/
 matlab_sils/store/pipeline/**/channels.csv
 # release builds (tools/kit.py, tools/macapp.py, tools/build_wheel.py): made by the release workflow

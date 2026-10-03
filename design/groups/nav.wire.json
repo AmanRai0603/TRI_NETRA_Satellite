@@ -1,0 +1,156 @@
+{
+ "group": "nav",
+ "label": "Navigation and attitude estimation",
+ "owner_team": "gnc",
+ "rows": [
+  {
+   "fn": "fromrotvec",
+   "id": "nav_gnss_fix",
+   "label": "GNSS fix and its latency",
+   "outputs": [
+    [
+     "q",
+     "quat"
+    ]
+   ],
+   "params": [
+    [
+     "th",
+     "vec3[1] in -3 .. 3"
+    ]
+   ],
+   "release": "carried",
+   "symbol": "q",
+   "vectors": []
+  },
+  {
+   "fn": "fromrotvec",
+   "id": "nav_gyro_filter",
+   "label": "Gyro filter (MEKF propagation)",
+   "outputs": [
+    [
+     "q",
+     "quat"
+    ]
+   ],
+   "params": [
+    [
+     "th",
+     "vec3[1] in -3 .. 3"
+    ]
+   ],
+   "release": "carried",
+   "symbol": "q",
+   "vectors": []
+  },
+  {
+   "fn": "orbit_acc",
+   "id": "nav_onboard_orbit",
+   "label": "Onboard orbit propagation",
+   "outputs": [
+    [
+     "a",
+     "vec3[1]"
+    ]
+   ],
+   "params": [
+    [
+     "r",
+     "vec3[1] in -7.2e6 .. 7.2e6"
+    ],
+    [
+     "mu",
+     "real[1] in 3.9e14 .. 4e14"
+    ]
+   ],
+   "release": "carried",
+   "symbol": "a",
+   "vectors": []
+  },
+  {
+   "fn": "quest",
+   "id": "nav_quest",
+   "label": "QUEST",
+   "outputs": [
+    [
+     "q",
+     "quat"
+    ],
+    [
+     "loss",
+     "real[1]"
+    ]
+   ],
+   "params": [
+    [
+     "bv",
+     "real[1][3][16] in -1 .. 1"
+    ],
+    [
+     "rv",
+     "real[1][3][16] in -1 .. 1"
+    ],
+    [
+     "w",
+     "real[1][16] in 0.1 .. 1"
+    ],
+    [
+     "n",
+     "int in 2 .. 16"
+    ]
+   ],
+   "release": "carried",
+   "symbol": "q",
+   "vectors": []
+  },
+  {
+   "fn": "gmst_rot",
+   "id": "nav_time_frames",
+   "label": "Onboard time and frames",
+   "outputs": [
+    [
+     "c",
+     "mat3[1]"
+    ]
+   ],
+   "params": [
+    [
+     "jd",
+     "real[1] in 2459000 .. 2463000"
+    ]
+   ],
+   "release": "carried",
+   "symbol": "c",
+   "vectors": []
+  },
+  {
+   "fn": "fromdcm",
+   "id": "nav_triad",
+   "label": "TRIAD",
+   "outputs": [
+    [
+     "q",
+     "quat"
+    ]
+   ],
+   "params": [
+    [
+     "r",
+     "mat3[1] in -1 .. 1"
+    ]
+   ],
+   "release": "carried",
+   "symbol": "q",
+   "vectors": []
+  }
+ ],
+ "shared": [
+  "fromdcm",
+  "fromrotvec",
+  "qmult",
+  "qnorm",
+  "skew"
+ ],
+ "source": "the design as seeded and carried over (tools/seed_design.py, tools/carry_over.py); not yet sealed by its group",
+ "without_code": []
+}

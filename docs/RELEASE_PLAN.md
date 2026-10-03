@@ -403,6 +403,19 @@ inside them.
 | SPEC §3.2 and §5.10–5.11 | ⏳ the rewrite is proposed in `docs/RULES_PROPOSAL.md` and waits for the owner's approval; SPEC.md is unchanged until then |
 | Proof | ✅ `tests/test_release.py`: all 20 groups, sealed, verify and merge into `design.tndb` (734 nodes, every output in the catalogue); a release its group has moved on from does not verify and is not merged |
 
+**Progress of P10** (developer skill and agents; `docs/GENERATORS.md`):
+
+| item | state |
+|---|---|
+| Coordinator skill, backend agent, frontend agent | ✅ `.claude/skills/trinetra-coordinator/SKILL.md` (verify → merge → wire → generate → test → deliver → prove), `.claude/agents/backend.md` (translator first; never a node's content), `.claude/agents/frontend.md` (one component set, help on every field, proven in a browser) |
+| `group wire / build / test / deliver` | ✅ `tools/groupcode.py wire` (each group's computing rows into `design/groups/`, a function shared by groups written once), `gen` (Rust `adcs-groups`, WebAssembly `adcs-groups-wasm`, MATLAB `+asils/+groups`), `test`, `deliver` (a test app per group) |
+| Every computing row's code generated from pseudocode and tested | ✅ 48 rows in 9 groups have pseudocode today (the rest are gaps their authors fill, P8): every one in the generated code; the Rust reproduces the interpreter on every drawn vector (76 functions) and every node's own test vectors; the twin reproduces the same 608 vectors in Octave |
+| Engine = twin per group module | ✅ the same vectors through the generated Rust and MATLAB; C = Rust stays the flight software's parity (`engine.py fsw-parity`) |
+| WebAssembly for "try it" | ✅ the generated Rust compiled for `wasm32-unknown-unknown` (88 KB), inside each test app; every test vector passes in the interpreter and in WebAssembly, the two agreeing (`tests/browser/testapp.test.mjs`, 20 apps) |
+| Generators explained by example | ✅ `docs/GENERATORS.md`: one node (`gd_0`) from its pseudocode to Rust, MATLAB, the tests and its test app |
+| Today's engine numbers unchanged | ✅ the generated crates sit beside the engine; `check_all` keeps flying the engine's own tests and parity |
+| As groups seal real releases | ⏳ `wire --design DIR` on the merged releases replaces the carried design; the loop is the same |
+
 ## 6 · What 1.0.0 contains
 
 - **Node app and group app:** offline, one file each, with manuals.

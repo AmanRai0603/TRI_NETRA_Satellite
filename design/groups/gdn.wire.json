@@ -1,0 +1,214 @@
+{
+ "group": "gdn",
+ "label": "Guidance and mode management",
+ "owner_team": "gnc",
+ "rows": [
+  {
+   "fn": "fromdcm",
+   "id": "gdn_boresight_offset",
+   "label": "Boresight offset",
+   "outputs": [
+    [
+     "q",
+     "quat"
+    ]
+   ],
+   "params": [
+    [
+     "r",
+     "mat3[1] in -1 .. 1"
+    ]
+   ],
+   "release": "carried",
+   "symbol": "q",
+   "vectors": []
+  },
+  {
+   "fn": "guidance",
+   "id": "gdn_guidance",
+   "label": "Reference attitude and rate (nadir, target, Sun, slew, inertial)",
+   "outputs": [
+    [
+     "q_ref",
+     "quat"
+    ],
+    [
+     "w_ref",
+     "vec3[1/s]"
+    ],
+    [
+     "wd_ref",
+     "vec3[1/s^2]"
+    ]
+   ],
+   "params": [
+    [
+     "kind",
+     "int in 0 .. 4"
+    ],
+    [
+     "r",
+     "vec3[m] in -7.2e6 .. 7.2e6"
+    ],
+    [
+     "v",
+     "vec3[m/s] in -7600 .. 7600"
+    ],
+    [
+     "t",
+     "real[s] in 0 .. 600"
+    ],
+    [
+     "q_off",
+     "quat in -1 .. 1"
+    ],
+    [
+     "roll_deg",
+     "real[1] in -60 .. 60"
+    ],
+    [
+     "t0",
+     "real[s] in 0 .. 300"
+    ],
+    [
+     "t_slew",
+     "real[s] in 20 .. 300"
+    ],
+    [
+     "axis",
+     "vec3[1] in -1 .. 1"
+    ],
+    [
+     "q_inertial",
+     "quat in -1 .. 1"
+    ],
+    [
+     "sun_axis",
+     "vec3[1] in -1 .. 1"
+    ],
+    [
+     "roll_axis",
+     "vec3[1] in -1 .. 1"
+    ],
+    [
+     "sun_eci",
+     "vec3[1] in -1 .. 1"
+    ],
+    [
+     "flip",
+     "bool"
+    ]
+   ],
+   "release": "carried",
+   "symbol": "q_ref",
+   "vectors": []
+  },
+  {
+   "fn": "modes_enter",
+   "id": "gdn_mode_manager",
+   "label": "Mode manager",
+   "outputs": [
+    [
+     "s",
+     "Modes"
+    ]
+   ],
+   "params": [
+    [
+     "st",
+     "Modes"
+    ],
+    [
+     "mode",
+     "int in 0 .. 10"
+    ]
+   ],
+   "release": "carried",
+   "symbol": "s",
+   "vectors": []
+  },
+  {
+   "fn": "modes_enter",
+   "id": "gdn_mode_schedule",
+   "label": "Mode schedule",
+   "outputs": [
+    [
+     "s",
+     "Modes"
+    ]
+   ],
+   "params": [
+    [
+     "st",
+     "Modes"
+    ],
+    [
+     "mode",
+     "int in 0 .. 10"
+    ]
+   ],
+   "release": "carried",
+   "symbol": "s",
+   "vectors": []
+  },
+  {
+   "fn": "yaw_flip",
+   "id": "gdn_yaw_flip",
+   "label": "Yaw flip",
+   "outputs": [
+    [
+     "flip_out",
+     "bool"
+    ]
+   ],
+   "params": [
+    [
+     "r",
+     "vec3[m] in -7.2e6 .. 7.2e6"
+    ],
+    [
+     "v",
+     "vec3[m/s] in -7600 .. 7600"
+    ],
+    [
+     "q_off",
+     "quat in -1 .. 1"
+    ],
+    [
+     "sun_axis",
+     "vec3[1] in -1 .. 1"
+    ],
+    [
+     "roll_axis",
+     "vec3[1] in -1 .. 1"
+    ],
+    [
+     "sun_eci",
+     "vec3[1] in -1 .. 1"
+    ],
+    [
+     "flip",
+     "bool"
+    ],
+    [
+     "hyst",
+     "real[1] in 0 .. 0.3"
+    ]
+   ],
+   "release": "carried",
+   "symbol": "flip_out",
+   "vectors": []
+  }
+ ],
+ "shared": [
+  "Modes",
+  "fromdcm",
+  "fromrotvec",
+  "modes_enter",
+  "qmult",
+  "qnorm",
+  "skew"
+ ],
+ "source": "the design as seeded and carried over (tools/seed_design.py, tools/carry_over.py); not yet sealed by its group",
+ "without_code": []
+}

@@ -70,6 +70,8 @@ CHECKS = [
      [PY, "-m", "unittest", "discover", "-s", "tests", "-p", "test_release.py"], ".", ["node"]),
     ("carry", "what the repository already says carried into the node files (seed content, physics as pseudocode, case keys, KPIs, algorithms, the tree's notes; the internal rows named and the rows added from the code), each item with its origin and every gap with its owner team; every rule holds afterwards, the carried pseudocode compiles and reproduces its test vectors in the node app's own code, and carrying again changes nothing",
      [PY, "-m", "unittest", "discover", "-s", "tests", "-p", "test_carry.py"], ".", []),
+    ("groupcode", "each group's code generated from its nodes: the wiring is the design's, the Rust, WebAssembly and MATLAB are current, every computing row with pseudocode is in the generated code, the Rust reproduces the interpreter and every node's own test vectors, and every group's test app passes in the browser (interpreter and WebAssembly agreeing)",
+     [PY, "-m", "unittest", "discover", "-s", "tests", "-p", "test_groupcode.py"], ".", ["node", "cargo"]),
     ("design-loop", "every stored design-loop decision recomputed from its inputs",
      [PY, "tools/verify_nodes.py"], ".", []),
 ]

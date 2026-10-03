@@ -1,0 +1,161 @@
+{
+ "group": "fdir",
+ "label": "FDIR",
+ "owner_team": "gnc",
+ "rows": [
+  {
+   "fn": "fdir_rotors",
+   "id": "fdir_rotor_health",
+   "label": "Rotor FDIR (instantaneous and windowed)",
+   "outputs": [
+    [
+     "s",
+     "RotorFdir"
+    ]
+   ],
+   "params": [
+    [
+     "st",
+     "RotorFdir"
+    ],
+    [
+     "rp",
+     "RotorParams"
+    ],
+    [
+     "t",
+     "real[s] in 1000 .. 1000.2"
+    ],
+    [
+     "dt",
+     "real[s] in 0.1 .. 0.2"
+    ],
+    [
+     "zh",
+     "real[N m s][8] in -0.05 .. 0.05"
+    ]
+   ],
+   "release": "carried",
+   "symbol": "s",
+   "vectors": []
+  },
+  {
+   "fn": "modes_enter",
+   "id": "fdir_safe_mode",
+   "label": "Safe mode",
+   "outputs": [
+    [
+     "s",
+     "Modes"
+    ]
+   ],
+   "params": [
+    [
+     "st",
+     "Modes"
+    ],
+    [
+     "mode",
+     "int in 0 .. 10"
+    ]
+   ],
+   "release": "carried",
+   "symbol": "s",
+   "vectors": []
+  },
+  {
+   "fn": "fdir_sensors",
+   "id": "fdir_sensor_health",
+   "label": "Sensor health",
+   "outputs": [
+    [
+     "mag_ok",
+     "bool"
+    ],
+    [
+     "b",
+     "vec3[1]"
+    ],
+    [
+     "w",
+     "vec3[1]"
+    ],
+    [
+     "b_good",
+     "vec3[1]"
+    ],
+    [
+     "mag_age",
+     "real[1]"
+    ],
+    [
+     "mag_seen",
+     "bool"
+    ],
+    [
+     "gyro_age",
+     "real[1]"
+    ]
+   ],
+   "params": [
+    [
+     "mag_ok0",
+     "bool"
+    ],
+    [
+     "b0",
+     "vec3[1] in -6e-5 .. 6e-5"
+    ],
+    [
+     "bref_ok",
+     "bool"
+    ],
+    [
+     "bref",
+     "vec3[1] in -6e-5 .. 6e-5"
+    ],
+    [
+     "b_good0",
+     "vec3[1] in -6e-5 .. 6e-5"
+    ],
+    [
+     "mag_age0",
+     "real[1] in 0 .. 100"
+    ],
+    [
+     "mag_seen0",
+     "bool"
+    ],
+    [
+     "has_gyro",
+     "bool"
+    ],
+    [
+     "gyro_ok",
+     "bool"
+    ],
+    [
+     "w0",
+     "vec3[1] in -0.1 .. 0.1"
+    ],
+    [
+     "gyro_age0",
+     "real[1] in 0 .. 100"
+    ],
+    [
+     "dt",
+     "real[1] in 0.05 .. 1"
+    ]
+   ],
+   "release": "carried",
+   "symbol": "mag_ok",
+   "vectors": []
+  }
+ ],
+ "shared": [
+  "Modes",
+  "modes_enter"
+ ],
+ "source": "the design as seeded and carried over (tools/seed_design.py, tools/carry_over.py); not yet sealed by its group",
+ "without_code": []
+}

@@ -1,0 +1,38 @@
+{
+ "group": "design",
+ "label": "Design loop",
+ "owner_team": "systems",
+ "rows": [],
+ "shared": [],
+ "source": "the design as seeded and carried over (tools/seed_design.py, tools/carry_over.py); not yet sealed by its group",
+ "without_code": [
+  {
+   "id": "design_sizing_cmg",
+   "label": "CMG sizing"
+  },
+  {
+   "id": "design_sizing_fmr",
+   "label": "Fluid ring sizing"
+  },
+  {
+   "id": "design_sizing_mtq",
+   "label": "Magnetorquer sizing"
+  },
+  {
+   "id": "design_sizing_rcs",
+   "label": "Thruster sizing"
+  },
+  {
+   "id": "design_sizing_rw",
+   "label": "Reaction wheel sizing"
+  },
+  {
+   "id": "design_sizing_sensors",
+   "label": "Sensor suite sizing"
+  },
+  {
+   "id": "design_sizing_vscmg",
+   "label": "VSCMG sizing"
+  }
+ ]
+}

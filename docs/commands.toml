@@ -631,6 +631,18 @@ checks = "vendored files pinned, one component set, no outside hosts"
 undo = "Delete build/pages/."
 
 [[command]]
+tool = "groupcode.py"
+name = "groupcode"
+usage = "python3 tools/groupcode.py wire [--design DIR] [--check] | gen [--check] | test | deliver [--out DIR]"
+what = "Each group's code, generated from its nodes (docs/RELEASE_PLAN.md P10, docs/GENERATORS.md): wire puts every computing row's pseudocode into a module per group (design/groups/, with shared.pc for what several groups call alike, and a wire file naming each row's function and its own test vectors), from the merged releases or from the design as seeded and carried; gen translates them to Rust (engine/crates/adcs-groups), WebAssembly (adcs-groups-wasm) and MATLAB (+asils/+groups) with the interpreter's vectors; test runs the Rust against the vectors and the nodes' own test vectors; deliver builds a test app per group."
+steps = ["wire: read the design's nodes, group their pseudocode, refuse a function written two ways", "gen: translate with the pseudocode's translators, draw vectors in the interpreter", "test: cargo test -p adcs-groups", "deliver: build the WebAssembly module and one offline test app per group"]
+reads = ["DIR/design.tndb or the seeded and carried design", "design/groups/", "design/js/pcode.js, pcode_gen.js"]
+writes = ["design/groups/", "engine/crates/adcs-groups/", "engine/crates/adcs-groups-wasm/", "matlab_sils/+asils/+groups/", "matlab_sils/data/groups_vectors.json", "dist/test-apps/ (deliver)"]
+runs = ["node", "cargo"]
+checks = "wire --check and gen --check: everything generated is current; test: translator = interpreter on every drawn vector, and every node's own test vectors within their tolerance"
+undo = "wire and gen write generated files only: `git checkout -- <file>` puts back the committed one, or run them again. deliver: delete dist/test-apps/."
+
+[[command]]
 tool = "group.py"
 name = "group"
 usage = "python3 tools/group.py check DIR | list DIR | verify DIR | merge DIR [--require-all] | impact DIR NODE"

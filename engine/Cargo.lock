@@ -42,6 +42,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "adcs-groups"
+version = "1.0.0"
+dependencies = [
+ "serde_json",
+]
+
+[[package]]
+name = "adcs-groups-wasm"
+version = "1.0.0"
+dependencies = [
+ "adcs-groups",
+]
+
+[[package]]
 name = "adcs-physics"
 version = "1.0.0"
 dependencies = [

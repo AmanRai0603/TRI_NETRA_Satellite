@@ -201,8 +201,12 @@ export function toRust(prog, opts = {}) {
   const pascal = (n) => n.split("_").map((w) => w[0].toUpperCase() + w.slice(1)).join("");
 
   const mods = Object.values(prog.modules);
+  // a record (a Rust struct) may be named in another module's code: bring every other module's
+  // records into scope (names are unique across the program, so nothing clashes)
+  const recordUses = (m) => mods.filter((o) => o !== m && o.items.some((it) => it.kind === "record"))
+    .map((o) => `use crate::${o.name}::{${o.items.filter((it) => it.kind === "record").map((it) => it.name).join(", ")}};\n`).join("");
   for (const m of mods) {
-    let out = `//! ${m.name}: ${(m.doc || []).join(" ") || "the pseudocode module " + m.name}\n//! ${HEAD}\n#![allow(unused_mut, unused_variables, unused_parens, unused_assignments, unused_imports, unreachable_code, non_snake_case, clippy::all)]\nuse crate::rt;\n\n`;
+    let out = `//! ${m.name}: ${(m.doc || []).join(" ") || "the pseudocode module " + m.name}\n//! ${HEAD}\n#![allow(unused_mut, unused_variables, unused_parens, unused_assignments, unused_imports, unreachable_code, non_snake_case, clippy::all)]\nuse crate::rt;\n${recordUses(m)}\n`;
     for (const it of m.items) {
       curFn = it;
       if (it.kind === "const") {

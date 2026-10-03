@@ -687,10 +687,12 @@ end
 function m = t_physics_vectors()
     % translator = interpreter: the vectors the pseudocode's interpreter drew (tools/pcode.py gen)
     % through the MATLAB translations: the physics (+asils/+physics) and the language's own test
-    % (+asils/+pcselftest, every feature: records, procs with state, settling loops, tables).
+    % (+asils/+pcselftest, every feature: records, procs with state, settling loops, tables), and every
+    % group's computing rows (+asils/+groups).
     % Bit for bit where a function uses no transcendental; else within 1e-12 relative.
     here = fileparts(mfilename('fullpath'));
-    pk = {'physics_vectors.json', 'asils.physics'; 'pcselftest_vectors.json', 'asils.pcselftest'};
+    pk = {'physics_vectors.json', 'asils.physics'; 'pcselftest_vectors.json', 'asils.pcselftest'; ...
+          'groups_vectors.json', 'asils.groups'};     % the groups' generated code (tools/groupcode.py gen)
     n = 0; exact = 0; vals = 0; worst = 0;
     for p = 1:size(pk, 1)
         v = jsondecode(fileread(fullfile(here, '..', 'data', pk{p, 1})));

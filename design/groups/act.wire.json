@@ -1,0 +1,537 @@
+{
+ "group": "act",
+ "label": "Actuators",
+ "owner_team": "actuators",
+ "rows": [
+  {
+   "fn": "rotor_axes",
+   "id": "act_cmg_axes",
+   "label": "Rotor axes from gimbal angles",
+   "outputs": [
+    [
+     "a",
+     "real[1][8][3]"
+    ]
+   ],
+   "params": [
+    [
+     "nr",
+     "int in 0 .. 8"
+    ],
+    [
+     "rot_a0",
+     "real[1][3][8] in -1 .. 1"
+    ],
+    [
+     "rot_gi",
+     "int[8] in 0 .. 4"
+    ],
+    [
+     "gim_axis",
+     "real[1][3][4] in -1 .. 1"
+    ],
+    [
+     "delta",
+     "vec4[1] in -3.1 .. 3.1"
+    ]
+   ],
+   "release": "carried",
+   "symbol": "a",
+   "vectors": []
+  },
+  {
+   "fn": "steer_sr",
+   "id": "act_cmg_steering",
+   "label": "CMG steering (singularity-robust)",
+   "outputs": [
+    [
+     "gdot",
+     "vec4[1]"
+    ],
+    [
+     "hdot",
+     "real[1][8]"
+    ]
+   ],
+   "params": [
+    [
+     "tau",
+     "vec3[1] in -0.01 .. 0.01"
+    ],
+    [
+     "a",
+     "real[1][8][3] in -1 .. 1"
+    ],
+    [
+     "h",
+     "real[1][8] in -0.05 .. 0.05"
+    ],
+    [
+     "nr",
+     "int in 0 .. 8"
+    ],
+    [
+     "ng",
+     "int in 0 .. 4"
+    ],
+    [
+     "rot_gi",
+     "int[8] in 0 .. 4"
+    ],
+    [
+     "gim_axis",
+     "real[1][3][4] in -1 .. 1"
+    ],
+    [
+     "gim_rate_max",
+     "real[1] in 0.1 .. 2"
+    ],
+    [
+     "cmg_lam0",
+     "real[1] in 1e-6 .. 1e-2"
+    ],
+    [
+     "cmg_mu",
+     "real[1] in 1 .. 100"
+    ],
+    [
+     "wheels",
+     "bool"
+    ]
+   ],
+   "release": "carried",
+   "symbol": "gdot",
+   "vectors": []
+  },
+  {
+   "fn": "gf_6",
+   "id": "gf_6",
+   "label": "Ring momentum at cruise speed",
+   "outputs": [
+    [
+     "H_ring",
+     "real[N m s]"
+    ]
+   ],
+   "params": [
+    [
+     "d",
+     "real[mm] in 1 .. 20"
+    ],
+    [
+     "s",
+     "real[m^2] in 0.005 .. 0.5"
+    ],
+    [
+     "rho",
+     "real[kg/m^3] in 1000 .. 13600"
+    ],
+    [
+     "v",
+     "real[m/s] in 0.01 .. 2"
+    ]
+   ],
+   "release": "carried",
+   "symbol": "H_ring",
+   "vectors": [
+    {
+     "expected": 0.0004,
+     "inputs": [
+      0.003,
+      0.022,
+      6440.0,
+      0.2
+     ],
+     "name": "3U long panel, 3 mm bore, Galinstan, 0.2 m/s",
+     "outside": true,
+     "provenance": "independent-tool",
+     "tolerance": 0.02
+    },
+    {
+     "expected": 0.00101,
+     "inputs": [
+      0.003,
+      0.022,
+      6440.0,
+      0.5
+     ],
+     "name": "3U long panel, 3 mm bore, Galinstan, 0.5 m/s",
+     "outside": true,
+     "provenance": "independent-tool",
+     "tolerance": 0.02
+    }
+   ]
+  },
+  {
+   "fn": "gf_7",
+   "id": "gf_7",
+   "label": "Ring spin-down time",
+   "outputs": [
+    [
+     "T_spin",
+     "real[s]"
+    ]
+   ],
+   "params": [
+    [
+     "d",
+     "real[mm] in 1 .. 20"
+    ],
+    [
+     "rho",
+     "real[kg/m^3] in 1000 .. 13600"
+    ],
+    [
+     "mu",
+     "real[Pa s] in 0.0005 .. 0.005"
+    ]
+   ],
+   "release": "carried",
+   "symbol": "T_spin",
+   "vectors": [
+    {
+     "expected": 8.4,
+     "inputs": [
+      0.01,
+      6440.0,
+      0.0024
+     ],
+     "name": "10 mm Galinstan body ring",
+     "outside": true,
+     "provenance": "independent-tool",
+     "tolerance": 0.01
+    },
+    {
+     "expected": 21.0,
+     "inputs": [
+      0.016,
+      6440.0,
+      0.0024
+     ],
+     "name": "16 mm Galinstan body ring",
+     "outside": true,
+     "provenance": "independent-tool",
+     "tolerance": 0.03
+    },
+    {
+     "expected": 0.75,
+     "inputs": [
+      0.003,
+      6440.0,
+      0.0024
+     ],
+     "name": "3 mm Galinstan channel",
+     "outside": true,
+     "provenance": "independent-tool",
+     "tolerance": 0.02
+    }
+   ]
+  },
+  {
+   "fn": "gf_8",
+   "id": "gf_8",
+   "label": "Ring holding power",
+   "outputs": [
+    [
+     "P_hold",
+     "real[W]"
+    ]
+   ],
+   "params": [
+    [
+     "h",
+     "real[N m s] in 1e-4 .. 0.1"
+    ],
+    [
+     "mu",
+     "real[Pa s] in 0.0005 .. 0.005"
+    ],
+    [
+     "l",
+     "real[m] in 0.1 .. 3"
+    ],
+    [
+     "rho",
+     "real[kg/m^3] in 1000 .. 13600"
+    ],
+    [
+     "d",
+     "real[mm] in 1 .. 20"
+    ],
+    [
+     "s",
+     "real[m^2] in 0.005 .. 0.5"
+    ]
+   ],
+   "release": "carried",
+   "symbol": "P_hold",
+   "vectors": []
+  },
+  {
+   "fn": "pump_pressure_for_torque",
+   "id": "gf_9",
+   "label": "Ring pump pressure for the reference slew",
+   "outputs": [
+    [
+     "dp",
+     "real[Pa]"
+    ]
+   ],
+   "params": [
+    [
+     "tau",
+     "real[N m] in 1e-6 .. 0.01"
+    ],
+    [
+     "l",
+     "real[m] in 0.1 .. 3"
+    ],
+    [
+     "s",
+     "real[m^2] in 0.005 .. 0.5"
+    ],
+    [
+     "d",
+     "real[mm] in 1 .. 20"
+    ]
+   ],
+   "release": "carried",
+   "symbol": "dp",
+   "vectors": []
+  },
+  {
+   "fn": "gm_1",
+   "id": "gm_1",
+   "label": "Dipole needed to reject disturbances",
+   "outputs": [
+    [
+     "m_rej",
+     "real[A m^2]"
+    ]
+   ],
+   "params": [
+    [
+     "tau_d",
+     "real[N m] in 1e-8 .. 1e-4"
+    ],
+    [
+     "b_min",
+     "real[T] in 1e-6 .. 6e-5"
+    ]
+   ],
+   "release": "carried",
+   "symbol": "m_rej",
+   "vectors": []
+  },
+  {
+   "fn": "gm_2",
+   "id": "gm_2",
+   "label": "Dipole needed to dump momentum",
+   "outputs": [
+    [
+     "m_dump",
+     "real[A m^2]"
+    ]
+   ],
+   "params": [
+    [
+     "momentum",
+     "real[N m s] in 1e-4 .. 1"
+    ],
+    [
+     "field",
+     "real[T] in 1e-6 .. 6e-5"
+    ],
+    [
+     "dump_time",
+     "real[s] in 60 .. 10000"
+    ]
+   ],
+   "release": "carried",
+   "symbol": "m_dump",
+   "vectors": []
+  },
+  {
+   "fn": "gm_3",
+   "id": "gm_3",
+   "label": "Magnetic torque authority",
+   "outputs": [
+    [
+     "tau_mtq",
+     "real[N m]"
+    ]
+   ],
+   "params": [
+    [
+     "m_av",
+     "real[A m^2] in 0.01 .. 10"
+    ],
+    [
+     "b_min",
+     "real[T] in 1e-6 .. 6e-5"
+    ],
+    [
+     "n_mtq",
+     "int in 0 .. 6"
+    ]
+   ],
+   "release": "carried",
+   "symbol": "tau_mtq",
+   "vectors": []
+  },
+  {
+   "fn": "propellant_per_slew",
+   "id": "gr_3",
+   "label": "Propellant per slew",
+   "outputs": [
+    [
+     "m_p",
+     "real[kg]"
+    ]
+   ],
+   "params": [
+    [
+     "h",
+     "real[N m s] in 0.01 .. 10"
+    ],
+    [
+     "r",
+     "real[m] in 0.05 .. 2"
+    ],
+    [
+     "isp",
+     "real[s] in 50 .. 300"
+    ]
+   ],
+   "release": "carried",
+   "symbol": "m_p",
+   "vectors": [
+    {
+     "expected": 0.003,
+     "inputs": [
+      2.6,
+      0.8,
+      220.0
+     ],
+     "name": "500 kg bus, 30 deg in 60 s, RCS alone",
+     "outside": true,
+     "provenance": "independent-tool",
+     "tolerance": 0.01
+    }
+   ]
+  },
+  {
+   "fn": "propellant_per_year",
+   "id": "gr_4",
+   "label": "Propellant per year",
+   "outputs": [
+    [
+     "m_year",
+     "real[kg]"
+    ]
+   ],
+   "params": [
+    [
+     "m_p",
+     "real[kg] in 1e-5 .. 0.1"
+    ],
+    [
+     "n_day",
+     "real[1] in 0 .. 50"
+    ],
+    [
+     "n_rcs",
+     "int in 0 .. 12"
+    ]
+   ],
+   "release": "carried",
+   "symbol": "m_year",
+   "vectors": [
+    {
+     "expected": 44.0,
+     "inputs": [
+      0.0061,
+      20.0,
+      8.0
+     ],
+     "name": "500 kg bus, 30 deg in 30 s, 20 slews a day, RCS alone",
+     "outside": true,
+     "provenance": "independent-tool",
+     "tolerance": 0.02
+    }
+   ]
+  },
+  {
+   "fn": "gw_3",
+   "id": "gw_3",
+   "label": "Momentum for the reference slew",
+   "outputs": [
+    [
+     "H_slew",
+     "real[N m s]"
+    ]
+   ],
+   "params": [
+    [
+     "i_max",
+     "real[kg m^2] in 0.01 .. 100"
+    ],
+    [
+     "theta",
+     "real[deg] in 1 .. 180"
+    ],
+    [
+     "t_slew",
+     "real[s] in 5 .. 600"
+    ]
+   ],
+   "release": "carried",
+   "symbol": "H_slew",
+   "vectors": []
+  },
+  {
+   "fn": "gw_4",
+   "id": "gw_4",
+   "label": "Peak torque for the reference slew",
+   "outputs": [
+    [
+     "tau_slew",
+     "real[N m]"
+    ]
+   ],
+   "params": [
+    [
+     "i_max",
+     "real[kg m^2] in 0.01 .. 100"
+    ],
+    [
+     "theta",
+     "real[deg] in 1 .. 180"
+    ],
+    [
+     "t_slew",
+     "real[s] in 5 .. 600"
+    ]
+   ],
+   "release": "carried",
+   "symbol": "tau_slew",
+   "vectors": []
+  }
+ ],
+ "shared": [],
+ "source": "the design as seeded and carried over (tools/seed_design.py, tools/carry_over.py); not yet sealed by its group",
+ "without_code": [
+  {
+   "id": "act_cmg_model",
+   "label": "Control moment gyro model"
+  },
+  {
+   "id": "act_vscmg_gimbal_limits",
+   "label": "Gimbal rate limit and power"
+  },
+  {
+   "id": "act_vscmg_model",
+   "label": "Variable-speed CMG model"
+  }
+ ]
+}

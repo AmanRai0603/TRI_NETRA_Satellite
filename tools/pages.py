@@ -39,7 +39,7 @@ sys.path.insert(0, str(ROOT / "tools"))
 from common import write_text  # noqa: E402
 
 PAGES = {"files": "design/pages/files.template.html", "group": "design/pages/group.template.html",
-         "node": "design/pages/node.template.html"}
+         "node": "design/pages/node.template.html", "testapp": "design/pages/testapp.template.html"}
 VENDOR = ROOT / "design" / "vendor"
 OUT = ROOT / "build" / "pages"
 UI_FILES = {"design/js/tn_ui.js", "design/css/tn.css"}
@@ -185,6 +185,10 @@ def build_page(template, files):
             return sqlite()
         if kind == "generated":
             return "<!--GENERATED-->"
+        if kind == "data":       # a place for data a later step fills in (tools/groupcode.py deliver)
+            return f'<script type="application/json" id="{arg}">null</script>'
+        if kind == "blob":
+            return f'<script type="text/plain" id="{arg}"></script>'
         raise PageError(f"{template}: no directive tn:{kind}")
 
     page = DIRECTIVE.sub(directive, t)
