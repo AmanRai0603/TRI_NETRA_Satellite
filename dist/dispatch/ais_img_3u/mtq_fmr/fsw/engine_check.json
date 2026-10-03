@@ -6,7 +6,7 @@
    {
     "id": "detumble_time",
     "kind": "time_to_rate",
-    "value": 81.925,
+    "value": 82.29166666666667,
     "unit": "min",
     "req": 284.0,
     "req_key": "req.detumble",
@@ -15,11 +15,11 @@
    {
     "id": "power_mean",
     "kind": "power_mean",
-    "value": 0.9598266171976164,
+    "value": 2.0726243450368047,
     "unit": "W",
     "req": 2.0,
     "req_key": "req.pavg",
-    "pass": 1
+    "pass": 0
    }
   ],
   "mode_log": [
@@ -28,7 +28,7 @@
     "mode": "detumble"
    },
    {
-    "t": 4850.2,
+    "t": 4833.900000000001,
     "mode": "sun_acq_rotor"
    }
   ]
@@ -40,7 +40,7 @@
    {
     "id": "detumble_time",
     "kind": "time_to_rate",
-    "value": 81.925,
+    "value": 82.29166666666667,
     "unit": "min",
     "req": 284.0,
     "req_key": "req.detumble",
@@ -49,11 +49,11 @@
    {
     "id": "power_mean",
     "kind": "power_mean",
-    "value": 0.9598266171976164,
+    "value": 2.0726243450368047,
     "unit": "W",
     "req": 2.0,
     "req_key": "req.pavg",
-    "pass": 1
+    "pass": 0
    }
   ],
   "mode_log": [
@@ -62,7 +62,7 @@
     "mode": "detumble"
    },
    {
-    "t": 4850.2,
+    "t": 4833.900000000001,
     "mode": "sun_acq_rotor"
    }
   ]
