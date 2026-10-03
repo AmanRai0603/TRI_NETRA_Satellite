@@ -186,21 +186,66 @@ Lead teams (confirmed by the owner): systems 7 groups, gnc 4, verification 2, qu
 sensing, actuators, avionics, facility and programme 1 each. `ADCS_GAPS.md` holds the technical gaps
 inside them.
 
+### How the groups work together (owner, 3 Oct 2026)
+
+1. **One group, one code module, in C, Rust and the twin.** Each group's generated and hand-written
+   code lives in its own module on every side, so a group's change touches only its module and
+   C = Rust parity is checked group by group. Today guidance, mode management and FDIR sit inside
+   the flight software's step (`adcs_fsw.c`, `fsw.rs`, the twin's `step.m`); they are split out
+   into `adcs_guid` / `guid.rs` / `guidance.m`, `adcs_modes` / `modes.rs` / `modes.m` and
+   `adcs_fdir` / `fdir.rs` / `fdir.m`, and `fsw` keeps the shell: the scheduler, the HAL, the
+   parameter tables, the OBC link. Bit-identical before and after, on every shipped scenario.
+
+   | group | C | Rust | twin |
+   |---|---|---|---|
+   | `env` | `adcs_env.c` (onboard models) | `adcs-pop`, `adcs-sim-core` `orbit`/`field`/`atmos`/`ephem`/`torques`, `fsw-rs` `env.rs` | `+env`, `+orbit` |
+   | `sens` | `adcs_drv.c` (sensor drivers) | `adcs-sim-core` `sensors`/`comp`, `fsw-rs` `drv.rs` | `+devices`, `+comp` |
+   | `nav` | `adcs_est.c` | `est.rs` | `+fsw` `mekf_*`, `triad`, `quest` |
+   | `gdn` | `adcs_guid.c`, `adcs_modes.c` (new) | `guid.rs`, `modes.rs` (new) | `guidance.m`, `modes.m`, `yaw_flip.m`, `boresight_offset.m` |
+   | `ctl` | `adcs_ctl.c`, `adcs_alloc.c` | `ctl.rs`, `alloc.rs` | `control_law.m`, `allocate.m`, `bdot.m`, … |
+   | `fdir` | `adcs_fdir.c` (new) | `fdir.rs` (new) | `fdir.m` (new), `+faults` |
+   | `act` | `adcs_drv.c` (actuator drivers) | `adcs-sim-core` `actuators`, `adcs-design` `empump` | `+devices`, `+plant` actuator parts |
+   | `dyn` | — | `adcs-sim-core` `plant` | `+plant` |
+   | `fsw` | `adcs_fsw.c` (shell), `adcs_params.c`, `adcs_math.c` | `fsw.rs` (shell), `params.rs`, `math.rs`, `hal.rs`, `cabi.rs` | `step.m` (shell), `init.m` |
+   | `design` | — | `adcs-design` | `+sizing`, `+solution` |
+   | `kpi`, `vv` | — | `adcs-sim` `metrics` | `+metrics` |
+
+2. **Stages with stage owners inside the big groups.** `act` (one stage each: magnetorquers,
+   wheels, fluid rings, thrusters, CMG, VSCMG), `design` (one stage per subsystem's sizing, then
+   budgets and selection), `env` (orbit, field, atmosphere, disturbance torques), `kpi`
+   (requirements and achievements, closures) and `hils` (rig integration, rig needs). A stage owner
+   signs the stage; the group lead seals the group.
+
+3. **Boundary rules**, written in `groups.toml` and checked, so every row has exactly one owner:
+
+   | where groups meet | the rule |
+   |---|---|
+   | `dyn` ↔ `act` | the actuator's own physics (torque, momentum, power, faults) is `act`'s; how its momentum enters the body's equations is `dyn`'s |
+   | a subsystem ↔ `design` | a row that models how the device behaves stays in the subsystem; a row that sizes it (how big, how heavy, which part) is `design`'s |
+   | `nav`, `gdn`, `ctl`, `fdir` ↔ `fsw` | the algorithm is its group's; when and how it is called (scheduling, timing, the HAL, the parameter tables) is `fsw`'s |
+   | `kpi` ↔ `vv` | what is required and what was achieved is `kpi`'s; how it was proven (campaigns, coverage, standards) is `vv`'s |
+
+4. **A contract at every boundary.** Each group publishes the outputs other groups read, with their
+   units and ranges (`env`: the disturbance torques; `nav`: the attitude and rate estimate; `gdn`:
+   the reference attitude and rate; `ctl`: the torque command; `act`: the delivered torque and
+   momentum; `design`: the sized parts and budgets). The catalogue of outputs (P9) is these
+   contracts; a change to one lists every group that reads it, and those owners accept it (P12).
+
 ## 5 · Phases
 
 | Phase | What it delivers | Done when | Who |
 |---|---|---|---|
 | **P0 · Foundation** | PR #12 merged to `main`; one version source (`VERSION` 1.0.0, read by Cargo, the app, the wheel and the zips); reproducible builds (`--locked`, toolchain file, actions pinned); the release proves what CI proves (twin and QEMU parity in `prove`, NOT RUN fails); branch protection with one human review; licence decided; committed generated pages and run files moved to CI builds and ledgers | `main` carries the work, CI green; a tagged dry-run release builds from a clean checkout | You confirm the merge and the settings; I do the rest |
-| **P1 · Data model** | Schemas for the structure, node, release, design and results files: contracts, revisions, history, comments, change requests, belief records, archive, format version and upgrades. Generated from the spec (`spec/plan/*.toml`, `tree.json`), with readers in Rust, JavaScript and Python; the group map of §4 as data (`groups.toml`), checked to cover every row exactly once. A seeder writes all 20 structure files and the 734 node shells from the tree | Every group's structure and node shells round-trip through every file type unchanged; an old-format file upgrades | Me |
-| **P2 · Pseudocode v2** | Several outputs, loops that settle, tables, arrays, state carried between ticks, units; the checker in the browser; the translator to Rust (`adcs-core::physics`, the row code) and to MATLAB (the twin); an interpreter | Every relation in `physics.toml` and every algorithm in `fsw/pseudocode/` written in it; translator = interpreter; the hand-written C and Rust flight software reproduce the interpreter on test vectors | Me |
+| **P1 · Data model** | Schemas for the structure, node, release, design and results files: contracts, revisions, history, comments, change requests, belief records, archive, format version and upgrades. Generated from the spec (`spec/plan/*.toml`, `tree.json`), with readers in Rust, JavaScript and Python; the group map of §4 as data (`groups.toml`: groups, stages and stage owners, the boundary rules, the code module of each group), checked to cover every row exactly once and every row to have one owner. A seeder writes all 20 structure files and the 734 node shells from the tree | Every group's structure and node shells round-trip through every file type unchanged; an old-format file upgrades | Me |
+| **P2 · Pseudocode v2** | Guidance, mode management and FDIR split out of the flight software's step into their own modules in C, Rust and the twin, bit-identical before and after (§4, rule 1); several outputs, loops that settle, tables, arrays, state carried between ticks, units; the checker in the browser; the translator to Rust (`adcs-core::physics`, the row code) and to MATLAB (the twin); an interpreter | Every relation in `physics.toml` and every algorithm in `fsw/pseudocode/` written in it; translator = interpreter; the hand-written C and Rust flight software reproduce the interpreter on test vectors | Me |
 | **P3 · Files in the browser** | SQLite inside the offline page; open and save files on Drive; "open elsewhere" marker; conflict-copy detection; history and undo; crash-safe saving; size caps; one component set and bundled fonts, no outside hosts | A node file saves to a Drive folder, reopens, survives a crash and refuses a second editor | Me |
-| **P4 · Group app: structure** | Map, contracts, stages, people, issue node files, every structure action with its impact check, change requests | All 20 groups open; the largest (`act`, 138 and growing) and the smallest (`catalogue`, 8) restructured, a node moved between two groups, with no node file broken | Me |
+| **P4 · Group app: structure** | Map, contracts, stages and stage owners, people, issue node files, every structure action with its impact check, change requests | All 20 groups open; the largest (`act`, 138 and growing) and the smallest (`catalogue`, 8) restructured, a node moved between two groups, with no node file broken | Me |
 | **P5 · Node app** | All steps, uploads, equation helper, picture wizard, results import (paste from Excel), live checks (units, the explanation standard's marks, evidence debt), preview, ready, sign, contract updates | Every node kind (declared, computed, KPI, evidence, closure, interface) filled and previewed | Me |
 | **P6 · Group app: assemble → release** | Assemble, checks across nodes, comments, compare, seal, node files stamped and kept, re-issue, import of today's node-form files; **a computing node with no outside fixture cannot be sealed as confirmed** | Every group can seal 1.0, re-issue a node and seal 1.1 | Me |
 | **P7 · Manuals and usability** | Tours, field help, role guides, print, the journey diagram; a usability session with 2–3 real members; fixes from it | Members complete a node and a release without help | Me + you choose testers |
 | **P8 · All content carried over + Drive** | For **all 20 groups**, every node filled from what exists (§4); the rows a discipline has no node for yet (guidance, CMG, VSCMG, dynamics, onboard navigation, each subsystem's sizing) added from the code that computes them; the `modes` layer split between `gdn` and `fdir`: pseudocode transcribed from the Rust, C and twin, theory from the pseudocode documents and references, results from outside fixtures and the twin (marked as the twin), parts and algorithms from the catalogue, the 166 internal subsystem rows named from the code that computes them; what does not exist marked as draft or gap with its owner team. Drive shared drives set up for the 10 lead teams | All 20 groups' node files filled, each item showing its origin; every team opens its groups from Drive | Me + your Drive admin |
-| **P9 · Rules + developer intake** | SPEC §3.2 and §5.10–5.11, `docs/CHANGING.md` and a new `CONTRIBUTING.md` rewritten; `group verify` / `group merge` → `design.tndb`; the catalogue of outputs; the impact listing across groups; every command in the pipeline table (`explain`, numbered steps, `--dry-run`, what it checks, how to undo, where its code is) | All 20 groups verify and merge into `design.tndb`; the catalogue lists every output | Me; you approve the rule change |
-| **P10 · Developer skill + agents** | Coordinator skill, backend agent (translator first), frontend agent; `group wire / test / build / deliver`; for **every computing row of every group**, the code generated from pseudocode and tested against its results, edge cases and every other group; C = Rust and engine = twin on what changed; WebAssembly for "try it"; generators explained by example | Every group delivers a test app with no hand-written physics in its rows, and today's engine numbers unchanged | Me |
+| **P9 · Rules + developer intake** | SPEC §3.2 and §5.10–5.11, `docs/CHANGING.md` and a new `CONTRIBUTING.md` rewritten; `group verify` / `group merge` → `design.tndb`; the catalogue of outputs as the contract at every group boundary (§4, rule 4); the impact listing across groups; every command in the pipeline table (`explain`, numbered steps, `--dry-run`, what it checks, how to undo, where its code is) | All 20 groups verify and merge into `design.tndb`; the catalogue lists every output | Me; you approve the rule change |
+| **P10 · Developer skill + agents** | Coordinator skill, backend agent (translator first), frontend agent; `group wire / test / build / deliver`; for **every computing row of every group**, the code generated from pseudocode and tested against its results, edge cases and every other group; C = Rust and engine = twin per group module (§4, rule 1); WebAssembly for "try it"; generators explained by example | Every group delivers a test app with no hand-written physics in its rows, and today's engine numbers unchanged | Me |
 | **P11 · Main app on databases** | `design.tndb` from all 20 groups; the app's pages read it through one component set and one plotting module (engine and twin); results as SVG/PDF and a report per run; a run records only its input hash and what differs from the release defaults; sweeps keep only what their figures need; the Python package reads the database; committed pages retired; every stale stored run re-flown | Today's app runs entirely from `design.tndb` with the same numbers; `adcs results stale` finds nothing | Me |
 | **P12 · Test → accept → release, every group** | Delivery notes, acceptance in the group app, `group accept`, `ship`; the 20 groups go through in five waves (below); catalogue refresh after each | All 20 groups delivered; each accepted by its lead, or shipped visibly UNCONFIRMED as the owner decides (§9) | Leads accept; you confirm `main` |
 | **P13 · The whole system end to end** | One case through everything: `ais_3u` and `ais_img_3u` as case CSVs → every row evaluated or shown as not computed → the design loop → campaigns → evidence rows → all 39 closures → the V&V report and traceability, all from `design.tndb` | Both cases run end to end from the databases, with the same numbers as today and every closure answering or blocked by name | Me |
