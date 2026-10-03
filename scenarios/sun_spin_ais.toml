@@ -26,7 +26,7 @@ guidance = { kind = "nadir" }
 id = "sun_spin_entry"
 kind = "time_to_mode"
 mode = "sun_spin"
-limit = 95.0                  # one orbit to acquire (theory doc target), scenario-local
+requirement = "req.sunacq"    # one orbit to acquire, as the case states (95 min)
 [[metrics]]
 id = "sun_angle_last_orbit"
 kind = "sun_angle"

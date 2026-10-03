@@ -1,5 +1,6 @@
 {
  "case": "ais_3u",
+ "confidence": 0.95,
  "dispersions": [
   {
    "frac": 0.1,
@@ -42,6 +43,26 @@
   },
   {
    "kind": "arg_lat_deg"
+  },
+  {
+   "hi": 0.05,
+   "kind": "inertia_products",
+   "lo": -0.05
+  },
+  {
+   "hi": 365.0,
+   "kind": "epoch_days",
+   "lo": 0.0
+  },
+  {
+   "hi": 6.5,
+   "kind": "ltan_h",
+   "lo": 5.5
+  },
+  {
+   "hi": 560,
+   "kind": "alt_km",
+   "lo": 540
   }
  ],
  "duration_s": 11480.0,

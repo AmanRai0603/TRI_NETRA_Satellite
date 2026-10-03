@@ -1,0 +1,162 @@
+{
+ "version": "27.1.0",
+ "files": [
+  "src/ctl.rs",
+  "src/est.rs"
+ ],
+ "total": {
+  "caught": 685,
+  "missed": 15,
+  "unviable": 1
+ },
+ "rate": 0.9785714285714285,
+ "functions": [
+  {
+   "file": "src/ctl.rs",
+   "function": "bdot",
+   "caught": 10
+  },
+  {
+   "file": "src/ctl.rs",
+   "function": "boresight_offset",
+   "caught": 17,
+   "missed": 1
+  },
+  {
+   "file": "src/ctl.rs",
+   "function": "control_law",
+   "caught": 64
+  },
+  {
+   "file": "src/ctl.rs",
+   "function": "gen_bdot",
+   "caught": 16
+  },
+  {
+   "file": "src/ctl.rs",
+   "function": "guidance",
+   "unviable": 1,
+   "caught": 136,
+   "missed": 3
+  },
+  {
+   "file": "src/ctl.rs",
+   "function": "mtq_avanzini",
+   "caught": 32,
+   "missed": 1
+  },
+  {
+   "file": "src/ctl.rs",
+   "function": "mtq_boresight",
+   "caught": 7
+  },
+  {
+   "file": "src/ctl.rs",
+   "function": "mtq_celani",
+   "caught": 16
+  },
+  {
+   "file": "src/ctl.rs",
+   "function": "mtq_err",
+   "caught": 6
+  },
+  {
+   "file": "src/ctl.rs",
+   "function": "mtq_lovera",
+   "caught": 16
+  },
+  {
+   "file": "src/ctl.rs",
+   "function": "mtq_pd",
+   "caught": 13
+  },
+  {
+   "file": "src/ctl.rs",
+   "function": "mtq_tango",
+   "caught": 13,
+   "missed": 1
+  },
+  {
+   "file": "src/ctl.rs",
+   "function": "sat_dipole",
+   "caught": 8,
+   "missed": 3
+  },
+  {
+   "file": "src/ctl.rs",
+   "function": "sun_spin",
+   "caught": 43,
+   "missed": 2
+  },
+  {
+   "file": "src/ctl.rs",
+   "function": "sun_spin_deruiter",
+   "caught": 48
+  },
+  {
+   "file": "src/ctl.rs",
+   "function": "torque2dipole",
+   "caught": 6
+  },
+  {
+   "file": "src/ctl.rs",
+   "function": "yaw_flip",
+   "caught": 12
+  },
+  {
+   "file": "src/est.rs",
+   "function": "Mekf::predict",
+   "caught": 77
+  },
+  {
+   "file": "src/est.rs",
+   "function": "Mekf::quat",
+   "caught": 23
+  },
+  {
+   "file": "src/est.rs",
+   "function": "Mekf::update3",
+   "caught": 61,
+   "missed": 1
+  },
+  {
+   "file": "src/est.rs",
+   "function": "Mekf::vector",
+   "caught": 4
+  },
+  {
+   "file": "src/est.rs",
+   "function": "latency",
+   "caught": 1
+  },
+  {
+   "file": "src/est.rs",
+   "function": "quest",
+   "caught": 30,
+   "missed": 1
+  },
+  {
+   "file": "src/est.rs",
+   "function": "triad",
+   "caught": 26,
+   "missed": 2
+  }
+ ],
+ "missed": [
+  "src/ctl.rs:104:10: replace < with <= in boresight_offset",
+  "src/ctl.rs:166:14: replace < with <= in sat_dipole",
+  "src/ctl.rs:166:14: replace < with == in sat_dipole",
+  "src/ctl.rs:167:20: replace < with <= in sat_dipole",
+  "src/ctl.rs:202:14: replace < with <= in sun_spin",
+  "src/ctl.rs:203:14: replace < with <= in sun_spin",
+  "src/ctl.rs:253:17: replace * with / in mtq_avanzini",
+  "src/ctl.rs:273:32: replace * with / in mtq_tango",
+  "src/ctl.rs:49:18: replace > with >= in guidance",
+  "src/ctl.rs:68:26: replace < with <= in guidance",
+  "src/ctl.rs:73:27: replace < with <= in guidance",
+  "src/est.rs:109:32: replace > with >= in triad",
+  "src/est.rs:110:32: replace > with >= in triad",
+  "src/est.rs:142:31: replace > with >= in quest",
+  "src/est.rs:55:47: replace > with >= in Mekf::update3"
+ ]
+}

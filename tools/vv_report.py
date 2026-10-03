@@ -2,8 +2,8 @@
 """The downloadable V&V report: tools/templates/vv_report.html filled from the filed results,
 written as self-contained HTML (figures inlined) and printed to PDF with headless Chromium.
 
-  python3 tools/vv_report.py            -> results/vv/TRINETRA_ADCS_VV_report.{html,pdf}
-                                           and dist/TRINETRA_ADCS_VV_report.pdf
+  python3 tools/vv_report.py            -> results/vv/TRINETRA_ADCS_VV_report.html
+                                           and dist/TRINETRA_ADCS_VV_report.pdf (the one PDF)
 
 Sources (whatever exists is reported; a missing source is named, never invented):
   matlab_sils/store/pipeline/<case>/     design loop (selection, loop, dispatch, mc, soft_oils)
@@ -13,9 +13,9 @@ Sources (whatever exists is reported; a missing source is named, never invented)
 
 Owner: Agastya. Copyright (c) 2026 Agastya. All rights reserved.
 """
-import base64, csv, datetime, glob, html, io, json, math, pathlib, re, shutil, string, subprocess
+import base64, csv, glob, html, io, json, math, pathlib, re, shutil, string, subprocess
+from common import source_date, write_text, ROOT, case_rows
 
-ROOT = pathlib.Path(__file__).resolve().parents[1]
 MS = ROOT / "matlab_sils"
 ENG = MS / "store" / "results_engine"
 TWIN = MS / "store" / "results"
@@ -28,9 +28,18 @@ C_TWIN, C_ENG, C_REQ, INK, MUTED = "#2a78d6", "#eb6834", "#1f2a44", "#1f2a44", "
 e = html.escape
 
 
-def jl(p):
+MISSING = []
+
+
+def jl(p, optional=False):
+    """A ledger the report reads. A missing one is recorded (and the report refused at the end)
+    unless the report says what it shows without it (optional=True)."""
     p = pathlib.Path(p)
-    return json.loads(p.read_text()) if p.exists() else None
+    if p.exists():
+        return json.loads(p.read_text())
+    if not optional:
+        MISSING.append(str(p.relative_to(ROOT)))
+    return None
 
 
 def fmt(x, d=4):
@@ -82,10 +91,11 @@ def requirements():
     out = []
     for c in CASES:
         rows = []
-        for r in csv.DictReader(open(MS / "cases" / f"{c}.csv")):
-            if r["section"] in ("req", "orbit", "mass", "mission") and r["value"] not in ("", None):
+        crs = case_rows(c)
+        for r in crs:
+            if r["section"] in ("req", "orbit", "mass", "mission") and r["value"]:
                 rows.append([f"<code>{e(r['key'])}</code>", e(r["label"]), e(r["value"]), e(r["unit"]), f'<span class="note">{e(r["note"])}</span>'])
-        title = next((r["value"] for r in csv.DictReader(open(MS / "cases" / f"{c}.csv")) if r["key"] == "meta.title"), c)
+        title = next((r["value"] for r in crs if r["key"] == "meta.title"), c)
         out.append(f"<h3>{e(c)} — {e(title)}</h3>" + table(["key", "quantity", "value", "unit", "source / status"], rows, num=(2,)))
     return "\n".join(out)
 
@@ -328,13 +338,17 @@ def design():
                  fmt(sel["families"][f]["budget"]["mass_kg"], 3), fmt(sel["families"][f]["budget"]["power_W"], 3), fmt(sel["families"][f]["budget"]["volume_L"], 3),
                  act(f), e("; ".join(sel["families"][f]["gaps"])) or "—"] for f in order]
         out.append(f"<p>Every configuration, ours and the benchmarks, flown and scored the same way. Selection rule (node <code>select</code>): "
-                   f"{e(sel.get('rule', 'simplest feasible solution'))}. Selected: <b><code>{e(sel['selected'])}</code></b>; the benchmarks "
+                   f"{e(sel.get('rule', 'least mass among feasible solution families'))}. Selected: <b><code>{e(sel['selected'])}</code></b>; the benchmarks "
                    f"ranked by the same rule give <b><code>{e(sel.get('benchmark') or '—')}</code></b> ({e(sel.get('benchmark_status', ''))}).</p>" +
                    table(["family", "role", "rank", "feasible", "mass [kg]", "steady power [W]", "volume [L]", "momentum / thrust actuators", "gaps"], rows, num=(2, 4, 5, 6)))
         rows = [[e(m), f"<code>{e(r['option'])}</code>", verdict(r["feasible"]), f"{fmt(r['objective'])} {e(r['objective_id'])}",
                  e(", ".join(f"{k}={v}" for k, v in (r["algorithms"] or {}).items() if v))] for m, r in F["modes"].items() if r]
         out.append("<p>Selected method per mission mode:</p>" + table(["mode", "option", "feasible", "objective (worst seed)", "algorithms"], rows))
         for r in sel.get("robustness", []):
+            if "fault_gaps" in r:   # the redundancy step after node faults
+                out.append("<div class='find'><b>Redundancy (single-fault feedback) after iteration " + str(r["after_iteration"]) + ":</b> " +
+                           e("; ".join(r["fault_gaps"]) + ". " + " ".join(r["changes"] + r["blocked"])) + "</div>")
+                continue
             out.append("<div class='find'><b>Robustness (Monte Carlo feedback) after iteration " + str(r["after_iteration"]) + ":</b> " +
                        e(", ".join(f"{k} passed in {100 * v:.0f} % of dispersed runs" for k, v in r["mc_failing"].items()) + ". " + " ".join(r["changes"] + r["blocked"])) + "</div>")
         out.append(family_missions(c, sel))
@@ -611,32 +625,39 @@ def main():
     eng = re.search(r'ENGINE: &str = "([^"]+)"', (ROOT / "engine" / "crates" / "adcs-sim" / "src" / "lib.rs").read_text())
     summ, cards = summary()
     doc = tpl.substitute(
-        docno=f"TRN-ADCS-VV-{datetime.date.today():%Y%m%d}", date=f"{datetime.datetime.now(datetime.timezone.utc):%Y-%m-%d %H:%M} UTC", commit=e(commit),
+        docno=f"TRN-ADCS-VV-{source_date():%Y%m%d}", date=f"{source_date():%Y-%m-%d %H:%M} UTC", commit=e(commit),
         engine=e(eng.group(1) if eng else "adcs-engine-rs"), fsw="trinetra-fsw-c/1.0.0 and trinetra-fsw-rs (C99 and Rust no_std, adcs-fswcfg/1)",
         cases=e(", ".join(CASES)), verdicts=cards, summary=summ, fig_flow=svg_inline("docs/figures/flow_design_to_hils.svg"),
         fig_arch=svg_inline("docs/figures/architecture_languages.svg"), nodes=nodes(), catalogue=catalogue(), literature=literature(), requirements=requirements(), design=design(), sils=sils(), verification=verification(),
         campaigns=campaigns(), parity=parity(), oils=oils(), vobc=vobc(), open=open_items())
+    if MISSING:
+        raise SystemExit("vv_report: refused, the evidence these sections read is missing:\n  " + "\n  ".join(sorted(set(MISSING)))
+                         + "\n(run the command that writes each: python3 tools/trinetra.py why <file>)")
     h = OUT / "TRINETRA_ADCS_VV_report.html"
-    h.write_text(doc)
+    write_text(h, doc)
     # the published page: the same report without the document wrapper (the artifact adds it),
     # linking the full results index (results.html) that sits beside it with its figures
     title = re.search(r"<title>.*?</title>", doc, re.S).group(0)
     style = re.search(r"<style>.*?</style>", doc, re.S).group(0)
     body = re.search(r"<body>(.*)</body>", doc, re.S).group(1)
     nav = ('<nav class="wrap" style="padding-block:10px;font-size:9.5pt;color:#5b6477">Full results with every figure: '
-           '<a href="results.html">results page</a> · PDF and code: <code>dist/TRINETRA_ADCS_VV_report.pdf</code> in the repository</nav>')
-    (OUT / "vv_artifact.html").write_text(title + "\n" + style.replace("body { margin: 0;", "body { margin: 0; min-height: 100%;") + "\n" + nav + body)
+           '<a href="results.html">results page</a> · PDF: <code>dist/TRINETRA_ADCS_VV_report.pdf</code> in the repository and on every release</nav>')
+    write_text(OUT / "vv_artifact.html", title + "\n" + style.replace("body { margin: 0;", "body { margin: 0; min-height: 100%;") + "\n" + nav + body)
     chrome = next(iter(glob.glob("/opt/pw-browsers/chromium*/chrome-linux/chrome")), None) or shutil.which("chromium") or shutil.which("google-chrome")
-    pdf = OUT / "TRINETRA_ADCS_VV_report.pdf"
+    pdf = ROOT / "dist" / "TRINETRA_ADCS_VV_report.pdf"   # the one copy: published with every release
+    pdf.unlink(missing_ok=True)          # an old PDF is never passed off as this report's
+    pdf.parent.mkdir(parents=True, exist_ok=True)
+    rc = None
     if chrome:
-        subprocess.run([chrome, "--headless", "--no-sandbox", "--disable-gpu", "--no-pdf-header-footer", f"--print-to-pdf={pdf}", h.as_uri()],
-                       capture_output=True, timeout=300)
+        rc = subprocess.run([chrome, "--headless", "--no-sandbox", "--disable-gpu", "--no-pdf-header-footer", f"--print-to-pdf={pdf}", h.as_uri()],
+                            capture_output=True, timeout=300).returncode
+    if chrome and rc != 0:
+        raise SystemExit(f"vv_report: Chromium exited {rc} printing the PDF; no PDF was kept")
     if pdf.exists():
-        (ROOT / "dist").mkdir(exist_ok=True)
-        shutil.copy(pdf, ROOT / "dist" / "TRINETRA_ADCS_VV_report.pdf")
-        print(f"wrote {h.relative_to(ROOT)}, {pdf.relative_to(ROOT)} ({pdf.stat().st_size / 1e6:.1f} MB), dist/TRINETRA_ADCS_VV_report.pdf")
+        print(f"wrote {h.relative_to(ROOT)}, {pdf.relative_to(ROOT)} ({pdf.stat().st_size / 1e6:.1f} MB)")
     else:
-        print(f"wrote {h.relative_to(ROOT)} (no Chromium for the PDF)")
+        raise SystemExit(f"vv_report: wrote {h.relative_to(ROOT)} but no PDF: " +
+                         ("Chromium did not print it" if chrome else "it needs Chromium or Google Chrome to print the PDF"))
 
 
 if __name__ == "__main__":

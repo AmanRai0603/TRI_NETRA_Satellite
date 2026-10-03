@@ -127,7 +127,7 @@ A blank is not an error: nothing is guessed, and the report says what it blocks.
 
 - checks the file (§8.3.4) and refuses it on any format error;
 - converts every value to SI, keyed by node id;
-- writes the case in VLEO's case format, extended with `unstated`, `assumed`, `range` and `level`, into the **case store**: `~/.adcs/store/cases/<case id>/<sha12>.csv` for the CLI, the workbench and the MATLAB tool (the same layout as the results store, §13.5.4), `cases/` in the repository for the reference cases, and the portal's artefact directory, indexed by tenant and project. A case is stored by the hash of its CSV, and `--case <id>` resolves through the store's index, never through compiled code (F16). Case ids are unique within a tenant;
+- writes the case in the case format, with `unstated`, `assumed`, `range` and `level`, into the **case store**: `~/.adcs/store/cases/<case id>/<sha12>.csv` for the CLI, the workbench and the MATLAB tool (the same layout as the results store, §13.5.4), `cases/` in the repository for the reference cases, and the portal's artefact directory, indexed by tenant and project. A case is stored by the hash of its CSV, and `--case <id>` resolves through the store's index, never through compiled code (F16). Case ids are unique within a tenant;
 - hashes the case.
 
 The importer maps tree ids to node ids, and reads sheet reference values for `default` inputs, through `adcs-modules`' generated tables.

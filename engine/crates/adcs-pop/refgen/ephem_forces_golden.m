@@ -1,6 +1,6 @@
 % EPHEM_FORCES_GOLDEN  Inputs + MATLAB re-evaluation for the golden POP dataset
 %   force_data/16U_dria_dtm2020_srp-boxwing_erp-boxwing (TEMPLATE_16U: epoch
-%   2007-01-01, 300 km / 96.5 deg, sgeom.vleo16u, ram attitude, srp boxwing,
+%   2007-01-01, 300 km / 96.5 deg, sgeom.sat16u, ram attitude, srp boxwing,
 %   erp boxwing 8x16, relativity {'schwarzschild'}, thirdbody battin).
 %   For every row of state.csv this rebuilds the op.accel context with the SAME
 %   world (op.buildWorld, drag off -- it is not ported here) and prints what the
@@ -22,7 +22,7 @@ rd = @(f) dlmread(fullfile(gdir, f), ',', 1, 0);
 S  = rd('state.csv');  TB = rd('thirdbody.csv');  SR = rd('srp.csv');
 ER = rd('erp.csv');    RL = rd('relativity.csv');
 
-SC16 = sgeom.vleo16u();
+SC16 = sgeom.sat16u();
 SC   = struct('mass', SC16.mass, 'Aref', 0.20*0.20, 'Cd', 2.2, 'Cr', 1.3, ...
               'facets', SC16.facets, 'R_bi', eye(3));
 cfg = config.defaultConfig();

@@ -10,6 +10,8 @@ function rec = derive(rec)
 %   rks      rate stability: change of the pointing-error vector over
 %            1 s (an exposure) divided by 1 s [deg/s]
 %   rate     |w| [deg/s];  rate_err |w - w_ref| [deg/s]
+%   e_vec, e_ake  the small-angle performance and knowledge error vectors [rad, body] the ECSS
+%            indices (asils.metrics.ecss) are taken on
 %   sun_angle angle between the power face (product sun_axis_body, default
 %            -Z_B) and the Sun, sunlit samples only [deg]; sun_angle_geo the
 %            same at every sample (eclipse included) for time-to metrics
@@ -19,7 +21,7 @@ function rec = derive(rec)
     gd = rec.P.fsw.guidance;
     MT = asils.fsw.modes(); kinds = MT.guidance;           % guidance law of each controller state ('' = none)
     gd.sun_axis = rec.P.dev.sun_axis; gd.roll_axis = bs;
-    rec.q_ref_true = nan(4,n); rec.e_vec = nan(3,n);
+    rec.q_ref_true = nan(4,n); rec.e_vec = nan(3,n); rec.e_ake = nan(3,n);
     rec.ape_3ax = nan(1,n); rec.ape_los = nan(1,n); rec.ake_3ax = nan(1,n); rec.ake_los = nan(1,n);
     gd.flip = false; flip_on = isfield(rec.P.fsw, 'gd_yaw_flip') && rec.P.fsw.gd_yaw_flip;
     for j = 1:n
@@ -39,6 +41,8 @@ function rec = derive(rec)
             rec.ape_los(j) = acosd(max(-1, min(1, b_true'*b_ref)));
         end
         if all(isfinite(qe))
+            dk = asils.quat.mult(asils.quat.conj(qe), q); if dk(4) < 0, dk = -dk; end
+            rec.e_ake(:,j) = 2*dk(1:3);
             rec.ake_3ax(j) = asils.quat.angle(q, qe)*180/pi;
             b_est = asils.quat.dcm(qe)'*bs;
             rec.ake_los(j) = acosd(max(-1, min(1, b_true'*b_est)));
@@ -50,9 +54,40 @@ function rec = derive(rec)
     rec.spin_z = rec.w(3,:)*180/pi;
     rec.rate_err = sqrt(sum((rec.w - rec.w_ref).^2, 1))*180/pi;
     lag = max(1, round(1/max(rec.P.sim.record_dt, 1e-9)));
+    % the power budget (= the engine's metrics::derive): arrays from the case's power system, the
+    % battery taking what they give less the platform and the ADCS, up to full; empty is empty
+    rec.P_gen = nan(1, n); rec.soc = nan(1, n);
+    ps = power_system_(rec.P.case.v);
+    if ~isempty(ps)
+        N = [1 -1 0 0 0 0; 0 0 1 -1 0 0; 0 0 0 0 1 -1];
+        e = ps.soc0*ps.batt_wh;
+        for j = 1:n
+            s = rec.sun_body(:, j); s = s/max(norm(s), 1e-30);
+            rec.P_gen(j) = 1361*min(max(rec.nu(j), 0), 1)*ps.eff*(ps.area*max(N'*s, 0));
+            if j > 1
+                load = ps.load_w + rec.P_mtq(j) + rec.P_rw(j) + p_rcs_(rec, j);
+                e = min(max(e + (rec.P_gen(j) - load)*(rec.t(j) - rec.t(j-1))/3600, 0), ps.batt_wh);
+            end
+            rec.soc(j) = e/ps.batt_wh;
+        end
+    end
     rec.rks = nan(1, n);
     if n > lag
         d = rec.e_vec(:, lag+1:end) - rec.e_vec(:, 1:end-lag);
         rec.rks(lag+1:end) = sqrt(sum(d.^2, 1))*180/pi/(lag*rec.P.sim.record_dt);
     end
+end
+
+function ps = power_system_(v)
+% the case's power system (section power), all or none (= metrics::PowerSystem::from)
+    k = {'power_area_px', 'power_area_mx', 'power_area_py', 'power_area_my', 'power_area_pz', 'power_area_mz', ...
+         'power_eff', 'power_batt_wh', 'power_load_w', 'power_soc0'};
+    ps = [];
+    if ~all(cellfun(@(x) isfield(v, x) && isfinite(v.(x)), k)), return, end
+    ps = struct('area', cellfun(@(x) v.(x), k(1:6)), 'eff', v.power_eff, 'batt_wh', v.power_batt_wh, ...
+                'load_w', v.power_load_w, 'soc0', v.power_soc0);
+end
+
+function p = p_rcs_(rec, j)
+    p = 0; if isfield(rec, 'P_rcs') && isfinite(rec.P_rcs(j)), p = rec.P_rcs(j); end
 end

@@ -1,0 +1,20 @@
+[package]
+name = "trinetra-app"
+description = "TRI-NETRA ADCS -- the desktop app: pick a case and a scenario, fly it on the engine, read the verdicts"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+publish.workspace = true
+
+[[bin]]
+name = "trinetra-app"
+path = "src/main.rs"
+
+[dependencies]
+adcs-sim = { path = "../adcs-sim" }
+adcs-fsw-abi = { path = "../adcs-fsw-abi" }
+serde_json = "1"
+
+# the Windows program's icon and version information (compiled only for Windows targets)
+[build-dependencies]
+embed-resource = "3"

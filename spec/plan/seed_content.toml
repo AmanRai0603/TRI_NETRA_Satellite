@@ -15,7 +15,7 @@
 # the rows run as UNCONFIRMED until an engineer attests them in a node form.
 #
 # THE THREAD. One reference case, followed end to end before anything else is
-# widened (VLEO RUNBOOK: "one node, all the way through"): the IDMAS v2 §13
+# widened ("one node, all the way through"): the IDMAS v2 §13
 # case, a 3U CubeSat in a 500 km sun-synchronous orbit with three panel rings
 # plus coils. Orbit -> environment -> disturbances -> coil sizing -> ring
 # sizing -> settling -> the APE budget. The RCS rows are included because
@@ -23,7 +23,7 @@
 #
 # RULES THIS FILE KEEPS (tools/validate_plan.py checks them):
 # * Values are in the declared unit. Test-vector (fixture) `expect` and
-#   `inputs` are SI, keyed by binding, exactly as fixtures.toml in VLEO.
+#   `inputs` are SI, keyed by binding, exactly as in fixtures.toml.
 # * Every test-vector value is TRANSCRIBED from a page of a cited source. None
 #   was computed by the author of this file: a number computed by an assistant
 #   is `agent-generated`, and the gate refuses it. Where a test vector is
@@ -41,7 +41,7 @@
 #   table) is compiled into adcs-core from its bundle; `bundles` makes the run
 #   refuse when that bundle is not the verified one.
 # * The inputs of a row are exactly its VE edges in plan/tree.json.
-# * `tier` sets the validation ceiling (VLEO credibility.rs): A for declared
+# * `tier` sets the validation ceiling (credibility.rs): A for declared
 #   rows, B for computed rows whose test vectors are independent-tool.
 # * A row is named by its tree id (plan/tree.json).
 #
@@ -355,7 +355,7 @@ question = "What is the largest principal moment of inertia?"
 expression = "I_max = 0.042"
 source = "adcs_ref_c1"
 symbol = "I_max"
-type = "MomentOfInertia"          # (NEW) quantity; VLEO declared inertia as Ratio
+type = "MomentOfInertia"          # (NEW) quantity; inertia is not a Ratio
 unit = "KilogramSquareMetre"      # (NEW)
 value = 0.042
 lower = 0.0001
@@ -738,7 +738,7 @@ reason_upper = "above 2 the loop is so overdamped that the settling relation use
 
 # ----------------------------------------- declared: written requirements ---
 # On the tree these are "target — required" rows. Written, they follow the
-# VLEO convention: kind = "declared" with a top-level `sense` (gate check 7d).
+# Convention: kind = "declared" with a top-level `sense` (gate check 7d).
 
 [[row]]
 tree_id = "p1k_0"
@@ -1055,7 +1055,7 @@ lower = 0.0
 upper = 4.0e6
 reason_lower = "a torque magnitude is not negative"
 reason_upper = "above 4 N.m the sum of four bounded terms is exceeded"
-inputs = [["tau_a", "gd_1"], ["tau_gg", "gd_0"], ["tau_s", "gd_2"], ["tau_m", "gd_3"]]   # VLEO gnc::total_disturbance_torque order
+inputs = [["tau_a", "gd_1"], ["tau_gg", "gd_0"], ["tau_s", "gd_2"], ["tau_m", "gd_3"]]   # gnc::total_disturbance_torque order
 steps = ["sum the four worst-case torques linearly"]
 why = "SMAD sizes against the linear sum of worst cases, because the torques are not independent random variables: they share the attitude and the orbit position. The sum is conservative."
 assumptions = [["all four peak together", "a campaign shows they do not, when the coils are oversized by the difference"]]
@@ -1117,7 +1117,7 @@ reason_lower = "a dipole magnitude is not negative"
 reason_upper = "above 1000 A.m2 no coil or rod in the catalogue produces it"
 inputs = [["h", "gd_5"], ["b", "m3_0"], ["td", "m2_5"]]
 steps = ["divide the stored momentum by the field and the available dump interval"]
-why = "The same relation VLEO_SIMULATOR already carries (gnc_magnetorquer_dipole_required): momentum removed equals average torque times time, and the coil torque is at most m B."
+why = "The base relation gnc::magnetorquer_dipole_required: momentum removed equals average torque times time, and the coil torque is at most m B."
 
 [[row]]
 tree_id = "gm_3"

@@ -1,5 +1,5 @@
 {
- "_source": "ADCS platform plan, tools/build_tree.py — the ADCS equivalent of VLEO_SIMULATOR cd06/tree.json",
+ "_source": "ADCS platform plan, tools/build_tree.py — the ADCS tree",
  "_note": "Layers 1 and 2 are named in full. Layer 3 is shape only, as in CD-06: interface, one required and one achieved row per layer-2 target, and the rest to be named. The 5th field of each row names the configuration families it is in play for; empty means all.",
  "layer3_shape": [
   {

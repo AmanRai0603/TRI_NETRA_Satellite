@@ -29,6 +29,12 @@ function [F, out] = step(F, z, t, P, D) %#ok<INUSD>
     %% 1 onboard orbit ----------------------------------------------------
     if z.gps_ok
         F.r = z.r_gps; F.v = z.v_gps; F.t_fix = t;
+        L = G.gps_latency;                              % the fix is the state L seconds ago: carried forward
+        if L > 0
+            a0 = orbit_acc_(F.r, P.mu);
+            F.r = F.r + F.v*L + 0.5*a0*L^2;
+            F.v = F.v + 0.5*(a0 + orbit_acc_(F.r, P.mu))*L;
+        end
     elseif ~isempty(F.r)                                % two-body + J2 by velocity Verlet (02)
         a0 = orbit_acc_(F.r, P.mu);
         F.r = F.r + F.v*dt + 0.5*a0*dt^2;
@@ -180,7 +186,7 @@ function [F, out] = step(F, z, t, P, D) %#ok<INUSD>
             if F.nc > 0 && (isempty(F.rcs_left) || mod(t + 1e-9, Tc) < dt - 1e-9)
                 F.rcs_left = zeros(1, F.nc);
                 if norm(F.w_est) > G.rcsd.deadband_deg_s*pi/180
-                    F.tau_req = -P.sc.I*F.w_est/G.rcsd.T_damp_s;
+                    F.tau_req = -P.fsw.J*F.w_est/G.rcsd.T_damp_s;
                     [dc, ~] = asils.fsw.rcs_duty(F.tau_req, dev.rcs, Tc);
                     F.rcs_left = dc*Tc;
                 end
@@ -214,7 +220,7 @@ function [F, out] = step(F, z, t, P, D) %#ok<INUSD>
                     F = mtq_law_(F, G, P);
                     if bitand(G.mtq_gg_ff, 1 + strcmp(F.mode, 'nadir_mtq'))      % bit 0 Sun state, bit 1 nadir state
                         rb = asils.quat.dcm(F.K.q)*F.r;
-                        F.tau_req = F.tau_req - 3*P.mu/norm(rb)^5*cross(rb, P.sc.I*rb);
+                        F.tau_req = F.tau_req - 3*P.mu/norm(rb)^5*cross(rb, P.fsw.J*rb);
                     end
                     m_body = asils.fsw.torque2dipole(F.tau_req, z.B, dev.mtq.m_max) - G.m_res_est;
                 end
@@ -243,19 +249,41 @@ function [F, out] = step(F, z, t, P, D) %#ok<INUSD>
                     F.rot_failed(newly) = true;
                     F.log(end+1).t = t; F.log(end).mode = sprintf('FDIR: rotor %d isolated', find(newly, 1));
                 end
+                % windowed: the momentum each fixed rotor was commanded to change over fdir_win_s
+                % against the change measured; catches a rotor that does not follow the small
+                % commands of fine pointing (fsw/pseudocode/07)
+                if ~F.fw_on || t - F.fw_last > 1.5*dt
+                    F.fw_E = zeros(nr, 1); F.fw_h0 = z.h(:); F.fw_t0 = t; F.fw_on = true;
+                else
+                    F.fw_E = F.fw_E + max(-0.8*tmax, min(0.8*tmax, F.cmd_r_prev(:)))*dt;
+                    if t - F.fw_t0 >= G.fdir_win_s - 1e-9
+                        hmax = dev.mex.h_max(:); E = F.fw_E; Mh = z.h(:) - F.fw_h0;
+                        judged = strcmp(dev.mex.kind(:), 'fmr') & F.M.gi(:) == 0 & ~F.rot_failed(:) & abs(E) > G.fdir_h_frac*hmax ...
+                                 & abs(z.h(:)) < 0.9*hmax & abs(F.fw_h0) < 0.9*hmax;
+                        miss = abs(Mh - E) > 0.5*abs(E);
+                        F.fw_bad(judged) = (F.fw_bad(judged) + 1).*miss(judged);
+                        newly = judged & F.fw_bad >= 2;            % FDIR_WIN_BAD
+                        if any(newly)
+                            F.rot_failed(newly) = true;
+                            F.log(end+1).t = t; F.log(end).mode = sprintf('FDIR: rotor %d isolated (momentum window)', find(newly, 1));
+                        end
+                        F.fw_E = zeros(nr, 1); F.fw_h0 = z.h(:); F.fw_t0 = t;
+                    end
+                end
+                F.fw_last = t;
             end
             % ---- control law at the control rate
             if acq && t - F.last_ctrl >= G.rw.dt - 1e-9
-                F.tau_req = sun_acq_law_(F, z, dev.sun_axis, G.sa, P.sc.I, Hdev);
+                F.tau_req = sun_acq_law_(F, z, dev.sun_axis, G.sa, P.fsw.J, Hdev);
                 F.last_ctrl = t;
             elseif F.ad_ok && ~isempty(F.r) && t - F.last_ctrl >= G.rw.dt - 1e-9
                 [qr, wr, wdr] = asils.fsw.guidance(kind, F.r, F.v, t, F.gd);
                 F.q_ref = qr; F.w_ref = wr;
-                [F.tau_req, F.capturing] = capture_law_(F, G, P.sc.I, Hdev);
+                [F.tau_req, F.capturing] = capture_law_(F, G, P.fsw.J, Hdev);
                 if F.capturing
                     F.I_q = zeros(3,1);            % no integral windup during the manoeuvre
                 else
-                    [F.tau_req, F.I_q] = asils.fsw.control_law(F.K.q, F.w_est, F.q_ref, F.w_ref, F.I_q, G.rw.dt, G.rw, P.sc.I, Hdev, wdr);
+                    [F.tau_req, F.I_q] = asils.fsw.control_law(F.K.q, F.w_est, F.q_ref, F.w_ref, F.I_q, G.rw.dt, G.rw, P.fsw.J, Hdev, wdr);
                 end
                 F.last_ctrl = t;
             end
@@ -321,7 +349,7 @@ function [F, out] = step(F, z, t, P, D) %#ok<INUSD>
                         m0 = asils.fsw.gen_bdot(Bav, bd, wd, G.ss.k_l1);
                     else                              % L2: ctrl.sunSpin (He et al. 2023)
                         ecl = ~z.sun_ok && strcmp(G.ss.eclipse, 'E1');
-                        [m0, F.V_ss] = asils.fsw.sun_spin(Bav, F.w_est, F.s_prop, ecl || isempty(F.s_prop), P.sc.I, G.ss);
+                        [m0, F.V_ss] = asils.fsw.sun_spin(Bav, F.w_est, F.s_prop, ecl || isempty(F.s_prop), P.fsw.J, G.ss);
                     end
                     F.B1raw = Bav;
                     if any(m0)
@@ -393,7 +421,7 @@ function F = mtq_law_(F, G, P)
             F.tau_req = asils.fsw.mtq_pd(F.K.q, F.w_est, F.q_ref, F.w_ref, g);
         case {'mtq_lqr', 'mtq_smc'}
             g.law = strrep(g.law, 'mtq_', '');
-            [F.tau_req, F.I_q] = asils.fsw.control_law(F.K.q, F.w_est, F.q_ref, F.w_ref, F.I_q, G.mtq_period, g, P.sc.I, zeros(3,1));
+            [F.tau_req, F.I_q] = asils.fsw.control_law(F.K.q, F.w_est, F.q_ref, F.w_ref, F.I_q, G.mtq_period, g, P.fsw.J, zeros(3,1));
         case 'mtq_rate_damp'     % damp the rate relative to LVLH only; gravity gradient holds pitch/roll
             qe = asils.quat.mult(asils.quat.conj(F.q_ref), F.K.q);
             F.tau_req = -g.Kd.*(F.w_est - asils.quat.dcm(qe)*F.w_ref);

@@ -21,7 +21,7 @@ req,req.faults,Faults tolerated,Count,,,,,
 req,req.recover,Recovery time after a single fault,Minute,,,,,
 req,req.hsat,Momentum saturation margin,One,,,,,"fraction of the stored momentum left unused, 0 to 1"
 req,req.dump,Momentum dump interval,Hour,,,,,
-req,req.mass,ADCS mass,Kilogram,1.6,,,,"raised by the user (Agastya): 1.5-1.7 kg with 1U of the 3U for the ADCS; 1.6 keeps 0.1 kg to the 1.7 ceiling"
+req,req.mass,ADCS mass,Kilogram,1.85,,,,"raised by the user (Agastya) to 1.85 kg so the imaging ADCS can carry a spare fluid ring against a single fault (the design loop closed at 1.806 kg on 1.8); the stated ceiling is 2.0 kg"
 req,req.pavg,ADCS orbit-average power,Watt,2.0,,,,UNCONFIRMED · plan reference
 req,req.ppk,ADCS peak power,Watt,4.0,,,,UNCONFIRMED · plan reference
 req,req.vol,ADCS volume,Litre,1.0,,,,"raised by the user (Agastya): 1U of the 3U is the ADCS"
@@ -51,10 +51,22 @@ surface,surface.cd,Drag coefficient,One,2.2,,,,UNCONFIRMED · adcs_ref_c1
 magnetic,magnetic.dres,Residual dipole,AmpereSquareMetre,0.01,,,,UNCONFIRMED · adcs_ref_c1
 magnetic,magnetic.dunc,Residual dipole uncertainty,AmpereSquareMetre,,,,,
 flex,flex.fmode,First flexible mode frequency,Hertz,,,,,
-flex,flex.mpart,Modal participation,One,,,,,"fraction, 0 to 1"
+flex,flex.mpart,Modal participation,One,,,,,"the share of the coupled axis's inertia that takes part in the mode, 0 to 1 (below 1)"
+flex,flex.zeta,Modal damping ratio,One,,,,,"structural damping of the mode, 0 to 1 (0.005 is typical of panels)"
+flex,flex.axis,Axis the mode couples to,Count,,,,,"1, 2 or 3: the body axis X_B, Y_B or Z_B the mode bends about"
 resources,resources.palloc,Power allocated to the ADCS,Watt,,,,,
 resources,resources.malloc,Mass allocated to the ADCS,Kilogram,,,,,
 resources,resources.valloc,Volume allocated to the ADCS,Litre,,,,,
 resources,resources.vbus,Bus voltage,Volt,,,,,
 resources,resources.nif,OBC data interfaces offered,Count,,,,,OBC data interfaces offered to the ADCS
+power,power.area_px,Cell area on +X_B,SquareMetre,0.0,,,,"UNCONFIRMED · plan reference: no cells on the end faces"
+power,power.area_mx,Cell area on -X_B,SquareMetre,0.0,,,,"UNCONFIRMED · plan reference: no cells on the end faces"
+power,power.area_py,Cell area on +Y_B,SquareMetre,0.029,,,,"UNCONFIRMED · plan reference: body-mounted cells on the four long faces of a 3U, 34 x 10 cm at 85 % packing"
+power,power.area_my,Cell area on -Y_B,SquareMetre,0.029,,,,"UNCONFIRMED · plan reference: as +Y_B"
+power,power.area_pz,Cell area on +Z_B,SquareMetre,0.029,,,,"UNCONFIRMED · plan reference: as +Y_B"
+power,power.area_mz,Cell area on -Z_B,SquareMetre,0.029,,,,"UNCONFIRMED · plan reference: as +Y_B"
+power,power.eff,Array-to-bus efficiency,One,0.25,,,,"UNCONFIRMED · plan reference: triple-junction cells (~28 %) through the power conversion (~90 %)"
+power,power.batt_wh,Battery capacity,WattHour,30.0,,,,"UNCONFIRMED · plan reference: a typical 3U battery pack"
+power,power.load_w,Platform load without the ADCS,Watt,2.5,,,,"UNCONFIRMED · plan reference: OBC, power system and radio standby"
+power,power.soc0,Battery state of charge at the start,One,1.0,,,,"UNCONFIRMED · plan reference: launched charged"
 pointing,pointing.et,Thermal distortion contribution,Degree,,,,,

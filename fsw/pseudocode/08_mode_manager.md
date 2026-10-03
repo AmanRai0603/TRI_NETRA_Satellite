@@ -18,19 +18,43 @@
 step(now):
     t = (now − start)/1e9;  jd = jd0 + t/86400
     read sensors through the drivers (09_drivers.md)
-    1 onboard orbit (02)
+    sensor health (below)
+    1 onboard orbit (02); a GNSS fix with |r| < 0.9 R_E is dropped and the orbit propagated
     2 estimation (03): field reference at the coil-cycle start, MEKF init / predict / updates
        (skipped in DETUMBLE, DETUMBLE_RCS, SPINUP, SUN_SPIN), rate filter ω_f
     3 mode manager:
          commanded schedule / telecommands: enter(mode)
-         DETUMBLE*, auto_next set: |ω_meas| < detumble_exit held detumble_hold_s -> enter(auto_next)
+         safe mode (below)
+         DETUMBLE*, auto_next set, no stale sensor: |ω_meas| < detumble_exit held detumble_hold_s -> enter(auto_next)
          SPINUP / SUN_SPIN: spin guards (06)
          SPINUP / SUN_SPIN / SUN_ACQ_ROTOR: propagate the Sun (06)
          SUN_ACQ_ROTOR, auto_next set: Sun valid, angle(sun, a) < 10° and estimate ready, held 60 s -> enter
     4 control for the state (05, 06, 07); coil duty cycle; thrusters; allocation
-    write actuator commands through the drivers; hold the dipole between cycles
+       a state outside the table: coils off
+       field older than 2 coil cycles (magnetometer seen before): coils off
+    write actuator commands through the drivers (a non-finite command drives nothing); hold the dipole between cycles
 enter(mode): mode = mode; t_mode = t; hold = 0; ho = 0; ho_t = 0; I_q = 0; (SPINUP: reset the G_σ window); log the event
 ```
+
+## Sensor health and safe mode
+
+```
+after the drivers:
+    magnetometer valid and field reference known: |B| outside [0.25, 4] |B_ref| -> not valid (stuck or dead)
+    valid:  B_good = B; mag_age = 0          else: B = B_good (held); mag_age += dt
+    gyro fitted and not valid: gyro_age += dt  else gyro_age = 0 (a held rate is used meanwhile)
+only a valid field feeds the MEKF, TRIAD and the coil-cycle field sums; a cycle with no valid
+field commands no dipole and forgets the field derivative across the gap; B-dot uses the
+field-derivative law while the gyro is not fresh.
+safe mode, every tick:
+    faults.MAG_STALE  = magnetometer seen and mag_age > 60 s
+    faults.GYRO_STALE = gyro_age > 60 s
+    either set: enter(DETUMBLE) unless in it; the auto exit from DETUMBLE waits for both clear
+```
+
+A state the fitted hardware cannot fly is refused at init (start, next, schedule: -13) and by
+telecommand (-3): fine states need rotors or thrusters, `SUN_ACQ_ROTOR` rotors,
+`DETUMBLE_RCS` thrusters.
 
 ## Fine states in one pass (`SUN_FINE`, `NADIR_FINE`, `TARGET_FINE`, `SLEW_FINE`, `SUN_ACQ_ROTOR`)
 

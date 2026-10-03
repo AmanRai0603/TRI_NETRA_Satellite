@@ -27,8 +27,8 @@ SW     = struct('F107',90,'F107a',90,'ap',8,'Kp',2);
 % =============================================================================
 K = de440.constants();
 
-% a REALISTIC 16U: real geometry (sgeom.vleo16u), real-ish mass, VLEO altitude
-S16 = sgeom.vleo16u();
+% a REALISTIC 16U: real geometry (sgeom.sat16u), real-ish mass, low LEO altitude
+S16 = sgeom.sat16u();
 plate = srp.facet('body',[1;0;0],0.04,0.2,0.3,0.5,[0;0;0],false);
 
 base = struct();
@@ -70,7 +70,7 @@ T = {
 };
 
 fprintf('\n============== SWEEP KNOB MATRIX ==============\n');
-fprintf('  base: 16U (sgeom.vleo16u, REAL geometry), %d km, drag=dria/dtm2020,\n', ALT_KM);
+fprintf('  base: 16U (sgeom.sat16u, REAL geometry), %d km, drag=dria/dtm2020,\n', ALT_KM);
 fprintf('        srp=boxwing, erp=boxwing, attitude=ram\n');
 fprintf('  "moves" is measured on the NON-GRAVITATIONAL sum: gravity is 1e7 times\n');
 fprintf('  larger and would hide a 100%% drag change inside its own rounding.\n\n');

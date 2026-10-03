@@ -1,7 +1,7 @@
 function a = solidtides(ctx)
 %FORCES.SOLIDTIDES  Solid-Earth tide acceleration (ECI), IERS2010 degree-2.
 %   Builds the tide-induced dC/dS (needs Sun & Moon in ECEF), forms the degree-2
-%   acceleration perturbation in ECEF, then rotates to ECI.  Small at VLEO but
+%   acceleration perturbation in ECEF, then rotates to ECI.  Small at low LEO but
 %   included for completeness / precise OD.
     fld = ctx.grav;
     % Sun & Moon in ECEF via the cached transform

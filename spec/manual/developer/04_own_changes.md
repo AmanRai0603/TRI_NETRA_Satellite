@@ -34,7 +34,7 @@ cargo xtask derisk record --area model --about crates/adcs-sim-core \
 | a scenario or a campaign | write it in `scenarios/` or `campaigns/`; its orbit and epoch are always `case:` references | `tools/validate_plan.py` |
 | a new key in the case format | edit `CASE_INPUTS` in `tools/build_tree.py`, run it, bump `adcs-case/<n>`, write the migration; two reviewers | `build_tree.py --check`, the `cases` job |
 | clearer help text for a case key | edit `CASE_HELP` in `tools/build_tree.py`; one reviewer | `build_tree.py --check`, `xtask manual --check` |
-| a new group in the tree | `tools/seed_tree.py --add-group <id> --under <parent>`, plus the matching change to `tools/build_tree.py`; the group's nodes then arrive as new-node requests | `validate_plan.py`, `check_seed_with_vleo.py` |
+| a new group in the tree | `tools/seed_tree.py --add-group <id> --under <parent>`, plus the matching change to `tools/build_tree.py`; the group's nodes then arrive as new-node requests | `validate_plan.py`, the seeding assertion of P1 |
 
 Each of these records its belief like any own change, and you reply to the requester on the same file when it is released.
 

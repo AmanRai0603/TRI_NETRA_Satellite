@@ -1,0 +1,6 @@
+# The Python packages CI and the release install, pinned so every run checks with the same
+# versions (docs/RELEASE_PLAN.md, P0). The tools themselves need only the standard library;
+# these are the lint (pyflakes) and the figures (numpy, matplotlib).
+pyflakes==4.0.0
+numpy==2.4.6
+matplotlib==3.11.2

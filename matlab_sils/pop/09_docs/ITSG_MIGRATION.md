@@ -191,7 +191,7 @@ not the vehicle. Regression after the whole cleanup: test_gravity PASS,
 test_energy PASS.
 
 # EXAMPLE_16U.m — the master propagator example
-One file, every knob, ordered by what actually matters at VLEO (drag > gravity
+One file, every knob, ordered by what actually matters at low LEO (drag > gravity
 degree; Cd*A/m > either; area/attitude ~ drag model). Sections:
   1 spacecraft (16U: 24 kg, 0.08 m^2, Cd 2.2 -> B = Cd*A/m = 7.3e-3 m^2/kg, i.e.
     ~1.7x draggier per kg than CHAMP's 4.4e-3 -- stated in the file so the number
@@ -211,7 +211,7 @@ NEW: **op.coe2rv(a,e,inc,RAAN,argp,nu,mu)** -- did not exist (the old ex03 hand-
 a circular state). Mirrors op.rv2coe, radians throughout, perifocal construction.
 VERIFIED: round-trip through op.rv2coe gives da=-2.8e-09 m, de=4e-17, di=0,
 dRAAN=6e-15 deg -- machine precision.
-DELETED with it: ex03_vleo_full_stack.m, compare_16u.m, accelerations_timeseries.m,
+DELETED with it: ex03_leo_full_stack.m, compare_16u.m, accelerations_timeseries.m,
 state_overlay.m, inputs_report.m (all superseded).
 STILL OPEN: show_16U.m (the plotter EXAMPLE_16U calls) is NOT written; the master
 comparator in 11_compare is NOT built; validate_OD has still never been executed.

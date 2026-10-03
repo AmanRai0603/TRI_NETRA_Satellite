@@ -8,6 +8,8 @@
 #[inline] pub fn sqrt(x: f64) -> f64 { libm::sqrt(x) }
 #[inline] pub fn exp(x: f64) -> f64 { libm::exp(x) }
 #[inline] pub fn ln(x: f64) -> f64 { libm::log(x) }
+#[inline] pub fn log10(x: f64) -> f64 { libm::log10(x) }
+#[inline] pub fn pow(x: f64, y: f64) -> f64 { libm::pow(x, y) }
 #[inline] pub fn floor(x: f64) -> f64 { libm::floor(x) }
 #[inline] pub fn round(x: f64) -> f64 { libm::round(x) }
 #[inline] pub fn fmod(x: f64, y: f64) -> f64 { libm::fmod(x, y) }

@@ -138,7 +138,7 @@ it**. Now `sw.aph` is built as a real history (`aph(1)` daily; `aph(2..5)` now/�
 `aph(6)` mean −12..−33 h; `aph(7)` mean −36..−57 h), walking the flattened 3-hourly
 series so it crosses day boundaries, and `flags(9) = -1`.
 
-At VLEO this is not a refinement: density can double in hours.
+At low LEO this is not a refinement: density can double in hours.
 
 ### 3d. The NaN poisoning — and the truth about "DTM2020 returns NaN". Fixed.
 
@@ -291,7 +291,7 @@ it defines a synthetic orbit.)
 ## Still open after round 2
 
 - **`atmos.jb2008` hardcodes `Mmol = 16`** and `atm.T = 1000 K`. The 16 is a defensible
-  VLEO modelling choice (atomic-O dominated, same as `dgeom/vleo16u`), but it is a
+  low LEO modelling choice (atomic-O dominated, same as `dgeom/sat16u`), but it is a
   *geometry/GSI* property sitting in an atmosphere adapter. The 1000 K is a
   placeholder: JB2008's core returns `TEMP` and `jb2008_density` drops it.
 - **`get_gfz_hpo` has no cache layer.** One GFZ request per `buildWorld`, so N per sweep.

@@ -491,7 +491,7 @@ fn cannonball_and_attitude() {
 
 fn geometry(name: &str) -> Vec<Facet> {
     match name {
-        "vleo16u" => geom::vleo16u().1,
+        "sat16u" => geom::sat16u().1,
         "box_array" => {
             let mut b = geom::build_box(0.34, 0.20, 0.20);
             geom::add_array(&mut b, [0.0, 0.0, 1.0], 0.12);
@@ -642,7 +642,7 @@ fn jb_parse_and_sources() {
 }
 
 /// force_data/16U_dria_dtm2020_srp-boxwing_erp-boxwing (TEMPLATE_16U: DRIA panels on the
-/// sgeom.vleo16u box, ram attitude, DTM2020 with manual F10.7 = 90, Kp = 2, ap = 8).
+/// sgeom.sat16u box, ram attitude, DTM2020 with manual F10.7 = 90, Kp = 2, ap = 8).
 /// (1) the port against the CURRENT MATLAB chain on the exact per-row inputs (1e-12);
 /// (2) the port against the golden CSVs, which were written by an older forces.drag
 ///     whose panel branch co-rotated the atmosphere with the scalar z-axis rate
@@ -653,7 +653,7 @@ fn golden_16u_dria_dtm2020() {
     let p = concat!(env!("CARGO_MANIFEST_DIR"), "/tests/data/atmos_drag_golden.json");
     let g = json::parse(&std::fs::read_to_string(p).expect("read atmos_drag_golden.json"));
     let man = manual(&g["manual"]);
-    let (_, facets) = geom::vleo16u();
+    let (_, facets) = geom::sat16u();
     let cfg = DragConfig { model: DragModel::Panel(PanelModel::Dria), atmos: AtmosModel::Dtm2020, cd: None, corotate: true, gsi: Gsi::default() };
     let mut e = Err::new("16U golden: port vs MATLAB");
     let mut worst = [0.0f64; 7]; // a, rho, T, nO, Cd, A_proj, |a| vs golden CSV

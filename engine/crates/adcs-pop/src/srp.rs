@@ -1,7 +1,7 @@
 //! Solar radiation pressure, eclipse and the box-wing spacecraft geometry -- port
 //! of `matlab_sils/pop/02_forces/+srp/*` (`cannonball`, `eclipse`, `boxwing`,
 //! `buildBox`, `facet`, `addArray`, `arrayNormal`), `02_forces/+forces/srp.m`
-//! ([`force`]) and the example geometry `sgeom.vleo16u` ([`vleo16u`]).
+//! ([`force`]) and the example geometry `sgeom.sat16u` ([`sat16u`]).
 //!
 //! [`Spacecraft`] / [`Facet`] are the ONE geometry the POP feeds to SRP, ERP and
 //! the panel drag models (`ctx.sc`).
@@ -113,10 +113,10 @@ impl Default for Spacecraft {
     }
 }
 
-/// `sgeom.vleo16u()`: 16U VLEO smallsat, 0.20 x 0.20 x 0.34 m bus (long axis body z)
+/// `sgeom.sat16u()`: 16U low LEO smallsat, 0.20 x 0.20 x 0.34 m bus (long axis body z)
 /// plus two double-sided arrays pivoting about body +y. Mass 24 kg; `aref` set to the
 /// 0.20 x 0.20 ram face and `cr` 1.3 as TEMPLATE_16U does (not part of sgeom).
-pub fn vleo16u() -> Spacecraft {
+pub fn sat16u() -> Spacecraft {
     let bus = Optics { alpha: 0.30, rho_s: 0.30, rho_d: 0.40 };
     let arr = Optics { alpha: 0.85, rho_s: 0.05, rho_d: 0.10 };
     let mut f = build_box(0.20, 0.20, 0.34, &bus);

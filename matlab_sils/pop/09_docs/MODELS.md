@@ -35,7 +35,7 @@ Forces are summed in `op.accel`; each is toggled by `cfg.forces.<name>.on`.
 |-------|--------|----------|
 | two-body | `forces.gravity.model='twobody'` | analytic checks, high orbits |
 | zonal J2–J6 | `='j2'`..`'j6'` | fast, oblateness-dominated LEO |
-| full spherical harmonics | `='sphharm'`, `gravityField.field=...`, `.degree`,`.order` | precise LEO/VLEO |
+| full spherical harmonics | `='sphharm'`, `gravityField.field=...`, `.degree`,`.order` | precise LEO |
 | Aerospace Toolbox | `='toolbox'` | cross-check against MathWorks |
 
 **Field selection** (row 3): `'default'` (embedded J2–J6, offline), `'EGM2008'`,
@@ -96,7 +96,7 @@ Sentman's closed form for a flat plate of normal n̂ at angle θ (cosθ = n̂·v
 
 DRIA augments this with **SESAM** atomic-oxygen adsorption setting the accommodation
 α_T from the local O number density (why atomic-O from the density model matters at
-VLEO). When no facet geometry is supplied, a single ram-facing plate of area A_ref
+low LEO). When no facet geometry is supplied, a single ram-facing plate of area A_ref
 is synthesised so mass/area/Cd-only spacecraft still run. References: [MG] §3.5;
 Sentman (1961); Doornbos, *Thermospheric Density and Wind Determination from
 Satellite Dynamics* (2011); Walker et al. (DRIA, 2014).
@@ -239,5 +239,5 @@ orbits. Reference: [MG] §4; Berry & Healy (Gauss–Jackson, 2004).
 (one ECI↔ECEF transform, ephemeris, density) and sums the enabled forces →
 `op.propagate` runs the chosen integrator → `sol` with a Hermite `stateAt`
 interpolator. Presets bundle common stacks: `config.forcePresets('twobody' |
-'j2' | 'leo_precise' | 'vleo_full' | 'gnss_meo')`. Start from a preset, then flip
+'j2' | 'leo_precise' | 'leo_full' | 'gnss_meo')`. Start from a preset, then flip
 individual models per the tables above.

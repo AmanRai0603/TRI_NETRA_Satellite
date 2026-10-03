@@ -13,7 +13,7 @@ function F = defaultField()
 %     F.name  'zonal J2-J6 (EGM-consistent)'
 %
 %   The zonal Jn are the standard EGM values; sectorials/tesserals are zero, so
-%   this default captures oblateness and the dominant secular LEO/VLEO effects
+%   this default captures oblateness and the dominant secular LEO effects
 %   (nodal & apsidal precession) but not longitude-dependent terms.  For a full
 %   field, drop an ICGEM .gfc into gravity_data/ and load it with grav.loadGFC.
 %

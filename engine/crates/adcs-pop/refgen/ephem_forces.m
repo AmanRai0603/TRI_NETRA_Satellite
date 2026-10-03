@@ -28,7 +28,7 @@ epochs = [2020  1  1  0  0  0;
           2033  2 28 23 59 30;
           2035 12 31 12  0  0];
 
-SC16 = sgeom.vleo16u();
+SC16 = sgeom.sat16u();
 sc = struct('mass', SC16.mass, 'Aref', 0.20*0.20, 'Cd', 2.2, 'Cr', 1.3, ...
             'facets', SC16.facets, 'R_bi', eye(3));
 

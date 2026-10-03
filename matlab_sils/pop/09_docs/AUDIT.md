@@ -37,7 +37,7 @@ No action needed — the package prefix disambiguates.
 ### 2.2 Bare-name collisions on the path (real risk)
 | name | locations | verdict |
 |------|-----------|---------|
-| `vleo16u.m` | `+dgeom/` **and** `+sgeom/` — both bare, both on path, **different signatures** (`[facets,opts]` vs `sc`) | **BUG (latent) — FIXED**: renamed to `vleo16u_drag.m` and `vleo16u_srp.m`. No callers existed, so nothing breaks. |
+| `sat16u.m` | `+dgeom/` **and** `+sgeom/` — both bare, both on path, **different signatures** (`[facets,opts]` vs `sc`) | **BUG (latent) — FIXED**: renamed to `sat16u_drag.m` and `sat16u_srp.m`. No callers existed, so nothing breaks. |
 | `read_tle_file.m` | `+validation/` (package) **and** `data_sources/satellite/` (bare, your parser) | **known collision — handled**: a bare `read_tle_file` resolves to your element-parser; the raw-line reader the pipeline needs is called explicitly as `validation.read_tle_file` (fixed earlier in `data.tle`). Documented so it stays that way. |
 | `addArray.m`,`buildBox.m` | `+dgeom/` (bare) + `+srp/` (package) | **safe** — only one *bare* copy each; the SRP ones are `srp.addArray`/`srp.buildBox`. |
 | `chebval.m` | `+de440/` and `+de440/private/` | intentional (MATLAB resolves `private/` inside the package; the extra copy is the Octave-compat shim location). Accepted. |

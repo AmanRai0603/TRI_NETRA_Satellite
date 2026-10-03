@@ -109,7 +109,7 @@ SWEEP.label  = 'atmosphere model';
 %                                                 model, not a refinement)
 %           jb2008           F10/S10/M10/Y10 + DSTDTC  (SET files; ignores F10.7)
 %         So this sweep is also a test of the driver plumbing, not just the physics.
-%         The real question at VLEO. Read metric (4) FIRST, not (1): (4) is the
+%         The real question at low LEO. Read metric (4) FIRST, not (1): (4) is the
 %         atmosphere on its own, (1) is the atmosphere convolved with Cd and arc
 %         length. 'exponential' is the control -- it has no space weather at all,
 %         so it shows you how much of your skill is really coming from F10.7/ap.

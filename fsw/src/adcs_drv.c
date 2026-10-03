@@ -107,9 +107,14 @@ void adcs_drv_read(const adcs_params_t *p, adcs_meas_t *z)
     }
 }
 
+/* A command that is not a finite number drives nothing: x - x is 0 only for a finite x, so a
+ * NaN or an infinity from upstream becomes a zero output, never a cast of NaN (undefined in C). */
+#define FINITE(x) ((x) - (x) == 0)
+
 static int16_t q15(adcs_real x)
 {
     adcs_real v = x*ADCS_Q15;
+    if (!FINITE(v)) return 0;
     if (v > ADCS_Q15) v = ADCS_Q15;
     if (v < -ADCS_Q15) v = -ADCS_Q15;
     return (int16_t)(v < 0 ? v - 0.5 : v + 0.5);
@@ -119,7 +124,10 @@ void adcs_drv_write(const adcs_params_t *p, const adcs_real m_body[3], const adc
                     const adcs_real cmd_g[ADCS_MAX_GIMBALS], const adcs_real duty[ADCS_MAX_COUPLES])
 {
     adcs_can_frame_t f;
-    int i;
+    int i, j;
+    /* every byte of a frame is set: the ones past dlc are 0, never whatever the stack held
+     * (the C/Rust differential fuzzer found them leaking onto the bus) */
+    for (j = 0; j < 8; j++) f.data[j] = 0;
     for (i = 0; i < 3; i++) adcs_hal_pwm_set((uint8_t)i, q15(m_body[i]/p->m_max));
     for (i = 0; i < p->nr; i++) {
         f.id = ADCS_CAN_ROTOR_CMD + (uint32_t)i; f.extended = 0; f.dlc = 2;
@@ -136,7 +144,7 @@ void adcs_drv_write(const adcs_params_t *p, const adcs_real m_body[3], const adc
         for (i = 0; i < 8; i++) f.data[i] = 0;
         for (i = 0; i < p->nc && i < ADCS_MAX_COUPLES; i++) {
             adcs_real ms = duty[i]*p->dt/ADCS_VALVE_LSB_S + 0.5;
-            f.data[i] = (uint8_t)(ms > 255 ? 255 : (ms < 0 ? 0 : ms));
+            f.data[i] = (uint8_t)(!FINITE(ms) ? 0 : (ms > 255 ? 255 : (ms < 0 ? 0 : ms)));  /* closed on a bad duty */
         }
         adcs_hal_can_send(ADCS_CAN_PORT, &f);
     }

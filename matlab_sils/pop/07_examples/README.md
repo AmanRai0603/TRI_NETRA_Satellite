@@ -14,7 +14,7 @@ Everything here **runs**. Nothing here is **validated**.
 `06_validation/realsat/validate_OD.m` runs CHAMP: **measured truth, no geometry.**
 These run a 16U: **real geometry, no measured truth.**
 
-That is not a defect of either. It is the shape of what exists: `sgeom.vleo16u` is the
+That is not a defect of either. It is the shape of what exists: `sgeom.sat16u` is the
 only real geometry in the toolbox, so box-wing SRP/ERP can only run here without
 assuming a shape -- and no instrument ever flew on this spacecraft, so nothing here
 is checked against reality.

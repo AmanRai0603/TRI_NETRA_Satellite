@@ -36,6 +36,6 @@ evaluation and sums the enabled terms (gravity is always included).
 2. add `cfg.forces.mynew = struct('on',true, ...)` in `config.defaultConfig`;
 3. add `'mynew'` to the `order` list in `op/accel.m`.
 
-## Typical VLEO magnitudes (400 km, one orbit)
+## Typical low LEO magnitudes (400 km, one orbit)
 Measured by `ex04_force_impact_study.m`: drag >> luni-solar third body > solid
-tides > relativity > SRP > ERP > ocean tides. Drag dominates everything at VLEO.
+tides > relativity > SRP > ERP > ocean tides. Drag dominates everything at low LEO.

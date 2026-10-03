@@ -70,7 +70,6 @@
    "family": "mtq",
    "fsw_mode": "nadir_mtq",
    "id": "mtq",
-   "window": "last_half_orbit",
    "test_initial": {
     "attitude": {
      "kind": "random"
@@ -80,7 +79,8 @@
      "magnitude_deg_s": 6.0
     }
    },
-   "test_note": "coils only: the test starts as the mission hands over, from the Sun spin (arbitrary attitude, 6 deg/s, the top of the spin grid), so the tuned gains must capture and then hold; the last half of three orbits is scored"
+   "test_note": "coils only: the test starts as the mission hands over, from the Sun spin (arbitrary attitude, 6 deg/s, the top of the spin grid), so the tuned gains must capture and then hold; the last half of three orbits is scored",
+   "window": "last_half_orbit"
   },
   {
    "actuator": "rw",

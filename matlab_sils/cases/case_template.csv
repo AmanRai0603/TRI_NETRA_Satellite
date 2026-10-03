@@ -51,10 +51,22 @@ surface,surface.cd,Drag coefficient,One,,,,,"drag coefficient; blank takes the r
 magnetic,magnetic.dres,Residual dipole,AmpereSquareMetre,,,,,"the satellite's own magnetic dipole, from a magnetic test or a budget"
 magnetic,magnetic.dunc,Residual dipole uncertainty,AmpereSquareMetre,,,,,how uncertain that residual dipole is
 flex,flex.fmode,First flexible mode frequency,Hertz,,,,,lowest structural or panel mode frequency; leave blank if the satellite is rigid
-flex,flex.mpart,Modal participation,One,,,,,"fraction, 0 to 1"
+flex,flex.mpart,Modal participation,One,,,,,"the share of the coupled axis's inertia that takes part in the mode, 0 to 1 (below 1)"
+flex,flex.zeta,Modal damping ratio,One,,,,,"structural damping of the mode, 0 to 1 (0.005 is typical of panels)"
+flex,flex.axis,Axis the mode couples to,Count,,,,,"1, 2 or 3: the body axis X_B, Y_B or Z_B the mode bends about"
 resources,resources.palloc,Power allocated to the ADCS,Watt,,,,,power the platform can give the ADCS
 resources,resources.malloc,Mass allocated to the ADCS,Kilogram,,,,,mass the platform can give the ADCS
 resources,resources.valloc,Volume allocated to the ADCS,Litre,,,,,volume the platform can give the ADCS
 resources,resources.vbus,Bus voltage,Volt,,,,,voltage of the bus the ADCS is powered from
 resources,resources.nif,OBC data interfaces offered,Count,,,,,OBC data interfaces offered to the ADCS
+power,power.area_px,Cell area on +X_B,SquareMetre,,,,,illuminated solar-cell area on the +X_B face (0 for none)
+power,power.area_mx,Cell area on -X_B,SquareMetre,,,,,illuminated solar-cell area on the -X_B face (0 for none)
+power,power.area_py,Cell area on +Y_B,SquareMetre,,,,,illuminated solar-cell area on the +Y_B face (0 for none)
+power,power.area_my,Cell area on -Y_B,SquareMetre,,,,,illuminated solar-cell area on the -Y_B face (0 for none)
+power,power.area_pz,Cell area on +Z_B,SquareMetre,,,,,illuminated solar-cell area on the +Z_B face (0 for none)
+power,power.area_mz,Cell area on -Z_B,SquareMetre,,,,,illuminated solar-cell area on the -Z_B face (0 for none)
+power,power.eff,Array-to-bus efficiency,One,,,,,cell efficiency times power conversion, 0 to 1
+power,power.batt_wh,Battery capacity,WattHour,,,,,usable battery energy
+power,power.load_w,Platform load without the ADCS,Watt,,,,,orbit-average power the rest of the satellite draws
+power,power.soc0,Battery state of charge at the start,One,,,,,0 (empty) to 1 (full)
 pointing,pointing.et,Thermal distortion contribution,Degree,,,,,"pointing error from thermal distortion between the payload and the ADCS sensors, if known"

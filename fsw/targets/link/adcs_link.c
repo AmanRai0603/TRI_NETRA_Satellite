@@ -129,6 +129,26 @@ static void ack(const adcs_link_io_t *io, int32_t rc, const char *id)
     send(io, LINK_ACK, (size_t)(5 + n));
 }
 
+/* A TICK is taken only when its payload is exactly what its counts say: 43 bytes of time,
+ * presence and register images, two UART blocks, the CAN block. Nothing is read past len, and a
+ * TICK the UART queues cannot hold is refused rather than cut short. 0 when well formed. */
+static int32_t tick_check(const uint8_t *p, uint16_t len)
+{
+    int k = 43, port, n;
+    for (port = 1; port <= 2; port++) {
+        if (k + 2 > len) return LINK_E_SHORT;
+        n = r16(p + k); k += 2;
+        if (k + n > len) return LINK_E_SHORT;
+        if (L.rxn[port] + n > RXCAP) return LINK_E_FULL;
+        k += n;
+    }
+    if (k + 1 > len) return LINK_E_SHORT;
+    n = p[k++];
+    if (n > 32) return LINK_E_FULL;
+    if (k + 13*n != len) return LINK_E_SHORT;
+    return 0;
+}
+
 static void tick(const adcs_link_io_t *io, const uint8_t *p, uint16_t len)
 {
     int k = 0, i, port, n, rc;
@@ -136,16 +156,17 @@ static void tick(const adcs_link_io_t *io, const uint8_t *p, uint16_t len)
     double dbg[48];
     uint8_t *o = out + 5;
     union { double d; uint64_t u; } cv;
-    (void)len;
+    int32_t bad = tick_check(p, len);
+    if (bad) { ack(io, bad, 0); return; }                        /* the engine stops the run on it */
     L.now = r64(p); k = 8;
     L.present = p[k++];
     cpy(L.mag, p + k, 7); k += 7; cpy(L.gyro, p + k, 13); k += 13; cpy(L.sun, p + k, 7); k += 7; cpy(L.es, p + k, 7); k += 7;
     for (port = 1; port <= 2; port++) {
         n = r16(p + k); k += 2;
-        for (i = 0; i < n; i++) { if (L.rxn[port] < RXCAP) L.rx[port][L.rxn[port]++] = p[k + i]; }
+        for (i = 0; i < n; i++) L.rx[port][L.rxn[port]++] = p[k + i];
         k += n;
     }
-    L.ncan = p[k++]; L.can_i = 0; if (L.ncan > 32) L.ncan = 32;
+    L.ncan = p[k++]; L.can_i = 0;
     for (i = 0; i < L.ncan; i++) { L.canq[i].id = r32(p + k); L.canq[i].extended = 0; L.canq[i].dlc = p[k + 4]; cpy(L.canq[i].data, p + k + 5, 8); k += 13; }
     L.ntx = 0;
     c0 = io->clock ? io->clock(io->ctx) : 0u;
@@ -173,9 +194,10 @@ int adcs_link_serve(const adcs_link_io_t *io)
     for (;;) {
         rc = read_frame(io, &type, &len);
         if (rc == -1) return -1;
-        if (rc < 0) continue;                                   /* bad frame: resynchronise */
+        if (rc < 0) { ack(io, rc == -2 ? LINK_E_LONG : LINK_E_CRC, 0); continue; }   /* answered, then resynchronise */
         switch (type) {
         case LINK_CONFIG:
+            if (len < 8) { ack(io, LINK_E_SHORT, 0); break; }
             L.rxn[0] = L.rxn[1] = L.rxn[2] = 0; L.ncan = L.ntx = 0;
             in.abi_version = ADCS_FSW_ABI_VERSION; in.start_ns = r64(buf + 3);
             in.config_blob = buf + 11; in.config_len = (size_t)len - 8;
@@ -185,7 +207,7 @@ int adcs_link_serve(const adcs_link_io_t *io)
         case LINK_TICK: tick(io, buf + 3, len); break;
         case LINK_CMD: ack(io, adcs_fsw_command(buf + 3, len), 0); break;
         case LINK_BYE: ack(io, 0, 0); return 0;
-        default: ack(io, -99, 0); break;
+        default: ack(io, LINK_E_TYPE, 0); break;
         }
     }
 }

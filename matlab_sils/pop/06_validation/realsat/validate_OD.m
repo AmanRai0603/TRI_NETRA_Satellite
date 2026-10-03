@@ -249,7 +249,7 @@ ATTITUDE = 'measured';         % 'none' | 'ram' | 'measured'
 
 %   DRAG_MODEL = 'cannonball'  -0.5*rho*Cd*(Aref/m)*|v|*v. Cd is an INPUT.
 %              = 'sentman'     free-molecular, diffuse re-emission w/ accommodation
-%              = 'dria'        Sentman + Langmuir adsorption (the VLEO workhorse)
+%              = 'dria'        Sentman + Langmuir adsorption (the low LEO workhorse)
 %              = 'cll'         Cercignani-Lampis-Lord (separate normal/tangential)
 %              = 'sesam'       ALIAS of 'dria' -- SESAM is an ACCOMMODATION model,
 %                              not a panel model. It supplies aT; DRIA is Sentman
@@ -257,7 +257,7 @@ ATTITUDE = 'measured';         % 'none' | 'ram' | 'measured'
 %
 % The real distinction is 'sentman' (you TYPE aT, and everyone types 0.9) versus
 % 'dria'/'sesam' (aT computed from the local atomic-oxygen density and temperature).
-% At VLEO that IS the physics: adsorbed O drives accommodation and it is rarely 0.9.
+% At low LEO that IS the physics: adsorbed O drives accommodation and it is rarely 0.9.
 % The last four integrate over FACETS, so they return A(t) and Cd(t) together --
 % you cannot ask them for "a Cd", which is the point. GSI parameters below.
 DRAG_MODEL = 'cannonball';     % start here; switch to 'dria' to test the ratio

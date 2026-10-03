@@ -1,0 +1,28 @@
+# Satellite classes: the body whose surfaces the engine and the twin model (drag, solar
+# radiation pressure), chosen by the class a case names (meta.class). A case naming no class,
+# or one not here, is refused: the body is never assumed.
+#
+# box_m is the body's envelope along X_B, Y_B, Z_B (the long axis is X_B, the axis the case's
+# largest-inertia convention puts it on). Dimensions: CubeSat Design Specification rev. 14
+# (Cal Poly, 2022): 1U 113.5 x 100 x 100 mm, 3U 340.5 x 100 x 100 mm, 6U 366 x 226.3 x 100 mm,
+# 12U 366 x 226.3 x 226.3 mm. The 3U body is modelled at 0.34 m, as every stored run flew it.
+
+[[class]]
+id = "cubesat_1u"
+label = "1U CubeSat"
+box_m = [0.1135, 0.100, 0.100]
+
+[[class]]
+id = "cubesat_3u"
+label = "3U CubeSat"
+box_m = [0.34, 0.10, 0.10]
+
+[[class]]
+id = "cubesat_6u"
+label = "6U CubeSat"
+box_m = [0.366, 0.2263, 0.100]
+
+[[class]]
+id = "cubesat_12u"
+label = "12U CubeSat"
+box_m = [0.366, 0.2263, 0.2263]

@@ -1,0 +1,123 @@
+# Outside references: each model and algorithm the simulator flies, checked against something it was
+# not written from (a published test vector, an independent implementation, a closed form in the
+# literature). `status`: "checked" names the test that does it; "owed" says what is missing and why.
+# `python3 tools/trinetra.py status` counts the owed rows. Copyright (c) 2026 Agastya.
+
+[[ref]]
+id = "time_frames"
+what = "time scales, IAU 2006/2000A CIO-based celestial-to-terrestrial transformation"
+where = "engine/crates/adcs-pop/src/frames, time.rs"
+reference = "ERFA test vectors (src/t_erfa_c.c, github.com/liberfa/erfa; SOFA's t_sofa_c.c numbers): era00, fundamental arguments, xy06, s06, sp00, c2ixys, pom00, c2t06a, cal2jd, dat"
+test = "engine/crates/adcs-pop/tests/published.rs"
+status = "checked"
+note = "to ERFA's tolerances (1e-12 and finer), except c2t06a to 1e-11: ERFA takes X, Y from the full matrix, the kernel from the xy06 series (documented ~1 microarcsecond apart)"
+
+[[ref]]
+id = "igrf13"
+what = "geomagnetic field, IGRF-13 to degree 13 (flight software and truth)"
+where = "fsw/src/adcs_env.c, fsw-rs/src/env.rs, engine/crates/adcs-sim-core/src/field.rs, matlab_sils/+asils/+env"
+reference = "pyIGRF 0.3.3 (independent Python implementation of IAGA igrf13syn); coefficients from the IAGA file igrf13coeffs.txt"
+test = "fsw-rs/tests/igrf.rs"
+status = "checked"
+note = "agree to under 0.01 nT at 8 points 1985-2025. This check found the table ported from the Standard Code wrong by up to 75 nT (rounded, partly IGRF-12); replaced by the IAGA file (tools/gen_fsw_params.py)"
+
+[[ref]]
+id = "lqr"
+what = "continuous LQR gain for the single-axis integrator chains"
+where = "engine/crates/adcs-sim/src/lqr.rs"
+reference = "SciPy 1.17.1 scipy.linalg.solve_continuous_are; the closed form K = [1, 1+sqrt2, 1+sqrt2] for Q = I, R = 1"
+test = "engine/crates/adcs-sim/tests/published.rs"
+status = "checked"
+
+[[ref]]
+id = "bdot_gain"
+what = "B-dot detumbling gain"
+where = "engine/crates/adcs-sim/src/config.rs (mtq_gains)"
+reference = "Avanzini & Giulietti (2012), Magnetic detumbling of a rigid spacecraft, JGCD 35(4): k = 2 n (1 + sin xi_m) J_min"
+test = "engine/crates/adcs-sim/tests/published.rs"
+status = "checked"
+
+[[ref]]
+id = "quest"
+what = "q-method attitude from weighted vector pairs (star tracker, coarse attitude)"
+where = "fsw/src/adcs_est.c, fsw-rs/src/est.rs"
+reference = "SciPy 1.17.1 Rotation.align_vectors (Markley's SVD solution of Wahba's problem); the closed-form two-pair loss"
+test = "fsw-rs/tests/est.rs"
+status = "checked"
+
+[[ref]]
+id = "triad"
+what = "TRIAD attitude from two vector pairs"
+where = "fsw/src/adcs_est.c, fsw-rs/src/est.rs"
+reference = "Black (1964) / Shuster & Oh (1981): exact attitude from noiseless pairs; refusal of near-parallel pairs"
+test = "fsw-rs/tests/est.rs, fsw-rs/tests/fsw.rs"
+status = "checked"
+
+[[ref]]
+id = "mekf"
+what = "multiplicative extended Kalman filter"
+where = "fsw/src/adcs_est.c, fsw-rs/src/est.rs"
+reference = "Markley & Crassidis (2014), Fundamentals of Spacecraft Attitude Determination and Control, ch. 6: propagation Phi P Phi' + Q_d and the Joseph update, in closed form"
+test = "fsw-rs/tests/est.rs"
+status = "checked"
+note = "the equations are checked; a Monte Carlo consistency test (NEES within its chi-square bounds) is still owed and sits with B3 (a consistent filter before the star-tracker gate comes back)"
+
+[[ref]]
+id = "guidance"
+what = "nadir, target, slew, inertial and Sun-pointing reference frames; the slew feed-forward"
+where = "fsw/src/adcs_ctl.c, fsw-rs/src/ctl.rs"
+reference = "the frames' definitions (fsw/pseudocode/04_guidance.md); the feed-forward against the numerical derivative of the reference rate"
+test = "fsw-rs/tests/ctl.rs"
+status = "checked"
+
+[[ref]]
+id = "plant"
+what = "rigid body with rotors: dynamics and integration"
+where = "engine/crates/adcs-sim-core/src/plant.rs"
+reference = "conservation of inertial angular momentum and kinetic energy (torque-free), momentum exchange with a wheel"
+test = "engine/crates/adcs-sim-core/tests/core.rs"
+status = "checked"
+
+[[ref]]
+id = "gravity_gradient"
+what = "gravity-gradient torque"
+where = "engine/crates/adcs-sim-core/src/torques.rs"
+reference = "closed form 3 mu / r^3 (u x J u) (Wertz 1978, 17.2)"
+test = "engine/crates/adcs-sim-core/tests/core.rs"
+status = "checked"
+
+[[ref]]
+id = "orbit_propagation"
+what = "the orbit propagator (gravity field, third bodies, drag, SRP, tides) over days"
+where = "engine/crates/adcs-pop"
+reference = "a precise orbit of a real satellite (CHAMP or GRACE, ITSG kinematic orbits) as a ledger of position error over a day"
+test = ""
+status = "owed"
+note = "today checked only against its own MATLAB original (pop/08_test) and a circular two-body orbit; the orbit products could not be fetched from this environment"
+
+[[ref]]
+id = "atmosphere"
+what = "thermosphere density: JB2008, DTM2020"
+where = "engine/crates/adcs-pop/src/atmos"
+reference = "the models' published test outputs (JB2008 distribution test cases; DTM2020 reference values)"
+test = ""
+status = "owed"
+note = "checked only against the MATLAB ports they were transliterated from; the reference outputs were not reachable from this environment"
+
+[[ref]]
+id = "magnetorquer_laws"
+what = "the magnetorquer pointing and Sun-acquisition laws (Lovera 2004, Celani 2015/2026, Avanzini 2021, Tango 2013, de Ruiter)"
+where = "fsw/src/adcs_ctl.c, fsw-rs/src/ctl.rs"
+reference = "each paper's control law, term by term; a published simulation case from at least one paper"
+test = ""
+status = "owed"
+note = "the laws are flown end to end (40 scenarios, C = Rust bit for bit) but no paper's own numbers are reproduced yet; the algorithms are all UNCONFIRMED by a person (catalogue/algorithms)"
+
+[[ref]]
+id = "catalogue_datasheets"
+what = "every number a catalogue part takes from a datasheet"
+where = "catalogue/components, catalogue/parts"
+reference = "the datasheet page each number is on"
+test = ""
+status = "owed"
+note = "the 14 synthetic parts have no datasheet; replacing them with real units is the owner's choice (B8.4, B8.6)"

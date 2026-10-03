@@ -1,10 +1,12 @@
 //! One closed-loop SILS run (asils.run): the tick order of spec §9.3 --
 //! environment, sensors -> device emulators -> bytes, flight software step,
 //! bytes -> actuator commands, actuators, torques, plant, recorder.
-use crate::config::{Config, GUID};
+use crate::error::Error;
+use crate::config::Config;
 use adcs_fsw::ctl::{guidance, Guid};
 use adcs_fsw_abi::{Bus, Fsw, Impl};
 use adcs_sim_core::actuators::{Mex, Mtq, Rcs};
+use adcs_sim_core::comp::star_tracker as stc;
 use adcs_sim_core::emu::{self, proto, Commands};
 use adcs_sim_core::la::*;
 use adcs_sim_core::orbit::{self, Orbit, OrbitCfg};
@@ -15,7 +17,7 @@ use adcs_sim_core::torques::{self, Facets};
 use adcs_sim_core::{ephem, field, time, NC, NG, NR};
 
 /// The environment the attitude loop reads at an env tick.
-pub struct Env { pub b_eci: V3, pub sun_rel: V3, pub nu: f64, pub v_rel: V3, pub rho: f64, pub p_srp: f64 }
+pub struct Env { pub b_eci: V3, pub sun_rel: V3, pub moon_rel: V3, pub nu: f64, pub v_rel: V3, pub rho: f64, pub p_srp: f64 }
 
 /// The truth orbit and environment. `Pop`: the Rust port of POP stepped as asils.orbit
 /// does (bit-identical to the MATLAB twin's orbit, Sun, Moon, density, frame). `Fast`:
@@ -23,7 +25,7 @@ pub struct Env { pub b_eci: V3, pub sun_rel: V3, pub nu: f64, pub v_rel: V3, pub
 pub enum Truth { Pop(Box<adcs_pop::accel::InLoop>), Fast(Orbit, f64) }
 
 impl Truth {
-    pub fn new(c: &Config) -> Result<(Truth, f64), String> {
+    pub fn new(c: &Config) -> Result<(Truth, f64), Error> {
         if c.orbit_model == "pop" {
             use adcs_pop::accel::{sso_initial, Forces, InLoop, Sc, World};
             let cr = 1.0 + c.refl;
@@ -45,8 +47,8 @@ impl Truth {
             Ok((Truth::Fast(o, c.jd0), raan))
         }
     }
-    pub fn state(&mut self, t: f64) -> Result<(V3, V3), String> {
-        match self { Truth::Pop(o) => o.state(t), Truth::Fast(o, _) => Ok(o.state(t)) }
+    pub fn state(&mut self, t: f64) -> Result<(V3, V3), Error> {
+        match self { Truth::Pop(o) => o.state(t).map_err(Error::from), Truth::Fast(o, _) => Ok(o.state(t)) }
     }
     /// asils.run's env refresh: field at the POP position (op.geodetic), Sun, shadow,
     /// atmosphere-relative velocity, density and SRP pressure.
@@ -59,13 +61,13 @@ impl Truth {
                 let re = mv(&cp, r);
                 let (lat, lon, h) = adcs_pop::geodetic::geodetic(&re);
                 let w = o.omega_e;
-                Env { b_eci: field::eci_at(lat, lon, h, &cp, gh, nmax), sun_rel: sub(&x.sun_eci, r), nu: ephem::shadow(r, &x.sun_eci),
+                Env { b_eci: field::eci_at(lat, lon, h, &cp, gh, nmax), sun_rel: sub(&x.sun_eci, r), moon_rel: sub(&x.moon_eci, r), nu: ephem::shadow(r, &x.sun_eci),
                       v_rel: [v[0] + w*r[1], v[1] - w*r[0], v[2]], rho: x.rho, p_srp: x.p_srp }
             }
             Truth::Fast(o, jd0) => {
                 let xc = o.context(t);
                 let cm = time::eci2ecef(jd0 + t/86400.0);
-                Env { b_eci: field::eci(&mv(&cm, r), &cm, gh, nmax), sun_rel: sub(&xc.sun, r), nu: ephem::shadow(r, &xc.sun),
+                Env { b_eci: field::eci(&mv(&cm, r), &cm, gh, nmax), sun_rel: sub(&xc.sun, r), moon_rel: sub(&xc.moon, r), nu: ephem::shadow(r, &xc.sun),
                       v_rel: [v[0] + orbit::OMEGA_E*r[1], v[1] - orbit::OMEGA_E*r[0], v[2]], rho: xc.rho, p_srp: xc.p_srp }
             }
         }
@@ -97,21 +99,37 @@ pub struct Opts { pub fsw: Impl, pub quiet: bool, /// pace ticks to wall-clock t
 /// after the sample; until then the previous command holds. The OBC execution is the step's
 /// exact instruction count on QEMU (-icount) x CPI / core clock, or the host-measured time on a
 /// process OBC. A latency of a whole period or more is an overrun: the command lands a tick late.
+///
+/// The deadline is judged on the worst case, not the nominal one: the execution at `cpi_max`
+/// (wait states, cache misses) plus `isr_s` of interrupts that may preempt the step, plus the
+/// bus time; it must land within `deadline_frac` of the control period. The trajectory flies the
+/// nominal latency; the worst case only judges.
 #[derive(Clone, Debug)]
 pub struct OilsModel { pub cpu_hz: f64, pub cpi: f64, pub i2c_hz: f64, pub spi_hz: f64, pub can_bps: f64,
     /// a fixed command latency [s] instead of the OBC model (latency studies; works with the in-process builds)
-    pub fixed_s: Option<f64> }
+    pub fixed_s: Option<f64>,
+    /// the worst cycles per instruction the deadline is judged at
+    pub cpi_max: f64,
+    /// the interrupt time that may preempt one step [s]
+    pub isr_s: f64,
+    /// the share of the control period the command must land within
+    pub deadline_frac: f64 }
 impl Default for OilsModel {
-    /// A Cortex-M4F OBC at 168 MHz (STM32F4 class, flash accelerator on: CPI ~1.25),
-    /// I2C fast mode, SPI 1 MHz, CAN 1 Mbit/s.
-    fn default() -> Self { OilsModel { cpu_hz: 168e6, cpi: 1.25, i2c_hz: 400e3, spi_hz: 1e6, can_bps: 1e6, fixed_s: None } }
+    /// A Cortex-M4F OBC at 168 MHz (STM32F4 class, flash accelerator on: CPI ~1.25, 2.0 with the
+    /// accelerator missing), I2C fast mode, SPI 1 MHz, CAN 1 Mbit/s; 50 us of interrupts a step;
+    /// the command within half the period.
+    fn default() -> Self {
+        OilsModel { cpu_hz: 168e6, cpi: 1.25, i2c_hz: 400e3, spi_hz: 1e6, can_bps: 1e6, fixed_s: None, cpi_max: 2.0, isr_s: 50e-6, deadline_frac: 0.5 }
+    }
 }
 
 #[derive(Clone, Debug, Default)]
 pub struct OilsStats {
-    pub model: Option<(f64, f64, f64, f64, f64)>,
+    pub model: Option<OilsModel>,
     pub ticks: u64, pub overruns: u64,
     pub exec_s: Vec<f64>, pub io_s: Vec<f64>, pub lat_s: Vec<f64>, pub insn: Vec<f64>,
+    /// the worst-case latency of each tick (execution at cpi_max, interrupts, buses)
+    pub worst_s: Vec<f64>,
 }
 impl OilsStats {
     fn pct(v: &[f64], p: f64) -> f64 {
@@ -123,15 +141,32 @@ impl OilsStats {
     fn max(v: &[f64]) -> f64 { v.iter().cloned().fold(f64::NAN, f64::max) }
     pub fn json(&self, dt: f64) -> serde_json::Value {
         let s = |v: &[f64]| serde_json::json!({"mean": Self::mean(v), "p99": Self::pct(v, 99.0), "max": Self::max(v)});
-        let (hz, cpi, i2c, spi, can) = self.model.unwrap_or_default();
+        let m = self.model.clone().unwrap_or_default();
+        let (deadline, worst) = (m.deadline_frac*dt, Self::max(&self.worst_s));
         serde_json::json!({
-            "model": {"cpu_hz": hz, "cpi": cpi, "i2c_hz": i2c, "spi_hz": spi, "can_bps": can},
+            "model": {"cpu_hz": m.cpu_hz, "cpi": m.cpi, "i2c_hz": m.i2c_hz, "spi_hz": m.spi_hz, "can_bps": m.can_bps,
+                      "cpi_max": m.cpi_max, "isr_s": m.isr_s, "deadline_frac": m.deadline_frac, "fixed_s": m.fixed_s},
             "ticks": self.ticks, "overruns": self.overruns, "control_period_s": dt,
-            "exec_s": s(&self.exec_s), "bus_s": s(&self.io_s), "latency_s": s(&self.lat_s),
+            "exec_s": s(&self.exec_s), "bus_s": s(&self.io_s), "latency_s": s(&self.lat_s), "worst_latency_s": s(&self.worst_s),
             "instructions": if self.insn.is_empty() { serde_json::Value::Null } else { s(&self.insn) },
             "cpu_load_mean": Self::mean(&self.exec_s)/dt, "cpu_load_max": Self::max(&self.exec_s)/dt,
             "deadline_margin_min_s": dt - Self::max(&self.lat_s),
+            "deadline_s": deadline, "worst_case_margin_s": deadline - worst,
         })
+    }
+
+    /// The two soft-OILS verdicts, judged like any metric: no command lands a period late, and
+    /// the worst-case latency leaves a margin before the deadline.
+    pub fn metrics(&self, dt: f64) -> Vec<serde_json::Value> {
+        let m = self.model.clone().unwrap_or_default();
+        let margin = m.deadline_frac*dt - Self::max(&self.worst_s);
+        let num = |x: f64| if x.is_finite() { serde_json::json!(x) } else { serde_json::Value::Null };
+        vec![
+            serde_json::json!({"id": "oils_overruns", "kind": "oils_overruns", "value": self.overruns, "unit": "", "req": 0.0,
+                               "req_key": "oils", "pass": (self.overruns == 0) as i32}),
+            serde_json::json!({"id": "oils_worst_case_margin", "kind": "oils_deadline", "value": num(margin*1e3), "unit": "ms", "req": 0.0,
+                               "req_key": "oils", "pass": (margin.is_finite() && margin >= 0.0) as i32}),
+        ]
     }
 }
 
@@ -140,56 +175,102 @@ fn mode_changes(log: &mut Vec<(f64, String)>, t: f64, m: u8) {
     if log.last().map(|x| x.1 != name).unwrap_or(true) { log.push((t, name)); }
 }
 
-pub fn run(c: &Config, o: &Opts) -> Result<Record, String> {
-    let wall = std::time::Instant::now();
-    let seed = c.seed;
-    let rs = |name: &str| Rng::new(seed, stream_id(name));
-    let d = &c.dev;
-    let p = &c.params;
+/// The units a product carries, each drawn once per run (its dispersion), in a fixed order so a
+/// seed always gives the same units.
+struct Units {
+    gyro: Option<Gyro>, mag: Mag, sun: Option<Sun>, st: Option<St>, mtq: Mtq, es: Option<Es>, css: Option<Css>,
+    mex: Mex, rcs: Option<Rcs>, gps: Gps, tlm: Rng,
+    /// the frame buffers of the image star-tracker model (model 2), built once per run
+    st_frame: Option<StFrame>,
+}
 
-    // ---- orbit and environment truth: the POP port (as asils.orbit) or the analytic model ----
-    let (mut orb, raan) = Truth::new(c)?;
-    let gh = field::gh(time::decyear(c.jd0));
-    let facets = Facets::boxed(&c.box_m, &c.cm_offset_m, c.sigma_n, c.sigma_t, c.vb_ratio, c.refl, c.spec_frac);
+/// The image star-tracker model's buffers: the frame, its scratch copy, the onboard pair table
+/// of the unit's catalogue and the vote counts (adcs-sim-core does not allocate).
+pub struct StFrame { img: Vec<f64>, scratch: Vec<(f64, u32)>, pairs: Vec<stc::Pair>, votes: Vec<u32> }
+impl StFrame {
+    pub fn new(st: &St) -> StFrame {
+        let (cat, cam) = (st.catalogue(), &st.d.cam);
+        let mut pairs = vec![stc::Pair::default(); stc::pair_count(cat, cam.fov)];
+        stc::pairs(cat, cam.fov, &mut pairs);
+        StFrame { img: vec![0.0; cam.n*cam.n], scratch: vec![(0.0, 0); cam.n*cam.n], pairs, votes: vec![0; cat.len()] }
+    }
+    pub fn work(&mut self) -> stc::Work<'_> { stc::Work { img: &mut self.img, scratch: &mut self.scratch, pairs: &self.pairs, votes: &mut self.votes } }
+}
 
-    // ---- dispersed units (one draw per run) ----
-    let mut disp = rs("dispersion");
-    let mut gyro = if d.gyro.fitted { Some(Gyro::new(d.gyro, &mut disp, rs("gyro"))) } else { None };
-    let mut mag = Mag::new(d.mag, &mut disp, rs("mag"));
-    let mut sun = if d.sun.fitted { Some(Sun::new(d.sun, &mut disp, rs("sun"))) } else { None };
-    let mut st = if d.st.fitted { Some(St::new(d.st, &mut disp, rs("st"))) } else { None };
-    let mut mtq = Mtq::new(d.mtq, &mut disp);
-    let mut es = if d.es.fitted { Some(Es::new(d.es, &mut disp, rs("es"))) } else { None };
-    let mut css = if d.css.fitted { Some(Css::new(d.css, &mut disp, rs("css"))) } else { None };
-    let mut mex = Mex::new(d.mex, &mut disp, rs("mex"));
-    let mut rcs = if d.rcs.fitted { Some(Rcs::new(d.rcs, &mut disp)) } else { None };
-    let mut gps = Gps { d: d.gps, dead: false, rng: rs("gps") };
-    let mut tlm = rs("telemetry");
+impl Units {
+    fn new(d: &crate::product::Dev, rs: &dyn Fn(&str) -> Rng) -> Units {
+        let mut disp = rs("dispersion");
+        let gyro = if d.gyro.fitted { Some(Gyro::new(d.gyro, &mut disp, rs("gyro"))) } else { None };
+        let mag = Mag::new(d.mag, &mut disp, rs("mag"));
+        let sun = if d.sun.fitted { Some(Sun::new(d.sun, &mut disp, rs("sun"))) } else { None };
+        let st = if d.st.fitted { Some(St::new(d.st, &mut disp, rs("st"))) } else { None };
+        let mtq = Mtq::new(d.mtq, &mut disp);
+        let es = if d.es.fitted { Some(Es::new(d.es, &mut disp, rs("es"))) } else { None };
+        let css = if d.css.fitted { Some(Css::new(d.css, &mut disp, rs("css"))) } else { None };
+        let mex = Mex::new(d.mex, &mut disp, rs("mex"));
+        let rcs = if d.rcs.fitted { Some(Rcs::new(d.rcs, &mut disp)) } else { None };
+        let st_frame = st.as_ref().filter(|s| s.d.model == 2).map(StFrame::new);
+        Units { gyro, mag, sun, st, mtq, es, css, mex, rcs, gps: Gps::new(d.gps, rs("gps")), tlm: rs("telemetry"), st_frame }
+    }
 
-    // plant: TRUE (misaligned) rotor geometry; the software holds the nominal one
-    let (nr, ng, nc) = (d.mex.n, d.mex.ng, if d.rcs.fitted { d.rcs.nc } else { 0 });
-    let geo = Geometry::new(&mex.a0[..nr], &d.mex.g[..ng], &d.mex.gi[..nr]);
-    let body = Body { i: c.inertia, iinv: inv(&c.inertia), m: geo };
+    /// Inject every fault whose time has come (once each), clear the ones that end, and log both.
+    fn faults(&mut self, c: &Config, t: f64, done: &mut [bool], log: &mut Vec<(f64, String)>) -> Result<(), Error> {
+        for (i, f) in c.faults.iter().enumerate() {
+            // a device back from silence (end_s): it answers again from then on
+            if done[i] {
+                if let Some(e) = f.end_s {
+                    let dead = match f.kind.as_str() { "gps_outage" => &mut self.gps.dead, _ => &mut self.mag.dead };
+                    if t >= e && *dead { *dead = false; log.push((t, format!("FAULT cleared: {} {}", f.kind, f.index))); }
+                }
+                continue;
+            }
+            if t < f.t_s { continue; }
+            done[i] = true;
+            let ix = f.index.saturating_sub(1);
+            match f.kind.as_str() {
+                "rotor_fail" => self.mex.failed[ix] = true,
+                "gimbal_stuck" => self.mex.gfailed[ix] = true,
+                "st_head_fail" => if let Some(s) = self.st.as_mut() { s.dead[ix] = true },
+                "coil_fail" => self.mtq.dead[ix] = true,
+                "gyro_bias_step" => if let Some(g) = self.gyro.as_mut() { g.b = add(&g.b, &f.value) },
+                "gps_outage" => self.gps.dead = true,
+                "rcs_valve_fail" => if let Some(r) = self.rcs.as_mut() { r.failed[ix] = true },
+                "mag_fail" => self.mag.dead = true,
+                other => return Err(Error::run(format!("unknown fault {other}"))),
+            }
+            log.push((t, format!("FAULT injected: {} {}", f.kind, f.index)));
+        }
+        Ok(())
+    }
+}
 
-    // ---- flight software behind the bus ----
-    let mut bus = Bus::default();
-    let mut fsw = Fsw::init(o.fsw.clone(), &c.blob(), 0, &mut bus)?;
-    let fsw_build = fsw.build_id();
+/// How often each part of the loop runs, in ticks.
+struct Rates { n: u64, every: u64, off: u64, env: u64, st: u64, gps: u64, es: u64 }
 
-    // ---- initial state (asils.run initial_) ----
-    let (r, v) = orb.state(0.0)?;
-    let mut gd = Guid { q_off: p.gd_q_off, roll_deg: p.gd_roll_deg, t0: p.gd_t0, t_slew: p.gd_T, axis: p.gd_axis, q_inertial: p.gd_q_inertial,
-        sun_axis: p.sun_axis, roll_axis: p.roll_axis, sun_eci: adcs_fsw::env::sun_model(c.jd0), flip: false };
-    if p.gd_yaw_flip != 0 { adcs_fsw::ctl::yaw_flip(&mut gd, &r, &v, p.gd_flip_hyst); }
-    let mut ir = rs("initial");
+impl Rates {
+    fn new(c: &Config) -> Rates {
+        let (d, dt) = (&c.dev, c.dt);
+        let every = ((c.record_dt/dt).round() as u64).max(1);
+        Rates {
+            n: (c.duration_s/dt).round() as u64, every, off: every/2,
+            env: ((c.env_dt_s/dt).round() as u64).max(1),
+            st: if d.st.fitted { ((1.0/(d.st.rate_hz*dt)).round() as u64).max(1) } else { 1 },
+            gps: ((1.0/dt).round() as u64).max(1),
+            es: if d.es.fitted { ((1.0/(d.es.rate_hz*dt)).round() as u64).max(1) } else { 1 },
+        }
+    }
+}
+
+/// The initial attitude and rate the scenario asks for (asils.run initial_), and the rotor momenta.
+fn initial_state(c: &Config, r: &V3, v: &V3, gd: &Guid, ir: &mut Rng, nr: usize) -> State {
     let ini = c.scenario.get("initial").cloned().unwrap_or_default();
     let att = ini.get("attitude").cloned().unwrap_or_default();
     let rate = ini.get("rate").cloned().unwrap_or_default();
-    let q_nad = guidance(0, &r, &v, 0.0, &gd).q;
+    let q_nad = guidance(0, r, v, 0.0, gd).q;
     let q0 = match crate::json::s(&att, "kind", "") {
         "random" => { let x = [ir.normal(), ir.normal(), ir.normal(), ir.normal()]; qnorm(&x) }
         k @ ("error_from_target" | "error_from_guidance") => {
-            let qr = if k == "error_from_guidance" && c.gd_kind0 >= 0 { guidance(c.gd_kind0, &r, &v, 0.0, &gd).q } else { q_nad };
+            let qr = if k == "error_from_guidance" && c.gd_kind0 >= 0 { guidance(c.gd_kind0, r, v, 0.0, gd).q } else { q_nad };
             let ax = unit(&att.get("axis_body").and_then(crate::json::v3).unwrap_or([1.0, 0.0, 0.0]));
             qnorm(&qmult(&qr, &fromrotvec(&scale(&ax, crate::json::f(&att, "angle_deg", 0.0).to_radians()))))
         }
@@ -203,11 +284,11 @@ pub fn run(c: &Config, o: &Opts) -> Result<Record, String> {
             };
             scale(&unit(&ir.normal3()), mag_.to_radians())
         }
-        "lvlh" => mv(&dcm(&q0), &scale(&cross(&r, &v), 1.0/dot(&r, &r))),
+        "lvlh" => mv(&dcm(&q0), &scale(&cross(r, v), 1.0/dot(r, r))),
         "guidance" => {
             // the reference rate is in the reference frame: the body at q0 turns with it at dcm(q_e) w_ref
             let mut w = if c.gd_kind0 >= 0 {
-                let g = guidance(c.gd_kind0, &r, &v, 0.0, &gd);
+                let g = guidance(c.gd_kind0, r, v, 0.0, gd);
                 mv(&dcm(&qmult(&qconj(&g.q), &q0)), &g.w)
             } else { [0.0; 3] };
             w = add(&w, &scale(&unit(&ir.normal3()), crate::json::f(&rate, "extra_deg_s", 0.0).to_radians()));
@@ -218,126 +299,224 @@ pub fn run(c: &Config, o: &Opts) -> Result<Record, String> {
     let mut x = State { q: q0, w: w0, ..Default::default() };
     let h0 = crate::json::f(&ini, "wheel_momentum_Nms", f64::NAN);
     for i in 0..nr { x.h[i] = if h0.is_nan() { c.h_t_rot[i] } else { h0 }; }
+    x
+}
 
-    // ---- rates ----
+/// What the sensors measured this tick (the truth's view the recorder keeps).
+struct Sensed { w_meas: V3, b_meas: V3, sun_meas: Option<V3>, st_ok: bool }
+
+/// The geometry a tick's sensors see: body field, Sun, Moon and nadir directions, Earth's half-angle.
+struct Sky { b_b: V3, sb: V3, mb: V3, nb: V3, earth_ang: f64 }
+
+/// Every sensor sampled and written onto the bus as its device's bytes (registers, UART frames,
+/// CAN telemetry), in the order the units draw their noise.
+#[allow(clippy::too_many_arguments)]
+fn sense(u: &mut Units, c: &Config, bus: &mut Bus, x: &State, sky: &Sky, m_b: &V3, nu: f64, t: f64, k: u64, rt: &Rates, r: &V3, v: &V3) -> Sensed {
+    let (d, dt) = (&c.dev, c.dt);
+    bus.now_ns = (t*1e9).round() as u64;
+    let w_meas = match u.gyro.as_mut() { Some(g) => g.sample(&x.w, dt), None => x.w };
+    bus.gyro = u.gyro.as_ref().map(|_| emu::gyro_resp(true, &w_meas));
+    let b_meas = u.mag.sample(&sky.b_b, m_b);
+    bus.mag = if d.mag.fitted { Some(emu::mag_regs(true, &b_meas)) } else { None };
+    let sun_meas = if let Some(s) = u.sun.as_mut() { s.sample(&sky.sb, nu) } else if let Some(s) = u.css.as_mut() { s.sample(&sky.sb, nu, &sky.nb, sky.earth_ang) } else { None };
+    bus.sun = if d.sun.fitted || d.css.fitted { Some(emu::unit_regs(sun_meas.is_some(), &sun_meas.unwrap_or([0.0; 3]))) } else { None };
+    let mut st_ok = false;
+    if let Some(s) = u.st.as_mut() {
+        s.history(t, &x.q);
+        if k % rt.st == 0 {
+            let mut work = u.st_frame.as_mut().map(|f| f.work());
+            let heads = s.sample_with(&x.q, t, &x.w, &sky.sb, &sky.mb, &sky.nb, sky.earth_ang, work.as_mut());
+            let mut hv = [(false, [0.0, 0.0, 0.0, 1.0]); 2];
+            for h in 0..d.st.nh { if let Some(q) = heads[h] { hv[h] = (true, q); st_ok = true; } }
+            let mut buf = [0u8; 64];
+            let len = emu::st_frame(&hv[..d.st.nh], &mut buf);
+            bus.push_uart(proto::ST_UART, &buf[..len]);
+        }
+    }
+    if let Some(e) = u.es.as_mut() {
+        let z = if k % rt.es == 0 { e.sample(&sky.nb) } else { None };
+        bus.es = Some(emu::unit_regs(z.is_some(), &z.unwrap_or([0.0; 3])));
+    }
+    if d.gps.fitted { u.gps.history(t, r, v); }
+    if d.gps.fitted && k % rt.gps == 0 && !u.gps.dead {
+        // a receiver fixes in ECEF (WGS-84): r_e = C r, v_e = C v - w_E x r_e; the fix it reports
+        // now solves for the epoch `latency` ago
+        let (te, r, v) = u.gps.delayed(t);
+        let ce = time::eci2ecef(c.jd0 + te/86400.0);
+        let re_ = mv(&ce, &r);
+        let ve_ = sub(&mv(&ce, &v), &cross(&[0.0, 0.0, orbit::OMEGA_E], &re_));
+        let (rg, vg) = u.gps.sample(&re_, &ve_);
+        let mut buf = [0u8; 64];
+        let len = emu::gps_frame(true, &rg, &vg, &mut buf);
+        bus.push_uart(proto::GPS_UART, &buf[..len]);
+    }
+    for i in 0..d.mex.n {
+        let hm = x.h[i] + 1e-7*u.tlm.normal();
+        let dm = if d.mex.gi[i] > 0 { x.d[d.mex.gi[i] - 1] + 1e-5*u.tlm.normal() } else { 0.0 };
+        let (id, data) = emu::rotor_tm(i, hm, dm);
+        bus.push_can(id, data);
+    }
+    Sensed { w_meas, b_meas, sun_meas, st_ok }
+}
+
+/// Soft OILS: when this tick's command reaches the actuators (the OBC's execution time plus the
+/// synchronous bus reads and the CAN frames it sent), counted into the statistics.
+fn oils_latency(st: &mut OilsStats, m: &OilsModel, fsw: &Fsw, bus: &Bus, dt: f64) -> f64 {
+    let (exec, insn) = match fsw.obc_exec() {
+        Some((_, Some(n))) => (n*m.cpi/m.cpu_hz, Some(n)),
+        Some((s, None)) => (s, None),
+        None => (0.0, None),
+    };
+    // synchronous reads inside the step: I2C (addr + reg, restart, 7 bytes), SPI gyro (13 bytes)
+    let i2c = [bus.mag.is_some(), bus.sun.is_some(), bus.es.is_some()].iter().filter(|x| **x).count() as f64;
+    let io = i2c*10.0*9.0/m.i2c_hz + if bus.gyro.is_some() { 13.0*8.0/m.spi_hz } else { 0.0 }
+        + bus.can_tx.len() as f64*130.0/m.can_bps;
+    let lat = match m.fixed_s { Some(f) => f, None => io + exec };
+    let worst = match m.fixed_s { Some(f) => f, None => io + exec*m.cpi_max/m.cpi + m.isr_s };
+    st.ticks += 1; st.exec_s.push(exec); st.io_s.push(io); st.lat_s.push(lat); st.worst_s.push(worst);
+    if let Some(n) = insn { st.insn.push(n); }
+    if lat >= dt { st.overruns += 1; }
+    lat
+}
+
+/// What the actuators deliver this tick, and the power they draw.
+#[derive(Default)]
+struct Actuation { m_b: V3, m_coil: V3, hdot: [f64; NR], gdot: [f64; NG], tau_rcs: V3, p_mtq: f64, p_mex: f64, p_rcs: f64 }
+
+/// The commands applied to the coils, the momentum devices and the thrusters (propellant counted;
+/// an empty tank fails every valve). Unfitted devices keep what they last delivered.
+fn actuate(u: &mut Units, c: &Config, cmd: &Commands, x: &State, a: &mut Actuation, prop: &mut f64) {
+    let d = &c.dev;
+    let (nr, nc) = (d.mex.n, if d.rcs.fitted { d.rcs.nc } else { 0 });
+    // the coils' dipole averaged over the tick (the torque) and at its end (what the magnetometer sees next)
+    if d.mtq.fitted { let (m, me, pw) = u.mtq.apply(&cmd.m_body, c.dt); a.m_b = m; a.m_coil = me; a.p_mtq = pw; }
+    if nr > 0 { let (hd, gd_, pw) = u.mex.apply(&cmd.cmd_r, &cmd.cmd_g, &x.h, c.dt); a.hdot = hd; a.gdot = gd_; a.p_mex = pw; }
+    if let Some(rc_) = u.rcs.as_mut() {
+        let mut duty = [0.0; NC];
+        duty[..nc].copy_from_slice(&cmd.duty[..nc]);
+        let (tq, mdot, pw) = rc_.apply(&duty, c.dt);
+        a.tau_rcs = tq; a.p_rcs = pw;
+        *prop += mdot*c.dt;
+        if *prop >= d.rcs.prop_kg { rc_.failed = [true; NC]; }
+    }
+}
+
+/// The actuation that holds until this tick's command lands (soft OILS).
+#[derive(Default)]
+struct Held { m: V3, hdot: [f64; NR], gdot: [f64; NG], rcs: V3 }
+
+/// The rest of what a recorded row holds that the tick computed.
+struct Tick { t: f64, r: V3, v: V3, rho: f64, nu: f64, sun_rel: V3, mode: u8, ad_ok: bool, pavg: [f64; 3], faults: u16, parts: [V3; 4], tau_mtq: V3, prop: f64 }
+
+/// One recorded row: the truth, the flight software's view (debug vector), the actuation, the environment.
+#[allow(clippy::too_many_arguments)]
+fn row(k: &Tick, x: &State, geo: &Geometry, nr: usize, a: &Actuation, cmd: &Commands, dbg: &[f64; adcs_fsw_abi::DEBUG_LEN], z: &Sensed, sky: &Sky) -> Row {
+    let ax = geo.axes(&x.d);
+    let mut tau_rw = [0.0; 3];
+    for i in 0..nr { for j in 0..3 { tau_rw[j] -= ax[i][j]*a.hdot[i]; } }
+    Row {
+        t: k.t, q: x.q, w: x.w, q_est: if k.ad_ok { Some([dbg[3], dbg[4], dbg[5], dbg[6]]) } else { None }, w_meas: z.w_meas,
+        tau_req: [dbg[17], dbg[18], dbg[19]], h_w: x.h, tau_rw, cmd_r: cmd.cmd_r, n_failed: k.faults.count_ones(), delta: x.d,
+        tau_rcs: a.tau_rcs, prop_kg: k.prop, m: a.m_b, tau_dist: k.parts, tau_mtq: k.tau_mtq, mode: k.mode, p_mtq: k.pavg[0], p_rw: k.pavg[1], p_rcs: k.pavg[2],
+        r: k.r, v: k.v, rho: k.rho, nu: k.nu, b: sky.b_b, b_meas: z.b_meas, sun_ok: z.sun_meas.is_some(), st_ok: z.st_ok, ad_ok: k.ad_ok, sun_eci: unit(&k.sun_rel), sun_body: sky.sb,
+    }
+}
+
+/// The plant over one tick. With soft OILS (`lat` given) the previous actuation holds for the
+/// command latency, then this tick's command acts (a whole period or more: it lands next tick).
+#[allow(clippy::too_many_arguments)]
+fn step_plant(x: &State, dt: f64, body: &Body, tau_d: &V3, tau_mtq: &V3, b_b: &V3, a: &Actuation, lat: Option<f64>, held: &mut Held) -> State {
+    let tau_ext = add(&add(tau_d, tau_mtq), &a.tau_rcs);
+    let Some(lat) = lat else { return plant::step(x, dt, body, &tau_ext, &a.hdot, &a.gdot) };
+    let held_ext = add(&add(tau_d, &cross(&held.m, b_b)), &held.rcs);
+    let x = if lat >= dt {
+        plant::step(x, dt, body, &held_ext, &held.hdot, &held.gdot)
+    } else {
+        let x1 = if lat > 0.0 { plant::step(x, lat, body, &held_ext, &held.hdot, &held.gdot) } else { *x };
+        plant::step(&x1, dt - lat, body, &tau_ext, &a.hdot, &a.gdot)
+    };
+    *held = Held { m: a.m_b, hdot: a.hdot, gdot: a.gdot, rcs: a.tau_rcs };
+    x
+}
+
+pub fn run(c: &Config, o: &Opts) -> Result<Record, Error> {
+    if let Some(m) = &o.oils {
+        if m.cpi_max < m.cpi { return Err(Error::refused(format!("soft OILS: the worst CPI {} is below the nominal {}", m.cpi_max, m.cpi))); }
+    }
+    let wall = std::time::Instant::now();
+    let seed = c.seed;
+    let rs = |name: &str| Rng::new(seed, stream_id(name));
+    let d = &c.dev;
+    let p = &c.params;
+
+    // ---- orbit and environment truth: the POP port (as asils.orbit) or the analytic model ----
+    let (mut orb, raan) = Truth::new(c)?;
+    let gh = field::gh(time::decyear(c.jd0));
+    let facets = Facets::boxed(&c.box_m, &c.cm_offset_m, c.sigma_n, c.sigma_t, c.vb_ratio, c.refl, c.spec_frac);
+
+    // ---- dispersed units (one draw per run) ----
+    let mut u = Units::new(d, &rs);
+
+    // plant: TRUE (misaligned) rotor geometry; the software holds the nominal one
+    let (nr, ng) = (d.mex.n, d.mex.ng);
+    let geo = Geometry::new(&u.mex.a0[..nr], &d.mex.g[..ng], &d.mex.gi[..nr]);
+    let body = match c.flex { Some(f) => Body::flexible(c.inertia, geo, f), None => Body::rigid(c.inertia, geo) };
+
+    // ---- flight software behind the bus ----
+    let mut bus = Bus::default();
+    let mut fsw = Fsw::init(o.fsw.clone(), &c.blob(), 0, &mut bus)?;
+    let fsw_build = fsw.build_id();
+
+    // ---- initial state ----
+    let (r, v) = orb.state(0.0)?;
+    let mut gd = Guid { q_off: p.gd_q_off, roll_deg: p.gd_roll_deg, t0: p.gd_t0, t_slew: p.gd_T, axis: p.gd_axis, q_inertial: p.gd_q_inertial,
+        sun_axis: p.sun_axis, roll_axis: p.roll_axis, sun_eci: adcs_fsw::env::sun_model(c.jd0), flip: false };
+    if p.gd_yaw_flip != 0 { adcs_fsw::ctl::yaw_flip(&mut gd, &r, &v, p.gd_flip_hyst); }
+    let mut x = initial_state(c, &r, &v, &gd, &mut rs("initial"), nr);
+
     let dt = c.dt;
-    let n = (c.duration_s/dt).round() as u64;
-    let every = ((c.record_dt/dt).round() as u64).max(1);
-    let off = every/2;
-    let env_every = ((c.env_dt_s/dt).round() as u64).max(1);
-    let st_every = if d.st.fitted { ((1.0/(d.st.rate_hz*dt)).round() as u64).max(1) } else { 1 };
-    let gps_every = ((1.0/dt).round() as u64).max(1);
-    let es_every = if d.es.fitted { ((1.0/(d.es.rate_hz*dt)).round() as u64).max(1) } else { 1 };
+    let rt = Rates::new(c);
+    if d.gps.fitted && d.gps.latency/dt + 2.0 > GPS_HIST as f64 {
+        return Err(Error::refused(format!("GNSS latency {} s is {:.0} control steps; the engine keeps {} steps of history", d.gps.latency, d.gps.latency/dt, GPS_HIST - 2)));
+    }
     let mut tmax = [0.0; NR];
     for i in 0..nr { tmax[i] = d.mex.torque_max[i]; }
 
-    let mut rows = Vec::with_capacity((n/every + 2) as usize);
+    let mut rows = Vec::with_capacity((rt.n/rt.every + 2) as usize);
     let mut log = vec![];
-    let (mut m_b, mut p_mtq, mut p_mex, mut p_rcs) = ([0.0; 3], 0.0, 0.0, 0.0);
-    let (mut hdot, mut gdot, mut tau_rcs, mut prop) = ([0.0; NR], [0.0; NG], [0.0; 3], 0.0);
+    let mut a = Actuation::default();
+    let mut prop = 0.0;
     let mut eacc = [0.0; 3];
     let mut fault_done = vec![false; c.faults.len()];
-    let (mut b_eci, mut sun_rel, mut nu, mut v_rel, mut rho, mut psrp) = ([0.0; 3], [1.0, 0.0, 0.0], 1.0, [0.0; 3], 0.0, 0.0);
+    let (mut b_eci, mut sun_rel, mut moon_rel, mut nu, mut v_rel, mut rho, mut psrp) = ([0.0; 3], [1.0, 0.0, 0.0], [0.0, 1.0, 0.0], 1.0, [0.0; 3], 0.0, 0.0);
     let mut last_print = std::time::Instant::now();
-    let mut can_rx_count = 0usize;
-    // soft OILS: the actuation that holds until this tick's command lands
-    let mut oils = o.oils.as_ref().map(|m| OilsStats { model: Some((m.cpu_hz, m.cpi, m.i2c_hz, m.spi_hz, m.can_bps)), ..Default::default() });
-    if oils.is_some() && o.oils.as_ref().map(|m| m.fixed_s.is_none()).unwrap_or(false) && !matches!(o.fsw, Impl::Obc(_)) { return Err("soft OILS needs the flight software on a virtual OBC (--fsw qemu | qemu-rs | obc-posix ...)".into()); }
-    let (mut held_m, mut held_hdot, mut held_gdot, mut held_rcs) = ([0.0; 3], [0.0; NR], [0.0; NG], [0.0; 3]);
-    for k in 0..=n {
+    let mut oils = o.oils.as_ref().map(|m| OilsStats { model: Some(m.clone()), ..Default::default() });
+    if oils.is_some() && o.oils.as_ref().map(|m| m.fixed_s.is_none()).unwrap_or(false) && !matches!(o.fsw, Impl::Obc(_)) { return Err(Error::run("soft OILS needs the flight software on a virtual OBC (--fsw qemu | qemu-rs | obc-posix ...)")); }
+    let mut held = Held::default();
+    for k in 0..=rt.n {
         let t = k as f64*dt;
         let (r, v) = orb.state(t)?;
-        if k % env_every == 0 {
+        if k % rt.env == 0 {
             let ev = orb.env(t, c.jd0, &r, &v, &gh, c.igrf_nmax);
-            b_eci = ev.b_eci; sun_rel = ev.sun_rel; nu = ev.nu; v_rel = ev.v_rel; rho = ev.rho; psrp = ev.p_srp;
+            b_eci = ev.b_eci; sun_rel = ev.sun_rel; moon_rel = ev.moon_rel; nu = ev.nu; v_rel = ev.v_rel; rho = ev.rho; psrp = ev.p_srp;
             orb.set_attitude(transpose(&dcm(&x.q)));      // attitude -> POP (box-wing / panel models read it)
         }
-        for (i, f) in c.faults.iter().enumerate() {
-            if fault_done[i] || t < f.t_s { continue; }
-            fault_done[i] = true;
-            let ix = f.index.saturating_sub(1);
-            match f.kind.as_str() {
-                "rotor_fail" => mex.failed[ix] = true,
-                "gimbal_stuck" => mex.gfailed[ix] = true,
-                "st_head_fail" => if let Some(s) = st.as_mut() { s.dead[ix] = true },
-                "coil_fail" => mtq.dead[ix] = true,
-                "gyro_bias_step" => if let Some(g) = gyro.as_mut() { g.b = add(&g.b, &f.value) },
-                "gps_outage" => gps.dead = true,
-                "rcs_valve_fail" => if let Some(r) = rcs.as_mut() { r.failed[ix] = true },
-                "mag_fail" => mag.dead = true,
-                other => return Err(format!("unknown fault {other}")),
-            }
-            log.push((t, format!("FAULT injected: {} {}", f.kind, f.index)));
-        }
+        u.faults(c, t, &mut fault_done, &mut log)?;
         let rb = dcm(&x.q);
-        let b_b = mv(&rb, &b_eci);
-        let sb = unit(&mv(&rb, &sun_rel));
-        let nb = scale(&mv(&rb, &r), -1.0/norm(&r));
-        let earth_ang = (6378137.0/norm(&r)).asin();
+        let sky = Sky { b_b: mv(&rb, &b_eci), sb: unit(&mv(&rb, &sun_rel)), mb: unit(&mv(&rb, &moon_rel)), nb: scale(&mv(&rb, &r), -1.0/norm(&r)), earth_ang: (6378137.0/norm(&r)).asin() };
 
         // ---- sensors -> bytes ----
-        bus.now_ns = (t*1e9).round() as u64;
-        let w_meas = match gyro.as_mut() { Some(g) => g.sample(&x.w, dt), None => x.w };
-        bus.gyro = gyro.as_ref().map(|_| emu::gyro_resp(true, &w_meas));
-        let b_meas = mag.sample(&b_b, &m_b);
-        bus.mag = if d.mag.fitted { Some(emu::mag_regs(true, &b_meas)) } else { None };
-        let sun_meas = if let Some(s) = sun.as_mut() { s.sample(&sb, nu) } else if let Some(s) = css.as_mut() { s.sample(&sb, nu, &nb, earth_ang) } else { None };
-        bus.sun = if d.sun.fitted || d.css.fitted { Some(emu::unit_regs(sun_meas.is_some(), &sun_meas.unwrap_or([0.0; 3]))) } else { None };
-        let mut st_ok = false;
-        if let Some(s) = st.as_mut() {
-            s.history(t, &x.q);
-            if k % st_every == 0 {
-                let heads = s.sample(&x.q, t, &x.w, &sb, &nb, earth_ang);
-                let mut hv = [(false, [0.0, 0.0, 0.0, 1.0]); 2];
-                for h in 0..d.st.nh { if let Some(q) = heads[h] { hv[h] = (true, q); st_ok = true; } }
-                let mut buf = [0u8; 64];
-                let len = emu::st_frame(&hv[..d.st.nh], &mut buf);
-                bus.push_uart(proto::ST_UART, &buf[..len]);
-            }
-        }
-        if let Some(e) = es.as_mut() {
-            let z = if k % es_every == 0 { e.sample(&nb) } else { None };
-            bus.es = Some(emu::unit_regs(z.is_some(), &z.unwrap_or([0.0; 3])));
-        }
-        if d.gps.fitted && k % gps_every == 0 && !gps.dead {
-            // a receiver fixes in ECEF (WGS-84): r_e = C r, v_e = C v - w_E x r_e
-            let ce = time::eci2ecef(c.jd0 + t/86400.0);
-            let re_ = mv(&ce, &r);
-            let ve_ = sub(&mv(&ce, &v), &cross(&[0.0, 0.0, orbit::OMEGA_E], &re_));
-            let (rg, vg) = gps.sample(&re_, &ve_);
-            let mut buf = [0u8; 64];
-            let len = emu::gps_frame(true, &rg, &vg, &mut buf);
-            bus.push_uart(proto::GPS_UART, &buf[..len]);
-        }
-        for i in 0..nr {
-            let hm = x.h[i] + 1e-7*tlm.normal();
-            let dm = if d.mex.gi[i] > 0 { x.d[d.mex.gi[i] - 1] + 1e-5*tlm.normal() } else { 0.0 };
-            let (id, data) = emu::rotor_tm(i, hm, dm);
-            bus.push_can(id, data);
-        }
-        can_rx_count += nr;
+        let z = sense(&mut u, c, &mut bus, &x, &sky, &a.m_coil, nu, t, k, &rt, &r, &v);
 
         // ---- flight software ----
         let now = bus.now_ns;
         let rc = fsw.step(&mut bus, now);
-        if rc != 0 { return Err(format!("flight software step returned {rc} at t = {t}")); }
-        // soft OILS: when does this command reach the actuators?
-        let mut lat = 0.0;
-        if let (Some(st), Some(m)) = (oils.as_mut(), o.oils.as_ref()) {
-            let (exec, insn) = match fsw.obc_exec() {
-                Some((_, Some(n))) => (n*m.cpi/m.cpu_hz, Some(n)),
-                Some((s, None)) => (s, None),
-                None => (0.0, None),
-            };
-            // synchronous reads inside the step: I2C (addr + reg, restart, 7 bytes), SPI gyro (13 bytes)
-            let i2c = [bus.mag.is_some(), bus.sun.is_some(), bus.es.is_some()].iter().filter(|x| **x).count() as f64;
-            let io = i2c*10.0*9.0/m.i2c_hz + if bus.gyro.is_some() { 13.0*8.0/m.spi_hz } else { 0.0 }
-                + bus.can_tx.len() as f64*130.0/m.can_bps;
-            lat = match m.fixed_s { Some(f) => f, None => io + exec };
-            st.ticks += 1; st.exec_s.push(exec); st.io_s.push(io); st.lat_s.push(lat);
-            if let Some(n) = insn { st.insn.push(n); }
-            if lat >= dt { st.overruns += 1; }
+        if rc != 0 {
+            let why = fsw.link_error().map(|e| format!(": {e}")).unwrap_or_default();
+            return Err(Error::run(format!("flight software step returned {rc} at t = {t}{why}")));
         }
+        // soft OILS: when does this command reach the actuators?
+        let lat = match (oils.as_mut(), o.oils.as_ref()) { (Some(st), Some(m)) => oils_latency(st, m, &fsw, &bus, dt), _ => 0.0 };
         let mut cmd = Commands::default();
         emu::decode_pwm(&bus.pwm, if d.mtq.fitted { d.mtq.m_max } else { 1.0 }, &mut cmd);
         for f in bus.can_tx.drain(..) { emu::decode_can(f.id, &f.data, &tmax, p.gim_rate_max, dt, &mut cmd); }
@@ -348,62 +527,32 @@ pub fn run(c: &Config, o: &Opts) -> Result<Record, String> {
         mode_changes(&mut log, t, mode);
 
         // ---- actuators ----
-        if d.mtq.fitted { let (m, pw) = mtq.apply(&cmd.m_body); m_b = m; p_mtq = pw; }
-        if nr > 0 { let (hd, gd_, pw) = mex.apply(&cmd.cmd_r, &cmd.cmd_g, &x.h, dt); hdot = hd; gdot = gd_; p_mex = pw; }
-        if let Some(rc_) = rcs.as_mut() {
-            let mut duty = [0.0; NC];
-            duty[..nc].copy_from_slice(&cmd.duty[..nc]);
-            let (tq, mdot, pw) = rc_.apply(&duty, dt);
-            tau_rcs = tq; p_rcs = pw;
-            prop += mdot*dt;
-            if prop >= d.rcs.prop_kg { rc_.failed = [true; NC]; }
-        }
+        actuate(&mut u, c, &cmd, &x, &mut a, &mut prop);
 
         // ---- torques, plant ----
         let parts = torques::torques(&x.q, &r, &v_rel, &b_eci, &sun_rel, nu, psrp, rho, &c.inertia, &facets, &c.m_res, c.mu, c.env_on);
         let tau_d = add(&add(&parts[0], &parts[1]), &add(&parts[2], &parts[3]));
-        let tau_mtq = cross(&m_b, &b_b);
-        eacc = [eacc[0] + p_mtq, eacc[1] + p_mex, eacc[2] + p_rcs];
-        if k % every == off || k == 0 {
-            let pavg = if k > 0 { [eacc[0]/every as f64, eacc[1]/every as f64, eacc[2]/every as f64] } else { [p_mtq, p_mex, p_rcs] };
+        let tau_mtq = cross(&a.m_b, &sky.b_b);
+        eacc = [eacc[0] + a.p_mtq, eacc[1] + a.p_mex, eacc[2] + a.p_rcs];
+        if k % rt.every == rt.off || k == 0 {
+            let pavg = if k > 0 { [eacc[0]/rt.every as f64, eacc[1]/rt.every as f64, eacc[2]/rt.every as f64] } else { [a.p_mtq, a.p_mex, a.p_rcs] };
             eacc = [0.0; 3];
-            let ax = geo.axes(&x.d);
-            let mut tau_rw = [0.0; 3];
-            for i in 0..nr { for j in 0..3 { tau_rw[j] -= ax[i][j]*hdot[i]; } }
             let faults = fsw.peek().map(|s| s.faults).unwrap_or(0);
-            rows.push(Row {
-                t, q: x.q, w: x.w, q_est: if ad_ok { Some([dbg[3], dbg[4], dbg[5], dbg[6]]) } else { None }, w_meas,
-                tau_req: [dbg[17], dbg[18], dbg[19]], h_w: x.h, tau_rw, cmd_r: cmd.cmd_r, n_failed: faults.count_ones(), delta: x.d,
-                tau_rcs, prop_kg: prop, m: m_b, tau_dist: parts, tau_mtq, mode, p_mtq: pavg[0], p_rw: pavg[1], p_rcs: pavg[2],
-                r, v, rho, nu, b: b_b, b_meas, sun_ok: sun_meas.is_some(), st_ok, ad_ok, sun_eci: unit(&sun_rel), sun_body: sb,
-            });
+            let tick = Tick { t, r, v, rho, nu, sun_rel, mode, ad_ok, pavg, faults, parts, tau_mtq, prop };
+            rows.push(row(&tick, &x, &geo, nr, &a, &cmd, &dbg, &z, &sky));
         }
-        if k == n { break; }
+        if k == rt.n { break; }
         if o.realtime {
             let due = std::time::Duration::from_secs_f64(t + dt);
             let el = wall.elapsed();
             if due > el { std::thread::sleep(due - el); }
         }
-        let tau_ext = add(&add(&tau_d, &tau_mtq), &tau_rcs);
-        if oils.is_some() {
-            // the previous actuation holds for the latency, then this tick's command acts
-            let held_ext = add(&add(&tau_d, &cross(&held_m, &b_b)), &held_rcs);
-            if lat >= dt {
-                x = plant::step(&x, dt, &body, &held_ext, &held_hdot, &held_gdot);
-            } else {
-                if lat > 0.0 { x = plant::step(&x, lat, &body, &held_ext, &held_hdot, &held_gdot); }
-                x = plant::step(&x, dt - lat, &body, &tau_ext, &hdot, &gdot);
-            }
-            held_m = m_b; held_hdot = hdot; held_gdot = gdot; held_rcs = tau_rcs;
-        } else {
-            x = plant::step(&x, dt, &body, &tau_ext, &hdot, &gdot);
-        }
+        x = step_plant(&x, dt, &body, &tau_d, &tau_mtq, &sky.b_b, &a, oils.is_some().then_some(lat), &mut held);
         if !o.quiet && last_print.elapsed().as_secs_f64() > 10.0 {
             last_print = std::time::Instant::now();
             eprintln!("  t = {:7.0} / {:.0} s  mode {:<13} |w| {:.3} deg/s  ({:.0} s wall)", t, c.duration_s,
                 crate::config::MODES.get(mode as usize).unwrap_or(&"?"), norm(&x.w).to_degrees(), wall.elapsed().as_secs_f64());
         }
     }
-    let _ = (can_rx_count, GUID);
     Ok(Record { rows, nr, ng, raan_rad: raan, mode_log: log, wall_s: wall.elapsed().as_secs_f64(), fsw_build, fsw_impl: o.fsw.clone(), oils })
 }

@@ -1,4 +1,4 @@
-% TEMPLATE_16U  End-to-end VLEO 16U propagation with EVERY model reachable.
+% TEMPLATE_16U  End-to-end low LEO 16U propagation with EVERY model reachable.
 %
 %   RUN:  setup_paths; TEMPLATE_16U
 %
@@ -6,7 +6,7 @@
 %   WHY THE 16U AND NOT CHAMP
 %   ---------------------------------------------------------------------------
 %   This is the ONLY spacecraft in the toolbox with a real geometry
-%   (sgeom.vleo16u: a 0.20 x 0.20 x 0.34 m bus + two arrays, with optics). So it is
+%   (sgeom.sat16u: a 0.20 x 0.20 x 0.34 m bus + two arrays, with optics). So it is
 %   the only one where box-wing SRP and box-wing ERP can run at all. CHAMP, GRACE
 %   and Swarm have mass, area, Cd and Cr in itsg_catalog.csv and NO dimensions --
 %   run validation.capability('CHAMP') and it will tell you so, and validate_OD
@@ -47,11 +47,11 @@
 %                       degree 6); 'EGM2008' is FETCHED from ICGEM (needs network)
 %
 %  ---- REAL, and unique to this satellite: THE GEOMETRY ------------------------
-%    sgeom.vleo16u   0.20 x 0.20 x 0.34 m bus + two tracking arrays, with optics.
+%    sgeom.sat16u   0.20 x 0.20 x 0.34 m bus + two tracking arrays, with optics.
 %                    This is the ONLY real geometry in the toolbox, which is why
 %                    this is the only spacecraft where box-wing SRP and box-wing
 %                    ERP can run at all without assuming a shape.
-%                    (dgeom.vleo16u used to describe a DIFFERENT 16U -- long axis
+%                    (dgeom.sat16u used to describe a DIFFERENT 16U -- long axis
 %                     on X instead of Z, 1.7x the frontal area. It now forwards
 %                     here and warns. One geometry, one spacecraft.)
 %
@@ -61,7 +61,7 @@
 %    SC.Cd, SC.Cr   only read by the cannonball models; the panel/box-wing models
 %                   derive or ignore them. sat.reads(cfg) prints which, below.
 %    GSI            Tw/aT/sig_n/sig_t -- chosen. 'dria' DERIVES aT and ignores it.
-%    facet optics   the alpha/rho_s/rho_d inside sgeom.vleo16u are plausible
+%    facet optics   the alpha/rho_s/rho_d inside sgeom.sat16u are plausible
 %                   MLI/solar-cell values, NOT measured, and ONE set serves both
 %                   the visible and thermal-IR bands.
 %    ATTITUDE='ram' modelled, not measured. There is nothing to measure.
@@ -75,7 +75,7 @@
 
 %% ============================== EPOCH & ORBIT ===============================
 EPOCH   = [2007 1 1 0 0 0];
-ALT_KM  = 300;                 % VLEO
+ALT_KM  = 300;                 % low LEO
 INC_DEG = 96.5;                % sun-synchronous-ish
 TSPAN_S = 1800;                % 30 min. Not an orbit: see ERP_RINGS below -- box-wing
                                % ERP is expensive and a full orbit of it is minutes.
@@ -83,9 +83,9 @@ OUT_DT  = 30;
 
 %% ============================== SPACECRAFT ==================================
 % ONE geometry, srp-format, feeding drag AND srp AND erp. Two facet sets would be
-% two spacecraft -- which is exactly what dgeom.vleo16u vs sgeom.vleo16u used to be
+% two spacecraft -- which is exactly what dgeom.sat16u vs sgeom.sat16u used to be
 % (long axis on X vs Z, 1.7x different frontal area, no complaint from either).
-SC16 = sgeom.vleo16u();
+SC16 = sgeom.sat16u();
 SC   = struct('mass', SC16.mass, ...
               'Aref', 0.20*0.20, ...      % frontal (ram) face -- cannonball only
               'Cd',   2.2, ...            % cannonball only; panel models DERIVE Cd(t)
@@ -167,7 +167,7 @@ cfg.forces = struct( ...
 fprintf('\n================================================================\n');
 fprintf(' TEMPLATE_16U   %d km   inc %.1f deg   %.0f s\n', ALT_KM, INC_DEG, TSPAN_S);
 fprintf('================================================================\n');
-fprintf('  geometry   sgeom.vleo16u: %d facets, %.1f kg (REAL dims -- the only\n', ...
+fprintf('  geometry   sgeom.sat16u: %d facets, %.1f kg (REAL dims -- the only\n', ...
         numel(SC.facets), SC.mass);
 fprintf('             spacecraft here that has them, hence the only one that can\n');
 fprintf('             run box-wing SRP/ERP at all)\n');
@@ -240,7 +240,7 @@ fid = fopen(fullfile(SAVE_DIR,'manifest.txt'),'w');
 fprintf(fid, 'TEMPLATE_16U   %s\n', datestr(now,31));
 fprintf(fid, 'epoch      %s\n', sprintf('%d ',EPOCH));
 fprintf(fid, 'alt/inc    %g km / %g deg   tspan %g s\n', ALT_KM, INC_DEG, TSPAN_S);
-fprintf(fid, 'geometry   sgeom.vleo16u  %d facets  mass %g kg\n', numel(SC.facets), SC.mass);
+fprintf(fid, 'geometry   sgeom.sat16u  %d facets  mass %g kg\n', numel(SC.facets), SC.mass);
 fprintf(fid, 'attitude   %s\n', ATTITUDE);
 fprintf(fid, 'drag       %s / %s   gsi Tw=%g aT=%g\n', DRAG_MODEL, ATMOS, GSI.Tw, GSI.aT);
 fprintf(fid, 'srp / erp  %s / %s\n', SRP_MODEL, ERP_MODEL);

@@ -31,6 +31,20 @@ pub use fsw::{Fsw, State, ABI_VERSION, BUILD_ID};
 pub use hal::{CanFrame, Hal, Status};
 pub use params::{Mode, Params};
 
+/// A panic is a fault the flight software could not contain: the OBC restarts (SYSRESETREQ in the
+/// Cortex-M AIRCR) rather than hang with the actuators holding their last command. On a host the
+/// process aborts, which the engine reports as the OBC gone.
 #[cfg(all(not(feature = "std"), not(test), feature = "cabi"))]
 #[panic_handler]
-fn panic(_: &core::panic::PanicInfo) -> ! { loop {} }
+fn panic(_: &core::panic::PanicInfo) -> ! {
+    #[cfg(target_arch = "arm")]
+    unsafe {
+        core::ptr::write_volatile(0xE000_ED0C as *mut u32, 0x05FA_0004);
+        loop { core::arch::asm!("dsb", "wfi"); }
+    }
+    #[cfg(not(target_arch = "arm"))]
+    {
+        extern "C" { fn abort() -> !; }
+        unsafe { abort() }
+    }
+}

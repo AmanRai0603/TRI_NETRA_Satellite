@@ -5,7 +5,6 @@
 | Document | ADCS-SPEC-01 · the build specification for the ADCS platform repository |
 | Version | 2.0 · 27 September 2026 |
 | Owner | Aman Kumar Rai |
-| Built on | VLEO_SIMULATOR at commit `abf79ee` (https://github.com/AmanRai0603/VLEO_SIMULATOR) |
 | Product content from | IDMAS v2 Exploration (IDMAS V1 coils, V2 fluid rings, V3 RCS) |
 | Read by | Claude Code, which builds the repository from it; the developer team, who maintain it |
 
@@ -15,7 +14,7 @@ This document, and the files beside it, are everything needed to build one repos
 - **As a test facility**, it tests that ADCS in SILS, PIL, OILS and HILS on one scenario template, and issues the certificate.
 - **Towards the client**, it offers SILS with visualisation before the order. After the purchase order, it gives OILS and HILS results with visualisation, plus the certification.
 
-The repository is VLEO_SIMULATOR's machinery with an ADCS tree in it. It adds seven things VLEO_SIMULATOR does not have:
+The repository is a sheet-driven engine with an ADCS tree in it (§3). Beside the engine it has seven parts:
 
 1. case import from a fixed CSV;
 2. a solver and designer over a catalogue of products;
@@ -25,7 +24,7 @@ The repository is VLEO_SIMULATOR's machinery with an ADCS tree in it. It adds se
 6. a plain-MATLAB twin of the SILS engine;
 7. an intake that turns a team member's node form into checked, implemented and released software.
 
-Where VLEO_SIMULATOR already solved a problem, this document says "port it" and names the file. Where it did not, this document specifies the new part.
+This document specifies every part: the engine's method in §3, the rest in the sections that follow.
 
 **How the software is run and changed (§1.6).** The developer team builds, maintains and upgrades the software. Nobody else changes it, and the released software never changes itself. Everyone else uses it and gets two things:
 
@@ -47,15 +46,15 @@ Two things run through all of it. **Every page a person reads explains itself** 
 | `RELEASE.md` | the package's release notes: what it adds, its counts, the checks run with their results | the developer team |
 | `manual/user/` | the user manual: what a team member reads to use the released software and to send a request (§16.4) | team members; shipped in every release and in the MATLAB zip |
 | `manual/developer/` | the developer manual: how the developer team receives a request, checks it, implements it, verifies, reviews, releases and replies (§16.4) | the developer team |
-| `plan/tree.json` | the ADCS tree in VLEO's seven-key `cd06/tree.json` shape: 418 rows, 307 edges, one door | the seeder (§5.7) |
+| `plan/tree.json` | the ADCS tree in its seven-key shape: 418 rows, 307 edges, one door | the seeder (§5.7) |
 | `plan/case_template.csv`, `plan/case_inputs.toml` | the fixed case format `adcs-case/1`: the blank template (54 inputs, 5 meta rows, each explained in its note) and its registry, which also records the supplier of every declared layer-2 row; both generated | the case importer (§8.3), the case editor, the case checker |
 | `plan/cases/*.csv` | four reference cases in that format: the two default 3U cases, `ais_3u` (10° pointing) and `ais_img_3u` (0.01°), plus a 150 kg bus and an unstated 12U | `adcs case import`, the pilot |
-| `plan/expected_node_ids.json` | the node id VLEO's seeding code gives each tree row, recorded by running it | cross-checks in P1 |
+| `plan/expected_node_ids.json` | the node id the seeder gives each tree row | cross-checks in P1 |
 | `plan/seed_content.toml` | the pilot thread's 61 rows and the risk branch's 21, written from cited sources (26 in all, the OILS and HILS facility references among them), with 7 test vectors transcribed from them and the spin-down node's own explanation (the standard's worked example). It is the content of the 82 seed forms (§5.8). | `tools/forms.py seeds`, then intake |
 | `plan/kpis.toml` | the 22 KPIs: requirement, evidence row, analysis row, metric, usual sense, closure slug | the seeder's closures, the campaign runner, `validate_plan.py` |
 | `derisk/risks.toml`, `derisk/beliefs/*.toml` | the risk register (18 risks, from §21, levels proposed until D26) and 16 belief records for the decisions this package took, most honestly untested (§5.13) | `tools/derisk.py`, the Risk management rows, intake |
 | `derisk/narrative_template.xlsx` | the company's quarterly de-risking narrative template, its seven columns | the narrative (§5.13) |
-| `plan/units.toml`, `plan/physics.toml` | the units and quantities a node may declare (VLEO's registry plus §6.1), and the functions of `adcs-core::physics` (§6.2) | the node form's pick-lists, the intake checker |
+| `plan/units.toml`, `plan/physics.toml` | the units and quantities a node may declare (the base registry plus §6.1), and the functions of `adcs-core::physics` (§6.2) | the node form's pick-lists, the intake checker |
 | `catalogue/schema.toml` | the module descriptor standard | solver, loop engine, FSW config, EEPROM |
 | `catalogue/families.toml` | the four configuration families, their slots and the algorithms each may carry | solver |
 | `catalogue/products/*.toml` | 5 seeded products, all `candidate`: configuration, counts, mounts, algorithms | solver, loop engine |
@@ -89,7 +88,6 @@ Two things run through all of it. **Every page a person reads explains itself** 
 | `tools/form_browser_check.py` | opens the node form, the case editor, the library and the results in headless Chromium and proves each loop (§5.10.8) | CI |
 | `tools/pack_matlab.py` | builds the twin's download, `adcs_sils_matlab_<version>.zip`, deterministically, from the repository, with the twin map and `TWIN.md`; refuses a zip missing a twin the phase builds | CI, the developer team |
 | `tools/twin_check.py` | the lockstep check (§10.8.7): the map is whole (TW01–TW04), a checkout has both sides of every element its phase builds (TW05), a pull request changes both sides or says why not (TW06); the stand-in for `cargo xtask twin` | CI, the developer team |
-| `tools/check_seed_with_vleo.py` | runs VLEO_SIMULATOR's own seeding code over `plan/tree.json` and checks every node id against `plan/expected_node_ids.json` | CI, the developer team |
 | `spec/`, `tools/assemble_spec.sh` | the sections this document is assembled from, and the script that joins them (`--check` compares) | whoever edits the package |
 
 Run `python3 tools/validate_plan.py` after any edit to the package. It must print `0 finding(s)`.
@@ -100,14 +98,14 @@ The package lives in the new repository at `_package/`, read-only. Each phase co
 
 The builder is Claude Code, working for the developer team. These rules hold in every phase, and they are the same rules the implementation agent works under after release (§5.11).
 
-1. **Port, do not rewrite.** Copy VLEO_SIMULATOR files verbatim and change only what §3.3 lists: the `vleo` → `adcs` names and the domain nouns. Keep each file's template, ordering and comments. A file this document does not mention is copied unchanged or not at all, as §3.4 says. What §3.4 removes is removed completely, not left dormant.
-2. **Never write a person's name.** A node's `confirmed_by`, a panel's `confirmed_by`, a promotion's `by` and a certificate's signatory are a person's attestation. A node's `confirmed_by` is written only by `cargo xtask intake write`, from the `attested_by` a person typed into a node form; every other person's decision only by `cargo xtask decision record`, from that person's own record (§17.2). Otherwise it is `UNCONFIRMED · <what it is> · awaiting a person` (§5.8). VLEO's `seed_tree.py` writes "A. Rai / 2026-09-01" into KPI rows; the port must not carry that string.
+1. **Build what §3.4 lists, named as §3.3 says.** A file this document does not call for is not written. What §3.4 says is never present is absent completely, not left dormant.
+2. **Never write a person's name.** A node's `confirmed_by`, a panel's `confirmed_by`, a promotion's `by` and a certificate's signatory are a person's attestation. A node's `confirmed_by` is written only by `cargo xtask intake write`, from the `attested_by` a person typed into a node form; every other person's decision only by `cargo xtask decision record`, from that person's own record (§17.2). Otherwise it is `UNCONFIRMED · <what it is> · awaiting a person` (§5.8).
 3. **Never produce an expected value.** A test vector's `expect` is transcribed from a page of a cited source by a person, in a node form, or it is not written. `plan/seed_content.toml` holds seven such vectors. This includes parity references: IDMAS v2 §13's numbers are a second opinion, never something to tune toward.
-4. **Never widen a tolerance, skip a test, or edit a generated file outside a HOLE.** Unchanged from VLEO.
+4. **Never widen a tolerance, skip a test, or edit a generated file outside a HOLE.**
 5. **A refusal is never a substitution.** A part with a `nan` field, a scenario that needs it, a row with no theory, a verified closure with no campaign behind it: each is refused by name. That is a correct result, and the phases in §19 expect several of them.
 6. **Node content arrives only through intake.** No sheet is written by hand, by a script, or by an agent except through `cargo xtask intake write` from a request that passed `cargo xtask intake check`, followed by `intake verify`. That includes the first 82 rows, which arrive as seed forms (§5.8). Two tools write a sheet's *shape*, never its content: the seeder (every row's identity, place and edges, and the closures and requirement rows that `plan/kpis.toml` fixes, §5.5, §5.7) and `cargo xtask new`, run only as the first step of a new-node request.
 7. **Stop at the decisions in §20.** They belong to a person. Do the preparatory work, write what is needed to decide, and stop.
-8. **When this document and VLEO_SIMULATOR's code disagree:** the code wins on mechanism (how a sheet is loaded, how the resolver orders nodes), and this document wins on ADCS content (which rows exist, what a scenario means) and on the operating model (§1.6). Record every such disagreement in `docs/SPEC_DEVIATIONS.md` with the file, the line and the choice made.
+8. **When this document and the built code disagree:** the code wins on mechanism (how a sheet is loaded, how the resolver orders nodes), and this document wins on ADCS content (which rows exist, what a scenario means) and on the operating model (§1.6). Record every such disagreement in `docs/SPEC_DEVIATIONS.md` with the file, the line and the choice made.
 9. **Say what you did not do.** Every phase report lists what is not built yet, what is mocked, and what needs hardware or a person.
 
 ### 0.3 Reading order

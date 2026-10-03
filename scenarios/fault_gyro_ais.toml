@@ -18,10 +18,11 @@ guidance = { kind = "nadir" }
 mtq_wn = 0.005
 mtq_zeta = 2.0
 [[metrics]]
-id = "ape_3axis_last_orbit"          # information: yaw about the antenna axis is not required
+id = "ape_3axis_last_orbit"
 kind = "ape"
 window = "last_orbit"
 statistic = "max"
+diagnostic = "yaw about the antenna axis is not required: the line of sight is judged (ape_los_last_orbit)"
 [[metrics]]
 id = "ape_los_last_orbit"
 kind = "ape_los"

@@ -58,5 +58,16 @@ detumble_rcs: 1 s PWM cycle: at the cycle start τ = −I ω/T_damp (off below t
 meas = (h − h_prev)/dt;  expect = clamp(cmd_prev, ±0.8 τmax)
 bad_i = |meas − expect| > 0.5 τmax and fixed and |expect| > 0.2 τmax and |h_i| < 0.9 h_max
 count_i = (count_i + dt) · bad_i;  count_i > fdir_s -> failed_i = true (event logged)
+
+windowed, fluid loops only (fine pointing commands are too small for the test above; a fluid loop's
+driver closes a momentum loop so a healthy one tracks the commanded change, while a wheel's
+uncompensated friction drifts it off over a window: a friction-aware wheel test is owed):
+  on entry (or after a gap > 1.5 dt): E_i = 0, h0_i = h_i, t0 = t
+  each tick:  E_i += clamp(cmd_prev_i, ±0.8 τmax_i) · dt
+  when t − t0 ≥ fdir_win_s, for each fluid loop (kind 1), fixed, not failed, with |E_i| > fdir_h_frac · h_max_i
+  and |h_i|, |h0_i| < 0.9 h_max_i (judged):
+      bad_i = |(h_i − h0_i) − E_i| > 0.5 |E_i|;  nbad_i = bad_i ? nbad_i + 1 : 0
+      nbad_i ≥ FDIR_WIN_BAD (2) -> failed_i = true (event logged)
+  then E = 0, h0 = h, t0 = t (a window not judged leaves nbad_i as it is)
 lost axis flown with the coils: un = τ_req − A_F pinv_rows(A_F) τ_req;  m += torque2dipole(un, B)
 ```

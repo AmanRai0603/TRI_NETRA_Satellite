@@ -1,0 +1,11 @@
+{
+ "scale": {
+  "mtqp": 1.0,
+  "fmr": 0.75
+ },
+ "gyro_grade": 1.0,
+ "fmr_flow_sigma": 0.000125,
+ "fmr_spare": true,
+ "st_heads": 1,
+ "fmr_lambda": 0.30000000000000004
+}

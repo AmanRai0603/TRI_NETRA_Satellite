@@ -17,3 +17,7 @@ adcs-fsw-abi = { path = "../adcs-fsw-abi" }
 adcs-fsw = { path = "../../../fsw-rs" }
 adcs-sim-core = { path = "../adcs-sim-core" }
 serde_json = "1"
+clap = { version = "4", features = ["derive"] }
+
+[dev-dependencies]
+toml = "0.8"

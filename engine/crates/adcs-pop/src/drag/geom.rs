@@ -1,5 +1,5 @@
 //! Spacecraft drag geometry and attitude helpers: `02_forces/+dgeom/*` (buildBox,
-//! addArray, ramAttitude, attitudeFromAoA, vleo16u), `02_forces/+sgeom/*` (vleo16u,
+//! addArray, ramAttitude, attitudeFromAoA, sat16u), `02_forces/+sgeom/*` (sat16u,
 //! R_lvlh) and the pieces of `+srp` that geometry needs (facet, buildBox, addArray,
 //! arrayNormal) -- ported here so drag does not depend on the SRP module.
 use crate::atmos::octave::{deg2rad, norm, unit};
@@ -94,10 +94,10 @@ pub fn srp_add_array(f: &mut Vec<Facet>, a: f64, axis: V3, o: Optics) {
     f.push(Facet { kind: FacetKind::Array, n: [0.0; 3], a, alpha: o.alpha, rho_s: o.rho_s, rho_d: o.rho_d, axis, double: true });
 }
 
-/// `sgeom.vleo16u()`: the example 16U (0.20 x 0.20 x 0.34 m bus, +x ram, two
+/// `sgeom.sat16u()`: the example 16U (0.20 x 0.20 x 0.34 m bus, +x ram, two
 /// 0.34 x 0.20 m arrays pivoting about body +Y), mass 24 kg. Returns (mass, facets).
-/// `dgeom.vleo16u` (deprecated) returns the same facets with Aref = 0.04 m^2.
-pub fn vleo16u() -> (f64, Vec<Facet>) {
+/// `dgeom.sat16u` (deprecated) returns the same facets with Aref = 0.04 m^2.
+pub fn sat16u() -> (f64, Vec<Facet>) {
     let (lx, ly, lz) = (0.20, 0.20, 0.34);
     let bus = Optics { alpha: 0.30, rho_s: 0.30, rho_d: 0.40 };
     let arr = Optics { alpha: 0.85, rho_s: 0.05, rho_d: 0.10 };

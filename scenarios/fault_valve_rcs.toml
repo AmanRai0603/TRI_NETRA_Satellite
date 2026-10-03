@@ -1,0 +1,40 @@
+# Wheels + RCS 3U: one thruster valve fails closed in fine hold; the momentum dumps go on with
+# the others; judged as the fine hold is.
+schema = "adcs-scenario/1"
+id = "fault_valve_rcs"
+label = "3U imaging, wheels + RCS — fine hold with a thruster valve failed closed"
+case = "ais_img_3u"
+product = "TRN-P-3U-RW-RCS"
+[time]
+duration_s = 5740.0
+dt_s = 0.1
+record_dt_s = 0.1
+[initial]
+attitude = { kind = "error_from_target", angle_deg = 2.0, axis_body = [0.577, 0.577, 0.577] }
+rate = { kind = "lvlh" }
+[fsw]
+start_mode = "nadir_fine"
+guidance = { kind = "nadir" }
+rw_bandwidth = 0.9
+rw_damping = 2.0
+[[faults]]
+kind = "rcs_valve_fail"
+t_s = 600.0
+index = 1
+[[metrics]]
+id = "ape_los_p9973"
+kind = "ape_los"
+window = "last_half_orbit"
+statistic = "p99.73"
+requirement = "req.ape"
+[[metrics]]
+id = "ake_los_p9973"
+kind = "ake_los"
+window = "last_half_orbit"
+statistic = "p99.73"
+requirement = "req.ake"
+[[metrics]]
+id = "power_mean"
+kind = "power_mean"
+window = "all"
+requirement = "req.pavg"

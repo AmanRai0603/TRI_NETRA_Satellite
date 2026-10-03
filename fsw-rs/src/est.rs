@@ -47,10 +47,12 @@ impl Mekf {
         for i in 0..6 { for j in 0..3 { for l in 0..6 { pht[i][j] += self.p[i][l]*h[j][l]; } } }
         let mut s = *r;
         for i in 0..3 { for j in 0..3 { for l in 0..6 { s[i][j] += h[i][l]*pht[l][j]; } } }
-        let (si, _) = inv3(&s);
+        // a singular innovation covariance, or an innovation that is not a number, is rejected
+        let (si, ok) = inv3(&s);
+        if !ok { return false; }
         let mut chi = 0.0;
         for i in 0..3 { for j in 0..3 { chi += y[i]*si[i][j]*y[j]; } }
-        if gate > 0.0 && chi > gate { return false; }
+        if chi.is_nan() || (gate > 0.0 && chi > gate) { return false; }
         let mut g = [[0.0; 3]; 6];
         for i in 0..6 { for j in 0..3 { for l in 0..3 { g[i][j] += pht[i][l]*si[l][j]; } } }
         let mut dx = [0.0; 6];
@@ -86,7 +88,7 @@ impl Mekf {
         self.update3(&h, &rm, &sub3(&b, &bh), gate)
     }
 
-    pub fn quat(&mut self, qm: &Q, sc: f64, sr: f64, bs: &V3) {
+    pub fn quat(&mut self, qm: &Q, sc: f64, sr: f64, bs: &V3, gate: f64) -> bool {
         let dq = qerr(&self.q, qm);
         let y = [2.0*dq[0], 2.0*dq[1], 2.0*dq[2]];
         let mut h = [[0.0; 6]; 3];
@@ -95,11 +97,17 @@ impl Mekf {
             h[i][i] = 1.0;
             for j in 0..3 { r[i][j] = (if i == j { sc*sc } else { 0.0 }) + (sr*sr - sc*sc)*bs[i]*bs[j]; }
         }
-        self.update3(&h, &r, &y, 0.0);
+        self.update3(&h, &r, &y, gate)
     }
 }
 
-pub fn triad(b1: &V3, b2: &V3, r1: &V3, r2: &V3) -> Q {
+/// closer to parallel than this (0.06 deg) a vector pair fixes no attitude (= adcs_est.c)
+const TRIAD_MIN_SIN: f64 = 1e-3;
+
+/// None when either pair is (nearly) parallel.
+pub fn triad(b1: &V3, b2: &V3, r1: &V3, r2: &V3) -> Option<Q> {
+    if !(norm3(&cross(b1, b2)) > TRIAD_MIN_SIN*norm3(b1)*norm3(b2)) { return None; }
+    if !(norm3(&cross(r1, r2)) > TRIAD_MIN_SIN*norm3(r1)*norm3(r2)) { return None; }
     let tb0 = unit(b1);
     let tb1 = unit(&cross(b1, b2));
     let tb2 = cross(&tb0, &tb1);
@@ -108,7 +116,7 @@ pub fn triad(b1: &V3, b2: &V3, r1: &V3, r2: &V3) -> Q {
     let tr2 = cross(&tr0, &tr1);
     let mut a = [[0.0; 3]; 3];
     for i in 0..3 { for j in 0..3 { a[i][j] = tb0[i]*tr0[j] + tb1[i]*tr1[j] + tb2[i]*tr2[j]; } }
-    fromdcm(&a)
+    Some(fromdcm(&a))
 }
 
 /// q-method on vector pairs (weights default to 1); returns (q, loss = sum(w) - lambda_max).

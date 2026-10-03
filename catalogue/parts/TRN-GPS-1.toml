@@ -13,5 +13,6 @@ descriptor_version = 1
 pos_sigma_m = 10.0
 vel_sigma_m_s = 0.2
 rate_Hz = 1.0
+latency_s = 0.1              # the fix reaches the bus ~0.1 s after the epoch it solves for (nanosatellite receivers: 0.05-0.5 s)
 mass_kg = 0.03
 power_W = 0.8

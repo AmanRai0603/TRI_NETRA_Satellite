@@ -1,0 +1,62 @@
+{
+ "case": "ais_img_3u",
+ "fsw": {
+  "guidance": {
+   "axis": [
+    1.0,
+    0.0,
+    0.0
+   ],
+   "kind": "target",
+   "roll_deg": 20.0
+  },
+  "rw_bandwidth": 0.9,
+  "rw_damping": 2.0,
+  "start_mode": "target_fine"
+ },
+ "id": "target_img",
+ "initial": {
+  "attitude": {
+   "angle_deg": 2.0,
+   "axis_body": [
+    0.577,
+    0.577,
+    0.577
+   ],
+   "kind": "error_from_target"
+  },
+  "rate": {
+   "kind": "lvlh"
+  }
+ },
+ "label": "3U imaging \u2014 target pointing 20 deg off nadir, reaction wheels + star tracker",
+ "metrics": [
+  {
+   "id": "ape_los_p9973",
+   "kind": "ape_los",
+   "requirement": "req.ape",
+   "statistic": "p99.73",
+   "window": "last_half_orbit"
+  },
+  {
+   "id": "ake_los_p9973",
+   "kind": "ake_los",
+   "requirement": "req.ake",
+   "statistic": "p99.73",
+   "window": "last_half_orbit"
+  },
+  {
+   "id": "power_mean",
+   "kind": "power_mean",
+   "requirement": "req.pavg",
+   "window": "all"
+  }
+ ],
+ "product": "TRN-P-3U-IMG",
+ "schema": "adcs-scenario/1",
+ "time": {
+  "dt_s": 0.1,
+  "duration_s": 5740.0,
+  "record_dt_s": 0.1
+ }
+}

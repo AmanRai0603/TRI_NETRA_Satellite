@@ -1,0 +1,45 @@
+# AIS 3U: the magnetometer goes silent for 10 minutes in nadir hold. After 60 s of silence the
+# flight software declares the fault and holds magnetorquer detumble (safe mode); when the
+# magnetometer answers again it detumbles and hands back to nadir hold (auto_next).
+schema = "adcs-scenario/1"
+id = "safe_mode_ais"
+label = "3U AIS — safe mode: magnetometer silent 10 min in nadir hold, entry and recovery"
+case = "ais_3u"
+product = "TRN-P-3U-AIS"
+[time]
+duration_s = 17220.0
+dt_s = 0.2
+record_dt_s = 1.0
+[initial]
+attitude = { kind = "error_from_target", angle_deg = 30.0, axis_body = [0.577, 0.577, 0.577] }
+rate = { kind = "lvlh" }
+[fsw]
+start_mode = "nadir_mtq"
+auto_next = "nadir_mtq"
+guidance = { kind = "nadir" }
+mtq_wn = 0.005
+mtq_zeta = 2.0
+[[faults]]
+kind = "mag_fail"
+t_s = 6000.0
+end_s = 6600.0
+[[metrics]]
+id = "safe_mode_entry"
+kind = "time_to_mode"
+mode = "detumble"
+diagnostic = "the minute safe mode began: the fault at 100 min plus the 60 s the flight software waits"
+[[metrics]]
+id = "recovery_to_ape"
+kind = "time_to_threshold"
+channel = "ape_los"
+from_s = 6600.0
+threshold_deg = 10.0
+hold_s = 600.0
+unit_min = true
+diagnostic = "from the magnetometer's return to 10 min held inside the APE: the case does not state req.recover"
+[[metrics]]
+id = "ape_los_last_orbit"
+kind = "ape_los"
+window = "last_orbit"
+statistic = "max"
+requirement = "req.ape"

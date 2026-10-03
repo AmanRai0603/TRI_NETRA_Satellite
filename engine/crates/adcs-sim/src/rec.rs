@@ -23,8 +23,8 @@ pub fn g9(x: f64) -> String {
     }
 }
 
-pub fn write(dir: &Path, c: &Config, rec: &Record, d: &Derived, metrics: &[Value]) -> Result<(), String> {
-    std::fs::create_dir_all(dir).map_err(|e| format!("{}: {e}", dir.display()))?;
+pub fn write(dir: &Path, c: &Config, rec: &Record, d: &Derived, metrics: &[Value]) -> Result<(), crate::Error> {
+    std::fs::create_dir_all(dir).map_err(|e| crate::Error::io(dir, e))?;
     let rows = &rec.rows;
     let mut cols: Vec<(String, Vec<f64>)> = vec![];
     let mut col = |name: &str, f: &dyn Fn(usize) -> f64| cols.push((name.to_string(), (0..rows.len()).map(f).collect()));
@@ -57,6 +57,7 @@ pub fn write(dir: &Path, c: &Config, rec: &Record, d: &Derived, metrics: &[Value
     for (i, a) in ["x", "y", "z"].iter().enumerate() { col(&format!("sun_body_{a}"), &|j| rows[j].sun_body[i]); }
     col("P_mtq_W", &|j| rows[j].p_mtq); col("P_rw_W", &|j| rows[j].p_rw);
     col("rho_kgm3", &|j| rows[j].rho); col("shadow_nu", &|j| rows[j].nu);
+    col("P_gen_W", &|j| d.p_gen[j]); col("soc", &|j| d.soc[j]);
     col("sun_ok", &|j| rows[j].sun_ok as u8 as f64); col("st_ok", &|j| rows[j].st_ok as u8 as f64); col("ad_ok", &|j| rows[j].ad_ok as u8 as f64);
 
     let mut s = String::with_capacity(rows.len()*cols.len()*12);
@@ -66,11 +67,11 @@ pub fn write(dir: &Path, c: &Config, rec: &Record, d: &Derived, metrics: &[Value
         for (i, c) in cols.iter().enumerate() { if i > 0 { s.push(','); } let _ = write!(s, "{}", g9(c.1[j])); }
         s.push('\n');
     }
-    std::fs::write(dir.join("channels.csv"), s).map_err(|e| e.to_string())?;
+    crate::fsio::write(&dir.join("channels.csv"), s)?;
 
     let mut alg = serde_json::Map::new();
     for (k, v) in &c.alg { alg.insert(k.clone(), json!(v)); }
-    let man = json!({
+    let mut man = json!({
         "schema": "adcs-rec/1", "engine": crate::ENGINE, "owner": "Agastya",
         "scenario": c.id, "case": c.case.id, "case_title": c.case.title, "product": c.dev.id, "family": c.dev.family,
         "label": crate::json::s(&c.scenario, "label", ""), "algorithms": alg, "seed": c.seed, "epoch_utc": c.epoch_utc,
@@ -80,10 +81,23 @@ pub fn write(dir: &Path, c: &Config, rec: &Record, d: &Derived, metrics: &[Value
                   "atmosphere": if c.orbit_model == "pop" { format!("dtm2020 (F10.7 {}, Kp {})", c.f107, c.kp) } else { format!("exponential x{}", c.density_scale) },
                   "propagator": if c.orbit_model == "pop" { "POP v51 port (adcs-pop): degree-6 field, DE440 Sun/Moon (Battin), DTM2020 drag, conical SRP, RK4 10 s + Hermite" } else { "analytic (adcs-sim-core): J2-J6, Montenbruck-Gill Sun/Moon, exponential drag, SRP" }},
         "boresight_body": c.dev.boresight, "metrics": metrics,
+        // values the engine uses that no case or part states yet (docs/UPGRADE_PLAN.md B2.7): named, not hidden
+        "assumptions": {"body_box_m": c.box_m, "cm_offset_m": c.cm_offset_m, "accommodation_normal": c.sigma_n, "accommodation_tangential": c.sigma_t,
+                        "vb_ratio": c.vb_ratio, "specular_fraction": c.spec_frac, "magnetometer_coil_coupling_T_per_Am2": c.dev.mag.k_coil,
+                        "note": "fixed in the engine for a 3U body; to come from the case and the parts"},
         "mode_log": rec.mode_log.iter().map(|(t, m)| json!({"t": t, "mode": m})).collect::<Vec<_>>(),
         "oils": rec.oils.as_ref().map(|s| s.json(c.dt)),
     });
-    std::fs::write(dir.join("manifest.json"), serde_json::to_string(&man).unwrap() + "\n").map_err(|e| e.to_string())?;
+    if let (Some(o), Value::Object(p)) = (man.as_object_mut(), crate::store::provenance(c, &impl_label(&rec.fsw_impl), &impl_id(&rec.fsw_impl))) { o.extend(p); }
+    // the inputs it flew, kept once by fingerprint, so it can be flown again exactly
+    let inputs = crate::store::inputs_dir(dir);
+    for (kind, file, key, ext) in [("case", &c.case.file, "case_fingerprint", "csv"), ("scenario", &c.scenario_file, "scenario_file_fingerprint", "json")] {
+        let bytes = std::fs::read(file).map_err(|e| crate::Error::io(std::path::Path::new(file), e))?;
+        let fp = man["inputs"][key].as_str().unwrap_or_default().to_string();
+        crate::store::keep_input(&inputs, &crate::store::input_name(kind, &fp, ext), &bytes)?;
+    }
+    // the manifest last: a run directory with a manifest has its channels too
+    crate::fsio::write(&dir.join("manifest.json"), serde_json::to_string(&man).map_err(|e| crate::Error::run(e.to_string()))? + "\n")?;
     Ok(())
 }
 
@@ -99,6 +113,22 @@ mod t {
 }
 
 /// Short label of where the flight software ran.
+/// The --fsw value that flies this flight software again (the named targets by name).
+pub fn impl_id(i: &adcs_fsw_abi::Impl) -> String {
+    use adcs_fsw_abi::{link::Target, Impl};
+    let ends = |x: &str, f: &str| x.replace('\\', "/").ends_with(&format!("fsw/build/{f}"));
+    match i {
+        Impl::C => "c".into(),
+        Impl::Rust => "rust".into(),
+        Impl::Obc(Target::Spawn(c)) if c[0].contains("qemu-system") && c.last().is_some_and(|x| ends(x, "obc_qemu.elf")) => "qemu".into(),
+        Impl::Obc(Target::Spawn(c)) if c[0].contains("qemu-system") && c.last().is_some_and(|x| ends(x, "obc_qemu_rs.elf")) => "qemu-rs".into(),
+        Impl::Obc(Target::Spawn(c)) if c.len() == 1 && ends(&c[0], "obc_posix") => "obc-posix".into(),
+        Impl::Obc(Target::Spawn(c)) if c.len() == 1 && ends(&c[0], "obc_posix_rs") => "obc-posix-rs".into(),
+        Impl::Obc(Target::Spawn(c)) => format!("spawn:{}", c.join(" ")),
+        Impl::Obc(Target::Tcp(a)) => format!("tcp:{a}"),
+    }
+}
+
 pub fn impl_label(i: &adcs_fsw_abi::Impl) -> String {
     use adcs_fsw_abi::{link::Target, Impl};
     match i {

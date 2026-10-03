@@ -16,10 +16,10 @@ stays at 1 by design, unless its weak roll term (sb_kroll) holds the power face.
 built with `adcs params` and decoded, so they are the dispatched values and not recomputed here.
 Copyright (c) 2026 Agastya. All rights reserved.
 """
-import csv, json, math, pathlib, subprocess, sys
+import csv, json, math, subprocess, sys
 import numpy as np
 
-ROOT = pathlib.Path(__file__).resolve().parents[1]
+from common import write_text, ROOT
 MS = ROOT / "matlab_sils"
 PIPE = MS / "store" / "pipeline"
 sys.path.insert(0, str(ROOT / "tools"))
@@ -161,7 +161,7 @@ def certify(case):
     scen = json.loads((pkg / "mission_scenario.json").read_text())
     # the reference frame from a mission that holds nadir: the selected family's
     ref = ROOT / fm[sel["selected"]]["check_dir"] / "c" / "channels.csv"
-    sp0 = PIPE / case / "floquet" / "_boot.json"; sp0.parent.mkdir(parents=True, exist_ok=True); sp0.write_text(json.dumps(scen))
+    sp0 = PIPE / case / "floquet" / "_boot.json"; sp0.parent.mkdir(parents=True, exist_ok=True); write_text(sp0, json.dumps(scen))
     subprocess.run([str(E.BIN), "params", str(sp0), "--case", str(MS / "cases" / f"{case}.csv"), "--out", str(sp0.with_suffix(".bin"))], cwd=MS,
                    check=True, capture_output=True, env={**__import__("os").environ, "ADCS_SIZED_DIR": str(pkg / "sized")})
     P0 = fswcfg.decode(sp0.with_suffix(".bin").read_bytes())
@@ -179,7 +179,7 @@ def certify(case):
         if law == out["dispatched_law"]:
             s["fsw"].update(tune)
         sp = PIPE / case / "floquet" / f"{law}.json"; sp.parent.mkdir(parents=True, exist_ok=True)
-        sp.write_text(json.dumps(s))
+        write_text(sp, json.dumps(s))
         blob = sp.with_suffix(".bin")
         subprocess.run([str(E.BIN), "params", str(sp), "--case", str(MS / "cases" / f"{case}.csv"), "--out", str(blob)], cwd=MS, check=True,
                        capture_output=True, env={**__import__("os").environ, "ADCS_SIZED_DIR": str(pkg / "sized")})
@@ -190,7 +190,7 @@ def certify(case):
         cert = max(am[free:]) < 1.0
         out["laws"].append({"law": law, "dispatched": law == out["dispatched_law"], "gains": {k: v for k, v in s["fsw"].items() if k.startswith("mtq_gain")} or "nominal",
                             "mu_abs": [float(x) for x in am], "max_mu": float(am[free]), "free_directions": free, "certified": bool(cert)})
-    (PIPE / case / "floquet.json").write_text(json.dumps(out, indent=1))
+    write_text(PIPE / case / "floquet.json", json.dumps(out, indent=1))
     return out
 
 

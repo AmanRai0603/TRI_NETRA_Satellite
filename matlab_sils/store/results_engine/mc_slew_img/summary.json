@@ -4,170 +4,171 @@
  "runs": [
   {
    "settle_time_after_slew": 12.100000000000023,
-   "ape_los_on_target_p9973": 0.007925203073528949,
-   "wheel_momentum_peak": 0.003335668980872261,
+   "ape_los_on_target_p9973": 0.007910098986138973,
+   "wheel_momentum_peak": 0.0027586806111563507,
    "seed": 1
   },
   {
    "settle_time_after_slew": 14.300000000000011,
-   "ape_los_on_target_p9973": 0.007986116501164663,
-   "wheel_momentum_peak": 0.003338323411128803,
+   "ape_los_on_target_p9973": 0.00795101708413518,
+   "wheel_momentum_peak": 0.002765234176227109,
    "seed": 2
   },
   {
-   "settle_time_after_slew": 13.600000000000023,
-   "ape_los_on_target_p9973": 0.006247889412763124,
-   "wheel_momentum_peak": 0.003334281876418842,
+   "settle_time_after_slew": 13.5,
+   "ape_los_on_target_p9973": 0.006448423602331361,
+   "wheel_momentum_peak": 0.002765165263266569,
    "seed": 3
   },
   {
-   "settle_time_after_slew": 11.800000000000011,
-   "ape_los_on_target_p9973": 0.00991770953592387,
-   "wheel_momentum_peak": 0.0033370289690798885,
+   "settle_time_after_slew": 12.400000000000034,
+   "ape_los_on_target_p9973": 0.009986871071603764,
+   "wheel_momentum_peak": 0.002757263193196781,
    "seed": 4
   },
   {
-   "settle_time_after_slew": 12.5,
-   "ape_los_on_target_p9973": 0.008093165521373255,
-   "wheel_momentum_peak": 0.0033091003197304953,
+   "settle_time_after_slew": 12.400000000000034,
+   "ape_los_on_target_p9973": 0.00815241976367635,
+   "wheel_momentum_peak": 0.002759593340750454,
    "seed": 5
   },
   {
-   "settle_time_after_slew": 12.600000000000023,
-   "ape_los_on_target_p9973": 0.007100271416726155,
-   "wheel_momentum_peak": 0.0033373297959648817,
+   "settle_time_after_slew": 12.5,
+   "ape_los_on_target_p9973": 0.0072697043759019885,
+   "wheel_momentum_peak": 0.002761064895636413,
    "seed": 6
   },
   {
-   "settle_time_after_slew": 12.900000000000034,
-   "ape_los_on_target_p9973": 0.006302519008820918,
-   "wheel_momentum_peak": 0.003345721171040133,
+   "settle_time_after_slew": 13.0,
+   "ape_los_on_target_p9973": 0.006085278778799051,
+   "wheel_momentum_peak": 0.0027611994358150128,
    "seed": 7
   },
   {
    "settle_time_after_slew": 13.0,
-   "ape_los_on_target_p9973": 0.006750846100206838,
-   "wheel_momentum_peak": 0.0033287981019460176,
+   "ape_los_on_target_p9973": 0.006878223476316469,
+   "wheel_momentum_peak": 0.0027635308125802498,
    "seed": 8
   },
   {
-   "settle_time_after_slew": 12.300000000000011,
-   "ape_los_on_target_p9973": 0.008629683825678318,
-   "wheel_momentum_peak": 0.00333349743942079,
+   "settle_time_after_slew": 12.400000000000034,
+   "ape_los_on_target_p9973": 0.008684762636296977,
+   "wheel_momentum_peak": 0.002759519821244718,
    "seed": 9
   },
   {
    "settle_time_after_slew": 14.0,
-   "ape_los_on_target_p9973": 0.006661694481473702,
-   "wheel_momentum_peak": 0.003341249859385028,
+   "ape_los_on_target_p9973": 0.0067133640441008014,
+   "wheel_momentum_peak": 0.0027618582853567246,
    "seed": 10
   },
   {
    "settle_time_after_slew": 12.900000000000034,
-   "ape_los_on_target_p9973": 0.012226518696908878,
-   "wheel_momentum_peak": 0.0033635092259896556,
+   "ape_los_on_target_p9973": 0.011989714205213404,
+   "wheel_momentum_peak": 0.0027628187403526574,
    "seed": 11
   },
   {
    "settle_time_after_slew": 13.600000000000023,
-   "ape_los_on_target_p9973": 0.009773814527362935,
-   "wheel_momentum_peak": 0.003342204132399194,
+   "ape_los_on_target_p9973": 0.009784370151924706,
+   "wheel_momentum_peak": 0.002764848822080791,
    "seed": 12
   },
   {
    "settle_time_after_slew": 12.600000000000023,
-   "ape_los_on_target_p9973": 0.007770103948342011,
-   "wheel_momentum_peak": 0.0033399759701899547,
+   "ape_los_on_target_p9973": 0.008012869133235935,
+   "wheel_momentum_peak": 0.002761946750254037,
    "seed": 13
   },
   {
-   "settle_time_after_slew": 11.800000000000011,
-   "ape_los_on_target_p9973": 0.006999945333710477,
-   "wheel_momentum_peak": 0.0033217636286998345,
+   "settle_time_after_slew": 11.699999999999989,
+   "ape_los_on_target_p9973": 0.0072145374569455864,
+   "wheel_momentum_peak": 0.0027598290371405603,
    "seed": 14
   },
   {
    "settle_time_after_slew": 12.400000000000034,
-   "ape_los_on_target_p9973": 0.006399915388183363,
-   "wheel_momentum_peak": 0.0033343242776691265,
+   "ape_los_on_target_p9973": 0.006333506753752305,
+   "wheel_momentum_peak": 0.002762043258044644,
    "seed": 15
   },
   {
-   "settle_time_after_slew": 15.0,
-   "ape_los_on_target_p9973": 0.008698028699154732,
-   "wheel_momentum_peak": 0.0033313291431963524,
+   "settle_time_after_slew": 15.100000000000023,
+   "ape_los_on_target_p9973": 0.008512159056005128,
+   "wheel_momentum_peak": 0.002764566736741528,
    "seed": 16
   },
   {
    "settle_time_after_slew": 12.699999999999989,
-   "ape_los_on_target_p9973": 0.007450001886782397,
-   "wheel_momentum_peak": 0.003358303385067536,
+   "ape_los_on_target_p9973": 0.007290126352608888,
+   "wheel_momentum_peak": 0.0027605731814123987,
    "seed": 17
   },
   {
    "settle_time_after_slew": 11.600000000000023,
-   "ape_los_on_target_p9973": 0.007528181023622976,
-   "wheel_momentum_peak": 0.0033365842234151255,
+   "ape_los_on_target_p9973": 0.007507155455352794,
+   "wheel_momentum_peak": 0.002760901058898357,
    "seed": 18
   },
   {
    "settle_time_after_slew": 12.0,
-   "ape_los_on_target_p9973": 0.007735716988839441,
-   "wheel_momentum_peak": 0.0033397665502036167,
+   "ape_los_on_target_p9973": 0.007858752637344295,
+   "wheel_momentum_peak": 0.0027640588113150974,
    "seed": 19
   },
   {
-   "settle_time_after_slew": 12.900000000000034,
-   "ape_los_on_target_p9973": 0.008952912197417354,
-   "wheel_momentum_peak": 0.0033319813056312464,
+   "settle_time_after_slew": 13.0,
+   "ape_los_on_target_p9973": 0.008997262189118903,
+   "wheel_momentum_peak": 0.002759382910982416,
    "seed": 20
   },
   {
-   "settle_time_after_slew": 11.199999999999989,
-   "ape_los_on_target_p9973": 0.007540516958936511,
-   "wheel_momentum_peak": 0.003318754449125735,
+   "settle_time_after_slew": 11.100000000000023,
+   "ape_los_on_target_p9973": 0.007446053908929469,
+   "wheel_momentum_peak": 0.002762703071836253,
    "seed": 21
   },
   {
-   "settle_time_after_slew": 13.300000000000011,
-   "ape_los_on_target_p9973": 0.007048057882876908,
-   "wheel_momentum_peak": 0.0033260842625698916,
+   "settle_time_after_slew": 13.199999999999989,
+   "ape_los_on_target_p9973": 0.007058535815509281,
+   "wheel_momentum_peak": 0.002759897103833077,
    "seed": 22
   },
   {
-   "settle_time_after_slew": 11.699999999999989,
-   "ape_los_on_target_p9973": 0.006896873672602641,
-   "wheel_momentum_peak": 0.0033235672102321944,
+   "settle_time_after_slew": 11.800000000000011,
+   "ape_los_on_target_p9973": 0.007030895651365839,
+   "wheel_momentum_peak": 0.002759503894490264,
    "seed": 23
   },
   {
    "settle_time_after_slew": 13.0,
-   "ape_los_on_target_p9973": 0.00986622666472872,
-   "wheel_momentum_peak": 0.0033629421349242296,
+   "ape_los_on_target_p9973": 0.009819404308014788,
+   "wheel_momentum_peak": 0.0027623285387252017,
    "seed": 24
   }
  ],
+ "failed_seeds": [],
  "stats": {
   "settle_time_after_slew": {
    "n": 24,
-   "mean": 12.74166666666668,
-   "std": 0.8901856859979033,
-   "min": 11.199999999999989,
-   "max": 15.0
+   "mean": 12.762500000000012,
+   "std": 0.8863842752064873,
+   "min": 11.100000000000023,
+   "max": 15.100000000000023
   },
   "ape_los_on_target_p9973": {
    "n": 24,
-   "mean": 0.007937579697797048,
-   "std": 0.0013925055435885503,
-   "min": 0.006247889412763124,
-   "max": 0.012226518696908878
+   "mean": 0.00795564612060926,
+   "std": 0.0013522523460457526,
+   "min": 0.006085278778799051,
+   "max": 0.011989714205213404
   },
   "wheel_momentum_peak": {
    "n": 24,
-   "mean": 0.003336337076012535,
-   "std": 1.2508337801939794e-05,
-   "min": 0.0033091003197304953,
-   "max": 0.0033635092259896556
+   "mean": 0.0027616046563057363,
+   "std": 2.1571952221882354e-06,
+   "min": 0.002757263193196781,
+   "max": 0.002765234176227109
   }
  }
 }

@@ -29,7 +29,7 @@ Every view follows the explanation standard (§5.12): a breadcrumb, an answer-fi
 
 ### 13.3 How it is built
 
-It is VLEO's web face, extended: one `index.html`, one `app.css`, ES modules served individually, no bundler, `app.js` owning every listener, and views emitting `data-` attributes. The new modules are:
+It is the web face: one `index.html`, one `app.css`, ES modules served individually, no bundler, `app.js` owning every listener, and views emitting `data-` attributes. The new modules are:
 
 - `sim.js`: the run view;
 - `campaign.js`: the dashboard;
@@ -44,18 +44,18 @@ It is VLEO's web face, extended: one `index.html`, one `app.css`, ES modules ser
 - `solve.js`: the solution view;
 - `catalogue.js`: the internal catalogue view.
 
-The node page (VLEO's, ported, read-only) gains "Ask for a change", which serves the node's form (§5.10). No page of the web face writes anything to the repository or to a sheet (§3.4); the only things a user puts into the software are a case CSV, a result document to view, and, in the portal, a client's FMU.
+The node page (read-only) gains "Ask for a change", which serves the node's form (§5.10). No page of the web face writes anything to the repository or to a sheet (§3.4); the only things a user puts into the software are a case CSV, a result document to view, and, in the portal, a client's FMU.
 
 - **3D:** `three.js`, vendored as one ES module file under `web/vendor/`, MIT licence, recorded in `ADOPTION.lock` with its version and fallback. The fallback is a 2D projection of the same scene.
-- **Charts:** VLEO's `chart.js` canvas routine and its measured light and dark `SCHEMES`, extended with a streaming time series that keeps a fixed window.
+- **Charts:** The `chart.js` canvas routine and its measured light and dark `SCHEMES`, extended with a streaming time series that keeps a fixed window.
 - **Live data:** server-sent events, `GET /v1/stream/<run>`: one-way, simple, and they pass through proxies. At most 20 Hz of downsampled channels; the recorder keeps full rate.
 - **Replay:** the same view reads the recorder's files; the time slider scrubs, and the 3D and the plots move together.
-- **Colour and tokens:** VLEO's `app.css` tokens and dark override, unchanged. The rung badge colours are new tokens, validated like the rest.
-- **Units:** the face converts for display only. Everything it receives is SI (VLEO `areas/faces.md`).
+- **Colour and tokens:** The `app.css` tokens and dark override. The rung badge colours are new tokens, validated like the rest.
+- **Units:** the face converts for display only. Everything it receives is SI (`areas/faces.md`).
 
 ### 13.4 Panels, checked in a real browser
 
-Every new view is a declared panel in `panels/<id>.toml` and passes VLEO's `panel_check.py` checks:
+Every new view is a declared panel in `panels/<id>.toml` and passes `panel_check.py`'s checks:
 
 - it renders;
 - it moves when each declared input moves;

@@ -13,13 +13,25 @@ use crate::params::{Mode, Params, MAX_COUPLES as NC, MAX_GIMBALS as NG, MAX_ROTO
 
 /// bang-bang B-dot boundary layer: proportional gain inside it = BDOT_BL_GAIN x the B-dot gain
 const BDOT_BL_GAIN: f64 = 4.0;
+/// Judged momentum windows in a row a rotor misses before it is isolated.
+const FDIR_WIN_BAD: u32 = 2;
 
 pub const ABI_VERSION: u32 = 1;
-pub const BUILD_ID: &str = "trinetra-fsw-rs/1.0.0 (adcs-fswcfg/1)";
+pub const BUILD_ID: &str = concat!("trinetra-fsw-rs/", env!("CARGO_PKG_VERSION"), " (adcs-fswcfg/1)");
 const MODE_COUNT: u8 = 11;
 
 #[derive(Debug, PartialEq, Eq)]
-pub enum InitError { Abi, Config }
+pub enum InitError { Abi, Config, Invalid(&'static str), Infeasible(u8) }
+
+/// Can the fitted hardware fly this state? (= feasible in adcs_fsw.c)
+fn feasible(p: &Params, m: u8) -> bool {
+    match m {
+        NADIR_FINE | TARGET_FINE | SLEW_FINE | SUN_FINE => p.nr > 0 || p.nc > 0,
+        SUN_ACQ_ROTOR => p.nr > 0,
+        DETUMBLE_RCS => p.nc > 0,
+        _ => m < MODE_COUNT,
+    }
+}
 
 /// What adcs_fsw_peek reports (floats, quaternion scalar first).
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
@@ -40,6 +52,8 @@ pub struct Fsw {
     z: Meas,
     drv: Drv,
     clean: bool,
+    // sensor health: seconds since the last good sample, the last good field
+    mag_age: f64, gyro_age: f64, mag_seen: bool, b_good: V3,
     have_r: bool, r: V3, v: V3,
     k: Mekf, ad_ok: bool, t_st: f64, mag_done: bool, n_rej: f64, gh_jd: f64,
     es_n: V3, es_t: f64,
@@ -54,6 +68,7 @@ pub struct Fsw {
     gd: Guid, g_rw: Gains, g_mtq: Gains,
     q_ref: Q, w_ref: V3, tau_req: V3, i_q: V3, last_ctrl: f64, capturing: bool,
     h_prev: Option<[f64; NR]>, cmd_r_prev: [f64; NR], rot_failed: [bool; NR], fd_count: [f64; NR],
+    fw_e: [f64; NR], fw_h0: [f64; NR], fw_t0: f64, fw_last: f64, fw_on: bool, fw_bad: [u32; NR],   // windowed rotor FDIR
     h_t_rot: [f64; NR], h_t: V3, cap: V3, hcap: V3, dump_hi: f64, dump_lo: f64,
     has_rcs_dump: bool, rcs_dumping: bool, rcs_left: Option<[f64; NC]>,
     sched_i: usize,
@@ -94,6 +109,10 @@ impl Fsw {
         *self = Fsw::default();
         if abi_version != ABI_VERSION { return Err(InitError::Abi); }
         let p = Params::decode(blob).map_err(|_| InitError::Config)?;
+        p.validate().map_err(InitError::Invalid)?;   // a value outside its rule (params.toml)
+        for m in [p.start_mode].into_iter().chain((p.auto_next != MODE_NONE).then_some(p.auto_next)).chain(p.sched_mode[..p.n_sched as usize].iter().copied()) {
+            if !feasible(&p, m) { return Err(InitError::Infeasible(m)); }
+        }
         self.p = p;
         self.start_ns = start_ns;
         self.mode = p.start_mode;
@@ -316,17 +335,35 @@ impl Fsw {
         self.jd = p.jd0 + self.t/86400.0;
         let mut z = self.z;
         self.drv.read(hal, &p, &mut z);
+        if z.mag_ok {
+            if let Some(br) = self.bref {
+                let (bn, rn) = (norm3(&z.b), norm3(&br));
+                if !(bn > MAG_LO*rn && bn < MAG_HI*rn) { z.mag_ok = false; }
+            }
+        }
+        if z.mag_ok { self.b_good = z.b; self.mag_age = 0.0; self.mag_seen = true; }
+        else { z.b = self.b_good; self.mag_age += dt; }
+        if p.has_gyro == 0 || z.gyro_ok { self.gyro_age = 0.0; } else { self.gyro_age += dt; }
         if !z.gyro_ok && p.has_gyro == 0 { z.w = [0.0; 3]; }
         self.z = z;
 
         // 1 onboard orbit (02): the GNSS fix, else two-body + J2 by velocity Verlet
-        if z.gps_ok {
+        // a fix inside the Earth is not a fix: dropped, the orbit propagated as without one
+        if z.gps_ok && norm3(&z.r) > GNSS_R_MIN {
+            let l = p.gps_latency;   // the fix is the state l seconds ago
             if p.gnss_ecef != 0 {
-                // receiver fix in ECEF: r = C' r_e, v = C' (v_e + w_E x r_e)
-                let c = env::eci2ecef(self.jd);
+                // receiver fix in ECEF: r = C' r_e, v = C' (v_e + w_E x r_e), C at the fix's epoch
+                let c = env::eci2ecef(self.jd - l/86400.0);
                 let ve = add3(&z.v, &cross(&[0.0, 0.0, OMEGA_E], &z.r));
                 self.r = mat3t_vec(&c, &z.r); self.v = mat3t_vec(&c, &ve);
             } else { self.r = z.r; self.v = z.v; }
+            if l > 0.0 {
+                // carried forward to now: one Verlet step of l
+                let a0 = orbit_acc(&self.r, p.mu);
+                for i in 0..3 { self.r[i] += self.v[i]*l + 0.5*a0[i]*l*l; }
+                let a1 = orbit_acc(&self.r, p.mu);
+                for i in 0..3 { self.v[i] += 0.5*(a0[i] + a1[i])*l; }
+            }
             self.have_r = true;
         } else if self.have_r {
             let a0 = orbit_acc(&self.r, p.mu);
@@ -358,19 +395,23 @@ impl Fsw {
                     self.k = Mekf::new(&q0, 1e-3, 2e-4, p.gyro_arw, p.gyro_rrw);
                     self.ad_ok = true;
                     self.t_st = self.t;
-                } else if z.sun_ok && self.clean && self.bref.is_some() {
-                    let q0 = est::triad(&z.sun, &z.b, &self.gd.sun_eci, self.bref.as_ref().unwrap());
-                    self.k = Mekf::new(&q0, 0.05, 2e-4, p.gyro_arw, p.gyro_rrw);
-                    self.ad_ok = true;
+                } else if z.sun_ok && z.mag_ok && self.clean && self.bref.is_some() {
+                    // Sun and field not parallel
+                    if let Some(q0) = est::triad(&z.sun, &z.b, &self.gd.sun_eci, self.bref.as_ref().unwrap()) {
+                        self.k = Mekf::new(&q0, 0.05, 2e-4, p.gyro_arw, p.gyro_rrw);
+                        self.ad_ok = true;
+                    }
                 }
             } else {
                 self.k.predict(&z.w, dt);
                 if p.has_st != 0 && z.st_ok {
                     for h in 0..p.n_heads as usize {
-                        if z.st_valid[h] {
+                        let qs = &z.q_st[h];
+                        let qn = sqrt(qs[0]*qs[0] + qs[1]*qs[1] + qs[2]*qs[2] + qs[3]*qs[3]);
+                        if z.st_valid[h] && fabs(qn - 1.0) < ST_NORM_TOL {     // a unit quaternion, or no reading
                             let wb = sub3(&z.w, &self.k.b);
                             let ql = est::latency(&z.q_st[h], &wb, p.st_latency);
-                            self.k.quat(&ql, p.st_noise_cross*p.mekf_meas_scale, p.st_noise_roll*p.mekf_meas_scale, &p.st_bs[h]);
+                            self.k.quat(&ql, p.st_noise_cross*p.mekf_meas_scale, p.st_noise_roll*p.mekf_meas_scale, &p.st_bs[h], 0.0);
                         }
                     }
                     self.t_st = self.t;
@@ -380,7 +421,7 @@ impl Fsw {
                     // vector updates once per coil cycle; the field on the first clean tick of the cycle
                     let (mut tried, mut took) = (0.0, 0.0);
                     if z.sun_ok && first { tried += 1.0; if self.k.vector(&z.sun, &self.gd.sun_eci, p.mekf_sig_sun, p.mekf_gate) { took += 1.0; } }
-                    if self.clean && !self.mag_done {
+                    if self.clean && !self.mag_done && z.mag_ok {
                         if let Some(br) = self.bref {
                             let bn = norm3(&z.b);
                             let e = p.mekf_mag_err_T/(if bn > 1e-9 { bn } else { 1e-9 });
@@ -414,7 +455,16 @@ impl Fsw {
             self.enter(p.sched_mode[self.sched_i]);
             self.sched_i += 1;
         }
-        if (self.mode == DETUMBLE || self.mode == DETUMBLE_RCS) && p.auto_next != MODE_NONE {
+        {
+            // safe mode: a sensor silent too long holds the spacecraft in magnetorquer detumble
+            let mut f = 0u16;
+            if self.mag_seen && self.mag_age > SAFE_STALE_S { f |= FAULT_MAG_STALE; }
+            if self.gyro_age > SAFE_STALE_S { f |= FAULT_GYRO_STALE; }
+            self.faults = (self.faults & !(FAULT_MAG_STALE | FAULT_GYRO_STALE)) | f;
+            if f != 0 && self.mode != DETUMBLE { self.enter(DETUMBLE); }
+        }
+        if (self.mode == DETUMBLE || self.mode == DETUMBLE_RCS) && p.auto_next != MODE_NONE
+            && self.faults & (FAULT_MAG_STALE | FAULT_GYRO_STALE) == 0 {
             if norm3(&z.w) < p.detumble_exit { self.hold += dt; } else { self.hold = 0.0; }
             if self.hold >= p.detumble_hold_s { self.enter(p.auto_next); }
         }
@@ -442,13 +492,17 @@ impl Fsw {
                 if phase < p.mtq_meas + dt/2.0 {
                     m_body = [0.0; 3];
                     if first { self.bsum = [0.0; 3]; self.bsum_raw = [0.0; 3]; self.bn = 0; }
-                    self.bsum = add3(&self.bsum, &unit(&z.b));
-                    self.bsum_raw = add3(&self.bsum_raw, &z.b);
-                    self.bn += 1;
-                    if fabs(phase - p.mtq_meas) < dt/2.0 {
+                    if z.mag_ok {
+                        self.bsum = add3(&self.bsum, &unit(&z.b));
+                        self.bsum_raw = add3(&self.bsum_raw, &z.b);
+                        self.bn += 1;
+                    }
+                    // no field this cycle: no dipole, no rate across the gap
+                    if fabs(phase - p.mtq_meas) < dt/2.0 && self.bn == 0 { self.b1 = None; self.b1raw = None; }
+                    else if fabs(phase - p.mtq_meas) < dt/2.0 {
                         let b = unit(&scale3(&self.bsum, 1.0/self.bn as f64));
                         let mut law = p.bdot_law;
-                        if law == 0 && p.has_gyro == 0 { law = 1; }
+                        if law == 0 && (p.has_gyro == 0 || self.gyro_age > 0.0) { law = 1; }
                         if law == 0 {
                             let bd = scale3(&cross(&z.w, &b), -1.0);
                             m_body = ctl::bdot(&sub3(&b, &bd), &b, 1.0, norm3(&z.b), p.bdot_k, p.m_max);
@@ -522,7 +576,7 @@ impl Fsw {
                     }
                     let md = if self.ho {
                         self.tau_req = [0.0; 3];
-                        scale3(&cross(&we, &unit(&z.b)), p.bdot_k/norm3(&z.b))
+                        scale3(&cross(&we, &unit(&z.b)), { let bn = norm3(&z.b); if bn > 1e-9 { p.bdot_k/bn } else { 0.0 } })
                     } else {
                         self.mtq_law();
                         if p.mtq_gg_ff & (if self.mode == SUN_MTQ { 1 } else { 2 }) != 0 {
@@ -554,6 +608,28 @@ impl Fsw {
                             self.fd_count[i] = if bad { self.fd_count[i] + dt } else { 0.0 };
                             if self.fd_count[i] > p.fdir_s && !self.rot_failed[i] { self.rot_failed[i] = true; self.faults |= 1u16 << i; }
                         }
+                        // windowed: the momentum each fluid loop was commanded to change over fdir_win_s against the
+                        // change measured; catches a loop that does not follow the small commands of fine pointing.
+                        // Fluid loops only: their driver closes a momentum loop, so a healthy one tracks the
+                        // commanded change; a wheel's uncompensated friction drifts it off over a window
+                        if !self.fw_on || self.t - self.fw_last > 1.5*dt {
+                            for i in 0..nr { self.fw_e[i] = 0.0; self.fw_h0[i] = z.h[i]; }
+                            self.fw_t0 = self.t; self.fw_on = true;
+                        } else {
+                            for i in 0..nr { self.fw_e[i] += clamp(self.cmd_r_prev[i], -0.8*p.rot_tmax[i], 0.8*p.rot_tmax[i])*dt; }
+                            if self.t - self.fw_t0 >= p.fdir_win_s - 1e-9 {
+                                for i in 0..nr {
+                                    let (hmax, e, m) = (p.rot_hmax[i], self.fw_e[i], z.h[i] - self.fw_h0[i]);
+                                    if p.rot_kind[i] != 1 || p.rot_gi[i] != 0 || self.rot_failed[i] || fabs(e) <= p.fdir_h_frac*hmax
+                                        || fabs(z.h[i]) >= 0.9*hmax || fabs(self.fw_h0[i]) >= 0.9*hmax { continue; }
+                                    self.fw_bad[i] = if fabs(m - e) > 0.5*fabs(e) { self.fw_bad[i] + 1 } else { 0 };
+                                    if self.fw_bad[i] >= FDIR_WIN_BAD { self.rot_failed[i] = true; self.faults |= 1u16 << i; }
+                                }
+                                for i in 0..nr { self.fw_e[i] = 0.0; self.fw_h0[i] = z.h[i]; }
+                                self.fw_t0 = self.t;
+                            }
+                        }
+                        self.fw_last = self.t;
                     }
                 }
                 // control law at the control rate
@@ -634,9 +710,9 @@ impl Fsw {
                 if phase < p.mtq_meas + dt/2.0 {
                     m_body = [0.0; 3];
                     if first { self.bsum_raw = [0.0; 3]; self.bn = 0; }
-                    self.bsum_raw = add3(&self.bsum_raw, &z.b);
-                    self.bn += 1;
-                    if fabs(phase - p.mtq_meas) < dt/2.0 {
+                    if z.mag_ok { self.bsum_raw = add3(&self.bsum_raw, &z.b); self.bn += 1; }
+                    if fabs(phase - p.mtq_meas) < dt/2.0 && self.bn == 0 { self.b1raw = None; }
+                    else if fabs(phase - p.mtq_meas) < dt/2.0 {
                         let bav = scale3(&self.bsum_raw, 1.0/self.bn as f64);
                         let m0 = if self.mode == SPINUP {
                             let mut bd = [0.0; 3];
@@ -669,8 +745,9 @@ impl Fsw {
                 }
                 if nr > 0 { self.idle_rotors(&mut cmd_r, false); }
             }
-            _ => {}
+            _ => { m_body = [0.0; 3]; }     // no such state (refused at init and by command): coils off
         }
+        if self.mag_seen && self.mag_age > MAG_HOLD_CYCLES*p.mtq_period { m_body = [0.0; 3]; }   // no field to act on
         self.m_hold = m_body;
         self.clean = is_zero3(&m_body);
         drv::write(hal, &p, &m_body, &cmd_r, &cmd_g, &duty);
@@ -684,7 +761,7 @@ impl Fsw {
     /// TC 0x01: set controller state (tc[1]).
     pub fn command(&mut self, tc: &[u8]) -> i32 {
         if !self.ready || tc.len() < 2 { return -1; }
-        if tc[0] == 0x01 && tc[1] < MODE_COUNT { self.enter(tc[1]); return 0; }
+        if tc[0] == 0x01 && tc[1] < MODE_COUNT { if !feasible(&self.p, tc[1]) { return -3; } self.enter(tc[1]); return 0; }
         -2
     }
 
@@ -730,8 +807,24 @@ impl Fsw {
 }
 
 /// Two-body + J2 acceleration in J2000 (the pole of date is 0.4 deg off: second order on J2).
+/// a GNSS fix below this radius is refused (= GNSS_R_MIN in adcs_fsw.c)
+const GNSS_R_MIN: f64 = 0.9*RE;
+/// Sensor health (= adcs_fsw.c): a field reading outside [MAG_LO, MAG_HI] x the model field is not a
+/// reading; the held field drives the coils for at most MAG_HOLD_CYCLES coil cycles; a magnetometer
+/// or gyro silent for SAFE_STALE_S holds the spacecraft in magnetorquer detumble.
+const MAG_LO: f64 = 0.25;
+const MAG_HI: f64 = 4.0;
+const MAG_HOLD_CYCLES: f64 = 2.0;
+const SAFE_STALE_S: f64 = 60.0;
+pub const FAULT_MAG_STALE: u16 = 1 << 8;
+pub const FAULT_GYRO_STALE: u16 = 1 << 9;
+/// a star-tracker quaternion further than this from unit length is not a reading; its innovation is
+/// not gated (= adcs_fsw.c)
+const ST_NORM_TOL: f64 = 1e-3;
+
 fn orbit_acc(r: &V3, mu: f64) -> V3 {
     let rn = norm3(r);
+    if !(rn > 1.0) { return [0.0; 3]; }     // no orbit to speak of (= adcs_fsw.c)
     let r2 = rn*rn;
     let zr = r[2]*r[2]/r2;
     let k = -mu/(r2*rn);

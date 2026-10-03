@@ -3,6 +3,10 @@
  "fsw": "reference",
  "id": "mtq_tango2013",
  "label": "P3 TANGO/PRISMA 2013: LQR with P frozen at the averaged-Riccati solution (gain varies only through the measured field)",
+ "literature": {
+  "read": "deck author's PDF reading; Q, R ours (the paper's are unpublished)",
+  "review": "literature_review_v2.pptx (Agastya Research Collective, 19 Sep 2026)"
+ },
  "needs": [
   "coils",
   "magnetometer",
@@ -12,9 +16,5 @@
  "prototype": true,
  "schema": "adcs-algorithm/1",
  "slot": "mtq_pointing",
- "source": "C. Chasset et al., CEAS Space Journal 5, 1-17, 2013, doi:10.1007/s12567-013-0034-9 (flown)",
- "literature": {
-  "read": "deck author's PDF reading; Q, R ours (the paper's are unpublished)",
-  "review": "literature_review_v2.pptx (Agastya Research Collective, 19 Sep 2026)"
- }
+ "source": "C. Chasset et al., CEAS Space Journal 5, 1-17, 2013, doi:10.1007/s12567-013-0034-9 (flown)"
 }

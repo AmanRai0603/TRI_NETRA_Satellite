@@ -7,8 +7,8 @@ Deterministic: files sorted, fixed timestamps. Run it from the repository.
 Copyright (c) 2026 Agastya. All rights reserved.
 """
 import hashlib, pathlib, re, zipfile
+from common import atomic_path, ROOT
 
-ROOT = pathlib.Path(__file__).resolve().parents[1]
 SRC = ROOT / "matlab_sils"
 ver = re.search(r"'(asils-[0-9.]+)", (SRC / "+asils" / "version.m").read_text()).group(1)
 name = f"TRINETRA_ADCS_SILS_matlab_{ver}"
@@ -34,7 +34,8 @@ extra = {
 }
 man = []
 FIXED = (2026, 9, 27, 0, 0, 0)
-with zipfile.ZipFile(out, "w", zipfile.ZIP_DEFLATED, compresslevel=9) as z:
+# the zip is written beside its name and renamed into place when whole
+with atomic_path(out) as part, zipfile.ZipFile(part, "w", zipfile.ZIP_DEFLATED, compresslevel=9) as z:
     for src, arc in files:
         data = src.read_bytes()
         zi = zipfile.ZipInfo(str(arc), FIXED); zi.compress_type = zipfile.ZIP_DEFLATED; zi.external_attr = 0o644 << 16

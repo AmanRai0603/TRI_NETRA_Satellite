@@ -2,9 +2,14 @@ function [hdot, gdot, P_W, D] = mex(cmd_r, cmd_g, h, d, D, m, dt)
 %ASILS.DEVICES.MEX  Momentum-exchange devices: command -> actual rotor hdot,
 %   gimbal rate and electrical power. One entry per rotor (m.kind{i}):
 %
-%   'rw'    reaction wheel (SYN-RW-10): motor torque limit, momentum (speed)
-%           limit, Coulomb + viscous friction of which the driver cancels
+%   'rw'    reaction wheel (SYN-RW-10): motor torque limit, momentum limit,
+%           Coulomb + viscous friction of which the driver cancels
 %           m.friction_comp, torque noise, scale error. Power = steady + |tau w|/eta.
+%           B3.5: the motor's back-EMF torque-speed line and the drive's speed
+%           limit (asils.devices.wheel_motor); stiction: the Stribeck excess
+%           (Fs - Fc) e^-(w/ws)^2 sgn w, and a rotor at rest (|h| <= Fs dt)
+%           stays at rest while |demand| <= Fs (Karnopp).
+%   'vscmg' rotor: the wheel model without the B3.5 motor and stiction terms.
 %   'fmr'   fluid momentum ring (SYN-MFP-1, IDMAS): galinstan loop driven by a
 %           conduction pump. h = rho*Ac*2S*v. Laminar loss hdot_loss = -h/T_sd,
 %           T_sd = rho d^2/(32 mu) (0.75 s). The driver adds the loss it
@@ -21,7 +26,24 @@ function [hdot, gdot, P_W, D] = mex(cmd_r, cmd_g, h, d, D, m, dt)
     for i = 1:n
         if D.failed(i), hdot(i) = -m.viscous(i)*h(i)/m.J(i) - m.coulomb(i)*sign(h(i)); continue, end
         switch m.kind{i}
-            case {'rw', 'vscmg'}
+            case 'rw'
+                om = h(i)/m.J(i);
+                fr = (m.coulomb(i)*sign(om) + m.viscous(i)*om) * D.fscale(i);
+                nz = m.torque_noise*m.torque_max(i)*randn;
+                tc = asils.devices.wheel_motor(m, i, max(-m.torque_max(i), min(m.torque_max(i), cmd_r(i))) * D.tscale(i), om);
+                % breakaway excess over Coulomb near zero speed (Stribeck); the
+                % driver's compensation knows only the Coulomb + viscous model
+                fs = m.f_static(i)*D.fscale(i);
+                x = om/m.w_stribeck(i);
+                st = (m.f_static(i) - m.coulomb(i))*D.fscale(i)*exp(-x*x)*sign(om);
+                if abs(h(i)) <= fs*dt && abs(tc + nz) <= fs
+                    hdot(i) = -h(i)/dt;          % stuck (Karnopp): static friction holds it at rest
+                else
+                    hdot(i) = tc - (1 - m.friction_comp)*fr - st + nz;
+                end
+                if abs(h(i)) >= m.h_max(i) && sign(hdot(i)) == sign(h(i)), hdot(i) = -(1 - m.friction_comp)*fr; end
+                P_W = P_W + m.p_steady(i) + abs(tc*om)/m.eta;
+            case 'vscmg'
                 tc = max(-m.torque_max(i), min(m.torque_max(i), cmd_r(i))) * D.tscale(i);
                 om = h(i)/m.J(i);
                 fr = (m.coulomb(i)*sign(om) + m.viscous(i)*om) * D.fscale(i);
@@ -47,7 +69,12 @@ function [hdot, gdot, P_W, D] = mex(cmd_r, cmd_g, h, d, D, m, dt)
                 % loop (IDMAS v2 §03C: 1-3 W per unit); the loop spins down in
                 % ~1 s, so it is on whenever the ring holds momentum
                 % idle driver (no momentum target, no command): field off
-                if abs(D.htgt(i)) > 0.02*m.h_max(i) || abs(cmd_r(i)) > 0.02*m.torque_max(i), P_W = P_W + m.field_power(i); end
+                % switched with hysteresis (on above 2 %, off below 1 %) so a target hovering at
+                % the threshold does not decide a power budget (= the engine's Mex)
+                if ~isfield(D, 'field_on'), D.field_on = false(n, 1); end
+                ht = abs(D.htgt(i))/m.h_max(i); tq = abs(cmd_r(i))/m.torque_max(i);
+                if ht > 0.02 || tq > 0.02, D.field_on(i) = true; elseif ht < 0.01 && tq < 0.01, D.field_on(i) = false; end
+                if D.field_on(i), P_W = P_W + m.field_power(i); end
             case 'cmg'
                 hdot(i) = max(-m.torque_max(i), min(m.torque_max(i), -m.k_speed*(h(i) - m.h0(i))));
                 P_W = P_W + m.p_steady(i);

@@ -1,0 +1,35 @@
+# AIS 3U: Sun referencing on the magnetorquers alone (the coils-only Sun-pointing mode):
+# judged on keeping the power face near the Sun and on the power budget.
+schema = "adcs-scenario/1"
+id = "sun_mtq_ais"
+label = "3U AIS — Sun referencing with magnetorquers only"
+case = "ais_3u"
+product = "TRN-P-3U-AIS"
+[time]
+duration_s = 17220.0
+dt_s = 0.2
+record_dt_s = 1.0
+[initial]
+attitude = { kind = "error_from_guidance", angle_deg = 20.0, axis_body = [0.577, 0.577, 0.577] }
+rate = { kind = "guidance" }
+[fsw]
+start_mode = "sun_mtq"
+guidance = { kind = "sun" }
+algorithms = { mtq_pointing = "mtq_avanzini2021" }   # the design loop's coils-only Sun-pointing law
+[[metrics]]
+id = "sun_angle_last_orbit_p95"
+kind = "sun_angle"
+window = "last_orbit"
+statistic = "p95"
+limit = 20.0                 # the Sun-spin mode's own guard (theta_ok), the coils-only bound
+[[metrics]]
+id = "power_margin_last_orbit"
+kind = "power_margin"
+window = "last_orbit"
+limit = 0.0
+sense = "min"
+[[metrics]]
+id = "power_mean"
+kind = "power_mean"
+window = "all"
+requirement = "req.pavg"

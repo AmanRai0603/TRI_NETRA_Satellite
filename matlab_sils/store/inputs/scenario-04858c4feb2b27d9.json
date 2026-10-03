@@ -1,0 +1,52 @@
+{
+ "case": "ais_img_3u",
+ "fsw": {
+  "guidance": {
+   "kind": "sun"
+  },
+  "rw_bandwidth": 0.9,
+  "rw_damping": 2.0,
+  "start_mode": "sun_acq_rotor"
+ },
+ "id": "sun_acq_rotor_img",
+ "initial": {
+  "attitude": {
+   "kind": "random"
+  },
+  "rate": {
+   "kind": "random_direction",
+   "magnitude_deg_s": 0.5
+  }
+ },
+ "label": "3U imaging \u2014 Sun acquisition on reaction wheels from an arbitrary attitude",
+ "metrics": [
+  {
+   "channel": "sun_angle_geo",
+   "hold_s": 600.0,
+   "id": "sun_acquisition_time",
+   "kind": "time_to_threshold",
+   "requirement": "req.sunacq",
+   "threshold_deg": 20.0,
+   "unit_min": true
+  },
+  {
+   "diagnostic": "the orbit that includes the acquisition: a deficit here is drawn from the battery",
+   "id": "power_margin_orbit",
+   "kind": "power_margin",
+   "window": "all"
+  },
+  {
+   "diagnostic": "the deepest discharge of the acquisition orbit: the case does not state a depth-of-discharge limit",
+   "id": "battery_dod_orbit",
+   "kind": "battery_dod",
+   "window": "all"
+  }
+ ],
+ "product": "TRN-P-3U-IMG",
+ "schema": "adcs-scenario/1",
+ "time": {
+  "dt_s": 0.1,
+  "duration_s": 5740.0,
+  "record_dt_s": 1.0
+ }
+}

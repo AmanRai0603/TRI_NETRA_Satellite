@@ -15,6 +15,7 @@ function P = config(scenarioId, caseFile, opts)
     if ~exist(caseFile, 'file'), caseFile = fullfile(R, caseFile); end
     if isstruct(scenarioId), S = scenarioId; else, S = asils.scenario.load(scenarioId); end   % a mode test builds its scenario in memory
     C = asils.case.read(caseFile);
+    asils.scenario.check(S, C);             % the engine's rules: unknown keys, wrong types, missing requirements refused
     v = C.v;
     P.scenario = S; P.case = C; P.id = S.id;
     P.faults = asils.util.getf(S, 'faults', []);          % scheduled fault injection (asils.faults.apply)
@@ -46,11 +47,27 @@ function P = config(scenarioId, caseFile, opts)
     %% spacecraft (case)
     P.sc.mass_kg = v.mass_m;
     P.sc.I = diag([v.mass_imin, v.mass_iint, v.mass_imax]);      % long axis = X_B
-    P.sc.box_m = [0.34 0.10 0.10];
+    P.sc.box_m = class_box(C);              % the body of the case's class (catalogue/classes.toml)
     cpa = v.surface_cpa;
     P.sc.cm_offset_m = cpa*[0.30; 0.70; -0.65]/norm([0.30; 0.70; -0.65]);   % |offset| = case CP-CM
+    % a stated value nothing models is refused, never silently dropped (= the engine's CASE_UNMODELLED)
+    um = {'mission_duty', 'mass_cm', 'resources_vbus', 'resources_nif'};
+    for i = 1:numel(um)
+        if isfield(v, um{i}) && isfinite(v.(um{i}))
+            error('asils:case:refused', 'case %s states %s = %g: the models do not use it yet', C.id, strrep(um{i}, '_', '.'), v.(um{i}));
+        end
+    end
+    % the facet model: one centre-of-mass offset for both torques, the sunlit area from the box
+    if isfield(v, 'surface_cps') && isfinite(v.surface_cps) && v.surface_cps ~= cpa
+        error('asils:case:refused', 'case %s: surface.cps = %g m differs from surface.cpa = %g m; the facet model has one centre-of-mass offset for both torques', C.id, v.surface_cps, cpa);
+    end
+    b_ = P.sc.box_m; face = max([b_(1)*b_(2), b_(2)*b_(3), b_(1)*b_(3)]);
+    if isfield(v, 'surface_asun') && isfinite(v.surface_asun) && abs(v.surface_asun - face) > 1e-6*max(face, 1e-12)
+        error('asils:case:refused', 'case %s: surface.asun = %g m^2, but the facet model lights the class body, largest face %g m^2', C.id, v.surface_asun, face);
+    end
     P.sc.aref_m2 = v.surface_afr; P.sc.cd = v.surface_cd; P.sc.refl = v.surface_refl;
-    P.sc.sigma_n = 0.8; P.sc.sigma_t = 0.8; P.sc.vb_ratio = 0.05;  % Moe & Moe (2005) LEO accommodation
+    % surface-model settings, the engine's ACCOMMODATION, VB_RATIO, SPEC_FRAC (config.rs): Moe & Moe (2005) LEO
+    P.sc.sigma_n = 0.8; P.sc.sigma_t = 0.8; P.sc.vb_ratio = 0.05;
     P.sc.spec_frac = 0.5;
     P.sc.m_res = v.magnetic_dres*[1;1;1]/sqrt(3);
 
@@ -118,6 +135,8 @@ function P = config(scenarioId, caseFile, opts)
     F.rcs = struct('assist', logical(asils.util.getf(S.fsw, 'rcs_assist', 1)), 'assist_frac', 0.8, ...
                    'dump', logical(asils.util.getf(S.fsw, 'rcs_dump', 1)), 'dump_hi', 4e-3, 'dump_lo', 1e-3, 'dump_k', 0.05);
     F.fdir_s = 3.0;                                  % a rotor off its command this long is isolated
+    F.fdir_win_s = 120.0;                            % windowed rotor FDIR: window length
+    F.fdir_h_frac = 0.005;                           % ... a commanded change under this x h_max is not judged
     F.rate_lpf_s = asils.util.getf(S.fsw, 'rate_lpf_s', 0.3);   % controller rate filter time constant
     F.dump_k = asils.util.getf(S.fsw, 'dump_gain', 2e-3); F.h_bias = asils.util.getf(S.fsw, 'wheel_bias_Nms', 2e-3);
     F.m_res_est = P.sc.m_res;       % ground-calibrated residual dipole the coils cancel (nominal case value)
@@ -125,12 +144,16 @@ function P = config(scenarioId, caseFile, opts)
     F.mekf.meas_scale = 1; F.mekf.proc_scale = 1;
     F.mekf.sig_mag = 0.03; F.mekf.sig_sun = 0.012;  % direction 1-sigma [rad] incl. model error
     F.st_coast_s = 900;                             % gyro-only coasting allowed across a star-tracker outage
+    F.gps_latency = 0;                              % age of a GNSS fix [s]: the fix is carried forward by it
+    if P.dev.gps.fitted, F.gps_latency = P.dev.gps.latency; end
     F.igrf_nmax = 10;                               % onboard field model degree (truth: 13)
     F.algorithms = asils.util.getf(S.fsw, 'algorithms', struct());
+    F.J = P.sc.I;                                   % the inertia the flight software was loaded with (nominal)
     P.fsw = F;
 
-    %  The FSW's calibrated dipole (fsw.m_res_est) is fixed BEFORE overrides, so a
-    %  dispersed true dipole (sc.m_res) leaves a realistic calibration error.
+    %  The FSW's calibrated dipole (fsw.m_res_est) and inertia (fsw.J) are fixed BEFORE overrides,
+    %  so a dispersed true dipole or inertia (sc.m_res, sc.I) leaves a realistic knowledge error,
+    %  as on the engine (the flight software keeps the ground-calibrated values).
     if isfield(opts, 'set')
         P = asils.util.setpaths(P, opts.set);
     end
@@ -139,4 +162,33 @@ function P = config(scenarioId, caseFile, opts)
     S2 = P.scenario; S2.fsw.algorithms = P.fsw.algorithms;
     P.fsw.alg = asils.fsw.select(P.dev, S2);
     P.sc.Iinv = inv(P.sc.I);
+    % the case's flexible mode on the truth body, all or none (= the engine's Config::build)
+    P.sc.flex = struct('on', false);
+    fk = {'flex_fmode', 'flex_mpart', 'flex_zeta', 'flex_axis'};
+    st = cellfun(@(k) isfield(v, k) && isfinite(v.(k)), fk);
+    if any(st) && ~all(st)
+        error('asils:case:refused', 'case %s states part of its flexible mode: %s missing (all of it or none)', ...
+              C.id, strjoin(strrep(fk(~st), '_', '.'), ', '));
+    end
+    if all(st)
+        a = v.flex_axis; dl = zeros(3, 1); dl(a) = sqrt(v.flex_mpart*P.sc.I(a, a));
+        P.sc.flex = struct('on', true, 'delta', dl, 'omega', 2*pi*v.flex_fmode, 'zeta', v.flex_zeta, ...
+                           'Minv', inv(P.sc.I - dl*dl'));
+    end
+end
+
+function b = class_box(C)
+%CLASS_BOX  The body of the case's satellite class, as the engine's config::class_box: a blank or
+%   unknown meta.class is refused, never assumed.
+    K = asils.util.readjson(fullfile(asils.util.root(), 'data', 'classes.json'));
+    L = K.class; if isstruct(L), L = num2cell(L); end
+    ids = cellfun(@(x) x.id, L, 'UniformOutput', false);
+    if isempty(C.class)
+        error('asils:case:class', 'case %s: meta.class is blank; the twin models the body of the class it names (%s)', C.id, strjoin(ids, ', '));
+    end
+    k = find(strcmp(ids, C.class), 1);
+    if isempty(k)
+        error('asils:case:class', 'case %s: meta.class = "%s" is no class in catalogue/classes.toml (%s)', C.id, C.class, strjoin(ids, ', '));
+    end
+    b = reshape(L{k}.box_m, 1, 3);
 end

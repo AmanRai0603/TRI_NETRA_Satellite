@@ -393,6 +393,83 @@
    ]
   },
   {
+   "id": "faults",
+   "stage": "selection",
+   "runs_in": "Rust engine + C flight software (adcs run)",
+   "does": "Redundancy and FDIR in selection (B2.6): once the loop has converged, every family of the campaign's roles flies its mission (detumble -> Sun acquisition -> nadir, as dispatch builds it, with the family's best option and algorithms per mode) once without a fault and once per single fault its product can carry; select then counts every fault the family does not survive (select.fault_policy).",
+   "inputs": [
+    "converge (the converged products)",
+    "select (each family's best option and algorithms per mode)"
+   ],
+   "outputs": [
+    "matlab_sils/store/pipeline/<case>/faults.json",
+    "matlab_sils/store/pipeline/<case>/faults/<family>/<kind>.json (the scenarios flown)"
+   ],
+   "parameters": {
+    "roles": [
+     "solution"
+    ],
+    "seeds": [
+     1,
+     2
+    ],
+    "lead_orbits": 0.25,
+    "set": [
+     {
+      "kind": "coil_fail",
+      "needs": "coils",
+      "index": 1
+     },
+     {
+      "kind": "rotor_fail",
+      "needs": "rotors",
+      "index": 1
+     },
+     {
+      "kind": "gimbal_stuck",
+      "needs": "gimbals",
+      "index": 1
+     },
+     {
+      "kind": "st_head_fail",
+      "needs": "st_heads",
+      "min_units": 2,
+      "index": 2
+     },
+     {
+      "kind": "gyro_bias_step",
+      "needs": "gyros",
+      "value": [
+       0.001745,
+       0.0,
+       0.0
+      ]
+     },
+     {
+      "kind": "gps_outage",
+      "needs": "gnss",
+      "duration_s": 1800.0
+     },
+     {
+      "kind": "rcs_valve_fail",
+      "needs": "rcs_couples",
+      "index": 1
+     }
+    ],
+    "units": "coils, rotors (wheels, fluid rings, CMG/VSCMG rotors), gimbals, st_heads, gyros, gnss, magnetometers, rcs_couples: counted from the product's fill as the engine counts them"
+   },
+   "rules": [
+    "one fault per run, injected lead_orbits (a quarter orbit) before the requirement window opens (the mission's last half orbit), so the whole judged window flies with the fault; a gps_outage lasts duration_s (1800 s, as scenarios/fault_gps_img.toml) and ends inside the window",
+    "a fault is flown only when the product carries at least min_units (default 1) of what it needs: one coil, one rotor (a fluid ring is a rotor), one gimbal when it has gimbals, the second star-tracker head only when it has two, a gyro bias step of 0.1 deg/s on x (as scenarios/fault_gyro_ais.toml), a GNSS outage, one RCS couple's valve when it has RCS; a skipped fault says why",
+    "mag_fail is not in the set: a magnetometer silent for 60 s puts the flight software in safe mode by design (B1.5), so the window would judge safe mode, not pointing; it can be added to the set",
+    "pass rule: on every seed, every requirement metric that passes in the fault-free run still passes under the fault; a metric that already fails without the fault is recorded (also_fails_without_fault), not counted against the fault; a faulted or fault-free run that does not fly fails the fault",
+    "each fault the family does not survive is one gap \"fault: <kind>: <failing metrics>\", counted by select under select.fault_policy",
+    "a fault kind the engine does not inject, a unit name that is not one, or an index the product does not have is refused",
+    "runs are cached by the hash of (scenario, product, parts, seed, flight-software build, case file), as the matrix's; no knob responds to a fault gap (redundancy is not a sizing knob yet)",
+    "redundancy: a fluid-ring family that does not survive a single ring failure gets the spare ring (adcs-design knob fmr_spare: a fourth ring on the axis of the rings' momenta, carrying their root-sum-square, in the box section normal to it) and the loop sizes, flies and converges again; once only"
+   ]
+  },
+  {
    "id": "select",
    "stage": "selection",
    "runs_in": "Python (tools/pipeline.py)",
@@ -400,13 +477,14 @@
    "inputs": [
     "assess",
     "budget",
-    "case (req.mass, req.vol)"
+    "case (req.mass, req.vol)",
+    "faults"
    ],
    "outputs": [
     "selection.json"
    ],
    "parameters": {
-    "feasible": "every mode passes with a usable option on every seed, and mass <= req.mass, volume <= req.vol",
+    "feasible": "every mode passes with a usable option on every seed, and mass <= req.mass, volume <= req.vol; under fault_policy gap, also every single fault of node faults survived",
     "rank_feasible": [
      "mass_kg",
      "power_W",
@@ -414,16 +492,20 @@
      "simplicity"
     ],
     "rank_infeasible": [
-     "gap_count",
+     "shortfall",
      "mass_kg"
     ],
     "select_role": "solution",
-    "compare_role": "benchmark"
+    "compare_role": "benchmark",
+    "fault_policy": "gap"
    },
    "rules": [
     "selected = the feasible solution family first in rank_feasible order (least mass, then power, then volume)",
-    "when no solution family is feasible the closest one is named with its gaps",
-    "benchmark = the same ranking over the benchmark families, reported beside the selection"
+    "when no solution family is feasible the closest one is named with its gaps: the least shortfall, the sum of relative overshoots (value/req - 1) over its failing mode requirements, its budget lines and (fault_policy gap) its failed single faults",
+    "benchmark = the same ranking over the benchmark families, reported beside the selection",
+    "select runs in every iteration without the fault campaign; once the loop has converged node faults flies and select runs again counting it, before dispatch",
+    "fault_policy gap: a single fault the family does not survive is a gap, so the family is not feasible; fault_policy rank: a fault gap leaves feasibility alone and the number of failed faults leads both rankings",
+    "a family of a role the fault campaign flies that has no fault record is refused, never counted as surviving; families of other roles (the benchmarks) are not flown under faults and carry no fault gap"
    ]
   },
   {
@@ -489,7 +571,7 @@
     "robustness_passes": 3
    },
    "rules": [
-    "dispersions as asils.campaign.draw",
+    "dispersions generated from the case (tools/pipeline_verify.py case_dispersions, catalogue/dispersions.toml): orbit draws centred on the case orbit, inertia and residual-dipole spread from mass.iunc / magnetic.dunc when stated; drawn as asils.campaign.draw",
     "every requirement metric must pass in every run; otherwise, for the selected family:",
     "power -> pump with more copper (lambda x3) and the lighter-pump lever closed",
     "performance -> the family's authority x1.5 and its authority-down lever closed",

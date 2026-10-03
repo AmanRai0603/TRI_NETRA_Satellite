@@ -41,52 +41,51 @@
     "nadir_pointing: ape_los_p9973 (performance), ake_los_p9973 (knowledge), rate_stability_p9973 (performance)"
    ],
    "budget": {
-    "mass_kg": 0.8295833946526825,
-    "power_W": 3.895833946526824,
-    "volume_L": 0.01183335786107298
+    "mass_kg": 0.8415642174115574,
+    "power_W": 4.015642174115572,
+    "volume_L": 0.01662568696462292
    }
   },
   "mtq_fmr": {
    "feasible": false,
    "gaps": [
-    "nadir_pointing: ape_los_p9973 (performance), ake_los_p9973 (knowledge), rate_stability_p9973 (performance)",
-    "budget: mass_kg 1.73 > 1.6"
+    "nadir_pointing: ape_los_p9973 (performance), ake_los_p9973 (knowledge), rate_stability_p9973 (performance)"
    ],
    "budget": {
-    "mass_kg": 1.7273053015176518,
-    "power_W": 6.876667070052895,
-    "volume_L": 0.5344095129173693
+    "mass_kg": 1.7320636279300072,
+    "power_W": 6.924250334176452,
+    "volume_L": 0.5363128434823115
    }
   },
   "mtq_fmr_rcs": {
    "feasible": false,
    "gaps": [
     "nadir_pointing: ape_los_p9973 (performance), ake_los_p9973 (knowledge), rate_stability_p9973 (performance)",
-    "budget: mass_kg 2.19 > 1.6",
-    "budget: volume_L 1.37 > 1"
+    "budget: mass_kg 2.2 > 1.85",
+    "budget: volume_L 1.38 > 1"
    ],
    "budget": {
-    "mass_kg": 2.1927902087406475,
-    "power_W": 6.926667070052896,
-    "volume_L": 1.3747719721245053
+    "mass_kg": 2.1982193481704617,
+    "power_W": 6.974250334176452,
+    "volume_L": 1.3784695920530892
    }
   },
   "mtq_rw": {
    "feasible": true,
    "gaps": [],
    "budget": {
-    "mass_kg": 0.9960237822934233,
-    "power_W": 4.66023782293423,
-    "volume_L": 0.06756151291736923
+    "mass_kg": 1.0007821087057787,
+    "power_W": 4.707821087057786,
+    "volume_L": 0.06946484348231145
    }
   },
   "mtq_rw_rcs": {
    "feasible": true,
    "gaps": [],
    "budget": {
-    "mass_kg": 1.4615086895164193,
-    "power_W": 4.71023782293423,
-    "volume_L": 0.9079239721245054
+    "mass_kg": 1.4669378289462336,
+    "power_W": 4.757821087057786,
+    "volume_L": 0.9116215920530891
    }
   },
   "mtq_cmg": {
@@ -95,12 +94,12 @@
     "sun_acquisition: power_mean (power)",
     "sun_referencing: power_mean (power)",
     "nadir_pointing: power_mean (power)",
-    "budget: mass_kg 2.02 > 1.6"
+    "budget: mass_kg 2.02 > 1.85"
    ],
    "budget": {
-    "mass_kg": 2.016023782293423,
-    "power_W": 7.760237822934229,
-    "volume_L": 0.8064095129173693
+    "mass_kg": 2.0207821087057787,
+    "power_W": 7.8078210870577855,
+    "volume_L": 0.8083128434823115
    }
   },
   "mtq_cmg_rcs": {
@@ -109,13 +108,13 @@
     "sun_acquisition: power_mean (power)",
     "sun_referencing: power_mean (power)",
     "nadir_pointing: power_mean (power)",
-    "budget: mass_kg 2.48 > 1.6",
+    "budget: mass_kg 2.49 > 1.85",
     "budget: volume_L 1.65 > 1"
    ],
    "budget": {
-    "mass_kg": 2.481508689516419,
-    "power_W": 7.810237822934229,
-    "volume_L": 1.6467719721245055
+    "mass_kg": 2.486937828946233,
+    "power_W": 7.857821087057785,
+    "volume_L": 1.6504695920530892
    }
   },
   "mtq_vscmg": {
@@ -124,12 +123,12 @@
     "sun_acquisition: power_mean (power)",
     "sun_referencing: power_mean (power)",
     "nadir_pointing: power_mean (power)",
-    "budget: mass_kg 2.02 > 1.6"
+    "budget: mass_kg 2.02 > 1.85"
    ],
    "budget": {
-    "mass_kg": 2.016023782293423,
-    "power_W": 7.760237822934229,
-    "volume_L": 0.8064095129173693
+    "mass_kg": 2.0207821087057787,
+    "power_W": 7.8078210870577855,
+    "volume_L": 0.8083128434823115
    }
   },
   "mtq_vscmg_rcs": {
@@ -138,13 +137,13 @@
     "sun_acquisition: power_mean (power)",
     "sun_referencing: power_mean (power)",
     "nadir_pointing: power_mean (power)",
-    "budget: mass_kg 2.48 > 1.6",
+    "budget: mass_kg 2.49 > 1.85",
     "budget: volume_L 1.65 > 1"
    ],
    "budget": {
-    "mass_kg": 2.481508689516419,
-    "power_W": 7.810237822934229,
-    "volume_L": 1.6467719721245055
+    "mass_kg": 2.486937828946233,
+    "power_W": 7.857821087057785,
+    "volume_L": 1.6504695920530892
    }
   }
  },
@@ -155,7 +154,7 @@
    "alg": null,
    "feasible": true,
    "failing": {},
-   "objective": 64.20666666666666,
+   "objective": 56.373333333333335,
    "objective_id": "detumble_time",
    "objective_req": 284.0
   },
@@ -178,7 +177,7 @@
     "sun_angle_p95": "performance",
     "sun_acquisition_time": "performance"
    },
-   "objective": 138.40666666666667,
+   "objective": 67.95666666666666,
    "objective_id": "sun_acquisition_time",
    "objective_req": 95.0
   },
@@ -234,7 +233,7 @@
    "failing": {
     "sun_ape_p9973": "performance"
    },
-   "objective": 176.58992046432493,
+   "objective": 178.35405750039916,
    "objective_id": "sun_ape_p9973",
    "objective_req": 5.0
   },
@@ -244,7 +243,7 @@
    "alg": null,
    "feasible": true,
    "failing": {},
-   "objective": 0.008666114496970873,
+   "objective": 0.008675568139177324,
    "objective_id": "sun_ape_p9973",
    "objective_req": 5.0
   },
@@ -254,7 +253,7 @@
    "alg": null,
    "feasible": true,
    "failing": {},
-   "objective": 0.008673906844003442,
+   "objective": 0.008678536973441203,
    "objective_id": "sun_ape_p9973",
    "objective_req": 5.0
   },
@@ -266,7 +265,7 @@
    "failing": {
     "power_mean": "power"
    },
-   "objective": 0.008674399329085404,
+   "objective": 0.008663417890014518,
    "objective_id": "sun_ape_p9973",
    "objective_req": 5.0
   },
@@ -278,7 +277,7 @@
    "failing": {
     "power_mean": "power"
    },
-   "objective": 0.008635222452899865,
+   "objective": 0.008635980495159193,
    "objective_id": "sun_ape_p9973",
    "objective_req": 5.0
   },
@@ -290,7 +289,7 @@
    "failing": {
     "power_mean": "power"
    },
-   "objective": 0.008665878095277841,
+   "objective": 0.00866784700134249,
    "objective_id": "sun_ape_p9973",
    "objective_req": 5.0
   },
@@ -302,7 +301,7 @@
    "failing": {
     "power_mean": "power"
    },
-   "objective": 0.008654431456203633,
+   "objective": 0.008646545727758711,
    "objective_id": "sun_ape_p9973",
    "objective_req": 5.0
   },
@@ -312,7 +311,7 @@
    "alg": null,
    "feasible": true,
    "failing": {},
-   "objective": 0.037486528121771556,
+   "objective": 0.45724749317422547,
    "objective_id": "sun_ape_p9973",
    "objective_req": 5.0
   },
@@ -324,7 +323,7 @@
    "failing": {
     "power_mean": "power"
    },
-   "objective": 0.0374145818618912,
+   "objective": 0.9628456187440494,
    "objective_id": "sun_ape_p9973",
    "objective_req": 5.0
   },
@@ -338,7 +337,7 @@
     "ake_los_p9973": "knowledge",
     "rate_stability_p9973": "performance"
    },
-   "objective": 155.81619350836374,
+   "objective": 160.81349955785947,
    "objective_id": "ape_los_p9973",
    "objective_req": 0.01
   },
@@ -348,7 +347,7 @@
    "alg": null,
    "feasible": true,
    "failing": {},
-   "objective": 0.005030971020662957,
+   "objective": 0.005117027517575101,
    "objective_id": "ape_los_p9973",
    "objective_req": 0.01
   },
@@ -358,7 +357,7 @@
    "alg": null,
    "feasible": true,
    "failing": {},
-   "objective": 0.0050337145317216805,
+   "objective": 0.005097607115104162,
    "objective_id": "ape_los_p9973",
    "objective_req": 0.01
   },
@@ -370,7 +369,7 @@
    "failing": {
     "power_mean": "power"
    },
-   "objective": 0.005221410193627253,
+   "objective": 0.005275474339805875,
    "objective_id": "ape_los_p9973",
    "objective_req": 0.01
   },
@@ -382,7 +381,7 @@
    "failing": {
     "power_mean": "power"
    },
-   "objective": 0.005226339445920358,
+   "objective": 0.0052713372613216,
    "objective_id": "ape_los_p9973",
    "objective_req": 0.01
   },
@@ -394,7 +393,7 @@
    "failing": {
     "power_mean": "power"
    },
-   "objective": 0.005322299050076506,
+   "objective": 0.0054143488102518286,
    "objective_id": "ape_los_p9973",
    "objective_req": 0.01
   },
@@ -406,7 +405,7 @@
    "failing": {
     "power_mean": "power"
    },
-   "objective": 0.0053595139990914205,
+   "objective": 0.005403776288715661,
    "objective_id": "ape_los_p9973",
    "objective_req": 0.01
   },
@@ -420,7 +419,7 @@
     "ake_los_p9973": "knowledge",
     "rate_stability_p9973": "performance"
    },
-   "objective": 0.03395913147322189,
+   "objective": 146.5343461330488,
    "objective_id": "ape_los_p9973",
    "objective_req": 0.01
   },
@@ -435,7 +434,7 @@
     "rate_stability_p9973": "performance",
     "power_mean": "power"
    },
-   "objective": 0.03402064638491034,
+   "objective": 3.318008890721703,
    "objective_id": "ape_los_p9973",
    "objective_req": 0.01
   }

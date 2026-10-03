@@ -52,7 +52,7 @@ static void t_env(void)
     adcs_real gh[195], B[3], s[3];
     adcs_igrf_gh(2027.1, gh);
     adcs_igrf_ned(gh, 0.3, 1.2, 550, 13, B);
-    CHECK(fabs(B[0] - 29130.375576) < 1e-5 && fabs(B[1] + 193.674477) < 1e-5 && fabs(B[2] - 12967.840908) < 1e-5,
+    CHECK(fabs(B[0] - 29155.707342) < 1e-5 && fabs(B[1] + 187.025096) < 1e-5 && fabs(B[2] - 13232.587581) < 1e-5,
           "IGRF vs twin: %.6f %.6f %.6f", B[0], B[1], B[2]);
     adcs_sun_model(2461407.25, s);
     CHECK(fabs(s[0] - 0.185796268321) < 1e-11 && fabs(s[1] + 0.901530663479) < 1e-11 && fabs(s[2] + 0.390796890321) < 1e-11,
@@ -73,6 +73,8 @@ static void t_estimation(void)
     CHECK(e < 1e-9, "QUEST on exact stars %g rad", e);
     adcs_triad(b[0], b[1], r[0], r[1], qm);
     CHECK(adcs_qangle(q, qm) < 1e-9, "TRIAD %g rad", adcs_qangle(q, qm));
+    {   adcs_real bb[3] = {2*b[0][0], 2*b[0][1], 2*b[0][2]}, q1[4] = {9, 9, 9, 9};
+        CHECK(adcs_triad(b[0], bb, r[0], r[1], q1) == -1 && q1[0] == 9, "TRIAD on parallel vectors fixes no attitude"); }
     {   /* MEKF converges from a 10 deg error with two exact vectors, gyro at rest */
         adcs_mekf_t K; adcs_real q0[4], th[3] = {0.1, -0.12, 0.08}, dq[4], w[3] = {0, 0, 0};
         adcs_fromrotvec(th, dq); adcs_qmult(q, dq, q0);
@@ -131,6 +133,9 @@ static int run_detumble(int16_t pwm_log[30][3])
     p.jd0 = 2461407.25; p.dt = 0.1; p.mu = 3.986004418e14; p.start_mode = ADCS_MODE_DETUMBLE; p.auto_next = ADCS_MODE_NONE;
     p.bdot_law = 0; p.mtq_period = 1.0; p.mtq_meas = 0.2; p.m_max = 0.2; p.bdot_k = 1e-3; p.has_gyro = 1;
     p.J[0][0] = 0.0067; p.J[1][1] = 0.042; p.J[2][2] = 0.042; p.igrf_nmax = 10; p.rate_lpf_s = 0.3;
+    /* the values params.toml requires to be positive (the flight software refuses a blob without them) */
+    p.ss_eclipse = 1; p.gd_T = 1.0; p.mtq_phi = 0.01; p.rw_phi = 0.01; p.rw_dt = 0.1; p.fdir_s = 3.0; p.fdir_win_s = 120.0; p.fdir_h_frac = 0.005; p.rcsd_T_damp_s = 20.0; p.rcsd_period_s = 1.0;
+    p.st_coast_s = 900.0; p.mekf_sig_mag = 0.01; p.mekf_sig_sun = 0.005; p.mekf_meas_scale = 1.0;
     adcs_params_encode(&p, blob, sizeof blob);
     hal_stub_reset();
     in.abi_version = ADCS_FSW_ABI_VERSION; in.config_blob = blob; in.config_len = sizeof blob; in.start_ns = 0;
@@ -169,6 +174,25 @@ static void t_abi(void)
         in.abi_version = ADCS_FSW_ABI_VERSION; in.config_blob = blob; in.config_len = sizeof blob; in.start_ns = 0;
         CHECK(adcs_fsw_init(&in) != 0, "bad CRC refused");
     }
+    {   /* a blob with a good CRC but a value outside its rule (params.toml) is refused at init */
+        static adcs_params_t p; static uint8_t blob[ADCS_PARAMS_BLOB_SIZE]; adcs_fsw_init_t in; int k;
+        for (k = 0; k < 4; k++) {
+            memset(&p, 0, sizeof p);
+            p.jd0 = 2461407.25; p.dt = 0.1; p.mu = 3.986004418e14; p.start_mode = ADCS_MODE_DETUMBLE; p.auto_next = ADCS_MODE_NONE;
+            p.mtq_period = 1.0; p.mtq_meas = 0.2; p.m_max = 0.2; p.bdot_k = 1e-3; p.J[0][0] = 0.0067; p.J[1][1] = 0.042; p.J[2][2] = 0.042;
+            p.igrf_nmax = 10; p.ss_eclipse = 1; p.gd_T = 1.0; p.mtq_phi = 0.01; p.rw_phi = 0.01; p.rw_dt = 0.1; p.fdir_s = 3.0; p.fdir_win_s = 120.0; p.fdir_h_frac = 0.005;
+            p.rcsd_T_damp_s = 20.0; p.rcsd_period_s = 1.0; p.st_coast_s = 900.0; p.mekf_sig_mag = 0.01; p.mekf_sig_sun = 0.005; p.mekf_meas_scale = 1.0;
+            if (k == 1) p.nr = 9;                      /* more rotors than the arrays hold */
+            if (k == 2) p.m_max = 0.0/0.0;             /* NaN */
+            if (k == 3) p.start_mode = 11;             /* no such controller state */
+            adcs_params_encode(&p, blob, sizeof blob);
+            in.abi_version = ADCS_FSW_ABI_VERSION; in.config_blob = blob; in.config_len = sizeof blob; in.start_ns = 0;
+            if (k == 0) CHECK(adcs_fsw_init(&in) == 0 && adcs_params_validate(&p) == 0, "a blob within every rule is accepted");
+            else CHECK(adcs_fsw_init(&in) == -12, "a value outside its rule is refused at init");
+        }
+        p.start_mode = ADCS_MODE_DETUMBLE; p.nr = 9;
+        CHECK(strcmp(adcs_params_field(adcs_params_validate(&p)), "nr") == 0, "the refused field is named");
+    }
 }
 
 static void t_st_frame(void)
@@ -189,9 +213,68 @@ static void t_st_frame(void)
     CHECK(z.st_ok && z.st_valid[0] && fabs(z.q_st[0][2] + 0.3) < 1e-8, "ST frame parsed: ok %d q3 %.9f", z.st_ok, z.q_st[0][2]);
 }
 
+static void t_safe(void)
+{
+    /* the magnetometer stops answering: in detumble the coils act on the field, then stop; in a
+     * pointing state the state holds for 60 s, then it is magnetorquer detumble with the fault
+     * raised; the fault clears when the magnetometer answers again */
+    static adcs_params_t p; static uint8_t blob[ADCS_PARAMS_BLOB_SIZE];
+    adcs_fsw_init_t in; adcs_fsw_state_t st; int k, i, run, on_before = 0, on_after = 0, mode59 = -1;
+    for (run = 0; run < 2; run++) {
+        memset(&p, 0, sizeof p);
+        p.jd0 = 2461407.25; p.dt = 0.1; p.mu = 3.986004418e14; p.auto_next = ADCS_MODE_NONE;
+        p.start_mode = run == 0 ? ADCS_MODE_DETUMBLE : ADCS_MODE_NADIR_MTQ;
+        p.mtq_period = 1.0; p.mtq_meas = 0.2; p.m_max = 0.2; p.bdot_k = 1e-3; p.has_gyro = 1;
+        p.J[0][0] = 0.0067; p.J[1][1] = 0.042; p.J[2][2] = 0.042; p.igrf_nmax = 10; p.rate_lpf_s = 0.3;
+        p.ss_eclipse = 1; p.gd_T = 1.0; p.mtq_phi = 0.01; p.rw_phi = 0.01; p.rw_dt = 0.1; p.fdir_s = 3.0; p.fdir_win_s = 120.0; p.fdir_h_frac = 0.005; p.rcsd_T_damp_s = 20.0; p.rcsd_period_s = 1.0;
+        p.st_coast_s = 900.0; p.mekf_sig_mag = 0.01; p.mekf_sig_sun = 0.005; p.mekf_meas_scale = 1.0;
+        adcs_params_encode(&p, blob, sizeof blob);
+        hal_stub_reset();
+        in.abi_version = ADCS_FSW_ABI_VERSION; in.config_blob = blob; in.config_len = sizeof blob; in.start_ns = 0;
+        CHECK(adcs_fsw_init(&in) == 0, "init (safe-mode test)");
+        for (k = 0; k < 720; k++) {
+            double B[3] = {2e-5, -1e-5, 3e-5}, w[3] = {0.05, -0.02, 0.1};
+            HS.now_ns = (uint64_t)k*100000000ull;
+            HS.mag[0] = (uint8_t)(k < 30 || k == 719); for (i = 0; i < 3; i++) put16(HS.mag + 1 + 2*i, B[i]/ADCS_MAG_LSB_T);
+            HS.gyro[0] = 1; for (i = 0; i < 3; i++) put32(HS.gyro + 1 + 4*i, w[i]/ADCS_GYRO_LSB);
+            adcs_fsw_step(HS.now_ns);
+            if (run == 0 && k < 30 && (HS.pwm[0] || HS.pwm[1] || HS.pwm[2])) on_before = 1;
+            if (run == 0 && k >= 30 && k < 719 && (HS.pwm[0] || HS.pwm[1] || HS.pwm[2])) on_after = 1;
+            if (run == 1 && k == 620) { adcs_fsw_peek(&st); mode59 = st.mode; }
+            if (k == 718) { adcs_fsw_peek(&st); CHECK(st.mode == ADCS_MODE_DETUMBLE && (st.faults & 0x100), "magnetometer silent 60 s: detumble, fault raised (mode %d faults %x)", st.mode, st.faults); }
+        }
+        adcs_fsw_peek(&st);
+        CHECK(!(st.faults & 0x100), "the fault clears when the magnetometer answers");
+    }
+    CHECK(on_before && !on_after, "coils act on the field, then stop in the dropout (%d %d)", on_before, on_after);
+    {   /* no rotors, no thrusters: fine pointing is refused by telecommand and at init */
+        uint8_t tc[2] = {0x01, ADCS_MODE_NADIR_FINE};
+        CHECK(adcs_fsw_command(tc, 2) == -3, "a state the hardware cannot fly is refused by telecommand");
+        tc[1] = ADCS_MODE_NADIR_MTQ;
+        CHECK(adcs_fsw_command(tc, 2) == 0, "a state it can fly is accepted");
+        p.start_mode = ADCS_MODE_NADIR_FINE; adcs_params_encode(&p, blob, sizeof blob);
+        CHECK(adcs_fsw_init(&in) == -13, "and at init");
+    }
+    CHECK(mode59 == ADCS_MODE_NADIR_MTQ, "a pointing state holds through the first 59 s of the dropout (%d)", mode59);
+}
+
+static void t_nonfinite(void)
+{
+    /* a NaN or an infinite command drives nothing: zero PWM, zero rotor word, closed valve */
+    static adcs_params_t p; double m[3] = {0.0/0.0, 1.0/0.0, 0.1}, r[ADCS_MAX_ROTORS] = {0}, g[ADCS_MAX_GIMBALS] = {0}, d[ADCS_MAX_COUPLES] = {0};
+    memset(&p, 0, sizeof p);
+    p.m_max = 0.2; p.nr = 1; p.rot_tmax[0] = 1e-3; p.nc = 2; p.dt = 0.1;
+    r[0] = 0.0/0.0; d[0] = 0.0/0.0; d[1] = -1.0/0.0;
+    hal_stub_reset();
+    adcs_drv_write(&p, m, r, g, d);
+    CHECK(HS.pwm[0] == 0 && HS.pwm[1] == 0 && HS.pwm[2] == 16384, "non-finite dipole -> 0, finite one kept (%d %d %d)", HS.pwm[0], HS.pwm[1], HS.pwm[2]);
+    CHECK(HS.n_can_tx == 2 && HS.can_tx[0].data[0] == 0 && HS.can_tx[0].data[1] == 0, "non-finite rotor command -> 0");
+    CHECK(HS.can_tx[1].data[0] == 0 && HS.can_tx[1].data[1] == 0, "non-finite valve duty -> closed");
+}
+
 int main(void)
 {
-    t_math(); t_env(); t_estimation(); t_laws(); t_rcs(); t_abi(); t_st_frame();
+    t_math(); t_env(); t_estimation(); t_laws(); t_rcs(); t_abi(); t_st_frame(); t_nonfinite(); t_safe();
     printf("%d checks passed, %d failed (%s)\n", n_pass, n_fail, adcs_fsw_build_id());
     return n_fail ? 1 : 0;
 }

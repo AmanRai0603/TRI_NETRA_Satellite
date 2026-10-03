@@ -24,7 +24,7 @@ everything and writes the reports. **MATLAB** stays the design twin of the SILS.
    fsw/targets/    virtual OBC    adcs-link/1: the flight software as a process or as Cortex-M4F
                                   firmware in QEMU, in lockstep with the engine (docs/VIRTUAL_OBC.md)
                         │
-   tools/ (Python)  pipeline.py   the design loop: size -> SILS matrix -> assess -> converge -> select -> dispatch -> MC -> soft OILS
+   tools/ (Python)  pipeline.py   the design loop: size -> SILS matrix -> assess -> converge -> faults -> select -> dispatch -> MC -> soft OILS
                     vv_report.py  the V&V report (template -> HTML -> PDF)
                     engine.py     build, run, Monte Carlo, C-vs-Rust parity, engine-vs-MATLAB ledger
                     report.py     figures + results/index.html from any adcs-rec/1 run

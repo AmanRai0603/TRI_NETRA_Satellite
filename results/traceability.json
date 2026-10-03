@@ -1,0 +1,1835 @@
+{
+ "rows": [
+  {
+   "case": "ais_3u",
+   "key": "req.ape",
+   "label": "Absolute pointing error (APE)",
+   "unit": "Degree",
+   "value": 10.0,
+   "unconfirmed": false,
+   "flight": [
+    {
+     "scenario": "fault_gyro_ais",
+     "metric": "ape_los_last_orbit",
+     "value": 52.78008444232647,
+     "pass": 0,
+     "run": ""
+    },
+    {
+     "scenario": "mission_ais",
+     "metric": "ape_los_last_orbit",
+     "value": 8.93507009713149,
+     "pass": 1,
+     "run": ""
+    },
+    {
+     "scenario": "nadir_hold_ais",
+     "metric": "ape_los_last_orbit",
+     "value": 12.638200722154942,
+     "pass": 0,
+     "run": ""
+    },
+    {
+     "scenario": "nadir_hold_ais_css",
+     "metric": "ape_los_last_orbit",
+     "value": 39.44055154627257,
+     "pass": 0,
+     "run": ""
+    }
+   ],
+   "design": null,
+   "modes": [
+    {
+     "mode": "nadir_pointing",
+     "metric": "ape_los_p9973",
+     "value": 0.14708894659596422,
+     "pass": 1
+    }
+   ],
+   "profile": [],
+   "status": "not met (3 of 5)"
+  },
+  {
+   "case": "ais_3u",
+   "key": "req.ake",
+   "label": "Absolute knowledge error (AKE)",
+   "unit": "Degree",
+   "value": 5.0,
+   "unconfirmed": true,
+   "flight": [
+    {
+     "scenario": "fault_gyro_ais",
+     "metric": "ake_los_last_orbit",
+     "value": 41.91964420918183,
+     "pass": 0,
+     "run": ""
+    },
+    {
+     "scenario": "mission_ais",
+     "metric": "ake_los_last_orbit",
+     "value": 1.1880898481105393,
+     "pass": 1,
+     "run": ""
+    },
+    {
+     "scenario": "nadir_hold_ais",
+     "metric": "ake_los_last_orbit",
+     "value": 5.49056576806512,
+     "pass": 0,
+     "run": ""
+    },
+    {
+     "scenario": "nadir_hold_ais_css",
+     "metric": "ake_los_last_orbit",
+     "value": 39.21547662093392,
+     "pass": 0,
+     "run": ""
+    }
+   ],
+   "design": null,
+   "modes": [
+    {
+     "mode": "nadir_pointing",
+     "metric": "ake_los_p9973",
+     "value": 0.14611755758219613,
+     "pass": 1
+    }
+   ],
+   "profile": [],
+   "status": "not met (3 of 5)"
+  },
+  {
+   "case": "ais_3u",
+   "key": "req.rpe",
+   "label": "Relative pointing error (RPE)",
+   "unit": "Degree",
+   "value": null,
+   "unconfirmed": false,
+   "flight": [],
+   "design": null,
+   "modes": [],
+   "profile": [],
+   "status": "not stated"
+  },
+  {
+   "case": "ais_3u",
+   "key": "req.pde",
+   "label": "Pointing drift error (PDE)",
+   "unit": "Degree",
+   "value": null,
+   "unconfirmed": false,
+   "flight": [],
+   "design": null,
+   "modes": [],
+   "profile": [],
+   "status": "not stated"
+  },
+  {
+   "case": "ais_3u",
+   "key": "req.rks",
+   "label": "Rate stability",
+   "unit": "DegreePerSecond",
+   "value": null,
+   "unconfirmed": false,
+   "flight": [],
+   "design": null,
+   "modes": [],
+   "profile": [],
+   "status": "not stated"
+  },
+  {
+   "case": "ais_3u",
+   "key": "req.rke",
+   "label": "Relative knowledge error (RKE)",
+   "unit": "Degree",
+   "value": null,
+   "unconfirmed": false,
+   "flight": [],
+   "design": null,
+   "modes": [],
+   "profile": [],
+   "status": "not stated"
+  },
+  {
+   "case": "ais_3u",
+   "key": "req.slew",
+   "label": "Reference slew time",
+   "unit": "Second",
+   "value": null,
+   "unconfirmed": false,
+   "flight": [],
+   "design": null,
+   "modes": [],
+   "profile": [],
+   "status": "not stated"
+  },
+  {
+   "case": "ais_3u",
+   "key": "req.settle",
+   "label": "Settling time after a slew",
+   "unit": "Second",
+   "value": null,
+   "unconfirmed": false,
+   "flight": [],
+   "design": null,
+   "modes": [],
+   "profile": [],
+   "status": "not stated"
+  },
+  {
+   "case": "ais_3u",
+   "key": "req.spo",
+   "label": "Slews per orbit",
+   "unit": "Count",
+   "value": null,
+   "unconfirmed": false,
+   "flight": [],
+   "design": null,
+   "modes": [],
+   "profile": [],
+   "status": "not stated"
+  },
+  {
+   "case": "ais_3u",
+   "key": "req.track",
+   "label": "Target-tracking rate",
+   "unit": "DegreePerSecond",
+   "value": null,
+   "unconfirmed": false,
+   "flight": [],
+   "design": null,
+   "modes": [],
+   "profile": [],
+   "status": "not stated"
+  },
+  {
+   "case": "ais_3u",
+   "key": "req.wmax",
+   "label": "Maximum body rate",
+   "unit": "DegreePerSecond",
+   "value": null,
+   "unconfirmed": false,
+   "flight": [],
+   "design": null,
+   "modes": [],
+   "profile": [],
+   "status": "not stated"
+  },
+  {
+   "case": "ais_3u",
+   "key": "req.detumble",
+   "label": "Detumble time",
+   "unit": "Minute",
+   "value": 284.0,
+   "unconfirmed": true,
+   "flight": [
+    {
+     "scenario": "detumble_ais",
+     "metric": "detumble_time",
+     "value": 37.79,
+     "pass": 1,
+     "run": ""
+    },
+    {
+     "scenario": "detumble_ais_bangbang",
+     "metric": "detumble_time",
+     "value": 54.02333333333333,
+     "pass": 1,
+     "run": ""
+    },
+    {
+     "scenario": "detumble_ais_mag",
+     "metric": "detumble_time",
+     "value": 41.156666666666666,
+     "pass": 1,
+     "run": ""
+    },
+    {
+     "scenario": "fault_coil_ais",
+     "metric": "detumble_time",
+     "value": 82.17333333333335,
+     "pass": 1,
+     "run": ""
+    },
+    {
+     "scenario": "mission_ais",
+     "metric": "detumble_time",
+     "value": 37.79,
+     "pass": 1,
+     "run": ""
+    }
+   ],
+   "design": null,
+   "modes": [
+    {
+     "mode": "detumble",
+     "metric": "detumble_time",
+     "value": 41.00666666666667,
+     "pass": 1
+    }
+   ],
+   "profile": [],
+   "status": "met"
+  },
+  {
+   "case": "ais_3u",
+   "key": "req.sunacq",
+   "label": "Sun-acquisition time in safe mode",
+   "unit": "Minute",
+   "value": 95.0,
+   "unconfirmed": true,
+   "flight": [
+    {
+     "scenario": "sun_spin_ais",
+     "metric": "sun_spin_entry",
+     "value": 142.40666666666667,
+     "pass": 0,
+     "run": ""
+    }
+   ],
+   "design": null,
+   "modes": [
+    {
+     "mode": "sun_acquisition",
+     "metric": "sun_acquisition_time",
+     "value": 2.2916666666666665,
+     "pass": 1
+    }
+   ],
+   "profile": [],
+   "status": "not met (1 of 2)"
+  },
+  {
+   "case": "ais_3u",
+   "key": "req.faults",
+   "label": "Faults tolerated",
+   "unit": "Count",
+   "value": null,
+   "unconfirmed": false,
+   "flight": [],
+   "design": null,
+   "modes": [],
+   "profile": [],
+   "status": "not stated"
+  },
+  {
+   "case": "ais_3u",
+   "key": "req.recover",
+   "label": "Recovery time after a single fault",
+   "unit": "Minute",
+   "value": null,
+   "unconfirmed": false,
+   "flight": [],
+   "design": null,
+   "modes": [],
+   "profile": [],
+   "status": "not stated"
+  },
+  {
+   "case": "ais_3u",
+   "key": "req.hsat",
+   "label": "Momentum saturation margin",
+   "unit": "One",
+   "value": null,
+   "unconfirmed": false,
+   "flight": [],
+   "design": null,
+   "modes": [],
+   "profile": [],
+   "status": "not stated"
+  },
+  {
+   "case": "ais_3u",
+   "key": "req.dump",
+   "label": "Momentum dump interval",
+   "unit": "Hour",
+   "value": null,
+   "unconfirmed": false,
+   "flight": [],
+   "design": null,
+   "modes": [],
+   "profile": [],
+   "status": "not stated"
+  },
+  {
+   "case": "ais_3u",
+   "key": "req.mass",
+   "label": "ADCS mass",
+   "unit": "Kilogram",
+   "value": 1.6,
+   "unconfirmed": false,
+   "flight": [],
+   "design": {
+    "family": "mtq_fmr",
+    "value": 1.4460643371764328,
+    "pass": 1
+   },
+   "modes": [],
+   "profile": [],
+   "status": "met"
+  },
+  {
+   "case": "ais_3u",
+   "key": "req.pavg",
+   "label": "ADCS orbit-average power",
+   "unit": "Watt",
+   "value": 0.5,
+   "unconfirmed": true,
+   "flight": [
+    {
+     "scenario": "detumble_ais",
+     "metric": "power_mean",
+     "value": 0.021701207481193658,
+     "pass": 1,
+     "run": ""
+    },
+    {
+     "scenario": "detumble_ais_bangbang",
+     "metric": "power_mean",
+     "value": 0.4365991380950216,
+     "pass": 1,
+     "run": ""
+    },
+    {
+     "scenario": "detumble_ais_mag",
+     "metric": "power_mean",
+     "value": 0.0783897781533677,
+     "pass": 1,
+     "run": ""
+    },
+    {
+     "scenario": "fault_coil_ais",
+     "metric": "power_mean",
+     "value": 0.018206591921134798,
+     "pass": 1,
+     "run": ""
+    },
+    {
+     "scenario": "fault_gyro_ais",
+     "metric": "power_mean",
+     "value": 0.010563361388629315,
+     "pass": 1,
+     "run": ""
+    },
+    {
+     "scenario": "nadir_hold_ais",
+     "metric": "power_mean",
+     "value": 0.010539787793874576,
+     "pass": 1,
+     "run": ""
+    },
+    {
+     "scenario": "nadir_hold_ais_css",
+     "metric": "power_mean",
+     "value": 0.010643570645264142,
+     "pass": 1,
+     "run": ""
+    },
+    {
+     "scenario": "sun_spin_ais",
+     "metric": "power_mean",
+     "value": 0.4500194377262069,
+     "pass": 1,
+     "run": ""
+    }
+   ],
+   "design": null,
+   "modes": [
+    {
+     "mode": "nadir_pointing",
+     "metric": "power_mean",
+     "value": 0.46953508761871204,
+     "pass": 1
+    },
+    {
+     "mode": "sun_acquisition",
+     "metric": "power_mean",
+     "value": 0.23574032802601785,
+     "pass": 1
+    },
+    {
+     "mode": "sun_referencing",
+     "metric": "power_mean",
+     "value": 0.4295840168105017,
+     "pass": 1
+    }
+   ],
+   "profile": [],
+   "status": "met"
+  },
+  {
+   "case": "ais_3u",
+   "key": "req.ppk",
+   "label": "ADCS peak power",
+   "unit": "Watt",
+   "value": 1.5,
+   "unconfirmed": true,
+   "flight": [
+    {
+     "scenario": "detumble_ais",
+     "metric": "power_peak",
+     "value": 0.550234076967681,
+     "pass": 1,
+     "run": ""
+    },
+    {
+     "scenario": "detumble_ais_bangbang",
+     "metric": "power_peak",
+     "value": 0.7169603564561906,
+     "pass": 1,
+     "run": ""
+    },
+    {
+     "scenario": "detumble_ais_mag",
+     "metric": "power_peak",
+     "value": 0.6377391888180182,
+     "pass": 1,
+     "run": ""
+    },
+    {
+     "scenario": "fault_coil_ais",
+     "metric": "power_peak",
+     "value": 0.550234076967681,
+     "pass": 1,
+     "run": ""
+    }
+   ],
+   "design": null,
+   "modes": [
+    {
+     "mode": "detumble",
+     "metric": "power_peak",
+     "value": 0.4775755938828322,
+     "pass": 1
+    }
+   ],
+   "profile": [],
+   "status": "met"
+  },
+  {
+   "case": "ais_3u",
+   "key": "req.vol",
+   "label": "ADCS volume",
+   "unit": "Litre",
+   "value": 1.0,
+   "unconfirmed": false,
+   "flight": [],
+   "design": {
+    "family": "mtq_fmr",
+    "value": 0.5371218519660271,
+    "pass": 1
+   },
+   "modes": [],
+   "profile": [],
+   "status": "met"
+  },
+  {
+   "case": "ais_3u",
+   "key": "req.prop",
+   "label": "RCS propellant per year",
+   "unit": "Kilogram",
+   "value": null,
+   "unconfirmed": false,
+   "flight": [],
+   "design": null,
+   "modes": [],
+   "profile": [],
+   "status": "not stated"
+  },
+  {
+   "case": "ais_img_3u",
+   "key": "req.ape",
+   "label": "Absolute pointing error (APE)",
+   "unit": "Degree",
+   "value": 0.01,
+   "unconfirmed": false,
+   "flight": [
+    {
+     "scenario": "agile_slew_cmg",
+     "metric": "ape_los_on_target_p9973",
+     "value": 0.004543995822444758,
+     "pass": 1,
+     "run": ""
+    },
+    {
+     "scenario": "agile_slew_fmr_rcs",
+     "metric": "ape_los_on_target_p9973",
+     "value": 0.006613632391270315,
+     "pass": 1,
+     "run": ""
+    },
+    {
+     "scenario": "agile_slew_img",
+     "metric": "ape_los_on_target_p9973",
+     "value": 0.008685842270355782,
+     "pass": 1,
+     "run": ""
+    },
+    {
+     "scenario": "agile_slew_rw_rcs",
+     "metric": "ape_los_on_target_p9973",
+     "value": 0.008702458915986942,
+     "pass": 1,
+     "run": ""
+    },
+    {
+     "scenario": "agile_slew_vscmg",
+     "metric": "ape_los_on_target_p9973",
+     "value": 0.010081478638413702,
+     "pass": 0,
+     "run": ""
+    },
+    {
+     "scenario": "fault_gimbal_cmg",
+     "metric": "ape_los_p9973",
+     "value": 0.005508721310315972,
+     "pass": 1,
+     "run": ""
+    },
+    {
+     "scenario": "fault_st_img",
+     "metric": "ape_los_p9973",
+     "value": 0.1022222280881478,
+     "pass": 0,
+     "run": ""
+    },
+    {
+     "scenario": "fault_wheel_img",
+     "metric": "ape_los_p9973",
+     "value": 28.623134282970852,
+     "pass": 0,
+     "run": ""
+    },
+    {
+     "scenario": "fine_hold_cmg",
+     "metric": "ape_los_p9973",
+     "value": 0.0050207258157890485,
+     "pass": 1,
+     "run": ""
+    },
+    {
+     "scenario": "fine_hold_fmr",
+     "metric": "ape_los_p9973",
+     "value": 0.005688835076072578,
+     "pass": 1,
+     "run": ""
+    },
+    {
+     "scenario": "fine_hold_fmr_rcs",
+     "metric": "ape_los_p9973",
+     "value": 0.005688835076072578,
+     "pass": 1,
+     "run": ""
+    },
+    {
+     "scenario": "fine_hold_img",
+     "metric": "ape_los_p9973",
+     "value": 0.01048540870040256,
+     "pass": 0,
+     "run": ""
+    },
+    {
+     "scenario": "fine_hold_img_lqr",
+     "metric": "ape_los_p9973",
+     "value": 0.00415645527691288,
+     "pass": 1,
+     "run": ""
+    },
+    {
+     "scenario": "fine_hold_img_smc",
+     "metric": "ape_los_p9973",
+     "value": 0.01945481954336117,
+     "pass": 0,
+     "run": ""
+    },
+    {
+     "scenario": "fine_hold_rw_rcs",
+     "metric": "ape_los_p9973",
+     "value": 0.03388466466283655,
+     "pass": 0,
+     "run": ""
+    },
+    {
+     "scenario": "fine_hold_vscmg",
+     "metric": "ape_los_p9973",
+     "value": 0.008279703895293273,
+     "pass": 1,
+     "run": ""
+    },
+    {
+     "scenario": "mission_cmg",
+     "metric": "ape_los_last_half_orbit_p9973",
+     "value": 0.005240526904657488,
+     "pass": 1,
+     "run": ""
+    },
+    {
+     "scenario": "mission_fmr",
+     "metric": "ape_los_last_half_orbit_p9973",
+     "value": 0.00595408507157916,
+     "pass": 1,
+     "run": ""
+    },
+    {
+     "scenario": "mission_fmr_rcs",
+     "metric": "ape_los_last_half_orbit_p9973",
+     "value": 0.00595408507157916,
+     "pass": 1,
+     "run": ""
+    },
+    {
+     "scenario": "mission_img",
+     "metric": "ape_los_last_half_orbit_p9973",
+     "value": 0.010659290304859646,
+     "pass": 0,
+     "run": ""
+    },
+    {
+     "scenario": "mission_rw_rcs",
+     "metric": "ape_los_last_half_orbit_p9973",
+     "value": 0.007564203863610057,
+     "pass": 1,
+     "run": ""
+    },
+    {
+     "scenario": "mission_vscmg",
+     "metric": "ape_los_last_half_orbit_p9973",
+     "value": 0.009594944176018163,
+     "pass": 1,
+     "run": ""
+    },
+    {
+     "scenario": "slew_cmg",
+     "metric": "ape_los_on_target_p9973",
+     "value": 0.004232932592228714,
+     "pass": 1,
+     "run": ""
+    },
+    {
+     "scenario": "slew_fmr",
+     "metric": "ape_los_on_target_p9973",
+     "value": 0.00652935742293547,
+     "pass": 1,
+     "run": ""
+    },
+    {
+     "scenario": "slew_fmr_rcs",
+     "metric": "ape_los_on_target_p9973",
+     "value": 0.00652935742293547,
+     "pass": 1,
+     "run": ""
+    },
+    {
+     "scenario": "slew_img",
+     "metric": "ape_los_on_target_p9973",
+     "value": 0.007925203073528949,
+     "pass": 1,
+     "run": ""
+    },
+    {
+     "scenario": "slew_img_lqr",
+     "metric": "ape_los_on_target_p9973",
+     "value": 0.004439479541748441,
+     "pass": 1,
+     "run": ""
+    },
+    {
+     "scenario": "slew_img_smc",
+     "metric": "ape_los_on_target_p9973",
+     "value": 0.017800521437716408,
+     "pass": 0,
+     "run": ""
+    },
+    {
+     "scenario": "slew_rw_rcs",
+     "metric": "ape_los_on_target_p9973",
+     "value": 0.007921819653506648,
+     "pass": 1,
+     "run": ""
+    },
+    {
+     "scenario": "slew_vscmg",
+     "metric": "ape_los_on_target_p9973",
+     "value": 0.010831344152894409,
+     "pass": 0,
+     "run": ""
+    }
+   ],
+   "design": null,
+   "modes": [
+    {
+     "mode": "nadir_pointing",
+     "metric": "ape_los_p9973",
+     "value": 0.004482653384330484,
+     "pass": 1
+    }
+   ],
+   "profile": [],
+   "status": "not met (9 of 31)"
+  },
+  {
+   "case": "ais_img_3u",
+   "key": "req.ake",
+   "label": "Absolute knowledge error (AKE)",
+   "unit": "Degree",
+   "value": 0.005,
+   "unconfirmed": true,
+   "flight": [
+    {
+     "scenario": "fault_gimbal_cmg",
+     "metric": "ake_los_p9973",
+     "value": 0.002624299513776467,
+     "pass": 1,
+     "run": ""
+    },
+    {
+     "scenario": "fault_st_img",
+     "metric": "ake_los_p9973",
+     "value": 0.10931314299278329,
+     "pass": 0,
+     "run": ""
+    },
+    {
+     "scenario": "fault_wheel_img",
+     "metric": "ake_los_p9973",
+     "value": 0.0028581257166492503,
+     "pass": 1,
+     "run": ""
+    },
+    {
+     "scenario": "fine_hold_cmg",
+     "metric": "ake_los_p9973",
+     "value": 0.0026263098760842644,
+     "pass": 1,
+     "run": ""
+    },
+    {
+     "scenario": "fine_hold_fmr",
+     "metric": "ake_los_p9973",
+     "value": 0.0026309994575527437,
+     "pass": 1,
+     "run": ""
+    },
+    {
+     "scenario": "fine_hold_fmr_rcs",
+     "metric": "ake_los_p9973",
+     "value": 0.0026309994575527437,
+     "pass": 1,
+     "run": ""
+    },
+    {
+     "scenario": "fine_hold_img",
+     "metric": "ake_los_p9973",
+     "value": 0.002608036040076056,
+     "pass": 1,
+     "run": ""
+    },
+    {
+     "scenario": "fine_hold_img_lqr",
+     "metric": "ake_los_p9973",
+     "value": 0.0026523706461802437,
+     "pass": 1,
+     "run": ""
+    },
+    {
+     "scenario": "fine_hold_img_smc",
+     "metric": "ake_los_p9973",
+     "value": 0.002648591902073026,
+     "pass": 1,
+     "run": ""
+    },
+    {
+     "scenario": "fine_hold_rw_rcs",
+     "metric": "ake_los_p9973",
+     "value": 0.002601543286890391,
+     "pass": 1,
+     "run": ""
+    },
+    {
+     "scenario": "fine_hold_vscmg",
+     "metric": "ake_los_p9973",
+     "value": 0.0026364118238512966,
+     "pass": 1,
+     "run": ""
+    }
+   ],
+   "design": null,
+   "modes": [
+    {
+     "mode": "nadir_pointing",
+     "metric": "ake_los_p9973",
+     "value": 0.003247473265077974,
+     "pass": 1
+    }
+   ],
+   "profile": [],
+   "status": "not met (1 of 12)"
+  },
+  {
+   "case": "ais_img_3u",
+   "key": "req.rpe",
+   "label": "Relative pointing error (RPE)",
+   "unit": "Degree",
+   "value": null,
+   "unconfirmed": false,
+   "flight": [],
+   "design": null,
+   "modes": [],
+   "profile": [],
+   "status": "not stated"
+  },
+  {
+   "case": "ais_img_3u",
+   "key": "req.pde",
+   "label": "Pointing drift error (PDE)",
+   "unit": "Degree",
+   "value": null,
+   "unconfirmed": false,
+   "flight": [],
+   "design": null,
+   "modes": [],
+   "profile": [],
+   "status": "not stated"
+  },
+  {
+   "case": "ais_img_3u",
+   "key": "req.rks",
+   "label": "Rate stability",
+   "unit": "DegreePerSecond",
+   "value": 0.005,
+   "unconfirmed": false,
+   "flight": [
+    {
+     "scenario": "fault_gimbal_cmg",
+     "metric": "rate_stability_p9973",
+     "value": 0.0029629452945429307,
+     "pass": 1,
+     "run": ""
+    },
+    {
+     "scenario": "fault_st_img",
+     "metric": "rate_stability_p9973",
+     "value": 0.0037712623100350246,
+     "pass": 1,
+     "run": ""
+    },
+    {
+     "scenario": "fault_wheel_img",
+     "metric": "rate_stability_p9973",
+     "value": 0.6244137380838454,
+     "pass": 0,
+     "run": ""
+    },
+    {
+     "scenario": "fine_hold_cmg",
+     "metric": "rate_stability_p9973",
+     "value": 0.0024372972116540755,
+     "pass": 1,
+     "run": ""
+    },
+    {
+     "scenario": "fine_hold_fmr",
+     "metric": "rate_stability_p9973",
+     "value": 0.004728905497182666,
+     "pass": 1,
+     "run": ""
+    },
+    {
+     "scenario": "fine_hold_fmr_rcs",
+     "metric": "rate_stability_p9973",
+     "value": 0.004728905497182666,
+     "pass": 1,
+     "run": ""
+    },
+    {
+     "scenario": "fine_hold_img",
+     "metric": "rate_stability_p9973",
+     "value": 0.0035517891985791376,
+     "pass": 1,
+     "run": ""
+    },
+    {
+     "scenario": "fine_hold_img_lqr",
+     "metric": "rate_stability_p9973",
+     "value": 0.006703833797701828,
+     "pass": 0,
+     "run": ""
+    },
+    {
+     "scenario": "fine_hold_img_smc",
+     "metric": "rate_stability_p9973",
+     "value": 0.003481571379738736,
+     "pass": 1,
+     "run": ""
+    },
+    {
+     "scenario": "fine_hold_rw_rcs",
+     "metric": "rate_stability_p9973",
+     "value": 0.005640505712910319,
+     "pass": 0,
+     "run": ""
+    },
+    {
+     "scenario": "fine_hold_vscmg",
+     "metric": "rate_stability_p9973",
+     "value": 0.004762354725018702,
+     "pass": 1,
+     "run": ""
+    }
+   ],
+   "design": null,
+   "modes": [
+    {
+     "mode": "nadir_pointing",
+     "metric": "rate_stability_p9973",
+     "value": 0.004965481091720041,
+     "pass": 1
+    }
+   ],
+   "profile": [],
+   "status": "not met (3 of 12)"
+  },
+  {
+   "case": "ais_img_3u",
+   "key": "req.rke",
+   "label": "Relative knowledge error (RKE)",
+   "unit": "Degree",
+   "value": null,
+   "unconfirmed": false,
+   "flight": [],
+   "design": null,
+   "modes": [],
+   "profile": [],
+   "status": "not stated"
+  },
+  {
+   "case": "ais_img_3u",
+   "key": "req.slew",
+   "label": "Reference slew time",
+   "unit": "Second",
+   "value": 60.0,
+   "unconfirmed": true,
+   "flight": [],
+   "design": null,
+   "modes": [],
+   "profile": [
+    {
+     "scenario": "slew_cmg",
+     "angle_deg": 30.0,
+     "T_s": 60.0,
+     "pass": 1
+    },
+    {
+     "scenario": "slew_fmr",
+     "angle_deg": 30.0,
+     "T_s": 60.0,
+     "pass": 1
+    },
+    {
+     "scenario": "slew_fmr_rcs",
+     "angle_deg": 30.0,
+     "T_s": 60.0,
+     "pass": 1
+    },
+    {
+     "scenario": "slew_img",
+     "angle_deg": 30.0,
+     "T_s": 60.0,
+     "pass": 1
+    },
+    {
+     "scenario": "slew_img_lqr",
+     "angle_deg": 30.0,
+     "T_s": 60.0,
+     "pass": 1
+    },
+    {
+     "scenario": "slew_img_smc",
+     "angle_deg": 30.0,
+     "T_s": 60.0,
+     "pass": 1
+    },
+    {
+     "scenario": "slew_rw_rcs",
+     "angle_deg": 30.0,
+     "T_s": 60.0,
+     "pass": 1
+    },
+    {
+     "scenario": "slew_vscmg",
+     "angle_deg": 30.0,
+     "T_s": 60.0,
+     "pass": 1
+    }
+   ],
+   "status": "met"
+  },
+  {
+   "case": "ais_img_3u",
+   "key": "req.settle",
+   "label": "Settling time after a slew",
+   "unit": "Second",
+   "value": 20.0,
+   "unconfirmed": true,
+   "flight": [
+    {
+     "scenario": "slew_cmg",
+     "metric": "settle_time_after_slew",
+     "value": 12.400000000000034,
+     "pass": 1,
+     "run": ""
+    },
+    {
+     "scenario": "slew_fmr",
+     "metric": "settle_time_after_slew",
+     "value": 12.900000000000034,
+     "pass": 1,
+     "run": ""
+    },
+    {
+     "scenario": "slew_fmr_rcs",
+     "metric": "settle_time_after_slew",
+     "value": 12.900000000000034,
+     "pass": 1,
+     "run": ""
+    },
+    {
+     "scenario": "slew_img",
+     "metric": "settle_time_after_slew",
+     "value": 12.100000000000023,
+     "pass": 1,
+     "run": ""
+    },
+    {
+     "scenario": "slew_img_lqr",
+     "metric": "settle_time_after_slew",
+     "value": 0.0,
+     "pass": 1,
+     "run": ""
+    },
+    {
+     "scenario": "slew_img_smc",
+     "metric": "settle_time_after_slew",
+     "value": null,
+     "pass": 0,
+     "run": ""
+    },
+    {
+     "scenario": "slew_rw_rcs",
+     "metric": "settle_time_after_slew",
+     "value": 12.100000000000023,
+     "pass": 1,
+     "run": ""
+    },
+    {
+     "scenario": "slew_vscmg",
+     "metric": "settle_time_after_slew",
+     "value": 13.199999999999989,
+     "pass": 1,
+     "run": ""
+    }
+   ],
+   "design": null,
+   "modes": [],
+   "profile": [],
+   "status": "not met (1 of 8)"
+  },
+  {
+   "case": "ais_img_3u",
+   "key": "req.spo",
+   "label": "Slews per orbit",
+   "unit": "Count",
+   "value": null,
+   "unconfirmed": false,
+   "flight": [],
+   "design": null,
+   "modes": [],
+   "profile": [],
+   "status": "not stated"
+  },
+  {
+   "case": "ais_img_3u",
+   "key": "req.track",
+   "label": "Target-tracking rate",
+   "unit": "DegreePerSecond",
+   "value": null,
+   "unconfirmed": false,
+   "flight": [],
+   "design": null,
+   "modes": [],
+   "profile": [],
+   "status": "not stated"
+  },
+  {
+   "case": "ais_img_3u",
+   "key": "req.wmax",
+   "label": "Maximum body rate",
+   "unit": "DegreePerSecond",
+   "value": null,
+   "unconfirmed": false,
+   "flight": [],
+   "design": null,
+   "modes": [],
+   "profile": [],
+   "status": "not stated"
+  },
+  {
+   "case": "ais_img_3u",
+   "key": "req.detumble",
+   "label": "Detumble time",
+   "unit": "Minute",
+   "value": 284.0,
+   "unconfirmed": true,
+   "flight": [
+    {
+     "scenario": "detumble_img",
+     "metric": "detumble_time",
+     "value": 47.541666666666664,
+     "pass": 1,
+     "run": ""
+    },
+    {
+     "scenario": "mission_cmg",
+     "metric": "detumble_time",
+     "value": 57.00833333333333,
+     "pass": 1,
+     "run": ""
+    },
+    {
+     "scenario": "mission_fmr",
+     "metric": "detumble_time",
+     "value": 61.325,
+     "pass": 1,
+     "run": ""
+    },
+    {
+     "scenario": "mission_fmr_rcs",
+     "metric": "detumble_time",
+     "value": 61.325,
+     "pass": 1,
+     "run": ""
+    },
+    {
+     "scenario": "mission_img",
+     "metric": "detumble_time",
+     "value": 51.00833333333333,
+     "pass": 1,
+     "run": ""
+    },
+    {
+     "scenario": "mission_rw_rcs",
+     "metric": "detumble_time",
+     "value": 51.00833333333333,
+     "pass": 1,
+     "run": ""
+    },
+    {
+     "scenario": "mission_vscmg",
+     "metric": "detumble_time",
+     "value": 57.025,
+     "pass": 1,
+     "run": ""
+    }
+   ],
+   "design": null,
+   "modes": [
+    {
+     "mode": "detumble",
+     "metric": "detumble_time",
+     "value": 58.906666666666666,
+     "pass": 1
+    }
+   ],
+   "profile": [],
+   "status": "met"
+  },
+  {
+   "case": "ais_img_3u",
+   "key": "req.sunacq",
+   "label": "Sun-acquisition time in safe mode",
+   "unit": "Minute",
+   "value": 95.0,
+   "unconfirmed": true,
+   "flight": [],
+   "design": null,
+   "modes": [
+    {
+     "mode": "sun_acquisition",
+     "metric": "sun_acquisition_time",
+     "value": 2.2916666666666665,
+     "pass": 1
+    }
+   ],
+   "profile": [],
+   "status": "met"
+  },
+  {
+   "case": "ais_img_3u",
+   "key": "req.faults",
+   "label": "Faults tolerated",
+   "unit": "Count",
+   "value": null,
+   "unconfirmed": false,
+   "flight": [],
+   "design": null,
+   "modes": [],
+   "profile": [],
+   "status": "not stated"
+  },
+  {
+   "case": "ais_img_3u",
+   "key": "req.recover",
+   "label": "Recovery time after a single fault",
+   "unit": "Minute",
+   "value": null,
+   "unconfirmed": false,
+   "flight": [],
+   "design": null,
+   "modes": [],
+   "profile": [],
+   "status": "not stated"
+  },
+  {
+   "case": "ais_img_3u",
+   "key": "req.hsat",
+   "label": "Momentum saturation margin",
+   "unit": "One",
+   "value": null,
+   "unconfirmed": false,
+   "flight": [],
+   "design": null,
+   "modes": [],
+   "profile": [],
+   "status": "not stated"
+  },
+  {
+   "case": "ais_img_3u",
+   "key": "req.dump",
+   "label": "Momentum dump interval",
+   "unit": "Hour",
+   "value": null,
+   "unconfirmed": false,
+   "flight": [],
+   "design": null,
+   "modes": [],
+   "profile": [],
+   "status": "not stated"
+  },
+  {
+   "case": "ais_img_3u",
+   "key": "req.mass",
+   "label": "ADCS mass",
+   "unit": "Kilogram",
+   "value": 1.6,
+   "unconfirmed": false,
+   "flight": [],
+   "design": {
+    "family": "mtq_fmr",
+    "value": 1.4273053015176518,
+    "pass": 1
+   },
+   "modes": [],
+   "profile": [],
+   "status": "met"
+  },
+  {
+   "case": "ais_img_3u",
+   "key": "req.pavg",
+   "label": "ADCS orbit-average power",
+   "unit": "Watt",
+   "value": 2.0,
+   "unconfirmed": true,
+   "flight": [
+    {
+     "scenario": "fault_gimbal_cmg",
+     "metric": "power_mean",
+     "value": 1.6098333470280515,
+     "pass": 1,
+     "run": ""
+    },
+    {
+     "scenario": "fault_st_img",
+     "metric": "power_mean",
+     "value": 1.5573215249068173,
+     "pass": 1,
+     "run": ""
+    },
+    {
+     "scenario": "fault_wheel_img",
+     "metric": "power_mean",
+     "value": 1.2130652778285238,
+     "pass": 1,
+     "run": ""
+    },
+    {
+     "scenario": "fine_hold_cmg",
+     "metric": "power_mean",
+     "value": 1.6098532577755433,
+     "pass": 1,
+     "run": ""
+    },
+    {
+     "scenario": "fine_hold_fmr",
+     "metric": "power_mean",
+     "value": 0.08406296596575745,
+     "pass": 1,
+     "run": ""
+    },
+    {
+     "scenario": "fine_hold_fmr_rcs",
+     "metric": "power_mean",
+     "value": 0.08406296596575745,
+     "pass": 1,
+     "run": ""
+    },
+    {
+     "scenario": "fine_hold_img",
+     "metric": "power_mean",
+     "value": 1.5573238717790905,
+     "pass": 1,
+     "run": ""
+    },
+    {
+     "scenario": "fine_hold_img_lqr",
+     "metric": "power_mean",
+     "value": 1.5579173018428665,
+     "pass": 1,
+     "run": ""
+    },
+    {
+     "scenario": "fine_hold_img_smc",
+     "metric": "power_mean",
+     "value": 1.5573332349944629,
+     "pass": 1,
+     "run": ""
+    },
+    {
+     "scenario": "fine_hold_rw_rcs",
+     "metric": "power_mean",
+     "value": 1.5301332707303108,
+     "pass": 1,
+     "run": ""
+    },
+    {
+     "scenario": "fine_hold_vscmg",
+     "metric": "power_mean",
+     "value": 2.014100066492688,
+     "pass": 0,
+     "run": ""
+    }
+   ],
+   "design": null,
+   "modes": [
+    {
+     "mode": "nadir_pointing",
+     "metric": "power_mean",
+     "value": 0.2872820399282563,
+     "pass": 1
+    },
+    {
+     "mode": "sun_acquisition",
+     "metric": "power_mean",
+     "value": 0.6753551575270226,
+     "pass": 1
+    },
+    {
+     "mode": "sun_referencing",
+     "metric": "power_mean",
+     "value": 0.08898959897160505,
+     "pass": 1
+    }
+   ],
+   "profile": [],
+   "status": "not met (1 of 14)"
+  },
+  {
+   "case": "ais_img_3u",
+   "key": "req.ppk",
+   "label": "ADCS peak power",
+   "unit": "Watt",
+   "value": 4.0,
+   "unconfirmed": true,
+   "flight": [],
+   "design": null,
+   "modes": [
+    {
+     "mode": "detumble",
+     "metric": "power_peak",
+     "value": 0.21809270611756887,
+     "pass": 1
+    }
+   ],
+   "profile": [],
+   "status": "met"
+  },
+  {
+   "case": "ais_img_3u",
+   "key": "req.vol",
+   "label": "ADCS volume",
+   "unit": "Litre",
+   "value": 1.0,
+   "unconfirmed": false,
+   "flight": [],
+   "design": {
+    "family": "mtq_fmr",
+    "value": 0.5344095129173693,
+    "pass": 1
+   },
+   "modes": [],
+   "profile": [],
+   "status": "met"
+  },
+  {
+   "case": "ais_img_3u",
+   "key": "req.prop",
+   "label": "RCS propellant per year",
+   "unit": "Kilogram",
+   "value": null,
+   "unconfirmed": false,
+   "flight": [],
+   "design": null,
+   "modes": [],
+   "profile": [],
+   "status": "not stated"
+  }
+ ],
+ "undecided": [],
+ "unknown_key": [],
+ "diagnostics": [
+  {
+   "scenario": "agile_slew_cmg",
+   "metric": "settle_time_after_slew",
+   "why": "a 90 deg agile slew: the case states settling (req.settle) for the 30 deg reference slew, judged in slew_*"
+  },
+  {
+   "scenario": "agile_slew_cmg",
+   "metric": "wheel_momentum_peak",
+   "why": "momentum used, for sizing: the case does not state the margin req.hsat"
+  },
+  {
+   "scenario": "agile_slew_fmr_rcs",
+   "metric": "settle_time_after_slew",
+   "why": "a 90 deg agile slew: the case states settling (req.settle) for the 30 deg reference slew, judged in slew_*"
+  },
+  {
+   "scenario": "agile_slew_fmr_rcs",
+   "metric": "wheel_momentum_peak",
+   "why": "momentum used, for sizing: the case does not state the margin req.hsat"
+  },
+  {
+   "scenario": "agile_slew_img",
+   "metric": "settle_time_after_slew",
+   "why": "a 90 deg agile slew: the case states settling (req.settle) for the 30 deg reference slew, judged in slew_*"
+  },
+  {
+   "scenario": "agile_slew_img",
+   "metric": "wheel_momentum_peak",
+   "why": "momentum used, for sizing: the case does not state the margin req.hsat"
+  },
+  {
+   "scenario": "agile_slew_rw_rcs",
+   "metric": "settle_time_after_slew",
+   "why": "a 90 deg agile slew: the case states settling (req.settle) for the 30 deg reference slew, judged in slew_*"
+  },
+  {
+   "scenario": "agile_slew_rw_rcs",
+   "metric": "wheel_momentum_peak",
+   "why": "momentum used, for sizing: the case does not state the margin req.hsat"
+  },
+  {
+   "scenario": "agile_slew_vscmg",
+   "metric": "settle_time_after_slew",
+   "why": "a 90 deg agile slew: the case states settling (req.settle) for the 30 deg reference slew, judged in slew_*"
+  },
+  {
+   "scenario": "agile_slew_vscmg",
+   "metric": "wheel_momentum_peak",
+   "why": "momentum used, for sizing: the case does not state the margin req.hsat"
+  },
+  {
+   "scenario": "fault_gimbal_cmg",
+   "metric": "ape_los_max",
+   "why": "the worst sample, beside the judged p99.73: req.ape is a 3-sigma requirement"
+  },
+  {
+   "scenario": "fault_gimbal_cmg",
+   "metric": "ape_3ax_p9973",
+   "why": "the three-axis error, beside the judged line of sight: req.ape is on the imager's line of sight"
+  },
+  {
+   "scenario": "fault_gimbal_cmg",
+   "metric": "time_to_0p01_deg",
+   "why": "acquisition from the initial error: no requirement states it (req.settle is after a slew)"
+  },
+  {
+   "scenario": "fault_gimbal_cmg",
+   "metric": "wheel_momentum_peak",
+   "why": "momentum used, for sizing: the case does not state the margin req.hsat"
+  },
+  {
+   "scenario": "fault_gyro_ais",
+   "metric": "ape_3axis_last_orbit",
+   "why": "yaw about the antenna axis is not required: the line of sight is judged (ape_los_last_orbit)"
+  },
+  {
+   "scenario": "fault_st_img",
+   "metric": "ape_los_max",
+   "why": "the worst sample, beside the judged p99.73: req.ape is a 3-sigma requirement"
+  },
+  {
+   "scenario": "fault_st_img",
+   "metric": "ape_3ax_p9973",
+   "why": "the three-axis error, beside the judged line of sight: req.ape is on the imager's line of sight"
+  },
+  {
+   "scenario": "fault_st_img",
+   "metric": "time_to_0p01_deg",
+   "why": "acquisition from the initial error: no requirement states it (req.settle is after a slew)"
+  },
+  {
+   "scenario": "fault_st_img",
+   "metric": "wheel_momentum_peak",
+   "why": "momentum used, for sizing: the case does not state the margin req.hsat"
+  },
+  {
+   "scenario": "fault_wheel_img",
+   "metric": "ape_los_max",
+   "why": "the worst sample, beside the judged p99.73: req.ape is a 3-sigma requirement"
+  },
+  {
+   "scenario": "fault_wheel_img",
+   "metric": "ape_3ax_p9973",
+   "why": "the three-axis error, beside the judged line of sight: req.ape is on the imager's line of sight"
+  },
+  {
+   "scenario": "fault_wheel_img",
+   "metric": "time_to_0p01_deg",
+   "why": "acquisition from the initial error: no requirement states it (req.settle is after a slew)"
+  },
+  {
+   "scenario": "fault_wheel_img",
+   "metric": "wheel_momentum_peak",
+   "why": "momentum used, for sizing: the case does not state the margin req.hsat"
+  },
+  {
+   "scenario": "fine_hold_cmg",
+   "metric": "ape_los_max",
+   "why": "the worst sample, beside the judged p99.73: req.ape is a 3-sigma requirement"
+  },
+  {
+   "scenario": "fine_hold_cmg",
+   "metric": "ape_3ax_p9973",
+   "why": "the three-axis error, beside the judged line of sight: req.ape is on the imager's line of sight"
+  },
+  {
+   "scenario": "fine_hold_cmg",
+   "metric": "time_to_0p01_deg",
+   "why": "acquisition from the initial error: no requirement states it (req.settle is after a slew)"
+  },
+  {
+   "scenario": "fine_hold_cmg",
+   "metric": "wheel_momentum_peak",
+   "why": "momentum used, for sizing: the case does not state the margin req.hsat"
+  },
+  {
+   "scenario": "fine_hold_fmr",
+   "metric": "ape_los_max",
+   "why": "the worst sample, beside the judged p99.73: req.ape is a 3-sigma requirement"
+  },
+  {
+   "scenario": "fine_hold_fmr",
+   "metric": "ape_3ax_p9973",
+   "why": "the three-axis error, beside the judged line of sight: req.ape is on the imager's line of sight"
+  },
+  {
+   "scenario": "fine_hold_fmr",
+   "metric": "time_to_0p01_deg",
+   "why": "acquisition from the initial error: no requirement states it (req.settle is after a slew)"
+  },
+  {
+   "scenario": "fine_hold_fmr",
+   "metric": "wheel_momentum_peak",
+   "why": "momentum used, for sizing: the case does not state the margin req.hsat"
+  },
+  {
+   "scenario": "fine_hold_fmr_rcs",
+   "metric": "ape_los_max",
+   "why": "the worst sample, beside the judged p99.73: req.ape is a 3-sigma requirement"
+  },
+  {
+   "scenario": "fine_hold_fmr_rcs",
+   "metric": "ape_3ax_p9973",
+   "why": "the three-axis error, beside the judged line of sight: req.ape is on the imager's line of sight"
+  },
+  {
+   "scenario": "fine_hold_fmr_rcs",
+   "metric": "time_to_0p01_deg",
+   "why": "acquisition from the initial error: no requirement states it (req.settle is after a slew)"
+  },
+  {
+   "scenario": "fine_hold_fmr_rcs",
+   "metric": "wheel_momentum_peak",
+   "why": "momentum used, for sizing: the case does not state the margin req.hsat"
+  },
+  {
+   "scenario": "fine_hold_img",
+   "metric": "ape_los_max",
+   "why": "the worst sample, beside the judged p99.73: req.ape is a 3-sigma requirement"
+  },
+  {
+   "scenario": "fine_hold_img",
+   "metric": "ape_3ax_p9973",
+   "why": "the three-axis error, beside the judged line of sight: req.ape is on the imager's line of sight"
+  },
+  {
+   "scenario": "fine_hold_img",
+   "metric": "time_to_0p01_deg",
+   "why": "acquisition from the initial error: no requirement states it (req.settle is after a slew)"
+  },
+  {
+   "scenario": "fine_hold_img",
+   "metric": "wheel_momentum_peak",
+   "why": "momentum used, for sizing: the case does not state the margin req.hsat"
+  },
+  {
+   "scenario": "fine_hold_img_lqr",
+   "metric": "ape_los_max",
+   "why": "the worst sample, beside the judged p99.73: req.ape is a 3-sigma requirement"
+  },
+  {
+   "scenario": "fine_hold_img_lqr",
+   "metric": "ape_3ax_p9973",
+   "why": "the three-axis error, beside the judged line of sight: req.ape is on the imager's line of sight"
+  },
+  {
+   "scenario": "fine_hold_img_lqr",
+   "metric": "time_to_0p01_deg",
+   "why": "acquisition from the initial error: no requirement states it (req.settle is after a slew)"
+  },
+  {
+   "scenario": "fine_hold_img_lqr",
+   "metric": "wheel_momentum_peak",
+   "why": "momentum used, for sizing: the case does not state the margin req.hsat"
+  },
+  {
+   "scenario": "fine_hold_img_smc",
+   "metric": "ape_los_max",
+   "why": "the worst sample, beside the judged p99.73: req.ape is a 3-sigma requirement"
+  },
+  {
+   "scenario": "fine_hold_img_smc",
+   "metric": "ape_3ax_p9973",
+   "why": "the three-axis error, beside the judged line of sight: req.ape is on the imager's line of sight"
+  },
+  {
+   "scenario": "fine_hold_img_smc",
+   "metric": "time_to_0p01_deg",
+   "why": "acquisition from the initial error: no requirement states it (req.settle is after a slew)"
+  },
+  {
+   "scenario": "fine_hold_img_smc",
+   "metric": "wheel_momentum_peak",
+   "why": "momentum used, for sizing: the case does not state the margin req.hsat"
+  },
+  {
+   "scenario": "fine_hold_rw_rcs",
+   "metric": "ape_los_max",
+   "why": "the worst sample, beside the judged p99.73: req.ape is a 3-sigma requirement"
+  },
+  {
+   "scenario": "fine_hold_rw_rcs",
+   "metric": "ape_3ax_p9973",
+   "why": "the three-axis error, beside the judged line of sight: req.ape is on the imager's line of sight"
+  },
+  {
+   "scenario": "fine_hold_rw_rcs",
+   "metric": "time_to_0p01_deg",
+   "why": "acquisition from the initial error: no requirement states it (req.settle is after a slew)"
+  },
+  {
+   "scenario": "fine_hold_rw_rcs",
+   "metric": "wheel_momentum_peak",
+   "why": "momentum used, for sizing: the case does not state the margin req.hsat"
+  },
+  {
+   "scenario": "fine_hold_vscmg",
+   "metric": "ape_los_max",
+   "why": "the worst sample, beside the judged p99.73: req.ape is a 3-sigma requirement"
+  },
+  {
+   "scenario": "fine_hold_vscmg",
+   "metric": "ape_3ax_p9973",
+   "why": "the three-axis error, beside the judged line of sight: req.ape is on the imager's line of sight"
+  },
+  {
+   "scenario": "fine_hold_vscmg",
+   "metric": "time_to_0p01_deg",
+   "why": "acquisition from the initial error: no requirement states it (req.settle is after a slew)"
+  },
+  {
+   "scenario": "fine_hold_vscmg",
+   "metric": "wheel_momentum_peak",
+   "why": "momentum used, for sizing: the case does not state the margin req.hsat"
+  },
+  {
+   "scenario": "mission_ais",
+   "metric": "ape_3axis_last_orbit",
+   "why": "yaw about the antenna axis is not required: the line of sight is judged (ape_los_last_orbit)"
+  },
+  {
+   "scenario": "nadir_hold_ais",
+   "metric": "ape_3axis_last_orbit",
+   "why": "yaw about the antenna axis is not required: the line of sight is judged (ape_los_last_orbit)"
+  },
+  {
+   "scenario": "nadir_hold_ais_css",
+   "metric": "ape_3axis_last_orbit",
+   "why": "yaw about the antenna axis is not required: the line of sight is judged (ape_los_last_orbit)"
+  },
+  {
+   "scenario": "slew_cmg",
+   "metric": "wheel_momentum_peak",
+   "why": "momentum used, for sizing: the case does not state the margin req.hsat"
+  },
+  {
+   "scenario": "slew_fmr",
+   "metric": "wheel_momentum_peak",
+   "why": "momentum used, for sizing: the case does not state the margin req.hsat"
+  },
+  {
+   "scenario": "slew_fmr_rcs",
+   "metric": "wheel_momentum_peak",
+   "why": "momentum used, for sizing: the case does not state the margin req.hsat"
+  },
+  {
+   "scenario": "slew_img",
+   "metric": "wheel_momentum_peak",
+   "why": "momentum used, for sizing: the case does not state the margin req.hsat"
+  },
+  {
+   "scenario": "slew_img_lqr",
+   "metric": "wheel_momentum_peak",
+   "why": "momentum used, for sizing: the case does not state the margin req.hsat"
+  },
+  {
+   "scenario": "slew_img_smc",
+   "metric": "wheel_momentum_peak",
+   "why": "momentum used, for sizing: the case does not state the margin req.hsat"
+  },
+  {
+   "scenario": "slew_rw_rcs",
+   "metric": "wheel_momentum_peak",
+   "why": "momentum used, for sizing: the case does not state the margin req.hsat"
+  },
+  {
+   "scenario": "slew_vscmg",
+   "metric": "wheel_momentum_peak",
+   "why": "momentum used, for sizing: the case does not state the margin req.hsat"
+  }
+ ],
+ "counts": {
+  "metrics": 173,
+  "judged": 107,
+  "diagnostic": 66
+ }
+}

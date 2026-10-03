@@ -11,7 +11,7 @@ function [cp, ct] = panelCoeffs(model, s, delta, gsi)
 %   coefficients of a facet.
 %
 %   What people mean by "the SESAM model" is SENTMAN DRIVEN BY A SESAM-DERIVED aT
-%   -- the standard VLEO combination, because at VLEO aT is dominated by adsorbed
+%   -- the standard low LEO combination, because at low LEO aT is dominated by adsorbed
 %   atomic oxygen and is emphatically not the 0.9 everyone types in. That is what
 %   this case now does, and it is why the sweep is worth running: 'sentman' with a
 %   guessed aT and 'sesam' differ by exactly the physics you are trying to test.

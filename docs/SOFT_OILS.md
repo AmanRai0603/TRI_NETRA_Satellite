@@ -34,6 +34,27 @@ actuation, then over `dt - latency` with the new one. A latency of a whole perio
 **overrun**: the command lands a tick late. Every run's manifest carries an `oils` block with the
 latency, execution, bus time, instruction counts, CPU load and overruns.
 
+## The deadline, judged
+
+The trajectory flies the nominal latency; the verdict is taken on the worst case:
+
+```
+worst = bus time + execution x cpi_max / cpi + interrupts      must land within deadline_frac x dt
+```
+
+with `cpi_max` 2.0 (the flash accelerator missing every fetch), 50 us of interrupts that may preempt
+a step, and half the control period, by default (`--cpi-max`, `--isr-us`, `--deadline-frac`). Every
+soft-OILS run adds two judged metrics to its verdicts: `oils_overruns` (none allowed) and
+`oils_worst_case_margin` (the deadline less the worst latency, in ms; at least 0).
+`tools/engine.py oils --cpi 1.0 1.5 2.0` flies the whole matrix again at each CPI (the latency
+changes, so the trajectory may) and tabulates overruns, margin and verdicts per CPI.
+
+What the instruction count holds: everything inside `adcs_fsw_step`, including the HAL's copies of
+the sensor bytes (on a real OBC those are the bus transfers, already timed above: counted twice, so
+the budget is conservative). The adcs-link framing outside the step is the simulation's own and
+is not counted. QEMU runs with `-icount shift=0,sleep=off`, so the firmware's own counter (the
+link's timing trailer) advances one nanosecond per instruction and repeats run to run.
+
 ## Exact, repeatable timing
 
 The execution time is not a wall-clock measurement. A QEMU TCG plugin
@@ -48,7 +69,11 @@ OBC model:
 | core clock | 168 MHz (STM32F4 class) | `--obc-mhz` |
 | cycles per instruction | 1.25 (flash accelerator on) | `--cpi` |
 | I2C | 400 kHz | `--i2c-khz` |
+| SPI | 1 MHz | `--spi-khz` |
 | CAN | 1 Mbit/s | `--can-kbps` |
+| worst-case cycles per instruction | 2.0 | `--cpi-max` |
+| interrupts that may preempt a step | 50 us | `--isr-us` |
+| deadline, share of the control period | 0.5 | `--deadline-frac` |
 
 The FPU of the Cortex-M4F is single precision, so the flight software's double-precision
 arithmetic runs in software routines. The instruction counts include that cost, which is the real

@@ -55,7 +55,7 @@ A campaign is a scenario and a rule for deriving runs from it. Every type below 
 | `fault` | the nominal run with each listed fault injected in turn | `faults`, `pass` |
 | `labtwin` | the scenario with the plant replaced by the lab (§12.6) | `lab` |
 
-The campaign runner expands a campaign into a run list, hashes it, and writes it before running anything. A campaign that is interrupted resumes from its list. A run that fails to start is recorded as refused, with its reason, and never silently dropped (VLEO: "a sweep records refused points; it never drops them").
+The campaign runner expands a campaign into a run list, hashes it, and writes it before running anything. A campaign that is interrupted resumes from its list. A run that fails to start is recorded as refused, with its reason, and never silently dropped ("a sweep records refused points; it never drops them").
 
 ### 10.3 Metrics
 
@@ -106,10 +106,10 @@ A campaign never writes to any of them.
 
 ### 10.6 The campaign manifest
 
-`campaign_hash = hash(scenario hash, case hash, product id, tuned-set hash, catalogue bundle version and hash (or `unpublished` and the working copy's content hash, §7.2), serial descriptors hash (or `none` before a unit is built), flight software build id, engine kernel hash, adcs-sim-core hash, seed, run list hash)`. Two campaigns with the same hash are the same campaign (VLEO: "two runs with the same chain hash are the same run"). The evidence row's Reproducibility factor is 4 only when every one of those is present and every bundle verified.
+`campaign_hash = hash(scenario hash, case hash, product id, tuned-set hash, catalogue bundle version and hash (or `unpublished` and the working copy's content hash, §7.2), serial descriptors hash (or `none` before a unit is built), flight software build id, engine kernel hash, adcs-sim-core hash, seed, run list hash)`. Two campaigns with the same hash are the same campaign ("two runs with the same chain hash are the same run"). The evidence row's Reproducibility factor is 4 only when every one of those is present and every bundle verified.
 
 ### 10.7 Parity references are not fixtures
 
-`[parity_reference]` holds numbers another tool published: IDMAS v2 §13's MATLAB simulation, or the company's MATLAB SIL. `tools/sil_parity.py` is VLEO's `mat_parity.py`, rewritten for runs. It compares a campaign's metrics with the scenario's parity reference and writes the difference and its cause to the parity ledger (§14.2). The rule is VLEO's, unchanged: a MATLAB number is a second opinion and never a fixture. "Where the two tools disagree, the disagreement is recorded with its size and its reason rather than tuned away."
+`[parity_reference]` holds numbers another tool published: IDMAS v2 §13's MATLAB simulation, or the company's MATLAB SIL. `tools/sil_parity.py` does it for runs. It compares a campaign's metrics with the scenario's parity reference and writes the difference and its cause to the parity ledger (§14.2). The rule: a MATLAB number is a second opinion and never a fixture. "Where the two tools disagree, the disagreement is recorded with its size and its reason rather than tuned away."
 
 The first expected parity result is informative either way. IDMAS v2 §13 reports 0.044° RMS and 210 s to 0.1°, with 10–30 % feed-forward errors, a friction model 20 % low and a pump efficiency of 10 %. The loop engine with the reference flight software will land near or far from that, and the ledger says which and why.

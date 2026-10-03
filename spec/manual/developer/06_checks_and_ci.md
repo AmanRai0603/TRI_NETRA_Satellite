@@ -24,7 +24,6 @@
 | `python3 tools/twin_check.py` | the twin map is whole: every SILS element has a platform side and a MATLAB side, or says why it has one (TW01–TW04) |
 | `python3 tools/twin_check.py --selftest` | each break in the map, a checkout missing a twin, and a one-sided change are caught (TW01–TW06) |
 | `python3 tools/pack_matlab.py --out <dir> [--phase Pn]` | the MATLAB zip builds with the twin map and `TWIN.md`; twice gives identical bytes; with `--phase`, refuses when a twin that phase builds is missing |
-| `python3 tools/check_seed_with_vleo.py <VLEO checkout>` | VLEO's own seeding code gives every node the recorded id |
 | `bash tools/assemble_spec.sh --check` | SPEC.md is its sections joined |
 
 ## In the repository

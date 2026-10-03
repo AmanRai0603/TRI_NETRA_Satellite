@@ -18,8 +18,9 @@ typedef struct {
 void adcs_mekf_init(adcs_mekf_t *k, const adcs_real q0[4], adcs_real sig_att0, adcs_real sig_bias0, adcs_real arw, adcs_real rrw);
 void adcs_mekf_predict(adcs_mekf_t *k, const adcs_real w_meas[3], adcs_real dt);
 int adcs_mekf_vector(adcs_mekf_t *k, const adcs_real b_meas[3], const adcs_real r_ref[3], adcs_real sigma, adcs_real gate);
-void adcs_mekf_quat(adcs_mekf_t *k, const adcs_real q_meas[4], adcs_real sig_cross, adcs_real sig_roll, const adcs_real bs[3]);
-void adcs_triad(const adcs_real b1[3], const adcs_real b2[3], const adcs_real r1[3], const adcs_real r2[3], adcs_real q[4]);
+int adcs_mekf_quat(adcs_mekf_t *k, const adcs_real q_meas[4], adcs_real sig_cross, adcs_real sig_roll, const adcs_real bs[3], adcs_real gate);
+/* 0, or -1 when either pair is (nearly) parallel and fixes no attitude (q is then left as is) */
+int adcs_triad(const adcs_real b1[3], const adcs_real b2[3], const adcs_real r1[3], const adcs_real r2[3], adcs_real q[4]);
 /* q-method on n <= 16 vector pairs; returns the loss sum(w) - lambda_max */
 adcs_real adcs_quest(adcs_real b[][3], adcs_real r[][3], const adcs_real *w, int n, adcs_real q[4]);
 void adcs_latency(const adcs_real q_st[4], const adcs_real w[3], adcs_real lat, adcs_real q[4]);

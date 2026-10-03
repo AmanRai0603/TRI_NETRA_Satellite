@@ -13,49 +13,49 @@
       "sun"
     ],
     "tau_peak": [
-      3.940266186704832e-7,
-      3.763668479113002e-7,
-      4.2414730041634956e-7,
-      4.366858055513581e-7
+      4.4248830836181636e-7,
+      4.441323065282136e-7,
+      4.3221183331949935e-7,
+      4.6888221818267933e-7
     ],
     "h_cyclic": [
-      0.0006469304559395457,
-      0.0006801437564070488,
-      0.0007591331639574841,
-      0.00035176705546179933
+      0.0007064968826484831,
+      0.0007191882220122559,
+      0.0008011582674684177,
+      0.000436692675711792
     ],
     "h_secular_orbit": [
-      0.00009181754005914163,
-      0.00011660029140561905,
-      0.00006929293607349714,
-      0.000622259340549614
+      0.00038080248641347153,
+      0.00024659348531763317,
+      0.00028092799857452124,
+      0.0006236740179952858
     ],
     "tau_axis_peak": [
       [
-        1.417547024954897e-7,
-        2.514815641096959e-7,
-        3.130970370343361e-7,
-        3.0286177974751255e-7
+        2.3740579534406957e-7,
+        3.1583905079816407e-7,
+        3.1299153243051344e-7,
+        3.9668818371541913e-7
       ],
       [
-        2.514769113934323e-7,
-        1.8555217164783492e-7,
-        3.054853983289812e-7,
-        3.612826860181959e-7
+        3.1559981875323863e-7,
+        2.0203227263355288e-7,
+        3.507892163399151e-7,
+        3.615846084824761e-7
       ],
       [
-        3.041855189614687e-7,
-        3.050714560727206e-7,
-        1.494339405202061e-7,
-        3.4794710388307776e-7
+        3.193301646049315e-7,
+        3.4337875716973517e-7,
+        2.0183071653947415e-7,
+        3.694910048890383e-7
       ]
     ],
-    "tau_dist": 4.366858055513581e-7,
+    "tau_dist": 4.6888221818267933e-7,
     "worst_attitude": "sun",
-    "h_dist": 0.0007764563979758585,
-    "h_secular": 0.000622259340549614,
-    "B_min": 0.00002361788757122297,
-    "B_mean": 0.000035795692476422855,
+    "h_dist": 0.000871390267112048,
+    "h_secular": 0.0006236740179952858,
+    "B_min": 0.0000180494568600655,
+    "B_mean": 0.00003583568366052168,
     "eclipse_frac": 0.3606271777003484,
     "w0_deg_s": 10.0,
     "J": [
@@ -74,52 +74,202 @@
     "slews_per_day": 10.0,
     "k_h": 2.0,
     "k_tau": 1.5,
-    "h_req": 0.001552912795951717,
+    "h_req": 0.001742780534224096,
     "tau_req": 0.000057572692339687917,
     "req": {
       "ake": 0.005,
       "ape": 0.01,
       "detumble": 284.0,
-      "mass": 1.6,
+      "malloc": null,
+      "mass": 1.85,
+      "palloc": null,
       "pavg": 2.0,
       "ppk": 4.0,
       "rks": 0.005,
       "sunacq": 95.0,
+      "valloc": null,
       "vol": 1.0
     },
     "notes": [
+      "req.dump blank: a quarter orbit of secular momentum held between dumps taken",
       "mission.life blank: 3 years taken"
     ],
-    "class": "fine"
+    "class": "fine",
+    "body_class": "cubesat_3u",
+    "box_m": [
+      0.34,
+      0.1,
+      0.1
+    ],
+    "survey_sweep": [
+      {
+        "epoch_days": 0.0,
+        "f107": 65.0,
+        "tau_peak": [
+          3.946147396035563e-7,
+          3.7601638436520324e-7,
+          4.223210083623305e-7,
+          4.3597069362873226e-7
+        ],
+        "h_secular_orbit": [
+          0.00010463574879029339,
+          0.00010684080070446778,
+          0.0000677795817914141,
+          0.0006224021520518955
+        ],
+        "eclipse_frac": 0.3606271777003484
+      },
+      {
+        "epoch_days": 0.0,
+        "f107": 250.0,
+        "tau_peak": [
+          3.9153862448073546e-7,
+          3.793285116044178e-7,
+          4.3221183331949935e-7,
+          4.4397562122928624e-7
+        ],
+        "h_secular_orbit": [
+          0.0001681807129275898,
+          0.00016851319459311687,
+          0.00010786965670953397,
+          0.0006216526458956978
+        ],
+        "eclipse_frac": 0.3606271777003484
+      },
+      {
+        "epoch_days": 91.3,
+        "f107": 65.0,
+        "tau_peak": [
+          4.229820627582857e-7,
+          4.441323065282136e-7,
+          4.218970390520881e-7,
+          4.5066632814701873e-7
+        ],
+        "h_secular_orbit": [
+          0.00012606214295452222,
+          0.00014219004465001152,
+          0.000185870983320184,
+          0.0004119233479893175
+        ],
+        "eclipse_frac": 0.3519163763066202
+      },
+      {
+        "epoch_days": 91.3,
+        "f107": 250.0,
+        "tau_peak": [
+          4.4248830836181636e-7,
+          4.3581228841308703e-7,
+          4.289197848832785e-7,
+          4.5771797521244614e-7
+        ],
+        "h_secular_orbit": [
+          0.00038080248641347153,
+          0.00016143166280422355,
+          0.00015122371874340168,
+          0.0004297083687758613
+        ],
+        "eclipse_frac": 0.3519163763066202
+      },
+      {
+        "epoch_days": 182.6,
+        "f107": 65.0,
+        "tau_peak": [
+          4.1974470335457565e-7,
+          4.0586622885929814e-7,
+          4.041622318746209e-7,
+          4.111571931575876e-7
+        ],
+        "h_secular_orbit": [
+          0.00025920255137804033,
+          0.00024659348531763317,
+          0.00028092799857452124,
+          0.00034181815410469664
+        ],
+        "eclipse_frac": 0.3501742160278746
+      },
+      {
+        "epoch_days": 182.6,
+        "f107": 250.0,
+        "tau_peak": [
+          4.263026768545474e-7,
+          4.0241515195280874e-7,
+          3.988810008681799e-7,
+          4.4474918836901374e-7
+        ],
+        "h_secular_orbit": [
+          0.0003576515859737039,
+          0.0002271745886349668,
+          0.0002556393638493039,
+          0.0003728314751719089
+        ],
+        "eclipse_frac": 0.3501742160278746
+      },
+      {
+        "epoch_days": 273.9,
+        "f107": 65.0,
+        "tau_peak": [
+          3.823896538189868e-7,
+          4.084552835537312e-7,
+          4.281740162050447e-7,
+          4.440564945481535e-7
+        ],
+        "h_secular_orbit": [
+          0.00008418441941648313,
+          0.000088801265236538,
+          0.0000688200698048544,
+          0.000621465210987584
+        ],
+        "eclipse_frac": 0.35365853658536583
+      },
+      {
+        "epoch_days": 273.9,
+        "f107": 250.0,
+        "tau_peak": [
+          3.7918725097913983e-7,
+          4.163276145096093e-7,
+          4.2808136921668013e-7,
+          4.6888221818267933e-7
+        ],
+        "h_secular_orbit": [
+          0.00024312973104993776,
+          0.00017521073941698234,
+          0.00010513213303939638,
+          0.0006236740179952858
+        ],
+        "eclipse_frac": 0.35365853658536583
+      }
+    ]
   },
   "knobs": {
     "scale": {
+      "fmr": 0.5625,
       "mtqp": 1.0
     },
     "k_h": null,
     "k_tau": 1.5,
-    "fmr_lambda": 0.1,
+    "fmr_lambda": 0.30000000000000004,
     "star_tracker": false,
     "st_heads": 1,
-    "fmr_flow_sigma": 0.0005,
-    "gyro_grade": 1.0
+    "fmr_flow_sigma": 0.000125,
+    "gyro_grade": 1.0,
+    "fmr_spare": true
   },
   "families": {
     "mtq": {
       "product": "SZ-ais_img_3u-mtq",
       "role": "solution",
       "label": "Magnetorquers only",
-      "mass_kg": 0.5295833946526824,
-      "power_W": 2.895833946526825,
-      "volume_L": 0.01183335786107298,
+      "mass_kg": 0.5415642174115574,
+      "power_W": 3.015642174115573,
+      "volume_L": 0.01662568696462292,
       "items": [
         {
           "slot": "coils",
           "part": "SZ-ais_img_3u-MTQP",
           "n": 3.0,
-          "mass_kg": 0.029583394652682445,
-          "power_W": 0.2958339465268245,
-          "volume_L": 0.01183335786107298
+          "mass_kg": 0.041564217411557296,
+          "power_W": 0.4156421741155729,
+          "volume_L": 0.01662568696462292
         },
         {
           "slot": "star_tracker",
@@ -175,41 +325,49 @@
       "product": "SZ-ais_img_3u-mtq_fmr",
       "role": "solution",
       "label": "Magnetorquers + fluid momentum loop",
-      "mass_kg": 1.4273053015176518,
-      "power_W": 5.876667070052895,
-      "volume_L": 0.5344095129173693,
+      "mass_kg": 1.794485934193919,
+      "power_W": 3.516500891833909,
+      "volume_L": 0.660235891936444,
       "items": [
         {
           "slot": "coils",
           "part": "SZ-ais_img_3u-MTQ",
           "n": 3.0,
-          "mass_kg": 0.016023782293423057,
-          "power_W": 0.16023782293423056,
-          "volume_L": 0.006409512917369223
+          "mass_kg": 0.020782108705778648,
+          "power_W": 0.20782108705778646,
+          "volume_L": 0.00831284348231146
         },
         {
           "slot": "rings",
           "part": "SZ-ais_img_3u-FMR-X",
           "n": 1.0,
-          "mass_kg": 0.3927683037611559,
-          "power_W": 1.4346074178817767,
+          "mass_kg": 0.3722846224770978,
+          "power_W": 0.20077198429997214,
           "volume_L": 0.08000000000000002
         },
         {
           "slot": "rings",
           "part": "SZ-ais_img_3u-FMR-Y",
           "n": 1.0,
-          "mass_kg": 0.25925660773153636,
-          "power_W": 0.8409109146184449,
+          "mass_kg": 0.19517676894553465,
+          "power_W": 0.0861626931494344,
           "volume_L": 0.224
         },
         {
           "slot": "rings",
           "part": "SZ-ais_img_3u-FMR-Z",
           "n": 1.0,
-          "mass_kg": 0.25925660773153636,
-          "power_W": 0.8409109146184449,
+          "mass_kg": 0.19517676894553465,
+          "power_W": 0.0861626931494344,
           "volume_L": 0.224
+        },
+        {
+          "slot": "rings",
+          "part": "SZ-ais_img_3u-FMR-S",
+          "n": 1.0,
+          "mass_kg": 0.511065665119973,
+          "power_W": 0.3355824341772817,
+          "volume_L": 0.12392304845413264
         },
         {
           "slot": "star_tracker",
@@ -265,49 +423,57 @@
       "product": "SZ-ais_img_3u-mtq_fmr_rcs",
       "role": "solution",
       "label": "Magnetorquers + fluid loop + N2O cold-gas RCS",
-      "mass_kg": 1.892790208740648,
-      "power_W": 5.926667070052896,
-      "volume_L": 1.3747719721245053,
+      "mass_kg": 2.2606416544343735,
+      "power_W": 3.566500891833909,
+      "volume_L": 1.5023926405072219,
       "items": [
         {
           "slot": "coils",
           "part": "SZ-ais_img_3u-MTQ",
           "n": 3.0,
-          "mass_kg": 0.016023782293423057,
-          "power_W": 0.16023782293423056,
-          "volume_L": 0.006409512917369223
+          "mass_kg": 0.020782108705778648,
+          "power_W": 0.20782108705778646,
+          "volume_L": 0.00831284348231146
         },
         {
           "slot": "rings",
           "part": "SZ-ais_img_3u-FMR-X",
           "n": 1.0,
-          "mass_kg": 0.3927683037611559,
-          "power_W": 1.4346074178817767,
+          "mass_kg": 0.3722846224770978,
+          "power_W": 0.20077198429997214,
           "volume_L": 0.08000000000000002
         },
         {
           "slot": "rings",
           "part": "SZ-ais_img_3u-FMR-Y",
           "n": 1.0,
-          "mass_kg": 0.25925660773153636,
-          "power_W": 0.8409109146184449,
+          "mass_kg": 0.19517676894553465,
+          "power_W": 0.0861626931494344,
           "volume_L": 0.224
         },
         {
           "slot": "rings",
           "part": "SZ-ais_img_3u-FMR-Z",
           "n": 1.0,
-          "mass_kg": 0.25925660773153636,
-          "power_W": 0.8409109146184449,
+          "mass_kg": 0.19517676894553465,
+          "power_W": 0.0861626931494344,
           "volume_L": 0.224
+        },
+        {
+          "slot": "rings",
+          "part": "SZ-ais_img_3u-FMR-S",
+          "n": 1.0,
+          "mass_kg": 0.511065665119973,
+          "power_W": 0.3355824341772817,
+          "volume_L": 0.12392304845413264
         },
         {
           "slot": "rcs",
           "part": "SZ-ais_img_3u-RCS",
           "n": 1.0,
-          "mass_kg": 0.4654849072229962,
+          "mass_kg": 0.46615572024045493,
           "power_W": 0.05,
-          "volume_L": 0.8403624592071361
+          "volume_L": 0.8421567485707777
         },
         {
           "slot": "star_tracker",
@@ -363,17 +529,17 @@
       "product": "SZ-ais_img_3u-mtq_rw",
       "role": "benchmark",
       "label": "Magnetorquers + reaction wheels",
-      "mass_kg": 0.6960237822934232,
-      "power_W": 3.66023782293423,
-      "volume_L": 0.06756151291736923,
+      "mass_kg": 0.7007821087057788,
+      "power_W": 3.7078210870577863,
+      "volume_L": 0.06946484348231145,
       "items": [
         {
           "slot": "coils",
           "part": "SZ-ais_img_3u-MTQ",
           "n": 3.0,
-          "mass_kg": 0.016023782293423057,
-          "power_W": 0.16023782293423056,
-          "volume_L": 0.006409512917369223
+          "mass_kg": 0.020782108705778648,
+          "power_W": 0.20782108705778646,
+          "volume_L": 0.00831284348231146
         },
         {
           "slot": "wheels",
@@ -437,17 +603,17 @@
       "product": "SZ-ais_img_3u-mtq_rw_rcs",
       "role": "benchmark",
       "label": "Magnetorquers + reaction wheels + N2O cold-gas RCS",
-      "mass_kg": 1.1615086895164195,
-      "power_W": 3.7102378229342308,
-      "volume_L": 0.9079239721245054,
+      "mass_kg": 1.1669378289462338,
+      "power_W": 3.757821087057786,
+      "volume_L": 0.9116215920530891,
       "items": [
         {
           "slot": "coils",
           "part": "SZ-ais_img_3u-MTQ",
           "n": 3.0,
-          "mass_kg": 0.016023782293423057,
-          "power_W": 0.16023782293423056,
-          "volume_L": 0.006409512917369223
+          "mass_kg": 0.020782108705778648,
+          "power_W": 0.20782108705778646,
+          "volume_L": 0.00831284348231146
         },
         {
           "slot": "wheels",
@@ -461,9 +627,9 @@
           "slot": "rcs",
           "part": "SZ-ais_img_3u-RCS",
           "n": 1.0,
-          "mass_kg": 0.4654849072229962,
+          "mass_kg": 0.46615572024045493,
           "power_W": 0.05,
-          "volume_L": 0.8403624592071361
+          "volume_L": 0.8421567485707777
         },
         {
           "slot": "star_tracker",
@@ -519,17 +685,17 @@
       "product": "SZ-ais_img_3u-mtq_cmg",
       "role": "benchmark",
       "label": "Magnetorquers + 4 single-gimbal CMG (pyramid)",
-      "mass_kg": 1.7160237822934232,
-      "power_W": 6.760237822934229,
-      "volume_L": 0.8064095129173693,
+      "mass_kg": 1.7207821087057789,
+      "power_W": 6.8078210870577855,
+      "volume_L": 0.8083128434823115,
       "items": [
         {
           "slot": "coils",
           "part": "SZ-ais_img_3u-MTQ",
           "n": 3.0,
-          "mass_kg": 0.016023782293423057,
-          "power_W": 0.16023782293423056,
-          "volume_L": 0.006409512917369223
+          "mass_kg": 0.020782108705778648,
+          "power_W": 0.20782108705778646,
+          "volume_L": 0.00831284348231146
         },
         {
           "slot": "cmg",
@@ -593,17 +759,17 @@
       "product": "SZ-ais_img_3u-mtq_cmg_rcs",
       "role": "benchmark",
       "label": "Magnetorquers + 4 CMG + N2O cold-gas RCS",
-      "mass_kg": 2.1815086895164186,
-      "power_W": 6.810237822934229,
-      "volume_L": 1.6467719721245055,
+      "mass_kg": 2.1869378289462333,
+      "power_W": 6.857821087057785,
+      "volume_L": 1.6504695920530892,
       "items": [
         {
           "slot": "coils",
           "part": "SZ-ais_img_3u-MTQ",
           "n": 3.0,
-          "mass_kg": 0.016023782293423057,
-          "power_W": 0.16023782293423056,
-          "volume_L": 0.006409512917369223
+          "mass_kg": 0.020782108705778648,
+          "power_W": 0.20782108705778646,
+          "volume_L": 0.00831284348231146
         },
         {
           "slot": "cmg",
@@ -617,9 +783,9 @@
           "slot": "rcs",
           "part": "SZ-ais_img_3u-RCS",
           "n": 1.0,
-          "mass_kg": 0.4654849072229962,
+          "mass_kg": 0.46615572024045493,
           "power_W": 0.05,
-          "volume_L": 0.8403624592071361
+          "volume_L": 0.8421567485707777
         },
         {
           "slot": "star_tracker",
@@ -675,17 +841,17 @@
       "product": "SZ-ais_img_3u-mtq_vscmg",
       "role": "benchmark",
       "label": "Magnetorquers + 4 variable-speed CMG (pyramid)",
-      "mass_kg": 1.7160237822934232,
-      "power_W": 6.760237822934229,
-      "volume_L": 0.8064095129173693,
+      "mass_kg": 1.7207821087057789,
+      "power_W": 6.8078210870577855,
+      "volume_L": 0.8083128434823115,
       "items": [
         {
           "slot": "coils",
           "part": "SZ-ais_img_3u-MTQ",
           "n": 3.0,
-          "mass_kg": 0.016023782293423057,
-          "power_W": 0.16023782293423056,
-          "volume_L": 0.006409512917369223
+          "mass_kg": 0.020782108705778648,
+          "power_W": 0.20782108705778646,
+          "volume_L": 0.00831284348231146
         },
         {
           "slot": "vscmg",
@@ -749,17 +915,17 @@
       "product": "SZ-ais_img_3u-mtq_vscmg_rcs",
       "role": "benchmark",
       "label": "Magnetorquers + 4 VSCMG + N2O cold-gas RCS",
-      "mass_kg": 2.1815086895164186,
-      "power_W": 6.810237822934229,
-      "volume_L": 1.6467719721245055,
+      "mass_kg": 2.1869378289462333,
+      "power_W": 6.857821087057785,
+      "volume_L": 1.6504695920530892,
       "items": [
         {
           "slot": "coils",
           "part": "SZ-ais_img_3u-MTQ",
           "n": 3.0,
-          "mass_kg": 0.016023782293423057,
-          "power_W": 0.16023782293423056,
-          "volume_L": 0.006409512917369223
+          "mass_kg": 0.020782108705778648,
+          "power_W": 0.20782108705778646,
+          "volume_L": 0.00831284348231146
         },
         {
           "slot": "vscmg",
@@ -773,9 +939,9 @@
           "slot": "rcs",
           "part": "SZ-ais_img_3u-RCS",
           "n": 1.0,
-          "mass_kg": 0.4654849072229962,
+          "mass_kg": 0.46615572024045493,
           "power_W": 0.05,
-          "volume_L": 0.8403624592071361
+          "volume_L": 0.8421567485707777
         },
         {
           "slot": "star_tracker",
@@ -838,14 +1004,14 @@
       "made": "in-house",
       "descriptor_version": 1,
       "nominal": {
-        "dipole_max_Am2": 0.08011891146711529,
+        "dipole_max_Am2": 0.10391054352889326,
         "dipole_per_amp_Am2_per_A": 4.5,
-        "current_max_A": 0.01780420254824784,
+        "current_max_A": 0.02309123189530961,
         "resistance_ohm": 30,
         "time_constant_s": 0.005,
-        "mass_kg": 0.005341260764474352,
-        "power_at_max_W": 0.05341260764474352,
-        "volume_L": 0.002136504305789741
+        "mass_kg": 0.006927369568592883,
+        "power_at_max_W": 0.06927369568592882,
+        "volume_L": 0.0027709478274371532
       },
       "dispersion": {
         "dipole_scale": {
@@ -860,9 +1026,9 @@
         }
       },
       "sizing": {
-        "m_dump_Am2": 0.07395848663170612,
-        "m_momentum_Am2": 0.02019359844466152,
-        "m_detumble_Am2": 0.08011891146711529,
+        "m_dump_Am2": 0.10391054352889326,
+        "m_momentum_Am2": 0.02021692116638005,
+        "m_detumble_Am2": 0.08002950197883453,
         "scale": 1.0,
         "law": "max(dumping, momentum, detumble) dipole; mass and power linear in the dipole (SYN-CT-1 anchor)"
       }
@@ -876,14 +1042,14 @@
       "made": "in-house",
       "descriptor_version": 1,
       "nominal": {
-        "dipole_max_Am2": 0.14791697326341224,
+        "dipole_max_Am2": 0.2078210870577865,
         "dipole_per_amp_Am2_per_A": 4.5,
-        "current_max_A": 0.0328704385029805,
+        "current_max_A": 0.04618246379061922,
         "resistance_ohm": 30,
         "time_constant_s": 0.005,
-        "mass_kg": 0.009861131550894148,
-        "power_at_max_W": 0.09861131550894149,
-        "volume_L": 0.0039444526203576595
+        "mass_kg": 0.013854739137185766,
+        "power_at_max_W": 0.13854739137185765,
+        "volume_L": 0.0055418956548743065
       },
       "dispersion": {
         "dipole_scale": {
@@ -898,9 +1064,9 @@
         }
       },
       "sizing": {
-        "m_dump_Am2": 0.07395848663170612,
-        "m_momentum_Am2": 0.02019359844466152,
-        "m_detumble_Am2": 0.08011891146711529,
+        "m_dump_Am2": 0.10391054352889326,
+        "m_momentum_Am2": 0.02021692116638005,
+        "m_detumble_Am2": 0.08002950197883453,
         "scale": 1.0,
         "law": "max(dumping, momentum, detumble) dipole; mass and power linear in the dipole (SYN-CT-1 anchor)"
       }
@@ -918,7 +1084,9 @@
       "verification": "verified",
       "assumptions": [
         "rotor mass 0.4 x unit mass, balance ISO 1940 G2.5 (imbalance model)",
-        "friction: Coulomb 1e-5 sqrt(h / 0.01 Nms) N m, viscous 1e-8 N m s (not on datasheets)"
+        "friction: Coulomb 1e-5 sqrt(h / 0.01 Nms) N m, viscous 1e-8 N m s (not on datasheets)",
+        "motor: no-load speed 1.25 x the top stated speed, the line through the stated torque there (k_t = V / w_nl, R = k_t V / stall torque, V = the lowest stated supply)",
+        "breakaway friction 1.5 x Coulomb, Stribeck speed 1 rad/s (Bialke 1998; not on datasheets)"
       ],
       "nominal": {
         "h_max_Nms": 0.00177,
@@ -934,7 +1102,12 @@
         "power_steady_W": 0.3,
         "power_peak_W": 0.85,
         "mass_kg": 0.06,
-        "volume_L": 0.020384
+        "volume_L": 0.020384,
+        "motor_kt_Nm_per_A": 0.006111549814728781,
+        "motor_resistance_ohm": 42.51512914593934,
+        "bus_voltage_V": 8.0,
+        "friction_static_Nm": 6.31070519038879e-6,
+        "stribeck_speed_rad_s": 1.0
       },
       "dispersion": {
         "torque_scale": {
@@ -955,12 +1128,12 @@
       },
       "sizing": {
         "node": "select_rotor",
-        "h_req_Nms": 0.001552912795951717,
+        "h_req_Nms": 0.001742780534224096,
         "tau_req_Nm": 0.000057572692339687917,
         "scale": 1.0,
         "units": 3,
         "need_per_unit": {
-          "h_Nms": 0.001552912795951717,
+          "h_Nms": 0.001742780534224096,
           "tau_Nm": 0.000057572692339687917
         },
         "gap": null,
@@ -1141,12 +1314,12 @@
       },
       "sizing": {
         "node": "select_rotor",
-        "h_req_Nms": 0.001552912795951717,
+        "h_req_Nms": 0.001742780534224096,
         "tau_req_Nm": 0.000057572692339687917,
         "scale": 1.0,
         "units": 4,
         "need_per_unit": {
-          "h_Nms": 0.0007764563979758585,
+          "h_Nms": 0.000871390267112048,
           "tau_Nm": 0.000028786346169843958
         },
         "gap": null,
@@ -1227,12 +1400,12 @@
       },
       "sizing": {
         "node": "select_rotor",
-        "h_req_Nms": 0.001552912795951717,
+        "h_req_Nms": 0.001742780534224096,
         "tau_req_Nm": 0.000057572692339687917,
         "scale": 1.0,
         "units": 4,
         "need_per_unit": {
-          "h_Nms": 0.0007764563979758585,
+          "h_Nms": 0.000871390267112048,
           "tau_Nm": 0.000028786346169843958
         },
         "gap": null,
@@ -1261,37 +1434,37 @@
       "descriptor_version": 1,
       "nominal": {
         "bore_m": 0.006,
-        "loops": 3.0,
-        "v_max_m_s": 0.2,
-        "h_max_Nms": 0.0017480324179398187,
-        "enclosed_area_m2": 0.024000000000000007,
-        "channel_length_m": 0.9600000000000002,
-        "reynolds_cruise": 1288.0000000000002,
-        "v_cruise_m_s": 0.08000000000000002,
+        "loops": 4.0,
+        "v_max_m_s": 0.1,
+        "h_max_Nms": 0.0011653549452932126,
+        "enclosed_area_m2": 0.03200000000000001,
+        "channel_length_m": 1.2800000000000002,
+        "reynolds_cruise": 644.0000000000001,
+        "v_cruise_m_s": 0.04000000000000001,
         "pump": {
           "type": "DC conduction pump, electromagnet C-core",
-          "B_gap_T": 0.30000000000000004,
+          "B_gap_T": 0.1,
           "active_length_m": 0.01,
           "gap_m": 0.004,
-          "ampere_turns": 1241.408556116784,
-          "electrode_current_design_A": 9.052123316668808,
-          "electrode_current_cruise_A": 1.6384000000000003,
-          "dp_design_Pa": 905.212331666881,
-          "dp_cruise_Pa": 163.84000000000006,
-          "coil_power_W": 1.4335749551211043,
-          "electrode_power_cruise_W": 0.001032462760672468,
-          "copper_kg": 0.14335749551211044,
-          "iron_kg": 0.010607566455063588,
-          "lambda_kg_per_W": 0.1,
-          "efficiency_cruise": 0.35894500332468204
+          "ampere_turns": 413.80285203892794,
+          "electrode_current_design_A": 8.87922339297277,
+          "electrode_current_cruise_A": 3.276800000000001,
+          "dp_design_Pa": 295.97411309909234,
+          "dp_cruise_Pa": 109.22666666666672,
+          "coil_power_W": 0.19892592644478035,
+          "electrode_power_cruise_W": 0.0018460578551917867,
+          "copper_kg": 0.059677777933434116,
+          "iron_kg": 0.003535855485021196,
+          "lambda_kg_per_W": 0.30000000000000004,
+          "efficiency_cruise": 0.0669168895980038
         },
-        "pump_torque_max_Nm": 0.001413716694115407,
-        "field_power_W": 1.4335749551211043,
-        "power_steady_W": 1.4346074178817767,
-        "power_peak_W": 1.4546815751533464,
-        "pump_efficiency": 0.35894500332468204,
-        "fluid_mass_kg": 0.17480324179398185,
-        "mass_kg": 0.3927683037611559,
+        "pump_torque_max_Nm": 0.00047123889803846896,
+        "field_power_W": 0.19892592644478035,
+        "power_steady_W": 0.20077198429997214,
+        "power_peak_W": 0.21236281007439306,
+        "pump_efficiency": 0.0669168895980038,
+        "fluid_mass_kg": 0.23307098905864249,
+        "mass_kg": 0.3722846224770978,
         "fluid": "galinstan",
         "fluid_density_kg_m3": 6440.0,
         "fluid_viscosity_Pa_s": 0.0024,
@@ -1310,13 +1483,13 @@
         },
         "pump_efficiency": {
           "dist": "uniform",
-          "lo": 0.2512615023272774,
-          "hi": 0.4666285043220867
+          "lo": 0.04684182271860266,
+          "hi": 0.08699195647740496
         },
         "flow_sensor_noise_m_s": {
           "dist": "normal",
           "mean": 0,
-          "sigma": 0.0005
+          "sigma": 0.000125
         },
         "axis_misalignment_rad": {
           "dist": "normal",
@@ -1325,82 +1498,85 @@
         }
       },
       "sizing": {
-        "h_req_Nms": 0.001552912795951717,
+        "h_req_Nms": 0.001742780534224096,
         "tau_req_Nm": 0.000057572692339687917,
-        "flow_sensor_sigma_m_s": 0.0005,
+        "h_ring_Nms": 0.000980314050501054,
+        "tau_ring_Nm": 0.00003238463944107445,
+        "flow_sensor_sigma_m_s": 0.000125,
         "face_m2": 0.010000000000000002,
-        "scale": 1.0,
-        "lambda_kg_per_W": 0.1,
+        "perimeter_m": 0.4,
+        "scale": 0.5625,
+        "lambda_kg_per_W": 0.30000000000000004,
         "pareto": [
           {
             "lambda": 0.003,
-            "mass_kg": 0.21916648019066431,
-            "power_W": 12.163685925116832,
-            "coil_W": 12.162521240419423,
-            "v_max": 0.30000000000000004,
+            "mass_kg": 0.13370556030700445,
+            "power_W": 8.278811777021476,
+            "coil_W": 8.276748862426754,
+            "v_max": 0.4,
             "bore_m": 0.006,
-            "B_T": 0.4,
-            "loops": 2.0
+            "B_T": 0.30000000000000004,
+            "loops": 1.0
           },
           {
             "lambda": 0.01,
-            "mass_kg": 0.24929578886454035,
-            "power_W": 6.662851924210842,
-            "coil_W": 6.661687239513433,
-            "v_max": 0.30000000000000004,
+            "mass_kg": 0.15420893426728777,
+            "power_W": 4.5354249693510775,
+            "coil_W": 4.533362054756355,
+            "v_max": 0.4,
             "bore_m": 0.006,
-            "B_T": 0.4,
-            "loops": 2.0
+            "B_T": 0.30000000000000004,
+            "loops": 1.0
           },
           {
             "lambda": 0.03,
-            "mass_kg": 0.327930942328474,
-            "power_W": 2.618370265408289,
+            "mass_kg": 0.1873954477991527,
+            "power_W": 2.619400717242339,
             "coil_W": 2.617337802647617,
-            "v_max": 0.2,
+            "v_max": 0.4,
             "bore_m": 0.006,
             "B_T": 0.30000000000000004,
-            "loops": 3.0
+            "loops": 1.0
           },
           {
             "lambda": 0.1,
-            "mass_kg": 0.3927683037611559,
-            "power_W": 1.4346074178817767,
-            "coil_W": 1.4335749551211043,
+            "mass_kg": 0.25960305827860425,
+            "power_W": 0.8407833729905786,
+            "coil_W": 0.839958527792406,
             "v_max": 0.2,
             "bore_m": 0.006,
-            "B_T": 0.30000000000000004,
-            "loops": 3.0
+            "B_T": 0.2,
+            "loops": 2.0
           },
           {
             "lambda": 0.3,
-            "mass_kg": 0.5550599949854933,
-            "power_W": 0.33578229386976755,
-            "coil_W": 0.33383242723332585,
+            "mass_kg": 0.3722846224770978,
+            "power_W": 0.20077198429997217,
+            "coil_W": 0.19892592644478038,
             "v_max": 0.1,
             "bore_m": 0.006,
-            "B_T": 0.15000000000000002,
-            "loops": 6.0
+            "B_T": 0.1,
+            "loops": 4.0
           },
           {
             "lambda": 1.0,
-            "mass_kg": 0.63775781763789,
-            "power_W": 0.18479741745883618,
-            "coil_W": 0.18284755082239448,
+            "mass_kg": 0.4215630617300834,
+            "power_W": 0.11080227504161144,
+            "coil_W": 0.10895621718641965,
             "v_max": 0.1,
             "bore_m": 0.006,
-            "B_T": 0.15000000000000002,
-            "loops": 6.0
+            "B_T": 0.1,
+            "loops": 4.0
           },
           {
             "lambda": 3.0,
-            "mass_kg": 0.7716115148794153,
-            "power_W": 0.10751694932441494,
-            "coil_W": 0.10556708268797324,
+            "mass_kg": 0.5013245485110519,
+            "power_W": 0.0647519591776545,
+            "coil_W": 0.06290590132246271,
             "v_max": 0.1,
             "bore_m": 0.006,
-            "B_T": 0.15000000000000002,
-            "loops": 6.0
+            "B_T": 0.1,
+            "loops": 4.0
           }
         ],
         "law": "galinstan loop + DC conduction pump with an electromagnet, designed together: least mass + lambda x steady power (empump.rs)"
@@ -1417,36 +1593,36 @@
       "nominal": {
         "bore_m": 0.006,
         "loops": 1.0,
-        "v_max_m_s": 0.2,
-        "h_max_Nms": 0.001981103406998461,
+        "v_max_m_s": 0.1,
+        "h_max_Nms": 0.0009905517034992305,
         "enclosed_area_m2": 0.027200000000000002,
         "channel_length_m": 0.7040000000000002,
-        "reynolds_cruise": 1288.0000000000002,
-        "v_cruise_m_s": 0.08000000000000002,
+        "reynolds_cruise": 644.0000000000001,
+        "v_cruise_m_s": 0.04000000000000001,
         "pump": {
           "type": "DC conduction pump, electromagnet C-core",
-          "B_gap_T": 0.2,
+          "B_gap_T": 0.05,
           "active_length_m": 0.01,
           "gap_m": 0.004,
-          "ampere_turns": 827.6057040778559,
-          "electrode_current_design_A": 9.904633549353902,
-          "electrode_current_cruise_A": 1.8022400000000005,
-          "dp_design_Pa": 660.3089032902601,
-          "dp_cruise_Pa": 120.14933333333336,
-          "coil_power_W": 0.839958527792406,
-          "electrode_power_cruise_W": 0.0009523868260389353,
-          "copper_kg": 0.08399585277924061,
-          "iron_kg": 0.007071710970042392,
-          "lambda_kg_per_W": 0.1,
-          "efficiency_cruise": 0.28535819887659986
+          "ampere_turns": 206.90142601946397,
+          "electrode_current_design_A": 9.9005479203177,
+          "electrode_current_cruise_A": 3.604480000000001,
+          "dp_design_Pa": 165.00913200529502,
+          "dp_cruise_Pa": 60.07466666666668,
+          "coil_power_W": 0.08406599073590222,
+          "electrode_power_cruise_W": 0.0020967024135321766,
+          "copper_kg": 0.025219797220770668,
+          "iron_kg": 0.001767927742510598,
+          "lambda_kg_per_W": 0.30000000000000004,
+          "efficiency_cruise": 0.03240462112771131
         },
-        "pump_torque_max_Nm": 0.0014565565939370854,
-        "field_power_W": 0.839958527792406,
-        "power_steady_W": 0.8409109146184449,
-        "power_peak_W": 0.8612035985679238,
-        "pump_efficiency": 0.28535819887659986,
+        "pump_torque_max_Nm": 0.00036413914848427135,
+        "field_power_W": 0.08406599073590222,
+        "power_steady_W": 0.0861626931494344,
+        "power_peak_W": 0.0998072747305236,
+        "pump_efficiency": 0.03240462112771131,
         "fluid_mass_kg": 0.12818904398225336,
-        "mass_kg": 0.25925660773153636,
+        "mass_kg": 0.19517676894553465,
         "fluid": "galinstan",
         "fluid_density_kg_m3": 6440.0,
         "fluid_viscosity_Pa_s": 0.0024,
@@ -1465,13 +1641,13 @@
         },
         "pump_efficiency": {
           "dist": "uniform",
-          "lo": 0.19975073921361988,
-          "hi": 0.3709656585395798
+          "lo": 0.022683234789397915,
+          "hi": 0.042126007466024705
         },
         "flow_sensor_noise_m_s": {
           "dist": "normal",
           "mean": 0,
-          "sigma": 0.0005
+          "sigma": 0.000125
         },
         "axis_misalignment_rad": {
           "dist": "normal",
@@ -1480,82 +1656,85 @@
         }
       },
       "sizing": {
-        "h_req_Nms": 0.001552912795951717,
+        "h_req_Nms": 0.001742780534224096,
         "tau_req_Nm": 0.000057572692339687917,
-        "flow_sensor_sigma_m_s": 0.0005,
+        "h_ring_Nms": 0.000980314050501054,
+        "tau_ring_Nm": 0.00003238463944107445,
+        "flow_sensor_sigma_m_s": 0.000125,
         "face_m2": 0.034,
-        "scale": 1.0,
-        "lambda_kg_per_W": 0.1,
+        "perimeter_m": 0.8800000000000001,
+        "scale": 0.5625,
+        "lambda_kg_per_W": 0.30000000000000004,
         "pareto": [
           {
             "lambda": 0.003,
-            "mass_kg": 0.15455778498182415,
-            "power_W": 10.492590535133617,
-            "coil_W": 10.491171220741633,
-            "v_max": 0.30000000000000004,
+            "mass_kg": 0.13269330751257996,
+            "power_W": 4.830393342085838,
+            "coil_W": 4.829372668709378,
+            "v_max": 0.2,
             "bore_m": 0.0045000000000000005,
-            "B_T": 0.45,
+            "B_T": 0.25,
             "loops": 1.0
           },
           {
             "lambda": 0.01,
-            "mass_kg": 0.18807268698339152,
-            "power_W": 3.247990549785739,
-            "coil_W": 3.247156294504803,
+            "mass_kg": 0.14465675299896233,
+            "power_W": 2.6461770226275094,
+            "coil_W": 2.6451563492510495,
             "v_max": 0.2,
-            "bore_m": 0.0055,
+            "bore_m": 0.0045000000000000005,
             "B_T": 0.25,
             "loops": 1.0
           },
           {
             "lambda": 0.03,
-            "mass_kg": 0.22126717825636882,
-            "power_W": 1.5344998302951418,
-            "coil_W": 1.5335474434691028,
-            "v_max": 0.2,
+            "mass_kg": 0.17793217185928595,
+            "power_W": 0.2679367068975977,
+            "coil_W": 0.26584000448406553,
+            "v_max": 0.1,
             "bore_m": 0.006,
-            "B_T": 0.2,
+            "B_T": 0.05,
             "loops": 1.0
           },
           {
             "lambda": 0.1,
-            "mass_kg": 0.25925660773153636,
-            "power_W": 0.8409109146184449,
-            "coil_W": 0.839958527792406,
-            "v_max": 0.2,
+            "mass_kg": 0.1845176284390837,
+            "power_W": 0.14770326955672938,
+            "coil_W": 0.1456065671431972,
+            "v_max": 0.1,
             "bore_m": 0.006,
-            "B_T": 0.2,
+            "B_T": 0.05,
             "loops": 1.0
           },
           {
             "lambda": 0.3,
-            "mass_kg": 0.37159172138296204,
-            "power_W": 0.20113681851768747,
-            "coil_W": 0.19892592644478038,
+            "mass_kg": 0.19517676894553465,
+            "power_W": 0.0861626931494344,
+            "coil_W": 0.08406599073590222,
             "v_max": 0.1,
             "bore_m": 0.006,
-            "B_T": 0.1,
-            "loops": 2.0
+            "B_T": 0.05,
+            "loops": 1.0
           },
           {
             "lambda": 1.0,
-            "mass_kg": 0.4208701606359476,
-            "power_W": 0.11116710925932673,
-            "coil_W": 0.10895621718641965,
+            "mass_kg": 0.21600181116983797,
+            "power_W": 0.04814154185860615,
+            "coil_W": 0.04604483944507397,
             "v_max": 0.1,
             "bore_m": 0.006,
-            "B_T": 0.1,
-            "loops": 2.0
+            "B_T": 0.05,
+            "loops": 1.0
           },
           {
             "lambda": 3.0,
-            "mass_kg": 0.5006316474169161,
-            "power_W": 0.06511679339536978,
-            "coil_W": 0.06290590132246271,
+            "mass_kg": 0.24970897306998363,
+            "power_W": 0.028680702861938728,
+            "coil_W": 0.02658400044840655,
             "v_max": 0.1,
             "bore_m": 0.006,
-            "B_T": 0.1,
-            "loops": 2.0
+            "B_T": 0.05,
+            "loops": 1.0
           }
         ],
         "law": "galinstan loop + DC conduction pump with an electromagnet, designed together: least mass + lambda x steady power (empump.rs)"
@@ -1572,36 +1751,36 @@
       "nominal": {
         "bore_m": 0.006,
         "loops": 1.0,
-        "v_max_m_s": 0.2,
-        "h_max_Nms": 0.001981103406998461,
+        "v_max_m_s": 0.1,
+        "h_max_Nms": 0.0009905517034992305,
         "enclosed_area_m2": 0.027200000000000002,
         "channel_length_m": 0.7040000000000002,
-        "reynolds_cruise": 1288.0000000000002,
-        "v_cruise_m_s": 0.08000000000000002,
+        "reynolds_cruise": 644.0000000000001,
+        "v_cruise_m_s": 0.04000000000000001,
         "pump": {
           "type": "DC conduction pump, electromagnet C-core",
-          "B_gap_T": 0.2,
+          "B_gap_T": 0.05,
           "active_length_m": 0.01,
           "gap_m": 0.004,
-          "ampere_turns": 827.6057040778559,
-          "electrode_current_design_A": 9.904633549353902,
-          "electrode_current_cruise_A": 1.8022400000000005,
-          "dp_design_Pa": 660.3089032902601,
-          "dp_cruise_Pa": 120.14933333333336,
-          "coil_power_W": 0.839958527792406,
-          "electrode_power_cruise_W": 0.0009523868260389353,
-          "copper_kg": 0.08399585277924061,
-          "iron_kg": 0.007071710970042392,
-          "lambda_kg_per_W": 0.1,
-          "efficiency_cruise": 0.28535819887659986
+          "ampere_turns": 206.90142601946397,
+          "electrode_current_design_A": 9.9005479203177,
+          "electrode_current_cruise_A": 3.604480000000001,
+          "dp_design_Pa": 165.00913200529502,
+          "dp_cruise_Pa": 60.07466666666668,
+          "coil_power_W": 0.08406599073590222,
+          "electrode_power_cruise_W": 0.0020967024135321766,
+          "copper_kg": 0.025219797220770668,
+          "iron_kg": 0.001767927742510598,
+          "lambda_kg_per_W": 0.30000000000000004,
+          "efficiency_cruise": 0.03240462112771131
         },
-        "pump_torque_max_Nm": 0.0014565565939370854,
-        "field_power_W": 0.839958527792406,
-        "power_steady_W": 0.8409109146184449,
-        "power_peak_W": 0.8612035985679238,
-        "pump_efficiency": 0.28535819887659986,
+        "pump_torque_max_Nm": 0.00036413914848427135,
+        "field_power_W": 0.08406599073590222,
+        "power_steady_W": 0.0861626931494344,
+        "power_peak_W": 0.0998072747305236,
+        "pump_efficiency": 0.03240462112771131,
         "fluid_mass_kg": 0.12818904398225336,
-        "mass_kg": 0.25925660773153636,
+        "mass_kg": 0.19517676894553465,
         "fluid": "galinstan",
         "fluid_density_kg_m3": 6440.0,
         "fluid_viscosity_Pa_s": 0.0024,
@@ -1620,13 +1799,13 @@
         },
         "pump_efficiency": {
           "dist": "uniform",
-          "lo": 0.19975073921361988,
-          "hi": 0.3709656585395798
+          "lo": 0.022683234789397915,
+          "hi": 0.042126007466024705
         },
         "flow_sensor_noise_m_s": {
           "dist": "normal",
           "mean": 0,
-          "sigma": 0.0005
+          "sigma": 0.000125
         },
         "axis_misalignment_rad": {
           "dist": "normal",
@@ -1635,82 +1814,85 @@
         }
       },
       "sizing": {
-        "h_req_Nms": 0.001552912795951717,
+        "h_req_Nms": 0.001742780534224096,
         "tau_req_Nm": 0.000057572692339687917,
-        "flow_sensor_sigma_m_s": 0.0005,
+        "h_ring_Nms": 0.000980314050501054,
+        "tau_ring_Nm": 0.00003238463944107445,
+        "flow_sensor_sigma_m_s": 0.000125,
         "face_m2": 0.034,
-        "scale": 1.0,
-        "lambda_kg_per_W": 0.1,
+        "perimeter_m": 0.8800000000000001,
+        "scale": 0.5625,
+        "lambda_kg_per_W": 0.30000000000000004,
         "pareto": [
           {
             "lambda": 0.003,
-            "mass_kg": 0.15455778498182415,
-            "power_W": 10.492590535133617,
-            "coil_W": 10.491171220741633,
-            "v_max": 0.30000000000000004,
+            "mass_kg": 0.13269330751257996,
+            "power_W": 4.830393342085838,
+            "coil_W": 4.829372668709378,
+            "v_max": 0.2,
             "bore_m": 0.0045000000000000005,
-            "B_T": 0.45,
+            "B_T": 0.25,
             "loops": 1.0
           },
           {
             "lambda": 0.01,
-            "mass_kg": 0.18807268698339152,
-            "power_W": 3.247990549785739,
-            "coil_W": 3.247156294504803,
+            "mass_kg": 0.14465675299896233,
+            "power_W": 2.6461770226275094,
+            "coil_W": 2.6451563492510495,
             "v_max": 0.2,
-            "bore_m": 0.0055,
+            "bore_m": 0.0045000000000000005,
             "B_T": 0.25,
             "loops": 1.0
           },
           {
             "lambda": 0.03,
-            "mass_kg": 0.22126717825636882,
-            "power_W": 1.5344998302951418,
-            "coil_W": 1.5335474434691028,
-            "v_max": 0.2,
+            "mass_kg": 0.17793217185928595,
+            "power_W": 0.2679367068975977,
+            "coil_W": 0.26584000448406553,
+            "v_max": 0.1,
             "bore_m": 0.006,
-            "B_T": 0.2,
+            "B_T": 0.05,
             "loops": 1.0
           },
           {
             "lambda": 0.1,
-            "mass_kg": 0.25925660773153636,
-            "power_W": 0.8409109146184449,
-            "coil_W": 0.839958527792406,
-            "v_max": 0.2,
+            "mass_kg": 0.1845176284390837,
+            "power_W": 0.14770326955672938,
+            "coil_W": 0.1456065671431972,
+            "v_max": 0.1,
             "bore_m": 0.006,
-            "B_T": 0.2,
+            "B_T": 0.05,
             "loops": 1.0
           },
           {
             "lambda": 0.3,
-            "mass_kg": 0.37159172138296204,
-            "power_W": 0.20113681851768747,
-            "coil_W": 0.19892592644478038,
+            "mass_kg": 0.19517676894553465,
+            "power_W": 0.0861626931494344,
+            "coil_W": 0.08406599073590222,
             "v_max": 0.1,
             "bore_m": 0.006,
-            "B_T": 0.1,
-            "loops": 2.0
+            "B_T": 0.05,
+            "loops": 1.0
           },
           {
             "lambda": 1.0,
-            "mass_kg": 0.4208701606359476,
-            "power_W": 0.11116710925932673,
-            "coil_W": 0.10895621718641965,
+            "mass_kg": 0.21600181116983797,
+            "power_W": 0.04814154185860615,
+            "coil_W": 0.04604483944507397,
             "v_max": 0.1,
             "bore_m": 0.006,
-            "B_T": 0.1,
-            "loops": 2.0
+            "B_T": 0.05,
+            "loops": 1.0
           },
           {
             "lambda": 3.0,
-            "mass_kg": 0.5006316474169161,
-            "power_W": 0.06511679339536978,
-            "coil_W": 0.06290590132246271,
+            "mass_kg": 0.24970897306998363,
+            "power_W": 0.028680702861938728,
+            "coil_W": 0.02658400044840655,
             "v_max": 0.1,
             "bore_m": 0.006,
-            "B_T": 0.1,
-            "loops": 2.0
+            "B_T": 0.05,
+            "loops": 1.0
           }
         ],
         "law": "galinstan loop + DC conduction pump with an electromagnet, designed together: least mass + lambda x steady power (empump.rs)"
@@ -1733,17 +1915,17 @@
         "valve_res_s": 0.001,
         "arm_long_m": 0.15300000000000002,
         "arm_short_m": 0.045000000000000005,
-        "propellant_kg": 0.24664435828815115,
-        "tank_volume_L": 0.4138328159197167,
-        "tank_radius_m": 0.04622874522179969,
-        "tank_wall_m": 0.0006472024331051956,
+        "propellant_kg": 0.24720429296561877,
+        "tank_volume_L": 0.4147723036335885,
+        "tank_radius_m": 0.04626370178057251,
+        "tank_wall_m": 0.0006476918249280152,
         "tank_pressure_bar": 50,
         "meop_bar": 70,
         "valve_power_W": 1.0,
         "power_steady_W": 0.05,
-        "dry_mass_kg": 0.218840548934845,
-        "mass_kg": 0.4654849072229962,
-        "volume_L": 0.8403624592071361
+        "dry_mass_kg": 0.21895142727483613,
+        "mass_kg": 0.46615572024045493,
+        "volume_L": 0.8421567485707777
       },
       "dispersion": {
         "thrust_scale": {
@@ -1765,13 +1947,171 @@
       "sizing": {
         "F_req_N": 0.00018814605339767288,
         "impulse_detumble_Ns": 0.1724795966676749,
-        "impulse_dumping_Ns": 120.7652652136572,
+        "impulse_dumping_Ns": 121.03981938389661,
         "impulse_slews_Ns": 188.9945180486048,
         "propellant_if_slews_on_rcs_kg": 0.38544154843622397,
         "life_yr": 3.0,
         "isp_budget_s": 60.0,
         "scale": 1.0,
         "law": "N2O self-pressurised, Isp 60 s budget (60-80 s), Al-7075 sphere at 70 bar MEOP"
+      }
+    },
+    "fmr_s": {
+      "part_number": "SZ-ais_img_3u-FMR-S",
+      "kind": "magneto_fluidic_panel",
+      "name": "Sized fluid momentum loop with electromagnetic pump, spare, skewed on the body diagonal (our product) — ais_img_3u",
+      "status": "sized",
+      "source": "adcs-design (empump)",
+      "made": "in-house",
+      "descriptor_version": 1,
+      "nominal": {
+        "bore_m": 0.006,
+        "loops": 4.0,
+        "v_max_m_s": 0.1,
+        "h_max_Nms": 0.0020184539740994933,
+        "enclosed_area_m2": 0.055425625842204077,
+        "channel_length_m": 1.8101933598375617,
+        "reynolds_cruise": 644.0000000000001,
+        "v_cruise_m_s": 0.04000000000000001,
+        "pump": {
+          "type": "DC conduction pump, electromagnet C-core",
+          "B_gap_T": 0.15000000000000002,
+          "active_length_m": 0.01,
+          "gap_m": 0.004,
+          "ampere_turns": 620.704278058392,
+          "electrode_current_design_A": 8.371412097121691,
+          "electrode_current_cruise_A": 3.0893966674561057,
+          "dp_design_Pa": 418.5706048560846,
+          "dp_cruise_Pa": 154.4698333728053,
+          "coil_power_W": 0.33383242723332585,
+          "electrode_power_cruise_W": 0.00175000694395584,
+          "copper_kg": 0.10014972816999776,
+          "iron_kg": 0.005303783227531794,
+          "lambda_kg_per_W": 0.30000000000000004,
+          "efficiency_cruise": 0.0998288985906427
+        },
+        "pump_torque_max_Nm": 0.0008657211353592585,
+        "field_power_W": 0.33383242723332585,
+        "power_steady_W": 0.3355824341772817,
+        "power_peak_W": 0.3465151749257718,
+        "pump_efficiency": 0.0998288985906427,
+        "fluid_mass_kg": 0.3296121537224434,
+        "mass_kg": 0.511065665119973,
+        "fluid": "galinstan",
+        "fluid_density_kg_m3": 6440.0,
+        "fluid_viscosity_Pa_s": 0.0024,
+        "pump_type": "dc-conduction, electromagnet",
+        "melt_point_K": 254,
+        "dipole_max_Am2": 0,
+        "dipole_per_amp_Am2_per_A": 0,
+        "current_max_A": 0,
+        "volume_L": 0.12392304845413264
+      },
+      "dispersion": {
+        "friction_scale": {
+          "dist": "uniform",
+          "lo": 0.8,
+          "hi": 1.2
+        },
+        "pump_efficiency": {
+          "dist": "uniform",
+          "lo": 0.06988022901344988,
+          "hi": 0.1297775681678355
+        },
+        "flow_sensor_noise_m_s": {
+          "dist": "normal",
+          "mean": 0,
+          "sigma": 0.000125
+        },
+        "axis_misalignment_rad": {
+          "dist": "normal",
+          "mean": 0,
+          "sigma": 0.005
+        }
+      },
+      "sizing": {
+        "h_req_Nms": 0.001742780534224096,
+        "tau_req_Nm": 0.000057572692339687917,
+        "h_ring_Nms": 0.0016979537428414677,
+        "tau_ring_Nm": 0.00005609184089673992,
+        "flow_sensor_sigma_m_s": 0.000125,
+        "face_m2": 0.017320508075688773,
+        "perimeter_m": 0.565685424949238,
+        "scale": 0.5625,
+        "lambda_kg_per_W": 0.30000000000000004,
+        "pareto": [
+          {
+            "lambda": 0.003,
+            "mass_kg": 0.18108485870193675,
+            "power_W": 14.259436107545252,
+            "coil_W": 14.256823529576835,
+            "v_max": 0.4,
+            "bore_m": 0.006,
+            "B_T": 0.45,
+            "loops": 1.0
+          },
+          {
+            "lambda": 0.01,
+            "mass_kg": 0.2164022265684028,
+            "power_W": 7.81139642348807,
+            "coil_W": 7.8087838455196525,
+            "v_max": 0.4,
+            "bore_m": 0.006,
+            "B_T": 0.45,
+            "loops": 1.0
+          },
+          {
+            "lambda": 0.03,
+            "mass_kg": 0.30647261611878085,
+            "power_W": 2.5215536164308827,
+            "coil_W": 2.518535908810908,
+            "v_max": 0.2,
+            "bore_m": 0.004,
+            "B_T": 0.4,
+            "loops": 4.0
+          },
+          {
+            "lambda": 0.1,
+            "mass_kg": 0.3688624317687044,
+            "power_W": 1.3824766367624832,
+            "coil_W": 1.3794589291425083,
+            "v_max": 0.2,
+            "bore_m": 0.004,
+            "B_T": 0.4,
+            "loops": 4.0
+          },
+          {
+            "lambda": 0.3,
+            "mass_kg": 0.511065665119973,
+            "power_W": 0.3355824341772817,
+            "coil_W": 0.33383242723332585,
+            "v_max": 0.1,
+            "bore_m": 0.006,
+            "B_T": 0.15000000000000002,
+            "loops": 4.0
+          },
+          {
+            "lambda": 1.0,
+            "mass_kg": 0.5937634877723696,
+            "power_W": 0.1845975577663503,
+            "coil_W": 0.18284755082239448,
+            "v_max": 0.1,
+            "bore_m": 0.006,
+            "B_T": 0.15000000000000002,
+            "loops": 4.0
+          },
+          {
+            "lambda": 3.0,
+            "mass_kg": 0.7276171850138949,
+            "power_W": 0.10731708963192908,
+            "coil_W": 0.10556708268797324,
+            "v_max": 0.1,
+            "bore_m": 0.006,
+            "B_T": 0.15000000000000002,
+            "loops": 4.0
+          }
+        ],
+        "law": "galinstan loop + DC conduction pump with an electromagnet, designed together: least mass + lambda x steady power (empump.rs)"
       }
     }
   }

@@ -5,7 +5,7 @@
 
 ### 15.1 Shape
 
-VLEO's daemon stays what it is: one local process on loopback, the engineer's workbench. The portal is a separate service for everyone else, and it never computes a number itself.
+The daemon is one local process on loopback, the engineer's workbench. The portal is a separate service for everyone else, and it never computes a number itself.
 
 ```
 browser --TLS--> reverse proxy --> adcs-portal (axum + tokio)  --SQL--> PostgreSQL (operational data)
@@ -18,7 +18,7 @@ browser --TLS--> reverse proxy --> adcs-portal (axum + tokio)  --SQL--> PostgreS
 facility network --outbound only--> adcs-portal /internal/rig/stream   (live OILS/HILS witness)
 ```
 
-- **No database on the physics path.** This is VLEO's rule, kept: workers read verified bundles from the local store and write run artefacts. PostgreSQL holds identity, entitlement, projects, the queue, the ledger index, quotes and orders: the "operational data" of VLEO's DELIVERY_PLAN.
+- **No database on the physics path.** The rule: workers read verified bundles from the local store and write run artefacts. PostgreSQL holds identity, entitlement, projects, the queue, the ledger index, quotes and orders: the "operational data" of `docs/DELIVERY_PLAN.md`.
 - **The queue is a table.** Workers claim jobs with `SELECT … FOR UPDATE SKIP LOCKED`, so there is no second broker. A job runs in its own subprocess (§9.6: one flight software instance per process), with CPU, memory and time limits.
 - **The rig pushes; the portal never reaches in.** The facility network makes outbound, authenticated connections to the portal to stream witness data. Nothing on the internet can address a rig host.
 
@@ -113,7 +113,7 @@ No route changes a node, a scenario, a product file or any other part of the sof
 ### 15.7 Quote to purchase order
 
 - **Price** comes from `price_table` (sales), never from the tree. The tree's layer-1 cost rows are the company's view of cost; the price table is what it charges.
-- **A quote's identity** is `SHA-256` over the canonical JSON of: the case hash, the product id and file hash, the tuned-set hash, the kernel and graph hashes, the catalogue bundle version and hash, the price-table version, the currency and the validity date. A quote is a commercial record, so its hash is cryptographic. FNV stays the engine's cache key, as in VLEO.
+- **A quote's identity** is `SHA-256` over the canonical JSON of: the case hash, the product id and file hash, the tuned-set hash, the kernel and graph hashes, the catalogue bundle version and hash, the price-table version, the currency and the validity date. A quote is a commercial record, so its hash is cryptographic. FNV stays the engine's cache key.
 - **Issuing a quote** is H-quote: a person in sales confirms the price and the export-classification check before the client sees it.
 - **The purchase order** is a document the client uploads against a quote id and hash. Sales accepts it, and the order starts. A PO against a voided or expired quote is refused by name.
 

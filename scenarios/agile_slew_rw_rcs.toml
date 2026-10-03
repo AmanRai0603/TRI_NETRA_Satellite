@@ -24,7 +24,7 @@ channel = "ape_los"
 from_s = 215.0
 threshold_deg = 0.01
 hold_s = 30.0
-# no requirement: the case states settling for the 30 deg reference slew
+diagnostic = "a 90 deg agile slew: the case states settling (req.settle) for the 30 deg reference slew, judged in slew_*"
 [[metrics]]
 id = "ape_los_on_target_p9973"
 kind = "ape_los"
@@ -35,3 +35,4 @@ requirement = "req.ape"
 id = "wheel_momentum_peak"
 kind = "wheel_momentum_peak"
 window = "all"
+diagnostic = "momentum used, for sizing: the case does not state the margin req.hsat"

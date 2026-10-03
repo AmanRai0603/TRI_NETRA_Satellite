@@ -7,6 +7,7 @@
 //! (tools/pipeline.py): per-part authority scales, the margins, the fluid loop's electromagnetic pump
 //! (mass/power rate lambda, flow-sensor grade), star-tracker heads, gyro grade.
 //! Owner: Agastya. Copyright (c) 2026 Agastya. All rights reserved.
+use adcs_sim::Error;
 use adcs_fsw::ctl::{boresight_offset, guidance, Guid};
 use adcs_sim::config::Config;
 use adcs_sim::json;
@@ -38,24 +39,55 @@ pub struct Knobs {
     pub fmr_flow_sigma: f64,
     /// gyro grade: noise scale on the precision gyro (1 = TRN-GYRO-P1; 0.3, 0.1 = FOG class)
     pub gyro_grade: f64,
+    /// a fourth fluid ring, skewed, that can stand in for any one of the three (single-fault tolerance)
+    pub fmr_spare: bool,
 }
 impl Default for Knobs {
-    fn default() -> Self { Knobs { scale: BTreeMap::new(), k_h: None, k_tau: 1.5, fmr_lambda: 0.1, star_tracker: false, st_heads: 2, fmr_flow_sigma: 0.002, gyro_grade: 1.0 } }
+    fn default() -> Self { Knobs { scale: BTreeMap::new(), k_h: None, k_tau: 1.5, fmr_lambda: 0.1, star_tracker: false, st_heads: 2, fmr_flow_sigma: 0.002, gyro_grade: 1.0, fmr_spare: false } }
 }
 impl Knobs {
-    pub fn from_json(v: &Value) -> Knobs {
+    /// The knobs a file states; a key left out keeps its default. A key the sizing does not
+    /// read, or a value of the wrong kind, is refused by name.
+    pub fn from_json(v: &Value) -> Result<Knobs, Error> {
+        const KEYS: [&str; 9] = ["scale", "k_h", "k_tau", "fmr_lambda", "st_heads", "fmr_flow_sigma", "gyro_grade", "star_tracker", "fmr_spare"];
+        let o = v.as_object().ok_or_else(|| Error::refused("knobs: must be a JSON object"))?;
+        if let Some(k) = o.keys().find(|k| !KEYS.contains(&k.as_str())) {
+            return Err(Error::refused(format!("knobs: {k} is not a knob the sizing reads ({})", KEYS.join(", "))));
+        }
+        let num = |k: &str, lo: f64, hi: f64, d: f64| -> Result<f64, Error> {
+            match o.get(k) {
+                None | Some(Value::Null) => Ok(d),
+                Some(x) => x.as_f64().filter(|x| x.is_finite() && *x >= lo && *x <= hi)
+                    .ok_or_else(|| Error::refused(format!("knobs: {k} = {x} is not a number from {lo} to {hi}"))),
+            }
+        };
         let mut k = Knobs::default();
-        if let Some(o) = v.get("scale").and_then(|x| x.as_object()) { for (a, b) in o { if let Some(x) = b.as_f64() { k.scale.insert(a.clone(), x); } } }
-        k.k_h = v.get("k_h").and_then(|x| x.as_f64());
-        k.k_tau = json::f(v, "k_tau", 1.5);
-        k.fmr_lambda = json::f(v, "fmr_lambda", 0.1);
-        k.st_heads = json::f(v, "st_heads", 2.0) as u8;
-        k.fmr_flow_sigma = json::f(v, "fmr_flow_sigma", 0.002);
-        k.gyro_grade = json::f(v, "gyro_grade", 1.0);
-        k.star_tracker = json::b(v, "star_tracker", false);
-        k
+        if let Some(s) = o.get("scale") {
+            let m = s.as_object().ok_or_else(|| Error::refused("knobs: scale must be an object of part kind -> factor"))?;
+            for (a, b) in m {
+                let x = b.as_f64().filter(|x| x.is_finite() && *x > 0.0).ok_or_else(|| Error::refused(format!("knobs: scale.{a} = {b} is not a positive factor")))?;
+                k.scale.insert(a.clone(), x);
+            }
+        }
+        k.k_h = match o.get("k_h") { None | Some(Value::Null) => None, Some(_) => Some(num("k_h", 0.0, 100.0, 0.0)?) };
+        k.k_tau = num("k_tau", 0.0, 100.0, 1.5)?;
+        k.fmr_lambda = num("fmr_lambda", 0.0, 10.0, 0.1)?;
+        k.st_heads = num("st_heads", 1.0, 3.0, 2.0)? as u8;
+        k.fmr_flow_sigma = num("fmr_flow_sigma", 0.0, 1.0, 0.002)?;
+        k.gyro_grade = num("gyro_grade", 0.0, 100.0, 1.0)?;
+        k.star_tracker = match o.get("star_tracker") {
+            None | Some(Value::Null) => false,
+            Some(Value::Bool(b)) => *b,
+            Some(x) => return Err(Error::refused(format!("knobs: star_tracker = {x} is not true or false"))),
+        };
+        k.fmr_spare = match o.get("fmr_spare") {
+            None | Some(Value::Null) => false,
+            Some(Value::Bool(b)) => *b,
+            Some(x) => return Err(Error::refused(format!("knobs: fmr_spare = {x} is not true or false"))),
+        };
+        Ok(k)
     }
-    pub fn json(&self) -> Value { json!({"scale": self.scale, "k_h": self.k_h, "k_tau": self.k_tau, "fmr_lambda": self.fmr_lambda, "star_tracker": self.star_tracker, "st_heads": self.st_heads, "fmr_flow_sigma": self.fmr_flow_sigma, "gyro_grade": self.gyro_grade}) }
+    pub fn json(&self) -> Value { json!({"scale": self.scale, "k_h": self.k_h, "k_tau": self.k_tau, "fmr_lambda": self.fmr_lambda, "star_tracker": self.star_tracker, "st_heads": self.st_heads, "fmr_flow_sigma": self.fmr_flow_sigma, "gyro_grade": self.gyro_grade, "fmr_spare": self.fmr_spare}) }
     fn s(&self, p: &str) -> f64 { self.scale.get(p).copied().unwrap_or(1.0) }
 }
 
@@ -70,21 +102,34 @@ pub struct Demand {
     pub slew_deg: f64, pub slew_s: f64, pub w_slew: f64, pub a_slew: f64, pub h_slew: f64, pub tau_slew: f64,
     pub life_yr: f64, pub slews_per_day: f64, pub k_h: f64, pub k_tau: f64, pub h_req: f64, pub tau_req: f64,
     pub req: BTreeMap<String, f64>, pub notes: Vec<String>, pub fine: bool,
+    /// the body of the case's class (catalogue/classes.toml): the faces and lever arms the parts are sized on
+    pub class: String, pub box_m: [f64; 3],
+    /// every season and solar activity the survey flew (the worst of them is sized for)
+    pub sweep: Vec<Value>,
 }
 
 const ATT: [&str; 4] = ["X_nadir", "Y_nadir", "Z_nadir", "sun"];
 
-pub fn demand(root: &Path, case_file: &Path, k: &Knobs) -> Result<Demand, String> {
+/// The environment the survey sweeps over the mission life: four seasons (the Sun's direction
+/// against the orbit plane, so the beta angle and the eclipses) and the long-term low and high
+/// solar activity (the density, so the aerodynamic torque): ECSS-E-ST-10-04C long-term F10.7.
+pub const SURVEY_EPOCH_DAYS: [f64; 4] = [0.0, 91.3, 182.6, 273.9];
+pub const SURVEY_F107: [f64; 2] = [65.0, 250.0];
+
+/// One orbit of disturbance at the four attitudes, for one season and one solar activity.
+struct Survey { tau_peak: [f64; 4], tau_axis_peak: [[f64; 4]; 3], h_cyclic: [f64; 4], h_secular_orbit: [f64; 4], b_min: f64, b_mean: f64, eclipse_frac: f64 }
+
+fn survey(root: &Path, case_file: &Path, sets: &[(String, String)]) -> Result<(Config, Survey), Error> {
     // the survey scenario of asils.sizing.demand: nadir, 10 s, one orbit
     let s = json!({"schema": "adcs-scenario/1", "id": "sizing_survey", "product": "TRN-P-3U-AIS", "label": "sizing survey",
         "time": {"duration_s": 5740, "dt_s": 10, "record_dt_s": 10}, "initial": {"attitude": {"kind": "nadir"}, "rate": {"kind": "lvlh"}},
         "fsw": {"start_mode": "detumble", "guidance": {"kind": "nadir"}}, "metrics": []});
-    let tmp = std::env::temp_dir().join(format!("adcs-survey-{}.json", std::process::id()));
-    std::fs::write(&tmp, s.to_string()).map_err(|e| e.to_string())?;
-    let c = Config::build(root, &tmp.display().to_string(), case_file, 1, &[]);
+    static N: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
+    let tmp = std::env::temp_dir().join(format!("adcs-survey-{}-{}.json", std::process::id(), N.fetch_add(1, std::sync::atomic::Ordering::Relaxed)));
+    std::fs::write(&tmp, s.to_string()).map_err(|e| Error::io(&tmp, e))?;
+    let c = Config::build(root, &tmp.display().to_string(), case_file, 1, sets);
     let _ = std::fs::remove_file(&tmp);
     let c = c?;
-    let v = |key: &str| c.case.get(key);
     let (mut orb, _) = Truth::new(&c)?;
     let gh = field::gh(time::decyear(c.jd0));
     let facets = Facets::boxed(&c.box_m, &c.cm_offset_m, c.sigma_n, c.sigma_t, c.vb_ratio, c.refl, c.spec_frac);
@@ -107,26 +152,61 @@ pub fn demand(root: &Path, case_file: &Path, k: &Knobs) -> Result<Demand, String
             tau[kk][a] = add(&add(&p[0], &p[1]), &add(&p[2], &p[3]));
         }
     }
-    let mut d = Demand { case: c.case.id.clone(), period_s: t_orb, ..Default::default() };
+    let mut sv = Survey { tau_peak: [0.0; 4], tau_axis_peak: [[0.0; 4]; 3], h_cyclic: [0.0; 4], h_secular_orbit: [0.0; 4],
+        b_min: bm.iter().cloned().fold(f64::MAX, f64::min), b_mean: bm.iter().sum::<f64>()/n as f64,
+        eclipse_frac: nu.iter().filter(|x| **x < 0.5).count() as f64/n as f64 };
     for a in 0..4 {
         let mut h = [0.0; 3];
         let mut hs = Vec::with_capacity(n);
         for kk in 0..n { for i in 0..3 { h[i] += tau[kk][a][i]*dt; } hs.push(h); }
         let hend = hs[n - 1];
-        d.tau_peak[a] = tau.iter().map(|x| norm(&x[a])).fold(0.0, f64::max);
-        for i in 0..3 { d.tau_axis_peak[i][a] = tau.iter().map(|x| x[a][i].abs()).fold(0.0, f64::max); }
-        d.h_cyclic[a] = (0..n).map(|kk| { let f = kk as f64*dt/t_orb; norm(&sub(&hs[kk], &scale(&hend, f))) }).fold(0.0, f64::max);
-        d.h_secular_orbit[a] = norm(&hend);
+        sv.tau_peak[a] = tau.iter().map(|x| norm(&x[a])).fold(0.0, f64::max);
+        for i in 0..3 { sv.tau_axis_peak[i][a] = tau.iter().map(|x| x[a][i].abs()).fold(0.0, f64::max); }
+        sv.h_cyclic[a] = (0..n).map(|kk| { let f = kk as f64*dt/t_orb; norm(&sub(&hs[kk], &scale(&hend, f))) }).fold(0.0, f64::max);
+        sv.h_secular_orbit[a] = norm(&hend);
     }
+    Ok((c, sv))
+}
+
+pub fn demand(root: &Path, case_file: &Path, k: &Knobs) -> Result<Demand, Error> {
+    // the worst of every season and solar activity, each attitude and axis on its own
+    let mut base: Option<(Config, Survey)> = None;
+    let mut sweep = vec![];
+    for ep in SURVEY_EPOCH_DAYS {
+        for f in SURVEY_F107 {
+            let sets = [("engine.epoch_days".to_string(), format!("{ep}")), ("engine.f107".to_string(), format!("{f}")), ("engine.f107a".to_string(), format!("{f}"))];
+            let (c, sv) = survey(root, case_file, &sets)?;
+            sweep.push(json!({"epoch_days": ep, "f107": f, "tau_peak": sv.tau_peak, "h_secular_orbit": sv.h_secular_orbit, "eclipse_frac": sv.eclipse_frac}));
+            base = Some(match base {
+                None => (c, sv),
+                Some((c0, mut w)) => {
+                    for a in 0..4 {
+                        w.tau_peak[a] = w.tau_peak[a].max(sv.tau_peak[a]); w.h_cyclic[a] = w.h_cyclic[a].max(sv.h_cyclic[a]);
+                        w.h_secular_orbit[a] = w.h_secular_orbit[a].max(sv.h_secular_orbit[a]);
+                        for i in 0..3 { w.tau_axis_peak[i][a] = w.tau_axis_peak[i][a].max(sv.tau_axis_peak[i][a]); }
+                    }
+                    w.b_min = w.b_min.min(sv.b_min); w.eclipse_frac = w.eclipse_frac.max(sv.eclipse_frac);
+                    (c0, w)
+                }
+            });
+        }
+    }
+    let (c, sv) = base.expect("the sweep has at least one survey");
+    let v = |key: &str| c.case.get(key);
+    let t_orb = c.period_s;
+    let mut d = Demand { case: c.case.id.clone(), period_s: t_orb, class: c.case.class.clone(), box_m: c.box_m,
+        tau_peak: sv.tau_peak, tau_axis_peak: sv.tau_axis_peak, h_cyclic: sv.h_cyclic, h_secular_orbit: sv.h_secular_orbit,
+        b_min: sv.b_min, b_mean: sv.b_mean, eclipse_frac: sv.eclipse_frac, sweep, ..Default::default() };
     let ia = (0..4).fold(0, |b, a| if d.tau_peak[a] > d.tau_peak[b] { a } else { b });
     d.tau_dist = d.tau_peak[ia]; d.worst_attitude = ATT[ia].into();
-    d.h_dist = (0..4).map(|a| d.h_cyclic[a] + 0.25*d.h_secular_orbit[a]).fold(f64::MIN, f64::max);
+    // the secular momentum held between dumps: req.dump hours of it, or a quarter orbit when the case is blank
+    let dump_h = v("req.dump");
+    let orbits_held = if dump_h.is_finite() && dump_h > 0.0 { dump_h*3600.0/t_orb } else { 0.25 };
+    d.h_dist = (0..4).map(|a| d.h_cyclic[a] + orbits_held*d.h_secular_orbit[a]).fold(f64::MIN, f64::max);
     d.h_secular = d.h_secular_orbit.iter().cloned().fold(f64::MIN, f64::max);
-    d.b_min = bm.iter().cloned().fold(f64::MAX, f64::min);
-    d.b_mean = bm.iter().sum::<f64>()/n as f64;
-    d.eclipse_frac = nu.iter().filter(|x| **x < 0.5).count() as f64/n as f64;
     let dflt = |x: f64, dv: f64, note: &str, notes: &mut Vec<String>| if x.is_nan() { notes.push(note.into()); dv } else { x };
     let mut notes = vec![];
+    if !(dump_h.is_finite() && dump_h > 0.0) { notes.push("req.dump blank: a quarter orbit of secular momentum held between dumps taken".into()); }
     d.w0_deg_s = dflt(v("mission.w0"), 10.0, "mission.w0 blank: 10 deg/s taken", &mut notes);
     d.j = [c.inertia[0][0], c.inertia[1][1], c.inertia[2][2]];
     let jmax = d.j.iter().cloned().fold(f64::MIN, f64::max);
@@ -144,6 +224,8 @@ pub fn demand(root: &Path, case_file: &Path, k: &Knobs) -> Result<Demand, String
     d.h_req = d.k_h*d.h_dist.max(d.h_slew);
     d.tau_req = d.k_tau*d.tau_dist.max(d.tau_slew);
     for r in ["ape", "ake", "rks", "mass", "pavg", "ppk", "vol", "detumble", "sunacq"] { d.req.insert(r.into(), v(&format!("req.{r}"))); }
+    // what the platform allocates to the ADCS (blank: no allocation stated, nothing checked)
+    for r in ["malloc", "palloc", "valloc"] { d.req.insert(r.into(), v(&format!("resources.{r}"))); }
     d.fine = d.req["ake"].is_finite() && d.req["ake"] <= 0.05;
     d.notes = notes;
     Ok(d)
@@ -159,7 +241,7 @@ impl Demand {
             "w_slew": self.w_slew, "a_slew": self.a_slew, "h_slew": self.h_slew, "tau_slew": self.tau_slew, "life_yr": self.life_yr,
             "slews_per_day": self.slews_per_day, "k_h": self.k_h, "k_tau": self.k_tau, "h_req": self.h_req, "tau_req": self.tau_req,
             "req": self.req.iter().map(|(a, b)| (a.clone(), if b.is_finite() { json!(b) } else { Value::Null })).collect::<serde_json::Map<_, _>>(),
-            "notes": self.notes, "class": if self.fine { "fine" } else { "coarse" }})
+            "notes": self.notes, "class": if self.fine { "fine" } else { "coarse" }, "body_class": self.class, "box_m": self.box_m, "survey_sweep": self.sweep})
     }
 }
 
@@ -195,21 +277,21 @@ pub fn mtq(d: &Demand, k: &Knobs) -> (Value, Value) {
 /// Per unit: a wheel must hold h_req and give tau_req; a pyramid unit half of each (two units act on
 /// any axis). The lightest selectable model that meets the need wins (then steady power, volume);
 /// when none does, the largest is taken and the gap is recorded.
-pub fn rotor(root: &Path, d: &Demand, k: &Knobs, which: &str) -> Result<Value, String> {
+pub fn rotor(root: &Path, d: &Demand, k: &Knobs, which: &str) -> Result<Value, Error> {
     let s = k.s(which);
     let types: &[&str] = if which == "rw" { &["reaction_wheel"] } else { &["cmg", "cmg_cluster"] };
     let share = if which == "rw" { 1.0 } else { 0.5 };
     let (h_need, tau_need) = (share*d.h_req*s, share*d.tau_req*s);
     let mut cands: Vec<Value> = vec![];
     let dir = root.join("data/catalogue");
-    let mut files: Vec<_> = std::fs::read_dir(&dir).map_err(|e| format!("{}: {e}", dir.display()))?.filter_map(|e| e.ok().map(|e| e.path())).collect();
+    let mut files: Vec<_> = std::fs::read_dir(&dir).map_err(|e| Error::io(&dir, e))?.filter_map(|e| e.ok().map(|e| e.path())).collect();
     files.sort();
     for f in files {
         let c = json::read(&f)?;
         if !types.contains(&json::s(&c, "type", "")) || !json::b(&c, "selectable", false) { continue; }
         cands.push(c);
     }
-    if cands.is_empty() { return Err(format!("catalogue: no selectable {which} model in {}", dir.display())); }
+    if cands.is_empty() { return Err(Error::refused(format!("catalogue: no selectable {which} model in {}", dir.display()))); }
     let g = |c: &Value, key: &str| c["derived"][key].as_f64().unwrap_or(f64::NAN);
     let meets = |c: &Value| g(c, "h_max_Nms") >= h_need && g(c, "torque_max_Nm") >= tau_need;
     let key = |c: &Value| (g(c, "mass_kg"), g(c, "power_steady_W"), g(c, "volume_L"));
@@ -250,27 +332,77 @@ pub fn fmr(d: &Demand, k: &Knobs, bx: [f64; 3]) -> Vec<Value> {
     let h = d.h_req.max(2e-4)*k.s("fmr");
     let tau = d.tau_req.max(1e-5)*k.s("fmr");
     let ax = ["X", "Y", "Z"];
-    (0..3).map(|i| {
-        let (s0, l1) = (0.8*faces[i], 0.8*per[i]);
-        let ds = empump::design(h, tau, s0, l1, k.fmr_lambda).expect("no feasible pump design");
-        let mut nm = ds.json(k.fmr_lambda);
-        for (key, val) in [("fluid", json!("galinstan")), ("fluid_density_kg_m3", json!(6440.0)), ("fluid_viscosity_Pa_s", json!(0.0024)),
-                           ("pump_type", json!("dc-conduction, electromagnet")), ("melt_point_K", json!(254)), ("dipole_max_Am2", json!(0)),
-                           ("dipole_per_amp_Am2_per_A", json!(0)), ("current_max_A", json!(0)), ("volume_L", json!(faces[i]*0.006*1e3 + 0.02))] {
-            nm[key] = val;
-        }
-        let eta = ds.eta_cruise.max(0.01);
-        let mut p = json!({"part_number": format!("SZ-{}-FMR-{}", d.case, ax[i]), "kind": "magneto_fluidic_panel",
-            "name": format!("Sized fluid momentum loop with electromagnetic pump, {} axis (our product) — {}", ax[i], d.case), "status": "sized",
-            "source": "adcs-design (empump)", "made": "in-house", "descriptor_version": 1});
-        p["nominal"] = nm;
-        p["dispersion"] = json!({"friction_scale": {"dist": "uniform", "lo": 0.8, "hi": 1.2}, "pump_efficiency": {"dist": "uniform", "lo": 0.7*eta, "hi": 1.3*eta},
-            "flow_sensor_noise_m_s": {"dist": "normal", "mean": 0, "sigma": k.fmr_flow_sigma}, "axis_misalignment_rad": {"dist": "normal", "mean": 0, "sigma": 0.005}});
-        p["sizing"] = json!({"h_req_Nms": d.h_req, "tau_req_Nm": d.tau_req, "flow_sensor_sigma_m_s": k.fmr_flow_sigma, "face_m2": faces[i], "scale": k.s("fmr"), "lambda_kg_per_W": k.fmr_lambda,
-            "pareto": empump::pareto(h, tau, s0, l1),
-            "law": "galinstan loop + DC conduction pump with an electromagnet, designed together: least mass + lambda x steady power (empump.rs)"});
-        p
-    }).collect()
+    let mut rings: Vec<Value> = (0..3).map(|i| ring(d, k, h, tau, faces[i], per[i], ax[i], &format!("{} axis", ax[i]))).collect();
+    if k.fmr_spare {
+        // the spare stands in for any one ring: its axis follows the rings' momenta (all equal here,
+        // so the body diagonal) and it carries their root-sum-square, so its projection on each axis
+        // holds that ring's whole momentum and torque; its loop lies in the box's cross-section
+        // perpendicular to that axis
+        let s = spare_axis();
+        let (area, perim) = section(bx, s);
+        let n = 3f64.sqrt();
+        rings.push(ring(d, k, n*h, n*tau, area, perim, "S", "spare, skewed on the body diagonal"));
+    }
+    rings
+}
+
+/// The spare ring's axis: the unit body diagonal (the rings are sized alike).
+pub fn spare_axis() -> [f64; 3] { let r = 1.0/3f64.sqrt(); [r, r, r] }
+
+/// Area and perimeter of the cross-section of a centred box (sides `bx`) by the plane through its
+/// centre with unit normal `n`: the loop a skewed ring can enclose.
+pub fn section(bx: [f64; 3], n: [f64; 3]) -> (f64, f64) {
+    let hx = [bx[0]/2.0, bx[1]/2.0, bx[2]/2.0];
+    let mut pts: Vec<[f64; 3]> = vec![];
+    // every box edge: two coordinates at a corner value, the third free; solve n . p = 0 on it
+    for free in 0..3 {
+        let (a, b) = ((free + 1) % 3, (free + 2) % 3);
+        for sa in [-1.0, 1.0] { for sb in [-1.0, 1.0] {
+            if n[free].abs() < 1e-15 { continue; }
+            let mut p = [0.0; 3];
+            p[a] = sa*hx[a]; p[b] = sb*hx[b];
+            p[free] = -(n[a]*p[a] + n[b]*p[b])/n[free];
+            if p[free].abs() <= hx[free] + 1e-12 { pts.push(p); }
+        } }
+    }
+    // order them around the normal, then the shoelace area and the perimeter in the plane
+    let u = { let t = if n[0].abs() < 0.9 { [1.0, 0.0, 0.0] } else { [0.0, 1.0, 0.0] }; unit(&sub(&t, &scale(&n, t[0]*n[0] + t[1]*n[1] + t[2]*n[2]))) };
+    let v = [n[1]*u[2] - n[2]*u[1], n[2]*u[0] - n[0]*u[2], n[0]*u[1] - n[1]*u[0]];
+    let mut q: Vec<(f64, f64)> = pts.iter().map(|p| (p[0]*u[0] + p[1]*u[1] + p[2]*u[2], p[0]*v[0] + p[1]*v[1] + p[2]*v[2])).collect();
+    q.sort_by(|a, b| a.1.atan2(a.0).partial_cmp(&b.1.atan2(b.0)).unwrap());
+    q.dedup_by(|a, b| (a.0 - b.0).abs() < 1e-12 && (a.1 - b.1).abs() < 1e-12);
+    let m = q.len();
+    let (mut area, mut perim) = (0.0, 0.0);
+    for i in 0..m {
+        let (a, b) = (q[i], q[(i + 1) % m]);
+        area += a.0*b.1 - b.0*a.1;
+        perim += ((b.0 - a.0).powi(2) + (b.1 - a.1).powi(2)).sqrt();
+    }
+    (area.abs()/2.0, perim)
+}
+
+/// One fluid ring with its electromagnetic pump, designed for momentum `h` and torque `tau` in a
+/// loop of `face` m^2 and `perim` m (80 % of each used).
+fn ring(d: &Demand, k: &Knobs, h: f64, tau: f64, face: f64, perim: f64, tag: &str, what: &str) -> Value {
+    let (s0, l1) = (0.8*face, 0.8*perim);
+    let ds = empump::design(h, tau, s0, l1, k.fmr_lambda).expect("no feasible pump design");
+    let mut nm = ds.json(k.fmr_lambda);
+    for (key, val) in [("fluid", json!("galinstan")), ("fluid_density_kg_m3", json!(6440.0)), ("fluid_viscosity_Pa_s", json!(0.0024)),
+                       ("pump_type", json!("dc-conduction, electromagnet")), ("melt_point_K", json!(254)), ("dipole_max_Am2", json!(0)),
+                       ("dipole_per_amp_Am2_per_A", json!(0)), ("current_max_A", json!(0)), ("volume_L", json!(face*0.006*1e3 + 0.02))] {
+        nm[key] = val;
+    }
+    let eta = ds.eta_cruise.max(0.01);
+    let mut p = json!({"part_number": format!("SZ-{}-FMR-{}", d.case, tag), "kind": "magneto_fluidic_panel",
+        "name": format!("Sized fluid momentum loop with electromagnetic pump, {what} (our product) — {}", d.case), "status": "sized",
+        "source": "adcs-design (empump)", "made": "in-house", "descriptor_version": 1});
+    p["nominal"] = nm;
+    p["dispersion"] = json!({"friction_scale": {"dist": "uniform", "lo": 0.8, "hi": 1.2}, "pump_efficiency": {"dist": "uniform", "lo": 0.7*eta, "hi": 1.3*eta},
+        "flow_sensor_noise_m_s": {"dist": "normal", "mean": 0, "sigma": k.fmr_flow_sigma}, "axis_misalignment_rad": {"dist": "normal", "mean": 0, "sigma": 0.005}});
+    p["sizing"] = json!({"h_req_Nms": d.h_req, "tau_req_Nm": d.tau_req, "h_ring_Nms": h, "tau_ring_Nm": tau, "flow_sensor_sigma_m_s": k.fmr_flow_sigma, "face_m2": face, "perimeter_m": perim,
+        "scale": k.s("fmr"), "lambda_kg_per_W": k.fmr_lambda, "pareto": empump::pareto(h, tau, s0, l1),
+        "law": "galinstan loop + DC conduction pump with an electromagnet, designed together: least mass + lambda x steady power (empump.rs)"});
+    p
 }
 
 /// asils.sizing.rcs
@@ -310,7 +442,7 @@ pub fn rcs(d: &Demand, k: &Knobs, bx: [f64; 3]) -> Value {
 fn num(v: &Value, k: &str) -> Option<f64> { v.get(k).and_then(|x| x.as_f64()) }
 
 /// asils.product.load budget_: ADCS mass / nominal power / volume per fill.
-fn budget(fill: &[Value], lookup: &dyn Fn(&str) -> Result<Value, String>) -> Result<Value, String> {
+fn budget(fill: &[Value], lookup: &dyn Fn(&str) -> Result<Value, Error>) -> Result<Value, Error> {
     let (mut m, mut p, mut vol) = (0.0, 0.0, 0.0);
     let mut items = vec![];
     for f in fill {
@@ -332,19 +464,21 @@ fn budget(fill: &[Value], lookup: &dyn Fn(&str) -> Result<Value, String>) -> Res
 
 /// asils.sizing.size_all: every part, one product per family, budgets. Writes
 /// <out>/parts/*.json, <out>/products/*.json, <out>/sizing.json.
-pub fn size_all(root: &Path, case_file: &Path, k: &Knobs, out: &Path) -> Result<Value, String> {
+pub fn size_all(root: &Path, case_file: &Path, k: &Knobs, out: &Path) -> Result<Value, Error> {
     let d = demand(root, case_file, k)?;
     let case = d.case.clone();
-    let bx = [0.34, 0.10, 0.10];
+    let bx = d.box_m;
     let (pm, pmp) = mtq(&d, k);
     let fm = fmr(&d, k, bx);
     let parts: Vec<(&str, Value)> = vec![("mtq", pm), ("mtqp", pmp), ("rw", rotor(root, &d, k, "rw")?), ("cmg", rotor(root, &d, k, "cmg")?), ("vscmg", rotor(root, &d, k, "vscmg")?),
         ("fmr_x", fm[0].clone()), ("fmr_y", fm[1].clone()), ("fmr_z", fm[2].clone()), ("rcs", rcs(&d, k, bx))];
-    for dir in ["parts", "products"] { std::fs::create_dir_all(out.join(dir)).map_err(|e| e.to_string())?; }
+    let mut parts = parts;
+    if let Some(sp) = fm.get(3) { parts.push(("fmr_s", sp.clone())); }
+    for dir in ["parts", "products"] { std::fs::create_dir_all(out.join(dir)).map_err(|e| Error::io(&out.join(dir), e))?; }
     let mut by_pn: BTreeMap<String, Value> = BTreeMap::new();
     for (_, p) in &parts {
         let pn = json::s(p, "part_number", "").to_string();
-        std::fs::write(out.join("parts").join(format!("{pn}.json")), serde_json::to_string(p).unwrap()).map_err(|e| e.to_string())?;
+        adcs_sim::fsio::write(&out.join("parts").join(format!("{pn}.json")), serde_json::to_string(p).map_err(|e| Error::run(e.to_string()))?)?;
         by_pn.insert(pn, p.clone());
     }
     // a better gyro than the catalogue's precision unit when the loop asks for it: noise x grade,
@@ -360,11 +494,11 @@ pub fn size_all(root: &Path, case_file: &Path, k: &Knobs, out: &Path) -> Result<
         gyro_id = format!("SZ-{case}-GYRO");
         g["part_number"] = json!(gyro_id); g["status"] = json!("sized"); g["source"] = json!("adcs-design (gyro grade)");
         g["name"] = json!(format!("Gyro, noise x{gr} of TRN-GYRO-P1 (fibre-optic class) — {case}"));
-        std::fs::write(out.join("parts").join(format!("{gyro_id}.json")), serde_json::to_string(&g).unwrap()).map_err(|e| e.to_string())?;
+        adcs_sim::fsio::write(&out.join("parts").join(format!("{gyro_id}.json")), serde_json::to_string(&g).map_err(|e| Error::run(e.to_string()))?)?;
         by_pn.insert(gyro_id.clone(), g);
     }
     let pn = |key: &str| parts.iter().find(|x| x.0 == key).map(|x| json::s(&x.1, "part_number", "").to_string()).unwrap_or_default();
-    let lookup = |id: &str| -> Result<Value, String> {
+    let lookup = |id: &str| -> Result<Value, Error> {
         if let Some(p) = by_pn.get(id) { return Ok(p.clone()); }
         json::read(&adcs_sim::product::find(root, "parts", id)?)
     };
@@ -385,6 +519,7 @@ pub fn size_all(root: &Path, case_file: &Path, k: &Knobs, out: &Path) -> Result<
                 "rw" => fill.push(json!({"slot": "wheels", "part": pn("rw"), "axes_body": i3})),
                 "fmr" => {
                     for (key, axv) in [("fmr_x", [1, 0, 0]), ("fmr_y", [0, 1, 0]), ("fmr_z", [0, 0, 1])] { fill.push(json!({"slot": "rings", "part": pn(key), "axes_body": [axv]})); }
+                    if k.fmr_spare { fill.push(json!({"slot": "rings", "part": pn("fmr_s"), "axes_body": [spare_axis()]})); }
                     algs.push("idmas_split");
                 }
                 "cmg" | "vscmg" => fill.push(json!({"slot": a, "part": pn(a),
@@ -410,7 +545,7 @@ pub fn size_all(root: &Path, case_file: &Path, k: &Knobs, out: &Path) -> Result<
         let pr = json!({"schema": "adcs-product/1", "id": format!("SZ-{case}-{id}"), "label": format!("{label} — sized to {case}"), "family": id,
             "role": fa["role"], "classes": ["cubesat_3u"], "status": "sized", "origin": "designed", "source": "adcs-design",
             "algorithms": algs, "sun_axis_body": [0, 0, -1], "payload_boresight_body": bs, "fill": fill, "knobs": k.json()});
-        std::fs::write(out.join("products").join(format!("SZ-{case}-{id}.json")), serde_json::to_string(&pr).unwrap()).map_err(|e| e.to_string())?;
+        adcs_sim::fsio::write(&out.join("products").join(format!("SZ-{case}-{id}.json")), serde_json::to_string(&pr).map_err(|e| Error::run(e.to_string()))?)?;
         let b = budget(pr["fill"].as_array().unwrap(), &lookup)?;
         families.insert(id.to_string(), json!({"product": format!("SZ-{case}-{id}"), "role": fa["role"], "label": label,
             "mass_kg": b["mass_kg"], "power_W": b["power_W"], "volume_L": b["volume_L"], "items": b["items"]}));
@@ -418,7 +553,7 @@ pub fn size_all(root: &Path, case_file: &Path, k: &Knobs, out: &Path) -> Result<
     let z = json!({"schema": "adcs-sizing/1", "case": case, "class": if d.fine { "fine" } else { "coarse" }, "star_tracker": st_fit,
         "demand": d.json(), "knobs": k.json(), "families": families,
         "parts": parts.iter().map(|(a, b)| (a.to_string(), b.clone())).collect::<serde_json::Map<_, _>>()});
-    std::fs::write(out.join("sizing.json"), serde_json::to_string_pretty(&z).unwrap()).map_err(|e| e.to_string())?;
+    adcs_sim::fsio::write(&out.join("sizing.json"), serde_json::to_string_pretty(&z).map_err(|e| Error::run(e.to_string()))?)?;
     Ok(z)
 }
 
@@ -426,6 +561,43 @@ pub fn size_all(root: &Path, case_file: &Path, k: &Knobs, out: &Path) -> Result<
 mod tests {
     use super::*;
     fn root() -> std::path::PathBuf { Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../matlab_sils") }
+
+    #[test]
+    fn the_box_section_is_the_loop_a_skewed_ring_encloses() {
+        // a cube cut through its centre normal to a face: the face itself
+        let (a, p) = section([0.1, 0.1, 0.1], [0.0, 0.0, 1.0]);
+        assert!((a - 0.01).abs() < 1e-12 && (p - 0.4).abs() < 1e-12);
+        // a cube cut normal to its diagonal: the regular hexagon of side s/sqrt(2)
+        let (a, p) = section([1.0, 1.0, 1.0], spare_axis());
+        let side = 1.0/2f64.sqrt();
+        assert!((a - 1.5*3f64.sqrt()*side*side).abs() < 1e-9, "{a}");
+        assert!((p - 6.0*side).abs() < 1e-9, "{p}");
+    }
+
+    #[test]
+    fn the_spare_ring_holds_any_one_rings_momentum_on_its_axis() {
+        let d = Demand { case: "t".into(), h_req: 2e-3, tau_req: 6e-5, ..Default::default() };
+        let k = Knobs { fmr_spare: true, ..Knobs::default() };
+        let r = fmr(&d, &k, [0.34, 0.10, 0.10]);
+        assert_eq!(r.len(), 4);
+        let h = |p: &Value| p["sizing"]["h_ring_Nms"].as_f64().unwrap();
+        let ax = spare_axis();
+        for i in 0..3 { assert!((h(&r[3])*ax[i] - h(&r[i])).abs() < 1e-12, "its projection on axis {i} holds that ring's momentum"); }
+        assert_eq!(fmr(&d, &Knobs::default(), [0.34, 0.10, 0.10]).len(), 3, "no spare unless the knob asks");
+    }
+
+    #[test]
+    fn the_survey_sizes_for_the_worst_season_and_solar_activity() {
+        let d = demand(&root(), &root().join("cases/ais_3u.csv"), &Knobs::default()).unwrap();
+        assert_eq!(d.sweep.len(), SURVEY_EPOCH_DAYS.len()*SURVEY_F107.len());
+        let worst = d.sweep.iter().flat_map(|s| s["tau_peak"].as_array().unwrap().iter().map(|x| x.as_f64().unwrap())).fold(0.0, f64::max);
+        assert_eq!(d.tau_dist, worst, "the peak torque is the worst of every survey");
+        assert_eq!(d.box_m, [0.34, 0.10, 0.10], "the 3U class body");
+        // req.dump is blank in the case: the quarter-orbit default is taken and said
+        assert!(d.notes.iter().any(|n| n.starts_with("req.dump blank")));
+        let h = (0..4).map(|a| d.h_cyclic[a] + 0.25*d.h_secular_orbit[a]).fold(f64::MIN, f64::max);
+        assert_eq!(d.h_dist, h);
+    }
 
     #[test]
     fn select_rotor_takes_the_lightest_model_that_meets_the_need() {

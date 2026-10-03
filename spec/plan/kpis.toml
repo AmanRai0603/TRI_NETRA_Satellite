@@ -16,7 +16,7 @@
 #
 # `xtask draft` reads this file: when it writes a requirement row it also writes
 # that KPI's two closures (the analysis one only when `analysis` is not "none"),
-# as VLEO's KPI() does, with the hole's Sense read from the requirement.
+# with the seeder's KPI(), with the hole's Sense read from the requirement.
 
 [[kpi]]
 requirement = "p1k_0"

@@ -20,6 +20,7 @@ function F = init(P, jd0)
     F.M = asils.plant.geometry(X.A0, X.G, X.gi);        % NOMINAL geometry (FSW never sees the true misalignment)
     nr = F.M.nr;
     F.rot_failed = false(nr, 1); F.fd_count = zeros(nr, 1); F.h_prev = []; F.cmd_r_prev = zeros(nr, 1);
+    F.fw_E = zeros(nr, 1); F.fw_h0 = zeros(nr, 1); F.fw_t0 = 0; F.fw_last = 0; F.fw_on = false; F.fw_bad = zeros(nr, 1);
     F.idmas = strcmp(a.allocation, 'idmas_split');
     F.nc = 0; if dev.rcs.fitted, F.nc = size(dev.rcs.tau_couple, 2); end
     F.has_rcs_dump = F.nc > 0 && F.P.rcs.dump;

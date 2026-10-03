@@ -17,7 +17,7 @@ check   The checker. It reads ONLY the JSON block of the form (it never opens th
         1 when it may not. With --out it writes <out>/<request id>/: request.json
         (the trusted part), check.md and check.json, the attachments, and — only on
         a pass — brief.md, the implementation agent's brief.
-sheet   Writes node.toml and fixtures.toml exactly as the request says, in VLEO's
+sheet   Writes node.toml and fixtures.toml exactly as the request says, in the
         sheet shape. In the built repository this is `cargo xtask intake write`, the
         one path by which a request's declarative content reaches a sheet; the
         implementation agent runs it and then writes only the code.
@@ -719,7 +719,7 @@ def brief_md(form, info, rid):
                 n, i, s(st.get("text")).strip(), call, "&[" + args + "]" if st.get("call") == "slice" else args,
                 " as one slice" if st.get("call") == "slice" else "", s(st.get("binds")) or "(intermediate)"))
         else:
-            L.append("%d. HOLE %d (%s): needs a new physics function — %s. Write it in `adcs-core::physics` in VLEO's style: "
+            L.append("%d. HOLE %d (%s): needs a new physics function — %s. Write it in `adcs-core::physics` in the style of the module: "
                      "`no_std`, typed arguments, `pmath` only, a doc comment giving the relation and the source id `%s`, zero at "
                      "count zero where it takes a count, and property tests only (never an invented expected value). In the same "
                      "commit write its twin `matlab_sils/+asils/+physics/+<module>/<name>.m` (the module and name the Rust "
@@ -768,7 +768,7 @@ def tnum(v):
 
 
 def sheet_from(form, info, rid):
-    """node.toml and fixtures.toml, in VLEO's sheet shape, exactly as the request
+    """node.toml and fixtures.toml, in the sheet shape, exactly as the request
     says. The stand-in for `cargo xtask intake write`."""
     R = form["request"]
     P = R["proposed"]

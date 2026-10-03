@@ -11,7 +11,7 @@
 | `adcs-sim` | no | the scenario loader, multirate scheduler, device emulators, recorder, metrics and campaign runner |
 | `adcs-fsw-abi` | no | implements `adcs_hal.h` in Rust (`extern "C"`) over the device emulators; compiles and links the flight C code with the `cc` crate |
 
-VLEO's kernel rule, "no files, no clock, no drawing", holds for `adcs-sim-core` without exception. Time is an input: `step(&mut State, &Inputs, dt) -> Outputs`, where `dt` is fixed per run. The clock belongs to the scheduler in `adcs-sim`, or to the real-time loop in `adcs-rig`, never to the plant. That is what lets one plant serve SILS faster than real time and OILS at exactly real time.
+The kernel rule, "no files, no clock, no drawing", holds for `adcs-sim-core` without exception. Time is an input: `step(&mut State, &Inputs, dt) -> Outputs`, where `dt` is fixed per run. The clock belongs to the scheduler in `adcs-sim`, or to the real-time loop in `adcs-rig`, never to the plant. That is what lets one plant serve SILS faster than real time and OILS at exactly real time.
 
 ### 9.2 State and dynamics
 
@@ -103,7 +103,7 @@ A run directory in `adcs-rec/1` format contains:
 - `events.csv` for mode changes, faults and refusals;
 - a content hash over all of it.
 
-Four families of channels are kept apart and never mixed in one column: **truth**, **measured**, **estimated** and **commanded**. The views (§13) read a downsampled stream (at most 20 Hz) while the run is live, and the recorder's files afterwards. Parquet is deferred with the trigger VLEO already wrote: "the first bundle that does not fit comfortably as text".
+Four families of channels are kept apart and never mixed in one column: **truth**, **measured**, **estimated** and **commanded**. The views (§13) read a downsampled stream (at most 20 Hz) while the run is live, and the recorder's files afterwards. Parquet is deferred until its trigger: "the first bundle that does not fit comfortably as text".
 
 ### 9.9 Performance, measured and never assumed
 

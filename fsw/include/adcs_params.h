@@ -5,8 +5,8 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#define ADCS_PARAMS_PAYLOAD 2209u
-#define ADCS_PARAMS_BLOB_SIZE 2225u
+#define ADCS_PARAMS_PAYLOAD 2233u
+#define ADCS_PARAMS_BLOB_SIZE 2249u
 #define ADCS_MAX_ROTORS 8
 #define ADCS_MAX_GIMBALS 4
 #define ADCS_MAX_COUPLES 6
@@ -142,6 +142,8 @@ typedef struct {
     double cmg_mu;
     double cmg_k_null;
     double fdir_s;
+    double fdir_win_s;  /* rotor FDIR momentum window: the momentum each fixed rotor was commanded to change over it, against the change measured */
+    double fdir_h_frac;  /* rotor FDIR: the smallest commanded momentum change over a window that is judged, as a fraction of the rotor's h_max */
     uint8_t nc;  /* thruster couples */
     double rcs_tau[6][3];  /* torque of each couple at full duty (body) [N m] */
     double rcs_mib;
@@ -174,6 +176,7 @@ typedef struct {
     double mekf_meas_scale;
     double rate_lpf_s;
     uint8_t igrf_nmax;
+    double gps_latency;  /* age of a GNSS fix when it arrives [s]: the fix is carried forward by it (0 = taken as current) */
 } adcs_params_t;
 
 /* Decode an adcs-fswcfg/1 blob. 0 on success; -1 bad magic, -2 bad length, -3 bad CRC. */
@@ -181,5 +184,8 @@ int32_t adcs_params_decode(const uint8_t *blob, size_t len, adcs_params_t *out);
 /* Encode into buf (cap >= ADCS_PARAMS_BLOB_SIZE); returns the blob length or 0. Ground and test use. */
 size_t adcs_params_encode(const adcs_params_t *in, uint8_t *buf, size_t cap);
 uint32_t adcs_crc32(const uint8_t *p, size_t n);
+/* Every rule of params.toml after decoding: 0, or the 1-based number of the first field that breaks one. */
+int32_t adcs_params_validate(const adcs_params_t *p);
+const char *adcs_params_field(int32_t k);
 
 #endif

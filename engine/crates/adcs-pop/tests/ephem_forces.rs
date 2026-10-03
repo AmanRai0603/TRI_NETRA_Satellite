@@ -183,7 +183,7 @@ struct Case<'a> {
 
 fn cases() -> Vec<Case<'static>> {
     data()["cases"].as_array().unwrap().iter().map(|c| {
-        let mut sc = srp::vleo16u();
+        let mut sc = srp::sat16u();
         sc.r_bi = m3(&c["R_bi"]);
         Case { c, r: v3(&c["r"]), v: v3(&c["v"]), e: ephem::inputs(eph(), f(&c["jd"])), sc }
     }).collect()
@@ -354,7 +354,7 @@ fn secular_matches_matlab() {
 fn golden_16u_dataset() {
     let d = load("ephem_forces_golden.json");
     let mu = f(&d["mu_field"]);
-    let mut sc = srp::vleo16u();
+    let mut sc = srp::sat16u();
     let terms = [relativity::Term::Schwarzschild];
     let mut w_m = [0.0f64; 4];
     let mut w_g = [0.0f64; 4];
@@ -397,7 +397,7 @@ fn hot_path_speed() {
     let dt = t0.elapsed().as_secs_f64() / n as f64;
     eprintln!("ephem::inputs {:.2} us/call ({acc:.1})", dt * 1e6);
     let x = ephem::inputs(e, 2461406.75);
-    let sc = srp::vleo16u();
+    let sc = srp::sat16u();
     let r = [6.9e6, 1.0e5, 2.0e5];
     let t0 = std::time::Instant::now();
     let n = 2000;

@@ -185,7 +185,7 @@ def check_seed_content(ctx):
             if r["tree_id"] not in leaf:
                 errs.append("seed: tree_id %s is not a leaf of the tree" % r["tree_id"])
             elif kind[r["tree_id"]] == "required" and r.get("kind") == "declared" and r.get("sense") in ("<=", ">="):
-                pass  # a written requirement: declared with a sense, the VLEO convention
+                pass  # a written requirement: declared with a sense, the convention
             elif kind[r["tree_id"]] != r.get("kind"):
                 errs.append("seed: %s is %s on the tree, %s in the seed content" % (rid, kind[r["tree_id"]], r.get("kind")))
         else:

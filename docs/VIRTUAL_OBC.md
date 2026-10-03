@@ -25,6 +25,13 @@ on-times, and the 41-value debug vector the recorder files). `CMD` carries telec
 ends the session. A TICK is ~120–200 bytes, an OUT ~400 bytes: at 10 Hz that is < 6 kB/s each
 way, well inside a 115 200 baud UART.
 
+A frame the OBC cannot take is answered, never ignored: `ACK` with a refusal code (-91 bad CRC,
+-92 over 4096 bytes, -93 a payload that does not match its own counts, -94 more UART bytes or CAN
+frames than the OBC holds, -99 an unknown type), and the engine stops the run naming it. The
+engine reads a whole reply and checks its type and length before anything reaches the bus, and
+waits at most `ADCS_LINK_TIMEOUT_S` seconds (default 60) for any reply, so a silent or hung OBC
+stops the run with a message instead of holding it (`tests/test_link.py`, `link.rs` tests).
+
 ## Targets (`make -C fsw obc`)
 
 | `--fsw` | what runs the flight software | built with |

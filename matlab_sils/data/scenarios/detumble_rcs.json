@@ -1,0 +1,42 @@
+{
+ "case": "ais_img_3u",
+ "fsw": {
+  "guidance": {
+   "kind": "nadir"
+  },
+  "start_mode": "detumble_rcs"
+ },
+ "id": "detumble_rcs",
+ "initial": {
+  "attitude": {
+   "kind": "random"
+  },
+  "rate": {
+   "kind": "random_direction",
+   "magnitude_deg_s": "case:mission.w0"
+  }
+ },
+ "label": "3U imaging, wheels + RCS \u2014 detumble on the thrusters from the separation tumble",
+ "metrics": [
+  {
+   "hold_s": 60.0,
+   "id": "detumble_time",
+   "kind": "time_to_rate",
+   "rate_threshold_deg_s": 0.5,
+   "requirement": "req.detumble"
+  },
+  {
+   "diagnostic": "the propellant a thruster detumble costs: the case states no propellant budget (req.prop)",
+   "id": "propellant",
+   "kind": "propellant",
+   "window": "all"
+  }
+ ],
+ "product": "TRN-P-3U-RW-RCS",
+ "schema": "adcs-scenario/1",
+ "time": {
+  "dt_s": 0.1,
+  "duration_s": 1800.0,
+  "record_dt_s": 1.0
+ }
+}

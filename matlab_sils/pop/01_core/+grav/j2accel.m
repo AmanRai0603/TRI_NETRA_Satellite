@@ -4,7 +4,7 @@ function a = j2accel(r_ecef, mu, Re, J)
 %   a = grav.j2accel(r_ecef, mu, Re, J)
 %
 %   A fast, mostly-analytic, purely-ZONAL geopotential.  Two uses:
-%     (a) quick LEO/VLEO runs where only oblateness matters, and
+%     (a) quick LEO runs where only oblateness matters, and
 %     (b) an INDEPENDENT cross-check on grav.sphericalHarmonic -- restrict the
 %         harmonic field to the same zonal terms and the two must agree to
 %         ~1e-12 relative (see test/test_gravity.m).

@@ -1,17 +1,30 @@
 function [D, F] = apply(faults, t, D, F)
-%ASILS.FAULTS.APPLY  Inject scheduled faults into the devices (once, at t_s).
+%ASILS.FAULTS.APPLY  Inject scheduled faults into the devices (once, at t_s); clear the ones that end.
 %   faults: struct array (from the scenario) with fields
 %     kind   'rotor_fail' | 'gimbal_stuck' | 'st_head_fail' | 'coil_fail' |
 %            'gyro_bias_step' | 'gps_outage' | 'rcs_valve_fail' | 'mag_fail'
 %     t_s    time of the fault [s]
 %     index  which unit (rotor, gimbal, head, coil, couple); ignored otherwise
 %     value  size of the fault where it has one (gyro bias step [rad/s], 3x1)
+%     end_s  when the device answers again (mag_fail, gps_outage only); absent: for good
 %   The FSW is NOT told: it must detect what it can (asils.fsw.step FDIR).
     if ~isfield(D, 'fault_done'), D.fault_done = false(1, numel(faults)); end
     for i = 1:numel(faults)
         f = faults(i);
         if iscell(faults), f = faults{i}; end
-        if D.fault_done(i) || t < f.t_s, continue, end
+        if D.fault_done(i)
+            % a device back from silence (end_s): it answers again from then on (engine Units::faults)
+            e = asils.util.getf(f, 'end_s', []);
+            if ~isempty(e) && t >= e
+                if strcmp(f.kind, 'gps_outage'), dead = D.gps_dead; else, dead = D.mag.dead; end
+                if dead
+                    if strcmp(f.kind, 'gps_outage'), D.gps_dead = false; else, D.mag.dead = false; end
+                    F.log(end+1).t = t; F.log(end).mode = sprintf('FAULT cleared: %s %d', f.kind, asils.util.getf(f, 'index', 0));
+                end
+            end
+            continue
+        end
+        if t < f.t_s, continue, end
         D.fault_done(i) = true;
         switch f.kind
             case 'rotor_fail',     D.mex.failed(f.index) = true;

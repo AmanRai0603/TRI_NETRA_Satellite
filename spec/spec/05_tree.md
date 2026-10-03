@@ -12,7 +12,7 @@
 | 3 subsystem | 14 subsystem layers (12 for the ADCS, 2 for its test rigs), plus the closure addition | 368 rows, plus 38 closures and the closure layer's interface row | `adcs-mod-<sid>`, `adcs-mod-closure` |
 | 4 the run | what one evaluation or one campaign produced | — | — |
 
-Every case reaches layer 2 through one row, `Satellite ADCS` under Case intake; the note "the door into this case's engineering layer" makes it cross to `sys_satellite_adcs`. There is exactly one door, and `tools/validate_plan.py` refuses a second. Each subsystem reaches layer 2 through its one `l3_<sid>_interface` row. This is the same shape as VLEO, and VLEO's seeding code accepts it. `tools/validate_plan.py` checks the shape. `tools/check_seed_with_vleo.py` runs VLEO's own `cd06_rows.install`, `LAYER3_SOURCE` and `install_edges` over `plan/tree.json`. That wires 46 relations, 238 derivation edges and 23 contribution edges, skips none, creates one crossing, and passes all 14 layer-3 target assertions. In all, 734 node sheets once seeded: 327 in layers 1 and 2, 368 in the subsystem layers, and 39 in the closure addition.
+Every case reaches layer 2 through one row, `Satellite ADCS` under Case intake; the note "the door into this case's engineering layer" makes it cross to `sys_satellite_adcs`. There is exactly one door, and `tools/validate_plan.py` refuses a second. Each subsystem reaches layer 2 through its one `l3_<sid>_interface` row. `tools/validate_plan.py` checks the shape. Seeding it (`install`, `LAYER3_SOURCE` and `install_edges`, §5.7) wires 46 relations, 238 derivation edges and 23 contribution edges, skips none, creates one crossing, and passes all 14 layer-3 target assertions. In all, 734 node sheets once seeded: 327 in layers 1 and 2, 368 in the subsystem layers, and 39 in the closure addition.
 
 ### 5.2 Layer 1 — the company
 
@@ -30,7 +30,7 @@ Every case reaches layer 2 through one row, `Satellite ADCS` under Case intake; 
 
 **Risk management concludes the tree.** Its 18 declared rows are counted from the de-risking ledger (`derisk/`) at every release, by the supplier `derisk`, and never set by a form (V01). Its three computed rows (`risk::highest_level`, `risk::net_closed`, `risk::share_tested`, §6.2) are the platform's conclusion about itself: how much of what it rests on has met evidence, and what is still open. Two relations join it to the rest: the catalogue records the beliefs its products rest on, and the open levels feed the quality verdict under Standards & compliance.
 
-No customer is a branch of this tree. VLEO's tree carried its reference customers as layer-1 groups; that does not scale past a handful, so here every customer is a **case**. It is uploaded as one CSV in the fixed format (§8.3), imported into the case store, and runs through the single door (CD-06 §33, "one architecture + case id"). The reference cases are four such files in `plan/cases/`. The two defaults are one 3U satellite with two missions: `ais_3u` (AIS, 10° pointing) and `ais_img_3u` (AIS and imaging, 0.01° pointing) (§8.9). The other two are `ref_c2_150kg`, a 150 kg bus, and `ref_c3_12u`, a 12U not yet stated.
+No customer is a branch of this tree. A tree that carries its reference customers as layer-1 groups does not scale past a handful, so here every customer is a **case**. It is uploaded as one CSV in the fixed format (§8.3), imported into the case store, and runs through the single door (CD-06 §33, "one architecture + case id"). The reference cases are four such files in `plan/cases/`. The two defaults are one 3U satellite with two missions: `ais_3u` (AIS, 10° pointing) and `ais_img_3u` (AIS and imaging, 0.01° pointing) (§8.9). The other two are `ref_c2_150kg`, a 150 kg bus, and `ref_c3_12u`, a 12U not yet stated.
 
 ### 5.3 Layer 2 — the satellite's ADCS
 
@@ -72,7 +72,7 @@ The 22 KPIs are listed in `plan/kpis.toml`, which is the machine-readable source
 
 "Evidence only" is a real answer. Those KPIs have no honest closed-form relation at system level, so the tree does not pretend to one. Their analysis closure is never generated, and the evidence closure is how they close.
 
-An analysis row is narrower than a contribution edge. `tree.json`'s KE edges say which variables feed a KPI, which is VLEO's coverage graph, and several evidence-only KPIs keep theirs: settling time feeds rate stability, for instance, without answering it. Only `plan/kpis.toml` says what answers a KPI.
+An analysis row is narrower than a contribution edge. `tree.json`'s KE edges say which variables feed a KPI, which is the coverage graph, and several evidence-only KPIs keep theirs: settling time feeds rate stability, for instance, without answering it. Only `plan/kpis.toml` says what answers a KPI.
 
 **What each rung's rig must do, for this case.** The two groups `v3` OILS rig needs and `v4` HILS rig needs are computed from the case's own satellite, so a case says what testing its unit will demand before any rig time is booked. The OILS rows turn the flight loop into a real-time plant step, a port count, a latency allowance and a link rate. The HILS rows turn the orbit into a cage field range, accuracy and slew rate; the control authority and the mass into the bearing's allowed residual torque and balance offset (a residual torque is the weight on the bearing times its centre-of-mass offset [Schwartz, Peck and Hall 2003]); the sensors into the Sun simulator's irradiance and collimation and the star stimulator's error and frame rate; and each fitted actuator family into what its test stand must show. The family rows are tagged, so a product without wheels shows no wheel row. The facility's side, what the bay can actually do, is layer 1 (`fa2`, `fa3`, `fa5`–`fa8`). Layers never read across (C04), so the two meet in `adcs rig fit` (§12.10), which refuses a HILS or OILS campaign by name when the lab cannot meet a need. None of these rows is written yet: they arrive through node forms, like every other row.
 
@@ -96,22 +96,22 @@ An analysis row is narrower than a contribution edge. `tree.json`'s KE edges say
 | `hils` | HILS rig | `v4` HILS rig needs | 16 | 48 | verification | `adcs-mod-hils` |
 | `x_closure` | KPI closures (addition) | — | — | 39 | systems | `adcs-mod-closure` |
 
-Each layer holds its interface row, one required and one achieved row per target (VLEO's seeder derives these), and `rows − 1 − 2·targets` internal rows labelled "to be named". The internal budget is 166 rows across the fourteen layers. The fluid-ring and control layers get the most, 15 each. IDMAS v2 §03–§07 already names the ring's internal relations: pump pressure per stage, conduction and induction pump laws, Reynolds number, turbulent loss, freeze and thaw. §12 names the control stack's: the split projection, allocation weights, dump gain and the mode laws L1–L6. The two rig layers hold the lab's own models, which the lab twin (§12.6) runs: the cage's coil and field-error model, the bearing's residual-torque and drag model, the stimulators' rendering and latency, and each test stand's measurement model.
+Each layer holds its interface row, one required and one achieved row per target (the seeder derives these), and `rows − 1 − 2·targets` internal rows labelled "to be named". The internal budget is 166 rows across the fourteen layers. The fluid-ring and control layers get the most, 15 each. IDMAS v2 §03–§07 already names the ring's internal relations: pump pressure per stage, conduction and induction pump laws, Reynolds number, turbulent loss, freeze and thaw. §12 names the control stack's: the split projection, allocation weights, dump gain and the mode laws L1–L6. The two rig layers hold the lab's own models, which the lab twin (§12.6) runs: the cage's coil and field-error model, the bearing's residual-torque and drag model, the stimulators' rendering and latency, and each test stand's measurement model.
 
 ### 5.5 Closures, and rows that only evidence can answer
 
 Every KPI is closed by evidence, and the 16 with an analysis row are also closed by analysis: 38 closures.
 
-- **The analysis closure**, `kpi_<slug>_analysis` in `l3_x_closure`, compares the requirement row with the KPI's analysis row (`plan/kpis.toml`). It runs whenever the tree does. `<slug>` is the `slug` field of `plan/kpis.toml`, which is VLEO's `slug()` of the KPI's label: `kpi_absolute_pointing_error_ape_analysis`, for example.
+- **The analysis closure**, `kpi_<slug>_analysis` in `l3_x_closure`, compares the requirement row with the KPI's analysis row (`plan/kpis.toml`). It runs whenever the tree does. `<slug>` is the `slug` field of `plan/kpis.toml`, which is the seeder's `slug()` of the KPI's label: `kpi_absolute_pointing_error_ape_analysis`, for example.
 - **The evidence closure**, `kpi_<slug>_verified`, compares the requirement row with the achieved row (`p1a_0` and so on). An achieved KPI row is an **evidence row**. Only a campaign can give it a value.
 
-Both closures use `mission::closure(req, ach, Sense::AtMost | Sense::AtLeast)` exactly as VLEO's KPI rows do. The requirement row is written as `kind = "declared"` with a top-level `sense` (VLEO's convention for written requirements; gate check 7d).
+Both closures use `mission::closure(req, ach, Sense::AtMost | Sense::AtLeast)` exactly as every KPI row does. The requirement row is written as `kind = "declared"` with a top-level `sense` (the convention for written requirements; gate check 7d).
 
-**Who writes the closures.** The seeder writes all 38 in full, and every requirement row's shape with them, from `plan/kpis.toml` and `plan/case_inputs.toml`, as VLEO's `KPI()` does (§0.2 rule 6). A closure's content is fixed by the KPI list; nothing in it is a person's statement, so it needs no form. The seeder writes each closure `specified`, and the gate's closure checks (7d, 7e) and a `cargo xtask intake mark verified --closures` at the end of seeding make it `verified`, so closures run from P1. It does not wait for a requirement value, because the value comes from each case, not the sheet.
+**Who writes the closures.** The seeder writes all 38 in full, and every requirement row's shape with them, from `plan/kpis.toml` and `plan/case_inputs.toml`, with the seeder's `KPI()` (§0.2 rule 6). A closure's content is fixed by the KPI list; nothing in it is a person's statement, so it needs no form. The seeder writes each closure `specified`, and the gate's closure checks (7d, 7e) and a `cargo xtask intake mark verified --closures` at the end of seeding make it `verified`, so closures run from P1. It does not wait for a requirement value, because the value comes from each case, not the sheet.
 
 - inputs `req` and `ach`, one step, and the hole `Ratio::new(mission::closure(req.get(), ach.get(), mission::Sense::AtMost).margin)`, with `AtMost` or `AtLeast` read from the requirement's `sense` (gate 7e);
 - a fixed `[theory]` text stating that a closure compares achieved with required in the requirement's sense;
-- bounds −100 to 1000 with VLEO's reasons.
+- bounds −100 to 1000, each with its reason.
 
 A requirement row written this way has kind `declared`, the KPI's `sense`, the unit of its case key, and `lower = 0` ("a requirement is a magnitude"). Its upper bound is 180° for an angle and 1 for a fraction. Any other quantity (a time, a count, a rate, a mass, a power, a volume) gets no upper bound until an engineer sets one, with its reason, in a node form. It carries no reference value, except `p1k_0` and `p2k_0`, whose seed forms carry the reference 3U satellite's values (source `adcs_ref_c1`) for runs without a case. Either way a case decides: a case that leaves a requirement blank lists it in `unstated`, and the row answers `NotStated` for that case whatever its sheet holds. The gate accepts a declared requirement row with no value (an H7 change beside check 7d). The analysis closure exists only when `analysis` is not "none".
 
@@ -151,7 +151,7 @@ rungs = ["sils", "oils", "hils"] # which rungs may supply it
 
 The fifth field of each tree row holds **hardware tags**: `mtq`, `rw`, `fmr` and `rcs`. An empty field means the row is in play whatever is fitted. Each family in `catalogue/families.toml` lists its `tags`. A group is **in play** for a candidate (a case plus a product or part combination) when the group's tags meet the tags whose count row (`cf_*`) is above zero.
 
-- **Seeding** leaves every group's `cases` list empty, which in VLEO means every case. Which groups are in play depends on the product, not the case, so it is decided at run time from the counts.
+- **Seeding** leaves every group's `cases` list empty, which means every case. Which groups are in play depends on the product, not the case, so it is decided at run time from the counts.
 - **The face** hides a group that is not in play. It filters by tags as F14 describes, so the same rule works for the portal's cases too.
 - **The resolver** answers `NotFitted { slot }` for every `product` or `tuned` row the candidate does not supply: the per-unit rows of an empty slot, and a tuned row no algorithm of the product sets. `NotFitted` is not a number. A row that reads it answers `NotFitted` too, naming the slot, so "knowledge error with the star tracker" on a product with no star tracker says so rather than answering with zero noise. The one exception is the zero-answer rule below. A sheet may declare `zero_when_absent = ["cf_1"]`, naming the count rows it reads. When those counts are zero, the `NotFitted` inputs whose hardware tags match those counts contribute exactly zero. This is an H7 kernel extension, with gate check 7h: a `zero_when_absent` row must read the counts it names. `ge_5`, knowledge error with the sensors fitted, uses the same mechanism: it declares `zero_when_absent = ["cf_4"]`, so with no star tracker it reads the magnetometer-and-sun knowledge, and a coils-only product still has an AKE to judge.
 - **A run without a product** (the tree alone, as P1's acceptance runs it) reads the `product` and `tuned` rows' sheet values. Those are the reference configuration, IDMAS V2 as the seed content states it for the reference 3U satellite (source `adcs_ref_c1`), and the run says so. A candidate run replaces every one of them (§8.2).
@@ -160,7 +160,7 @@ The fifth field of each tree row holds **hardware tags**: `mtq`, `rw`, `fmr` and
 
 ### 5.7 Seeding the tree
 
-The seeder is VLEO's `tools/seed_tree.py` with `tools/cd06_rows.py` renamed `tools/plan_rows.py`. Change only the following.
+The seeder is `tools/seed_tree.py`, with its maps in `tools/plan_rows.py`.
 
 `tools/plan_rows.py`:
 
@@ -180,13 +180,13 @@ LAYER3_OWNER = {"dist": "environment", "sens": "sensing", "est": "gnc", "mtq": "
                 "pnt": "gnc", "modes": "gnc", "fsw": "avionics", "budget": "systems"}
 ```
 
-These are the maps used to run VLEO's code over the tree for this document. With them, the node ids come out exactly as recorded in `plan/expected_node_ids.json`, and P1 checks that they still do.
+With these maps the node ids come out exactly as recorded in `plan/expected_node_ids.json`, and P1 checks that they still do.
 
 `tools/seed_tree.py`:
 
 - the root label is "ADCS products and test facility";
-- drop the `from nodes import (...)` list, `REPARENT`, every `amend()` call, the `l3_x_envorbit` addition and the VLEO `KPI(...)` calls;
-- keep the `l3_x_closure` addition, which VLEO's seeder gives an interface row, `l3_x_closure_interface`, and generate the 38 closure rows of §5.5 in it, seeded;
+- it has no `REPARENT`, no `amend()` calls and no `l3_x_envorbit` layer;
+- it has the `l3_x_closure` layer, which the seeder gives an interface row, `l3_x_closure_interface`, and generate the 38 closure rows of §5.5 in it, seeded;
 - `SOURCES` come from `plan/seed_content.toml [[source]]`; later sources arrive through intake, each from a request's `new_sources`;
 - the seeder writes no cases. Drop `CASES` and the case-writing half of `emit_supporting()`. After seeding, `adcs case import plan/cases/*.csv --into cases/` writes them through the one importer the portal also uses (§8.3), so there is one implementation of the format;
 - the ADCS tree declares no cycle yet. Remove `CYCLE`, and remove the code in `emit_supporting()` that writes an `[[iterate]]` block into every case from it. `layers/cycles.toml` holds only its header comment;
@@ -194,7 +194,7 @@ These are the maps used to run VLEO's code over the tree for this document. With
 
 `seed_tree.py` still refuses to run on a tree that has a published sheet. It runs once, and what it writes is the tree's shape: every row's identity, place, owner, kind and the edges the tree declares, with no content. The one exception is the closures and requirement rows of §5.5, which the KPI list fixes. Every other seeded row answers `NotRun` until its content arrives through intake (§5.8).
 
-**Changing the shape later** is the developer team's own work, never a form's. A new group is added with `tools/seed_tree.py --add-group <id> --under <parent>`, which writes that one group into `layers/` and nothing else, and refuses a group that exists. It is reviewed like any layer change, and the group's nodes then arrive as new-node requests (N01 accepts a group `layers/` declares, even with no nodes yet). A full reseed is possible only before any sheet is published, as VLEO's seeder already enforces.
+**Changing the shape later** is the developer team's own work, never a form's. A new group is added with `tools/seed_tree.py --add-group <id> --under <parent>`, which writes that one group into `layers/` and nothing else, and refuses a group that exists. It is reviewed like any layer change, and the group's nodes then arrive as new-node requests (N01 accepts a group `layers/` declares, even with no nodes yet). A full reseed is possible only before any sheet is published, as the seeder enforces.
 
 ### 5.8 Node content: seed forms, attestation, and what UNCONFIRMED means
 
@@ -210,7 +210,7 @@ cargo xtask intake mark verified <request>          # in CI, when both pass
 
 `--seed` accepts the request type `seed` and the package's own requester, and only for a node whose state is still `seeded`: a seed form can never overwrite content a person has sent since. There is no second path. The same checker, sheet writer and verifier then serve every request for the rest of the software's life, which is why they are built and proven on the first 82. Each seeded row starts its version history at version 1, "first build" (§5.13).
 
-**States.** A row moves through VLEO's states, and intake decides which:
+**States.** A row moves through these states, and intake decides which:
 
 | State | Means | Reached by |
 |---|---|---|
@@ -221,7 +221,7 @@ cargo xtask intake mark verified <request>          # in CI, when both pass
 
 `state` is the one field besides the content that intake writes, and only through `mark`. `mark` never lowers a state, so a confirmation of a `published` node leaves it `published`. `intake verify` never compares it.
 
-Only `verified`, `published` and `deprecated` rows run (VLEO `State::runnable`).
+Only `verified`, `published` and `deprecated` rows run (`State::runnable`).
 
 **Attestation.** A node form has a field "Checked by": the engineer who has checked the relation against its source, and the values, and stands behind them. `intake write` copies that name, with the date and the request id, into `[maths] confirmed_by` and, for a declared row, `[value] confirmed_by`. Nothing else ever writes a name there: not the builder, not the implementation agent, not a script (rule 2). A request with the field empty writes `UNCONFIRMED · via <request id> · awaiting a person`. Seed forms always leave it empty, because the package's author is not a person who can attest.
 
@@ -233,7 +233,7 @@ A relation or value with nobody's name against it is not a failure; it is honest
 
 It becomes somebody's when an engineer sends a node form of type **confirm**: no change, their name under "Checked by", and their reason. The checker refuses a confirmation that changes anything (F05). A confirmation needs no code and no agent: the checker writes `confirm.md` instead of a brief, and a developer runs `cargo xtask intake write request.json`, which in confirm mode writes only `[maths] confirmed_by`, `[value] confirmed_by` and `[request] last`, leaves the state as it is, and is verified and reviewed like any request.
 
-**What credibility a seeded-then-specified row shows.** Take `gf_7` after its seed form is verified, scored by VLEO's `credibility.rs`:
+**What credibility a seeded-then-specified row shows.** Take `gf_7` after its seed form is verified, scored by `credibility.rs`:
 
 | Factor | Score | Why |
 |---|---|---|
@@ -242,7 +242,7 @@ It becomes somebody's when an engineer sends a node form of type **confirm**: no
 | Verification | 4 | the row is verified |
 | Validation | 2 | tier B, test vectors pass |
 | InputPedigree | 1 | it reads UNCONFIRMED declared values |
-| Uncertainty | 1 | inherited: its declared inputs score 1 under VLEO's proxy, and the rollup takes the minimum |
+| Uncertainty | 1 | inherited: its declared inputs score 1 under the proxy, and the rollup takes the minimum |
 | Understanding | 3 | one step |
 | Reproducibility | 4 | data ok |
 
@@ -250,6 +250,6 @@ The lowest is 1, shared by Mathematics, InputPedigree and Uncertainty. Ties go t
 
 ### 5.9 Owners
 
-`CODEOWNERS` is generated from each sheet's `owner` (VLEO F9). The owners are `systems`, `environment`, `sensing`, `actuators`, `gnc`, `avionics`, `verification`, `sales`, `programme`, `facility` and `quality`. Mapping each to a GitHub team is decision D12. The generator's fixed header gains the new crates (§4), `catalogue/`, `scenarios/`, `rig/`, `forms/`, `manual/` and `intake/`.
+`CODEOWNERS` is generated from each sheet's `owner` (F9). The owners are `systems`, `environment`, `sensing`, `actuators`, `gnc`, `avionics`, `verification`, `sales`, `programme`, `facility` and `quality`. Mapping each to a GitHub team is decision D12. The generator's fixed header gains the new crates (§4), `catalogue/`, `scenarios/`, `rig/`, `forms/`, `manual/` and `intake/`.
 
 Each owner maps to a reviewer group inside the developer team (D12). That group reviews the intake branches of the nodes it owns (§5.11, step 4): that the implementation is what the form asked for, that the HOLEs compose physics functions and nothing else, and that the tests and downstream nodes pass. Whether the relation itself is right is not the reviewer's to assume. It is attested in the form by the engineer under "Checked by" (§5.8), and a relation nobody has checked is released as UNCONFIRMED, visibly, until someone does.

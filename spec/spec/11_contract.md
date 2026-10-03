@@ -3,7 +3,7 @@
 
 ## 11. The loop contract — `adcs-bus::loop`
 
-VLEO's bus crate was already written so that "the identical message types reach the rig and a flight target" (`vleo-bus/src/lib.rs`). The loop contract is a new module in it, `no_std` with `alloc`, `#![forbid(unsafe_code)]`, one struct per message.
+The bus crate is written so that "the identical message types reach the rig and a flight target" (`adcs-bus/src/lib.rs`). The loop contract is a new module in it, `no_std` with `alloc`, `#![forbid(unsafe_code)]`, one struct per message.
 
 ### 11.1 Messages
 

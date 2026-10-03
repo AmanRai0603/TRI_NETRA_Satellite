@@ -6,6 +6,7 @@
  "case": "ais_3u",
  "type": "edge",
  "runs": 17,
+ "failed_runs": 0,
  "engine": true,
  "fsw": "c",
  "stats": [
@@ -14,29 +15,30 @@
    "unit": "deg",
    "req": null,
    "values": [
-    102.83547693760333,
-    52.20187602267223,
-    179.99298832682848,
-    179.96323113918857,
-    61.07042533917642,
-    179.96891211033304,
-    97.5265306585475,
-    77.62732682735272,
-    54.77330033284189,
-    100.21354363374827,
-    68.57767133593458,
-    144.63743097977522,
-    99.69440685491689,
-    92.01672990477067,
-    134.65926645211601,
-    114.83699153778166,
-    179.9042531222138
+    145.7989800323299,
+    174.73689124778437,
+    179.98013378791444,
+    179.9642940168801,
+    79.27091605891924,
+    142.29145241271945,
+    148.73311114366567,
+    179.99647673220824,
+    179.98793624211092,
+    179.95081580977845,
+    179.93870476050475,
+    179.9954908537698,
+    120.76481988134698,
+    179.9903275119571,
+    143.75656397744402,
+    179.97507288510587,
+    112.65970333216806
    ],
-   "mean": 112.97060950092948,
-   "std": 45.78355731797916,
-   "min": 52.20187602267223,
-   "max": 179.99298832682848,
+   "mean": 158.10539356980044,
+   "std": 30.568646521293342,
+   "min": 79.27091605891924,
+   "max": 179.99647673220824,
    "n_valid": 17,
+   "n_failed_runs": 0,
    "pass_rate": null,
    "pass": null
   },
@@ -45,30 +47,31 @@
    "unit": "deg",
    "req": 10.0,
    "values": [
-    10.07742008771261,
-    6.939752207783525,
-    55.68867037935268,
-    161.89103108454353,
-    8.422633204493438,
-    13.823893360207522,
-    9.076638071036903,
-    9.501512966994653,
-    9.762824631021154,
-    7.56447165696535,
-    8.764766725804243,
-    8.955989335564514,
-    11.190980760325102,
-    8.078304011516995,
-    8.353282933678447,
-    8.004392873509039,
-    65.19097365959577
+    16.063505793636324,
+    8.96175841407584,
+    26.982665411954883,
+    121.17013807086978,
+    6.596808470914984,
+    14.23754842490644,
+    10.660770778760744,
+    20.641677397795117,
+    9.862818121199943,
+    13.977284659488895,
+    5.720848656353025,
+    12.218049552538153,
+    11.79335223054393,
+    10.261142388101804,
+    10.698599800377794,
+    8.630110694740427,
+    53.473758276678396
    ],
-   "mean": 24.193384585300322,
-   "std": 39.39201093308486,
-   "min": 6.939752207783525,
-   "max": 161.89103108454353,
+   "mean": 21.291225714290384,
+   "std": 28.057530055438267,
+   "min": 5.720848656353025,
+   "max": 121.17013807086978,
    "n_valid": 17,
-   "pass_rate": 0.6470588235294118,
+   "n_failed_runs": 0,
+   "pass_rate": 0.29411764705882354,
    "pass": false
   },
   {
@@ -76,62 +79,128 @@
    "unit": "deg",
    "req": 5.0,
    "values": [
-    4.021416363308544,
-    3.2081455487780572,
-    9.035791690501897,
-    3.9066145232634413,
-    5.592821759177965,
-    2.4755527935791397,
-    2.078232742141831,
-    3.4126902378746857,
-    2.857633220329172,
-    2.1064997096837086,
-    2.572704468661951,
-    2.566238440860904,
-    3.7256904661188,
-    2.942080183844295,
-    6.647232799088427,
-    3.2755664383326484,
-    2.696996365873672
+    2.6095421536421792,
+    2.875479396790484,
+    1.9441837539522888,
+    1.7451964117081784,
+    0.8598569868956449,
+    2.2979597148622872,
+    1.3160442639264458,
+    3.857624734340659,
+    1.7876835610546538,
+    0.45465322528359886,
+    0.7351775790814528,
+    3.0206063452738996,
+    0.6959744298068193,
+    1.820344126386311,
+    2.0222534307555806,
+    1.7660813362491152,
+    2.0764645294521173
    ],
-   "mean": 3.713053397142302,
-   "std": 1.8183594164737036,
-   "min": 2.078232742141831,
-   "max": 9.035791690501897,
+   "mean": 1.875595645850689,
+   "std": 0.9054910503182688,
+   "min": 0.45465322528359886,
+   "max": 3.857624734340659,
    "n_valid": 17,
-   "pass_rate": 0.8235294117647058,
-   "pass": false
+   "n_failed_runs": 0,
+   "pass_rate": 1.0,
+   "pass": true
   },
   {
    "id": "power_mean",
    "unit": "W",
    "req": 0.5,
    "values": [
-    0.010337701302644315,
-    0.01075807395398018,
-    0.006969904435438309,
-    0.014043531930466943,
-    0.010662667686629688,
-    0.01036716270900662,
-    0.010539074661089332,
-    0.010584475868204398,
-    0.010626710869674792,
-    0.010833971022918519,
-    0.010344499745209991,
-    0.01036097862389341,
-    0.01056261865047448,
-    0.010599893497020799,
-    0.010279922355871983,
-    0.010401268160098147,
-    0.013413611393983059
+    0.010588472788155482,
+    0.010889777307305537,
+    0.006736545797074541,
+    0.017419837305483056,
+    0.010563856679624894,
+    0.01088923621979447,
+    0.0105546499383023,
+    0.010675984119657353,
+    0.010714783914798137,
+    0.010729532644394376,
+    0.010572033223883306,
+    0.01070157185236163,
+    0.010556229177467022,
+    0.010850782857982117,
+    0.010780712894518447,
+    0.01075883384652459,
+    0.012335247987690283
    ],
-   "mean": 0.010687415698035586,
-   "std": 0.0014426343030136156,
-   "min": 0.006969904435438309,
-   "max": 0.014043531930466943,
+   "mean": 0.010959887562059857,
+   "std": 0.0019777886178075884,
+   "min": 0.006736545797074541,
+   "max": 0.017419837305483056,
    "n_valid": 17,
+   "n_failed_runs": 0,
    "pass_rate": 1.0,
    "pass": true
+  },
+  {
+   "id": "power_margin_last_orbit",
+   "unit": "W",
+   "req": 0.0,
+   "values": [
+    7.277487902147788,
+    6.349804983522389,
+    6.360932094372736,
+    5.064090432538144,
+    6.311305874198574,
+    6.272591330669345,
+    5.8694284655261075,
+    6.577393928223427,
+    6.554514668730837,
+    6.7676917151650535,
+    6.9680416919497175,
+    6.772639181270601,
+    6.71434240547501,
+    6.629945357323814,
+    6.588179902910919,
+    6.542314483729171,
+    6.845589579747774
+   ],
+   "mean": 6.498017293970671,
+   "std": 0.4846995499495975,
+   "min": 5.064090432538144,
+   "max": 7.277487902147788,
+   "n_valid": 17,
+   "n_failed_runs": 0,
+   "pass_rate": 1.0,
+   "pass": true
+  },
+  {
+   "id": "battery_dod_last_orbit",
+   "unit": "%",
+   "req": null,
+   "values": [
+    2.9449000215630905,
+    2.944648699996899,
+    2.9383127568414436,
+    2.952599594337424,
+    2.9458064418099505,
+    2.946188623970991,
+    2.9446567072323515,
+    2.946389179161335,
+    2.9453913555778755,
+    2.9443883598554543,
+    2.944457663174438,
+    2.944056690838126,
+    2.944252582397089,
+    2.945311796505534,
+    2.9446860216285953,
+    2.9467309427891886,
+    2.941442949891304
+   ],
+   "mean": 2.944954140445358,
+   "std": 0.0027928030172334074,
+   "min": 2.9383127568414436,
+   "max": 2.952599594337424,
+   "n_valid": 17,
+   "n_failed_runs": 0,
+   "pass_rate": null,
+   "pass": null
   }
  ],
  "per_run": [
@@ -141,7 +210,7 @@
     {
      "id": "ape_3axis_last_orbit",
      "kind": "ape",
-     "value": 102.83547693760333,
+     "value": 145.7989800323299,
      "unit": "deg",
      "req": null,
      "req_key": "",
@@ -150,7 +219,7 @@
     {
      "id": "ape_los_last_orbit",
      "kind": "ape_los",
-     "value": 10.07742008771261,
+     "value": 16.063505793636324,
      "unit": "deg",
      "req": 10.0,
      "req_key": "req.ape",
@@ -159,7 +228,7 @@
     {
      "id": "ake_los_last_orbit",
      "kind": "ake_los",
-     "value": 4.021416363308544,
+     "value": 2.6095421536421792,
      "unit": "deg",
      "req": 5.0,
      "req_key": "req.ake",
@@ -168,11 +237,29 @@
     {
      "id": "power_mean",
      "kind": "power_mean",
-     "value": 0.010337701302644315,
+     "value": 0.010588472788155482,
      "unit": "W",
      "req": 0.5,
      "req_key": "req.pavg",
      "pass": 1
+    },
+    {
+     "id": "power_margin_last_orbit",
+     "kind": "power_margin",
+     "value": 7.277487902147788,
+     "unit": "W",
+     "req": 0.0,
+     "req_key": "scenario",
+     "pass": 1
+    },
+    {
+     "id": "battery_dod_last_orbit",
+     "kind": "battery_dod",
+     "value": 2.9449000215630905,
+     "unit": "%",
+     "req": null,
+     "req_key": "",
+     "pass": null
     }
    ],
    "draws": {
@@ -182,7 +269,7 @@
     "inertia_scale_y": 1.1,
     "inertia_scale_z": 0.9
    },
-   "wall_s": 0.470662726
+   "wall_s": 0.241555023
   },
   {
    "k": 2,
@@ -190,7 +277,7 @@
     {
      "id": "ape_3axis_last_orbit",
      "kind": "ape",
-     "value": 52.20187602267223,
+     "value": 174.73689124778437,
      "unit": "deg",
      "req": null,
      "req_key": "",
@@ -199,7 +286,7 @@
     {
      "id": "ape_los_last_orbit",
      "kind": "ape_los",
-     "value": 6.939752207783525,
+     "value": 8.96175841407584,
      "unit": "deg",
      "req": 10.0,
      "req_key": "req.ape",
@@ -208,7 +295,7 @@
     {
      "id": "ake_los_last_orbit",
      "kind": "ake_los",
-     "value": 3.2081455487780572,
+     "value": 2.875479396790484,
      "unit": "deg",
      "req": 5.0,
      "req_key": "req.ake",
@@ -217,11 +304,29 @@
     {
      "id": "power_mean",
      "kind": "power_mean",
-     "value": 0.01075807395398018,
+     "value": 0.010889777307305537,
      "unit": "W",
      "req": 0.5,
      "req_key": "req.pavg",
      "pass": 1
+    },
+    {
+     "id": "power_margin_last_orbit",
+     "kind": "power_margin",
+     "value": 6.349804983522389,
+     "unit": "W",
+     "req": 0.0,
+     "req_key": "scenario",
+     "pass": 1
+    },
+    {
+     "id": "battery_dod_last_orbit",
+     "kind": "battery_dod",
+     "value": 2.944648699996899,
+     "unit": "%",
+     "req": null,
+     "req_key": "",
+     "pass": null
     }
    ],
    "draws": {
@@ -231,7 +336,7 @@
     "inertia_scale_y": 0.8999999999999999,
     "inertia_scale_z": 1.1
    },
-   "wall_s": 0.31379465
+   "wall_s": 0.2424918
   },
   {
    "k": 3,
@@ -239,7 +344,7 @@
     {
      "id": "ape_3axis_last_orbit",
      "kind": "ape",
-     "value": 179.99298832682848,
+     "value": 179.98013378791444,
      "unit": "deg",
      "req": null,
      "req_key": "",
@@ -248,7 +353,7 @@
     {
      "id": "ape_los_last_orbit",
      "kind": "ape_los",
-     "value": 55.68867037935268,
+     "value": 26.982665411954883,
      "unit": "deg",
      "req": 10.0,
      "req_key": "req.ape",
@@ -257,20 +362,38 @@
     {
      "id": "ake_los_last_orbit",
      "kind": "ake_los",
-     "value": 9.035791690501897,
+     "value": 1.9441837539522888,
      "unit": "deg",
      "req": 5.0,
      "req_key": "req.ake",
-     "pass": 0
+     "pass": 1
     },
     {
      "id": "power_mean",
      "kind": "power_mean",
-     "value": 0.006969904435438309,
+     "value": 0.006736545797074541,
      "unit": "W",
      "req": 0.5,
      "req_key": "req.pavg",
      "pass": 1
+    },
+    {
+     "id": "power_margin_last_orbit",
+     "kind": "power_margin",
+     "value": 6.360932094372736,
+     "unit": "W",
+     "req": 0.0,
+     "req_key": "scenario",
+     "pass": 1
+    },
+    {
+     "id": "battery_dod_last_orbit",
+     "kind": "battery_dod",
+     "value": 2.9383127568414436,
+     "unit": "%",
+     "req": null,
+     "req_key": "",
+     "pass": null
     }
    ],
    "draws": {
@@ -278,7 +401,7 @@
     "edge_high": 0,
     "residual_dipole_Am2": 0.005
    },
-   "wall_s": 0.298201624
+   "wall_s": 0.246748806
   },
   {
    "k": 4,
@@ -286,7 +409,7 @@
     {
      "id": "ape_3axis_last_orbit",
      "kind": "ape",
-     "value": 179.96323113918857,
+     "value": 179.9642940168801,
      "unit": "deg",
      "req": null,
      "req_key": "",
@@ -295,7 +418,7 @@
     {
      "id": "ape_los_last_orbit",
      "kind": "ape_los",
-     "value": 161.89103108454353,
+     "value": 121.17013807086978,
      "unit": "deg",
      "req": 10.0,
      "req_key": "req.ape",
@@ -304,7 +427,7 @@
     {
      "id": "ake_los_last_orbit",
      "kind": "ake_los",
-     "value": 3.9066145232634413,
+     "value": 1.7451964117081784,
      "unit": "deg",
      "req": 5.0,
      "req_key": "req.ake",
@@ -313,11 +436,29 @@
     {
      "id": "power_mean",
      "kind": "power_mean",
-     "value": 0.014043531930466943,
+     "value": 0.017419837305483056,
      "unit": "W",
      "req": 0.5,
      "req_key": "req.pavg",
      "pass": 1
+    },
+    {
+     "id": "power_margin_last_orbit",
+     "kind": "power_margin",
+     "value": 5.064090432538144,
+     "unit": "W",
+     "req": 0.0,
+     "req_key": "scenario",
+     "pass": 1
+    },
+    {
+     "id": "battery_dod_last_orbit",
+     "kind": "battery_dod",
+     "value": 2.952599594337424,
+     "unit": "%",
+     "req": null,
+     "req_key": "",
+     "pass": null
     }
    ],
    "draws": {
@@ -325,7 +466,7 @@
     "edge_high": 1,
     "residual_dipole_Am2": 0.02
    },
-   "wall_s": 0.535486889
+   "wall_s": 0.251816813
   },
   {
    "k": 5,
@@ -333,7 +474,7 @@
     {
      "id": "ape_3axis_last_orbit",
      "kind": "ape",
-     "value": 61.07042533917642,
+     "value": 79.27091605891924,
      "unit": "deg",
      "req": null,
      "req_key": "",
@@ -342,7 +483,7 @@
     {
      "id": "ape_los_last_orbit",
      "kind": "ape_los",
-     "value": 8.422633204493438,
+     "value": 6.596808470914984,
      "unit": "deg",
      "req": 10.0,
      "req_key": "req.ape",
@@ -351,20 +492,38 @@
     {
      "id": "ake_los_last_orbit",
      "kind": "ake_los",
-     "value": 5.592821759177965,
+     "value": 0.8598569868956449,
      "unit": "deg",
      "req": 5.0,
      "req_key": "req.ake",
-     "pass": 0
+     "pass": 1
     },
     {
      "id": "power_mean",
      "kind": "power_mean",
-     "value": 0.010662667686629688,
+     "value": 0.010563856679624894,
      "unit": "W",
      "req": 0.5,
      "req_key": "req.pavg",
      "pass": 1
+    },
+    {
+     "id": "power_margin_last_orbit",
+     "kind": "power_margin",
+     "value": 6.311305874198574,
+     "unit": "W",
+     "req": 0.0,
+     "req_key": "scenario",
+     "pass": 1
+    },
+    {
+     "id": "battery_dod_last_orbit",
+     "kind": "battery_dod",
+     "value": 2.9458064418099505,
+     "unit": "%",
+     "req": null,
+     "req_key": "",
+     "pass": null
     }
    ],
    "draws": {
@@ -372,7 +531,7 @@
     "edge_high": 0,
     "cm_offset_mm": 10.0
    },
-   "wall_s": 0.293260438
+   "wall_s": 0.2562655
   },
   {
    "k": 6,
@@ -380,7 +539,7 @@
     {
      "id": "ape_3axis_last_orbit",
      "kind": "ape",
-     "value": 179.96891211033304,
+     "value": 142.29145241271945,
      "unit": "deg",
      "req": null,
      "req_key": "",
@@ -389,7 +548,7 @@
     {
      "id": "ape_los_last_orbit",
      "kind": "ape_los",
-     "value": 13.823893360207522,
+     "value": 14.23754842490644,
      "unit": "deg",
      "req": 10.0,
      "req_key": "req.ape",
@@ -398,7 +557,7 @@
     {
      "id": "ake_los_last_orbit",
      "kind": "ake_los",
-     "value": 2.4755527935791397,
+     "value": 2.2979597148622872,
      "unit": "deg",
      "req": 5.0,
      "req_key": "req.ake",
@@ -407,11 +566,29 @@
     {
      "id": "power_mean",
      "kind": "power_mean",
-     "value": 0.01036716270900662,
+     "value": 0.01088923621979447,
      "unit": "W",
      "req": 0.5,
      "req_key": "req.pavg",
      "pass": 1
+    },
+    {
+     "id": "power_margin_last_orbit",
+     "kind": "power_margin",
+     "value": 6.272591330669345,
+     "unit": "W",
+     "req": 0.0,
+     "req_key": "scenario",
+     "pass": 1
+    },
+    {
+     "id": "battery_dod_last_orbit",
+     "kind": "battery_dod",
+     "value": 2.946188623970991,
+     "unit": "%",
+     "req": null,
+     "req_key": "",
+     "pass": null
     }
    ],
    "draws": {
@@ -419,7 +596,7 @@
     "edge_high": 1,
     "cm_offset_mm": 30.0
    },
-   "wall_s": 0.332037398
+   "wall_s": 0.265941721
   },
   {
    "k": 7,
@@ -427,7 +604,7 @@
     {
      "id": "ape_3axis_last_orbit",
      "kind": "ape",
-     "value": 97.5265306585475,
+     "value": 148.73311114366567,
      "unit": "deg",
      "req": null,
      "req_key": "",
@@ -436,16 +613,16 @@
     {
      "id": "ape_los_last_orbit",
      "kind": "ape_los",
-     "value": 9.076638071036903,
+     "value": 10.660770778760744,
      "unit": "deg",
      "req": 10.0,
      "req_key": "req.ape",
-     "pass": 1
+     "pass": 0
     },
     {
      "id": "ake_los_last_orbit",
      "kind": "ake_los",
-     "value": 2.078232742141831,
+     "value": 1.3160442639264458,
      "unit": "deg",
      "req": 5.0,
      "req_key": "req.ake",
@@ -454,11 +631,29 @@
     {
      "id": "power_mean",
      "kind": "power_mean",
-     "value": 0.010539074661089332,
+     "value": 0.0105546499383023,
      "unit": "W",
      "req": 0.5,
      "req_key": "req.pavg",
      "pass": 1
+    },
+    {
+     "id": "power_margin_last_orbit",
+     "kind": "power_margin",
+     "value": 5.8694284655261075,
+     "unit": "W",
+     "req": 0.0,
+     "req_key": "scenario",
+     "pass": 1
+    },
+    {
+     "id": "battery_dod_last_orbit",
+     "kind": "battery_dod",
+     "value": 2.9446567072323515,
+     "unit": "%",
+     "req": null,
+     "req_key": "",
+     "pass": null
     }
    ],
    "draws": {
@@ -466,7 +661,7 @@
     "edge_high": 0,
     "F107": 70.0
    },
-   "wall_s": 0.505551958
+   "wall_s": 0.292769641
   },
   {
    "k": 8,
@@ -474,7 +669,7 @@
     {
      "id": "ape_3axis_last_orbit",
      "kind": "ape",
-     "value": 77.62732682735272,
+     "value": 179.99647673220824,
      "unit": "deg",
      "req": null,
      "req_key": "",
@@ -483,16 +678,16 @@
     {
      "id": "ape_los_last_orbit",
      "kind": "ape_los",
-     "value": 9.501512966994653,
+     "value": 20.641677397795117,
      "unit": "deg",
      "req": 10.0,
      "req_key": "req.ape",
-     "pass": 1
+     "pass": 0
     },
     {
      "id": "ake_los_last_orbit",
      "kind": "ake_los",
-     "value": 3.4126902378746857,
+     "value": 3.857624734340659,
      "unit": "deg",
      "req": 5.0,
      "req_key": "req.ake",
@@ -501,11 +696,29 @@
     {
      "id": "power_mean",
      "kind": "power_mean",
-     "value": 0.010584475868204398,
+     "value": 0.010675984119657353,
      "unit": "W",
      "req": 0.5,
      "req_key": "req.pavg",
      "pass": 1
+    },
+    {
+     "id": "power_margin_last_orbit",
+     "kind": "power_margin",
+     "value": 6.577393928223427,
+     "unit": "W",
+     "req": 0.0,
+     "req_key": "scenario",
+     "pass": 1
+    },
+    {
+     "id": "battery_dod_last_orbit",
+     "kind": "battery_dod",
+     "value": 2.946389179161335,
+     "unit": "%",
+     "req": null,
+     "req_key": "",
+     "pass": null
     }
    ],
    "draws": {
@@ -513,7 +726,7 @@
     "edge_high": 1,
     "F107": 220.0
    },
-   "wall_s": 0.407486867
+   "wall_s": 0.247376525
   },
   {
    "k": 9,
@@ -521,7 +734,7 @@
     {
      "id": "ape_3axis_last_orbit",
      "kind": "ape",
-     "value": 54.77330033284189,
+     "value": 179.98793624211092,
      "unit": "deg",
      "req": null,
      "req_key": "",
@@ -530,7 +743,7 @@
     {
      "id": "ape_los_last_orbit",
      "kind": "ape_los",
-     "value": 9.762824631021154,
+     "value": 9.862818121199943,
      "unit": "deg",
      "req": 10.0,
      "req_key": "req.ape",
@@ -539,7 +752,7 @@
     {
      "id": "ake_los_last_orbit",
      "kind": "ake_los",
-     "value": 2.857633220329172,
+     "value": 1.7876835610546538,
      "unit": "deg",
      "req": 5.0,
      "req_key": "req.ake",
@@ -548,11 +761,29 @@
     {
      "id": "power_mean",
      "kind": "power_mean",
-     "value": 0.010626710869674792,
+     "value": 0.010714783914798137,
      "unit": "W",
      "req": 0.5,
      "req_key": "req.pavg",
      "pass": 1
+    },
+    {
+     "id": "power_margin_last_orbit",
+     "kind": "power_margin",
+     "value": 6.554514668730837,
+     "unit": "W",
+     "req": 0.0,
+     "req_key": "scenario",
+     "pass": 1
+    },
+    {
+     "id": "battery_dod_last_orbit",
+     "kind": "battery_dod",
+     "value": 2.9453913555778755,
+     "unit": "%",
+     "req": null,
+     "req_key": "",
+     "pass": null
     }
    ],
    "draws": {
@@ -560,7 +791,7 @@
     "edge_high": 0,
     "Kp": 0.0
    },
-   "wall_s": 0.273807989
+   "wall_s": 0.308325388
   },
   {
    "k": 10,
@@ -568,7 +799,7 @@
     {
      "id": "ape_3axis_last_orbit",
      "kind": "ape",
-     "value": 100.21354363374827,
+     "value": 179.95081580977845,
      "unit": "deg",
      "req": null,
      "req_key": "",
@@ -577,16 +808,16 @@
     {
      "id": "ape_los_last_orbit",
      "kind": "ape_los",
-     "value": 7.56447165696535,
+     "value": 13.977284659488895,
      "unit": "deg",
      "req": 10.0,
      "req_key": "req.ape",
-     "pass": 1
+     "pass": 0
     },
     {
      "id": "ake_los_last_orbit",
      "kind": "ake_los",
-     "value": 2.1064997096837086,
+     "value": 0.45465322528359886,
      "unit": "deg",
      "req": 5.0,
      "req_key": "req.ake",
@@ -595,11 +826,29 @@
     {
      "id": "power_mean",
      "kind": "power_mean",
-     "value": 0.010833971022918519,
+     "value": 0.010729532644394376,
      "unit": "W",
      "req": 0.5,
      "req_key": "req.pavg",
      "pass": 1
+    },
+    {
+     "id": "power_margin_last_orbit",
+     "kind": "power_margin",
+     "value": 6.7676917151650535,
+     "unit": "W",
+     "req": 0.0,
+     "req_key": "scenario",
+     "pass": 1
+    },
+    {
+     "id": "battery_dod_last_orbit",
+     "kind": "battery_dod",
+     "value": 2.9443883598554543,
+     "unit": "%",
+     "req": null,
+     "req_key": "",
+     "pass": null
     }
    ],
    "draws": {
@@ -607,7 +856,7 @@
     "edge_high": 1,
     "Kp": 6.0
    },
-   "wall_s": 0.386904681
+   "wall_s": 0.265170657
   },
   {
    "k": 11,
@@ -615,7 +864,7 @@
     {
      "id": "ape_3axis_last_orbit",
      "kind": "ape",
-     "value": 68.57767133593458,
+     "value": 179.93870476050475,
      "unit": "deg",
      "req": null,
      "req_key": "",
@@ -624,7 +873,7 @@
     {
      "id": "ape_los_last_orbit",
      "kind": "ape_los",
-     "value": 8.764766725804243,
+     "value": 5.720848656353025,
      "unit": "deg",
      "req": 10.0,
      "req_key": "req.ape",
@@ -633,7 +882,7 @@
     {
      "id": "ake_los_last_orbit",
      "kind": "ake_los",
-     "value": 2.572704468661951,
+     "value": 0.7351775790814528,
      "unit": "deg",
      "req": 5.0,
      "req_key": "req.ake",
@@ -642,11 +891,29 @@
     {
      "id": "power_mean",
      "kind": "power_mean",
-     "value": 0.010344499745209991,
+     "value": 0.010572033223883306,
      "unit": "W",
      "req": 0.5,
      "req_key": "req.pavg",
      "pass": 1
+    },
+    {
+     "id": "power_margin_last_orbit",
+     "kind": "power_margin",
+     "value": 6.9680416919497175,
+     "unit": "W",
+     "req": 0.0,
+     "req_key": "scenario",
+     "pass": 1
+    },
+    {
+     "id": "battery_dod_last_orbit",
+     "kind": "battery_dod",
+     "value": 2.944457663174438,
+     "unit": "%",
+     "req": null,
+     "req_key": "",
+     "pass": null
     }
    ],
    "draws": {
@@ -654,7 +921,7 @@
     "edge_high": 0,
     "sigma_accom": 0.7
    },
-   "wall_s": 0.511868296
+   "wall_s": 0.253074749
   },
   {
    "k": 12,
@@ -662,7 +929,7 @@
     {
      "id": "ape_3axis_last_orbit",
      "kind": "ape",
-     "value": 144.63743097977522,
+     "value": 179.9954908537698,
      "unit": "deg",
      "req": null,
      "req_key": "",
@@ -671,16 +938,16 @@
     {
      "id": "ape_los_last_orbit",
      "kind": "ape_los",
-     "value": 8.955989335564514,
+     "value": 12.218049552538153,
      "unit": "deg",
      "req": 10.0,
      "req_key": "req.ape",
-     "pass": 1
+     "pass": 0
     },
     {
      "id": "ake_los_last_orbit",
      "kind": "ake_los",
-     "value": 2.566238440860904,
+     "value": 3.0206063452738996,
      "unit": "deg",
      "req": 5.0,
      "req_key": "req.ake",
@@ -689,11 +956,29 @@
     {
      "id": "power_mean",
      "kind": "power_mean",
-     "value": 0.01036097862389341,
+     "value": 0.01070157185236163,
      "unit": "W",
      "req": 0.5,
      "req_key": "req.pavg",
      "pass": 1
+    },
+    {
+     "id": "power_margin_last_orbit",
+     "kind": "power_margin",
+     "value": 6.772639181270601,
+     "unit": "W",
+     "req": 0.0,
+     "req_key": "scenario",
+     "pass": 1
+    },
+    {
+     "id": "battery_dod_last_orbit",
+     "kind": "battery_dod",
+     "value": 2.944056690838126,
+     "unit": "%",
+     "req": null,
+     "req_key": "",
+     "pass": null
     }
    ],
    "draws": {
@@ -701,7 +986,7 @@
     "edge_high": 1,
     "sigma_accom": 1.0
    },
-   "wall_s": 0.439665663
+   "wall_s": 0.239442383
   },
   {
    "k": 13,
@@ -709,7 +994,7 @@
     {
      "id": "ape_3axis_last_orbit",
      "kind": "ape",
-     "value": 99.69440685491689,
+     "value": 120.76481988134698,
      "unit": "deg",
      "req": null,
      "req_key": "",
@@ -718,7 +1003,7 @@
     {
      "id": "ape_los_last_orbit",
      "kind": "ape_los",
-     "value": 11.190980760325102,
+     "value": 11.79335223054393,
      "unit": "deg",
      "req": 10.0,
      "req_key": "req.ape",
@@ -727,7 +1012,7 @@
     {
      "id": "ake_los_last_orbit",
      "kind": "ake_los",
-     "value": 3.7256904661188,
+     "value": 0.6959744298068193,
      "unit": "deg",
      "req": 5.0,
      "req_key": "req.ake",
@@ -736,11 +1021,29 @@
     {
      "id": "power_mean",
      "kind": "power_mean",
-     "value": 0.01056261865047448,
+     "value": 0.010556229177467022,
      "unit": "W",
      "req": 0.5,
      "req_key": "req.pavg",
      "pass": 1
+    },
+    {
+     "id": "power_margin_last_orbit",
+     "kind": "power_margin",
+     "value": 6.71434240547501,
+     "unit": "W",
+     "req": 0.0,
+     "req_key": "scenario",
+     "pass": 1
+    },
+    {
+     "id": "battery_dod_last_orbit",
+     "kind": "battery_dod",
+     "value": 2.944252582397089,
+     "unit": "%",
+     "req": null,
+     "req_key": "",
+     "pass": null
     }
    ],
    "draws": {
@@ -748,7 +1051,7 @@
     "edge_high": 0,
     "reflectivity": 0.3
    },
-   "wall_s": 0.436633449
+   "wall_s": 0.257298231
   },
   {
    "k": 14,
@@ -756,7 +1059,7 @@
     {
      "id": "ape_3axis_last_orbit",
      "kind": "ape",
-     "value": 92.01672990477067,
+     "value": 179.9903275119571,
      "unit": "deg",
      "req": null,
      "req_key": "",
@@ -765,16 +1068,16 @@
     {
      "id": "ape_los_last_orbit",
      "kind": "ape_los",
-     "value": 8.078304011516995,
+     "value": 10.261142388101804,
      "unit": "deg",
      "req": 10.0,
      "req_key": "req.ape",
-     "pass": 1
+     "pass": 0
     },
     {
      "id": "ake_los_last_orbit",
      "kind": "ake_los",
-     "value": 2.942080183844295,
+     "value": 1.820344126386311,
      "unit": "deg",
      "req": 5.0,
      "req_key": "req.ake",
@@ -783,11 +1086,29 @@
     {
      "id": "power_mean",
      "kind": "power_mean",
-     "value": 0.010599893497020799,
+     "value": 0.010850782857982117,
      "unit": "W",
      "req": 0.5,
      "req_key": "req.pavg",
      "pass": 1
+    },
+    {
+     "id": "power_margin_last_orbit",
+     "kind": "power_margin",
+     "value": 6.629945357323814,
+     "unit": "W",
+     "req": 0.0,
+     "req_key": "scenario",
+     "pass": 1
+    },
+    {
+     "id": "battery_dod_last_orbit",
+     "kind": "battery_dod",
+     "value": 2.945311796505534,
+     "unit": "%",
+     "req": null,
+     "req_key": "",
+     "pass": null
     }
    ],
    "draws": {
@@ -795,7 +1116,7 @@
     "edge_high": 1,
     "reflectivity": 0.9
    },
-   "wall_s": 0.360320558
+   "wall_s": 0.285892094
   },
   {
    "k": 15,
@@ -803,7 +1124,7 @@
     {
      "id": "ape_3axis_last_orbit",
      "kind": "ape",
-     "value": 134.65926645211601,
+     "value": 143.75656397744402,
      "unit": "deg",
      "req": null,
      "req_key": "",
@@ -812,29 +1133,47 @@
     {
      "id": "ape_los_last_orbit",
      "kind": "ape_los",
-     "value": 8.353282933678447,
+     "value": 10.698599800377794,
      "unit": "deg",
      "req": 10.0,
      "req_key": "req.ape",
-     "pass": 1
+     "pass": 0
     },
     {
      "id": "ake_los_last_orbit",
      "kind": "ake_los",
-     "value": 6.647232799088427,
+     "value": 2.0222534307555806,
      "unit": "deg",
      "req": 5.0,
      "req_key": "req.ake",
-     "pass": 0
+     "pass": 1
     },
     {
      "id": "power_mean",
      "kind": "power_mean",
-     "value": 0.010279922355871983,
+     "value": 0.010780712894518447,
      "unit": "W",
      "req": 0.5,
      "req_key": "req.pavg",
      "pass": 1
+    },
+    {
+     "id": "power_margin_last_orbit",
+     "kind": "power_margin",
+     "value": 6.588179902910919,
+     "unit": "W",
+     "req": 0.0,
+     "req_key": "scenario",
+     "pass": 1
+    },
+    {
+     "id": "battery_dod_last_orbit",
+     "kind": "battery_dod",
+     "value": 2.9446860216285953,
+     "unit": "%",
+     "req": null,
+     "req_key": "",
+     "pass": null
     }
    ],
    "draws": {
@@ -842,7 +1181,7 @@
     "edge_high": 0,
     "initial_error_deg": 5.0
    },
-   "wall_s": 0.347160736
+   "wall_s": 0.311137067
   },
   {
    "k": 16,
@@ -850,7 +1189,7 @@
     {
      "id": "ape_3axis_last_orbit",
      "kind": "ape",
-     "value": 114.83699153778166,
+     "value": 179.97507288510587,
      "unit": "deg",
      "req": null,
      "req_key": "",
@@ -859,7 +1198,7 @@
     {
      "id": "ape_los_last_orbit",
      "kind": "ape_los",
-     "value": 8.004392873509039,
+     "value": 8.630110694740427,
      "unit": "deg",
      "req": 10.0,
      "req_key": "req.ape",
@@ -868,7 +1207,7 @@
     {
      "id": "ake_los_last_orbit",
      "kind": "ake_los",
-     "value": 3.2755664383326484,
+     "value": 1.7660813362491152,
      "unit": "deg",
      "req": 5.0,
      "req_key": "req.ake",
@@ -877,11 +1216,29 @@
     {
      "id": "power_mean",
      "kind": "power_mean",
-     "value": 0.010401268160098147,
+     "value": 0.01075883384652459,
      "unit": "W",
      "req": 0.5,
      "req_key": "req.pavg",
      "pass": 1
+    },
+    {
+     "id": "power_margin_last_orbit",
+     "kind": "power_margin",
+     "value": 6.542314483729171,
+     "unit": "W",
+     "req": 0.0,
+     "req_key": "scenario",
+     "pass": 1
+    },
+    {
+     "id": "battery_dod_last_orbit",
+     "kind": "battery_dod",
+     "value": 2.9467309427891886,
+     "unit": "%",
+     "req": null,
+     "req_key": "",
+     "pass": null
     }
    ],
    "draws": {
@@ -889,7 +1246,7 @@
     "edge_high": 1,
     "initial_error_deg": 40.0
    },
-   "wall_s": 0.582631946
+   "wall_s": 0.260136123
   },
   {
    "k": 17,
@@ -897,7 +1254,7 @@
     {
      "id": "ape_3axis_last_orbit",
      "kind": "ape",
-     "value": 179.9042531222138,
+     "value": 112.65970333216806,
      "unit": "deg",
      "req": null,
      "req_key": "",
@@ -906,7 +1263,7 @@
     {
      "id": "ape_los_last_orbit",
      "kind": "ape_los",
-     "value": 65.19097365959577,
+     "value": 53.473758276678396,
      "unit": "deg",
      "req": 10.0,
      "req_key": "req.ape",
@@ -915,7 +1272,7 @@
     {
      "id": "ake_los_last_orbit",
      "kind": "ake_los",
-     "value": 2.696996365873672,
+     "value": 2.0764645294521173,
      "unit": "deg",
      "req": 5.0,
      "req_key": "req.ake",
@@ -924,11 +1281,29 @@
     {
      "id": "power_mean",
      "kind": "power_mean",
-     "value": 0.013413611393983059,
+     "value": 0.012335247987690283,
      "unit": "W",
      "req": 0.5,
      "req_key": "req.pavg",
      "pass": 1
+    },
+    {
+     "id": "power_margin_last_orbit",
+     "kind": "power_margin",
+     "value": 6.845589579747774,
+     "unit": "W",
+     "req": 0.0,
+     "req_key": "scenario",
+     "pass": 1
+    },
+    {
+     "id": "battery_dod_last_orbit",
+     "kind": "battery_dod",
+     "value": 2.941442949891304,
+     "unit": "%",
+     "req": null,
+     "req_key": "",
+     "pass": null
     }
    ],
    "draws": {
@@ -945,8 +1320,35 @@
     "reflectivity": 0.9,
     "initial_error_deg": 40.0
    },
-   "wall_s": 0.437835129
+   "wall_s": 0.262930987
   }
  ],
- "wall_s": 8.352977514266968
+ "wall_s": 0.002653360366821289,
+ "claim": null,
+ "interpretations": [
+  {
+   "id": "ape_3axis_last_orbit",
+   "statistic": "max",
+   "runs": 17,
+   "temporal": 179.996477,
+   "ensemble": 179.996477,
+   "mixed": 179.996477
+  },
+  {
+   "id": "ape_los_last_orbit",
+   "statistic": "max",
+   "runs": 17,
+   "temporal": 121.170138,
+   "ensemble": 121.170138,
+   "mixed": 121.170138
+  },
+  {
+   "id": "ake_los_last_orbit",
+   "statistic": "max",
+   "runs": 17,
+   "temporal": 3.85762473,
+   "ensemble": 3.85762473,
+   "mixed": 3.85762473
+  }
+ ]
 }

@@ -113,10 +113,10 @@ impl FesTable {
     }
 
     /// Parse the `POPFES01` binary written by `refgen/gravity_tides_fes_export.m`.
-    pub fn parse(b: &[u8]) -> Result<FesTable, String> {
-        let bad = || "fes table: truncated or malformed".to_string();
+    pub fn parse(b: &[u8]) -> Result<FesTable, crate::PopError> {
+        let bad = || crate::PopError::Data("fes table: truncated or malformed".to_string());
         if b.len() < 16 || &b[..8] != b"POPFES01" {
-            return Err("fes table: bad magic".into());
+            return Err(crate::PopError::Data("fes table: bad magic".into()));
         }
         let u32le = |o: usize| u32::from_le_bytes([b[o], b[o + 1], b[o + 2], b[o + 3]]) as usize;
         let n = u32le(8);

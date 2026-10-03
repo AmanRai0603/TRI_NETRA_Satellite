@@ -69,7 +69,7 @@ function show_16U(RUNS, SWEEP, WANT, outdir)
 
     % ---- force ladder ---------------------------------------------------------
     % The most instructive plot in the file: it shows WHICH force is worth arguing
-    % about at this altitude. At VLEO drag climbs to within a few orders of J2 and
+    % about at this altitude. At low LEO drag climbs to within a few orders of J2 and
     % everything else is decoration.
     if WANT.forces
         f = figure('Color','w','Name','force ladder','Position',[100 100 1000 560]); figs(end+1)=f;

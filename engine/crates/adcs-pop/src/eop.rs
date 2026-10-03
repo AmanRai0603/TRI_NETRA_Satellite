@@ -86,12 +86,12 @@ pub const C04_FILE: &str = "eopc04_20.1962-now";
 impl Eop {
     /// `get_eop` without the download: read `Leap_Second.dat`, `finals2000A.all` and
     /// (if present) `eopc04_20.1962-now` from `dir` (MATLAB `opt.data_dir`).
-    pub fn from_dir(dir: impl AsRef<Path>) -> Result<Eop, String> {
+    pub fn from_dir(dir: impl AsRef<Path>) -> Result<Eop, crate::PopError> {
         Self::from_dir_opt(dir, &EopLoadOpt::default())
     }
 
     /// [`Eop::from_dir`] with parse options.
-    pub fn from_dir_opt(dir: impl AsRef<Path>, opt: &EopLoadOpt) -> Result<Eop, String> {
+    pub fn from_dir_opt(dir: impl AsRef<Path>, opt: &EopLoadOpt) -> Result<Eop, crate::PopError> {
         let d = dir.as_ref();
         let c04 = d.join(C04_FILE);
         Self::from_files(d.join(LEAP_FILE), d.join(FINALS_FILE), if c04.is_file() { Some(c04) } else { None }, opt)
@@ -99,8 +99,8 @@ impl Eop {
 
     /// Build from explicit files: `parse_leap`, `parse_finals`, and (for B/C)
     /// `parse_c04` + `splice`; each table then goes through `finalize_eop`.
-    pub fn from_files(leap: impl AsRef<Path>, finals: impl AsRef<Path>, c04: Option<impl AsRef<Path>>, opt: &EopLoadOpt) -> Result<Eop, String> {
-        let rd = |p: &Path| std::fs::read(p).map(|b| String::from_utf8_lossy(&b).into_owned()).map_err(|e| format!("could not obtain {}: {e}", p.display()));
+    pub fn from_files(leap: impl AsRef<Path>, finals: impl AsRef<Path>, c04: Option<impl AsRef<Path>>, opt: &EopLoadOpt) -> Result<Eop, crate::PopError> {
+        let rd = |p: &Path| std::fs::read(p).map(|b| String::from_utf8_lossy(&b).into_owned()).map_err(|e| crate::PopError::Data(format!("could not obtain {}: {e}", p.display())));
         let lp = leap.as_ref();
         let ls = parse_leap(&rd(lp)?, lp.to_string_lossy().contains("leap-seconds.list"));
         let fin = parse_finals(&rd(finals.as_ref())?);
@@ -238,7 +238,7 @@ fn median(v: &mut [f64]) -> f64 {
 
 /// `read_c04_numeric(file)`: numeric rows (of the modal length, >= 7 values) and
 /// the last header line mentioning MJD|UT1|dX|Xcip.
-fn read_c04_numeric(txt: &str) -> Result<(Vec<Vec<f64>>, String), String> {
+fn read_c04_numeric(txt: &str) -> Result<(Vec<Vec<f64>>, String), crate::PopError> {
     let mut rows: Vec<Vec<f64>> = Vec::new();
     let mut hdr = String::new();
     for l in split_lines(txt) {
@@ -253,7 +253,7 @@ fn read_c04_numeric(txt: &str) -> Result<(Vec<Vec<f64>>, String), String> {
         let v = sscanf_f(l);
         if v.len() >= 7 { rows.push(v); }
     }
-    if rows.is_empty() { return Err("parse_c04: no numeric rows".into()); }
+    if rows.is_empty() { return Err(crate::PopError::Data("parse_c04: no numeric rows".into())); }
     // mode of the row lengths (smallest on ties, as MATLAB/Octave mode)
     let mut lens: Vec<usize> = rows.iter().map(|r| r.len()).collect();
     lens.sort_unstable();
@@ -305,12 +305,12 @@ pub struct C04 {
 
 /// `parse_c04(file, opt)` of builds B/C (format-adaptive EOP 20 C04 reader; dX,dY
 /// by header name, then positional sign-changing sub-mas pair, with mas/arcsec scaling).
-pub fn parse_c04(txt: &str, opt: &EopLoadOpt) -> Result<C04, String> {
+pub fn parse_c04(txt: &str, opt: &EopLoadOpt) -> Result<C04, crate::PopError> {
     let (r, hdr) = read_c04_numeric(txt)?;
     let mc = locate_mjd_col(&r);
-    if mc == 0 { return Err("parse_c04: could not locate an MJD column in C04 file".into()); }
+    if mc == 0 { return Err(crate::PopError::Data("parse_c04: could not locate an MJD column in C04 file".into())); }
     let nc = r[0].len();
-    if nc < mc + 3 { return Err("parse_c04: C04 rows too short (need x,y,UT1 after MJD)".into()); }
+    if nc < mc + 3 { return Err(crate::PopError::Data("parse_c04: C04 rows too short (need x,y,UT1 after MJD)".into())); }
     let col = |c: usize| -> Vec<f64> { r.iter().map(|row| row[c - 1]).collect() };
     let mut e = C04 { mjd: col(mc), xp: col(mc + 1), yp: col(mc + 2), dut1: col(mc + 3), dx: None, dy: None };
     let (mut ix, mut iy): (Option<i64>, Option<i64>) = (None, None);

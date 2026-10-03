@@ -1,7 +1,7 @@
 # The units and quantities a node may declare (SPEC.md §6.1).
 #
-# The first part is VLEO_SIMULATOR's vleo-units at abf79ee (unit.rs `units!`, quantity.rs
-# QUANTITIES), copied; the part marked origin = "adcs" is §6.1's additions. In the built
+# The first part, origin = "base", is the base registry (unit.rs `units!`, quantity.rs
+# QUANTITIES); the part marked origin = "adcs" is §6.1's additions. In the built
 # repository the registry is adcs-units itself and this file is not read; here it is what
 # the form pick-lists and tools/intake.py check a node form against.
 #
@@ -11,135 +11,135 @@
 
 [[quantity]]
 name = "Acceleration"
-origin = "vleo"
+origin = "base"
 
 [[quantity]]
 name = "Angle"
-origin = "vleo"
+origin = "base"
 
 [[quantity]]
 name = "AngularMomentum"
-origin = "vleo"
+origin = "base"
 
 [[quantity]]
 name = "AngularRate"
-origin = "vleo"
+origin = "base"
 
 [[quantity]]
 name = "Area"
-origin = "vleo"
+origin = "base"
 
 [[quantity]]
 name = "Charge"
-origin = "vleo"
+origin = "base"
 
 [[quantity]]
 name = "Current"
-origin = "vleo"
+origin = "base"
 
 [[quantity]]
 name = "DataRate"
-origin = "vleo"
+origin = "base"
 
 [[quantity]]
 name = "DataVolume"
-origin = "vleo"
+origin = "base"
 
 [[quantity]]
 name = "DipoleMoment"
-origin = "vleo"
+origin = "base"
 
 [[quantity]]
 name = "Energy"
-origin = "vleo"
+origin = "base"
 
 [[quantity]]
 name = "Force"
-origin = "vleo"
+origin = "base"
 
 [[quantity]]
 name = "Frequency"
-origin = "vleo"
+origin = "base"
 
 [[quantity]]
 name = "Impulse"
-origin = "vleo"
+origin = "base"
 
 [[quantity]]
 name = "Irradiance"
-origin = "vleo"
+origin = "base"
 
 [[quantity]]
 name = "Length"
-origin = "vleo"
+origin = "base"
 
 [[quantity]]
 name = "MagneticFluxDensity"
-origin = "vleo"
+origin = "base"
 
 [[quantity]]
 name = "Mass"
-origin = "vleo"
+origin = "base"
 
 [[quantity]]
 name = "MassDensity"
-origin = "vleo"
+origin = "base"
 
 [[quantity]]
 name = "MassFlow"
-origin = "vleo"
+origin = "base"
 
 [[quantity]]
 name = "MassFlux"
-origin = "vleo"
+origin = "base"
 
 [[quantity]]
 name = "MolarMass"
-origin = "vleo"
+origin = "base"
 
 [[quantity]]
 name = "Money"
-origin = "vleo"
+origin = "base"
 
 [[quantity]]
 name = "NumberDensity"
-origin = "vleo"
+origin = "base"
 
 [[quantity]]
 name = "Power"
-origin = "vleo"
+origin = "base"
 
 [[quantity]]
 name = "Pressure"
-origin = "vleo"
+origin = "base"
 
 [[quantity]]
 name = "Ratio"
-origin = "vleo"
+origin = "base"
 
 [[quantity]]
 name = "Temperature"
-origin = "vleo"
+origin = "base"
 
 [[quantity]]
 name = "Time"
-origin = "vleo"
+origin = "base"
 
 [[quantity]]
 name = "Torque"
-origin = "vleo"
+origin = "base"
 
 [[quantity]]
 name = "Velocity"
-origin = "vleo"
+origin = "base"
 
 [[quantity]]
 name = "Voltage"
-origin = "vleo"
+origin = "base"
 
 [[quantity]]
 name = "Volume"
-origin = "vleo"
+origin = "base"
 
 [[quantity]]
 name = "MomentOfInertia"
@@ -171,7 +171,7 @@ symbol = "-"
 si = 1.0
 quantity = ["Ratio"]
 note = "dimensionless ratio"
-origin = "vleo"
+origin = "base"
 
 [[unit]]
 name = "Percent"
@@ -179,7 +179,7 @@ symbol = "%"
 si = 0.01
 quantity = ["Ratio"]
 note = "per cent"
-origin = "vleo"
+origin = "base"
 
 [[unit]]
 name = "Decibel"
@@ -187,7 +187,7 @@ symbol = "dB"
 si = 1.0
 quantity = ["Ratio"]
 note = "decibel, a logarithmic ratio"
-origin = "vleo"
+origin = "base"
 
 [[unit]]
 name = "Count"
@@ -195,7 +195,7 @@ symbol = "#"
 si = 1.0
 quantity = ["Ratio"]
 note = "a whole number of things"
-origin = "vleo"
+origin = "base"
 
 [[unit]]
 name = "Bit"
@@ -203,7 +203,7 @@ symbol = "bit"
 si = 1.0
 quantity = ["DataVolume"]
 note = "one bit"
-origin = "vleo"
+origin = "base"
 
 [[unit]]
 name = "Metre"
@@ -211,7 +211,7 @@ symbol = "m"
 si = 1.0
 quantity = ["Length"]
 note = "metre"
-origin = "vleo"
+origin = "base"
 
 [[unit]]
 name = "Kilometre"
@@ -219,7 +219,7 @@ symbol = "km"
 si = 1000.0
 quantity = ["Length"]
 note = "kilometre"
-origin = "vleo"
+origin = "base"
 
 [[unit]]
 name = "Micrometre"
@@ -227,7 +227,7 @@ symbol = "um"
 si = 1e-06
 quantity = ["Length"]
 note = "micrometre"
-origin = "vleo"
+origin = "base"
 
 [[unit]]
 name = "Nanometre"
@@ -235,7 +235,7 @@ symbol = "nm"
 si = 1e-09
 quantity = ["Length"]
 note = "nanometre"
-origin = "vleo"
+origin = "base"
 
 [[unit]]
 name = "SquareMetre"
@@ -243,7 +243,7 @@ symbol = "m^2"
 si = 1.0
 quantity = ["Area"]
 note = "square metre"
-origin = "vleo"
+origin = "base"
 
 [[unit]]
 name = "CubicMetre"
@@ -251,7 +251,7 @@ symbol = "m^3"
 si = 1.0
 quantity = ["Volume"]
 note = "cubic metre"
-origin = "vleo"
+origin = "base"
 
 [[unit]]
 name = "Kilogram"
@@ -259,7 +259,7 @@ symbol = "kg"
 si = 1.0
 quantity = ["Mass"]
 note = "kilogram"
-origin = "vleo"
+origin = "base"
 
 [[unit]]
 name = "Gram"
@@ -267,7 +267,7 @@ symbol = "g"
 si = 0.001
 quantity = ["Mass"]
 note = "gram"
-origin = "vleo"
+origin = "base"
 
 [[unit]]
 name = "KgPerMol"
@@ -275,7 +275,7 @@ symbol = "kg/mol"
 si = 1.0
 quantity = ["MolarMass"]
 note = "molar mass"
-origin = "vleo"
+origin = "base"
 
 [[unit]]
 name = "Second"
@@ -283,7 +283,7 @@ symbol = "s"
 si = 1.0
 quantity = ["Time"]
 note = "second"
-origin = "vleo"
+origin = "base"
 
 [[unit]]
 name = "Minute"
@@ -291,7 +291,7 @@ symbol = "min"
 si = 60.0
 quantity = ["Time"]
 note = "minute"
-origin = "vleo"
+origin = "base"
 
 [[unit]]
 name = "Hour"
@@ -299,7 +299,7 @@ symbol = "h"
 si = 3600.0
 quantity = ["Time"]
 note = "hour"
-origin = "vleo"
+origin = "base"
 
 [[unit]]
 name = "Day"
@@ -307,7 +307,7 @@ symbol = "d"
 si = 86400.0
 quantity = ["Time"]
 note = "day"
-origin = "vleo"
+origin = "base"
 
 [[unit]]
 name = "Year"
@@ -315,7 +315,7 @@ symbol = "yr"
 si = 31557600.0
 quantity = ["Time"]
 note = "Julian year"
-origin = "vleo"
+origin = "base"
 
 [[unit]]
 name = "MetrePerSecond"
@@ -323,7 +323,7 @@ symbol = "m/s"
 si = 1.0
 quantity = ["Velocity"]
 note = "metre per second"
-origin = "vleo"
+origin = "base"
 
 [[unit]]
 name = "KmPerSecond"
@@ -331,7 +331,7 @@ symbol = "km/s"
 si = 1000.0
 quantity = ["Velocity"]
 note = "kilometre per second"
-origin = "vleo"
+origin = "base"
 
 [[unit]]
 name = "MetrePerSecond2"
@@ -339,7 +339,7 @@ symbol = "m/s^2"
 si = 1.0
 quantity = ["Acceleration"]
 note = "metre per second squared"
-origin = "vleo"
+origin = "base"
 
 [[unit]]
 name = "KgPerSecond"
@@ -347,7 +347,7 @@ symbol = "kg/s"
 si = 1.0
 quantity = ["MassFlow"]
 note = "mass flow"
-origin = "vleo"
+origin = "base"
 
 [[unit]]
 name = "MgPerSecond"
@@ -355,7 +355,7 @@ symbol = "mg/s"
 si = 1e-06
 quantity = ["MassFlow"]
 note = "milligram per second"
-origin = "vleo"
+origin = "base"
 
 [[unit]]
 name = "KgPerCubicMetre"
@@ -363,7 +363,7 @@ symbol = "kg/m^3"
 si = 1.0
 quantity = ["MassDensity"]
 note = "mass density"
-origin = "vleo"
+origin = "base"
 
 [[unit]]
 name = "PerCubicMetre"
@@ -371,7 +371,7 @@ symbol = "1/m^3"
 si = 1.0
 quantity = ["NumberDensity"]
 note = "number density"
-origin = "vleo"
+origin = "base"
 
 [[unit]]
 name = "Newton"
@@ -379,7 +379,7 @@ symbol = "N"
 si = 1.0
 quantity = ["Force"]
 note = "newton"
-origin = "vleo"
+origin = "base"
 
 [[unit]]
 name = "Millinewton"
@@ -387,7 +387,7 @@ symbol = "mN"
 si = 0.001
 quantity = ["Force"]
 note = "millinewton"
-origin = "vleo"
+origin = "base"
 
 [[unit]]
 name = "Micronewton"
@@ -395,7 +395,7 @@ symbol = "uN"
 si = 1e-06
 quantity = ["Force"]
 note = "micronewton"
-origin = "vleo"
+origin = "base"
 
 [[unit]]
 name = "NewtonMetre"
@@ -403,7 +403,7 @@ symbol = "N.m"
 si = 1.0
 quantity = ["Torque"]
 note = "torque"
-origin = "vleo"
+origin = "base"
 
 [[unit]]
 name = "NewtonSecond"
@@ -411,7 +411,7 @@ symbol = "N.s"
 si = 1.0
 quantity = ["Impulse"]
 note = "impulse"
-origin = "vleo"
+origin = "base"
 
 [[unit]]
 name = "NewtonMetreSecond"
@@ -419,7 +419,7 @@ symbol = "N.m.s"
 si = 1.0
 quantity = ["AngularMomentum"]
 note = "angular momentum"
-origin = "vleo"
+origin = "base"
 
 [[unit]]
 name = "Pascal"
@@ -427,7 +427,7 @@ symbol = "Pa"
 si = 1.0
 quantity = ["Pressure"]
 note = "pascal"
-origin = "vleo"
+origin = "base"
 
 [[unit]]
 name = "Joule"
@@ -435,7 +435,7 @@ symbol = "J"
 si = 1.0
 quantity = ["Energy"]
 note = "joule"
-origin = "vleo"
+origin = "base"
 
 [[unit]]
 name = "WattHour"
@@ -443,7 +443,7 @@ symbol = "Wh"
 si = 3600.0
 quantity = ["Energy"]
 note = "watt-hour"
-origin = "vleo"
+origin = "base"
 
 [[unit]]
 name = "Watt"
@@ -451,7 +451,7 @@ symbol = "W"
 si = 1.0
 quantity = ["Power"]
 note = "watt"
-origin = "vleo"
+origin = "base"
 
 [[unit]]
 name = "Kilowatt"
@@ -459,7 +459,7 @@ symbol = "kW"
 si = 1000.0
 quantity = ["Power"]
 note = "kilowatt"
-origin = "vleo"
+origin = "base"
 
 [[unit]]
 name = "WattPerSquareMetre"
@@ -467,7 +467,7 @@ symbol = "W/m^2"
 si = 1.0
 quantity = ["Irradiance"]
 note = "irradiance"
-origin = "vleo"
+origin = "base"
 
 [[unit]]
 name = "Kelvin"
@@ -475,7 +475,7 @@ symbol = "K"
 si = 1.0
 quantity = ["Temperature"]
 note = "kelvin"
-origin = "vleo"
+origin = "base"
 
 [[unit]]
 name = "Radian"
@@ -483,7 +483,7 @@ symbol = "rad"
 si = 1.0
 quantity = ["Angle"]
 note = "radian"
-origin = "vleo"
+origin = "base"
 
 [[unit]]
 name = "Degree"
@@ -491,7 +491,7 @@ symbol = "deg"
 si = 0.017453292519943295
 quantity = ["Angle"]
 note = "degree"
-origin = "vleo"
+origin = "base"
 
 [[unit]]
 name = "RadianPerSecond"
@@ -499,7 +499,7 @@ symbol = "rad/s"
 si = 1.0
 quantity = ["AngularRate"]
 note = "angular rate"
-origin = "vleo"
+origin = "base"
 
 [[unit]]
 name = "DegreePerSecond"
@@ -507,7 +507,7 @@ symbol = "deg/s"
 si = 0.017453292519943295
 quantity = ["AngularRate"]
 note = "degree per second"
-origin = "vleo"
+origin = "base"
 
 [[unit]]
 name = "DegreePerDay"
@@ -515,7 +515,7 @@ symbol = "deg/d"
 si = 2.019133393046672e-07
 quantity = ["AngularRate"]
 note = "degree per day"
-origin = "vleo"
+origin = "base"
 
 [[unit]]
 name = "Arcsecond"
@@ -523,7 +523,7 @@ symbol = "arcsec"
 si = 4.84813681109536e-06
 quantity = ["Angle"]
 note = "arcsecond"
-origin = "vleo"
+origin = "base"
 
 [[unit]]
 name = "Volt"
@@ -531,7 +531,7 @@ symbol = "V"
 si = 1.0
 quantity = ["Voltage"]
 note = "volt"
-origin = "vleo"
+origin = "base"
 
 [[unit]]
 name = "Ampere"
@@ -539,7 +539,7 @@ symbol = "A"
 si = 1.0
 quantity = ["Current"]
 note = "ampere"
-origin = "vleo"
+origin = "base"
 
 [[unit]]
 name = "AmpereHour"
@@ -547,7 +547,7 @@ symbol = "Ah"
 si = 3600.0
 quantity = ["Charge"]
 note = "ampere-hour"
-origin = "vleo"
+origin = "base"
 
 [[unit]]
 name = "Tesla"
@@ -555,7 +555,7 @@ symbol = "T"
 si = 1.0
 quantity = ["MagneticFluxDensity"]
 note = "tesla"
-origin = "vleo"
+origin = "base"
 
 [[unit]]
 name = "AmpereSquareMetre"
@@ -563,7 +563,7 @@ symbol = "A.m^2"
 si = 1.0
 quantity = ["DipoleMoment"]
 note = "magnetic dipole moment"
-origin = "vleo"
+origin = "base"
 
 [[unit]]
 name = "Coulomb"
@@ -571,7 +571,7 @@ symbol = "C"
 si = 1.0
 quantity = ["Charge"]
 note = "coulomb"
-origin = "vleo"
+origin = "base"
 
 [[unit]]
 name = "ElectronVolt"
@@ -579,7 +579,7 @@ symbol = "eV"
 si = 1.602176634e-19
 quantity = ["Energy"]
 note = "electronvolt"
-origin = "vleo"
+origin = "base"
 
 [[unit]]
 name = "Hertz"
@@ -587,7 +587,7 @@ symbol = "Hz"
 si = 1.0
 quantity = ["Frequency"]
 note = "hertz"
-origin = "vleo"
+origin = "base"
 
 [[unit]]
 name = "Megahertz"
@@ -595,7 +595,7 @@ symbol = "MHz"
 si = 1000000.0
 quantity = ["Frequency"]
 note = "megahertz"
-origin = "vleo"
+origin = "base"
 
 [[unit]]
 name = "Gigahertz"
@@ -603,7 +603,7 @@ symbol = "GHz"
 si = 1000000000.0
 quantity = ["Frequency"]
 note = "gigahertz"
-origin = "vleo"
+origin = "base"
 
 [[unit]]
 name = "BitPerSecond"
@@ -611,7 +611,7 @@ symbol = "bit/s"
 si = 1.0
 quantity = ["DataRate"]
 note = "bit per second"
-origin = "vleo"
+origin = "base"
 
 [[unit]]
 name = "MegabitPerSecond"
@@ -619,7 +619,7 @@ symbol = "Mbit/s"
 si = 1000000.0
 quantity = ["DataRate"]
 note = "megabit per second"
-origin = "vleo"
+origin = "base"
 
 [[unit]]
 name = "Gigabit"
@@ -627,7 +627,7 @@ symbol = "Gbit"
 si = 1000000000.0
 quantity = ["DataVolume"]
 note = "gigabit"
-origin = "vleo"
+origin = "base"
 
 [[unit]]
 name = "Gigabyte"
@@ -635,7 +635,7 @@ symbol = "GB"
 si = 8000000000.0
 quantity = ["DataVolume"]
 note = "gigabyte, as bits"
-origin = "vleo"
+origin = "base"
 
 [[unit]]
 name = "UsDollar"
@@ -643,7 +643,7 @@ symbol = "USD"
 si = 1.0
 quantity = ["Money"]
 note = "United States dollar"
-origin = "vleo"
+origin = "base"
 
 [[unit]]
 name = "MillionUsDollar"
@@ -651,7 +651,7 @@ symbol = "MUSD"
 si = 1000000.0
 quantity = ["Money"]
 note = "million United States dollars"
-origin = "vleo"
+origin = "base"
 
 [[unit]]
 name = "KilogramSquareMetre"

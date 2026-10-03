@@ -5,6 +5,7 @@ function D = init(P)
 %   draws are still made (seeded), so a Monte Carlo run k differs from the
 %   nominal only by its seed and its dispersed case/scenario values.
     dv = P.dev; D = struct('gps_dead', false);
+    D.gpsh = struct('t', zeros(1,0), 'r', zeros(3,0), 'v', zeros(3,0));   % truth history for the GNSS latency
     ma = @(s) asils.quat.dcm(asils.quat.fromrotvec(s*randn(3,1)));   % small misalignment DCM
     if dv.gyro.fitted
         g = dv.gyro;
@@ -30,9 +31,10 @@ function D = init(P)
             D.st.q_mis(:,h) = asils.quat.fromrotvec(s.misalign_sigma*randn(3,1));
         end
         D.st.hist_q = []; D.st.hist_t = []; D.st.dead = false(1, nh);
+        D.st.blind_until = -Inf(1, nh);        % blind after the Sun / Moon left the exclusion cone
         if any(strcmp(s.model, {'quest', 'image'})), D.st.cat = asils.devices.star_catalogue(4000); end
         if strcmp(s.model, 'image')          % component level: camera + onboard pair table
-            D.st.cam = asils.comp.star_tracker.camera(s.fov);
+            D.st.cam = asils.comp.star_tracker.camera(s.fov, s.camera);   % every value from the part
             D.st.K = asils.comp.star_tracker.pairs(D.st.cat, s.fov);
         end
     end
@@ -42,6 +44,7 @@ function D = init(P)
         A = t.axes;
         for j = 1:n, A(:,j) = ma(t.misalign_rad) * A(:,j); end
         D.mtq.A = A; D.mtq.dead = false(1, n);
+        D.mtq.m = zeros(1, n); D.mtq.mc = zeros(1, n);   % coil dipoles now, and the last command (RL lag)
     end
     if dv.es.fitted
         D.es.bias = asils.quat.fromrotvec(dv.es.bias_sigma*randn(3,1));

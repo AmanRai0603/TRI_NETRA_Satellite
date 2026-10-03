@@ -73,8 +73,10 @@ interval (2020–2025) is extrapolated for 2027; IGRF-14 is the table to load fo
 ```
 orbit_step(r, v, dt):
     if gnss fix this tick:
-        if gnss_ecef: C = eci2ecef(jd); r = Cᵀ r_e; v = Cᵀ (v_e + ω_E ẑ × r_e)    # receivers fix in ECEF
+        L = gps_latency                                                # the fix is the state L seconds ago
+        if gnss_ecef: C = eci2ecef(jd − L/86400); r = Cᵀ r_e; v = Cᵀ (v_e + ω_E ẑ × r_e)    # receivers fix in ECEF
         else: r, v = fix
+        if L > 0: a0 = acc(r); r += v L + a0 L²/2; v += (a0 + acc(r)) L/2  # carried forward to now
     elif r known (velocity Verlet, two-body + J2):
         a0 = acc(r); r += v dt + a0 dt²/2; v += (a0 + acc(r)) dt/2
 acc(r) = −μ r/|r|³ − 1.5 J2 μ R_E²/|r|⁵ [x(1 − 5z²/r²), y(1 − 5z²/r²), z(3 − 5z²/r²)]

@@ -81,7 +81,7 @@ pub fn rcs_duty(req: &V3, p: &Params, t: f64) -> ([f64; MAX_COUPLES], V3) {
         let u = req[ax];
         if u == 0.0 { continue; }
         let k = if u > 0.0 { 2*ax } else { 2*ax + 1 };
-        if k >= p.nc as usize { continue; }
+        if k >= p.nc as usize || !(fabs(p.rcs_tau[k][ax]) > 0.0) { continue; }   // no couple for this axis and sense
         let mut on = fabs(u)/fabs(p.rcs_tau[k][ax]);
         if on > 1.0 { on = 1.0; }
         on *= t;

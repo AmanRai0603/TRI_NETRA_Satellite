@@ -9,9 +9,11 @@ processes; campaigns are collected and plotted at the end.
 MATLAB users: run_scenarios and run_campaign (parfor) do the same.
 Copyright (c) 2026 Agastya. All rights reserved.
 """
-import argparse, json, pathlib, subprocess, time, concurrent.futures as cf
+import argparse, json, subprocess, sys, time, concurrent.futures as cf
+from common import write_text
+from common import ROOT as REPO
 
-ROOT = pathlib.Path(__file__).resolve().parents[1] / "matlab_sils"
+ROOT = REPO / "matlab_sils"
 LOG = ROOT / "store" / "logs"
 
 def octave(code, log):
@@ -21,9 +23,11 @@ def octave(code, log):
 
 def orbit_period(case):
     """Orbit period [s] from the case's altitude (circular)."""
-    import csv, math
-    with open(ROOT / "cases" / f"{case}.csv") as f:
-        alt = next(float(r["value"]) for r in csv.DictReader(f) if r["key"] == "orbit.alt")
+    import math
+    from common import case_values
+    alt = case_values(case).get("orbit.alt")
+    if alt is None:
+        raise SystemExit(f"case {case} does not state orbit.alt")
     return 2 * math.pi * math.sqrt((6378137 + alt * 1e3) ** 3 / 3.986004418e14)
 
 
@@ -33,7 +37,7 @@ def main():
     ap.add_argument("--cases", default="ais_3u,ais_img_3u", help="cases for --only solutions")
     ap.add_argument("--seeds", default="1,2"); a = ap.parse_args()
     LOG.mkdir(parents=True, exist_ok=True)
-    jobs = []
+    jobs, failed = [], []
     if a.only in ("all", "scenarios"):
         for f in sorted((ROOT / "data" / "scenarios").glob("*.json")):
             s = json.loads(f.read_text()); cost = s["time"]["duration_s"] / s["time"]["dt_s"]
@@ -59,7 +63,10 @@ def main():
         seeds = [int(x) for x in a.seeds.split(",")]
         for c in a.cases.split(","):
             rc = octave(f"asils.sizing.size_all('{c}', struct('quiet', true));", LOG / f"size_{c}.log")
-            print(f"sized {c} rc={rc}", flush=True)
+            print(f"{'[FAIL] ' if rc else ''}sized {c} rc={rc}", flush=True)
+            if rc:                          # no mode tests on a case that was not sized
+                failed.append(f"size {c}")
+                continue
             T = orbit_period(c)
             k = 0
             for mf in sorted((ROOT / "data" / "modes").glob("*.json"), key=lambda f: json.loads(f.read_text())["order"]):
@@ -76,21 +83,33 @@ def main():
         futs = {ex.submit(octave, code, LOG / (name.replace(':', '_') + ".log")): name for _, name, code in jobs}
         for fu in cf.as_completed(futs):
             done += 1
-            print(f"[{time.time()-t0:7.0f} s] {done}/{len(jobs)} {futs[fu]} rc={fu.result()}", flush=True)
+            rc = fu.result()
+            if rc:
+                failed.append(futs[fu])
+            print(f"[{time.time()-t0:7.0f} s] {done}/{len(jobs)} {futs[fu]} rc={rc}{'  [FAIL]' if rc else ''}", flush=True)
     if a.only in ("all", "campaigns"):
         for f in sorted((ROOT / "data" / "campaigns").glob("*.json")):
             cid = f.stem
             rc = octave(f"run_campaign('{cid}');", LOG / f"collect_{cid}.log")
             print(f"collected {cid} rc={rc}", flush=True)
+            if rc:
+                failed.append(f"collect {cid}")
     if a.only in ("all", "trades"):
         for f in sorted((ROOT / "data" / "trades").glob("*.json")):
             rc = octave(f"asils.trade.collect('{f.stem}');", LOG / f"collect_{f.stem}.log")
             print(f"collected {f.stem} rc={rc}", flush=True)
+            if rc:
+                failed.append(f"collect {f.stem}")
     if a.only == "solutions":
         for c in a.cases.split(","):
             rc = octave(f"asils.solution.collect('{c}');", LOG / f"collect_solution_{c}.log")
             print(f"collected solution {c} rc={rc}", flush=True)
-    (LOG / "matrix.done").write_text("done\n")
+            if rc:
+                failed.append(f"collect solution {c}")
+    if failed:
+        write_text(LOG / "matrix.failed", "\n".join(failed) + "\n")
+        sys.exit(f"run_matrix: {len(failed)} job(s) failed ({', '.join(failed[:8])}{' ...' if len(failed) > 8 else ''}); see {LOG}")
+    write_text(LOG / "matrix.done", "done\n")
 
 if __name__ == "__main__":
     main()
