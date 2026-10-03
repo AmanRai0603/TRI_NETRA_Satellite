@@ -529,6 +529,16 @@ writes = []
 runs = []
 
 [[command]]
+tool = "node_catalog.py"
+name = "node_catalog"
+usage = "python3 tools/node_catalog.py [--check]"
+what = "The node app's catalogue (design/js/node_catalog.js), written from the spec: the units and the quantities each measures, the physics relations, the sources, the evidence metrics and rungs, the provenance and belief words, the tags and every row of the tree with its label, kind, quantity, unit and layer. The node app offers these as its choices, so they are never typed by hand. --check says whether the committed file is current."
+steps = ["read the spec's units, quantities, physics, sources, evidence vocabulary and tree", "write design/js/node_catalog.js (or, with --check, compare)"]
+reads = ["spec/"]
+writes = ["design/js/node_catalog.js"]
+runs = []
+
+[[command]]
 tool = "drive_pack.py"
 name = "drive-pack"
 usage = "python3 tools/drive_pack.py [--out DIR] [--rev REV]"

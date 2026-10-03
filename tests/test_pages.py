@@ -104,6 +104,38 @@ class Browser(unittest.TestCase):
             groups, _ = group.load(d / "out")
             self.assertIn("act_friction_model", groups["ctl"]["nodes"])
 
+    def test_the_node_app(self):
+        with tempfile.TemporaryDirectory() as d:
+            d = pathlib.Path(d)
+            page = pages.build(d / "pages")["node"][0]
+            seed_design.seed(d / "design", sync=False)
+            # gm_0 issued to Asha, a contract from ctl on it, and a comment from the lead of act
+            with sqlite3.connect(d / "design" / "structure" / "act.group.tndb") as c:
+                c.execute("INSERT INTO member VALUES ('Asha', 'author')")
+                c.execute("INSERT INTO member_node VALUES ('gm_0', 'Asha', '2026-10-03T08:00:00Z')")
+                c.execute("INSERT INTO contract VALUES ('gm_0', 'm_av', 'AmpereSquareMetre', 2, 'ctl')")
+            with sqlite3.connect(d / "design" / "nodes" / "gm_0.node.tndb") as c:
+                c.execute("UPDATE node SET author = 'Asha'")
+                c.execute("INSERT INTO comment VALUES ('c1', '2026-10-03T09:00:00Z', 'Lead of act', 'gm_0', NULL, "
+                          "'Check the value against the datasheet, please.', 0)")
+            self.assertEqual(group.check(d / "design"), [])
+            r = subprocess.run([NODE, str(ROOT / "tests" / "browser" / "node.test.mjs"), str(page), str(d / "design"), str(d / "out")],
+                               capture_output=True, text=True, timeout=1500, env={**os.environ, "PLAYWRIGHT_MODULE": str(PLAYWRIGHT)})
+            sys.stdout.write(r.stdout[-4000:])
+            self.assertEqual(r.returncode, 0, r.stdout[-4000:] + r.stderr[-2000:])
+            self.assertEqual([e for f in sorted((d / "out").rglob("*.tndb")) for e in tndb.check(f)], [])
+            self.assertEqual(group.check(d / "out"), [])
+            with sqlite3.connect(d / "out" / "nodes" / "m2_4.node.tndb") as c:
+                self.assertTrue(c.execute("SELECT count(*) FROM signature").fetchone()[0] >= 1)
+
+
+@unittest.skipUnless(NODE, "Node.js is needed for the node model's rule tests")
+class NodeModel(unittest.TestCase):
+    def test_rules(self):
+        r = subprocess.run([NODE, str(ROOT / "tests" / "js" / "node_model.test.mjs")], capture_output=True, text=True, timeout=300)
+        self.assertEqual(r.returncode, 0, r.stdout[-4000:] + r.stderr[-2000:])
+        self.assertIn("0 failed", r.stdout)
+
 
 if __name__ == "__main__":
     unittest.main()

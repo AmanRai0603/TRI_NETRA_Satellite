@@ -19,7 +19,7 @@ The rules (check):
       innerHTML): those come from design/js/tn_ui.js and design/css/tn.css;
     - no outside hosts: nothing in a built page loads from http(s) (src, href, url(), @import,
       fetch, import());
-    - the modules of a page share one scope, so no two declare the same top-level name.
+    - each module of a page runs in a scope of its own, and takes from the others only what they export.
 
 Built pages are not committed (they are built in CI and shipped in the kits); the browser tests
 (tests/browser/files.test.mjs) run against a fresh build.
@@ -38,17 +38,19 @@ ROOT = pathlib.Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "tools"))
 from common import write_text  # noqa: E402
 
-PAGES = {"files": "design/pages/files.template.html", "group": "design/pages/group.template.html"}
+PAGES = {"files": "design/pages/files.template.html", "group": "design/pages/group.template.html",
+         "node": "design/pages/node.template.html"}
 VENDOR = ROOT / "design" / "vendor"
 OUT = ROOT / "build" / "pages"
 UI_FILES = {"design/js/tn_ui.js", "design/css/tn.css"}
+# modules that never touch the page (the language, the generated tables): the component rules do not apply
+LIBRARY_FILES = {"design/js/pcode.js", "design/js/node_catalog.js", "design/js/tndb_schema.js"}
 MAX_PAGE_BYTES = 4 * 1024 * 1024
 
 DIRECTIVE = re.compile(r"<!--\s*tn:(\w+)\s*([^>]*?)\s*-->")
 IMPORT = re.compile(r'^\s*import\s*\{([^}]*)\}\s*from\s*"(\./[\w.]+)";?\s*$', re.M)
 ANY_IMPORT = re.compile(r"^\s*import\b", re.M)
 EXPORT = re.compile(r"^export\s+(?=(async\s+)?function|const|let|class)", re.M)
-TOP_DECL = re.compile(r"^(?:export\s+)?(?:async\s+)?(?:function\*?|const|let|class)\s+([A-Za-z_$][\w$]*)", re.M)
 FORBIDDEN = [
     (re.compile(r'\bh\(\s*"(button|input|textarea|select|dialog|a)"'), "makes a {0} element of its own"),
     (re.compile(r"createElement\("), "creates elements with createElement"),
@@ -84,36 +86,46 @@ def vendored(vendor=VENDOR):
     return out, pins
 
 
+EXPORTED = re.compile(r"^export\s+(?:async\s+)?(?:function\*?|const|let|class)\s+([A-Za-z_$][\w$]*)", re.M)
+
+
 def bundle(entry):
-    """An ES module and what it imports, one after the other, imports dropped and exports
-    unmarked: one inline module. Returns (code, [files in order])."""
+    """An ES module and what it imports, as one inline module: each module in a scope of its own
+    (a function returning its exports), imports taken from the exports of the module they name,
+    dependencies first. Returns (code, [files in order])."""
     order, seen = [], set()
+
+    def key(rel):
+        return "__m_" + re.sub(r"\W", "_", rel)
 
     def visit(rel):
         if rel in seen:
             return
         seen.add(rel)
         text = (ROOT / rel).read_text()
-        for _names, dep in IMPORT.findall(text):
-            visit(str((pathlib.PurePosixPath(rel).parent / dep[2:])))
+        deps = []
+        for names, dep in IMPORT.findall(text):
+            target = str(pathlib.PurePosixPath(rel).parent / dep[2:])
+            visit(target)
+            pairs = []
+            for n in [x.strip() for x in names.split(",") if x.strip()]:
+                a, _, b = n.partition(" as ")
+                pairs.append(f"{a.strip()}: {b.strip()}" if b else a.strip())
+            deps.append(f"const {{ {', '.join(pairs)} }} = {key(target)};")
         stripped = IMPORT.sub("", text)
         if ANY_IMPORT.search(stripped):
             raise PageError(f"{rel}: an import the page builder cannot inline (only `import {{ a, b }} from \"./x.js\";`)")
-        order.append((rel, EXPORT.sub("", stripped)))
+        exports = EXPORTED.findall(stripped)
+        body = EXPORT.sub("", stripped)
+        order.append((rel, f"const {key(rel)} = (() => {{\n{chr(10).join(deps)}\n{body}\nreturn {{ {', '.join(exports)} }};\n}})();"))
 
     visit(entry)
-    names = {}
-    for rel, code in order:
-        for n in TOP_DECL.findall(code):
-            if n in names:
-                raise PageError(f"{n} is declared at the top of both {names[n]} and {rel}; the page's modules share one scope")
-            names[n] = rel
     code = "\n".join(f"// ---- {rel}\n{c}" for rel, c in order)
     return code, [rel for rel, _ in order]
 
 
 def component_problems(rel):
-    if rel in UI_FILES:
+    if rel in UI_FILES or rel in LIBRARY_FILES:
         return []
     text = (ROOT / rel).read_text()
     out = []

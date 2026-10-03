@@ -335,6 +335,21 @@ inside them.
 | Change requests | ✅ raised to another group, accepted or declined by its lead in its own file; moving a node into a group, and archiving or merging a node another group reads, wait for that group's acceptance |
 | Proof | ✅ on the whole seeded design (20 groups, 734 nodes): all 20 groups open; `act` (138) and `catalogue` (8) restructured with every action; a node moved from `act` to `ctl` after `ctl` accepted; what another group reads kept until it agreed; someone else's open file stops an action; afterwards every file passes `tndb check` and the structure rules hold in both checkers (`structure.js` and `tools/group.py`, written separately and given the same broken folders). Under Node (`tests/test_structure.py`) and through the page in Chromium (`tests/browser/group.test.mjs`) |
 
+**Progress of P5** (node app; `docs/NODE_APP.md`):
+
+| item | state |
+|---|---|
+| All steps | ✅ identity, explanation, theory, inputs and output, value / requirement / evidence, pseudocode, results, evidence, pictures, code, belief record, feedback; each field with its question, why it is asked and an example; the kind (fixed by the tree, given by the spec, or chosen by the author for a row the spec has not named) decides the steps (`design/js/node_model.js`) |
+| Starting values | ✅ what the spec already says about the row (seeded content) taken in with one click; never changes what the group decides |
+| Equation helper | ✅ a palette of symbols and the node's inputs, inserted at the cursor, with how the equation reads |
+| Uploads and picture wizard | ✅ PNG, JPEG, GIF, WebP; over 500 KB made smaller (JPEG, scaled) before it is kept; shown as images only |
+| Results import | ✅ pasted from Excel or Sheets (tab-separated), shown as a table, kept in the node file |
+| Live checks | ✅ the spec's intake rules for one node, in the page (units against the quantity, sources, inputs and contracts, the pseudocode checker, test vectors run by **Try it**, the explanation standard's marks, evidence metric and rung, belief record); evidence debt; each problem names its rule and its field; the catalogue they check against written from the spec (`tools/node_catalog.py`, current in `check_all`) |
+| Preview | ✅ the node as a reader sees it, answer first (`design/js/node_view.js`) |
+| Ready, sign | ✅ marked ready with a fingerprint of the content; signed as checked by someone other than its author; any later edit makes both stale |
+| Contract updates | ✅ a changed contract on an input is acknowledged on Home; a contract change asked of the owning group as a change request |
+| Proof | ✅ on the whole seeded design in Chromium (`tests/browser/node.test.mjs`, in `check_all` as part of `offline-pages`): declared, computed, KPI, evidence, closure, interface and an unnamed row filled and previewed through the page; the folder it leaves passes `tools/tndb.py check` and `tools/group.py check`. Each check rule by rule under Node (`tests/js/node_model.test.mjs`) |
+
 ## 6 · What 1.0.0 contains
 
 - **Node app and group app:** offline, one file each, with manuals.

@@ -36,10 +36,10 @@ export function button(label, onClick, { kind = "default", disabled = false, tit
 
 let fieldSeq = 0;
 /** A labelled input (or textarea when multiline). Returns { el, input, value, setError }. */
-export function field(label, { value = "", multiline = false, help = "", readOnly = false, mono = false, placeholder = "", testid = "", onInput = null } = {}) {
+export function field(label, { value = "", multiline = false, help = "", readOnly = false, mono = false, placeholder = "", testid = "", onInput = null, onChange = null, rows = null } = {}) {
   const id = `tn-f${++fieldSeq}`;
-  const input = h(multiline ? "textarea" : "input", { id, class: `tn-input${mono ? " tn-mono" : ""}`, readonly: readOnly, placeholder: placeholder || null,
-    "data-testid": testid || null, type: multiline ? null : "text", oninput: onInput ? (e) => onInput(e.target.value) : null });
+  const input = h(multiline ? "textarea" : "input", { id, class: `tn-input${mono ? " tn-mono" : ""}`, readonly: readOnly, placeholder: placeholder || null, rows: rows || null,
+    "data-testid": testid || null, type: multiline ? null : "text", oninput: onInput ? (e) => onInput(e.target.value) : null, onchange: onChange ? (e) => onChange(e.target.value) : null });
   input.value = value;
   const err = h("div", { class: "tn-error", role: "alert" });
   const el = h("div", { class: "tn-field" }, h("label", { for: id }, label), input, help ? h("div", { class: "tn-help" }, help) : null, err);
@@ -187,18 +187,27 @@ export function impactList(items) {
     .map((i) => h("li", { class: `tn-impact-${i.level}` }, badge(label[i.level], cls[i.level]), " ", i.text)));
 }
 
+/** Insert text at the caret of an input or textarea (the equation helper). */
+export function insertAt(input, text) {
+  input.focus();
+  input.setRangeText(text, input.selectionStart ?? input.value.length, input.selectionEnd ?? input.value.length, "end");
+  input.dispatchEvent(new Event("input", { bubbles: true }));
+}
+
 /** A choice from a list: { el, value }. options: [[value, label]]. */
-export function choice(label, options, { value = "", testid = "", help = "" } = {}) {
+export function choice(label, options, { value = "", testid = "", help = "", onChange = null, disabled = false } = {}) {
   const id = `tn-f${++fieldSeq}`;
-  const sel = h("select", { id, class: "tn-input", "data-testid": testid || null }, options.map(([v, l]) => h("option", { value: v }, l)));
+  const sel = h("select", { id, class: "tn-input", "data-testid": testid || null, disabled, onchange: onChange ? (e) => onChange(e.target.value) : null }, options.map(([v, l]) => h("option", { value: v }, l)));
   sel.value = value;
   const el = h("div", { class: "tn-field" }, h("label", { for: id }, label), sel, help ? h("div", { class: "tn-help" }, help) : null);
   return { el, input: sel, get value() { return sel.value; } };
 }
 
 /** Several choices: { el, values }. */
-export function checks(label, options, { testid = "" } = {}) {
-  const boxes = options.map(([v, l]) => { const b = h("input", { type: "checkbox", value: v }); return [b, h("label", { class: "tn-check" }, b, " ", l)]; });
+export function checks(label, options, { testid = "", values = [], onChange = null, disabled = false } = {}) {
+  let get = null;
+  const boxes = options.map(([v, l]) => { const b = h("input", { type: "checkbox", value: v, disabled, onchange: onChange ? () => onChange(get()) : null }); b.checked = values.includes(v); return [b, h("label", { class: "tn-check" }, b, " ", l)]; });
+  get = () => boxes.filter(([b]) => b.checked).map(([b]) => b.value);
   const el = h("fieldset", { class: "tn-field tn-checks", "data-testid": testid || null }, h("legend", {}, label), boxes.map(([, l]) => l));
   return { el, get values() { return boxes.filter(([b]) => b.checked).map(([b]) => b.value); } };
 }

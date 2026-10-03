@@ -58,11 +58,11 @@ CHECKS = [
      ["bash", "-c", "python3 tools/validate_plan.py && python3 tools/build_tree.py --check && python3 tools/intake.py selftest"
       " && python3 tools/derisk.py check && python3 tools/twin_check.py && bash tools/assemble_spec.sh --check"], "spec", ["bash"]),
     ("design-files", "every row of the tree in exactly one group; the seeded group, node and design files check against design/schema.toml; the generated SQL and browser schema are the schema",
-     [PY, "-c", "import sys; sys.path.insert(0, 'tools'); import groups, seed_design, tndb; "
-      "sys.exit(groups.main(['--check']) or seed_design.main(['--check']) or tndb.main(['gen', '--check']))"], ".", []),
+     [PY, "-c", "import sys; sys.path.insert(0, 'tools'); import groups, node_catalog, seed_design, tndb; "
+      "sys.exit(groups.main(['--check']) or seed_design.main(['--check']) or node_catalog.main(['--check']) or tndb.main(['gen', '--check']))"], ".", []),
     ("pseudocode", "everything the pseudocode makes is current (the physics and the language's self-test in Rust and MATLAB, their vectors, the checker page), the physics is its registry, and every sourced fixture of a physics row holds",
      ["bash", "-c", "python3 tools/pcode.py gen --check && python3 tools/pcode.py fixtures"], ".", ["node", "bash"]),
-    ("offline-pages", "the offline pages build with their vendored files pinned, one component set and no outside hosts; TRI-NETRA Files passes its browser tests (save, reopen, crash, second editor, conflict copies, caps) when a browser is here",
+    ("offline-pages", "the offline pages build with their vendored files pinned, one component set and no outside hosts; TRI-NETRA Files passes its browser tests (save, reopen, crash, second editor, conflict copies, caps), and TRI-NETRA Group and TRI-NETRA Node theirs (the node app: every node kind filled and previewed), when a browser is here; the node app's checks rule by rule",
      [PY, "-m", "unittest", "discover", "-s", "tests", "-p", "test_pages.py"], ".", []),
     ("structure", "the group app's structure actions on the whole seeded design (all 20 groups; act and catalogue restructured; a node moved between groups) leave every rule kept, by structure.js and by tools/group.py; both checkers find the same breakage",
      [PY, "-m", "unittest", "discover", "-s", "tests", "-p", "test_structure.py"], ".", ["node"]),

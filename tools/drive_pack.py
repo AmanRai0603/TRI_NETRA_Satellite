@@ -6,6 +6,7 @@
 It holds:
   Apps/TRI-NETRA Files.html     open, change and save one design file (docs/FILES_IN_THE_BROWSER.md)
   Apps/TRI-NETRA Group.html     a group lead's app: structure (docs/GROUP_APP.md)
+  Apps/TRI-NETRA Node.html      a node author's app: every step, checks, preview, sign (docs/NODE_APP.md)
   Design/structure/             the 20 group files, seeded from the spec (tools/seed_design.py)
   Design/nodes/                 the 734 node files
   Design/design.tndb            the design database as seeded
@@ -29,10 +30,12 @@ from common import ROOT, write_text
 README = """TRI-NETRA design on Drive
 =========================
 
-Apps/     the two apps. Each is one file that runs offline from disk: open it in Chrome or Edge.
+Apps/     the three apps. Each is one file that runs offline from disk: open it in Chrome or Edge.
           TRI-NETRA Files.html  open one design file, change it, undo, save, see its history
           TRI-NETRA Group.html  a group lead's app: map, nodes, stages, people, contracts,
                                 change requests, every structure change with its impact check
+          TRI-NETRA Node.html   a node author's app: fill a node step by step, live checks,
+                                preview, mark ready; a second person signs it as checked
 Design/   the design itself, as the apps read and write it
           structure/  one file per group (20)
           nodes/      one file per node (734)
@@ -50,7 +53,7 @@ def build(out, rev="this checkout"):
         shutil.rmtree(out)
     (out / "Apps").mkdir(parents=True)
     built = pages.build(out / "_pages")
-    names = {"files": "TRI-NETRA Files.html", "group": "TRI-NETRA Group.html"}
+    names = {"files": "TRI-NETRA Files.html", "group": "TRI-NETRA Group.html", "node": "TRI-NETRA Node.html"}
     for k, (p, _n) in built.items():
         shutil.move(str(p), out / "Apps" / names.get(k, f"{k}.html"))
     shutil.rmtree(out / "_pages")
