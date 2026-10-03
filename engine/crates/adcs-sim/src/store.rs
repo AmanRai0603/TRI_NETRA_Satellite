@@ -80,21 +80,28 @@ pub fn product_fingerprint(files: &[PathBuf]) -> u64 {
     for f in files {
         all.extend_from_slice(f.file_name().map(|n| n.to_string_lossy().into_owned()).unwrap_or_default().as_bytes());
         all.push(0);
-        all.extend(std::fs::read(f).unwrap_or_default().into_iter().filter(|b| *b != b'\r'));
+        all.extend(crate::source::read(f).unwrap_or_default().into_iter().filter(|b| *b != b'\r'));
     }
     fnv(&all)
 }
 
 /// The provenance block of a run's manifest.
 pub fn provenance(c: &crate::config::Config, fsw: &str, fsw_id: &str) -> Value {
-    let case_bytes = std::fs::read(&c.case.file).unwrap_or_default();
-    let scen_file_h = fnv(&std::fs::read(&c.scenario_file).unwrap_or_default());
+    let case_bytes = crate::source::read(Path::new(&c.case.file)).unwrap_or_default();
+    let scen_file_h = fnv(&crate::source::read(Path::new(&c.scenario_file)).unwrap_or_default());
     let scen = serde_json::to_string(&c.scenario).unwrap_or_default();
     let (case_h, scen_h) = (fnv(&case_bytes), fnv(scen.as_bytes()));
     let ov: Vec<String> = c.overrides.iter().map(|(k, v)| format!("{k}={v}")).collect();
     let prod_h = product_fingerprint(&c.dev.files);
     let id = fnv(format!("{}|{}|{}|{}|{}|{}|{}|{}", env!("CARGO_PKG_VERSION"), ENGINE_SOURCE, hex(case_h), hex(scen_h), hex(prod_h),
         ov.join(";"), c.seed, fsw).as_bytes());
+    // the run's inputs in one hash, whatever engine flew them, and only what differs from the
+    // shipped scenario: its overrides, and a seed other than the scenario's own (1)
+    let input_hash = fnv(format!("{}|{}|{}|{}|{}|{}", hex(case_h), hex(scen_h), hex(prod_h), ov.join(";"), c.seed, fsw).as_bytes());
+    let mut differs = ov.clone();
+    if c.seed != 1 { differs.push(format!("seed={}", c.seed)); }
+    let design = crate::source::current().ok().flatten().map(|d| json!({"fingerprint": d.fingerprint,
+        "file": d.file.file_name().map(|n| n.to_string_lossy().into_owned()).unwrap_or_default()}));
     // paths inside the data folder are recorded relative to it, so a manifest names no machine
     let root = crate::data_root();
     let rel = |p: &str| -> String {
@@ -112,7 +119,8 @@ pub fn provenance(c: &crate::config::Config, fsw: &str, fsw_id: &str) -> Value {
         "product_files": c.dev.files.iter().map(|f| rel(&f.display().to_string())).collect::<Vec<_>>(),
         "inputs": {"case_file": rel(&c.case.file), "case_fingerprint": hex(case_h), "scenario_file": rel(&c.scenario_file),
                    "scenario_fingerprint": hex(scen_h), "scenario_file_fingerprint": hex(scen_file_h),
-                   "overrides": ov, "seed": c.seed, "fsw": fsw, "fsw_id": fsw_id},
+                   "overrides": ov, "seed": c.seed, "fsw": fsw, "fsw_id": fsw_id,
+                   "input_hash": hex(input_hash), "differs": differs, "design": design},
     })
 }
 
@@ -398,7 +406,7 @@ pub fn stale(f: &Found) -> Vec<String> {
     let now = |key: &str| -> Option<Option<String>> {
         let f = i[key].as_str()?;
         let p = if Path::new(f).is_absolute() { PathBuf::from(f) } else { root.join(f) };
-        Some(std::fs::read(&p).ok().map(|b| hex(fnv(&b))))
+        Some(crate::source::read(&p).ok().map(|b| hex(fnv(&b))))
     };
     for (what, file, fp) in [("case", "case_file", "case_fingerprint"), ("scenario", "scenario_file", "scenario_file_fingerprint")] {
         match now(file) {
@@ -410,7 +418,7 @@ pub fn stale(f: &Found) -> Vec<String> {
     match (m["product_fingerprint"].as_str(), m["product_files"].as_array()) {
         (Some(fp), Some(files)) => {
             let fs: Vec<PathBuf> = files.iter().filter_map(|x| x.as_str()).map(|x| if Path::new(x).is_absolute() { PathBuf::from(x) } else { root.join(x) }).collect();
-            if fs.iter().any(|p| !p.is_file()) { why.push("a product or part file it was read from is gone".into()); }
+            if fs.iter().any(|p| !crate::source::is_file(p)) { why.push("a product or part file it was read from is gone".into()); }
             else if hex(product_fingerprint(&fs)) != fp { why.push(format!("its product {} or one of its parts changed since", m["product"].as_str().unwrap_or("?"))); }
         }
         _ => why.push("recorded before runs named their product files".into()),

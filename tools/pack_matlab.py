@@ -43,7 +43,7 @@ with atomic_path(out) as part, zipfile.ZipFile(part, "w", zipfile.ZIP_DEFLATED, 
     for arc, src in extra.items():
         data = src.read_bytes() if src and src.exists() else (
             b"Your results are filed here: results/<scenario or campaign>/, trades/<trade>/:\n"
-            b"channels.csv, manifest.json, figures, rec.mat, result.html; trade.json, trade.png.\n")
+            b"channels.csv, manifest.json, rec.mat, case.csv (its figures and report: adcs figures / adcs report); trade.json, trade.png.\n")
         a = f"{name}/{arc}"
         zi = zipfile.ZipInfo(a, FIXED); zi.compress_type = zipfile.ZIP_DEFLATED; zi.external_attr = 0o644 << 16
         z.writestr(zi, data); man.append(f"{hashlib.sha256(data).hexdigest()}  {a}")

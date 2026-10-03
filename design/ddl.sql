@@ -34,9 +34,11 @@ CREATE TABLE "group_node" ("id" TEXT, "sheet" TEXT, "stage" TEXT, "layer" TEXT, 
 CREATE TABLE "edge" ("from_node" TEXT, "to_node" TEXT, "kind" TEXT, "label" TEXT);
 CREATE TABLE "contract" ("node" TEXT, "output" TEXT, "unit" TEXT, "version" INTEGER, "readers" TEXT);
 CREATE TABLE "signature" ("role" TEXT, "name" TEXT, "at" TEXT, "statement" TEXT);
--- design version 1
+-- design version 2
 CREATE TABLE "meta" ("key" TEXT, "value" TEXT, PRIMARY KEY ("key"));
 CREATE TABLE "design_group" ("id" TEXT, "version" TEXT, "fingerprint" TEXT, "merged_at" TEXT, PRIMARY KEY ("id"));
 CREATE TABLE "design_node" ("id" TEXT, "group_id" TEXT, "stage" TEXT, "layer" TEXT, "kind" TEXT, "label" TEXT, "content" TEXT, "release" TEXT, PRIMARY KEY ("id"));
 CREATE TABLE "edge" ("from_node" TEXT, "to_node" TEXT, "kind" TEXT, "label" TEXT);
 CREATE TABLE "catalogue_output" ("node" TEXT, "output" TEXT, "unit" TEXT, "version" INTEGER, "readers" TEXT);
+CREATE TABLE "design_case" ("case_id" TEXT, "ord" INTEGER, "section" TEXT, "key" TEXT, "label" TEXT, "unit" TEXT, "value" TEXT, "lo" TEXT, "hi" TEXT, "level" TEXT, "note" TEXT, "node" TEXT, "line" TEXT, PRIMARY KEY ("case_id", "ord"));
+CREATE TABLE "engine_input" ("path" TEXT, "fingerprint" TEXT, "body" BLOB, PRIMARY KEY ("path"));

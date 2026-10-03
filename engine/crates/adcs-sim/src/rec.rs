@@ -92,7 +92,7 @@ pub fn write(dir: &Path, c: &Config, rec: &Record, d: &Derived, metrics: &[Value
     // the inputs it flew, kept once by fingerprint, so it can be flown again exactly
     let inputs = crate::store::inputs_dir(dir);
     for (kind, file, key, ext) in [("case", &c.case.file, "case_fingerprint", "csv"), ("scenario", &c.scenario_file, "scenario_file_fingerprint", "json")] {
-        let bytes = std::fs::read(file).map_err(|e| crate::Error::io(std::path::Path::new(file), e))?;
+        let bytes = crate::source::read(std::path::Path::new(file))?;
         let fp = man["inputs"][key].as_str().unwrap_or_default().to_string();
         crate::store::keep_input(&inputs, &crate::store::input_name(kind, &fp, ext), &bytes)?;
     }

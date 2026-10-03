@@ -649,6 +649,7 @@ dependencies = [
  "adcs-fsw-abi",
  "adcs-sim",
  "embed-resource",
+ "rusqlite",
  "serde_json",
 ]
 

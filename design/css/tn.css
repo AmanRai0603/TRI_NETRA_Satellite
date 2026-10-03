@@ -105,6 +105,13 @@ textarea.tn-input { min-height: 72px; resize: vertical; }
 .tn-tab[aria-selected="true"] { color: var(--ink); border-bottom-color: var(--accent); font-weight: 600; }
 .tn-tab:focus-visible { outline: 2px solid var(--accent); }
 
+/* the desktop app: the form beside its result; a run's figures, each as wide as the page */
+.tn-two { display: grid; grid-template-columns: minmax(260px, 360px) 1fr; gap: var(--gap); align-items: start; }
+@media (max-width: 800px) { .tn-two { grid-template-columns: 1fr; } }
+.tn-figures { display: grid; gap: var(--gap); }
+.tn-figure { margin: 0; background: #fff; border: 1px solid var(--line); border-radius: var(--radius); padding: 6px; }
+.tn-figure img { display: block; width: 100%; height: auto; }
+.tn-figure figcaption { display: flex; align-items: center; justify-content: space-between; gap: 8px; color: var(--dim); font-size: 13px; padding: 4px 4px 0; }
 .tn-graph-wrap { overflow: auto; max-height: 70vh; border: 1px solid var(--line); border-radius: var(--radius); background: var(--panel); }
 .tn-graph { display: block; font: 12px var(--font); }
 .tn-graph-col { fill: var(--dim); font-weight: 600; text-transform: uppercase; letter-spacing: .03em; }

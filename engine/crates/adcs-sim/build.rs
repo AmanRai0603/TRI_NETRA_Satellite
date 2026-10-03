@@ -16,8 +16,9 @@ fn walk(d: &Path, out: &mut Vec<PathBuf>) {
     }
 }
 
-/// Engine sources that file, index and print stored runs: they decide nothing a run computes.
-const NOT_DECIDING: [&str; 2] = ["engine/crates/adcs-sim/src/store.rs", "engine/crates/adcs-sim/src/index.rs"];
+/// Engine sources that file, index and print stored runs, or fetch an input's bytes (each input's own
+/// fingerprint is in the run): they decide nothing a run computes.
+const NOT_DECIDING: [&str; 3] = ["engine/crates/adcs-sim/src/store.rs", "engine/crates/adcs-sim/src/index.rs", "engine/crates/adcs-sim/src/source.rs"];
 
 fn main() {
     let here = PathBuf::from(std::env::var("CARGO_MANIFEST_DIR").unwrap());

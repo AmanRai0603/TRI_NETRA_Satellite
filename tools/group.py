@@ -34,6 +34,7 @@ import re
 import sqlite3
 import sys
 
+import design_inputs
 import tndb
 
 
@@ -232,6 +233,7 @@ def merge(root, *, require_all=False):
         c.executemany("INSERT INTO design_node VALUES (?, ?, ?, ?, ?, ?, ?, ?)", design_rows)
         c.executemany("INSERT INTO edge VALUES (?, ?, ?, ?)", edges)
         c.executemany("INSERT INTO catalogue_output VALUES (?, ?, ?, ?, ?)", catalogue)
+        design_inputs.fill(c)        # the engine's inputs, so the engine and the app fly from this file
     tndb.create(db, "design", "design", fill=fill, sync=False)
     return {"groups": len(dgroups), "nodes": len(design_rows), "edges": len(edges), "outputs": len(catalogue),
             "not_released": sorted(set(groups) - set(rels))}, []

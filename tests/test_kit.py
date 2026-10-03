@@ -40,9 +40,9 @@ class FilesOnly(unittest.TestCase):
     def tearDownClass(cls):
         shutil.rmtree(cls.tmp, ignore_errors=True)
 
-    def test_it_holds_exactly_the_data_the_ephemeris_the_documents_and_version(self):
+    def test_it_holds_exactly_the_data_the_design_database_the_ephemeris_the_documents_and_version(self):
         self.assertEqual(sorted(p.name for p in self.out.iterdir()),
-                         ["COMMANDS.md", "ENVIRONMENT.md", "FIRST_RUN.md", "START_HERE.md", "VERSION", "cases", "data", "pop"])
+                         ["COMMANDS.md", "ENVIRONMENT.md", "FIRST_RUN.md", "START_HERE.md", "VERSION", "cases", "data", "design.tndb", "pop"])
         self.assertEqual(self.progs, [], "no programs in a files-only kit")
 
     def test_the_data_is_every_visible_file_of_data_and_cases_byte_for_byte(self):

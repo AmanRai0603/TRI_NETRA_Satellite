@@ -75,6 +75,18 @@ def ddl(kind, s=None):
 UPGRADES = {kind: {} for kind in ("node", "group", "release", "design")}
 
 
+def _design_1_to_2(conn):
+    """design 1 -> 2: the engine's inputs (design_case, engine_input), empty until the design is
+    seeded or merged again, which fills them (tools/design_inputs.py)."""
+    s = schema()
+    for st in ddl("design", s):
+        if '"design_case"' in st or '"engine_input"' in st:
+            conn.execute(st)
+
+
+UPGRADES["design"][1] = _design_1_to_2
+
+
 def _meta(conn):
     try:
         return dict(conn.execute('SELECT "key", "value" FROM meta').fetchall())

@@ -116,6 +116,15 @@ about = "every node of every group, as released"
 columns = [["id", "text key"], ["group_id", "text"], ["stage", "text"], ["layer", "text"], ["kind", "text"],
            ["label", "text"], ["content", "text"], ["release", "text"]]
 
+[tables.design_case]
+about = "every case the engine flies, row by row as the case states it (cases/<id>.csv): its line as written, its fields, and the node that declares the value (spec/plan/case_inputs.toml)"
+columns = [["case_id", "text key"], ["ord", "integer key"], ["section", "text"], ["key", "text"], ["label", "text"], ["unit", "text"],
+           ["value", "text"], ["lo", "text"], ["hi", "text"], ["level", "text"], ["note", "text"], ["node", "text"], ["line", "text"]]
+
+[tables.engine_input]
+about = "every other input the engine reads, by its path in the data folder (data/scenarios, products, parts, algorithms, the catalogue): its bytes and their fingerprint (FNV-1a 64, as a run records it)"
+columns = [["path", "text key"], ["fingerprint", "text"], ["body", "blob"]]
+
 [tables.catalogue_output]
 about = "the catalogue of outputs: the contract at every group boundary"
 columns = [["node", "text"], ["output", "text"], ["unit", "text"], ["version", "integer"], ["readers", "text"]]
@@ -140,5 +149,5 @@ tables = ["meta", "release", "release_node", "group_info", "stage", "group_node"
 
 [formats.design]
 extension = ".tndb"
-version = 1
-tables = ["meta", "design_group", "design_node", "edge", "catalogue_output"]
+version = 2                     # 2: the engine's inputs (design_case, engine_input), P11
+tables = ["meta", "design_group", "design_node", "edge", "catalogue_output", "design_case", "engine_input"]

@@ -5,6 +5,7 @@
 //!   GET  /v1/catalogue     cases, scenarios  POST /v1/run         fly one scenario
 //!   GET  /v1/runs          every run         GET  /v1/run?run=R   one run's provenance and metrics
 //!   GET  /v1/export?run=R  a run as .trinetra                     POST /v1/ping, /v1/quit
+//!   GET  /v1/design        the design database's groups          GET  /v1/design/case?case=C  its rows
 //! Owner: Agastya. Copyright (c) 2026 Agastya. All rights reserved.
 use crate::http::{Request, Response};
 use adcs_sim::{config::Config, data_root, run, store, store_root};
@@ -22,8 +23,10 @@ pub fn route(r: &Request, port: u16) -> Response {
         ("GET", "/") => { crate::seen(); Response { status: 200, kind: "text/html; charset=utf-8", body: PAGE.as_bytes().to_vec(), extra: vec![] } }
         ("GET", "/icon.png") => Response { status: 200, kind: "image/png", body: ICON.to_vec(), extra: vec![] },
         ("GET", "/v1/version") => Response::json(200, &json!({"app": "trinetra", "version": version(), "engine": adcs_sim::ENGINE, "port": port,
-            "data": data_root().display().to_string(), "store": store_root().display().to_string()})),
+            "data": data_root().display().to_string(), "store": store_root().display().to_string(), "design": design()})),
         ("GET", "/v1/catalogue") => catalogue(),
+        ("GET", "/v1/design") => design_summary(),
+        ("GET", "/v1/design/case") => design_case(r),
         ("GET", "/v1/runs") => runs(),
         ("GET", "/v1/run") => one_run(r),
         ("GET", "/v1/export") => export(r),
@@ -40,28 +43,65 @@ fn version() -> String {
         .unwrap_or_else(|| env!("CARGO_PKG_VERSION").into())
 }
 
-/// Every case (with its title) and every scenario (with its label, case and product).
+/// Every case (with its title) and every scenario (with its label, case and product), from the
+/// design database when the app reads one (adcs_sim::source), else from the data folder.
 fn catalogue() -> Response {
     let root = data_root();
     let mut cases = vec![];
-    if let Ok(rd) = std::fs::read_dir(root.join("cases")) {
-        let mut fs: Vec<PathBuf> = rd.flatten().map(|e| e.path()).filter(|p| p.extension().and_then(|x| x.to_str()) == Some("csv")).collect();
-        fs.sort();
-        for f in fs {
-            if let Ok(c) = adcs_sim::case::Case::read(&f) { cases.push(json!({"id": c.id, "title": c.title})); }
-        }
+    for f in adcs_sim::source::list(&root.join("cases")) {
+        if f.extension().and_then(|x| x.to_str()) != Some("csv") || f.file_stem().and_then(|x| x.to_str()) == Some("case_template") { continue; }
+        if let Ok(c) = adcs_sim::case::Case::read(&f) { cases.push(json!({"id": c.id, "title": c.title})); }
     }
     let mut scen = vec![];
-    if let Ok(rd) = std::fs::read_dir(root.join("data/scenarios")) {
-        let mut fs: Vec<PathBuf> = rd.flatten().map(|e| e.path()).filter(|p| p.extension().and_then(|x| x.to_str()) == Some("json")).collect();
-        fs.sort();
-        for f in fs {
-            let Some(v) = std::fs::read_to_string(&f).ok().and_then(|s| serde_json::from_str::<Value>(&s).ok()) else { continue };
-            scen.push(json!({"id": f.file_stem().and_then(|x| x.to_str()).unwrap_or(""), "label": v["label"], "case": v["case"],
-                             "product": v["product"], "duration_s": v["time"]["duration_s"]}));
-        }
+    for f in adcs_sim::source::list(&root.join("data/scenarios")) {
+        if f.extension().and_then(|x| x.to_str()) != Some("json") { continue; }
+        let Ok(v) = adcs_sim::json::read(&f) else { continue };
+        scen.push(json!({"id": f.file_stem().and_then(|x| x.to_str()).unwrap_or(""), "label": v["label"], "case": v["case"],
+                         "product": v["product"], "duration_s": v["time"]["duration_s"]}));
     }
-    Response::json(200, &json!({"cases": cases, "scenarios": scen}))
+    Response::json(200, &json!({"cases": cases, "scenarios": scen, "design": design()}))
+}
+
+/// The design database's groups (with their release and node count), read-only.
+fn design_summary() -> Response {
+    let Some(d) = adcs_sim::source::current().ok().flatten() else { return Response::json(200, &json!({"design": null, "groups": []})) };
+    let q = || -> rusqlite::Result<Vec<Value>> {
+        let c = rusqlite::Connection::open_with_flags(&d.file, rusqlite::OpenFlags::SQLITE_OPEN_READ_ONLY)?;
+        let mut s = c.prepare(r#"SELECT g."id", g."version", (SELECT COUNT(*) FROM design_node n WHERE n."group_id" = g."id") FROM design_group g ORDER BY g."id""#)?;
+        let rows = s.query_map([], |r| Ok(json!({"id": r.get::<_, String>(0)?, "version": r.get::<_, Option<String>>(1)?, "nodes": r.get::<_, i64>(2)?})))?;
+        rows.collect()
+    };
+    match q() {
+        Ok(g) => Response::json(200, &json!({"design": design(), "groups": g})),
+        Err(e) => Response::error(500, &format!("the design database could not be read: {e}")),
+    }
+}
+
+/// One case's rows as the design database holds them, each with the node that declares it.
+fn design_case(r: &Request) -> Response {
+    let Some(d) = adcs_sim::source::current().ok().flatten() else { return Response::error(404, "the app reads no design database") };
+    let id = r.param("case").unwrap_or_default();
+    if let Err(e) = adcs_sim::config::check_id("case", &id) { return failed(&e); }
+    let q = || -> rusqlite::Result<Vec<Value>> {
+        let c = rusqlite::Connection::open_with_flags(&d.file, rusqlite::OpenFlags::SQLITE_OPEN_READ_ONLY)?;
+        let mut s = c.prepare(r#"SELECT "key", "label", "value", "unit", "node" FROM design_case WHERE "case_id" = ?1 ORDER BY "ord""#)?;
+        let rows = s.query_map([&id], |r| Ok(json!({"key": r.get::<_, Option<String>>(0)?, "label": r.get::<_, Option<String>>(1)?,
+            "value": r.get::<_, Option<String>>(2)?, "unit": r.get::<_, Option<String>>(3)?, "node": r.get::<_, Option<String>>(4)?})))?;
+        rows.collect()
+    };
+    match q() {
+        Ok(rows) if rows.is_empty() => Response::error(404, &format!("no case {id} in the design database")),
+        Ok(rows) => Response::json(200, &json!({"case": id, "rows": rows})),
+        Err(e) => Response::error(500, &format!("the design database could not be read: {e}")),
+    }
+}
+
+/// The design database the app reads, or null when it reads the data folder's files.
+fn design() -> Value {
+    match adcs_sim::source::current().ok().flatten() {
+        Some(d) => json!({"file": d.file.display().to_string(), "fingerprint": d.fingerprint}),
+        None => Value::Null,
+    }
 }
 
 /// A run folder named by the page, inside the store or not at all.

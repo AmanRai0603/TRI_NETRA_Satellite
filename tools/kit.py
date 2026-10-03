@@ -8,6 +8,8 @@ A kit holds:
   adcs[.exe]                      the engine's command line
   TRI-NETRA ADCS[.exe]            the desktop app (when it was built)
   data/, cases/                   the scenarios, products, parts, algorithms, campaigns and cases
+  design.tndb                     the design database, which holds the same cases and inputs: the
+                                  app reads them from it (tools/design_inputs.py)
   pop/03_frames_time/ephemeris/data/de440s.bsp   the ephemeris the propagator reads
   VERSION                         the release and the version of each part; its presence is
                                   what tells the programs they run from a kit, so results go
@@ -64,6 +66,15 @@ def copy_data(out):
     return n + 1
 
 
+def design_db(out):
+    """The design database as seeded, beside the data: the app flies from it."""
+    import tempfile
+    import seed_design
+    with tempfile.TemporaryDirectory() as tmp:
+        seed_design.seed(tmp, sync=False)
+        shutil.copy2(pathlib.Path(tmp) / "design.tndb", out / "design.tndb")
+
+
 def build(out, bin_dir=None, files_only=False):
     out = pathlib.Path(out)
     if out.exists():
@@ -80,11 +91,13 @@ def build(out, bin_dir=None, files_only=False):
             shutil.copy2(src, out / f"{name}{exe}")
             progs.append(f"{name}{exe}")
     n = copy_data(out)
+    design_db(out)
     if not files_only:
         import pages
         built = pages.build(out / "pages")
-        if "testapp" in built:
-            built["testapp"][0].unlink()     # the test apps' template: tools/groupcode.py deliver fills it per group
+        for name in ("testapp", "app"):     # the test apps' template (groupcode deliver fills it); the app's page is inside the app
+            if name in built:
+                built[name][0].unlink()
     v = version()
     write_text(out / "VERSION", f"TRI-NETRA ADCS {v}\n" + "".join(f"{k}: {x}\n" for k, x in components().items()))
     for doc, name in (("docs/START_HERE.md", "START_HERE.md"), ("docs/FIRST_RUN.md", "FIRST_RUN.md"), ("docs/COMMANDS.md", "COMMANDS.md"),

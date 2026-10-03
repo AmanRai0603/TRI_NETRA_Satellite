@@ -38,3 +38,7 @@ matlab_sils/store/pipeline/*/iter_*/scenarios/
 # The V&V report's PDF is kept once, in dist/ (published with every release).
 results/vv/TRINETRA_ADCS_VV_report.pdf
 build/
+# The twin's run figures and result pages: drawn on demand by the one plotting module
+# (adcs figures / adcs report, the same as the engine's runs), never committed
+matlab_sils/store/results/*/fig*_*.png
+matlab_sils/store/results/*/result.html

@@ -8,7 +8,9 @@ export const TNDB_SCHEMA = {
    "CREATE TABLE \"design_group\" (\"id\" TEXT, \"version\" TEXT, \"fingerprint\" TEXT, \"merged_at\" TEXT, PRIMARY KEY (\"id\"))",
    "CREATE TABLE \"design_node\" (\"id\" TEXT, \"group_id\" TEXT, \"stage\" TEXT, \"layer\" TEXT, \"kind\" TEXT, \"label\" TEXT, \"content\" TEXT, \"release\" TEXT, PRIMARY KEY (\"id\"))",
    "CREATE TABLE \"edge\" (\"from_node\" TEXT, \"to_node\" TEXT, \"kind\" TEXT, \"label\" TEXT)",
-   "CREATE TABLE \"catalogue_output\" (\"node\" TEXT, \"output\" TEXT, \"unit\" TEXT, \"version\" INTEGER, \"readers\" TEXT)"
+   "CREATE TABLE \"catalogue_output\" (\"node\" TEXT, \"output\" TEXT, \"unit\" TEXT, \"version\" INTEGER, \"readers\" TEXT)",
+   "CREATE TABLE \"design_case\" (\"case_id\" TEXT, \"ord\" INTEGER, \"section\" TEXT, \"key\" TEXT, \"label\" TEXT, \"unit\" TEXT, \"value\" TEXT, \"lo\" TEXT, \"hi\" TEXT, \"level\" TEXT, \"note\" TEXT, \"node\" TEXT, \"line\" TEXT, PRIMARY KEY (\"case_id\", \"ord\"))",
+   "CREATE TABLE \"engine_input\" (\"path\" TEXT, \"fingerprint\" TEXT, \"body\" BLOB, PRIMARY KEY (\"path\"))"
   ],
   "group": [
    "CREATE TABLE \"meta\" (\"key\" TEXT, \"value\" TEXT, PRIMARY KEY (\"key\"))",
@@ -57,9 +59,11 @@ export const TNDB_SCHEMA = {
     "design_group",
     "design_node",
     "edge",
-    "catalogue_output"
+    "catalogue_output",
+    "design_case",
+    "engine_input"
    ],
-   "version": 1
+   "version": 2
   },
   "group": {
    "extension": ".group.tndb",
@@ -283,6 +287,73 @@ export const TNDB_SCHEMA = {
     false
    ]
   ],
+  "design_case": [
+   [
+    "case_id",
+    "text",
+    true
+   ],
+   [
+    "ord",
+    "integer",
+    true
+   ],
+   [
+    "section",
+    "text",
+    false
+   ],
+   [
+    "key",
+    "text",
+    false
+   ],
+   [
+    "label",
+    "text",
+    false
+   ],
+   [
+    "unit",
+    "text",
+    false
+   ],
+   [
+    "value",
+    "text",
+    false
+   ],
+   [
+    "lo",
+    "text",
+    false
+   ],
+   [
+    "hi",
+    "text",
+    false
+   ],
+   [
+    "level",
+    "text",
+    false
+   ],
+   [
+    "note",
+    "text",
+    false
+   ],
+   [
+    "node",
+    "text",
+    false
+   ],
+   [
+    "line",
+    "text",
+    false
+   ]
+  ],
   "design_group": [
    [
     "id",
@@ -366,6 +437,23 @@ export const TNDB_SCHEMA = {
    [
     "label",
     "text",
+    false
+   ]
+  ],
+  "engine_input": [
+   [
+    "path",
+    "text",
+    true
+   ],
+   [
+    "fingerprint",
+    "text",
+    false
+   ],
+   [
+    "body",
+    "blob",
     false
    ]
   ],

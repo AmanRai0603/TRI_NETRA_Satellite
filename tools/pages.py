@@ -5,6 +5,8 @@ fetched from anywhere, built from a template in design/pages/.
     python3 tools/pages.py build [--out DIR]   write every page (default build/pages/)
     python3 tools/pages.py check               build into a scratch folder and hold every page to
                                                the rules below; changes nothing
+    python3 tools/pages.py app [--check]       write (or check) the desktop app's page into its crate
+                                               (engine/crates/trinetra-app/src/page.html, compiled in)
 
 A template's directives:
     <!-- tn:generated -->          the "generated, do not edit" note, with what went in
@@ -21,8 +23,9 @@ The rules (check):
       fetch, import());
     - each module of a page runs in a scope of its own, and takes from the others only what they export.
 
-Built pages are not committed (they are built in CI and shipped in the kits); the browser tests
-(tests/browser/files.test.mjs) run against a fresh build.
+Built pages are not committed (they are built in CI and shipped in the kits), but for one: the
+desktop app's, which the program carries inside it, so it is written into the app's crate and
+`check` holds it to a fresh build. The browser tests (tests/browser/*.test.mjs) run against a fresh build.
 Owner: Agastya. Copyright (c) 2026 Agastya. All rights reserved.
 """
 import argparse
@@ -39,7 +42,10 @@ sys.path.insert(0, str(ROOT / "tools"))
 from common import write_text  # noqa: E402
 
 PAGES = {"files": "design/pages/files.template.html", "group": "design/pages/group.template.html",
-         "node": "design/pages/node.template.html", "testapp": "design/pages/testapp.template.html"}
+         "node": "design/pages/node.template.html", "testapp": "design/pages/testapp.template.html",
+         "app": "design/pages/app.template.html"}
+# the desktop app serves its page from inside the program: built into the crate, and checked to be current
+APP_PAGE = ROOT / "engine" / "crates" / "trinetra-app" / "src" / "page.html"
 VENDOR = ROOT / "design" / "vendor"
 OUT = ROOT / "build" / "pages"
 UI_FILES = {"design/js/tn_ui.js", "design/css/tn.css"}
@@ -242,15 +248,30 @@ def main(argv=None):
     b = sub.add_parser("build", help="write every page")
     b.add_argument("--out", default=str(OUT))
     sub.add_parser("check", help="build into a scratch folder and hold every page to the rules")
+    ap_ = sub.add_parser("app", help="write (or check) the desktop app's page into its crate")
+    ap_.add_argument("--check", action="store_true")
     a = ap.parse_args(argv)
     try:
-        if a.cmd == "build":
+        if a.cmd == "app":
+            with tempfile.TemporaryDirectory() as d:
+                page = build(d)["app"][0].read_text()
+            if a.check:
+                if not APP_PAGE.is_file() or APP_PAGE.read_text() != page:
+                    raise PageError(f"{APP_PAGE.relative_to(ROOT)} is stale: python3 tools/pages.py app")
+                print("pages: the app's page is current")
+            else:
+                write_text(APP_PAGE, page)
+                print(f"pages: app -> {APP_PAGE.relative_to(ROOT)} ({len(page.encode())} bytes)")
+        elif a.cmd == "build":
             for name, (p, n) in build(a.out).items():
                 print(f"pages: {name} -> {p} ({n} bytes)")
         else:
             with tempfile.TemporaryDirectory() as d:
                 w = build(d)
-            print(f"pages: {len(w)} page(s) built and checked: vendored files pinned, one component set, no outside hosts")
+                app = w["app"][0].read_text()
+            if not APP_PAGE.is_file() or APP_PAGE.read_text() != app:
+                raise PageError(f"{APP_PAGE.relative_to(ROOT)} is not the app page a fresh build makes: python3 tools/pages.py app")
+            print(f"pages: {len(w)} page(s) built and checked: vendored files pinned, one component set, no outside hosts; the app's page is current")
     except PageError as e:
         for line in str(e).splitlines():
             print("pages: " + line, file=sys.stderr)

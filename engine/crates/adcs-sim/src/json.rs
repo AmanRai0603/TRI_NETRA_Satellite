@@ -3,7 +3,7 @@ use serde_json::Value;
 use std::path::Path;
 
 pub fn read(p: &Path) -> Result<Value, crate::Error> {
-    let s = std::fs::read_to_string(p).map_err(|e| crate::Error::io(p, e))?;
+    let s = crate::source::read_to_string(p)?;
     serde_json::from_str(&s).map_err(|e| crate::Error::malformed(format!("{}: {e}", p.display())))
 }
 pub fn get<'a>(v: &'a Value, k: &str) -> Option<&'a Value> { v.get(k).filter(|x| !x.is_null()) }

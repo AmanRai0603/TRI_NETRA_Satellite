@@ -626,7 +626,7 @@ impl Config {
     pub fn build(root: &Path, scenario: &str, case_file: &Path, seed: u64, overrides: &[(String, String)]) -> Result<Config, Error> {
         if !scenario.ends_with(".json") { check_id("scenario", scenario)?; }
         let sp = if scenario.ends_with(".json") { scenario.into() } else { root.join("data/scenarios").join(format!("{scenario}.json")) };
-        if !sp.is_file() && !scenario.ends_with(".json") {
+        if !crate::source::is_file(&sp) && !scenario.ends_with(".json") {
             return Err(Error::refused(format!("no scenario {scenario}: {} does not exist (the scenarios are data/scenarios/*.json)", sp.display())));
         }
         let mut s = json::read(&sp)?;
@@ -634,7 +634,7 @@ impl Config {
         for (k, v) in overrides {
             if k.starts_with("engine.") { eng.push((k.clone(), v.clone())); } else { set_override(&mut s, k, v)?; }
         }
-        let cf = if case_file.is_file() { case_file.to_path_buf() } else { root.join(case_file) };
+        let cf = if crate::source::is_file(case_file) { case_file.to_path_buf() } else { root.join(case_file) };
         let c = Case::read(&cf)?;
         crate::schema::check_scenario(&s, &c)?;
         let dev = Dev::load(root, json::s(&s, "product", ""))?;

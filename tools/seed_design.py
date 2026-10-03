@@ -12,7 +12,8 @@ What each file gets:
   <id>.node.tndb       the node row (group and stage from design/groups.toml), its identity, and,
                        for the 82 rows the spec seeds, every field the spec states, each marked
                        with where it came from (`spec:seed_content.toml`, `spec:tree.json`)
-  design.tndb          every node as seeded, release "seed", and every edge
+  design.tndb          every node as seeded, release "seed", and every edge; and the engine's inputs,
+                       every case row by row and every file it reads under data/ (tools/design_inputs.py)
 
 Nothing is invented: a field the spec does not state is left out, and a node with no content is
 a shell. Carrying the content over from the code, the twin and the pseudocode is P8.
@@ -26,6 +27,7 @@ import sys
 import tempfile
 import tomllib
 
+import design_inputs
 import design_rows
 import groups as G
 import tndb
@@ -95,6 +97,7 @@ def seed(out, sync=True):
                          [(r["id"], grp_of[r["id"]], stage[r["id"]], str(r["layer"]), r["kind"], r["label"],
                            json.dumps([list(c) for c in node_content(r, sc)], sort_keys=True), SEED_RELEASE) for r in rows])
         conn.executemany("INSERT INTO edge VALUES (?, ?, ?, ?)", edges)
+        design_inputs.fill(conn)
 
     for x in g["group"]:
         tndb.create(out / "structure" / f"{x['id']}.group.tndb", "group", x["id"], s=s, fill=lambda c, x=x: group_file(x, c), sync=sync)

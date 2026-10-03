@@ -14,6 +14,8 @@ path = "src/main.rs"
 adcs-sim = { path = "../adcs-sim" }
 adcs-fsw-abi = { path = "../adcs-fsw-abi" }
 serde_json = "1"
+# the design database (design.tndb): its groups and case rows for the page; bundled, as the engine's
+rusqlite = { version = "0.40", features = ["bundled"] }
 
 # the Windows program's icon and version information (compiled only for Windows targets)
 [build-dependencies]

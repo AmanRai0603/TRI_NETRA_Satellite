@@ -336,6 +336,11 @@ def campaign(a):
                "interpretations": interpretations([base / f"run_{r['k']:04d}" for r in runs if not r.get("failed")],
                                                   json.loads((DATA / f"{C['scenario']}.json").read_text()).get("metrics", []))}
         write_text(base / "summary.json", json.dumps(res, indent=1))
+        # a sweep keeps only what its figures need: summary.json; run_0001 stays as the campaign's
+        # provenance (its manifest names the engine and the inputs, so `adcs results stale` judges it)
+        if not getattr(a, "keep_runs", False):
+            for k in range(2, n_runs + 1):
+                shutil.rmtree(base / f"run_{k:04d}", ignore_errors=True)
         rows[cid] = res
         print(f"{cid}: {len(runs) - nfail}/{n_runs} runs flown, {nfail} failed, in {time.time() - t0:.0f} s wall")
     S(4)
