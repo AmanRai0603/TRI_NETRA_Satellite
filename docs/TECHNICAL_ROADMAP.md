@@ -5,6 +5,15 @@ code against a named standard or textbook, sorted into what is *wrong today*, wh
 (v1.1 → v2.0) that close them.
 
 This document adds to `docs/ADCS_GAPS.md` (31 gaps: ids D, S, V, H) and `docs/UPGRADE_PLAN.md` and does not repeat them.
+
+Its companions go deeper on four subjects:
+
+| Document | Subject | Ids |
+|---|---|---|
+| `docs/TOOL_COMPARISON.md` | Capability matrix against the established tools, and what to adopt, interoperate with or build | — |
+| `docs/DESIGN_DECISIONS.md` | Register of 61 ADCS design decisions and the decision-record format | DD |
+| `docs/TEST_BENCH_PLAN.md` | Soft OILS → OILS → HILS: findings, target architecture, equipment, phases, acceptance thresholds | O |
+| `docs/TEST_STRATEGY.md` | Testing at every level, the scenario matrix and the test pyramid | TS |
 New findings carry a domain prefix:
 
 | Prefix | Domain |
@@ -329,8 +338,13 @@ Everything in §0, plus the critical and high logic defects that are days each:
 | Frama-C EVA; Kani | Run-time-error proofs (C; Rust) | LGPL-2.1; Apache-2.0/MIT |
 | Yamcs or OpenC3 COSMOS | Ground side of CCSDS/PUS | AGPL-3.0 |
 
-These supply data, cross-checks and evidence; none replaces the engine. TRI-NETRA's chain from pseudocode to
-interpreter to C and Rust, bit-identical, is its main strength and stays.
+These supply data, cross-checks and evidence; none replaces the engine. TRI-NETRA's main strengths stay:
+- two hand-written flight softwares (C99 and Rust) held to one pseudocode and bit-identical to each other;
+- the physics and design relations translated from pseudocode and checked by its interpreter;
+- the closed design loop;
+- soft OILS with judged timing.
+
+The full side-by-side comparison with Basilisk, NASA 42, NOS3, GMAT, Orekit, Tudat, MATLAB, PSS, STK/SOLIS, FreeFlyer, Renode, QEMU, cFS/F Prime, SMP/SIMULUS and Yamcs/COSMOS is in `docs/TOOL_COMPARISON.md`.
 
 ## 5 · Deliberately not proposed
 
