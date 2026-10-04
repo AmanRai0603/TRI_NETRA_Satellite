@@ -619,7 +619,7 @@
        {
         "id": "ape_los_p9973",
         "kind": "ape_los",
-        "value": 0.15385290480449848,
+        "value": 0.15557318643414456,
         "unit": "deg",
         "req": 10.0,
         "req_key": "req.ape",
@@ -628,7 +628,7 @@
        {
         "id": "ake_los_p9973",
         "kind": "ake_los",
-        "value": 0.14939295486414697,
+        "value": 0.15833620127317163,
         "unit": "deg",
         "req": 5.0,
         "req_key": "req.ake",
@@ -637,7 +637,7 @@
        {
         "id": "power_mean",
         "kind": "power_mean",
-        "value": 0.11990750888683044,
+        "value": 0.12789507519255663,
         "unit": "W",
         "req": 0.5,
         "req_key": "req.pavg",
@@ -646,7 +646,7 @@
        {
         "id": "power_peak",
         "kind": "power_peak",
-        "value": 0.849531003739949,
+        "value": 0.5934256109704805,
         "unit": "W",
         "req": null,
         "req_key": "",
@@ -675,7 +675,7 @@
        {
         "id": "ape_los_p9973",
         "kind": "ape_los",
-        "value": 0.17250837384420384,
+        "value": 0.17007559804649247,
         "unit": "deg",
         "req": 10.0,
         "req_key": "req.ape",
@@ -684,7 +684,7 @@
        {
         "id": "ake_los_p9973",
         "kind": "ake_los",
-        "value": 0.16949930826735032,
+        "value": 0.1699665835247794,
         "unit": "deg",
         "req": 5.0,
         "req_key": "req.ake",
@@ -693,7 +693,7 @@
        {
         "id": "power_mean",
         "kind": "power_mean",
-        "value": 0.11685980311356403,
+        "value": 0.14192618935037438,
         "unit": "W",
         "req": 0.5,
         "req_key": "req.pavg",
@@ -702,7 +702,7 @@
        {
         "id": "power_peak",
         "kind": "power_peak",
-        "value": 0.8342304127188047,
+        "value": 0.5917795569968141,
         "unit": "W",
         "req": null,
         "req_key": "",
@@ -742,7 +742,7 @@
        {
         "id": "ape_los_p9973",
         "kind": "ape_los",
-        "value": 0.15331168976598541,
+        "value": 0.1553554048472907,
         "unit": "deg",
         "req": 10.0,
         "req_key": "req.ape",
@@ -751,7 +751,7 @@
        {
         "id": "ake_los_p9973",
         "kind": "ake_los",
-        "value": 0.1496254869272697,
+        "value": 0.15830389050939211,
         "unit": "deg",
         "req": 5.0,
         "req_key": "req.ake",
@@ -760,7 +760,7 @@
        {
         "id": "power_mean",
         "kind": "power_mean",
-        "value": 0.18485644820286906,
+        "value": 0.1480357936714233,
         "unit": "W",
         "req": 0.5,
         "req_key": "req.pavg",
@@ -769,7 +769,7 @@
        {
         "id": "power_peak",
         "kind": "power_peak",
-        "value": 0.849531003739949,
+        "value": 0.5934256109704805,
         "unit": "W",
         "req": null,
         "req_key": "",
@@ -798,7 +798,7 @@
        {
         "id": "ape_los_p9973",
         "kind": "ape_los",
-        "value": 0.17289112649796828,
+        "value": 0.17073268452867965,
         "unit": "deg",
         "req": 10.0,
         "req_key": "req.ape",
@@ -807,7 +807,7 @@
        {
         "id": "ake_los_p9973",
         "kind": "ake_los",
-        "value": 0.16957234751667538,
+        "value": 0.16997106150581387,
         "unit": "deg",
         "req": 5.0,
         "req_key": "req.ake",
@@ -816,7 +816,7 @@
        {
         "id": "power_mean",
         "kind": "power_mean",
-        "value": 0.18105472637112724,
+        "value": 0.1618692549585773,
         "unit": "W",
         "req": 0.5,
         "req_key": "req.pavg",
@@ -825,7 +825,7 @@
        {
         "id": "power_peak",
         "kind": "power_peak",
-        "value": 0.8342304127188047,
+        "value": 0.5917795569968141,
         "unit": "W",
         "req": null,
         "req_key": "",
@@ -869,7 +869,7 @@
        {
         "id": "ape_los_p9973",
         "kind": "ape_los",
-        "value": 0.16505757421132453,
+        "value": 0.16300934074944906,
         "unit": "deg",
         "req": 10.0,
         "req_key": "req.ape",
@@ -878,7 +878,7 @@
        {
         "id": "ake_los_p9973",
         "kind": "ake_los",
-        "value": 0.16259802798274625,
+        "value": 0.15844207039679384,
         "unit": "deg",
         "req": 5.0,
         "req_key": "req.ake",
@@ -887,7 +887,7 @@
        {
         "id": "power_mean",
         "kind": "power_mean",
-        "value": 0.1327527992684935,
+        "value": 0.12683350547716518,
         "unit": "W",
         "req": 0.5,
         "req_key": "req.pavg",
@@ -896,7 +896,7 @@
        {
         "id": "power_peak",
         "kind": "power_peak",
-        "value": 0.849531003739949,
+        "value": 0.5934256109704805,
         "unit": "W",
         "req": null,
         "req_key": "",
@@ -925,7 +925,7 @@
        {
         "id": "ape_los_p9973",
         "kind": "ape_los",
-        "value": 0.15498129604202843,
+        "value": 0.16435276011654756,
         "unit": "deg",
         "req": 10.0,
         "req_key": "req.ape",
@@ -934,7 +934,7 @@
        {
         "id": "ake_los_p9973",
         "kind": "ake_los",
-        "value": 0.15401124097421953,
+        "value": 0.16123876381323654,
         "unit": "deg",
         "req": 5.0,
         "req_key": "req.ake",
@@ -943,7 +943,7 @@
        {
         "id": "power_mean",
         "kind": "power_mean",
-        "value": 0.12791951733147797,
+        "value": 0.14487814003237665,
         "unit": "W",
         "req": 0.5,
         "req_key": "req.pavg",
@@ -952,7 +952,7 @@
        {
         "id": "power_peak",
         "kind": "power_peak",
-        "value": 0.8383031392108665,
+        "value": 0.5922289616865495,
         "unit": "W",
         "req": null,
         "req_key": "",
@@ -992,7 +992,7 @@
        {
         "id": "ape_los_p9973",
         "kind": "ape_los",
-        "value": 0.1539531274243238,
+        "value": 0.15535581111450886,
         "unit": "deg",
         "req": 10.0,
         "req_key": "req.ape",
@@ -1001,7 +1001,7 @@
        {
         "id": "ake_los_p9973",
         "kind": "ake_los",
-        "value": 0.1494971849367127,
+        "value": 0.1584642267576934,
         "unit": "deg",
         "req": 5.0,
         "req_key": "req.ake",
@@ -1010,7 +1010,7 @@
        {
         "id": "power_mean",
         "kind": "power_mean",
-        "value": 0.12231088654963414,
+        "value": 0.1334751528998341,
         "unit": "W",
         "req": 0.5,
         "req_key": "req.pavg",
@@ -1019,7 +1019,7 @@
        {
         "id": "power_peak",
         "kind": "power_peak",
-        "value": 0.849531003739949,
+        "value": 0.5934256109704805,
         "unit": "W",
         "req": null,
         "req_key": "",
@@ -1048,7 +1048,7 @@
        {
         "id": "ape_los_p9973",
         "kind": "ape_los",
-        "value": 0.17224137414825144,
+        "value": 0.16997430026362062,
         "unit": "deg",
         "req": 10.0,
         "req_key": "req.ape",
@@ -1057,7 +1057,7 @@
        {
         "id": "ake_los_p9973",
         "kind": "ake_los",
-        "value": 0.1694724926550607,
+        "value": 0.1700049202821445,
         "unit": "deg",
         "req": 5.0,
         "req_key": "req.ake",
@@ -1066,7 +1066,7 @@
        {
         "id": "power_mean",
         "kind": "power_mean",
-        "value": 0.11804961638390246,
+        "value": 0.14617053512872172,
         "unit": "W",
         "req": 0.5,
         "req_key": "req.pavg",
@@ -1075,7 +1075,7 @@
        {
         "id": "power_peak",
         "kind": "power_peak",
-        "value": 0.8342304127188047,
+        "value": 0.5917795569968141,
         "unit": "W",
         "req": null,
         "req_key": "",
@@ -1123,7 +1123,7 @@
      {
       "id": "ape_los_p9973",
       "kind": "ape_los",
-      "value": 0.1538490070367234,
+      "value": 0.1553989414702448,
       "unit": "deg",
       "req": 10.0,
       "req_key": "req.ape",
@@ -1132,7 +1132,7 @@
      {
       "id": "ake_los_p9973",
       "kind": "ake_los",
-      "value": 0.1494049948133427,
+      "value": 0.15843629170058177,
       "unit": "deg",
       "req": 5.0,
       "req_key": "req.ake",
@@ -1141,7 +1141,7 @@
      {
       "id": "power_mean",
       "kind": "power_mean",
-      "value": 0.1222025768547082,
+      "value": 0.13354871852377287,
       "unit": "W",
       "req": 0.5,
       "req_key": "req.pavg",
@@ -1150,7 +1150,7 @@
      {
       "id": "power_peak",
       "kind": "power_peak",
-      "value": 0.849531003739949,
+      "value": 0.5934256109704805,
       "unit": "W",
       "req": null,
       "req_key": "",
@@ -1179,7 +1179,7 @@
      {
       "id": "ape_los_p9973",
       "kind": "ape_los",
-      "value": 0.17226435848599753,
+      "value": 0.1698708576545572,
       "unit": "deg",
       "req": 10.0,
       "req_key": "req.ape",
@@ -1188,7 +1188,7 @@
      {
       "id": "ake_los_p9973",
       "kind": "ake_los",
-      "value": 0.16947829381225799,
+      "value": 0.16994816232206197,
       "unit": "deg",
       "req": 5.0,
       "req_key": "req.ake",
@@ -1197,7 +1197,7 @@
      {
       "id": "power_mean",
       "kind": "power_mean",
-      "value": 0.11802892745904028,
+      "value": 0.1461535155070664,
       "unit": "W",
       "req": 0.5,
       "req_key": "req.pavg",
@@ -1206,7 +1206,7 @@
      {
       "id": "power_peak",
       "kind": "power_peak",
-      "value": 0.8342304127188047,
+      "value": 0.5917795569968141,
       "unit": "W",
       "req": null,
       "req_key": "",
@@ -1246,7 +1246,9 @@
      "flown": true,
      "pass": true,
      "failing": [],
-     "also_fails_without_fault": [],
+     "also_fails_without_fault": [
+      "ape_los_p9973"
+     ],
      "metrics": {
       "1": [
        {
@@ -1261,7 +1263,7 @@
        {
         "id": "ape_los_p9973",
         "kind": "ape_los",
-        "value": 2.746186897167122,
+        "value": 0.7755269550992037,
         "unit": "deg",
         "req": 10.0,
         "req_key": "req.ape",
@@ -1270,7 +1272,7 @@
        {
         "id": "ake_los_p9973",
         "kind": "ake_los",
-        "value": 0.1494185019877646,
+        "value": 0.1582890908089143,
         "unit": "deg",
         "req": 5.0,
         "req_key": "req.ake",
@@ -1279,7 +1281,7 @@
        {
         "id": "power_mean",
         "kind": "power_mean",
-        "value": 0.19204632463406532,
+        "value": 0.17278997100277216,
         "unit": "W",
         "req": 0.5,
         "req_key": "req.pavg",
@@ -1288,7 +1290,7 @@
        {
         "id": "power_peak",
         "kind": "power_peak",
-        "value": 1.0629474958291718,
+        "value": 0.872142140460553,
         "unit": "W",
         "req": null,
         "req_key": "",
@@ -1297,7 +1299,7 @@
        {
         "id": "propellant",
         "kind": "propellant",
-        "value": 0.0022815271918409713,
+        "value": 0.003414364671003822,
         "unit": "g",
         "req": null,
         "req_key": "",
@@ -1317,7 +1319,7 @@
        {
         "id": "ape_los_p9973",
         "kind": "ape_los",
-        "value": 0.17255685087175995,
+        "value": 0.17006274663090096,
         "unit": "deg",
         "req": 10.0,
         "req_key": "req.ape",
@@ -1326,7 +1328,7 @@
        {
         "id": "ake_los_p9973",
         "kind": "ake_los",
-        "value": 0.16953924790146893,
+        "value": 0.16995019877585824,
         "unit": "deg",
         "req": 5.0,
         "req_key": "req.ake",
@@ -1335,7 +1337,7 @@
        {
         "id": "power_mean",
         "kind": "power_mean",
-        "value": 0.11305955720776034,
+        "value": 0.1362618134029812,
         "unit": "W",
         "req": 0.5,
         "req_key": "req.pavg",
@@ -1344,7 +1346,7 @@
        {
         "id": "power_peak",
         "kind": "power_peak",
-        "value": 0.9768608871081625,
+        "value": 0.8851280825581893,
         "unit": "W",
         "req": null,
         "req_key": "",
@@ -1353,7 +1355,7 @@
        {
         "id": "propellant",
         "kind": "propellant",
-        "value": 0.0015962963036273163,
+        "value": 0.002664891349857173,
         "unit": "g",
         "req": null,
         "req_key": "",
@@ -1369,7 +1371,9 @@
      "flown": true,
      "pass": true,
      "failing": [],
-     "also_fails_without_fault": [],
+     "also_fails_without_fault": [
+      "ape_los_p9973"
+     ],
      "metrics": {
       "1": [
        {
@@ -1384,16 +1388,16 @@
        {
         "id": "ape_los_p9973",
         "kind": "ape_los",
-        "value": 0.15324885636828342,
+        "value": 28.44293124934188,
         "unit": "deg",
         "req": 10.0,
         "req_key": "req.ape",
-        "pass": 1
+        "pass": 0
        },
        {
         "id": "ake_los_p9973",
         "kind": "ake_los",
-        "value": 0.14955375521969902,
+        "value": 0.1747045889171559,
         "unit": "deg",
         "req": 5.0,
         "req_key": "req.ake",
@@ -1402,7 +1406,7 @@
        {
         "id": "power_mean",
         "kind": "power_mean",
-        "value": 0.18784555275939524,
+        "value": 0.15490477611125872,
         "unit": "W",
         "req": 0.5,
         "req_key": "req.pavg",
@@ -1411,7 +1415,7 @@
        {
         "id": "power_peak",
         "kind": "power_peak",
-        "value": 1.0629474958291718,
+        "value": 0.872142140460553,
         "unit": "W",
         "req": null,
         "req_key": "",
@@ -1420,7 +1424,7 @@
        {
         "id": "propellant",
         "kind": "propellant",
-        "value": 0.0020451524425302075,
+        "value": 0.003414364671003822,
         "unit": "g",
         "req": null,
         "req_key": "",
@@ -1440,7 +1444,7 @@
        {
         "id": "ape_los_p9973",
         "kind": "ape_los",
-        "value": 0.1728894232700711,
+        "value": 0.1706407724865556,
         "unit": "deg",
         "req": 10.0,
         "req_key": "req.ape",
@@ -1449,7 +1453,7 @@
        {
         "id": "ake_los_p9973",
         "kind": "ake_los",
-        "value": 0.16958125959724624,
+        "value": 0.16984638241451694,
         "unit": "deg",
         "req": 5.0,
         "req_key": "req.ake",
@@ -1458,7 +1462,7 @@
        {
         "id": "power_mean",
         "kind": "power_mean",
-        "value": 0.16174339628216694,
+        "value": 0.153140035345717,
         "unit": "W",
         "req": 0.5,
         "req_key": "req.pavg",
@@ -1467,7 +1471,7 @@
        {
         "id": "power_peak",
         "kind": "power_peak",
-        "value": 0.9768608871081625,
+        "value": 0.8851280825581893,
         "unit": "W",
         "req": null,
         "req_key": "",
@@ -1476,7 +1480,7 @@
        {
         "id": "propellant",
         "kind": "propellant",
-        "value": 0.0015962963036273163,
+        "value": 0.002664891349857173,
         "unit": "g",
         "req": null,
         "req_key": "",
@@ -1496,7 +1500,9 @@
      "flown": true,
      "pass": true,
      "failing": [],
-     "also_fails_without_fault": [],
+     "also_fails_without_fault": [
+      "ape_los_p9973"
+     ],
      "metrics": {
       "1": [
        {
@@ -1511,7 +1517,7 @@
        {
         "id": "ape_los_p9973",
         "kind": "ape_los",
-        "value": 0.1635697508607021,
+        "value": 1.782743053775938,
         "unit": "deg",
         "req": 10.0,
         "req_key": "req.ape",
@@ -1520,7 +1526,7 @@
        {
         "id": "ake_los_p9973",
         "kind": "ake_los",
-        "value": 0.1661775695176952,
+        "value": 0.15936895150391905,
         "unit": "deg",
         "req": 5.0,
         "req_key": "req.ake",
@@ -1529,7 +1535,7 @@
        {
         "id": "power_mean",
         "kind": "power_mean",
-        "value": 0.15734165335105493,
+        "value": 0.15634484637473917,
         "unit": "W",
         "req": 0.5,
         "req_key": "req.pavg",
@@ -1538,7 +1544,7 @@
        {
         "id": "power_peak",
         "kind": "power_peak",
-        "value": 1.0629474958291718,
+        "value": 0.872142140460553,
         "unit": "W",
         "req": null,
         "req_key": "",
@@ -1547,7 +1553,7 @@
        {
         "id": "propellant",
         "kind": "propellant",
-        "value": 0.002827990832169582,
+        "value": 0.005138320728867085,
         "unit": "g",
         "req": null,
         "req_key": "",
@@ -1567,7 +1573,7 @@
        {
         "id": "ape_los_p9973",
         "kind": "ape_los",
-        "value": 0.16338651170162355,
+        "value": 0.14588286612703028,
         "unit": "deg",
         "req": 10.0,
         "req_key": "req.ape",
@@ -1576,7 +1582,7 @@
        {
         "id": "ake_los_p9973",
         "kind": "ake_los",
-        "value": 0.16099538913760222,
+        "value": 0.14540610479568317,
         "unit": "deg",
         "req": 5.0,
         "req_key": "req.ake",
@@ -1585,7 +1591,7 @@
        {
         "id": "power_mean",
         "kind": "power_mean",
-        "value": 0.1200999609436284,
+        "value": 0.12406548366794767,
         "unit": "W",
         "req": 0.5,
         "req_key": "req.pavg",
@@ -1594,7 +1600,7 @@
        {
         "id": "power_peak",
         "kind": "power_peak",
-        "value": 0.9768608871081625,
+        "value": 0.8851280825581893,
         "unit": "W",
         "req": null,
         "req_key": "",
@@ -1603,7 +1609,7 @@
        {
         "id": "propellant",
         "kind": "propellant",
-        "value": 0.0015962963036273163,
+        "value": 0.002770431601336665,
         "unit": "g",
         "req": null,
         "req_key": "",
@@ -1619,7 +1625,9 @@
      "flown": true,
      "pass": true,
      "failing": [],
-     "also_fails_without_fault": [],
+     "also_fails_without_fault": [
+      "ape_los_p9973"
+     ],
      "metrics": {
       "1": [
        {
@@ -1634,7 +1642,7 @@
        {
         "id": "ape_los_p9973",
         "kind": "ape_los",
-        "value": 2.64895589865876,
+        "value": 1.162642979599757,
         "unit": "deg",
         "req": 10.0,
         "req_key": "req.ape",
@@ -1643,7 +1651,7 @@
        {
         "id": "ake_los_p9973",
         "kind": "ake_los",
-        "value": 0.14956731843292947,
+        "value": 0.15823539800506603,
         "unit": "deg",
         "req": 5.0,
         "req_key": "req.ake",
@@ -1652,7 +1660,7 @@
        {
         "id": "power_mean",
         "kind": "power_mean",
-        "value": 0.15972032787615634,
+        "value": 0.15882247789888349,
         "unit": "W",
         "req": 0.5,
         "req_key": "req.pavg",
@@ -1661,7 +1669,7 @@
        {
         "id": "power_peak",
         "kind": "power_peak",
-        "value": 1.0629474958291718,
+        "value": 0.872142140460553,
         "unit": "W",
         "req": null,
         "req_key": "",
@@ -1670,7 +1678,7 @@
        {
         "id": "propellant",
         "kind": "propellant",
-        "value": 0.0022027356087373834,
+        "value": 0.003414364671003822,
         "unit": "g",
         "req": null,
         "req_key": "",
@@ -1690,7 +1698,7 @@
        {
         "id": "ape_los_p9973",
         "kind": "ape_los",
-        "value": 0.1722672629197824,
+        "value": 0.16993313957822614,
         "unit": "deg",
         "req": 10.0,
         "req_key": "req.ape",
@@ -1699,7 +1707,7 @@
        {
         "id": "ake_los_p9973",
         "kind": "ake_los",
-        "value": 0.16950253771292315,
+        "value": 0.16994380979857554,
         "unit": "deg",
         "req": 5.0,
         "req_key": "req.ake",
@@ -1708,7 +1716,7 @@
        {
         "id": "power_mean",
         "kind": "power_mean",
-        "value": 0.11469223705994525,
+        "value": 0.13993936472443497,
         "unit": "W",
         "req": 0.5,
         "req_key": "req.pavg",
@@ -1717,7 +1725,7 @@
        {
         "id": "power_peak",
         "kind": "power_peak",
-        "value": 0.9768608871081625,
+        "value": 0.8851280825581893,
         "unit": "W",
         "req": null,
         "req_key": "",
@@ -1726,7 +1734,7 @@
        {
         "id": "propellant",
         "kind": "propellant",
-        "value": 0.0015962963036273163,
+        "value": 0.002664891349857173,
         "unit": "g",
         "req": null,
         "req_key": "",
@@ -1742,7 +1750,9 @@
      "flown": true,
      "pass": true,
      "failing": [],
-     "also_fails_without_fault": [],
+     "also_fails_without_fault": [
+      "ape_los_p9973"
+     ],
      "metrics": {
       "1": [
        {
@@ -1757,16 +1767,16 @@
        {
         "id": "ape_los_p9973",
         "kind": "ape_los",
-        "value": 2.614769261071851,
+        "value": 30.327615248367735,
         "unit": "deg",
         "req": 10.0,
         "req_key": "req.ape",
-        "pass": 1
+        "pass": 0
        },
        {
         "id": "ake_los_p9973",
         "kind": "ake_los",
-        "value": 0.14945412543346745,
+        "value": 0.15649521709554018,
         "unit": "deg",
         "req": 5.0,
         "req_key": "req.ake",
@@ -1775,7 +1785,7 @@
        {
         "id": "power_mean",
         "kind": "power_mean",
-        "value": 0.15800157497326245,
+        "value": 0.15723715391175805,
         "unit": "W",
         "req": 0.5,
         "req_key": "req.pavg",
@@ -1784,7 +1794,7 @@
        {
         "id": "power_peak",
         "kind": "power_peak",
-        "value": 1.0629474958291718,
+        "value": 0.872142140460553,
         "unit": "W",
         "req": null,
         "req_key": "",
@@ -1793,7 +1803,7 @@
        {
         "id": "propellant",
         "kind": "propellant",
-        "value": 0.0020451524425302075,
+        "value": 0.003414364671003822,
         "unit": "g",
         "req": null,
         "req_key": "",
@@ -1813,7 +1823,7 @@
        {
         "id": "ape_los_p9973",
         "kind": "ape_los",
-        "value": 0.17223092441352833,
+        "value": 0.16988819284658316,
         "unit": "deg",
         "req": 10.0,
         "req_key": "req.ape",
@@ -1822,7 +1832,7 @@
        {
         "id": "ake_los_p9973",
         "kind": "ake_los",
-        "value": 0.16944805698580134,
+        "value": 0.16995109858234272,
         "unit": "deg",
         "req": 5.0,
         "req_key": "req.ake",
@@ -1831,7 +1841,7 @@
        {
         "id": "power_mean",
         "kind": "power_mean",
-        "value": 0.11460251964871163,
+        "value": 0.1398019160447547,
         "unit": "W",
         "req": 0.5,
         "req_key": "req.pavg",
@@ -1840,7 +1850,7 @@
        {
         "id": "power_peak",
         "kind": "power_peak",
-        "value": 0.9768608871081625,
+        "value": 0.8851280825581893,
         "unit": "W",
         "req": null,
         "req_key": "",
@@ -1849,7 +1859,7 @@
        {
         "id": "propellant",
         "kind": "propellant",
-        "value": 0.0015962963036273163,
+        "value": 0.002664891349857173,
         "unit": "g",
         "req": null,
         "req_key": "",
@@ -1883,16 +1893,16 @@
      {
       "id": "ape_los_p9973",
       "kind": "ape_los",
-      "value": 2.614769261071851,
+      "value": 30.327615248367735,
       "unit": "deg",
       "req": 10.0,
       "req_key": "req.ape",
-      "pass": 1
+      "pass": 0
      },
      {
       "id": "ake_los_p9973",
       "kind": "ake_los",
-      "value": 0.14945412543346745,
+      "value": 0.15649521709554018,
       "unit": "deg",
       "req": 5.0,
       "req_key": "req.ake",
@@ -1901,7 +1911,7 @@
      {
       "id": "power_mean",
       "kind": "power_mean",
-      "value": 0.15800157497326245,
+      "value": 0.15723715391175805,
       "unit": "W",
       "req": 0.5,
       "req_key": "req.pavg",
@@ -1910,7 +1920,7 @@
      {
       "id": "power_peak",
       "kind": "power_peak",
-      "value": 1.0629474958291718,
+      "value": 0.872142140460553,
       "unit": "W",
       "req": null,
       "req_key": "",
@@ -1919,7 +1929,7 @@
      {
       "id": "propellant",
       "kind": "propellant",
-      "value": 0.0020451524425302075,
+      "value": 0.003414364671003822,
       "unit": "g",
       "req": null,
       "req_key": "",
@@ -1939,7 +1949,7 @@
      {
       "id": "ape_los_p9973",
       "kind": "ape_los",
-      "value": 0.17223092441352833,
+      "value": 0.16988819284658316,
       "unit": "deg",
       "req": 10.0,
       "req_key": "req.ape",
@@ -1948,7 +1958,7 @@
      {
       "id": "ake_los_p9973",
       "kind": "ake_los",
-      "value": 0.16944805698580134,
+      "value": 0.16995109858234272,
       "unit": "deg",
       "req": 5.0,
       "req_key": "req.ake",
@@ -1957,7 +1967,7 @@
      {
       "id": "power_mean",
       "kind": "power_mean",
-      "value": 0.11460251964871163,
+      "value": 0.1398019160447547,
       "unit": "W",
       "req": 0.5,
       "req_key": "req.pavg",
@@ -1966,7 +1976,7 @@
      {
       "id": "power_peak",
       "kind": "power_peak",
-      "value": 0.9768608871081625,
+      "value": 0.8851280825581893,
       "unit": "W",
       "req": null,
       "req_key": "",
@@ -1975,7 +1985,7 @@
      {
       "id": "propellant",
       "kind": "propellant",
-      "value": 0.0015962963036273163,
+      "value": 0.002664891349857173,
       "unit": "g",
       "req": null,
       "req_key": "",

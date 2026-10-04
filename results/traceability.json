@@ -11,30 +11,37 @@
     {
      "scenario": "fault_gyro_ais",
      "metric": "ape_los_last_orbit",
-     "value": 52.78008444232647,
+     "value": 10.918155064822782,
      "pass": 0,
-     "run": ""
+     "run": "2026-10-03T18:50:55Z"
     },
     {
      "scenario": "mission_ais",
      "metric": "ape_los_last_orbit",
-     "value": 8.93507009713149,
-     "pass": 1,
-     "run": ""
+     "value": 11.501901673586454,
+     "pass": 0,
+     "run": "2026-10-03T18:51:03Z"
     },
     {
      "scenario": "nadir_hold_ais",
      "metric": "ape_los_last_orbit",
-     "value": 12.638200722154942,
+     "value": 10.668629181550926,
      "pass": 0,
-     "run": ""
+     "run": "2026-10-03T18:51:06Z"
     },
     {
      "scenario": "nadir_hold_ais_css",
      "metric": "ape_los_last_orbit",
-     "value": 39.44055154627257,
+     "value": 9.706064604999048,
+     "pass": 1,
+     "run": "2026-10-03T18:51:07Z"
+    },
+    {
+     "scenario": "safe_mode_ais",
+     "metric": "ape_los_last_orbit",
+     "value": 12.295126389129983,
      "pass": 0,
-     "run": ""
+     "run": "2026-10-03T18:51:08Z"
     }
    ],
    "design": null,
@@ -42,12 +49,12 @@
     {
      "mode": "nadir_pointing",
      "metric": "ape_los_p9973",
-     "value": 0.14708894659596422,
+     "value": 0.1487056076107227,
      "pass": 1
     }
    ],
    "profile": [],
-   "status": "not met (3 of 5)"
+   "status": "not met (4 of 6)"
   },
   {
    "case": "ais_3u",
@@ -60,30 +67,30 @@
     {
      "scenario": "fault_gyro_ais",
      "metric": "ake_los_last_orbit",
-     "value": 41.91964420918183,
-     "pass": 0,
-     "run": ""
+     "value": 1.0382992304791432,
+     "pass": 1,
+     "run": "2026-10-03T18:50:55Z"
     },
     {
      "scenario": "mission_ais",
      "metric": "ake_los_last_orbit",
-     "value": 1.1880898481105393,
+     "value": 1.3160544273519241,
      "pass": 1,
-     "run": ""
+     "run": "2026-10-03T18:51:03Z"
     },
     {
      "scenario": "nadir_hold_ais",
      "metric": "ake_los_last_orbit",
-     "value": 5.49056576806512,
-     "pass": 0,
-     "run": ""
+     "value": 1.6379604164162762,
+     "pass": 1,
+     "run": "2026-10-03T18:51:06Z"
     },
     {
      "scenario": "nadir_hold_ais_css",
      "metric": "ake_los_last_orbit",
-     "value": 39.21547662093392,
-     "pass": 0,
-     "run": ""
+     "value": 1.5687609453593554,
+     "pass": 1,
+     "run": "2026-10-03T18:51:07Z"
     }
    ],
    "design": null,
@@ -91,12 +98,12 @@
     {
      "mode": "nadir_pointing",
      "metric": "ake_los_p9973",
-     "value": 0.14611755758219613,
+     "value": 0.14602831847329792,
      "pass": 1
     }
    ],
    "profile": [],
-   "status": "not met (3 of 5)"
+   "status": "met"
   },
   {
    "case": "ais_3u",
@@ -226,37 +233,37 @@
     {
      "scenario": "detumble_ais",
      "metric": "detumble_time",
-     "value": 37.79,
+     "value": 37.74,
      "pass": 1,
-     "run": ""
+     "run": "2026-10-03T18:50:53Z"
     },
     {
      "scenario": "detumble_ais_bangbang",
      "metric": "detumble_time",
-     "value": 54.02333333333333,
+     "value": 55.74,
      "pass": 1,
-     "run": ""
+     "run": "2026-10-03T18:50:53Z"
     },
     {
      "scenario": "detumble_ais_mag",
      "metric": "detumble_time",
-     "value": 41.156666666666666,
+     "value": 41.09,
      "pass": 1,
-     "run": ""
+     "run": "2026-10-03T18:50:53Z"
     },
     {
      "scenario": "fault_coil_ais",
      "metric": "detumble_time",
-     "value": 82.17333333333335,
+     "value": 82.19000000000001,
      "pass": 1,
-     "run": ""
+     "run": "2026-10-03T18:50:54Z"
     },
     {
      "scenario": "mission_ais",
      "metric": "detumble_time",
-     "value": 37.79,
+     "value": 37.74,
      "pass": 1,
-     "run": ""
+     "run": "2026-10-03T18:51:03Z"
     }
    ],
    "design": null,
@@ -264,7 +271,7 @@
     {
      "mode": "detumble",
      "metric": "detumble_time",
-     "value": 41.00666666666667,
+     "value": 41.306666666666665,
      "pass": 1
     }
    ],
@@ -282,9 +289,9 @@
     {
      "scenario": "sun_spin_ais",
      "metric": "sun_spin_entry",
-     "value": 142.40666666666667,
-     "pass": 0,
-     "run": ""
+     "value": 63.223333333333336,
+     "pass": 1,
+     "run": "2026-10-03T18:51:09Z"
     }
    ],
    "design": null,
@@ -297,7 +304,7 @@
     }
    ],
    "profile": [],
-   "status": "not met (1 of 2)"
+   "status": "met"
   },
   {
    "case": "ais_3u",
@@ -361,12 +368,12 @@
    "flight": [],
    "design": {
     "family": "mtq_fmr",
-    "value": 1.4460643371764328,
-    "pass": 1
+    "value": 2.3188153385798076,
+    "pass": 0
    },
    "modes": [],
    "profile": [],
-   "status": "met"
+   "status": "not met (1 of 1)"
   },
   {
    "case": "ais_3u",
@@ -379,58 +386,65 @@
     {
      "scenario": "detumble_ais",
      "metric": "power_mean",
-     "value": 0.021701207481193658,
+     "value": 0.02192329232985533,
      "pass": 1,
-     "run": ""
+     "run": "2026-10-03T18:50:53Z"
     },
     {
      "scenario": "detumble_ais_bangbang",
      "metric": "power_mean",
-     "value": 0.4365991380950216,
+     "value": 0.45558814696658373,
      "pass": 1,
-     "run": ""
+     "run": "2026-10-03T18:50:53Z"
     },
     {
      "scenario": "detumble_ais_mag",
      "metric": "power_mean",
-     "value": 0.0783897781533677,
+     "value": 0.07734011413759496,
      "pass": 1,
-     "run": ""
+     "run": "2026-10-03T18:50:53Z"
     },
     {
      "scenario": "fault_coil_ais",
      "metric": "power_mean",
-     "value": 0.018206591921134798,
+     "value": 0.01818570313469999,
      "pass": 1,
-     "run": ""
+     "run": "2026-10-03T18:50:54Z"
     },
     {
      "scenario": "fault_gyro_ais",
      "metric": "power_mean",
-     "value": 0.010563361388629315,
+     "value": 0.01084420430901046,
      "pass": 1,
-     "run": ""
+     "run": "2026-10-03T18:50:55Z"
     },
     {
      "scenario": "nadir_hold_ais",
      "metric": "power_mean",
-     "value": 0.010539787793874576,
+     "value": 0.010596882533282304,
      "pass": 1,
-     "run": ""
+     "run": "2026-10-03T18:51:06Z"
     },
     {
      "scenario": "nadir_hold_ais_css",
      "metric": "power_mean",
-     "value": 0.010643570645264142,
+     "value": 0.010984113333902592,
      "pass": 1,
-     "run": ""
+     "run": "2026-10-03T18:51:07Z"
+    },
+    {
+     "scenario": "sun_mtq_ais",
+     "metric": "power_mean",
+     "value": 0.011127525765301717,
+     "pass": 1,
+     "run": "2026-10-03T18:51:09Z"
     },
     {
      "scenario": "sun_spin_ais",
      "metric": "power_mean",
-     "value": 0.4500194377262069,
+     "value": 0.4641378108999595,
      "pass": 1,
-     "run": ""
+     "run": "2026-10-03T18:51:09Z"
     }
    ],
    "design": null,
@@ -438,19 +452,19 @@
     {
      "mode": "nadir_pointing",
      "metric": "power_mean",
-     "value": 0.46953508761871204,
+     "value": 0.2781240917999033,
      "pass": 1
     },
     {
      "mode": "sun_acquisition",
      "metric": "power_mean",
-     "value": 0.23574032802601785,
+     "value": 0.18377855613211622,
      "pass": 1
     },
     {
      "mode": "sun_referencing",
      "metric": "power_mean",
-     "value": 0.4295840168105017,
+     "value": 0.23603156876151657,
      "pass": 1
     }
    ],
@@ -468,30 +482,30 @@
     {
      "scenario": "detumble_ais",
      "metric": "power_peak",
-     "value": 0.550234076967681,
+     "value": 0.5476232337412641,
      "pass": 1,
-     "run": ""
+     "run": "2026-10-03T18:50:53Z"
     },
     {
      "scenario": "detumble_ais_bangbang",
      "metric": "power_peak",
-     "value": 0.7169603564561906,
+     "value": 0.7169983520004882,
      "pass": 1,
-     "run": ""
+     "run": "2026-10-03T18:50:53Z"
     },
     {
      "scenario": "detumble_ais_mag",
      "metric": "power_peak",
-     "value": 0.6377391888180182,
+     "value": 0.6482654194769127,
      "pass": 1,
-     "run": ""
+     "run": "2026-10-03T18:50:53Z"
     },
     {
      "scenario": "fault_coil_ais",
      "metric": "power_peak",
-     "value": 0.550234076967681,
+     "value": 0.5476232337412641,
      "pass": 1,
-     "run": ""
+     "run": "2026-10-03T18:50:54Z"
     }
    ],
    "design": null,
@@ -499,7 +513,7 @@
     {
      "mode": "detumble",
      "metric": "power_peak",
-     "value": 0.4775755938828322,
+     "value": 0.3615948201459356,
      "pass": 1
     }
    ],
@@ -516,7 +530,7 @@
    "flight": [],
    "design": {
     "family": "mtq_fmr",
-    "value": 0.5371218519660271,
+    "value": 0.5379773702787515,
     "pass": 1
    },
    "modes": [],
@@ -547,212 +561,233 @@
     {
      "scenario": "agile_slew_cmg",
      "metric": "ape_los_on_target_p9973",
-     "value": 0.004543995822444758,
+     "value": 0.005506229902498288,
      "pass": 1,
-     "run": ""
+     "run": "2026-10-03T18:50:52Z"
     },
     {
      "scenario": "agile_slew_fmr_rcs",
      "metric": "ape_los_on_target_p9973",
-     "value": 0.006613632391270315,
+     "value": 0.006691616030785554,
      "pass": 1,
-     "run": ""
+     "run": "2026-10-03T18:50:52Z"
     },
     {
      "scenario": "agile_slew_img",
      "metric": "ape_los_on_target_p9973",
-     "value": 0.008685842270355782,
+     "value": 0.007962962674457466,
      "pass": 1,
-     "run": ""
+     "run": "2026-10-03T18:50:53Z"
     },
     {
      "scenario": "agile_slew_rw_rcs",
      "metric": "ape_los_on_target_p9973",
-     "value": 0.008702458915986942,
+     "value": 0.008166906672949035,
      "pass": 1,
-     "run": ""
+     "run": "2026-10-03T18:50:52Z"
     },
     {
      "scenario": "agile_slew_vscmg",
      "metric": "ape_los_on_target_p9973",
-     "value": 0.010081478638413702,
+     "value": 0.011646084670752,
      "pass": 0,
-     "run": ""
+     "run": "2026-10-03T18:50:53Z"
     },
     {
      "scenario": "fault_gimbal_cmg",
      "metric": "ape_los_p9973",
-     "value": 0.005508721310315972,
+     "value": 0.005704917870394455,
      "pass": 1,
-     "run": ""
+     "run": "2026-10-03T18:50:56Z"
+    },
+    {
+     "scenario": "fault_gps_img",
+     "metric": "ape_los_p9973",
+     "value": 0.011195902058714414,
+     "pass": 0,
+     "run": "2026-10-03T18:50:56Z"
     },
     {
      "scenario": "fault_st_img",
      "metric": "ape_los_p9973",
-     "value": 0.1022222280881478,
+     "value": 0.006980034947293854,
+     "pass": 1,
+     "run": "2026-10-03T18:50:57Z"
+    },
+    {
+     "scenario": "fault_valve_rcs",
+     "metric": "ape_los_p9973",
+     "value": 2.7485240528683623,
      "pass": 0,
-     "run": ""
+     "run": "2026-10-03T18:50:58Z"
     },
     {
      "scenario": "fault_wheel_img",
      "metric": "ape_los_p9973",
-     "value": 28.623134282970852,
+     "value": 0.6800073401388947,
      "pass": 0,
-     "run": ""
+     "run": "2026-10-03T18:50:59Z"
     },
     {
      "scenario": "fine_hold_cmg",
      "metric": "ape_los_p9973",
-     "value": 0.0050207258157890485,
+     "value": 0.005217901465699834,
      "pass": 1,
-     "run": ""
+     "run": "2026-10-03T18:50:59Z"
     },
     {
      "scenario": "fine_hold_fmr",
      "metric": "ape_los_p9973",
-     "value": 0.005688835076072578,
+     "value": 0.005961977239161324,
      "pass": 1,
-     "run": ""
+     "run": "2026-10-03T18:51:00Z"
     },
     {
      "scenario": "fine_hold_fmr_rcs",
      "metric": "ape_los_p9973",
-     "value": 0.005688835076072578,
+     "value": 0.005961977239161324,
      "pass": 1,
-     "run": ""
+     "run": "2026-10-03T18:51:00Z"
     },
     {
      "scenario": "fine_hold_img",
      "metric": "ape_los_p9973",
-     "value": 0.01048540870040256,
-     "pass": 0,
-     "run": ""
+     "value": 0.006872698614672029,
+     "pass": 1,
+     "run": "2026-10-03T18:51:01Z"
     },
     {
      "scenario": "fine_hold_img_lqr",
      "metric": "ape_los_p9973",
-     "value": 0.00415645527691288,
+     "value": 0.0042366786181092814,
      "pass": 1,
-     "run": ""
+     "run": "2026-10-03T18:51:01Z"
     },
     {
      "scenario": "fine_hold_img_smc",
      "metric": "ape_los_p9973",
-     "value": 0.01945481954336117,
+     "value": 0.019135399902392804,
      "pass": 0,
-     "run": ""
+     "run": "2026-10-03T18:51:03Z"
     },
     {
      "scenario": "fine_hold_rw_rcs",
      "metric": "ape_los_p9973",
-     "value": 0.03388466466283655,
-     "pass": 0,
-     "run": ""
+     "value": 0.006809842095918563,
+     "pass": 1,
+     "run": "2026-10-03T18:51:03Z"
     },
     {
      "scenario": "fine_hold_vscmg",
      "metric": "ape_los_p9973",
-     "value": 0.008279703895293273,
+     "value": 0.00836937684281587,
      "pass": 1,
-     "run": ""
+     "run": "2026-10-03T18:51:04Z"
     },
     {
      "scenario": "mission_cmg",
      "metric": "ape_los_last_half_orbit_p9973",
-     "value": 0.005240526904657488,
+     "value": 0.005214474810386373,
      "pass": 1,
-     "run": ""
+     "run": "2026-10-03T18:51:05Z"
     },
     {
      "scenario": "mission_fmr",
      "metric": "ape_los_last_half_orbit_p9973",
-     "value": 0.00595408507157916,
+     "value": 0.005883743160414358,
      "pass": 1,
-     "run": ""
+     "run": "2026-10-03T18:51:05Z"
     },
     {
      "scenario": "mission_fmr_rcs",
      "metric": "ape_los_last_half_orbit_p9973",
-     "value": 0.00595408507157916,
+     "value": 0.005883743160414358,
      "pass": 1,
-     "run": ""
+     "run": "2026-10-03T18:51:05Z"
     },
     {
      "scenario": "mission_img",
      "metric": "ape_los_last_half_orbit_p9973",
-     "value": 0.010659290304859646,
-     "pass": 0,
-     "run": ""
+     "value": 0.007339627175564502,
+     "pass": 1,
+     "run": "2026-10-03T18:51:07Z"
     },
     {
      "scenario": "mission_rw_rcs",
      "metric": "ape_los_last_half_orbit_p9973",
-     "value": 0.007564203863610057,
-     "pass": 1,
-     "run": ""
+     "value": 0.014886904471609062,
+     "pass": 0,
+     "run": "2026-10-03T18:51:08Z"
     },
     {
      "scenario": "mission_vscmg",
      "metric": "ape_los_last_half_orbit_p9973",
-     "value": 0.009594944176018163,
+     "value": 0.009744620504449427,
      "pass": 1,
-     "run": ""
+     "run": "2026-10-03T18:51:08Z"
     },
     {
      "scenario": "slew_cmg",
      "metric": "ape_los_on_target_p9973",
-     "value": 0.004232932592228714,
+     "value": 0.0036812971256004455,
      "pass": 1,
-     "run": ""
+     "run": "2026-10-03T18:51:07Z"
     },
     {
      "scenario": "slew_fmr",
      "metric": "ape_los_on_target_p9973",
-     "value": 0.00652935742293547,
+     "value": 0.006193293040951817,
      "pass": 1,
-     "run": ""
+     "run": "2026-10-03T18:51:08Z"
     },
     {
      "scenario": "slew_fmr_rcs",
      "metric": "ape_los_on_target_p9973",
-     "value": 0.00652935742293547,
+     "value": 0.006193293040951817,
      "pass": 1,
-     "run": ""
+     "run": "2026-10-03T18:51:08Z"
     },
     {
      "scenario": "slew_img",
      "metric": "ape_los_on_target_p9973",
-     "value": 0.007925203073528949,
+     "value": 0.007934166871821106,
      "pass": 1,
-     "run": ""
+     "run": "2026-10-03T18:51:08Z"
     },
     {
      "scenario": "slew_img_lqr",
      "metric": "ape_los_on_target_p9973",
-     "value": 0.004439479541748441,
+     "value": 0.0047102174424519085,
      "pass": 1,
-     "run": ""
+     "run": "2026-10-03T18:51:08Z"
     },
     {
      "scenario": "slew_img_smc",
      "metric": "ape_los_on_target_p9973",
-     "value": 0.017800521437716408,
+     "value": 0.017837471937538686,
      "pass": 0,
-     "run": ""
+     "run": "2026-10-03T18:51:08Z"
     },
     {
      "scenario": "slew_rw_rcs",
      "metric": "ape_los_on_target_p9973",
-     "value": 0.007921819653506648,
+     "value": 0.007921379577610054,
      "pass": 1,
-     "run": ""
+     "run": "2026-10-03T18:51:08Z"
     },
     {
      "scenario": "slew_vscmg",
      "metric": "ape_los_on_target_p9973",
-     "value": 0.010831344152894409,
+     "value": 0.01081680340935087,
      "pass": 0,
-     "run": ""
+     "run": "2026-10-03T18:51:09Z"
+    },
+    {
+     "scenario": "target_img",
+     "metric": "ape_los_p9973",
+     "value": 0.012072315785867403,
+     "pass": 0,
+     "run": "2026-10-03T18:51:12Z"
     }
    ],
    "design": null,
@@ -760,12 +795,12 @@
     {
      "mode": "nadir_pointing",
      "metric": "ape_los_p9973",
-     "value": 0.004482653384330484,
+     "value": 0.004032272332679532,
      "pass": 1
     }
    ],
    "profile": [],
-   "status": "not met (9 of 31)"
+   "status": "not met (9 of 34)"
   },
   {
    "case": "ais_img_3u",
@@ -778,79 +813,100 @@
     {
      "scenario": "fault_gimbal_cmg",
      "metric": "ake_los_p9973",
-     "value": 0.002624299513776467,
+     "value": 0.002868412380909158,
      "pass": 1,
-     "run": ""
+     "run": "2026-10-03T18:50:56Z"
+    },
+    {
+     "scenario": "fault_gps_img",
+     "metric": "ake_los_p9973",
+     "value": 0.0028393882780055357,
+     "pass": 1,
+     "run": "2026-10-03T18:50:56Z"
     },
     {
      "scenario": "fault_st_img",
      "metric": "ake_los_p9973",
-     "value": 0.10931314299278329,
-     "pass": 0,
-     "run": ""
+     "value": 0.003055652182755497,
+     "pass": 1,
+     "run": "2026-10-03T18:50:57Z"
+    },
+    {
+     "scenario": "fault_valve_rcs",
+     "metric": "ake_los_p9973",
+     "value": 0.0027277711256880784,
+     "pass": 1,
+     "run": "2026-10-03T18:50:58Z"
     },
     {
      "scenario": "fault_wheel_img",
      "metric": "ake_los_p9973",
-     "value": 0.0028581257166492503,
+     "value": 0.002982978579997313,
      "pass": 1,
-     "run": ""
+     "run": "2026-10-03T18:50:59Z"
     },
     {
      "scenario": "fine_hold_cmg",
      "metric": "ake_los_p9973",
-     "value": 0.0026263098760842644,
+     "value": 0.0028476312918719274,
      "pass": 1,
-     "run": ""
+     "run": "2026-10-03T18:50:59Z"
     },
     {
      "scenario": "fine_hold_fmr",
      "metric": "ake_los_p9973",
-     "value": 0.0026309994575527437,
+     "value": 0.002868093820091756,
      "pass": 1,
-     "run": ""
+     "run": "2026-10-03T18:51:00Z"
     },
     {
      "scenario": "fine_hold_fmr_rcs",
      "metric": "ake_los_p9973",
-     "value": 0.0026309994575527437,
+     "value": 0.002868093820091756,
      "pass": 1,
-     "run": ""
+     "run": "2026-10-03T18:51:00Z"
     },
     {
      "scenario": "fine_hold_img",
      "metric": "ake_los_p9973",
-     "value": 0.002608036040076056,
+     "value": 0.002841851342298204,
      "pass": 1,
-     "run": ""
+     "run": "2026-10-03T18:51:01Z"
     },
     {
      "scenario": "fine_hold_img_lqr",
      "metric": "ake_los_p9973",
-     "value": 0.0026523706461802437,
+     "value": 0.0028572238890409423,
      "pass": 1,
-     "run": ""
+     "run": "2026-10-03T18:51:01Z"
     },
     {
      "scenario": "fine_hold_img_smc",
      "metric": "ake_los_p9973",
-     "value": 0.002648591902073026,
+     "value": 0.0027497116050227643,
      "pass": 1,
-     "run": ""
+     "run": "2026-10-03T18:51:03Z"
     },
     {
      "scenario": "fine_hold_rw_rcs",
      "metric": "ake_los_p9973",
-     "value": 0.002601543286890391,
+     "value": 0.0028277257703111292,
      "pass": 1,
-     "run": ""
+     "run": "2026-10-03T18:51:03Z"
     },
     {
      "scenario": "fine_hold_vscmg",
      "metric": "ake_los_p9973",
-     "value": 0.0026364118238512966,
+     "value": 0.0028518102573415415,
      "pass": 1,
-     "run": ""
+     "run": "2026-10-03T18:51:04Z"
+    },
+    {
+     "scenario": "target_img",
+     "metric": "ake_los_p9973",
+     "value": 0.01149205053705737,
+     "pass": 0,
+     "run": "2026-10-03T18:51:12Z"
     }
    ],
    "design": null,
@@ -858,12 +914,12 @@
     {
      "mode": "nadir_pointing",
      "metric": "ake_los_p9973",
-     "value": 0.003247473265077974,
+     "value": 0.0034111888990225833,
      "pass": 1
     }
    ],
    "profile": [],
-   "status": "not met (1 of 12)"
+   "status": "not met (1 of 15)"
   },
   {
    "case": "ais_img_3u",
@@ -902,79 +958,79 @@
     {
      "scenario": "fault_gimbal_cmg",
      "metric": "rate_stability_p9973",
-     "value": 0.0029629452945429307,
+     "value": 0.0029871894406951665,
      "pass": 1,
-     "run": ""
+     "run": "2026-10-03T18:50:56Z"
     },
     {
      "scenario": "fault_st_img",
      "metric": "rate_stability_p9973",
-     "value": 0.0037712623100350246,
+     "value": 0.003483718210793635,
      "pass": 1,
-     "run": ""
+     "run": "2026-10-03T18:50:57Z"
     },
     {
      "scenario": "fault_wheel_img",
      "metric": "rate_stability_p9973",
-     "value": 0.6244137380838454,
+     "value": 0.03142886711997564,
      "pass": 0,
-     "run": ""
+     "run": "2026-10-03T18:50:59Z"
     },
     {
      "scenario": "fine_hold_cmg",
      "metric": "rate_stability_p9973",
-     "value": 0.0024372972116540755,
+     "value": 0.002468584428508412,
      "pass": 1,
-     "run": ""
+     "run": "2026-10-03T18:50:59Z"
     },
     {
      "scenario": "fine_hold_fmr",
      "metric": "rate_stability_p9973",
-     "value": 0.004728905497182666,
+     "value": 0.004811370410433045,
      "pass": 1,
-     "run": ""
+     "run": "2026-10-03T18:51:00Z"
     },
     {
      "scenario": "fine_hold_fmr_rcs",
      "metric": "rate_stability_p9973",
-     "value": 0.004728905497182666,
+     "value": 0.004811370410433045,
      "pass": 1,
-     "run": ""
+     "run": "2026-10-03T18:51:00Z"
     },
     {
      "scenario": "fine_hold_img",
      "metric": "rate_stability_p9973",
-     "value": 0.0035517891985791376,
+     "value": 0.0034932579292065937,
      "pass": 1,
-     "run": ""
+     "run": "2026-10-03T18:51:01Z"
     },
     {
      "scenario": "fine_hold_img_lqr",
      "metric": "rate_stability_p9973",
-     "value": 0.006703833797701828,
+     "value": 0.006898274943426381,
      "pass": 0,
-     "run": ""
+     "run": "2026-10-03T18:51:01Z"
     },
     {
      "scenario": "fine_hold_img_smc",
      "metric": "rate_stability_p9973",
-     "value": 0.003481571379738736,
+     "value": 0.0033901569865150646,
      "pass": 1,
-     "run": ""
+     "run": "2026-10-03T18:51:03Z"
     },
     {
      "scenario": "fine_hold_rw_rcs",
      "metric": "rate_stability_p9973",
-     "value": 0.005640505712910319,
-     "pass": 0,
-     "run": ""
+     "value": 0.003533114784284647,
+     "pass": 1,
+     "run": "2026-10-03T18:51:03Z"
     },
     {
      "scenario": "fine_hold_vscmg",
      "metric": "rate_stability_p9973",
-     "value": 0.004762354725018702,
+     "value": 0.00473720147339445,
      "pass": 1,
-     "run": ""
+     "run": "2026-10-03T18:51:04Z"
     }
    ],
    "design": null,
@@ -982,12 +1038,12 @@
     {
      "mode": "nadir_pointing",
      "metric": "rate_stability_p9973",
-     "value": 0.004965481091720041,
+     "value": 0.0043238258793035535,
      "pass": 1
     }
    ],
    "profile": [],
-   "status": "not met (3 of 12)"
+   "status": "not met (2 of 12)"
   },
   {
    "case": "ais_img_3u",
@@ -1077,56 +1133,56 @@
      "metric": "settle_time_after_slew",
      "value": 12.400000000000034,
      "pass": 1,
-     "run": ""
+     "run": "2026-10-03T18:51:07Z"
     },
     {
      "scenario": "slew_fmr",
      "metric": "settle_time_after_slew",
      "value": 12.900000000000034,
      "pass": 1,
-     "run": ""
+     "run": "2026-10-03T18:51:08Z"
     },
     {
      "scenario": "slew_fmr_rcs",
      "metric": "settle_time_after_slew",
      "value": 12.900000000000034,
      "pass": 1,
-     "run": ""
+     "run": "2026-10-03T18:51:08Z"
     },
     {
      "scenario": "slew_img",
      "metric": "settle_time_after_slew",
      "value": 12.100000000000023,
      "pass": 1,
-     "run": ""
+     "run": "2026-10-03T18:51:08Z"
     },
     {
      "scenario": "slew_img_lqr",
      "metric": "settle_time_after_slew",
      "value": 0.0,
      "pass": 1,
-     "run": ""
+     "run": "2026-10-03T18:51:08Z"
     },
     {
      "scenario": "slew_img_smc",
      "metric": "settle_time_after_slew",
      "value": null,
      "pass": 0,
-     "run": ""
+     "run": "2026-10-03T18:51:08Z"
     },
     {
      "scenario": "slew_rw_rcs",
      "metric": "settle_time_after_slew",
      "value": 12.100000000000023,
      "pass": 1,
-     "run": ""
+     "run": "2026-10-03T18:51:08Z"
     },
     {
      "scenario": "slew_vscmg",
      "metric": "settle_time_after_slew",
      "value": 13.199999999999989,
      "pass": 1,
-     "run": ""
+     "run": "2026-10-03T18:51:09Z"
     }
    ],
    "design": null,
@@ -1184,51 +1240,58 @@
     {
      "scenario": "detumble_img",
      "metric": "detumble_time",
-     "value": 47.541666666666664,
+     "value": 47.575,
      "pass": 1,
-     "run": ""
+     "run": "2026-10-03T18:50:55Z"
+    },
+    {
+     "scenario": "detumble_rcs",
+     "metric": "detumble_time",
+     "value": null,
+     "pass": 0,
+     "run": "2026-10-03T18:50:53Z"
     },
     {
      "scenario": "mission_cmg",
      "metric": "detumble_time",
-     "value": 57.00833333333333,
+     "value": 56.775,
      "pass": 1,
-     "run": ""
+     "run": "2026-10-03T18:51:05Z"
     },
     {
      "scenario": "mission_fmr",
      "metric": "detumble_time",
-     "value": 61.325,
+     "value": 61.125,
      "pass": 1,
-     "run": ""
+     "run": "2026-10-03T18:51:05Z"
     },
     {
      "scenario": "mission_fmr_rcs",
      "metric": "detumble_time",
-     "value": 61.325,
+     "value": 61.125,
      "pass": 1,
-     "run": ""
+     "run": "2026-10-03T18:51:05Z"
     },
     {
      "scenario": "mission_img",
      "metric": "detumble_time",
-     "value": 51.00833333333333,
+     "value": 49.84166666666667,
      "pass": 1,
-     "run": ""
+     "run": "2026-10-03T18:51:07Z"
     },
     {
      "scenario": "mission_rw_rcs",
      "metric": "detumble_time",
-     "value": 51.00833333333333,
+     "value": 49.825,
      "pass": 1,
-     "run": ""
+     "run": "2026-10-03T18:51:08Z"
     },
     {
      "scenario": "mission_vscmg",
      "metric": "detumble_time",
-     "value": 57.025,
+     "value": 56.891666666666666,
      "pass": 1,
-     "run": ""
+     "run": "2026-10-03T18:51:08Z"
     }
    ],
    "design": null,
@@ -1236,12 +1299,12 @@
     {
      "mode": "detumble",
      "metric": "detumble_time",
-     "value": 58.906666666666666,
+     "value": 58.59,
      "pass": 1
     }
    ],
    "profile": [],
-   "status": "met"
+   "status": "not met (1 of 9)"
   },
   {
    "case": "ais_img_3u",
@@ -1250,7 +1313,15 @@
    "unit": "Minute",
    "value": 95.0,
    "unconfirmed": true,
-   "flight": [],
+   "flight": [
+    {
+     "scenario": "sun_acq_rotor_img",
+     "metric": "sun_acquisition_time",
+     "value": 2.2083333333333335,
+     "pass": 1,
+     "run": "2026-10-03T18:51:09Z"
+    }
+   ],
    "design": null,
    "modes": [
     {
@@ -1320,12 +1391,12 @@
    "key": "req.mass",
    "label": "ADCS mass",
    "unit": "Kilogram",
-   "value": 1.6,
+   "value": 1.85,
    "unconfirmed": false,
    "flight": [],
    "design": {
     "family": "mtq_fmr",
-    "value": 1.4273053015176518,
+    "value": 1.794485934193919,
     "pass": 1
    },
    "modes": [],
@@ -1343,79 +1414,107 @@
     {
      "scenario": "fault_gimbal_cmg",
      "metric": "power_mean",
-     "value": 1.6098333470280515,
+     "value": 1.6100357949455288,
      "pass": 1,
-     "run": ""
+     "run": "2026-10-03T18:50:56Z"
+    },
+    {
+     "scenario": "fault_gps_img",
+     "metric": "power_mean",
+     "value": 1.5592197402484875,
+     "pass": 1,
+     "run": "2026-10-03T18:50:56Z"
     },
     {
      "scenario": "fault_st_img",
      "metric": "power_mean",
-     "value": 1.5573215249068173,
+     "value": 1.5592203215119478,
      "pass": 1,
-     "run": ""
+     "run": "2026-10-03T18:50:57Z"
+    },
+    {
+     "scenario": "fault_valve_rcs",
+     "metric": "power_mean",
+     "value": 1.5129131523755033,
+     "pass": 1,
+     "run": "2026-10-03T18:50:58Z"
     },
     {
      "scenario": "fault_wheel_img",
      "metric": "power_mean",
-     "value": 1.2130652778285238,
+     "value": 1.1380259126253365,
      "pass": 1,
-     "run": ""
+     "run": "2026-10-03T18:50:59Z"
     },
     {
      "scenario": "fine_hold_cmg",
      "metric": "power_mean",
-     "value": 1.6098532577755433,
+     "value": 1.610055876359756,
      "pass": 1,
-     "run": ""
+     "run": "2026-10-03T18:50:59Z"
     },
     {
      "scenario": "fine_hold_fmr",
      "metric": "power_mean",
-     "value": 0.08406296596575745,
+     "value": 0.1012297024303643,
      "pass": 1,
-     "run": ""
+     "run": "2026-10-03T18:51:00Z"
     },
     {
      "scenario": "fine_hold_fmr_rcs",
      "metric": "power_mean",
-     "value": 0.08406296596575745,
+     "value": 0.1012297024303643,
      "pass": 1,
-     "run": ""
+     "run": "2026-10-03T18:51:00Z"
     },
     {
      "scenario": "fine_hold_img",
      "metric": "power_mean",
-     "value": 1.5573238717790905,
+     "value": 1.5592202806815467,
      "pass": 1,
-     "run": ""
+     "run": "2026-10-03T18:51:01Z"
     },
     {
      "scenario": "fine_hold_img_lqr",
      "metric": "power_mean",
-     "value": 1.5579173018428665,
+     "value": 1.5596440948924053,
      "pass": 1,
-     "run": ""
+     "run": "2026-10-03T18:51:01Z"
     },
     {
      "scenario": "fine_hold_img_smc",
      "metric": "power_mean",
-     "value": 1.5573332349944629,
+     "value": 1.5592264001905014,
      "pass": 1,
-     "run": ""
+     "run": "2026-10-03T18:51:03Z"
     },
     {
      "scenario": "fine_hold_rw_rcs",
      "metric": "power_mean",
-     "value": 1.5301332707303108,
+     "value": 1.5320263680137451,
      "pass": 1,
-     "run": ""
+     "run": "2026-10-03T18:51:03Z"
     },
     {
      "scenario": "fine_hold_vscmg",
      "metric": "power_mean",
-     "value": 2.014100066492688,
+     "value": 2.0142026840849696,
      "pass": 0,
-     "run": ""
+     "run": "2026-10-03T18:51:04Z"
+    },
+    {
+     "scenario": "sun_fine_img",
+     "metric": "power_mean",
+     "value": 1.5257310725637643,
+     "pass": 1,
+     "run": "2026-10-03T18:51:09Z"
+    },
+    {
+     "scenario": "target_img",
+     "metric": "power_mean",
+     "value": 1.5643925203271642,
+     "pass": 1,
+     "run": "2026-10-03T18:51:12Z"
     }
    ],
    "design": null,
@@ -1423,24 +1522,24 @@
     {
      "mode": "nadir_pointing",
      "metric": "power_mean",
-     "value": 0.2872820399282563,
+     "value": 0.30044354323788663,
      "pass": 1
     },
     {
      "mode": "sun_acquisition",
      "metric": "power_mean",
-     "value": 0.6753551575270226,
+     "value": 0.19480916299461862,
      "pass": 1
     },
     {
      "mode": "sun_referencing",
      "metric": "power_mean",
-     "value": 0.08898959897160505,
+     "value": 0.6781847154332382,
      "pass": 1
     }
    ],
    "profile": [],
-   "status": "not met (1 of 14)"
+   "status": "not met (1 of 18)"
   },
   {
    "case": "ais_img_3u",
@@ -1455,7 +1554,7 @@
     {
      "mode": "detumble",
      "metric": "power_peak",
-     "value": 0.21809270611756887,
+     "value": 0.3024658218934124,
      "pass": 1
     }
    ],
@@ -1472,7 +1571,7 @@
    "flight": [],
    "design": {
     "family": "mtq_fmr",
-    "value": 0.5344095129173693,
+    "value": 0.660235891936444,
     "pass": 1
    },
    "modes": [],
@@ -1545,6 +1644,11 @@
    "scenario": "agile_slew_vscmg",
    "metric": "wheel_momentum_peak",
    "why": "momentum used, for sizing: the case does not state the margin req.hsat"
+  },
+  {
+   "scenario": "detumble_rcs",
+   "metric": "propellant",
+   "why": "the propellant a thruster detumble costs: the case states no propellant budget (req.prop)"
   },
   {
    "scenario": "fault_gimbal_cmg",
@@ -1692,6 +1796,26 @@
    "why": "momentum used, for sizing: the case does not state the margin req.hsat"
   },
   {
+   "scenario": "fine_hold_img",
+   "metric": "rpe_los_10s_p9973",
+   "why": "ECSS relative pointing error over 10 s windows: the case does not state req.rpe"
+  },
+  {
+   "scenario": "fine_hold_img",
+   "metric": "pde_los_10s_60s_max",
+   "why": "ECSS pointing drift between 10 s windows 60 s apart: the case does not state req.pde"
+  },
+  {
+   "scenario": "fine_hold_img",
+   "metric": "rke_los_10s_p9973",
+   "why": "ECSS relative knowledge error over 10 s windows: the case does not state req.rke"
+  },
+  {
+   "scenario": "fine_hold_img",
+   "metric": "battery_dod_last_orbit",
+   "why": "the deepest battery discharge over the orbit: the case does not state a depth-of-discharge limit"
+  },
+  {
    "scenario": "fine_hold_img_lqr",
    "metric": "ape_los_max",
    "why": "the worst sample, beside the judged p99.73: req.ape is a 3-sigma requirement"
@@ -1777,14 +1901,39 @@
    "why": "yaw about the antenna axis is not required: the line of sight is judged (ape_los_last_orbit)"
   },
   {
+   "scenario": "mission_ais",
+   "metric": "battery_dod_last_orbit",
+   "why": "the deepest battery discharge over the orbit: the case does not state a depth-of-discharge limit"
+  },
+  {
+   "scenario": "mission_img",
+   "metric": "battery_dod_last_orbit",
+   "why": "the deepest battery discharge over the orbit: the case does not state a depth-of-discharge limit"
+  },
+  {
    "scenario": "nadir_hold_ais",
    "metric": "ape_3axis_last_orbit",
    "why": "yaw about the antenna axis is not required: the line of sight is judged (ape_los_last_orbit)"
   },
   {
+   "scenario": "nadir_hold_ais",
+   "metric": "battery_dod_last_orbit",
+   "why": "the deepest battery discharge over the orbit: the case does not state a depth-of-discharge limit"
+  },
+  {
    "scenario": "nadir_hold_ais_css",
    "metric": "ape_3axis_last_orbit",
    "why": "yaw about the antenna axis is not required: the line of sight is judged (ape_los_last_orbit)"
+  },
+  {
+   "scenario": "safe_mode_ais",
+   "metric": "safe_mode_entry",
+   "why": "the minute safe mode began: the fault at 100 min plus the 60 s the flight software waits"
+  },
+  {
+   "scenario": "safe_mode_ais",
+   "metric": "recovery_to_ape",
+   "why": "from the magnetometer's return to 10 min held inside the APE: the case does not state req.recover"
   },
   {
    "scenario": "slew_cmg",
@@ -1825,11 +1974,21 @@
    "scenario": "slew_vscmg",
    "metric": "wheel_momentum_peak",
    "why": "momentum used, for sizing: the case does not state the margin req.hsat"
+  },
+  {
+   "scenario": "sun_acq_rotor_img",
+   "metric": "power_margin_orbit",
+   "why": "the orbit that includes the acquisition: a deficit here is drawn from the battery"
+  },
+  {
+   "scenario": "sun_acq_rotor_img",
+   "metric": "battery_dod_orbit",
+   "why": "the deepest discharge of the acquisition orbit: the case does not state a depth-of-discharge limit"
   }
  ],
  "counts": {
-  "metrics": 173,
-  "judged": 107,
-  "diagnostic": 66
+  "metrics": 207,
+  "judged": 129,
+  "diagnostic": 78
  }
 }
