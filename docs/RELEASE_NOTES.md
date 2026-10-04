@@ -10,7 +10,7 @@ The first release of TRI-NETRA ADCS: the attitude determination and control desi
 | `trinetra-adcs-1.0.0-linux-x86_64.zip` | Linux: `trinetra-app` and `adcs` |
 | `trinetra_adcs-1.0.0-py3-none-any.whl` | any of them, with Python 3.8+: `pip install` it, then `trinetra-adcs-app` |
 | `TRINETRA_ADCS_SILS_matlab_asils-1.0.0.zip` | the MATLAB / GNU Octave SILS twin |
-| `TRINETRA_ADCS_flight_engine_1.2.0.zip` | the flight software (C and Rust) and the engine's source |
+| `TRINETRA_ADCS_flight_engine_1.0.0.zip` | the flight software (C and Rust) and the engine's source |
 | `TRINETRA_ADCS_VV_report.pdf` | the verification and validation report |
 
 **What it does.** Pick a case (two are included: a 3U AIS CubeSat and a 3U imager, both at 550 km) and a scenario (detumble, Sun acquisition, nadir hold, slews, faults, with magnetorquers, the fluid momentum loop, RCS, reaction wheels, CMGs); the engine flies the satellite, the environment and the precision orbit with the C or Rust flight software in the loop and judges every metric against the case's requirements. Every run records what it flew and can be sent as one `.trinetra` file.
