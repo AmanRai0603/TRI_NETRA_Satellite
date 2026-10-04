@@ -428,7 +428,7 @@ inside them.
 | Sweeps keep only what their figures need | ✅ a campaign keeps `summary.json` and run 1 (its provenance); about 4,500 committed per-run manifests left git |
 | The Python package reads the database | ✅ `trinetra_adcs.design` (standard-library `sqlite3`) and `python -m trinetra_adcs.design` |
 | Committed pages retired | ✅ `results/index.html` and its 210 figures, and the twin's 280 figures and result pages, out of git; drawn on demand |
-| Every stale run re-flown; `adcs results stale` finds nothing | 🟡 engine runs, campaigns, Monte Carlo series and solutions re-flown and current; soft OILS, the dispatch, the design loop and the 40 twin runs (the twin now records its source fingerprint, judged by the engine) are flying |
+| Every stale run re-flown; `adcs results stale` finds nothing | ✅ engine runs, campaigns, Monte Carlo series, solutions, soft OILS, the dispatch, both design loops and the 40 twin runs re-flown: `adcs results stale` finds 0 of 295 stale (the twin now records its source fingerprint, judged by the engine). `ais_img_3u` selects the same design; `ais_3u` is now closest, not feasible (gap D15) |
 
 **Progress of P12** (test → deliver → accept → ship; `docs/DELIVERY.md`):
 
