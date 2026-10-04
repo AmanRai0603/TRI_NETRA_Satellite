@@ -127,8 +127,12 @@ def main(argv=None):
         steps = []
         if not a.no_loop:
             steps.append(run([PY, "tools/pipeline.py", case, "--jobs", a.jobs], env, f"{case}: the design loop"))
+        else:
+            steps.append({"what": f"{case}: the design loop", "exit": None, "skipped": True})
         if not a.no_campaigns and campaigns_of(case):
             steps.append(run([PY, "tools/engine.py", "campaign", *campaigns_of(case), "--jobs", a.jobs], env, f"{case}: its campaigns"))
+        elif campaigns_of(case):
+            steps.append({"what": f"{case}: its campaigns", "exit": None, "skipped": True})
         after = numbers(case)
         changed = sorted(k for k in set(before) | set(after) if before.get(k) != after.get(k))
         named, other = manifests_from(db, case)
@@ -147,7 +151,7 @@ def main(argv=None):
         e = next(x for x in ev if x["case"] == case)
         valued = sum(1 for x in e["rows"] if x["state"] != "not computed")
         ans = sum(1 for c in e["closures"] if c["answer"] != "blocked")
-        steps = ", ".join(f"{s['what'].split(': ', 1)[1]} ({'ok' if not s['exit'] else 'exit ' + str(s['exit'])})" for s in r["steps"]) or "none"
+        steps = ", ".join(f"{s['what'].split(': ', 1)[1]} ({'not run this time: its stored results are read' if s.get('skipped') else 'ok' if not s['exit'] else 'exit ' + str(s['exit'])})" for s in r["steps"]) or "none"
         L.append(f"| `{case}` | {steps} | {r['runs_from_the_database']} (not: {r['runs_not_count']}) | {r['numbers']} | {len(r['changed'])} | "
                  f"{valued} of {len(e['rows'])} | {ans} | {len(e['closures']) - ans} |")
     for case, r in rec["cases"].items():

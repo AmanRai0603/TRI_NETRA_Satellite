@@ -4,7 +4,7 @@
 
 | Case | Steps | Runs from the database | Numbers compared | Numbers that differ | Rows with a value | Closures answered | Closures blocked |
 |---|---|---|---|---|---|---|---|
-| `ais_3u` | the design loop (ok), its campaigns (ok) | 45 (not: 3) | 468 | 0 | 43 of 712 | 4 | 34 |
-| `ais_img_3u` | the design loop (ok), its campaigns (ok) | 47 (not: 3) | 555 | 0 | 48 of 712 | 4 | 34 |
+| `ais_3u` | the design loop (not run this time: its stored results are read), its campaigns (not run this time: its stored results are read) | 48 (not: 0) | 468 | 0 | 43 of 712 | 4 | 34 |
+| `ais_img_3u` | the design loop (not run this time: its stored results are read), its campaigns (not run this time: its stored results are read) | 50 (not: 0) | 555 | 0 | 48 of 712 | 4 | 34 |
 
 Each closure's answer, or the row that blocks it: `results/EVALUATION.md`. Each requirement's check: `results/TRACEABILITY.md`.

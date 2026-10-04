@@ -441,6 +441,17 @@ inside them.
 | Proof | ✅ `tests/test_delivery.py` + `tests/js/waves.test.mjs`: the five waves rehearsed on the carried design with stand-in leads (sealed, delivered, accepted, one left UNCONFIRMED, the refusals) |
 | Every group accepted by its lead | ⏳ no lead named yet, so no group has sealed: today all 20 would ship UNCONFIRMED (owner's decision, §9) |
 
+**Progress of P13** (both cases end to end from the design database; `docs/END_TO_END.md`):
+
+| item | state |
+|---|---|
+| The database holds the files' inputs | ✅ `tools/design_inputs.py differences` empty: every case line and every `data/` file byte for byte, else the run is refused |
+| The design loop and the campaigns from `design.tndb` alone | ✅ `tools/end_to_end.py`: every engine run with `TRINETRA_DESIGN`, the soft OILS runs (QEMU, C and Rust firmware) included; `ais_3u` 468 and `ais_img_3u` 555 numbers compared with the ones flown from the files: none differ (`results/END_TO_END.md`) |
+| Every row evaluated or shown as not computed | ✅ `tools/evaluate.py`: per case about 45 rows stated, computed by their pseudocode or supplied by the selected design's Monte Carlo; the rest each with why (no pseudocode yet, supplied by a lab or supplier) (`results/EVALUATION.md`) |
+| Every closure answering or blocked by name | ✅ 38 per case: 4 pass (APE, AKE, detumble time, orbit-average power), 34 blocked, each naming the row with no value. `ais_3u`'s APE passes at the KPI's claimed probability while the design loop's 99.73 % line-of-sight check is gap D15 |
+| The traceability | ✅ `results/TRACEABILITY.md` regenerated from the same run |
+| More closures answer | ⏳ as authors write pseudocode and leads release their groups (P12); `tools/evaluate.py --check` refuses a closure that answered before and is blocked now |
+
 ## 6 · What 1.0.0 contains
 
 - **Node app and group app:** offline, one file each, with manuals.

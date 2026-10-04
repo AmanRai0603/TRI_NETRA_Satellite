@@ -5,47 +5,39 @@
    "steps": [
     {
      "what": "ais_3u: the design loop",
-     "command": "/usr/local/bin/python3 tools/pipeline.py ais_3u --jobs 2",
-     "exit": 0
+     "exit": null,
+     "skipped": true
     },
     {
      "what": "ais_3u: its campaigns",
-     "command": "/usr/local/bin/python3 tools/engine.py campaign edge_nadir_ais mc_detumble_ais mc_nadir_ais --jobs 2",
-     "exit": 0
+     "exit": null,
+     "skipped": true
     }
    ],
    "numbers": 468,
    "changed": [],
-   "runs_from_the_database": 45,
-   "runs_not": [
-    "matlab_sils/store/pipeline/ais_3u/soft_oils/oils_rs/manifest.json",
-    "matlab_sils/store/pipeline/ais_3u/soft_oils/oils/manifest.json",
-    "matlab_sils/store/pipeline/ais_3u/soft_oils/sils/manifest.json"
-   ],
-   "runs_not_count": 3
+   "runs_from_the_database": 48,
+   "runs_not": [],
+   "runs_not_count": 0
   },
   "ais_img_3u": {
    "steps": [
     {
      "what": "ais_img_3u: the design loop",
-     "command": "/usr/local/bin/python3 tools/pipeline.py ais_img_3u --jobs 2",
-     "exit": 0
+     "exit": null,
+     "skipped": true
     },
     {
      "what": "ais_img_3u: its campaigns",
-     "command": "/usr/local/bin/python3 tools/engine.py campaign edge_fine_img mc_agile_rw_rcs mc_fine_img mc_slew_cmg mc_slew_img --jobs 2",
-     "exit": 0
+     "exit": null,
+     "skipped": true
     }
    ],
    "numbers": 555,
    "changed": [],
-   "runs_from_the_database": 47,
-   "runs_not": [
-    "matlab_sils/store/pipeline/ais_img_3u/soft_oils/oils_rs/manifest.json",
-    "matlab_sils/store/pipeline/ais_img_3u/soft_oils/oils/manifest.json",
-    "matlab_sils/store/pipeline/ais_img_3u/soft_oils/sils/manifest.json"
-   ],
-   "runs_not_count": 3
+   "runs_from_the_database": 50,
+   "runs_not": [],
+   "runs_not_count": 0
   }
  },
  "evaluate": {

@@ -2,7 +2,7 @@
  "_key": "adf04fa37d26640d",
  "sils": {
   "rc": 0,
-  "wall_s": 1.4865694046020508,
+  "wall_s": 1.1605360507965088,
   "metrics": [
    {
     "id": "detumble_time",
@@ -67,7 +67,7 @@
  },
  "oils": {
   "rc": 0,
-  "wall_s": 1174.8314125537872,
+  "wall_s": 1226.7246069908142,
   "metrics": [
    {
     "id": "detumble_time",
@@ -195,7 +195,7 @@
  },
  "oils_rs": {
   "rc": 0,
-  "wall_s": 1209.5728735923767,
+  "wall_s": 1274.5980010032654,
   "metrics": [
    {
     "id": "detumble_time",
