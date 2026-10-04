@@ -2,12 +2,13 @@
  "iteration": 3,
  "knobs": {
   "scale": {},
-  "fmr_lambda": 0.9000000000000001
+  "fmr_lambda": 0.9000000000000001,
+  "fmr_flow_sigma": 0.0005
  },
  "class": "coarse",
  "selected": "mtq_fmr",
  "status": "closest (not feasible)",
- "feasible_options": 4,
+ "feasible_options": 6,
  "options": 25,
  "changes": [
   "mass (mtq_fmr): fluid-loop momentum x1 -> x0.75",
@@ -17,7 +18,6 @@
   "detumble/rcs: power fails at the sized authority (rcs); the part's standby power is the floor",
   "nadir_pointing/cmg+mtq: power fails at the sized authority (cmg); the part's standby power is the floor",
   "nadir_pointing/cmg+rcs: power fails at the sized authority (cmg); the part's standby power is the floor",
-  "nadir_pointing/fmr+rcs: power is the thrusters' valve power (RCS dumping), not the pump",
   "nadir_pointing/rw+mtq: power fails at the sized authority (rw); the part's standby power is the floor",
   "nadir_pointing/rw+rcs: power fails at the sized authority (rw); the part's standby power is the floor",
   "nadir_pointing/vscmg+mtq: power fails at the sized authority (vscmg); the part's standby power is the floor",
@@ -27,7 +27,6 @@
   "sun_acquisition/vscmg: power fails at the sized authority (vscmg); the part's standby power is the floor",
   "sun_referencing/cmg+mtq: power fails at the sized authority (cmg); the part's standby power is the floor",
   "sun_referencing/cmg+rcs: power fails at the sized authority (cmg); the part's standby power is the floor",
-  "sun_referencing/fmr+rcs: power is the thrusters' valve power (RCS dumping), not the pump",
   "sun_referencing/rw+mtq: power fails at the sized authority (rw); the part's standby power is the floor",
   "sun_referencing/rw+rcs: power fails at the sized authority (rw); the part's standby power is the floor",
   "sun_referencing/vscmg+mtq: power fails at the sized authority (vscmg); the part's standby power is the floor",
@@ -173,7 +172,7 @@
    "failing": {
     "power_peak": "power"
    },
-   "objective": 1.875,
+   "objective": 1.0916666666666666,
    "objective_id": "detumble_time",
    "objective_req": 284.0
   },
@@ -3090,22 +3089,20 @@
   {
    "mode": "sun_referencing",
    "option": "fmr+mtq",
-   "alg": null,
+   "alg": "smc",
    "feasible": true,
    "failing": {},
-   "objective": 0.3847529775314752,
+   "objective": 0.36782651642514635,
    "objective_id": "sun_ape_p9973",
    "objective_req": 5.0
   },
   {
    "mode": "sun_referencing",
    "option": "fmr+rcs",
-   "alg": null,
-   "feasible": false,
-   "failing": {
-    "power_mean": "power"
-   },
-   "objective": 0.3847170950312647,
+   "alg": "smc",
+   "feasible": true,
+   "failing": {},
+   "objective": 0.36793909512880313,
    "objective_id": "sun_ape_p9973",
    "objective_req": 5.0
   },
@@ -5466,22 +5463,20 @@
   {
    "mode": "nadir_pointing",
    "option": "fmr+mtq",
-   "alg": null,
+   "alg": "pid",
    "feasible": true,
    "failing": {},
-   "objective": 0.14717783927576622,
+   "objective": 0.1481839126317798,
    "objective_id": "ape_los_p9973",
    "objective_req": 10.0
   },
   {
    "mode": "nadir_pointing",
    "option": "fmr+rcs",
-   "alg": null,
-   "feasible": false,
-   "failing": {
-    "power_mean": "power"
-   },
-   "objective": 0.1471802633757004,
+   "alg": "pid",
+   "feasible": true,
+   "failing": {},
+   "objective": 0.14823244381197054,
    "objective_id": "ape_los_p9973",
    "objective_req": 10.0
   }

@@ -5,14 +5,18 @@
   "fmr_lambda": 0.30000000000000004
  },
  "class": "coarse",
- "selected": "mtq_fmr",
+ "selected": "mtq_fmr_rcs",
  "status": "closest (not feasible)",
- "feasible_options": 2,
+ "feasible_options": 1,
  "options": 25,
  "changes": [
+  "nadir_pointing/fmr+mtq: fly every pointing algorithm",
   "nadir_pointing/fmr+mtq: power -> electromagnetic pump with more copper (lambda 0.3 -> 0.9 kg/W)",
+  "nadir_pointing/fmr+rcs: fly every pointing algorithm",
   "nadir_pointing/mtq: tune every mtq_pointing law's gains, min over the gains of the worst seed (Bruni & Celani 2017)",
+  "sun_acquisition/fmr: fluid-loop flow sensor 2 -> 0.5 mm/s (1 sigma)",
   "sun_acquisition/mtq: tune every sun_acquisition law's gains, min over the gains of the worst seed (Bruni & Celani 2017)",
+  "sun_referencing/fmr+mtq: fly every pointing algorithm",
   "sun_referencing/mtq: tune every mtq_pointing law's gains, min over the gains of the worst seed (Bruni & Celani 2017)"
  ],
  "blocked": [
@@ -50,8 +54,9 @@
   "mtq_fmr": {
    "feasible": false,
    "gaps": [
-    "sun_referencing: power_mean (power)",
-    "nadir_pointing: power_mean (power)"
+    "sun_acquisition: sun_angle_p95 (performance)",
+    "sun_referencing: sun_ape_p9973 (performance)",
+    "nadir_pointing: ape_los_p9973 (performance)"
    ],
    "budget": {
     "mass_kg": 1.5131868634482963,
@@ -62,8 +67,9 @@
   "mtq_fmr_rcs": {
    "feasible": false,
    "gaps": [
+    "sun_acquisition: sun_angle_p95 (performance)",
     "sun_referencing: power_mean (power)",
-    "nadir_pointing: power_mean (power)",
+    "nadir_pointing: ape_los_p9973 (performance)",
     "budget: mass_kg 2.05 > 1.6",
     "budget: volume_L 1.56 > 1"
    ],
@@ -283,8 +289,10 @@
    "mode": "sun_acquisition",
    "option": "fmr",
    "alg": null,
-   "feasible": true,
-   "failing": {},
+   "feasible": false,
+   "failing": {
+    "sun_angle_p95": "performance"
+   },
    "objective": 2.2916666666666665,
    "objective_id": "sun_acquisition_time",
    "objective_req": 95.0
@@ -462,21 +470,21 @@
    "alg": null,
    "feasible": false,
    "failing": {
-    "power_mean": "power"
+    "sun_ape_p9973": "performance"
    },
-   "objective": 0.3847529775314752,
+   "objective": 175.37665683943155,
    "objective_id": "sun_ape_p9973",
    "objective_req": 5.0
   },
   {
    "mode": "sun_referencing",
    "option": "fmr+rcs",
-   "alg": null,
+   "alg": "pid@bw4",
    "feasible": false,
    "failing": {
     "power_mean": "power"
    },
-   "objective": 0.3847170950312647,
+   "objective": 0.7902754635794668,
    "objective_id": "sun_ape_p9973",
    "objective_req": 5.0
   },
@@ -653,9 +661,10 @@
    "alg": null,
    "feasible": false,
    "failing": {
+    "ape_los_p9973": "performance",
     "power_mean": "power"
    },
-   "objective": 0.14717783927576622,
+   "objective": 29.98317036823202,
    "objective_id": "ape_los_p9973",
    "objective_req": 10.0
   },
@@ -665,9 +674,10 @@
    "alg": null,
    "feasible": false,
    "failing": {
+    "ape_los_p9973": "performance",
     "power_mean": "power"
    },
-   "objective": 0.1471802633757004,
+   "objective": 69.3198088989115,
    "objective_id": "ape_los_p9973",
    "objective_req": 10.0
   }

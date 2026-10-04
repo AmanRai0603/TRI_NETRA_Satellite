@@ -34,7 +34,7 @@
     "mode": "nadir_fine"
    }
   ],
-  "rcs_dump": 1.0,
+  "rcs_dump": 0.0,
   "dump_gain": 0.03
  },
  "metrics": [

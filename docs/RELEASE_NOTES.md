@@ -48,9 +48,9 @@ The first release of TRI-NETRA ADCS: the attitude determination and control desi
 
 ## Known gaps
 
-30 gaps in the register (`docs/ADCS_GAPS.md`), each with its evidence and what closes it; none gates this release.
+31 gaps in the register (`docs/ADCS_GAPS.md`), each with its evidence and what closes it; none gates this release.
 
-- **D. Design (the design loop and the sizing):** D1 Unconfirmed case values; D2 Pointing error budget incomplete; D3 Sensor trade and star-tracker outages; D4 Imaging power margin; D5 Spare ring mass; D6 FDIR beyond the rings; D7 Lifetime and momentum dumping; D8 Thermal and data budgets; D9 Beyond 3U; D10 Sizing constants and ranking; D11 Spec package; D12 RCS detumble floor; D13 Coils-only modes on AIS; D14 Physics relations awaiting their bundles
+- **D. Design (the design loop and the sizing):** D1 Unconfirmed case values; D2 Pointing error budget incomplete; D3 Sensor trade and star-tracker outages; D4 Imaging power margin; D5 Spare ring mass; D6 FDIR beyond the rings; D7 Lifetime and momentum dumping; D8 Thermal and data budgets; D9 Beyond 3U; D10 Sizing constants and ranking; D11 Spec package; D12 RCS detumble floor; D13 Coils-only modes on AIS; D14 Physics relations awaiting their bundles; D15 AIS design loop: robustness against the mass budget
 - **S. SILS fidelity and statistics:** S1 Monte Carlo claims; S2 Device fidelity left; S3 Eclipse transitions; S4 Engine vs twin; S5 Twin-only chains; S6 Filter consistency
 - **V. Validation and evidence:** V1 Propagator outside validation; V2 Algorithms against references; V3 Catalogue; V4 Algorithms confirmed; V5 IGRF-14
 - **H. Hardware (OILS with a real OBC, HILS):** H1 Reference board; H2 Soft-OILS calibration; H3 Firmware leftovers; H4 HILS; H5 Safe-mode policy

@@ -374,6 +374,8 @@
  "cmg_mu": 10.0,
  "cmg_k_null": 0.002,
  "fdir_s": 3.0,
+ "fdir_win_s": 120.0,
+ "fdir_h_frac": 0.005,
  "nc": 0,
  "rcs_tau": [
   [

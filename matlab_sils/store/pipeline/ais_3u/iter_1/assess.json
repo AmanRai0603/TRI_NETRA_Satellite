@@ -4,7 +4,7 @@
   "scale": {}
  },
  "class": "coarse",
- "selected": "mtq",
+ "selected": "mtq_fmr",
  "status": "closest (not feasible)",
  "feasible_options": 1,
  "options": 25,
@@ -12,6 +12,7 @@
   "nadir_pointing/fmr+mtq: power -> electromagnetic pump with more copper (lambda 0.1 -> 0.3 kg/W)",
   "nadir_pointing/mtq: fly every mtq_pointing algorithm",
   "sun_acquisition/mtq: fly every sun_acquisition algorithm",
+  "sun_referencing/fmr+rcs: fly every pointing algorithm",
   "sun_referencing/mtq: fly every mtq_pointing algorithm"
  ],
  "blocked": [
@@ -334,7 +335,7 @@
    "failing": {
     "power_mean": "power"
    },
-   "objective": 0.37261583457650654,
+   "objective": 2.2786486322005826,
    "objective_id": "sun_ape_p9973",
    "objective_req": 5.0
   },
@@ -344,9 +345,10 @@
    "alg": null,
    "feasible": false,
    "failing": {
-    "power_mean": "power"
+    "power_mean": "power",
+    "sun_ape_p9973": "performance"
    },
-   "objective": 0.3726605289759446,
+   "objective": 113.83632287202727,
    "objective_id": "sun_ape_p9973",
    "objective_req": 5.0
   },
@@ -442,7 +444,7 @@
    "failing": {
     "power_mean": "power"
    },
-   "objective": 0.1491785768849098,
+   "objective": 1.2269699072659108,
    "objective_id": "ape_los_p9973",
    "objective_req": 10.0
   },
@@ -454,7 +456,7 @@
    "failing": {
     "power_mean": "power"
    },
-   "objective": 0.1491342938654158,
+   "objective": 1.8222442279150401,
    "objective_id": "ape_los_p9973",
    "objective_req": 10.0
   }

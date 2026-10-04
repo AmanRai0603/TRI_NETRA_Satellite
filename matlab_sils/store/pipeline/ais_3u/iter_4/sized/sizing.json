@@ -251,8 +251,9 @@
     "fmr_lambda": 0.9000000000000001,
     "star_tracker": false,
     "st_heads": 2,
-    "fmr_flow_sigma": 0.002,
-    "gyro_grade": 1.0
+    "fmr_flow_sigma": 0.0005,
+    "gyro_grade": 1.0,
+    "fmr_spare": false
   },
   "families": {
     "mtq": {
@@ -1401,7 +1402,7 @@
         "flow_sensor_noise_m_s": {
           "dist": "normal",
           "mean": 0,
-          "sigma": 0.002
+          "sigma": 0.0005
         },
         "axis_misalignment_rad": {
           "dist": "normal",
@@ -1412,8 +1413,11 @@
       "sizing": {
         "h_req_Nms": 0.001713324159427576,
         "tau_req_Nm": 0.000057572692339687917,
-        "flow_sensor_sigma_m_s": 0.002,
+        "h_ring_Nms": 0.001284993119570682,
+        "tau_ring_Nm": 0.000043179519254765936,
+        "flow_sensor_sigma_m_s": 0.0005,
         "face_m2": 0.010000000000000002,
+        "perimeter_m": 0.4,
         "scale": 0.75,
         "lambda_kg_per_W": 0.9000000000000001,
         "pareto": [
@@ -1556,7 +1560,7 @@
         "flow_sensor_noise_m_s": {
           "dist": "normal",
           "mean": 0,
-          "sigma": 0.002
+          "sigma": 0.0005
         },
         "axis_misalignment_rad": {
           "dist": "normal",
@@ -1567,8 +1571,11 @@
       "sizing": {
         "h_req_Nms": 0.001713324159427576,
         "tau_req_Nm": 0.000057572692339687917,
-        "flow_sensor_sigma_m_s": 0.002,
+        "h_ring_Nms": 0.001284993119570682,
+        "tau_ring_Nm": 0.000043179519254765936,
+        "flow_sensor_sigma_m_s": 0.0005,
         "face_m2": 0.034,
+        "perimeter_m": 0.8800000000000001,
         "scale": 0.75,
         "lambda_kg_per_W": 0.9000000000000001,
         "pareto": [
@@ -1711,7 +1718,7 @@
         "flow_sensor_noise_m_s": {
           "dist": "normal",
           "mean": 0,
-          "sigma": 0.002
+          "sigma": 0.0005
         },
         "axis_misalignment_rad": {
           "dist": "normal",
@@ -1722,8 +1729,11 @@
       "sizing": {
         "h_req_Nms": 0.001713324159427576,
         "tau_req_Nm": 0.000057572692339687917,
-        "flow_sensor_sigma_m_s": 0.002,
+        "h_ring_Nms": 0.001284993119570682,
+        "tau_ring_Nm": 0.000043179519254765936,
+        "flow_sensor_sigma_m_s": 0.0005,
         "face_m2": 0.034,
+        "perimeter_m": 0.8800000000000001,
         "scale": 0.75,
         "lambda_kg_per_W": 0.9000000000000001,
         "pareto": [
