@@ -172,16 +172,16 @@ C and Rust builds, with exact per-step instruction counts and the command latenc
 | metric | req | SILS | soft OILS (C on M4F) | soft OILS (Rust on M4F) |
 |---|---:|---:|---:|---:|
 | detumble_time | 284 | 73.83 ✓ | 74.71 ✓ | 74.79 ✓ |
-| ape_los_p9973 | 0.01 | 0.004066 ✓ | 0.004205 ✓ | 0.004229 ✓ |
-| ake_los_p9973 | 0.005 | 0.003305 ✓ | 0.003378 ✓ | 0.003396 ✓ |
+| ape_los_p9973 | 0.01 | 0.004066 ✓ | 0.004204 ✓ | 0.004229 ✓ |
+| ake_los_p9973 | 0.005 | 0.003305 ✓ | 0.003374 ✓ | 0.003401 ✓ |
 | power_mean | 2 | 0.3934 ✓ | 0.3578 ✓ | 0.3575 ✓ |
-| power_peak | — | 0.856  | 0.8591  | 0.8594  |
+| power_peak | — | 0.856  | 0.859  | 0.8594  |
 | propellant | — | 0  | 0  | 0  |
 
 | OBC build | instructions/step mean / max | exec max [ms] | latency mean / max [ms] | CPU load max | overruns |
 |---|---:|---:|---:|---:|---:|
-| C (arm-none-eabi-gcc -O2) | 2.396e+05 / 7.99e+05 | 5.945 | 3.082 / 7.244 | 5.9 % | 0 |
-| Rust (thumbv7em-none-eabihf) | 2.972e+05 / 9.028e+05 | 6.717 | 3.510 / 8.016 | 6.7 % | 0 |
+| C (arm-none-eabi-gcc -O2) | 2.396e+05 / 7.996e+05 | 5.950 | 3.082 / 7.249 | 5.9 % | 0 |
+| Rust (thumbv7em-none-eabihf) | 2.973e+05 / 9.028e+05 | 6.717 | 3.511 / 8.016 | 6.7 % | 0 |
 
 Dispatch: `dist/dispatch/ais_img_3u/mtq_fmr/converged` (blob, sized products, BUILD.md). C = Rust flight software bitwise on the engine: True.
 

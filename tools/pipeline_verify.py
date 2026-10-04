@@ -512,6 +512,13 @@ def node_family_missions(case, sel, sized, modes, build, runs, jobs, disp, mc):
                   "mission": {impl: d["check"][impl]["metrics"] for impl in ("c", "rust")},
                   "mode_log": d["check"]["c"].get("mode_log"),
                   "mc": m and {"runs": m["runs"], "stats": [{k: s_[k] for k in ("id", "req", "mean", "std", "min", "max", "pass_rate", "pass")} for s_ in m["stats"]]}}
+    # a family flown here once (when another was selected) and not now leaves no folder behind: the
+    # selected one's dispatch and Monte Carlo are the case's own (PIPE/case/dispatch, PIPE/case/mc)
+    fam_dir = PIPE / case / "families"
+    if fam_dir.is_dir():
+        for old in fam_dir.iterdir():
+            if old.is_dir() and (old.name not in out or out[old.name]["selected"]):
+                shutil.rmtree(old)
     write(PIPE / case / "families.json", out)
     return out
 
