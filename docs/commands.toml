@@ -727,6 +727,18 @@ checks = "the database's inputs are the data folder's (tools/design_inputs.py di
 undo = "It re-flies stored runs: `git checkout -- matlab_sils/store results` puts back the committed ones."
 
 [[command]]
+tool = "release_notes.py"
+name = "release-notes"
+usage = "python3 tools/release_notes.py [--design DIR] [--check]"
+what = "The release notes' generated part (docs/RELEASE_PLAN.md P14): what ships, group by group, from the shipping record (tools/delivery.py ship), and every known gap from docs/ADCS_GAPS.md, written into docs/RELEASE_NOTES.md between its markers."
+steps = ["make the shipping record of the design that ships (default: seeded and carried over)", "read the gap register", "write the part between the markers"]
+reads = ["docs/ADCS_GAPS.md", "DIR (a design folder)"]
+writes = ["docs/RELEASE_NOTES.md"]
+runs = []
+checks = "--check: the notes are what the records make; every group named accepted or UNCONFIRMED with why"
+undo = "It writes a generated part only: `git checkout -- docs/RELEASE_NOTES.md`."
+
+[[command]]
 tool = "manual.py"
 name = "manual"
 usage = "python3 tools/manual.py [--check]"

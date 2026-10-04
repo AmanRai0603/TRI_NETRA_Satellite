@@ -65,6 +65,7 @@
 | [`delivery.py delivery`](#deliverypy-delivery) | Test, deliver, accept, ship (docs/RELEASE_PLAN.md P12, docs/DELIVERY.md): a group's sealed release delivered in its wave's order, with its generated code checked to be the release's, its tests run, its test app and a note; its lead accepts it in the group app; the shipping record says, group by group, who accepted which version, and which group ships visibly UNCONFIRMED and why. |
 | [`evaluate.py evaluate`](#evaluatepy-evaluate) | Every row of the design evaluated for a case, or shown as not computed and why; every KPI closure answered or blocked by name (docs/RELEASE_PLAN.md P13). A row's value is stated by the case (from design.tndb, in SI), computed by its pseudocode in the interpreter from the rows its inputs name, or supplied as evidence by the selected design's Monte Carlo; a closure compares its requirement with its evidence or its analysis row in the requirement's sense. |
 | [`end_to_end.py end-to-end`](#end_to_endpy-end-to-end) | Both cases through everything from the design database (docs/RELEASE_PLAN.md P13, docs/END_TO_END.md): the design loop and the case's campaigns with every engine run reading its inputs from design.tndb alone (TRINETRA_DESIGN), every number held to the one stored before, every row and closure evaluated, the traceability. |
+| [`release_notes.py release-notes`](#release_notespy-release-notes) | The release notes' generated part (docs/RELEASE_PLAN.md P14): what ships, group by group, from the shipping record (tools/delivery.py ship), and every known gap from docs/ADCS_GAPS.md, written into docs/RELEASE_NOTES.md between its markers. |
 | [`manual.py manual`](#manualpy-manual) | The apps' manual (design/manual/: a guide per role, the journey of a node, the glossary, the guide to TRI-NETRA Files, and the tours in tours.toml) written as design/js/manual.js, which every app opens in place with Help, and the journey diagram as design/manual/journey.svg. --check says whether both are current and holds the rules: every page starts with its one line (the explanation standard), every tour target is in its app, every field, choice and set of checks in the apps has help beside it. |
 | [`node_catalog.py node_catalog`](#node_catalogpy-node_catalog) | The node app's catalogue (design/js/node_catalog.js), written from the spec: the units and the quantities each measures, the physics relations, the sources, the evidence metrics and rungs, the provenance and belief words, the tags and every row of the tree with its label, kind, quantity, unit and layer. The node app offers these as its choices, so they are never typed by hand. --check says whether the committed file is current. |
 | [`release.py release`](#releasepy-release) | Sealed group releases (releases/<group>-<version>.tnrel, as the group app seals them), checked from Python: each file passes tools/tndb.py check and is named for its group and version; every node's fingerprint, body fingerprint and the release's fingerprint are the SHA-256 of what they cover; its nodes are the group's as sealed, each confirmed or unconfirmed with why; a confirmed node was checked by someone other than its author and, when it computes, has a test vector from outside the code; the lead's seal names the version and the fingerprint. The same rules as design/js/release.js, written a second time. |
@@ -1218,6 +1219,25 @@ Both cases through everything from the design database (docs/RELEASE_PLAN.md P13
 - **Checks:** the database's inputs are the data folder's (tools/design_inputs.py differences); every run names the database; every number that differs is named
 - **Undo:** It re-flies stored runs: `git checkout -- matlab_sils/store results` puts back the committed ones.
 - **Code:** `tools/end_to_end.py`
+
+## release_notes.py release-notes
+
+The release notes' generated part (docs/RELEASE_PLAN.md P14): what ships, group by group, from the shipping record (tools/delivery.py ship), and every known gap from docs/ADCS_GAPS.md, written into docs/RELEASE_NOTES.md between its markers.
+
+    python3 tools/release_notes.py [--design DIR] [--check]
+
+**Steps**
+
+1. make the shipping record of the design that ships (default: seeded and carried over)
+2. read the gap register
+3. write the part between the markers
+
+- **Reads:** `docs/ADCS_GAPS.md`; DIR (a design folder)
+- **Writes:** `docs/RELEASE_NOTES.md`
+- **Starts:** nothing
+- **Checks:** --check: the notes are what the records make; every group named accepted or UNCONFIRMED with why
+- **Undo:** It writes a generated part only: `git checkout -- docs/RELEASE_NOTES.md`.
+- **Code:** `tools/release_notes.py`
 
 ## manual.py manual
 
