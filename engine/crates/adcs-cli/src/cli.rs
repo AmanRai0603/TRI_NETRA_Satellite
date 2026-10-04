@@ -33,6 +33,58 @@ pub enum Cmd {
     /// list, show, keep, thin, export or import runs
     #[command(subcommand)]
     Results(ResultsCmd),
+    /// draw a run's figures (engine or MATLAB twin run folder) as SVG or PDF
+    Figures(FiguresArgs),
+    /// write a run's report: report.html (figures inline, prints to PDF) and report.pdf
+    Report(ReportArgs),
+    /// draw figures described as JSON (the schema: adcs-plot's crate documentation) as SVG or PDF
+    #[command(after_help = "One figure object, a list of them, or {\"figures\": [...]}; each has panels (stacked or in a grid) with\n\
+                            line, step, scatter, hist and hbar series, reference lines and notes. Several figures into one\n\
+                            .svg are written as FILE_1.svg, FILE_2.svg, ...; into one .pdf as a page each.")]
+    Plot(PlotArgs),
+}
+
+#[derive(clap::ValueEnum, Clone, Copy, Debug, PartialEq)]
+pub enum Format { Svg, Pdf }
+
+impl Format {
+    pub fn ext(self) -> &'static str { match self { Format::Svg => "svg", Format::Pdf => "pdf" } }
+}
+
+#[derive(clap::Args, Debug)]
+pub struct FiguresArgs {
+    /// the run folder (manifest.json and channels.csv): <store>/results_engine/<id> or the twin's <store>/results/<id>
+    pub run: PathBuf,
+    /// where the figures go, <prefix>_<n>_<name>.<format>
+    #[arg(long, value_name = "DIR")]
+    pub out: PathBuf,
+    /// svg or pdf
+    #[arg(long, value_name = "F", value_enum, default_value = "svg")]
+    pub format: Format,
+    /// also the environment, ground track and mode figures
+    #[arg(long)]
+    pub full: bool,
+    /// the start of every file name (default: the run folder's name)
+    #[arg(long, value_name = "P")]
+    pub prefix: Option<String>,
+}
+
+#[derive(clap::Args, Debug)]
+pub struct ReportArgs {
+    /// the run folder (manifest.json and channels.csv)
+    pub run: PathBuf,
+    /// where report.html and report.pdf go (default: the run folder)
+    #[arg(long, value_name = "DIR")]
+    pub out: Option<PathBuf>,
+}
+
+#[derive(clap::Args, Debug)]
+pub struct PlotArgs {
+    /// the figure description (JSON)
+    pub spec: PathBuf,
+    /// the file to write: .svg or .pdf
+    #[arg(long, value_name = "FILE")]
+    pub out: PathBuf,
 }
 
 /// What every command that builds a configuration takes.
@@ -259,7 +311,7 @@ pub fn args(cmd: &Cmd) -> Option<Args> {
             cmd: "size".into(), scenario: z.case.clone(), case: None, fsw: Impl::C, fsw_b: None, seed: 1, out: z.out.clone(),
             set: z.knobs.iter().map(|f| ("knobs".to_string(), f.clone())).collect(), quiet: false, realtime: false, oils: None,
         },
-        Cmd::Results(_) => return None,
+        Cmd::Results(_) | Cmd::Figures(_) | Cmd::Report(_) | Cmd::Plot(_) => return None,
     })
 }
 
@@ -321,7 +373,7 @@ mod t {
     fn what_a_command_cannot_take_is_refused() {
         for bad in ["adcs run", "adcs run s --seed x", "adcs run s --set novalue", "adcs run s --latency-ms nan", "adcs run s --bogus",
                     "adcs params s", "adcs parity s --fsw rust", "adcs parity s --out x", "adcs size", "adcs results thin",
-                    "adcs results export r", "adcs run s --fsw nowhere", "adcs run s --cpi 0", "adcs run s --obc-mhz -5", "adcs run s --latency-ms -1"] {
+                    "adcs results export r", "adcs run s --fsw nowhere", "adcs figures r", "adcs figures r --out d --format png", "adcs plot s.json", "adcs run s --cpi 0", "adcs run s --obc-mhz -5", "adcs run s --latency-ms -1"] {
             assert!(parse(bad).is_err(), "accepted: {bad}");
         }
     }

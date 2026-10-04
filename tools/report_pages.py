@@ -4,7 +4,6 @@ Copyright (c) 2026 Agastya. All rights reserved.
 """
 import json, html
 import numpy as np
-import matplotlib.pyplot as plt
 from common import write_text
 from report_base import OUT, ROOT, S1, S2, aslist, fnum, req_line, save, verdict
 from report_solutions import components_html
@@ -54,18 +53,16 @@ def engine_section():
            f"<div><b>Speed, one core</b>{sp[len(sp)//2]:.0f}× faster than the Octave twin (median; {sp[0]:.0f}–{sp[-1]:.0f}×)</div>"
            f"<div><b>Distributions</b>Monte Carlo on both sides agree where the dispersions match (figure)</div></div>"]
     if have:
-        fig, axs = plt.subplots(1, len(have), figsize=(3.6 * len(have), 3.2))
-        axs = np.atleast_1d(axs)
-        for ax, (camp, scen, lab, req, va, vb) in zip(axs, have):
+        panels = []
+        for i, (camp, scen, lab, req, va, vb) in enumerate(have):
             rng = np.random.default_rng(0)
-            ax.scatter(0 + 0.08 * rng.standard_normal(len(va)), va, s=18, color=S1, label="MATLAB twin")
-            ax.scatter(1 + 0.08 * rng.standard_normal(len(vb)), vb, s=18, color=S2, label="Rust engine")
-            if req: req_line(ax, req, "req")
-            ax.set_xticks([0, 1]); ax.set_xticklabels(["MATLAB", "engine"]); ax.set_xlim(-0.6, 1.6); ax.set_title(scen); ax.set_ylabel(lab)
-        h, l = axs[0].get_legend_handles_labels()
-        fig.legend(h, l, loc="lower center", ncol=2, bbox_to_anchor=(0.5, -0.04), fontsize=9)
-        fig.suptitle("Monte Carlo: MATLAB campaign vs Rust engine (C flight software)", fontsize=11, fontweight="bold")
-        fig.tight_layout(rect=(0, 0.04, 1, 0.94))
+            p = {"title": scen, "ylabel": lab, "xlim": [-0.6, 1.6], "xticks": [[0, "MATLAB"], [1, "engine"]], "legend": i == 0,
+                 "series": [{"kind": "scatter", "x": 0 + 0.08 * rng.standard_normal(len(va)), "y": va, "color": S1, "size": 2.4, "label": "MATLAB twin"},
+                            {"kind": "scatter", "x": 1 + 0.08 * rng.standard_normal(len(vb)), "y": vb, "color": S2, "size": 2.4, "label": "Rust engine"}]}
+            if req: req_line(p, req, "req")
+            panels.append(p)
+        fig = {"title": "Monte Carlo: MATLAB campaign vs Rust engine (C flight software)", "layout": "grid", "rows": 1, "cols": len(have),
+               "width": 260 * len(have), "height": 250, "panels": panels}
         out.append(f"<figure><img src='figures/{save(fig, 'engine_vs_matlab_mc')}' alt='Monte Carlo distributions, MATLAB twin vs Rust engine' loading='lazy'></figure>")
     out.append("<h3>Differences traced to their cause</h3><ul>" + "".join(f"<li><b>{html.escape(k)}.</b> {html.escape(v)}</li>" for k, v in E.NOTES) + "</ul>")
     out.append("<p class='muted'>Full ledger, metric by metric: <code>results/ENGINE_PARITY.md</code>. Build and run: <code>python3 tools/engine.py build && python3 tools/engine.py run</code>.</p>")
@@ -166,7 +163,7 @@ def write_md(sections, cmp_figs):
     """docs/RESULTS.md: the verdict tables (the HTML report carries the figures)."""
     L = ["# TRI-NETRA ADCS — SILS results", "", "**Owner: Agastya.** Copyright (c) 2026 Agastya. All rights reserved.", "",
          "Produced by `matlab_sils` (GNU Octave 8.4) with the Precision Orbit Propagator stepped inside the attitude loop.",
-         "Figures: `results/index.html` (open in a browser) and `results/figures/`. Single runs are the nominal case, seed 1.", ""]
+         "Figures: `python3 tools/report.py` draws them into `results/figures/` and `results/index.html` where the runs were flown (not committed); one run's: `adcs figures <run>` or `adcs report <run>`. Single runs are the nominal case, seed 1.", ""]
     for gname, items in sections:
         L += [f"## {gname}", ""]
         for kind, sid, obj, figs in items:

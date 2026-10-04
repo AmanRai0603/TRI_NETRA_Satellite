@@ -17,6 +17,7 @@ import unittest
 
 import _path  # puts tools/ on the import path
 import verify_nodes as V
+from pipeline_verify import shortfall
 
 _ = _path  # imported for its effect: tools/ on sys.path
 
@@ -159,8 +160,11 @@ class Verifier(unittest.TestCase):
         sel.pop("fault_policy", None)
         for f in sel["families"].values():
             f.pop("fault_gaps", None)
+            f.pop("fault_over", None)
             f["gaps"] = [g for g in f["gaps"] if not g.startswith("fault:")]
             f["feasible"] = not f["gaps"]
+            if "shortfall" in f:                    # as select wrote it then: no single fault counted
+                f["shortfall"] = 0.0 if f["feasible"] else round(shortfall(f, None), 6)
         save(self.dir / "selection.json", sel)
         (self.dir / "faults.json").unlink(missing_ok=True)
         V.NOTES.clear()

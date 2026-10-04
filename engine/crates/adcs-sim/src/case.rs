@@ -38,7 +38,7 @@ pub fn value(s: &str) -> Result<f64, Error> {
 
 impl Case {
     pub fn read(p: &Path) -> Result<Case, Error> {
-        let txt = std::fs::read_to_string(p).map_err(|e| Error::io(p, format!("case: {e}")))?;
+        let txt = crate::source::read_to_string(p)?;
         let mut lines = txt.lines();
         let hdr = split(lines.next().unwrap_or(""));
         let need = ["section", "key", "label", "unit", "value", "lo", "hi", "level", "note"];

@@ -160,9 +160,9 @@ writes the content, the loop carries its structure and explanation.
 | 4 | `sens` Sensors | sensing | layer `sens` · its `sb1` targets (`gs`) | 36 | — | `sensors.rs`, `comp.rs` (star-tracker image chain, Sun-sensor chain), magnetometer, gyro, Sun sensors, earth sensor, GNSS parts, `+devices`, `+comp` | rich |
 | 5 | `nav` Navigation and attitude estimation | gnc | layer `est` · its `sb1` targets (`ge`) | 28 | onboard orbit and time navigation (GNSS fix, onboard propagator, latency), TRIAD, QUEST, the gyro filter | `fsw/pseudocode/02`, `03`, MEKF/TRIAD/QUEST in C, Rust and twin | rich |
 | **Decide and act** | | | | | | | |
-| 6 | `gdn` Guidance and mode management | gnc | the mode-sequencing rows of layer `modes` (split from FDIR in P8) | part of 27 | nadir, target, Sun, slew and inertial guidance, yaw flip, boresight offset; the mode manager | `fsw/pseudocode/04`, `08`, guidance in C, Rust and twin, the modes catalogue | rich |
+| 6 | `gdn` Guidance and mode management | gnc | the mode-sequencing targets `gq_0`, `gq_1`, `gq_4` and their layer-3 rows (layer `modes` and `sb3`) | 21 | nadir, target, Sun, slew and inertial guidance, yaw flip, boresight offset; the mode manager | `fsw/pseudocode/04`, `08`, guidance in C, Rust and twin, the modes catalogue | rich |
 | 7 | `ctl` Controller and allocation | gnc | layer `ctl` · its `sb3` targets (`gc`) | 34 | — | `fsw/pseudocode/05`, `07`, LQR, PD, PID, SMC, the ten magnetorquer laws, B-dot, allocation, IDMAS split | rich |
-| 8 | `fdir` FDIR | gnc | the fault rows of layer `modes` · its `sb3` targets (`gq`) | part of 27 | sensor health, rotor FDIR (instantaneous and windowed), safe mode, fault injection | FDIR in C, Rust and twin, `+faults`, the fault campaign; open items in `ADCS_GAPS.md` D6 | rich |
+| 8 | `fdir` FDIR | gnc | the fault targets `gq_2`, `gq_3` and their layer-3 rows | 6 | sensor health, rotor FDIR (instantaneous and windowed), safe mode, fault injection | FDIR in C, Rust and twin, `+faults`, the fault campaign; open items in `ADCS_GAPS.md` D6 | rich |
 | 9 | `act` Actuators | actuators | layers `mtq`, `rw`, `fmr`, `rcs` · their `sb2` targets (`gm`, `gw`, `gf`, `gr`) | 138 | CMG and VSCMG (models, gimbal steering, singularity handling); one stage per actuator in the group | coil, wheel, ring, thruster, CMG and VSCMG models in engine and twin, `empump.rs`, `cmg_sr`, the datasheet catalogue (`TRN-CMG-1`, `TRN-VSCMG-1`, …), IDMAS v2 §03–§07 | rich |
 | **Host** | | | | | | | |
 | 10 | `fsw` Flight software and OBC | avionics | layer `fsw` · its `sb4` targets (`gx`) | 27 | — | `fsw/`, `fsw-rs/`, HAL, OBC link, stack check, firmware, parameter blob | rich |
@@ -190,23 +190,24 @@ inside them.
 
 1. **One group, one code module, in C, Rust and the twin.** Each group's generated and hand-written
    code lives in its own module on every side, so a group's change touches only its module and
-   C = Rust parity is checked group by group. Today guidance, mode management and FDIR sit inside
-   the flight software's step (`adcs_fsw.c`, `fsw.rs`, the twin's `step.m`); they are split out
-   into `adcs_guid` / `guid.rs` / `guidance.m`, `adcs_modes` / `modes.rs` / `modes.m` and
-   `adcs_fdir` / `fdir.rs` / `fdir.m`, and `fsw` keeps the shell: the scheduler, the HAL, the
-   parameter tables, the OBC link. Bit-identical before and after, on every shipped scenario.
+   C = Rust parity is checked group by group. Guidance, mode management and FDIR sat inside the
+   flight software's step (`adcs_fsw.c`, `fsw.rs`, the twin's `step.m`); P2 split them out into
+   `adcs_guid` / `guid.rs` / `guidance.m`, `adcs_modes` / `modes.rs` / `mode_manager.m` and
+   `adcs_fdir` / `fdir.rs` / `fdir.m`, and `fsw` keeps the shell: the tick, the state (private
+   header `adcs_fsw_int.h`; in Rust `modes` and `fdir` are children of `fsw`), the HAL, the
+   parameter tables, the OBC link. Bit-identical before and after on every shipped scenario.
 
    | group | C | Rust | twin |
    |---|---|---|---|
    | `env` | `adcs_env.c` (onboard models) | `adcs-pop`, `adcs-sim-core` `orbit`/`field`/`atmos`/`ephem`/`torques`, `fsw-rs` `env.rs` | `+env`, `+orbit` |
    | `sens` | `adcs_drv.c` (sensor drivers) | `adcs-sim-core` `sensors`/`comp`, `fsw-rs` `drv.rs` | `+devices`, `+comp` |
    | `nav` | `adcs_est.c` | `est.rs` | `+fsw` `mekf_*`, `triad`, `quest` |
-   | `gdn` | `adcs_guid.c`, `adcs_modes.c` (new) | `guid.rs`, `modes.rs` (new) | `guidance.m`, `modes.m`, `yaw_flip.m`, `boresight_offset.m` |
+   | `gdn` | `adcs_guid.c`, `adcs_modes.c` | `guid.rs`, `modes.rs` | `guidance.m`, `mode_manager.m`, `modes.m`, `yaw_flip.m`, `boresight_offset.m` |
    | `ctl` | `adcs_ctl.c`, `adcs_alloc.c` | `ctl.rs`, `alloc.rs` | `control_law.m`, `allocate.m`, `bdot.m`, … |
-   | `fdir` | `adcs_fdir.c` (new) | `fdir.rs` (new) | `fdir.m` (new), `+faults` |
+   | `fdir` | `adcs_fdir.c` | `fdir.rs` | `fdir.m`, `+faults` |
    | `act` | `adcs_drv.c` (actuator drivers) | `adcs-sim-core` `actuators`, `adcs-design` `empump` | `+devices`, `+plant` actuator parts |
    | `dyn` | — | `adcs-sim-core` `plant` | `+plant` |
-   | `fsw` | `adcs_fsw.c` (shell), `adcs_params.c`, `adcs_math.c` | `fsw.rs` (shell), `params.rs`, `math.rs`, `hal.rs`, `cabi.rs` | `step.m` (shell), `init.m` |
+   | `fsw` | `adcs_fsw.c` (shell), `adcs_fsw_int.h`, `adcs_params.c`, `adcs_math.c` | `fsw.rs` (shell), `params.rs`, `math.rs`, `hal.rs`, `cabi.rs` | `step.m` (shell), `init.m` |
    | `design` | — | `adcs-design` | `+sizing`, `+solution` |
    | `kpi`, `vv` | — | `adcs-sim` `metrics` | `+metrics` |
 
@@ -273,17 +274,183 @@ inside them.
 - P13 needs P12's wave D.
 - P14 comes last.
 
-**Progress of P0** (on the branch, before the merge):
+**Progress of P0** (merged to `main` with PR #12):
 
 | item | state |
 |---|---|
 | One version source | ✅ `tools/version.py`: `VERSION` 1.0.0; the engine's Cargo workspace (was 1.2.0), the Rust and C flight software follow it; the Rust build ids take their Cargo version; `check_all` checks it |
-| Reproducible builds | ✅ `rust-toolchain.toml` (1.94.1, firmware target); every `cargo build` and test `--locked`; every action pinned to a commit SHA; `setup-python` in every job that runs Python; `tools/requirements-ci.txt` pins pyflakes, numpy, matplotlib; cargo-mutants pinned |
+| Reproducible builds | ✅ `rust-toolchain.toml` (1.94.1, firmware target); every `cargo build` and test `--locked`; every action pinned to a commit SHA; `setup-python` in every job that runs Python; `tools/requirements-ci.txt` pins pyflakes and numpy (figures are drawn by the engine, `adcs-plot`); cargo-mutants pinned |
 | The release proves what CI proves | ✅ `check_all --strict` (NOT RUN fails) in the release's `prove`, with the ARM compiler; the release re-runs CI's firmware (QEMU parity) and twin jobs before it publishes |
-| Merge PR #12 to `main` | waiting for the owner's OK |
+| Merge PR #12 to `main` | ✅ merged |
 | Branch protection with one human review | the owner's repository setting |
 | Licence | the owner's decision |
 | Generated pages and run files out of git | 🟡 the design loop's per-iteration scenario files (8,292) and the duplicate V&V PDF left git: tracked files 17,276 → 8,983, every check passing in a clean checkout. The campaign runs' manifests and the rendered pages stay until P11 replaces them with the result package and pages drawn from the design database |
+
+**Progress of P1** (data model):
+
+| item | state |
+|---|---|
+| Every row of the tree, with a stable id | ✅ `tools/design_rows.py`: 734 rows (133 layer 1, 194 layer 2, 368 layer 3, 39 closures); layer-3 ids `l3_<layer>_interface`, `l3_<layer>_<target>_required` / `_achieved`, `l3_<layer>_row_<nn>` for the 166 rows to be named |
+| The group map as data | ✅ `design/groups.toml`: 20 groups with lead team, branches, stages, the code module of each group in C, Rust and the twin, the `modes` split (`gq_0`, `gq_1`, `gq_4` to `gdn`; `gq_2`, `gq_3` to `fdir`) and the boundary rules; `tools/groups.py --check`: every row in exactly one group |
+| The file formats | ✅ `design/schema.toml`: node, group, release and design files (SQLite), each with its format version; `tools/tndb.py` makes, opens, checks, dumps and loads them, upgrades an older file keeping the original, refuses a newer one |
+| Readers in three languages | ✅ Python (`tools/tndb.py`); Rust (`engine/crates/trinetra-design`, held to `design/ddl.sql`); the browser's schema (`design/js/tndb_schema.js`, generated; the reader on SQLite in WebAssembly comes with the apps in P3) |
+| The seeder | ✅ `tools/seed_design.py`: 20 group files, 734 node shells and the design database from the spec, each field marked with where it came from; nothing invented |
+| Proof | ✅ `tests/test_design_files.py` (every kind round-trips unchanged, an old file upgrades, a newer one is refused, a picture round-trips byte for byte); `check_all` runs `design-files` |
+| Results file in the schema | the result package (`.trinetra`) and index stay as they are; the design files point at them by result id. Belief records and the archive arrive with the apps that write them (P4, P6) |
+
+**Progress of P2** (pseudocode v2):
+
+| item | state |
+|---|---|
+| Guidance, mode management and FDIR in their own modules | ✅ C: `adcs_guid.c`, `adcs_modes.c`, `adcs_fdir.c`, the state in the private `adcs_fsw_int.h`; Rust: `guid.rs`, and `modes.rs`, `fdir.rs` as children of `fsw` (they work on its private state); twin: `mode_manager.m`, `fdir.m` (guidance was already `guidance.m`). Code moved verbatim. All 48 shipped scenarios flown with C and with Rust before and after: every recorded channel bit for bit the same (96 runs), C = Rust |
+| The language: several outputs, settling loops, tables, arrays, state between ticks, units | ✅ `docs/PSEUDOCODE_V2.md`; one implementation in JavaScript (`design/js/pcode.js`): parser, unit and type checker (every output set on every path, no recursion, inputs unchanged), interpreter; records, `proc` with `state`, `settle … until … else`, `table` (step, linear), fixed arrays, vectors, matrices |
+| Checker in the browser | ✅ `design/pcode_checker.html`: one offline page with the language inlined (checked in Chromium, phone width included) |
+| Translators to Rust and MATLAB; translator = interpreter | ✅ `design/js/pcode_gen.js`, driven by `tools/pcode.py gen`. Vectors drawn from the interpreter, every `proc` as a run of calls with its state carried: Rust and MATLAB reproduce all of them, every function without a transcendental bit for bit (physics 530 of 540 values bit for bit, worst 7e-16; the language's self-test, bit operations and casts included, 744 of 744) |
+| Every relation in `physics.toml` written in it | ✅ all 39, in `spec/physics/*.pc`, held to the registry (same functions, same arguments in order); translated to `engine/crates/adcs-physics` and `matlab_sils/+asils/+physics`; the 7 sourced test vectors of the seed content pass in the interpreter. Open technical items in `ADCS_GAPS.md` D14 |
+| Every algorithm in `fsw/pseudocode/` written in it; C and Rust reproduce the interpreter on test vectors | ✅ `fsw/pseudocode/01`–`09` `.pc` (maths, time and frames with the IGRF-13 table generated from its one source, estimation, guidance, control laws, the step laws, allocation, mode manager and FDIR, drivers): 78 functions. Vectors from the interpreter in `fsw/tests/pcode_vectors.txt`, run through the hand-written C by `test_pcode` in `make test` (2616 calls, 38 696 values, all bit for bit but 60 values of functions with a transcendental, worst 6.6e-15) and through the Rust by `fsw-rs/tests/pcode.rs` (16 062 values, the same). The drivers go through their public paths over an in-memory HAL. The step laws' private-state functions were made callable with their state passed in (`adcs_fsw.c`; all 96 scenario runs bit for bit the same after); mode manager, FDIR and step laws are held in C, and Rust to C by closed-loop bit identity. Every function not called directly is named with its reason. A changed rounding, clamp or decode in the C was caught by the vectors |
+
+**Progress of P3** (files in the browser; `docs/FILES_IN_THE_BROWSER.md`):
+
+| item | state |
+|---|---|
+| SQLite inside the offline page | ✅ sql.js 1.14.2 (SQLite in WebAssembly) vendored in `design/vendor/`, pinned by SHA-256 (`VENDOR.toml`), inlined by `tools/pages.py` with its wasm: the file is read whole into memory and written back whole |
+| Open and save files on Drive | ✅ the folder picked with the browser's folder access (Chrome, Edge); other browsers open one file and save by downloading. `design/js/tnfile.js` opens a file and checks it as `tools/tndb.py check` does; the saved file passes `tndb check` |
+| "Open elsewhere" marker | ✅ `<file>.editing` beside the file (who, since, last seen, browser profile), refreshed every minute and carried by Drive; a Web Lock within one browser; a second editor gets the file read-only with the first one's name; a marker silent for 15 min is taken over and said so; a person's own crashed tab gives the file straight back |
+| Conflict-copy detection | ✅ Drive's `name (1).ext` / `conflict` copies matched to their original, flagged in the folder and in the file, never listed as files of their own |
+| History and undo | ✅ every change one undoable step (SQL triggers record the inverse; reals restored exactly); every save a `revision` row (who, when, what); Drive's version history named in the page |
+| Crash-safe saving | ✅ every change kept in IndexedDB before it returns, offered back after a crash; the save goes through the browser's swap file, is read back and compared by hash, and is refused rather than overwrite a file changed on disk (the work goes to a named copy) |
+| Size caps | ✅ 50 MB a node file, 500 KB a picture, from `design/schema.toml`, in the page and in the file layer |
+| One component set, bundled fonts, no outside hosts | ✅ `design/js/tn_ui.js` + `design/css/tn.css` (light, dark, phone width); Inter and JetBrains Mono inlined; `tools/pages.py check` refuses a page with its own controls or styles and anything loaded from outside; built pages go to `build/pages/` and the kits, not to git |
+| Proof | ✅ `tests/browser/files.test.mjs` in Chromium (11 tests, in `check_all` as `offline-pages`, in CI with Playwright): a node file saves to a folder, reopens, survives a crash before a save and in the middle of one, and refuses a second editor; conflict copies, changes on disk, caps, newer formats; from disk with no request leaving the page; phone width. A real Drive folder needs a person at the folder dialog: the tests use the browser's private folder, which has the same interface. The marker reaches other computers at Drive's sync speed; inside that delay a second save is refused or Drive makes a conflict copy, both reported |
+
+**Progress of P4** (group app: structure; `docs/GROUP_APP.md`):
+
+| item | state |
+|---|---|
+| Map | ✅ the group's nodes by stage, the edges between them, the inputs from other groups dashed (`graph` in `design/js/tn_ui.js`); click a node for its readers inside and outside the group and its actions |
+| Contracts | ✅ the nodes other groups read, listed from the edges; publish or change a contract (output, unit, version, readers) |
+| Stages and stage owners | ✅ add a stage, set its owner (a member), move a node between stages |
+| People, issue node files | ✅ members and roles; issue a node to an author (the group file and the node file both name them, with the date) |
+| Every structure action with its impact check | ✅ add, rename, stage, split, merge, archive, move between groups (`design/js/structure.js`): its impact (notes, changes, stops) before it is done; all or nothing across files (each file prepared and checked, the set recorded in `structure/actions/`, then written; a crash part-way finished from the record); history per group |
+| Change requests | ✅ raised to another group, accepted or declined by its lead in its own file; moving a node into a group, and archiving or merging a node another group reads, wait for that group's acceptance |
+| Proof | ✅ on the whole seeded design (20 groups, 734 nodes): all 20 groups open; `act` (138) and `catalogue` (8) restructured with every action; a node moved from `act` to `ctl` after `ctl` accepted; what another group reads kept until it agreed; someone else's open file stops an action; afterwards every file passes `tndb check` and the structure rules hold in both checkers (`structure.js` and `tools/group.py`, written separately and given the same broken folders). Under Node (`tests/test_structure.py`) and through the page in Chromium (`tests/browser/group.test.mjs`) |
+
+**Progress of P5** (node app; `docs/NODE_APP.md`):
+
+| item | state |
+|---|---|
+| All steps | ✅ identity, explanation, theory, inputs and output, value / requirement / evidence, pseudocode, results, evidence, pictures, code, belief record, feedback; each field with its question, why it is asked and an example; the kind (fixed by the tree, given by the spec, or chosen by the author for a row the spec has not named) decides the steps (`design/js/node_model.js`) |
+| Starting values | ✅ what the spec already says about the row (seeded content) taken in with one click; never changes what the group decides |
+| Equation helper | ✅ a palette of symbols and the node's inputs, inserted at the cursor, with how the equation reads |
+| Uploads and picture wizard | ✅ PNG, JPEG, GIF, WebP; over 500 KB made smaller (JPEG, scaled) before it is kept; shown as images only |
+| Results import | ✅ pasted from Excel or Sheets (tab-separated), shown as a table, kept in the node file |
+| Live checks | ✅ the spec's intake rules for one node, in the page (units against the quantity, sources, inputs and contracts, the pseudocode checker, test vectors run by **Try it**, the explanation standard's marks, evidence metric and rung, belief record); evidence debt; each problem names its rule and its field; the catalogue they check against written from the spec (`tools/node_catalog.py`, current in `check_all`) |
+| Preview | ✅ the node as a reader sees it, answer first (`design/js/node_view.js`) |
+| Ready, sign | ✅ marked ready with a fingerprint of the content; signed as checked by someone other than its author; any later edit makes both stale |
+| Contract updates | ✅ a changed contract on an input is acknowledged on Home; a contract change asked of the owning group as a change request |
+| Proof | ✅ on the whole seeded design in Chromium (`tests/browser/node.test.mjs`, in `check_all` as part of `offline-pages`): declared, computed, KPI, evidence, closure, interface and an unnamed row filled and previewed through the page; the folder it leaves passes `tools/tndb.py check` and `tools/group.py check`. Each check rule by rule under Node (`tests/js/node_model.test.mjs`) |
+
+**Progress of P6** (group app: assemble → release; `docs/GROUP_APP.md`):
+
+| item | state |
+|---|---|
+| Assemble | ✅ every node file of the group read and judged (`design/js/release.js` `assemble`): where its work stands, its signatures and whether they still stand, its problems, its evidence debt, what changed since the last release (Progress); each node viewed as the main application will show it |
+| Checks across nodes | ✅ an input from a node that is gone or archived, a quantity that does not match its source, a contract whose unit disagrees with its node, an input with no arrow on the map, a boundary with no contract |
+| Comments | ✅ the lead comments on a node; the comment goes into the node file and its author sees it on Home in the node app |
+| Stage signatures | ✅ a stage owner (only) signs a stage; the signature covers its nodes as they are and goes stale on any change |
+| Seal | ✅ only the lead; refused while the structure is broken, a node file cannot be opened, or nothing changed; `releases/<group>-<version>.tnrel` frozen with SHA-256 fingerprints over every node; versions 1.0, 1.1, … |
+| Confirmed or UNCONFIRMED | ✅ confirmed only when checked by someone other than its author and unchanged since, no problem in it or across nodes, its stage signed; **a computing node without a test vector from outside the code is never confirmed**; every other node sealed UNCONFIRMED with its reasons |
+| Node files stamped and kept | ✅ every node file stamped with the release (a status line, so no signature goes stale) and sealed: the node app opens it read-only and says so; the release keeps each node whole (content, inputs, test vectors, pictures, signatures) |
+| Re-issue | ✅ the lead opens a sealed node again, as it is or as any release sealed it; a missing or damaged node file is made again from a release |
+| Compare | ✅ two releases, or a release and the group now, node by node, with the fields that changed |
+| Import of today's node forms | ✅ `adcs-node-form/1` files into the node files: the form's answers, inputs, test vectors, attachments and belief record; the author's own fields kept; refused while sealed or with no requester |
+| Proof | ✅ on the whole seeded design under Node (`tests/js/release.test.mjs`): every group seals 1.0, re-issues a node and seals 1.1; act shows the confirmed rule, the stage signature, re-issue from a damaged file; env imports a node form. Through the page in Chromium (`tests/browser/release.test.mjs`): act, env and catalogue. Every release checked again by `tools/release.py`, which also finds each release broken on purpose (`tests/test_release.py`, in `check_all` as `release`) |
+
+**Progress of P7** (manuals and usability; `design/manual/`, `docs/USABILITY_SESSION.md`):
+
+| item | state |
+|---|---|
+| Role guides | ✅ one manual source, `design/manual/`: the journey of a node, a guide for authors (and checkers), for group leads (and stage owners), for developers, for users, the guide to TRI-NETRA Files, the glossary; every page in the explanation standard's shape (its one line first). `tools/manual.py` writes it into the apps (`design/js/manual.js`); `--check` in `check_all` |
+| In-app manual | ✅ **Help** in every app's header opens every guide in place, the app's own role first; works offline, at phone width |
+| Tours | ✅ one per screen (`design/manual/tours.toml`), each step pointing at the thing it names; shown by itself once to someone opening the app for the first time, again from Help; every target checked to be in its app |
+| Field help | ✅ every field, choice and set of checks in the three apps has help beside it (checked by `tools/manual.py`); the node app's step fields carry their question, why it is asked and an example |
+| Print | ✅ any manual page, a node's preview (node app), a node's view (group app, Assemble and Progress) print alone, without the controls; the whole page prints without toolbars |
+| The journey diagram | ✅ author → checker → stage owner → lead seals → developer team builds → lead accepts → release, with the ways back; drawn by `tools/manual.py` (`design/manual/journey.svg`), in the manual |
+| Proof without people | ✅ `tests/browser/help.test.mjs` as a newcomer: the tours, Help, printing, help on every form field, phone width; then a walkthrough found only by what the screens say (labels, tabs, buttons): an author fills a node and marks it ready, a colleague checks it, the stage owner signs, the lead seals act 1.0 with that node confirmed |
+| Usability session | ⏳ the kit is ready (`docs/USABILITY_SESSION.md`: tasks, what the observer writes, how findings become fixes; a findings sheet on Drive); it needs 2–3 members chosen by the owner |
+| Fixes from it | ⏳ after the session |
+
+**Progress of P8** (all content carried over; `docs/CARRY_OVER.md`):
+
+| item | state |
+|---|---|
+| Every node filled from what exists | ✅ `tools/carry_over.py`: the spec's seed content into the nodes' own fields; each physics relation as pseudocode (48 compile in the node app; every one with test vectors reproduces them); case keys and suppliers; KPI senses and metrics; algorithm parameters; the tree's notes; each item marked with its origin, nothing replaced that an author wrote |
+| Rows a discipline had no node for | ✅ 31 added from the code (`design/carry.toml`): dynamics (rigid body, kinematics, rotor coupling, flexible mode, total momentum), onboard navigation (orbit propagation, GNSS fix, time and frames, TRIAD, QUEST, gyro filter), guidance and mode management, FDIR (sensor and rotor health, safe mode), CMG and VSCMG (model, steering, axes, gimbal limits), sizing per subsystem; each with its flight pseudocode and implementations where there is one |
+| The 166 internal rows | ✅ named from the code that computes them (sensor and actuator models, disturbance torques, control laws, estimation, modes, flight software, budgets, rigs), in the group file and the node file; their kind is left to their author |
+| What does not exist | ✅ listed in every node (`status.gaps`) with its owner team, on the node app's Home and the group app's Progress; nothing invented. Most is explanation (764 nodes) and belief records (357), which only people write |
+| Proof | ✅ `tests/test_carry.py` (`check_all` as `carry`): every file and structure rule holds after the carry; origins, names, added rows, gaps; carrying again changes nothing; the node app's own code reads every node and runs every carried pseudocode. The Drive pack's Design folder is seeded and carried |
+| Drive shared drives for the 10 lead teams | ⏳ needs the owner's Drive admin: one shared drive per lead team holding its groups' files |
+
+**Progress of P9** (rules and developer intake):
+
+| item | state |
+|---|---|
+| `group verify` / `group merge` → `design.tndb` | ✅ `tools/group.py verify DIR`: every group's latest release checked by `tools/release.py` and against the folder (its nodes still the group's, what they read exists, contract readers are groups); `merge DIR`: every latest release into `design.tndb` (the previous kept as `design.tndb.prev`), refused while any release does not verify |
+| The catalogue of outputs | ✅ `merge` writes `catalogue_output`: every output of every sealed node, its unit, its contract version and the groups that read it |
+| The impact listing across groups | ✅ `tools/group.py impact DIR NODE`: who reads a node, in its group and across groups, transitively, and the contracts on it |
+| Every command: explain, steps, dry run, what it checks, how to undo, where its code is | ✅ all 56 commands in `docs/commands.toml` carry `checks` and `undo`; `tools/trinetra.py explain` and `dry-run <command>` print them with the code's location; `docs/COMMANDS.md` generated; `tests/test_commands.py` requires both |
+| `CONTRIBUTING.md`, `docs/CHANGING.md` | ✅ who changes what (authors, stage owners, leads, developers), the rules nothing bends; `CHANGING.md` names the source, the command and the check for node content, structure, the design format, the carry map, the manual and the apps |
+| SPEC §3.2 and §5.10–5.11 | ⏳ the rewrite is proposed in `docs/RULES_PROPOSAL.md` and waits for the owner's approval; SPEC.md is unchanged until then |
+| Proof | ✅ `tests/test_release.py`: all 20 groups, sealed, verify and merge into `design.tndb` (734 nodes, every output in the catalogue); a release its group has moved on from does not verify and is not merged |
+
+**Progress of P10** (developer skill and agents; `docs/GENERATORS.md`):
+
+| item | state |
+|---|---|
+| Coordinator skill, backend agent, frontend agent | ✅ `.claude/skills/trinetra-coordinator/SKILL.md` (verify → merge → wire → generate → test → deliver → prove), `.claude/agents/backend.md` (translator first; never a node's content), `.claude/agents/frontend.md` (one component set, help on every field, proven in a browser) |
+| `group wire / build / test / deliver` | ✅ `tools/groupcode.py wire` (each group's computing rows into `design/groups/`, a function shared by groups written once), `gen` (Rust `adcs-groups`, WebAssembly `adcs-groups-wasm`, MATLAB `+asils/+groups`), `test`, `deliver` (a test app per group) |
+| Every computing row's code generated from pseudocode and tested | ✅ 48 rows in 9 groups have pseudocode today (the rest are gaps their authors fill, P8): every one in the generated code; the Rust reproduces the interpreter on every drawn vector (76 functions) and every node's own test vectors; the twin reproduces the same 608 vectors in Octave |
+| Engine = twin per group module | ✅ the same vectors through the generated Rust and MATLAB; C = Rust stays the flight software's parity (`engine.py fsw-parity`) |
+| WebAssembly for "try it" | ✅ the generated Rust compiled for `wasm32-unknown-unknown` (88 KB), inside each test app; every test vector passes in the interpreter and in WebAssembly, the two agreeing (`tests/browser/testapp.test.mjs`, 20 apps) |
+| Generators explained by example | ✅ `docs/GENERATORS.md`: one node (`gd_0`) from its pseudocode to Rust, MATLAB, the tests and its test app |
+| Today's engine numbers unchanged | ✅ the generated crates sit beside the engine; `check_all` keeps flying the engine's own tests and parity |
+| As groups seal real releases | ⏳ `wire --design DIR` on the merged releases replaces the carried design; the loop is the same |
+
+**Progress of P11** (main app on databases; `docs/MAIN_APP.md`):
+
+| item | state |
+|---|---|
+| `design.tndb` holds the engine's inputs | ✅ format 2: every case line by line (`design_case`, each value with the node that declares it) and every input file under `data/` (`engine_input`, with its fingerprint); seed and merge fill them (`tools/design_inputs.py`); version 1 upgrades |
+| The engine and the app fly from it | ✅ `adcs-sim/src/source.rs`: with `TRINETRA_DESIGN` (or the kit's own `design.tndb`) every case and `data/` path comes from the database alone; a flight from a data folder holding no case and no input has the same result id, metrics and channels (`tests/test_design_source.py`); kits and the wheel carry `design.tndb` |
+| One component set, one plotting module | ✅ the app's page rebuilt on `tn_ui.js` (`tools/pages.py app`, compiled in; browser test `tests/browser/app.test.mjs`); `adcs-plot` draws every figure as SVG or PDF, engine and twin runs alike; matplotlib gone from `tools/` |
+| SVG/PDF and a report per run | ✅ `adcs figures`, `adcs report` (HTML and PDF), `adcs plot` (any figure as JSON); the app's `/v1/figures`, `/v1/figure`, `/v1/report` |
+| A run records its input hash and what differs | ✅ `inputs.input_hash`, `inputs.differs`, `inputs.design` in every manifest |
+| Sweeps keep only what their figures need | ✅ a campaign keeps `summary.json` and run 1 (its provenance); about 4,500 committed per-run manifests left git |
+| The Python package reads the database | ✅ `trinetra_adcs.design` (standard-library `sqlite3`) and `python -m trinetra_adcs.design` |
+| Committed pages retired | ✅ `results/index.html` and its 210 figures, and the twin's 280 figures and result pages, out of git; drawn on demand |
+| Every stale run re-flown; `adcs results stale` finds nothing | ✅ engine runs, campaigns, Monte Carlo series, solutions, soft OILS, the dispatch, both design loops and the 40 twin runs re-flown: `adcs results stale` finds 0 of 295 stale (the twin now records its source fingerprint, judged by the engine). `ais_img_3u` selects the same design; `ais_3u` is now closest, not feasible (gap D15) |
+
+**Progress of P12** (test → deliver → accept → ship; `docs/DELIVERY.md`):
+
+| item | state |
+|---|---|
+| The five waves as data | ✅ `wave` per group in `design/groups.toml`, checked by `tools/groups.py` |
+| Delivery | ✅ `tools/delivery.py deliver`: the release verified, earlier waves first, merged, the generated code checked to be the release's, the group's tests run, its test app and a note in `deliveries/` |
+| Acceptance in the group app | ✅ **Release → Deliveries → Accept**: the lead's signature naming the release's and the delivery's fingerprints; refused to anyone else, for a version not delivered, a delivery whose tests failed, or twice |
+| Status and shipping | ✅ `tools/delivery.py status` and `ship`: every group accepted or visibly UNCONFIRMED, with why |
+| Proof | ✅ `tests/test_delivery.py` + `tests/js/waves.test.mjs`: the five waves rehearsed on the carried design with stand-in leads (sealed, delivered, accepted, one left UNCONFIRMED, the refusals) |
+| Every group accepted by its lead | ⏳ no lead named yet, so no group has sealed: today all 20 would ship UNCONFIRMED (owner's decision, §9) |
+
+**Progress of P13** (both cases end to end from the design database; `docs/END_TO_END.md`):
+
+| item | state |
+|---|---|
+| The database holds the files' inputs | ✅ `tools/design_inputs.py differences` empty: every case line and every `data/` file byte for byte, else the run is refused |
+| The design loop and the campaigns from `design.tndb` alone | ✅ `tools/end_to_end.py`: every engine run with `TRINETRA_DESIGN`, the soft OILS runs (QEMU, C and Rust firmware) included; `ais_3u` 468 and `ais_img_3u` 555 numbers compared with the ones flown from the files: none differ (`results/END_TO_END.md`) |
+| Every row evaluated or shown as not computed | ✅ `tools/evaluate.py`: per case about 45 rows stated, computed by their pseudocode or supplied by the selected design's Monte Carlo; the rest each with why (no pseudocode yet, supplied by a lab or supplier) (`results/EVALUATION.md`) |
+| Every closure answering or blocked by name | ✅ 38 per case: 4 pass (APE, AKE, detumble time, orbit-average power), 34 blocked, each naming the row with no value. `ais_3u`'s APE passes at the KPI's claimed probability while the design loop's 99.73 % line-of-sight check is gap D15 |
+| The traceability | ✅ `results/TRACEABILITY.md` regenerated from the same run |
+| More closures answer | ⏳ as authors write pseudocode and leads release their groups (P12); `tools/evaluate.py --check` refuses a closure that answered before and is blocked now |
 
 ## 6 · What 1.0.0 contains
 

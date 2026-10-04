@@ -65,7 +65,7 @@ note = "the equations are checked; a Monte Carlo consistency test (NEES within i
 [[ref]]
 id = "guidance"
 what = "nadir, target, slew, inertial and Sun-pointing reference frames; the slew feed-forward"
-where = "fsw/src/adcs_ctl.c, fsw-rs/src/ctl.rs"
+where = "fsw/src/adcs_guid.c, fsw-rs/src/guid.rs"
 reference = "the frames' definitions (fsw/pseudocode/04_guidance.md); the feed-forward against the numerical derivative of the reference rate"
 test = "fsw-rs/tests/ctl.rs"
 status = "checked"

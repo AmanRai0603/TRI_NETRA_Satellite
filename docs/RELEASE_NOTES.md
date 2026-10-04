@@ -16,3 +16,43 @@ The first release of TRI-NETRA ADCS: the attitude determination and control desi
 **What it does.** Pick a case (two are included: a 3U AIS CubeSat and a 3U imager, both at 550 km) and a scenario (detumble, Sun acquisition, nadir hold, slews, faults, with magnetorquers, the fluid momentum loop, RCS, reaction wheels, CMGs); the engine flies the satellite, the environment and the precision orbit with the C or Rust flight software in the loop and judges every metric against the case's requirements. Every run records what it flew and can be sent as one `.trinetra` file.
 
 **In this version.** Inputs the engine cannot fly are refused by name, never guessed; files are written whole; internal errors leave a crash report; every command is described before it runs (`adcs help`, `COMMANDS.md`); the whole repository is checked by one command and in CI on every change.
+
+<!-- tn:generated:start (tools/release_notes.py) -->
+
+## The design in this release
+
+**0 of 20 groups accepted by their leads; 20 ship visibly UNCONFIRMED**, each with why (`docs/DELIVERY.md`). A node sealed UNCONFIRMED says so, with its reasons, in the node app and in `design.tndb`.
+
+| Wave | Group | Version | Ships as | Accepted by, or why not |
+|---|---|---|---|---|
+| A | `case` | — | UNCONFIRMED | no release yet (its lead seals one in the group app) |
+| A | `dyn` | — | UNCONFIRMED | no release yet (its lead seals one in the group app) |
+| A | `env` | — | UNCONFIRMED | no release yet (its lead seals one in the group app) |
+| B | `act` | — | UNCONFIRMED | no release yet (its lead seals one in the group app) |
+| B | `sens` | — | UNCONFIRMED | no release yet (its lead seals one in the group app) |
+| C | `ctl` | — | UNCONFIRMED | no release yet (its lead seals one in the group app) |
+| C | `fdir` | — | UNCONFIRMED | no release yet (its lead seals one in the group app) |
+| C | `gdn` | — | UNCONFIRMED | no release yet (its lead seals one in the group app) |
+| C | `nav` | — | UNCONFIRMED | no release yet (its lead seals one in the group app) |
+| D | `catalogue` | — | UNCONFIRMED | no release yet (its lead seals one in the group app) |
+| D | `design` | — | UNCONFIRMED | no release yet (its lead seals one in the group app) |
+| D | `fsw` | — | UNCONFIRMED | no release yet (its lead seals one in the group app) |
+| D | `kpi` | — | UNCONFIRMED | no release yet (its lead seals one in the group app) |
+| D | `pnt` | — | UNCONFIRMED | no release yet (its lead seals one in the group app) |
+| E | `business` | — | UNCONFIRMED | no release yet (its lead seals one in the group app) |
+| E | `hils` | — | UNCONFIRMED | no release yet (its lead seals one in the group app) |
+| E | `lab` | — | UNCONFIRMED | no release yet (its lead seals one in the group app) |
+| E | `oils` | — | UNCONFIRMED | no release yet (its lead seals one in the group app) |
+| E | `risk` | — | UNCONFIRMED | no release yet (its lead seals one in the group app) |
+| E | `vv` | — | UNCONFIRMED | no release yet (its lead seals one in the group app) |
+
+## Known gaps
+
+31 gaps in the register (`docs/ADCS_GAPS.md`), each with its evidence and what closes it; none gates this release.
+
+- **D. Design (the design loop and the sizing):** D1 Unconfirmed case values; D2 Pointing error budget incomplete; D3 Sensor trade and star-tracker outages; D4 Imaging power margin; D5 Spare ring mass; D6 FDIR beyond the rings; D7 Lifetime and momentum dumping; D8 Thermal and data budgets; D9 Beyond 3U; D10 Sizing constants and ranking; D11 Spec package; D12 RCS detumble floor; D13 Coils-only modes on AIS; D14 Physics relations awaiting their bundles; D15 AIS design loop: robustness against the mass budget
+- **S. SILS fidelity and statistics:** S1 Monte Carlo claims; S2 Device fidelity left; S3 Eclipse transitions; S4 Engine vs twin; S5 Twin-only chains; S6 Filter consistency
+- **V. Validation and evidence:** V1 Propagator outside validation; V2 Algorithms against references; V3 Catalogue; V4 Algorithms confirmed; V5 IGRF-14
+- **H. Hardware (OILS with a real OBC, HILS):** H1 Reference board; H2 Soft-OILS calibration; H3 Firmware leftovers; H4 HILS; H5 Safe-mode policy
+
+<!-- tn:generated:end -->

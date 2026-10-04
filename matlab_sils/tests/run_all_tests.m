@@ -8,7 +8,7 @@ function ok = run_all_tests()
          @t_torques, @t_plant_conservation, @t_cmg_plant, @t_mekf, @t_quest, @t_lqr, ...
          @t_fmr_spin_down, @t_cmg_steering, @t_hal_loopback, @t_select, @t_gen_bdot, @t_sun_spin_law, @t_sun_guidance, @t_sun_model, @t_st_chain, @t_sun_chain, @t_es_chain, ...
          @t_sizing, @t_modes_table, @t_orbit_vs_pop, @t_short_runs, @t_campaign_draw, @t_metrics_evaluate, @t_metrics_ecss, @t_flex_plant, @t_solution_scenario, ...
-         @t_coil_lag, @t_wheel_motor, @t_wheel_stiction, @t_st_moon_blind, @t_st_rate_noise, @t_gps_latency, @t_earth_radiation, @t_fidelity_refused, @t_chain_parity, @t_chains_from_part};
+         @t_coil_lag, @t_wheel_motor, @t_wheel_stiction, @t_st_moon_blind, @t_st_rate_noise, @t_gps_latency, @t_earth_radiation, @t_fidelity_refused, @t_chain_parity, @t_chains_from_part, @t_physics_vectors};
     n = 0;
     for i = 1:numel(T)
         name = func2str(T{i});
@@ -683,3 +683,53 @@ function chain_product_(dd, base, fills, ist, isun, model, level)
     pr = base; f2 = fills; f2{ist}.part = 'T-ST'; f2{ist}.model = model; f2{isun}.part = 'T-SUN'; f2{isun}.level = level;
     pr.fill = f2; pr.id = 'T-CHAINS'; put_(fullfile(dd, 'products', 'T-CHAINS.json'), pr);
 end
+
+function m = t_physics_vectors()
+    % translator = interpreter: the vectors the pseudocode's interpreter drew (tools/pcode.py gen)
+    % through the MATLAB translations: the physics (+asils/+physics) and the language's own test
+    % (+asils/+pcselftest, every feature: records, procs with state, settling loops, tables), and every
+    % group's computing rows (+asils/+groups).
+    % Bit for bit where a function uses no transcendental; else within 1e-12 relative.
+    here = fileparts(mfilename('fullpath'));
+    pk = {'physics_vectors.json', 'asils.physics'; 'pcselftest_vectors.json', 'asils.pcselftest'; ...
+          'groups_vectors.json', 'asils.groups'};     % the groups' generated code (tools/groupcode.py gen)
+    n = 0; exact = 0; vals = 0; worst = 0;
+    for p = 1:size(pk, 1)
+        v = jsondecode(fileread(fullfile(here, '..', 'data', pk{p, 1})));
+        call = str2func([pk{p, 2} '.call']); call_seq = str2func([pk{p, 2} '.call_seq']);
+        names = fieldnames(v.vectors);
+        for i = 1:numel(names)
+            e = v.vectors.(names{i}); name = regexprep(names{i}, '__', '::', 'once');   % jsondecode writes :: as __
+            sets = e.sets;
+            for k = 1:numel(sets)
+                if iscell(sets), s = sets{k}; else, s = sets(k); end
+                if isfield(e, 'proc') && e.proc
+                    c = s.calls; X = []; W = {};
+                    for j = 1:numel(c)
+                        if iscell(c), cj = c{j}; else, cj = c(j); end
+                        X = [X, from_bits(cj.in_bits)]; W{end + 1} = from_bits(cj.out_bits); %#ok<AGROW>
+                    end
+                    Y = call_seq(name, X); got = Y(:); want = vertcat(W{:});
+                else
+                    got = call(name, from_bits(s.in_bits)); want = from_bits(s.out_bits);
+                end
+                assert(numel(got) == numel(want), '%s: %d outputs, wanted %d', name, numel(got), numel(want));
+                for j = 1:numel(want)
+                    err = abs(got(j) - want(j))/max(abs(want(j)), 1e-300);
+                    vals = vals + 1; exact = exact + (got(j) == want(j)); worst = max(worst, err);
+                    assert(got(j) == want(j) || (~e.exact && err < 1e-12), '%s: MATLAB %.17g, interpreter %.17g', name, got(j), want(j));
+                end
+                n = n + 1;
+            end
+        end
+    end
+    m = sprintf('%d vectors, %d of %d values bit for bit, worst %.1e', n, exact, vals, worst);
+end
+
+function x = from_bits(b)
+    % [high, low] 32-bit words of each double (jsondecode does not read decimals exactly)
+    b = reshape(b, [], 2);
+    x = zeros(size(b, 1), 1);
+    for i = 1:size(b, 1), x(i) = typecast(uint32([b(i, 2), b(i, 1)]), 'double'); end
+end
+

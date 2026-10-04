@@ -4,25 +4,37 @@ Owner: Agastya. `tools/pipeline.py ais_3u` — sizing (Rust, adcs-design) -> SIL
 C flight software) -> assess -> converge, repeated until nothing is left to change; then select, dispatch, Monte Carlo and
 soft OILS of the selected configuration. Flow: `docs/figures/flow_design_to_hils.svg`, method: `docs/DESIGN_LOOP.md`.
 
-**Selected: `mtq_fmr` — Magnetorquers + fluid momentum loop — feasible**, converged after 6 iteration(s). Knowledge class: coarse. Sensors: magnetometer, sun_sensors, gyro, gnss, earth_sensor.
+**Selected: `mtq_fmr` — Magnetorquers + fluid momentum loop — closest (not feasible)**, converged after 8 iteration(s). Knowledge class: coarse. Sensors: magnetometer, sun_sensors, gyro, gnss, earth_sensor.
+
+Open requirement gaps of the selected family (what the case must relax, or the next design lever):
+
+- budget: mass_kg 2.32 > 1.6
 
 ## Iterations
 
 | iteration | knobs | options feasible | selected | changes | blocked |
 |---:|---|---:|---|---|---|
-| 1 | laws as written | 1/25 | mtq (closest (not feasible)) | nadir_pointing/fmr+mtq: power -> electromagnetic pump with more copper (lambda 0.1 -> 0.3 kg/W)<br>nadir_pointing/mtq: fly every mtq_pointing algorithm<br>sun_acquisition/mtq: fly every sun_acquisition algorithm<br>sun_referencing/mtq: fly every mtq_pointing algorithm | 16 |
-| 2 | pump lambda 0.3 kg/W | 2/25 | mtq_fmr (closest (not feasible)) | nadir_pointing/fmr+mtq: power -> electromagnetic pump with more copper (lambda 0.3 -> 0.9 kg/W)<br>nadir_pointing/mtq: tune every mtq_pointing law's gains, min over the gains of the worst seed (Bruni & Celani 2017)<br>sun_acquisition/mtq: tune every sun_acquisition law's gains, min over the gains of the worst seed (Bruni & Celani 2017)<br>sun_referencing/mtq: tune every mtq_pointing law's gains, min over the gains of the worst seed (Bruni & Celani 2017) | 16 |
-| 3 | pump lambda 0.9 kg/W | 4/25 | mtq_fmr (closest (not feasible)) | mass (mtq_fmr): fluid-loop momentum x1 -> x0.75<br>mtqp: authority x1 -> x1.5 (performance) | 18 |
-| 4 | fmr x0.75, mtqp x1.5, pump lambda 0.9 kg/W | 5/25 | mtq_fmr (closest (not feasible)) | mtqp: authority back to x1 (no improvement) | 19 |
-| 5 | fmr x0.75, mtqp x1, pump lambda 0.9 kg/W | 4/25 | mtq_fmr (closest (not feasible)) | mass (mtq_fmr): fluid-loop momentum x0.75 -> x0.5625 | 19 |
-| 6 | fmr x0.562, mtqp x1, pump lambda 0.9 kg/W | 6/25 | mtq_fmr (feasible) | — | 17 |
+| 1 | laws as written | 1/25 | mtq_fmr (closest (not feasible)) | nadir_pointing/fmr+mtq: power -> electromagnetic pump with more copper (lambda 0.1 -> 0.3 kg/W)<br>nadir_pointing/mtq: fly every mtq_pointing algorithm<br>sun_acquisition/mtq: fly every sun_acquisition algorithm<br>sun_referencing/fmr+rcs: fly every pointing algorithm<br>sun_referencing/mtq: fly every mtq_pointing algorithm | 16 |
+| 2 | pump lambda 0.3 kg/W | 1/25 | mtq_fmr_rcs (closest (not feasible)) | nadir_pointing/fmr+mtq: fly every pointing algorithm<br>nadir_pointing/fmr+mtq: power -> electromagnetic pump with more copper (lambda 0.3 -> 0.9 kg/W)<br>nadir_pointing/fmr+rcs: fly every pointing algorithm<br>nadir_pointing/mtq: tune every mtq_pointing law's gains, min over the gains of the worst seed (Bruni & Celani 2017)<br>sun_acquisition/fmr: fluid-loop flow sensor 2 -> 0.5 mm/s (1 sigma)<br>sun_acquisition/mtq: tune every sun_acquisition law's gains, min over the gains of the worst seed (Bruni & Celani 2017)<br>sun_referencing/fmr+mtq: fly every pointing algorithm<br>sun_referencing/mtq: tune every mtq_pointing law's gains, min over the gains of the worst seed (Bruni & Celani 2017) | 16 |
+| 3 | pump lambda 0.9 kg/W, flow sensor 0.5 mm/s | 6/25 | mtq_fmr (closest (not feasible)) | mass (mtq_fmr): fluid-loop momentum x1 -> x0.75<br>mtqp: authority x1 -> x1.5 (performance) | 16 |
+| 4 | fmr x0.75, mtqp x1.5, pump lambda 0.9 kg/W, flow sensor 0.5 mm/s | 7/25 | mtq_fmr (closest (not feasible)) | mtqp: authority back to x1 (no improvement) | 17 |
+| 5 | fmr x0.75, mtqp x1, pump lambda 0.9 kg/W, flow sensor 0.5 mm/s | 6/25 | mtq_fmr (closest (not feasible)) | mass (mtq_fmr): fluid-loop momentum x0.75 -> x0.5625 | 17 |
+| 6 | fmr x0.562, mtqp x1, pump lambda 0.9 kg/W, flow sensor 0.5 mm/s | 6/25 | mtq_fmr (feasible) | — | 17 |
+| 7 | fmr x0.844, mtqp x1, pump lambda 0.9 kg/W, flow sensor 0.5 mm/s | 6/25 | mtq_fmr (closest (not feasible)) | — | 18 |
+| 8 | fmr x1.27, mtqp x1, pump lambda 0.9 kg/W, flow sensor 0.5 mm/s | 4/25 | mtq_fmr (closest (not feasible)) | — | 20 |
+
+**Robustness (node `mc`) after iteration 6:** the Monte Carlo of `mtq_fmr` failed ape_los_p9973 (92 % of runs pass). robustness (mtq_fmr): performance fails in dispersed runs -> fmr authority x0.5625 -> x0.84375
+
+**Robustness (node `mc`) after iteration 7:** the Monte Carlo of `mtq_fmr` failed ape_los_p9973 (83 % of runs pass). robustness (mtq_fmr): performance fails in dispersed runs -> fmr authority x0.84375 -> x1.26562
 
 Why the loop stopped (nothing left that a knob can change):
 
 - detumble/rcs: power fails at the sized authority (rcs); the part's standby power is the floor
+- mass (mtq_fmr): no lever left (budget: mass_kg 2.32 > 1.6)
 - mtqp: more authority did not reduce the performance violation (17.8 -> 17.7); kept at x1
 - nadir_pointing/cmg+mtq: power fails at the sized authority (cmg); the part's standby power is the floor
 - nadir_pointing/cmg+rcs: power fails at the sized authority (cmg); the part's standby power is the floor
+- nadir_pointing/fmr+rcs: power is the thrusters' valve power (RCS dumping), not the pump
 - nadir_pointing/rw+mtq: power fails at the sized authority (rw); the part's standby power is the floor
 - nadir_pointing/rw+rcs: power fails at the sized authority (rw); the part's standby power is the floor
 - nadir_pointing/vscmg+mtq: power fails at the sized authority (vscmg); the part's standby power is the floor
@@ -32,6 +44,7 @@ Why the loop stopped (nothing left that a knob can change):
 - sun_acquisition/vscmg: power fails at the sized authority (vscmg); the part's standby power is the floor
 - sun_referencing/cmg+mtq: power fails at the sized authority (cmg); the part's standby power is the floor
 - sun_referencing/cmg+rcs: power fails at the sized authority (cmg); the part's standby power is the floor
+- sun_referencing/fmr+rcs: power is the thrusters' valve power (RCS dumping), not the pump
 - sun_referencing/rw+mtq: power fails at the sized authority (rw); the part's standby power is the floor
 - sun_referencing/rw+rcs: power fails at the sized authority (rw); the part's standby power is the floor
 - sun_referencing/vscmg+mtq: power fails at the sized authority (vscmg); the part's standby power is the floor
@@ -43,9 +56,9 @@ Selection rule (node `select`, docs/NODES.md): least mass_kg, then power_W, then
 
 | family | role | rank | feasible | mass [kg] | power [W] | volume [L] | momentum actuator | gaps |
 |---|---|---:|---|---:|---:|---:|---|---|
-| mtq_fmr | solution | 1 | yes | 1.012 | 2.06 | 0.538 | fluid loop (3 rings) | — |
 | mtq | solution | — | no | 0.240 | 2.10 | 0.020 | coils only | sun_acquisition: sun_angle_p95 (performance); sun_referencing: sun_ape_p9973 (performance); nadir_pointing: ape_los_p9973 (performance); fault: coil_fail: ape_los_p9973; fault: gyro_bias_step: ape_los_p9973 |
-| mtq_fmr_rcs | solution | — | no | 1.544 | 2.11 | 1.557 | fluid loop (3 rings) | budget: volume_L 1.56 > 1 |
+| mtq_fmr | solution | — | no | 2.319 | 2.52 | 0.538 | fluid loop (3 rings) | budget: mass_kg 2.32 > 1.6 |
+| mtq_fmr_rcs | solution | — | no | 2.851 | 2.57 | 1.557 | fluid loop (3 rings) | budget: mass_kg 2.85 > 1.6; budget: volume_L 1.56 > 1 |
 | mtq_rw | benchmark | — | no | 0.395 | 2.75 | 0.071 | CAT-CUBESPACE-CUBEWHEEL-CW0017 x3 | sun_acquisition: power_mean (power); sun_referencing: power_mean (power); nadir_pointing: power_mean (power) |
 | mtq_rw_rcs | benchmark | — | no | 0.927 | 2.80 | 1.090 | CAT-CUBESPACE-CUBEWHEEL-CW0017 x3 | sun_acquisition: power_mean (power); sun_referencing: power_mean (power); nadir_pointing: power_mean (power); budget: volume_L 1.09 > 1 |
 | mtq_cmg | benchmark | — | no | 1.415 | 5.85 | 0.810 | CAT-TENSOR-TECH-ADCS400 x4 | sun_acquisition: power_mean (power); sun_referencing: power_mean (power); nadir_pointing: power_mean (power) |
@@ -59,8 +72,8 @@ Selection rule (node `select`, docs/NODES.md): least mass_kg, then power_W, then
 |---|---|---|---:|---|---|
 | detumble | mtq | yes | 41.31 detumble_time | attitude=mekf, detumble=bdot_gyro, mtq_pointing=mtq_pd, sun_acquisition=sunspin_l1l2 | — |
 | sun_acquisition | fmr | yes | 2.292 sun_acquisition_time | allocation=idmas_split, attitude=mekf, detumble=bdot_gyro, mtq_pointing=mtq_pd, pointing=pid, sun_acquisition=sunspin_l1l2 | — |
-| sun_referencing | fmr+mtq | yes | 0.3733 sun_ape_p9973 | allocation=idmas_split, attitude=mekf, detumble=bdot_gyro, mtq_pointing=mtq_pd, pointing=pid, sun_acquisition=sunspin_l1l2 | — |
-| nadir_pointing | fmr+mtq | yes | 0.1491 ape_los_p9973 | allocation=idmas_split, attitude=mekf, detumble=bdot_gyro, mtq_pointing=mtq_pd, pointing=pid, sun_acquisition=sunspin_l1l2 | — |
+| sun_referencing | fmr+mtq | yes | 0.3702 sun_ape_p9973 | allocation=idmas_split, attitude=mekf, detumble=bdot_gyro, mtq_pointing=mtq_pd, pointing=pid, sun_acquisition=sunspin_l1l2 | — |
+| nadir_pointing | fmr+mtq | yes | 0.1487 ape_los_p9973 | allocation=idmas_split, attitude=mekf, detumble=bdot_gyro, mtq_pointing=mtq_pd, pointing=pid, sun_acquisition=sunspin_l1l2 | — |
 
 ## Every solution family flown as the mission (node `family_missions`)
 
@@ -69,8 +82,8 @@ Detumble -> Sun acquisition -> nadir with each family's best methods from the lo
 | family | selected | feasible | mass [kg] | methods | detumble_time | ape_los_p9973 | ake_los_p9973 | power_mean | C = Rust | MC pass rates |
 |---|---|---|---:|---|---:|---:|---:|---:|---|---|
 | mtq | no | no | 0.240 | detumble=mtq, sun_acquisition=mtq, sun_referencing=mtq, nadir_pointing=mtq | 42.57 ✓ | 5.703 ✓ | 0.1246 ✓ | 0.09076 ✓ | True | detumble_time 100 %; ape_los_p9973 33 %; ake_los_p9973 100 %; power_mean 100 % |
-| mtq_fmr | yes | yes | 1.012 | detumble=mtq, sun_acquisition=fmr, sun_referencing=fmr+mtq, nadir_pointing=fmr+mtq | 52.91 ✓ | 0.1584 ✓ | 0.1568 ✓ | 0.1949 ✓ | True | detumble_time 100 %; ape_los_p9973 100 %; ake_los_p9973 100 %; power_mean 100 % |
-| mtq_fmr_rcs | no | no | 1.544 | detumble=mtq, sun_acquisition=fmr, sun_referencing=fmr+mtq, nadir_pointing=fmr+rcs | 52.91 ✓ | 0.1547 ✓ | 0.153 ✓ | 0.1755 ✓ | True | detumble_time 100 %; ape_los_p9973 100 %; ake_los_p9973 100 %; power_mean 100 % |
+| mtq_fmr | yes | no | 2.319 | detumble=mtq, sun_acquisition=fmr, sun_referencing=fmr+mtq, nadir_pointing=fmr+mtq | 52.29 ✓ | 0.1538 ✓ | 0.1494 ✓ | 0.1222 ✓ | True | detumble_time 100 %; ape_los_p9973 100 %; ake_los_p9973 100 %; power_mean 100 % |
+| mtq_fmr_rcs | no | no | 2.851 | detumble=mtq, sun_acquisition=fmr, sun_referencing=fmr+mtq, nadir_pointing=fmr+mtq | 52.29 ✓ | 2.615 ✓ | 0.1495 ✓ | 0.158 ✓ | True | detumble_time 100 %; ape_los_p9973 100 %; ake_los_p9973 100 %; power_mean 100 % |
 
 ## Coils only: every law of the literature, each at its best gains (nodes `matrix` + `tune`)
 
@@ -121,11 +134,11 @@ The loop linearised about nadir with the gyroscopic and gravity-gradient terms, 
 | mode | option | algorithm | feasible | objective | failing (cause) |
 |---|---|---|---|---:|---|
 | detumble | mtq | default | yes | 41.31 | — |
-| detumble | rcs | default | no | 1.342 | power_peak (power) |
+| detumble | rcs | default | no | 1.125 | power_peak (power) |
 | nadir_pointing | cmg+mtq | default | no | 0.1465 | power_mean (power) |
 | nadir_pointing | cmg+rcs | default | no | 0.1465 | power_mean (power) |
-| nadir_pointing | fmr+mtq | default | yes | 0.1491 | — |
-| nadir_pointing | fmr+rcs | default | yes | 0.1491 | — |
+| nadir_pointing | fmr+mtq | pid | yes | 0.1487 | — |
+| nadir_pointing | fmr+rcs | pid@bw2.5 | no | 0.1494 | power_mean (power) |
 | nadir_pointing | mtq | mtq_celani2026@mtq_gain_p=4,mtq_gain_d=0.25,handover_out_dps=0.5 | no | 10.31 | ape_los_p9973 (performance) |
 | nadir_pointing | rw+mtq | default | no | 0.1465 | power_mean (power) |
 | nadir_pointing | rw+rcs | default | no | 0.1466 | power_mean (power) |
@@ -138,8 +151,8 @@ The loop linearised about nadir with the gyroscopic and gravity-gradient terms, 
 | sun_acquisition | vscmg | default | no | 2.392 | power_mean (power) |
 | sun_referencing | cmg+mtq | default | no | 0.3655 | power_mean (power) |
 | sun_referencing | cmg+rcs | default | no | 0.3656 | power_mean (power) |
-| sun_referencing | fmr+mtq | default | yes | 0.3733 | — |
-| sun_referencing | fmr+rcs | default | yes | 0.3734 | — |
+| sun_referencing | fmr+mtq | pid | yes | 0.3702 | — |
+| sun_referencing | fmr+rcs | pid | no | 0.3701 | power_mean (power) |
 | sun_referencing | mtq | mtq_celani2015@mtq_gain_p=0.25,mtq_gain_d=1,handover_out_dps=0.25 | no | 85.68 | sun_ape_p9973 (performance) |
 | sun_referencing | rw+mtq | default | no | 0.3659 | power_mean (power) |
 | sun_referencing | rw+rcs | default | no | 0.3659 | power_mean (power) |
@@ -150,11 +163,11 @@ The loop linearised about nadir with the gyroscopic and gravity-gradient terms, 
 
 | metric | req | mean ± std | [min, max] | pass rate |
 |---|---:|---|---|---:|
-| detumble_time (min) | 284 | 59.09 ± 14.9 | [26.21, 76.66] | 100 % |
-| ape_los_p9973 (deg) | 10 | 0.3205 ± 0.114 | [0.1493, 0.5514] | 100 % |
-| ake_los_p9973 (deg) | 5 | 0.3192 ± 0.113 | [0.1527, 0.5484] | 100 % |
-| power_mean (W) | 0.5 | 0.1715 ± 0.0205 | [0.1327, 0.2044] | 100 % |
-| power_peak (W) | — | 0.3826 ± 0.00515 | [0.3764, 0.3912] | — |
+| detumble_time (min) | 284 | 58.26 ± 14.2 | [26.07, 76.38] | 100 % |
+| ape_los_p9973 (deg) | 10 | 0.3149 ± 0.116 | [0.1396, 0.5455] | 100 % |
+| ake_los_p9973 (deg) | 5 | 0.312 ± 0.116 | [0.1422, 0.5438] | 100 % |
+| power_mean (W) | 0.5 | 0.2019 ± 0.0737 | [0.09722, 0.3554] | 100 % |
+| power_peak (W) | — | 0.8213 ± 0.0233 | [0.7798, 0.8523] | — |
 | propellant (g) | — | 0 ± 0 | [0, 0] | — |
 
 ## SILS and soft OILS of the dispatched mission
@@ -164,15 +177,17 @@ C and Rust builds, with exact per-step instruction counts and the command latenc
 
 | metric | req | SILS | soft OILS (C on M4F) | soft OILS (Rust on M4F) |
 |---|---:|---:|---:|---:|
-| detumble_time | 284 | 52.91 ✓ | —  | —  |
-| ape_los_p9973 | 10 | 0.1584 ✓ | —  | —  |
-| ake_los_p9973 | 5 | 0.1568 ✓ | —  | —  |
-| power_mean | 0.5 | 0.1949 ✓ | —  | —  |
-| power_peak | — | 0.4009  | —  | —  |
-| propellant | — | 0  | —  | —  |
+| detumble_time | 284 | 52.29 ✓ | 52.27 ✓ | 52.27 ✓ |
+| ape_los_p9973 | 10 | 0.1538 ✓ | 0.1756 ✓ | 0.1601 ✓ |
+| ake_los_p9973 | 5 | 0.1494 ✓ | 0.1678 ✓ | 0.1572 ✓ |
+| power_mean | 0.5 | 0.1222 ✓ | 0.09756 ✓ | 0.09819 ✓ |
+| power_peak | — | 0.8495  | 0.8271  | 0.827  |
+| propellant | — | 0  | 0  | 0  |
 
 | OBC build | instructions/step mean / max | exec max [ms] | latency mean / max [ms] | CPU load max | overruns |
 |---|---:|---:|---:|---:|---:|
+| C (arm-none-eabi-gcc -O2) | 2.205e+05 / 9.123e+05 | 6.788 | 2.810 / 7.957 | 6.8 % | 0 |
+| Rust (thumbv7em-none-eabihf) | 2.746e+05 / 1.064e+06 | 7.919 | 3.212 / 9.088 | 7.9 % | 0 |
 
 Dispatch: `dist/dispatch/ais_3u/mtq_fmr/converged` (blob, sized products, BUILD.md). C = Rust flight software bitwise on the engine: True.
 

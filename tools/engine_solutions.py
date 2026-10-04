@@ -127,9 +127,9 @@ def dispatch(a):
         sj = ROOT / "matlab_sils" / "store" / "solutions" / c / "solution.json"
         if not sj.exists():
             print(f"[FAIL] {c}: no solution.json yet (run asils.solution.collect first)"); failed += 1; continue
-        S = json.loads(sj.read_text())
-        fam = S["recommended"]
-        E = S["families"][fam]
+        sol = json.loads(sj.read_text())
+        fam = sol["recommended"]
+        E = sol["families"][fam]
         dd = ROOT / "dist" / "dispatch" / c / fam / "fsw"
         dd.mkdir(parents=True, exist_ok=True)
         modes = {json.loads(f.read_text())["id"]: json.loads(f.read_text()) for f in MODES_DIR.glob("*.json")}

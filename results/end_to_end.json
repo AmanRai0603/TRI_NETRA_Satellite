@@ -1,0 +1,53 @@
+{
+ "design": "/home/user/TRI_NETRA_Satellite/build/end_to_end/Design/design.tndb",
+ "cases": {
+  "ais_3u": {
+   "steps": [
+    {
+     "what": "ais_3u: the design loop",
+     "exit": null,
+     "skipped": true
+    },
+    {
+     "what": "ais_3u: its campaigns",
+     "exit": null,
+     "skipped": true
+    }
+   ],
+   "numbers": 468,
+   "changed": [],
+   "runs_from_the_database": 48,
+   "runs_not": [],
+   "runs_not_count": 0
+  },
+  "ais_img_3u": {
+   "steps": [
+    {
+     "what": "ais_img_3u: the design loop",
+     "exit": null,
+     "skipped": true
+    },
+    {
+     "what": "ais_img_3u: its campaigns",
+     "exit": null,
+     "skipped": true
+    }
+   ],
+   "numbers": 555,
+   "changed": [],
+   "runs_from_the_database": 50,
+   "runs_not": [],
+   "runs_not_count": 0
+  }
+ },
+ "evaluate": {
+  "what": "every row and every closure",
+  "command": "/usr/local/bin/python3 tools/evaluate.py /home/user/TRI_NETRA_Satellite/build/end_to_end/Design ais_3u ais_img_3u",
+  "exit": 0
+ },
+ "trace": {
+  "what": "the traceability",
+  "command": "/usr/local/bin/python3 tools/trace.py",
+  "exit": 0
+ }
+}

@@ -8,7 +8,7 @@
 //! (mass/power rate lambda, flow-sensor grade), star-tracker heads, gyro grade.
 //! Owner: Agastya. Copyright (c) 2026 Agastya. All rights reserved.
 use adcs_sim::Error;
-use adcs_fsw::ctl::{boresight_offset, guidance, Guid};
+use adcs_fsw::guid::{boresight_offset, guidance, Guid};
 use adcs_sim::config::Config;
 use adcs_sim::json;
 use adcs_sim::run::Truth;
@@ -284,8 +284,8 @@ pub fn rotor(root: &Path, d: &Demand, k: &Knobs, which: &str) -> Result<Value, E
     let (h_need, tau_need) = (share*d.h_req*s, share*d.tau_req*s);
     let mut cands: Vec<Value> = vec![];
     let dir = root.join("data/catalogue");
-    let mut files: Vec<_> = std::fs::read_dir(&dir).map_err(|e| Error::io(&dir, e))?.filter_map(|e| e.ok().map(|e| e.path())).collect();
-    files.sort();
+    let files = adcs_sim::source::list(&dir);
+    if files.is_empty() { return Err(Error::refused(format!("catalogue: {} holds no model", dir.display()))); }
     for f in files {
         let c = json::read(&f)?;
         if !types.contains(&json::s(&c, "type", "")) || !json::b(&c, "selectable", false) { continue; }

@@ -1,0 +1,9 @@
+{
+ "group": "oils",
+ "label": "OILS rig",
+ "owner_team": "verification",
+ "rows": [],
+ "shared": [],
+ "source": "the design as seeded and carried over (tools/seed_design.py, tools/carry_over.py); not yet sealed by its group",
+ "without_code": []
+}

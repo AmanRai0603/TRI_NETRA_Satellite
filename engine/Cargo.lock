@@ -9,6 +9,7 @@ dependencies = [
  "adcs-design",
  "adcs-fsw",
  "adcs-fsw-abi",
+ "adcs-plot",
  "adcs-sim",
  "adcs-sim-core",
  "clap",
@@ -39,6 +40,34 @@ version = "1.0.0"
 dependencies = [
  "adcs-fsw",
  "cc",
+]
+
+[[package]]
+name = "adcs-groups"
+version = "1.0.0"
+dependencies = [
+ "serde_json",
+]
+
+[[package]]
+name = "adcs-groups-wasm"
+version = "1.0.0"
+dependencies = [
+ "adcs-groups",
+]
+
+[[package]]
+name = "adcs-physics"
+version = "1.0.0"
+dependencies = [
+ "serde_json",
+]
+
+[[package]]
+name = "adcs-plot"
+version = "1.0.0"
+dependencies = [
+ "serde_json",
 ]
 
 [[package]]
@@ -342,6 +371,13 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "384b8ab6d37215f3c5301a95a4accb5d64aa607f1fcb26a11b5303878451b4fe"
 
 [[package]]
+name = "pcode-selftest"
+version = "1.0.0"
+dependencies = [
+ "serde_json",
+]
+
+[[package]]
 name = "pkg-config"
 version = "0.3.34"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -418,6 +454,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4148590afebada386688f18773da617792bf2ef03ffc1e4cbd2b1d45b023e0ba"
 dependencies = [
  "serde_core",
+ "serde_derive",
 ]
 
 [[package]]
@@ -618,9 +655,20 @@ name = "trinetra-app"
 version = "1.0.0"
 dependencies = [
  "adcs-fsw-abi",
+ "adcs-plot",
  "adcs-sim",
  "embed-resource",
+ "rusqlite",
  "serde_json",
+]
+
+[[package]]
+name = "trinetra-design"
+version = "1.0.0"
+dependencies = [
+ "rusqlite",
+ "serde",
+ "toml 0.8.23",
 ]
 
 [[package]]

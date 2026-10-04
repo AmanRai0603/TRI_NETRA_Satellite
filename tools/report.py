@@ -5,7 +5,7 @@ Reads, never re-runs:
   matlab_sils/store/results/<campaign>/{summary.json, runs.csv, run_*.mat (not needed)}
   matlab_sils/store/trades/<trade>/trade.json
 Writes:
-  results/figures/<id>_*.png      one figure set per test
+  results/figures/<id>_*.svg      one figure set per test (drawn by adcs-plot: adcs figures, adcs plot)
   results/index.html               the report page (figures + verdict tables)
   results/summary.json             every metric, every verdict
   docs/RESULTS.md, docs/SELECTION.md
@@ -17,8 +17,8 @@ from common import write_text
 from report_base import (
     FIG, GRID, INK, INK2, MODES, OUT,
     ROOT, S1, S2, S3, S4, STORE,
-    SURF, TRADES, aslist, case_req, fnum, load_run,
-    metric, mval, req_line, save, verdict,
+    SURF, TRADES, aslist, case_req, fnum, load_manifest, load_run,
+    metric, mval, plot, req_line, save, verdict,
 )
 from report_runs import (
     CAMPAIGNS, GROUPS, PRIMARY, campaign_figures, comparison_figures, run_figures,
@@ -41,8 +41,8 @@ __all__ = [
     'S1', 'S2', 'S3', 'S4', 'SIZED', 'SOLS',
     'STORE', 'SURF', 'TRADES', 'TRADE_ORDER', 'aslist', 'campaign_figures',
     'case_req', 'compare_figure', 'comparison_figures', 'components_html', 'engine_section', 'family_rows',
-    'fnum', 'load_run', 'load_solutions', 'load_trades', 'metric', 'mval',
-    'option_figure', 'req_line', 'run_figures', 'save', 'seeds_of', 'solution_html',
+    'fnum', 'load_manifest', 'load_run', 'load_solutions', 'load_trades', 'metric', 'mval',
+    'option_figure', 'plot', 'req_line', 'run_figures', 'save', 'seeds_of', 'solution_html',
     'trade_figure', 'trade_html', 'verdict', 'write_html', 'write_md', 'write_selection',
     'write_solutions_md',
 ]
@@ -56,15 +56,15 @@ def main():
         for sid in ids:
             d = STORE / sid
             if (d / "manifest.json").exists():
-                runs[sid] = load_run(d)
+                runs[sid] = (load_manifest(d), d)
     cmp_figs = comparison_figures(runs)
     sections = []
     for gname, ids in GROUPS:
         items = []
         for sid in ids:
             if sid not in runs: continue
-            man, ch = runs[sid]
-            figs = run_figures(sid, man, ch, full=sid in PRIMARY)
+            man, d = runs[sid]
+            figs = run_figures(sid, man, d, full=sid in PRIMARY)
             report["scenarios"][sid] = {"case": man["case"], "product": man["product"], "label": man.get("label", sid),
                                         "metrics": man["metrics"], "wall_s": man["wall_s"], "duration_s": man["duration_s"],
                                         "mode_log": man.get("mode_log", []), "figures": figs}
@@ -99,7 +99,7 @@ def main():
     write_html(sections, cmp_figs, report, trades, sol_html)
     write_md(sections, cmp_figs)
     write_selection(trades)
-    print(f"report: {sum(len(i) for _, i in sections)} items, {len(list(FIG.glob('*.png')))} figures")
+    print(f"report: {sum(len(i) for _, i in sections)} items, {len(list(FIG.glob('*.svg')))} figures")
 
 
 if __name__ == "__main__":

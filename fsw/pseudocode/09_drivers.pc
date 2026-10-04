@@ -1,0 +1,264 @@
+## 09 - Device drivers over the byte HAL (09_drivers_hal.md): CRC-16/CCITT, the little-endian
+## decoding of every sensor, the UART frame search, and the command words, operation for operation
+## as fsw/src/adcs_drv.c and fsw-rs/src/drv.rs. Bytes are ints 0 .. 255.
+module drivers
+
+## CRC-16/CCITT (polynomial 0x1021, start 0xFFFF) of the first n bytes.
+fn crc16(p: int[64] in 0 .. 255, n: int in 0 .. 64) -> c: int
+    c = 65535
+    for i in 0 .. n
+        c = bxor(c, shl(p[i], 8))
+        for k in 0 .. 8
+            if band(c, 32768) != 0
+                c = band(bxor(shl(c, 1), 4129), 65535)
+            else
+                c = band(shl(c, 1), 65535)
+            end
+        end
+    end
+end
+
+## A little-endian signed 16-bit field.
+fn rd16(b0: int in 0 .. 255, b1: int in 0 .. 255) -> v: int
+    v = b0 + 256*b1
+    if v >= 32768
+        v = v - 65536
+    end
+end
+
+## A little-endian signed 32-bit field.
+fn rd32(b0: int in 0 .. 255, b1: int in 0 .. 255, b2: int in 0 .. 255, b3: int in 0 .. 255) -> v: int
+    v = b0 + 256*b1 + 65536*b2 + 16777216*b3
+    if v >= 2147483648
+        v = v - 4294967296
+    end
+end
+
+## A command as a Q15 word: a value that is not finite drives nothing; held to +-1; rounded half
+## away from zero by the C cast of v +- 0.5.
+fn q15(x: real[1] in -2 .. 2) -> w: int
+    let v = x*32767.0
+    w = 0
+    if v - v == 0
+        if v > 32767.0
+            v = 32767.0
+        end
+        if v < -32767.0
+            v = -32767.0
+        end
+        w = int(if v < 0 then v - 0.5 else v + 0.5)
+    end
+end
+
+## The command words the drivers put on the buses: the coils' PWM (Q15 of m_max), each rotor's
+## torque (Q15 of its torque_max, CAN 0x100 + i), each gimbal's rate (Q15 of gim_rate_max, CAN
+## 0x140 + j) and each thruster couple's on-time in ms (0 .. 255, CAN 0x300). A word with no frame is 0.
+fn drv_write(m_body: vec3[1] in -1 .. 1, m_max: real[1] in 0.05 .. 1, cmd_r: real[1][8] in -0.01 .. 0.01, rot_tmax: real[1][8] in 0.001 .. 0.01, \
+             nr: int in 0 .. 8, cmd_g: vec4[1] in -2 .. 2, gim_rate_max: real[1] in 0.1 .. 2, ng: int in 0 .. 4, duty: real[1][6] in -0.2 .. 1.2, \
+             nc: int in 0 .. 6, dt: real[1] in 0.05 .. 0.5) -> (pwm: int[3], rot_words: int[8], gim_words: int[4], valves: int[6])
+    pwm = 0
+    rot_words = 0
+    gim_words = 0
+    valves = 0
+    for i in 0 .. 3
+        pwm[i] = q15(m_body[i]/m_max)
+    end
+    for i in 0 .. nr
+        rot_words[i] = q15(cmd_r[i]/rot_tmax[i])
+    end
+    for j in 0 .. ng
+        gim_words[j] = q15(cmd_g[j]/gim_rate_max)
+    end
+    if nc > 0
+        for i in 0 .. nc
+            let ms = duty[i]*dt/0.001 + 0.5
+            if not (ms - ms == 0)
+                valves[i] = 0
+            elif ms > 255
+                valves[i] = 255
+            elif ms < 0
+                valves[i] = 0
+            else
+                valves[i] = int(ms)
+            end
+        end
+    end
+end
+
+## The newest complete frame with the second sync byte sync2 in a UART byte stream (EB sync2 n
+## payload CRC-16 lo hi): the payload and its length, or -1 when none is whole and checks. The
+## driver keeps the bytes of a frame not yet whole for its next read; a stream here is one read.
+## vectors: 24
+## inputs from: uart_stream
+fn uart_frame(b: int[96] in 0 .. 255, len: int in 0 .. 96, sync2: int in 144 .. 145) -> (payload: int[64], n_found: int)
+    payload = 0
+    n_found = -1
+    let base = 0
+    let done = false
+    for pass in 0 .. 48
+        if not done
+            let s = 0
+            for k in 0 .. 96
+                if base + s + 1 < len and not (b[base + s] == 235 and b[base + s + 1] == sync2)
+                    s = s + 1
+                end
+            end
+            if base + s + 3 > len
+                done = true
+            else
+                let n = b[base + s + 2]
+                if base + s + 3 + n + 2 > len
+                    done = true
+                else
+                    let pl: int[64] = 0
+                    let crc_in: int[64] = 0
+                    for i in 0 .. min(n, 64)
+                        crc_in[i] = b[base + s + 3 + i]
+                    end
+                    if n <= 64 and crc16(crc_in, n) == bor(b[base + s + 3 + n], shl(b[base + s + 4 + n], 8))
+                        for i in 0 .. n
+                            pl[i] = b[base + s + 3 + i]
+                        end
+                        payload = pl
+                        n_found = n
+                    end
+                    base = base + s + 5 + n
+                end
+            end
+        end
+    end
+end
+
+## Test streams for the frame search (the vectors draw through it): nj junk bytes, a frame of the
+## n bytes pl, then (fault 1 .. 3) a second frame of pl turned by k, cut one byte short (1), with
+## a broken CRC (2) or whole (3).
+fn uart_stream(junk: int[8] in 0 .. 255, nj: int in 0 .. 8, pl: int[36] in 0 .. 255, n: int in 0 .. 36, sync2: int in 144 .. 145, \
+               fault: int in 0 .. 3, k: int in 1 .. 35) -> (b: int[96], len: int)
+    b = 0
+    len = 0
+    for i in 0 .. nj
+        b[len] = junk[i]
+        len = len + 1
+    end
+    let nf = if fault == 0 then 1 else 2
+    for f in 0 .. nf
+        let p: int[64] = 0
+        for i in 0 .. n
+            p[i] = if f == 0 then pl[i] else pl[rem(i + k, 36)]
+        end
+        let c = crc16(p, n)
+        if f == 1 and fault == 2
+            c = bxor(c, 1)
+        end
+        b[len] = 235
+        b[len + 1] = sync2
+        b[len + 2] = n
+        for i in 0 .. n
+            b[len + 3 + i] = p[i]
+        end
+        b[len + 3 + n] = band(c, 255)
+        b[len + 4 + n] = shr(c, 8)
+        len = len + n + 5
+        if f == 1 and fault == 1
+            len = len - 1
+        end
+    end
+end
+
+## Test streams for a read: one for the star tracker, one for the GNSS receiver.
+fn read_streams(st_junk: int[8] in 0 .. 255, st_nj: int in 0 .. 8, st_pl: int[36] in 0 .. 255, st_n: int in 0 .. 36, st_fault: int in 0 .. 3, \
+                st_k: int in 1 .. 35, gps_junk: int[8] in 0 .. 255, gps_nj: int in 0 .. 8, gps_pl: int[36] in 0 .. 255, gps_n: int in 0 .. 36, \
+                gps_fault: int in 0 .. 3, gps_k: int in 1 .. 35) -> (st: int[96], st_len: int, gps: int[96], gps_len: int)
+    st, st_len = uart_stream(st_junk, st_nj, st_pl, st_n, 144, st_fault, st_k)
+    gps, gps_len = uart_stream(gps_junk, gps_nj, gps_pl, gps_n, 145, gps_fault, gps_k)
+end
+
+## A read of every sensor (09_drivers_hal.md): the magnetometer (I2C: status, B int16 of 1e-4/32768 T),
+## the gyro (SPI: status, w int32 of 5/2^23 rad/s), the Sun-sensor set and the Earth sensor (I2C:
+## status, a Q15 unit vector), the star tracker (UART frame EB 90: heads, each valid and q int32
+## Q30), the GNSS receiver (UART frame EB 91: fix, r int32 cm, v int32 mm/s) and the momentum
+## devices' telemetry (CAN 0x200 + i, 8 bytes: h int32 of 1e-9 N m s, gimbal angle int32 of 1e-7 rad).
+## A status bit 0 clear, or a part not fitted, leaves its reading at 0 and its flag false.
+## vectors: 32
+## inputs from: read_streams
+fn drv_read(mag_rx: int[7] in 0 .. 255, gyro_rx: int[13] in 0 .. 255, sun_rx: int[7] in 0 .. 255, es_rx: int[7] in 0 .. 255, \
+            st: int[96] in 0 .. 255, st_len: int in 0 .. 96, gps: int[96] in 0 .. 255, gps_len: int in 0 .. 96, \
+            can_id: int[8] in 510 .. 521, can_dlc: int[8] in 6 .. 8, can_data: int[8][8] in 0 .. 255, n_can: int in 0 .. 8, \
+            has_gyro: bool, has_sun: bool, has_es: bool, has_st: bool, has_gps: bool, nr: int in 0 .. 8, rot_gi: int[8] in 0 .. 4) \
+         -> (mag_ok: bool, b: vec3[T], gyro_ok: bool, w: vec3[rad/s], sun_ok: bool, sun: vec3[1], es_ok: bool, nadir: vec3[1], \
+             st_ok: bool, st_valid: bool[2], q_st: real[1][4][2], gps_ok: bool, r: vec3[m], v: vec3[m/s], h: real[N m s][8], delta: vec4[rad])
+    mag_ok = band(mag_rx[0], 1) == 1
+    b = 0
+    if mag_ok
+        for i in 0 .. 3
+            b[i] = real(rd16(mag_rx[1 + 2*i], mag_rx[2 + 2*i]))*(1.0e-4 [T]/32768.0)
+        end
+    end
+    gyro_ok = has_gyro and band(gyro_rx[0], 1) == 1
+    w = 0
+    if gyro_ok
+        for i in 0 .. 3
+            w[i] = real(rd32(gyro_rx[1 + 4*i], gyro_rx[2 + 4*i], gyro_rx[3 + 4*i], gyro_rx[4 + 4*i]))*(5.0 [rad/s]/8388608.0)
+        end
+    end
+    sun_ok = has_sun and band(sun_rx[0], 1) == 1
+    sun = 0
+    if sun_ok
+        for i in 0 .. 3
+            sun[i] = real(rd16(sun_rx[1 + 2*i], sun_rx[2 + 2*i]))/32767.0
+        end
+    end
+    es_ok = has_es and band(es_rx[0], 1) == 1
+    nadir = 0
+    if es_ok
+        for i in 0 .. 3
+            nadir[i] = real(rd16(es_rx[1 + 2*i], es_rx[2 + 2*i]))/32767.0
+        end
+    end
+    st_ok = false
+    st_valid = [false, false]
+    q_st = 0
+    if has_st
+        let pl, n = uart_frame(st, st_len, 144)
+        if n > 0
+            for hd in 0 .. 2
+                if hd < pl[0] and 1 + 17*(hd + 1) <= n
+                    let e = 1 + 17*hd
+                    st_valid[hd] = band(pl[e], 1) == 1
+                    for k in 0 .. 4
+                        q_st[hd][k] = real(rd32(pl[e + 1 + 4*k], pl[e + 2 + 4*k], pl[e + 3 + 4*k], pl[e + 4 + 4*k]))/1073741824.0
+                    end
+                    if st_valid[hd]
+                        st_ok = true
+                    end
+                end
+            end
+        end
+    end
+    gps_ok = false
+    r = 0
+    v = 0
+    if has_gps
+        let pg, ng = uart_frame(gps, gps_len, 145)
+        if ng >= 25 and band(pg[0], 1) == 1
+            gps_ok = true
+            for i in 0 .. 3
+                r[i] = real(rd32(pg[1 + 4*i], pg[2 + 4*i], pg[3 + 4*i], pg[4 + 4*i]))*(0.01 [m])
+                v[i] = real(rd32(pg[13 + 4*i], pg[14 + 4*i], pg[15 + 4*i], pg[16 + 4*i]))*(0.001 [m/s])
+            end
+        end
+    end
+    h = 0
+    delta = 0
+    for f in 0 .. n_can
+        let id = can_id[f]
+        if id >= 512 and id < 520 and can_dlc[f] >= 8
+            let ri = id - 512
+            let d = can_data[f]
+            h[ri] = real(rd32(d[0], d[1], d[2], d[3]))*(1.0e-9 [N m s])
+            if ri < nr and rot_gi[ri] > 0
+                delta[rot_gi[ri] - 1] = real(rd32(d[4], d[5], d[6], d[7]))*(1.0e-7 [rad])
+            end
+        end
+    end
+end

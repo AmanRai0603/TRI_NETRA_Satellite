@@ -19,6 +19,7 @@ startup_asils                                              % once per session
 rec = asils.run('nadir_hold_ais', 'cases/ais_3u.csv');     % AIS 3U, 10 deg, dawn-dusk SSO
 asils.viz.run(rec, '', true)                               % figures
 asils.result.save(rec)                                     % store/results/nadir_hold_ais/
+% its figures and report, drawn as the engine's runs are: adcs figures store/results/nadir_hold_ais --out figs
 
 rec = asils.run('fine_hold_img', 'cases/ais_img_3u.csv');  % imaging 3U, 0.01 deg, SSO 10:00
 addpath tools; run_campaign('mc_slew_img')                 % a Monte Carlo

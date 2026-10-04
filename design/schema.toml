@@ -1,0 +1,153 @@
+# The design files (docs/RELEASE_PLAN.md P1): what each SQLite file holds, table by table. The
+# one source of their shape: tools/tndb.py makes, opens, checks and upgrades them from here, the
+# Rust reader (engine/crates/trinetra-design) and the browser's reader (design/js/tndb_schema.js)
+# are generated from or checked against it.
+#
+#   <id>.node.tndb        one node: what its author writes and signs        (node app)
+#   <group>.group.tndb    one group: its structure, people, contracts       (group app)
+#   <group>-<v>.tnrel     one sealed release of a group: frozen, never edited (group app)
+#   design.tndb           every group's released content merged             (developer side)
+#
+# Results stay in the existing result package (`.trinetra`, schema adcs-result/1) and the results
+# index (`.adcs-index.sqlite`, adcs-index/2); the design files point at them by result id.
+#
+# Every file starts with the `meta` table: its format, its format version, the program that wrote
+# it. A program opens a file of its own version, upgrades an older one (keeping a copy of the
+# original beside it), and refuses a newer one by name. A format's version rises with any change
+# to its tables; each rise has its upgrade step in tools/tndb.py (UPGRADES).
+#
+# Column types are SQLite's: text, integer, real, blob. `key` marks the primary key.
+#
+# Owner: Agastya. Copyright (c) 2026 Agastya. All rights reserved.
+schema = "trinetra-design-schema/1"
+
+# ------------------------------------------------------------------ shared tables
+[tables.meta]
+about = "what the file is: one row per key (format, format_version, id, written_by, created)"
+columns = [["key", "text key"], ["value", "text"]]
+
+[tables.revision]
+about = "every save: who, when, what changed"
+columns = [["n", "integer key"], ["at", "text"], ["by", "text"], ["summary", "text"]]
+
+[tables.comment]
+about = "comments, threaded by parent"
+columns = [["id", "text key"], ["at", "text"], ["by", "text"], ["about", "text"], ["parent", "text"], ["body", "text"], ["resolved", "integer"]]
+
+[tables.change_request]
+about = "a request to change something this file does not own (a contract, a structure)"
+columns = [["id", "text key"], ["at", "text"], ["by", "text"], ["about", "text"], ["body", "text"], ["state", "text"]]
+
+[tables.signature]
+about = "a typed name standing behind the content (no accounts: stated plainly, Drive's history backs it)"
+columns = [["role", "text"], ["name", "text"], ["at", "text"], ["statement", "text"]]
+
+# ------------------------------------------------------------------ the node file
+[tables.node]
+about = "the node: one row"
+columns = [["id", "text key"], ["sheet", "text"], ["group_id", "text"], ["stage", "text"], ["layer", "text"],
+           ["kind", "text"], ["label", "text"], ["state", "text"], ["author", "text"], ["contract_version", "integer"]]
+
+[tables.content]
+about = "what the author writes, section by section and field by field, each with where it came from"
+columns = [["section", "text"], ["field", "text"], ["value", "text"], ["origin", "text"]]
+
+[tables.input]
+about = "what the node reads: a name, the node and output it comes from, its unit"
+columns = [["name", "text key"], ["from_node", "text"], ["from_output", "text"], ["unit", "text"]]
+
+[tables.output]
+about = "what the node answers: a name, its unit and range (its contract to other nodes)"
+columns = [["name", "text key"], ["unit", "text"], ["lower", "real"], ["upper", "real"], ["reason_lower", "text"], ["reason_upper", "text"]]
+
+[tables.fixture]
+about = "an expected value from outside the code: the inputs, the answer, the tolerance, the source"
+columns = [["name", "text key"], ["inputs", "text"], ["expected", "text"], ["tolerance", "real"], ["source", "text"], ["outside", "integer"]]
+
+[tables.attachment]
+about = "a picture or document: kept as bytes, shown as an image (never run) or downloaded"
+columns = [["name", "text key"], ["mime", "text"], ["size", "integer"], ["bytes", "blob"]]
+
+# ------------------------------------------------------------------ the group file
+[tables.group_info]
+about = "the group: one row"
+columns = [["id", "text key"], ["label", "text"], ["lead_team", "text"], ["lead", "text"]]
+
+[tables.stage]
+about = "the group's stages and who signs each"
+columns = [["id", "text key"], ["label", "text"], ["owner", "text"]]
+
+[tables.member]
+about = "the people of the group and their role (author, stage owner, lead)"
+columns = [["name", "text key"], ["role", "text"]]
+
+[tables.member_node]
+about = "who authors which node"
+columns = [["node", "text key"], ["author", "text"], ["issued_at", "text"]]
+
+[tables.group_node]
+about = "the nodes of the group, their stage and state"
+columns = [["id", "text key"], ["sheet", "text"], ["stage", "text"], ["layer", "text"], ["kind", "text"], ["label", "text"], ["state", "text"]]
+
+[tables.edge]
+about = "a node reading another (kind: derivation, or contribution to a KPI), within the group or across"
+columns = [["from_node", "text"], ["to_node", "text"], ["kind", "text"], ["label", "text"]]
+
+[tables.contract]
+about = "an output other groups read: its unit, its version, who reads it"
+columns = [["node", "text"], ["output", "text"], ["unit", "text"], ["version", "integer"], ["readers", "text"]]
+
+# ------------------------------------------------------------------ the release file
+[tables.release]
+about = "the sealed release: one row; the fingerprint covers every node's content"
+columns = [["group_id", "text"], ["version", "text"], ["sealed_at", "text"], ["sealed_by", "text"], ["fingerprint", "text"]]
+
+[tables.release_node]
+about = "each node as sealed: its content as JSON, and its own fingerprint"
+columns = [["id", "text key"], ["fingerprint", "text"], ["content", "text"]]
+
+# ------------------------------------------------------------------ the design database
+[tables.design_group]
+about = "each group merged in, at which release"
+columns = [["id", "text key"], ["version", "text"], ["fingerprint", "text"], ["merged_at", "text"]]
+
+[tables.design_node]
+about = "every node of every group, as released"
+columns = [["id", "text key"], ["group_id", "text"], ["stage", "text"], ["layer", "text"], ["kind", "text"],
+           ["label", "text"], ["content", "text"], ["release", "text"]]
+
+[tables.design_case]
+about = "every case the engine flies, row by row as the case states it (cases/<id>.csv): its line as written, its fields, and the node that declares the value (spec/plan/case_inputs.toml)"
+columns = [["case_id", "text key"], ["ord", "integer key"], ["section", "text"], ["key", "text"], ["label", "text"], ["unit", "text"],
+           ["value", "text"], ["lo", "text"], ["hi", "text"], ["level", "text"], ["note", "text"], ["node", "text"], ["line", "text"]]
+
+[tables.engine_input]
+about = "every other input the engine reads, by its path in the data folder (data/scenarios, products, parts, algorithms, the catalogue): its bytes and their fingerprint (FNV-1a 64, as a run records it)"
+columns = [["path", "text key"], ["fingerprint", "text"], ["body", "blob"]]
+
+[tables.catalogue_output]
+about = "the catalogue of outputs: the contract at every group boundary"
+columns = [["node", "text"], ["output", "text"], ["unit", "text"], ["version", "integer"], ["readers", "text"]]
+
+# ------------------------------------------------------------------ the formats
+[formats.node]
+extension = ".node.tndb"
+version = 1
+tables = ["meta", "node", "content", "input", "output", "fixture", "attachment", "revision", "comment", "change_request", "signature"]
+max_bytes = 52428800            # 50 MB a node file
+max_attachment_bytes = 512000   # 500 KB a picture
+
+[formats.group]
+extension = ".group.tndb"
+version = 1
+tables = ["meta", "group_info", "stage", "member", "member_node", "group_node", "edge", "contract", "revision", "comment", "change_request", "signature"]
+
+[formats.release]
+extension = ".tnrel"
+version = 1
+tables = ["meta", "release", "release_node", "group_info", "stage", "group_node", "edge", "contract", "signature"]
+
+[formats.design]
+extension = ".tndb"
+version = 2                     # 2: the engine's inputs (design_case, engine_input), P11
+tables = ["meta", "design_group", "design_node", "edge", "catalogue_output", "design_case", "engine_input"]

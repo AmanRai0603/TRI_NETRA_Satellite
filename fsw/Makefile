@@ -6,12 +6,12 @@ CC ?= gcc
 CFLAGS ?= -O2 -Wall -Wextra -pedantic
 # the determinism flags: every build keeps them whatever CFLAGS a caller passes (C = Rust bit for bit)
 override CFLAGS += -std=c99 -ffp-contract=off -fno-fast-math -Iinclude
-SRC = src/adcs_math.c src/adcs_env.c src/adcs_est.c src/adcs_ctl.c src/adcs_alloc.c src/adcs_drv.c src/adcs_params.c src/adcs_fsw.c
+SRC = src/adcs_math.c src/adcs_env.c src/adcs_est.c src/adcs_guid.c src/adcs_ctl.c src/adcs_alloc.c src/adcs_drv.c src/adcs_params.c src/adcs_modes.c src/adcs_fdir.c src/adcs_fsw.c
 OBJ = $(SRC:src/%.c=build/%.o)
 
-all: build/libadcs_fsw.a build/test_fsw
+all: build/libadcs_fsw.a build/test_fsw build/test_pcode
 
-build/%.o: src/%.c include/*.h | build
+build/%.o: src/%.c include/*.h src/*.h | build
 	$(CC) $(CFLAGS) -c $< -o $@
 
 build/libadcs_fsw.a: $(OBJ)
@@ -20,11 +20,17 @@ build/libadcs_fsw.a: $(OBJ)
 build/test_fsw: tests/test_fsw.c tests/hal_stub.c build/libadcs_fsw.a
 	$(CC) $(CFLAGS) -Itests tests/test_fsw.c tests/hal_stub.c build/libadcs_fsw.a -lm -o $@
 
+# the flight algorithms against their pseudocode (the .pc files of pseudocode/): the vectors,
+# tests/pcode_vectors.txt, are written by tools/pcode.py gen
+build/test_pcode: tests/test_pcode.c tests/hal_stub.c build/libadcs_fsw.a
+	$(CC) $(CFLAGS) -Isrc -Itests tests/test_pcode.c tests/hal_stub.c build/libadcs_fsw.a -lm -o $@
+
 build:
 	mkdir -p build
 
-test: build/test_fsw
+test: build/test_fsw build/test_pcode
 	./build/test_fsw
+	./build/test_pcode
 
 check:
 	$(CC) $(CFLAGS) -Werror -fsyntax-only $(SRC)

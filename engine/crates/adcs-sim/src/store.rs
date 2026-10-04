@@ -80,21 +80,28 @@ pub fn product_fingerprint(files: &[PathBuf]) -> u64 {
     for f in files {
         all.extend_from_slice(f.file_name().map(|n| n.to_string_lossy().into_owned()).unwrap_or_default().as_bytes());
         all.push(0);
-        all.extend(std::fs::read(f).unwrap_or_default().into_iter().filter(|b| *b != b'\r'));
+        all.extend(crate::source::read(f).unwrap_or_default().into_iter().filter(|b| *b != b'\r'));
     }
     fnv(&all)
 }
 
 /// The provenance block of a run's manifest.
 pub fn provenance(c: &crate::config::Config, fsw: &str, fsw_id: &str) -> Value {
-    let case_bytes = std::fs::read(&c.case.file).unwrap_or_default();
-    let scen_file_h = fnv(&std::fs::read(&c.scenario_file).unwrap_or_default());
+    let case_bytes = crate::source::read(Path::new(&c.case.file)).unwrap_or_default();
+    let scen_file_h = fnv(&crate::source::read(Path::new(&c.scenario_file)).unwrap_or_default());
     let scen = serde_json::to_string(&c.scenario).unwrap_or_default();
     let (case_h, scen_h) = (fnv(&case_bytes), fnv(scen.as_bytes()));
     let ov: Vec<String> = c.overrides.iter().map(|(k, v)| format!("{k}={v}")).collect();
     let prod_h = product_fingerprint(&c.dev.files);
     let id = fnv(format!("{}|{}|{}|{}|{}|{}|{}|{}", env!("CARGO_PKG_VERSION"), ENGINE_SOURCE, hex(case_h), hex(scen_h), hex(prod_h),
         ov.join(";"), c.seed, fsw).as_bytes());
+    // the run's inputs in one hash, whatever engine flew them, and only what differs from the
+    // shipped scenario: its overrides, and a seed other than the scenario's own (1)
+    let input_hash = fnv(format!("{}|{}|{}|{}|{}|{}", hex(case_h), hex(scen_h), hex(prod_h), ov.join(";"), c.seed, fsw).as_bytes());
+    let mut differs = ov.clone();
+    if c.seed != 1 { differs.push(format!("seed={}", c.seed)); }
+    let design = crate::source::current().ok().flatten().map(|d| json!({"fingerprint": d.fingerprint,
+        "file": d.file.file_name().map(|n| n.to_string_lossy().into_owned()).unwrap_or_default()}));
     // paths inside the data folder are recorded relative to it, so a manifest names no machine
     let root = crate::data_root();
     let rel = |p: &str| -> String {
@@ -112,7 +119,8 @@ pub fn provenance(c: &crate::config::Config, fsw: &str, fsw_id: &str) -> Value {
         "product_files": c.dev.files.iter().map(|f| rel(&f.display().to_string())).collect::<Vec<_>>(),
         "inputs": {"case_file": rel(&c.case.file), "case_fingerprint": hex(case_h), "scenario_file": rel(&c.scenario_file),
                    "scenario_fingerprint": hex(scen_h), "scenario_file_fingerprint": hex(scen_file_h),
-                   "overrides": ov, "seed": c.seed, "fsw": fsw, "fsw_id": fsw_id},
+                   "overrides": ov, "seed": c.seed, "fsw": fsw, "fsw_id": fsw_id,
+                   "input_hash": hex(input_hash), "differs": differs, "design": design},
     })
 }
 
@@ -378,6 +386,78 @@ pub fn thin(root: &Path, days: u64, dry: bool) -> Result<(Vec<PathBuf>, u64), Er
     Ok((done, freed))
 }
 
+/// Adler-32 over bytes with carriage returns removed, as the MATLAB twin writes it
+/// (asils.util.fingerprint): `a32:` and eight hex digits.
+pub fn twin_fp(bytes: &[u8]) -> String {
+    let (mut a, mut b) = (1u64, 0u64);
+    for &x in bytes.iter().filter(|x| **x != b'\r') { a = (a + x as u64) % 65521; b = (b + a) % 65521; }
+    format!("a32:{:08x}", (b << 16) | a)
+}
+
+/// Every file under `root/top` (relative paths with / separators), hidden ones left out.
+fn twin_files(root: &Path, top: &str, out: &mut Vec<String>) {
+    let Ok(rd) = std::fs::read_dir(root.join(top)) else { return };
+    for e in rd.flatten() {
+        let n = e.file_name().to_string_lossy().into_owned();
+        if n.starts_with('.') { continue; }
+        let rel = format!("{top}/{n}");
+        if e.path().is_dir() { twin_files(root, &rel, out); } else { out.push(rel); }
+    }
+}
+
+/// The twin's source fingerprint (+asils/**/*.m and POP's code, pop/0[1-5]_*/**/*.m) or its data
+/// fingerprint (data/** but the test vectors), from the data folder, as the twin computes them;
+/// None when the data folder does not carry the twin (a kit).
+pub fn twin_tree_fp(root: &Path, what: &str) -> Option<String> {
+    let mut files = vec![];
+    if what == "source" {
+        if !root.join("+asils").is_dir() { return None; }
+        twin_files(root, "+asils", &mut files);
+        let mut pops: Vec<String> = std::fs::read_dir(root.join("pop")).ok()?.flatten().map(|e| e.file_name().to_string_lossy().into_owned())
+            .filter(|n| n.len() > 3 && n.starts_with('0') && (b'1'..=b'5').contains(&n.as_bytes()[1]) && n.as_bytes()[2] == b'_').collect();
+        pops.sort();
+        for d in pops { if root.join("pop").join(&d).is_dir() { twin_files(root, &format!("pop/{d}"), &mut files); } }
+        files.retain(|f| f.ends_with(".m"));
+    } else {
+        twin_files(root, "data", &mut files);
+        files.retain(|f| !f.ends_with("_vectors.json"));
+    }
+    files.sort();
+    let mut listing = String::new();
+    for f in &files {
+        let b = std::fs::read(root.join(f)).ok()?;
+        listing.push_str(&format!("{f} {}\n", &twin_fp(&b)[4..]));
+    }
+    Some(twin_fp(listing.as_bytes()))
+}
+
+/// Why a MATLAB twin run no longer stands for today's twin and inputs: its source, its case or the
+/// data it read changed, or it was recorded before the twin named them.
+fn twin_stale(m: &Value) -> Vec<String> {
+    let root = crate::data_root();
+    let mut why = vec![];
+    match (m["engine_source"].as_str(), twin_tree_fp(&root, "source")) {
+        (None, _) => why.push("a twin run recorded before the twin named its source".into()),
+        (Some(_), None) => why.push("a twin run, and this data folder does not carry the twin to judge it by".into()),
+        (Some(e), Some(now)) if e != now => why.push(format!("flown on twin source {e}, the twin is {now}")),
+        _ => {}
+    }
+    let i = &m["inputs"];
+    if i.is_null() { why.push("a twin run recorded before the twin named its inputs".into()); return why; }
+    if let (Some(f), Some(fp)) = (i["case_file"].as_str(), i["case_fingerprint"].as_str()) {
+        let p = if Path::new(f).is_absolute() { PathBuf::from(f) } else { root.join(f) };
+        match std::fs::read(&p) {
+            Err(_) => why.push(format!("its case file {f} is gone")),
+            Ok(b) if twin_fp(&b) != fp => why.push(format!("its case file {f} changed since")),
+            _ => {}
+        }
+    }
+    if let Some(fp) = i["data_fingerprint"].as_str() {
+        if twin_tree_fp(&root, "data").as_deref() != Some(fp) { why.push("the data it read (scenarios, products, parts, ...) changed since".into()); }
+    }
+    why
+}
+
 /// Why a stored run no longer stands for what today's engine and inputs would fly (empty when it
 /// does): another engine or flight-software source, a changed or missing case, scenario or product
 /// file, or a run recorded before runs named them.
@@ -385,7 +465,7 @@ pub fn stale(f: &Found) -> Vec<String> {
     let m = &f.m;
     let mut why = vec![];
     if m["engine"].as_str().is_some_and(|e| e.starts_with("asils")) {
-        return vec!["a MATLAB twin run: the twin records no source fingerprint yet".into()];
+        return twin_stale(m);
     }
     match m["engine_source"].as_str() {
         None => why.push("recorded before runs named their engine source".to_string()),
@@ -398,7 +478,7 @@ pub fn stale(f: &Found) -> Vec<String> {
     let now = |key: &str| -> Option<Option<String>> {
         let f = i[key].as_str()?;
         let p = if Path::new(f).is_absolute() { PathBuf::from(f) } else { root.join(f) };
-        Some(std::fs::read(&p).ok().map(|b| hex(fnv(&b))))
+        Some(crate::source::read(&p).ok().map(|b| hex(fnv(&b))))
     };
     for (what, file, fp) in [("case", "case_file", "case_fingerprint"), ("scenario", "scenario_file", "scenario_file_fingerprint")] {
         match now(file) {
@@ -410,7 +490,7 @@ pub fn stale(f: &Found) -> Vec<String> {
     match (m["product_fingerprint"].as_str(), m["product_files"].as_array()) {
         (Some(fp), Some(files)) => {
             let fs: Vec<PathBuf> = files.iter().filter_map(|x| x.as_str()).map(|x| if Path::new(x).is_absolute() { PathBuf::from(x) } else { root.join(x) }).collect();
-            if fs.iter().any(|p| !p.is_file()) { why.push("a product or part file it was read from is gone".into()); }
+            if fs.iter().any(|p| !crate::source::is_file(p)) { why.push("a product or part file it was read from is gone".into()); }
             else if hex(product_fingerprint(&fs)) != fp { why.push(format!("its product {} or one of its parts changed since", m["product"].as_str().unwrap_or("?"))); }
         }
         _ => why.push("recorded before runs named their product files".into()),
@@ -520,6 +600,12 @@ pub fn import(file: &Path, out: &Path) -> Result<usize, Error> {
 
 #[cfg(test)]
 mod t {
+    #[test]
+    fn twin_fingerprint_is_adler32_without_carriage_returns() {
+        assert_eq!(super::twin_fp(b"Wikipedia"), "a32:11e60398");
+        assert_eq!(super::twin_fp(b"Wiki\r\npedia"), super::twin_fp(b"Wiki\npedia"));
+        assert_eq!(super::twin_fp(b""), "a32:00000001");
+    }
     use super::*;
     #[test]
     fn crc32_matches_the_standard() { assert_eq!(crc32(b"123456789"), 0xCBF43926); }

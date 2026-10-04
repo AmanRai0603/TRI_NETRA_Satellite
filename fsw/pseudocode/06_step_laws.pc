@@ -1,0 +1,293 @@
+## 05, 06 and 07 at the level of the tick (05_control.md, 07_allocation.md, 02 for the orbit): the
+## laws the shell runs on the flight software's own state - the magnetic pointing law it selects,
+## the large-error capture, the rotor Sun acquisition, the rotor allocation with lost axes, the
+## rotor idle command, the onboard orbit's acceleration - operation for operation as the helpers of
+## fsw/src/adcs_fsw.c (adcs_ctl_*, adcs_alloc_*, adcs_orbit_acc) and fsw-rs/src/fsw.rs.
+module steplaws
+
+## The part of the state the laws read and write.
+record CtlState
+    q: quat in -1 .. 1
+    w_est: vec3[1] in -0.05 .. 0.05
+    q_ref: quat in -1 .. 1
+    w_ref: vec3[1] in -0.002 .. 0.002
+    i_q: vec3[1] in -0.05 .. 0.05
+    tau_req: vec3[1] in -0.01 .. 0.01
+    mode: int in 0 .. 10
+    s_prop: vec3[1] in -1 .. 1
+    s_prop_ok: bool
+    cap: vec3[1] in 0.0005 .. 0.01
+    hcap: vec3[1] in 0.005 .. 0.05
+end
+
+## The parameters the laws read (the magnetic gains g_mtq passed field by field).
+record CtlParams
+    mtq_law: int in 0 .. 9
+    mtq_eps: real[1] in 0.0001 .. 0.1
+    mtq_k1: real[1] in 0.01 .. 10
+    mtq_k2: real[1] in 0.01 .. 10
+    mtq_k16: real[1] in 0.0001 .. 0.1
+    mtq_lam16: real[1] in 0 .. 2
+    sb_kp: real[1] in 1e-5 .. 1e-2
+    sb_kd: real[1] in 1e-4 .. 1e-1
+    sb_kroll: real[1] in -1e-4 .. 1e-3
+    sb_kdroll: real[1] in 0 .. 1e-2
+    sb_roll_gate: real[1] in -1 .. 1
+    sun_axis: vec3[1] in -1 .. 1
+    roll_axis: vec3[1] in -1 .. 1
+    mtq_pth: mat3[1] in -0.01 .. 0.01
+    mtq_pw: mat3[1] in -0.1 .. 0.1
+    mtq_period: real[1] in 1 .. 10
+    j: mat3[1] in 0.01 .. 0.1
+    capture_deg: real[1] in -5 .. 30
+    capture_rate_deg_s: real[1] in 0.1 .. 3
+    sa_w_max_deg_s: real[1] in 0.1 .. 3
+    sa_kd: real[1] in 0.01 .. 1
+    g_law: int in 0 .. 2
+    g_kp: vec3[1] in 0.0001 .. 0.01
+    g_kd: vec3[1] in 0.001 .. 0.1
+    g_ki: vec3[1] in 0 .. 0.0001
+    g_klqr: mat3[1] in 0 .. 0.1
+    g_lambda: real[1] in 0.01 .. 1
+    g_phi: real[1] in 0.001 .. 0.1
+    g_gs: vec3[1] in 0.0001 .. 0.01
+    g_err_max: real[1] in 0.05 .. 1
+    g_int_max: real[1] in 0.01 .. 1
+end
+
+## The magnetic pointing law the registry selected (mtq_law): 0 PD, 3 rate damping, 4 Lovera,
+## 5 Celani, 6 Avanzini (Celani when the reference does not rotate), 7 boresight with a weak roll
+## about it in the nadir state, 8 TANGO, else the fine law (PID, LQR, sliding) on the coil period.
+## vectors: 96
+fn ctl_mtq(st: CtlState, cp: CtlParams) -> s: CtlState
+    s = st
+    let law = cp.mtq_law
+    if law == 0
+        s.tau_req = mtq_pd(s.q, s.w_est, s.q_ref, s.w_ref, cp.g_kp, cp.g_kd)
+    elif law == 3
+        let qe = qmult(qconj(s.q_ref), s.q)
+        let wr = dcm(qe)*s.w_ref
+        for i in 0 .. 3
+            s.tau_req[i] = -cp.g_kd[i]*(s.w_est[i] - wr[i])
+        end
+    elif law == 4
+        s.tau_req = mtq_lovera(s.q, s.w_est, s.q_ref, s.w_ref, cp.j, cp.mtq_eps, cp.mtq_k1, cp.mtq_k2)
+    elif law == 5 or law == 6
+        let ok = false
+        if law == 6
+            let t6, ok6 = mtq_avanzini(s.q, s.w_est, s.q_ref, s.w_ref, cp.j, cp.mtq_k16, cp.mtq_lam16)
+            ok = ok6
+            if ok
+                s.tau_req = t6
+            end
+        end
+        if not ok
+            s.tau_req = mtq_celani(s.q, s.w_est, s.q_ref, s.w_ref, cp.mtq_eps, cp.mtq_k1, cp.mtq_k2)
+        end
+    elif law == 7
+        let qe = qmult(qconj(s.q_ref), s.q)
+        let a = dcm(qe)
+        let wr = a*s.w_ref
+        let we = s.w_est - wr
+        let e3 = if s.mode == 9 then cp.sun_axis else cp.roll_axis
+        let tgt = a*e3
+        if s.mode == 9 and s.s_prop_ok
+            tgt = unit(s.s_prop)
+        end
+        s.tau_req = mtq_boresight(e3, tgt, we, cp.sb_kp, cp.sb_kd)
+        if s.mode == 1 and cp.sb_kroll > 0 and dot(e3, tgt) > cp.sb_roll_gate
+            ## the weak roll about the boresight: the power face (made normal to e3) to its reference
+            let d = dot(cp.sun_axis, e3)
+            let pa: vec3[1] = 0
+            for i in 0 .. 3
+                pa[i] = cp.sun_axis[i] - d*e3[i]
+            end
+            if norm(pa) > 1e-6
+                pa = unit(pa)
+                let pd = a*pa
+                let c = cross(pa, pd)
+                let r = cp.sb_kroll*atan2(dot(c, e3), dot(pa, pd)) - cp.sb_kdroll*dot(we, e3)
+                for i in 0 .. 3
+                    s.tau_req[i] = s.tau_req[i] + r*e3[i]
+                end
+            end
+        end
+    elif law == 8
+        s.tau_req = mtq_tango(s.q, s.w_est, s.q_ref, s.w_ref, cp.mtq_pth, cp.mtq_pw)
+    else
+        let z: vec3[1] = 0
+        s.tau_req, s.i_q = control_law(s.q, s.w_est, s.q_ref, s.w_ref, s.i_q, cp.mtq_period, cp.g_law, cp.g_kp, cp.g_kd, cp.g_ki, \
+                                       cp.g_klqr, cp.g_lambda, cp.g_phi, cp.g_gs, cp.g_err_max, cp.g_int_max, cp.j, z, z)
+    end
+end
+
+## The large-error capture of the fine states: beyond capture_deg, an eigenaxis rate command sized
+## to the devices' torque and momentum authority, tracked by a rate loop (slews keep their profile).
+## Returns whether it ran.
+## vectors: 64
+fn ctl_capture(st: CtlState, cp: CtlParams, hdev: vec3[1] in -0.01 .. 0.01) -> (s: CtlState, on: bool)
+    s = st
+    on = false
+    if not (s.mode == 4 or cp.capture_deg <= 0)
+        let qe = qerr(s.q_ref, s.q)
+        let th = 2*acos(if qe[3] > 1 then 1 else qe[3])
+        if not (th < cp.capture_deg*(pi/180.0))
+            on = true
+            let n = sqrt(qe[0]*qe[0] + qe[1]*qe[1] + qe[2]*qe[2])
+            if n < 1e-12
+                n = 1e-12
+            end
+            let e: vec3[1] = [qe[0]*(1.0/n), qe[1]*(1.0/n), qe[2]*(1.0/n)]
+            let jm = cp.j[0][0]
+            if cp.j[1][1] > jm
+                jm = cp.j[1][1]
+            end
+            if cp.j[2][2] > jm
+                jm = cp.j[2][2]
+            end
+            let mincap = s.cap[0]
+            let minh = s.hcap[0]
+            for i in 1 .. 3
+                if s.cap[i] < mincap
+                    mincap = s.cap[i]
+                end
+                if s.hcap[i] < minh
+                    minh = s.hcap[i]
+                end
+            end
+            let alpha = 0.5*mincap/jm
+            let wmax = cp.capture_rate_deg_s*(pi/180.0)
+            if 0.5*minh/jm < wmax
+                wmax = 0.5*minh/jm
+            end
+            let wref = dcm(qe)*s.w_ref
+            let sp = sqrt(2*alpha*th)
+            if wmax < sp
+                sp = wmax
+            end
+            let wc: vec3[1] = 0
+            for i in 0 .. 3
+                wc[i] = wref[i] - e[i]*sp
+            end
+            let kr = 4*alpha/(if wmax > 1e-6 then wmax else 1e-6)
+            if kr > 0.5
+                kr = 0.5
+            end
+            let gy = cross(s.w_est, cp.j*s.w_est + hdev)
+            let x: vec3[1] = 0
+            for i in 0 .. 3
+                x[i] = kr*(wc[i] - s.w_est[i])
+            end
+            s.tau_req = cp.j*x + gy
+        end
+    end
+end
+
+## The rotor Sun acquisition: a rate command k (a x s) turning the power face a onto the measured
+## (or propagated) Sun, held to sa_w_max, tracked by a rate loop; no Sun ever seen, rate held at 0.
+fn ctl_sun_acq(st: CtlState, cp: CtlParams, hdev: vec3[1] in -0.01 .. 0.01) -> s: CtlState
+    s = st
+    let wmax = cp.sa_w_max_deg_s*(pi/180.0)
+    let wc: vec3[1] = 0
+    let a = cp.sun_axis
+    if s.s_prop_ok
+        let sv = unit(s.s_prop)
+        let c = cross(a, sv)
+        if dot(sv, a) < -0.95
+            c = cross(a, [1, 0, 0])
+            if norm(c) < 0.1
+                c = cross(a, [0, 1, 0])
+            end
+            c = unit(c)
+        end
+        wc = c*(wmax/0.5)
+        let n = norm(wc)
+        if n > wmax
+            wc = wc*(wmax/n)
+        end
+    end
+    let gy = cross(s.w_est, cp.j*s.w_est + hdev)
+    let x: vec3[1] = 0
+    for i in 0 .. 3
+        x[i] = cp.sa_kd*(wc[i] - s.w_est[i])
+    end
+    s.tau_req = cp.j*x + gy
+end
+
+## The rotor commands for a torque: the fixed rotors still working by the minimum-norm inverse,
+## the gimbals by singularity-robust steering (VSCMG rotors take their momentum rate and a null
+## motion back to their nominal momentum). Commands of rotors not set keep their value.
+fn alloc_rotors(tau_rot: vec3[1] in -0.01 .. 0.01, a: real[1][8][3] in -1 .. 1, cmd_r0: real[1][8] in -0.01 .. 0.01, cmd_g0: vec4[1] in -1 .. 1, \
+                nr: int in 0 .. 8, ng: int in 0 .. 4, rot_gi: int[8] in 0 .. 2, rot_kind: int[8] in 0 .. 3, rot_failed: bool[8], \
+                zh: real[1][8] in -0.05 .. 0.05, gim_axis: real[1][3][4] in -1 .. 1, gim_rate_max: real[1] in 0.1 .. 2, \
+                cmg_lam0: real[1] in 1e-6 .. 1e-2, cmg_mu: real[1] in 1 .. 100, cmg_k_null: real[1] in 0 .. 1, rot_h0: real[1][8] in 0 .. 0.05) \
+                -> (cmd_r: real[1][8], cmd_g: vec4[1])
+    cmd_r = cmd_r0
+    cmd_g = cmd_g0
+    let fixed: int[8] = 0
+    let nf = 0
+    for i in 0 .. nr
+        if rot_gi[i] == 0 and not rot_failed[i]
+            fixed[nf] = i
+            nf = nf + 1
+        end
+    end
+    if nf > 0
+        let af: real[1][8][3] = 0
+        for i in 0 .. nf
+            for k in 0 .. 3
+                af[k][i] = a[k][fixed[i]]
+            end
+        end
+        let pi8 = pinv_rows(af, nf)
+        for i in 0 .. nf
+            cmd_r[fixed[i]] = -(pi8[i][0]*tau_rot[0] + pi8[i][1]*tau_rot[1] + pi8[i][2]*tau_rot[2])
+        end
+    end
+    if ng > 0
+        let wheels = false
+        for i in 0 .. nr
+            if rot_kind[i] == 3
+                wheels = true
+            end
+        end
+        let gd, hd = steer_sr(tau_rot, a, zh, nr, ng, rot_gi, gim_axis, gim_rate_max, cmg_lam0, cmg_mu, wheels)
+        for j in 0 .. ng
+            cmd_g[j] = gd[j]
+        end
+        if wheels
+            for i in 0 .. nr
+                if rot_gi[i] > 0
+                    cmd_r[i] = hd[i] - cmg_k_null*(zh[i] - rot_h0[i])
+                end
+            end
+        end
+    end
+end
+
+## The rotor command outside the fine states: each rotor held at its momentum target, a CMG rotor's
+## torque command zero when asked (its own speed loop holds it).
+fn alloc_idle(cmd_r0: real[1][8] in -0.01 .. 0.01, nr: int in 0 .. 8, zh: real[1][8] in -0.05 .. 0.05, h_t_rot: real[1][8] in -0.05 .. 0.05, \
+              rot_gi: int[8] in 0 .. 2, rot_kind: int[8] in 0 .. 3, zero_cmg: bool) -> cmd_r: real[1][8]
+    cmd_r = cmd_r0
+    for i in 0 .. nr
+        cmd_r[i] = -0.2*(zh[i] - h_t_rot[i])
+        if zero_cmg and rot_gi[i] > 0 and rot_kind[i] == 2
+            cmd_r[i] = 0
+        end
+    end
+end
+
+## Two-body + J2 acceleration in J2000 for the onboard orbit (the pole of date is 0.4 deg off:
+## second order on J2); no orbit to speak of (|r| <= 1 m), no acceleration.
+fn orbit_acc(r: vec3[1] in -7.2e6 .. 7.2e6, mu: real[1] in 3.9e14 .. 4e14) -> a: vec3[1]
+    let rn = norm(r)
+    a = 0
+    if rn > 1.0
+        let r2 = rn*rn
+        let zr = r[2]*r[2]/r2
+        let k = -mu/(r2*rn)
+        let f = -1.5*1.08262668e-3*mu*6378137.0*6378137.0/(r2*r2*rn)
+        a = [k*r[0] + f*r[0]*(1 - 5*zr), k*r[1] + f*r[1]*(1 - 5*zr), k*r[2] + f*r[2]*(3 - 5*zr)]
+    end
+end

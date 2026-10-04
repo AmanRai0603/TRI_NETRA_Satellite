@@ -3,7 +3,9 @@
 
     python3 tools/trinetra.py list                 every command, one line each, by tool
     python3 tools/trinetra.py explain <command>    what it does, its steps, what it reads and
-                                                   writes and which programs it starts
+                                                   writes, which programs it starts, what it
+                                                   checks, how to undo it, where its code is
+    python3 tools/trinetra.py dry-run <command>    the same, said as what would happen; runs nothing
     python3 tools/trinetra.py why <file>           which command writes that file, and how
     python3 tools/trinetra.py status               the evidence debt first: what is not yet confirmed
                                                    by a person, proven in flight code, or agreed by the twin
@@ -11,8 +13,8 @@
                                                    (--check: exit 1 if it is not current)
 
 A command is named as `tool name` (`engine.py campaign`, `adcs run`) or by its name alone
-when that is unique (`campaign`, `pipeline`). engine.py and pipeline.py take --dry-run, which
-prints this explanation and runs nothing.
+when that is unique (`campaign`, `pipeline`). Every command can be dry-run here; engine.py and
+pipeline.py also take --dry-run themselves, which prints this explanation and runs nothing.
 
 Copyright (c) 2026 Agastya. All rights reserved.
 """
@@ -46,6 +48,16 @@ def find(words):
     raise SystemExit(f"no command {q!r}; `python3 tools/trinetra.py list` shows them all")
 
 
+def code_of(c):
+    """Where a command's code is."""
+    t = c["tool"]
+    if t == "adcs":
+        return "engine/crates/adcs-cli/"
+    if t == "adcs-sim":
+        return "engine/crates/adcs-sim/"
+    return f"tools/{t}"
+
+
 def explain(c):
     """The command in words a person can check before running it."""
     out = [f"{c['tool']} {c['name']}", "", "  " + c["what"], "", f"  usage   {c['usage']}", "", "  steps"]
@@ -53,6 +65,7 @@ def explain(c):
     for label, key in (("reads", "reads"), ("writes", "writes"), ("starts", "runs")):
         vals = c.get(key) or []
         out.append(f"  {label:<7} " + ("; ".join(vals) if vals else "nothing"))
+    out += [f"  checks  {c['checks']}", f"  undo    {c['undo']}", f"  code    {code_of(c)}"]
     return "\n".join(out)
 
 
@@ -71,8 +84,8 @@ def document():
     cs = commands()
     L = ["# Commands", "",
          "> Generated from `docs/commands.toml` by `python3 tools/trinetra.py docs`; never edited by hand.",
-         "> `python3 tools/trinetra.py explain <command>` prints one of these; `--dry-run` on `engine.py`",
-         "> and `pipeline.py` prints it and runs nothing.", "",
+         "> `python3 tools/trinetra.py explain <command>` prints one of these, and `dry-run <command>` says it",
+         "> as what would happen and runs nothing (`--dry-run` on `engine.py` and `pipeline.py` too).", "",
          "| command | what it does |", "|---|---|"]
     for c in cs:
         L.append(f"| [`{c['tool']} {c['name']}`](#{(c['tool'] + '-' + c['name']).replace('.', '').replace(' ', '-').lower()}) | {c['what']} |")
@@ -83,6 +96,7 @@ def document():
         for label, key in (("Reads", "reads"), ("Writes", "writes"), ("Starts", "runs")):
             vals = c.get(key) or []
             L.append(f"- **{label}:** " + ("; ".join(f"`{v}`" if "/" in v or "." in v else v for v in vals) if vals else "nothing"))
+        L += [f"- **Checks:** {c['checks']}", f"- **Undo:** {c['undo']}", f"- **Code:** `{code_of(c)}`"]
     return "\n".join(L) + "\n"
 
 
@@ -190,6 +204,9 @@ def main(argv):
         print(listing())
     elif cmd == "explain" and rest:
         print(explain(find(rest)))
+    elif cmd == "dry-run" and rest:
+        print(explain(find(rest)))
+        print("\n(dry run: nothing was run)")
     elif cmd == "status" and not rest:
         print(status())
     elif cmd == "why" and len(rest) == 1:

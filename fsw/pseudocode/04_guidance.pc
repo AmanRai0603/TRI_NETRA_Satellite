@@ -1,0 +1,166 @@
+## 04 - Guidance (04_guidance.md): the reference attitude and rate of each pointing state, the nadir
+## yaw flip and the boresight offset, operation for operation as fsw/src/adcs_guid.c and
+## fsw-rs/src/guid.rs. The guidance record (adcs_guid_t, guid::Guid) is passed field by field.
+module guidance
+
+## The guidance a controller state flies: 0 nadir, 1 target, 2 slew, 4 Sun (states as adcs_params.h:
+## 3 target_fine, 4 slew_fine, 9 sun_mtq, 10 sun_fine).
+fn guid_kind(mode: int in 0 .. 12) -> kind: int
+    if mode == 3
+        kind = 1
+    elif mode == 4
+        kind = 2
+    elif mode == 9 or mode == 10
+        kind = 4
+    else
+        kind = 0
+    end
+end
+
+## The reference of guidance `kind` (0 nadir, 1 target, 2 slew, 3 inertial, 4 Sun) at time t on the
+## orbit (r, v): the attitude, its rate in the reference frame, and its rate's derivative.
+fn guidance(kind: int in 0 .. 4, r: vec3[m] in -7.2e6 .. 7.2e6, v: vec3[m/s] in -7600 .. 7600, t: real[s] in 0 .. 600, \
+            q_off: quat in -1 .. 1, roll_deg: real[1] in -60 .. 60, t0: real[s] in 0 .. 300, t_slew: real[s] in 20 .. 300, \
+            axis: vec3[1] in -1 .. 1, q_inertial: quat in -1 .. 1, sun_axis: vec3[1] in -1 .. 1, roll_axis: vec3[1] in -1 .. 1, \
+            sun_eci: vec3[1] in -1 .. 1, flip: bool) -> (q_ref: quat, w_ref: vec3[1/s], wd_ref: vec3[1/s^2])
+    let rh = unit(r)
+    let vh = unit(v)
+    let mr = rh*(-1.0)
+    let nrm = unit(cross(vh, mr))
+    let ram = unit(cross(mr, nrm))
+    let rr: mat3[1] = 0
+    for i in 0 .. 3
+        rr[0][i] = -ram[i]
+        rr[1][i] = -rh[i]
+        rr[2][i] = -nrm[i]
+    end
+    let q_nad = fromdcm(rr)
+    if q_off[0] != 0 or q_off[1] != 0 or q_off[2] != 0 or q_off[3] != 0
+        q_nad = qmult(q_nad, q_off)
+    end
+    if flip
+        let u: vec3[1] = [1, 0, 0]
+        if norm(roll_axis) > 0
+            u = unit(roll_axis)
+        end
+        q_nad = qmult(q_nad, [u[0], u[1], u[2], 0])
+    end
+    let w_orb = cross(r, v)*(1.0/dot(r, r))
+    wd_ref = 0
+    let ax: vec3[1] = [1, 0, 0]
+    if norm(axis) > 0
+        ax = unit(axis)
+    end
+    if kind == 1
+        q_ref = qmult(q_nad, fromrotvec(ax*(roll_deg*(pi/180.0))))
+        w_ref = dcm(q_ref)*w_orb
+    elif kind == 2
+        ## the cycloidal slew in the rotating nadir frame
+        let tau = clamp((t - t0)/t_slew, 0.0, 1.0)
+        let sd: real[1/s] = 0
+        let sdd: real[1/s^2] = 0
+        let ph = roll_deg*(pi/180.0)
+        if t > t0 and t < t0 + t_slew
+            sd = (1 - cos(2*pi*tau))/t_slew
+            sdd = 2*pi*sin(2*pi*tau)/(t_slew*t_slew)
+        end
+        let s = tau - sin(2*pi*tau)/(2*pi)
+        q_ref = qmult(q_nad, fromrotvec(ax*(ph*s)))
+        let wo = dcm(q_ref)*w_orb
+        ## the slew frame turns at ax ph s_dot relative to the orbiting frame: transport term on w_orb
+        let tr = cross(ax*(ph*sd), wo)
+        for i in 0 .. 3
+            w_ref[i] = wo[i] + ax[i]*ph*sd
+            wd_ref[i] = ax[i]*ph*sdd - tr[i]
+        end
+    elif kind == 3
+        q_ref = q_inertial
+        w_ref = 0
+    elif kind == 4
+        ## Sun referencing: the power face a onto the Sun, b towards the orbit normal
+        let a: vec3[1] = [0, 0, -1]
+        if norm(sun_axis) > 0
+            a = unit(sun_axis)
+        end
+        let b: vec3[1] = [1, 0, 0]
+        if norm(roll_axis) > 0
+            b = roll_axis
+        end
+        let ab = dot(a, b)
+        for i in 0 .. 3
+            b[i] = b[i] - ab*a[i]
+        end
+        if norm(b) < 1e-6
+            b = [-a[1]*a[0], 1 - a[1]*a[1], -a[1]*a[2]]
+        end
+        b = unit(b)
+        let s = unit(sun_eci)
+        let e2: vec3[1] = 0
+        for i in 0 .. 3
+            e2[i] = nrm[i] - dot(nrm, s)*s[i]
+        end
+        if norm(e2) < 1e-6
+            e2 = [-s[2]*s[0], -s[2]*s[1], 1 - s[2]*s[2]]
+        end
+        e2 = unit(e2)
+        let b3 = cross(a, b)
+        let e3 = cross(s, e2)
+        let m: mat3[1] = 0
+        for i in 0 .. 3
+            for j in 0 .. 3
+                m[i][j] = a[i]*s[j] + b[i]*e2[j] + b3[i]*e3[j]
+            end
+        end
+        q_ref = fromdcm(m)
+        w_ref = 0
+    else
+        q_ref = q_nad
+        w_ref = dcm(q_nad)*w_orb
+    end
+end
+
+## The nadir-family yaw flip with hysteresis h: turn 180 deg about the boresight when the power face
+## would look away from the Sun. Returns the new flip.
+fn yaw_flip(r: vec3[m] in -7.2e6 .. 7.2e6, v: vec3[m/s] in -7600 .. 7600, q_off: quat in -1 .. 1, sun_axis: vec3[1] in -1 .. 1, \
+            roll_axis: vec3[1] in -1 .. 1, sun_eci: vec3[1] in -1 .. 1, flip: bool, hyst: real[1] in 0 .. 0.3) -> flip_out: bool
+    let z: vec3[1] = 0
+    let q, w, wd = guidance(0, r, v, 0, q_off, 0, 0, 1 [s], z, [0, 0, 0, 1], sun_axis, roll_axis, sun_eci, false)
+    let sb = dcm(q)*unit(sun_eci)
+    let a: vec3[1] = [0, 0, -1]
+    if norm(sun_axis) > 0
+        a = unit(sun_axis)
+    end
+    let d = dot(a, sb)
+    flip_out = flip
+    if d < -hyst
+        flip_out = true
+    elif d > hyst
+        flip_out = false
+    end
+end
+
+## The rotation taking +Y_B (the nadir axis of the base frame) to the payload axis.
+fn boresight_offset(bs_in: vec3[1] in -1 .. 1) -> q: quat
+    let ey: vec3[1] = [0, 1, 0]
+    let bs = unit(bs_in)
+    let ax = cross(ey, bs)
+    let c = dot(ey, bs)
+    let s = norm(ax)
+    if s < 1e-12
+        q = [0, 0, 0, 1]
+        if c <= 0
+            q = [1, 0, 0, 0]
+        end
+    else
+        let k = ax*(1.0/s)
+        let kk = skew(k)
+        let k2 = kk*kk
+        let a: mat3[1] = 0
+        for i in 0 .. 3
+            for j in 0 .. 3
+                a[i][j] = (if i == j then 1.0 else 0.0) + s*kk[i][j] + (1 - c)*k2[i][j]
+            end
+        end
+        q = fromdcm(a)
+    end
+end

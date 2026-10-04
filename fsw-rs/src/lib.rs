@@ -18,6 +18,7 @@ pub mod igrf13;
 pub mod params;
 pub mod env;
 pub mod est;
+pub mod guid;
 pub mod ctl;
 pub mod alloc;
 pub mod devices;

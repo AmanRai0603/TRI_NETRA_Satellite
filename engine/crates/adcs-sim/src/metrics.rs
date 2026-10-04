@@ -2,7 +2,7 @@
 use crate::config::{Config, GUID, MODES};
 use crate::json;
 use crate::run::Record;
-use adcs_fsw::ctl::{guidance, yaw_flip, Guid};
+use adcs_fsw::guid::{guidance, yaw_flip, Guid};
 use adcs_sim_core::la::*;
 use serde_json::{json, Value};
 

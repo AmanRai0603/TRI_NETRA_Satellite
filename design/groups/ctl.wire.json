@@ -1,0 +1,34 @@
+{
+ "group": "ctl",
+ "label": "Controller and allocation",
+ "owner_team": "gnc",
+ "rows": [
+  {
+   "fn": "settling_time_2pct",
+   "id": "gc_2",
+   "label": "Settling time",
+   "outputs": [
+    [
+     "t_s",
+     "real[s]"
+    ]
+   ],
+   "params": [
+    [
+     "w_n",
+     "real[rad/s] in 0.005 .. 2"
+    ],
+    [
+     "zeta",
+     "real[1] in 0.3 .. 1.5"
+    ]
+   ],
+   "release": "carried",
+   "symbol": "t_s",
+   "vectors": []
+  }
+ ],
+ "shared": [],
+ "source": "the design as seeded and carried over (tools/seed_design.py, tools/carry_over.py); not yet sealed by its group",
+ "without_code": []
+}

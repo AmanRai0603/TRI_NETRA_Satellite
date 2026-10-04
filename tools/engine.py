@@ -79,6 +79,8 @@ def main():
     p = sp.add_parser("dispatch"); p.add_argument("cases", nargs="*"); p.set_defaults(f=dispatch)
     p = sp.add_parser("campaign"); p.add_argument("ids", nargs="*"); p.add_argument("--fsw", default="c")
     p.add_argument("--reuse", action="store_true", help="summarise a campaign whose runs are all already flown instead of flying them again")
+    p.add_argument("--keep-runs", action="store_true", help="keep every run's folder after the summary (by default only run_0001, the "
+                   "campaign's provenance, stays: summary.json holds every run's metrics and draws, all its figures need)")
     p.add_argument("--jobs", type=int, default=os.cpu_count()); p.set_defaults(f=campaign)
     sp.add_parser("campaign-ledger").set_defaults(f=lambda a: campaign_ledger(announce=True))
     p = sp.add_parser("oils"); p.add_argument("scenarios", nargs="*"); p.add_argument("--fsw", default="qemu")

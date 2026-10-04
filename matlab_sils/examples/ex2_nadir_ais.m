@@ -2,4 +2,4 @@
 % Copyright (c) 2026 Agastya. All rights reserved.
 startup_asils
 rec = asils.run('nadir_hold_ais', 'cases/ais_3u.csv');
-asils.result.save(rec);                                  % channels, figures, rec.mat, result.html
+asils.result.save(rec);                                  % channels, manifest, rec.mat (figures: adcs figures)

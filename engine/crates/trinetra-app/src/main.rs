@@ -98,10 +98,24 @@ fn bind() -> Result<(TcpListener, u16), Start> {
     Err(Start::Failed(format!("nothing in {}..{} was free on 127.0.0.1. Set TRINETRA_PORT to choose another.", first, first.saturating_add(11))))
 }
 
+/// The design database the app reads its cases and scenarios from: $TRINETRA_DESIGN, else
+/// `design.tndb` beside the data (a kit, the Python package); none (a checkout), and it reads the
+/// data folder's files.
+pub fn design_file(root: &std::path::Path) -> Option<std::path::PathBuf> {
+    if let Some(p) = std::env::var_os("TRINETRA_DESIGN").filter(|p| !p.is_empty()) { return Some(p.into()); }
+    Some(root.join("design.tndb")).filter(|p| p.is_file())
+}
+
 fn main() {
     adcs_sim::fsio::install_crash_report("trinetra-app");
     let root = adcs_sim::data_root();
-    if !root.join("data/scenarios").is_dir() {
+    if let Some(f) = design_file(&root) {
+        match adcs_sim::source::Design::open(&f) {
+            Ok(d) => adcs_sim::source::use_design(Some(d)),
+            Err(e) => { start_failed(&format!("{e}. Nothing was flown.")); std::process::exit(1); }
+        }
+    }
+    if adcs_sim::source::current().ok().flatten().is_none() && !root.join("data/scenarios").is_dir() {
         start_failed(&format!("the tool's data is not beside the program (looked for data/scenarios in {}). Unzip the whole kit and open the program from it.", root.display()));
         std::process::exit(1);
     }

@@ -5,7 +5,8 @@
    "fmr": 0.5625,
    "mtqp": 1.0
   },
-  "fmr_lambda": 0.9000000000000001
+  "fmr_lambda": 0.9000000000000001,
+  "fmr_flow_sigma": 0.0005
  },
  "class": "coarse",
  "selected": "mtq_fmr",
@@ -169,7 +170,7 @@
    "failing": {
     "power_peak": "power"
    },
-   "objective": 1.3416666666666666,
+   "objective": 1.125,
    "objective_id": "detumble_time",
    "objective_req": 284.0
   },
@@ -3086,20 +3087,20 @@
   {
    "mode": "sun_referencing",
    "option": "fmr+mtq",
-   "alg": null,
+   "alg": "smc",
    "feasible": true,
    "failing": {},
-   "objective": 0.37333629823825415,
+   "objective": 0.36520513902563967,
    "objective_id": "sun_ape_p9973",
    "objective_req": 5.0
   },
   {
    "mode": "sun_referencing",
    "option": "fmr+rcs",
-   "alg": null,
+   "alg": "smc",
    "feasible": true,
    "failing": {},
-   "objective": 0.37337538148540245,
+   "objective": 0.3654735418974086,
    "objective_id": "sun_ape_p9973",
    "objective_req": 5.0
   },
@@ -5460,20 +5461,20 @@
   {
    "mode": "nadir_pointing",
    "option": "fmr+mtq",
-   "alg": null,
+   "alg": "pid",
    "feasible": true,
    "failing": {},
-   "objective": 0.149137651783556,
+   "objective": 0.14765192101761415,
    "objective_id": "ape_los_p9973",
    "objective_req": 10.0
   },
   {
    "mode": "nadir_pointing",
    "option": "fmr+rcs",
-   "alg": null,
+   "alg": "smc",
    "feasible": true,
    "failing": {},
-   "objective": 0.14913640459832167,
+   "objective": 0.1504832513581989,
    "objective_id": "ape_los_p9973",
    "objective_req": 10.0
   }

@@ -20,14 +20,16 @@ everything and writes the reports. **MATLAB** stays the design twin of the SILS.
                    (no_std)       device byte codecs (+ analytic fallback orbit)        │
                    adcs-fsw-abi   the emulated buses; extern "C" adcs_hal_*; links fsw/ ◄┘
                    adcs-sim       case + scenario + product → config → loop → metrics → adcs-rec/1
-                   adcs-cli       `adcs run | params | parity`, --fsw c|rust|obc-posix|qemu|tcp:..
+                   adcs-plot      the one plotting module: figures as SVG and PDF, the run figures
+                                  and the per-run report, engine and twin runs alike
+                   adcs-cli       `adcs run | params | parity | figures | report | plot`, --fsw c|rust|obc-posix|qemu|tcp:..
    fsw/targets/    virtual OBC    adcs-link/1: the flight software as a process or as Cortex-M4F
                                   firmware in QEMU, in lockstep with the engine (docs/VIRTUAL_OBC.md)
                         │
    tools/ (Python)  pipeline.py   the design loop: size -> SILS matrix -> assess -> converge -> faults -> select -> dispatch -> MC -> soft OILS
                     vv_report.py  the V&V report (template -> HTML -> PDF)
                     engine.py     build, run, Monte Carlo, C-vs-Rust parity, engine-vs-MATLAB ledger
-                    report.py     figures + results/index.html from any adcs-rec/1 run
+                    report.py     results/index.html from any adcs-rec/1 run (figures: adcs figures, adcs plot)
                     gen_fsw_params.py, export_catalogue.py, run_matrix.py, pack_matlab.py
                         │
    matlab_sils/ (MATLAB/Octave)   the SILS twin with POP v51 in the loop; design workflow, trades,
@@ -41,7 +43,7 @@ everything and writes the reports. **MATLAB** stays the design twin of the SILS.
 | flight software on the OBC | **C99** (`fsw/`) | every OBC toolchain has a C compiler; static state, no `malloc`, `time`, `rand` or recursion (`make check`) |
 | the same flight software | **Rust** (`fsw-rs/`) | memory safety with no runtime; `no_std`, no heap; builds for `thumbv7em-none-eabihf`; exports the C ABI so it drops in where `libadcs_fsw.a` goes |
 | plant, environment, orbit, devices | **Rust** (`engine/`) | the full POP propagator ported model by model (bit-identical to the MATLAB twin's orbit and environment), ≈4 500× real time with a star tracker and ≈44 000× coils-only on one core; deterministic (counter-based randomness); `no_std` plant core |
-| orchestration, reports, generators | **Python** (`tools/`) | process pools, JSON/CSV, matplotlib, HTML |
+| orchestration, reports, generators | **Python** (`tools/`) | process pools, JSON/CSV, HTML; figures described as JSON and drawn by the engine (`adcs plot`) |
 | design twin | **MATLAB / Octave** (`matlab_sils/`) | where the algorithms were designed and traded; POP v51 in the loop |
 
 ## How agreement is measured (`fsw/twin_map.toml`)

@@ -4,8 +4,7 @@ Copyright (c) 2026 Agastya. All rights reserved.
 """
 import json, html
 import numpy as np
-import matplotlib.pyplot as plt
-from report_base import INK, INK2, S1, S3, TRADES, fnum, save
+from report_base import INK, MUTED, S1, S3, TRADES, fnum, save
 
 
 TRADE_ORDER = ["trade_detumble_ais", "trade_mtq_pointing_ais", "trade_sun_spin_ais", "trade_sun_sensor_ais",
@@ -38,23 +37,20 @@ def trade_figure(T):
     m0 = C[0].get("metrics") or {}
     if isinstance(m0, dict) and T["objective"]["metric"] in m0:
         unit = m0[T["objective"]["metric"]].get("unit", "")
-    fig, ax = plt.subplots(figsize=(10, 0.55 * n + 1.6))
-    y = np.arange(n)
+    w = [fnum(c["obj"]) for c in C]
+    sx, sy = [], []
     for i, c in enumerate(C):
-        col = S3 if (i == 0 and T.get("selected")) else (S1 if c["feasible"] else "#b9bec4")
-        w = fnum(c["obj"])
-        if np.isfinite(w):
-            ax.barh(i, w, color=col, height=0.55)
         for v in seeds_of(c):
-            if np.isfinite(v): ax.plot(v, i, "o", color=INK, ms=4)
-        lab = f" {w:.3g}" if np.isfinite(w) else " no value"
-        ax.text(w if np.isfinite(w) else 0, i, lab + ("" if c["feasible"] else "  (fails a requirement)"), va="center", fontsize=8, color=INK2)
-    ax.set_yticks(y); ax.set_yticklabels([c["id"] for c in C]); ax.invert_yaxis(); ax.grid(axis="y", visible=False)
-    vals = [fnum(c["obj"]) for c in C if np.isfinite(fnum(c["obj"])) and fnum(c["obj"]) > 0]
-    if vals and max(vals) / max(min(vals), 1e-12) > 50: ax.set_xscale("log")
-    ax.set_xlabel(f"{T['objective']['metric']} [{unit}] — bar: worst over seeds, dots: each seed")
-    ax.set_title(f"{T['label']}\ngreen: proposed · blue: meets every requirement · grey: fails one", loc="left")
-    return save(fig, T["id"])
+            if np.isfinite(v): sx.append(v); sy.append(i)
+    vals = [x for x in w if np.isfinite(x) and x > 0]
+    p = {"title": f"{T['label']}\ngreen: proposed · blue: meets every requirement · grey: fails one",
+         "xlabel": f"{T['objective']['metric']} [{unit}] — bar: worst over seeds, dots: each seed",
+         "xscale": "log" if vals and max(vals) / max(min(vals), 1e-12) > 50 else "linear",
+         "series": [{"kind": "hbar", "labels": [c["id"] for c in C], "values": w,
+                     "colors": [S3 if (i == 0 and T.get("selected")) else (S1 if c["feasible"] else MUTED) for i, c in enumerate(C)],
+                     "texts": [(f"{x:.3g}" if np.isfinite(x) else "no value") + ("" if c["feasible"] else "  (fails a requirement)") for x, c in zip(w, C)]},
+                    {"kind": "scatter", "x": sx, "y": sy, "color": INK, "size": 2.6}]}
+    return save({"width": 720, "height": 40 * n + 115, "panels": [p]}, T["id"])
 
 
 def trade_html(T):

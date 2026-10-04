@@ -30,7 +30,7 @@ pub fn find(root: &Path, kind: &str, id: &str) -> Result<PathBuf, Error> {
         if g.is_file() { return Ok(g); }
     }
     let f = root.join("data").join(kind).join(format!("{id}.json"));
-    if f.is_file() { return Ok(f); }
+    if crate::source::is_file(&f) { return Ok(f); }
     if let Ok(rd) = std::fs::read_dir(crate::store_root().join("sized")).or_else(|_| std::fs::read_dir(root.join("store/sized"))) {
         let mut ds: Vec<_> = rd.flatten().map(|e| e.path()).collect();
         ds.sort();

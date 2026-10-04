@@ -1,0 +1,147 @@
+## 07 - Allocation (07_allocation.md): the rotor axes, singularity-robust steering of gimballed
+## rotors, momentum dumping with the coils and the thruster duty, operation for operation as
+## fsw/src/adcs_alloc.c and fsw-rs/src/alloc.rs. The parameters they read (adcs_params_t) are
+## passed as the fields they use.
+module allocation
+
+## The axis of each of the nr rotors (columns of a 3 x 8): its nominal axis, turned about its
+## gimbal (rot_gi = gimbal index + 1, 0 fixed) by the gimbal angle.
+fn rotor_axes(nr: int in 0 .. 8, rot_a0: real[1][3][8] in -1 .. 1, rot_gi: int[8] in 0 .. 4, gim_axis: real[1][3][4] in -1 .. 1, \
+              delta: vec4[1] in -3.1 .. 3.1) -> a: real[1][8][3]
+    a = 0
+    for i in 0 .. nr
+        let a0 = rot_a0[i]
+        if rot_gi[i] > 0
+            let j = rot_gi[i] - 1
+            let t0 = cross(gim_axis[j], a0)
+            for k in 0 .. 3
+                a[k][i] = cos(delta[j])*a0[k] + sin(delta[j])*t0[k]
+            end
+        else
+            for k in 0 .. 3
+                a[k][i] = a0[k]
+            end
+        end
+    end
+end
+
+## Singularity-robust steering: gimbal rates (and, with wheels, rotor momentum rates) that give
+## the torque tau, weighted away from the singular set, the gimbal rates held to gim_rate_max.
+fn steer_sr(tau: vec3[1] in -0.01 .. 0.01, a: real[1][8][3] in -1 .. 1, h: real[1][8] in -0.05 .. 0.05, nr: int in 0 .. 8, ng: int in 0 .. 4, \
+            rot_gi: int[8] in 0 .. 4, gim_axis: real[1][3][4] in -1 .. 1, gim_rate_max: real[1] in 0.1 .. 2, cmg_lam0: real[1] in 1e-6 .. 1e-2, \
+            cmg_mu: real[1] in 1 .. 100, wheels: bool) -> (gdot: vec4[1], hdot: real[1][8])
+    let jg: real[1][4][3] = 0
+    let h0: real[1] = 0
+    for i in 0 .. nr
+        if rot_gi[i] > 0
+            let j = rot_gi[i] - 1
+            let c = cross(gim_axis[j], [a[0][i], a[1][i], a[2][i]])
+            for k in 0 .. 3
+                jg[k][j] = -h[i]*c[k]
+            end
+            if |h[i]| > h0
+                h0 = |h[i]|
+            end
+        end
+    end
+    let m: mat3[1] = 0
+    for i in 0 .. 3
+        for j in 0 .. 3
+            m[i][j] = 0
+            for k in 0 .. ng
+                m[i][j] = m[i][j] + jg[i][k]*jg[j][k]
+            end
+        end
+    end
+    if h0 < 1e-12
+        h0 = 1e-12
+    end
+    let ms = det3(m)/(h0*h0*h0*h0*h0*h0)
+    let n = if wheels then ng + nr else ng
+    let jj: real[1][12][3] = 0
+    for i in 0 .. 3
+        for j in 0 .. ng
+            jj[i][j] = jg[i][j]
+        end
+        if wheels
+            for j in 0 .. nr
+                jj[i][ng + j] = -a[i][j]
+            end
+        end
+    end
+    let w: real[1][12] = 0
+    for j in 0 .. n
+        w[j] = if j < ng then 1.0 else 0.01 + 2.0*exp(-10.0*ms)
+    end
+    let lam = cmg_lam0*exp(-cmg_mu*ms)
+    for i in 0 .. 3
+        for j in 0 .. 3
+            m[i][j] = if i == j then lam else 0.0
+            for k in 0 .. n
+                m[i][j] = m[i][j] + jj[i][k]*w[k]*jj[j][k]
+            end
+        end
+    end
+    let mi, ok = inv3(m)
+    let x = mi*tau
+    let u: real[1][12] = 0
+    for k in 0 .. n
+        u[k] = w[k]*(jj[0][k]*x[0] + jj[1][k]*x[1] + jj[2][k]*x[2])
+    end
+    let s = 1.0
+    gdot = 0
+    for j in 0 .. ng
+        gdot[j] = u[j]
+        if |u[j]|/gim_rate_max > s
+            s = |u[j]|/gim_rate_max
+        end
+    end
+    for j in 0 .. ng
+        gdot[j] = gdot[j]/s
+    end
+    hdot = 0
+    for i in 0 .. nr
+        hdot[i] = if wheels then u[ng + i]/s else 0.0
+    end
+end
+
+## The coil dipole that dumps the device momentum toward its target: m = k (H - H_t) x B/|B|^2,
+## saturated; no field, no dipole.
+fn dump(hdev: vec3[1] in -0.05 .. 0.05, ht: vec3[1] in -0.05 .. 0.05, b: vec3[1] in -5e-5 .. 5e-5, k: real[1] in 1e-4 .. 1e-1, \
+        m_max: real[1] in 0.05 .. 1) -> m: vec3[1]
+    let bs = dot(b, b)
+    if bs < 1e-18
+        m = 0
+    else
+        m = sat_dipole(cross(hdev - ht, b)*(k/bs), m_max)
+    end
+end
+
+## The on-time of each thruster couple over T for a torque request: one couple per axis and sense
+## (2 ax for +, 2 ax + 1 for -), on-time below the minimum impulse bit dropped, rounded to the
+## valve resolution; returns each duty and the torque fed forward.
+fn rcs_duty(req: vec3[1] in -0.05 .. 0.05, nc: int in 0 .. 6, rcs_tau: real[1][3][6] in -0.05 .. 0.05, rcs_mib: real[1] in 0 .. 0.05, \
+            rcs_res: real[1] in 0.001 .. 0.01, t: real[1] in 0.1 .. 2) -> (duty: real[1][6], tau: vec3[1])
+    duty = 0
+    tau = 0
+    for ax in 0 .. 3
+        let u = req[ax]
+        if u != 0
+            let k = if u > 0 then 2*ax else 2*ax + 1
+            if k < nc and |rcs_tau[k][ax]| > 0
+                let on = |u|/|rcs_tau[k][ax]|
+                if on > 1
+                    on = 1
+                end
+                on = on*t
+                if not (on < rcs_mib)
+                    on = round(on/rcs_res)*rcs_res
+                    duty[k] = on/t
+                    for i in 0 .. 3
+                        tau[i] = tau[i] + rcs_tau[k][i]*duty[k]
+                    end
+                end
+            end
+        end
+    end
+end

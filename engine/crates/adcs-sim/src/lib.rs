@@ -21,6 +21,7 @@ pub mod index;
 pub mod flight;
 pub mod error;
 pub mod schema;
+pub mod source;
 
 pub use error::{Error, Kind};
 

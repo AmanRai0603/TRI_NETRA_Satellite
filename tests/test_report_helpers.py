@@ -95,6 +95,26 @@ class Metrics(unittest.TestCase):
         self.assertTrue(math.isnan(s[1]))
 
 
+class Figures(unittest.TestCase):
+    """Figures are described as JSON and drawn by the engine's plotting module (adcs plot)."""
+
+    def test_a_description_is_strict_json(self):
+        import numpy as np
+        v = R.jsonable({"x": np.array([1.0, np.nan]), "y": (np.float64(2.0), float("inf")), "s": "a"})
+        self.assertEqual(v, {"x": [1.0, None], "y": [2.0, None], "s": "a"})
+        json.dumps(v, allow_nan=False)
+
+    @unittest.skipUnless(R.BIN.is_file(), "the engine is not built (python3 tools/engine.py build)")
+    def test_a_description_draws_as_svg_and_a_bad_one_is_refused(self):
+        p = {"title": "t", "series": [{"kind": "line", "x": [0, 1, 2], "y": [1, float("nan"), 3]}]}
+        R.req_line(p, 2.5, "req")
+        s = R.plot_svg({"panels": [p]})
+        self.assertTrue(s.startswith("<svg ") and "req 2.5" in s)
+        with self.assertRaises(SystemExit) as e:
+            R.plot_svg({"panels": [{"series": [{"kind": "pie"}]}]})
+        self.assertIn("pie", str(e.exception))
+
+
 class VVFormats(unittest.TestCase):
     def test_fmt_gives_significant_figures_and_a_dash_for_no_number(self):
         self.assertEqual(vv_report.fmt(3.14159265), "3.142")

@@ -71,7 +71,7 @@ def write_json(path, obj, **kw):
 
 @contextlib.contextmanager
 def atomic_path(path):
-    """For a writer that wants a file name (zipfile, matplotlib): yields a temporary
+    """For a writer that wants a file name (zipfile, say): yields a temporary
     path beside `path` and renames it into place only when the block succeeds."""
     fd, tmp = _tmp_beside(path)
     os.close(fd)

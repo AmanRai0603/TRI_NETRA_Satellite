@@ -3,7 +3,7 @@
 //! bytes -> actuator commands, actuators, torques, plant, recorder.
 use crate::error::Error;
 use crate::config::Config;
-use adcs_fsw::ctl::{guidance, Guid};
+use adcs_fsw::guid::{guidance, Guid};
 use adcs_fsw_abi::{Bus, Fsw, Impl};
 use adcs_sim_core::actuators::{Mex, Mtq, Rcs};
 use adcs_sim_core::comp::star_tracker as stc;
@@ -471,7 +471,7 @@ pub fn run(c: &Config, o: &Opts) -> Result<Record, Error> {
     let (r, v) = orb.state(0.0)?;
     let mut gd = Guid { q_off: p.gd_q_off, roll_deg: p.gd_roll_deg, t0: p.gd_t0, t_slew: p.gd_T, axis: p.gd_axis, q_inertial: p.gd_q_inertial,
         sun_axis: p.sun_axis, roll_axis: p.roll_axis, sun_eci: adcs_fsw::env::sun_model(c.jd0), flip: false };
-    if p.gd_yaw_flip != 0 { adcs_fsw::ctl::yaw_flip(&mut gd, &r, &v, p.gd_flip_hyst); }
+    if p.gd_yaw_flip != 0 { adcs_fsw::guid::yaw_flip(&mut gd, &r, &v, p.gd_flip_hyst); }
     let mut x = initial_state(c, &r, &v, &gd, &mut rs("initial"), nr);
 
     let dt = c.dt;

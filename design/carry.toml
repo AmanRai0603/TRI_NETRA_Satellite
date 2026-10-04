@@ -1,0 +1,488 @@
+# The carry-over map (docs/RELEASE_PLAN.md P8): what tools/carry_over.py cannot read from a
+# registry by itself. Two things, both read from the code that computes them:
+#
+#   [internal.<layer>]  names for the spec's internal layer-3 rows (l3_<layer>_row_NN, labelled
+#                       "to be named"), in row order: each a label, the question it answers and
+#                       where it is computed. A layer with fewer names than rows leaves the rest
+#                       "to be named", listed as a gap for its owner team.
+#   [[add]]             rows a discipline has no node for yet (guidance, onboard navigation, the
+#                       satellite's dynamics, FDIR, CMG and VSCMG, each subsystem's sizing), added
+#                       to their group: label, question, where it is computed, and the flight
+#                       pseudocode function that states it (fsw/pseudocode/), when there is one.
+#
+# Every entry names code that exists; tools/carry_over.py --check holds each `pcode` to a function
+# of fsw/pseudocode/ and each file in `code` to a file of the repository. Nothing here is a number:
+# values, test vectors and explanations come from their registries, or stay gaps.
+# Owner: Agastya. Copyright (c) 2026 Agastya. All rights reserved.
+
+# ------------------------------------------------------------------ internal rows, by layer
+
+[internal.sens]
+rows = [
+  { label = "Gyro angle random walk", question = "How much white noise does each gyro rate sample carry?", code = "engine/crates/adcs-sim-core/src/sensors.rs" },
+  { label = "Gyro bias and its random walk", question = "What constant bias does each gyro start with, and how does it drift?", code = "engine/crates/adcs-sim-core/src/sensors.rs" },
+  { label = "Gyro scale factor and misalignment", question = "How far does each gyro axis deviate in gain and direction from nominal?", code = "engine/crates/adcs-sim-core/src/sensors.rs" },
+  { label = "Magnetometer noise and bias", question = "How much noise and bias does each magnetometer sample carry?", code = "engine/crates/adcs-sim-core/src/sensors.rs" },
+  { label = "Magnetometer scale factor, misalignment and range", question = "How does the magnetometer distort the field it measures, and where does it saturate?", code = "engine/crates/adcs-sim-core/src/sensors.rs" },
+  { label = "Coarse Sun sensor cosine response with albedo", question = "What current does each coarse Sun sensor give for the Sun and the Earth's albedo?", code = "engine/crates/adcs-sim-core/src/sensors.rs" },
+  { label = "Fine Sun sensor quadrant currents", question = "What four currents does the quadrant photodiode give for a Sun direction?", code = "engine/crates/adcs-sim-core/src/comp.rs" },
+  { label = "Fine Sun sensor angles from currents", question = "Which Sun direction do the four quadrant currents give back?", code = "engine/crates/adcs-sim-core/src/comp.rs" },
+  { label = "Star tracker frame rendering", question = "Which pixel frame does the detector see for the stars in its field?", code = "engine/crates/adcs-sim-core/src/comp.rs" },
+  { label = "Star tracker centroiding", question = "Where on the detector is each star spot, to a fraction of a pixel?", code = "engine/crates/adcs-sim-core/src/comp.rs" },
+  { label = "Star tracker identification by pair angles", question = "Which catalogue stars are the detected spots?", code = "engine/crates/adcs-sim-core/src/comp.rs" },
+  { label = "Star tracker attitude and residual check", question = "Which attitude do the identified stars give, and is the solution consistent?", code = "engine/crates/adcs-sim-core/src/comp.rs" },
+  { label = "Earth sensor horizon measurement", question = "Which nadir direction does the Earth sensor report, and with what noise?", code = "engine/crates/adcs-sim-core/src/sensors.rs" },
+  { label = "GNSS fix noise and latency", question = "How accurate is a GNSS fix, and how late does it reach the bus?", code = "engine/crates/adcs-sim-core/src/sensors.rs" },
+]
+
+[internal.mtq]
+rows = [
+  { label = "Coil dipole from turns, current and area", question = "What dipole does one coil make at a given current?", code = "spec/physics/mtq.pc" },
+  { label = "Coil time constant (L/R lag)", question = "How fast does a coil's dipole follow its command?", code = "engine/crates/adcs-sim-core/src/actuators.rs" },
+  { label = "Dipole saturation per coil", question = "What is the largest dipole each coil can make?", code = "engine/crates/adcs-sim-core/src/actuators.rs" },
+  { label = "Coil power at a dipole", question = "How much power does a coil draw for the dipole it makes?", code = "engine/crates/adcs-sim-core/src/actuators.rs" },
+  { label = "Coil axes and their pseudo-inverse", question = "How is a dipole command split over the fitted coil axes?", code = "engine/crates/adcs-sim-core/src/actuators.rs" },
+  { label = "Torque from dipole and field", question = "Which torque does a dipole make in the local field?", code = "spec/physics/gnc.pc" },
+  { label = "Torque to dipole", question = "Which dipole gives a wanted torque in the local field?", code = "fsw/pseudocode/05_control.pc" },
+  { label = "Direction-preserving dipole saturation", question = "How is a dipole command scaled to the coils' limits without turning it?", code = "fsw/pseudocode/05_control.pc" },
+  { label = "B-dot detumble law", question = "Which dipole slows the tumble from the field's rate of change?", code = "fsw/pseudocode/05_control.pc" },
+  { label = "Generalised B-dot law", question = "Which dipole detumbles with the generalised B-dot law?", code = "fsw/pseudocode/05_control.pc" },
+  { label = "Measurement window: coils off while sampling", question = "When are the coils switched off so the magnetometer reads the Earth's field alone?", code = "fsw/pseudocode/06_step_laws.pc" },
+  { label = "Coil scale-factor dispersion", question = "How far does each coil's real dipole differ from its nominal one?", code = "engine/crates/adcs-sim-core/src/actuators.rs" },
+  { label = "A failed coil and its reallocation", question = "How is the dipole made when one coil has failed?", code = "engine/crates/adcs-sim-core/src/actuators.rs" },
+]
+
+[internal.rw]
+rows = [
+  { label = "Wheel motor torque-speed line", question = "What torque can the wheel's motor give at its present speed (back-EMF)?", code = "engine/crates/adcs-sim-core/src/actuators.rs" },
+  { label = "Wheel speed limit", question = "Above which speed does the drive refuse to accelerate the wheel?", code = "engine/crates/adcs-sim-core/src/actuators.rs" },
+  { label = "Wheel bearing friction (Coulomb, viscous, Stribeck)", question = "Which friction torque does the bearing put on the wheel at a speed?", code = "engine/crates/adcs-sim-core/src/actuators.rs" },
+  { label = "Wheel friction compensation", question = "How much of the friction does the drive feed forward?", code = "engine/crates/adcs-sim-core/src/actuators.rs" },
+  { label = "Wheel torque noise", question = "How much noise is on the torque a wheel delivers?", code = "engine/crates/adcs-sim-core/src/actuators.rs" },
+  { label = "Wheel misalignment", question = "How far is each wheel's spin axis from its nominal axis?", code = "engine/crates/adcs-sim-core/src/actuators.rs" },
+  { label = "Wheel steady power", question = "How much power does a wheel draw holding speed?", code = "engine/crates/adcs-sim-core/src/actuators.rs" },
+  { label = "Bang-bang slew peak momentum", question = "How much wheel momentum does a bang-bang slew need at its peak?", code = "spec/physics/rw.pc" },
+  { label = "Bang-bang slew peak torque", question = "Which wheel torque does a bang-bang slew need?", code = "spec/physics/rw.pc" },
+  { label = "Cyclic momentum over a quarter orbit", question = "How much momentum does the wheel store and give back each quarter orbit?", code = "spec/physics/rw.pc" },
+  { label = "Momentum dump law", question = "Which dipole or thrust takes stored wheel momentum out?", code = "fsw/pseudocode/07_allocation.pc" },
+]
+
+[internal.fmr]
+rows = [
+  { label = "Ring momentum", question = "How much angular momentum does the fluid in a ring carry at a flow?", code = "spec/physics/fmr.pc" },
+  { label = "Ring spin-down time", question = "How long does the fluid take to slow down once the pump stops?", code = "spec/physics/fmr.pc" },
+  { label = "Laminar holding power", question = "How much power keeps a ring's flow going in the laminar regime?", code = "spec/physics/fmr.pc" },
+  { label = "Pump pressure for a torque", question = "Which pump pressure gives a wanted ring torque?", code = "spec/physics/fmr.pc" },
+  { label = "Reynolds number of the ring flow", question = "Is the ring's flow laminar or turbulent at this speed?", code = "spec/physics/fmr.pc" },
+  { label = "Conduction pump pressure", question = "Which pressure does the conduction pump give at its current and field?", code = "spec/physics/fmr.pc" },
+  { label = "Electromagnetic pump design", question = "Which pump geometry gives the pressure and flow the ring needs?", code = "engine/crates/adcs-design/src/empump.rs" },
+  { label = "Pump efficiency over its range", question = "How efficient is the pump between its low and high flow?", code = "engine/crates/adcs-sim-core/src/actuators.rs" },
+  { label = "Flow response time", question = "How fast does the flow follow the pump command?", code = "engine/crates/adcs-sim-core/src/actuators.rs" },
+  { label = "Flow noise", question = "How much noise is on the ring's momentum from the flow?", code = "engine/crates/adcs-sim-core/src/actuators.rs" },
+  { label = "Ring field power", question = "How much power does the pump's magnetic field draw?", code = "engine/crates/adcs-sim-core/src/actuators.rs" },
+  { label = "Ring flow limits", question = "Between which flows does the ring work?", code = "engine/crates/adcs-sim-core/src/actuators.rs" },
+  { label = "Ring misalignment", question = "How far is each ring's axis from its nominal axis?", code = "engine/crates/adcs-sim-core/src/actuators.rs" },
+  { label = "Spare ring axis", question = "Along which axis does a fourth, spare ring sit?", code = "engine/crates/adcs-design/src/lib.rs" },
+  { label = "Ring cross-section in the box", question = "Which ring section fits the satellite's box for an axis?", code = "engine/crates/adcs-design/src/lib.rs" },
+]
+
+[internal.rcs]
+rows = [
+  { label = "Thruster torque directions", question = "Which body torque does each thruster give?", code = "engine/crates/adcs-sim-core/src/actuators.rs" },
+  { label = "Thrust level and dispersion", question = "How much thrust does each thruster give, and how far from nominal?", code = "engine/crates/adcs-sim-core/src/actuators.rs" },
+  { label = "Specific impulse and its range", question = "How much impulse does each kilogram of propellant give?", code = "engine/crates/adcs-sim-core/src/actuators.rs" },
+  { label = "Minimum impulse bit", question = "What is the smallest impulse a thruster can give?", code = "engine/crates/adcs-sim-core/src/actuators.rs" },
+  { label = "Pulse duty from a torque command", question = "How long is each thruster fired for a wanted torque?", code = "fsw/pseudocode/07_allocation.pc" },
+  { label = "Propellant per slew", question = "How much propellant does one slew use?", code = "spec/physics/rcs.pc" },
+  { label = "Propellant per year", question = "How much propellant does a year of the mission use?", code = "spec/physics/rcs.pc" },
+  { label = "Propellant remaining", question = "How much propellant is left at a time in the mission?", code = "engine/crates/adcs-sim-core/src/actuators.rs" },
+  { label = "Valve power", question = "How much power does a valve draw while open?", code = "engine/crates/adcs-sim-core/src/actuators.rs" },
+  { label = "Thruster misalignment", question = "How far is each thruster's line of thrust from nominal?", code = "engine/crates/adcs-sim-core/src/actuators.rs" },
+  { label = "A failed thruster", question = "How is the torque made when one thruster has failed?", code = "engine/crates/adcs-sim-core/src/actuators.rs" },
+]
+
+[internal.dist]
+rows = [
+  { label = "Gravity-gradient torque", question = "Which torque does gravity's gradient put on the satellite?", code = "engine/crates/adcs-sim-core/src/torques.rs" },
+  { label = "Aerodynamic torque per facet", question = "Which torque does the atmosphere put on each face of the box?", code = "engine/crates/adcs-sim-core/src/torques.rs" },
+  { label = "Solar radiation pressure torque per facet", question = "Which torque does sunlight put on each face (absorbed, specular, diffuse)?", code = "engine/crates/adcs-sim-core/src/torques.rs" },
+  { label = "Earth albedo pressure torque", question = "Which torque does sunlight reflected by the Earth put on the satellite?", code = "engine/crates/adcs-sim-core/src/torques.rs" },
+  { label = "Earth infrared pressure torque", question = "Which torque does the Earth's infrared emission put on the satellite?", code = "engine/crates/adcs-sim-core/src/torques.rs" },
+  { label = "Residual magnetic dipole torque", question = "Which torque does the satellite's own residual dipole make in the field?", code = "engine/crates/adcs-sim-core/src/torques.rs" },
+  { label = "Atmospheric density at altitude", question = "How dense is the atmosphere where the satellite flies?", code = "engine/crates/adcs-sim-core/src/atmos.rs" },
+  { label = "Main field along the orbit (IGRF)", question = "What is the Earth's magnetic field at the satellite?", code = "engine/crates/adcs-sim-core/src/field.rs" },
+  { label = "Sun direction and distance", question = "Where is the Sun, and how far, seen from the satellite?", code = "engine/crates/adcs-sim-core/src/ephem.rs" },
+  { label = "Earth shadow", question = "Is the satellite in the Earth's shadow?", code = "engine/crates/adcs-sim-core/src/torques.rs" },
+  { label = "Total disturbance torque", question = "What is the sum of the disturbance torques?", code = "spec/physics/gnc.pc" },
+  { label = "Secular momentum per orbit", question = "How much momentum do the disturbances build up each orbit?", code = "spec/physics/gnc.pc" },
+]
+
+[internal.pnt]
+rows = [
+  { label = "Control error term", question = "How much of the pointing error does the controller leave?", code = "tools/pointing_budget.py" },
+  { label = "Knowledge error term", question = "How much of the pointing error comes from the attitude estimate?", code = "tools/pointing_budget.py" },
+  { label = "Payload alignment term", question = "How far is the payload's boresight from the frame the ADCS controls?", code = "tools/pointing_budget.py" },
+  { label = "Star tracker alignment term", question = "How far is the star tracker's frame from the body frame?", code = "tools/pointing_budget.py" },
+  { label = "Thermal distortion term", question = "How much does the structure bend between sensor and payload when heated?", code = "tools/pointing_budget.py" },
+  { label = "Jitter term", question = "How much does the boresight shake within an exposure?", code = "tools/pointing_budget.py" },
+  { label = "Root-sum-square of the terms", question = "What is the total pointing error from its independent terms?", code = "spec/physics/gnc.pc" },
+  { label = "Flown pointing error", question = "What pointing error did the flown scenario show?", code = "tools/pointing_budget.py" },
+  { label = "Budget verdict against the requirement", question = "Does the total meet the required pointing error?", code = "tools/pointing_budget.py" },
+  { label = "Boresight offset in guidance", question = "Which offset does guidance apply so the payload, not the body, points?", code = "fsw/pseudocode/04_guidance.pc" },
+  { label = "Pointing window", question = "Over which part of the scenario is the pointing error judged?", code = "tools/pointing_budget.py" },
+  { label = "Settling before the window", question = "How long after a slew does the pointing settle?", code = "spec/physics/ctl.pc" },
+]
+
+[internal.ctl]
+rows = [
+  { label = "Control law (attitude and rate error to torque)", question = "Which torque does the controller command for an attitude and rate error?", code = "fsw/pseudocode/05_control.pc" },
+  { label = "Magnetorquer PD law", question = "Which dipole does the magnetorquer-only PD law command?", code = "fsw/pseudocode/05_control.pc" },
+  { label = "Magnetorquer law (Lovera)", question = "Which dipole does Lovera's law command?", code = "fsw/pseudocode/05_control.pc" },
+  { label = "Magnetorquer law (Celani)", question = "Which dipole does Celani's law command?", code = "fsw/pseudocode/05_control.pc" },
+  { label = "Magnetorquer law (Avanzini)", question = "Which dipole does Avanzini's law command?", code = "fsw/pseudocode/05_control.pc" },
+  { label = "Magnetorquer boresight law", question = "Which dipole holds the boresight with magnetorquers alone?", code = "fsw/pseudocode/05_control.pc" },
+  { label = "Magnetorquer law (Tango)", question = "Which dipole does the Tango law command?", code = "fsw/pseudocode/05_control.pc" },
+  { label = "Sun spin law", question = "Which dipole spins the satellite up about the Sun line?", code = "fsw/pseudocode/05_control.pc" },
+  { label = "Sun spin law (de Ruiter)", question = "Which dipole does de Ruiter's Sun-spin law command?", code = "fsw/pseudocode/05_control.pc" },
+  { label = "Capture law", question = "Which command captures the attitude after detumble?", code = "fsw/pseudocode/06_step_laws.pc" },
+  { label = "Sun acquisition law", question = "Which command turns the solar arrays to the Sun?", code = "fsw/pseudocode/06_step_laws.pc" },
+  { label = "Rotor allocation", question = "How is a torque split over the fitted rotors?", code = "fsw/pseudocode/06_step_laws.pc" },
+  { label = "Split projection (rotors and coils)", question = "Which part of the torque goes to the rotors and which to the coils?", code = "fsw/pseudocode/07_allocation.pc" },
+  { label = "Idle rotor command", question = "What do the rotors do when no torque is asked of them?", code = "fsw/pseudocode/06_step_laws.pc" },
+  { label = "Dump gain", question = "How strongly is stored momentum dumped?", code = "fsw/pseudocode/07_allocation.pc" },
+]
+
+[internal.modes]
+rows = [
+  { label = "Mode entry conditions", question = "What must hold for the satellite to enter each mode?", code = "fsw/pseudocode/08_mode_manager.pc" },
+  { label = "Mode feasibility", question = "Can a mode be flown with the units fitted and healthy?", code = "fsw/pseudocode/08_mode_manager.pc" },
+  { label = "Spin guards", question = "When is the satellite spinning too fast for a mode?", code = "fsw/pseudocode/08_mode_manager.pc" },
+  { label = "Mode schedule", question = "Which mode does the schedule ask for at a time?", code = "fsw/pseudocode/08_mode_manager.pc" },
+  { label = "Mode step", question = "Which mode is the satellite in after this tick?", code = "fsw/pseudocode/08_mode_manager.pc" },
+  { label = "Guidance kind per mode", question = "Which guidance does each mode use?", code = "fsw/pseudocode/04_guidance.pc" },
+  { label = "Safe mode", question = "When does the satellite go to safe mode, and what does it do there?", code = "fsw/pseudocode/08_mode_manager.pc" },
+  { label = "Sensor health checks", question = "Which sensors does FDIR declare unhealthy, and when?", code = "fsw/pseudocode/08_mode_manager.pc" },
+  { label = "Rotor health checks", question = "Which rotors does FDIR declare failed, and when?", code = "fsw/pseudocode/08_mode_manager.pc" },
+  { label = "Yaw flip", question = "When is the satellite turned about yaw, and why?", code = "fsw/pseudocode/04_guidance.pc" },
+  { label = "Mode timeline", question = "Which modes did a scenario go through, and when?", code = "fsw/pseudocode/08_mode_manager.pc" },
+]
+
+[internal.est]
+rows = [
+  { label = "MEKF initialisation", question = "With which state and covariance does the filter start?", code = "fsw/pseudocode/03_estimation.pc" },
+  { label = "MEKF propagation", question = "How are the attitude and its covariance carried between measurements?", code = "fsw/pseudocode/03_estimation.pc" },
+  { label = "MEKF vector update", question = "How does a vector measurement correct the estimate?", code = "fsw/pseudocode/03_estimation.pc" },
+  { label = "MEKF quaternion update", question = "How does a star tracker quaternion correct the estimate?", code = "fsw/pseudocode/03_estimation.pc" },
+  { label = "TRIAD attitude", question = "Which attitude do two vector measurements give?", code = "fsw/pseudocode/03_estimation.pc" },
+  { label = "QUEST attitude", question = "Which attitude do several weighted vector measurements give?", code = "fsw/pseudocode/03_estimation.pc" },
+  { label = "Measurement latency compensation", question = "How is a late measurement brought to the present?", code = "fsw/pseudocode/03_estimation.pc" },
+  { label = "Onboard Sun model", question = "Where does the flight software think the Sun is?", code = "fsw/pseudocode/02_time_frames_models.pc" },
+  { label = "Onboard field model", question = "Which magnetic field does the flight software expect?", code = "fsw/pseudocode/02_time_frames_models.pc" },
+]
+
+[internal.fsw]
+rows = [
+  { label = "Control tick", question = "What happens in one tick of the flight software, in which order?", code = "fsw/src/adcs_fsw.c" },
+  { label = "Parameter tables", question = "Which parameters does the flight software run with, and where do they come from?", code = "fsw/src/adcs_params.c" },
+  { label = "Hardware abstraction layer", question = "Through which calls does the flight software read sensors and drive actuators?", code = "fsw/include/adcs_hal.h" },
+  { label = "Sensor and actuator drivers", question = "How are the units' bytes turned into values and back?", code = "fsw/src/adcs_drv.c" },
+  { label = "Frame checksum (CRC-16)", question = "How is a damaged frame from a unit detected?", code = "fsw/pseudocode/09_drivers.pc" },
+  { label = "UART framing", question = "How are a unit's bytes framed on the serial line?", code = "fsw/pseudocode/09_drivers.pc" },
+  { label = "Fixed-point quantisation (Q15)", question = "How are values packed into the units' fixed-point words?", code = "fsw/pseudocode/09_drivers.pc" },
+  { label = "Deepest stack", question = "How much stack does the flight software use at its deepest?", code = "tools/fsw_stack.py" },
+  { label = "OBC link", question = "How do the flight software and the simulated world talk in OILS?", code = "fsw/targets" },
+  { label = "C and Rust parity", question = "Do the C and Rust flight software give the same numbers?", code = "fsw/tests/test_pcode.c" },
+  { label = "Forbidden calls", question = "Does the flight software call nothing it must not (malloc, time, rand)?", code = "fsw/Makefile" },
+]
+
+[internal.budget]
+rows = [
+  { label = "Demand survey", question = "Which torques and momenta must the ADCS handle for this case?", code = "engine/crates/adcs-design/src/lib.rs" },
+  { label = "Magnetorquer sizing", question = "Which coil dipole does the case need?", code = "engine/crates/adcs-design/src/lib.rs" },
+  { label = "Rotor sizing (wheels, CMG, VSCMG)", question = "Which rotor momentum and torque does the case need?", code = "engine/crates/adcs-design/src/lib.rs" },
+  { label = "Fluid ring sizing", question = "Which rings and pump does the case need?", code = "engine/crates/adcs-design/src/lib.rs" },
+  { label = "Thruster sizing", question = "Which thrusters and propellant does the case need?", code = "engine/crates/adcs-design/src/lib.rs" },
+  { label = "Mass budget", question = "How much mass does the ADCS take?", code = "engine/crates/adcs-design/src/lib.rs" },
+  { label = "Power budget", question = "How much power does the ADCS draw?", code = "engine/crates/adcs-design/src/lib.rs" },
+  { label = "Volume budget", question = "How much volume does the ADCS take?", code = "engine/crates/adcs-design/src/lib.rs" },
+]
+
+[internal.oils]
+rows = [
+  { label = "Virtual OBC link", question = "How does the simulated world exchange bytes with the OBC?", code = "fsw/targets" },
+  { label = "Real-time pacing", question = "How is the simulation held to real time against the OBC?", code = "fsw/targets" },
+  { label = "Tick deadline", question = "Does every flight tick finish within its deadline on the OBC?", code = "fsw/targets" },
+  { label = "Cycles per instruction sweep", question = "How does the timing change with the processor's speed?", code = "fsw/targets" },
+  { label = "QEMU Cortex-M4 target", question = "Which emulated processor runs the flight software in soft OILS?", code = "fsw/targets" },
+  { label = "OILS against SILS parity", question = "Does the OBC in the loop give the same results as SILS?", code = "fsw/targets" },
+  { label = "Byte-level sensor emulation", question = "Which bytes does the world send the OBC for each sensor?", code = "engine/crates/adcs-sim-core/src/emu.rs" },
+  { label = "Firmware build", question = "How is the OBC firmware built and loaded?", code = "fsw/targets" },
+  { label = "OILS scenario coverage", question = "Which scenarios are flown with the OBC in the loop?", code = "fsw/targets" },
+]
+
+[internal.hils]
+rows = [
+  { label = "Cage coil model", question = "Which field does each Helmholtz cage coil make for its current?", code = "spec/rig" },
+  { label = "Cage field error", question = "How far is the cage's field from the field it is asked for?", code = "spec/rig" },
+  { label = "Air bearing residual torque", question = "Which torque does the air bearing leave on the table?", code = "spec/rig" },
+  { label = "Air bearing drag", question = "How much does the air film slow the table?", code = "spec/rig" },
+  { label = "Table centre-of-mass offset", question = "How far is the table's centre of mass from the bearing's centre, and what torque does it make?", code = "spec/rig" },
+  { label = "Sun stimulator rendering", question = "Which light does the Sun simulator give the Sun sensors?", code = "spec/rig" },
+  { label = "Star stimulator rendering", question = "Which star field does the stimulator show the star tracker?", code = "spec/rig" },
+  { label = "Stimulator latency", question = "How late does a stimulator show what the world computed?", code = "spec/rig" },
+  { label = "Gyro stimulation on the table", question = "Which rates do the gyros see on the table?", code = "spec/rig" },
+  { label = "Wheel test stand measurement", question = "How does the wheel stand measure torque and speed?", code = "spec/rig" },
+  { label = "Coil test stand measurement", question = "How does the coil stand measure dipole?", code = "spec/rig" },
+  { label = "Ring test stand measurement", question = "How does the ring stand measure flow and momentum?", code = "spec/rig" },
+  { label = "Rig device map", question = "Which rig device stands in for which flight unit?", code = "spec/rig" },
+  { label = "Rig timing", question = "How are the rig's loops timed against the flight software?", code = "spec/rig" },
+  { label = "Rig safety limits", question = "Which limits stop the rig before it damages a unit?", code = "spec/rig" },
+]
+
+# ------------------------------------------------------------------ rows added, by group
+
+[[add]]
+id = "dyn_rigid_body"
+group = "dyn"
+label = "Rigid-body attitude dynamics"
+question = "How does the body's rate change under the torques on it (Euler's equations with stored momentum)?"
+code = "engine/crates/adcs-sim-core/src/plant.rs"
+
+[[add]]
+id = "dyn_kinematics"
+group = "dyn"
+label = "Attitude kinematics"
+question = "How does the attitude quaternion change with the body rate?"
+code = "engine/crates/adcs-sim-core/src/plant.rs"
+pcode = "qmult"
+
+[[add]]
+id = "dyn_rotor_coupling"
+group = "dyn"
+label = "Rotor and ring momentum coupling"
+question = "How does the momentum stored in wheels, rings and gimballed rotors enter the body's equations?"
+code = "engine/crates/adcs-sim-core/src/plant.rs"
+
+[[add]]
+id = "dyn_flexible_mode"
+group = "dyn"
+label = "Flexible mode (hybrid coordinates)"
+question = "How does a flexible appendage's mode couple to the body's rotation?"
+code = "engine/crates/adcs-sim-core/src/plant.rs"
+
+[[add]]
+id = "dyn_total_momentum"
+group = "dyn"
+label = "Total angular momentum"
+question = "What is the satellite's total angular momentum, body and rotors together?"
+code = "engine/crates/adcs-sim-core/src/plant.rs"
+
+[[add]]
+id = "nav_onboard_orbit"
+group = "nav"
+label = "Onboard orbit propagation"
+question = "Where does the flight software think the satellite is between GNSS fixes?"
+code = "fsw/src/adcs_est.c"
+pcode = "orbit_acc"
+
+[[add]]
+id = "nav_gnss_fix"
+group = "nav"
+label = "GNSS fix and its latency"
+question = "How does the flight software take a late GNSS fix in?"
+code = "fsw/src/adcs_est.c"
+pcode = "latency"
+
+[[add]]
+id = "nav_time_frames"
+group = "nav"
+label = "Onboard time and frames"
+question = "How does the flight software turn time into the rotation between inertial and Earth-fixed frames?"
+code = "fsw/src/adcs_env.c"
+pcode = "eci2ecef"
+
+[[add]]
+id = "nav_triad"
+group = "nav"
+label = "TRIAD"
+question = "Which attitude do two vector measurements give?"
+code = "fsw/src/adcs_est.c"
+pcode = "triad"
+
+[[add]]
+id = "nav_quest"
+group = "nav"
+label = "QUEST"
+question = "Which attitude do several weighted vector measurements give?"
+code = "fsw/src/adcs_est.c"
+pcode = "quest"
+
+[[add]]
+id = "nav_gyro_filter"
+group = "nav"
+label = "Gyro filter (MEKF propagation)"
+question = "How are the attitude and gyro bias carried forward between measurements?"
+code = "fsw/src/adcs_est.c"
+pcode = "mekf_predict"
+
+[[add]]
+id = "gdn_guidance"
+group = "gdn"
+label = "Reference attitude and rate (nadir, target, Sun, slew, inertial)"
+question = "Which attitude and rate should the satellite follow now?"
+code = "fsw/src/adcs_guid.c"
+pcode = "guidance"
+
+[[add]]
+id = "gdn_yaw_flip"
+group = "gdn"
+label = "Yaw flip"
+question = "When should the satellite turn about yaw to keep its arrays on the Sun?"
+code = "fsw/src/adcs_guid.c"
+pcode = "yaw_flip"
+
+[[add]]
+id = "gdn_boresight_offset"
+group = "gdn"
+label = "Boresight offset"
+question = "Which offset makes the payload's boresight, not the body axis, point at the target?"
+code = "fsw/src/adcs_guid.c"
+pcode = "boresight_offset"
+
+[[add]]
+id = "gdn_mode_manager"
+group = "gdn"
+label = "Mode manager"
+question = "Which mode should the satellite be in after this tick?"
+code = "fsw/src/adcs_modes.c"
+pcode = "modes_step"
+
+[[add]]
+id = "gdn_mode_schedule"
+group = "gdn"
+label = "Mode schedule"
+question = "Which mode does the mission schedule ask for at a time?"
+code = "fsw/src/adcs_modes.c"
+pcode = "modes_schedule"
+
+[[add]]
+id = "fdir_sensor_health"
+group = "fdir"
+label = "Sensor health"
+question = "Which sensors are declared unhealthy, and when?"
+code = "fsw/src/adcs_fdir.c"
+pcode = "fdir_sensors"
+
+[[add]]
+id = "fdir_rotor_health"
+group = "fdir"
+label = "Rotor FDIR (instantaneous and windowed)"
+question = "Which rotors are declared failed, and when?"
+code = "fsw/src/adcs_fdir.c"
+pcode = "fdir_rotors"
+
+[[add]]
+id = "fdir_safe_mode"
+group = "fdir"
+label = "Safe mode"
+question = "When does the satellite go to safe mode?"
+code = "fsw/src/adcs_fdir.c"
+pcode = "fdir_safe"
+
+[[add]]
+id = "act_cmg_model"
+group = "act"
+stage = "cmg"
+label = "Control moment gyro model"
+question = "Which torque does a CMG give as its gimbal turns its constant-speed rotor?"
+code = "engine/crates/adcs-sim-core/src/actuators.rs"
+
+[[add]]
+id = "act_cmg_steering"
+group = "act"
+stage = "cmg"
+label = "CMG steering (singularity-robust)"
+question = "Which gimbal rates give a wanted torque, away from singular gimbal angles?"
+code = "fsw/src/adcs_alloc.c"
+pcode = "steer_sr"
+
+[[add]]
+id = "act_cmg_axes"
+group = "act"
+stage = "cmg"
+label = "Rotor axes from gimbal angles"
+question = "Where does each rotor's spin axis point for the present gimbal angles?"
+code = "engine/crates/adcs-sim-core/src/plant.rs"
+pcode = "rotor_axes"
+
+[[add]]
+id = "act_vscmg_model"
+group = "act"
+stage = "vscmg"
+label = "Variable-speed CMG model"
+question = "Which torque does a VSCMG give from its gimbal rate and its rotor's speed change?"
+code = "engine/crates/adcs-sim-core/src/actuators.rs"
+
+[[add]]
+id = "act_vscmg_gimbal_limits"
+group = "act"
+stage = "vscmg"
+label = "Gimbal rate limit and power"
+question = "How fast can a gimbal turn, and how much power does it draw?"
+code = "engine/crates/adcs-sim-core/src/actuators.rs"
+
+[[add]]
+id = "design_sizing_sensors"
+group = "design"
+stage = "sizing_sens"
+label = "Sensor suite sizing"
+question = "Which star tracker heads and gyro grade does the case need?"
+code = "engine/crates/adcs-design/src/lib.rs"
+
+[[add]]
+id = "design_sizing_mtq"
+group = "design"
+stage = "sizing_mtq"
+label = "Magnetorquer sizing"
+question = "Which coil dipole does the case need?"
+code = "engine/crates/adcs-design/src/lib.rs"
+
+[[add]]
+id = "design_sizing_rw"
+group = "design"
+stage = "sizing_rw"
+label = "Reaction wheel sizing"
+question = "Which wheel momentum and torque does the case need?"
+code = "engine/crates/adcs-design/src/lib.rs"
+
+[[add]]
+id = "design_sizing_fmr"
+group = "design"
+stage = "sizing_fmr"
+label = "Fluid ring sizing"
+question = "Which rings and pump does the case need?"
+code = "engine/crates/adcs-design/src/lib.rs"
+
+[[add]]
+id = "design_sizing_rcs"
+group = "design"
+stage = "sizing_rcs"
+label = "Thruster sizing"
+question = "Which thrusters and how much propellant does the case need?"
+code = "engine/crates/adcs-design/src/lib.rs"
+
+[[add]]
+id = "design_sizing_cmg"
+group = "design"
+stage = "sizing_cmg"
+label = "CMG sizing"
+question = "Which CMG momentum and gimbal rate does the case need?"
+code = "engine/crates/adcs-design/src/lib.rs"
+
+[[add]]
+id = "design_sizing_vscmg"
+group = "design"
+stage = "sizing_vscmg"
+label = "VSCMG sizing"
+question = "Which VSCMG momentum, speed range and gimbal rate does the case need?"
+code = "engine/crates/adcs-design/src/lib.rs"

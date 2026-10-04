@@ -1,0 +1,24 @@
+## The constants the relations share. Each says where its number comes from.
+module constants
+
+## Earth's equatorial radius (WGS-84, as the engine's orbit.rs).
+const R_E = 6378137 [m]
+## Earth's gravitational parameter (EGM-96 / WGS-84, as the engine's orbit.rs).
+const MU_E = 3.986004418e14 [m^3/s^2]
+## The speed of light (exact, SI).
+const C_LIGHT = 299792458 [m/s]
+## The astronomical unit (IAU 2012, exact).
+const AU_M = 149597870700 [m]
+## Total solar irradiance at 1 AU (Kopp & Lean 2011, 1360.8 +- 0.5 W/m^2). source: kopp2011
+const F_SUN = 1360.8 [W/m^2]
+## Standard gravity (CGPM 1901, exact).
+const G0 = 9.80665 [m/s^2]
+## Days in a Julian year.
+const DAYS_PER_YEAR = 365.25
+## The epoch J2000.0 as a Julian date.
+const JD_J2000 = 2451545.0
+## The degree-1 coefficients of the main field, IGRF-13 at 2020.0 (matlab_sils/data/igrf13coeffs.txt),
+## until the igrf14 bundle lands (docs/ADCS_GAPS.md).
+const IGRF_G10 = -29404.8 [nT]
+const IGRF_G11 = -1450.9 [nT]
+const IGRF_H11 = 4652.5 [nT]

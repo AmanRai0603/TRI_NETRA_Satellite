@@ -22,17 +22,17 @@ pub fn case_file(root: &Path, scenario: &str, case: Option<&str>) -> Result<Path
         if !c.contains(['/', '\\', '.']) {
             check_id("case", c)?;
             let f = root.join("cases").join(format!("{c}.csv"));
-            if !f.is_file() { return Err(Error::refused(format!("no case {c}: {} does not exist", f.display()))); }
+            if !crate::source::is_file(&f) { return Err(Error::refused(format!("no case {c}: {} does not exist", f.display()))); }
             return Ok(f);
         }
         return Ok(PathBuf::from(c));
     }
     if !scenario.ends_with(".json") { check_id("scenario", scenario)?; }
     let sp = if scenario.ends_with(".json") { PathBuf::from(scenario) } else { root.join("data/scenarios").join(format!("{scenario}.json")) };
-    if !sp.is_file() {
+    if !crate::source::is_file(&sp) {
         return Err(Error::refused(format!("no scenario {scenario}: {} does not exist (the scenarios are data/scenarios/*.json)", sp.display())));
     }
-    let s: Value = serde_json::from_str(&std::fs::read_to_string(&sp).map_err(|e| Error::io(&sp, e))?)
+    let s: Value = serde_json::from_str(&crate::source::read_to_string(&sp)?)
         .map_err(|e| Error::malformed(format!("{}: {e}", sp.display())))?;
     let id = s["case"].as_str().ok_or_else(|| Error::refused(format!("{} names no case: give --case F", sp.display())))?;
     check_id("case", id)?;

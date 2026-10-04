@@ -6,6 +6,9 @@ function [F, out] = step(F, z, t, P, D) %#ok<INUSD>
 %      .h rotor momenta (tachometers / flow sensors), .delta gimbal angles
 %   out  .m_body coil dipole, .cmd_r rotor hdot, .cmd_g gimbal rates, .duty thruster couples
 %
+%   The shell: the tick, the state, the commands. Guidance is asils.fsw.guidance, the mode
+%   manager asils.fsw.mode_manager, the rotor FDIR asils.fsw.fdir.
+%
 %   Order inside a tick (Standard Code sim.run tick order, condensed):
 %     1 onboard orbit (GNSS fix or two-body propagation)
 %     2 attitude determination (MEKF predict; ST / Sun / field updates)
@@ -101,33 +104,7 @@ function [F, out] = step(F, z, t, P, D) %#ok<INUSD>
     if isempty(F.w_est) || G.rate_lpf_s <= 0, F.w_est = w_raw; else, F.w_est = F.w_est + a*(w_raw - F.w_est); end
 
     %% 3 mode manager -------------------------------------------------------
-    while F.sched_i <= numel(F.sched) && t >= F.sched{F.sched_i}.t_s   % commanded changes (ground / schedule)
-        F = enter_(F, F.sched{F.sched_i}.mode, t); F.sched_i = F.sched_i + 1;
-    end
-    if any(strcmp(F.mode, {'detumble', 'detumble_rcs'})) && ~isempty(G.auto_next)
-        if norm(z.w) < G.detumble_exit, F.hold = F.hold + dt; else, F.hold = 0; end
-        if F.hold >= G.detumble_hold_s
-            F = enter_(F, G.auto_next, t);
-        end
-    end
-    if any(strcmp(F.mode, {'spinup', 'sun_spin'}))
-        [F, nxt] = spin_guards_(F, z, t, dt, G.ss);
-        if ~isempty(nxt), F = enter_(F, nxt, t); end
-    end
-    if any(strcmp(F.mode, {'spinup', 'sun_spin', 'sun_acq_rotor'}))
-        % Sun vector for the acquisition laws: measured when valid, else (E2)
-        % propagated on the gyro from the last sunlit sample (ctrl.propagateSun)
-        if z.sun_ok, F.s_prop = z.sun;
-        elseif ~isempty(F.s_prop)
-            F.s_prop = asils.quat.dcm(asils.quat.fromrotvec(F.w_est*dt))*F.s_prop;
-            F.s_prop = F.s_prop/norm(F.s_prop);
-        end
-    end
-    if strcmp(F.mode, 'sun_acq_rotor') && ~isempty(G.auto_next)     % acquired -> next mode
-        ok = z.sun_ok && acosd(max(-1, min(1, z.sun'*dev.sun_axis))) < G.sa.done_deg && F.ad_ok;
-        if ok, F.acq_hold = F.acq_hold + dt; else, F.acq_hold = 0; end
-        if F.acq_hold >= G.sa.done_hold_s, F = enter_(F, G.auto_next, t); end
-    end
+    F = asils.fsw.mode_manager(F, z, t, dt, G, dev);
 
     %% 4 guidance / control / commands ------------------------------------------
     m_body = F.m_hold; nr = F.M.nr; ng = F.M.ng;
@@ -235,43 +212,7 @@ function [F, out] = step(F, z, t, P, D) %#ok<INUSD>
             A = asils.plant.axes(F.M, z.delta);
             Hdev = A*z.h;
             % ---- FDIR: a fixed rotor that does not follow its command is isolated
-            if nr > 0 && ~isempty(F.h_prev)
-                % compare with what the device CAN do: the command clipped to its
-                % torque limit, and never while it sits at its momentum limit
-                meas = (z.h - F.h_prev)/dt;
-                tmax = dev.mex.torque_max(:);
-                expect = max(-0.8*tmax, min(0.8*tmax, F.cmd_r_prev));
-                bad = abs(meas - expect) > 0.5*tmax & F.M.gi(:) == 0 & abs(expect) > 0.2*tmax ...
-                      & abs(z.h) < 0.9*dev.mex.h_max(:);
-                F.fd_count = (F.fd_count + dt).*bad;
-                newly = F.fd_count > G.fdir_s & ~F.rot_failed(:);
-                if any(newly)
-                    F.rot_failed(newly) = true;
-                    F.log(end+1).t = t; F.log(end).mode = sprintf('FDIR: rotor %d isolated', find(newly, 1));
-                end
-                % windowed: the momentum each fixed rotor was commanded to change over fdir_win_s
-                % against the change measured; catches a rotor that does not follow the small
-                % commands of fine pointing (fsw/pseudocode/07)
-                if ~F.fw_on || t - F.fw_last > 1.5*dt
-                    F.fw_E = zeros(nr, 1); F.fw_h0 = z.h(:); F.fw_t0 = t; F.fw_on = true;
-                else
-                    F.fw_E = F.fw_E + max(-0.8*tmax, min(0.8*tmax, F.cmd_r_prev(:)))*dt;
-                    if t - F.fw_t0 >= G.fdir_win_s - 1e-9
-                        hmax = dev.mex.h_max(:); E = F.fw_E; Mh = z.h(:) - F.fw_h0;
-                        judged = strcmp(dev.mex.kind(:), 'fmr') & F.M.gi(:) == 0 & ~F.rot_failed(:) & abs(E) > G.fdir_h_frac*hmax ...
-                                 & abs(z.h(:)) < 0.9*hmax & abs(F.fw_h0) < 0.9*hmax;
-                        miss = abs(Mh - E) > 0.5*abs(E);
-                        F.fw_bad(judged) = (F.fw_bad(judged) + 1).*miss(judged);
-                        newly = judged & F.fw_bad >= 2;            % FDIR_WIN_BAD
-                        if any(newly)
-                            F.rot_failed(newly) = true;
-                            F.log(end+1).t = t; F.log(end).mode = sprintf('FDIR: rotor %d isolated (momentum window)', find(newly, 1));
-                        end
-                        F.fw_E = zeros(nr, 1); F.fw_h0 = z.h(:); F.fw_t0 = t;
-                    end
-                end
-                F.fw_last = t;
-            end
+            F = asils.fsw.fdir(F, z, t, dt, G, dev);
             % ---- control law at the control rate
             if acq && t - F.last_ctrl >= G.rw.dt - 1e-9
                 F.tau_req = sun_acq_law_(F, z, dev.sun_axis, G.sa, P.fsw.J, Hdev);
@@ -428,38 +369,6 @@ function F = mtq_law_(F, G, P)
         otherwise
             error('asils:fsw:law', 'unknown magnetic pointing law %s', g.law);
     end
-end
-
-function [F, nxt] = spin_guards_(F, z, t, dt, s)
-%SPIN_GUARDS_  Standard Code modes.transitions rows for SpinUp / SunSpin and the
-%   spin-sign flip G_sigma of ctrl.spinupTick (theory doc sec. 4.4, 7.2).
-    nxt = ''; d = pi/180; w = F.w_est;
-    wz = w(3); wp = norm(w(1:2));
-    if norm(w) > s.omega_max_dps*d, nxt = 'detumble'; return, end     % G_fault, dwell 0
-    if strcmp(F.mode, 'spinup')
-        conv = abs(wz - F.sigma*s.spin_dps*d) < s.z_in_dps*d && wp < s.perp_in_dps*d;
-        % G_sigma: -Z_B must end up on the Sun; a converged spin that keeps the
-        % Sun on +Z flips the target spin sign
-        if conv && z.sun_ok, F.sz_sum = F.sz_sum + z.sun(3); F.sz_n = F.sz_n + 1; end
-        if t - F.sz_t0 >= s.t_check_s && F.sz_n > 0 && F.sz_sum/F.sz_n > s.sun_min
-            F.sigma = -F.sigma; F.sz_sum = 0; F.sz_n = 0; F.sz_t0 = t;
-            F.log(end+1).t = t; F.log(end).mode = sprintf('spin sign -> %+d', F.sigma);
-        end
-        ok = conv && z.sun_ok && z.sun(3) < 0;                           % G_S->SS
-        if ok, F.hold = F.hold + dt; else, F.hold = 0; end
-        if F.hold >= s.dwell_in_s, nxt = 'sun_spin'; end
-    else
-        bad = abs(wz) < s.omega_exit_dps*d || wp > s.perp_out_dps*d;    % G_SS->S
-        if bad, F.hold = F.hold + dt; else, F.hold = 0; end
-        if F.hold >= s.dwell_out_s, nxt = 'spinup'; end
-    end
-end
-
-function F = enter_(F, mode, t)
-    if strcmp(mode, 'spinup'), F.sz_sum = 0; F.sz_n = 0; F.sz_t0 = t; end
-    F.mode = mode; F.t_mode = t; F.hold = 0; F.ho = false; F.ho_t = 0; F.I_q = zeros(3,1);
-    if any(strcmp(mode, {'detumble', 'detumble_rcs', 'spinup', 'sun_spin'})), F.ad_ok = false; end   % re-initialise after
-    F.log(end+1).t = t; F.log(end).mode = mode;
 end
 
 function q = latency_(q_st, w, lat)

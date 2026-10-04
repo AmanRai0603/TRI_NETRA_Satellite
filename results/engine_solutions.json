@@ -3,12 +3,12 @@
   "detumble": {
    "mtq": {
     "feasible": true,
-    "objective": 48.74,
+    "objective": 49.056666666666665,
     "failing": []
    },
    "rcs": {
     "feasible": false,
-    "objective": 1.125,
+    "objective": 1.0916666666666666,
     "failing": [
      "power_peak"
     ]
@@ -17,7 +17,7 @@
   "sun_acquisition": {
    "mtq": {
     "feasible": false,
-    "objective": null,
+    "objective": 110.40666666666668,
     "failing": [
      "sun_acquisition_time",
      "sun_angle_p95"
@@ -55,65 +55,63 @@
   "sun_referencing": {
    "mtq": {
     "feasible": false,
-    "objective": 159.21849961372885,
+    "objective": 150.37733285279117,
     "failing": [
      "sun_ape_p9973"
     ]
    },
    "rw+mtq": {
     "feasible": false,
-    "objective": 0.2468135045031776,
+    "objective": 0.36557029545452974,
     "failing": [
      "power_mean"
     ]
    },
    "rw+rcs": {
     "feasible": false,
-    "objective": 0.49466349952371697,
+    "objective": 0.3655977855149017,
     "failing": [
      "power_mean"
     ]
    },
    "cmg+mtq": {
     "feasible": false,
-    "objective": 0.24672252369648667,
+    "objective": 0.3654240807821798,
     "failing": [
      "power_mean"
     ]
    },
    "cmg+rcs": {
     "feasible": false,
-    "objective": 0.24670470193511645,
+    "objective": 0.365549320117304,
     "failing": [
      "power_mean"
     ]
    },
    "vscmg+mtq": {
     "feasible": false,
-    "objective": 11.104898199844929,
+    "objective": 0.37255081279836505,
     "failing": [
-     "power_mean",
-     "sun_ape_p9973"
+     "power_mean"
     ]
    },
    "vscmg+rcs": {
     "feasible": false,
-    "objective": 6.760297161431764,
+    "objective": 0.36707083310126865,
     "failing": [
-     "power_mean",
-     "sun_ape_p9973"
+     "power_mean"
     ]
    },
    "fmr+mtq": {
     "feasible": false,
-    "objective": 0.24685656915575302,
+    "objective": 0.36734035345290805,
     "failing": [
      "power_mean"
     ]
    },
    "fmr+rcs": {
     "feasible": false,
-    "objective": 0.24696583280183718,
+    "objective": 0.36745231363171077,
     "failing": [
      "power_mean"
     ]
@@ -121,64 +119,62 @@
   },
   "nadir_pointing": {
    "mtq": {
-    "feasible": false,
-    "objective": 15.185556278603814,
-    "failing": [
-     "ape_los_p9973"
-    ]
+    "feasible": true,
+    "objective": 9.899922454536789,
+    "failing": []
    },
    "rw+mtq": {
     "feasible": false,
-    "objective": 0.14814299395230043,
+    "objective": 0.14656868853837046,
     "failing": [
      "power_mean"
     ]
    },
    "rw+rcs": {
     "feasible": false,
-    "objective": 0.14814930396094092,
+    "objective": 0.1465268700749706,
     "failing": [
      "power_mean"
     ]
    },
    "cmg+mtq": {
     "feasible": false,
-    "objective": 0.14803602585768255,
+    "objective": 0.14648463115392174,
     "failing": [
      "power_mean"
     ]
    },
    "cmg+rcs": {
     "feasible": false,
-    "objective": 0.1480614727027364,
+    "objective": 0.14648820744302413,
     "failing": [
      "power_mean"
     ]
    },
    "vscmg+mtq": {
     "feasible": false,
-    "objective": 0.15560672147466403,
+    "objective": 0.1500955092997114,
     "failing": [
      "power_mean"
     ]
    },
    "vscmg+rcs": {
     "feasible": false,
-    "objective": 0.15180379849431305,
+    "objective": 0.14484520758838784,
     "failing": [
      "power_mean"
     ]
    },
    "fmr+mtq": {
     "feasible": false,
-    "objective": 0.1477878938965947,
+    "objective": 0.14677581059223144,
     "failing": [
      "power_mean"
     ]
    },
    "fmr+rcs": {
     "feasible": false,
-    "objective": 0.14782806288429812,
+    "objective": 0.14684234599288323,
     "failing": [
      "power_mean"
     ]
@@ -189,7 +185,7 @@
   "detumble": {
    "mtq": {
     "feasible": true,
-    "objective": 63.54,
+    "objective": 64.12333333333333,
     "failing": []
    },
    "rcs": {
@@ -201,7 +197,7 @@
   "sun_acquisition": {
    "mtq": {
     "feasible": false,
-    "objective": 98.47333333333334,
+    "objective": 81.54,
     "failing": [
      "sun_acquisition_time",
      "sun_angle_p95"
@@ -231,49 +227,49 @@
   "sun_referencing": {
    "mtq": {
     "feasible": false,
-    "objective": 157.82301400970425,
+    "objective": 178.35901790108926,
     "failing": [
      "sun_ape_p9973"
     ]
    },
    "rw+mtq": {
     "feasible": true,
-    "objective": 0.00865043851036177,
+    "objective": 0.008653815656912785,
     "failing": []
    },
    "rw+rcs": {
     "feasible": true,
-    "objective": 0.008624288539353382,
+    "objective": 0.008616013686281046,
     "failing": []
    },
    "cmg+mtq": {
     "feasible": true,
-    "objective": 0.008669875196557595,
+    "objective": 0.008680037910310358,
     "failing": []
    },
    "cmg+rcs": {
     "feasible": true,
-    "objective": 0.008654175194348307,
+    "objective": 0.008647777011348393,
     "failing": []
    },
    "vscmg+mtq": {
     "feasible": true,
-    "objective": 0.008499642464758355,
+    "objective": 0.008540636204381677,
     "failing": []
    },
    "vscmg+rcs": {
     "feasible": true,
-    "objective": 1.8879478709533353,
+    "objective": 1.5322318537723045,
     "failing": []
    },
    "fmr+mtq": {
     "feasible": true,
-    "objective": 0.025594263787893135,
+    "objective": 0.025555534608180202,
     "failing": []
    },
    "fmr+rcs": {
     "feasible": false,
-    "objective": 0.025531369310390226,
+    "objective": 0.025602394302374654,
     "failing": [
      "power_mean"
     ]
@@ -282,7 +278,7 @@
   "nadir_pointing": {
    "mtq": {
     "feasible": false,
-    "objective": 172.81541150462354,
+    "objective": 164.64632749186418,
     "failing": [
      "ake_los_p9973",
      "ape_los_p9973",
@@ -290,50 +286,38 @@
     ]
    },
    "rw+mtq": {
-    "feasible": false,
-    "objective": 0.004932608212572191,
-    "failing": [
-     "rate_stability_p9973"
-    ]
+    "feasible": true,
+    "objective": 0.0051578784451615425,
+    "failing": []
    },
    "rw+rcs": {
-    "feasible": false,
-    "objective": 0.004866288248260768,
-    "failing": [
-     "rate_stability_p9973"
-    ]
+    "feasible": true,
+    "objective": 0.005209959188206291,
+    "failing": []
    },
    "cmg+mtq": {
-    "feasible": false,
-    "objective": 0.00498906164284485,
-    "failing": [
-     "rate_stability_p9973"
-    ]
+    "feasible": true,
+    "objective": 0.005283931225687344,
+    "failing": []
    },
    "cmg+rcs": {
-    "feasible": false,
-    "objective": 0.005002537383929028,
-    "failing": [
-     "rate_stability_p9973"
-    ]
+    "feasible": true,
+    "objective": 0.0052801352135696256,
+    "failing": []
    },
    "vscmg+mtq": {
-    "feasible": false,
-    "objective": 0.007184358882473602,
-    "failing": [
-     "rate_stability_p9973"
-    ]
+    "feasible": true,
+    "objective": 0.006324569849570284,
+    "failing": []
    },
    "vscmg+rcs": {
-    "feasible": false,
-    "objective": 0.005099051011393161,
-    "failing": [
-     "rate_stability_p9973"
-    ]
+    "feasible": true,
+    "objective": 0.008358307608619199,
+    "failing": []
    },
    "fmr+mtq": {
     "feasible": false,
-    "objective": 0.0228117804898552,
+    "objective": 0.02315973336325996,
     "failing": [
      "ape_los_p9973",
      "rate_stability_p9973"
@@ -341,7 +325,7 @@
    },
    "fmr+rcs": {
     "feasible": false,
-    "objective": 0.022783222044050123,
+    "objective": 0.023209029660857493,
     "failing": [
      "ape_los_p9973",
      "power_mean",

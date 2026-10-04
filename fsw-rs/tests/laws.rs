@@ -7,7 +7,8 @@
 //! only make torque across B, saturation keeps the direction), the equilibria each law is built to hold,
 //! the thresholds (`<` against `<=`) and the law selectors. Written from the definitions, not from a run.
 #![allow(clippy::needless_range_loop)]
-use adcs_fsw::ctl::{self, Gains, Guid};
+use adcs_fsw::ctl::{self, Gains};
+use adcs_fsw::guid::{self, Guid};
 use adcs_fsw::math::*;
 
 const D2R_: f64 = std::f64::consts::PI/180.0;
@@ -439,7 +440,7 @@ fn both_sun_laws_are_off_in_eclipse_and_without_a_field() {
 #[test]
 fn the_boresight_offset_is_the_shortest_rotation_taking_plus_y_onto_the_boresight() {
     for bs in [[0.3, 0.8, -0.2], [-2.0, 0.5, 1.0], [0.0, -0.7, 0.7], [1.0, 0.0, 0.0], [0.1, -3.0, 0.2]] {
-        let q = ctl::boresight_offset(&bs);
+        let q = guid::boresight_offset(&bs);
         let a = dcm(&q);
         let u = unit(&bs);
         near3(&mv(&a, &[0.0, 1.0, 0.0]), &u, 1.0, &format!("{bs:?}: +y onto it"));
@@ -453,11 +454,11 @@ fn the_boresight_offset_is_the_shortest_rotation_taking_plus_y_onto_the_boresigh
 
 #[test]
 fn the_boresight_offset_on_the_y_axis_is_exactly_none_or_a_half_turn_about_x() {
-    assert_eq!(ctl::boresight_offset(&[0.0, 3.0, 0.0]), [0.0, 0.0, 0.0, 1.0]);
-    assert_eq!(ctl::boresight_offset(&[0.0, -3.0, 0.0]), [1.0, 0.0, 0.0, 0.0]);
+    assert_eq!(guid::boresight_offset(&[0.0, 3.0, 0.0]), [0.0, 0.0, 0.0, 1.0]);
+    assert_eq!(guid::boresight_offset(&[0.0, -3.0, 0.0]), [1.0, 0.0, 0.0, 0.0]);
     // within 1e-12 of the axis counts as on it
-    assert_eq!(ctl::boresight_offset(&[1e-13, 1.0, 0.0]), [0.0, 0.0, 0.0, 1.0]);
-    assert_eq!(ctl::boresight_offset(&[1e-13, -1.0, 0.0]), [1.0, 0.0, 0.0, 0.0]);
+    assert_eq!(guid::boresight_offset(&[1e-13, 1.0, 0.0]), [0.0, 0.0, 0.0, 1.0]);
+    assert_eq!(guid::boresight_offset(&[1e-13, -1.0, 0.0]), [1.0, 0.0, 0.0, 0.0]);
 }
 
 #[test]
@@ -473,7 +474,7 @@ fn sun_pointing_with_the_roll_axis_on_the_sun_axis_falls_back_to_plus_y_made_nor
     let want_b = unit(&sub3(&[0.0, 1.0, 0.0], &scale3(&a, a[1])));
     // the roll axis within 1e-8 of the Sun axis: parallel for the guidance (threshold 1e-6)
     let roll = add3(&scale3(&a, 2.0), &scale3(&perp, 1e-8));
-    let g = ctl::guidance(4, &r, &v, 0.0, &Guid { sun_axis: a, roll_axis: roll, sun_eci: sun, ..Default::default() });
+    let g = guid::guidance(4, &r, &v, 0.0, &Guid { sun_axis: a, roll_axis: roll, sun_eci: sun, ..Default::default() });
     let m = dcm(&g.q);
     assert!((det3(&m) - 1.0).abs() < 1e-12);
     near3(&mv(&m, &s), &a, 1.0, "the Sun on the axis");
@@ -489,7 +490,7 @@ fn the_yaw_flip_holds_its_state_with_the_sun_exactly_on_the_threshold() {
     let (r, v) = equatorial();
     for start in [false, true] {
         let mut g = Guid { sun_eci: [1.0, 0.0, 0.0], flip: start, ..Default::default() };
-        ctl::yaw_flip(&mut g, &r, &v, 0.0);
+        guid::yaw_flip(&mut g, &r, &v, 0.0);
         assert_eq!(g.flip, start, "d = 0, hysteresis 0: neither d < -h nor d > h");
     }
 }
@@ -498,13 +499,13 @@ fn the_yaw_flip_holds_its_state_with_the_sun_exactly_on_the_threshold() {
 fn the_yaw_flip_uses_the_configured_power_face() {
     let (r, v) = equatorial();
     // nadir frame here: body -z on inertial +z (the orbit normal)
-    let nad = ctl::guidance(0, &r, &v, 0.0, &Guid::default()).q;
+    let nad = guid::guidance(0, &r, &v, 0.0, &Guid::default()).q;
     assert!(norm3(&sub3(&mv(&dcm(&nad), &[0.0, 0.0, 1.0]), &[0.0, 0.0, -1.0])) < 1e-12);
     let sun = [0.3, 0.0, -0.95]; // below the orbit plane: on the body +z side
     let mut g = Guid { sun_eci: sun, ..Default::default() };
-    ctl::yaw_flip(&mut g, &r, &v, 0.1);
+    guid::yaw_flip(&mut g, &r, &v, 0.1);
     assert!(g.flip, "the default -z face looks away from it");
     let mut g = Guid { sun_eci: sun, sun_axis: [0.0, 0.0, 2.0], flip: true, ..Default::default() };
-    ctl::yaw_flip(&mut g, &r, &v, 0.1);
+    guid::yaw_flip(&mut g, &r, &v, 0.1);
     assert!(!g.flip, "a +z face already looks at it");
 }

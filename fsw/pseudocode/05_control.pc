@@ -1,0 +1,259 @@
+## 05 and 06 - Control (05_control.md) and detumble and Sun spin (06_detumble_sunspin.md): the
+## pointing laws, the magnetorquer laws, B-dot and the spin laws, operation for operation as
+## fsw/src/adcs_ctl.c and fsw-rs/src/ctl.rs. The gains record (adcs_gains_t, ctl::Gains) is passed
+## field by field.
+module control
+
+## The fine pointing law (law 0 PID, 1 LQR, 2 sliding mode) with gyroscopic and rate feed-forward:
+## returns the torque request and the attitude integral carried to the next call.
+fn control_law(q: quat in -1 .. 1, w: vec3[1] in -0.05 .. 0.05, q_ref: quat in -1 .. 1, w_ref: vec3[1] in -0.002 .. 0.002, \
+               i_q0: vec3[1] in -0.05 .. 0.05, dt: real[1] in 0.05 .. 1, law: int in 0 .. 2, kp: vec3[1] in 0.001 .. 0.1, \
+               kd: vec3[1] in 0.01 .. 1, ki: vec3[1] in 0 .. 0.001, klqr: mat3[1] in 0 .. 1, lambda: real[1] in 0.01 .. 1, \
+               phi: real[1] in 0.001 .. 0.1, gs: vec3[1] in 0.0001 .. 0.01, err_max: real[1] in 0.05 .. 1, int_max: real[1] in 0.01 .. 1, \
+               j: mat3[1] in 0.01 .. 0.1, hs: vec3[1] in -0.01 .. 0.01, wd_ref: vec3[1] in -1e-5 .. 1e-5) -> (tau: vec3[1], i_q: vec3[1])
+    let qe = qerr(q_ref, q)
+    let e: vec3[1] = 0
+    for i in 0 .. 3
+        e[i] = clamp(qe[i], -err_max, err_max)
+    end
+    let wr = dcm(qe)*w_ref
+    let we = w - wr
+    let hh = j*w + hs
+    let gyro = cross(w, hh)
+    let ff = j*wd_ref
+    i_q = i_q0
+    if law == 1
+        for i in 0 .. 3
+            i_q[i] = clamp(i_q[i] + 2*e[i]*dt, -int_max, int_max)
+            tau[i] = -(klqr[i][0]*i_q[i] + klqr[i][1]*(2*e[i]) + klqr[i][2]*we[i])
+        end
+    elif law == 2
+        let c = cross(e, we)
+        let x: vec3[1] = 0
+        for i in 0 .. 3
+            let s = we[i] + lambda*e[i]
+            let sat = clamp(s/phi, -1.0, 1.0)
+            let ed = 0.5*(qe[3]*we[i] + c[i])
+            x[i] = lambda*ed + gs[i]*sat
+        end
+        tau = (j*x)*(-1.0)
+    else
+        for i in 0 .. 3
+            i_q[i] = clamp(i_q[i] + e[i]*dt, -int_max, int_max)
+            tau[i] = -kp[i]*e[i] - kd[i]*we[i] - ki[i]*i_q[i]
+        end
+    end
+    for i in 0 .. 3
+        tau[i] = tau[i] + (gyro[i] + ff[i])
+    end
+end
+
+## The magnetic PD law: the error quaternion without a sign fix, its sign taken from w.
+fn mtq_pd(q: quat in -1 .. 1, w: vec3[1] in -0.05 .. 0.05, q_ref: quat in -1 .. 1, w_ref: vec3[1] in -0.002 .. 0.002, \
+          kp: vec3[1] in 0.0001 .. 0.01, kd: vec3[1] in 0.001 .. 0.1) -> tau: vec3[1]
+    let qe = qmult(qconj(q_ref), q)
+    let s = sign(qe[3])
+    if s == 0
+        s = 1
+    end
+    let wr = dcm(qe)*w_ref
+    for i in 0 .. 3
+        tau[i] = -kp[i]*(s*qe[i]) - kd[i]*(w[i] - wr[i])
+    end
+end
+
+## A dipole scaled down, its direction kept, until no axis passes m_max.
+fn sat_dipole(m: vec3[1] in -2 .. 2, m_max: real[1] in 0.05 .. 1) -> r: vec3[1]
+    let a = 1.0
+    for i in 0 .. 3
+        let d = |m[i]|
+        if d < 1e-30
+            d = 1e-30
+        end
+        if m_max/d < a
+            a = m_max/d
+        end
+    end
+    r = m*a
+end
+
+## The dipole across the field that gives the torque request: m = B x tau/|B|^2, saturated; no
+## field (|B|^2 < 1e-18), no dipole.
+fn torque2dipole(tau: vec3[1] in -1e-4 .. 1e-4, b: vec3[1] in -5e-5 .. 5e-5, m_max: real[1] in 0.05 .. 1) -> m: vec3[1]
+    let bs = dot(b, b)
+    if bs < 1e-18
+        m = 0
+    else
+        m = sat_dipole(cross(b, tau)*(1.0/bs), m_max)
+    end
+end
+
+## B-dot on two successive field directions dt apart, gain k over the field strength bn.
+fn bdot(b1: vec3[1] in -1 .. 1, b2: vec3[1] in -1 .. 1, dt: real[1] in 0.1 .. 2, bn: real[1] in 1e-5 .. 6e-5, k: real[1] in 1e-6 .. 1e-3, \
+        m_max: real[1] in 0.05 .. 1) -> m: vec3[1]
+    let u1 = unit(b1)
+    let u2 = unit(b2)
+    let r: vec3[1] = 0
+    for i in 0 .. 3
+        r[i] = -(k/bn)*(u2[i] - u1[i])/dt
+    end
+    m = sat_dipole(r, m_max)
+end
+
+## The generalised B-dot of the Standard Code: m0 = -k (B_dot + w_d x B).
+fn gen_bdot(b: vec3[1] in -5e-5 .. 5e-5, bd: vec3[1] in -1e-6 .. 1e-6, wd: vec3[1] in -0.1 .. 0.1, k: real[1] in 1e3 .. 1e6) -> m0: vec3[1]
+    let c = cross(wd, b)
+    for i in 0 .. 3
+        m0[i] = -k*(bd[i] + c[i])
+    end
+end
+
+## The Sun-pointing spin law (He et al. 2023): -Z on the Sun spinning at spin_dps; nothing in eclipse.
+fn sun_spin(b: vec3[1] in -5e-5 .. 5e-5, w: vec3[1] in -0.1 .. 0.1, s: vec3[1] in -1 .. 1, eclipse: bool, j: mat3[1] in 0.01 .. 0.1, \
+            spin_dps: real[1] in 1 .. 10, k1: real[1] in 0.01 .. 10, k2: real[1] in 0.01 .. 10, rz_floor: real[1] in 0 .. 0.5) -> m0: vec3[1]
+    m0 = 0
+    if not eclipse
+        let fl = rz_floor*j[2][2]
+        let ws = -|spin_dps*(pi/180.0)|
+        let sg = sign(w[2])
+        if sg == 0
+            sg = 1
+        end
+        let h = j*w
+        let ht: vec3[1] = 0
+        for i in 0 .. 3
+            let hd = sg*j[2][2]*ws*s[i]
+            ht[i] = h[i] - hd
+        end
+        let rz: vec3[1] = [j[2][2] - j[0][0], j[2][2] - j[1][1], 0]
+        if rz[0] < fl
+            rz[0] = fl
+        end
+        if rz[1] < fl
+            rz[1] = fl
+        end
+        let x: vec3[1] = 0
+        for i in 0 .. 3
+            x[i] = k1*ht[i] + k2*rz[i]*w[i]
+        end
+        let aa = cross(b, x)
+        let bs = dot(b, b)
+        if bs >= 1e-18
+            for i in 0 .. 3
+                m0[i] = -aa[i]/bs
+            end
+        end
+    end
+end
+
+## The error the magnetorquer laws share: q_e = conj(q_ref) q (no sign fix), its sign s, the
+## reference rate in body wr and the rate error we.
+fn mtq_err(q: quat in -1 .. 1, w: vec3[1] in -0.05 .. 0.05, q_ref: quat in -1 .. 1, w_ref: vec3[1] in -0.002 .. 0.002) -> (qe: quat, s: real[1], wr: vec3[1], we: vec3[1])
+    qe = qmult(qconj(q_ref), q)
+    s = sign(qe[3])
+    if s == 0
+        s = 1
+    end
+    wr = dcm(qe)*w_ref
+    we = w - wr
+end
+
+## P1 Lovera & Astolfi 2004: u = -(eps^2 k_p q_v + eps k_v J w_e).
+fn mtq_lovera(q: quat in -1 .. 1, w: vec3[1] in -0.05 .. 0.05, q_ref: quat in -1 .. 1, w_ref: vec3[1] in -0.002 .. 0.002, \
+              j: mat3[1] in 0.01 .. 0.1, eps: real[1] in 0.0001 .. 0.1, kp: real[1] in 0.01 .. 10, kv: real[1] in 0.01 .. 10) -> tau: vec3[1]
+    let qe, s, wr, we = mtq_err(q, w, q_ref, w_ref)
+    let jw = j*we
+    for i in 0 .. 3
+        tau[i] = -(eps*eps*kp*(s*qe[i]) + eps*kv*jw[i])
+    end
+end
+
+## P4 Celani 2015: u = -(eps^2 k1 q_v + eps k2 w_e).
+fn mtq_celani(q: quat in -1 .. 1, w: vec3[1] in -0.05 .. 0.05, q_ref: quat in -1 .. 1, w_ref: vec3[1] in -0.002 .. 0.002, \
+              eps: real[1] in 0.0001 .. 0.1, k1: real[1] in 0.01 .. 10, k2: real[1] in 0.01 .. 10) -> tau: vec3[1]
+    let qe, s, wr, we = mtq_err(q, w, q_ref, w_ref)
+    for i in 0 .. 3
+        tau[i] = -(eps*eps*k1*(s*qe[i]) + eps*k2*we[i])
+    end
+end
+
+## P16 Avanzini, de Angelis & Giulietti 2021: the pitch axis spun at the reference rate and aligned
+## with the orbit normal, the pitch error removed slowly. ok = false (and no torque) when the
+## reference does not rotate.
+fn mtq_avanzini(q: quat in -1 .. 1, w: vec3[1] in -0.05 .. 0.05, q_ref: quat in -1 .. 1, w_ref: vec3[1] in -0.002 .. 0.002, \
+                j: mat3[1] in 0.01 .. 0.1, k: real[1] in 0.0001 .. 0.1, lam: real[1] in 0 .. 2) -> (tau: vec3[1], ok: bool)
+    tau = 0
+    let n = norm(w_ref)
+    ok = n >= 1e-9
+    if ok
+        let qe, s, wr, we = mtq_err(q, w, q_ref, w_ref)
+        let ep: vec3[1] = 0
+        for i in 0 .. 3
+            ep[i] = w_ref[i]/n
+        end
+        let sg = dcm(qe)*ep
+        let jep = j*ep
+        let jp = dot(ep, jep)
+        let th = 2*s*(qe[0]*ep[0] + qe[1]*ep[1] + qe[2]*ep[2])
+        let eta = jp*n*(1 - lam*th)
+        let jw = j*w
+        for i in 0 .. 3
+            tau[i] = k*(eta*sg[i] - jw[i]) + k*(eta*ep[i] - jw[i])
+        end
+    end
+end
+
+## P8 Celani 2026: the boresight e3 onto the target a, the roll about e3 left free:
+## tau = k_p (e3 x a) - k_d w_e.
+fn mtq_boresight(e3: vec3[1] in -1 .. 1, a: vec3[1] in -1 .. 1, we: vec3[1] in -0.05 .. 0.05, kp: real[1] in 1e-5 .. 1e-2, kd: real[1] in 1e-4 .. 1e-1) -> tau: vec3[1]
+    let c = cross(e3, a)
+    for i in 0 .. 3
+        tau[i] = kp*c[i] - kd*we[i]
+    end
+end
+
+## P3 TANGO (Chasset et al. 2013): LQR with P frozen at the averaged Riccati solution:
+## tau = -(P_th theta + P_w w_e), theta = 2 s q_v.
+fn mtq_tango(q: quat in -1 .. 1, w: vec3[1] in -0.05 .. 0.05, q_ref: quat in -1 .. 1, w_ref: vec3[1] in -0.002 .. 0.002, \
+             pth: mat3[1] in -0.01 .. 0.01, pw: mat3[1] in -0.1 .. 0.1) -> tau: vec3[1]
+    let qe, s, wr, we = mtq_err(q, w, q_ref, w_ref)
+    let th: vec3[1] = 0
+    for i in 0 .. 3
+        th[i] = 2*s*qe[i]
+    end
+    let aa = pth*th
+    let bb = pw*we
+    for i in 0 .. 3
+        tau[i] = -(aa[i] + bb[i])
+    end
+end
+
+## P2 de Ruiter 2011 on the Sun line: body z spins at spin_dps with -z on the Sun, one Lyapunov
+## function for spin axis, spin rate and nutation; nothing in eclipse.
+fn sun_spin_deruiter(b: vec3[1] in -5e-5 .. 5e-5, w: vec3[1] in -0.1 .. 0.1, s: vec3[1] in -1 .. 1, eclipse: bool, j: mat3[1] in 0.01 .. 0.1, \
+                     spin_dps: real[1] in 1 .. 10, k: real[1] in 1e3 .. 1e6, k1: real[1] in 0.01 .. 10, k2: real[1] in 0.01 .. 10) -> m0: vec3[1]
+    m0 = 0
+    if not eclipse
+        let ws = |spin_dps*(pi/180.0)|
+        let sg = sign(w[2])
+        if sg == 0
+            sg = 1
+        end
+        let h = j*w
+        let ehz = h[2] - sg*j[2][2]*ws
+        let x: vec3[1] = 0
+        for i in 0 .. 3
+            x[i] = h[i] + sg*j[2][2]*ws*s[i]
+        end
+        x[2] = x[2] + k1*ehz
+        x[0] = x[0] + k2*w[0]
+        x[1] = x[1] + k2*w[1]
+        let aa = cross(b, x)
+        let bs = dot(b, b)
+        if bs >= 1e-18
+            for i in 0 .. 3
+                m0[i] = -k*aa[i]/bs
+            end
+        end
+    end
+end

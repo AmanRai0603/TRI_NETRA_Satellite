@@ -1,0 +1,82 @@
+{
+ "group": "risk",
+ "label": "Risk management",
+ "owner_team": "quality",
+ "rows": [
+  {
+   "fn": "rk4_0",
+   "id": "rk4_0",
+   "label": "Highest open risk level",
+   "outputs": [
+    [
+     "L_max",
+     "int"
+    ]
+   ],
+   "params": [
+    [
+     "levels",
+     "int[7] in 0 .. 5"
+    ]
+   ],
+   "release": "carried",
+   "symbol": "L_max",
+   "vectors": []
+  },
+  {
+   "fn": "net_closed",
+   "id": "rk4_1",
+   "label": "Net risks closed this quarter",
+   "outputs": [
+    [
+     "n_net",
+     "int"
+    ]
+   ],
+   "params": [
+    [
+     "closed",
+     "int in 0 .. 50"
+    ],
+    [
+     "opened",
+     "int in 0 .. 50"
+    ]
+   ],
+   "release": "carried",
+   "symbol": "n_net",
+   "vectors": []
+  },
+  {
+   "fn": "share_tested",
+   "id": "rk4_2",
+   "label": "Share of beliefs tested",
+   "outputs": [
+    [
+     "share",
+     "real[1]"
+    ],
+    [
+     "defined",
+     "bool"
+    ]
+   ],
+   "params": [
+    [
+     "untested",
+     "int in 0 .. 20"
+    ],
+    [
+     "total",
+     "int in 0 .. 20"
+    ]
+   ],
+   "release": "carried",
+   "symbol": "f_tested",
+   "vectors": []
+  }
+ ],
+ "shared": [],
+ "source": "the design as seeded and carried over (tools/seed_design.py, tools/carry_over.py); not yet sealed by its group",
+ "without_code": []
+}

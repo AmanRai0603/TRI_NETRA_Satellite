@@ -45,7 +45,7 @@ class Registry(unittest.TestCase):
 
     def test_every_command_says_what_it_does(self):
         for c in trinetra.commands():
-            for k in ("tool", "name", "usage", "what", "steps", "reads", "writes", "runs"):
+            for k in ("tool", "name", "usage", "what", "steps", "reads", "writes", "runs", "checks", "undo"):
                 self.assertIn(k, c, f"{c.get('tool')} {c.get('name')} has no {k}")
             self.assertTrue(c["steps"], f"{c['tool']} {c['name']} has no steps")
 

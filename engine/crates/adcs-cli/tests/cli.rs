@@ -121,3 +121,43 @@ fn a_soft_oils_run_is_judged_on_its_deadline() {
     for f in ["0", "1.5", "-0.2"] { assert_eq!(adcs(&s, &["run", "nadir_hold_ais", "--deadline-frac", f]).status.code(), Some(2), "{f}"); }
     let _ = std::fs::remove_dir_all(&s);
 }
+
+#[test]
+fn a_run_folder_draws_its_figures_and_report_and_a_description_draws() {
+    let s = tmp("plots");
+    let run = s.join("detumble_ais");
+    std::fs::create_dir_all(&run).unwrap();
+    std::fs::write(run.join("manifest.json"), r#"{"scenario": "detumble_ais", "case": "ais_3u", "product": "TRN-P-3U-AIS", "epoch_utc": [2027, 1, 1, 6, 0, 0],
+        "orbit": {"alt_km": 550, "inc_deg": 97.6, "ltan_h": 6}, "metrics": {"id": "power_mean", "value": 0.02, "unit": "W", "req": 0.5, "req_key": "req.pavg", "pass": 1}}"#).unwrap();
+    let mut csv = String::from("t_s,rate_degps,w_x_degps,w_y_degps,w_z_degps,ape_los_deg,mode,P_mtq_W,P_rw_W,r_x_m,r_y_m,r_z_m,shadow_nu\n");
+    for i in 0..600 { let a = i as f64 * 0.01; csv += &format!("{i},{},0.1,0.2,0.3,NaN,1,0.02,0,{},{},0,1\n", 10.0 / (1.0 + a), 7e6 * a.cos(), 7e6 * a.sin()); }
+    std::fs::write(run.join("channels.csv"), csv).unwrap();
+    let out = s.join("figs");
+    let o = adcs(&s, &["figures", run.to_str().unwrap(), "--out", out.to_str().unwrap(), "--full"]);
+    assert!(o.status.success(), "{}", text(&o));
+    for n in ["1_attitude", "2_disturbances", "3_actuators", "4_environment", "5_groundtrack", "6_modes"] {
+        let f = out.join(format!("detumble_ais_{n}.svg"));
+        assert!(std::fs::read_to_string(&f).unwrap().starts_with("<svg "), "{}", f.display());
+        assert!(text(&o).contains(&f.display().to_string()), "prints the files it wrote");
+    }
+    let o = adcs(&s, &["figures", run.to_str().unwrap(), "--out", out.to_str().unwrap(), "--format", "pdf"]);
+    assert!(o.status.success() && std::fs::read(out.join("detumble_ais_1_attitude.pdf")).unwrap().starts_with(b"%PDF-1.4"), "{}", text(&o));
+    let o = adcs(&s, &["report", run.to_str().unwrap()]);
+    assert!(o.status.success(), "{}", text(&o));
+    assert!(std::fs::read_to_string(run.join("report.html")).unwrap().contains("power_mean"));
+    assert!(std::fs::read(run.join("report.pdf")).unwrap().ends_with(b"%%EOF\n"));
+    let spec = s.join("spec.json");
+    std::fs::write(&spec, r#"{"title": "t", "panels": [{"series": [{"kind": "hist", "values": [1, 2, 2, 3], "bins": 3}]}]}"#).unwrap();
+    let o = adcs(&s, &["plot", spec.to_str().unwrap(), "--out", s.join("p.svg").to_str().unwrap()]);
+    assert!(o.status.success() && s.join("p.svg").is_file(), "{}", text(&o));
+    // refused, by name: a description it cannot draw, an output it cannot write, a run without its time series
+    std::fs::write(&spec, r#"{"panels": [{"series": [{"kind": "pie"}]}]}"#).unwrap();
+    let o = adcs(&s, &["plot", spec.to_str().unwrap(), "--out", s.join("p.svg").to_str().unwrap()]);
+    assert!(o.status.code() == Some(2) && text(&o).contains("pie"), "{}", text(&o));
+    let o = adcs(&s, &["plot", spec.to_str().unwrap(), "--out", s.join("p.png").to_str().unwrap()]);
+    assert_eq!(o.status.code(), Some(2), "{}", text(&o));
+    std::fs::remove_file(run.join("channels.csv")).unwrap();
+    let o = adcs(&s, &["figures", run.to_str().unwrap(), "--out", out.to_str().unwrap()]);
+    assert!(o.status.code() == Some(2) && text(&o).contains("channels.csv"), "{}", text(&o));
+    let _ = std::fs::remove_dir_all(&s);
+}

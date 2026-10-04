@@ -1,0 +1,60 @@
+# The tours of the apps (docs/RELEASE_PLAN.md P7): a few steps per screen, each pointing at one
+# thing on it. A target is a data-testid of the app, or a CSS selector (starting with "[").
+# tools/manual.py checks that every target is in its app, and writes design/js/manual.js.
+# A tour shows by itself once, for someone opening the app for the first time; Help shows it again.
+# Owner: Agastya. Copyright (c) 2026 Agastya. All rights reserved.
+
+[tour.files-start]
+app = "files"
+steps = [
+  { target = "open-folder", title = "Open the folder", text = "Pick the folder on your computer that holds the design files (with Drive for desktop, your Drive folder is on your computer). Every file in it is listed." },
+  { target = "open-file", title = "Or open one file", text = "Open a single design file instead. You change it, undo, save, and see its history." },
+  { target = "help", title = "Help is always here", text = "Guides for every role, the glossary, the journey of a node, and this tour again." },
+]
+
+[tour.node-start]
+app = "node"
+steps = [
+  { target = "open-folder", title = "Open the design folder", text = "Pick the Design folder: the one holding structure/ and nodes/. The nodes issued to you are listed first. Your name is asked once and written beside every change." },
+  { target = "help", title = "Help is always here", text = "The guide for authors, the glossary, the journey of a node from you to a release, and this tour again." },
+]
+
+[tour.node-list]
+app = "node"
+steps = [
+  { target = "mine", title = "Issued to you", text = "The nodes your group lead issued to you. Click one to open it." },
+  { target = "search", title = "Find any node", text = "By its id, its label, its group, or an author's name. You can open any node; only yours are yours to change." },
+]
+
+[tour.node-open]
+app = "node"
+steps = [
+  { target = "steps", title = "One tab per step", text = "Home first: where the node sits, how far it is, your lead's comments. Then one tab per step, each field with its question, why it is asked and an example." },
+  { target = "[data-tab^=\"Review\"]", title = "Review", text = "Every problem the checks find, each with a Go there button. When the list is empty, Mark ready. A colleague then signs it as checked; never you." },
+  { target = "[data-tab=\"Preview\"]", title = "Preview", text = "The node as its readers will see it, answer first. Print it from here." },
+  { target = "save", title = "Save", text = "Leaving a field keeps the change (Undo takes it back); Save writes the file, reads it back and checks it. Unsaved work survives a crash and is offered back." },
+]
+
+[tour.group-start]
+app = "group"
+steps = [
+  { target = "open-folder", title = "Open the design folder", text = "Pick the Design folder: the one holding structure/ and nodes/. Your name is asked once and written beside every change." },
+  { target = "help", title = "Help is always here", text = "The guide for group leads and stage owners, the glossary, the journey of a node to a release, and this tour again." },
+]
+
+[tour.group-list]
+app = "group"
+steps = [
+  { target = "groups", title = "The groups", text = "Every group of the design, with its nodes and the change requests waiting for it. Click yours." },
+  { target = "check-all", title = "Check the whole design", text = "Holds every group and node file to the structure rules, and names anything broken." },
+]
+
+[tour.group-open]
+app = "group"
+steps = [
+  { target = "tabs", title = "Your group", text = "Map: the nodes, their stages and what reads what; click a node to change it or issue it. Every change shows its impact first." },
+  { target = "[data-tab=\"People\"]", title = "People", text = "Add yourself as lead, your stage owners and authors. Names must be typed as they type them in the apps." },
+  { target = "[data-tab=\"Progress\"]", title = "Progress", text = "Every node's work, signatures, problems and evidence debt, and what changed since the last release." },
+  { target = "[data-tab=\"Assemble\"]", title = "Assemble", text = "The checks across your nodes, the stage signatures, and why each node is not yet confirmed." },
+  { target = "[data-tab=\"Release\"]", title = "Release", text = "Seal the group's release (only the lead), compare releases, re-issue a node, import node forms." },
+]

@@ -1,0 +1,10 @@
+[package]
+name = "adcs-plot"
+description = "TRI-NETRA plotting: one figure model drawn as SVG and PDF, the run figures and the per-run report (engine and MATLAB twin runs alike)"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+publish.workspace = true
+
+[dependencies]
+serde_json = "1"

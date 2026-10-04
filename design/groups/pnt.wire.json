@@ -1,0 +1,30 @@
+{
+ "group": "pnt",
+ "label": "Pointing error budget",
+ "owner_team": "systems",
+ "rows": [
+  {
+   "fn": "gp_5",
+   "id": "gp_5",
+   "label": "APE budget total",
+   "outputs": [
+    [
+     "APE",
+     "real[rad]"
+    ]
+   ],
+   "params": [
+    [
+     "terms",
+     "real[rad][5] in 0 .. 0.1"
+    ]
+   ],
+   "release": "carried",
+   "symbol": "APE",
+   "vectors": []
+  }
+ ],
+ "shared": [],
+ "source": "the design as seeded and carried over (tools/seed_design.py, tools/carry_over.py); not yet sealed by its group",
+ "without_code": []
+}

@@ -5,22 +5,17 @@
  "label": "ais_img_3u \u2014 Nadir pointing with mtq",
  "product": "SZ-ais_img_3u-mtq",
  "time": {
-  "duration_s": 11478,
+  "duration_s": 17217,
   "dt_s": 0.2,
   "record_dt_s": 1.0
  },
  "initial": {
   "attitude": {
-   "angle_deg": 10.0,
-   "axis_body": [
-    0.577,
-    0.577,
-    0.577
-   ],
-   "kind": "error_from_guidance"
+   "kind": "random"
   },
   "rate": {
-   "kind": "lvlh"
+   "kind": "random_direction",
+   "magnitude_deg_s": 6.0
   }
  },
  "fsw": {
@@ -36,26 +31,26 @@
    "kind": "ape_los",
    "requirement": "req.ape",
    "statistic": "p99.73",
-   "window": "last_orbit"
+   "window": "last_half_orbit"
   },
   {
    "id": "ake_los_p9973",
    "kind": "ake_los",
    "requirement": "req.ake",
    "statistic": "p99.73",
-   "window": "last_orbit"
+   "window": "last_half_orbit"
   },
   {
    "id": "rate_stability_p9973",
    "kind": "rate_stability",
    "requirement": "req.rks",
    "statistic": "p99.73",
-   "window": "last_orbit"
+   "window": "last_half_orbit"
   },
   {
    "id": "jitter",
    "kind": "jitter",
-   "window": "last_orbit"
+   "window": "last_half_orbit"
   },
   {
    "id": "momentum_peak",

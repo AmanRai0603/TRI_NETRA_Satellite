@@ -4,9 +4,8 @@ Copyright (c) 2026 Agastya. All rights reserved.
 """
 import json, html
 import numpy as np
-import matplotlib.pyplot as plt
 from common import write_text
-from report_base import INK, INK2, ROOT, S1, S2, aslist, fnum, save
+from report_base import MUTED, ROOT, S1, S2, aslist, fnum, save
 
 
 SOLS = ROOT / "matlab_sils" / "store" / "solutions"
@@ -44,21 +43,16 @@ def option_figure(S, mid):
             unit = mm[ob].get("unit", ""); r = mm[ob].get("req")
             if r is not None and np.isfinite(fnum(r)): req = fnum(r)
             break
-    fig, ax = plt.subplots(figsize=(10, 0.42 * len(O) + 1.4))
-    for i, o in enumerate(O):
-        ours = set(aslist(o["uses"])) <= OURS
-        v = fnum(o["obj"])
-        col = (S1 if ours else S2) if o["feasible"] else "#b9bec4"
-        if np.isfinite(v): ax.barh(i, v, color=col, height=0.6)
-        lab = f" {v:.3g}" if np.isfinite(v) else " no result"
-        ax.text(v if np.isfinite(v) else 0, i, lab + ("" if o["feasible"] else "  fails"), va="center", fontsize=8, color=INK2)
-    ax.set_yticks(range(len(O))); ax.set_yticklabels([o["id"] for o in O]); ax.invert_yaxis(); ax.grid(axis="y", visible=False)
-    if req is not None: ax.axvline(req, color=INK, ls="--", lw=1.2)
-    vals = [fnum(o["obj"]) for o in O if np.isfinite(fnum(o["obj"])) and fnum(o["obj"]) > 0]
-    if vals and max(vals) / max(min(vals), 1e-12) > 50: ax.set_xscale("log")
-    ax.set_xlabel(f"{ob} [{unit}], worst over seeds" + (" — dashed: requirement" if req is not None else ""))
-    ax.set_title(f"{S['case']} · {M['label']}\nblue: our actuators (MTQ, fluid loop, RCS) · orange: benchmark · grey: fails a requirement", loc="left")
-    return save(fig, f"solution_{S['case']}_{mid}")
+    v = [fnum(o["obj"]) for o in O]
+    vals = [x for x in v if np.isfinite(x) and x > 0]
+    p = {"title": f"{S['case']} · {M['label']}\nblue: our actuators (MTQ, fluid loop, RCS) · orange: benchmark · grey: fails a requirement",
+         "xlabel": f"{ob} [{unit}], worst over seeds" + (" — dashed: requirement" if req is not None else ""),
+         "xscale": "log" if vals and max(vals) / max(min(vals), 1e-12) > 50 else "linear",
+         "refs": [{"axis": "x", "at": req, "width": 1.2}] if req is not None else [],
+         "series": [{"kind": "hbar", "labels": [o["id"] for o in O], "values": v,
+                     "colors": [((S1 if set(aslist(o["uses"])) <= OURS else S2) if o["feasible"] else MUTED) for o in O],
+                     "texts": [(f"{x:.3g}" if np.isfinite(x) else "no result") + ("" if o["feasible"] else "  fails") for x, o in zip(v, O)]}]}
+    return save({"width": 720, "height": 30 * len(O) + 101, "panels": [p]}, f"solution_{S['case']}_{mid}")
 
 
 def family_rows(S):
@@ -87,19 +81,17 @@ def compare_figure(S, rows):
     params = [("mass", "ADCS mass [kg]"), ("power_mean", "power in nadir pointing [W]"),
               ("nadir_pointing_obj", "nadir APE p99.73 [deg]"), ("sun_acquisition_obj", "Sun acquisition [min]"),
               ("detumble_obj", "detumble [min]"), ("jitter", "jitter [arcsec]")]
-    fig, axs = plt.subplots(2, 3, figsize=(11, 6.2))
-    names = [r["id"] for r in rows]; y = np.arange(len(rows))
-    for ax, (k, lab) in zip(axs.flat, params):
-        v = np.array([fnum(r.get(k)) for r in rows])
-        cols = [S1 if r["role"] == "solution" else S2 for r in rows]
-        ax.barh(y, np.nan_to_num(v), color=cols, height=0.6)
-        ax.set_yticks(y); ax.set_yticklabels(names if ax in axs[:, 0] else [], fontsize=8); ax.invert_yaxis()
-        ax.set_title(lab, loc="left", fontsize=10); ax.grid(axis="y", visible=False)
-        pos = v[np.isfinite(v) & (v > 0)]
-        if pos.size and pos.max() / max(pos.min(), 1e-12) > 50: ax.set_xscale("log")
-    fig.suptitle(f"{S['case']}: our solutions (blue) against sized benchmarks (orange)", x=0.01, ha="left", fontweight="bold")
-    fig.tight_layout()
-    return save(fig, f"solution_{S['case']}_compare")
+    names = [r["id"] for r in rows]
+    cols = [S1 if r["role"] == "solution" else S2 for r in rows]
+    panels = []
+    for i, (k, lab) in enumerate(params):
+        v = [fnum(r.get(k)) for r in rows]
+        pos = [x for x in v if np.isfinite(x) and x > 0]
+        panels.append({"title": lab, "xscale": "log" if pos and max(pos) / max(min(pos), 1e-12) > 50 else "linear",
+                       "series": [{"kind": "hbar", "labels": names if i % 3 == 0 else [], "values": v, "colors": cols,
+                                   "texts": [f"{x:.3g}" if np.isfinite(x) else "—" for x in v]}]})
+    return save({"title": f"{S['case']}: our solutions (blue) against sized benchmarks (orange)", "layout": "grid", "rows": 2, "cols": 3,
+                 "width": 792, "height": 446, "panels": panels}, f"solution_{S['case']}_compare")
 
 
 def solution_html(S, rows, figs):

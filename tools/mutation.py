@@ -3,7 +3,7 @@
 faults (a + made -, a > made >=, a function made to return a default) the Rust flight software's
 own tests catch.
 
-cargo-mutants makes each mutant of fsw-rs/src/ctl.rs and fsw-rs/src/est.rs in turn and runs
+cargo-mutants makes each mutant of fsw-rs/src/guid.rs, ctl.rs and est.rs in turn and runs
 `cargo test --release` in fsw-rs; a mutant the tests still pass is "missed". The kill rate is
 caught / (caught + missed) (a mutant that hangs the tests counts as caught). The C build is the
 same algorithms; C = Rust bit for bit is checked elsewhere (the differential fuzzer, the 40
@@ -25,7 +25,7 @@ import tempfile
 
 from common import ROOT, write_json, write_text
 
-FILES = ["src/ctl.rs", "src/est.rs"]
+FILES = ["src/guid.rs", "src/ctl.rs", "src/est.rs"]
 FLOOR = 0.95     # the kill rate this repository holds itself to (97.9 % measured; the 15 survivors are equivalent)
 
 

@@ -1,0 +1,264 @@
+# The groups of the ADCS design (docs/RELEASE_PLAN.md §4): who owns which rows, in which stages,
+# in which code modules, and where groups meet. One group is one discipline, owned by one team
+# and released by one lead (owner, 3 Oct 2026). tools/groups.py checks this file against every
+# row of the tree (tools/design_rows.py): each row in exactly one group, each group's count as
+# stated here, each stage inside its group.
+#
+# How a row is placed:
+#   1. an [[override]] that names it;
+#   2. a layer-3 required or achieved row goes with the target it answers (so a subsystem layer
+#      split between two groups, as `modes` is, splits by target);
+#   3. otherwise the group whose `branches` holds the row's branch (its layer-1/2 group, or its
+#      subsystem layer).
+#
+# `wave`: when the group goes through test, delivery and acceptance (docs/RELEASE_PLAN.md P12):
+# A inputs, B hardware, C GNC, D system, E verification and business, in dependency order, each
+# wave's outputs in the catalogue before the next (tools/group.py deliver, status, ship).
+# Rows a discipline has no node for yet (guidance, CMG, VSCMG, dynamics, onboard navigation, each
+# subsystem's sizing) are added when content is carried over (P8); their stages are here already.
+#
+# Owner: Agastya. Copyright (c) 2026 Agastya. All rights reserved.
+schema = "trinetra-groups/1"
+
+[[group]]
+id = "case"
+wave = "A"
+label = "Case and mission"
+lead = "systems"
+branches = ["ci1", "m1", "cf"]
+nodes = 17
+modules = { c = [], rust = ["adcs-sim/case.rs"], twin = ["+case"] }
+
+[[group]]
+id = "dyn"
+wave = "A"
+label = "Satellite dynamics"
+lead = "systems"
+branches = ["s1", "s2", "s3", "s4"]
+nodes = 16
+modules = { c = [], rust = ["adcs-sim-core/plant.rs"], twin = ["+plant"] }
+
+[[group]]
+id = "env"
+wave = "A"
+label = "Environment and disturbance torques"
+lead = "environment"
+branches = ["m2", "m3", "gd", "dist"]
+nodes = 45
+stages = [
+  { id = "orbit", label = "Orbit", branches = ["m2"] },
+  { id = "environment", label = "Environment along the orbit", branches = ["m3"] },
+  { id = "torques", label = "Disturbance torques", branches = ["gd", "dist"] },
+]
+modules = { c = ["adcs_env.c"], rust = ["adcs-pop", "adcs-sim-core/orbit.rs", "adcs-sim-core/field.rs", "adcs-sim-core/atmos.rs", "adcs-sim-core/ephem.rs", "adcs-sim-core/torques.rs", "fsw-rs/env.rs"], twin = ["+env", "+orbit"] }
+
+[[group]]
+id = "sens"
+wave = "B"
+label = "Sensors"
+lead = "sensing"
+branches = ["gs", "sens"]
+nodes = 36
+modules = { c = ["adcs_drv.c (sensor drivers)"], rust = ["adcs-sim-core/sensors.rs", "adcs-sim-core/comp.rs", "fsw-rs/drv.rs"], twin = ["+devices", "+comp"] }
+
+[[group]]
+id = "nav"
+wave = "C"
+label = "Navigation and attitude estimation"
+lead = "gnc"
+branches = ["ge", "est"]
+nodes = 28
+modules = { c = ["adcs_est.c"], rust = ["fsw-rs/est.rs"], twin = ["+fsw/mekf_*", "+fsw/triad.m", "+fsw/quest.m"] }
+
+[[group]]
+id = "gdn"
+wave = "C"
+label = "Guidance and mode management"
+lead = "gnc"
+branches = ["modes"]
+nodes = 21
+modules = { c = ["adcs_guid.c", "adcs_modes.c"], rust = ["fsw-rs/guid.rs", "fsw-rs/modes.rs"], twin = ["+fsw/guidance.m", "+fsw/mode_manager.m", "+fsw/modes.m", "+fsw/yaw_flip.m", "+fsw/boresight_offset.m"] }
+
+[[group]]
+id = "ctl"
+wave = "C"
+label = "Controller and allocation"
+lead = "gnc"
+branches = ["gc", "ctl"]
+nodes = 34
+modules = { c = ["adcs_ctl.c", "adcs_alloc.c"], rust = ["fsw-rs/ctl.rs", "fsw-rs/alloc.rs"], twin = ["+fsw/control_law.m", "+fsw/allocate.m", "+fsw/bdot.m"] }
+
+[[group]]
+id = "fdir"
+wave = "C"
+label = "FDIR"
+lead = "gnc"
+branches = []
+nodes = 6
+modules = { c = ["adcs_fdir.c"], rust = ["fsw-rs/fdir.rs"], twin = ["+fsw/fdir.m", "+faults"] }
+
+[[group]]
+id = "act"
+wave = "B"
+label = "Actuators"
+lead = "actuators"
+branches = ["gm", "mtq", "gw", "rw", "gf", "fmr", "gr", "rcs"]
+nodes = 138
+stages = [
+  { id = "mtq", label = "Magnetorquers", branches = ["gm", "mtq"] },
+  { id = "rw", label = "Reaction wheels", branches = ["gw", "rw"] },
+  { id = "fmr", label = "Fluid momentum rings", branches = ["gf", "fmr"] },
+  { id = "rcs", label = "Reaction control thrusters", branches = ["gr", "rcs"] },
+  { id = "cmg", label = "Control moment gyros", branches = [] },
+  { id = "vscmg", label = "Variable-speed CMGs", branches = [] },
+]
+modules = { c = ["adcs_drv.c (actuator drivers)"], rust = ["adcs-sim-core/actuators.rs", "adcs-design/empump.rs"], twin = ["+devices", "+plant (actuator parts)"] }
+
+[[group]]
+id = "fsw"
+wave = "D"
+label = "Flight software and OBC"
+lead = "avionics"
+branches = ["gx", "fsw"]
+nodes = 27
+modules = { c = ["adcs_fsw.c (shell)", "adcs_fsw_int.h", "adcs_params.c", "adcs_math.c"], rust = ["fsw-rs/fsw.rs (shell)", "fsw-rs/params.rs", "fsw-rs/math.rs", "fsw-rs/hal.rs", "fsw-rs/cabi.rs"], twin = ["+fsw/step.m (shell)", "+fsw/init.m"] }
+
+[[group]]
+id = "design"
+wave = "D"
+label = "Design loop"
+lead = "systems"
+branches = ["gb", "budget", "s5", "ct2", "ct3"]
+nodes = 32
+stages = [
+  { id = "sizing_sens", label = "Sizing: sensors", branches = [] },
+  { id = "sizing_mtq", label = "Sizing: magnetorquers", branches = [] },
+  { id = "sizing_rw", label = "Sizing: reaction wheels", branches = [] },
+  { id = "sizing_fmr", label = "Sizing: fluid momentum rings", branches = [] },
+  { id = "sizing_rcs", label = "Sizing: thrusters", branches = [] },
+  { id = "sizing_cmg", label = "Sizing: CMGs", branches = [] },
+  { id = "sizing_vscmg", label = "Sizing: VSCMGs", branches = [] },
+  { id = "budgets", label = "Budgets", branches = ["gb", "budget", "s5"] },
+  { id = "selection", label = "Design runs and selection", branches = ["ct2", "ct3"] },
+]
+modules = { c = [], rust = ["adcs-design"], twin = ["+sizing", "+solution"] }
+
+[[group]]
+id = "pnt"
+wave = "D"
+label = "Pointing error budget"
+lead = "systems"
+branches = ["gp", "pnt"]
+nodes = 31
+modules = { c = [], rust = ["adcs-sim/metrics.rs (jitter)"], twin = ["+metrics"] }
+
+[[group]]
+id = "kpi"
+wave = "D"
+label = "Pointing service and KPI closures"
+lead = "systems"
+branches = ["p1k", "p1a", "p2k", "p2a", "p3k", "p3a", "p4k", "p4a", "x_closure"]
+nodes = 83
+stages = [
+  { id = "service", label = "Required and achieved KPIs", branches = ["p1k", "p1a", "p2k", "p2a", "p3k", "p3a", "p4k", "p4a"] },
+  { id = "closures", label = "Closures (written by the seeder)", branches = ["x_closure"] },
+]
+modules = { c = [], rust = ["adcs-sim/metrics.rs"], twin = ["+metrics"] }
+
+[[group]]
+id = "vv"
+wave = "E"
+label = "Verification and standards"
+lead = "quality"
+branches = ["v1", "v2", "st1", "st2", "st3", "st4", "st5", "st6", "st7"]
+nodes = 20
+modules = { c = [], rust = ["adcs-sim/metrics.rs"], twin = ["+metrics", "+campaign"] }
+
+[[group]]
+id = "oils"
+wave = "E"
+label = "OILS rig"
+lead = "verification"
+branches = ["v3", "oils", "fa1", "fa2"]
+nodes = 38
+modules = { c = ["fsw/targets/"], rust = ["adcs-fsw-abi"], twin = ["+hal"] }
+
+[[group]]
+id = "hils"
+wave = "E"
+label = "HILS rig"
+lead = "verification"
+branches = ["v4", "hils"]
+nodes = 64
+stages = [
+  { id = "rig", label = "Rig integration", branches = ["hils"] },
+  { id = "needs", label = "Rig needs", branches = ["v4"] },
+]
+modules = { c = [], rust = [], twin = ["+hal"] }
+
+[[group]]
+id = "lab"
+wave = "E"
+label = "Test equipment"
+lead = "facility"
+branches = ["fa3", "fa4", "fa5", "fa6", "fa7", "fa8"]
+nodes = 37
+modules = { c = [], rust = [], twin = [] }
+
+[[group]]
+id = "catalogue"
+wave = "D"
+label = "Catalogue and heritage"
+lead = "systems"
+branches = ["ct1", "hr1"]
+nodes = 8
+modules = { c = [], rust = ["adcs-sim/product.rs"], twin = ["+product"] }
+
+[[group]]
+id = "business"
+wave = "E"
+label = "Commercial, orders and supply"
+lead = "programme"
+branches = ["cm1", "cm2", "cm3", "od1", "od2", "su1", "su2", "su3"]
+nodes = 32
+modules = { c = [], rust = [], twin = [] }
+
+[[group]]
+id = "risk"
+wave = "E"
+label = "Risk management"
+lead = "quality"
+branches = ["rk1", "rk2", "rk3", "rk4"]
+nodes = 21
+modules = { c = [], rust = [], twin = [] }
+
+# The spec's "Modes and FDIR" (gq) splits by what each row is about: mode timing goes with
+# guidance and mode management, fault handling with FDIR. The layer-3 required and achieved rows
+# follow their target (rule 2); the layer's interface and its internal rows stay with `gdn`
+# until their content is carried over (P8) and each is placed by what it computes.
+[[override]]
+ids = ["gq_0", "gq_1", "gq_4"]
+group = "gdn"
+reason = "detumble time, safe-mode Sun acquisition and momentum dump interval are mode timing"
+
+[[override]]
+ids = ["gq_2", "gq_3"]
+group = "fdir"
+reason = "faults tolerated and fault recovery time are fault handling"
+
+# Where groups meet (docs/RELEASE_PLAN.md §4, rule 3): who owns a row that could be claimed twice.
+[[boundary]]
+between = ["dyn", "act"]
+rule = "the actuator's own physics (torque, momentum, power, faults) is act's; how its momentum enters the body's equations is dyn's"
+
+[[boundary]]
+between = ["*", "design"]
+rule = "a row that models how a device behaves stays in its subsystem's group; a row that sizes it (how big, how heavy, which part) is design's"
+
+[[boundary]]
+between = ["nav", "gdn", "ctl", "fdir", "fsw"]
+rule = "the algorithm is its group's; when and how it is called (scheduling, timing, the HAL, the parameter tables) is fsw's"
+
+[[boundary]]
+between = ["kpi", "vv"]
+rule = "what is required and what was achieved is kpi's; how it was proven (campaigns, coverage, standards) is vv's"

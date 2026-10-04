@@ -44,13 +44,13 @@ Who runs what (C / Rust / Python / MATLAB): `docs/figures/architecture_languages
 |---|---|
 | `fsw/` | the flight software in **embedded C** (C99) behind `adcs_fsw.h` / `adcs_hal.h`; `fsw/pseudocode/` is the contract, `fsw/params/params.toml` the parameter set |
 | `fsw-rs/` | the same flight software in **Rust** (`no_std`; feature `cabi` exports the C ABI) |
-| `engine/` | the **Rust SILS engine**: `adcs-design` (demand survey + sizing, identical to the MATLAB laws), `adcs-pop` (the full POP propagator ported to Rust, bit-identical to MATLAB), plant, device emulators speaking bytes, config, metrics, recorder; `adcs` CLI |
+| `engine/` | the **Rust SILS engine**: `adcs-design` (demand survey + sizing, identical to the MATLAB laws), `adcs-pop` (the full POP propagator ported to Rust, bit-identical to MATLAB), plant, device emulators speaking bytes, config, metrics, recorder; `adcs-plot` (the one plotting module: run figures and reports as SVG and PDF, engine and twin runs alike); `adcs` CLI |
 | `fsw/targets/` | the **virtual OBC**: the flight software as a process or as Cortex-M4F firmware in QEMU, in lockstep with the engine over adcs-link/1 (`docs/VIRTUAL_OBC.md`); the same link reaches a real OBC |
 | `matlab_sils/` | the SILS twin (MATLAB / GNU Octave), with the Precision Orbit Propagator in the loop; start at `matlab_sils/README.md` |
 | `catalogue/` | parts, products, algorithms (slot + hardware needs), `families.toml` (solution / benchmark), `modes/`, `components/` |
 | `scenarios/`, `campaigns/`, `trades/` | test scenarios, Monte Carlo / edge campaigns, algorithm and hardware trades |
 | `docs/` | `DESIGN_LOOP.md` (start here), `NODES.md` (every node: inputs, outputs, parameters, rules), `MTQ_LITERATURE.md` (the sixteen magnetorquer-only papers in the flight software), `NAV_GUIDANCE_AUDIT.md` (navigation and guidance assumptions audited and corrected), `CATALOGUE.md` (bought wheels and CMGs from datasheets), `SOFT_OILS.md`, `figures/`, `SOLUTION_PIPELINE.md`, `LANGUAGES.md` (C / Rust / Python / MATLAB roles), `VIRTUAL_OBC.md`, `ARCHITECTURE_PLAN.md`, `COMPONENTS.md`, `OILS_HILS.md`, `RESULTS.md`, `SELECTION.md`, `SOLUTIONS.md` |
-| `results/index.html` | the report with every figure |
+| `results/index.html` | the report with every figure, built locally by `python3 tools/report.py` (not committed); one run's figures and report: `adcs figures`, `adcs report`, or the app |
 | `dist/` | the downloadable MATLAB SILS zip and the flight-software + Rust-engine zip; `dist/dispatch/` holds the dispatch packages |
 | `tools/` | `pipeline.py` (the design loop, node by node), `engine.py` (build, run, Monte Carlo, campaigns, soft OILS and parity on the Rust engine), `vv_report.py` + `templates/vv_report.html` (the V&V report, HTML + PDF), `figures/` (the two diagrams), `gen_fsw_params.py` (params → C + Rust), `export_catalogue.py` (TOML → JSON), `run_matrix.py` (parallel runner), `report.py`, `pack_matlab.py`, `pack_flight.py` (flight software + engine zip), `components_doc.py` |
 | `engine/crates/trinetra-app/` | the desktop app: a local page to pick a case and a scenario, fly it, keep and export runs |
