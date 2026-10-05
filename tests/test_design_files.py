@@ -130,16 +130,17 @@ class Files(unittest.TestCase):
 
     def test_an_older_file_is_upgraded_with_its_original_kept_and_a_newer_one_refused(self):
         s1 = tndb.schema()
+        v = s1["formats"]["node"]["version"]
         old = tndb.create(self.tmp / "old.node.tndb", "node", "old", s=s1)
         s2 = copy.deepcopy(s1)
-        s2["formats"]["node"]["version"] = 2
+        s2["formats"]["node"]["version"] = v + 1
         ran = []
-        with mock.patch.dict(tndb.UPGRADES["node"], {1: lambda conn: ran.append(1)}):
+        with mock.patch.dict(tndb.UPGRADES["node"], {v: lambda conn: ran.append(v)}):
             conn = tndb.open_file(old, s=s2)
-            self.assertEqual(dict(conn.execute("SELECT key, value FROM meta").fetchall())["format_version"], "2")
+            self.assertEqual(dict(conn.execute("SELECT key, value FROM meta").fetchall())["format_version"], str(v + 1))
             conn.close()
-        self.assertEqual(ran, [1])
-        self.assertTrue((self.tmp / "old.node.tndb.v1.bak").exists())
+        self.assertEqual(ran, [v])
+        self.assertTrue((self.tmp / f"old.node.tndb.v{v}.bak").exists())
         with self.assertRaises(tndb.FormatError) as e:
             tndb.open_file(old, s=s1)
         self.assertIn("newer than this program", str(e.exception))
@@ -147,10 +148,11 @@ class Files(unittest.TestCase):
     def test_an_upgrade_with_no_step_is_refused(self):
         old = tndb.create(self.tmp / "nostep.node.tndb", "node", "nostep")
         s2 = copy.deepcopy(tndb.schema())
-        s2["formats"]["node"]["version"] = 2
+        v = s2["formats"]["node"]["version"]
+        s2["formats"]["node"]["version"] = v + 1
         with self.assertRaises(tndb.FormatError) as e:
             tndb.open_file(old, s=s2)
-        self.assertIn("no upgrade from node version 1", str(e.exception))
+        self.assertIn(f"no upgrade from node version {v}", str(e.exception))
 
 
 if __name__ == "__main__":

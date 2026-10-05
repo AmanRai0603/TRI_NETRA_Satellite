@@ -7,6 +7,11 @@
 #   <group>.group.tndb    one group: its structure, people, contracts       (group app)
 #   <group>-<v>.tnrel     one sealed release of a group: frozen, never edited (group app)
 #   design.tndb           every group's released content merged             (developer side)
+#   <id>.tnissue          an issue raised from a red mark                   (2.0.0)
+#   <rel>.<group>.tnanswer an answer to a release that moves a group's values (2.0.0)
+#   <name>.tncase         a case, or a variation of one                     (2.0.0)
+#   <design>.<target>.tnfsw a flight image built from a design              (2.0.0)
+#   <person>.tnkey        a person's key, on their own computer only        (2.0.0)
 #
 # Results stay in the existing result package (`.trinetra`, schema adcs-result/1) and the results
 # index (`.adcs-index.sqlite`, adcs-index/2); the design files point at them by result id.
@@ -129,25 +134,136 @@ columns = [["path", "text key"], ["fingerprint", "text"], ["body", "blob"]]
 about = "the catalogue of outputs: the contract at every group boundary"
 columns = [["node", "text"], ["output", "text"], ["unit", "text"], ["version", "integer"], ["readers", "text"]]
 
+# ------------------------------------------------------------------ 2.0.0 (format 2): the block model
+# Added beside the 1.0.0 tables, never changing them, so a format-1 file upgrades by gaining empty
+# tables and nothing it holds moves (docs/PLAN_2_0.md S2; docs/SYSTEM_MODEL.md §2-§6).
+[tables.block]
+about = "the node as a block of the tree: its parent (any depth), its perspective, its behaviour, its owner, and the estimate it keeps when broken down"
+columns = [["id", "text key"], ["parent", "text"], ["perspective", "text"], ["behaviour", "text"], ["owner", "text"], ["estimate", "text"]]
+
+[tables.port]
+about = "each input and output's 2.0.0 facts, beside input/output (which keep its unit, range and source): its type, state, maturity, the way a requirement binds, its owner and due gate while open, its bundle"
+columns = [["name", "text key"], ["direction", "text key"], ["type", "text"], ["state", "text"], ["maturity", "text"], ["sense", "text"],
+           ["owner", "text"], ["due_gate", "text"], ["bundle", "text"]]
+
+[tables.loop]
+about = "a loop declared on the block that holds it: what must settle, how tightly, in how many iterations at most"
+columns = [["id", "text key"], ["settles", "text"], ["tolerance", "real"], ["max_iterations", "integer"], ["note", "text"]]
+
+[tables.closure]
+about = "a requirement against its achieved value: the two ports, the way it binds, by analysis or by evidence (with the metric and campaign)"
+columns = [["id", "text key"], ["requirement", "text"], ["achieved", "text"], ["sense", "text"], ["by", "text"], ["metric", "text"], ["campaign", "text"]]
+
+[tables.key_signature]
+about = "a signature made with a person's key: who, as what role, which revision and content it covers, the key's fingerprint and the Ed25519 signature (base64)"
+columns = [["n", "integer key"], ["role", "text"], ["signer", "text"], ["key_fingerprint", "text"], ["revision", "integer"],
+           ["content_hash", "text"], ["at", "text"], ["statement", "text"], ["signature", "text"]]
+
+[tables.group_frame]
+about = "the group in the tree: the group it mounts under, the design it is based on, its subsystem engineer and deputy, whether its nodes need a checker"
+columns = [["id", "text key"], ["parent_group", "text"], ["base", "text"], ["subsystem_engineer", "text"], ["deputy", "text"], ["checker_required", "integer"]]
+
+[tables.mount]
+about = "each block of the branch above that the group mounts on: the contract between the two groups"
+columns = [["on_block", "text key"], ["via", "text"], ["contract_version", "integer"]]
+
+[tables.member_key]
+about = "a person's public key, as registered by the owner of this file: their role, its fingerprint, whom they deputise for, who registered it and when"
+columns = [["name", "text key"], ["role", "text"], ["public_key", "text"], ["fingerprint", "text"], ["deputy_of", "text"],
+           ["registered_at", "text"], ["registered_by", "text"]]
+
+[tables.issue]
+about = "an issue raised from a red mark: where, the evidence, whom it is addressed to, and the release that closes it"
+columns = [["id", "text key"], ["group_id", "text"], ["node", "text"], ["at", "text"], ["by", "text"], ["title", "text"], ["body", "text"],
+           ["evidence", "text"], ["addressed_to", "text"], ["state", "text"], ["closed_by", "text"]]
+
+[tables.answer]
+about = "a subsystem engineer's answer to a release that moves their values: fine, or object, because"
+columns = [["release", "text key"], ["answering_group", "text"], ["verdict", "text"], ["because", "text"], ["at", "text"], ["by", "text"]]
+
+[tables.case_info]
+about = "a case: what it is, the case it is a variation of (empty for a base case), its scenario and campaign"
+columns = [["id", "text key"], ["base", "text"], ["label", "text"], ["scenario", "text"], ["campaign", "text"], ["note", "text"]]
+
+[tables.case_line]
+about = "a case's lines in order, as the case CSV states them (adcs-case/1), with the node each declares; a variation holds only the lines it changes"
+columns = [["ord", "integer key"], ["section", "text"], ["key", "text"], ["label", "text"], ["unit", "text"], ["value", "text"], ["lo", "text"],
+           ["hi", "text"], ["level", "text"], ["note", "text"], ["node", "text"], ["line", "text"]]
+
+[tables.flight_image]
+about = "the flight software built from a design for one target: the design it came from, the runtime and toolchain, the image's hash"
+columns = [["target", "text key"], ["design_version", "text"], ["design_fingerprint", "text"], ["runtime_version", "text"], ["toolchain", "text"],
+           ["built_at", "text"], ["built_by", "text"], ["image_sha256", "text"]]
+
+[tables.flight_file]
+about = "each file of a flight image (the generated sources, the binary, the configuration blob) and its hash"
+columns = [["path", "text key"], ["sha256", "text"], ["bytes", "blob"]]
+
+[tables.flight_check]
+about = "each check the flight build made on the image: a node's vectors, a parity, a timing"
+columns = [["name", "text key"], ["passed", "integer"], ["note", "text"]]
+
+[tables.private_key]
+about = "a person's key, kept on their own computer: the private half sealed by their passphrase (PBKDF2-SHA256, AES-256-GCM)"
+columns = [["name", "text key"], ["public_key", "text"], ["fingerprint", "text"], ["kdf_iterations", "integer"], ["salt", "text"], ["nonce", "text"],
+           ["sealed_private", "text"], ["created", "text"]]
+
+[tables.design_release]
+about = "which design this is: today's, a daily snapshot, a preview or a released design; its version; what it needs to run"
+columns = [["version", "text key"], ["kind", "text"], ["built_at", "text"], ["built_by", "text"], ["needs_application", "text"], ["toolbox", "text"]]
+
+[tables.integration_record]
+about = "what integration checked, release by release, and what it found"
+columns = [["n", "integer key"], ["at", "text"], ["by", "text"], ["release", "text"], ["check", "text"], ["result", "text"], ["note", "text"]]
+
 # ------------------------------------------------------------------ the formats
 [formats.node]
 extension = ".node.tndb"
-version = 1
-tables = ["meta", "node", "content", "input", "output", "fixture", "attachment", "revision", "comment", "change_request", "signature"]
+version = 2                     # 2: the block model (block, port, loop, closure, key_signature), S2
+tables = ["meta", "node", "content", "input", "output", "fixture", "attachment", "revision", "comment", "change_request", "signature",
+          "block", "port", "loop", "closure", "key_signature"]
 max_bytes = 52428800            # 50 MB a node file
 max_attachment_bytes = 512000   # 500 KB a picture
 
 [formats.group]
 extension = ".group.tndb"
-version = 1
-tables = ["meta", "group_info", "stage", "member", "member_node", "group_node", "edge", "contract", "revision", "comment", "change_request", "signature"]
+version = 2                     # 2: the group in the tree (group_frame, mount), keys (member_key, key_signature), S2
+tables = ["meta", "group_info", "stage", "member", "member_node", "group_node", "edge", "contract", "revision", "comment", "change_request", "signature",
+          "group_frame", "mount", "member_key", "key_signature"]
 
 [formats.release]
 extension = ".tnrel"
-version = 1
-tables = ["meta", "release", "release_node", "group_info", "stage", "group_node", "edge", "contract", "signature"]
+version = 2                     # 2: the group in the tree, and the seal signed with a key, S2
+tables = ["meta", "release", "release_node", "group_info", "stage", "group_node", "edge", "contract", "signature",
+          "group_frame", "mount", "key_signature"]
 
 [formats.design]
 extension = ".tndb"
-version = 2                     # 2: the engine's inputs (design_case, engine_input), P11
-tables = ["meta", "design_group", "design_node", "edge", "catalogue_output", "design_case", "engine_input"]
+version = 3                     # 2: the engine's inputs (design_case, engine_input), P11; 3: which design it is, the integration record, keys, S2
+tables = ["meta", "design_group", "design_node", "edge", "catalogue_output", "design_case", "engine_input",
+          "design_release", "integration_record", "key_signature"]
+
+[formats.issue]
+extension = ".tnissue"
+version = 1
+tables = ["meta", "issue", "comment", "key_signature"]
+
+[formats.answer]
+extension = ".tnanswer"
+version = 1
+tables = ["meta", "answer", "key_signature"]
+
+[formats.case]
+extension = ".tncase"
+version = 1
+tables = ["meta", "case_info", "case_line", "revision", "comment", "key_signature"]
+
+[formats.flight_image]
+extension = ".tnfsw"
+version = 1
+tables = ["meta", "flight_image", "flight_file", "flight_check", "key_signature"]
+
+[formats.key]
+extension = ".tnkey"
+version = 1
+tables = ["meta", "private_key"]

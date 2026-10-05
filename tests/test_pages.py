@@ -77,7 +77,7 @@ class Browser(unittest.TestCase):
             d = pathlib.Path(d)
             page = pages.build(d / "pages")["files"][0]
             node_file(d / "n1.node.tndb")
-            node_file(d / "newer.node.tndb", version=2)
+            node_file(d / "newer.node.tndb", version=tndb.schema()["formats"]["node"]["version"] + 1)
             r = subprocess.run([NODE, str(ROOT / "tests" / "browser" / "files.test.mjs"), str(page), str(d)],
                                capture_output=True, text=True, timeout=600, env={**os.environ, "PLAYWRIGHT_MODULE": str(PLAYWRIGHT)})
             sys.stdout.write(r.stdout[-4000:])

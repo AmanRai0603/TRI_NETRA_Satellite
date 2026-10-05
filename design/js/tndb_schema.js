@@ -3,6 +3,19 @@
 // it against this: the same tables, columns and format versions tools/tndb.py checks.
 export const TNDB_SCHEMA = {
  "ddl": {
+  "answer": [
+   "CREATE TABLE \"meta\" (\"key\" TEXT, \"value\" TEXT, PRIMARY KEY (\"key\"))",
+   "CREATE TABLE \"answer\" (\"release\" TEXT, \"answering_group\" TEXT, \"verdict\" TEXT, \"because\" TEXT, \"at\" TEXT, \"by\" TEXT, PRIMARY KEY (\"release\"))",
+   "CREATE TABLE \"key_signature\" (\"n\" INTEGER, \"role\" TEXT, \"signer\" TEXT, \"key_fingerprint\" TEXT, \"revision\" INTEGER, \"content_hash\" TEXT, \"at\" TEXT, \"statement\" TEXT, \"signature\" TEXT, PRIMARY KEY (\"n\"))"
+  ],
+  "case": [
+   "CREATE TABLE \"meta\" (\"key\" TEXT, \"value\" TEXT, PRIMARY KEY (\"key\"))",
+   "CREATE TABLE \"case_info\" (\"id\" TEXT, \"base\" TEXT, \"label\" TEXT, \"scenario\" TEXT, \"campaign\" TEXT, \"note\" TEXT, PRIMARY KEY (\"id\"))",
+   "CREATE TABLE \"case_line\" (\"ord\" INTEGER, \"section\" TEXT, \"key\" TEXT, \"label\" TEXT, \"unit\" TEXT, \"value\" TEXT, \"lo\" TEXT, \"hi\" TEXT, \"level\" TEXT, \"note\" TEXT, \"node\" TEXT, \"line\" TEXT, PRIMARY KEY (\"ord\"))",
+   "CREATE TABLE \"revision\" (\"n\" INTEGER, \"at\" TEXT, \"by\" TEXT, \"summary\" TEXT, PRIMARY KEY (\"n\"))",
+   "CREATE TABLE \"comment\" (\"id\" TEXT, \"at\" TEXT, \"by\" TEXT, \"about\" TEXT, \"parent\" TEXT, \"body\" TEXT, \"resolved\" INTEGER, PRIMARY KEY (\"id\"))",
+   "CREATE TABLE \"key_signature\" (\"n\" INTEGER, \"role\" TEXT, \"signer\" TEXT, \"key_fingerprint\" TEXT, \"revision\" INTEGER, \"content_hash\" TEXT, \"at\" TEXT, \"statement\" TEXT, \"signature\" TEXT, PRIMARY KEY (\"n\"))"
+  ],
   "design": [
    "CREATE TABLE \"meta\" (\"key\" TEXT, \"value\" TEXT, PRIMARY KEY (\"key\"))",
    "CREATE TABLE \"design_group\" (\"id\" TEXT, \"version\" TEXT, \"fingerprint\" TEXT, \"merged_at\" TEXT, PRIMARY KEY (\"id\"))",
@@ -10,7 +23,17 @@ export const TNDB_SCHEMA = {
    "CREATE TABLE \"edge\" (\"from_node\" TEXT, \"to_node\" TEXT, \"kind\" TEXT, \"label\" TEXT)",
    "CREATE TABLE \"catalogue_output\" (\"node\" TEXT, \"output\" TEXT, \"unit\" TEXT, \"version\" INTEGER, \"readers\" TEXT)",
    "CREATE TABLE \"design_case\" (\"case_id\" TEXT, \"ord\" INTEGER, \"section\" TEXT, \"key\" TEXT, \"label\" TEXT, \"unit\" TEXT, \"value\" TEXT, \"lo\" TEXT, \"hi\" TEXT, \"level\" TEXT, \"note\" TEXT, \"node\" TEXT, \"line\" TEXT, PRIMARY KEY (\"case_id\", \"ord\"))",
-   "CREATE TABLE \"engine_input\" (\"path\" TEXT, \"fingerprint\" TEXT, \"body\" BLOB, PRIMARY KEY (\"path\"))"
+   "CREATE TABLE \"engine_input\" (\"path\" TEXT, \"fingerprint\" TEXT, \"body\" BLOB, PRIMARY KEY (\"path\"))",
+   "CREATE TABLE \"design_release\" (\"version\" TEXT, \"kind\" TEXT, \"built_at\" TEXT, \"built_by\" TEXT, \"needs_application\" TEXT, \"toolbox\" TEXT, PRIMARY KEY (\"version\"))",
+   "CREATE TABLE \"integration_record\" (\"n\" INTEGER, \"at\" TEXT, \"by\" TEXT, \"release\" TEXT, \"check\" TEXT, \"result\" TEXT, \"note\" TEXT, PRIMARY KEY (\"n\"))",
+   "CREATE TABLE \"key_signature\" (\"n\" INTEGER, \"role\" TEXT, \"signer\" TEXT, \"key_fingerprint\" TEXT, \"revision\" INTEGER, \"content_hash\" TEXT, \"at\" TEXT, \"statement\" TEXT, \"signature\" TEXT, PRIMARY KEY (\"n\"))"
+  ],
+  "flight_image": [
+   "CREATE TABLE \"meta\" (\"key\" TEXT, \"value\" TEXT, PRIMARY KEY (\"key\"))",
+   "CREATE TABLE \"flight_image\" (\"target\" TEXT, \"design_version\" TEXT, \"design_fingerprint\" TEXT, \"runtime_version\" TEXT, \"toolchain\" TEXT, \"built_at\" TEXT, \"built_by\" TEXT, \"image_sha256\" TEXT, PRIMARY KEY (\"target\"))",
+   "CREATE TABLE \"flight_file\" (\"path\" TEXT, \"sha256\" TEXT, \"bytes\" BLOB, PRIMARY KEY (\"path\"))",
+   "CREATE TABLE \"flight_check\" (\"name\" TEXT, \"passed\" INTEGER, \"note\" TEXT, PRIMARY KEY (\"name\"))",
+   "CREATE TABLE \"key_signature\" (\"n\" INTEGER, \"role\" TEXT, \"signer\" TEXT, \"key_fingerprint\" TEXT, \"revision\" INTEGER, \"content_hash\" TEXT, \"at\" TEXT, \"statement\" TEXT, \"signature\" TEXT, PRIMARY KEY (\"n\"))"
   ],
   "group": [
    "CREATE TABLE \"meta\" (\"key\" TEXT, \"value\" TEXT, PRIMARY KEY (\"key\"))",
@@ -24,7 +47,21 @@ export const TNDB_SCHEMA = {
    "CREATE TABLE \"revision\" (\"n\" INTEGER, \"at\" TEXT, \"by\" TEXT, \"summary\" TEXT, PRIMARY KEY (\"n\"))",
    "CREATE TABLE \"comment\" (\"id\" TEXT, \"at\" TEXT, \"by\" TEXT, \"about\" TEXT, \"parent\" TEXT, \"body\" TEXT, \"resolved\" INTEGER, PRIMARY KEY (\"id\"))",
    "CREATE TABLE \"change_request\" (\"id\" TEXT, \"at\" TEXT, \"by\" TEXT, \"about\" TEXT, \"body\" TEXT, \"state\" TEXT, PRIMARY KEY (\"id\"))",
-   "CREATE TABLE \"signature\" (\"role\" TEXT, \"name\" TEXT, \"at\" TEXT, \"statement\" TEXT)"
+   "CREATE TABLE \"signature\" (\"role\" TEXT, \"name\" TEXT, \"at\" TEXT, \"statement\" TEXT)",
+   "CREATE TABLE \"group_frame\" (\"id\" TEXT, \"parent_group\" TEXT, \"base\" TEXT, \"subsystem_engineer\" TEXT, \"deputy\" TEXT, \"checker_required\" INTEGER, PRIMARY KEY (\"id\"))",
+   "CREATE TABLE \"mount\" (\"on_block\" TEXT, \"via\" TEXT, \"contract_version\" INTEGER, PRIMARY KEY (\"on_block\"))",
+   "CREATE TABLE \"member_key\" (\"name\" TEXT, \"role\" TEXT, \"public_key\" TEXT, \"fingerprint\" TEXT, \"deputy_of\" TEXT, \"registered_at\" TEXT, \"registered_by\" TEXT, PRIMARY KEY (\"name\"))",
+   "CREATE TABLE \"key_signature\" (\"n\" INTEGER, \"role\" TEXT, \"signer\" TEXT, \"key_fingerprint\" TEXT, \"revision\" INTEGER, \"content_hash\" TEXT, \"at\" TEXT, \"statement\" TEXT, \"signature\" TEXT, PRIMARY KEY (\"n\"))"
+  ],
+  "issue": [
+   "CREATE TABLE \"meta\" (\"key\" TEXT, \"value\" TEXT, PRIMARY KEY (\"key\"))",
+   "CREATE TABLE \"issue\" (\"id\" TEXT, \"group_id\" TEXT, \"node\" TEXT, \"at\" TEXT, \"by\" TEXT, \"title\" TEXT, \"body\" TEXT, \"evidence\" TEXT, \"addressed_to\" TEXT, \"state\" TEXT, \"closed_by\" TEXT, PRIMARY KEY (\"id\"))",
+   "CREATE TABLE \"comment\" (\"id\" TEXT, \"at\" TEXT, \"by\" TEXT, \"about\" TEXT, \"parent\" TEXT, \"body\" TEXT, \"resolved\" INTEGER, PRIMARY KEY (\"id\"))",
+   "CREATE TABLE \"key_signature\" (\"n\" INTEGER, \"role\" TEXT, \"signer\" TEXT, \"key_fingerprint\" TEXT, \"revision\" INTEGER, \"content_hash\" TEXT, \"at\" TEXT, \"statement\" TEXT, \"signature\" TEXT, PRIMARY KEY (\"n\"))"
+  ],
+  "key": [
+   "CREATE TABLE \"meta\" (\"key\" TEXT, \"value\" TEXT, PRIMARY KEY (\"key\"))",
+   "CREATE TABLE \"private_key\" (\"name\" TEXT, \"public_key\" TEXT, \"fingerprint\" TEXT, \"kdf_iterations\" INTEGER, \"salt\" TEXT, \"nonce\" TEXT, \"sealed_private\" TEXT, \"created\" TEXT, PRIMARY KEY (\"name\"))"
   ],
   "node": [
    "CREATE TABLE \"meta\" (\"key\" TEXT, \"value\" TEXT, PRIMARY KEY (\"key\"))",
@@ -37,7 +74,12 @@ export const TNDB_SCHEMA = {
    "CREATE TABLE \"revision\" (\"n\" INTEGER, \"at\" TEXT, \"by\" TEXT, \"summary\" TEXT, PRIMARY KEY (\"n\"))",
    "CREATE TABLE \"comment\" (\"id\" TEXT, \"at\" TEXT, \"by\" TEXT, \"about\" TEXT, \"parent\" TEXT, \"body\" TEXT, \"resolved\" INTEGER, PRIMARY KEY (\"id\"))",
    "CREATE TABLE \"change_request\" (\"id\" TEXT, \"at\" TEXT, \"by\" TEXT, \"about\" TEXT, \"body\" TEXT, \"state\" TEXT, PRIMARY KEY (\"id\"))",
-   "CREATE TABLE \"signature\" (\"role\" TEXT, \"name\" TEXT, \"at\" TEXT, \"statement\" TEXT)"
+   "CREATE TABLE \"signature\" (\"role\" TEXT, \"name\" TEXT, \"at\" TEXT, \"statement\" TEXT)",
+   "CREATE TABLE \"block\" (\"id\" TEXT, \"parent\" TEXT, \"perspective\" TEXT, \"behaviour\" TEXT, \"owner\" TEXT, \"estimate\" TEXT, PRIMARY KEY (\"id\"))",
+   "CREATE TABLE \"port\" (\"name\" TEXT, \"direction\" TEXT, \"type\" TEXT, \"state\" TEXT, \"maturity\" TEXT, \"sense\" TEXT, \"owner\" TEXT, \"due_gate\" TEXT, \"bundle\" TEXT, PRIMARY KEY (\"name\", \"direction\"))",
+   "CREATE TABLE \"loop\" (\"id\" TEXT, \"settles\" TEXT, \"tolerance\" REAL, \"max_iterations\" INTEGER, \"note\" TEXT, PRIMARY KEY (\"id\"))",
+   "CREATE TABLE \"closure\" (\"id\" TEXT, \"requirement\" TEXT, \"achieved\" TEXT, \"sense\" TEXT, \"by\" TEXT, \"metric\" TEXT, \"campaign\" TEXT, PRIMARY KEY (\"id\"))",
+   "CREATE TABLE \"key_signature\" (\"n\" INTEGER, \"role\" TEXT, \"signer\" TEXT, \"key_fingerprint\" TEXT, \"revision\" INTEGER, \"content_hash\" TEXT, \"at\" TEXT, \"statement\" TEXT, \"signature\" TEXT, PRIMARY KEY (\"n\"))"
   ],
   "release": [
    "CREATE TABLE \"meta\" (\"key\" TEXT, \"value\" TEXT, PRIMARY KEY (\"key\"))",
@@ -48,10 +90,34 @@ export const TNDB_SCHEMA = {
    "CREATE TABLE \"group_node\" (\"id\" TEXT, \"sheet\" TEXT, \"stage\" TEXT, \"layer\" TEXT, \"kind\" TEXT, \"label\" TEXT, \"state\" TEXT, PRIMARY KEY (\"id\"))",
    "CREATE TABLE \"edge\" (\"from_node\" TEXT, \"to_node\" TEXT, \"kind\" TEXT, \"label\" TEXT)",
    "CREATE TABLE \"contract\" (\"node\" TEXT, \"output\" TEXT, \"unit\" TEXT, \"version\" INTEGER, \"readers\" TEXT)",
-   "CREATE TABLE \"signature\" (\"role\" TEXT, \"name\" TEXT, \"at\" TEXT, \"statement\" TEXT)"
+   "CREATE TABLE \"signature\" (\"role\" TEXT, \"name\" TEXT, \"at\" TEXT, \"statement\" TEXT)",
+   "CREATE TABLE \"group_frame\" (\"id\" TEXT, \"parent_group\" TEXT, \"base\" TEXT, \"subsystem_engineer\" TEXT, \"deputy\" TEXT, \"checker_required\" INTEGER, PRIMARY KEY (\"id\"))",
+   "CREATE TABLE \"mount\" (\"on_block\" TEXT, \"via\" TEXT, \"contract_version\" INTEGER, PRIMARY KEY (\"on_block\"))",
+   "CREATE TABLE \"key_signature\" (\"n\" INTEGER, \"role\" TEXT, \"signer\" TEXT, \"key_fingerprint\" TEXT, \"revision\" INTEGER, \"content_hash\" TEXT, \"at\" TEXT, \"statement\" TEXT, \"signature\" TEXT, PRIMARY KEY (\"n\"))"
   ]
  },
  "formats": {
+  "answer": {
+   "extension": ".tnanswer",
+   "tables": [
+    "meta",
+    "answer",
+    "key_signature"
+   ],
+   "version": 1
+  },
+  "case": {
+   "extension": ".tncase",
+   "tables": [
+    "meta",
+    "case_info",
+    "case_line",
+    "revision",
+    "comment",
+    "key_signature"
+   ],
+   "version": 1
+  },
   "design": {
    "extension": ".tndb",
    "tables": [
@@ -61,9 +127,23 @@ export const TNDB_SCHEMA = {
     "edge",
     "catalogue_output",
     "design_case",
-    "engine_input"
+    "engine_input",
+    "design_release",
+    "integration_record",
+    "key_signature"
    ],
-   "version": 2
+   "version": 3
+  },
+  "flight_image": {
+   "extension": ".tnfsw",
+   "tables": [
+    "meta",
+    "flight_image",
+    "flight_file",
+    "flight_check",
+    "key_signature"
+   ],
+   "version": 1
   },
   "group": {
    "extension": ".group.tndb",
@@ -79,7 +159,29 @@ export const TNDB_SCHEMA = {
     "revision",
     "comment",
     "change_request",
-    "signature"
+    "signature",
+    "group_frame",
+    "mount",
+    "member_key",
+    "key_signature"
+   ],
+   "version": 2
+  },
+  "issue": {
+   "extension": ".tnissue",
+   "tables": [
+    "meta",
+    "issue",
+    "comment",
+    "key_signature"
+   ],
+   "version": 1
+  },
+  "key": {
+   "extension": ".tnkey",
+   "tables": [
+    "meta",
+    "private_key"
    ],
    "version": 1
   },
@@ -98,9 +200,14 @@ export const TNDB_SCHEMA = {
     "revision",
     "comment",
     "change_request",
-    "signature"
+    "signature",
+    "block",
+    "port",
+    "loop",
+    "closure",
+    "key_signature"
    ],
-   "version": 1
+   "version": 2
   },
   "release": {
    "extension": ".tnrel",
@@ -113,13 +220,48 @@ export const TNDB_SCHEMA = {
     "group_node",
     "edge",
     "contract",
-    "signature"
+    "signature",
+    "group_frame",
+    "mount",
+    "key_signature"
    ],
-   "version": 1
+   "version": 2
   }
  },
  "schema": "trinetra-design-schema/1",
  "tables": {
+  "answer": [
+   [
+    "release",
+    "text",
+    true
+   ],
+   [
+    "answering_group",
+    "text",
+    false
+   ],
+   [
+    "verdict",
+    "text",
+    false
+   ],
+   [
+    "because",
+    "text",
+    false
+   ],
+   [
+    "at",
+    "text",
+    false
+   ],
+   [
+    "by",
+    "text",
+    false
+   ]
+  ],
   "attachment": [
    [
     "name",
@@ -139,6 +281,132 @@ export const TNDB_SCHEMA = {
    [
     "bytes",
     "blob",
+    false
+   ]
+  ],
+  "block": [
+   [
+    "id",
+    "text",
+    true
+   ],
+   [
+    "parent",
+    "text",
+    false
+   ],
+   [
+    "perspective",
+    "text",
+    false
+   ],
+   [
+    "behaviour",
+    "text",
+    false
+   ],
+   [
+    "owner",
+    "text",
+    false
+   ],
+   [
+    "estimate",
+    "text",
+    false
+   ]
+  ],
+  "case_info": [
+   [
+    "id",
+    "text",
+    true
+   ],
+   [
+    "base",
+    "text",
+    false
+   ],
+   [
+    "label",
+    "text",
+    false
+   ],
+   [
+    "scenario",
+    "text",
+    false
+   ],
+   [
+    "campaign",
+    "text",
+    false
+   ],
+   [
+    "note",
+    "text",
+    false
+   ]
+  ],
+  "case_line": [
+   [
+    "ord",
+    "integer",
+    true
+   ],
+   [
+    "section",
+    "text",
+    false
+   ],
+   [
+    "key",
+    "text",
+    false
+   ],
+   [
+    "label",
+    "text",
+    false
+   ],
+   [
+    "unit",
+    "text",
+    false
+   ],
+   [
+    "value",
+    "text",
+    false
+   ],
+   [
+    "lo",
+    "text",
+    false
+   ],
+   [
+    "hi",
+    "text",
+    false
+   ],
+   [
+    "level",
+    "text",
+    false
+   ],
+   [
+    "note",
+    "text",
+    false
+   ],
+   [
+    "node",
+    "text",
+    false
+   ],
+   [
+    "line",
+    "text",
     false
    ]
   ],
@@ -197,6 +465,43 @@ export const TNDB_SCHEMA = {
    ],
    [
     "state",
+    "text",
+    false
+   ]
+  ],
+  "closure": [
+   [
+    "id",
+    "text",
+    true
+   ],
+   [
+    "requirement",
+    "text",
+    false
+   ],
+   [
+    "achieved",
+    "text",
+    false
+   ],
+   [
+    "sense",
+    "text",
+    false
+   ],
+   [
+    "by",
+    "text",
+    false
+   ],
+   [
+    "metric",
+    "text",
+    false
+   ],
+   [
+    "campaign",
     "text",
     false
    ]
@@ -418,6 +723,38 @@ export const TNDB_SCHEMA = {
     false
    ]
   ],
+  "design_release": [
+   [
+    "version",
+    "text",
+    true
+   ],
+   [
+    "kind",
+    "text",
+    false
+   ],
+   [
+    "built_at",
+    "text",
+    false
+   ],
+   [
+    "built_by",
+    "text",
+    false
+   ],
+   [
+    "needs_application",
+    "text",
+    false
+   ],
+   [
+    "toolbox",
+    "text",
+    false
+   ]
+  ],
   "edge": [
    [
     "from_node",
@@ -485,6 +822,114 @@ export const TNDB_SCHEMA = {
    ],
    [
     "outside",
+    "integer",
+    false
+   ]
+  ],
+  "flight_check": [
+   [
+    "name",
+    "text",
+    true
+   ],
+   [
+    "passed",
+    "integer",
+    false
+   ],
+   [
+    "note",
+    "text",
+    false
+   ]
+  ],
+  "flight_file": [
+   [
+    "path",
+    "text",
+    true
+   ],
+   [
+    "sha256",
+    "text",
+    false
+   ],
+   [
+    "bytes",
+    "blob",
+    false
+   ]
+  ],
+  "flight_image": [
+   [
+    "target",
+    "text",
+    true
+   ],
+   [
+    "design_version",
+    "text",
+    false
+   ],
+   [
+    "design_fingerprint",
+    "text",
+    false
+   ],
+   [
+    "runtime_version",
+    "text",
+    false
+   ],
+   [
+    "toolchain",
+    "text",
+    false
+   ],
+   [
+    "built_at",
+    "text",
+    false
+   ],
+   [
+    "built_by",
+    "text",
+    false
+   ],
+   [
+    "image_sha256",
+    "text",
+    false
+   ]
+  ],
+  "group_frame": [
+   [
+    "id",
+    "text",
+    true
+   ],
+   [
+    "parent_group",
+    "text",
+    false
+   ],
+   [
+    "base",
+    "text",
+    false
+   ],
+   [
+    "subsystem_engineer",
+    "text",
+    false
+   ],
+   [
+    "deputy",
+    "text",
+    false
+   ],
+   [
+    "checker_required",
     "integer",
     false
    ]
@@ -570,6 +1015,174 @@ export const TNDB_SCHEMA = {
     false
    ]
   ],
+  "integration_record": [
+   [
+    "n",
+    "integer",
+    true
+   ],
+   [
+    "at",
+    "text",
+    false
+   ],
+   [
+    "by",
+    "text",
+    false
+   ],
+   [
+    "release",
+    "text",
+    false
+   ],
+   [
+    "check",
+    "text",
+    false
+   ],
+   [
+    "result",
+    "text",
+    false
+   ],
+   [
+    "note",
+    "text",
+    false
+   ]
+  ],
+  "issue": [
+   [
+    "id",
+    "text",
+    true
+   ],
+   [
+    "group_id",
+    "text",
+    false
+   ],
+   [
+    "node",
+    "text",
+    false
+   ],
+   [
+    "at",
+    "text",
+    false
+   ],
+   [
+    "by",
+    "text",
+    false
+   ],
+   [
+    "title",
+    "text",
+    false
+   ],
+   [
+    "body",
+    "text",
+    false
+   ],
+   [
+    "evidence",
+    "text",
+    false
+   ],
+   [
+    "addressed_to",
+    "text",
+    false
+   ],
+   [
+    "state",
+    "text",
+    false
+   ],
+   [
+    "closed_by",
+    "text",
+    false
+   ]
+  ],
+  "key_signature": [
+   [
+    "n",
+    "integer",
+    true
+   ],
+   [
+    "role",
+    "text",
+    false
+   ],
+   [
+    "signer",
+    "text",
+    false
+   ],
+   [
+    "key_fingerprint",
+    "text",
+    false
+   ],
+   [
+    "revision",
+    "integer",
+    false
+   ],
+   [
+    "content_hash",
+    "text",
+    false
+   ],
+   [
+    "at",
+    "text",
+    false
+   ],
+   [
+    "statement",
+    "text",
+    false
+   ],
+   [
+    "signature",
+    "text",
+    false
+   ]
+  ],
+  "loop": [
+   [
+    "id",
+    "text",
+    true
+   ],
+   [
+    "settles",
+    "text",
+    false
+   ],
+   [
+    "tolerance",
+    "real",
+    false
+   ],
+   [
+    "max_iterations",
+    "integer",
+    false
+   ],
+   [
+    "note",
+    "text",
+    false
+   ]
+  ],
   "member": [
    [
     "name",
@@ -578,6 +1191,43 @@ export const TNDB_SCHEMA = {
    ],
    [
     "role",
+    "text",
+    false
+   ]
+  ],
+  "member_key": [
+   [
+    "name",
+    "text",
+    true
+   ],
+   [
+    "role",
+    "text",
+    false
+   ],
+   [
+    "public_key",
+    "text",
+    false
+   ],
+   [
+    "fingerprint",
+    "text",
+    false
+   ],
+   [
+    "deputy_of",
+    "text",
+    false
+   ],
+   [
+    "registered_at",
+    "text",
+    false
+   ],
+   [
+    "registered_by",
     "text",
     false
    ]
@@ -608,6 +1258,23 @@ export const TNDB_SCHEMA = {
    [
     "value",
     "text",
+    false
+   ]
+  ],
+  "mount": [
+   [
+    "on_block",
+    "text",
+    true
+   ],
+   [
+    "via",
+    "text",
+    false
+   ],
+   [
+    "contract_version",
+    "integer",
     false
    ]
   ],
@@ -691,6 +1358,95 @@ export const TNDB_SCHEMA = {
    ],
    [
     "reason_upper",
+    "text",
+    false
+   ]
+  ],
+  "port": [
+   [
+    "name",
+    "text",
+    true
+   ],
+   [
+    "direction",
+    "text",
+    true
+   ],
+   [
+    "type",
+    "text",
+    false
+   ],
+   [
+    "state",
+    "text",
+    false
+   ],
+   [
+    "maturity",
+    "text",
+    false
+   ],
+   [
+    "sense",
+    "text",
+    false
+   ],
+   [
+    "owner",
+    "text",
+    false
+   ],
+   [
+    "due_gate",
+    "text",
+    false
+   ],
+   [
+    "bundle",
+    "text",
+    false
+   ]
+  ],
+  "private_key": [
+   [
+    "name",
+    "text",
+    true
+   ],
+   [
+    "public_key",
+    "text",
+    false
+   ],
+   [
+    "fingerprint",
+    "text",
+    false
+   ],
+   [
+    "kdf_iterations",
+    "integer",
+    false
+   ],
+   [
+    "salt",
+    "text",
+    false
+   ],
+   [
+    "nonce",
+    "text",
+    false
+   ],
+   [
+    "sealed_private",
+    "text",
+    false
+   ],
+   [
+    "created",
     "text",
     false
    ]

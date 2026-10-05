@@ -1,10 +1,14 @@
-//! The design files (`design/schema.toml`, docs/RELEASE_PLAN.md P1), read from Rust.
+//! The design files (`design/schema.toml`): the one library that reads, makes, upgrades, checks,
+//! signs and compares them (docs/PLAN_2_0.md S2; docs/CODE_ARCHITECTURE.md, part 2).
 //!
-//! The schema is compiled in. A file is opened read-only: its `meta` names its format and format
-//! version; a file of this version opens, an older one is named (tools/tndb.py upgrades it, keeping
-//! the original), a newer one is refused (this program cannot know what it holds). `check` names
-//! every table and column that is not what the schema says, as tools/tndb.py does; `ddl` is the SQL
-//! that makes a file of a kind, and the tests hold it to design/ddl.sql, which tools/tndb.py writes.
+//! The schema is compiled in. [`open`] opens a file read-only: its `meta` names its format and
+//! format version; a file of this version opens, an older one is named, a newer one is refused (this
+//! program cannot know what it holds). [`write::upgrade`] brings an older file up in place, keeping
+//! a copy (`<file>.v<N>.bak`), losslessly: every step only adds tables. [`write::create`] makes a new
+//! file whole. [`check`] names every table and column that is not what the schema says, as
+//! tools/tndb.py does; `ddl` is the SQL that makes a file of a kind, and the tests hold it to
+//! design/ddl.sql, which tools/tndb.py writes. [`content`] is the canonical content a signature
+//! covers, [`keys`] the people's keys and the signature chain, [`compare`] two files side by side.
 //!
 //! Owner: Agastya. Copyright (c) 2026 Agastya. All rights reserved.
 use std::collections::BTreeMap;
@@ -13,6 +17,12 @@ use std::path::Path;
 
 use rusqlite::{types::ValueRef, Connection, OpenFlags};
 use serde::Deserialize;
+
+pub mod chain;
+pub mod compare;
+pub mod content;
+pub mod keys;
+pub mod write;
 
 /// design/schema.toml as this program was built with it.
 pub const SCHEMA_TOML: &str = include_str!("../../../../design/schema.toml");
@@ -137,7 +147,7 @@ pub struct DesignFile {
     pub conn: Connection,
 }
 
-fn meta(conn: &Connection) -> Result<BTreeMap<String, String>, FormatError> {
+pub(crate) fn meta(conn: &Connection) -> Result<BTreeMap<String, String>, FormatError> {
     let mut st = conn
         .prepare("SELECT \"key\", \"value\" FROM meta")
         .map_err(|e| FormatError(format!("no meta table: not a design file ({e})")))?;
@@ -314,7 +324,7 @@ mod tests {
     fn a_node_reads_its_rows_and_a_big_picture_is_named() {
         let s = Schema::embedded().unwrap();
         let p = tmp("pic.node.tndb");
-        let c = make(&p, "node", "1", &s);
+        let c = make(&p, "node", &s.formats["node"].version.to_string(), &s);
         c.execute("INSERT INTO content VALUES ('spec', 'symbol', 't_epoch', 'spec:seed_content.toml')", []).unwrap();
         c.execute("INSERT INTO attachment VALUES ('big.png', 'image/png', 600000, x'00')", []).unwrap();
         drop(c);
@@ -331,11 +341,12 @@ mod tests {
     fn a_wrong_kind_an_older_and_a_newer_file_are_named() {
         let s = Schema::embedded().unwrap();
         let p = tmp("v.node.tndb");
-        drop(make(&p, "node", "1", &s));
+        let v = s.formats["node"].version;
+        drop(make(&p, "node", &v.to_string(), &s));
         assert!(open(&p, Some("group"), &s).unwrap_err().0.contains("a node file, not a group file"));
         let mut newer = s.clone();
-        newer.formats.get_mut("node").unwrap().version = 2;
-        assert!(open(&p, None, &newer).unwrap_err().0.contains("older than this program's 2"));
+        newer.formats.get_mut("node").unwrap().version = v + 1;
+        assert!(open(&p, None, &newer).unwrap_err().0.contains(&format!("older than this program's {}", v + 1)));
         let mut older = s.clone();
         older.formats.get_mut("node").unwrap().version = 0;
         assert!(open(&p, None, &older).unwrap_err().0.contains("newer than this program's 0"));
@@ -346,7 +357,7 @@ mod tests {
     fn a_missing_table_and_a_stray_one_are_named() {
         let s = Schema::embedded().unwrap();
         let p = tmp("torn.node.tndb");
-        let c = make(&p, "node", "1", &s);
+        let c = make(&p, "node", &s.formats["node"].version.to_string(), &s);
         c.execute("DROP TABLE fixture", []).unwrap();
         c.execute("CREATE TABLE extra (x TEXT)", []).unwrap();
         drop(c);
@@ -354,5 +365,75 @@ mod tests {
         assert!(e.iter().any(|x| x.contains("table fixture missing")));
         assert!(e.iter().any(|x| x.contains("table extra is not in the node format")));
         std::fs::remove_file(&p).unwrap();
+    }
+
+    /// A format-1 file as 1.0.0 wrote it: today's tables less those format 2 added.
+    fn old_node(p: &Path, s: &Schema) -> Connection {
+        let c = make(p, "node", "1", s);
+        for t in ["block", "port", "loop", "closure", "key_signature"] {
+            c.execute(&format!("DROP TABLE \"{t}\""), []).unwrap();
+        }
+        c.execute("INSERT INTO node VALUES ('gd_1', 'sheet', 'env', 's', '2', 'leaf', 'Aerodynamic torque', 'draft', 'Asha', 1)", []).unwrap();
+        c.execute("INSERT INTO content VALUES ('code', 'pseudocode', 'fn f(x: real) -> y: real\n  y = x\nend', 'spec')", []).unwrap();
+        c.execute("INSERT INTO output VALUES ('tau', 'N m', 0.0, 1e-3, 'none', 'cap')", []).unwrap();
+        c.execute("INSERT INTO signature VALUES ('author', 'Asha', '2026-10-01', 'ready')", []).unwrap();
+        c
+    }
+
+    #[test]
+    fn an_old_file_upgrades_with_nothing_dropped_and_a_copy_kept() {
+        let s = Schema::embedded().unwrap();
+        let p = tmp("old.node.tndb");
+        let _ = std::fs::remove_file(p.with_file_name("trinetra-design-old.bak"));
+        drop(old_node(&p, &s));
+        assert!(open(&p, None, &s).unwrap_err().0.contains("older than this program's"));
+        let before: Vec<String> = ["node", "content", "output", "signature"].iter().map(|t| {
+            let c = Connection::open(&p).unwrap();
+            let n: i64 = c.query_row(&format!("SELECT count(*) FROM \"{t}\""), [], |r| r.get(0)).unwrap();
+            format!("{t}:{n}")
+        }).collect();
+        let u = write::upgrade(&p, Some("node"), &s).unwrap();
+        assert_eq!(u.from, Some(1));
+        let backup = u.backup.unwrap();
+        assert!(backup.is_file() && backup.to_string_lossy().ends_with(".v1.bak"));
+        assert_eq!(check(&p, &s), Vec::<String>::new());
+        let f = open(&p, Some("node"), &s).unwrap();
+        let after: Vec<String> = ["node", "content", "output", "signature"].iter().map(|t| format!("{t}:{}", f.rows(t, &s).unwrap().len())).collect();
+        assert_eq!(before, after);
+        assert_eq!(f.rows("output", &s).unwrap()[0][3], Cell::Real(1e-3));
+        // the copy is the file as it was, and the two differ only by what was added
+        let mut s1 = s.clone();
+        s1.formats.get_mut("node").unwrap().version = 1;
+        s1.formats.get_mut("node").unwrap().tables.retain(|t| !["block", "port", "loop", "closure", "key_signature"].contains(&t.as_str()));
+        let old = open(&backup, Some("node"), &s1).unwrap();
+        let mut f1 = open(&p, Some("node"), &s).unwrap();
+        f1.kind = "node".into();
+        assert_eq!(compare::compare(&old, &DesignFile { kind: "node".into(), meta: f1.meta.clone(), conn: Connection::open(&p).unwrap() }, &s1, true).unwrap(), vec![]);
+        assert_eq!(write::upgrade(&p, None, &s).unwrap(), write::Upgraded { from: None, backup: None }, "a current file is left alone");
+        let _ = std::fs::remove_file(&p);
+        let _ = std::fs::remove_file(&backup);
+    }
+
+    #[test]
+    fn a_new_file_is_made_whole_and_its_content_hash_moves_with_its_content() {
+        let s = Schema::embedded().unwrap();
+        let p = tmp("made.node.tndb");
+        write::create(&p, "node", "gd_1", &s, |c| {
+            write::insert(c, "block", &[vec![Cell::Text("gd_1".into()), Cell::Text("gd".into()), Cell::Text("system".into()),
+                Cell::Text("method".into()), Cell::Text("Asha".into()), Cell::Null]], &s)
+        }).unwrap();
+        assert!(write::create(&p, "node", "gd_1", &s, |_| Ok(())).unwrap_err().0.contains("never overwritten"));
+        assert_eq!(check(&p, &s), Vec::<String>::new());
+        let f = open(&p, Some("node"), &s).unwrap();
+        assert_eq!(f.meta["written_by"], write::PROGRAM);
+        let h1 = content::content_hash(&f, &s).unwrap();
+        drop(f);
+        // a comment is not content; a port is
+        let c = Connection::open(&p).unwrap();
+        c.execute("INSERT INTO comment VALUES ('1', 'now', 'Ravi', 'gd_1', NULL, 'why?', 0)", []).unwrap();
+        assert_eq!(content::content_hash(&open(&p, None, &s).unwrap(), &s).unwrap(), h1);
+        c.execute("INSERT INTO port VALUES ('tau', 'out', 'number', 'achieved', 'estimated', NULL, NULL, NULL, NULL)", []).unwrap();
+        assert_ne!(content::content_hash(&open(&p, None, &s).unwrap(), &s).unwrap(), h1);
+        let _ = std::fs::remove_file(&p);
     }
 }

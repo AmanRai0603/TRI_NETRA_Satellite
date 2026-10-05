@@ -72,7 +72,7 @@ def ddl(kind, s=None):
 
 
 # Upgrade steps: {kind: {from_version: function(connection)}}; each takes a file one version up.
-UPGRADES = {kind: {} for kind in ("node", "group", "release", "design")}
+UPGRADES = {kind: {} for kind in ("node", "group", "release", "design", "issue", "answer", "case", "flight_image", "key")}
 
 
 def _design_1_to_2(conn):
@@ -85,6 +85,25 @@ def _design_1_to_2(conn):
 
 
 UPGRADES["design"][1] = _design_1_to_2
+
+
+def _add_new_tables(kind):
+    """An upgrade that only adds the tables this kind's format gained (2.0.0's block model, S2):
+    nothing the file holds is changed or moved, so it is lossless by construction."""
+    def step(conn):
+        have = {r[0] for r in conn.execute("SELECT name FROM sqlite_master WHERE type = 'table'")}
+        for st in ddl(kind):
+            name = st.split('"')[1]
+            if name not in have:
+                conn.execute(st)
+    step.__doc__ = f"{kind}: add the 2.0.0 tables, empty"
+    return step
+
+
+UPGRADES["node"][1] = _add_new_tables("node")
+UPGRADES["group"][1] = _add_new_tables("group")
+UPGRADES["release"][1] = _add_new_tables("release")
+UPGRADES["design"][2] = _add_new_tables("design")
 
 
 def _meta(conn):

@@ -5,7 +5,7 @@
 // from disk with nothing fetched from anywhere, and at phone width.
 //
 //   node tests/browser/files.test.mjs PAGE.html FIXTURES_DIR
-// FIXTURES_DIR holds n1.node.tndb (a node file), newer.node.tndb (format version 2) and is where
+// FIXTURES_DIR holds n1.node.tndb (a node file), newer.node.tndb (a format version newer than this page's) and is where
 // the test writes saved.node.tndb (what the page saved, for tools/tndb.py check). tests/test_pages.py
 // makes them and runs this.
 //

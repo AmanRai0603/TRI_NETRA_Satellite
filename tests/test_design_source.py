@@ -65,7 +65,7 @@ class Inputs(unittest.TestCase):
             self.assertEqual(fp, design_inputs.fnv_hex(b), p)
             self.assertEqual(b, (design_inputs.DATA / p).read_bytes(), p)
         self.assertIn("data/scenarios/nadir_hold_ais.json", held)
-        self.assertEqual(meta["format_version"], "2")
+        self.assertEqual(meta["format_version"], str(tndb.schema()["formats"]["design"]["version"]))
         self.assertEqual(meta["inputs_fingerprint"], design_inputs.gather()[2])
         self.assertEqual(tndb.check(self.db), [])
 
