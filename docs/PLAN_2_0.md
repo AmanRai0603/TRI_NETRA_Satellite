@@ -22,8 +22,8 @@
 > 1.0.0's numbers, which you upload by hand. **Zip 2** (the application) follows at S9. Every phase is proven in CI
 > and merged into `main` on your word. Nothing is tagged until S17.
 >
-> **Kind:** explanation + plan · **For:** everyone · **Status:** proposed 5 Oct 2026, waiting for your decisions
-> ("What needs your word")
+> **Kind:** explanation + plan · **For:** everyone · **Status:** decisions taken **as proposed** by the owner (5 Oct 2026);
+> in progress, phase by phase ("Progress", at the end)
 
 What 2.0.0 is, is in two documents:
 - **the design model**, `docs/SYSTEM_MODEL.md`, including what is database and what is code (§7, and §7.1 for
@@ -723,3 +723,11 @@ supplies a relation.
 | roadmap U3 (was v1.4) | S14 |
 | roadmap U4 (was v1.5) | S15 |
 | roadmap U5 (was v2.0) | S16, and board campaigns after |
+
+## Progress
+
+| phase | state | evidence |
+|---|---|---|
+| S0 Safe ground | built, waiting for your approval of the notes text | `tests/test_safe_ground.py`; `docs/RELEASE_NOTES_1_0_0_CORRECTION.md` |
+| S1 Rules, roles, the model | written, waiting for your approval (with a second reviewer) | `docs/SYSTEM_MODEL.md`, `docs/OPERATING_2_0.md`, `docs/CODE_ARCHITECTURE.md`, `design/rules_2_0.toml` (R01–R16), `design/tree_2_0.toml` (21 groups and their mounts), `docs/GLOSSARY.md` (the words of 2.0.0), `CONTRIBUTING.md` (toward 2.0.0) |
+| S2 Files, versions and keys | next, after your approval of S1 | |

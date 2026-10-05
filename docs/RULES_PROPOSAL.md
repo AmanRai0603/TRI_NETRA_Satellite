@@ -1,5 +1,8 @@
 # The rule change for 1.0.0 (proposed, awaiting the owner's approval)
 
+> **Describes 1.0.0.** Replaced for 2.0.0 by the design's rules in `design/rules_2_0.toml` (described in `docs/OPERATING_2_0.md`) and the code's rules in `docs/CODE_ARCHITECTURE.md` §4.
+
+
 **In one line:** the spec says a node's content comes only from a node form checked by intake and written by the developer team; this proposes that it comes from its group's sealed release instead, with the node form kept as a way in, and SPEC §3.2 and §5.10–5.11 rewritten to say so (`docs/RELEASE_PLAN.md` P9).
 
 **Status:** proposed. SPEC.md is not changed until the owner approves this page. `CONTRIBUTING.md` and `docs/CHANGING.md` already describe the new way for the apps; the spec's text still describes the old one.

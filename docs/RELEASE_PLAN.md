@@ -1,5 +1,7 @@
 # TRI-NETRA: the plan to release 1.0.0
 
+> **Describes 1.0.0.** Its §1 (the whole system) is replaced for 2.0.0 by `docs/OPERATING_2_0.md` and `docs/SYSTEM_MODEL.md`; it stays the record of how 1.0.0 was built and what is in use until the switch-over.
+
 > **Answer first.** 1.0.0 sets TRI-NETRA's architecture end to end, for **every** part of the design
 > at once: the whole ADCS tree (734 nodes today in 20 groups, each one discipline) lives in database files that the people who
 > own each part write themselves (a **node app** for each author, a **group app** for each lead); the

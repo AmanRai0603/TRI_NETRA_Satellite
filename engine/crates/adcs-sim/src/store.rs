@@ -100,8 +100,8 @@ pub fn provenance(c: &crate::config::Config, fsw: &str, fsw_id: &str) -> Value {
     let input_hash = fnv(format!("{}|{}|{}|{}|{}|{}", hex(case_h), hex(scen_h), hex(prod_h), ov.join(";"), c.seed, fsw).as_bytes());
     let mut differs = ov.clone();
     if c.seed != 1 { differs.push(format!("seed={}", c.seed)); }
-    let design = crate::source::current().ok().flatten().map(|d| json!({"fingerprint": d.fingerprint,
-        "file": d.file.file_name().map(|n| n.to_string_lossy().into_owned()).unwrap_or_default()}));
+    let design = crate::source::current().ok().flatten().map(|d| json!({"fingerprint": d.fingerprint, "version": d.version,
+        "toolbox": d.toolbox, "file": d.file.file_name().map(|n| n.to_string_lossy().into_owned()).unwrap_or_default()}));
     // paths inside the data folder are recorded relative to it, so a manifest names no machine
     let root = crate::data_root();
     let rel = |p: &str| -> String {
@@ -474,6 +474,16 @@ pub fn stale(f: &Found) -> Vec<String> {
     }
     let i = &m["inputs"];
     if i.is_null() { why.push("recorded before runs named their inputs".into()); return why; }
+    // flown from a design: stale when the design in use now is another one
+    if let Some(was) = i["design"]["fingerprint"].as_str() {
+        if let Ok(Some(d)) = crate::source::current() {
+            if d.fingerprint != was {
+                let name = |v: &Value, fp: &str| v.as_str().map(|x| format!("design {x}")).unwrap_or_else(|| format!("design {}", &fp[..fp.len().min(12)]));
+                why.push(format!("flown on {}, the design in use is {}", name(&i["design"]["version"], was),
+                    name(&d.version.clone().map(Value::from).unwrap_or(Value::Null), &d.fingerprint)));
+            }
+        }
+    }
     let root = crate::data_root();
     let now = |key: &str| -> Option<Option<String>> {
         let f = i[key].as_str()?;

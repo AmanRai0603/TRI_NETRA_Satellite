@@ -65,8 +65,32 @@ pub fn store_root() -> std::path::PathBuf {
     root.join("store")
 }
 
-/// The DE440 kernel the POP port reads: $ADCS_DE440, else matlab_sils/pop/03_frames_time/ephemeris/data/de440s.bsp.
+/// Where the DE440 kernel sits under a data folder.
+const DE440_REL: &str = "pop/03_frames_time/ephemeris/data/de440s.bsp";
+
+/// The places the DE440 kernel is looked for, in order: $ADCS_DE440; the data folder; beside the
+/// program (a released kit); the checkout this program was built from. The physics data ships
+/// with the program, so a design read from a database, run from any folder, still finds it.
+pub fn pop_kernel_candidates() -> Vec<std::path::PathBuf> {
+    if let Some(p) = std::env::var_os("ADCS_DE440").filter(|p| !p.is_empty()) { return vec![p.into()]; }
+    let mut v = vec![data_root().join(DE440_REL)];
+    if let Some(k) = kit_root() { v.push(k.join(DE440_REL)); }
+    v.push(std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../matlab_sils").join(DE440_REL));
+    v.dedup();
+    v
+}
+
+/// The DE440 kernel the POP port reads: the first of [`pop_kernel_candidates`] that exists, else
+/// the first (so the error names where it was looked for; see [`pop_kernel_missing`]).
 pub fn pop_kernel() -> std::path::PathBuf {
-    if let Some(p) = std::env::var_os("ADCS_DE440").filter(|p| !p.is_empty()) { return p.into(); }
-    data_root().join("pop/03_frames_time/ephemeris/data/de440s.bsp")
+    let c = pop_kernel_candidates();
+    c.iter().find(|p| p.is_file()).cloned().unwrap_or_else(|| c[0].clone())
+}
+
+/// The refusal when no DE440 kernel is found, naming every place looked in.
+pub fn pop_kernel_missing() -> Option<Error> {
+    let c = pop_kernel_candidates();
+    (!c.iter().any(|p| p.is_file())).then(|| Error::refused(format!(
+        "the DE440 kernel (de440s.bsp) is not found; looked in: {}. It ships with the program (a kit's data folder) or is named by $ADCS_DE440",
+        c.iter().map(|p| p.display().to_string()).collect::<Vec<_>>().join("; "))))
 }

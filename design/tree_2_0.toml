@@ -1,0 +1,138 @@
+# The tree of 2.0.0: each group, the blocks it mounts on, and its perspective (docs/SYSTEM_MODEL.md §6, §8).
+# Derived from design/groups.toml (each group's branches) and spec/plan/tree.json (the block ids), then the
+# S1 decisions applied: `programme` and `systems` hold layers 1 and 2's frame; `case` is dissolved; a layer-3
+# subsystem layer mounts on the layer-2 block it answers (its interface row). Read by the conversion (S3).
+# Owner: Agastya. Copyright (c) 2026 Agastya. All rights reserved.
+
+schema = "trinetra-tree/1"
+
+[[group]]
+id = "programme"
+label = "Programme"
+perspective = "programme"
+mounts = [] # the root
+frame = ["mgm", "cas", "cat", "cmr", "ord", "fac", "std", "sup", "hrt", "rsk", "ci1"]
+
+[[group]]
+id = "systems"
+label = "Satellite ADCS (the system)"
+perspective = "system"
+mounts = [{ on = "mgm", via = "the one door (Satellite ADCS under Case intake)" }]
+frame = ["prg", "svc", "cpt", "msn", "sat", "sub", "ver", "sb0", "sb1", "sb2", "sb3", "sb4", "m1", "cf"]
+
+[[group]]
+id = "dyn"
+label = "Satellite dynamics"
+perspective = ["system"]
+mounts = [{ on = "s1", via = "system branch s1 (Mass properties)" }, { on = "s2", via = "system branch s2 (Surfaces and offsets)" }, { on = "s3", via = "system branch s3 (Magnetic cleanliness)" }, { on = "s4", via = "system branch s4 (Flexible modes)" }]
+
+[[group]]
+id = "env"
+label = "Environment and disturbance torques"
+perspective = ["subsystem", "system"]
+mounts = [{ on = "m2", via = "system branch m2 (Orbit)" }, { on = "m3", via = "system branch m3 (Environment along the orbit)" }, { on = "gd", via = "system branch gd (Disturbance torques); subsystem layer dist (Disturbance environment), through l3_dist_interface" }]
+
+[[group]]
+id = "sens"
+label = "Sensors"
+perspective = ["subsystem", "system"]
+mounts = [{ on = "gs", via = "system branch gs (Attitude sensors); subsystem layer sens (Attitude sensors), through l3_sens_interface" }]
+
+[[group]]
+id = "nav"
+label = "Navigation and attitude estimation"
+perspective = ["subsystem", "system"]
+mounts = [{ on = "ge", via = "system branch ge (Attitude estimation); subsystem layer est (Attitude estimation), through l3_est_interface" }]
+
+[[group]]
+id = "gdn"
+label = "Guidance and mode management"
+perspective = ["subsystem"]
+mounts = [{ on = "gq", via = "subsystem layer modes (Modes and FDIR), through l3_modes_interface" }]
+
+[[group]]
+id = "ctl"
+label = "Controller and allocation"
+perspective = ["subsystem", "system"]
+mounts = [{ on = "gc", via = "system branch gc (Control and allocation); subsystem layer ctl (Control and allocation), through l3_ctl_interface" }]
+
+[[group]]
+id = "fdir"
+label = "FDIR"
+perspective = ["subsystem"]
+mounts = [{ on = "gq", via = "Modes and FDIR, beside gdn; its own rows are fault detection, isolation and recovery" }]
+
+[[group]]
+id = "act"
+label = "Actuators"
+perspective = ["subsystem", "system"]
+mounts = [{ on = "gm", via = "system branch gm (Magnetic actuation); subsystem layer mtq (Magnetic actuation), through l3_mtq_interface" }, { on = "gw", via = "system branch gw (Reaction wheels); subsystem layer rw (Reaction wheels), through l3_rw_interface" }, { on = "gf", via = "system branch gf (Fluid momentum rings); subsystem layer fmr (Fluid momentum rings), through l3_fmr_interface" }, { on = "gr", via = "system branch gr (Reaction control thrusters); subsystem layer rcs (Reaction control thrusters), through l3_rcs_interface" }]
+
+[[group]]
+id = "fsw"
+label = "Flight software and OBC"
+perspective = ["subsystem", "system"]
+mounts = [{ on = "gx", via = "system branch gx (Flight software and OBC interfaces); subsystem layer fsw (Flight software and OBC interfaces), through l3_fsw_interface" }]
+
+[[group]]
+id = "design"
+label = "Design loop"
+perspective = ["programme", "subsystem", "system"]
+mounts = [{ on = "gb", via = "system branch gb (ADCS unit budgets); subsystem layer budget (ADCS unit budgets), through l3_budget_interface" }, { on = "s5", via = "system branch s5 (Resources offered to the ADCS)" }, { on = "ct2", via = "programme branch ct2 (Design runs)" }, { on = "ct3", via = "programme branch ct3 (Case matching)" }]
+
+[[group]]
+id = "pnt"
+label = "Pointing error budget"
+perspective = ["subsystem", "system"]
+mounts = [{ on = "gp", via = "system branch gp (Pointing error budget); subsystem layer pnt (Pointing error budget), through l3_pnt_interface" }]
+
+[[group]]
+id = "kpi"
+label = "Pointing service and KPI closures"
+perspective = ["subsystem", "system"]
+mounts = [{ on = "p1k", via = "system branch p1k (KPI required \u00b7 pointing performance)" }, { on = "p1a", via = "system branch p1a (KPI achieved \u00b7 pointing performance)" }, { on = "p2k", via = "system branch p2k (KPI required \u00b7 agility)" }, { on = "p2a", via = "system branch p2a (KPI achieved \u00b7 agility)" }, { on = "p3k", via = "system branch p3k (KPI required \u00b7 robustness and safety)" }, { on = "p3a", via = "system branch p3a (KPI achieved \u00b7 robustness and safety)" }, { on = "p4k", via = "system branch p4k (KPI required \u00b7 resource footprint)" }, { on = "p4a", via = "system branch p4a (KPI achieved \u00b7 resource footprint)" }, { on = "x_closure", via = "KPI group (x_closure)" }]
+
+[[group]]
+id = "vv"
+label = "Verification and standards"
+perspective = ["programme", "system"]
+mounts = [{ on = "v1", via = "system branch v1 (Verification coverage)" }, { on = "v2", via = "system branch v2 (Campaign evidence)" }, { on = "st1", via = "programme branch st1 (AOCS requirements, ECSS-E-ST-60-30C)" }, { on = "st2", via = "programme branch st2 (Control performance, ECSS-E-ST-60-10C)" }, { on = "st3", via = "programme branch st3 (Verification, ECSS-E-ST-10-02C)" }, { on = "st4", via = "programme branch st4 (Testing, ECSS-E-ST-10-03C)" }, { on = "st5", via = "programme branch st5 (Software, ECSS-E-ST-40C and ECSS-Q-ST-80C)" }, { on = "st6", via = "programme branch st6 (Export control)" }, { on = "st7", via = "programme branch st7 (Quality management)" }]
+
+[[group]]
+id = "oils"
+label = "OILS rig"
+perspective = ["programme", "subsystem", "system"]
+mounts = [{ on = "v3", via = "system branch v3 (OILS rig needs); subsystem layer oils (OILS rig), through l3_oils_interface" }, { on = "fa1", via = "programme branch fa1 (SILS capacity)" }, { on = "fa2", via = "programme branch fa2 (OILS rig)" }]
+
+[[group]]
+id = "hils"
+label = "HILS rig"
+perspective = ["subsystem", "system"]
+mounts = [{ on = "v4", via = "system branch v4 (HILS rig needs); subsystem layer hils (HILS rig), through l3_hils_interface" }]
+
+[[group]]
+id = "lab"
+label = "Test equipment"
+perspective = ["programme"]
+mounts = [{ on = "fa3", via = "programme branch fa3 (Magnetic field simulator)" }, { on = "fa4", via = "programme branch fa4 (Facility use)" }, { on = "fa5", via = "programme branch fa5 (Air-bearing platform)" }, { on = "fa6", via = "programme branch fa6 (Optical and RF stimulators)" }, { on = "fa7", via = "programme branch fa7 (Actuator test stands)" }, { on = "fa8", via = "programme branch fa8 (Rig safety and power)" }]
+
+[[group]]
+id = "catalogue"
+label = "Catalogue and heritage"
+perspective = ["programme"]
+mounts = [{ on = "ct1", via = "programme branch ct1 (Products)" }, { on = "hr1", via = "programme branch hr1 (Flight record)" }]
+
+[[group]]
+id = "business"
+label = "Commercial, orders and supply"
+perspective = ["programme"]
+mounts = [{ on = "cm1", via = "programme branch cm1 (Quote)" }, { on = "cm2", via = "programme branch cm2 (Cost to deliver)" }, { on = "cm3", via = "programme branch cm3 (Margin and terms)" }, { on = "od1", via = "programme branch od1 (Stage durations)" }, { on = "od2", via = "programme branch od2 (Configuration control)" }, { on = "su1", via = "programme branch su1 (Long-lead items)" }, { on = "su2", via = "programme branch su2 (Make or buy)" }, { on = "su3", via = "programme branch su3 (Supplier qualification)" }]
+
+[[group]]
+id = "risk"
+label = "Risk management"
+perspective = ["programme"]
+mounts = [{ on = "rk1", via = "programme branch rk1 (Risk register)" }, { on = "rk2", via = "programme branch rk2 (Beliefs and versions)" }, { on = "rk3", via = "programme branch rk3 (Open risk by area)" }, { on = "rk4", via = "programme branch rk4 (Conclusion)" }]
+
+[dissolved]
+case = "its case-intake rows (ci1) go to programme, its mission requirements (m1) and hardware fitted (cf) to systems; each customer is a case file"

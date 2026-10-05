@@ -26,6 +26,40 @@ import sqlite3
 import sys
 
 FORMAT_VERSION = 2
+# The toolbox this package's engine offers (engine/crates/adcs-sim/src/source.rs, TOOLBOX); a design
+# built for another, or one that needs a newer application, is refused by name.
+TOOLBOX = "trinetra-toolbox/1"
+
+
+def _semver(v):
+    try:
+        t = tuple(int(x) for x in str(v).strip().lstrip("v").split("."))
+    except ValueError:
+        return None
+    return t if len(t) == 3 else None
+
+
+def cannot_run(meta, version=None):
+    """Why this package cannot run a design with this meta (None: it can)."""
+    if version is None:
+        try:
+            from ._build import VERSION as version
+        except ImportError:  # a checkout: the repository's VERSION
+            f = pathlib.Path(__file__).resolve().parents[2] / "VERSION"
+            version = f.read_text().strip() if f.is_file() else None
+    rebuild = "rebuild it (python3 tools/seed_design.py, or tools/group.py merge)"
+    t = meta.get("toolbox")
+    if not t:
+        return f"it names no toolbox: built before designs said what they need; {rebuild}"
+    if t != TOOLBOX:
+        return f"it was built for the toolbox {t}; this package offers {TOOLBOX}"
+    need = _semver(meta.get("needs_application"))
+    if need is None:
+        return f"it names no application version it needs ({meta.get('needs_application')!r}); {rebuild}"
+    me = _semver(version) if version else None
+    if me is not None and need > me:
+        return f"it needs TRI-NETRA {meta.get('needs_application')} or later; this is {version}"
+    return None
 
 
 class DesignError(Exception):
@@ -56,6 +90,10 @@ def _number(s):
 class Design:
     def __init__(self, path):
         self.path = pathlib.Path(path)
+        if self.path.is_dir():
+            inside = next((f for f in (self.path / "design.tndb", self.path / "Design" / "design.tndb") if f.is_file()), None)
+            raise DesignError(f"{self.path}: a folder, not a design database" +
+                              (f"; the design database in it is {inside}" if inside else ", and it holds no design.tndb"))
         if not self.path.is_file():
             raise DesignError(f"{self.path}: no such file")
         self._c = sqlite3.connect(f"file:{self.path.as_posix()}?mode=ro", uri=True)
@@ -67,6 +105,9 @@ class Design:
             raise DesignError(f"{self.path}: a {self.meta.get('format')} file, not a design database")
         if int(self.meta.get("format_version", 0)) < FORMAT_VERSION:
             raise DesignError(f"{self.path}: format version {self.meta.get('format_version')} holds no engine inputs; rebuild it")
+        why = cannot_run(self.meta)
+        if why:
+            raise DesignError(f"{self.path}: this package cannot run it: {why}")
 
     def close(self):
         self._c.close()

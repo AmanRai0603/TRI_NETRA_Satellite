@@ -75,12 +75,26 @@ def gather():
     return rows, files, h.hexdigest()
 
 
+# The toolbox this design is built for, and the oldest application that can run it: the engine,
+# the app and the Python package refuse a design that names another toolbox or a newer application
+# (engine/crates/adcs-sim/src/source.rs, `cannot_run`). Raise TOOLBOX when the functions a design may
+# call change; NEEDS_APPLICATION follows the program version that wrote the design.
+TOOLBOX = "trinetra-toolbox/1"
+
+
+def needs_application():
+    return (ROOT / "VERSION").read_text().strip()
+
+
 def fill(conn, got=None):
-    """Write the engine's inputs into an open design database (its meta gains `inputs_fingerprint`)."""
+    """Write the engine's inputs into an open design database (its meta gains `inputs_fingerprint`,
+    `toolbox` and `needs_application`)."""
     rows, files, fp = got or gather()
     conn.executemany("INSERT INTO design_case VALUES (" + ", ".join("?" * 13) + ")", rows)
     conn.executemany("INSERT INTO engine_input VALUES (?, ?, ?)", files)
     conn.execute('INSERT OR REPLACE INTO meta VALUES (?, ?)', ("inputs_fingerprint", fp))
+    conn.execute('INSERT OR REPLACE INTO meta VALUES (?, ?)', ("toolbox", TOOLBOX))
+    conn.execute('INSERT OR REPLACE INTO meta VALUES (?, ?)', ("needs_application", needs_application()))
     return {"cases": len({r[0] for r in rows}), "case_rows": len(rows), "files": len(files), "fingerprint": fp}
 
 

@@ -35,3 +35,29 @@ A team member who has no node or group to write in asks for a change with a node
 3. **Every formula lives in one place** (the physics in `spec/physics/`, translated by `tools/pcode.py`; the flight algorithms in `fsw/pseudocode/`, held to C and Rust).
 4. **A refusal is never a substitution.** A value that cannot be used is refused by name, never clamped, defaulted or guessed.
 5. **What is not known is shown, not hidden.** A gap stays a visible gap, with its owner team, until a person fills it.
+
+## Toward 2.0.0
+
+The repository is moving to hold **code only** (`docs/PLAN_2_0.md`). Until the switch-over (S10), the rules above
+stay in use. These hold already, and become the only rules after it:
+
+- **The code's rules** are in `docs/CODE_ARCHITECTURE.md` §4:
+  - refuse, never guess;
+  - never edit a generated file;
+  - the twin moves with the engine;
+  - every toolbox formula is traced;
+  - an expected value never comes from the code under test;
+  - **no design in code**;
+  - an application release gives the released design's answers unchanged;
+  - a part calls only the parts below it.
+- **The design's rules** are `design/rules_2_0.toml` (R01–R16). Each becomes a check in the one library (S2) and is
+  described for people in `docs/OPERATING_2_0.md`.
+- **The roles** are programme manager, system engineer, subsystem engineer (today's *lead*), node engineer
+  (today's *author*), checker and developer (`docs/GLOSSARY.md`, "The words of 2.0.0").
+- **The design data in this repository** (`spec/`, `catalogue/`, `scenarios/`, `campaigns/`, `trades/`,
+  `matlab_sils/cases`, `fsw/params/`, the flight algorithms in `fsw/pseudocode/03`–`09`) is frozen at S3. After
+  that, it changes only through a corrected conversion until S10, and only in the application, by its owners,
+  after S10.
+- **A design names the toolbox and the application it needs** (`design_inputs.TOOLBOX`, `meta.needs_application`).
+  When you change what a design's relations may call, raise the toolbox version in
+  `engine/crates/adcs-sim/src/source.rs`, `tools/design_inputs.py` and `python/trinetra_adcs/design.py` together.

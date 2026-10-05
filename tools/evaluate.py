@@ -6,7 +6,8 @@ KPI closure answered or blocked by name (docs/RELEASE_PLAN.md P13, docs/END_TO_E
     python3 tools/evaluate.py DIR --check                 exit 1 when a closure that answered before
                                                           is blocked now, or a stated value is lost
 
-DIR is a design folder: its merged releases (DIR/design.tndb) when there are, else its node files.
+DIR is a design folder (or the Drive pack's root, whose Design/ is used): its merged releases
+(DIR/design.tndb) when there are, else its node files. Anything else is refused by name.
 The case is read from DIR/design.tndb (its `design_case` rows), never from the data folder.
 
 How a row gets its value, in order:
@@ -37,7 +38,7 @@ import sys
 import tempfile
 import tomllib
 
-from common import ROOT, write_text
+from common import ROOT, design_folder, write_text
 
 PLAN = ROOT / "spec" / "plan"
 STORE = ROOT / "matlab_sils" / "store"
@@ -311,7 +312,11 @@ def main(argv=None):
     ap.add_argument("--check", action="store_true")
     a = ap.parse_args(argv)
     cases = a.cases or ["ais_3u", "ais_img_3u"]
-    res = [evaluate(a.dir, c) for c in cases]
+    d = design_folder(a.dir)
+    if not (d / "design.tndb").is_file():
+        raise SystemExit(f"evaluate: {d} has node files but no design.tndb, which holds the cases "
+                         "(build it: python3 tools/seed_design.py, or tools/group.py merge)")
+    res = [evaluate(d, c) for c in cases]
     out = pathlib.Path(a.out)
     prev = json.loads((out / "evaluation.json").read_text()) if (out / "evaluation.json").exists() else None
     if a.check:

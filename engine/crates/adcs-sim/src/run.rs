@@ -27,6 +27,7 @@ pub enum Truth { Pop(Box<adcs_pop::accel::InLoop>), Fast(Orbit, f64) }
 impl Truth {
     pub fn new(c: &Config) -> Result<(Truth, f64), Error> {
         if c.orbit_model == "pop" {
+            if let Some(e) = crate::pop_kernel_missing() { return Err(e); }
             use adcs_pop::accel::{sso_initial, Forces, InLoop, Sc, World};
             let cr = 1.0 + c.refl;
             let w = World::new(c.epoch_utc, adcs_pop::frames::Build::Gmst, adcs_pop::frames::FrameOpt::default(),

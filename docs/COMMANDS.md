@@ -165,7 +165,7 @@ The results store: every run with its provenance, one line each; one run in full
 4. export: write README, manifest, channels and the kept inputs into one zip
 5. import: check every entry's name and checksum, then write them into the folder
 6. query: bring the index up to date, then run one read-only SQL statement on its runs and metrics tables
-7. stale: compare every run's engine source, case, scenario and product fingerprints with today's and name what differs; exit 1 when any run is stale
+7. stale: compare every run's engine source, case, scenario and product fingerprints, and the design it flew (when one was in use), with today's and name what differs; exit 1 when any run is stale
 8. refly: fly the run again from its kept inputs into <store>/refly/<run> and print every metric stored against now
 
 - **Reads:** `matlab_sils/store/results_engine/ (or DIR)`; the case, scenario and product files the runs name (stale); the run's kept inputs (refly)

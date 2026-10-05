@@ -190,3 +190,18 @@ def sh(cmd, cwd=ROOT, check=True, **kw):
     print("$", " ".join(map(str, cmd)), flush=True)
     trace("ran " + " ".join(map(str, cmd)))
     return subprocess.run(cmd, cwd=cwd, check=check, **kw)
+
+
+def design_folder(d):
+    """The design folder a tool was given, as a Path: DIR itself when it holds design.tndb or node
+    files, else DIR/Design (the Drive pack's root). Anything else is refused by name."""
+    import pathlib
+    d = pathlib.Path(d)
+    if not d.exists():
+        raise SystemExit(f"{d}: no such folder")
+    if d.is_file():
+        raise SystemExit(f"{d}: a file; give the design folder that holds it ({d.parent})")
+    for c in (d, d / "Design"):
+        if (c / "design.tndb").is_file() or any((c / "nodes").glob("*.node.tndb")):
+            return c
+    raise SystemExit(f"{d}: not a design folder (no design.tndb and no nodes/*.node.tndb in it or in {d / 'Design'})")

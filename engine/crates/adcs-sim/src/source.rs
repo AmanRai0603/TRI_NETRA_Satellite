@@ -19,13 +19,50 @@ use std::sync::{Arc, RwLock};
 /// The header every case file starts with (adcs-case/1).
 pub const CASE_HEADER: &str = "section,key,label,unit,value,lo,hi,level,note";
 
+/// The toolbox this engine offers a design: the functions its relations and inputs may call.
+/// A design names the toolbox it was built for (its meta `toolbox`) and is refused by any other.
+pub const TOOLBOX: &str = "trinetra-toolbox/1";
+
+/// This program's version: a design names the oldest application that can run it (its meta
+/// `needs_application`), and a newer one is refused by name.
+pub const APPLICATION: &str = env!("CARGO_PKG_VERSION");
+
 /// A design database opened for the engine: its inputs, by their path in the data folder.
 #[derive(Debug)]
 pub struct Design {
     pub file: PathBuf,
     /// the database's own fingerprint (its meta `inputs_fingerprint`): one hash over every input it holds
     pub fingerprint: String,
+    /// its version, when it has one (its meta `design_version`, written when a design is released)
+    pub version: Option<String>,
+    /// the toolbox it was built for
+    pub toolbox: String,
     files: BTreeMap<String, Vec<u8>>,
+}
+
+/// `a.b.c` as numbers, for comparing versions; None when it is not one.
+fn semver(v: &str) -> Option<(u64, u64, u64)> {
+    let mut it = v.trim().trim_start_matches('v').split('.').map(|x| x.parse::<u64>().ok());
+    let t = (it.next()??, it.next()??, it.next()??);
+    it.next().is_none().then_some(t)
+}
+
+/// Why this program cannot run a design with this meta (None: it can). A design that names no
+/// toolbox or no application version was built before designs said what they need, and is
+/// refused too: rebuilding it writes both.
+pub fn cannot_run(meta: &BTreeMap<String, String>) -> Option<String> {
+    let rebuild = "rebuild it (python3 tools/seed_design.py, or tools/group.py merge)";
+    match meta.get("toolbox").map(String::as_str) {
+        None | Some("") => return Some(format!("it names no toolbox: built before designs said what they need; {rebuild}")),
+        Some(t) if t != TOOLBOX => return Some(format!("it was built for the toolbox {t}; this program offers {TOOLBOX}")),
+        _ => {}
+    }
+    let need = meta.get("needs_application").map(String::as_str).unwrap_or("");
+    match (semver(need), semver(APPLICATION)) {
+        (None, _) => Some(format!("it names no application version it needs ({need:?}); {rebuild}")),
+        (Some(n), Some(me)) if n > me => Some(format!("it needs TRI-NETRA {need} or later; this is {APPLICATION}")),
+        _ => None,
+    }
 }
 
 /// FNV-1a 64 over bytes, as hex: the fingerprint the store gives every input.
@@ -42,16 +79,25 @@ impl Design {
     pub fn open(path: &Path) -> Result<Design, Error> {
         use rusqlite::{Connection, OpenFlags};
         let bad = |m: String| Error::refused(format!("design database {}: {m}", path.display()));
+        if path.is_dir() {
+            let inside = [path.join("design.tndb"), path.join("Design").join("design.tndb")].into_iter().find(|p| p.is_file());
+            return Err(bad(match inside {
+                Some(f) => format!("a folder, not a design database; the design database in it is {}", f.display()),
+                None => "a folder, not a design database, and it holds no design.tndb".into(),
+            }));
+        }
         if !path.is_file() { return Err(bad("no such file".into())); }
         let c = Connection::open_with_flags(path, OpenFlags::SQLITE_OPEN_READ_ONLY | OpenFlags::SQLITE_OPEN_NO_MUTEX).map_err(|e| bad(e.to_string()))?;
         let meta: BTreeMap<String, String> = c.prepare(r#"SELECT "key", "value" FROM meta"#)
             .and_then(|mut s| s.query_map([], |r| Ok((r.get::<_, String>(0)?, r.get::<_, Option<String>>(1)?.unwrap_or_default())))?.collect())
-            .map_err(|e| bad(format!("no meta table: not a design file ({e})")))?;
+            .map_err(|e| bad(if e.to_string().contains("not a database") { "not a database file (damaged, or not a design file)".into() }
+                             else { format!("no meta table: not a design file ({e})") }))?;
         if meta.get("format").map(String::as_str) != Some("design") {
             return Err(bad(format!("a {} file, not a design database", meta.get("format").map(String::as_str).unwrap_or("?"))));
         }
         let v: u32 = meta.get("format_version").and_then(|v| v.parse().ok()).unwrap_or(0);
         if v < 2 { return Err(bad(format!("format version {v} holds no engine inputs: rebuild it (python3 tools/seed_design.py, or tools/group.py merge)"))); }
+        if let Some(why) = cannot_run(&meta) { return Err(bad(format!("this program cannot run it: {why}"))); }
         let mut files = BTreeMap::new();
         let q = |sql: &str| -> Result<Vec<(String, String, Vec<u8>)>, Error> {
             c.prepare(sql).and_then(|mut s| s.query_map([], |r| Ok((r.get(0)?, r.get::<_, Option<String>>(1)?.unwrap_or_default(), r.get::<_, Option<Vec<u8>>>(2)?.unwrap_or_default())))?.collect())
@@ -69,7 +115,9 @@ impl Design {
             t.push('\n');
         }
         for (case, text) in cases { files.insert(format!("cases/{case}.csv"), text.into_bytes()); }
-        Ok(Design { file: path.to_path_buf(), fingerprint: meta.get("inputs_fingerprint").cloned().unwrap_or_default(), files })
+        Ok(Design { file: path.to_path_buf(), fingerprint: meta.get("inputs_fingerprint").cloned().unwrap_or_default(),
+                    version: meta.get("design_version").filter(|v| !v.is_empty()).cloned(),
+                    toolbox: meta.get("toolbox").cloned().unwrap_or_default(), files })
     }
     /// The case ids it holds.
     pub fn cases(&self) -> Vec<String> {
@@ -151,4 +199,36 @@ pub fn list(dir: &Path) -> Vec<PathBuf> {
     let mut v: Vec<PathBuf> = std::fs::read_dir(dir).map(|rd| rd.flatten().map(|e| e.path()).filter(|p| p.is_file()).collect()).unwrap_or_default();
     v.sort();
     v
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    fn meta(pairs: &[(&str, &str)]) -> BTreeMap<String, String> { pairs.iter().map(|(k, v)| (k.to_string(), v.to_string())).collect() }
+    #[test]
+    fn a_design_built_for_another_engine_is_refused() {
+        assert_eq!(cannot_run(&meta(&[("toolbox", TOOLBOX), ("needs_application", "1.0.0")])), None);
+        assert_eq!(cannot_run(&meta(&[("toolbox", TOOLBOX), ("needs_application", APPLICATION)])), None);
+        let other = cannot_run(&meta(&[("toolbox", "trinetra-toolbox/99"), ("needs_application", "1.0.0")])).unwrap();
+        assert!(other.contains("trinetra-toolbox/99") && other.contains(TOOLBOX), "{other}");
+        let newer = cannot_run(&meta(&[("toolbox", TOOLBOX), ("needs_application", "99.0.0")])).unwrap();
+        assert!(newer.contains("needs TRI-NETRA 99.0.0"), "{newer}");
+        assert!(cannot_run(&meta(&[("needs_application", "1.0.0")])).unwrap().contains("names no toolbox"));
+        assert!(cannot_run(&meta(&[("toolbox", TOOLBOX)])).unwrap().contains("names no application"));
+        assert!(cannot_run(&meta(&[("toolbox", TOOLBOX), ("needs_application", "one")])).is_some());
+    }
+    #[test]
+    fn a_folder_or_a_damaged_file_is_refused_by_name() {
+        let d = std::env::temp_dir().join(format!("adcs-src-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&d);
+        std::fs::create_dir_all(d.join("Design")).unwrap();
+        let e = Design::open(&d).unwrap_err().message().to_string();
+        assert!(e.contains("a folder") && e.contains("holds no design.tndb"), "{e}");
+        std::fs::write(d.join("Design/design.tndb"), b"junk").unwrap();
+        let e = Design::open(&d).unwrap_err().message().to_string();
+        assert!(e.contains("the design database in it is") && e.contains("design.tndb"), "{e}");
+        let e = Design::open(&d.join("Design/design.tndb")).unwrap_err().message().to_string();
+        assert!(e.contains("not a database file"), "{e}");
+        let _ = std::fs::remove_dir_all(&d);
+    }
 }

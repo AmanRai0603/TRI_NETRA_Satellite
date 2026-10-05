@@ -405,15 +405,15 @@ On the block model each group mounts on the block it answers, and the tree becom
 | **programme** (new) | the root | layer 1's branches |
 | **systems** (new) | programme · *Satellite ADCS* | the one door, `sys_satellite_adcs`; layer 2's branches |
 | dyn · Satellite dynamics | systems · *Satellite as the ADCS sees it* | rows s1–s4 |
-| env · Environment and disturbance torques | systems · *Environment along the orbit* and *Disturbance torques* | `l3_dist_interface` |
+| env · Environment and disturbance torques | systems · *Orbit*, *Environment along the orbit* and *Disturbance torques* | rows m2, m3; `l3_dist_interface` |
 | sens · Sensors | systems · *Attitude sensors* | `l3_sens_interface` |
 | nav · Navigation and attitude estimation | systems · *Attitude estimation* | `l3_est_interface` |
 | gdn · Guidance and mode management | systems · *Modes and FDIR* | `l3_modes_interface` |
-| fdir · FDIR | gdn · *fault handling* | — |
+| fdir · FDIR | systems · *Modes and FDIR*, beside gdn | its own rows (detection, isolation, recovery) |
 | ctl · Controller and allocation | systems · *Control and allocation* | `l3_ctl_interface` |
 | act · Actuators | systems · *Magnetic actuation*, *Reaction wheels*, *Fluid momentum rings*, *Reaction control thrusters* | `l3_mtq/rw/fmr/rcs_interface` |
 | fsw · Flight software and OBC | systems · *Flight software and OBC interfaces* | `l3_fsw_interface` |
-| design · Design loop | systems · *ADCS unit budgets* | `l3_budget_interface` |
+| design · Design loop | systems · *ADCS unit budgets*, *Resources offered to the ADCS*; programme · *Design runs*, *Case matching* | `l3_budget_interface`; rows s5, ct2, ct3 |
 | pnt · Pointing error budget | systems · *Pointing error budget* | `l3_pnt_interface` |
 | kpi · KPI closures | systems · *Pointing service the customer needs* | the closure layer's interface row |
 | vv · Verification and standards | systems · *Verification*; programme · *Standards & compliance* | rows v1–v2, st1–st7 |
@@ -424,7 +424,8 @@ On the block model each group mounts on the block it answers, and the tree becom
 | business · Commercial, orders and supply | programme · *Commercial*, *Order lifecycle*, *Supply chain* | rows cm1–cm3, od1–od2, su1–su3 |
 | risk · Risk management | programme · *Risk management* | rows rk1–rk4 |
 
-A group that mounts in two places owns two branches. Each mount has its own contract, and both are seen by the
+The table is held as data in `design/tree_2_0.toml`, with the block ids; the conversion (S3) reads it. A group
+that mounts in two places owns two branches. Each mount has its own contract, and both are seen by the
 owner above each.
 
 ### Proposed: one level deeper

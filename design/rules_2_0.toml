@@ -1,0 +1,119 @@
+# The design's rules for 2.0.0 (docs/PLAN_2_0.md S1; docs/OPERATING_2_0.md). Each becomes a check in the one
+# library (S2), run by the application at every valve, and is described for people in the operating model.
+# `today` says what holds the rule in 1.0.0, if anything; `check` names the library check S2 builds; `at` says
+# when it is applied. An id is never reused.
+# Owner: Agastya. Copyright (c) 2026 Agastya. All rights reserved.
+
+schema = "trinetra-rules/1"
+
+[[rule]]
+id = "R01"
+rule = "One writer per file: only the file's assigned writer may sign it, and integration refuses a signature from anyone the group file did not assign"
+today = "tools/group.py verify checks the author named in the node file; no keys"
+check = "signature.writer"
+at = ["save", "sign", "seal", "integrate"]
+
+[[rule]]
+id = "R02"
+rule = "Every signature checks through the chain: node -> group file -> programme file -> the programme manager's key in START HERE"
+today = "none (sign-off is a typed name)"
+check = "signature.chain"
+at = ["open", "seal", "integrate", "release"]
+
+[[rule]]
+id = "R03"
+rule = "An expected value never comes from the code under test: every case names where its answer came from, and a computing node needs at least one case whose answer comes from outside the code"
+today = "CONTRIBUTING rule 2; node app check on fixture source; tools/verify_nodes.py"
+check = "case.source"
+at = ["sign", "seal"]
+
+[[rule]]
+id = "R04"
+rule = "No relation supplied by an assistant: a method or value written by an assistant is a transcription, names its source, and counts only once the person who checked it against the source has signed it"
+today = "the spec's intake assistant rules (spec/tools/intake.py)"
+check = "transcription.signed"
+at = ["sign", "seal", "integrate"]
+
+[[rule]]
+id = "R05"
+rule = "Every requirement says which way it binds (>= must reach, <= must stay under)"
+today = "kpi rows carry requirement.sense"
+check = "port.direction"
+at = ["save", "seal"]
+
+[[rule]]
+id = "R06"
+rule = "A block reads its children only through their ports; a wire into a child's inside is refused"
+today = "node app check C04 (layers meet only at the door and the interface rows); tools/validate_plan.py"
+check = "wire.through_ports"
+at = ["save", "seal", "integrate"]
+
+[[rule]]
+id = "R07"
+rule = "A release is never edited: a sealed file whose bytes differ from its seal is refused"
+today = "the seal hash in .tnrel (design/js/release.js)"
+check = "release.sealed"
+at = ["open", "integrate"]
+
+[[rule]]
+id = "R08"
+rule = "A parameter is changed only by the level that owns it; a level below may only ask"
+today = "none"
+check = "parameter.owner"
+at = ["save", "seal", "integrate"]
+
+[[rule]]
+id = "R09"
+rule = "Every valve's owner controls what passes it: a group's release joins today's design only when sealed by its subsystem engineer; a design is released only by the system engineer"
+today = "the lead's seal; the developer's merge"
+check = "valve.owner"
+at = ["seal", "release"]
+
+[[rule]]
+id = "R10"
+rule = "Today's design is never taken for a released one: every screen, result and report names which it is"
+today = "none"
+check = "design.kind_shown"
+at = ["open", "run", "report"]
+
+[[rule]]
+id = "R11"
+rule = "Evidence counts only from results made by the design (and the flight image) it is judged in; other results are stale and their closures unproven"
+today = "results name their design fingerprint and are stale once another is in use (S0, adcs results stale)"
+check = "evidence.same_design"
+at = ["integrate", "release"]
+
+[[rule]]
+id = "R12"
+rule = "Both ends of every declared range are run, and a value outside its range is refused by name, never clamped"
+today = "pseudocode ranges (`in a .. b`) refused by the interpreter; the engine refuses out-of-range inputs"
+check = "range.both_ends"
+at = ["sign", "integrate"]
+
+[[rule]]
+id = "R13"
+rule = "A breakdown keeps the node's outside: its children reproduce the node's own cases within tolerance, and a port change is a contract change"
+today = "none"
+check = "breakdown.reproduces"
+at = ["seal", "integrate"]
+
+[[rule]]
+id = "R14"
+rule = "A loop is declared on the smallest block that holds it, with what settles and how tightly; an undeclared cycle is refused by name"
+today = "none (the design loop iterates outside the tree)"
+check = "loop.declared"
+at = ["save", "integrate"]
+
+[[rule]]
+id = "R15"
+rule = "A design names the toolbox it was built for and the oldest application that can run it; a program refuses a design it cannot run"
+today = "S0: meta.toolbox and meta.needs_application, checked by the engine, the app and the Python package"
+check = "design.runnable"
+at = ["open"]
+
+[[rule]]
+id = "R16"
+rule = "A flight image names the design it was built from, and reproduces the interpreter on every flight node's vectors before it is sealed"
+today = "C and Rust flight software held to the interpreter on fsw/pseudocode vectors"
+check = "flight_image.parity"
+at = ["build", "release"]

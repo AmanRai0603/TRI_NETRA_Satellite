@@ -16,3 +16,9 @@ You work on TRI-NETRA's code that is generated or held to the pseudocode.
   C and MATLAB in the same change (`docs/CHANGING.md`), proven by `engine.py twin-parity` and
   `engine.py fsw-parity`.
 - Before you finish: `python3 tools/check_all.py`, and say which checks you ran and their result.
+- **No design in code** (`docs/CODE_ARCHITECTURE.md` §1). A relation, flight algorithm, parameter or table
+  belongs in the design; in the repository it appears only in a generated file, the toolbox, a test
+  fixture or the regression copy. The flight software's runtime (HAL, C interface, scheduler, blob format,
+  targets) and the rigs are code.
+- **A design names what it needs.** Changing what a relation may call raises the toolbox version in
+  `adcs-sim/src/source.rs`, `tools/design_inputs.py` and `python/trinetra_adcs/design.py` together.

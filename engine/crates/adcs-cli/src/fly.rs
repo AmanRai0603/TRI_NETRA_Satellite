@@ -25,12 +25,15 @@ fn print_metrics(ms: &[serde_json::Value]) {
 }
 
 pub fn main(a: &Args) -> Result<(), Error> {
+        // a design named by $TRINETRA_DESIGN that cannot be read is refused here, by name, before
+        // any input is looked for (never passed over as if no design were named)
+        adcs_sim::source::current()?;
         if a.cmd == "size" {
             // adcs size <case> [--out DIR] [--knobs knobs.json]: demand survey + every option sized (adcs-design)
             let root = data_root();
             adcs_sim::config::check_id("case", &a.scenario)?;
             let case_file = root.join("cases").join(format!("{}.csv", a.scenario));
-            if !case_file.is_file() { return Err(Error::refused(format!("no case {}: {} does not exist", a.scenario, case_file.display()))); }
+            if !adcs_sim::source::is_file(&case_file) { return Err(Error::refused(format!("no case {}: {} does not exist", a.scenario, case_file.display()))); }
             let knobs = match a.set.iter().find(|(k, _)| k == "knobs") {
                 Some((_, f)) => adcs_design::Knobs::from_json(&adcs_sim::json::read(std::path::Path::new(f))?)?,
                 None => adcs_design::Knobs::default(),
