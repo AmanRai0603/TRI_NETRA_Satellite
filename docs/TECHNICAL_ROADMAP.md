@@ -245,6 +245,32 @@ Each phase ends as 1.0.0 did:
 
 Physics changes are batched per phase so the store is re-flown once.
 
+### D0 · The design database in place on Drive, and a route back (before U0)
+
+Everything the apps and the release tools do reads the design database. On 5 Oct 2026 the shared Drive folder
+"Trinetra Database" held the 7 guides and two sheets, but its `Apps/` and `Design/` folders were **empty**.
+
+**Root causes:**
+1. **The upload never happened.** The pack (`tools/drive_pack.py`, CI artifact `trinetra-drive-pack`) was built on every push, but placing it on Drive was left to a person, and no step checked that it was there.
+2. **The agent cannot upload it reliably.** The Drive connector suits single text documents. It cannot upload 786 binary SQLite files and 67 MB safely: each file would go through base64 one at a time, and an accidental conversion to Google formats would destroy the databases.
+3. **There is no route back from Drive.** The repository keeps no copy of the live design: every tool re-seeds it from the spec and the carry-over unless it is handed a folder (`--design DIR`). Once people edit on Drive, the repository and Drive diverge silently.
+4. **Team drives were never created.** The per-team shared drives planned in P8 (10 lead teams) do not exist yet; one folder stands in for them.
+
+| Item | Work | Who | Effort |
+|---|---|---|---|
+| D0.1 Fill the folder | The checked pack as a zip (`Apps/`, `Design/` with `design.tndb`, 20 group files and 765 node files, `Guides/Engineering/`, `HOW_TO_UPLOAD.txt`), uploaded by the owner through Drive for desktop or a browser folder upload with conversion off | Owner (zip supplied) | S |
+| D0.2 Check it is there | `tools/drive_pack.py --verify DIR`: compare a folder (Drive for desktop path, or a downloaded copy) with the pack file by file (names, sizes, SHA-256), and run `tndb check` on every design file | Me | S |
+| D0.3 A route back | `tools/design_sync.py pull DIR`: import a Drive Design folder into a versioned snapshot in the repository (`design/live/`, every file checked, every change against the last snapshot listed). The release tools then default to that snapshot instead of re-seeding, and a check fails when the snapshot is older than the newest sealed release | Me | M |
+| D0.4 Pack only what changed | Pushes to Drive after D0.3 carry only new or changed files, never overwriting people's edits (the apps' conflict and "open elsewhere" rules still apply) | Me | S |
+| D0.5 Team drives | The 10 lead teams' shared drives (P8), each holding its groups, when the owner's Drive admin creates them | Owner + Drive admin | S |
+
+**Exit:**
+- The Drive folder matches the pack (D0.2 passes).
+- A design edited on Drive comes back into the repository through D0.3.
+- The engine, release and delivery tools run on it.
+
+The pack builder now copies only the three Drive apps. The desktop app's page and the test-app template are no longer included: they do not run from Drive.
+
 ### U0 · Correct what 1.0.0 states → **v1.1** (about 3–4 weeks)
 Everything in §0, plus the critical and high logic defects that are days each:
 

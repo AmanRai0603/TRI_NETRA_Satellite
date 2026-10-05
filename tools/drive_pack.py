@@ -64,7 +64,8 @@ def build(out, rev="this checkout"):
     built = pages.build(out / "_pages")
     names = {"files": "TRI-NETRA Files.html", "group": "TRI-NETRA Group.html", "node": "TRI-NETRA Node.html"}
     for k, (p, _n) in built.items():
-        shutil.move(str(p), out / "Apps" / names.get(k, f"{k}.html"))
+        if k in names:                      # the app page and the test-app template run elsewhere, not from Drive
+            shutil.move(str(p), out / "Apps" / names[k])
     shutil.rmtree(out / "_pages")
     seed_design.seed(out / "Design")
     carry_over.carry(out / "Design")
@@ -81,7 +82,7 @@ def main(argv=None):
     ap.add_argument("--rev", default="this checkout", help="what it was built from (CI passes the commit)")
     a = ap.parse_args(argv)
     out, n = build(a.out, a.rev)
-    print(f"drive_pack: {out}: 2 apps, {n} design files")
+    print(f"drive_pack: {out}: {len(list((out / 'Apps').iterdir()))} apps, {n} design files")
     return 0
 
 
