@@ -98,7 +98,10 @@ Each piece is kept, changed or retired, once. Nothing is laid over the old.
 | `--set` overrides on a run, recorded only in the run's manifest | case variations, saved in `cases/` | changed |
 | the results store and the `.trinetra` package | the same, every result naming the design and the engine that made it | kept |
 | sealed releases (`.tnrel`), one writer per file, revisions, contracts and change requests, impact checks, the de-risking record | the same | kept |
-| the pseudocode language, its interpreter and translators | the same; the *method* behaviour | kept |
+| the pseudocode language, its interpreter and translators | the same; the *method* behaviour; a C translator joins the Rust and MATLAB ones | kept |
+| the flight software's algorithms written by hand in C (`fsw/src`) and Rust (`fsw-rs/src`) from `fsw/pseudocode/`, its parameters in `fsw/params/params.toml` | the algorithms, parameters, modes and tables as nodes of `nav`, `gdn`, `ctl`, `fdir`, `act`, `sens` and `fsw`; the C and Rust generated from them; a flight image built from each released design | changed |
+| the flight software's runtime: HAL, C interface, scheduler, targets, the byte link, the soft OILS emulator, the rig host | the same, in the repository | kept |
+| relations compiled by hand into the time engine and the sizing (`adcs-sim-core`, `adcs-design`) | methods in the database, the engine's models generated from them; only the engine's core stays code | changed |
 | the manuals and their tours (`design/manual/`) | rewritten per role, until a later release folds them into the node page | kept |
 
 ## 4 · The application
@@ -110,7 +113,7 @@ a person can change is what they own. Everything else they can see, run and ques
 
 | | what it is | what it can do |
 |---|---|---|
-| **installed** | today's desktop app (`trinetra-app`) grown into it, for Windows, macOS and Linux | the full engine: every case, Monte Carlo campaigns, soft OILS with the emulated OBC. It reads and writes the drive's folder directly (Drive for desktop) |
+| **installed** | today's desktop app (`trinetra-app`) grown into it, for Windows, macOS and Linux | the full engine: every case, Monte Carlo campaigns, soft OILS with the emulated OBC; the **flight build**, which generates the flight software from a design and compiles it for each target with its bundled toolchains. It reads and writes the drive's folder directly (Drive for desktop) |
 | **from the drive** | the same screens as one page, `apps/TRI-NETRA.html`, opened in Chrome or Edge | the library and the engine compiled to WebAssembly: every node, every case run, the design graph, sweeps. It works offline and saves in place. Campaigns and soft OILS say "use the installed application" |
 
 **Who you are** is your key. You open it once on each computer, with your passphrase. From the programme file
@@ -190,7 +193,9 @@ The system engineer's System workspace has more:
 ### Explore workspace
 
 - **Open** today's design, any released design, or two side by side.
-- **Run** cases and their variations, sweeps and Monte Carlo campaigns; installed, also soft OILS.
+- **Run** cases and their variations, sweeps and Monte Carlo campaigns. Installed, also soft OILS, flying the
+  flight image built from the design shown (or built on the spot from today's design); OILS and HILS fly a
+  released design's image on the rig.
 - **See** the health map at every level, with trace to cause, and each run's figures and report (`adcs-plot`).
 - **Keep** results in `results/`, each naming the design and engine that made them.
 - It changes nothing in the design.
@@ -284,7 +289,7 @@ change, never change it.
 | level | parameters it owns | measures it watches |
 |---|---|---|
 | programme | each case's KPIs; the margin policy by maturity; the confidence the design is held to (the campaign percentile, today p99.73 for pointing); gate criteria; cost and price targets | KPIs closed per case, by analysis and by evidence; cost against target; gate readiness; risks open and moved; beliefs tested; issues by owner and age; built-in relations still in code |
-| system | allocations to each group; the ADCS budgets and margins; shared cases and scenarios; the declared loop and its tolerance | each budget's margin, today and across releases; groups whose latest release was refused; previews unanswered; closures failing, tight and refused; whether the loop settled |
+| system | allocations to each group; the ADCS budgets and margins (including the flight software's CPU, memory and deadline budget); shared cases and scenarios; the declared loop and its tolerance | each budget's margin, today and across releases; the flight image's measured CPU, memory and deadline misses in soft OILS; groups whose latest release was refused; previews unanswered; closures failing, tight and refused; whether the loop settled |
 | subsystem | what flows to its own parts; its design choices, ranges and stated values | its nodes proven of total; open and overdue nodes; issues on the group; contract changes in flight |
 | node | its inputs' ranges and its cases | its checks, its cases, both ends of its range |
 
@@ -303,6 +308,7 @@ is, its format version, what it was based on, and who wrote it.
 | **issue** | `<number>-<group>.tnissue` | what is wrong, where, the evidence from the health map, whom it is addressed to | whoever raises it | never; closed by the release that resolves it |
 | **daily snapshot** | `design-<date>.daily.tnrel` | today's design as built that day, and the releases it used | the system engineer's application | never |
 | **released design** | `design-<version>.tnrel` | every integrated release, mounted into one tree; the integration record; the application version and toolbox it needs; the system engineer's signature | the system engineer | never |
+| **flight image** | `design-<version>.<target>.tnfsw` | the flight software built from a design for one target (POSIX, QEMU Cortex-M, a board): the generated sources, the binary, the runtime and toolchain versions, the configuration blob, and the evidence that it reproduces the interpreter on every node's vectors | the flight build, at the system engineer's release (or on request for today's design, kept in `results/`) | never |
 | **case** | `<name>.tncase` | the inputs for a run (the customer's CSV lines, the scenario, the campaign settings), or a variation: its base and what it changes | anyone | yes |
 | **results** | `<name>.trinetra` | a run's answers, its figures and report, and the design and engine that made them | the application | never |
 | **key** | `<person>.tnkey` | a person's private key, locked by their passphrase | the person | kept by the person, never on the shared drive |
@@ -342,7 +348,8 @@ Message: *"Your node <node> is in your My work. Due by <gate>."*
 ### W3 · A node is written, every day
 
 1. **Node engineer**, in the Node workspace, brings the data in (section 7) and writes the node in its live page.
-   It runs as it is written, inside today's design. A node that feeds the time engine can be flown from here.
+   It runs as it is written, inside today's design. A node that feeds the time engine can be flown from here. A
+   flight algorithm runs in SILS through the interpreter at once, and can be built into a soft OILS image to try.
 2. Each save is a new revision in place. If the file moved on since it was opened, the application stops and
    overwrites nothing.
 3. They sign the day's work when its checks pass and its cases agree. The signed revision appears at once in
@@ -409,6 +416,7 @@ When a release moves another group's values:
    - every answer is in.
 3. *Release design* signs it. The application writes:
    - the design into `design/` under its version, and as `design.tnrel`;
+   - the flight images, one per target, into `design/flight/`, each built and checked by the flight build;
    - the one before it into `design/archive/`;
    - `NOTES.md`, `readable/` and the status.
 
@@ -465,8 +473,8 @@ and a node whose inputs changed in meaning is named for its node engineer to che
 
 ### W14 · Something needs the code
 
-This covers a new toolbox function, port type, picture, check or device model, and any fault in the application,
-the engine, the flight software or the twin.
+This covers a new toolbox function, port type, picture or check, a new flight target or rig channel, and any
+fault in the application, the engine's core, a translator, the flight software's runtime or the rigs.
 
 1. **Any engineer** writes the request in My work's *Requests*, with an example.
 2. **Developer** builds it in an application release (W15). Until then the node stays open, or keeps its
@@ -475,9 +483,10 @@ the engine, the flight software or the twin.
 ### W15 · The application is released
 
 **Developer only.**
-1. The new application must run the **current released design** on every shared case and give the same answers.
-   This is held by the regression copy in the repository (`tests/regression/`). One that changes the design's
-   answers does not ship.
+1. The new application must run the **current released design** on every shared case and give the same answers,
+   and its flight build must produce flight software that behaves the same on every node's vectors and every
+   scenario. This is held by the regression copy in the repository (`tests/regression/`). One that changes the
+   design's answers does not ship.
 2. A release from `main`, tagged `v<version>`, built by the release workflow (kits for each OS, the Python wheel,
    `SHA256SUMS`).
 3. The application, installed and as a page, goes into `apps/` with its checksums, and `apps/NOTES.md` says what
@@ -587,7 +596,8 @@ Trinetra Database/
     design.tnrel                 the released design
     design-2026.11.1.tnrel       the same, under its version
     NOTES.md                     what changed in each, newest first
-    archive/                     every earlier release
+    flight/                      the flight images of the released design, one per target
+    archive/                     every earlier release, with its images
   daily/                         a snapshot of today's design, one per day
   integration/                   previews, and the answers to them
   issues/                        every issue raised
@@ -633,9 +643,14 @@ Trinetra Database/
 ## 17 · The developer's side
 
 The repository holds the code and nothing of the design:
-- the kernel: the physics generated from the pseudocode (`adcs-physics`), the time engine (`adcs-sim-core`,
-  `adcs-sim`, `adcs-pop`), the sizing (`adcs-design`), the plotting (`adcs-plot`);
-- the flight software, in C (`fsw/`) and Rust (`fsw-rs/`), and the MATLAB twin (`matlab_sils/`);
+- the toolbox the methods call, with units, and the pseudocode interpreter and its translators to Rust, C and
+  MATLAB;
+- the time engine's core (`adcs-sim-core`, `adcs-sim`, `adcs-pop`): integrator, step order, recorder, metrics;
+  its models are generated from the design;
+- the flight software's runtime: the HAL, the C interface, the scheduler, the configuration blob, the targets
+  (`fsw/targets`), and the flight build;
+- the rigs' software: the soft OILS emulator and byte link, the OILS and HILS rig host;
+- the plotting (`adcs-plot`) and the MATLAB twin's runner (`matlab_sils/`), whose functions are generated;
 - the one library that reads, writes and checks every file, and runs the design graph (`trinetra-design`);
 - the application, installed (`trinetra-app`) and as a page;
 - the CLI, the Python package and the tools;

@@ -1,481 +1,679 @@
 # The plan to 2.0.0
 
-> **Answer first.** One release, 2.0.0, built in eight phases (S0–S7) and switched over on one planned day.
+> **Answer first.** One release, **2.0.0**, at the very end. Before it, eighteen phases (S0–S17) in six stages:
+> 1. ground and the model;
+> 2. the database;
+> 3. everything computed from the database, the flight software included;
+> 4. the application and the people;
+> 5. the technical upgrade, done the new way;
+> 6. the one release.
 >
 > After it:
 > - everyone has one application and one shared drive, **Trinetra Database**;
-> - each person looks after their own part of the design database every day;
-> - everyone sees today's design built from everyone's latest work;
-> - the system engineer releases the design that decisions are made on;
+> - the whole design lives there, and only code lives in the repository: the relations, the catalogue, the cases,
+>   and the flight software's algorithms, parameters and modes;
+> - code means the toolbox, the engine's core, the translators, the application, and what the onboard computer
+>   and the test rigs need to run (the flight software's runtime, soft OILS, OILS and HILS);
+> - everyone sees today's design every day, and the system engineer releases the design that decisions are made
+>   on;
 > - the developer maintains only the code.
 >
-> The database comes first. At the end of S4 you get **zip 1**: the whole design converted and proven to give
-> today's numbers. You upload it by hand. Each phase proves what it builds in CI and merges into `main` on your
-> word. Nothing changes for anyone until the switch-over.
+> The database comes first. At the end of S4 you get **zip 1**, the whole design converted and proven to give
+> 1.0.0's numbers, which you upload by hand. **Zip 2** (the application) follows at S9. Every phase is proven in CI
+> and merged into `main` on your word. Nothing is tagged until S17.
 >
 > **Kind:** explanation + plan · **For:** everyone · **Status:** proposed 5 Oct 2026, waiting for your decisions
-> (§ "What needs your word")
+> ("What needs your word")
 
 What 2.0.0 is, is in two documents:
-- **the design model**, `docs/SYSTEM_MODEL.md`;
+- **the design model**, `docs/SYSTEM_MODEL.md`, including what is database and what is code (§7, and §7.1 for
+  the flight software);
 - **how it is operated**, `docs/OPERATING_2_0.md`: the valves and the daily rhythm, the roles, the application
   and its workspaces, today's design, the health map, how data comes in, every file, version and folder, each
   step from W1 to W16, and who hears what.
 
-This page is only how we get there. It replaces `docs/DATABASE_FIRST_PLAN.md` (D1–D12 are placed in the last
-section) and renumbers the technical roadmap. The phase ids are S0–S7 so they do not collide with the roadmap's
-(E, M, G, F, A, Y, T, P, O, TS, DD, DB, D, U, B).
+This page is only how we get there. It replaces:
+- `docs/DATABASE_FIRST_PLAN.md` (D1–D12 are placed in the last section);
+- the release numbering of `docs/TECHNICAL_ROADMAP.md`: its phases U0–U5 become S11–S16, inside this one release.
 
-## Why 2.0.0, and why one release
+The phase ids are S0–S17 so they do not collide with the roadmap's item ids (E, M, G, F, A, Y, T, P, O, TS, DD,
+DB, D, B).
+
+## Why one release, 2.0.0
 
 TRI-NETRA has shipped 1.0.0. What changes now is larger than a minor version:
-- the file formats (format 2);
+- the file formats;
 - the rules;
 - the application (three pages and a desktop app become one);
 - the roles;
-- where the design lives (out of the repository, onto the drive).
+- where the design lives (the flight software's algorithms included);
+- the technical corrections the audit found in 1.0.0.
 
-So the next release is **2.0.0**, and it ships once. After it:
+It ships **once**, when all of it is done and proven together, so nobody works on an in-between state:
+- the zips put the database and the application's release candidates on the drive;
+- a release candidate in `apps/` is for the trial and for daily work after the switch-over, and is never tagged;
+- the tag `v2.0.0` comes only at S17.
+
+After it:
 
 | what | made by | when |
 |---|---|---|
 | an application release, the code | the developer | rarely |
 | today's design | the application, from the drive, for everyone | whenever anyone opens it |
-| a released design | the system engineer, and no one else | when today's design is right |
+| a released design, with its flight images | the system engineer, and no one else | when today's design is right |
 | a programme decision | the programme manager, as a release of the programme's branch | after a released design |
 
 ## The one idea every phase serves
 
-**The design never passes through the code again.** The developer moves it out of the repository once, at S3. From
-then on it is written, checked, combined, run, signed and released in the application, by the people who own it.
+**The design never passes through the code again, and everything that computes is generated from it.** The
+developer moves the design out of the repository once, at S3.
+
+From then on it is written, checked, combined, run, signed and released in the application, by the people who own
+it. The time engine's models, the flight software's algorithms and the MATLAB twin's functions are all generated
+from it. A design change never waits for a developer, and a developer never edits a design.
 
 Everything the developer does today on a group's release becomes checks in one library, which the application
 runs at every valve. Today that work is:
 - verify and merge (`tools/group.py`);
-- generate (`tools/groupcode.py`);
-- deliver a test app, and accept it (`tools/delivery.py`);
-- build `design.tndb` (`tools/seed_design.py`, `tools/drive_pack.py`).
+- generate (`tools/groupcode.py`, `tools/gen_fsw_params.py`);
+- deliver a test app and accept it (`tools/delivery.py`);
+- build `design.tndb`.
+
+## Database and code: the boundary
+
+| in the database | in the code |
+|---|---|
+| every relation: physics, environment and disturbances, device models, sizing laws | the toolbox the methods call, with units (vectors, quaternions, frames and time, integrators; DTM2020, IGRF, DE440 reading) |
+| **the flight software's algorithms**: estimation, guidance, control, detumble and Sun-acquisition laws, allocation, mode management, FDIR, the drivers' conversions | **the flight software's runtime**: HAL, C interface, tick and scheduler, the configuration blob's format, the targets (POSIX, QEMU Cortex-M, boards) |
+| the flight parameters, the mode list, the tables (IGRF coefficients) | the flight build: generate, compile, check, seal |
+| the catalogue, the cases and their variations, the KPIs, dispersions and campaigns | the time engine's core: integrator, step order, recorder, metrics |
+| wires, mounts, closures, loops; states, maturities, ranges | **the rigs**: the soft OILS emulator and byte link, the OILS and HILS rig host, emulation channels, timing measurement |
+| signatures, seals, versions; the flight images of each released design | the interpreter and the translators (Rust, C, MATLAB); the library; the application; the CLI and Python package |
 
 ## The code, as 2.0.0 arranges it
 
-| part | is | crate or folder | runs |
+| part | is | where | runs |
 |---|---|---|---|
-| **kernel** | the physics generated from the pseudocode; the time engine; the orbit propagator; the sizing; the plotting | `adcs-physics`, `adcs-sim-core`, `adcs-sim`, `adcs-pop`, `adcs-design`, `adcs-plot` | installed; `adcs-sim-core` (no_std) also as WebAssembly in the page |
-| **flight software** | C and Rust, one interface | `fsw/`, `fsw-rs/`, `adcs-fsw-abi` | in the engine, the emulated OBC (soft OILS), the boards |
-| **the library** | reads, writes and checks every file kind; the pseudocode interpreter; the design-graph engine; today's design; the health map; signing | `trinetra-design`, grown from today's read-only reader | installed (native) and in the page (WebAssembly) |
-| **the application** | five workspaces over the library and the engine | `trinetra-app` (installed) and `apps/TRI-NETRA.html` (the page) | everyone |
-| **CLI, Python package, tools** | scripted use, CI, the release | `adcs-cli`, `python/trinetra_adcs`, `tools/` | the developer and CI; they read the design through the library |
-| **twin** | the MATLAB reference | `matlab_sils/` | flies an export generated from the design |
+| **toolbox** | the maths the methods may call, with units | `adcs-physics` (its generated part moves out, its toolbox stays), `fsw/pseudocode/01_math`, `02_time_frames_models` | everywhere |
+| **library** | reads, writes and checks every file kind; the interpreter; the design graph; today's design; the health map; signing | `trinetra-design`, grown from today's read-only reader | installed (native) and in the page (WebAssembly) |
+| **translators** | pseudocode to Rust, C and MATLAB | today `design/js/pcode_gen.js` (Rust, MATLAB); C is new | in the flight build and the engine build |
+| **time engine** | its core, plus models generated from the design | `adcs-sim-core`, `adcs-sim`, `adcs-pop`, `adcs-design` | installed; `adcs-sim-core` (no_std) also in the page |
+| **flight software** | the runtime, plus algorithms generated from the design | `fsw/` (C), `fsw-rs/` (Rust), `adcs-fsw-abi`, `fsw/targets/` | SILS, soft OILS (QEMU), OILS and HILS (boards) |
+| **rigs** | soft OILS emulator, byte link, rig host | `fsw/targets/link`, `tools/engine_oils.py` | installed |
+| **application** | five workspaces over the library, the engine and the flight build | `trinetra-app` and `apps/TRI-NETRA.html` | everyone |
+| **CLI, Python, tools, twin runner** | scripted use, CI, the release; the MATLAB runner with generated functions | `adcs-cli`, `python/trinetra_adcs`, `tools/`, `matlab_sils/` | the developer and CI |
 
-**One library, two hosts.**
-- The library's core is plain Rust over rows: the checks, the interpreter, the graph, the health map and the
-  signature chain.
-- Each host does its own file I/O. The installed application and the CLI use SQLite (`rusqlite`, as
-  `trinetra-design` does today). The page uses the vendored `sql.js` (`design/vendor/sqljs`), as the three pages
-  do today.
+**One library, two hosts.** The library's core is plain Rust over rows: the checks, the interpreter, the graph,
+the health map and the signature chain. Each host does its own file I/O:
+- the installed application and the CLI use SQLite (`rusqlite`, as `trinetra-design` does today);
+- the page uses the vendored `sql.js` (`design/vendor/sqljs`), as the three pages do today.
 
-So the same checks run wherever a file is opened. The JavaScript and Python implementations that exist today
-(`design/js/pcode.js`, `node_model.js`, `structure.js`, `release.js`; `tools/pcode.py`, `tools/tndb.py`,
-`tools/group.py`) become its test oracles until the switch-over, then retire.
+Today's JavaScript and Python implementations become the library's test oracles until the switch-over, then
+retire.
+
+## Who may change the design, and when
+
+| period | a change to the design is made by |
+|---|---|
+| until S3 | the developer, in the repository, as today |
+| S3 to S10 (converted, nobody writing on the drive yet) | a **corrected conversion** only (zip 1.1, 1.2 …), replacing `groups/` and `cases/` |
+| from S10 (switch-over) | **people only**, in the application. The developer may *propose* a revision: a transcription from a cited source, or from a fix proven in code. It arrives in the node engineer's My work, who checks it against the source and signs it, or does not |
+
+No assistant supplies a relation. A transcription names its source and is signed by the person who checked it.
 
 ## While it is built
 
-- **Nothing changes for anyone until the switch-over.** 1.0.0 stays the released tool: the kits, the wheel, the
-  desktop app, the three pages and their manuals (`docs/GROUP_APP.md`, `docs/NODE_APP.md`). Nobody is writing
-  design files on the drive yet: it is empty apart from the guides and two sheets. So nobody's work has to be
-  frozen or upgraded.
-- **The repository's design data is frozen at S3.** After the conversion, any change to it must be a corrected
-  conversion (zip 1.1, below), never an edit beside it. The 1.0.0 content is kept read-only under
+- **Nothing changes for anyone until the switch-over (S10).** 1.0.0 stays the released tool. Nobody is writing
+  design files on the drive yet, so no work has to be frozen or upgraded.
+- **The repository's design data is frozen at S3.** The 1.0.0 content is kept read-only under
   `archive/design-1.0/` until 2.0.0 ships, then deleted.
 - **The new application is built beside the old, not patched into it.** The old pages, the delivery tool and the
-  test apps retire on the switch-over day, so nobody has two of anything to choose between.
-- **You try it first.** At the end of S5 you get the application with the converted design. You live with it for
-  some days in every role (programme manager, system engineer, the subsystem engineer of `env`, a node engineer),
-  round the whole cycle, W1 to W10. S6 does not start until that round is answered.
+  test apps retire at the switch-over.
+- **You try it first.** At the end of S8 you live with the application for some days in every role, round W1 to
+  W10, on the converted design. S9 does not start until that round is answered.
 
 ## The phases
 
-| phase | needs | delivers | who |
-|---|---|---|---|
-| **S0 · Safe ground** | nothing | the application and the engine refuse a design they cannot run; results name their design; the 1.0.0 notes corrected | developer; you approve the notes |
-| **S1 · Rules, roles and the model** | S0 can run beside it | the system model, the operating model and the code's architecture for TRI-NETRA; the code's rules, the design's rules, the valves and the role names; the mount table | developer, **you** |
-| **S2 · Files, versions and keys** | S1 | format 2 for every file kind; versions; signatures; the one library with every check | developer |
-| **S3 · The design leaves the repository** | S2 | the 765 nodes, the catalogue and the cases converted into the drive's layout; programme, systems and the groups as files; built-in relations kept as code by node id | developer |
-| **S4 · The engine runs the design → zip 1** | S3 | the design graph and the time engine read the converted files; today's design; the health map; the declared loop; **the parity gate**; **zip 1**, uploaded by you and checked on the drive | developer, **you upload** |
-| **S5 · The application** | S2, then S4 | one application, installed and as a page, with its five workspaces, doing W1 to W16 | developer, **you try it** |
-| **S6 · The drive and the people → zip 2** | S4, S5 | the application and the guides on the drive (zip 2); keys; sharing; one guide per role; START HERE | developer, **programme manager** |
-| **S7 · Switch-over and proof** | S6 | the first released design; `env` round the whole cycle with no developer; then **2.0.0** | **you** |
+| stage | phase | delivers | your part | size |
+|---|---|---|---|---|
+| **1 · Ground and model** | S0 Safe ground | designs refused by an engine that cannot run them; results name their design; 1.0.0 notes corrected | approve the notes | S |
+| | S1 Rules, roles, the model | the model, the operating model, the code's architecture; the rules; role names; the mount table; the database/code boundary | **approve, with a second reviewer** | S–M |
+| **2 · The database** | S2 Files, versions, keys | format 2 for every kind; versions; signatures; the one library with every check; the interpreter in Rust | — | L |
+| | S3 The design leaves the repository | the tree, the catalogue, the cases **and the flight software's algorithms, parameters, modes and tables** converted into group files and cases | — | L |
+| | S4 The design runs → **zip 1** | the design graph and the time engine read the design; today's design; health map; the declared loop; **parity gate**; zip 1 | **upload zip 1** | L |
+| **3 · Everything from the database** | S5 Translators complete | a C translator; Rust, C and MATLAB covering every construct the flight software and the models use; each held to the interpreter | — | M |
+| | S6 Flight software from the database | C and Rust algorithms generated from the nodes; the runtime kept; the flight build; images proven equal to 1.0.0's software in SILS and soft OILS; hand-written algorithm code deleted | — | L |
+| | S7 Every relation from the database | every built-in relation written as a method (transcribed, signed later) and proven equal; the engine's and the sizing's models generated; the twin's functions generated; **built-in count zero** | — | L |
+| **4 · Application and people** | S8 The application | one application, five workspaces, the flight build, W1–W16 | **try it in every role** | L |
+| | S9 Drive and people → **zip 2** | `apps/` and `guides/` on the drive; START HERE; keys; sharing; a guide per role | **name people, share, register keys; upload zip 2** | S–M |
+| | S10 Switch-over | the first released design, with its flight images; `env` round the whole cycle, no developer | **do the round** | M |
+| **5 · The technical upgrade, the new way** | S11 Corrections (U0) | 1.0.0's wrong results and critical defects fixed: code in the repository, design through signed revisions | **sign the proposed revisions** | M–L |
+| | S12 Environment, frames, requirements, orbit (U1) | cited environment and frames; the propagator's fixes | sign | L |
+| | S13 Margins, statistics, budgets (U2) | stability margins, statistics with confidence, budgets by error class, independent referents | sign | L |
+| | S14 Devices, GNC, completeness (U3) | devices against datasheets, the GNC items, FDIR, the FMECA and its fault matrix | sign | L |
+| | S15 Flight-software assurance (U4) | robustness, TM/TC, coverage and MISRA on the generated code, reproducible flight builds, Renode soft OILS | sign | L |
+| | S16 OILS and HILS ready (U5, code side) | board targets, the rig host, timing, the HILS procedures as cases; proven on emulation | **choose the board and the lab (H1, H4)** | M–L |
+| **6 · The one release** | S17 Release 2.0.0 | the whole chain from the drive, every closure answered or named, the release notes, the tag | **say "Ship 2.0.0", push the tag** | M |
+
+## Stage 1 · Ground and model
 
 ### S0 · Safe ground
 
-- A design names the application version and toolbox it needs. The engine (`adcs-cli`), the desktop app and the
-  Python package check it, and refuse a mismatch by name.
-- Every result carries the fingerprint of the design and the version of the engine that made it, and is marked
-  stale when either changes. This extends the run manifest's provenance (`docs/RESULTS.md`).
-- The faults the data-flow audit found in reading a design are fixed, each with a test that failed before:
-  - `adcs size` fails when the design comes from a database;
-  - DE440 is not found from an empty working directory;
-  - `evaluate` crashes on the pack's root folder;
-  - a folder or an unreadable database is not refused clearly.
-- The pseudocode checker page (`design/pcode_checker.html`) is rebuilt whenever the interpreter it embeds changes;
-  a check in `tools/check_all.py` holds it.
-- The published 1.0.0 release notes are corrected (`docs/TECHNICAL_ROADMAP.md` §0):
-  - the KPI passes were not demonstrated (A1);
-  - power is actuator power only (Y1);
-  - the CMG cluster is counted four times (Y2).
-
-  You approve the text and edit the release on GitHub.
+- A design names the application version and toolbox it needs. The engine, the desktop app and the Python package
+  refuse a mismatch by name.
+- Every result carries the design's fingerprint and the engine's version, and is marked stale when either changes
+  (extends `docs/RESULTS.md`).
+- The faults found in reading a design are fixed, each with a test that failed before:
+  - `adcs size` under a database;
+  - DE440 not found from an empty working directory;
+  - `evaluate` on the pack's root;
+  - a folder or an unreadable database not refused clearly.
+- The pseudocode checker page (`design/pcode_checker.html`) is rebuilt when the interpreter it embeds changes.
+- The published 1.0.0 release notes are corrected: the KPI passes were not demonstrated (A1), power is actuator
+  power only (Y1), and the CMG cluster is counted four times (Y2). You approve the text and edit the release.
 
 **Done when** a design built for another engine is refused in a test, and every result names its design.
 
 ### S1 · Rules, roles and the model
 
-- **The model:** `docs/SYSTEM_MODEL.md` and `docs/OPERATING_2_0.md` (proposed with this plan), reviewed and
-  approved.
-- **The code's architecture:** `docs/CODE_ARCHITECTURE.md`, the table above written out: what each crate and
-  folder does, and which part may call which.
-- **The code's rules:** `CONTRIBUTING.md`, `docs/CHANGING.md` and the agents' files in `.claude/agents/`,
-  rewritten for a repository that holds only code. These stay:
-  - refuse, never guess (a missing input is refused by name, never filled);
-  - never edit a generated file;
-  - the twin moves with the engine, and the C flight software with the Rust, in the same change;
-  - every formula in the kernel is traced to its source (`docs/references.toml`).
-
-  This is new: an application release must give the current released design's answers unchanged (W15).
-- **The design's rules,** written as checks for the library (S2) and described for people in the operating model:
+- **The model:** `docs/SYSTEM_MODEL.md` and `docs/OPERATING_2_0.md`, reviewed and approved.
+- **The code's architecture:** `docs/CODE_ARCHITECTURE.md`, the two tables above written out: what each crate and
+  folder does, which part may call which, and the database/code boundary as a rule. A relation, an algorithm, a
+  parameter or a table found in code outside the generated files is a defect.
+- **The code's rules:** `CONTRIBUTING.md`, `docs/CHANGING.md` and `.claude/agents/`, rewritten for a repository
+  that holds only code.
+  - These stay:
+    - refuse, never guess;
+    - never edit a generated file;
+    - the twin moves with the engine, and the C runtime with the Rust;
+    - every toolbox formula is traced to its source.
+  - These are new:
+    - an application release gives the current released design's answers, and its flight images' behaviour,
+      unchanged (W15);
+    - a translator change is proven on every node's vectors before it ships.
+- **The design's rules,** as checks for the library and as words in the operating model:
   - one writer per file, and the signature chain;
   - an expected value never comes from the code under test;
-  - no relation supplied by an assistant, and a transcription signed by the person who checked it;
+  - no relation supplied by an assistant; a transcription signed by the person who checked it;
   - every requirement says which way it binds;
   - a node reads its children only through their ports;
   - a release is never edited;
   - a parameter is changed only by the level that owns it;
   - every valve's owner controls what passes it;
-  - the design is released by the system engineer alone, and today's design is never taken for a released one;
-  - evidence counts only from results made by the design it is judged in.
-- **The roles and their names:** programme manager, system engineer, subsystem engineer, node engineer,
-  developer, each with a deputy, plus the checker's signature where a group asks for it. Every owner of a branch
-  is the system engineer of that branch. Every page, screen and guide uses these names and no other
-  (`docs/GLOSSARY.md`, `design/manual/05_glossary.md`).
-- **The tree:** the mount of every group, the dissolving of `case`, and `programme` and `systems` as groups
-  (`docs/SYSTEM_MODEL.md` §8).
-- **Replaced, not kept beside:**
-  - `docs/RELEASE_PLAN.md` §1 is replaced by the operating model;
-  - `docs/RULES_PROPOSAL.md` is replaced by the design's rules.
-
-  Both are marked as describing 1.0.0.
+  - the design is released by the system engineer alone;
+  - today's design is never taken for a released one;
+  - evidence counts only from results made by the design (and the flight image) it is judged in.
+- **The roles:** programme manager, system engineer, subsystem engineer, node engineer, developer, each with a
+  deputy, and the checker's signature where a group asks for it. They are used on every page and in
+  `docs/GLOSSARY.md`.
+- **The tree:**
+  - the mount of every group;
+  - `programme` and `systems` as groups, and `case` dissolved;
+  - the flight software's owners: `nav`, `gdn`, `ctl`, `fdir`, `act`, `sens` and `fsw` (`docs/SYSTEM_MODEL.md`
+    §7.1, §8).
+- `docs/RELEASE_PLAN.md` §1 and `docs/RULES_PROPOSAL.md` are marked as describing 1.0.0.
 
 **Done when** you approve, with a second reviewer.
 
+## Stage 2 · The database
+
 ### S2 · Files, versions and keys
 
-- **One schema, format 2** (`design/schema.toml`), for every file kind in the operating model §10:
-  - a **block** whose parent goes to any depth, with its perspective, behaviour, contract version and owner;
-  - a **port**, with type, unit, range (each end with its reason), state, maturity and direction; while open,
-    its owner and the gate it is due by; and its bundle;
-  - **wire, mount, closure** (by analysis or by evidence, with the metric and campaign), and **loop** (what
-    settles, tolerance, iteration limit);
-  - **case** and variation, **text, table, media**;
-  - **signature, change, request, issue, preview, answer**, and the integration record.
-- **Port types:** number with unit, whole number, choice, yes/no, list and parameter first. Table, time series and
-  uncertain value come later.
-- **Identity and versions** of every file, by the operating model §13.
+- **Format 2** of `design/schema.toml`, for every kind in the operating model §10:
+  - block (parent to any depth, perspective, behaviour, contract version, owner);
+  - port (type, unit, range with reasons, state, maturity, direction, owner and gate while open, bundle);
+  - wire, mount, closure (by analysis or by evidence), loop;
+  - case and variation;
+  - text, table, media;
+  - signature, change, request, issue, preview, answer, integration record;
+  - flight image.
+- **Port types:** number with unit, whole number, choice, yes/no, list and parameter first. Fixed-size vectors
+  and matrices are added too, for the flight algorithms' states and gains. Table, time series and uncertain value
+  come later.
+- **Identity and versions** by the operating model §13.
 - **Keys:**
-  - make a key, lock it by passphrase, sign, and check a signature through the chain (operating model §14);
-  - Ed25519 with a PBKDF2 and AES-GCM lock, the same algorithms in Web Crypto and in Rust.
-- **One library**, `trinetra-design`, grown from today's read-only reader. It reads, writes and checks every kind,
-  compiled for the installed application and, as WebAssembly, for the page.
-  - Every check that today's tools and pages run moves into it:
-    - `tools/tndb.py check`;
-    - `tools/group.py verify`;
-    - `tools/delivery.py`;
-    - the node app's live checks (the spec's intake rules);
+  - make, lock by passphrase, sign, and check through the chain;
+  - Ed25519, with a PBKDF2 and AES-GCM lock, the same in Web Crypto and in Rust.
+- **One library**, `trinetra-design`, grown into it. It reads, writes and checks every kind, natively and as
+  WebAssembly.
+  - Every check today's tools and pages run moves into it:
+    - `tndb.py check`;
+    - `group.py verify`;
+    - `delivery.py`;
+    - the node app's live checks;
     - the group app's impact checks;
     - the seal.
   - What is checked: the signatures, the method and its units, the cases, both ends of every range, the
     de-risking record, and the assistant rules.
-  - **The pseudocode interpreter in Rust**, held equal to `design/js/pcode.js` and `tools/pcode.py` on every test
-    vector, and to the generated `adcs-physics` (which already equals the interpreter).
-- **Upgrade:** a format-1 file (1.0.0's) upgrades when opened, and keeps a copy. **Nothing a group wrote is
-  dropped.**
+- **The pseudocode interpreter in Rust**, held equal to `design/js/pcode.js` and `tools/pcode.py` on every test
+  vector, including the flight software's vectors (`fsw/pseudocode/`).
+- **Upgrade:** a format-1 file upgrades when opened and keeps a copy. Nothing a group wrote is dropped.
 - **Comparison:** any two revisions, releases or designs, node by node.
 
 **Done when:**
 - the 765 node files and 20 group files of 1.0.0 upgrade with nothing dropped, field by field;
 - signatures check through the chain;
-- the library refuses everything today's tools refuse, in a test for each.
+- the library refuses everything today's tools refuse;
+- the Rust interpreter equals the two existing ones on every vector.
 
 ### S3 · The design leaves the repository
 
 This is the last time the design passes through the code.
 
-1. **The tree becomes files.** `spec/` (the tree, the seed content, the physics pseudocode, the KPIs) and
-   `design/groups.toml` and `design/carry.toml` become:
-   - the programme's branch (layer 1), the systems branch (layer 2), and one branch per group (21 groups:
-     today's 20, less `case`, plus `programme` and `systems`);
-   - each row's layer becomes its perspective tag;
-   - each group mounts on its block, its mount drawn from today's interface rows (`docs/SYSTEM_MODEL.md` §8);
-   - today's 238 derivation and 23 contribution edges become wires, and the 38 closures sit on the blocks they
-     close;
-   - the proposed next level is added as open blocks;
-   - today's parameters are placed at the level that owns them.
-2. **Every value gets its state, maturity and range**, by rules that invent nothing:
+1. **The tree** (`spec/`, `design/groups.toml`, `design/carry.toml`) becomes:
+   - the programme's branch, the systems branch, and one branch per group (21 groups);
+   - perspective tags, mounts from the interface rows;
+   - wires from the 238 derivation and 23 contribution edges, and closures on the blocks they close;
+   - the proposed next level as open blocks;
+   - parameters at the level that owns them.
+2. **The relations:** the 39 physics relations (`spec/physics/*.pc`) and every node's pseudocode become methods.
+   Relations still only in compiled code become **built-in**, keyed by node id, for S7 to remove.
+3. **The flight software's design** becomes nodes of its owning groups:
+   - the algorithms of `fsw/pseudocode/03`–`09` (estimation, guidance, control, step laws, allocation, mode
+     manager, drivers), each function a node, with the vectors as its cases;
+   - the parameters of `fsw/params/params.toml`, each a stated node with its unit, range and source;
+   - the mode list as a choice;
+   - the IGRF coefficients as a lookup table of `env`.
+
+   `01_math` and `02_time_frames_models` stay as the toolbox.
+4. **Every value gets its state, maturity and range** by rules that invent nothing:
    - stated with a source → decided;
    - a required row's bound → allocated;
    - computed → achieved;
-   - anything else → open;
-   - maturity is estimated unless the source says calculated or measured;
-   - a range comes from the 82 nodes that carry `lower` and `upper` with their reasons; any other open value is
-     listed without one.
-3. **The library data becomes design:**
-   - `catalogue/` (parts, products, algorithms, components, modes, families, classes): lookup and stated blocks of
-     `catalogue`, `act` and `sens`;
-   - dispersions, KPI definitions and delivery waves: blocks of `vv`, `kpi` and `programme`;
-   - the reference cases, the 48 scenarios, the 8 campaigns and the 12 trades: case files in `cases/`;
-   - the case lines that have a node (162 of 213) are wired to it, so the time engine flies the node's value;
-     the rest stay case values, listed.
-4. **The relations still in code** are gathered under one registry, keyed by node id: `adcs-physics` (generated
-   from the pseudocode), `adcs-sim-core` and `adcs-design`. Each such node's behaviour is **built-in**, marked.
-5. **Baseline releases.** Each group's converted content is sealed as release **0.1** by the conversion. It is
-   marked *converted, not yet signed by a person*, and every node in it shows **unproven** until its engineer
-   signs it.
-6. **Readable copies:**
-   - `readable/*.csv`;
-   - `readable/Conversion.csv`, which places every field of every 1.0.0 node, every catalogue entry and every case
-     line, or lists it as dropped. It must list none.
-7. **The repository** keeps the example group and the converted design's copy as the regression for W15
-   (`tests/fixtures/`, `tests/regression/`). The node pages, seed and carry-over tools, `export_catalogue.py` and
-   the generators that read `spec/` leave the build, and their checks now run in the library.
+   - otherwise → open;
+   - maturity is estimated unless the source says otherwise;
+   - ranges come from the nodes that carry them (82 design nodes, every flight parameter with limits).
+5. **The library data becomes design:**
+   - the catalogue: lookup and stated blocks;
+   - dispersions, KPI definitions and waves: blocks of `vv`, `kpi` and `programme`;
+   - the reference cases, the 48 scenarios, the 8 campaigns and the 12 trades: case files;
+   - case lines with a node (162 of 213) are wired to it.
+6. **Baseline releases 0.1** per group, sealed by the conversion and marked *converted, not yet signed by a
+   person*. Every node shows unproven until signed.
+7. **Readable copies** in `readable/*.csv`, and `readable/Conversion.csv`, which places every field of every
+   1.0.0 node, every catalogue entry, every case line, every flight parameter and every flight function, or lists
+   it as dropped. It must list none.
+8. **The repository:**
+   - keeps the example group and the regression copy (`tests/fixtures/`, `tests/regression/`);
+   - `spec/`, `catalogue/`, `scenarios/`, `campaigns/`, `trades/`, `matlab_sils/cases`, `fsw/params/` and
+     `fsw/pseudocode/03`–`09` move to `archive/design-1.0/`;
+   - the seed, carry-over and export tools leave the build.
 
 **Done when:**
-- the conversion report lists nothing as dropped;
+- nothing is listed as dropped;
 - every file passes the library's checks;
 - the repository builds and tests with no design data in it apart from the example group and the regression copy.
 
-### S4 · The engine runs the design → zip 1
+### S4 · The design runs → zip 1
 
-- **The design graph is built from the files** when the application opens, not compiled into it, installed and
-  in the page. It runs every behaviour:
-  - method, run by the interpreter;
-  - children;
-  - stated;
-  - lookup;
-  - open, refused by name;
-  - built-in, found by node id.
-- **The time engine reads the design.**
-  - Every case input comes from its node (a mapped node with no value is refused by name), and every catalogue
-    input from its lookup block.
-  - Each run's manifest lists every input's node and revision.
-  - Its metrics return as evidence to the `closure_verified` blocks.
-  - **One reader for every tool:** the design loop, campaigns, evaluate, trace, the pointing budget, the V&V
-    report, the Python package and the CLI.
-  - The MATLAB twin flies an export generated from the design.
-- **Today's design** is built from the drive's folder on opening:
-  - from every group's latest sealed release that passes its checks;
-  - a refused release is replaced by its group's last good one, and marked;
+- **The design graph** is built from the files on opening, installed and in the page. It runs every behaviour:
+  method, children, stated, lookup, open (refused by name), built-in (by node id).
+- **The time engine reads the design:**
+  - case inputs from their nodes;
+  - catalogue inputs from lookup blocks;
+  - flight parameters from their nodes, written into the configuration blob that the 1.0.0 flight software
+    already reads (`tools/fswcfg.py`).
+
+  Each run's manifest lists every input's node and revision, and its metrics return as evidence to the
+  `closure_verified` blocks.
+- **One reader for every tool:** the design loop, campaigns, evaluate, trace, the pointing budget, the V&V
+  report, the Python package and the CLI. The MATLAB twin flies an export.
+- **Today's design** is built from the drive's folder:
+  - each group's latest sealed release that passes its checks;
+  - a refused release replaced by its last good one, and marked;
   - the application says which releases it used.
+- **The declared loop** (sizing → mass and inertia → demand) is iterated on the `design` block. Any other cycle
+  is refused by name.
+- **Every value** carries state, maturity and range; **every closure** gives its range verdict and tornado;
+  **every node** gets its health state, with roll-up and trace to cause.
 
-  The same holds at every valve: a group's today is built from its nodes' latest signed revisions.
-- **The declared loop:** the design loop's sizing → mass and inertia → demand cycle is declared on the `design`
-  block and iterated there, with its tolerance. Any other cycle is refused by name.
-- **Every value** carries its state, maturity and range. **Every closure** gives its range verdict and tornado.
-- **Every node** gets its health-map state, with the roll-up valve by valve and the trace to cause (operating
-  model §6).
-- A design names the application version and toolbox it needs.
-
-**The parity gate.** For every row in every case, the new path gives today's answer within the row's own
-tolerance, and refuses where today refuses. There is no switch without it. The gate covers:
+**The parity gate.** The new path gives today's answer within each row's own tolerance, and refuses where today
+refuses. It is checked on:
 - every row and closure of `results/EVALUATION.md` and `results/END_TO_END.md`;
-- the node verifier (`tools/verify_nodes.py`): every node passes;
-- every committed run re-flown from the design: both cases, every scenario, every campaign, with the same
-  metrics;
-- engine-to-twin parity (`results/ENGINE_PARITY.md`), unchanged, with the twin on the export.
+- the node verifier (`tools/verify_nodes.py`);
+- every committed run re-flown from the design: both cases, every scenario, every campaign;
+- engine-to-twin parity (`results/ENGINE_PARITY.md`);
+- soft OILS on QEMU with the parameters from the design.
 
-**Zip 1** is packed once the gate holds (`tools/drive.py`, grown from `drive_pack.py`). It holds the drive's
-layout (operating model §15) without `apps/`:
-- `groups/` with every group file, node file and baseline release;
-- `cases/`;
-- `readable/`;
-- the empty folders `design/`, `daily/`, `integration/`, `issues/` and `results/`;
-- `guides/`: the model, the operating model, this plan and the engineering documents;
-- START HERE, saying what works yet and what does not;
+**Zip 1** is packed once the gate holds (`tools/drive.py`). It holds:
+- `groups/`, `cases/`, `readable/`;
+- the empty `design/`, `daily/`, `integration/`, `issues/` and `results/`;
+- `guides/`: the model, the operating model, this plan, the engineering documents;
+- START HERE;
 - `MANIFEST.json`, with each file's size, SHA-256 and MD5.
 
 **Your upload:**
 1. In Trinetra Database, delete `Apps/` and `Design/`.
-2. Move `Guides/` and the two sheets into `old-1.0/`. The check ignores that folder, and you delete it after a
-   month.
-3. Upload zip 1's content, with Google's "convert uploads" off.
-4. Then either you run `python3 tools/drive.py --verify "<folder>" --first-upload` on Drive for desktop, or I check
-   it through the Drive connector, read-only. I compare every file's name, size and MD5 with the manifest; Drive
-   reports an MD5 for every uploaded file.
-5. Then I run the parity gate once more on a copy of what is on the drive.
-
-**Until the first released design (S7) I may send a corrected zip 1.1,** replacing `groups/` and `cases/` only,
-because nobody has written on the drive yet. After S7, never.
+2. Move `Guides/` and the two sheets into `old-1.0/`. The check ignores that folder.
+3. Upload zip 1's content, with "convert uploads" off.
+4. Then either you run `python3 tools/drive.py --verify "<folder>" --first-upload` on Drive for desktop, or I
+   compare every file's name, size and MD5 with the manifest through the Drive connector, read-only.
+5. The parity gate is run once more on a copy of what is on the drive.
 
 **Done when:**
-- parity holds for the whole design, installed and in the page;
-- today's design is built identically on two computers from the same files;
-- a deliberately broken node is traced to by name from the KPI it breaks;
-- the uploaded drive passes the check.
+- parity holds, installed and in the page;
+- two computers build the same today's design;
+- a broken node is traced to by name from the KPI it breaks;
+- the drive passes the check.
 
-### S5 · The application
+## Stage 3 · Everything from the database
 
-One application, installed and as a page from the drive, with the same screens. It knows each person by their key,
-and opens on My work.
+### S5 · Translators complete
 
-- **My work:** everything that needs the person now, at their valve.
-- **Node workspace:** W3, and the node engineer's side of W4 and W13. *Fly it* runs a case with the node's value
-  inside today's design.
-- **System workspace:**
-  - one workspace at every valve: W1 and W8 for the system engineer; W2, W4, W5, W7, W12 and W13 for a subsystem
-    engineer;
-  - today's view of the branch, impact, the sheet, the N2 at any depth, people, comparisons;
-  - for the system engineer: the ADCS budgets across releases, the declared loop, previews and requests.
-- **Programme workspace:** W10; mission health per case, gates (the order lifecycle and the review gates), risks
-  and beliefs, the organisation, measures across releases.
-- **Explore workspace:**
-  - today's design and any released one, side by side;
-  - runs, variations, sweeps, campaigns and, installed, soft OILS;
-  - the health map with trace to cause;
-  - each run's figures and report;
-  - W6's daily discussion on one screen.
-- **Bringing data in,** every way in the operating model §7:
-  - a formula typed as written;
-  - a table pasted from any spreadsheet or datasheet;
-  - a worked example as a case;
-  - CSV results from MATLAB, Python or a spreadsheet;
-  - units written naturally, and a range or a spread as typed;
-  - a PDF beside the node;
-  - *start from a similar node*;
-  - a customer's CSV as a new case.
+- **A C translator** joins the Rust and MATLAB ones. It writes C99 with no allocation, in the conventions of
+  `fsw/pseudocode/00_conventions.md` and the existing `fsw/src`.
+- **Every construct the flight software and the models use** is covered in all three languages: fixed-size
+  vectors and matrices, quaternions, state that persists between ticks, mode switches, saturation and
+  rate-limiting, table lookups.
+- **The translators move into the library's build**, so the application's flight build and the developer's engine
+  build use the same ones.
+
+**Done when** for every node with a method, its Rust, C and MATLAB translations equal the interpreter on every
+vector: bit for bit where the language allows, within the stated tolerance otherwise.
+
+### S6 · Flight software from the database
+
+- **Generated algorithms.** The flight build writes:
+  - the algorithm sources of `fsw/src` and `fsw-rs/src` from the nodes of `nav`, `gdn`, `ctl`, `fdir`, `act`,
+    `sens` and `fsw`;
+  - the parameter tables and the configuration blob's contents from their nodes (replacing
+    `tools/gen_fsw_params.py`);
+  - the IGRF table from `env`'s lookup.
+- **The runtime stays code:**
+  - `adcs_hal.h` and `hal.rs`;
+  - `adcs_fsw.h` and `cabi.rs`;
+  - the tick, scheduler and memory layout;
+  - the configuration blob's format and CRC (`tools/fswcfg.py`);
+  - `fsw/targets/` (POSIX, QEMU Cortex-M, the link).
+
+  It is separated cleanly from the algorithms, so the boundary is the C interface and nothing else.
+- **The flight build** generates the sources, compiles them with the runtime for each target, runs the nodes'
+  vectors on the result, and seals it as a flight image. The installed application carries it with its
+  toolchains (host, Cortex-M); CI uses the same one.
+- **The time engine** loads the flight image built from the design it flies (POSIX for SILS, QEMU for soft OILS),
+  and says which image it is.
+- **Parity:**
+  - the generated C and Rust flight software equals 1.0.0's hand-written software on every vector;
+  - every SILS scenario and campaign gives the same metrics;
+  - soft OILS on QEMU meets the same deadlines with the same timing (the B4 results);
+  - C and Rust still agree with each other.
+- Then **the hand-written algorithm code is deleted.** What remains in `fsw/` and `fsw-rs/` is runtime,
+  generated, or test.
+
+**Done when:**
+- the flight images built from the converted design pass parity on every target;
+- a change to a flight parameter or an algorithm node, made in the application, reaches the image and the
+  metrics with no developer step (a test).
+
+### S7 · Every relation from the database
+
+- **Every built-in relation is written as a method.** That covers the time engine's device, environment and
+  disturbance models (`adcs-sim-core`), the sizing laws (`adcs-design`), and any remaining row computed in code.
+  - Each is a transcription of the code it replaces and of the source that code cites. It is marked as a
+    transcription, to be signed by its node engineer after the switch-over.
+  - Each is held equal to the code it replaces on its cases and across its range.
+- **The engine's models and the sizing are generated** from the design by the Rust translator. Only the engine's
+  core stays hand-written: integrator, step order, recorder, metrics.
+- **The MATLAB twin's functions are generated** by the MATLAB translator. Its runner stays code.
+- **The generated group code** (`adcs-groups`, `adcs-groups-wasm`) is folded into this, and the per-group crates
+  retire.
+- **Parity** as in S4, on the whole chain, with nothing built-in.
+
+**Done when:**
+- the count of built-in nodes is zero;
+- the parity gate holds;
+- a search for a relation in code outside the generated files and the toolbox finds none (a check in
+  `tools/check_all.py`).
+
+Zip 1.x carries the converted methods to the drive as a corrected conversion, since nobody is writing there yet.
+
+## Stage 4 · The application and the people
+
+### S8 · The application
+
+One application, installed and as a page, the same screens. It knows each person by their key and opens on My
+work.
+
+- **My work, Node, System, Programme, Explore**, as the operating model §4 describes.
+- **Node:** *Fly it* runs a case with the node's value. A flight algorithm node runs in SILS through the
+  interpreter, and can be built into a soft OILS image to try.
+- **System:** for the system engineer, every ADCS budget across releases, including the flight software's CPU,
+  memory and deadline budget measured in soft OILS; the declared loop; previews and requests.
+- **Explore:** runs, variations, sweeps, campaigns, and soft OILS (installed); the health map with trace to cause.
+- **The flight build** in the installed application: build today's design to try; at *Release design*, build
+  every target and seal the images.
+- **Bringing data in,** every way in the operating model §7, plus the flight parameter sheet pasted as columns.
 - **Made easy to use** by the eight points of the operating model §8.
-- **What it replaces:** today's Files, Node and Group pages, the desktop app's three tabs, the test-app template,
-  node-form intake, `tools/delivery.py`, and `tools/group.py merge`. They are removed at the switch-over.
+- **It replaces** today's three pages, the desktop app's tabs, the test apps, node-form intake, `delivery.py` and
+  `group.py merge`. They are removed at the switch-over.
 
 **Done when** CI drives every workflow on the example group, installed and as a page, with no developer step in W1
 to W13. That includes:
-- a second writer stopped in W3;
-- a sealed release appearing in today's design for a second person;
-- a refused release replaced by its last good one, and marked;
-- an objection answered in W7;
-- a failing closure traced to its node, raised as an issue, and closed by the release that fixes it;
-- a node broken down whose children reproduce its cases, and one whose children do not;
-- a new group mounted on a node, its owner becoming the valve above it;
-- a design released, reviewed at each level, and a programme decision taken back into today's design;
-- a node's value flown, and an evidence closure answered from that flight;
+- a second writer stopped;
+- a seal seen by a second person;
+- a refused release replaced and marked;
+- an objection answered;
+- a failing closure traced, raised and closed;
+- a breakdown that reproduces its node's cases, and one that does not;
+- a new group mounted;
+- a design released with its flight images;
+- a programme decision taken back;
+- a flight parameter changed and flown in soft OILS;
 - each way of bringing data in.
 
-**Your trial** follows: some days in every role, round W1 to W10, on the converted design.
+**Your trial:** some days in every role, round W1 to W10.
 
-### S6 · The drive and the people → zip 2
+### S9 · The drive and the people → zip 2
 
 - `tools/drive.py` packs only what the developer owns:
-  - `apps/` with the application installed for each OS and as a page, `CHECKSUMS` and `NOTES.md`;
+  - `apps/`: the application for each OS with its flight build, and the page;
+  - `CHECKSUMS` and `NOTES.md`;
   - `guides/`.
 
-  **Zip 2** adds these to the drive and never touches `groups/`, `cases/` or `design/`. Everything else is
-  written by the application.
-- **START HERE**, with the daily rhythm and the programme manager's key fingerprint.
-- **The sharing table** (operating model §15), as a checklist for the programme manager.
-- **One guide per role:** node engineer, subsystem engineer, system engineer, programme manager, developer. Each is
-  written from the operating model, with the role's day and its workflows step by step, and replaces
-  `design/manual/`'s author, lead and user guides.
+  **Zip 2** never touches `groups/`, `cases/` or `design/`.
+- START HERE, the sharing checklist, and one guide per role. These replace `design/manual/`'s author, lead and
+  user guides.
 - **Replaced, not kept beside:**
   - `docs/GROUP_APP.md`, `docs/NODE_APP.md`, `docs/MAIN_APP.md`, `docs/FILES_IN_THE_BROWSER.md`,
     `docs/DELIVERY.md`, `docs/CARRY_OVER.md`, `docs/DATABASE_FIRST_PLAN.md` and `docs/VISION_VS_CURRENT.md`;
-  - the developer-loop skill (`.claude/skills/trinetra-coordinator`), rewritten for W14 and W15.
+  - the developer-loop skill, rewritten for W14 and W15.
+- **Your part:**
+  - name the system engineer, each subsystem engineer, each deputy and checker;
+  - each makes their key;
+  - your fingerprint goes in START HERE;
+  - register the keys, share the folders, upload zip 2.
 
 **Done when** someone who has never seen the application can follow each role's guide, from an empty drive to a
 released design.
 
-### S7 · Switch-over and proof
+### S10 · Switch-over
 
-One planned day, then some days of real use. Nothing is overwritten.
+1. **Parity once more,** on the drive's copy.
+2. **First seals.** Each subsystem engineer seals their group's baseline as **1.0** with their key. Unsigned
+   converted nodes and transcriptions are carried, marked unproven, and the seal records how many.
+3. **First released design**, with a flight image for each target, released by the system engineer.
+4. **`env` 1.1 round the whole cycle, W1 to W10, with no developer:**
+   - **one design activity parameter,** `env_design_activity` (F10.7 and Ap design levels, with source), read by
+     every density node. Today each scenario sets its own activity factor (`density_scale`);
+   - **density as an open range** from solar minimum to solar maximum, each end stated from DTM2020. The tornado
+     on `gd_1` (aerodynamic torque) and `gd_5` (secular momentum) shows it widest, and the closures that read them
+     give range verdicts.
 
-1. **Freeze.** Nothing to freeze on the drive, since nobody has written on it yet. The repository's design data
-   has been frozen since S3. The date is told to everyone who will hold a role.
-2. **Parity once more,** on the drive's copy, on the day.
-3. **The drive.** Trinetra Database holds zip 1 and zip 2. `old-1.0/` is kept read-only for a month.
-4. **Share and register.**
-   - The programme manager shares each folder by the table, writes their key fingerprint into START HERE, and
-     registers the system engineer's, each subsystem engineer's and each deputy's key.
-   - Each subsystem engineer registers their node engineers' and checkers' keys.
-5. **First release.**
-   - Each subsystem engineer seals their group's baseline as **1.0** with their own key. Its unsigned converted
-     nodes are carried and marked unproven, and the seal records how many.
-   - The system engineer releases the first design, **2026.mm.1**.
-   - The developer puts the 2.0.0 release candidate into `apps/`.
-6. **Live with it, with no developer in the loop.** Every day, today's design is opened and looked at. **`env` 1.1**
-   goes round the whole cycle, W1 to W10:
-   - **One design activity parameter.** Today the atmospheric density (`m3_3`, `l3_dist_row_07`) is a static
-     table times an activity factor set separately in each scenario (`density_scale`). It becomes one stated
-     parameter that every density node reads: `env_design_activity`, the F10.7 and Ap design levels, with their
-     source.
-   - **Density as an open range.** It runs from solar minimum to solar maximum, each end stated with its source
-     (DTM2020 at those levels). The tornado on the aerodynamic torque (`gd_1`) and the secular momentum (`gd_5`)
-     shows it as the widest bar, and the closures that read them give their range verdicts.
+   It is signed, sealed, seen in today's design, answered by `act`, `pnt` and `design`, released (with new flight
+   images, since the flight software reads the field and density models), reviewed and decided on.
+5. From here on, design changes are made by people only.
 
-   It is signed, sealed, seen in today's design, answered by the groups it moves (`act`, `pnt`, `design`),
-   released, reviewed at each level, and decided on.
-7. **Ship.** You say **"Ship 2.0.0"**. You push the tag `v2.0.0`; this session cannot push tags. The release
-   workflow builds the kits, the wheel and the page. START HERE goes to every subsystem engineer.
+**Done when** `env` 1.1 is in a released design, decided on by the programme, without the developer touching the
+design.
 
-**Done when** `env` 1.1 is in a released design, decided on by the programme, without the developer touching it.
+## Stage 5 · The technical upgrade, done the new way
+
+Each phase works in two halves:
+- the **code** half (toolbox, engine core, runtime, rigs, translators) by pull request, as always;
+- the **design** half as **proposed revisions**: each a transcription from a cited source, or the design-side
+  of a fix proven in code, delivered to its node engineer's My work. The engineer checks it and signs it, or does
+  not. The subsystem engineer seals, and the system engineer releases.
+
+Each phase ends with a released design. Every fix lands with a test (or a case) that failed before it. The item
+ids are those of `docs/TECHNICAL_ROADMAP.md`, `docs/TEST_BENCH_PLAN.md` (O, B), `docs/TEST_STRATEGY.md` (TS)
+and `docs/ORBIT_PROPAGATOR_AUDIT.md` (P).
+
+### S11 · Corrections (U0)
+
+| area | items | now |
+|---|---|---|
+| verdicts | A1, A2, A3, A5, A7 | design (evidence closures, confidence) and code (evaluation) |
+| power and sizing | Y1, Y2, Y4, Y5 | design (the sizing methods and budgets) |
+| models | M1, M2, M5, M9, M10 | design (the device methods) |
+| GNC logic | F2/G3, G1, G2, G4, G6, F4, F5 | **design** (the flight algorithm nodes), then new flight images |
+| flight software | F1, F3, F10/G8 | design where it is an algorithm (F1's epoch, for one), code where it is the runtime |
+| twin and density | E1, E6 | code (the twin runner, DTM2020 in the toolbox) and design (density nodes) |
+| orbit step | P5 | code (engine core) |
+| soft OILS | O2, O12, O19, O20, O21, O11 (B0) | code (rigs) |
+| tests | TS11, TS4, TS3, TS17 | code (CI) and design (cases) |
+| decisions | the 15 design decisions of `docs/DESIGN_DECISIONS.md` | design (stated nodes with their reasons), signed by their owners |
+
+**Done when:**
+- every verdict is demonstrated at its stated probability and confidence, or says "not demonstrated";
+- power is whole-ADCS;
+- the twin flies the flight frame;
+- the gyro, reset and timing faults have scenario cases.
+
+### S12 · Environment, frames, requirements, orbit (U1)
+
+- Frames: E2, T5/E3, E4.
+- Fields: E5, T4, IGRF-14.
+- Environment details: E8, T6/E9, E10–E15.
+- Sourced vectors for the physics rows, V1, and Y3 (mass with growth allowance, now graded by maturity).
+- Requirements: Y14, Y15, Y17, Y18.
+- The propagator: P1–P4, P6–P10, P12.
+- Tests: TS1 and the environment scenarios.
+
+**Done when** every environment model names its source and has a published-vector case, and every requirement is
+stated or refused, never invented.
+
+### S13 · Margins, statistics, budgets (U2)
+
+- Stability and drivers: T1, T2. Each closure's tornado and range verdict is extended with the margins and
+  worst-case search.
+- Statistics and budgets: A4, A6, A8–A18, Y6.
+- Estimator checks: S6 and G10.
+- Credibility: T3/A13.
+- Scope: D2, S1, S3.
+- Independent referents: TS12 (Basilisk and 42 shared scenarios, Orekit), P13, the orbit validation campaign,
+  CCSDS OEM export.
+- Tests: TS2, TS10, TS9.
+
+**Done when** every mode reports margins, and every claim either passes with confidence or names its drivers.
+
+### S14 · Devices, GNC, completeness (U3)
+
+- Sensors: T7, M7, T8 and M6.
+- Actuators and dynamics: M3, M4, M8, T10, M11–M17, T12, T13.
+- GNC: G5, G7, G9, G11–G16, T11, E7.
+- Calibration and FDIR: T9, D6 and G12.
+- System: Y7–Y13, Y16, with the FMECA as nodes of `fdir` and `risk`.
+- Operations interfaces: TLE/SGP4, manoeuvres, lifetime.
+- Tests: TS9 fault matrix from the FMECA, TS5 14-day soak, TS13 polarity and calibration as cases.
+
+**Done when** each device is checked against its datasheet, the mode set matches ECSS-E-ST-60-30C, and the FMECA
+drives the fault set.
+
+### S15 · Flight-software assurance (U4)
+
+- Robustness: F6, F7, the persistent context and golden blob, F11, F12. The runtime's parts are code; the gates
+  and their thresholds are design.
+- TM/TC: F8/T16 CCSDS and PUS-C, F13 parameter service (reading and writing the parameter nodes' values), F14.
+- Evidence, on the generated code and the runtime alike: F15/T14 coverage, mutation, MISRA, proofs.
+- F16 reproducible flight builds: the same design and application give the same image, byte for byte.
+- T15 SEU injection, F17, F18, H3.
+- Test bench B1: the Renode STM32F4 backend, a free-running OBC, HAL v2, adcs-link/2 (O3–O6, O8, O13, O14).
+- Tests: TS6 SRS and verification control document generated from the design, TS7, TS8, TS16.
+
+**Done when** a software verification report in ECSS-E-ST-40C Rev.1 shape is generated from the released design
+and its flight images by CI.
+
+### S16 · OILS and HILS ready (U5, code side)
+
+- Board OILS (H1): the chosen board as a flight-build target; F9 WCET and FPU; H2 timing calibration.
+- Test bench B2–B5: the IEU, the PREEMPT_RT rig host, PPS and TimeSync, Yamcs; the acceptance thresholds of
+  `docs/TEST_BENCH_PLAN.md` §5.
+- HILS procedures as cases, in the order ECSS-E-ST-10-03C Rev.1 and GEVS expect:
+  1. polarity and phasing;
+  2. Helmholtz-cage magnetometer and coil calibration;
+  3. Sun-simulator sensor calibration;
+  4. air-bearing closed loop;
+  5. day-in-the-life against the engine.
+
+**Done when** every rig and board target is proven on emulation (Renode, the link, a recorded rig), and each HILS
+procedure runs as a case.
+
+**Physical runs on the boards and in the lab are campaigns, not code.** Their results are evidence kept with the
+released design, so they need no new release, and they start the day the hardware is on the bench. Whether 2.0.0
+waits for the first board run is your decision (below).
+
+## Stage 6 · The one release
+
+### S17 · Release 2.0.0
+
+1. **The whole chain from the drive:**
+   - the released design;
+   - its flight images on every target;
+   - every case and campaign re-flown;
+   - soft OILS on QEMU and Renode;
+   - every closure answered, or named as open with its owner;
+   - the health map;
+   - the V&V report and the software verification report generated from it.
+2. **The regression copy** of the released design into `tests/regression/`.
+3. **Release notes**, for each role:
+   - what 2.0.0 changes;
+   - the corrections to 1.0.0's statements;
+   - what is still open, by owner.
+4. **"Ship 2.0.0".** You say it, and you push the tag `v2.0.0`; this session cannot push tags. The release
+   workflow builds the kits (with the flight build), the wheel and the page. The developer puts them into `apps/`,
+   and START HERE goes to everyone.
+
+**Done when** the release workflow is green, the application in `apps/` is the tagged one, and the released design
+it was proven on is in `tests/regression/`.
 
 ## After 2.0.0
 
-- **Built-in to method.** Each group writes methods for its built-in relations, in the Node workspace.
-  - The application runs both the method and the built-in on the node's cases and across its range, and shows any
-    difference.
-  - Once a method is released, the developer deletes the built-in in a later application release.
-  - About 160 nodes start as built-in. 166 cite Rust code today; 48 already have pseudocode.
-- **Generated code in the time engine.** The flight algorithms run from their nodes' pseudocode
-  (`adcs-groups`), one group at a time, each reproducing the hand-written model on every scenario first.
-- **Groups break their branches down further,** as data, with no developer.
-- **New kinds of maths and features** arrive as requests (W14) and application releases. DTM2020 as a toolbox
-  function the methods can call is the first.
-- **The technical roadmap resumes,** renumbered:
-
-  | release | phase | content |
-  |---|---|---|
-  | v2.1 | U0 | correct 1.0.0's wrong results and the critical flight-software and GNC defects |
-  | v2.2 | U1 | environment, frames and requirements you can cite; orbit-propagator fixes |
-  | v2.3 | U2 | stability margins, statistics, budgets, independent referents |
-  | v2.4 | U3 | devices, GNC, system completeness, FMECA |
-  | v2.5 | U4 | flight-software assurance, TM/TC, Renode soft OILS |
-  | v3.0 | U5 | board OILS and HILS (hardware-paced) |
-
-  Every design-data change in them is made in the application by its owner; every code change is made in the
-  repository.
-- **Later:**
+- Groups break their branches down further, as data.
+- New kinds of maths and features arrive as requests (W14) and application releases (W15).
+- Board and lab campaigns, as the hardware arrives.
+- Later:
   - variance-based sensitivity and the probability each closure holds;
   - an optimiser over the open ranges;
   - each closure's verification method;
-  - nodes that keep state from one time step to the next;
   - table, time-series and uncertain-value ports;
   - SysML v2 and FMI 3.0 exchange.
 
 ## What needs your word
 
 - **The decisions in S1:**
-  1. version 2.0.0;
+  1. one release, 2.0.0, at the end of S17;
   2. the model: one recursive block, layers as perspectives;
-  3. the role names, deputies, and the checker's signature kept where a group asks for it;
+  3. the role names, deputies, and the checker kept where a group asks;
   4. the mount table, `programme` and `systems` as groups, `case` dissolved;
   5. `act` as one group with four mounts, or four groups;
-  6. one library in Rust, native and WebAssembly, with today's JavaScript and Python as its test oracles;
-  7. the time engine's algorithms built-in in 2.0.0;
-  8. baseline releases 0.1, and a first seal that carries unsigned converted nodes, marked;
-  9. maturity seeding, and the margin policy (proposed: estimated 20 %, calculated 10 %, measured 3 %);
-  10. the file names (operating model §10);
-  11. `env` as the pilot, with its two changes.
+  6. **the boundary:** the flight software's algorithms, parameters, modes and tables in the database; its
+     runtime, the targets and the rigs in code; the maths library as the toolbox;
+  7. one library in Rust, native and WebAssembly; a C translator;
+  8. the flight build inside the installed application, with its toolchains;
+  9. every built-in relation transcribed before release, each signed by its node engineer after the switch-over;
+  10. baseline releases 0.1, and a first seal that carries unsigned nodes, marked;
+  11. maturity seeding, and the margin policy (proposed: estimated 20 %, calculated 10 %, measured 3 %);
+  12. the file names (operating model §10);
+  13. `env` as the pilot;
+  14. whether 2.0.0 waits for the first physical board run (H1), or ships with OILS and HILS proven on emulation
+      (my proposal).
 - **Each phase's merge.**
-- **Zip 1's upload, and zip 2's.**
-- **The trial** at the end of S5.
-- **The people:** who holds each role, and each deputy.
+- **Zip 1's upload, zip 2's.**
+- **The trial** at the end of S8.
+- **The people**, and the board and lab choices (H1, H4).
 - **The switch-over date.**
+- **Signing the proposed revisions** in S11–S16, as the node, subsystem and system engineer (or the people you
+  name).
 - **"Ship 2.0.0",** and the tag.
 
 The developer does not merge, release, change a rule or touch the design on its own initiative, and no assistant
@@ -483,37 +681,45 @@ supplies a relation.
 
 ## Where this plan breaks
 
-- **The parity gate is the hard part.** If the new path cannot reproduce today's numbers, S4 stops until it does,
-  and zip 1 and everything after it wait.
-- **The interpreter in Rust is new code.** It is held to the two interpreters that exist on every vector, and to
-  the generated physics. A disagreement stops S2.
-- **The application carries everything now.** With no developer in the loop, every check the developer made by
-  hand must be in the library, and the application must be easy enough that nobody needs one. S2 and S5 are the
-  largest phases, and your trial is the test.
-- **Today's design depends on the drive being in step.** S4 proves two computers build the same one, and the
+- **One release is a long time without a tag.** 1.0.0 stays the released tool until S17, and the release
+  candidates in `apps/` are for the trial and daily work only. A defect found in 1.0.0 meanwhile is fixed on
+  `main`, not shipped as a 1.0.x, unless you ask.
+- **The parity gates are the hard part,** three times over: the design read from files (S4), the flight software
+  generated (S6), and every relation generated (S7). Each stops the phases after it until it holds.
+- **Generated flight code** must meet what the hand-written code met: no allocation, the deadlines in soft OILS,
+  MISRA in S15. The translator is held to the conventions of `fsw/pseudocode/00_conventions.md`, and the timing is
+  re-measured.
+- **The flight build carries compilers.** The installed application grows by its toolchains. A computer without
+  them can fly SILS through the interpreter, but cannot build an image.
+- **Stage 5 puts a lot of signing on few people.** Hundreds of proposed revisions will arrive. Until more people are
+  named, you sign them. Each arrives with its source, its test that failed before, and the comparison, so checking
+  is reading, not re-deriving.
+- **Transcriptions are only as good as the code they came from.** Proving a method equal to the code proves the
+  transcription, not the physics. The physics is proven by the sourced vectors of S12 and the independent
+  referents of S13.
+- **Today's design depends on the drive being in step.** Two computers must build the same one (S4), and the
   application always says which releases it used.
-- **Two engines.** The design graph and the time engine meet through mapped inputs and evidence. 51 of 213 case
-  lines have no node, and stay case values until a group claims them.
-- **People learning a new application, roles, keys and a daily rhythm.** S7 tries it in real use, on one group,
-  before anyone else depends on it.
-- **Built-in relations are a debt.** On 2.0.0 most computing nodes still compute in code. They are marked, listed
-  by owner, and replaced by methods after, not hidden.
-- **The page cannot run everything.** Monte Carlo campaigns and soft OILS need the installed application, and the
-  page says so.
+- **The page cannot run everything.** Campaigns, soft OILS and the flight build need the installed application.
 
-## Where the database-first plan went
+## Where the database-first plan and the roadmap went
 
-| `docs/DATABASE_FIRST_PLAN.md` | now |
+| was | now |
 |---|---|
-| D1 Library | S3, step 3: the library data becomes blocks and case files |
-| D2 Build | S4: today's design and the released design replace the single `design.tndb` |
-| D3 Nodes drive numbers | S3 step 3 (case lines wired to nodes) and S4 |
+| D1 Library | S3, step 5 |
+| D2 Build | S4 |
+| D3 Nodes drive numbers | S3 and S4 |
 | D4 One reader | S4 |
-| D5 Sync | not needed: the application works on the drive's folder itself; the repository keeps the regression copy |
-| D6 Pack and upload | zip 1 (S4) and zip 2 (S6) |
-| D7 End to end | S4's parity gate and S7's proof |
-| D8 Release | S7, as 2.0.0 |
-| D9 Generated code in the engine | after 2.0.0 |
-| D10 Main app over the database | S5 |
-| D11 Outputs into the database | S4 (evidence into closures) and S5 (results kept with their design) |
-| D12 Twin from the database | S4 |
+| D5 Sync | not needed: the application works on the drive's folder itself |
+| D6 Pack and upload | zip 1 (S4), zip 2 (S9) |
+| D7 End to end | the parity gates (S4, S6, S7) and S17 |
+| D8 Release | S17 |
+| D9 Generated code in the engine | S7 |
+| D10 Main app over the database | S8 |
+| D11 Outputs into the database | S4 and S8 |
+| D12 Twin from the database | S4 (export) and S7 (generated functions) |
+| roadmap U0 (was v1.1) | S11 |
+| roadmap U1 (was v1.2) | S12 |
+| roadmap U2 (was v1.3) | S13 |
+| roadmap U3 (was v1.4) | S14 |
+| roadmap U4 (was v1.5) | S15 |
+| roadmap U5 (was v2.0) | S16, and board campaigns after |

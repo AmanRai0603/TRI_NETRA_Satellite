@@ -59,9 +59,13 @@ A block's **behaviour** is exactly one of five:
 | **lookup** | a table and how to read it | a reaction wheel from the datasheet catalogue (`catalogue/`) |
 | **open** | not decided yet: a draft, refused by name if a run reaches it | a node whose gaps are listed |
 
-**Built-in** is a temporary sixth behaviour. The relation is still compiled code (`adcs-physics`,
-`adcs-sim-core`, `adcs-design`), found by its node's id until its group writes a method for it. It is marked as
-such on every screen.
+**Built-in** is a temporary sixth behaviour. The relation is still compiled code (`adcs-sim-core`,
+`adcs-design`), found by its node's id until its group writes a method for it. It is marked as such on every
+screen.
+
+Built-in is allowed only while the release is being built. The plan removes every built-in before 2.0.0 ships
+(`docs/PLAN_2_0.md`, S7). What remains code after that is the toolbox and the runtime (section 7), never a
+relation.
 
 A block stops being broken down when its behaviour is a method, a stated value, a lookup, or a wire from
 another group.
@@ -296,13 +300,50 @@ The design is data. The code makes it run, shows it and checks it.
 
 | in the database (changes the design) | in the code (makes it run) |
 |---|---|
-| blocks: question, ports, behaviour, cases, explanation, history | the pseudocode interpreter and the toolbox it may call, with units |
+| blocks: question, ports, behaviour, cases, explanation, history | the pseudocode interpreter, and the translators to Rust, C and MATLAB |
+| every relation: the physics, the environment and disturbance models, the device models, the sizing laws | the toolbox the methods may call, with units: vector and quaternion maths, frames and time, integrators, special functions, and published models (DTM2020, IGRF, DE440 reading) |
+| **the flight software's algorithms**: estimation, guidance, control, detumble and Sun-acquisition laws, allocation, mode management, FDIR, the drivers' conversions; its parameters, its mode list, its tables (such as the IGRF coefficients) | **the flight software's runtime** (section 7.1): the hardware abstraction, the C interface, the tick and scheduler, the configuration blob, the boot and the targets |
 | wires, mounts and closures | the design-graph engine: order, run, iterate loops, refuse and block by name |
-| stated values, ranges, maturities, states | the time engine (`adcs-sim`), the flight software (C and Rust), the MATLAB twin |
-| the catalogue: parts, products, algorithms, components, modes, families, classes | range verdicts, tornadoes, sweeps, campaigns |
-| loops declared on their blocks | the pages: block page, tree, N2, map, charts (`adcs-plot`) |
-| cases, their variations, and the results kept with their design | the checks, signing and verifying |
-| sign-offs, seals, versions | one library that reads and writes every file, in the installed application and in the page |
+| stated values, ranges, maturities, states | the time engine's core: the integrator, the step order, the recorder, the metrics |
+| the catalogue: parts, products, algorithms, components, modes, families, classes | **the rigs' software**: the soft OILS emulator and byte link, the OILS and HILS rig host, the device emulation channels, timing and deadline measurement |
+| loops declared on their blocks | range verdicts, tornadoes, sweeps, campaigns |
+| cases, their variations, and the results kept with their design | the pages: block page, tree, N2, map, charts (`adcs-plot`) |
+| sign-offs, seals, versions; the flight images built from a released design | the checks, signing and verifying; one library that reads and writes every file, in the installed application and in the page |
+
+**Generated, never edited.** Everything the time engine, the flight software and the MATLAB twin compute is
+generated from the database by the translators. That covers `adcs-physics`, the device and environment models,
+the flight algorithms in C and in Rust, and the twin's functions. Each generated file says so in its header, and
+the parity tests hold it equal to the interpreter.
+
+### 7.1 · The flight software: algorithms in the database, the runtime in code
+
+The flight software is part of the design. What it decides, and how, is written by the groups that own it:
+- `nav`: estimation, the attitude filter, sensor processing;
+- `gdn`: guidance and mode management;
+- `ctl`: control, detumble and Sun-acquisition laws, allocation;
+- `fdir`: fault detection, isolation and recovery;
+- `act` and `sens`: the drivers' conversions (counts to SI, commands to duty);
+- `fsw`: the OBC's budgets, the timing, the parameters and their table.
+
+Today these are the ten pseudocode files in `fsw/pseudocode/` and the parameters in `fsw/params/params.toml`.
+They become nodes, and the C (`fsw/src`) and Rust (`fsw-rs/src`) algorithm code is generated from them.
+
+Only what the computer needs in order to run the algorithms stays code:
+
+| stays code | why it is not design |
+|---|---|
+| the hardware abstraction (`adcs_hal.h`, `hal.rs`) and the register-level bus access | it is the boundary to a particular board, the same for every design |
+| the C interface and its Rust export (`adcs_fsw.h`, `cabi.rs`, `adcs-fsw-abi`) | the contract between the flight software and the engine, the emulator and the boards |
+| the tick, the scheduler, the memory layout (no `malloc`), the configuration blob's format and CRC | how the software runs, not what it decides |
+| the targets: POSIX for SILS, QEMU Cortex-M (`fsw/targets/qemu-mps2`) for soft OILS, the boards for OILS and HILS | build and boot |
+| the byte link (`fsw/targets/link`), the soft OILS emulator, the rig host (`tools/engine_oils.py`) | the test bench, which flies any design |
+| the maths library the algorithms call (`01_math`, `02_time_frames_models`) | the toolbox: a kind of maths, reviewed as code |
+
+**A flight image is built from a design.** When the system engineer releases a design, the flight build
+generates the algorithm code from it, compiles it with the runtime for each target, and checks it on the
+nodes' test vectors and against the interpreter. It then seals the images into the released design
+(`docs/OPERATING_2_0.md`, W8). Today's design can be built the same way, to try it. A result from soft OILS,
+OILS or HILS names the image it flew, and the image names its design.
 
 **The design never passes through the code.** It is written, checked, combined, signed and published in the
 application, by the people who own it. The checks the application runs are code, the same code the CLI runs, so a
@@ -312,11 +353,13 @@ Only three kinds of change need the code, and each goes to the developer as a re
 
 - **a new kind of maths:** a toolbox function a method may call, such as DTM2020 density or an IGRF field
   evaluation;
-- **a new kind of thing:** a port type, a behaviour, a picture, a check, a device model in the time engine;
-- **a fault** in the engine, the flight software or the application.
+- **a new kind of thing:** a port type, a behaviour, a picture, a check; a new flight-software target (a board),
+  a new rig channel or interface kind;
+- **a fault** in the engine's core, the flight software's runtime, a translator or the application.
 
 A new use of maths, a new node, a new group, a new wire, a deeper breakdown, a new requirement, a new catalogue
-part or a new case is data, and never waits for a developer.
+part, a new case, a change to a flight algorithm or a flight parameter, or a new mode is data, and never waits for
+a developer.
 
 ## 8 · The ADCS, broken down
 
@@ -421,8 +464,13 @@ A group may break down differently; its subsystem engineer decides.
   that moved, so the change is seen, not assumed away.
 - **Unlimited depth invites over-breaking.** A block that is one formula should stay one block. The stop rule in
   section 2 is the guard.
-- **A block without a method cannot show its curve.** On 2.0.0 the blocks whose relation is still compiled code
-  are marked built-in, and the plan migrates them group by group (`docs/PLAN_2_0.md`).
+- **A block without a method cannot show its curve.** Before 2.0.0 ships, every relation still in compiled code
+  is written as a method and proven equal, so none is left (`docs/PLAN_2_0.md`).
+- **Generated flight code is only as good as its translator.** The C and Rust translations are held to the
+  interpreter on every node's vectors, and the flight images to the hand-written 1.0.0 software on every scenario,
+  before anything flies. A change to a translator is a code change, and needs a new application release (W15).
+- **A flight image needs a compiler.** The flight build carries its toolchains; a computer without it can try a
+  design in SILS through the interpreter, but cannot build an image for a board.
 - **Two engines.** The design graph answers rows; the time engine answers flights. They meet only through mapped
   inputs (a node's value becomes a case input) and evidence metrics (a flight's metric becomes a closure's
   achieved value). A case input with no node stays a case value until a group claims it.
