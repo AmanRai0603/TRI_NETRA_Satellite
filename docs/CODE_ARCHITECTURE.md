@@ -63,6 +63,23 @@ Each part may call the parts in the rows below it, and no part above it.
 | 2 | **library** | `engine/crates/trinetra-design` (read-only reader); `tools/tndb.py`; `design/js/tnfile.js`, `node_model.js`, `structure.js`, `release.js` | `trinetra-design` grown to read, write and check every file kind, run the interpreter, build today's design, sign (S2); native and WebAssembly; the JavaScript and Python versions become its test oracles, then retire |
 | 1 | **toolbox** | `adcs-physics` (generated relations plus their maths), `fsw/pseudocode/01_math.pc`, `02_time_frames_models.pc`; the published models in `adcs-pop` (DTM2020, JB2008, IGRF, DE440) | the maths only; the relations move out to the design (S3, S7) |
 
+**The library today** (`engine/crates/trinetra-design`, with its command `tndb`):
+
+| module | does | held to |
+|---|---|---|
+| `lib.rs` | the schema compiled in; open, check, read rows | `design/ddl.sql` (tools/tndb.py) |
+| `write` | create a file whole; upgrade an older one in place, a copy kept, adding only tables | tests/test_format2.py: all 765 nodes and 20 groups, nothing dropped |
+| `content` | the canonical content (`trinetra-content/1`) and the hash a signature covers | `design/js/tncontent.js`, by the cross-language test `content_cross` |
+| `keys` | Ed25519 keys, the PBKDF2 + AES-GCM lock, signing, the registry check | `design/js/tnkeys.js` (Web Crypto), by `keys_cross` |
+| `chain` | sign a file; check every signature on it against the group file's registry, and that the content is still what was signed | its tests |
+| `checks` | `tools/group.py check` and `verify`, `tools/release.py check`, word for word | tests/test_release.py on 40 sealed releases, 8 broken ones and 8 damaged folders |
+| `compare` | any two files of one kind, table by table | its tests |
+
+**In the page**, signing uses the browser's own Web Crypto (`design/js/tnkeys.js`) and the content encoding
+`design/js/tncontent.js`. These are deliberate twins of the library's, not copies to retire: the browser's
+crypto keeps a private key out of reach of the page's code. The cross-language tests hold them to the library
+byte for byte.
+
 **Generated, today:**
 - `adcs-physics`, from `spec/physics/*.pc`;
 - `adcs-groups` and `adcs-groups-wasm`, from the nodes;
