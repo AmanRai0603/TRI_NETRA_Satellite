@@ -5,11 +5,16 @@
 //!     tndb upgrade FILE...      bring older files to this format version, a copy kept beside each
 //!     tndb hash FILE            the content hash a signature covers
 //!     tndb compare A B          the rows only one of two files of one kind holds (exit 1 if any)
+//!     tndb check-folder DIR     every problem `tools/group.py check` finds in a design folder
+//!     tndb verify-releases DIR [--catalogue JSON]  each group's latest release against the folder
+//!                               (`tools/group.py verify`): one line per problem, "<group>: <problem>"
+//!     tndb check-release FILE [--catalogue JSON]   every problem `tools/release.py check` finds
+//!                               (JSON: {row id: kind}, the spec's catalogue, saying which rows compute)
 //!
 //! Owner: Agastya. Copyright (c) 2026 Agastya. All rights reserved.
 use std::path::Path;
 use std::process::ExitCode;
-use trinetra_design::{check, compare, content, open, write, Schema};
+use trinetra_design::{check, checks, compare, content, open, write, Schema};
 
 fn main() -> ExitCode {
     let a: Vec<String> = std::env::args().skip(1).collect();
@@ -17,7 +22,7 @@ fn main() -> ExitCode {
         Ok(s) => s,
         Err(e) => { eprintln!("tndb: {e}"); return ExitCode::from(2); }
     };
-    let usage = || { eprintln!("usage: tndb check FILE... | upgrade FILE... | hash FILE | compare A B"); ExitCode::from(2) };
+    let usage = || { eprintln!("usage: tndb check FILE... | upgrade FILE... | hash FILE | compare A B | check-folder DIR | check-release FILE [--catalogue JSON]"); ExitCode::from(2) };
     match a.first().map(String::as_str) {
         Some("check") if a.len() > 1 => {
             let errs: Vec<String> = a[1..].iter().flat_map(|f| check(Path::new(f), &s)).collect();
@@ -51,6 +56,36 @@ fn main() -> ExitCode {
                 Err(e) => { eprintln!("tndb: {e}"); ExitCode::from(2) }
             }
         }
+        Some("check-folder") if a.len() == 2 => report(checks::check_folder(Path::new(&a[1]), &s)),
+        Some("verify-releases") if a.len() == 2 || (a.len() == 4 && a[2] == "--catalogue") => {
+            let cat = match catalogue(a.get(3)) { Some(c) => c, None => return ExitCode::from(2) };
+            let v = checks::verify_releases(Path::new(&a[1]), &cat, &s);
+            println!("{}", serde_json::to_string(&v).unwrap_or_default());
+            if v.values().all(|p| p.is_empty()) { ExitCode::SUCCESS } else { ExitCode::from(1) }
+        }
+        Some("check-release") if a.len() == 2 || (a.len() == 4 && a[2] == "--catalogue") => {
+            let cat = match catalogue(a.get(3)) { Some(c) => c, None => return ExitCode::from(2) };
+            report(checks::check_release(Path::new(&a[1]), &cat, &s))
+        }
         _ => usage(),
+    }
+}
+
+/// Print each problem on its own line (stdout, for the tools to read) and the count; exit 1 if any.
+fn report(problems: Vec<String>) -> ExitCode {
+    for p in &problems { println!("{p}"); }
+    eprintln!("tndb: {} problem(s)", problems.len());
+    if problems.is_empty() { ExitCode::SUCCESS } else { ExitCode::from(1) }
+}
+
+/// The spec's catalogue of rows, {row id: kind}, from a JSON file (empty when none is given).
+fn catalogue(f: Option<&String>) -> Option<std::collections::BTreeMap<String, String>> {
+    match f {
+        None => Some(Default::default()),
+        Some(f) => {
+            let c = std::fs::read_to_string(f).ok().and_then(|t| serde_json::from_str(&t).ok());
+            if c.is_none() { eprintln!("tndb: {f}: not a JSON object of row id to kind"); }
+            c
+        }
     }
 }

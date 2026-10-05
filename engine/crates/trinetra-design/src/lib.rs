@@ -19,6 +19,7 @@ use rusqlite::{types::ValueRef, Connection, OpenFlags};
 use serde::Deserialize;
 
 pub mod chain;
+pub mod checks;
 pub mod compare;
 pub mod content;
 pub mod keys;
