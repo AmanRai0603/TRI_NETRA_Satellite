@@ -88,3 +88,43 @@ them before it replaces them, one group at a time.
 - The verify check for a Drive folder.
 
 The gap is not in these pieces but in the joins between them.
+
+## The architecture as the owner described it on 5 Oct, element by element
+
+> The application is a frontend and a backend (the engine), managed by databases. One final database is read by
+> the application and shown by the frontend; the engine runs it for a given input and the result is shown by the
+> frontend. Inputs and outputs are saved as cases and their variations. Each node has its own database, built and
+> saved in the node app, in versions, and its author sees in the same app how it looks in the main application.
+> When satisfied, the group collects its nodes and verifies them; when every group is satisfied, the group
+> databases are combined into one common database, shown by the main application, kept version by version.
+
+Verdict: **exists** (works as described) · **re-shape** (the piece exists, its connection or form must change) ·
+**missing** (not built).
+
+| # | Element | Today | Verdict |
+|---|---|---|---|
+| 1 | Frontend and backend | Frontend: four pages (Files, Node and Group apps in the browser; the desktop app's page). Backend: the Rust engine and the Python tools | exists |
+| 2 | Each node its own database | One `.node.tndb` per node: content field by field with its origin, inputs, outputs (its contract), fixtures, attachments, comments, signatures | exists |
+| 3 | Built and saved in the node app | The node app fills every node kind step by step with live checks; every save is a `revision` row (who, when, what), each change undoable | exists |
+| 4 | Node versions | Every save is recorded, but there are no **named** versions of a node (v1, v2 to compare or go back to); named versions exist only when the group seals a release | re-shape |
+| 5 | The author sees the node as the main app will | The node app's Preview draws the node as the main application will (`node_view.js`), and runs its pseudocode on its test vectors in the browser. It cannot fly the engine with the node's values, and the main app has no node pages to match | re-shape (preview) · missing (fly it) |
+| 6 | The group collects and verifies its nodes | Group app: assemble, progress, checks per rule, contracts, impact of a change, seal a release (`.tnrel` 1.0, 1.1, …), re-issue; delivery with a test app; lead's acceptance | exists (no lead named yet) |
+| 7 | Group databases combined into one common database | `group.py merge` combines **sealed** releases only (with none sealed it empties the nodes) and fills the engine's inputs from repository files, not from the groups | re-shape |
+| 8 | One final database read by the application | `design.tndb` exists and the app and engine read it, but it is a copy of repository files, not the combination of the groups | re-shape |
+| 9 | Kept version by version | Group releases are versioned. The common database is **not**: it is overwritten (one `.prev` backup), and nothing records design version 1, 2, 3 or what changed between them | missing |
+| 10 | Engine runs it for a given input | The engine flies a case and scenario through the database (overlay); but no node value reaches it, and it runs its hand-written models, not the code generated from the nodes | re-shape |
+| 11 | Results shown by the frontend | The desktop app: runs, metrics, figures, report per run | exists |
+| 12 | Inputs and outputs saved as cases and variations | Cases are two CSV files (copied into the database). A variation is a run with `--set` overrides, recorded only in that run's manifest. Results live in a separate store (folders + a SQLite index of runs and metrics), not linked to a design version. No named, saved case variations; no results database tied to the design database | missing |
+| 13 | The common database shown by the main application | The app shows group counts and case lines; no nodes, outputs, closures, evaluation or traceability | re-shape |
+| 14 | Everything managed by databases | The engine's inputs are authored as repository TOML/CSV; dispersions, KPI definitions and waves are not in any database | re-shape |
+
+**Summary.**
+- **About two-thirds exists:** the node and group apps, node and group files, releases, delivery and acceptance, the engine, the result store and the app's run views.
+- **Most of the rest is re-shaping connections:** combine the groups into the common database; feed the engine from it; show it in the app; give nodes named versions.
+- **Genuinely new:** a versioned common database (#9), cases and their variations with their results kept as database records tied to the design version (#12), and flying a node's values from the node app (#5).
+
+**Why it is not already so.** The 1.0.0 plan kept the engine, the tools and the results store "built on, not
+replaced", and treated `design.tndb` as the meeting point. In building it, the database was filled from the
+repository files the engine already used, and the generated group code was kept beside the engine so verified
+numbers could not change. Both were shortcuts. The P11 and P13 progress tables were marked done although "every app
+reads only the databases" was not yet true. That should have been flagged then, and is corrected here.
