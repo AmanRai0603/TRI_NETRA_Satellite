@@ -58,6 +58,9 @@ Only new or changed files are pushed, and people's edits are never overwritten.
 
 ## 3 · Work packages (version 1.1.0, "database first")
 
+The comparison with the owner's 3 Oct plan, layer by layer, is `docs/VISION_VS_CURRENT.md`; D9–D12 come from it.
+
+
 | WP | What | Fixes | Acceptance (all automated) | Effort |
 |---|---|---|---|---|
 | **D1 · Library** | A design-file kind `library` with typed tables mirroring today's catalogue, case, scenario, campaign, trade, dispersion, KPI and wave sources. A one-time import from the repository seeds them. `export_catalogue` is turned round: `matlab_sils/data` JSON is generated **from the library**, not from TOML | DB1, DB10 | Import then export reproduces every current `matlab_sils/data` file **byte for byte**, and every case CSV line for line; the Files app opens and edits a library file | M–L |
@@ -67,6 +70,10 @@ Only new or changed files are pushed, and people's edits are never overwritten.
 | **D5 · Sync** | `tools/design_sync.py pull DIR` (into `design/live/`, every file checked, changes listed) and `push DIR` (only new or changed built files and the results summary; refuses to overwrite a file changed on Drive since the last pull). Builds on `drive_pack --verify` | DB4 (D0.2 done, D0.3, D0.4) | Pull → build → push → verify round trip with no problem; an edit made on Drive between pull and push is preserved and reported | S–M |
 | **D6 · Pack and upload** | The pack is the D2 build of the seed, with `library/`, `MANIFEST.json`, guides and a correct README. The specification below says what must and must not be there. The owner deletes Drive's `Apps/` and `Design/` and uploads the zip once. `--verify --first-upload` must pass on the Drive folder | DB14 | Verify passes on the uploaded folder (via Drive for desktop or a downloaded copy) | S |
 | **D7 · End to end from Drive** | Pull the uploaded Drive folder, build, and run everything from it: both design loops, every campaign, soft OILS, evaluation, traceability, V&V report, desktop app, delivery status | — | Every number equals the one flown from the repository files today (as P13 showed for the engine). The run is refused if any tool reads repository design data (D4's job). Results summary published to Drive | M |
+| **D9 · Generated code in the engine** | The engine runs each group's code generated from its nodes' pseudocode (`adcs-groups`), with the hand-written model kept as the reference it must equal, one group at a time | `docs/VISION_VS_CURRENT.md` layer 8 | Each switched group reproduces the hand-written model's results on every scenario (bit for bit or within stated tolerance); a node's pseudocode changed on Drive changes the engine | L |
+| **D10 · Main app over the database** | The desktop app draws every page from `design.tndb`: groups, nodes, values with their source, outputs, closures, evaluation, traceability; each run linked to the node values it flew | layers 11, 13 | Browser tests: from a node to the runs that used it and back | M |
+| **D11 · Outputs into the database** | Latest evaluation and closures per case written into the database (and `Design/results/`), so apps show outputs beside inputs | layers 11, 13 | The node and group apps show a node's latest result and closure | M |
+| **D12 · Twin from the database** | The MATLAB twin flies an export generated from the database | layer 12 | Twin suites pass on the export; engine and twin read the same snapshot | S–M |
 | **D8 · Release v1.1.0** | Release notes say what "database first" changes, and correct 1.0.0's statements (the KPI passes not demonstrated, power as actuator power only). The release assets add the Drive pack zip and its manifest. Tag by the owner as before | — | Release workflow green; the pack zip in the release equals the uploaded one | S |
 
 **Owner actions in this phase:**
