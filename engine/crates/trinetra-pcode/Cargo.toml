@@ -1,0 +1,18 @@
+# trinetra-pcode: the pseudocode v2 language (docs/PSEUDOCODE_V2.md) in Rust: units, lexer, parser,
+# checker and interpreter, held equal to design/js/pcode.js on every test vector. No I/O in the library.
+# Owner: Agastya. Copyright (c) 2026 Agastya. All rights reserved.
+[package]
+name = "trinetra-pcode"
+description = "The pseudocode v2 interpreter and checker, held equal to design/js/pcode.js"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+publish.workspace = true
+
+[dependencies]
+# sin, cos, tan, asin, acos, atan, exp: the same fdlibm algorithms JavaScript's Math uses, in pure Rust
+libm = "0.2"
+
+[dev-dependencies]
+# read every decimal to the double it was written from
+serde_json = { version = "1", features = ["float_roundtrip"] }

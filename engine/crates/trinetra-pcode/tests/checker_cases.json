@@ -1,0 +1,1260 @@
+[
+ {
+  "label": "test_pcode: units differ",
+  "files": [
+   [
+    "t.pc",
+    "fn f(a: real[m], b: real[s]) -> c: real[m]\n    c = a + b\nend\n"
+   ]
+  ],
+  "js": [
+   "t.pc:2:11: +: the units differ, [m] and [s]"
+  ]
+ },
+ {
+  "label": "test_pcode: output not set",
+  "files": [
+   [
+    "t.pc",
+    "fn f(a: real[m]) -> c: real[m]\n    if a > 0 [m]\n        c = a\n    end\nend\n"
+   ]
+  ],
+  "js": [
+   "t.pc:1:1: f: output c is not set on every path"
+  ]
+ },
+ {
+  "label": "test_pcode: sin of a length",
+  "files": [
+   [
+    "t.pc",
+    "fn f(a: real[m]) -> c: real[1]\n    c = sin(a)\nend\n"
+   ]
+  ],
+  "js": [
+   "t.pc:2:12: sin takes a plain number (an angle in rad is one), not [m]"
+  ]
+ },
+ {
+  "label": "test_pcode: input changed",
+  "files": [
+   [
+    "t.pc",
+    "fn f(a: real[m]) -> c: real[m]\n    a = 2*a\n    c = a\nend\n"
+   ]
+  ],
+  "js": [
+   "t.pc:2:5: a is an input; inputs are not changed (copy it: let x = a)"
+  ]
+ },
+ {
+  "label": "test_pcode: recursion",
+  "files": [
+   [
+    "t.pc",
+    "fn f(a: real[1]) -> c: real[1]\n    c = g(a)\nend\nfn g(a: real[1]) -> c: real[1]\n    c = f(a)\nend\n"
+   ]
+  ],
+  "js": [
+   "t.pc:1:1: recursion: f -> g -> f (flight code does not recurse)"
+  ]
+ },
+ {
+  "label": "test_pcode: power not literal",
+  "files": [
+   [
+    "t.pc",
+    "fn f(a: real[m], k: int) -> c: real[m]\n    c = a^k\nend\n"
+   ]
+  ],
+  "js": [
+   "t.pc:2:10: the power after ^ is a whole-number literal (x^2, x^-3); for any other power write pow(x, y)"
+  ]
+ },
+ {
+  "label": "test_pcode: unknown unit",
+  "files": [
+   [
+    "t.pc",
+    "fn f(a: real[furlong]) -> c: real[1]\n    c = 1\nend\n"
+   ]
+  ],
+  "js": [
+   "t.pc:1:6: no unit furlong (the units: 1, m, km, cm, mm, um, AU, s, ms, min, h, day, yr, kg, g, N, mN, uN, J, W, mW, Pa, kPa, A, mA, C, V, ohm, T, uT, nT, K, Hz, rpm, rad, deg, arcsec)"
+  ]
+ },
+ {
+  "label": "test_pcode: vector times vector",
+  "files": [
+   [
+    "t.pc",
+    "fn f(a: vec3[m], b: vec3[m]) -> c: real[m^2]\n    c = a*b\nend\n"
+   ]
+  ],
+  "js": [
+   "t.pc:2:10: vector * vector: write dot(a, b), cross(a, b), or index them",
+   "t.pc:2:5: c: is real[m^2], given real[m][3]"
+  ]
+ },
+ {
+  "label": "test_pcode: int of a length",
+  "files": [
+   [
+    "t.pc",
+    "fn f(a: real[m]) -> n: int\n    n = int(a)\nend\n"
+   ]
+  ],
+  "js": [
+   "t.pc:2:12: int takes a plain number (an angle in rad is one), not [m]"
+  ]
+ },
+ {
+  "label": "test_pcode: state in a fn",
+  "files": [
+   [
+    "t.pc",
+    "fn f(a: real[1]) -> c: real[1]\n    state k: int = 0\n    c = a\nend\n"
+   ]
+  ],
+  "js": [
+   "t.pc:2:5: state is kept by a proc, not a fn"
+  ]
+ },
+ {
+  "label": "ok: a clean file",
+  "files": [
+   [
+    "t.pc",
+    "module m\n## doc\nconst K = 2 [km]\nfn f(a: real[m] in 1 .. 2) -> c: real[m]\n    c = a + K\nend\n"
+   ]
+  ],
+  "js": []
+ },
+ {
+  "label": "ok: zero fills",
+  "files": [
+   [
+    "t.pc",
+    "fn f(a: real[m]) -> (v: vec3[m], M: mat3[1])\n    v = 0\n    M = 0\n    let w: vec3[m] = [0, 0, a]\n    v = w\nend\n"
+   ]
+  ],
+  "js": []
+ },
+ {
+  "label": "lex: string not closed",
+  "files": [
+   [
+    "t.pc",
+    "fn f() -> c: real[1]\n    c = \"abc\nend\n"
+   ]
+  ],
+  "js": [
+   "t.pc:2:9: a string is not closed on its line"
+  ]
+ },
+ {
+  "label": "lex: a character",
+  "files": [
+   [
+    "t.pc",
+    "fn f() -> c: real[1]\n    c = 1 @ 2\nend\n"
+   ]
+  ],
+  "js": [
+   "t.pc:2:11: a character the language does not use: \"@\""
+  ]
+ },
+ {
+  "label": "lex: a dollar after a comment with accents",
+  "files": [
+   [
+    "t.pc",
+    "# déjà vu\nfn f() -> c: real[1]\n    c = $\nend\n"
+   ]
+  ],
+  "js": [
+   "t.pc:3:9: a character the language does not use: \"$\""
+  ]
+ },
+ {
+  "label": "lex: beyond the first plane",
+  "files": [
+   [
+    "t.pc",
+    "fn f() -> c: real[1]\n    c = 😀\nend\n"
+   ]
+  ],
+  "js": [
+   "t.pc:2:9: a character the language does not use: \"\\ud83d\""
+  ]
+ },
+ {
+  "label": "lex: a backslash",
+  "files": [
+   [
+    "t.pc",
+    "fn f() -> c: real[1]\n    c = 1 \\ 2\nend\n"
+   ]
+  ],
+  "js": [
+   "t.pc:2:11: a character the language does not use: \"\\\\\""
+  ]
+ },
+ {
+  "label": "lex: a string as a value",
+  "files": [
+   [
+    "t.pc",
+    "fn f() -> c: real[1]\n    c = \"x\"\nend\n"
+   ]
+  ],
+  "js": [
+   "t.pc:2:9: expected a value, found \"x\""
+  ]
+ },
+ {
+  "label": "lex: tab in a string",
+  "files": [
+   [
+    "t.pc",
+    "fn f() -> c: real[1]\n    c = \"a\tb\"\nend\n"
+   ]
+  ],
+  "js": [
+   "t.pc:2:9: expected a value, found \"a\\tb\""
+  ]
+ },
+ {
+  "label": "lex: 1..2 without spaces",
+  "files": [
+   [
+    "t.pc",
+    "fn f(a: real[1] in 1..2) -> c: real[1]\n    c = a\nend\n"
+   ]
+  ],
+  "js": [
+   "t.pc:1:22: expected .., found \".2\""
+  ]
+ },
+ {
+  "label": "lex: 1...",
+  "files": [
+   [
+    "t.pc",
+    "fn f(a: real[1] in 1...2) -> c: real[1]\n    c = a\nend\n"
+   ]
+  ],
+  "js": [
+   "t.pc:1:6: f: the range of a runs low .. high"
+  ]
+ },
+ {
+  "label": "lex: exponents",
+  "files": [
+   [
+    "t.pc",
+    "fn f() -> (c: real[1], d: real[1], e: real[1])\n    c = 1e3 + .5e-2 + 2.e1\n    d = 3e\n    e = 1\nend\n"
+   ]
+  ],
+  "js": [
+   "t.pc:3:10: expected nl, found \"e\""
+  ]
+ },
+ {
+  "label": "lex: continuation",
+  "files": [
+   [
+    "t.pc",
+    "fn f(a: real[1]) -> c: real[1]\n    c = a + \\\n        a\nend\n"
+   ]
+  ],
+  "js": []
+ },
+ {
+  "label": "parse: top level",
+  "files": [
+   [
+    "t.pc",
+    "x = 1\n"
+   ]
+  ],
+  "js": [
+   "t.pc:1:1: expected module, use, const, fn, proc, record or table at the top level"
+  ]
+ },
+ {
+  "label": "parse: expected an id",
+  "files": [
+   [
+    "t.pc",
+    "fn 3() -> c: real[1]\nend\n"
+   ]
+  ],
+  "js": [
+   "t.pc:1:4: expected id, found \"3\""
+  ]
+ },
+ {
+  "label": "parse: unit not closed",
+  "files": [
+   [
+    "t.pc",
+    "fn f(a: real[m) -> c: real[1]\n    c = 1\nend\n"
+   ]
+  ],
+  "js": [
+   "t.pc:2:5: expected ), found \"c\""
+  ]
+ },
+ {
+  "label": "parse: block not closed",
+  "files": [
+   [
+    "t.pc",
+    "fn f(a: real[m]) -> c: real[m]\n    c = a\n"
+   ]
+  ],
+  "js": [
+   "t.pc:3:1: the block is not closed (expected end)"
+  ]
+ },
+ {
+  "label": "parse: if not closed",
+  "files": [
+   [
+    "t.pc",
+    "fn f(a: real[m]) -> c: real[m]\n    if a > 0\n        c = a\n"
+   ]
+  ],
+  "js": [
+   "t.pc:4:1: the block is not closed (expected elif or else or end)"
+  ]
+ },
+ {
+  "label": "parse: expected a type",
+  "files": [
+   [
+    "t.pc",
+    "fn f(a: 3) -> c: real[1]\n    c = 1\nend\n"
+   ]
+  ],
+  "js": [
+   "t.pc:1:9: expected a type (real[unit], int, bool, vec3[unit], mat3[unit], quat, or a record)"
+  ]
+ },
+ {
+  "label": "parse: array length",
+  "files": [
+   [
+    "t.pc",
+    "fn f(a: int[0]) -> c: real[1]\n    c = 1\nend\n"
+   ]
+  ],
+  "js": [
+   "t.pc:1:13: an array's length is a whole number from 1"
+  ]
+ },
+ {
+  "label": "parse: array length real",
+  "files": [
+   [
+    "t.pc",
+    "fn f(a: int[2.5]) -> c: real[1]\n    c = 1\nend\n"
+   ]
+  ],
+  "js": [
+   "t.pc:1:13: an array's length is a whole number from 1"
+  ]
+ },
+ {
+  "label": "parse: comparisons chain",
+  "files": [
+   [
+    "t.pc",
+    "fn f(a: real[1]) -> c: bool\n    c = 0 < a < 1\nend\n"
+   ]
+  ],
+  "js": [
+   "t.pc:2:15: comparisons do not chain: write (a < b) and (b < c)"
+  ]
+ },
+ {
+  "label": "parse: expected a value",
+  "files": [
+   [
+    "t.pc",
+    "fn f(a: real[1]) -> c: real[1]\n    c = a + \nend\n"
+   ]
+  ],
+  "js": [
+   "t.pc:2:13: expected a value, found the end of the line"
+  ]
+ },
+ {
+  "label": "parse: expected a value )",
+  "files": [
+   [
+    "t.pc",
+    "fn f(a: real[1]) -> c: real[1]\n    c = (a + )\nend\n"
+   ]
+  ],
+  "js": [
+   "t.pc:2:14: expected a value, found \")\""
+  ]
+ },
+ {
+  "label": "parse: settle without max",
+  "files": [
+   [
+    "t.pc",
+    "fn f(a: real[1]) -> c: real[1]\n    c = a\n    settle 3 until c > 1\n        c = c + 1\n    end\nend\n"
+   ]
+  ],
+  "js": [
+   "t.pc:3:12: expected max, found \"3\""
+  ]
+ },
+ {
+  "label": "parse: two statements on a line",
+  "files": [
+   [
+    "t.pc",
+    "fn f(a: real[1]) -> c: real[1]\n    c = a c = a\nend\n"
+   ]
+  ],
+  "js": [
+   "t.pc:2:11: expected nl, found \"c\""
+  ]
+ },
+ {
+  "label": "parse: if then without else",
+  "files": [
+   [
+    "t.pc",
+    "fn f(a: real[1]) -> c: real[1]\n    c = if a > 0 then a\nend\n"
+   ]
+  ],
+  "js": [
+   "t.pc:2:24: expected else, found the end of the line"
+  ]
+ },
+ {
+  "label": "parse: table row",
+  "files": [
+   [
+    "t.pc",
+    "table t(x: real[1]) -> (x0: real[1], y: real[1])\n    0, a\nend\n"
+   ]
+  ],
+  "js": [
+   "t.pc:2:8: expected num, found \"a\""
+  ]
+ },
+ {
+  "label": "parse: record field",
+  "files": [
+   [
+    "t.pc",
+    "record R\n    x real[m]\nend\n"
+   ]
+  ],
+  "js": [
+   "t.pc:2:7: expected :, found \"real\""
+  ]
+ },
+ {
+  "label": "parse: missing arrow",
+  "files": [
+   [
+    "t.pc",
+    "fn f(a: real[1]) c: real[1]\n    c = a\nend\n"
+   ]
+  ],
+  "js": [
+   "t.pc:1:18: expected ->, found \"c\""
+  ]
+ },
+ {
+  "label": "parse: elif else",
+  "files": [
+   [
+    "t.pc",
+    "fn f(a: real[1]) -> c: real[1]\n    if a > 0\n        c = 1\n    elif a < 0\n        c = 2\n    else\n        c = 3\n    else\n        c = 4\n    end\nend\n"
+   ]
+  ],
+  "js": [
+   "t.pc:8:5: expected id, found \"else\""
+  ]
+ },
+ {
+  "label": "parse: two files, the second bad",
+  "files": [
+   [
+    "a.pc",
+    "fn f() -> c: real[1]\n    c = 1\nend\n"
+   ],
+   [
+    "b.pc",
+    "fn g( -> c: real[1]\nend\n"
+   ],
+   [
+    "c.pc",
+    "x\n"
+   ]
+  ],
+  "js": [
+   "b.pc:1:7: expected id, found \"->\"",
+   "c.pc:1:1: expected module, use, const, fn, proc, record or table at the top level"
+  ]
+ },
+ {
+  "label": "check: defined twice",
+  "files": [
+   [
+    "t.pc",
+    "fn f() -> c: real[1]\n    c = 1\nend\nfn f() -> c: real[1]\n    c = 2\nend\n"
+   ]
+  ],
+  "js": [
+   "t.pc:4:1: f is defined twice (or is a builtin)"
+  ]
+ },
+ {
+  "label": "check: a builtin's name",
+  "files": [
+   [
+    "t.pc",
+    "fn sqrt(x: real[1]) -> c: real[1]\n    c = x\nend\nconst pi = 3\n"
+   ]
+  ],
+  "js": [
+   "t.pc:1:1: sqrt is defined twice (or is a builtin)",
+   "t.pc:4:1: pi is defined twice (or is a builtin)"
+  ]
+ },
+ {
+  "label": "check: an object's name",
+  "files": [
+   [
+    "t.pc",
+    "fn toString(x: real[1]) -> c: real[1]\n    c = x\nend\nconst constructor = 1\nconst hasOwnProperty = 1\n"
+   ]
+  ],
+  "js": [
+   "t.pc:1:1: toString is defined twice (or is a builtin)",
+   "t.pc:4:1: constructor is defined twice (or is a builtin)",
+   "t.pc:5:1: hasOwnProperty is defined twice (or is a builtin)"
+  ]
+ },
+ {
+  "label": "check: no record",
+  "files": [
+   [
+    "t.pc",
+    "fn f(a: Thing) -> c: real[1]\n    c = 1\nend\n"
+   ]
+  ],
+  "js": [
+   "t.pc:1:9: no record Thing"
+  ]
+ },
+ {
+  "label": "check: unit parentheses",
+  "files": [
+   [
+    "t.pc",
+    "fn f(a: real[(kg m)/s]) -> c: real[1]\n    c = 1\nend\n"
+   ]
+  ],
+  "js": [
+   "t.pc:1:6: parentheses in a unit group its denominator only: [kg/(m s)], not [( kg m )/s]"
+  ]
+ },
+ {
+  "label": "check: unit two slashes",
+  "files": [
+   [
+    "t.pc",
+    "fn f(a: real[kg/m/s]) -> c: real[1]\n    c = 1\nend\n"
+   ]
+  ],
+  "js": [
+   "t.pc:1:6: a unit has at most one /: [kg/m/s]"
+  ]
+ },
+ {
+  "label": "check: unit factor",
+  "files": [
+   [
+    "t.pc",
+    "fn f(a: real[m^x]) -> c: real[1]\n    c = 1\nend\n"
+   ]
+  ],
+  "js": [
+   "t.pc:1:6: not a unit factor: m^x in [m^x]"
+  ]
+ },
+ {
+  "label": "check: unit good forms",
+  "files": [
+   [
+    "t.pc",
+    "fn f(a: real[kg/(m s)], b: real[1/s^2], d: real[m^-2], e: real[km^3]) -> c: real[1]\n    c = a*b*d*e\nend\n"
+   ]
+  ],
+  "js": [
+   "t.pc:1:41: not a unit factor: m^- in [m^- 2]",
+   "t.pc:2:5: c: is real[1], given real[m^2 kg/s^3]"
+  ]
+ },
+ {
+  "label": "check: unit of a literal",
+  "files": [
+   [
+    "t.pc",
+    "fn f() -> c: real[1]\n    c = 3 [parsec]\nend\n"
+   ]
+  ],
+  "js": [
+   "t.pc:2:9: no unit parsec (the units: 1, m, km, cm, mm, um, AU, s, ms, min, h, day, yr, kg, g, N, mN, uN, J, W, mW, Pa, kPa, A, mA, C, V, ohm, T, uT, nT, K, Hz, rpm, rad, deg, arcsec)"
+  ]
+ },
+ {
+  "label": "check: named twice",
+  "files": [
+   [
+    "t.pc",
+    "fn f(a: real[1], a: real[1]) -> (c: real[1], a: real[1])\n    c = 1\nend\n"
+   ]
+  ],
+  "js": [
+   "t.pc:1:1: f: a is named twice among the inputs and outputs",
+   "t.pc:1:1: f: output a is not set on every path"
+  ]
+ },
+ {
+  "label": "table: a column not real",
+  "files": [
+   [
+    "t.pc",
+    "table t(x: real[1]) -> (x0: real[1], y: int)\n    0, 1\n    1, 2\nend\n"
+   ]
+  ],
+  "js": [
+   "INTERNAL"
+  ]
+ },
+ {
+  "label": "table: key not real",
+  "files": [
+   [
+    "t.pc",
+    "table t(x: int) -> (x0: real[1], y: real[1])\n    0, 1\n    1, 2\nend\n"
+   ]
+  ],
+  "js": [
+   "t.pc:1:9: table t: the key is real"
+  ]
+ },
+ {
+  "label": "table: first column",
+  "files": [
+   [
+    "t.pc",
+    "table t(x: real[s]) -> (x0: real[m], y: real[1])\n    0, 1\n    1, 2\nend\n"
+   ]
+  ],
+  "js": [
+   "t.pc:1:25: table t: the first column is the key, so it has the key's dimension"
+  ]
+ },
+ {
+  "label": "table: row length, keys, rows",
+  "files": [
+   [
+    "t.pc",
+    "table t(x: real[s]) -> (x0: real[s], y: real[1]) linear\n    0, 1\n    1, 2, 3\n    1, 4\nend\ntable u(x: real[s]) -> x0: real[s] linear\n    0\nend\ntable w(x: real[s]) -> x0: real[s] step\nend\n"
+   ]
+  ],
+  "js": [
+   "t.pc:3:5: table t: the row has 3 values, the table 2 columns",
+   "t.pc:4:5: table t: keys rise strictly from row to row",
+   "t.pc:6:1: table u: too few rows",
+   "t.pc:9:1: table w: too few rows"
+  ]
+ },
+ {
+  "label": "table: a bad unit",
+  "files": [
+   [
+    "t.pc",
+    "table t(x: real[s]) -> (x0: real[s], y: real[furlong])\n    0, 1\n    1, 2\nend\n"
+   ]
+  ],
+  "js": [
+   "INTERNAL"
+  ]
+ },
+ {
+  "label": "table: called",
+  "files": [
+   [
+    "t.pc",
+    "table t(x: real[s]) -> (x0: real[s], y: real[m])\n    0, 1\n    1, 2\nend\nfn f(a: real[m]) -> c: real[m]\n    let x0, y = t(a)\n    let z = t(1 [s], 2 [s])\n    c = y\nend\n"
+   ]
+  ],
+  "js": [
+   "t.pc:6:19: table t: key: wants real[s], gets real[m]",
+   "t.pc:7:14: table t takes one key",
+   "t.pc:7:5: t gives 2 values: let one name for each"
+  ]
+ },
+ {
+  "label": "expr: not defined",
+  "files": [
+   [
+    "t.pc",
+    "fn f(a: real[m], v: vec3[m], M: mat3[1], n: int, b: bool, q: quat) -> c: real[m]\n    let x = zz + a\n    c = a\nend\n"
+   ]
+  ],
+  "js": [
+   "t.pc:2:13: zz is not defined here (a let declares a name)",
+   "t.pc:2:16: +: the units differ, [1] and [m]"
+  ]
+ },
+ {
+  "label": "expr: empty array",
+  "files": [
+   [
+    "t.pc",
+    "fn f(a: real[m], v: vec3[m], M: mat3[1], n: int, b: bool, q: quat) -> c: real[m]\n    let x = []\n    c = a\nend\n"
+   ]
+  ],
+  "js": [
+   "t.pc:2:13: an empty array",
+   "t.pc:2:5: let x = 0 needs its type: let x: real[unit] = 0"
+  ]
+ },
+ {
+  "label": "expr: array unit on bools",
+  "files": [
+   [
+    "t.pc",
+    "fn f(a: real[m], v: vec3[m], M: mat3[1], n: int, b: bool, q: quat) -> c: real[m]\n    let x = [true, false] [m]\n    c = a\nend\n"
+   ]
+  ],
+  "js": [
+   "t.pc:2:13: a unit after an array applies to numbers",
+   "t.pc:2:13: an array with a unit holds plain numbers: [1, 2, 3] [m]"
+  ]
+ },
+ {
+  "label": "expr: array unit on lengths",
+  "files": [
+   [
+    "t.pc",
+    "fn f(a: real[m], v: vec3[m], M: mat3[1], n: int, b: bool, q: quat) -> c: real[m]\n    let x = [a, a] [m]\n    c = a\nend\n"
+   ]
+  ],
+  "js": [
+   "t.pc:2:13: an array with a unit holds plain numbers: [1, 2, 3] [m]"
+  ]
+ },
+ {
+  "label": "expr: array items differ",
+  "files": [
+   [
+    "t.pc",
+    "fn f(a: real[m], v: vec3[m], M: mat3[1], n: int, b: bool, q: quat) -> c: real[m]\n    let x = [a, n, 1 [s]]\n    c = a\nend\n"
+   ]
+  ],
+  "js": [
+   "t.pc:2:17: array items differ: real[m] and int",
+   "t.pc:2:20: array items differ: real[m] and real[s]"
+  ]
+ },
+ {
+  "label": "expr: array items differ in shape",
+  "files": [
+   [
+    "t.pc",
+    "fn f(a: real[m], v: vec3[m], M: mat3[1], n: int, b: bool, q: quat) -> c: real[m]\n    let x = [v, a]\n    c = a\nend\n"
+   ]
+  ],
+  "js": [
+   "t.pc:2:17: array items differ: real[m][3] and real[m]"
+  ]
+ },
+ {
+  "label": "expr: int arrays become real",
+  "files": [
+   [
+    "t.pc",
+    "fn f(a: real[m], v: vec3[m], M: mat3[1], n: int, b: bool, q: quat) -> c: real[m]\n    let x = [[1, 2], [3.5, 4]]\n    let y: real[1] = x[0][0]\n    c = a\nend\n"
+   ]
+  ],
+  "js": []
+ },
+ {
+  "label": "expr: index",
+  "files": [
+   [
+    "t.pc",
+    "fn f(a: real[m], v: vec3[m], M: mat3[1], n: int, b: bool, q: quat) -> c: real[m]\n    let x = v[a]\n    let y = a[0]\n    let z = v[3]\n    let w = v[-1]\n    c = a\nend\n"
+   ]
+  ],
+  "js": [
+   "t.pc:2:14: an index is an int, not real[m]",
+   "t.pc:3:14: real[m] cannot be indexed",
+   "t.pc:4:14: index 3 is outside 0..2"
+  ]
+ },
+ {
+  "label": "expr: fields",
+  "files": [
+   [
+    "t.pc",
+    "fn f(a: real[m], v: vec3[m], M: mat3[1], n: int, b: bool, q: quat) -> c: real[m]\n    let x = v.k\n    let p = P()\n    let y = p.zz\n    let z = p.x\n    c = a\nend\nrecord P\n    x: real[m]\n    k: int\nend\n"
+   ]
+  ],
+  "js": [
+   "t.pc:2:14: real[m][3] has no fields",
+   "t.pc:4:14: P has no field zz"
+  ]
+ },
+ {
+  "label": "expr: not and minus",
+  "files": [
+   [
+    "t.pc",
+    "fn f(a: real[m], v: vec3[m], M: mat3[1], n: int, b: bool, q: quat) -> c: real[m]\n    let x = not a\n    let y = -b\n    let z = -v\n    c = a\nend\n"
+   ]
+  ],
+  "js": [
+   "t.pc:2:13: not needs a bool, not real[m]",
+   "t.pc:3:13: - needs a number or an array of them, not bool"
+  ]
+ },
+ {
+  "label": "expr: if",
+  "files": [
+   [
+    "t.pc",
+    "fn f(a: real[m], v: vec3[m], M: mat3[1], n: int, b: bool, q: quat) -> c: real[m]\n    let x = if a then a else a\n    let y = if b then b else a\n    let z = if b then a else 1 [s]\n    let p = if b then P() else 0\n    c = a\nend\nrecord P\n    x: real[m]\n    k: int\nend\n"
+   ]
+  ],
+  "js": [
+   "t.pc:2:13: if needs a bool, not real[m]",
+   "t.pc:3:13: if: both branches are bools or neither is",
+   "t.pc:4:13: if: the units differ, [m] and [s]",
+   "t.pc:5:13: if: the branches differ"
+  ]
+ },
+ {
+  "label": "expr: shapes",
+  "files": [
+   [
+    "t.pc",
+    "fn f(a: real[m], v: vec3[m], M: mat3[1], n: int, b: bool, q: quat) -> c: real[m]\n    let x = v + M\n    let y = b + a\n    let z = v + [1, 2] [m]\n    c = a\nend\n"
+   ]
+  ],
+  "js": [
+   "t.pc:2:15: +: real[m] and real[1][3] differ in shape",
+   "t.pc:3:15: + needs numbers, not bool and real[m]",
+   "t.pc:4:15: +: real[m][3] and real[m][2] differ in shape"
+  ]
+ },
+ {
+  "label": "expr: and or",
+  "files": [
+   [
+    "t.pc",
+    "fn f(a: real[m], v: vec3[m], M: mat3[1], n: int, b: bool, q: quat) -> c: real[m]\n    let x = a and b\n    let y = b or n\n    c = a\nend\n"
+   ]
+  ],
+  "js": [
+   "t.pc:2:15: and needs bools, not real[m] and bool",
+   "t.pc:3:15: or needs bools, not bool and int"
+  ]
+ },
+ {
+  "label": "expr: powers",
+  "files": [
+   [
+    "t.pc",
+    "fn f(a: real[m], v: vec3[m], M: mat3[1], n: int, b: bool, q: quat) -> c: real[m]\n    let x = b^2\n    let y = a^n\n    let z = a^2.5\n    let w = n^-2\n    let u: real[m^-3] = a^-3\n    let t = n^0\n    c = a\nend\n"
+   ]
+  ],
+  "js": [
+   "t.pc:2:14: ^ needs a number, not bool",
+   "t.pc:3:14: the power after ^ is a whole-number literal (x^2, x^-3); for any other power write pow(x, y)",
+   "t.pc:4:14: the power after ^ is a whole-number literal (x^2, x^-3); for any other power write pow(x, y)",
+   "t.pc:6:5: not a unit factor: m^- in [m^- 3]",
+   "t.pc:6:5: let u: declared real[1], given real[1/m^3]"
+  ]
+ },
+ {
+  "label": "expr: comparisons",
+  "files": [
+   [
+    "t.pc",
+    "fn f(a: real[m], v: vec3[m], M: mat3[1], n: int, b: bool, q: quat) -> c: real[m]\n    let x = v < v\n    let y = a < 1 [s]\n    let z = b == b\n    let w = b < b\n    c = a\nend\n"
+   ]
+  ],
+  "js": [
+   "t.pc:2:15: < compares numbers, not arrays",
+   "t.pc:3:15: <: the units differ, [m] and [s]",
+   "t.pc:5:15: < needs numbers, not bool and bool"
+  ]
+ },
+ {
+  "label": "expr: products",
+  "files": [
+   [
+    "t.pc",
+    "fn f(a: real[m], v: vec3[m], M: mat3[1], n: int, b: bool, q: quat) -> c: real[m]\n    let x = v / v\n    let m2 = M*transpose(M)\n    let y = M*[[1, 2], [3, 4]] [m]\n    let z = [[1.5, 2], [3, 4]]*v\n    let w = b*v\n    let u = 2 [m]/v\n    let t = b*a\n    let r = M*[[1.0, 2], [3, 4]]\n    let s = M*[1, 2]\n    c = a\nend\n"
+   ]
+  ],
+  "js": [
+   "t.pc:2:15: / between arrays: divide by a number, or solve",
+   "t.pc:4:15: a unit after an array applies to numbers",
+   "t.pc:4:15: an array with a unit holds plain numbers: [1, 2, 3] [m]",
+   "t.pc:4:14: matrix times vector: 3x3 times 2",
+   "t.pc:5:31: matrix times vector: 2x2 times 3",
+   "t.pc:6:14: *: bool does not scale an array",
+   "t.pc:7:18: a number divided by an array",
+   "t.pc:8:14: * needs numbers, not bool and real[m]",
+   "t.pc:9:14: matrix product: 3x3 times 2x2",
+   "t.pc:10:14: matrix times vector: 3x3 times 2"
+  ]
+ },
+ {
+  "label": "expr: bools scaled",
+  "files": [
+   [
+    "t.pc",
+    "fn f(a: real[m], v: vec3[m], M: mat3[1], n: int, b: bool, q: quat) -> c: real[m]\n    let p = [true, false]*2\n    c = a\nend\n"
+   ]
+  ],
+  "js": [
+   "INTERNAL"
+  ]
+ },
+ {
+  "label": "expr: int matrix product",
+  "files": [
+   [
+    "t.pc",
+    "fn f(a: real[m], v: vec3[m], M: mat3[1], n: int, b: bool, q: quat) -> c: real[m]\n    let x = [[1, 2], [3, 4]]*[[1, 2], [3, 4]]\n    c = a\nend\n"
+   ]
+  ],
+  "js": [
+   "INTERNAL"
+  ]
+ },
+ {
+  "label": "expr: calls",
+  "files": [
+   [
+    "t.pc",
+    "fn f(a: real[m], v: vec3[m], M: mat3[1], n: int, b: bool, q: quat) -> c: real[m]\n    let x = g(a)\n    let y = g(a, a)\n    let z = h(a)\n    let w = zz.g(a)\n    let u = nope(a)\n    let p = P(1)\n    c = a\nend\nfn g(x: real[m]) -> y: real[m]\n    y = x\nend\nproc h(x: real[m]) -> y: real[m]\n    y = x\nend\nrecord P\n    x: real[m]\n    k: int\nend\n"
+   ]
+  ],
+  "js": [
+   "t.pc:3:14: g takes 1 inputs (x), given 2",
+   "t.pc:4:14: h is a proc (it keeps state): call it from a proc, as a statement-level let with its state",
+   "t.pc:5:17: no module zz",
+   "t.pc:6:17: no function nope",
+   "t.pc:7:14: P() makes a record with every field zero; it takes no inputs"
+  ]
+ },
+ {
+  "label": "expr: qualified call",
+  "files": [
+   [
+    "t.pc",
+    "module m\nfn g(x: real[1]) -> y: real[1]\n    y = x\nend\nfn f(x: real[1]) -> y: real[1]\n    y = m.g(x) + main.g(x)\nend\n"
+   ]
+  ],
+  "js": [
+   "t.pc:6:24: no module main"
+  ]
+ },
+ {
+  "label": "expr: wants",
+  "files": [
+   [
+    "t.pc",
+    "fn f(a: real[m], v: vec3[m], M: mat3[1], n: int, b: bool, q: quat) -> c: real[m]\n    let x = g(1 [s])\n    let y = g(v)\n    let z = g(0)\n    let w = g(n)\n    c = a\nend\nfn g(x: real[m]) -> y: real[m]\n    y = x\nend\n"
+   ]
+  ],
+  "js": [
+   "t.pc:2:15: g: input x: wants real[m], gets real[s]",
+   "t.pc:3:15: g: input x: wants real[m], gets real[m][3]",
+   "t.pc:5:15: g: input x: wants real[m], gets int"
+  ]
+ },
+ {
+  "label": "builtin: arity and inputs",
+  "files": [
+   [
+    "t.pc",
+    "fn f(a: real[m], v: vec3[m], M: mat3[1], n: int, b: bool, q: quat) -> c: real[m]\n    let x = sqrt(a, a)\n    let y = sqrt(b)\n    let z = sqrt(a)\n    let w = abs(n)\n    let u = sign(v)\n    let t = cos(a)\n    let s = atan2(a, 1 [s])\n    let r = hypot(a, 0)\n    let o = fmod(a, a)\n    c = a\nend\n"
+   ]
+  ],
+  "js": [
+   "t.pc:2:17: sqrt takes 1 input(s), given 2",
+   "t.pc:2:17: sqrt of [m] has no unit",
+   "t.pc:3:17: sqrt: input 1 is a number, not bool",
+   "t.pc:4:17: sqrt of [m] has no unit",
+   "t.pc:6:17: sign: input 1 is a number, not real[m][3]",
+   "t.pc:7:16: cos takes a plain number (an angle in rad is one), not [m]",
+   "t.pc:8:18: atan2: the inputs differ in unit, [m] and [s]"
+  ]
+ },
+ {
+  "label": "builtin: more",
+  "files": [
+   [
+    "t.pc",
+    "fn f(a: real[m], v: vec3[m], M: mat3[1], n: int, b: bool, q: quat) -> c: real[m]\n    let x = pow(a, 2)\n    let y = min(a)\n    let z = max(v, v)\n    let w = min(n, 2)\n    let u = clamp(a, 0, 1 [s])\n    let t = real(a)\n    let s = int(v)\n    let r = band(a, n)\n    let o = div(n, a)\n    let p = len(a)\n    c = a\nend\n"
+   ]
+  ],
+  "js": [
+   "t.pc:2:16: pow takes a plain number (an angle in rad is one), not [m]",
+   "t.pc:3:16: min takes two inputs or more",
+   "t.pc:4:16: max takes numbers",
+   "t.pc:6:18: clamp: the units differ, [m] and [s]",
+   "t.pc:7:17: real() turns an int into a real",
+   "t.pc:8:16: int: input 1 is a number, not real[m][3]",
+   "t.pc:8:16: int() takes a number",
+   "t.pc:9:17: band takes two ints (non-negative, below 2^53)",
+   "t.pc:10:16: div takes two ints (whole-number division, truncated as in C)",
+   "t.pc:11:16: len() takes an array"
+  ]
+ },
+ {
+  "label": "builtin: vectors",
+  "files": [
+   [
+    "t.pc",
+    "fn f(a: real[m], v: vec3[m], M: mat3[1], n: int, b: bool, q: quat) -> c: real[m]\n    let x = dot(v, [1, 2] [m])\n    let y = cross(v, [1, 2] [m])\n    let z = norm(a)\n    let w = unit(M)\n    let u = transpose(v)\n    let t = cross(v, v)\n    let s = dot(v, v)\n    c = a\nend\n"
+   ]
+  ],
+  "js": [
+   "t.pc:2:16: dot: lengths 3 and 2",
+   "t.pc:3:18: cross takes two 3-vectors",
+   "t.pc:4:17: norm: input 1 is a vector, not real[m]",
+   "t.pc:5:17: unit: input 1 is a vector, not real[1][3][3]",
+   "t.pc:6:22: transpose takes a matrix"
+  ]
+ },
+ {
+  "label": "builtin: no inputs to min",
+  "files": [
+   [
+    "t.pc",
+    "fn f(a: real[m], v: vec3[m], M: mat3[1], n: int, b: bool, q: quat) -> c: real[m]\n    let x = min()\n    c = a\nend\n"
+   ]
+  ],
+  "js": [
+   "INTERNAL"
+  ]
+ },
+ {
+  "label": "builtin: clamp of two",
+  "files": [
+   [
+    "t.pc",
+    "fn f(a: real[m], v: vec3[m], M: mat3[1], n: int, b: bool, q: quat) -> c: real[m]\n    let x = clamp(a, a)\n    c = a\nend\n"
+   ]
+  ],
+  "js": [
+   "INTERNAL"
+  ]
+ },
+ {
+  "label": "builtin: atan2 of one length",
+  "files": [
+   [
+    "t.pc",
+    "fn f(a: real[m], v: vec3[m], M: mat3[1], n: int, b: bool, q: quat) -> c: real[m]\n    let x = atan2(a)\n    c = a\nend\n"
+   ]
+  ],
+  "js": [
+   "INTERNAL"
+  ]
+ },
+ {
+  "label": "builtin: transpose of nothing",
+  "files": [
+   [
+    "t.pc",
+    "fn f(a: real[m], v: vec3[m], M: mat3[1], n: int, b: bool, q: quat) -> c: real[m]\n    let x = transpose()\n    c = a\nend\n"
+   ]
+  ],
+  "js": [
+   "INTERNAL"
+  ]
+ },
+ {
+  "label": "stmt: let several",
+  "files": [
+   [
+    "t.pc",
+    "fn f(a: real[m], v: vec3[m], M: mat3[1], n: int, b: bool, q: quat) -> c: real[m]\n    let x, y = g(a)\n    let z = g(a)\n    let p, q = a\n    c = a\nend\nfn g(x: real[m]) -> (y: real[m], z: real[1])\n    y = x\n    z = 1\nend\n"
+   ]
+  ],
+  "js": [
+   "t.pc:3:5: g gives 2 values: let one name for each",
+   "t.pc:4:5: let p, q: the right side gives 1 value(s)",
+   "t.pc:4:5: q is already defined here; a name is declared once"
+  ]
+ },
+ {
+  "label": "stmt: let typed",
+  "files": [
+   [
+    "t.pc",
+    "fn f(a: real[m], v: vec3[m], M: mat3[1], n: int, b: bool, q: quat) -> c: real[m]\n    let x: real[s] = a\n    let y = 0\n    let z: real[s] = 0\n    let w = 0.0\n    c = a\nend\n"
+   ]
+  ],
+  "js": [
+   "t.pc:2:5: let x: declared real[s], given real[m]",
+   "t.pc:5:5: let w = 0 needs its type: let w: real[unit] = 0"
+  ]
+ },
+ {
+  "label": "stmt: state",
+  "files": [
+   [
+    "t.pc",
+    "proc p(x: real[1]) -> y: real[1]\n    state s: real[s] = 1\n    state t: real[1] = x\n    if x > 0\n        state u: int = 0\n    end\n    y = x\nend\n"
+   ]
+  ],
+  "js": [
+   "t.pc:2:5: state s: declared real[s], starts at int",
+   "t.pc:3:5: state t starts at a constant",
+   "t.pc:5:9: state is declared at the top of the proc's body"
+  ]
+ },
+ {
+  "label": "stmt: set",
+  "files": [
+   [
+    "t.pc",
+    "fn f(a: real[m], v: vec3[m], M: mat3[1], n: int, b: bool, q: quat) -> c: real[m]\n    let x = a\n    let y = a\n    x, y = g(a)\n    x = 1 [s]\n    x, y = a\n    zz = a\n    n = a\n    v[0] = 1 [s]\n    v.k = a\n    b[0] = a\n    c = a\nend\nfn g(x: real[m]) -> (y: real[m], z: real[1])\n    y = x\n    z = 1\nend\n"
+   ]
+  ],
+  "js": [
+   "t.pc:4:5: target 2: real[m], given real[1]",
+   "t.pc:5:5: x: is real[m], given real[s]",
+   "t.pc:6:5: 2 targets, the right side gives 1",
+   "t.pc:7:5: zz is not declared: let zz = …",
+   "t.pc:8:5: n is an input; inputs are not changed (copy it: let x = n)",
+   "t.pc:8:5: n: is int, given real[m]",
+   "t.pc:9:5: v is an input; inputs are not changed (copy it: let x = v)",
+   "t.pc:9:5: v[…]: is real[m], given real[s]",
+   "t.pc:10:5: v is an input; inputs are not changed (copy it: let x = v)",
+   "t.pc:10:6: real[m][3] has no fields",
+   "t.pc:11:5: b is an input; inputs are not changed (copy it: let x = b)",
+   "t.pc:11:6: bool cannot be indexed"
+  ]
+ },
+ {
+  "label": "stmt: loops",
+  "files": [
+   [
+    "t.pc",
+    "fn f(a: real[m], v: vec3[m], M: mat3[1], n: int, b: bool, q: quat) -> c: real[m]\n    for i in 0 .. a\n        i = 1\n    end\n    settle max a until n\n        let k = 1\n    end\n    if n\n        let j = 1\n    end\n    c = a\nend\n"
+   ]
+  ],
+  "js": [
+   "t.pc:2:5: for runs over ints: for i in 0 .. n",
+   "t.pc:3:9: i is the loop's counter",
+   "t.pc:5:5: settle max N: N is an int",
+   "t.pc:5:5: until needs a bool, not int",
+   "t.pc:8:8: if needs a bool, not int"
+  ]
+ },
+ {
+  "label": "stmt: declared twice",
+  "files": [
+   [
+    "t.pc",
+    "fn f(a: real[m], v: vec3[m], M: mat3[1], n: int, b: bool, q: quat) -> c: real[m]\n    let x = a\n    let x = a\n    for a in 0 .. 3\n    end\n    c = a\nend\n"
+   ]
+  ],
+  "js": [
+   "t.pc:3:5: x is already defined here; a name is declared once",
+   "t.pc:4:5: a is already defined here; a name is declared once"
+  ]
+ },
+ {
+  "label": "stmt: outputs and paths",
+  "files": [
+   [
+    "t.pc",
+    "fn f(a: real[m]) -> (c: real[m], v: vec3[m], k: int)\n    if a > 0 [m]\n        c = a\n    else\n        c = 2*a\n    end\n    v[0] = a\n    settle max 3 until k > 1\n        k = k + 1\n    end\nend\nfn g(a: real[m]) -> (c: real[m], k: int)\n    if a > 0 [m]\n        c = a\n    elif a < 0 [m]\n        c = a\n        k = 1\n    end\nend\n"
+   ]
+  ],
+  "js": [
+   "t.pc:12:1: g: output c is not set on every path",
+   "t.pc:12:1: g: output k is not set on every path"
+  ]
+ },
+ {
+  "label": "range: bounds",
+  "files": [
+   [
+    "t.pc",
+    "fn f(a: real[km] in 1 .. 2, b: real[m] in 2 [m] .. 1 [m], c: real[1] in x .. 1, d: int in 1 .. 1, e: real[m] in 1 [s] .. 2 [m], g: vec3[m] in -1 .. 1) -> y: real[1]\n    y = 1\nend\nrecord R\n    t: real[s] in 5 .. 1\nend\n"
+   ]
+  ],
+  "js": [
+   "t.pc:1:29: f: the range of b runs low .. high",
+   "t.pc:1:73: x is not defined here (a let declares a name)",
+   "t.pc:1:73: a range bound is a constant",
+   "t.pc:1:81: f: the range of d runs low .. high",
+   "t.pc:1:113: f: the range of e is real[m], not real[s]",
+   "t.pc:5:5: R: the range of t runs low .. high"
+  ]
+ },
+ {
+  "label": "range: pi and products",
+  "files": [
+   [
+    "t.pc",
+    "fn f(a: real[1] in -pi .. pi/2, b: real[1] in 2*pi .. -1) -> y: real[1]\n    y = a\nend\n"
+   ]
+  ],
+  "js": [
+   "t.pc:1:33: f: the range of b runs low .. high"
+  ]
+ },
+ {
+  "label": "const: not constant",
+  "files": [
+   [
+    "t.pc",
+    "const A = 2\nconst B = A*3 [m]\nconst C = sqrt(4)\nconst D = g(1)\nconst E = F\nconst F = 1\nfn g(x: real[1]) -> y: real[1]\n    y = x\nend\n"
+   ]
+  ],
+  "js": [
+   "t.pc:4:1: const D is a constant expression"
+  ]
+ },
+ {
+  "label": "recursion: self and around",
+  "files": [
+   [
+    "t.pc",
+    "fn a(x: real[1]) -> y: real[1]\n    y = a(x)\nend\nfn b(x: real[1]) -> y: real[1]\n    y = c(x)\nend\nfn c(x: real[1]) -> y: real[1]\n    let k = d(x)\n    y = b(x)\nend\nfn d(x: real[1]) -> y: real[1]\n    y = x\nend\n"
+   ]
+  ],
+  "js": [
+   "t.pc:1:1: recursion: a -> a (flight code does not recurse)",
+   "t.pc:4:1: recursion: b -> c -> b (flight code does not recurse)"
+  ]
+ }
+]
