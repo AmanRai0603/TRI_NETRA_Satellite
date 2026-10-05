@@ -1,5 +1,7 @@
 # The owner's plan against how TRI-NETRA works today
 
+> **Replaced by [`PLAN_2_0.md`](PLAN_2_0.md)** (5 Oct 2026). Kept as the record of the audit; its §8 says where each package went.
+
 **In one line:** the 3 Oct 2026 plan (`docs/RELEASE_PLAN.md` §1) says the design lives in database files that people
 write with the node and group apps, and every program reads only those files. Today the apps and the files exist
 and work, but the engine, the design loop and most tools still read repository files. The database is a copy of

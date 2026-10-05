@@ -247,7 +247,7 @@ Physics changes are batched per phase so the store is re-flown once.
 
 ### D0 · The design database in place on Drive, and a route back (before U0)
 
-**Superseded in detail by `docs/DATABASE_FIRST_PLAN.md`** (work packages D1–D8, release v1.1.0). The 5 Oct data-flow audit found that the database is a copy of repository files and that no edit on Drive reaches the engine, so the upload waits until the database is the source of truth. The phases below then follow as v1.2 (U0) to v2.0 (U5).
+**Superseded by `docs/PLAN_2_0.md`** (phases S0–S8, release 2.0.0; it replaced `docs/DATABASE_FIRST_PLAN.md`). After 2.0.0 the phases below follow as v2.1 (U0) to v3.0 (U5); the version numbers in their headings are the earlier plan's. The 5 Oct data-flow audit found that the database is a copy of repository files and that no edit on Drive reaches the engine, so the upload waits until the database is the source of truth. The phases below then follow as v1.2 (U0) to v2.0 (U5).
 
 Everything the apps and the release tools do reads the design database. On 5 Oct 2026 the shared Drive folder
 "Trinetra Database" held the 7 guides and two sheets, but its `Apps/` and `Design/` folders were **empty**.

@@ -1,5 +1,7 @@
 # Database first: the plan that comes before everything else
 
+> **Replaced by [`PLAN_2_0.md`](PLAN_2_0.md)** (5 Oct 2026). Kept as the record of the audit; its §8 says where each package went.
+
 **In one line:** TRI-NETRA is meant to be an application built over one design database that people edit on Drive,
 and today it is not. This plan makes it so, puts that database on Drive once and correctly, proves the whole
 application runs from it end to end, and releases that as **v1.1.0**. Only then do the roadmap's phases continue.
