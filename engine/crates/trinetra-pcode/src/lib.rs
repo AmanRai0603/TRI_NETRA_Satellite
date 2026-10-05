@@ -83,6 +83,18 @@ pub mod math {
     }
 }
 
+/// Text as JavaScript writes it, for whoever must say what a JavaScript page says.
+pub mod js {
+    /// `String(x)` of a number: `1e+21`, `1e-7`, `0.1`, `-0` as `0`.
+    pub fn number_text(x: f64) -> String {
+        crate::jsfmt::num(x)
+    }
+    /// `JSON.stringify(s)` of a string.
+    pub fn json_string(s: &str) -> String {
+        crate::jsfmt::json_str(s)
+    }
+}
+
 /// Parse and check the files together (they may call one another), as the JavaScript's `compile`:
 /// a program when there is no problem, otherwise every problem found. A file that does not parse
 /// gives its first problem, and the files are then not checked.

@@ -10,11 +10,15 @@
 //!                               (`tools/group.py verify`): one line per problem, "<group>: <problem>"
 //!     tndb check-release FILE [--catalogue JSON]   every problem `tools/release.py check` finds
 //!                               (JSON: {row id: kind}, the spec's catalogue, saying which rows compute)
+//!     tndb check-node FILE [--folder DIR]           the node app's live checks on a node file, one
+//!                               line each, "CODE level step: text" (level ! to fix, i to know); with
+//!                               the design folder, its inputs are checked against the design's nodes.
+//!                               Exit 1 if any is to fix, 2 if the file cannot be read or checked
 //!
 //! Owner: Agastya. Copyright (c) 2026 Agastya. All rights reserved.
 use std::path::Path;
 use std::process::ExitCode;
-use trinetra_design::{check, checks, compare, content, open, write, Schema};
+use trinetra_design::{check, checks, compare, content, node_rules, open, write, Schema};
 
 fn main() -> ExitCode {
     let a: Vec<String> = std::env::args().skip(1).collect();
@@ -22,7 +26,7 @@ fn main() -> ExitCode {
         Ok(s) => s,
         Err(e) => { eprintln!("tndb: {e}"); return ExitCode::from(2); }
     };
-    let usage = || { eprintln!("usage: tndb check FILE... | upgrade FILE... | hash FILE | compare A B | check-folder DIR | check-release FILE [--catalogue JSON]"); ExitCode::from(2) };
+    let usage = || { eprintln!("usage: tndb check FILE... | upgrade FILE... | hash FILE | compare A B | check-folder DIR | check-release FILE [--catalogue JSON] | check-node FILE [--folder DIR]"); ExitCode::from(2) };
     match a.first().map(String::as_str) {
         Some("check") if a.len() > 1 => {
             let errs: Vec<String> = a[1..].iter().flat_map(|f| check(Path::new(f), &s)).collect();
@@ -67,7 +71,25 @@ fn main() -> ExitCode {
             let cat = match catalogue(a.get(3)) { Some(c) => c, None => return ExitCode::from(2) };
             report(checks::check_release(Path::new(&a[1]), &cat, &s))
         }
+        Some("check-node") if a.len() == 2 || (a.len() == 4 && a[2] == "--folder") => check_node(Path::new(&a[1]), a.get(3).map(Path::new)),
         _ => usage(),
+    }
+}
+
+/// `check-node`: the node app's checks, one line each.
+fn check_node(file: &Path, folder: Option<&Path>) -> ExitCode {
+    let ctx = match folder.map(node_rules::Context::from_folder).transpose() {
+        Ok(c) => c.unwrap_or_default(),
+        Err(e) => { eprintln!("tndb: {e}"); return ExitCode::from(2); }
+    };
+    match node_rules::check_file(file, &ctx) {
+        Ok(problems) => {
+            for p in &problems { println!("{} {} {}: {}", p.code, p.level, p.step, p.text); }
+            let fix = problems.iter().filter(|p| p.level == '!').count();
+            eprintln!("tndb: {} problem(s), {fix} to fix", problems.len());
+            if fix == 0 { ExitCode::SUCCESS } else { ExitCode::from(1) }
+        }
+        Err(e) => { eprintln!("tndb: {e}"); ExitCode::from(2) }
     }
 }
 

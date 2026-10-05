@@ -74,6 +74,7 @@ Each part may call the parts in the rows below it, and no part above it.
 | `chain` | sign a file; check every signature on it against the group file's registry, and that the content is still what was signed | its tests |
 | `checks` | `tools/group.py check` and `verify`, `tools/release.py check`, word for word | tests/test_release.py on 40 sealed releases, 8 broken ones and 8 damaged folders |
 | `compare` | any two files of one kind, table by table | its tests |
+| `node_rules` | the node app's live checks (N02 … D07): a node file read as the app reads it, every rule with its words, the pseudocode through `trinetra-pcode`; `tndb check-node` | `design/js/node_model.js`, by `node_rules`: all 765 carried nodes and 547 broken copies |
 
 **In the page**, signing uses the browser's own Web Crypto (`design/js/tnkeys.js`) and the content encoding
 `design/js/tncontent.js`. These are deliberate twins of the library's, not copies to retire: the browser's
