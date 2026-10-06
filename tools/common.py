@@ -17,6 +17,16 @@ import subprocess
 import tempfile
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
+# 1.0.0's design sources, archived at the end of S4 (docs/PLAN_2_0.md; archive/design-1.0/README.md). Only the
+# 1.0.0 tools that made the conversion read them (seed, carry-over, conversion, catalogue export); everything
+# else reads the design (tools/from_design.py).
+V1 = ROOT / "archive" / "design-1.0"
+ARCHIVED = ("spec", "catalogue", "scenarios", "campaigns", "trades")
+
+
+def v1_root(rel):
+    """Where a 1.0.0 source folder now is: the archive for the archived folders, else the repository."""
+    return V1 if pathlib.PurePosixPath(rel).parts[0] in ARCHIVED else ROOT
 
 
 def _rel(path):

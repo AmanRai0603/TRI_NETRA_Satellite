@@ -30,9 +30,9 @@ import json
 import sys
 import tomllib
 
-from common import ROOT
+from common import V1
 
-PLAN = ROOT / "spec" / "plan"
+PLAN = V1 / "spec" / "plan"
 # SPEC.md §5.1: the seeded sheet counts the list must reproduce
 COUNTS = {1: 133, 2: 194, 3: 368, "closure": 39}
 

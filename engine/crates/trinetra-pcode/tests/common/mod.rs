@@ -56,7 +56,8 @@ pub struct Package {
 }
 
 pub const PACKAGES: &[Package] = &[
-    Package { name: "physics", src: "spec/physics", vectors: "matlab_sils/data/physics_vectors.json" },
+    // 1.0.0's relations, archived (archive/design-1.0); the same text the design holds (tests/test_from_design.py)
+    Package { name: "physics", src: "archive/design-1.0/spec/physics", vectors: "matlab_sils/data/physics_vectors.json" },
     Package { name: "selftest", src: "design/pcode_selftest", vectors: "matlab_sils/data/pcselftest_vectors.json" },
     Package { name: "flight software", src: "fsw/pseudocode", vectors: "fsw/tests/pcode_vectors.txt" },
     Package { name: "groups", src: "design/groups", vectors: "engine/crates/adcs-groups/tests/vectors.json" },

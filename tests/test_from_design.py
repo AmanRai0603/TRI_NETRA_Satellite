@@ -35,6 +35,11 @@ class FromDesign(unittest.TestCase):
         with self.assertRaises(SystemExit):
             from_design.text("spec/plan/no_such_file.toml")
 
+    def test_the_archive_is_what_the_design_holds(self):
+        # 1.0.0's sources, archived, are history: the design holds each one the code still reads, byte for byte
+        for p in from_design.paths("spec/") + from_design.paths("catalogue/"):
+            self.assertEqual((ROOT / "archive" / "design-1.0" / p).read_bytes(), from_design.text(p).encode(), p)
+
     def test_a_hand_edit_is_found(self):
         p = ROOT / "matlab_sils" / "cases" / "ais_3u.csv"
         before = p.read_bytes()

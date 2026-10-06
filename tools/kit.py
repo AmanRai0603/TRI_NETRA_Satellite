@@ -67,12 +67,10 @@ def copy_data(out):
 
 
 def design_db(out):
-    """The design database as seeded, beside the data: the app flies from it."""
-    import tempfile
-    import seed_design
-    with tempfile.TemporaryDirectory() as tmp:
-        seed_design.seed(tmp, sync=False)
-        shutil.copy2(pathlib.Path(tmp) / "design.tndb", out / "design.tndb")
+    """The design the repository is held to (tests/regression/design.tndb, today's design), beside the data:
+    the app flies from it."""
+    import from_design
+    shutil.copy2(from_design.design(), out / "design.tndb")
 
 
 def build(out, bin_dir=None, files_only=False):

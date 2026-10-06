@@ -297,10 +297,14 @@ This is the last time the design passes through the code.
 8. **The repository keeps its design data until S4's parity gate holds** (moved there on 6 Oct 2026). S4 compares
    the new path against today's, which reads these files. Archiving them here would break the engine and every
    test between the two phases. At the end of S4:
-   - the repository keeps the example group and the regression copy (`tests/fixtures/`, `tests/regression/`);
-   - `spec/`, `catalogue/`, `scenarios/`, `campaigns/`, `trades/`, `matlab_sils/cases`, `fsw/params/` and
-     `fsw/pseudocode/03`–`09` move to `archive/design-1.0/`;
-   - the seed, carry-over and export tools leave the build.
+   - the repository keeps the regression copy (`tests/regression/design.tndb`), and later the example group
+     (`tests/fixtures/`, S8);
+   - `spec/`, `catalogue/`, `scenarios/`, `campaigns/` and `trades/` move to `archive/design-1.0/`;
+   - `matlab_sils/data`, `matlab_sils/cases`, `fsw/params/` and `fsw/pseudocode/03`–`09` are still read in place
+     by the engine, the twin and the flight software's builds, so they become **generated from the design** and
+     checked against it (`tools/from_design.py`) until S6 and S7 generate code from the nodes;
+   - the seed, carry-over and export tools leave the build: only the tests of the 1.0.0 node and group files
+     still run them, on the archive, until the example group replaces it.
 
 **Done when:**
 - nothing is listed as dropped;

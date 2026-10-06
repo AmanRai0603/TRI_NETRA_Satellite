@@ -38,8 +38,6 @@ CHECKS = [
      [PY, "-m", "unittest", "discover", "-s", "tests", "-t", "tests"], ".", []),
     ("wheel", "the Python package builder: RECORD, entry points, executable bits, a changed byte caught",
      [PY, "tools/build_wheel.py", "--selftest"], ".", []),
-    ("catalogue", "every JSON the engine and the twin read is its TOML",
-     [PY, "tools/export_catalogue.py", "--check"], ".", []),
     ("from-design", "every file the code reads that is design (the engine's inputs and cases, the flight parameter table, the flight algorithms) is what the regression copy gives, and nothing else sits in the generated folders",
      [PY, "tools/from_design.py", "--check"], ".", []),
     ("fsw-params", "the C and Rust parameter tables are their definition",
@@ -56,9 +54,6 @@ CHECKS = [
      ["cargo", "test", "--locked", "--release", "-q"], "fsw-rs", ["cargo"]),
     ("engine", "the engine's tests: inputs refused by name, results store, determinism, C = Rust",
      ["cargo", "test", "--locked", "--release", "-q"], "engine", ["cargo"]),
-    ("spec", "the platform specification package is consistent",
-     ["bash", "-c", "python3 tools/validate_plan.py && python3 tools/build_tree.py --check && python3 tools/intake.py selftest"
-      " && python3 tools/derisk.py check && python3 tools/twin_check.py && bash tools/assemble_spec.sh --check"], "spec", ["bash"]),
     ("design-files", "every row of the tree in exactly one group; the seeded group, node and design files check against design/schema.toml; the generated SQL and browser schema are the schema; the apps' manual is current, every page in the explanation standard's shape, every tour target in its app, every field with help",
      [PY, "-c", "import sys; sys.path.insert(0, 'tools'); import groups, manual, node_catalog, seed_design, tndb; "
       "sys.exit(groups.main(['--check']) or seed_design.main(['--check']) or node_catalog.main(['--check']) or manual.main(['--check']) or tndb.main(['gen', '--check']))"], ".", []),

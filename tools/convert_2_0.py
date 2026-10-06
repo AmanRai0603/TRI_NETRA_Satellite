@@ -54,11 +54,11 @@ import design_inputs
 import release
 import seed_design
 import tndb
-from common import ROOT
+from common import ROOT, V1, v1_root
 
 TREE = ROOT / "design" / "tree_2_0.toml"
-SPEC_TREE = ROOT / "spec" / "plan" / "tree.json"
-KPIS = ROOT / "spec" / "plan" / "kpis.toml"
+SPEC_TREE = V1 / "spec" / "plan" / "tree.json"
+KPIS = V1 / "spec" / "plan" / "kpis.toml"
 GROUPS_1 = ROOT / "design" / "groups.toml"
 BY = "the conversion (tools/convert_2_0.py)"
 AT = "2026-10-06T00:00:00Z"            # fixed, so the conversion is the same bytes every time it runs
@@ -274,8 +274,8 @@ def convert(out, src=None):
     # 4 · the library data and the cases
     library = []
     for folder, pat, gid, what in LIBRARY:
-        for f in sorted((ROOT / folder).glob(pat)):
-            rel = f.relative_to(ROOT).as_posix()
+        for f in sorted((v1_root(folder) / folder).glob(pat)):
+            rel = f.relative_to(v1_root(folder)).as_posix()
             library.append({"id": "lib_" + re.sub(r"[^a-z0-9]+", "_", rel.lower().rsplit(".", 1)[0]), "group": gid, "file": f, "rel": rel, "what": what})
     igrf = ROOT / "matlab_sils" / "data" / "igrf13coeffs.txt"
 
@@ -422,8 +422,8 @@ def convert(out, src=None):
 
     # ------------------------------------------------------------ the cases
     for folder, pat, kind in CASES:
-        for f in sorted((ROOT / folder).glob(pat)):
-            rel = f.relative_to(ROOT).as_posix()
+        for f in sorted((v1_root(folder) / folder).glob(pat)):
+            rel = f.relative_to(v1_root(folder)).as_posix()
             cid = f.stem if kind == "case" else f"{kind}_{f.stem}"
             path = out / "cases" / f"{cid}.tncase"
             if path.exists():                 # a reference case held twice (spec and matlab_sils): the same name, kept once

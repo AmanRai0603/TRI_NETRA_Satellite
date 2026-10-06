@@ -37,9 +37,9 @@ import tomllib
 
 import node_catalog
 import tndb
-from common import ROOT
+from common import ROOT, V1, v1_root
 
-PLAN = ROOT / "spec" / "plan"
+PLAN = V1 / "spec" / "plan"
 SPEC_SENSE = {"<=": "at_most", ">=": "at_least", "at_most": "at_most", "at_least": "at_least"}
 OUTSIDE = {"independent-derivation", "published-source", "independent-tool", "physical-bound"}
 FIXED_KINDS = ("interface", "closure_interface", "required", "achieved")
@@ -147,18 +147,18 @@ class Plan:
         self.cat = node_catalog.catalogue()
         self.rows = self.cat["rows"]
         self.physics = _toml(PLAN / "physics.toml")["function"]
-        self.phys_blocks = pc_blocks(sorted((ROOT / "spec" / "physics").glob("*.pc")))
+        self.phys_blocks = pc_blocks(sorted((V1 / "spec" / "physics").glob("*.pc")))
         self.fsw_blocks = pc_blocks(sorted((ROOT / "fsw" / "pseudocode").glob("*.pc")))
         ci = _toml(PLAN / "case_inputs.toml")
         self.case_in = {x["tree_id"]: x for x in ci.get("input", []) if x.get("tree_id")}
         self.supplier = {x["tree_id"]: x for x in ci.get("supplier", []) if x.get("tree_id")}
         self.kpis = _toml(PLAN / "kpis.toml")["kpi"]
         self.algos = {}
-        for f in sorted((ROOT / "catalogue" / "algorithms").glob("*.toml")):
+        for f in sorted((V1 / "catalogue" / "algorithms").glob("*.toml")):
             a = _toml(f)
             for prm in a.get("param", []):
                 if prm.get("tree_id"):
-                    self.algos.setdefault(prm["tree_id"], []).append((f.relative_to(ROOT).as_posix(), a, prm))
+                    self.algos.setdefault(prm["tree_id"], []).append((f.relative_to(V1).as_posix(), a, prm))
         tree = json.loads((PLAN / "tree.json").read_text(encoding="utf-8"))
         self.note = {r[0]: r[3] for k in ("HN_MGT", "HN_SYS") for r in tree[k] if r[3] and r[3] != "computed"}
         self.carry = _toml(ROOT / "design" / "carry.toml")
@@ -459,7 +459,7 @@ def problems():
         elif len(spec["rows"]) > counts[layer]:
             out.append(f"design/carry.toml: internal.{layer}: {len(spec['rows'])} names for {counts[layer]} rows")
         for r in spec["rows"]:
-            if not (ROOT / r["code"]).exists():
+            if not (v1_root(r["code"]) / r["code"]).exists():
                 out.append(f"design/carry.toml: internal.{layer}: {r['label']}: no {r['code']}")
     gdef = {g["id"]: g for g in p.groups}
     ids = set()
@@ -476,7 +476,7 @@ def problems():
             out.append(f"design/carry.toml: {a['id']}: {a['group']} has stages; {a.get('stage')!r} is not one")
         elif not g.get("stages") and a.get("stage"):
             out.append(f"design/carry.toml: {a['id']}: {a['group']} has no stages")
-        if not (ROOT / a["code"]).exists():
+        if not (v1_root(a["code"]) / a["code"]).exists():
             out.append(f"design/carry.toml: {a['id']}: no {a['code']}")
         if a.get("pcode") and a["pcode"] not in p.fsw_blocks:
             out.append(f"design/carry.toml: {a['id']}: no flight pseudocode function {a['pcode']}")

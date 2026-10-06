@@ -10,22 +10,22 @@ The export is generated, never edited: run this after changing a TOML file.
 Copyright (c) 2026 Agastya. All rights reserved.
 """
 import json, sys, tomllib
-from common import write_text, ROOT
+from common import write_text, ROOT, V1
 
-KINDS = [("parts", None), ("products", None), ("algorithms", None), ("scenarios", ROOT / "scenarios"),
-         ("campaigns", ROOT / "campaigns"), ("trades", ROOT / "trades"), ("modes", None), ("components", None)]
+KINDS = [("parts", None), ("products", None), ("algorithms", None), ("scenarios", V1 / "scenarios"),
+         ("campaigns", V1 / "campaigns"), ("trades", V1 / "trades"), ("modes", None), ("components", None)]
 
 
 def outputs():
     """Every generated JSON file and the text its TOML gives it."""
     for kind, src in KINDS:
         out = ROOT / "matlab_sils" / "data" / kind
-        for f in sorted((src or ROOT / "catalogue" / kind).glob("*.toml")):
+        for f in sorted((src or V1 / "catalogue" / kind).glob("*.toml")):
             d = tomllib.loads(f.read_text())
             key = d.get("part_number") or d.get("id") or f.stem
             yield f, out / f"{key}.json", json.dumps(d, indent=1, sort_keys=True) + "\n"
     for name in ("families", "classes"):
-        f = ROOT / "catalogue" / f"{name}.toml"
+        f = V1 / "catalogue" / f"{name}.toml"
         yield f, ROOT / "matlab_sils" / "data" / f"{name}.json", json.dumps(tomllib.loads(f.read_text()), indent=1, sort_keys=True) + "\n"
 
 
@@ -35,7 +35,7 @@ def check():
     for src, dst, text in outputs():
         made.add(dst)
         if not dst.exists() or dst.read_text() != text:
-            bad.append(f"{dst.relative_to(ROOT)} differs from {src.relative_to(ROOT)}")
+            bad.append(f"{dst.relative_to(ROOT)} differs from {src.relative_to(V1)}")
     for kind, _ in KINDS:
         for j in sorted((ROOT / "matlab_sils" / "data" / kind).glob("*.json")):
             if j not in made:

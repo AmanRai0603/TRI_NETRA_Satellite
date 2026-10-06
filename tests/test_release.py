@@ -40,7 +40,7 @@ def filled_form(out_dir):
     """m2_4's seed node form (spec/tools/forms.py), filled in as a team member would: a requester,
     an explanation, a test vector from a book, a belief record."""
     out_dir = pathlib.Path(out_dir)
-    subprocess.run([sys.executable, "tools/forms.py", "seed", "m2_4", "--out", str(out_dir / "forms")], cwd=ROOT / "spec", check=True, capture_output=True)
+    subprocess.run([sys.executable, "tools/forms.py", "seed", "m2_4", "--out", str(out_dir / "forms")], cwd=ROOT / "archive" / "design-1.0" / "spec", check=True, capture_output=True)
     src = next((out_dir / "forms").glob("*.html"))
     t = src.read_text(encoding="utf-8")
     i = t.index(FORM_OPEN) + len(FORM_OPEN)

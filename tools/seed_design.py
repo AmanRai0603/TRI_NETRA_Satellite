@@ -31,9 +31,9 @@ import design_inputs
 import design_rows
 import groups as G
 import tndb
-from common import ROOT, Steps
+from common import ROOT, V1, Steps
 
-PLAN = ROOT / "spec" / "plan"
+PLAN = V1 / "spec" / "plan"
 SEED_RELEASE = "seed"
 
 

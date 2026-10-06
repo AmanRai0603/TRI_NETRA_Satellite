@@ -17,9 +17,9 @@ import argparse
 import json
 import sys
 
-from common import ROOT, write_text
+from common import ROOT, V1, write_text
 
-sys.path.insert(0, str(ROOT / "spec" / "tools"))
+sys.path.insert(0, str(V1 / "spec" / "tools"))
 import plan_model as pm  # noqa: E402
 
 OUT = ROOT / "design" / "js" / "node_catalog.js"

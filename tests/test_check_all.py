@@ -66,10 +66,10 @@ class Choice(unittest.TestCase):
 
 class Verdicts(unittest.TestCase):
     def test_a_failure_exits_1_and_is_named(self):
-        rc, ran, out = run(["--only", "lint", "catalogue"], fail=["catalogue"])
+        rc, ran, out = run(["--only", "lint", "from-design"], fail=["from-design"])
         self.assertEqual(rc, 1)
-        self.assertIn("check_all: 1/2 ok; FAILED: catalogue", out)
-        self.assertIn("catalogue output", out, "a failing check's output is shown")
+        self.assertIn("check_all: 1/2 ok; FAILED: from-design", out)
+        self.assertIn("from-design output", out, "a failing check's output is shown")
 
     def test_a_check_that_cannot_run_here_is_not_run_and_not_passed(self):
         rc, ran, out = run(["--only", "fsw-c", "lint"], have=lambda need: need != "gcc")
