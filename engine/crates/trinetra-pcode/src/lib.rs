@@ -63,7 +63,7 @@ mod vmath;
 
 pub use ast::{FnKind, TableMode, Ty};
 pub use error::{ErrorKind, PcodeError, Pos, RunError};
-pub use gen::{files_json, lit, matlab_runtime, matlab_runtime_files, Files};
+pub use gen::{files_json, lit, matlab_runtime, matlab_runtime_files, Files, RustOptions};
 pub use interp::{State, Value};
 pub use units::{dim_text, Dim, UNITS};
 

@@ -380,15 +380,15 @@ export function toC(prog, opts = {}) {
       `            {\n${setup}${outsBody(f, `${fname(f)}(&st${f.params.length ? ", " : ""}${f.params.map((_, i) => `a${i}`).join(", ")})`, "            ")}            }\n            (void)x;\n        }\n        return 0;\n    }\n`;
   }
   disp += "    (void)xs; (void)ncalls; (void)nx; (void)outs; (void)c;\n    return -1;\n}\n";
-  files["src/dispatch.c"] = disp;
+  if (opts.dispatch !== false) files["src/dispatch.c"] = disp;
 
   // ------------------------------------------------------------ the header and the runtime
   const guard = `${lib.toUpperCase().replace(/[^A-Z0-9]/g, "_")}_H`;
   files[`include/${lib}.h`] = `/* ${opts.title || "Functions written in the pseudocode"}. ${HEAD} */\n/* Every relation is SI in and SI out. C99, no dynamic memory. */\n` +
     `#ifndef ${guard}\n#define ${guard}\n#include <stdbool.h>\n#include <stdint.h>\n\n` +
     [...types.values()].join("\n") + "\n\n" + decls.join("\n") +
-    "\nint pc_call(const char *name, const double *x, int nx, double *out, int *ny);\n" +
-    "int pc_call_seq(const char *name, const double *xs, int ncalls, int nx, double *outs, int *ny);\n" +
+    (opts.dispatch !== false ? "\nint pc_call(const char *name, const double *x, int nx, double *out, int *ny);\n" +
+    "int pc_call_seq(const char *name, const double *xs, int ncalls, int nx, double *outs, int *ny);\n" : "") +
     `\n#endif\n`;
   const rguard = `${lib.toUpperCase().replace(/[^A-Z0-9]/g, "_")}_RT_H`;
   files[`include/${lib}_rt.h`] = `/* The arithmetic every translation shares with the interpreter (design/js/pcode.js \`rt\`). ${HEAD} */\n` +

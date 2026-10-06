@@ -22,11 +22,35 @@ use std::collections::BTreeMap;
 /// Files as a translator writes them: (path, text), in the order the JavaScript sets them.
 pub type Files = Vec<(String, String)>;
 
+/// How the Rust is written (`toRust`'s options).
+#[derive(Clone, Copy, Debug)]
+pub struct RustOptions<'a> {
+    /// the crate's title, its documentation's first line
+    pub title: Option<&'a str>,
+    /// the path the modules are under: `crate` (a crate of its own, `src/lib.rs`), or a module of a
+    /// crate (`crate::alg`, written as `src/mod.rs`), as the flight build embeds it
+    pub root: Option<&'a str>,
+    /// the module the scalar maths comes from (a no_std crate's, such as `crate::m`); `f64`'s own when None
+    pub math: Option<&'a str>,
+    /// write the vector dispatcher (`src/dispatch.rs`, a test aid that needs the heap)
+    pub dispatch: bool,
+}
+
+impl Default for RustOptions<'_> {
+    fn default() -> Self {
+        RustOptions { title: None, root: None, math: None, dispatch: true }
+    }
+}
+
 impl Program {
     /// The program in Rust, as `toRust(program, { title })`: `src/<module>.rs` for each module,
     /// `src/dispatch.rs`, `src/rt.rs` and `src/lib.rs`, in that order.
     pub fn to_rust_files(&self, title: Option<&str>) -> Result<Files, String> {
-        rust::to_rust(&self.i, title)
+        rust::to_rust(&self.i, &RustOptions { title, ..RustOptions::default() })
+    }
+    /// The program in Rust with every option (`toRust(program, { title, root, math, dispatch })`).
+    pub fn to_rust_files_with(&self, o: &RustOptions) -> Result<Files, String> {
+        rust::to_rust(&self.i, o)
     }
     /// The program in Rust (`to_rust_files`), by path.
     pub fn to_rust(&self, title: Option<&str>) -> Result<BTreeMap<String, String>, String> {
@@ -35,7 +59,11 @@ impl Program {
     /// The program in C99, as `toC(program, { title, lib })`: `src/<module>.c` for each module,
     /// `src/dispatch.c`, `include/<lib>.h` and `include/<lib>_rt.h` (`lib` is "pcode" when not given).
     pub fn to_c_files(&self, title: Option<&str>, lib: Option<&str>) -> Result<Files, String> {
-        c::to_c(&self.i, title, lib)
+        c::to_c(&self.i, title, lib, true)
+    }
+    /// The program in C99 with or without the vector dispatcher (`toC(program, { title, lib, dispatch })`).
+    pub fn to_c_files_with(&self, title: Option<&str>, lib: Option<&str>, dispatch: bool) -> Result<Files, String> {
+        c::to_c(&self.i, title, lib, dispatch)
     }
     /// The program in C99 (`to_c_files`), by path.
     pub fn to_c(&self, title: Option<&str>, lib: Option<&str>) -> Result<BTreeMap<String, String>, String> {

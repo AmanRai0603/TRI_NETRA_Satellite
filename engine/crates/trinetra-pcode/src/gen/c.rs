@@ -50,15 +50,17 @@ fn guard_of(lib: &str) -> String {
     upper(lib).chars().map(|ch| if ch.is_ascii_uppercase() || ch.is_ascii_digit() { ch.to_string() } else { "_".repeat(ch.len_utf16()) }).collect()
 }
 
-pub(super) fn to_c(i: &Interp, title: Option<&str>, lib: Option<&str>) -> Result<Files, String> {
+pub(super) fn to_c(i: &Interp, title: Option<&str>, lib: Option<&str>, dispatch: bool) -> Result<Files, String> {
     let lib = lib.filter(|l| !l.is_empty()).unwrap_or("pcode").to_string();
-    let mut g = Gen { b: Base::new(i), types: Vec::new(), helpers: Vec::new(), tmp: 0 };
+    let mut g = Gen { b: Base::new(i), types: Vec::new(), helpers: Vec::new(), tmp: 0, dispatch };
     let files = g.run(title, &lib);
     g.b.done(files)
 }
 
 struct Gen<'a> {
     b: Base<'a>,
+    /// whether to write the vector dispatcher (a test aid)
+    dispatch: bool,
     /// C name -> definition, in dependency order (None: a record's place, reserved while its fields are declared)
     types: Vec<(String, Option<String>)>,
     /// the runtime's array operations, each once
@@ -933,7 +935,9 @@ impl<'a> Gen<'a> {
             );
         }
         disp += "    (void)xs; (void)ncalls; (void)nx; (void)outs; (void)c;\n    return -1;\n}\n";
-        set_file(&mut files, "src/dispatch.c".into(), disp);
+        if self.dispatch {
+            set_file(&mut files, "src/dispatch.c".into(), disp);
+        }
 
         // ------------------------------------------------------------ the header and the runtime
         let guard = format!("{}_H", guard_of(lib));
@@ -943,9 +947,14 @@ impl<'a> Gen<'a> {
             &mut files,
             format!("include/{lib}.h"),
             format!(
-                "/* {title}. {head} */\n/* Every relation is SI in and SI out. C99, no dynamic memory. */\n#ifndef {guard}\n#define {guard}\n#include <stdbool.h>\n#include <stdint.h>\n\n{}\n\n{}\nint pc_call(const char *name, const double *x, int nx, double *out, int *ny);\nint pc_call_seq(const char *name, const double *xs, int ncalls, int nx, double *outs, int *ny);\n\n#endif\n",
+                "/* {title}. {head} */\n/* Every relation is SI in and SI out. C99, no dynamic memory. */\n#ifndef {guard}\n#define {guard}\n#include <stdbool.h>\n#include <stdint.h>\n\n{}\n\n{}{}\n#endif\n",
                 types.join("\n"),
-                decls.join("\n")
+                decls.join("\n"),
+                if self.dispatch {
+                    "\nint pc_call(const char *name, const double *x, int nx, double *out, int *ny);\nint pc_call_seq(const char *name, const double *xs, int ncalls, int nx, double *outs, int *ny);\n"
+                } else {
+                    ""
+                }
             ),
         );
         let rguard = format!("{}_RT_H", guard_of(lib));

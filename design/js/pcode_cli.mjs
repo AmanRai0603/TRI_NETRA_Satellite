@@ -16,7 +16,8 @@ const argv = process.argv.slice(2);
 const cmd = argv.shift();
 const files = [], opt = {};
 for (let i = 0; i < argv.length; i++) {
-  if (argv[i].startsWith("--")) opt[argv[i].slice(2)] = argv[++i];
+  if (argv[i] === "--no-dispatch") opt["no-dispatch"] = true;          // a flag: it takes no value
+  else if (argv[i].startsWith("--")) opt[argv[i].slice(2)] = argv[++i];
   else files.push(argv[i]);
 }
 const out = (x) => process.stdout.write(JSON.stringify(x, null, 1) + "\n");
@@ -164,8 +165,10 @@ switch (cmd) {
     out(Object.fromEntries(Object.values(program.fns).map((f) => [`${f.module}::${f.name}`, f.outs.flatMap((o) => kinds(o.ty))])));
     break;
   }
-  case "rust": out(toRust(program, { title: opt.title })); break;
-  case "c": out(toC(program, { title: opt.title, lib: opt.lib })); break;
+  // --root and --math embed the Rust as a module of a no_std crate (the flight build); --no-dispatch leaves out the
+  // vector dispatcher, a test aid
+  case "rust": out(toRust(program, { title: opt.title, root: opt.root, math: opt.math, dispatch: !("no-dispatch" in opt) })); break;
+  case "c": out(toC(program, { title: opt.title, lib: opt.lib, dispatch: !("no-dispatch" in opt) })); break;
   case "matlab": out(toMatlab(program, { pkg: opt.pkg })); break;
   default:
     process.stderr.write(`pcode_cli: no command ${cmd} (check, run, vectors, outkinds, rust, c, matlab, matlab-rt, signatures)\n`);

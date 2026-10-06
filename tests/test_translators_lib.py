@@ -73,6 +73,14 @@ class TranslatorsInTheLibrary(unittest.TestCase):
                 with self.subTest(package=name, lang=lang):
                     self.same([lang, *map(str, files), *opts[lang]], f"{name} in {lang}")
 
+    def test_the_flight_build_options(self):
+        # the flight build embeds the Rust as a module of the no_std flight crate and leaves out the dispatchers
+        files = list(map(str, sorted((ROOT / "fsw" / "pseudocode").glob("*.pc"))))
+        for args in (["rust", *files, "--root", "crate::alg", "--math", "crate::m", "--no-dispatch", "--title", "t"],
+                     ["c", *files, "--lib", "adcs_alg", "--no-dispatch", "--title", "t"]):
+            with self.subTest(lang=args[0]):
+                self.same(args, f"the flight build's {args[0]}")
+
     def test_the_matlab_runtime(self):
         self.same(["matlab-rt"], "the MATLAB runtime")
 

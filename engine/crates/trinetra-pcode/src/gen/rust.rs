@@ -7,15 +7,27 @@ use super::*;
 use crate::ast::{BinOp, ExprKind, FnKind, Stmt, StmtKind, TableMode};
 use crate::check::{ItemRef, Shape, Target, VarKind};
 
-pub(super) fn to_rust(i: &Interp, title: Option<&str>) -> Result<Files, String> {
-    let mut g = Gen { b: Base::new(i), tmp: 0 };
-    let files = g.run(title);
+pub(super) fn to_rust(i: &Interp, o: &RustOptions) -> Result<Files, String> {
+    let mut g = Gen {
+        b: Base::new(i),
+        tmp: 0,
+        root: o.root.filter(|r| !r.is_empty()).unwrap_or("crate").to_string(),
+        math: o.math.filter(|m| !m.is_empty()).map(str::to_string),
+        dispatch: o.dispatch,
+    };
+    let files = g.run(o.title);
     g.b.done(files)
 }
 
 struct Gen<'a> {
     b: Base<'a>,
     tmp: usize,
+    /// the path the modules are under (`crate`, or `crate::alg` when embedded in a crate)
+    root: String,
+    /// the module the scalar maths comes from (a no_std crate's), else `f64`'s own
+    math: Option<String>,
+    /// whether to write the vector dispatcher (a test aid that needs the heap)
+    dispatch: bool,
 }
 
 fn mode_text(m: TableMode) -> &'static str {
@@ -26,6 +38,13 @@ fn mode_text(m: TableMode) -> &'static str {
 }
 
 impl<'a> Gen<'a> {
+    /// a scalar maths function: `f64`'s own (`std`), or the named one of the maths module
+    fn fm(&self, std: &str, name: &str) -> String {
+        match &self.math {
+            Some(m) => format!("{m}::{name}"),
+            None => std.to_string(),
+        }
+    }
     fn rty(&mut self, t: &Ty) -> String {
         match t {
             Ty::Real(_) => "f64".into(),
@@ -105,7 +124,7 @@ impl<'a> Gen<'a> {
             ExprKind::Bool(v) => v.to_string(),
             ExprKind::Var(name) => match ann.var {
                 VarKind::Pi => "core::f64::consts::PI".into(),
-                VarKind::Const(ci) => format!("crate::{}::{}", c.consts[ci].module, upper(name)),
+                VarKind::Const(ci) => format!("{}::{}::{}", self.root, c.consts[ci].module, upper(name)),
                 VarKind::State => format!("st.{name}"),
                 _ => name.clone(),
             },
@@ -250,15 +269,15 @@ impl<'a> Gen<'a> {
                 None => g.b.fail(format!("{f}: an input is missing")),
             };
             match f {
-                "sqrt" => return format!("f64::sqrt({})", r(self, 0)),
+                "sqrt" => return format!("{}({})", self.fm("f64::sqrt", "sqrt"), r(self, 0)),
                 "abs" => return if is_int(ety) { format!("({}).abs()", x(self, 0)) } else { format!("rt::fabs({})", r(self, 0)) },
-                "floor" | "ceil" | "round" => return if is_int(ety) { x(self, 0) } else { format!("f64::{f}({})", r(self, 0)) },
+                "floor" | "ceil" | "round" => return if is_int(ety) { x(self, 0) } else { format!("{}({})", self.fm(&format!("f64::{f}"), f), r(self, 0)) },
                 "sign" => return format!("rt::sign({})", r(self, 0)),
-                "sin" | "cos" | "tan" | "asin" | "acos" | "atan" | "exp" | "log10" => return format!("f64::{f}({})", r(self, 0)),
-                "log" => return format!("f64::ln({})", r(self, 0)),
+                "sin" | "cos" | "tan" | "asin" | "acos" | "atan" | "exp" | "log10" => return format!("{}({})", self.fm(&format!("f64::{f}"), f), r(self, 0)),
+                "log" => return format!("{}({})", self.fm("f64::ln", "log"), r(self, 0)),
                 "atan2" => {
                     let p = r(self, 0);
-                    return format!("f64::atan2({p}, {})", r(self, 1));
+                    return format!("{}({p}, {})", self.fm("f64::atan2", "atan2"), r(self, 1));
                 }
                 "hypot" => {
                     let p = r(self, 0);
@@ -266,11 +285,15 @@ impl<'a> Gen<'a> {
                 }
                 "fmod" => {
                     let p = r(self, 0);
-                    return format!("({p} % {})", r(self, 1));
+                    let q = r(self, 1);
+                    return match &self.math {
+                        Some(m) => format!("{m}::fmod({p}, {q})"),
+                        None => format!("({p} % {q})"),
+                    };
                 }
                 "pow" => {
                     let p = r(self, 0);
-                    return format!("f64::powf({p}, {})", r(self, 1));
+                    return format!("{}({p}, {})", self.fm("f64::powf", "pow"), r(self, 1));
                 }
                 "min" | "max" => {
                     let all_int = a.iter().all(|&x| is_int(c.ann[x].ty.as_ref()));
@@ -339,7 +362,7 @@ impl<'a> Gen<'a> {
             _ => return self.b.fail("a call of nothing"),
         };
         let args: Vec<String> = a.iter().zip(wants).map(|(&x, w)| self.e_want(x, Some(w))).collect();
-        format!("crate::{module}::{name}({})", args.join(", "))
+        format!("{}::{module}::{name}({})", self.root, args.join(", "))
     }
 
     fn lv(&mut self, l: usize) -> String {
@@ -444,12 +467,13 @@ impl<'a> Gen<'a> {
         for (mi, (mname, mdoc)) in c.modules.iter().enumerate() {
             let uses: String = (0..c.modules.len())
                 .filter(|&o| o != mi && !records_of(o).is_empty())
-                .map(|o| format!("use crate::{}::{{{}}};\n", c.modules[o].0, records_of(o).join(", ")))
+                .map(|o| format!("use {}::{}::{{{}}};\n", self.root, c.modules[o].0, records_of(o).join(", ")))
                 .collect();
             let what = mdoc.join(" ");
             let what = if what.is_empty() { format!("the pseudocode module {mname}") } else { what };
             let mut out = format!(
-                "//! {mname}: {what}\n//! {head}\n#![allow(unused_mut, unused_variables, unused_parens, unused_assignments, unused_imports, unreachable_code, non_snake_case, clippy::all)]\nuse crate::rt;\n{uses}\n"
+                "//! {mname}: {what}\n//! {head}\n#![allow(unused_mut, unused_variables, unused_parens, unused_assignments, unused_imports, unreachable_code, non_snake_case, clippy::all)]\nuse {}::rt;\n{uses}\n",
+                self.root
             );
             for item in &c.mod_items[mi] {
                 match *item {
@@ -585,14 +609,23 @@ impl<'a> Gen<'a> {
             disp += "                outs.push(out);\n            }\n        }\n";
         }
         disp += "        _ => return None,\n    }\n    Some(outs)\n}\n";
-        set_file(&mut files, "src/dispatch.rs".into(), disp);
-        set_file(&mut files, "src/rt.rs".into(), format!("//! The arithmetic every translation shares with the interpreter (design/js/pcode.js `rt`). {head}\n{RUST_RT}"));
+        if self.dispatch {
+            set_file(&mut files, "src/dispatch.rs".into(), disp);
+        }
+        let rt = match &self.math {
+            Some(m) => RUST_RT.replacen("(a * a + b * b).sqrt()", &format!("{m}::sqrt(a * a + b * b)"), 1).replacen("dot(a, a).sqrt()", &format!("{m}::sqrt(dot(a, a))"), 1),
+            None => RUST_RT.to_string(),
+        };
+        set_file(&mut files, "src/rt.rs".into(), format!("//! The arithmetic every translation shares with the interpreter (design/js/pcode.js `rt`). {head}\n{rt}"));
         let title = title.filter(|t| !t.is_empty()).unwrap_or("Functions written in the pseudocode");
         let mods: String = c.modules.iter().map(|(m, _)| format!("pub mod {m};\n")).collect();
         set_file(
             &mut files,
-            "src/lib.rs".into(),
-            format!("//! {title}. {head}\n//! Every relation is SI in and SI out; each function's doc lists its inputs and outputs with their units.\n#![allow(clippy::all)]\npub mod rt;\npub mod dispatch;\n{mods}"),
+            if self.root == "crate" { "src/lib.rs" } else { "src/mod.rs" }.into(),
+            format!(
+                "//! {title}. {head}\n//! Every relation is SI in and SI out; each function's doc lists its inputs and outputs with their units.\n#![allow(clippy::all)]\npub mod rt;\n{}{mods}",
+                if self.dispatch { "pub mod dispatch;\n" } else { "" }
+            ),
         );
         files
     }

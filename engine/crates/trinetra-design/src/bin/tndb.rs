@@ -87,7 +87,11 @@ fn translate(lang: &str, args: &[String]) -> ExitCode {
     let (mut files, mut opt) = (Vec::new(), std::collections::HashMap::new());
     let mut i = 0;
     while i < args.len() {
-        if let Some(name) = args[i].strip_prefix("--") {
+        if args[i] == "--no-dispatch" {
+            // a flag: it takes no value
+            opt.insert("no-dispatch".to_string(), None);
+            i += 1;
+        } else if let Some(name) = args[i].strip_prefix("--") {
             opt.insert(name.to_string(), args.get(i + 1).cloned());
             i += 2;
         } else {
@@ -116,8 +120,13 @@ fn translate(lang: &str, args: &[String]) -> ExitCode {
         }
     };
     let r = match lang {
-        "rust" => program.to_rust_files(o("title")),
-        "c" => program.to_c_files(o("title"), o("lib")),
+        "rust" => program.to_rust_files_with(&trinetra_pcode::RustOptions {
+            title: o("title"),
+            root: o("root"),
+            math: o("math"),
+            dispatch: !opt.contains_key("no-dispatch"),
+        }),
+        "c" => program.to_c_files_with(o("title"), o("lib"), !opt.contains_key("no-dispatch")),
         _ => program.to_matlab_files(o("pkg")),
     };
     match r {

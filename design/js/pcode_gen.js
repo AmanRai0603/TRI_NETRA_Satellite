@@ -33,6 +33,10 @@ export function toRust(prog, opts = {}) {
   const interp = makeInterpreter(prog);
   const files = {};
   const crate = opts.crate || "adcs_physics";
+  // the flight build (tools/flight_build.py) embeds the code as a module of a no_std crate: its root path, the
+  // module its scalar maths comes from, and no vector dispatcher (a test aid that needs the heap)
+  const root = opts.root || "crate";
+  const fm = (std, name) => (opts.math ? `${opts.math}::${name}` : std);
   const rty = (t) => {
     switch (t.k) {
       case "real": return "f64"; case "int": return "i64"; case "bool": return "bool";
@@ -73,7 +77,7 @@ export function toRust(prog, opts = {}) {
       case "bool": return String(e.v);
       case "var":
         if (e.kind === "builtin_const") return "core::f64::consts::PI";
-        if (e.kind === "const") return `crate::${prog.consts[e.name].module}::${e.name.toUpperCase()}`;
+        if (e.kind === "const") return `${root}::${prog.consts[e.name].module}::${e.name.toUpperCase()}`;
         if (e.kind === "state") return `st.${e.name}`;
         return e.name;
       case "arr": {
@@ -129,17 +133,17 @@ export function toRust(prog, opts = {}) {
     if (e.builtin) {
       const f = e.f;
       switch (f) {
-        case "sqrt": return `f64::sqrt(${R(0)})`;
+        case "sqrt": return `${fm("f64::sqrt", "sqrt")}(${R(0)})`;
         case "abs": return isInt(e.ty) ? `(${ex(a[0])}).abs()` : `rt::fabs(${R(0)})`;
-        case "floor": case "ceil": return isInt(e.ty) ? ex(a[0]) : `f64::${f}(${R(0)})`;
-        case "round": return isInt(e.ty) ? ex(a[0]) : `f64::round(${R(0)})`;
+        case "floor": case "ceil": return isInt(e.ty) ? ex(a[0]) : `${fm(`f64::${f}`, f)}(${R(0)})`;
+        case "round": return isInt(e.ty) ? ex(a[0]) : `${fm("f64::round", "round")}(${R(0)})`;
         case "sign": return `rt::sign(${R(0)})`;
-        case "sin": case "cos": case "tan": case "asin": case "acos": case "atan": case "exp": case "log10": return `f64::${f}(${R(0)})`;
-        case "log": return `f64::ln(${R(0)})`;
-        case "atan2": return `f64::atan2(${R(0)}, ${R(1)})`;
+        case "sin": case "cos": case "tan": case "asin": case "acos": case "atan": case "exp": case "log10": return `${fm(`f64::${f}`, f)}(${R(0)})`;
+        case "log": return `${fm("f64::ln", "log")}(${R(0)})`;
+        case "atan2": return `${fm("f64::atan2", "atan2")}(${R(0)}, ${R(1)})`;
         case "hypot": return `rt::hypot(${R(0)}, ${R(1)})`;
-        case "fmod": return `(${R(0)} % ${R(1)})`;
-        case "pow": return `f64::powf(${R(0)}, ${R(1)})`;
+        case "fmod": return opts.math ? `${opts.math}::fmod(${R(0)}, ${R(1)})` : `(${R(0)} % ${R(1)})`;
+        case "pow": return `${fm("f64::powf", "pow")}(${R(0)}, ${R(1)})`;
         case "min": case "max": {
           const g = e.allInt ? `rt::i${f}` : `rt::f${f}`;
           const args = a.map((x) => (e.allInt ? ex(x) : E(x, { k: "real" })));
@@ -165,7 +169,7 @@ export function toRust(prog, opts = {}) {
     }
     const t = e.target;
     const args = a.map((x, i) => E(x, (t.kind === "table" ? t.key : t.params[i]).ty)).join(", ");
-    return `crate::${t.module}::${t.name}(${args})`;
+    return `${root}::${t.module}::${t.name}(${args})`;
   };
   const lv = (l) => {
     if (l.e === "var") return l.kind === "state" ? `st.${l.name}` : l.name;
@@ -212,9 +216,9 @@ export function toRust(prog, opts = {}) {
   // a record (a Rust struct) may be named in another module's code: bring every other module's
   // records into scope (names are unique across the program, so nothing clashes)
   const recordUses = (m) => mods.filter((o) => o !== m && o.items.some((it) => it.kind === "record"))
-    .map((o) => `use crate::${o.name}::{${o.items.filter((it) => it.kind === "record").map((it) => it.name).join(", ")}};\n`).join("");
+    .map((o) => `use ${root}::${o.name}::{${o.items.filter((it) => it.kind === "record").map((it) => it.name).join(", ")}};\n`).join("");
   for (const m of mods) {
-    let out = `//! ${m.name}: ${(m.doc || []).join(" ") || "the pseudocode module " + m.name}\n//! ${HEAD}\n#![allow(unused_mut, unused_variables, unused_parens, unused_assignments, unused_imports, unreachable_code, non_snake_case, clippy::all)]\nuse crate::rt;\n${recordUses(m)}\n`;
+    let out = `//! ${m.name}: ${(m.doc || []).join(" ") || "the pseudocode module " + m.name}\n//! ${HEAD}\n#![allow(unused_mut, unused_variables, unused_parens, unused_assignments, unused_imports, unreachable_code, non_snake_case, clippy::all)]\nuse ${root}::rt;\n${recordUses(m)}\n`;
     for (const it of m.items) {
       curFn = it;
       if (it.kind === "const") {
@@ -300,10 +304,10 @@ export function toRust(prog, opts = {}) {
       f.outs.map((o, i) => `                ${pushOut(o.ty, outs[i])}\n`).join("") + "                outs.push(out);\n            }\n        }\n";
   }
   disp += "        _ => return None,\n    }\n    Some(outs)\n}\n";
-  files["src/dispatch.rs"] = disp;
-  files["src/rt.rs"] = RUST_RT;
-  files["src/lib.rs"] = `//! ${opts.title || "Functions written in the pseudocode"}. ${HEAD}\n//! Every relation is SI in and SI out; each function's doc lists its inputs and outputs with their units.\n` +
-    "#![allow(clippy::all)]\npub mod rt;\npub mod dispatch;\n" + mods.map((m) => `pub mod ${m.name};\n`).join("");
+  if (opts.dispatch !== false) files["src/dispatch.rs"] = disp;
+  files["src/rt.rs"] = opts.math ? RUST_RT.replace("(a * a + b * b).sqrt()", `${opts.math}::sqrt(a * a + b * b)`).replace("dot(a, a).sqrt()", `${opts.math}::sqrt(dot(a, a))`) : RUST_RT;
+  files[root === "crate" ? "src/lib.rs" : "src/mod.rs"] = `//! ${opts.title || "Functions written in the pseudocode"}. ${HEAD}\n//! Every relation is SI in and SI out; each function's doc lists its inputs and outputs with their units.\n` +
+    `#![allow(clippy::all)]\npub mod rt;\n${opts.dispatch !== false ? "pub mod dispatch;\n" : ""}` + mods.map((m) => `pub mod ${m.name};\n`).join("");
   return files;
 }
 
