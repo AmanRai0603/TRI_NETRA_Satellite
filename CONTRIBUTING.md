@@ -56,8 +56,10 @@ stay in use. These hold already, and become the only rules after it:
   (today's *author*), checker and developer (`docs/GLOSSARY.md`, "The words of 2.0.0").
 - **The design data in this repository** (`spec/`, `catalogue/`, `scenarios/`, `campaigns/`, `trades/`,
   `matlab_sils/cases`, `fsw/params/`, the flight algorithms in `fsw/pseudocode/03`–`09`) is frozen at S3. After
-  that, it changes only through a corrected conversion until S10, and only in the application, by its owners,
-  after S10.
+  that, until the switch-over (S19, after 2.0.0), the developer changes the design in the database and the code
+  in parallel: a revision of the database with its source, and the generated code regenerated in the same commit
+  (`tools/from_design.py`, `tools/flight_build.py`), marked as not yet signed by a person. From S19 it changes
+  only in the application, by its owners (docs/PLAN_2_0.md, "Who may change the design").
 - **A design names the toolbox and the application it needs** (`design_inputs.TOOLBOX`, `meta.needs_application`).
   When you change what a design's relations may call, raise the toolbox version in
   `engine/crates/adcs-sim/src/source.rs`, `tools/design_inputs.py` and `python/trinetra_adcs/design.py` together.
