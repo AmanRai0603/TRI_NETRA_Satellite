@@ -2,6 +2,7 @@
 //! Tick order: fsw/pseudocode/08_mode_manager.md, one branch per controller state as
 //! asils.fsw.step (MATLAB) and adcs_fsw.c (C). The shell owns the tick, the state and the HAL;
 //! guidance is guid.rs, the mode manager modes.rs, FDIR fdir.rs.
+use crate::alg::steplaws::{self as laws, CtlParams, CtlState};
 use crate::alloc::{self, A38};
 use crate::ctl::{self, Gains};
 use crate::guid::{self, Guid};
@@ -146,136 +147,61 @@ impl Fsw {
         Ok(())
     }
 
-    fn mtq_law(&mut self) {
-        let p = &self.p;
-        self.tau_req = if p.mtq_law == 0 {
-            ctl::mtq_pd(&self.k.q, &self.w_est, &self.q_ref, &self.w_ref, &self.g_mtq)
-        } else if p.mtq_law == 3 {
-            let qe = qmult(&qconj(&self.q_ref), &self.k.q);
-            let wr = mat3_vec(&dcm(&qe), &self.w_ref);
-            let mut t = [0.0; 3];
-            for i in 0..3 { t[i] = -self.g_mtq.kd[i]*(self.w_est[i] - wr[i]); }
-            t
-        } else if p.mtq_law == 4 {
-            ctl::mtq_lovera(&self.k.q, &self.w_est, &self.q_ref, &self.w_ref, &p.J, p.mtq_eps, p.mtq_k1, p.mtq_k2)
-        } else if p.mtq_law == 5 || p.mtq_law == 6 {
-            let av = if p.mtq_law == 6 { ctl::mtq_avanzini(&self.k.q, &self.w_est, &self.q_ref, &self.w_ref, &p.J, p.mtq_k16, p.mtq_lam16) } else { None };
-            match av { Some(t) => t, None => ctl::mtq_celani(&self.k.q, &self.w_est, &self.q_ref, &self.w_ref, p.mtq_eps, p.mtq_k1, p.mtq_k2) }
-        } else if p.mtq_law == 7 {
-            let qe = qmult(&qconj(&self.q_ref), &self.k.q);
-            let a3 = dcm(&qe);
-            let wr = mat3_vec(&a3, &self.w_ref);
-            let mut we = [0.0; 3];
-            for i in 0..3 { we[i] = self.w_est[i] - wr[i]; }
-            let e3 = if self.mode == SUN_MTQ { p.sun_axis } else { p.roll_axis };
-            let a = match (self.mode == SUN_MTQ, self.s_prop) { (true, Some(sp)) => unit(&sp), _ => mat3_vec(&a3, &e3) };
-            let mut tau = ctl::mtq_boresight(&e3, &a, &we, p.sb_kp, p.sb_kd);
-            if self.mode == NADIR_MTQ && p.sb_kroll > 0.0 && dot(&e3, &a) > p.sb_roll_gate {
-                // weak roll about the boresight: the power face p (made normal to e3) to its reference dcm(q_e) p
-                let d = dot(&p.sun_axis, &e3);
-                let pa = [p.sun_axis[0] - d*e3[0], p.sun_axis[1] - d*e3[1], p.sun_axis[2] - d*e3[2]];
-                if norm3(&pa) > 1e-6 {
-                    let pa = unit(&pa);
-                    let pd = mat3_vec(&a3, &pa);
-                    let c = cross(&pa, &pd);
-                    // the roll angle itself (atan2): a sine form gives no torque near 180 deg, where the face starts
-                    let r = p.sb_kroll*atan2(dot(&c, &e3), dot(&pa, &pd)) - p.sb_kdroll*dot(&we, &e3);
-                    for i in 0..3 { tau[i] += r*e3[i]; }
-                }
-            }
-            tau
-        } else if p.mtq_law == 8 {
-            ctl::mtq_tango(&self.k.q, &self.w_est, &self.q_ref, &self.w_ref, &p.mtq_Pth, &p.mtq_Pw)
-        } else {
-            ctl::control_law(&self.k.q, &self.w_est, &self.q_ref, &self.w_ref, &mut self.i_q, p.mtq_period, &self.g_mtq, &p.J, &[0.0; 3], &[0.0; 3])
-        };
+    /// The part of the state the step laws read and write, as the design's record.
+    fn ctl_state(&self) -> CtlState {
+        CtlState {
+            q: self.k.q, w_est: self.w_est, q_ref: self.q_ref, w_ref: self.w_ref, i_q: self.i_q, tau_req: self.tau_req,
+            mode: self.mode as i64, s_prop: self.s_prop.unwrap_or([0.0; 3]), s_prop_ok: self.s_prop.is_some(), cap: self.cap, hcap: self.hcap,
+        }
     }
 
+    fn set_ctl_state(&mut self, s: CtlState) {
+        self.k.q = s.q; self.w_est = s.w_est; self.q_ref = s.q_ref; self.w_ref = s.w_ref; self.i_q = s.i_q; self.tau_req = s.tau_req;
+        self.mode = s.mode as u8; self.s_prop = s.s_prop_ok.then_some(s.s_prop); self.cap = s.cap; self.hcap = s.hcap;
+    }
+
+    /// The parameters the step laws read, the magnetic gains (g_mtq) among them.
+    fn ctl_params(&self) -> CtlParams {
+        let (p, g) = (&self.p, &self.g_mtq);
+        CtlParams {
+            mtq_law: p.mtq_law as i64, mtq_eps: p.mtq_eps, mtq_k1: p.mtq_k1, mtq_k2: p.mtq_k2, mtq_k16: p.mtq_k16, mtq_lam16: p.mtq_lam16,
+            sb_kp: p.sb_kp, sb_kd: p.sb_kd, sb_kroll: p.sb_kroll, sb_kdroll: p.sb_kdroll, sb_roll_gate: p.sb_roll_gate,
+            sun_axis: p.sun_axis, roll_axis: p.roll_axis, mtq_pth: p.mtq_Pth, mtq_pw: p.mtq_Pw, mtq_period: p.mtq_period, j: p.J,
+            capture_deg: p.capture_deg, capture_rate_deg_s: p.capture_rate_deg_s, sa_w_max_deg_s: p.sa_w_max_deg_s, sa_kd: p.sa_kd,
+            g_law: g.law as i64, g_kp: g.kp, g_kd: g.kd, g_ki: g.ki, g_klqr: g.klqr, g_lambda: g.lambda, g_phi: g.phi, g_gs: g.gs,
+            g_err_max: g.err_max, g_int_max: g.int_max,
+        }
+    }
+
+    /// The magnetic pointing law the registry selected (mtq_law).
+    /// Written from the design: steplaws::ctl_mtq (src/alg).
+    fn mtq_law(&mut self) { self.set_ctl_state(laws::ctl_mtq(self.ctl_state(), self.ctl_params())); }
+
+    /// The large-error capture of the fine states; whether it ran.
+    /// Written from the design: steplaws::ctl_capture (src/alg).
     fn capture_law(&mut self, hdev: &V3) -> bool {
-        let p = &self.p;
-        if self.mode == SLEW_FINE || p.capture_deg <= 0.0 { return false; }
-        let qe = qerr(&self.q_ref, &self.k.q);
-        let th = 2.0*acos(if qe[3] > 1.0 { 1.0 } else { qe[3] });
-        if th < p.capture_deg*D2R { return false; }
-        let mut n = norm3(&[qe[0], qe[1], qe[2]]);
-        if n < 1e-12 { n = 1e-12; }
-        let e = [qe[0]/n, qe[1]/n, qe[2]/n];
-        let mut jm = p.J[0][0];
-        if p.J[1][1] > jm { jm = p.J[1][1]; }
-        if p.J[2][2] > jm { jm = p.J[2][2]; }
-        let (mut mincap, mut minh) = (self.cap[0], self.hcap[0]);
-        for i in 1..3 {
-            if self.cap[i] < mincap { mincap = self.cap[i]; }
-            if self.hcap[i] < minh { minh = self.hcap[i]; }
-        }
-        let alpha = 0.5*mincap/jm;
-        let mut wmax = p.capture_rate_deg_s*D2R;
-        if 0.5*minh/jm < wmax { wmax = 0.5*minh/jm; }
-        let wref = mat3_vec(&dcm(&qe), &self.w_ref);
-        let mut sp = sqrt(2.0*alpha*th);
-        if wmax < sp { sp = wmax; }
-        let mut wc = [0.0; 3];
-        for i in 0..3 { wc[i] = wref[i] - e[i]*sp; }
-        let mut kr = 4.0*alpha/(if wmax > 1e-6 { wmax } else { 1e-6 });
-        if kr > 0.5 { kr = 0.5; }
-        let gy = cross(&self.w_est, &add3(&mat3_vec(&p.J, &self.w_est), hdev));
-        let mut x = [0.0; 3];
-        for i in 0..3 { x[i] = kr*(wc[i] - self.w_est[i]); }
-        self.tau_req = add3(&mat3_vec(&p.J, &x), &gy);
-        true
+        let (s, on) = laws::ctl_capture(self.ctl_state(), self.ctl_params(), *hdev);
+        self.set_ctl_state(s);
+        on
     }
 
-    fn sun_acq_law(&mut self, hdev: &V3) {
-        let p = &self.p;
-        let wmax = p.sa_w_max_deg_s*D2R;
-        let a = p.sun_axis;
-        let mut wc = [0.0; 3];
-        if let Some(sp) = self.s_prop {
-            let s = unit(&sp);
-            let mut c = cross(&a, &s);
-            if dot(&s, &a) < -0.95 {
-                c = cross(&a, &[1.0, 0.0, 0.0]);
-                if norm3(&c) < 0.1 { c = cross(&a, &[0.0, 1.0, 0.0]); }
-                c = unit(&c);
-            }
-            wc = scale3(&c, wmax/0.5);
-            let n = norm3(&wc);
-            if n > wmax { wc = scale3(&wc, wmax/n); }
-        }
-        let gy = cross(&self.w_est, &add3(&mat3_vec(&p.J, &self.w_est), hdev));
-        let mut x = [0.0; 3];
-        for i in 0..3 { x[i] = p.sa_kd*(wc[i] - self.w_est[i]); }
-        self.tau_req = add3(&mat3_vec(&p.J, &x), &gy);
-    }
+    /// The rotor Sun acquisition's rate loop.
+    /// Written from the design: steplaws::ctl_sun_acq (src/alg).
+    fn sun_acq_law(&mut self, hdev: &V3) { self.set_ctl_state(laws::ctl_sun_acq(self.ctl_state(), self.ctl_params(), *hdev)); }
 
+    /// The rotor commands for a torque (fixed rotors still working, gimbals by SR steering).
+    /// Written from the design: steplaws::alloc_rotors (src/alg).
     fn allocate(&self, tau_rot: &V3, a: &A38, cmd_r: &mut [f64; NR], cmd_g: &mut [f64; NG]) {
         let p = &self.p;
-        let mut fixed = [0usize; NR];
-        let mut nf = 0;
-        for i in 0..p.nr as usize { if p.rot_gi[i] == 0 && !self.rot_failed[i] { fixed[nf] = i; nf += 1; } }
-        if nf > 0 {
-            let mut af = [[0.0; 8]; 3];
-            for i in 0..nf { for k in 0..3 { af[k][i] = a[k][fixed[i]]; } }
-            let pi = pinv_rows(&af, nf);
-            for i in 0..nf { cmd_r[fixed[i]] = -(pi[i][0]*tau_rot[0] + pi[i][1]*tau_rot[1] + pi[i][2]*tau_rot[2]); }
-        }
-        if p.ng > 0 {
-            let wheels = (0..p.nr as usize).any(|i| p.rot_kind[i] == 3);
-            let (gd, hdot) = alloc::steer_sr(tau_rot, a, &self.z.h, p, wheels);
-            cmd_g[..4].copy_from_slice(&gd);
-            if wheels {
-                for i in 0..p.nr as usize {
-                    if p.rot_gi[i] > 0 { cmd_r[i] = hdot[i] - p.cmg_k_null*(self.z.h[i] - p.rot_h0[i]); }
-                }
-            }
-        }
+        (*cmd_r, *cmd_g) = laws::alloc_rotors(*tau_rot, *a, *cmd_r, *cmd_g, p.nr as i64, p.ng as i64, ints(&p.rot_gi), ints(&p.rot_kind),
+                                              self.rot_failed, self.z.h, p.gim_axis, p.gim_rate_max, p.cmg_lam0, p.cmg_mu, p.cmg_k_null, p.rot_h0);
     }
 
+    /// The rotor command outside the fine states.
+    /// Written from the design: steplaws::alloc_idle (src/alg).
     fn idle_rotors(&self, cmd_r: &mut [f64; NR], zero_cmg: bool) {
-        for i in 0..self.p.nr as usize {
-            cmd_r[i] = -0.2*(self.z.h[i] - self.h_t_rot[i]);
-            if zero_cmg && self.p.rot_gi[i] > 0 && self.p.rot_kind[i] == 2 { cmd_r[i] = 0.0; }
-        }
+        let p = &self.p;
+        *cmd_r = laws::alloc_idle(*cmd_r, p.nr as i64, self.z.h, self.h_t_rot, ints(&p.rot_gi), ints(&p.rot_kind), zero_cmg);
     }
 
     /// One flight-software tick at now_ns (adcs_fsw_step).
@@ -689,7 +615,6 @@ impl Fsw {
     pub fn time(&self) -> f64 { self.t }
 }
 
-/// Two-body + J2 acceleration in J2000 (the pole of date is 0.4 deg off: second order on J2).
 /// a GNSS fix below this radius is refused (= GNSS_R_MIN in adcs_fsw.c)
 const GNSS_R_MIN: f64 = 0.9*RE;
 /// The coils act on a held field for at most this many coil cycles (fdir.rs holds it).
@@ -701,12 +626,6 @@ pub const FAULT_GYRO_STALE: u16 = 1 << 9;
 /// not gated (= adcs_fsw.c)
 const ST_NORM_TOL: f64 = 1e-3;
 
-fn orbit_acc(r: &V3, mu: f64) -> V3 {
-    let rn = norm3(r);
-    if !(rn > 1.0) { return [0.0; 3]; }     // no orbit to speak of (= adcs_fsw.c)
-    let r2 = rn*rn;
-    let zr = r[2]*r[2]/r2;
-    let k = -mu/(r2*rn);
-    let f = -1.5*J2*mu*RE*RE/(r2*r2*rn);
-    [k*r[0] + f*r[0]*(1.0 - 5.0*zr), k*r[1] + f*r[1]*(1.0 - 5.0*zr), k*r[2] + f*r[2]*(3.0 - 5.0*zr)]
-}
+/// Two-body + J2 acceleration in J2000 (the pole of date is 0.4 deg off: second order on J2).
+/// Written from the design: steplaws::orbit_acc (src/alg).
+fn orbit_acc(r: &V3, mu: f64) -> V3 { laws::orbit_acc(*r, mu) }
