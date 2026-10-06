@@ -70,6 +70,7 @@ CREATE TABLE "key_signature" ("n" INTEGER, "role" TEXT, "signer" TEXT, "key_fing
 CREATE TABLE "meta" ("key" TEXT, "value" TEXT, PRIMARY KEY ("key"));
 CREATE TABLE "case_info" ("id" TEXT, "base" TEXT, "label" TEXT, "scenario" TEXT, "campaign" TEXT, "note" TEXT, PRIMARY KEY ("id"));
 CREATE TABLE "case_line" ("ord" INTEGER, "section" TEXT, "key" TEXT, "label" TEXT, "unit" TEXT, "value" TEXT, "lo" TEXT, "hi" TEXT, "level" TEXT, "note" TEXT, "node" TEXT, "line" TEXT, PRIMARY KEY ("ord"));
+CREATE TABLE "case_source" ("name" TEXT, "format" TEXT, "text" TEXT, PRIMARY KEY ("name"));
 CREATE TABLE "revision" ("n" INTEGER, "at" TEXT, "by" TEXT, "summary" TEXT, PRIMARY KEY ("n"));
 CREATE TABLE "comment" ("id" TEXT, "at" TEXT, "by" TEXT, "about" TEXT, "parent" TEXT, "body" TEXT, "resolved" INTEGER, PRIMARY KEY ("id"));
 CREATE TABLE "key_signature" ("n" INTEGER, "role" TEXT, "signer" TEXT, "key_fingerprint" TEXT, "revision" INTEGER, "content_hash" TEXT, "at" TEXT, "statement" TEXT, "signature" TEXT, PRIMARY KEY ("n"));

@@ -36,6 +36,7 @@
 | [`design_rows.py design-rows`](#design_rowspy-design-rows) | Every row of the ADCS tree, from the spec package: 734 rows (133 in layer 1, 194 in layer 2, 368 in the subsystem layers, 39 closures), each with its short id, the id its node file carries, its layer, kind, branch and label. Fails when the counts SPEC.md states do not hold or an id repeats. |
 | [`groups.py groups`](#groupspy-groups) | The group map (design/groups.toml) against every row of the tree: each row in exactly one of the 20 discipline groups, each group holding the rows it states, each stage inside its group, every override and boundary naming real rows and groups. --row says where one row goes and why. |
 | [`tndb.py tndb`](#tndbpy-tndb) | The design files (node, group, release, design database), from design/schema.toml: check a file's format, version and every table; dump it as canonical JSON; print the SQL that makes a kind; write or check the files made from the schema (design/ddl.sql, design/js/tndb_schema.js). An older file is upgraded with a copy kept; a newer one is refused. |
+| [`convert_2_0.py convert-2-0`](#convert_2_0py-convert-2-0) | The design leaves the repository (docs/PLAN_2_0.md S3): the one conversion of the 1.0.0 design (the seeded and carried node and group files) and the repository's library data (catalogue, KPIs, units, the flight software's algorithms, parameters and IGRF table, the cases, scenarios, campaigns and trades) into the 2.0.0 layout of the shared drive: 21 group folders with their nodes and a baseline release 0.1 each, the cases, and readable copies with Conversion.csv placing every field. Writes a new folder only; the same inputs give the same bytes. |
 | [`seed_design.py seed-design`](#seed_designpy-seed-design) | Seeds the design files from the spec: a group file for each of the 20 groups, a node file for each of the 734 rows (the 82 the spec seeds with their content, the rest as shells), and the starting design database. Never overwrites; --check seeds into a temporary folder and checks every file. |
 | [`version.py version`](#versionpy-version) | One version for the repository: VERSION is the source, and the engine's Cargo workspace, the Rust flight software's Cargo package and the C flight software's build id follow it; the Rust build ids are built from their Cargo version. --check fails on any drift; --set writes a new version everywhere. |
 | [`mutation.py mutation`](#mutationpy-mutation) | Mutation testing of the flight software's guidance, control and estimation (fsw-rs/src/guid.rs, ctl.rs, est.rs) with cargo-mutants: each small deliberate fault in turn, and whether the Rust flight software's tests catch it. Writes the kill rate per function and the missed mutants; --check fails under the floor the tool states. |
@@ -655,6 +656,29 @@ The design files (node, group, release, design database), from design/schema.tom
 - **Checks:** a file's format, version, tables and columns against design/schema.toml; caps on size and pictures
 - **Undo:** check: nothing, unless it upgraded an older file, which keeps the original beside it (put it back by renaming). gen: It writes generated files only: `git checkout -- <file>` puts back the committed one, or run it again once its source is as you want it.
 - **Code:** `tools/tndb.py`
+
+## convert_2_0.py convert-2-0
+
+The design leaves the repository (docs/PLAN_2_0.md S3): the one conversion of the 1.0.0 design (the seeded and carried node and group files) and the repository's library data (catalogue, KPIs, units, the flight software's algorithms, parameters and IGRF table, the cases, scenarios, campaigns and trades) into the 2.0.0 layout of the shared drive: 21 group folders with their nodes and a baseline release 0.1 each, the cases, and readable copies with Conversion.csv placing every field. Writes a new folder only; the same inputs give the same bytes.
+
+    python3 tools/convert_2_0.py --out DIR [--check]
+
+**Steps**
+
+1. seed and carry the 1.0.0 design into a temporary folder
+2. place every node in its 2.0.0 group, add its block, ports, closures and loop
+3. add the tree's branches, the flight software's modules and parameters, the IGRF table and the library data as blocks
+4. write the 21 group files with their mounts, and the case files
+5. seal each group's baseline release 0.1, unconfirmed: converted, not yet signed by a person
+6. write readable/ (Groups, Nodes, Ports, Wires, Closures, BuiltIn, Conversion)
+7. with --check, check every file, every release and the tree's shape
+
+- **Reads:** `design/tree_2_0.toml`; `design/groups.toml`; `spec/plan/`; `catalogue/`; `scenarios/`; `campaigns/`; `trades/`; `matlab_sils/cases/`; `fsw/pseudocode/`; `fsw/params/params.toml`; `fsw/tests/pcode_vectors.txt`; `matlab_sils/data/igrf13coeffs.txt`
+- **Writes:** `DIR/groups/`; `DIR/cases/`; `DIR/readable/`; `DIR/design/, daily/, integration/, issues/, results/ (empty)`
+- **Starts:** nothing
+- **Checks:** every file against the schema; every baseline release (tools/release.py); one tree, every parent and mount a block, every group file listing exactly its folder's nodes
+- **Undo:** Delete the folder it wrote. It refuses a folder that is not empty and changes nothing in the repository.
+- **Code:** `tools/convert_2_0.py`
 
 ## seed_design.py seed-design
 

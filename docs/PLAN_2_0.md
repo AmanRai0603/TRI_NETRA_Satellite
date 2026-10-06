@@ -139,7 +139,8 @@ No assistant supplies a relation. A transcription names its source and is signed
 | **1 · Ground and model** | S0 Safe ground | designs refused by an engine that cannot run them; results name their design; 1.0.0 notes corrected | approve the notes | S |
 | | S1 Rules, roles, the model | the model, the operating model, the code's architecture; the rules; role names; the mount table; the database/code boundary | **approve, with a second reviewer** | S–M |
 | **2 · The database** | S2 Files, versions, keys | format 2 for every kind; versions; signatures; the one library with every check; the interpreter in Rust | — | L |
-| | S3 The design leaves the repository | the tree, the catalogue, the cases **and the flight software's algorithms, parameters, modes and tables** converted into group files and cases | — | L |
+| | S3 The design leaves the repository | **done** (archiving moved to the end of S4, see S3 step 8). `tools/convert_2_0.py` writes 21 groups and 1,116 nodes: the 765 of 1.0.0 field by field, 119 tree blocks, 7 flight-algorithm modules with their 2,616 vectors as cases, 147 flight parameters, the IGRF table, 76 library files and the delivery waves; 75 case files (case lines wired to their nodes); a baseline release 0.1 per group; readable copies listing every built-in relation and everything a person must still state. Nothing dropped; every file and release checks in Python and in the library; two runs give the same bytes | `tests/test_convert.py`; `readable/Conversion.csv`, `BuiltIn.csv` |
+| S4 The design runs → zip 1 | next, on your word | |
 | | S4 The design runs → **zip 1** | the design graph and the time engine read the design; today's design; health map; the declared loop; **parity gate**; zip 1 | **upload zip 1** | L |
 | **3 · Everything from the database** | S5 Translators complete | a C translator; Rust, C and MATLAB covering every construct the flight software and the models use; each held to the interpreter | — | M |
 | | S6 Flight software from the database | C and Rust algorithms generated from the nodes; the runtime kept; the flight build; images proven equal to 1.0.0's software in SILS and soft OILS; hand-written algorithm code deleted | — | L |
@@ -293,8 +294,10 @@ This is the last time the design passes through the code.
 7. **Readable copies** in `readable/*.csv`, and `readable/Conversion.csv`, which places every field of every
    1.0.0 node, every catalogue entry, every case line, every flight parameter and every flight function, or lists
    it as dropped. It must list none.
-8. **The repository:**
-   - keeps the example group and the regression copy (`tests/fixtures/`, `tests/regression/`);
+8. **The repository keeps its design data until S4's parity gate holds** (moved there on 6 Oct 2026). S4 compares
+   the new path against today's, which reads these files. Archiving them here would break the engine and every
+   test between the two phases. At the end of S4:
+   - the repository keeps the example group and the regression copy (`tests/fixtures/`, `tests/regression/`);
    - `spec/`, `catalogue/`, `scenarios/`, `campaigns/`, `trades/`, `matlab_sils/cases`, `fsw/params/` and
      `fsw/pseudocode/03`–`09` move to `archive/design-1.0/`;
    - the seed, carry-over and export tools leave the build.
@@ -302,7 +305,7 @@ This is the last time the design passes through the code.
 **Done when:**
 - nothing is listed as dropped;
 - every file passes the library's checks;
-- the repository builds and tests with no design data in it apart from the example group and the regression copy.
+- converting twice gives the same files, byte for byte.
 
 ### S4 · The design runs → zip 1
 
@@ -334,6 +337,9 @@ refuses. It is checked on:
 - every committed run re-flown from the design: both cases, every scenario, every campaign;
 - engine-to-twin parity (`results/ENGINE_PARITY.md`);
 - soft OILS on QEMU with the parameters from the design.
+
+**Then the repository's design data is archived** (S3 step 8, moved here): the repository builds and tests with no
+design data in it apart from the example group and the regression copy.
 
 **Zip 1** is packed once the gate holds (`tools/drive.py`). It holds:
 - `groups/`, `cases/`, `readable/`;

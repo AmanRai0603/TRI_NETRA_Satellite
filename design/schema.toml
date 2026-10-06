@@ -190,6 +190,10 @@ about = "a case's lines in order, as the case CSV states them (adcs-case/1), wit
 columns = [["ord", "integer key"], ["section", "text"], ["key", "text"], ["label", "text"], ["unit", "text"], ["value", "text"], ["lo", "text"],
            ["hi", "text"], ["level", "text"], ["note", "text"], ["node", "text"], ["line", "text"]]
 
+[tables.case_source]
+about = "a case's source as it was written (the CSV, or a scenario's, campaign's or trade's TOML), kept whole"
+columns = [["name", "text key"], ["format", "text"], ["text", "text"]]
+
 [tables.flight_image]
 about = "the flight software built from a design for one target: the design it came from, the runtime and toolchain, the image's hash"
 columns = [["target", "text key"], ["design_version", "text"], ["design_fingerprint", "text"], ["runtime_version", "text"], ["toolchain", "text"],
@@ -256,7 +260,7 @@ tables = ["meta", "answer", "key_signature"]
 [formats.case]
 extension = ".tncase"
 version = 1
-tables = ["meta", "case_info", "case_line", "revision", "comment", "key_signature"]
+tables = ["meta", "case_info", "case_line", "case_source", "revision", "comment", "key_signature"]
 
 [formats.flight_image]
 extension = ".tnfsw"

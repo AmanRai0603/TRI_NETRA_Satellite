@@ -376,6 +376,18 @@ checks = "a file's format, version, tables and columns against design/schema.tom
 undo = "check: nothing, unless it upgraded an older file, which keeps the original beside it (put it back by renaming). gen: It writes generated files only: `git checkout -- <file>` puts back the committed one, or run it again once its source is as you want it."
 
 [[command]]
+tool = "convert_2_0.py"
+name = "convert-2-0"
+usage = "python3 tools/convert_2_0.py --out DIR [--check]"
+what = "The design leaves the repository (docs/PLAN_2_0.md S3): the one conversion of the 1.0.0 design (the seeded and carried node and group files) and the repository's library data (catalogue, KPIs, units, the flight software's algorithms, parameters and IGRF table, the cases, scenarios, campaigns and trades) into the 2.0.0 layout of the shared drive: 21 group folders with their nodes and a baseline release 0.1 each, the cases, and readable copies with Conversion.csv placing every field. Writes a new folder only; the same inputs give the same bytes."
+steps = ["seed and carry the 1.0.0 design into a temporary folder", "place every node in its 2.0.0 group, add its block, ports, closures and loop", "add the tree's branches, the flight software's modules and parameters, the IGRF table and the library data as blocks", "write the 21 group files with their mounts, and the case files", "seal each group's baseline release 0.1, unconfirmed: converted, not yet signed by a person", "write readable/ (Groups, Nodes, Ports, Wires, Closures, BuiltIn, Conversion)", "with --check, check every file, every release and the tree's shape"]
+reads = ["design/tree_2_0.toml", "design/groups.toml", "spec/plan/", "catalogue/", "scenarios/", "campaigns/", "trades/", "matlab_sils/cases/", "fsw/pseudocode/", "fsw/params/params.toml", "fsw/tests/pcode_vectors.txt", "matlab_sils/data/igrf13coeffs.txt"]
+writes = ["DIR/groups/", "DIR/cases/", "DIR/readable/", "DIR/design/, daily/, integration/, issues/, results/ (empty)"]
+runs = []
+checks = "every file against the schema; every baseline release (tools/release.py); one tree, every parent and mount a block, every group file listing exactly its folder's nodes"
+undo = "Delete the folder it wrote. It refuses a folder that is not empty and changes nothing in the repository."
+
+[[command]]
 tool = "seed_design.py"
 name = "seed-design"
 usage = "python3 tools/seed_design.py [--out DIR | --check]"
