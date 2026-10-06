@@ -69,6 +69,8 @@ CHECKS = [
      [PY, "-m", "unittest", "discover", "-s", "tests", "-p", "test_carry.py"], ".", []),
     ("groupcode", "each group's code generated from its nodes: the wiring is the design's, the Rust, WebAssembly and MATLAB are current, every computing row with pseudocode is in the generated code, the Rust reproduces the interpreter and every node's own test vectors, and every group's test app passes in the browser (interpreter and WebAssembly agreeing)",
      [PY, "-m", "unittest", "discover", "-s", "tests", "-p", "test_groupcode.py"], ".", ["node", "cargo"]),
+    ("translators", "the pseudocode's Rust and C translations of every package (the relations, the language's self-test, the flight software, each group's code) equal the interpreter on every vector: bit for bit where exact, within 1e-12 otherwise",
+     [PY, "tools/translators.py", "--lang", "rust", "c", "--out", "build/translators"], ".", ["node", "rustc", "gcc"]),
     ("design-loop", "every stored design-loop decision recomputed from its inputs",
      [PY, "tools/verify_nodes.py"], ".", []),
 ]
@@ -87,6 +89,8 @@ PAGES = [
 OCTAVE = [
     ("twin", "the MATLAB twin's test suite (GNU Octave)",
      ["octave-cli", "--no-gui", "-q", "--eval", "startup_asils; addpath tests; ok = run_all_tests(); exit(double(~ok))"], "matlab_sils", ["octave-cli"]),
+    ("translators-matlab", "the pseudocode's MATLAB translation of every package equals the interpreter on every vector (GNU Octave)",
+     [PY, "tools/translators.py", "--lang", "matlab", "--out", "build/translators"], ".", ["node", "octave-cli"]),
     ("propagator", "the propagator's regression suite (GNU Octave)",
      ["octave-cli", "--no-gui", "-q", "--eval", "setup_paths; addpath('08_test'); run_all_tests; exit(double(nfail > 0))"], "matlab_sils/pop", ["octave-cli", "gnuplot"]),
 ]

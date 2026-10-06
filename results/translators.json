@@ -1,0 +1,110 @@
+[
+ {
+  "package": "physics",
+  "lang": "rust",
+  "functions": 41,
+  "values": 540,
+  "exact": 530,
+  "worst": 7.209023224514933e-16,
+  "failures": []
+ },
+ {
+  "package": "physics",
+  "lang": "c",
+  "functions": 41,
+  "values": 540,
+  "exact": 530,
+  "worst": 7.209023224514933e-16,
+  "failures": []
+ },
+ {
+  "package": "physics",
+  "lang": "matlab",
+  "functions": 41,
+  "values": 540,
+  "exact": 530,
+  "worst": 7.209023224514933e-16,
+  "failures": []
+ },
+ {
+  "package": "selftest",
+  "lang": "rust",
+  "functions": 8,
+  "values": 744,
+  "exact": 744,
+  "worst": 0.0,
+  "failures": []
+ },
+ {
+  "package": "selftest",
+  "lang": "c",
+  "functions": 8,
+  "values": 744,
+  "exact": 744,
+  "worst": 0.0,
+  "failures": []
+ },
+ {
+  "package": "selftest",
+  "lang": "matlab",
+  "functions": 8,
+  "values": 744,
+  "exact": 744,
+  "worst": 0.0,
+  "failures": []
+ },
+ {
+  "package": "fsw",
+  "lang": "rust",
+  "functions": 78,
+  "values": 45657,
+  "exact": 45597,
+  "worst": 6.592861854817441e-15,
+  "failures": []
+ },
+ {
+  "package": "fsw",
+  "lang": "c",
+  "functions": 78,
+  "values": 45657,
+  "exact": 45597,
+  "worst": 6.592861854817441e-15,
+  "failures": []
+ },
+ {
+  "package": "fsw",
+  "lang": "matlab",
+  "functions": 78,
+  "values": 45657,
+  "exact": 45597,
+  "worst": 6.592861854817441e-15,
+  "failures": []
+ },
+ {
+  "package": "groups",
+  "lang": "rust",
+  "functions": 82,
+  "values": 20480,
+  "exact": 20469,
+  "worst": 1.3086053638512992e-15,
+  "failures": []
+ },
+ {
+  "package": "groups",
+  "lang": "c",
+  "functions": 82,
+  "values": 20480,
+  "exact": 20469,
+  "worst": 1.3086053638512992e-15,
+  "failures": []
+ },
+ {
+  "package": "groups",
+  "lang": "matlab",
+  "functions": 82,
+  "values": 20480,
+  "exact": 20469,
+  "worst": 1.3086053638512992e-15,
+  "failures": []
+ }
+]

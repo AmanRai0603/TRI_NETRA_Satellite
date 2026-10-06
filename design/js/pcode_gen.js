@@ -307,7 +307,7 @@ export function toRust(prog, opts = {}) {
   return files;
 }
 
-function constOf(prog, e) {
+export function constOf(prog, e) {
   // a state's starting value: a constant expression, evaluated once by the interpreter's rules
   const fake = { kind: "fn", name: "__c", params: [], outs: [{ name: "v", ty: e.ty }], body: [{ s: "set", targets: [{ e: "var", name: "v", ty: e.ty }], e }], states: [] };
   const p2 = { ...prog, fns: { ...prog.fns, __c: fake } };
@@ -416,11 +416,20 @@ export function toMatlab(prog, opts = {}) {
       }
       case "field": return `${ex(e.a)}.${e.f}`;
       case "un": return e.op === "not" ? `(~${ex(e.a)})` : `(-(${ex(e.a)}))`;
-      case "ifx": return `${rtp}.choose(${ex(e.c)}, ${ex(e.a)}, ${ex(e.b)})`;
+      case "ifx":
+        // MATLAB has no conditional expression: a branch that could fail when it is not the one taken (an index,
+        // a call) is handed over unevaluated, so only the branch taken runs, as in the interpreter
+        if (mayFail(e.a) || mayFail(e.b)) return `${rtp}.choose_lazy(${ex(e.c)}, @() ${ex(e.a)}, @() ${ex(e.b)})`;
+        return `${rtp}.choose(${ex(e.c)}, ${ex(e.a)}, ${ex(e.b)})`;
       case "bin": return bin(e);
       case "call": return call(e);
     }
     throw new Error(`cannot translate ${e.e}`);
+  };
+  const mayFail = (e) => {
+    if (!e || typeof e !== "object") return false;
+    if (e.e === "index" || (e.e === "call" && !e.record && !e.builtin)) return true;
+    return ["a", "b", "c", "i"].some((k) => e[k] && typeof e[k] === "object" && mayFail(e[k])) || (e.items || []).some(mayFail) || (e.args || []).some(mayFail);
   };
   const valueLitM = (v, t) => (t.k === "real" ? (v < 0 ? `(${ml(v)})` : ml(v)) : valueLit(v, t));
   const idx = (i) => (i.e === "num" ? String(i.v + 1) : `(${ex(i)}) + 1`);
@@ -537,18 +546,25 @@ export function toMatlab(prog, opts = {}) {
       }
     }
   }
-  // the vector dispatcher: a function by name, its inputs and outputs flattened (row-major, SI)
-  const flat = (t) => (t.k === "arr" ? t.n * flat(t.of) : t.k === "rec" ? null : 1);
-  const callable = Object.values(prog.fns).filter((f) => f.kind === "fn" && [...f.params, ...f.outs].every((x) => flat(x.ty) !== null));
+  // the vector dispatcher: a function by name, its inputs and outputs flattened (row-major, SI); a record field by
+  // field in declaration order, as the vectors flatten it
+  const flat = (t) => (t.k === "arr" ? t.n * flat(t.of) : t.k === "rec" ? prog.records[t.name].fields.reduce((a, f) => a + flat(f.ty), 0) : 1);
+  const callable = Object.values(prog.fns).filter((f) => f.kind === "fn");
   const readArg = (t, at) => {
     const n = flat(t);
+    if (t.k === "rec") {
+      let k = 0;
+      const parts = prog.records[t.name].fields.map((f) => { const r = `'${f.name}', {${readArg(f.ty, at + k)}}`; k += flat(f.ty); return r; });
+      return `struct(${parts.join(", ")})`;
+    }
     const sl = n === 1 ? `x(${at + 1})` : `x(${at + 1}:${at + n})`;
     if (t.k === "bool") return `(${sl} ~= 0)`;
     if (t.k === "arr" && t.of.k === "arr") return `reshape(${sl}, ${t.of.n}, ${t.n}).'`;
     if (t.k === "arr") return `reshape(${sl}, ${t.n}, 1)`;
     return sl;
   };
-  const flatOut = (t, v) => (t.k === "arr" && t.of.k === "arr" ? `reshape((${v}).', [], 1)` : t.k === "arr" ? `reshape(${v}, [], 1)` : `double(${v})`);
+  const flatOut = (t, v) => (t.k === "rec" ? `[${prog.records[t.name].fields.map((f) => flatOut(f.ty, `${v}.${f.name}`)).join("; ")}]`
+    : t.k === "arr" && t.of.k === "arr" ? `reshape((${v}).', [], 1)` : t.k === "arr" ? `reshape(${v}, [], 1)` : `double(${v})`);
   let disp = `function y = call(name, x)\n` + help("call", ["a function by its registry name (module::name), inputs and outputs flattened (row-major, SI)", HEAD]) +
     "    switch name\n";
   for (const f of callable) {
@@ -560,7 +576,7 @@ export function toMatlab(prog, opts = {}) {
   }
   disp += "        otherwise\n            error('pcode:call', 'no function %s', name);\n    end\nend\n";
   files["call.m"] = disp;
-  const procs = Object.values(prog.fns).filter((f) => f.kind === "proc" && [...f.params, ...f.outs].every((x) => flat(x.ty) !== null));
+  const procs = Object.values(prog.fns).filter((f) => f.kind === "proc");
   let seq = `function Y = call_seq(name, X)\n` + help("call_seq", ["a proc called once per column of X, its state carried from each call to the next; Y has a column per call", HEAD]) +
     "    st = []; Y = [];\n    for c = 1:size(X, 2)\n        x = X(:, c);\n        switch name\n";
   for (const f of procs) {
@@ -586,6 +602,7 @@ export function matlabRuntime() {
   fn("fabs", "x", "r", "|x|.", "    if x < 0, r = -x; elseif x == 0, r = 0; else, r = x; end\n");
   fn("clamp", "x, lo, hi", "r", "min(max(x, lo), hi).", "    r = asils.pc.fmin(asils.pc.fmax(x, lo), hi);\n");
   fn("choose", "c, a, b", "r", "a when c, else b (both are evaluated).", "    if c, r = a; else, r = b; end\n");
+  fn("choose_lazy", "c, a, b", "r", "a() when c, else b(): only the branch taken is evaluated.", "    if c, r = a(); else, r = b(); end\n");
   fn("dot_", "a, b", "s", "sum of products, left to right.", "    s = a(1)*b(1);\n    for i = 2:numel(a), s = s + a(i)*b(i); end\n");
   fn("cross_", "a, b", "c", "cross product of two 3-vectors.", "    c = [a(2)*b(3) - a(3)*b(2); a(3)*b(1) - a(1)*b(3); a(1)*b(2) - a(2)*b(1)];\n");
   fn("norm_", "a", "n", "sqrt(dot(a, a)).", "    n = sqrt(asils.pc.dot_(a, a));\n");

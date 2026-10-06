@@ -20,7 +20,7 @@ function [s] = fdir_rotors(st, rp, t, dt, zh)
             meas = ((zh((i) + 1) - s.h_prev((i) + 1)) / dt);
             expect = asils.pc.clamp(s.cmd_r_prev((i) + 1), ((-(0.8)) * tmax), (0.8 * tmax));
             bad = ((((asils.pc.fabs((meas - expect)) > (0.5 * tmax)) && (rp.rot_gi((i) + 1) == 0)) && (asils.pc.fabs(expect) > (0.2 * tmax))) && (asils.pc.fabs(zh((i) + 1)) < (0.9 * rp.rot_hmax((i) + 1))));
-            s.fd_count((i) + 1) = asils.pc.choose(bad, (s.fd_count((i) + 1) + dt), 0);
+            s.fd_count((i) + 1) = asils.pc.choose_lazy(bad, @() (s.fd_count((i) + 1) + dt), @() 0);
             if ((s.fd_count((i) + 1) > rp.fdir_s) && (~s.rot_failed((i) + 1)))
                 s.rot_failed((i) + 1) = true;
                 s.faults = bitor(s.faults, bitshift(1, i));
@@ -44,7 +44,7 @@ function [s] = fdir_rotors(st, rp, t, dt, zh)
                     m = (zh((i) + 1) - s.fw_h0((i) + 1));
                     skip = ((((((rp.rot_kind((i) + 1) ~= 1) || (rp.rot_gi((i) + 1) ~= 0)) || s.rot_failed((i) + 1)) || (asils.pc.fabs(e) <= (rp.fdir_h_frac * hmax))) || (asils.pc.fabs(zh((i) + 1)) >= (0.9 * hmax))) || (asils.pc.fabs(s.fw_h0((i) + 1)) >= (0.9 * hmax)));
                     if (~skip)
-                        s.fw_bad((i) + 1) = asils.pc.choose((asils.pc.fabs((m - e)) > (0.5 * asils.pc.fabs(e))), (s.fw_bad((i) + 1) + 1), 0);
+                        s.fw_bad((i) + 1) = asils.pc.choose_lazy((asils.pc.fabs((m - e)) > (0.5 * asils.pc.fabs(e))), @() (s.fw_bad((i) + 1) + 1), @() 0);
                         if (s.fw_bad((i) + 1) >= 2)
                             s.rot_failed((i) + 1) = true;
                             s.faults = bitor(s.faults, bitshift(1, i));

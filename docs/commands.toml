@@ -448,6 +448,18 @@ checks = "tests/test_drive.py: the layout; a changed byte, a missing file, a sec
 undo = "pack writes a new folder only; verify and listing change nothing."
 
 [[command]]
+tool = "translators.py"
+name = "translators"
+usage = "python3 tools/translators.py [--lang rust c matlab] [--package physics selftest fsw groups] [--out DIR] [--keep DIR]"
+what = "The translators held to the interpreter (docs/PLAN_2_0.md S5): every package of pseudocode (the relations, the language's self-test, the flight software's algorithms, each group's code) translated to Rust, C and MATLAB, built, and run on every vector the interpreter drew; an exact function (no transcendental) bit for bit, any other within 1e-12 relative."
+steps = ["draw each package's vectors with the interpreter (exact bits; a proc's as runs of calls, its state carried)", "translate it to each language", "build it (rustc; gcc with the flight software's flags and every warning an error; Octave) with a harness that reads the calls", "compare every value", "write results/TRANSLATORS.md and translators.json"]
+reads = ["the design's spec/physics (tools/from_design.py)", "design/pcode_selftest/", "fsw/pseudocode/", "design/groups/"]
+writes = ["results/TRANSLATORS.md", "results/translators.json"]
+runs = ["node design/js/pcode_cli.mjs vectors, outkinds, rust, c, matlab", "rustc", "gcc", "octave-cli"]
+checks = "every value of every function in every language; each failure named"
+undo = "It writes generated files only: `git checkout -- results/TRANSLATORS.md results/translators.json`."
+
+[[command]]
 tool = "seed_design.py"
 name = "seed-design"
 usage = "python3 tools/seed_design.py [--out DIR | --check]"

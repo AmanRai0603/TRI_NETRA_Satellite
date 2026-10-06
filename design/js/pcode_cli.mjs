@@ -10,6 +10,7 @@
 import { readFileSync } from "node:fs";
 import { compile, makeInterpreter, prng, typeText } from "./pcode.js";
 import { toRust, toMatlab, matlabRuntime } from "./pcode_gen.js";
+import { toC } from "./pcode_c.js";
 
 const argv = process.argv.slice(2);
 const cmd = argv.shift();
@@ -164,9 +165,10 @@ switch (cmd) {
     break;
   }
   case "rust": out(toRust(program, { title: opt.title })); break;
+  case "c": out(toC(program, { title: opt.title, lib: opt.lib })); break;
   case "matlab": out(toMatlab(program, { pkg: opt.pkg })); break;
   default:
-    process.stderr.write(`pcode_cli: no command ${cmd} (check, run, vectors, outkinds, rust, matlab, matlab-rt, signatures)\n`);
+    process.stderr.write(`pcode_cli: no command ${cmd} (check, run, vectors, outkinds, rust, c, matlab, matlab-rt, signatures)\n`);
     process.exit(2);
 }
 

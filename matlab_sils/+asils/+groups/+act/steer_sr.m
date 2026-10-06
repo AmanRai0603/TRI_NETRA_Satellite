@@ -88,6 +88,6 @@ function [gdot, hdot] = steer_sr(tau, a, h, nr, ng, rot_gi, gim_axis, gim_rate_m
     end
     hdot = zeros(8, 1);
     for i = (0):((nr) - 1)
-        hdot((i) + 1) = asils.pc.choose(wheels, (u(((ng + i)) + 1) / s), 0);
+        hdot((i) + 1) = asils.pc.choose_lazy(wheels, @() (u(((ng + i)) + 1) / s), @() 0);
     end
 end
