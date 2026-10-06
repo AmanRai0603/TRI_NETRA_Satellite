@@ -412,6 +412,18 @@ checks = "tests/test_design_build.py: every group as bad as its worst node and t
 undo = "It writes generated files only: `git checkout -- results/HEALTH.md results/health.json`."
 
 [[command]]
+tool = "parity_2_0.py"
+name = "parity-2-0"
+usage = "python3 tools/parity_2_0.py DESIGN.tndb [--quick] [--oils SCENARIO ...] [--twin SCENARIO ...] [--jobs N]"
+what = "The parity gate (docs/PLAN_2_0.md S4): today's design, read alone by the engine (an empty data folder), gives the repository's own inputs, flight parameter table, parameter blobs, stored scenario runs, stored campaign runs and evaluation; optionally soft OILS on QEMU and the MATLAB twin flown from the design's export."
+steps = ["compare the design's engine inputs and case lines with the data folder", "rebuild the parameter table from its nodes and write the C and Rust from it", "write every scenario's parameter blob from the files and from the design", "fly every stored scenario run again from the design", "draw and fly every stored campaign run again from the design (not with --quick)", "evaluate every row and closure from the design", "with --oils, fly soft OILS both ways; with --twin, fly the twin from the export", "write results/PARITY_2_0.md and parity_2_0.json"]
+reads = ["DESIGN.tndb", "matlab_sils/data/", "matlab_sils/cases/", "fsw/params/params.toml", "matlab_sils/store/results_engine/", "matlab_sils/store/results/", "results/evaluation.json"]
+writes = ["results/PARITY_2_0.md", "results/parity_2_0.json"]
+runs = ["engine/target/release/adcs run, params", "tools/evaluate.py", "octave-cli (--twin)"]
+checks = "exit 1 when anything differs; each difference named"
+undo = "It writes generated files only: `git checkout -- results/PARITY_2_0.md results/parity_2_0.json`."
+
+[[command]]
 tool = "seed_design.py"
 name = "seed-design"
 usage = "python3 tools/seed_design.py [--out DIR | --check]"
