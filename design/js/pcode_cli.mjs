@@ -155,10 +155,18 @@ switch (cmd) {
     out(res);
     break;
   }
+  case "outkinds": {
+    // per fn and proc: for each of its outputs flattened (records field by field), whether it is a whole number or a
+    // yes/no (no sign of zero) rather than a real
+    const kinds = (t) => (t.k === "arr" ? Array.from({ length: t.n }, () => kinds(t.of)).flat()
+      : t.k === "rec" ? program.records[t.name].fields.flatMap((f) => kinds(f.ty)) : [t.k === "int" || t.k === "bool"]);
+    out(Object.fromEntries(Object.values(program.fns).map((f) => [`${f.module}::${f.name}`, f.outs.flatMap((o) => kinds(o.ty))])));
+    break;
+  }
   case "rust": out(toRust(program, { title: opt.title })); break;
   case "matlab": out(toMatlab(program, { pkg: opt.pkg })); break;
   default:
-    process.stderr.write(`pcode_cli: no command ${cmd} (check, run, vectors, rust, matlab, matlab-rt, signatures)\n`);
+    process.stderr.write(`pcode_cli: no command ${cmd} (check, run, vectors, outkinds, rust, matlab, matlab-rt, signatures)\n`);
     process.exit(2);
 }
 

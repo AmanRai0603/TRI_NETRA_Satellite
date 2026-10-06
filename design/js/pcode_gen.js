@@ -25,6 +25,8 @@ const io = (x) => `${x.name}: ${declText(x.type)} (passed ${siOf(x.ty)})`;
 const isInt = (t) => t && t.k === "int";
 const isReal = (t) => t && t.k === "real";
 const isArr = (t) => t && t.k === "arr";
+const leafIsReal = (t) => (t.k === "arr" ? leafIsReal(t.of) : t.k === "real");
+const realOf = (t) => (t.k === "arr" ? { ...t, of: realOf(t.of) } : t.k === "int" ? { k: "real", dim: t.dim } : t);
 
 // ================================================================== Rust
 export function toRust(prog, opts = {}) {
@@ -55,10 +57,16 @@ export function toRust(prog, opts = {}) {
   let curFn = null;
   // an expression, made to fit the type it is wanted as (int -> real)
   const E = (e, want) => {
+    if (want && isArr(want) && isArr(e.ty) && leafIsReal(want) && !leafIsReal(e.ty)) {
+      if (e.e !== "arr") throw new Error("an array of whole numbers where one of reals is wanted: write its elements as reals");
+      return `[${e.items.map((x) => E(x, want.of)).join(", ")}]`;
+    }
     const s = ex(e);
     if (want && isReal(want) && isInt(e.ty)) return e.e === "num" ? lit(e.v) : `(${s} as f64)`;
     return s;
   };
+  // an argument of a vector builtin: real elements, whatever the literal was written with
+  const V = (x) => E(x, realOf(x.ty));
   const ex = (e) => {
     switch (e.e) {
       case "num": return e.fill ? zero(e.fill) : isInt(e.ty) ? String(e.v) : lit(e.si);
@@ -148,11 +156,11 @@ export function toRust(prog, opts = {}) {
         case "shl": return `(${ex(a[0])} << ${ex(a[1])})`;
         case "shr": return `(${ex(a[0])} >> ${ex(a[1])})`;
         case "len": return String(a[0].ty.n);
-        case "dot": return `rt::dot(${ex(a[0])}, ${ex(a[1])})`;
-        case "cross": return `rt::cross(${ex(a[0])}, ${ex(a[1])})`;
-        case "norm": return `rt::norm(${ex(a[0])})`;
-        case "unit": return `rt::unit(${ex(a[0])})`;
-        case "transpose": return `rt::tr(${ex(a[0])})`;
+        case "dot": return `rt::dot(${V(a[0])}, ${V(a[1])})`;
+        case "cross": return `rt::cross(${V(a[0])}, ${V(a[1])})`;
+        case "norm": return `rt::norm(${V(a[0])})`;
+        case "unit": return `rt::unit(${V(a[0])})`;
+        case "transpose": return `rt::tr(${V(a[0])})`;
       }
     }
     const t = e.target;
@@ -247,13 +255,18 @@ export function toRust(prog, opts = {}) {
     files[`src/${m.name}.rs`] = out.trimEnd() + "\n";
   }
   // the dispatcher the vector test calls: every fn whose inputs and outputs are numbers or arrays of them
-  const flat = (t) => (t.k === "arr" ? t.n * flat(t.of) : t.k === "rec" ? null : 1);
-  const callable = Object.values(prog.fns).filter((f) => f.kind === "fn" && [...f.params, ...f.outs].every((x) => flat(x.ty) !== null));
+  // a record is passed field by field in declaration order, as the vectors flatten it
+  const flat = (t) => (t.k === "arr" ? t.n * flat(t.of) : t.k === "rec" ? prog.records[t.name].fields.reduce((a, f) => a + flat(f.ty), 0) : 1);
+  const callable = Object.values(prog.fns).filter((f) => f.kind === "fn");
   const readArg = (t, at) => {
     if (t.k === "real") return [`x[${at}]`, 1];
     if (t.k === "int") return [`x[${at}] as i64`, 1];
     if (t.k === "bool") return [`x[${at}] != 0.0`, 1];
     let parts = [], k = 0;
+    if (t.k === "rec") {
+      for (const f of prog.records[t.name].fields) { const [s, n] = readArg(f.ty, at + k); parts.push(`${f.name}: ${s}`); k += n; }
+      return [`crate::${prog.records[t.name].module}::${t.name} { ${parts.join(", ")} }`, k];
+    }
     for (let i = 0; i < t.n; i++) { const [s, n] = readArg(t.of, at + k); parts.push(s); k += n; }
     return [`[${parts.join(", ")}]`, k];
   };
@@ -261,6 +274,7 @@ export function toRust(prog, opts = {}) {
     if (t.k === "real") return `out.push(${name});`;
     if (t.k === "int") return `out.push(${name} as f64);`;
     if (t.k === "bool") return `out.push(if ${name} { 1.0 } else { 0.0 });`;
+    if (t.k === "rec") return prog.records[t.name].fields.map((f) => pushOut(f.ty, `${name}.${f.name}`)).join(" ");
     return `for v in ${name}.iter() { let v = *v; ${pushOut(t.of, "v")} }`;
   };
   let disp = `//! The vector dispatcher: call a function by name with its inputs flattened (SI). ${HEAD}\n` +
@@ -273,7 +287,7 @@ export function toRust(prog, opts = {}) {
       f.outs.map((o, i) => `            ${pushOut(o.ty, outs[i])}\n`).join("") + "        }\n";
   }
   disp += "        _ => return None,\n    }\n    Some(out)\n}\n";
-  const procs = Object.values(prog.fns).filter((f) => f.kind === "proc" && [...f.params, ...f.outs].every((x) => flat(x.ty) !== null));
+  const procs = Object.values(prog.fns).filter((f) => f.kind === "proc");
   disp += "\n/// A proc called once per entry of `calls`, its state carried from each call to the next.\n" +
     "pub fn call_seq(name: &str, calls: &[Vec<f64>]) -> Option<Vec<Vec<f64>>> {\n    let mut outs = Vec::new();\n    match name {\n";
   for (const f of procs) {

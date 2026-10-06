@@ -273,7 +273,9 @@ def generated():
     vec = pcode.cli("vectors", *map(str, files), "--n", N_VECTORS, "--seed", pcode.SEED_VECTORS)
     # a function that takes or gives a record (a flight state) has no plain-numbers call: its vectors
     # are the flight software's own (fsw/tests, C and Rust); here only what the dispatcher can call
-    callable = set(re.findall(r'"([a-z_0-9]+::[A-Za-z_0-9]+)" =>', out[CRATE / "src" / "dispatch.rs"]))
+    plain = re.compile(r"^(real|int|bool)(\[[^\]]*\])*$")
+    callable = {f"{f['module']}::{f['name']}" for f in pcode.cli("signatures", *map(str, files))
+                if all(plain.match(x["type"]) for x in f["inputs"] + f["outputs"])}
     vec = {k: v for k, v in vec.items() if k in callable}
     text = json.dumps({"generated_by": "tools/groupcode.py gen (the interpreter, design/js/pcode.js)", "vectors": vec}, indent=1, sort_keys=True) + "\n"
     out[CRATE / "tests" / "vectors.json"] = text
