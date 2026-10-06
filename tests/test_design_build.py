@@ -113,6 +113,7 @@ class DesignBuild(unittest.TestCase):
     def test_building_again_gives_the_same_inputs(self):
         again = pathlib.Path(self.tmp.name) / "again.tndb"
         design_build.build(self.drive, again)
+        self.assertEqual(again.read_bytes(), self.db.read_bytes(), "two builds of the same drive are the same bytes")
         with sqlite3.connect(again) as c:
             self.assertEqual(sorted(c.execute("SELECT * FROM engine_input")), sorted(self.held("SELECT * FROM engine_input")))
             self.assertEqual(dict(c.execute("SELECT * FROM meta"))["inputs_fingerprint"], self.fp)

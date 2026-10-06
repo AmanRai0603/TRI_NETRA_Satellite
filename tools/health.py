@@ -163,7 +163,9 @@ def health(d, case):
                 add(nid, "blocked", w)
             elif re.match(r"^\w+: ", w) and "interpreter" in w or w.startswith(("its pseudocode defines no function",)):
                 add(nid, "refused", w)
-            else:
+            elif f["outputs"] and f["behaviour"] not in ("lookup", "children"):
+                # a value to have and none yet; a lookup's answer is its table, a branch's its children, and a
+                # block with no output (a flight algorithm module, a table) has no row value to wait for
                 add(nid, "open", w)
     for nid, f in facts.items():
         if f["behaviour"] == "open":
