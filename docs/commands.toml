@@ -436,6 +436,18 @@ checks = "--check: every generated file is the design's, byte for byte; tests/te
 undo = "It writes generated files only: `git checkout -- matlab_sils/data matlab_sils/cases fsw/params fsw/pseudocode`."
 
 [[command]]
+tool = "drive.py"
+name = "drive"
+usage = "python3 tools/drive.py pack OUT [--zip] | verify FOLDER [--first-upload] | listing LISTING.json [--manifest MANIFEST.json]"
+what = "The shared drive, Trinetra Database (docs/OPERATING_2_0.md §15, docs/PLAN_2_0.md S4): pack zip 1 (the design converted into the 2.0.0 layout: groups with their baseline releases, cases, readable copies, the empty folders with a note each, the guides, START HERE, and MANIFEST.json with every file's size, SHA-256 and MD5), and check a drive's folder, or a listing of it, against that manifest."
+steps = ["convert 1.0.0's design (tools/convert_2_0.py) and check the folder", "add the notes, the guides and START HERE", "write MANIFEST.json and, with --zip, the zip (fixed timestamps: the same bytes every time)", "verify: name every file missing, of another size or MD5, or not in the manifest; with --first-upload, refuse 1.0.0's Apps/, Design/ and Guides/"]
+reads = ["archive/design-1.0/ (through the conversion)", "docs/SYSTEM_MODEL.md", "docs/OPERATING_2_0.md", "docs/PLAN_2_0.md", "docs/CODE_ARCHITECTURE.md", "the engineering documents in docs/"]
+writes = ["OUT/Trinetra Database/", "OUT/Trinetra_Database_zip1.zip"]
+runs = ["tools/convert_2_0.py"]
+checks = "tests/test_drive.py: the layout; a changed byte, a missing file, a second copy and the old layout each named; the same zip twice"
+undo = "pack writes a new folder only; verify and listing change nothing."
+
+[[command]]
 tool = "seed_design.py"
 name = "seed-design"
 usage = "python3 tools/seed_design.py [--out DIR | --check]"
