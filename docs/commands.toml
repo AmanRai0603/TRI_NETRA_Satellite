@@ -460,6 +460,18 @@ checks = "every value of every function in every language; each failure named"
 undo = "It writes generated files only: `git checkout -- results/TRANSLATORS.md results/translators.json`."
 
 [[command]]
+tool = "flight_build.py"
+name = "flight-build"
+usage = "python3 tools/flight_build.py gen [--check]"
+what = "The flight build (docs/PLAN_2_0.md S6): the flight software's algorithms written from the design (the flight algorithm blocks, fsw/pseudocode/03-09, with the toolbox 01-02) by the library's translators (tndb translate; the JavaScript ones when it is not built): C99 into fsw/alg/ and Rust, a module of the no_std flight crate, into fsw-rs/src/alg/. The runtime (the tick, the HAL, the C interface, the parameter blob, the targets) stays code."
+steps = ["translate the flight algorithms to C (adcs_alg, no dispatcher)", "translate them to Rust (crate::alg, maths from crate::m, no dispatcher)", "write them (or, with --check, compare), removing any file the design no longer gives"]
+reads = ["fsw/pseudocode/*.pc"]
+writes = ["fsw/alg/", "fsw-rs/src/alg/"]
+runs = ["engine/target/release/tndb translate (or node design/js/pcode_cli.mjs)"]
+checks = "--check: every generated algorithm source is what the design gives"
+undo = "It writes generated files only: `git checkout -- fsw/alg fsw-rs/src/alg`."
+
+[[command]]
 tool = "seed_design.py"
 name = "seed-design"
 usage = "python3 tools/seed_design.py [--out DIR | --check]"

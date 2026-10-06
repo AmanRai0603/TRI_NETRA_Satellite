@@ -5,14 +5,21 @@
 CC ?= gcc
 CFLAGS ?= -O2 -Wall -Wextra -pedantic
 # the determinism flags: every build keeps them whatever CFLAGS a caller passes (C = Rust bit for bit)
-override CFLAGS += -std=c99 -ffp-contract=off -fno-fast-math -Iinclude
+override CFLAGS += -std=c99 -ffp-contract=off -fno-fast-math -Iinclude -Ialg/include
 SRC = src/adcs_math.c src/adcs_env.c src/adcs_est.c src/adcs_guid.c src/adcs_ctl.c src/adcs_alloc.c src/adcs_drv.c src/adcs_params.c src/adcs_modes.c src/adcs_fdir.c src/adcs_fsw.c
-OBJ = $(SRC:src/%.c=build/%.o)
+# the algorithms, written from the design by tools/flight_build.py (never edited); a translation keeps every name the
+# pseudocode declares, so an unused local or input is not a warning there
+ALG = $(sort $(wildcard alg/src/*.c))
+ALGFLAGS = -Wno-unused-variable -Wno-unused-but-set-variable -Wno-unused-parameter
+OBJ = $(SRC:src/%.c=build/%.o) $(ALG:alg/src/%.c=build/alg_%.o)
 
 all: build/libadcs_fsw.a build/test_fsw build/test_pcode
 
-build/%.o: src/%.c include/*.h src/*.h | build
+build/%.o: src/%.c include/*.h src/*.h alg/include/*.h | build
 	$(CC) $(CFLAGS) -c $< -o $@
+
+build/alg_%.o: alg/src/%.c alg/include/*.h | build
+	$(CC) $(CFLAGS) $(ALGFLAGS) -c $< -o $@
 
 build/libadcs_fsw.a: $(OBJ)
 	ar rcs $@ $^
@@ -34,7 +41,8 @@ test: build/test_fsw build/test_pcode
 
 check:
 	$(CC) $(CFLAGS) -Werror -fsyntax-only $(SRC)
-	@! grep -nE '\b(malloc|calloc|realloc|free|time|rand|srand)\s*\(' src/*.c || (echo "forbidden call in flight code" && false)
+	$(CC) $(CFLAGS) $(ALGFLAGS) -Werror -fsyntax-only $(ALG)
+	@! grep -nE '\b(malloc|calloc|realloc|free|time|rand|srand)\s*\(' src/*.c alg/src/*.c || (echo "forbidden call in flight code" && false)
 
 clean:
 	rm -rf build
@@ -53,10 +61,10 @@ build/obc_posix_rs: $(LINK_SRC) targets/posix/main.c $(RS_HOST)
 	$(CC) $(CFLAGS) -D_POSIX_C_SOURCE=200809L -Wno-pedantic -Itargets/link $(LINK_SRC) targets/posix/main.c $(RS_HOST) -lm -lpthread -ldl -o $@
 
 ARMCC = arm-none-eabi-gcc
-ARMFLAGS = -mcpu=cortex-m4 -mthumb -mfloat-abi=hard -mfpu=fpv4-sp-d16 -std=c99 -O2 -ffp-contract=off -fno-fast-math -ffunction-sections -fdata-sections -Wall -Wextra -Iinclude -Itargets/link
+ARMFLAGS = -mcpu=cortex-m4 -mthumb -mfloat-abi=hard -mfpu=fpv4-sp-d16 -std=c99 -O2 -ffp-contract=off -fno-fast-math -ffunction-sections -fdata-sections -Wall -Wextra -Iinclude -Ialg/include -Itargets/link $(ALGFLAGS)
 ARMLD = -T targets/qemu-mps2/link.ld -nostartfiles --specs=nano.specs --specs=nosys.specs -Wl,--gc-sections -lm
-build/obc_qemu.elf: $(SRC) $(LINK_SRC) targets/qemu-mps2/main.c targets/qemu-mps2/link.ld | build
-	$(ARMCC) $(ARMFLAGS) $(SRC) $(LINK_SRC) targets/qemu-mps2/main.c $(ARMLD) -o $@
+build/obc_qemu.elf: $(SRC) $(ALG) $(LINK_SRC) targets/qemu-mps2/main.c targets/qemu-mps2/link.ld | build
+	$(ARMCC) $(ARMFLAGS) $(SRC) $(ALG) $(LINK_SRC) targets/qemu-mps2/main.c $(ARMLD) -o $@
 
 RS_ARM = ../fsw-rs/target/thumbv7em-none-eabihf/release/libadcs_fsw.a
 $(RS_ARM): ../fsw-rs/src/*.rs

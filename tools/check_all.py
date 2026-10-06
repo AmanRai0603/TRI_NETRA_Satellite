@@ -44,6 +44,8 @@ CHECKS = [
      [PY, "tools/gen_fsw_params.py", "--check"], ".", []),
     ("commands-doc", "docs/COMMANDS.md is the registry",
      [PY, "tools/trinetra.py", "docs", "--check"], ".", []),
+    ("flight-build", "the flight software's generated algorithm sources (C and Rust) are what the design gives",
+     [PY, "tools/flight_build.py", "gen", "--check"], ".", ["node"]),
     ("fsw-c", "the C flight software builds clean with every warning an error, calls nothing forbidden (malloc, time, rand), and passes its checks",
      ["make", "-s", "check", "test"], "fsw", ["make", "gcc"]),
     ("trace", "every shipped metric judges or says why it only reports; every stated requirement is checked",

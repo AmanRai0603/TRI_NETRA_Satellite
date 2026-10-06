@@ -43,6 +43,7 @@
 | [`from_design.py from-design`](#from_designpy-from-design) | The design in the repository (docs/PLAN_2_0.md S4): the repository holds no design data of its own, only the regression copy (tests/regression/design.tndb). Every file the code still reads that is design is generated from it and never edited: the engine's input files and cases (matlab_sils/data, matlab_sils/cases), the flight parameter table (fsw/params/params.toml) and the flight algorithms (fsw/pseudocode/03-09). Tools read the rest of 1.0.0's plan from the design by its 1.0.0 path (from_design.text). |
 | [`drive.py drive`](#drivepy-drive) | The shared drive, Trinetra Database (docs/OPERATING_2_0.md §15, docs/PLAN_2_0.md S4): pack zip 1 (the design converted into the 2.0.0 layout: groups with their baseline releases, cases, readable copies, the empty folders with a note each, the guides, START HERE, and MANIFEST.json with every file's size, SHA-256 and MD5), and check a drive's folder, or a listing of it, against that manifest. |
 | [`translators.py translators`](#translatorspy-translators) | The translators held to the interpreter (docs/PLAN_2_0.md S5): every package of pseudocode (the relations, the language's self-test, the flight software's algorithms, each group's code) translated to Rust, C and MATLAB, built, and run on every vector the interpreter drew; an exact function (no transcendental) bit for bit, any other within 1e-12 relative. |
+| [`flight_build.py flight-build`](#flight_buildpy-flight-build) | The flight build (docs/PLAN_2_0.md S6): the flight software's algorithms written from the design (the flight algorithm blocks, fsw/pseudocode/03-09, with the toolbox 01-02) by the library's translators (tndb translate; the JavaScript ones when it is not built): C99 into fsw/alg/ and Rust, a module of the no_std flight crate, into fsw-rs/src/alg/. The runtime (the tick, the HAL, the C interface, the parameter blob, the targets) stays code. |
 | [`seed_design.py seed-design`](#seed_designpy-seed-design) | Seeds the design files from the spec: a group file for each of the 20 groups, a node file for each of the 734 rows (the 82 the spec seeds with their content, the rest as shells), and the starting design database. Never overwrites; --check seeds into a temporary folder and checks every file. |
 | [`version.py version`](#versionpy-version) | One version for the repository: VERSION is the source, and the engine's Cargo workspace, the Rust flight software's Cargo package and the C flight software's build id follow it; the Rust build ids are built from their Cargo version. --check fails on any drift; --set writes a new version everywhere. |
 | [`mutation.py mutation`](#mutationpy-mutation) | Mutation testing of the flight software's guidance, control and estimation (fsw-rs/src/guid.rs, ctl.rs, est.rs) with cargo-mutants: each small deliberate fault in turn, and whether the Rust flight software's tests catch it. Writes the kill rate per function and the missed mutants; --check fails under the floor the tool states. |
@@ -813,6 +814,25 @@ The translators held to the interpreter (docs/PLAN_2_0.md S5): every package of 
 - **Checks:** every value of every function in every language; each failure named
 - **Undo:** It writes generated files only: `git checkout -- results/TRANSLATORS.md results/translators.json`.
 - **Code:** `tools/translators.py`
+
+## flight_build.py flight-build
+
+The flight build (docs/PLAN_2_0.md S6): the flight software's algorithms written from the design (the flight algorithm blocks, fsw/pseudocode/03-09, with the toolbox 01-02) by the library's translators (tndb translate; the JavaScript ones when it is not built): C99 into fsw/alg/ and Rust, a module of the no_std flight crate, into fsw-rs/src/alg/. The runtime (the tick, the HAL, the C interface, the parameter blob, the targets) stays code.
+
+    python3 tools/flight_build.py gen [--check]
+
+**Steps**
+
+1. translate the flight algorithms to C (adcs_alg, no dispatcher)
+2. translate them to Rust (crate::alg, maths from crate::m, no dispatcher)
+3. write them (or, with --check, compare), removing any file the design no longer gives
+
+- **Reads:** `fsw/pseudocode/*.pc`
+- **Writes:** `fsw/alg/`; `fsw-rs/src/alg/`
+- **Starts:** `engine/target/release/tndb translate (or node design/js/pcode_cli.mjs)`
+- **Checks:** --check: every generated algorithm source is what the design gives
+- **Undo:** It writes generated files only: `git checkout -- fsw/alg fsw-rs/src/alg`.
+- **Code:** `tools/flight_build.py`
 
 ## seed_design.py seed-design
 

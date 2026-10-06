@@ -12,6 +12,8 @@
 #![allow(clippy::needless_range_loop, clippy::excessive_precision, clippy::too_many_arguments)]
 
 pub mod m;
+/// The flight algorithms, written from the design by tools/flight_build.py (never edited).
+pub mod alg;
 pub mod math;
 #[allow(clippy::all)]
 pub mod igrf13;
