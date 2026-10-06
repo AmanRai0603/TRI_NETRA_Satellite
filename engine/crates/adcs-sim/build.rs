@@ -24,7 +24,7 @@ fn main() {
     let here = PathBuf::from(std::env::var("CARGO_MANIFEST_DIR").unwrap());
     let repo = here.join("../../..");
     let dirs = ["engine/crates/adcs-sim/src", "engine/crates/adcs-sim-core/src", "engine/crates/adcs-pop/src",
-                "engine/crates/adcs-fsw-abi/src", "fsw/src", "fsw/include", "fsw/params", "fsw-rs/src"];
+                "engine/crates/adcs-fsw-abi/src", "fsw/src", "fsw/include", "fsw/alg", "fsw/params", "fsw-rs/src"];
     let mut files = vec![];
     for d in dirs {
         let p = repo.join(d);

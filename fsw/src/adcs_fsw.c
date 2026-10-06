@@ -4,11 +4,14 @@
  * asils.fsw.step (the MATLAB twin) and fsw-rs (Rust). The shell owns the tick, the state and
  * the HAL; guidance is adcs_guid.c, the mode manager adcs_modes.c, FDIR adcs_fdir.c.
  * All state is in one static struct (adcs_fsw_int.h); adcs_fsw_init resets every field.
+ * The helpers of the step (adcs_ctl_*, adcs_alloc_*, adcs_orbit_acc) delegate to their translation of
+ * 06_step_laws.pc (fsw/alg/src/steplaws.c) on the records CtlState and CtlParams.
  * Owner: Agastya. Copyright (c) 2026 Agastya. All rights reserved.
  */
 #include <string.h>
 #include "adcs_fsw.h"
 #include "adcs_fsw_int.h"
+#include "adcs_alg_glue.h"
 
 /* bang-bang B-dot boundary layer: proportional gain inside it = BDOT_BL_GAIN x the B-dot gain */
 #define BDOT_BL_GAIN 4.0
@@ -21,17 +24,10 @@ static fsw_t S;
  * gate rejects the very updates that correct it; gating waits on a consistent filter.) */
 #define ST_NORM_TOL 1e-3
 
-/* two-body + J2 acceleration in J2000 (the pole of date is 0.4 deg off: second order on J2) */
-void adcs_orbit_acc(const adcs_real r[3], adcs_real mu, adcs_real a[3])
-{
-    adcs_real rn = adcs_norm3(r), r2, zr, k, f;
-    if (!(rn > 1.0)) { adcs_zero3(a); return; }         /* no orbit to speak of: no acceleration, not a division by zero */
-    r2 = rn*rn; zr = r[2]*r[2]/r2; k = -mu/(r2*rn);
-    f = -1.5*ADCS_J2*mu*ADCS_RE*ADCS_RE/(r2*r2*rn);
-    a[0] = k*r[0] + f*r[0]*(1 - 5*zr);
-    a[1] = k*r[1] + f*r[1]*(1 - 5*zr);
-    a[2] = k*r[2] + f*r[2]*(3 - 5*zr);
-}
+/* two-body + J2 acceleration in J2000 (the pole of date is 0.4 deg off: second order on J2); no orbit to
+ * speak of, no acceleration (not a division by zero) */
+/* written from the design: steplaws::orbit_acc (fsw/alg) */
+void adcs_orbit_acc(const adcs_real r[3], adcs_real mu, adcs_real a[3]) { gl_o3(steplaws_orbit_acc(gl_v3(r), mu), a); }
 
 static void set_gains(adcs_gains_t *g, int law, const double Kp[3], const double Kd[3], const double Ki[3], double Klqr[3][3],
                       double lambda, double phi, const double Gs[3], double err_max, double int_max)
@@ -99,128 +95,78 @@ int32_t adcs_fsw_init(const adcs_fsw_init_t *init)
 }
 
 /* ---------------- helpers of the step ---------------- */
-void adcs_ctl_mtq(fsw_t *st)
+/* the records of 06_step_laws.pc onto the flight software's state, field by field */
+static CtlState ctl_state(const fsw_t *st)
+{
+    CtlState c;
+    c.q = gl_v4(st->K.q); c.w_est = gl_v3(st->w_est); c.q_ref = gl_v4(st->q_ref); c.w_ref = gl_v3(st->w_ref);
+    c.i_q = gl_v3(st->I_q); c.tau_req = gl_v3(st->tau_req); c.mode = st->mode; c.s_prop = gl_v3(st->s_prop);
+    c.s_prop_ok = st->s_prop_ok != 0; c.cap = gl_v3(st->cap); c.hcap = gl_v3(st->hcap);
+    return c;
+}
+
+static void put_ctl_state(CtlState c, fsw_t *st)
+{
+    gl_o4(c.q, st->K.q); gl_o3(c.w_est, st->w_est); gl_o4(c.q_ref, st->q_ref); gl_o3(c.w_ref, st->w_ref);
+    gl_o3(c.i_q, st->I_q); gl_o3(c.tau_req, st->tau_req); st->mode = (uint8_t)c.mode; gl_o3(c.s_prop, st->s_prop);
+    st->s_prop_ok = c.s_prop_ok; gl_o3(c.cap, st->cap); gl_o3(c.hcap, st->hcap);
+}
+
+/* the parameters the laws read, the magnetic gains g_mtq among them */
+static CtlParams ctl_params(const fsw_t *st)
 {
     const adcs_params_t *p = &st->p;
-    adcs_real zero[3] = {0, 0, 0};
-    if (p->mtq_law == 0) {
-        adcs_mtq_pd(st->K.q, st->w_est, st->q_ref, st->w_ref, &st->g_mtq, st->tau_req);
-    } else if (p->mtq_law == 3) {             /* rate damping relative to the reference */
-        adcs_real qc[4], qe[4], A[3][3], wr[3]; int i;
-        adcs_qconj(st->q_ref, qc); adcs_qmult(qc, st->K.q, qe);
-        adcs_dcm(qe, A); adcs_mat3_vec(A, st->w_ref, wr);
-        for (i = 0; i < 3; i++) st->tau_req[i] = -st->g_mtq.Kd[i]*(st->w_est[i] - wr[i]);
-    } else if (p->mtq_law == 4) {             /* P1 Lovera & Astolfi 2004 */
-        adcs_mtq_lovera(st->K.q, st->w_est, st->q_ref, st->w_ref, st->p.J, p->mtq_eps, p->mtq_k1, p->mtq_k2, st->tau_req);
-    } else if (p->mtq_law == 5 ||             /* P4 Celani 2015; also P16 when the reference does not rotate */
-               (p->mtq_law == 6 && !adcs_mtq_avanzini(st->K.q, st->w_est, st->q_ref, st->w_ref, st->p.J, p->mtq_k16, p->mtq_lam16, st->tau_req))) {
-        adcs_mtq_celani(st->K.q, st->w_est, st->q_ref, st->w_ref, p->mtq_eps, p->mtq_k1, p->mtq_k2, st->tau_req);
-    } else if (p->mtq_law == 6) {             /* P16 Avanzini 2021: tau set by the call above */
-    } else if (p->mtq_law == 7) {             /* P8 Celani 2026 boresight */
-        adcs_real qc[4], qe[4], A[3][3], wr[3], we[3], e3[3], a[3]; int i;
-        adcs_qconj(st->q_ref, qc); adcs_qmult(qc, st->K.q, qe);
-        adcs_dcm(qe, A); adcs_mat3_vec(A, st->w_ref, wr);
-        for (i = 0; i < 3; i++) we[i] = st->w_est[i] - wr[i];
-        adcs_copy3(st->mode == ADCS_MODE_SUN_MTQ ? p->sun_axis : p->roll_axis, e3);
-        if (st->mode == ADCS_MODE_SUN_MTQ && st->s_prop_ok) adcs_unit(st->s_prop, a);
-        else adcs_mat3_vec(A, e3, a);
-        adcs_mtq_boresight(e3, a, we, p->sb_kp, p->sb_kd, st->tau_req);
-        if (st->mode == ADCS_MODE_NADIR_MTQ && p->sb_kroll > 0 && adcs_dot(e3, a) > p->sb_roll_gate) {
-            /* weak roll about the boresight: the power face p (made normal to e3) to its reference dcm(q_e) p */
-            adcs_real pa[3], pd[3], c[3], d, r;
-            d = adcs_dot(p->sun_axis, e3);
-            for (i = 0; i < 3; i++) pa[i] = p->sun_axis[i] - d*e3[i];
-            if (adcs_norm3(pa) > 1e-6) {
-                adcs_unit(pa, pa); adcs_mat3_vec(A, pa, pd); adcs_cross(pa, pd, c);
-                /* the roll angle itself (atan2): a sine form gives no torque near 180 deg, where the face starts */
-                r = p->sb_kroll*atan2(adcs_dot(c, e3), adcs_dot(pa, pd)) - p->sb_kdroll*adcs_dot(we, e3);
-                for (i = 0; i < 3; i++) st->tau_req[i] += r*e3[i];
-            }
-        }
-    } else if (p->mtq_law == 8) {             /* P3 TANGO frozen-Riccati LQR */
-        adcs_mtq_tango(st->K.q, st->w_est, st->q_ref, st->w_ref, st->p.mtq_Pth, st->p.mtq_Pw, st->tau_req);
-    } else {
-        adcs_control_law(st->K.q, st->w_est, st->q_ref, st->w_ref, st->I_q, p->mtq_period, &st->g_mtq, st->p.J, zero, zero, st->tau_req);
-    }
+    const adcs_gains_t *g = &st->g_mtq;
+    CtlParams c;
+    c.mtq_law = p->mtq_law; c.mtq_eps = p->mtq_eps; c.mtq_k1 = p->mtq_k1; c.mtq_k2 = p->mtq_k2; c.mtq_k16 = p->mtq_k16;
+    c.mtq_lam16 = p->mtq_lam16; c.sb_kp = p->sb_kp; c.sb_kd = p->sb_kd; c.sb_kroll = p->sb_kroll; c.sb_kdroll = p->sb_kdroll;
+    c.sb_roll_gate = p->sb_roll_gate; c.sun_axis = gl_v3(p->sun_axis); c.roll_axis = gl_v3(p->roll_axis);
+    c.mtq_pth = gl_m33(&p->mtq_Pth[0][0]); c.mtq_pw = gl_m33(&p->mtq_Pw[0][0]); c.mtq_period = p->mtq_period;
+    c.j = gl_m33(&p->J[0][0]); c.capture_deg = p->capture_deg; c.capture_rate_deg_s = p->capture_rate_deg_s;
+    c.sa_w_max_deg_s = p->sa_w_max_deg_s; c.sa_kd = p->sa_kd;
+    c.g_law = g->law; c.g_kp = gl_v3(g->Kp); c.g_kd = gl_v3(g->Kd); c.g_ki = gl_v3(g->Ki); c.g_klqr = gl_m33(&g->Klqr[0][0]);
+    c.g_lambda = g->lambda; c.g_phi = g->phi; c.g_gs = gl_v3(g->Gs); c.g_err_max = g->err_max; c.g_int_max = g->int_max;
+    return c;
 }
 
+/* the magnetic pointing law the registry selected (mtq_law) */
+/* written from the design: steplaws::ctl_mtq (fsw/alg) */
+void adcs_ctl_mtq(fsw_t *st) { put_ctl_state(steplaws_ctl_mtq(ctl_state(st), ctl_params(st)), st); }
+
+/* the large-error capture of the fine states; 1 when it ran */
+/* written from the design: steplaws::ctl_capture (fsw/alg) */
 int adcs_ctl_capture(fsw_t *st, const adcs_real Hdev[3])
 {
-    adcs_params_t *p = &st->p;
-    adcs_real qe[4], th, e[3], Jm, alpha, wmax, wref[3], wc[3], A[3][3], Jw[3], H[3], gy[3], x[3], kr, mincap, minh, sp;
-    int i;
-    if (st->mode == ADCS_MODE_SLEW_FINE || p->capture_deg <= 0) return 0;
-    adcs_qerr(st->q_ref, st->K.q, qe);
-    th = 2*acos(qe[3] > 1 ? 1 : qe[3]);
-    if (th < p->capture_deg*ADCS_D2R) return 0;
-    { adcs_real n = adcs_norm3(qe); if (n < 1e-12) n = 1e-12; adcs_scale3(qe, 1.0/n, e); }
-    Jm = p->J[0][0]; if (p->J[1][1] > Jm) Jm = p->J[1][1]; if (p->J[2][2] > Jm) Jm = p->J[2][2];
-    mincap = st->cap[0]; minh = st->hcap[0];
-    for (i = 1; i < 3; i++) { if (st->cap[i] < mincap) mincap = st->cap[i]; if (st->hcap[i] < minh) minh = st->hcap[i]; }
-    alpha = 0.5*mincap/Jm;
-    wmax = p->capture_rate_deg_s*ADCS_D2R; if (0.5*minh/Jm < wmax) wmax = 0.5*minh/Jm;
-    adcs_dcm(qe, A); adcs_mat3_vec(A, st->w_ref, wref);
-    sp = sqrt(2*alpha*th); if (wmax < sp) sp = wmax;
-    for (i = 0; i < 3; i++) wc[i] = wref[i] - e[i]*sp;
-    kr = 4*alpha/(wmax > 1e-6 ? wmax : 1e-6); if (kr > 0.5) kr = 0.5;
-    adcs_mat3_vec(p->J, st->w_est, Jw); adcs_add3(Jw, Hdev, H); adcs_cross(st->w_est, H, gy);
-    for (i = 0; i < 3; i++) x[i] = kr*(wc[i] - st->w_est[i]);
-    adcs_mat3_vec(p->J, x, st->tau_req);
-    adcs_add3(st->tau_req, gy, st->tau_req);
-    return 1;
+    steplaws_ctl_capture_out o = steplaws_ctl_capture(ctl_state(st), ctl_params(st), gl_v3(Hdev));
+    put_ctl_state(o.s, st);
+    return o.on ? 1 : 0;
 }
 
-void adcs_ctl_sun_acq(fsw_t *st, const adcs_real Hdev[3])
-{
-    adcs_params_t *p = &st->p;
-    adcs_real wmax = p->sa_w_max_deg_s*ADCS_D2R, wc[3] = {0, 0, 0}, s[3], c[3], a[3], Jw[3], H[3], gy[3], x[3], n;
-    int i;
-    adcs_copy3(p->sun_axis, a);
-    if (st->s_prop_ok) {
-        adcs_unit(st->s_prop, s);
-        adcs_cross(a, s, c);
-        if (adcs_dot(s, a) < -0.95) {
-            adcs_real ex[3] = {1, 0, 0}, ey[3] = {0, 1, 0};
-            adcs_cross(a, ex, c); if (adcs_norm3(c) < 0.1) adcs_cross(a, ey, c);
-            adcs_unit(c, c);
-        }
-        adcs_scale3(c, wmax/0.5, wc);
-        n = adcs_norm3(wc); if (n > wmax) adcs_scale3(wc, wmax/n, wc);
-    }
-    adcs_mat3_vec(p->J, st->w_est, Jw); adcs_add3(Jw, Hdev, H); adcs_cross(st->w_est, H, gy);
-    for (i = 0; i < 3; i++) x[i] = p->sa_kd*(wc[i] - st->w_est[i]);
-    adcs_mat3_vec(p->J, x, st->tau_req);
-    adcs_add3(st->tau_req, gy, st->tau_req);
-}
+/* the rotor Sun acquisition */
+/* written from the design: steplaws::ctl_sun_acq (fsw/alg) */
+void adcs_ctl_sun_acq(fsw_t *st, const adcs_real Hdev[3]) { put_ctl_state(steplaws_ctl_sun_acq(ctl_state(st), ctl_params(st), gl_v3(Hdev)), st); }
 
+/* the rotor commands for a torque (commands of rotors not set keep their value) */
+/* written from the design: steplaws::alloc_rotors (fsw/alg) */
 void adcs_alloc_rotors(fsw_t *st, const adcs_real tau_rot[3], adcs_real A[3][8], adcs_real cmd_r[NR], adcs_real cmd_g[NG])
 {
     const adcs_params_t *p = &st->p;
-    adcs_real Af[3][8], Pi[8][3];
-    int fixed[NR], nf = 0, i, k;
-    for (i = 0; i < p->nr; i++) if (p->rot_gi[i] == 0 && !st->rot_failed[i]) fixed[nf++] = i;
-    if (nf > 0) {
-        for (i = 0; i < nf; i++) for (k = 0; k < 3; k++) Af[k][i] = A[k][fixed[i]];
-        adcs_pinv_rows(Af, nf, Pi);
-        for (i = 0; i < nf; i++) cmd_r[fixed[i]] = -(Pi[i][0]*tau_rot[0] + Pi[i][1]*tau_rot[1] + Pi[i][2]*tau_rot[2]);
-    }
-    if (p->ng > 0) {
-        adcs_real hdot[NR];
-        int wheels = 0;
-        for (i = 0; i < p->nr; i++) if (p->rot_kind[i] == 3) wheels = 1;
-        adcs_steer_sr(tau_rot, A, st->z.h, p, wheels, cmd_g, hdot);
-        if (wheels)
-            for (i = 0; i < p->nr; i++) if (p->rot_gi[i] > 0) cmd_r[i] = hdot[i] - p->cmg_k_null*(st->z.h[i] - p->rot_h0[i]);
-    }
+    pc_a3a8f a = {{{{0}}}};
+    steplaws_alloc_rotors_out o;
+    int i, k;
+    for (k = 0; k < 3; k++) for (i = 0; i < p->nr && i < NR; i++) a.v[k].v[i] = A[k][i];
+    o = steplaws_alloc_rotors(gl_v3(tau_rot), a, gl_v8(cmd_r), gl_v4(cmd_g), p->nr, p->ng, gl_u8(p->rot_gi), gl_u8(p->rot_kind),
+                              gl_b8(st->rot_failed), gl_v8(st->z.h), gl_m43(&p->gim_axis[0][0]), p->gim_rate_max, p->cmg_lam0,
+                              p->cmg_mu, p->cmg_k_null, gl_v8(p->rot_h0));
+    gl_o8(o.cmd_r, cmd_r); gl_o4(o.cmd_g, cmd_g);
 }
 
+/* the rotor command outside the fine states */
+/* written from the design: steplaws::alloc_idle (fsw/alg) */
 void adcs_alloc_idle(fsw_t *st, adcs_real cmd_r[NR], int zero_cmg)
 {
-    int i;
-    for (i = 0; i < st->p.nr; i++) {
-        cmd_r[i] = -0.2*(st->z.h[i] - st->h_t_rot[i]);
-        if (zero_cmg && st->p.rot_gi[i] > 0 && st->p.rot_kind[i] == 2) cmd_r[i] = 0;
-    }
+    gl_o8(steplaws_alloc_idle(gl_v8(cmd_r), st->p.nr, gl_v8(st->z.h), gl_v8(st->h_t_rot), gl_u8(st->p.rot_gi), gl_u8(st->p.rot_kind),
+                              zero_cmg != 0), cmd_r);
 }
 
 /* ---------------- one tick ---------------- */

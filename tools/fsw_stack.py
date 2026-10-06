@@ -2,7 +2,7 @@
 
 The Cortex-M4 firmware (fsw/targets/qemu-mps2, the C flight software behind adcs-link/1) is
 compiled with GCC's -fstack-usage -fcallgraph-info=su: every function's frame and every call it
-makes. This walks the call graph from the firmware's entry (Reset_Handler: the link loop, init,
+makes, the algorithms written from the design (fsw/alg) among them. This walks the call graph from the firmware's entry (Reset_Handler: the link loop, init,
 one step) and adds the frames along the deepest path. Library routines (libm, the soft-double
 helpers) have no frame in the graph; each is charged LIB_FRAME bytes and named. The total must
 fit the stack region fsw/targets/qemu-mps2/link.ld reserves (_stack_size), which the linker in
@@ -26,7 +26,7 @@ ROOTS = ["Reset_Handler"]
 LIB_FRAME = 256          # bytes charged to a library routine the graph has no frame for
 ARMFLAGS = ["-mcpu=cortex-m4", "-mthumb", "-mfloat-abi=hard", "-mfpu=fpv4-sp-d16", "-std=c99", "-O2",
             "-ffp-contract=off", "-fno-fast-math", "-ffunction-sections", "-fdata-sections",
-            f"-I{FSW / 'include'}", f"-I{FSW / 'targets/link'}", "-fstack-usage", "-fcallgraph-info=su"]
+            f"-I{FSW / 'include'}", f"-I{FSW / 'alg/include'}", f"-I{FSW / 'targets/link'}", "-fstack-usage", "-fcallgraph-info=su"]
 
 NODE = re.compile(r'node: \{ title: "([^"]+)" label: "([^"]*)"')
 EDGE = re.compile(r'edge: \{ sourcename: "([^"]+)" targetname: "([^"]+)"')
@@ -42,6 +42,7 @@ def reserved():
 
 def graph(out):
     src = sorted(str(p.relative_to(FSW)) for p in (FSW / "src").glob("*.c"))
+    src += sorted(str(p.relative_to(FSW)) for p in (FSW / "alg/src").glob("*.c"))     # the algorithms written from the design
     src += ["targets/link/adcs_link.c", "targets/qemu-mps2/main.c"]
     r = subprocess.run(["arm-none-eabi-gcc", *ARMFLAGS, "-c", *[str(FSW / s) for s in src]], cwd=out,
                        capture_output=True, text=True)

@@ -19,5 +19,6 @@ fn main() {
     }
     println!("cargo:rerun-if-changed={}", root.join("include").display());
     println!("cargo:rerun-if-changed={}", root.join("src").join("adcs_fsw_int.h").display());
+    println!("cargo:rerun-if-changed={}", root.join("src").join("adcs_alg_glue.h").display());
     b.compile("adcs_fsw_c");
 }
