@@ -238,7 +238,7 @@ def page(g, db):
          f"**In one line:** {'every check holds' if ok else 'something differs'}: today's design, built from the drive "
          f"(`tools/design_build.py`), read alone by the engine (an empty data folder), gives the repository's own inputs, "
          "parameter blobs, runs, campaigns and evaluation (`tools/parity_2_0.py`, `docs/PLAN_2_0.md` S4).", "",
-         f"Design: `{db.name}`.", "", "| Check | What is held | Equal | Differ |", "|---|---|---|---|"]
+         f"Design: `{db.resolve().relative_to(ROOT) if db.resolve().is_relative_to(ROOT) else db.name}`.", "", "| Check | What is held | Equal | Differ |", "|---|---|---|---|"]
     for x in g.items:
         L.append(f"| {x['check']} | {x['what']} | {x['total'] - len(x['differ'])} of {x['total']} | {len(x['differ'])} |")
     for x in g.items:
@@ -274,7 +274,7 @@ def main(argv=None):
         if a.twin:
             g.twin(a.twin)
     out = pathlib.Path(a.out)
-    write_text(out / "parity_2_0.json", json.dumps({"design": str(pathlib.Path(a.design).name), "checks": g.items}, indent=1) + "\n")
+    write_text(out / "parity_2_0.json", json.dumps({"design": str(pathlib.Path(a.design)), "checks": g.items}, indent=1) + "\n")
     write_text(out / "PARITY_2_0.md", page(g, pathlib.Path(a.design)))
     return 1 if any(x["differ"] for x in g.items) else 0
 

@@ -1,0 +1,53 @@
+{
+ "design": "tests/regression/design.tndb",
+ "checks": [
+  {
+   "check": "inputs",
+   "what": "every engine input file and every case line, byte for byte",
+   "total": 166,
+   "differ": []
+  },
+  {
+   "check": "layout",
+   "what": "the parameter table from its nodes, and the C and Rust it writes",
+   "total": 154,
+   "differ": []
+  },
+  {
+   "check": "blobs",
+   "what": "every scenario's parameter blob (adcs-fswcfg/1)",
+   "total": 48,
+   "differ": []
+  },
+  {
+   "check": "runs",
+   "what": "every stored scenario run, flown again from the design: inputs and metrics",
+   "total": 48,
+   "differ": []
+  },
+  {
+   "check": "campaigns",
+   "what": "every run of the 8 stored campaigns, its dispersions drawn again: draws and metrics",
+   "total": 4516,
+   "differ": []
+  },
+  {
+   "check": "evaluate",
+   "what": "every row and closure of results/evaluation.json (a node of the dissolved group `case` names its new group)",
+   "total": 1500,
+   "differ": []
+  },
+  {
+   "check": "oils",
+   "what": "soft OILS on QEMU (Cortex-M4F firmware), from the files and from the design: metrics and timing",
+   "total": 2,
+   "differ": []
+  },
+  {
+   "check": "twin",
+   "what": "the MATLAB twin flown from the data folder the design exports, against its stored run",
+   "total": 1,
+   "differ": []
+  }
+ ]
+}
