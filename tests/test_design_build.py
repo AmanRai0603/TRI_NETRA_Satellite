@@ -8,6 +8,9 @@ program reads from the converted drive, and what the engine reads from it is wha
   - the flight software's parameter table, read from its nodes, is fsw/params/params.toml and gives the
     same generated C and Rust; every scenario's parameter blob from the design is the files' byte for byte;
   - scenarios flown from the design alone (an empty data folder) give the files' result id and metrics;
+  - the design loop is declared on its block, and any other cycle in the wires is refused by name;
+  - the health map: every node's health rolls up to its group and the ADCS; every closure has an answer
+    and a range verdict; a blocked one names the node that causes it; nothing converted shows as signed;
   - building twice gives the same engine inputs.
 
 Owner: Agastya. Copyright (c) 2026 Agastya. All rights reserved.
@@ -28,6 +31,7 @@ import convert_2_0 as conv
 import design_build
 import design_inputs
 import gen_fsw_params
+import health
 import seed_design
 import tndb
 
@@ -155,6 +159,62 @@ class DesignBuild(unittest.TestCase):
                     got.append((m["result_id"], m["metrics"]))
                     shutil.rmtree(out)
                 self.assertEqual(got[0], got[1], f"{sc} {fsw}")
+
+
+    def test_the_design_loop_is_declared_and_no_other_cycle_runs(self):
+        meta = dict(self.held('SELECT "key", "value" FROM meta'))
+        loops = json.loads(meta["loops"])
+        self.assertEqual([(x["block"], x["id"], x["settles"]) for x in loops], [("gb", "design_loop", ["mass", "inertia", "demand"])])
+        self.assertEqual(json.loads(meta["cycles_refused"]), [])
+
+    def test_an_undeclared_cycle_is_refused_by_name(self):
+        def node(nid, parent, reads=(), loop=()):
+            return {"block": [[nid, parent, "subsystem", "method", None, None]], "input": [[f"x{i}", r, "y", None] for i, r in enumerate(reads)],
+                    "loop": list(loop)}
+        bodies = {"top": node("top", None), "box": node("box", "top"), "a": node("a", "box", ["b"]), "b": node("b", "box", ["a"]), "c": node("c", "top", ["a"])}
+        _loops, refused = design_build.loop_check(bodies, [])
+        self.assertEqual(len(refused), 1)
+        self.assertIn("a -> b", refused[0])
+        self.assertIn("box", refused[0])
+        bodies["box"]["loop"] = [["settle_ab", json.dumps(["y"]), 1e-6, 20, "a and b settle together"]]
+        loops, refused = design_build.loop_check(bodies, [])
+        self.assertEqual(refused, [])
+        self.assertEqual(loops[0]["id"], "settle_ab")
+        bodies["top"]["loop"], bodies["box"]["loop"] = bodies["box"]["loop"], []
+        self.assertEqual(len(design_build.loop_check(bodies, [])[1]), 1, "a loop belongs to the smallest block that contains it")
+
+
+    def test_the_health_map(self):
+        d = pathlib.Path(self.tmp.name) / "health"
+        d.mkdir(exist_ok=True)
+        shutil.copy(self.db, d / "design.tndb")
+        for case in ("ais_3u", "ais_img_3u"):
+            h = health.health(d, case)
+            ids = {n["id"] for n in h["nodes"]}
+            self.assertEqual(len(ids), self.summary["nodes"])
+            for g in h["groups"]:
+                mine = [n["health"] for n in h["nodes"] if n["group"] == g["group"]]
+                self.assertEqual(g["health"], health.worst(mine), g["group"])
+            self.assertEqual(h["adcs"], health.worst([g["health"] for g in h["groups"]]))
+            self.assertEqual([n["id"] for n in h["nodes"] if n["health"] == "refused"], [], "every computed row lies in its own range")
+            for n in h["nodes"]:
+                if n["health"] in ("closes", "tight"):
+                    self.fail(f"{n['id']}: shows {n['health']}, but its release is a converted baseline nobody has signed")
+            answered = [c for c in h["closures"] if c["answer"] != "blocked"]
+            self.assertEqual(sorted(c["id"] for c in answered), sorted(f"kpi_{k}_verified" for k in (
+                "absolute_pointing_error_ape", "absolute_knowledge_error_ake", "detumble_time", "adcs_orbit_average_power")))
+            for c in answered:
+                self.assertEqual(c["answer"], "pass", c["id"])
+                self.assertIn(c["verdict"], ("whole", "part"), c["id"])
+                self.assertTrue(any("Monte Carlo" in x for x in c["range_from"]), c["id"])
+            for c in h["closures"]:
+                if c["verdict"] == "blocked":
+                    self.assertTrue(c["cause"], c["id"])
+                    self.assertTrue(all(x["node"] in ids for x in c["cause"]), c["id"])
+            for c in answered:
+                if c["tornado"]:
+                    widths = [t["width"] for t in c["tornado"]]
+                    self.assertEqual(widths, sorted(widths, reverse=True), "the widest bar first")
 
 
 if __name__ == "__main__":

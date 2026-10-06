@@ -16,6 +16,10 @@ What it writes:
   - with --export DIR, the same inputs as a data folder (DIR/data/..., DIR/cases/*.csv): what the
     MATLAB twin and the Python tools read, generated from the design, never edited.
 
+Loops: every cycle in the wires must be declared on the smallest block that contains it, and is refused by
+name otherwise (docs/SYSTEM_MODEL.md §5). The design loop (sizing -> mass and inertia -> demand) is declared on
+its block and iterated outside the tree, by tools/pipeline_design.py, until its relations are methods (S7).
+
 Which release of a group: its newest under releases/ that tools/release.py finds sound. A group whose
 newest is refused keeps its last good one, and the refusal is named; a group with none is left out and
 named. The engine's inputs come only from the releases used: a refused release changes nothing.
@@ -135,6 +139,75 @@ def flight_layout(bodies):
     return {**head, "field": [f for _, f in fields]}
 
 
+def cycles(wires):
+    """Every cycle in the wires {from: {to}}: [sorted node ids] per strongly connected set (Tarjan)."""
+    index, low, stack, on, out, n = {}, {}, [], set(), [], [0]
+
+    def visit(v):
+        index[v] = low[v] = n[0]
+        n[0] += 1
+        stack.append(v)
+        on.add(v)
+        for w in sorted(wires.get(v, ())):
+            if w not in index:
+                visit(w)
+                low[v] = min(low[v], low[w])
+            elif w in on:
+                low[v] = min(low[v], index[w])
+        if low[v] == index[v]:
+            comp = []
+            while True:
+                w = stack.pop()
+                on.discard(w)
+                comp.append(w)
+                if w == v:
+                    break
+            if len(comp) > 1 or v in wires.get(v, ()):
+                out.append(sorted(comp))
+    import sys as _sys
+    _sys.setrecursionlimit(max(_sys.getrecursionlimit(), 20000))
+    for v in sorted(wires):
+        if v not in index:
+            visit(v)
+    return out
+
+
+def loop_check(bodies, edges):
+    """The loops (docs/SYSTEM_MODEL.md §5): each declared loop with where it is iterated, and every cycle in the
+    wires refused by name unless a loop is declared on the smallest block that contains it."""
+    parent = {nid: (b.get("block") or [[None, None]])[0][1] for nid, b in bodies.items()}
+    declared = {nid: b["loop"] for nid, b in bodies.items() if b.get("loop")}
+    wires = {}
+    for f, t, _k, _l in edges:
+        wires.setdefault(f, set()).add(t)
+    for nid, b in bodies.items():
+        for i in b.get("input", []):
+            if i[1]:
+                wires.setdefault(i[1], set()).add(nid)
+
+    def chain(n):
+        out, seen = [], set()
+        while n is not None and n not in seen:
+            seen.add(n)
+            out.append(n)
+            n = parent.get(n)
+        return out
+    refused = []
+    for comp in cycles(wires):
+        common = None
+        for n in comp:
+            c = chain(parent.get(n))
+            common = c if common is None else [x for x in common if x in c]
+        holder = common[0] if common else None
+        if holder not in declared:
+            refused.append(f"the cycle {' -> '.join(comp)} is not declared on {holder or 'any block'}, the smallest block that "
+                           "contains it: declare its loop there (what settles, how tightly, in how many iterations) or break it")
+    loops = [{"block": nid, "id": x[0], "settles": json.loads(x[1]) if x[1] else [], "tolerance": x[2], "max_iterations": x[3], "note": x[4],
+              "iterated": "outside the tree, by tools/pipeline_design.py, until its relations are methods (docs/PLAN_2_0.md S7)"}
+             for nid, ls in sorted(declared.items()) for x in ls]
+    return loops, refused
+
+
 def read_cases(drive):
     """{case id: (kind, source text)} and the case rows of every case (kind "case") the engine flies
     (meta `flown`; a case file without it is flown)."""
@@ -182,6 +255,8 @@ def build(drive, out, *, export=None, at="2026-10-06T00:00:00Z"):
     cases, case_rows = read_cases(drive)
     files = engine_inputs(bodies, cases)
     layout = flight_layout(bodies)
+    loops, cycles_refused = loop_check(bodies, edges)
+    notes += cycles_refused
     file_rows = [(p, design_inputs.fnv_hex(b), b) for p, b in sorted(files.items())]
     h = hashlib.sha256()
     for r in case_rows:
@@ -203,13 +278,14 @@ def build(drive, out, *, export=None, at="2026-10-06T00:00:00Z"):
                   (f"today {at[:10]}", "today", at, "tools/design_build.py", design_inputs.needs_application(), design_inputs.TOOLBOX))
         for k, v in (("inputs_fingerprint", fp_all), ("toolbox", design_inputs.TOOLBOX), ("needs_application", design_inputs.needs_application()),
                      ("design_kind", "today"), ("releases_used", json.dumps({g: v for g, v, _f, _a in dgroups}, sort_keys=True)),
-                     ("refused", json.dumps(notes)), ("flight_layout", json.dumps(layout, sort_keys=True))):
+                     ("refused", json.dumps(notes)), ("flight_layout", json.dumps(layout, sort_keys=True)),
+                     ("loops", json.dumps(loops, sort_keys=True)), ("cycles_refused", json.dumps(cycles_refused))):
             c.execute('INSERT OR REPLACE INTO meta VALUES (?, ?)', (k, v))
     tndb.create(out, "design", "today", written_by="tools/design_build.py", fill=fill, sync=False)
     if export:
         write_export(pathlib.Path(export), files, case_rows)
     return {"groups": len(dgroups), "nodes": len(dnodes), "edges": len(edges), "cases": len({r[0] for r in case_rows}),
-            "files": len(file_rows), "refused": notes}
+            "files": len(file_rows), "loops": len(loops), "refused": notes}
 
 
 def write_export(root, files, case_rows):
