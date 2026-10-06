@@ -14,6 +14,10 @@
 //!                               line each, "CODE level step: text" (level ! to fix, i to know); with
 //!                               the design folder, its inputs are checked against the design's nodes.
 //!                               Exit 1 if any is to fix, 2 if the file cannot be read or checked
+//!     tndb translate rust|c|matlab FILE... [--title T] [--lib L] [--pkg P]
+//!     tndb translate matlab-rt      the pseudocode files translated (trinetra-pcode's translators), as
+//!                               design/js/pcode_cli.mjs prints them: a JSON object of path to text.
+//!                               Exit 1 if the files have problems or cannot be translated
 //!
 //! Owner: Agastya. Copyright (c) 2026 Agastya. All rights reserved.
 use std::path::Path;
@@ -26,7 +30,7 @@ fn main() -> ExitCode {
         Ok(s) => s,
         Err(e) => { eprintln!("tndb: {e}"); return ExitCode::from(2); }
     };
-    let usage = || { eprintln!("usage: tndb check FILE... | upgrade FILE... | hash FILE | compare A B | check-folder DIR | check-release FILE [--catalogue JSON] | check-node FILE [--folder DIR]"); ExitCode::from(2) };
+    let usage = || { eprintln!("usage: tndb check FILE... | upgrade FILE... | hash FILE | compare A B | check-folder DIR | check-release FILE [--catalogue JSON] | check-node FILE [--folder DIR] | translate rust|c|matlab|matlab-rt FILE... [--title T] [--lib L] [--pkg P]"); ExitCode::from(2) };
     match a.first().map(String::as_str) {
         Some("check") if a.len() > 1 => {
             let errs: Vec<String> = a[1..].iter().flat_map(|f| check(Path::new(f), &s)).collect();
@@ -72,7 +76,53 @@ fn main() -> ExitCode {
             report(checks::check_release(Path::new(&a[1]), &cat, &s))
         }
         Some("check-node") if a.len() == 2 || (a.len() == 4 && a[2] == "--folder") => check_node(Path::new(&a[1]), a.get(3).map(Path::new)),
+        Some("translate") if a.len() > 1 && ["rust", "c", "matlab", "matlab-rt"].contains(&a[1].as_str()) => translate(&a[1], &a[2..]),
         _ => usage(),
+    }
+}
+
+/// `translate`: the files translated, printed as `JSON.stringify(files, null, 1)` (pcode_cli.mjs).
+/// An argument `--name` takes the one after it as its value; the others are the files, in order.
+fn translate(lang: &str, args: &[String]) -> ExitCode {
+    let (mut files, mut opt) = (Vec::new(), std::collections::HashMap::new());
+    let mut i = 0;
+    while i < args.len() {
+        if let Some(name) = args[i].strip_prefix("--") {
+            opt.insert(name.to_string(), args.get(i + 1).cloned());
+            i += 2;
+        } else {
+            files.push(args[i].clone());
+            i += 1;
+        }
+    }
+    let o = |k: &str| opt.get(k).and_then(|v| v.as_deref());
+    if lang == "matlab-rt" {
+        print!("{}", trinetra_pcode::files_json(&trinetra_pcode::matlab_runtime_files()));
+        return ExitCode::SUCCESS;
+    }
+    let mut texts = Vec::new();
+    for f in &files {
+        match std::fs::read(f) {
+            Ok(b) => texts.push(String::from_utf8_lossy(&b).into_owned()),
+            Err(e) => { eprintln!("tndb: {f}: {e}"); return ExitCode::from(2); }
+        }
+    }
+    let sources: Vec<(&str, &str)> = files.iter().map(String::as_str).zip(texts.iter().map(String::as_str)).collect();
+    let program = match trinetra_pcode::compile(&sources) {
+        Ok(p) => p,
+        Err(errs) => {
+            for e in &errs { eprintln!("{e}"); }
+            return ExitCode::from(1);
+        }
+    };
+    let r = match lang {
+        "rust" => program.to_rust_files(o("title")),
+        "c" => program.to_c_files(o("title"), o("lib")),
+        _ => program.to_matlab_files(o("pkg")),
+    };
+    match r {
+        Ok(files) => { print!("{}", trinetra_pcode::files_json(&files)); ExitCode::SUCCESS }
+        Err(e) => { eprintln!("tndb: cannot translate: {e}"); ExitCode::from(1) }
     }
 }
 

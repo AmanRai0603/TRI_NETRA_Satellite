@@ -681,7 +681,7 @@ impl Parser<'_> {
                 self.eat_op("=")?;
                 let e = self.expr()?;
                 self.end_line()?;
-                prog.items.push(Item::Const(Const { name: n.v, module: String::new(), e, pos }));
+                prog.items.push(Item::Const(Const { name: n.v, module: String::new(), e, doc, pos }));
                 continue;
             }
             if self.is(T::Kw, Some("fn")) || self.is(T::Kw, Some("proc")) {
@@ -733,7 +733,7 @@ impl Parser<'_> {
                     self.end_line()?;
                 }
                 self.end_line()?;
-                prog.items.push(Item::Record(Record { name: n.v, module: String::new(), fields, pos }));
+                prog.items.push(Item::Record(Record { name: n.v, module: String::new(), fields, doc, pos }));
                 continue;
             }
             if self.opt(T::Kw, "table").is_some() {
@@ -777,6 +777,7 @@ impl Parser<'_> {
                     mode,
                     rows,
                     si: Vec::new(),
+                    doc,
                     pos,
                 }));
                 continue;

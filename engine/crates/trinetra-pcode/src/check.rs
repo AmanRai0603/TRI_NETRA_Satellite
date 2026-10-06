@@ -84,6 +84,9 @@ pub(crate) struct Ann {
     pub bound: Option<f64>,
     /// a field's place in its record
     pub field: usize,
+    /// on the expression of a `let` of one name, or of a `state`: the type the name is given
+    /// (the JavaScript's `s.vty`)
+    pub vty: Option<Ty>,
 }
 
 /// The checked program: the declarations, the expressions and what the checker left on them.
@@ -95,10 +98,13 @@ pub(crate) struct Checked {
     pub records: Vec<Record>,
     pub consts: Vec<Const>,
     pub modules: Vec<(String, Vec<String>)>,
+    /// each module's declarations (parallel to `modules`), in the order they were declared
+    pub mod_items: Vec<Vec<ItemRef>>,
 }
 
-#[derive(Clone, Copy)]
-enum ItemRef {
+/// A declaration: its place in `fns`, `tables`, `records` or `consts`.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub(crate) enum ItemRef {
     Fn(usize),
     Table(usize),
     Record(usize),
@@ -117,6 +123,7 @@ struct Checker {
     const_ty: Vec<Option<Ty>>,
     names: HashMap<String, ItemRef>,
     modules: Vec<(String, Vec<String>)>,
+    mod_items: Vec<Vec<ItemRef>>,
     order: Vec<ItemRef>,
     scopes: Vec<HashMap<String, (Ty, VarKind)>>,
     cur: Option<usize>,
@@ -1008,6 +1015,7 @@ impl Checker {
                 if decl_ty.is_none() && self.is_zero(Some(*e)) && vt != Ty::Int {
                     self.e(format!("let {0} = 0 needs its type: let {0}: real[unit] = 0", names[0]), pos);
                 }
+                self.ann[*e].vty = Some(vt.clone());
                 self.declare(&names[0], vt, pos, VarKind::Local);
             }
             StmtKind::State { name, decl, e } => {
@@ -1020,6 +1028,7 @@ impl Checker {
                 }
                 let st = self.resolve(decl, pos);
                 let t = self.ty(*e);
+                self.ann[*e].vty = Some(st.clone());
                 if !self.fits(&st, &t, Some(*e)) {
                     self.e(format!("state {name}: declared {}, starts at {}", tt(&st), tt(&t)), pos);
                 }
@@ -1331,9 +1340,14 @@ impl Checker {
         // 1 declarations
         for f in files {
             let module = f.module.clone().unwrap_or_else(|| "main".into());
-            if !self.modules.iter().any(|m| m.0 == module) {
-                self.modules.push((module.clone(), f.doc.clone()));
-            }
+            let mi = match self.modules.iter().position(|m| m.0 == module) {
+                Some(mi) => mi,
+                None => {
+                    self.modules.push((module.clone(), f.doc.clone()));
+                    self.mod_items.push(Vec::new());
+                    self.modules.len() - 1
+                }
+            };
             for mut it in f.items {
                 it.set_module(&module);
                 let name = it.name().to_string();
@@ -1362,6 +1376,7 @@ impl Checker {
                     }
                 };
                 self.names.insert(name, r);
+                self.mod_items[mi].push(r);
                 self.order.push(r);
             }
         }
@@ -1511,6 +1526,7 @@ impl Checker {
             records: self.records,
             consts: self.consts,
             modules: self.modules,
+            mod_items: self.mod_items,
         })
     }
 
@@ -1587,6 +1603,7 @@ pub(crate) fn check(files: Vec<File>, exprs: Vec<Expr>) -> Result<Checked, Vec<P
         const_ty: Vec::new(),
         names: HashMap::new(),
         modules: Vec::new(),
+        mod_items: Vec::new(),
         order: Vec::new(),
         scopes: Vec::new(),
         cur: None,

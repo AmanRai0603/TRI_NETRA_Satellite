@@ -4,6 +4,11 @@
 //! and refuses (tests/checker.rs). Pure Rust, no I/O: it builds for wasm32-unknown-unknown.
 //! Owner: Agastya. Copyright (c) 2026 Agastya. All rights reserved.
 //!
+//! It also holds the translators (src/gen/): a checked program to Rust, C and MATLAB
+//! (`Program::to_rust`, `to_c`, `to_matlab`, and `matlab_runtime`), ports of design/js/pcode_gen.js
+//! and pcode_c.js that write byte for byte the files the JavaScript writes
+//! (tests/test_translators_lib.py holds them to it; `tndb translate` drives them).
+//!
 //! ```
 //! let src = "module m\nfn f(x: real[km]) -> y: real[m]\n    y = 2*x\nend\n";
 //! let p = trinetra_pcode::compile(&[("m.pc", src)]).unwrap();
@@ -49,6 +54,7 @@
 mod ast;
 mod check;
 mod error;
+mod gen;
 mod interp;
 mod jsfmt;
 mod parse;
@@ -57,6 +63,7 @@ mod vmath;
 
 pub use ast::{FnKind, TableMode, Ty};
 pub use error::{ErrorKind, PcodeError, Pos, RunError};
+pub use gen::{files_json, lit, matlab_runtime, matlab_runtime_files, Files};
 pub use interp::{State, Value};
 pub use units::{dim_text, Dim, UNITS};
 

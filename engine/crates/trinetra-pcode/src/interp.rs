@@ -738,6 +738,12 @@ impl Interp {
         Ok(f.outs.iter().map(|o| env.iter().rev().find(|(n, _)| *n == o.name).map(|(_, v)| v.clone()).unwrap_or(Value::Num(f64::NAN))).collect())
     }
 
+    /// A constant expression's value, as the JavaScript's `constOf` evaluates one (a const's value,
+    /// a proc's starting state): in an empty environment.
+    pub(crate) fn eval_closed(&self, e: ExprId) -> R<Value> {
+        Ok(self.ev(e, &Vec::new())?.into_owned())
+    }
+
     pub(crate) fn new_state(&self, fi: usize) -> R<State> {
         let f = &self.c.fns[fi];
         let mut vals = Vec::new();

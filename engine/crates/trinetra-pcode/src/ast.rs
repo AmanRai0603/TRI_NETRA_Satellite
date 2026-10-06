@@ -200,6 +200,8 @@ pub(crate) struct Table {
     pub rows: Vec<(Vec<f64>, Pos)>,
     /// every row in SI
     pub si: Vec<Vec<f64>>,
+    /// its `##` lines
+    pub doc: Vec<String>,
     pub pos: Pos,
 }
 
@@ -208,6 +210,8 @@ pub(crate) struct Record {
     pub name: String,
     pub module: String,
     pub fields: Vec<Param>,
+    /// its `##` lines
+    pub doc: Vec<String>,
     pub pos: Pos,
 }
 
@@ -216,6 +220,8 @@ pub(crate) struct Const {
     pub name: String,
     pub module: String,
     pub e: ExprId,
+    /// its `##` lines
+    pub doc: Vec<String>,
     pub pos: Pos,
 }
 
