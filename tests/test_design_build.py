@@ -217,5 +217,29 @@ class DesignBuild(unittest.TestCase):
                     self.assertEqual(widths, sorted(widths, reverse=True), "the widest bar first")
 
 
+    def test_a_broken_node_is_traced_to_by_name(self):
+        # m2_4 (the orbit radius from the altitude) computes today; its method broken, it refuses, and every node
+        # that reads it, at any depth, is blocked and names m2_4 as its cause
+        d = pathlib.Path(self.tmp.name) / "broken"
+        d.mkdir(exist_ok=True)
+        shutil.copy(self.db, d / "design.tndb")
+        with sqlite3.connect(d / "design.tndb") as c:
+            x = json.loads(c.execute("SELECT content FROM design_node WHERE id = 'm2_4'").fetchone()[0])
+            x["body"]["content"] = [r if (r[0], r[1]) != ("code", "pseudocode") else [r[0], r[1], r[2].replace("fn ", "fn (", 1), r[3]]
+                                    for r in x["body"]["content"]]
+            c.execute("UPDATE design_node SET content = ? WHERE id = 'm2_4'", (json.dumps(x),))
+        h = health.health(d, "ais_3u")
+        by = {n["id"]: n for n in h["nodes"]}
+        self.assertEqual(by["m2_4"]["health"], "refused", by["m2_4"]["why"])
+        downstream = [n for n in h["nodes"] if n["health"] == "blocked" and "m2_4" in n["cause"]]
+        self.assertGreaterEqual({n["id"] for n in downstream}, {"m2_5", "m3_0", "m3_1", "m3_4", "gd_0"})
+        whole = pathlib.Path(self.tmp.name) / "whole"
+        whole.mkdir(exist_ok=True)
+        shutil.copy(self.db, whole / "design.tndb")
+        before = {n["id"]: n["health"] for n in health.health(whole, "ais_3u")["nodes"]}
+        for n in ("m2_5", "m3_0", "m3_1", "m3_4", "gd_0"):
+            self.assertNotEqual(before[n], "blocked", f"{n} computed before m2_4 broke")
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -226,7 +226,8 @@ def health(d, case):
         rs = reasons[nid]
         st = worst([s for s, _w in rs])
         node_rows.append({"id": nid, "group": f["group"], "label": f["label"], "health": st, "why": [f"{s}: {w}" for s, w in rs],
-                          "value": (rows.get(nid) or {}).get("value", "")})
+                          "value": (rows.get(nid) or {}).get("value", ""),
+                          "cause": sorted(set(causes(nid))) if any(s == "blocked" for s, _w in rs) else []})
     groups = {}
     for n in node_rows:
         g = groups.setdefault(n["group"], {"group": n["group"], "health": "closes", "count": {}})
