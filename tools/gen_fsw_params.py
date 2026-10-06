@@ -361,12 +361,14 @@ def rs_source():
 IGRF_SRC = ROOT / "matlab_sils" / "data" / "igrf13coeffs.txt"
 
 
-def igrf_table():
+def igrf_table(raw=None):
     """IGRF-13 from the IAGA coefficient file (igrf13coeffs.txt, as NOAA/NCEI distribute it): every
     DGRF/IGRF epoch, then 2025.0 = 2020.0 + 5 x the secular variation (the model's own definition of
-    its 2020-2025 field). Coefficients in file order: g10 g11 h11 g20 g21 h21 g22 h22 ..."""
+    its 2020-2025 field). Coefficients in file order: g10 g11 h11 g20 g21 h21 g22 h22 ...
+    raw: the file's bytes, when they come from elsewhere than the data folder (the design's IGRF
+    table, tools/design_build.py)."""
     import hashlib
-    raw = IGRF_SRC.read_bytes()
+    raw = IGRF_SRC.read_bytes() if raw is None else raw
     lines = raw.decode("ascii").splitlines()
     head = next((ln.split() for ln in lines if ln.startswith("g/h")), None)
     if head is None:

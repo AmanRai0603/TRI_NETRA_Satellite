@@ -70,7 +70,10 @@ TOOLBOX_MODULES = ["01_math.pc", "02_time_frames_models.pc", "02_igrf13.pc"]
 LIBRARY = [("catalogue", "**/*.toml", "catalogue", "the catalogue"),
            ("spec/plan", "kpis.toml", "kpi", "the KPI definitions"),
            ("spec/plan", "units.toml", "programme", "the units and quantities the design may state"),
-           ("fsw/params", "params.toml", "fsw", "the flight software's parameter table (adcs-fswcfg/1)")]
+           ("fsw/params", "params.toml", "fsw", "the flight software's parameter table (adcs-fswcfg/1)"),
+           ("matlab_sils/data/catalogue", "*.json", "catalogue", "the datasheet catalogue (adcs-datasheet/1)"),
+           ("matlab_sils/data/pipeline", "nodes.json", "design", "the design loop's node registry (adcs-nodes/1)"),
+           ("matlab_sils/data", "scenario_schema.json", "programme", "the scenario format (adcs-scenario/1)")]
 CASES = [("matlab_sils/cases", "*.csv", "case"), ("spec/plan/cases", "*.csv", "case"),
          ("scenarios", "*.toml", "scenario"), ("campaigns", "*.toml", "campaign"), ("trades", "*.toml", "trade")]
 
@@ -251,7 +254,7 @@ def convert(out, src=None):
         vectors.setdefault(name.split("::")[0], []).append(line)
     fsw = {}
     for fname, gid in FSW_MODULES.items():
-        text = (ROOT / "fsw" / "pseudocode" / fname).read_text()
+        text = (ROOT / "fsw" / "pseudocode" / fname).read_bytes().decode("utf-8")
         mod = re.search(r"^module\s+(\w+)", text, re.M).group(1)
         nid = f"fsw_{mod}"
         fsw[nid] = {"group": gid, "file": fname, "module": mod, "text": text, "doc": (ROOT / "fsw" / "pseudocode" / fname.replace(".pc", ".md")),
@@ -321,7 +324,7 @@ def convert(out, src=None):
             parts = line.split()
             fx.append((f"{parts[0]} {parts[1]} {parts[2]}", json.dumps(parts[5:5 + int(parts[3])]), json.dumps(parts[5 + int(parts[3]):]), 0.0,
                        json.dumps({"provenance": "interpreter", "source": "fsw/tests/pcode_vectors.txt", "where": f"line {i + 1} of {parts[0]}"}), 0))
-        doc = x["doc"].read_text() if x["doc"].is_file() else ""
+        doc = x["doc"].read_bytes().decode("utf-8") if x["doc"].is_file() else ""
         new_node(gdir[x["group"]] / "nodes" / f"{nid}.node.tndb", nid, x["group"], "leaf", f"Flight algorithms: {x['module']}", 3,
                  content=[("code", "pseudocode", x["text"], f"fsw/pseudocode/{x['file']}"), ("code", "uses", json.dumps(TOOLBOX_MODULES), BY),
                           ("explain", "theory", doc, f"fsw/pseudocode/{x['file'].replace('.pc', '.md')}"),
@@ -346,7 +349,7 @@ def convert(out, src=None):
         ports_csv.append([nid, f["name"], "out", "open", "estimated", None])
     # the IGRF coefficients: a lookup of the environment group
     new_node(gdir["env"] / "nodes" / "env_igrf13_coefficients.node.tndb", "env_igrf13_coefficients", "env", "leaf", "IGRF-13 coefficients", 2,
-             content=[("table", "igrf13coeffs.txt", igrf.read_text(), "matlab_sils/data/igrf13coeffs.txt (IAGA)"),
+             content=[("table", "igrf13coeffs.txt", igrf.read_bytes().decode("utf-8"), "matlab_sils/data/igrf13coeffs.txt (IAGA)"),
                       ("identity", "question", "The geomagnetic reference field's Gauss coefficients (IAGA IGRF-13)", BY)],
              block=("env_igrf13_coefficients", "m3", "system", "lookup", None, None))
     report.append(["table", "igrf13coeffs.txt", "matlab_sils/data/igrf13coeffs.txt", "groups/env/nodes/env_igrf13_coefficients.node.tndb", "lookup block"])
@@ -354,7 +357,7 @@ def convert(out, src=None):
     for x in library:
         parent = groups[x["group"]]["mounts"][0]["on"] if groups[x["group"]]["mounts"] else "mgm"
         new_node(gdir[x["group"]] / "nodes" / f"{x['id']}.node.tndb", x["id"], x["group"], "leaf", f"{x['what']}: {x['rel']}", 1 if x["group"] in ("programme", "catalogue") else 2,
-                 content=[("table", pathlib.Path(x["rel"]).name, x["file"].read_text(), x["rel"]), ("identity", "question", f"{x['what']}, as {x['rel']} states it", BY)],
+                 content=[("table", pathlib.Path(x["rel"]).name, x["file"].read_bytes().decode("utf-8"), x["rel"]), ("identity", "question", f"{x['what']}, as {x['rel']} states it", BY)],
                  block=(x["id"], parent, "programme" if x["group"] in ("programme", "catalogue") else "system", "lookup", None, None))
         report.append(["library", x["rel"], x["rel"], f"groups/{x['group']}/nodes/{x['id']}.node.tndb", "lookup block, the file's text kept whole"])
     # the delivery waves: a stated block of the programme
@@ -414,17 +417,20 @@ def convert(out, src=None):
             cid = f.stem if kind == "case" else f"{kind}_{f.stem}"
             path = out / "cases" / f"{cid}.tncase"
             if path.exists():                 # a reference case held twice (spec and matlab_sils): the same name, kept once
-                if (out / "cases" / f"{cid}.tncase").exists() and _case_text(path) == f.read_text():
+                if (out / "cases" / f"{cid}.tncase").exists() and _case_text(path) == f.read_bytes().decode("utf-8"):
                     report.append(["case", rel, rel, f"cases/{cid}.tncase", "the same case as already converted"])
                     continue
                 cid = f"{cid}_{folder.split('/')[0]}"
                 path = out / "cases" / f"{cid}.tncase"
-            text = f.read_text()
+            text = f.read_bytes().decode("utf-8")
 
-            def fill(c, text=text, kind=kind, cid=cid, rel=rel, f=f):
+            def fill(c, text=text, kind=kind, cid=cid, rel=rel, f=f, folder=folder):
                 c.execute("INSERT INTO case_info VALUES (?, ?, ?, ?, ?, ?)", (cid, None, cid, f.stem if kind == "scenario" else None,
                                                                               f.stem if kind == "campaign" else None, f"{kind}, from {rel}"))
                 c.execute("INSERT INTO case_source VALUES (?, ?, ?)", (f.name, kind, text))
+                # which cases the engine flies: today, the cases under matlab_sils/cases and every
+                # scenario, campaign and trade; the plan's own copies (spec/plan/cases) are kept, not flown
+                c.execute('INSERT OR REPLACE INTO meta VALUES (?, ?)', ("flown", "no" if folder == "spec/plan/cases" else "yes"))
                 if kind == "case":
                     # each line with the node that declares its value (spec/plan/case_inputs.toml), as the
                     # engine's inputs hold it today (tools/design_inputs.py); its own text kept as written

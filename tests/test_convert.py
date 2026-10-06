@@ -90,7 +90,7 @@ class Convert(unittest.TestCase):
                           any(r[3] == rel for r in table(p, "content"))), None)
                 self.assertIsNotNone(f, rel)
                 text = next(r[2] for r in table(f, "content") if r[3] == rel)
-                self.assertEqual(text, src.read_text(), rel)
+                self.assertEqual(text.encode("utf-8"), src.read_bytes(), rel)
         texts = {}
         for f in (self.out / "cases").glob("*.tncase"):
             for name, fmt, text in table(f, "case_source"):
@@ -100,13 +100,13 @@ class Convert(unittest.TestCase):
                     self.assertEqual(len(table(f, "case_line")), n_lines, f.name)
         for folder, pat, _kind in conv.CASES:
             for src in sorted((ROOT / folder).glob(pat)):
-                self.assertIn(src.read_text(), texts, src)
+                self.assertIn(src.read_bytes().decode("utf-8"), texts, src)
 
     def test_the_flight_software_design_is_there(self):
         vec = [x for x in (ROOT / "fsw" / "tests" / "pcode_vectors.txt").read_text().splitlines() if x.strip() and not x.startswith("#")]
         held = 0
         for fname in conv.FSW_MODULES:
-            text = (ROOT / "fsw" / "pseudocode" / fname).read_text()
+            text = (ROOT / "fsw" / "pseudocode" / fname).read_bytes().decode("utf-8")
             f = next(p for k, p in self.where.items() if k.startswith("fsw_") and any(r[2] == text for r in table(p, "content")))
             held += len(table(f, "fixture"))
         mods = {fname: (ROOT / "fsw" / "pseudocode" / fname).read_text().split("module ", 1)[1].split()[0] for fname in conv.FSW_MODULES}
@@ -115,7 +115,7 @@ class Convert(unittest.TestCase):
         for p in params:
             self.assertIn(f"fsw_param_{p['name']}", self.where, p["name"])
         igrf = table(self.where["env_igrf13_coefficients"], "content")
-        self.assertIn((ROOT / "matlab_sils" / "data" / "igrf13coeffs.txt").read_text(), [r[2] for r in igrf])
+        self.assertIn((ROOT / "matlab_sils" / "data" / "igrf13coeffs.txt").read_bytes().decode("utf-8"), [r[2] for r in igrf])
 
     def test_the_report_places_everything_and_drops_nothing(self):
         with open(self.out / "readable" / "Conversion.csv", encoding="utf-8") as fh:

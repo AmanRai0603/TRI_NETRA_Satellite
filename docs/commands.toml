@@ -388,6 +388,18 @@ checks = "every file against the schema; every baseline release (tools/release.p
 undo = "Delete the folder it wrote. It refuses a folder that is not empty and changes nothing in the repository."
 
 [[command]]
+tool = "design_build.py"
+name = "design-build"
+usage = "python3 tools/design_build.py DRIVE --out design.tndb [--export DIR] [--at ISO-TIME]"
+what = "Today's design (docs/PLAN_2_0.md S4): the one database every program reads, built from every group's newest sealed release that passes its checks on the shared drive (or a converted folder). Holds the releases used, every node as released, the wires, the catalogue of outputs, the cases the engine flies line by line and every engine input file, each generated from the design's own blocks and case files; names its toolbox and the application it needs. With --export, writes the same inputs as a data folder for the MATLAB twin and the Python tools."
+steps = ["pick each group's newest release that tools/release.py finds sound; a refused one keeps the last good release and is named", "read every node, wire and contract of the releases used", "generate the engine's input files from the lookup blocks, and the scenarios, campaigns and trades from their case files", "read the cases the engine flies (meta flown), line by line", "write design.tndb (format 3, kind today) with its inputs fingerprint, toolbox and application", "with --export, write data/ and cases/*.csv"]
+reads = ["DRIVE/groups/*/releases/*.tnrel", "DRIVE/cases/*.tncase", "VERSION"]
+writes = ["the --out database", "the --export folder (data/, cases/)"]
+runs = []
+checks = "every release it uses passes tools/release.py; tests/test_design_build.py holds every generated input to the repository's files byte for byte"
+undo = "Delete the database (and the export folder) it wrote. It changes nothing on the drive or in the repository."
+
+[[command]]
 tool = "seed_design.py"
 name = "seed-design"
 usage = "python3 tools/seed_design.py [--out DIR | --check]"

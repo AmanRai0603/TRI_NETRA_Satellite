@@ -37,6 +37,7 @@
 | [`groups.py groups`](#groupspy-groups) | The group map (design/groups.toml) against every row of the tree: each row in exactly one of the 20 discipline groups, each group holding the rows it states, each stage inside its group, every override and boundary naming real rows and groups. --row says where one row goes and why. |
 | [`tndb.py tndb`](#tndbpy-tndb) | The design files (node, group, release, design database), from design/schema.toml: check a file's format, version and every table; dump it as canonical JSON; print the SQL that makes a kind; write or check the files made from the schema (design/ddl.sql, design/js/tndb_schema.js). An older file is upgraded with a copy kept; a newer one is refused. |
 | [`convert_2_0.py convert-2-0`](#convert_2_0py-convert-2-0) | The design leaves the repository (docs/PLAN_2_0.md S3): the one conversion of the 1.0.0 design (the seeded and carried node and group files) and the repository's library data (catalogue, KPIs, units, the flight software's algorithms, parameters and IGRF table, the cases, scenarios, campaigns and trades) into the 2.0.0 layout of the shared drive: 21 group folders with their nodes and a baseline release 0.1 each, the cases, and readable copies with Conversion.csv placing every field. Writes a new folder only; the same inputs give the same bytes. |
+| [`design_build.py design-build`](#design_buildpy-design-build) | Today's design (docs/PLAN_2_0.md S4): the one database every program reads, built from every group's newest sealed release that passes its checks on the shared drive (or a converted folder). Holds the releases used, every node as released, the wires, the catalogue of outputs, the cases the engine flies line by line and every engine input file, each generated from the design's own blocks and case files; names its toolbox and the application it needs. With --export, writes the same inputs as a data folder for the MATLAB twin and the Python tools. |
 | [`seed_design.py seed-design`](#seed_designpy-seed-design) | Seeds the design files from the spec: a group file for each of the 20 groups, a node file for each of the 734 rows (the 82 the spec seeds with their content, the rest as shells), and the starting design database. Never overwrites; --check seeds into a temporary folder and checks every file. |
 | [`version.py version`](#versionpy-version) | One version for the repository: VERSION is the source, and the engine's Cargo workspace, the Rust flight software's Cargo package and the C flight software's build id follow it; the Rust build ids are built from their Cargo version. --check fails on any drift; --set writes a new version everywhere. |
 | [`mutation.py mutation`](#mutationpy-mutation) | Mutation testing of the flight software's guidance, control and estimation (fsw-rs/src/guid.rs, ctl.rs, est.rs) with cargo-mutants: each small deliberate fault in turn, and whether the Rust flight software's tests catch it. Writes the kill rate per function and the missed mutants; --check fails under the floor the tool states. |
@@ -679,6 +680,28 @@ The design leaves the repository (docs/PLAN_2_0.md S3): the one conversion of th
 - **Checks:** every file against the schema; every baseline release (tools/release.py); one tree, every parent and mount a block, every group file listing exactly its folder's nodes
 - **Undo:** Delete the folder it wrote. It refuses a folder that is not empty and changes nothing in the repository.
 - **Code:** `tools/convert_2_0.py`
+
+## design_build.py design-build
+
+Today's design (docs/PLAN_2_0.md S4): the one database every program reads, built from every group's newest sealed release that passes its checks on the shared drive (or a converted folder). Holds the releases used, every node as released, the wires, the catalogue of outputs, the cases the engine flies line by line and every engine input file, each generated from the design's own blocks and case files; names its toolbox and the application it needs. With --export, writes the same inputs as a data folder for the MATLAB twin and the Python tools.
+
+    python3 tools/design_build.py DRIVE --out design.tndb [--export DIR] [--at ISO-TIME]
+
+**Steps**
+
+1. pick each group's newest release that tools/release.py finds sound; a refused one keeps the last good release and is named
+2. read every node, wire and contract of the releases used
+3. generate the engine's input files from the lookup blocks, and the scenarios, campaigns and trades from their case files
+4. read the cases the engine flies (meta flown), line by line
+5. write design.tndb (format 3, kind today) with its inputs fingerprint, toolbox and application
+6. with --export, write data/ and cases/*.csv
+
+- **Reads:** `DRIVE/groups/*/releases/*.tnrel`; `DRIVE/cases/*.tncase`; VERSION
+- **Writes:** the --out database; `the --export folder (data/, cases/)`
+- **Starts:** nothing
+- **Checks:** every release it uses passes tools/release.py; tests/test_design_build.py holds every generated input to the repository's files byte for byte
+- **Undo:** Delete the database (and the export folder) it wrote. It changes nothing on the drive or in the repository.
+- **Code:** `tools/design_build.py`
 
 ## seed_design.py seed-design
 
