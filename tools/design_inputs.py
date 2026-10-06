@@ -34,7 +34,8 @@ def fnv_hex(b):
 
 
 def _nodes_of_keys():
-    ci = tomllib.loads((ROOT / "spec" / "plan" / "case_inputs.toml").read_text())
+    import from_design
+    ci = tomllib.loads(from_design.text("spec/plan/case_inputs.toml"))
     return {x["key"]: x.get("tree_id") for x in ci.get("input", []) if x.get("key")}
 
 

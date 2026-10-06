@@ -75,6 +75,25 @@ def paths(prefix, db=None):
     return sorted(p for p in _held(db) if p.startswith(prefix))
 
 
+def folder(prefix, db=None):
+    """The design's texts under a 1.0.0 folder (spec/physics/), written as files for a tool that takes paths
+    (the pseudocode's translators), under build/from_design/ (not kept in git); its path."""
+    root = ROOT / "build" / "from_design"
+    ps = paths(prefix, db)
+    if not ps:
+        raise SystemExit(f"from_design: the design holds nothing under {prefix}")
+    for p in ps:
+        f = root / p
+        b = text(p, db).encode()
+        if not f.is_file() or f.read_bytes() != b:
+            write_bytes(f, b)
+    out = root / prefix.rstrip("/")
+    for f in out.glob("*"):
+        if f.is_file() and f.relative_to(root).as_posix() not in ps:
+            f.unlink()
+    return out
+
+
 def outputs(db=None):
     """{repository path: (bytes, where it comes from)} of every file generated from the design."""
     db = db or design()

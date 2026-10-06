@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """The pseudocode v2 tools (docs/PSEUDOCODE_V2.md): check a file, run a function, and make (or check)
-everything generated from the physics relations (spec/physics/*.pc).
+everything generated from the physics relations (spec/physics/*.pc, as the design holds them: tools/from_design.py).
 
     python3 tools/pcode.py check FILE...                  units, types, every output set, no recursion
     python3 tools/pcode.py run FILE... --fn NAME --args JSON   the interpreter's outputs (SI)
@@ -34,10 +34,12 @@ import sys
 import tomllib
 
 from common import ROOT, write_text
+import from_design
 
 CLI = ROOT / "design" / "js" / "pcode_cli.mjs"
-REGISTRY = ROOT / "spec" / "plan" / "physics.toml"
-SEED = ROOT / "spec" / "plan" / "seed_content.toml"
+# the relations and their registry and worked examples are design: read from the regression copy
+# (tools/from_design.py), the .pc files written under build/from_design/ for the translators
+REGISTRY_PATH, SEED_PATH = "spec/plan/physics.toml", "spec/plan/seed_content.toml"
 MATLAB_RT = ROOT / "matlab_sils" / "+asils" / "+pc"
 CHECKER_TEMPLATE = ROOT / "design" / "js" / "pcode_check.template.html"
 CHECKER = ROOT / "design" / "pcode_checker.html"
@@ -46,7 +48,7 @@ N_FSW_VECTORS, FSW_BUDGET = 32, 2000   # the flight algorithms branch more; a fu
 
 # What the pseudocode makes: each package's sources, its Rust crate, its MATLAB package, its vectors.
 PACKAGES = [
-    {"name": "physics", "src": ROOT / "spec" / "physics", "crate": ROOT / "engine" / "crates" / "adcs-physics", "crate_name": "adcs-physics",
+    {"name": "physics", "src": from_design.folder("spec/physics/"), "crate": ROOT / "engine" / "crates" / "adcs-physics", "crate_name": "adcs-physics",
      "about": "TRI-NETRA physics: the relations of spec/plan/physics.toml, translated from the pseudocode (spec/physics/*.pc) by tools/pcode.py",
      "mpkg": "asils.physics", "vectors": ROOT / "matlab_sils" / "data" / "physics_vectors.json", "registry": True},
     {"name": "selftest", "src": ROOT / "design" / "pcode_selftest", "crate": ROOT / "engine" / "crates" / "pcode-selftest", "crate_name": "pcode-selftest",
@@ -90,7 +92,7 @@ def mdir(pkg):
 
 def registry_problems(sigs):
     """spec/plan/physics.toml against the pseudocode's functions: the same set, the same arguments."""
-    reg = {f"{f['module']}::{f['name']}": f["args"] for f in tomllib.loads(REGISTRY.read_text())["function"]}
+    reg = {f"{f['module']}::{f['name']}": f["args"] for f in tomllib.loads(from_design.text(REGISTRY_PATH))["function"]}
     have = {f"{s['module']}::{s['name']}": [i["name"] for i in s["inputs"]] for s in sigs}
     errs = [f"physics.toml names {k}, which spec/physics does not define" for k in sorted(set(reg) - set(have))]
     for k in sorted(set(reg) & set(have)):
@@ -261,7 +263,7 @@ def gen(check_only):
 
 def fixtures():
     """Every seeded fixture of a physics row, through the interpreter: (label, ok, line)."""
-    rows = tomllib.loads(SEED.read_text())["row"]
+    rows = tomllib.loads(from_design.text(SEED_PATH))["row"]
     sigs = {f"{s['module']}::{s['name']}": s for s in cli("signatures", *map(str, sources()))}
     out = []
     for r in rows:

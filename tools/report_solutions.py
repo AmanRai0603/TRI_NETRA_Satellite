@@ -123,7 +123,8 @@ def solution_html(S, rows, figs):
 
 def components_html():
     import tomllib
-    C = [tomllib.loads(f.read_text()) for f in sorted((ROOT / "catalogue" / "components").glob("*.toml"))]
+    import from_design
+    C = [tomllib.loads(from_design.text(p)) for p in from_design.paths("catalogue/components/")]
     C.sort(key=lambda c: (c["kind"] != "sensor", c["id"]))
     o = ["<h2 id='components'>Components: SILS model and in-house chain</h2>",
          "<p>The SILS flies a <b>model</b> of each unit. The unit's own processing, its <b>chain</b>, is where in-house development plugs in node by node, and it is packaged for the unit or the OBC. The HAL frame is the only interface either way (docs/COMPONENTS.md).</p>",

@@ -40,7 +40,7 @@ import tomllib
 
 from common import ROOT, design_folder, write_text
 
-PLAN = ROOT / "spec" / "plan"
+PLAN = "spec/plan"                           # 1.0.0's plan, as the design holds it (tools/from_design.py)
 STORE = ROOT / "matlab_sils" / "store"
 CLI = ROOT / "design" / "js" / "pcode_cli.mjs"
 DEG = math.pi / 180
@@ -54,7 +54,8 @@ UNITS = {"": 1, "One": 1, "Count": 1, "unit": 1, "Percent": 0.01, "%": 0.01, "De
 
 
 def _toml(p):
-    return tomllib.loads(p.read_text(encoding="utf-8"))
+    import from_design
+    return tomllib.loads(from_design.text(p) if isinstance(p, str) else p.read_text(encoding="utf-8"))
 
 
 def load_design(d):
@@ -179,8 +180,8 @@ def evidence(case):
 def evaluate(d, case):
     nodes, source = load_design(d)
     stated, _ = case_values(d, case)
-    kpis = _toml(PLAN / "kpis.toml")["kpi"]
-    ci = {x["tree_id"]: x for x in _toml(PLAN / "case_inputs.toml").get("input", []) if x.get("tree_id")}
+    kpis = _toml(f"{PLAN}/kpis.toml")["kpi"]
+    ci = {x["tree_id"]: x for x in _toml(f"{PLAN}/case_inputs.toml").get("input", []) if x.get("tree_id")}
     ev = evidence(case)
     out = {}
 

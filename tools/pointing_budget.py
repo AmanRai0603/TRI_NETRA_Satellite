@@ -31,7 +31,7 @@ from common import ROOT, case_values, write_json, write_text
 
 ENGINE = ROOT / "engine" / "target" / "release" / "adcs"
 SCEN = ROOT / "matlab_sils" / "data" / "scenarios"
-PRODUCTS = ROOT / "catalogue" / "products"
+PRODUCTS = "catalogue/products"            # the products as the design holds them (tools/from_design.py)
 # the scenarios that judge req.ape on a star-tracker product
 SCENARIOS = ["fine_hold_img", "fine_hold_rw_rcs", "fine_hold_cmg", "fine_hold_fmr", "fine_hold_fmr_rcs", "fine_hold_vscmg", "target_img"]
 JITTER = {"id": "budget_jitter", "kind": "jitter", "window": "last_orbit",
@@ -51,10 +51,11 @@ def control_part(ape, ake):
 def product_alignment(product):
     """gp_2 from the product file, in degrees; None when the product does not state it."""
     import tomllib
-    f = PRODUCTS / f"{product}.toml"
-    if not f.exists():
+    import from_design
+    f = f"{PRODUCTS}/{product}.toml"
+    if f not in from_design.paths(PRODUCTS + "/"):
         return None
-    x = tomllib.loads(f.read_text()).get("payload_alignment_rad")
+    x = tomllib.loads(from_design.text(f)).get("payload_alignment_rad")
     return None if x is None else math.degrees(float(x))
 
 

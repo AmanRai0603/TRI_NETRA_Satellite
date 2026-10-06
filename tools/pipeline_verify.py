@@ -386,7 +386,8 @@ def case_dispersions(case, defaults=None):
     use is refused by name."""
     import tomllib
     from common import case_values
-    D = defaults or tomllib.loads((ROOT / "catalogue" / "dispersions.toml").read_text())
+    import from_design
+    D = defaults or tomllib.loads(from_design.text("catalogue/dispersions.toml"))
     cv = case_values(case)
     for k in ("orbit.ltan", "orbit.alt", "magnetic.dres"):
         if k not in cv:
