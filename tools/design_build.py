@@ -111,6 +111,30 @@ def engine_inputs(bodies, cases):
     return files
 
 
+def flight_layout(bodies):
+    """The flight software's parameter table (adcs-fswcfg/1) from the design: each field from its
+    stated block (fsw_param_<name>: its port, its rules, its place in the table), the table's limits
+    from the flight software's own table block. The 1.0.0 software reads blobs of exactly this layout."""
+    head = None
+    fields = []
+    for nid, body in bodies.items():
+        c = {(s, f): v for s, f, v, _o in body.get("content", [])}
+        if nid.startswith("fsw_param_"):
+            f = {"name": body["output"][0][0], **json.loads(c[("spec", "rules")])}
+            if c.get(("identity", "question")):
+                f["doc"] = c[("identity", "question")]
+            fields.append((int(c[("spec", "order")]), f))
+        for s, fld, v, o in body.get("content", []):
+            if s == "table" and o and o.split(" ")[0] == "fsw/params/params.toml":
+                head = {k: x for k, x in tomllib.loads(v).items() if k != "field"}
+    if head is None:
+        raise SystemExit("design_build: the design has no flight software parameter table block (fsw/params/params.toml)")
+    fields.sort(key=lambda x: x[0])
+    if [i for i, _ in fields] != list(range(len(fields))):
+        raise SystemExit("design_build: the flight parameters' places in the table are not 0..n-1")
+    return {**head, "field": [f for _, f in fields]}
+
+
 def read_cases(drive):
     """{case id: (kind, source text)} and the case rows of every case (kind "case") the engine flies
     (meta `flown`; a case file without it is flown)."""
@@ -157,6 +181,7 @@ def build(drive, out, *, export=None, at="2026-10-06T00:00:00Z"):
         edges += [(e["from_node"], e["to_node"], e["kind"], e["label"]) for e in gedges]
     cases, case_rows = read_cases(drive)
     files = engine_inputs(bodies, cases)
+    layout = flight_layout(bodies)
     file_rows = [(p, design_inputs.fnv_hex(b), b) for p, b in sorted(files.items())]
     h = hashlib.sha256()
     for r in case_rows:
@@ -178,7 +203,7 @@ def build(drive, out, *, export=None, at="2026-10-06T00:00:00Z"):
                   (f"today {at[:10]}", "today", at, "tools/design_build.py", design_inputs.needs_application(), design_inputs.TOOLBOX))
         for k, v in (("inputs_fingerprint", fp_all), ("toolbox", design_inputs.TOOLBOX), ("needs_application", design_inputs.needs_application()),
                      ("design_kind", "today"), ("releases_used", json.dumps({g: v for g, v, _f, _a in dgroups}, sort_keys=True)),
-                     ("refused", json.dumps(notes))):
+                     ("refused", json.dumps(notes)), ("flight_layout", json.dumps(layout, sort_keys=True))):
             c.execute('INSERT OR REPLACE INTO meta VALUES (?, ?)', (k, v))
     tndb.create(out, "design", "today", written_by="tools/design_build.py", fill=fill, sync=False)
     if export:

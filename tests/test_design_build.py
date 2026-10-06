@@ -5,14 +5,21 @@ program reads from the converted drive, and what the engine reads from it is wha
   - every case the engine flies has the same lines, and the inputs' fingerprint is the repository's;
   - the database checks, names its toolbox and application, and the releases it used;
   - a refused release changes nothing: the group keeps its last good release, and says so;
+  - the flight software's parameter table, read from its nodes, is fsw/params/params.toml and gives the
+    same generated C and Rust; every scenario's parameter blob from the design is the files' byte for byte;
+  - scenarios flown from the design alone (an empty data folder) give the files' result id and metrics;
   - building twice gives the same engine inputs.
 
 Owner: Agastya. Copyright (c) 2026 Agastya. All rights reserved.
 """
+import json
+import os
 import pathlib
 import shutil
 import sqlite3
+import subprocess
 import tempfile
+import tomllib
 import unittest
 
 import _path  # puts tools/ on the import path
@@ -20,10 +27,14 @@ import carry_over
 import convert_2_0 as conv
 import design_build
 import design_inputs
+import gen_fsw_params
 import seed_design
 import tndb
 
 _ = _path  # imported for its effect: tools/ on sys.path
+ROOT = pathlib.Path(__file__).resolve().parents[1]
+ADCS = ROOT / "engine" / "target" / "release" / "adcs"
+HAVE_ENGINE = ADCS.is_file() and os.access(ADCS, os.X_OK)
 
 
 class DesignBuild(unittest.TestCase):
@@ -101,6 +112,49 @@ class DesignBuild(unittest.TestCase):
         with sqlite3.connect(again) as c:
             self.assertEqual(sorted(c.execute("SELECT * FROM engine_input")), sorted(self.held("SELECT * FROM engine_input")))
             self.assertEqual(dict(c.execute("SELECT * FROM meta"))["inputs_fingerprint"], self.fp)
+
+
+    def test_the_flight_parameter_table_comes_from_its_nodes(self):
+        layout = json.loads(dict(self.held('SELECT "key", "value" FROM meta'))["flight_layout"])
+        self.assertEqual(layout, tomllib.loads((ROOT / "fsw" / "params" / "params.toml").read_text()))
+        want = gen_fsw_params.outputs()
+        try:
+            gen_fsw_params.use(layout)
+            self.assertEqual(gen_fsw_params.outputs(), want)
+        finally:
+            gen_fsw_params.use(tomllib.loads((ROOT / "fsw" / "params" / "params.toml").read_text()))
+
+    def engine(self, *args, from_design):
+        bare = pathlib.Path(self.tmp.name) / "bare"
+        bare.mkdir(exist_ok=True)
+        env = dict(os.environ, TRINETRA_STORE=str(pathlib.Path(self.tmp.name) / ("store_db" if from_design else "store_files")))
+        env.pop("TRINETRA_DESIGN", None)
+        if from_design:
+            env.update(ADCS_ROOT=str(bare), TRINETRA_DESIGN=str(self.db))
+        r = subprocess.run([str(ADCS), *args], env=env, capture_output=True, text=True, timeout=600, cwd=ROOT)
+        self.assertEqual(r.returncode, 0, r.stderr[-1000:])
+
+    @unittest.skipUnless(HAVE_ENGINE, "the engine is not built (engine/target/release/adcs)")
+    def test_every_parameter_blob_from_the_design_is_the_files(self):
+        d = pathlib.Path(self.tmp.name)
+        for sc in sorted(p.stem for p in (design_inputs.DATA / "data" / "scenarios").glob("*.json")):
+            self.engine("params", sc, "--out", str(d / "a.bin"), from_design=False)
+            self.engine("params", sc, "--out", str(d / "b.bin"), from_design=True)
+            self.assertEqual((d / "a.bin").read_bytes(), (d / "b.bin").read_bytes(), sc)
+
+    @unittest.skipUnless(HAVE_ENGINE, "the engine is not built (engine/target/release/adcs)")
+    def test_scenarios_flown_from_the_design_give_the_same_runs(self):
+        d = pathlib.Path(self.tmp.name)
+        for sc in ("detumble_ais", "nadir_hold_ais", "fine_hold_img", "slew_cmg"):
+            for fsw in ("c", "rust"):
+                got = []
+                for way in (False, True):
+                    out = d / f"run_{sc}_{fsw}_{way}"
+                    self.engine("run", sc, "--fsw", fsw, "--out", str(out), "-q", from_design=way)
+                    m = json.loads((out / "manifest.json").read_text())
+                    got.append((m["result_id"], m["metrics"]))
+                    shutil.rmtree(out)
+                self.assertEqual(got[0], got[1], f"{sc} {fsw}")
 
 
 if __name__ == "__main__":

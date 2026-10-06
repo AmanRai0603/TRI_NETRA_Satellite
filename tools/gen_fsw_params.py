@@ -209,6 +209,15 @@ PAYLOAD = sum(SIZE[f["type"]] * count(f) for f in F)
 BLOB = 8 + 4 + PAYLOAD + 4
 
 
+def use(definition):
+    """Write from another definition of the same form (today's design's, tools/design_build.py
+    flight_layout) instead of fsw/params/params.toml."""
+    global P, F, PAYLOAD, BLOB
+    P, F = definition, definition["field"]
+    PAYLOAD = sum(SIZE[f["type"]] * count(f) for f in F)
+    BLOB = 8 + 4 + PAYLOAD + 4
+
+
 def c_header():
     L = [f"/* adcs_params.h -- {HDR} */", "#ifndef ADCS_PARAMS_H", "#define ADCS_PARAMS_H", "",
          "#include <stddef.h>", "#include <stdint.h>", "",
