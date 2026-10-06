@@ -73,7 +73,17 @@ LIBRARY = [("catalogue", "**/*.toml", "catalogue", "the catalogue"),
            ("fsw/params", "params.toml", "fsw", "the flight software's parameter table (adcs-fswcfg/1)"),
            ("matlab_sils/data/catalogue", "*.json", "catalogue", "the datasheet catalogue (adcs-datasheet/1)"),
            ("matlab_sils/data/pipeline", "nodes.json", "design", "the design loop's node registry (adcs-nodes/1)"),
-           ("matlab_sils/data", "scenario_schema.json", "programme", "the scenario format (adcs-scenario/1)")]
+           ("matlab_sils/data", "scenario_schema.json", "programme", "the scenario format (adcs-scenario/1)"),
+           # the rest of 1.0.0's plan that the code still reads until its relations are methods (S7); held whole, so
+           # the repository can archive spec/ and read them from the design (tools/from_design.py)
+           ("spec/plan", "case_inputs.toml", "programme", "which node declares each case line"),
+           ("spec/plan", "case_template.csv", "programme", "the case template (adcs-case/1)"),
+           ("spec/plan", "physics.toml", "systems", "the relations' registry (signatures, units, sources)"),
+           ("spec/plan", "seed_content.toml", "systems", "the relations' worked examples (test vectors)"),
+           ("spec/plan", "tree.json", "systems", "1.0.0's tree of rows"),
+           ("spec/plan", "expected_node_ids.json", "systems", "1.0.0's row ids"),
+           ("spec/plan", "twin_map.toml", "vv", "which twin function implements each row"),
+           ("spec/physics", "*.pc", "systems", "the relations in pseudocode (adcs-physics is generated from them)")]
 CASES = [("matlab_sils/cases", "*.csv", "case"), ("spec/plan/cases", "*.csv", "case"),
          ("scenarios", "*.toml", "scenario"), ("campaigns", "*.toml", "campaign"), ("trades", "*.toml", "trade")]
 
@@ -257,7 +267,7 @@ def convert(out, src=None):
         text = (ROOT / "fsw" / "pseudocode" / fname).read_bytes().decode("utf-8")
         mod = re.search(r"^module\s+(\w+)", text, re.M).group(1)
         nid = f"fsw_{mod}"
-        fsw[nid] = {"group": gid, "file": fname, "module": mod, "text": text, "doc": (ROOT / "fsw" / "pseudocode" / fname.replace(".pc", ".md")),
+        fsw[nid] = {"group": gid, "file": fname, "module": mod, "text": text, "doc": next(iter(sorted((ROOT / "fsw" / "pseudocode").glob(fname[:3] + "*.md"))), ROOT / "fsw" / "pseudocode" / fname.replace(".pc", ".md")),
                     "vectors": vectors.get(mod, [])}
     params = tomllib.loads((ROOT / "fsw" / "params" / "params.toml").read_text())
 
@@ -327,7 +337,7 @@ def convert(out, src=None):
         doc = x["doc"].read_bytes().decode("utf-8") if x["doc"].is_file() else ""
         new_node(gdir[x["group"]] / "nodes" / f"{nid}.node.tndb", nid, x["group"], "leaf", f"Flight algorithms: {x['module']}", 3,
                  content=[("code", "pseudocode", x["text"], f"fsw/pseudocode/{x['file']}"), ("code", "uses", json.dumps(TOOLBOX_MODULES), BY),
-                          ("explain", "theory", doc, f"fsw/pseudocode/{x['file'].replace('.pc', '.md')}"),
+                          ("explain", "theory", doc, f"fsw/pseudocode/{x['doc'].name}"),
                           ("identity", "question", f"What the flight software's {x['module']} algorithms compute, operation for operation", BY)],
                  fixtures=fx, block=(nid, groups[x["group"]]["mounts"][0]["on"], "subsystem", "method", None, None))
         report.append(["flight algorithms", x["file"], f"fsw/pseudocode/{x['file']}", f"groups/{x['group']}/nodes/{nid}.node.tndb", f"method; {len(fx)} vectors as its cases"])

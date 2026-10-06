@@ -40,6 +40,8 @@ CHECKS = [
      [PY, "tools/build_wheel.py", "--selftest"], ".", []),
     ("catalogue", "every JSON the engine and the twin read is its TOML",
      [PY, "tools/export_catalogue.py", "--check"], ".", []),
+    ("from-design", "every file the code reads that is design (the engine's inputs and cases, the flight parameter table, the flight algorithms) is what the regression copy gives, and nothing else sits in the generated folders",
+     [PY, "tools/from_design.py", "--check"], ".", []),
     ("fsw-params", "the C and Rust parameter tables are their definition",
      [PY, "tools/gen_fsw_params.py", "--check"], ".", []),
     ("commands-doc", "docs/COMMANDS.md is the registry",

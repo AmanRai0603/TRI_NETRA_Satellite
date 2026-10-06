@@ -424,6 +424,18 @@ checks = "exit 1 when anything differs; each difference named"
 undo = "It writes generated files only: `git checkout -- results/PARITY_2_0.md results/parity_2_0.json`."
 
 [[command]]
+tool = "from_design.py"
+name = "from-design"
+usage = "python3 tools/from_design.py [--check | --list]"
+what = "The design in the repository (docs/PLAN_2_0.md S4): the repository holds no design data of its own, only the regression copy (tests/regression/design.tndb). Every file the code still reads that is design is generated from it and never edited: the engine's input files and cases (matlab_sils/data, matlab_sils/cases), the flight parameter table (fsw/params/params.toml) and the flight algorithms (fsw/pseudocode/03-09). Tools read the rest of 1.0.0's plan from the design by its 1.0.0 path (from_design.text)."
+steps = ["open the regression copy", "write every generated file it gives (or, with --check, compare; with --list, name them)", "with --check, name any file under a generated folder that the design does not give"]
+reads = ["tests/regression/design.tndb"]
+writes = ["matlab_sils/data/", "matlab_sils/cases/", "fsw/params/params.toml", "fsw/pseudocode/03-09"]
+runs = []
+checks = "--check: every generated file is the design's, byte for byte; tests/test_from_design.py"
+undo = "It writes generated files only: `git checkout -- matlab_sils/data matlab_sils/cases fsw/params fsw/pseudocode`."
+
+[[command]]
 tool = "seed_design.py"
 name = "seed-design"
 usage = "python3 tools/seed_design.py [--out DIR | --check]"

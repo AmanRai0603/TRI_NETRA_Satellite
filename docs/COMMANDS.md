@@ -40,6 +40,7 @@
 | [`design_build.py design-build`](#design_buildpy-design-build) | Today's design (docs/PLAN_2_0.md S4): the one database every program reads, built from every group's newest sealed release that passes its checks on the shared drive (or a converted folder). Holds the releases used, every node as released, the wires, the catalogue of outputs, the cases the engine flies line by line and every engine input file, each generated from the design's own blocks and case files; names its toolbox and the application it needs. With --export, writes the same inputs as a data folder for the MATLAB twin and the Python tools. |
 | [`health.py health`](#healthpy-health) | The health map of a design for a case (docs/OPERATING_2_0.md §6): every node's health with why (fails, refused, blocked, open, unproven, tight, closes; worst first), rolled up group by group to the ADCS; each closure's answer, its range verdict (closes for the whole range, for part of it, or fails for all of it) and its tornado from the case's edge campaigns; and trace to cause for every closure that does not close. Every value comes from tools/evaluate.py on the design; nothing here computes one of its own. |
 | [`parity_2_0.py parity-2-0`](#parity_2_0py-parity-2-0) | The parity gate (docs/PLAN_2_0.md S4): today's design, read alone by the engine (an empty data folder), gives the repository's own inputs, flight parameter table, parameter blobs, stored scenario runs, stored campaign runs and evaluation; optionally soft OILS on QEMU and the MATLAB twin flown from the design's export. |
+| [`from_design.py from-design`](#from_designpy-from-design) | The design in the repository (docs/PLAN_2_0.md S4): the repository holds no design data of its own, only the regression copy (tests/regression/design.tndb). Every file the code still reads that is design is generated from it and never edited: the engine's input files and cases (matlab_sils/data, matlab_sils/cases), the flight parameter table (fsw/params/params.toml) and the flight algorithms (fsw/pseudocode/03-09). Tools read the rest of 1.0.0's plan from the design by its 1.0.0 path (from_design.text). |
 | [`seed_design.py seed-design`](#seed_designpy-seed-design) | Seeds the design files from the spec: a group file for each of the 20 groups, a node file for each of the 734 rows (the 82 the spec seeds with their content, the rest as shells), and the starting design database. Never overwrites; --check seeds into a temporary folder and checks every file. |
 | [`version.py version`](#versionpy-version) | One version for the repository: VERSION is the source, and the engine's Cargo workspace, the Rust flight software's Cargo package and the C flight software's build id follow it; the Rust build ids are built from their Cargo version. --check fails on any drift; --set writes a new version everywhere. |
 | [`mutation.py mutation`](#mutationpy-mutation) | Mutation testing of the flight software's guidance, control and estimation (fsw-rs/src/guid.rs, ctl.rs, est.rs) with cargo-mutants: each small deliberate fault in turn, and whether the Rust flight software's tests catch it. Writes the kill rate per function and the missed mutants; --check fails under the floor the tool states. |
@@ -750,6 +751,25 @@ The parity gate (docs/PLAN_2_0.md S4): today's design, read alone by the engine 
 - **Checks:** exit 1 when anything differs; each difference named
 - **Undo:** It writes generated files only: `git checkout -- results/PARITY_2_0.md results/parity_2_0.json`.
 - **Code:** `tools/parity_2_0.py`
+
+## from_design.py from-design
+
+The design in the repository (docs/PLAN_2_0.md S4): the repository holds no design data of its own, only the regression copy (tests/regression/design.tndb). Every file the code still reads that is design is generated from it and never edited: the engine's input files and cases (matlab_sils/data, matlab_sils/cases), the flight parameter table (fsw/params/params.toml) and the flight algorithms (fsw/pseudocode/03-09). Tools read the rest of 1.0.0's plan from the design by its 1.0.0 path (from_design.text).
+
+    python3 tools/from_design.py [--check | --list]
+
+**Steps**
+
+1. open the regression copy
+2. write every generated file it gives (or, with --check, compare; with --list, name them)
+3. with --check, name any file under a generated folder that the design does not give
+
+- **Reads:** `tests/regression/design.tndb`
+- **Writes:** `matlab_sils/data/`; `matlab_sils/cases/`; `fsw/params/params.toml`; `fsw/pseudocode/03-09`
+- **Starts:** nothing
+- **Checks:** --check: every generated file is the design's, byte for byte; tests/test_from_design.py
+- **Undo:** It writes generated files only: `git checkout -- matlab_sils/data matlab_sils/cases fsw/params fsw/pseudocode`.
+- **Code:** `tools/from_design.py`
 
 ## seed_design.py seed-design
 
