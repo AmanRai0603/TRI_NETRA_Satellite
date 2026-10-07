@@ -43,7 +43,10 @@
 | [`from_design.py from-design`](#from_designpy-from-design) | The design in the repository (docs/PLAN_2_0.md S4): the repository holds no design data of its own, only the regression copy (tests/regression/design.tndb). Every file the code still reads that is design is generated from it and never edited: the engine's input files and cases (matlab_sils/data, matlab_sils/cases), the flight parameter table (fsw/params/params.toml) and the flight algorithms (fsw/pseudocode/03-09). Tools read the rest of 1.0.0's plan from the design by its 1.0.0 path (from_design.text). |
 | [`drive.py drive`](#drivepy-drive) | The shared drive, Trinetra Database (docs/OPERATING_2_0.md §15, docs/PLAN_2_0.md S4): pack zip 1 (the design converted into the 2.0.0 layout: groups with their baseline releases, cases, readable copies, the empty folders with a note each, the guides, START HERE, and MANIFEST.json with every file's size, SHA-256 and MD5), and check a drive's folder, or a listing of it, against that manifest. |
 | [`translators.py translators`](#translatorspy-translators) | The translators held to the interpreter (docs/PLAN_2_0.md S5): every package of pseudocode (the relations, the language's self-test, the flight software's algorithms, each group's code) translated to Rust, C and MATLAB, built, and run on every vector the interpreter drew; an exact function (no transcendental) bit for bit, any other within 1e-12 relative. |
-| [`flight_build.py flight-build`](#flight_buildpy-flight-build) | The flight build (docs/PLAN_2_0.md S6): the flight software's algorithms written from the design (the flight algorithm blocks, fsw/pseudocode/03-09, with the toolbox 01-02) by the library's translators (tndb translate; the JavaScript ones when it is not built): C99 into fsw/alg/ and Rust, a module of the no_std flight crate, into fsw-rs/src/alg/. The runtime (the tick, the HAL, the C interface, the parameter blob, the targets) stays code. |
+| [`flight_build.py flight-build`](#flight_buildpy-flight-build) | The flight build (docs/PLAN_2_0.md S6): the flight software's algorithms written from the design (the flight algorithm blocks, fsw/pseudocode/03-09, with the toolbox 01-02) by the library's translators (tndb translate; the JavaScript ones when it is not built): C99 into fsw/alg/ and Rust, a module of the no_std flight crate, into fsw-rs/src/alg/; beside them the algorithms' identity (sha256 over those sources, 16 hex), which both build ids end with (`... alg <id>`), and the translators' vector dispatchers for the vector tests (test code, never in an image). The runtime (the tick, the HAL, the C interface, the parameter blob, the targets) stays code. --design writes from another design's flight algorithm blocks and --out under another folder (a test's). |
+| [`flight_build.py flight-seal`](#flight_buildpy-flight-seal) | Seal one target's build of the flight software as a flight image (design/schema.toml formats.flight_image, design-<design version>.<target>.tnfsw): the design it came from (version, content hash), the runtime version (the build id the binary carries), the toolchain, every generated source, the binary and the configuration blob of every scenario (made by the engine from the design), each with its sha256, and the checks made on it. Unsigned: the developer's build. |
+| [`flight_build.py flight-verify`](#flight_buildpy-flight-verify) | Reopen a sealed flight image, recheck the hash of every file it holds and of its image, and say whether today's tree is it: the generated sources, the binary in the build folder and (with the engine built) every scenario's blob made again from the design. |
+| [`flight_build.py flight-which`](#flight_buildpy-flight-which) | The sealed flight image a result flew: its manifest's fsw.build_id (which ends with the algorithms' identity) against each image's runtime version, the target from fsw.impl (in-process C and Rust: the same sources the engine compiles into itself; QEMU: the firmware, and whether the one the engine loads today is the sealed one). A result flown before the build ids named their algorithms names no image, and is said so. |
 | [`flight_parity.py flight-parity`](#flight_paritypy-flight-parity) | The flight build's parity (docs/PLAN_2_0.md S6): the stored campaign summaries and soft-OILS runs of the flight software built from the design against those of the software it replaces, flown with the same commands; it flies nothing. Campaigns and SILS must be identical (1e-12 relative) with the same verdicts; soft OILS must keep every deadline and verdict, its instruction counts and metric differences shown. |
 | [`seed_design.py seed-design`](#seed_designpy-seed-design) | Seeds the design files from the spec: a group file for each of the 20 groups, a node file for each of the 734 rows (the 82 the spec seeds with their content, the rest as shells), and the starting design database. Never overwrites; --check seeds into a temporary folder and checks every file. |
 | [`version.py version`](#versionpy-version) | One version for the repository: VERSION is the source, and the engine's Cargo workspace, the Rust flight software's Cargo package and the C flight software's build id follow it; the Rust build ids are built from their Cargo version. --check fails on any drift; --set writes a new version everywhere. |
@@ -583,7 +586,7 @@ The flight software's parameter and table sources, C and Rust, from their one de
 2. write the C header and source and the Rust module
 
 - **Reads:** `fsw/params/params.toml`; `matlab_sils/data/igrf13coeffs.txt`
-- **Writes:** `fsw/include/adcs_params.h`; `fsw/src/adcs_params.c`; `fsw-rs/src/params.rs`; `matlab_sils/data/igrf13.json`; `fsw/include/adcs_igrf13.h`; `fsw-rs/src/igrf13.rs`; `fsw/pseudocode/02_igrf13.pc`
+- **Writes:** `fsw/include/adcs_params.h`; `fsw/src/adcs_params.c`; `fsw-rs/src/params.rs`; `matlab_sils/data/igrf13.json`; `fsw-rs/src/igrf13.rs`; `fsw/pseudocode/02_igrf13.pc`
 - **Starts:** nothing
 - **Checks:** --check: every generated parameter file is its definition
 - **Undo:** It writes generated files only: `git checkout -- <file>` puts back the committed one, or run it again once its source is as you want it.
@@ -818,21 +821,84 @@ The translators held to the interpreter (docs/PLAN_2_0.md S5): every package of 
 
 ## flight_build.py flight-build
 
-The flight build (docs/PLAN_2_0.md S6): the flight software's algorithms written from the design (the flight algorithm blocks, fsw/pseudocode/03-09, with the toolbox 01-02) by the library's translators (tndb translate; the JavaScript ones when it is not built): C99 into fsw/alg/ and Rust, a module of the no_std flight crate, into fsw-rs/src/alg/. The runtime (the tick, the HAL, the C interface, the parameter blob, the targets) stays code.
+The flight build (docs/PLAN_2_0.md S6): the flight software's algorithms written from the design (the flight algorithm blocks, fsw/pseudocode/03-09, with the toolbox 01-02) by the library's translators (tndb translate; the JavaScript ones when it is not built): C99 into fsw/alg/ and Rust, a module of the no_std flight crate, into fsw-rs/src/alg/; beside them the algorithms' identity (sha256 over those sources, 16 hex), which both build ids end with (`... alg <id>`), and the translators' vector dispatchers for the vector tests (test code, never in an image). The runtime (the tick, the HAL, the C interface, the parameter blob, the targets) stays code. --design writes from another design's flight algorithm blocks and --out under another folder (a test's).
 
-    python3 tools/flight_build.py gen [--check]
+    python3 tools/flight_build.py gen [--check] [--design FILE] [--out DIR]
 
 **Steps**
 
 1. translate the flight algorithms to C (adcs_alg, no dispatcher)
 2. translate them to Rust (crate::alg, maths from crate::m, no dispatcher)
-3. write them (or, with --check, compare), removing any file the design no longer gives
+3. hash the C and Rust sources into the algorithms' identity (fsw/alg/include/adcs_alg_id.h, fsw-rs/src/alg/alg_id.rs)
+4. translate them again with the dispatcher and keep the dispatcher alone (fsw/tests/alg_dispatch.c, fsw-rs/tests/alg/dispatch.rs)
+5. write them (or, with --check, compare), removing any file the design no longer gives
 
-- **Reads:** `fsw/pseudocode/*.pc`
-- **Writes:** `fsw/alg/`; `fsw-rs/src/alg/`
+- **Reads:** `fsw/pseudocode/*.pc`; with --design: the design's flight algorithm blocks
+- **Writes:** `fsw/alg/`; `fsw-rs/src/alg/`; `fsw/tests/alg_dispatch.c`; `fsw-rs/tests/alg/dispatch.rs`; with --out: the same under DIR
 - **Starts:** `engine/target/release/tndb translate (or node design/js/pcode_cli.mjs)`
 - **Checks:** --check: every generated algorithm source is what the design gives
-- **Undo:** It writes generated files only: `git checkout -- fsw/alg fsw-rs/src/alg`.
+- **Undo:** It writes generated files only: `git checkout -- fsw/alg fsw-rs/src/alg fsw/tests/alg_dispatch.c fsw-rs/tests/alg`.
+- **Code:** `tools/flight_build.py`
+
+## flight_build.py flight-seal
+
+Seal one target's build of the flight software as a flight image (design/schema.toml formats.flight_image, design-<design version>.<target>.tnfsw): the design it came from (version, content hash), the runtime version (the build id the binary carries), the toolchain, every generated source, the binary and the configuration blob of every scenario (made by the engine from the design), each with its sha256, and the checks made on it. Unsigned: the developer's build.
+
+    python3 tools/flight_build.py seal --target posix|posix-rs|qemu|qemu-rs [--out DIR]
+
+**Steps**
+
+1. check the generated sources against the design (flight_build gen --check, from_design)
+2. C targets: the flight flags (make check); the vectors on the host build of the same sources (fsw test_pcode, or cargo test --test pcode for Rust)
+3. qemu: the deepest stack against the reserved stack (tools/fsw_stack.py); qemu-rs: recorded as not run
+4. build the target (make build/libadcs_fsw.a | cargo build --features cabi [--target thumbv7em-none-eabihf] | make build/obc_qemu.elf | build/obc_qemu_rs.elf)
+5. read the build id from the binary and check it names today's algorithms
+6. make every scenario's adcs-fswcfg/1 blob from the design (adcs params, TRINETRA_DESIGN)
+7. write the .tnfsw whole (tools/tndb.py create), then results/flight_images/index.json and results/FLIGHT_IMAGES.md
+
+- **Reads:** `tests/regression/design.tndb`; `fsw/`; `fsw-rs/`
+- **Writes:** `results/flight_images/design-<version>.<target>.tnfsw (not in git)`; `results/flight_images/index.json`; `results/FLIGHT_IMAGES.md`; `fsw/build/, fsw-rs/target/ (the builds)`
+- **Starts:** make; cargo; `gcc / arm-none-eabi-gcc`; `engine/target/release/adcs params`; `python3 tools/fsw_stack.py`
+- **Checks:** each check is a row of the image with its result; a check that could not run on the target is recorded as not run; exit 1 when one that ran did not pass
+- **Undo:** Delete the .tnfsw (git ignores it) and `git checkout -- results/flight_images/index.json results/FLIGHT_IMAGES.md`.
+- **Code:** `tools/flight_build.py`
+
+## flight_build.py flight-verify
+
+Reopen a sealed flight image, recheck the hash of every file it holds and of its image, and say whether today's tree is it: the generated sources, the binary in the build folder and (with the engine built) every scenario's blob made again from the design.
+
+    python3 tools/flight_build.py verify FILE.tnfsw [--no-blobs]
+
+**Steps**
+
+1. check the file against design/schema.toml
+2. recheck each file's sha256 and the image's own
+3. compare each source and the binary with the tree's
+4. make the blobs again from the design and compare them (unless --no-blobs)
+
+- **Reads:** `FILE.tnfsw`; `fsw/, fsw-rs/, the build folders`; `tests/regression/design.tndb`
+- **Writes:** nothing
+- **Starts:** `engine/target/release/adcs params`
+- **Checks:** exit 1 when a hash in the file does not hold (the file is damaged); whether today's build is the sealed one is said, not judged
+- **Undo:** It writes nothing.
+- **Code:** `tools/flight_build.py`
+
+## flight_build.py flight-which
+
+The sealed flight image a result flew: its manifest's fsw.build_id (which ends with the algorithms' identity) against each image's runtime version, the target from fsw.impl (in-process C and Rust: the same sources the engine compiles into itself; QEMU: the firmware, and whether the one the engine loads today is the sealed one). A result flown before the build ids named their algorithms names no image, and is said so.
+
+    python3 tools/flight_build.py which RUN [--dir DIR]
+
+**Steps**
+
+1. read the run's manifest.json
+2. match its build id and flight software to the sealed images in DIR (default results/flight_images)
+
+- **Reads:** `RUN/manifest.json`; `results/flight_images/*.tnfsw`
+- **Writes:** nothing
+- **Starts:** nothing
+- **Checks:** exit 1 when no sealed image has the run's build id
+- **Undo:** It writes nothing.
 - **Code:** `tools/flight_build.py`
 
 ## flight_parity.py flight-parity

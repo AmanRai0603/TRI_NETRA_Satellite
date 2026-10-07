@@ -28,9 +28,10 @@ build/test_fsw: tests/test_fsw.c tests/hal_stub.c build/libadcs_fsw.a
 	$(CC) $(CFLAGS) -Itests tests/test_fsw.c tests/hal_stub.c build/libadcs_fsw.a -lm -o $@
 
 # the flight algorithms against their pseudocode (the .pc files of pseudocode/): the vectors,
-# tests/pcode_vectors.txt, are written by tools/pcode.py gen
-build/test_pcode: tests/test_pcode.c tests/hal_stub.c build/libadcs_fsw.a
-	$(CC) $(CFLAGS) -Isrc -Itests tests/test_pcode.c tests/hal_stub.c build/libadcs_fsw.a -lm -o $@
+# tests/pcode_vectors.txt, are written by tools/pcode.py gen; tests/alg_dispatch.c, the translator's vector dispatcher
+# (test code, never in the library), is written by tools/flight_build.py
+build/test_pcode: tests/test_pcode.c tests/hal_stub.c tests/alg_dispatch.c build/libadcs_fsw.a
+	$(CC) $(CFLAGS) $(ALGFLAGS) -Isrc -Itests tests/test_pcode.c tests/hal_stub.c tests/alg_dispatch.c build/libadcs_fsw.a -lm -o $@
 
 build:
 	mkdir -p build

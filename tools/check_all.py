@@ -46,6 +46,9 @@ CHECKS = [
      [PY, "tools/trinetra.py", "docs", "--check"], ".", []),
     ("flight-build", "the flight software's generated algorithm sources (C and Rust) are what the design gives",
      [PY, "tools/flight_build.py", "gen", "--check"], ".", ["node"]),
+    ("flight-image", "the C flight software's build seals as a flight image from the design (its sources the design's, its flight flags, its vectors, its build id naming the algorithms; every scenario's blob) and the sealed file verifies; a change in the design reaching the sources, the library and the metrics is tests/test_flight_build.py",
+     ["bash", "-c", "rm -rf build/flight_images && python3 tools/flight_build.py seal --target posix --out build/flight_images "
+      "&& python3 tools/flight_build.py verify build/flight_images/design-*.posix.tnfsw"], ".", ["make", "gcc", "bash", "engine"]),
     ("fsw-c", "the C flight software builds clean with every warning an error, calls nothing forbidden (malloc, time, rand), and passes its checks",
      ["make", "-s", "check", "test"], "fsw", ["make", "gcc"]),
     ("trace", "every shipped metric judges or says why it only reports; every stated requirement is checked",
@@ -105,12 +108,14 @@ MUTATION = [
 
 
 def have(need):
-    """Is a check's need here: a program on PATH, a Python module (py:<name>), or a browser
-    that prints PDFs (the one vv_report.py looks for)?"""
+    """Is a check's need here: a program on PATH, a Python module (py:<name>), the built engine (engine), or a
+    browser that prints PDFs (the one vv_report.py looks for)?"""
     if need.startswith("py:"):
         return importlib.util.find_spec(need[3:]) is not None
     if need == "time series":
         return any((ROOT / "matlab_sils" / "store" / "results").glob("*/channels.csv"))
+    if need == "engine":
+        return (ROOT / "engine" / "target" / "release" / "adcs").is_file()
     if need == "browser":
         return bool(glob.glob("/opt/pw-browsers/chromium*/chrome-linux/chrome") or shutil.which("chromium") or shutil.which("google-chrome"))
     return shutil.which(need) is not None

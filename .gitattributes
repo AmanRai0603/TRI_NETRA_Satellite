@@ -4,8 +4,11 @@
 fsw/include/adcs_params.h           linguist-generated
 fsw/src/adcs_params.c               linguist-generated
 fsw-rs/src/params.rs                linguist-generated
-fsw/include/adcs_igrf13.h           linguist-generated
 fsw-rs/src/igrf13.rs                linguist-generated
+fsw/alg/**                          linguist-generated
+fsw-rs/src/alg/**                   linguist-generated
+fsw/tests/alg_dispatch.c            linguist-generated
+fsw-rs/tests/alg/**                 linguist-generated
 matlab_sils/data/parts/*.json       linguist-generated
 matlab_sils/data/products/*.json    linguist-generated
 matlab_sils/data/algorithms/*.json  linguist-generated

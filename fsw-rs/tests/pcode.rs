@@ -1,11 +1,21 @@
 //! The flight algorithms against their pseudocode (fsw/pseudocode/*.pc, docs/PSEUDOCODE_V2.md):
 //! every vector the interpreter drew (fsw/tests/pcode_vectors.txt, written by tools/pcode.py gen)
-//! through the hand-written Rust flight software. A function that uses no transcendental must agree
+//! through the runtime's Rust signatures (which hand the values to the algorithms written from the design,
+//! fsw-rs/src/alg), and the functions it has no signature for by name through the generated dispatcher. A function that uses no transcendental must agree
 //! bit for bit; one that does, to 1e-12 relative (maths libraries differ in their last bits).
 //! A proc's vectors are a run of calls, its state carried from each to the next.
 //! Owner: Agastya. Copyright (c) 2026 Agastya. All rights reserved.
 use adcs_fsw::devices::*;
-use adcs_fsw::{alloc, ctl, drv, env, est, guid, math, CanFrame, Hal, Params, Status};
+use adcs_fsw::{alloc, ctl, drv, env, est, guid, CanFrame, Hal, Params, Status};
+use adcs_fsw::math as hmath;
+// The translator's vector dispatcher (tests/alg/dispatch.rs, test code written beside the algorithms by
+// tools/flight_build.py, never in the flight crate). It names the algorithms' modules crate::<module>, so they are
+// brought in at this test's root.
+#[allow(unused_imports)]
+use adcs_fsw::alg::{allocation, control, drivers, estimation, frames, guidance, math, modes, steplaws};
+#[allow(dead_code)]
+#[path = "alg/dispatch.rs"]
+mod dispatch;
 
 /// One call of the vector file: `name exact set nx ny`, then the values' IEEE-754 bits in hex.
 struct Vector { name: &'static str, exact: bool, x: Vec<f64>, y: Vec<f64> }
@@ -19,33 +29,44 @@ fn vectors() -> Vec<Vector> {
     }).collect()
 }
 
-/// Functions of the pseudocode the Rust flight software has no function for, and why.
-const NOT_IN_RUST: &[(&str, &str)] = &[
-    ("math::qconj", "written inline where it is used ([-q.x, -q.y, -q.z, q.w])"),
-    ("modes::modes_enter", "a method on the flight software's private state (fsw::modes, fsw::fdir); the C is held to it here, and Rust = C bit for bit in closed loop on every shipped scenario"),
-    ("modes::modes_feasible", "a method on the flight software's private state (fsw::modes, fsw::fdir); the C is held to it here, and Rust = C bit for bit in closed loop on every shipped scenario"),
-    ("modes::spin_guards", "a method on the flight software's private state (fsw::modes, fsw::fdir); the C is held to it here, and Rust = C bit for bit in closed loop on every shipped scenario"),
-    ("modes::modes_schedule", "a method on the flight software's private state (fsw::modes, fsw::fdir); the C is held to it here, and Rust = C bit for bit in closed loop on every shipped scenario"),
-    ("modes::modes_step", "a method on the flight software's private state (fsw::modes, fsw::fdir); the C is held to it here, and Rust = C bit for bit in closed loop on every shipped scenario"),
-    ("modes::fdir_safe", "a method on the flight software's private state (fsw::modes, fsw::fdir); the C is held to it here, and Rust = C bit for bit in closed loop on every shipped scenario"),
-    ("modes::fdir_sensors", "a method on the flight software's private state (fsw::modes, fsw::fdir); the C is held to it here, and Rust = C bit for bit in closed loop on every shipped scenario"),
-    ("modes::fdir_rotors", "a method on the flight software's private state (fsw::modes, fsw::fdir); the C is held to it here, and Rust = C bit for bit in closed loop on every shipped scenario"),
-    ("steplaws::ctl_mtq", "a method on the flight software's private state (fsw.rs); the C is held to it here, and Rust = C bit for bit in closed loop on every shipped scenario"),
-    ("steplaws::ctl_capture", "a method on the flight software's private state (fsw.rs); the C is held to it here, and Rust = C bit for bit in closed loop on every shipped scenario"),
-    ("steplaws::ctl_sun_acq", "a method on the flight software's private state (fsw.rs); the C is held to it here, and Rust = C bit for bit in closed loop on every shipped scenario"),
-    ("steplaws::alloc_rotors", "a method on the flight software's private state (fsw.rs); the C is held to it here, and Rust = C bit for bit in closed loop on every shipped scenario"),
-    ("steplaws::alloc_idle", "a method on the flight software's private state (fsw.rs); the C is held to it here, and Rust = C bit for bit in closed loop on every shipped scenario"),
-    ("steplaws::orbit_acc", "a method on the flight software's private state (fsw.rs); the C is held to it here, and Rust = C bit for bit in closed loop on every shipped scenario"),
-    ("frames::mod360", "private to env.rs; checked through sun_model, which calls it"),
-    ("control::mtq_err", "private to ctl.rs; checked through the four laws that call it (Lovera, Celani, Avanzini, TANGO)"),
-    ("estimation::update3", "private to est::Mekf; checked through mekf_vector and mekf_quat, which call it"),
-    ("drivers::rd16", "private to drv.rs; checked through drv_read, which calls it"),
-    ("drivers::rd32", "private to drv.rs; checked through drv_read, which calls it"),
-    ("drivers::q15", "private to drv.rs; checked through drv_write, which calls it"),
-    ("drivers::uart_frame", "private to drv::Drv; checked through drv_read, which calls it on both UARTs"),
-    ("drivers::uart_stream", "draws the vectors' byte streams; no flight code"),
-    ("drivers::read_streams", "draws the vectors' byte streams; no flight code"),
+/// Functions of the pseudocode the Rust flight software does not check, and why: none. Every function the pseudocode
+/// declares is in the flight build (fsw-rs/src/alg, written by tools/flight_build.py), so every one is checked.
+const NOT_IN_RUST: &[(&str, &str)] = &[];
+
+/// Functions the runtime has no signature of its own for, and why: each is checked as the translator wrote it, called
+/// by its name through the translator's vector dispatcher.
+const BY_NAME: &[(&str, &str)] = &[
+    ("math::qconj", "the runtime writes it inline where it is used ([-q.x, -q.y, -q.z, q.w])"),
+    ("modes::modes_enter", "the runtime calls it from a method on its private state (fsw::modes, fsw::fdir): no public signature"),
+    ("modes::modes_feasible", "the runtime calls it from a method on its private state (fsw::modes, fsw::fdir): no public signature"),
+    ("modes::spin_guards", "called only by the generated modes_step"),
+    ("modes::modes_schedule", "the runtime calls it from a method on its private state (fsw::modes, fsw::fdir): no public signature"),
+    ("modes::modes_step", "the runtime calls it from a method on its private state (fsw::modes, fsw::fdir): no public signature"),
+    ("modes::fdir_safe", "the runtime calls it from a method on its private state (fsw::modes, fsw::fdir): no public signature"),
+    ("modes::fdir_sensors", "the runtime calls it from a method on its private state (fsw::modes, fsw::fdir): no public signature"),
+    ("modes::fdir_rotors", "the runtime calls it from a method on its private state (fsw::modes, fsw::fdir): no public signature"),
+    ("steplaws::ctl_mtq", "the runtime calls it from a method on its private state (fsw.rs): no public signature"),
+    ("steplaws::ctl_capture", "the runtime calls it from a method on its private state (fsw.rs): no public signature"),
+    ("steplaws::ctl_sun_acq", "the runtime calls it from a method on its private state (fsw.rs): no public signature"),
+    ("steplaws::alloc_rotors", "the runtime calls it from a method on its private state (fsw.rs): no public signature"),
+    ("steplaws::alloc_idle", "the runtime calls it from a method on its private state (fsw.rs): no public signature"),
+    ("steplaws::orbit_acc", "the runtime calls it from a method on its private state (fsw.rs): no public signature"),
+    ("frames::mod360", "called only by the generated sun_model"),
+    ("control::mtq_err", "called only by the generated magnetic laws (Lovera, Celani, Avanzini, TANGO)"),
+    ("estimation::update3", "called only by the generated mekf_vector and mekf_quat"),
+    ("drivers::rd16", "called only by the generated drv_read"),
+    ("drivers::rd32", "called only by the generated drv_read"),
+    ("drivers::q15", "called only by the generated drv_write"),
+    ("drivers::uart_frame", "called only by the generated drv_read, on both UARTs"),
+    ("drivers::uart_stream", "the vectors' byte-stream builder: no flight function calls it"),
+    ("drivers::read_streams", "the vectors' byte-stream builder: no flight function calls it"),
 ];
+
+/// A call by the runtime's signature, or by name through the dispatcher for the functions it has none for.
+fn call_any(name: &str, x: &[f64]) -> Option<Vec<f64>> {
+    if BY_NAME.iter().any(|(m, _)| *m == name) { dispatch::call(name, x) } else { call(name, x) }
+}
+
 
 /// An in-memory HAL: what the devices would put on their ports, and what the drivers wrote.
 #[derive(Default)]
@@ -110,20 +131,20 @@ fn call(name: &str, x: &[f64]) -> Option<Vec<f64>> {
     let mut a = In { x, at: 0 };
     let mut o = Out::default();
     match name {
-        "math::maxabs3" => { o.f(math::maxabs3(&a.v3())); }
-        "math::mat3t_vec" => { let m = a.m3(); o.s(&math::mat3t_vec(&m, &a.v3())); }
-        "math::skew" => { o.m(&math::skew(&a.v3())); }
-        "math::det3" => { o.f(math::det3(&a.m3())); }
-        "math::inv3" => { let (r, ok) = math::inv3(&a.m3()); o.m(&r).b(ok); }
-        "math::pinv_rows" => { let m = a.m::<3, 8>(); let n = a.i() as usize; o.m(&math::pinv_rows(&m, n)); }
-        "math::jacobi_eig4" => { let (l, v) = math::jacobi_eig4(&a.m::<4, 4>()); o.s(&l).m(&v); }
-        "math::qmult" => { let p = a.q(); o.s(&math::qmult(&p, &a.q())); }
-        "math::qnorm" => { o.s(&math::qnorm(&a.q())); }
-        "math::dcm" => { o.m(&math::dcm(&a.q())); }
-        "math::fromdcm" => { o.s(&math::fromdcm(&a.m3())); }
-        "math::fromrotvec" => { o.s(&math::fromrotvec(&a.v3())); }
-        "math::qangle" => { let p = a.q(); o.f(math::qangle(&p, &a.q())); }
-        "math::qerr" => { let p = a.q(); o.s(&math::qerr(&p, &a.q())); }
+        "math::maxabs3" => { o.f(hmath::maxabs3(&a.v3())); }
+        "math::mat3t_vec" => { let m = a.m3(); o.s(&hmath::mat3t_vec(&m, &a.v3())); }
+        "math::skew" => { o.m(&hmath::skew(&a.v3())); }
+        "math::det3" => { o.f(hmath::det3(&a.m3())); }
+        "math::inv3" => { let (r, ok) = hmath::inv3(&a.m3()); o.m(&r).b(ok); }
+        "math::pinv_rows" => { let m = a.m::<3, 8>(); let n = a.i() as usize; o.m(&hmath::pinv_rows(&m, n)); }
+        "math::jacobi_eig4" => { let (l, v) = hmath::jacobi_eig4(&a.m::<4, 4>()); o.s(&l).m(&v); }
+        "math::qmult" => { let p = a.q(); o.s(&hmath::qmult(&p, &a.q())); }
+        "math::qnorm" => { o.s(&hmath::qnorm(&a.q())); }
+        "math::dcm" => { o.m(&hmath::dcm(&a.q())); }
+        "math::fromdcm" => { o.s(&hmath::fromdcm(&a.m3())); }
+        "math::fromrotvec" => { o.s(&hmath::fromrotvec(&a.v3())); }
+        "math::qangle" => { let p = a.q(); o.f(hmath::qangle(&p, &a.q())); }
+        "math::qerr" => { let p = a.q(); o.s(&hmath::qerr(&p, &a.q())); }
         "guidance::guid_kind" => { o.f(guid::kind_of(a.i() as u8) as f64); }
         "guidance::guidance" => {
             let kind = a.i() as i32; let (r, v, t) = (a.v3(), a.v3(), a.f());
@@ -310,11 +331,11 @@ fn the_rust_flight_software_reproduces_the_pseudocode() {
     let mut names: Vec<&str> = vs.iter().map(|v| v.name).collect();
     names.dedup();
     let missing: Vec<&str> = names.iter().copied()
-        .filter(|n| !NOT_IN_RUST.iter().any(|(m, _)| m == n) && call(n, &vs.iter().find(|v| v.name == *n).unwrap().x).is_none()).collect();
+        .filter(|n| !NOT_IN_RUST.iter().any(|(m, _)| m == n) && call_any(n, &vs.iter().find(|v| v.name == *n).unwrap().x).is_none()).collect();
     assert!(missing.is_empty(), "pseudocode functions with no Rust adapter and no stated reason: {missing:?}");
     for v in &vs {
         if NOT_IN_RUST.iter().any(|(m, _)| *m == v.name) { continue; }
-        let got = call(v.name, &v.x).unwrap();
+        let got = call_any(v.name, &v.x).unwrap();
         assert_eq!(got.len(), v.y.len(), "{}: output count", v.name);
         for (k, (g, w)) in got.iter().zip(&v.y).enumerate() {
             let err = (g - w).abs() / w.abs().max(1e-300);
@@ -324,5 +345,6 @@ fn the_rust_flight_software_reproduces_the_pseudocode() {
                     "{} output {k} for {:?}: Rust {g:e}, pseudocode {w:e}{}", v.name, v.x, if v.exact { " (no transcendental: must agree bit for bit)" } else { "" });
         }
     }
-    println!("{} functions, {} calls, {values} values, {exact} bit for bit, worst relative difference {worst:e}", names.len(), vs.len());
+    println!("{} functions ({} by name through the dispatcher), {} calls, {values} values, {exact} bit for bit, worst relative difference {worst:e}",
+             names.len(), names.iter().filter(|n| BY_NAME.iter().any(|(m, _)| m == *n)).count(), vs.len());
 }

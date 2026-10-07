@@ -84,8 +84,8 @@ byte for byte.
 **Generated, today:**
 - `adcs-physics`, from `spec/physics/*.pc`;
 - `adcs-groups` and `adcs-groups-wasm`, from the nodes;
-- `fsw/src/adcs_params.c`, `fsw/include/adcs_params.h`, `fsw-rs/src/params.rs`, `adcs_igrf13.h` and `igrf13.rs`, from
-  `fsw/params/params.toml` and the IGRF coefficients;
+- `fsw/src/adcs_params.c`, `fsw/include/adcs_params.h`, `fsw-rs/src/params.rs`, `fsw-rs/src/igrf13.rs` (the engine's
+  plant field model) and `fsw/pseudocode/02_igrf13.pc`, from `fsw/params/params.toml` and the IGRF coefficients;
 - the MATLAB `+groups` package;
 - `docs/COMMANDS.md`;
 - the pages from their templates;

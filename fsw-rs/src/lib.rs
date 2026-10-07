@@ -14,9 +14,12 @@
 pub mod m;
 /// The flight algorithms, written from the design by tools/flight_build.py (never edited).
 pub mod alg;
+/// The flight algorithms' identity, written beside them by tools/flight_build.py (the build ids end with it).
+#[macro_use]
+#[path = "alg/alg_id.rs"]
+mod alg_id;
+pub use alg_id::ALG_ID;
 pub mod math;
-#[allow(clippy::all)]
-pub mod igrf13;
 pub mod params;
 pub mod env;
 pub mod est;

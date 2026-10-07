@@ -94,6 +94,29 @@ def folder(prefix, db=None):
     return out
 
 
+def version(db=None):
+    """Which design it is: its released version (meta design_version) when it has one, else the
+    version its design_release row gives (today's design: `today <date>`)."""
+    with sqlite3.connect(f"file:{db or design()}?mode=ro", uri=True) as c:
+        meta = dict(c.execute('SELECT "key", "value" FROM meta'))
+        row = c.execute('SELECT "version" FROM design_release ORDER BY "built_at" DESC LIMIT 1').fetchone()
+    return meta.get("design_version") or (row[0] if row else meta.get("id", "?"))
+
+
+def fingerprint(db=None):
+    """The design's content hash: sha256 over its inputs' fingerprint (meta inputs_fingerprint: every case
+    and engine input) and every node's content, by id. Any change to a node, a case or an input changes it;
+    the file's layout on disk does not."""
+    import hashlib
+    with sqlite3.connect(f"file:{db or design()}?mode=ro", uri=True) as c:
+        meta = dict(c.execute('SELECT "key", "value" FROM meta'))
+        nodes = c.execute('SELECT "id", "content" FROM design_node ORDER BY "id"').fetchall()
+    h = hashlib.sha256(f"inputs {meta.get('inputs_fingerprint', '')}\n".encode())
+    for nid, content in nodes:
+        h.update(f"node {nid} {hashlib.sha256((content or '').encode()).hexdigest()}\n".encode())
+    return h.hexdigest()
+
+
 def outputs(db=None):
     """{repository path: (bytes, where it comes from)} of every file generated from the design."""
     db = db or design()

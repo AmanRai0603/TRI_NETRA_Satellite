@@ -201,14 +201,16 @@ each field in its own range.
 `fsw/pseudocode/*.pc` into `fsw/tests/pcode_vectors.txt`: a line per call, `name exact set nx ny`,
 then each input's and output's IEEE-754 bits in hex (a `proc`'s calls in order, its state carried).
 `fsw/tests/test_pcode.c` (in `make test`) and `fsw-rs/tests/pcode.rs` run every line through the
-hand-written flight software, through an adapter per function that calls the real code; the
-drivers go through their public paths (`adcs_drv_read`, `adcs_drv_write`, `Drv::read`,
-`drv::write`) over an in-memory HAL. A function with no transcendental must agree bit for bit,
-one with, to 1e-12 relative. A function the flight software has no function of its own for is
-listed with its reason (`NOT_IN_C`, `NOT_IN_RUST`: a private helper checked through its caller, a
-vector generator); any other function with no adapter fails the test. The mode manager, FDIR and
-the step laws work on the flight software's private state: C is held to them through `fsw_t`
-(`adcs_fsw_int.h`), and Rust to C by the closed-loop bit identity on every shipped scenario.
+flight software, through an adapter per function that calls the runtime's own signature (which hands
+the values to the algorithms written from the design, `fsw/alg`, `fsw-rs/src/alg`); the drivers go
+through their public paths (`adcs_drv_read`, `adcs_drv_write`, `Drv::read`, `drv::write`) over an
+in-memory HAL. A function the runtime has no signature of its own for (a helper only the generated
+algorithms call, a vector generator, and in Rust the mode manager, FDIR and step laws it calls from
+methods on its private state) is listed with its reason (`BY_NAME`) and called by its name through
+the translator's vector dispatcher (`fsw/tests/alg_dispatch.c`, `fsw-rs/tests/alg/dispatch.rs`,
+written by `tools/flight_build.py`; test code, never in an image). `NOT_IN_C` and `NOT_IN_RUST`,
+the functions not checked, are empty; any other function with no adapter fails the test. A function
+with no transcendental must agree bit for bit, one with, to 1e-12 relative.
 
 **The physics against its sources.** `fixtures` runs every test vector `spec/plan/seed_content.toml`
 transcribes from a source (IDMAS v2 today) through the interpreter, within the source's tolerance.

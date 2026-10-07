@@ -8,8 +8,10 @@ written follows it.
 
 The parts: the engine's Cargo workspace (every engine crate, the CLI and the desktop app inherit it),
 the Rust flight software's Cargo package, the C flight software's build id. The Rust build ids
-(`adcs_sim::ENGINE`, `fsw::BUILD_ID`) are built from their Cargo version at compile time, so they
-cannot drift; the check makes sure they still are. The wheel, the kits and the release tag read
+(`adcs_sim::ENGINE`, `fsw::BUILD_ID`, the Rust C interface's `adcs_fsw_build_id`) are built from their
+Cargo version at compile time, so they cannot drift; the check makes sure they still are. Both flight
+softwares' build ids end with the algorithms' identity (` alg <id>`, tools/flight_build.py), after the
+version the patterns read. The wheel, the kits and the release tag read
 VERSION directly.
 
 Copyright (c) 2026 Agastya. All rights reserved.
@@ -32,6 +34,7 @@ PARTS = [
 DERIVED = [
     ("adcs_sim::ENGINE", "engine/crates/adcs-sim/src/lib.rs", r'pub const ENGINE: &str = concat!\("adcs-engine-rs/", env!\("CARGO_PKG_VERSION"\)'),
     ("fsw::BUILD_ID", "fsw-rs/src/fsw.rs", r'pub const BUILD_ID: &str = concat!\("trinetra-fsw-rs/", env!\("CARGO_PKG_VERSION"\)'),
+    ("adcs_fsw_build_id (Rust C interface)", "fsw-rs/src/cabi.rs", r'concat!\("trinetra-fsw-rs/", env!\("CARGO_PKG_VERSION"\)'),
 ]
 
 

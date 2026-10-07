@@ -63,8 +63,8 @@ field_eci(r_eci, jd, gh, nmax):
     return Cᵀ R_n2e B_ned                   # T, ECI
 ```
 
-Coefficient table: `matlab_sils/data/igrf13.json` generates `fsw/include/adcs_igrf13.h` and
-`fsw-rs/src/igrf13.rs` (tools/gen_fsw_tables.py). The field is recomputed at most once per
+Coefficient table: `matlab_sils/data/igrf13coeffs.txt` generates `02_igrf13.pc` (tools/gen_fsw_params.py), which the
+flight build writes into the flight software with the rest (tools/flight_build.py). The field is recomputed at most once per
 second, at the start of a coil cycle; the coefficients `gh` are re-interpolated once a day. IGRF-13's last
 interval (2020–2025) is extrapolated for 2027; IGRF-14 is the table to load for flight.
 

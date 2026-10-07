@@ -15,7 +15,8 @@ HAL (`fsw/include/adcs_hal.h`, here the `Hal` trait).
 | `alloc` | 07 | `adcs_alloc.c` |
 | `fsw` (shell), `fsw::modes`, `fsw::fdir` | 08, 07 (rotor FDIR) | `adcs_fsw.c`, `adcs_modes.c`, `adcs_fdir.c` (state in `adcs_fsw_int.h`) |
 | `devices`, `drv`, `hal` | 09 | `adcs_devices.h`, `adcs_drv.c`, `adcs_hal.h` |
-| `params`, `igrf13` | generated | `adcs_params.c`, `adcs_igrf13.h` |
+| `params` | generated | `adcs_params.c` |
+| `alg` (and `ALG_ID`) | written from the design by `tools/flight_build.py` | `fsw/alg` (and `adcs_alg_id.h`) |
 
 * `no_std`, no heap, no panics on the flight path; `libm` on targets, the
   platform libm on host builds (then bit-identical to the C build — the test

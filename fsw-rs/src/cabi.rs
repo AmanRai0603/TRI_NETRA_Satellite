@@ -95,7 +95,9 @@ pub extern "C" fn adcs_fsw_peek(out: *mut State) -> i32 {
 }
 
 #[no_mangle]
-pub extern "C" fn adcs_fsw_build_id() -> *const u8 { b"trinetra-fsw-rs/1.0.0 (adcs-fswcfg/1)\0".as_ptr() }
+pub extern "C" fn adcs_fsw_build_id() -> *const u8 {
+    concat!("trinetra-fsw-rs/", env!("CARGO_PKG_VERSION"), " (adcs-fswcfg/1) alg ", adcs_alg_id!(), "\0").as_ptr()
+}
 
 /// Extension for the SILS and the parity ledger (as adcs_fsw_debug in C).
 #[no_mangle]

@@ -48,8 +48,8 @@ class Version(unittest.TestCase):
         self.assertEqual(V.main(["--check"]), 1)
 
     def test_a_literal_build_id_is_caught(self):
-        self.edit("fsw-rs/src/fsw.rs", 'concat!("trinetra-fsw-rs/", env!("CARGO_PKG_VERSION"), " (adcs-fswcfg/1)")',
-                  '"trinetra-fsw-rs/1.0.0 (adcs-fswcfg/1)"')
+        self.edit("fsw-rs/src/fsw.rs", 'concat!("trinetra-fsw-rs/", env!("CARGO_PKG_VERSION"), " (adcs-fswcfg/1) alg ", adcs_alg_id!())',
+                  'concat!("trinetra-fsw-rs/1.0.0 (adcs-fswcfg/1) alg ", adcs_alg_id!())')
         self.assertTrue(any("fsw::BUILD_ID" in b for b in V.problems(V.source())))
 
     def test_set_writes_every_part(self):

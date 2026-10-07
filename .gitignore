@@ -47,3 +47,8 @@ matlab_sils/store/results/*/result.html
 # figures and report come on demand from the one plotting module (adcs figures, adcs report, the app)
 results/figures/
 results/index.html
+
+# sealed flight images (tools/flight_build.py seal): 12 MB, rebuilt from the tree; results/flight_images/index.json and
+# results/FLIGHT_IMAGES.md say what each held
+results/flight_images/*.tnfsw
+results/flight_images/*.tnfsw.tmp

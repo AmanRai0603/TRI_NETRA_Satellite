@@ -24,7 +24,8 @@ use modes::feasible;
 const BDOT_BL_GAIN: f64 = 4.0;
 
 pub const ABI_VERSION: u32 = 1;
-pub const BUILD_ID: &str = concat!("trinetra-fsw-rs/", env!("CARGO_PKG_VERSION"), " (adcs-fswcfg/1)");
+/// The build id: the crate's version, the parameter blob's format, and the algorithms' identity (tools/flight_build.py).
+pub const BUILD_ID: &str = concat!("trinetra-fsw-rs/", env!("CARGO_PKG_VERSION"), " (adcs-fswcfg/1) alg ", adcs_alg_id!());
 const MODE_COUNT: u8 = 11;
 
 #[derive(Debug, PartialEq, Eq)]

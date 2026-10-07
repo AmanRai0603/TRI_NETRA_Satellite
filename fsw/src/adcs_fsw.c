@@ -12,6 +12,7 @@
 #include "adcs_fsw.h"
 #include "adcs_fsw_int.h"
 #include "adcs_alg_glue.h"
+#include "adcs_alg_id.h"          /* the algorithms' identity (tools/flight_build.py): the build id ends with it */
 
 /* bang-bang B-dot boundary layer: proportional gain inside it = BDOT_BL_GAIN x the B-dot gain */
 #define BDOT_BL_GAIN 4.0
@@ -551,7 +552,7 @@ int32_t adcs_fsw_peek(adcs_fsw_state_t *o)
     return 0;
 }
 
-const char *adcs_fsw_build_id(void) { return "trinetra-fsw-c/1.0.0 (adcs-fswcfg/1)"; }
+const char *adcs_fsw_build_id(void) { return "trinetra-fsw-c/1.0.0 (adcs-fswcfg/1) alg " ADCS_ALG_ID; }
 
 /* ---- extension for the SILS and the parity ledger (not part of adcs_fsw.h) ---- */
 int32_t adcs_fsw_debug(double *out, int n)

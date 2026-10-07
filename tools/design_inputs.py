@@ -99,6 +99,25 @@ def fill(conn, got=None):
     return {"cases": len({r[0] for r in rows}), "case_rows": len(rows), "files": len(files), "fingerprint": fp}
 
 
+def inputs_fingerprint(conn):
+    """The inputs' own fingerprint of an open design database, from the rows it holds (the same hash gather()
+    and tools/design_build.py give: every case line, every input file's fingerprint)."""
+    h = hashlib.sha256()
+    for cid, ord_, line in conn.execute('SELECT "case_id", "ord", "line" FROM design_case ORDER BY "case_id", "ord"'):
+        h.update(f"case {cid} {ord_} {line}\n".encode())
+    for p, fp in conn.execute('SELECT "path", "fingerprint" FROM engine_input ORDER BY "path"'):
+        h.update(f"file {p} {fp}\n".encode())
+    return h.hexdigest()
+
+
+def set_input(conn, path, body):
+    """Change one engine input a design database holds (its bytes, its fingerprint) and the database's inputs
+    fingerprint with it, as merging a changed release would: what the engine then reads from the design."""
+    if conn.execute('UPDATE engine_input SET "fingerprint" = ?, "body" = ? WHERE "path" = ?', (fnv_hex(body), body, path)).rowcount != 1:
+        raise SystemExit(f"design_inputs: the design holds no input {path}")
+    conn.execute('INSERT OR REPLACE INTO meta VALUES (?, ?)', ("inputs_fingerprint", inputs_fingerprint(conn)))
+
+
 def differences(db):
     """What differs between a design database's engine inputs and the data folder's files: [text]
     (empty: the engine reads the same bytes from either)."""
