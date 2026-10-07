@@ -44,6 +44,7 @@
 | [`drive.py drive`](#drivepy-drive) | The shared drive, Trinetra Database (docs/OPERATING_2_0.md §15, docs/PLAN_2_0.md S4): pack zip 1 (the design converted into the 2.0.0 layout: groups with their baseline releases, cases, readable copies, the empty folders with a note each, the guides, START HERE, and MANIFEST.json with every file's size, SHA-256 and MD5), and check a drive's folder, or a listing of it, against that manifest. |
 | [`translators.py translators`](#translatorspy-translators) | The translators held to the interpreter (docs/PLAN_2_0.md S5): every package of pseudocode (the relations, the language's self-test, the flight software's algorithms, each group's code) translated to Rust, C and MATLAB, built, and run on every vector the interpreter drew; an exact function (no transcendental) bit for bit, any other within 1e-12 relative. |
 | [`flight_build.py flight-build`](#flight_buildpy-flight-build) | The flight build (docs/PLAN_2_0.md S6): the flight software's algorithms written from the design (the flight algorithm blocks, fsw/pseudocode/03-09, with the toolbox 01-02) by the library's translators (tndb translate; the JavaScript ones when it is not built): C99 into fsw/alg/ and Rust, a module of the no_std flight crate, into fsw-rs/src/alg/. The runtime (the tick, the HAL, the C interface, the parameter blob, the targets) stays code. |
+| [`flight_parity.py flight-parity`](#flight_paritypy-flight-parity) | The flight build's parity (docs/PLAN_2_0.md S6): the stored campaign summaries and soft-OILS runs of the flight software built from the design against those of the software it replaces, flown with the same commands; it flies nothing. Campaigns and SILS must be identical (1e-12 relative) with the same verdicts; soft OILS must keep every deadline and verdict, its instruction counts and metric differences shown. |
 | [`seed_design.py seed-design`](#seed_designpy-seed-design) | Seeds the design files from the spec: a group file for each of the 20 groups, a node file for each of the 734 rows (the 82 the spec seeds with their content, the rest as shells), and the starting design database. Never overwrites; --check seeds into a temporary folder and checks every file. |
 | [`version.py version`](#versionpy-version) | One version for the repository: VERSION is the source, and the engine's Cargo workspace, the Rust flight software's Cargo package and the C flight software's build id follow it; the Rust build ids are built from their Cargo version. --check fails on any drift; --set writes a new version everywhere. |
 | [`mutation.py mutation`](#mutationpy-mutation) | Mutation testing of the flight software's guidance, control and estimation (fsw-rs/src/guid.rs, ctl.rs, est.rs) with cargo-mutants: each small deliberate fault in turn, and whether the Rust flight software's tests catch it. Writes the kill rate per function and the missed mutants; --check fails under the floor the tool states. |
@@ -833,6 +834,25 @@ The flight build (docs/PLAN_2_0.md S6): the flight software's algorithms written
 - **Checks:** --check: every generated algorithm source is what the design gives
 - **Undo:** It writes generated files only: `git checkout -- fsw/alg fsw-rs/src/alg`.
 - **Code:** `tools/flight_build.py`
+
+## flight_parity.py flight-parity
+
+The flight build's parity (docs/PLAN_2_0.md S6): the stored campaign summaries and soft-OILS runs of the flight software built from the design against those of the software it replaces, flown with the same commands; it flies nothing. Campaigns and SILS must be identical (1e-12 relative) with the same verdicts; soft OILS must keep every deadline and verdict, its instruction counts and metric differences shown.
+
+    python3 tools/flight_parity.py BASELINE [--label NAME] [--pair LABEL BASE CURRENT ...] [--why TEXT ...] [--no-write]
+
+**Steps**
+
+1. read each campaign summary and soft-OILS manifest, before and now
+2. compare every value, verdict, run count, overrun and deadline margin
+3. write the ledger and name each regression
+
+- **Reads:** `BASELINE/matlab_sils/store/results_engine/campaigns/*/summary.json`; `BASELINE/matlab_sils/store/results_engine/soft_oils/*/{sils,oils}/manifest.json`; the same in the tree (or each --pair folder)
+- **Writes:** `results/FLIGHT_PARITY.md`; `results/flight_parity.json`
+- **Starts:** nothing
+- **Checks:** every campaign value and SILS metric identical, no verdict changed, no overrun, no negative worst-case margin; exit 1 naming each regression
+- **Undo:** It writes generated files only: `git checkout -- results/FLIGHT_PARITY.md results/flight_parity.json`.
+- **Code:** `tools/flight_parity.py`
 
 ## seed_design.py seed-design
 

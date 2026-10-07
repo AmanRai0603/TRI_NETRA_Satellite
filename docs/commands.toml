@@ -472,6 +472,18 @@ checks = "--check: every generated algorithm source is what the design gives"
 undo = "It writes generated files only: `git checkout -- fsw/alg fsw-rs/src/alg`."
 
 [[command]]
+tool = "flight_parity.py"
+name = "flight-parity"
+usage = "python3 tools/flight_parity.py BASELINE [--label NAME] [--pair LABEL BASE CURRENT ...] [--why TEXT ...] [--no-write]"
+what = "The flight build's parity (docs/PLAN_2_0.md S6): the stored campaign summaries and soft-OILS runs of the flight software built from the design against those of the software it replaces, flown with the same commands; it flies nothing. Campaigns and SILS must be identical (1e-12 relative) with the same verdicts; soft OILS must keep every deadline and verdict, its instruction counts and metric differences shown."
+steps = ["read each campaign summary and soft-OILS manifest, before and now", "compare every value, verdict, run count, overrun and deadline margin", "write the ledger and name each regression"]
+reads = ["BASELINE/matlab_sils/store/results_engine/campaigns/*/summary.json", "BASELINE/matlab_sils/store/results_engine/soft_oils/*/{sils,oils}/manifest.json", "the same in the tree (or each --pair folder)"]
+writes = ["results/FLIGHT_PARITY.md", "results/flight_parity.json"]
+runs = []
+checks = "every campaign value and SILS metric identical, no verdict changed, no overrun, no negative worst-case margin; exit 1 naming each regression"
+undo = "It writes generated files only: `git checkout -- results/FLIGHT_PARITY.md results/flight_parity.json`."
+
+[[command]]
 tool = "seed_design.py"
 name = "seed-design"
 usage = "python3 tools/seed_design.py [--out DIR | --check]"

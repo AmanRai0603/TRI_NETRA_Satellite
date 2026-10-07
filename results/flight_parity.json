@@ -1,0 +1,5983 @@
+{
+ "schema": "adcs-flight-parity/1",
+ "tolerance": 1e-12,
+ "pairs": [
+  {
+   "set": "c",
+   "baseline": ".../scratchpad/s6baseline",
+   "current": "the tree"
+  },
+  {
+   "set": "rust",
+   "baseline": ".../scratchpad/s6baseline",
+   "current": ".../s6run/rust"
+  },
+  {
+   "set": "qemu-rs",
+   "baseline": ".../s6run/qemu_rs_pre",
+   "current": ".../s6run/qemu_rs"
+  }
+ ],
+ "regressions": [
+  "c soft OILS sun_spin_ais oils: verdict(s) changed: ['spin_rate_error_last_orbit (FAIL -> pass)', 'sun_spin_entry (FAIL -> pass)']",
+  "qemu-rs soft OILS sun_spin_ais oils: verdict(s) changed: ['sun_spin_entry (pass -> FAIL)']"
+ ],
+ "notes": [
+  "c soft OILS target_img oils: not in the baseline; judged on its own deadlines only"
+ ],
+ "why": [
+  "Sets: c = the C flight software (campaigns --fsw c, soft OILS --fsw qemu) against the committed results of 1.0.0's hand-written C; rust = the Rust flight software's campaigns (--fsw rust) against the same committed results; qemu-rs = soft OILS --fsw qemu-rs against the hand-written Rust firmware of 85d8e4f (fsw-rs before S6 step 4), flown the same day with the same engine (ADCS_REPO pointing at that build).",
+  "SILS: every campaign value, draw, statistic, ECSS interpretation and verdict is bit-identical for C and for Rust (266,448 values and 11,401 verdicts per set, 4,516 runs, none failed); results/ENGINE_CAMPAIGNS.md and engine_campaigns.json come out byte for byte. The SILS half of every soft-OILS scenario is bit-identical too (1,449 metrics).",
+  "Timing: the generated firmware runs more instructions per step, C +4.4 % to +20.2 % mean (+9.0 % on average) and +4.3 % to +9.3 % max; Rust +5.2 % to +16.5 % mean and +3.6 % to +26.3 % max. The cause is the translation of the pseudocode's int to int64_t / i64: on the 32-bit Cortex-M4 the byte handling of 09_drivers (UART framing, CRC-16, CAN unpacking) costs several times as much, and fixed-size arrays are passed by value (pc_a64i 512 bytes, pc_a96i 768 bytes per call). On the host (callgrind, fine_hold_img, 120 s) the drivers' framing and CRC-16 rise from 2.3 to 8.9 million instructions, guidance from 0.46 to 1.03 million, the estimator's update and prediction by 4 % and 11 %. The same by-value arrays raise the deepest firmware stack from 4,728 to 12,208 bytes (adcs_drv_read 5,880 bytes, then drivers_drv_read and drivers_uart_frame); it fits the 32,768 reserved (37 %).",
+  "mission_ais on qemu-rs, max +26.3 %: one step, 3292.0 s, where nadir_mtq's first steps coincide with the every-fifth-step heavy step (1,032,496 instructions); the switch from detumble came 2.2 s earlier than before (3291.2 s against 3293.4 s) because the command latency moved, so the phase differs. The steady heavy steps are +4 % (849 k against 817 k).",
+  "Deadlines: no overrun in any of the 96 soft-OILS runs; the smallest worst-case margin goes from 36.35 to 35.76 ms (C) and from 34.01 to 33.21 ms (Rust) against the 50 ms deadline of the 100 ms steps; CPU load at most 7.9 % (C) and 9.5 % (Rust).",
+  "sun_spin_ais: the soft-OILS verdicts on sun_spin_entry (req 95 min) and spin_rate_error_last_orbit (req 0.5 deg/s) move with the command latency, not with the algorithms: its SILS run is bit-identical, and before S6 the same algorithms already gave 131.9 min (C firmware, FAIL) and 67.2 min (Rust firmware, pass). Now C gives 64.0 min and 0.126 deg/s (both pass), Rust 104.4 min (FAIL) and 0.208 deg/s (pass). The spin-up and Sun-spin modes alternate, and when Sun-spin is first held depends on the step at which each command lands. They stay listed above as verdict changes: a change of timing, not of the algorithms.",
+  "target_img: the committed results hold its SILS run only (no soft-OILS run was stored at P11); it is flown now on both firmwares, with no overrun and a worst-case margin of 37.05 ms (C) and 35.15 ms (Rust; 35.90 ms on the hand-written Rust firmware)."
+ ],
+ "campaigns": [
+  {
+   "set": "c",
+   "campaign": "edge_fine_img",
+   "scenario": "fine_hold_img",
+   "fsw": [
+    "c",
+    "c"
+   ],
+   "runs": [
+    15,
+    15
+   ],
+   "failed_runs": [
+    0,
+    0
+   ],
+   "values": 1809,
+   "differ": 0,
+   "max_rel": 0.0,
+   "worst": null,
+   "verdicts": 75,
+   "verdicts_changed": []
+  },
+  {
+   "set": "c",
+   "campaign": "edge_nadir_ais",
+   "scenario": "nadir_hold_ais",
+   "fsw": [
+    "c",
+    "c"
+   ],
+   "runs": [
+    17,
+    17
+   ],
+   "failed_runs": [
+    0,
+    0
+   ],
+   "values": 991,
+   "differ": 0,
+   "max_rel": 0.0,
+   "worst": null,
+   "verdicts": 68,
+   "verdicts_changed": []
+  },
+  {
+   "set": "c",
+   "campaign": "mc_agile_rw_rcs",
+   "scenario": "agile_slew_rw_rcs",
+   "fsw": [
+    "c",
+    "c"
+   ],
+   "runs": [
+    1109,
+    1109
+   ],
+   "failed_runs": [
+    0,
+    0
+   ],
+   "values": 42195,
+   "differ": 0,
+   "max_rel": 0.0,
+   "worst": null,
+   "verdicts": 1109,
+   "verdicts_changed": []
+  },
+  {
+   "set": "c",
+   "campaign": "mc_detumble_ais",
+   "scenario": "detumble_ais",
+   "fsw": [
+    "c",
+    "c"
+   ],
+   "runs": [
+    24,
+    24
+   ],
+   "failed_runs": [
+    0,
+    0
+   ],
+   "values": 1003,
+   "differ": 0,
+   "max_rel": 0.0,
+   "worst": null,
+   "verdicts": 72,
+   "verdicts_changed": []
+  },
+  {
+   "set": "c",
+   "campaign": "mc_fine_img",
+   "scenario": "fine_hold_img",
+   "fsw": [
+    "c",
+    "c"
+   ],
+   "runs": [
+    1109,
+    1109
+   ],
+   "failed_runs": [
+    0,
+    0
+   ],
+   "values": 134378,
+   "differ": 0,
+   "max_rel": 0.0,
+   "worst": null,
+   "verdicts": 5545,
+   "verdicts_changed": []
+  },
+  {
+   "set": "c",
+   "campaign": "mc_nadir_ais",
+   "scenario": "nadir_hold_ais",
+   "fsw": [
+    "c",
+    "c"
+   ],
+   "runs": [
+    24,
+    24
+   ],
+   "failed_runs": [
+    0,
+    0
+   ],
+   "values": 1678,
+   "differ": 0,
+   "max_rel": 0.0,
+   "worst": null,
+   "verdicts": 96,
+   "verdicts_changed": []
+  },
+  {
+   "set": "c",
+   "campaign": "mc_slew_cmg",
+   "scenario": "slew_cmg",
+   "fsw": [
+    "c",
+    "c"
+   ],
+   "runs": [
+    1109,
+    1109
+   ],
+   "failed_runs": [
+    0,
+    0
+   ],
+   "values": 42197,
+   "differ": 0,
+   "max_rel": 0.0,
+   "worst": null,
+   "verdicts": 2218,
+   "verdicts_changed": []
+  },
+  {
+   "set": "c",
+   "campaign": "mc_slew_img",
+   "scenario": "slew_img",
+   "fsw": [
+    "c",
+    "c"
+   ],
+   "runs": [
+    1109,
+    1109
+   ],
+   "failed_runs": [
+    0,
+    0
+   ],
+   "values": 42197,
+   "differ": 0,
+   "max_rel": 0.0,
+   "worst": null,
+   "verdicts": 2218,
+   "verdicts_changed": []
+  },
+  {
+   "set": "rust",
+   "campaign": "edge_fine_img",
+   "scenario": "fine_hold_img",
+   "fsw": [
+    "c",
+    "rust"
+   ],
+   "runs": [
+    15,
+    15
+   ],
+   "failed_runs": [
+    0,
+    0
+   ],
+   "values": 1809,
+   "differ": 0,
+   "max_rel": 0.0,
+   "worst": null,
+   "verdicts": 75,
+   "verdicts_changed": []
+  },
+  {
+   "set": "rust",
+   "campaign": "edge_nadir_ais",
+   "scenario": "nadir_hold_ais",
+   "fsw": [
+    "c",
+    "rust"
+   ],
+   "runs": [
+    17,
+    17
+   ],
+   "failed_runs": [
+    0,
+    0
+   ],
+   "values": 991,
+   "differ": 0,
+   "max_rel": 0.0,
+   "worst": null,
+   "verdicts": 68,
+   "verdicts_changed": []
+  },
+  {
+   "set": "rust",
+   "campaign": "mc_agile_rw_rcs",
+   "scenario": "agile_slew_rw_rcs",
+   "fsw": [
+    "c",
+    "rust"
+   ],
+   "runs": [
+    1109,
+    1109
+   ],
+   "failed_runs": [
+    0,
+    0
+   ],
+   "values": 42195,
+   "differ": 0,
+   "max_rel": 0.0,
+   "worst": null,
+   "verdicts": 1109,
+   "verdicts_changed": []
+  },
+  {
+   "set": "rust",
+   "campaign": "mc_detumble_ais",
+   "scenario": "detumble_ais",
+   "fsw": [
+    "c",
+    "rust"
+   ],
+   "runs": [
+    24,
+    24
+   ],
+   "failed_runs": [
+    0,
+    0
+   ],
+   "values": 1003,
+   "differ": 0,
+   "max_rel": 0.0,
+   "worst": null,
+   "verdicts": 72,
+   "verdicts_changed": []
+  },
+  {
+   "set": "rust",
+   "campaign": "mc_fine_img",
+   "scenario": "fine_hold_img",
+   "fsw": [
+    "c",
+    "rust"
+   ],
+   "runs": [
+    1109,
+    1109
+   ],
+   "failed_runs": [
+    0,
+    0
+   ],
+   "values": 134378,
+   "differ": 0,
+   "max_rel": 0.0,
+   "worst": null,
+   "verdicts": 5545,
+   "verdicts_changed": []
+  },
+  {
+   "set": "rust",
+   "campaign": "mc_nadir_ais",
+   "scenario": "nadir_hold_ais",
+   "fsw": [
+    "c",
+    "rust"
+   ],
+   "runs": [
+    24,
+    24
+   ],
+   "failed_runs": [
+    0,
+    0
+   ],
+   "values": 1678,
+   "differ": 0,
+   "max_rel": 0.0,
+   "worst": null,
+   "verdicts": 96,
+   "verdicts_changed": []
+  },
+  {
+   "set": "rust",
+   "campaign": "mc_slew_cmg",
+   "scenario": "slew_cmg",
+   "fsw": [
+    "c",
+    "rust"
+   ],
+   "runs": [
+    1109,
+    1109
+   ],
+   "failed_runs": [
+    0,
+    0
+   ],
+   "values": 42197,
+   "differ": 0,
+   "max_rel": 0.0,
+   "worst": null,
+   "verdicts": 2218,
+   "verdicts_changed": []
+  },
+  {
+   "set": "rust",
+   "campaign": "mc_slew_img",
+   "scenario": "slew_img",
+   "fsw": [
+    "c",
+    "rust"
+   ],
+   "runs": [
+    1109,
+    1109
+   ],
+   "failed_runs": [
+    0,
+    0
+   ],
+   "values": 42197,
+   "differ": 0,
+   "max_rel": 0.0,
+   "worst": null,
+   "verdicts": 2218,
+   "verdicts_changed": []
+  }
+ ],
+ "soft_oils": [
+  {
+   "set": "c",
+   "scenario": "agile_slew_cmg",
+   "sils": {
+    "impl": [
+     "c (in-process)",
+     "c (in-process)"
+    ],
+    "metrics": 21,
+    "differ": 0,
+    "max_rel": 0.0,
+    "worst": null,
+    "verdicts": 1,
+    "verdicts_changed": []
+   },
+   "oils": {
+    "impl": [
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu.elf",
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu.elf"
+    ],
+    "metrics": 35,
+    "differ": 2,
+    "max_rel": 0.014440504846789425,
+    "worst": "[oils_worst_case_margin].value",
+    "verdicts": 3,
+    "verdicts_changed": [],
+    "ticks": [
+     6001,
+     6001
+    ],
+    "overruns": [
+     0,
+     0
+    ],
+    "insn_mean": [
+     420892.59790034994,
+     440202.4704215964
+    ],
+    "insn_max": [
+     987704.0,
+     1032097.0
+    ],
+    "insn_mean_pct": 4.587838469380309,
+    "insn_max_pct": 4.49456517337178,
+    "cpu_load_max": [
+     0.07348988095238095,
+     0.07679293154761904
+    ],
+    "deadline_margin_min_s": [
+     0.09105701190476191,
+     0.0907267068452381
+    ],
+    "worst_case_margin_s": [
+     0.03659761904761905,
+     0.03606913095238096
+    ]
+   }
+  },
+  {
+   "set": "c",
+   "scenario": "agile_slew_fmr_rcs",
+   "sils": {
+    "impl": [
+     "c (in-process)",
+     "c (in-process)"
+    ],
+    "metrics": 21,
+    "differ": 0,
+    "max_rel": 0.0,
+    "worst": null,
+    "verdicts": 1,
+    "verdicts_changed": []
+   },
+   "oils": {
+    "impl": [
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu.elf",
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu.elf"
+    ],
+    "metrics": 35,
+    "differ": 3,
+    "max_rel": 0.019240379100181604,
+    "worst": "[oils_worst_case_margin].value",
+    "verdicts": 3,
+    "verdicts_changed": [],
+    "ticks": [
+     6001,
+     6001
+    ],
+    "overruns": [
+     0,
+     0
+    ],
+    "insn_mean": [
+     371683.4980836527,
+     406184.2372937844
+    ],
+    "insn_max": [
+     937767.0,
+     998717.0
+    ],
+    "insn_mean_pct": 9.282289740602584,
+    "insn_max_pct": 6.499482280779767,
+    "cpu_load_max": [
+     0.06977433035714285,
+     0.07430930059523809
+    ],
+    "deadline_margin_min_s": [
+     0.09194856696428572,
+     0.0914950699404762
+    ],
+    "worst_case_margin_s": [
+     0.037712107142857144,
+     0.036986511904761904
+    ]
+   }
+  },
+  {
+   "set": "c",
+   "scenario": "agile_slew_img",
+   "sils": {
+    "impl": [
+     "c (in-process)",
+     "c (in-process)"
+    ],
+    "metrics": 21,
+    "differ": 0,
+    "max_rel": 0.0,
+    "worst": null,
+    "verdicts": 1,
+    "verdicts_changed": []
+   },
+   "oils": {
+    "impl": [
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu.elf",
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu.elf"
+    ],
+    "metrics": 35,
+    "differ": 3,
+    "max_rel": 0.01852465842754883,
+    "worst": "[oils_worst_case_margin].value",
+    "verdicts": 3,
+    "verdicts_changed": [],
+    "ticks": [
+     6001,
+     6001
+    ],
+    "overruns": [
+     0,
+     0
+    ],
+    "insn_mean": [
+     364892.93084485916,
+     397914.84185969003
+    ],
+    "insn_max": [
+     934529.0,
+     993474.0
+    ],
+    "insn_mean_pct": 9.049753564250532,
+    "insn_max_pct": 6.307455413368659,
+    "cpu_load_max": [
+     0.06953340773809523,
+     0.07391919642857142
+    ],
+    "deadline_margin_min_s": [
+     0.09210265922619049,
+     0.09166408035714287
+    ],
+    "worst_case_margin_s": [
+     0.03788065476190476,
+     0.03717892857142857
+    ]
+   }
+  },
+  {
+   "set": "c",
+   "scenario": "agile_slew_rw_rcs",
+   "sils": {
+    "impl": [
+     "c (in-process)",
+     "c (in-process)"
+    ],
+    "metrics": 21,
+    "differ": 0,
+    "max_rel": 0.0,
+    "worst": null,
+    "verdicts": 1,
+    "verdicts_changed": []
+   },
+   "oils": {
+    "impl": [
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu.elf",
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu.elf"
+    ],
+    "metrics": 35,
+    "differ": 3,
+    "max_rel": 0.01930356724887245,
+    "worst": "[oils_worst_case_margin].value",
+    "verdicts": 3,
+    "verdicts_changed": [],
+    "ticks": [
+     6001,
+     6001
+    ],
+    "overruns": [
+     0,
+     0
+    ],
+    "insn_mean": [
+     375323.8083652725,
+     409876.0099983336
+    ],
+    "insn_max": [
+     944044.0,
+     1005073.0
+    ],
+    "insn_mean_pct": 9.205971180872764,
+    "insn_max_pct": 6.464635122939185,
+    "cpu_load_max": [
+     0.07024136904761905,
+     0.07478221726190476
+    ],
+    "deadline_margin_min_s": [
+     0.0919018630952381,
+     0.09144777827380952
+    ],
+    "worst_case_margin_s": [
+     0.03763738095238096,
+     0.03691084523809524
+    ]
+   }
+  },
+  {
+   "set": "c",
+   "scenario": "agile_slew_vscmg",
+   "sils": {
+    "impl": [
+     "c (in-process)",
+     "c (in-process)"
+    ],
+    "metrics": 21,
+    "differ": 0,
+    "max_rel": 0.0,
+    "worst": null,
+    "verdicts": 1,
+    "verdicts_changed": []
+   },
+   "oils": {
+    "impl": [
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu.elf",
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu.elf"
+    ],
+    "metrics": 35,
+    "differ": 3,
+    "max_rel": 0.014729309656895239,
+    "worst": "[oils_worst_case_margin].value",
+    "verdicts": 3,
+    "verdicts_changed": [],
+    "ticks": [
+     6001,
+     6001
+    ],
+    "overruns": [
+     0,
+     0
+    ],
+    "insn_mean": [
+     439228.46058990166,
+     458567.51558073657
+    ],
+    "insn_max": [
+     1006771.0,
+     1051771.0
+    ],
+    "insn_mean_pct": 4.402960355725075,
+    "insn_max_pct": 4.469735421461285,
+    "cpu_load_max": [
+     0.07490855654761905,
+     0.07825677083333332
+    ],
+    "deadline_margin_min_s": [
+     0.0909151443452381,
+     0.09058032291666668
+    ],
+    "worst_case_margin_s": [
+     0.03637063095238095,
+     0.035834916666666675
+    ]
+   }
+  },
+  {
+   "set": "c",
+   "scenario": "detumble_ais",
+   "sils": {
+    "impl": [
+     "c (in-process)",
+     "c (in-process)"
+    ],
+    "metrics": 21,
+    "differ": 0,
+    "max_rel": 0.0,
+    "worst": null,
+    "verdicts": 3,
+    "verdicts_changed": []
+   },
+   "oils": {
+    "impl": [
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu.elf",
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu.elf"
+    ],
+    "metrics": 35,
+    "differ": 3,
+    "max_rel": 0.0038165790248084882,
+    "worst": "[oils_worst_case_margin].value",
+    "verdicts": 5,
+    "verdicts_changed": [],
+    "ticks": [
+     86101,
+     86101
+    ],
+    "overruns": [
+     0,
+     0
+    ],
+    "insn_mean": [
+     166121.7197593524,
+     181055.38724288918
+    ],
+    "insn_max": [
+     533364.0,
+     563194.0
+    ],
+    "insn_mean_pct": 8.989593597495878,
+    "insn_max_pct": 5.592803413803706,
+    "cpu_load_max": [
+     0.019842410714285712,
+     0.020952157738095237
+    ],
+    "deadline_margin_min_s": [
+     0.19547751785714287,
+     0.19525556845238096
+    ],
+    "worst_case_margin_s": [
+     0.09304642857142857,
+     0.09269130952380952
+    ]
+   }
+  },
+  {
+   "set": "c",
+   "scenario": "detumble_ais_bangbang",
+   "sils": {
+    "impl": [
+     "c (in-process)",
+     "c (in-process)"
+    ],
+    "metrics": 21,
+    "differ": 0,
+    "max_rel": 0.0,
+    "worst": null,
+    "verdicts": 3,
+    "verdicts_changed": []
+   },
+   "oils": {
+    "impl": [
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu.elf",
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu.elf"
+    ],
+    "metrics": 35,
+    "differ": 3,
+    "max_rel": 0.004328560777574721,
+    "worst": "[power_mean].value",
+    "verdicts": 5,
+    "verdicts_changed": [],
+    "ticks": [
+     86101,
+     86101
+    ],
+    "overruns": [
+     0,
+     0
+    ],
+    "insn_mean": [
+     164577.80380018815,
+     179441.33050719503
+    ],
+    "insn_max": [
+     533366.0,
+     563319.0
+    ],
+    "insn_mean_pct": 9.031306995111262,
+    "insn_max_pct": 5.615843529583813,
+    "cpu_load_max": [
+     0.019842485119047615,
+     0.020956808035714283
+    ],
+    "deadline_margin_min_s": [
+     0.1954775029761905,
+     0.19525463839285714
+    ],
+    "worst_case_margin_s": [
+     0.09304640476190477,
+     0.09268982142857143
+    ]
+   }
+  },
+  {
+   "set": "c",
+   "scenario": "detumble_ais_mag",
+   "sils": {
+    "impl": [
+     "c (in-process)",
+     "c (in-process)"
+    ],
+    "metrics": 21,
+    "differ": 0,
+    "max_rel": 0.0,
+    "worst": null,
+    "verdicts": 3,
+    "verdicts_changed": []
+   },
+   "oils": {
+    "impl": [
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu.elf",
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu.elf"
+    ],
+    "metrics": 35,
+    "differ": 3,
+    "max_rel": 0.004328635974602326,
+    "worst": "[power_peak].value",
+    "verdicts": 5,
+    "verdicts_changed": [],
+    "ticks": [
+     86101,
+     86101
+    ],
+    "overruns": [
+     0,
+     0
+    ],
+    "insn_mean": [
+     165646.13830269102,
+     180588.67228022905
+    ],
+    "insn_max": [
+     533478.0,
+     563253.0
+    ],
+    "insn_mean_pct": 9.020756010763744,
+    "insn_max_pct": 5.5812985727621385,
+    "cpu_load_max": [
+     0.019846651785714285,
+     0.020954352678571427
+    ],
+    "deadline_margin_min_s": [
+     0.19547666964285715,
+     0.19525512946428572
+    ],
+    "worst_case_margin_s": [
+     0.09304507142857144,
+     0.09269060714285715
+    ]
+   }
+  },
+  {
+   "set": "c",
+   "scenario": "detumble_img",
+   "sils": {
+    "impl": [
+     "c (in-process)",
+     "c (in-process)"
+    ],
+    "metrics": 7,
+    "differ": 0,
+    "max_rel": 0.0,
+    "worst": null,
+    "verdicts": 1,
+    "verdicts_changed": []
+   },
+   "oils": {
+    "impl": [
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu.elf",
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu.elf"
+    ],
+    "metrics": 21,
+    "differ": 1,
+    "max_rel": 0.014141487199801179,
+    "worst": "[oils_worst_case_margin].value",
+    "verdicts": 3,
+    "verdicts_changed": [],
+    "ticks": [
+     172201,
+     172201
+    ],
+    "overruns": [
+     0,
+     0
+    ],
+    "insn_mean": [
+     124457.7694438476,
+     148515.40344132727
+    ],
+    "insn_max": [
+     549411.0,
+     599855.0
+    ],
+    "insn_mean_pct": 19.329957547032777,
+    "insn_max_pct": 9.181468882130135,
+    "cpu_load_max": [
+     0.04087879464285714,
+     0.044632068452380956
+    ],
+    "deadline_margin_min_s": [
+     0.0949681205357143,
+     0.0945927931547619
+    ],
+    "worst_case_margin_s": [
+     0.04246539285714286,
+     0.04186486904761905
+    ]
+   }
+  },
+  {
+   "set": "c",
+   "scenario": "detumble_rcs",
+   "sils": {
+    "impl": [
+     "c (in-process)",
+     "c (in-process)"
+    ],
+    "metrics": 14,
+    "differ": 0,
+    "max_rel": 0.0,
+    "worst": null,
+    "verdicts": 1,
+    "verdicts_changed": []
+   },
+   "oils": {
+    "impl": [
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu.elf",
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu.elf"
+    ],
+    "metrics": 28,
+    "differ": 2,
+    "max_rel": 0.014664534839939526,
+    "worst": "[oils_worst_case_margin].value",
+    "verdicts": 3,
+    "verdicts_changed": [],
+    "ticks": [
+     18001,
+     18001
+    ],
+    "overruns": [
+     0,
+     0
+    ],
+    "insn_mean": [
+     123967.42269873896,
+     149013.97150158323
+    ],
+    "insn_max": [
+     559955.0,
+     611950.0
+    ],
+    "insn_mean_pct": 20.204137714237614,
+    "insn_max_pct": 9.285567590252787,
+    "cpu_load_max": [
+     0.04166331845238095,
+     0.04553199404761904
+    ],
+    "deadline_margin_min_s": [
+     0.09475966815476192,
+     0.0943728005952381
+    ],
+    "worst_case_margin_s": [
+     0.04220986904761905,
+     0.041590880952380956
+    ]
+   }
+  },
+  {
+   "set": "c",
+   "scenario": "fault_coil_ais",
+   "sils": {
+    "impl": [
+     "c (in-process)",
+     "c (in-process)"
+    ],
+    "metrics": 21,
+    "differ": 0,
+    "max_rel": 0.0,
+    "worst": null,
+    "verdicts": 3,
+    "verdicts_changed": []
+   },
+   "oils": {
+    "impl": [
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu.elf",
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu.elf"
+    ],
+    "metrics": 35,
+    "differ": 3,
+    "max_rel": 0.008818296944676575,
+    "worst": "[power_mean].value",
+    "verdicts": 5,
+    "verdicts_changed": [],
+    "ticks": [
+     86101,
+     86101
+    ],
+    "overruns": [
+     0,
+     0
+    ],
+    "insn_mean": [
+     166124.85584371843,
+     181069.5148488403
+    ],
+    "insn_max": [
+     533585.0,
+     563205.0
+    ],
+    "insn_mean_pct": 8.996040315111566,
+    "insn_max_pct": 5.551130560266874,
+    "cpu_load_max": [
+     0.019850632440476187,
+     0.020952566964285713
+    ],
+    "deadline_margin_min_s": [
+     0.19547587351190476,
+     0.19525548660714287
+    ],
+    "worst_case_margin_s": [
+     0.09304379761904763,
+     0.09269117857142858
+    ]
+   }
+  },
+  {
+   "set": "c",
+   "scenario": "fault_gimbal_cmg",
+   "sils": {
+    "impl": [
+     "c (in-process)",
+     "c (in-process)"
+    ],
+    "metrics": 56,
+    "differ": 0,
+    "max_rel": 0.0,
+    "worst": null,
+    "verdicts": 4,
+    "verdicts_changed": []
+   },
+   "oils": {
+    "impl": [
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu.elf",
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu.elf"
+    ],
+    "metrics": 70,
+    "differ": 7,
+    "max_rel": 0.015978921118752085,
+    "worst": "[oils_worst_case_margin].value",
+    "verdicts": 6,
+    "verdicts_changed": [],
+    "ticks": [
+     57401,
+     57401
+    ],
+    "overruns": [
+     0,
+     0
+    ],
+    "insn_mean": [
+     412922.0502430271,
+     435073.6518701765
+    ],
+    "insn_max": [
+     986978.0,
+     1036112.0
+    ],
+    "insn_mean_pct": 5.36459644480404,
+    "insn_max_pct": 4.978226465027589,
+    "cpu_load_max": [
+     0.07343586309523809,
+     0.07709166666666666
+    ],
+    "deadline_margin_min_s": [
+     0.0910624136904762,
+     0.09069683333333334
+    ],
+    "worst_case_margin_s": [
+     0.036606261904761905,
+     0.036021333333333336
+    ]
+   }
+  },
+  {
+   "set": "c",
+   "scenario": "fault_gps_img",
+   "sils": {
+    "impl": [
+     "c (in-process)",
+     "c (in-process)"
+    ],
+    "metrics": 21,
+    "differ": 0,
+    "max_rel": 0.0,
+    "worst": null,
+    "verdicts": 3,
+    "verdicts_changed": []
+   },
+   "oils": {
+    "impl": [
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu.elf",
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu.elf"
+    ],
+    "metrics": 35,
+    "differ": 4,
+    "max_rel": 0.019713801703715467,
+    "worst": "[oils_worst_case_margin].value",
+    "verdicts": 5,
+    "verdicts_changed": [],
+    "ticks": [
+     57401,
+     57401
+    ],
+    "overruns": [
+     0,
+     0
+    ],
+    "insn_mean": [
+     359763.47563631297,
+     395243.9321091967
+    ],
+    "insn_max": [
+     934165.0,
+     996901.0
+    ],
+    "insn_mean_pct": 9.862161913498735,
+    "insn_max_pct": 6.715730090508636,
+    "cpu_load_max": [
+     0.0695063244047619,
+     0.07417418154761904
+    ],
+    "deadline_margin_min_s": [
+     0.09210536755952381,
+     0.0916385818452381
+    ],
+    "worst_case_margin_s": [
+     0.0378849880952381,
+     0.03713813095238096
+    ]
+   }
+  },
+  {
+   "set": "c",
+   "scenario": "fault_gyro_ais",
+   "sils": {
+    "impl": [
+     "c (in-process)",
+     "c (in-process)"
+    ],
+    "metrics": 28,
+    "differ": 0,
+    "max_rel": 0.0,
+    "worst": null,
+    "verdicts": 3,
+    "verdicts_changed": []
+   },
+   "oils": {
+    "impl": [
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu.elf",
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu.elf"
+    ],
+    "metrics": 42,
+    "differ": 5,
+    "max_rel": 0.004808383033406241,
+    "worst": "[oils_worst_case_margin].value",
+    "verdicts": 5,
+    "verdicts_changed": [],
+    "ticks": [
+     86101,
+     86101
+    ],
+    "overruns": [
+     0,
+     0
+    ],
+    "insn_mean": [
+     269866.7813962672,
+     287541.7612803568
+    ],
+    "insn_max": [
+     839047.0,
+     875159.0
+    ],
+    "insn_mean_pct": 6.549520393966537,
+    "insn_max_pct": 4.303930530709245,
+    "cpu_load_max": [
+     0.03121454613095238,
+     0.03255799851190476
+    ],
+    "deadline_margin_min_s": [
+     0.19320309077380954,
+     0.19293440029761905
+    ],
+    "worst_case_margin_s": [
+     0.08940734523809524,
+     0.08897744047619048
+    ]
+   }
+  },
+  {
+   "set": "c",
+   "scenario": "fault_st_img",
+   "sils": {
+    "impl": [
+     "c (in-process)",
+     "c (in-process)"
+    ],
+    "metrics": 56,
+    "differ": 0,
+    "max_rel": 0.0,
+    "worst": null,
+    "verdicts": 4,
+    "verdicts_changed": []
+   },
+   "oils": {
+    "impl": [
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu.elf",
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu.elf"
+    ],
+    "metrics": 70,
+    "differ": 8,
+    "max_rel": 0.019735818273092284,
+    "worst": "[oils_worst_case_margin].value",
+    "verdicts": 6,
+    "verdicts_changed": [],
+    "ticks": [
+     57401,
+     57401
+    ],
+    "overruns": [
+     0,
+     0
+    ],
+    "insn_mean": [
+     315882.4875350604,
+     350947.64364732325
+    ],
+    "insn_max": [
+     929304.0,
+     992206.0
+    ],
+    "insn_mean_pct": 11.100696460221117,
+    "insn_max_pct": 6.768721537839071,
+    "cpu_load_max": [
+     0.06914464285714285,
+     0.07382485119047619
+    ],
+    "deadline_margin_min_s": [
+     0.09214153571428572,
+     0.09167351488095239
+    ],
+    "worst_case_margin_s": [
+     0.037942857142857146,
+     0.037194023809523816
+    ]
+   }
+  },
+  {
+   "set": "c",
+   "scenario": "fault_valve_rcs",
+   "sils": {
+    "impl": [
+     "c (in-process)",
+     "c (in-process)"
+    ],
+    "metrics": 21,
+    "differ": 0,
+    "max_rel": 0.0,
+    "worst": null,
+    "verdicts": 3,
+    "verdicts_changed": []
+   },
+   "oils": {
+    "impl": [
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu.elf",
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu.elf"
+    ],
+    "metrics": 35,
+    "differ": 4,
+    "max_rel": 0.020076869671541472,
+    "worst": "[oils_worst_case_margin].value",
+    "verdicts": 5,
+    "verdicts_changed": [],
+    "ticks": [
+     57401,
+     57401
+    ],
+    "overruns": [
+     0,
+     0
+    ],
+    "insn_mean": [
+     368857.95360708004,
+     406240.716398669
+    ],
+    "insn_max": [
+     945430.0,
+     1008876.0
+    ],
+    "insn_mean_pct": 10.134731385353382,
+    "insn_max_pct": 6.710808838306379,
+    "cpu_load_max": [
+     0.07034449404761904,
+     0.07506517857142857
+    ],
+    "deadline_margin_min_s": [
+     0.0918915505952381,
+     0.09141948214285715
+    ],
+    "worst_case_margin_s": [
+     0.037620880952380954,
+     0.03686557142857143
+    ]
+   }
+  },
+  {
+   "set": "c",
+   "scenario": "fault_wheel_img",
+   "sils": {
+    "impl": [
+     "c (in-process)",
+     "c (in-process)"
+    ],
+    "metrics": 56,
+    "differ": 0,
+    "max_rel": 0.0,
+    "worst": null,
+    "verdicts": 4,
+    "verdicts_changed": []
+   },
+   "oils": {
+    "impl": [
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu.elf",
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu.elf"
+    ],
+    "metrics": 70,
+    "differ": 8,
+    "max_rel": 0.01982525456879482,
+    "worst": "[oils_worst_case_margin].value",
+    "verdicts": 6,
+    "verdicts_changed": [],
+    "ticks": [
+     57401,
+     57401
+    ],
+    "overruns": [
+     0,
+     0
+    ],
+    "insn_mean": [
+     354382.5911395272,
+     390160.00668977894
+    ],
+    "insn_max": [
+     932787.0,
+     995905.0
+    ],
+    "insn_mean_pct": 10.095703469859632,
+    "insn_max_pct": 6.766603736973178,
+    "cpu_load_max": [
+     0.06940379464285713,
+     0.0741000744047619
+    ],
+    "deadline_margin_min_s": [
+     0.09211562053571429,
+     0.09164599255952381
+    ],
+    "worst_case_margin_s": [
+     0.03790139285714286,
+     0.0371499880952381
+    ]
+   }
+  },
+  {
+   "set": "c",
+   "scenario": "fine_hold_cmg",
+   "sils": {
+    "impl": [
+     "c (in-process)",
+     "c (in-process)"
+    ],
+    "metrics": 56,
+    "differ": 0,
+    "max_rel": 0.0,
+    "worst": null,
+    "verdicts": 4,
+    "verdicts_changed": []
+   },
+   "oils": {
+    "impl": [
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu.elf",
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu.elf"
+    ],
+    "metrics": 70,
+    "differ": 7,
+    "max_rel": 0.016078591559739435,
+    "worst": "[oils_worst_case_margin].value",
+    "verdicts": 6,
+    "verdicts_changed": [],
+    "ticks": [
+     57401,
+     57401
+    ],
+    "overruns": [
+     0,
+     0
+    ],
+    "insn_mean": [
+     412981.16546750057,
+     435130.56788209267
+    ],
+    "insn_max": [
+     987070.0,
+     1036509.0
+    ],
+    "insn_mean_pct": 5.363296020901743,
+    "insn_max_pct": 5.008661999655546,
+    "cpu_load_max": [
+     0.07344270833333333,
+     0.07712120535714286
+    ],
+    "deadline_margin_min_s": [
+     0.09106172916666667,
+     0.09069387946428573
+    ],
+    "worst_case_margin_s": [
+     0.03660516666666667,
+     0.03601660714285715
+    ]
+   }
+  },
+  {
+   "set": "c",
+   "scenario": "fine_hold_fmr",
+   "sils": {
+    "impl": [
+     "c (in-process)",
+     "c (in-process)"
+    ],
+    "metrics": 56,
+    "differ": 0,
+    "max_rel": 0.0,
+    "worst": null,
+    "verdicts": 4,
+    "verdicts_changed": []
+   },
+   "oils": {
+    "impl": [
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu.elf",
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu.elf"
+    ],
+    "metrics": 70,
+    "differ": 8,
+    "max_rel": 0.01969614110518154,
+    "worst": "[oils_worst_case_margin].value",
+    "verdicts": 6,
+    "verdicts_changed": [],
+    "ticks": [
+     57401,
+     57401
+    ],
+    "overruns": [
+     0,
+     0
+    ],
+    "insn_mean": [
+     360707.34995905997,
+     396605.12560756784
+    ],
+    "insn_max": [
+     934764.0,
+     997432.0
+    ],
+    "insn_mean_pct": 9.952049952012967,
+    "insn_max_pct": 6.704152064050391,
+    "cpu_load_max": [
+     0.06955089285714286,
+     0.07421369047619047
+    ],
+    "deadline_margin_min_s": [
+     0.09210091071428572,
+     0.09163463095238096
+    ],
+    "worst_case_margin_s": [
+     0.037877857142857144,
+     0.037131809523809525
+    ]
+   }
+  },
+  {
+   "set": "c",
+   "scenario": "fine_hold_fmr_rcs",
+   "sils": {
+    "impl": [
+     "c (in-process)",
+     "c (in-process)"
+    ],
+    "metrics": 56,
+    "differ": 0,
+    "max_rel": 0.0,
+    "worst": null,
+    "verdicts": 4,
+    "verdicts_changed": []
+   },
+   "oils": {
+    "impl": [
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu.elf",
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu.elf"
+    ],
+    "metrics": 70,
+    "differ": 8,
+    "max_rel": 0.020598158870329387,
+    "worst": "[oils_worst_case_margin].value",
+    "verdicts": 6,
+    "verdicts_changed": [],
+    "ticks": [
+     57401,
+     57401
+    ],
+    "overruns": [
+     0,
+     0
+    ],
+    "insn_mean": [
+     363766.2168254908,
+     401064.9321963032
+    ],
+    "insn_max": [
+     936660.0,
+     1001934.0
+    ],
+    "insn_mean_pct": 10.25348524563667,
+    "insn_max_pct": 6.9688040484273905,
+    "cpu_load_max": [
+     0.06969196428571428,
+     0.07454866071428572
+    ],
+    "deadline_margin_min_s": [
+     0.09195680357142857,
+     0.09147113392857144
+    ],
+    "worst_case_margin_s": [
+     0.03772528571428572,
+     0.03694821428571429
+    ]
+   }
+  },
+  {
+   "set": "c",
+   "scenario": "fine_hold_img",
+   "sils": {
+    "impl": [
+     "c (in-process)",
+     "c (in-process)"
+    ],
+    "metrics": 91,
+    "differ": 0,
+    "max_rel": 0.0,
+    "worst": null,
+    "verdicts": 5,
+    "verdicts_changed": []
+   },
+   "oils": {
+    "impl": [
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu.elf",
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu.elf"
+    ],
+    "metrics": 105,
+    "differ": 13,
+    "max_rel": 0.019578845683072447,
+    "worst": "[oils_worst_case_margin].value",
+    "verdicts": 7,
+    "verdicts_changed": [],
+    "ticks": [
+     57401,
+     57401
+    ],
+    "overruns": [
+     0,
+     0
+    ],
+    "insn_mean": [
+     360500.617497953,
+     396357.71519659937
+    ],
+    "insn_max": [
+     934345.0,
+     996648.0
+    ],
+    "insn_mean_pct": 9.946473309119913,
+    "insn_max_pct": 6.668093691302463,
+    "cpu_load_max": [
+     0.06951971726190476,
+     0.07415535714285713
+    ],
+    "deadline_margin_min_s": [
+     0.09210402827380954,
+     0.09164046428571429
+    ],
+    "worst_case_margin_s": [
+     0.03788284523809524,
+     0.03714114285714286
+    ]
+   }
+  },
+  {
+   "set": "c",
+   "scenario": "fine_hold_img_lqr",
+   "sils": {
+    "impl": [
+     "c (in-process)",
+     "c (in-process)"
+    ],
+    "metrics": 56,
+    "differ": 0,
+    "max_rel": 0.0,
+    "worst": null,
+    "verdicts": 4,
+    "verdicts_changed": []
+   },
+   "oils": {
+    "impl": [
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu.elf",
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu.elf"
+    ],
+    "metrics": 70,
+    "differ": 8,
+    "max_rel": 0.01909884178843194,
+    "worst": "[oils_worst_case_margin].value",
+    "verdicts": 6,
+    "verdicts_changed": [],
+    "ticks": [
+     57401,
+     57401
+    ],
+    "overruns": [
+     0,
+     0
+    ],
+    "insn_mean": [
+     360677.4933015104,
+     396410.5682305186
+    ],
+    "insn_max": [
+     935997.0,
+     996741.0
+    ],
+    "insn_mean_pct": 9.907209513385672,
+    "insn_max_pct": 6.489764390270482,
+    "cpu_load_max": [
+     0.06964263392857142,
+     0.07416227678571428
+    ],
+    "deadline_margin_min_s": [
+     0.09209173660714286,
+     0.09163977232142857
+    ],
+    "worst_case_margin_s": [
+     0.037863178571428575,
+     0.037140035714285716
+    ]
+   }
+  },
+  {
+   "set": "c",
+   "scenario": "fine_hold_img_smc",
+   "sils": {
+    "impl": [
+     "c (in-process)",
+     "c (in-process)"
+    ],
+    "metrics": 56,
+    "differ": 0,
+    "max_rel": 0.0,
+    "worst": null,
+    "verdicts": 4,
+    "verdicts_changed": []
+   },
+   "oils": {
+    "impl": [
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu.elf",
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu.elf"
+    ],
+    "metrics": 70,
+    "differ": 8,
+    "max_rel": 0.019185322385036903,
+    "worst": "[oils_worst_case_margin].value",
+    "verdicts": 6,
+    "verdicts_changed": [],
+    "ticks": [
+     57401,
+     57401
+    ],
+    "overruns": [
+     0,
+     0
+    ],
+    "insn_mean": [
+     363515.5663838609,
+     399341.87439243216
+    ],
+    "insn_max": [
+     938658.0,
+     999626.0
+    ],
+    "insn_mean_pct": 9.855508627858821,
+    "insn_max_pct": 6.495230424712728,
+    "cpu_load_max": [
+     0.06984062499999999,
+     0.07437693452380952
+    ],
+    "deadline_margin_min_s": [
+     0.0920719375,
+     0.09161830654761906
+    ],
+    "worst_case_margin_s": [
+     0.037831500000000004,
+     0.03710569047619048
+    ]
+   }
+  },
+  {
+   "set": "c",
+   "scenario": "fine_hold_rw_rcs",
+   "sils": {
+    "impl": [
+     "c (in-process)",
+     "c (in-process)"
+    ],
+    "metrics": 56,
+    "differ": 0,
+    "max_rel": 0.0,
+    "worst": null,
+    "verdicts": 4,
+    "verdicts_changed": []
+   },
+   "oils": {
+    "impl": [
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu.elf",
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu.elf"
+    ],
+    "metrics": 70,
+    "differ": 8,
+    "max_rel": 0.020884290519441417,
+    "worst": "[oils_worst_case_margin].value",
+    "verdicts": 6,
+    "verdicts_changed": [],
+    "ticks": [
+     57401,
+     57401
+    ],
+    "overruns": [
+     0,
+     0
+    ],
+    "insn_mean": [
+     367663.6245187366,
+     405008.5156181948
+    ],
+    "insn_max": [
+     943207.0,
+     1009251.0
+    ],
+    "insn_mean_pct": 10.157352702036224,
+    "insn_max_pct": 7.002068474894695,
+    "cpu_load_max": [
+     0.07017909226190476,
+     0.07509308035714285
+    ],
+    "deadline_margin_min_s": [
+     0.09190809077380953,
+     0.09141669196428572
+    ],
+    "worst_case_margin_s": [
+     0.03764734523809524,
+     0.03686110714285715
+    ]
+   }
+  },
+  {
+   "set": "c",
+   "scenario": "fine_hold_vscmg",
+   "sils": {
+    "impl": [
+     "c (in-process)",
+     "c (in-process)"
+    ],
+    "metrics": 56,
+    "differ": 0,
+    "max_rel": 0.0,
+    "worst": null,
+    "verdicts": 4,
+    "verdicts_changed": []
+   },
+   "oils": {
+    "impl": [
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu.elf",
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu.elf"
+    ],
+    "metrics": 70,
+    "differ": 8,
+    "max_rel": 0.015873707252420734,
+    "worst": "[oils_worst_case_margin].value",
+    "verdicts": 6,
+    "verdicts_changed": [],
+    "ticks": [
+     57401,
+     57401
+    ],
+    "overruns": [
+     0,
+     0
+    ],
+    "insn_mean": [
+     434198.34088256303,
+     456361.2199961673
+    ],
+    "insn_max": [
+     1008427.0,
+     1056897.0
+    ],
+    "insn_mean_pct": 5.104321464829968,
+    "insn_max_pct": 4.806495661064212,
+    "cpu_load_max": [
+     0.07503177083333333,
+     0.07863816964285714
+    ],
+    "deadline_margin_min_s": [
+     0.09090282291666667,
+     0.09054218303571429
+    ],
+    "worst_case_margin_s": [
+     0.03635091666666667,
+     0.03577389285714286
+    ]
+   }
+  },
+  {
+   "set": "c",
+   "scenario": "mission_ais",
+   "sils": {
+    "impl": [
+     "c (in-process)",
+     "c (in-process)"
+    ],
+    "metrics": 42,
+    "differ": 0,
+    "max_rel": 0.0,
+    "worst": null,
+    "verdicts": 4,
+    "verdicts_changed": []
+   },
+   "oils": {
+    "impl": [
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu.elf",
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu.elf"
+    ],
+    "metrics": 56,
+    "differ": 7,
+    "max_rel": 0.07281060185451255,
+    "worst": "[ape_los_last_orbit].value",
+    "verdicts": 6,
+    "verdicts_changed": [],
+    "ticks": [
+     143501,
+     143501
+    ],
+    "overruns": [
+     0,
+     0
+    ],
+    "insn_mean": [
+     258894.66148667954,
+     276257.67402317753
+    ],
+    "insn_max": [
+     717167.0,
+     751677.0
+    ],
+    "insn_mean_pct": 6.706593498990067,
+    "insn_max_pct": 4.811989397169697,
+    "cpu_load_max": [
+     0.026680319940476187,
+     0.027964174107142855
+    ],
+    "deadline_margin_min_s": [
+     0.19410993601190477,
+     0.19385316517857143
+    ],
+    "worst_case_margin_s": [
+     0.09085829761904762,
+     0.09044746428571429
+    ]
+   }
+  },
+  {
+   "set": "c",
+   "scenario": "mission_cmg",
+   "sils": {
+    "impl": [
+     "c (in-process)",
+     "c (in-process)"
+    ],
+    "metrics": 14,
+    "differ": 0,
+    "max_rel": 0.0,
+    "worst": null,
+    "verdicts": 2,
+    "verdicts_changed": []
+   },
+   "oils": {
+    "impl": [
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu.elf",
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu.elf"
+    ],
+    "metrics": 28,
+    "differ": 2,
+    "max_rel": 0.01591401793428302,
+    "worst": "[oils_worst_case_margin].value",
+    "verdicts": 4,
+    "verdicts_changed": [],
+    "ticks": [
+     172201,
+     172201
+    ],
+    "overruns": [
+     0,
+     0
+    ],
+    "insn_mean": [
+     354533.3819954588,
+     377174.23982439126
+    ],
+    "insn_max": [
+     986565.0,
+     1035506.0
+    ],
+    "insn_mean_pct": 6.386100429105,
+    "insn_max_pct": 4.960747644605272,
+    "cpu_load_max": [
+     0.07340513392857143,
+     0.07704657738095237
+    ],
+    "deadline_margin_min_s": [
+     0.09106548660714286,
+     0.09070134226190477
+    ],
+    "worst_case_margin_s": [
+     0.03661117857142858,
+     0.03602854761904763
+    ]
+   }
+  },
+  {
+   "set": "c",
+   "scenario": "mission_fmr",
+   "sils": {
+    "impl": [
+     "c (in-process)",
+     "c (in-process)"
+    ],
+    "metrics": 14,
+    "differ": 0,
+    "max_rel": 0.0,
+    "worst": null,
+    "verdicts": 2,
+    "verdicts_changed": []
+   },
+   "oils": {
+    "impl": [
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu.elf",
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu.elf"
+    ],
+    "metrics": 28,
+    "differ": 2,
+    "max_rel": 0.01876567751229438,
+    "worst": "[oils_worst_case_margin].value",
+    "verdicts": 4,
+    "verdicts_changed": [],
+    "ticks": [
+     172201,
+     172201
+    ],
+    "overruns": [
+     0,
+     0
+    ],
+    "insn_mean": [
+     310564.0249127473,
+     344047.7714240916
+    ],
+    "insn_max": [
+     937189.0,
+     996851.0
+    ],
+    "insn_mean_pct": 10.781592143762145,
+    "insn_max_pct": 6.3660585004732235,
+    "cpu_load_max": [
+     0.0697313244047619,
+     0.0741704613095238
+    ],
+    "deadline_margin_min_s": [
+     0.09208286755952381,
+     0.09163895386904762
+    ],
+    "worst_case_margin_s": [
+     0.037848988095238095,
+     0.037138726190476194
+    ]
+   }
+  },
+  {
+   "set": "c",
+   "scenario": "mission_fmr_rcs",
+   "sils": {
+    "impl": [
+     "c (in-process)",
+     "c (in-process)"
+    ],
+    "metrics": 14,
+    "differ": 0,
+    "max_rel": 0.0,
+    "worst": null,
+    "verdicts": 2,
+    "verdicts_changed": []
+   },
+   "oils": {
+    "impl": [
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu.elf",
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu.elf"
+    ],
+    "metrics": 28,
+    "differ": 2,
+    "max_rel": 0.019217292340318753,
+    "worst": "[oils_worst_case_margin].value",
+    "verdicts": 4,
+    "verdicts_changed": [],
+    "ticks": [
+     172201,
+     172201
+    ],
+    "overruns": [
+     0,
+     0
+    ],
+    "insn_mean": [
+     313351.165318436,
+     348138.19725204847
+    ],
+    "insn_max": [
+     940622.0,
+     1001444.0
+    ],
+    "insn_mean_pct": 11.101612434809665,
+    "insn_max_pct": 6.466146868774066,
+    "cpu_load_max": [
+     0.06998675595238095,
+     0.07451220238095237
+    ],
+    "deadline_margin_min_s": [
+     0.09192732440476191,
+     0.09147477976190477
+    ],
+    "worst_case_margin_s": [
+     0.03767811904761905,
+     0.03695404761904762
+    ]
+   }
+  },
+  {
+   "set": "c",
+   "scenario": "mission_img",
+   "sils": {
+    "impl": [
+     "c (in-process)",
+     "c (in-process)"
+    ],
+    "metrics": 28,
+    "differ": 0,
+    "max_rel": 0.0,
+    "worst": null,
+    "verdicts": 3,
+    "verdicts_changed": []
+   },
+   "oils": {
+    "impl": [
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu.elf",
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu.elf"
+    ],
+    "metrics": 42,
+    "differ": 5,
+    "max_rel": 0.01966434290937607,
+    "worst": "[oils_worst_case_margin].value",
+    "verdicts": 5,
+    "verdicts_changed": [],
+    "ticks": [
+     172201,
+     172201
+    ],
+    "overruns": [
+     0,
+     0
+    ],
+    "insn_mean": [
+     318626.7690605746,
+     352475.35270991456
+    ],
+    "insn_max": [
+     935162.0,
+     997721.0
+    ],
+    "insn_mean_pct": 10.623270527186925,
+    "insn_max_pct": 6.689643077883832,
+    "cpu_load_max": [
+     0.06958050595238095,
+     0.07423519345238094
+    ],
+    "deadline_margin_min_s": [
+     0.0920979494047619,
+     0.09163248065476191
+    ],
+    "worst_case_margin_s": [
+     0.03787311904761905,
+     0.03712836904761905
+    ]
+   }
+  },
+  {
+   "set": "c",
+   "scenario": "mission_rw_rcs",
+   "sils": {
+    "impl": [
+     "c (in-process)",
+     "c (in-process)"
+    ],
+    "metrics": 14,
+    "differ": 0,
+    "max_rel": 0.0,
+    "worst": null,
+    "verdicts": 2,
+    "verdicts_changed": []
+   },
+   "oils": {
+    "impl": [
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu.elf",
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu.elf"
+    ],
+    "metrics": 28,
+    "differ": 2,
+    "max_rel": 0.3908282602087444,
+    "worst": "[ape_los_last_half_orbit_p9973].value",
+    "verdicts": 4,
+    "verdicts_changed": [],
+    "ticks": [
+     172201,
+     172201
+    ],
+    "overruns": [
+     0,
+     0
+    ],
+    "insn_mean": [
+     325197.17659014754,
+     360482.9650292391
+    ],
+    "insn_max": [
+     943365.0,
+     1007166.0
+    ],
+    "insn_mean_pct": 10.85058265544627,
+    "insn_max_pct": 6.763129859598353,
+    "cpu_load_max": [
+     0.0701908482142857,
+     0.07493794642857143
+    ],
+    "deadline_margin_min_s": [
+     0.09190691517857144,
+     0.09143220535714286
+    ],
+    "worst_case_margin_s": [
+     0.03764546428571429,
+     0.03688592857142857
+    ]
+   }
+  },
+  {
+   "set": "c",
+   "scenario": "mission_vscmg",
+   "sils": {
+    "impl": [
+     "c (in-process)",
+     "c (in-process)"
+    ],
+    "metrics": 14,
+    "differ": 0,
+    "max_rel": 0.0,
+    "worst": null,
+    "verdicts": 2,
+    "verdicts_changed": []
+   },
+   "oils": {
+    "impl": [
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu.elf",
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu.elf"
+    ],
+    "metrics": 28,
+    "differ": 2,
+    "max_rel": 0.01626575066146224,
+    "worst": "[oils_worst_case_margin].value",
+    "verdicts": 4,
+    "verdicts_changed": [],
+    "ticks": [
+     172201,
+     172201
+    ],
+    "overruns": [
+     0,
+     0
+    ],
+    "insn_mean": [
+     372139.8094610368,
+     394785.8643213454
+    ],
+    "insn_max": [
+     1008064.0,
+     1057737.0
+    ],
+    "insn_mean_pct": 6.085362082897406,
+    "insn_max_pct": 4.927564122912831,
+    "cpu_load_max": [
+     0.0750047619047619,
+     0.07870066964285713
+    ],
+    "deadline_margin_min_s": [
+     0.09090552380952381,
+     0.09053593303571429
+    ],
+    "worst_case_margin_s": [
+     0.0363552380952381,
+     0.03576389285714286
+    ]
+   }
+  },
+  {
+   "set": "c",
+   "scenario": "nadir_hold_ais",
+   "sils": {
+    "impl": [
+     "c (in-process)",
+     "c (in-process)"
+    ],
+    "metrics": 42,
+    "differ": 0,
+    "max_rel": 0.0,
+    "worst": null,
+    "verdicts": 4,
+    "verdicts_changed": []
+   },
+   "oils": {
+    "impl": [
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu.elf",
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu.elf"
+    ],
+    "metrics": 56,
+    "differ": 7,
+    "max_rel": 0.004313828112295208,
+    "worst": "[oils_worst_case_margin].value",
+    "verdicts": 6,
+    "verdicts_changed": [],
+    "ticks": [
+     86101,
+     86101
+    ],
+    "overruns": [
+     0,
+     0
+    ],
+    "insn_mean": [
+     270021.86480993254,
+     287680.75461376755
+    ],
+    "insn_max": [
+     717991.0,
+     750911.0
+    ],
+    "insn_mean_pct": 6.539799958890384,
+    "insn_max_pct": 4.5850156896117085,
+    "cpu_load_max": [
+     0.02671097470238095,
+     0.027935677083333332
+    ],
+    "deadline_margin_min_s": [
+     0.19410380505952382,
+     0.19385886458333335
+    ],
+    "worst_case_margin_s": [
+     0.0908484880952381,
+     0.09045658333333334
+    ]
+   }
+  },
+  {
+   "set": "c",
+   "scenario": "nadir_hold_ais_css",
+   "sils": {
+    "impl": [
+     "c (in-process)",
+     "c (in-process)"
+    ],
+    "metrics": 28,
+    "differ": 0,
+    "max_rel": 0.0,
+    "worst": null,
+    "verdicts": 3,
+    "verdicts_changed": []
+   },
+   "oils": {
+    "impl": [
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu.elf",
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu.elf"
+    ],
+    "metrics": 42,
+    "differ": 5,
+    "max_rel": 0.00579943058497639,
+    "worst": "[ake_los_last_orbit].value",
+    "verdicts": 5,
+    "verdicts_changed": [],
+    "ticks": [
+     86101,
+     86101
+    ],
+    "overruns": [
+     0,
+     0
+    ],
+    "insn_mean": [
+     269906.1366650794,
+     287575.08140439715
+    ],
+    "insn_max": [
+     717732.0,
+     749688.0
+    ],
+    "insn_mean_pct": 6.546329386072004,
+    "insn_max_pct": 4.452358261858187,
+    "cpu_load_max": [
+     0.026701339285714283,
+     0.02789017857142857
+    ],
+    "deadline_margin_min_s": [
+     0.19410573214285715,
+     0.1938679642857143
+    ],
+    "worst_case_margin_s": [
+     0.09085157142857143,
+     0.09047114285714286
+    ]
+   }
+  },
+  {
+   "set": "c",
+   "scenario": "safe_mode_ais",
+   "sils": {
+    "impl": [
+     "c (in-process)",
+     "c (in-process)"
+    ],
+    "metrics": 21,
+    "differ": 0,
+    "max_rel": 0.0,
+    "worst": null,
+    "verdicts": 1,
+    "verdicts_changed": []
+   },
+   "oils": {
+    "impl": [
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu.elf",
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu.elf"
+    ],
+    "metrics": 35,
+    "differ": 3,
+    "max_rel": 0.03468293341772313,
+    "worst": "[ape_los_last_orbit].value",
+    "verdicts": 3,
+    "verdicts_changed": [],
+    "ticks": [
+     86101,
+     86101
+    ],
+    "overruns": [
+     0,
+     0
+    ],
+    "insn_mean": [
+     260046.28483989733,
+     277453.480946795
+    ],
+    "insn_max": [
+     717991.0,
+     750911.0
+    ],
+    "insn_mean_pct": 6.6938837898087185,
+    "insn_max_pct": 4.5850156896117085,
+    "cpu_load_max": [
+     0.02671097470238095,
+     0.027935677083333332
+    ],
+    "deadline_margin_min_s": [
+     0.19410380505952382,
+     0.19385886458333335
+    ],
+    "worst_case_margin_s": [
+     0.0908484880952381,
+     0.09045658333333334
+    ]
+   }
+  },
+  {
+   "set": "c",
+   "scenario": "slew_cmg",
+   "sils": {
+    "impl": [
+     "c (in-process)",
+     "c (in-process)"
+    ],
+    "metrics": 21,
+    "differ": 0,
+    "max_rel": 0.0,
+    "worst": null,
+    "verdicts": 2,
+    "verdicts_changed": []
+   },
+   "oils": {
+    "impl": [
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu.elf",
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu.elf"
+    ],
+    "metrics": 35,
+    "differ": 2,
+    "max_rel": 0.01910375306540184,
+    "worst": "[ape_los_on_target_p9973].value",
+    "verdicts": 4,
+    "verdicts_changed": [],
+    "ticks": [
+     6001,
+     6001
+    ],
+    "overruns": [
+     0,
+     0
+    ],
+    "insn_mean": [
+     419364.13014497585,
+     440453.2777870355
+    ],
+    "insn_max": [
+     983503.0,
+     1030283.0
+    ],
+    "insn_mean_pct": 5.028839170095225,
+    "insn_max_pct": 4.756467443414,
+    "cpu_load_max": [
+     0.07317730654761904,
+     0.0766579613095238
+    ],
+    "deadline_margin_min_s": [
+     0.0910882693452381,
+     0.09074020386904763
+    ],
+    "worst_case_margin_s": [
+     0.03664763095238095,
+     0.036090726190476194
+    ]
+   }
+  },
+  {
+   "set": "c",
+   "scenario": "slew_fmr",
+   "sils": {
+    "impl": [
+     "c (in-process)",
+     "c (in-process)"
+    ],
+    "metrics": 21,
+    "differ": 0,
+    "max_rel": 0.0,
+    "worst": null,
+    "verdicts": 2,
+    "verdicts_changed": []
+   },
+   "oils": {
+    "impl": [
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu.elf",
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu.elf"
+    ],
+    "metrics": 35,
+    "differ": 3,
+    "max_rel": 0.018716193831713593,
+    "worst": "[oils_worst_case_margin].value",
+    "verdicts": 4,
+    "verdicts_changed": [],
+    "ticks": [
+     6001,
+     6001
+    ],
+    "overruns": [
+     0,
+     0
+    ],
+    "insn_mean": [
+     367138.83586068987,
+     402008.00616563903
+    ],
+    "insn_max": [
+     931989.0,
+     991591.0
+    ],
+    "insn_mean_pct": 9.49754340839611,
+    "insn_max_pct": 6.395139856800885,
+    "cpu_load_max": [
+     0.06934441964285713,
+     0.07377909226190475
+    ],
+    "deadline_margin_min_s": [
+     0.09212155803571428,
+     0.09167809077380953
+    ],
+    "worst_case_margin_s": [
+     0.03791089285714286,
+     0.03720134523809524
+    ]
+   }
+  },
+  {
+   "set": "c",
+   "scenario": "slew_fmr_rcs",
+   "sils": {
+    "impl": [
+     "c (in-process)",
+     "c (in-process)"
+    ],
+    "metrics": 21,
+    "differ": 0,
+    "max_rel": 0.0,
+    "worst": null,
+    "verdicts": 2,
+    "verdicts_changed": []
+   },
+   "oils": {
+    "impl": [
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu.elf",
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu.elf"
+    ],
+    "metrics": 35,
+    "differ": 3,
+    "max_rel": 0.019684336778063433,
+    "worst": "[oils_worst_case_margin].value",
+    "verdicts": 4,
+    "verdicts_changed": [],
+    "ticks": [
+     6001,
+     6001
+    ],
+    "overruns": [
+     0,
+     0
+    ],
+    "insn_mean": [
+     370212.2617897017,
+     406505.79936677223
+    ],
+    "insn_max": [
+     933976.0,
+     996407.0
+    ],
+    "insn_mean_pct": 9.803440167437511,
+    "insn_max_pct": 6.684433004702476,
+    "cpu_load_max": [
+     0.0694922619047619,
+     0.07413742559523809
+    ],
+    "deadline_margin_min_s": [
+     0.09197677380952382,
+     0.0915122574404762
+    ],
+    "worst_case_margin_s": [
+     0.037757238095238094,
+     0.037014011904761904
+    ]
+   }
+  },
+  {
+   "set": "c",
+   "scenario": "slew_img",
+   "sils": {
+    "impl": [
+     "c (in-process)",
+     "c (in-process)"
+    ],
+    "metrics": 21,
+    "differ": 0,
+    "max_rel": 0.0,
+    "worst": null,
+    "verdicts": 2,
+    "verdicts_changed": []
+   },
+   "oils": {
+    "impl": [
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu.elf",
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu.elf"
+    ],
+    "metrics": 35,
+    "differ": 3,
+    "max_rel": 0.019235319703673214,
+    "worst": "[oils_worst_case_margin].value",
+    "verdicts": 4,
+    "verdicts_changed": [],
+    "ticks": [
+     6001,
+     6001
+    ],
+    "overruns": [
+     0,
+     0
+    ],
+    "insn_mean": [
+     366884.49525079154,
+     401672.4779203466
+    ],
+    "insn_max": [
+     930022.0,
+     991315.0
+    ],
+    "insn_mean_pct": 9.481998590803084,
+    "insn_max_pct": 6.590489257243377,
+    "cpu_load_max": [
+     0.06919806547619048,
+     0.07375855654761905
+    ],
+    "deadline_margin_min_s": [
+     0.09213619345238096,
+     0.09168014434523811
+    ],
+    "worst_case_margin_s": [
+     0.03793430952380952,
+     0.037204630952380954
+    ]
+   }
+  },
+  {
+   "set": "c",
+   "scenario": "slew_img_lqr",
+   "sils": {
+    "impl": [
+     "c (in-process)",
+     "c (in-process)"
+    ],
+    "metrics": 21,
+    "differ": 0,
+    "max_rel": 0.0,
+    "worst": null,
+    "verdicts": 2,
+    "verdicts_changed": []
+   },
+   "oils": {
+    "impl": [
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu.elf",
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu.elf"
+    ],
+    "metrics": 35,
+    "differ": 3,
+    "max_rel": 0.01931640934059722,
+    "worst": "[oils_worst_case_margin].value",
+    "verdicts": 4,
+    "verdicts_changed": [],
+    "ticks": [
+     6001,
+     6001
+    ],
+    "overruns": [
+     0,
+     0
+    ],
+    "insn_mean": [
+     367019.84969171806,
+     401723.8818530245
+    ],
+    "insn_max": [
+     931440.0,
+     992964.0
+    ],
+    "insn_mean_pct": 9.455628133044142,
+    "insn_max_pct": 6.605256377222365,
+    "cpu_load_max": [
+     0.06930357142857142,
+     0.07388125
+    ],
+    "deadline_margin_min_s": [
+     0.09212564285714286,
+     0.09166787500000001
+    ],
+    "worst_case_margin_s": [
+     0.037917428571428574,
+     0.037185
+    ]
+   }
+  },
+  {
+   "set": "c",
+   "scenario": "slew_img_smc",
+   "sils": {
+    "impl": [
+     "c (in-process)",
+     "c (in-process)"
+    ],
+    "metrics": 21,
+    "differ": 0,
+    "max_rel": 0.0,
+    "worst": null,
+    "verdicts": 2,
+    "verdicts_changed": []
+   },
+   "oils": {
+    "impl": [
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu.elf",
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu.elf"
+    ],
+    "metrics": 35,
+    "differ": 3,
+    "max_rel": 0.019551335923129295,
+    "worst": "[oils_worst_case_margin].value",
+    "verdicts": 4,
+    "verdicts_changed": [],
+    "ticks": [
+     6001,
+     6001
+    ],
+    "overruns": [
+     0,
+     0
+    ],
+    "insn_mean": [
+     369736.1179803366,
+     404554.1401433094
+    ],
+    "insn_max": [
+     933499.0,
+     995731.0
+    ],
+    "insn_mean_pct": 9.416992408846715,
+    "insn_max_pct": 6.666530976465963,
+    "cpu_load_max": [
+     0.06945677083333333,
+     0.07408712797619048
+    ],
+    "deadline_margin_min_s": [
+     0.09211032291666667,
+     0.09164728720238095
+    ],
+    "worst_case_margin_s": [
+     0.03789291666666667,
+     0.037152059523809525
+    ]
+   }
+  },
+  {
+   "set": "c",
+   "scenario": "slew_rw_rcs",
+   "sils": {
+    "impl": [
+     "c (in-process)",
+     "c (in-process)"
+    ],
+    "metrics": 21,
+    "differ": 0,
+    "max_rel": 0.0,
+    "worst": null,
+    "verdicts": 2,
+    "verdicts_changed": []
+   },
+   "oils": {
+    "impl": [
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu.elf",
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu.elf"
+    ],
+    "metrics": 35,
+    "differ": 3,
+    "max_rel": 0.019187397760091533,
+    "worst": "[oils_worst_case_margin].value",
+    "verdicts": 4,
+    "verdicts_changed": [],
+    "ticks": [
+     6001,
+     6001
+    ],
+    "overruns": [
+     0,
+     0
+    ],
+    "insn_mean": [
+     371834.3077820363,
+     408006.5432427929
+    ],
+    "insn_max": [
+     938401.0,
+     999171.0
+    ],
+    "insn_mean_pct": 9.728052173701036,
+    "insn_max_pct": 6.475909552526052,
+    "cpu_load_max": [
+     0.06982150297619047,
+     0.07434308035714285
+    ],
+    "deadline_margin_min_s": [
+     0.09194384970238095,
+     0.09149169196428572
+    ],
+    "worst_case_margin_s": [
+     0.03770455952380952,
+     0.03698110714285714
+    ]
+   }
+  },
+  {
+   "set": "c",
+   "scenario": "slew_vscmg",
+   "sils": {
+    "impl": [
+     "c (in-process)",
+     "c (in-process)"
+    ],
+    "metrics": 21,
+    "differ": 0,
+    "max_rel": 0.0,
+    "worst": null,
+    "verdicts": 2,
+    "verdicts_changed": []
+   },
+   "oils": {
+    "impl": [
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu.elf",
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu.elf"
+    ],
+    "metrics": 35,
+    "differ": 4,
+    "max_rel": 0.015816706473886964,
+    "worst": "[oils_worst_case_margin].value",
+    "verdicts": 4,
+    "verdicts_changed": [],
+    "ticks": [
+     6001,
+     6001
+    ],
+    "overruns": [
+     0,
+     0
+    ],
+    "insn_mean": [
+     440449.5040826529,
+     461555.68221963005
+    ],
+    "insn_max": [
+     1004251.0,
+     1052613.0
+    ],
+    "insn_mean_pct": 4.791963196992597,
+    "insn_max_pct": 4.815728338831627,
+    "cpu_load_max": [
+     0.07472105654761904,
+     0.07831941964285713
+    ],
+    "deadline_margin_min_s": [
+     0.0909338943452381,
+     0.09057405803571429
+    ],
+    "worst_case_margin_s": [
+     0.036400630952380955,
+     0.03582489285714286
+    ]
+   }
+  },
+  {
+   "set": "c",
+   "scenario": "sun_acq_rotor_img",
+   "sils": {
+    "impl": [
+     "c (in-process)",
+     "c (in-process)"
+    ],
+    "metrics": 21,
+    "differ": 0,
+    "max_rel": 0.0,
+    "worst": null,
+    "verdicts": 1,
+    "verdicts_changed": []
+   },
+   "oils": {
+    "impl": [
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu.elf",
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu.elf"
+    ],
+    "metrics": 35,
+    "differ": 3,
+    "max_rel": 0.01899227519895441,
+    "worst": "[oils_worst_case_margin].value",
+    "verdicts": 3,
+    "verdicts_changed": [],
+    "ticks": [
+     57401,
+     57401
+    ],
+    "overruns": [
+     0,
+     0
+    ],
+    "insn_mean": [
+     281141.1361648752,
+     314772.3100642846
+    ],
+    "insn_max": [
+     902829.0,
+     963864.0
+    ],
+    "insn_mean_pct": 11.962381015521833,
+    "insn_max_pct": 6.760416424372722,
+    "cpu_load_max": [
+     0.06717477678571428,
+     0.07171607142857142
+    ],
+    "deadline_margin_min_s": [
+     0.09233852232142858,
+     0.09188439285714287
+    ],
+    "worst_case_margin_s": [
+     0.03825803571428572,
+     0.03753142857142858
+    ]
+   }
+  },
+  {
+   "set": "c",
+   "scenario": "sun_fine_img",
+   "sils": {
+    "impl": [
+     "c (in-process)",
+     "c (in-process)"
+    ],
+    "metrics": 21,
+    "differ": 0,
+    "max_rel": 0.0,
+    "worst": null,
+    "verdicts": 3,
+    "verdicts_changed": []
+   },
+   "oils": {
+    "impl": [
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu.elf",
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu.elf"
+    ],
+    "metrics": 35,
+    "differ": 4,
+    "max_rel": 0.019585525324427366,
+    "worst": "[oils_worst_case_margin].value",
+    "verdicts": 5,
+    "verdicts_changed": [],
+    "ticks": [
+     57401,
+     57401
+    ],
+    "overruns": [
+     0,
+     0
+    ],
+    "insn_mean": [
+     352904.1893695232,
+     387797.952091427
+    ],
+    "insn_max": [
+     951003.0,
+     1013001.0
+    ],
+    "insn_mean_pct": 9.887602293484482,
+    "insn_max_pct": 6.519222336838054,
+    "cpu_load_max": [
+     0.07075915178571428,
+     0.07537209821428571
+    ],
+    "deadline_margin_min_s": [
+     0.09198008482142858,
+     0.09151879017857144
+    ],
+    "worst_case_margin_s": [
+     0.03768453571428572,
+     0.03694646428571429
+    ]
+   }
+  },
+  {
+   "set": "c",
+   "scenario": "sun_mtq_ais",
+   "sils": {
+    "impl": [
+     "c (in-process)",
+     "c (in-process)"
+    ],
+    "metrics": 21,
+    "differ": 0,
+    "max_rel": 0.0,
+    "worst": null,
+    "verdicts": 3,
+    "verdicts_changed": []
+   },
+   "oils": {
+    "impl": [
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu.elf",
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu.elf"
+    ],
+    "metrics": 35,
+    "differ": 4,
+    "max_rel": 0.004425342297750337,
+    "worst": "[oils_worst_case_margin].value",
+    "verdicts": 5,
+    "verdicts_changed": [],
+    "ticks": [
+     86101,
+     86101
+    ],
+    "overruns": [
+     0,
+     0
+    ],
+    "insn_mean": [
+     274343.25976469496,
+     291970.31292319484
+    ],
+    "insn_max": [
+     717312.0,
+     751086.0
+    ],
+    "insn_mean_pct": 6.425181786357229,
+    "insn_max_pct": 4.708411402569594,
+    "cpu_load_max": [
+     0.026685714285714285,
+     0.027942187499999997
+    ],
+    "deadline_margin_min_s": [
+     0.19410885714285717,
+     0.19385756250000002
+    ],
+    "worst_case_margin_s": [
+     0.09085657142857144,
+     0.09045450000000001
+    ]
+   }
+  },
+  {
+   "set": "c",
+   "scenario": "sun_spin_ais",
+   "sils": {
+    "impl": [
+     "c (in-process)",
+     "c (in-process)"
+    ],
+    "metrics": 35,
+    "differ": 0,
+    "max_rel": 0.0,
+    "worst": null,
+    "verdicts": 5,
+    "verdicts_changed": []
+   },
+   "oils": {
+    "impl": [
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu.elf",
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu.elf"
+    ],
+    "metrics": 49,
+    "differ": 8,
+    "max_rel": 1.0,
+    "worst": "[spin_rate_error_last_orbit].pass",
+    "verdicts": 7,
+    "verdicts_changed": [
+     "spin_rate_error_last_orbit (FAIL -> pass)",
+     "sun_spin_entry (FAIL -> pass)"
+    ],
+    "ticks": [
+     86101,
+     86101
+    ],
+    "overruns": [
+     0,
+     0
+    ],
+    "insn_mean": [
+     167549.3418078768,
+     183120.22635044888
+    ],
+    "insn_max": [
+     540247.0,
+     571429.0
+    ],
+    "insn_mean_pct": 9.293312868054528,
+    "insn_max_pct": 5.771804378367673,
+    "cpu_load_max": [
+     0.020098474702380954,
+     0.021258519345238095
+    ],
+    "deadline_margin_min_s": [
+     0.19542630505952382,
+     0.1951942961309524
+    ],
+    "worst_case_margin_s": [
+     0.09296448809523811,
+     0.09259327380952381
+    ]
+   }
+  },
+  {
+   "set": "c",
+   "scenario": "target_img",
+   "sils": {
+    "impl": [
+     "c (in-process)",
+     "c (in-process)"
+    ],
+    "metrics": 21,
+    "differ": 0,
+    "max_rel": 0.0,
+    "worst": null,
+    "verdicts": 3,
+    "verdicts_changed": []
+   },
+   "oils": {
+    "impl": [
+     null,
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu.elf"
+    ],
+    "metrics": 5,
+    "differ": null,
+    "max_rel": null,
+    "worst": null,
+    "verdicts": 5,
+    "verdicts_changed": [],
+    "new": true,
+    "ticks": [
+     null,
+     57401
+    ],
+    "overruns": [
+     null,
+     0
+    ],
+    "insn_mean": [
+     null,
+     402394.92859009426
+    ],
+    "insn_max": [
+     null,
+     1004545.0
+    ],
+    "insn_mean_pct": null,
+    "insn_max_pct": null,
+    "cpu_load_max": [
+     null,
+     0.07474293154761905
+    ],
+    "deadline_margin_min_s": [
+     null,
+     0.0915817068452381
+    ],
+    "worst_case_margin_s": [
+     null,
+     0.037047130952380956
+    ]
+   }
+  },
+  {
+   "set": "qemu-rs",
+   "scenario": "agile_slew_cmg",
+   "sils": {
+    "impl": [
+     "c (in-process)",
+     "c (in-process)"
+    ],
+    "metrics": 21,
+    "differ": 0,
+    "max_rel": 0.0,
+    "worst": null,
+    "verdicts": 1,
+    "verdicts_changed": []
+   },
+   "oils": {
+    "impl": [
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu_rs.elf",
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu_rs.elf"
+    ],
+    "metrics": 35,
+    "differ": 2,
+    "max_rel": 0.02311252662308625,
+    "worst": "[oils_worst_case_margin].value",
+    "verdicts": 3,
+    "verdicts_changed": [],
+    "ticks": [
+     6001,
+     6001
+    ],
+    "overruns": [
+     0,
+     0
+    ],
+    "insn_mean": [
+     553284.9861689719,
+     593118.8005332445
+    ],
+    "insn_max": [
+     1173903.0,
+     1240652.0
+    ],
+    "insn_mean_pct": 7.199511166946339,
+    "insn_max_pct": 5.686074573452832,
+    "cpu_load_max": [
+     0.0873439732142857,
+     0.09231041666666666
+    ],
+    "deadline_margin_min_s": [
+     0.08967160267857144,
+     0.08917495833333333
+    ],
+    "worst_case_margin_s": [
+     0.034380964285714286,
+     0.033586333333333336
+    ]
+   }
+  },
+  {
+   "set": "qemu-rs",
+   "scenario": "agile_slew_fmr_rcs",
+   "sils": {
+    "impl": [
+     "c (in-process)",
+     "c (in-process)"
+    ],
+    "metrics": 21,
+    "differ": 0,
+    "max_rel": 0.0,
+    "worst": null,
+    "verdicts": 1,
+    "verdicts_changed": []
+   },
+   "oils": {
+    "impl": [
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu_rs.elf",
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu_rs.elf"
+    ],
+    "metrics": 35,
+    "differ": 4,
+    "max_rel": 0.06213592233009687,
+    "worst": "[settle_time_after_slew].value",
+    "verdicts": 3,
+    "verdicts_changed": [],
+    "ticks": [
+     6001,
+     6001
+    ],
+    "overruns": [
+     0,
+     0
+    ],
+    "insn_mean": [
+     475987.97567072156,
+     513741.10348275286
+    ],
+    "insn_max": [
+     1097513.0,
+     1162065.0
+    ],
+    "insn_mean_pct": 7.931529732202337,
+    "insn_max_pct": 5.881661538405468,
+    "cpu_load_max": [
+     0.08166019345238094,
+     0.08646316964285715
+    ],
+    "deadline_margin_min_s": [
+     0.09075998065476192,
+     0.09027968303571429
+    ],
+    "worst_case_margin_s": [
+     0.03581036904761905,
+     0.03504189285714286
+    ]
+   }
+  },
+  {
+   "set": "qemu-rs",
+   "scenario": "agile_slew_img",
+   "sils": {
+    "impl": [
+     "c (in-process)",
+     "c (in-process)"
+    ],
+    "metrics": 21,
+    "differ": 0,
+    "max_rel": 0.0,
+    "worst": null,
+    "verdicts": 1,
+    "verdicts_changed": []
+   },
+   "oils": {
+    "impl": [
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu_rs.elf",
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu_rs.elf"
+    ],
+    "metrics": 35,
+    "differ": 3,
+    "max_rel": 0.020863031687276178,
+    "worst": "[oils_worst_case_margin].value",
+    "verdicts": 3,
+    "verdicts_changed": [],
+    "ticks": [
+     6001,
+     6001
+    ],
+    "overruns": [
+     0,
+     0
+    ],
+    "insn_mean": [
+     466802.5917347109,
+     503003.0978170305
+    ],
+    "insn_max": [
+     1090242.0,
+     1153379.0
+    ],
+    "insn_mean_pct": 7.75499252216936,
+    "insn_max_pct": 5.791099590733067,
+    "cpu_load_max": [
+     0.08111919642857142,
+     0.08581688988095237
+    ],
+    "deadline_margin_min_s": [
+     0.09094408035714287,
+     0.09047431101190477
+    ],
+    "worst_case_margin_s": [
+     0.03602692857142857,
+     0.03527529761904762
+    ]
+   }
+  },
+  {
+   "set": "qemu-rs",
+   "scenario": "agile_slew_rw_rcs",
+   "sils": {
+    "impl": [
+     "c (in-process)",
+     "c (in-process)"
+    ],
+    "metrics": 21,
+    "differ": 0,
+    "max_rel": 0.0,
+    "worst": null,
+    "verdicts": 1,
+    "verdicts_changed": []
+   },
+   "oils": {
+    "impl": [
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu_rs.elf",
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu_rs.elf"
+    ],
+    "metrics": 35,
+    "differ": 3,
+    "max_rel": 0.02147948885012578,
+    "worst": "[oils_worst_case_margin].value",
+    "verdicts": 3,
+    "verdicts_changed": [],
+    "ticks": [
+     6001,
+     6001
+    ],
+    "overruns": [
+     0,
+     0
+    ],
+    "insn_mean": [
+     477243.99616730545,
+     515014.78036993835
+    ],
+    "insn_max": [
+     1100438.0,
+     1164987.0
+    ],
+    "insn_mean_pct": 7.914355027190695,
+    "insn_max_pct": 5.865755271991698,
+    "cpu_load_max": [
+     0.08187782738095238,
+     0.08668058035714285
+    ],
+    "deadline_margin_min_s": [
+     0.09073821726190477,
+     0.09025794196428572
+    ],
+    "worst_case_margin_s": [
+     0.035775547619047623,
+     0.035007107142857145
+    ]
+   }
+  },
+  {
+   "set": "qemu-rs",
+   "scenario": "agile_slew_vscmg",
+   "sils": {
+    "impl": [
+     "c (in-process)",
+     "c (in-process)"
+    ],
+    "metrics": 21,
+    "differ": 0,
+    "max_rel": 0.0,
+    "worst": null,
+    "verdicts": 1,
+    "verdicts_changed": []
+   },
+   "oils": {
+    "impl": [
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu_rs.elf",
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu_rs.elf"
+    ],
+    "metrics": 35,
+    "differ": 4,
+    "max_rel": 0.023456274727290075,
+    "worst": "[oils_worst_case_margin].value",
+    "verdicts": 3,
+    "verdicts_changed": [],
+    "ticks": [
+     6001,
+     6001
+    ],
+    "overruns": [
+     0,
+     0
+    ],
+    "insn_mean": [
+     576261.2009665056,
+     616742.538243626
+    ],
+    "insn_max": [
+     1199429.0,
+     1266572.0
+    ],
+    "insn_mean_pct": 7.024824369439609,
+    "insn_max_pct": 5.597913673923175,
+    "cpu_load_max": [
+     0.08924322916666666,
+     0.09423898809523809
+    ],
+    "deadline_margin_min_s": [
+     0.08948167708333334,
+     0.0889821011904762
+    ],
+    "worst_case_margin_s": [
+     0.034077083333333334,
+     0.03327776190476191
+    ]
+   }
+  },
+  {
+   "set": "qemu-rs",
+   "scenario": "detumble_ais",
+   "sils": {
+    "impl": [
+     "c (in-process)",
+     "c (in-process)"
+    ],
+    "metrics": 21,
+    "differ": 0,
+    "max_rel": 0.0,
+    "worst": null,
+    "verdicts": 3,
+    "verdicts_changed": []
+   },
+   "oils": {
+    "impl": [
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu_rs.elf",
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu_rs.elf"
+    ],
+    "metrics": 35,
+    "differ": 4,
+    "max_rel": 0.0034419130271860256,
+    "worst": "[oils_worst_case_margin].value",
+    "verdicts": 5,
+    "verdicts_changed": [],
+    "ticks": [
+     86101,
+     86101
+    ],
+    "overruns": [
+     0,
+     0
+    ],
+    "insn_mean": [
+     184627.0990813115,
+     196750.43219010232
+    ],
+    "insn_max": [
+     567545.0,
+     594329.0
+    ],
+    "insn_mean_pct": 6.566388774516573,
+    "insn_max_pct": 4.719273361583663,
+    "cpu_load_max": [
+     0.021114025297619046,
+     0.022110453869047617
+    ],
+    "deadline_margin_min_s": [
+     0.1952231949404762,
+     0.19502390922619048
+    ],
+    "worst_case_margin_s": [
+     0.09263951190476191,
+     0.09232065476190476
+    ]
+   }
+  },
+  {
+   "set": "qemu-rs",
+   "scenario": "detumble_ais_bangbang",
+   "sils": {
+    "impl": [
+     "c (in-process)",
+     "c (in-process)"
+    ],
+    "metrics": 21,
+    "differ": 0,
+    "max_rel": 0.0,
+    "worst": null,
+    "verdicts": 3,
+    "verdicts_changed": []
+   },
+   "oils": {
+    "impl": [
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu_rs.elf",
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu_rs.elf"
+    ],
+    "metrics": 35,
+    "differ": 3,
+    "max_rel": 0.009230789483494928,
+    "worst": "[power_mean].value",
+    "verdicts": 5,
+    "verdicts_changed": [],
+    "ticks": [
+     86101,
+     86101
+    ],
+    "overruns": [
+     0,
+     0
+    ],
+    "insn_mean": [
+     183841.29960163066,
+     195961.10021950965
+    ],
+    "insn_max": [
+     567545.0,
+     594329.0
+    ],
+    "insn_mean_pct": 6.592534236943294,
+    "insn_max_pct": 4.719273361583663,
+    "cpu_load_max": [
+     0.021114025297619046,
+     0.022110453869047617
+    ],
+    "deadline_margin_min_s": [
+     0.1952231949404762,
+     0.19502390922619048
+    ],
+    "worst_case_margin_s": [
+     0.09263951190476191,
+     0.09232065476190476
+    ]
+   }
+  },
+  {
+   "set": "qemu-rs",
+   "scenario": "detumble_ais_mag",
+   "sils": {
+    "impl": [
+     "c (in-process)",
+     "c (in-process)"
+    ],
+    "metrics": 21,
+    "differ": 0,
+    "max_rel": 0.0,
+    "worst": null,
+    "verdicts": 3,
+    "verdicts_changed": []
+   },
+   "oils": {
+    "impl": [
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu_rs.elf",
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu_rs.elf"
+    ],
+    "metrics": 35,
+    "differ": 4,
+    "max_rel": 0.0034419130271860256,
+    "worst": "[oils_worst_case_margin].value",
+    "verdicts": 5,
+    "verdicts_changed": [],
+    "ticks": [
+     86101,
+     86101
+    ],
+    "overruns": [
+     0,
+     0
+    ],
+    "insn_mean": [
+     184360.82988583174,
+     196483.69906272864
+    ],
+    "insn_max": [
+     567545.0,
+     594329.0
+    ],
+    "insn_mean_pct": 6.575620854171773,
+    "insn_max_pct": 4.719273361583663,
+    "cpu_load_max": [
+     0.021114025297619046,
+     0.022110453869047617
+    ],
+    "deadline_margin_min_s": [
+     0.1952231949404762,
+     0.19502390922619048
+    ],
+    "worst_case_margin_s": [
+     0.09263951190476191,
+     0.09232065476190476
+    ]
+   }
+  },
+  {
+   "set": "qemu-rs",
+   "scenario": "detumble_img",
+   "sils": {
+    "impl": [
+     "c (in-process)",
+     "c (in-process)"
+    ],
+    "metrics": 7,
+    "differ": 0,
+    "max_rel": 0.0,
+    "worst": null,
+    "verdicts": 1,
+    "verdicts_changed": []
+   },
+   "oils": {
+    "impl": [
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu_rs.elf",
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu_rs.elf"
+    ],
+    "metrics": 21,
+    "differ": 1,
+    "max_rel": 0.012365176025375083,
+    "worst": "[oils_worst_case_margin].value",
+    "verdicts": 3,
+    "verdicts_changed": [],
+    "ticks": [
+     172201,
+     172201
+    ],
+    "overruns": [
+     0,
+     0
+    ],
+    "insn_mean": [
+     142965.94867044906,
+     165571.59740071197
+    ],
+    "insn_max": [
+     594597.0,
+     638146.0
+    ],
+    "insn_mean_pct": 15.811911116241541,
+    "insn_max_pct": 7.324120370603955,
+    "cpu_load_max": [
+     0.044240848214285707,
+     0.04748110119047619
+    ],
+    "deadline_margin_min_s": [
+     0.09463191517857143,
+     0.09430788988095239
+    ],
+    "worst_case_margin_s": [
+     0.04192746428571429,
+     0.04140902380952381
+    ]
+   }
+  },
+  {
+   "set": "qemu-rs",
+   "scenario": "detumble_rcs",
+   "sils": {
+    "impl": [
+     "c (in-process)",
+     "c (in-process)"
+    ],
+    "metrics": 14,
+    "differ": 0,
+    "max_rel": 0.0,
+    "worst": null,
+    "verdicts": 1,
+    "verdicts_changed": []
+   },
+   "oils": {
+    "impl": [
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu_rs.elf",
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu_rs.elf"
+    ],
+    "metrics": 28,
+    "differ": 2,
+    "max_rel": 0.012863120191252035,
+    "worst": "[oils_worst_case_margin].value",
+    "verdicts": 3,
+    "verdicts_changed": [],
+    "ticks": [
+     18001,
+     18001
+    ],
+    "overruns": [
+     0,
+     0
+    ],
+    "insn_mean": [
+     144996.04044219764,
+     168940.93333703684
+    ],
+    "insn_max": [
+     604023.0,
+     649064.0
+    ],
+    "insn_mean_pct": 16.51417019514045,
+    "insn_max_pct": 7.456835252962222,
+    "cpu_load_max": [
+     0.044942187499999994,
+     0.04829345238095238
+    ],
+    "deadline_margin_min_s": [
+     0.09443178125000001,
+     0.09409665476190476
+    ],
+    "worst_case_margin_s": [
+     0.04168525000000001,
+     0.04114904761904762
+    ]
+   }
+  },
+  {
+   "set": "qemu-rs",
+   "scenario": "fault_coil_ais",
+   "sils": {
+    "impl": [
+     "c (in-process)",
+     "c (in-process)"
+    ],
+    "metrics": 21,
+    "differ": 0,
+    "max_rel": 0.0,
+    "worst": null,
+    "verdicts": 3,
+    "verdicts_changed": []
+   },
+   "oils": {
+    "impl": [
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu_rs.elf",
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu_rs.elf"
+    ],
+    "metrics": 35,
+    "differ": 4,
+    "max_rel": 0.009850566712707074,
+    "worst": "[power_mean].value",
+    "verdicts": 5,
+    "verdicts_changed": [],
+    "ticks": [
+     86101,
+     86101
+    ],
+    "overruns": [
+     0,
+     0
+    ],
+    "insn_mean": [
+     184612.60898247408,
+     196737.8776901546
+    ],
+    "insn_max": [
+     567545.0,
+     594329.0
+    ],
+    "insn_mean_pct": 6.5679526303816065,
+    "insn_max_pct": 4.719273361583663,
+    "cpu_load_max": [
+     0.021114025297619046,
+     0.022110453869047617
+    ],
+    "deadline_margin_min_s": [
+     0.1952231949404762,
+     0.19502390922619048
+    ],
+    "worst_case_margin_s": [
+     0.09263951190476191,
+     0.09232065476190476
+    ]
+   }
+  },
+  {
+   "set": "qemu-rs",
+   "scenario": "fault_gimbal_cmg",
+   "sils": {
+    "impl": [
+     "c (in-process)",
+     "c (in-process)"
+    ],
+    "metrics": 56,
+    "differ": 0,
+    "max_rel": 0.0,
+    "worst": null,
+    "verdicts": 4,
+    "verdicts_changed": []
+   },
+   "oils": {
+    "impl": [
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu_rs.elf",
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu_rs.elf"
+    ],
+    "metrics": 70,
+    "differ": 7,
+    "max_rel": 0.022038750661872563,
+    "worst": "[oils_worst_case_margin].value",
+    "verdicts": 6,
+    "verdicts_changed": [],
+    "ticks": [
+     57401,
+     57401
+    ],
+    "overruns": [
+     0,
+     0
+    ],
+    "insn_mean": [
+     542459.7802477309,
+     580651.8154213341
+    ],
+    "insn_max": [
+     1174263.0,
+     1237903.0
+    ],
+    "insn_mean_pct": 7.040528452848919,
+    "insn_max_pct": 5.419569551284508,
+    "cpu_load_max": [
+     0.08737075892857142,
+     0.09210587797619048
+    ],
+    "deadline_margin_min_s": [
+     0.08966892410714286,
+     0.08919541220238096
+    ],
+    "worst_case_margin_s": [
+     0.03437667857142858,
+     0.03361905952380952
+    ]
+   }
+  },
+  {
+   "set": "qemu-rs",
+   "scenario": "fault_gps_img",
+   "sils": {
+    "impl": [
+     "c (in-process)",
+     "c (in-process)"
+    ],
+    "metrics": 21,
+    "differ": 0,
+    "max_rel": 0.0,
+    "worst": null,
+    "verdicts": 3,
+    "verdicts_changed": []
+   },
+   "oils": {
+    "impl": [
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu_rs.elf",
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu_rs.elf"
+    ],
+    "metrics": 35,
+    "differ": 4,
+    "max_rel": 0.019925870760618625,
+    "worst": "[oils_worst_case_margin].value",
+    "verdicts": 5,
+    "verdicts_changed": [],
+    "ticks": [
+     57401,
+     57401
+    ],
+    "overruns": [
+     0,
+     0
+    ],
+    "insn_mean": [
+     459401.05003397155,
+     493777.1695615059
+    ],
+    "insn_max": [
+     1092596.0,
+     1152850.0
+    ],
+    "insn_mean_pct": 7.4828125719330245,
+    "insn_max_pct": 5.514755682795837,
+    "cpu_load_max": [
+     0.08129434523809523,
+     0.08577752976190477
+    ],
+    "deadline_margin_min_s": [
+     0.09092656547619048,
+     0.09047824702380952
+    ],
+    "worst_case_margin_s": [
+     0.03599890476190477,
+     0.03528159523809524
+    ]
+   }
+  },
+  {
+   "set": "qemu-rs",
+   "scenario": "fault_gyro_ais",
+   "sils": {
+    "impl": [
+     "c (in-process)",
+     "c (in-process)"
+    ],
+    "metrics": 28,
+    "differ": 0,
+    "max_rel": 0.0,
+    "worst": null,
+    "verdicts": 3,
+    "verdicts_changed": []
+   },
+   "oils": {
+    "impl": [
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu_rs.elf",
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu_rs.elf"
+    ],
+    "metrics": 42,
+    "differ": 5,
+    "max_rel": 0.004740154262724502,
+    "worst": "[oils_worst_case_margin].value",
+    "verdicts": 5,
+    "verdicts_changed": [],
+    "ticks": [
+     86101,
+     86101
+    ],
+    "overruns": [
+     0,
+     0
+    ],
+    "insn_mean": [
+     335292.1031695335,
+     353005.2445267767
+    ],
+    "insn_max": [
+     983259.0,
+     1018175.0
+    ],
+    "insn_mean_pct": 5.282898460715299,
+    "insn_max_pct": 3.5510480961781177,
+    "cpu_load_max": [
+     0.03657957589285714,
+     0.037878534226190474
+    ],
+    "deadline_margin_min_s": [
+     0.19213008482142857,
+     0.19187029315476192
+    ],
+    "worst_case_margin_s": [
+     0.08769053571428571,
+     0.08727486904761905
+    ]
+   }
+  },
+  {
+   "set": "qemu-rs",
+   "scenario": "fault_st_img",
+   "sils": {
+    "impl": [
+     "c (in-process)",
+     "c (in-process)"
+    ],
+    "metrics": 56,
+    "differ": 0,
+    "max_rel": 0.0,
+    "worst": null,
+    "verdicts": 4,
+    "verdicts_changed": []
+   },
+   "oils": {
+    "impl": [
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu_rs.elf",
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu_rs.elf"
+    ],
+    "metrics": 70,
+    "differ": 8,
+    "max_rel": 0.01987232680329417,
+    "worst": "[oils_worst_case_margin].value",
+    "verdicts": 6,
+    "verdicts_changed": [],
+    "ticks": [
+     57401,
+     57401
+    ],
+    "overruns": [
+     0,
+     0
+    ],
+    "insn_mean": [
+     399840.5616278462,
+     432807.5009320395
+    ],
+    "insn_max": [
+     1083291.0,
+     1143568.0
+    ],
+    "insn_mean_pct": 8.245021257967686,
+    "insn_max_pct": 5.564248202929776,
+    "cpu_load_max": [
+     0.08060200892857142,
+     0.08508690476190477
+    ],
+    "deadline_margin_min_s": [
+     0.09099579910714287,
+     0.09054730952380953
+    ],
+    "worst_case_margin_s": [
+     0.03610967857142858,
+     0.035392095238095236
+    ]
+   }
+  },
+  {
+   "set": "qemu-rs",
+   "scenario": "fault_valve_rcs",
+   "sils": {
+    "impl": [
+     "c (in-process)",
+     "c (in-process)"
+    ],
+    "metrics": 21,
+    "differ": 0,
+    "max_rel": 0.0,
+    "worst": null,
+    "verdicts": 3,
+    "verdicts_changed": []
+   },
+   "oils": {
+    "impl": [
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu_rs.elf",
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu_rs.elf"
+    ],
+    "metrics": 35,
+    "differ": 4,
+    "max_rel": 0.020539932860331525,
+    "worst": "[oils_worst_case_margin].value",
+    "verdicts": 5,
+    "verdicts_changed": [],
+    "ticks": [
+     57401,
+     57401
+    ],
+    "overruns": [
+     0,
+     0
+    ],
+    "insn_mean": [
+     467370.74949913763,
+     503468.0184143133
+    ],
+    "insn_max": [
+     1100803.0,
+     1162521.0
+    ],
+    "insn_mean_pct": 7.7234762667239405,
+    "insn_max_pct": 5.60663442959367,
+    "cpu_load_max": [
+     0.08190498511904762,
+     0.08649709821428571
+    ],
+    "deadline_margin_min_s": [
+     0.09073550148809524,
+     0.09027629017857143
+    ],
+    "worst_case_margin_s": [
+     0.03577120238095238,
+     0.03503646428571429
+    ]
+   }
+  },
+  {
+   "set": "qemu-rs",
+   "scenario": "fault_wheel_img",
+   "sils": {
+    "impl": [
+     "c (in-process)",
+     "c (in-process)"
+    ],
+    "metrics": 56,
+    "differ": 0,
+    "max_rel": 0.0,
+    "worst": null,
+    "verdicts": 4,
+    "verdicts_changed": []
+   },
+   "oils": {
+    "impl": [
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu_rs.elf",
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu_rs.elf"
+    ],
+    "metrics": 70,
+    "differ": 8,
+    "max_rel": 0.024309616453087393,
+    "worst": "[ake_los_p9973].value",
+    "verdicts": 6,
+    "verdicts_changed": [],
+    "ticks": [
+     57401,
+     57401
+    ],
+    "overruns": [
+     0,
+     0
+    ],
+    "insn_mean": [
+     450855.69528405427,
+     485758.4505322207
+    ],
+    "insn_max": [
+     1088676.0,
+     1149922.0
+    ],
+    "insn_mean_pct": 7.741447122271913,
+    "insn_max_pct": 5.625732541178459,
+    "cpu_load_max": [
+     0.08100267857142858,
+     0.08555967261904761
+    ],
+    "deadline_margin_min_s": [
+     0.09095573214285715,
+     0.09050003273809525
+    ],
+    "worst_case_margin_s": [
+     0.03604557142857143,
+     0.035316452380952386
+    ]
+   }
+  },
+  {
+   "set": "qemu-rs",
+   "scenario": "fine_hold_cmg",
+   "sils": {
+    "impl": [
+     "c (in-process)",
+     "c (in-process)"
+    ],
+    "metrics": 56,
+    "differ": 0,
+    "max_rel": 0.0,
+    "worst": null,
+    "verdicts": 4,
+    "verdicts_changed": []
+   },
+   "oils": {
+    "impl": [
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu_rs.elf",
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu_rs.elf"
+    ],
+    "metrics": 70,
+    "differ": 7,
+    "max_rel": 0.022169463070979827,
+    "worst": "[oils_worst_case_margin].value",
+    "verdicts": 6,
+    "verdicts_changed": [],
+    "ticks": [
+     57401,
+     57401
+    ],
+    "overruns": [
+     0,
+     0
+    ],
+    "insn_mean": [
+     542458.4385115242,
+     580620.1406769917
+    ],
+    "insn_max": [
+     1174148.0,
+     1238168.0
+    ],
+    "insn_mean_pct": 7.034954100848909,
+    "insn_max_pct": 5.452464254932087,
+    "cpu_load_max": [
+     0.08736220238095237,
+     0.09212559523809523
+    ],
+    "deadline_margin_min_s": [
+     0.08966977976190477,
+     0.08919344047619049
+    ],
+    "worst_case_margin_s": [
+     0.03437804761904763,
+     0.033615904761904764
+    ]
+   }
+  },
+  {
+   "set": "qemu-rs",
+   "scenario": "fine_hold_fmr",
+   "sils": {
+    "impl": [
+     "c (in-process)",
+     "c (in-process)"
+    ],
+    "metrics": 56,
+    "differ": 0,
+    "max_rel": 0.0,
+    "worst": null,
+    "verdicts": 4,
+    "verdicts_changed": []
+   },
+   "oils": {
+    "impl": [
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu_rs.elf",
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu_rs.elf"
+    ],
+    "metrics": 70,
+    "differ": 8,
+    "max_rel": 0.01989616602590188,
+    "worst": "[oils_worst_case_margin].value",
+    "verdicts": 6,
+    "verdicts_changed": [],
+    "ticks": [
+     57401,
+     57401
+    ],
+    "overruns": [
+     0,
+     0
+    ],
+    "insn_mean": [
+     460722.0244595042,
+     495360.19088517624
+    ],
+    "insn_max": [
+     1092253.0,
+     1152424.0
+    ],
+    "insn_mean_pct": 7.5182354189183425,
+    "insn_max_pct": 5.508888508431655,
+    "cpu_load_max": [
+     0.0812688244047619,
+     0.08574583333333333
+    ],
+    "deadline_margin_min_s": [
+     0.09092911755952382,
+     0.09048141666666668
+    ],
+    "worst_case_margin_s": [
+     0.036002988095238095,
+     0.03528666666666667
+    ]
+   }
+  },
+  {
+   "set": "qemu-rs",
+   "scenario": "fine_hold_fmr_rcs",
+   "sils": {
+    "impl": [
+     "c (in-process)",
+     "c (in-process)"
+    ],
+    "metrics": 56,
+    "differ": 0,
+    "max_rel": 0.0,
+    "worst": null,
+    "verdicts": 4,
+    "verdicts_changed": []
+   },
+   "oils": {
+    "impl": [
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu_rs.elf",
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu_rs.elf"
+    ],
+    "metrics": 70,
+    "differ": 8,
+    "max_rel": 0.020474083852546853,
+    "worst": "[oils_worst_case_margin].value",
+    "verdicts": 6,
+    "verdicts_changed": [],
+    "ticks": [
+     57401,
+     57401
+    ],
+    "overruns": [
+     0,
+     0
+    ],
+    "insn_mean": [
+     465191.9560112193,
+     501257.0232922771
+    ],
+    "insn_max": [
+     1096707.0,
+     1158311.0
+    ],
+    "insn_mean_pct": 7.752728054521223,
+    "insn_max_pct": 5.617179428963251,
+    "cpu_load_max": [
+     0.0816002232142857,
+     0.08618385416666667
+    ],
+    "deadline_margin_min_s": [
+     0.09076597767857143,
+     0.09030761458333333
+    ],
+    "worst_case_margin_s": [
+     0.03581996428571429,
+     0.03508658333333334
+    ]
+   }
+  },
+  {
+   "set": "qemu-rs",
+   "scenario": "fine_hold_img",
+   "sils": {
+    "impl": [
+     "c (in-process)",
+     "c (in-process)"
+    ],
+    "metrics": 91,
+    "differ": 0,
+    "max_rel": 0.0,
+    "worst": null,
+    "verdicts": 5,
+    "verdicts_changed": []
+   },
+   "oils": {
+    "impl": [
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu_rs.elf",
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu_rs.elf"
+    ],
+    "metrics": 105,
+    "differ": 13,
+    "max_rel": 0.019917873575038905,
+    "worst": "[oils_worst_case_margin].value",
+    "verdicts": 7,
+    "verdicts_changed": [],
+    "ticks": [
+     57401,
+     57401
+    ],
+    "overruns": [
+     0,
+     0
+    ],
+    "insn_mean": [
+     460638.59025104094,
+     495276.84615250607
+    ],
+    "insn_max": [
+     1092386.0,
+     1152620.0
+    ],
+    "insn_mean_pct": 7.519616600638653,
+    "insn_max_pct": 5.513984983330069,
+    "cpu_load_max": [
+     0.08127872023809522,
+     0.08576041666666666
+    ],
+    "deadline_margin_min_s": [
+     0.09092812797619049,
+     0.09047995833333333
+    ],
+    "worst_case_margin_s": [
+     0.03600140476190476,
+     0.035284333333333334
+    ]
+   }
+  },
+  {
+   "set": "qemu-rs",
+   "scenario": "fine_hold_img_lqr",
+   "sils": {
+    "impl": [
+     "c (in-process)",
+     "c (in-process)"
+    ],
+    "metrics": 56,
+    "differ": 0,
+    "max_rel": 0.0,
+    "worst": null,
+    "verdicts": 4,
+    "verdicts_changed": []
+   },
+   "oils": {
+    "impl": [
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu_rs.elf",
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu_rs.elf"
+    ],
+    "metrics": 70,
+    "differ": 8,
+    "max_rel": 0.019970614525472174,
+    "worst": "[oils_worst_case_margin].value",
+    "verdicts": 6,
+    "verdicts_changed": [],
+    "ticks": [
+     57401,
+     57401
+    ],
+    "overruns": [
+     0,
+     0
+    ],
+    "insn_mean": [
+     460822.1090399122,
+     495460.1626800927
+    ],
+    "insn_max": [
+     1092561.0,
+     1152951.0
+    ],
+    "insn_mean_pct": 7.516578080931544,
+    "insn_max_pct": 5.527380164585776,
+    "cpu_load_max": [
+     0.08129174107142856,
+     0.08578504464285715
+    ],
+    "deadline_margin_min_s": [
+     0.09092682589285715,
+     0.0904774955357143
+    ],
+    "worst_case_margin_s": [
+     0.03599932142857143,
+     0.03528039285714286
+    ]
+   }
+  },
+  {
+   "set": "qemu-rs",
+   "scenario": "fine_hold_img_smc",
+   "sils": {
+    "impl": [
+     "c (in-process)",
+     "c (in-process)"
+    ],
+    "metrics": 56,
+    "differ": 0,
+    "max_rel": 0.0,
+    "worst": null,
+    "verdicts": 4,
+    "verdicts_changed": []
+   },
+   "oils": {
+    "impl": [
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu_rs.elf",
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu_rs.elf"
+    ],
+    "metrics": 70,
+    "differ": 8,
+    "max_rel": 0.019910067763602494,
+    "worst": "[oils_worst_case_margin].value",
+    "verdicts": 6,
+    "verdicts_changed": [],
+    "ticks": [
+     57401,
+     57401
+    ],
+    "overruns": [
+     0,
+     0
+    ],
+    "insn_mean": [
+     463064.6401804847,
+     497705.8856640128
+    ],
+    "insn_max": [
+     1095118.0,
+     1155274.0
+    ],
+    "insn_mean_pct": 7.480866055768436,
+    "insn_max_pct": 5.493106678914966,
+    "cpu_load_max": [
+     0.08148199404761904,
+     0.0859578869047619
+    ],
+    "deadline_margin_min_s": [
+     0.0909078005952381,
+     0.09046021130952381
+    ],
+    "worst_case_margin_s": [
+     0.035968880952380954,
+     0.0352527380952381
+    ]
+   }
+  },
+  {
+   "set": "qemu-rs",
+   "scenario": "fine_hold_rw_rcs",
+   "sils": {
+    "impl": [
+     "c (in-process)",
+     "c (in-process)"
+    ],
+    "metrics": 56,
+    "differ": 0,
+    "max_rel": 0.0,
+    "worst": null,
+    "verdicts": 4,
+    "verdicts_changed": []
+   },
+   "oils": {
+    "impl": [
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu_rs.elf",
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu_rs.elf"
+    ],
+    "metrics": 70,
+    "differ": 8,
+    "max_rel": 0.02056774235622031,
+    "worst": "[oils_worst_case_margin].value",
+    "verdicts": 6,
+    "verdicts_changed": [],
+    "ticks": [
+     57401,
+     57401
+    ],
+    "overruns": [
+     0,
+     0
+    ],
+    "insn_mean": [
+     466583.43631644046,
+     502670.0920018815
+    ],
+    "insn_max": [
+     1100101.0,
+     1161917.0
+    ],
+    "insn_mean_pct": 7.734234196210686,
+    "insn_max_pct": 5.619120426215411,
+    "cpu_load_max": [
+     0.08185275297619048,
+     0.08645215773809524
+    ],
+    "deadline_margin_min_s": [
+     0.09074072470238095,
+     0.09028078422619049
+    ],
+    "worst_case_margin_s": [
+     0.035779559523809526,
+     0.03504365476190476
+    ]
+   }
+  },
+  {
+   "set": "qemu-rs",
+   "scenario": "fine_hold_vscmg",
+   "sils": {
+    "impl": [
+     "c (in-process)",
+     "c (in-process)"
+    ],
+    "metrics": 56,
+    "differ": 0,
+    "max_rel": 0.0,
+    "worst": null,
+    "verdicts": 4,
+    "verdicts_changed": []
+   },
+   "oils": {
+    "impl": [
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu_rs.elf",
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu_rs.elf"
+    ],
+    "metrics": 70,
+    "differ": 8,
+    "max_rel": 0.022492342764436846,
+    "worst": "[oils_worst_case_margin].value",
+    "verdicts": 6,
+    "verdicts_changed": [],
+    "ticks": [
+     57401,
+     57401
+    ],
+    "overruns": [
+     0,
+     0
+    ],
+    "insn_mean": [
+     569813.6139962719,
+     608421.0079266912
+    ],
+    "insn_max": [
+     1201864.0,
+     1266193.0
+    ],
+    "insn_mean_pct": 6.775442527540584,
+    "insn_max_pct": 5.352435882928518,
+    "cpu_load_max": [
+     0.08942440476190475,
+     0.0942107886904762
+    ],
+    "deadline_margin_min_s": [
+     0.08946355952380954,
+     0.08898492113095238
+    ],
+    "worst_case_margin_s": [
+     0.03404809523809524,
+     0.03328227380952381
+    ]
+   }
+  },
+  {
+   "set": "qemu-rs",
+   "scenario": "mission_ais",
+   "sils": {
+    "impl": [
+     "c (in-process)",
+     "c (in-process)"
+    ],
+    "metrics": 42,
+    "differ": 0,
+    "max_rel": 0.0,
+    "worst": null,
+    "verdicts": 4,
+    "verdicts_changed": []
+   },
+   "oils": {
+    "impl": [
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu_rs.elf",
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu_rs.elf"
+    ],
+    "metrics": 56,
+    "differ": 7,
+    "max_rel": 0.08361202188781729,
+    "worst": "[ake_los_last_orbit].value",
+    "verdicts": 6,
+    "verdicts_changed": [],
+    "ticks": [
+     143501,
+     143501
+    ],
+    "overruns": [
+     0,
+     0
+    ],
+    "insn_mean": [
+     319184.56191246054,
+     336276.8316666783
+    ],
+    "insn_max": [
+     817560.0,
+     1032496.0
+    ],
+    "insn_mean_pct": 5.35498009421442,
+    "insn_max_pct": 26.289935906844757,
+    "cpu_load_max": [
+     0.030415178571428572,
+     0.03841130952380952
+    ],
+    "deadline_margin_min_s": [
+     0.19336296428571428,
+     0.1917637380952381
+    ],
+    "worst_case_margin_s": [
+     0.08966314285714286,
+     0.08710438095238096
+    ]
+   }
+  },
+  {
+   "set": "qemu-rs",
+   "scenario": "mission_cmg",
+   "sils": {
+    "impl": [
+     "c (in-process)",
+     "c (in-process)"
+    ],
+    "metrics": 14,
+    "differ": 0,
+    "max_rel": 0.0,
+    "worst": null,
+    "verdicts": 2,
+    "verdicts_changed": []
+   },
+   "oils": {
+    "impl": [
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu_rs.elf",
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu_rs.elf"
+    ],
+    "metrics": 28,
+    "differ": 3,
+    "max_rel": 0.022115535503779683,
+    "worst": "[oils_worst_case_margin].value",
+    "verdicts": 4,
+    "verdicts_changed": [],
+    "ticks": [
+     172201,
+     172201
+    ],
+    "overruns": [
+     0,
+     0
+    ],
+    "insn_mean": [
+     461883.5467331781,
+     497275.86054087954
+    ],
+    "insn_max": [
+     1175155.0,
+     1238997.0
+    ],
+    "insn_mean_pct": 7.662605446334933,
+    "insn_max_pct": 5.4326450553331265,
+    "cpu_load_max": [
+     0.08743712797619048,
+     0.09218727678571428
+    ],
+    "deadline_margin_min_s": [
+     0.08966228720238095,
+     0.08918727232142858
+    ],
+    "worst_case_margin_s": [
+     0.03436605952380953,
+     0.03360603571428571
+    ]
+   }
+  },
+  {
+   "set": "qemu-rs",
+   "scenario": "mission_fmr",
+   "sils": {
+    "impl": [
+     "c (in-process)",
+     "c (in-process)"
+    ],
+    "metrics": 14,
+    "differ": 0,
+    "max_rel": 0.0,
+    "worst": null,
+    "verdicts": 2,
+    "verdicts_changed": []
+   },
+   "oils": {
+    "impl": [
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu_rs.elf",
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu_rs.elf"
+    ],
+    "metrics": 28,
+    "differ": 2,
+    "max_rel": 0.019910319715473128,
+    "worst": "[oils_worst_case_margin].value",
+    "verdicts": 4,
+    "verdicts_changed": [],
+    "ticks": [
+     172201,
+     172201
+    ],
+    "overruns": [
+     0,
+     0
+    ],
+    "insn_mean": [
+     393002.5758445073,
+     425109.3067345718
+    ],
+    "insn_max": [
+     1093097.0,
+     1153294.0
+    ],
+    "insn_mean_pct": 8.16959807987814,
+    "insn_max_pct": 5.507013558723517,
+    "cpu_load_max": [
+     0.08133162202380952,
+     0.08581056547619047
+    ],
+    "deadline_margin_min_s": [
+     0.09092283779761906,
+     0.09047494345238095
+    ],
+    "worst_case_margin_s": [
+     0.03599294047619048,
+     0.03527630952380953
+    ]
+   }
+  },
+  {
+   "set": "qemu-rs",
+   "scenario": "mission_fmr_rcs",
+   "sils": {
+    "impl": [
+     "c (in-process)",
+     "c (in-process)"
+    ],
+    "metrics": 14,
+    "differ": 0,
+    "max_rel": 0.0,
+    "worst": null,
+    "verdicts": 2,
+    "verdicts_changed": []
+   },
+   "oils": {
+    "impl": [
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu_rs.elf",
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu_rs.elf"
+    ],
+    "metrics": 28,
+    "differ": 2,
+    "max_rel": 0.02050438840719827,
+    "worst": "[oils_worst_case_margin].value",
+    "verdicts": 4,
+    "verdicts_changed": [],
+    "ticks": [
+     172201,
+     172201
+    ],
+    "overruns": [
+     0,
+     0
+    ],
+    "insn_mean": [
+     397008.67338168767,
+     430541.6344214029
+    ],
+    "insn_max": [
+     1097545.0,
+     1159223.0
+    ],
+    "insn_mean_pct": 8.44640515132432,
+    "insn_max_pct": 5.6196329079901055,
+    "cpu_load_max": [
+     0.08166257440476189,
+     0.08625171130952382
+    ],
+    "deadline_margin_min_s": [
+     0.09075974255952382,
+     0.09030082886904763
+    ],
+    "worst_case_margin_s": [
+     0.035809988095238096,
+     0.03507572619047619
+    ]
+   }
+  },
+  {
+   "set": "qemu-rs",
+   "scenario": "mission_img",
+   "sils": {
+    "impl": [
+     "c (in-process)",
+     "c (in-process)"
+    ],
+    "metrics": 28,
+    "differ": 0,
+    "max_rel": 0.0,
+    "worst": null,
+    "verdicts": 3,
+    "verdicts_changed": []
+   },
+   "oils": {
+    "impl": [
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu_rs.elf",
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu_rs.elf"
+    ],
+    "metrics": 42,
+    "differ": 4,
+    "max_rel": 0.019905308247547764,
+    "worst": "[oils_worst_case_margin].value",
+    "verdicts": 5,
+    "verdicts_changed": [],
+    "ticks": [
+     172201,
+     172201
+    ],
+    "overruns": [
+     0,
+     0
+    ],
+    "insn_mean": [
+     404124.77376438,
+     436645.34764606477
+    ],
+    "insn_max": [
+     1092587.0,
+     1152779.0
+    ],
+    "insn_mean_pct": 8.04716166711558,
+    "insn_max_pct": 5.509126504342446,
+    "cpu_load_max": [
+     0.08129367559523809,
+     0.0857722470238095
+    ],
+    "deadline_margin_min_s": [
+     0.09092663244047619,
+     0.09047877529761905
+    ],
+    "worst_case_margin_s": [
+     0.03599901190476191,
+     0.03528244047619048
+    ]
+   }
+  },
+  {
+   "set": "qemu-rs",
+   "scenario": "mission_rw_rcs",
+   "sils": {
+    "impl": [
+     "c (in-process)",
+     "c (in-process)"
+    ],
+    "metrics": 14,
+    "differ": 0,
+    "max_rel": 0.0,
+    "worst": null,
+    "verdicts": 2,
+    "verdicts_changed": []
+   },
+   "oils": {
+    "impl": [
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu_rs.elf",
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu_rs.elf"
+    ],
+    "metrics": 28,
+    "differ": 2,
+    "max_rel": 0.16416622954692542,
+    "worst": "[ape_los_last_half_orbit_p9973].value",
+    "verdicts": 4,
+    "verdicts_changed": [],
+    "ticks": [
+     172201,
+     172201
+    ],
+    "overruns": [
+     0,
+     0
+    ],
+    "insn_mean": [
+     409648.23739699536,
+     443618.97692812467
+    ],
+    "insn_max": [
+     1100101.0,
+     1161495.0
+    ],
+    "insn_mean_pct": 8.292660978352467,
+    "insn_max_pct": 5.580760312007715,
+    "cpu_load_max": [
+     0.08185275297619048,
+     0.08642075892857143
+    ],
+    "deadline_margin_min_s": [
+     0.09074072470238095,
+     0.09028392410714287
+    ],
+    "worst_case_margin_s": [
+     0.035779559523809526,
+     0.03504867857142857
+    ]
+   }
+  },
+  {
+   "set": "qemu-rs",
+   "scenario": "mission_vscmg",
+   "sils": {
+    "impl": [
+     "c (in-process)",
+     "c (in-process)"
+    ],
+    "metrics": 14,
+    "differ": 0,
+    "max_rel": 0.0,
+    "worst": null,
+    "verdicts": 2,
+    "verdicts_changed": []
+   },
+   "oils": {
+    "impl": [
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu_rs.elf",
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu_rs.elf"
+    ],
+    "metrics": 28,
+    "differ": 2,
+    "max_rel": 0.022366564520739377,
+    "worst": "[oils_worst_case_margin].value",
+    "verdicts": 4,
+    "verdicts_changed": [],
+    "ticks": [
+     172201,
+     172201
+    ],
+    "overruns": [
+     0,
+     0
+    ],
+    "insn_mean": [
+     483996.49652441044,
+     519820.72226642125
+    ],
+    "insn_max": [
+     1203575.0,
+     1267506.0
+    ],
+    "insn_mean_pct": 7.401753111699231,
+    "insn_max_pct": 5.311758718816858,
+    "cpu_load_max": [
+     0.0895517113095238,
+     0.09430848214285714
+    ],
+    "deadline_margin_min_s": [
+     0.08945082886904762,
+     0.08897515178571429
+    ],
+    "worst_case_margin_s": [
+     0.03402772619047619,
+     0.033266642857142856
+    ]
+   }
+  },
+  {
+   "set": "qemu-rs",
+   "scenario": "nadir_hold_ais",
+   "sils": {
+    "impl": [
+     "c (in-process)",
+     "c (in-process)"
+    ],
+    "metrics": 42,
+    "differ": 0,
+    "max_rel": 0.0,
+    "worst": null,
+    "verdicts": 4,
+    "verdicts_changed": []
+   },
+   "oils": {
+    "impl": [
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu_rs.elf",
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu_rs.elf"
+    ],
+    "metrics": 56,
+    "differ": 7,
+    "max_rel": 0.004318451937952191,
+    "worst": "[oils_worst_case_margin].value",
+    "verdicts": 6,
+    "verdicts_changed": [],
+    "ticks": [
+     86101,
+     86101
+    ],
+    "overruns": [
+     0,
+     0
+    ],
+    "insn_mean": [
+     335481.9934147106,
+     353194.77107118384
+    ],
+    "insn_max": [
+     818093.0,
+     850616.0
+    ],
+    "insn_mean_pct": 5.279799811663015,
+    "insn_max_pct": 3.9754648921332905,
+    "cpu_load_max": [
+     0.030435007440476187,
+     0.03164494047619047
+    ],
+    "deadline_margin_min_s": [
+     0.19335899851190477,
+     0.1931170119047619
+    ],
+    "worst_case_margin_s": [
+     0.08965679761904763,
+     0.08926961904761906
+    ]
+   }
+  },
+  {
+   "set": "qemu-rs",
+   "scenario": "nadir_hold_ais_css",
+   "sils": {
+    "impl": [
+     "c (in-process)",
+     "c (in-process)"
+    ],
+    "metrics": 28,
+    "differ": 0,
+    "max_rel": 0.0,
+    "worst": null,
+    "verdicts": 3,
+    "verdicts_changed": []
+   },
+   "oils": {
+    "impl": [
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu_rs.elf",
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu_rs.elf"
+    ],
+    "metrics": 42,
+    "differ": 5,
+    "max_rel": 0.005780911342733008,
+    "worst": "[ake_los_last_orbit].value",
+    "verdicts": 5,
+    "verdicts_changed": [],
+    "ticks": [
+     86101,
+     86101
+    ],
+    "overruns": [
+     0,
+     0
+    ],
+    "insn_mean": [
+     335547.1657704324,
+     353256.8330797552
+    ],
+    "insn_max": [
+     817861.0,
+     850291.0
+    ],
+    "insn_mean_pct": 5.277847383589296,
+    "insn_max_pct": 3.9652214740646636,
+    "cpu_load_max": [
+     0.030426376488095236,
+     0.03163284970238095
+    ],
+    "deadline_margin_min_s": [
+     0.19336072470238097,
+     0.1931194300595238
+    ],
+    "worst_case_margin_s": [
+     0.08965955952380952,
+     0.08927348809523811
+    ]
+   }
+  },
+  {
+   "set": "qemu-rs",
+   "scenario": "safe_mode_ais",
+   "sils": {
+    "impl": [
+     "c (in-process)",
+     "c (in-process)"
+    ],
+    "metrics": 21,
+    "differ": 0,
+    "max_rel": 0.0,
+    "worst": null,
+    "verdicts": 1,
+    "verdicts_changed": []
+   },
+   "oils": {
+    "impl": [
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu_rs.elf",
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu_rs.elf"
+    ],
+    "metrics": 35,
+    "differ": 3,
+    "max_rel": 0.0346413507277932,
+    "worst": "[ape_los_last_orbit].value",
+    "verdicts": 3,
+    "verdicts_changed": [],
+    "ticks": [
+     86101,
+     86101
+    ],
+    "overruns": [
+     0,
+     0
+    ],
+    "insn_mean": [
+     321626.8466800618,
+     338776.8032310891
+    ],
+    "insn_max": [
+     818098.0,
+     850616.0
+    ],
+    "insn_mean_pct": 5.332252804159482,
+    "insn_max_pct": 3.9748294214140603,
+    "cpu_load_max": [
+     0.03043519345238095,
+     0.03164494047619047
+    ],
+    "deadline_margin_min_s": [
+     0.19335896130952382,
+     0.1931170119047619
+    ],
+    "worst_case_margin_s": [
+     0.0896567380952381,
+     0.08926961904761906
+    ]
+   }
+  },
+  {
+   "set": "qemu-rs",
+   "scenario": "slew_cmg",
+   "sils": {
+    "impl": [
+     "c (in-process)",
+     "c (in-process)"
+    ],
+    "metrics": 21,
+    "differ": 0,
+    "max_rel": 0.0,
+    "worst": null,
+    "verdicts": 2,
+    "verdicts_changed": []
+   },
+   "oils": {
+    "impl": [
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu_rs.elf",
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu_rs.elf"
+    ],
+    "metrics": 35,
+    "differ": 2,
+    "max_rel": 0.023228678871056164,
+    "worst": "[oils_worst_case_margin].value",
+    "verdicts": 4,
+    "verdicts_changed": [],
+    "ticks": [
+     6001,
+     6001
+    ],
+    "overruns": [
+     0,
+     0
+    ],
+    "insn_mean": [
+     554567.3769371771,
+     595162.2174637561
+    ],
+    "insn_max": [
+     1177969.0,
+     1244959.0
+    ],
+    "insn_mean_pct": 7.320091699367603,
+    "insn_max_pct": 5.68690687106367,
+    "cpu_load_max": [
+     0.08764650297619048,
+     0.09263087797619046
+    ],
+    "deadline_margin_min_s": [
+     0.08964134970238095,
+     0.08914291220238096
+    ],
+    "worst_case_margin_s": [
+     0.03433255952380952,
+     0.03353505952380953
+    ]
+   }
+  },
+  {
+   "set": "qemu-rs",
+   "scenario": "slew_fmr",
+   "sils": {
+    "impl": [
+     "c (in-process)",
+     "c (in-process)"
+    ],
+    "metrics": 21,
+    "differ": 0,
+    "max_rel": 0.0,
+    "worst": null,
+    "verdicts": 2,
+    "verdicts_changed": []
+   },
+   "oils": {
+    "impl": [
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu_rs.elf",
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu_rs.elf"
+    ],
+    "metrics": 35,
+    "differ": 3,
+    "max_rel": 0.020981308163708714,
+    "worst": "[oils_worst_case_margin].value",
+    "verdicts": 4,
+    "verdicts_changed": [],
+    "ticks": [
+     6001,
+     6001
+    ],
+    "overruns": [
+     0,
+     0
+    ],
+    "insn_mean": [
+     473038.8743542743,
+     510114.9303449425
+    ],
+    "insn_max": [
+     1095720.0,
+     1159100.0
+    ],
+    "insn_mean_pct": 7.837845471216118,
+    "insn_max_pct": 5.784324462453911,
+    "cpu_load_max": [
+     0.0815267857142857,
+     0.08624255952380952
+    ],
+    "deadline_margin_min_s": [
+     0.09090332142857144,
+     0.09043174404761906
+    ],
+    "worst_case_margin_s": [
+     0.03596171428571429,
+     0.035207190476190475
+    ]
+   }
+  },
+  {
+   "set": "qemu-rs",
+   "scenario": "slew_fmr_rcs",
+   "sils": {
+    "impl": [
+     "c (in-process)",
+     "c (in-process)"
+    ],
+    "metrics": 21,
+    "differ": 0,
+    "max_rel": 0.0,
+    "worst": null,
+    "verdicts": 2,
+    "verdicts_changed": []
+   },
+   "oils": {
+    "impl": [
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu_rs.elf",
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu_rs.elf"
+    ],
+    "metrics": 35,
+    "differ": 3,
+    "max_rel": 0.021624787052810863,
+    "worst": "[oils_worst_case_margin].value",
+    "verdicts": 4,
+    "verdicts_changed": [],
+    "ticks": [
+     6001,
+     6001
+    ],
+    "overruns": [
+     0,
+     0
+    ],
+    "insn_mean": [
+     477508.63322779536,
+     516012.4425929012
+    ],
+    "insn_max": [
+     1100144.0,
+     1165136.0
+    ],
+    "insn_mean_pct": 8.06347920975443,
+    "insn_max_pct": 5.907590279090737,
+    "cpu_load_max": [
+     0.08185595238095238,
+     0.08669166666666667
+    ],
+    "deadline_margin_min_s": [
+     0.09074040476190477,
+     0.09025683333333334
+    ],
+    "worst_case_margin_s": [
+     0.03577904761904762,
+     0.03500533333333333
+    ]
+   }
+  },
+  {
+   "set": "qemu-rs",
+   "scenario": "slew_img",
+   "sils": {
+    "impl": [
+     "c (in-process)",
+     "c (in-process)"
+    ],
+    "metrics": 21,
+    "differ": 0,
+    "max_rel": 0.0,
+    "worst": null,
+    "verdicts": 2,
+    "verdicts_changed": []
+   },
+   "oils": {
+    "impl": [
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu_rs.elf",
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu_rs.elf"
+    ],
+    "metrics": 35,
+    "differ": 3,
+    "max_rel": 0.021031083612487688,
+    "worst": "[oils_worst_case_margin].value",
+    "verdicts": 4,
+    "verdicts_changed": [],
+    "ticks": [
+     6001,
+     6001
+    ],
+    "overruns": [
+     0,
+     0
+    ],
+    "insn_mean": [
+     472836.13014497585,
+     509908.7728711881
+    ],
+    "insn_max": [
+     1096070.0,
+     1159593.0
+    ],
+    "insn_mean_pct": 7.840484337532638,
+    "insn_max_pct": 5.795524008503106,
+    "cpu_load_max": [
+     0.08155282738095238,
+     0.08627924107142856
+    ],
+    "deadline_margin_min_s": [
+     0.09090071726190477,
+     0.09042807589285715
+    ],
+    "worst_case_margin_s": [
+     0.035957547619047625,
+     0.03520132142857143
+    ]
+   }
+  },
+  {
+   "set": "qemu-rs",
+   "scenario": "slew_img_lqr",
+   "sils": {
+    "impl": [
+     "c (in-process)",
+     "c (in-process)"
+    ],
+    "metrics": 21,
+    "differ": 0,
+    "max_rel": 0.0,
+    "worst": null,
+    "verdicts": 2,
+    "verdicts_changed": []
+   },
+   "oils": {
+    "impl": [
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu_rs.elf",
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu_rs.elf"
+    ],
+    "metrics": 35,
+    "differ": 3,
+    "max_rel": 0.021017974540041364,
+    "worst": "[oils_worst_case_margin].value",
+    "verdicts": 4,
+    "verdicts_changed": [],
+    "ticks": [
+     6001,
+     6001
+    ],
+    "overruns": [
+     0,
+     0
+    ],
+    "insn_mean": [
+     473045.91834694217,
+     510120.1441426429
+    ],
+    "insn_max": [
+     1096232.0,
+     1159712.0
+    ],
+    "insn_mean_pct": 7.837341864243651,
+    "insn_max_pct": 5.790745024775777,
+    "cpu_load_max": [
+     0.08156488095238094,
+     0.08628809523809522
+    ],
+    "deadline_margin_min_s": [
+     0.0908995119047619,
+     0.09042719047619048
+    ],
+    "worst_case_margin_s": [
+     0.03595561904761905,
+     0.035199904761904766
+    ]
+   }
+  },
+  {
+   "set": "qemu-rs",
+   "scenario": "slew_img_smc",
+   "sils": {
+    "impl": [
+     "c (in-process)",
+     "c (in-process)"
+    ],
+    "metrics": 21,
+    "differ": 0,
+    "max_rel": 0.0,
+    "worst": null,
+    "verdicts": 2,
+    "verdicts_changed": []
+   },
+   "oils": {
+    "impl": [
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu_rs.elf",
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu_rs.elf"
+    ],
+    "metrics": 35,
+    "differ": 3,
+    "max_rel": 0.021060643161246943,
+    "worst": "[oils_worst_case_margin].value",
+    "verdicts": 4,
+    "verdicts_changed": [],
+    "ticks": [
+     6001,
+     6001
+    ],
+    "overruns": [
+     0,
+     0
+    ],
+    "insn_mean": [
+     475391.3602732878,
+     512472.0666555574
+    ],
+    "insn_max": [
+     1098505.0,
+     1162066.0
+    ],
+    "insn_mean_pct": 7.800037922639795,
+    "insn_max_pct": 5.786136612942135,
+    "cpu_load_max": [
+     0.08173400297619048,
+     0.08646324404761904
+    ],
+    "deadline_margin_min_s": [
+     0.09088259970238095,
+     0.0904096755952381
+    ],
+    "worst_case_margin_s": [
+     0.03592855952380952,
+     0.035171880952380954
+    ]
+   }
+  },
+  {
+   "set": "qemu-rs",
+   "scenario": "slew_rw_rcs",
+   "sils": {
+    "impl": [
+     "c (in-process)",
+     "c (in-process)"
+    ],
+    "metrics": 21,
+    "differ": 0,
+    "max_rel": 0.0,
+    "worst": null,
+    "verdicts": 2,
+    "verdicts_changed": []
+   },
+   "oils": {
+    "impl": [
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu_rs.elf",
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu_rs.elf"
+    ],
+    "metrics": 35,
+    "differ": 3,
+    "max_rel": 0.0215764880626431,
+    "worst": "[oils_worst_case_margin].value",
+    "verdicts": 4,
+    "verdicts_changed": [],
+    "ticks": [
+     6001,
+     6001
+    ],
+    "overruns": [
+     0,
+     0
+    ],
+    "insn_mean": [
+     477305.97283786035,
+     515802.41043159476
+    ],
+    "insn_max": [
+     1101527.0,
+     1166344.0
+    ],
+    "insn_mean_pct": 8.065358446040557,
+    "insn_max_pct": 5.884286086496291,
+    "cpu_load_max": [
+     0.08195885416666666,
+     0.08678154761904762
+    ],
+    "deadline_margin_min_s": [
+     0.09073011458333334,
+     0.09024784523809525
+    ],
+    "worst_case_margin_s": [
+     0.035762583333333334,
+     0.034990952380952386
+    ]
+   }
+  },
+  {
+   "set": "qemu-rs",
+   "scenario": "slew_vscmg",
+   "sils": {
+    "impl": [
+     "c (in-process)",
+     "c (in-process)"
+    ],
+    "metrics": 21,
+    "differ": 0,
+    "max_rel": 0.0,
+    "worst": null,
+    "verdicts": 2,
+    "verdicts_changed": []
+   },
+   "oils": {
+    "impl": [
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu_rs.elf",
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu_rs.elf"
+    ],
+    "metrics": 35,
+    "differ": 3,
+    "max_rel": 0.023551210413963863,
+    "worst": "[oils_worst_case_margin].value",
+    "verdicts": 4,
+    "verdicts_changed": [],
+    "ticks": [
+     6001,
+     6001
+    ],
+    "overruns": [
+     0,
+     0
+    ],
+    "insn_mean": [
+     581732.3461089819,
+     622825.6175637394
+    ],
+    "insn_max": [
+     1205278.0,
+     1272555.0
+    ],
+    "insn_mean_pct": 7.063948176445241,
+    "insn_max_pct": 5.581865760430373,
+    "cpu_load_max": [
+     0.08967842261904761,
+     0.0946841517857143
+    ],
+    "deadline_margin_min_s": [
+     0.08943815773809524,
+     0.08893758482142858
+    ],
+    "worst_case_margin_s": [
+     0.03400745238095238,
+     0.033206535714285716
+    ]
+   }
+  },
+  {
+   "set": "qemu-rs",
+   "scenario": "sun_acq_rotor_img",
+   "sils": {
+    "impl": [
+     "c (in-process)",
+     "c (in-process)"
+    ],
+    "metrics": 21,
+    "differ": 0,
+    "max_rel": 0.0,
+    "worst": null,
+    "verdicts": 1,
+    "verdicts_changed": []
+   },
+   "oils": {
+    "impl": [
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu_rs.elf",
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu_rs.elf"
+    ],
+    "metrics": 35,
+    "differ": 3,
+    "max_rel": 0.020704575066991207,
+    "worst": "[oils_worst_case_margin].value",
+    "verdicts": 3,
+    "verdicts_changed": [],
+    "ticks": [
+     57401,
+     57401
+    ],
+    "overruns": [
+     0,
+     0
+    ],
+    "insn_mean": [
+     364783.10564275883,
+     398109.4526401979
+    ],
+    "insn_max": [
+     1065729.0,
+     1128894.0
+    ],
+    "insn_mean_pct": 9.135934883474667,
+    "insn_max_pct": 5.926928890928181,
+    "cpu_load_max": [
+     0.07929531249999999,
+     0.08399508928571428
+    ],
+    "deadline_margin_min_s": [
+     0.09112646875000001,
+     0.09065649107142858
+    ],
+    "worst_case_margin_s": [
+     0.036318750000000004,
+     0.03556678571428572
+    ]
+   }
+  },
+  {
+   "set": "qemu-rs",
+   "scenario": "sun_fine_img",
+   "sils": {
+    "impl": [
+     "c (in-process)",
+     "c (in-process)"
+    ],
+    "metrics": 21,
+    "differ": 0,
+    "max_rel": 0.0,
+    "worst": null,
+    "verdicts": 3,
+    "verdicts_changed": []
+   },
+   "oils": {
+    "impl": [
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu_rs.elf",
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu_rs.elf"
+    ],
+    "metrics": 35,
+    "differ": 4,
+    "max_rel": 0.020110484776418462,
+    "worst": "[oils_worst_case_margin].value",
+    "verdicts": 5,
+    "verdicts_changed": [],
+    "ticks": [
+     57401,
+     57401
+    ],
+    "overruns": [
+     0,
+     0
+    ],
+    "insn_mean": [
+     437434.34347833664,
+     471224.4775352346
+    ],
+    "insn_max": [
+     1101609.0,
+     1162240.0
+    ],
+    "insn_mean_pct": 7.724618462329619,
+    "insn_max_pct": 5.503858447053355,
+    "cpu_load_max": [
+     0.08196495535714285,
+     0.08647619047619047
+    ],
+    "deadline_margin_min_s": [
+     0.09085950446428571,
+     0.09040838095238096
+    ],
+    "worst_case_margin_s": [
+     0.03589160714285715,
+     0.03516980952380953
+    ]
+   }
+  },
+  {
+   "set": "qemu-rs",
+   "scenario": "sun_mtq_ais",
+   "sils": {
+    "impl": [
+     "c (in-process)",
+     "c (in-process)"
+    ],
+    "metrics": 21,
+    "differ": 0,
+    "max_rel": 0.0,
+    "worst": null,
+    "verdicts": 3,
+    "verdicts_changed": []
+   },
+   "oils": {
+    "impl": [
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu_rs.elf",
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu_rs.elf"
+    ],
+    "metrics": 35,
+    "differ": 4,
+    "max_rel": 0.004309495522012263,
+    "worst": "[oils_worst_case_margin].value",
+    "verdicts": 5,
+    "verdicts_changed": [],
+    "ticks": [
+     86101,
+     86101
+    ],
+    "overruns": [
+     0,
+     0
+    ],
+    "insn_mean": [
+     338812.53516219324,
+     356551.2696368219
+    ],
+    "insn_max": [
+     817756.0,
+     850213.0
+    ],
+    "insn_mean_pct": 5.235560268198729,
+    "insn_max_pct": 3.96903232749133,
+    "cpu_load_max": [
+     0.030422470238095238,
+     0.031629947916666665
+    ],
+    "deadline_margin_min_s": [
+     0.19336150595238097,
+     0.19312001041666668
+    ],
+    "worst_case_margin_s": [
+     0.08966080952380953,
+     0.08927441666666668
+    ]
+   }
+  },
+  {
+   "set": "qemu-rs",
+   "scenario": "sun_spin_ais",
+   "sils": {
+    "impl": [
+     "c (in-process)",
+     "c (in-process)"
+    ],
+    "metrics": 35,
+    "differ": 0,
+    "max_rel": 0.0,
+    "worst": null,
+    "verdicts": 5,
+    "verdicts_changed": []
+   },
+   "oils": {
+    "impl": [
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu_rs.elf",
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu_rs.elf"
+    ],
+    "metrics": 49,
+    "differ": 7,
+    "max_rel": 1.0,
+    "worst": "[sun_spin_entry].pass",
+    "verdicts": 7,
+    "verdicts_changed": [
+     "sun_spin_entry (pass -> FAIL)"
+    ],
+    "ticks": [
+     86101,
+     86101
+    ],
+    "overruns": [
+     0,
+     0
+    ],
+    "insn_mean": [
+     187417.31939234154,
+     200736.17207697936
+    ],
+    "insn_max": [
+     568360.0,
+     595130.0
+    ],
+    "insn_mean_pct": 7.106521813363463,
+    "insn_max_pct": 4.710042930536984,
+    "cpu_load_max": [
+     0.021144345238095236,
+     0.022140252976190475
+    ],
+    "deadline_margin_min_s": [
+     0.19521713095238097,
+     0.19501794940476191
+    ],
+    "worst_case_margin_s": [
+     0.09262980952380953,
+     0.09231111904761906
+    ]
+   }
+  },
+  {
+   "set": "qemu-rs",
+   "scenario": "target_img",
+   "sils": {
+    "impl": [
+     "c (in-process)",
+     "c (in-process)"
+    ],
+    "metrics": 21,
+    "differ": 0,
+    "max_rel": 0.0,
+    "worst": null,
+    "verdicts": 3,
+    "verdicts_changed": []
+   },
+   "oils": {
+    "impl": [
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu_rs.elf",
+     "virtual OBC: QEMU mps2-an386 Cortex-M4F, obc_qemu_rs.elf"
+    ],
+    "metrics": 35,
+    "differ": 4,
+    "max_rel": 0.02079718507906205,
+    "worst": "[oils_worst_case_margin].value",
+    "verdicts": 5,
+    "verdicts_changed": [],
+    "ticks": [
+     57401,
+     57401
+    ],
+    "overruns": [
+     0,
+     0
+    ],
+    "insn_mean": [
+     468594.30408877897,
+     505683.1790212714
+    ],
+    "insn_max": [
+     1101144.0,
+     1163855.0
+    ],
+    "insn_mean_pct": 7.9149222704733635,
+    "insn_max_pct": 5.695077119795413,
+    "cpu_load_max": [
+     0.08193035714285712,
+     0.08659635416666667
+    ],
+    "deadline_margin_min_s": [
+     0.09086296428571429,
+     0.09039636458333333
+    ],
+    "worst_case_margin_s": [
+     0.035897142857142864,
+     0.03515058333333333
+    ]
+   }
+  }
+ ]
+}

@@ -55,7 +55,7 @@ build/obc_posix: $(LINK_SRC) targets/posix/main.c build/libadcs_fsw.a
 	$(CC) $(CFLAGS) -D_POSIX_C_SOURCE=200809L -Wno-pedantic -Itargets/link $(LINK_SRC) targets/posix/main.c build/libadcs_fsw.a -lm -o $@
 
 RS_HOST = ../fsw-rs/target/release/libadcs_fsw.a
-$(RS_HOST): ../fsw-rs/src/*.rs
+$(RS_HOST): ../fsw-rs/src/*.rs ../fsw-rs/src/alg/*.rs
 	cd ../fsw-rs && cargo build --locked --release -q --no-default-features --features cabi
 build/obc_posix_rs: $(LINK_SRC) targets/posix/main.c $(RS_HOST)
 	$(CC) $(CFLAGS) -D_POSIX_C_SOURCE=200809L -Wno-pedantic -Itargets/link $(LINK_SRC) targets/posix/main.c $(RS_HOST) -lm -lpthread -ldl -o $@
@@ -67,7 +67,7 @@ build/obc_qemu.elf: $(SRC) $(ALG) $(LINK_SRC) targets/qemu-mps2/main.c targets/q
 	$(ARMCC) $(ARMFLAGS) $(SRC) $(ALG) $(LINK_SRC) targets/qemu-mps2/main.c $(ARMLD) -o $@
 
 RS_ARM = ../fsw-rs/target/thumbv7em-none-eabihf/release/libadcs_fsw.a
-$(RS_ARM): ../fsw-rs/src/*.rs
+$(RS_ARM): ../fsw-rs/src/*.rs ../fsw-rs/src/alg/*.rs
 	cd ../fsw-rs && cargo build --locked --release -q --no-default-features --features cabi --target thumbv7em-none-eabihf
 build/obc_qemu_rs.elf: $(LINK_SRC) targets/qemu-mps2/main.c targets/qemu-mps2/link.ld $(RS_ARM) | build
 	$(ARMCC) $(ARMFLAGS) $(LINK_SRC) targets/qemu-mps2/main.c $(RS_ARM) $(ARMLD) -Wl,--allow-multiple-definition -o $@
