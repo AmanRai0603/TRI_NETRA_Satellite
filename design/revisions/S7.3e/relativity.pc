@@ -1,0 +1,101 @@
+## The post-Newtonian accelerations of a near-Earth satellite, transcribed from adcs-pop relativity.rs, the port of the
+## Octave POP's +relativity (schwarzschild, lenseThirring, deSitter, total) and +forces/relativity.m: IERS Conventions
+## (2010) chapter 10, eq. 10.12: the Schwarzschild term, the Lense-Thirring precession (the Earth's angular momentum per
+## unit mass J = 9.8e8 m^2/s along its axis) and the de Sitter (geodesic) precession from the Earth's heliocentric
+## state; the PPN parameters beta = gamma = 1 (general relativity). ECI position and velocity [m, m/s], accelerations
+## [m/s^2]; the speed of light and GM of the Sun from de440.constants().
+## The developer's transcription (S7.3e), unsigned.
+module relativity
+
+## A term of relativity.total.
+choice RelTerm = schwarzschild, lensethirring, desitter
+
+## The Earth's angular momentum per unit mass [m^2/s] (IERS Conventions 2010, eq. 10.12: J = 9.8e8 m^2/s, the Earth's
+## spin axis).
+fn j_earth() -> j: real[1][3]
+    j = [0.0, 0.0, 9.8e8]
+end
+
+## relativity.schwarzschild(rSat, vSat, mu, gamma, beta).
+fn schwarzschild(r: real[1][3] in -8e6 .. 8e6, v: real[1][3] in -8e3 .. 8e3, mu: real[1] in 3.9e14 .. 4e14, \
+                 gamma: real[1] in 0.9 .. 1.1, beta: real[1] in 0.9 .. 1.1) -> a: real[1][3]
+    let c = de440_constants().c
+    let rn = norm(r)
+    let k = mu/(c*c*pow(rn, 3.0))
+    let kr = 2.0*(beta + gamma)*mu/rn - gamma*dot(v, v)
+    let kv = 2.0*(1.0 + gamma)*dot(r, v)
+    a = [k*(kr*r[0] + kv*v[0]), k*(kr*r[1] + kv*v[1]), k*(kr*r[2] + kv*v[2])]
+end
+
+## relativity.lenseThirring(rSat, vSat, mu, Jvec, gamma).
+fn lense_thirring(r: real[1][3] in -8e6 .. 8e6, v: real[1][3] in -8e3 .. 8e3, mu: real[1] in 3.9e14 .. 4e14, \
+                  jvec: real[1][3] in -1e9 .. 1e9, gamma: real[1] in 0.9 .. 1.1) -> a: real[1][3]
+    let c = de440_constants().c
+    let rn = norm(r)
+    let k = (1.0 + gamma)*mu/(c*c*pow(rn, 3.0))
+    let rxv = cross(r, v)
+    let vxj = cross(v, jvec)
+    let q = 3.0/(rn*rn)
+    let rj = dot(r, jvec)
+    a = [k*(q*rxv[0]*rj + vxj[0]), k*(q*rxv[1]*rj + vxj[1]), k*(q*rxv[2]*rj + vxj[2])]
+end
+
+## relativity.deSitter(rSat, vSat, earthHelioPos, earthHelioVel, gamma): the geodesic precession, from the Earth's
+## position and velocity relative to the Sun [m, m/s].
+fn de_sitter(r: real[1][3] in -8e6 .. 8e6, v: real[1][3] in -8e3 .. 8e3, earth_helio_pos: real[1][3] in -2e11 .. 2e11, \
+             earth_helio_vel: real[1][3] in -4e4 .. 4e4, gamma: real[1] in 0.9 .. 1.1) -> a: real[1][3]
+    let k = de440_constants()
+    let c = k.c
+    let gms = k.gm_sun
+    let den = c*c*pow(norm(earth_helio_pos), 3.0)
+    let ae: real[1][3] = [-gms*earth_helio_pos[0]/den, -gms*earth_helio_pos[1]/den, -gms*earth_helio_pos[2]/den]
+    let w = cross(cross(earth_helio_vel, ae), v)
+    let g = 1.0 + 2.0*gamma
+    a = [g*w[0], g*w[1], g*w[2]]
+end
+
+## The per-term split relativity.total returns as parts: each term's acceleration, and whether it was asked for.
+record RelParts
+    has_schwarzschild: bool
+    schwarzschild: real[1][3]
+    has_lensethirring: bool
+    lensethirring: real[1][3]
+    has_desitter: bool
+    desitter: real[1][3]
+end
+
+## [a, parts] = relativity.total(rSat, vSat, E, terms, mu): the terms asked for (their numbers, nterms of them, at most 8, in the
+## order given; Lense-Thirring with J of the Earth, gamma = beta = 1) summed; ok is false when de Sitter is asked for
+## without the Earth's heliocentric state (has_helio), the MATLAB's relativity:total:noEphem.
+fn rel_total(r: real[1][3] in -8e6 .. 8e6, v: real[1][3] in -8e3 .. 8e3, has_helio: bool, \
+             helio_pos: real[1][3] in -2e11 .. 2e11, helio_vel: real[1][3] in -4e4 .. 4e4, terms: int[8] in 0 .. 2, \
+             nterms: int in 0 .. 8, mu: real[1] in 3.9e14 .. 4e14) -> (ok: bool, a: real[1][3], parts: RelParts)
+    a = 0
+    parts = RelParts()
+    ok = true
+    for i in 0 .. nterms
+        if ok
+            let p: real[1][3] = 0
+            if terms[i] == int(RelTerm.schwarzschild)
+                p = schwarzschild(r, v, mu, 1.0, 1.0)
+                parts.has_schwarzschild = true
+                parts.schwarzschild = p
+            elif terms[i] == int(RelTerm.lensethirring)
+                p = lense_thirring(r, v, mu, j_earth(), 1.0)
+                parts.has_lensethirring = true
+                parts.lensethirring = p
+            elif has_helio
+                p = de_sitter(r, v, helio_pos, helio_vel, 1.0)
+                parts.has_desitter = true
+                parts.desitter = p
+            else
+                ok = false
+            end
+            if ok
+                for k in 0 .. 3
+                    a[k] = a[k] + p[k]
+                end
+            end
+        end
+    end
+end

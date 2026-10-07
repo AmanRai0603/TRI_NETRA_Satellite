@@ -1,0 +1,209 @@
+## The JPL DE440 ephemeris, transcribed from adcs-pop ephem.rs and spk.rs (the evaluation: de440.state's record
+## choice, de440.chebval's two recurrences, de440.sun, moon and earth, ephemInputs.m), the port of the Octave POP's
+## +de440 and ephemInputs.m, over env's slice of DE440's Chebyshev records (the Sun, the Earth-Moon barycentre, the
+## Earth and the Moon over the runs' span); with de440.constants(), the constants consistent with DE440 and IAU 2009.
+## Park et al. (2021), "The JPL Planetary and Lunar Ephemerides DE440 and DE441", AJ 161:105. Frame ICRF (GCRF/J2000
+## to below 1 mas), time TDB (seconds past J2000 TDB); the kernel's units, km and km/s, until the geocentric vectors,
+## which are SI. The reader of the kernel (DAF/SPK) stays code: it loads the slice into the design, and serves a
+## record the slice does not hold.
+## The developer's transcription (S7.3c), unsigned.
+module de440
+
+## Coefficients a component a record holds at most (DE440: 11 for the Sun, 13 for the others, 14 at most), and the
+## record's length: its mid-point and half-length, then the X, Y and Z coefficients.
+const DE_NC = 20
+const DE_REC = 62
+
+## The segments the precision orbit evaluates, in the order of env's slice: SSB -> Sun, SSB -> Earth-Moon barycentre,
+## Earth-Moon barycentre -> Earth, Earth-Moon barycentre -> Moon.
+choice DeSegment = ssb_sun, ssb_emb, emb_earth, emb_moon
+
+## de440.constants(): the single source of constants of the whole POP (SI).
+record DeConstants
+    au_m: real[1]
+    c: real[1]
+    gm_sun: real[1]
+    gm_earth: real[1]
+    gm_moon: real[1]
+    emrat: real[1]
+    tsi: real[1]
+    p0: real[1]
+    re_earth: real[1]
+    f_earth: real[1]
+    rp_earth: real[1]
+    mu_earth: real[1]
+    omega_earth: real[1]
+    n_a: real[1]
+    rsun: real[1]
+end
+
+## What ephemInputs gives the force stack (SI, ICRF): the Earth-to-Sun unit vector and distance, (AU/d)^2 and the
+## solar pressure there, the geocentric Sun and Moon positions and velocities, GM of the Sun and Moon, the Earth's
+## heliocentric position and velocity, the Sun's right ascension and declination.
+record EphemOut
+    jd_tdb: real[1]
+    sun_unit: real[1][3]
+    sun_dist: real[1]
+    flux_scale: real[1]
+    p_srp: real[1]
+    sun_eci: real[1][3]
+    sun_vel: real[1][3]
+    moon_eci: real[1][3]
+    moon_vel: real[1][3]
+    gm_sun: real[1]
+    gm_moon: real[1]
+    earth_helio_pos: real[1][3]
+    earth_helio_vel: real[1][3]
+    sun_ra: real[1]
+    sun_dec: real[1]
+end
+
+## de440.constants(): the astronomical unit (IAU 2012), the speed of light, GM of the Sun, Earth and Moon and the
+## Earth/Moon mass ratio (DE440), the total solar irradiance at 1 AU and its pressure, WGS-84's radius, flattening,
+## polar radius and GM, the Earth's nominal rate, the Avogadro constant (CODATA 2018), the Sun's radius (IAU 2015).
+fn de440_constants() -> k: DeConstants
+    k = DeConstants()
+    k.au_m = 149597870700.0
+    k.c = 299792458.0
+    k.gm_sun = 1.32712440041279419e20
+    k.gm_earth = 3.98600435507e14
+    k.gm_moon = 4.902800118e12
+    k.emrat = 81.3005682214972154
+    k.tsi = 1361.0
+    k.p0 = k.tsi/k.c
+    k.re_earth = 6378137.0
+    k.f_earth = 1.0/298.257223563
+    k.rp_earth = k.re_earth*(1.0 - k.f_earth)
+    k.mu_earth = 3.986004418e14
+    k.omega_earth = 7.2921150e-5
+    k.n_a = 6.02214076e23
+    k.rsun = 6.957e8
+end
+
+## A TDB Julian date in seconds past J2000 TDB, as de440.state takes it.
+fn jd_to_et(jd_tdb: real[1] in 2440000 .. 2480000) -> et: real[1]
+    et = (jd_tdb - 2451545.0)*86400.0
+end
+
+## de440.chebval over one type-2 record: the Chebyshev polynomials T_i and their derivatives at the record's tau, then
+## each component's sum and its derivative over the half-length; nc coefficients a component. [km, km/s]
+fn cheb_state(rec: real[1][DE_REC] in -1e9 .. 1e9, nc: int in 1 .. 20, et: real[1] in -1e9 .. 1e9) -> (pos: real[1][3], vel: real[1][3])
+    let mid = rec[0]
+    let radius = rec[1]
+    let tau = (et - mid)/radius
+    let t: real[1][DE_NC] = 0
+    let dt: real[1][DE_NC] = 0
+    t[0] = 1.0
+    if nc > 1
+        t[1] = tau
+    end
+    for i in 2 .. nc
+        t[i] = 2.0*tau*t[i - 1] - t[i - 2]
+    end
+    dt[0] = 0.0
+    if nc > 1
+        dt[1] = 1.0
+    end
+    if nc > 2
+        dt[2] = 4.0*tau
+    end
+    for i in 3 .. nc
+        dt[i] = 2.0*tau*dt[i - 1] + 2.0*t[i - 1] - dt[i - 2]
+    end
+    pos = 0
+    vel = 0
+    for c in 0 .. 3
+        let val: real[1] = 0
+        let der: real[1] = 0
+        for i in 0 .. nc
+            val = val + rec[2 + c*nc + i]*t[i]
+            der = der + rec[2 + c*nc + i]*dt[i]
+        end
+        pos[c] = val
+        vel[c] = der/radius
+    end
+end
+
+## The record of a segment that covers et, from env's slice, chosen as de440.state chooses it (floor((et - INIT) /
+## INTLEN), held to the segment's records); ok is false when the slice does not hold it.
+fn de440_record(seg: DeSegment, et: real[1] in 8.5e8 .. 8.86e8) -> (ok: bool, rec: real[1][DE_REC], nc: int)
+    let s = int(seg)
+    let init = DE440_SEGMENTS[s][2]
+    let intlen = DE440_SEGMENTS[s][3]
+    let rsize = int(DE440_SEGMENTS[s][4])
+    nc = int(DE440_SEGMENTS[s][5])
+    let n = DE440_SEGMENTS[s][6]
+    let kf = floor((et - init)/intlen)
+    if not (kf >= 0.0)
+        kf = 0.0
+    end
+    if kf > n - 1.0
+        kf = n - 1.0
+    end
+    let j = int(kf) - int(DE440_SEGMENTS[s][7])
+    ok = j >= 0 and j < int(DE440_SEGMENTS[s][8])
+    rec = 0
+    if ok
+        for i in 0 .. rsize
+            if seg == DeSegment.ssb_sun
+                rec[i] = DE440_SUN[j][i]
+            elif seg == DeSegment.ssb_emb
+                rec[i] = DE440_EMB[j][i]
+            elif seg == DeSegment.emb_earth
+                rec[i] = DE440_EARTH[j][i]
+            else
+                rec[i] = DE440_MOON[j][i]
+            end
+        end
+    end
+end
+
+## de440.state of a segment at et from env's slice [km, km/s]; ok is false when the slice does not hold it.
+fn de440_segment(seg: DeSegment, et: real[1] in 8.5e8 .. 8.86e8) -> (ok: bool, pos: real[1][3], vel: real[1][3])
+    let rok, rec, nc = de440_record(seg, et)
+    ok = rok
+    pos = 0
+    vel = 0
+    if ok
+        pos, vel = cheb_state(rec, nc, et)
+    end
+end
+
+## de440.sun, moon and earth from the four segments' states (km, km/s): the geocentric Sun and Moon [m, m/s] and the
+## geocentre from the solar-system barycentre [km, km/s]. The Earth-Moon barycentre to Earth record is evaluated once and
+## shared (the MATLAB evaluates it twice, with the same bits).
+fn geocentric(sun_r: real[1][3] in -2e8 .. 2e8, sun_v: real[1][3] in -50 .. 50, emb_r: real[1][3] in -2e8 .. 2e8, \
+              emb_v: real[1][3] in -50 .. 50, earth_r: real[1][3] in -1e4 .. 1e4, earth_v: real[1][3] in -1 .. 1, \
+              moon_r: real[1][3] in -5e5 .. 5e5, moon_v: real[1][3] in -2 .. 2) \
+              -> (rs: real[1][3], vs: real[1][3], rm: real[1][3], vm: real[1][3], re: real[1][3], ve: real[1][3])
+    re = emb_r + earth_r
+    ve = emb_v + earth_v
+    rs = (sun_r - re)*1000.0
+    vs = (sun_v - ve)*1000.0
+    rm = (moon_r - earth_r)*1000.0
+    vm = (moon_v - earth_v)*1000.0
+end
+
+## ephemInputs(jdTDB): the force stack's one ephemeris interface, from the geocentric Sun and Moon [m, m/s].
+fn ephem_inputs(jd_tdb: real[1] in 2440000 .. 2480000, rs: real[1][3] in -2e11 .. 2e11, vs: real[1][3] in -5e4 .. 5e4, \
+                rm: real[1][3] in -5e8 .. 5e8, vm: real[1][3] in -2e3 .. 2e3) -> e: EphemOut
+    let k = de440_constants()
+    e = EphemOut()
+    let d = norm(rs)
+    let q = k.au_m/d
+    e.jd_tdb = jd_tdb
+    e.sun_unit = rs/d
+    e.sun_dist = d
+    e.flux_scale = q*q
+    e.p_srp = k.p0*e.flux_scale
+    e.sun_eci = rs
+    e.sun_vel = vs
+    e.moon_eci = rm
+    e.moon_vel = vm
+    e.gm_sun = k.gm_sun
+    e.gm_moon = k.gm_moon
+    e.earth_helio_pos = -rs
+    e.earth_helio_vel = -vs
+    e.sun_ra = atan2(rs[1], rs[0])
+    e.sun_dec = asin(rs[2]/d)
+end

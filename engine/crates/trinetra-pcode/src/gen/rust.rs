@@ -319,8 +319,14 @@ impl<'a> Gen<'a> {
                     };
                 }
                 "pow" => {
+                    // std's powf is an LLVM intrinsic the optimiser rewrites (pow(x, 2.0) to x*x): the exponent goes
+                    // through black_box so the platform's pow is called, as the language says, in every build
                     let p = r(self, 0);
-                    return format!("{}({p}, {})", self.fm("f64::powf", "pow"), r(self, 1));
+                    let q = r(self, 1);
+                    return match &self.math {
+                        Some(m) => format!("{m}::pow({p}, {q})"),
+                        None => format!("f64::powf({p}, core::hint::black_box({q}))"),
+                    };
                 }
                 "min" | "max" => {
                     let all_int = a.iter().all(|&x| is_int(c.ann[x].ty.as_ref()));
@@ -733,6 +739,16 @@ impl<'a> Gen<'a> {
                     k += n;
                 }
                 (format!("crate::{}::{name} {{ {} }}", r.module, parts.join(", ")), k)
+            }
+            // a long array of numbers (a workspace, a table) as a loop, not an expression an element
+            Ty::Arr(n, of) if *n > 1024 && matches!(**of, Ty::Real(_) | Ty::Int | Ty::Choice(_) | Ty::Bool) => {
+                let x = format!("x[{at} + i]");
+                let (z, v) = match **of {
+                    Ty::Real(_) => ("0.0".to_string(), x),
+                    Ty::Bool => ("false".to_string(), format!("{x} != 0.0")),
+                    _ => ("0i64".to_string(), format!("{x} as i64")),
+                };
+                (format!("{{ let mut a = [{z}; {n}]; for i in 0..{n} {{ a[i] = {v}; }} a }}"), *n)
             }
             Ty::Arr(n, of) => {
                 let (mut parts, mut k) = (Vec::new(), 0);

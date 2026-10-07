@@ -1,5 +1,6 @@
-"""The Kp -> ap table is one table in three places -- the propagator (Rust), the MATLAB twin's
-campaign draws and the Python campaign draws -- with one rule: interp1 "nearest" by midpoints.
+"""The Kp -> ap table is one table in three places -- the propagator (env's table env_kp_ap_table, generated into
+adcs-pop since S7.3b), the MATLAB twin's campaign draws and the Python campaign draws -- with one rule: interp1
+"nearest" by midpoints.
 Copyright (c) 2026 Agastya. All rights reserved."""
 import re
 import unittest
@@ -14,9 +15,9 @@ def floats(text):
 
 class KpToAp(unittest.TestCase):
     def test_the_three_tables_are_one(self):
-        rs = (ROOT / "engine/crates/adcs-pop/src/spaceweather.rs").read_text()
-        kpv = floats(re.search(r"const KPV: \[f64; 28\] = \[(.*?)\];", rs, re.S).group(1))
-        apv = floats(re.search(r"const APV: \[f64; 28\] = \[(.*?)\];", rs, re.S).group(1))
+        rs = (ROOT / "engine/crates/adcs-pop/src/gen/kpap.rs").read_text()
+        kpv = floats(re.search(r"static DATA_KP_AP_KP: \[f64; 28\] = \[(.*?)\];", rs, re.S).group(1))
+        apv = floats(re.search(r"static DATA_KP_AP_AP: \[f64; 28\] = \[(.*?)\];", rs, re.S).group(1))
         m = (ROOT / "matlab_sils/+asils/+campaign/draw.m").read_text()
         mk = floats(re.search(r"kpv = \[(.*?)\];", m).group(1))
         ma = floats(re.search(r"apv = \[(.*?)\];", m).group(1))

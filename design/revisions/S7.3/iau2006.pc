@@ -49,7 +49,12 @@ end
 fn xy06(t: real[1] in -1 .. 1, fa: real[1][14] in -100 .. 100) -> (x: real[1], y: real[1])
     let pt: real[1][6] = 0
     for j in 0 .. 6
-        pt[j] = pow(t, real(j))
+        if j == 2
+            # t^2: the code's t.powf(2.0) in its unrolled loop, which the compiler always made t*t
+            pt[j] = t^2
+        else
+            pt[j] = pow(t, real(j))
+        end
     end
     let sx: real[1] = 0
     let sy: real[1] = 0

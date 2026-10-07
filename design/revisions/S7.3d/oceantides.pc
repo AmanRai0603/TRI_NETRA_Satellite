@@ -1,0 +1,106 @@
+## Ocean tides, transcribed from adcs-pop oceantides.rs, the port of the Octave POP's +oceantides (doodson, mainLines,
+## fromModel) and +forces/oceantides.m, over env's ocean-tide tables: the eight representative main lines the force
+## sums (M2 S2 N2 K2 K1 O1 P1 Q1, degree 2; representative amplitudes, not authoritative, as the MATLAB says) and the
+## FES2004 table to degree 10 (Lyard et al. 2006), which fromModel sums but the force does not take.
+## The developer's transcription (S7.3d), unsigned.
+module oceantides
+
+## The FES2004 degree's capacity (11 x 11, row-major).
+const FES_N = 121
+
+## Octave's mod(x, y) for finite doubles as doodson takes it: x - floor(x/y) y, 0 when y is not whole and x/y is within
+## one relative eps of a whole number, the result with the sign of y.
+fn ocean_mod(x: real[1] in -1e9 .. 1e9, y: real[1] in 1 .. 400) -> r: real[1]
+    if y == 0.0
+        r = x
+    else
+        let q = x/y
+        let ny = floor(y + 0.5)
+        let nq = floor(q + 0.5)
+        if ny != y and abs((q - nq)/nq) < 2.220446049250313e-16
+            r = 0.0
+        else
+            r = x - y*floor(q)
+        end
+        if x != y and r != 0.0 and ((r < 0.0) != (y < 0.0))
+            r = r + y
+        end
+    end
+end
+
+## oceantides.doodson(jd_tt): the six Doodson arguments [tau, s, h, p, N', ps] [rad] at a TT Julian date.
+fn doodson(jd_tt: real[1] in 2400000 .. 2500000) -> beta: real[1][6]
+    let t = (jd_tt - 2451545.0)/36525.0
+    let d2r = pi/180.0
+    let s = ocean_mod(218.3164477 + 481267.88123421*t, 360.0)
+    let h = ocean_mod(280.4664567 + 36000.76982779*t, 360.0)
+    let p = ocean_mod(83.3532465 + 4069.0137287*t, 360.0)
+    let np = ocean_mod(234.9554736 + 1934.1362608*t, 360.0)
+    let ps = ocean_mod(282.9373409 + 1.7195366*t, 360.0)
+    let gmst = ocean_mod(280.46061837 + 360.98564736629*(jd_tt - 2451545.0), 360.0)
+    let tau = ocean_mod(gmst + 180.0 - s, 360.0)
+    beta = [tau*d2r, s*d2r, h*d2r, p*d2r, np*d2r, ps*d2r]
+end
+
+## oceantides.mainLines(jd_tt): the degree-2 corrections of the eight main lines, dC += Cp cos th + Sp sin th,
+## dS += Sp cos th - Cp sin th (Cp, Sp in units of 1e-11).
+fn main_lines(jd_tt: real[1] in 2400000 .. 2500000) -> d: Dcs5
+    let beta = doodson(jd_tt)
+    d = Dcs5()
+    for i in 0 .. len(OCEAN_MAIN_LINES)
+        let deg = int(OCEAN_MAIN_LINES[i][6])
+        let m = int(OCEAN_MAIN_LINES[i][7])
+        let cp = OCEAN_MAIN_LINES[i][8]*1e-11
+        let sp = OCEAN_MAIN_LINES[i][9]*1e-11
+        let th: real[1] = 0
+        for k in 0 .. 6
+            th = th + OCEAN_MAIN_LINES[i][k]*beta[k]
+        end
+        let st = sin(th)
+        let ct = cos(th)
+        d.dc[deg][m] = d.dc[deg][m] + (cp*ct + sp*st)
+        d.ds[deg][m] = d.ds[deg][m] + (sp*ct - cp*st)
+    end
+end
+
+## The largest degree of the FES2004 table (fromModel's nmax).
+fn fes_nmax() -> n: int
+    n = 0
+    for i in 0 .. len(FES2004)
+        n = max(n, int(FES2004[i][6]))
+    end
+end
+
+## oceantides.fromModel(jd_tt, tbl) over FES2004: every line's th = doodson . beta, dC += (Cp + Cm) cos th + (Sp + Sm)
+## sin th, dS += (Sp - Sm) cos th - (Cp - Cm) sin th (row-major, stride fes_nmax() + 1).
+fn from_model(jd_tt: real[1] in 2400000 .. 2500000) -> (dc: real[1][FES_N], ds: real[1][FES_N])
+    let beta = doodson(jd_tt)
+    let st = fes_nmax() + 1
+    dc = 0
+    ds = 0
+    for i in 0 .. len(FES2004)
+        let th: real[1] = 0
+        for j in 0 .. 6
+            th = th + FES2004[i][j]*beta[j]
+        end
+        let stn = sin(th)
+        let ctn = cos(th)
+        let k = int(FES2004[i][6])*st + int(FES2004[i][7])
+        dc[k] = dc[k] + (FES2004[i][8] + FES2004[i][10])*ctn + (FES2004[i][9] + FES2004[i][11])*stn
+        ds[k] = ds[k] + (FES2004[i][9] - FES2004[i][11])*ctn - (FES2004[i][8] - FES2004[i][10])*stn
+    end
+end
+
+## forces.oceantides(ctx): the main lines' degree-2 corrections at TT, their acceleration in ECEF, rotated to ECI with
+## C'. [m/s^2]
+## The central difference amplifies the maths library's last bit about a million times: a translation is held to
+## 1e-8 of the largest output, not 1e-12 (the browser's sin, cos, asin, atan2 and pow differ from the platform's).
+## tolerance: 1e-8
+fn ocean_tides_accel(tt_jd: real[1] in 2400000 .. 2500000, r_ecef: real[1][3] in -8e6 .. 8e6, c: mat3[1] in -1 .. 1, \
+                     mu: real[1] in 3.9e14 .. 4e14, re: real[1] in 6.3e6 .. 6.4e6) -> a: real[1][3]
+    let d = main_lines(tt_jd)
+    let dc2: real[1][3] = [d.dc[2][0], d.dc[2][1], d.dc[2][2]]
+    let ds2: real[1][3] = [d.ds[2][0], d.ds[2][1], d.ds[2][2]]
+    let ae = accel_from_deg2(r_ecef, dc2, ds2, mu, re)
+    a = transpose(c)*ae
+end

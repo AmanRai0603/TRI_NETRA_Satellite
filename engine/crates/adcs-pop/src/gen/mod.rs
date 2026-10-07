@@ -2,11 +2,30 @@
 //! Every relation is SI in and SI out; each function's doc lists its inputs and outputs with their units.
 #![allow(clippy::all)]
 pub mod rt;
+pub mod de440;
+pub mod de440slice;
+pub mod densitymodel;
+pub mod dtm2020;
+pub mod dtm2020coeffs;
+pub mod dtm2020res;
 pub mod earthframes;
+pub mod expatmos;
 pub mod geodesy;
+pub mod gravfield;
+pub mod gravity;
 pub mod iau2006;
+pub mod jb2008;
+pub mod jbset;
+pub mod kpap;
 pub mod leapsec;
+pub mod oceantides;
+pub mod relativity;
+pub mod solidtides;
+pub mod swindex;
 pub mod tidaleop;
 pub mod tidaleopterms;
+pub mod tidelines;
 pub mod timescales;
 pub mod xys06;
+pub mod constants;
+pub mod env;

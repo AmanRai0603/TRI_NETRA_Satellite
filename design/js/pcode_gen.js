@@ -168,7 +168,9 @@ export function toRust(prog, opts = {}) {
         case "atan2": return `${fm("f64::atan2", "atan2")}(${R(0)}, ${R(1)})`;
         case "hypot": return `${fm("f64::hypot", "hypot")}(${R(0)}, ${R(1)})`;
         case "fmod": return opts.math ? `${opts.math}::fmod(${R(0)}, ${R(1)})` : `(${R(0)} % ${R(1)})`;
-        case "pow": return `${fm("f64::powf", "pow")}(${R(0)}, ${R(1)})`;
+        // std's powf is an LLVM intrinsic the optimiser rewrites (pow(x, 2.0) to x*x): the exponent goes through
+        // black_box so the platform's pow is called, as the language says, in every build
+        case "pow": return opts.math ? `${opts.math}::pow(${R(0)}, ${R(1)})` : `f64::powf(${R(0)}, core::hint::black_box(${R(1)}))`;
         case "min": case "max": {
           const g = e.allInt ? `rt::i${f}` : `rt::f${f}`;
           const args = a.map((x) => (e.allInt ? ex(x) : E(x, { k: "real" })));
@@ -312,6 +314,12 @@ export function toRust(prog, opts = {}) {
     if (t.k === "rec") {
       for (const f of prog.records[t.name].fields) { const [s, n] = readArg(f.ty, at + k); parts.push(`${f.name}: ${s}`); k += n; }
       return [`crate::${prog.records[t.name].module}::${t.name} { ${parts.join(", ")} }`, k];
+    }
+    // a long array of numbers (a workspace, a table) as a loop, not an expression an element
+    if (t.n > 1024 && ["real", "int", "choice", "bool"].includes(t.of.k)) {
+      const x = `x[${at} + i]`;
+      const [z, v] = t.of.k === "real" ? ["0.0", x] : t.of.k === "bool" ? ["false", `${x} != 0.0`] : ["0i64", `${x} as i64`];
+      return [`{ let mut a = [${z}; ${t.n}]; for i in 0..${t.n} { a[i] = ${v}; } a }`, t.n];
     }
     for (let i = 0; i < t.n; i++) { const [s, n] = readArg(t.of, at + k); parts.push(s); k += n; }
     return [`[${parts.join(", ")}]`, k];
@@ -522,7 +530,8 @@ export function toMatlab(prog, opts = {}) {
         if (e.a.ty.of.k === "arr") return dataRef(e.a) ? `(${dataRef(e.a)}(${idx(e.i)}, ':')).'` : `(${ex(e.a)}(${idx(e.i)}, :)).'`;
         return `${dataRef(e.a) || ex(e.a)}(${idx(e.i)})`;
       }
-      case "field": return e.choice ? String(e.choice.i) : `${ex(e.a)}.${e.f}`;
+      // a call's result cannot be indexed in MATLAB (f().x): its field through getfield
+      case "field": return e.choice ? String(e.choice.i) : e.a.e === "call" ? `getfield(${ex(e.a)}, '${e.f}')` : `${ex(e.a)}.${e.f}`;
       case "un": return e.op === "not" ? `(~${ex(e.a)})` : `(-(${ex(e.a)}))`;
       case "ifx":
         // MATLAB has no conditional expression: a branch that could fail when it is not the one taken (an index,

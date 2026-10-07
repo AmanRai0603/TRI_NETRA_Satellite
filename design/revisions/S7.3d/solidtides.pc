@@ -1,0 +1,160 @@
+## Solid-Earth tides, transcribed from adcs-pop solidtides.rs, the port of the Octave POP's +solidtides (iers2010,
+## elastic2, freqDependent, normLegendre), +tideutil/accelFromDeg2.m and +forces/solidtides.m: the IERS Conventions
+## (2010) chapter 6 step 1 (the anelastic nominal Love numbers of table 6.3, degrees 2 and 3, and degree 4 from degree 2)
+## from the Sun and the Moon in ECEF, and the degree-2 potential's acceleration by the MATLAB's central difference
+## (h = 1 m), which amplifies a last-bit difference about a million times: every expression keeps the MATLAB's order,
+## with Octave's norm and the library's pow, asin, atan2, sin and cos.
+## The developer's transcription (S7.3d), unsigned.
+module solidtides
+
+## The normalised corrections of a tide to the field: dC and dS (5 x 5, row n, column m), as solidtides.* and
+## oceantides.mainLines return them.
+record Dcs5
+    dc: real[1][5][5]
+    ds: real[1][5][5]
+end
+
+## solidtides.normLegendre(nmax, x): the fully normalised Pbar(n, m)(x), lower triangular, to degree nmax.
+fn norm_legendre5(x: real[1] in -1 .. 1, nmax: int in 0 .. 4) -> p: real[1][5][5]
+    p = 0
+    let s = sqrt(1.0 - x*x)
+    p[0][0] = 1.0
+    if nmax >= 1
+        p[1][0] = sqrt(3.0)*x
+        p[1][1] = sqrt(3.0)*s
+    end
+    for n in 2 .. nmax + 1
+        let nf = real(n)
+        for m in 0 .. n + 1
+            let mf = real(m)
+            if m == n
+                p[n][m] = s*sqrt((2.0*nf + 1.0)/(2.0*nf))*p[n - 1][m - 1]
+            elif m == n - 1
+                p[n][m] = x*sqrt(2.0*nf + 1.0)*p[n - 1][m]
+            else
+                let a = sqrt((2.0*nf + 1.0)*(2.0*nf - 1.0)/((nf - mf)*(nf + mf)))
+                let b = sqrt((2.0*nf + 1.0)*(nf + mf - 1.0)*(nf - mf - 1.0)/((2.0*nf - 3.0)*(nf - mf)*(nf + mf)))
+                p[n][m] = a*x*p[n - 1][m] - b*p[n - 2][m]
+            end
+        end
+    end
+end
+
+## A body's distance, latitude and longitude as the MATLAB forms them (norm, asin, atan2).
+fn body_angles(rb: real[1][3] in -2e11 .. 2e11) -> (r: real[1], phi: real[1], lam: real[1])
+    r = onorm(rb)
+    phi = asin(rb[2]/r)
+    lam = atan2(rb[1], rb[0])
+end
+
+## solidtides.iers2010(rMoon_ecef, rSun_ecef, mu, Re): IERS 2010 step 1, the anelastic nominal Love numbers (table 6.3:
+## k20, k21, k22 = 0.29525, 0.29470, 0.29801; k3m = 0.093, 0.093, 0.093, 0.094; k(+)2m = -0.00087, -0.00079, -0.00057).
+fn iers2010(r_moon: real[1][3] in -5e8 .. 5e8, r_sun: real[1][3] in -2e11 .. 2e11, mu: real[1] in 3.9e14 .. 4e14, \
+            re: real[1] in 6.3e6 .. 6.4e6) -> d: Dcs5
+    let k: real[1][4][4] = 0
+    k[2][0] = 0.29525
+    k[2][1] = 0.29470
+    k[2][2] = 0.29801
+    k[3][0] = 0.093
+    k[3][1] = 0.093
+    k[3][2] = 0.093
+    k[3][3] = 0.094
+    let kp: real[1][3] = [-0.00087, -0.00079, -0.00057]
+    let k4 = de440_constants()
+    d = Dcs5()
+    for body in 0 .. 2
+        let rb = if body == 0 then r_moon else r_sun
+        let gmb = if body == 0 then k4.gm_moon else k4.gm_sun
+        let r, phi, lam = body_angles(rb)
+        let p = norm_legendre5(sin(phi), 4)
+        for n in 2 .. 4
+            for m in 0 .. n + 1
+                let fac = k[n][m]/real(2*n + 1)*(gmb/mu)*pow(re/r, real(n + 1))*p[n][m]
+                d.dc[n][m] = d.dc[n][m] + fac*cos(real(m)*lam)
+                d.ds[n][m] = d.ds[n][m] + fac*sin(real(m)*lam)
+            end
+        end
+        for m in 0 .. 3
+            let fac4 = kp[m]/5.0*(gmb/mu)*pow(re/r, 3.0)*p[2][m]
+            d.dc[4][m] = d.dc[4][m] + fac4*cos(real(m)*lam)
+            d.ds[4][m] = d.ds[4][m] + fac4*sin(real(m)*lam)
+        end
+    end
+end
+
+## solidtides.elastic2(rMoon_ecef, rSun_ecef, k2, mu, Re): the degree-2 elastic tide of one real Love number.
+fn elastic2(r_moon: real[1][3] in -5e8 .. 5e8, r_sun: real[1][3] in -2e11 .. 2e11, k2: real[1] in 0 .. 1, \
+            mu: real[1] in 3.9e14 .. 4e14, re: real[1] in 6.3e6 .. 6.4e6) -> d: Dcs5
+    let k4 = de440_constants()
+    d = Dcs5()
+    for b in 0 .. 2
+        let rb = if b == 0 then r_moon else r_sun
+        let gmb = if b == 0 then k4.gm_moon else k4.gm_sun
+        let r, phi, lam = body_angles(rb)
+        let p = norm_legendre5(sin(phi), 2)
+        for m in 0 .. 3
+            let fac = k2/5.0*(gmb/mu)*pow(re/r, 3.0)*p[2][m]
+            d.dc[2][m] = d.dc[2][m] + fac*cos(real(m)*lam)
+            d.ds[2][m] = d.ds[2][m] + fac*sin(real(m)*lam)
+        end
+    end
+end
+
+## solidtides.freqDependent(gmst, dcs0): the MATLAB's two representative step-2 lines (K1 on (2, 1), argument gmst +
+## pi/2, and 0.47e-11 on C20). Not in forces.solidtides.
+fn freq_dependent(gmst: real[1] in 0 .. 6.3, d0: Dcs5) -> d: Dcs5
+    d = d0
+    let th = gmst + pi/2.0
+    d.dc[2][1] = d.dc[2][1] + -0.29e-11*sin(th)
+    d.ds[2][1] = d.ds[2][1] + -0.29e-11*cos(th)
+    d.dc[2][0] = d.dc[2][0] + 0.47e-11
+end
+
+## The degree-2 potential of a tide at x [m^2/s^2]: mu/|x| (Re/|x|)^2 sum Pbar(2, m) (dC2m cos m lam + dS2m sin m lam).
+fn deg2_potential(x: real[1][3] in -8e6 .. 8e6, dc2: real[1][3] in -1e-8 .. 1e-8, ds2: real[1][3] in -1e-8 .. 1e-8, \
+                  mu: real[1] in 3.9e14 .. 4e14, re: real[1] in 6.3e6 .. 6.4e6) -> u: real[1]
+    let xr = onorm(x)
+    let phi = asin(x[2]/xr)
+    let lam = atan2(x[1], x[0])
+    let p = norm_legendre5(sin(phi), 2)
+    u = 0.0
+    for m in 0 .. 3
+        let ml = real(m)*lam
+        # (re/xr)^2: the code's (re/xr).powf(2.0), which the compiler always made a square
+        u = u + mu/xr*(re/xr)^2*p[2][m]*(dc2[m]*cos(ml) + ds2[m]*sin(ml))
+    end
+end
+
+## tideutil.accelFromDeg2(rSat_ecef, dcs, mu, Re): the ECEF acceleration [m/s^2] of the degree-2 potential of
+## dC(2, :) = dc2, dS(2, :) = ds2, by the MATLAB's central difference with h = 1 m.
+## The central difference amplifies the maths library's last bit about a million times: a translation is held to
+## 1e-8 of the largest output, not 1e-12 (the browser's sin, cos, asin, atan2 and pow differ from the platform's).
+## tolerance: 1e-8
+fn accel_from_deg2(r: real[1][3] in -8e6 .. 8e6, dc2: real[1][3] in -1e-8 .. 1e-8, ds2: real[1][3] in -1e-8 .. 1e-8, \
+                   mu: real[1] in 3.9e14 .. 4e14, re: real[1] in 6.3e6 .. 6.4e6) -> a: real[1][3]
+    let h = 1.0
+    a = 0
+    for k in 0 .. 3
+        let rp = r
+        let rm = r
+        rp[k] = rp[k] + h
+        rm[k] = rm[k] - h
+        a[k] = (deg2_potential(rp, dc2, ds2, mu, re) - deg2_potential(rm, dc2, ds2, mu, re))/(2.0*h)
+    end
+end
+
+## forces.solidtides(ctx): the IERS 2010 step-1 coefficients from the Sun and the Moon in ECEF (C the ECI to ECEF
+## rotation), the degree-2 acceleration in ECEF, rotated to ECI with C'. [m/s^2]
+## The central difference amplifies the maths library's last bit about a million times: a translation is held to
+## 1e-8 of the largest output, not 1e-12 (the browser's sin, cos, asin, atan2 and pow differ from the platform's).
+## tolerance: 1e-8
+fn solid_tides_accel(r_ecef: real[1][3] in -8e6 .. 8e6, c: mat3[1] in -1 .. 1, sun_eci: real[1][3] in -2e11 .. 2e11, \
+                     moon_eci: real[1][3] in -5e8 .. 5e8, mu: real[1] in 3.9e14 .. 4e14, re: real[1] in 6.3e6 .. 6.4e6) -> a: real[1][3]
+    let r_sun = c*sun_eci
+    let r_moon = c*moon_eci
+    let d = iers2010(r_moon, r_sun, mu, re)
+    let dc2: real[1][3] = [d.dc[2][0], d.dc[2][1], d.dc[2][2]]
+    let ds2: real[1][3] = [d.ds[2][0], d.ds[2][1], d.ds[2][2]]
+    let ae = accel_from_deg2(r_ecef, dc2, ds2, mu, re)
+    a = transpose(c)*ae
+end

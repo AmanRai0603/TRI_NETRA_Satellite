@@ -16,12 +16,13 @@ fn geodetic_with(r: vec3[m] in -7.2e6 .. 7.2e6, re: real[m] in 6.3e6 .. 6.4e6, f
     let la = atan2(z, p*(1.0 - e2))
     for k in 0 .. 5
         let sph = sin(la)
-        let n = re/sqrt(1.0 - e2*pow(sph, 2.0))
+        # sph^2: the code's sph.powf(2.0), which the compiler always made sph*sph
+        let n = re/sqrt(1.0 - e2*sph^2)
         let al = p/cos(la) - n
         la = atan2(z, p*(1.0 - e2*n/(n + al)))
     end
     let sph2 = sin(la)
-    let n2 = re/sqrt(1.0 - e2*pow(sph2, 2.0))
+    let n2 = re/sqrt(1.0 - e2*sph2^2)
     alt = p/cos(la) - n2
     lat = la
 end

@@ -1,6 +1,6 @@
 # The translators, held to the interpreter
 
-**In one line:** every package of pseudocode translated to each language, built, and run on every vector the interpreter drew; an exact function bit for bit, any other within 1e-12 relative (`tools/translators.py`, `docs/PLAN_2_0.md` S5).
+**In one line:** every package of pseudocode translated to each language, built, and run on every vector the interpreter drew; an exact function bit for bit, any other within 1e-12 relative, or within the tolerance its documentation states relative to its largest output (a central difference, `## tolerance:`) (`tools/translators.py`, `docs/PLAN_2_0.md` S5).
 
 | Package | Language | Functions | Values | Bit for bit | Worst relative error | Failing |
 |---|---|---|---|---|---|---|
@@ -16,6 +16,6 @@
 | groups | rust | 82 | 20480 | 20469 | 1.31e-15 | 0 |
 | groups | c | 82 | 20480 | 20469 | 1.31e-15 | 0 |
 | groups | matlab | 82 | 20480 | 20469 | 1.31e-15 | 0 |
-| env | rust | 96 | 7212 | 7068 | 1.23e-13 | 0 |
-| env | c | 96 | 7212 | 7068 | 1.23e-13 | 0 |
-| env | matlab | 96 | 7212 | 7068 | 1.23e-13 | 0 |
+| env | rust | 186 | 674236 | 673623 | 2.23e-09 | 0 |
+| env | c | 186 | 674236 | 673623 | 2.23e-09 | 0 |
+| env | matlab | 186 | 674236 | 673623 | 2.23e-09 | 0 |

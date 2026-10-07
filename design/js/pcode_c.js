@@ -379,6 +379,7 @@ export function toC(prog, opts = {}) {
 
   // ------------------------------------------------------------ the dispatcher: a function by name, flattened
   const flat = (t) => widthOf(prog, t);
+  const LONG = 1024;   // an array of numbers longer than this is read and written by a loop
   const readArg = (t, at, into, I) => {          // statements filling `into` from x[at..]
     if (t.k === "stream") return [`${I}${into}.key = ((uint64_t)x[${at}] << 32) | (uint64_t)x[${at + 1}];\n${I}${into}.n = ((uint64_t)x[${at + 2}] << 32) | (uint64_t)x[${at + 3}];\n` +
       `${I}${into}.spare = x[${at + 4}];\n${I}${into}.has = x[${at + 5}] != 0.0;\n`, 6];
@@ -390,6 +391,12 @@ export function toC(prog, opts = {}) {
       for (const f of prog.records[t.name].fields) { const [c, n] = readArg(f.ty, at + k, `${into}.${cname(f.name)}`, I); s += c; k += n; }
       return [s, k];
     }
+    // a long array of numbers (a workspace, a table) as a loop, not a statement an element
+    if (t.n > LONG && ["real", "int", "choice", "bool"].includes(t.of.k)) {
+      const x = `x[${at} + i_]`;
+      const v = t.of.k === "real" ? x : t.of.k === "bool" ? `${x} != 0.0` : `(int64_t)${x}`;
+      return [`${I}{ int i_; for (i_ = 0; i_ < ${t.n}; i_++) ${into}.v[i_] = ${v}; }\n`, t.n];
+    }
     for (let i = 0; i < t.n; i++) { const [c, n] = readArg(t.of, at + k, `${into}.v[${i}]`, I); s += c; k += n; }
     return [s, k];
   };
@@ -400,6 +407,11 @@ export function toC(prog, opts = {}) {
     if (t.k === "int" || t.k === "choice") return `${I}out[(*ny)++] = (double)${v};\n`;
     if (t.k === "bool") return `${I}out[(*ny)++] = ${v} ? 1.0 : 0.0;\n`;
     if (t.k === "rec") return prog.records[t.name].fields.map((f) => pushOut(f.ty, `${v}.${cname(f.name)}`, I)).join("");
+    if (t.n > LONG && ["real", "int", "choice", "bool"].includes(t.of.k)) {
+      const e = `${v}.v[i_]`;
+      const o = t.of.k === "real" ? e : t.of.k === "bool" ? `${e} ? 1.0 : 0.0` : `(double)${e}`;
+      return `${I}{ int i_; for (i_ = 0; i_ < ${t.n}; i_++) out[(*ny)++] = ${o}; }\n`;
+    }
     let s = "";
     for (let i = 0; i < t.n; i++) s += pushOut(t.of, `${v}.v[${i}]`, I);
     return s;

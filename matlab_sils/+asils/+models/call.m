@@ -20,6 +20,96 @@ function y = call(name, x)
         case 'caltime::eci_to_ecef'
             [o1] = asils.models.caltime.eci_to_ecef(x(1));
             y = [reshape((o1).', [], 1)];
+        case 'de440::de440_constants'
+            [o1] = asils.models.de440.de440_constants();
+            y = [[double(o1.au_m); double(o1.c); double(o1.gm_sun); double(o1.gm_earth); double(o1.gm_moon); double(o1.emrat); double(o1.tsi); double(o1.p0); double(o1.re_earth); double(o1.f_earth); double(o1.rp_earth); double(o1.mu_earth); double(o1.omega_earth); double(o1.n_a); double(o1.rsun)]];
+        case 'de440::jd_to_et'
+            [o1] = asils.models.de440.jd_to_et(x(1));
+            y = [double(o1)];
+        case 'de440::cheb_state'
+            [o1, o2] = asils.models.de440.cheb_state(reshape(x(1:62), 62, 1), x(63), x(64));
+            y = [reshape(o1, [], 1); reshape(o2, [], 1)];
+        case 'de440::de440_record'
+            [o1, o2, o3] = asils.models.de440.de440_record(x(1), x(2));
+            y = [double(o1); reshape(o2, [], 1); double(o3)];
+        case 'de440::de440_segment'
+            [o1, o2, o3] = asils.models.de440.de440_segment(x(1), x(2));
+            y = [double(o1); reshape(o2, [], 1); reshape(o3, [], 1)];
+        case 'de440::geocentric'
+            [o1, o2, o3, o4, o5, o6] = asils.models.de440.geocentric(reshape(x(1:3), 3, 1), reshape(x(4:6), 3, 1), reshape(x(7:9), 3, 1), reshape(x(10:12), 3, 1), reshape(x(13:15), 3, 1), reshape(x(16:18), 3, 1), reshape(x(19:21), 3, 1), reshape(x(22:24), 3, 1));
+            y = [reshape(o1, [], 1); reshape(o2, [], 1); reshape(o3, [], 1); reshape(o4, [], 1); reshape(o5, [], 1); reshape(o6, [], 1)];
+        case 'de440::ephem_inputs'
+            [o1] = asils.models.de440.ephem_inputs(x(1), reshape(x(2:4), 3, 1), reshape(x(5:7), 3, 1), reshape(x(8:10), 3, 1), reshape(x(11:13), 3, 1));
+            y = [[double(o1.jd_tdb); reshape(o1.sun_unit, [], 1); double(o1.sun_dist); double(o1.flux_scale); double(o1.p_srp); reshape(o1.sun_eci, [], 1); reshape(o1.sun_vel, [], 1); reshape(o1.moon_eci, [], 1); reshape(o1.moon_vel, [], 1); double(o1.gm_sun); double(o1.gm_moon); reshape(o1.earth_helio_pos, [], 1); reshape(o1.earth_helio_vel, [], 1); double(o1.sun_ra); double(o1.sun_dec)]];
+        case 'densitymodel::dtm2020_atm'
+            [o1, o2] = asils.models.densitymodel.dtm2020_atm(x(1), x(2), x(3), x(4), x(5), x(6), x(7), reshape(x(8:11), 4, 1));
+            y = [double(o1); [double(o2.rho); double(o2.t); double(o2.species); reshape(o2.n, [], 1); double(o2.mmol); double(o2.n_o)]];
+        case 'densitymodel::dtm2020_research_atm'
+            [o1, o2] = asils.models.densitymodel.dtm2020_research_atm(x(1), x(2), x(3), x(4), x(5), reshape(x(6:11), 6, 1), x(12), x(13), x(14), (x(15) ~= 0));
+            y = [double(o1); [double(o2.rho); double(o2.t); double(o2.species); reshape(o2.n, [], 1); double(o2.mmol); double(o2.n_o)]];
+        case 'densitymodel::jb2008_atm'
+            [o1, o2] = asils.models.densitymodel.jb2008_atm(x(1), x(2), x(3), reshape(x(4:9), 6, 1), (x(10) ~= 0), x(11));
+            y = [double(o1); [double(o2.rho); double(o2.t); double(o2.species); reshape(o2.n, [], 1); double(o2.mmol); double(o2.n_o)]];
+        case 'densitymodel::atmos_density'
+            [o1, o2] = asils.models.densitymodel.atmos_density(x(1), x(2), x(3), x(4), x(5), x(6), reshape(x(7:12), 6, 1), x(13), x(14), x(15), reshape(x(16:19), 4, 1), x(20), x(21), x(22), (x(23) ~= 0), (x(24) ~= 0), x(25));
+            y = [double(o1); [double(o2.rho); double(o2.t); double(o2.species); reshape(o2.n, [], 1); double(o2.mmol); double(o2.n_o)]];
+        case 'dtm2020::dtm_vma'
+            [o1] = asils.models.dtm2020.dtm_vma();
+            y = [reshape(o1, [], 1)];
+        case 'dtm2020::dtm_column'
+            [o1] = asils.models.dtm2020.dtm_column(x(1), x(2));
+            y = [reshape(o1, [], 1)];
+        case 'dtm2020::plg_geographic'
+            [o1] = asils.models.dtm2020.plg_geographic(x(1));
+            y = [[double(o1.p10); double(o1.p20); double(o1.p30); double(o1.p40); double(o1.p50); double(o1.p60); double(o1.p11); double(o1.p21); double(o1.p31); double(o1.p41); double(o1.p51); double(o1.p22); double(o1.p32); double(o1.p42); double(o1.p52); double(o1.p62); double(o1.p33); double(o1.p10mg); double(o1.p20mg); double(o1.p30mg); double(o1.p40mg); double(o1.p50mg); double(o1.p60mg); double(o1.p11mg); double(o1.p22mg); double(o1.p31mg)]];
+        case 'dtm2020::hloc_of'
+            [o1] = asils.models.dtm2020.hloc_of(x(1));
+            y = [[double(o1.ch); double(o1.sh); double(o1.c2h); double(o1.s2h); double(o1.c3h); double(o1.s3h)]];
+        case 'dtm2020::gldtm'
+            [o1] = asils.models.dtm2020.gldtm(x(1), x(2), reshape(x(3:6), 4, 1), x(7), reshape(x(8:104), 97, 1), struct('p10', {x(105)}, 'p20', {x(106)}, 'p30', {x(107)}, 'p40', {x(108)}, 'p50', {x(109)}, 'p60', {x(110)}, 'p11', {x(111)}, 'p21', {x(112)}, 'p31', {x(113)}, 'p41', {x(114)}, 'p51', {x(115)}, 'p22', {x(116)}, 'p32', {x(117)}, 'p42', {x(118)}, 'p52', {x(119)}, 'p62', {x(120)}, 'p33', {x(121)}, 'p10mg', {x(122)}, 'p20mg', {x(123)}, 'p30mg', {x(124)}, 'p40mg', {x(125)}, 'p50mg', {x(126)}, 'p60mg', {x(127)}, 'p11mg', {x(128)}, 'p22mg', {x(129)}, 'p31mg', {x(130)}), struct('ch', {x(131)}, 'sh', {x(132)}, 'c2h', {x(133)}, 's2h', {x(134)}, 'c3h', {x(135)}, 's3h', {x(136)}), x(137), x(138));
+            y = [double(o1)];
+        case 'dtm2020::dtm_profile'
+            [o1] = asils.models.dtm2020.dtm_profile(x(1), x(2), x(3), x(4), reshape(x(5:10), 6, 1), x(11));
+            y = [[double(o1.tz); double(o1.tinf); double(o1.ro); reshape(o1.d, [], 1); double(o1.wmm)]];
+        case 'dtm2020::dtm3_gdel'
+            [o1, o2, o3, o4] = asils.models.dtm2020.dtm3_gdel(x(1), x(2), reshape(x(3:6), 4, 1), x(7), struct('p10', {x(8)}, 'p20', {x(9)}, 'p30', {x(10)}, 'p40', {x(11)}, 'p50', {x(12)}, 'p60', {x(13)}, 'p11', {x(14)}, 'p21', {x(15)}, 'p31', {x(16)}, 'p41', {x(17)}, 'p51', {x(18)}, 'p22', {x(19)}, 'p32', {x(20)}, 'p42', {x(21)}, 'p52', {x(22)}, 'p62', {x(23)}, 'p33', {x(24)}, 'p10mg', {x(25)}, 'p20mg', {x(26)}, 'p30mg', {x(27)}, 'p40mg', {x(28)}, 'p50mg', {x(29)}, 'p60mg', {x(30)}, 'p11mg', {x(31)}, 'p22mg', {x(32)}, 'p31mg', {x(33)}), struct('ch', {x(34)}, 'sh', {x(35)}, 'c2h', {x(36)}, 's2h', {x(37)}, 'c3h', {x(38)}, 's3h', {x(39)}), x(40));
+            y = [double(o1); double(o2); double(o3); reshape(o4, [], 1)];
+        case 'dtm2020::dtm3'
+            [o1] = asils.models.dtm2020.dtm3(x(1), x(2), x(3), reshape(x(4:7), 4, 1), x(8), x(9), x(10), x(11));
+            y = [[double(o1.tz); double(o1.tinf); double(o1.ro); reshape(o1.d, [], 1); double(o1.wmm)]];
+        case 'dtm2020::dtm_pack'
+            [o1] = asils.models.dtm2020.dtm_pack(struct('tz', {x(1)}, 'tinf', {x(2)}, 'ro', {x(3)}, 'd', {reshape(x(4:9), 6, 1)}, 'wmm', {x(10)}));
+            y = [[double(o1.rho_gcm3); double(o1.rho_kgm3); double(o1.t_k); double(o1.tinf_k); reshape(o1.n_cm3, [], 1); reshape(o1.rho_species, [], 1); double(o1.mbar_amu)]];
+        case 'dtm2020::oper_density'
+            [o1, o2] = asils.models.dtm2020.oper_density(x(1), x(2), x(3), x(4), x(5), x(6), x(7), reshape(x(8:11), 4, 1));
+            y = [double(o1); [double(o2.rho_gcm3); double(o2.rho_kgm3); double(o2.t_k); double(o2.tinf_k); reshape(o2.n_cm3, [], 1); reshape(o2.rho_species, [], 1); double(o2.mbar_amu)]];
+        case 'dtm2020res::bint_oe'
+            [o1] = asils.models.dtm2020res.bint_oe(x(1));
+            y = [double(o1)];
+        case 'dtm2020res::geogm'
+            [o1, o2, o3] = asils.models.dtm2020res.geogm(x(1), x(2));
+            y = [double(o1); double(o2); double(o3)];
+        case 'dtm2020res::gldtm_hp'
+            [o1] = asils.models.dtm2020res.gldtm_hp(x(1), x(2), reshape(x(3:10), 8, 1), x(11), reshape(x(12:108), 97, 1), struct('p10', {x(109)}, 'p20', {x(110)}, 'p30', {x(111)}, 'p40', {x(112)}, 'p50', {x(113)}, 'p60', {x(114)}, 'p11', {x(115)}, 'p21', {x(116)}, 'p31', {x(117)}, 'p41', {x(118)}, 'p51', {x(119)}, 'p22', {x(120)}, 'p32', {x(121)}, 'p42', {x(122)}, 'p52', {x(123)}, 'p62', {x(124)}, 'p33', {x(125)}, 'p10mg', {x(126)}, 'p20mg', {x(127)}, 'p30mg', {x(128)}, 'p40mg', {x(129)}, 'p50mg', {x(130)}, 'p60mg', {x(131)}, 'p11mg', {x(132)}, 'p22mg', {x(133)}, 'p31mg', {x(134)}), struct('ch', {x(135)}, 'sh', {x(136)}, 'c2h', {x(137)}, 's2h', {x(138)}, 'c3h', {x(139)}, 's3h', {x(140)}), x(141), x(142));
+            y = [double(o1)];
+        case 'dtm2020res::dtm5_gdel'
+            [o1, o2, o3, o4] = asils.models.dtm2020res.dtm5_gdel(x(1), x(2), reshape(x(3:10), 8, 1), x(11), struct('p10', {x(12)}, 'p20', {x(13)}, 'p30', {x(14)}, 'p40', {x(15)}, 'p50', {x(16)}, 'p60', {x(17)}, 'p11', {x(18)}, 'p21', {x(19)}, 'p31', {x(20)}, 'p41', {x(21)}, 'p51', {x(22)}, 'p22', {x(23)}, 'p32', {x(24)}, 'p42', {x(25)}, 'p52', {x(26)}, 'p62', {x(27)}, 'p33', {x(28)}, 'p10mg', {x(29)}, 'p20mg', {x(30)}, 'p30mg', {x(31)}, 'p40mg', {x(32)}, 'p50mg', {x(33)}, 'p60mg', {x(34)}, 'p11mg', {x(35)}, 'p22mg', {x(36)}, 'p31mg', {x(37)}), struct('ch', {x(38)}, 'sh', {x(39)}, 'c2h', {x(40)}, 's2h', {x(41)}, 'c3h', {x(42)}, 's3h', {x(43)}), x(44));
+            y = [double(o1); double(o2); double(o3); reshape(o4, [], 1)];
+        case 'dtm2020res::dtm5'
+            [o1, o2] = asils.models.dtm2020res.dtm5(x(1), x(2), x(3), reshape(x(4:13), 10, 1), x(14), x(15), x(16), x(17));
+            y = [double(o1); [double(o2.tz); double(o2.tinf); double(o2.ro); reshape(o2.d, [], 1); double(o2.wmm)]];
+        case 'dtm2020res::research_density'
+            [o1, o2] = asils.models.dtm2020res.research_density(x(1), x(2), x(3), x(4), x(5), x(6), x(7), reshape(x(8:17), 10, 1));
+            y = [double(o1); [double(o2.rho_gcm3); double(o2.rho_kgm3); double(o2.t_k); double(o2.tinf_k); reshape(o2.n_cm3, [], 1); reshape(o2.rho_species, [], 1); double(o2.mbar_amu)]];
+        case 'dtm2020res::f30_to_f107scale'
+            [o1] = asils.models.dtm2020res.f30_to_f107scale(x(1), x(2));
+            y = [double(o1)];
+        case 'dtm2020res::f30_from_f107'
+            [o1] = asils.models.dtm2020res.f30_from_f107(x(1));
+            y = [double(o1)];
+        case 'dtm2020res::dtm_decimal_year'
+            [o1] = asils.models.dtm2020res.dtm_decimal_year(reshape(x(1:6), 6, 1));
+            y = [double(o1)];
         case 'earthframes::rot1'
             [o1] = asils.models.earthframes.rot1(x(1));
             y = [reshape((o1).', [], 1)];
@@ -38,12 +128,60 @@ function y = call(name, x)
         case 'elements::coe2rv'
             [o1, o2] = asils.models.elements.coe2rv(x(1), x(2), x(3), x(4), x(5), x(6), x(7));
             y = [reshape(o1, [], 1); reshape(o2, [], 1)];
+        case 'expatmos::mean_molar_mass'
+            [o1] = asils.models.expatmos.mean_molar_mass(x(1));
+            y = [double(o1)];
+        case 'expatmos::exponential_atm'
+            [o1, o2, o3, o4] = asils.models.expatmos.exponential_atm(x(1));
+            y = [double(o1); double(o2); double(o3); double(o4)];
         case 'geodesy::geodetic_with'
             [o1, o2, o3] = asils.models.geodesy.geodetic_with(reshape(x(1:3), 3, 1), x(4), x(5));
             y = [double(o1); double(o2); double(o3)];
         case 'geodesy::geodetic_wgs84'
             [o1, o2, o3] = asils.models.geodesy.geodetic_wgs84(reshape(x(1:3), 3, 1));
             y = [double(o1); double(o2); double(o3)];
+        case 'gravity::onorm'
+            [o1] = asils.models.gravity.onorm(reshape(x(1:3), 3, 1));
+            y = [double(o1)];
+        case 'gravity::denorm_factor'
+            [o1] = asils.models.gravity.denorm_factor(x(1), x(2));
+            y = [double(o1)];
+        case 'gravity::default_field'
+            [o1, o2, o3] = asils.models.gravity.default_field();
+            y = [double(o1); double(o2); reshape(o3, [], 1)];
+        case 'gravity::zonal_j'
+            [o1] = asils.models.gravity.zonal_j(x(1), x(2));
+            y = [double(o1)];
+        case 'gravity::sph_setup'
+            [o1, io2, io3, io5, io6, io7, io8] = asils.models.gravity.sph_setup(x(1), reshape(x(2:14642), 14641, 1), reshape(x(14643:29283), 14641, 1), x(29284), reshape(x(29285:43925), 14641, 1), reshape(x(43926:58566), 14641, 1), reshape(x(58567:73695), 15129, 1), reshape(x(73696:88824), 15129, 1));
+            y = [double(o1); reshape(io2, [], 1); reshape(io3, [], 1); reshape(io5, [], 1); reshape(io6, [], 1); reshape(io7, [], 1); reshape(io8, [], 1)];
+        case 'gravity::sph_accel'
+            [o1, io7, io8, io9, io10, io11, io12] = asils.models.gravity.sph_accel(reshape(x(1:3), 3, 1), x(4), x(5), x(6), x(7), x(8), reshape(x(9:14649), 14641, 1), reshape(x(14650:29290), 14641, 1), reshape(x(29291:44419), 15129, 1), reshape(x(44420:59548), 15129, 1), reshape(x(59549:74677), 15129, 1), reshape(x(74678:89806), 15129, 1));
+            y = [reshape(o1, [], 1); reshape(io7, [], 1); reshape(io8, [], 1); reshape(io9, [], 1); reshape(io10, [], 1); reshape(io11, [], 1); reshape(io12, [], 1)];
+        case 'gravity::norm_legendre_pot'
+            [o1] = asils.models.gravity.norm_legendre_pot(x(1), x(2), x(3));
+            y = [reshape(o1, [], 1)];
+        case 'gravity::potential'
+            [o1, io4, io5] = asils.models.gravity.potential(reshape(x(1:3), 3, 1), x(4), x(5), reshape(x(6:14646), 14641, 1), reshape(x(14647:29287), 14641, 1), x(29288), x(29289));
+            y = [double(o1); reshape(io4, [], 1); reshape(io5, [], 1)];
+        case 'gravity::two_body'
+            [o1] = asils.models.gravity.two_body(reshape(x(1:3), 3, 1), x(4));
+            y = [reshape(o1, [], 1)];
+        case 'gravity::zonal_c'
+            [o1] = asils.models.gravity.zonal_c(reshape(x(1:5), 5, 1), x(6));
+            y = [reshape(o1, [], 1)];
+        case 'gravity::zonal_uses_sh'
+            [o1] = asils.models.gravity.zonal_uses_sh(reshape(x(1:5), 5, 1), x(6));
+            y = [double(o1)];
+        case 'gravity::j2accel'
+            [o1, io7, io8, io9, io10, io11, io12] = asils.models.gravity.j2accel(reshape(x(1:3), 3, 1), x(4), x(5), reshape(x(6:10), 5, 1), x(11), (x(12) ~= 0), reshape(x(13:14653), 14641, 1), reshape(x(14654:29294), 14641, 1), reshape(x(29295:44423), 15129, 1), reshape(x(44424:59552), 15129, 1), reshape(x(59553:74681), 15129, 1), reshape(x(74682:89810), 15129, 1));
+            y = [reshape(o1, [], 1); reshape(io7, [], 1); reshape(io8, [], 1); reshape(io9, [], 1); reshape(io10, [], 1); reshape(io11, [], 1); reshape(io12, [], 1)];
+        case 'gravity::to_ecef'
+            [o1] = asils.models.gravity.to_ecef(reshape(x(1:9), 3, 3).', reshape(x(10:12), 3, 1));
+            y = [reshape(o1, [], 1)];
+        case 'gravity::from_ecef'
+            [o1] = asils.models.gravity.from_ecef(reshape(x(1:9), 3, 3).', reshape(x(10:12), 3, 1));
+            y = [reshape(o1, [], 1)];
         case 'iau2006::fund_args'
             [o1] = asils.models.iau2006.fund_args(x(1));
             y = [reshape(o1, [], 1)];
@@ -77,6 +215,138 @@ function y = call(name, x)
         case 'iau2006::cio_c2t'
             [o1, o2] = asils.models.iau2006.cio_c2t(reshape(x(1:6), 6, 1), x(7), x(8), x(9), x(10), x(11), x(12));
             y = [reshape((o1).', [], 1); [double(o2.x); double(o2.y); double(o2.s); double(o2.era); reshape((o2.q).', [], 1); reshape((o2.w).', [], 1)]];
+        case 'jb2008::orem'
+            [o1] = asils.models.jb2008.orem(x(1), x(2));
+            y = [double(o1)];
+        case 'jb2008::jb_sign'
+            [o1] = asils.models.jb2008.jb_sign(x(1), x(2));
+            y = [double(o1)];
+        case 'jb2008::sol_day'
+            [o1] = asils.models.jb2008.sol_day(x(1));
+            y = [double(o1)];
+        case 'jb2008::dtc_hour'
+            [o1] = asils.models.jb2008.dtc_hour(x(1));
+            y = [double(o1)];
+        case 'jb2008::sol_interp'
+            [o1] = asils.models.jb2008.sol_interp(x(1), x(2));
+            y = [double(o1)];
+        case 'jb2008::dtc_interp'
+            [o1] = asils.models.jb2008.dtc_interp(x(1));
+            y = [double(o1)];
+        case 'jb2008::xambar'
+            [o1] = asils.models.jb2008.xambar(x(1));
+            y = [double(o1)];
+        case 'jb2008::xgrav'
+            [o1] = asils.models.jb2008.xgrav(x(1));
+            y = [double(o1)];
+        case 'jb2008::xlocal'
+            [o1] = asils.models.jb2008.xlocal(x(1), reshape(x(2:5), 4, 1));
+            y = [double(o1)];
+        case 'jb2008::dtsub'
+            [o1] = asils.models.jb2008.dtsub(x(1), x(2), x(3), x(4));
+            y = [double(o1)];
+        case 'jb2008::semian08'
+            [o1, o2, o3] = asils.models.jb2008.semian08(x(1), x(2), x(3), x(4), x(5));
+            y = [double(o1); double(o2); double(o3)];
+        case 'jb2008::invjday'
+            [o1] = asils.models.jb2008.invjday(x(1));
+            y = [reshape(o1, [], 1)];
+        case 'jb2008::finddays'
+            [o1] = asils.models.jb2008.finddays(x(1), x(2), x(3), x(4), x(5), x(6));
+            y = [double(o1)];
+        case 'jb2008::tmoutd'
+            [o1] = asils.models.jb2008.tmoutd(x(1));
+            y = [double(o1)];
+        case 'jb2008::jb_finish'
+            [o1] = asils.models.jb2008.jb_finish(reshape(x(1:6), 6, 1), x(7), x(8), reshape(x(9:11), 3, 1), x(12), x(13), x(14));
+            y = [double(o1)];
+        case 'jb2008::jb2008_core'
+            [o1] = asils.models.jb2008.jb2008_core(x(1), reshape(x(2:3), 2, 1), reshape(x(4:6), 3, 1), x(7), x(8), x(9), x(10), x(11), x(12), x(13), x(14), x(15));
+            y = [[reshape(o1.temp, [], 1); double(o1.rho)]];
+        case 'jb2008::sun_radec'
+            [o1, o2] = asils.models.jb2008.sun_radec(x(1));
+            y = [double(o1); double(o2)];
+        case 'jb2008::gmst_rad'
+            [o1] = asils.models.jb2008.gmst_rad(x(1));
+            y = [double(o1)];
+        case 'jb2008::jb2008_density'
+            [o1, o2, o3] = asils.models.jb2008.jb2008_density(reshape(x(1:6), 6, 1), x(7), x(8), x(9));
+            y = [double(o1); [reshape(o2.temp, [], 1); double(o2.rho)]; [double(o3.mjd); reshape(o3.sun, [], 1); reshape(o3.sat, [], 1); reshape(o3.ind, [], 1)]];
+        case 'oceantides::ocean_mod'
+            [o1] = asils.models.oceantides.ocean_mod(x(1), x(2));
+            y = [double(o1)];
+        case 'oceantides::doodson'
+            [o1] = asils.models.oceantides.doodson(x(1));
+            y = [reshape(o1, [], 1)];
+        case 'oceantides::main_lines'
+            [o1] = asils.models.oceantides.main_lines(x(1));
+            y = [[reshape((o1.dc).', [], 1); reshape((o1.ds).', [], 1)]];
+        case 'oceantides::fes_nmax'
+            [o1] = asils.models.oceantides.fes_nmax();
+            y = [double(o1)];
+        case 'oceantides::from_model'
+            [o1, o2] = asils.models.oceantides.from_model(x(1));
+            y = [reshape(o1, [], 1); reshape(o2, [], 1)];
+        case 'oceantides::ocean_tides_accel'
+            [o1] = asils.models.oceantides.ocean_tides_accel(x(1), reshape(x(2:4), 3, 1), reshape(x(5:13), 3, 3).', x(14), x(15));
+            y = [reshape(o1, [], 1)];
+        case 'relativity::j_earth'
+            [o1] = asils.models.relativity.j_earth();
+            y = [reshape(o1, [], 1)];
+        case 'relativity::schwarzschild'
+            [o1] = asils.models.relativity.schwarzschild(reshape(x(1:3), 3, 1), reshape(x(4:6), 3, 1), x(7), x(8), x(9));
+            y = [reshape(o1, [], 1)];
+        case 'relativity::lense_thirring'
+            [o1] = asils.models.relativity.lense_thirring(reshape(x(1:3), 3, 1), reshape(x(4:6), 3, 1), x(7), reshape(x(8:10), 3, 1), x(11));
+            y = [reshape(o1, [], 1)];
+        case 'relativity::de_sitter'
+            [o1] = asils.models.relativity.de_sitter(reshape(x(1:3), 3, 1), reshape(x(4:6), 3, 1), reshape(x(7:9), 3, 1), reshape(x(10:12), 3, 1), x(13));
+            y = [reshape(o1, [], 1)];
+        case 'relativity::rel_total'
+            [o1, o2, o3] = asils.models.relativity.rel_total(reshape(x(1:3), 3, 1), reshape(x(4:6), 3, 1), (x(7) ~= 0), reshape(x(8:10), 3, 1), reshape(x(11:13), 3, 1), reshape(x(14:21), 8, 1), x(22), x(23));
+            y = [double(o1); reshape(o2, [], 1); [double(o3.has_schwarzschild); reshape(o3.schwarzschild, [], 1); double(o3.has_lensethirring); reshape(o3.lensethirring, [], 1); double(o3.has_desitter); reshape(o3.desitter, [], 1)]];
+        case 'solidtides::norm_legendre5'
+            [o1] = asils.models.solidtides.norm_legendre5(x(1), x(2));
+            y = [reshape((o1).', [], 1)];
+        case 'solidtides::body_angles'
+            [o1, o2, o3] = asils.models.solidtides.body_angles(reshape(x(1:3), 3, 1));
+            y = [double(o1); double(o2); double(o3)];
+        case 'solidtides::iers2010'
+            [o1] = asils.models.solidtides.iers2010(reshape(x(1:3), 3, 1), reshape(x(4:6), 3, 1), x(7), x(8));
+            y = [[reshape((o1.dc).', [], 1); reshape((o1.ds).', [], 1)]];
+        case 'solidtides::elastic2'
+            [o1] = asils.models.solidtides.elastic2(reshape(x(1:3), 3, 1), reshape(x(4:6), 3, 1), x(7), x(8), x(9));
+            y = [[reshape((o1.dc).', [], 1); reshape((o1.ds).', [], 1)]];
+        case 'solidtides::freq_dependent'
+            [o1] = asils.models.solidtides.freq_dependent(x(1), struct('dc', {reshape(x(2:26), 5, 5).'}, 'ds', {reshape(x(27:51), 5, 5).'}));
+            y = [[reshape((o1.dc).', [], 1); reshape((o1.ds).', [], 1)]];
+        case 'solidtides::deg2_potential'
+            [o1] = asils.models.solidtides.deg2_potential(reshape(x(1:3), 3, 1), reshape(x(4:6), 3, 1), reshape(x(7:9), 3, 1), x(10), x(11));
+            y = [double(o1)];
+        case 'solidtides::accel_from_deg2'
+            [o1] = asils.models.solidtides.accel_from_deg2(reshape(x(1:3), 3, 1), reshape(x(4:6), 3, 1), reshape(x(7:9), 3, 1), x(10), x(11));
+            y = [reshape(o1, [], 1)];
+        case 'solidtides::solid_tides_accel'
+            [o1] = asils.models.solidtides.solid_tides_accel(reshape(x(1:3), 3, 1), reshape(x(4:12), 3, 3).', reshape(x(13:15), 3, 1), reshape(x(16:18), 3, 1), x(19), x(20));
+            y = [reshape(o1, [], 1)];
+        case 'swindex::kp_ap_nearest'
+            [o1] = asils.models.swindex.kp_ap_nearest((x(1) ~= 0), x(2));
+            y = [double(o1)];
+        case 'swindex::kp2ap'
+            [o1] = asils.models.swindex.kp2ap(x(1));
+            y = [double(o1)];
+        case 'swindex::ap2kp'
+            [o1] = asils.models.swindex.ap2kp(x(1));
+            y = [double(o1)];
+        case 'swindex::ap2kp_forecast'
+            [o1] = asils.models.swindex.ap2kp_forecast(x(1));
+            y = [double(o1)];
+        case 'swindex::from_manual'
+            [o1, o2] = asils.models.swindex.from_manual(x(1), (x(2) ~= 0), x(3), x(4), reshape(x(5:8), 4, 1), (x(9) ~= 0), x(10), (x(11) ~= 0), x(12));
+            y = [double(o1); [double(o2.f107); double(o2.f107a); double(o2.kp_is_array); double(o2.kp); reshape(o2.akp, [], 1); double(o2.ap); double(o2.ap3); reshape(o2.aph, [], 1); double(o2.f107_today)]];
+        case 'swindex::drivers_for'
+            [o1] = asils.models.swindex.drivers_for(x(1));
+            y = [double(o1)];
         case 'tidaleop::delaunay'
             [o1] = asils.models.tidaleop.delaunay(x(1));
             y = [reshape(o1, [], 1)];

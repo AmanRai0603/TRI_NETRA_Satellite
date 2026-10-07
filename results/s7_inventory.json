@@ -178,6 +178,45 @@
     "solar pressure: m3_5 is another model (0.46 % below the engine's p_srp); p_srp stays for S7.4",
     "the twin's IGRF synthesis (differs from the generated one in the last bits: igrf_gh 1.5e-12 relative, field 2.5e-15); S7.17"
    ]
+  },
+  "after_s7_3e": {
+   "built_in": 89,
+   "built_in_by_group": {
+    "act": 38,
+    "design": 19,
+    "dyn": 4,
+    "env": 9,
+    "oils": 1,
+    "pnt": 4,
+    "sens": 14
+   },
+   "behaviours": {
+    "open": 304,
+    "stated": 298,
+    "children": 134,
+    "lookup": 126,
+    "evidence": 119,
+    "built-in": 89,
+    "method": 75,
+    "closure": 38
+   },
+   "design_nodes": 1183,
+   "how": "the developer's revisions S7.3b (atmosphere), S7.3c (ephemeris), S7.3d (gravity and tides) and S7.3e (relativity): published data read by tools/readers.py into env's lookup nodes, env's methods transcribed under design/revisions/S7.3b..S7.3e and generated into adcs-pop by tools/engine_build.py, applied by tools/convert_2_0.py",
+   "published_data_values": {
+    "env_dtm2020_coefficients": 1728,
+    "env_jb2008_indices": 386244,
+    "env_kp_ap_table": 132,
+    "env_de440_slice": 11020,
+    "env_gravity_default_field": 7,
+    "env_ocean_tide_tables": 12704
+   },
+   "regression_copy_bytes": 9564160,
+   "not_done": [
+    "the space-weather tables a run reads from files at run time (OMNI2, GFZ, SWPC; atmos.spaceweather's daily table, the research drivers) and their parsers and samplers stay code: the repository holds none of those files",
+    "DE440 outside the runs' span (1 Dec 2026 to 1 Feb 2028 TDB) and the other bodies: the DAF/SPK reader (code) serves the generated evaluation the kernel's records; the engine still opens the kernel for a run",
+    "a field read from an ICGEM .gfc file: the reader (code) hands its coefficients to the generated evaluation, which holds degree 120 at most",
+    "the Love numbers, the Earth's angular momentum and the PPN parameters are constants of the methods (IERS 2010), not yet stated nodes"
+   ]
   }
  },
  "built_in_nodes": [
@@ -5388,22 +5427,26 @@
   {
    "step": "S7.3b",
    "work": "Atmosphere (published models): the exponential table (already env::atmosphere), DTM2020 operational and research, JB2008 over their coefficient tables; the density switch as a choice (G6); the space-weather indices as data tables, the index each model takes as a relation; the parsers of SOLFSMY, DTCFILE, OMNI2, GFZ Hpo and SWPC stay code.",
-   "parity": "adcs-pop atmosphere tests against the Octave reference vectors (bit for bit where they are today); engine scenarios with orbit=pop identical"
+   "parity": "adcs-pop atmosphere tests against the Octave reference vectors (bit for bit where they are today); engine scenarios with orbit=pop identical",
+   "status": "done (7 Oct 2026): DTM2020 operational and research, JB2008, the exponential atmosphere, the density switch and which index each model takes are env's methods over env's tables (DTM2020 coefficients, JB2008's SET indices, the Kp-ap tables); the run-time space-weather files' parsers stay code"
   },
   {
    "step": "S7.3c",
    "work": "Ephemeris (published model): DE440 Chebyshev evaluation (Clenshaw) of the Sun, EMB, Moon and Earth over the coefficient slice the case's runs span; the per-step bundle as a method. The DAF/SPK reader (spk.rs) stays code and loads the slice into the design.",
-   "parity": "adcs-pop ephemeris tests (positions bit for bit against today's ephem.rs on the slice); engine scenarios identical"
+   "parity": "adcs-pop ephemeris tests (positions bit for bit against today's ephem.rs on the slice); engine scenarios identical",
+   "status": "done (7 Oct 2026): DE440's Chebyshev evaluation, de440.sun/moon/earth and ephemInputs are env's method over the slice of the runs' span; the DAF/SPK reader stays code and serves the records the slice does not hold"
   },
   {
    "step": "S7.3d",
    "work": "Gravity and tides (published models): the field's normalisation and zonals, spherical-harmonic evaluation, potential, the gravity force over the coefficient table; solid-Earth tides (IERS 2010); ocean tides (FES2004 table, the 8 main lines). The ICGEM .gfc and FES .bin readers stay code.",
-   "parity": "adcs-pop gravity and tides tests against the Octave reference vectors; ENGINE_PARITY truth-environment table unchanged"
+   "parity": "adcs-pop gravity and tides tests against the Octave reference vectors; ENGINE_PARITY truth-environment table unchanged",
+   "status": "done (7 Oct 2026): the gravity field (normalisation, zonals, spherical harmonics, potential, J2..J6, the force's frames), the solid-Earth tides and the ocean tides are env's methods over env's tables (the default field, the main lines, FES2004); the ICGEM .gfc reader stays code"
   },
   {
    "step": "S7.3e",
    "work": "Relativity (published model): the post-Newtonian terms of IERS 2010 (Schwarzschild, Lense-Thirring, de Sitter) as methods of orbit.",
-   "parity": "adcs-pop relativity tests against the Octave reference vectors; scenarios identical"
+   "parity": "adcs-pop relativity tests against the Octave reference vectors; scenarios identical",
+   "status": "done (7 Oct 2026): the IERS 2010 post-Newtonian terms and their sum are env's method"
   },
   {
    "step": "S7.4",

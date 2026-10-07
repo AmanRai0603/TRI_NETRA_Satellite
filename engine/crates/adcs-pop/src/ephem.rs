@@ -1,12 +1,16 @@
 //! JPL DE440 ephemeris API and the per-step ephemeris bundle -- port of
 //! `matlab_sils/pop/03_frames_time/ephemeris/+de440/*` (`open`, `state`, `sun`,
-//! `moon`, `earth`, `constants`) and `ephemeris/ephemInputs.m`.
+//! `moon`, `earth`, `constants`) and `ephemeris/ephemInputs.m`: env's method env_de440 over env's slice of DE440's
+//! records (env_de440_slice: the Sun, the Earth-Moon barycentre, the Earth and the Moon over the runs' span, read into
+//! the design by tools/readers.py), generated from the design into `gen::de440` (tools/engine_build.py). The DAF/SPK
+//! reader ([`crate::spk`]) stays code: it loads a kernel, and serves the generated evaluation a record the design's
+//! slice does not hold (an epoch outside the runs' span, another body).
 //!
 //! Frame ICRF (== GCRF/J2000 ECI to < 1 mas). Time: TDB Julian date (TT accepted,
 //! < 1.7 ms). Units exactly as MATLAB: [`Ephem::state`] and [`Ephem::earth`] in
 //! km, km/s; [`Ephem::sun`], [`Ephem::moon`] and [`EphemInputs`] in SI.
 
-use crate::la::{norm, V3};
+use crate::la::V3;
 use crate::spk::{Kernel, SpkError};
 use std::path::{Path, PathBuf};
 
@@ -46,28 +50,13 @@ pub struct Constants {
     pub rsun: f64,
 }
 
-/// `de440.constants()`: the single source of constants for the whole POP.
+/// `de440.constants()`: the single source of constants for the whole POP (the design's, `gen::de440`).
 pub fn constants() -> Constants {
-    let tsi = 1361.0;
-    let c = 299792458.0;
-    let re = 6378137.0;
-    let f = 1.0 / 298.257223563;
+    let k = crate::gen::de440::de440_constants();
     Constants {
-        au_m: 149597870700.0,
-        c,
-        gm_sun: 1.32712440041279419e20,
-        gm_earth: 3.98600435507e14,
-        gm_moon: 4.902800118e12,
-        emrat: 81.3005682214972154,
-        tsi,
-        p0: tsi / c,
-        re_earth: re,
-        f_earth: f,
-        rp_earth: re * (1.0 - f),
-        mu_earth: 3.986004418e14,
-        omega_earth: 7.2921150e-5,
-        n_a: 6.02214076e23,
-        rsun: 6.957e8,
+        au_m: k.au_m, c: k.c, gm_sun: k.gm_sun, gm_earth: k.gm_earth, gm_moon: k.gm_moon, emrat: k.emrat, tsi: k.tsi, p0: k.p0,
+        re_earth: k.re_earth, f_earth: k.f_earth, rp_earth: k.rp_earth, mu_earth: k.mu_earth, omega_earth: k.omega_earth,
+        n_a: k.n_a, rsun: k.rsun,
     }
 }
 
@@ -92,22 +81,22 @@ pub fn default_kernel_path() -> PathBuf {
         .join("../../../matlab_sils/pop/03_frames_time/ephemeris/data/de440s.bsp")
 }
 
-/// A loaded DE kernel with the Sun/Moon/Earth segments pre-resolved -- the
-/// `eph` struct returned by `de440.open` (with `eph.const`).
+/// The DE440 ephemeris -- the `eph` struct returned by `de440.open` (with `eph.const`): the design's slice of the
+/// Sun, Earth-Moon barycentre, Earth and Moon records, and, when one is open, a kernel for what the slice does not
+/// hold (its Sun/Moon/Earth segments pre-resolved).
 #[derive(Debug, Clone)]
 pub struct Ephem {
-    kernel: Kernel,
+    kernel: Option<Kernel>,
     /// `eph.const` (`de440.constants()`).
     pub constants: Constants,
-    seg_ssb_sun: usize,
-    seg_ssb_emb: usize,
-    seg_emb_earth: usize,
-    seg_emb_moon: usize,
+    /// the kernel's segments SSB->Sun, SSB->EMB, EMB->Earth, EMB->Moon (the design's DeSegment order)
+    segs: Option<[usize; 4]>,
 }
 
 /// Julian date TDB -> seconds past J2000 TDB, as `de440.state` computes it.
-#[inline]
-pub fn jd_to_et(jd_tdb: f64) -> f64 { (jd_tdb - 2451545.0) * 86400.0 }
+pub use crate::gen::de440::jd_to_et;
+
+use crate::gen::de440 as de;
 
 impl Ephem {
     /// `de440.open()`: load [`default_kernel_path`].
@@ -118,78 +107,80 @@ impl Ephem {
         Ephem::from_kernel(Kernel::open(path)?)
     }
 
+    /// The design's slice alone (no kernel): the runs' span, 1 Dec 2026 to 1 Feb 2028 TDB. An epoch outside it is
+    /// refused (a panic naming the slice) -- open a kernel for those.
+    pub fn design() -> Ephem { Ephem { kernel: None, constants: constants(), segs: None } }
+
+    /// Whether the design's slice holds every record [`Ephem::inputs`] needs at a TDB Julian date.
+    pub fn in_design(jd_tdb: f64) -> bool {
+        let et = jd_to_et(jd_tdb);
+        (0..4).all(|s| de::de440_record(s, et).0)
+    }
+
     /// Wrap an already parsed kernel; fails if it lacks 0->10, 0->3, 3->399 or 3->301.
     pub fn from_kernel(kernel: Kernel) -> Result<Ephem, SpkError> {
         let need = |c: i32, t: i32| {
             kernel.segment(c, t).ok_or_else(|| SpkError::Format(format!("segment {c}->{t} not in kernel")))
         };
-        let seg_ssb_sun = need(naif::SSB, naif::SUN)?;
-        let seg_ssb_emb = need(naif::SSB, naif::EMB)?;
-        let seg_emb_earth = need(naif::EMB, naif::EARTH)?;
-        let seg_emb_moon = need(naif::EMB, naif::MOON)?;
-        Ok(Ephem { kernel, constants: constants(), seg_ssb_sun, seg_ssb_emb, seg_emb_earth, seg_emb_moon })
+        let segs = [need(naif::SSB, naif::SUN)?, need(naif::SSB, naif::EMB)?, need(naif::EMB, naif::EARTH)?, need(naif::EMB, naif::MOON)?];
+        Ok(Ephem { kernel: Some(kernel), constants: constants(), segs: Some(segs) })
     }
 
-    /// The underlying SPK kernel.
-    pub fn kernel(&self) -> &Kernel { &self.kernel }
+    /// The underlying SPK kernel (panics for [`Ephem::design`], which has none).
+    pub fn kernel(&self) -> &Kernel { self.kernel.as_ref().expect("this ephemeris is the design's slice: no kernel is open") }
 
     /// `de440.state(center, target, jdTDB, eph)`: km, km/s, ICRF. `None` when the
-    /// segment is not in the kernel (MATLAB asserts).
+    /// segment is not in the kernel (MATLAB asserts), or, with no kernel, not one of the design's four.
     pub fn state(&self, center: i32, target: i32, jd_tdb: f64) -> Option<(V3, V3)> {
-        self.kernel.state(center, target, jd_to_et(jd_tdb))
-    }
-
-    #[inline]
-    fn emb_earth(&self, et: f64) -> (V3, V3) { self.kernel.state_seg(self.seg_emb_earth, et) }
-
-    fn earth_et(&self, et: f64, ree: &(V3, V3)) -> (V3, V3) {
-        let (re, ve) = self.kernel.state_seg(self.seg_ssb_emb, et);
-        let (r, v) = (&ree.0, &ree.1);
-        ([re[0] + r[0], re[1] + r[1], re[2] + r[2]], [ve[0] + v[0], ve[1] + v[1], ve[2] + v[2]])
-    }
-
-    fn sun_et(&self, et: f64, ree: &(V3, V3)) -> (V3, V3) {
-        let (rs, vs) = self.kernel.state_seg(self.seg_ssb_sun, et);
-        let (re, ve) = self.earth_et(et, ree);
-        let mut r = [0.0; 3];
-        let mut v = [0.0; 3];
-        for i in 0..3 {
-            r[i] = (rs[i] - re[i]) * 1000.0;
-            v[i] = (vs[i] - ve[i]) * 1000.0;
+        let et = jd_to_et(jd_tdb);
+        if let Some(k) = &self.kernel {
+            return k.state(center, target, et);
         }
-        (r, v)
+        let s = [(naif::SSB, naif::SUN), (naif::SSB, naif::EMB), (naif::EMB, naif::EARTH), (naif::EMB, naif::MOON)].iter().position(|&p| p == (center, target))?;
+        Some(self.seg(s as i64, et))
     }
 
-    fn moon_et(&self, et: f64, ree: &(V3, V3)) -> (V3, V3) {
-        let (rm, vm) = self.kernel.state_seg(self.seg_emb_moon, et);
-        let mut r = [0.0; 3];
-        let mut v = [0.0; 3];
-        for i in 0..3 {
-            r[i] = (rm[i] - ree.0[i]) * 1000.0;
-            v[i] = (vm[i] - ree.1[i]) * 1000.0;
+    /// One of the four segments at `et` [km, km/s]: from the design's slice, else from the kernel's record.
+    fn seg(&self, s: i64, et: f64) -> (V3, V3) {
+        let (ok, p, v) = de::de440_segment(s, et);
+        if ok {
+            return (p, v);
         }
-        (r, v)
+        match (&self.kernel, self.segs) {
+            (Some(k), Some(i)) => k.state_seg(i[s as usize], et),
+            _ => panic!("DE440: et {et} s is outside the design's slice (1 Dec 2026 to 1 Feb 2028 TDB) and no kernel is open"),
+        }
     }
 
     /// `de440.earth(jdTDB)`: geocentre w.r.t. the SSB [km, km/s].
     pub fn earth(&self, jd_tdb: f64) -> (V3, V3) {
         let et = jd_to_et(jd_tdb);
-        let ree = self.emb_earth(et);
-        self.earth_et(et, &ree)
+        let (er, ev) = self.seg(de::DESEGMENT_EMB_EARTH, et);
+        let (br, bv) = self.seg(de::DESEGMENT_SSB_EMB, et);
+        let z = [0.0; 3];
+        let g = de::geocentric(z, z, br, bv, er, ev, z, z);
+        (g.4, g.5)
     }
 
     /// `de440.sun(jdTDB)`: geocentric Sun (Earth->Sun) [m, m/s].
     pub fn sun(&self, jd_tdb: f64) -> (V3, V3) {
         let et = jd_to_et(jd_tdb);
-        let ree = self.emb_earth(et);
-        self.sun_et(et, &ree)
+        let (er, ev) = self.seg(de::DESEGMENT_EMB_EARTH, et);
+        let (br, bv) = self.seg(de::DESEGMENT_SSB_EMB, et);
+        let (sr, sv) = self.seg(de::DESEGMENT_SSB_SUN, et);
+        let z = [0.0; 3];
+        let g = de::geocentric(sr, sv, br, bv, er, ev, z, z);
+        (g.0, g.1)
     }
 
     /// `de440.moon(jdTDB)`: geocentric Moon [m, m/s].
     pub fn moon(&self, jd_tdb: f64) -> (V3, V3) {
         let et = jd_to_et(jd_tdb);
-        let ree = self.emb_earth(et);
-        self.moon_et(et, &ree)
+        let (er, ev) = self.seg(de::DESEGMENT_EMB_EARTH, et);
+        let (mr, mv) = self.seg(de::DESEGMENT_EMB_MOON, et);
+        let z = [0.0; 3];
+        let g = de::geocentric(z, z, z, z, er, ev, mr, mv);
+        (g.2, g.3)
     }
 
     /// `ephemInputs(jdTDB, eph)`; see [`inputs`].
@@ -241,37 +232,35 @@ pub struct EphemInputs {
 }
 
 /// `ephemInputs(jdTDB, eph)`: the single ephemeris interface point of the force
-/// stack. The EMB->Earth record is evaluated once and shared by Sun and Moon
-/// (MATLAB evaluates it twice with bit-identical results).
+/// stack (the design's, `gen::de440::ephem_inputs`). The EMB->Earth record is evaluated once and shared by Sun and
+/// Moon (MATLAB evaluates it twice with bit-identical results).
 pub fn inputs(eph: &Ephem, jd_tdb: f64) -> EphemInputs {
-    let c = eph.constants;
     let et = jd_to_et(jd_tdb);
-    let ree = eph.emb_earth(et);
-    let (rs, vs) = eph.sun_et(et, &ree);
-    let (rm, vm) = eph.moon_et(et, &ree);
-    let d = norm(&rs);
-    let sun_unit = [rs[0] / d, rs[1] / d, rs[2] / d];
-    let q = c.au_m / d;
-    let flux_scale = q * q;
+    let (er, ev) = eph.seg(de::DESEGMENT_EMB_EARTH, et);
+    let (br, bv) = eph.seg(de::DESEGMENT_SSB_EMB, et);
+    let (sr, sv) = eph.seg(de::DESEGMENT_SSB_SUN, et);
+    let (mr, mv) = eph.seg(de::DESEGMENT_EMB_MOON, et);
+    let (rs, vs, rm, vm, _re, _ve) = de::geocentric(sr, sv, br, bv, er, ev, mr, mv);
+    let e = de::ephem_inputs(jd_tdb, rs, vs, rm, vm);
     EphemInputs {
-        jd_tdb,
-        sun_unit,
-        sun_dist: d,
-        flux_scale,
-        p_srp: c.p0 * flux_scale,
-        sun_eci: rs,
-        sun_vel: vs,
-        moon_eci: rm,
-        moon_vel: vm,
-        gm_sun: c.gm_sun,
-        gm_moon: c.gm_moon,
-        tide_sun: rs,
-        tide_moon: rm,
-        albedo_sun_unit: sun_unit,
-        earth_helio_pos: [-rs[0], -rs[1], -rs[2]],
-        earth_helio_vel: [-vs[0], -vs[1], -vs[2]],
-        sun_ra: rs[1].atan2(rs[0]),
-        sun_dec: (rs[2] / d).asin(),
-        constants: c,
+        jd_tdb: e.jd_tdb,
+        sun_unit: e.sun_unit,
+        sun_dist: e.sun_dist,
+        flux_scale: e.flux_scale,
+        p_srp: e.p_srp,
+        sun_eci: e.sun_eci,
+        sun_vel: e.sun_vel,
+        moon_eci: e.moon_eci,
+        moon_vel: e.moon_vel,
+        gm_sun: e.gm_sun,
+        gm_moon: e.gm_moon,
+        tide_sun: e.sun_eci,
+        tide_moon: e.moon_eci,
+        albedo_sun_unit: e.sun_unit,
+        earth_helio_pos: e.earth_helio_pos,
+        earth_helio_vel: e.earth_helio_vel,
+        sun_ra: e.sun_ra,
+        sun_dec: e.sun_dec,
+        constants: eph.constants,
     }
 }

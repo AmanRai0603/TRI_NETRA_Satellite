@@ -20,12 +20,12 @@ function [lat, lon, alt] = geodetic_with(r, re, f)
     la = atan2(z, (p * (1 - e2)));
     for k = (0):((5) - 1)
         sph = sin(la);
-        n = (re / sqrt((1 - (e2 * (sph)^(2)))));
+        n = (re / sqrt((1 - (e2 * asils.pc.ipow(sph, 2)))));
         al = ((p / cos(la)) - n);
         la = atan2(z, (p * (1 - ((e2 * n) / (n + al)))));
     end
     sph2 = sin(la);
-    n2 = (re / sqrt((1 - (e2 * (sph2)^(2)))));
+    n2 = (re / sqrt((1 - (e2 * asils.pc.ipow(sph2, 2)))));
     alt = ((p / cos(la)) - n2);
     lat = la;
 end

@@ -59,8 +59,8 @@
     "group": "env",
     "health": "blocked",
     "count": {
-     "blocked": 13,
-     "unproven": 39,
+     "blocked": 24,
+     "unproven": 45,
      "open": 9
     }
    },
@@ -2055,6 +2055,84 @@
     ]
    },
    {
+    "id": "env_de440",
+    "group": "env",
+    "label": "Sun and Moon from DE440, and the ephemeris bundle",
+    "health": "blocked",
+    "why": [
+     "blocked: needs jd_tdb (no input names it), rs (no input names it), vs (no input names it), rm (no input names it), vm (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.3c (2026-10-07), not yet signed by a person: added, method: the precision orbit's ephemeris, until now adcs-pop ephem.rs and the evaluation half of spk.rs; the developer's revision S7.3c (2026-10-07), not yet signed by a person: method pseudocode: the Sun and Moon from DE440 and the per-step bundle as a method of env over its records, generated into adcs-pop; the DAF/SPK reader stays code, and serves the evaluation a record the slice does not hold"
+    ],
+    "value": "",
+    "cause": [
+     "env_de440"
+    ]
+   },
+   {
+    "id": "env_de440_slice",
+    "group": "env",
+    "label": "DE440 records over the runs' span",
+    "health": "unproven",
+    "why": [
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.3c (2026-10-07), not yet signed by a person: added, lookup: the slice of de440s.bsp the runs evaluate, until now read whole from the kernel at run time; the developer's revision S7.3c (2026-10-07), not yet signed by a person: data de440slice.pc: the DE440 records the runs evaluate, read by the DAF/SPK reader (the parser of de440.open) from the kernel the engine reads, value for value"
+    ],
+    "value": "",
+    "cause": []
+   },
+   {
+    "id": "env_density_model",
+    "group": "env",
+    "label": "Density model switch",
+    "health": "blocked",
+    "why": [
+     "blocked: needs model (no input names it), alt_km (no input names it), lat_deg (no input names it), lon_deg (no input names it), lst_h (no input names it), doy (no input names it), utc (no input names it), drv (no input names it), f107 (no input names it), f107a (no input names it), akp (no input names it), f30 (no input names it), f30_bar (no input names it), ap60 (no input names it), f30_is_derived (no input names it), has_tinf (no input names it), tinf (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.3b (2026-10-07), not yet signed by a person: added, method: the density-model switch and its adapters, until now adcs-pop atmos/mod.rs; the developer's revision S7.3b (2026-10-07), not yet signed by a person: method pseudocode: the density-model switch as a choice of env with its adapters, generated into adcs-pop"
+    ],
+    "value": "",
+    "cause": [
+     "env_density_model"
+    ]
+   },
+   {
+    "id": "env_dtm2020_coefficients",
+    "group": "env",
+    "label": "DTM2020 coefficients (operational and research)",
+    "health": "unproven",
+    "why": [
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.3b (2026-10-07), not yet signed by a person: added, lookup: the DTM2020 coefficient sets, until now embedded in adcs-pop from refgen's exports; the developer's revision S7.3b (2026-10-07), not yet signed by a person: data dtm2020coeffs.pc: the DTM2020 coefficients, read by their reader from the files adcs-pop embedded, value for value"
+    ],
+    "value": "",
+    "cause": []
+   },
+   {
+    "id": "env_dtm2020_operational",
+    "group": "env",
+    "label": "Thermosphere density: DTM2020 operational",
+    "health": "blocked",
+    "why": [
+     "blocked: needs alt_km (no input names it), lat_deg (no input names it), lon_deg (no input names it), lst_hours (no input names it), doy (no input names it), f107 (no input names it), f107_bar (no input names it), akp (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.3b (2026-10-07), not yet signed by a person: added, method: the precision orbit's in-loop density model, until now adcs-pop atmos/dtm2020.rs; the developer's revision S7.3b (2026-10-07), not yet signed by a person: method pseudocode: DTM2020 operational as a method of env over its coefficients, generated into adcs-pop"
+    ],
+    "value": "",
+    "cause": [
+     "env_dtm2020_operational"
+    ]
+   },
+   {
+    "id": "env_dtm2020_research",
+    "group": "env",
+    "label": "Thermosphere density: DTM2020 research",
+    "health": "blocked",
+    "why": [
+     "blocked: needs utc (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.3b (2026-10-07), not yet signed by a person: added, method: the research DTM2020, until now adcs-pop atmos/dtm2020_research.rs; the developer's revision S7.3b (2026-10-07), not yet signed by a person: method pseudocode: DTM2020 research as a method of env over its coefficients and the open-ended Kp table, generated into adcs-pop"
+    ],
+    "value": "",
+    "cause": [
+     "env_dtm2020_research"
+    ]
+   },
+   {
     "id": "env_earth_frames",
     "group": "env",
     "label": "Earth frames (GMST build) and the Earth's rate",
@@ -2069,6 +2147,20 @@
     ]
    },
    {
+    "id": "env_exponential_atmosphere",
+    "group": "env",
+    "label": "Exponential atmosphere of the precision orbit",
+    "health": "blocked",
+    "why": [
+     "blocked: needs alt_km (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.3b (2026-10-07), not yet signed by a person: added, method: the precision orbit's exponential atmosphere, until now adcs-pop atmos/exponential.rs with its own copy of the Vallado table; the developer's revision S7.3b (2026-10-07), not yet signed by a person: method pseudocode: the precision orbit's exponential atmosphere as a method of env over env's one Vallado table, generated into adcs-pop"
+    ],
+    "value": "",
+    "cause": [
+     "env_exponential_atmosphere"
+    ]
+   },
+   {
     "id": "env_geodetic",
     "group": "env",
     "label": "Geodetic coordinates (WGS-84)",
@@ -2080,6 +2172,31 @@
     "value": "",
     "cause": [
      "env_geodetic"
+    ]
+   },
+   {
+    "id": "env_gravity_default_field",
+    "group": "env",
+    "label": "Default gravity field (EGM zonals J2..J6)",
+    "health": "unproven",
+    "why": [
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.3d (2026-10-08), not yet signed by a person: added, lookup: the default field, until now typed in adcs-pop gravity/field.rs (Field::default_field) and the Octave POP's grav.defaultField; the developer's revision S7.3d (2026-10-08), not yet signed by a person: data gravfield.pc: the default field, read by its reader from the MATLAB the Rust field was ported from, value for value"
+    ],
+    "value": "",
+    "cause": []
+   },
+   {
+    "id": "env_gravity_field",
+    "group": "env",
+    "label": "Earth's gravity: spherical harmonics, potential, zonals",
+    "health": "blocked",
+    "why": [
+     "blocked: needs c (no input names it), a (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.3d (2026-10-08), not yet signed by a person: added, method: the precision orbit's gravity, until now adcs-pop gravity (sphharm.rs, potential.rs, zonal.rs, the field's normalisation and zonals in field.rs, the frames of mod.rs); the developer's revision S7.3d (2026-10-08), not yet signed by a person: method pseudocode: the Earth's gravity as a method of env over its default field and any field the ICGEM reader hands it, generated into adcs-pop"
+    ],
+    "value": "",
+    "cause": [
+     "env_gravity_field"
     ]
    },
    {
@@ -2108,6 +2225,42 @@
     "cause": []
    },
    {
+    "id": "env_jb2008",
+    "group": "env",
+    "label": "Thermosphere density: JB2008",
+    "health": "blocked",
+    "why": [
+     "blocked: needs utc (no input names it), lon_deg (no input names it), lat_deg (no input names it), alt_km (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.3b (2026-10-07), not yet signed by a person: added, method: JB2008, until now adcs-pop atmos/jb2008.rs; the developer's revision S7.3b (2026-10-07), not yet signed by a person: method pseudocode: JB2008 as a method of env over its SET indices, generated into adcs-pop"
+    ],
+    "value": "",
+    "cause": [
+     "env_jb2008"
+    ]
+   },
+   {
+    "id": "env_jb2008_indices",
+    "group": "env",
+    "label": "JB2008 solar and geomagnetic indices (SET)",
+    "health": "unproven",
+    "why": [
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.3b (2026-10-07), not yet signed by a person: added, lookup: JB2008's SET index files, until now embedded in adcs-pop and parsed at run time; the developer's revision S7.3b (2026-10-07), not yet signed by a person: data jbset.pc: JB2008's indices, read by their readers (the parsers of get_jb2008_indices) from the files adcs-pop embedded, value for value"
+    ],
+    "value": "",
+    "cause": []
+   },
+   {
+    "id": "env_kp_ap_table",
+    "group": "env",
+    "label": "Kp and ap: the standard table and DTM2020's open-ended one",
+    "health": "unproven",
+    "why": [
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.3b (2026-10-07), not yet signed by a person: added, lookup: the Kp-ap tables, until now typed in adcs-pop spaceweather.rs and dtm2020_research.rs; the developer's revision S7.3b (2026-10-07), not yet signed by a person: data kpap.pc: the Kp-ap tables, read by their reader from the MATLAB the Rust tables were ported from, value for value"
+    ],
+    "value": "",
+    "cause": []
+   },
+   {
     "id": "env_leap_seconds",
     "group": "env",
     "label": "Leap seconds (TAI - UTC)",
@@ -2117,6 +2270,73 @@
     ],
     "value": "",
     "cause": []
+   },
+   {
+    "id": "env_ocean_tide_tables",
+    "group": "env",
+    "label": "Ocean-tide tables (main lines, FES2004)",
+    "health": "unproven",
+    "why": [
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.3d (2026-10-08), not yet signed by a person: added, lookup: the ocean tides' tables, until now typed in adcs-pop oceantides.rs (MAIN_LINES) and embedded from fes2004_deg10.bin; the developer's revision S7.3d (2026-10-08), not yet signed by a person: data tidelines.pc: the ocean tides' tables, read by their readers from the MATLAB and the export the Rust tables came from, value for value"
+    ],
+    "value": "",
+    "cause": []
+   },
+   {
+    "id": "env_ocean_tides",
+    "group": "env",
+    "label": "Ocean tides",
+    "health": "blocked",
+    "why": [
+     "blocked: needs tt_jd (no input names it), r_ecef (no input names it), c (no input names it), mu (no input names it), re (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.3d (2026-10-08), not yet signed by a person: added, method: the ocean tides, until now adcs-pop oceantides.rs; the developer's revision S7.3d (2026-10-08), not yet signed by a person: method pseudocode: the ocean tides as a method of env over its tables, generated into adcs-pop"
+    ],
+    "value": "",
+    "cause": [
+     "env_ocean_tides"
+    ]
+   },
+   {
+    "id": "env_relativity",
+    "group": "env",
+    "label": "Relativistic accelerations (IERS 2010)",
+    "health": "blocked",
+    "why": [
+     "blocked: needs r (no input names it), v (no input names it), has_helio (no input names it), helio_pos (no input names it), helio_vel (no input names it), terms (no input names it), nterms (no input names it), mu (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.3e (2026-10-08), not yet signed by a person: added, method: the precision orbit's relativity, until now adcs-pop relativity.rs; the developer's revision S7.3e (2026-10-08), not yet signed by a person: method pseudocode: the post-Newtonian terms as a method of env, generated into adcs-pop"
+    ],
+    "value": "",
+    "cause": [
+     "env_relativity"
+    ]
+   },
+   {
+    "id": "env_solid_tides",
+    "group": "env",
+    "label": "Solid-Earth tides (IERS 2010)",
+    "health": "blocked",
+    "why": [
+     "blocked: needs r_ecef (no input names it), c (no input names it), sun_eci (no input names it), moon_eci (no input names it), mu (no input names it), re (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.3d (2026-10-08), not yet signed by a person: added, method: the solid-Earth tides, until now adcs-pop solidtides.rs; the developer's revision S7.3d (2026-10-08), not yet signed by a person: method pseudocode: the solid-Earth tides as a method of env, generated into adcs-pop"
+    ],
+    "value": "",
+    "cause": [
+     "env_solid_tides"
+    ]
+   },
+   {
+    "id": "env_space_weather",
+    "group": "env",
+    "label": "Space-weather indices each model takes",
+    "health": "blocked",
+    "why": [
+     "blocked: needs model (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.3b (2026-10-07), not yet signed by a person: added, method: the index relation of adcs-pop spaceweather.rs (kp2ap, ap2kp, the manual branch, data.drivers); its file parsers stay code; the developer's revision S7.3b (2026-10-07), not yet signed by a person: method pseudocode: which index each density model takes, and the manual space weather, as a method of env, generated into adcs-pop"
+    ],
+    "value": "",
+    "cause": [
+     "env_space_weather"
+    ]
    },
    {
     "id": "env_tidal_eop",
@@ -14940,8 +15160,8 @@
     "group": "env",
     "health": "blocked",
     "count": {
-     "blocked": 13,
-     "unproven": 39,
+     "blocked": 24,
+     "unproven": 45,
      "open": 9
     }
    },
@@ -16902,6 +17122,84 @@
     ]
    },
    {
+    "id": "env_de440",
+    "group": "env",
+    "label": "Sun and Moon from DE440, and the ephemeris bundle",
+    "health": "blocked",
+    "why": [
+     "blocked: needs jd_tdb (no input names it), rs (no input names it), vs (no input names it), rm (no input names it), vm (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.3c (2026-10-07), not yet signed by a person: added, method: the precision orbit's ephemeris, until now adcs-pop ephem.rs and the evaluation half of spk.rs; the developer's revision S7.3c (2026-10-07), not yet signed by a person: method pseudocode: the Sun and Moon from DE440 and the per-step bundle as a method of env over its records, generated into adcs-pop; the DAF/SPK reader stays code, and serves the evaluation a record the slice does not hold"
+    ],
+    "value": "",
+    "cause": [
+     "env_de440"
+    ]
+   },
+   {
+    "id": "env_de440_slice",
+    "group": "env",
+    "label": "DE440 records over the runs' span",
+    "health": "unproven",
+    "why": [
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.3c (2026-10-07), not yet signed by a person: added, lookup: the slice of de440s.bsp the runs evaluate, until now read whole from the kernel at run time; the developer's revision S7.3c (2026-10-07), not yet signed by a person: data de440slice.pc: the DE440 records the runs evaluate, read by the DAF/SPK reader (the parser of de440.open) from the kernel the engine reads, value for value"
+    ],
+    "value": "",
+    "cause": []
+   },
+   {
+    "id": "env_density_model",
+    "group": "env",
+    "label": "Density model switch",
+    "health": "blocked",
+    "why": [
+     "blocked: needs model (no input names it), alt_km (no input names it), lat_deg (no input names it), lon_deg (no input names it), lst_h (no input names it), doy (no input names it), utc (no input names it), drv (no input names it), f107 (no input names it), f107a (no input names it), akp (no input names it), f30 (no input names it), f30_bar (no input names it), ap60 (no input names it), f30_is_derived (no input names it), has_tinf (no input names it), tinf (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.3b (2026-10-07), not yet signed by a person: added, method: the density-model switch and its adapters, until now adcs-pop atmos/mod.rs; the developer's revision S7.3b (2026-10-07), not yet signed by a person: method pseudocode: the density-model switch as a choice of env with its adapters, generated into adcs-pop"
+    ],
+    "value": "",
+    "cause": [
+     "env_density_model"
+    ]
+   },
+   {
+    "id": "env_dtm2020_coefficients",
+    "group": "env",
+    "label": "DTM2020 coefficients (operational and research)",
+    "health": "unproven",
+    "why": [
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.3b (2026-10-07), not yet signed by a person: added, lookup: the DTM2020 coefficient sets, until now embedded in adcs-pop from refgen's exports; the developer's revision S7.3b (2026-10-07), not yet signed by a person: data dtm2020coeffs.pc: the DTM2020 coefficients, read by their reader from the files adcs-pop embedded, value for value"
+    ],
+    "value": "",
+    "cause": []
+   },
+   {
+    "id": "env_dtm2020_operational",
+    "group": "env",
+    "label": "Thermosphere density: DTM2020 operational",
+    "health": "blocked",
+    "why": [
+     "blocked: needs alt_km (no input names it), lat_deg (no input names it), lon_deg (no input names it), lst_hours (no input names it), doy (no input names it), f107 (no input names it), f107_bar (no input names it), akp (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.3b (2026-10-07), not yet signed by a person: added, method: the precision orbit's in-loop density model, until now adcs-pop atmos/dtm2020.rs; the developer's revision S7.3b (2026-10-07), not yet signed by a person: method pseudocode: DTM2020 operational as a method of env over its coefficients, generated into adcs-pop"
+    ],
+    "value": "",
+    "cause": [
+     "env_dtm2020_operational"
+    ]
+   },
+   {
+    "id": "env_dtm2020_research",
+    "group": "env",
+    "label": "Thermosphere density: DTM2020 research",
+    "health": "blocked",
+    "why": [
+     "blocked: needs utc (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.3b (2026-10-07), not yet signed by a person: added, method: the research DTM2020, until now adcs-pop atmos/dtm2020_research.rs; the developer's revision S7.3b (2026-10-07), not yet signed by a person: method pseudocode: DTM2020 research as a method of env over its coefficients and the open-ended Kp table, generated into adcs-pop"
+    ],
+    "value": "",
+    "cause": [
+     "env_dtm2020_research"
+    ]
+   },
+   {
     "id": "env_earth_frames",
     "group": "env",
     "label": "Earth frames (GMST build) and the Earth's rate",
@@ -16916,6 +17214,20 @@
     ]
    },
    {
+    "id": "env_exponential_atmosphere",
+    "group": "env",
+    "label": "Exponential atmosphere of the precision orbit",
+    "health": "blocked",
+    "why": [
+     "blocked: needs alt_km (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.3b (2026-10-07), not yet signed by a person: added, method: the precision orbit's exponential atmosphere, until now adcs-pop atmos/exponential.rs with its own copy of the Vallado table; the developer's revision S7.3b (2026-10-07), not yet signed by a person: method pseudocode: the precision orbit's exponential atmosphere as a method of env over env's one Vallado table, generated into adcs-pop"
+    ],
+    "value": "",
+    "cause": [
+     "env_exponential_atmosphere"
+    ]
+   },
+   {
     "id": "env_geodetic",
     "group": "env",
     "label": "Geodetic coordinates (WGS-84)",
@@ -16927,6 +17239,31 @@
     "value": "",
     "cause": [
      "env_geodetic"
+    ]
+   },
+   {
+    "id": "env_gravity_default_field",
+    "group": "env",
+    "label": "Default gravity field (EGM zonals J2..J6)",
+    "health": "unproven",
+    "why": [
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.3d (2026-10-08), not yet signed by a person: added, lookup: the default field, until now typed in adcs-pop gravity/field.rs (Field::default_field) and the Octave POP's grav.defaultField; the developer's revision S7.3d (2026-10-08), not yet signed by a person: data gravfield.pc: the default field, read by its reader from the MATLAB the Rust field was ported from, value for value"
+    ],
+    "value": "",
+    "cause": []
+   },
+   {
+    "id": "env_gravity_field",
+    "group": "env",
+    "label": "Earth's gravity: spherical harmonics, potential, zonals",
+    "health": "blocked",
+    "why": [
+     "blocked: needs c (no input names it), a (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.3d (2026-10-08), not yet signed by a person: added, method: the precision orbit's gravity, until now adcs-pop gravity (sphharm.rs, potential.rs, zonal.rs, the field's normalisation and zonals in field.rs, the frames of mod.rs); the developer's revision S7.3d (2026-10-08), not yet signed by a person: method pseudocode: the Earth's gravity as a method of env over its default field and any field the ICGEM reader hands it, generated into adcs-pop"
+    ],
+    "value": "",
+    "cause": [
+     "env_gravity_field"
     ]
    },
    {
@@ -16955,6 +17292,42 @@
     "cause": []
    },
    {
+    "id": "env_jb2008",
+    "group": "env",
+    "label": "Thermosphere density: JB2008",
+    "health": "blocked",
+    "why": [
+     "blocked: needs utc (no input names it), lon_deg (no input names it), lat_deg (no input names it), alt_km (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.3b (2026-10-07), not yet signed by a person: added, method: JB2008, until now adcs-pop atmos/jb2008.rs; the developer's revision S7.3b (2026-10-07), not yet signed by a person: method pseudocode: JB2008 as a method of env over its SET indices, generated into adcs-pop"
+    ],
+    "value": "",
+    "cause": [
+     "env_jb2008"
+    ]
+   },
+   {
+    "id": "env_jb2008_indices",
+    "group": "env",
+    "label": "JB2008 solar and geomagnetic indices (SET)",
+    "health": "unproven",
+    "why": [
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.3b (2026-10-07), not yet signed by a person: added, lookup: JB2008's SET index files, until now embedded in adcs-pop and parsed at run time; the developer's revision S7.3b (2026-10-07), not yet signed by a person: data jbset.pc: JB2008's indices, read by their readers (the parsers of get_jb2008_indices) from the files adcs-pop embedded, value for value"
+    ],
+    "value": "",
+    "cause": []
+   },
+   {
+    "id": "env_kp_ap_table",
+    "group": "env",
+    "label": "Kp and ap: the standard table and DTM2020's open-ended one",
+    "health": "unproven",
+    "why": [
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.3b (2026-10-07), not yet signed by a person: added, lookup: the Kp-ap tables, until now typed in adcs-pop spaceweather.rs and dtm2020_research.rs; the developer's revision S7.3b (2026-10-07), not yet signed by a person: data kpap.pc: the Kp-ap tables, read by their reader from the MATLAB the Rust tables were ported from, value for value"
+    ],
+    "value": "",
+    "cause": []
+   },
+   {
     "id": "env_leap_seconds",
     "group": "env",
     "label": "Leap seconds (TAI - UTC)",
@@ -16964,6 +17337,73 @@
     ],
     "value": "",
     "cause": []
+   },
+   {
+    "id": "env_ocean_tide_tables",
+    "group": "env",
+    "label": "Ocean-tide tables (main lines, FES2004)",
+    "health": "unproven",
+    "why": [
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.3d (2026-10-08), not yet signed by a person: added, lookup: the ocean tides' tables, until now typed in adcs-pop oceantides.rs (MAIN_LINES) and embedded from fes2004_deg10.bin; the developer's revision S7.3d (2026-10-08), not yet signed by a person: data tidelines.pc: the ocean tides' tables, read by their readers from the MATLAB and the export the Rust tables came from, value for value"
+    ],
+    "value": "",
+    "cause": []
+   },
+   {
+    "id": "env_ocean_tides",
+    "group": "env",
+    "label": "Ocean tides",
+    "health": "blocked",
+    "why": [
+     "blocked: needs tt_jd (no input names it), r_ecef (no input names it), c (no input names it), mu (no input names it), re (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.3d (2026-10-08), not yet signed by a person: added, method: the ocean tides, until now adcs-pop oceantides.rs; the developer's revision S7.3d (2026-10-08), not yet signed by a person: method pseudocode: the ocean tides as a method of env over its tables, generated into adcs-pop"
+    ],
+    "value": "",
+    "cause": [
+     "env_ocean_tides"
+    ]
+   },
+   {
+    "id": "env_relativity",
+    "group": "env",
+    "label": "Relativistic accelerations (IERS 2010)",
+    "health": "blocked",
+    "why": [
+     "blocked: needs r (no input names it), v (no input names it), has_helio (no input names it), helio_pos (no input names it), helio_vel (no input names it), terms (no input names it), nterms (no input names it), mu (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.3e (2026-10-08), not yet signed by a person: added, method: the precision orbit's relativity, until now adcs-pop relativity.rs; the developer's revision S7.3e (2026-10-08), not yet signed by a person: method pseudocode: the post-Newtonian terms as a method of env, generated into adcs-pop"
+    ],
+    "value": "",
+    "cause": [
+     "env_relativity"
+    ]
+   },
+   {
+    "id": "env_solid_tides",
+    "group": "env",
+    "label": "Solid-Earth tides (IERS 2010)",
+    "health": "blocked",
+    "why": [
+     "blocked: needs r_ecef (no input names it), c (no input names it), sun_eci (no input names it), moon_eci (no input names it), mu (no input names it), re (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.3d (2026-10-08), not yet signed by a person: added, method: the solid-Earth tides, until now adcs-pop solidtides.rs; the developer's revision S7.3d (2026-10-08), not yet signed by a person: method pseudocode: the solid-Earth tides as a method of env, generated into adcs-pop"
+    ],
+    "value": "",
+    "cause": [
+     "env_solid_tides"
+    ]
+   },
+   {
+    "id": "env_space_weather",
+    "group": "env",
+    "label": "Space-weather indices each model takes",
+    "health": "blocked",
+    "why": [
+     "blocked: needs model (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.3b (2026-10-07), not yet signed by a person: added, method: the index relation of adcs-pop spaceweather.rs (kp2ap, ap2kp, the manual branch, data.drivers); its file parsers stay code; the developer's revision S7.3b (2026-10-07), not yet signed by a person: method pseudocode: which index each density model takes, and the manual space weather, as a method of env, generated into adcs-pop"
+    ],
+    "value": "",
+    "cause": [
+     "env_space_weather"
+    ]
    },
    {
     "id": "env_tidal_eop",

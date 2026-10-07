@@ -14,7 +14,9 @@ prepared (W15): a new application must give that design's answers unchanged.
 developer's revision S7.1b, `design/revisions_2_0.toml`, which the conversion applies on top; again on 7 Oct 2026
 for the toolbox it names, `trinetra-toolbox/2`, S7.2; and again on 7 Oct 2026 with the revisions S7.2b, published data
 read into env's nodes by `tools/readers.py`, and S7.3, env's methods for time, frames and the field, transcribed under
-`design/revisions/S7.3/`, for the toolbox `trinetra-toolbox/3`):
+`design/revisions/S7.3/`, for the toolbox `trinetra-toolbox/3`; and again on 7 Oct 2026 with S7.3b-S7.3e, the
+atmosphere, DE440, gravity and tides and relativity, their data read by `tools/readers.py` and their methods under
+`design/revisions/S7.3b/` to `S7.3e/`: 9.6 MB, of which JB2008's SET indices are 2.5 MB):
 
     python3 tools/convert_2_0.py --out DRIVE
     python3 tools/design_build.py DRIVE --out tests/regression/design.tndb

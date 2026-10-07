@@ -1,5 +1,6 @@
 //! Gravity-field containers and loaders: `grav.defaultField`, `grav.loadGFC`,
-//! `op.gravLoad` and the local-file part of `data.gravity`.
+//! `op.gravLoad` and the local-file part of `data.gravity`. The default field and the zonals are the design's
+//! (`gen::gravity`); the ICGEM `.gfc` reader is code.
 //!
 //! Owner: Agastya. Copyright (c) 2026 Agastya. All rights reserved.
 use std::path::{Path, PathBuf};
@@ -46,21 +47,12 @@ impl Field {
     }
 
     /// Port of `grav.defaultField` (zonal J2..J6, EGM2008 GM and radius), with the
-    /// `.J` vector attached exactly as `op.gravLoad` derives it from `Cbar`.
+    /// `.J` vector attached exactly as `op.gravLoad` derives it from `Cbar`: the design's field
+    /// (`gen::gravity::default_field` over env_gravity_default_field).
     pub fn default_field() -> Field {
-        let gm = 3.986004415e14;
-        let re = 6378136.3;
-        let jz = [1.08262668355e-3, -2.53265648533e-6, -1.61962159137e-6, -2.27296082869e-7, 5.40681239107e-7];
-        let nmax = jz.len() + 1;
-        let st = nmax + 1;
-        let mut cbar = vec![0.0; st * st];
-        let sbar = vec![0.0; st * st];
-        cbar[0] = 1.0;
-        for (k, &jk) in jz.iter().enumerate() {
-            let n = k + 2;
-            cbar[n * st] = -jk / ((2 * n + 1) as f64).sqrt();
-        }
-        let mut f = Field { gm, re, nmax, cbar, sbar, name: "zonal J2-J6 (EGM-consistent)".into(), j: Vec::new() };
+        let (gm, re, c) = crate::gen::gravity::default_field();
+        let nmax = 6;
+        let mut f = Field { gm, re, nmax, cbar: c.to_vec(), sbar: vec![0.0; 49], name: "zonal J2-J6 (EGM-consistent)".into(), j: Vec::new() };
         f.expose_j();
         f
     }
@@ -177,10 +169,11 @@ impl Field {
         Ok(f)
     }
 
-    /// The `.J` step of `op.gravLoad`: `nz = min(nmax,6)`, `J(n-1) = -Cbar(n+1,1)*sqrt(2n+1)`.
+    /// The `.J` step of `op.gravLoad`: `nz = min(nmax,6)`, `J(n-1) = -Cbar(n+1,1)*sqrt(2n+1)` (the design's,
+    /// `gen::gravity::zonal_j`).
     pub fn expose_j(&mut self) {
         let nz = self.nmax.min(6);
-        self.j = (2..=nz).map(|n| -self.c(n, 0) * ((2 * n + 1) as f64).sqrt()).collect();
+        self.j = (2..=nz).map(|n| crate::gen::gravity::zonal_j(self.c(n, 0), n as i64)).collect();
     }
 }
 

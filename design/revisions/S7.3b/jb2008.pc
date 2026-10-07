@@ -1,0 +1,609 @@
+## Jacchia-Bowman 2008, transcribed from adcs-pop atmos/jb2008.rs, the port of the Octave POP's
+## density_models/jb2008 (JB2008.m, the Mahooti core in the CIRA integration form; jb2008_density.m, the lagged SET
+## indices, the Sun's position and GMST; finddays.m, invjday.m, sign_.m) and the adapter +atmos/jb2008.m, over env's
+## SET index tables (SOLFSMY, DTCFILE). Bowman et al. (2008), "A new empirical thermospheric density model JB2008
+## using new solar and geomagnetic indices", AIAA 2008-6438. Times are MATLAB datenum days.
+## The developer's transcription (S7.3b), unsigned.
+module jb2008
+
+## What the JB2008 core gives: the exospheric temperature above the point and the temperature at it [K], the density
+## [kg/m^3].
+record JbOut
+    temp: real[1][2]
+    rho: real[1]
+end
+
+## What the wrapper hands the core: the MJD (UTC), the Sun's right ascension and declination [rad], the point's right
+## ascension, geocentric latitude [rad] and height [km], and F10 F10B S10 S10B M10 M10B Y10 Y10B DSTDTC.
+record JbCoreInputs
+    mjd: real[1]
+    sun: real[1][2]
+    sat: real[1][3]
+    ind: real[1][9]
+end
+
+## Octave's rem(x, y) as finddays takes it: x - fix(x/y) y, 0 when x/y is whole, with the sign of x.
+fn orem(x: real[1] in -3000 .. 3000, y: real[1] in 1 .. 400) -> r: real[1]
+    if y == 0.0
+        r = nan
+    else
+        let q = x/y
+        let nq = q
+        if isfinite(q)
+            nq = floor(q + 0.5)
+        end
+        if nq == q
+            r = 0.0
+        else
+            r = x - y*trunc(q)
+            if x != y
+                r = abs(r)*sign(x)
+            end
+        end
+    end
+end
+
+## sign_(a, b): |a| with the sign of b (b >= 0 positive).
+fn jb_sign(a: real[1] in -10 .. 10, b: real[1] in -10 .. 10) -> s: real[1]
+    if b >= 0.0
+        s = abs(a)
+    else
+        s = -abs(a)
+    end
+end
+
+## The day [datenum] of row i of the daily solar indices.
+fn sol_day(i: int in 0 .. 10728) -> t: real[1]
+    t = datenum(SOLFSMY[i][0], 1.0, 1.0, 0.0, 0.0, 0.0) + SOLFSMY[i][1] - 1.0
+end
+
+## The hour [datenum] of the k-th hourly DSTDTC sample (row k/24, hour k mod 24).
+fn dtc_hour(k: int in 0 .. 257495) -> t: real[1]
+    let r = div(k, 24)
+    let h = rem(k, 24)
+    let base = datenum(DTCFILE[r][0], 1.0, 1.0, 0.0, 0.0, 0.0) + DTCFILE[r][1] - 1.0
+    t = base + real(h)/24.0
+end
+
+## Octave's interp1(t, F, x, 'linear', 'extrap') over column j (F10 F81 S10 S81 M10 M81 Y10 Y81) of the daily
+## indices: the interval at or below x by bisection (the edge one outside), then the straight line through it.
+fn sol_interp(j: int in 0 .. 7, x: real[1] in 729000 .. 740000) -> y: real[1]
+    let n = len(SOLFSMY)
+    let lo = 0
+    let hi = n
+    settle max 64 until lo >= hi
+        let mid = div(lo + hi, 2)
+        if sol_day(mid) <= x
+            lo = mid + 1
+        else
+            hi = mid
+        end
+    end
+    let i = 0
+    if lo > 0
+        i = lo - 1
+    end
+    i = min(i, n - 2)
+    let x0 = sol_day(i)
+    let x1 = sol_day(i + 1)
+    let y0 = SOLFSMY[i][j + 2]
+    let y1 = SOLFSMY[i + 1][j + 2]
+    let slope = (y1 - y0)/(x1 - x0)
+    y = slope*(x - x0) + y0
+end
+
+## The same over the hourly DSTDTC [K].
+fn dtc_interp(x: real[1] in 729000 .. 740000) -> y: real[1]
+    let n = len(DTCFILE)*24
+    let lo = 0
+    let hi = n
+    settle max 64 until lo >= hi
+        let mid = div(lo + hi, 2)
+        if dtc_hour(mid) <= x
+            lo = mid + 1
+        else
+            hi = mid
+        end
+    end
+    let i = 0
+    if lo > 0
+        i = lo - 1
+    end
+    i = min(i, n - 2)
+    let x0 = dtc_hour(i)
+    let x1 = dtc_hour(i + 1)
+    let y0 = DTCFILE[div(i, 24)][rem(i, 24) + 2]
+    let y1 = DTCFILE[div(i + 1, 24)][rem(i + 1, 24) + 2]
+    let slope = (y1 - y0)/(x1 - x0)
+    y = slope*(x - x0) + y0
+end
+
+## XAMBAR: the mean molecular weight [kg/kmol] at z [km] (90 to 105 km), a Horner polynomial.
+fn xambar(z: real[1] in 90 .. 105) -> amb: real[1]
+    let c: real[1][7] = [28.15204, -8.5586e-2, 1.2840e-4, -1.0056e-5, -1.0210e-5, 1.5044e-6, 9.9826e-8]
+    let dz = z - 100.0
+    amb = c[6]
+    for i in 1 .. 7
+        amb = dz*amb + c[6 - i]
+    end
+end
+
+## XGRAV: gravity [m/s^2] at z [km].
+fn xgrav(z: real[1] in 0 .. 3000) -> g: real[1]
+    g = 9.80665/pow(1.0 + z/6356.766, 2.0)
+end
+
+## XLOCAL: the local temperature [K] at z [km] given the profile's coefficients (the code's TC, tcf here).
+fn xlocal(z: real[1] in 90 .. 3000, tcf: real[1][4] in -1000 .. 2000) -> t: real[1]
+    let dz = z - 125.0
+    if dz > 0.0
+        t = tcf[0] + tcf[2]*atan(tcf[3]*dz*(1.0 + 4.5e-6*pow(dz, 2.5)))
+    else
+        t = ((-9.8204695e-6*dz - 7.3039742e-4)*pow(dz, 2.0) + 1.0)*dz*tcf[1] + tcf[0]
+    end
+end
+
+## DTSUB: the dTc correction [K] for the local solar time [h], the latitude [rad] and the height [km].
+fn dtsub(f10: real[1] in 60 .. 300, xlst: real[1] in 0 .. 24, xlat: real[1] in -1.6 .. 1.6, zht: real[1] in 100 .. 900) -> dtc: real[1]
+    let kb: real[1][19] = [-0.457512297e1, -0.512114909e1, -0.693003609e2, 0.203716701e3, 0.703316291e3, -0.194349234e4, \
+                           0.110651308e4, -0.174378996e3, 0.188594601e4, -0.709371517e4, 0.922454523e4, -0.384508073e4, \
+                           -0.645841789e1, 0.409703319e2, -0.482006560e3, 0.181870931e4, -0.237389204e4, 0.996703815e3, \
+                           0.361416936e2]
+    let kc: real[1][23] = [-0.155986211e2, -0.512114909e1, -0.693003609e2, 0.203716701e3, 0.703316291e3, -0.194349234e4, \
+                           0.110651308e4, -0.220835117e3, 0.143256989e4, -0.318481844e4, 0.328981513e4, -0.135332119e4, \
+                           0.199956489e2, -0.127093998e2, 0.212825156e2, -0.275555432e1, 0.110234982e2, 0.148881951e3, \
+                           -0.751640284e3, 0.637876542e3, 0.127093998e2, -0.212825156e2, 0.275555432e1]
+    dtc = 0.0
+    let tx = xlst/24.0
+    let ycs = cos(xlat)
+    let f = (f10 - 100.0)/100.0
+    let h: real[1] = 0
+    let sum: real[1] = 0
+    let aa: real[1] = 0
+    let bb: real[1] = 0
+    let cc: real[1] = 0
+    let dd: real[1] = 0
+    let zp: real[1] = 0
+    if zht >= 120.0 and zht <= 200.0
+        let dtc200 = (kc[16] + kc[17]*tx*ycs + kc[18]*pow(tx, 2.0)*ycs
+            + kc[19]*pow(tx, 3.0)*ycs + kc[20]*f*ycs + kc[21]*tx*f*ycs
+            + kc[22]*pow(tx, 2.0)*f*ycs)
+        sum = (kc[0] + kb[1]*f + kc[2]*tx*f + kc[3]*pow(tx, 2.0)*f
+            + kc[4]*pow(tx, 3.0)*f + kc[5]*pow(tx, 4.0)*f + kc[6]*pow(tx, 5.0)*f
+            + kc[7]*tx*ycs + kc[8]*pow(tx, 2.0)*ycs + kc[9]*pow(tx, 3.0)*ycs
+            + kc[10]*pow(tx, 4.0)*ycs + kc[11]*pow(tx, 5.0)*ycs + kc[12]*ycs
+            + kc[13]*f*ycs + kc[14]*tx*f*ycs + kc[15]*pow(tx, 2.0)*f*ycs)
+        let dtc200dz = sum
+        cc = 3.0*dtc200 - dtc200dz
+        dd = dtc200 - cc
+        zp = (zht - 120.0)/80.0
+        dtc = cc*zp*zp + dd*zp*zp*zp
+    end
+    if zht > 200.0 and zht <= 240.0
+        h = (zht - 200.0)/50.0
+        sum = (kc[0]*h + kb[1]*f*h + kc[2]*tx*f*h + kc[3]*pow(tx, 2.0)*f*h
+            + kc[4]*pow(tx, 3.0)*f*h + kc[5]*pow(tx, 4.0)*f*h + kc[6]*pow(tx, 5.0)*f*h
+            + kc[7]*tx*ycs*h + kc[8]*pow(tx, 2.0)*ycs*h + kc[9]*pow(tx, 3.0)*ycs*h
+            + kc[10]*pow(tx, 4.0)*ycs*h + kc[11]*pow(tx, 5.0)*ycs*h + kc[12]*ycs*h
+            + kc[13]*f*ycs*h + kc[14]*tx*f*ycs*h + kc[15]*pow(tx, 2.0)*f*ycs*h
+            + kc[16] + kc[17]*tx*ycs + kc[18]*pow(tx, 2.0)*ycs
+            + kc[19]*pow(tx, 3.0)*ycs + kc[20]*f*ycs + kc[21]*tx*f*ycs
+            + kc[22]*pow(tx, 2.0)*f*ycs)
+        dtc = sum
+    end
+    if zht > 240.0 and zht <= 300.0
+        h = 40.0/50.0
+        sum = (kc[0]*h + kb[1]*f*h + kc[2]*tx*f*h + kc[3]*pow(tx, 2.0)*f*h
+            + kc[4]*pow(tx, 3.0)*f*h + kc[5]*pow(tx, 4.0)*f*h + kc[6]*pow(tx, 5.0)*f*h
+            + kc[7]*tx*ycs*h + kc[8]*pow(tx, 2.0)*ycs*h + kc[9]*pow(tx, 3.0)*ycs*h
+            + kc[10]*pow(tx, 4.0)*ycs*h + kc[11]*pow(tx, 5.0)*ycs*h + kc[12]*ycs*h
+            + kc[13]*f*ycs*h + kc[14]*tx*f*ycs*h + kc[15]*pow(tx, 2.0)*f*ycs*h
+            + kc[16] + kc[17]*tx*ycs + kc[18]*pow(tx, 2.0)*ycs
+            + kc[19]*pow(tx, 3.0)*ycs + kc[20]*f*ycs + kc[21]*tx*f*ycs
+            + kc[22]*pow(tx, 2.0)*f*ycs)
+        aa = sum
+        bb = (kc[0] + kb[1]*f + kc[2]*tx*f + kc[3]*pow(tx, 2.0)*f
+            + kc[4]*pow(tx, 3.0)*f + kc[5]*pow(tx, 4.0)*f + kc[6]*pow(tx, 5.0)*f
+            + kc[7]*tx*ycs + kc[8]*pow(tx, 2.0)*ycs + kc[9]*pow(tx, 3.0)*ycs
+            + kc[10]*pow(tx, 4.0)*ycs + kc[11]*pow(tx, 5.0)*ycs + kc[12]*ycs
+            + kc[13]*f*ycs + kc[14]*tx*f*ycs + kc[15]*pow(tx, 2.0)*f*ycs)
+        h = 300.0/100.0
+        sum = (kb[0] + kb[1]*f + kb[2]*tx*f + kb[3]*pow(tx, 2.0)*f
+            + kb[4]*pow(tx, 3.0)*f + kb[5]*pow(tx, 4.0)*f + kb[6]*pow(tx, 5.0)*f
+            + kb[7]*tx*ycs + kb[8]*pow(tx, 2.0)*ycs + kb[9]*pow(tx, 3.0)*ycs
+            + kb[10]*pow(tx, 4.0)*ycs + kb[11]*pow(tx, 5.0)*ycs + kb[12]*h*ycs
+            + kb[13]*tx*h*ycs + kb[14]*pow(tx, 2.0)*h*ycs + kb[15]*pow(tx, 3.0)*h*ycs
+            + kb[16]*pow(tx, 4.0)*h*ycs + kb[17]*pow(tx, 5.0)*h*ycs + kb[18]*ycs)
+        let dtc300 = sum
+        sum = (kb[12]*ycs
+            + kb[13]*tx*ycs + kb[14]*pow(tx, 2.0)*ycs + kb[15]*pow(tx, 3.0)*ycs
+            + kb[16]*pow(tx, 4.0)*ycs + kb[17]*pow(tx, 5.0)*ycs)
+        let dtc300dz = sum
+        cc = 3.0*dtc300 - dtc300dz - 3.0*aa - 2.0*bb
+        dd = dtc300 - aa - bb - cc
+        zp = (zht - 240.0)/60.0
+        dtc = aa + bb*zp + cc*zp*zp + dd*zp*zp*zp
+    end
+    if zht > 300.0 and zht <= 600.0
+        h = zht/100.0
+        sum = (kb[0] + kb[1]*f + kb[2]*tx*f + kb[3]*pow(tx, 2.0)*f
+            + kb[4]*pow(tx, 3.0)*f + kb[5]*pow(tx, 4.0)*f + kb[6]*pow(tx, 5.0)*f
+            + kb[7]*tx*ycs + kb[8]*pow(tx, 2.0)*ycs + kb[9]*pow(tx, 3.0)*ycs
+            + kb[10]*pow(tx, 4.0)*ycs + kb[11]*pow(tx, 5.0)*ycs + kb[12]*h*ycs
+            + kb[13]*tx*h*ycs + kb[14]*pow(tx, 2.0)*h*ycs + kb[15]*pow(tx, 3.0)*h*ycs
+            + kb[16]*pow(tx, 4.0)*h*ycs + kb[17]*pow(tx, 5.0)*h*ycs + kb[18]*ycs)
+        dtc = sum
+    end
+    if zht > 600.0 and zht <= 800.0
+        zp = (zht - 600.0)/100.0
+        let hp = 600.0/100.0
+        aa = (kb[0] + kb[1]*f + kb[2]*tx*f + kb[3]*pow(tx, 2.0)*f
+            + kb[4]*pow(tx, 3.0)*f + kb[5]*pow(tx, 4.0)*f + kb[6]*pow(tx, 5.0)*f
+            + kb[7]*tx*ycs + kb[8]*pow(tx, 2.0)*ycs + kb[9]*pow(tx, 3.0)*ycs
+            + kb[10]*pow(tx, 4.0)*ycs + kb[11]*pow(tx, 5.0)*ycs + kb[12]*hp*ycs
+            + kb[13]*tx*hp*ycs + kb[14]*pow(tx, 2.0)*hp*ycs + kb[15]*pow(tx, 3.0)*hp*ycs
+            + kb[16]*pow(tx, 4.0)*hp*ycs + kb[17]*pow(tx, 5.0)*hp*ycs + kb[18]*ycs)
+        bb = (kb[12]*ycs
+            + kb[13]*tx*ycs + kb[14]*pow(tx, 2.0)*ycs + kb[15]*pow(tx, 3.0)*ycs
+            + kb[16]*pow(tx, 4.0)*ycs + kb[17]*pow(tx, 5.0)*ycs)
+        cc = -(3.0*aa + 4.0*bb)/4.0
+        dd = (aa + bb)/4.0
+        dtc = aa + bb*zp + cc*zp*zp + dd*zp*zp*zp
+    end
+end
+
+## SEMIAN08: the semiannual variation at day of year day, height ht [km] and the 81-day means: (FZZ, GTZ, DRLOG).
+fn semian08(day: real[1] in 1 .. 366, ht: real[1] in 100 .. 2000, f10b: real[1] in 60 .. 300, s10b: real[1] in 60 .. 300, \
+            xm10b: real[1] in 60 .. 300) -> (fzz: real[1], gtz: real[1], drlog: real[1])
+    let twopi = 2.0*pi
+    let fzm: real[1][5] = [0.2689, -0.1176e-1, 0.2782e-1, -0.2782e-1, 0.3470e-3]
+    let gtm: real[1][10] = [-0.3633, 0.8506e-1, 0.2401, -0.1897, -0.2554, -0.1790e-1, 0.5650e-3, -0.6407e-3, -0.3418e-2, -0.1252e-2]
+    let fsmb = f10b - 0.70*s10b - 0.04*xm10b
+    let htz = ht/1000.0
+    fzz = fzm[0] + fzm[1]*fsmb + fzm[2]*fsmb*htz + fzm[3]*fsmb*pow(htz, 2.0) + fzm[4]*pow(fsmb, 2.0)*htz
+    fsmb = f10b - 0.75*s10b - 0.37*xm10b
+    let tau = (day - 1.0)/365.0
+    let sin1p = sin(twopi*tau)
+    let cos1p = cos(twopi*tau)
+    let sin2p = sin(2.0*twopi*tau)
+    let cos2p = cos(2.0*twopi*tau)
+    gtz = gtm[0] + gtm[1]*sin1p + gtm[2]*cos1p + gtm[3]*sin2p + gtm[4]*cos2p + gtm[5]*fsmb + gtm[6]*fsmb*sin1p \
+          + gtm[7]*fsmb*cos1p + gtm[8]*fsmb*sin2p + gtm[9]*fsmb*cos2p
+    if fzz < 1e-6
+        fzz = 1e-6
+    end
+    drlog = fzz*gtz
+end
+
+## invjday (Montenbruck and Gill): the calendar date [Y M D h m s] of a modified Julian date.
+fn invjday(mjd: real[1] in -2400000 .. 2500000) -> u: real[1][6]
+    let a = trunc(mjd + 2400001.0)
+    let c: real[1] = 0
+    if a < 2299161.0
+        c = a + 1524.0
+    else
+        let b = trunc((a - 1867216.25)/36524.25)
+        c = a + b - trunc(b/4.0) + 1525.0
+    end
+    let d = trunc((c - 122.1)/365.25)
+    let e = 365.0*d + trunc(d/4.0)
+    let f = trunc((c - e)/30.6001)
+    let day = c - e - trunc(30.6001*f)
+    let month = f - 1.0 - 12.0*trunc(f/14.0)
+    let year = d - 4715.0 - trunc((7.0 + month)/10.0)
+    let hours = 24.0*(mjd - floor(mjd))
+    let hour = trunc(hours)
+    let x = (hours - hour)*60.0
+    let minute = trunc(x)
+    let sec = (x - minute)*60.0
+    u = [year, month, day, hour, minute, sec]
+end
+
+## finddays (Vallado): the fractional day of the year of a date.
+fn finddays(year: real[1] in 1 .. 9000, month: real[1] in 1 .. 12, day: real[1] in 1 .. 31, hr: real[1] in 0 .. 23, \
+            min_: real[1] in 0 .. 59, sec: real[1] in 0 .. 60) -> days: real[1]
+    let lmonth: real[1][12] = [31.0, 28.0, 31.0, 30.0, 31.0, 30.0, 31.0, 31.0, 30.0, 31.0, 30.0, 31.0]
+    if orem(year, 4.0) == 0.0
+        lmonth[1] = 29.0
+        if orem(year, 100.0) == 0.0 and orem(year, 400.0) != 0.0
+            lmonth[1] = 28.0
+        end
+    end
+    days = 0.0
+    for k in 1 .. 12
+        if real(k) < month
+            days = days + lmonth[k - 1]
+        end
+    end
+    days = days + day + hr/24.0 + min_/1440.0 + sec/86400.0
+end
+
+## TMOUTD(MJD) = finddays(invjday(MJD + 2400000.5)): as the MATLAB, which hands invjday a Julian date where it takes a
+## modified one, so the calendar date of the semiannual phase is offset by 2400000.5 days.
+fn tmoutd(mjd: real[1] in 0 .. 100000) -> d: real[1]
+    let u = invjday(mjd + 2400000.5)
+    d = finddays(u[0], u[1], u[2], u[3], u[4], u[5])
+end
+
+## The end of the JB2008 core: the J70 seasonal-latitudinal and the semiannual variations added to the log number
+## densities, their sum to a density, and the exospheric correction above 1000 km.
+fn jb_finish(aln_in: real[1][6] in -50 .. 50, z: real[1] in 0 .. 3000, mjd: real[1] in 30000 .. 80000, \
+             sat: real[1][3] in -1.6 .. 2000, f10b: real[1] in 60 .. 300, s10b: real[1] in 60 .. 300, \
+             xm10b: real[1] in 60 .. 300) -> rho: real[1]
+    let al10 = 2.3025851
+    let amw: real[1][6] = [28.0134, 31.9988, 15.9994, 39.9480, 4.0026, 1.00797]
+    let avogad = 6.02257e26
+    let twopi = 2.0*pi
+    let cht: real[1][4] = [0.22, -0.20e-2, 0.115e-2, -0.211e-5]
+    let zht = sat[2]
+    let aln = aln_in
+    # equation (24): the J70 seasonal-latitudinal variation
+    let trash = (mjd - 36204.0)/365.2422
+    let capphi = omod(trash, 1.0)
+    let dlrsl = 0.02*(sat[2] - 90.0)*exp(-0.045*(sat[2] - 90.0))*jb_sign(1.0, sat[1])*sin(twopi*capphi + 1.72) \
+                *pow(sin(sat[1]), 2.0)
+    # equation (23): the semiannual variation
+    let dlrsa: real[1] = 0
+    if z < 2000.0
+        let yrday = tmoutd(mjd)
+        let fzz, gtz, d = semian08(yrday, zht, f10b, s10b, xm10b)
+        dlrsa = d
+        if fzz < 0.0
+            dlrsa = 0.0
+        end
+    end
+    let dlr = al10*(dlrsl + dlrsa)
+    for i in 0 .. 6
+        aln[i] = aln[i] + dlr
+    end
+    let sumnm: real[1] = 0
+    for i in 0 .. 6
+        let an = exp(aln[i])
+        sumnm = sumnm + an*amw[i]
+    end
+    rho = sumnm/avogad
+    # the high-altitude exospheric correction
+    let fex = 1.0
+    if zht >= 1000.0 and zht < 1500.0
+        let zeta = (zht - 1000.0)*0.002
+        let zeta2 = zeta*zeta
+        let zeta3 = zeta*zeta2
+        let f15c = cht[0] + cht[1]*f10b + cht[2]*1500.0 + cht[3]*f10b*1500.0
+        let f15c_zeta = (cht[2] + cht[3]*f10b)*500.0
+        let fex2 = 3.0*f15c - f15c_zeta - 3.0
+        let fex3 = f15c_zeta - 2.0*f15c + 2.0
+        fex = 1.0 + fex2*zeta2 + fex3*zeta3
+    end
+    if zht >= 1500.0
+        fex = cht[0] + cht[1]*f10b + cht[2]*zht + cht[3]*f10b*zht
+    end
+    rho = rho*fex
+end
+
+## JB2008(MJD, SUN, SAT, F10, F10B, S10, S10B, XM10, XM10B, Y10, Y10B, DSTDTC): sun = [RA, Dec] [rad]; sat = [RA,
+## geocentric latitude [rad], height [km]].
+fn jb2008_core(mjd: real[1] in 30000 .. 80000, sun: real[1][2] in -0.4 .. 6.3, sat: real[1][3] in 0 .. 1.5, \
+               f10: real[1] in 60 .. 300, f10b: real[1] in 60 .. 300, s10: real[1] in 60 .. 300, s10b: real[1] in 60 .. 300, \
+               xm10: real[1] in 60 .. 300, xm10b: real[1] in 60 .. 300, y10: real[1] in 60 .. 300, y10b: real[1] in 60 .. 300, \
+               dstdtc: real[1] in 0 .. 300) -> o: JbOut
+    let alpha: real[1][5] = [0.0, 0.0, 0.0, 0.0, -0.38]
+    let al10 = 2.3025851
+    let amw: real[1][6] = [28.0134, 31.9988, 15.9994, 39.9480, 4.0026, 1.00797]
+    let avogad = 6.02257e26
+    let piov2 = 1.5707963
+    let frac: real[1][4] = [0.78110, 0.20955, 9.3400e-3, 1.2890e-5]
+    let rstar = 8314.32
+    let r1 = 0.010
+    let r2 = 0.025
+    let r3 = 0.075
+    let wt: real[1][5] = [0.311111111111111, 1.422222222222222, 0.533333333333333, 1.422222222222222, 0.311111111111111]
+    let degrad = pi/180.0
+    o = JbOut()
+    # equation (14)
+    let fn_ = pow(f10b/240.0, 1.0/4.0)
+    if fn_ > 1.0
+        fn_ = 1.0
+    end
+    let fsb = f10b*fn_ + s10b*(1.0 - fn_)
+    let tsubc = 392.4 + 3.227*fsb + 0.298*(f10 - f10b) + 2.259*(s10 - s10b) + 0.312*(xm10 - xm10b) + 0.178*(y10 - y10b)
+    # equation (15)
+    let eta = 0.5*abs(sat[1] - sun[1])
+    let theta = 0.5*abs(sat[1] + sun[1])
+    # equation (16)
+    let h = sat[0] - sun[0]
+    let tau = h - 0.64577182 + 0.10471976*sin(h + 0.75049158)
+    let glat = sat[1]
+    let zht = sat[2]
+    let glst = h + pi
+    let glsthr = (glst/degrad)*(24.0/360.0)
+    if glsthr >= 24.0
+        glsthr = glsthr - 24.0
+    end
+    if glsthr < 0.0
+        glsthr = glsthr + 24.0
+    end
+    # equation (17)
+    let c = pow(cos(eta), 2.5)
+    let s = pow(sin(theta), 2.5)
+    let df = s + (c - s)*pow(abs(cos(0.5*tau)), 3.0)
+    let tsubl = tsubc*(1.0 + 0.31*df)
+    let dtclst = dtsub(f10, glsthr, glat, zht)
+    o.temp[0] = tsubl + dstdtc
+    let tinf = tsubl + dstdtc + dtclst
+    # equation (9)
+    let tsubx = 444.3807 + 0.02385*tinf - 392.8292*exp(-0.0021357*tinf)
+    # equation (11)
+    let gsubx = 0.054285714*(tsubx - 183.0)
+    let tcf: real[1][4] = 0
+    tcf[0] = tsubx
+    tcf[1] = gsubx
+    tcf[2] = (tinf - tsubx)/piov2
+    tcf[3] = gsubx/tcf[2]
+    # equation (5)
+    let z1 = 90.0
+    let z2 = min(sat[2], 105.0)
+    let al = log(z2/z1)
+    let n = floor(al/r1) + 1.0
+    let zr = exp(al/n)
+    let ambar1 = xambar(z1)
+    let tloc1 = xlocal(z1, tcf)
+    let zend = z1
+    let sum2: real[1] = 0
+    let ain = ambar1*xgrav(z1)/tloc1
+    let z: real[1] = 0
+    let ambar2: real[1] = 0
+    let tloc2: real[1] = 0
+    let gravl: real[1] = 0
+    for k in 0 .. int(n)
+        z = zend
+        zend = zr*z
+        let dz = 0.25*(zend - z)
+        let sum1 = wt[0]*ain
+        for j in 1 .. 5
+            z = z + dz
+            ambar2 = xambar(z)
+            tloc2 = xlocal(z, tcf)
+            gravl = xgrav(z)
+            ain = ambar2*gravl/tloc2
+            sum1 = sum1 + wt[j]*ain
+        end
+        sum2 = sum2 + dz*sum1
+    end
+    let fact1 = 1000.0/rstar
+    let rho = 3.46e-6*ambar2*tloc1*exp(-fact1*sum2)/ambar1/tloc2
+    # equation (2)
+    let anm = avogad*rho
+    let an = anm/ambar2
+    # equation (3)
+    let fact2 = anm/28.960
+    let aln: real[1][6] = 0
+    aln[0] = log(frac[0]*fact2)
+    aln[3] = log(frac[2]*fact2)
+    aln[4] = log(frac[3]*fact2)
+    # equation (4)
+    aln[1] = log(fact2*(1.0 + frac[1]) - an)
+    aln[2] = log(2.0*(an - fact2))
+    if sat[2] <= 105.0
+        o.temp[1] = tloc2
+        aln[5] = aln[4] - 25.0
+        o.rho = jb_finish(aln, z, mjd, sat, f10b, s10b, xm10b)
+    else
+        # equation (6)
+        let z3 = min(sat[2], 500.0)
+        al = log(z3/z)
+        n = floor(al/r2) + 1.0
+        zr = exp(al/n)
+        sum2 = 0.0
+        ain = gravl/tloc2
+        let tloc3: real[1] = 0
+        for k in 0 .. int(n)
+            z = zend
+            zend = zr*z
+            let dz = 0.25*(zend - z)
+            let sum1 = wt[0]*ain
+            for j in 1 .. 5
+                z = z + dz
+                tloc3 = xlocal(z, tcf)
+                gravl = xgrav(z)
+                ain = gravl/tloc3
+                sum1 = sum1 + wt[j]*ain
+            end
+            sum2 = sum2 + dz*sum1
+        end
+        let z4 = max(sat[2], 500.0)
+        al = log(z4/z)
+        let r = r2
+        if sat[2] > 500.0
+            r = r3
+        end
+        n = floor(al/r) + 1.0
+        zr = exp(al/n)
+        let sum3: real[1] = 0
+        let tloc4: real[1] = 0
+        for k in 0 .. int(n)
+            z = zend
+            zend = zr*z
+            let dz = 0.25*(zend - z)
+            let sum1 = wt[0]*ain
+            for j in 1 .. 5
+                z = z + dz
+                tloc4 = xlocal(z, tcf)
+                gravl = xgrav(z)
+                ain = gravl/tloc4
+                sum1 = sum1 + wt[j]*ain
+            end
+            sum3 = sum3 + dz*sum1
+        end
+        let altr: real[1] = 0
+        let hsign: real[1] = 0
+        if sat[2] > 500.0
+            o.temp[1] = tloc4
+            altr = log(tloc4/tloc2)
+            fact2 = fact1*(sum2 + sum3)
+            hsign = -1.0
+        else
+            o.temp[1] = tloc3
+            altr = log(tloc3/tloc2)
+            fact2 = fact1*sum2
+            hsign = 1.0
+        end
+        for i in 0 .. 5
+            aln[i] = aln[i] - (1.0 + alpha[i])*altr - fact2*amw[i]
+        end
+        # equation (7)
+        let al10t5 = log10(tinf)
+        let alnh5 = (5.5*al10t5 - 39.40)*al10t5 + 73.13
+        aln[5] = al10*(alnh5 + 6.0) + hsign*(log(tloc4/tloc3) + fact1*sum3*amw[5])
+        o.rho = jb_finish(aln, z, mjd, sat, f10b, s10b, xm10b)
+    end
+end
+
+## sun_radec of jb2008_density.m: the low-precision Sun's right ascension and declination [rad] (mean equinox of
+## date) at an MJD.
+fn sun_radec(mjd: real[1] in 30000 .. 80000) -> (ra: real[1], dec: real[1])
+    let t = (mjd - 51544.5)/36525.0
+    let l = omod(280.460 + 36000.771*t, 360.0)
+    let m = deg2rad(omod(357.528 + 35999.050*t, 360.0))
+    let lam = deg2rad(l + 1.915*sin(m) + 0.020*sin(2.0*m))
+    let eps = deg2rad(23.439 - 0.0130*t)
+    ra = omod(atan2(cos(eps)*sin(lam), cos(lam)), 2.0*pi)
+    dec = asin(sin(eps)*sin(lam))
+end
+
+## gmst_rad of jb2008_density.m: the IAU 1982 GMST [rad] of an MJD.
+fn gmst_rad(mjd: real[1] in 30000 .. 80000) -> g: real[1]
+    let tu = (floor(mjd) - 51544.5)/36525.0
+    let gmst0 = 24110.54841 + 8640184.812866*tu + 0.093104*pow(tu, 2.0) - 6.2e-6*pow(tu, 3.0)
+    let fr = omod(mjd, 1.0)
+    let gsec = omod(gmst0 + 1.0027379093*86400.0*fr, 86400.0)
+    g = deg2rad(gsec/240.0)
+end
+
+## jb2008_density(t, lon_deg, lat_deg, alt_km) for one epoch (the in-RHS case, no decimation): the SET indices with the
+## spec's lags (F10 and S10 at t - 1 d, M10 at t - 2 d, Y10 at t - 5 d, DSTDTC at t), linear with extrapolation, the
+## Sun, GMST and the core. utc = [Y M D h m s].
+fn jb2008_density(utc: real[1][6] in 1997 .. 2026, lon_deg: real[1] in -180 .. 360, lat_deg: real[1] in -90 .. 90, \
+                  alt_km: real[1] in 100 .. 2000) -> (rho: real[1], out: JbOut, inp: JbCoreInputs)
+    let dnum = datenum(utc[0], utc[1], utc[2], utc[3], utc[4], utc[5])
+    let mjd = dnum - 678942.0
+    let f10 = sol_interp(0, dnum - 1.0)
+    let f10b = sol_interp(1, dnum - 1.0)
+    let s10 = sol_interp(2, dnum - 1.0)
+    let s10b = sol_interp(3, dnum - 1.0)
+    let m10 = sol_interp(4, dnum - 2.0)
+    let m10b = sol_interp(5, dnum - 2.0)
+    let y10 = sol_interp(6, dnum - 5.0)
+    let y10b = sol_interp(7, dnum - 5.0)
+    let dstdtc = dtc_interp(dnum)
+    let ra_sun, dec_sun = sun_radec(mjd)
+    let gmst = gmst_rad(mjd)
+    let ra_sat = omod(deg2rad(lon_deg) + gmst, 2.0*pi)
+    let lat_r = deg2rad(lat_deg)
+    inp = JbCoreInputs()
+    inp.mjd = mjd
+    inp.sun = [ra_sun, dec_sun]
+    inp.sat = [ra_sat, lat_r, alt_km]
+    inp.ind = [f10, f10b, s10, s10b, m10, m10b, y10, y10b, dstdtc]
+    out = jb2008_core(mjd, inp.sun, inp.sat, f10, f10b, s10, s10b, m10, m10b, y10, y10b, dstdtc)
+    rho = out.rho
+end

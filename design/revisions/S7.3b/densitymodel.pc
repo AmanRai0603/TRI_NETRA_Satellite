@@ -1,0 +1,159 @@
+## The density-model switch, transcribed from adcs-pop atmos/mod.rs, the port of the Octave POP's +atmos/provider.m and
+## its adapters +atmos/dtm2020.m, +atmos/dtm2020_research.m, +atmos/jb2008.m and +atmos/exponential.m: which model a run
+## takes (a choice), the drivers it needs, and the atm it hands the drag (density, temperature, composition). No silent
+## fallback: a model whose drivers are missing answers with the reason, never a value. NRLMSISE-00 is only an adapter to
+## the MATLAB Aerospace Toolbox's atmosnrlmsise00, which is not in the repository: it answers "not ported".
+## The developer's transcription (S7.3b), unsigned.
+module densitymodel
+
+## The density models of atmos.provider and cfg.forces.drag.atmos.
+choice AtmosModel = exponential, nrlmsise, jb2008, dtm2020, dtm2020_research
+
+## The driver sets a run may hand the switch (atmos.provider's sw): none, atmos.spaceweather's (F10.7, its mean and
+## Kp), atmos.research_drivers' (F30, its mean, ap60) or JB2008's SET indices.
+choice Drivers = none, spaceweather, research, jb2008
+
+## Why the switch gave no density: none (it gave one), a driver missing or not finite (F10.7, its mean, Kp, F30, its
+## mean, ap60, the SET indices), the altitude at or below the DTM models' floor (120 km) or geogm's angle error, a
+## density that is not finite (JB2008), a model not ported.
+choice AtmosStatus = ok, missing_f107, missing_f107a, missing_kp, missing_f30, missing_f30_bar, missing_ap60, missing_jb, \
+    altitude, geogm, nonfinite, not_ported
+
+## The atm handed to drag.force: the density [kg/m^3] and temperature [K]; the composition either the six species'
+## number densities (H He O N2 O2 N; per m^3 for the operational DTM2020, per cm^3 for the research one, as the MATLAB
+## hands them on) or one mean species, its molar mass [kg/kmol] and number density taken as atomic O [1/m^3].
+record AtmosOut
+    rho: real[1]
+    t: real[1]
+    species: bool
+    n: real[1][6]
+    mmol: real[1]
+    n_o: real[1]
+end
+
+## atmos.dtm2020(geo, sw): the operational DTM2020 with the species turned into m^-3.
+fn dtm2020_atm(alt_km: real[1] in 120.5 .. 1500, lat_deg: real[1] in -90 .. 90, lon_deg: real[1] in -180 .. 360, \
+               lst_h: real[1] in 0 .. 24, doy: real[1] in 1 .. 366, f107: real[1] in 60 .. 250, f107a: real[1] in 60 .. 250, \
+               akp: real[1][4] in 0 .. 9) -> (st: AtmosStatus, a: AtmosOut)
+    a = AtmosOut()
+    st = AtmosStatus.ok
+    if not isfinite(f107)
+        st = AtmosStatus.missing_f107
+    elif not isfinite(f107a)
+        st = AtmosStatus.missing_f107a
+    elif not (isfinite(akp[0]) and isfinite(akp[1]) and isfinite(akp[2]) and isfinite(akp[3]))
+        st = AtmosStatus.missing_kp
+    else
+        let ok, o = oper_density(alt_km, lat_deg, lon_deg, lst_h, doy, f107, f107a, akp)
+        if not ok
+            st = AtmosStatus.altitude
+        else
+            a.rho = o.rho_kgm3
+            a.t = o.t_k
+            a.species = true
+            for i in 0 .. 6
+                a.n[i] = o.n_cm3[i]*1e6
+            end
+        end
+    end
+end
+
+## atmos.dtm2020_research(geo, sw): F30 rescaled to the F10.7 scale with the decimal year's drift (unless the F30 was
+## itself derived from F10.7), ap60 in all ten slots; the species handed on per cm^3, as the MATLAB does.
+fn dtm2020_research_atm(alt_km: real[1] in 120.5 .. 1500, lat_deg: real[1] in -90 .. 90, lon_deg: real[1] in -180 .. 360, \
+                        lst_h: real[1] in 0 .. 24, doy: real[1] in 1 .. 366, utc: real[1][6] in 1 .. 2100, \
+                        f30: real[1] in 40 .. 200, f30_bar: real[1] in 40 .. 200, ap60: real[1] in 0 .. 400, \
+                        f30_is_derived: bool) -> (st: AtmosStatus, a: AtmosOut)
+    a = AtmosOut()
+    st = AtmosStatus.ok
+    if not isfinite(f30)
+        st = AtmosStatus.missing_f30
+    elif not isfinite(f30_bar)
+        st = AtmosStatus.missing_f30_bar
+    elif not isfinite(ap60)
+        st = AtmosStatus.missing_ap60
+    else
+        let fi = f30
+        let fbi = f30_bar
+        if not f30_is_derived
+            let dy = dtm_decimal_year(utc)
+            fi = f30_to_f107scale(f30, dy)
+            fbi = f30_to_f107scale(f30_bar, dy)
+        end
+        let ap: real[1][10] = [ap60, ap60, ap60, ap60, ap60, ap60, ap60, ap60, ap60, ap60]
+        if alt_km <= 120.0
+            st = AtmosStatus.altitude
+        else
+            let ok, o = research_density(alt_km, lat_deg, lon_deg, lst_h, doy, fi, fbi, ap)
+            if not ok
+                st = AtmosStatus.geogm
+            else
+                a.rho = o.rho_kgm3
+                a.t = o.t_k
+                a.species = true
+                a.n = o.n_cm3
+            end
+        end
+    end
+end
+
+## atmos.jb2008(geo, sw): the JB2008 density over env's SET indices; Mmol = 16, nO = rho N_A 1000/16, the temperature
+## sw.Tinf if given (has_tinf), else the MATLAB's 1000 K placeholder.
+fn jb2008_atm(alt_km: real[1] in 100 .. 2000, lat_deg: real[1] in -90 .. 90, lon_deg: real[1] in -180 .. 360, \
+              utc: real[1][6] in 1997 .. 2026, has_tinf: bool, tinf: real[1] in 500 .. 2000) -> (st: AtmosStatus, a: AtmosOut)
+    a = AtmosOut()
+    st = AtmosStatus.ok
+    let rho, out, inp = jb2008_density(utc, lon_deg, lat_deg, alt_km)
+    if not isfinite(rho)
+        st = AtmosStatus.nonfinite
+    else
+        let avog16 = N_AVOGADRO*1000.0/16.0
+        a.rho = rho
+        a.t = if has_tinf then tinf else 1000.0
+        a.species = false
+        a.mmol = 16.0
+        a.n_o = rho*avog16
+    end
+end
+
+## atmos.provider(model, geo, sw): the switch. geo: altitude [km], latitude and longitude [deg], local solar time [h],
+## day of year, UTC [Y M D h m s]; the drivers a run hands it (drv) and their values: F10.7, its 81-day mean, the Kp
+## array (spaceweather); F30, its mean, ap60 and whether the F30 is derived (research); the placeholder temperature
+## (jb2008). A model given drivers of another kind names the first driver it lacks.
+fn atmos_density(model: AtmosModel, alt_km: real[1] in 120.5 .. 1500, lat_deg: real[1] in -90 .. 90, \
+                 lon_deg: real[1] in -180 .. 360, lst_h: real[1] in 0 .. 24, doy: real[1] in 1 .. 366, \
+                 utc: real[1][6] in 1997 .. 2026, drv: Drivers, f107: real[1] in 60 .. 250, f107a: real[1] in 60 .. 250, \
+                 akp: real[1][4] in 0 .. 9, f30: real[1] in 40 .. 200, f30_bar: real[1] in 40 .. 200, \
+                 ap60: real[1] in 0 .. 400, f30_is_derived: bool, has_tinf: bool, tinf: real[1] in 500 .. 2000) \
+                 -> (st: AtmosStatus, a: AtmosOut)
+    a = AtmosOut()
+    st = AtmosStatus.ok
+    if model == AtmosModel.exponential
+        let rho, t, mmol, n_o = exponential_atm(alt_km)
+        a.rho = rho
+        a.t = t
+        a.species = false
+        a.mmol = mmol
+        a.n_o = n_o
+    elif model == AtmosModel.nrlmsise
+        st = AtmosStatus.not_ported
+    elif model == AtmosModel.dtm2020
+        if drv == Drivers.spaceweather
+            st, a = dtm2020_atm(alt_km, lat_deg, lon_deg, lst_h, doy, f107, f107a, akp)
+        else
+            st = AtmosStatus.missing_f107
+        end
+    elif model == AtmosModel.dtm2020_research
+        if drv == Drivers.research
+            st, a = dtm2020_research_atm(alt_km, lat_deg, lon_deg, lst_h, doy, utc, f30, f30_bar, ap60, f30_is_derived)
+        else
+            st = AtmosStatus.missing_f30
+        end
+    else
+        if drv == Drivers.jb2008
+            st, a = jb2008_atm(alt_km, lat_deg, lon_deg, utc, has_tinf, tinf)
+        else
+            st = AtmosStatus.missing_jb
+        end
+    end
+end

@@ -1,6 +1,7 @@
 //! NAIF DAF/SPK reader for Chebyshev (type 2) segments -- the pure-Rust port of
-//! `matlab_sils/pop/03_frames_time/ephemeris/+de440/open.m`, `state.m` and
-//! `chebval.m` (identical to `private/chebval.m`).
+//! `matlab_sils/pop/03_frames_time/ephemeris/+de440/open.m` and the record choice of `state.m`. The Chebyshev
+//! evaluation (`chebval.m`, identical to `private/chebval.m`) is env's method env_de440, generated from the design
+//! into `gen::de440::cheb_state` (tools/engine_build.py): the reader finds the record and hands it over.
 //!
 //! The kernel is parsed once into a flat word array (DAF word `W`, 1-based as in
 //! MATLAB's `D(W)`, lives at `words[W-1]`), plus a segment table. Evaluating a
@@ -80,8 +81,9 @@ pub struct Kernel {
     segments: Vec<Segment>,
 }
 
-/// Largest Chebyshev degree supported without allocation (DE440 uses 8..14).
-pub const MAX_COEF: usize = 64;
+/// Most Chebyshev coefficients a component of a type-2 record may hold: the design's capacity (`gen::de440::DE_NC`;
+/// DE440 uses 8..14).
+pub const MAX_COEF: usize = crate::gen::de440::DE_NC as usize;
 
 fn rd_i32(b: &[u8], off: usize, big: bool) -> i32 {
     let a = [b[off], b[off + 1], b[off + 2], b[off + 3]];
@@ -188,62 +190,23 @@ impl Kernel {
         let k = k as usize;
         let start = s.sa - 1 + k * s.rsize; // 0-based index of word sa + k*rsize
         let rec = &self.words[start..start + s.rsize];
-        let (mid, radius) = (rec[0], rec[1]);
-        let tau = (et - mid) / radius;
-        let nc = s.ncoef;
-        let mut t = [0.0f64; MAX_COEF];
-        let mut dt = [0.0f64; MAX_COEF];
-        cheb_basis(tau, &mut t[..nc], &mut dt[..nc]);
-        let mut pos = [0.0; 3];
-        let mut vel = [0.0; 3];
-        for c in 0..3 {
-            let coef = &rec[2 + c * nc..2 + (c + 1) * nc];
-            let (p, v) = chebval_basis(coef, &t[..nc], &dt[..nc], radius);
-            pos[c] = p;
-            vel[c] = v;
-        }
-        (pos, vel)
+        let mut r = [0.0f64; crate::gen::de440::DE_REC as usize];
+        r[..s.rsize].copy_from_slice(rec);
+        crate::gen::de440::cheb_state(r, s.ncoef as i64, et)
     }
-}
-
-/// Chebyshev polynomials T_i(x) and their derivatives dT_i/dx (the two recurrences
-/// of `de440.chebval`). `t` and `dt` must have equal length n >= 1.
-pub fn cheb_basis(x: f64, t: &mut [f64], dt: &mut [f64]) {
-    let n = t.len();
-    t[0] = 1.0;
-    if n > 1 { t[1] = x; }
-    for i in 2..n { t[i] = 2.0 * x * t[i - 1] - t[i - 2]; }
-    dt[0] = 0.0;
-    if n > 1 { dt[1] = 1.0; }
-    if n > 2 { dt[2] = 4.0 * x; }
-    for i in 3..n { dt[i] = 2.0 * x * dt[i - 1] + 2.0 * t[i - 1] - dt[i - 2]; }
-}
-
-fn chebval_basis(c: &[f64], t: &[f64], dt: &[f64], radius: f64) -> (f64, f64) {
-    let mut val = 0.0;
-    let mut der = 0.0;
-    for i in 0..c.len() {
-        val += c[i] * t[i];
-        der += c[i] * dt[i];
-    }
-    (val, der / radius)
 }
 
 /// Chebyshev series value and derivative at `x` in [-1,1]; the derivative is divided
-/// by `radius` (per second for a type-2 record half-length). Port of `de440.chebval`.
-/// Series longer than [`MAX_COEF`] allocate.
+/// by `radius` (per second for a type-2 record half-length). Port of `de440.chebval`: the design's evaluation
+/// (`gen::de440::cheb_state`) of a record with mid-point 0 and half-length 1, at `x`. At most [`MAX_COEF`]
+/// coefficients.
 pub fn chebval(c: &[f64], x: f64, radius: f64) -> (f64, f64) {
     let n = c.len();
     if n == 0 { return (0.0, 0.0); }
-    if n <= MAX_COEF {
-        let mut t = [0.0f64; MAX_COEF];
-        let mut dt = [0.0f64; MAX_COEF];
-        cheb_basis(x, &mut t[..n], &mut dt[..n]);
-        chebval_basis(c, &t[..n], &dt[..n], radius)
-    } else {
-        let mut t = vec![0.0; n];
-        let mut dt = vec![0.0; n];
-        cheb_basis(x, &mut t, &mut dt);
-        chebval_basis(c, &t, &dt, radius)
-    }
+    assert!(n <= MAX_COEF, "chebval: {n} coefficients, at most {MAX_COEF}");
+    let mut r = [0.0f64; crate::gen::de440::DE_REC as usize];
+    r[1] = 1.0;
+    r[2..2 + n].copy_from_slice(c);
+    let (p, v) = crate::gen::de440::cheb_state(r, n as i64, x);
+    (p[0], v[0] / radius)
 }

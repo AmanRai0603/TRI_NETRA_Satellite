@@ -32,7 +32,7 @@ From `tests/regression/design.tndb`.
 | ctl | **blocked** | 4 blocked, 26 open, 9 unproven |
 | design | **open** | 15 open, 37 unproven |
 | dyn | **blocked** | 1 blocked, 6 open, 19 unproven |
-| env | **blocked** | 13 blocked, 9 open, 39 unproven |
+| env | **blocked** | 24 blocked, 9 open, 45 unproven |
 | fdir | **blocked** | 3 blocked, 4 open, 3 unproven |
 | fsw | **blocked** | 1 blocked, 163 open, 14 unproven |
 | gdn | **blocked** | 7 blocked, 17 open, 7 unproven |
@@ -101,7 +101,7 @@ From `tests/regression/design.tndb`.
 | ctl | **blocked** | 4 blocked, 26 open, 9 unproven |
 | design | **open** | 15 open, 37 unproven |
 | dyn | **blocked** | 1 blocked, 6 open, 19 unproven |
-| env | **blocked** | 13 blocked, 9 open, 39 unproven |
+| env | **blocked** | 24 blocked, 9 open, 45 unproven |
 | fdir | **blocked** | 3 blocked, 4 open, 3 unproven |
 | fsw | **blocked** | 1 blocked, 163 open, 14 unproven |
 | gdn | **blocked** | 7 blocked, 17 open, 7 unproven |

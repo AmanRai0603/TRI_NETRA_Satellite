@@ -22,46 +22,14 @@
 #![deny(missing_docs)]
 #![allow(rustdoc::broken_intra_doc_links)] // unit brackets like [K], [m/s] in the docs
 use crate::atmos::dtm2020::KpIn;
-use crate::atmos::octave::{datenum, interp1_linear_extrap, interp1_nearest};
+use crate::atmos::octave::{datenum, interp1_linear_extrap};
+use crate::gen::swindex as swi;
 
-/// Kp nodes of the standard Kp <-> ap table (`kp2ap`/`ap2kp` of atmos.spaceweather).
-const KPV: [f64; 28] = [
-    0.0, 0.33, 0.67, 1.0, 1.33, 1.67, 2.0, 2.33, 2.67, 3.0, 3.33, 3.67, 4.0, 4.33, 4.67, 5.0, 5.33, 5.67, 6.0, 6.33, 6.67, 7.0, 7.33,
-    7.67, 8.0, 8.33, 8.67, 9.0,
-];
-/// ap nodes of the same table.
-const APV: [f64; 28] = [
-    0.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 9.0, 12.0, 15.0, 18.0, 22.0, 27.0, 32.0, 39.0, 48.0, 56.0, 67.0, 80.0, 94.0, 111.0, 132.0,
-    154.0, 179.0, 207.0, 236.0, 300.0, 400.0,
-];
-
-/// `kp2ap` (atmos.spaceweather): nearest node of the standard table, Kp clamped to [0, 9].
-#[allow(clippy::manual_clamp)] // min/max, not clamp: MATLAB max(0,min(9,x)) semantics
-pub fn kp2ap(kp: f64) -> f64 {
-    if kp.is_nan() {
-        return f64::NAN;
-    }
-    interp1_nearest(&KPV, &APV, kp.min(9.0).max(0.0))
-}
-
-/// `ap2kp` (atmos.spaceweather): nearest node, ap clamped to [0, 400].
-#[allow(clippy::manual_clamp)]
-pub fn ap2kp(ap: f64) -> f64 {
-    if ap.is_nan() {
-        return f64::NAN;
-    }
-    interp1_nearest(&APV, &KPV, ap.min(400.0).max(0.0))
-}
-
-/// `ap2kp` of data.spaceweather_forecast: LINEAR with extrapolation on
-/// Kp = (0:27)/3, ap clamped above at 400 only.
-pub fn ap2kp_forecast(ap: f64) -> f64 {
-    let mut kpv = [0.0f64; 28];
-    for (i, k) in kpv.iter_mut().enumerate() {
-        *k = i as f64 / 3.0;
-    }
-    interp1_linear_extrap(&APV, &kpv, ap.min(400.0))
-}
+/// `kp2ap` (atmos.spaceweather): nearest node of the standard table, Kp clamped to [0, 9]. `ap2kp`: the inverse,
+/// nearest node, ap clamped to [0, 400]. `ap2kp_forecast` (data.spaceweather_forecast): LINEAR with extrapolation on
+/// Kp = (0:27)/3, ap clamped above at 400 only. env's method env_space_weather over env's Kp-ap table, generated
+/// from the design into `gen::swindex`.
+pub use crate::gen::swindex::{ap2kp, ap2kp_forecast, kp2ap};
 
 /// Manual space weather (`opts.manual` / `cfg.spaceweather.manual`). `F107` is
 /// required; `F107a` defaults to `F107`; at least one of `Kp`/`ap` is required (the
@@ -170,46 +138,35 @@ fn assert_finite(sw: &SpaceWeather) -> Result<(), SwError> {
     Ok(())
 }
 
-/// The manual branch of `atmos.spaceweather(utc, struct('manual', m))`.
+/// The manual branch of `atmos.spaceweather(utc, struct('manual', m))`: env's method (`gen::swindex::from_manual`).
 pub fn from_manual(m: &ManualIndices) -> Result<SpaceWeather, SwError> {
-    let f107 = m.f107;
-    let f107a = m.f107a.unwrap_or(f107);
-    let has_kp = match m.kp {
-        Some(KpIn::Scalar(k)) => !k.is_nan(),
-        Some(KpIn::Akp(a)) => !a.iter().any(|x| x.is_nan()),
-        None => false,
+    let (kind, akp) = match m.kp {
+        None => (0, [f64::NAN; 4]),
+        Some(KpIn::Scalar(k)) => (1, [k, 0.0, k, 0.0]),
+        Some(KpIn::Akp(a)) => (2, a),
     };
-    let has_ap = matches!(m.ap, Some(a) if !a.is_nan());
-    let (kp, ap) = if has_kp && has_ap {
-        (m.kp.unwrap(), m.ap.unwrap())
-    } else if has_kp {
-        match m.kp.unwrap() {
-            KpIn::Scalar(k) => (KpIn::Scalar(k), kp2ap(k)),
-            KpIn::Akp(_) => return Err(SwError::AkpNeedsAp),
-        }
-    } else if has_ap {
-        let ap = m.ap.unwrap();
-        (KpIn::Scalar(ap2kp(ap)), ap)
-    } else {
-        return Err(SwError::ManualGeomag);
-    };
-    let ap3 = m.ap3.unwrap_or(ap);
-    let mut aph = [ap3; 7];
-    aph[0] = ap;
-    let sw = SpaceWeather {
-        f107,
-        f107a,
-        kp,
-        ap,
-        ap3,
-        aph,
-        f107_today: f107,
-        origin: SwOrigin::Manual,
-        aph_source: "manual-flat (no storm history)",
-        f107_lag: None,
-    };
-    assert_finite(&sw)?;
-    Ok(sw)
+    let (st, w) = swi::from_manual(m.f107, m.f107a.is_some(), m.f107a.unwrap_or(f64::NAN), kind, akp, m.ap.is_some(), m.ap.unwrap_or(f64::NAN),
+                                   m.ap3.is_some(), m.ap3.unwrap_or(f64::NAN));
+    match st {
+        swi::SWSTATUS_SW_OK => Ok(SpaceWeather {
+            f107: w.f107,
+            f107a: w.f107a,
+            kp: if w.kp_is_array { KpIn::Akp(w.akp) } else { KpIn::Scalar(w.kp) },
+            ap: w.ap,
+            ap3: w.ap3,
+            aph: w.aph,
+            f107_today: w.f107_today,
+            origin: SwOrigin::Manual,
+            aph_source: "manual-flat (no storm history)",
+            f107_lag: None,
+        }),
+        swi::SWSTATUS_MANUAL_GEOMAG => Err(SwError::ManualGeomag),
+        swi::SWSTATUS_AKP_NEEDS_AP => Err(SwError::AkpNeedsAp),
+        swi::SWSTATUS_NONFINITE_F107 => Err(SwError::NonFinite("F107")),
+        swi::SWSTATUS_NONFINITE_F107A => Err(SwError::NonFinite("F107a")),
+        swi::SWSTATUS_NONFINITE_KP => Err(SwError::NonFinite("Kp")),
+        _ => Err(SwError::NonFinite("ap")),
+    }
 }
 
 /// The uniform daily space-weather table of `data.spaceweather` /
@@ -415,15 +372,16 @@ pub enum DriverSet {
     Set,
 }
 
-/// `data.drivers(model, ..)` segmentation; `None` for an unknown model name.
+/// `data.drivers(model, ..)` segmentation (env's method, `gen::swindex::drivers_for`); `None` for an unknown model
+/// name.
 pub fn drivers_for(model: &str) -> Option<DriverSet> {
-    match model.to_ascii_lowercase().as_str() {
-        "exponential" => Some(DriverSet::None),
-        "nrlmsise" | "dtm2020" => Some(DriverSet::F107Kp),
-        "dtm2020_research" | "dtm2020_res" => Some(DriverSet::F30Ap60),
-        "jb2008" => Some(DriverSet::Set),
-        _ => None,
-    }
+    let m = crate::atmos::AtmosModel::from_name(model)?;
+    Some(match swi::drivers_for(m.choice()) {
+        swi::DRIVERSET_NO_DRIVERS => DriverSet::None,
+        swi::DRIVERSET_F107_KP => DriverSet::F107Kp,
+        swi::DRIVERSET_F30_AP60 => DriverSet::F30Ap60,
+        _ => DriverSet::Set,
+    })
 }
 
 // ---------------------------------------------------------------------------------

@@ -1,50 +1,36 @@
 //! Post-Newtonian (IERS 2010) relativistic accelerations -- port of
 //! `matlab_sils/pop/02_forces/+relativity/*` (`schwarzschild`, `lenseThirring`,
-//! `deSitter`, `total`) and `02_forces/+forces/relativity.m` ([`force`]).
+//! `deSitter`, `total`) and `02_forces/+forces/relativity.m` ([`force`]): env's method env_relativity, generated from
+//! the design into `gen::relativity` (tools/engine_build.py). What is left here is the crate's names for the terms and
+//! the inputs.
 //!
 //! ECI position/velocity [m, m/s]; accelerations [m/s^2].
 
-use crate::ephem::{constants, EphemInputs};
-use crate::la::{cross, dot, norm, V3};
+use crate::ephem::EphemInputs;
+use crate::gen::relativity as rel;
+use crate::la::V3;
 
-/// Default Earth angular momentum per unit mass `Jvec = [0;0;9.8e8]` [m^2/s].
-pub const J_EARTH: V3 = [0.0, 0.0, 9.8e8];
+/// Default Earth angular momentum per unit mass `Jvec = [0;0;9.8e8]` [m^2/s] (the design's, `gen::relativity::j_earth`).
+pub fn j_earth() -> V3 {
+    rel::j_earth()
+}
 
 /// `relativity.schwarzschild(rSat, vSat, mu, gamma, beta)` (MATLAB defaults:
 /// mu = `mu_earth`, gamma = beta = 1).
 pub fn schwarzschild(r: &V3, v: &V3, mu: f64, gamma: f64, beta: f64) -> V3 {
-    let c = constants().c;
-    let rn = norm(r);
-    let k = mu / (c * c * rn.powf(3.0));
-    let kr = 2.0 * (beta + gamma) * mu / rn - gamma * dot(v, v);
-    let kv = 2.0 * (1.0 + gamma) * dot(r, v);
-    [k * (kr * r[0] + kv * v[0]), k * (kr * r[1] + kv * v[1]), k * (kr * r[2] + kv * v[2])]
+    rel::schwarzschild(*r, *v, mu, gamma, beta)
 }
 
 /// `relativity.lenseThirring(rSat, vSat, mu, Jvec, gamma)` (defaults: `Jvec` =
-/// [`J_EARTH`], gamma = 1).
+/// [`j_earth`], gamma = 1).
 pub fn lense_thirring(r: &V3, v: &V3, mu: f64, jvec: &V3, gamma: f64) -> V3 {
-    let c = constants().c;
-    let rn = norm(r);
-    let k = (1.0 + gamma) * mu / (c * c * rn.powf(3.0));
-    let rxv = cross(r, v);
-    let vxj = cross(v, jvec);
-    let q = 3.0 / (rn * rn);
-    let rj = dot(r, jvec);
-    [k * (q * rxv[0] * rj + vxj[0]), k * (q * rxv[1] * rj + vxj[1]), k * (q * rxv[2] * rj + vxj[2])]
+    rel::lense_thirring(*r, *v, mu, *jvec, gamma)
 }
 
 /// `relativity.deSitter(rSat, vSat, earthHelioPos, earthHelioVel, gamma)`:
 /// geodesic precession; `earth_helio_*` = Earth w.r.t. Sun [m, m/s] (default gamma 1).
-pub fn de_sitter(_r: &V3, v: &V3, earth_helio_pos: &V3, earth_helio_vel: &V3, gamma: f64) -> V3 {
-    let k = constants();
-    let (c, gms) = (k.c, k.gm_sun);
-    let re = earth_helio_pos;
-    let den = c * c * norm(re).powf(3.0);
-    let ae = [-gms * re[0] / den, -gms * re[1] / den, -gms * re[2] / den];
-    let w = cross(&cross(earth_helio_vel, &ae), v);
-    let g = 1.0 + 2.0 * gamma;
-    [g * w[0], g * w[1], g * w[2]]
+pub fn de_sitter(r: &V3, v: &V3, earth_helio_pos: &V3, earth_helio_vel: &V3, gamma: f64) -> V3 {
+    rel::de_sitter(*r, *v, *earth_helio_pos, *earth_helio_vel, gamma)
 }
 
 /// A switchable term of `relativity.total` (`terms` cell entries).
@@ -96,33 +82,36 @@ impl std::fmt::Display for NoEphem {
 }
 impl std::error::Error for NoEphem {}
 
+impl Term {
+    /// The design's choice RelTerm (`gen::relativity::RELTERM_*`).
+    pub fn choice(self) -> i64 {
+        match self {
+            Term::Schwarzschild => rel::RELTERM_SCHWARZSCHILD,
+            Term::LenseThirring => rel::RELTERM_LENSETHIRRING,
+            Term::DeSitter => rel::RELTERM_DESITTER,
+        }
+    }
+}
+
 /// `[a, parts] = relativity.total(rSat, vSat, E, terms, mu)`. `earth_helio` =
 /// (`E.earth_helio_pos`, `E.earth_helio_vel`) or None when `E` is empty. Terms are
-/// applied in the order given (Lense-Thirring with the default `Jvec`, gamma = beta = 1).
+/// applied in the order given, at most 8 (Lense-Thirring with the default `Jvec`, gamma = beta = 1): the design's.
 pub fn total(r: &V3, v: &V3, earth_helio: Option<(&V3, &V3)>, terms: &[Term], mu: f64) -> Result<(V3, Parts), NoEphem> {
-    let mut a = [0.0; 3];
-    let mut parts = Parts::default();
-    for t in terms {
-        let p = match t {
-            Term::Schwarzschild => {
-                let p = schwarzschild(r, v, mu, 1.0, 1.0);
-                parts.schwarzschild = Some(p);
-                p
-            }
-            Term::LenseThirring => {
-                let p = lense_thirring(r, v, mu, &J_EARTH, 1.0);
-                parts.lensethirring = Some(p);
-                p
-            }
-            Term::DeSitter => {
-                let (pos, vel) = earth_helio.ok_or(NoEphem)?;
-                let p = de_sitter(r, v, pos, vel, 1.0);
-                parts.desitter = Some(p);
-                p
-            }
-        };
-        for i in 0..3 { a[i] += p[i]; }
+    assert!(terms.len() <= 8, "relativity.total: {} terms, at most 8", terms.len());
+    let mut t = [0i64; 8];
+    for (k, x) in terms.iter().enumerate() {
+        t[k] = x.choice();
     }
+    let (hp, hv) = earth_helio.map(|(p, v)| (*p, *v)).unwrap_or(([0.0; 3], [0.0; 3]));
+    let (ok, a, p) = rel::rel_total(*r, *v, earth_helio.is_some(), hp, hv, t, terms.len() as i64, mu);
+    if !ok {
+        return Err(NoEphem);
+    }
+    let parts = Parts {
+        schwarzschild: p.has_schwarzschild.then_some(p.schwarzschild),
+        lensethirring: p.has_lensethirring.then_some(p.lensethirring),
+        desitter: p.has_desitter.then_some(p.desitter),
+    };
     Ok((a, parts))
 }
 

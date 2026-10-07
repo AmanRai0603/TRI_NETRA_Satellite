@@ -243,7 +243,8 @@ record Guid
 end
 ```
 
-`Guid()` makes one with every field zero.
+`Guid()` makes one with every field zero. A field of a call's result, `f().x`, is written `getfield(f(), 'x')` in MATLAB,
+which cannot index a call.
 
 ## Numbers: what every translation does the same way
 
@@ -262,7 +263,10 @@ library's last bits differ:
 `sin cos tan asin acos atan atan2 exp log log10 log2 pow hypot` come from each platform's library and may
 differ in their last bits (more after a large argument is reduced). `hypot` is the library's own (Rust `f64::hypot`, C
 `hypot`, MATLAB `hypot`), not `sqrt(a*a + b*b)`, so a transcription of code that calls it gives that code's bits
-(trinetra-toolbox/3, S7.3). The tests hold a function
+(trinetra-toolbox/3, S7.3). `pow` is the library's pow in every build too: the Rust translation for std hands
+`f64::powf` its exponent through `core::hint::black_box`, because the optimiser would otherwise rewrite `pow(x, 2.0)` as
+`x*x`, whose last bit can differ from the library's (S7.3b); a square is written `x^2`, and a transcription of code that
+squared through `powf(x, 2.0)`, which the compiler made `x*x`, writes `x^2`. The tests hold a function
 that uses none of them, directly or through what it calls, to **bit-for-bit** agreement, and the
 others to 1e-12 relative.
 
@@ -286,7 +290,12 @@ each value's exact bits, for readers that do not parse decimals to the nearest d
 `jsondecode`).
 
 A function with rare branches asks for more vectors with a line in its documentation,
-`## vectors: 160`; otherwise the count is the package's, fewer for a function of many values.
+`## vectors: 160`; otherwise the count is the package's, fewer for a function of many values (a function over large
+workspaces may ask for fewer, `## vectors: 2`).
+
+A function whose result amplifies its maths library's last bit (a central difference amplifies it about a million
+times) states the tolerance its translations are held to, with its reason beside it, `## tolerance: 1e-8`: each output
+within that of the largest of its outputs, in place of 1e-12 relative (`tools/translators.py`; S7.3d's tides).
 
 Where random inputs would not reach the cases that matter (a byte stream almost never holds a
 frame whose CRC checks), a function draws its inputs through another one,

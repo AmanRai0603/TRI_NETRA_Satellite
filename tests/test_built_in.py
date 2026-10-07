@@ -1,4 +1,4 @@
-"""The built-in count (docs/PLAN_2_0.md S7; docs/S7_INVENTORY.md S7.1b, S7.3): the nodes of the regression copy whose
+"""The built-in count (docs/PLAN_2_0.md S7; docs/S7_INVENTORY.md S7.1b, S7.3, S7.3b-e): the nodes of the regression copy whose
 relation is still compiled code, by group. S7 lowers it to zero; each step that writes a method takes its nodes
 out of BUILT_IN here, in the same change.
   - the count and the list are exactly these, and tools/health.py reports them;
@@ -110,6 +110,69 @@ class BuiltIn(unittest.TestCase):
             self.assertEqual(x["sealed_as"], "unconfirmed", nid)
             self.assertTrue(any(w.startswith("the developer's revision S7.3") and "not yet signed by a person" in w for w in x["why"]), nid)
         self.assertEqual(self.beh("nav_time_frames"), "stated")
+
+    def test_the_atmosphere_is_methods_the_developer_transcribed(self):
+        """S7.3b: the precision orbit's atmosphere (DTM2020 operational and research, JB2008, the exponential
+        atmosphere, the density switch and which index each model takes) is env's methods over env's tables, each the
+        developer's unsigned transcription, generated into adcs-pop (tools/engine_build.py). No built-in node moved:
+        the inventory counted these models toolbox until the ruling of 7 Oct, so they were never built-in."""
+        added = {"env_dtm2020_operational", "env_dtm2020_research", "env_jb2008", "env_exponential_atmosphere",
+                 "env_density_model", "env_space_weather"}
+        data = {"env_dtm2020_coefficients", "env_jb2008_indices", "env_kp_ap_table"}
+        for nid in added | data:
+            _k, x = self.nodes[nid]
+            rows = {(s, f): (v, o) for s, f, v, o in x["body"]["content"]}
+            self.assertEqual(self.beh(nid), "method" if nid in added else "lookup", nid)
+            if nid in added:
+                self.assertIn("the developer's revision S7.3b", rows[("code", "pseudocode")][1], nid)
+                self.assertTrue(rows[("code", "transcribes")][0], nid)
+                self.assertEqual(rows[("code", "generate")][0], "adcs-pop", nid)
+            self.assertEqual(x["sealed_as"], "unconfirmed", nid)
+            self.assertTrue(any(w.startswith("the developer's revision S7.3b") and "not yet signed by a person" in w for w in x["why"]), nid)
+
+    def test_the_ephemeris_is_a_method_the_developer_transcribed(self):
+        """S7.3c: the Sun and Moon from DE440 and the per-step bundle are env's method over env's slice of DE440's
+        records, the developer's unsigned transcription, generated into adcs-pop. l3_dist_row_09 (the Sun's direction
+        and distance) stays built-in: the fast orbit's analytic Sun (adcs-sim-core ephem.rs) is S7.4's."""
+        for nid, beh in (("env_de440", "method"), ("env_de440_slice", "lookup")):
+            _k, x = self.nodes[nid]
+            rows = {(s, f): (v, o) for s, f, v, o in x["body"]["content"]}
+            self.assertEqual(self.beh(nid), beh, nid)
+            if beh == "method":
+                self.assertIn("the developer's revision S7.3c", rows[("code", "pseudocode")][1])
+                self.assertEqual(rows[("code", "generate")][0], "adcs-pop")
+            self.assertEqual(x["sealed_as"], "unconfirmed", nid)
+            self.assertTrue(any(w.startswith("the developer's revision S7.3c") and "not yet signed by a person" in w for w in x["why"]), nid)
+        self.assertEqual(self.beh("l3_dist_row_09"), "built-in")
+
+    def test_gravity_and_tides_are_methods_the_developer_transcribed(self):
+        """S7.3d: the Earth's gravity (the field's normalisation and zonals, the spherical harmonics, the potential, the
+        zonal J2..J6, the force's frames), the solid-Earth tides (IERS 2010) and the ocean tides are env's methods over
+        env's tables, the developer's unsigned transcriptions, generated into adcs-pop; the ICGEM .gfc reader stays
+        code. No built-in node moved (they were toolbox in the inventory until the ruling of 7 Oct)."""
+        for nid, beh in (("env_gravity_field", "method"), ("env_solid_tides", "method"), ("env_ocean_tides", "method"),
+                         ("env_gravity_default_field", "lookup"), ("env_ocean_tide_tables", "lookup")):
+            _k, x = self.nodes[nid]
+            rows = {(s, f): (v, o) for s, f, v, o in x["body"]["content"]}
+            self.assertEqual(self.beh(nid), beh, nid)
+            if beh == "method":
+                self.assertIn("the developer's revision S7.3d", rows[("code", "pseudocode")][1], nid)
+                self.assertEqual(rows[("code", "generate")][0], "adcs-pop", nid)
+            self.assertEqual(x["sealed_as"], "unconfirmed", nid)
+            self.assertTrue(any(w.startswith("the developer's revision S7.3d") and "not yet signed by a person" in w for w in x["why"]), nid)
+
+    def test_relativity_is_a_method_the_developer_transcribed(self):
+        """S7.3e: the IERS 2010 post-Newtonian terms (Schwarzschild, Lense-Thirring, de Sitter) and their sum are env's
+        method, the developer's unsigned transcription, generated into adcs-pop. The count stays 89 through S7.3b-e:
+        the published models were toolbox in the inventory until the ruling of 7 Oct, never built-in nodes; each step
+        added env's nodes for them."""
+        _k, x = self.nodes["env_relativity"]
+        rows = {(s, f): (v, o) for s, f, v, o in x["body"]["content"]}
+        self.assertEqual(self.beh("env_relativity"), "method")
+        self.assertIn("the developer's revision S7.3e", rows[("code", "pseudocode")][1])
+        self.assertEqual(rows[("code", "generate")][0], "adcs-pop")
+        self.assertEqual(x["sealed_as"], "unconfirmed")
+        self.assertTrue(any(w.startswith("the developer's revision S7.3e") and "not yet signed by a person" in w for w in x["why"]))
 
     def test_every_behaviour_is_one_the_schema_knows(self):
         self.assertEqual(tndb.check(REG / "design.tndb"), [])

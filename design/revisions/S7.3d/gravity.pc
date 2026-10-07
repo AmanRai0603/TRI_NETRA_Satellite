@@ -1,0 +1,324 @@
+## The Earth's gravity field, transcribed from adcs-pop gravity (mod.rs, field.rs, sphharm.rs, potential.rs, zonal.rs),
+## the port of the Octave POP's +grav (defaultField, sphericalHarmonic, potential, j2accel, twoBody), op.gravLoad's
+## zonals and forces.gravity, over env's default field (the EGM zonals J2..J6). The spherical harmonics are
+## Cunningham's V/W recursion, unnormalised, Cartesian and pole-safe (Montenbruck and Gill 2000, 3.2.4-3.2.5), on
+## coefficients denormalised once per field with the MATLAB's arithmetic; the field is evaluated in ECEF and rotated
+## back to ECI. A field read from an ICGEM .gfc file (the reader stays code) is handed in as its normalised C and S.
+## Every norm is Octave's scaled one where the MATLAB calls norm.
+## The developer's transcription (S7.3d), unsigned.
+module gravity
+
+## The largest degree the generated evaluation holds (the MATLAB's default for a .gfc field is 60; the tests' fields
+## reach 70), the coefficient arrays' capacity (degree + 1)^2 and the recursion's (degree + 3)^2.
+const GRAV_NCAP = 120
+const GRAV_CS = 14641
+const GRAV_VS = 15129
+
+## Which model forces.gravity takes: the point mass, the fast zonals (j2..j6) or the spherical harmonics.
+choice GravityModel = twobody, zonal, sphharm
+
+## Octave's norm of a 3-vector: the scaled accumulator of its vector_norm (norm_accumulator_2), which can differ from
+## sqrt(x^2 + y^2 + z^2) in the last bit.
+fn onorm(v: real[1][3] in -1e8 .. 1e8) -> n: real[1]
+    let scl: real[1] = 0
+    let sum = 1.0
+    for i in 0 .. 3
+        let t = abs(v[i])
+        if scl == t
+            sum = sum + 1.0
+        elif scl < t
+            let q = scl/t
+            sum = sum*(q*q)
+            sum = sum + 1.0
+            scl = t
+        elif t != 0.0
+            let q2 = t/scl
+            sum = sum + q2*q2
+        end
+    end
+    n = scl*sqrt(sum)
+end
+
+## denormFactor(n, m) of grav.sphericalHarmonic: sqrt((2 - d0m)(2n + 1)/((n - m + 1)...(n + m))).
+fn denorm_factor(n: int in 0 .. 120, m: int in 0 .. 120) -> f: real[1]
+    let d = if m == 0 then 1.0 else 2.0
+    let p = 1.0
+    for k in n - m + 1 .. n + m + 1
+        p = p*real(k)
+    end
+    f = sqrt(d*real(2*n + 1)/p)
+end
+
+## The default field's normalised zonal C(n, 0) = -Jn/sqrt(2n + 1) (grav.defaultField), degrees 2 to 6 of a 7 x 7
+## row-major matrix with C(0, 0) = 1; its GM [m^3/s^2] and radius [m].
+fn default_field() -> (gm: real[1], re: real[1], cbar: real[1][49])
+    gm = GRAV_DEFAULT_GM[0]
+    re = GRAV_DEFAULT_RE[0]
+    cbar = 0
+    cbar[0] = 1.0
+    for k in 0 .. len(GRAV_DEFAULT_J)
+        let n = k + 2
+        cbar[n*7] = -GRAV_DEFAULT_J[k]/sqrt(real(2*n + 1))
+    end
+end
+
+## op.gravLoad's zonal of degree n from the normalised C(n, 0): Jn = -C(n, 0) sqrt(2n + 1).
+fn zonal_j(c_n0: real[1] in -1e-3 .. 1e-3, n: int in 2 .. 6) -> j: real[1]
+    j = -c_n0*sqrt(real(2*n + 1))
+end
+
+## sphericalHarmonic's denormalised C and S of a field to degree nmax (row-major, stride nmax + 1) from its normalised
+## Cbar and Sbar (row-major, stride `stride`), and the recursion's factors (2n - 1)/(n - m) and (n + m - 1)/(n - m)
+## (stride nmax + 3), the same divisions the MATLAB makes on every call.
+## vectors: 2
+fn sph_setup(nmax: int in 0 .. 120, cbar: inout real[1][GRAV_CS] in -1 .. 1, sbar: inout real[1][GRAV_CS] in -1 .. 1, \
+             stride: int in 1 .. 121, c: inout real[1][GRAV_CS] in -1 .. 1, s: inout real[1][GRAV_CS] in -1 .. 1, \
+             f1: inout real[1][GRAV_VS] in -1 .. 1, f2: inout real[1][GRAV_VS] in -1 .. 1) -> ok: bool
+    let cs = nmax + 1
+    for n in 0 .. nmax + 1
+        for m in 0 .. n + 1
+            let pi_ = denorm_factor(n, m)
+            c[n*cs + m] = cbar[n*stride + m]*pi_
+            if m > 0
+                s[n*cs + m] = sbar[n*stride + m]*pi_
+            end
+        end
+    end
+    let vs = nmax + 3
+    for m in 1 .. nmax + 2
+        for n in m + 2 .. nmax + 2
+            let nf = real(n)
+            let mf = real(m)
+            f1[n*vs + m] = (2.0*nf - 1.0)/(nf - mf)
+            f2[n*vs + m] = (nf + mf - 1.0)/(nf - mf)
+        end
+    end
+    ok = true
+end
+
+## grav.sphericalHarmonic(r_ecef, mu, Re, Cbar, Sbar, nmax, mmax): the ECEF acceleration [m/s^2], central term
+## included, over a field set up to degree nws (sph_setup), to degree nmax and order min(mmax, nmax). V and W are the
+## recursion's workspace (stride nws + 3); they are filled row by row, which makes the operations the MATLAB's column
+## by column fill makes, on the same operands.
+## vectors: 2
+fn sph_accel(r: real[1][3] in -8e6 .. 8e6, mu: real[1] in 3.9e14 .. 4e14, re: real[1] in 6.3e6 .. 6.4e6, nws: int in 0 .. 120, \
+             nmax: int in 0 .. 120, mmax_in: int in 0 .. 120, c: inout real[1][GRAV_CS] in -1 .. 1, \
+             s: inout real[1][GRAV_CS] in -1 .. 1, f1: inout real[1][GRAV_VS] in -1 .. 1, f2: inout real[1][GRAV_VS] in -1 .. 1, \
+             v: inout real[1][GRAV_VS] in -1 .. 1, w: inout real[1][GRAV_VS] in -1 .. 1) -> a: real[1][3]
+    let mmax = min(mmax_in, nmax)
+    let x = r[0]
+    let y = r[1]
+    let z = r[2]
+    let r2 = x*x + y*y + z*z
+    let rn = sqrt(r2)
+    let xf = re*x/r2
+    let yf = re*y/r2
+    let zf = re*z/r2
+    let rr2 = re*re/r2
+    let vs = nws + 3
+    v[0] = re/rn
+    w[0] = 0.0
+    let mcol = mmax + 1
+    for n in 1 .. nmax + 2
+        let nf = real(n)
+        let row = n*vs
+        let row1 = row - vs
+        # the zonal column (W stays 0)
+        if n == 1
+            v[row] = zf*1.0*v[row1]
+        else
+            let row2 = row - 2*vs
+            v[row] = ((2.0*nf - 1.0)*zf*v[row1] - (nf - 1.0)*rr2*v[row2])/nf
+        end
+        w[row] = 0.0
+        # the general terms 1 <= m <= min(n - 2, mmax + 1)
+        if n >= 3
+            let mg = min(n - 2, mcol)
+            let rowb = row - 2*vs
+            for m in 1 .. mg + 1
+                v[row + m] = f1[row + m]*zf*v[row1 + m] - f2[row + m]*rr2*v[rowb + m]
+                w[row + m] = f1[row + m]*zf*w[row1 + m] - f2[row + m]*rr2*w[rowb + m]
+            end
+        end
+        # the first sub-diagonal m = n - 1, from the previous row's sectorial term
+        if n >= 2 and n - 1 <= mcol
+            let md = n - 1
+            let mf = real(md)
+            v[row + md] = (2.0*mf + 1.0)*zf*v[row1 + md]
+            w[row + md] = (2.0*mf + 1.0)*zf*w[row1 + md]
+        end
+        # the sectorial term m = n
+        if n <= mcol
+            let vp = v[row1 + n - 1]
+            let wp = w[row1 + n - 1]
+            v[row + n] = (2.0*nf - 1.0)*(xf*vp - yf*wp)
+            w[row + n] = (2.0*nf - 1.0)*(xf*wp + yf*vp)
+        end
+    end
+    # the sum (Montenbruck and Gill eq. 3.33)
+    let ax: real[1] = 0
+    let ay: real[1] = 0
+    let az: real[1] = 0
+    let cs = nws + 1
+    for n in 0 .. nmax + 1
+        let mt = min(n, mmax)
+        let rowa = (n + 1)*vs
+        let c0 = c[n*cs]
+        let s0 = s[n*cs]
+        if not (c0 == 0.0 and s0 == 0.0)
+            ax = ax - c0*v[rowa + 1]
+            ay = ay - c0*w[rowa + 1]
+            az = az + real(n + 1)*(-c0*v[rowa] - s0*w[rowa])
+        end
+        for m in 1 .. mt + 1
+            let cnm = c[n*cs + m]
+            let snm = s[n*cs + m]
+            if not (cnm == 0.0 and snm == 0.0)
+                let fac = real((n - m + 1)*(n - m + 2))
+                let vp1 = v[rowa + m + 1]
+                let wp1 = w[rowa + m + 1]
+                let vm1 = v[rowa + m - 1]
+                let wm1 = w[rowa + m - 1]
+                ax = ax + 0.5*(-cnm*vp1 - snm*wp1 + fac*(cnm*vm1 + snm*wm1))
+                ay = ay + 0.5*(-cnm*wp1 + snm*vp1 + fac*(-cnm*wm1 + snm*vm1))
+                az = az + real(n - m + 1)*(-cnm*v[rowa + m] - snm*w[rowa + m])
+            end
+        end
+    end
+    let scale = mu/(re*re)
+    a = [scale*ax, scale*ay, scale*az]
+end
+
+## normLegendre of grav.potential: the fully normalised Pbar(n, m) at sin(phi) = sp, cos(phi) = cp, to degree nn
+## (row-major, stride nn + 1), by the forward column recursion.
+## vectors: 2
+fn norm_legendre_pot(sp: real[1] in -1 .. 1, cp: real[1] in 0 .. 1, nn: int in 0 .. 120) -> p: real[1][GRAV_CS]
+    let st = nn + 1
+    p = 0
+    p[0] = 1.0
+    if nn >= 1
+        p[st] = sqrt(3.0)*sp
+        p[st + 1] = sqrt(3.0)*cp
+    end
+    for n in 2 .. nn + 1
+        let nf = real(n)
+        p[n*st + n] = sqrt((2.0*nf + 1.0)/(2.0*nf))*cp*p[(n - 1)*st + n - 1]
+        for m in 0 .. n
+            let mf = real(m)
+            let a = sqrt((2.0*nf + 1.0)*(2.0*nf - 1.0)/((nf - mf)*(nf + mf)))
+            let b = sqrt((2.0*nf + 1.0)*(nf + mf - 1.0)*(nf - mf - 1.0)/((2.0*nf - 3.0)*(nf - mf)*(nf + mf)))
+            if m == n - 1
+                p[n*st + m] = a*sp*p[(n - 1)*st + m]
+            else
+                p[n*st + m] = a*sp*p[(n - 1)*st + m] - b*p[(n - 2)*st + m]
+            end
+        end
+    end
+end
+
+## grav.potential(r, mu, Re, Cbar, Sbar, nmax): the geopotential U [m^2/s^2] (a = +grad U; not pole-safe, as the
+## MATLAB), from normalised coefficients (row-major, stride `stride`).
+## vectors: 2
+fn potential(r: real[1][3] in -8e6 .. 8e6, mu: real[1] in 3.9e14 .. 4e14, re: real[1] in 6.3e6 .. 6.4e6, \
+             cbar: inout real[1][GRAV_CS] in -1 .. 1, sbar: inout real[1][GRAV_CS] in -1 .. 1, stride: int in 1 .. 121, \
+             nmax: int in 0 .. 120) -> u: real[1]
+    let x = r[0]
+    let y = r[1]
+    let z = r[2]
+    let rn = onorm(r)
+    let phi = asin(z/rn)
+    let lam = atan2(y, x)
+    let sp = sin(phi)
+    let cp = cos(phi)
+    let st = nmax + 1
+    let p = norm_legendre_pot(sp, cp, nmax)
+    let cml: real[1][121] = 0
+    let sml: real[1][121] = 0
+    for m in 0 .. nmax + 1
+        cml[m] = cos(real(m)*lam)
+        sml[m] = sin(real(m)*lam)
+    end
+    let acc: real[1] = 0
+    let rr = re/rn
+    for n in 0 .. nmax + 1
+        let rn_pow = pow(rr, real(n))
+        let inner: real[1] = 0
+        for m in 0 .. n + 1
+            inner = inner + p[n*st + m]*(cbar[n*stride + m]*cml[m] + sbar[n*stride + m]*sml[m])
+        end
+        acc = acc + rn_pow*inner
+    end
+    u = mu/rn*acc
+end
+
+## grav.twoBody(r, mu): -mu r/|r|^3 (|r| Octave's norm).
+fn two_body(r: real[1][3] in -8e6 .. 8e6, mu: real[1] in 3.9e14 .. 4e14) -> a: real[1][3]
+    let rn3 = pow(onorm(r), 3.0)
+    a = [-mu*r[0]/rn3, -mu*r[1]/rn3, -mu*r[2]/rn3]
+end
+
+## j2accel's zonal C (row-major, stride nj + 2): C(0, 0) = 1 and C(n, 0) = -J(n - 1)/sqrt(2n + 1) for J3 .. J(nj + 1),
+## given J = [J2 .. J(nj + 1)]; J2 is j2accel's closed form, not in C.
+## vectors: 2
+fn zonal_c(j: real[1][5] in -2e-3 .. 2e-3, nj: int in 0 .. 5) -> c: real[1][GRAV_CS]
+    let maxn = nj + 1
+    let st = maxn + 1
+    c = 0
+    c[0] = 1.0
+    for kk in 2 .. nj + 1
+        let n = kk + 1
+        c[n*st] = -j[kk - 1]/sqrt(real(2*n + 1))
+    end
+end
+
+## Whether j2accel needs the zonal spherical harmonics: a J3 .. J(nj + 1) that is not zero.
+fn zonal_uses_sh(j: real[1][5] in -2e-3 .. 2e-3, nj: int in 0 .. 5) -> b: bool
+    b = false
+    for k in 1 .. nj
+        if j[k] != 0.0
+            b = true
+        end
+    end
+end
+
+## grav.j2accel(r_ecef, mu, Re, J): the central term, J2's closed form, and, when a J3 .. J6 is not zero, the zonal
+## spherical harmonics to degree nj + 1 (set up from zonal_c, workspace c, s, f1, f2, v, w) less their central term.
+## vectors: 2
+fn j2accel(r: real[1][3] in -8e6 .. 8e6, mu: real[1] in 3.9e14 .. 4e14, re: real[1] in 6.3e6 .. 6.4e6, \
+           j: real[1][5] in -2e-3 .. 2e-3, nj: int in 0 .. 5, use_sh: bool, c: inout real[1][GRAV_CS] in -1 .. 1, \
+           s: inout real[1][GRAV_CS] in -1 .. 1, f1: inout real[1][GRAV_VS] in -1 .. 1, f2: inout real[1][GRAV_VS] in -1 .. 1, \
+           v: inout real[1][GRAV_VS] in -1 .. 1, w: inout real[1][GRAV_VS] in -1 .. 1) -> a: real[1][3]
+    let rn = onorm(r)
+    let rn3 = pow(rn, 3.0)
+    a = [-mu*r[0]/rn3, -mu*r[1]/rn3, -mu*r[2]/rn3]
+    if nj > 0
+        if j[0] != 0.0
+            let j2 = j[0]
+            let u = r[2]/rn
+            # re^2 and u^2: the code's re.powf(2.0) and u.powf(2.0), which the compiler always made re*re and u*u
+            let k = 1.5*j2*mu*re^2/pow(rn, 4.0)
+            let u2 = u^2
+            a[0] = a[0] + k*(5.0*u2 - 1.0)*r[0]/rn
+            a[1] = a[1] + k*(5.0*u2 - 1.0)*r[1]/rn
+            a[2] = a[2] + k*(5.0*u2 - 3.0)*r[2]/rn
+        end
+        if use_sh
+            let maxn = nj + 1
+            let sh = sph_accel(r, mu, re, maxn, maxn, 0, c, s, f1, f2, v, w)
+            let tb = two_body(r, mu)
+            for i in 0 .. 3
+                a[i] = a[i] + sh[i] - tb[i]
+            end
+        end
+    end
+end
+
+## forces.gravity's frames: r_ecef = C r_eci.
+fn to_ecef(c: mat3[1] in -1 .. 1, r: real[1][3] in -8e6 .. 8e6) -> re_: real[1][3]
+    re_ = c*r
+end
+
+## forces.gravity's frames: a_eci = C' a_ecef.
+fn from_ecef(c: mat3[1] in -1 .. 1, a: real[1][3] in -10 .. 10) -> ae: real[1][3]
+    ae = transpose(c)*a
+end

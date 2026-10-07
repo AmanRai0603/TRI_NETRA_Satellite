@@ -1,0 +1,322 @@
+## DTM2020 research (F30 and ap60), transcribed from adcs-pop atmos/dtm2020_research.rs, the port of the Octave POP's
+## density_models/dtm2020/research (DTM2020_coeffs_init, dtm5, gldtm_Hp, bint_oe, geogm, dtm2020_density), the
+## adapter +atmos/dtm2020_research.m and data_sources/spaceweather/solar/f30_to_f107scale.m and f30_from_f107.m, over
+## env's DTM2020 research coefficients and DTM2020's open-ended ap-Kp table; the temperature profile and the species
+## are dtm2020's (dtm_profile). Bruinsma and Boniface (2021), J. Space Weather Space Clim. 11, 47. Despite the _Hp in
+## gldtm_Hp the model is driven by the hourly ap60 (turned into an open-ended Kp by bint_oe), not by Hp60.
+## The developer's transcription (S7.3b), unsigned.
+module dtm2020res
+
+## bint_oe: ap60 to the open-ended Kp by piecewise-linear interpolation over the extended ap-Kp table (extrapolated
+## below 0 and above ap = 657).
+fn bint_oe(ap: real[1] in -10 .. 800) -> kp: real[1]
+    let n = len(DTM_AAP)
+    let done = false
+    kp = 0.0
+    for i in 0 .. n
+        if not done and DTM_AAP[i] == ap
+            kp = DTM_KP[i]
+            done = true
+        end
+    end
+    for i in 0 .. n
+        if not done and DTM_AAP[i] > ap
+            if i == 0
+                kp = DTM_KP[0] + ((DTM_KP[1] - DTM_KP[0])/(DTM_AAP[1] - DTM_AAP[0]))*(ap - DTM_AAP[0])
+            else
+                kp = DTM_KP[i - 1] + ((DTM_KP[i] - DTM_KP[i - 1])/(DTM_AAP[i] - DTM_AAP[i - 1]))*(ap - DTM_AAP[i - 1])
+            end
+            done = true
+        end
+    end
+    if not done
+        kp = DTM_KP[n - 2] + ((DTM_KP[n - 1] - DTM_KP[n - 2])/(DTM_AAP[n - 1] - DTM_AAP[n - 2]))*(ap - DTM_AAP[n - 2])
+    end
+end
+
+## geogm: geographic latitude and longitude [deg] to geomagnetic [deg], the dipole pole at 78.5 N, 291 E; ok is false
+## where the MATLAB raises its angle error (a NaN quadrant).
+fn geogm(xlat: real[1] in -90 .. 90, xlong_in: real[1] in -180 .. 360) -> (gmlat: real[1], gmlong: real[1], ok: bool)
+    let rfac = pi/180.0
+    let platr = 78.5*rfac
+    let plongr = 291.0*rfac
+    let xlong = xlong_in
+    if xlong == 291.0
+        xlong = 291.1
+    end
+    let spl = sin(platr)
+    let cpl = cos(platr)
+    let rlat = xlat*rfac
+    let rlong = xlong*rfac
+    let slm = spl*sin(rlat) + cpl*cos(rlat)*cos(plongr - rlong)
+    let clm = sqrt(1.0 - pow(slm, 2.0))
+    let phim1 = cos(rlat)*sin(rlong - plongr)/clm
+    let phim2 = (spl*slm - sin(rlat))/(cpl*clm)
+    gmlat = asin(slm)/rfac
+    gmlong = 0.0
+    ok = true
+    if phim1 >= 0.0 and phim2 >= 0.0
+        gmlong = asin(phim1)/rfac
+    elif phim1 >= 0.0 and phim2 < 0.0
+        gmlong = (pi - abs(asin(phim1)))/rfac
+    elif phim1 < 0.0 and phim2 < 0.0
+        gmlong = (pi + abs(asin(phim1)))/rfac
+    elif phim1 < 0.0 and phim2 >= 0.0
+        gmlong = (2.0*pi - abs(asin(phim1)))/rfac
+    else
+        ok = false
+    end
+end
+
+## gldtm_Hp: the research g(L) expansion of one constituent (gdel); akp the 8 open-ended Kp dtm5 builds from ap60.
+fn gldtm_hp(f: real[1] in 60 .. 250, fbar: real[1] in 60 .. 250, akp: real[1][8] in 0 .. 12, day: real[1] in 1 .. 366, \
+            a: real[1][97] in -1 .. 1, plg: Plg, hloc: Hloc, xlon: real[1] in -3.2 .. 3.2, ff0: real[1] in 0 .. 1) -> gdel: real[1]
+    let da: real[1][97] = 0
+    da[2] = plg.p20
+    da[3] = plg.p40
+    da[74] = plg.p10
+    da[77] = plg.p30
+    da[78] = plg.p50
+    da[79] = plg.p60
+    let fmfb1 = f - fbar
+    let fbm150 = fbar - 150.0
+    da[4] = fmfb1
+    da[6] = fbm150
+    da[5] = pow(da[4], 2.0)
+    da[69] = pow(da[6], 2.0)
+    da[82] = da[4]*plg.p10
+    da[83] = da[4]*plg.p20
+    da[84] = da[4]*plg.p30
+    da[85] = da[6]*plg.p20
+    da[86] = da[6]*plg.p30
+    da[87] = da[6]*plg.p40
+    # Kp saturation during strong storms
+    let m = akp
+    let sat: int[6] = [1, 4, 5, 6, 7, 8]
+    for q in 0 .. 6
+        let k = sat[q]
+        if akp[k - 1] >= 9.0 and akp[2] > 7.5
+            m[k - 1] = 9.0 + (akp[k - 1] - 9.0)/5.0
+        end
+    end
+    let dkp = m[0]
+    let dkpm = m[2]
+    da[7] = dkp
+    da[8] = plg.p20mg*dkp
+    da[60] = pow(dkp, 2.0)
+    da[61] = plg.p20mg*da[60]
+    da[62] = plg.p30mg*dkp
+    da[63] = plg.p10mg*dkp
+    da[67] = plg.p60mg*dkp
+    da[68] = plg.p40mg*dkp
+    da[64] = dkpm
+    da[65] = plg.p20mg*dkpm
+    da[66] = pow(dkpm, 2.0)
+    da[73] = plg.p20mg*da[66]
+    # flux-dependent storm-time high-order Kp terms
+    let flux = max(f, fbar)
+    let iflux = floor(flux)
+    let scale75 = 1.0
+    let scale4 = 1.0
+    if iflux >= 200.0
+        scale75 = 0.333
+        scale4 = 0.1
+    elif iflux >= 190.0
+        scale75 = 0.55
+        scale4 = 0.15
+    elif iflux >= 180.0
+        scale75 = 0.733
+        scale4 = 0.2
+    elif iflux >= 160.0
+        scale75 = 1.0
+        scale4 = 0.4
+    elif iflux >= 140.0
+        scale75 = 1.0
+        scale4 = 0.8
+    end
+    da[75] = scale75*pow(da[60], 2.0)
+    da[71] = scale4*pow(m[4], 4.0)
+    da[72] = scale4*pow(m[5], 4.0)
+    da[76] = scale4*pow(m[6], 4.0)
+    # overwrites the p60 term, as the Fortran
+    da[79] = scale4*pow(m[7], 4.0)
+    da[70] = m[1]
+    let f0 = a[4]*da[4] + a[5]*da[5] + a[6]*da[6] + a[69]*da[69] + a[82]*da[82] + a[83]*da[83] + a[84]*da[84] \
+             + a[85]*da[85] + a[86]*da[86] + a[87]*da[87]
+    let f1f = 1.0 + f0*ff0
+    f0 = f0 + a[2]*da[2] + a[3]*da[3] + a[74]*da[74] + a[77]*da[77] + a[7]*da[7] + a[8]*da[8] + a[60]*da[60] \
+         + a[61]*da[61] + a[68]*da[68] + a[64]*da[64] + a[65]*da[65] + a[66]*da[66] + a[72]*da[72] + a[73]*da[73] \
+         + a[75]*da[75] + a[76]*da[76] + a[78]*da[78] + a[79]*da[79] + a[70]*da[70] + a[71]*da[71] + a[62]*da[62] \
+         + a[63]*da[63] + a[67]*da[67]
+    let rot = 0.017214206
+    let rot2 = 0.034428412
+    da[9] = cos(rot*(day - a[11]))
+    da[10] = plg.p20*da[9]
+    da[12] = cos(rot2*(day - a[14]))
+    da[13] = plg.p20*da[12]
+    let coste = cos(rot*(day - a[18]))
+    da[15] = plg.p10*coste
+    da[16] = plg.p30*coste
+    da[17] = da[6]*da[15]
+    let cos2te = cos(rot2*(day - a[20]))
+    da[19] = plg.p10*cos2te
+    da[39] = plg.p30*cos2te
+    da[59] = da[6]*da[19]
+    da[21] = plg.p11*hloc.ch
+    da[22] = plg.p31*hloc.ch
+    da[23] = da[6]*da[21]
+    da[24] = da[21]*coste
+    da[25] = plg.p21*hloc.ch*coste
+    da[26] = plg.p11*hloc.sh
+    da[27] = plg.p31*hloc.sh
+    da[28] = da[6]*da[26]
+    da[29] = da[26]*coste
+    da[30] = plg.p21*hloc.sh*coste
+    da[94] = plg.p51*hloc.ch
+    da[95] = plg.p51*hloc.sh
+    da[31] = plg.p22*hloc.c2h
+    da[37] = plg.p42*hloc.c2h
+    da[32] = plg.p32*hloc.c2h*coste
+    da[33] = plg.p22*hloc.s2h
+    da[38] = plg.p42*hloc.s2h
+    da[34] = plg.p32*hloc.s2h*coste
+    da[88] = plg.p32*hloc.c2h
+    da[89] = plg.p32*hloc.s2h
+    da[90] = da[6]*da[31]
+    da[91] = da[6]*da[33]
+    da[92] = plg.p62*hloc.c2h
+    da[93] = plg.p62*hloc.s2h
+    da[35] = plg.p33*hloc.c3h
+    da[36] = plg.p33*hloc.s3h
+    let fp = a[9]*da[9] + a[10]*da[10] + a[12]*da[12] + a[13]*da[13] + a[15]*da[15] + a[16]*da[16] + a[17]*da[17] \
+             + a[19]*da[19] + a[21]*da[21] + a[22]*da[22] + a[23]*da[23] + a[24]*da[24] + a[25]*da[25] + a[26]*da[26] \
+             + a[27]*da[27] + a[28]*da[28] + a[29]*da[29] + a[30]*da[30] + a[31]*da[31] + a[32]*da[32] + a[33]*da[33] \
+             + a[34]*da[34] + a[35]*da[35] + a[36]*da[36] + a[37]*da[37] + a[38]*da[38] + a[39]*da[39] + a[59]*da[59] \
+             + a[88]*da[88] + a[89]*da[89] + a[90]*da[90] + a[91]*da[91] + a[92]*da[92] + a[93]*da[93] + a[94]*da[94] \
+             + a[95]*da[95]
+    da[40] = plg.p10mg*cos2te*dkpm
+    da[41] = plg.p10mg*coste*dkpm
+    da[42] = plg.p10mg*cos2te*dkp
+    da[43] = plg.p11mg*hloc.ch*dkp
+    da[44] = plg.p31mg*hloc.ch*dkp
+    da[45] = plg.p22mg*hloc.c2h*dkp
+    da[46] = plg.p11mg*hloc.sh*dkp
+    da[47] = plg.p31mg*hloc.sh*dkp
+    da[48] = plg.p22mg*hloc.s2h*dkp
+    fp = fp + a[40]*da[40] + a[41]*da[41] + a[42]*da[42] + a[43]*da[43] + a[44]*da[44] + a[45]*da[45] + a[46]*da[46] \
+         + a[47]*da[47] + a[48]*da[48]
+    let clfl = cos(xlon)
+    let slfl = sin(xlon)
+    da[49] = plg.p11*clfl
+    da[50] = plg.p21*clfl
+    da[51] = plg.p31*clfl
+    da[52] = plg.p41*clfl
+    da[53] = plg.p51*clfl
+    da[54] = plg.p11*slfl
+    da[55] = plg.p21*slfl
+    da[56] = plg.p31*slfl
+    da[57] = plg.p41*slfl
+    da[58] = plg.p51*slfl
+    fp = fp + a[49]*da[49] + a[50]*da[50] + a[51]*da[51] + a[52]*da[52] + a[53]*da[53] + a[54]*da[54] + a[55]*da[55] \
+         + a[56]*da[56] + a[57]*da[57] + a[58]*da[58]
+    gdel = f0 + fp*f1f
+end
+
+## The nine gdel of the research set (tt, t0, tp, then the six species) by the research expansion.
+fn dtm5_gdel(f: real[1] in 60 .. 250, fbar: real[1] in 60 .. 250, akp: real[1][8] in 0 .. 12, day: real[1] in 1 .. 366, \
+             plg: Plg, hloc: Hloc, xlon: real[1] in -3.2 .. 3.2) -> (gd_tt: real[1], gd_t0: real[1], gd_tp: real[1], gd: real[1][6])
+    let ff0: real[1][6] = [0.0, 0.0, 1.0, 1.0, 1.0, 1.0]
+    gd_tt = gldtm_hp(f, fbar, akp, day, dtm_column(DtmSet.research, 0), plg, hloc, xlon, 1.0)
+    gd_t0 = gldtm_hp(f, fbar, akp, day, dtm_column(DtmSet.research, 7), plg, hloc, xlon, 1.0)
+    gd_tp = gldtm_hp(f, fbar, akp, day, dtm_column(DtmSet.research, 8), plg, hloc, xlon, 1.0)
+    gd = 0
+    for i in 0 .. 6
+        gd[i] = gldtm_hp(f, fbar, akp, day, dtm_column(DtmSet.research, i + 1), plg, hloc, xlon, ff0[i])
+    end
+end
+
+## dtm5: the research DTM2020 at day of year day, F30 on the F10.7 scale f and its mean fbar [sfu], the 10-slot ap60,
+## altitude alti [km], local solar time hl [rad], latitude alat and longitude xlon [rad]; ok is false only where geogm
+## would raise its angle error.
+fn dtm5(day: real[1] in 1 .. 366, f: real[1] in 60 .. 250, fbar: real[1] in 60 .. 250, ap60: real[1][10] in 0 .. 400, \
+        alti: real[1] in 120.5 .. 1500, hl: real[1] in 0 .. 6.3, alat: real[1] in -1.6 .. 1.6, xlon: real[1] in -3.2 .. 3.2) -> (ok: bool, o: DtmRaw)
+    o = DtmRaw()
+    let plg = plg_geographic(alat)
+    let crd = 180.0/pi
+    let dlat = alat*crd
+    let dlon = xlon*crd
+    let gmlatd, gmlond, gok = geogm(dlat, dlon)
+    ok = gok
+    if ok
+        let gmlatr = gmlatd*(pi/180.0)
+        let cm = sin(gmlatr)
+        let cm2 = pow(cm, 2.0)
+        let cm4 = pow(cm2, 2.0)
+        let sm = cos(gmlatr)
+        let sm2 = pow(sm, 2.0)
+        plg.p10mg = cm
+        plg.p20mg = 1.5*cm2 - 0.5
+        plg.p30mg = cm*(2.5*cm2 - 1.5)
+        plg.p40mg = 4.375*cm4 - 3.75*cm2 + 0.375
+        plg.p50mg = cm*(7.875*cm4 - 8.75*cm2 + 1.875)
+        plg.p60mg = (5.5*cm*plg.p50mg - 2.5*plg.p40mg)/3.0
+        plg.p11mg = sm
+        plg.p22mg = 3.0*sm2
+        plg.p31mg = sm*(7.5*cm2 - 1.5)
+        let hloc = hloc_of(hl)
+        # ap60 to the open-ended Kp
+        let latabs = floor(abs(dlat))
+        let ap_eff: real[1] = 0
+        if latabs >= 70.0
+            let xl75 = (90.0 - latabs)/20.0
+            ap_eff = (1.0 - xl75)*((ap60[2] + ap60[1] + ap60[3])/3.0) + xl75*((ap60[2] + ap60[3] + ap60[4])/3.0)
+        elif latabs >= 30.0
+            let xl45 = (69.0 - latabs)/40.0
+            ap_eff = (1.0 - xl45)*((ap60[2] + ap60[3] + ap60[4])/3.0) + xl45*((ap60[4] + ap60[3] + ap60[0])/3.0)
+        else
+            ap_eff = (ap60[3] + ap60[4] + ap60[0])/3.0
+        end
+        let akp: real[1][8] = [bint_oe(ap_eff), bint_oe(ap60[1]) - bint_oe(ap60[2]), bint_oe(ap60[5]), 0.0, \
+                               bint_oe(ap60[6]), bint_oe(ap60[7]), bint_oe(ap60[8]), bint_oe(ap60[9])]
+        let gd_tt, gd_t0, gd_tp, gd = dtm5_gdel(f, fbar, akp, day, plg, hloc, xlon)
+        o = dtm_profile(DtmSet.research, gd_tt, gd_t0, gd_tp, gd, alti)
+    end
+end
+
+## dtm2020_density: the research model at a geodetic altitude [km], latitude and longitude [deg], local solar time [h],
+## day of year, F30 and its mean on the F10.7 scale [sfu] and the 10-slot ap60; ok is false at or below 120 km, or
+## where geogm fails.
+fn research_density(alt_km: real[1] in 120.5 .. 1500, lat_deg: real[1] in -90 .. 90, lon_deg: real[1] in -180 .. 360, \
+                    lst_hours: real[1] in 0 .. 24, doy: real[1] in 1 .. 366, f30: real[1] in 60 .. 250, \
+                    f30_bar: real[1] in 60 .. 250, ap60: real[1][10] in 0 .. 400) -> (ok: bool, o: DtmDensity)
+    o = DtmDensity()
+    ok = alt_km > 120.0
+    if ok
+        let hl = lst_hours/24.0*2.0*pi
+        let alat = deg2rad(lat_deg)
+        let xlon = deg2rad(lon_deg)
+        let ok5, raw = dtm5(doy, f30, f30_bar, ap60, alt_km, hl, alat, xlon)
+        ok = ok5
+        if ok
+            o = dtm_pack(raw)
+        end
+    end
+end
+
+## f30_to_f107scale: the native F30 on the F10.7 scale, the DTM2020 paper's eq. 2 with its drift in the decimal year.
+fn f30_to_f107scale(f30: real[1] in 30 .. 300, decimal_year: real[1] in 1950 .. 2100) -> f: real[1]
+    f = -1.5998 + 1.553755*f30 + (0.22446*decimal_year - 447.13328)
+end
+
+## f30_from_f107: a pseudo-F30 from F10.7 (get_f30's last resort).
+fn f30_from_f107(f107: real[1] in 30 .. 300) -> f: real[1]
+    f = (f107 + 1.6)/1.554
+end
+
+## The decimal year of +atmos/dtm2020_research.m (leap-year aware, through datenum).
+fn dtm_decimal_year(utc: real[1][6] in 0 .. 2100) -> y: real[1]
+    let y0 = utc[0]
+    let d0 = datenum(y0, 1.0, 1.0, 0.0, 0.0, 0.0)
+    let d1 = datenum(y0 + 1.0, 1.0, 1.0, 0.0, 0.0, 0.0)
+    y = y0 + (datenum(utc[0], utc[1], utc[2], utc[3], utc[4], utc[5]) - d0)/(d1 - d0)
+end

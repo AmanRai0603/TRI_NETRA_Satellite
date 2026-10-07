@@ -5,7 +5,10 @@
 //! Aerospace Toolbox `atmosnrlmsise00`, which is not part of the repository, so it is
 //! not ported ([`AtmosError::NotPorted`]).
 //!
-//! Every function is allocation-free (the DTM coefficient tables are parsed once).
+//! The switch (a choice) and its adapters are env's method env_density_model, the models env's methods over env's
+//! tables, generated from the design into `gen::densitymodel`, `gen::dtm2020`, `gen::dtm2020res`, `gen::jb2008` and
+//! `gen::expatmos` (tools/engine_build.py). What is left here is the crate's types (the drivers as references, the
+//! composition as an enum, the errors with their names) and the calls.
 #![deny(missing_docs)]
 #![allow(rustdoc::broken_intra_doc_links)] // unit brackets like [K], [m/s] in the docs
 pub mod octave;
@@ -14,12 +17,13 @@ pub mod dtm2020_research;
 pub mod exponential;
 pub mod jb2008;
 
+use crate::gen::densitymodel as dm;
 use crate::spaceweather::{ResearchSw, SpaceWeather};
-use dtm2020::{DtmError, KpIn};
+use dtm2020::DtmError;
 use jb2008::JbIndices;
 
-/// Avogadro constant [1/mol] (`de440.constants().N_A`).
-pub const N_A: f64 = 6.02214076e23;
+/// Avogadro constant [1/mol] (`de440.constants().N_A`): the design's.
+pub use exponential::N_A;
 
 /// Density model names of `atmos.provider` / `cfg.forces.drag.atmos`.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -141,58 +145,54 @@ impl From<DtmError> for AtmosError {
     }
 }
 
+impl AtmosModel {
+    /// The design's choice AtmosModel (`gen::densitymodel::ATMOSMODEL_*`).
+    pub fn choice(self) -> i64 {
+        match self {
+            AtmosModel::Exponential => dm::ATMOSMODEL_EXPONENTIAL,
+            AtmosModel::Nrlmsise => dm::ATMOSMODEL_NRLMSISE,
+            AtmosModel::Jb2008 => dm::ATMOSMODEL_JB2008,
+            AtmosModel::Dtm2020 => dm::ATMOSMODEL_DTM2020,
+            AtmosModel::Dtm2020Research => dm::ATMOSMODEL_DTM2020_RESEARCH,
+        }
+    }
+}
+
+/// The switch's answer in the crate's types: the atm, or the error the design's status names.
+fn answer(st: i64, a: dm::AtmosOut, alt_km: f64) -> Result<AtmosOut, AtmosError> {
+    let e = match st {
+        dm::ATMOSSTATUS_OK => {
+            let comp = if a.species { Composition::Species(a.n) } else { Composition::Mean { mmol: a.mmol, n_o: a.n_o } };
+            return Ok(AtmosOut { rho: a.rho, t: a.t, comp });
+        }
+        dm::ATMOSSTATUS_MISSING_F107 => AtmosError::MissingDriver("F107"),
+        dm::ATMOSSTATUS_MISSING_F107A => AtmosError::MissingDriver("F107a"),
+        dm::ATMOSSTATUS_MISSING_KP => AtmosError::MissingDriver("Kp"),
+        dm::ATMOSSTATUS_MISSING_F30 => AtmosError::MissingDriver("F30"),
+        dm::ATMOSSTATUS_MISSING_F30_BAR => AtmosError::MissingDriver("F30_bar"),
+        dm::ATMOSSTATUS_MISSING_AP60 => AtmosError::MissingDriver("ap60"),
+        dm::ATMOSSTATUS_MISSING_JB => AtmosError::MissingDriver("jb_idx"),
+        dm::ATMOSSTATUS_ALTITUDE => AtmosError::AltitudeTooLow(alt_km),
+        dm::ATMOSSTATUS_GEOGM => AtmosError::AltitudeTooLow(f64::NAN),
+        dm::ATMOSSTATUS_NONFINITE => AtmosError::NonFinite,
+        _ => AtmosError::NotPorted("nrlmsise: MATLAB Aerospace Toolbox atmosnrlmsise00 is not in the repository"),
+    };
+    Err(e)
+}
+
 /// `atmos.dtm2020(geo, sw)`: operational DTM2020 with the species converted to m^-3.
 pub fn dtm2020_atm(geo: &Geo, sw: &SpaceWeather) -> Result<AtmosOut, AtmosError> {
-    if !sw.f107.is_finite() {
-        return Err(AtmosError::MissingDriver("F107"));
-    }
-    if !sw.f107a.is_finite() {
-        return Err(AtmosError::MissingDriver("F107a"));
-    }
-    let kp_ok = match sw.kp {
-        KpIn::Scalar(k) => k.is_finite(),
-        KpIn::Akp(a) => a.iter().all(|x| x.is_finite()),
-    };
-    if !kp_ok {
-        return Err(AtmosError::MissingDriver("Kp"));
-    }
-    let o = dtm2020::oper_density(geo.alt_km, geo.lat_deg, geo.lon_deg, geo.lst_h, geo.doy, sw.f107, sw.f107a, sw.kp, dtm2020::oper_coeffs())?;
-    let mut n = [0.0f64; 6];
-    for i in 0..6 {
-        n[i] = o.n_cm3[i] * 1e6;
-    }
-    Ok(AtmosOut { rho: o.rho_kgm3, t: o.t_k, comp: Composition::Species(n) })
+    let (st, a) = dm::dtm2020_atm(geo.alt_km, geo.lat_deg, geo.lon_deg, geo.lst_h, geo.doy, sw.f107, sw.f107a, sw.kp.akp());
+    answer(st, a, geo.alt_km)
 }
 
 /// `atmos.dtm2020_research(geo, sw)`: F30 rescaled to the F10.7 scale with the
 /// decimal-year drift (unless `f30_is_derived`), ap60 in all slots.
+/// NB atmos.dtm2020_research hands dtm2020_density's out.n on UNCONVERTED
+/// (cm^-3), unlike atmos.dtm2020 which converts to m^-3 -- ported as is.
 pub fn dtm2020_research_atm(geo: &Geo, sw: &ResearchSw) -> Result<AtmosOut, AtmosError> {
-    for (v, nm) in [(sw.f30, "F30"), (sw.f30_bar, "F30_bar"), (sw.ap60, "ap60")] {
-        if !v.is_finite() {
-            return Err(AtmosError::MissingDriver(nm));
-        }
-    }
-    let (fi, fbi) = if sw.f30_is_derived {
-        (sw.f30, sw.f30_bar)
-    } else {
-        let dy = dtm2020_research::decimal_year(&geo.utc);
-        (dtm2020_research::f30_to_f107scale(sw.f30, dy), dtm2020_research::f30_to_f107scale(sw.f30_bar, dy))
-    };
-    let o = dtm2020_research::density(
-        geo.alt_km,
-        geo.lat_deg,
-        geo.lon_deg,
-        geo.lst_h,
-        geo.doy,
-        fi,
-        fbi,
-        dtm2020_research::Ap60In::Scalar(sw.ap60),
-        dtm2020_research::research_coeffs(),
-    )?;
-    let n = o.n_cm3;
-    // NB atmos.dtm2020_research hands dtm2020_density's out.n on UNCONVERTED
-    // (cm^-3), unlike atmos.dtm2020 which converts to m^-3 -- ported as is.
-    Ok(AtmosOut { rho: o.rho_kgm3, t: o.t_k, comp: Composition::Species(n) })
+    let (st, a) = dm::dtm2020_research_atm(geo.alt_km, geo.lat_deg, geo.lon_deg, geo.lst_h, geo.doy, geo.utc, sw.f30, sw.f30_bar, sw.ap60, sw.f30_is_derived);
+    answer(st, a, geo.alt_km)
 }
 
 /// `atmos.jb2008(geo, sw)`: JB2008 total density; `Mmol = 16`, `nO = rho*N_A*1000/16`,
@@ -201,12 +201,8 @@ pub fn jb2008_atm(geo: &Geo, idx: &JbIndices, tinf: Option<f64>) -> Result<Atmos
     if idx.sol_t.len() < 2 || idx.dtc_t.len() < 2 {
         return Err(AtmosError::MissingDriver("jb_idx"));
     }
-    let (rho, _, _) = jb2008::jb2008_density(&geo.utc, geo.lon_deg, geo.lat_deg, geo.alt_km, idx);
-    if !rho.is_finite() {
-        return Err(AtmosError::NonFinite);
-    }
-    let avog16 = N_A * 1000.0 / 16.0;
-    Ok(AtmosOut { rho, t: tinf.unwrap_or(1000.0), comp: Composition::Mean { mmol: 16.0, n_o: rho * avog16 } })
+    let (st, a) = dm::jb2008_atm(geo.alt_km, geo.lat_deg, geo.lon_deg, geo.utc, tinf.is_some(), tinf.unwrap_or(0.0));
+    answer(st, a, geo.alt_km)
 }
 
 /// `atmos.exponential(alt_km)` as an [`AtmosOut`].
@@ -215,23 +211,22 @@ pub fn exponential_atm(alt_km: f64) -> AtmosOut {
     AtmosOut { rho: e.rho, t: e.t, comp: Composition::Mean { mmol: e.mmol, n_o: e.n_o } }
 }
 
-/// `atmos.provider(model, geo, sw)`: the density-model switch. No silent fallback: a
-/// model whose drivers are missing returns an error.
+/// `atmos.provider(model, geo, sw)`: the density-model switch (the design's). No silent
+/// fallback: a model whose drivers are missing returns an error.
 pub fn density(model: AtmosModel, geo: &Geo, drv: &AtmosDrivers) -> Result<AtmosOut, AtmosError> {
-    match model {
-        AtmosModel::Exponential => Ok(exponential_atm(geo.alt_km)),
-        AtmosModel::Nrlmsise => Err(AtmosError::NotPorted("nrlmsise: MATLAB Aerospace Toolbox atmosnrlmsise00 is not in the repository")),
-        AtmosModel::Dtm2020 => match drv {
-            AtmosDrivers::Sw(sw) => dtm2020_atm(geo, sw),
-            _ => Err(AtmosError::MissingDriver("F107")),
-        },
-        AtmosModel::Dtm2020Research => match drv {
-            AtmosDrivers::Research(sw) => dtm2020_research_atm(geo, sw),
-            _ => Err(AtmosError::MissingDriver("F30")),
-        },
-        AtmosModel::Jb2008 => match drv {
-            AtmosDrivers::Jb(idx, tinf) => jb2008_atm(geo, idx, *tinf),
-            _ => Err(AtmosError::MissingDriver("jb_idx")),
-        },
-    }
+    let nan = f64::NAN;
+    let (kind, f107, f107a, akp, f30, f30_bar, ap60, derived, tinf) = match drv {
+        AtmosDrivers::None => (dm::DRIVERS_NONE, nan, nan, [nan; 4], nan, nan, nan, false, None),
+        AtmosDrivers::Sw(sw) => (dm::DRIVERS_SPACEWEATHER, sw.f107, sw.f107a, sw.kp.akp(), nan, nan, nan, false, None),
+        AtmosDrivers::Research(sw) => (dm::DRIVERS_RESEARCH, nan, nan, [nan; 4], sw.f30, sw.f30_bar, sw.ap60, sw.f30_is_derived, None),
+        AtmosDrivers::Jb(idx, tinf) => {
+            if model == AtmosModel::Jb2008 && (idx.sol_t.len() < 2 || idx.dtc_t.len() < 2) {
+                return Err(AtmosError::MissingDriver("jb_idx"));
+            }
+            (dm::DRIVERS_JB2008, nan, nan, [nan; 4], nan, nan, nan, false, *tinf)
+        }
+    };
+    let (st, a) = dm::atmos_density(model.choice(), geo.alt_km, geo.lat_deg, geo.lon_deg, geo.lst_h, geo.doy, geo.utc, kind, f107, f107a, akp,
+                                    f30, f30_bar, ap60, derived, tinf.is_some(), tinf.unwrap_or(0.0));
+    answer(st, a, geo.alt_km)
 }

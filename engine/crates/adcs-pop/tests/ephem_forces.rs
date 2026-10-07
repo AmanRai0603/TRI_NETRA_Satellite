@@ -306,7 +306,7 @@ fn relativity_matches_matlab() {
         let inp = relativity::RelativityInput::new(k.r, k.v, Some(&k.e), &relativity::FORCE_DEFAULT_TERMS, mu);
         check("f_relativity", &relativity::force(&inp).unwrap(), &v3(&c["f_relativity"]), RTOL, AFLOOR);
         let mue = ephem::constants().mu_earth;
-        check("rel_lt_default", &relativity::lense_thirring(&k.r, &k.v, mue, &relativity::J_EARTH, 1.0), &v3(&c["rel_lt_default"]), RTOL, AFLOOR);
+        check("rel_lt_default", &relativity::lense_thirring(&k.r, &k.v, mue, &relativity::j_earth(), 1.0), &v3(&c["rel_lt_default"]), RTOL, AFLOOR);
         check("rel_sch_default", &relativity::schwarzschild(&k.r, &k.v, mue, 1.0, 1.0), &v3(&c["rel_sch_default"]), RTOL, AFLOOR);
         let terms = [Term::from_name("DeSitter").unwrap()];
         assert!(relativity::total(&k.r, &k.v, None, &terms, mu).is_err());

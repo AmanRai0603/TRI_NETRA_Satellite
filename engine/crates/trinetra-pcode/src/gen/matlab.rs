@@ -241,6 +241,8 @@ impl<'a> Gen<'a> {
             }
             ExprKind::Field { a, f } => match ann.choice {
                 Some((_, i)) => i.to_string(),
+                // a call's result cannot be indexed in MATLAB (f().x): its field through getfield
+                None if matches!(c.exprs[*a].kind, ExprKind::Call { .. }) => format!("getfield({}, '{f}')", self.ex(*a)),
                 None => format!("{}.{f}", self.ex(*a)),
             },
             ExprKind::Not(a) => format!("(~{})", self.ex(*a)),

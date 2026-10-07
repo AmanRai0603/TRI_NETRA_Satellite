@@ -1,0 +1,175 @@
+## Which index each density model takes, and the manual space weather, transcribed from adcs-pop spaceweather.rs, the
+## port of the Octave POP's +atmos/spaceweather.m (kp2ap, ap2kp and the manual branch), 05_data/+data/drivers.m (which
+## model eats which index) and +data/spaceweather_forecast.m's ap2kp, over env's standard Kp-ap table. The tables a
+## run reads from files (OMNI2, GFZ, SWPC; the daily table of atmos.spaceweather, the research drivers) and their
+## parsers stay code.
+## The developer's transcription (S7.3b), unsigned.
+module swindex
+
+## Which index set a density model needs (data.drivers): none (exponential), F10.7 and Kp/ap (nrlmsise, dtm2020; a
+## table or manual values), F30 and ap60 (dtm2020_research; no manual form), the SET indices (jb2008; no manual form).
+choice DriverSet = no_drivers, f107_kp, f30_ap60, set_indices
+
+## Why the manual space weather was refused: none, neither Kp nor ap given, a Kp array without its ap (MATLAB would
+## make a vector ap), an index not finite (F10.7, its mean, Kp, ap).
+choice SwStatus = sw_ok, manual_geomag, akp_needs_ap, nonfinite_f107, nonfinite_f107a, nonfinite_kp, nonfinite_ap
+
+## The sw of atmos.spaceweather's manual branch: F10.7 and its 81-day mean [sfu], Kp (one value, or the four-slot
+## array; akp holds it either way: [Kp, 0, Kp, 0] for one), whether it was the array, the daily and the 3-hourly ap,
+## NRLMSISE-00's seven-slot ap and the same-day F10.7.
+record SwManual
+    f107: real[1]
+    f107a: real[1]
+    kp_is_array: bool
+    kp: real[1]
+    akp: real[1][4]
+    ap: real[1]
+    ap3: real[1]
+    aph: real[1][7]
+    f107_today: real[1]
+end
+
+## Octave's interp1(x, y, xi, 'nearest') over a table of nodes (no extrapolation: nan outside [x(1), x(n)]); the breaks
+## are the midpoints, a tie going to the upper node.
+fn kp_ap_nearest(to_ap: bool, xi: real[1] in -1 .. 450) -> y: real[1]
+    let n = len(KP_AP_KP)
+    let x0 = if to_ap then KP_AP_KP[0] else KP_AP_AP[0]
+    let xn = if to_ap then KP_AP_KP[n - 1] else KP_AP_AP[n - 1]
+    if not (xi >= x0 and xi <= xn)
+        y = nan
+    else
+        let k = 0
+        let stop = false
+        for i in 0 .. n - 1
+            let a = if to_ap then KP_AP_KP[i] else KP_AP_AP[i]
+            let b = if to_ap then KP_AP_KP[i + 1] else KP_AP_AP[i + 1]
+            if not stop
+                if (a + b)/2.0 <= xi
+                    k = i + 1
+                else
+                    stop = true
+                end
+            end
+        end
+        k = min(k, n - 1)
+        y = if to_ap then KP_AP_AP[k] else KP_AP_KP[k]
+    end
+end
+
+## kp2ap (atmos.spaceweather): the nearest node of the standard table, Kp clamped to [0, 9].
+fn kp2ap(kp: real[1] in -1 .. 10) -> ap: real[1]
+    if isnan(kp)
+        ap = nan
+    else
+        ap = kp_ap_nearest(true, max(min(kp, 9.0), 0.0))
+    end
+end
+
+## ap2kp (atmos.spaceweather): the nearest node, ap clamped to [0, 400].
+fn ap2kp(ap: real[1] in -10 .. 450) -> kp: real[1]
+    if isnan(ap)
+        kp = nan
+    else
+        kp = kp_ap_nearest(false, max(min(ap, 400.0), 0.0))
+    end
+end
+
+## ap2kp of data.spaceweather_forecast: linear with extrapolation on Kp = (0:27)/3 over the table's ap, ap clamped
+## above at 400 only (Octave's min ignores a nan, so a nan ap is 400).
+fn ap2kp_forecast(ap: real[1] in -10 .. 450) -> kp: real[1]
+    let n = len(KP_AP_AP)
+    let xi = if isnan(ap) then 400.0 else min(ap, 400.0)
+    let lo = 0
+    let hi = n
+    settle max 16 until lo >= hi
+        let mid = div(lo + hi, 2)
+        if KP_AP_AP[mid] <= xi
+            lo = mid + 1
+        else
+            hi = mid
+        end
+    end
+    let i = 0
+    if lo > 0
+        i = lo - 1
+    end
+    i = min(i, n - 2)
+    let slope = (real(i + 1)/3.0 - real(i)/3.0)/(KP_AP_AP[i + 1] - KP_AP_AP[i])
+    kp = slope*(xi - KP_AP_AP[i]) + real(i)/3.0
+end
+
+## The manual branch of atmos.spaceweather(utc, struct('manual', m)): F10.7 required; its mean defaults to it; Kp
+## (kp_kind 1: one value, 2: the four-slot array, 0: none) or ap, at least one (the other derived from the standard
+## table); ap3 defaults to ap. A nan Kp or ap counts as not given.
+fn from_manual(f107: real[1] in 60 .. 250, has_f107a: bool, f107a: real[1] in 60 .. 250, kp_kind: int in 0 .. 2, \
+               akp: real[1][4] in 0 .. 9, has_ap: bool, ap_in: real[1] in 0 .. 400, has_ap3: bool, \
+               ap3_in: real[1] in 0 .. 400) -> (st: SwStatus, sw: SwManual)
+    sw = SwManual()
+    st = SwStatus.sw_ok
+    sw.f107 = f107
+    sw.f107a = if has_f107a then f107a else f107
+    let given_kp = false
+    if kp_kind == 1
+        given_kp = not isnan(akp[0])
+    elif kp_kind == 2
+        given_kp = not (isnan(akp[0]) or isnan(akp[1]) or isnan(akp[2]) or isnan(akp[3]))
+    end
+    let given_ap = has_ap and not isnan(ap_in)
+    let ap: real[1] = 0
+    if given_kp and given_ap
+        sw.kp_is_array = kp_kind == 2
+        sw.akp = akp
+        ap = ap_in
+    elif given_kp
+        if kp_kind == 1
+            sw.kp_is_array = false
+            sw.akp = akp
+            ap = kp2ap(akp[0])
+        else
+            st = SwStatus.akp_needs_ap
+        end
+    elif given_ap
+        let k = ap2kp(ap_in)
+        sw.kp_is_array = false
+        sw.akp = [k, 0.0, k, 0.0]
+        ap = ap_in
+    else
+        st = SwStatus.manual_geomag
+    end
+    if st == SwStatus.sw_ok
+        sw.kp = sw.akp[0]
+        if not sw.kp_is_array
+            sw.akp = [sw.kp, 0.0, sw.kp, 0.0]
+        end
+        sw.ap = ap
+        sw.ap3 = if has_ap3 then ap3_in else ap
+        for i in 0 .. 7
+            sw.aph[i] = sw.ap3
+        end
+        sw.aph[0] = ap
+        sw.f107_today = f107
+        let kp_ok = isfinite(sw.akp[0]) and isfinite(sw.akp[1]) and isfinite(sw.akp[2]) and isfinite(sw.akp[3])
+        if not isfinite(sw.f107)
+            st = SwStatus.nonfinite_f107
+        elif not isfinite(sw.f107a)
+            st = SwStatus.nonfinite_f107a
+        elif not kp_ok
+            st = SwStatus.nonfinite_kp
+        elif not isfinite(sw.ap)
+            st = SwStatus.nonfinite_ap
+        end
+    end
+end
+
+## data.drivers: the index set a density model takes.
+fn drivers_for(model: AtmosModel) -> d: DriverSet
+    if model == AtmosModel.exponential
+        d = DriverSet.no_drivers
+    elif model == AtmosModel.nrlmsise or model == AtmosModel.dtm2020
+        d = DriverSet.f107_kp
+    elif model == AtmosModel.dtm2020_research
+        d = DriverSet.f30_ap60
+    else
+        d = DriverSet.set_indices
+    end
+end

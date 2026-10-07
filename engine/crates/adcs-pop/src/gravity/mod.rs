@@ -1,6 +1,9 @@
 //! Central-body gravity: ports of `matlab_sils/pop/01_core/+grav/*`
 //! (`defaultField`, `loadGFC`, `sphericalHarmonic`, `potential`, `j2accel`,
-//! `twoBody`), `01_core/+op/gravLoad.m` and `02_forces/+forces/gravity.m`.
+//! `twoBody`), `01_core/+op/gravLoad.m` and `02_forces/+forces/gravity.m`. The models (the field's normalisation and
+//! zonals, the spherical harmonics, the potential, the zonals, the force's frames) are env's method env_gravity_field
+//! over env's default field (env_gravity_default_field), generated from the design into `gen::gravity`
+//! (tools/engine_build.py); the ICGEM `.gfc` reader and the workspaces stay code.
 //!
 //! Frames follow the MATLAB: the field is evaluated in ECEF (`r_ecef = C * r_eci`,
 //! `C = ctx.C` from `frames.eci2ecef`) and rotated back with `ctx.Ct = C'`.
@@ -18,29 +21,13 @@ pub use potential::{norm_legendre_pot, potential, potential_coeffs};
 pub use sphharm::{accel_ecef, denorm_factor, SphHarm};
 pub use zonal::{j2accel, two_body, J2Accel};
 
-use crate::la::{mtv, mv, M3, V3};
+use crate::la::{M3, V3};
 
 /// MATLAB/Octave `norm(v)` of a 3-vector: the scaled accumulator of Octave's
 /// `vector_norm` (`norm_accumulator_2`), which can differ from
 /// `sqrt(x^2+y^2+z^2)` in the last bit. Used wherever the MATLAB calls `norm`.
 pub fn octave_norm(v: &V3) -> f64 {
-    let mut scl = 0.0f64;
-    let mut sum = 1.0f64;
-    for &x in v {
-        let t = x.abs();
-        if scl == t {
-            sum += 1.0;
-        } else if scl < t {
-            let q = scl / t;
-            sum *= q * q;
-            sum += 1.0;
-            scl = t;
-        } else if t != 0.0 {
-            let q = t / scl;
-            sum += q * q;
-        }
-    }
-    scl * sum.sqrt()
+    crate::gen::gravity::onorm(*v)
 }
 
 /// `cfg.forces.gravity.model` of `forces.gravity`.
@@ -117,6 +104,9 @@ impl Gravity {
             GravityModel::SphHarm => {
                 nmax = cfg.degree.min(field.nmax);
                 mmax = cfg.order.unwrap_or(nmax).min(nmax);
+                if nmax > sphharm::NCAP {
+                    return Err(crate::PopError::Unsupported(format!("forces:gravity degree {nmax}: the spherical harmonics hold degree {} at most", sphharm::NCAP)));
+                }
                 sh = Some(SphHarm::new(&field));
             }
         }
@@ -140,9 +130,9 @@ impl Gravity {
         if self.cfg.model == GravityModel::TwoBody {
             return two_body(r_eci, self.field.gm);
         }
-        let r_ecef = mv(c_eci2ecef, r_eci);
+        let r_ecef = crate::gen::gravity::to_ecef(*c_eci2ecef, *r_eci);
         let a = self.accel_ecef(&r_ecef);
-        mtv(c_eci2ecef, &a)
+        crate::gen::gravity::from_ecef(*c_eci2ecef, a)
     }
 }
 

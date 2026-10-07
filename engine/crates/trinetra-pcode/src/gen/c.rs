@@ -50,6 +50,9 @@ fn guard_of(lib: &str) -> String {
     upper(lib).chars().map(|ch| if ch.is_ascii_uppercase() || ch.is_ascii_digit() { ch.to_string() } else { "_".repeat(ch.len_utf16()) }).collect()
 }
 
+/// An array of numbers longer than this is read and written by the dispatcher in a loop.
+const LONG: usize = 1024;
+
 pub(super) fn to_c(i: &Interp, title: Option<&str>, lib: Option<&str>, dispatch: bool) -> Result<Files, String> {
     let lib = lib.filter(|l| !l.is_empty()).unwrap_or("pcode").to_string();
     let mut g = Gen { b: Base::new(i, ["INFINITY", "(-INFINITY)", "NAN"]), types: Vec::new(), helpers: Vec::new(), tmp: 0, dispatch };
@@ -834,7 +837,7 @@ impl<'a> Gen<'a> {
     }
 
     // ------------------------------------------------------------ the dispatcher: a function by name, flattened
-    // statements filling `into` from x[at..]
+    // statements filling `into` from x[at..] (an array of numbers longer than LONG by a loop)
     fn read_arg(&self, t: &Ty, at: usize, into: &str, ii: &str) -> (String, usize) {
         match t {
             Ty::Stream => (
@@ -863,6 +866,16 @@ impl<'a> Gen<'a> {
                 }
                 (s, k)
             }
+            // a long array of numbers (a workspace, a table) as a loop, not a statement an element
+            Ty::Arr(n, of) if *n > LONG && matches!(**of, Ty::Real(_) | Ty::Int | Ty::Choice(_) | Ty::Bool) => {
+                let x = format!("x[{at} + i_]");
+                let v = match **of {
+                    Ty::Real(_) => x,
+                    Ty::Bool => format!("{x} != 0.0"),
+                    _ => format!("(int64_t){x}"),
+                };
+                (format!("{ii}{{ int i_; for (i_ = 0; i_ < {n}; i_++) {into}.v[i_] = {v}; }}\n"), *n)
+            }
             Ty::Arr(n, of) => {
                 let (mut s, mut k) = (String::new(), 0);
                 for i in 0..*n {
@@ -887,6 +900,15 @@ impl<'a> Gen<'a> {
                 Some(r) => r.fields.iter().map(|f| self.push_out(&f.ty, &format!("{v}.{}", cname(&f.name)), ii)).collect(),
                 None => String::new(),
             },
+            Ty::Arr(n, of) if *n > LONG && matches!(**of, Ty::Real(_) | Ty::Int | Ty::Choice(_) | Ty::Bool) => {
+                let e = format!("{v}.v[i_]");
+                let o = match **of {
+                    Ty::Real(_) => e,
+                    Ty::Bool => format!("{e} ? 1.0 : 0.0"),
+                    _ => format!("(double){e}"),
+                };
+                format!("{ii}{{ int i_; for (i_ = 0; i_ < {n}; i_++) out[(*ny)++] = {o}; }}\n")
+            }
             Ty::Arr(n, of) => (0..*n).map(|i| self.push_out(of, &format!("{v}.v[{i}]"), ii)).collect(),
             Ty::Tuple(_) | Ty::Str => String::new(),
         }

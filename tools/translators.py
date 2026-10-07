@@ -7,7 +7,9 @@ MATLAB, built, and run on every vector the interpreter (design/js/pcode.js) drew
 For each function and proc of each package: the interpreter's vectors (inputs and outputs as exact IEEE-754 bits; a
 proc's as runs of calls, its state carried); each translation called on the same inputs. An exact function (one that
 calls no transcendental: sin, cos, tan, asin, acos, atan, atan2, exp, log, log10, log2, pow, hypot) must give the same bits; any
-other within 1e-12 relative (the maths library's last bit may differ from the browser's). A function a translation
+other within 1e-12 relative (the maths library's last bit may differ from the browser's); a function that states its
+tolerance in its documentation (`## tolerance: 1e-8`, a central difference that amplifies that last bit) within it,
+relative to the largest of its outputs. A function a translation
 cannot build, or a value outside its tolerance, is named.
 
 The packages:
@@ -123,6 +125,10 @@ def compare(vec, got_text, whole=None):
                     bad = bad or f"{len(got)} outputs, the interpreter {len(want)}"
                     continue
                 ints = (whole or {}).get(name) or [False] * len(want)
+                # a function that states its tolerance (`## tolerance:`, a central difference that amplifies the maths
+                # library's last bit) is held to it relative to the largest of its outputs
+                tol = e.get("tol")
+                scale = max((abs(x) for x in want if x == x), default=0.0) if tol else 0.0
                 for g, w, is_int in zip(got, want, ints):
                     vals += 1
                     if bits64(g) == bits64(w) or (is_int and g == w):   # a whole number has no sign of zero
@@ -131,9 +137,9 @@ def compare(vec, got_text, whole=None):
                     if e["exact"]:
                         bad = bad or f"not bit for bit: {g!r} against {w!r}"
                         continue
-                    err = abs(g - w) / max(abs(w), 1e-300)
+                    err = abs(g - w) / max(scale if tol else abs(w), 1e-300)
                     worst = max(worst, err)
-                    if not err <= TOL:
+                    if not err <= (tol or TOL):
                         bad = bad or f"{g!r} against {w!r} (relative {err:.3g})"
         fns += 1
         if bad:
@@ -212,8 +218,8 @@ static double from_hex(const char *s) { uint64_t u = strtoull(s, NULL, 16); doub
 static void put(double d) { uint64_t u; memcpy(&u, &d, 8); printf(" %016llx", (unsigned long long)u); }
 
 int main(void) {
-    static char line[1 << 20];
-    static double xs[64 * 512], outs[64 * 256];
+    static char line[1 << 24];
+    static double xs[1 << 20], outs[1 << 20];
     char name[256];
     while (fgets(line, sizeof line, stdin)) {
         int proc, nsets, s;
@@ -368,8 +374,9 @@ def main(argv=None):
     write_text(out / "translators.json", json.dumps(rows, indent=1) + "\n")
     L = ["# The translators, held to the interpreter", "",
          "**In one line:** every package of pseudocode translated to each language, built, and run on every vector the "
-         "interpreter drew; an exact function bit for bit, any other within 1e-12 relative (`tools/translators.py`, "
-         "`docs/PLAN_2_0.md` S5).", "",
+         "interpreter drew; an exact function bit for bit, any other within 1e-12 relative, or within the tolerance its "
+         "documentation states relative to its largest output (a central difference, `## tolerance:`) "
+         "(`tools/translators.py`, `docs/PLAN_2_0.md` S5).", "",
          "| Package | Language | Functions | Values | Bit for bit | Worst relative error | Failing |", "|---|---|---|---|---|---|---|"]
     for r in rows:
         L.append(f"| {r['package']} | {r['lang']} | {r['functions']} | {r['values']} | {r['exact']} | "

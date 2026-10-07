@@ -90,6 +90,12 @@ switch (cmd) {
     // n vectors a function, or fewer where its inputs and outputs are many (--budget values a function)
     const nWant = +(opt.n || 12), budget = +(opt.budget || 1e9), rand = prng(+(opt.seed || 1));
     const width = (t) => (t.k === "arr" ? t.n * width(t.of) : t.k === "rec" ? program.records[t.name].fields.reduce((a, f) => a + width(f.ty), 0) : t.k === "stream" ? 6 : 1);
+    // a function whose outputs amplify the maths library's last bit (a central difference) states the tolerance its
+    // translations are held to, relative to the largest of its outputs (`## tolerance: 1e-8`), its reason beside it
+    const tolOf = (f) => {
+      const t = (f.doc || []).map((d) => /^tolerance:\s*([0-9.eE+-]+)\s*$/.exec(d)).find(Boolean);
+      return t ? { tol: +t[1] } : {};
+    };
     const res = {};
     for (const f of Object.values(program.fns)) {
       // a function may ask for its own count in its documentation (`## vectors: 96`): a branchy one
@@ -129,7 +135,7 @@ switch (cmd) {
           } catch (e) { continue; }
           sets.push({ calls });
         }
-        res[`${f.module}::${f.name}`] = { exact: !usesTranscendental(f), proc: true, sets };
+        res[`${f.module}::${f.name}`] = { exact: !usesTranscendental(f), proc: true, sets, ...tolOf(f) };
         continue;
       }
       // or that its inputs be drawn through another fn (`## inputs from: uart_stream`): that fn's
@@ -156,7 +162,7 @@ switch (cmd) {
           sets.push({ in: fi, out: fo, in_bits: fi.map(bits), out_bits: fo.map(bits) });
         } catch (e) { continue; }
       }
-      res[`${f.module}::${f.name}`] = { exact: !usesTranscendental(f), sets };
+      res[`${f.module}::${f.name}`] = { exact: !usesTranscendental(f), sets, ...tolOf(f) };
     }
     out(res);
     break;

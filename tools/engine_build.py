@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""The engine build (docs/PLAN_2_0.md S7; docs/S7_INVENTORY.md S7.3): the time engine's published models written from
+"""The engine build (docs/PLAN_2_0.md S7; docs/S7_INVENTORY.md S7.3-S7.3e): the time engine's published models written from
 the design. Only the engine's core stays hand-written (step order, recorder, the toolbox); a model of the world is a
 method of an env node, and its Rust is generated here, never edited.
 
@@ -17,8 +17,10 @@ its crate:
                                          orbit, the fast orbit's atmosphere, elements to state; its scalar maths from
                                          crate::pm (the pure-Rust libm: the same trajectory on every target), no_std
   engine/crates/adcs-pop/src/gen/        the precision orbit's time scales, geodetic coordinates, Earth frames, the
-                                         IAU 2006/2000A kernel and the tidal EOP models; std maths (as the Octave POP
-                                         they are held to)
+                                         IAU 2006/2000A kernel and the tidal EOP models (S7.3); the atmosphere
+                                         (DTM2020, JB2008, the exponential, the switch) and the space-weather indices
+                                         (S7.3b); DE440 (S7.3c); gravity and the tides (S7.3d); relativity (S7.3e);
+                                         std maths (as the Octave POP they are held to)
   matlab_sils/+asils/+models/            the same models for the MATLAB twin (asils.models.<module>.<function>), one
                                          package of every module the engine's targets take, over the twin's shared
                                          runtime +asils/+pc

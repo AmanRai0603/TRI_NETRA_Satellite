@@ -1,0 +1,37 @@
+## The precision orbit's exponential atmosphere, transcribed from adcs-pop atmos/exponential.rs, the port of the Octave
+## POP's +atmos/exponential.m: env's static exponential atmosphere (env.atmosphere, Vallado 2013 table 8-4, one copy:
+## the table adcs-pop typed again is the same 28 rows) read in km, with the POP's coarse temperature and mean molar
+## mass (a crude N2/O2 to O to H transition) and the number density taken as atomic oxygen for the GSI models.
+## The developer's transcription (S7.3b), unsigned.
+module expatmos
+
+## The Avogadro constant [1/mol] (CODATA 2018, exact; de440.constants().N_A).
+const N_AVOGADRO = 6.02214076e23
+
+## meanMolarMass(h): the crude mean molar mass [kg/kmol] at h [km].
+fn mean_molar_mass(h: real[1] in 0 .. 2000) -> m: real[1]
+    if h < 150.0
+        m = 29.0 - (29.0 - 22.0)*(h - 100.0)/50.0
+        m = max(m, 22.0)
+    elif h < 500.0
+        m = 22.0 - (22.0 - 16.0)*(h - 150.0)/350.0
+    else
+        m = 16.0 - (16.0 - 4.0)*min((h - 500.0)/500.0, 1.0)
+    end
+    m = max(m, 4.0)
+end
+
+## atmos.exponential(alt_km): the density [kg/m^3], temperature [K], mean molar mass [kg/kmol] and number density taken
+## as atomic O [1/m^3] at a geodetic altitude [km] (below 0, at 0).
+fn exponential_atm(alt_km: real[1] in -10 .. 2000) -> (rho: real[1], t: real[1], mmol: real[1], n_o: real[1])
+    let h = alt_km
+    if h < 0.0
+        h = 0.0
+    end
+    let h0, rho0, hs = atmosphere(h*(1 [km]))
+    rho = rho0/(1 [kg/m^3])*exp(-(h - h0/(1 [km]))/(hs/(1 [km])))
+    t = 1000.0 - (1000.0 - 186.0)*exp(-(max(h, 90.0) - 90.0)/70.0)
+    mmol = mean_molar_mass(h)
+    let na = N_AVOGADRO*1000.0
+    n_o = rho*na/mmol
+end

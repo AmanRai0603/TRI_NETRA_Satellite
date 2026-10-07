@@ -10,7 +10,11 @@ function [x, y] = xy06(t, fa)
     y = 0;
     pt = zeros(6, 1);
     for j = (0):((6) - 1)
-        pt((j) + 1) = (t)^(j);
+        if (j == 2)
+            pt((j) + 1) = asils.pc.ipow(t, 2);
+        else
+            pt((j) + 1) = (t)^(j);
+        end
     end
     sx = 0;
     sy = 0;
