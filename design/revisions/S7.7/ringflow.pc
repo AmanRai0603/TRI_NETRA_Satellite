@@ -1,0 +1,10 @@
+## A fluid momentum ring's flow response, transcribed from adcs-sim-core actuators.rs (Mex::apply): the driver's flow
+## estimate follows the measured momentum through a first-order filter of time constant flow_tau (the product's,
+## 0.3 s as the engine flies it), stepped as x + dt/(tau + dt) (u - x).
+## The developer's transcription (S7.7), unsigned.
+module ringflow
+
+## The filtered momentum [N m s] after a step dt toward the measured momentum hm, time constant tau [s].
+fn flow_filter(hf: real[1] in -0.05 .. 0.05, hm: real[1] in -0.05 .. 0.05, tau: real[1] in 0.01 .. 1, dt: real[1] in 0.01 .. 1) -> y: real[1]
+    y = hf + dt/(tau + dt)*(hm - hf)
+end

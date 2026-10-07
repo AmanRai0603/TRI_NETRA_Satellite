@@ -418,7 +418,7 @@ function unitOf(text, pos) {
 }
 
 // ------------------------------------------------------------------ checker
-const BUILTINS = new Set(["sqrt", "abs", "sin", "cos", "tan", "asin", "acos", "atan", "atan2", "exp", "log", "log10", "log2", "min", "max", "clamp",
+const BUILTINS = new Set(["sqrt", "abs", "sin", "cos", "tan", "asin", "acos", "atan", "atan2", "exp", "log", "log10", "log2", "erf", "min", "max", "clamp",
   "floor", "ceil", "round", "trunc", "sign", "fmod", "pow", "dot", "cross", "norm", "unit", "transpose", "real", "len", "hypot", "int", "div", "rem", "band", "bor", "bxor", "shl", "shr",
   "isnan", "isfinite", "sort", "argsort", "stream", "uniform", "normal", "normal3"]);
 // the language's constants: pi, and the two values that are not finite (they fit any unit, as a bare 0 does)
@@ -778,7 +778,7 @@ export function check(files) {
       case "sqrt": { n(1); const d = sc(ts[0], 0); if (d.some((x) => x % 2)) E(`sqrt of [${dimText(d)}] has no unit`, e.pos); return tReal(dimMul(d, 0.5)); }
       case "abs": case "floor": case "ceil": case "round": case "trunc": { n(1); if (ts[0] && ts[0].k === "int") return T_INT; return tReal(sc(ts[0], 0)); }
       case "sign": n(1); sc(ts[0], 0); return tReal(DIMLESS);
-      case "sin": case "cos": case "tan": case "asin": case "acos": case "atan": case "exp": case "log": case "log10": case "log2":
+      case "sin": case "cos": case "tan": case "asin": case "acos": case "atan": case "exp": case "log": case "log10": case "log2": case "erf":
         n(1); dl(ts[0], 0); return tReal(DIMLESS);
       case "atan2": case "hypot": case "fmod": {
         n(2); const d = sc(ts[0], 0), d2 = sc(ts[1], 1);
@@ -1018,6 +1018,34 @@ export function check(files) {
 // Semantics every translation follows (docs/PSEUDOCODE_V2.md, "Numbers"):
 //   x^k is repeated multiplication left to right (x^-k = 1/(x^k)); min/max/abs/clamp are written out;
 //   dot and matrix products sum left to right; unit(a) = a / max(norm(a), 1e-30).
+// fdlibm's erf (rt.erf): its constants, and the high word of a double and the double with its low word cleared
+const ERF = {
+  erx: 8.45062911510467529297e-01, efx: 1.28379167095512586316e-01, efx8: 1.02703333676410069053e+00,
+  pp0: 1.28379167095512558561e-01, pp1: -3.25042107247001499370e-01, pp2: -2.84817495755985104766e-02,
+  pp3: -5.77027029648944159157e-03, pp4: -2.37630166566501626084e-05,
+  qq1: 3.97917223959155352819e-01, qq2: 6.50222499887672944485e-02, qq3: 5.08130628187576562776e-03,
+  qq4: 1.32494738004321644526e-04, qq5: -3.96022827877536812320e-06,
+  pa0: -2.36211856075265944077e-03, pa1: 4.14856118683748331666e-01, pa2: -3.72207876035701323847e-01,
+  pa3: 3.18346619901161753674e-01, pa4: -1.10894694282396677476e-01, pa5: 3.54783043256182359371e-02,
+  pa6: -2.16637559486879084300e-03,
+  qa1: 1.06420880400844228286e-01, qa2: 5.40397917702171048937e-01, qa3: 7.18286544141962662868e-02,
+  qa4: 1.26171219808761642112e-01, qa5: 1.36370839120290507362e-02, qa6: 1.19844998467991074170e-02,
+  ra0: -9.86494403484714822705e-03, ra1: -6.93858572707181764372e-01, ra2: -1.05586262253232909814e+01,
+  ra3: -6.23753324503260060396e+01, ra4: -1.62396669462573470355e+02, ra5: -1.84605092906711035994e+02,
+  ra6: -8.12874355063065934246e+01, ra7: -9.81432934416914548592e+00,
+  sa1: 1.96512716674392571292e+01, sa2: 1.37657754143519042600e+02, sa3: 4.34565877475229228821e+02,
+  sa4: 6.45387271733267880336e+02, sa5: 4.29008140027567833386e+02, sa6: 1.08635005541779435134e+02,
+  sa7: 6.57024977031928170135e+00, sa8: -6.04244152148580987438e-02,
+  rb0: -9.86494292470009928597e-03, rb1: -7.99283237680523006574e-01, rb2: -1.77579549177547519889e+01,
+  rb3: -1.60636384855821916062e+02, rb4: -6.37566443368389627722e+02, rb5: -1.02509513161107724954e+03,
+  rb6: -4.83519191608651397019e+02,
+  sb1: 3.03380607434824582924e+01, sb2: 3.25792512996573918826e+02, sb3: 1.53672958608443695994e+03,
+  sb4: 3.19985821950859553908e+03, sb5: 2.55305040643316442583e+03, sb6: 4.74528541206955367215e+02,
+  sb7: -2.24409524465858183362e+01,
+};
+const ERF_DV = new DataView(new ArrayBuffer(8));
+function hiWord(x) { ERF_DV.setFloat64(0, x); return ERF_DV.getInt32(0); }
+function withLowZero(x) { ERF_DV.setFloat64(0, x); ERF_DV.setUint32(4, 0); return ERF_DV.getFloat64(0); }
 export const rt = {
   ipow(x, k) { if (k === 0) return 1; let r = x; for (let i = 1; i < Math.abs(k); i++) r = r * x; return k < 0 ? 1 / r : r; },
   min(a, b) { return b < a ? b : a; },
@@ -1043,6 +1071,42 @@ export const rt = {
     return ix;
   },
   sort(v) { return rt.argsort(v).map((i) => v[i]); },
+  // the error function: fdlibm's s_erf.c (Sun Microsystems 1993, the C library's own form), over Math.exp; JavaScript has
+  // none. The translations call their platform's erf (C erf, MATLAB erf), whose last bits may differ (as exp's).
+  erf(x) {
+    const hx = hiWord(x), ix = hx & 0x7fffffff;
+    if (ix >= 0x7ff00000) return (1 - ((hx >>> 31) << 1)) + 1 / x;                 // erf(nan) = nan, erf(+-inf) = +-1
+    if (ix < 0x3feb0000) {                                                          // |x| < 0.84375
+      if (ix < 0x3e300000) {                                                        // |x| < 2^-28
+        if (ix < 0x00800000) return 0.125 * (8.0 * x + ERF.efx8 * x);
+        return x + ERF.efx * x;
+      }
+      const z = x * x;
+      const r = ERF.pp0 + z * (ERF.pp1 + z * (ERF.pp2 + z * (ERF.pp3 + z * ERF.pp4)));
+      const s = 1 + z * (ERF.qq1 + z * (ERF.qq2 + z * (ERF.qq3 + z * (ERF.qq4 + z * ERF.qq5))));
+      return x + x * (r / s);
+    }
+    if (ix < 0x3ff40000) {                                                          // 0.84375 <= |x| < 1.25
+      const s = Math.abs(x) - 1;
+      const P = ERF.pa0 + s * (ERF.pa1 + s * (ERF.pa2 + s * (ERF.pa3 + s * (ERF.pa4 + s * (ERF.pa5 + s * ERF.pa6)))));
+      const Q = 1 + s * (ERF.qa1 + s * (ERF.qa2 + s * (ERF.qa3 + s * (ERF.qa4 + s * (ERF.qa5 + s * ERF.qa6)))));
+      return hx >= 0 ? ERF.erx + P / Q : -ERF.erx - P / Q;
+    }
+    if (ix >= 0x40180000) return hx >= 0 ? 1 - 1e-300 : 1e-300 - 1;                // |x| >= 6
+    const ax = Math.abs(x);
+    const s = 1 / (ax * ax);
+    let R, S;
+    if (ix < 0x4006db6e) {                                                          // |x| < 1/0.35
+      R = ERF.ra0 + s * (ERF.ra1 + s * (ERF.ra2 + s * (ERF.ra3 + s * (ERF.ra4 + s * (ERF.ra5 + s * (ERF.ra6 + s * ERF.ra7))))));
+      S = 1 + s * (ERF.sa1 + s * (ERF.sa2 + s * (ERF.sa3 + s * (ERF.sa4 + s * (ERF.sa5 + s * (ERF.sa6 + s * (ERF.sa7 + s * ERF.sa8)))))));
+    } else {
+      R = ERF.rb0 + s * (ERF.rb1 + s * (ERF.rb2 + s * (ERF.rb3 + s * (ERF.rb4 + s * (ERF.rb5 + s * ERF.rb6)))));
+      S = 1 + s * (ERF.sb1 + s * (ERF.sb2 + s * (ERF.sb3 + s * (ERF.sb4 + s * (ERF.sb5 + s * (ERF.sb6 + s * ERF.sb7))))));
+    }
+    const z = withLowZero(ax);
+    const r = Math.exp(-z * z - 0.5625) * Math.exp((z - ax) * (z + ax) + R / S);
+    return hx >= 0 ? 1 - r / ax : r / ax - 1;
+  },
   round(x) { return x < 0 ? -Math.round(-x) : Math.round(x); },          // half away from zero, as C round()
   fmod(x, y) { return x % y; },
   lookup(tab, x) {
@@ -1179,6 +1243,7 @@ export function makeInterpreter(prog) {
         case "trunc": return Math.trunc(args[0]);
         case "sign": return rt.sign(args[0]);
         case "sin": case "cos": case "tan": case "asin": case "acos": case "atan": case "exp": case "log": case "log10": case "log2": return Math[f](args[0]);
+        case "erf": return rt.erf(args[0]);
         case "atan2": return Math.atan2(args[0], args[1]);
         case "hypot": return Math.hypot(args[0], args[1]);
         case "fmod": return rt.fmod(args[0], args[1]);

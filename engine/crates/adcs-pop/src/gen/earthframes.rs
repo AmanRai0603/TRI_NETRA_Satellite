@@ -4,11 +4,16 @@
 use crate::gen::rt;
 use crate::gen::de440::{DeConstants, EphemOut};
 use crate::gen::densitymodel::{AtmosOut};
+use crate::gen::drag::{CannonballOut, PanelOut};
 use crate::gen::dtm2020::{Plg, Hloc, DtmRaw, DtmDensity};
+use crate::gen::erp::{ErpComp};
+use crate::gen::forcemodel::{ForceSet};
+use crate::gen::gsi::{Gsi};
 use crate::gen::iau2006::{TimeScales, CioParts};
 use crate::gen::jb2008::{JbOut, JbCoreInputs};
 use crate::gen::relativity::{RelParts};
 use crate::gen::solidtides::{Dcs5};
+use crate::gen::srp::{ScFacets};
 use crate::gen::swindex::{SwManual};
 use crate::gen::timescales::{Times};
 
@@ -78,13 +83,13 @@ pub fn earth_rate_from(ctp: [[f64; 3]; 3], ctm: [[f64; 3]; 3], c0: [[f64; 3]; 3]
     let mut w: [f64; 3] = [0.0; 3];
     let mut cdot: [[f64; 3]; 3] = [[0.0; 3]; 3];
     {
-        let __end20: i64 = 3;
+        let __end28: i64 = 3;
         let mut i: i64 = 0;
-        while i < __end20 {
+        while i < __end28 {
             {
-                let __end21: i64 = 3;
+                let __end29: i64 = 3;
                 let mut j: i64 = 0;
-                while j < __end21 {
+                while j < __end29 {
                     cdot[(i) as usize][(j) as usize] = ((ctp[(i) as usize][(j) as usize] - ctm[(i) as usize][(j) as usize]) / (2.0 * d));
                     j += 1;
                 }

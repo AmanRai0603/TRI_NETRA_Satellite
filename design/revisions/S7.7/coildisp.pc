@@ -1,0 +1,28 @@
+## The magnetorquer coils' dispersion, transcribed from adcs-sim-core actuators.rs (Mtq::new) and la.rs (small_rot):
+## each coil's dipole scale factor 1 + sigma n (the part's dipole_scale dispersion, n a normal draw) and its axis
+## turned by a small rotation of normal draws times the axis misalignment (the part's axis_misalignment_rad), all the
+## scale factors first, then the axes, from the run's dispersion stream (the engine's draw order). A small rotation is
+## the attitude matrix of the rotation vector (the toolbox's fromrotvec and dcm).
+## The developer's transcription (S7.7), unsigned.
+module coildisp
+
+## The matrix of a small rotation th (rotation vector [rad]): dcm(fromrotvec(th)) (la.rs small_rot).
+fn small_rotation(th: real[1][3] in -0.1 .. 0.1) -> m: real[1][3][3]
+    m = dcm(fromrotvec(th))
+end
+
+## The first n coils' scale factors and dispersed axes (body frame) from the nominal axes, the scale's sigma and the
+## axes' misalignment sigma [rad], drawn from disp.
+fn coil_dispersion(n: int in 0 .. 8, axes: real[1][3][ACT_NS] in -1 .. 1, scale_sigma: real[1] in 0 .. 0.1, \
+                   misalign: real[1] in 0 .. 0.05, disp: inout stream) -> (scale: real[1][ACT_NS], a: real[1][3][ACT_NS])
+    scale = 0
+    a = 0
+    for j in 0 .. n
+        let z = normal(disp)
+        scale[j] = 1.0 + scale_sigma*z
+    end
+    for k in 0 .. n
+        let th = normal3(disp)
+        a[k] = small_rotation(th*misalign)*axes[k]
+    end
+end

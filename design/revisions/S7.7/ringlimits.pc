@@ -1,0 +1,45 @@
+## A fluid momentum ring's flow limits, transcribed from adcs-sim-core actuators.rs (Mex::apply) and adcs-sim product.rs
+## (fit_actuator_, rings): the ring's constants from its part (the bore's area pi d^2/4, the momentum per flow speed
+## rho A 2 S, the viscous spin-down time rho d^2/(32 mu), the momentum capacity at the largest flow speed, the pump's
+## largest torque, stated by a designed pump or 2 h_max/t_sd); in flight, the driver integrates its momentum target
+## within the capacity, the pump torque feeds the commanded rate, the spin-down's loss and the target's error forward
+## (gain k_flow, the product's, 2 as the engine flies it), within its largest torque; the ring's momentum rate is the
+## pump's torque less the viscous loss, none beyond the capacity.
+## The developer's transcription (S7.7), unsigned.
+module ringlimits
+
+## A ring's constants: the bore area [m^2], the momentum per flow speed [N m s per m/s], the spin-down time [s] and the
+## momentum capacity [N m s] of a bore bore_m [m] around an enclosed area s_m2 [m^2], fluid of density rho [kg/m^3] and
+## viscosity mu [Pa s], at the largest flow speed v_max [m/s].
+fn ring_constants(bore_m: real[1] in 0.001 .. 0.02, s_m2: real[1] in 0.005 .. 0.5, rho: real[1] in 1000 .. 13600, \
+                  mu: real[1] in 0.0005 .. 0.005, v_max: real[1] in 0.01 .. 2) -> (ac: real[1], k_hv: real[1], tsd: real[1], hmax: real[1])
+    ac = pi*bore_m^2/4.0
+    k_hv = rho*ac*2.0*s_m2
+    tsd = rho*bore_m^2/(32.0*mu)
+    hmax = k_hv*v_max
+end
+
+## The pump's largest torque [N m]: a designed pump's stated torque when it states one (finite and positive), else
+## twice the capacity over the spin-down time.
+fn ring_pump_max(tq_stated: real[1] in -1 .. 0.01, hmax: real[1] in 0.001 .. 0.05, tsd: real[1] in 1 .. 1000) -> tq: real[1]
+    tq = if isfinite(tq_stated) and tq_stated > 0.0 then tq_stated else 2.0*hmax/tsd
+end
+
+## The driver's momentum target [N m s] after a step dt of the commanded rate cmd [N m], within the capacity.
+fn ring_target(htgt: real[1] in -0.05 .. 0.05, cmd: real[1] in -0.01 .. 0.01, dt: real[1] in 0.01 .. 1, h_max: real[1] in 0.001 .. 0.05) -> y: real[1]
+    y = act_clamp(htgt + cmd*dt, -h_max, h_max)
+end
+
+## The pump torque [N m]: the commanded rate, the spin-down's loss of the filtered momentum hf and the target's error
+## times k_flow, within the largest torque.
+fn ring_pump(cmd: real[1] in -0.01 .. 0.01, hf: real[1] in -0.05 .. 0.05, tsd: real[1] in 1 .. 1000, k_flow: real[1] in 0 .. 10, \
+             htgt: real[1] in -0.05 .. 0.05, torque_max: real[1] in 1e-4 .. 0.01) -> pump: real[1]
+    pump = act_clamp(cmd + hf/tsd + k_flow*(htgt - hf), -torque_max, torque_max)
+end
+
+## The ring's momentum rate [N m]: the pump's torque less the viscous loss h/t_sd (scaled by the unit's friction factor),
+## none that grows the momentum beyond the capacity.
+fn ring_rate(pump: real[1] in -0.01 .. 0.01, h: real[1] in -0.05 .. 0.05, tsd: real[1] in 1 .. 1000, fscale: real[1] in 0.5 .. 1.5, \
+             h_max: real[1] in 0.001 .. 0.05) -> hd: real[1]
+    hd = momentum_limited(pump - h/tsd*fscale, h, h_max, 0.0)
+end

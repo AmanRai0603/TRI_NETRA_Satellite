@@ -3,13 +3,17 @@
 //! `legendre`, `accel`, `total`, `+secular/*` in [`secular`]) and
 //! `02_forces/+forces/thirdbody.m` ([`force`]).
 //!
+//! The models are env's method env_third_body, generated from the design into `gen::thirdbody`
+//! (tools/engine_build.py); what is left here is the crate's names, the model switch as an
+//! enum and the inputs.
+//!
 //! All vectors Earth-centred ECI [m]; accelerations [m/s^2].
 
 pub mod secular;
 
 use crate::ephem::EphemInputs;
-use crate::la::{dot, norm, V3};
-use crate::srp::norm_scaled;
+use crate::gen::thirdbody as tb;
+use crate::la::V3;
 
 /// Third-body model switch (`model` argument of `thirdbody.accel`).
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
@@ -40,86 +44,45 @@ impl Model {
     }
 }
 
-/// `thirdbody.battin(rSat, rBody, GM)`: numerically stable third-body acceleration.
-pub fn battin(r_sat: &V3, r_body: &V3, gm: f64) -> V3 {
-    let (s, b) = (r_sat, r_body);
-    let rb2 = dot(b, b);
-    let s2b = [s[0] - 2.0 * b[0], s[1] - 2.0 * b[1], s[2] - 2.0 * b[2]];
-    let q = dot(s, &s2b) / rb2;
-    let f = q * (3.0 + 3.0 * q + q * q) / (1.0 + (1.0 + q).powf(1.5));
-    let d3 = rb2 * rb2.sqrt() * (1.0 + q).powf(1.5);
-    let k = -gm / d3;
-    [k * (s[0] + f * b[0]), k * (s[1] + f * b[1]), k * (s[2] + f * b[2])]
+impl Model {
+    /// The design's choice ThirdBodyModel (`gen::thirdbody::THIRDBODYMODEL_*`) and the Legendre degree.
+    fn choice(self) -> (i64, i64) {
+        match self {
+            Model::Battin => (tb::THIRDBODYMODEL_BATTIN, 0),
+            Model::Direct => (tb::THIRDBODYMODEL_DIRECT, 0),
+            Model::Tidal => (tb::THIRDBODYMODEL_TIDAL, 0),
+            Model::Legendre(n) => {
+                assert!(n <= 64, "thirdbody.legendre: degree {n}, at most 64");
+                (tb::THIRDBODYMODEL_LEGENDRE, n as i64)
+            }
+        }
+    }
 }
 
-/// `thirdbody.direct(rSat, rBody, GM)`: `GM*[(b-s)/|b-s|^3 - b/|b|^3]`.
+/// `thirdbody.battin(rSat, rBody, GM)`: numerically stable third-body acceleration.
+pub fn battin(r_sat: &V3, r_body: &V3, gm: f64) -> V3 {
+    tb::tb_battin(*r_sat, *r_body, gm)
+}
+
+/// `thirdbody.direct(rSat, rBody, GM)`: `GM*[(b-s)/|b-s|^3 - b/|b|^3]` (Octave's scaled norms).
 pub fn direct(r_sat: &V3, r_body: &V3, gm: f64) -> V3 {
-    let (s, b) = (r_sat, r_body);
-    let d = [b[0] - s[0], b[1] - s[1], b[2] - s[2]];
-    // Octave-style scaled norm: the two terms cancel to ~5 digits for the Sun, so
-    // the norm's last bit is amplified ~1e5 (see srp::norm_scaled)
-    let nd3 = norm_scaled(&d).powf(3.0);
-    let nb3 = norm_scaled(b).powf(3.0);
-    let mut a = [0.0; 3];
-    for i in 0..3 { a[i] = gm * (d[i] / nd3 - b[i] / nb3); }
-    a
+    tb::tb_direct(*r_sat, *r_body, gm)
 }
 
 /// `thirdbody.tidal(rSat, rBody, GM)`: `-GM/|b|^3 (s - 3(s.bhat) bhat)`.
 pub fn tidal(r_sat: &V3, r_body: &V3, gm: f64) -> V3 {
-    let (s, b) = (r_sat, r_body);
-    let rb = norm(b);
-    let rh = [b[0] / rb, b[1] / rb, b[2] / rb];
-    let k = -gm / rb.powf(3.0);
-    let sr = 3.0 * dot(s, &rh);
-    [k * (s[0] - sr * rh[0]), k * (s[1] - sr * rh[1]), k * (s[2] - sr * rh[2])]
+    tb::tb_tidal(*r_sat, *r_body, gm)
 }
 
-/// `thirdbody.legendre(rSat, rBody, GM, nmax)`: Legendre series to degree `nmax`.
+/// `thirdbody.legendre(rSat, rBody, GM, nmax)`: Legendre series to degree `nmax` (at most 64, the design's).
 pub fn legendre(r_sat: &V3, r_body: &V3, gm: f64, nmax: usize) -> V3 {
-    let (s, b) = (r_sat, r_body);
-    let rho = norm(s);
-    let rb = norm(b);
-    let rs = [s[0] / rho, s[1] / rho, s[2] / rho];
-    let rbh = [b[0] / rb, b[1] / rb, b[2] / rb];
-    let u = dot(&rs, &rbh);
-    // P[k] = P_k, dP[k] = P_k' (stack storage up to degree 32)
-    let mut pa = [0.0f64; 33];
-    let mut dpa = [0.0f64; 33];
-    let (mut pv, mut dpv);
-    let (p, dp): (&mut [f64], &mut [f64]) = if nmax < 33 {
-        (&mut pa[..nmax + 1], &mut dpa[..nmax + 1])
-    } else {
-        pv = vec![0.0; nmax + 1];
-        dpv = vec![0.0; nmax + 1];
-        (&mut pv[..], &mut dpv[..])
-    };
-    p[0] = 1.0;
-    if nmax >= 1 { p[1] = u; dp[1] = 1.0; }
-    for n in 2..=nmax {
-        let nf = n as f64;
-        p[n] = ((2.0 * nf - 1.0) * u * p[n - 1] - (nf - 1.0) * p[n - 2]) / nf;
-        dp[n] = u * dp[n - 1] + nf * p[n - 1];
-    }
-    let mut a = [0.0; 3];
-    for n in 2..=nmax {
-        let nf = n as f64;
-        let k = gm / rb.powf(nf + 1.0) * rho.powf(nf - 1.0);
-        for i in 0..3 {
-            a[i] += k * (nf * p[n] * rs[i] + dp[n] * (rbh[i] - u * rs[i]));
-        }
-    }
-    a
+    tb::tb_legendre(*r_sat, *r_body, gm, Model::Legendre(nmax).choice().1)
 }
 
 /// `thirdbody.accel(rSat, rBody, GM, model, nmax)`: model switch.
 pub fn accel(r_sat: &V3, r_body: &V3, gm: f64, model: Model) -> V3 {
-    match model {
-        Model::Battin => battin(r_sat, r_body, gm),
-        Model::Direct => direct(r_sat, r_body, gm),
-        Model::Tidal => tidal(r_sat, r_body, gm),
-        Model::Legendre(nmax) => legendre(r_sat, r_body, gm, nmax),
-    }
+    let (m, n) = model.choice();
+    tb::tb_accel(*r_sat, *r_body, gm, m, n)
 }
 
 /// Per-body split returned as `parts` by `thirdbody.total`.
@@ -134,9 +97,9 @@ pub struct Parts {
 /// `[a, parts] = thirdbody.total(rSat, E, model, nmax)`: Sun + Moon, with the
 /// `E` fields passed explicitly (`E.sun_eci, E.GM_sun, E.moon_eci, E.GM_moon`).
 pub fn total(r_sat: &V3, sun_eci: &V3, gm_sun: f64, moon_eci: &V3, gm_moon: f64, model: Model) -> (V3, Parts) {
-    let sun = accel(r_sat, sun_eci, gm_sun, model);
-    let moon = accel(r_sat, moon_eci, gm_moon, model);
-    ([sun[0] + moon[0], sun[1] + moon[1], sun[2] + moon[2]], Parts { sun, moon })
+    let (m, n) = model.choice();
+    let (a, sun, moon) = tb::tb_total(*r_sat, *sun_eci, gm_sun, *moon_eci, gm_moon, m, n);
+    (a, Parts { sun, moon })
 }
 
 /// Inputs of `forces.thirdbody(ctx)`, with where each comes from in `ctx`.

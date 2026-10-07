@@ -1,0 +1,268 @@
+## Solar radiation pressure on the satellite, transcribed from adcs-pop srp.rs, the port of the Octave POP's +srp
+## (cannonball, eclipse, boxwing, buildBox, facet, addArray, arrayNormal), +forces/srp.m and the example geometry
+## sgeom.sat16u: the spacecraft's surfaces as flat facets (body panels with a fixed normal, Sun-tracking arrays that turn
+## about an axis), each with its absorbed, specular and diffuse shares (the one geometry the precision orbit hands the
+## radiation and drag models); the cannonball force -Cr P A/m nu s (Montenbruck and Gill 2000, Satellite Orbits, eq.
+## 3.75) and the box-wing sum over the lit facets, -P A cos(theta) ((alpha + rho_d) u + 2 (rho_s cos(theta) + rho_d/3) n)
+## (Montenbruck and Gill 2000, eq. 3.73; Milani, Nobili and Farinella 1987); the Earth's shadow as a cylinder, a cone
+## (the solar disc's share the Earth's disc covers, Montenbruck and Gill 2000, section 3.4.2) or a cone on an oblate
+## Earth with an opaque atmosphere 12 km thick. Octave's scaled norm in the cone's test, as the reference it is held to.
+## ECI [m], accelerations [m/s^2]; plain numbers in SI.
+## The developer's transcription (S7.6), unsigned.
+module srp
+
+## The most facets a spacecraft's geometry holds.
+const SC_NF = 16
+
+## A facet's kind: a drag panel with only a normal and an area (dgeom), a fixed body panel, a Sun-tracking array.
+choice FacetKind = plain, body, array
+
+## The spacecraft's facets (body frame): how many, each one's kind (its number), outward normal, area [m^2], absorbed,
+## specular and diffuse shares, an array's pivot axis, and whether both faces can be lit (1) or not (0).
+record ScFacets
+    nf: int
+    kind: int[SC_NF]
+    n: real[1][3][SC_NF]
+    a: real[1][SC_NF]
+    alpha: real[1][SC_NF]
+    rho_s: real[1][SC_NF]
+    rho_d: real[1][SC_NF]
+    axis: real[1][3][SC_NF]
+    dbl: int[SC_NF]
+end
+
+## One more facet (srp.facet, appended): its kind, normal, area, optics, axis and double-sidedness.
+fn facet_add(f: ScFacets, kind: FacetKind, n: real[1][3] in -1 .. 1, a: real[1] in 0 .. 1, alpha: real[1] in 0 .. 1, \
+             rho_s: real[1] in 0 .. 1, rho_d: real[1] in 0 .. 1, axis: real[1][3] in -1 .. 1, dbl: bool) -> g: ScFacets
+    g = f
+    let k = g.nf
+    if k < SC_NF
+        g.kind[k] = int(kind)
+        g.n[k] = n
+        g.a[k] = a
+        g.alpha[k] = alpha
+        g.rho_s[k] = rho_s
+        g.rho_d[k] = rho_d
+        g.axis[k] = axis
+        g.dbl[k] = if dbl then 1 else 0
+        g.nf = k + 1
+    end
+end
+
+## srp.buildBox(Lx, Ly, Lz, opt): the six body facets of a box (+x, -x, +y, -y, +z, -z) with the same optics.
+fn srp_box(lx: real[1] in 0.05 .. 1, ly: real[1] in 0.05 .. 1, lz: real[1] in 0.05 .. 1, alpha: real[1] in 0 .. 1, \
+           rho_s: real[1] in 0 .. 1, rho_d: real[1] in 0 .. 1) -> f: ScFacets
+    f = ScFacets()
+    let z: real[1][3] = [0.0, 0.0, 0.0]
+    f = facet_add(f, FacetKind.body, [1.0, 0.0, 0.0], ly*lz, alpha, rho_s, rho_d, z, false)
+    f = facet_add(f, FacetKind.body, [-1.0, 0.0, 0.0], ly*lz, alpha, rho_s, rho_d, z, false)
+    f = facet_add(f, FacetKind.body, [0.0, 1.0, 0.0], lx*lz, alpha, rho_s, rho_d, z, false)
+    f = facet_add(f, FacetKind.body, [0.0, -1.0, 0.0], lx*lz, alpha, rho_s, rho_d, z, false)
+    f = facet_add(f, FacetKind.body, [0.0, 0.0, 1.0], lx*ly, alpha, rho_s, rho_d, z, false)
+    f = facet_add(f, FacetKind.body, [0.0, 0.0, -1.0], lx*ly, alpha, rho_s, rho_d, z, false)
+end
+
+## srp.addArray(F, A, axis, opt): one double-sided solar array of area a turning about axis.
+fn srp_add_array(f: ScFacets, a: real[1] in 0 .. 1, axis: real[1][3] in -1 .. 1, alpha: real[1] in 0 .. 1, \
+                 rho_s: real[1] in 0 .. 1, rho_d: real[1] in 0 .. 1) -> g: ScFacets
+    g = facet_add(f, FacetKind.array, [0.0, 0.0, 0.0], a, alpha, rho_s, rho_d, axis, true)
+end
+
+## sgeom.sat16u(): the example 16U smallsat, a 0.20 x 0.20 x 0.34 m bus (long axis body z; optics 0.30, 0.30, 0.40) and
+## two double-sided 0.34 x 0.20 m arrays turning about body +y (0.85, 0.05, 0.10); 24 kg, the 0.20 x 0.20 m ram face as
+## the reference area, Cd 2.2 and Cr 1.3 (the TEMPLATE_16U values).
+fn sat16u() -> (mass: real[1], aref: real[1], cd: real[1], cr: real[1], f: ScFacets)
+    f = srp_box(0.20, 0.20, 0.34, 0.30, 0.30, 0.40)
+    f = srp_add_array(f, 0.34*0.20, [0.0, 1.0, 0.0], 0.85, 0.05, 0.10)
+    f = srp_add_array(f, 0.34*0.20, [0.0, 1.0, 0.0], 0.85, 0.05, 0.10)
+    mass = 24.0
+    aref = 0.20*0.20
+    cd = 2.2
+    cr = 1.3
+end
+
+## srp.arrayNormal(axis, sHat_b): the best-lit normal of an array turning about axis, towards s_hat_b (body frame).
+fn srp_array_normal(axis: real[1][3] in -1 .. 1, s_hat_b: real[1][3] in -1 .. 1) -> nrm: real[1][3]
+    let na = norm(axis)
+    let ax: real[1][3] = [axis[0]/na, axis[1]/na, axis[2]/na]
+    let sa = dot(s_hat_b, ax)
+    let proj: real[1][3] = [s_hat_b[0] - sa*ax[0], s_hat_b[1] - sa*ax[1], s_hat_b[2] - sa*ax[2]]
+    if norm(proj) < 1e-9
+        let t: real[1][3] = [1.0, 0.0, 0.0]
+        if abs(ax[0]) > 0.9
+            t = [0.0, 1.0, 0.0]
+        end
+        let ta = dot(t, ax)
+        proj = [t[0] - ta*ax[0], t[1] - ta*ax[1], t[2] - ta*ax[2]]
+    end
+    let np = norm(proj)
+    nrm = [proj[0]/np, proj[1]/np, proj[2]/np]
+end
+
+## srp.cannonball(P, nu, sunUnit_sat2sun, Cr, AoverM): -Cr P (A/m) nu s.
+fn srp_cannonball(p: real[1] in 4e-6 .. 5e-6, nu: real[1] in 0 .. 1, s: real[1][3] in -1 .. 1, cr: real[1] in 1 .. 2, \
+                  a_over_m: real[1] in 0.001 .. 0.1) -> acc: real[1][3]
+    let k = -cr*p*a_over_m*nu
+    acc = [k*s[0], k*s[1], k*s[2]]
+end
+
+## The shadow models of srp.eclipse: a cylinder (lit or not), a cone (umbra and penumbra, the default), a cone on an
+## oblate Earth with an opaque atmosphere.
+choice EclipseModel = cylindrical, conical, fine
+
+## srp.eclipse's default opts: the Earth's equatorial and polar radii and the Sun's (de440.constants()), and the opaque
+## atmosphere's height for the fine model, 12 km.
+fn eclipse_default() -> (re: real[1], rp: real[1], rsun: real[1], h_atm: real[1])
+    let k = de440_constants()
+    re = k.re_earth
+    rp = k.rp_earth
+    rsun = k.rsun
+    h_atm = 12000.0
+end
+
+## x.min(1) of the code (MATLAB's min(x, 1)): a nan gives 1.
+fn min_one(x: real[1] in -2 .. 2) -> y: real[1]
+    y = if x < 1.0 then x else 1.0
+end
+
+## The area of the lens two discs of radii r1 and r2, centres d apart, share.
+fn lens_area(d: real[1] in 0 .. 0.1, r1: real[1] in 0 .. 0.05, r2: real[1] in 0 .. 1.6) -> ar: real[1]
+    if d >= r1 + r2
+        ar = 0.0
+    elif d <= abs(r1 - r2)
+        let m = if r2 < r1 then r2 else r1
+        ar = pi*(m*m)
+    else
+        let a = (d*d + r1*r1 - r2*r2)/(2.0*d)
+        let h2 = r1*r1 - a*a
+        let h = sqrt(if h2 > 0.0 then h2 else 0.0)
+        ar = r1*r1*acos(a/r1) + r2*r2*acos((d - a)/r2) - d*h
+    end
+end
+
+## The sunlit fraction of the solar disc of radius rsun seen from r_sat past a spherical Earth of radius re, the Sun at
+## r_sun (Octave's scaled norms).
+fn frac_conical(r_sat: real[1][3] in -8e6 .. 8e6, r_sun: real[1][3] in -1.6e11 .. 1.6e11, re: real[1] in 6.3e6 .. 6.4e6, \
+                rsun: real[1] in 6.9e8 .. 7e8) -> nu: real[1]
+    let d: real[1][3] = [r_sun[0] - r_sat[0], r_sun[1] - r_sat[1], r_sun[2] - r_sat[2]]
+    let ds = onorm(d)
+    let s: real[1][3] = [d[0]/ds, d[1]/ds, d[2]/ds]
+    let rr = onorm(r_sat)
+    let e: real[1][3] = [-r_sat[0]/rr, -r_sat[1]/rr, -r_sat[2]/rr]
+    let se = dot(s, e)
+    if se < 0.0
+        nu = 1.0
+    else
+        let th_s = asin(min_one(rsun/ds))
+        let th_e = asin(min_one(re/rr))
+        let th_sep = acos(unit_clip(se))
+        if th_sep >= th_s + th_e
+            nu = 1.0
+        elif th_e - th_s >= th_sep
+            nu = 0.0
+        elif th_s - th_e >= th_sep
+            let q = th_e/th_s
+            nu = 1.0 - q*q
+        else
+            let occ = lens_area(th_sep, th_s, th_e)
+            nu = 1.0 - occ/(pi*(th_s*th_s))
+        end
+    end
+end
+
+## srp.eclipse(rSat, rSun, model, opts): the lighting fraction nu in [0, 1] (1 sunlit, 0 umbra), the Sun at r_sun
+## (geocentric), with the Earth's radii re and rp, the Sun's rsun and the opaque atmosphere h_atm [m].
+## vectors: 160
+fn srp_eclipse(r_sat: real[1][3] in -8e6 .. 8e6, r_sun: real[1][3] in -1.6e11 .. 1.6e11, model: EclipseModel, \
+               re: real[1] in 6.3e6 .. 6.4e6, rp: real[1] in 6.3e6 .. 6.4e6, rsun: real[1] in 6.9e8 .. 7e8, \
+               h_atm: real[1] in 0 .. 50000) -> nu: real[1]
+    if model == EclipseModel.cylindrical
+        let d: real[1][3] = [r_sun[0] - r_sat[0], r_sun[1] - r_sat[1], r_sun[2] - r_sat[2]]
+        let nd = norm(d)
+        let s: real[1][3] = [d[0]/nd, d[1]/nd, d[2]/nd]
+        let m: real[1][3] = [-r_sat[0], -r_sat[1], -r_sat[2]]
+        let ms = dot(m, s)
+        if ms < 0.0
+            nu = 1.0
+        else
+            let perp = norm([m[0] - ms*s[0], m[1] - ms*s[1], m[2] - ms*s[2]])
+            nu = if perp >= re then 1.0 else 0.0
+        end
+    elif model == EclipseModel.conical
+        nu = frac_conical(r_sat, r_sun, re, rsun)
+    else
+        let sz = re/rp
+        let rs: real[1][3] = [r_sat[0], r_sat[1], r_sat[2]*sz]
+        let rn: real[1][3] = [r_sun[0], r_sun[1], r_sun[2]*sz]
+        nu = frac_conical(rs, rn, re + h_atm, rsun)
+    end
+end
+
+## The body-frame force of one beam of pressure p arriving from u_b (unit, from the spacecraft towards the source, body
+## axes) on the lit facets: an array's normal turned to the beam, a double-sided facet lit from behind flipped.
+fn facet_sum(f: ScFacets, u_b: real[1][3] in -1 .. 1, p: real[1] in 0 .. 1e-5) -> fb: real[1][3]
+    fb = 0
+    for j in 0 .. f.nf
+        let n: real[1][3] = f.n[j]
+        if f.kind[j] == int(FacetKind.array)
+            n = srp_array_normal(f.axis[j], u_b)
+        end
+        let cth = dot(n, u_b)
+        if f.dbl[j] == 1 and cth < 0.0
+            n = [-n[0], -n[1], -n[2]]
+            cth = -cth
+        end
+        if not (cth <= 0.0)
+            let k = p*f.a[j]*cth
+            let ka = f.alpha[j] + f.rho_d[j]
+            let kn = 2.0*(f.rho_s[j]*cth + f.rho_d[j]/3.0)
+            for i in 0 .. 3
+                fb[i] = fb[i] - k*(ka*u_b[i] + kn*n[i])
+            end
+        end
+    end
+end
+
+## [a, F] = srp.boxwing(P, nu, sunUnit_sat2sun, R_b2i, sc): the box-wing acceleration [m/s^2] (scaled by nu) and force
+## [N] (before it), the body-to-inertial matrix r_b2i.
+fn srp_boxwing(p: real[1] in 4e-6 .. 5e-6, nu: real[1] in 0 .. 1, s: real[1][3] in -1 .. 1, r_b2i: real[1][3][3] in -1 .. 1, \
+               f: ScFacets, mass: real[1] in 1 .. 100) -> (acc: real[1][3], force: real[1][3])
+    let s_b = transpose(r_b2i)*s
+    let fb = facet_sum(f, s_b, p)
+    force = r_b2i*fb
+    acc = [nu*force[0]/mass, nu*force[1]/mass, nu*force[2]/mass]
+end
+
+## The spacecraft models of forces.srp: a cannonball (the default) or the box-wing facets.
+choice SrpModel = cannonball, boxwing
+
+## The cannonball's reflectivity factor forces.srp takes: the force set's when it states one, else the spacecraft's,
+## else 1.3.
+fn srp_cr(has_cfg: bool, cfg_cr: real[1] in 1 .. 2, has_sc: bool, sc_cr: real[1] in 1 .. 2) -> cr: real[1]
+    if has_cfg
+        cr = cfg_cr
+    elif has_sc
+        cr = sc_cr
+    else
+        cr = 1.3
+    end
+end
+
+## forces.srp(ctx): the solar radiation pressure acceleration [m/s^2] at r (ECI), the Sun at sun (geocentric) and its
+## pressure p_srp there, in the shadow of the model (default opts), on a cannonball of reflectivity factor cr and area
+## to mass aref/mass, or on the box-wing facets at the attitude r_bi (body to ECI).
+fn srp_force(r: real[1][3] in -8e6 .. 8e6, sun: real[1][3] in -1.6e11 .. 1.6e11, p_srp: real[1] in 4e-6 .. 5e-6, \
+             model: SrpModel, ecl: EclipseModel, cr: real[1] in 1 .. 2, aref: real[1] in 0.01 .. 1, mass: real[1] in 1 .. 100, \
+             r_bi: real[1][3][3] in -1 .. 1, f: ScFacets) -> acc: real[1][3]
+    let d: real[1][3] = [sun[0] - r[0], sun[1] - r[1], sun[2] - r[2]]
+    let nd = norm(d)
+    let shat: real[1][3] = [d[0]/nd, d[1]/nd, d[2]/nd]
+    let re, rp, rsun, h_atm = eclipse_default()
+    let nu = srp_eclipse(r, sun, ecl, re, rp, rsun, h_atm)
+    if model == SrpModel.cannonball
+        acc = srp_cannonball(p_srp, nu, shat, cr, aref/mass)
+    else
+        let a1, f1 = srp_boxwing(p_srp, nu, shat, r_bi, f, mass)
+        acc = a1
+    end
+end

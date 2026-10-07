@@ -1,0 +1,11 @@
+## A control moment gyro as the engine flies it, transcribed from adcs-sim-core actuators.rs (Mex::apply, Cmg): the
+## rotor runs at constant speed, its momentum held at the stated rotor momentum h0 by a speed loop of gain k_speed (the
+## product's, 1/s as the engine flies it) within the rotor's largest torque; the torque on the body comes from the
+## gimbal turning the rotor (the plant's coupling, dyn). Power: the rotor's steady power.
+## The developer's transcription (S7.7), unsigned.
+module cmgmodel
+
+## The CMG rotor's momentum rate [N m]: -k_speed (h - h0), within its largest torque.
+fn cmg_rate(h: real[1] in -0.05 .. 0.05, h0: real[1] in 0.001 .. 0.05, k_speed: real[1] in 0 .. 10, torque_max: real[1] in 1e-4 .. 0.01) -> hd: real[1]
+    hd = act_clamp(-k_speed*(h - h0), -torque_max, torque_max)
+end

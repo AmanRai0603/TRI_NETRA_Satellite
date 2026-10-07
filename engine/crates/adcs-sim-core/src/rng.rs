@@ -36,4 +36,11 @@ impl Rng {
         r*cos(2.0*PI*u2)
     }
     pub fn normal3(&mut self) -> [f64; 3] { [self.normal(), self.normal(), self.normal()] }
+    /// The language's stream with this one's state (`gen::rt::Stream`: the same key, counter and spare), to hand a
+    /// generated model that draws from it.
+    pub fn stream(&self) -> crate::gen::rt::Stream {
+        crate::gen::rt::Stream { key: self.key, n: self.n, spare: self.spare.unwrap_or(0.0), has: self.spare.is_some() }
+    }
+    /// The stream a generated model drew from, as the engine's again.
+    pub fn from_stream(s: &crate::gen::rt::Stream) -> Rng { Rng { key: s.key, n: s.n, spare: if s.has { Some(s.spare) } else { None } } }
 }

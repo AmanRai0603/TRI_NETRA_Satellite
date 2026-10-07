@@ -130,7 +130,7 @@ the body; the `else` block is the answer when the loop did not settle.
 calls. Arrays: `+ -` element by element, a number times or over an array, matrix times vector,
 matrix times matrix.
 
-Builtins: `sqrt abs sin cos tan asin acos atan atan2 exp log log10 log2 pow hypot min max clamp floor
+Builtins: `sqrt abs sin cos tan asin acos atan atan2 exp log log10 log2 erf pow hypot min max clamp floor
 ceil round trunc sign fmod dot cross norm unit transpose real int len div rem band bor bxor shl shr isnan isfinite
 sort argsort`, the stream's `stream uniform normal normal3` (*Random streams*), and the constants `pi`, `inf` and
 `nan`.
@@ -260,8 +260,12 @@ library's last bits differ:
   shortest decimal that reads back as the same double.
 - An expression is evaluated in the order it is written, with no fused multiply-add.
 
-`sin cos tan asin acos atan atan2 exp log log10 log2 pow hypot` come from each platform's library and may
-differ in their last bits (more after a large argument is reduced). `hypot` is the library's own (Rust `f64::hypot`, C
+`sin cos tan asin acos atan atan2 exp log log10 log2 erf pow hypot` come from each platform's library and may
+differ in their last bits (more after a large argument is reduced). `erf`, the error function (trinetra-toolbox/4,
+S7.6: the gas-surface interaction of the drag's panel models), is the C library's in every translation (C `erf`, MATLAB
+`erf`, and in Rust for std an `extern "C"` erf in `rt.rs`, std having none; a no_std crate's maths module); JavaScript
+has none, so both interpreters compute fdlibm's s_erf.c over their own `exp` (`rt.erf`, `vmath::erf`, held equal on
+40,000 arguments). `hypot` is the library's own (Rust `f64::hypot`, C
 `hypot`, MATLAB `hypot`), not `sqrt(a*a + b*b)`, so a transcription of code that calls it gives that code's bits
 (trinetra-toolbox/3, S7.3). `pow` is the library's pow in every build too: the Rust translation for std hands
 `f64::powf` its exponent through `core::hint::black_box`, because the optimiser would otherwise rewrite `pow(x, 2.0)` as

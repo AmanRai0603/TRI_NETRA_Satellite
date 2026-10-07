@@ -1,0 +1,16 @@
+## The cold-gas thrusters' specific impulse and their propellant flow, transcribed from adcs-sim-core actuators.rs
+## (Rcs::new: the unit's specific impulse drawn uniformly over the part's isp_s range; Rcs::apply): the mass flow of the
+## couples' summed duty, sum f_j s_j times 2 F/(Isp g0) (two thrusters a couple), g0 standard gravity.
+## The developer's transcription (S7.7), unsigned.
+module rcsisp
+
+## The unit's specific impulse [s], uniform between lo and hi, drawn from disp.
+fn isp_draw(lo: real[s] in 30 .. 300, hi: real[s] in 30 .. 300, disp: inout stream) -> isp: real[s]
+    let u = uniform(disp)
+    isp = lo + (hi - lo)*u
+end
+
+## The propellant flow [kg/s] of the couples' summed scaled duty fs, thrust [N] and specific impulse [s].
+fn rcs_mass_flow(fs: real[1] in 0 .. 6, thrust: real[N] in 0.001 .. 1, isp: real[s] in 30 .. 300) -> mdot: real[kg/s]
+    mdot = fs*2.0*thrust/(isp*G0)
+end

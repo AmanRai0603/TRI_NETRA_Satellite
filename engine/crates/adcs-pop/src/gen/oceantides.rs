@@ -4,11 +4,16 @@
 use crate::gen::rt;
 use crate::gen::de440::{DeConstants, EphemOut};
 use crate::gen::densitymodel::{AtmosOut};
+use crate::gen::drag::{CannonballOut, PanelOut};
 use crate::gen::dtm2020::{Plg, Hloc, DtmRaw, DtmDensity};
+use crate::gen::erp::{ErpComp};
+use crate::gen::forcemodel::{ForceSet};
+use crate::gen::gsi::{Gsi};
 use crate::gen::iau2006::{TimeScales, CioParts};
 use crate::gen::jb2008::{JbOut, JbCoreInputs};
 use crate::gen::relativity::{RelParts};
 use crate::gen::solidtides::{Dcs5};
+use crate::gen::srp::{ScFacets};
 use crate::gen::swindex::{SwManual};
 use crate::gen::timescales::{Times};
 
@@ -70,18 +75,18 @@ pub fn main_lines(jd_tt: f64) -> Dcs5 {
     let mut beta: [f64; 6] = crate::gen::oceantides::doodson(jd_tt);
     d = Dcs5::default();
     {
-        let __end66: i64 = 8;
+        let __end88: i64 = 8;
         let mut i: i64 = 0;
-        while i < __end66 {
+        while i < __end88 {
             let mut deg: i64 = (crate::gen::tidelines::DATA_OCEAN_MAIN_LINES[(i) as usize][6] as i64);
             let mut m: i64 = (crate::gen::tidelines::DATA_OCEAN_MAIN_LINES[(i) as usize][7] as i64);
             let mut cp: f64 = (crate::gen::tidelines::DATA_OCEAN_MAIN_LINES[(i) as usize][8] * 1.0e-11);
             let mut sp: f64 = (crate::gen::tidelines::DATA_OCEAN_MAIN_LINES[(i) as usize][9] * 1.0e-11);
             let mut th: f64 = 0.0;
             {
-                let __end67: i64 = 6;
+                let __end89: i64 = 6;
                 let mut k: i64 = 0;
-                while k < __end67 {
+                while k < __end89 {
                     th = (th + (crate::gen::tidelines::DATA_OCEAN_MAIN_LINES[(i) as usize][(k) as usize] * beta[(k) as usize]));
                     k += 1;
                 }
@@ -103,9 +108,9 @@ pub fn fes_nmax() -> i64 {
     let mut n: i64 = 0;
     n = 0;
     {
-        let __end68: i64 = 1052;
+        let __end90: i64 = 1052;
         let mut i: i64 = 0;
-        while i < __end68 {
+        while i < __end90 {
             n = rt::imax(n, (crate::gen::tidelines::DATA_FES2004[(i) as usize][6] as i64));
             i += 1;
         }
@@ -127,14 +132,14 @@ pub fn from_model(jd_tt: f64) -> ([f64; 121], [f64; 121]) {
     dc = [0.0; 121];
     ds = [0.0; 121];
     {
-        let __end69: i64 = 1052;
+        let __end91: i64 = 1052;
         let mut i: i64 = 0;
-        while i < __end69 {
+        while i < __end91 {
             let mut th: f64 = 0.0;
             {
-                let __end70: i64 = 6;
+                let __end92: i64 = 6;
                 let mut j: i64 = 0;
-                while j < __end70 {
+                while j < __end92 {
                     th = (th + (crate::gen::tidelines::DATA_FES2004[(i) as usize][(j) as usize] * beta[(j) as usize]));
                     j += 1;
                 }

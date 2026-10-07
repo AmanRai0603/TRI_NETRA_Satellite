@@ -8,6 +8,8 @@
 #[inline] pub fn sqrt(x: f64) -> f64 { libm::sqrt(x) }
 #[inline] pub fn exp(x: f64) -> f64 { libm::exp(x) }
 #[inline] pub fn ln(x: f64) -> f64 { libm::log(x) }
+/// The natural logarithm by the name the generated code calls it (the language's `log`): the same function as ln.
+#[inline] pub fn log(x: f64) -> f64 { libm::log(x) }
 #[inline] pub fn log10(x: f64) -> f64 { libm::log10(x) }
 #[inline] pub fn pow(x: f64, y: f64) -> f64 { libm::pow(x, y) }
 #[inline] pub fn floor(x: f64) -> f64 { libm::floor(x) }

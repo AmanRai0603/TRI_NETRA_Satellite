@@ -13,6 +13,7 @@ pub(super) fn to_rust(i: &Interp, o: &RustOptions) -> Result<Files, String> {
         tmp: 0,
         sort: false,
         stream: std::cell::Cell::new(false),
+        erf: false,
         root: o.root.filter(|r| !r.is_empty()).unwrap_or("crate").to_string(),
         math: o.math.filter(|m| !m.is_empty()).map(str::to_string),
         dispatch: o.dispatch,
@@ -27,6 +28,7 @@ struct Gen<'a> {
     /// runtime pieces the program uses beyond RUST_RT (rt.rs carries them only then)
     sort: bool,
     stream: std::cell::Cell<bool>,
+    erf: bool,
     /// the path the modules are under (`crate`, or `crate::alg` when embedded in a crate)
     root: String,
     /// the module the scalar maths comes from (a no_std crate's), else `f64`'s own
@@ -302,6 +304,15 @@ impl<'a> Gen<'a> {
                 "sin" | "cos" | "tan" | "asin" | "acos" | "atan" | "exp" | "log10" => return format!("{}({})", self.fm(&format!("f64::{f}"), f), r(self, 0)),
                 "log" => return format!("{}({})", self.fm("f64::ln", "log"), r(self, 0)),
                 "log2" => return format!("{}({})", self.fm("f64::log2", "log2"), r(self, 0)),
+                // std has no erf: the platform's C library's, declared in rt.rs, the same erf C and MATLAB call
+                "erf" => {
+                    let p = r(self, 0);
+                    if let Some(m) = &self.math {
+                        return format!("{m}::erf({p})");
+                    }
+                    self.erf = true;
+                    return format!("rt::erf({p})");
+                }
                 "atan2" => {
                     let p = r(self, 0);
                     return format!("{}({p}, {})", self.fm("f64::atan2", "atan2"), r(self, 1));
@@ -703,7 +714,8 @@ impl<'a> Gen<'a> {
         };
         let sort = if self.sort { RUST_RT_SORT } else { "" };
         let stream = if self.stream.get() { rust_rt_stream(self.math.as_deref()) } else { String::new() };
-        set_file(&mut files, "src/rt.rs".into(), format!("//! The arithmetic every translation shares with the interpreter (design/js/pcode.js `rt`). {head}\n{rt}{sort}{stream}"));
+        let erf = if self.erf { RUST_RT_ERF } else { "" };
+        set_file(&mut files, "src/rt.rs".into(), format!("//! The arithmetic every translation shares with the interpreter (design/js/pcode.js `rt`). {head}\n{rt}{sort}{stream}{erf}"));
         let title = title.filter(|t| !t.is_empty()).unwrap_or("Functions written in the pseudocode");
         let mods: String = c.modules.iter().map(|(m, _)| format!("pub mod {m};\n")).collect();
         set_file(
@@ -829,6 +841,18 @@ pub fn normal3(s: &mut Stream) -> [f64; 3] {{ let a = normal(s); let b = normal(
         cos = f("cos", "cos")
     )
 }
+
+/// The platform's erf (pcode_gen.js `RUST_RT_ERF`), carried by a translation with std's maths that calls it.
+const RUST_RT_ERF: &str = r#"extern "C" {
+    #[link_name = "erf"]
+    fn c_erf(x: f64) -> f64;
+}
+/// The error function of the platform's C maths library, the one C and MATLAB call (Rust's std has none).
+pub fn erf(x: f64) -> f64 {
+    // SAFETY: erf is a pure C99 <math.h> function of one double, in the system libm std already links.
+    unsafe { c_erf(x) }
+}
+"#;
 
 /// The toolbox sort (pcode_gen.js `RUST_RT_SORT`), carried by a translation that sorts.
 const RUST_RT_SORT: &str = r#"/// The indices of a vector in ascending order, equal values in their order (an insertion sort).

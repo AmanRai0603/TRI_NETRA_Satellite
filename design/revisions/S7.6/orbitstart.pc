@@ -1,0 +1,27 @@
+## Where the engine's fast orbit starts, transcribed from adcs-sim run.rs (Truth::new, the fast orbit): a circular
+## sun-synchronous orbit set by its local time of the ascending node. The RAAN is the Sun's right ascension at the epoch
+## plus the LTAN's offset from noon at 15 degrees an hour (Vallado 2013, section 11.4.2), taken into one turn; the
+## semi-major axis is the Earth's radius plus the altitude; the inclination and the argument of latitude in radians.
+## The Sun is env's fast series at the epoch (l3_dist_row_09); the elements go to a state by env_two_body_elements.
+## Generated with the platform's maths (the engine's set-up code, std), as it flew.
+## The developer's transcription (S7.6), unsigned.
+module orbitstart
+
+## The RAAN [rad], in [0, 2 pi), of an orbit whose ascending node is at local time ltan_h [h], the Sun at sun
+## (geocentric, J2000).
+fn ltan_raan(sun: vec3[m] in -1.5e11 .. 1.5e11, ltan_h: real[1] in 0 .. 24) -> raan: real[1]
+    let x = atan2(sun[1], sun[0]) + (ltan_h - 12.0)*15.0*pi/180.0
+    let turn = 2.0*pi
+    let m = fmod(x, turn)
+    raan = if m < 0.0 then m + abs(turn) else m
+end
+
+## The fast orbit's start: its RAAN from the LTAN and the Sun at the epoch, its semi-major axis from the altitude
+## alt_km [km], its inclination and argument of latitude from inc_deg and u0_deg [deg].
+fn fast_orbit_start(sun: vec3[m] in -1.5e11 .. 1.5e11, ltan_h: real[1] in 0 .. 24, alt_km: real[1] in 150 .. 2000, \
+                    inc_deg: real[1] in 0 .. 180, u0_deg: real[1] in 0 .. 360) -> (raan: real[1], a: real[m], inc: real[1], u0: real[1])
+    raan = ltan_raan(sun, ltan_h)
+    a = R_E + alt_km*(1000 [m])
+    inc = inc_deg*(pi/180.0)
+    u0 = u0_deg*(pi/180.0)
+end

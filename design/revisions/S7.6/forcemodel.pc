@@ -1,0 +1,154 @@
+## The precision orbit's force model, transcribed from adcs-pop accel.rs, the port of the Octave POP's op.buildWorld,
+## op.accel, op.coe2rv and asils.orbit.init: which forces the in-loop orbit sums and how (the SILS set of asils.orbit.init:
+## the degree and order 6 field, the Sun and the Moon in Battin's form, cannonball drag in DTM2020 turning with the
+## Earth, cannonball solar pressure in the conical shadow with Cr = 1 + the surface's reflectivity; config's default set
+## the same on the exponential atmosphere with Cr 1.3), their sum in op.accel's order (gravity, third body, drag, solar
+## and Earth radiation, relativity, solid and ocean tides, an empirical constant acceleration in the radial,
+## along-track and cross-track frame), the environment a node carries when no force needs the ephemeris, and the
+## sun-synchronous start: the semi-major axis from the altitude, the RAAN from the LTAN and the Sun's right ascension at
+## the epoch (DE440), the elements to a state (Vallado 2013, algorithm 10, as op.coe2rv writes it). The forces
+## themselves are env's methods (gravity, third body, drag, radiation, relativity, tides); the integrator (RK4 with
+## Hermite interpolation, the context's interpolation) is the code's. Plain numbers in SI.
+## The developer's transcription (S7.6), unsigned.
+module forcemodel
+
+## cfg.forces: the gravity model, its degree and order (none: the degree); the third body on, its model and Legendre
+## degree; drag on, its spacecraft model (and panel model), its atmosphere, its Cd when the set states one, whether the
+## air turns with the Earth, its gas-surface interaction; solar pressure on, its model, its shadow and its Cr when the
+## set states one; Earth radiation, relativity, solid and ocean tides on; an empirical acceleration when stated (radial,
+## along-track, cross-track [m/s^2]).
+record ForceSet
+    grav_model: GravityModel
+    grav_degree: int
+    has_grav_order: bool
+    grav_order: int
+    tb_on: bool
+    tb_model: ThirdBodyModel
+    tb_nmax: int
+    drag_on: bool
+    drag_model: DragModel
+    drag_panel: PanelModel
+    drag_atmos: AtmosModel
+    has_drag_cd: bool
+    drag_cd: real[1]
+    drag_corotate: bool
+    drag_gsi: Gsi
+    srp_on: bool
+    srp_model: SrpModel
+    srp_eclipse: EclipseModel
+    has_srp_cr: bool
+    srp_cr: real[1]
+    erp_on: bool
+    relativity_on: bool
+    solidtides: bool
+    oceantides: bool
+    has_empirical: bool
+    empirical: real[1][3]
+end
+
+## The SILS force set of asils.orbit.init, the solar pressure's Cr given: the degree and order 6 field, Battin's Sun and
+## Moon, cannonball drag in DTM2020 with the air turning with the Earth (forces.drag's gsi), cannonball solar pressure
+## in the conical shadow; no Earth radiation, relativity, tides or empirical acceleration.
+fn sils_forces(cr: real[1] in 1 .. 2) -> s: ForceSet
+    s = ForceSet()
+    s.grav_model = GravityModel.sphharm
+    s.grav_degree = 6
+    s.has_grav_order = true
+    s.grav_order = 6
+    s.tb_on = true
+    s.tb_model = ThirdBodyModel.battin
+    s.tb_nmax = 4
+    s.drag_on = true
+    s.drag_model = DragModel.cannonball
+    s.drag_panel = PanelModel.sentman
+    s.drag_atmos = AtmosModel.dtm2020
+    s.has_drag_cd = false
+    s.drag_corotate = true
+    s.drag_gsi = gsi_default()
+    s.srp_on = true
+    s.srp_model = SrpModel.cannonball
+    s.srp_eclipse = EclipseModel.conical
+    s.has_srp_cr = true
+    s.srp_cr = cr
+end
+
+## The solar pressure's Cr of the SILS: one plus the surface's reflectivity (asils.orbit.init).
+fn sils_cr(refl: real[1] in 0 .. 1) -> cr: real[1]
+    cr = 1.0 + refl
+end
+
+## config.defaultConfig's force set: the SILS set on the exponential atmosphere, the solar pressure's Cr 1.3.
+fn default_forces() -> s: ForceSet
+    s = sils_forces(1.3)
+    s.drag_atmos = AtmosModel.exponential
+end
+
+## An empirical constant acceleration acc (radial, along-track, cross-track [m/s^2]) in ECI at r, v.
+fn empirical_accel(r: real[1][3] in -8e6 .. 8e6, v: real[1][3] in -8000 .. 8000, acc: real[1][3] in -1e-6 .. 1e-6) -> a: real[1][3]
+    let nr = norm(r)
+    let rr: real[1][3] = [r[0]*(1.0/nr), r[1]*(1.0/nr), r[2]*(1.0/nr)]
+    let h = cross(r, v)
+    let nh = norm(h)
+    let nn: real[1][3] = [h[0]*(1.0/nh), h[1]*(1.0/nh), h[2]*(1.0/nh)]
+    let tt = cross(nn, rr)
+    a = 0
+    for i in 0 .. 3
+        a[i] = acc[0]*rr[i] + acc[1]*tt[i] + acc[2]*nn[i]
+    end
+end
+
+## op.accel's sum of the forces' accelerations, in its order.
+fn force_sum(gravity: real[1][3] in -10 .. 10, thirdbody: real[1][3] in -1e-5 .. 1e-5, drag: real[1][3] in -1e-5 .. 1e-5, \
+             srp: real[1][3] in -1e-6 .. 1e-6, erp: real[1][3] in -1e-7 .. 1e-7, relativity: real[1][3] in -1e-7 .. 1e-7, \
+             solidtides: real[1][3] in -1e-6 .. 1e-6, oceantides: real[1][3] in -1e-7 .. 1e-7, empirical: real[1][3] in -1e-6 .. 1e-6) \
+        -> a: real[1][3]
+    a = gravity
+    a = [a[0] + thirdbody[0], a[1] + thirdbody[1], a[2] + thirdbody[2]]
+    a = [a[0] + drag[0], a[1] + drag[1], a[2] + drag[2]]
+    a = [a[0] + srp[0], a[1] + srp[1], a[2] + srp[2]]
+    a = [a[0] + erp[0], a[1] + erp[1], a[2] + erp[2]]
+    a = [a[0] + relativity[0], a[1] + relativity[1], a[2] + relativity[2]]
+    a = [a[0] + solidtides[0], a[1] + solidtides[1], a[2] + solidtides[2]]
+    a = [a[0] + oceantides[0], a[1] + oceantides[1], a[2] + oceantides[2]]
+    a = [a[0] + empirical[0], a[1] + empirical[1], a[2] + empirical[2]]
+end
+
+## The environment an orbit node carries when no force needs the ephemeris (asils.orbit.node): the Sun at 1.496e11 m
+## and the Moon at 3.84e8 m along x, the solar pressure 4.56e-6 N/m^2.
+fn no_ephem_env() -> (sun: real[1][3], p_srp: real[1], moon: real[1][3])
+    sun = [1.496e11, 0.0, 0.0]
+    p_srp = 4.56e-6
+    moon = [3.84e8, 0.0, 0.0]
+end
+
+## op.coe2rv(a, e, i, RAAN, w, nu, mu): classical elements [m, rad] to an ECI position and velocity (closed orbits).
+fn pop_coe2rv(a: real[1] in 6.5e6 .. 8e6, e: real[1] in 0 .. 0.1, inc: real[1] in 0 .. 3.1, raan: real[1] in 0 .. 6.2, \
+              argp: real[1] in 0 .. 6.2, nu: real[1] in 0 .. 6.2, mu: real[1] in 3.9e14 .. 4e14) -> (r: real[1][3], v: real[1][3])
+    let p = a*(1.0 - e^2)
+    let rmag = p/(1.0 + e*cos(nu))
+    let r_pf: real[1][3] = [rmag*cos(nu), rmag*sin(nu), 0.0]
+    let k = sqrt(mu/p)
+    let v_pf: real[1][3] = [k*(-sin(nu)), k*(e + cos(nu)), 0.0]
+    let co = cos(raan)
+    let so = sin(raan)
+    let ci = cos(inc)
+    let si = sin(inc)
+    let cw = cos(argp)
+    let sw = sin(argp)
+    let q: real[1][3][3] = [[co*cw - so*sw*ci, -co*sw - so*cw*ci, so*si], [so*cw + co*sw*ci, -so*sw + co*cw*ci, -co*si], [sw*si, cw*si, ci]]
+    r = q*r_pf
+    v = q*v_pf
+end
+
+## The orbit geometry of asils.orbit.init: a = Re + alt, the RAAN from the LTAN and the Sun's right ascension (its unit
+## vector at the epoch, DE440), the argument of latitude u0 [deg]: the state and the RAAN [rad].
+fn sso_initial(sun_unit: real[1][3] in -1 .. 1, alt_km: real[1] in 150 .. 2000, ecc: real[1] in 0 .. 0.1, \
+               inc_deg: real[1] in 0 .. 180, ltan_h: real[1] in 0 .. 24, argp_deg: real[1] in 0 .. 360, u0_deg: real[1] in 0 .. 360) \
+        -> (r: real[1][3], v: real[1][3], raan: real[1])
+    let k = de440_constants()
+    let a = k.re_earth + alt_km*1e3
+    let inc = inc_deg*pi/180.0
+    let ra_sun = atan2(sun_unit[1], sun_unit[0])
+    raan = omod(ra_sun + (ltan_h - 12.0)*15.0*pi/180.0, 2.0*pi)
+    r, v = pop_coe2rv(a, ecc, inc, raan, argp_deg*pi/180.0, u0_deg*pi/180.0, k.mu_earth)
+end

@@ -147,22 +147,22 @@ fn fit_actuator_(d: &mut Dev, x: &mut MexDesc, slot: &str, pt: &Part) -> bool {
             for a in pt.axes("axes_body") {
                 add_rotor(x, Kind::Rw, a, 0, n("h_max_Nms"), n("torque_max_Nm"), n("rotor_inertia_kgm2"), n("friction_coulomb_Nm"), n("friction_viscous_Nms"), n("power_steady_W"), pt.sig("torque_scale"), flo, fhi, pt.sig("axis_misalignment_rad"));
                 let i = x.n - 1;
-                x.speed_max[i] = wmax; x.t_stall[i] = kt*vb/rw; x.w_nl[i] = vb/kt; x.f_static[i] = fst; x.w_stribeck[i] = wst;
+                // act's l3_rw_row_01: the motor's stall torque and no-load speed
+                let (ts, wn) = adcs_sim_core::gen::wheelmotor::motor_constants(kt, rw, vb);
+                x.speed_max[i] = wmax; x.t_stall[i] = ts; x.w_nl[i] = wn; x.f_static[i] = fst; x.w_stribeck[i] = wst;
             }
         }
         "rings" => {
-            let ac = std::f64::consts::PI*n("bore_m").powi(2)/4.0;
+            // act's l3_fmr_row_12: the bore's area, the momentum per flow speed, the spin-down time, the capacity
             let s = n("enclosed_area_m2");
-            let k_hv = n("fluid_density_kg_m3")*ac*2.0*s;
-            let tsd = n("fluid_density_kg_m3")*n("bore_m").powi(2)/(32.0*n("fluid_viscosity_Pa_s"));
-            let hmax = k_hv*n("v_max_m_s");
+            let (ac, k_hv, tsd, hmax) = adcs_sim_core::gen::ringlimits::ring_constants(n("bore_m"), s, n("fluid_density_kg_m3"), n("fluid_viscosity_Pa_s"), n("v_max_m_s"));
             let (flo, fhi) = lohi(ds, "friction_scale", 1.0);
             let (elo, ehi) = lohi(ds, "pump_efficiency", 1.0);
             let fp = json::f(&pt.nm, "field_power_W", 0.0);
             for a in pt.axes("axes_body") {
                 // an electromagnetic pump designed by adcs-design states its pressure-limited torque
                 let tq = json::f(&pt.nm, "pump_torque_max_Nm", f64::NAN);
-                add_rotor(x, Kind::Fmr, a, 0, hmax, if tq.is_finite() && tq > 0.0 { tq } else { 2.0*hmax/tsd }, k_hv, 0.0, 0.0, 0.0, 0.0, flo, fhi, pt.sig("axis_misalignment_rad"));
+                add_rotor(x, Kind::Fmr, a, 0, hmax, adcs_sim_core::gen::ringlimits::ring_pump_max(tq, hmax, tsd), k_hv, 0.0, 0.0, 0.0, 0.0, flo, fhi, pt.sig("axis_misalignment_rad"));
                 let i = x.n - 1;
                 x.t_sd[i] = tsd; x.k_hv[i] = k_hv; x.ac[i] = ac; x.s[i] = s; x.l[i] = n("channel_length_m");
                 x.flow_noise_h[i] = k_hv*pt.sig("flow_sensor_noise_m_s");
@@ -193,7 +193,7 @@ fn fit_actuator_(d: &mut Dev, x: &mut MexDesc, slot: &str, pt: &Part) -> bool {
             let arm = [n("arm_short_m"), n("arm_long_m"), n("arm_long_m")];
             let mut r = RcsDesc { fitted: true, nc: 6, thrust: fth, isp: n("isp_s"), mib: n("mib_s"), res: n("valve_res_s"), prop_kg: n("propellant_kg"), valve_power: n("valve_power_W"), thrust_sigma: pt.sig("thrust_scale"), misalign: pt.sig("axis_misalignment_rad"), ..Default::default() };
             (r.isp_lo, r.isp_hi) = lohi(ds, "isp_s", n("isp_s"));
-            for ax in 0..3 { r.tau[2*ax][ax] = 2.0*fth*arm[ax]; r.tau[2*ax + 1][ax] = -2.0*fth*arm[ax]; }
+            r.tau = adcs_sim_core::gen::rcstorque::couple_torques(fth, arm);   // act's l3_rcs_row_01: +-2 F arm about each axis
             d.rcs = r;
         }
         _ => return false,

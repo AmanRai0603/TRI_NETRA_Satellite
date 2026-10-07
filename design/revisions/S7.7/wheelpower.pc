@@ -1,0 +1,10 @@
+## A reaction wheel's power, transcribed from adcs-sim-core actuators.rs (Mex::apply, also a VSCMG's rotor): the
+## steady power holding speed (the part's power_steady_W) plus the mechanical power of the motor's torque at the
+## rotor's speed over the drive's efficiency (the product's eta, 0.8 as the engine flies it).
+## The developer's transcription (S7.7), unsigned.
+module wheelpower
+
+## The power [W]: p_steady + |tm om|/eta.
+fn wheel_power(p_steady: real[1] in 0 .. 5, tm: real[1] in -0.01 .. 0.01, om: real[1] in -1000 .. 1000, eta: real[1] in 0.5 .. 1) -> p: real[1]
+    p = p_steady + abs(tm*om)/eta
+end

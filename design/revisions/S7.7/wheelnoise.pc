@@ -1,0 +1,11 @@
+## A momentum device's torque noise, transcribed from adcs-sim-core actuators.rs (Mex::apply): white noise of sigma a
+## share of the device's largest torque (the product's torque_noise, 0.001 as the engine flies it), one normal draw
+## from the run's momentum-device noise stream per rotor and step.
+## The developer's transcription (S7.7), unsigned.
+module wheelnoise
+
+## The torque noise [N m]: share times the largest torque times a normal draw from g.
+fn torque_noise(share: real[1] in 0 .. 0.01, torque_max: real[1] in 1e-4 .. 0.1, g: inout stream) -> nz: real[1]
+    let z = normal(g)
+    nz = share*torque_max*z
+end

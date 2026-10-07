@@ -4,11 +4,16 @@
 use crate::gen::rt;
 use crate::gen::de440::{DeConstants, EphemOut};
 use crate::gen::densitymodel::{AtmosOut};
+use crate::gen::drag::{CannonballOut, PanelOut};
 use crate::gen::dtm2020::{Plg, Hloc, DtmRaw, DtmDensity};
+use crate::gen::erp::{ErpComp};
+use crate::gen::forcemodel::{ForceSet};
+use crate::gen::gsi::{Gsi};
 use crate::gen::iau2006::{TimeScales, CioParts};
 use crate::gen::jb2008::{JbOut, JbCoreInputs};
 use crate::gen::relativity::{RelParts};
 use crate::gen::solidtides::{Dcs5};
+use crate::gen::srp::{ScFacets};
 use crate::gen::timescales::{Times};
 
 /// Which index set a density model needs (data.drivers): none (exponential), F10.7 and Kp/ap (nrlmsise, dtm2020; a
@@ -63,9 +68,9 @@ pub fn kp_ap_nearest(to_ap: bool, xi: f64) -> f64 {
         let mut k: i64 = 0;
         let mut stop: bool = false;
         {
-            let __end83: i64 = (n - 1);
+            let __end107: i64 = (n - 1);
             let mut i: i64 = 0;
-            while i < __end83 {
+            while i < __end107 {
                 let mut a: f64 = (if to_ap { crate::gen::kpap::DATA_KP_AP_KP[(i) as usize] } else { crate::gen::kpap::DATA_KP_AP_AP[(i) as usize] });
                 let mut b: f64 = (if to_ap { crate::gen::kpap::DATA_KP_AP_KP[((i + 1)) as usize] } else { crate::gen::kpap::DATA_KP_AP_AP[((i + 1)) as usize] });
                 if (!stop) {
@@ -124,8 +129,8 @@ pub fn ap2kp_forecast(ap: f64) -> f64 {
     let mut lo: i64 = 0;
     let mut hi: i64 = n;
     {
-        let __n85: i64 = 16;
-        let mut __k84: i64 = 0;
+        let __n109: i64 = 16;
+        let mut __k108: i64 = 0;
         loop {
             let mut mid: i64 = ((lo + hi) / 2);
             if (crate::gen::kpap::DATA_KP_AP_AP[(mid) as usize] <= xi) {
@@ -133,9 +138,9 @@ pub fn ap2kp_forecast(ap: f64) -> f64 {
             } else {
                 hi = mid;
             }
-            __k84 += 1;
+            __k108 += 1;
             if (lo >= hi) { break; }
-            if __k84 >= __n85 {
+            if __k108 >= __n109 {
                 break;
             }
         }
@@ -208,9 +213,9 @@ pub fn from_manual(f107: f64, has_f107a: bool, f107a: f64, kp_kind: i64, akp: [f
         sw.ap = ap;
         sw.ap3 = (if has_ap3 { ap3_in } else { ap });
         {
-            let __end86: i64 = 7;
+            let __end110: i64 = 7;
             let mut i: i64 = 0;
-            while i < __end86 {
+            while i < __end110 {
                 sw.aph[(i) as usize] = sw.ap3;
                 i += 1;
             }

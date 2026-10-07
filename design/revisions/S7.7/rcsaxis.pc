@@ -1,0 +1,11 @@
+## A thruster couple's misalignment, transcribed from adcs-sim-core actuators.rs (Rcs::new): the couple's nominal torque
+## direction turned by a small rotation of three normal draws times the part's axis misalignment sigma [rad], from the
+## run's dispersion stream.
+## The developer's transcription (S7.7), unsigned.
+module rcsaxis
+
+## The couple's torque tau turned by its misalignment (sigma [rad]), drawn from disp.
+fn couple_axis(tau: real[N m][3] in -1 .. 1, sigma: real[1] in 0 .. 0.05, disp: inout stream) -> t: real[N m][3]
+    let th = normal3(disp)
+    t = small_rotation(th*sigma)*tau
+end

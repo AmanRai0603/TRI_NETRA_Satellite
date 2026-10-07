@@ -4,11 +4,16 @@
 use crate::gen::rt;
 use crate::gen::de440::{DeConstants, EphemOut};
 use crate::gen::densitymodel::{AtmosOut};
+use crate::gen::drag::{CannonballOut, PanelOut};
 use crate::gen::dtm2020::{Plg, Hloc, DtmRaw, DtmDensity};
+use crate::gen::erp::{ErpComp};
+use crate::gen::forcemodel::{ForceSet};
+use crate::gen::gsi::{Gsi};
 use crate::gen::iau2006::{TimeScales, CioParts};
 use crate::gen::jb2008::{JbOut, JbCoreInputs};
 use crate::gen::relativity::{RelParts};
 use crate::gen::solidtides::{Dcs5};
+use crate::gen::srp::{ScFacets};
 use crate::gen::swindex::{SwManual};
 use crate::gen::timescales::{Times};
 
@@ -33,9 +38,9 @@ pub fn geodetic_with(r: [f64; 3], re: f64, f: f64) -> (f64, f64, f64) {
     let mut p: f64 = f64::hypot(x, y);
     let mut la: f64 = f64::atan2(z, (p * (1.0 - e2)));
     {
-        let __end22: i64 = 5;
+        let __end39: i64 = 5;
         let mut k: i64 = 0;
-        while k < __end22 {
+        while k < __end39 {
             let mut sph: f64 = f64::sin(la);
             let mut n: f64 = (re / f64::sqrt((1.0 - (e2 * rt::ipow(sph, 2)))));
             let mut al: f64 = ((p / f64::cos(la)) - n);
@@ -60,9 +65,9 @@ pub fn geodetic_wgs84(r: [f64; 3]) -> (f64, f64, f64) {
     let mut lat: f64 = 0.0;
     let mut lon: f64 = 0.0;
     let mut alt: f64 = 0.0;
-    let __t23 = crate::gen::geodesy::geodetic_with(r, 6378137.0, (1.0 / 298.257223563));
-    lat = __t23.0;
-    lon = __t23.1;
-    alt = __t23.2;
+    let __t40 = crate::gen::geodesy::geodetic_with(r, 6378137.0, (1.0 / 298.257223563));
+    lat = __t40.0;
+    lon = __t40.1;
+    alt = __t40.2;
     (lat, lon, alt)
 }

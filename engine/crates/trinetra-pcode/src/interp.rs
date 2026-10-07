@@ -645,6 +645,7 @@ impl Interp {
                     "log" => n(vmath::log(x(0))),
                     "log10" => n(vmath::log10(x(0))),
                     "log2" => n(vmath::log2(x(0))),
+                    "erf" => n(vmath::erf(x(0))),
                     "atan2" => n(vmath::atan2(x(0), x(1))),
                     "hypot" => n(vmath::hypot(x(0), x(1))),
                     "fmod" => n(fmod(x(0), x(1))),

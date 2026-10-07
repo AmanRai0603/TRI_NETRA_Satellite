@@ -1,0 +1,128 @@
+## The gas-surface interaction of a flat panel in free-molecular flow, transcribed from adcs-pop drag/gsi.rs, the port of
+## the Octave POP's +drag (sentman, cll, dria, sesam, panelCoeffs, speedRatio, species): the pressure and shear
+## coefficients of a panel at incidence delta and speed ratio s, with diffuse re-emission at an energy accommodation
+## (Sentman 1961, Free molecule flow theory and its application to the determination of aerodynamic forces, LMSC-448514),
+## its accommodation from the atomic oxygen's adsorption (SESAM: Pilinski, Argrow and Palo 2013, J. Spacecraft Rockets
+## 50:556; DRIA: Sentman with it), or with normal and tangential momentum accommodation (Schaaf and Chambre 1961, as the
+## CLL form); the molecular speed ratio s = V/sqrt(2 R T/M) with the molar gas constant 8314.462 J/(kmol K) (CODATA 2018);
+## the species' molar masses (IUPAC standard atomic weights). Plain numbers in SI (molar masses in kg/kmol).
+## The developer's transcription (S7.6), unsigned.
+module gsi
+
+## The molar gas constant [J/(kmol K)] (CODATA 2018: 8.314462618 J/(mol K), as the code rounds it).
+const GSI_R = 8314.462
+
+## A species of the free-molecular flow (drag.species).
+choice Species = O, O2, N2, He, H, N, Ar
+
+## The panel models of drag.force and drag.panelCoeffs: Sentman with a stated energy accommodation, Sentman with SESAM's
+## (DRIA, and its alias SESAM), CLL with momentum accommodations.
+choice PanelModel = sentman, dria, sesam, cll
+
+## The gsi struct: the wall temperature [K], the energy accommodation (Sentman) and the normal and tangential momentum
+## accommodations (CLL).
+record Gsi
+    tw: real[1]
+    a_t: real[1]
+    sig_n: real[1]
+    sig_t: real[1]
+end
+
+## forces.drag's gsi when the case gives none: struct('Tw', 300, 'aT', 0.9, 'sig_n', 0.9, 'sig_t', 0.9).
+fn gsi_default() -> g: Gsi
+    g = Gsi()
+    g.tw = 300.0
+    g.a_t = 0.9
+    g.sig_n = 0.9
+    g.sig_t = 0.9
+end
+
+## drag.species(name): a species' molar mass [kg/kmol].
+fn molar_mass(sp: Species) -> m: real[1]
+    if sp == Species.O
+        m = 15.9994
+    elif sp == Species.O2
+        m = 31.9988
+    elif sp == Species.N2
+        m = 28.0134
+    elif sp == Species.He
+        m = 4.0026
+    elif sp == Species.H
+        m = 1.0079
+    elif sp == Species.N
+        m = 14.0067
+    else
+        m = 39.948
+    end
+end
+
+## The molar masses [kg/kmol] of the DTM models' species, in their order H, He, O, N2, O2, N.
+fn dtm_molar_masses() -> m: real[1][6]
+    m = [molar_mass(Species.H), molar_mass(Species.He), molar_mass(Species.O), molar_mass(Species.N2), \
+         molar_mass(Species.O2), molar_mass(Species.N)]
+end
+
+## drag.speedRatio(Vrel, T, Mmol): the molecular speed ratio of a flow at vrel [m/s] of temperature t [K] and molar mass
+## mmol [kg/kmol].
+fn speed_ratio(vrel: real[1] in 6000 .. 8000, t: real[1] in 500 .. 2000, mmol: real[1] in 1 .. 40) -> s: real[1]
+    s = vrel/sqrt(2.0*GSI_R*t/mmol)
+end
+
+## drag.sentman(s, delta, aT, Tw, Talt) -> (cp, ct): the pressure and shear coefficients of a panel at incidence delta
+## [rad] (0 head-on), speed ratio s, energy accommodation a_t, wall temperature tw and gas temperature talt [K].
+fn sentman(s: real[1] in 0.5 .. 20, delta: real[1] in 0 .. 1.57, a_t: real[1] in 0 .. 1, tw: real[1] in 200 .. 400, \
+           talt: real[1] in 500 .. 2000) -> (cp: real[1], ct: real[1])
+    let c = cos(delta)
+    let sn = s*c
+    let ti = (2.0/3.0)*pow(s, 2.0)*talt
+    let e = 1.0 + erf(sn)
+    let p = exp(-pow(sn, 2.0))
+    let sqpi = sqrt(pi)
+    cp = c/(sqpi*s)*p + (1.0/(2.0*pow(s, 2.0)) + pow(c, 2.0))*e + 0.5*sqrt((2.0/3.0)*(1.0 + a_t*(tw/ti - 1.0)))*(sqpi*c*e + (1.0/s)*p)
+    ct = sin(delta)/(sqpi*s)*(p + sqpi*sn*e)
+end
+
+## drag.cll(s, delta, sig_n, sig_t, Tw, Talt) -> (cp, ct): the coefficients with normal and tangential momentum
+## accommodations.
+fn cll(s: real[1] in 0.5 .. 20, delta: real[1] in 0 .. 1.57, sig_n: real[1] in 0 .. 1, sig_t: real[1] in 0 .. 1, \
+       tw: real[1] in 200 .. 400, talt: real[1] in 500 .. 2000) -> (cp: real[1], ct: real[1])
+    let c = cos(delta)
+    let sn = s*c
+    let e = 1.0 + erf(sn)
+    let p = exp(-pow(sn, 2.0))
+    let vr = sqrt(tw/talt)
+    let sqpi = sqrt(pi)
+    let ip = c/(sqpi*s)*p + (1.0/(2.0*pow(s, 2.0)) + pow(c, 2.0))*e
+    let dp = (vr/(2.0*s))*(sqpi*c*e + (1.0/s)*p)
+    let st = sin(delta)/(sqpi*s)*(p + sqpi*sn*e)
+    cp = (2.0 - sig_n)*ip + sig_n*dp
+    ct = sig_t*st
+end
+
+## drag.sesam(nO, T): the energy accommodation x/(1 + x), x = 7.5e-17 nO T, of atomic oxygen of number density n_o
+## [1/m^3] at temperature t [K].
+fn sesam(n_o: real[1] in 0 .. 1e16, t: real[1] in 500 .. 2000) -> a_t: real[1]
+    let x = 7.5e-17*n_o*t
+    a_t = x/(1.0 + x)
+end
+
+## drag.dria(s, delta, nO, T, Tw): Sentman with SESAM's accommodation.
+fn dria(s: real[1] in 0.5 .. 20, delta: real[1] in 0 .. 1.57, n_o: real[1] in 0 .. 1e16, t: real[1] in 500 .. 2000, \
+        tw: real[1] in 200 .. 400) -> (cp: real[1], ct: real[1])
+    let a_t = sesam(n_o, t)
+    cp, ct = sentman(s, delta, a_t, tw, t)
+end
+
+## drag.panelCoeffs(model, s, delta, gsi) with the gas temperature talt and the atomic oxygen's density n_o.
+fn panel_coeffs(model: PanelModel, s: real[1] in 0.5 .. 20, delta: real[1] in 0 .. 1.57, g: Gsi, talt: real[1] in 500 .. 2000, \
+                n_o: real[1] in 0 .. 1e16) -> (cp: real[1], ct: real[1])
+    if model == PanelModel.sentman
+        cp, ct = sentman(s, delta, g.a_t, g.tw, talt)
+    elif model == PanelModel.dria
+        cp, ct = dria(s, delta, n_o, talt, g.tw)
+    elif model == PanelModel.cll
+        cp, ct = cll(s, delta, g.sig_n, g.sig_t, g.tw, talt)
+    else
+        cp, ct = sentman(s, delta, sesam(n_o, talt), g.tw, talt)
+    end
+end

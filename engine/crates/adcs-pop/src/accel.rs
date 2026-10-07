@@ -3,13 +3,16 @@
 //! build, true Earth rate, gravity field, DE440 kernel, spacecraft, space weather);
 //! [`World::accel`] evaluates the total acceleration at (t, r, v) summing the forces in
 //! op.accel's order: gravity, thirdbody, drag, srp, erp, relativity, solidtides,
-//! oceantides, empirical.
+//! oceantides, empirical. The force set, the sum, the empirical acceleration, the elements to a state and the
+//! sun-synchronous start are env's method env_force_model, generated from the design into `gen::forcemodel`
+//! (tools/engine_build.py); the world's set-up, the context and the in-loop RK4 and interpolation are the code's.
 use crate::drag::{self, DragConfig, DragInfo, SwSources};
 use crate::ephem::{Ephem, EphemInputs};
 use crate::frames::{self, Build, FrameOpt};
 use crate::gravity::{Field, Gravity, GravityForceCfg, GravityModel};
 use crate::la::*;
 use crate::spaceweather::ManualIndices;
+use crate::gen::forcemodel as fm;
 use crate::{erp, geodetic, oceantides, relativity, solidtides, srp, thirdbody, time};
 
 /// cfg.forces (each `None` = `.on = false`).
@@ -30,26 +33,58 @@ pub struct Forces {
 }
 
 impl Forces {
-    /// config.defaultConfig's force set (drag on the exponential atmosphere).
+    /// config.defaultConfig's force set (drag on the exponential atmosphere): the design's (env_force_model's
+    /// `default_forces`).
     pub fn pop_default() -> Forces {
-        Forces {
-            gravity: GravityForceCfg { model: GravityModel::SphHarm, degree: 6, order: Some(6) },
-            thirdbody: Some(thirdbody::Model::Battin),
-            drag: Some(DragConfig { atmos: crate::atmos::AtmosModel::Exponential, ..DragConfig::SILS }),
-            srp: Some((srp::SrpModel::Cannonball, srp::EclipseModel::Conical, Some(1.3))),
-            erp: None, relativity: None, solidtides: false, oceantides: false, empirical: None,
-        }
+        Forces::from_set(&fm::default_forces())
     }
     /// The in-loop set of asils.orbit.init: degree/order-6 field, Battin Sun+Moon,
-    /// cannonball DTM2020 co-rotating drag, cannonball SRP with the conical shadow.
+    /// cannonball DTM2020 co-rotating drag, cannonball SRP with the conical shadow (env_force_model's `sils_forces`).
     pub fn sils(cr: f64) -> Forces {
-        Forces {
-            gravity: GravityForceCfg { model: GravityModel::SphHarm, degree: 6, order: Some(6) },
-            thirdbody: Some(thirdbody::Model::Battin),
-            drag: Some(DragConfig::SILS),
-            srp: Some((srp::SrpModel::Cannonball, srp::EclipseModel::Conical, Some(cr))),
-            erp: None, relativity: None, solidtides: false, oceantides: false, empirical: None,
-        }
+        Forces::from_set(&fm::sils_forces(cr))
+    }
+    /// The forces of the design's force set (`gen::forcemodel::ForceSet`).
+    pub fn from_set(s: &fm::ForceSet) -> Forces {
+        use crate::gen::{densitymodel as dm, drag as gd, gravity as gg, gsi as gi, srp as gs, thirdbody as tb};
+        let gravity = GravityForceCfg {
+            model: match s.grav_model { gg::GRAVITYMODEL_TWOBODY => GravityModel::TwoBody, gg::GRAVITYMODEL_ZONAL => GravityModel::Zonal(s.grav_degree as usize), _ => GravityModel::SphHarm },
+            degree: s.grav_degree as usize,
+            order: s.has_grav_order.then_some(s.grav_order as usize),
+        };
+        let thirdbody = s.tb_on.then(|| match s.tb_model {
+            tb::THIRDBODYMODEL_DIRECT => thirdbody::Model::Direct,
+            tb::THIRDBODYMODEL_TIDAL => thirdbody::Model::Tidal,
+            tb::THIRDBODYMODEL_LEGENDRE => thirdbody::Model::Legendre(s.tb_nmax as usize),
+            _ => thirdbody::Model::Battin,
+        });
+        let panel = match s.drag_panel {
+            gi::PANELMODEL_DRIA => drag::gsi::PanelModel::Dria,
+            gi::PANELMODEL_SESAM => drag::gsi::PanelModel::Sesam,
+            gi::PANELMODEL_CLL => drag::gsi::PanelModel::Cll,
+            _ => drag::gsi::PanelModel::Sentman,
+        };
+        let atmos = match s.drag_atmos {
+            dm::ATMOSMODEL_EXPONENTIAL => crate::atmos::AtmosModel::Exponential,
+            dm::ATMOSMODEL_NRLMSISE => crate::atmos::AtmosModel::Nrlmsise,
+            dm::ATMOSMODEL_JB2008 => crate::atmos::AtmosModel::Jb2008,
+            dm::ATMOSMODEL_DTM2020_RESEARCH => crate::atmos::AtmosModel::Dtm2020Research,
+            _ => crate::atmos::AtmosModel::Dtm2020,
+        };
+        let drag = s.drag_on.then(|| DragConfig {
+            model: if s.drag_model == gd::DRAGMODEL_PANEL { drag::DragModel::Panel(panel) } else { drag::DragModel::Cannonball },
+            atmos,
+            cd: s.has_drag_cd.then_some(s.drag_cd),
+            corotate: s.drag_corotate,
+            gsi: drag::gsi::Gsi::from(s.drag_gsi),
+        });
+        let srp = s.srp_on.then(|| {
+            let m = if s.srp_model == gs::SRPMODEL_BOXWING { srp::SrpModel::Boxwing } else { srp::SrpModel::Cannonball };
+            let e = match s.srp_eclipse { gs::ECLIPSEMODEL_CYLINDRICAL => srp::EclipseModel::Cylindrical, gs::ECLIPSEMODEL_FINE => srp::EclipseModel::Fine, _ => srp::EclipseModel::Conical };
+            (m, e, s.has_srp_cr.then_some(s.srp_cr))
+        });
+        assert!(!s.erp_on && !s.relativity_on, "a force set with Earth radiation or relativity names their models in code (Forces' fields)");
+        Forces { gravity, thirdbody, drag, srp, erp: None, relativity: None, solidtides: s.solidtides, oceantides: s.oceantides,
+                 empirical: s.has_empirical.then_some(s.empirical) }
     }
     fn need_ephem(&self) -> bool {
         self.thirdbody.is_some() || self.srp.is_some() || self.erp.is_some() || self.relativity.is_some() || self.solidtides || self.oceantides
@@ -171,29 +206,16 @@ impl World {
                 tt_jd: ctx.times.tt_jd, r_ecef: ctx.r_ecef, c_eci2ecef: ctx.c, mu: self.grav.field.gm, re: self.grav.field.re });
         }
         if let Some(acc) = f.empirical {
-            let rr = unit(r);
-            let nn = unit(&cross(r, v));
-            let tt = cross(&nn, &rr);
-            for i in 0..3 { p.empirical[i] = acc[0]*rr[i] + acc[1]*tt[i] + acc[2]*nn[i]; }
+            p.empirical = fm::empirical_accel(*r, *v, acc);
         }
-        let mut a = p.gravity;
-        for x in [p.thirdbody, p.drag, p.srp, p.erp, p.relativity, p.solidtides, p.oceantides, p.empirical] { a = add(&a, &x); }
+        let a = fm::force_sum(p.gravity, p.thirdbody, p.drag, p.srp, p.erp, p.relativity, p.solidtides, p.oceantides, p.empirical);
         Ok((a, p, ctx, info))
     }
 }
 
 /// op.coe2rv: classical elements -> ECI position/velocity (closed orbits).
 pub fn coe2rv(a: f64, e: f64, inc: f64, raan: f64, argp: f64, nu: f64, mu: f64) -> (V3, V3) {
-    let p = a*(1.0 - e.powi(2));
-    let rmag = p/(1.0 + e*nu.cos());
-    let r_pf = [rmag*nu.cos(), rmag*nu.sin(), 0.0];
-    let k = (mu/p).sqrt();
-    let v_pf = [k*(-nu.sin()), k*(e + nu.cos()), 0.0];
-    let (c_o, s_o, ci, si, cw, sw) = (raan.cos(), raan.sin(), inc.cos(), inc.sin(), argp.cos(), argp.sin());
-    let q = [[c_o*cw - s_o*sw*ci, -c_o*sw - s_o*cw*ci, s_o*si],
-             [s_o*cw + c_o*sw*ci, -s_o*sw + c_o*cw*ci, -c_o*si],
-             [sw*si, cw*si, ci]];
-    (mv(&q, &r_pf), mv(&q, &v_pf))
+    fm::pop_coe2rv(a, e, inc, raan, argp, nu, mu)
 }
 
 /// The in-loop orbit of the SILS (asils.orbit.{init,node,advance,state,context}): RK4
@@ -220,7 +242,7 @@ impl InLoop {
         let (a, parts, ctx, info) = w.accel(t, &r, &v)?;
         let (sun_eci, p_srp, moon_eci) = match ctx.e.as_ref() {
             Some(e) => (e.sun_eci, e.p_srp, e.moon_eci),
-            None => ([1.496e11, 0.0, 0.0], 4.56e-6, [3.84e8, 0.0, 0.0]),
+            None => fm::no_ephem_env(),
         };
         Ok(Node { t, r, v, a, c: ctx.c, sun_eci, moon_eci, p_srp, rho: info.map(|i| i.rho).unwrap_or(0.0), parts })
     }
@@ -294,15 +316,9 @@ impl InLoop {
 /// The orbit geometry of asils.orbit.init: a = Re + alt, RAAN from the LTAN and the DE440
 /// Sun right ascension at the epoch, argument of latitude u0 -> (r0, v0, raan).
 pub fn sso_initial(w: &World, alt_km: f64, ecc: f64, inc_deg: f64, ltan_h: f64, argp_deg: f64, u0_deg: f64) -> Result<(V3, V3, f64), crate::PopError> {
-    let k = crate::ephem::constants();
-    let a = k.re_earth + alt_km*1e3;
-    let inc = inc_deg*std::f64::consts::PI/180.0;
     let e = w.epoch;
     let t = time::convert_utc(e[0], e[1], e[2], e[3], e[4], e[5], 0.0);
     let eph = w.eph.as_ref().ok_or_else(|| crate::PopError::Data("the SSO geometry needs the DE440 kernel".into()))?;
     let ei = eph.inputs(t.tdb_jd);
-    let ra_sun = ei.sun_unit[1].atan2(ei.sun_unit[0]);
-    let raan = time::omod(ra_sun + (ltan_h - 12.0)*15.0*std::f64::consts::PI/180.0, 2.0*std::f64::consts::PI);
-    let (r, v) = coe2rv(a, ecc, inc, raan, argp_deg*std::f64::consts::PI/180.0, u0_deg*std::f64::consts::PI/180.0, k.mu_earth);
-    Ok((r, v, raan))
+    Ok(fm::sso_initial(ei.sun_unit, alt_km, ecc, inc_deg, ltan_h, argp_deg, u0_deg))
 }

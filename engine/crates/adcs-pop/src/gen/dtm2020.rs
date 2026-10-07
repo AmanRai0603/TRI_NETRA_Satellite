@@ -4,10 +4,15 @@
 use crate::gen::rt;
 use crate::gen::de440::{DeConstants, EphemOut};
 use crate::gen::densitymodel::{AtmosOut};
+use crate::gen::drag::{CannonballOut, PanelOut};
+use crate::gen::erp::{ErpComp};
+use crate::gen::forcemodel::{ForceSet};
+use crate::gen::gsi::{Gsi};
 use crate::gen::iau2006::{TimeScales, CioParts};
 use crate::gen::jb2008::{JbOut, JbCoreInputs};
 use crate::gen::relativity::{RelParts};
 use crate::gen::solidtides::{Dcs5};
+use crate::gen::srp::{ScFacets};
 use crate::gen::swindex::{SwManual};
 use crate::gen::timescales::{Times};
 
@@ -109,9 +114,9 @@ pub fn dtm_column(set: i64, j: i64) -> [f64; 97] {
     let mut a: [f64; 97] = [0.0; 97];
     a = [0.0; 97];
     {
-        let __end10: i64 = 97;
+        let __end18: i64 = 97;
         let mut k: i64 = 1;
-        while k < __end10 {
+        while k < __end18 {
             if (set == crate::gen::dtm2020::DTMSET_OPERATIONAL) {
                 a[(k) as usize] = crate::gen::dtm2020coeffs::DATA_DTM2020_OPER[((k - 1)) as usize][(j) as usize];
             } else {
@@ -326,9 +331,9 @@ pub fn dtm_profile(set: i64, gd_tt: f64, gd_t0: f64, gd_tp: f64, gd_sp: [f64; 6]
     let mut tz: f64 = (tinf - ((tinf - t120) * expsz));
     let mut dbase: [f64; 6] = [0.0; 6];
     {
-        let __end11: i64 = 6;
+        let __end19: i64 = 6;
         let mut i: i64 = 0;
-        while i < __end11 {
+        while i < __end19 {
             let mut sp: [f64; 97] = crate::gen::dtm2020::dtm_column(set, (i + 1));
             dbase[(i) as usize] = (sp[1] * f64::exp(gd_sp[(i) as usize]));
             i += 1;
@@ -341,9 +346,9 @@ pub fn dtm_profile(set: i64, gd_tt: f64, gd_t0: f64, gd_tp: f64, gd_sp: [f64; 6]
     let mut cc: [f64; 6] = [0.0; 6];
     let mut ro: f64 = 0.0;
     {
-        let __end12: i64 = 6;
+        let __end20: i64 = 6;
         let mut i: i64 = 0;
-        while i < __end12 {
+        while i < __end20 {
             let mut gamma: f64 = (ma[(i) as usize] * glb);
             let mut upapg: f64 = ((1.0 + alefa[(i) as usize]) + gamma);
             let mut fz_i: f64 = (f64::powf(t120tz, core::hint::black_box(upapg)) * f64::exp(((-(sigzeta)) * gamma)));
@@ -355,9 +360,9 @@ pub fn dtm_profile(set: i64, gd_tt: f64, gd_t0: f64, gd_tp: f64, gd_sp: [f64; 6]
     }
     let mut sum_cc: f64 = 0.0;
     {
-        let __end13: i64 = 6;
+        let __end21: i64 = 6;
         let mut i: i64 = 0;
-        while i < __end13 {
+        while i < __end21 {
             sum_cc = (sum_cc + cc[(i) as usize]);
             i += 1;
         }
@@ -393,9 +398,9 @@ pub fn dtm3_gdel(f: f64, fbar: f64, akp: [f64; 4], day: f64, plg: Plg, hloc: Hlo
     gd_tp = crate::gen::dtm2020::gldtm(f, fbar, akp, day, crate::gen::dtm2020::dtm_column(crate::gen::dtm2020::DTMSET_OPERATIONAL, 8), plg, hloc, xlon, 1.0);
     gd = [0.0; 6];
     {
-        let __end14: i64 = 6;
+        let __end22: i64 = 6;
         let mut i: i64 = 0;
-        while i < __end14 {
+        while i < __end22 {
             gd[(i) as usize] = crate::gen::dtm2020::gldtm(f, fbar, akp, day, crate::gen::dtm2020::dtm_column(crate::gen::dtm2020::DTMSET_OPERATIONAL, (i + 1)), plg, hloc, xlon, ff0[(i) as usize]);
             i += 1;
         }
@@ -446,9 +451,9 @@ pub fn dtm_pack(r: DtmRaw) -> DtmDensity {
     let mut vma: [f64; 6] = crate::gen::dtm2020::dtm_vma();
     o = DtmDensity::default();
     {
-        let __end15: i64 = 6;
+        let __end23: i64 = 6;
         let mut i: i64 = 0;
-        while i < __end15 {
+        while i < __end23 {
             o.n_cm3[(i) as usize] = (r.d[(i) as usize] / vma[(i) as usize]);
             i += 1;
         }

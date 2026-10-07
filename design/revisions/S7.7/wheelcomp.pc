@@ -1,0 +1,18 @@
+## A reaction wheel's friction compensation, transcribed from adcs-sim-core actuators.rs (Mex::apply): the drive feeds
+## forward its model of the Coulomb and viscous friction, so a share 1 - k_c of it reaches the rotor (k_c the
+## compensation, the product's friction_comp); the Stribeck excess is not in the drive's model and the torque noise
+## adds. The rotor's momentum rate: tm - (1 - k_c) fr - st + noise.
+## The developer's transcription (S7.7), unsigned.
+module wheelcomp
+
+## The friction [N m] the drive leaves uncompensated: (1 - k_c) fr.
+fn uncompensated(fr: real[1] in -1e-4 .. 1e-4, k_c: real[1] in 0 .. 1) -> u: real[1]
+    u = (1.0 - k_c)*fr
+end
+
+## A wheel's momentum rate [N m]: the motor's torque tm less the uncompensated friction and the Stribeck excess st,
+## plus the torque noise nz.
+fn wheel_rate(tm: real[1] in -0.01 .. 0.01, fr: real[1] in -1e-4 .. 1e-4, st: real[1] in -1e-4 .. 1e-4, nz: real[1] in -1e-5 .. 1e-5, \
+              k_c: real[1] in 0 .. 1) -> hd: real[1]
+    hd = tm - (1.0 - k_c)*fr - st + nz
+end

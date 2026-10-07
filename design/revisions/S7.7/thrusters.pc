@@ -1,0 +1,77 @@
+## The cold-gas thrusters as the engine flies them, transcribed from adcs-sim-core actuators.rs (RcsDesc, Rcs, new,
+## apply): each couple's thrust factor and misaligned torque and the unit's specific impulse drawn once (every couple's
+## thrust factor, then every couple's torque, then the impulse); each step, each couple's duty over the control period
+## turned into an on-time (the minimum impulse bit, the valve's resolution), none for a failed couple; the torque of the
+## couples' mean thrust, the propellant flow and the valves' power. The rows' own methods: the torque directions, thrust
+## dispersion, specific impulse, minimum impulse bit, valve power, misalignment (l3_rcs_row_01 to 04, 09, 10).
+## The developer's transcription (S7.7), unsigned.
+module thrusters
+
+## The thrusters as the part states them: fitted, how many couples, each couple's torque at full thrust [N m], the
+## thrust [N], specific impulse [s] and its range, minimum impulse bit [s], valve resolution [s], propellant [kg],
+## valve power [W], the thrust factor's and the misalignment's sigmas.
+record ThrusterDesc
+    fitted: bool
+    nc: int
+    tau: real[N m][3][ACT_NC]
+    thrust: real[N]
+    isp: real[s]
+    mib: real[s]
+    res: real[s]
+    prop_kg: real[kg]
+    valve_power: real[W]
+    isp_lo: real[s]
+    isp_hi: real[s]
+    thrust_sigma: real[1]
+    misalign: real[1]
+end
+
+## The thrusters in flight: each couple's dispersed torque and thrust factor, whether it has failed, the unit's specific
+## impulse.
+record ThrusterSet
+    tau: real[N m][3][ACT_NC]
+    tscale: real[1][ACT_NC]
+    failed: bool[ACT_NC]
+    isp: real[s]
+end
+
+## The thrusters of a description, their dispersion drawn from disp.
+fn thrusters_new(d: ThrusterDesc, disp: inout stream) -> s: ThrusterSet
+    s = ThrusterSet()
+    for j in 0 .. d.nc
+        s.tscale[j] = thrust_factor(d.thrust_sigma, disp)
+    end
+    for k in 0 .. d.nc
+        s.tau[k] = couple_axis(d.tau[k], d.misalign, disp)
+    end
+    s.isp = isp_draw(d.isp_lo, d.isp_hi, disp)
+end
+
+## The couples' duties over the period t: (the torque [N m], the propellant flow [kg/s], the power [W]).
+fn thrusters_apply(s: ThrusterSet, d: ThrusterDesc, duty: real[1][ACT_NC] in -0.5 .. 1.5, t: real[s] in 0.01 .. 1) \
+        -> (tau: real[N m][3], mdot: real[kg/s], p: real[W])
+    tau = [0.0, 0.0, 0.0]
+    let fs: real[1] = 0
+    p = 0.0
+    for j in 0 .. d.nc
+        let on = valve_on_time(duty[j], t, d.mib, d.res)
+        if s.failed[j]
+            on = 0.0
+        end
+        let f = on/t
+        tau = tau + s.tau[j]*(f*s.tscale[j])
+        fs = fs + f*s.tscale[j]
+        if on > 0.0
+            p = p + valve_power(on, d.valve_power)
+        end
+    end
+    mdot = rcs_mass_flow(fs, d.thrust, s.isp)
+end
+
+## The thrusters with every couple failed: the tank is empty.
+fn thrusters_empty(s: ThrusterSet) -> e: ThrusterSet
+    e = s
+    for j in 0 .. ACT_NC
+        e.failed[j] = true
+    end
+end

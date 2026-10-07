@@ -1,19 +1,22 @@
 //! In-loop orbit propagator: RK4 at a fixed node step with cubic Hermite
 //! interpolation between nodes (the structure of asils.orbit.{advance,state}).
-//! Forces: zonal gravity J2..J6, Sun and Moon point masses, cannonball drag
-//! (co-rotating atmosphere) and SRP with a conical shadow. The MATLAB twin runs
-//! the POP (degree-6 field with tesserals, DE440, DTM2020); the differences are
+//! The forces (zonal gravity J2..J6, Sun and Moon point masses, cannonball drag in a
+//! co-rotating atmosphere, SRP with a conical shadow) and the node context are env's
+//! method env_orbit_fast, generated from the design (`gen::orbitfast`, tools/engine_build.py);
+//! what is left here is the integrator and the context's interpolation (code). The MATLAB
+//! twin runs the POP (degree-6 field with tesserals, DE440, DTM2020); the differences are
 //! parity-ledger lines, not failures.
+use crate::gen::orbitfast as of;
 use crate::la::*;
 use crate::pm::*;
-use crate::{atmos, ephem, field, time};
 
-pub const MU: f64 = 3.986004418e14;
-pub const RE: f64 = 6378137.0;
-pub const OMEGA_E: f64 = 7.292115e-5;
-pub const MU_SUN: f64 = 1.32712440018e20;
-pub const MU_MOON: f64 = 4.9028e12;
-const J: [f64; 7] = [0.0, 0.0, 1.08262668e-3, -2.53265649e-6, -1.61962159e-6, -2.27296083e-7, 5.40681239e-7];
+/// The Earth's GM [m^3/s^2] and equatorial radius [m] (the constants', EGM96 / WGS-84), its nominal rate [rad/s], and the
+/// Sun's and the Moon's GM [m^3/s^2]: env_orbit_fast's (`gen::orbitfast`).
+pub const MU: f64 = crate::gen::constants::MU_E;
+pub const RE: f64 = crate::gen::constants::R_E;
+pub const OMEGA_E: f64 = of::FAST_OMEGA_E;
+pub const MU_SUN: f64 = of::FAST_MU_SUN;
+pub const MU_MOON: f64 = of::FAST_MU_MOON;
 
 #[derive(Clone, Copy, Debug)]
 pub struct OrbitCfg {
@@ -22,9 +25,8 @@ pub struct OrbitCfg {
     pub mass_kg: f64, pub area_m2: f64, pub cd: f64, pub cr: f64, pub density_scale: f64,
 }
 
-/// What the environment needs at a node (interpolated in between).
-#[derive(Clone, Copy, Debug, Default)]
-pub struct Ctx { pub sun: V3, pub moon: V3, pub p_srp: f64, pub rho: f64 }
+/// What the environment needs at a node (interpolated in between): env_orbit_fast's record.
+pub use crate::gen::orbitfast::FastCtx as Ctx;
 
 #[derive(Clone, Copy, Debug)]
 struct Node { t: f64, r: V3, v: V3, a: V3, x: Ctx }
@@ -32,63 +34,18 @@ struct Node { t: f64, r: V3, v: V3, a: V3, x: Ctx }
 #[derive(Clone, Copy, Debug)]
 pub struct Orbit { pub cfg: OrbitCfg, n0: Node, n1: Node }
 
-fn ctx(cfg: &OrbitCfg, t: f64, r: &V3) -> Ctx {
-    let jd_tt = cfg.jd0_utc + (t + time::TT_MINUS_UTC_S)/86400.0;
-    let sun = ephem::sun(jd_tt);
-    let moon = ephem::moon(jd_tt);
-    let c = time::eci2ecef(cfg.jd0_utc + t/86400.0);
-    let (_, _, h) = field::geodetic(&mv(&c, r));
-    Ctx { sun, moon, p_srp: ephem::p_srp(norm(&sub(&sun, r))), rho: atmos::density(h, cfg.density_scale) }
-}
+fn ctx(cfg: &OrbitCfg, t: f64, r: &V3) -> Ctx { of::fast_context(cfg.jd0_utc, t, *r, cfg.density_scale) }
 
-/// Acceleration [m/s^2] at (t, r, v) with the node context x.
+/// Acceleration [m/s^2] at (t, r, v) with the node context x (env_orbit_fast's `fast_accel`).
 pub fn accel(cfg: &OrbitCfg, r: &V3, v: &V3, x: &Ctx) -> V3 {
-    let rn = norm(r);
-    let mut a = scale(r, -MU/(rn*rn*rn));
-    // zonal harmonics: U_n = -mu J_n Re^n P_n(s) / r^(n+1), s = z/r
-    let s = r[2]/rn;
-    let rh = scale(r, 1.0/rn);
-    let (mut pm1, mut p, mut dpm1, mut dp) = (1.0, s, 0.0, 1.0);
-    for n in 1..cfg.zonal_max {
-        let nf = n as f64;
-        let pn1 = ((2.0*nf + 1.0)*s*p - nf*pm1)/(nf + 1.0);
-        let dpn1 = dpm1 + (2.0*nf + 1.0)*p;
-        pm1 = p; p = pn1; dpm1 = dp; dp = dpn1;
-        let deg = n + 1;
-        if deg >= 2 && deg < J.len() {
-            let df = deg as f64;
-            let f = -MU*J[deg]*pow(RE/rn, deg)/rn;
-            for i in 0..3 {
-                let zi = if i == 2 { 1.0 } else { 0.0 };
-                a[i] += f/rn*(-(df + 1.0)*p*rh[i] + dp*(zi - s*rh[i]));
-            }
-        }
-    }
-    if cfg.third_body {
-        for (rb, mu) in [(&x.sun, MU_SUN), (&x.moon, MU_MOON)] {
-            let d = sub(rb, r);
-            let (dn, bn) = (norm(&d), norm(rb));
-            for i in 0..3 { a[i] += mu*(d[i]/(dn*dn*dn) - rb[i]/(bn*bn*bn)); }
-        }
-    }
-    let am = cfg.area_m2/cfg.mass_kg;
-    if cfg.drag && x.rho > 0.0 {
-        let vr = [v[0] + OMEGA_E*r[1], v[1] - OMEGA_E*r[0], v[2]];
-        let vn = norm(&vr);
-        for i in 0..3 { a[i] -= 0.5*cfg.cd*am*x.rho*vn*vr[i]; }
-    }
-    if cfg.srp {
-        let nu = ephem::shadow(r, &x.sun);
-        if nu > 0.0 {
-            let d = sub(r, &x.sun);
-            let dn = norm(&d);
-            for i in 0..3 { a[i] += nu*x.p_srp*cfg.cr*am*d[i]/dn; }
-        }
-    }
-    a
+    of::fast_accel(*r, *v, *x, cfg.zonal_max as i64, cfg.third_body, cfg.drag, cfg.srp, cfg.mass_kg, cfg.area_m2, cfg.cd, cfg.cr)
 }
 
-fn pow(x: f64, n: usize) -> f64 { let mut y = 1.0; for _ in 0..n { y *= x; } y }
+/// The air's velocity relative to the Earth turning at its nominal rate: v - omega x r.
+pub fn corotating(r: &V3, v: &V3) -> V3 { of::corotating_velocity(*r, *v, OMEGA_E) }
+
+/// The Sun (fast series) at the TT date of the UTC epoch jd0_utc, where the fast orbit starts.
+pub fn start_sun(jd0_utc: f64) -> V3 { of::fast_start_sun(jd0_utc) }
 
 impl Orbit {
     pub fn new(cfg: OrbitCfg, r0: V3, v0: V3) -> Orbit {

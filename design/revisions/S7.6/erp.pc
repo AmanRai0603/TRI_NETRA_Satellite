@@ -1,0 +1,214 @@
+## Earth radiation pressure on the satellite (the Earth's albedo and its infrared), transcribed from adcs-pop erp.rs,
+## the port of the Octave POP's +erp (zonalCoeffs, knocke, simple, ceres, boxwing, accel) and +forces/erp.m: the visible
+## cap of the Earth cut into rings and segments, each element lit by the Sun (its albedo) and glowing (its emissivity),
+## its beam pressing a cannonball (Cr A/m) or the box-wing facets (env's solar-pressure facet response); the albedo
+## and emissivity of the zonal model of Knocke, Ries and Tapley (1988, Earth radiation pressure effects on satellites,
+## AIAA 88-4292): a0 + a1 cos(w (doy - t0)) P1(sin lat) + a2 P2(sin lat), a = 0.34, 0.10, 0.29 and e = 0.68, -0.07,
+## -0.18, the season's period a Julian year; or the whole visible Earth as one radial source (sizing only). The
+## irradiance, the speed of light and the Earth's radius are de440.constants()'. The ring model's default grid is 16
+## rings of 48 segments. ECI [m], accelerations [m/s^2]; plain numbers in SI.
+## The developer's transcription (S7.6), unsigned.
+module erp
+
+## The ring model's default rings and segments (erp.knocke, ceres and boxwing).
+const ERP_NRINGS = 16
+const ERP_NSEG = 48
+
+## The Earth radiation pressure models of forces.erp: Knocke's ring model on a cannonball (the default), the one radial
+## source, the ring model over a user's albedo grid (Knocke's zonal at day 80 when none is given), the ring model on
+## the box-wing facets.
+choice ErpModel = knocke, simple, ceres, boxwing
+
+## The acceleration's short-wave (albedo) and long-wave (infrared) parts [m/s^2].
+record ErpComp
+    sw: real[1][3]
+    lw: real[1][3]
+end
+
+## erp.zonalCoeffs(lat, doy): Knocke's zonal albedo and emissivity at geocentric latitude lat [rad] on day of year doy.
+fn zonal_coeffs(lat: real[1] in -1.6 .. 1.6, doy: real[1] in 1 .. 366) -> (alb: real[1], emi: real[1])
+    let a0 = 0.34
+    let a1 = 0.10
+    let a2 = 0.29
+    let e0 = 0.68
+    let e1 = -0.07
+    let e2 = -0.18
+    let w = 2.0*pi/365.25
+    let t0: real[1] = 0
+    let s = sin(lat)
+    let p1 = s
+    let p2 = 0.5*(3.0*s*s - 1.0)
+    let ann = cos(w*(doy - t0))
+    alb = a0 + a1*ann*p1 + a2*p2
+    emi = e0 + e1*ann*p1 + e2*p2
+end
+
+## The frame of the visible cap seen from r_sat: the zenith, two directions across it, the Sun's direction from the
+## Earth (the Sun at r_sun) and the cap's angular radius.
+fn cap_frame(r_sat: real[1][3] in -8e6 .. 8e6, r_sun: real[1][3] in -1.6e11 .. 1.6e11) \
+        -> (zhat: real[1][3], e1: real[1][3], e2: real[1][3], shat: real[1][3], rho_max: real[1])
+    let re = de440_constants().re_earth
+    let d = norm(r_sat)
+    zhat = [r_sat[0]/d, r_sat[1]/d, r_sat[2]/d]
+    let ns = norm(r_sun)
+    shat = [r_sun[0]/ns, r_sun[1]/ns, r_sun[2]/ns]
+    rho_max = acos(min_one(re/d))
+    let t: real[1][3] = [1.0, 0.0, 0.0]
+    if abs(zhat[0]) > 0.9
+        t = [0.0, 1.0, 0.0]
+    end
+    let c = cross(zhat, t)
+    let n1 = norm(c)
+    e1 = [c[0]/n1, c[1]/n1, c[2]/n1]
+    e2 = cross(zhat, e1)
+end
+
+## Element (ir, js) of the cap (from 1, of nrings rings and nseg segments): whether it faces the satellite, its unit
+## normal, the unit vector from it to the satellite, the cosine there, its area [m^2], its distance [m] and latitude.
+fn cap_element(r_sat: real[1][3] in -8e6 .. 8e6, zhat: real[1][3] in -1 .. 1, e1: real[1][3] in -1 .. 1, e2: real[1][3] in -1 .. 1, \
+               rho_max: real[1] in 0 .. 1.6, ir: int in 1 .. 16, js: int in 1 .. 48, nrings: int in 1 .. 16, nseg: int in 1 .. 48) \
+        -> (vis: bool, n_el: real[1][3], es: real[1][3], cos_e: real[1], da: real[1], rho: real[1], lat: real[1])
+    let re = de440_constants().re_earth
+    let nr = real(nrings)
+    let nsg = real(nseg)
+    let psi = (real(ir) - 0.5)/nr*rho_max
+    let dpsi = rho_max/nr
+    let sp = sin(psi)
+    let cp = cos(psi)
+    let az = 2.0*pi*(real(js) - 0.5)/nsg
+    let sa = sin(az)
+    let ca = cos(az)
+    n_el = 0
+    for i in 0 .. 3
+        n_el[i] = cp*zhat[i] + sp*(ca*e1[i] + sa*e2[i])
+    end
+    let sv: real[1][3] = [r_sat[0] - re*n_el[0], r_sat[1] - re*n_el[1], r_sat[2] - re*n_el[2]]
+    rho = norm(sv)
+    es = [sv[0]/rho, sv[1]/rho, sv[2]/rho]
+    cos_e = dot(n_el, es)
+    vis = not (cos_e <= 0.0)
+    da = re*re*sp*dpsi*(2.0*pi/nsg)
+    lat = asin(unit_clip(n_el[2]))
+end
+
+## An element's exitances [W/m^2] (its reflected sunlight at albedo alb, its emission at emissivity emi) and its
+## geometric factor cos_e dA/(pi rho^2), the Sun along shat.
+fn cap_exitance(alb: real[1] in 0 .. 1, emi: real[1] in 0 .. 1, n_el: real[1][3] in -1 .. 1, shat: real[1][3] in -1 .. 1, \
+                cos_e: real[1] in 0 .. 1, da: real[1] in 0 .. 1e12, rho: real[1] in 1e5 .. 1e7) -> (msw: real[1], mlw: real[1], geo: real[1])
+    let s = de440_constants().tsi
+    let cz = dot(n_el, shat)
+    msw = if cz > 0.0 then alb*s*cz else 0.0
+    mlw = emi*s/4.0
+    geo = cos_e*da/(pi*rho*rho)
+end
+
+## A cap element's push on a cannonball of CrA/m cr_aom: its short-wave and long-wave accelerations [m/s^2].
+fn cap_cannon(cr_aom: real[1] in 0 .. 0.1, cos_e: real[1] in 0 .. 1, da: real[1] in 0 .. 1e12, rho: real[1] in 1e5 .. 1e7, \
+              es: real[1][3] in -1 .. 1, msw: real[1] in 0 .. 1400, mlw: real[1] in 0 .. 400) -> (asw: real[1][3], alw: real[1][3])
+    let base = cr_aom/de440_constants().c*cos_e*da/(pi*rho*rho)
+    let ks = base*msw
+    let kl = base*mlw
+    asw = [ks*es[0], ks*es[1], ks*es[2]]
+    alw = [kl*es[0], kl*es[1], kl*es[2]]
+end
+
+## The ring model on a cannonball of CrA/m cr_aom over nrings x nseg elements, the albedo and emissivity Knocke's zonal
+## on day doy: the acceleration [m/s^2] and its parts.
+fn erp_knocke(r_sat: real[1][3] in -8e6 .. 8e6, r_sun: real[1][3] in -1.6e11 .. 1.6e11, cr_aom: real[1] in 0 .. 0.1, \
+              doy: real[1] in 1 .. 366, nrings: int in 1 .. 16, nseg: int in 1 .. 48) -> (a: real[1][3], comp: ErpComp)
+    let zhat, e1, e2, shat, rho_max = cap_frame(r_sat, r_sun)
+    let sw: real[1][3] = [0.0, 0.0, 0.0]
+    let lw: real[1][3] = [0.0, 0.0, 0.0]
+    for ir in 1 .. nrings + 1
+        for js in 1 .. nseg + 1
+            let vis, n_el, es, cos_e, da, rho, lat = cap_element(r_sat, zhat, e1, e2, rho_max, ir, js, nrings, nseg)
+            if vis
+                let alb, emi = zonal_coeffs(lat, doy)
+                let msw, mlw, geo = cap_exitance(alb, emi, n_el, shat, cos_e, da, rho)
+                let ds, dl = cap_cannon(cr_aom, cos_e, da, rho, es, msw, mlw)
+                for i in 0 .. 3
+                    sw[i] = sw[i] + ds[i]
+                    lw[i] = lw[i] + dl[i]
+                end
+            end
+        end
+    end
+    comp = ErpComp()
+    comp.sw = sw
+    comp.lw = lw
+    a = [sw[0] + lw[0], sw[1] + lw[1], sw[2] + lw[2]]
+end
+
+## erp.simple(rSat, rSun, CrAoM, doy): the whole visible Earth as one radial source, Knocke's zonal at the equator.
+fn erp_simple(r_sat: real[1][3] in -8e6 .. 8e6, r_sun: real[1][3] in -1.6e11 .. 1.6e11, cr_aom: real[1] in 0 .. 0.1, \
+              doy: real[1] in 1 .. 366) -> (a: real[1][3], comp: ErpComp)
+    let k = de440_constants()
+    let d = norm(r_sat)
+    let zhat: real[1][3] = [r_sat[0]/d, r_sat[1]/d, r_sat[2]/d]
+    let alb, emi = zonal_coeffs(0.0, doy)
+    let q = k.re_earth/d
+    let f = q*q
+    let ns = norm(r_sun)
+    let c0 = dot(zhat, [r_sun[0]/ns, r_sun[1]/ns, r_sun[2]/ns])
+    let cz = if c0 > 0.0 then c0 else 0.0
+    let esw = alb*k.tsi*cz*f
+    let elw = emi*(k.tsi/4.0)*f
+    let ks = cr_aom/k.c*esw
+    let kl = cr_aom/k.c*elw
+    comp = ErpComp()
+    comp.sw = [ks*zhat[0], ks*zhat[1], ks*zhat[2]]
+    comp.lw = [kl*zhat[0], kl*zhat[1], kl*zhat[2]]
+    a = [comp.sw[0] + comp.lw[0], comp.sw[1] + comp.lw[1], comp.sw[2] + comp.lw[2]]
+end
+
+## erp.boxwing(rSat, rSun, R_b2i, sc, doy, nrings, nseg): each cap element's beam, from -es, on the box-wing facets
+## (body to ECI r_b2i), short and long wave apart, per mass [m/s^2].
+fn erp_boxwing(r_sat: real[1][3] in -8e6 .. 8e6, r_sun: real[1][3] in -1.6e11 .. 1.6e11, r_b2i: real[1][3][3] in -1 .. 1, \
+               f: ScFacets, mass: real[1] in 1 .. 100, doy: real[1] in 1 .. 366, nrings: int in 1 .. 16, nseg: int in 1 .. 48) \
+        -> (a: real[1][3], comp: ErpComp)
+    let c = de440_constants().c
+    let zhat, e1, e2, shat, rho_max = cap_frame(r_sat, r_sun)
+    let fsw: real[1][3] = [0.0, 0.0, 0.0]
+    let flw: real[1][3] = [0.0, 0.0, 0.0]
+    for ir in 1 .. nrings + 1
+        for js in 1 .. nseg + 1
+            let vis, n_el, es, cos_e, da, rho, lat = cap_element(r_sat, zhat, e1, e2, rho_max, ir, js, nrings, nseg)
+            if vis
+                let alb, emi = zonal_coeffs(lat, doy)
+                let msw, mlw, geo = cap_exitance(alb, emi, n_el, shat, cos_e, da, rho)
+                let esw = msw*geo
+                let elw = mlw*geo
+                if not (esw <= 0.0 and elw <= 0.0)
+                    let u_b = transpose(r_b2i)*[-es[0], -es[1], -es[2]]
+                    let s = r_b2i*facet_sum(f, u_b, esw/c)
+                    let l = r_b2i*facet_sum(f, u_b, elw/c)
+                    for i in 0 .. 3
+                        fsw[i] = fsw[i] + s[i]
+                        flw[i] = flw[i] + l[i]
+                    end
+                end
+            end
+        end
+    end
+    comp = ErpComp()
+    comp.sw = [fsw[0]/mass, fsw[1]/mass, fsw[2]/mass]
+    comp.lw = [flw[0]/mass, flw[1]/mass, flw[2]/mass]
+    a = [comp.sw[0] + comp.lw[0], comp.sw[1] + comp.lw[1], comp.sw[2] + comp.lw[2]]
+end
+
+## The CrA/m forces.erp takes: the force set's CrAoM when it states one, else its Cr (or the spacecraft's, or 1.3)
+## times the reference area over the mass.
+fn erp_cr_aom(has_cr_aom: bool, cr_aom: real[1] in 0 .. 0.1, has_cfg_cr: bool, cfg_cr: real[1] in 1 .. 2, has_sc_cr: bool, \
+              sc_cr: real[1] in 1 .. 2, aref: real[1] in 0.01 .. 1, mass: real[1] in 1 .. 100) -> k: real[1]
+    if has_cr_aom
+        k = cr_aom
+    else
+        let cr = 1.3
+        if has_cfg_cr
+            cr = cfg_cr
+        elif has_sc_cr
+            cr = sc_cr
+        end
+        k = cr*aref/mass
+    end
+end

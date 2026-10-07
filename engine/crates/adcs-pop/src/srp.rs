@@ -5,9 +5,15 @@
 //!
 //! [`Spacecraft`] / [`Facet`] are the ONE geometry the POP feeds to SRP, ERP and
 //! the panel drag models (`ctx.sc`).
+//!
+//! The models (the facets' geometry, the cannonball and box-wing forces, the shadow) are env's
+//! method env_srp_force, generated from the design into `gen::srp` (tools/engine_build.py); what is
+//! left here is the crate's types (the facets as a vector, the models as enums, the inputs) and the
+//! calls.
 
-use crate::ephem::{constants, EphemInputs};
-use crate::la::{dot, mtv, mv, norm, M3, V3, I3};
+use crate::ephem::EphemInputs;
+use crate::gen::srp as g;
+use crate::la::{M3, V3, I3};
 
 /// Facet kind (`f.type`): a fixed body panel or a Sun-tracking solar array.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -55,36 +61,40 @@ pub struct Optics {
     pub rho_d: f64,
 }
 
+/// The design's facet set (`gen::srp::ScFacets`, at most 16) of the facets.
+pub fn rec(f: &[Facet]) -> g::ScFacets {
+    assert!(f.len() <= g::SC_NF as usize, "srp: {} facets, at most {}", f.len(), g::SC_NF);
+    let mut r = g::ScFacets::default();
+    for x in f {
+        let k = match x.kind { FacetKind::Body => g::FACETKIND_BODY, FacetKind::Array => g::FACETKIND_ARRAY };
+        r = g::facet_add(r, k, x.n, x.a, x.alpha, x.rho_s, x.rho_d, x.axis, x.double);
+    }
+    r
+}
+
+/// The facets of a design's facet set (its plain panels as body panels).
+pub fn from_rec(r: &g::ScFacets) -> Vec<Facet> {
+    (0..r.nf as usize)
+        .map(|j| {
+            let kind = if r.kind[j] == g::FACETKIND_ARRAY { FacetKind::Array } else { FacetKind::Body };
+            facet(kind, r.n[j], r.a[j], r.alpha[j], r.rho_s[j], r.rho_d[j], r.axis[j], r.dbl[j] == 1)
+        })
+        .collect()
+}
+
 /// `srp.buildBox(Lx, Ly, Lz, opt)`: the six body facets (+x,-x,+y,-y,+z,-z).
 pub fn build_box(lx: f64, ly: f64, lz: f64, opt: &Optics) -> Vec<Facet> {
-    let d: [(V3, f64); 6] = [
-        ([1.0, 0.0, 0.0], ly * lz), ([-1.0, 0.0, 0.0], ly * lz),
-        ([0.0, 1.0, 0.0], lx * lz), ([0.0, -1.0, 0.0], lx * lz),
-        ([0.0, 0.0, 1.0], lx * ly), ([0.0, 0.0, -1.0], lx * ly),
-    ];
-    d.iter()
-        .map(|&(n, a)| facet(FacetKind::Body, n, a, opt.alpha, opt.rho_s, opt.rho_d, [0.0; 3], false))
-        .collect()
+    from_rec(&g::srp_box(lx, ly, lz, opt.alpha, opt.rho_s, opt.rho_d))
 }
 
 /// `F = srp.addArray(F, A, axis, opt)`: append one double-sided solar array.
 pub fn add_array(f: &mut Vec<Facet>, a: f64, axis: V3, opt: &Optics) {
-    f.push(facet(FacetKind::Array, [0.0; 3], a, opt.alpha, opt.rho_s, opt.rho_d, axis, true));
+    *f = from_rec(&g::srp_add_array(rec(f), a, axis, opt.alpha, opt.rho_s, opt.rho_d));
 }
 
 /// `srp.arrayNormal(axis, sHat_b)`: best-lighting normal of an array pivoting about `axis`.
 pub fn array_normal(axis: &V3, s_hat_b: &V3) -> V3 {
-    let na = norm(axis);
-    let ax = [axis[0] / na, axis[1] / na, axis[2] / na];
-    let sa = dot(s_hat_b, &ax);
-    let mut proj = [s_hat_b[0] - sa * ax[0], s_hat_b[1] - sa * ax[1], s_hat_b[2] - sa * ax[2]];
-    if norm(&proj) < 1e-9 {
-        let t = if ax[0].abs() > 0.9 { [0.0, 1.0, 0.0] } else { [1.0, 0.0, 0.0] };
-        let ta = dot(&t, &ax);
-        proj = [t[0] - ta * ax[0], t[1] - ta * ax[1], t[2] - ta * ax[2]];
-    }
-    let np = norm(&proj);
-    [proj[0] / np, proj[1] / np, proj[2] / np]
+    g::srp_array_normal(*axis, *s_hat_b)
 }
 
 /// The spacecraft struct `sc` / `ctx.sc` as the radiation models read it.
@@ -117,18 +127,13 @@ impl Default for Spacecraft {
 /// plus two double-sided arrays pivoting about body +y. Mass 24 kg; `aref` set to the
 /// 0.20 x 0.20 ram face and `cr` 1.3 as TEMPLATE_16U does (not part of sgeom).
 pub fn sat16u() -> Spacecraft {
-    let bus = Optics { alpha: 0.30, rho_s: 0.30, rho_d: 0.40 };
-    let arr = Optics { alpha: 0.85, rho_s: 0.05, rho_d: 0.10 };
-    let mut f = build_box(0.20, 0.20, 0.34, &bus);
-    add_array(&mut f, 0.34 * 0.20, [0.0, 1.0, 0.0], &arr);
-    add_array(&mut f, 0.34 * 0.20, [0.0, 1.0, 0.0], &arr);
-    Spacecraft { mass: 24.0, aref: 0.20 * 0.20, cd: Some(2.2), cr: Some(1.3), r_bi: I3, facets: f }
+    let (mass, aref, cd, cr, f) = g::sat16u();
+    Spacecraft { mass, aref, cd: Some(cd), cr: Some(cr), r_bi: I3, facets: from_rec(&f) }
 }
 
 /// `srp.cannonball(P, nu, sunUnit_sat2sun, Cr, AoverM)`: `-Cr P (A/m) nu sHat`.
 pub fn cannonball(p: f64, nu: f64, sun_unit_sat2sun: &V3, cr: f64, a_over_m: f64) -> V3 {
-    let k = -cr * p * a_over_m * nu;
-    [k * sun_unit_sat2sun[0], k * sun_unit_sat2sun[1], k * sun_unit_sat2sun[2]]
+    g::srp_cannonball(p, nu, *sun_unit_sat2sun, cr, a_over_m)
 }
 
 /// Shadow model switch of `srp.eclipse`.
@@ -144,6 +149,14 @@ pub enum EclipseModel {
 }
 
 impl EclipseModel {
+    /// The design's choice EclipseModel (`gen::srp::ECLIPSEMODEL_*`).
+    pub fn choice(self) -> i64 {
+        match self {
+            EclipseModel::Cylindrical => g::ECLIPSEMODEL_CYLINDRICAL,
+            EclipseModel::Conical => g::ECLIPSEMODEL_CONICAL,
+            EclipseModel::Fine => g::ECLIPSEMODEL_FINE,
+        }
+    }
     /// Parse the MATLAB name (case-insensitive); `None` = `srp:eclipse unknown model`.
     pub fn from_name(name: &str) -> Option<EclipseModel> {
         match name.to_ascii_lowercase().as_str() {
@@ -170,33 +183,15 @@ pub struct EclipseOpts {
 
 impl Default for EclipseOpts {
     fn default() -> Self {
-        let k = constants();
-        EclipseOpts { re: k.re_earth, rp: k.rp_earth, rsun: 6.957e8, h_atm: 12000.0 }
+        let (re, rp, rsun, h_atm) = g::eclipse_default();
+        EclipseOpts { re, rp, rsun, h_atm }
     }
 }
 
 /// `srp.eclipse(rSat, rSun, model, opts)`: lighting fraction nu in [0,1]
 /// (1 sunlit, 0 umbra). `rSun` geocentric, both ECI [m].
 pub fn eclipse(r_sat: &V3, r_sun: &V3, model: EclipseModel, opts: &EclipseOpts) -> f64 {
-    match model {
-        EclipseModel::Cylindrical => {
-            let d = [r_sun[0] - r_sat[0], r_sun[1] - r_sat[1], r_sun[2] - r_sat[2]];
-            let nd = norm(&d);
-            let s = [d[0] / nd, d[1] / nd, d[2] / nd];
-            let m = [-r_sat[0], -r_sat[1], -r_sat[2]];
-            let ms = dot(&m, &s);
-            if ms < 0.0 { return 1.0; }
-            let perp = norm(&[m[0] - ms * s[0], m[1] - ms * s[1], m[2] - ms * s[2]]);
-            if perp >= opts.re { 1.0 } else { 0.0 }
-        }
-        EclipseModel::Conical => frac_conical(r_sat, r_sun, opts.re, opts.rsun),
-        EclipseModel::Fine => {
-            let sz = opts.re / opts.rp;
-            let rs = [r_sat[0], r_sat[1], r_sat[2] * sz];
-            let rn = [r_sun[0], r_sun[1], r_sun[2] * sz];
-            frac_conical(&rs, &rn, opts.re + opts.h_atm, opts.rsun)
-        }
-    }
+    g::srp_eclipse(*r_sat, *r_sun, model.choice(), opts.re, opts.rp, opts.rsun, opts.h_atm)
 }
 
 /// Euclidean norm with the scaled accumulation of Octave's `norm` (liboctave
@@ -206,83 +201,13 @@ pub fn eclipse(r_sat: &V3, r_sun: &V3, model: EclipseModel, opts: &EclipseOpts) 
 /// in |r| moves nu by up to ~1e-9 there. Matching the reference norm keeps the
 /// Rust fraction bit-comparable with the Octave-generated references.
 pub fn norm_scaled(v: &V3) -> f64 {
-    let (mut scl, mut sum) = (0.0f64, 1.0f64);
-    for &x in v {
-        let t = x.abs();
-        if scl == t {
-            sum += 1.0;
-        } else if scl < t {
-            let q = scl / t;
-            sum *= q * q;
-            sum += 1.0;
-            scl = t;
-        } else if t != 0.0 {
-            let q = t / scl;
-            sum += q * q;
-        }
-    }
-    scl * sum.sqrt()
-}
-
-fn frac_conical(r_sat: &V3, r_sun: &V3, re: f64, rsun: f64) -> f64 {
-    let d = [r_sun[0] - r_sat[0], r_sun[1] - r_sat[1], r_sun[2] - r_sat[2]];
-    let ds = norm_scaled(&d);
-    let s = [d[0] / ds, d[1] / ds, d[2] / ds];
-    let rr = norm_scaled(r_sat);
-    let e = [-r_sat[0] / rr, -r_sat[1] / rr, -r_sat[2] / rr];
-    let se = dot(&s, &e);
-    if se < 0.0 { return 1.0; }
-    let th_s = (rsun / ds).min(1.0).asin();
-    let th_e = (re / rr).min(1.0).asin();
-    #[allow(clippy::manual_clamp)] // MATLAB max(min(x,1),-1): NaN -> 1, not NaN
-    let th_sep = se.min(1.0).max(-1.0).acos();
-    if th_sep >= th_s + th_e { return 1.0; }
-    if th_e - th_s >= th_sep { return 0.0; }
-    if th_s - th_e >= th_sep { let q = th_e / th_s; return 1.0 - q * q; }
-    let occ = lens_area(th_sep, th_s, th_e);
-    1.0 - occ / (std::f64::consts::PI * (th_s * th_s))
-}
-
-fn lens_area(d: f64, r1: f64, r2: f64) -> f64 {
-    use std::f64::consts::PI;
-    if d >= r1 + r2 { return 0.0; }
-    if d <= (r1 - r2).abs() { let m = r1.min(r2); return PI * (m * m); }
-    let a = (d * d + r1 * r1 - r2 * r2) / (2.0 * d);
-    let h = (r1 * r1 - a * a).max(0.0).sqrt();
-    r1 * r1 * (a / r1).acos() + r2 * r2 * ((d - a) / r2).acos() - d * h
-}
-
-/// Body-frame radiation force of one beam of pressure `p` arriving from direction
-/// `u_b` (unit, spacecraft -> source, body axes) on all `facets`: the facet loop
-/// of `srp.boxwing` (array: normal from [`array_normal`], flipped when double-sided).
-pub(crate) fn facet_sum(facets: &[Facet], u_b: &V3, p: f64) -> V3 {
-    let mut fb = [0.0; 3];
-    for f in facets {
-        let mut n = match f.kind {
-            FacetKind::Array => array_normal(&f.axis, u_b),
-            FacetKind::Body => f.n,
-        };
-        let mut cth = dot(&n, u_b);
-        if f.double && cth < 0.0 {
-            n = [-n[0], -n[1], -n[2]];
-            cth = -cth;
-        }
-        if cth <= 0.0 { continue; }
-        let k = p * f.a * cth;
-        let ka = f.alpha + f.rho_d;
-        let kn = 2.0 * (f.rho_s * cth + f.rho_d / 3.0);
-        for i in 0..3 { fb[i] -= k * (ka * u_b[i] + kn * n[i]); }
-    }
-    fb
+    crate::gen::gravity::onorm(*v)
 }
 
 /// `[a, F] = srp.boxwing(P, nu, sunUnit_sat2sun, R_b2i, sc)`: box-wing SRP.
 /// Returns (acceleration ECI [m/s^2], force ECI [N] before the `nu` scaling).
 pub fn boxwing(p: f64, nu: f64, sun_unit_sat2sun: &V3, r_b2i: &M3, facets: &[Facet], mass: f64) -> (V3, V3) {
-    let s_b = mtv(r_b2i, sun_unit_sat2sun);
-    let fb = facet_sum(facets, &s_b, p);
-    let f = mv(r_b2i, &fb);
-    ([nu * f[0] / mass, nu * f[1] / mass, nu * f[2] / mass], f)
+    g::srp_boxwing(p, nu, *sun_unit_sat2sun, *r_b2i, rec(facets), mass)
 }
 
 /// SRP spacecraft model (`cfg.forces.srp.model`).
@@ -296,6 +221,13 @@ pub enum SrpModel {
 }
 
 impl SrpModel {
+    /// The design's choice SrpModel (`gen::srp::SRPMODEL_*`).
+    pub fn choice(self) -> i64 {
+        match self {
+            SrpModel::Cannonball => g::SRPMODEL_CANNONBALL,
+            SrpModel::Boxwing => g::SRPMODEL_BOXWING,
+        }
+    }
     /// Parse the MATLAB name (case-insensitive); `None` = `forces:srp unknown model`.
     pub fn from_name(name: &str) -> Option<SrpModel> {
         match name.to_ascii_lowercase().as_str() {
@@ -334,17 +266,8 @@ impl<'a> SrpInput<'a> {
 
 /// `forces.srp(ctx)`: SRP acceleration with eclipse, ECI [m/s^2].
 pub fn force(inp: &SrpInput) -> V3 {
-    let r = &inp.r_eci;
-    let s = &inp.sun_eci;
-    let d = [s[0] - r[0], s[1] - r[1], s[2] - r[2]];
-    let nd = norm(&d);
-    let shat = [d[0] / nd, d[1] / nd, d[2] / nd];
-    let nu = eclipse(r, s, inp.eclipse, &EclipseOpts::default());
-    match inp.model {
-        SrpModel::Cannonball => {
-            let cr = inp.cr.or(inp.sc.cr).unwrap_or(1.3);
-            cannonball(inp.p_srp, nu, &shat, cr, inp.sc.aref / inp.sc.mass)
-        }
-        SrpModel::Boxwing => boxwing(inp.p_srp, nu, &shat, &inp.sc.r_bi, &inp.sc.facets, inp.sc.mass).0,
-    }
+    let sc = inp.sc;
+    let cr = g::srp_cr(inp.cr.is_some(), inp.cr.unwrap_or(0.0), sc.cr.is_some(), sc.cr.unwrap_or(0.0));
+    let f = if inp.model == SrpModel::Boxwing { rec(&sc.facets) } else { g::ScFacets::default() };
+    g::srp_force(inp.r_eci, inp.sun_eci, inp.p_srp, inp.model.choice(), inp.eclipse.choice(), cr, sc.aref, sc.mass, sc.r_bi, f)
 }

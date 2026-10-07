@@ -1,0 +1,9 @@
+## A thruster valve's power, transcribed from adcs-sim-core actuators.rs (Rcs::apply): a couple open at all in a step
+## draws the part's valve_power_W.
+## The developer's transcription (S7.7), unsigned.
+module rcsvalve
+
+## The valve's power [W] for an on-time on [s].
+fn valve_power(on: real[s] in 0 .. 1, power: real[W] in 0 .. 20) -> p: real[W]
+    p = if on > 0.0 then power else 0.0
+end

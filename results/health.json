@@ -8,9 +8,9 @@
     "group": "act",
     "health": "blocked",
     "count": {
-     "unproven": 80,
-     "blocked": 13,
-     "open": 60
+     "unproven": 58,
+     "blocked": 45,
+     "open": 59
     }
    },
    {
@@ -59,7 +59,7 @@
     "group": "env",
     "health": "blocked",
     "count": {
-     "blocked": 34,
+     "blocked": 42,
      "unproven": 36,
      "open": 9
     }
@@ -1210,9 +1210,23 @@
     "id": "act_cmg_model",
     "group": "act",
     "label": "Control moment gyro model",
+    "health": "blocked",
+    "why": [
+     "blocked: needs h (no input names it), h0 (no input names it), k_speed (no input names it), torque_max (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.7 (2026-10-08), not yet signed by a person: method pseudocode; behaviour built-in -> method: the CMG's rotor as a method of act, generated into the engine"
+    ],
+    "value": "",
+    "cause": [
+     "act_cmg_model"
+    ]
+   },
+   {
+    "id": "act_cmg_speed_gain",
+    "group": "act",
+    "label": "CMG rotor speed-loop gain",
     "health": "unproven",
     "why": [
-     "unproven: converted from 1.0.0, not yet signed by a person"
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.7 (2026-10-08), not yet signed by a person: added, stated: a value the engine used with no node (docs/S7_INVENTORY.md \u00a71.3): stated as the 1.0.0 code gave it"
     ],
     "value": "",
     "cause": []
@@ -1232,26 +1246,123 @@
     ]
    },
    {
-    "id": "act_vscmg_gimbal_limits",
+    "id": "act_fmr_flow_gain",
     "group": "act",
-    "label": "Gimbal rate limit and power",
+    "label": "Ring flow-loop gain",
     "health": "unproven",
     "why": [
-     "unproven: converted from 1.0.0, not yet signed by a person"
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.7 (2026-10-08), not yet signed by a person: added, stated: a value the engine used with no node (docs/S7_INVENTORY.md \u00a71.3): stated as the 1.0.0 code gave it"
     ],
     "value": "",
     "cause": []
    },
    {
-    "id": "act_vscmg_model",
+    "id": "act_fmr_flow_tau",
     "group": "act",
-    "label": "Variable-speed CMG model",
+    "label": "Ring flow filter time constant",
     "health": "unproven",
     "why": [
-     "unproven: converted from 1.0.0, not yet signed by a person"
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.7 (2026-10-08), not yet signed by a person: added, stated: a value the engine used with no node (docs/S7_INVENTORY.md \u00a71.3): stated as the 1.0.0 code gave it"
     ],
     "value": "",
     "cause": []
+   },
+   {
+    "id": "act_gimbal_tlm_noise",
+    "group": "act",
+    "label": "Gimbal angle telemetry noise",
+    "health": "unproven",
+    "why": [
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.7 (2026-10-08), not yet signed by a person: added, stated: a value the engine used with no node (docs/S7_INVENTORY.md \u00a71.3): stated as the 1.0.0 code gave it"
+    ],
+    "value": "",
+    "cause": []
+   },
+   {
+    "id": "act_rotor_set",
+    "group": "act",
+    "label": "Momentum devices as the engine flies them",
+    "health": "blocked",
+    "why": [
+     "blocked: needs s (no input names it), d (no input names it), cmd_r (no input names it), cmd_g (no input names it), h (no input names it), dt (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.7 (2026-10-08), not yet signed by a person: added, method: the momentum devices' assembly of their rows' relations, until now adcs-sim-core actuators.rs (Mex), which had no node: the failed rotor's coast and the order of the draws are its own; the developer's revision S7.7 (2026-10-08), not yet signed by a person: method pseudocode: the momentum devices as a method of act; the engine's step calls it, generated into the engine"
+    ],
+    "value": "",
+    "cause": [
+     "act_rotor_set"
+    ]
+   },
+   {
+    "id": "act_rotor_tlm_noise",
+    "group": "act",
+    "label": "Rotor momentum telemetry noise",
+    "health": "unproven",
+    "why": [
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.7 (2026-10-08), not yet signed by a person: added, stated: a value the engine used with no node (docs/S7_INVENTORY.md \u00a71.3): stated as the 1.0.0 code gave it"
+    ],
+    "value": "",
+    "cause": []
+   },
+   {
+    "id": "act_rw_drive_efficiency",
+    "group": "act",
+    "label": "Wheel drive efficiency",
+    "health": "unproven",
+    "why": [
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.7 (2026-10-08), not yet signed by a person: added, stated: a value the engine used with no node (docs/S7_INVENTORY.md \u00a71.3): stated as the 1.0.0 code gave it"
+    ],
+    "value": "",
+    "cause": []
+   },
+   {
+    "id": "act_rw_friction_comp",
+    "group": "act",
+    "label": "Drive friction compensation share",
+    "health": "unproven",
+    "why": [
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.7 (2026-10-08), not yet signed by a person: added, stated: a value the engine used with no node (docs/S7_INVENTORY.md \u00a71.3): stated as the 1.0.0 code gave it"
+    ],
+    "value": "",
+    "cause": []
+   },
+   {
+    "id": "act_rw_torque_noise",
+    "group": "act",
+    "label": "Momentum device torque noise share",
+    "health": "unproven",
+    "why": [
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.7 (2026-10-08), not yet signed by a person: added, stated: a value the engine used with no node (docs/S7_INVENTORY.md \u00a71.3): stated as the 1.0.0 code gave it"
+    ],
+    "value": "",
+    "cause": []
+   },
+   {
+    "id": "act_vscmg_gimbal_limits",
+    "group": "act",
+    "label": "Gimbal rate limit and power",
+    "health": "blocked",
+    "why": [
+     "blocked: needs gd (no input names it), power (no input names it), rate_max (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.7 (2026-10-08), not yet signed by a person: method pseudocode; behaviour built-in -> method: the gimbals' rate limit and power as a method of act, generated into the engine"
+    ],
+    "value": "",
+    "cause": [
+     "act_vscmg_gimbal_limits"
+    ]
+   },
+   {
+    "id": "act_vscmg_model",
+    "group": "act",
+    "label": "Variable-speed CMG model",
+    "health": "blocked",
+    "why": [
+     "blocked: needs tm (no input names it), fr (no input names it), nz (no input names it), k_c (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.7 (2026-10-08), not yet signed by a person: method pseudocode; behaviour built-in -> method: the VSCMG's rotor as a method of act, generated into the engine"
+    ],
+    "value": "",
+    "cause": [
+     "act_vscmg_model"
+    ]
    },
    {
     "id": "cas",
@@ -2172,6 +2283,20 @@
     ]
    },
    {
+    "id": "env_drag_force",
+    "group": "env",
+    "label": "Drag force (cannonball and panels)",
+    "health": "blocked",
+    "why": [
+     "blocked: needs r (no input names it), v (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.6 (2026-10-08), not yet signed by a person: added, method: the precision orbit's drag, until now adcs-pop drag.rs and drag/geom.rs; the developer's revision S7.6 (2026-10-08), not yet signed by a person: method pseudocode: the drag and its geometry as a method of env, generated into adcs-pop; the density switch's call with the space weather stays the code's"
+    ],
+    "value": "",
+    "cause": [
+     "env_drag_force"
+    ]
+   },
+   {
     "id": "env_dtm2020_coefficients",
     "group": "env",
     "label": "DTM2020 coefficients (operational and research)",
@@ -2225,6 +2350,20 @@
     ]
    },
    {
+    "id": "env_erp_force",
+    "group": "env",
+    "label": "Earth radiation pressure force (albedo and infrared)",
+    "health": "blocked",
+    "why": [
+     "blocked: needs has_cr_aom (no input names it), cr_aom (no input names it), has_cfg_cr (no input names it), cfg_cr (no input names it), has_sc_cr (no input names it), sc_cr (no input names it), aref (no input names it), mass (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.6 (2026-10-08), not yet signed by a person: added, method: the precision orbit's Earth radiation pressure, until now adcs-pop erp.rs; the developer's revision S7.6 (2026-10-08), not yet signed by a person: method pseudocode: the Earth radiation pressure as a method of env, generated into adcs-pop; a user's albedo grid (a function the run hands in) is the code's loop over the same elements"
+    ],
+    "value": "",
+    "cause": [
+     "env_erp_force"
+    ]
+   },
+   {
     "id": "env_exponential_atmosphere",
     "group": "env",
     "label": "Exponential atmosphere of the precision orbit",
@@ -2236,6 +2375,34 @@
     "value": "",
     "cause": [
      "env_exponential_atmosphere"
+    ]
+   },
+   {
+    "id": "env_force_model",
+    "group": "env",
+    "label": "The precision orbit's force set, its sum and its start",
+    "health": "blocked",
+    "why": [
+     "blocked: needs sun_unit (no input names it), alt_km (no input names it), ecc (no input names it), inc_deg (no input names it), ltan_h (no input names it), argp_deg (no input names it), u0_deg (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.6 (2026-10-08), not yet signed by a person: added, method: the precision orbit's force selection and sum and its sun-synchronous start, until now adcs-pop accel.rs (Forces::sils, World::accel's sum, sso_initial, coe2rv) and adcs-sim run.rs (Cr = 1 + reflectivity); the developer's revision S7.6 (2026-10-08), not yet signed by a person: method pseudocode: the precision orbit's force set, its sum and its sun-synchronous start as a method of env, generated into adcs-pop; the in-loop RK4 and Hermite interpolation stay code"
+    ],
+    "value": "",
+    "cause": [
+     "env_force_model"
+    ]
+   },
+   {
+    "id": "env_gas_surface",
+    "group": "env",
+    "label": "Gas-surface interaction of a panel (free-molecular flow)",
+    "health": "blocked",
+    "why": [
+     "blocked: needs model (no input names it), s (no input names it), delta (no input names it), g (no input names it), talt (no input names it), n_o (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.6 (2026-10-08), not yet signed by a person: added, method: the drag panel models' gas-surface interaction, until now adcs-pop drag/gsi.rs; the developer's revision S7.6 (2026-10-08), not yet signed by a person: method pseudocode: the gas-surface interaction as a method of env, generated into adcs-pop; the platform's erf (trinetra-toolbox/4)"
+    ],
+    "value": "",
+    "cause": [
+     "env_gas_surface"
     ]
    },
    {
@@ -2389,6 +2556,34 @@
     ]
    },
    {
+    "id": "env_orbit_fast",
+    "group": "env",
+    "label": "Orbit forces (the fast orbit)",
+    "health": "blocked",
+    "why": [
+     "blocked: needs jd0_utc (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.6 (2026-10-08), not yet signed by a person: added, method: the fast orbit's forces and node context, until now adcs-sim-core orbit.rs (accel, ctx and its constants), which had no node (docs/S7_INVENTORY.md \u00a71.3); the developer's revision S7.6 (2026-10-08), not yet signed by a person: method pseudocode: the fast orbit's forces and node context as a method of env, generated into the engine; its RK4 and Hermite interpolation stay code and call it"
+    ],
+    "value": "",
+    "cause": [
+     "env_orbit_fast"
+    ]
+   },
+   {
+    "id": "env_orbit_start",
+    "group": "env",
+    "label": "Orbit start from the LTAN (the fast orbit)",
+    "health": "blocked",
+    "why": [
+     "blocked: needs sun (no input names it), ltan_h (no input names it), alt_km (no input names it), inc_deg (no input names it), u0_deg (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.6 (2026-10-08), not yet signed by a person: added, method: the fast orbit's start, until now adcs-sim run.rs (Truth::new), which had no node (docs/S7_INVENTORY.md \u00a71.3, RAAN from LTAN); the developer's revision S7.6 (2026-10-08), not yet signed by a person: method pseudocode: the fast orbit's start as a method of env, generated into the engine's set-up with the platform's maths it flew with"
+    ],
+    "value": "",
+    "cause": [
+     "env_orbit_start"
+    ]
+   },
+   {
     "id": "env_relativity",
     "group": "env",
     "label": "Relativistic accelerations (IERS 2010)",
@@ -2428,6 +2623,34 @@
     "value": "",
     "cause": [
      "env_space_weather"
+    ]
+   },
+   {
+    "id": "env_srp_force",
+    "group": "env",
+    "label": "Solar radiation pressure force (cannonball and box-wing)",
+    "health": "blocked",
+    "why": [
+     "blocked: needs r (no input names it), sun (no input names it), p_srp (no input names it), model (no input names it), ecl (no input names it), cr (no input names it), aref (no input names it), mass (no input names it), r_bi (no input names it), f (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.6 (2026-10-08), not yet signed by a person: added, method: the precision orbit's solar radiation pressure, the shadow and the spacecraft's facets, until now adcs-pop srp.rs; the developer's revision S7.6 (2026-10-08), not yet signed by a person: method pseudocode: the solar radiation pressure, the shadow and the spacecraft's facets as a method of env, generated into adcs-pop"
+    ],
+    "value": "",
+    "cause": [
+     "env_srp_force"
+    ]
+   },
+   {
+    "id": "env_third_body",
+    "group": "env",
+    "label": "Third-body accelerations (the Sun and the Moon)",
+    "health": "blocked",
+    "why": [
+     "blocked: needs ecc (no input names it), inc (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.6 (2026-10-08), not yet signed by a person: added, method: the precision orbit's third-body force, until now adcs-pop thirdbody.rs and thirdbody/secular.rs; the developer's revision S7.6 (2026-10-08), not yet signed by a person: method pseudocode: the third body's acceleration and secular rates as a method of env, generated into adcs-pop; the secular histories' RK4 stays code"
+    ],
+    "value": "",
+    "cause": [
+     "env_third_body"
     ]
    },
    {
@@ -8299,67 +8522,85 @@
     "id": "l3_fmr_row_08",
     "group": "act",
     "label": "Pump efficiency over its range",
-    "health": "unproven",
+    "health": "blocked",
     "why": [
-     "unproven: converted from 1.0.0, not yet signed by a person"
+     "blocked: needs pump (no input names it), h (no input names it), k_hv (no input names it), l (no input names it), s (no input names it), ac (no input names it), eta (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.7 (2026-10-08), not yet signed by a person: method pseudocode; behaviour built-in -> method: the ring pump's efficiency and power as a method of act, generated into the engine"
     ],
     "value": "",
-    "cause": []
+    "cause": [
+     "l3_fmr_row_08"
+    ]
    },
    {
     "id": "l3_fmr_row_09",
     "group": "act",
     "label": "Flow response time",
-    "health": "unproven",
+    "health": "blocked",
     "why": [
-     "unproven: converted from 1.0.0, not yet signed by a person"
+     "blocked: needs hf (no input names it), hm (no input names it), tau (no input names it), dt (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.7 (2026-10-08), not yet signed by a person: method pseudocode; behaviour built-in -> method: the ring's flow response as a method of act, generated into the engine"
     ],
     "value": "",
-    "cause": []
+    "cause": [
+     "l3_fmr_row_09"
+    ]
    },
    {
     "id": "l3_fmr_row_10",
     "group": "act",
     "label": "Flow noise",
-    "health": "unproven",
+    "health": "blocked",
     "why": [
-     "unproven: converted from 1.0.0, not yet signed by a person"
+     "blocked: needs h (no input names it), sigma_h (no input names it), g (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.7 (2026-10-08), not yet signed by a person: method pseudocode; behaviour built-in -> method: the ring's flow noise as a method of act, from the run's noise stream, generated into the engine"
     ],
     "value": "",
-    "cause": []
+    "cause": [
+     "l3_fmr_row_10"
+    ]
    },
    {
     "id": "l3_fmr_row_11",
     "group": "act",
     "label": "Ring field power",
-    "health": "unproven",
+    "health": "blocked",
     "why": [
-     "unproven: converted from 1.0.0, not yet signed by a person"
+     "blocked: needs on (no input names it), power (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.7 (2026-10-08), not yet signed by a person: method pseudocode; behaviour built-in -> method: the ring's field power as a method of act, generated into the engine"
     ],
     "value": "",
-    "cause": []
+    "cause": [
+     "l3_fmr_row_11"
+    ]
    },
    {
     "id": "l3_fmr_row_12",
     "group": "act",
     "label": "Ring flow limits",
-    "health": "unproven",
+    "health": "blocked",
     "why": [
-     "unproven: converted from 1.0.0, not yet signed by a person"
+     "blocked: needs pump (no input names it), h (no input names it), tsd (no input names it), fscale (no input names it), h_max (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.7 (2026-10-08), not yet signed by a person: method pseudocode; behaviour built-in -> method: the ring's flow limits and constants as a method of act, generated into the engine"
     ],
     "value": "",
-    "cause": []
+    "cause": [
+     "l3_fmr_row_12"
+    ]
    },
    {
     "id": "l3_fmr_row_13",
     "group": "act",
     "label": "Ring misalignment",
-    "health": "unproven",
+    "health": "blocked",
     "why": [
-     "unproven: converted from 1.0.0, not yet signed by a person"
+     "blocked: needs a (no input names it), sigma (no input names it), disp (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.7 (2026-10-08), not yet signed by a person: method pseudocode; behaviour built-in -> method: the ring's misalignment as a method of act, generated into the engine"
     ],
     "value": "",
-    "cause": []
+    "cause": [
+     "l3_fmr_row_13"
+    ]
    },
    {
     "id": "l3_fmr_row_14",
@@ -9662,57 +9903,71 @@
     "id": "l3_mtq_row_02",
     "group": "act",
     "label": "Coil time constant (L/R lag)",
-    "health": "unproven",
+    "health": "blocked",
     "why": [
-     "unproven: converted from 1.0.0, not yet signed by a person"
+     "blocked: needs x0 (no input names it), u (no input names it), tau (no input names it), dt (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.7 (2026-10-08), not yet signed by a person: method pseudocode; behaviour built-in -> method: the coil's L/R lag as a method of act, generated into the engine"
     ],
     "value": "",
-    "cause": []
+    "cause": [
+     "l3_mtq_row_02"
+    ]
    },
    {
     "id": "l3_mtq_row_03",
     "group": "act",
     "label": "Dipole saturation per coil",
-    "health": "unproven",
+    "health": "blocked",
     "why": [
-     "unproven: converted from 1.0.0, not yet signed by a person"
+     "blocked: needs p_j (no input names it), m_cmd (no input names it), m_max (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.7 (2026-10-08), not yet signed by a person: method pseudocode; behaviour built-in -> method: the coil's command and its saturation as a method of act, generated into the engine"
     ],
     "value": "",
-    "cause": []
+    "cause": [
+     "l3_mtq_row_03"
+    ]
    },
    {
     "id": "l3_mtq_row_04",
     "group": "act",
     "label": "Coil power at a dipole",
-    "health": "unproven",
+    "health": "blocked",
     "why": [
-     "unproven: converted from 1.0.0, not yet signed by a person"
+     "blocked: needs a (no input names it), m_max (no input names it), p_max (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.7 (2026-10-08), not yet signed by a person: method pseudocode; behaviour built-in -> method: the coil's power as a method of act, generated into the engine"
     ],
     "value": "",
-    "cause": []
+    "cause": [
+     "l3_mtq_row_04"
+    ]
    },
    {
     "id": "l3_mtq_row_05",
     "group": "act",
     "label": "Coil axes and their pseudo-inverse",
-    "health": "unproven",
+    "health": "blocked",
     "why": [
-     "unproven: converted from 1.0.0, not yet signed by a person"
+     "blocked: needs axes (no input names it), n (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.7 (2026-10-08), not yet signed by a person: method pseudocode; behaviour built-in -> method: the coils' allocation as a method of act, generated into the engine"
     ],
     "value": "",
-    "cause": []
+    "cause": [
+     "l3_mtq_row_05"
+    ]
    },
    {
     "id": "l3_mtq_row_06",
     "group": "act",
     "label": "Torque from dipole and field",
-    "health": "open",
+    "health": "blocked",
     "why": [
-     "open: an open block: not decided yet",
-     "unproven: converted from 1.0.0, not yet signed by a person"
+     "blocked: needs m (no input names it), b (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.7 (2026-10-08), not yet signed by a person: method pseudocode; behaviour open -> method: the torque of a dipole in the field as a method of act (the engine computed it in run.rs with no method), generated into the engine"
     ],
     "value": "",
-    "cause": []
+    "cause": [
+     "l3_mtq_row_06"
+    ]
    },
    {
     "id": "l3_mtq_row_07",
@@ -9778,23 +10033,29 @@
     "id": "l3_mtq_row_12",
     "group": "act",
     "label": "Coil scale-factor dispersion",
-    "health": "unproven",
+    "health": "blocked",
     "why": [
-     "unproven: converted from 1.0.0, not yet signed by a person"
+     "blocked: needs n (no input names it), axes (no input names it), scale_sigma (no input names it), misalign (no input names it), disp (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.7 (2026-10-08), not yet signed by a person: method pseudocode; behaviour built-in -> method: the coils' dispersion as a method of act, from the run's dispersion stream, generated into the engine"
     ],
     "value": "",
-    "cause": []
+    "cause": [
+     "l3_mtq_row_12"
+    ]
    },
    {
     "id": "l3_mtq_row_13",
     "group": "act",
     "label": "A failed coil and its reallocation",
-    "health": "unproven",
+    "health": "blocked",
     "why": [
-     "unproven: converted from 1.0.0, not yet signed by a person"
+     "blocked: needs s (no input names it), d (no input names it), m_cmd (no input names it), dt (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.7 (2026-10-08), not yet signed by a person: method pseudocode; behaviour built-in -> method: the coil set with a failed coil as a method of act; the engine's step calls it, generated into the engine"
     ],
     "value": "",
-    "cause": []
+    "cause": [
+     "l3_mtq_row_13"
+    ]
    },
    {
     "id": "l3_oils",
@@ -10485,45 +10746,57 @@
     "id": "l3_rcs_row_01",
     "group": "act",
     "label": "Thruster torque directions",
-    "health": "unproven",
+    "health": "blocked",
     "why": [
-     "unproven: converted from 1.0.0, not yet signed by a person"
+     "blocked: needs thrust (no input names it), arm (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.7 (2026-10-08), not yet signed by a person: method pseudocode; behaviour built-in -> method: the thrusters' torque directions as a method of act, generated into the engine"
     ],
     "value": "",
-    "cause": []
+    "cause": [
+     "l3_rcs_row_01"
+    ]
    },
    {
     "id": "l3_rcs_row_02",
     "group": "act",
     "label": "Thrust level and dispersion",
-    "health": "unproven",
+    "health": "blocked",
     "why": [
-     "unproven: converted from 1.0.0, not yet signed by a person"
+     "blocked: needs sigma (no input names it), disp (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.7 (2026-10-08), not yet signed by a person: method pseudocode; behaviour built-in -> method: the thrust dispersion as a method of act, generated into the engine"
     ],
     "value": "",
-    "cause": []
+    "cause": [
+     "l3_rcs_row_02"
+    ]
    },
    {
     "id": "l3_rcs_row_03",
     "group": "act",
     "label": "Specific impulse and its range",
-    "health": "unproven",
+    "health": "blocked",
     "why": [
-     "unproven: converted from 1.0.0, not yet signed by a person"
+     "blocked: needs fs (no input names it), thrust (no input names it), isp (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.7 (2026-10-08), not yet signed by a person: method pseudocode; behaviour built-in -> method: the specific impulse and the propellant flow as a method of act, generated into the engine"
     ],
     "value": "",
-    "cause": []
+    "cause": [
+     "l3_rcs_row_03"
+    ]
    },
    {
     "id": "l3_rcs_row_04",
     "group": "act",
     "label": "Minimum impulse bit",
-    "health": "unproven",
+    "health": "blocked",
     "why": [
-     "unproven: converted from 1.0.0, not yet signed by a person"
+     "blocked: needs duty (no input names it), t (no input names it), mib (no input names it), res (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.7 (2026-10-08), not yet signed by a person: method pseudocode; behaviour built-in -> method: the valve's minimum impulse bit as a method of act, generated into the engine"
     ],
     "value": "",
-    "cause": []
+    "cause": [
+     "l3_rcs_row_04"
+    ]
    },
    {
     "id": "l3_rcs_row_05",
@@ -10565,45 +10838,57 @@
     "id": "l3_rcs_row_08",
     "group": "act",
     "label": "Propellant remaining",
-    "health": "unproven",
+    "health": "blocked",
     "why": [
-     "unproven: converted from 1.0.0, not yet signed by a person"
+     "blocked: needs used (no input names it), mdot (no input names it), dt (no input names it), prop_kg (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.7 (2026-10-08), not yet signed by a person: method pseudocode; behaviour built-in -> method: the propellant remaining and the empty tank as a method of act, generated into the engine"
     ],
     "value": "",
-    "cause": []
+    "cause": [
+     "l3_rcs_row_08"
+    ]
    },
    {
     "id": "l3_rcs_row_09",
     "group": "act",
     "label": "Valve power",
-    "health": "unproven",
+    "health": "blocked",
     "why": [
-     "unproven: converted from 1.0.0, not yet signed by a person"
+     "blocked: needs on (no input names it), power (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.7 (2026-10-08), not yet signed by a person: method pseudocode; behaviour built-in -> method: the valve power as a method of act, generated into the engine"
     ],
     "value": "",
-    "cause": []
+    "cause": [
+     "l3_rcs_row_09"
+    ]
    },
    {
     "id": "l3_rcs_row_10",
     "group": "act",
     "label": "Thruster misalignment",
-    "health": "unproven",
+    "health": "blocked",
     "why": [
-     "unproven: converted from 1.0.0, not yet signed by a person"
+     "blocked: needs tau (no input names it), sigma (no input names it), disp (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.7 (2026-10-08), not yet signed by a person: method pseudocode; behaviour built-in -> method: the thrusters' misalignment as a method of act, generated into the engine"
     ],
     "value": "",
-    "cause": []
+    "cause": [
+     "l3_rcs_row_10"
+    ]
    },
    {
     "id": "l3_rcs_row_11",
     "group": "act",
     "label": "A failed thruster",
-    "health": "unproven",
+    "health": "blocked",
     "why": [
-     "unproven: converted from 1.0.0, not yet signed by a person"
+     "blocked: needs s (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.7 (2026-10-08), not yet signed by a person: method pseudocode; behaviour built-in -> method: the thrusters with a failed couple as a method of act; the engine's step calls it, generated into the engine"
     ],
     "value": "",
-    "cause": []
+    "cause": [
+     "l3_rcs_row_11"
+    ]
    },
    {
     "id": "l3_rw",
@@ -10792,78 +11077,99 @@
     "id": "l3_rw_row_01",
     "group": "act",
     "label": "Wheel motor torque-speed line",
-    "health": "unproven",
+    "health": "blocked",
     "why": [
-     "unproven: converted from 1.0.0, not yet signed by a person"
+     "blocked: needs tm (no input names it), om (no input names it), ts (no input names it), wn (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.7 (2026-10-08), not yet signed by a person: method pseudocode; behaviour built-in -> method: the wheel motor's torque-speed line and its constants as a method of act, generated into the engine"
     ],
     "value": "",
-    "cause": []
+    "cause": [
+     "l3_rw_row_01"
+    ]
    },
    {
     "id": "l3_rw_row_02",
     "group": "act",
     "label": "Wheel speed limit",
-    "health": "unproven",
+    "health": "blocked",
     "why": [
-     "unproven: converted from 1.0.0, not yet signed by a person"
+     "blocked: needs hd (no input names it), h (no input names it), h_max (no input names it), at_limit (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.7 (2026-10-08), not yet signed by a person: method pseudocode; behaviour built-in -> method: the wheel's speed and momentum limits as a method of act, generated into the engine"
     ],
     "value": "",
-    "cause": []
+    "cause": [
+     "l3_rw_row_02"
+    ]
    },
    {
     "id": "l3_rw_row_03",
     "group": "act",
     "label": "Wheel bearing friction (Coulomb, viscous, Stribeck)",
-    "health": "unproven",
+    "health": "blocked",
     "why": [
-     "unproven: converted from 1.0.0, not yet signed by a person"
+     "blocked: needs h (no input names it), jrot (no input names it), viscous (no input names it), coulomb (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.7 (2026-10-08), not yet signed by a person: method pseudocode; behaviour built-in -> method: the wheel's bearing friction as a method of act, generated into the engine"
     ],
     "value": "",
-    "cause": []
+    "cause": [
+     "l3_rw_row_03"
+    ]
    },
    {
     "id": "l3_rw_row_04",
     "group": "act",
     "label": "Wheel friction compensation",
-    "health": "unproven",
+    "health": "blocked",
     "why": [
-     "unproven: converted from 1.0.0, not yet signed by a person"
+     "blocked: needs tm (no input names it), fr (no input names it), st (no input names it), nz (no input names it), k_c (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.7 (2026-10-08), not yet signed by a person: method pseudocode; behaviour built-in -> method: the wheel's friction compensation as a method of act, generated into the engine"
     ],
     "value": "",
-    "cause": []
+    "cause": [
+     "l3_rw_row_04"
+    ]
    },
    {
     "id": "l3_rw_row_05",
     "group": "act",
     "label": "Wheel torque noise",
-    "health": "unproven",
+    "health": "blocked",
     "why": [
-     "unproven: converted from 1.0.0, not yet signed by a person"
+     "blocked: needs share (no input names it), torque_max (no input names it), g (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.7 (2026-10-08), not yet signed by a person: method pseudocode; behaviour built-in -> method: the momentum devices' torque noise as a method of act, from the run's noise stream, generated into the engine"
     ],
     "value": "",
-    "cause": []
+    "cause": [
+     "l3_rw_row_05"
+    ]
    },
    {
     "id": "l3_rw_row_06",
     "group": "act",
     "label": "Wheel misalignment",
-    "health": "unproven",
+    "health": "blocked",
     "why": [
-     "unproven: converted from 1.0.0, not yet signed by a person"
+     "blocked: needs a (no input names it), sigma (no input names it), disp (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.7 (2026-10-08), not yet signed by a person: method pseudocode; behaviour built-in -> method: the momentum devices' misalignment as a method of act, generated into the engine"
     ],
     "value": "",
-    "cause": []
+    "cause": [
+     "l3_rw_row_06"
+    ]
    },
    {
     "id": "l3_rw_row_07",
     "group": "act",
     "label": "Wheel steady power",
-    "health": "unproven",
+    "health": "blocked",
     "why": [
-     "unproven: converted from 1.0.0, not yet signed by a person"
+     "blocked: needs p_steady (no input names it), tm (no input names it), om (no input names it), eta (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.7 (2026-10-08), not yet signed by a person: method pseudocode; behaviour built-in -> method: the wheel's power as a method of act, generated into the engine"
     ],
     "value": "",
-    "cause": []
+    "cause": [
+     "l3_rw_row_07"
+    ]
    },
    {
     "id": "l3_rw_row_08",
@@ -15228,9 +15534,9 @@
     "group": "act",
     "health": "blocked",
     "count": {
-     "unproven": 82,
-     "blocked": 11,
-     "open": 60
+     "unproven": 60,
+     "blocked": 43,
+     "open": 59
     }
    },
    {
@@ -15279,7 +15585,7 @@
     "group": "env",
     "health": "blocked",
     "count": {
-     "blocked": 34,
+     "blocked": 42,
      "unproven": 36,
      "open": 9
     }
@@ -16396,9 +16702,23 @@
     "id": "act_cmg_model",
     "group": "act",
     "label": "Control moment gyro model",
+    "health": "blocked",
+    "why": [
+     "blocked: needs h (no input names it), h0 (no input names it), k_speed (no input names it), torque_max (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.7 (2026-10-08), not yet signed by a person: method pseudocode; behaviour built-in -> method: the CMG's rotor as a method of act, generated into the engine"
+    ],
+    "value": "",
+    "cause": [
+     "act_cmg_model"
+    ]
+   },
+   {
+    "id": "act_cmg_speed_gain",
+    "group": "act",
+    "label": "CMG rotor speed-loop gain",
     "health": "unproven",
     "why": [
-     "unproven: converted from 1.0.0, not yet signed by a person"
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.7 (2026-10-08), not yet signed by a person: added, stated: a value the engine used with no node (docs/S7_INVENTORY.md \u00a71.3): stated as the 1.0.0 code gave it"
     ],
     "value": "",
     "cause": []
@@ -16418,26 +16738,123 @@
     ]
    },
    {
-    "id": "act_vscmg_gimbal_limits",
+    "id": "act_fmr_flow_gain",
     "group": "act",
-    "label": "Gimbal rate limit and power",
+    "label": "Ring flow-loop gain",
     "health": "unproven",
     "why": [
-     "unproven: converted from 1.0.0, not yet signed by a person"
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.7 (2026-10-08), not yet signed by a person: added, stated: a value the engine used with no node (docs/S7_INVENTORY.md \u00a71.3): stated as the 1.0.0 code gave it"
     ],
     "value": "",
     "cause": []
    },
    {
-    "id": "act_vscmg_model",
+    "id": "act_fmr_flow_tau",
     "group": "act",
-    "label": "Variable-speed CMG model",
+    "label": "Ring flow filter time constant",
     "health": "unproven",
     "why": [
-     "unproven: converted from 1.0.0, not yet signed by a person"
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.7 (2026-10-08), not yet signed by a person: added, stated: a value the engine used with no node (docs/S7_INVENTORY.md \u00a71.3): stated as the 1.0.0 code gave it"
     ],
     "value": "",
     "cause": []
+   },
+   {
+    "id": "act_gimbal_tlm_noise",
+    "group": "act",
+    "label": "Gimbal angle telemetry noise",
+    "health": "unproven",
+    "why": [
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.7 (2026-10-08), not yet signed by a person: added, stated: a value the engine used with no node (docs/S7_INVENTORY.md \u00a71.3): stated as the 1.0.0 code gave it"
+    ],
+    "value": "",
+    "cause": []
+   },
+   {
+    "id": "act_rotor_set",
+    "group": "act",
+    "label": "Momentum devices as the engine flies them",
+    "health": "blocked",
+    "why": [
+     "blocked: needs s (no input names it), d (no input names it), cmd_r (no input names it), cmd_g (no input names it), h (no input names it), dt (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.7 (2026-10-08), not yet signed by a person: added, method: the momentum devices' assembly of their rows' relations, until now adcs-sim-core actuators.rs (Mex), which had no node: the failed rotor's coast and the order of the draws are its own; the developer's revision S7.7 (2026-10-08), not yet signed by a person: method pseudocode: the momentum devices as a method of act; the engine's step calls it, generated into the engine"
+    ],
+    "value": "",
+    "cause": [
+     "act_rotor_set"
+    ]
+   },
+   {
+    "id": "act_rotor_tlm_noise",
+    "group": "act",
+    "label": "Rotor momentum telemetry noise",
+    "health": "unproven",
+    "why": [
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.7 (2026-10-08), not yet signed by a person: added, stated: a value the engine used with no node (docs/S7_INVENTORY.md \u00a71.3): stated as the 1.0.0 code gave it"
+    ],
+    "value": "",
+    "cause": []
+   },
+   {
+    "id": "act_rw_drive_efficiency",
+    "group": "act",
+    "label": "Wheel drive efficiency",
+    "health": "unproven",
+    "why": [
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.7 (2026-10-08), not yet signed by a person: added, stated: a value the engine used with no node (docs/S7_INVENTORY.md \u00a71.3): stated as the 1.0.0 code gave it"
+    ],
+    "value": "",
+    "cause": []
+   },
+   {
+    "id": "act_rw_friction_comp",
+    "group": "act",
+    "label": "Drive friction compensation share",
+    "health": "unproven",
+    "why": [
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.7 (2026-10-08), not yet signed by a person: added, stated: a value the engine used with no node (docs/S7_INVENTORY.md \u00a71.3): stated as the 1.0.0 code gave it"
+    ],
+    "value": "",
+    "cause": []
+   },
+   {
+    "id": "act_rw_torque_noise",
+    "group": "act",
+    "label": "Momentum device torque noise share",
+    "health": "unproven",
+    "why": [
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.7 (2026-10-08), not yet signed by a person: added, stated: a value the engine used with no node (docs/S7_INVENTORY.md \u00a71.3): stated as the 1.0.0 code gave it"
+    ],
+    "value": "",
+    "cause": []
+   },
+   {
+    "id": "act_vscmg_gimbal_limits",
+    "group": "act",
+    "label": "Gimbal rate limit and power",
+    "health": "blocked",
+    "why": [
+     "blocked: needs gd (no input names it), power (no input names it), rate_max (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.7 (2026-10-08), not yet signed by a person: method pseudocode; behaviour built-in -> method: the gimbals' rate limit and power as a method of act, generated into the engine"
+    ],
+    "value": "",
+    "cause": [
+     "act_vscmg_gimbal_limits"
+    ]
+   },
+   {
+    "id": "act_vscmg_model",
+    "group": "act",
+    "label": "Variable-speed CMG model",
+    "health": "blocked",
+    "why": [
+     "blocked: needs tm (no input names it), fr (no input names it), nz (no input names it), k_c (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.7 (2026-10-08), not yet signed by a person: method pseudocode; behaviour built-in -> method: the VSCMG's rotor as a method of act, generated into the engine"
+    ],
+    "value": "",
+    "cause": [
+     "act_vscmg_model"
+    ]
    },
    {
     "id": "cas",
@@ -17358,6 +17775,20 @@
     ]
    },
    {
+    "id": "env_drag_force",
+    "group": "env",
+    "label": "Drag force (cannonball and panels)",
+    "health": "blocked",
+    "why": [
+     "blocked: needs r (no input names it), v (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.6 (2026-10-08), not yet signed by a person: added, method: the precision orbit's drag, until now adcs-pop drag.rs and drag/geom.rs; the developer's revision S7.6 (2026-10-08), not yet signed by a person: method pseudocode: the drag and its geometry as a method of env, generated into adcs-pop; the density switch's call with the space weather stays the code's"
+    ],
+    "value": "",
+    "cause": [
+     "env_drag_force"
+    ]
+   },
+   {
     "id": "env_dtm2020_coefficients",
     "group": "env",
     "label": "DTM2020 coefficients (operational and research)",
@@ -17411,6 +17842,20 @@
     ]
    },
    {
+    "id": "env_erp_force",
+    "group": "env",
+    "label": "Earth radiation pressure force (albedo and infrared)",
+    "health": "blocked",
+    "why": [
+     "blocked: needs has_cr_aom (no input names it), cr_aom (no input names it), has_cfg_cr (no input names it), cfg_cr (no input names it), has_sc_cr (no input names it), sc_cr (no input names it), aref (no input names it), mass (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.6 (2026-10-08), not yet signed by a person: added, method: the precision orbit's Earth radiation pressure, until now adcs-pop erp.rs; the developer's revision S7.6 (2026-10-08), not yet signed by a person: method pseudocode: the Earth radiation pressure as a method of env, generated into adcs-pop; a user's albedo grid (a function the run hands in) is the code's loop over the same elements"
+    ],
+    "value": "",
+    "cause": [
+     "env_erp_force"
+    ]
+   },
+   {
     "id": "env_exponential_atmosphere",
     "group": "env",
     "label": "Exponential atmosphere of the precision orbit",
@@ -17422,6 +17867,34 @@
     "value": "",
     "cause": [
      "env_exponential_atmosphere"
+    ]
+   },
+   {
+    "id": "env_force_model",
+    "group": "env",
+    "label": "The precision orbit's force set, its sum and its start",
+    "health": "blocked",
+    "why": [
+     "blocked: needs sun_unit (no input names it), alt_km (no input names it), ecc (no input names it), inc_deg (no input names it), ltan_h (no input names it), argp_deg (no input names it), u0_deg (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.6 (2026-10-08), not yet signed by a person: added, method: the precision orbit's force selection and sum and its sun-synchronous start, until now adcs-pop accel.rs (Forces::sils, World::accel's sum, sso_initial, coe2rv) and adcs-sim run.rs (Cr = 1 + reflectivity); the developer's revision S7.6 (2026-10-08), not yet signed by a person: method pseudocode: the precision orbit's force set, its sum and its sun-synchronous start as a method of env, generated into adcs-pop; the in-loop RK4 and Hermite interpolation stay code"
+    ],
+    "value": "",
+    "cause": [
+     "env_force_model"
+    ]
+   },
+   {
+    "id": "env_gas_surface",
+    "group": "env",
+    "label": "Gas-surface interaction of a panel (free-molecular flow)",
+    "health": "blocked",
+    "why": [
+     "blocked: needs model (no input names it), s (no input names it), delta (no input names it), g (no input names it), talt (no input names it), n_o (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.6 (2026-10-08), not yet signed by a person: added, method: the drag panel models' gas-surface interaction, until now adcs-pop drag/gsi.rs; the developer's revision S7.6 (2026-10-08), not yet signed by a person: method pseudocode: the gas-surface interaction as a method of env, generated into adcs-pop; the platform's erf (trinetra-toolbox/4)"
+    ],
+    "value": "",
+    "cause": [
+     "env_gas_surface"
     ]
    },
    {
@@ -17575,6 +18048,34 @@
     ]
    },
    {
+    "id": "env_orbit_fast",
+    "group": "env",
+    "label": "Orbit forces (the fast orbit)",
+    "health": "blocked",
+    "why": [
+     "blocked: needs jd0_utc (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.6 (2026-10-08), not yet signed by a person: added, method: the fast orbit's forces and node context, until now adcs-sim-core orbit.rs (accel, ctx and its constants), which had no node (docs/S7_INVENTORY.md \u00a71.3); the developer's revision S7.6 (2026-10-08), not yet signed by a person: method pseudocode: the fast orbit's forces and node context as a method of env, generated into the engine; its RK4 and Hermite interpolation stay code and call it"
+    ],
+    "value": "",
+    "cause": [
+     "env_orbit_fast"
+    ]
+   },
+   {
+    "id": "env_orbit_start",
+    "group": "env",
+    "label": "Orbit start from the LTAN (the fast orbit)",
+    "health": "blocked",
+    "why": [
+     "blocked: needs sun (no input names it), ltan_h (no input names it), alt_km (no input names it), inc_deg (no input names it), u0_deg (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.6 (2026-10-08), not yet signed by a person: added, method: the fast orbit's start, until now adcs-sim run.rs (Truth::new), which had no node (docs/S7_INVENTORY.md \u00a71.3, RAAN from LTAN); the developer's revision S7.6 (2026-10-08), not yet signed by a person: method pseudocode: the fast orbit's start as a method of env, generated into the engine's set-up with the platform's maths it flew with"
+    ],
+    "value": "",
+    "cause": [
+     "env_orbit_start"
+    ]
+   },
+   {
     "id": "env_relativity",
     "group": "env",
     "label": "Relativistic accelerations (IERS 2010)",
@@ -17614,6 +18115,34 @@
     "value": "",
     "cause": [
      "env_space_weather"
+    ]
+   },
+   {
+    "id": "env_srp_force",
+    "group": "env",
+    "label": "Solar radiation pressure force (cannonball and box-wing)",
+    "health": "blocked",
+    "why": [
+     "blocked: needs r (no input names it), sun (no input names it), p_srp (no input names it), model (no input names it), ecl (no input names it), cr (no input names it), aref (no input names it), mass (no input names it), r_bi (no input names it), f (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.6 (2026-10-08), not yet signed by a person: added, method: the precision orbit's solar radiation pressure, the shadow and the spacecraft's facets, until now adcs-pop srp.rs; the developer's revision S7.6 (2026-10-08), not yet signed by a person: method pseudocode: the solar radiation pressure, the shadow and the spacecraft's facets as a method of env, generated into adcs-pop"
+    ],
+    "value": "",
+    "cause": [
+     "env_srp_force"
+    ]
+   },
+   {
+    "id": "env_third_body",
+    "group": "env",
+    "label": "Third-body accelerations (the Sun and the Moon)",
+    "health": "blocked",
+    "why": [
+     "blocked: needs ecc (no input names it), inc (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.6 (2026-10-08), not yet signed by a person: added, method: the precision orbit's third-body force, until now adcs-pop thirdbody.rs and thirdbody/secular.rs; the developer's revision S7.6 (2026-10-08), not yet signed by a person: method pseudocode: the third body's acceleration and secular rates as a method of env, generated into adcs-pop; the secular histories' RK4 stays code"
+    ],
+    "value": "",
+    "cause": [
+     "env_third_body"
     ]
    },
    {
@@ -23476,67 +24005,85 @@
     "id": "l3_fmr_row_08",
     "group": "act",
     "label": "Pump efficiency over its range",
-    "health": "unproven",
+    "health": "blocked",
     "why": [
-     "unproven: converted from 1.0.0, not yet signed by a person"
+     "blocked: needs pump (no input names it), h (no input names it), k_hv (no input names it), l (no input names it), s (no input names it), ac (no input names it), eta (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.7 (2026-10-08), not yet signed by a person: method pseudocode; behaviour built-in -> method: the ring pump's efficiency and power as a method of act, generated into the engine"
     ],
     "value": "",
-    "cause": []
+    "cause": [
+     "l3_fmr_row_08"
+    ]
    },
    {
     "id": "l3_fmr_row_09",
     "group": "act",
     "label": "Flow response time",
-    "health": "unproven",
+    "health": "blocked",
     "why": [
-     "unproven: converted from 1.0.0, not yet signed by a person"
+     "blocked: needs hf (no input names it), hm (no input names it), tau (no input names it), dt (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.7 (2026-10-08), not yet signed by a person: method pseudocode; behaviour built-in -> method: the ring's flow response as a method of act, generated into the engine"
     ],
     "value": "",
-    "cause": []
+    "cause": [
+     "l3_fmr_row_09"
+    ]
    },
    {
     "id": "l3_fmr_row_10",
     "group": "act",
     "label": "Flow noise",
-    "health": "unproven",
+    "health": "blocked",
     "why": [
-     "unproven: converted from 1.0.0, not yet signed by a person"
+     "blocked: needs h (no input names it), sigma_h (no input names it), g (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.7 (2026-10-08), not yet signed by a person: method pseudocode; behaviour built-in -> method: the ring's flow noise as a method of act, from the run's noise stream, generated into the engine"
     ],
     "value": "",
-    "cause": []
+    "cause": [
+     "l3_fmr_row_10"
+    ]
    },
    {
     "id": "l3_fmr_row_11",
     "group": "act",
     "label": "Ring field power",
-    "health": "unproven",
+    "health": "blocked",
     "why": [
-     "unproven: converted from 1.0.0, not yet signed by a person"
+     "blocked: needs on (no input names it), power (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.7 (2026-10-08), not yet signed by a person: method pseudocode; behaviour built-in -> method: the ring's field power as a method of act, generated into the engine"
     ],
     "value": "",
-    "cause": []
+    "cause": [
+     "l3_fmr_row_11"
+    ]
    },
    {
     "id": "l3_fmr_row_12",
     "group": "act",
     "label": "Ring flow limits",
-    "health": "unproven",
+    "health": "blocked",
     "why": [
-     "unproven: converted from 1.0.0, not yet signed by a person"
+     "blocked: needs pump (no input names it), h (no input names it), tsd (no input names it), fscale (no input names it), h_max (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.7 (2026-10-08), not yet signed by a person: method pseudocode; behaviour built-in -> method: the ring's flow limits and constants as a method of act, generated into the engine"
     ],
     "value": "",
-    "cause": []
+    "cause": [
+     "l3_fmr_row_12"
+    ]
    },
    {
     "id": "l3_fmr_row_13",
     "group": "act",
     "label": "Ring misalignment",
-    "health": "unproven",
+    "health": "blocked",
     "why": [
-     "unproven: converted from 1.0.0, not yet signed by a person"
+     "blocked: needs a (no input names it), sigma (no input names it), disp (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.7 (2026-10-08), not yet signed by a person: method pseudocode; behaviour built-in -> method: the ring's misalignment as a method of act, generated into the engine"
     ],
     "value": "",
-    "cause": []
+    "cause": [
+     "l3_fmr_row_13"
+    ]
    },
    {
     "id": "l3_fmr_row_14",
@@ -24839,57 +25386,71 @@
     "id": "l3_mtq_row_02",
     "group": "act",
     "label": "Coil time constant (L/R lag)",
-    "health": "unproven",
+    "health": "blocked",
     "why": [
-     "unproven: converted from 1.0.0, not yet signed by a person"
+     "blocked: needs x0 (no input names it), u (no input names it), tau (no input names it), dt (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.7 (2026-10-08), not yet signed by a person: method pseudocode; behaviour built-in -> method: the coil's L/R lag as a method of act, generated into the engine"
     ],
     "value": "",
-    "cause": []
+    "cause": [
+     "l3_mtq_row_02"
+    ]
    },
    {
     "id": "l3_mtq_row_03",
     "group": "act",
     "label": "Dipole saturation per coil",
-    "health": "unproven",
+    "health": "blocked",
     "why": [
-     "unproven: converted from 1.0.0, not yet signed by a person"
+     "blocked: needs p_j (no input names it), m_cmd (no input names it), m_max (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.7 (2026-10-08), not yet signed by a person: method pseudocode; behaviour built-in -> method: the coil's command and its saturation as a method of act, generated into the engine"
     ],
     "value": "",
-    "cause": []
+    "cause": [
+     "l3_mtq_row_03"
+    ]
    },
    {
     "id": "l3_mtq_row_04",
     "group": "act",
     "label": "Coil power at a dipole",
-    "health": "unproven",
+    "health": "blocked",
     "why": [
-     "unproven: converted from 1.0.0, not yet signed by a person"
+     "blocked: needs a (no input names it), m_max (no input names it), p_max (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.7 (2026-10-08), not yet signed by a person: method pseudocode; behaviour built-in -> method: the coil's power as a method of act, generated into the engine"
     ],
     "value": "",
-    "cause": []
+    "cause": [
+     "l3_mtq_row_04"
+    ]
    },
    {
     "id": "l3_mtq_row_05",
     "group": "act",
     "label": "Coil axes and their pseudo-inverse",
-    "health": "unproven",
+    "health": "blocked",
     "why": [
-     "unproven: converted from 1.0.0, not yet signed by a person"
+     "blocked: needs axes (no input names it), n (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.7 (2026-10-08), not yet signed by a person: method pseudocode; behaviour built-in -> method: the coils' allocation as a method of act, generated into the engine"
     ],
     "value": "",
-    "cause": []
+    "cause": [
+     "l3_mtq_row_05"
+    ]
    },
    {
     "id": "l3_mtq_row_06",
     "group": "act",
     "label": "Torque from dipole and field",
-    "health": "open",
+    "health": "blocked",
     "why": [
-     "open: an open block: not decided yet",
-     "unproven: converted from 1.0.0, not yet signed by a person"
+     "blocked: needs m (no input names it), b (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.7 (2026-10-08), not yet signed by a person: method pseudocode; behaviour open -> method: the torque of a dipole in the field as a method of act (the engine computed it in run.rs with no method), generated into the engine"
     ],
     "value": "",
-    "cause": []
+    "cause": [
+     "l3_mtq_row_06"
+    ]
    },
    {
     "id": "l3_mtq_row_07",
@@ -24955,23 +25516,29 @@
     "id": "l3_mtq_row_12",
     "group": "act",
     "label": "Coil scale-factor dispersion",
-    "health": "unproven",
+    "health": "blocked",
     "why": [
-     "unproven: converted from 1.0.0, not yet signed by a person"
+     "blocked: needs n (no input names it), axes (no input names it), scale_sigma (no input names it), misalign (no input names it), disp (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.7 (2026-10-08), not yet signed by a person: method pseudocode; behaviour built-in -> method: the coils' dispersion as a method of act, from the run's dispersion stream, generated into the engine"
     ],
     "value": "",
-    "cause": []
+    "cause": [
+     "l3_mtq_row_12"
+    ]
    },
    {
     "id": "l3_mtq_row_13",
     "group": "act",
     "label": "A failed coil and its reallocation",
-    "health": "unproven",
+    "health": "blocked",
     "why": [
-     "unproven: converted from 1.0.0, not yet signed by a person"
+     "blocked: needs s (no input names it), d (no input names it), m_cmd (no input names it), dt (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.7 (2026-10-08), not yet signed by a person: method pseudocode; behaviour built-in -> method: the coil set with a failed coil as a method of act; the engine's step calls it, generated into the engine"
     ],
     "value": "",
-    "cause": []
+    "cause": [
+     "l3_mtq_row_13"
+    ]
    },
    {
     "id": "l3_oils",
@@ -25662,45 +26229,57 @@
     "id": "l3_rcs_row_01",
     "group": "act",
     "label": "Thruster torque directions",
-    "health": "unproven",
+    "health": "blocked",
     "why": [
-     "unproven: converted from 1.0.0, not yet signed by a person"
+     "blocked: needs thrust (no input names it), arm (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.7 (2026-10-08), not yet signed by a person: method pseudocode; behaviour built-in -> method: the thrusters' torque directions as a method of act, generated into the engine"
     ],
     "value": "",
-    "cause": []
+    "cause": [
+     "l3_rcs_row_01"
+    ]
    },
    {
     "id": "l3_rcs_row_02",
     "group": "act",
     "label": "Thrust level and dispersion",
-    "health": "unproven",
+    "health": "blocked",
     "why": [
-     "unproven: converted from 1.0.0, not yet signed by a person"
+     "blocked: needs sigma (no input names it), disp (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.7 (2026-10-08), not yet signed by a person: method pseudocode; behaviour built-in -> method: the thrust dispersion as a method of act, generated into the engine"
     ],
     "value": "",
-    "cause": []
+    "cause": [
+     "l3_rcs_row_02"
+    ]
    },
    {
     "id": "l3_rcs_row_03",
     "group": "act",
     "label": "Specific impulse and its range",
-    "health": "unproven",
+    "health": "blocked",
     "why": [
-     "unproven: converted from 1.0.0, not yet signed by a person"
+     "blocked: needs fs (no input names it), thrust (no input names it), isp (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.7 (2026-10-08), not yet signed by a person: method pseudocode; behaviour built-in -> method: the specific impulse and the propellant flow as a method of act, generated into the engine"
     ],
     "value": "",
-    "cause": []
+    "cause": [
+     "l3_rcs_row_03"
+    ]
    },
    {
     "id": "l3_rcs_row_04",
     "group": "act",
     "label": "Minimum impulse bit",
-    "health": "unproven",
+    "health": "blocked",
     "why": [
-     "unproven: converted from 1.0.0, not yet signed by a person"
+     "blocked: needs duty (no input names it), t (no input names it), mib (no input names it), res (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.7 (2026-10-08), not yet signed by a person: method pseudocode; behaviour built-in -> method: the valve's minimum impulse bit as a method of act, generated into the engine"
     ],
     "value": "",
-    "cause": []
+    "cause": [
+     "l3_rcs_row_04"
+    ]
    },
    {
     "id": "l3_rcs_row_05",
@@ -25742,45 +26321,57 @@
     "id": "l3_rcs_row_08",
     "group": "act",
     "label": "Propellant remaining",
-    "health": "unproven",
+    "health": "blocked",
     "why": [
-     "unproven: converted from 1.0.0, not yet signed by a person"
+     "blocked: needs used (no input names it), mdot (no input names it), dt (no input names it), prop_kg (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.7 (2026-10-08), not yet signed by a person: method pseudocode; behaviour built-in -> method: the propellant remaining and the empty tank as a method of act, generated into the engine"
     ],
     "value": "",
-    "cause": []
+    "cause": [
+     "l3_rcs_row_08"
+    ]
    },
    {
     "id": "l3_rcs_row_09",
     "group": "act",
     "label": "Valve power",
-    "health": "unproven",
+    "health": "blocked",
     "why": [
-     "unproven: converted from 1.0.0, not yet signed by a person"
+     "blocked: needs on (no input names it), power (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.7 (2026-10-08), not yet signed by a person: method pseudocode; behaviour built-in -> method: the valve power as a method of act, generated into the engine"
     ],
     "value": "",
-    "cause": []
+    "cause": [
+     "l3_rcs_row_09"
+    ]
    },
    {
     "id": "l3_rcs_row_10",
     "group": "act",
     "label": "Thruster misalignment",
-    "health": "unproven",
+    "health": "blocked",
     "why": [
-     "unproven: converted from 1.0.0, not yet signed by a person"
+     "blocked: needs tau (no input names it), sigma (no input names it), disp (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.7 (2026-10-08), not yet signed by a person: method pseudocode; behaviour built-in -> method: the thrusters' misalignment as a method of act, generated into the engine"
     ],
     "value": "",
-    "cause": []
+    "cause": [
+     "l3_rcs_row_10"
+    ]
    },
    {
     "id": "l3_rcs_row_11",
     "group": "act",
     "label": "A failed thruster",
-    "health": "unproven",
+    "health": "blocked",
     "why": [
-     "unproven: converted from 1.0.0, not yet signed by a person"
+     "blocked: needs s (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.7 (2026-10-08), not yet signed by a person: method pseudocode; behaviour built-in -> method: the thrusters with a failed couple as a method of act; the engine's step calls it, generated into the engine"
     ],
     "value": "",
-    "cause": []
+    "cause": [
+     "l3_rcs_row_11"
+    ]
    },
    {
     "id": "l3_rw",
@@ -25969,78 +26560,99 @@
     "id": "l3_rw_row_01",
     "group": "act",
     "label": "Wheel motor torque-speed line",
-    "health": "unproven",
+    "health": "blocked",
     "why": [
-     "unproven: converted from 1.0.0, not yet signed by a person"
+     "blocked: needs tm (no input names it), om (no input names it), ts (no input names it), wn (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.7 (2026-10-08), not yet signed by a person: method pseudocode; behaviour built-in -> method: the wheel motor's torque-speed line and its constants as a method of act, generated into the engine"
     ],
     "value": "",
-    "cause": []
+    "cause": [
+     "l3_rw_row_01"
+    ]
    },
    {
     "id": "l3_rw_row_02",
     "group": "act",
     "label": "Wheel speed limit",
-    "health": "unproven",
+    "health": "blocked",
     "why": [
-     "unproven: converted from 1.0.0, not yet signed by a person"
+     "blocked: needs hd (no input names it), h (no input names it), h_max (no input names it), at_limit (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.7 (2026-10-08), not yet signed by a person: method pseudocode; behaviour built-in -> method: the wheel's speed and momentum limits as a method of act, generated into the engine"
     ],
     "value": "",
-    "cause": []
+    "cause": [
+     "l3_rw_row_02"
+    ]
    },
    {
     "id": "l3_rw_row_03",
     "group": "act",
     "label": "Wheel bearing friction (Coulomb, viscous, Stribeck)",
-    "health": "unproven",
+    "health": "blocked",
     "why": [
-     "unproven: converted from 1.0.0, not yet signed by a person"
+     "blocked: needs h (no input names it), jrot (no input names it), viscous (no input names it), coulomb (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.7 (2026-10-08), not yet signed by a person: method pseudocode; behaviour built-in -> method: the wheel's bearing friction as a method of act, generated into the engine"
     ],
     "value": "",
-    "cause": []
+    "cause": [
+     "l3_rw_row_03"
+    ]
    },
    {
     "id": "l3_rw_row_04",
     "group": "act",
     "label": "Wheel friction compensation",
-    "health": "unproven",
+    "health": "blocked",
     "why": [
-     "unproven: converted from 1.0.0, not yet signed by a person"
+     "blocked: needs tm (no input names it), fr (no input names it), st (no input names it), nz (no input names it), k_c (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.7 (2026-10-08), not yet signed by a person: method pseudocode; behaviour built-in -> method: the wheel's friction compensation as a method of act, generated into the engine"
     ],
     "value": "",
-    "cause": []
+    "cause": [
+     "l3_rw_row_04"
+    ]
    },
    {
     "id": "l3_rw_row_05",
     "group": "act",
     "label": "Wheel torque noise",
-    "health": "unproven",
+    "health": "blocked",
     "why": [
-     "unproven: converted from 1.0.0, not yet signed by a person"
+     "blocked: needs share (no input names it), torque_max (no input names it), g (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.7 (2026-10-08), not yet signed by a person: method pseudocode; behaviour built-in -> method: the momentum devices' torque noise as a method of act, from the run's noise stream, generated into the engine"
     ],
     "value": "",
-    "cause": []
+    "cause": [
+     "l3_rw_row_05"
+    ]
    },
    {
     "id": "l3_rw_row_06",
     "group": "act",
     "label": "Wheel misalignment",
-    "health": "unproven",
+    "health": "blocked",
     "why": [
-     "unproven: converted from 1.0.0, not yet signed by a person"
+     "blocked: needs a (no input names it), sigma (no input names it), disp (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.7 (2026-10-08), not yet signed by a person: method pseudocode; behaviour built-in -> method: the momentum devices' misalignment as a method of act, generated into the engine"
     ],
     "value": "",
-    "cause": []
+    "cause": [
+     "l3_rw_row_06"
+    ]
    },
    {
     "id": "l3_rw_row_07",
     "group": "act",
     "label": "Wheel steady power",
-    "health": "unproven",
+    "health": "blocked",
     "why": [
-     "unproven: converted from 1.0.0, not yet signed by a person"
+     "blocked: needs p_steady (no input names it), tm (no input names it), om (no input names it), eta (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.7 (2026-10-08), not yet signed by a person: method pseudocode; behaviour built-in -> method: the wheel's power as a method of act, generated into the engine"
     ],
     "value": "",
-    "cause": []
+    "cause": [
+     "l3_rw_row_07"
+    ]
    },
    {
     "id": "l3_rw_row_08",

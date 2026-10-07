@@ -1,0 +1,66 @@
+## The magnetorquer coil set as the engine flies it, transcribed from adcs-sim-core actuators.rs (MtqDesc, Mtq, new,
+## apply): each coil's command from the allocation, saturated, then lagging with the coil's time constant; a failed
+## coil is open (its current stops at once, and the board does not reallocate: the other coils keep their rows); the
+## body dipole the coils make, averaged over the step (the torque) and at its end (what the magnetometer sees next),
+## with each coil's dispersed axis and scale; the power linear in the mean drive. The dispersion, the allocation, the
+## saturation, the lag and the power are the rows' own methods (l3_mtq_row_12, 05, 03, 02, 04).
+## The developer's transcription (S7.7), unsigned.
+module coilset
+
+## The most coils a product carries.
+const ACT_NS = 8
+
+## The coils as the part states them: fitted or not, how many, their nominal axes (body), the largest dipole [A m^2],
+## the power there [W], the scale factor's and the axes' dispersion sigmas, the L/R time constant [s].
+record CoilDesc
+    fitted: bool
+    n: int
+    axes: real[1][3][ACT_NS]
+    m_max: real[1]
+    p_max: real[1]
+    scale_sigma: real[1]
+    misalign: real[1]
+    tau: real[1]
+end
+
+## A coil set in flight: its description, each coil's dispersed axis and scale, whether it has failed, its row of the
+## allocation, its dipole now [A m^2] and the command it was last given.
+record CoilSet
+    a: real[1][3][ACT_NS]
+    scale: real[1][ACT_NS]
+    dead: bool[ACT_NS]
+    pinv: real[1][3][ACT_NS]
+    m: real[1][ACT_NS]
+    mc: real[1][ACT_NS]
+end
+
+## The coil set of a description, its dispersion drawn from disp.
+fn coilset_new(d: CoilDesc, disp: inout stream) -> s: CoilSet
+    s = CoilSet()
+    let sc, a = coil_dispersion(d.n, d.axes, d.scale_sigma, d.misalign, disp)
+    s.scale = sc
+    s.a = a
+    s.pinv = coil_allocation(d.axes, d.n)
+end
+
+## The body dipole command [A m^2] held for dt: (the true body dipole averaged over the step, the true body dipole at
+## its end, the power [W]).
+fn coilset_apply(s: inout CoilSet, d: CoilDesc, m_cmd: real[1][3] in -1 .. 1, dt: real[1] in 0.01 .. 1) \
+        -> (m: real[1][3], me: real[1][3], p: real[1])
+    m = [0.0, 0.0, 0.0]
+    me = [0.0, 0.0, 0.0]
+    p = 0.0
+    for j in 0 .. d.n
+        let mc = coil_command(s.pinv[j], m_cmd, d.m_max)
+        if s.dead[j]
+            mc = 0.0
+            s.m[j] = 0.0
+        end
+        let e, av = coil_lag(s.m[j], mc, d.tau, dt)
+        s.m[j] = e
+        s.mc[j] = mc
+        p = p + coil_power(av, d.m_max, d.p_max)
+        m = m + s.a[j]*(av*s.scale[j])
+        me = me + s.a[j]*(e*s.scale[j])
+    end
+end

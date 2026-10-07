@@ -59,6 +59,9 @@ function y = call(name, x)
         case 'selftest::platform'
             [o1, o2, o3, o4] = asils.pcselftest.selftest.platform(x(1), x(2), x(3), x(4));
             y = [double(o1); double(o2); double(o3); double(o4)];
+        case 'selftest::errorfn'
+            [o1, o2] = asils.pcselftest.selftest.errorfn(x(1));
+            y = [double(o1); double(o2)];
         otherwise
             error('pcode:call', 'no function %s', name);
     end

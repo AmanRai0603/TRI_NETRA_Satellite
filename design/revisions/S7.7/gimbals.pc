@@ -1,0 +1,15 @@
+## A control moment gyro's gimbals, transcribed from adcs-sim-core actuators.rs (Mex::apply, the gimbals): each gimbal
+## turns at the commanded rate within its largest rate (the part's gimbal_rate_max_rad_s), a stuck gimbal not at all;
+## its power linear in the rate, the part's gimbal_power_W at the largest.
+## The developer's transcription (S7.7), unsigned.
+module gimbals
+
+## The gimbal's rate [rad/s] for the command, within +-rate_max.
+fn gimbal_rate(cmd: real[1] in -2 .. 2, rate_max: real[1] in 0.1 .. 2) -> gd: real[1]
+    gd = act_clamp(cmd, -rate_max, rate_max)
+end
+
+## The gimbal's power [W] at rate gd: power |gd|/rate_max.
+fn gimbal_power(gd: real[1] in -2 .. 2, power: real[1] in 0 .. 5, rate_max: real[1] in 0.1 .. 2) -> p: real[1]
+    p = power*abs(gd)/rate_max
+end

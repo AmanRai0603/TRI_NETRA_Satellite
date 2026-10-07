@@ -4,10 +4,15 @@
 use crate::gen::rt;
 use crate::gen::de440::{DeConstants, EphemOut};
 use crate::gen::densitymodel::{AtmosOut};
+use crate::gen::drag::{CannonballOut, PanelOut};
 use crate::gen::dtm2020::{Plg, Hloc, DtmRaw, DtmDensity};
+use crate::gen::erp::{ErpComp};
+use crate::gen::forcemodel::{ForceSet};
+use crate::gen::gsi::{Gsi};
 use crate::gen::jb2008::{JbOut, JbCoreInputs};
 use crate::gen::relativity::{RelParts};
 use crate::gen::solidtides::{Dcs5};
+use crate::gen::srp::{ScFacets};
 use crate::gen::swindex::{SwManual};
 use crate::gen::timescales::{Times};
 
@@ -69,9 +74,9 @@ pub fn xy06(t: f64, fa: [f64; 14]) -> (f64, f64) {
     let mut y: f64 = 0.0;
     let mut pt: [f64; 6] = [0.0; 6];
     {
-        let __end43: i64 = 6;
+        let __end65: i64 = 6;
         let mut j: i64 = 0;
-        while j < __end43 {
+        while j < __end65 {
             if (j == 2) {
                 pt[(j) as usize] = rt::ipow(t, 2);
             } else {
@@ -83,14 +88,14 @@ pub fn xy06(t: f64, fa: [f64; 14]) -> (f64, f64) {
     let mut sx: f64 = 0.0;
     let mut sy: f64 = 0.0;
     {
-        let __end44: i64 = 3082;
+        let __end66: i64 = 3082;
         let mut k: i64 = 0;
-        while k < __end44 {
+        while k < __end66 {
             let mut arg: f64 = 0.0;
             {
-                let __end45: i64 = 14;
+                let __end67: i64 = 14;
                 let mut i: i64 = 0;
-                while i < __end45 {
+                while i < __end67 {
                     let mut cm: f64 = crate::gen::xys06::DATA_XYS06_XY[(k) as usize][((2 + i)) as usize];
                     if (cm != 0.0) {
                         arg = (arg + (cm * fa[(i) as usize]));
@@ -110,9 +115,9 @@ pub fn xy06(t: f64, fa: [f64; 14]) -> (f64, f64) {
     let mut px: f64 = 0.0;
     let mut py: f64 = 0.0;
     {
-        let __end46: i64 = 6;
+        let __end68: i64 = 6;
         let mut j: i64 = 0;
-        while j < __end46 {
+        while j < __end68 {
             px = (px + (crate::gen::xys06::DATA_XYS06_XYP[0][(j) as usize] * pt[(j) as usize]));
             py = (py + (crate::gen::xys06::DATA_XYS06_XYP[1][(j) as usize] * pt[(j) as usize]));
             j += 1;
@@ -135,30 +140,30 @@ pub fn s06(t: f64, fa: [f64; 14], x: f64, y: f64) -> f64 {
     let mut fa8: [f64; 8] = [fa[0], fa[1], fa[2], fa[3], fa[4], fa[6], fa[7], fa[13]];
     let mut w: [f64; 6] = [0.0; 6];
     {
-        let __end47: i64 = 6;
+        let __end69: i64 = 6;
         let mut j: i64 = 0;
-        while j < __end47 {
+        while j < __end69 {
             w[(j) as usize] = crate::gen::xys06::DATA_XYS06_SPOLY[(j) as usize];
             j += 1;
         }
     }
     {
-        let __end48: i64 = 5;
+        let __end70: i64 = 5;
         let mut k: i64 = 0;
-        while k < __end48 {
+        while k < __end70 {
             let mut acc: f64 = 0.0;
             let mut any: bool = false;
             {
-                let __end49: i64 = 66;
+                let __end71: i64 = 66;
                 let mut r: i64 = 0;
-                while r < __end49 {
+                while r < __end71 {
                     if (crate::gen::xys06::DATA_XYS06_S[(r) as usize][0] == (k as f64)) {
                         any = true;
                         let mut arg: f64 = 0.0;
                         {
-                            let __end50: i64 = 8;
+                            let __end72: i64 = 8;
                             let mut i: i64 = 0;
-                            while i < __end50 {
+                            while i < __end72 {
                                 let mut cm: f64 = crate::gen::xys06::DATA_XYS06_S[(r) as usize][((1 + i)) as usize];
                                 if (cm != 0.0) {
                                     arg = (arg + (cm * fa8[(i) as usize]));

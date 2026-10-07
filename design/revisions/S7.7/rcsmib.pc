@@ -1,0 +1,14 @@
+## A thruster valve's minimum impulse bit and timing resolution, transcribed from adcs-sim-core actuators.rs
+## (Rcs::apply): the on-time of a duty over the control period, none shorter than the minimum impulse bit's on-time (the
+## part's mib_s), rounded to the valve's resolution (valve_res_s).
+## The developer's transcription (S7.7), unsigned.
+module rcsmib
+
+## The valve's on-time [s] in a period t [s] for the duty (0 to 1): clamped, under mib none, rounded to res.
+fn valve_on_time(duty: real[1] in -0.5 .. 1.5, t: real[s] in 0.01 .. 1, mib: real[s] in 0 .. 0.05, res: real[s] in 0.0001 .. 0.01) -> on: real[s]
+    let x = act_clamp(duty, 0.0, 1.0)*t
+    if x < mib
+        x = 0.0
+    end
+    on = round(x/res)*res
+end

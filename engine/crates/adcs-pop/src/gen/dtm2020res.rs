@@ -4,11 +4,16 @@
 use crate::gen::rt;
 use crate::gen::de440::{DeConstants, EphemOut};
 use crate::gen::densitymodel::{AtmosOut};
+use crate::gen::drag::{CannonballOut, PanelOut};
 use crate::gen::dtm2020::{Plg, Hloc, DtmRaw, DtmDensity};
+use crate::gen::erp::{ErpComp};
+use crate::gen::forcemodel::{ForceSet};
+use crate::gen::gsi::{Gsi};
 use crate::gen::iau2006::{TimeScales, CioParts};
 use crate::gen::jb2008::{JbOut, JbCoreInputs};
 use crate::gen::relativity::{RelParts};
 use crate::gen::solidtides::{Dcs5};
+use crate::gen::srp::{ScFacets};
 use crate::gen::swindex::{SwManual};
 use crate::gen::timescales::{Times};
 
@@ -23,9 +28,9 @@ pub fn bint_oe(ap: f64) -> f64 {
     let mut done: bool = false;
     kp = 0.0;
     {
-        let __end16: i64 = n;
+        let __end24: i64 = n;
         let mut i: i64 = 0;
-        while i < __end16 {
+        while i < __end24 {
             if ((!done) && (crate::gen::kpap::DATA_DTM_AAP[(i) as usize] == ap)) {
                 kp = crate::gen::kpap::DATA_DTM_KP[(i) as usize];
                 done = true;
@@ -34,9 +39,9 @@ pub fn bint_oe(ap: f64) -> f64 {
         }
     }
     {
-        let __end17: i64 = n;
+        let __end25: i64 = n;
         let mut i: i64 = 0;
-        while i < __end17 {
+        while i < __end25 {
             if ((!done) && (crate::gen::kpap::DATA_DTM_AAP[(i) as usize] > ap)) {
                 if (i == 0) {
                     kp = (crate::gen::kpap::DATA_DTM_KP[0] + (((crate::gen::kpap::DATA_DTM_KP[1] - crate::gen::kpap::DATA_DTM_KP[0]) / (crate::gen::kpap::DATA_DTM_AAP[1] - crate::gen::kpap::DATA_DTM_AAP[0])) * (ap - crate::gen::kpap::DATA_DTM_AAP[0])));
@@ -134,9 +139,9 @@ pub fn gldtm_hp(f: f64, fbar: f64, akp: [f64; 8], day: f64, a: [f64; 97], plg: P
     let mut m: [f64; 8] = akp;
     let mut sat: [i64; 6] = [1, 4, 5, 6, 7, 8];
     {
-        let __end18: i64 = 6;
+        let __end26: i64 = 6;
         let mut q: i64 = 0;
-        while q < __end18 {
+        while q < __end26 {
             let mut k: i64 = sat[(q) as usize];
             if ((akp[((k - 1)) as usize] >= 9.0) && (akp[2] > 7.5)) {
                 m[((k - 1)) as usize] = (9.0 + ((akp[((k - 1)) as usize] - 9.0) / 5.0));
@@ -279,9 +284,9 @@ pub fn dtm5_gdel(f: f64, fbar: f64, akp: [f64; 8], day: f64, plg: Plg, hloc: Hlo
     gd_tp = crate::gen::dtm2020res::gldtm_hp(f, fbar, akp, day, crate::gen::dtm2020::dtm_column(crate::gen::dtm2020::DTMSET_RESEARCH, 8), plg, hloc, xlon, 1.0);
     gd = [0.0; 6];
     {
-        let __end19: i64 = 6;
+        let __end27: i64 = 6;
         let mut i: i64 = 0;
-        while i < __end19 {
+        while i < __end27 {
             gd[(i) as usize] = crate::gen::dtm2020res::gldtm_hp(f, fbar, akp, day, crate::gen::dtm2020::dtm_column(crate::gen::dtm2020::DTMSET_RESEARCH, (i + 1)), plg, hloc, xlon, ff0[(i) as usize]);
             i += 1;
         }

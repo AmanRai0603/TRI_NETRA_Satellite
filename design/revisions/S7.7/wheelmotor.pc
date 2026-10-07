@@ -1,0 +1,23 @@
+## A reaction wheel's motor torque-speed line, transcribed from adcs-sim-core actuators.rs (wheel_motor) and adcs-sim
+## product.rs (fit_actuator_, wheels): a brushless DC motor behind a drive of bus voltage V; its torque k_t (+-V -
+## k_e om)/R with k_e = k_t in SI, so between -T_s (1 + om/w_nl) and T_s (1 - om/w_nl), the stall torque T_s = k_t V/R
+## and the no-load speed w_nl = V/k_t (the back-EMF line; Sidi 1997, Spacecraft Dynamics and Control, section 7.3).
+## The developer's transcription (S7.7), unsigned.
+module wheelmotor
+
+## The motor's stall torque [N m] and no-load speed [rad/s] from its torque constant k_t [N m/A], winding resistance r
+## [ohm] and the bus voltage v [V].
+fn motor_constants(kt: real[1] in 0.001 .. 0.1, r: real[1] in 0.1 .. 50, v: real[1] in 3 .. 50) -> (t_stall: real[1], w_nl: real[1])
+    t_stall = kt*v/r
+    w_nl = v/kt
+end
+
+## The torque [N m] the motor gives for the driver's demand tm at speed om [rad/s]: the demand inside the torque-speed
+## line of stall torque ts and no-load speed wn.
+fn motor_line(tm: real[1] in -0.01 .. 0.01, om: real[1] in -1000 .. 1000, ts: real[1] in 0.001 .. 0.01, wn: real[1] in 500 .. 2000) -> t: real[1]
+    let lo0 = -ts*(1.0 + om/wn)
+    let hi0 = ts*(1.0 - om/wn)
+    let lo = if lo0 < 0.0 then lo0 else 0.0
+    let hi = if hi0 > 0.0 then hi0 else 0.0
+    t = act_clamp(tm, lo, hi)
+end

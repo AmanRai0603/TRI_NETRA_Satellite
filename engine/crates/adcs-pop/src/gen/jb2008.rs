@@ -4,10 +4,15 @@
 use crate::gen::rt;
 use crate::gen::de440::{DeConstants, EphemOut};
 use crate::gen::densitymodel::{AtmosOut};
+use crate::gen::drag::{CannonballOut, PanelOut};
 use crate::gen::dtm2020::{Plg, Hloc, DtmRaw, DtmDensity};
+use crate::gen::erp::{ErpComp};
+use crate::gen::forcemodel::{ForceSet};
+use crate::gen::gsi::{Gsi};
 use crate::gen::iau2006::{TimeScales, CioParts};
 use crate::gen::relativity::{RelParts};
 use crate::gen::solidtides::{Dcs5};
+use crate::gen::srp::{ScFacets};
 use crate::gen::swindex::{SwManual};
 use crate::gen::timescales::{Times};
 
@@ -106,8 +111,8 @@ pub fn sol_interp(j: i64, x: f64) -> f64 {
     let mut lo: i64 = 0;
     let mut hi: i64 = n;
     {
-        let __n52: i64 = 64;
-        let mut __k51: i64 = 0;
+        let __n74: i64 = 64;
+        let mut __k73: i64 = 0;
         loop {
             let mut mid: i64 = ((lo + hi) / 2);
             if (crate::gen::jb2008::sol_day(mid) <= x) {
@@ -115,9 +120,9 @@ pub fn sol_interp(j: i64, x: f64) -> f64 {
             } else {
                 hi = mid;
             }
-            __k51 += 1;
+            __k73 += 1;
             if (lo >= hi) { break; }
-            if __k51 >= __n52 {
+            if __k73 >= __n74 {
                 break;
             }
         }
@@ -146,8 +151,8 @@ pub fn dtc_interp(x: f64) -> f64 {
     let mut lo: i64 = 0;
     let mut hi: i64 = n;
     {
-        let __n54: i64 = 64;
-        let mut __k53: i64 = 0;
+        let __n76: i64 = 64;
+        let mut __k75: i64 = 0;
         loop {
             let mut mid: i64 = ((lo + hi) / 2);
             if (crate::gen::jb2008::dtc_hour(mid) <= x) {
@@ -155,9 +160,9 @@ pub fn dtc_interp(x: f64) -> f64 {
             } else {
                 hi = mid;
             }
-            __k53 += 1;
+            __k75 += 1;
             if (lo >= hi) { break; }
-            if __k53 >= __n54 {
+            if __k75 >= __n76 {
                 break;
             }
         }
@@ -186,9 +191,9 @@ pub fn xambar(z: f64) -> f64 {
     let mut dz: f64 = (z - 100.0);
     amb = c[6];
     {
-        let __end55: i64 = 7;
+        let __end77: i64 = 7;
         let mut i: i64 = 1;
-        while i < __end55 {
+        while i < __end77 {
             amb = ((dz * amb) + c[((6 - i)) as usize]);
             i += 1;
         }
@@ -373,9 +378,9 @@ pub fn finddays(year: f64, month: f64, day: f64, hr: f64, min_: f64, sec: f64) -
     }
     days = 0.0;
     {
-        let __end56: i64 = 12;
+        let __end78: i64 = 12;
         let mut k: i64 = 1;
-        while k < __end56 {
+        while k < __end78 {
             if ((k as f64) < month) {
                 days = (days + lmonth[((k - 1)) as usize]);
             }
@@ -432,18 +437,18 @@ pub fn jb_finish(aln_in: [f64; 6], z: f64, mjd: f64, sat: [f64; 3], f10b: f64, s
     }
     let mut dlr: f64 = (al10 * (dlrsl + dlrsa));
     {
-        let __end57: i64 = 6;
+        let __end79: i64 = 6;
         let mut i: i64 = 0;
-        while i < __end57 {
+        while i < __end79 {
             aln[(i) as usize] = (aln[(i) as usize] + dlr);
             i += 1;
         }
     }
     let mut sumnm: f64 = 0.0;
     {
-        let __end58: i64 = 6;
+        let __end80: i64 = 6;
         let mut i: i64 = 0;
-        while i < __end58 {
+        while i < __end80 {
             let mut an: f64 = f64::exp(aln[(i) as usize]);
             sumnm = (sumnm + (an * amw[(i) as usize]));
             i += 1;
@@ -548,17 +553,17 @@ pub fn jb2008_core(mjd: f64, sun: [f64; 2], sat: [f64; 3], f10: f64, f10b: f64, 
     let mut tloc2: f64 = 0.0;
     let mut gravl: f64 = 0.0;
     {
-        let __end59: i64 = (n as i64);
+        let __end81: i64 = (n as i64);
         let mut k: i64 = 0;
-        while k < __end59 {
+        while k < __end81 {
             z = zend;
             zend = (zr * z);
             let mut dz: f64 = (0.25 * (zend - z));
             let mut sum1: f64 = (wt[0] * ain);
             {
-                let __end60: i64 = 5;
+                let __end82: i64 = 5;
                 let mut j: i64 = 1;
-                while j < __end60 {
+                while j < __end82 {
                     z = (z + dz);
                     ambar2 = crate::gen::jb2008::xambar(z);
                     tloc2 = crate::gen::jb2008::xlocal(z, tcf);
@@ -596,17 +601,17 @@ pub fn jb2008_core(mjd: f64, sun: [f64; 2], sat: [f64; 3], f10: f64, f10b: f64, 
         ain = (gravl / tloc2);
         let mut tloc3: f64 = 0.0;
         {
-            let __end61: i64 = (n as i64);
+            let __end83: i64 = (n as i64);
             let mut k: i64 = 0;
-            while k < __end61 {
+            while k < __end83 {
                 z = zend;
                 zend = (zr * z);
                 let mut dz: f64 = (0.25 * (zend - z));
                 let mut sum1: f64 = (wt[0] * ain);
                 {
-                    let __end62: i64 = 5;
+                    let __end84: i64 = 5;
                     let mut j: i64 = 1;
-                    while j < __end62 {
+                    while j < __end84 {
                         z = (z + dz);
                         tloc3 = crate::gen::jb2008::xlocal(z, tcf);
                         gravl = crate::gen::jb2008::xgrav(z);
@@ -630,17 +635,17 @@ pub fn jb2008_core(mjd: f64, sun: [f64; 2], sat: [f64; 3], f10: f64, f10b: f64, 
         let mut sum3: f64 = 0.0;
         let mut tloc4: f64 = 0.0;
         {
-            let __end63: i64 = (n as i64);
+            let __end85: i64 = (n as i64);
             let mut k: i64 = 0;
-            while k < __end63 {
+            while k < __end85 {
                 z = zend;
                 zend = (zr * z);
                 let mut dz: f64 = (0.25 * (zend - z));
                 let mut sum1: f64 = (wt[0] * ain);
                 {
-                    let __end64: i64 = 5;
+                    let __end86: i64 = 5;
                     let mut j: i64 = 1;
-                    while j < __end64 {
+                    while j < __end86 {
                         z = (z + dz);
                         tloc4 = crate::gen::jb2008::xlocal(z, tcf);
                         gravl = crate::gen::jb2008::xgrav(z);
@@ -667,9 +672,9 @@ pub fn jb2008_core(mjd: f64, sun: [f64; 2], sat: [f64; 3], f10: f64, f10b: f64, 
             hsign = 1.0;
         }
         {
-            let __end65: i64 = 5;
+            let __end87: i64 = 5;
             let mut i: i64 = 0;
-            while i < __end65 {
+            while i < __end87 {
                 aln[(i) as usize] = ((aln[(i) as usize] - ((1.0 + alpha[(i) as usize]) * altr)) - (fact2 * amw[(i) as usize]));
                 i += 1;
             }

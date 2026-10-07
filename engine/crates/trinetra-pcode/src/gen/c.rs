@@ -17,7 +17,7 @@ const RESERVED: &[&str] = &[
     "int", "long", "register", "restrict", "return", "short", "signed", "sizeof", "static", "struct", "switch", "typedef", "union", "unsigned",
     "void", "volatile", "while", "_Bool", "_Complex", "_Imaginary", "bool", "true", "false", "NULL", "errno", "assert", "isnan", "isinf",
     "isfinite", "signbit", "fpclassify", "isnormal", "NAN", "INFINITY", "HUGE_VAL", "M_PI", "sqrt", "sin", "cos", "tan", "asin", "acos", "atan",
-    "atan2", "exp", "log", "log10", "log2", "pow", "floor", "ceil", "round", "trunc", "fmod", "fabs", "hypot", "llabs", "int8_t", "int16_t", "int32_t", "int64_t",
+    "atan2", "exp", "log", "log10", "log2", "erf", "pow", "floor", "ceil", "round", "trunc", "fmod", "fabs", "hypot", "llabs", "int8_t", "int16_t", "int32_t", "int64_t",
     "uint8_t", "uint16_t", "uint32_t", "uint64_t", "size_t", "st", "main",
 ];
 
@@ -618,7 +618,7 @@ impl<'a> Gen<'a> {
                     }
                 }
                 "sign" => format!("pc_sign({})", r(self, 0)),
-                "sin" | "cos" | "tan" | "asin" | "acos" | "atan" | "exp" | "log" | "log10" | "log2" => format!("{f}({})", r(self, 0)),
+                "sin" | "cos" | "tan" | "asin" | "acos" | "atan" | "exp" | "log" | "log10" | "log2" | "erf" => format!("{f}({})", r(self, 0)),
                 "atan2" | "fmod" | "pow" => {
                     let p = r(self, 0);
                     format!("{f}({p}, {})", r(self, 1))

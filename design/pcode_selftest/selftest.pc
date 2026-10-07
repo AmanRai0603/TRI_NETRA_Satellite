@@ -356,3 +356,10 @@ fn platform(a: real[m] in -1000 .. 1000, b: real[m] in -1000 .. 1000, x: real[1]
     l2 = log2(x)
     h = hypot(a, b)
 end
+
+## erf, the platform's error function (C erf, MATLAB erf; std Rust's from the C library), held as any transcendental:
+## within 1e-12 of the interpreter's (fdlibm's s_erf.c). trinetra-toolbox/4 (S7.6: the gas-surface interaction).
+fn errorfn(x: real[1] in -7 .. 7) -> (e: real[1], c: real[1])
+    e = erf(x)
+    c = 1.0 - erf(x/4.0)
+end

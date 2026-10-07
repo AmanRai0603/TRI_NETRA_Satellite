@@ -99,3 +99,12 @@ pub fn normal(s: &mut Stream) -> f64 {
     r * f64::cos(2.0 * core::f64::consts::PI * u2)
 }
 pub fn normal3(s: &mut Stream) -> [f64; 3] { let a = normal(s); let b = normal(s); let c = normal(s); [a, b, c] }
+extern "C" {
+    #[link_name = "erf"]
+    fn c_erf(x: f64) -> f64;
+}
+/// The error function of the platform's C maths library, the one C and MATLAB call (Rust's std has none).
+pub fn erf(x: f64) -> f64 {
+    // SAFETY: erf is a pure C99 <math.h> function of one double, in the system libm std already links.
+    unsafe { c_erf(x) }
+}

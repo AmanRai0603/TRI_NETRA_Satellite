@@ -11,12 +11,15 @@ Design: `tests/regression/design.tndb`.
 | blobs | every scenario's parameter blob (adcs-fswcfg/1) | 48 of 48 | 0 |
 | runs | every stored scenario run, flown again from the design: inputs and metrics | 48 of 48 | 0 |
 | campaigns | every run of the 8 stored campaigns, its dispersions drawn again: draws and metrics | 4516 of 4516 | 0 |
-| evaluate | every row and closure of results/evaluation.json (a node of the dissolved group `case` names its new group) | 1470 of 1500 | 30 |
+| evaluate | every row and closure of results/evaluation.json (a node of the dissolved group `case` names its new group) | 1408 of 1500 | 92 |
 | oils | soft OILS on QEMU (Cortex-M4F firmware), from the files and from the design: metrics and timing | 2 of 2 | 0 |
 | twin | the MATLAB twin flown from the data folder the design exports, against its stored run | 1 of 1 | 0 |
 
 **evaluate, what differs:**
 
+- ais_3u: act_cmg_model
+- ais_3u: act_vscmg_gimbal_limits
+- ais_3u: act_vscmg_model
 - ais_3u: dyn_flexible_mode
 - ais_3u: dyn_rigid_body
 - ais_3u: dyn_rotor_coupling
@@ -31,21 +34,28 @@ Design: `tests/regression/design.tndb`.
 - ais_3u: l3_dist_row_08
 - ais_3u: l3_dist_row_09
 - ais_3u: l3_dist_row_10
-- ais_3u: m2_7
-- ais_img_3u: dyn_flexible_mode
-- ais_img_3u: dyn_rigid_body
-- ais_img_3u: dyn_rotor_coupling
-- ais_img_3u: dyn_total_momentum
-- ais_img_3u: l3_dist_row_01
-- ais_img_3u: l3_dist_row_02
-- ais_img_3u: l3_dist_row_03
-- ais_img_3u: l3_dist_row_04
-- ais_img_3u: l3_dist_row_05
-- ais_img_3u: l3_dist_row_06
-- ais_img_3u: l3_dist_row_07
-- ais_img_3u: l3_dist_row_08
-- ais_img_3u: l3_dist_row_09
-- ais_img_3u: l3_dist_row_10
-- ais_img_3u: m2_7
+- ais_3u: l3_fmr_row_08
+- ais_3u: l3_fmr_row_09
+- ais_3u: l3_fmr_row_10
+- ais_3u: l3_fmr_row_11
+- ais_3u: l3_fmr_row_12
+- ais_3u: l3_fmr_row_13
+- ais_3u: l3_mtq_row_02
+- ais_3u: l3_mtq_row_03
+- ais_3u: l3_mtq_row_04
+- ais_3u: l3_mtq_row_05
+- ais_3u: l3_mtq_row_06
+- ais_3u: l3_mtq_row_12
+- ais_3u: l3_mtq_row_13
+- ais_3u: l3_rcs_row_01
+- ais_3u: l3_rcs_row_02
+- ais_3u: l3_rcs_row_03
+- ais_3u: l3_rcs_row_04
+- ais_3u: l3_rcs_row_08
+- ais_3u: l3_rcs_row_09
+- ais_3u: l3_rcs_row_10
+- ais_3u: l3_rcs_row_11
+- ais_3u: l3_rw_row_01
+- ais_3u: l3_rw_row_02
 
 The design loop and each case's campaigns flown end to end from the design: `results/END_TO_END.md`. The health map, range verdicts and tornadoes of the same design: `results/HEALTH.md`.

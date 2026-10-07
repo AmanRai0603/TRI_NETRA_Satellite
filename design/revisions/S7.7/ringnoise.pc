@@ -1,0 +1,11 @@
+## A fluid momentum ring's flow noise, transcribed from adcs-sim-core actuators.rs (Mex::apply): the momentum the driver
+## measures, the ring's own plus white noise of sigma the flow sensor's noise in momentum (k_hv times the part's
+## flow_sensor_noise_m_s), one normal draw from the run's momentum-device noise stream per ring and step.
+## The developer's transcription (S7.7), unsigned.
+module ringnoise
+
+## The measured momentum [N m s]: h plus sigma_h times a normal draw from g.
+fn measured_momentum(h: real[1] in -0.05 .. 0.05, sigma_h: real[1] in 0 .. 1e-4, g: inout stream) -> hm: real[1]
+    let z = normal(g)
+    hm = h + sigma_h*z
+end

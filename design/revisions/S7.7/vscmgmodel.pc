@@ -1,0 +1,12 @@
+## A variable-speed control moment gyro's rotor as the engine flies it, transcribed from adcs-sim-core actuators.rs
+## (Mex::apply, Vscmg): the rotor's speed is commanded too, so its momentum rate is the commanded torque (within its
+## largest, scaled by the unit's torque factor) less the friction the drive does not compensate, plus the torque noise;
+## none beyond the momentum capacity. Power: the steady power plus the mechanical power over the drive's efficiency
+## (the wheel's form).
+## The developer's transcription (S7.7), unsigned.
+module vscmgmodel
+
+## The VSCMG rotor's momentum rate [N m]: tm less the uncompensated friction (compensation k_c) plus the noise nz.
+fn vscmg_rate(tm: real[1] in -0.01 .. 0.01, fr: real[1] in -1e-4 .. 1e-4, nz: real[1] in -1e-5 .. 1e-5, k_c: real[1] in 0 .. 1) -> hd: real[1]
+    hd = tm - uncompensated(fr, k_c) + nz
+end

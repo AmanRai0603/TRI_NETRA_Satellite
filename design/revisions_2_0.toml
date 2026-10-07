@@ -968,3 +968,620 @@ source = "Wie (2008), Space Vehicle Dynamics and Control, 2nd ed., section 7.2 (
 generate = ["adcs-sim-core"]
 uses = ["dyn/rigidbody.pc", "dyn/rotors.pc", "dyn/flexmode.pc"]
 why = "the total angular momentum as a method of dyn, generated into the engine"
+
+[[revision]]
+id = "S7.6"
+at = "2026-10-08T08:00:00Z"
+by = "the developer"
+about = "the orbit as methods of env (docs/S7_INVENTORY.md S7.6): the fast orbit's forces and node context and its start from the LTAN; the precision orbit's spacecraft force models (third body, drag with the gas-surface interaction and its geometry, solar and Earth radiation pressure) and the force set, its sum and the sun-synchronous start, each the developer's transcription of the code and of the publication it cites, over the published models of S7.3 to S7.3e; the integrators (RK4 with Hermite interpolation, the context's interpolation) stay code and call them"
+
+[[revision.node]]
+id = "env_orbit_fast"
+group = "env"
+parent = "m2"
+label = "Orbit forces (the fast orbit)"
+behaviour = "method"
+question = "What accelerates the satellite in the engine's fast orbit (the Earth's zonal field, the Sun and the Moon, drag, the Sun's pressure), and what does the environment need at each of its nodes?"
+why = "the fast orbit's forces and node context, until now adcs-sim-core orbit.rs (accel, ctx and its constants), which had no node (docs/S7_INVENTORY.md §1.3)"
+
+[[revision.node]]
+id = "env_orbit_start"
+group = "env"
+parent = "m2"
+label = "Orbit start from the LTAN (the fast orbit)"
+behaviour = "method"
+question = "Where does the fast orbit start: its RAAN from the local time of the ascending node and the Sun at the epoch, its semi-major axis, inclination and argument of latitude?"
+why = "the fast orbit's start, until now adcs-sim run.rs (Truth::new), which had no node (docs/S7_INVENTORY.md §1.3, RAAN from LTAN)"
+
+[[revision.method]]
+node = "env_orbit_fast"
+pseudocode = "design/revisions/S7.6/orbitfast.pc"
+path = "env/orbitfast.pc"
+transcribes = "engine/crates/adcs-sim-core/src/orbit.rs (accel, ctx, MU, RE, OMEGA_E, MU_SUN, MU_MOON, J); adcs-sim run.rs (Truth::env: the air's velocity relative to the turning Earth)"
+source = "Montenbruck and Gill (2000), Satellite Orbits, sections 3.2.2 (zonal harmonics), 3.3 (third bodies, eq. 3.37), 3.4 (solar radiation pressure, eq. 3.75) and 3.5 (drag, eq. 3.97); EGM96 J2..J6 (Lemoine et al. 1998, NASA/TP-1998-206861); DE405 GM of the Sun and the Moon (Standish 1998); IERS Conventions (2010), table 1.1 (the Earth's rate)"
+generate = ["adcs-sim-core"]
+uses = ["env/sunfast.pc", "env/moonfast.pc", "env/shadow.pc", "env/caltime.pc", "env/truthfield.pc", "env/truthdensity.pc", "spec/physics/constants.pc"]
+why = "the fast orbit's forces and node context as a method of env, generated into the engine; its RK4 and Hermite interpolation stay code and call it"
+
+[[revision.method]]
+node = "env_orbit_start"
+pseudocode = "design/revisions/S7.6/orbitstart.pc"
+path = "env/orbitstart.pc"
+transcribes = "engine/crates/adcs-sim/src/run.rs (Truth::new, the fast orbit: RAAN from the LTAN and the Sun's right ascension, a = Re + alt, the degrees to radians)"
+source = "Vallado (2013), Fundamentals of Astrodynamics and Applications, 4th ed., section 11.4.2 (the sun-synchronous node and its local time)"
+generate = ["adcs-sim"]
+uses = ["spec/physics/constants.pc"]
+why = "the fast orbit's start as a method of env, generated into the engine's set-up with the platform's maths it flew with"
+
+[[revision.node]]
+id = "env_third_body"
+group = "env"
+parent = "m2"
+label = "Third-body accelerations (the Sun and the Moon)"
+behaviour = "method"
+question = "How do the Sun and the Moon accelerate the satellite relative to the Earth (Battin's form, the direct difference, the tidal approximation, the Legendre series), and how do they turn its orbit over the long run (the doubly-averaged quadrupole)?"
+why = "the precision orbit's third-body force, until now adcs-pop thirdbody.rs and thirdbody/secular.rs"
+
+[[revision.node]]
+id = "env_gas_surface"
+group = "env"
+parent = "m2"
+label = "Gas-surface interaction of a panel (free-molecular flow)"
+behaviour = "method"
+question = "What pressure and shear does free-molecular flow put on a flat panel at an incidence (Sentman, DRIA with SESAM's accommodation, CLL), and what speed ratio has each species of the air?"
+why = "the drag panel models' gas-surface interaction, until now adcs-pop drag/gsi.rs"
+
+[[revision.node]]
+id = "env_drag_force"
+group = "env"
+parent = "m2"
+label = "Drag force (cannonball and panels)"
+behaviour = "method"
+question = "What drag does the satellite feel in an atmosphere that turns with the Earth: a cannonball, or the free-molecular force on its facets resolved into drag, side force and lift?"
+why = "the precision orbit's drag, until now adcs-pop drag.rs and drag/geom.rs"
+
+[[revision.node]]
+id = "env_srp_force"
+group = "env"
+parent = "m2"
+label = "Solar radiation pressure force (cannonball and box-wing)"
+behaviour = "method"
+question = "What acceleration does sunlight give the satellite, a cannonball or its box-wing facets, in the Earth's shadow (cylinder, cone, oblate cone)?"
+why = "the precision orbit's solar radiation pressure, the shadow and the spacecraft's facets, until now adcs-pop srp.rs"
+
+[[revision.node]]
+id = "env_erp_force"
+group = "env"
+parent = "m2"
+label = "Earth radiation pressure force (albedo and infrared)"
+behaviour = "method"
+question = "What acceleration do the Earth's reflected sunlight and its infrared give the satellite (Knocke's rings on a cannonball or on the box-wing facets, or one radial source)?"
+why = "the precision orbit's Earth radiation pressure, until now adcs-pop erp.rs"
+
+[[revision.node]]
+id = "env_force_model"
+group = "env"
+parent = "m2"
+label = "The precision orbit's force set, its sum and its start"
+behaviour = "method"
+question = "Which forces does the precision orbit sum, in what order, and where does a sun-synchronous orbit start (its RAAN from the LTAN and the Sun at the epoch)?"
+why = "the precision orbit's force selection and sum and its sun-synchronous start, until now adcs-pop accel.rs (Forces::sils, World::accel's sum, sso_initial, coe2rv) and adcs-sim run.rs (Cr = 1 + reflectivity)"
+
+[[revision.method]]
+node = "env_third_body"
+pseudocode = "design/revisions/S7.6/thirdbody.pc"
+path = "env/thirdbody.pc"
+transcribes = "engine/crates/adcs-pop/src/thirdbody.rs (battin, direct, tidal, legendre, accel, total, force) and thirdbody/secular.rs (elem2vectors, vectors2elem, kozai_rates, phi_quad; propagate's rates), the port of the Octave POP's +thirdbody, +thirdbody/+secular and forces.thirdbody"
+source = "Battin (1999), An Introduction to the Mathematics and Methods of Astrodynamics, revised ed., section 8.4 (f(q)); Montenbruck and Gill (2000), Satellite Orbits, section 3.3; Tremaine, Touma and Kazandjian (2009), MNRAS 394:1085 (the vectorial doubly-averaged quadrupole)"
+generate = ["adcs-pop"]
+uses = ["env/gravity.pc"]
+why = "the third body's acceleration and secular rates as a method of env, generated into adcs-pop; the secular histories' RK4 stays code"
+
+[[revision.method]]
+node = "env_gas_surface"
+pseudocode = "design/revisions/S7.6/gsi.pc"
+path = "env/gsi.pc"
+transcribes = "engine/crates/adcs-pop/src/drag/gsi.rs (species, M_DTM, speed_ratio, sentman, cll, sesam, dria, Gsi's default, panel_coeffs), the port of the Octave POP's +drag/sentman.m, cll.m, dria.m, sesam.m, panelCoeffs.m, speedRatio.m and species.m"
+source = "Sentman (1961), Free molecule flow theory and its application to the determination of aerodynamic forces, LMSC-448514; Schaaf and Chambre (1961), Flow of Rarefied Gases (CLL form); Pilinski, Argrow and Palo (2013), J. Spacecraft Rockets 50:556 (SESAM); CODATA 2018 (the molar gas constant); IUPAC standard atomic weights"
+generate = ["adcs-pop"]
+why = "the gas-surface interaction as a method of env, generated into adcs-pop; the platform's erf (trinetra-toolbox/4)"
+
+[[revision.method]]
+node = "env_srp_force"
+pseudocode = "design/revisions/S7.6/srp.pc"
+path = "env/srp.pc"
+transcribes = "engine/crates/adcs-pop/src/srp.rs (facet, build_box, add_array, array_normal, sat16u, cannonball, eclipse, EclipseOpts' default, norm_scaled, frac_conical, lens_area, facet_sum, boxwing, force), the port of the Octave POP's +srp, +forces/srp.m and sgeom.sat16u"
+source = "Montenbruck and Gill (2000), Satellite Orbits, eq. 3.73 and 3.75 and section 3.4.2 (the conical shadow); Milani, Nobili and Farinella (1987), Non-gravitational Perturbations and Satellite Geodesy (the box-wing)"
+generate = ["adcs-pop"]
+uses = ["env/de440.pc", "env/gravity.pc", "env/thirdbody.pc"]
+why = "the solar radiation pressure, the shadow and the spacecraft's facets as a method of env, generated into adcs-pop"
+
+[[revision.method]]
+node = "env_drag_force"
+pseudocode = "design/revisions/S7.6/drag.pc"
+path = "env/drag.pc"
+transcribes = "engine/crates/adcs-pop/src/drag.rs (rel_velocity, wind_angles, body_to_wind, cannonball, panel_force, probe_geo, accel after the density: Cd, the Earth's rate and the plate) and drag/geom.rs (build_box, add_array, array_normal, ram_attitude, attitude_from_aoa, r_lvlh), the port of the Octave POP's +forces/drag.m, +drag and +dgeom/+sgeom"
+source = "Montenbruck and Gill (2000), Satellite Orbits, eq. 3.97 (the cannonball); Sentman (1961), LMSC-448514, and Moe and Moe (2005), Planet. Space Sci. 53:793 (the panel force); CODATA 2018 (the Avogadro constant)"
+generate = ["adcs-pop"]
+uses = ["env/srp.pc", "env/gsi.pc", "env/densitymodel.pc", "env/gravity.pc", "env/thirdbody.pc", "env/timescales.pc", "env/de440.pc"]
+why = "the drag and its geometry as a method of env, generated into adcs-pop; the density switch's call with the space weather stays the code's"
+
+[[revision.method]]
+node = "env_erp_force"
+pseudocode = "design/revisions/S7.6/erp.pc"
+path = "env/erp.pc"
+transcribes = "engine/crates/adcs-pop/src/erp.rs (zonal_coeffs, cap_loop, cannon_sum, knocke, simple, ceres without a grid, boxwing, force's CrAoM), the port of the Octave POP's +erp and +forces/erp.m"
+source = "Knocke, Ries and Tapley (1988), Earth radiation pressure effects on satellites, AIAA 88-4292"
+generate = ["adcs-pop"]
+uses = ["env/srp.pc", "env/de440.pc", "env/thirdbody.pc"]
+why = "the Earth radiation pressure as a method of env, generated into adcs-pop; a user's albedo grid (a function the run hands in) is the code's loop over the same elements"
+
+[[revision.method]]
+node = "env_force_model"
+pseudocode = "design/revisions/S7.6/forcemodel.pc"
+path = "env/forcemodel.pc"
+transcribes = "engine/crates/adcs-pop/src/accel.rs (Forces::sils, Forces::pop_default, World::accel's empirical part and sum, InLoop::node's environment with no ephemeris, coe2rv, sso_initial) and adcs-sim run.rs (Truth::new: Cr = 1 + the reflectivity)"
+source = "Vallado (2013), Fundamentals of Astrodynamics and Applications, 4th ed., algorithm 10 (elements to state) and section 11.4.2 (the sun-synchronous node); Montenbruck and Gill (2000), Satellite Orbits, chapter 3 (the force model)"
+generate = ["adcs-pop"]
+uses = ["env/drag.pc", "env/srp.pc", "env/erp.pc", "env/thirdbody.pc", "env/gsi.pc", "env/gravity.pc", "env/densitymodel.pc", "env/de440.pc", "env/timescales.pc"]
+why = "the precision orbit's force set, its sum and its sun-synchronous start as a method of env, generated into adcs-pop; the in-loop RK4 and Hermite interpolation stay code"
+
+[[revision]]
+id = "S7.7"
+at = "2026-10-08T10:00:00Z"
+by = "the developer"
+about = "the actuators as methods of act (docs/S7_INVENTORY.md S7.7): the magnetorquer coils (lag, saturation, power, allocation, dispersion, a failed coil, the coil torque m x B), the reaction wheels (motor line, speed and momentum limits, bearing friction, its compensation, torque noise, misalignment, power), the fluid rings (pump efficiency and power, flow filter and noise, field, flow limits and constants, misalignment), the CMG and VSCMG rotors and gimbals, the momentum devices as the engine flies them (a new node), and the thrusters (torque directions, thrust and impulse dispersion, minimum impulse bit, propellant and the empty tank, valve power, misalignment, a failed couple), each the developer's transcription of the code and of the publication it cites, their random draws the language's streams (rng.rs's); the values the engine used with no node (the product's device defaults, the rotors' telemetry noises) stated by their owner, act, as the 1.0.0 code gave them"
+
+[[revision.node]]
+id = "act_rotor_set"
+group = "act"
+parent = "sb2"
+label = "Momentum devices as the engine flies them"
+behaviour = "method"
+question = "How do the wheels, rings, CMGs and VSCMGs and their gimbals answer their commands each step (their momentum rates and power), a failed rotor coasting?"
+why = "the momentum devices' assembly of their rows' relations, until now adcs-sim-core actuators.rs (Mex), which had no node: the failed rotor's coast and the order of the draws are its own"
+
+[[revision.node]]
+id = "act_rw_torque_noise"
+group = "act"
+parent = "l3_rw"
+label = "Momentum device torque noise share"
+behaviour = "stated"
+question = "How large is the noise on the torque a momentum device delivers, as a share of its largest torque (one sigma)?"
+content = [["value", "number", "0.001"], ["value", "source", "1.0.0 code: engine/crates/adcs-sim/src/product.rs Dev::load (MexDesc torque_noise = 0.001, the device default every product flies)"]]
+why = "a value the engine used with no node (docs/S7_INVENTORY.md §1.3): stated as the 1.0.0 code gave it"
+
+[[revision.node]]
+id = "act_rw_friction_comp"
+group = "act"
+parent = "l3_rw"
+label = "Drive friction compensation share"
+behaviour = "stated"
+question = "Which share of the bearing's Coulomb and viscous friction does a wheel's drive feed forward?"
+content = [["value", "number", "0.95"], ["value", "source", "1.0.0 code: engine/crates/adcs-sim/src/product.rs Dev::load (MexDesc friction_comp = 0.95, the device default every product flies)"]]
+why = "a value the engine used with no node (docs/S7_INVENTORY.md §1.3): stated as the 1.0.0 code gave it"
+
+[[revision.node]]
+id = "act_rw_drive_efficiency"
+group = "act"
+parent = "l3_rw"
+label = "Wheel drive efficiency"
+behaviour = "stated"
+question = "Which share of a wheel drive's electrical power becomes the rotor's mechanical power?"
+content = [["value", "number", "0.8"], ["value", "source", "1.0.0 code: engine/crates/adcs-sim/src/product.rs Dev::load (MexDesc eta = 0.8, the device default every product flies)"]]
+why = "a value the engine used with no node (docs/S7_INVENTORY.md §1.3): stated as the 1.0.0 code gave it"
+
+[[revision.node]]
+id = "act_cmg_speed_gain"
+group = "act"
+parent = "act__cmg"
+label = "CMG rotor speed-loop gain"
+behaviour = "stated"
+question = "How fast does a CMG's speed loop hold its rotor's momentum (the loop's gain, 1/s)?"
+content = [["value", "number", "1.0"], ["value", "source", "1.0.0 code: engine/crates/adcs-sim/src/product.rs Dev::load (MexDesc k_speed = 1.0, the device default every product flies)"]]
+why = "a value the engine used with no node (docs/S7_INVENTORY.md §1.3): stated as the 1.0.0 code gave it"
+
+[[revision.node]]
+id = "act_fmr_flow_gain"
+group = "act"
+parent = "l3_fmr"
+label = "Ring flow-loop gain"
+behaviour = "stated"
+question = "How strongly does a ring's driver push its flow toward the momentum target (the loop's gain, 1/s)?"
+content = [["value", "number", "2.0"], ["value", "source", "1.0.0 code: engine/crates/adcs-sim/src/product.rs Dev::load (MexDesc k_flow = 2.0, the device default every product flies)"]]
+why = "a value the engine used with no node (docs/S7_INVENTORY.md §1.3): stated as the 1.0.0 code gave it"
+
+[[revision.node]]
+id = "act_fmr_flow_tau"
+group = "act"
+parent = "l3_fmr"
+label = "Ring flow filter time constant"
+behaviour = "stated"
+question = "Over what time constant does a ring's driver filter the measured flow (s)?"
+content = [["value", "number", "0.3"], ["value", "source", "1.0.0 code: engine/crates/adcs-sim/src/product.rs Dev::load (MexDesc flow_tau = 0.3, the device default every product flies)"]]
+why = "a value the engine used with no node (docs/S7_INVENTORY.md §1.3): stated as the 1.0.0 code gave it"
+
+[[revision.node]]
+id = "act_rotor_tlm_noise"
+group = "act"
+parent = "sb2"
+label = "Rotor momentum telemetry noise"
+behaviour = "stated"
+question = "How much noise is on the rotor momentum each momentum device reports (one sigma, N m s)?"
+content = [["value", "number", "1e-7"], ["value", "source", "1.0.0 code: engine/crates/adcs-sim/src/run.rs sense (x.h[i] + 1e-7 normal, the rotor telemetry the CAN frames carry)"]]
+why = "a value the engine used with no node (docs/S7_INVENTORY.md §1.3): stated as the 1.0.0 code gave it"
+
+[[revision.node]]
+id = "act_gimbal_tlm_noise"
+group = "act"
+parent = "act__cmg"
+label = "Gimbal angle telemetry noise"
+behaviour = "stated"
+question = "How much noise is on the gimbal angle a CMG reports (one sigma, rad)?"
+content = [["value", "number", "1e-5"], ["value", "source", "1.0.0 code: engine/crates/adcs-sim/src/run.rs sense (x.d[g] + 1e-5 normal, the rotor telemetry the CAN frames carry)"]]
+why = "a value the engine used with no node (docs/S7_INVENTORY.md §1.3): stated as the 1.0.0 code gave it"
+
+[[revision.method]]
+node = "l3_mtq_row_02"
+from = "built-in"
+to = "method"
+pseudocode = "design/revisions/S7.7/coillag.pc"
+path = "act/coillag.pc"
+transcribes = "engine/crates/adcs-sim-core/src/actuators.rs (lag), the twin's asils.devices.mtq"
+source = "Sidi (1997), Spacecraft Dynamics and Control, section 7.4 (the coil as an RL circuit behind a current-limited driver)"
+generate = ["adcs-sim-core"]
+why = "the coil's L/R lag as a method of act, generated into the engine"
+
+[[revision.method]]
+node = "l3_mtq_row_03"
+from = "built-in"
+to = "method"
+pseudocode = "design/revisions/S7.7/coilsat.pc"
+path = "act/coilsat.pc"
+transcribes = "engine/crates/adcs-sim-core/src/actuators.rs (Mtq::apply: the coil's command and its saturation) and adcs-sim-core pm.rs (clamp)"
+source = "Wertz (1978), Spacecraft Attitude Determination and Control, section 19.1 (magnetic torquers)"
+generate = ["adcs-sim-core"]
+why = "the coil's command and its saturation as a method of act, generated into the engine"
+
+[[revision.method]]
+node = "l3_mtq_row_04"
+from = "built-in"
+to = "method"
+pseudocode = "design/revisions/S7.7/coilpower.pc"
+path = "act/coilpower.pc"
+transcribes = "engine/crates/adcs-sim-core/src/actuators.rs (Mtq::apply: the power linear in the mean drive)"
+source = "the part's power_at_max_W, linear in the mean drive as the engine flies it (1.0.0 code)"
+generate = ["adcs-sim-core"]
+why = "the coil's power as a method of act, generated into the engine"
+
+[[revision.method]]
+node = "l3_mtq_row_05"
+from = "built-in"
+to = "method"
+pseudocode = "design/revisions/S7.7/coilaxes.pc"
+path = "act/coilaxes.pc"
+transcribes = "engine/crates/adcs-sim-core/src/actuators.rs (Mtq::new: the allocation pinv(axes) = A^T (A A^T)^-1) and adcs-sim-core la.rs (inv, mtv)"
+source = "Penrose (1955), Proc. Cambridge Phil. Soc. 51:406 (the minimum-norm right inverse)"
+generate = ["adcs-sim-core"]
+uses = ["fsw/pseudocode/01_math.pc"]
+why = "the coils' allocation as a method of act, generated into the engine"
+
+[[revision.method]]
+node = "l3_mtq_row_06"
+from = "open"
+to = "method"
+pseudocode = "design/revisions/S7.7/coiltorque.pc"
+path = "act/coiltorque.pc"
+transcribes = "engine/crates/adcs-sim/src/run.rs (run: the coils' torque cross(m, B); step_plant: the held dipole's under soft OILS)"
+source = "Wertz (1978), Spacecraft Attitude Determination and Control, eq. 17-48"
+generate = ["adcs-sim-core"]
+why = "the torque of a dipole in the field as a method of act (the engine computed it in run.rs with no method), generated into the engine"
+
+[[revision.method]]
+node = "l3_mtq_row_12"
+from = "built-in"
+to = "method"
+pseudocode = "design/revisions/S7.7/coildisp.pc"
+path = "act/coildisp.pc"
+transcribes = "engine/crates/adcs-sim-core/src/actuators.rs (Mtq::new: the scale factors and the misaligned axes) and adcs-sim-core la.rs (small_rot)"
+source = "the part's dipole_scale and axis_misalignment_rad dispersions, drawn as the engine draws them (1.0.0 code)"
+generate = ["adcs-sim-core"]
+uses = ["fsw/pseudocode/01_math.pc"]
+why = "the coils' dispersion as a method of act, from the run's dispersion stream, generated into the engine"
+
+[[revision.method]]
+node = "l3_mtq_row_13"
+from = "built-in"
+to = "method"
+pseudocode = "design/revisions/S7.7/coilset.pc"
+path = "act/coilset.pc"
+transcribes = "engine/crates/adcs-sim-core/src/actuators.rs (MtqDesc, Mtq, Mtq::new, Mtq::apply: the coil set, a failed coil open)"
+source = "Sidi (1997), Spacecraft Dynamics and Control, section 7.4"
+generate = ["adcs-sim-core"]
+uses = ["act/coillag.pc", "act/coilsat.pc", "act/coilpower.pc", "act/coilaxes.pc", "act/coildisp.pc"]
+why = "the coil set with a failed coil as a method of act; the engine's step calls it, generated into the engine"
+
+[[revision.method]]
+node = "l3_rw_row_01"
+from = "built-in"
+to = "method"
+pseudocode = "design/revisions/S7.7/wheelmotor.pc"
+path = "act/wheelmotor.pc"
+transcribes = "engine/crates/adcs-sim-core/src/actuators.rs (wheel_motor: the torque-speed line) and engine/crates/adcs-sim/src/product.rs (fit_actuator_, wheels: t_stall = k_t V/R, w_nl = V/k_t)"
+source = "Sidi (1997), Spacecraft Dynamics and Control, section 7.3 (the reaction wheel's DC motor)"
+generate = ["adcs-sim-core"]
+uses = ["act/coilsat.pc"]
+why = "the wheel motor's torque-speed line and its constants as a method of act, generated into the engine"
+
+[[revision.method]]
+node = "l3_rw_row_02"
+from = "built-in"
+to = "method"
+pseudocode = "design/revisions/S7.7/wheelspeed.pc"
+path = "act/wheelspeed.pc"
+transcribes = "engine/crates/adcs-sim-core/src/actuators.rs (wheel_motor: the drive's speed limit; Mex::apply: the momentum capacity)"
+source = "the part's speed_max_rad_s and h_max_Nms, as the engine flies them (1.0.0 code)"
+generate = ["adcs-sim-core"]
+why = "the wheel's speed and momentum limits as a method of act, generated into the engine"
+
+[[revision.method]]
+node = "l3_rw_row_03"
+from = "built-in"
+to = "method"
+pseudocode = "design/revisions/S7.7/wheelfriction.pc"
+path = "act/wheelfriction.pc"
+transcribes = "engine/crates/adcs-sim-core/src/actuators.rs (Mex::apply: Coulomb, viscous, Stribeck, the Karnopp hold, a failed rotor's coast)"
+source = "Karnopp (1985), ASME J. Dyn. Sys. Meas. Control 107:100; Armstrong-Helouvry, Dupont and Canudas de Wit (1994), Automatica 30:1083 (Stribeck)"
+generate = ["adcs-sim-core"]
+why = "the wheel's bearing friction as a method of act, generated into the engine"
+
+[[revision.method]]
+node = "l3_rw_row_04"
+from = "built-in"
+to = "method"
+pseudocode = "design/revisions/S7.7/wheelcomp.pc"
+path = "act/wheelcomp.pc"
+transcribes = "engine/crates/adcs-sim-core/src/actuators.rs (Mex::apply: the drive's friction feed-forward, the wheel's momentum rate)"
+source = "the product's friction_comp, as the engine flies it (1.0.0 code)"
+generate = ["adcs-sim-core"]
+why = "the wheel's friction compensation as a method of act, generated into the engine"
+
+[[revision.method]]
+node = "l3_rw_row_05"
+from = "built-in"
+to = "method"
+pseudocode = "design/revisions/S7.7/wheelnoise.pc"
+path = "act/wheelnoise.pc"
+transcribes = "engine/crates/adcs-sim-core/src/actuators.rs (Mex::apply: the torque noise)"
+source = "the product's torque_noise share of the largest torque, as the engine flies it (1.0.0 code)"
+generate = ["adcs-sim-core"]
+why = "the momentum devices' torque noise as a method of act, from the run's noise stream, generated into the engine"
+
+[[revision.method]]
+node = "l3_rw_row_06"
+from = "built-in"
+to = "method"
+pseudocode = "design/revisions/S7.7/wheelaxis.pc"
+path = "act/wheelaxis.pc"
+transcribes = "engine/crates/adcs-sim-core/src/actuators.rs (Mex::new: the misaligned axes)"
+source = "the part's axis_misalignment_rad dispersion, drawn as the engine draws it (1.0.0 code)"
+generate = ["adcs-sim-core"]
+uses = ["act/coildisp.pc"]
+why = "the momentum devices' misalignment as a method of act, generated into the engine"
+
+[[revision.method]]
+node = "l3_rw_row_07"
+from = "built-in"
+to = "method"
+pseudocode = "design/revisions/S7.7/wheelpower.pc"
+path = "act/wheelpower.pc"
+transcribes = "engine/crates/adcs-sim-core/src/actuators.rs (Mex::apply: p_steady + |tau om|/eta)"
+source = "the part's power_steady_W and the product's drive efficiency, as the engine flies them (1.0.0 code)"
+generate = ["adcs-sim-core"]
+why = "the wheel's power as a method of act, generated into the engine"
+
+[[revision.method]]
+node = "l3_fmr_row_08"
+from = "built-in"
+to = "method"
+pseudocode = "design/revisions/S7.7/ringpump.pc"
+path = "act/ringpump.pc"
+transcribes = "engine/crates/adcs-sim-core/src/actuators.rs (Mex::new: the pump efficiency drawn over its range; Mex::apply: the pump's power)"
+source = "Fox and McDonald (2011), Introduction to Fluid Mechanics (pressure times flow); the part's pump_efficiency range"
+generate = ["adcs-sim-core"]
+why = "the ring pump's efficiency and power as a method of act, generated into the engine"
+
+[[revision.method]]
+node = "l3_fmr_row_09"
+from = "built-in"
+to = "method"
+pseudocode = "design/revisions/S7.7/ringflow.pc"
+path = "act/ringflow.pc"
+transcribes = "engine/crates/adcs-sim-core/src/actuators.rs (Mex::apply: the flow filter)"
+source = "the product's flow_tau, as the engine flies it (1.0.0 code)"
+generate = ["adcs-sim-core"]
+why = "the ring's flow response as a method of act, generated into the engine"
+
+[[revision.method]]
+node = "l3_fmr_row_10"
+from = "built-in"
+to = "method"
+pseudocode = "design/revisions/S7.7/ringnoise.pc"
+path = "act/ringnoise.pc"
+transcribes = "engine/crates/adcs-sim-core/src/actuators.rs (Mex::apply: the flow sensor's noise in momentum)"
+source = "the part's flow_sensor_noise_m_s times k_hv, as the engine flies it (1.0.0 code)"
+generate = ["adcs-sim-core"]
+why = "the ring's flow noise as a method of act, from the run's noise stream, generated into the engine"
+
+[[revision.method]]
+node = "l3_fmr_row_11"
+from = "built-in"
+to = "method"
+pseudocode = "design/revisions/S7.7/ringfield.pc"
+path = "act/ringfield.pc"
+transcribes = "engine/crates/adcs-sim-core/src/actuators.rs (Mex::apply: the pump field's hysteresis and power)"
+source = "the part's field_power_W; the hysteresis thresholds 2 % and 1 % as the engine flies them (1.0.0 code)"
+generate = ["adcs-sim-core"]
+why = "the ring's field power as a method of act, generated into the engine"
+
+[[revision.method]]
+node = "l3_fmr_row_12"
+from = "built-in"
+to = "method"
+pseudocode = "design/revisions/S7.7/ringlimits.pc"
+path = "act/ringlimits.pc"
+transcribes = "engine/crates/adcs-sim-core/src/actuators.rs (Mex::apply: the target, the pump, the spin-down, the capacity) and engine/crates/adcs-sim/src/product.rs (fit_actuator_, rings: ac, k_hv, t_sd, h_max, the pump's largest torque 2 h_max/t_sd)"
+source = "IDMAS v2 (the ring's momentum H = 2 rho A v S and spin-down time rho d^2/(32 mu), act's gf_6 and gf_7 laws, as the engine writes them)"
+generate = ["adcs-sim-core"]
+uses = ["act/coilsat.pc", "act/wheelspeed.pc"]
+why = "the ring's flow limits and constants as a method of act, generated into the engine"
+
+[[revision.method]]
+node = "l3_fmr_row_13"
+from = "built-in"
+to = "method"
+pseudocode = "design/revisions/S7.7/ringaxis.pc"
+path = "act/ringaxis.pc"
+transcribes = "engine/crates/adcs-sim-core/src/actuators.rs (Mex::new: the misaligned axes)"
+source = "the part's axis_misalignment_rad dispersion, drawn as the engine draws it (1.0.0 code)"
+generate = ["adcs-sim-core"]
+uses = ["act/wheelaxis.pc"]
+why = "the ring's misalignment as a method of act, generated into the engine"
+
+[[revision.method]]
+node = "act_cmg_model"
+from = "built-in"
+to = "method"
+pseudocode = "design/revisions/S7.7/cmgmodel.pc"
+path = "act/cmgmodel.pc"
+transcribes = "engine/crates/adcs-sim-core/src/actuators.rs (Mex::apply, Cmg: the rotor's speed loop and power)"
+source = "Wie (2008), Space Vehicle Dynamics and Control, 2nd ed., section 7.5 (constant-speed CMGs)"
+generate = ["adcs-sim-core"]
+uses = ["act/coilsat.pc"]
+why = "the CMG's rotor as a method of act, generated into the engine"
+
+[[revision.method]]
+node = "act_vscmg_model"
+from = "built-in"
+to = "method"
+pseudocode = "design/revisions/S7.7/vscmgmodel.pc"
+path = "act/vscmgmodel.pc"
+transcribes = "engine/crates/adcs-sim-core/src/actuators.rs (Mex::apply, Vscmg: the rotor's commanded torque, friction and noise)"
+source = "Schaub, Vadali and Junkins (1998), J. Astronaut. Sci. 46:307 (variable-speed CMGs)"
+generate = ["adcs-sim-core"]
+uses = ["act/wheelcomp.pc"]
+why = "the VSCMG's rotor as a method of act, generated into the engine"
+
+[[revision.method]]
+node = "act_vscmg_gimbal_limits"
+from = "built-in"
+to = "method"
+pseudocode = "design/revisions/S7.7/gimbals.pc"
+path = "act/gimbals.pc"
+transcribes = "engine/crates/adcs-sim-core/src/actuators.rs (Mex::apply: the gimbals' rate limit and power)"
+source = "the part's gimbal_rate_max_rad_s and gimbal_power_W, as the engine flies them (1.0.0 code)"
+generate = ["adcs-sim-core"]
+uses = ["act/coilsat.pc"]
+why = "the gimbals' rate limit and power as a method of act, generated into the engine"
+
+[[revision.method]]
+node = "act_rotor_set"
+pseudocode = "design/revisions/S7.7/rotorset.pc"
+path = "act/rotorset.pc"
+transcribes = "engine/crates/adcs-sim-core/src/actuators.rs (Kind, MexDesc, Mex, Mex::new, Mex::apply: the momentum devices, a failed rotor's coast)"
+source = "Wie (2008), Space Vehicle Dynamics and Control, 2nd ed., chapter 7 (momentum exchange devices)"
+generate = ["adcs-sim-core"]
+uses = ["act/wheelmotor.pc", "act/wheelspeed.pc", "act/wheelfriction.pc", "act/wheelcomp.pc", "act/wheelnoise.pc", "act/wheelaxis.pc", "act/wheelpower.pc", "act/ringpump.pc", "act/ringflow.pc", "act/ringnoise.pc", "act/ringfield.pc", "act/ringlimits.pc", "act/ringaxis.pc", "act/cmgmodel.pc", "act/vscmgmodel.pc", "act/gimbals.pc", "dyn/rotors.pc"]
+why = "the momentum devices as a method of act; the engine's step calls it, generated into the engine"
+
+[[revision.method]]
+node = "l3_rcs_row_01"
+from = "built-in"
+to = "method"
+pseudocode = "design/revisions/S7.7/rcstorque.pc"
+path = "act/rcstorque.pc"
+transcribes = "engine/crates/adcs-sim/src/product.rs (fit_actuator_, rcs: the couples' torques 2 F arm) and engine/crates/adcs-sim-core/src/actuators.rs (Rcs::apply)"
+source = "Wertz (1978), Spacecraft Attitude Determination and Control, section 19.3 (mass expulsion torquers)"
+generate = ["adcs-sim-core"]
+why = "the thrusters' torque directions as a method of act, generated into the engine"
+
+[[revision.method]]
+node = "l3_rcs_row_02"
+from = "built-in"
+to = "method"
+pseudocode = "design/revisions/S7.7/rcsthrust.pc"
+path = "act/rcsthrust.pc"
+transcribes = "engine/crates/adcs-sim-core/src/actuators.rs (Rcs::new: the thrust factors)"
+source = "the part's thrust_scale dispersion, drawn as the engine draws it (1.0.0 code)"
+generate = ["adcs-sim-core"]
+why = "the thrust dispersion as a method of act, generated into the engine"
+
+[[revision.method]]
+node = "l3_rcs_row_03"
+from = "built-in"
+to = "method"
+pseudocode = "design/revisions/S7.7/rcsisp.pc"
+path = "act/rcsisp.pc"
+transcribes = "engine/crates/adcs-sim-core/src/actuators.rs (Rcs::new: the specific impulse over its range; Rcs::apply: the mass flow)"
+source = "Sutton and Biblarz (2010), Rocket Propulsion Elements, 8th ed., eq. 2-5 (Isp = F/(mdot g0))"
+generate = ["adcs-sim-core"]
+uses = ["spec/physics/constants.pc"]
+why = "the specific impulse and the propellant flow as a method of act, generated into the engine"
+
+[[revision.method]]
+node = "l3_rcs_row_04"
+from = "built-in"
+to = "method"
+pseudocode = "design/revisions/S7.7/rcsmib.pc"
+path = "act/rcsmib.pc"
+transcribes = "engine/crates/adcs-sim-core/src/actuators.rs (Rcs::apply: the minimum impulse bit, the valve's resolution)"
+source = "the part's mib_s and valve_res_s, as the engine flies them (1.0.0 code)"
+generate = ["adcs-sim-core"]
+uses = ["act/coilsat.pc"]
+why = "the valve's minimum impulse bit as a method of act, generated into the engine"
+
+[[revision.method]]
+node = "l3_rcs_row_08"
+from = "built-in"
+to = "method"
+pseudocode = "design/revisions/S7.7/rcsprop.pc"
+path = "act/rcsprop.pc"
+transcribes = "engine/crates/adcs-sim/src/run.rs (actuate: the propellant used and the empty tank)"
+source = "the part's propellant_kg, as the engine flies it (1.0.0 code)"
+generate = ["adcs-sim-core"]
+why = "the propellant remaining and the empty tank as a method of act, generated into the engine"
+
+[[revision.method]]
+node = "l3_rcs_row_09"
+from = "built-in"
+to = "method"
+pseudocode = "design/revisions/S7.7/rcsvalve.pc"
+path = "act/rcsvalve.pc"
+transcribes = "engine/crates/adcs-sim-core/src/actuators.rs (Rcs::apply: the valve power)"
+source = "the part's valve_power_W, as the engine flies it (1.0.0 code)"
+generate = ["adcs-sim-core"]
+why = "the valve power as a method of act, generated into the engine"
+
+[[revision.method]]
+node = "l3_rcs_row_10"
+from = "built-in"
+to = "method"
+pseudocode = "design/revisions/S7.7/rcsaxis.pc"
+path = "act/rcsaxis.pc"
+transcribes = "engine/crates/adcs-sim-core/src/actuators.rs (Rcs::new: the misaligned torques)"
+source = "the part's axis_misalignment_rad dispersion, drawn as the engine draws it (1.0.0 code)"
+generate = ["adcs-sim-core"]
+uses = ["act/coildisp.pc"]
+why = "the thrusters' misalignment as a method of act, generated into the engine"
+
+[[revision.method]]
+node = "l3_rcs_row_11"
+from = "built-in"
+to = "method"
+pseudocode = "design/revisions/S7.7/thrusters.pc"
+path = "act/thrusters.pc"
+transcribes = "engine/crates/adcs-sim-core/src/actuators.rs (RcsDesc, Rcs, Rcs::new, Rcs::apply: the thrusters, a failed couple closed) and engine/crates/adcs-sim/src/run.rs (actuate: an empty tank fails every valve)"
+source = "Wertz (1978), Spacecraft Attitude Determination and Control, section 19.3"
+generate = ["adcs-sim-core"]
+uses = ["act/rcstorque.pc", "act/rcsthrust.pc", "act/rcsisp.pc", "act/rcsmib.pc", "act/rcsvalve.pc", "act/rcsaxis.pc"]
+why = "the thrusters with a failed couple as a method of act; the engine's step calls it, generated into the engine"

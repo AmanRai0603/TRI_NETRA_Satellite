@@ -5,137 +5,36 @@
 //! `knocke`/`simple`/`ceres` are cannonball models (one `CrAoM` number);
 //! `boxwing` applies each Earth element's beam to the facets of the
 //! [`Spacecraft`](crate::srp::Spacecraft) geometry shared with SRP and drag.
+//!
+//! The models are env's method env_erp_force, generated from the design into `gen::erp`
+//! (tools/engine_build.py); what is left here is the crate's names, the model switch as an enum,
+//! the inputs, and the ring loop over a user's albedo grid (a function the run hands in) on the
+//! design's cap elements.
 
-use crate::ephem::{constants, EphemInputs};
-use crate::la::{cross, dot, mtv, mv, norm, M3, V3};
-use crate::srp::{facet_sum, Facet, Spacecraft};
+use crate::ephem::EphemInputs;
+use crate::gen::erp as g;
+use crate::la::{M3, V3};
+use crate::srp::{Facet, Spacecraft};
 
 /// `[alb, emi] = erp.zonalCoeffs(lat, doy)`: Knocke (1988) zonal albedo and
 /// emissivity at geocentric latitude `lat` [rad] and day of year `doy`.
 pub fn zonal_coeffs(lat: f64, doy: f64) -> (f64, f64) {
-    let (a0, a1, a2) = (0.34, 0.10, 0.29);
-    let (e0, e1, e2) = (0.68, -0.07, -0.18);
-    let w = 2.0 * std::f64::consts::PI / 365.25;
-    let t0 = 0.0;
-    let s = lat.sin();
-    let p1 = s;
-    let p2 = 0.5 * (3.0 * s * s - 1.0);
-    let ann = (w * (doy - t0)).cos();
-    (a0 + a1 * ann * p1 + a2 * p2, e0 + e1 * ann * p1 + e2 * p2)
+    g::zonal_coeffs(lat, doy)
 }
 
-/// Short-wave (albedo) / long-wave (IR) split returned as `comp` [m/s^2].
-#[derive(Debug, Clone, Copy, PartialEq, Default)]
-pub struct Comp {
-    /// `comp.sw` albedo part.
-    pub sw: V3,
-    /// `comp.lw` IR part.
-    pub lw: V3,
-}
-
-/// One visible-cap element of the Knocke ring integration.
-struct Element {
-    es: V3,
-    /// cos_e * dA / (pi rho^2)
-    geo: f64,
-    /// cos_e, dA, rho kept for the cannonball `base` product order
-    cos_e: f64,
-    da: f64,
-    rho: f64,
-    msw: f64,
-    mlw: f64,
-}
-
-/// Iterate the Knocke cap elements (shared loop of knocke/ceres/boxwing), calling
-/// `f` for every element with `cos_e > 0`. `coeffs(lat, n_el)` gives (alb, emi).
-fn cap_loop<C, F>(r_sat: &V3, r_sun: &V3, nrings: usize, nseg: usize, mut coeffs: C, mut f: F)
-where
-    C: FnMut(f64, &V3) -> (f64, f64),
-    F: FnMut(&Element),
-{
-    use std::f64::consts::PI;
-    let k = constants();
-    let (re, s) = (k.re_earth, k.tsi);
-    let d = norm(r_sat);
-    let zhat = [r_sat[0] / d, r_sat[1] / d, r_sat[2] / d];
-    let ns = norm(r_sun);
-    let shat = [r_sun[0] / ns, r_sun[1] / ns, r_sun[2] / ns];
-    let rho_max = (re / d).min(1.0).acos();
-    let t = if zhat[0].abs() > 0.9 { [0.0, 1.0, 0.0] } else { [1.0, 0.0, 0.0] };
-    let e1 = cross(&zhat, &t);
-    let n1 = norm(&e1);
-    let e1 = [e1[0] / n1, e1[1] / n1, e1[2] / n1];
-    let e2 = cross(&zhat, &e1);
-    let (nr, nsg) = (nrings as f64, nseg as f64);
-    for ir in 1..=nrings {
-        let psi = (ir as f64 - 0.5) / nr * rho_max;
-        let dpsi = rho_max / nr;
-        let (sp, cp) = psi.sin_cos();
-        for js in 1..=nseg {
-            let az = 2.0 * PI * (js as f64 - 0.5) / nsg;
-            let (sa, ca) = az.sin_cos();
-            let mut n_el = [0.0; 3];
-            for i in 0..3 { n_el[i] = cp * zhat[i] + sp * (ca * e1[i] + sa * e2[i]); }
-            let r_el = [re * n_el[0], re * n_el[1], re * n_el[2]];
-            let sv = [r_sat[0] - r_el[0], r_sat[1] - r_el[1], r_sat[2] - r_el[2]];
-            let rho = norm(&sv);
-            let es = [sv[0] / rho, sv[1] / rho, sv[2] / rho];
-            let cos_e = dot(&n_el, &es);
-            if cos_e <= 0.0 { continue; }
-            let da = re * re * sp * dpsi * (2.0 * PI / nsg);
-            #[allow(clippy::manual_clamp)] // MATLAB max(min(x,1),-1) semantics
-            let lat = n_el[2].min(1.0).max(-1.0).asin();
-            let (alb, emi) = coeffs(lat, &n_el);
-            let cz = dot(&n_el, &shat);
-            let msw = if cz > 0.0 { alb * s * cz } else { 0.0 };
-            let mlw = emi * s / 4.0;
-            let geo = cos_e * da / (PI * rho * rho);
-            f(&Element { es, geo, cos_e, da, rho, msw, mlw });
-        }
-    }
-}
-
-/// Cannonball accumulation `base = CrAoM/c*cos_e*dA/(pi*rho*rho)`.
-fn cannon_sum(r_sat: &V3, r_sun: &V3, cr_aom: f64, nrings: usize, nseg: usize, coeffs: impl FnMut(f64, &V3) -> (f64, f64)) -> (V3, Comp) {
-    use std::f64::consts::PI;
-    let c = constants().c;
-    let mut asw = [0.0; 3];
-    let mut alw = [0.0; 3];
-    cap_loop(r_sat, r_sun, nrings, nseg, coeffs, |el| {
-        let base = cr_aom / c * el.cos_e * el.da / (PI * el.rho * el.rho);
-        let (ks, kl) = (base * el.msw, base * el.mlw);
-        for i in 0..3 {
-            asw[i] += ks * el.es[i];
-            alw[i] += kl * el.es[i];
-        }
-    });
-    ([asw[0] + alw[0], asw[1] + alw[1], asw[2] + alw[2]], Comp { sw: asw, lw: alw })
-}
+/// Short-wave (albedo) / long-wave (IR) split returned as `comp` [m/s^2] (`sw`, `lw`): the design's record.
+pub use crate::gen::erp::ErpComp as Comp;
 
 /// `[a, comp] = erp.knocke(rSat, rSun, CrAoM, doy, nrings, nseg)`: Knocke ring
 /// model (MATLAB defaults doy 80, 16 rings x 48 segments).
 pub fn knocke(r_sat: &V3, r_sun: &V3, cr_aom: f64, doy: f64, nrings: usize, nseg: usize) -> (V3, Comp) {
-    cannon_sum(r_sat, r_sun, cr_aom, nrings, nseg, |lat, _| zonal_coeffs(lat, doy))
+    g::erp_knocke(*r_sat, *r_sun, cr_aom, doy, nrings as i64, nseg as i64)
 }
 
 /// `[a, comp] = erp.simple(rSat, rSun, CrAoM, doy)`: whole visible Earth as one
 /// radial source (sizing only).
 pub fn simple(r_sat: &V3, r_sun: &V3, cr_aom: f64, doy: f64) -> (V3, Comp) {
-    let k = constants();
-    let (re, s, c) = (k.re_earth, k.tsi, k.c);
-    let d = norm(r_sat);
-    let zhat = [r_sat[0] / d, r_sat[1] / d, r_sat[2] / d];
-    let (alb, emi) = zonal_coeffs(0.0, doy);
-    let q = re / d;
-    let f = q * q;
-    let ns = norm(r_sun);
-    let cz = dot(&zhat, &[r_sun[0] / ns, r_sun[1] / ns, r_sun[2] / ns]).max(0.0);
-    let esw = alb * s * cz * f;
-    let elw = emi * (s / 4.0) * f;
-    let (ks, kl) = (cr_aom / c * esw, cr_aom / c * elw);
-    let sw = [ks * zhat[0], ks * zhat[1], ks * zhat[2]];
-    let lw = [kl * zhat[0], kl * zhat[1], kl * zhat[2]];
-    ([sw[0] + lw[0], sw[1] + lw[1], sw[2] + lw[2]], Comp { sw, lw })
+    g::erp_simple(*r_sat, *r_sun, cr_aom, doy)
 }
 
 /// Albedo/emissivity grid `gridFcn(lat, lon) -> [albedo, emissivity]` of `erp.ceres`.
@@ -144,34 +43,31 @@ pub type GridFn<'a> = &'a dyn Fn(f64, f64) -> (f64, f64);
 /// `[a, comp] = erp.ceres(rSat, rSun, CrAoM, gridFcn, nrings, nseg)`: ring model with
 /// a user albedo/emissivity grid; `grid = None` falls back to Knocke zonal at doy 80.
 pub fn ceres(r_sat: &V3, r_sun: &V3, cr_aom: f64, grid: Option<GridFn>, nrings: usize, nseg: usize) -> (V3, Comp) {
-    cannon_sum(r_sat, r_sun, cr_aom, nrings, nseg, |lat, n_el| match grid {
-        None => zonal_coeffs(lat, 80.0),
-        Some(g) => g(lat, n_el[1].atan2(n_el[0])),
-    })
+    let Some(grid) = grid else { return knocke(r_sat, r_sun, cr_aom, 80.0, nrings, nseg) };
+    let (zhat, e1, e2, shat, rho_max) = g::cap_frame(*r_sat, *r_sun);
+    let mut sw = [0.0; 3];
+    let mut lw = [0.0; 3];
+    for ir in 1..=nrings as i64 {
+        for js in 1..=nseg as i64 {
+            let (vis, n_el, es, cos_e, da, rho, lat) = g::cap_element(*r_sat, zhat, e1, e2, rho_max, ir, js, nrings as i64, nseg as i64);
+            if !vis { continue; }
+            let (alb, emi) = grid(lat, n_el[1].atan2(n_el[0]));
+            let (msw, mlw, _geo) = g::cap_exitance(alb, emi, n_el, shat, cos_e, da, rho);
+            let (ds, dl) = g::cap_cannon(cr_aom, cos_e, da, rho, es, msw, mlw);
+            for i in 0..3 {
+                sw[i] += ds[i];
+                lw[i] += dl[i];
+            }
+        }
+    }
+    ([sw[0] + lw[0], sw[1] + lw[1], sw[2] + lw[2]], Comp { sw, lw })
 }
 
 /// `[a, comp] = erp.boxwing(rSat, rSun, R_b2i, sc, doy, nrings, nseg)`: ERP on the
 /// box-wing facets; each element's beam arrives from `-es` (`uHat_b = R_b2i' (-es)`)
 /// and is applied per band through the SRP facet response.
 pub fn boxwing(r_sat: &V3, r_sun: &V3, r_b2i: &M3, facets: &[Facet], mass: f64, doy: f64, nrings: usize, nseg: usize) -> (V3, Comp) {
-    let c = constants().c;
-    let mut fsw = [0.0; 3];
-    let mut flw = [0.0; 3];
-    cap_loop(r_sat, r_sun, nrings, nseg, |lat, _| zonal_coeffs(lat, doy), |el| {
-        let esw = el.msw * el.geo;
-        let elw = el.mlw * el.geo;
-        if esw <= 0.0 && elw <= 0.0 { return; }
-        let u_b = mtv(r_b2i, &[-el.es[0], -el.es[1], -el.es[2]]);
-        let s = mv(r_b2i, &facet_sum(facets, &u_b, esw / c));
-        let l = mv(r_b2i, &facet_sum(facets, &u_b, elw / c));
-        for i in 0..3 {
-            fsw[i] += s[i];
-            flw[i] += l[i];
-        }
-    });
-    let sw = [fsw[0] / mass, fsw[1] / mass, fsw[2] / mass];
-    let lw = [flw[0] / mass, flw[1] / mass, flw[2] / mass];
-    ([sw[0] + lw[0], sw[1] + lw[1], sw[2] + lw[2]], Comp { sw, lw })
+    g::erp_boxwing(*r_sat, *r_sun, *r_b2i, crate::srp::rec(facets), mass, doy, nrings as i64, nseg as i64)
 }
 
 /// ERP model and its model-specific arguments (`model` + `varargin` of `erp.accel`).
@@ -242,10 +138,10 @@ impl<'a> ErpInput<'a> {
     }
 }
 
-/// Default Knocke ring count of `erp.knocke/ceres/boxwing`.
-pub const NRINGS: usize = 16;
-/// Default Knocke segment count of `erp.knocke/ceres/boxwing`.
-pub const NSEG: usize = 48;
+/// Default Knocke ring count of `erp.knocke/ceres/boxwing` (the design's).
+pub const NRINGS: usize = g::ERP_NRINGS as usize;
+/// Default Knocke segment count of `erp.knocke/ceres/boxwing` (the design's).
+pub const NSEG: usize = g::ERP_NSEG as usize;
 
 /// `[a, comp] = erp.accel(rSat, rSun, CrAoM, model, ...)` with the MATLAB
 /// defaults for the optional arguments: knocke/simple use `doy`; ceres uses its
@@ -263,7 +159,8 @@ pub fn accel(r_sat: &V3, r_sun: &V3, cr_aom: f64, model: Model, r_b2i: &M3, sc: 
 /// `erp:boxwing:noFacets` error) if `Boxwing` is asked of a spacecraft without facets.
 pub fn force(inp: &ErpInput) -> V3 {
     let sc = inp.sc;
-    let cr_aom = inp.cr_aom.unwrap_or_else(|| inp.cr.or(sc.cr).unwrap_or(1.3) * sc.aref / sc.mass);
+    let cr_aom = g::erp_cr_aom(inp.cr_aom.is_some(), inp.cr_aom.unwrap_or(0.0), inp.cr.is_some(), inp.cr.unwrap_or(0.0), sc.cr.is_some(),
+                               sc.cr.unwrap_or(0.0), sc.aref, sc.mass);
     match inp.model {
         Model::Boxwing => {
             assert!(!sc.facets.is_empty(), "erp:boxwing:noFacets -- erp.boxwing needs sc.facets; use knocke");

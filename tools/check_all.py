@@ -46,7 +46,7 @@ CHECKS = [
      [PY, "tools/trinetra.py", "docs", "--check"], ".", []),
     ("flight-build", "the flight software's generated algorithm sources (C and Rust) are what the design gives",
      [PY, "tools/flight_build.py", "gen", "--check"], ".", ["node"]),
-    ("engine-build", "the time engine's published models (adcs-sim-core, adcs-pop) and the twin's copy (+asils/+models) are what the design gives (env's methods and tables, tools/engine_build.py), and nothing else sits in their generated folders",
+    ("engine-build", "the time engine's published models and relations (adcs-sim-core, adcs-pop, adcs-sim) and the twin's copy (+asils/+models) are what the design gives (env's, dyn's and act's methods and tables, tools/engine_build.py), and nothing else sits in their generated folders",
      [PY, "tools/engine_build.py", "gen", "--check"], ".", ["node"]),
     ("flight-image", "the C flight software's build seals as a flight image from the design (its sources the design's, its flight flags, its vectors, its build id naming the algorithms; every scenario's blob) and the sealed file verifies; a change in the design reaching the sources, the library and the metrics is tests/test_flight_build.py",
      ["bash", "-c", "rm -rf build/flight_images && python3 tools/flight_build.py seal --target posix --out build/flight_images "

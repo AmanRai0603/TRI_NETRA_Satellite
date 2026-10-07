@@ -22,6 +22,9 @@ pub mod flight;
 pub mod error;
 pub mod schema;
 pub mod source;
+/// The engine's set-up relations written from the design with the platform's maths (env_orbit_start; tools/engine_build.py):
+/// generated, never edited.
+pub mod gen;
 
 pub use error::{Error, Kind};
 

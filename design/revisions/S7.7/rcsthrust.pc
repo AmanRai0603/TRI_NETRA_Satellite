@@ -1,0 +1,10 @@
+## The cold-gas thrusters' thrust dispersion, transcribed from adcs-sim-core actuators.rs (Rcs::new): each couple's
+## thrust factor 1 + sigma n (the part's thrust_scale dispersion), drawn from the run's dispersion stream.
+## The developer's transcription (S7.7), unsigned.
+module rcsthrust
+
+## A couple's thrust factor: 1 + sigma times a normal draw from disp.
+fn thrust_factor(sigma: real[1] in 0 .. 0.1, disp: inout stream) -> f: real[1]
+    let z = normal(disp)
+    f = 1.0 + sigma*z
+end

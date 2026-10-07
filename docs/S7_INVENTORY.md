@@ -9,13 +9,15 @@ content, for tools). Line counts are of the code as it stands.
 
 ## Counts
 
-**Now, after S7.5 (8 Oct 2026): 76 built-in nodes**, the relations computed in code (act 38, design 19, oils 1,
-pnt 4, sens 14; env and dyn have none left). Behaviours of the 1,190 nodes: stated 304, open 304, children 134, lookup
-126, evidence 119, method 89, built-in 76, closure 38. (After S7.1b: 91 built-in of 1,155; S7.2b added 3 data nodes, S7.3
+**Now, after S7.7 (8 Oct 2026): 46 built-in nodes**, the relations computed in code (act 8, design 19, oils 1,
+pnt 4, sens 14; env and dyn have none left, act only its sizing rows). Behaviours of the 1,207 nodes: stated 312, open
+303, children 134, method 129, lookup 126, evidence 119, built-in 46, closure 38. (After S7.1b: 91 built-in of 1,155; S7.2b added 3 data nodes, S7.3
 8 method nodes, turned l3_dist_row_07 and l3_dist_row_08 into methods and nav_time_frames into a stated row whose
 method moved to env; S7.3b-e added 6 data nodes and 11 method nodes of env, the published models of the precision
 orbit, which the inventory had called toolbox, so the built-in count did not move; S7.4 turned env's 9 into methods
-(89 to 80) and added env_moon_fast and six stated values of dyn; S7.5 turned dyn's 4 into methods (80 to 76).) `python3 tools/health.py tests/regression --built-in` counts them;
+(89 to 80) and added env_moon_fast and six stated values of dyn; S7.5 turned dyn's 4 into methods (80 to 76); S7.6 added 8 method nodes of env, the orbit's forces and starts, which
+had no node or were adcs-pop's relations, so the count did not move; S7.7 turned act's 30 device rows into methods (76 to
+46), made l3_mtq_row_06 (open) a method and added act_rotor_set and eight stated values of act.) `python3 tools/health.py tests/regression --built-in` counts them;
 `tests/test_built_in.py` holds the list, and each S7 step takes its nodes out of it. The counts below are the
 inventory's, at `cac5aac`.
 
@@ -93,9 +95,9 @@ answer. *closure*: a KPI comparison. *no code*: nothing computes it. *runtime*: 
 
 | node | group | label | computed in (file:function) | twin | step |
 |---|---|---|---|---|---|
-| act_cmg_model | act | Control moment gyro model | adcs-sim-core/src/actuators.rs:Mex::apply (Cmg) | +devices/mtq.m, mex.m, rcs.m | S7.7 |
-| act_vscmg_gimbal_limits | act | Gimbal rate limit and power | adcs-sim-core/src/actuators.rs:Mex::apply (gimbals) | +devices/mtq.m, mex.m, rcs.m | S7.7 |
-| act_vscmg_model | act | Variable-speed CMG model | adcs-sim-core/src/actuators.rs:Mex::apply (Vscmg) | +devices/mtq.m, mex.m, rcs.m | S7.7 |
+| act_cmg_model | act | Control moment gyro model | adcs-sim-core/src/actuators.rs:Mex::apply (Cmg) | +devices/mtq.m, mex.m, rcs.m | S7.7 *(done: method)* |
+| act_vscmg_gimbal_limits | act | Gimbal rate limit and power | adcs-sim-core/src/actuators.rs:Mex::apply (gimbals) | +devices/mtq.m, mex.m, rcs.m | S7.7 *(done: method)* |
+| act_vscmg_model | act | Variable-speed CMG model | adcs-sim-core/src/actuators.rs:Mex::apply (Vscmg) | +devices/mtq.m, mex.m, rcs.m | S7.7 *(done: method)* |
 | gm_4 | act | Magnetorquer power | adcs-design/src/lib.rs:mtq (power_at_max_W = 0.3 m/0.45) | +sizing | S7.14b | The metrics (the ruling of 7 Oct): how each KPI is measured from a run (APE, AKE, RKS, the ECSS indices, windows, time-to, verdicts; adcs-sim/src/metrics.rs derive, ecss, time_to, window, evaluate; the twin's +metrics) as methods of kpi, generated into the engine and the twin. The recorder and the step order stay core. | every scenario's metrics and every campaign's results identical (results/EVALUATION.md, ENGINE_SOLUTIONS); twin-parity |
 | S7.15 |
 | gm_5 | act | Magnetorquer mass | adcs-design/src/lib.rs:mtq (mass_kg = 0.03 m/0.45) | +sizing | S7.15 |
@@ -103,35 +105,35 @@ answer. *closure*: a KPI comparison. *no code*: nothing computes it. *runtime*: 
 | gw_5 | act | Wheel power | adcs-design/src/lib.rs:rotor (catalogue power_steady_W) | +sizing | S7.15 |
 | gw_6 | act | Wheel mass | adcs-design/src/lib.rs:rotor (catalogue mass_kg) | +sizing | S7.15 |
 | l3_fmr_row_07 | act | Electromagnetic pump design | adcs-design/src/empump.rs:design, pareto, friction | none (twin +sizing/fmr.m has no pump); +sizing | S7.15 |
-| l3_fmr_row_08 | act | Pump efficiency over its range | adcs-sim-core/src/actuators.rs:Mex::new (eta lo..hi), Mex::apply (Fmr) | +devices/mtq.m, mex.m, rcs.m | S7.7 |
-| l3_fmr_row_09 | act | Flow response time | adcs-sim-core/src/actuators.rs:Mex::apply (Fmr: flow_tau filter) | +devices/mtq.m, mex.m, rcs.m | S7.7 |
-| l3_fmr_row_10 | act | Flow noise | adcs-sim-core/src/actuators.rs:Mex::apply (Fmr: flow_noise_h) | +devices/mtq.m, mex.m, rcs.m | S7.7 |
-| l3_fmr_row_11 | act | Ring field power | adcs-sim-core/src/actuators.rs:Mex::apply (Fmr: field_on hysteresis) | +devices/mtq.m, mex.m, rcs.m | S7.7 |
-| l3_fmr_row_12 | act | Ring flow limits | adcs-sim-core/src/actuators.rs:Mex::apply (Fmr: h_max, pump clamp); adcs-sim/src/product.rs:fit_actuator_ (k_hv, tsd, hmax) | +devices/mtq.m, mex.m, rcs.m; +product/load.m | S7.7 |
-| l3_fmr_row_13 | act | Ring misalignment | adcs-sim-core/src/actuators.rs:Mex::new (misalignment) | +devices/mtq.m, mex.m, rcs.m | S7.7 |
+| l3_fmr_row_08 | act | Pump efficiency over its range | adcs-sim-core/src/actuators.rs:Mex::new (eta lo..hi), Mex::apply (Fmr) | +devices/mtq.m, mex.m, rcs.m | S7.7 *(done: method)* |
+| l3_fmr_row_09 | act | Flow response time | adcs-sim-core/src/actuators.rs:Mex::apply (Fmr: flow_tau filter) | +devices/mtq.m, mex.m, rcs.m | S7.7 *(done: method)* |
+| l3_fmr_row_10 | act | Flow noise | adcs-sim-core/src/actuators.rs:Mex::apply (Fmr: flow_noise_h) | +devices/mtq.m, mex.m, rcs.m | S7.7 *(done: method)* |
+| l3_fmr_row_11 | act | Ring field power | adcs-sim-core/src/actuators.rs:Mex::apply (Fmr: field_on hysteresis) | +devices/mtq.m, mex.m, rcs.m | S7.7 *(done: method)* |
+| l3_fmr_row_12 | act | Ring flow limits | adcs-sim-core/src/actuators.rs:Mex::apply (Fmr: h_max, pump clamp); adcs-sim/src/product.rs:fit_actuator_ (k_hv, tsd, hmax) | +devices/mtq.m, mex.m, rcs.m; +product/load.m | S7.7 *(done: method)* |
+| l3_fmr_row_13 | act | Ring misalignment | adcs-sim-core/src/actuators.rs:Mex::new (misalignment) | +devices/mtq.m, mex.m, rcs.m | S7.7 *(done: method)* |
 | l3_fmr_row_14 | act | Spare ring axis | adcs-design/src/lib.rs:fmr, spare_axis | +sizing | S7.15 |
 | l3_fmr_row_15 | act | Ring cross-section in the box | adcs-design/src/lib.rs:section, ring | +sizing | S7.15 |
-| l3_mtq_row_02 | act | Coil time constant (L/R lag) | adcs-sim-core/src/actuators.rs:lag | +devices/mtq.m, mex.m, rcs.m | S7.7 |
-| l3_mtq_row_03 | act | Dipole saturation per coil | adcs-sim-core/src/actuators.rs:Mtq::apply | +devices/mtq.m, mex.m, rcs.m | S7.7 |
-| l3_mtq_row_04 | act | Coil power at a dipole | adcs-sim-core/src/actuators.rs:Mtq::apply | +devices/mtq.m, mex.m, rcs.m | S7.7 |
-| l3_mtq_row_05 | act | Coil axes and their pseudo-inverse | adcs-sim-core/src/actuators.rs:Mtq::new | +devices/mtq.m, mex.m, rcs.m | S7.7 |
-| l3_mtq_row_12 | act | Coil scale-factor dispersion | adcs-sim-core/src/actuators.rs:Mtq::new | +devices/mtq.m, mex.m, rcs.m | S7.7 |
-| l3_mtq_row_13 | act | A failed coil and its reallocation | adcs-sim-core/src/actuators.rs:Mtq::apply | +devices/mtq.m, mex.m, rcs.m | S7.7 |
-| l3_rcs_row_01 | act | Thruster torque directions | adcs-sim/src/product.rs:fit_actuator_ (rcs couples 2 F arm); adcs-sim-core/src/actuators.rs:Rcs::apply | +devices/mtq.m, mex.m, rcs.m; +product/load.m | S7.7 |
-| l3_rcs_row_02 | act | Thrust level and dispersion | adcs-sim-core/src/actuators.rs:Rcs::new, Rcs::apply | +devices/mtq.m, mex.m, rcs.m | S7.7 |
-| l3_rcs_row_03 | act | Specific impulse and its range | adcs-sim-core/src/actuators.rs:Rcs::new (isp lo..hi) | +devices/mtq.m, mex.m, rcs.m | S7.7 |
-| l3_rcs_row_04 | act | Minimum impulse bit | adcs-sim-core/src/actuators.rs:Rcs::apply (mib, res) | +devices/mtq.m, mex.m, rcs.m | S7.7 |
-| l3_rcs_row_08 | act | Propellant remaining | adcs-sim-core/src/actuators.rs:Rcs::apply; adcs-sim/src/run.rs:actuate (tank empty) | +devices/mtq.m, mex.m, rcs.m; run.m | S7.7 |
-| l3_rcs_row_09 | act | Valve power | adcs-sim-core/src/actuators.rs:Rcs::apply | +devices/mtq.m, mex.m, rcs.m | S7.7 |
-| l3_rcs_row_10 | act | Thruster misalignment | adcs-sim-core/src/actuators.rs:Rcs::new | +devices/mtq.m, mex.m, rcs.m | S7.7 |
-| l3_rcs_row_11 | act | A failed thruster | adcs-sim-core/src/actuators.rs:Rcs::apply | +devices/mtq.m, mex.m, rcs.m | S7.7 |
-| l3_rw_row_01 | act | Wheel motor torque-speed line | adcs-sim-core/src/actuators.rs:wheel_motor; adcs-sim/src/product.rs:fit_actuator_ (t_stall, w_nl) | +devices/mtq.m, mex.m, rcs.m; +product/load.m | S7.7 |
-| l3_rw_row_02 | act | Wheel speed limit | adcs-sim-core/src/actuators.rs:wheel_motor, Mex::apply | +devices/mtq.m, mex.m, rcs.m | S7.7 |
-| l3_rw_row_03 | act | Wheel bearing friction (Coulomb, viscous, Stribeck) | adcs-sim-core/src/actuators.rs:Mex::apply (Rw: Coulomb, viscous, Stribeck, Karnopp) | +devices/mtq.m, mex.m, rcs.m | S7.7 |
-| l3_rw_row_04 | act | Wheel friction compensation | adcs-sim-core/src/actuators.rs:Mex::apply (friction_comp) | +devices/mtq.m, mex.m, rcs.m | S7.7 |
-| l3_rw_row_05 | act | Wheel torque noise | adcs-sim-core/src/actuators.rs:Mex::apply (torque_noise) | +devices/mtq.m, mex.m, rcs.m | S7.7 |
-| l3_rw_row_06 | act | Wheel misalignment | adcs-sim-core/src/actuators.rs:Mex::new (misalignment) | +devices/mtq.m, mex.m, rcs.m | S7.7 |
-| l3_rw_row_07 | act | Wheel steady power | adcs-sim-core/src/actuators.rs:Mex::apply (p_steady + \|tau om\|/eta) | +devices/mtq.m, mex.m, rcs.m | S7.7 |
+| l3_mtq_row_02 | act | Coil time constant (L/R lag) | adcs-sim-core/src/actuators.rs:lag | +devices/mtq.m, mex.m, rcs.m | S7.7 *(done: method)* |
+| l3_mtq_row_03 | act | Dipole saturation per coil | adcs-sim-core/src/actuators.rs:Mtq::apply | +devices/mtq.m, mex.m, rcs.m | S7.7 *(done: method)* |
+| l3_mtq_row_04 | act | Coil power at a dipole | adcs-sim-core/src/actuators.rs:Mtq::apply | +devices/mtq.m, mex.m, rcs.m | S7.7 *(done: method)* |
+| l3_mtq_row_05 | act | Coil axes and their pseudo-inverse | adcs-sim-core/src/actuators.rs:Mtq::new | +devices/mtq.m, mex.m, rcs.m | S7.7 *(done: method)* |
+| l3_mtq_row_12 | act | Coil scale-factor dispersion | adcs-sim-core/src/actuators.rs:Mtq::new | +devices/mtq.m, mex.m, rcs.m | S7.7 *(done: method)* |
+| l3_mtq_row_13 | act | A failed coil and its reallocation | adcs-sim-core/src/actuators.rs:Mtq::apply | +devices/mtq.m, mex.m, rcs.m | S7.7 *(done: method)* |
+| l3_rcs_row_01 | act | Thruster torque directions | adcs-sim/src/product.rs:fit_actuator_ (rcs couples 2 F arm); adcs-sim-core/src/actuators.rs:Rcs::apply | +devices/mtq.m, mex.m, rcs.m; +product/load.m | S7.7 *(done: method)* |
+| l3_rcs_row_02 | act | Thrust level and dispersion | adcs-sim-core/src/actuators.rs:Rcs::new, Rcs::apply | +devices/mtq.m, mex.m, rcs.m | S7.7 *(done: method)* |
+| l3_rcs_row_03 | act | Specific impulse and its range | adcs-sim-core/src/actuators.rs:Rcs::new (isp lo..hi) | +devices/mtq.m, mex.m, rcs.m | S7.7 *(done: method)* |
+| l3_rcs_row_04 | act | Minimum impulse bit | adcs-sim-core/src/actuators.rs:Rcs::apply (mib, res) | +devices/mtq.m, mex.m, rcs.m | S7.7 *(done: method)* |
+| l3_rcs_row_08 | act | Propellant remaining | adcs-sim-core/src/actuators.rs:Rcs::apply; adcs-sim/src/run.rs:actuate (tank empty) | +devices/mtq.m, mex.m, rcs.m; run.m | S7.7 *(done: method)* |
+| l3_rcs_row_09 | act | Valve power | adcs-sim-core/src/actuators.rs:Rcs::apply | +devices/mtq.m, mex.m, rcs.m | S7.7 *(done: method)* |
+| l3_rcs_row_10 | act | Thruster misalignment | adcs-sim-core/src/actuators.rs:Rcs::new | +devices/mtq.m, mex.m, rcs.m | S7.7 *(done: method)* |
+| l3_rcs_row_11 | act | A failed thruster | adcs-sim-core/src/actuators.rs:Rcs::apply | +devices/mtq.m, mex.m, rcs.m | S7.7 *(done: method)* |
+| l3_rw_row_01 | act | Wheel motor torque-speed line | adcs-sim-core/src/actuators.rs:wheel_motor; adcs-sim/src/product.rs:fit_actuator_ (t_stall, w_nl) | +devices/mtq.m, mex.m, rcs.m; +product/load.m | S7.7 *(done: method)* |
+| l3_rw_row_02 | act | Wheel speed limit | adcs-sim-core/src/actuators.rs:wheel_motor, Mex::apply | +devices/mtq.m, mex.m, rcs.m | S7.7 *(done: method)* |
+| l3_rw_row_03 | act | Wheel bearing friction (Coulomb, viscous, Stribeck) | adcs-sim-core/src/actuators.rs:Mex::apply (Rw: Coulomb, viscous, Stribeck, Karnopp) | +devices/mtq.m, mex.m, rcs.m | S7.7 *(done: method)* |
+| l3_rw_row_04 | act | Wheel friction compensation | adcs-sim-core/src/actuators.rs:Mex::apply (friction_comp) | +devices/mtq.m, mex.m, rcs.m | S7.7 *(done: method)* |
+| l3_rw_row_05 | act | Wheel torque noise | adcs-sim-core/src/actuators.rs:Mex::apply (torque_noise) | +devices/mtq.m, mex.m, rcs.m | S7.7 *(done: method)* |
+| l3_rw_row_06 | act | Wheel misalignment | adcs-sim-core/src/actuators.rs:Mex::new (misalignment) | +devices/mtq.m, mex.m, rcs.m | S7.7 *(done: method)* |
+| l3_rw_row_07 | act | Wheel steady power | adcs-sim-core/src/actuators.rs:Mex::apply (p_steady + \|tau om\|/eta) | +devices/mtq.m, mex.m, rcs.m | S7.7 *(done: method)* |
 | design_sizing_cmg | design | CMG sizing | adcs-design/src/lib.rs:rotor ("cmg") | +sizing | S7.15 |
 | design_sizing_fmr | design | Fluid ring sizing | adcs-design/src/lib.rs:fmr, ring; adcs-design/src/empump.rs:design | none (twin +sizing/fmr.m has no pump); +sizing | S7.15 |
 | design_sizing_mtq | design | Magnetorquer sizing | adcs-design/src/lib.rs:mtq | +sizing | S7.15 |
@@ -227,13 +229,13 @@ compute them.
 ### 1.3 Relations in code with no node
 
 - Moon position (`adcs-sim-core/ephem.rs:moon`).
-- Fast orbit forces and their constants (`orbit.rs:accel`, `ctx`); RAAN from LTAN (`adcs-sim/run.rs:Truth::new`); `sso_initial` (`adcs-pop/accel.rs`).
+- Fast orbit forces and their constants (`orbit.rs:accel`, `ctx`); RAAN from LTAN (`adcs-sim/run.rs:Truth::new`); `sso_initial` (`adcs-pop/accel.rs`). *(S7.6: env_orbit_fast, env_orbit_start, env_force_model.)*
 - Initial attitude, rate and rotor momenta (`run.rs:initial_state`).
-- Rotor telemetry noise 1e-7 N m s and gimbal-angle noise 1e-5 rad (`run.rs:sense`).
+- Rotor telemetry noise 1e-7 N m s and gimbal-angle noise 1e-5 rad (`run.rs:sense`). *(S7.7: stated, act_rotor_tlm_noise and act_gimbal_tlm_noise; run.rs reads its copies until S7.8, held equal by tests/test_built_in.py.)*
 - Synthetic star catalogue (`sensors.rs:star`, `+devices/star_catalogue.m`).
 - Power system: array power, state of charge, solar constant 1361 W/m^2 (`metrics.rs:PowerSystem`).
 - Plant values in `config.rs:build`: centre-of-mass direction [0.30, 0.70, -0.65], residual dipole split over three axes, accommodation 0.8, vb_ratio 0.05, specular share 0.5, F10.7 130, Kp 2, Ap 7, orbit step 10 s, zonal degree 6.
-- Device defaults in `product.rs:Dev::load`: torque_noise 0.001, friction_comp 0.95, eta 0.8, k_speed 1, k_flow 2, flow_tau 0.3, boresight +Y, Sun axis -Z.
+- Device defaults in `product.rs:Dev::load`: torque_noise 0.001, friction_comp 0.95, eta 0.8, k_speed 1, k_flow 2, flow_tau 0.3, boresight +Y, Sun axis -Z. *(S7.7: the six momentum-device defaults stated by act, act_rw_torque_noise, act_rw_friction_comp, act_rw_drive_efficiency, act_cmg_speed_gain, act_fmr_flow_gain, act_fmr_flow_tau; product.rs reads its copies until S7.11, held equal. The boresight and Sun axis are S7.8's.)*
 - Sizing defaults in `adcs-design/lib.rs:demand`: 10 deg/s, 30 deg, 60 s, 3 years, k_h 2, quarter orbit; survey seasons and F10.7 65 and 250; the 11 pump constants of `empump.rs`.
 - Catalogue derive rule (`tools/catalogue.py`): 6000 rpm, rotor share 0.4, no-load 1.25, static 1.5.
 - Floquet certificate (`tools/floquet.py`); design-loop rules (`tools/pipeline_design.py:node_converge`).
@@ -260,14 +262,14 @@ Kinds: *relation* (write as a method), *already a method* (call the generated on
 | Box facets from the class box and the centre-of-mass offset | adcs-sim-core/src/torques.rs:Facets::boxed (11-19) | 9 | l3_dist_row_02, s2_0, s2_1, s2_2 | relation | — | S7.4 *(done: l3_dist_row_02's facets)* |
 | Gravity-gradient, aerodynamic per facet, radiation per facet, residual dipole torques *gd_0..gd_3 are worst-case analysis methods; the per-facet in-loop torques are new methods.* | adcs-sim-core/src/torques.rs:torques, radiation (45-89) | 43 | l3_dist_row_01, l3_dist_row_02, l3_dist_row_03, l3_dist_row_06, gd_0, gd_1, gd_2, gd_3 | relation | — | S7.4 *(done: gravgrad, facets, radiation, dipoletorque; torques.rs keeps the attitude matrix and the case's switches)* |
 | Earth albedo and infrared pressure *Finding for env: the comment cites albedo 0.31 and 235 W/m^2; the code flies 0.30 and 237 W/m^2.* | adcs-sim-core/src/torques.rs:earth_pressure + EARTH_ALBEDO, EARTH_IR_W_M2 (22-41) | 20 | l3_dist_row_04, l3_dist_row_05 | relation + 2 parameters | — | S7.4 *(done: albedo, earthir, the values as flown, constants of the methods)* |
-| Fast orbit forces: J2-J6 zonal, Sun and Moon point masses, co-rotating drag, SRP with shadow; node context *No node; env adds an orbit-forces node. The fast model is the engine.orbit=fast choice.* | adcs-sim-core/src/orbit.rs:accel, ctx + MU, RE, OMEGA_E, MU_SUN, MU_MOON, J (9-89) | 81 | none | relation + parameters | G13 | S7.6 |
-| Orbit RK4 with Hermite interpolation; context interpolation | adcs-sim-core/src/orbit.rs:Orbit::new, advance, state, context (91-148) | 58 | none | core (integrator) | G8 | S7.6 |
-| Classical elements to state | adcs-sim-core/src/orbit.rs:coe2rv (152-161) | 10 | none | relation (published model: two-body elements to state) *(was toolbox)* | — | S7.6 |
+| Fast orbit forces: J2-J6 zonal, Sun and Moon point masses, co-rotating drag, SRP with shadow; node context *No node; env adds an orbit-forces node. The fast model is the engine.orbit=fast choice.* | adcs-sim-core/src/orbit.rs:accel, ctx + MU, RE, OMEGA_E, MU_SUN, MU_MOON, J (9-89) | 81 | none | relation + parameters | G13 | S7.6 *(done: env_orbit_fast's fast_accel, fast_context and corotating_velocity, the constants its own)* |
+| Orbit RK4 with Hermite interpolation; context interpolation | adcs-sim-core/src/orbit.rs:Orbit::new, advance, state, context (91-148) | 58 | none | core (integrator) | G8 | S7.6 *(stays code: calls env_orbit_fast)* |
+| Classical elements to state | adcs-sim-core/src/orbit.rs:coe2rv (152-161) | 10 | none | relation (published model: two-body elements to state) *(was toolbox)* | — | S7.6 *(done in S7.3: env_two_body_elements' coe2rv)* |
 | Rigid body with rotors, gimbals and one flexible mode; total momentum *dyn_kinematics is already a method; the core keeps RK4 and calls the generated deriv.* | adcs-sim-core/src/plant.rs:Geometry, Body::flexible, deriv, momentum (7-97, 139-146) | 98 | dyn_rigid_body, dyn_rotor_coupling, dyn_flexible_mode, dyn_total_momentum, dyn_kinematics | relation | G8, G12 | S7.5 *(done: rotors, flexmode, rigidbody, momentum; the inertia's inverses stay the toolbox's la::inv)* |
 | Plant RK4, sub-steps for a flexible mode *The rule "Omega h at most 0.5" is a numerical choice of the integrator: keep in core.* | adcs-sim-core/src/plant.rs:axpy, step, step_rk4 (99-137) | 39 | none | core (integrator) | G8 | S7.5 *(stays code: calls rigidbody's plant_deriv)* |
-| Magnetorquers: dispersion, allocation pinv, saturation, L/R lag, power, failed coil | adcs-sim-core/src/actuators.rs:lag, Mtq (7-55) | 49 | l3_mtq_row_02, l3_mtq_row_03, l3_mtq_row_04, l3_mtq_row_05, l3_mtq_row_12, l3_mtq_row_13 | relation | G1, G2, G9 | S7.7 |
-| Momentum devices: wheel motor line, friction (Coulomb, viscous, Stribeck, stiction), compensation, noise, power; VSCMG; fluid ring pump, flow filter, field hysteresis; CMG speed loop; gimbal limits | adcs-sim-core/src/actuators.rs:wheel_motor, Mex (57-165) | 109 | l3_rw_row_01, l3_rw_row_02, l3_rw_row_03, l3_rw_row_04, l3_rw_row_05, l3_rw_row_06, l3_rw_row_07, l3_fmr_row_08, l3_fmr_row_09, l3_fmr_row_10, l3_fmr_row_11, l3_fmr_row_12, l3_fmr_row_13, act_cmg_model, act_vscmg_model, act_vscmg_gimbal_limits | relation | G1, G2, G3, G5, G6, G12 | S7.7 |
-| Thrusters: dispersion, minimum impulse, valve resolution, mass flow, valve power, failure | adcs-sim-core/src/actuators.rs:Rcs (167-199) | 33 | l3_rcs_row_01, l3_rcs_row_02, l3_rcs_row_03, l3_rcs_row_04, l3_rcs_row_08, l3_rcs_row_09, l3_rcs_row_10, l3_rcs_row_11 | relation | G1 | S7.7 |
+| Magnetorquers: dispersion, allocation pinv, saturation, L/R lag, power, failed coil | adcs-sim-core/src/actuators.rs:lag, Mtq (7-55) | 49 | l3_mtq_row_02, l3_mtq_row_03, l3_mtq_row_04, l3_mtq_row_05, l3_mtq_row_12, l3_mtq_row_13 | relation | G1, G2, G9 | S7.7 *(done: l3_mtq_row_13's coilset over coillag, coilsat, coilpower, coilaxes, coildisp)* |
+| Momentum devices: wheel motor line, friction (Coulomb, viscous, Stribeck, stiction), compensation, noise, power; VSCMG; fluid ring pump, flow filter, field hysteresis; CMG speed loop; gimbal limits | adcs-sim-core/src/actuators.rs:wheel_motor, Mex (57-165) | 109 | l3_rw_row_01, l3_rw_row_02, l3_rw_row_03, l3_rw_row_04, l3_rw_row_05, l3_rw_row_06, l3_rw_row_07, l3_fmr_row_08, l3_fmr_row_09, l3_fmr_row_10, l3_fmr_row_11, l3_fmr_row_12, l3_fmr_row_13, act_cmg_model, act_vscmg_model, act_vscmg_gimbal_limits | relation | G1, G2, G3, G5, G6, G12 | S7.7 *(done: act_rotor_set's rotorset over the wheels', rings', CMG's, VSCMG's and gimbals' rows)* |
+| Thrusters: dispersion, minimum impulse, valve resolution, mass flow, valve power, failure | adcs-sim-core/src/actuators.rs:Rcs (167-199) | 33 | l3_rcs_row_01, l3_rcs_row_02, l3_rcs_row_03, l3_rcs_row_04, l3_rcs_row_08, l3_rcs_row_09, l3_rcs_row_10, l3_rcs_row_11 | relation | G1 | S7.7 *(done: l3_rcs_row_11's thrusters over the thruster rows)* |
 | Gyro, magnetometer, fine Sun (noise model), coarse Sun, Earth sensor, GNSS (history and latency) | adcs-sim-core/src/sensors.rs:mis, sf, Gyro, Mag, Sun, Css, Es, Gps (10-122, 267-324) | 171 | l3_sens_row_01, l3_sens_row_02, l3_sens_row_03, l3_sens_row_04, l3_sens_row_05, l3_sens_row_06, l3_sens_row_13, l3_sens_row_14 | relation | G1, G3, G12 | S7.8 |
 | Star tracker: synthetic catalogue, latency history, exclusion and blinding, noise model, onboard QUEST model *The catalogue generator has no node: sens adds one (a table or a method).* | adcs-sim-core/src/sensors.rs:star, St (124-265) | 142 | l3_sens_row_09, l3_sens_row_12 | relation | G1, G3, G4, G6, G7, G12 | S7.9 |
 | Star-tracker chain: camera, pair table, render, centroid (median), identify (votes), attitude (q-method, residual) | adcs-sim-core/src/comp.rs:head_frame, star_tracker (20-300) | 281 | l3_sens_row_09, l3_sens_row_10, l3_sens_row_11, l3_sens_row_12 | relation | G1, G3, G4, G7, G12 | S7.10 |
@@ -281,11 +283,11 @@ Kinds: *relation* (write as a method), *already a method* (call the generated on
 | Plant and environment parameters from the case: epoch, mean motion, inertia, centre-of-mass direction [0.30, 0.70, -0.65], residual dipole split, flexible-mode delta, surface constants, engine defaults *The centre-of-mass direction, accommodation 0.8, vb_ratio 0.05, specular share 0.5, f107 130, kp 2, ap 7 are values with no node.* | adcs-sim/src/config.rs:build, apply_engine + ACCOMMODATION, VB_RATIO, SPEC_FRAC (186-189, 465-539, 626-696) | 150 | s1_0, s1_1, s1_2, s1_3, s1_4, s2_1, s2_3, s3_0, s4_0, s4_1, m2_5, m2_6, dyn_flexible_mode | relation + parameters | G5, G6 | S7.11 |
 | Flight parameters from case, product and scenario (147 fsw_param_* values): gain laws, LQR weights, literature-law gains, gravity-gradient stability test, MEKF sigmas, rotor targets, choices *The 147 fsw_param_* nodes are stated with no value (S6 finding). Split by pattern match, to confirm per node.* | adcs-sim/src/config.rs:modes_and_laws, guidance_params, mtq_gains, rw_gains, spin_params, rotor_params, rcs_params, sensor_params (216-425) | 210 | fsw_param_* (147) | relation (47 computed), choices (9), parameters (38), wires (29), scenario values (24) | G6, G5 | S7.13 |
 | Single-axis LQR by Kleinman iteration (Lyapunov solve) | adcs-sim/src/lqr.rs:solve, lyap, chain3 (5-57) | 53 | fsw_param_mtq_Klqr, fsw_param_rw_Klqr | toolbox (a CARE solver: stays); the weights are relation | — | S7.13 |
-| Part to device descriptor: motor stall torque and no-load speed, ring k_hv, spin-down time, h_max, pump torque 2h/tsd, thruster couples 2 F arm, device defaults (torque_noise 0.001, friction_comp 0.95, eta 0.8, k_speed 1, k_flow 2, flow_tau 0.3) *Ring momentum and spin-down time exist as methods (act ring_momentum, spin_down_time): call them. File reading and capacity checks stay code.* | adcs-sim/src/product.rs:add_rotor, fit_actuator_, fit_sensor, Dev::load (110-294) | 185 | l3_rw_row_01, l3_fmr_row_12, l3_rcs_row_01, gf_6, gf_7 | relation + parameters | G6, G10 | S7.11 |
-| Truth set-up and environment refresh: RAAN from LTAN (fast), co-rotating air velocity, Earth half-angle, nadir | adcs-sim/src/run.rs:Truth::new, Truth::env (28-75); run (Sky, 506) | 50 | m2_3, l3_dist_row_08, l3_dist_row_10 | relation (glue) | G6 | S7.6 |
+| Part to device descriptor: motor stall torque and no-load speed, ring k_hv, spin-down time, h_max, pump torque 2h/tsd, thruster couples 2 F arm, device defaults (torque_noise 0.001, friction_comp 0.95, eta 0.8, k_speed 1, k_flow 2, flow_tau 0.3) *Ring momentum and spin-down time exist as methods (act ring_momentum, spin_down_time): call them. File reading and capacity checks stay code.* | adcs-sim/src/product.rs:add_rotor, fit_actuator_, fit_sensor, Dev::load (110-294) | 185 | l3_rw_row_01, l3_fmr_row_12, l3_rcs_row_01, gf_6, gf_7 | relation + parameters | G6, G10 | S7.11 *(S7.7: the laws are act's methods, l3_rw_row_01's motor_constants, l3_fmr_row_12's ring_constants and ring_pump_max, l3_rcs_row_01's couple_torques, called here; the six device defaults stated by act; the reading stays code)* |
+| Truth set-up and environment refresh: RAAN from LTAN (fast), co-rotating air velocity, Earth half-angle, nadir | adcs-sim/src/run.rs:Truth::new, Truth::env (28-75); run (Sky, 506) | 50 | m2_3, l3_dist_row_08, l3_dist_row_10 | relation (glue) | G6 | S7.6 *(done: env_orbit_start's RAAN from the LTAN, a, i, u0, generated into adcs-sim; the air's velocity env_orbit_fast's corotating_velocity; Cr = 1 + reflectivity env_force_model's sils_cr. Left: the Earth's half-angle and the nadir the sensors see (run.rs Sky, a literal 6378137 m), S7.8)* |
 | Initial attitude, rate and rotor momenta from the scenario *No node; the scenario semantics belong to vv or case.* | adcs-sim/src/run.rs:initial_state (266-304) | 39 | none | relation | G1, G6 | S7.11 |
 | Sensor sampling order; GNSS fix to ECEF; rotor telemetry noise 1e-7 N m s and 1e-5 rad *The tachometer and gimbal-angle noises have no node: act states them.* | adcs-sim/src/run.rs:sense (315-361) | 47 | l3_sens_row_14 | core (order) + relation (2 hidden noise values) | G1 | S7.8 |
-| Actuation, propellant use and empty tank; coil torque m x B; latency hold (soft OILS) | adcs-sim/src/run.rs:actuate, step_plant (389-441) | 66 | l3_rcs_row_08, gd_3 | core (order) + relation (m x B, empty tank) | — | S7.7 |
+| Actuation, propellant use and empty tank; coil torque m x B; latency hold (soft OILS) | adcs-sim/src/run.rs:actuate, step_plant (389-441) | 66 | l3_rcs_row_08, gd_3 | core (order) + relation (m x B, empty tank) | — | S7.7 *(done: l3_mtq_row_06's coil_torque, l3_rcs_row_08's tank_update; the order and the latency hold stay core)* |
 | Soft-OILS latency model (bus times, CPI) | adcs-sim/src/run.rs:oils_latency (365-381) | 17 | gx_3, v3_2 | rig (code) | — | - |
 | Tick order, recorder | adcs-sim/src/run.rs:run (443-559), row | 130 | none | core | G8 | - |
 | Array power and battery state of charge; solar constant 1361 W/m^2 *No node: a power node (programme or design) is needed.* | adcs-sim/src/metrics.rs:PowerSystem, SOLAR_CONSTANT, derive (power part) (20-45, 152-165) | 40 | none | relation + parameter | — | S7.14 |
@@ -340,14 +342,14 @@ box-wing, which forces are summed, the SSO set-up) was already a relation.
 | adcs-pop/src/solidtides.rs | Solid-Earth tides (IERS 2010) | 213 | relation (published model) *(was toolbox)* | S7.3d *(done: env_solid_tides)* |
 | adcs-pop/src/oceantides.rs | Ocean tides (FES2004) | 225 | relation (published model); the FES table data, its .bin reader code *(was toolbox)* | S7.3d *(done: env_ocean_tides, env_ocean_tide_tables)* |
 | adcs-pop/src/relativity.rs | Post-Newtonian terms (IERS 2010) | 158 | relation (published model) *(was toolbox)* | S7.3e *(done: env_relativity)* |
-| adcs-pop/src/thirdbody.rs | Sun and Moon point masses | 169 | relation (decide: a standard law, but which bodies and how is the design's) | S7.6 |
-| adcs-pop/src/thirdbody/secular.rs | Lidov-Kozai secular dynamics | 135 | relation (not in the loop) | S7.6 |
-| adcs-pop/src/drag.rs | Drag: cannonball and panel models | 520 | relation (spacecraft force model) | S7.6 |
-| adcs-pop/src/drag/gsi.rs | Gas-surface interaction coefficients | 115 | relation (decide: published GSI forms, design accommodation) | S7.6 |
-| adcs-pop/src/drag/geom.rs | Drag geometry | 162 | relation | S7.6 |
-| adcs-pop/src/srp.rs | SRP, eclipse, box-wing | 350 | relation (spacecraft force model) | S7.6 |
-| adcs-pop/src/erp.rs | Earth radiation pressure | 277 | relation (spacecraft force model) | S7.6 |
-| adcs-pop/src/accel.rs | Force selection and sum; sso_initial; the in-loop stepper | 308 | relation (forces chosen, cr = 1 + refl, SSO set-up) + core (stepper) | S7.6 |
+| adcs-pop/src/thirdbody.rs | Sun and Moon point masses | 169 | relation (decide: a standard law, but which bodies and how is the design's) | S7.6 *(done: env_third_body)* |
+| adcs-pop/src/thirdbody/secular.rs | Lidov-Kozai secular dynamics | 135 | relation (not in the loop) | S7.6 *(done: env_third_body's rates (the secular histories' RK4 stays code))* |
+| adcs-pop/src/drag.rs | Drag: cannonball and panel models | 520 | relation (spacecraft force model) | S7.6 *(done: env_drag_force)* |
+| adcs-pop/src/drag/gsi.rs | Gas-surface interaction coefficients | 115 | relation (decide: published GSI forms, design accommodation) | S7.6 *(done: env_gas_surface)* |
+| adcs-pop/src/drag/geom.rs | Drag geometry | 162 | relation | S7.6 *(done: env_drag_force)* |
+| adcs-pop/src/srp.rs | SRP, eclipse, box-wing | 350 | relation (spacecraft force model) | S7.6 *(done: env_srp_force)* |
+| adcs-pop/src/erp.rs | Earth radiation pressure | 277 | relation (spacecraft force model) | S7.6 *(done: env_erp_force (a user's albedo grid, a function the run hands in, is the code's loop))* |
+| adcs-pop/src/accel.rs | Force selection and sum; sso_initial; the in-loop stepper | 308 | relation (forces chosen, cr = 1 + refl, SSO set-up) + core (stepper) | S7.6 *(done: env_force_model (the force set, its sum, sso_initial); the in-loop stepper stays code)* |
 
 Also moving: **`fsw/pseudocode/02_time_frames_models.pc` and `02_igrf13.pc`** (248 lines: GMST, precession, ECI to
 ECEF, decimal year, the Sun model, geodetic, the IGRF synthesis and its 26 x 195 table), already pseudocode, into `env`
@@ -407,11 +409,11 @@ time would bring the published data back into code.
 | +groups | 89 | 1868 | generated (group methods) | - | — |
 | +pc | 15 | 95 | generated runtime of the MATLAB translator (toolbox) | - | — |
 | +pcselftest | 12 | 299 | generated (translator self-test) | - | — |
-| +devices | 16 | 436 | relation (device models) | S7.7-S7.9 | mtq, mex, rcs, wheel_motor; gyro, magnetometer, css, sun_sensor, star_tracker, earth_sensor, gps*, st_history, star_catalogue; init (dispersions) |
+| +devices | 16 | 436 | relation (device models) | S7.7-S7.9 | mtq, mex, rcs, wheel_motor; gyro, magnetometer, css, sun_sensor, star_tracker, earth_sensor, gps*, st_history, star_catalogue; init (dispersions). The generated copies of the actuators are in +asils/+models (+coil*, +wheel*, +ring*, +rcs*, +rotorset, +thrusters, +cmgmodel, +vscmgmodel, +gimbals) since S7.7; the twin flies its own until S7.17. |
 | +comp | 17 | 274 | relation (component chains) | S7.8-S7.10 | star_tracker, sun_sensor; earth_sensor (twin only); fluid_loop/drive, magnetorquer/drive, rcs/schedule; magnetometer/calibrate (a stub) |
 | +env | 8 | 236 | relation (torques, shadow, Earth pressure, facets; igrf_* the IGRF synthesis, a published model *(was toolbox)*) | S7.3-S7.4 | The generated copies are in +asils/+models (+facets, +gravgrad, +radiation, +albedo, +earthir, +dipoletorque, +sunfast, +moonfast, +shadow, +eclipse) since S7.4; the twin flies its own until S7.17. |
 | +plant | 4 | 101 | relation (deriv, geometry, axes); core (step) | S7.5 | The generated copies are in +asils/+models (+rotors, +flexmode, +rigidbody, +momentum) since S7.5; the twin flies its own until S7.17. |
-| +orbit | 6 | 130 | relation (init, node); core (advance, state, context) | S7.6 | The twin flies the POP (matlab_sils/pop), as the engine does with orbit=pop. |
+| +orbit | 6 | 130 | relation (init, node); core (advance, state, context) | S7.6 | The twin flies the POP (matlab_sils/pop), as the engine does with orbit=pop. The generated copies of the fast orbit (+orbitfast, +orbitstart) and of the POP's force models (+thirdbody, +gsi, +drag, +srp, +erp, +forcemodel) are in +asils/+models since S7.6; matlab_sils/pop stays the reference until S7.17. |
 | +sizing | 9 | 452 | relation (demand, mtq, rw, cmg, fmr, rcs, jitter, size_all); code (print) | S7.15 | Differs from adcs-design: wheels and CMGs by law, no pump design. |
 | +product | 1 | 264 | relation (descriptors, budget_); code (reading) | S7.11 | — |
 | +fsw | 28 | 1088 | flight algorithms written by hand (could be generated); step.m is the tick shell | S7.17 | A subset: no literature magnetic laws (Lovera, Celani, Avanzini, Tango, de Ruiter). |
@@ -498,6 +500,31 @@ and dyn's four (S7.5) in both cases, each still not computed with no value, only
 inputs (`needs rm (no input names it), ...`) instead of "no value, relation or pseudocode yet"; every closure equal; the
 baseline (results/evaluation.json) is kept, as S7.3 kept it. The regression copy is 9.6 MB (9,621,504 bytes; 9,564,160 after S7.3e).
 
+**After S7.6 and S7.7 (8 Oct 2026):** one new builtin, `erf` (trinetra-toolbox/4, the gas-surface interaction's): the C
+library's in every translation (C `erf`, MATLAB `erf`; in Rust for std an `extern "C"` erf in `rt.rs`, as the code it
+replaced called; a no_std crate's maths module), fdlibm's s_erf.c over each interpreter's own `exp` (JavaScript has none),
+held to Node on 40,000 arguments and by the language's self-test (`errorfn`). G1 is met for the devices: `Rng::stream` and
+`Rng::from_stream` hand rng.rs's state to the generated models and take it back, so every draw is rng.rs's, in its order.
+G3 by parallel arrays in records (`RotorDesc`, `RotorSet`, `CoilSet`, `ThrusterSet`), G6 by choices (`RotorKind`, the
+panel model, the shadow model), G8 by thin calls, the records re-exported under the engine's names (`orbit::Ctx` is
+`orbitfast::FastCtx`; `Mtq`, `Mex` and `Rcs` hold the generated state behind `Deref`). G9 (generic units) is still open:
+`coil_lag` serves the dipole only. A third engine target, `adcs-sim` (std maths), takes the set-up relation that flew with
+the platform's maths (env_orbit_start). G11, measured old against generated, per call (each pair a range over three runs
+on a busy machine): the fast orbit's acceleration 141-145 against 132-147 ns and its context 1.0-1.2 against 1.0 us; the
+POP's SILS force sum 5.9-6.5 against 6.1-7.6 us; the ERP box-wing 162-192 against 163-190 us and Knocke's rings 45-66
+against 44-68 us; the coils (3) 85-99 against 90-106 ns (+6 %), four wheels 190-209 against 206-221 ns (+3 to +17 %, the
+rotor set's records passed by value), six thrusters 51 against 50-53 ns; the 48 scenarios 22.8-23.3 s, the same as the old
+binary on the same machine: the devices and the orbit are a small part of a step. The translators on env (now env's, dyn's
+and act's modules): 340 functions (209 before) in Rust, C and MATLAB, 705,743 values, every vector equal to the interpreter
+(bit for bit where exact); the JavaScript and the library's translators give the same bytes on every engine target. The
+existing generated files change only where intended: every module imports the new records (the translator imports a
+target's records in every module), and the twin's MATLAB renumbers its temporaries (a counter over the package, which
+gains modules). The parity gate on the regression copy: inputs 166, layout 151, blobs 48, runs 48, campaigns 4,516, soft
+OILS 2, the twin 1, all equal; evaluate 1,408 of 1,500: the 30 rows S7.3-S7.5 named and 62 more of the same kind, act's
+31 new methods in both cases, each still not computed with no value, only its reason changed (its unwired inputs); every
+closure equal; the baseline (results/evaluation.json) is kept. The regression copy is 9.8 MB (9,838,592 bytes; 9,621,504
+after S7.5).
+
 The translators handle `fn`, `proc` with state, tables (step, linear), records, fixed arrays of arrays, `settle` loops,
 and the Rust translator can route maths to a module. Not yet:
 
@@ -574,6 +601,16 @@ do not change (S7.18).
   so these six show "not computed" there, as every `value.number` the case does not state.
 - **dyn (S7.5):** the flexible mode's delta (|delta|^2 = mpart J of the axis) is still config.rs's (S7.11); no shipped
   scenario flies a flexible mode (both cases leave flex.* blank).
+- **act (S7.7):** the six momentum-device defaults (`product.rs Dev::load`) and the rotor telemetry noises (`run.rs
+  sense`) are stated nodes of act, with the 1.0.0 code as their source; the engine still reads its copies until S7.11
+  and S7.8 (`tests/test_built_in.py` holds them equal). The coils' allocation inverts A A^T by its adjugate with no check:
+  fewer than three independent coil axes leave it singular, as flown (coilaxes).
+- **sens (S7.6):** the Earth's half-angle the coarse Sun sensors and the star tracker see is still `run.rs`'s (Sky, a
+  literal 6378137 m): S7.8.
+- **env (found at S7.6, not caused by it):** the committed `results/ENGINE_PARITY.md` is older (29 Sep) than the engine
+  runs it pairs (refiled 7 Oct): made again from the same stored runs, the verdicts agree 104 of 111 (94 of 107 as
+  committed) and the field's |B| ratio column reads 0.2 to 0.6 % where it read 4e-9. Left as committed; regenerating it
+  is its owner's change.
 - **design:** the twin sizes wheels and CMGs by a law (`+sizing/rw.m`, `cmg.m`); the engine selects them from the catalogue (`adcs-design/lib.rs:rotor`). The twin's fluid ring has no pump design (`empump.rs`). One method each will force a choice.
 - **design:** `gb_2` (ADCS peak power) is not computed by the sizing: `budget` sums steady power only.
 - **all:** `adcs-physics` is generated and unused by the engine, while `adcs-design` and the core write some of the same laws by hand (slew momentum and torque = `gw_3`, `gw_4`; ring momentum and spin-down = `gf_6`, `gf_7`; magnetorquer dipole = `gm_1`, `gm_2`; density table = `m3_3`).
@@ -599,8 +636,8 @@ across their range. The translator comes first; generated files are never edited
 | S7.3e | **Done (7 Oct 2026).** env_relativity (design/revisions/S7.3e): the three terms and relativity.total; relativity.rs is thin calls. Held: 200,000 random states, every term list, old against generated, 0 bits; the adcs-pop relativity tests as before; 48 of 48 scenarios bit for bit. Relativity (published model): the IERS 2010 post-Newtonian terms (Schwarzschild, Lense-Thirring, de Sitter) as methods of orbit. | adcs-pop relativity tests against the Octave reference vectors; scenarios identical |
 | S7.4 | **Done (8 Oct 2026).** env's methods (design/revisions/S7.4): l3_dist_row_02 facets (the box's faces, the aerodynamic torque), l3_dist_row_01 gravgrad, l3_dist_row_03 radiation (the Sun's light by the sunlit fraction, the Earth's albedo and infrared from the nadir), l3_dist_row_04 albedo, l3_dist_row_05 earthir, l3_dist_row_06 dipoletorque, l3_dist_row_09 sunfast (the Sun and its pressure, as flown: not m3_5's model, a finding), env_moon_fast moonfast (a new node), l3_dist_row_10 shadow, m2_7 eclipse (the sizing survey calls it); generated into adcs-sim-core/src/gen and the twin's +asils/+models; torques.rs and ephem.rs are thin calls. The values with no node stated by dyn with the 1.0.0 code as source (dyn_cm_direction_x/y/z, dyn_surface_accommodation, dyn_surface_vb_ratio, dyn_surface_specular_share). Held: 200,000 random inputs a function, old against generated, 0 bits different (the shadow with 23,589 in the penumbra); 48 of 48 scenarios bit for bit (channels, metrics, mode logs), the 48 again on the fast orbit, both cases' sizing; fsw-parity 48/48; built-in 89 to 80 (env 9 to 0). Environment and disturbances (env): facets, gravity gradient, aero and radiation per facet, Earth albedo and IR, residual dipole, Sun (fast), Moon, shadow; their parameters as stated nodes. Transcribe from torques.rs and ephem.rs. | vectors: interpreter = Rust = C = MATLAB; every scenario's metrics identical; twin-parity no worse |
 | S7.5 | **Done (8 Oct 2026).** dyn's methods (design/revisions/S7.5): dyn_rotor_coupling rotors (geometry, axes), dyn_flexible_mode flexmode (the reduced inertia, the mode's force), dyn_rigid_body rigidbody (the state and its rate: Euler's equations with the rotors, the mode, the kinematics), dyn_total_momentum momentum; generated into adcs-sim-core/src/gen and the twin's +asils/+models; plant.rs keeps the integrator (RK4, the flexible mode's sub-steps) and the inertia's inverses (toolbox) and calls them. Held: 200,000 random bodies and states (0 to 8 rotors, 0 to 4 gimbals, a third flexible), old against generated: geometry, rate, RK4 step, momentum and axes, 0 bits different; a 20,000-step flexible trajectory with three gimballed rotors in lockstep, 0 bits; 48 of 48 scenarios bit for bit and 48 on flexible-mode variants of both cases (old binary against new); the momentum-conservation tests; fsw-parity 48/48; built-in 80 to 76 (dyn 4 to 0). The plant (dyn): deriv with rotors, gimbals and the flexible mode, momentum. The core RK4 calls the generated deriv (G8). | vectors; momentum conservation test (adcs-sim-core tests); scenarios identical; twin-parity |
-| S7.6 | The orbit: fast forces and context (orbit.rs accel, ctx); RAAN from LTAN; then the POP spacecraft force models (drag, SRP, ERP, third body, force sum, sso_initial) as relations over the published-model methods of S7.3-S7.3e (no POP toolbox remains); coe2rv as a method of orbit. | adcs-pop tests against the Octave reference vectors; ENGINE_PARITY truth-environment table unchanged; scenarios identical |
-| S7.7 | Actuators (act): magnetorquers, wheels, VSCMG, CMG, fluid rings, thrusters, gimbals; m x B and the empty tank. Needs G1, G2/G3, G5, G6. | vectors; scenarios and every campaign identical (same streams); twin-parity |
+| S7.6 | **Done (8 Oct 2026).** env's methods (design/revisions/S7.6), new nodes: env_orbit_fast orbitfast (the fast orbit's point mass, zonals J2..J6, Sun and Moon, drag in the turning air, the Sun's pressure in the shadow, and the node context; its constants its own), env_orbit_start orbitstart (the RAAN from the LTAN and the Sun at the epoch, a, i, u0; generated into adcs-sim, the engine's set-up, with std maths as it flew), env_third_body thirdbody (Battin, direct, tidal, Legendre, the doubly-averaged secular rates), env_gas_surface gsi (Sentman, CLL, SESAM, DRIA, the species), env_drag_force drag (the cannonball, the panel force and its geometry), env_srp_force srp (the cannonball, the box-wing, the shadow cylinder, cone and oblate cone), env_erp_force erp (Knocke's rings, the simple source, CERES without a grid, the box-wing), env_force_model forcemodel (the force set, its sum, sso_initial, Cr = 1 + reflectivity); generated into adcs-sim-core/src/gen, adcs-pop/src/gen, adcs-sim/src/gen and the twin's +asils/+models; orbit.rs keeps the RK4 and Hermite interpolation, adcs-pop the in-loop stepper, the secular histories' RK4 and a user's albedo grid, and call them. Toolbox trinetra-toolbox/4: erf (the C library's in every translation; fdlibm's s_erf.c in both interpreters). Held: 200,000 random inputs a function, old against generated, 0 bits different (fast accel, context, air velocity, start, 100 trajectories; 53 POP paths, the panel models 800,000 calls, the SRP force 1,200,000, World::accel and the in-loop trajectory 200 each); adcs-pop's 50 tests against the Octave reference vectors every figure as before (0e0 where it was 0e0); 48 of 48 scenarios bit for bit, 48 on the fast orbit and 48 on flexible variants (old binary against new); fsw-parity 48/48; the truth-environment table of results/ENGINE_PARITY.md unchanged (the runs are). The built-in count does not move (new nodes). The fast orbit's forces, RAAN from the LTAN and the POP's spacecraft force models as relations over the published-model methods of S7.3-S7.3e. The orbit: fast forces and context (orbit.rs accel, ctx); RAAN from LTAN; then the POP spacecraft force models (drag, SRP, ERP, third body, force sum, sso_initial) as relations over the published-model methods of S7.3-S7.3e (no POP toolbox remains); coe2rv as a method of orbit. | adcs-pop tests against the Octave reference vectors; ENGINE_PARITY truth-environment table unchanged; scenarios identical |
+| S7.7 | **Done (8 Oct 2026).** act's methods (design/revisions/S7.7): the coils l3_mtq_row_02 coillag, 03 coilsat, 04 coilpower, 05 coilaxes, 12 coildisp, 13 coilset (a failed coil), 06 coiltorque (m x B, open until now); the wheels l3_rw_row_01 wheelmotor (with the motor's constants), 02 wheelspeed, 03 wheelfriction, 04 wheelcomp, 05 wheelnoise, 06 wheelaxis, 07 wheelpower; the rings l3_fmr_row_08 ringpump, 09 ringflow, 10 ringnoise, 11 ringfield, 12 ringlimits (the ring's constants and pump limit), 13 ringaxis; act_cmg_model cmgmodel, act_vscmg_model vscmgmodel, act_vscmg_gimbal_limits gimbals; the momentum devices as flown, act_rotor_set rotorset (a new node: the order of the draws, a failed rotor's coast); the thrusters l3_rcs_row_01 rcstorque, 02 rcsthrust, 03 rcsisp, 04 rcsmib, 08 rcsprop (the empty tank), 09 rcsvalve, 10 rcsaxis, 11 thrusters; generated into adcs-sim-core/src/gen and the twin's +asils/+models, their draws the language's streams (rng.rs's state handed over and back, value for value); actuators.rs keeps the descriptors product.rs fills and hands them over. Stated by act with the 1.0.0 code as source: the six momentum-device defaults (act_rw_torque_noise, act_rw_friction_comp, act_rw_drive_efficiency, act_cmg_speed_gain, act_fmr_flow_gain, act_fmr_flow_tau) and the rotor telemetry noises (act_rotor_tlm_noise, act_gimbal_tlm_noise). Held: 200,000 random coil sets, rotor sets (0 to 8 rotors of every kind, 0 to 4 gimbals) and thruster sets, each over 200 steps with a failure part way and the stream after construction compared, 0 bits different; 48 of 48 scenarios bit for bit (and fast and flexible); every campaign identical (4,516 of 4,516, the same streams); fsw-parity 48/48; built-in 76 to 46 (act 38 to 8: its sizing rows, S7.14b and S7.15). Actuators (act): magnetorquers, wheels, VSCMG, CMG, fluid rings, thrusters, gimbals; m x B and the empty tank. Needs G1, G2/G3, G5, G6. | vectors; scenarios and every campaign identical (same streams); twin-parity |
 | S7.8 | Simple sensors (sens): gyro, magnetometer, fine Sun (noise and chain), coarse Sun, Earth sensor, GNSS; the telemetry noises as stated nodes. | vectors; scenarios and campaigns identical |
 | S7.9 | The star tracker unit model: catalogue (a table or a method), latency history, exclusion, noise and QUEST models. | vectors; scenarios with each model identical |
 | S7.10 | The star-tracker chain: render, centroid, identify, attitude (G4, G7). | vectors; image-model scenarios identical; speed within the S6 bound |

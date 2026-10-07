@@ -1,0 +1,128 @@
+## The forces of the engine's fast orbit and what the environment needs at its nodes, transcribed from adcs-sim-core
+## orbit.rs (accel, ctx, MU, RE, OMEGA_E, MU_SUN, MU_MOON, J): the Earth's point mass and its zonal harmonics J2 to J6
+## (Montenbruck and Gill 2000, Satellite Orbits, section 3.2.2, the Legendre recursion of P_n and its derivative), the
+## Sun and the Moon as point masses (the direct and indirect terms, eq. 3.37), drag in an atmosphere that turns with the
+## Earth (a cannonball: -1/2 Cd A/m rho |v_r| v_r, eq. 3.97) and the Sun's pressure on a cannonball in the Earth's
+## shadow (eq. 3.75). The context of a node: the Sun and the Moon (env's fast series), the Sun's pressure at the
+## satellite and the air's density at its geodetic height (env's exponential table times the scenario's factor). The
+## integrator (RK4 at the orbit step with Hermite interpolation between nodes) is the engine's, code.
+## The zonal coefficients are EGM96's unnormalised J2..J6 (Lemoine et al. 1998, NASA/TP-1998-206861), as the engine
+## flies them; the Sun's and the Moon's GM are DE405's (Standish 1998), the Earth's rate IERS's nominal (7.292115e-5
+## rad/s, IERS Conventions 2010, table 1.1); the Earth's GM and radius are the constants' (EGM96 / WGS-84).
+## The developer's transcription (S7.6), unsigned.
+module orbitfast
+
+## The Earth's nominal rotation rate [rad/s] (IERS Conventions 2010, table 1.1).
+const FAST_OMEGA_E = 7.292115e-5 [1/s]
+## The Sun's gravitational parameter [m^3/s^2] (DE405, Standish 1998).
+const FAST_MU_SUN = 1.32712440018e20 [m^3/s^2]
+## The Moon's gravitational parameter [m^3/s^2] (DE405, Standish 1998).
+const FAST_MU_MOON = 4.9028e12 [m^3/s^2]
+## The Earth's unnormalised zonal coefficients J0..J6 (EGM96; J0 and J1 are not used).
+const FAST_J = [0.0, 0.0, 1.08262668e-3, -2.53265649e-6, -1.61962159e-6, -2.27296083e-7, 5.40681239e-7]
+
+## What the environment needs at an orbit node: the Sun and the Moon (geocentric, J2000), the Sun's pressure at the
+## satellite and the air's density.
+record FastCtx
+    sun: vec3[m]
+    moon: vec3[m]
+    p_srp: real[Pa]
+    rho: real[kg/m^3]
+end
+
+## The velocity relative to air that turns with the Earth at rate w about the z axis: v - w x r.
+fn corotating_velocity(r: vec3[m] in -8e6 .. 8e6, v: vec3[m/s] in -8000 .. 8000, w: real[1/s] in 7e-5 .. 7.5e-5) -> vr: vec3[m/s]
+    vr = [v[0] + w*r[1], v[1] - w*r[0], v[2]]
+end
+
+## The context at t seconds after the epoch jd0_utc (a UTC Julian date), the satellite at r (J2000): the Sun and the Moon
+## at the TT date, the Sun's pressure at the satellite, the density at the geodetic height of r (ECEF by the GMST build)
+## times the activity factor.
+fn fast_context(jd0_utc: real[1] in 2461375 .. 2461800, t: real[1] in 0 .. 1e6, r: vec3[m] in -7.2e6 .. 7.2e6, \
+                density_scale: real[1] in 0.1 .. 10) -> x: FastCtx
+    let jd_tt = jd0_utc + (t + TT_MINUS_UTC_S)/86400.0
+    x = FastCtx()
+    x.sun = sun_position_fast(jd_tt)
+    x.moon = moon_position_fast(jd_tt)
+    let c = eci_to_ecef(jd0_utc + t/86400.0)
+    let lat, lon, h = geodetic5(c*r)
+    x.p_srp = solar_pressure_at(norm(x.sun - r))
+    x.rho = density_scaled(h, density_scale)
+end
+
+## The acceleration of a point mass mu at rb on the satellite at r, less its pull on the Earth (both geocentric).
+fn point_mass(r: vec3[m] in -8e6 .. 8e6, rb: vec3[m] in -1.6e11 .. 1.6e11, mu: real[m^3/s^2] in 4e12 .. 1.4e20) -> a: vec3[m/s^2]
+    let d = rb - r
+    let dn = norm(d)
+    let bn = norm(rb)
+    a = [0, 0, 0]
+    for i in 0 .. 3
+        a[i] = mu*(d[i]/(dn*dn*dn) - rb[i]/(bn*bn*bn))
+    end
+end
+
+## The acceleration [m/s^2] at r, v (J2000) with the node context x: the point mass, the zonals up to degree
+## zonal_max - 1 (and at most 6), the Sun and the Moon (third_body), drag on a cannonball of area_m2 and mass_kg with
+## drag coefficient cd where there is air (drag), the Sun's pressure with reflectivity factor cr in the shadow (srp).
+fn fast_accel(r: vec3[m] in -7.2e6 .. 7.2e6, v: vec3[m/s] in -8000 .. 8000, x: FastCtx, zonal_max: int in 0 .. 8, \
+              third_body: bool, drag: bool, srp: bool, mass_kg: real[kg] in 1 .. 100, area_m2: real[m^2] in 0.01 .. 1, \
+              cd: real[1] in 1 .. 3, cr: real[1] in 1 .. 2) -> a: vec3[m/s^2]
+    let rn = norm(r)
+    a = r*(-MU_E/(rn*rn*rn))
+    let s = r[2]/rn
+    let rh = r*(1.0/rn)
+    let pm1 = 1.0
+    let p = s
+    let dpm1: real[1] = 0
+    let dp = 1.0
+    for n in 1 .. zonal_max
+        let nf = real(n)
+        let pn1 = ((2.0*nf + 1.0)*s*p - nf*pm1)/(nf + 1.0)
+        let dpn1 = dpm1 + (2.0*nf + 1.0)*p
+        pm1 = p
+        p = pn1
+        dpm1 = dp
+        dp = dpn1
+        let deg = n + 1
+        if deg >= 2 and deg < 7
+            let df = real(deg)
+            let q = R_E/rn
+            let qn = 1.0
+            for k in 0 .. deg
+                qn = qn*q
+            end
+            let f = -MU_E*FAST_J[deg]*qn/rn
+            for i in 0 .. 3
+                let zi = if i == 2 then 1.0 else 0.0
+                a[i] = a[i] + f/rn*(-(df + 1.0)*p*rh[i] + dp*(zi - s*rh[i]))
+            end
+        end
+    end
+    if third_body
+        a = a + point_mass(r, x.sun, FAST_MU_SUN)
+        a = a + point_mass(r, x.moon, FAST_MU_MOON)
+    end
+    let am = area_m2/mass_kg
+    if drag and x.rho > 0.0
+        let vr = corotating_velocity(r, v, FAST_OMEGA_E)
+        let vn = norm(vr)
+        for i in 0 .. 3
+            a[i] = a[i] - 0.5*cd*am*x.rho*vn*vr[i]
+        end
+    end
+    if srp
+        let nu = shadow_fraction(r, x.sun)
+        if nu > 0.0
+            let d = r - x.sun
+            let dn = norm(d)
+            for i in 0 .. 3
+                a[i] = a[i] + nu*x.p_srp*cr*am*d[i]/dn
+            end
+        end
+    end
+end
+
+## The Sun (env's fast series) at the TT date of the UTC epoch jd0_utc, where the fast orbit starts.
+fn fast_start_sun(jd0_utc: real[1] in 2461375 .. 2461800) -> sun: vec3[m]
+    sun = sun_position_fast(jd0_utc + TT_MINUS_UTC_S/86400.0)
+end

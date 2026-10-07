@@ -590,7 +590,7 @@ fn forces_drag_chain() {
     // cost of the SILS path (cannonball + DTM2020 + manual indices), allocation-free
     let c = &data()["chain"][0];
     let man = ManualIndices::SILS;
-    let cfg = DragConfig::SILS;
+    let cfg = DragConfig::sils();
     let mut inp = DragInput {
         r_eci: v3(&c["r"]),
         v_eci: v3(&c["v"]),

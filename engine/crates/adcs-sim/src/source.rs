@@ -23,7 +23,8 @@ pub const CASE_HEADER: &str = "section,key,label,unit,value,lo,hi,level,note";
 /// A design names the toolbox it was built for (its meta `toolbox`) and is refused by any other.
 /// /2 (S7.2): data tables, inf and nan, choices, named capacities, inputs by reference, the sort, random streams.
 /// /3 (S7.3): trunc; log2 and hypot from each language's maths library (the published models' transcriptions).
-pub const TOOLBOX: &str = "trinetra-toolbox/3";
+/// /4 (S7.6): erf from each language's maths library (the gas-surface interaction of the drag's panel models).
+pub const TOOLBOX: &str = "trinetra-toolbox/4";
 
 /// This program's version: a design names the oldest application that can run it (its meta
 /// `needs_application`), and a newer one is refused by name.

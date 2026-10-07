@@ -1,6 +1,12 @@
-//! Actuator models (asils.devices.{mtq,mex,rcs}, asils.comp.fluid_loop.drive).
+//! Actuator models (asils.devices.{mtq,mex,rcs}, asils.comp.fluid_loop.drive): act's methods, generated from the
+//! design (tools/engine_build.py): the coil set (`gen::coilset`, l3_mtq_row_13, over the rows' coillag, coilsat,
+//! coilpower, coilaxes, coildisp), the momentum devices (`gen::rotorset`, act_rotor_set, over the wheels', rings',
+//! CMG's, VSCMG's and gimbals' rows) and the thrusters (`gen::thrusters`, l3_rcs_row_11, over the thruster rows); their
+//! random draws are the language's streams (rng.rs's, value for value). What is left here is the engine's descriptors
+//! as product.rs fills them from the parts (code: the reading), handed to the generated models, and the units in flight
+//! as the generated state, by the names the engine has always used.
+use crate::gen::{coillag, coilset, rotorset, thrusters, wheelmotor, wheelspeed};
 use crate::la::*;
-use crate::pm::*;
 use crate::rng::Rng;
 use crate::{NC, NG, NR, NS};
 
@@ -10,53 +16,50 @@ use crate::{NC, NG, NR, NS};
 /// (part `time_constant_s`). Air-core coils: no core, so no hysteresis.
 #[derive(Clone, Copy, Debug, Default)]
 pub struct MtqDesc { pub fitted: bool, pub n: usize, pub axes: [V3; NS], pub m_max: f64, pub p_max: f64, pub scale_sigma: f64, pub misalign: f64, pub tau: f64 }
+impl MtqDesc {
+    /// The design's record of the coils.
+    pub fn rec(&self) -> coilset::CoilDesc {
+        coilset::CoilDesc { fitted: self.fitted, n: self.n as i64, axes: self.axes, m_max: self.m_max, p_max: self.p_max, scale_sigma: self.scale_sigma,
+                            misalign: self.misalign, tau: self.tau }
+    }
+}
+/// The coil set in flight: the generated state (each coil's dispersed axis and scale, whether it has failed, its row of
+/// the allocation, its dipole and last command), read and written through `Deref`.
 #[derive(Clone, Copy, Debug, Default)]
-pub struct Mtq { pub d: MtqDesc, pub a: [V3; NS], pub scale: [f64; NS], pub dead: [bool; NS], pinv: [[f64; 3]; NS],
-    /// each coil's dipole now [A m^2], and the command it was last given
-    pub m: [f64; NS], pub mc: [f64; NS] }
+pub struct Mtq { pub d: MtqDesc, dg: coilset::CoilDesc, s: coilset::CoilSet }
+impl core::ops::Deref for Mtq { type Target = coilset::CoilSet; fn deref(&self) -> &coilset::CoilSet { &self.s } }
+impl core::ops::DerefMut for Mtq { fn deref_mut(&mut self) -> &mut coilset::CoilSet { &mut self.s } }
 
 /// One step `dt` of the lag x' = (u - x)/tau with u held: (x at the end of the step, x
 /// averaged over it). The average is what a field constant over the step turns into torque.
-pub fn lag(x0: f64, u: f64, tau: f64, dt: f64) -> (f64, f64) {
-    if tau <= 0.0 { return (u, u); }
-    let e = exp(-dt/tau);
-    (u + (x0 - u)*e, u + (x0 - u)*tau/dt*(1.0 - e))
-}
+pub fn lag(x0: f64, u: f64, tau: f64, dt: f64) -> (f64, f64) { coillag::coil_lag(x0, u, tau, dt) }
 
 impl Mtq {
     pub fn new(d: MtqDesc, disp: &mut Rng) -> Mtq {
-        let mut s = Mtq { d, ..Default::default() };
-        for j in 0..d.n { s.scale[j] = 1.0 + d.scale_sigma*disp.normal(); }
-        for j in 0..d.n { let m = small_rot(&scale(&disp.normal3(), d.misalign)); s.a[j] = mv(&m, &d.axes[j]); }
-        // nominal per-coil allocation pinv(axes) = At (A At)^-1 (the driver board's table)
-        let mut aat = [[0.0; 3]; 3];
-        for j in 0..d.n { for r in 0..3 { for c in 0..3 { aat[r][c] += d.axes[j][r]*d.axes[j][c]; } } }
-        let ai = inv(&aat);
-        for j in 0..d.n { s.pinv[j] = mtv(&ai, &d.axes[j]); }
-        s
+        let dg = d.rec();
+        let mut g = disp.stream();
+        let s = coilset::coilset_new(dg, &mut g);
+        *disp = Rng::from_stream(&g);
+        Mtq { d, dg, s }
     }
     /// Commanded body dipole held for `dt` -> (true body dipole averaged over the step, true body
     /// dipole at its end, power). Each coil saturates at m_max, then lags with tau; a failed
     /// coil is open (its current stops at once). Power is linear in the mean drive.
-    pub fn apply(&mut self, m_body_cmd: &V3, dt: f64) -> (V3, V3, f64) {
-        let (mut m, mut me) = ([0.0; 3], [0.0; 3]);
-        let mut p = 0.0;
-        for j in 0..self.d.n {
-            let mut mc = clamp(dot(&self.pinv[j], m_body_cmd), -self.d.m_max, self.d.m_max);
-            if self.dead[j] { mc = 0.0; self.m[j] = 0.0; }
-            let (end, avg) = lag(self.m[j], mc, self.d.tau, dt);
-            self.m[j] = end; self.mc[j] = mc;
-            p += abs(avg)/self.d.m_max*self.d.p_max;
-            m = add(&m, &scale(&self.a[j], avg*self.scale[j]));
-            me = add(&me, &scale(&self.a[j], end*self.scale[j]));
-        }
-        (m, me, p)
-    }
+    pub fn apply(&mut self, m_body_cmd: &V3, dt: f64) -> (V3, V3, f64) { coilset::coilset_apply(&mut self.s, self.dg, *m_body_cmd, dt) }
 }
+
+/// The torque [N m] of the body dipole m in the body field b (l3_mtq_row_06's `coil_torque`, m x B).
+pub fn coil_torque(m: &V3, b: &V3) -> V3 { crate::gen::coiltorque::coil_torque(*m, *b) }
 
 // ---------------- momentum-exchange devices ----------------
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
 pub enum Kind { #[default] Rw, Fmr, Cmg, Vscmg }
+impl Kind {
+    /// The design's choice RotorKind (`gen::rotorset::ROTORKIND_*`).
+    pub fn choice(self) -> i64 {
+        match self { Kind::Rw => rotorset::ROTORKIND_RW, Kind::Fmr => rotorset::ROTORKIND_FMR, Kind::Cmg => rotorset::ROTORKIND_CMG, Kind::Vscmg => rotorset::ROTORKIND_VSCMG }
+    }
+}
 
 #[derive(Clone, Copy, Debug, Default)]
 pub struct MexDesc {
@@ -72,95 +75,48 @@ pub struct MexDesc {
     pub torque_noise: f64, pub friction_comp: f64, pub eta: f64, pub k_speed: f64, pub k_flow: f64, pub flow_tau: f64,
     pub gimbal_rate_max: f64, pub gimbal_power: f64,
 }
+impl MexDesc {
+    /// The design's record of the momentum devices.
+    pub fn rec(&self) -> rotorset::RotorDesc {
+        let mut kind = [0i64; NR];
+        let mut gi = [0i64; NR];
+        for i in 0..NR { kind[i] = self.kind[i].choice(); gi[i] = self.gi[i] as i64; }
+        rotorset::RotorDesc {
+            n: self.n as i64, ng: self.ng as i64, kind, a0: self.a0, gi, h_max: self.h_max, torque_max: self.torque_max, jrot: self.jrot,
+            coulomb: self.coulomb, viscous: self.viscous, p_steady: self.p_steady, tsig: self.tsig, flo: self.flo, fhi: self.fhi,
+            misalign: self.misalign, t_sd: self.t_sd, k_hv: self.k_hv, ac: self.ac, s: self.s, l: self.l, flow_noise_h: self.flow_noise_h,
+            field_power: self.field_power, eta_lo: self.eta_lo, eta_hi: self.eta_hi, h0: self.h0, speed_max: self.speed_max,
+            t_stall: self.t_stall, w_nl: self.w_nl, f_static: self.f_static, w_stribeck: self.w_stribeck, g: self.g,
+            torque_noise: self.torque_noise, friction_comp: self.friction_comp, eta: self.eta, k_speed: self.k_speed, k_flow: self.k_flow,
+            flow_tau: self.flow_tau, gimbal_rate_max: self.gimbal_rate_max, gimbal_power: self.gimbal_power,
+        }
+    }
+}
 /// The torque a wheel's motor delivers for the driver's demand `tc` at speed `om`: inside its
 /// torque-speed line (back-EMF: k_t (+-V - k_e om)/R, i.e. -T_s (1 + om/w_nl) .. T_s (1 - om/w_nl)
-/// with k_e = k_t in SI), and none that would speed it past the drive's speed limit.
+/// with k_e = k_t in SI), and none that would speed it past the drive's speed limit (l3_rw_row_01 and 02).
 pub fn wheel_motor(m: &MexDesc, i: usize, tc: f64, om: f64) -> f64 {
-    let (ts, wn) = (m.t_stall[i], m.w_nl[i]);
-    let t = clamp(tc, (-ts*(1.0 + om/wn)).min(0.0), (ts*(1.0 - om/wn)).max(0.0));
-    if abs(om) >= m.speed_max[i] && sign(t) == sign(om) { 0.0 } else { t }
+    wheelspeed::speed_limited(wheelmotor::motor_line(tc, om, m.t_stall[i], m.w_nl[i]), om, m.speed_max[i])
 }
 
+/// The momentum devices in flight: the generated state (each rotor's dispersed axis, torque and friction factors and
+/// pump efficiency, whether it or a gimbal has failed, a ring's target, filtered flow and field, the noise stream),
+/// read and written through `Deref`.
 #[derive(Clone, Copy, Debug, Default)]
-pub struct Mex {
-    pub d: MexDesc, pub a0: [V3; NR], pub tscale: [f64; NR], pub fscale: [f64; NR], pub eta: [f64; NR],
-    pub failed: [bool; NR], pub gfailed: [bool; NG], htgt: [f64; NR], hf: [f64; NR], pub rng: Rng,
-    /// each ring's pump field, switched with hysteresis (on above 2 %, off below 1 %)
-    field_on: [bool; NR],
-}
+pub struct Mex { pub d: MexDesc, dg: rotorset::RotorDesc, s: rotorset::RotorSet }
+impl core::ops::Deref for Mex { type Target = rotorset::RotorSet; fn deref(&self) -> &rotorset::RotorSet { &self.s } }
+impl core::ops::DerefMut for Mex { fn deref_mut(&mut self) -> &mut rotorset::RotorSet { &mut self.s } }
 impl Mex {
     pub fn new(d: MexDesc, disp: &mut Rng, noise: Rng) -> Mex {
-        let mut s = Mex { d, rng: noise, ..Default::default() };
-        for i in 0..d.n { s.tscale[i] = 1.0 + d.tsig[i]*disp.normal(); }
-        for i in 0..d.n { s.fscale[i] = d.flo[i] + (d.fhi[i] - d.flo[i])*disp.uniform(); }
-        for i in 0..d.n { s.eta[i] = d.eta_lo[i] + (d.eta_hi[i] - d.eta_lo[i])*disp.uniform(); }
-        for i in 0..d.n { s.a0[i] = mv(&small_rot(&scale(&disp.normal3(), d.misalign[i])), &d.a0[i]); }
-        s
+        let dg = d.rec();
+        let mut g = disp.stream();
+        let s = rotorset::rotorset_new(dg, &mut g, noise.stream());
+        *disp = Rng::from_stream(&g);
+        Mex { d, dg, s }
     }
     /// Commands -> (rotor momentum rates, gimbal rates, power).
     pub fn apply(&mut self, cmd_r: &[f64; NR], cmd_g: &[f64; NG], h: &[f64; NR], dt: f64) -> ([f64; NR], [f64; NG], f64) {
-        let m = self.d;
-        let mut hd = [0.0; NR];
-        let mut p = 0.0;
-        for i in 0..m.n {
-            if self.failed[i] { hd[i] = -m.viscous[i]*h[i]/m.jrot[i] - m.coulomb[i]*sign(h[i]); continue; }
-            match m.kind[i] {
-                Kind::Rw => {
-                    let om = h[i]/m.jrot[i];
-                    let fr = (m.coulomb[i]*sign(om) + m.viscous[i]*om)*self.fscale[i];
-                    let nz = m.torque_noise*m.torque_max[i]*self.rng.normal();
-                    let tc = wheel_motor(&m, i, clamp(cmd_r[i], -m.torque_max[i], m.torque_max[i])*self.tscale[i], om);
-                    // the breakaway excess over Coulomb near zero speed (Stribeck); the driver's
-                    // compensation knows only the Coulomb + viscous model
-                    let fs = m.f_static[i]*self.fscale[i];
-                    let x = om/m.w_stribeck[i];
-                    let st = (m.f_static[i] - m.coulomb[i])*self.fscale[i]*exp(-x*x)*sign(om);
-                    hd[i] = if abs(h[i]) <= fs*dt && abs(tc + nz) <= fs {
-                        -h[i]/dt                      // stuck (Karnopp): static friction holds the rotor at rest
-                    } else {
-                        tc - (1.0 - m.friction_comp)*fr - st + nz
-                    };
-                    if abs(h[i]) >= m.h_max[i] && sign(hd[i]) == sign(h[i]) { hd[i] = -(1.0 - m.friction_comp)*fr; }
-                    p += m.p_steady[i] + abs(tc*om)/m.eta;
-                }
-                Kind::Vscmg => {
-                    let tc = clamp(cmd_r[i], -m.torque_max[i], m.torque_max[i])*self.tscale[i];
-                    let om = h[i]/m.jrot[i];
-                    let fr = (m.coulomb[i]*sign(om) + m.viscous[i]*om)*self.fscale[i];
-                    hd[i] = tc - (1.0 - m.friction_comp)*fr + m.torque_noise*m.torque_max[i]*self.rng.normal();
-                    if abs(h[i]) >= m.h_max[i] && sign(hd[i]) == sign(h[i]) { hd[i] = -(1.0 - m.friction_comp)*fr; }
-                    p += m.p_steady[i] + abs(tc*om)/m.eta;
-                }
-                Kind::Fmr => {
-                    let tsd = m.t_sd[i];
-                    self.htgt[i] = clamp(self.htgt[i] + cmd_r[i]*dt, -m.h_max[i], m.h_max[i]);
-                    let nz = self.rng.normal();
-                    self.hf[i] += dt/(m.flow_tau + dt)*(h[i] + m.flow_noise_h[i]*nz - self.hf[i]);
-                    let pump = clamp(cmd_r[i] + self.hf[i]/tsd + m.k_flow*(self.htgt[i] - self.hf[i]), -m.torque_max[i], m.torque_max[i]);
-                    hd[i] = pump - h[i]/tsd*self.fscale[i];
-                    if abs(h[i]) >= m.h_max[i] && sign(hd[i]) == sign(h[i]) { hd[i] = 0.0; }
-                    let v = h[i]/m.k_hv[i];
-                    let dp = pump*m.l[i]/(2.0*m.s[i]*m.ac[i]);
-                    p += abs(dp*m.ac[i]*v)/self.eta[i];
-                    // the pump field is on while the driver works the loop; switched with hysteresis so
-                    // a target hovering at the threshold does not decide a power budget
-                    let (ht, tq) = (abs(self.htgt[i])/m.h_max[i], abs(cmd_r[i])/m.torque_max[i]);
-                    if ht > 0.02 || tq > 0.02 { self.field_on[i] = true; } else if ht < 0.01 && tq < 0.01 { self.field_on[i] = false; }
-                    if self.field_on[i] { p += m.field_power[i]; }
-                }
-                Kind::Cmg => {
-                    hd[i] = clamp(-m.k_speed*(h[i] - m.h0[i]), -m.torque_max[i], m.torque_max[i]);
-                    p += m.p_steady[i];
-                }
-            }
-        }
-        let mut gd = [0.0; NG];
-        for j in 0..m.ng {
-            if self.gfailed[j] { continue; }
-            gd[j] = clamp(cmd_g[j], -m.gimbal_rate_max, m.gimbal_rate_max);
-            p += m.gimbal_power*abs(gd[j])/m.gimbal_rate_max;
-        }
-        (hd, gd, p)
+        rotorset::rotorset_apply(&mut self.s, self.dg, *cmd_r, *cmd_g, *h, dt)
     }
 }
 
@@ -170,30 +126,33 @@ pub struct RcsDesc {
     pub fitted: bool, pub nc: usize, pub tau: [V3; NC], pub thrust: f64, pub isp: f64, pub mib: f64, pub res: f64,
     pub prop_kg: f64, pub valve_power: f64, pub isp_lo: f64, pub isp_hi: f64, pub thrust_sigma: f64, pub misalign: f64,
 }
+impl RcsDesc {
+    /// The design's record of the thrusters.
+    pub fn rec(&self) -> thrusters::ThrusterDesc {
+        thrusters::ThrusterDesc { fitted: self.fitted, nc: self.nc as i64, tau: self.tau, thrust: self.thrust, isp: self.isp, mib: self.mib, res: self.res,
+            prop_kg: self.prop_kg, valve_power: self.valve_power, isp_lo: self.isp_lo, isp_hi: self.isp_hi, thrust_sigma: self.thrust_sigma, misalign: self.misalign }
+    }
+}
+/// The thrusters in flight: the generated state (each couple's dispersed torque and thrust factor, whether it has
+/// failed, the unit's specific impulse), read and written through `Deref`.
 #[derive(Clone, Copy, Debug, Default)]
-pub struct Rcs { pub d: RcsDesc, pub tau: [V3; NC], pub tscale: [f64; NC], pub failed: [bool; NC], pub isp: f64 }
+pub struct Rcs { pub d: RcsDesc, dg: thrusters::ThrusterDesc, s: thrusters::ThrusterSet }
+impl core::ops::Deref for Rcs { type Target = thrusters::ThrusterSet; fn deref(&self) -> &thrusters::ThrusterSet { &self.s } }
+impl core::ops::DerefMut for Rcs { fn deref_mut(&mut self) -> &mut thrusters::ThrusterSet { &mut self.s } }
 impl Rcs {
     pub fn new(d: RcsDesc, disp: &mut Rng) -> Rcs {
-        let mut s = Rcs { d, ..Default::default() };
-        for j in 0..d.nc { s.tscale[j] = 1.0 + d.thrust_sigma*disp.normal(); }
-        for j in 0..d.nc { s.tau[j] = mv(&small_rot(&scale(&disp.normal3(), d.misalign)), &d.tau[j]); }
-        s.isp = d.isp_lo + (d.isp_hi - d.isp_lo)*disp.uniform();
-        s
+        let dg = d.rec();
+        let mut g = disp.stream();
+        let s = thrusters::thrusters_new(dg, &mut g);
+        *disp = Rng::from_stream(&g);
+        Rcs { d, dg, s }
     }
     /// Duty per couple over T -> (torque, mass flow, power).
-    pub fn apply(&self, duty: &[f64; NC], t: f64) -> (V3, f64, f64) {
-        let mut tau = [0.0; 3];
-        let (mut fs, mut p) = (0.0, 0.0);
-        for j in 0..self.d.nc {
-            let mut on = clamp(duty[j], 0.0, 1.0)*t;
-            if on < self.d.mib { on = 0.0; }
-            on = round(on/self.d.res)*self.d.res;
-            if self.failed[j] { on = 0.0; }
-            let f = on/t;
-            tau = add(&tau, &scale(&self.tau[j], f*self.tscale[j]));
-            fs += f*self.tscale[j];
-            if on > 0.0 { p += self.d.valve_power; }
-        }
-        (tau, fs*2.0*self.d.thrust/(self.isp*9.80665), p)
+    pub fn apply(&self, duty: &[f64; NC], t: f64) -> (V3, f64, f64) { thrusters::thrusters_apply(self.s, self.dg, *duty, t) }
+    /// The propellant used after a step `dt` at flow `mdot`; an empty tank fails every valve (l3_rcs_row_08 and 11).
+    pub fn spend(&mut self, used: f64, mdot: f64, dt: f64) -> f64 {
+        let (u, empty) = crate::gen::rcsprop::tank_update(used, mdot, dt, self.d.prop_kg);
+        if empty { self.s = thrusters::thrusters_empty(self.s); }
+        u
     }
 }

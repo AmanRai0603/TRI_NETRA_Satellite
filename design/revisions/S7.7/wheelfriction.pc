@@ -1,0 +1,31 @@
+## A reaction wheel's bearing friction, transcribed from adcs-sim-core actuators.rs (Mex::apply): Coulomb and viscous,
+## c sign(om) + v om, scaled by the unit's friction factor; the breakaway excess over Coulomb near zero speed, (F_s -
+## F_c) e^(-(om/w_s)^2) sign(om) (Stribeck); a rotor at rest held by static friction while the torque on it stays
+## under the breakaway torque (Karnopp 1985, ASME J. Dyn. Sys. Meas. Control 107:100); and a failed rotor coasting
+## under its friction alone.
+## The developer's transcription (S7.7), unsigned.
+module wheelfriction
+
+## The Coulomb and viscous friction torque [N m] at speed om [rad/s], scaled by fscale.
+fn bearing_friction(om: real[1] in -1000 .. 1000, coulomb: real[1] in 0 .. 1e-4, viscous: real[1] in 0 .. 1e-7, \
+                    fscale: real[1] in 0.5 .. 1.5) -> fr: real[1]
+    fr = (coulomb*sign(om) + viscous*om)*fscale
+end
+
+## The breakaway excess [N m] over Coulomb at speed om: (f_static - coulomb) fscale e^(-(om/w_s)^2) sign(om).
+fn stribeck_excess(om: real[1] in -10 .. 10, f_static: real[1] in 0 .. 1e-4, coulomb: real[1] in 0 .. 1e-4, \
+                   w_stribeck: real[1] in 0.1 .. 10, fscale: real[1] in 0.5 .. 1.5) -> st: real[1]
+    let x = om/w_stribeck
+    st = (f_static - coulomb)*fscale*exp(-x*x)*sign(om)
+end
+
+## Whether static friction (breakaway torque fs [N m]) holds a rotor of momentum h at rest over a step dt, the torque
+## on it tq.
+fn static_hold(h: real[1] in -1e-6 .. 1e-6, tq: real[1] in -1e-4 .. 1e-4, fs: real[1] in 0 .. 1e-4, dt: real[1] in 0.01 .. 1) -> held: bool
+    held = abs(h) <= fs*dt and abs(tq) <= fs
+end
+
+## A failed rotor's momentum rate [N m]: its viscous and Coulomb friction alone (inertia jrot).
+fn rotor_coast(h: real[1] in -0.05 .. 0.05, jrot: real[1] in 1e-6 .. 1e-3, viscous: real[1] in 0 .. 1e-7, coulomb: real[1] in 0 .. 1e-4) -> hd: real[1]
+    hd = -viscous*h/jrot - coulomb*sign(h)
+end

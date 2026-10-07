@@ -1,0 +1,10 @@
+## A magnetorquer coil's power, transcribed from adcs-sim-core actuators.rs (Mtq::apply): linear in the mean drive, the
+## part's power_at_max_W at its largest dipole: p = |m_avg|/m_max p_max (a current-driven coil's I^2 R taken at its
+## mean, as the engine flies it).
+## The developer's transcription (S7.7), unsigned.
+module coilpower
+
+## The power [W] of a coil whose dipole averaged a over the step, of largest dipole m_max drawing p_max there.
+fn coil_power(a: real[1] in -1 .. 1, m_max: real[1] in 0.01 .. 1, p_max: real[1] in 0 .. 2) -> p: real[1]
+    p = abs(a)/m_max*p_max
+end

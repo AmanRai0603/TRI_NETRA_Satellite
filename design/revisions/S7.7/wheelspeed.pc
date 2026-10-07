@@ -1,0 +1,17 @@
+## A reaction wheel's speed and momentum limits, transcribed from adcs-sim-core actuators.rs (wheel_motor: the drive's
+## speed limit; Mex::apply: the momentum capacity): at or above the drive's speed limit [rad/s] the motor gives no
+## torque that would speed the wheel up; at or above its momentum capacity a rotor's momentum stops growing (the rate
+## that remains is the friction the drive does not compensate).
+## The developer's transcription (S7.7), unsigned.
+module wheelspeed
+
+## The motor torque t at speed om, none that speeds the wheel past speed_max.
+fn speed_limited(t: real[1] in -0.01 .. 0.01, om: real[1] in -1000 .. 1000, speed_max: real[1] in 100 .. 1000) -> y: real[1]
+    y = if abs(om) >= speed_max and sign(t) == sign(om) then 0.0 else t
+end
+
+## A rotor's momentum rate hd at momentum h: at or beyond its capacity h_max and growing, the rate at the limit.
+fn momentum_limited(hd: real[1] in -0.01 .. 0.01, h: real[1] in -0.05 .. 0.05, h_max: real[1] in 0.001 .. 0.05, \
+                    at_limit: real[1] in -0.001 .. 0.001) -> y: real[1]
+    y = if abs(h) >= h_max and sign(hd) == sign(h) then at_limit else hd
+end

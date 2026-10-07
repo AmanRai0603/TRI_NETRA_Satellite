@@ -1,0 +1,22 @@
+## A fluid momentum ring's pump field, transcribed from adcs-sim-core actuators.rs (Mex::apply): the pump's magnet field
+## is on while the driver works the loop, switched with hysteresis (on above 2 % of the ring's momentum capacity or of
+## its torque, off below 1 % of both) so a target hovering at the threshold does not decide a power budget; on, it
+## draws the part's field_power_W.
+## The developer's transcription (S7.7), unsigned.
+module ringfield
+
+## Whether the field is on after this step: on before, the target's share of capacity ht and the command's share of the
+## largest torque tq.
+fn field_switch(on: bool, ht: real[1] in 0 .. 0.05, tq: real[1] in 0 .. 0.05) -> y: bool
+    y = on
+    if ht > 0.02 or tq > 0.02
+        y = true
+    elif ht < 0.01 and tq < 0.01
+        y = false
+    end
+end
+
+## The field's power [W]: field_power when on, else none.
+fn field_power(on: bool, power: real[1] in 0 .. 5) -> p: real[1]
+    p = if on then power else 0.0
+end

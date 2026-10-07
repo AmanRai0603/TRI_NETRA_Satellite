@@ -1,0 +1,11 @@
+## A momentum device's axis misalignment, transcribed from adcs-sim-core actuators.rs (Mex::new): the nominal spin axis
+## turned by a small rotation of three normal draws times the part's axis misalignment sigma [rad], from the run's
+## dispersion stream.
+## The developer's transcription (S7.7), unsigned.
+module wheelaxis
+
+## The axis a turned by a small rotation of sigma times three normal draws from disp.
+fn misaligned_axis(a: real[1][3] in -1 .. 1, sigma: real[1] in 0 .. 0.05, disp: inout stream) -> b: real[1][3]
+    let th = normal3(disp)
+    b = small_rotation(th*sigma)*a
+end

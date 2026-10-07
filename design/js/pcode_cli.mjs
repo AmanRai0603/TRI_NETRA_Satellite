@@ -44,7 +44,7 @@ function bits(x) {
 
 // does a fn (or anything it calls) use a function whose last bits differ between maths libraries?
 // (a normal draw from a stream is Box-Muller's sqrt, log, sin and cos)
-const TRANSCENDENTAL = new Set(["sin", "cos", "tan", "asin", "acos", "atan", "atan2", "exp", "log", "log10", "log2", "pow", "hypot", "normal", "normal3"]);
+const TRANSCENDENTAL = new Set(["sin", "cos", "tan", "asin", "acos", "atan", "atan2", "exp", "log", "log10", "log2", "erf", "pow", "hypot", "normal", "normal3"]);
 function usesTranscendental(f, seen = new Set()) {
   if (seen.has(f.name)) return false;
   seen.add(f.name);

@@ -1,0 +1,21 @@
+## A magnetorquer coil's lag, transcribed from adcs-sim-core actuators.rs (lag): a coil is a series RL circuit behind
+## a current-limited driver, so its dipole follows the held command as a first-order lag with the coil's L/R time
+## constant tau (the part's time_constant_s); an air-core coil has no core and so no hysteresis. Over a step dt with
+## the command u held, the dipole at the end and its mean over the step (what a field constant over the step turns
+## into torque): x(dt) = u + (x0 - u) e^(-dt/tau), mean = u + (x0 - u) tau/dt (1 - e^(-dt/tau)). No lag (tau 0): the
+## command at once.
+## The developer's transcription (S7.7), unsigned.
+module coillag
+
+## One step dt of x' = (u - x)/tau with u held, from x0: (x at the end of the step, x averaged over it).
+fn coil_lag(x0: real[1] in -1 .. 1, u: real[1] in -1 .. 1, tau: real[1] in -0.01 .. 0.1, dt: real[1] in 0.01 .. 1) \
+        -> (x_end: real[1], x_avg: real[1])
+    if tau <= 0.0
+        x_end = u
+        x_avg = u
+    else
+        let e = exp(-dt/tau)
+        x_end = u + (x0 - u)*e
+        x_avg = u + (x0 - u)*tau/dt*(1.0 - e)
+    end
+end

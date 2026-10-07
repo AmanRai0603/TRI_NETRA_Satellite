@@ -165,6 +165,8 @@ export function toRust(prog, opts = {}) {
         case "sin": case "cos": case "tan": case "asin": case "acos": case "atan": case "exp": case "log10": return `${fm(`f64::${f}`, f)}(${R(0)})`;
         case "log": return `${fm("f64::ln", "log")}(${R(0)})`;
         case "log2": return `${fm("f64::log2", "log2")}(${R(0)})`;
+        // std has no erf: the platform's C library's, declared in rt.rs (extras), the same erf C and MATLAB call
+        case "erf": if (opts.math) return `${opts.math}::erf(${R(0)})`; extras.add("erf"); return `rt::erf(${R(0)})`;
         case "atan2": return `${fm("f64::atan2", "atan2")}(${R(0)}, ${R(1)})`;
         case "hypot": return `${fm("f64::hypot", "hypot")}(${R(0)}, ${R(1)})`;
         case "fmod": return opts.math ? `${opts.math}::fmod(${R(0)}, ${R(1)})` : `(${R(0)} % ${R(1)})`;
@@ -361,7 +363,7 @@ export function toRust(prog, opts = {}) {
   disp += "        _ => return None,\n    }\n    Some(outs)\n}\n";
   if (opts.dispatch !== false) files["src/dispatch.rs"] = disp;
   files["src/rt.rs"] = (opts.math ? RUST_RT.replace("dot(a, a).sqrt()", `${opts.math}::sqrt(dot(a, a))`) : RUST_RT) +
-    (extras.has("sort") ? RUST_RT_SORT : "") + (extras.has("stream") ? rustRtStream(opts.math) : "");
+    (extras.has("sort") ? RUST_RT_SORT : "") + (extras.has("stream") ? rustRtStream(opts.math) : "") + (extras.has("erf") ? RUST_RT_ERF : "");
   files[root === "crate" ? "src/lib.rs" : "src/mod.rs"] = `//! ${opts.title || "Functions written in the pseudocode"}. ${HEAD}\n//! Every relation is SI in and SI out; each function's doc lists its inputs and outputs with their units.\n` +
     `#![allow(clippy::all)]\npub mod rt;\n${opts.dispatch !== false ? "pub mod dispatch;\n" : ""}` + mods.map((m) => `pub mod ${m.name};\n`).join("");
   return files;
@@ -436,6 +438,17 @@ pub fn lookup_linear<const C: usize, const R: usize>(t: &[[f64; C]; R], x: f64) 
 `;
 
 // the toolbox sort (pcode.js rt.argsort): an insertion sort, ascending, equal values in their order
+// the platform's erf, for a translation with std's maths that calls it (Rust's std has none)
+const RUST_RT_ERF = `extern "C" {
+    #[link_name = "erf"]
+    fn c_erf(x: f64) -> f64;
+}
+/// The error function of the platform's C maths library, the one C and MATLAB call (Rust's std has none).
+pub fn erf(x: f64) -> f64 {
+    // SAFETY: erf is a pure C99 <math.h> function of one double, in the system libm std already links.
+    unsafe { c_erf(x) }
+}
+`;
 const RUST_RT_SORT = `/// The indices of a vector in ascending order, equal values in their order (an insertion sort).
 pub fn argsort<T: PartialOrd + Copy, const N: usize>(v: [T; N]) -> [i64; N] {
     let mut ix = [0i64; N];
@@ -568,7 +581,7 @@ export function toMatlab(prog, opts = {}) {
     if (e.builtin) {
       const f = e.f;
       switch (f) {
-        case "sqrt": case "sin": case "cos": case "tan": case "asin": case "acos": case "atan": case "exp": case "log": case "log10": case "log2":
+        case "sqrt": case "sin": case "cos": case "tan": case "asin": case "acos": case "atan": case "exp": case "log": case "log10": case "log2": case "erf":
         case "floor": case "ceil": case "round": return `${f}(${a[0]})`;
         case "trunc": return `fix(${a[0]})`;
         case "abs": return `${rtp}.fabs(${a[0]})`;

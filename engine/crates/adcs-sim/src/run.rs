@@ -5,7 +5,7 @@ use crate::error::Error;
 use crate::config::Config;
 use adcs_fsw::guid::{guidance, Guid};
 use adcs_fsw_abi::{Bus, Fsw, Impl};
-use adcs_sim_core::actuators::{Mex, Mtq, Rcs};
+use adcs_sim_core::actuators::{coil_torque, Mex, Mtq, Rcs};
 use adcs_sim_core::comp::star_tracker as stc;
 use adcs_sim_core::emu::{self, proto, Commands};
 use adcs_sim_core::la::*;
@@ -29,7 +29,7 @@ impl Truth {
         if c.orbit_model == "pop" {
             if let Some(e) = crate::pop_kernel_missing() { return Err(e); }
             use adcs_pop::accel::{sso_initial, Forces, InLoop, Sc, World};
-            let cr = 1.0 + c.refl;
+            let cr = adcs_pop::gen::forcemodel::sils_cr(c.refl); // env_force_model: Cr = 1 + the reflectivity
             let w = World::new(c.epoch_utc, adcs_pop::frames::Build::Gmst, adcs_pop::frames::FrameOpt::default(),
                 adcs_pop::gravity::Field::default_field(), Forces::sils(cr),
                 Sc { mass: c.mass_kg, aref: c.aref_m2, cd: Some(c.cd), cr: Some(cr), r_bi: adcs_pop::la::I3, srp_facets: vec![], drag_facets: None },
@@ -38,13 +38,11 @@ impl Truth {
             let (r0, v0, raan) = sso_initial(&w, c.alt_km, c.ecc, c.inc_deg, c.ltan_h, 0.0, c.u0_deg)?;
             Ok((Truth::Pop(Box::new(InLoop::new(w, c.orbit_step_s, r0, v0)?)), raan))
         } else {
-            let jd_tt0 = c.jd0 + time::TT_MINUS_UTC_S/86400.0;
-            let s0 = ephem::sun(jd_tt0);
-            let raan = (s0[1].atan2(s0[0]) + (c.ltan_h - 12.0)*15.0*std::f64::consts::PI/180.0).rem_euclid(2.0*std::f64::consts::PI);
-            let a = orbit::RE + c.alt_km*1e3;
-            let (r0, v0) = orbit::coe2rv(a, c.ecc, c.inc_deg.to_radians(), raan, 0.0, c.u0_deg.to_radians());
+            // env_orbit_start: the RAAN from the LTAN and the Sun at the epoch, a, i and u0 (gen::orbitstart)
+            let (raan, a, inc, u0) = crate::gen::orbitstart::fast_orbit_start(orbit::start_sun(c.jd0), c.ltan_h, c.alt_km, c.inc_deg, c.u0_deg);
+            let (r0, v0) = orbit::coe2rv(a, c.ecc, inc, raan, 0.0, u0);
             let o = Orbit::new(OrbitCfg { jd0_utc: c.jd0, step_s: c.orbit_step_s, zonal_max: c.zonal_max, third_body: c.third_body, drag: c.drag, srp: c.srp,
-                mass_kg: c.mass_kg, area_m2: c.aref_m2, cd: c.cd, cr: 1.0 + c.refl, density_scale: c.density_scale }, r0, v0);
+                mass_kg: c.mass_kg, area_m2: c.aref_m2, cd: c.cd, cr: adcs_pop::gen::forcemodel::sils_cr(c.refl), density_scale: c.density_scale }, r0, v0);
             Ok((Truth::Fast(o, c.jd0), raan))
         }
     }
@@ -69,7 +67,7 @@ impl Truth {
                 let xc = o.context(t);
                 let cm = time::eci2ecef(jd0 + t/86400.0);
                 Env { b_eci: field::eci(&mv(&cm, r), &cm, gh, nmax), sun_rel: sub(&xc.sun, r), moon_rel: sub(&xc.moon, r), nu: ephem::shadow(r, &xc.sun),
-                      v_rel: [v[0] + orbit::OMEGA_E*r[1], v[1] - orbit::OMEGA_E*r[0], v[2]], rho: xc.rho, p_srp: xc.p_srp }
+                      v_rel: orbit::corotating(r, v), rho: xc.rho, p_srp: xc.p_srp }
             }
         }
     }
@@ -397,8 +395,7 @@ fn actuate(u: &mut Units, c: &Config, cmd: &Commands, x: &State, a: &mut Actuati
         duty[..nc].copy_from_slice(&cmd.duty[..nc]);
         let (tq, mdot, pw) = rc_.apply(&duty, c.dt);
         a.tau_rcs = tq; a.p_rcs = pw;
-        *prop += mdot*c.dt;
-        if *prop >= d.rcs.prop_kg { rc_.failed = [true; NC]; }
+        *prop = rc_.spend(*prop, mdot, c.dt);   // act's l3_rcs_row_08: an empty tank fails every valve
     }
 }
 
@@ -429,7 +426,7 @@ fn row(k: &Tick, x: &State, geo: &Geometry, nr: usize, a: &Actuation, cmd: &Comm
 fn step_plant(x: &State, dt: f64, body: &Body, tau_d: &V3, tau_mtq: &V3, b_b: &V3, a: &Actuation, lat: Option<f64>, held: &mut Held) -> State {
     let tau_ext = add(&add(tau_d, tau_mtq), &a.tau_rcs);
     let Some(lat) = lat else { return plant::step(x, dt, body, &tau_ext, &a.hdot, &a.gdot) };
-    let held_ext = add(&add(tau_d, &cross(&held.m, b_b)), &held.rcs);
+    let held_ext = add(&add(tau_d, &coil_torque(&held.m, b_b)), &held.rcs);
     let x = if lat >= dt {
         plant::step(x, dt, body, &held_ext, &held.hdot, &held.gdot)
     } else {
@@ -533,7 +530,7 @@ pub fn run(c: &Config, o: &Opts) -> Result<Record, Error> {
         // ---- torques, plant ----
         let parts = torques::torques(&x.q, &r, &v_rel, &b_eci, &sun_rel, nu, psrp, rho, &c.inertia, &facets, &c.m_res, c.mu, c.env_on);
         let tau_d = add(&add(&parts[0], &parts[1]), &add(&parts[2], &parts[3]));
-        let tau_mtq = cross(&a.m_b, &sky.b_b);
+        let tau_mtq = coil_torque(&a.m_b, &sky.b_b);
         eacc = [eacc[0] + a.p_mtq, eacc[1] + a.p_mex, eacc[2] + a.p_rcs];
         if k % rt.every == rt.off || k == 0 {
             let pavg = if k > 0 { [eacc[0]/rt.every as f64, eacc[1]/rt.every as f64, eacc[2]/rt.every as f64] } else { [a.p_mtq, a.p_mex, a.p_rcs] };

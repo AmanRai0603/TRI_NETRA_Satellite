@@ -1,0 +1,388 @@
+## Aerodynamic drag on the satellite, transcribed from adcs-pop drag.rs and drag/geom.rs, the port of the Octave POP's
+## +forces/drag.m, +drag (cannonball, force, relVelocity, windAngles, bodyToWind) and +dgeom/+sgeom (buildBox, addArray,
+## arrayNormal, ramAttitude, attitudeFromAoA, R_lvlh): the velocity relative to an atmosphere that turns with the Earth;
+## a cannonball, a = -1/2 Cd A/m rho |v_r| v_r (Montenbruck and Gill 2000, Satellite Orbits, eq. 3.97); or the
+## free-molecular panel model, each facet the flow meets pressed and sheared by every species of the air with its gas-
+## surface interaction (env's gas-surface methods: Sentman 1961, DRIA and SESAM, CLL), the force resolved into drag, side
+## force and lift in the wind frame (angle of attack and sideslip); the geodetic probe point the density is taken at
+## (local solar time from the longitude); the drag panels of a box and of a flat array, and the attitudes the tests fly
+## (into the wind, at an angle of attack, nadir-pointing). The density itself is env's density switch, called by the
+## code with the space weather it holds. Octave's scaled norm wherever the MATLAB calls norm. ECI [m], plain numbers in SI.
+## The developer's transcription (S7.6), unsigned.
+module drag
+
+## The Avogadro constant [1/kmol] (CODATA 2018, exact: 6.02214076e23 1/mol), as drag.force takes a species' density.
+const DRAG_NA = 6.02214076e26
+## The double's epsilon (2^-52): a facet normal shorter than it is refused.
+const DRAG_EPS = 2.220446049250313e-16
+
+## The spacecraft models of cfg.forces.drag.model: the cannonball (the SILS default) or a free-molecular panel model.
+choice DragModel = cannonball, panel
+
+## Why the drag gave no acceleration: none, a tracking array with no Sun direction, a facet with no normal.
+choice DragStatus = ok, array_needs_sun, zero_normal
+
+## drag.cannonball's out: the force [N] and acceleration (ECI), the drag 1/2 Cd A rho V^2 [N], the unit relative
+## velocity and its size [m/s], the Cd used, the dynamic pressure [Pa] and the reference area [m^2].
+record CannonballOut
+    f: real[1][3]
+    a: real[1][3]
+    drag: real[1]
+    uhat: real[1][3]
+    vrel: real[1]
+    cd: real[1]
+    qd: real[1]
+    a_proj: real[1]
+end
+
+## drag.force's out: the force [N] and acceleration (ECI), the force in body axes, drag, side force and lift [N] (wind
+## frame), the force along and across the relative velocity, its direction and size [m/s], atomic oxygen's speed ratio,
+## the dynamic pressure [Pa], the angle of attack and sideslip [rad], the drag, lift and side-force coefficients on the
+## reference area, the area projected in the flow [m^2], the drag coefficient on it (nan when nothing faces the flow)
+## and the reference area used.
+record PanelOut
+    f: real[1][3]
+    a: real[1][3]
+    fbody: real[1][3]
+    drag: real[1]
+    side: real[1]
+    lift: real[1]
+    drag_vec: real[1][3]
+    lift_vec: real[1][3]
+    uhat: real[1][3]
+    vrel: real[1]
+    s_o: real[1]
+    qd: real[1]
+    alpha: real[1]
+    beta: real[1]
+    cd: real[1]
+    cl: real[1]
+    cs: real[1]
+    a_proj: real[1]
+    cd_a: real[1]
+    aref_used: real[1]
+end
+
+## Octave's v/norm(v) (its scaled norm).
+fn ounit(v: real[1][3] in -1e4 .. 1e4) -> u: real[1][3]
+    let n = onorm(v)
+    u = [v[0]/n, v[1]/n, v[2]/n]
+end
+
+## The matrix whose columns are x, y and z.
+fn from_cols(x: real[1][3] in -1 .. 1, y: real[1][3] in -1 .. 1, z: real[1][3] in -1 .. 1) -> m: real[1][3][3]
+    m = [[x[0], y[0], z[0]], [x[1], y[1], z[1]], [x[2], y[2], z[2]]]
+end
+
+## drag.relVelocity(r, v, wind, omega): v - (omega x r) - wind, its unit vector and its size.
+fn rel_velocity(r: real[1][3] in -8e6 .. 8e6, v: real[1][3] in -8000 .. 8000, wind: real[1][3] in -200 .. 200, \
+                omega: real[1][3] in -8e-5 .. 8e-5) -> (vrel: real[1][3], uhat: real[1][3], vm: real[1])
+    let c = cross(omega, r)
+    let vatm: real[1][3] = [c[0] + wind[0], c[1] + wind[1], c[2] + wind[2]]
+    vrel = [v[0] - vatm[0], v[1] - vatm[1], v[2] - vatm[2]]
+    vm = onorm(vrel)
+    uhat = [vrel[0]/vm, vrel[1]/vm, vrel[2]/vm]
+end
+
+## drag.windAngles(vrel, R_bi): the angle of attack atan2(w, u) and sideslip asin(v/V) of the relative wind in body
+## axes, its speed and its body components.
+fn wind_angles(vrel: real[1][3] in -8000 .. 8000, r_bi: real[1][3][3] in -1 .. 1) -> (alpha: real[1], beta: real[1], vm: real[1], vb: real[1][3])
+    vb = transpose(r_bi)*vrel
+    vm = onorm(vb)
+    alpha = atan2(vb[2], vb[0])
+    beta = asin(unit_clip(vb[1]/vm))
+end
+
+## drag.bodyToWind(alpha, beta): the body-to-wind matrix (F_wind = [-D; S; -L]).
+fn body_to_wind(alpha: real[1] in -3.2 .. 3.2, beta: real[1] in -1.6 .. 1.6) -> m: real[1][3][3]
+    let ca = cos(alpha)
+    let sa = sin(alpha)
+    let cb = cos(beta)
+    let sb = sin(beta)
+    m = [[cb*ca, sb, cb*sa], [-sb*ca, cb, -sb*sa], [-sa, 0.0, ca]]
+end
+
+## drag.cannonball(r, v, rho, Cd, A, opts): -1/2 Cd A rho |v_r| v_r / m, v_r = v - omega x r - wind.
+fn drag_cannonball(r: real[1][3] in -8e6 .. 8e6, v: real[1][3] in -8000 .. 8000, rho: real[1] in 0 .. 1e-9, \
+                   cd: real[1] in 1 .. 4, area: real[1] in 0.01 .. 2, mass: real[1] in 1 .. 100, wind: real[1][3] in -200 .. 200, \
+                   omega: real[1][3] in -8e-5 .. 8e-5) -> o: CannonballOut
+    let c = cross(omega, r)
+    let t: real[1][3] = [v[0] - c[0], v[1] - c[1], v[2] - c[2]]
+    let vrel: real[1][3] = [t[0] - wind[0], t[1] - wind[1], t[2] - wind[2]]
+    let vm = onorm(vrel)
+    o = CannonballOut()
+    o.uhat = [vrel[0]/vm, vrel[1]/vm, vrel[2]/vm]
+    let k = -0.5*cd*area*rho*vm
+    o.f = [k*vrel[0], k*vrel[1], k*vrel[2]]
+    o.a = [o.f[0]/mass, o.f[1]/mass, o.f[2]/mass]
+    o.drag = 0.5*cd*area*rho*pow(vm, 2.0)
+    o.vrel = vm
+    o.cd = cd
+    o.qd = 0.5*rho*pow(vm, 2.0)
+    o.a_proj = area
+end
+
+## arrayNormal(axis, sHat_b) of dgeom: the best-lit normal of an array turning about axis, towards s_hat_b (Octave's
+## unit vectors).
+fn drag_array_normal(axis: real[1][3] in -1 .. 1, s_hat_b: real[1][3] in -1 .. 1) -> nrm: real[1][3]
+    let ax = ounit(axis)
+    let d = dot(s_hat_b, ax)
+    let proj: real[1][3] = [s_hat_b[0] - d*ax[0], s_hat_b[1] - d*ax[1], s_hat_b[2] - d*ax[2]]
+    if onorm(proj) < 1e-9
+        let t: real[1][3] = [1.0, 0.0, 0.0]
+        if abs(ax[0]) > 0.9
+            t = [0.0, 1.0, 0.0]
+        end
+        let d2 = dot(t, ax)
+        proj = [t[0] - d2*ax[0], t[1] - d2*ax[1], t[2] - d2*ax[2]]
+    end
+    nrm = ounit(proj)
+end
+
+## drag.force(r, v, atm, facets, model, gsi, opts): the free-molecular force on the facets (body frame; the attitude
+## r_bi body to ECI), summed over the air's species (atm: the six DTM species, or one mean species), with the panel
+## model and the gsi; mass and aref [kg, m^2], the wind and the Earth's rate omega (ECI), the Sun's direction where a
+## facet tracks it (has_sun). The status names a facet the force cannot take (k, from 1).
+fn panel_force(r: real[1][3] in -8e6 .. 8e6, v: real[1][3] in -8000 .. 8000, atm: AtmosOut, f: ScFacets, model: PanelModel, \
+               g: Gsi, mass: real[1] in 1 .. 100, aref: real[1] in 0.01 .. 2, r_bi: real[1][3][3] in -1 .. 1, \
+               wind: real[1][3] in -200 .. 200, omega: real[1][3] in -8e-5 .. 8e-5, has_sun: bool, \
+               sun: real[1][3] in -1.6e11 .. 1.6e11) -> (st: DragStatus, k: int, o: PanelOut)
+    st = DragStatus.ok
+    k = 0
+    o = PanelOut()
+    let vrel, uhat, vm = rel_velocity(r, v, wind, omega)
+    let alpha, beta, vw, vb = wind_angles(vrel, r_bi)
+    let rho_s: real[1][6] = 0
+    let ms: real[1][6] = 0
+    let ns = 1
+    let n_o = atm.n_o
+    if atm.species
+        ns = 6
+        let mdtm = dtm_molar_masses()
+        for i in 0 .. 6
+            ms[i] = mdtm[i]
+            rho_s[i] = atm.n[i]*ms[i]/DRAG_NA
+        end
+        n_o = atm.n[2]
+    else
+        rho_s[0] = atm.rho
+        ms[0] = atm.mmol
+    end
+    let a_t: real[1] = 0
+    if model == PanelModel.dria or model == PanelModel.sesam
+        a_t = sesam(n_o, atm.t)
+    elif model == PanelModel.sentman
+        a_t = g.a_t
+    end
+    let fs: real[1][3] = [0.0, 0.0, 0.0]
+    let aproj: real[1] = 0
+    let s_o = speed_ratio(vm, atm.t, molar_mass(Species.O))
+    for j in 0 .. f.nf
+        if st == DragStatus.ok
+            let nb: real[1][3] = f.n[j]
+            if f.kind[j] == int(FacetKind.array)
+                if not has_sun
+                    st = DragStatus.array_needs_sun
+                    k = j + 1
+                else
+                    let nsun = onorm(sun)
+                    let sh: real[1][3] = [sun[0]/nsun, sun[1]/nsun, sun[2]/nsun]
+                    let sb = transpose(r_bi)*sh
+                    nb = drag_array_normal(f.axis[j], sb)
+                end
+            end
+            if st == DragStatus.ok and onorm(nb) < DRAG_EPS
+                st = DragStatus.zero_normal
+                k = j + 1
+            end
+            if st == DragStatus.ok
+                let n0 = r_bi*nb
+                let nn = onorm(n0)
+                let n: real[1][3] = [n0[0]/nn, n0[1]/nn, n0[2]/nn]
+                let cosd = dot(n, uhat)
+                if f.dbl[j] == 1 and cosd < 0.0
+                    n = [-n[0], -n[1], -n[2]]
+                    cosd = -cosd
+                end
+                if not (cosd <= 0.0)
+                    aproj = aproj + f.a[j]*cosd
+                    let delta = acos(min_one(cosd))
+                    let s2 = 1.0 - pow(cosd, 2.0)
+                    let sind = sqrt(if s2 > 0.0 then s2 else 0.0)
+                    let tgas: real[1][3] = [0.0, 0.0, 0.0]
+                    if sind > 1e-9
+                        tgas = [(-uhat[0] + cosd*n[0])/sind, (-uhat[1] + cosd*n[1])/sind, (-uhat[2] + cosd*n[2])/sind]
+                    end
+                    for jj in 0 .. ns
+                        let s = speed_ratio(vm, atm.t, ms[jj])
+                        let cp: real[1] = 0
+                        let ct: real[1] = 0
+                        if model == PanelModel.cll
+                            cp, ct = cll(s, delta, g.sig_n, g.sig_t, g.tw, atm.t)
+                        else
+                            cp, ct = sentman(s, delta, a_t, g.tw, atm.t)
+                        end
+                        let q = 0.5*rho_s[jj]*pow(vm, 2.0)*f.a[j]
+                        for i in 0 .. 3
+                            fs[i] = fs[i] + q*(ct*tgas[i] - cp*n[i])
+                        end
+                    end
+                end
+            end
+        end
+    end
+    if st == DragStatus.ok
+        let fbody = transpose(r_bi)*fs
+        let fwind = body_to_wind(alpha, beta)*fbody
+        let d = -fwind[0]
+        let sd = fwind[1]
+        let l = -fwind[2]
+        let rho_tot: real[1] = 0
+        for i2 in 0 .. ns
+            rho_tot = rho_tot + rho_s[i2]
+        end
+        let qd = 0.5*rho_tot*pow(vm, 2.0)
+        let fu = dot(fs, uhat)
+        let dv: real[1][3] = [fu*uhat[0], fu*uhat[1], fu*uhat[2]]
+        o.f = fs
+        o.a = [fs[0]/mass, fs[1]/mass, fs[2]/mass]
+        o.fbody = fbody
+        o.drag = d
+        o.side = sd
+        o.lift = l
+        o.drag_vec = dv
+        o.lift_vec = [fs[0] - dv[0], fs[1] - dv[1], fs[2] - dv[2]]
+        o.uhat = uhat
+        o.vrel = vm
+        o.s_o = s_o
+        o.qd = qd
+        o.alpha = alpha
+        o.beta = beta
+        o.cd = d/(qd*aref)
+        o.cl = l/(qd*aref)
+        o.cs = sd/(qd*aref)
+        o.a_proj = aproj
+        o.cd_a = if aproj > 0.0 then d/(qd*aproj) else nan
+        o.aref_used = aref
+    end
+end
+
+## The geodetic probe point of forces.drag: the altitude [km], latitude and longitude [deg] and the local solar time
+## mod(UT + lon/15, 24) [h] of a geodetic latitude and longitude [rad] and height [m] at the UTC date utc.
+fn probe_geo(lat_rad: real[1] in -1.6 .. 1.6, lon_rad: real[1] in -3.2 .. 3.2, alt_m: real[1] in 1e5 .. 2e6, \
+             utc: real[1][6] in 0 .. 59) -> (alt_km: real[1], lat_deg: real[1], lon_deg: real[1], lst_h: real[1])
+    lon_deg = lon_rad*(180.0/pi)
+    let utsec = utc[3]*3600.0 + utc[4]*60.0 + utc[5]
+    alt_km = alt_m/1000.0
+    lat_deg = lat_rad*(180.0/pi)
+    lst_h = omod(utsec/3600.0 + lon_deg/15.0, 24.0)
+end
+
+## The cannonball's drag coefficient forces.drag takes: the force set's when it states one, else the spacecraft's,
+## else 2.2.
+fn drag_cd(has_cfg: bool, cfg_cd: real[1] in 1 .. 4, has_sc: bool, sc_cd: real[1] in 1 .. 4) -> cd: real[1]
+    if has_cfg
+        cd = cfg_cd
+    elif has_sc
+        cd = sc_cd
+    else
+        cd = 2.2
+    end
+end
+
+## The facets the panel models take: the spacecraft's, or a single +x plate of the reference area when it has none.
+fn drag_facets(f: ScFacets, aref: real[1] in 0.01 .. 2) -> g: ScFacets
+    if f.nf > 0
+        g = f
+    else
+        g = facet_add(ScFacets(), FacetKind.plain, [1.0, 0.0, 0.0], aref, 0.0, 0.0, 0.0, [0.0, 0.0, 0.0], false)
+    end
+end
+
+## [a, info] = forces.drag(ctx) after the density: the acceleration [m/s^2] at r, v (ECI) of the air atm on the
+## spacecraft (mass, aref, its Cd when it states one, its attitude r_bi and facets) by the model (cannonball or panel,
+## the force set's Cd when it states one, the gsi), in an atmosphere that turns with the Earth (corotate) at omega (the
+## world's, has_omega, else the nominal rate about z); the velocity relative to the air and the model's out.
+fn drag_force(model: DragModel, pm: PanelModel, r: real[1][3] in -8e6 .. 8e6, v: real[1][3] in -8000 .. 8000, atm: AtmosOut, \
+              has_omega: bool, omega: real[1][3] in -8e-5 .. 8e-5, corotate: bool, has_cfg_cd: bool, cfg_cd: real[1] in 1 .. 4, \
+              has_sc_cd: bool, sc_cd: real[1] in 1 .. 4, aref: real[1] in 0.01 .. 2, mass: real[1] in 1 .. 100, \
+              r_bi: real[1][3][3] in -1 .. 1, f: ScFacets, g: Gsi, has_sun: bool, sun: real[1][3] in -1.6e11 .. 1.6e11) \
+        -> (st: DragStatus, k: int, a: real[1][3], v_rel: real[1][3], cb: CannonballOut, po: PanelOut)
+    let om_ctx: real[1][3] = [0.0, 0.0, de440_constants().omega_earth]
+    if has_omega
+        om_ctx = omega
+    end
+    let om: real[1][3] = [0.0, 0.0, 0.0]
+    v_rel = v
+    if corotate
+        let c = cross(om_ctx, r)
+        v_rel = [v[0] - c[0], v[1] - c[1], v[2] - c[2]]
+        om = om_ctx
+    end
+    st = DragStatus.ok
+    k = 0
+    cb = CannonballOut()
+    po = PanelOut()
+    if model == DragModel.cannonball
+        cb = drag_cannonball(r, v, atm.rho, drag_cd(has_cfg_cd, cfg_cd, has_sc_cd, sc_cd), aref, mass, [0.0, 0.0, 0.0], om)
+        a = cb.a
+    else
+        st, k, po = panel_force(r, v, atm, drag_facets(f, aref), pm, g, mass, aref, r_bi, [0.0, 0.0, 0.0], om, has_sun, sun)
+        a = po.a
+    end
+end
+
+## dgeom.buildBox(Lx, Ly, Lz): the six drag panels of a box, +x into the wind.
+fn drag_box(lx: real[1] in 0.05 .. 1, ly: real[1] in 0.05 .. 1, lz: real[1] in 0.05 .. 1) -> f: ScFacets
+    f = ScFacets()
+    let z: real[1][3] = [0.0, 0.0, 0.0]
+    f = facet_add(f, FacetKind.plain, [1.0, 0.0, 0.0], ly*lz, 0.0, 0.0, 0.0, z, false)
+    f = facet_add(f, FacetKind.plain, [-1.0, 0.0, 0.0], ly*lz, 0.0, 0.0, 0.0, z, false)
+    f = facet_add(f, FacetKind.plain, [0.0, 1.0, 0.0], lx*lz, 0.0, 0.0, 0.0, z, false)
+    f = facet_add(f, FacetKind.plain, [0.0, -1.0, 0.0], lx*lz, 0.0, 0.0, 0.0, z, false)
+    f = facet_add(f, FacetKind.plain, [0.0, 0.0, 1.0], lx*ly, 0.0, 0.0, 0.0, z, false)
+    f = facet_add(f, FacetKind.plain, [0.0, 0.0, -1.0], lx*ly, 0.0, 0.0, 0.0, z, false)
+end
+
+## dgeom.addArray(facets, normal, area): both faces of a flat panel as two drag panels.
+fn drag_add_array(f: ScFacets, normal: real[1][3] in -1 .. 1, area: real[1] in 0 .. 1) -> g: ScFacets
+    let z: real[1][3] = [0.0, 0.0, 0.0]
+    g = facet_add(f, FacetKind.plain, normal, area, 0.0, 0.0, 0.0, z, false)
+    g = facet_add(g, FacetKind.plain, [-normal[0], -normal[1], -normal[2]], area, 0.0, 0.0, 0.0, z, false)
+end
+
+## dgeom.ramAttitude(vrel): body to ECI with body +x along vrel and body +y = zref x x (zref +z, or +y when x is within
+## about 11 degrees of it).
+fn ram_attitude(vrel: real[1][3] in -8000 .. 8000) -> m: real[1][3][3]
+    let x = ounit(vrel)
+    let zref: real[1][3] = [0.0, 0.0, 1.0]
+    if abs(dot(x, zref)) > 0.98
+        zref = [0.0, 1.0, 0.0]
+    end
+    let y = ounit(cross(zref, x))
+    let z = cross(x, y)
+    m = from_cols(x, y, z)
+end
+
+## dgeom.attitudeFromAoA(vrel, aoa_deg, sideslip_deg): the ram attitude pitched by the angle of attack about body y,
+## then yawed by the sideslip about body z [deg].
+fn attitude_from_aoa(vrel: real[1][3] in -8000 .. 8000, aoa_deg: real[1] in -90 .. 90, sideslip_deg: real[1] in -90 .. 90) -> m: real[1][3][3]
+    let rram = ram_attitude(vrel)
+    let a = deg2rad(aoa_deg)
+    let b = deg2rad(sideslip_deg)
+    let ry: real[1][3][3] = [[cos(a), 0.0, sin(a)], [0.0, 1.0, 0.0], [-sin(a), 0.0, cos(a)]]
+    let rz: real[1][3][3] = [[cos(b), -sin(b), 0.0], [sin(b), cos(b), 0.0], [0.0, 0.0, 1.0]]
+    m = (rram*ry)*rz
+end
+
+## sgeom.R_lvlh(r, v): body to ECI of a nadir-pointing attitude (z to nadir, y against the orbit normal, x completing,
+## about along the velocity).
+fn r_lvlh(r: real[1][3] in -8e6 .. 8e6, v: real[1][3] in -8000 .. 8000) -> m: real[1][3][3]
+    let nr = onorm(r)
+    let zb: real[1][3] = [-r[0]/nr, -r[1]/nr, -r[2]/nr]
+    let h = cross(r, v)
+    let nh = onorm(h)
+    let yb: real[1][3] = [-h[0]/nh, -h[1]/nh, -h[2]/nh]
+    let xb = ounit(cross(yb, zb))
+    m = from_cols(xb, yb, zb)
+end

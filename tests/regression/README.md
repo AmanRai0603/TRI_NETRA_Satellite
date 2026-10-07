@@ -18,7 +18,9 @@ read into env's nodes by `tools/readers.py`, and S7.3, env's methods for time, f
 atmosphere, DE440, gravity and tides and relativity, their data read by `tools/readers.py` and their methods under
 `design/revisions/S7.3b/` to `S7.3e/`: 9.6 MB, of which JB2008's SET indices are 2.5 MB; and again on 8 Oct 2026 with
 S7.4, env's environment and disturbance torques and six values dyn states, and S7.5, dyn's plant, their methods under
-`design/revisions/S7.4/` and `S7.5/`):
+`design/revisions/S7.4/` and `S7.5/`; and again on 8 Oct 2026 with S7.6, env's orbit (the fast orbit's forces and start, the
+precision orbit's spacecraft force models, force set and sum), and S7.7, act's actuators and eight values act states, their
+methods under `design/revisions/S7.6/` and `S7.7/`, for the toolbox `trinetra-toolbox/4` (erf)):
 
     python3 tools/convert_2_0.py --out DRIVE
     python3 tools/design_build.py DRIVE --out tests/regression/design.tndb

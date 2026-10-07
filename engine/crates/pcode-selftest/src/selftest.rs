@@ -793,3 +793,17 @@ pub fn platform(a: f64, b: f64, x: f64, n: i64) -> (f64, i64, f64, f64) {
     h = f64::hypot(a, b);
     (t, ti, l2, h)
 }
+
+/// erf, the platform's error function (C erf, MATLAB erf; std Rust's from the C library), held as any transcendental:
+/// within 1e-12 of the interpreter's (fdlibm's s_erf.c). trinetra-toolbox/4 (S7.6: the gas-surface interaction).
+/// - x: real[1] (passed a plain number)
+/// - returns e: real[1] (passed a plain number)
+/// - returns c: real[1] (passed a plain number)
+#[allow(clippy::too_many_arguments)]
+pub fn errorfn(x: f64) -> (f64, f64) {
+    let mut e: f64 = 0.0;
+    let mut c: f64 = 0.0;
+    e = rt::erf(x);
+    c = (1.0 - rt::erf((x / 4.0)));
+    (e, c)
+}

@@ -25,7 +25,7 @@ type F = fn(f64, f64) -> f64;
 
 #[test]
 fn the_maths_is_javascript_s() {
-    let fns: [(&str, F, bool); 13] = [
+    let fns: [(&str, F, bool); 14] = [
         ("sin", |x, _| math::sin(x), true),
         ("cos", |x, _| math::cos(x), true),
         ("tan", |x, _| math::tan(x), false),
@@ -37,6 +37,7 @@ fn the_maths_is_javascript_s() {
         ("log", |x, _| math::log(x), false),
         ("log10", |x, _| math::log10(x), false),
         ("log2", |x, _| math::log2(x), false),
+        ("erf", |x, _| math::erf(x), false),
         ("hypot", math::hypot, false),
         ("pow", math::pow, false),
     ];

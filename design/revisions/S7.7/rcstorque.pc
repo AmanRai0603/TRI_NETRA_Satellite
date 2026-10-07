@@ -1,0 +1,18 @@
+## The cold-gas thrusters' torque directions, transcribed from adcs-sim product.rs (fit_actuator_, rcs) and
+## adcs-sim-core actuators.rs (Rcs::apply): six couples, a pair of thrusters firing together about each body axis, each
+## way; a couple about axis k gives 2 F arm_k (F the part's thrust, arm_k its short arm about x and its long arm about y
+## and z), the torque scaled by the duty each step.
+## The developer's transcription (S7.7), unsigned.
+module rcstorque
+
+## The most thruster couples a product carries.
+const ACT_NC = 6
+
+## The six couples' body torques [N m] at full thrust: +-2 F arm about x, y and z in turn.
+fn couple_torques(thrust: real[N] in 0.001 .. 1, arm: real[m][3] in 0.01 .. 1) -> tau: real[N m][3][ACT_NC]
+    tau = 0
+    for ax in 0 .. 3
+        tau[2*ax][ax] = 2.0*thrust*arm[ax]
+        tau[2*ax + 1][ax] = -2.0*thrust*arm[ax]
+    end
+end

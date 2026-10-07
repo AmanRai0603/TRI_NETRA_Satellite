@@ -1,0 +1,21 @@
+## A fluid momentum ring's pump efficiency and power, transcribed from adcs-sim-core actuators.rs (Mex::new: the unit's
+## efficiency drawn uniformly over the part's pump_efficiency range; Mex::apply: the pump's power): the pressure the
+## pump holds for a torque, dp = tau L/(2 S A) (the channel's length L, enclosed area S, bore area A), times the flow
+## A v (v = h/k_hv), over the efficiency.
+## The developer's transcription (S7.7), unsigned.
+module ringpump
+
+## The unit's pump efficiency, uniform between lo and hi, drawn from disp.
+fn pump_efficiency(lo: real[1] in 0.01 .. 0.5, hi: real[1] in 0.01 .. 0.5, disp: inout stream) -> eta: real[1]
+    let u = uniform(disp)
+    eta = lo + (hi - lo)*u
+end
+
+## The pump's power [W] at torque pump [N m], the ring's momentum h [N m s] and its constants: momentum per flow speed
+## k_hv [N m s/(m/s)], channel length l [m], enclosed area s [m^2], bore area ac [m^2], efficiency eta.
+fn pump_power(pump: real[1] in -0.01 .. 0.01, h: real[1] in -0.05 .. 0.05, k_hv: real[1] in 0.001 .. 1, l: real[1] in 0.1 .. 3, \
+              s: real[1] in 0.005 .. 0.5, ac: real[1] in 1e-6 .. 1e-3, eta: real[1] in 0.01 .. 0.5) -> p: real[1]
+    let v = h/k_hv
+    let dp = pump*l/(2.0*s*ac)
+    p = abs(dp*ac*v)/eta
+end

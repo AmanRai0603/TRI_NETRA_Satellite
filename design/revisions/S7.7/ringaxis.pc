@@ -1,0 +1,10 @@
+## A fluid momentum ring's axis misalignment, transcribed from adcs-sim-core actuators.rs (Mex::new): the ring's nominal
+## axis turned by a small rotation of three normal draws times the part's axis misalignment sigma [rad], from the run's
+## dispersion stream (the same draw as any momentum device's).
+## The developer's transcription (S7.7), unsigned.
+module ringaxis
+
+## The ring's axis a turned by its misalignment (sigma [rad]), drawn from disp.
+fn ring_axis(a: real[1][3] in -1 .. 1, sigma: real[1] in 0 .. 0.05, disp: inout stream) -> b: real[1][3]
+    b = misaligned_axis(a, sigma, disp)
+end

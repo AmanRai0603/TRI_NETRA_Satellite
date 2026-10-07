@@ -171,6 +171,12 @@ pub fn call(name: &str, x: &[f64]) -> Option<Vec<f64>> {
             out.push(r.2);
             out.push(r.3);
         }
+        "selftest::errorfn" => {
+            if x.len() != 1 { return None; }
+            let r = crate::selftest::errorfn(x[0]);
+            out.push(r.0);
+            out.push(r.1);
+        }
         _ => return None,
     }
     Some(out)

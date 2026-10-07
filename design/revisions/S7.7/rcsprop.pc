@@ -1,0 +1,11 @@
+## The thrusters' propellant, transcribed from adcs-sim run.rs (actuate): the propellant used grows by the mass flow over
+## each step; once it reaches the tank's load (the part's propellant_kg) the tank is empty and every valve fails.
+## The developer's transcription (S7.7), unsigned.
+module rcsprop
+
+## The propellant used [kg] after a step dt at flow mdot [kg/s], and whether the tank of load prop_kg is empty.
+fn tank_update(used: real[kg] in 0 .. 1, mdot: real[kg/s] in 0 .. 0.01, dt: real[s] in 0.01 .. 1, prop_kg: real[kg] in 0.01 .. 1) \
+        -> (u: real[kg], empty: bool)
+    u = used + mdot*dt
+    empty = u >= prop_kg
+end

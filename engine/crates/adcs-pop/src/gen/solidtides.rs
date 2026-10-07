@@ -4,10 +4,15 @@
 use crate::gen::rt;
 use crate::gen::de440::{DeConstants, EphemOut};
 use crate::gen::densitymodel::{AtmosOut};
+use crate::gen::drag::{CannonballOut, PanelOut};
 use crate::gen::dtm2020::{Plg, Hloc, DtmRaw, DtmDensity};
+use crate::gen::erp::{ErpComp};
+use crate::gen::forcemodel::{ForceSet};
+use crate::gen::gsi::{Gsi};
 use crate::gen::iau2006::{TimeScales, CioParts};
 use crate::gen::jb2008::{JbOut, JbCoreInputs};
 use crate::gen::relativity::{RelParts};
+use crate::gen::srp::{ScFacets};
 use crate::gen::swindex::{SwManual};
 use crate::gen::timescales::{Times};
 
@@ -34,14 +39,14 @@ pub fn norm_legendre5(x: f64, nmax: i64) -> [[f64; 5]; 5] {
         p[1][1] = (f64::sqrt(3.0) * s);
     }
     {
-        let __end73: i64 = (nmax + 1);
+        let __end95: i64 = (nmax + 1);
         let mut n: i64 = 2;
-        while n < __end73 {
+        while n < __end95 {
             let mut nf: f64 = (n as f64);
             {
-                let __end74: i64 = (n + 1);
+                let __end96: i64 = (n + 1);
                 let mut m: i64 = 0;
-                while m < __end74 {
+                while m < __end96 {
                     let mut mf: f64 = (m as f64);
                     if (m == n) {
                         p[(n) as usize][(m) as usize] = ((s * f64::sqrt((((2.0 * nf) + 1.0) / (2.0 * nf)))) * p[((n - 1)) as usize][((m - 1)) as usize]);
@@ -99,21 +104,21 @@ pub fn iers2010(r_moon: [f64; 3], r_sun: [f64; 3], mu: f64, re: f64) -> Dcs5 {
     let mut k4: DeConstants = crate::gen::de440::de440_constants();
     d = Dcs5::default();
     {
-        let __end75: i64 = 2;
+        let __end97: i64 = 2;
         let mut body: i64 = 0;
-        while body < __end75 {
+        while body < __end97 {
             let mut rb: [f64; 3] = (if (body == 0) { r_moon } else { r_sun });
             let mut gmb: f64 = (if (body == 0) { k4.gm_moon } else { k4.gm_sun });
             let (mut r, mut phi, mut lam) = crate::gen::solidtides::body_angles(rb);
             let mut p: [[f64; 5]; 5] = crate::gen::solidtides::norm_legendre5(f64::sin(phi), 4);
             {
-                let __end76: i64 = 4;
+                let __end98: i64 = 4;
                 let mut n: i64 = 2;
-                while n < __end76 {
+                while n < __end98 {
                     {
-                        let __end77: i64 = (n + 1);
+                        let __end99: i64 = (n + 1);
                         let mut m: i64 = 0;
-                        while m < __end77 {
+                        while m < __end99 {
                             let mut fac: f64 = ((((k[(n) as usize][(m) as usize] / (((2 * n) + 1) as f64)) * (gmb / mu)) * f64::powf((re / r), core::hint::black_box(((n + 1) as f64)))) * p[(n) as usize][(m) as usize]);
                             d.dc[(n) as usize][(m) as usize] = (d.dc[(n) as usize][(m) as usize] + (fac * f64::cos(((m as f64) * lam))));
                             d.ds[(n) as usize][(m) as usize] = (d.ds[(n) as usize][(m) as usize] + (fac * f64::sin(((m as f64) * lam))));
@@ -124,9 +129,9 @@ pub fn iers2010(r_moon: [f64; 3], r_sun: [f64; 3], mu: f64, re: f64) -> Dcs5 {
                 }
             }
             {
-                let __end78: i64 = 3;
+                let __end100: i64 = 3;
                 let mut m: i64 = 0;
-                while m < __end78 {
+                while m < __end100 {
                     let mut fac4: f64 = ((((kp[(m) as usize] / 5.0) * (gmb / mu)) * f64::powf((re / r), core::hint::black_box(3.0))) * p[2][(m) as usize]);
                     d.dc[4][(m) as usize] = (d.dc[4][(m) as usize] + (fac4 * f64::cos(((m as f64) * lam))));
                     d.ds[4][(m) as usize] = (d.ds[4][(m) as usize] + (fac4 * f64::sin(((m as f64) * lam))));
@@ -152,17 +157,17 @@ pub fn elastic2(r_moon: [f64; 3], r_sun: [f64; 3], k2: f64, mu: f64, re: f64) ->
     let mut k4: DeConstants = crate::gen::de440::de440_constants();
     d = Dcs5::default();
     {
-        let __end79: i64 = 2;
+        let __end101: i64 = 2;
         let mut b: i64 = 0;
-        while b < __end79 {
+        while b < __end101 {
             let mut rb: [f64; 3] = (if (b == 0) { r_moon } else { r_sun });
             let mut gmb: f64 = (if (b == 0) { k4.gm_moon } else { k4.gm_sun });
             let (mut r, mut phi, mut lam) = crate::gen::solidtides::body_angles(rb);
             let mut p: [[f64; 5]; 5] = crate::gen::solidtides::norm_legendre5(f64::sin(phi), 2);
             {
-                let __end80: i64 = 3;
+                let __end102: i64 = 3;
                 let mut m: i64 = 0;
-                while m < __end80 {
+                while m < __end102 {
                     let mut fac: f64 = ((((k2 / 5.0) * (gmb / mu)) * f64::powf((re / r), core::hint::black_box(3.0))) * p[2][(m) as usize]);
                     d.dc[2][(m) as usize] = (d.dc[2][(m) as usize] + (fac * f64::cos(((m as f64) * lam))));
                     d.ds[2][(m) as usize] = (d.ds[2][(m) as usize] + (fac * f64::sin(((m as f64) * lam))));
@@ -207,9 +212,9 @@ pub fn deg2_potential(x: [f64; 3], dc2: [f64; 3], ds2: [f64; 3], mu: f64, re: f6
     let mut p: [[f64; 5]; 5] = crate::gen::solidtides::norm_legendre5(f64::sin(phi), 2);
     u = 0.0;
     {
-        let __end81: i64 = 3;
+        let __end103: i64 = 3;
         let mut m: i64 = 0;
-        while m < __end81 {
+        while m < __end103 {
             let mut ml: f64 = ((m as f64) * lam);
             u = (u + ((((mu / xr) * rt::ipow((re / xr), 2)) * p[2][(m) as usize]) * ((dc2[(m) as usize] * f64::cos(ml)) + (ds2[(m) as usize] * f64::sin(ml)))));
             m += 1;
@@ -235,9 +240,9 @@ pub fn accel_from_deg2(r: [f64; 3], dc2: [f64; 3], ds2: [f64; 3], mu: f64, re: f
     let mut h: f64 = 1.0;
     a = [0.0; 3];
     {
-        let __end82: i64 = 3;
+        let __end104: i64 = 3;
         let mut k: i64 = 0;
-        while k < __end82 {
+        while k < __end104 {
             let mut rp: [f64; 3] = r;
             let mut rm: [f64; 3] = r;
             rp[(k) as usize] = (rp[(k) as usize] + h);

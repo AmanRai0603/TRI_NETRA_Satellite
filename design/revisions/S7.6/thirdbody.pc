@@ -1,0 +1,207 @@
+## The third-body accelerations of the Sun and the Moon on a near-Earth satellite, transcribed from adcs-pop thirdbody.rs
+## and thirdbody/secular.rs, the port of the Octave POP's +thirdbody (battin, direct, tidal, legendre, accel, total),
+## +thirdbody/+secular (elem2vectors, vectors2elem, kozaiRates, phiQuad) and +forces/thirdbody.m: the acceleration of a
+## point mass on the satellite less its pull on the Earth, in Battin's stable form (Battin 1999, An Introduction to the
+## Mathematics and Methods of Astrodynamics, section 8.4, f(q)), as the textbook difference of two inverse squares, its
+## degree-2 tidal approximation, or the Legendre series to a degree (Montenbruck and Gill 2000, section 3.3); the
+## doubly-averaged quadrupole (Lidov-Kozai) rates of the orbit's angular-momentum and eccentricity vectors (Tremaine,
+## Touma and Kazandjian 2009, MNRAS 394:1085, eq. 18). ECI positions [m], accelerations [m/s^2]; plain numbers in SI. The
+## secular histories' integrator (RK4) is the code's and calls these rates.
+## The developer's transcription (S7.6), unsigned.
+module thirdbody
+
+## The Legendre series' arrays: degrees 0 to 64, the largest the evaluation holds.
+const TB_LEG = 65
+## The most perturbers the secular rates sum.
+const TB_NP = 8
+
+## The third-body model of thirdbody.accel: Battin's f(q) (the default), the direct difference, the tidal approximation,
+## the Legendre series.
+choice ThirdBodyModel = battin, direct, tidal, legendre
+
+## thirdbody.battin(rSat, rBody, GM): the third body's acceleration in Battin's stable form.
+fn tb_battin(s: real[1][3] in -8e6 .. 8e6, b: real[1][3] in -1.6e11 .. 1.6e11, gm: real[1] in 4e12 .. 1.4e20) -> a: real[1][3]
+    let rb2 = dot(b, b)
+    let s2b: real[1][3] = [s[0] - 2.0*b[0], s[1] - 2.0*b[1], s[2] - 2.0*b[2]]
+    let q = dot(s, s2b)/rb2
+    let f = q*(3.0 + 3.0*q + q*q)/(1.0 + pow(1.0 + q, 1.5))
+    let d3 = rb2*sqrt(rb2)*pow(1.0 + q, 1.5)
+    let k = -gm/d3
+    a = [k*(s[0] + f*b[0]), k*(s[1] + f*b[1]), k*(s[2] + f*b[2])]
+end
+
+## thirdbody.direct(rSat, rBody, GM): GM ((b - s)/|b - s|^3 - b/|b|^3), with Octave's scaled norms (the two terms cancel
+## to about five digits for the Sun, so the norm's last bit matters).
+## The cancellation amplifies pow's last bit about 1e5 times: a translation is held to 1e-8 of the largest output.
+## tolerance: 1e-8
+fn tb_direct(s: real[1][3] in -8e6 .. 8e6, b: real[1][3] in -1.6e11 .. 1.6e11, gm: real[1] in 4e12 .. 1.4e20) -> a: real[1][3]
+    let d: real[1][3] = [b[0] - s[0], b[1] - s[1], b[2] - s[2]]
+    let nd3 = pow(onorm(d), 3.0)
+    let nb3 = pow(onorm(b), 3.0)
+    a = 0
+    for i in 0 .. 3
+        a[i] = gm*(d[i]/nd3 - b[i]/nb3)
+    end
+end
+
+## thirdbody.tidal(rSat, rBody, GM): the degree-2 gradient, -GM/|b|^3 (s - 3 (s.bhat) bhat).
+fn tb_tidal(s: real[1][3] in -8e6 .. 8e6, b: real[1][3] in -1.6e11 .. 1.6e11, gm: real[1] in 4e12 .. 1.4e20) -> a: real[1][3]
+    let rb = norm(b)
+    let rh: real[1][3] = [b[0]/rb, b[1]/rb, b[2]/rb]
+    let k = -gm/pow(rb, 3.0)
+    let sr = 3.0*dot(s, rh)
+    a = [k*(s[0] - sr*rh[0]), k*(s[1] - sr*rh[1]), k*(s[2] - sr*rh[2])]
+end
+
+## thirdbody.legendre(rSat, rBody, GM, nmax): the Legendre series of the third body's potential to degree nmax (at most
+## 64).
+fn tb_legendre(s: real[1][3] in -8e6 .. 8e6, b: real[1][3] in -1.6e11 .. 1.6e11, gm: real[1] in 4e12 .. 1.4e20, \
+               nmax: int in 0 .. 8) -> a: real[1][3]
+    let rho = norm(s)
+    let rb = norm(b)
+    let rs: real[1][3] = [s[0]/rho, s[1]/rho, s[2]/rho]
+    let rbh: real[1][3] = [b[0]/rb, b[1]/rb, b[2]/rb]
+    let u = dot(rs, rbh)
+    let p: real[1][TB_LEG] = 0
+    let dp: real[1][TB_LEG] = 0
+    p[0] = 1.0
+    if nmax >= 1
+        p[1] = u
+        dp[1] = 1.0
+    end
+    for n in 2 .. nmax + 1
+        let nf = real(n)
+        p[n] = ((2.0*nf - 1.0)*u*p[n - 1] - (nf - 1.0)*p[n - 2])/nf
+        dp[n] = u*dp[n - 1] + nf*p[n - 1]
+    end
+    a = 0
+    for m in 2 .. nmax + 1
+        let mf = real(m)
+        let k = gm/pow(rb, mf + 1.0)*pow(rho, mf - 1.0)
+        for i in 0 .. 3
+            a[i] = a[i] + k*(mf*p[m]*rs[i] + dp[m]*(rbh[i] - u*rs[i]))
+        end
+    end
+end
+
+## thirdbody.accel(rSat, rBody, GM, model, nmax): the model's acceleration (nmax for the Legendre series).
+## The direct model's cancellation amplifies pow's last bit: a translation is held to 1e-8 of the largest output.
+## tolerance: 1e-8
+fn tb_accel(s: real[1][3] in -8e6 .. 8e6, b: real[1][3] in -1.6e11 .. 1.6e11, gm: real[1] in 4e12 .. 1.4e20, \
+            model: ThirdBodyModel, nmax: int in 0 .. 8) -> a: real[1][3]
+    if model == ThirdBodyModel.battin
+        a = tb_battin(s, b, gm)
+    elif model == ThirdBodyModel.direct
+        a = tb_direct(s, b, gm)
+    elif model == ThirdBodyModel.tidal
+        a = tb_tidal(s, b, gm)
+    else
+        a = tb_legendre(s, b, gm, nmax)
+    end
+end
+
+## [a, parts] = thirdbody.total(rSat, E, model, nmax): the Sun's and the Moon's accelerations and their sum.
+## The direct model's cancellation amplifies pow's last bit: a translation is held to 1e-8 of the largest output.
+## tolerance: 1e-8
+fn tb_total(s: real[1][3] in -8e6 .. 8e6, sun: real[1][3] in -1.6e11 .. 1.6e11, gm_sun: real[1] in 1.3e20 .. 1.4e20, \
+            moon: real[1][3] in -4.1e8 .. 4.1e8, gm_moon: real[1] in 4.8e12 .. 5e12, model: ThirdBodyModel, \
+            nmax: int in 0 .. 8) -> (a: real[1][3], a_sun: real[1][3], a_moon: real[1][3])
+    a_sun = tb_accel(s, sun, gm_sun, model, nmax)
+    a_moon = tb_accel(s, moon, gm_moon, model, nmax)
+    a = [a_sun[0] + a_moon[0], a_sun[1] + a_moon[1], a_sun[2] + a_moon[2]]
+end
+
+## x.min(1).max(-1) of the code (MATLAB's max(min(x, 1), -1)): a nan gives 1.
+fn unit_clip(x: real[1] in -2 .. 2) -> y: real[1]
+    let m = if x < 1.0 then x else 1.0
+    y = if m > -1.0 then m else -1.0
+end
+
+## thirdbody.secular.elem2vectors(a, ecc, inc, Om, w): the angular-momentum vector j (|j| = sqrt(1 - e^2)) and the
+## eccentricity vector e of classical elements [rad].
+fn elem2vectors(ecc: real[1] in 0 .. 0.9, inc: real[1] in 0 .. 3.1, om: real[1] in 0 .. 6.2, w: real[1] in 0 .. 6.2) \
+        -> (j: real[1][3], e: real[1][3])
+    let ci = cos(inc)
+    let si = sin(inc)
+    let co = cos(om)
+    let so = sin(om)
+    let jhat: real[1][3] = [so*si, -co*si, ci]
+    let node: real[1][3] = [co, so, 0.0]
+    let ip = cross(jhat, node)
+    let cw = cos(w)
+    let sw = sin(w)
+    let ehat: real[1][3] = [cw*node[0] + sw*ip[0], cw*node[1] + sw*ip[1], cw*node[2] + sw*ip[2]]
+    let sj = sqrt(1.0 - ecc*ecc)
+    j = [sj*jhat[0], sj*jhat[1], sj*jhat[2]]
+    e = [ecc*ehat[0], ecc*ehat[1], ecc*ehat[2]]
+end
+
+## thirdbody.secular.vectors2elem(j, e): eccentricity, inclination, RAAN and argument of perigee [rad] of the vectors
+## (the node along x when the orbit is equatorial, the perigee at the node when it is circular).
+fn vectors2elem(j: real[1][3] in -1 .. 1, e: real[1][3] in -0.9 .. 0.9) -> (ecc: real[1], inc: real[1], om: real[1], w: real[1])
+    let jn = norm(j)
+    ecc = norm(e)
+    inc = acos(unit_clip(j[2]/jn))
+    let node = cross([0.0, 0.0, 1.0], j)
+    let nn = norm(node)
+    let nodeu: real[1][3] = [1.0, 0.0, 0.0]
+    if nn < 1e-12
+        om = 0.0
+    else
+        om = atan2(node[1], node[0])
+        nodeu = [node[0]/nn, node[1]/nn, node[2]/nn]
+    end
+    if ecc < 1e-12
+        w = 0.0
+    else
+        let ehat: real[1][3] = [e[0]/ecc, e[1]/ecc, e[2]/ecc]
+        let ip = cross([j[0]/jn, j[1]/jn, j[2]/jn], nodeu)
+        w = atan2(dot(ip, ehat), dot(nodeu, ehat))
+    end
+end
+
+## thirdbody.secular.kozaiRates(j, e, nhat, phiQ): the doubly-averaged quadrupole rates of j and e for one perturber
+## whose orbit's pole is nhat, at the secular frequency phi_q [rad/s].
+fn kozai_rates(j: real[1][3] in -1 .. 1, e: real[1][3] in -0.9 .. 0.9, nhat: real[1][3] in -1 .. 1, phi_q: real[1] in 0 .. 1e-6) \
+        -> (dj: real[1][3], de: real[1][3])
+    let nn = norm(nhat)
+    let n: real[1][3] = [nhat[0]/nn, nhat[1]/nn, nhat[2]/nn]
+    let jn = dot(j, n)
+    let en = dot(e, n)
+    let jxn = cross(j, n)
+    let exn = cross(e, n)
+    let jxe = cross(j, e)
+    dj = 0
+    de = 0
+    for i in 0 .. 3
+        dj[i] = phi_q*(jn*jxn[i] - 5.0*en*exn[i])
+        de[i] = phi_q*(jn*exn[i] + 2.0*jxe[i] - 5.0*en*jxn[i])
+    end
+end
+
+## The rates of j and e summed over np perturbers (their poles and secular frequencies; at most TB_NP).
+fn secular_rates(j: real[1][3] in -1 .. 1, e: real[1][3] in -0.9 .. 0.9, nhat: real[1][3][TB_NP] in -1 .. 1, \
+                 phi_q: real[1][TB_NP] in 0 .. 1e-6, np: int in 0 .. 8) -> (dj: real[1][3], de: real[1][3])
+    dj = 0
+    de = 0
+    for m in 0 .. np
+        let d1, d2 = kozai_rates(j, e, nhat[m], phi_q[m])
+        for i in 0 .. 3
+            dj[i] = dj[i] + d1[i]
+            de[i] = de[i] + d2[i]
+        end
+    end
+end
+
+## thirdbody.secular.phiQuad(a_sat, GM_body, r_body, e_body, mu): the secular quadrupole frequency [rad/s] of a
+## perturber of GM gm_body on an orbit of radius r_body and eccentricity e_body, the satellite's semi-major axis a_sat.
+fn phi_quad(a_sat: real[1] in 6.6e6 .. 5e7, gm_body: real[1] in 4e12 .. 1.4e20, r_body: real[1] in 3.8e8 .. 1.5e11, \
+            e_body: real[1] in 0 .. 0.1, mu: real[1] in 3.9e14 .. 4e14) -> phi: real[1]
+    let n = sqrt(mu/pow(a_sat, 3.0))
+    phi = 0.75*(gm_body/pow(r_body, 3.0))/n/pow(1.0 - e_body*e_body, 1.5)
+end
+
+## The Kozai constant sqrt(1 - e^2) cos(i) of an orbit's eccentricity and inclination [rad].
+fn kozai_constant(ecc: real[1] in 0 .. 0.9, inc: real[1] in 0 .. 3.1) -> k: real[1]
+    k = sqrt(1.0 - ecc*ecc)*cos(inc)
+end

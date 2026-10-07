@@ -1,0 +1,168 @@
+## The momentum devices as the engine flies them, transcribed from adcs-sim-core actuators.rs (Kind, MexDesc, Mex, new,
+## apply): reaction wheels, fluid momentum rings, control moment gyros and variable-speed CMGs, and their gimbals. Each
+## unit's dispersion drawn once (the torque and friction factors, a ring's pump efficiency, the misaligned axes, in the
+## engine's order: every rotor's torque factor, then friction factor, then efficiency, then axis); each step, each
+## rotor's momentum rate and power from its command, its momentum and its rows' methods (the wheel's motor line, speed
+## and momentum limits, bearing friction and its compensation, torque noise; the ring's target, flow noise and filter,
+## pump, spin-down and field; the CMG's speed loop; the VSCMG's rotor), a failed rotor coasting under its friction, and
+## each gimbal's rate and power. The noise is drawn from the run's momentum-device stream, a rotor at a time, in order.
+## The developer's transcription (S7.7), unsigned.
+module rotorset
+
+## A momentum device's kind: a reaction wheel, a fluid ring, a CMG, a variable-speed CMG.
+choice RotorKind = rw, fmr, cmg, vscmg
+
+## The momentum devices as the parts state them (DYN_NR rotors, DYN_NG gimbals at most): how many rotors and gimbals;
+## each rotor's kind, nominal axis (body), gimbal (from 1; 0 none), momentum capacity [N m s], largest torque [N m],
+## inertia [kg m^2], Coulomb [N m] and viscous [N m s] friction, steady power [W], torque factor's sigma, friction
+## factor's range, misalignment sigma [rad], a ring's spin-down time [s], momentum per flow speed, bore area [m^2],
+## enclosed area [m^2] and channel length [m], its flow noise in momentum [N m s], field power [W] and pump efficiency
+## range, a CMG's rotor momentum [N m s]; a wheel's speed limit [rad/s], stall torque [N m], no-load speed [rad/s],
+## static friction [N m] and Stribeck speed [rad/s]; the gimbal axes; the product's torque noise share, friction
+## compensation, drive efficiency, CMG speed gain [1/s], ring flow gain and flow filter time constant [s]; the gimbals'
+## largest rate [rad/s] and power [W].
+record RotorDesc
+    n: int
+    ng: int
+    kind: RotorKind[DYN_NR]
+    a0: real[1][3][DYN_NR]
+    gi: int[DYN_NR]
+    h_max: real[1][DYN_NR]
+    torque_max: real[1][DYN_NR]
+    jrot: real[1][DYN_NR]
+    coulomb: real[1][DYN_NR]
+    viscous: real[1][DYN_NR]
+    p_steady: real[1][DYN_NR]
+    tsig: real[1][DYN_NR]
+    flo: real[1][DYN_NR]
+    fhi: real[1][DYN_NR]
+    misalign: real[1][DYN_NR]
+    t_sd: real[1][DYN_NR]
+    k_hv: real[1][DYN_NR]
+    ac: real[1][DYN_NR]
+    s: real[1][DYN_NR]
+    l: real[1][DYN_NR]
+    flow_noise_h: real[1][DYN_NR]
+    field_power: real[1][DYN_NR]
+    eta_lo: real[1][DYN_NR]
+    eta_hi: real[1][DYN_NR]
+    h0: real[1][DYN_NR]
+    speed_max: real[1][DYN_NR]
+    t_stall: real[1][DYN_NR]
+    w_nl: real[1][DYN_NR]
+    f_static: real[1][DYN_NR]
+    w_stribeck: real[1][DYN_NR]
+    g: real[1][3][DYN_NG]
+    torque_noise: real[1]
+    friction_comp: real[1]
+    eta: real[1]
+    k_speed: real[1]
+    k_flow: real[1]
+    flow_tau: real[1]
+    gimbal_rate_max: real[1]
+    gimbal_power: real[1]
+end
+
+## The momentum devices in flight: each rotor's dispersed axis, torque and friction factors and pump efficiency,
+## whether it or a gimbal has failed, a ring's momentum target and filtered momentum and whether its field is on, and
+## the noise stream.
+record RotorSet
+    a0: real[1][3][DYN_NR]
+    tscale: real[1][DYN_NR]
+    fscale: real[1][DYN_NR]
+    eta: real[1][DYN_NR]
+    failed: bool[DYN_NR]
+    gfailed: bool[DYN_NG]
+    htgt: real[1][DYN_NR]
+    hf: real[1][DYN_NR]
+    field_on: bool[DYN_NR]
+    g: stream
+end
+
+## The momentum devices of a description, their dispersion drawn from disp, their noise from the stream noise.
+fn rotorset_new(d: RotorDesc, disp: inout stream, noise: stream) -> s: RotorSet
+    s = RotorSet()
+    s.g = noise
+    for i in 0 .. d.n
+        let z = normal(disp)
+        s.tscale[i] = 1.0 + d.tsig[i]*z
+    end
+    for j in 0 .. d.n
+        let u = uniform(disp)
+        s.fscale[j] = d.flo[j] + (d.fhi[j] - d.flo[j])*u
+    end
+    for k in 0 .. d.n
+        s.eta[k] = pump_efficiency(d.eta_lo[k], d.eta_hi[k], disp)
+    end
+    for m in 0 .. d.n
+        if d.kind[m] == RotorKind.fmr
+            s.a0[m] = ring_axis(d.a0[m], d.misalign[m], disp)
+        else
+            s.a0[m] = misaligned_axis(d.a0[m], d.misalign[m], disp)
+        end
+    end
+end
+
+## The commands (each rotor's torque cmd_r [N m], each gimbal's rate cmd_g [rad/s]) at the rotors' momenta h [N m s]
+## over a step dt: (the rotors' momentum rates [N m], the gimbals' rates [rad/s], the power [W]).
+fn rotorset_apply(s: inout RotorSet, d: RotorDesc, cmd_r: real[1][DYN_NR] in -0.01 .. 0.01, cmd_g: real[1][DYN_NG] in -1 .. 1, \
+                  h: real[1][DYN_NR] in -0.05 .. 0.05, dt: real[1] in 0.01 .. 1) \
+        -> (hd: real[1][DYN_NR], gd: real[1][DYN_NG], p: real[1])
+    hd = 0
+    gd = 0
+    p = 0.0
+    for i in 0 .. d.n
+        if s.failed[i]
+            hd[i] = rotor_coast(h[i], d.jrot[i], d.viscous[i], d.coulomb[i])
+        elif d.kind[i] == RotorKind.rw
+            let om = h[i]/d.jrot[i]
+            let fr = bearing_friction(om, d.coulomb[i], d.viscous[i], s.fscale[i])
+            let g1 = s.g
+            let nz = torque_noise(d.torque_noise, d.torque_max[i], g1)
+            s.g = g1
+            let tm0 = act_clamp(cmd_r[i], -d.torque_max[i], d.torque_max[i])*s.tscale[i]
+            let tm = speed_limited(motor_line(tm0, om, d.t_stall[i], d.w_nl[i]), om, d.speed_max[i])
+            let fs = d.f_static[i]*s.fscale[i]
+            let st = stribeck_excess(om, d.f_static[i], d.coulomb[i], d.w_stribeck[i], s.fscale[i])
+            if static_hold(h[i], tm + nz, fs, dt)
+                hd[i] = -h[i]/dt
+            else
+                hd[i] = wheel_rate(tm, fr, st, nz, d.friction_comp)
+            end
+            hd[i] = momentum_limited(hd[i], h[i], d.h_max[i], -uncompensated(fr, d.friction_comp))
+            p = p + wheel_power(d.p_steady[i], tm, om, d.eta)
+        elif d.kind[i] == RotorKind.vscmg
+            let tcv = act_clamp(cmd_r[i], -d.torque_max[i], d.torque_max[i])*s.tscale[i]
+            let omv = h[i]/d.jrot[i]
+            let frv = bearing_friction(omv, d.coulomb[i], d.viscous[i], s.fscale[i])
+            let g2 = s.g
+            let nzv = torque_noise(d.torque_noise, d.torque_max[i], g2)
+            s.g = g2
+            hd[i] = momentum_limited(vscmg_rate(tcv, frv, nzv, d.friction_comp), h[i], d.h_max[i], -uncompensated(frv, d.friction_comp))
+            p = p + wheel_power(d.p_steady[i], tcv, omv, d.eta)
+        elif d.kind[i] == RotorKind.fmr
+            let tsd = d.t_sd[i]
+            s.htgt[i] = ring_target(s.htgt[i], cmd_r[i], dt, d.h_max[i])
+            let g3 = s.g
+            let hm = measured_momentum(h[i], d.flow_noise_h[i], g3)
+            s.g = g3
+            s.hf[i] = flow_filter(s.hf[i], hm, d.flow_tau, dt)
+            let pump = ring_pump(cmd_r[i], s.hf[i], tsd, d.k_flow, s.htgt[i], d.torque_max[i])
+            hd[i] = ring_rate(pump, h[i], tsd, s.fscale[i], d.h_max[i])
+            p = p + pump_power(pump, h[i], d.k_hv[i], d.l[i], d.s[i], d.ac[i], s.eta[i])
+            s.field_on[i] = field_switch(s.field_on[i], abs(s.htgt[i])/d.h_max[i], abs(cmd_r[i])/d.torque_max[i])
+            if s.field_on[i]
+                p = p + field_power(s.field_on[i], d.field_power[i])
+            end
+        else
+            hd[i] = cmg_rate(h[i], d.h0[i], d.k_speed, d.torque_max[i])
+            p = p + d.p_steady[i]
+        end
+    end
+    for j in 0 .. d.ng
+        if not s.gfailed[j]
+            gd[j] = gimbal_rate(cmd_g[j], d.gimbal_rate_max)
+            p = p + gimbal_power(gd[j], d.gimbal_power, d.gimbal_rate_max)
+        end
+    end
+end
