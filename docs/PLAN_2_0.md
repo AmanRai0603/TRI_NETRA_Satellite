@@ -130,10 +130,11 @@ runs at every valve. Today that work is:
 
 | in the database | in the code |
 |---|---|
-| every relation: physics, environment and disturbances, device models, sizing laws | the toolbox the methods call, with units (vectors, quaternions, frames and time, integrators; DTM2020, IGRF, DE440 reading) |
+| every relation: physics, environment and disturbances, device models, sizing laws, and how each metric is measured | the toolbox the methods call: maths only, with units (arithmetic and elementary functions, vectors, matrices, quaternions, interpolation, root finding, linear and Riccati solvers, random streams, integrators) |
+| **every published model, with its data** (owner's word, 7 Oct 2026): the atmosphere (DTM2020, JB2008, the exponential table), the planets' positions (DE440's Chebyshev method and its coefficients), the magnetic field (IGRF), gravity (EGM coefficients, spherical harmonics), time scales and leap seconds, Earth orientation and frames (IAU 2006/2000A, EOP, tidal terms), tides, relativity, space weather indices | the readers of files' formats (SQLite, DAF/SPK, CSV, the space-weather and EOP files) that load published data into the database, never models of their own |
 | **the flight software's algorithms**: estimation, guidance, control, detumble and Sun-acquisition laws, allocation, mode management, FDIR, the drivers' conversions | **the flight software's runtime**: HAL, C interface, tick and scheduler, the configuration blob's format, the targets (POSIX, QEMU Cortex-M, boards) |
 | the flight parameters, the mode list, the tables (IGRF coefficients) | the flight build: generate, compile, check, seal |
-| the catalogue, the cases and their variations, the KPIs, dispersions and campaigns | the time engine's core: integrator, step order, recorder, metrics |
+| the catalogue, the cases and their variations, the KPIs and their metrics, dispersions and campaigns | the time engine's core: step order, recorder, the calls to generated models and metrics |
 | wires, mounts, closures, loops; states, maturities, ranges | **the rigs**: the soft OILS emulator and byte link, the OILS and HILS rig host, emulation channels, timing measurement |
 | signatures, seals, versions; the flight images of each released design | the interpreter and the translators (Rust, C, MATLAB); the library; the application; the CLI and Python package |
 
@@ -141,7 +142,7 @@ runs at every valve. Today that work is:
 
 | part | is | where | runs |
 |---|---|---|---|
-| **toolbox** | the maths the methods may call, with units | `adcs-physics` (its generated part moves out, its toolbox stays), `fsw/pseudocode/01_math`, `02_time_frames_models` | everywhere |
+| **toolbox** | the maths the methods may call, with units, and nothing that is a model of the world or the spacecraft | `fsw/pseudocode/01_math`, the maths part of `adcs-sim-core` and `adcs-pop` (integrators, linear algebra), `+asils/+pc` | everywhere |
 | **library** | reads, writes and checks every file kind; the interpreter; the design graph; today's design; the health map; signing | `trinetra-design`, grown from today's read-only reader | installed (native) and in the page (WebAssembly) |
 | **translators** | pseudocode to Rust, C and MATLAB | today `design/js/pcode_gen.js` (Rust, MATLAB); C is new | in the flight build and the engine build |
 | **time engine** | its core, plus models generated from the design | `adcs-sim-core`, `adcs-sim`, `adcs-pop`, `adcs-design` | installed; `adcs-sim-core` (no_std) also in the page |
@@ -328,7 +329,8 @@ This is the last time the design passes through the code.
    - the mode list as a choice;
    - the IGRF coefficients as a lookup table of `env`.
 
-   `01_math` and `02_time_frames_models` stay as the toolbox.
+   `01_math` stays as the toolbox; `02_time_frames_models` (time, frames, IGRF) moves into `env` in S7 (7 Oct
+   2026).
 4. **Every value gets its state, maturity and range** by rules that invent nothing:
    - stated with a source → decided;
    - a required row's bound → allocated;
@@ -475,7 +477,14 @@ vector: bit for bit where the language allows, within the stated tolerance other
     transcription, to be signed by its node engineer after the switch-over.
   - Each is held equal to the code it replaces on its cases and across its range.
 - **The engine's models and the sizing are generated** from the design by the Rust translator. Only the engine's
-  core stays hand-written: integrator, step order, recorder, metrics.
+  core stays hand-written: step order, recorder, and the toolbox's maths (integrators among them).
+- **The published models move too** (owner's word, 7 Oct 2026: "anything related to the engine, like the
+  atmosphere model or the planets' positions, is part of the database; only what enables a run is code"). The
+  atmosphere models, the planets' positions, the magnetic field, gravity, time scales, Earth orientation and
+  frames, tides, relativity and the space-weather indices become methods of `env` and `orbit` nodes, with their
+  coefficients and published data as the nodes' tables, each citing its publication. The engine and the twin
+  generate them as they do every other method; code keeps only the file readers that bring the published data in.
+  The metrics (how each KPI is measured from a run) become methods of `kpi` too.
 - **The MATLAB twin's functions are generated** by the MATLAB translator. Its runner stays code.
   - **The twin flies the generated flight software** (the MATLAB translation of `fsw/pseudocode`), behind a
     hand-written tick, with the flight blob's parameters, in place of today's hand-written `+asils/+fsw`.
@@ -491,8 +500,8 @@ vector: bit for bit where the language allows, within the stated tolerance other
 **Done when:**
 - the count of built-in nodes is zero;
 - the parity gate holds;
-- a search for a relation in code outside the generated files and the toolbox finds none (a check in
-  `tools/check_all.py`).
+- a search for a relation or a published model in code outside the generated files and the toolbox finds none
+  (a check in `tools/check_all.py`).
 
 Zip 1.x carries the converted methods to the drive as a corrected conversion, since nobody is writing there yet.
 
@@ -520,7 +529,7 @@ failed before it. The item ids are those of `docs/TECHNICAL_ROADMAP.md`, `docs/T
 | models | M1, M2, M5, M9, M10 | design (the device methods) |
 | GNC logic | F2/G3, G1, G2, G4, G6, F4, F5 | **design** (the flight algorithm nodes), then new flight images |
 | flight software | F1, F3, F10/G8 | design where it is an algorithm (F1's epoch, for one), code where it is the runtime |
-| twin and density | E1, E6 | code (the twin runner, DTM2020 in the toolbox) and design (density nodes) |
+| twin and density | E1, E6 | code (the twin runner) and design (density nodes, DTM2020 as a method of `env`) |
 | orbit step | P5 | code (engine core) |
 | soft OILS | O2, O12, O19, O20, O21, O11 (B0) | code (rigs) |
 | tests | TS11, TS4, TS3, TS17 | code (CI) and design (cases) |
@@ -755,7 +764,8 @@ This phase does not end; it is how the design is worked from then on.
   4. the mount table, `programme` and `systems` as groups, `case` dissolved;
   5. `act` as one group with four mounts, or four groups;
   6. **the boundary:** the flight software's algorithms, parameters, modes and tables in the database; its
-     runtime, the targets and the rigs in code; the maths library as the toolbox;
+     runtime, the targets and the rigs in code; the maths library as the toolbox; and (7 Oct 2026) every published
+     model with its data in the database, code only what enables a run;
   7. one library in Rust, native and WebAssembly; a C translator;
   8. the flight build inside the installed application, with its toolchains;
   9. every built-in relation transcribed before release, each signed by its node engineer in the ownership stage;
@@ -801,6 +811,10 @@ supplies a relation.
 - **S20 puts a lot of signing on few people.** Hundreds of the developer's revisions will arrive. Until more
   people are named, you sign them. Each arrives with its source, its test that failed before, and the comparison, so checking
   is reading, not re-deriving.
+- **The published models are large.** DTM2020, JB2008, IAU 2006/2000A and DE440 are thousands of lines and long
+  coefficient tables; written as methods they must stay bit-identical to today's ports, and generated code must
+  not slow the engine down past its real-time use. The DE440 data the runs use (its span, its bodies) is kept as a
+  table, not the whole file.
 - **Transcriptions are only as good as the code they came from.** Proving a method equal to the code proves the
   transcription, not the physics. The physics is proven by the sourced vectors of S12 and the independent
   referents of S13.
