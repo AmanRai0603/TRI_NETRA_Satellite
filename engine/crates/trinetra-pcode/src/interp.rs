@@ -230,6 +230,20 @@ fn tr(m: &Value) -> Value {
     let cols = rows.first().map_or(0, Value::len);
     Value::Arr((0..cols).map(|j| Value::Arr(rows.iter().map(|r| r.at(j).into_owned()).collect())).collect())
 }
+/// the indices of a vector in ascending order, equal values in their order: an insertion sort (pcode.js `rt.argsort`)
+pub(crate) fn argsort(v: &[f64]) -> Vec<usize> {
+    let mut ix: Vec<usize> = (0..v.len()).collect();
+    for i in 1..ix.len() {
+        let k = ix[i];
+        let mut j = i as i64 - 1;
+        while j >= 0 && v[ix[j as usize]] > v[k] {
+            ix[(j + 1) as usize] = ix[j as usize];
+            j -= 1;
+        }
+        ix[(j + 1) as usize] = k;
+    }
+    ix
+}
 fn fmod(x: f64, y: f64) -> f64 {
     x % y
 }
@@ -279,6 +293,102 @@ fn sc(a: &Value, s: f64, f: fn(f64, f64) -> f64) -> Value {
     }
 }
 
+// ------------------------------------------------------------------ random streams (the toolbox's)
+// adcs-sim-core rng.rs, value for value (pcode.js `rt.stream`): a stream per (seed, id) is SplitMix64 over a
+// counter, a normal draw by Box-Muller with the spare kept. A stream is held as six numbers: its key's and its
+// counter's high and low 32 bits, the spare, whether there is one.
+pub(crate) fn splitmix64(mut z: u64) -> u64 {
+    z = z.wrapping_add(0x9E37_79B9_7F4A_7C15);
+    z = (z ^ (z >> 30)).wrapping_mul(0xBF58_476D_1CE4_E5B9);
+    z = (z ^ (z >> 27)).wrapping_mul(0x94D0_49BB_1331_11EB);
+    z ^ (z >> 31)
+}
+/// FNV-1a over a name's UTF-8 bytes (rng.rs stream_id), as its two 32-bit halves
+pub(crate) fn fnv1a(name: &str) -> (f64, f64) {
+    let mut h: u64 = 0xcbf2_9ce4_8422_2325;
+    for b in name.as_bytes() {
+        h = (h ^ u64::from(*b)).wrapping_mul(0x100_0000_01b3);
+    }
+    ((h >> 32) as f64, (h & 0xFFFF_FFFF) as f64)
+}
+/// a stream's word: a whole number from 0 below 2^32 (anything else reads as 0)
+fn u32w(x: f64) -> u64 {
+    if x.is_finite() && x >= 0.0 && x < 4294967296.0 {
+        x.trunc() as u64
+    } else {
+        0
+    }
+}
+/// a number as JavaScript's `BigInt.asUintN(64, BigInt(Math.trunc(x)))`: its whole part modulo 2^64 (0 if not finite)
+fn wrap64(x: f64) -> u64 {
+    if !x.is_finite() {
+        return 0;
+    }
+    let t = x.trunc();
+    if t.abs() < 9.223372036854776e18 {
+        return (t as i64) as u64;
+    }
+    // |t| >= 2^63: its mantissa shifted up by its exponent, modulo 2^64
+    let bits = t.abs().to_bits();
+    let e = ((bits >> 52) & 0x7ff) as i64 - 1075;
+    let m = (bits & 0x000f_ffff_ffff_ffff) | 0x0010_0000_0000_0000;
+    let u = if e >= 64 { 0 } else { m << e };
+    if t < 0.0 {
+        u.wrapping_neg()
+    } else {
+        u
+    }
+}
+fn stream_words(key: u64, n: u64, spare: f64, has: f64) -> Value {
+    arr(vec![(key >> 32) as f64, (key & 0xFFFF_FFFF) as f64, (n >> 32) as f64, (n & 0xFFFF_FFFF) as f64, spare, has])
+}
+fn new_stream(seed: f64, id: &Value) -> Value {
+    let i = match id {
+        Value::Arr(w) => (u32w(w.first().map_or(f64::NAN, Value::num)) << 32) | u32w(w.get(1).map_or(f64::NAN, Value::num)),
+        v => wrap64(v.num()),
+    };
+    stream_words(splitmix64(wrap64(seed) ^ splitmix64(i)), 0, 0.0, 0.0)
+}
+/// a draw: its value and the stream advanced
+fn draw(f: &str, s: &Value) -> (Value, Value) {
+    let w: Vec<f64> = (0..6).map(|k| s.at(k).num()).collect();
+    let uniform = |w: &[f64]| -> (f64, Vec<f64>) {
+        let key = (u32w(w[0]) << 32) | u32w(w[1]);
+        let n = ((u32w(w[2]) << 32) | u32w(w[3])).wrapping_add(1);
+        let z = splitmix64(key ^ splitmix64(n));
+        let u = ((z >> 11) as f64 + 0.5) * (1.0 / 9007199254740992.0);
+        (u, vec![(key >> 32) as f64, (key & 0xFFFF_FFFF) as f64, (n >> 32) as f64, (n & 0xFFFF_FFFF) as f64, w[4], w[5]])
+    };
+    let normal = |w: &[f64]| -> (f64, Vec<f64>) {
+        if w[5] != 0.0 {
+            return (w[4], vec![w[0], w[1], w[2], w[3], 0.0, 0.0]);
+        }
+        let (u1, w1) = uniform(w);
+        let (u2, w2) = uniform(&w1);
+        // the stream is the engine's toolbox (rng.rs): its log is the libm crate's, as rng.rs's is (not V8's, which
+        // the language's own log follows), so a normal draw here is rng.rs's bit for bit; the JavaScript's may differ
+        // in the last bit (its log, and Node's glibc sin and cos), as any transcendental may
+        let r = (-2.0 * libm::log(u1)).sqrt();
+        (r * vmath::cos(2.0 * PI * u2), vec![w2[0], w2[1], w2[2], w2[3], r * vmath::sin(2.0 * PI * u2), 1.0])
+    };
+    match f {
+        "uniform" => {
+            let (u, w) = uniform(&w);
+            (Value::Num(u), arr(w))
+        }
+        "normal" => {
+            let (z, w) = normal(&w);
+            (Value::Num(z), arr(w))
+        }
+        _ => {
+            let (a, w1) = normal(&w);
+            let (b, w2) = normal(&w1);
+            let (c, w3) = normal(&w2);
+            (arr(vec![a, b, c]), arr(w3))
+        }
+    }
+}
+
 /// integer bit operations on non-negative ints below 2^53, exact
 fn bitop(f: &str, a: f64, b: f64, line: u32) -> R<f64> {
     let two53 = 9007199254740992.0;
@@ -303,7 +413,8 @@ fn bitop(f: &str, a: f64, b: f64, line: u32) -> R<f64> {
 
 pub(crate) fn zero_of(c: &Checked, t: &Ty) -> Value {
     match t {
-        Ty::Int | Ty::Real(_) | Ty::Tuple(_) => Value::Num(0.0),
+        Ty::Int | Ty::Real(_) | Ty::Tuple(_) | Ty::Choice(_) | Ty::Str => Value::Num(0.0),
+        Ty::Stream => arr(vec![0.0; 6]),
         Ty::Bool => Value::Bool(false),
         Ty::Arr(n, of) => Value::Arr((0..*n).map(|_| zero_of(c, of)).collect()),
         Ty::Rec(name) => match c.records.iter().find(|r| &r.name == name) {
@@ -318,6 +429,20 @@ pub(crate) struct Interp {
     pub c: Checked,
     consts: Vec<OnceCell<Value>>,
     busy: Vec<Cell<bool>>,
+    /// each data table's value: nested arrays of its SI values
+    data: Vec<Value>,
+}
+
+/// A data table's value from its SI values (the outer index first) and its type.
+pub(crate) fn data_value(d: &Data) -> Value {
+    let si = d.si.as_deref().unwrap_or(&[]);
+    match &d.ty {
+        Ty::Arr(n, of) => match &**of {
+            Ty::Arr(m, _) => Value::Arr((0..*n).map(|i| arr(si.get(i * m..(i + 1) * m).unwrap_or(&[]).to_vec())).collect()),
+            _ => arr(si.to_vec()),
+        },
+        _ => Value::Num(f64::NAN),
+    }
 }
 
 enum Step {
@@ -328,7 +453,8 @@ enum Step {
 impl Interp {
     pub(crate) fn new(c: Checked) -> Self {
         let n = c.consts.len();
-        Interp { c, consts: (0..n).map(|_| OnceCell::new()).collect(), busy: (0..n).map(|_| Cell::new(false)).collect() }
+        let data = c.data.iter().map(data_value).collect();
+        Interp { c, consts: (0..n).map(|_| OnceCell::new()).collect(), busy: (0..n).map(|_| Cell::new(false)).collect(), data }
     }
 
     fn line(&self, e: ExprId) -> u32 {
@@ -358,9 +484,16 @@ impl Interp {
                 None => Value::Num(ann.si),
             })),
             ExprKind::Bool(b) => Ok(Cow::Owned(Value::Bool(*b))),
+            ExprKind::Str(s) => {
+                let (hi, lo) = fnv1a(s);
+                Ok(Cow::Owned(arr(vec![hi, lo])))
+            }
             ExprKind::Var(name) => match ann.var {
                 VarKind::Const(ci) => Ok(Cow::Borrowed(self.const_val(ci)?)),
                 VarKind::Pi => Ok(Cow::Owned(Value::Num(PI))),
+                VarKind::Inf => Ok(Cow::Owned(Value::Num(f64::INFINITY))),
+                VarKind::Nan => Ok(Cow::Owned(Value::Num(f64::NAN))),
+                VarKind::Data(di) => Ok(Cow::Borrowed(&self.data[di])),
                 _ => match env.iter().rev().find(|(n, _)| n == name) {
                     Some((_, v)) => Ok(Cow::Borrowed(v)),
                     None => Err(RunError(format!("{name} has no value yet (line {})", self.line(e)))),
@@ -393,6 +526,9 @@ impl Interp {
                 })
             }
             ExprKind::Field { a, .. } => {
+                if let Some((_, i)) = ann.choice {
+                    return Ok(Cow::Owned(Value::Num(i as f64)));
+                }
                 let av = self.ev(*a, env)?;
                 Ok(match av {
                     Cow::Borrowed(v) => v.at(ann.field),
@@ -515,6 +651,8 @@ impl Interp {
                     "max" => n(av.iter().map(Value::num).reduce(rmax).unwrap_or(f64::NAN)),
                     "clamp" => n(rclamp(x(0), x(1), x(2))),
                     "real" => Ok(av.into_iter().next().unwrap_or(Value::Num(f64::NAN))),
+                    "isnan" => Ok(Value::Bool(x(0).is_nan())),
+                    "isfinite" => Ok(Value::Bool(x(0).is_finite())),
                     "int" => {
                         let v = x(0).trunc();
                         if !(v.abs() < 9007199254740992.0) {
@@ -541,6 +679,10 @@ impl Interp {
                     "norm" => n(norm(&nums(&av[0]))),
                     "unit" => Ok(arr(unit(&nums(&av[0])))),
                     "transpose" => Ok(tr(&av[0])),
+                    "argsort" => Ok(arr(argsort(&nums(&av[0])).into_iter().map(|i| i as f64).collect())),
+                    "sort" => Ok(Value::Arr(argsort(&nums(&av[0])).into_iter().map(|i| av[0].at(i).into_owned()).collect())),
+                    "stream" => Ok(new_stream(x(0), av.get(1).unwrap_or(&Value::Num(f64::NAN)))),
+                    "uniform" | "normal" | "normal3" => Ok(draw(f, &av[0]).0),
                     _ => Err(RunError(format!("no builtin {f}"))),
                 }
             }
@@ -551,10 +693,56 @@ impl Interp {
             }
             Target::Fn(fi) => {
                 let mut r = self.run_fn(*fi, av, None)?;
+                r.truncate(self.c.fns[*fi].outs.len());
                 Ok(if self.c.fns[*fi].outs.len() == 1 { r.swap_remove(0) } else { Value::Arr(r) })
             }
             _ => Err(RunError(format!("cannot evaluate a call of {}", self.c.exprs[e].pos.line))),
         }
+    }
+
+    /// The right side of a let or an assignment: a call that changes its inout inputs gives their values back
+    /// into the caller's variables (copy in, copy out: no other input names them), before the names are set.
+    fn ev_stmt(&self, e: ExprId, env: &mut Env) -> R<Value> {
+        if !self.c.ann[e].inout {
+            return Ok(self.ev(e, env)?.into_owned());
+        }
+        // a draw: the stream drawn from goes back into the caller's variable
+        if let (ExprKind::Call { args, .. }, Target::Builtin(f)) = (&self.c.exprs[e].kind, &self.c.ann[e].target) {
+            let s = self.ev(args[0], env)?.into_owned();
+            let (v, s) = draw(f, &s);
+            if let ExprKind::Var(name) = &self.c.exprs[args[0]].kind {
+                match env.iter().rposition(|(n, _)| n == name) {
+                    Some(slot) => env[slot].1 = s,
+                    None => env.push((name.clone(), s)),
+                }
+            }
+            return Ok(v);
+        }
+        let (ExprKind::Call { args, .. }, Target::Fn(fi)) = (&self.c.exprs[e].kind, &self.c.ann[e].target) else {
+            return Ok(self.ev(e, env)?.into_owned());
+        };
+        let mut av = Vec::with_capacity(args.len());
+        for &a in args {
+            av.push(self.ev(a, env)?.into_owned());
+        }
+        let f = &self.c.fns[*fi];
+        let mut r = self.run_fn(*fi, av, None)?;
+        let inouts = r.split_off(f.outs.len());
+        let mut k = 0;
+        for (p, &a) in f.params.iter().zip(args) {
+            if !p.inout {
+                continue;
+            }
+            if let ExprKind::Var(name) = &self.c.exprs[a].kind {
+                let v = inouts.get(k).cloned().unwrap_or(Value::Num(f64::NAN));
+                match env.iter().rposition(|(n, _)| n == name) {
+                    Some(slot) => env[slot].1 = v,
+                    None => env.push((name.clone(), v)),
+                }
+            }
+            k += 1;
+        }
+        Ok(if f.outs.len() == 1 { r.swap_remove(0) } else { Value::Arr(r) })
     }
 
     fn exec(&self, stmts: &[Stmt], env: &mut Env) -> R<()> {
@@ -562,7 +750,7 @@ impl Interp {
         for s in stmts {
             match &s.kind {
                 StmtKind::Let { names, e, .. } => {
-                    let v = self.ev(*e, env)?.into_owned();
+                    let v = self.ev_stmt(*e, env)?;
                     if names.len() > 1 {
                         for (i, n) in names.iter().enumerate() {
                             let vi = v.at(i).into_owned();
@@ -575,7 +763,7 @@ impl Interp {
                 // a state's value is in the environment from the start of the call
                 StmtKind::State { .. } => {}
                 StmtKind::Set { targets, e } => {
-                    let v = self.ev(*e, env)?.into_owned();
+                    let v = self.ev_stmt(*e, env)?;
                     if targets.len() > 1 {
                         for (i, lv) in targets.iter().enumerate() {
                             self.assign(*lv, v.at(i).into_owned(), env)?;
@@ -735,7 +923,9 @@ impl Interp {
                 }
             }
         }
-        Ok(f.outs.iter().map(|o| env.iter().rev().find(|(n, _)| *n == o.name).map(|(_, v)| v.clone()).unwrap_or(Value::Num(f64::NAN))).collect())
+        // the outputs, then each inout input's value after the call
+        let find = |n: &str| env.iter().rev().find(|(m, _)| m == n).map(|(_, v)| v.clone()).unwrap_or(Value::Num(f64::NAN));
+        Ok(f.outs.iter().map(|o| find(&o.name)).chain(f.params.iter().filter(|p| p.inout).map(|p| find(&p.name))).collect())
     }
 
     /// A constant expression's value, as the JavaScript's `constOf` evaluates one (a const's value,

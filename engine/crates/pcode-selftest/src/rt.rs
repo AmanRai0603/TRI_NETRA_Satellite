@@ -57,3 +57,46 @@ pub fn lookup_linear<const C: usize, const R: usize>(t: &[[f64; C]; R], x: f64) 
     for j in 0..C { r[j] = t[i][j] + s * (t[i + 1][j] - t[i][j]); }
     r
 }
+/// The indices of a vector in ascending order, equal values in their order (an insertion sort).
+pub fn argsort<T: PartialOrd + Copy, const N: usize>(v: [T; N]) -> [i64; N] {
+    let mut ix = [0i64; N];
+    for i in 0..N { ix[i] = i as i64; }
+    for i in 1..N {
+        let k = ix[i];
+        let mut j = i;
+        while j > 0 && v[ix[j - 1] as usize] > v[k as usize] { ix[j] = ix[j - 1]; j -= 1; }
+        ix[j] = k;
+    }
+    ix
+}
+/// The vector in ascending order, equal values in their order.
+pub fn sort<T: PartialOrd + Copy, const N: usize>(v: [T; N]) -> [T; N] { let ix = argsort(v); let mut r = v; for i in 0..N { r[i] = v[ix[i] as usize]; } r }
+/// A counter-based random stream (adcs-sim-core rng.rs): SplitMix64 over a counter, normal draws by Box-Muller.
+#[derive(Clone, Copy, Debug, Default, PartialEq)]
+pub struct Stream { pub key: u64, pub n: u64, pub spare: f64, pub has: bool }
+impl Stream {
+    /// From its six numbers (the key's and the counter's high and low 32 bits, the spare, whether there is one).
+    pub fn from_words(w: [f64; 6]) -> Stream { Stream { key: ((w[0] as u64) << 32) | (w[1] as u64), n: ((w[2] as u64) << 32) | (w[3] as u64), spare: w[4], has: w[5] != 0.0 } }
+    pub fn words(&self) -> [f64; 6] { [(self.key >> 32) as f64, (self.key & 0xFFFF_FFFF) as f64, (self.n >> 32) as f64, (self.n & 0xFFFF_FFFF) as f64, self.spare, if self.has { 1.0 } else { 0.0 }] }
+}
+pub fn splitmix64(mut z: u64) -> u64 {
+    z = z.wrapping_add(0x9E37_79B9_7F4A_7C15);
+    z = (z ^ (z >> 30)).wrapping_mul(0xBF58_476D_1CE4_E5B9);
+    z = (z ^ (z >> 27)).wrapping_mul(0x94D0_49BB_1331_11EB);
+    z ^ (z >> 31)
+}
+/// The stream of a seed and an id.
+pub fn stream(seed: i64, id: u64) -> Stream { Stream { key: splitmix64((seed as u64) ^ splitmix64(id)), n: 0, spare: 0.0, has: false } }
+/// Uniform on (0, 1).
+pub fn uniform(s: &mut Stream) -> f64 { s.n = s.n.wrapping_add(1); let z = splitmix64(s.key ^ splitmix64(s.n)); ((z >> 11) as f64 + 0.5) * (1.0 / 9007199254740992.0) }
+/// Normal, by Box-Muller, the spare kept for the next draw.
+pub fn normal(s: &mut Stream) -> f64 {
+    if s.has { s.has = false; let v = s.spare; s.spare = 0.0; return v; }
+    let u1 = uniform(s);
+    let u2 = uniform(s);
+    let r = f64::sqrt(-2.0 * f64::ln(u1));
+    s.spare = r * f64::sin(2.0 * core::f64::consts::PI * u2);
+    s.has = true;
+    r * f64::cos(2.0 * core::f64::consts::PI * u2)
+}
+pub fn normal3(s: &mut Stream) -> [f64; 3] { let a = normal(s); let b = normal(s); let c = normal(s); [a, b, c] }

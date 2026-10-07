@@ -23,6 +23,39 @@ function y = call(name, x)
         case 'selftest::reuse'
             [o1, o2, o3] = asils.pcselftest.selftest.reuse(x(1));
             y = [double(o1); double(o2); double(o3)];
+        case 'selftest::tabled'
+            [o1, o2, o3, o4, o5, o6] = asils.pcselftest.selftest.tabled(x(1), x(2), x(3));
+            y = [double(o1); reshape(o2, [], 1); double(o3); reshape((o4).', [], 1); double(o5); double(o6)];
+        case 'selftest::nonfinite'
+            [o1, o2, o3, o4, o5, o6] = asils.pcselftest.selftest.nonfinite(x(1), x(2), x(3));
+            y = [double(o1); double(o2); double(o3); double(o4); double(o5); double(o6)];
+        case 'selftest::chosen'
+            [o1, o2, o3, o4, o5] = asils.pcselftest.selftest.chosen(x(1), x(2));
+            y = [[double(o1.kind); double(o1.h)]; double(o2); double(o3); double(o4); double(o5)];
+        case 'selftest::capacities'
+            [o1, o2, o3] = asils.pcselftest.selftest.capacities(reshape(x(1:5), 5, 1));
+            y = [double(o1); reshape(o2, [], 1); double(o3)];
+        case 'selftest::sorted'
+            [o1, o2, o3, o4, o5, o6] = asils.pcselftest.selftest.sorted(reshape(x(1:7), 7, 1), reshape(x(8:12), 5, 1));
+            y = [reshape(o1, [], 1); reshape(o2, [], 1); double(o3); reshape(o4, [], 1); reshape(o5, [], 1); reshape(o6, [], 1)];
+        case 'selftest::smear'
+            [o1, io1] = asils.pcselftest.selftest.smear(reshape(x(1:8), 8, 1), x(9), x(10));
+            y = [double(o1); reshape(io1, [], 1)];
+        case 'selftest::render'
+            [o1, o2, io1] = asils.pcselftest.selftest.render(struct('px', {reshape(x(1:6), 6, 1)}, 'n', {x(7)}), x(8), x(9));
+            y = [double(o1); double(o2); [reshape(io1.px, [], 1); double(io1.n)]];
+        case 'selftest::again'
+            [o1, o2, io1, io2] = asils.pcselftest.selftest.again(reshape(x(1:8), 8, 1), struct('px', {reshape(x(9:14), 6, 1)}, 'n', {x(15)}), x(16));
+            y = [double(o1); double(o2); reshape(io1, [], 1); [reshape(io2.px, [], 1); double(io2.n)]];
+        case 'selftest::draws'
+            [o1, o2, o3, o4] = asils.pcselftest.selftest.draws(x(1), x(2));
+            y = [reshape(o1, [], 1); double(o2); double(o3); double(o4)];
+        case 'selftest::gauss'
+            [o1, o2, o3] = asils.pcselftest.selftest.gauss(x(1));
+            y = [reshape(o1, [], 1); reshape(o2, [], 1); reshape(o3, [], 1)];
+        case 'selftest::jitter'
+            [o1, o2, io1] = asils.pcselftest.selftest.jitter(reshape(x(1:6), 6, 1), x(7));
+            y = [double(o1); double(o2); reshape(io1, [], 1)];
         otherwise
             error('pcode:call', 'no function %s', name);
     end

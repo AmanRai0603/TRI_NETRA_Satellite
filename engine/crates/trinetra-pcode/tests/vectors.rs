@@ -111,7 +111,10 @@ fn physics_vectors() {
 #[test]
 fn selftest_vectors() {
     let t = run_package(&PACKAGES[1]);
-    assert_eq!(t.bit_for_bit, t.values, "the self-test uses no sin or cos: every value bit for bit");
+    // its only sin and cos are a stream's normal draws (Box-Muller): every other value bit for bit
+    let normal = ["selftest::gauss", "selftest::jitter", "selftest::noisy"];
+    assert!(t.inexact.iter().all(|(n, _)| normal.contains(&n.as_str())), "only the normal draws may differ in their last bit: {:?}", t.inexact);
+    assert_eq!(t.bit_for_bit + t.within_tolerance, t.values, "the self-test: every value bit for bit or, a normal draw, within 1e-12");
 }
 
 #[test]

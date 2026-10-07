@@ -173,6 +173,7 @@ function parse(src, file = "<input>") {
     const t = peek();
     if (opt("id", "int")) return arrSuffix({ k: "int" });
     if (opt("id", "bool")) return arrSuffix({ k: "bool" });
+    if (opt("id", "stream")) return arrSuffix({ k: "stream" });   // a random stream (the toolbox's)
     if (opt("id", "quat")) return arrSuffix({ k: "arr", n: 4, of: { k: "real", unit: "1" } });
     for (const [name, n, mat] of [["vec3", 3, false], ["mat3", 3, true], ["vec4", 4, false], ["vec2", 2, false]]) {
       if (opt("id", name)) {
@@ -188,17 +189,24 @@ function parse(src, file = "<input>") {
   }
   function arrSuffix(ty) {
     while (is("op", "[")) {
-      eat("op", "["); const n = eat("num"); eat("op", "]");
+      eat("op", "[");
+      // a named capacity: the length a whole-number const states (`const NR = 8`, `real[1][NR]`)
+      if (is("id")) { const c = eat("id"); eat("op", "]"); ty = { k: "arr", n: 1, cap: c.v, capPos: pos(c), of: ty }; continue; }
+      const n = eat("num"); eat("op", "]");
       if (!n.isInt || +n.v < 1) err("an array's length is a whole number from 1", n);
       ty = { k: "arr", n: +n.v, of: ty };
     }
     return ty;
   }
   function param() {
-    const t = eat("id"); eat("op", ":"); const ty = typ();
+    const t = eat("id"); eat("op", ":");
+    // an input handed by reference: `img: inout real[1][4096]` (the caller's variable is changed in place)
+    let inout = false;
+    if (is("id", "inout") && peek(1).t === "id") { p++; inout = true; }
+    const ty = typ();
     let range = null;
     if (opt("kw", "in")) { const lo = expr(); eat("op", ".."); const hi = expr(); range = [lo, hi]; }
-    return { name: t.v, type: ty, range, pos: pos(t) };
+    return { name: t.v, type: ty, range, pos: pos(t), inout };
   }
   function outputs() {
     if (opt("op", "(")) {
@@ -336,6 +344,7 @@ function parse(src, file = "<input>") {
       return { e: "num", v: +t.v, isInt: t.isInt && unit === null, unit, text: t.v, pos: pos(t) };
     }
     if (opt("kw", "true")) return { e: "bool", v: true, pos: pos(t) };
+    if (is("str")) { p++; return { e: "str", v: t.v, pos: pos(t) }; }   // a name in quotes: a stream's (stream(seed, "gyro"))
     if (opt("kw", "false")) return { e: "bool", v: false, pos: pos(t) };
     if (is("id")) { p++; return { e: "var", name: t.v, pos: pos(t) }; }
     if (opt("op", "(")) { const e = expr(); eat("op", ")"); return e; }
@@ -349,6 +358,19 @@ function parse(src, file = "<input>") {
       return { e: "arr", items, unit, pos: pos(t) };
     }
     err(`expected a value, found ${t.v === "\n" ? "the end of the line" : JSON.stringify(t.v)}`);
+  }
+
+  // the rows of numbers of a table or a data table, up to its `end`
+  function numRows() {
+    const rows = [];
+    for (;;) {
+      skipNl(); if (is("doc")) { p++; continue; } if (opt("kw", "end")) break;
+      const rt = peek(); const row = [];
+      const num = () => { const neg = !!opt("op", "-"); const v = eat("num"); return (neg ? -1 : 1) * +v.v; };
+      row.push(num()); while (opt("op", ",")) row.push(num());
+      rows.push({ v: row, pos: pos(rt) }); endLine();
+    }
+    return rows;
   }
 
   // top level
@@ -381,17 +403,23 @@ function parse(src, file = "<input>") {
     if (opt("kw", "table")) {
       const n = eat("id"); eat("op", "("); const key = param(); eat("op", ")"); eat("op", "->"); const outs = outputs();
       let mode = "linear"; if (opt("kw", "step")) mode = "step"; else if (opt("kw", "linear")) mode = "linear";
-      endLine(); const rows = [];
-      for (;;) {
-        skipNl(); if (is("doc")) { p++; continue; } if (opt("kw", "end")) break;
-        const rt = peek(); const row = [];
-        const num = () => { const neg = !!opt("op", "-"); const v = eat("num"); return (neg ? -1 : 1) * +v.v; };
-        row.push(num()); while (opt("op", ",")) row.push(num());
-        rows.push({ v: row, pos: pos(rt) }); endLine();
-      }
+      endLine(); const rows = numRows();
       endLine(); prog.items.push({ kind: "table", name: n.v, key, outs, mode, rows, doc, pos: pos(t) }); continue;
     }
-    err("expected module, use, const, fn, proc, record or table at the top level");
+    // a choice: `choice Kind = rw, fmr, cmg`, its options numbered from 0 in the translations
+    if (is("id", "choice") && peek(1).t === "id") {
+      p++; const n = eat("id"); eat("op", "=");
+      const options = []; const o = eat("id"); options.push({ name: o.v, pos: pos(o) });
+      while (opt("op", ",")) { const x = eat("id"); options.push({ name: x.v, pos: pos(x) }); }
+      endLine(); prog.items.push({ kind: "choice", name: n.v, options, doc, pos: pos(t) }); continue;
+    }
+    // a data table (the design writes its values): `data NAME: real[unit][C][R]`, then its values row by row
+    if (is("id", "data") && peek(1).t === "id") {
+      p++; const n = eat("id"); eat("op", ":"); const type = typ(); endLine();
+      const rows = numRows();
+      endLine(); prog.items.push({ kind: "data", name: n.v, type, rows, doc, pos: pos(t) }); continue;
+    }
+    err("expected module, use, const, data, choice, fn, proc, record or table at the top level");
   }
   return prog;
 }
@@ -402,10 +430,10 @@ const tReal = (dim) => ({ k: "real", dim });
 function typeText(t) {
   if (!t) return "?";
   switch (t.k) {
-    case "int": return "int"; case "bool": return "bool";
+    case "int": return "int"; case "bool": return "bool"; case "stream": return "stream"; case "str": return "a name";
     case "real": return `real[${dimText(t.dim)}]`;
     case "arr": return `${typeText(t.of)}[${t.n}]`;
-    case "rec": return t.name;
+    case "rec": case "choice": return t.name;
     case "tuple": return `(${t.items.map(typeText).join(", ")})`;
     default: return t.k;
   }
@@ -415,7 +443,7 @@ function declText(t) {
   if (!t) return "?";
   switch (t.k) {
     case "real": return `real[${t.unit || "1"}]`;
-    case "arr": return `${declText(t.of)}[${t.n}]`;
+    case "arr": return `${declText(t.of)}[${t.cap || t.n}]`;
     case "rec": return t.name;
     default: return t.k;
   }
@@ -424,7 +452,7 @@ function typeEq(a, b) {
   if (a.k !== b.k) return false;
   if (a.k === "real") return dimEq(a.dim, b.dim);
   if (a.k === "arr") return a.n === b.n && typeEq(a.of, b.of);
-  if (a.k === "rec") return a.name === b.name;
+  if (a.k === "rec" || a.k === "choice") return a.name === b.name;
   return true;
 }
 function unitOf(text, pos) {
@@ -448,24 +476,26 @@ function unitOf(text, pos) {
 
 // ------------------------------------------------------------------ checker
 const BUILTINS = new Set(["sqrt", "abs", "sin", "cos", "tan", "asin", "acos", "atan", "atan2", "exp", "log", "log10", "min", "max", "clamp",
-  "floor", "ceil", "round", "sign", "fmod", "pow", "dot", "cross", "norm", "unit", "transpose", "real", "len", "hypot", "int", "div", "rem", "band", "bor", "bxor", "shl", "shr"]);
-const CONSTS = { pi: Math.PI };
+  "floor", "ceil", "round", "sign", "fmod", "pow", "dot", "cross", "norm", "unit", "transpose", "real", "len", "hypot", "int", "div", "rem", "band", "bor", "bxor", "shl", "shr",
+  "isnan", "isfinite", "sort", "argsort", "stream", "uniform", "normal", "normal3"]);
+// the language's constants: pi, and the two values that are not finite (they fit any unit, as a bare 0 does)
+const CONSTS = { pi: Math.PI, inf: Infinity, nan: NaN };
 
 // Check a set of parsed files together (they may call one another). Returns { program, errors }.
 // program.fns / tables / records / consts by name; every expression node gets .ty
 function check(files) {
   const errors = [];
   const E = (msg, pos) => { errors.push(new PcodeError(msg, pos && pos.line, pos && pos.col, pos && pos.file)); };
-  const prog = { fns: {}, tables: {}, records: {}, consts: {}, modules: {}, order: [] };
+  const prog = { fns: {}, tables: {}, records: {}, consts: {}, data: {}, choices: {}, modules: {}, order: [] };
   // 1 declarations
   for (const f of files) {
     const mod = f.module || "main";
     prog.modules[mod] = prog.modules[mod] || { name: mod, doc: f.doc || [], items: [], file: f.file };
     for (const it of f.items) {
       it.module = mod;
-      const all = { ...prog.fns, ...prog.tables, ...prog.records, ...prog.consts };
+      const all = { ...prog.fns, ...prog.tables, ...prog.records, ...prog.consts, ...prog.data, ...prog.choices };
       if (all[it.name] || BUILTINS.has(it.name) || CONSTS[it.name] !== undefined) { E(`${it.name} is defined twice (or is a builtin)`, it.pos); continue; }
-      ({ fn: prog.fns, proc: prog.fns, table: prog.tables, record: prog.records, const: prog.consts })[it.kind][it.name] = it;
+      ({ fn: prog.fns, proc: prog.fns, table: prog.tables, record: prog.records, const: prog.consts, data: prog.data, choice: prog.choices })[it.kind][it.name] = it;
       prog.modules[mod].items.push(it); prog.order.push(it);
     }
   }
@@ -473,20 +503,46 @@ function check(files) {
   const resolve = (t, pos) => {
     if (!t) return t;
     if (t.k === "real" && t.unit !== undefined) { try { return { k: "real", dim: unitOf(t.unit, pos || t.pos || {}).dim, unit: t.unit }; } catch (e) { errors.push(e); return tReal(DIMLESS); } }
-    if (t.k === "arr") return { k: "arr", n: t.n, of: resolve(t.of, pos) };
+    if (t.k === "arr") {
+      const r = { k: "arr", n: t.cap ? capacity(t) : t.n, of: resolve(t.of, pos) };
+      if (r.of.k === "stream") E("a stream is not an array's element: a record or a state holds one", pos);
+      return r;
+    }
+    if (t.k === "rec" && prog.choices[t.name]) return { k: "choice", name: t.name };
     if (t.k === "rec" && !prog.records[t.name]) { E(`no record ${t.name}`, t.pos || pos); }
     return t;
   };
-  for (const r of Object.values(prog.records)) for (const f of r.fields) f.ty = resolve(f.type, f.pos);
+  // a named capacity's length: a const that is a whole-number literal from 1
+  function capacity(t) {
+    const c = prog.consts[t.cap];
+    if (c && c.e.e === "num" && c.e.isInt && c.e.v >= 1) return c.e.v;
+    E(`${t.cap}: an array's length is a whole number from 1, or a const that is one (const ${t.cap} = 8)`, t.capPos);
+    return 1;
+  }
+  for (const c of Object.values(prog.choices)) {
+    const seen = new Set();
+    for (const o of c.options) { if (seen.has(o.name)) E(`choice ${c.name}: ${o.name} is named twice`, o.pos); seen.add(o.name); }
+  }
+  for (const r of Object.values(prog.records)) for (const f of r.fields) {
+    f.ty = resolve(f.type, f.pos);
+    if (f.inout) E(`record ${r.name}: ${f.name}: only an input of a fn or proc is inout`, f.pos);
+  }
   for (const it of prog.order) {
     if (it.kind === "fn" || it.kind === "proc") {
-      for (const p of it.params) p.ty = resolve(p.type, p.pos);
-      for (const o of it.outs) o.ty = resolve(o.type, o.pos);
+      for (const p of it.params) {
+        p.ty = resolve(p.type, p.pos);
+        if (p.inout && !(p.ty.k === "arr" || p.ty.k === "rec" || p.ty.k === "stream")) E(`${it.name}: ${p.name}: an inout input is an array, a record or a stream (a number is copied, not shared)`, p.pos);
+      }
+      for (const o of it.outs) {
+        o.ty = resolve(o.type, o.pos);
+        if (o.inout) E(`${it.name}: ${o.name}: only an input of a fn or proc is inout`, o.pos);
+      }
       const names = [...it.params, ...it.outs].map((x) => x.name);
       const dup = names.find((n, i) => names.indexOf(n) !== i);
       if (dup) E(`${it.name}: ${dup} is named twice among the inputs and outputs`, it.pos);
     }
     if (it.kind === "table") {
+      if (it.key.inout || it.outs.some((o) => o.inout)) E(`table ${it.name}: only an input of a fn or proc is inout`, it.pos);
       it.key.ty = resolve(it.key.type, it.key.pos);
       for (const o of it.outs) { o.ty = resolve(o.type, o.pos); if (o.ty.k !== "real") E(`table ${it.name}: every column is real`, o.pos); }
       if (it.key.ty.k !== "real") E(`table ${it.name}: the key is real`, it.key.pos);
@@ -500,6 +556,26 @@ function check(files) {
       });
       if (it.rows.length < (it.mode === "linear" ? 2 : 1)) E(`table ${it.name}: too few rows`, it.pos);
     }
+    if (it.kind === "data") checkData(it);
+  }
+  // a data table: a 1-D or 2-D array of reals or ints, its values row by row (the outer index first), in SI
+  function checkData(it) {
+    it.ty = resolve(it.type, it.pos);
+    const dims = []; let el = it.ty;
+    while (el.k === "arr") { dims.push(el.n); el = el.of; }
+    it.value = null;
+    if (!(dims.length === 1 || dims.length === 2) || !(el.k === "real" || el.k === "int")) {
+      E(`data ${it.name}: a data table is a 1-D or 2-D array of reals or ints`, it.pos); return;
+    }
+    const flat = [];
+    for (const r of it.rows) for (const x of r.v) flat.push(x);
+    const want = dims.length === 1 ? dims[0] : dims[0] * dims[1];
+    if (flat.length !== want) { E(`data ${it.name}: ${flat.length} values, the type holds ${want}`, it.pos); return; }
+    if (el.k === "int" && !flat.every((x) => Number.isInteger(x))) { E(`data ${it.name}: an int table holds whole numbers`, it.pos); return; }
+    let scale = 1;
+    if (el.k === "real") { let d = it.type; while (d.k === "arr") d = d.of; try { scale = unitOf(d.unit, it.pos).scale; } catch (er) { scale = 1; } }
+    const si = el.k === "real" ? flat.map((x) => x * scale) : flat;
+    it.value = dims.length === 1 ? si : Array.from({ length: dims[0] }, (_, i) => si.slice(i * dims[1], (i + 1) * dims[1]));
   }
   // 3 bodies
   const scopeStack = [];
@@ -510,10 +586,13 @@ function check(files) {
   const scalarDim = (t) => (t.k === "int" ? DIMLESS : t.dim);
   const elem = (t) => { while (t.k === "arr") t = t.of; return t; };
   const isZero = (e) => (e.e === "num" && e.v === 0 && !e.unit) || (e.e === "arr" && e.items.every(isZero)) || (e.e === "un" && e.op === "-" && isZero(e.a));
+  // inf, -inf or nan: like a bare 0, it takes the unit of what it meets
+  const isNonFinite = (e) => (e.e === "var" && e.kind === "builtin_const" && e.name !== "pi") || (e.e === "un" && e.op === "-" && isNonFinite(e.a));
+  const isAny = (e) => isZero(e) || isNonFinite(e);
   // can a value of type `got` (from expression e) go where `want` is wanted?
   const fits = (want, got, e) => {
     if (typeEq(want, got)) return true;
-    if (e && isZero(e) && shapeEq(want, got)) return true;          // a bare 0 (or array of them) takes any dimension
+    if (e && isAny(e) && shapeEq(want, got)) return true;           // a bare 0 (or array of them), inf or nan takes any dimension
     if (e && e.e === "num" && e.v === 0 && !e.unit && (want.k === "arr" || want.k === "rec")) { e.fill = want; return true; }   // 0 fills an array
     if (e && e.e === "arr" && !e.unit && want.k === "arr" && got.k === "arr" && want.n === got.n &&
         e.items.every((x) => fits(want.of, x.ty, x))) { e.ty = want; return true; }   // a literal takes the element type it is given to
@@ -526,8 +605,8 @@ function check(files) {
     return numType(a) && numType(b);
   };
   function unify(a, b, ea, eb, op, pos) {   // for + - and comparisons: same dimension (a bare 0 adopts the other)
-    if (isZero(ea) && shapeEq(a, b)) return b;
-    if (isZero(eb) && shapeEq(a, b)) return a;
+    if (isAny(ea) && shapeEq(a, b)) return b;
+    if (isAny(eb) && shapeEq(a, b)) return a;
     if (a.k === "arr" || b.k === "arr") {
       if (!(a.k === "arr" && b.k === "arr" && a.n === b.n)) { E(`${op}: ${typeText(a)} and ${typeText(b)} differ in shape`, pos); return a; }
       return { k: "arr", n: a.n, of: unify(a.of, b.of, { e: "x" }, { e: "x" }, op, pos) };
@@ -548,17 +627,21 @@ function check(files) {
         return e.isInt ? T_INT : tReal(DIMLESS);
       }
       case "bool": return T_BOOL;
+      case "str":
+        if (!e.okStr) E("a name in quotes is a stream's only: stream(seed, \"gyro\")", e.pos);
+        return { k: "str" };
       case "var": {
         const v = lookupVar(e.name);
         if (v) { e.kind = v.kind; return v.ty; }
         if (prog.consts[e.name]) { e.kind = "const"; return prog.consts[e.name].ty || tReal(DIMLESS); }
+        if (prog.data[e.name]) { e.kind = "data"; return prog.data[e.name].ty || tReal(DIMLESS); }
         if (CONSTS[e.name] !== undefined) { e.kind = "builtin_const"; return tReal(DIMLESS); }
         E(`${e.name} is not defined here (a let declares a name)`, e.pos); return tReal(DIMLESS);
       }
       case "arr": {
         if (!e.items.length) { E("an empty array", e.pos); return tReal(DIMLESS); }
         const ts = e.items.map(ty);
-        let base = ts.find((t, i) => !isZero(e.items[i])) || ts[0];
+        let base = ts.find((t, i) => !isAny(e.items[i])) || ts[0];
         if (e.unit) {
           let u; try { u = unitOf(e.unit, e.pos); } catch (er) { errors.push(er); u = { dim: DIMLESS, scale: 1 }; }
           e.scale = u.scale;
@@ -573,7 +656,7 @@ function check(files) {
           : typeEq(a, b) || (numType(a) && numType(b) && dimEq(scalarDim(a), scalarDim(b)));
         const realOf = (t) => (t.k === "arr" ? { k: "arr", n: t.n, of: realOf(t.of) } : t.k === "int" ? tReal(DIMLESS) : t);
         ts.forEach((t, i) => {
-          if (!isZero(e.items[i]) && !compat(t, base)) E(`array items differ: ${typeText(base)} and ${typeText(t)}`, e.items[i].pos);
+          if (!isAny(e.items[i]) && !compat(t, base)) E(`array items differ: ${typeText(base)} and ${typeText(t)}`, e.items[i].pos);
         });
         const allInt = (t) => (t.k === "arr" ? allInt(t.of) : t.k === "int");
         if (!ts.every(allInt)) {     // not every item whole: the array is real
@@ -590,6 +673,13 @@ function check(files) {
         return a.of;
       }
       case "field": {
+        // Kind.fmr: an option of a choice (a name no variable here has)
+        if (e.a.e === "var" && !lookupVar(e.a.name) && prog.choices[e.a.name]) {
+          const c = prog.choices[e.a.name], i = c.options.findIndex((o) => o.name === e.f);
+          if (i < 0) E(`${c.name} has no option ${e.f} (its options: ${c.options.map((o) => o.name).join(", ")})`, e.pos);
+          e.choice = { name: c.name, i: Math.max(i, 0) };
+          return { k: "choice", name: c.name };
+        }
         const a = ty(e.a);
         if (a.k !== "rec") { E(`${typeText(a)} has no fields`, e.pos); return tReal(DIMLESS); }
         const f = prog.records[a.name] && prog.records[a.name].fields.find((x) => x.name === e.f);
@@ -606,7 +696,7 @@ function check(files) {
         const c = ty(e.c), a = ty(e.a), b = ty(e.b);
         if (c.k !== "bool") E(`if needs a bool, not ${typeText(c)}`, e.pos);
         if (a.k === "bool" || b.k === "bool") { if (!(a.k === "bool" && b.k === "bool")) E("if: both branches are bools or neither is", e.pos); return T_BOOL; }
-        if (a.k === "rec" || b.k === "rec") { if (!typeEq(a, b)) E("if: the branches differ", e.pos); return a; }
+        if (a.k === "rec" || b.k === "rec" || a.k === "choice" || b.k === "choice" || a.k === "stream" || b.k === "stream") { if (!typeEq(a, b)) E("if: the branches differ", e.pos); return a; }
         const t = unify(a, b, e.a, e.b, "if", e.pos);
         return t.k === "int" ? T_INT : t;
       }
@@ -638,6 +728,10 @@ function check(files) {
     const a = ty(e.a), b = ty(e.b);
     if (["==", "!=", "<", "<=", ">", ">="].includes(op)) {
       if (a.k === "bool" && b.k === "bool" && (op === "==" || op === "!=")) return T_BOOL;
+      if (a.k === "choice" || b.k === "choice") {
+        if (!((op === "==" || op === "!=") && typeEq(a, b))) E(`${op}: a choice is compared with == or != to an option of its own, not ${typeText(a)} and ${typeText(b)}`, e.pos);
+        return T_BOOL;
+      }
       if (a.k === "arr" || b.k === "arr") E(`${op} compares numbers, not arrays`, e.pos);
       else unify(a, b, e.a, e.b, op, e.pos);
       return T_BOOL;
@@ -689,6 +783,7 @@ function check(files) {
     const name = e.f.includes(".") ? e.f.split(".")[1] : e.f;
     if (e.f.includes(".") && !prog.modules[e.f.split(".")[0]]) E(`no module ${e.f.split(".")[0]}`, e.pos);
     const args = e.args;
+    if (name === "stream" && args[1] && args[1].e === "str") args[1].okStr = true;
     if (BUILTINS.has(name) && !e.f.includes(".")) { e.builtin = true; return builtinTy(e, name, args); }
     const fn = prog.fns[name], tab = prog.tables[name];
     if (fn) {
@@ -696,6 +791,7 @@ function check(files) {
       if (fn.kind === "proc") E(`${name} is a proc (it keeps state): call it from a proc, as a statement-level let with its state`, e.pos);
       if (args.length !== fn.params.length) E(`${name} takes ${fn.params.length} inputs (${fn.params.map((p) => p.name).join(", ")}), given ${args.length}`, e.pos);
       args.forEach((a, i) => fn.params[i] && want(a, fn.params[i].ty, `${name}: input ${fn.params[i].name}`));
+      if (fn.params.some((p) => p.inout)) inoutCall(e, name, fn.params.map((p, i) => (p.inout ? [i, p.name] : null)).filter(Boolean), args);
       return fn.outs.length === 1 ? fn.outs[0].ty : { k: "tuple", items: fn.outs.map((o) => o.ty) };
     }
     if (tab) {
@@ -710,6 +806,25 @@ function check(files) {
     }
     E(`no function ${e.f}`, e.pos); args.forEach(ty); return tReal(DIMLESS);
   }
+  // a call that changes its inout inputs: the whole right side of a let or an assignment, each inout input a
+  // variable the caller may change, named by no other input (so a translation may hand it over by reference)
+  function inoutCall(e, name, ix, args) {   // ix: [input's place, its name] of each inout input
+    e.inout = true; e.inoutArgs = ix.map((x) => x[0]);
+    if (!e.top) E(`${name} changes its inout input: call it as the whole right side of a let or an assignment`, e.pos);
+    ix.forEach(([i, pname]) => {
+      const a = args[i];
+      if (!a) return;
+      const v = a.e === "var" ? lookupVar(a.name) : null;
+      if (!v || !["local", "output", "state", "inout"].includes(v.kind)) {
+        E(`${name}: input ${pname} is inout: pass it a variable (a let, an output, a state or an inout input)`, a.pos); return;
+      }
+      if (args.some((b, j) => j !== i && mentions(b, a.name))) E(`${name}: ${a.name} is passed as inout, so no other input may name it`, a.pos);
+    });
+  }
+  // an output handed to a call as an inout input is set by it (as one set element by element is)
+  const inoutTouched = (e) => e.inoutArgs.forEach((i) => { if (e.args[i] && e.args[i].e === "var") touched.add(e.args[i].name); });
+  const mentions = (x, n) => !!x && typeof x === "object" && ((x.e === "var" && x.name === n) ||
+    ["a", "b", "c", "i"].some((k) => mentions(x[k], n)) || (x.items || []).some((y) => mentions(y, n)) || (x.args || []).some((y) => mentions(y, n)));
   function builtinTy(e, name, args) {
     const n = (k) => { if (args.length !== k) E(`${name} takes ${k} input(s), given ${args.length}`, e.pos); };
     const ts = args.map(ty);
@@ -724,7 +839,7 @@ function check(files) {
         n(1); dl(ts[0], 0); return tReal(DIMLESS);
       case "atan2": case "hypot": case "fmod": {
         n(2); const d = sc(ts[0], 0), d2 = sc(ts[1], 1);
-        if (!dimEq(d, d2) && !isZero(args[1]) && !isZero(args[0])) E(`${name}: the inputs differ in unit, [${dimText(d)}] and [${dimText(d2)}]`, e.pos);
+        if (!dimEq(d, d2) && !isAny(args[1]) && !isAny(args[0])) E(`${name}: the inputs differ in unit, [${dimText(d)}] and [${dimText(d2)}]`, e.pos);
         return name === "atan2" ? tReal(DIMLESS) : tReal(d);
       }
       case "pow": n(2); dl(ts[0], 0); dl(ts[1], 1); return tReal(DIMLESS);
@@ -737,13 +852,29 @@ function check(files) {
       }
       case "clamp": { n(3); let t = unify(ts[0], ts[1], args[0], args[1], name, e.pos); t = unify(t, ts[2], args[0], args[2], name, e.pos); return t.k === "int" ? T_INT : t; }
       case "real": n(1); if (!ts[0] || ts[0].k !== "int") E("real() turns an int into a real", e.pos); return tReal(DIMLESS);
-      case "int": n(1); dl(ts[0], 0); if (ts[0] && ts[0].k === "arr") E("int() takes a number", e.pos); return T_INT;
+      case "isnan": case "isfinite": n(1); sc(ts[0], 0); return T_BOOL;
+      case "int": n(1); if (ts[0] && ts[0].k === "choice") return T_INT; dl(ts[0], 0); if (ts[0] && ts[0].k === "arr") E("int() takes a number", e.pos); return T_INT;
       case "band": case "bor": case "bxor": case "shl": case "shr":
         n(2); if (!(ts[0] && ts[0].k === "int" && ts[1] && ts[1].k === "int")) E(`${name} takes two ints (non-negative, below 2^53)`, e.pos); return T_INT;
       case "div": case "rem": n(2); if (!(ts[0] && ts[0].k === "int" && ts[1] && ts[1].k === "int")) E(`${name} takes two ints (whole-number division, truncated as in C)`, e.pos); return T_INT;
       case "len": n(1); if (!ts[0] || ts[0].k !== "arr") E("len() takes an array", e.pos); return T_INT;
       case "dot": { n(2); const a = vec(ts[0], 0), b = vec(ts[1], 1); if (a.n !== b.n) E(`dot: lengths ${a.n} and ${b.n}`, e.pos); return tReal(dimAdd(a.dim, b.dim)); }
       case "cross": { n(2); const a = vec(ts[0], 0), b = vec(ts[1], 1); if (a.n !== 3 || b.n !== 3) E("cross takes two 3-vectors", e.pos); return { k: "arr", n: 3, of: tReal(dimAdd(a.dim, b.dim)) }; }
+      // the toolbox sort: ascending and stable (equal values keep their order), the same insertion sort in every translation
+      case "sort": { n(1); const a = vec(ts[0], 0); return ts[0] && ts[0].k === "arr" && ts[0].of.k !== "arr" && numType(ts[0].of) ? ts[0] : { k: "arr", n: a.n, of: tReal(a.dim) }; }
+      case "argsort": { n(1); const a = vec(ts[0], 0); return { k: "arr", n: a.n, of: T_INT }; }
+      // random streams (the toolbox's: adcs-sim-core rng.rs): a stream by its seed and its number or name; a draw
+      // advances the stream it is given, an inout input
+      case "stream":
+        n(2);
+        if (!(ts[0] && ts[0].k === "int" && ts[1] && (ts[1].k === "int" || ts[1].k === "str"))) E("stream(seed, id): the seed is an int, the id an int or a name in quotes", e.pos);
+        if (args[1] && args[1].e === "str") e.sid = fnv1a(args[1].v);
+        return { k: "stream" };
+      case "uniform": case "normal": case "normal3":
+        n(1);
+        if (!ts[0] || ts[0].k !== "stream") E(`${name} draws from a stream, not ${typeText(ts[0])}`, e.pos);
+        inoutCall(e, name, [[0, "stream"]], args);
+        return name === "normal3" ? { k: "arr", n: 3, of: tReal(DIMLESS) } : tReal(DIMLESS);
       case "norm": { n(1); const a = vec(ts[0], 0); return tReal(a.dim); }
       case "unit": { n(1); const a = vec(ts[0], 0); return { k: "arr", n: a.n, of: tReal(DIMLESS) }; }
       case "transpose": {
@@ -768,7 +899,9 @@ function check(files) {
   function checkStmt(s, assigned, inLoop) {
     switch (s.s) {
       case "let": {
+        if (s.e.e === "call") s.e.top = true;
         const t = ty(s.e);
+        if (s.e.inout) inoutTouched(s.e);
         let declTy = s.type ? resolve(s.type, s.pos) : null;
         if (s.names.length > 1) {
           if (t.k !== "tuple" || t.items.length !== s.names.length) { E(`let ${s.names.join(", ")}: the right side gives ${t.k === "tuple" ? t.items.length : 1} value(s)`, s.pos); s.names.forEach((n) => declare(n, tReal(DIMLESS), s.pos)); return; }
@@ -793,8 +926,14 @@ function check(files) {
         declare(s.name, st, s.pos, "state"); return;
       }
       case "set": {
+        if (s.e.e === "call") s.e.top = true;
         const t = ty(s.e);
         const tts = s.targets.map((lv) => lvTy(lv));
+        if (s.e.inout) inoutTouched(s.e);
+        if (s.e.inout) for (const lv of s.targets) {
+          if (s.e.inoutArgs.some((i) => s.e.args[i] && s.e.args[i].e === "var" && s.e.args[i].name === rootVar(lv)))
+            E(`${lvName(lv)}: the target is also the call's inout input`, s.pos);
+        }
         if (s.targets.length > 1) {
           if (t.k !== "tuple" || t.items.length !== s.targets.length) E(`${s.targets.length} targets, the right side gives ${t.k === "tuple" ? t.items.length : 1}`, s.pos);
           else tts.forEach((tt, i) => tt && !typeEq(tt, t.items[i]) && E(`target ${i + 1}: ${typeText(tt)}, given ${typeText(t.items[i])}`, s.pos));
@@ -856,7 +995,7 @@ function check(files) {
   function constNum(e) {   // the SI value of a constant bound (a literal, maybe negated, or pi)
     if (e.e === "num") return e.si;
     if (e.e === "un" && e.op === "-") { const v = constNum(e.a); return v === null ? null : -v; }
-    if (e.e === "var" && e.kind === "builtin_const") return Math.PI;
+    if (e.e === "var" && e.kind === "builtin_const") return CONSTS[e.name];
     if (e.e === "bin" && ["*", "/"].includes(e.op)) { const a = constNum(e.a), b = constNum(e.b); return a === null || b === null ? null : e.op === "*" ? a * b : a / b; }
     E("a range bound is a constant", e.pos); return null;
   }
@@ -866,7 +1005,9 @@ function check(files) {
       case "arr": return e.items.every(isConstExpr);
       case "un": return isConstExpr(e.a);
       case "bin": return isConstExpr(e.a) && isConstExpr(e.b);
-      case "var": return e.kind === "const" || e.kind === "builtin_const";
+      case "var": return e.kind === "const" || e.kind === "builtin_const" || e.kind === "data";
+      case "str": return true;
+      case "field": return e.choice !== undefined;
       case "call": return !!e.record || (e.builtin && e.args.every(isConstExpr));
       default: return false;
     }
@@ -878,7 +1019,7 @@ function check(files) {
     cur = it; it.states = []; touched = new Set();
     scopeStack.length = 0;
     const top = new Map();
-    for (const p of it.params) top.set(p.name, { ty: p.ty, kind: "input" });
+    for (const p of it.params) top.set(p.name, { ty: p.ty, kind: p.inout ? "inout" : "input" });
     for (const o of it.outs) top.set(o.name, { ty: o.ty, kind: "output" });
     scopeStack.push(top);
     const assigned = new Set();
@@ -948,6 +1089,17 @@ const rt = {
   mv(M, v) { return M.map((row) => rt.dot(row, v)); },
   mm(A, B) { return A.map((row) => B[0].map((_, j) => { let s = row[0] * B[0][j]; for (let k = 1; k < B.length; k++) s = s + row[k] * B[k][j]; return s; })); },
   tr(M) { return M[0].map((_, j) => M.map((row) => row[j])); },
+  // the indices of a vector in ascending order, equal values in their order: an insertion sort, as every translation does
+  argsort(v) {
+    const ix = v.map((_, i) => i);
+    for (let i = 1; i < ix.length; i++) {
+      const k = ix[i]; let j = i - 1;
+      while (j >= 0 && v[ix[j]] > v[k]) { ix[j + 1] = ix[j]; j--; }
+      ix[j + 1] = k;
+    }
+    return ix;
+  },
+  sort(v) { return rt.argsort(v).map((i) => v[i]); },
   round(x) { return x < 0 ? -Math.round(-x) : Math.round(x); },          // half away from zero, as C round()
   fmod(x, y) { return x % y; },
   lookup(tab, x) {
@@ -962,13 +1114,54 @@ const rt = {
 const clone = (v) => (Array.isArray(v) ? v.map(clone) : v && typeof v === "object" ? Object.fromEntries(Object.entries(v).map(([k, x]) => [k, clone(x)])) : v);
 function zeroOf(t, prog) {
   switch (t.k) {
-    case "int": case "real": return 0; case "bool": return false;
+    case "int": case "real": case "choice": return 0; case "bool": return false;
+    case "stream": return [0, 0, 0, 0, 0, 0];
     case "arr": return Array.from({ length: t.n }, () => zeroOf(t.of, prog));
     case "rec": return Object.fromEntries(prog.records[t.name].fields.map((f) => [f.name, zeroOf(f.ty, prog)]));
   }
   return 0;
 }
 class RunError extends Error {}
+
+// ------------------------------------------------------------------ random streams (the toolbox's)
+// adcs-sim-core rng.rs, value for value: a stream per (seed, id) is SplitMix64 over a counter, a normal draw by
+// Box-Muller with the spare kept. A stream is held as six numbers, [key's high and low 32 bits, the counter's,
+// the spare, whether there is one], so it is copied, flattened and compared as any array of numbers is.
+const M64 = (x) => BigInt.asUintN(64, x);
+function splitmix64(z) {
+  z = M64(z + 0x9E3779B97F4A7C15n);
+  z = M64((z ^ (z >> 30n)) * 0xBF58476D1CE4E5B9n);
+  z = M64((z ^ (z >> 27n)) * 0x94D049BB133111EBn);
+  return z ^ (z >> 31n);
+}
+// FNV-1a over a name's UTF-8 bytes (rng.rs stream_id), as its two 32-bit halves
+function fnv1a(name) {
+  let h = 0xcbf29ce484222325n;
+  for (const b of new TextEncoder().encode(name)) h = M64((h ^ BigInt(b)) * 0x100000001b3n);
+  return [Number(h >> 32n), Number(h & 0xFFFFFFFFn)];
+}
+const u32w = (x) => (Number.isFinite(x) && x >= 0 && x < 4294967296 ? BigInt(Math.trunc(x)) : 0n);   // a word that is not one reads as 0
+const word64 = (w, i) => (u32w(w[i]) << 32n) | u32w(w[i + 1]);
+const streamWords = (key, n, spare, has) => [Number(key >> 32n), Number(key & 0xFFFFFFFFn), Number(n >> 32n), Number(n & 0xFFFFFFFFn), spare, has];
+Object.assign(rt, {
+  stream(seed, id) {
+    const i = Array.isArray(id) ? word64(id, 0) : M64(BigInt(id));
+    return streamWords(splitmix64(M64(BigInt(seed)) ^ splitmix64(i)), 0n, 0, 0);
+  },
+  // uniform on (0, 1): the next counter's draw, its top 53 bits
+  uniform(w) {
+    const key = word64(w, 0), n = M64(word64(w, 2) + 1n);
+    const z = splitmix64(key ^ splitmix64(n));
+    return [(Number(z >> 11n) + 0.5) * (1 / 9007199254740992), streamWords(key, n, w[4], w[5])];
+  },
+  normal(w) {
+    if (w[5] !== 0) return [w[4], [w[0], w[1], w[2], w[3], 0, 0]];
+    const [u1, w1] = rt.uniform(w), [u2, w2] = rt.uniform(w1);
+    const r = Math.sqrt(-2 * Math.log(u1));
+    return [r * Math.cos(2 * Math.PI * u2), [w2[0], w2[1], w2[2], w2[3], r * Math.sin(2 * Math.PI * u2), 1]];
+  },
+  normal3(w) { const [a, w1] = rt.normal(w), [b, w2] = rt.normal(w1), [c, w3] = rt.normal(w2); return [[a, b, c], w3]; },
+});
 
 // integer bit operations on non-negative ints below 2^53, exact (JavaScript's own operators are 32-bit)
 function bitop(f, a, b, pos) {
@@ -986,9 +1179,11 @@ function makeInterpreter(prog) {
     switch (e.e) {
       case "num": return e.fill ? zeroOf(e.fill, prog) : e.si;
       case "bool": return e.v;
+      case "str": return fnv1a(e.v);
       case "var": {
         if (e.kind === "const") { if (!(e.name in constVals)) constVals[e.name] = ev(prog.consts[e.name].e, new Map()); return constVals[e.name]; }
-        if (e.kind === "builtin_const") return Math.PI;
+        if (e.kind === "builtin_const") return CONSTS[e.name];
+        if (e.kind === "data") return prog.data[e.name].value;
         const v = env.get(e.name); if (v === undefined) throw new RunError(`${e.name} has no value yet (line ${e.pos.line})`); return v;
       }
       case "arr": { const v = e.items.map((x) => ev(x, env)); return e.scale !== undefined ? v.map((x) => x * e.scale) : v; }
@@ -997,7 +1192,7 @@ function makeInterpreter(prog) {
         if (!(i >= 0 && i < a.length)) throw new RunError(`index ${i} outside 0..${a.length - 1} (line ${e.pos.line})`);
         return clone(a[i]);
       }
-      case "field": return clone(ev(e.a, env)[e.f]);
+      case "field": return e.choice ? e.choice.i : clone(ev(e.a, env)[e.f]);
       case "un": { const a = ev(e.a, env); if (e.op === "not") return !a; return neg(a); }
       case "ifx": return ev(e.c, env) ? ev(e.a, env) : ev(e.b, env);
       case "bin": return bin(e, env);
@@ -1048,6 +1243,8 @@ function makeInterpreter(prog) {
         case "max": return args.reduce((m, x) => rt.max(m, x));
         case "clamp": return rt.clamp(args[0], args[1], args[2]);
         case "real": return args[0];
+        case "isnan": return Number.isNaN(args[0]);
+        case "isfinite": return Number.isFinite(args[0]);
         case "int": { const v = Math.trunc(args[0]); if (!(Math.abs(v) < 2 ** 53)) throw new RunError(`int(${args[0]}): not a finite number below 2^53 (line ${e.pos.line})`); return v === 0 ? 0 : v; }
         case "band": case "bor": case "bxor": case "shl": case "shr": return bitop(e.f, args[0], args[1], e.pos);
         case "div": if (args[1] === 0) throw new RunError(`div by zero (line ${e.pos.line})`); return Math.trunc(args[0] / args[1]);
@@ -1058,10 +1255,21 @@ function makeInterpreter(prog) {
         case "norm": return rt.norm(args[0]);
         case "unit": return rt.unit(args[0]);
         case "transpose": return rt.tr(args[0]);
+        case "sort": return rt.sort(args[0]);
+        case "argsort": return rt.argsort(args[0]);
+        case "stream": return rt.stream(args[0], args[1]);
+        case "uniform": case "normal": case "normal3": {
+          // the stream drawn from goes back into the caller's variable
+          const [v, s] = rt[f](args[0]);
+          env.set(e.args[0].name, s);
+          return v;
+        }
       }
     }
     if (e.table) { const r = rt.lookup(e.target, args[0]); return e.target.outs.length === 1 ? r[0] : r; }
     const r = runFn(e.target, args, null);
+    // an inout input's value goes back into the caller's variable (copy in, copy out: no other input names it)
+    if (e.inout) e.inoutArgs.forEach((i, k) => env.set(e.args[i].name, clone(r.inouts[k])));
     return e.target.outs.length === 1 ? r[0] : r;
   }
   function exec(stmts, env, st) {
@@ -1130,7 +1338,9 @@ function makeInterpreter(prog) {
       for (const s of fn.states) env.set(s.name, st.vals[s.name]);
     }
     exec(fn.body, env, st);
-    return fn.outs.map((o) => env.get(o.name));
+    const outs = fn.outs.map((o) => env.get(o.name));
+    outs.inouts = fn.params.filter((p) => p.inout).map((p) => env.get(p.name));
+    return outs;
   }
   function newState(fn) {
     const vals = {};
@@ -1138,12 +1348,16 @@ function makeInterpreter(prog) {
     return { fn: fn.name, vals };
   }
   return {
-    // call a fn with SI inputs; returns the outputs, in order
+    // call a fn with SI inputs; returns the outputs, in order, then each inout input's value after the call
     call(name, args, state = null) {
       const fn = prog.fns[name];
       if (!fn) throw new RunError(`no fn ${name}`);
       if (args.length !== fn.params.length) throw new RunError(`${name} takes ${fn.params.length} inputs`);
-      return runFn(fn, args, state);
+      const r = runFn(fn, args, state);
+      // a record's fields in the order the record declares them, whatever order its input's were given in
+      const ordered = (v, t) => (t.k === "rec" && v && typeof v === "object" ? Object.fromEntries(prog.records[t.name].fields.map((f) => [f.name, ordered(v[f.name], f.ty)]))
+        : t.k === "arr" && Array.isArray(v) ? v.map((x) => ordered(x, t.of)) : v);
+      return [...fn.outs.map((o, i) => ordered(r[i], o.ty)), ...fn.params.filter((p) => p.inout).map((p, i) => ordered(r.inouts[i], p.ty))];
     },
     newState(name) { return newState(prog.fns[name]); },
     lookup(name, x) { return rt.lookup(prog.tables[name], x); },

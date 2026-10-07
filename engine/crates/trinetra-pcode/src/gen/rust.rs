@@ -9,8 +9,10 @@ use crate::check::{ItemRef, Shape, Target, VarKind};
 
 pub(super) fn to_rust(i: &Interp, o: &RustOptions) -> Result<Files, String> {
     let mut g = Gen {
-        b: Base::new(i),
+        b: Base::new(i, ["f64::INFINITY", "f64::NEG_INFINITY", "f64::NAN"]),
         tmp: 0,
+        sort: false,
+        stream: std::cell::Cell::new(false),
         root: o.root.filter(|r| !r.is_empty()).unwrap_or("crate").to_string(),
         math: o.math.filter(|m| !m.is_empty()).map(str::to_string),
         dispatch: o.dispatch,
@@ -22,6 +24,9 @@ pub(super) fn to_rust(i: &Interp, o: &RustOptions) -> Result<Files, String> {
 struct Gen<'a> {
     b: Base<'a>,
     tmp: usize,
+    /// runtime pieces the program uses beyond RUST_RT (rt.rs carries them only then)
+    sort: bool,
+    stream: std::cell::Cell<bool>,
     /// the path the modules are under (`crate`, or `crate::alg` when embedded in a crate)
     root: String,
     /// the module the scalar maths comes from (a no_std crate's), else `f64`'s own
@@ -48,21 +53,29 @@ impl<'a> Gen<'a> {
     fn rty(&mut self, t: &Ty) -> String {
         match t {
             Ty::Real(_) => "f64".into(),
-            Ty::Int => "i64".into(),
+            Ty::Int | Ty::Choice(_) => "i64".into(),
             Ty::Bool => "bool".into(),
             Ty::Arr(n, of) => format!("[{}; {n}]", self.rty(of)),
             Ty::Rec(name) => name.clone(),
-            Ty::Tuple(_) => self.b.fail(format!("no Rust type for {}", t.text())),
+            Ty::Stream => {
+                self.stream.set(true);
+                "rt::Stream".into()
+            }
+            Ty::Tuple(_) | Ty::Str => self.b.fail(format!("no Rust type for {}", t.text())),
         }
     }
     fn zero(&self, t: &Ty) -> String {
         match t {
             Ty::Real(_) => "0.0".into(),
-            Ty::Int => "0".into(),
+            Ty::Int | Ty::Choice(_) => "0".into(),
             Ty::Bool => "false".into(),
             Ty::Arr(n, of) => format!("[{}; {n}]", self.zero(of)),
             Ty::Rec(name) => format!("{name}::default()"),
-            Ty::Tuple(_) => "undefined".into(),
+            Ty::Stream => {
+                self.stream.set(true);
+                "rt::Stream::default()".into()
+            }
+            Ty::Tuple(_) | Ty::Str => "undefined".into(),
         }
     }
     fn value_lit(&mut self, v: &Value, t: &Ty) -> String {
@@ -74,7 +87,13 @@ impl<'a> Gen<'a> {
                 }
                 _ => self.b.fail("v.map is not a function"),
             },
-            Ty::Int | Ty::Bool => js_string(v),
+            Ty::Int | Ty::Bool | Ty::Choice(_) => js_string(v),
+            Ty::Stream => {
+                self.stream.set(true);
+                let Value::Arr(items) = v else { return self.b.fail("v.map is not a function") };
+                let ws: Vec<String> = items.iter().map(|x| self.b.lit_value(x)).collect();
+                format!("rt::Stream::from_words([{}])", ws.join(", "))
+            }
             _ => self.b.lit_value(v),
         }
     }
@@ -122,10 +141,14 @@ impl<'a> Gen<'a> {
                 None => self.b.lit(ann.si),
             },
             ExprKind::Bool(v) => v.to_string(),
+            ExprKind::Str(s) => jsfmt::json_str(s),
             ExprKind::Var(name) => match ann.var {
                 VarKind::Pi => "core::f64::consts::PI".into(),
+                VarKind::Inf | VarKind::Nan => self.b.non_finite(const_value(ann.var)),
                 VarKind::Const(ci) => format!("{}::{}::{}", self.root, c.consts[ci].module, upper(name)),
+                VarKind::Data(di) => format!("{}::{}::DATA_{}", self.root, c.data[di].module, upper(name)),
                 VarKind::State => format!("st.{name}"),
+                VarKind::InOut => format!("(*{name})"),
                 _ => name.clone(),
             },
             ExprKind::Arr { items, .. } => {
@@ -144,7 +167,10 @@ impl<'a> Gen<'a> {
                 let a = self.ex(*a);
                 format!("{a}[{}]", self.idx(*i))
             }
-            ExprKind::Field { a, f } => format!("{}.{f}", self.ex(*a)),
+            ExprKind::Field { a, f } => match ann.choice {
+                Some((ci, _)) => format!("{}::{}::{}_{}", self.root, c.choices[ci].module, upper(&c.choices[ci].name), upper(f)),
+                None => format!("{}.{f}", self.ex(*a)),
+            },
             ExprKind::Not(a) => format!("(!{})", self.ex(*a)),
             ExprKind::Neg(a) => match ann.ty.as_ref() {
                 Some(Ty::Arr(_, of)) => {
@@ -313,6 +339,8 @@ impl<'a> Gen<'a> {
                     return format!("rt::clamp({p}, {q}, {})", r(self, 2));
                 }
                 "real" => return format!("({} as f64)", x(self, 0)),
+                "isnan" => return format!("({}).is_nan()", r(self, 0)),
+                "isfinite" => return format!("({}).is_finite()", r(self, 0)),
                 "int" => return format!("({} as i64)", r(self, 0)),
                 "div" | "rem" | "band" | "bor" | "bxor" | "shl" | "shr" => {
                     let o = match f {
@@ -344,37 +372,53 @@ impl<'a> Gen<'a> {
                 "norm" => return format!("rt::norm({})", v(self, 0)),
                 "unit" => return format!("rt::unit({})", v(self, 0)),
                 "transpose" => return format!("rt::tr({})", v(self, 0)),
+                "sort" | "argsort" => {
+                    self.sort = true;
+                    return format!("rt::{f}({})", x(self, 0));
+                }
+                "stream" => {
+                    self.stream.set(true);
+                    let seed = x(self, 0);
+                    let id = match ann.sid {
+                        Some(sid) => sid_hex(sid),
+                        None => format!("({}) as u64", x(self, 1)),
+                    };
+                    return format!("rt::stream({seed}, {id})");
+                }
+                "uniform" | "normal" | "normal3" => {
+                    self.stream.set(true);
+                    return format!("rt::{f}(&mut {})", x(self, 0));
+                }
                 _ => {}
             }
         }
-        let (module, name, wants): (&str, &str, Vec<&Ty>) = match ann.target {
+        let (module, name, wants): (&str, &str, Vec<(&Ty, bool)>) = match ann.target {
             Target::Fn(fi) => {
                 let f = &c.fns[fi];
                 if a.len() > f.params.len() {
                     return self.b.fail(format!("{}: more inputs than it takes", f.name));
                 }
-                (&f.module, &f.name, f.params.iter().map(|p| &p.ty).collect())
+                (&f.module, &f.name, f.params.iter().map(|p| (&p.ty, p.inout)).collect())
             }
             Target::Table(ti) => {
                 let t = &c.tables[ti];
-                (&t.module, &t.name, a.iter().map(|_| &t.key.ty).collect())
+                (&t.module, &t.name, a.iter().map(|_| (&t.key.ty, false)).collect())
             }
             _ => return self.b.fail("a call of nothing"),
         };
-        let args: Vec<String> = a.iter().zip(wants).map(|(&x, w)| self.e_want(x, Some(w))).collect();
+        // an inout input is handed over by reference
+        let args: Vec<String> = a.iter().zip(wants).map(|(&x, (w, io))| if io { format!("&mut {}", self.ex(x)) } else { self.e_want(x, Some(w)) }).collect();
         format!("{}::{module}::{name}({})", self.root, args.join(", "))
     }
 
     fn lv(&mut self, l: usize) -> String {
         let c = self.b.c;
         match &c.exprs[l].kind {
-            ExprKind::Var(name) => {
-                if c.ann[l].var == VarKind::State {
-                    format!("st.{name}")
-                } else {
-                    name.clone()
-                }
-            }
+            ExprKind::Var(name) => match c.ann[l].var {
+                VarKind::State => format!("st.{name}"),
+                VarKind::InOut => format!("(*{name})"),
+                _ => name.clone(),
+            },
             ExprKind::Index { a, i } => {
                 let base = self.lv(*a);
                 format!("{base}[{}]", self.idx(*i))
@@ -485,6 +529,36 @@ impl<'a> Gen<'a> {
                         let vl = self.value_lit(&val, t);
                         out += &format!("{}pub const {}: {rt} = {vl};\n\n", doc(&k.doc), upper(&k.name));
                     }
+                    ItemRef::Choice(ci) => {
+                        // its options as whole numbers, from 0
+                        let ch = &c.choices[ci];
+                        let names: Vec<&str> = ch.options.iter().map(|o| o.0.as_str()).collect();
+                        let consts: String = ch.options.iter().enumerate().map(|(i, o)| format!("pub const {}_{}: i64 = {i};\n", upper(&ch.name), upper(&o.0))).collect();
+                        out += &format!("{}/// Choice {}: {}.\n{consts}\n", doc(&ch.doc), ch.name, names.join(", "));
+                    }
+                    ItemRef::Data(di) => {
+                        // one copy, indexed in place: a row a line (a 1-D table ten values a line)
+                        let d = &c.data[di];
+                        let (rows, vals, el) = data_rows(d);
+                        let lines: String = match rows {
+                            Some(rows) => rows
+                                .iter()
+                                .map(|r| format!("    [{}],\n", r.iter().map(|x| self.value_lit(&Value::Num(*x), &el)).collect::<Vec<_>>().join(", ")))
+                                .collect(),
+                            None => vals
+                                .chunks(10)
+                                .map(|ch| format!("    {},\n", ch.iter().map(|x| self.value_lit(&Value::Num(*x), &el)).collect::<Vec<_>>().join(", ")))
+                                .collect(),
+                        };
+                        let rt = self.rty(&d.ty);
+                        out += &format!(
+                            "{}/// Data: {}; SI: {}.\npub static DATA_{}: {rt} = [\n{lines}];\n\n",
+                            doc(&d.doc),
+                            decl_text(&d.decl),
+                            si_of(&d.ty),
+                            upper(&d.name)
+                        );
+                    }
                     ItemRef::Record(ri) => {
                         let r = &c.records[ri];
                         let fields: String = r.fields.iter().map(|f| format!("    pub {}: {},\n", f.name, self.rty(&f.ty))).collect();
@@ -517,7 +591,7 @@ impl<'a> Gen<'a> {
                     }
                     ItemRef::Fn(fi) => {
                         let f = &c.fns[fi];
-                        let mut ins: Vec<String> = f.params.iter().map(|p| format!("{}: {}", p.name, self.rty(&p.ty))).collect();
+                        let mut ins: Vec<String> = f.params.iter().map(|p| format!("{}: {}{}", p.name, if p.inout { "&mut " } else { "" }, self.rty(&p.ty))).collect();
                         let mut st_decl = String::new();
                         if f.kind == FnKind::Proc {
                             let s = format!("{}State", self.b.pascal(&f.name));
@@ -575,14 +649,16 @@ impl<'a> Gen<'a> {
             }
             let outs: Vec<String> = if f.outs.len() == 1 { vec!["r".into()] } else { (0..f.outs.len()).map(|i| format!("r.{i}")).collect() };
             disp += &format!(
-                "        \"{0}::{1}\" => {{\n            if x.len() != {at} {{ return None; }}\n            let r = crate::{0}::{1}({2});\n",
+                "        \"{0}::{1}\" => {{\n            if x.len() != {at} {{ return None; }}\n{3}            let r = crate::{0}::{1}({2});\n",
                 f.module,
                 f.name,
-                args.join(", ")
+                io_args(f, &args).join(", "),
+                io_lets(f, &args, "            ")
             );
             for (o, r) in f.outs.iter().zip(&outs) {
                 disp += &format!("            {}\n", self.push_out(&o.ty, r));
             }
+            disp += &self.io_push(f, "            ");
             disp += "        }\n";
         }
         disp += "        _ => return None,\n    }\n    Some(out)\n}\n";
@@ -598,14 +674,16 @@ impl<'a> Gen<'a> {
             let outs: Vec<String> = if f.outs.len() == 1 { vec!["r".into()] } else { (0..f.outs.len()).map(|i| format!("r.{i}")).collect() };
             let s = self.b.pascal(&f.name);
             disp += &format!(
-                "        \"{0}::{1}\" => {{\n            let mut st = crate::{0}::{s}State::default();\n            for x in calls {{\n                if x.len() != {at} {{ return None; }}\n                let mut out = Vec::new();\n                let r = crate::{0}::{1}(&mut st, {2});\n",
+                "        \"{0}::{1}\" => {{\n            let mut st = crate::{0}::{s}State::default();\n            for x in calls {{\n                if x.len() != {at} {{ return None; }}\n                let mut out = Vec::new();\n{3}                let r = crate::{0}::{1}(&mut st, {2});\n",
                 f.module,
                 f.name,
-                args.join(", ")
+                io_args(f, &args).join(", "),
+                io_lets(f, &args, "                ")
             );
             for (o, r) in f.outs.iter().zip(&outs) {
                 disp += &format!("                {}\n", self.push_out(&o.ty, r));
             }
+            disp += &self.io_push(f, "                ");
             disp += "                outs.push(out);\n            }\n        }\n";
         }
         disp += "        _ => return None,\n    }\n    Some(outs)\n}\n";
@@ -616,7 +694,9 @@ impl<'a> Gen<'a> {
             Some(m) => RUST_RT.replacen("(a * a + b * b).sqrt()", &format!("{m}::sqrt(a * a + b * b)"), 1).replacen("dot(a, a).sqrt()", &format!("{m}::sqrt(dot(a, a))"), 1),
             None => RUST_RT.to_string(),
         };
-        set_file(&mut files, "src/rt.rs".into(), format!("//! The arithmetic every translation shares with the interpreter (design/js/pcode.js `rt`). {head}\n{rt}"));
+        let sort = if self.sort { RUST_RT_SORT } else { "" };
+        let stream = if self.stream.get() { rust_rt_stream(self.math.as_deref()) } else { String::new() };
+        set_file(&mut files, "src/rt.rs".into(), format!("//! The arithmetic every translation shares with the interpreter (design/js/pcode.js `rt`). {head}\n{rt}{sort}{stream}"));
         let title = title.filter(|t| !t.is_empty()).unwrap_or("Functions written in the pseudocode");
         let mods: String = c.modules.iter().map(|(m, _)| format!("pub mod {m};\n")).collect();
         set_file(
@@ -630,10 +710,18 @@ impl<'a> Gen<'a> {
         files
     }
 
+    /// an inout input's value after the call, pushed after the outputs
+    fn io_push(&self, f: &crate::ast::Func, ii: &str) -> String {
+        f.params.iter().enumerate().filter(|(_, p)| p.inout).map(|(i, p)| format!("{ii}{}\n", self.push_out(&p.ty, &format!("io{i}")))).collect()
+    }
     fn read_arg(&self, t: &Ty, at: usize) -> (String, usize) {
         match t {
+            Ty::Stream => {
+                self.stream.set(true);
+                (format!("crate::rt::Stream::from_words([{}])", (0..6).map(|k| format!("x[{}]", at + k)).collect::<Vec<_>>().join(", ")), 6)
+            }
             Ty::Real(_) => (format!("x[{at}]"), 1),
-            Ty::Int => (format!("x[{at}] as i64"), 1),
+            Ty::Int | Ty::Choice(_) => (format!("x[{at}] as i64"), 1),
             Ty::Bool => (format!("x[{at}] != 0.0"), 1),
             Ty::Rec(name) => {
                 let (mut parts, mut k) = (Vec::new(), 0);
@@ -654,23 +742,93 @@ impl<'a> Gen<'a> {
                 }
                 (format!("[{}]", parts.join(", ")), k)
             }
-            Ty::Tuple(_) => ("[]".into(), 0),
+            Ty::Tuple(_) | Ty::Str => ("[]".into(), 0),
         }
     }
     fn push_out(&self, t: &Ty, name: &str) -> String {
         match t {
+            Ty::Stream => format!("for v in {name}.words().iter() {{ let v = *v; out.push(v); }}"),
             Ty::Real(_) => format!("out.push({name});"),
-            Ty::Int => format!("out.push({name} as f64);"),
+            Ty::Int | Ty::Choice(_) => format!("out.push({name} as f64);"),
             Ty::Bool => format!("out.push(if {name} {{ 1.0 }} else {{ 0.0 }});"),
             Ty::Rec(rn) => match self.b.record(rn) {
                 Some(r) => r.fields.iter().map(|f| self.push_out(&f.ty, &format!("{name}.{}", f.name))).collect::<Vec<_>>().join(" "),
                 None => String::new(),
             },
             Ty::Arr(_, of) => format!("for v in {name}.iter() {{ let v = *v; {} }}", self.push_out(of, "v")),
-            Ty::Tuple(_) => format!("for v in {name}.iter() {{ let v = *v; undefined }}"),
+            Ty::Tuple(_) | Ty::Str => format!("for v in {name}.iter() {{ let v = *v; undefined }}"),
         }
     }
 }
+
+/// an inout input of the dispatcher's call: read into a variable of its own, handed over by reference
+fn io_lets(f: &crate::ast::Func, args: &[String], ii: &str) -> String {
+    f.params.iter().zip(args).enumerate().filter(|(_, (p, _))| p.inout).map(|(i, (_, a))| format!("{ii}let mut io{i} = {a};\n")).collect()
+}
+fn io_args(f: &crate::ast::Func, args: &[String]) -> Vec<String> {
+    f.params.iter().zip(args).enumerate().map(|(i, (p, a))| if p.inout { format!("&mut io{i}") } else { a.clone() }).collect()
+}
+
+/// A random stream (pcode_gen.js `rustRtStream`): adcs-sim-core rng.rs, value for value; carried by a translation that draws.
+fn rust_rt_stream(m: Option<&str>) -> String {
+    let f = |std: &str, name: &str| match m {
+        Some(m) => format!("{m}::{name}"),
+        None => format!("f64::{std}"),
+    };
+    format!(
+        r#"/// A counter-based random stream (adcs-sim-core rng.rs): SplitMix64 over a counter, normal draws by Box-Muller.
+#[derive(Clone, Copy, Debug, Default, PartialEq)]
+pub struct Stream {{ pub key: u64, pub n: u64, pub spare: f64, pub has: bool }}
+impl Stream {{
+    /// From its six numbers (the key's and the counter's high and low 32 bits, the spare, whether there is one).
+    pub fn from_words(w: [f64; 6]) -> Stream {{ Stream {{ key: ((w[0] as u64) << 32) | (w[1] as u64), n: ((w[2] as u64) << 32) | (w[3] as u64), spare: w[4], has: w[5] != 0.0 }} }}
+    pub fn words(&self) -> [f64; 6] {{ [(self.key >> 32) as f64, (self.key & 0xFFFF_FFFF) as f64, (self.n >> 32) as f64, (self.n & 0xFFFF_FFFF) as f64, self.spare, if self.has {{ 1.0 }} else {{ 0.0 }}] }}
+}}
+pub fn splitmix64(mut z: u64) -> u64 {{
+    z = z.wrapping_add(0x9E37_79B9_7F4A_7C15);
+    z = (z ^ (z >> 30)).wrapping_mul(0xBF58_476D_1CE4_E5B9);
+    z = (z ^ (z >> 27)).wrapping_mul(0x94D0_49BB_1331_11EB);
+    z ^ (z >> 31)
+}}
+/// The stream of a seed and an id.
+pub fn stream(seed: i64, id: u64) -> Stream {{ Stream {{ key: splitmix64((seed as u64) ^ splitmix64(id)), n: 0, spare: 0.0, has: false }} }}
+/// Uniform on (0, 1).
+pub fn uniform(s: &mut Stream) -> f64 {{ s.n = s.n.wrapping_add(1); let z = splitmix64(s.key ^ splitmix64(s.n)); ((z >> 11) as f64 + 0.5) * (1.0 / 9007199254740992.0) }}
+/// Normal, by Box-Muller, the spare kept for the next draw.
+pub fn normal(s: &mut Stream) -> f64 {{
+    if s.has {{ s.has = false; let v = s.spare; s.spare = 0.0; return v; }}
+    let u1 = uniform(s);
+    let u2 = uniform(s);
+    let r = {sqrt}(-2.0 * {ln}(u1));
+    s.spare = r * {sin}(2.0 * core::f64::consts::PI * u2);
+    s.has = true;
+    r * {cos}(2.0 * core::f64::consts::PI * u2)
+}}
+pub fn normal3(s: &mut Stream) -> [f64; 3] {{ let a = normal(s); let b = normal(s); let c = normal(s); [a, b, c] }}
+"#,
+        sqrt = f("sqrt", "sqrt"),
+        ln = f("ln", "log"),
+        sin = f("sin", "sin"),
+        cos = f("cos", "cos")
+    )
+}
+
+/// The toolbox sort (pcode_gen.js `RUST_RT_SORT`), carried by a translation that sorts.
+const RUST_RT_SORT: &str = r#"/// The indices of a vector in ascending order, equal values in their order (an insertion sort).
+pub fn argsort<T: PartialOrd + Copy, const N: usize>(v: [T; N]) -> [i64; N] {
+    let mut ix = [0i64; N];
+    for i in 0..N { ix[i] = i as i64; }
+    for i in 1..N {
+        let k = ix[i];
+        let mut j = i;
+        while j > 0 && v[ix[j - 1] as usize] > v[k as usize] { ix[j] = ix[j - 1]; j -= 1; }
+        ix[j] = k;
+    }
+    ix
+}
+/// The vector in ascending order, equal values in their order.
+pub fn sort<T: PartialOrd + Copy, const N: usize>(v: [T; N]) -> [T; N] { let ix = argsort(v); let mut r = v; for i in 0..N { r[i] = v[ix[i] as usize]; } r }
+"#;
 
 /// The runtime every Rust translation carries (pcode_gen.js `RUST_RT`, after its first line).
 const RUST_RT: &str = r#"#![allow(clippy::all)]

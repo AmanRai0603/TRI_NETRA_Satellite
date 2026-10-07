@@ -16,3 +16,5 @@ libm = "0.2"
 [dev-dependencies]
 # read every decimal to the double it was written from
 serde_json = { version = "1", features = ["float_roundtrip"] }
+# the random streams are the engine's own (adcs-sim-core rng.rs): tests/streams.rs holds them equal
+adcs-sim-core = { path = "../adcs-sim-core" }

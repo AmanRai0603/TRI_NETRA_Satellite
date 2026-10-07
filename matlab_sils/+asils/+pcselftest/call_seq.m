@@ -8,6 +8,18 @@ function Y = call_seq(name, X)
             case 'selftest::dwell'
                 [o1, o2, o3, o4, st] = asils.pcselftest.selftest.dwell(st, x(1), x(2));
                 y = [double(o1); double(o2); double(o3); double(o4)];
+            case 'selftest::least'
+                [o1, o2, st] = asils.pcselftest.selftest.least(st, x(1));
+                y = [double(o1); double(o2)];
+            case 'selftest::switches'
+                [o1, o2, st] = asils.pcselftest.selftest.switches(st, x(1));
+                y = [double(o1); double(o2)];
+            case 'selftest::accumulate'
+                [o1, st] = asils.pcselftest.selftest.accumulate(st, x(1), x(2));
+                y = [double(o1)];
+            case 'selftest::noisy'
+                [o1, o2, st] = asils.pcselftest.selftest.noisy(st, x(1));
+                y = [double(o1); double(o2)];
             otherwise
                 error('pcode:call', 'no proc %s', name);
         end

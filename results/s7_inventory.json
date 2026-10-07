@@ -92,6 +92,57 @@
     "closure": 38
    },
    "how": "the developer's revision S7.1b (design/revisions_2_0.toml), applied by tools/convert_2_0.py; also the 22 KPI evidence rows open -> evidence"
+  },
+  "after_ruling_7_oct": {
+   "ruling": "every published model with its data is design (docs/PLAN_2_0.md, the boundary, 7 Oct 2026); code keeps the maths toolbox, the file readers, the step order and the recorder",
+   "published_model_items": 23,
+   "published_model_lines": 5299,
+   "published_model_items_by_area": {
+    "adcs-pop": 19,
+    "adcs-sim-core": 3,
+    "fsw/pseudocode": 1
+   },
+   "pop_published_model_modules": 19,
+   "pop_published_model_lines": 4870,
+   "pop_data_and_reader_modules": [
+    "pop.spaceweather (data + reader + relation)",
+    "pop.spk (reader)"
+   ],
+   "pop_toolbox_modules": [
+    "pop.integ",
+    "pop.atmos.octave"
+   ],
+   "pop_toolbox_lines": 567,
+   "toolbox_items": [
+    "core.la_pm",
+    "core.rng",
+    "sim.lqr",
+    "pop.atmos.octave",
+    "pop.integ"
+   ],
+   "toolbox_lines": 816,
+   "metrics_items": [
+    "sim.metrics.core",
+    "twin +metrics"
+   ],
+   "kinds": {
+    "code": 2,
+    "core": 5,
+    "data": 1,
+    "decide": 2,
+    "generated": 2,
+    "library check": 1,
+    "relation": 54,
+    "relation + 2 parameters": 1,
+    "relation + parameter": 1,
+    "relation + parameters": 7,
+    "relation over a lookup": 1,
+    "relation, already a method": 3,
+    "rig": 1,
+    "toolbox": 5
+   },
+   "translator_gaps": 15,
+   "steps": 26
   }
  },
  "built_in_nodes": [
@@ -3710,10 +3761,11 @@
     "env_igrf13_coefficients",
     "nav_time_frames"
    ],
-   "kind": "toolbox (IGRF reading), already pseudocode",
+   "kind": "relation (published model): IGRF-13, already pseudocode",
    "gaps": [],
    "step": "S7.3",
-   "note": "fsw/pseudocode/02 has igrf_gh, geodetic, igrf_ned, field_eci; the core can call the generated fsw-rs alg frames instead of its own copy."
+   "note": "The ruling (7 Oct): IGRF is a model of the world, so its synthesis is a method of env and its coefficients env's table (fsw/pseudocode/02 and 02_igrf13 hold both today; one copy, moved to env).",
+   "kind_before_ruling": "toolbox (IGRF reading), already pseudocode"
   },
   {
    "id": "core.time",
@@ -3724,10 +3776,11 @@
    "nodes": [
     "nav_time_frames"
    ],
-   "kind": "toolbox (time and frames)",
+   "kind": "relation (published model): time scales and frames",
    "gaps": [],
    "step": "S7.3",
-   "note": "gmst_rot, prec_rot, eci2ecef, decyear are also in fsw/pseudocode/02: use one."
+   "note": "Julian date, calendar, decimal year, GMST, precession, ECI to ECEF: gmst_rot, prec_rot, eci2ecef, decyear are also in fsw/pseudocode/02: one method each in env.",
+   "kind_before_ruling": "toolbox (time and frames)"
   },
   {
    "id": "core.la_pm",
@@ -3739,7 +3792,7 @@
    "kind": "toolbox",
    "gaps": [],
    "step": "-",
-   "note": ""
+   "note": "Maths only (vectors, matrices, quaternions, q-method's eigen solve, libm wrappers): stays toolbox."
   },
   {
    "id": "core.rng",
@@ -3753,7 +3806,7 @@
     "G1"
    ],
    "step": "S7.2",
-   "note": ""
+   "note": "Random streams: maths, stays toolbox; the pseudocode gets streams as a toolbox type (G1, S7.2)."
   },
   {
    "id": "core.facets",
@@ -3843,10 +3896,11 @@
    "location": "engine/crates/adcs-sim-core/src/orbit.rs:coe2rv (152-161)",
    "lines": 10,
    "nodes": [],
-   "kind": "toolbox (frames)",
+   "kind": "relation (published model): two-body elements to state",
    "gaps": [],
-   "step": "-",
-   "note": ""
+   "step": "S7.6",
+   "note": "Kepler's two-body conversion: a method of orbit.",
+   "kind_before_ruling": "toolbox (frames)"
   },
   {
    "id": "core.plant.deriv",
@@ -4125,7 +4179,7 @@
    "kind": "toolbox (a CARE solver); the weights are relation",
    "gaps": [],
    "step": "S7.13",
-   "note": ""
+   "note": "The Kleinman iteration and Lyapunov solve are a Riccati solver: toolbox. The weights and the single-axis model are relations (S7.13)."
   },
   {
    "id": "sim.product",
@@ -4275,10 +4329,11 @@
    "location": "engine/crates/adcs-sim/src/metrics.rs:derive, ecss, time_to, window, evaluate",
    "lines": 230,
    "nodes": [],
-   "kind": "core (metrics)",
+   "kind": "relation (the metrics: how each KPI is measured)",
    "gaps": [],
-   "step": "-",
-   "note": ""
+   "step": "S7.14b",
+   "note": "The ruling: the metrics become methods of kpi (APE, AKE, RKS, ECSS indices, windows, verdicts). The recorder and the run order stay core.",
+   "kind_before_ruling": "core (metrics)"
   },
   {
    "id": "design.survey",
@@ -4468,10 +4523,11 @@
    "location": "engine/crates/adcs-pop/src/time.rs",
    "lines": 289,
    "nodes": [],
-   "kind": "toolbox",
+   "kind": "relation (published model): time scales (UTC, TAI, TT, TDB, UT1, GPS; leap seconds as a table)",
    "gaps": [],
-   "step": "-",
-   "note": ""
+   "step": "S7.3",
+   "note": "",
+   "kind_before_ruling": "toolbox"
   },
   {
    "id": "pop.frames.mod",
@@ -4480,10 +4536,11 @@
    "location": "engine/crates/adcs-pop/src/frames/mod.rs",
    "lines": 224,
    "nodes": [],
-   "kind": "toolbox",
+   "kind": "relation (published model): ECI and ECEF builds (IAU 2006/2000A CIO-based, EOP applied)",
    "gaps": [],
-   "step": "-",
-   "note": ""
+   "step": "S7.3",
+   "note": "",
+   "kind_before_ruling": "toolbox"
   },
   {
    "id": "pop.frames.iau2006",
@@ -4492,10 +4549,11 @@
    "location": "engine/crates/adcs-pop/src/frames/iau2006.rs",
    "lines": 262,
    "nodes": [],
-   "kind": "toolbox",
+   "kind": "relation (published model): IAU 2006/2000A X, Y, s series (the xys06 tables as data)",
    "gaps": [],
-   "step": "-",
-   "note": ""
+   "step": "S7.3",
+   "note": "",
+   "kind_before_ruling": "toolbox"
   },
   {
    "id": "pop.frames.tidal",
@@ -4504,10 +4562,11 @@
    "location": "engine/crates/adcs-pop/src/frames/tidal.rs",
    "lines": 319,
    "nodes": [],
-   "kind": "toolbox",
+   "kind": "relation (published model): IERS tidal and libration EOP corrections (6 tables as data)",
    "gaps": [],
-   "step": "-",
-   "note": ""
+   "step": "S7.3",
+   "note": "",
+   "kind_before_ruling": "toolbox"
   },
   {
    "id": "pop.eop",
@@ -4516,10 +4575,11 @@
    "location": "engine/crates/adcs-pop/src/eop.rs",
    "lines": 482,
    "nodes": [],
-   "kind": "toolbox",
+   "kind": "relation (published model): EOP splice and interpolation; the values a table; the IERS file readers stay code",
    "gaps": [],
-   "step": "-",
-   "note": ""
+   "step": "S7.3",
+   "note": "",
+   "kind_before_ruling": "toolbox"
   },
   {
    "id": "pop.geodetic",
@@ -4528,10 +4588,11 @@
    "location": "engine/crates/adcs-pop/src/geodetic.rs",
    "lines": 32,
    "nodes": [],
-   "kind": "toolbox",
+   "kind": "relation (published model): ECEF to geodetic (WGS-84)",
    "gaps": [],
-   "step": "-",
-   "note": ""
+   "step": "S7.3",
+   "note": "",
+   "kind_before_ruling": "toolbox"
   },
   {
    "id": "pop.spk",
@@ -4542,10 +4603,11 @@
    "nodes": [
     "l3_dist_row_09"
    ],
-   "kind": "toolbox (DE440 reading)",
+   "kind": "code (file reader: DAF/SPK)",
    "gaps": [],
-   "step": "-",
-   "note": ""
+   "step": "S7.3c",
+   "note": "It loads the DE440 coefficient slice the runs use into the design; it computes no position.",
+   "kind_before_ruling": "toolbox (DE440 reading)"
   },
   {
    "id": "pop.ephem",
@@ -4556,10 +4618,11 @@
    "nodes": [
     "l3_dist_row_09"
    ],
-   "kind": "toolbox (DE440 reading)",
+   "kind": "relation (published model): DE440 Chebyshev evaluation over the coefficient slice; the SPK/DAF reader stays code",
    "gaps": [],
-   "step": "-",
-   "note": ""
+   "step": "S7.3c",
+   "note": "",
+   "kind_before_ruling": "toolbox (DE440 reading)"
   },
   {
    "id": "pop.atmos.dtm2020",
@@ -4570,10 +4633,11 @@
    "nodes": [
     "l3_dist_row_07"
    ],
-   "kind": "toolbox (DTM2020)",
+   "kind": "relation (published model): DTM2020 operational (coefficients as data)",
    "gaps": [],
-   "step": "-",
-   "note": ""
+   "step": "S7.3b",
+   "note": "",
+   "kind_before_ruling": "toolbox (DTM2020)"
   },
   {
    "id": "pop.atmos.dtm2020_research",
@@ -4584,10 +4648,11 @@
    "nodes": [
     "l3_dist_row_07"
    ],
-   "kind": "toolbox (DTM2020)",
+   "kind": "relation (published model): DTM2020 research (coefficients as data)",
    "gaps": [],
-   "step": "-",
-   "note": ""
+   "step": "S7.3b",
+   "note": "",
+   "kind_before_ruling": "toolbox (DTM2020)"
   },
   {
    "id": "pop.atmos.jb2008",
@@ -4598,10 +4663,11 @@
    "nodes": [
     "l3_dist_row_07"
    ],
-   "kind": "toolbox (a published density model, as DTM2020)",
+   "kind": "relation (published model): JB2008 (coefficients as data)",
    "gaps": [],
-   "step": "-",
-   "note": ""
+   "step": "S7.3b",
+   "note": "",
+   "kind_before_ruling": "toolbox (a published density model, as DTM2020)"
   },
   {
    "id": "pop.atmos.octave",
@@ -4612,10 +4678,11 @@
    "nodes": [
     "l3_dist_row_07"
    ],
-   "kind": "toolbox",
+   "kind": "toolbox (Octave numerics: pow, mod, rem, norm, interp1, erf)",
    "gaps": [],
    "step": "-",
-   "note": ""
+   "note": "datenum is calendar arithmetic: it moves with the time scales (S7.3).",
+   "kind_before_ruling": "toolbox"
   },
   {
    "id": "pop.atmos.mod",
@@ -4626,10 +4693,11 @@
    "nodes": [
     "l3_dist_row_07"
    ],
-   "kind": "toolbox",
+   "kind": "relation (published model): the density-model switch (a choice) and its adapters",
    "gaps": [],
-   "step": "-",
-   "note": ""
+   "step": "S7.3b",
+   "note": "",
+   "kind_before_ruling": "toolbox"
   },
   {
    "id": "pop.atmos.exponential",
@@ -4652,10 +4720,11 @@
    "location": "engine/crates/adcs-pop/src/spaceweather.rs",
    "lines": 820,
    "nodes": [],
-   "kind": "toolbox (data reading)",
+   "kind": "data (the indices as tables) + code (the file parsers) + relation (which index each model takes)",
    "gaps": [],
-   "step": "-",
-   "note": ""
+   "step": "S7.3b",
+   "note": "",
+   "kind_before_ruling": "toolbox (data reading)"
   },
   {
    "id": "pop.integ",
@@ -4667,7 +4736,8 @@
    "kind": "toolbox (integrators)",
    "gaps": [],
    "step": "-",
-   "note": ""
+   "note": "",
+   "kind_before_ruling": "toolbox (integrators)"
   },
   {
    "id": "pop.gravity.field",
@@ -4676,10 +4746,11 @@
    "location": "engine/crates/adcs-pop/src/gravity/field.rs",
    "lines": 257,
    "nodes": [],
-   "kind": "toolbox",
+   "kind": "relation (published model): normalisation and zonals of a field; the ICGEM .gfc reader stays code",
    "gaps": [],
-   "step": "-",
-   "note": ""
+   "step": "S7.3d",
+   "note": "",
+   "kind_before_ruling": "toolbox"
   },
   {
    "id": "pop.gravity.sphharm",
@@ -4688,10 +4759,11 @@
    "location": "engine/crates/adcs-pop/src/gravity/sphharm.rs",
    "lines": 191,
    "nodes": [],
-   "kind": "toolbox (a published field evaluator; the coefficients a lookup)",
+   "kind": "relation (published model): spherical-harmonic evaluation (the coefficients a table)",
    "gaps": [],
-   "step": "-",
-   "note": ""
+   "step": "S7.3d",
+   "note": "",
+   "kind_before_ruling": "toolbox (a published field evaluator; the coefficients a lookup)"
   },
   {
    "id": "pop.gravity.potential",
@@ -4700,10 +4772,11 @@
    "location": "engine/crates/adcs-pop/src/gravity/potential.rs",
    "lines": 66,
    "nodes": [],
-   "kind": "toolbox",
+   "kind": "relation (published model): geopotential",
    "gaps": [],
-   "step": "-",
-   "note": ""
+   "step": "S7.3d",
+   "note": "",
+   "kind_before_ruling": "toolbox"
   },
   {
    "id": "pop.gravity.zonal",
@@ -4712,10 +4785,11 @@
    "location": "engine/crates/adcs-pop/src/gravity/zonal.rs",
    "lines": 78,
    "nodes": [],
-   "kind": "toolbox",
+   "kind": "relation (published model): two-body and J2..J6",
    "gaps": [],
-   "step": "-",
-   "note": ""
+   "step": "S7.3d",
+   "note": "",
+   "kind_before_ruling": "toolbox"
   },
   {
    "id": "pop.gravity.mod",
@@ -4724,10 +4798,11 @@
    "location": "engine/crates/adcs-pop/src/gravity/mod.rs",
    "lines": 152,
    "nodes": [],
-   "kind": "toolbox",
+   "kind": "relation (published model): gravity force",
    "gaps": [],
-   "step": "-",
-   "note": ""
+   "step": "S7.3d",
+   "note": "",
+   "kind_before_ruling": "toolbox"
   },
   {
    "id": "pop.solidtides",
@@ -4736,10 +4811,11 @@
    "location": "engine/crates/adcs-pop/src/solidtides.rs",
    "lines": 213,
    "nodes": [],
-   "kind": "toolbox (a published standard)",
+   "kind": "relation (published model): solid-Earth tides (IERS 2010)",
    "gaps": [],
-   "step": "-",
-   "note": ""
+   "step": "S7.3d",
+   "note": "",
+   "kind_before_ruling": "toolbox (a published standard)"
   },
   {
    "id": "pop.oceantides",
@@ -4748,10 +4824,11 @@
    "location": "engine/crates/adcs-pop/src/oceantides.rs",
    "lines": 225,
    "nodes": [],
-   "kind": "toolbox (a published standard; the table a lookup)",
+   "kind": "relation (published model): ocean tides (FES2004 table as data, the 8 main lines); the .bin reader stays code",
    "gaps": [],
-   "step": "-",
-   "note": ""
+   "step": "S7.3d",
+   "note": "",
+   "kind_before_ruling": "toolbox (a published standard; the table a lookup)"
   },
   {
    "id": "pop.relativity",
@@ -4760,10 +4837,11 @@
    "location": "engine/crates/adcs-pop/src/relativity.rs",
    "lines": 158,
    "nodes": [],
-   "kind": "toolbox (a published standard)",
+   "kind": "relation (published model): post-Newtonian terms (IERS 2010)",
    "gaps": [],
-   "step": "-",
-   "note": ""
+   "step": "S7.3e",
+   "note": "",
+   "kind_before_ruling": "toolbox (a published standard)"
   },
   {
    "id": "pop.thirdbody",
@@ -4969,6 +5047,25 @@
    "gaps": [],
    "step": "S7.1b",
    "note": ""
+  },
+  {
+   "id": "fsw.pc02",
+   "area": "fsw/pseudocode",
+   "item": "Time, frames, Sun model, geodetic, IGRF synthesis and the IGRF-13 table (02_time_frames_models.pc, 02_igrf13.pc)",
+   "location": "fsw/pseudocode/02_time_frames_models.pc, fsw/pseudocode/02_igrf13.pc",
+   "lines": 248,
+   "nodes": [
+    "nav_time_frames",
+    "env_igrf13_coefficients",
+    "l3_dist_row_08"
+   ],
+   "kind": "relation (published model): already pseudocode; moves into env (S3 note, 7 Oct)",
+   "kind_before_ruling": "toolbox (01_math and 02 as the flight software's toolbox)",
+   "gaps": [
+    "G14"
+   ],
+   "step": "S7.3",
+   "note": "The IGRF_GH const (26 x 195) is written whole at every use by the MATLAB translator: G14 data tables first."
   }
  ],
  "twin": [
@@ -5024,7 +5121,7 @@
    "package": "+env",
    "files": 8,
    "lines": 236,
-   "kind": "relation (torques, shadow, Earth pressure, facets); toolbox (igrf_*)",
+   "kind": "relation (torques, shadow, Earth pressure, facets; igrf_* the IGRF synthesis, a published model)",
    "step": "S7.3-S7.4",
    "note": ""
   },
@@ -5072,8 +5169,8 @@
    "package": "+metrics",
    "files": 6,
    "lines": 280,
-   "kind": "core (metrics)",
-   "step": "-",
+   "kind": "relation (the metrics, kpi methods); print.m code",
+   "step": "S7.14b",
    "note": ""
   },
   {
@@ -5112,8 +5209,8 @@
    "package": "+util",
    "files": 12,
    "lines": 167,
-   "kind": "toolbox and code",
-   "step": "-",
+   "kind": "toolbox and code; jd, jd2utc, decyear, addsec are time scales: relation (published model)",
+   "step": "S7.3",
    "note": ""
   },
   {
@@ -5200,9 +5297,9 @@
    "package": "matlab_sils/pop",
    "files": 256,
    "lines": 19828,
-   "kind": "toolbox (the POP the engine ports), with the force models as in adcs-pop",
-   "step": "S7.6",
-   "note": "The reference the Rust port is held to."
+   "kind": "relation (the published models: 03_frames_time, 04_atmosphere, 02_forces gravity, tides, relativity; and the force models), toolbox (01_core +integ, Octave numerics), code (05_data readers)",
+   "step": "S7.3-S7.6",
+   "note": "The reference the Rust port is held to. By folder (files, lines): 01_core 29/1,721; 02_forces 64/1,499; 03_frames_time 46/2,087; 04_atmosphere 23/3,403; 05_data 29/2,865; 06_validation 50/5,952; 07_examples, 08_test, 11_compare 14/2,243."
   }
  ],
  "translator_gaps": {
@@ -5218,7 +5315,9 @@
   "G10": "Reading files. Product and part descriptors, the catalogue scan in select_rotor. Reading stays toolbox; the relation takes the arrays.",
   "G11": "Speed. The engine runs long scenarios and 4,516-run campaigns; Octave runs the twin. Generated scalar loops in Octave and by-value arrays in Rust and C may cost much. Measure each step; the target is no worse than S6 accepted.",
   "G12": "Named capacities. NR = 8, NG = 4, NC = 6, NH = 2, NS = 8, HIST = 64, GPS_HIST = 256, N_STARS = 4000. An array length is a literal in pseudocode; a named constant length is needed so capacities are stated once.",
-  "G13": "Deterministic maths. The engine calls the pure-Rust libm (adcs-sim-core/pm.rs) so a trajectory is the same on every target. The Rust translator already takes a maths module; generated engine code must use it, or trajectories move in the last bits."
+  "G13": "Deterministic maths. The engine calls the pure-Rust libm (adcs-sim-core/pm.rs) so a trajectory is the same on every target. The Rust translator already takes a maths module; generated engine code must use it, or trajectories move in the last bits.",
+  "G14": "Data tables from the design. Every published model carries data (IGRF 5,070 values, the IAU 2006 series 56,162, the DE440 slice about 9,200 a year). A `const` array works in Rust and C, but MATLAB writes the whole literal at every use (and a MATLAB literal cannot be indexed); nothing says the values are a node's table. Needs a `data` item: a named, typed (real with a unit, or int), 1-D or 2-D array whose values the design writes row by row, emitted once (Rust static, C const, MATLAB a function with a persistent copy) and indexed in place.",
+  "G15": "Long series and run-time data. The IAU 2006 series (3,082 terms over 1,309 integer argument rows), Chebyshev (Clenshaw) and Legendre recursions are loops over data (G14 with int data, G12 for their sizes, G4 for scratch by reference). Time series (EOP, space weather, DE440) are embedded as the slice the case's runs span, generated from the design; reading them at run time stays the file readers' work, into the design, never into a model. Speed in Octave (G11) to be measured."
  },
  "steps": [
   {
@@ -5234,13 +5333,40 @@
   },
   {
    "step": "S7.2",
-   "work": "Translator and toolbox groundwork, one construct at a time: G1 random streams (toolbox), G5 inf and nan, G6 choices, G4 arrays by reference, G12 named capacities, G7 a toolbox sort. In the JS and Rust interpreters and the Rust, C and MATLAB translators. Raise the toolbox to trinetra-toolbox/2 in adcs-sim/src/source.rs, tools/design_inputs.py and python/trinetra_adcs/design.py together.",
-   "parity": "pcode.py gen --check; cargo test -p trinetra-pcode -p pcode-selftest; the twin's selftest vectors in Octave; a stream drawn in Rust, C and MATLAB equals rng.rs bit for bit"
+   "work": "Translator and toolbox groundwork, one construct at a time: G1 random streams (toolbox), G5 inf and nan, G6 choices, G4 arrays by reference, G12 named capacities, G7 a toolbox sort. In the JS and Rust interpreters and the Rust, C and MATLAB translators. Raise the toolbox to trinetra-toolbox/2 in adcs-sim/src/source.rs, tools/design_inputs.py and python/trinetra_adcs/design.py together. Before them, what the published models need first: G14 data tables from the design (a `data` item, emitted once, indexed in place; MATLAB no longer inlines a table at every use).",
+   "parity": "pcode.py gen --check; cargo test -p trinetra-pcode -p pcode-selftest; the twin's selftest vectors in Octave; a stream drawn in Rust, C and MATLAB equals rng.rs bit for bit; existing generated files byte for byte (fsw alg, adcs-physics, adcs-groups, MATLAB) unless a construct is used",
+   "done": "2026-10-07",
+   "result": "Seven constructs, each in docs/PSEUDOCODE_V2.md, both interpreters (design/js/pcode.js, trinetra-pcode) and the Rust, C and MATLAB translators (pcode_gen.js, pcode_c.js and their Rust ports, byte for byte): G14 data tables (`data`), G5 inf, nan, isnan, isfinite, G6 choices (`choice`), G12 named capacities, G7 sort and argsort, G4 inputs by reference (`inout`), G1 random streams (`stream`, uniform, normal, normal3; rng.rs value for value). The language's self-test (design/pcode_selftest) exercises each: 23 functions, 2,400 values, every translation equal to the interpreter (2,397 bit for bit, the 3 others normal draws within 2e-16); the Rust interpreter's streams equal rng.rs bit for bit (trinetra-pcode tests/streams.rs). Toolbox trinetra-toolbox/2. Existing generated files unchanged (fsw alg ID d0b5944afc9464e4)."
+  },
+  {
+   "step": "S7.2b",
+   "work": "Published data in the design: each published model's coefficients and data as a table of an env or orbit node, citing its publication, written by the file readers (code) from the files the engine reads today: leap seconds (28 x 3); IGRF-13 (26 epochs x 195, and the secular variation); IAU 2006/2000A xys06 (56,162 values: 3,082 X/Y terms, 1,309 integer argument rows of 14, 66 s terms); tidal EOP (6 tables, 1,378 values); EOP (finals2000A and C04, x, y, UT1-UTC, LOD, dX, dY: the case's span, about 730 rows x 6 for two years); DTM2020 operational and research (96 x 9 each, and the ap/Kp table 2 x 38); JB2008 (about 200 coefficients); the exponential table (28 x 3); space weather (SOLFSMY and DTCFILE: the case's span, about 730 days x 11 and x 26); DE440 Chebyshev records of the Sun, EMB, Moon and Earth (about 9,200 values a year of span); the gravity field (J2..J6 today; a full field 2(n+1)^2, about 10,000 at degree 70); FES2004 degree 10 (about 5,300) and the 8 main lines.",
+   "parity": "from_design --check: each table equals the file its reader loads, value for value (bits); the readers' tests; no run changes"
   },
   {
    "step": "S7.3",
-   "work": "Use what is already generated: the core's density table calls env::atmosphere and density_at; field.rs and time.rs call the generated frames and IGRF functions of fsw/pseudocode/02 (one copy); p_srp calls m3_5. Delete the hand copies.",
-   "parity": "every engine scenario: metrics identical (bit for bit where no transcendental changed, else within the twin ledger's bounds); engine.py fsw-parity"
+   "work": "Time and frames, and IGRF (published models, the ruling of 7 Oct): time scales with the leap-second table; Julian date, GMST, precession, ECI to ECEF (core time.rs and fsw/pseudocode/02 as one method each in env); the IAU 2006/2000A CIO kernel over the xys06 tables; tidal EOP; EOP splice and interpolation over the EOP table; geodetic; the IGRF-13 synthesis over its table (fsw/pseudocode/02 and 02_igrf13 move into env, one copy; the flight build generates the flight's copy from env). Also: the core's density table calls env::atmosphere; p_srp calls m3_5. Delete the hand copies.",
+   "parity": "adcs-pop time/frames tests against the Octave reference vectors (bit for bit where they are today); every engine scenario's metrics identical; engine.py fsw-parity 48/48; flight_build gen --check shows only the moved source"
+  },
+  {
+   "step": "S7.3b",
+   "work": "Atmosphere (published models): the exponential table (already env::atmosphere), DTM2020 operational and research, JB2008 over their coefficient tables; the density switch as a choice (G6); the space-weather indices as data tables, the index each model takes as a relation; the parsers of SOLFSMY, DTCFILE, OMNI2, GFZ Hpo and SWPC stay code.",
+   "parity": "adcs-pop atmosphere tests against the Octave reference vectors (bit for bit where they are today); engine scenarios with orbit=pop identical"
+  },
+  {
+   "step": "S7.3c",
+   "work": "Ephemeris (published model): DE440 Chebyshev evaluation (Clenshaw) of the Sun, EMB, Moon and Earth over the coefficient slice the case's runs span; the per-step bundle as a method. The DAF/SPK reader (spk.rs) stays code and loads the slice into the design.",
+   "parity": "adcs-pop ephemeris tests (positions bit for bit against today's ephem.rs on the slice); engine scenarios identical"
+  },
+  {
+   "step": "S7.3d",
+   "work": "Gravity and tides (published models): the field's normalisation and zonals, spherical-harmonic evaluation, potential, the gravity force over the coefficient table; solid-Earth tides (IERS 2010); ocean tides (FES2004 table, the 8 main lines). The ICGEM .gfc and FES .bin readers stay code.",
+   "parity": "adcs-pop gravity and tides tests against the Octave reference vectors; ENGINE_PARITY truth-environment table unchanged"
+  },
+  {
+   "step": "S7.3e",
+   "work": "Relativity (published model): the post-Newtonian terms of IERS 2010 (Schwarzschild, Lense-Thirring, de Sitter) as methods of orbit.",
+   "parity": "adcs-pop relativity tests against the Octave reference vectors; scenarios identical"
   },
   {
    "step": "S7.4",
@@ -5254,7 +5380,7 @@
   },
   {
    "step": "S7.6",
-   "work": "The orbit: fast forces and context (orbit.rs accel, ctx); RAAN from LTAN; then the POP spacecraft force models (drag, SRP, ERP, third body, force sum, sso_initial) as relations over the POP toolbox.",
+   "work": "The orbit: fast forces and context (orbit.rs accel, ctx); RAAN from LTAN; then the POP spacecraft force models (drag, SRP, ERP, third body, force sum, sso_initial) as relations over the published-model methods of S7.3-S7.3e (no longer a POP toolbox); coe2rv as a method of orbit.",
    "parity": "adcs-pop tests against the Octave reference vectors; ENGINE_PARITY truth-environment table unchanged; scenarios identical"
   },
   {
@@ -5298,6 +5424,11 @@
    "parity": "results/POINTING_BUDGET.md, EVALUATION.md, ENGINE_SOLUTIONS identical"
   },
   {
+   "step": "S7.14b",
+   "work": "The metrics (the ruling of 7 Oct): how each KPI is measured from a run (APE, AKE, RKS, the ECSS indices, windows, time-to, verdicts; adcs-sim/src/metrics.rs derive, ecss, time_to, window, evaluate; the twin's +metrics) as methods of kpi, generated into the engine and the twin. The recorder and the step order stay core.",
+   "parity": "every scenario's metrics and every campaign's results identical (results/EVALUATION.md, ENGINE_SOLUTIONS); twin-parity"
+  },
+  {
    "step": "S7.15",
    "work": "Sizing (design): demand survey, magnetorquer, select_rotor, fluid rings with the pump design, RCS, budgets, sensors. One method each; the twin's +sizing generated from the same methods (the engine's laws win where they differ, after the owner's word).",
    "parity": "sizing.json and the parts and products of both cases byte for byte; the pipeline's selection unchanged"
@@ -5330,5 +5461,15 @@
    "java_jdbc": "Needs a third-party SQLite JDBC driver jar with native libraries on javaclasspath; Octave may run without a JVM. Fragile, not recommended.",
    "mex": "Needs a C compiler on every user machine and a build per platform and per MATLAB/Octave ABI. Not recommended."
   }
- }
+ },
+ "amended": "2026-10-07: the owner's ruling (every published model with its data in the database); see counts.after_ruling_7_oct",
+ "translator_gaps_closed_by_s7_2": [
+  "G1",
+  "G4",
+  "G5",
+  "G6",
+  "G7",
+  "G12",
+  "G14"
+ ]
 }

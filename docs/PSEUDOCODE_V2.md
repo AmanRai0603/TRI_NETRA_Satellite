@@ -53,8 +53,16 @@ expression to it; a literal's unit converts it to SI where it is read.
 | `vec3[m/s]`, `vec2[…]`, `vec4[…]`, `mat3[1/s]`, `quat` | fixed arrays (a quat is four plain numbers, scalar last) |
 | `real[m][8]`, `int[7]` | an array of any length known when it is written |
 | `Guid` | a record declared with `record` |
+| `Device` | a choice declared with `choice` (*Choices*) |
+| `stream` | a random stream, the toolbox's (*Random streams*) |
 | `90 [deg]`, `500 [km]`, `[1, 2, 3] [mm]` | literals with a unit: 1.5707963267948966, 500000, [0.001, 0.002, 0.003] |
 | `0` | a bare zero fits any dimension (and an array of zeros any array) |
+| `inf`, `-inf`, `nan` | the values that are not finite; like a bare 0 they fit any dimension (`let t: real[s] = inf`, `min(x, inf)`) |
+
+**Named capacities.** An array's length may be a const that is a whole-number literal from 1, so a capacity is
+stated once: `const NR = 8`, then `real[N m s][NR]`, `int[NR]`, `for i in 0 .. NR`. (A real's first brackets are its
+unit: write `real[1][NR]`, not `real[NR]`.) The translations write the number; the generated documentation keeps the
+name.
 
 The units are `m km cm mm um AU s ms min h day yr kg g N mN uN J W mW Pa kPa A mA C V ohm T uT nT
 K Hz rpm rad deg arcsec`, combined with spaces (products), `^` (whole powers) and one `/`.
@@ -88,6 +96,14 @@ end
 - A call of a function with several outputs is unpacked: `let h0, rho0, scale = atmosphere(h)`.
 - No function calls itself, directly or around a loop of calls (flight code does not recurse).
 
+**Arrays by reference.** An input written `img: inout real[1][4096]` (an array, a record or a stream) may be changed by
+the function, and the caller's variable is changed with it: a star-tracker frame, a catalogue, a scratch table is
+handed over, not copied. The call is the whole right side of a `let` or an assignment (`let n = render(img, q)`),
+each inout input a variable the caller may change (a `let`, an output, a state or an inout input of its own), named
+by no other input of the call and not the assignment's target. Rust hands it over as `&mut`, C by its address, MATLAB
+gives it back as an extra output (`[n, img] = render(img, q)`). A vector flattens an inout input among the inputs,
+and its value after the call after the outputs.
+
 ## Statements
 
 ```
@@ -115,12 +131,25 @@ calls. Arrays: `+ -` element by element, a number times or over an array, matrix
 matrix times matrix.
 
 Builtins: `sqrt abs sin cos tan asin acos atan atan2 exp log log10 pow hypot min max clamp floor
-ceil round sign fmod dot cross norm unit transpose real int len div rem band bor bxor shl shr`,
-and `pi`. `div(a, b)` and `rem(a, b)` take ints and truncate as C and Rust do. `band bor bxor shl
-shr` take non-negative ints below 2^53 (a byte, a CRC, a bit field) and are exact. `real(n)` makes
-an int a real; an int also goes wherever a plain real is wanted. `int(x)` turns a plain real into an
-int by dropping its fraction, as a C cast does (`int(v + 0.5)` is C's `(int16_t)(v + 0.5)`); it
-stops the run on a value that is not finite or not below 2^53.
+ceil round sign fmod dot cross norm unit transpose real int len div rem band bor bxor shl shr isnan isfinite
+sort argsort`, the stream's `stream uniform normal normal3` (*Random streams*), and the constants `pi`, `inf` and
+`nan`.
+
+`div(a, b)` and `rem(a, b)` take ints and truncate as C and Rust do. `band bor bxor shl shr` take non-negative ints
+below 2^53 (a byte, a CRC, a bit field) and are exact. `real(n)` makes an int a real; an int also goes wherever a
+plain real is wanted. `int(x)` turns a plain real into an int by dropping its fraction, as a C cast does
+(`int(v + 0.5)` is C's `(int16_t)(v + 0.5)`); it stops the run on a value that is not finite or not below 2^53; of a
+choice it is the option's number.
+
+`isnan(x)` and `isfinite(x)` take a number of any unit and give a bool; `x == nan` is false for every x, as in C. A
+translation writes inf and nan as its language does (Rust `f64::INFINITY`, `f64::NAN`; C `INFINITY`, `NAN`; MATLAB
+`Inf`, `NaN`), in a constant or a state's start too.
+
+`sort(v)` is a vector of numbers (reals of any unit, or ints) in ascending order, and `argsort(v)` the indices that
+order it (an `int` array): both stable, equal values keeping their order, by the one insertion sort every translation
+writes (so even a nan lands in the same place). A median is `sort(v)[n/2]`; the three largest are the first three of
+`argsort(-v)`. They are the toolbox's (Rust `rt::sort`, C `pc_sort_*`, MATLAB `asils.pc.sort_`), not the platform's
+sort, whose order of equal values and of nan differs.
 
 ## Tables
 
@@ -137,6 +166,72 @@ Every row lists every column, the first being the key (so its dimension is the k
 rise strictly. `step` gives the last row at or below the key (the first row below the first
 key); `linear` interpolates every column between the rows around the key and holds the end
 rows beyond them. A table is called like a function: `let h0, rho0, scale = atmosphere(h)`.
+
+## Data tables
+
+```
+## IGRF-13 Gauss coefficients, a row per 5-year epoch (IAGA)
+data IGRF_GH: real[nT][195][26]
+    -31543, -2298, 5922, …
+    …
+end
+```
+
+A published model's coefficients, or any table of numbers the design holds, is a `data` table: a named 1-D or 2-D
+array of reals (with a unit) or ints, its values written row by row (the outer index first: for `real[nT][195][26]`,
+26 rows of 195), on as many lines as they take. The checker counts them against the type and holds an int table to
+whole numbers; a real's values are converted to SI once. It is read like a constant array, `IGRF_GH[i][k]`,
+`IGRF_GH[i]` (a row), `len(IGRF_GH)`, and never set. Where a design's node holds a table, the generator writes its
+values here.
+
+Each translation holds one copy and indexes it in place: Rust a `static` (`DATA_IGRF_GH`), C a `const` array
+(`module_DATA_IGRF_GH`), MATLAB a function that keeps the table in a persistent variable (`IGRF_GH()` is the
+table, `IGRF_GH(i, j)` an element, `IGRF_GH(i, ':')` a row). A `const` array is written into the MATLAB at each
+use; a table of more than a few values is `data`.
+
+## Choices
+
+```
+## A momentum device's kind
+choice Device = wheel, ring, gyro, vsgyro
+
+fn store(k: Device, h: real[N m s]) -> s: real[N m s]
+    s = if k == Device.ring then 2*h else h
+end
+```
+
+A choice names the options a value may take (a device's kind, a model, a law). It is a type of its own: an input,
+an output, a record's field or a state may be one; an option is written `Device.ring`; two values of the same choice
+compare with `==` and `!=`, and nothing else (no arithmetic, no order, no int in its place). `int(k)` is an option's
+number, from 0 in the order declared (to index an array by it). The translations write a choice as that number: Rust
+`i64` with a `pub const DEVICE_RING: i64 = 1`, C `int64_t` with `#define module_DEVICE_RING INT64_C(1)`, MATLAB the
+number. A vector draws an input of a choice among its options, and flattens it as its number.
+
+## Random streams
+
+```
+proc gyro(w: vec3[1/s], dt: real[s]) -> m: vec3[1/s]
+    state g: stream = stream(42, "gyro")        # a seed and an id (an int, or a name in quotes)
+    let n = normal3(g)                           # three normal draws; g advances
+    m = w + (1e-4 [1/s])*n
+end
+```
+
+A `stream` is the toolbox's counter-based random stream, value for value the engine's (adcs-sim-core `rng.rs`):
+`stream(seed, id)` is SplitMix64 over a counter keyed by the seed and the id (an int, or a name in quotes hashed by
+FNV-1a, as `rng.rs`'s `stream_id` does), `uniform(g)` a draw on (0, 1) from the counter's top 53 bits, `normal(g)` a
+normal draw by Box-Muller with the spare kept for the next, `normal3(g)` three of them. A draw advances the stream it
+is given: the stream is an inout input (see *Arrays by reference*), so the draw is the whole right side of a `let` or
+an assignment, from a variable (a `let`, an output, a state, an inout input). A stream may be an input (inout, to be
+drawn from and given back), an output, a state (starting at a `stream(...)` of constants) or a record's field; it is
+not an array's element, and nothing compares or computes with it.
+
+A uniform draw is exact: every translation gives `rng.rs`'s bits. A normal draw uses sqrt, log, sin and cos, so it is
+held, as any transcendental, to 1e-12 relative (the Rust interpreter takes them from the libm crate, as `rng.rs` does,
+and gives its bits; tests/streams.rs in trinetra-pcode). The translations: Rust `rt::Stream` (`rt::uniform(&mut g)`),
+C `pc_stream` (`pc_uniform(&g)`), MATLAB six numbers with the 64-bit arithmetic in 32-bit halves
+(`asils.pc.stream_uniform`). A vector flattens a stream as six numbers: its key's and its counter's high and low 32
+bits, the spare, and whether there is one.
 
 ## Records
 
@@ -220,5 +315,7 @@ transcribes from a source (IDMAS v2 today) through the interpreter, within the s
 - Generic units: a function is written for one dimension (`mission::closure` takes plain
   numbers, and its caller holds requirement and achieved value to one quantity).
 - Calling a `proc` from another `proc` (each `proc` is called by the host with its own state).
-- Arrays of records, strings, and variable-length arrays (a count beside a fixed array is the way:
-  `real[m][8]` and `n: int`).
+- Arrays of records, strings (but a stream's name), and variable-length arrays (a count beside a fixed array is
+  the way: `real[m][8]` and `n: int`).
+- A record as a state's start in the Rust and MATLAB translations (C has it): a state that is a record starts at
+  zero and is filled on the first call.

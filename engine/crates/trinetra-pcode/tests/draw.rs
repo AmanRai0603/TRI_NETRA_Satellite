@@ -44,6 +44,19 @@ impl Drawer<'_> {
             }
             Ty::Arr(n, of) => Value::Arr((0..*n).map(|_| self.one(of, range)).collect()),
             Ty::Bool => Value::Bool(self.rand.next() < 0.5),
+            // a stream: a random key, a counter below 1000, a spare in -1 .. 1 that is there or not
+            Ty::Stream => {
+                let a = (self.rand.next() * 4294967296.0).floor();
+                let b = (self.rand.next() * 4294967296.0).floor();
+                let c = (self.rand.next() * 1000.0).floor();
+                let d = self.rand.next() * 2.0 - 1.0;
+                let e = if self.rand.next() < 0.5 { 1.0 } else { 0.0 };
+                Value::Arr([a, b, 0.0, c, d, e].into_iter().map(Value::Num).collect())
+            }
+            Ty::Choice(name) => {
+                let n = self.prog.choice_options(name).unwrap().len() as f64;
+                Value::Num((self.rand.next() * n).floor().min(n - 1.0))
+            }
             Ty::Int => {
                 let (lo, hi) = range.unwrap_or((0.0, 10.0));
                 Value::Num(self.scalar(lo, hi, true))
@@ -60,6 +73,7 @@ fn width(prog: &Program, t: &Ty) -> usize {
     match t {
         Ty::Arr(n, of) => n * width(prog, of),
         Ty::Rec(name) => prog.record_fields(name).unwrap().iter().map(|f| width(prog, f.ty)).sum(),
+        Ty::Stream => 6,
         _ => 1,
     }
 }

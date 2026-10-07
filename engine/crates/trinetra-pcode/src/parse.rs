@@ -282,15 +282,18 @@ impl Parser<'_> {
         if self.opt(T::Id, "bool").is_some() {
             return self.arr_suffix(TypeDecl::Bool);
         }
+        if self.opt(T::Id, "stream").is_some() {
+            return self.arr_suffix(TypeDecl::Stream); // a random stream (the toolbox's)
+        }
         if self.opt(T::Id, "quat").is_some() {
-            return self.arr_suffix(TypeDecl::Arr { n: 4, of: Box::new(TypeDecl::Real { unit: "1".into() }) });
+            return self.arr_suffix(TypeDecl::Arr { n: 4, of: Box::new(TypeDecl::Real { unit: "1".into() }), cap: None });
         }
         for (name, n, mat) in [("vec3", 3, false), ("mat3", 3, true), ("vec4", 4, false), ("vec2", 2, false)] {
             if self.opt(T::Id, name).is_some() {
                 let unit = if self.is(T::Op, Some("[")) { self.unit_text()? } else { "1".into() };
-                let mut ty = TypeDecl::Arr { n, of: Box::new(TypeDecl::Real { unit }) };
+                let mut ty = TypeDecl::Arr { n, of: Box::new(TypeDecl::Real { unit }), cap: None };
                 if mat {
-                    ty = TypeDecl::Arr { n, of: Box::new(ty) };
+                    ty = TypeDecl::Arr { n, of: Box::new(ty), cap: None };
                 }
                 return self.arr_suffix(ty);
             }
@@ -308,19 +311,32 @@ impl Parser<'_> {
     fn arr_suffix(&mut self, mut ty: TypeDecl) -> R<TypeDecl> {
         while self.is(T::Op, Some("[")) {
             self.eat_op("[")?;
+            // a named capacity: the length a whole-number const states (`const NR = 8`, `real[1][NR]`)
+            if self.is(T::Id, None) {
+                let c = self.eat(T::Id, None)?;
+                self.eat_op("]")?;
+                ty = TypeDecl::Arr { n: 1, of: Box::new(ty), cap: Some((c.v.clone(), self.pos_of(&c))) };
+                continue;
+            }
             let n = self.eat(T::Num, None)?;
             self.eat_op("]")?;
             let v = num_value(&n.v);
             if !n.is_int || v < 1.0 {
                 return self.err_at("an array's length is a whole number from 1".into(), &n);
             }
-            ty = TypeDecl::Arr { n: v as usize, of: Box::new(ty) };
+            ty = TypeDecl::Arr { n: v as usize, of: Box::new(ty), cap: None };
         }
         Ok(ty)
     }
     fn param(&mut self) -> R<Param> {
         let t = self.eat(T::Id, None)?;
         self.eat_op(":")?;
+        // an input handed by reference: `img: inout real[1][4096]` (the caller's variable is changed in place)
+        let mut inout = false;
+        if self.is(T::Id, Some("inout")) && self.peek(1).t == T::Id {
+            self.p += 1;
+            inout = true;
+        }
         let decl = self.typ()?;
         let mut range = None;
         if self.opt(T::Kw, "in").is_some() {
@@ -329,7 +345,7 @@ impl Parser<'_> {
             let hi = self.expr()?;
             range = Some((lo, hi));
         }
-        Ok(Param { name: t.v.clone(), decl, ty: Ty::Int, range, pos: self.pos_of(&t) })
+        Ok(Param { name: t.v.clone(), inout, decl, ty: Ty::Int, range, pos: self.pos_of(&t) })
     }
     fn outputs(&mut self) -> R<Vec<Param>> {
         if self.opt(T::Op, "(").is_some() {
@@ -614,6 +630,11 @@ impl Parser<'_> {
         if self.opt(T::Kw, "true").is_some() {
             return Ok(self.add(ExprKind::Bool(true), pos));
         }
+        if self.is(T::Str, None) {
+            // a name in quotes: a stream's (stream(seed, "gyro"))
+            self.p += 1;
+            return Ok(self.add(ExprKind::Str(t.v.clone()), pos));
+        }
         if self.opt(T::Kw, "false").is_some() {
             return Ok(self.add(ExprKind::Bool(false), pos));
         }
@@ -750,24 +771,7 @@ impl Parser<'_> {
                     mode = TableMode::Linear;
                 }
                 self.end_line()?;
-                let mut rows = Vec::new();
-                loop {
-                    self.skip_nl();
-                    if self.is(T::Doc, None) {
-                        self.p += 1;
-                        continue;
-                    }
-                    if self.opt(T::Kw, "end").is_some() {
-                        break;
-                    }
-                    let rt = self.peek(0).clone();
-                    let mut row = vec![self.table_num()?];
-                    while self.opt(T::Op, ",").is_some() {
-                        row.push(self.table_num()?);
-                    }
-                    rows.push((row, self.pos_of(&rt)));
-                    self.end_line()?;
-                }
+                let rows = self.num_rows()?;
                 self.end_line()?;
                 prog.items.push(Item::Table(Table {
                     name: n.v,
@@ -782,9 +786,58 @@ impl Parser<'_> {
                 }));
                 continue;
             }
-            return self.err("expected module, use, const, fn, proc, record or table at the top level".into());
+            // a choice: `choice Kind = rw, fmr, cmg`, its options numbered from 0 in the translations
+            if self.is(T::Id, Some("choice")) && self.peek(1).t == T::Id {
+                self.p += 1;
+                let n = self.eat(T::Id, None)?;
+                self.eat_op("=")?;
+                let o = self.eat(T::Id, None)?;
+                let mut options = vec![(o.v.clone(), self.pos_of(&o))];
+                while self.opt(T::Op, ",").is_some() {
+                    let x = self.eat(T::Id, None)?;
+                    options.push((x.v.clone(), self.pos_of(&x)));
+                }
+                self.end_line()?;
+                prog.items.push(Item::Choice(Choice { name: n.v, module: String::new(), options, doc, pos }));
+                continue;
+            }
+            // a data table (the design writes its values): `data NAME: real[unit][C][R]`, then its values row by row
+            if self.is(T::Id, Some("data")) && self.peek(1).t == T::Id {
+                self.p += 1;
+                let n = self.eat(T::Id, None)?;
+                self.eat_op(":")?;
+                let decl = self.typ()?;
+                self.end_line()?;
+                let rows = self.num_rows()?;
+                self.end_line()?;
+                prog.items.push(Item::Data(Data { name: n.v, module: String::new(), decl, ty: Ty::Int, rows, si: None, doc, pos }));
+                continue;
+            }
+            return self.err("expected module, use, const, data, choice, fn, proc, record or table at the top level".into());
         }
         Ok(prog)
+    }
+    /// the rows of numbers of a table or a data table, up to its `end`
+    fn num_rows(&mut self) -> R<Vec<(Vec<f64>, Pos)>> {
+        let mut rows = Vec::new();
+        loop {
+            self.skip_nl();
+            if self.is(T::Doc, None) {
+                self.p += 1;
+                continue;
+            }
+            if self.opt(T::Kw, "end").is_some() {
+                break;
+            }
+            let rt = self.peek(0).clone();
+            let mut row = vec![self.table_num()?];
+            while self.opt(T::Op, ",").is_some() {
+                row.push(self.table_num()?);
+            }
+            rows.push((row, self.pos_of(&rt)));
+            self.end_line()?;
+        }
+        Ok(rows)
     }
     fn table_num(&mut self) -> R<f64> {
         let neg = self.opt(T::Op, "-").is_some();

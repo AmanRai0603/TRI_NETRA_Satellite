@@ -94,6 +94,7 @@ fn to_json(prog: &Program, ty: &Ty, v: &Value) -> J {
             J::Object(fields.iter().zip(fs).map(|(f, x)| (f.name.to_string(), to_json(prog, f.ty, x))).collect())
         }
         (Ty::Arr(_, of), Value::Arr(xs)) => J::Array(xs.iter().map(|x| to_json(prog, of, x)).collect()),
+        (Ty::Stream, Value::Arr(_)) => J::Array(v.flatten().into_iter().map(|x| json!(x)).collect()),
         (_, Value::Bool(b)) => J::Bool(*b),
         (_, v) => json!(v.flatten()[0]),
     }
@@ -108,6 +109,8 @@ fn draw(prog: &Program, ty: &Ty, range: Option<(f64, f64)>, r: &mut Prng) -> Val
         Ty::Rec(name) => Value::Rec(prog.record_fields(name).unwrap().iter().map(|f| draw(prog, f.ty, bounds(f), r)).collect()),
         Ty::Arr(n, of) => Value::Arr((0..*n).map(|_| draw(prog, of, range, r)).collect()),
         Ty::Bool => Value::Bool(r.next() < 0.5),
+        // a stream: its six numbers, the key and counter whole numbers below 2^32
+        Ty::Stream => Value::Arr((0..6).map(|k| Value::Num(if k < 4 { (r.next() * 4294967296.0).floor() } else { r.next() })).collect()),
         Ty::Int => {
             let (lo, hi) = range.unwrap_or((0.0, 10.0));
             Value::Num((lo + r.next() * (hi - lo)).round())
@@ -128,8 +131,20 @@ fn canon(bits: u64) -> u64 {
     }
 }
 
-/// a run: the file, its text, the fn, its inputs as JSON, and the Rust's answer (its outputs' bits, or the words it stops with)
-type Run = (String, String, String, J, Result<Vec<u64>, String>);
+/// a run: the file, its text, the fn, its inputs as JSON, the Rust's answer (its outputs' bits, or the words it stops
+/// with), and whether the fn uses sin or cos (a normal draw among them), whose last bits may differ (src/lib.rs)
+type Run = (String, String, String, J, Result<Vec<u64>, String>, bool);
+
+/// the same answer: bit for bit, or within 1e-12 relative where the fn uses sin or cos
+fn same(got: &Result<Vec<u64>, String>, want: &Result<Vec<u64>, String>, trig: bool) -> bool {
+    match (got, want) {
+        (Ok(g), Ok(w)) if trig && g.len() == w.len() => g.iter().zip(w).all(|(a, b)| {
+            let (x, y) = (f64::from_bits(*a), f64::from_bits(*b));
+            a == b || (x - y).abs() <= 1e-12 * y.abs().max(1e-300)
+        }),
+        _ => got == want,
+    }
+}
 
 #[test]
 fn broken_sources_that_check_run_as_the_javascript_runs_them() {
@@ -145,13 +160,14 @@ fn broken_sources_that_check_run_as_the_javascript_runs_them() {
                     let args: Vec<Value> = f.inputs.iter().map(|p| draw(&prog, p.ty, bounds(p), &mut r)).collect();
                     let js_args: Vec<J> = f.inputs.iter().zip(&args).map(|(p, v)| to_json(&prog, p.ty, v)).collect();
                     let got = prog.call(f.name, &args).map(|o| o.iter().flat_map(Value::flatten).map(|x| canon(x.to_bits())).collect()).map_err(|e| e.0);
-                    runs.push((name.clone(), m.clone(), f.name.to_string(), J::Array(js_args), got));
+                    let trig = prog.uses(f.name, &["sin", "cos"]);
+                    runs.push((name.clone(), m.clone(), f.name.to_string(), J::Array(js_args), got, trig));
                 }
             }
         }
     }
     let script = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/js_run.mjs");
-    let input = J::Array(runs.iter().map(|(n, t, f, a, _)| json!({ "files": [[n, t]], "fn": f, "args": a })).collect());
+    let input = J::Array(runs.iter().map(|(n, t, f, a, _, _)| json!({ "files": [[n, t]], "fn": f, "args": a })).collect());
     let Ok(mut child) = Command::new("node").arg(script).stdin(Stdio::piped()).stdout(Stdio::piped()).stderr(Stdio::piped()).spawn() else {
         println!("Node is not installed: {} runs of broken sources, not compared", runs.len());
         return;
@@ -161,13 +177,13 @@ fn broken_sources_that_check_run_as_the_javascript_runs_them() {
     assert!(out.status.success(), "js_run.mjs failed: {}", String::from_utf8_lossy(&out.stderr));
     let js: Vec<J> = serde_json::from_slice(&out.stdout).unwrap();
     let (mut stopped, mut bad) = (0, Vec::new());
-    for ((name, text, f, a, got), j) in runs.iter().zip(&js) {
+    for ((name, text, f, a, got, trig), j) in runs.iter().zip(&js) {
         let want: Result<Vec<u64>, String> = match j.get("out") {
             Some(o) => Ok(o.as_array().unwrap().iter().map(|h| canon(u64::from_str_radix(h.as_str().unwrap(), 16).unwrap())).collect()),
             None => Err(j["error"].as_str().unwrap().to_string()),
         };
         stopped += usize::from(want.is_err());
-        if *got != want {
+        if !same(got, &want, *trig) {
             bad.push(format!("{name} {f}({a}):\n  JavaScript {want:?}\n  Rust       {got:?}\n  source:\n{text}"));
         }
     }

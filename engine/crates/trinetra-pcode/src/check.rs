@@ -15,8 +15,11 @@ use std::f64::consts::PI;
 pub(crate) const BUILTINS: &[&str] = &[
     "sqrt", "abs", "sin", "cos", "tan", "asin", "acos", "atan", "atan2", "exp", "log", "log10", "min", "max", "clamp", "floor", "ceil",
     "round", "sign", "fmod", "pow", "dot", "cross", "norm", "unit", "transpose", "real", "len", "hypot", "int", "div", "rem", "band",
-    "bor", "bxor", "shl", "shr",
+    "bor", "bxor", "shl", "shr", "isnan", "isfinite", "sort", "argsort", "stream", "uniform", "normal", "normal3",
 ];
+
+/// The language's constants: pi, and the two values that are not finite.
+pub(crate) const CONSTS: &[&str] = &["pi", "inf", "nan"];
 
 /// Names every JavaScript object answers to (Object.prototype): the JavaScript checker finds them
 /// "defined" already, so a declaration of one is refused there, and here.
@@ -31,12 +34,20 @@ pub(crate) enum VarKind {
     #[default]
     None,
     Input,
+    /// an input handed by reference: it may be changed
+    InOut,
     Output,
     Local,
     State,
     Loop,
     Const(usize),
+    /// a data table, by its place in `data`
+    Data(usize),
     Pi,
+    /// `inf`
+    Inf,
+    /// `nan`
+    Nan,
 }
 
 /// What a `+ - * /` works on.
@@ -84,9 +95,21 @@ pub(crate) struct Ann {
     pub bound: Option<f64>,
     /// a field's place in its record
     pub field: usize,
+    /// an option of a choice (`Kind.fmr`): the choice's place in `choices` and the option's number
+    pub choice: Option<(usize, usize)>,
     /// on the expression of a `let` of one name, or of a `state`: the type the name is given
     /// (the JavaScript's `s.vty`)
     pub vty: Option<Ty>,
+    /// a call that is the whole right side of a let or an assignment
+    pub top: bool,
+    /// a call that changes its inout inputs (their values go back into the caller's variables)
+    pub inout: bool,
+    /// the places of a call's inout inputs
+    pub inout_args: Vec<usize>,
+    /// a name in quotes where one is allowed (a stream's id)
+    pub ok_str: bool,
+    /// `stream(seed, "name")`: the name's id, its 32-bit halves
+    pub sid: Option<(f64, f64)>,
 }
 
 /// The checked program: the declarations, the expressions and what the checker left on them.
@@ -97,6 +120,8 @@ pub(crate) struct Checked {
     pub tables: Vec<Table>,
     pub records: Vec<Record>,
     pub consts: Vec<Const>,
+    pub data: Vec<Data>,
+    pub choices: Vec<Choice>,
     pub modules: Vec<(String, Vec<String>)>,
     /// each module's declarations (parallel to `modules`), in the order they were declared
     pub mod_items: Vec<Vec<ItemRef>>,
@@ -109,6 +134,8 @@ pub(crate) enum ItemRef {
     Table(usize),
     Record(usize),
     Const(usize),
+    Data(usize),
+    Choice(usize),
 }
 
 struct Checker {
@@ -120,6 +147,8 @@ struct Checker {
     tables: Vec<Table>,
     records: Vec<Record>,
     consts: Vec<Const>,
+    data: Vec<Data>,
+    choices: Vec<Choice>,
     const_ty: Vec<Option<Ty>>,
     names: HashMap<String, ItemRef>,
     modules: Vec<(String, Vec<String>)>,
@@ -155,8 +184,8 @@ fn type_eq(a: &Ty, b: &Ty) -> bool {
     match (a, b) {
         (Ty::Real(x), Ty::Real(y)) => dim_eq(x, y),
         (Ty::Arr(n, x), Ty::Arr(m, y)) => n == m && type_eq(x, y),
-        (Ty::Rec(x), Ty::Rec(y)) => x == y,
-        (Ty::Int, Ty::Int) | (Ty::Bool, Ty::Bool) | (Ty::Tuple(_), Ty::Tuple(_)) => true,
+        (Ty::Rec(x), Ty::Rec(y)) | (Ty::Choice(x), Ty::Choice(y)) => x == y,
+        (Ty::Int, Ty::Int) | (Ty::Bool, Ty::Bool) | (Ty::Tuple(_), Ty::Tuple(_)) | (Ty::Stream, Ty::Stream) | (Ty::Str, Ty::Str) => true,
         _ => false,
     }
 }
@@ -215,11 +244,24 @@ impl Checker {
             _ => None,
         }
     }
+    fn choice_ix(&self, name: &str) -> Option<usize> {
+        match self.names.get(name) {
+            Some(ItemRef::Choice(i)) => Some(*i),
+            _ => None,
+        }
+    }
+    fn data_ix(&self, name: &str) -> Option<usize> {
+        match self.names.get(name) {
+            Some(ItemRef::Data(i)) => Some(*i),
+            _ => None,
+        }
+    }
 
     fn resolve(&mut self, t: &TypeDecl, pos: &Pos) -> Ty {
         match t {
             TypeDecl::Int => Ty::Int,
             TypeDecl::Bool => Ty::Bool,
+            TypeDecl::Stream => Ty::Stream,
             TypeDecl::Real { unit } => match unit_of(unit, pos) {
                 Ok((d, _)) => Ty::Real(d),
                 Err(er) => {
@@ -227,14 +269,40 @@ impl Checker {
                     real0()
                 }
             },
-            TypeDecl::Arr { n, of } => Ty::Arr(*n, Box::new(self.resolve(of, pos))),
+            TypeDecl::Arr { n, of, cap } => {
+                let n = match cap {
+                    Some((name, cpos)) => self.capacity(name, cpos),
+                    None => *n,
+                };
+                let of = self.resolve(of, pos);
+                if of == Ty::Stream {
+                    self.e("a stream is not an array's element: a record or a state holds one".into(), pos);
+                }
+                Ty::Arr(n, Box::new(of))
+            }
             TypeDecl::Rec { name, pos: tpos } => {
+                if self.choice_ix(name).is_some() {
+                    return Ty::Choice(name.clone());
+                }
                 if self.record_ix(name).is_none() {
                     self.e(format!("no record {name}"), tpos);
                 }
                 Ty::Rec(name.clone())
             }
         }
+    }
+
+    /// a named capacity's length: a const that is a whole-number literal from 1
+    fn capacity(&mut self, name: &str, pos: &Pos) -> usize {
+        if let Some(ci) = self.const_ix(name) {
+            if let ExprKind::Num { v, is_int: true, .. } = &self.exprs[self.consts[ci].e].kind {
+                if *v >= 1.0 {
+                    return *v as usize;
+                }
+            }
+        }
+        self.e(format!("{name}: an array's length is a whole number from 1, or a const that is one (const {name} = 8)"), pos);
+        1
     }
 
     fn is_zero(&self, e: Option<ExprId>) -> bool {
@@ -247,13 +315,25 @@ impl Checker {
         }
     }
 
+    /// inf, -inf or nan: like a bare 0, it takes the unit of what it meets
+    fn is_non_finite(&self, e: ExprId) -> bool {
+        match &self.exprs[e].kind {
+            ExprKind::Var(_) => matches!(self.ann[e].var, VarKind::Inf | VarKind::Nan),
+            ExprKind::Neg(a) => self.is_non_finite(*a),
+            _ => false,
+        }
+    }
+    fn is_any(&self, e: Option<ExprId>) -> bool {
+        self.is_zero(e) || e.is_some_and(|e| self.is_non_finite(e))
+    }
+
     /// Can a value of type `got` (from expression e) go where `want` is wanted?
     fn fits(&mut self, want: &Ty, got: &Ty, e: Option<ExprId>) -> bool {
         if type_eq(want, got) {
             return true;
         }
-        if e.is_some() && self.is_zero(e) && shape_eq(want, got) {
-            return true; // a bare 0 (or an array of them) takes any dimension
+        if e.is_some() && self.is_any(e) && shape_eq(want, got) {
+            return true; // a bare 0 (or an array of them), inf or nan takes any dimension
         }
         if let Some(id) = e {
             if let ExprKind::Num { v, unit, .. } = &self.exprs[id].kind {
@@ -308,10 +388,10 @@ impl Checker {
 
     /// for + - and comparisons: the same dimension (a bare 0 adopts the other)
     fn unify(&mut self, a: &Ty, b: &Ty, ea: Option<ExprId>, eb: Option<ExprId>, op: &str, pos: &Pos) -> Ty {
-        if self.is_zero(ea) && shape_eq(a, b) {
+        if self.is_any(ea) && shape_eq(a, b) {
             return b.clone();
         }
-        if self.is_zero(eb) && shape_eq(a, b) {
+        if self.is_any(eb) && shape_eq(a, b) {
             return a.clone();
         }
         if matches!(a, Ty::Arr(..)) || matches!(b, Ty::Arr(..)) {
@@ -368,6 +448,12 @@ impl Checker {
                 }
             }
             ExprKind::Bool(_) => Ty::Bool,
+            ExprKind::Str(_) => {
+                if !self.ann[e].ok_str {
+                    self.e("a name in quotes is a stream's only: stream(seed, \"gyro\")".into(), &pos);
+                }
+                Ty::Str
+            }
             ExprKind::Var(name) => {
                 if let Some((t, kind)) = self.lookup_var(&name) {
                     self.ann[e].var = kind;
@@ -377,8 +463,16 @@ impl Checker {
                     self.ann[e].var = VarKind::Const(ci);
                     return self.const_ty[ci].clone().unwrap_or_else(real0);
                 }
-                if name == "pi" {
-                    self.ann[e].var = VarKind::Pi;
+                if let Some(di) = self.data_ix(&name) {
+                    self.ann[e].var = VarKind::Data(di);
+                    return self.data[di].ty.clone();
+                }
+                if CONSTS.contains(&name.as_str()) {
+                    self.ann[e].var = match name.as_str() {
+                        "pi" => VarKind::Pi,
+                        "inf" => VarKind::Inf,
+                        _ => VarKind::Nan,
+                    };
                     return real0();
                 }
                 self.e(format!("{name} is not defined here (a let declares a name)"), &pos);
@@ -404,6 +498,20 @@ impl Checker {
                 *of
             }
             ExprKind::Field { a, f } => {
+                // Kind.fmr: an option of a choice (a name no variable here has)
+                if let ExprKind::Var(cn) = &self.exprs[a].kind {
+                    if let (None, Some(ci)) = (self.lookup_var(cn), self.choice_ix(cn)) {
+                        let c = &self.choices[ci];
+                        let i = c.options.iter().position(|o| o.0 == f);
+                        if i.is_none() {
+                            let names: Vec<&str> = c.options.iter().map(|o| o.0.as_str()).collect();
+                            let msg = format!("{} has no option {f} (its options: {})", c.name, names.join(", "));
+                            self.e(msg, &pos);
+                        }
+                        self.ann[e].choice = Some((ci, i.unwrap_or(0)));
+                        return Ty::Choice(self.choices[ci].name.clone());
+                    }
+                }
                 let at = self.ty(a);
                 let Ty::Rec(rname) = &at else {
                     self.e(format!("{} has no fields", tt(&at)), &pos);
@@ -444,7 +552,7 @@ impl Checker {
                     }
                     return Ty::Bool;
                 }
-                if matches!(at, Ty::Rec(_)) || matches!(bt, Ty::Rec(_)) {
+                if matches!(at, Ty::Rec(_) | Ty::Choice(_) | Ty::Stream) || matches!(bt, Ty::Rec(_) | Ty::Choice(_) | Ty::Stream) {
                     if !type_eq(&at, &bt) {
                         self.e("if: the branches differ".into(), &pos);
                     }
@@ -468,7 +576,7 @@ impl Checker {
             return real0();
         }
         let ts: Vec<Ty> = items.iter().map(|&x| self.ty(x)).collect();
-        let mut base = items.iter().zip(&ts).find(|(x, _)| !self.is_zero(Some(**x))).map(|(_, t)| t.clone()).unwrap_or_else(|| ts[0].clone());
+        let mut base = items.iter().zip(&ts).find(|(x, _)| !self.is_any(Some(**x))).map(|(_, t)| t.clone()).unwrap_or_else(|| ts[0].clone());
         if let Some(u) = unit.filter(|u| !u.is_empty()) {
             let (d, scale) = match unit_of(u, pos) {
                 Ok(x) => x,
@@ -512,7 +620,7 @@ impl Checker {
             }
         }
         for (x, t) in items.iter().zip(&ts) {
-            if !self.is_zero(Some(*x)) && !compat(t, &base) {
+            if !self.is_any(Some(*x)) && !compat(t, &base) {
                 let p = self.pos(*x);
                 self.e(format!("array items differ: {} and {}", tt(&base), tt(t)), &p);
             }
@@ -579,6 +687,12 @@ impl Checker {
         let b = self.ty(eb);
         if op.is_cmp() {
             if a == Ty::Bool && b == Ty::Bool && (op == BinOp::Eq || op == BinOp::Ne) {
+                return Ty::Bool;
+            }
+            if matches!(a, Ty::Choice(_)) || matches!(b, Ty::Choice(_)) {
+                if !((op == BinOp::Eq || op == BinOp::Ne) && type_eq(&a, &b)) {
+                    self.e(format!("{ops}: a choice is compared with == or != to an option of its own, not {} and {}", tt(&a), tt(&b)), pos);
+                }
                 return Ty::Bool;
             }
             if matches!(a, Ty::Arr(..)) || matches!(b, Ty::Arr(..)) {
@@ -696,6 +810,13 @@ impl Checker {
                 self.e(format!("no module {m}"), pos);
             }
         }
+        if name == "stream" {
+            if let Some(&a1) = args.get(1) {
+                if matches!(self.exprs[a1].kind, ExprKind::Str(_)) {
+                    self.ann[a1].ok_str = true;
+                }
+            }
+        }
         if module.is_none() {
             if let Some(b) = BUILTINS.iter().find(|b| **b == name) {
                 self.ann[e].target = Target::Builtin(b);
@@ -715,6 +836,10 @@ impl Checker {
             }
             for (a, p) in args.iter().zip(&params) {
                 self.want(*a, &p.ty, &format!("{name}: input {}", p.name));
+            }
+            if params.iter().any(|p| p.inout) {
+                let ix: Vec<(usize, String)> = params.iter().enumerate().filter(|(_, p)| p.inout).map(|(i, p)| (i, p.name.clone())).collect();
+                self.inout_call(e, name, &ix, args, pos);
             }
             return if outs.len() == 1 { outs[0].ty.clone() } else { Ty::Tuple(outs.iter().map(|o| o.ty.clone()).collect()) };
         }
@@ -742,8 +867,59 @@ impl Checker {
         real0()
     }
 
+    /// a call that changes its inout inputs: the whole right side of a let or an assignment, each inout input a
+    /// variable the caller may change, named by no other input (so a translation may hand it over by reference)
+    fn inout_call(&mut self, e: ExprId, name: &str, ix: &[(usize, String)], args: &[ExprId], pos: &Pos) {
+        self.ann[e].inout = true;
+        self.ann[e].inout_args = ix.iter().map(|x| x.0).collect();
+        if !self.ann[e].top {
+            self.e(format!("{name} changes its inout input: call it as the whole right side of a let or an assignment"), pos);
+        }
+        for (i, pname) in ix {
+            let i = *i;
+            let Some(&a) = args.get(i) else { continue };
+            let var = match &self.exprs[a].kind {
+                ExprKind::Var(n) => self.lookup_var(n).map(|v| (n.clone(), v.1)),
+                _ => None,
+            };
+            let apos = self.pos(a);
+            let Some((vn, kind)) = var.filter(|v| matches!(v.1, VarKind::Local | VarKind::Output | VarKind::State | VarKind::InOut)) else {
+                self.e(format!("{name}: input {pname} is inout: pass it a variable (a let, an output, a state or an inout input)"), &apos);
+                continue;
+            };
+            let _ = kind;
+            if args.iter().enumerate().any(|(j, &b)| j != i && self.mentions(b, &vn)) {
+                self.e(format!("{name}: {vn} is passed as inout, so no other input may name it"), &apos);
+            }
+        }
+    }
+    /// an output handed to a call as an inout input is set by it (as one set element by element is)
+    fn inout_touched(&mut self, e: ExprId) {
+        if !self.ann[e].inout {
+            return;
+        }
+        if let ExprKind::Call { args, .. } = &self.exprs[e].kind {
+            for &i in &self.ann[e].inout_args {
+                if let Some(ExprKind::Var(n)) = args.get(i).map(|&a| &self.exprs[a].kind) {
+                    self.touched.insert(n.clone());
+                }
+            }
+        }
+    }
+    /// does an expression name a variable?
+    fn mentions(&self, x: ExprId, n: &str) -> bool {
+        let mut found = false;
+        visit_expr(x, &self.exprs, &mut |y| {
+            if let ExprKind::Var(m) = &self.exprs[y].kind {
+                if m == n {
+                    found = true;
+                }
+            }
+        });
+        found
+    }
+
     fn builtin_ty(&mut self, e: ExprId, name: &'static str, args: &[ExprId], pos: &Pos) -> Ty {
-        let _ = e;
         let ts: Vec<Ty> = args.iter().map(|&a| self.ty(a)).collect();
         let t = |i: usize| ts.get(i);
         let n = |s: &mut Self, k: usize| {
@@ -810,7 +986,7 @@ impl Checker {
                         self.crash(&format!("{name} with one input of a unit"), pos);
                         return real0();
                     }
-                    if !self.is_zero(Some(args[1])) && !self.is_zero(Some(args[0])) {
+                    if !self.is_any(Some(args[1])) && !self.is_any(Some(args[0])) {
                         self.e(format!("{name}: the inputs differ in unit, [{}] and [{}]", dim_text(&d), dim_text(&d2)), pos);
                     }
                 }
@@ -868,8 +1044,16 @@ impl Checker {
                 }
                 real0()
             }
+            "isnan" | "isfinite" => {
+                n(self, 1);
+                sc(self, t(0), 0);
+                Ty::Bool
+            }
             "int" => {
                 n(self, 1);
+                if matches!(t(0), Some(Ty::Choice(_))) {
+                    return Ty::Int;
+                }
                 dl(self, t(0), 0);
                 if matches!(t(0), Some(Ty::Arr(..))) {
                     self.e("int() takes a number".into(), pos);
@@ -914,6 +1098,47 @@ impl Checker {
                     self.e("cross takes two 3-vectors".into(), pos);
                 }
                 Ty::Arr(3, Box::new(Ty::Real(dim_add(&a.1, &b.1, 1.0))))
+            }
+            // the toolbox sort: ascending and stable, the same insertion sort in every translation
+            "sort" => {
+                n(self, 1);
+                let a = vec(self, t(0), 0);
+                match t(0) {
+                    Some(x @ Ty::Arr(_, of)) if !matches!(**of, Ty::Arr(..)) && num_type(Some(of)) => x.clone(),
+                    _ => Ty::Arr(a.0, Box::new(Ty::Real(a.1))),
+                }
+            }
+            "argsort" => {
+                n(self, 1);
+                let a = vec(self, t(0), 0);
+                Ty::Arr(a.0, Box::new(Ty::Int))
+            }
+            // random streams (the toolbox's: adcs-sim-core rng.rs): a stream by its seed and its number or name; a
+            // draw advances the stream it is given, an inout input
+            "stream" => {
+                n(self, 2);
+                if !(t(0) == Some(&Ty::Int) && matches!(t(1), Some(Ty::Int) | Some(Ty::Str))) {
+                    self.e("stream(seed, id): the seed is an int, the id an int or a name in quotes".into(), pos);
+                }
+                if let Some(&a1) = args.get(1) {
+                    if let ExprKind::Str(s) = &self.exprs[a1].kind {
+                        let (hi, lo) = crate::interp::fnv1a(s);
+                        self.ann[e].sid = Some((hi, lo));
+                    }
+                }
+                Ty::Stream
+            }
+            "uniform" | "normal" | "normal3" => {
+                n(self, 1);
+                if t(0) != Some(&Ty::Stream) {
+                    self.e(format!("{name} draws from a stream, not {}", type_text(t(0))), pos);
+                }
+                self.inout_call(e, name, &[(0, "stream".to_string())], args, pos);
+                if name == "normal3" {
+                    Ty::Arr(3, Box::new(real0()))
+                } else {
+                    real0()
+                }
             }
             "norm" => {
                 n(self, 1);
@@ -974,7 +1199,11 @@ impl Checker {
         let pos = &s.pos;
         match &s.kind {
             StmtKind::Let { names, decl, e } => {
+                if matches!(self.exprs[*e].kind, ExprKind::Call { .. }) {
+                    self.ann[*e].top = true;
+                }
                 let t = self.ty(*e);
+                self.inout_touched(*e);
                 let decl_ty = decl.as_ref().map(|d| self.resolve(d, pos));
                 if names.len() > 1 {
                     match &t {
@@ -1039,8 +1268,29 @@ impl Checker {
                 self.declare(name, st, pos, VarKind::State);
             }
             StmtKind::Set { targets, e } => {
+                if matches!(self.exprs[*e].kind, ExprKind::Call { .. }) {
+                    self.ann[*e].top = true;
+                }
                 let t = self.ty(*e);
                 let tts: Vec<Option<Ty>> = targets.iter().map(|lv| self.lv_ty(*lv)).collect();
+                self.inout_touched(*e);
+                if self.ann[*e].inout {
+                    let inout_vars: Vec<String> = match &self.exprs[*e].kind {
+                        ExprKind::Call { args, .. } => self.ann[*e]
+                            .inout_args
+                            .iter()
+                            .filter_map(|&i| args.get(i))
+                            .filter_map(|&a| if let ExprKind::Var(n) = &self.exprs[a].kind { Some(n.clone()) } else { None })
+                            .collect(),
+                        _ => Vec::new(),
+                    };
+                    for &lv in targets {
+                        if inout_vars.contains(&self.root_var(lv)) {
+                            let name = self.lv_name(lv);
+                            self.e(format!("{name}: the target is also the call's inout input"), pos);
+                        }
+                    }
+                }
                 if targets.len() > 1 {
                     match &t {
                         Ty::Tuple(items) if items.len() == targets.len() => {
@@ -1200,6 +1450,8 @@ impl Checker {
             ExprKind::Num { .. } => Some(self.ann[e].si),
             ExprKind::Neg(a) => self.const_num(a).map(|v| -v),
             ExprKind::Var(_) if self.ann[e].var == VarKind::Pi => Some(PI),
+            ExprKind::Var(_) if self.ann[e].var == VarKind::Inf => Some(f64::INFINITY),
+            ExprKind::Var(_) if self.ann[e].var == VarKind::Nan => Some(f64::NAN),
             ExprKind::Bin { op: op @ (BinOp::Mul | BinOp::Div), a, b } => {
                 let x = self.const_num(a);
                 let y = self.const_num(b);
@@ -1222,7 +1474,9 @@ impl Checker {
             ExprKind::Arr { items, .. } => items.iter().all(|x| self.is_const_expr(*x)),
             ExprKind::Not(a) | ExprKind::Neg(a) => self.is_const_expr(*a),
             ExprKind::Bin { a, b, .. } => self.is_const_expr(*a) && self.is_const_expr(*b),
-            ExprKind::Var(_) => matches!(self.ann[e].var, VarKind::Const(_) | VarKind::Pi),
+            ExprKind::Var(_) => matches!(self.ann[e].var, VarKind::Const(_) | VarKind::Pi | VarKind::Inf | VarKind::Nan | VarKind::Data(_)),
+            ExprKind::Field { .. } => self.ann[e].choice.is_some(),
+            ExprKind::Str(_) => true,
             ExprKind::Call { args, .. } => match self.ann[e].target {
                 Target::Record(_) => true,
                 Target::Builtin(_) => args.iter().all(|x| self.is_const_expr(*x)),
@@ -1308,7 +1562,7 @@ impl Checker {
     }
     fn walk_calls(&self, e: ExprId, out: &mut Vec<String>) {
         match &self.exprs[e].kind {
-            ExprKind::Num { .. } | ExprKind::Bool(_) | ExprKind::Var(_) => {}
+            ExprKind::Num { .. } | ExprKind::Bool(_) | ExprKind::Var(_) | ExprKind::Str(_) => {}
             ExprKind::Arr { items, .. } => items.iter().for_each(|x| self.walk_calls(*x, out)),
             ExprKind::Index { a, i } => {
                 self.walk_calls(*a, out);
@@ -1351,7 +1605,7 @@ impl Checker {
             for mut it in f.items {
                 it.set_module(&module);
                 let name = it.name().to_string();
-                if self.names.contains_key(&name) || BUILTINS.contains(&name.as_str()) || name == "pi" || JS_OBJECT_NAMES.contains(&name.as_str()) {
+                if self.names.contains_key(&name) || BUILTINS.contains(&name.as_str()) || CONSTS.contains(&name.as_str()) || JS_OBJECT_NAMES.contains(&name.as_str()) {
                     let p = it.pos().clone();
                     self.e(format!("{name} is defined twice (or is a builtin)"), &p);
                     continue;
@@ -1374,6 +1628,14 @@ impl Checker {
                         self.const_ty.push(None);
                         ItemRef::Const(self.consts.len() - 1)
                     }
+                    Item::Data(x) => {
+                        self.data.push(x);
+                        ItemRef::Data(self.data.len() - 1)
+                    }
+                    Item::Choice(x) => {
+                        self.choices.push(x);
+                        ItemRef::Choice(self.choices.len() - 1)
+                    }
                 };
                 self.names.insert(name, r);
                 self.mod_items[mi].push(r);
@@ -1381,10 +1643,24 @@ impl Checker {
             }
         }
         // 2 types
+        for ci in 0..self.choices.len() {
+            let c = self.choices[ci].clone();
+            let mut seen: Vec<&str> = Vec::new();
+            for (o, opos) in &c.options {
+                if seen.contains(&o.as_str()) {
+                    self.e(format!("choice {}: {o} is named twice", c.name), opos);
+                }
+                seen.push(o);
+            }
+        }
         for ri in 0..self.records.len() {
             for fi in 0..self.records[ri].fields.len() {
                 let (decl, pos) = (self.records[ri].fields[fi].decl.clone(), self.records[ri].fields[fi].pos.clone());
                 self.records[ri].fields[fi].ty = self.resolve(&decl, &pos);
+                if self.records[ri].fields[fi].inout {
+                    let (r, f) = (self.records[ri].name.clone(), self.records[ri].fields[fi].name.clone());
+                    self.e(format!("record {r}: {f}: only an input of a fn or proc is inout"), &pos);
+                }
             }
         }
         for oi in 0..self.order.len() {
@@ -1392,11 +1668,20 @@ impl Checker {
                 ItemRef::Fn(fi) => {
                     for k in 0..self.fns[fi].params.len() {
                         let (d, p) = (self.fns[fi].params[k].decl.clone(), self.fns[fi].params[k].pos.clone());
-                        self.fns[fi].params[k].ty = self.resolve(&d, &p);
+                        let t = self.resolve(&d, &p);
+                        self.fns[fi].params[k].ty = t.clone();
+                        if self.fns[fi].params[k].inout && !matches!(t, Ty::Arr(..) | Ty::Rec(_) | Ty::Stream) {
+                            let (f, n) = (self.fns[fi].name.clone(), self.fns[fi].params[k].name.clone());
+                            self.e(format!("{f}: {n}: an inout input is an array, a record or a stream (a number is copied, not shared)"), &p);
+                        }
                     }
                     for k in 0..self.fns[fi].outs.len() {
                         let (d, p) = (self.fns[fi].outs[k].decl.clone(), self.fns[fi].outs[k].pos.clone());
                         self.fns[fi].outs[k].ty = self.resolve(&d, &p);
+                        if self.fns[fi].outs[k].inout {
+                            let (f, n) = (self.fns[fi].name.clone(), self.fns[fi].outs[k].name.clone());
+                            self.e(format!("{f}: {n}: only an input of a fn or proc is inout"), &p);
+                        }
                     }
                     let f = &self.fns[fi];
                     let names: Vec<&str> = f.params.iter().chain(&f.outs).map(|x| x.name.as_str()).collect();
@@ -1407,6 +1692,7 @@ impl Checker {
                     }
                 }
                 ItemRef::Table(ti) => self.check_table(ti),
+                ItemRef::Data(di) => self.check_data(di),
                 _ => {}
             }
             if self.crashed.is_some() {
@@ -1439,7 +1725,7 @@ impl Checker {
             self.scopes.clear();
             let mut top = HashMap::new();
             for p in &self.fns[fi].params {
-                top.insert(p.name.clone(), (p.ty.clone(), VarKind::Input));
+                top.insert(p.name.clone(), (p.ty.clone(), if p.inout { VarKind::InOut } else { VarKind::Input }));
             }
             for o in &self.fns[fi].outs {
                 top.insert(o.name.clone(), (o.ty.clone(), VarKind::Output));
@@ -1453,7 +1739,7 @@ impl Checker {
             let missing: Vec<String> = f
                 .outs
                 .iter()
-                .filter(|o| !(assigned.contains(&o.name) || (self.touched.contains(&o.name) && matches!(o.ty, Ty::Arr(..) | Ty::Rec(_) | Ty::Tuple(_)))))
+                .filter(|o| !(assigned.contains(&o.name) || (self.touched.contains(&o.name) && matches!(o.ty, Ty::Arr(..) | Ty::Rec(_) | Ty::Tuple(_) | Ty::Choice(_)))))
                 .map(|o| o.name.clone())
                 .collect();
             let (name, pos) = (f.name.clone(), f.pos.clone());
@@ -1525,12 +1811,48 @@ impl Checker {
             tables: self.tables,
             records: self.records,
             consts: self.consts,
+            data: self.data,
+            choices: self.choices,
             modules: self.modules,
             mod_items: self.mod_items,
         })
     }
 
+    /// a data table: a 1-D or 2-D array of reals or ints, its values row by row (the outer index first), in SI
+    fn check_data(&mut self, di: usize) {
+        let (decl, pos, name) = (self.data[di].decl.clone(), self.data[di].pos.clone(), self.data[di].name.clone());
+        let ty = self.resolve(&decl, &pos);
+        self.data[di].ty = ty.clone();
+        let mut dims = Vec::new();
+        let mut el = &ty;
+        while let Ty::Arr(n, of) = el {
+            dims.push(*n);
+            el = of;
+        }
+        if !(dims.len() == 1 || dims.len() == 2) || !matches!(el, Ty::Real(_) | Ty::Int) {
+            self.e(format!("data {name}: a data table is a 1-D or 2-D array of reals or ints"), &pos);
+            return;
+        }
+        let flat: Vec<f64> = self.data[di].rows.iter().flat_map(|(r, _)| r.iter().copied()).collect();
+        let want = if dims.len() == 1 { dims[0] } else { dims[0] * dims[1] };
+        if flat.len() != want {
+            self.e(format!("data {name}: {} values, the type holds {want}", flat.len()), &pos);
+            return;
+        }
+        let is_int = *el == Ty::Int;
+        if is_int && !flat.iter().all(|x| x.is_finite() && x.trunc() == *x) {
+            self.e(format!("data {name}: an int table holds whole numbers"), &pos);
+            return;
+        }
+        let scale = if is_int { 1.0 } else { decl.elem_unit().and_then(|u| unit_of(u, &pos).ok()).map_or(1.0, |x| x.1) };
+        self.data[di].si = Some(if is_int { flat } else { flat.iter().map(|x| x * scale).collect() });
+    }
+
     fn check_table(&mut self, ti: usize) {
+        if self.tables[ti].key.inout || self.tables[ti].outs.iter().any(|o| o.inout) {
+            let (n, p) = (self.tables[ti].name.clone(), self.tables[ti].pos.clone());
+            self.e(format!("table {n}: only an input of a fn or proc is inout"), &p);
+        }
         let (kd, kp) = (self.tables[ti].key.decl.clone(), self.tables[ti].key.pos.clone());
         self.tables[ti].key.ty = self.resolve(&kd, &kp);
         let name = self.tables[ti].name.clone();
@@ -1600,6 +1922,8 @@ pub(crate) fn check(files: Vec<File>, exprs: Vec<Expr>) -> Result<Checked, Vec<P
         tables: Vec::new(),
         records: Vec::new(),
         consts: Vec::new(),
+        data: Vec::new(),
+        choices: Vec::new(),
         const_ty: Vec::new(),
         names: HashMap::new(),
         modules: Vec::new(),

@@ -80,7 +80,8 @@ def gather():
 # the app and the Python package refuse a design that names another toolbox or a newer application
 # (engine/crates/adcs-sim/src/source.rs, `cannot_run`). Raise TOOLBOX when the functions a design may
 # call change; NEEDS_APPLICATION follows the program version that wrote the design.
-TOOLBOX = "trinetra-toolbox/1"
+# /2 (S7.2): data tables, inf and nan, choices, named capacities, inputs by reference, the sort, random streams.
+TOOLBOX = "trinetra-toolbox/2"
 
 
 def needs_application():

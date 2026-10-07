@@ -205,8 +205,12 @@ fn decl_text(t: &TypeDecl) -> String {
     match t {
         TypeDecl::Int => "int".into(),
         TypeDecl::Bool => "bool".into(),
+        TypeDecl::Stream => "stream".into(),
         TypeDecl::Real { unit } => format!("real[{}]", if unit.is_empty() { "1" } else { unit }),
-        TypeDecl::Arr { n, of } => format!("{}[{n}]", decl_text(of)),
+        TypeDecl::Arr { n, of, cap } => match cap {
+            Some((c, _)) => format!("{}[{c}]", decl_text(of)),
+            None => format!("{}[{n}]", decl_text(of)),
+        },
         TypeDecl::Rec { name, .. } => name.clone(),
     }
 }
@@ -227,13 +231,39 @@ fn si_of(t: &Ty) -> String {
         }
         Ty::Bool => "true or false".into(),
         Ty::Int => "a whole number".into(),
+        Ty::Choice(_) => "a choice, as its option's number".into(),
+        Ty::Stream => "a random stream, as six numbers".into(),
+        Ty::Str => "str".into(),
         Ty::Rec(_) => "rec".into(),
         Ty::Arr(..) => "arr".into(),
         Ty::Tuple(_) => "tuple".into(),
     }
 }
 fn io(p: &Param) -> String {
-    format!("{}: {} (passed {})", p.name, decl_text(&p.decl), si_of(&p.ty))
+    format!("{}: {}{} (passed {})", p.name, if p.inout { "inout " } else { "" }, decl_text(&p.decl), si_of(&p.ty))
+}
+
+/// A data table's values as the JavaScript holds them: its rows (a 2-D table) or its values (1-D), and the
+/// type of one value.
+fn data_rows(d: &crate::ast::Data) -> (Option<Vec<Vec<f64>>>, Vec<f64>, Ty) {
+    let si = d.si.clone().unwrap_or_default();
+    match &d.ty {
+        Ty::Arr(n, of) => match &**of {
+            Ty::Arr(m, el) => (Some((0..*n).map(|i| si.get(i * m..(i + 1) * m).unwrap_or(&[]).to_vec()).collect()), si, (**el).clone()),
+            el => (None, si, el.clone()),
+        },
+        _ => (None, si, REAL),
+    }
+}
+
+/// a stream's key or counter from two of its six numbers (pcode_gen.js `streamKey`)
+fn stream_key(w: &[Value], i: usize) -> u64 {
+    let n = |k: usize| w.get(k).map_or(0.0, Value::num) as u64;
+    (n(i) << 32) | n(i + 1)
+}
+/// a name's stream id as one hexadecimal number (pcode_gen.js `sidHex`)
+fn sid_hex(sid: (f64, f64)) -> String {
+    format!("{:#x}", ((sid.0 as u64) << 32) | sid.1 as u64)
 }
 
 /// What every translator shares: the program, the interpreter for its constants, and the first
@@ -242,11 +272,32 @@ struct Base<'a> {
     i: &'a Interp,
     c: &'a Checked,
     err: Option<String>,
+    /// a value that is not finite, as the language writes it: inf, -inf, nan
+    nf: [&'static str; 3],
+}
+
+/// The language's constants inf and nan as values.
+fn const_value(v: crate::check::VarKind) -> f64 {
+    match v {
+        crate::check::VarKind::Inf => f64::INFINITY,
+        _ => f64::NAN,
+    }
 }
 
 impl<'a> Base<'a> {
-    fn new(i: &'a Interp) -> Self {
-        Base { i, c: &i.c, err: None }
+    fn new(i: &'a Interp, nf: [&'static str; 3]) -> Self {
+        Base { i, c: &i.c, err: None, nf }
+    }
+    /// a value that is not finite, as the language writes it
+    fn non_finite(&self, x: f64) -> String {
+        (if x.is_nan() {
+            self.nf[2]
+        } else if x > 0.0 {
+            self.nf[0]
+        } else {
+            self.nf[1]
+        })
+        .to_string()
     }
     fn fail(&mut self, msg: impl Into<String>) -> String {
         if self.err.is_none() {
@@ -264,10 +315,16 @@ impl<'a> Base<'a> {
         }
     }
     fn lit(&mut self, x: f64) -> String {
+        if !x.is_finite() {
+            return self.non_finite(x);
+        }
         let r = lit(x);
         self.ok(r)
     }
     fn lit_value(&mut self, v: &Value) -> String {
+        if let Value::Num(x) = v {
+            return self.lit(*x);
+        }
         let r = lit_value(v);
         self.ok(r)
     }
@@ -307,6 +364,7 @@ impl<'a> Base<'a> {
         match t {
             Ty::Arr(n, of) => n * self.flat(of),
             Ty::Rec(name) => self.record(name).map_or(0, |r| r.fields.iter().map(|f| self.flat(&f.ty)).sum()),
+            Ty::Stream => 6,
             _ => 1,
         }
     }

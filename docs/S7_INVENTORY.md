@@ -15,6 +15,30 @@ lookup 117, built-in 91, method 55, closure 38. `python3 tools/health.py tests/r
 `tests/test_built_in.py` holds the list, and each S7 step takes its nodes out of it. The counts below are the
 inventory's, at `cac5aac`.
 
+**Amended to the owner's ruling of 7 Oct 2026** (`docs/PLAN_2_0.md`, the boundary and S7): every published model, with
+its data, is design, and so are the metrics; code keeps only the maths toolbox, the readers of files' formats, the step
+order and the recorder. What the inventory called toolbox because a standard fixes it is now a **relation (published
+model)**, to move into `env`, `orbit` or `kpi` with its data as the node's table:
+
+- **23 published-model items, 5,299 lines** (`results/s7_inventory.json`, `counts.after_ruling_7_oct`): 19 adcs-pop
+  modules (4,870 lines: time scales, frames and the IAU 2006/2000A kernel, tidal EOP, EOP, geodetic, DE440 evaluation,
+  DTM2020 operational and research, JB2008, the density switch, the gravity field, spherical harmonics, potential,
+  zonal, gravity force, solid and ocean tides, relativity); 3 in adcs-sim-core (`field.rs` IGRF, `time.rs`, `coe2rv`,
+  181 lines); `fsw/pseudocode/02_time_frames_models.pc` and `02_igrf13.pc` (248 lines, already pseudocode, moving into
+  `env`). Space weather (820 lines) splits into data (the indices as tables), code (the file parsers) and a relation
+  (which index each model takes). In the twin: `matlab_sils/pop`'s published models, `+env/igrf_*`, `+util` jd, jd2utc,
+  decyear, addsec.
+- **The metrics** (`adcs-sim/src/metrics.rs` derive, ecss, time_to, window, evaluate, 230 lines; the twin's `+metrics`)
+  are relations: methods of `kpi` (step S7.14b).
+- **Toolbox, unchanged: 5 items, 816 lines**: `la.rs` and `pm.rs` (vectors, matrices, quaternions, libm), `rng.rs`
+  (random streams), the LQR's Kleinman/Lyapunov solve (a Riccati solver; its weights are relations), adcs-pop's
+  integrators and its Octave numerics (`datenum` moves with the time scales). **Code (file readers): 1 module** (`spk.rs`,
+  the DAF/SPK reader, which loads the DE440 slice into the design), and the reader halves of `eop.rs`, `spaceweather.rs`,
+  `gravity/field.rs` (ICGEM .gfc) and `oceantides.rs` (FES .bin).
+- **Translator gaps: 15** (G14 data tables from the design, G15 long series and run-time data, section 4). **Steps: 26**
+  (S7.2b published data in the design; S7.3 time, frames and IGRF; S7.3b atmosphere; S7.3c ephemeris; S7.3d gravity and
+  tides; S7.3e relativity; S7.14b metrics; section 7).
+
 - **Built-in nodes: 271** of 1,155 (behaviours: stated 292, open 286, built-in 271, children 134, lookup 117, method 55).
   - **91 are relations computed in code** (90 to transcribe, 1 to decide): act 38, design 19, dyn 4, env 11, oils 1, pnt 4, sens 14.
   - **180 are not relations in code**: 94 achieved holders, 38 KPI closures,
@@ -26,7 +50,7 @@ inventory's, at `cac5aac`.
   relations in code that the built-in count does not see.
 - **Engine relations in code:** 32 items in `adcs-sim-core`, `adcs-sim` and `adcs-design`, 2,492 lines.
   Three already have their method or pseudocode in the design (density table, solar pressure, IGRF and frames): only the call is missing.
-- **adcs-pop:** 23 modules toolbox (6,506 lines: time, frames, EOP, DE440 reading, DTM2020, JB2008,
+- **adcs-pop** (before the ruling of 7 Oct, above): 23 modules toolbox (6,506 lines: time, frames, EOP, DE440 reading, DTM2020, JB2008,
   space weather, integrators, gravity field, tides, relativity); 9 modules relation (2,121 lines: the spacecraft force
   models and the force sum).
 - **adcs-physics:** all generated (39 relations, 41 functions, 1,003 lines); nothing in the engine calls it.
@@ -35,7 +59,7 @@ inventory's, at `cac5aac`.
 - **MATLAB twin:** 160 generated files (2,896 lines: +physics, +groups, +pc, +pcselftest);
   90 hand-written files in 9 packages that hold relations (3,175 lines), the flight algorithms
   of +fsw among them; the POP (256 files, 19,828 lines) is toolbox.
-- **Translator gaps:** 13 (section 4). G1, G3, G4, G5 and G6 block the device models.
+- **Translator gaps:** 13 (section 4), 15 with the ruling's G14 and G15. G1, G3, G4, G5 and G6 block the device models; G14 blocks every published model.
 
 ## 1 · The built-in nodes
 
@@ -68,7 +92,8 @@ answer. *closure*: a KPI comparison. *no code*: nothing computes it. *runtime*: 
 | act_cmg_model | act | Control moment gyro model | adcs-sim-core/src/actuators.rs:Mex::apply (Cmg) | +devices/mtq.m, mex.m, rcs.m | S7.7 |
 | act_vscmg_gimbal_limits | act | Gimbal rate limit and power | adcs-sim-core/src/actuators.rs:Mex::apply (gimbals) | +devices/mtq.m, mex.m, rcs.m | S7.7 |
 | act_vscmg_model | act | Variable-speed CMG model | adcs-sim-core/src/actuators.rs:Mex::apply (Vscmg) | +devices/mtq.m, mex.m, rcs.m | S7.7 |
-| gm_4 | act | Magnetorquer power | adcs-design/src/lib.rs:mtq (power_at_max_W = 0.3 m/0.45) | +sizing | S7.15 |
+| gm_4 | act | Magnetorquer power | adcs-design/src/lib.rs:mtq (power_at_max_W = 0.3 m/0.45) | +sizing | S7.14b | The metrics (the ruling of 7 Oct): how each KPI is measured from a run (APE, AKE, RKS, the ECSS indices, windows, time-to, verdicts; adcs-sim/src/metrics.rs derive, ecss, time_to, window, evaluate; the twin's +metrics) as methods of kpi, generated into the engine and the twin. The recorder and the step order stay core. | every scenario's metrics and every campaign's results identical (results/EVALUATION.md, ENGINE_SOLUTIONS); twin-parity |
+| S7.15 |
 | gm_5 | act | Magnetorquer mass | adcs-design/src/lib.rs:mtq (mass_kg = 0.03 m/0.45) | +sizing | S7.15 |
 | gw_2 | act | Cyclic momentum to store | adcs-design/src/lib.rs:survey, demand (h_cyclic) | +sizing | S7.15 |
 | gw_5 | act | Wheel power | adcs-design/src/lib.rs:rotor (catalogue power_steady_W) | +sizing | S7.15 |
@@ -224,16 +249,16 @@ Kinds: *relation* (write as a method), *already a method* (call the generated on
 | Low-precision Moon *No node: env adds one.* | adcs-sim-core/src/ephem.rs:moon (25-42) | 18 | none | relation | G13 | S7.4 |
 | Solar pressure at a distance *m3_5 solar_pressure exists; check it gives 4.56e-6 (AU/d)^2.* | adcs-sim-core/src/ephem.rs:p_srp (45) | 1 | m3_5 | relation, already a method | — | S7.3 |
 | Conical Earth shadow | adcs-sim-core/src/ephem.rs:shadow (48-64) | 17 | l3_dist_row_10, m2_7 | relation | G13 | S7.4 |
-| IGRF-13 field: coefficients at a date, geodetic, NED synthesis, to ECI *fsw/pseudocode/02 has igrf_gh, geodetic, igrf_ned, field_eci; the core can call the generated fsw-rs alg frames instead of its own copy.* | adcs-sim-core/src/field.rs (1-115) | 115 | l3_dist_row_08, env_igrf13_coefficients, nav_time_frames | toolbox (IGRF reading), already pseudocode | — | S7.3 |
-| Julian date, calendar, decimal year, GMST, precession, ECI to ECEF *gmst_rot, prec_rot, eci2ecef, decyear are also in fsw/pseudocode/02: use one.* | adcs-sim-core/src/time.rs (1-56) | 56 | nav_time_frames | toolbox (time and frames) | — | S7.3 |
-| Vectors, matrices, quaternions, q-method; libm wrappers | adcs-sim-core/src/la.rs, pm.rs | 157 | none | toolbox | — | - |
-| Counter-based random streams | adcs-sim-core/src/rng.rs | 39 | none | toolbox | G1 | S7.2 |
+| IGRF-13 field: coefficients at a date, geodetic, NED synthesis, to ECI *fsw/pseudocode/02 has igrf_gh, geodetic, igrf_ned, field_eci; the core can call the generated fsw-rs alg frames instead of its own copy.* | adcs-sim-core/src/field.rs (1-115) | 115 | l3_dist_row_08, env_igrf13_coefficients, nav_time_frames | relation (published model: IGRF-13), already pseudocode *(was toolbox; ruling of 7 Oct)* | G14 | S7.3 |
+| Julian date, calendar, decimal year, GMST, precession, ECI to ECEF *gmst_rot, prec_rot, eci2ecef, decyear are also in fsw/pseudocode/02: use one.* | adcs-sim-core/src/time.rs (1-56) | 56 | nav_time_frames | relation (published model: time scales and frames) *(was toolbox)* | — | S7.3 |
+| Vectors, matrices, quaternions, q-method; libm wrappers | adcs-sim-core/src/la.rs, pm.rs | 157 | none | toolbox (maths: stays) | — | - |
+| Counter-based random streams | adcs-sim-core/src/rng.rs | 39 | none | toolbox (random streams: stays) | G1 | S7.2 |
 | Box facets from the class box and the centre-of-mass offset | adcs-sim-core/src/torques.rs:Facets::boxed (11-19) | 9 | l3_dist_row_02, s2_0, s2_1, s2_2 | relation | — | S7.4 |
 | Gravity-gradient, aerodynamic per facet, radiation per facet, residual dipole torques *gd_0..gd_3 are worst-case analysis methods; the per-facet in-loop torques are new methods.* | adcs-sim-core/src/torques.rs:torques, radiation (45-89) | 43 | l3_dist_row_01, l3_dist_row_02, l3_dist_row_03, l3_dist_row_06, gd_0, gd_1, gd_2, gd_3 | relation | — | S7.4 |
 | Earth albedo and infrared pressure *Finding for env: the comment cites albedo 0.31 and 235 W/m^2; the code flies 0.30 and 237 W/m^2.* | adcs-sim-core/src/torques.rs:earth_pressure + EARTH_ALBEDO, EARTH_IR_W_M2 (22-41) | 20 | l3_dist_row_04, l3_dist_row_05 | relation + 2 parameters | — | S7.4 |
 | Fast orbit forces: J2-J6 zonal, Sun and Moon point masses, co-rotating drag, SRP with shadow; node context *No node; env adds an orbit-forces node. The fast model is the engine.orbit=fast choice.* | adcs-sim-core/src/orbit.rs:accel, ctx + MU, RE, OMEGA_E, MU_SUN, MU_MOON, J (9-89) | 81 | none | relation + parameters | G13 | S7.6 |
 | Orbit RK4 with Hermite interpolation; context interpolation | adcs-sim-core/src/orbit.rs:Orbit::new, advance, state, context (91-148) | 58 | none | core (integrator) | G8 | S7.6 |
-| Classical elements to state | adcs-sim-core/src/orbit.rs:coe2rv (152-161) | 10 | none | toolbox (frames) | — | - |
+| Classical elements to state | adcs-sim-core/src/orbit.rs:coe2rv (152-161) | 10 | none | relation (published model: two-body elements to state) *(was toolbox)* | — | S7.6 |
 | Rigid body with rotors, gimbals and one flexible mode; total momentum *dyn_kinematics is already a method; the core keeps RK4 and calls the generated deriv.* | adcs-sim-core/src/plant.rs:Geometry, Body::flexible, deriv, momentum (7-97, 139-146) | 98 | dyn_rigid_body, dyn_rotor_coupling, dyn_flexible_mode, dyn_total_momentum, dyn_kinematics | relation | G8, G12 | S7.5 |
 | Plant RK4, sub-steps for a flexible mode *The rule "Omega h at most 0.5" is a numerical choice of the integrator: keep in core.* | adcs-sim-core/src/plant.rs:axpy, step, step_rk4 (99-137) | 39 | none | core (integrator) | G8 | S7.5 |
 | Magnetorquers: dispersion, allocation pinv, saturation, L/R lag, power, failed coil | adcs-sim-core/src/actuators.rs:lag, Mtq (7-55) | 49 | l3_mtq_row_02, l3_mtq_row_03, l3_mtq_row_04, l3_mtq_row_05, l3_mtq_row_12, l3_mtq_row_13 | relation | G1, G2, G9 | S7.7 |
@@ -251,7 +276,7 @@ Kinds: *relation* (write as a method), *already a method* (call the generated on
 |---|---|---|---|---|---|---|
 | Plant and environment parameters from the case: epoch, mean motion, inertia, centre-of-mass direction [0.30, 0.70, -0.65], residual dipole split, flexible-mode delta, surface constants, engine defaults *The centre-of-mass direction, accommodation 0.8, vb_ratio 0.05, specular share 0.5, f107 130, kp 2, ap 7 are values with no node.* | adcs-sim/src/config.rs:build, apply_engine + ACCOMMODATION, VB_RATIO, SPEC_FRAC (186-189, 465-539, 626-696) | 150 | s1_0, s1_1, s1_2, s1_3, s1_4, s2_1, s2_3, s3_0, s4_0, s4_1, m2_5, m2_6, dyn_flexible_mode | relation + parameters | G5, G6 | S7.11 |
 | Flight parameters from case, product and scenario (147 fsw_param_* values): gain laws, LQR weights, literature-law gains, gravity-gradient stability test, MEKF sigmas, rotor targets, choices *The 147 fsw_param_* nodes are stated with no value (S6 finding). Split by pattern match, to confirm per node.* | adcs-sim/src/config.rs:modes_and_laws, guidance_params, mtq_gains, rw_gains, spin_params, rotor_params, rcs_params, sensor_params (216-425) | 210 | fsw_param_* (147) | relation (47 computed), choices (9), parameters (38), wires (29), scenario values (24) | G6, G5 | S7.13 |
-| Single-axis LQR by Kleinman iteration (Lyapunov solve) | adcs-sim/src/lqr.rs:solve, lyap, chain3 (5-57) | 53 | fsw_param_mtq_Klqr, fsw_param_rw_Klqr | toolbox (a CARE solver); the weights are relation | — | S7.13 |
+| Single-axis LQR by Kleinman iteration (Lyapunov solve) | adcs-sim/src/lqr.rs:solve, lyap, chain3 (5-57) | 53 | fsw_param_mtq_Klqr, fsw_param_rw_Klqr | toolbox (a CARE solver: stays); the weights are relation | — | S7.13 |
 | Part to device descriptor: motor stall torque and no-load speed, ring k_hv, spin-down time, h_max, pump torque 2h/tsd, thruster couples 2 F arm, device defaults (torque_noise 0.001, friction_comp 0.95, eta 0.8, k_speed 1, k_flow 2, flow_tau 0.3) *Ring momentum and spin-down time exist as methods (act ring_momentum, spin_down_time): call them. File reading and capacity checks stay code.* | adcs-sim/src/product.rs:add_rotor, fit_actuator_, fit_sensor, Dev::load (110-294) | 185 | l3_rw_row_01, l3_fmr_row_12, l3_rcs_row_01, gf_6, gf_7 | relation + parameters | G6, G10 | S7.11 |
 | Truth set-up and environment refresh: RAAN from LTAN (fast), co-rotating air velocity, Earth half-angle, nadir | adcs-sim/src/run.rs:Truth::new, Truth::env (28-75); run (Sky, 506) | 50 | m2_3, l3_dist_row_08, l3_dist_row_10 | relation (glue) | G6 | S7.6 |
 | Initial attitude, rate and rotor momenta from the scenario *No node; the scenario semantics belong to vv or case.* | adcs-sim/src/run.rs:initial_state (266-304) | 39 | none | relation | G1, G6 | S7.11 |
@@ -261,7 +286,7 @@ Kinds: *relation* (write as a method), *already a method* (call the generated on
 | Tick order, recorder | adcs-sim/src/run.rs:run (443-559), row | 130 | none | core | G8 | - |
 | Array power and battery state of charge; solar constant 1361 W/m^2 *No node: a power node (programme or design) is needed.* | adcs-sim/src/metrics.rs:PowerSystem, SOLAR_CONSTANT, derive (power part) (20-45, 152-165) | 40 | none | relation + parameter | — | S7.14 |
 | Rotor-imbalance jitter (frequency domain) | adcs-sim/src/metrics.rs:jitter, eig_min3 (60-98) | 39 | gp_4, l3_pnt_row_06 | relation | — | S7.14 |
-| APE, AKE, RKS, ECSS indices, windows, verdicts | adcs-sim/src/metrics.rs:derive, ecss, time_to, window, evaluate | 230 | none | core (metrics) | — | - |
+| APE, AKE, RKS, ECSS indices, windows, verdicts | adcs-sim/src/metrics.rs:derive, ecss, time_to, window, evaluate | 230 | none | relation (the metrics: methods of kpi) *(was core; ruling of 7 Oct)* | — | S7.14b |
 
 ### adcs-design
 
@@ -278,37 +303,39 @@ Kinds: *relation* (write as a method), *already a method* (call the generated on
 
 ### adcs-pop
 
-The plan names DTM2020, IGRF and DE440 reading as toolbox. The same reading is applied to every published model whose
-evaluation a standard fixes (IERS 2010, JB2008, EGM, FES2004): toolbox, its coefficients a lookup. A model whose
-form or values are the spacecraft design's (drag panels and accommodation, SRP and ERP box-wing, which forces are
-summed, the SSO set-up) is a relation.
+**Amended to the ruling of 7 Oct 2026.** The inventory first called every published model whose evaluation a standard
+fixes (DTM2020, IGRF, DE440, IERS 2010, JB2008, EGM, FES2004) toolbox, its coefficients a lookup. The owner ruled
+otherwise: every published model, with its data, is design. Each becomes a method of `env` or `orbit` over its
+coefficients as the node's table (G14), citing its publication; code keeps the integrators, the Octave numerics and the
+file readers. A model whose form or values are the spacecraft design's (drag panels and accommodation, SRP and ERP
+box-wing, which forces are summed, the SSO set-up) was already a relation.
 
 | module | what | lines | kind | step |
 |---|---|---|---|---|
-| adcs-pop/src/time.rs | Time scales | 289 | toolbox | - |
-| adcs-pop/src/frames/mod.rs | ECI and ECEF builds | 224 | toolbox | - |
-| adcs-pop/src/frames/iau2006.rs | IAU 2006/2000A kernel | 262 | toolbox | - |
-| adcs-pop/src/frames/tidal.rs | IERS tidal EOP | 319 | toolbox | - |
-| adcs-pop/src/eop.rs | Earth orientation parameters | 482 | toolbox | - |
-| adcs-pop/src/geodetic.rs | ECEF to geodetic | 32 | toolbox | - |
-| adcs-pop/src/spk.rs | DAF/SPK reader | 249 | toolbox (DE440 reading) | - |
-| adcs-pop/src/ephem.rs | DE440 API and bundle | 277 | toolbox (DE440 reading) | - |
-| adcs-pop/src/atmos/dtm2020.rs | DTM2020 operational | 430 | toolbox (DTM2020) | - |
-| adcs-pop/src/atmos/dtm2020_research.rs | DTM2020 research | 333 | toolbox (DTM2020) | - |
-| adcs-pop/src/atmos/jb2008.rs | JB2008 | 645 | toolbox (a published density model, as DTM2020) | - |
-| adcs-pop/src/atmos/octave.rs | Octave numerics | 182 | toolbox | - |
-| adcs-pop/src/atmos/mod.rs | Density model switch | 237 | toolbox | - |
+| adcs-pop/src/time.rs | Time scales (UTC, TAI, TT, TDB, UT1, GPS; leap seconds) | 289 | relation (published model); the leap seconds a table *(was toolbox)* | S7.3 |
+| adcs-pop/src/frames/mod.rs | ECI and ECEF builds | 224 | relation (published model) *(was toolbox)* | S7.3 |
+| adcs-pop/src/frames/iau2006.rs | IAU 2006/2000A kernel | 262 | relation (published model); the xys06 series a table *(was toolbox)* | S7.3 |
+| adcs-pop/src/frames/tidal.rs | IERS tidal EOP | 319 | relation (published model); its 6 tables data *(was toolbox)* | S7.3 |
+| adcs-pop/src/eop.rs | Earth orientation parameters | 482 | relation (splice, interpolation) + data (the EOP values) + code (the IERS file readers) *(was toolbox)* | S7.3 |
+| adcs-pop/src/geodetic.rs | ECEF to geodetic | 32 | relation (published model: WGS-84) *(was toolbox)* | S7.3 |
+| adcs-pop/src/spk.rs | DAF/SPK reader | 249 | code (file reader: loads the DE440 slice into the design) | S7.3c |
+| adcs-pop/src/ephem.rs | DE440 API and bundle | 277 | relation (published model: Chebyshev evaluation over the coefficient slice) *(was toolbox)* | S7.3c |
+| adcs-pop/src/atmos/dtm2020.rs | DTM2020 operational | 430 | relation (published model); coefficients a table *(was toolbox)* | S7.3b |
+| adcs-pop/src/atmos/dtm2020_research.rs | DTM2020 research | 333 | relation (published model); coefficients a table *(was toolbox)* | S7.3b |
+| adcs-pop/src/atmos/jb2008.rs | JB2008 | 645 | relation (published model); coefficients a table *(was toolbox)* | S7.3b |
+| adcs-pop/src/atmos/octave.rs | Octave numerics | 182 | toolbox (pow, mod, rem, norm, interp1, erf: maths); `datenum` moves with the time scales | - |
+| adcs-pop/src/atmos/mod.rs | Density model switch | 237 | relation (a choice, G6, and its adapters) *(was toolbox)* | S7.3b |
 | adcs-pop/src/atmos/exponential.rs | Vallado exponential density | 85 | relation, already a method (env::atmosphere) | S7.6 |
-| adcs-pop/src/spaceweather.rs | Space-weather files and indices | 820 | toolbox (data reading) | - |
-| adcs-pop/src/integ.rs | Integrators | 385 | toolbox (integrators) | - |
-| adcs-pop/src/gravity/field.rs | Gravity field loader | 257 | toolbox | - |
-| adcs-pop/src/gravity/sphharm.rs | Spherical-harmonic evaluation | 191 | toolbox (a published field evaluator; the coefficients a lookup) | - |
-| adcs-pop/src/gravity/potential.rs | Geopotential | 66 | toolbox | - |
-| adcs-pop/src/gravity/zonal.rs | Two-body and J2..J6 | 78 | toolbox | - |
-| adcs-pop/src/gravity/mod.rs | Gravity force | 152 | toolbox | - |
-| adcs-pop/src/solidtides.rs | Solid-Earth tides (IERS 2010) | 213 | toolbox (a published standard) | - |
-| adcs-pop/src/oceantides.rs | Ocean tides (FES2004) | 225 | toolbox (a published standard; the table a lookup) | - |
-| adcs-pop/src/relativity.rs | Post-Newtonian terms (IERS 2010) | 158 | toolbox (a published standard) | - |
+| adcs-pop/src/spaceweather.rs | Space-weather files and indices | 820 | data (the indices as tables) + code (the file parsers) + relation (which index each model takes) *(was toolbox)* | S7.3b |
+| adcs-pop/src/integ.rs | Integrators | 385 | toolbox (integrators: stays) | - |
+| adcs-pop/src/gravity/field.rs | Gravity field loader | 257 | relation (normalisation, zonals) + code (the ICGEM .gfc reader) *(was toolbox)* | S7.3d |
+| adcs-pop/src/gravity/sphharm.rs | Spherical-harmonic evaluation | 191 | relation (published model); the coefficients a table *(was toolbox)* | S7.3d |
+| adcs-pop/src/gravity/potential.rs | Geopotential | 66 | relation (published model) *(was toolbox)* | S7.3d |
+| adcs-pop/src/gravity/zonal.rs | Two-body and J2..J6 | 78 | relation (published model) *(was toolbox)* | S7.3d |
+| adcs-pop/src/gravity/mod.rs | Gravity force | 152 | relation (published model) *(was toolbox)* | S7.3d |
+| adcs-pop/src/solidtides.rs | Solid-Earth tides (IERS 2010) | 213 | relation (published model) *(was toolbox)* | S7.3d |
+| adcs-pop/src/oceantides.rs | Ocean tides (FES2004) | 225 | relation (published model); the FES table data, its .bin reader code *(was toolbox)* | S7.3d |
+| adcs-pop/src/relativity.rs | Post-Newtonian terms (IERS 2010) | 158 | relation (published model) *(was toolbox)* | S7.3e |
 | adcs-pop/src/thirdbody.rs | Sun and Moon point masses | 169 | relation (decide: a standard law, but which bodies and how is the design's) | S7.6 |
 | adcs-pop/src/thirdbody/secular.rs | Lidov-Kozai secular dynamics | 135 | relation (not in the loop) | S7.6 |
 | adcs-pop/src/drag.rs | Drag: cannonball and panel models | 520 | relation (spacecraft force model) | S7.6 |
@@ -317,6 +344,37 @@ summed, the SSO set-up) is a relation.
 | adcs-pop/src/srp.rs | SRP, eclipse, box-wing | 350 | relation (spacecraft force model) | S7.6 |
 | adcs-pop/src/erp.rs | Earth radiation pressure | 277 | relation (spacecraft force model) | S7.6 |
 | adcs-pop/src/accel.rs | Force selection and sum; sso_initial; the in-loop stepper | 308 | relation (forces chosen, cr = 1 + refl, SSO set-up) + core (stepper) | S7.6 |
+
+Also moving: **`fsw/pseudocode/02_time_frames_models.pc` and `02_igrf13.pc`** (248 lines: GMST, precession, ECI to
+ECEF, decimal year, the Sun model, geodetic, the IGRF synthesis and its 26 x 195 table), already pseudocode, into `env`
+(S7.3); the flight build then generates the flight's copy from `env`. Their `IGRF_GH` const is written whole at every use
+by the MATLAB translator today (G14).
+
+### The published models and their data
+
+What each published model carries into the design (S7.2b), how big, what reads it in (code), and what the translators
+need for it. Sizes are values (doubles, or ints where marked).
+
+| model | data in the design | size | reader (code) | translator needs | step |
+|---|---|---|---|---|---|
+| Time scales | leap seconds (MJD, TAI-UTC, drift) | 28 x 3 | `Leap_Second.dat` / IANA list parser | G14; `table ... step` | S7.3 |
+| IGRF-13 | Gauss coefficients per 5-year epoch, secular variation | 26 x 195 (5,070) + 195 | `igrf13coeffs.txt` (gen_fsw_params.py) | G14 (today a `const`, inlined by MATLAB) | S7.3 |
+| IAU 2006/2000A | X, Y polynomials; 3,082 X/Y terms over 1,309 argument rows of 14 integer multipliers; s series | 56,162 (449 kB `xys06.bin`) | the xys06 export | G14 with int data, G15 long series, G12 sizes | S7.3 |
+| Tidal EOP (IERS) | ocean, libration and zonal tables | 6 tables, 1,378 | none (in tidal.rs today) | G14 | S7.3 |
+| EOP | x, y, UT1-UTC, LOD, dX, dY per day (finals2000A, C04) | the case's span: about 730 x 6 for two years (files: 6,074 and 2,070 rows here; full C04 ~23,000) | finals/C04 parsers (eop.rs) | G14; 4-point Lagrange interpolation as a loop | S7.3 |
+| Exponential atmosphere | Vallado's table | 28 x 3 | none | `table ... step` (already `env::atmosphere`) | S7.3b |
+| DTM2020 operational / research | 96 terms x 9 species each; ap/Kp table | 864 + 864 + 76 | coefficient files (refgen) | G14, G6 (model), G5 (fill values) | S7.3b |
+| JB2008 | polynomial and harmonic coefficients | about 200 | none (in jb2008.rs) | G14 | S7.3b |
+| Space weather | F10.7, F10.7a, S10, M10, Y10, Kp, ap, Dst-derived dTc | the case's span: about 730 days x 11 (SOLFSMY) and x 26 (DTCFILE); files 10,733 and 10,729 rows | SOLFSMY, DTCFILE, OMNI2, GFZ Hpo, SWPC parsers | G14, G5 (missing values as nan) | S7.3b |
+| DE440 | Chebyshev records of the Sun (11 coef, 16 d), EMB (13, 16 d), Moon (13, 4 d), Earth (13, 4 d) | about 9,220 a year of span (74 kB); the whole `de440s.bsp` is 32.7 MB for 300 years | `spk.rs` (DAF/SPK) | G14, G15 (Clenshaw recursion) | S7.3c |
+| Gravity (EGM) | GM, Re, normalised C, S | J2..J6 today (5); a full field 2(n+1)^2 (about 10,000 at degree 70) | ICGEM .gfc parser | G14 (2-D), G12, G4 (Legendre scratch) | S7.3d |
+| Ocean tides (FES2004) | degree-10 coefficients; 8 main lines | about 5,300 (42 kB `.bin`) + 8 x 10 | the .bin reader | G14 | S7.3d |
+| Solid tides, relativity | Love numbers, constants (IERS 2010) | tens | none | parameters as stated nodes | S7.3d, S7.3e |
+
+**Embedded, not loaded at run time.** Each table is generated into the code from the design (as the IGRF table is
+today), the time series as the slice the case's runs span. The readers stay code and write into the design, never into
+a model. Where a campaign must move the epoch past the slice, the case's slice grows; a model reading a file at run
+time would bring the published data back into code.
 
 ### adcs-physics and the group crates
 
@@ -345,18 +403,18 @@ summed, the SSO set-up) is a relation.
 | +pcselftest | 12 | 299 | generated (translator self-test) | - | — |
 | +devices | 16 | 436 | relation (device models) | S7.7-S7.9 | mtq, mex, rcs, wheel_motor; gyro, magnetometer, css, sun_sensor, star_tracker, earth_sensor, gps*, st_history, star_catalogue; init (dispersions) |
 | +comp | 17 | 274 | relation (component chains) | S7.8-S7.10 | star_tracker, sun_sensor; earth_sensor (twin only); fluid_loop/drive, magnetorquer/drive, rcs/schedule; magnetometer/calibrate (a stub) |
-| +env | 8 | 236 | relation (torques, shadow, Earth pressure, facets); toolbox (igrf_*) | S7.3-S7.4 | — |
+| +env | 8 | 236 | relation (torques, shadow, Earth pressure, facets; igrf_* the IGRF synthesis, a published model *(was toolbox)*) | S7.3-S7.4 | — |
 | +plant | 4 | 101 | relation (deriv, geometry, axes); core (step) | S7.5 | — |
 | +orbit | 6 | 130 | relation (init, node); core (advance, state, context) | S7.6 | The twin flies the POP (matlab_sils/pop), as the engine does with orbit=pop. |
 | +sizing | 9 | 452 | relation (demand, mtq, rw, cmg, fmr, rcs, jitter, size_all); code (print) | S7.15 | Differs from adcs-design: wheels and CMGs by law, no pump design. |
 | +product | 1 | 264 | relation (descriptors, budget_); code (reading) | S7.11 | — |
 | +fsw | 28 | 1088 | flight algorithms written by hand (could be generated); step.m is the tick shell | S7.17 | A subset: no literature magnetic laws (Lovera, Celani, Avanzini, Tango, de Ruiter). |
-| +metrics | 6 | 280 | core (metrics) | - | — |
+| +metrics | 6 | 280 | relation (the metrics: methods of kpi) *(was core; ruling of 7 Oct)*; print.m code | S7.14b | — |
 | +hal | 10 | 158 | runtime and rig (lsb.m: the drivers' scaling, design) | S7.12 | — |
 | +faults | 1 | 42 | core (fault injection) | - | — |
 | +campaign | 6 | 213 | core (campaigns; the dispersions are design data) | - | — |
 | +quat | 9 | 71 | toolbox | - | — |
-| +util | 12 | 167 | toolbox and code | - | — |
+| +util | 12 | 167 | toolbox and code; jd, jd2utc, decyear, addsec are time scales: relation (published model) | S7.3 | — |
 | +case | 1 | 84 | code | - | — |
 | +scenario | 2 | 121 | code | - | — |
 | +rec | 1 | 70 | core (recorder) | - | — |
@@ -367,7 +425,7 @@ summed, the SSO set-up) is a relation.
 | config.m | 1 | 194 | relation (gains, plant parameters: the twin of config.rs) | S7.11, S7.13 | — |
 | run.m | 1 | 221 | core (tick order) | - | — |
 | version.m | 1 | 5 | code | - | — |
-| matlab_sils/pop | 256 | 19828 | toolbox (the POP the engine ports), with the force models as in adcs-pop | S7.6 | The reference the Rust port is held to. |
+| matlab_sils/pop | 256 | 19828 | relation (the published models: 03_frames_time, 04_atmosphere, 02_forces gravity, tides, relativity; and the force models), toolbox (01_core +integ, Octave numerics), code (05_data readers) *(was toolbox)* | S7.3-S7.6 | The reference the Rust port is held to. By folder (files/lines): 01_core 29/1,721; 02_forces 64/1,499; 03_frames_time 46/2,087; 04_atmosphere 23/3,403; 05_data 29/2,865; 06_validation 50/5,952; 07_examples, 08_test, 11_compare 14/2,243. |
 
 **Could the twin fly the generated flight software?** Yes. The flight algorithms are already methods (`fsw_estimation`,
 `fsw_guidance`, `fsw_control`, `fsw_steplaws`, `fsw_allocation`, `fsw_modes`, `fsw_drivers`, `nav_time_frames`,
@@ -381,6 +439,10 @@ pieces the group rows call reach `+asils/+groups`. What it takes:
 - Speed in Octave must be measured (gap G11): the generated code is scalar loops.
 
 ## 4 · What the translators cannot express yet
+
+**After S7.2 (7 Oct 2026):** G1 (random streams), G4 (inputs by reference, `inout`), G5 (inf and nan), G6 (choices),
+G7 (the sort), G12 (named capacities) and G14 (data tables) are in the language, its interpreters and its three
+translators (`docs/PSEUDOCODE_V2.md`); G2, G3, G8, G9, G10, G11, G13 and G15 remain, as written below.
 
 The translators handle `fn`, `proc` with state, tables (step, linear), records, fixed arrays of arrays, `settle` loops,
 and the Rust translator can route maths to a module. Not yet:
@@ -398,6 +460,24 @@ and the Rust translator can route maths to a module. Not yet:
 - **G11.** Speed. The engine runs long scenarios and 4,516-run campaigns; Octave runs the twin. Generated scalar loops in Octave and by-value arrays in Rust and C may cost much. Measure each step; the target is no worse than S6 accepted.
 - **G12.** Named capacities. NR = 8, NG = 4, NC = 6, NH = 2, NS = 8, HIST = 64, GPS_HIST = 256, N_STARS = 4000. An array length is a literal in pseudocode; a named constant length is needed so capacities are stated once.
 - **G13.** Deterministic maths. The engine calls the pure-Rust libm (adcs-sim-core/pm.rs) so a trajectory is the same on every target. The Rust translator already takes a maths module; generated engine code must use it, or trajectories move in the last bits.
+
+- **G14.** Data tables from the design (the ruling of 7 Oct). Every published model carries data: IGRF 5,070 values, the
+  IAU 2006 series 56,162, DTM2020 864 a model, the DE440 slice about 9,200 a year of span. A `const` array works in Rust
+  and C, but the MATLAB translator writes the whole literal at every use (fsw/pseudocode/02's `IGRF_GH`, 26 x 195, inside
+  a loop), and a MATLAB literal cannot be indexed; nothing marks the values as a node's table. Needs a `data` item: a
+  named, typed (real with a unit, or int), 1-D or 2-D array whose values the design writes row by row, emitted once
+  (Rust static, C const, MATLAB a function holding a persistent copy) and indexed in place.
+- **G15.** Long series and run-time data. The IAU 2006 series (3,082 terms over 1,309 integer argument rows), Chebyshev
+  (Clenshaw) and Legendre recursions are loops over data: G14 with int data, G12 for their sizes, G4 for scratch by
+  reference; no new construct. The time series (EOP, space weather, DE440) are embedded as the slice the case's runs
+  span, generated from the design; reading a file at run time stays the readers' work, into the design. Octave's speed on
+  the 3,082-term sum is to be measured (G11).
+
+**What the published models need first** (Part A of the ruling): G14 data tables, before any of S7.3-S7.3e; then table
+lookup with interpolation (leap seconds, the exponential table: `table ... step` exists; EOP's 4-point Lagrange and the
+daily space-weather lookup are loops over G14 data); long polynomial and Fourier series (loops over int and real G14
+data, sized by G12); choices (G6) for the density model and the EOP source; nan (G5) for a missing index. Data loaded
+from files at run time is not needed: the design holds the slice, embedded at generation.
 
 `docs/PSEUDOCODE_V2.md` ("What it does not do yet") already names G2, G3 and G9. Each new construct changes what a
 relation may call: raise the toolbox (`trinetra-toolbox/1` to `/2`) in `adcs-sim/src/source.rs`, `tools/design_inputs.py`
@@ -442,11 +522,16 @@ across their range. The translator comes first; generated files are never edited
 |---|---|---|
 | S7.1 | This inventory. | none (read-only) |
 | S7.1b | **Done (7 Oct 2026).** Reclassify the 180 built-in nodes that are not relations in code: 94 achieved holders become evidence wires; 38 KPI closures get a closure behaviour; 5 fsw runtime rows become stated descriptions; 43 system leafs with only an owner pointer become open (or evidence, where a run or rig measures them). The rule is tools/convert_2_0.py behaviour() (a code.* field makes built-in today). Re-convert, rebuild the regression copy. | from_design.py --check: no generated file changes; parity_2_0 unchanged; the built-in count falls from 271 to 91 |
-| S7.2 | Translator and toolbox groundwork, one construct at a time: G1 random streams (toolbox), G5 inf and nan, G6 choices, G4 arrays by reference, G12 named capacities, G7 a toolbox sort. In the JS and Rust interpreters and the Rust, C and MATLAB translators. Raise the toolbox to trinetra-toolbox/2 in adcs-sim/src/source.rs, tools/design_inputs.py and python/trinetra_adcs/design.py together. | pcode.py gen --check; cargo test -p trinetra-pcode -p pcode-selftest; the twin's selftest vectors in Octave; a stream drawn in Rust, C and MATLAB equals rng.rs bit for bit |
-| S7.3 | Use what is already generated: the core's density table calls env::atmosphere and density_at; field.rs and time.rs call the generated frames and IGRF functions of fsw/pseudocode/02 (one copy); p_srp calls m3_5. Delete the hand copies. | every engine scenario: metrics identical (bit for bit where no transcendental changed, else within the twin ledger's bounds); engine.py fsw-parity |
+| S7.2 | **Done (7 Oct 2026):** data tables, inf and nan, choices, named capacities, sort, inputs by reference, random streams, in both interpreters and the three translators, each held by the language's self-test (23 functions, every translation equal to the interpreter) and the streams to rng.rs bit for bit; toolbox trinetra-toolbox/2 (`docs/PSEUDOCODE_V2.md`). Translator and toolbox groundwork, one construct at a time: first what the published models need, G14 data tables from the design (a `data` item, emitted once, indexed in place); then G1 random streams (toolbox), G5 inf and nan, G6 choices, G4 arrays by reference, G12 named capacities, G7 a toolbox sort. In the JS and Rust interpreters and the Rust, C and MATLAB translators. Raise the toolbox to trinetra-toolbox/2 in adcs-sim/src/source.rs, tools/design_inputs.py and python/trinetra_adcs/design.py together. | pcode.py gen --check; cargo test -p trinetra-pcode -p pcode-selftest; the twin's selftest vectors in Octave; a stream drawn in Rust, C and MATLAB equals rng.rs bit for bit; existing generated files byte for byte unless a construct is used |
+| S7.2b | Published data in the design (the ruling of 7 Oct): each published model's coefficients and data as a table of an env or orbit node, citing its publication, written by the file readers (code) from the files the engine reads today. Sizes in section 2, *The published models and their data*: leap seconds 28 x 3; IGRF-13 26 x 195 + 195; IAU 2006/2000A xys06 56,162; tidal EOP 1,378; EOP the case's span (about 730 x 6); DTM2020 2 x 864 + 76; JB2008 about 200; exponential 28 x 3; space weather the case's span (about 730 x 11 and x 26); DE440 about 9,220 a year of span; gravity J2..J6 (a full field 2(n+1)^2); FES2004 about 5,300. | from_design --check: each table equals the file its reader loads, value for value (bits); the readers' tests; no run changes |
+| S7.3 | Time and frames, and IGRF (published models, the ruling of 7 Oct): time scales with the leap-second table; Julian date, GMST, precession, ECI to ECEF (core time.rs and fsw/pseudocode/02, one method each in env); the IAU 2006/2000A CIO kernel over the xys06 tables; tidal EOP; EOP splice and interpolation over the EOP table; geodetic; the IGRF-13 synthesis over its table (fsw/pseudocode/02 and 02_igrf13 move into env, one copy; the flight build generates the flight's copy from env). Also: the core's density table calls env::atmosphere and density_at; p_srp calls m3_5. Delete the hand copies. | adcs-pop time and frames tests against the Octave reference vectors (bit for bit where they are today); every engine scenario: metrics identical (bit for bit where no transcendental changed, else within the twin ledger's bounds); engine.py fsw-parity 48/48; flight_build gen --check shows only the moved source |
+| S7.3b | Atmosphere (published models): the exponential table (already env::atmosphere), DTM2020 operational and research, JB2008 over their coefficient tables; the density switch as a choice (G6); the space-weather indices as data tables, the index each model takes as a relation; the SOLFSMY, DTCFILE, OMNI2, GFZ Hpo and SWPC parsers stay code. | adcs-pop atmosphere tests against the Octave reference vectors; engine scenarios with orbit=pop identical |
+| S7.3c | Ephemeris (published model): DE440 Chebyshev evaluation (Clenshaw) of the Sun, EMB, Moon and Earth over the coefficient slice the case's runs span; the per-step bundle as a method. spk.rs (DAF/SPK) stays code and loads the slice into the design. | adcs-pop ephemeris tests (positions bit for bit against today's ephem.rs on the slice); engine scenarios identical |
+| S7.3d | Gravity and tides (published models): normalisation and zonals of the field, spherical-harmonic evaluation, potential, the gravity force over the coefficient table; solid-Earth tides (IERS 2010); ocean tides (FES2004 table, the 8 main lines). The ICGEM .gfc and FES .bin readers stay code. | adcs-pop gravity and tides tests against the Octave reference vectors; ENGINE_PARITY truth-environment table unchanged |
+| S7.3e | Relativity (published model): the IERS 2010 post-Newtonian terms (Schwarzschild, Lense-Thirring, de Sitter) as methods of orbit. | adcs-pop relativity tests against the Octave reference vectors; scenarios identical |
 | S7.4 | Environment and disturbances (env): facets, gravity gradient, aero and radiation per facet, Earth albedo and IR, residual dipole, Sun (fast), Moon, shadow; their parameters as stated nodes. Transcribe from torques.rs and ephem.rs. | vectors: interpreter = Rust = C = MATLAB; every scenario's metrics identical; twin-parity no worse |
 | S7.5 | The plant (dyn): deriv with rotors, gimbals and the flexible mode, momentum. The core RK4 calls the generated deriv (G8). | vectors; momentum conservation test (adcs-sim-core tests); scenarios identical; twin-parity |
-| S7.6 | The orbit: fast forces and context (orbit.rs accel, ctx); RAAN from LTAN; then the POP spacecraft force models (drag, SRP, ERP, third body, force sum, sso_initial) as relations over the POP toolbox. | adcs-pop tests against the Octave reference vectors; ENGINE_PARITY truth-environment table unchanged; scenarios identical |
+| S7.6 | The orbit: fast forces and context (orbit.rs accel, ctx); RAAN from LTAN; then the POP spacecraft force models (drag, SRP, ERP, third body, force sum, sso_initial) as relations over the published-model methods of S7.3-S7.3e (no POP toolbox remains); coe2rv as a method of orbit. | adcs-pop tests against the Octave reference vectors; ENGINE_PARITY truth-environment table unchanged; scenarios identical |
 | S7.7 | Actuators (act): magnetorquers, wheels, VSCMG, CMG, fluid rings, thrusters, gimbals; m x B and the empty tank. Needs G1, G2/G3, G5, G6. | vectors; scenarios and every campaign identical (same streams); twin-parity |
 | S7.8 | Simple sensors (sens): gyro, magnetometer, fine Sun (noise and chain), coarse Sun, Earth sensor, GNSS; the telemetry noises as stated nodes. | vectors; scenarios and campaigns identical |
 | S7.9 | The star tracker unit model: catalogue (a table or a method), latency history, exclusion, noise and QUEST models. | vectors; scenarios with each model identical |

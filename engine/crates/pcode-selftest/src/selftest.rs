@@ -308,3 +308,465 @@ pub fn dwell(st: &mut DwellState, x: f64, dt: f64) -> (f64, f64, bool, i64) {
     n = st.ticks;
     (y, held, tripped, n)
 }
+
+/// A data table (its values the design's, row by row): two rows of three gains.
+/// Data: real[mN][3][2]; SI: in m kg/s^2.
+pub static DATA_GAINS: [[f64; 3]; 2] = [
+    [0.001, 0.0025, -0.003],
+    [-0.0045000000000000005, 0.05, 0.006],
+];
+
+/// A 1-D data table of whole numbers, ten values a line in the translations.
+/// Data: int[12]; SI: a whole number.
+pub static DATA_PRIMES: [i64; 12] = [
+    2, 3, 5, 7, 11, 13, 17, 19, 23, 29,
+    31, 37,
+];
+
+/// Data tables indexed in place: an element, a row, a sum over a row, the whole table, an int table.
+/// - i: int (passed a whole number)
+/// - j: int (passed a whole number)
+/// - x: real[m] (passed in m)
+/// - returns g: real[mN] (passed in m kg/s^2)
+/// - returns row: real[mN][3] (passed in m kg/s^2)
+/// - returns s: real[N m] (passed in m^2 kg/s^2)
+/// - returns whole: real[N][3][2] (passed in m kg/s^2)
+/// - returns p: int (passed a whole number)
+/// - returns n: int (passed a whole number)
+#[allow(clippy::too_many_arguments)]
+pub fn tabled(i: i64, j: i64, x: f64) -> (f64, [f64; 3], f64, [[f64; 3]; 2], i64, i64) {
+    let mut g: f64 = 0.0;
+    let mut row: [f64; 3] = [0.0; 3];
+    let mut s: f64 = 0.0;
+    let mut whole: [[f64; 3]; 2] = [[0.0; 3]; 2];
+    let mut p: i64 = 0;
+    let mut n: i64 = 0;
+    g = crate::selftest::DATA_GAINS[(i) as usize][(j) as usize];
+    row = crate::selftest::DATA_GAINS[((1 - i)) as usize];
+    s = 0.0;
+    {
+        let __end7: i64 = 3;
+        let mut k: i64 = 0;
+        while k < __end7 {
+            s = (s + (crate::selftest::DATA_GAINS[(i) as usize][(k) as usize] * x));
+            k += 1;
+        }
+    }
+    whole = crate::selftest::DATA_GAINS;
+    whole[(i) as usize][(j) as usize] = (whole[(i) as usize][(j) as usize] + (rt::dot(crate::selftest::DATA_GAINS[0], crate::selftest::DATA_GAINS[1]) / 1.0));
+    p = (crate::selftest::DATA_PRIMES[((j + 9)) as usize] - crate::selftest::DATA_PRIMES[(i) as usize]);
+    n = (12 + 2);
+    (g, row, s, whole, p, n)
+}
+
+pub const NEVER: f64 = f64::INFINITY;
+
+/// Values that are not finite: inf and nan take any unit, as a bare 0 does; isnan and isfinite test them.
+/// - x: real[s] (passed in s)
+/// - y: real[1] (passed a plain number)
+/// - n: int (passed a whole number)
+/// - returns first: real[s] (passed in s)
+/// - returns capped: real[s] (passed in s)
+/// - returns fin: bool (passed true or false)
+/// - returns nn: bool (passed true or false)
+/// - returns k: int (passed a whole number)
+/// - returns z: real[s] (passed in s)
+#[allow(clippy::too_many_arguments)]
+pub fn nonfinite(x: f64, y: f64, n: i64) -> (f64, f64, bool, bool, i64, f64) {
+    let mut first: f64 = 0.0;
+    let mut capped: f64 = 0.0;
+    let mut fin: bool = false;
+    let mut nn: bool = false;
+    let mut k: i64 = 0;
+    let mut z: f64 = 0.0;
+    let mut t: f64 = f64::INFINITY;
+    if (x < 0.0) {
+        t = (-(f64::INFINITY));
+    }
+    first = rt::fmin(x, (crate::selftest::NEVER * 1.0));
+    capped = rt::clamp(x, (-(f64::INFINITY)), 2.0);
+    fin = ((t).is_finite() || ((y / (n as f64))).is_finite());
+    let mut q: f64 = ((y - y) / (y - y));
+    nn = (((q).is_nan() && (!(y).is_nan())) && (!((n as f64)).is_nan()));
+    k = (if (t).is_finite() { 1 } else { (if (t > 0.0) { 2 } else { 3 }) });
+    z = (if (t).is_finite() { t } else { rt::fmax((-(f64::INFINITY)), x) });
+    (first, capped, fin, nn, k, z)
+}
+
+/// The state least keeps between calls.
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct LeastState {
+    pub low: f64,
+}
+impl Default for LeastState {
+    fn default() -> Self {
+        LeastState {
+            low: f64::INFINITY,
+        }
+    }
+}
+
+/// The least value seen, from a state that starts at inf.
+/// - x: real[s] (passed in s)
+/// - returns y: real[s] (passed in s)
+/// - returns seen: bool (passed true or false)
+#[allow(clippy::too_many_arguments)]
+pub fn least(st: &mut LeastState, x: f64) -> (f64, bool) {
+    let mut y: f64 = 0.0;
+    let mut seen: bool = false;
+    st.low = rt::fmin(st.low, x);
+    seen = (st.low).is_finite();
+    y = (if seen { st.low } else { 0.0 });
+    (y, seen)
+}
+
+/// A choice: a momentum device's kind, its options numbered from 0 in the translations.
+/// Choice Device: wheel, ring, gyro, vsgyro.
+pub const DEVICE_WHEEL: i64 = 0;
+pub const DEVICE_RING: i64 = 1;
+pub const DEVICE_GYRO: i64 = 2;
+pub const DEVICE_VSGYRO: i64 = 3;
+
+#[derive(Clone, Copy, Debug, Default, PartialEq)]
+pub struct Unit {
+    pub kind: i64,
+    pub h: f64,
+}
+
+/// Choices compared, chosen, numbered, held in a record.
+/// - k: Device (passed a choice, as its option's number)
+/// - h: real[N m s] (passed in m^2 kg/s)
+/// - returns u: Unit (passed rec)
+/// - returns store: real[N m s] (passed in m^2 kg/s)
+/// - returns n: int (passed a whole number)
+/// - returns same: bool (passed true or false)
+/// - returns next: Device (passed a choice, as its option's number)
+#[allow(clippy::too_many_arguments)]
+pub fn chosen(k: i64, h: f64) -> (Unit, f64, i64, bool, i64) {
+    let mut u: Unit = Unit::default();
+    let mut store: f64 = 0.0;
+    let mut n: i64 = 0;
+    let mut same: bool = false;
+    let mut next: i64 = 0;
+    u.kind = (if (h > 0.0) { crate::selftest::DEVICE_RING } else { k });
+    u.h = h;
+    store = (if ((k == crate::selftest::DEVICE_WHEEL) || (k == crate::selftest::DEVICE_VSGYRO)) { (2.0 * h) } else { h });
+    n = ((u.kind as i64) + (10 * (k as i64)));
+    same = (u.kind == k);
+    next = (if (k == crate::selftest::DEVICE_VSGYRO) { crate::selftest::DEVICE_WHEEL } else { crate::selftest::DEVICE_GYRO });
+    (u, store, n, same, next)
+}
+
+/// The state switches keeps between calls.
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct SwitchesState {
+    pub was: i64,
+    pub n: i64,
+}
+impl Default for SwitchesState {
+    fn default() -> Self {
+        SwitchesState {
+            was: 1,
+            n: 0,
+        }
+    }
+}
+
+/// The kind seen last, as a state, and how often it changed.
+/// - k: Device (passed a choice, as its option's number)
+/// - returns changes: int (passed a whole number)
+/// - returns last: Device (passed a choice, as its option's number)
+#[allow(clippy::too_many_arguments)]
+pub fn switches(st: &mut SwitchesState, k: i64) -> (i64, i64) {
+    let mut changes: i64 = 0;
+    let mut last: i64 = 0;
+    if (k != st.was) {
+        st.n = (st.n + 1);
+    }
+    st.was = k;
+    changes = st.n;
+    last = st.was;
+    (changes, last)
+}
+
+/// A named capacity: a length stated once.
+pub const NS: i64 = 5;
+
+/// Arrays sized by a named capacity, and a loop to it.
+/// - v: real[m][NS] (passed in m)
+/// - returns total: real[m] (passed in m)
+/// - returns scaled: real[m][NS] (passed in m)
+/// - returns top: int (passed a whole number)
+#[allow(clippy::too_many_arguments)]
+pub fn capacities(v: [f64; 5]) -> (f64, [f64; 5], i64) {
+    let mut total: f64 = 0.0;
+    let mut scaled: [f64; 5] = [0.0; 5];
+    let mut top: i64 = 0;
+    total = 0.0;
+    top = 0;
+    {
+        let __end8: i64 = crate::selftest::NS;
+        let mut i: i64 = 0;
+        while i < __end8 {
+            total = (total + v[(i) as usize]);
+            scaled[(i) as usize] = (2.0 * v[(i) as usize]);
+            if (v[(i) as usize] > v[(top) as usize]) {
+                top = i;
+            }
+            i += 1;
+        }
+    }
+    (total, scaled, top)
+}
+
+/// The toolbox sort: ascending, equal values in their order; a median, the three largest, whole numbers with ties.
+/// - v: real[m][7] (passed in m)
+/// - w: int[5] (passed a whole number)
+/// - returns s: real[m][7] (passed in m)
+/// - returns ix: int[7] (passed a whole number)
+/// - returns med: real[m] (passed in m)
+/// - returns top3: int[3] (passed a whole number)
+/// - returns ws: int[5] (passed a whole number)
+/// - returns wix: int[5] (passed a whole number)
+#[allow(clippy::too_many_arguments)]
+pub fn sorted(v: [f64; 7], w: [i64; 5]) -> ([f64; 7], [i64; 7], f64, [i64; 3], [i64; 5], [i64; 5]) {
+    let mut s: [f64; 7] = [0.0; 7];
+    let mut ix: [i64; 7] = [0; 7];
+    let mut med: f64 = 0.0;
+    let mut top3: [i64; 3] = [0; 3];
+    let mut ws: [i64; 5] = [0; 5];
+    let mut wix: [i64; 5] = [0; 5];
+    s = rt::sort(v);
+    ix = rt::argsort(v);
+    med = s[3];
+    let mut big: [i64; 7] = rt::argsort(rt::vneg(v));
+    {
+        let __end9: i64 = 3;
+        let mut k: i64 = 0;
+        while k < __end9 {
+            top3[(k) as usize] = big[(k) as usize];
+            k += 1;
+        }
+    }
+    ws = rt::sort(w);
+    wix = rt::argsort(w);
+    (s, ix, med, top3, ws, wix)
+}
+
+/// Arrays by reference: an inout input is changed in place, the caller's variable with it (no copy in a translation).
+/// - img: inout real[1][8] (passed a plain number)
+/// - at: int (passed a whole number)
+/// - w: real[1] (passed a plain number)
+/// - returns total: real[1] (passed a plain number)
+#[allow(clippy::too_many_arguments)]
+pub fn smear(img: &mut [f64; 8], at: i64, w: f64) -> f64 {
+    let mut total: f64 = 0.0;
+    (*img)[(at) as usize] = ((*img)[(at) as usize] + w);
+    if (at > 0) {
+        (*img)[((at - 1)) as usize] = ((*img)[((at - 1)) as usize] + (w / 2.0));
+    }
+    total = 0.0;
+    {
+        let __end10: i64 = 8;
+        let mut i: i64 = 0;
+        while i < __end10 {
+            total = (total + (*img)[(i) as usize]);
+            i += 1;
+        }
+    }
+    total
+}
+
+#[derive(Clone, Copy, Debug, Default, PartialEq)]
+pub struct Frame {
+    pub px: [f64; 6],
+    pub n: i64,
+}
+
+/// A record by reference, and an inout input handed on to another call, with its own array.
+/// - f: inout Frame (passed rec)
+/// - at: int (passed a whole number)
+/// - w: real[1] (passed a plain number)
+/// - returns n: int (passed a whole number)
+/// - returns peak: real[1] (passed a plain number)
+#[allow(clippy::too_many_arguments)]
+pub fn render(f: &mut Frame, at: i64, w: f64) -> (i64, f64) {
+    let mut n: i64 = 0;
+    let mut peak: f64 = 0.0;
+    let mut big: [f64; 8] = [0.0; 8];
+    {
+        let __end11: i64 = 6;
+        let mut i: i64 = 0;
+        while i < __end11 {
+            big[(i) as usize] = (*f).px[(i) as usize];
+            i += 1;
+        }
+    }
+    let mut t: f64 = crate::selftest::smear(&mut big, at, w);
+    {
+        let __end12: i64 = 6;
+        let mut i: i64 = 0;
+        while i < __end12 {
+            (*f).px[(i) as usize] = big[(i) as usize];
+            i += 1;
+        }
+    }
+    (*f).n = ((*f).n + 1);
+    n = (*f).n;
+    let __t13 = crate::selftest::again(&mut big, &mut (*f), t);
+    peak = __t13.0;
+    n = __t13.1;
+    (n, peak)
+}
+
+/// Two inout inputs, one handed on.
+/// - img: inout real[1][8] (passed a plain number)
+/// - f: inout Frame (passed rec)
+/// - w: real[1] (passed a plain number)
+/// - returns s: real[1] (passed a plain number)
+/// - returns n: int (passed a whole number)
+#[allow(clippy::too_many_arguments)]
+pub fn again(img: &mut [f64; 8], f: &mut Frame, w: f64) -> (f64, i64) {
+    let mut s: f64 = 0.0;
+    let mut n: i64 = 0;
+    s = crate::selftest::smear(&mut (*img), 1, w);
+    (*f).n = ((*f).n + 2);
+    n = (*f).n;
+    (s, n)
+}
+
+/// The state accumulate keeps between calls.
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct AccumulateState {
+    pub hist: [f64; 8],
+}
+impl Default for AccumulateState {
+    fn default() -> Self {
+        AccumulateState {
+            hist: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+        }
+    }
+}
+
+/// A state handed by reference to a function that changes it.
+/// - x: real[1] (passed a plain number)
+/// - at: int (passed a whole number)
+/// - returns y: real[1] (passed a plain number)
+#[allow(clippy::too_many_arguments)]
+pub fn accumulate(st: &mut AccumulateState, x: f64, at: i64) -> f64 {
+    let mut y: f64 = 0.0;
+    y = crate::selftest::smear(&mut st.hist, at, x);
+    y
+}
+
+/// Random streams, the toolbox's (adcs-sim-core rng.rs, value for value): a stream by its seed and its number or
+/// name; a draw advances the stream it is given. Uniform draws are exact in every translation.
+/// - seed: int (passed a whole number)
+/// - id: int (passed a whole number)
+/// - returns u: real[1][4] (passed a plain number)
+/// - returns again: bool (passed true or false)
+/// - returns named: real[1] (passed a plain number)
+/// - returns gyro: real[1] (passed a plain number)
+#[allow(clippy::too_many_arguments)]
+pub fn draws(seed: i64, id: i64) -> ([f64; 4], bool, f64, f64) {
+    let mut u: [f64; 4] = [0.0; 4];
+    let mut again: bool = false;
+    let mut named: f64 = 0.0;
+    let mut gyro: f64 = 0.0;
+    let mut g: rt::Stream = rt::stream(seed, (id) as u64);
+    {
+        let __end14: i64 = 4;
+        let mut k: i64 = 0;
+        while k < __end14 {
+            u[(k) as usize] = rt::uniform(&mut g);
+            k += 1;
+        }
+    }
+    let mut h: rt::Stream = rt::stream(seed, (id) as u64);
+    let mut first: f64 = rt::uniform(&mut h);
+    again = (first == u[0]);
+    let mut n: rt::Stream = rt::stream(seed, 0x593e577278ab11a6);
+    named = rt::uniform(&mut n);
+    let mut m: rt::Stream = rt::stream(((-(seed)) - 1), 0x732e9f4cbfdf8cf5);
+    gyro = rt::uniform(&mut m);
+    (u, again, named, gyro)
+}
+
+/// Normal draws by Box-Muller, the spare kept: the stream itself an output.
+/// - seed: int (passed a whole number)
+/// - returns z: real[1][5] (passed a plain number)
+/// - returns v: real[1][3] (passed a plain number)
+/// - returns g: stream (passed a random stream, as six numbers)
+#[allow(clippy::too_many_arguments)]
+pub fn gauss(seed: i64) -> ([f64; 5], [f64; 3], rt::Stream) {
+    let mut z: [f64; 5] = [0.0; 5];
+    let mut v: [f64; 3] = [0.0; 3];
+    let mut g: rt::Stream = rt::Stream::default();
+    g = rt::stream(seed, (7) as u64);
+    {
+        let __end15: i64 = 5;
+        let mut k: i64 = 0;
+        while k < __end15 {
+            z[(k) as usize] = rt::normal(&mut g);
+            k += 1;
+        }
+    }
+    v = rt::normal3(&mut g);
+    (z, v, g)
+}
+
+/// A stream handed in by reference, as a model's noise is: drawn from and given back.
+/// - g: inout stream (passed a random stream, as six numbers)
+/// - x: real[1] (passed a plain number)
+/// - returns y: real[1] (passed a plain number)
+/// - returns w: real[1] (passed a plain number)
+#[allow(clippy::too_many_arguments)]
+pub fn jitter(g: &mut rt::Stream, x: f64) -> (f64, f64) {
+    let mut y: f64 = 0.0;
+    let mut w: f64 = 0.0;
+    let mut u: f64 = rt::uniform(&mut (*g));
+    y = (x + u);
+    w = rt::normal(&mut (*g));
+    (y, w)
+}
+
+#[derive(Clone, Copy, Debug, Default, PartialEq)]
+pub struct Sensor {
+    pub noise: rt::Stream,
+    pub sigma: f64,
+}
+
+/// The state noisy keeps between calls.
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct NoisyState {
+    pub g: rt::Stream,
+    pub h: rt::Stream,
+}
+impl Default for NoisyState {
+    fn default() -> Self {
+        NoisyState {
+            g: rt::Stream::from_words([1095295996.0, 66131550.0, 0.0, 0.0, 0.0, 0.0]),
+            h: rt::Stream::from_words([3900745987.0, 3170854215.0, 0.0, 0.0, 0.0, 0.0]),
+        }
+    }
+}
+
+/// Streams as states, and one in a record.
+/// - x: real[1] (passed a plain number)
+/// - returns y: real[1] (passed a plain number)
+/// - returns z: real[1] (passed a plain number)
+#[allow(clippy::too_many_arguments)]
+pub fn noisy(st: &mut NoisyState, x: f64) -> (f64, f64) {
+    let mut y: f64 = 0.0;
+    let mut z: f64 = 0.0;
+    let mut a: f64 = rt::normal(&mut st.g);
+    y = (x + a);
+    let mut s: Sensor = Sensor::default();
+    s.noise = st.h;
+    s.sigma = 0.5;
+    let mut t: rt::Stream = s.noise;
+    let mut b: f64 = rt::uniform(&mut t);
+    st.h = t;
+    z = (s.sigma * b);
+    (y, z)
+}

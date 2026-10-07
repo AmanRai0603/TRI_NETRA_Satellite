@@ -1005,6 +1005,7 @@ dependencies = [
 name = "trinetra-pcode"
 version = "1.0.0"
 dependencies = [
+ "adcs-sim-core",
  "libm",
  "serde_json",
 ]

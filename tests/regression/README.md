@@ -11,7 +11,8 @@ From S10 it is replaced by a copy of the current released design, taken when an 
 prepared (W15): a new application must give that design's answers unchanged.
 
 **How it was made** (6 Oct 2026, from the 1.0.0 sources now in `archive/design-1.0/`; made again 7 Oct 2026 with the
-developer's revision S7.1b, `design/revisions_2_0.toml`, which the conversion applies on top):
+developer's revision S7.1b, `design/revisions_2_0.toml`, which the conversion applies on top; and again on 7 Oct 2026
+for the toolbox it names, `trinetra-toolbox/2`, S7.2):
 
     python3 tools/convert_2_0.py --out DRIVE
     python3 tools/design_build.py DRIVE --out tests/regression/design.tndb

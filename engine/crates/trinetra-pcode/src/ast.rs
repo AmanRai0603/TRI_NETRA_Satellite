@@ -13,8 +13,11 @@ pub(crate) type ExprId = usize;
 pub(crate) enum TypeDecl {
     Int,
     Bool,
+    /// a random stream (the toolbox's)
+    Stream,
     Real { unit: String },
-    Arr { n: usize, of: Box<TypeDecl> },
+    /// `cap`: a named capacity (`real[1][NR]`), the const that states the length
+    Arr { n: usize, of: Box<TypeDecl>, cap: Option<(String, Pos)> },
     Rec { name: String, pos: Pos },
 }
 
@@ -38,6 +41,12 @@ pub enum Ty {
     Arr(usize, Box<Ty>),
     Rec(String),
     Tuple(Vec<Ty>),
+    /// a choice, by its name: one of its options, numbered from 0
+    Choice(String),
+    /// a random stream (the toolbox's: adcs-sim-core rng.rs), held as six numbers
+    Stream,
+    /// a name in quotes: a stream's
+    Str,
 }
 
 impl Ty {
@@ -48,7 +57,9 @@ impl Ty {
             Ty::Bool => "bool".into(),
             Ty::Real(d) => format!("real[{}]", dim_text(d)),
             Ty::Arr(n, of) => format!("{}[{}]", of.text(), n),
-            Ty::Rec(name) => name.clone(),
+            Ty::Rec(name) | Ty::Choice(name) => name.clone(),
+            Ty::Stream => "stream".into(),
+            Ty::Str => "a name".into(),
             Ty::Tuple(items) => format!("({})", items.iter().map(Ty::text).collect::<Vec<_>>().join(", ")),
         }
     }
@@ -131,6 +142,8 @@ pub(crate) enum ExprKind {
     Bin { op: BinOp, a: ExprId, b: ExprId },
     /// A call; `f` is the name as written (`norm`, `orbit.period`).
     Call { f: String, args: Vec<ExprId> },
+    /// A name in quotes (a stream's: `stream(seed, "gyro")`).
+    Str(String),
 }
 
 #[derive(Clone, Debug)]
@@ -142,6 +155,8 @@ pub(crate) struct Expr {
 #[derive(Clone, Debug)]
 pub(crate) struct Param {
     pub name: String,
+    /// an input handed by reference (`img: inout real[1][4096]`): the caller's variable is changed in place
+    pub inout: bool,
     pub decl: TypeDecl,
     pub ty: Ty,
     pub range: Option<(ExprId, ExprId)>,
@@ -225,6 +240,32 @@ pub(crate) struct Const {
     pub pos: Pos,
 }
 
+/// A data table: a 1-D or 2-D array of reals or ints whose values the design writes, row by row.
+#[derive(Clone, Debug)]
+pub(crate) struct Data {
+    pub name: String,
+    pub module: String,
+    pub decl: TypeDecl,
+    pub ty: Ty,
+    pub rows: Vec<(Vec<f64>, Pos)>,
+    /// every value in SI, the outer index first (None where the checker refused the table)
+    pub si: Option<Vec<f64>>,
+    /// its `##` lines
+    pub doc: Vec<String>,
+    pub pos: Pos,
+}
+
+/// A choice: its options, numbered from 0 in the translations.
+#[derive(Clone, Debug)]
+pub(crate) struct Choice {
+    pub name: String,
+    pub module: String,
+    pub options: Vec<(String, Pos)>,
+    /// its `##` lines
+    pub doc: Vec<String>,
+    pub pos: Pos,
+}
+
 /// A top-level declaration as parsed.
 #[derive(Clone, Debug)]
 pub(crate) enum Item {
@@ -232,6 +273,8 @@ pub(crate) enum Item {
     Table(Table),
     Record(Record),
     Const(Const),
+    Data(Data),
+    Choice(Choice),
 }
 
 impl Item {
@@ -241,6 +284,8 @@ impl Item {
             Item::Table(t) => &t.name,
             Item::Record(r) => &r.name,
             Item::Const(c) => &c.name,
+            Item::Data(d) => &d.name,
+            Item::Choice(c) => &c.name,
         }
     }
     pub(crate) fn pos(&self) -> &Pos {
@@ -249,6 +294,8 @@ impl Item {
             Item::Table(t) => &t.pos,
             Item::Record(r) => &r.pos,
             Item::Const(c) => &c.pos,
+            Item::Data(d) => &d.pos,
+            Item::Choice(c) => &c.pos,
         }
     }
     pub(crate) fn set_module(&mut self, m: &str) {
@@ -257,6 +304,8 @@ impl Item {
             Item::Table(t) => t.module = m.into(),
             Item::Record(r) => r.module = m.into(),
             Item::Const(c) => c.module = m.into(),
+            Item::Data(d) => d.module = m.into(),
+            Item::Choice(c) => c.module = m.into(),
         }
     }
 }
@@ -309,7 +358,7 @@ pub(crate) fn visit_stmts(stmts: &[Stmt], exprs: &[Expr], f: &mut dyn FnMut(Expr
 pub(crate) fn visit_expr(e: ExprId, exprs: &[Expr], f: &mut dyn FnMut(ExprId)) {
     f(e);
     match &exprs[e].kind {
-        ExprKind::Num { .. } | ExprKind::Bool(_) | ExprKind::Var(_) => {}
+        ExprKind::Num { .. } | ExprKind::Bool(_) | ExprKind::Var(_) | ExprKind::Str(_) => {}
         ExprKind::Arr { items, .. } => items.iter().for_each(|x| visit_expr(*x, exprs, f)),
         ExprKind::Index { a, i } => {
             visit_expr(*a, exprs, f);

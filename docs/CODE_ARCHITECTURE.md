@@ -40,7 +40,7 @@ Anywhere else it is a defect, found by the boundary check (S7, `tools/check_all.
 | signatures, seals, versions; flight images of released designs | signing and checking; the library; the application; the CLI, Python package and tools |
 
 **What a design says it needs.** Every design names:
-- the toolbox it was built for (`meta.toolbox`, today `trinetra-toolbox/1`);
+- the toolbox it was built for (`meta.toolbox`, today `trinetra-toolbox/2`);
 - the oldest application that can run it (`meta.needs_application`).
 
 The engine, the app and the Python package refuse a design they cannot run, by name

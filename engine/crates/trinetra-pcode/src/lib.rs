@@ -131,6 +131,8 @@ pub fn check(sources: &[(&str, &str)]) -> Vec<PcodeError> {
 #[derive(Clone, Debug)]
 pub struct ParamInfo<'a> {
     pub name: &'a str,
+    /// an input handed by reference (`inout`): its value after the call follows the outputs
+    pub inout: bool,
     pub ty: &'a Ty,
     /// the range `in lo .. hi`, in SI (a bound that is not constant is None)
     pub range: Option<(Option<f64>, Option<f64>)>,
@@ -156,7 +158,7 @@ pub struct Program {
 impl Program {
     fn param_info<'a>(&'a self, p: &'a ast::Param) -> ParamInfo<'a> {
         let range = p.range.map(|(lo, hi)| (self.i.c.ann[lo].bound, self.i.c.ann[hi].bound));
-        ParamInfo { name: &p.name, ty: &p.ty, range }
+        ParamInfo { name: &p.name, inout: p.inout, ty: &p.ty, range }
     }
     fn info<'a>(&'a self, f: &'a ast::Func) -> FnInfo<'a> {
         FnInfo {
@@ -184,12 +186,17 @@ impl Program {
     pub fn record_fields(&self, name: &str) -> Option<Vec<ParamInfo<'_>>> {
         self.i.c.records.iter().find(|r| r.name == name).map(|r| r.fields.iter().map(|f| self.param_info(f)).collect())
     }
+    /// The options of a choice, in order (the first is numbered 0).
+    pub fn choice_options(&self, name: &str) -> Option<Vec<&str>> {
+        self.i.c.choices.iter().find(|c| c.name == name).map(|c| c.options.iter().map(|o| o.0.as_str()).collect())
+    }
     /// The modules, in the order their files were given, with each file's `##` lines.
     pub fn modules(&self) -> Vec<(&str, &[String])> {
         self.i.c.modules.iter().map(|(m, d)| (m.as_str(), d.as_slice())).collect()
     }
 
-    /// Call a fn with SI inputs; its outputs, in order. A proc called so starts from fresh state.
+    /// Call a fn with SI inputs; its outputs, in order, then each inout input's value after the call. A proc
+    /// called so starts from fresh state.
     pub fn call(&self, name: &str, args: &[Value]) -> Result<Vec<Value>, RunError> {
         let fi = self.fn_ix(name)?;
         self.check_args(fi, args)?;
@@ -232,8 +239,11 @@ impl Program {
             seen[fi] = true;
             let mut calls = Vec::new();
             let mut found = false;
+            // a normal draw from a stream is Box-Muller's sqrt, log, sin and cos
+            let box_muller = builtins.iter().any(|b| matches!(*b, "sin" | "cos" | "log"));
             ast::visit_stmts(&c.fns[fi].body, &c.exprs, &mut |e| match &c.ann[e].target {
                 check::Target::Builtin(b) if builtins.contains(b) => found = true,
+                check::Target::Builtin("normal" | "normal3") if box_muller => found = true,
                 check::Target::Fn(g) => calls.push(*g),
                 _ => {}
             });
@@ -252,8 +262,10 @@ impl Program {
     /// A value of a type from its numbers, as `Value::flatten` writes them (a bool from 0 or not).
     pub fn value_from_flat(&self, ty: &Ty, nums: &mut dyn Iterator<Item = f64>) -> Option<Value> {
         Some(match ty {
-            Ty::Int | Ty::Real(_) => Value::Num(nums.next()?),
+            Ty::Int | Ty::Real(_) | Ty::Choice(_) => Value::Num(nums.next()?),
             Ty::Bool => Value::Bool(nums.next()? != 0.0),
+            Ty::Stream => Value::Arr((0..6).map(|_| nums.next().map(Value::Num)).collect::<Option<Vec<_>>>()?),
+            Ty::Str => return None,
             Ty::Arr(n, of) => Value::Arr((0..*n).map(|_| self.value_from_flat(of, nums)).collect::<Option<Vec<_>>>()?),
             Ty::Rec(name) => {
                 let r = self.i.c.records.iter().find(|r| &r.name == name)?;

@@ -69,6 +69,100 @@ pub fn call(name: &str, x: &[f64]) -> Option<Vec<f64>> {
             out.push(r.1 as f64);
             out.push(r.2);
         }
+        "selftest::tabled" => {
+            if x.len() != 3 { return None; }
+            let r = crate::selftest::tabled(x[0] as i64, x[1] as i64, x[2]);
+            out.push(r.0);
+            for v in r.1.iter() { let v = *v; out.push(v); }
+            out.push(r.2);
+            for v in r.3.iter() { let v = *v; for v in v.iter() { let v = *v; out.push(v); } }
+            out.push(r.4 as f64);
+            out.push(r.5 as f64);
+        }
+        "selftest::nonfinite" => {
+            if x.len() != 3 { return None; }
+            let r = crate::selftest::nonfinite(x[0], x[1], x[2] as i64);
+            out.push(r.0);
+            out.push(r.1);
+            out.push(if r.2 { 1.0 } else { 0.0 });
+            out.push(if r.3 { 1.0 } else { 0.0 });
+            out.push(r.4 as f64);
+            out.push(r.5);
+        }
+        "selftest::chosen" => {
+            if x.len() != 2 { return None; }
+            let r = crate::selftest::chosen(x[0] as i64, x[1]);
+            out.push(r.0.kind as f64); out.push(r.0.h);
+            out.push(r.1);
+            out.push(r.2 as f64);
+            out.push(if r.3 { 1.0 } else { 0.0 });
+            out.push(r.4 as f64);
+        }
+        "selftest::capacities" => {
+            if x.len() != 5 { return None; }
+            let r = crate::selftest::capacities([x[0], x[1], x[2], x[3], x[4]]);
+            out.push(r.0);
+            for v in r.1.iter() { let v = *v; out.push(v); }
+            out.push(r.2 as f64);
+        }
+        "selftest::sorted" => {
+            if x.len() != 12 { return None; }
+            let r = crate::selftest::sorted([x[0], x[1], x[2], x[3], x[4], x[5], x[6]], [x[7] as i64, x[8] as i64, x[9] as i64, x[10] as i64, x[11] as i64]);
+            for v in r.0.iter() { let v = *v; out.push(v); }
+            for v in r.1.iter() { let v = *v; out.push(v as f64); }
+            out.push(r.2);
+            for v in r.3.iter() { let v = *v; out.push(v as f64); }
+            for v in r.4.iter() { let v = *v; out.push(v as f64); }
+            for v in r.5.iter() { let v = *v; out.push(v as f64); }
+        }
+        "selftest::smear" => {
+            if x.len() != 10 { return None; }
+            let mut io0 = [x[0], x[1], x[2], x[3], x[4], x[5], x[6], x[7]];
+            let r = crate::selftest::smear(&mut io0, x[8] as i64, x[9]);
+            out.push(r);
+            for v in io0.iter() { let v = *v; out.push(v); }
+        }
+        "selftest::render" => {
+            if x.len() != 9 { return None; }
+            let mut io0 = crate::selftest::Frame { px: [x[0], x[1], x[2], x[3], x[4], x[5]], n: x[6] as i64 };
+            let r = crate::selftest::render(&mut io0, x[7] as i64, x[8]);
+            out.push(r.0 as f64);
+            out.push(r.1);
+            for v in io0.px.iter() { let v = *v; out.push(v); } out.push(io0.n as f64);
+        }
+        "selftest::again" => {
+            if x.len() != 16 { return None; }
+            let mut io0 = [x[0], x[1], x[2], x[3], x[4], x[5], x[6], x[7]];
+            let mut io1 = crate::selftest::Frame { px: [x[8], x[9], x[10], x[11], x[12], x[13]], n: x[14] as i64 };
+            let r = crate::selftest::again(&mut io0, &mut io1, x[15]);
+            out.push(r.0);
+            out.push(r.1 as f64);
+            for v in io0.iter() { let v = *v; out.push(v); }
+            for v in io1.px.iter() { let v = *v; out.push(v); } out.push(io1.n as f64);
+        }
+        "selftest::draws" => {
+            if x.len() != 2 { return None; }
+            let r = crate::selftest::draws(x[0] as i64, x[1] as i64);
+            for v in r.0.iter() { let v = *v; out.push(v); }
+            out.push(if r.1 { 1.0 } else { 0.0 });
+            out.push(r.2);
+            out.push(r.3);
+        }
+        "selftest::gauss" => {
+            if x.len() != 1 { return None; }
+            let r = crate::selftest::gauss(x[0] as i64);
+            for v in r.0.iter() { let v = *v; out.push(v); }
+            for v in r.1.iter() { let v = *v; out.push(v); }
+            for v in r.2.words().iter() { let v = *v; out.push(v); }
+        }
+        "selftest::jitter" => {
+            if x.len() != 7 { return None; }
+            let mut io0 = crate::rt::Stream::from_words([x[0], x[1], x[2], x[3], x[4], x[5]]);
+            let r = crate::selftest::jitter(&mut io0, x[6]);
+            out.push(r.0);
+            out.push(r.1);
+            for v in io0.words().iter() { let v = *v; out.push(v); }
+        }
         _ => return None,
     }
     Some(out)
@@ -88,6 +182,49 @@ pub fn call_seq(name: &str, calls: &[Vec<f64>]) -> Option<Vec<Vec<f64>>> {
                 out.push(r.1);
                 out.push(if r.2 { 1.0 } else { 0.0 });
                 out.push(r.3 as f64);
+                outs.push(out);
+            }
+        }
+        "selftest::least" => {
+            let mut st = crate::selftest::LeastState::default();
+            for x in calls {
+                if x.len() != 1 { return None; }
+                let mut out = Vec::new();
+                let r = crate::selftest::least(&mut st, x[0]);
+                out.push(r.0);
+                out.push(if r.1 { 1.0 } else { 0.0 });
+                outs.push(out);
+            }
+        }
+        "selftest::switches" => {
+            let mut st = crate::selftest::SwitchesState::default();
+            for x in calls {
+                if x.len() != 1 { return None; }
+                let mut out = Vec::new();
+                let r = crate::selftest::switches(&mut st, x[0] as i64);
+                out.push(r.0 as f64);
+                out.push(r.1 as f64);
+                outs.push(out);
+            }
+        }
+        "selftest::accumulate" => {
+            let mut st = crate::selftest::AccumulateState::default();
+            for x in calls {
+                if x.len() != 2 { return None; }
+                let mut out = Vec::new();
+                let r = crate::selftest::accumulate(&mut st, x[0], x[1] as i64);
+                out.push(r);
+                outs.push(out);
+            }
+        }
+        "selftest::noisy" => {
+            let mut st = crate::selftest::NoisyState::default();
+            for x in calls {
+                if x.len() != 1 { return None; }
+                let mut out = Vec::new();
+                let r = crate::selftest::noisy(&mut st, x[0]);
+                out.push(r.0);
+                out.push(r.1);
                 outs.push(out);
             }
         }

@@ -52,7 +52,7 @@ fn guard_of(lib: &str) -> String {
 
 pub(super) fn to_c(i: &Interp, title: Option<&str>, lib: Option<&str>, dispatch: bool) -> Result<Files, String> {
     let lib = lib.filter(|l| !l.is_empty()).unwrap_or("pcode").to_string();
-    let mut g = Gen { b: Base::new(i), types: Vec::new(), helpers: Vec::new(), tmp: 0, dispatch };
+    let mut g = Gen { b: Base::new(i, ["INFINITY", "(-INFINITY)", "NAN"]), types: Vec::new(), helpers: Vec::new(), tmp: 0, dispatch };
     let files = g.run(title, &lib);
     g.b.done(files)
 }
@@ -80,17 +80,19 @@ impl<'a> Gen<'a> {
     fn tag(&mut self, t: &Ty) -> String {
         match t {
             Ty::Real(_) => "f".into(),
-            Ty::Int => "i".into(),
+            Ty::Int | Ty::Choice(_) => "i".into(),
             Ty::Bool => "b".into(),
             Ty::Arr(n, of) => format!("a{n}{}", self.tag(of)),
             Ty::Rec(name) => format!("r{name}"),
+            Ty::Stream => "s".into(),
             Ty::Tuple(_) => self.b.fail("no C type for tuple"),
+            Ty::Str => self.b.fail("no C type for str"),
         }
     }
     fn cty(&mut self, t: &Ty) -> String {
         match t {
             Ty::Real(_) => "double".into(),
-            Ty::Int => "int64_t".into(),
+            Ty::Int | Ty::Choice(_) => "int64_t".into(),
             Ty::Bool => "bool".into(),
             Ty::Rec(name) => {
                 self.record_type(name);
@@ -104,7 +106,17 @@ impl<'a> Gen<'a> {
                 }
                 name
             }
+            Ty::Stream => {
+                if !self.has_type("pc_stream") {
+                    self.types.push((
+                        "pc_stream".into(),
+                        Some("/* A random stream (adcs-sim-core rng.rs): its key and counter, the spare normal draw and whether there is one. */\ntypedef struct { uint64_t key; uint64_t n; double spare; bool has; } pc_stream;".into()),
+                    ));
+                }
+                "pc_stream".into()
+            }
             Ty::Tuple(_) => self.b.fail("no C type for tuple"),
+            Ty::Str => self.b.fail("no C type for str"),
         }
     }
     fn record_type(&mut self, name: &str) {
@@ -123,7 +135,7 @@ impl<'a> Gen<'a> {
     fn zero(&mut self, t: &Ty) -> String {
         match t {
             Ty::Real(_) => "0.0".into(),
-            Ty::Int => "0".into(),
+            Ty::Int | Ty::Choice(_) => "0".into(),
             Ty::Bool => "false".into(),
             _ => format!("(({}){{0}})", self.cty(t)),
         }
@@ -157,7 +169,13 @@ impl<'a> Gen<'a> {
                 Value::Num(x) => (*x != 0.0 && !x.is_nan()).to_string(),
                 _ => "true".into(),
             },
-            Ty::Int => js_string(v),
+            Ty::Int | Ty::Choice(_) => js_string(v),
+            Ty::Stream => {
+                let Value::Arr(w) = v else { return self.b.fail("a stream's value is not six numbers") };
+                let spare = self.b.lit_value(w.get(4).unwrap_or(&Value::Num(f64::NAN)));
+                let has = w.get(5).map_or(f64::NAN, Value::num) != 0.0;
+                format!("{{ UINT64_C({}), UINT64_C({}), {spare}, {has} }}", stream_key(w, 0), stream_key(w, 2))
+            }
             _ => self.b.lit_value(v),
         }
     }
@@ -266,6 +284,58 @@ impl<'a> Gen<'a> {
         );
         self.need(name, body)
     }
+    // random streams (pcode.js rt.stream: adcs-sim-core rng.rs), each piece once
+    fn stream_op(&mut self, op: &str) -> String {
+        self.cty(&Ty::Stream);
+        let sm = self.need(
+            "pc_splitmix64".into(),
+            "static inline uint64_t pc_splitmix64(uint64_t z) { z = z + UINT64_C(0x9E3779B97F4A7C15); z = (z ^ (z >> 30)) * UINT64_C(0xBF58476D1CE4E5B9); z = (z ^ (z >> 27)) * UINT64_C(0x94D049BB133111EB); return z ^ (z >> 31); }".into(),
+        );
+        if op == "stream" {
+            return self.need(
+                "pc_stream_new".into(),
+                format!("static inline pc_stream pc_stream_new(int64_t seed, uint64_t id) {{ pc_stream s; s.key = {sm}((uint64_t)seed ^ {sm}(id)); s.n = 0; s.spare = 0.0; s.has = false; return s; }}"),
+            );
+        }
+        let un = self.need(
+            "pc_uniform".into(),
+            format!("static inline double pc_uniform(pc_stream *s) {{ uint64_t z; s->n = s->n + 1; z = {sm}(s->key ^ {sm}(s->n)); return ((double)(z >> 11) + 0.5) * (1.0 / 9007199254740992.0); }}"),
+        );
+        if op == "uniform" {
+            return un;
+        }
+        let no = self.need(
+            "pc_normal".into(),
+            format!("static inline double pc_normal(pc_stream *s) {{ double u1, u2, r, v; if (s->has) {{ s->has = false; v = s->spare; s->spare = 0.0; return v; }} u1 = {un}(s); u2 = {un}(s); r = sqrt(-2.0 * log(u1)); s->spare = r * sin(2.0 * 3.141592653589793 * u2); s->has = true; return r * cos(2.0 * 3.141592653589793 * u2); }}"),
+        );
+        if op == "normal" {
+            return no;
+        }
+        let v3 = self.cty(&arr(3, REAL));
+        self.need(
+            "pc_normal3".into(),
+            format!("static inline {v3} pc_normal3(pc_stream *s) {{ {v3} r; r.v[0] = {no}(s); r.v[1] = {no}(s); r.v[2] = {no}(s); return r; }}"),
+        )
+    }
+    // the toolbox sort: an insertion sort, ascending, equal values in their order (pcode.js rt.argsort)
+    fn sort_op(&mut self, op: &str, t: &Ty) -> String {
+        let a = self.cty(t);
+        let Ty::Arr(n, _) = t else { return self.b.fail("a sort of what is not a vector") };
+        let n = *n;
+        let i = self.cty(&arr(n, Ty::Int));
+        let tg = self.tag(t);
+        let as_ = self.need(
+            format!("pc_argsort_{tg}"),
+            format!("static inline {i} pc_argsort_{tg}({a} v) {{ {i} ix; int i, j; for (i = 0; i < {n}; i++) {{ ix.v[i] = i; }} for (i = 1; i < {n}; i++) {{ int64_t k = ix.v[i]; j = i; while (j > 0 && v.v[ix.v[j - 1]] > v.v[k]) {{ ix.v[j] = ix.v[j - 1]; j--; }} ix.v[j] = k; }} return ix; }}"),
+        );
+        if op == "argsort" {
+            return as_;
+        }
+        self.need(
+            format!("pc_sort_{tg}"),
+            format!("static inline {a} pc_sort_{tg}({a} v) {{ {i} ix = {as_}(v); {a} r = v; int i; for (i = 0; i < {n}; i++) {{ r.v[i] = v.v[ix.v[i]]; }} return r; }}"),
+        )
+    }
     fn tr_op(&mut self, t: &Ty) -> String {
         let Ty::Arr(n, of) = t else { return self.b.fail("transpose of what is not a matrix") };
         let Ty::Arr(m, el) = &**of else { return self.b.fail("transpose of what is not a matrix") };
@@ -283,6 +353,12 @@ impl<'a> Gen<'a> {
     }
     fn const_name(module: &str, name: &str) -> String {
         format!("{}_{}", cname(module), upper(name))
+    }
+    fn choice_name(module: &str, name: &str, option: &str) -> String {
+        format!("{}_{}_{}", cname(module), upper(name), upper(option))
+    }
+    fn data_name(module: &str, name: &str) -> String {
+        format!("{}_DATA_{}", cname(module), upper(name))
     }
     /// the type a call of a fn or table returns (its struct when it gives several)
     fn ret_type(&mut self, e: usize) -> String {
@@ -352,10 +428,14 @@ impl<'a> Gen<'a> {
                 None => self.b.lit(ann.si),
             },
             ExprKind::Bool(v) => v.to_string(),
+            ExprKind::Str(s) => jsfmt::json_str(s),
             ExprKind::Var(name) => match ann.var {
                 VarKind::Pi => "3.141592653589793".into(),
+                VarKind::Inf | VarKind::Nan => self.b.non_finite(const_value(ann.var)),
                 VarKind::Const(ci) => Self::const_name(&c.consts[ci].module, &c.consts[ci].name),
+                VarKind::Data(di) => Self::data_name(&c.data[di].module, &c.data[di].name),
                 VarKind::State => format!("st->{}", cname(name)),
+                VarKind::InOut => format!("(*{})", cname(name)),
                 _ => cname(name),
             },
             ExprKind::Arr { items, .. } => {
@@ -391,7 +471,10 @@ impl<'a> Gen<'a> {
                 let a = self.ex(*a);
                 format!("{a}.v[{}]", self.idx(*i))
             }
-            ExprKind::Field { a, f } => format!("{}.{}", self.ex(*a), cname(f)),
+            ExprKind::Field { a, f } => match ann.choice {
+                Some((ci, _)) => Self::choice_name(&c.choices[ci].module, &c.choices[ci].name, f),
+                None => format!("{}.{}", self.ex(*a), cname(f)),
+            },
             ExprKind::Not(a) => format!("(!{})", self.ex(*a)),
             ExprKind::Neg(a) => match ann.ty.as_ref() {
                 Some(t @ Ty::Arr(..)) => {
@@ -560,6 +643,8 @@ impl<'a> Gen<'a> {
                     }
                 }
                 "real" => format!("((double)({}))", x(self, 0)),
+                "isnan" => format!("(isnan({}) != 0)", r(self, 0)),
+                "isfinite" => format!("(isfinite({}) != 0)", r(self, 0)),
                 "int" => format!("((int64_t)({}))", r(self, 0)),
                 "div" | "rem" | "band" | "bor" | "bxor" | "shl" | "shr" => {
                     let o = match f {
@@ -594,24 +679,49 @@ impl<'a> Gen<'a> {
                     let op = self.tr_op(&t);
                     format!("{op}({})", v(self, 0))
                 }
+                "stream" => {
+                    let op = self.stream_op(f);
+                    let seed = x(self, 0);
+                    let id = match ann.sid {
+                        Some(sid) => format!("UINT64_C({})", sid_hex(sid)),
+                        None => format!("(uint64_t)({})", x(self, 1)),
+                    };
+                    format!("{op}({seed}, {id})")
+                }
+                "uniform" | "normal" | "normal3" => {
+                    let op = self.stream_op(f);
+                    format!("{op}(&{})", x(self, 0))
+                }
+                "sort" | "argsort" => {
+                    let t = match a.first() {
+                        Some(&x) => self.b.ty_of(x).clone(),
+                        None => {
+                            miss(self);
+                            REAL
+                        }
+                    };
+                    let op = self.sort_op(f, &t);
+                    format!("{op}({})", x(self, 0))
+                }
                 _ => self.b.fail(format!("no C for the builtin {f}")),
             };
         }
-        let (module, name, wants, proc_): (&str, &str, Vec<&Ty>, bool) = match ann.target {
+        let (module, name, wants, proc_): (&str, &str, Vec<(&Ty, bool)>, bool) = match ann.target {
             Target::Fn(fi) => {
                 let f = &c.fns[fi];
                 if a.len() > f.params.len() {
                     return self.b.fail(format!("{}: more inputs than it takes", f.name));
                 }
-                (&f.module, &f.name, f.params.iter().map(|p| &p.ty).collect(), f.kind == FnKind::Proc)
+                (&f.module, &f.name, f.params.iter().map(|p| (&p.ty, p.inout)).collect(), f.kind == FnKind::Proc)
             }
             Target::Table(ti) => {
                 let t = &c.tables[ti];
-                (&t.module, &t.name, a.iter().map(|_| &t.key.ty).collect(), false)
+                (&t.module, &t.name, a.iter().map(|_| (&t.key.ty, false)).collect(), false)
             }
             _ => return self.b.fail("a call of nothing"),
         };
-        let mut args: Vec<String> = a.iter().zip(wants).map(|(&x, w)| self.e_want(x, Some(w))).collect();
+        // an inout input is handed over by its address
+        let mut args: Vec<String> = a.iter().zip(wants).map(|(&x, (w, io))| if io { format!("&{}", self.ex(x)) } else { self.e_want(x, Some(w)) }).collect();
         if proc_ {
             args.insert(0, "st".into()); // never reached: a proc is called by the harness, not from code
         }
@@ -621,13 +731,11 @@ impl<'a> Gen<'a> {
     fn lv(&mut self, l: usize) -> String {
         let c = self.b.c;
         match &c.exprs[l].kind {
-            ExprKind::Var(name) => {
-                if c.ann[l].var == VarKind::State {
-                    format!("st->{}", cname(name))
-                } else {
-                    cname(name)
-                }
-            }
+            ExprKind::Var(name) => match c.ann[l].var {
+                VarKind::State => format!("st->{}", cname(name)),
+                VarKind::InOut => format!("(*{})", cname(name)),
+                _ => cname(name),
+            },
             ExprKind::Index { a, i } => {
                 let base = self.lv(*a);
                 format!("{base}.v[{}]", self.idx(*i))
@@ -729,8 +837,20 @@ impl<'a> Gen<'a> {
     // statements filling `into` from x[at..]
     fn read_arg(&self, t: &Ty, at: usize, into: &str, ii: &str) -> (String, usize) {
         match t {
+            Ty::Stream => (
+                format!(
+                    "{ii}{into}.key = ((uint64_t)x[{a0}] << 32) | (uint64_t)x[{a1}];\n{ii}{into}.n = ((uint64_t)x[{a2}] << 32) | (uint64_t)x[{a3}];\n{ii}{into}.spare = x[{a4}];\n{ii}{into}.has = x[{a5}] != 0.0;\n",
+                    a0 = at,
+                    a1 = at + 1,
+                    a2 = at + 2,
+                    a3 = at + 3,
+                    a4 = at + 4,
+                    a5 = at + 5
+                ),
+                6,
+            ),
             Ty::Real(_) => (format!("{ii}{into} = x[{at}];\n"), 1),
-            Ty::Int => (format!("{ii}{into} = (int64_t)x[{at}];\n"), 1),
+            Ty::Int | Ty::Choice(_) => (format!("{ii}{into} = (int64_t)x[{at}];\n"), 1),
             Ty::Bool => (format!("{ii}{into} = x[{at}] != 0.0;\n"), 1),
             Ty::Rec(name) => {
                 let (mut s, mut k) = (String::new(), 0);
@@ -752,20 +872,23 @@ impl<'a> Gen<'a> {
                 }
                 (s, k)
             }
-            Ty::Tuple(_) => (String::new(), 0),
+            Ty::Tuple(_) | Ty::Str => (String::new(), 0),
         }
     }
     fn push_out(&self, t: &Ty, v: &str, ii: &str) -> String {
         match t {
+            Ty::Stream => format!(
+                "{ii}out[(*ny)++] = (double)({v}.key >> 32);\n{ii}out[(*ny)++] = (double)({v}.key & UINT64_C(0xFFFFFFFF));\n{ii}out[(*ny)++] = (double)({v}.n >> 32);\n{ii}out[(*ny)++] = (double)({v}.n & UINT64_C(0xFFFFFFFF));\n{ii}out[(*ny)++] = {v}.spare;\n{ii}out[(*ny)++] = {v}.has ? 1.0 : 0.0;\n"
+            ),
             Ty::Real(_) => format!("{ii}out[(*ny)++] = {v};\n"),
-            Ty::Int => format!("{ii}out[(*ny)++] = (double){v};\n"),
+            Ty::Int | Ty::Choice(_) => format!("{ii}out[(*ny)++] = (double){v};\n"),
             Ty::Bool => format!("{ii}out[(*ny)++] = {v} ? 1.0 : 0.0;\n"),
             Ty::Rec(name) => match self.b.record(name) {
                 Some(r) => r.fields.iter().map(|f| self.push_out(&f.ty, &format!("{v}.{}", cname(&f.name)), ii)).collect(),
                 None => String::new(),
             },
             Ty::Arr(n, of) => (0..*n).map(|i| self.push_out(of, &format!("{v}.v[{i}]"), ii)).collect(),
-            Ty::Tuple(_) => String::new(),
+            Ty::Tuple(_) | Ty::Str => String::new(),
         }
     }
     fn call_body(&mut self, f: &crate::ast::Func, ii: &str) -> (String, usize) {
@@ -781,14 +904,21 @@ impl<'a> Gen<'a> {
         }
         (s, at)
     }
+    // an inout input's value after the call follows the outputs
+    fn io_push(&self, f: &crate::ast::Func, ii: &str) -> String {
+        f.params.iter().enumerate().filter(|(_, p)| p.inout).map(|(i, p)| self.push_out(&p.ty, &format!("a{i}"), ii)).collect()
+    }
+    fn call_args(f: &crate::ast::Func) -> Vec<String> {
+        f.params.iter().enumerate().map(|(i, p)| if p.inout { format!("&a{i}") } else { format!("a{i}") }).collect()
+    }
     fn outs_body(&mut self, f: &crate::ast::Func, call: &str, ii: &str) -> String {
         let inner = format!("{ii}    ");
         if f.outs.len() == 1 {
             let t = self.cty(&f.outs[0].ty);
-            return format!("{ii}{{\n{ii}    {t} r = {call};\n{}{ii}}}\n", self.push_out(&f.outs[0].ty, "r", &inner));
+            return format!("{ii}{{\n{ii}    {t} r = {call};\n{}{}{ii}}}\n", self.push_out(&f.outs[0].ty, "r", &inner), self.io_push(f, &inner));
         }
         let pushes: String = f.outs.iter().map(|o| self.push_out(&o.ty, &format!("r.{}", cname(&o.name)), &inner)).collect();
-        format!("{ii}{{\n{ii}    {}_out r = {call};\n{pushes}{ii}}}\n", Self::fname(&f.module, &f.name))
+        format!("{ii}{{\n{ii}    {}_out r = {call};\n{pushes}{}{ii}}}\n", Self::fname(&f.module, &f.name), self.io_push(f, &inner))
     }
 
     fn run(&mut self, title: Option<&str>, lib: &str) -> Files {
@@ -813,6 +943,29 @@ impl<'a> Gen<'a> {
                         let ct = self.cty(t);
                         let iv = self.init(&v, t);
                         out += &format!("const {ct} {name} = {iv};\n\n");
+                    }
+                    ItemRef::Choice(ci) => {
+                        // its options as whole numbers, from 0
+                        let ch = &c.choices[ci];
+                        let names: Vec<&str> = ch.options.iter().map(|o| o.0.as_str()).collect();
+                        let defs: String = ch.options.iter().enumerate().map(|(i, o)| format!("#define {} INT64_C({i})\n", Self::choice_name(mname, &ch.name, &o.0))).collect();
+                        decls.push(format!("{}/* Choice {}: {}. */\n{defs}", doc(&ch.doc), ch.name, names.join(", ")));
+                    }
+                    ItemRef::Data(di) => {
+                        // one copy, indexed in place: a row a line (a 1-D table ten values a line)
+                        let d = &c.data[di];
+                        let tt = self.cty(&d.ty);
+                        let (rows, vals, el) = data_rows(d);
+                        let lines: String = match rows {
+                            Some(rows) => rows
+                                .iter()
+                                .map(|r| format!("    {{ {{ {} }} }},\n", r.iter().map(|x| self.init(&Value::Num(*x), &el)).collect::<Vec<_>>().join(", ")))
+                                .collect(),
+                            None => vals.chunks(10).map(|ch| format!("    {},\n", ch.iter().map(|x| self.init(&Value::Num(*x), &el)).collect::<Vec<_>>().join(", "))).collect(),
+                        };
+                        let name = Self::data_name(mname, &d.name);
+                        decls.push(format!("{}/* Data: {}, its values from the design. */\nextern const {tt} {name};\n", doc(&d.doc), d.name));
+                        out += &format!("const {tt} {name} = {{ {{\n{lines}}} }};\n\n");
                     }
                     ItemRef::Record(ri) => self.record_type(&c.records[ri].name),
                     ItemRef::Table(ti) => {
@@ -849,7 +1002,7 @@ impl<'a> Gen<'a> {
                     ItemRef::Fn(fi) => {
                         let f = &c.fns[fi];
                         let fnm = Self::fname(mname, &f.name);
-                        let mut ins: Vec<String> = f.params.iter().map(|p| format!("{} {}", self.cty(&p.ty), cname(&p.name))).collect();
+                        let mut ins: Vec<String> = f.params.iter().map(|p| format!("{} {}{}", self.cty(&p.ty), if p.inout { "*" } else { "" }, cname(&p.name))).collect();
                         if f.kind == FnKind::Proc {
                             let s = self.state_type(mname, &f.name);
                             let fields: String = f
@@ -913,7 +1066,7 @@ impl<'a> Gen<'a> {
         disp += "/* 0 and the outputs in out (*ny of them), or -1: no such function, or not the number of inputs it takes. */\nint pc_call(const char *name, const double *x, int nx, double *out, int *ny) {\n    *ny = 0;\n";
         for f in c.fns.iter().filter(|g| g.kind == FnKind::Fn) {
             let (setup, at) = self.call_body(f, "        ");
-            let call = format!("{}({})", Self::fname(&f.module, &f.name), (0..f.params.len()).map(|i| format!("a{i}")).collect::<Vec<_>>().join(", "));
+            let call = format!("{}({})", Self::fname(&f.module, &f.name), Self::call_args(f).join(", "));
             let ob = self.outs_body(f, &call, "        ");
             disp += &format!(
                 "    if (strcmp(name, \"{}::{}\") == 0) {{\n        if (nx != {at}) {{ return -1; }}\n    {{\n{setup}{ob}    }}\n        return 0;\n    }}\n",
@@ -926,7 +1079,7 @@ impl<'a> Gen<'a> {
             let (setup, at) = self.call_body(f, "            ");
             let st = self.state_type(&f.module, &f.name);
             let fnm = Self::fname(&f.module, &f.name);
-            let args: Vec<String> = (0..f.params.len()).map(|i| format!("a{i}")).collect();
+            let args: Vec<String> = Self::call_args(f);
             let call = format!("{fnm}(&st{}{})", if f.params.is_empty() { "" } else { ", " }, args.join(", "));
             let ob = self.outs_body(f, &call, "            ");
             disp += &format!(

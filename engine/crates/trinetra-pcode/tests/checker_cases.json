@@ -209,7 +209,8 @@
    ]
   ],
   "js": [
-   "t.pc:2:9: expected a value, found \"x\""
+   "t.pc:2:9: a name in quotes is a stream's only: stream(seed, \"gyro\")",
+   "t.pc:2:5: c: is real[1], given a name"
   ]
  },
  {
@@ -221,7 +222,8 @@
    ]
   ],
   "js": [
-   "t.pc:2:9: expected a value, found \"a\\tb\""
+   "t.pc:2:9: a name in quotes is a stream's only: stream(seed, \"gyro\")",
+   "t.pc:2:5: c: is real[1], given a name"
   ]
  },
  {
@@ -279,7 +281,7 @@
    ]
   ],
   "js": [
-   "t.pc:1:1: expected module, use, const, fn, proc, record or table at the top level"
+   "t.pc:1:1: expected module, use, const, data, choice, fn, proc, record or table at the top level"
   ]
  },
  {
@@ -504,7 +506,7 @@
   ],
   "js": [
    "b.pc:1:7: expected id, found \"->\"",
-   "c.pc:1:1: expected module, use, const, fn, proc, record or table at the top level"
+   "c.pc:1:1: expected module, use, const, data, choice, fn, proc, record or table at the top level"
   ]
  },
  {
@@ -1255,6 +1257,1023 @@
   "js": [
    "t.pc:1:1: recursion: a -> a (flight code does not recurse)",
    "t.pc:4:1: recursion: b -> c -> b (flight code does not recurse)"
+  ]
+ },
+ {
+  "label": "data: too few values",
+  "files": [
+   [
+    "t.pc",
+    "data D: real[m][3][2]\n    1, 2, 3\n    4, 5\nend\n"
+   ]
+  ],
+  "js": [
+   "t.pc:1:1: data D: 5 values, the type holds 6"
+  ]
+ },
+ {
+  "label": "data: an int table of fractions",
+  "files": [
+   [
+    "t.pc",
+    "data D: int[3]\n    1, 2.5, 3\nend\n"
+   ]
+  ],
+  "js": [
+   "t.pc:1:1: data D: an int table holds whole numbers"
+  ]
+ },
+ {
+  "label": "data: three dimensions",
+  "files": [
+   [
+    "t.pc",
+    "data D: real[1][2][2][2]\n    1, 2, 3, 4, 5, 6, 7, 8\nend\n"
+   ]
+  ],
+  "js": [
+   "t.pc:1:1: data D: a data table is a 1-D or 2-D array of reals or ints"
+  ]
+ },
+ {
+  "label": "data: a bool table",
+  "files": [
+   [
+    "t.pc",
+    "data D: bool[2]\n    1, 0\nend\n"
+   ]
+  ],
+  "js": [
+   "t.pc:1:1: data D: a data table is a 1-D or 2-D array of reals or ints"
+  ]
+ },
+ {
+  "label": "data: a record type",
+  "files": [
+   [
+    "t.pc",
+    "data D: Nope[2]\n    1, 0\nend\n"
+   ]
+  ],
+  "js": [
+   "t.pc:1:9: no record Nope",
+   "t.pc:1:1: data D: a data table is a 1-D or 2-D array of reals or ints"
+  ]
+ },
+ {
+  "label": "data: a scalar",
+  "files": [
+   [
+    "t.pc",
+    "data D: real[m]\n    1\nend\n"
+   ]
+  ],
+  "js": [
+   "t.pc:1:1: data D: a data table is a 1-D or 2-D array of reals or ints"
+  ]
+ },
+ {
+  "label": "data: a bad unit",
+  "files": [
+   [
+    "t.pc",
+    "data D: real[furlong][2]\n    1, 2\nend\n"
+   ]
+  ],
+  "js": [
+   "t.pc:1:1: no unit furlong (the units: 1, m, km, cm, mm, um, AU, s, ms, min, h, day, yr, kg, g, N, mN, uN, J, W, mW, Pa, kPa, A, mA, C, V, ohm, T, uT, nT, K, Hz, rpm, rad, deg, arcsec)"
+  ]
+ },
+ {
+  "label": "data: set",
+  "files": [
+   [
+    "t.pc",
+    "data D: real[m][2]\n    1, 2\nend\nfn f(x: real[m]) -> y: real[m]\n    D[0] = x\n    y = D[1]\nend\n"
+   ]
+  ],
+  "js": [
+   "t.pc:5:5: D is not declared: let D = …"
+  ]
+ },
+ {
+  "label": "data: named twice",
+  "files": [
+   [
+    "t.pc",
+    "data D: real[m][2]\n    1, 2\nend\nfn D(x: real[m]) -> y: real[m]\n    y = x\nend\n"
+   ]
+  ],
+  "js": [
+   "t.pc:4:1: D is defined twice (or is a builtin)"
+  ]
+ },
+ {
+  "label": "data: a range bound",
+  "files": [
+   [
+    "t.pc",
+    "data D: real[m][2]\n    1, 2\nend\nfn f(x: real[m] in 0 .. D[1]) -> y: real[m]\n    y = x + D[0]\nend\n"
+   ]
+  ],
+  "js": [
+   "t.pc:4:26: a range bound is a constant",
+   "t.pc:4:6: f: the range of x runs low .. high"
+  ]
+ },
+ {
+  "label": "data: wrong unit in use",
+  "files": [
+   [
+    "t.pc",
+    "data D: real[m][2]\n    1, 2\nend\nfn f(x: real[s]) -> y: real[s]\n    y = x + D[0]\nend\n"
+   ]
+  ],
+  "js": [
+   "t.pc:5:11: +: the units differ, [s] and [m]"
+  ]
+ },
+ {
+  "label": "data: not closed",
+  "files": [
+   [
+    "t.pc",
+    "data D: real[m][2]\n    1, 2\n"
+   ]
+  ],
+  "js": [
+   "t.pc:3:1: expected num, found \"\""
+  ]
+ },
+ {
+  "label": "data: a word among the values",
+  "files": [
+   [
+    "t.pc",
+    "data D: real[m][2]\n    1, x\nend\n"
+   ]
+  ],
+  "js": [
+   "t.pc:2:8: expected num, found \"x\""
+  ]
+ },
+ {
+  "label": "data: as a state's start",
+  "files": [
+   [
+    "t.pc",
+    "data D: real[m][2]\n    1, 2\nend\nproc f(x: real[m]) -> y: real[m]\n    state s: real[m][2] = D\n    s[0] = s[0] + x\n    y = s[0]\nend\n"
+   ]
+  ],
+  "js": []
+ },
+ {
+  "label": "nonfinite: inf declared",
+  "files": [
+   [
+    "t.pc",
+    "const inf = 1\nfn f(x: real[m]) -> y: real[m]\n    y = x\nend\n"
+   ]
+  ],
+  "js": [
+   "t.pc:1:1: inf is defined twice (or is a builtin)"
+  ]
+ },
+ {
+  "label": "nonfinite: nan as a fn",
+  "files": [
+   [
+    "t.pc",
+    "fn nan(x: real[m]) -> y: real[m]\n    y = x\nend\n"
+   ]
+  ],
+  "js": [
+   "t.pc:1:1: nan is defined twice (or is a builtin)"
+  ]
+ },
+ {
+  "label": "nonfinite: isnan of a bool",
+  "files": [
+   [
+    "t.pc",
+    "fn f(x: real[m]) -> y: bool\n    y = isnan(x > 0 [m])\nend\n"
+   ]
+  ],
+  "js": [
+   "t.pc:2:14: isnan: input 1 is a number, not bool"
+  ]
+ },
+ {
+  "label": "nonfinite: isfinite of a vector",
+  "files": [
+   [
+    "t.pc",
+    "fn f(x: vec3[m]) -> y: bool\n    y = isfinite(x)\nend\n"
+   ]
+  ],
+  "js": [
+   "t.pc:2:17: isfinite: input 1 is a number, not real[m][3]"
+  ]
+ },
+ {
+  "label": "nonfinite: isnan with two inputs",
+  "files": [
+   [
+    "t.pc",
+    "fn f(x: real[m]) -> y: bool\n    y = isnan(x, x)\nend\n"
+   ]
+  ],
+  "js": [
+   "t.pc:2:14: isnan takes 1 input(s), given 2"
+  ]
+ },
+ {
+  "label": "nonfinite: inf takes any unit",
+  "files": [
+   [
+    "t.pc",
+    "fn f(x: real[m]) -> (y: real[m], z: real[s], b: bool)\n    y = min(x, inf)\n    z = -inf\n    b = x < inf and atan2(x, inf) > 0 and [x, -inf][1] < x\nend\n"
+   ]
+  ],
+  "js": []
+ },
+ {
+  "label": "nonfinite: let without a type",
+  "files": [
+   [
+    "t.pc",
+    "fn f(x: real[m]) -> y: real[m]\n    let t = inf\n    y = x + t\nend\n"
+   ]
+  ],
+  "js": [
+   "t.pc:3:11: +: the units differ, [m] and [1]"
+  ]
+ },
+ {
+  "label": "nonfinite: a range to inf",
+  "files": [
+   [
+    "t.pc",
+    "fn f(x: real[m] in 0 .. inf) -> y: real[m]\n    y = x\nend\n"
+   ]
+  ],
+  "js": []
+ },
+ {
+  "label": "nonfinite: a range from nan",
+  "files": [
+   [
+    "t.pc",
+    "fn f(x: real[m] in nan .. 1) -> y: real[m]\n    y = x\nend\n"
+   ]
+  ],
+  "js": [
+   "t.pc:1:6: f: the range of x runs low .. high"
+  ]
+ },
+ {
+  "label": "nonfinite: isnan is a bool",
+  "files": [
+   [
+    "t.pc",
+    "fn f(x: real[m]) -> y: real[m]\n    y = isnan(x)\nend\n"
+   ]
+  ],
+  "js": [
+   "t.pc:2:5: y: is real[m], given bool"
+  ]
+ },
+ {
+  "label": "choice: an option named twice",
+  "files": [
+   [
+    "t.pc",
+    "choice K = a, b, a\nfn f(k: K) -> y: bool\n    y = k == K.a\nend\n"
+   ]
+  ],
+  "js": [
+   "t.pc:1:18: choice K: a is named twice"
+  ]
+ },
+ {
+  "label": "choice: no such option",
+  "files": [
+   [
+    "t.pc",
+    "choice K = a, b\nfn f(k: K) -> y: bool\n    y = k == K.c\nend\n"
+   ]
+  ],
+  "js": [
+   "t.pc:3:15: K has no option c (its options: a, b)"
+  ]
+ },
+ {
+  "label": "choice: compared with an int",
+  "files": [
+   [
+    "t.pc",
+    "choice K = a, b\nfn f(k: K) -> y: bool\n    y = k == 1\nend\n"
+   ]
+  ],
+  "js": [
+   "t.pc:3:11: ==: a choice is compared with == or != to an option of its own, not K and int"
+  ]
+ },
+ {
+  "label": "choice: ordered",
+  "files": [
+   [
+    "t.pc",
+    "choice K = a, b\nfn f(k: K) -> y: bool\n    y = k < K.b\nend\n"
+   ]
+  ],
+  "js": [
+   "t.pc:3:11: <: a choice is compared with == or != to an option of its own, not K and K"
+  ]
+ },
+ {
+  "label": "choice: two choices compared",
+  "files": [
+   [
+    "t.pc",
+    "choice K = a, b\nchoice L = a, b\nfn f(k: K, l: L) -> y: bool\n    y = k == l\nend\n"
+   ]
+  ],
+  "js": [
+   "t.pc:4:11: ==: a choice is compared with == or != to an option of its own, not K and L"
+  ]
+ },
+ {
+  "label": "choice: arithmetic",
+  "files": [
+   [
+    "t.pc",
+    "choice K = a, b\nfn f(k: K) -> y: int\n    y = k + 1\nend\n"
+   ]
+  ],
+  "js": [
+   "t.pc:3:11: + needs numbers, not K and int",
+   "t.pc:3:5: y: is int, given real[1]"
+  ]
+ },
+ {
+  "label": "choice: an int given",
+  "files": [
+   [
+    "t.pc",
+    "choice K = a, b\nfn f(k: K) -> y: K\n    y = 0\nend\n"
+   ]
+  ],
+  "js": [
+   "t.pc:3:5: y: is K, given int"
+  ]
+ },
+ {
+  "label": "choice: branches differ",
+  "files": [
+   [
+    "t.pc",
+    "choice K = a, b\nchoice L = c, d\nfn f(x: real[1]) -> y: K\n    y = if x > 0 then K.a else L.c\nend\n"
+   ]
+  ],
+  "js": [
+   "t.pc:4:9: if: the branches differ"
+  ]
+ },
+ {
+  "label": "choice: a range",
+  "files": [
+   [
+    "t.pc",
+    "choice K = a, b\nfn f(k: K in 0 .. 1) -> y: int\n    y = int(k)\nend\n"
+   ]
+  ],
+  "js": [
+   "t.pc:2:14: f: the range of k is K, not int",
+   "t.pc:2:19: f: the range of k is K, not int"
+  ]
+ },
+ {
+  "label": "choice: named twice",
+  "files": [
+   [
+    "t.pc",
+    "choice K = a, b\nrecord K\n    x: real[1]\nend\n"
+   ]
+  ],
+  "js": [
+   "t.pc:2:1: K is defined twice (or is a builtin)"
+  ]
+ },
+ {
+  "label": "choice: a local shadows it",
+  "files": [
+   [
+    "t.pc",
+    "choice K = a, b\nrecord R\n    a: real[1]\nend\nfn f(x: real[1]) -> y: real[1]\n    let K = R()\n    y = K.a + x\nend\n"
+   ]
+  ],
+  "js": []
+ },
+ {
+  "label": "choice: as an index",
+  "files": [
+   [
+    "t.pc",
+    "choice K = a, b\nfn f(k: K, v: real[1][2]) -> y: real[1]\n    y = v[k]\nend\n"
+   ]
+  ],
+  "js": [
+   "t.pc:3:10: an index is an int, not K"
+  ]
+ },
+ {
+  "label": "choice: not finished",
+  "files": [
+   [
+    "t.pc",
+    "choice K = a,\n"
+   ]
+  ],
+  "js": [
+   "t.pc:1:14: expected id, found the end of the line"
+  ]
+ },
+ {
+  "label": "choice: a number for an option",
+  "files": [
+   [
+    "t.pc",
+    "choice K = a, 2\n"
+   ]
+  ],
+  "js": [
+   "t.pc:1:15: expected id, found \"2\""
+  ]
+ },
+ {
+  "label": "choice: as a state",
+  "files": [
+   [
+    "t.pc",
+    "choice K = a, b\nproc f(k: K) -> y: bool\n    state s: K = K.b\n    y = s == k\n    s = k\nend\n"
+   ]
+  ],
+  "js": []
+ },
+ {
+  "label": "capacity: no such const",
+  "files": [
+   [
+    "t.pc",
+    "fn f(v: real[1][NR]) -> y: real[1]\n    y = v[0]\nend\n"
+   ]
+  ],
+  "js": [
+   "t.pc:1:17: NR: an array's length is a whole number from 1, or a const that is one (const NR = 8)"
+  ]
+ },
+ {
+  "label": "capacity: a real const",
+  "files": [
+   [
+    "t.pc",
+    "const NR = 2.5\nfn f(v: real[1][NR]) -> y: real[1]\n    y = v[0]\nend\n"
+   ]
+  ],
+  "js": [
+   "t.pc:2:17: NR: an array's length is a whole number from 1, or a const that is one (const NR = 8)"
+  ]
+ },
+ {
+  "label": "capacity: a const with a unit",
+  "files": [
+   [
+    "t.pc",
+    "const NR = 3 [m]\nfn f(v: real[1][NR]) -> y: real[1]\n    y = v[0]\nend\n"
+   ]
+  ],
+  "js": [
+   "t.pc:2:17: NR: an array's length is a whole number from 1, or a const that is one (const NR = 8)"
+  ]
+ },
+ {
+  "label": "capacity: zero",
+  "files": [
+   [
+    "t.pc",
+    "const NR = 0\nfn f(v: real[1][NR]) -> y: real[1]\n    y = v[0]\nend\n"
+   ]
+  ],
+  "js": [
+   "t.pc:2:17: NR: an array's length is a whole number from 1, or a const that is one (const NR = 8)"
+  ]
+ },
+ {
+  "label": "capacity: an expression",
+  "files": [
+   [
+    "t.pc",
+    "const NR = 2*3\nfn f(v: real[1][NR]) -> y: real[1]\n    y = v[0]\nend\n"
+   ]
+  ],
+  "js": [
+   "t.pc:2:17: NR: an array's length is a whole number from 1, or a const that is one (const NR = 8)"
+  ]
+ },
+ {
+  "label": "capacity: a fn's name",
+  "files": [
+   [
+    "t.pc",
+    "fn NR(x: real[1]) -> y: real[1]\n    y = x\nend\nfn f(v: real[1][NR]) -> y: real[1]\n    y = v[0]\nend\n"
+   ]
+  ],
+  "js": [
+   "t.pc:4:17: NR: an array's length is a whole number from 1, or a const that is one (const NR = 8)"
+  ]
+ },
+ {
+  "label": "capacity: in a record, an index outside",
+  "files": [
+   [
+    "t.pc",
+    "const NR = 3\nrecord R\n    h: real[1][NR]\nend\nfn f(r: R) -> y: real[1]\n    y = r.h[3]\nend\n"
+   ]
+  ],
+  "js": [
+   "t.pc:6:12: index 3 is outside 0..2"
+  ]
+ },
+ {
+  "label": "capacity: a let",
+  "files": [
+   [
+    "t.pc",
+    "const NR = 3\nfn f(x: real[1]) -> y: real[1]\n    let v: real[1][NR][NR] = 0\n    v[2][2] = x\n    y = v[2][2] + len(v)\nend\n"
+   ]
+  ],
+  "js": []
+ },
+ {
+  "label": "capacity: shapes differ",
+  "files": [
+   [
+    "t.pc",
+    "const NR = 3\nfn f(v: real[1][NR]) -> y: vec2[1]\n    y = v\nend\n"
+   ]
+  ],
+  "js": [
+   "t.pc:3:5: y: is real[1][2], given real[1][3]"
+  ]
+ },
+ {
+  "label": "capacity: the unit's place",
+  "files": [
+   [
+    "t.pc",
+    "const NR = 3\nfn f(v: real[NR]) -> y: real[1]\n    y = v\nend\n"
+   ]
+  ],
+  "js": [
+   "t.pc:2:6: no unit NR (the units: 1, m, km, cm, mm, um, AU, s, ms, min, h, day, yr, kg, g, N, mN, uN, J, W, mW, Pa, kPa, A, mA, C, V, ohm, T, uT, nT, K, Hz, rpm, rad, deg, arcsec)"
+  ]
+ },
+ {
+  "label": "sort: a matrix",
+  "files": [
+   [
+    "t.pc",
+    "fn f(m: mat3[1]) -> y: real[1][3]\n    y = sort(m)\nend\n"
+   ]
+  ],
+  "js": [
+   "t.pc:2:13: sort: input 1 is a vector, not real[1][3][3]"
+  ]
+ },
+ {
+  "label": "sort: a number",
+  "files": [
+   [
+    "t.pc",
+    "fn f(x: real[m]) -> y: real[m]\n    y = sort(x)\nend\n"
+   ]
+  ],
+  "js": [
+   "t.pc:2:13: sort: input 1 is a vector, not real[m]",
+   "t.pc:2:5: y: is real[m], given real[1][3]"
+  ]
+ },
+ {
+  "label": "argsort: of bools",
+  "files": [
+   [
+    "t.pc",
+    "fn f(b: bool[3]) -> y: int[3]\n    y = argsort(b)\nend\n"
+   ]
+  ],
+  "js": [
+   "t.pc:2:16: argsort: input 1 is a vector, not bool[3]"
+  ]
+ },
+ {
+  "label": "sort: keeps the unit",
+  "files": [
+   [
+    "t.pc",
+    "fn f(v: real[m][4]) -> y: real[s][4]\n    y = sort(v)\nend\n"
+   ]
+  ],
+  "js": [
+   "t.pc:2:5: y: is real[s][4], given real[m][4]"
+  ]
+ },
+ {
+  "label": "argsort: ints given",
+  "files": [
+   [
+    "t.pc",
+    "fn f(v: real[m][4]) -> y: real[1][4]\n    y = argsort(v)\nend\n"
+   ]
+  ],
+  "js": [
+   "t.pc:2:5: y: is real[1][4], given int[4]"
+  ]
+ },
+ {
+  "label": "sort: two inputs",
+  "files": [
+   [
+    "t.pc",
+    "fn f(v: real[m][4]) -> y: real[m][4]\n    y = sort(v, v)\nend\n"
+   ]
+  ],
+  "js": [
+   "t.pc:2:13: sort takes 1 input(s), given 2"
+  ]
+ },
+ {
+  "label": "sort: as a state's start",
+  "files": [
+   [
+    "t.pc",
+    "proc f(x: real[1]) -> y: real[1]\n    state s: real[1][3] = sort([3, 1, 2])\n    y = s[0] + x\nend\n"
+   ]
+  ],
+  "js": [
+   "t.pc:2:5: state s: declared real[1][3], starts at int[3]"
+  ]
+ },
+ {
+  "label": "sort: defined again",
+  "files": [
+   [
+    "t.pc",
+    "fn sort(x: real[1]) -> y: real[1]\n    y = x\nend\n"
+   ]
+  ],
+  "js": [
+   "t.pc:1:1: sort is defined twice (or is a builtin)"
+  ]
+ },
+ {
+  "label": "inout: a number",
+  "files": [
+   [
+    "t.pc",
+    "fn f(x: inout real[m]) -> y: real[m]\n    y = x\nend\n"
+   ]
+  ],
+  "js": [
+   "t.pc:1:6: f: x: an inout input is an array, a record or a stream (a number is copied, not shared)"
+  ]
+ },
+ {
+  "label": "inout: an output",
+  "files": [
+   [
+    "t.pc",
+    "fn f(x: real[m]) -> y: inout real[m][2]\n    y[0] = x\nend\n"
+   ]
+  ],
+  "js": [
+   "t.pc:1:21: f: y: only an input of a fn or proc is inout"
+  ]
+ },
+ {
+  "label": "inout: a record field",
+  "files": [
+   [
+    "t.pc",
+    "record R\n    v: inout real[1][2]\nend\n"
+   ]
+  ],
+  "js": [
+   "t.pc:2:5: record R: v: only an input of a fn or proc is inout"
+  ]
+ },
+ {
+  "label": "inout: a table key",
+  "files": [
+   [
+    "t.pc",
+    "table t(x: inout real[s]) -> (x0: real[s], y: real[m]) step\n    0, 1\nend\n"
+   ]
+  ],
+  "js": [
+   "t.pc:1:1: table t: only an input of a fn or proc is inout"
+  ]
+ },
+ {
+  "label": "inout: inside an expression",
+  "files": [
+   [
+    "t.pc",
+    "fn g(v: inout real[1][2]) -> y: real[1]\n    v[0] = 1\n    y = v[1]\nend\nfn f(x: real[1]) -> y: real[1]\n    let v: real[1][2] = 0\n    y = 2*g(v) + x\nend\n"
+   ]
+  ],
+  "js": [
+   "t.pc:7:12: g changes its inout input: call it as the whole right side of a let or an assignment"
+  ]
+ },
+ {
+  "label": "inout: a literal passed",
+  "files": [
+   [
+    "t.pc",
+    "fn g(v: inout real[1][2]) -> y: real[1]\n    v[0] = 1\n    y = v[1]\nend\nfn f(x: real[1]) -> y: real[1]\n    y = g([x, x])\nend\n"
+   ]
+  ],
+  "js": [
+   "t.pc:6:11: g: input v is inout: pass it a variable (a let, an output, a state or an inout input)"
+  ]
+ },
+ {
+  "label": "inout: an input passed",
+  "files": [
+   [
+    "t.pc",
+    "fn g(v: inout real[1][2]) -> y: real[1]\n    v[0] = 1\n    y = v[1]\nend\nfn f(v: real[1][2]) -> y: real[1]\n    y = g(v)\nend\n"
+   ]
+  ],
+  "js": [
+   "t.pc:6:11: g: input v is inout: pass it a variable (a let, an output, a state or an inout input)"
+  ]
+ },
+ {
+  "label": "inout: passed twice",
+  "files": [
+   [
+    "t.pc",
+    "fn g(a: inout real[1][2], b: inout real[1][2]) -> y: real[1]\n    a[0] = b[0]\n    y = 0\nend\nfn f(x: real[1]) -> y: real[1]\n    let v: real[1][2] = 0\n    y = g(v, v)\nend\n"
+   ]
+  ],
+  "js": [
+   "t.pc:7:11: g: v is passed as inout, so no other input may name it",
+   "t.pc:7:14: g: v is passed as inout, so no other input may name it"
+  ]
+ },
+ {
+  "label": "inout: named by another input",
+  "files": [
+   [
+    "t.pc",
+    "fn g(a: inout real[1][2], s: real[1]) -> y: real[1]\n    a[0] = s\n    y = 0\nend\nfn f(x: real[1]) -> y: real[1]\n    let v: real[1][2] = 0\n    y = g(v, v[1] + x)\nend\n"
+   ]
+  ],
+  "js": [
+   "t.pc:7:11: g: v is passed as inout, so no other input may name it"
+  ]
+ },
+ {
+  "label": "inout: the target is the inout",
+  "files": [
+   [
+    "t.pc",
+    "fn g(a: inout real[1][2]) -> y: real[1][2]\n    a[0] = 1\n    y = a\nend\nfn f(x: real[1]) -> y: real[1]\n    let v: real[1][2] = 0\n    v = g(v)\n    y = v[0]\nend\n"
+   ]
+  ],
+  "js": [
+   "t.pc:7:5: v: the target is also the call's inout input"
+  ]
+ },
+ {
+  "label": "inout: an element target",
+  "files": [
+   [
+    "t.pc",
+    "fn g(a: inout real[1][2]) -> y: real[1]\n    a[0] = 1\n    y = a[1]\nend\nfn f(x: real[1]) -> y: real[1]\n    let v: real[1][2] = 0\n    v[1] = g(v)\n    y = v[0]\nend\n"
+   ]
+  ],
+  "js": [
+   "t.pc:7:5: v[…]: the target is also the call's inout input"
+  ]
+ },
+ {
+  "label": "inout: a shape that differs",
+  "files": [
+   [
+    "t.pc",
+    "fn g(a: inout real[1][2]) -> y: real[1]\n    a[0] = 1\n    y = a[1]\nend\nfn f(x: real[1]) -> y: real[1]\n    let v: real[1][3] = 0\n    y = g(v)\nend\n"
+   ]
+  ],
+  "js": [
+   "t.pc:7:11: g: input a: wants real[1][2], gets real[1][3]"
+  ]
+ },
+ {
+  "label": "inout: a loop counter",
+  "files": [
+   [
+    "t.pc",
+    "fn g(a: inout real[1][2]) -> y: real[1]\n    a[0] = 1\n    y = a[1]\nend\nfn f(x: real[1]) -> y: real[1]\n    y = 0\n    for i in 0 .. 2\n        y = g(i)\n    end\nend\n"
+   ]
+  ],
+  "js": [
+   "t.pc:8:15: g: input a: wants real[1][2], gets int",
+   "t.pc:8:15: g: input a is inout: pass it a variable (a let, an output, a state or an inout input)"
+  ]
+ },
+ {
+  "label": "inout: changed in the callee",
+  "files": [
+   [
+    "t.pc",
+    "fn g(a: inout real[1][2], b: real[1][2]) -> y: real[1]\n    a = b\n    b[0] = 1\n    y = a[1]\nend\n"
+   ]
+  ],
+  "js": [
+   "t.pc:3:5: b is an input; inputs are not changed (copy it: let x = b)"
+  ]
+ },
+ {
+  "label": "inout: a state and an output",
+  "files": [
+   [
+    "t.pc",
+    "fn g(a: inout real[1][2]) -> y: real[1]\n    a[0] = a[0] + 1\n    y = a[1]\nend\nproc f(x: real[1]) -> (y: real[1], o: real[1][2])\n    state s: real[1][2] = 0\n    y = g(s)\n    let z = g(o)\nend\n"
+   ]
+  ],
+  "js": []
+ },
+ {
+  "label": "inout: a word for a name",
+  "files": [
+   [
+    "t.pc",
+    "fn f(inout: real[1][2]) -> y: real[1]\n    y = inout[0]\nend\n"
+   ]
+  ],
+  "js": []
+ },
+ {
+  "label": "stream: a draw inside an expression",
+  "files": [
+   [
+    "t.pc",
+    "fn f(seed: int) -> y: real[1]\n    let g = stream(seed, 1)\n    y = 2*uniform(g)\nend\n"
+   ]
+  ],
+  "js": [
+   "t.pc:3:18: uniform changes its inout input: call it as the whole right side of a let or an assignment"
+  ]
+ },
+ {
+  "label": "stream: a draw from an input",
+  "files": [
+   [
+    "t.pc",
+    "fn f(g: stream) -> y: real[1]\n    y = uniform(g)\nend\n"
+   ]
+  ],
+  "js": [
+   "t.pc:2:17: uniform: input stream is inout: pass it a variable (a let, an output, a state or an inout input)"
+  ]
+ },
+ {
+  "label": "stream: a draw from a number",
+  "files": [
+   [
+    "t.pc",
+    "fn f(x: real[1]) -> y: real[1]\n    let z = x\n    y = normal(z)\nend\n"
+   ]
+  ],
+  "js": [
+   "t.pc:3:15: normal draws from a stream, not real[1]"
+  ]
+ },
+ {
+  "label": "stream: a real seed",
+  "files": [
+   [
+    "t.pc",
+    "fn f(x: real[1]) -> g: stream\n    g = stream(x, 1)\nend\n"
+   ]
+  ],
+  "js": [
+   "t.pc:2:15: stream(seed, id): the seed is an int, the id an int or a name in quotes"
+  ]
+ },
+ {
+  "label": "stream: a name elsewhere",
+  "files": [
+   [
+    "t.pc",
+    "fn f(x: real[1]) -> y: real[1]\n    let n = \"gyro\"\n    y = x\nend\n"
+   ]
+  ],
+  "js": [
+   "t.pc:2:13: a name in quotes is a stream's only: stream(seed, \"gyro\")"
+  ]
+ },
+ {
+  "label": "stream: an array of streams",
+  "files": [
+   [
+    "t.pc",
+    "fn f(g: stream[3]) -> y: real[1]\n    y = 0\nend\n"
+   ]
+  ],
+  "js": [
+   "t.pc:1:6: a stream is not an array's element: a record or a state holds one"
+  ]
+ },
+ {
+  "label": "stream: compared",
+  "files": [
+   [
+    "t.pc",
+    "fn f(seed: int) -> y: bool\n    let a = stream(seed, 1)\n    let b = stream(seed, 2)\n    y = a == b\nend\n"
+   ]
+  ],
+  "js": [
+   "t.pc:4:11: == needs numbers, not stream and stream"
+  ]
+ },
+ {
+  "label": "stream: inout stream accepted",
+  "files": [
+   [
+    "t.pc",
+    "fn f(g: inout stream, x: real[1]) -> y: real[1]\n    let u = uniform(g)\n    let v = normal3(g)\n    y = x*u + v[0]\nend\n"
+   ]
+  ],
+  "js": []
+ },
+ {
+  "label": "stream: the target is the stream",
+  "files": [
+   [
+    "t.pc",
+    "fn f(seed: int) -> y: real[1]\n    let g = stream(seed, 1)\n    let u: real[1] = 0\n    u = uniform(g)\n    y = u\nend\n"
+   ]
+  ],
+  "js": []
+ },
+ {
+  "label": "stream: a state starts at a stream",
+  "files": [
+   [
+    "t.pc",
+    "proc f(x: real[1]) -> y: real[1]\n    state g: stream = stream(42, \"gyro\")\n    let z = normal(g)\n    y = x*z\nend\n"
+   ]
+  ],
+  "js": []
+ },
+ {
+  "label": "stream: a stream as a number",
+  "files": [
+   [
+    "t.pc",
+    "fn f(seed: int) -> y: real[1]\n    let g = stream(seed, 1)\n    y = g + 1\nend\n"
+   ]
+  ],
+  "js": [
+   "t.pc:3:11: + needs numbers, not stream and int"
+  ]
+ },
+ {
+  "label": "stream: a string not closed",
+  "files": [
+   [
+    "t.pc",
+    "fn f(seed: int) -> g: stream\n    g = stream(seed, \"gyro)\nend\n"
+   ]
+  ],
+  "js": [
+   "t.pc:2:22: a string is not closed on its line"
+  ]
+ },
+ {
+  "label": "stream: an inout number refused",
+  "files": [
+   [
+    "t.pc",
+    "fn f(x: inout real[1]) -> y: real[1]\n    y = x\nend\n"
+   ]
+  ],
+  "js": [
+   "t.pc:1:6: f: x: an inout input is an array, a record or a stream (a number is copied, not shared)"
   ]
  }
 ]

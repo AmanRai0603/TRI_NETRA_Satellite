@@ -43,7 +43,8 @@ function bits(x) {
 }
 
 // does a fn (or anything it calls) use a function whose last bits differ between maths libraries?
-const TRANSCENDENTAL = new Set(["sin", "cos", "tan", "asin", "acos", "atan", "atan2", "exp", "log", "log10", "pow"]);
+// (a normal draw from a stream is Box-Muller's sqrt, log, sin and cos)
+const TRANSCENDENTAL = new Set(["sin", "cos", "tan", "asin", "acos", "atan", "atan2", "exp", "log", "log10", "pow", "normal", "normal3"]);
 function usesTranscendental(f, seen = new Set()) {
   if (seen.has(f.name)) return false;
   seen.add(f.name);
@@ -70,7 +71,7 @@ switch (cmd) {
   case "signatures": {
     out(Object.values(program.fns).map((f) => ({
       module: f.module, name: f.name, kind: f.kind,
-      inputs: f.params.map((p) => ({ name: p.name, type: typeText(p.ty) })),
+      inputs: f.params.map((p) => ({ name: p.name, type: typeText(p.ty), ...(p.inout ? { inout: true } : {}) })),
       outputs: f.outs.map((o) => ({ name: o.name, type: typeText(o.ty) })),
       doc: f.doc,
     })));
@@ -88,7 +89,7 @@ switch (cmd) {
     const I = makeInterpreter(program);
     // n vectors a function, or fewer where its inputs and outputs are many (--budget values a function)
     const nWant = +(opt.n || 12), budget = +(opt.budget || 1e9), rand = prng(+(opt.seed || 1));
-    const width = (t) => (t.k === "arr" ? t.n * width(t.of) : t.k === "rec" ? program.records[t.name].fields.reduce((a, f) => a + width(f.ty), 0) : 1);
+    const width = (t) => (t.k === "arr" ? t.n * width(t.of) : t.k === "rec" ? program.records[t.name].fields.reduce((a, f) => a + width(f.ty), 0) : t.k === "stream" ? 6 : 1);
     const res = {};
     for (const f of Object.values(program.fns)) {
       // a function may ask for its own count in its documentation (`## vectors: 96`): a branchy one
@@ -105,6 +106,9 @@ switch (cmd) {
           if (tt.k === "rec") return Object.fromEntries(program.records[tt.name].fields.map((fl) => [fl.name, draw(fl)]));
           if (tt.k === "arr") return Array.from({ length: tt.n }, () => one(tt.of));
           if (tt.k === "bool") return rand() < 0.5;
+          if (tt.k === "choice") { const n = program.choices[tt.name].options.length; return Math.min(n - 1, Math.floor(rand() * n)); }
+          // a stream: a random key, a counter below 1000, a spare in -1 .. 1 that is there or not
+          if (tt.k === "stream") return [Math.floor(rand() * 4294967296), Math.floor(rand() * 4294967296), 0, Math.floor(rand() * 1000), rand() * 2 - 1, rand() < 0.5 ? 1 : 0];
           if (tt.k === "int") return scalar(range ? range[0] : 0, range ? range[1] : 10, true);
           return scalar(range ? range[0] : 0.1, range ? range[1] : 10, false);
         };
@@ -160,9 +164,10 @@ switch (cmd) {
   case "outkinds": {
     // per fn and proc: for each of its outputs flattened (records field by field), whether it is a whole number or a
     // yes/no (no sign of zero) rather than a real
-    const kinds = (t) => (t.k === "arr" ? Array.from({ length: t.n }, () => kinds(t.of)).flat()
-      : t.k === "rec" ? program.records[t.name].fields.flatMap((f) => kinds(f.ty)) : [t.k === "int" || t.k === "bool"]);
-    out(Object.fromEntries(Object.values(program.fns).map((f) => [`${f.module}::${f.name}`, f.outs.flatMap((o) => kinds(o.ty))])));
+    const kinds = (t) => (t.k === "stream" ? [true, true, true, true, false, true] : t.k === "arr" ? Array.from({ length: t.n }, () => kinds(t.of)).flat()
+      : t.k === "rec" ? program.records[t.name].fields.flatMap((f) => kinds(f.ty)) : [t.k === "int" || t.k === "bool" || t.k === "choice"]);
+    // (an inout input's value after the call follows the outputs)
+    out(Object.fromEntries(Object.values(program.fns).map((f) => [`${f.module}::${f.name}`, [...f.outs, ...f.params.filter((p) => p.inout)].flatMap((o) => kinds(o.ty))])));
     break;
   }
   // --root and --math embed the Rust as a module of a no_std crate (the flight build); --no-dispatch leaves out the

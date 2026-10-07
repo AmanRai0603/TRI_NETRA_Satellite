@@ -21,7 +21,8 @@ pub const CASE_HEADER: &str = "section,key,label,unit,value,lo,hi,level,note";
 
 /// The toolbox this engine offers a design: the functions its relations and inputs may call.
 /// A design names the toolbox it was built for (its meta `toolbox`) and is refused by any other.
-pub const TOOLBOX: &str = "trinetra-toolbox/1";
+/// /2 (S7.2): data tables, inf and nan, choices, named capacities, inputs by reference, the sort, random streams.
+pub const TOOLBOX: &str = "trinetra-toolbox/2";
 
 /// This program's version: a design names the oldest application that can run it (its meta
 /// `needs_application`), and a newer one is refused by name.
