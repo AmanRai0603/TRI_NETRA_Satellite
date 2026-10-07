@@ -1,0 +1,64 @@
+## The momentum devices' geometry and their momentum in the body, transcribed from adcs-sim-core plant.rs (Geometry::new,
+## Geometry::axes, deriv: the rotors' part; the twin's asils.plant.geometry, axes and deriv): each rotor's spin axis a0
+## and, on a gimbal, its transverse axis t0 = g x a0 (the gimbal's axis crossed with the spin axis); at gimbal angle
+## delta the spin axis turns to cos(delta) a0 + sin(delta) t0. A rotor's momentum h along its axis adds h a to the
+## body's; its torque tau_r along the axis, and the turning of the axis at the gimbal rate (h gdot (-sin a0 + cos t0)),
+## are what the body feels from it (Wie 2008, Space Vehicle Dynamics and Control, section 7.2 and 7.5; Hughes 1986,
+## Spacecraft Attitude Dynamics, chapter 3). Wheels and fluid rings are rotors on no gimbal (gi = 0).
+## The developer's transcription (S7.5), unsigned.
+module rotors
+
+## The most rotors and gimbals the plant carries (adcs-sim-core NR, NG).
+const DYN_NR = 8
+const DYN_NG = 4
+
+## The rotors' geometry: how many rotors and gimbals, each rotor's spin and transverse axes (body, unit), the gimbals'
+## axes, and each rotor's gimbal (1-based; 0 on none).
+record RotorGeometry
+    nr: int
+    ng: int
+    a0: real[1][3][DYN_NR]
+    t0: real[1][3][DYN_NR]
+    g: real[1][3][DYN_NG]
+    gi: int[DYN_NR]
+end
+
+## The geometry of nr rotors of spin axes a0 on the gimbals gi (1-based, 0 on none) of ng gimbals of axes g.
+fn rotor_geometry(a0: real[1][3][DYN_NR] in -1 .. 1, g: real[1][3][DYN_NG] in -1 .. 1, gi: int[DYN_NR] in 0 .. 4, \
+                  nr: int in 0 .. 8, ng: int in 0 .. 4) -> m: RotorGeometry
+    let a: real[1][3][DYN_NR] = 0
+    let t0: real[1][3][DYN_NR] = 0
+    let gg: real[1][3][DYN_NG] = 0
+    let gix: int[DYN_NR] = 0
+    for ir in 0 .. nr
+        a[ir] = a0[ir]
+        gix[ir] = gi[ir]
+        if gi[ir] > 0
+            t0[ir] = cross(g[gi[ir] - 1], a0[ir])
+        end
+    end
+    for jg in 0 .. ng
+        gg[jg] = g[jg]
+    end
+    m = RotorGeometry()
+    m.nr = nr
+    m.ng = ng
+    m.a0 = a
+    m.t0 = t0
+    m.g = gg
+    m.gi = gix
+end
+
+## The rotors' spin axes (body) at the gimbal angles d.
+fn rotor_axes(m: RotorGeometry, d: real[1][DYN_NG] in -3.2 .. 3.2) -> a: real[1][3][DYN_NR]
+    a = m.a0
+    for ir in 0 .. m.nr
+        let jg = m.gi[ir]
+        if jg > 0
+            let dj = d[jg - 1]
+            for k in 0 .. 3
+                a[ir][k] = cos(dj)*m.a0[ir][k] + sin(dj)*m.t0[ir][k]
+            end
+        end
+    end
+end

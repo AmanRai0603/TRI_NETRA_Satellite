@@ -1,0 +1,40 @@
+## The Sun of the engine's fast orbit, transcribed from adcs-sim-core ephem.rs (sun, ecl2eq, p_srp): the low-precision
+## solar coordinates of Montenbruck and Gill (2000, Satellite Orbits, section 3.3.2, eq. 3.43-3.46), geocentric, mean
+## equator and equinox of J2000 [m], at a TT Julian date; and the Sun's radiation pressure at a distance, the engine's
+## 4.56e-6 N/m^2 at 1 AU (Montenbruck and Gill 2000, eq. 3.69) falling as the inverse square.
+## Not m3_5's model: m3_5 (env::solar_pressure) gives F_sun/c at the Earth-Sun distance of Vallado's series, 0.46 % below
+## this at the Sun's distance from the spacecraft; the engine flies this one (a finding for env, docs/S7_INVENTORY.md S7.4).
+## The developer's transcription (S7.4), unsigned.
+module sunfast
+
+## pi/180, the double nearest (ephem.rs D2R).
+const SUN_D2R = 0.017453292519943295
+## The obliquity of the ecliptic at J2000 [deg] (Montenbruck and Gill 2000, eq. 3.43: 23.43929111 deg).
+const SUN_EPS_J2000_DEG = 23.43929111
+## The Sun's radiation pressure at 1 AU [N/m^2] (Montenbruck and Gill 2000, eq. 3.69: 4.56e-6 N/m^2).
+const SUN_P_1AU = 4.56e-6 [Pa]
+
+## Ecliptic longitude, latitude [rad] and distance to the mean equator and equinox of J2000 (a rotation about x by the
+## obliquity).
+fn ecliptic_to_j2000(l: real[1] in -7 .. 7, b: real[1] in -1.6 .. 1.6, r: real[m] in 3e8 .. 2e11) -> p: vec3[m]
+    let x = r*cos(b)*cos(l)
+    let y = r*cos(b)*sin(l)
+    let z = r*sin(b)
+    let eps = SUN_EPS_J2000_DEG*SUN_D2R
+    p = [x, cos(eps)*y - sin(eps)*z, sin(eps)*y + cos(eps)*z]
+end
+
+## The Sun's geocentric position [m], J2000, at a TT Julian date (Montenbruck and Gill 2000, eq. 3.43-3.46: the mean
+## anomaly, the ecliptic longitude with the equation of centre, the distance).
+fn sun_position_fast(jd_tt: real[1] in 2451545 .. 2470000) -> s: vec3[m]
+    let t = (jd_tt - 2451545.0)/36525.0
+    let m = fmod(357.5256 + 35999.049*t, 360.0)*SUN_D2R
+    let l = (282.9400*SUN_D2R) + m + (6892.0*sin(m) + 72.0*sin(2.0*m))/3600.0*SUN_D2R
+    let r = (149.619 - 2.499*cos(m) - 0.021*cos(2.0*m))*1e9 [m]
+    s = ecliptic_to_j2000(l, 0.0, r)
+end
+
+## The Sun's radiation pressure [N/m^2] at a distance d from the Sun: 4.56e-6 N/m^2 at 1 AU, as the inverse square.
+fn solar_pressure_at(d: real[m] in 1.4e11 .. 1.6e11) -> p: real[Pa]
+    p = SUN_P_1AU*(AU_M/d)*(AU_M/d)
+end

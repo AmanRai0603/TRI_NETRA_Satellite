@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""The engine build (docs/PLAN_2_0.md S7; docs/S7_INVENTORY.md S7.3-S7.3e): the time engine's published models written from
-the design. Only the engine's core stays hand-written (step order, recorder, the toolbox); a model of the world is a
-method of an env node, and its Rust is generated here, never edited.
+"""The engine build (docs/PLAN_2_0.md S7; docs/S7_INVENTORY.md S7.3-S7.5): the time engine's published models and relations
+written from the design. Only the engine's core stays hand-written (step order, recorder, integrators, the toolbox); a
+model of the world or of the spacecraft is a method of an env or dyn node, and its Rust is generated here, never edited.
 
     python3 tools/engine_build.py gen [--check] [--design FILE]
     python3 tools/engine_build.py modules [--design FILE]      which modules each target takes, and from where
@@ -14,7 +14,10 @@ JavaScript one, byte for byte the same, when the library's command is not built)
 its crate:
 
   engine/crates/adcs-sim-core/src/gen/   the engine's truth environment: calendar and sidereal time, the field along the
-                                         orbit, the fast orbit's atmosphere, elements to state; its scalar maths from
+                                         orbit, the fast orbit's atmosphere, elements to state (S7.3); the box's faces
+                                         and the disturbance torques, the fast Sun, its pressure and the Moon, the
+                                         shadow and the eclipse fraction (S7.4); the plant's rate, the rotors' geometry,
+                                         the flexible mode and the total momentum (dyn, S7.5); its scalar maths from
                                          crate::pm (the pure-Rust libm: the same trajectory on every target), no_std
   engine/crates/adcs-pop/src/gen/        the precision orbit's time scales, geodetic coordinates, Earth frames, the
                                          IAU 2006/2000A kernel and the tidal EOP models (S7.3); the atmosphere

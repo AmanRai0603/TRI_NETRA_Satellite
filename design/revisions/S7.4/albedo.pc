@@ -1,0 +1,22 @@
+## The pressure of the Earth's reflected sunlight (albedo) on a plate facing the Earth's centre, transcribed from
+## adcs-sim-core torques.rs (earth_pressure: albedo; the twin's asils.env.earth_pressure): the Sun's pressure at the
+## satellite times the Earth's Bond albedo, the view factor of a sphere to a plate facing it, (Re/r)^2, and the cosine
+## of the Sun's zenith angle under the satellite (none over the night side); the Earth a point source at the nadir
+## (Knocke, Ries and Tapley 1988's rings not modelled).
+## The albedo is the value the engine flies, 0.30; the code's comment cites Kiehl and Trenberth (1997) for 0.31 (a
+## finding for env, docs/S7_INVENTORY.md S7.4).
+## The developer's transcription (S7.4), unsigned.
+module albedo
+
+## The Earth's mean Bond albedo, as flown (torques.rs EARTH_ALBEDO).
+const EARTH_ALBEDO = 0.30
+
+## The albedo pressure [N/m^2] at the inertial position r, the Sun at sun_rel from the satellite, p_sun the Sun's
+## pressure at the satellite.
+fn albedo_pressure(r: vec3[m] in -8e6 .. 8e6, sun_rel: vec3[m] in -1.5e11 .. 1.5e11, p_sun: real[Pa] in 4e-6 .. 5e-6) -> p: real[Pa]
+    let rn = norm(r)
+    let vf = (R_E/rn)*(R_E/rn)
+    let cz0 = dot(unit_or_zero((sun_rel + r)*(1.0 [1/m])), r*(1.0/rn))
+    let cz = if cz0 > 0.0 then cz0 else 0.0
+    p = EARTH_ALBEDO*p_sun*vf*cz
+end

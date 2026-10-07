@@ -217,6 +217,84 @@
     "a field read from an ICGEM .gfc file: the reader (code) hands its coefficients to the generated evaluation, which holds degree 120 at most",
     "the Love numbers, the Earth's angular momentum and the PPN parameters are constants of the methods (IERS 2010), not yet stated nodes"
    ]
+  },
+  "after_s7_4": {
+   "built_in": 80,
+   "built_in_by_group": {
+    "act": 38,
+    "design": 19,
+    "dyn": 4,
+    "oils": 1,
+    "pnt": 4,
+    "sens": 14
+   },
+   "behaviours": {
+    "stated": 304,
+    "open": 304,
+    "children": 134,
+    "lookup": 126,
+    "evidence": 119,
+    "method": 85,
+    "built-in": 80,
+    "closure": 38
+   },
+   "design_nodes": 1190,
+   "how": "the developer's revision S7.4: env's methods for the disturbance torques (the box's faces and the aerodynamic torque, gravity gradient, radiation of the Sun and the Earth's albedo and infrared, residual dipole), the fast orbit's Sun and its pressure, its Moon (a new node, env_moon_fast), the conical shadow and the eclipse fraction, transcribed under design/revisions/S7.4 and generated into adcs-sim-core by tools/engine_build.py; six values the code used with no node stated by dyn as the 1.0.0 code gave them, applied by tools/convert_2_0.py",
+   "moved": [
+    "l3_dist_row_01",
+    "l3_dist_row_02",
+    "l3_dist_row_03",
+    "l3_dist_row_04",
+    "l3_dist_row_05",
+    "l3_dist_row_06",
+    "l3_dist_row_09",
+    "l3_dist_row_10",
+    "m2_7"
+   ],
+   "added": {
+    "env_moon_fast": "method",
+    "dyn_cm_direction_x": "stated 0.30",
+    "dyn_cm_direction_y": "stated 0.70",
+    "dyn_cm_direction_z": "stated -0.65",
+    "dyn_surface_accommodation": "stated 0.8",
+    "dyn_surface_vb_ratio": "stated 0.05",
+    "dyn_surface_specular_share": "stated 0.5"
+   },
+   "findings": [
+    "env: the engine flies the Sun's pressure as 4.56e-6 N/m^2 at 1 AU over the Sun's distance from the spacecraft (ephem.rs p_srp, now l3_dist_row_09's solar_pressure_at); m3_5's env::solar_pressure gives F_sun/c at the Earth-Sun distance of Vallado's series, 0.46 % below it: transcribed as flown, not switched",
+    "env: torques.rs cites albedo 0.31 and 235 W/m^2 (Kiehl and Trenberth 1997) and flies 0.30 and 237 W/m^2: transcribed as flown (l3_dist_row_04, l3_dist_row_05)",
+    "dyn: the six stated values are still read from adcs-sim/src/config.rs's own copies until S7.11 builds the configuration from the design; tests/test_built_in.py holds them equal"
+   ],
+   "regression_copy_bytes": 9609216
+  },
+  "after_s7_5": {
+   "built_in": 76,
+   "built_in_by_group": {
+    "act": 38,
+    "design": 19,
+    "oils": 1,
+    "pnt": 4,
+    "sens": 14
+   },
+   "behaviours": {
+    "stated": 304,
+    "open": 304,
+    "children": 134,
+    "lookup": 126,
+    "evidence": 119,
+    "method": 89,
+    "built-in": 76,
+    "closure": 38
+   },
+   "design_nodes": 1190,
+   "how": "the developer's revision S7.5: dyn's methods for the rotors' geometry and coupling, the flexible mode, the rigid body's rate with its momentum devices and the total momentum, transcribed under design/revisions/S7.5 and generated into adcs-sim-core by tools/engine_build.py; the integrator (RK4 with the inputs held, the flexible mode's sub-steps) stays code and calls the generated rate",
+   "moved": [
+    "dyn_rotor_coupling",
+    "dyn_flexible_mode",
+    "dyn_rigid_body",
+    "dyn_total_momentum"
+   ],
+   "regression_copy_bytes": 9621504
   }
  },
  "built_in_nodes": [
@@ -1564,7 +1642,8 @@
    "carried_code": {
     "code.rust": "engine/crates/adcs-sim-core/src/plant.rs",
     "code.twin": "[\"+plant\"]"
-   }
+   },
+   "status": "method (S7.5)"
   },
   {
    "node": "dyn_rigid_body",
@@ -1578,7 +1657,8 @@
    "carried_code": {
     "code.rust": "engine/crates/adcs-sim-core/src/plant.rs",
     "code.twin": "[\"+plant\"]"
-   }
+   },
+   "status": "method (S7.5)"
   },
   {
    "node": "dyn_rotor_coupling",
@@ -1592,7 +1672,8 @@
    "carried_code": {
     "code.rust": "engine/crates/adcs-sim-core/src/plant.rs",
     "code.twin": "[\"+plant\"]"
-   }
+   },
+   "status": "method (S7.5)"
   },
   {
    "node": "dyn_total_momentum",
@@ -1606,7 +1687,8 @@
    "carried_code": {
     "code.rust": "engine/crates/adcs-sim-core/src/plant.rs",
     "code.twin": "[\"+plant\"]"
-   }
+   },
+   "status": "method (S7.5)"
   },
   {
    "node": "l3_dist_gd_0_achieved",
@@ -1691,7 +1773,8 @@
    "fate": "write as a method (transcription)",
    "carried_code": {
     "code.rust": "engine/crates/adcs-sim-core/src/torques.rs"
-   }
+   },
+   "status": "method (S7.4)"
   },
   {
    "node": "l3_dist_row_02",
@@ -1704,7 +1787,8 @@
    "fate": "write as a method (transcription)",
    "carried_code": {
     "code.rust": "engine/crates/adcs-sim-core/src/torques.rs"
-   }
+   },
+   "status": "method (S7.4)"
   },
   {
    "node": "l3_dist_row_03",
@@ -1717,7 +1801,8 @@
    "fate": "write as a method (transcription)",
    "carried_code": {
     "code.rust": "engine/crates/adcs-sim-core/src/torques.rs"
-   }
+   },
+   "status": "method (S7.4)"
   },
   {
    "node": "l3_dist_row_04",
@@ -1730,7 +1815,8 @@
    "fate": "write as a method (transcription)",
    "carried_code": {
     "code.rust": "engine/crates/adcs-sim-core/src/torques.rs"
-   }
+   },
+   "status": "method (S7.4)"
   },
   {
    "node": "l3_dist_row_05",
@@ -1743,7 +1829,8 @@
    "fate": "write as a method (transcription)",
    "carried_code": {
     "code.rust": "engine/crates/adcs-sim-core/src/torques.rs"
-   }
+   },
+   "status": "method (S7.4)"
   },
   {
    "node": "l3_dist_row_06",
@@ -1756,7 +1843,8 @@
    "fate": "write as a method (transcription)",
    "carried_code": {
     "code.rust": "engine/crates/adcs-sim-core/src/torques.rs"
-   }
+   },
+   "status": "method (S7.4)"
   },
   {
    "node": "l3_dist_row_07",
@@ -1795,7 +1883,8 @@
    "fate": "write as a method (transcription)",
    "carried_code": {
     "code.rust": "engine/crates/adcs-sim-core/src/ephem.rs"
-   }
+   },
+   "status": "method (S7.4)"
   },
   {
    "node": "l3_dist_row_10",
@@ -1808,7 +1897,8 @@
    "fate": "write as a method (transcription)",
    "carried_code": {
     "code.rust": "engine/crates/adcs-sim-core/src/torques.rs"
-   }
+   },
+   "status": "method (S7.4)"
   },
   {
    "node": "m2_7",
@@ -1823,7 +1913,8 @@
     "code.c": "[\"adcs_env.c\"]",
     "code.rust": "[\"adcs-pop\", \"adcs-sim-core/orbit.rs\", \"adcs-sim-core/field.rs\", \"adcs-sim-core/atmos.rs\", \"adcs-sim-core/ephem.rs\", \"adcs-sim-core/torques.rs\", \"fsw-rs/env.rs\"]",
     "code.twin": "[\"+env\", \"+orbit\"]"
-   }
+   },
+   "status": "method (S7.4)"
   },
   {
    "node": "gq_2",
@@ -3777,7 +3868,8 @@
     "G13"
    ],
    "step": "S7.4",
-   "note": "The flight software's sun_model (fsw/pseudocode/02) is a different series; keep both or choose one (env decides)."
+   "note": "The flight software's sun_model (fsw/pseudocode/02) is a different series; keep both or choose one (env decides).",
+   "status": "done (S7.4)"
   },
   {
    "id": "core.ephem.moon",
@@ -3791,7 +3883,8 @@
     "G13"
    ],
    "step": "S7.4",
-   "note": "No node: env adds one."
+   "note": "No node: env adds one.",
+   "status": "done (S7.4)"
   },
   {
    "id": "core.ephem.psrp",
@@ -3822,7 +3915,8 @@
     "G13"
    ],
    "step": "S7.4",
-   "note": ""
+   "note": "",
+   "status": "done (S7.4)"
   },
   {
    "id": "core.field",
@@ -3897,7 +3991,8 @@
    "kind": "relation",
    "gaps": [],
    "step": "S7.4",
-   "note": ""
+   "note": "",
+   "status": "done (S7.4)"
   },
   {
    "id": "core.torques",
@@ -3918,7 +4013,8 @@
    "kind": "relation",
    "gaps": [],
    "step": "S7.4",
-   "note": "gd_0..gd_3 are worst-case analysis methods; the per-facet in-loop torques are new methods."
+   "note": "gd_0..gd_3 are worst-case analysis methods; the per-facet in-loop torques are new methods.",
+   "status": "done (S7.4)"
   },
   {
    "id": "core.earth_pressure",
@@ -3933,7 +4029,8 @@
    "kind": "relation + 2 parameters",
    "gaps": [],
    "step": "S7.4",
-   "note": "Finding for env: the comment cites albedo 0.31 and 235 W/m^2; the code flies 0.30 and 237 W/m^2."
+   "note": "Finding for env: the comment cites albedo 0.31 and 235 W/m^2; the code flies 0.30 and 237 W/m^2.",
+   "status": "done (S7.4)"
   },
   {
    "id": "core.orbit.accel",
@@ -3995,7 +4092,8 @@
     "G12"
    ],
    "step": "S7.5",
-   "note": "dyn_kinematics is already a method; the core keeps RK4 and calls the generated deriv."
+   "note": "dyn_kinematics is already a method; the core keeps RK4 and calls the generated deriv.",
+   "status": "done (S7.5): the rate is dyn's method"
   },
   {
    "id": "core.plant.integ",
@@ -4009,7 +4107,8 @@
     "G8"
    ],
    "step": "S7.5",
-   "note": "The rule \"Omega h at most 0.5\" is a numerical choice of the integrator: keep in core."
+   "note": "The rule \"Omega h at most 0.5\" is a numerical choice of the integrator: keep in core.",
+   "status": "core (S7.5): stays code, calls the generated rate"
   },
   {
    "id": "core.act.mtq",
@@ -5451,12 +5550,14 @@
   {
    "step": "S7.4",
    "work": "Environment and disturbances (env): facets, gravity gradient, aero and radiation per facet, Earth albedo and IR, residual dipole, Sun (fast), Moon, shadow; their parameters as stated nodes. Transcribe from torques.rs and ephem.rs.",
-   "parity": "vectors: interpreter = Rust = C = MATLAB; every scenario's metrics identical; twin-parity no worse"
+   "parity": "vectors: interpreter = Rust = C = MATLAB; every scenario's metrics identical; twin-parity no worse",
+   "status": "done (8 Oct 2026): the disturbance torques, the box's faces, the fast Sun and its pressure, the Moon, the shadow and the eclipse fraction are env's methods; 0 bits different old against generated (200,000 random inputs each); 48 of 48 scenarios, the fast orbit's 48 and both cases' sizing bit for bit"
   },
   {
    "step": "S7.5",
    "work": "The plant (dyn): deriv with rotors, gimbals and the flexible mode, momentum. The core RK4 calls the generated deriv (G8).",
-   "parity": "vectors; momentum conservation test (adcs-sim-core tests); scenarios identical; twin-parity"
+   "parity": "vectors; momentum conservation test (adcs-sim-core tests); scenarios identical; twin-parity",
+   "status": "done (8 Oct 2026): the rotors' geometry and coupling, the flexible mode, the rigid body's rate and the total momentum are dyn's methods; the core's RK4 calls the generated rate; 0 bits different old against generated (200,000 random bodies and states, a 20,000-step flexible trajectory); 48 of 48 scenarios and 48 on flexible-mode variants of the cases bit for bit"
   },
   {
    "step": "S7.6",

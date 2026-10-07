@@ -2,8 +2,22 @@
 //! Every relation is SI in and SI out; each function's doc lists its inputs and outputs with their units.
 #![allow(clippy::all)]
 pub mod rt;
+pub mod flexmode;
+pub mod momentum;
+pub mod rigidbody;
+pub mod rotors;
+pub mod albedo;
 pub mod caltime;
+pub mod dipoletorque;
+pub mod earthir;
+pub mod eclipse;
 pub mod elements;
+pub mod facets;
+pub mod gravgrad;
+pub mod moonfast;
+pub mod radiation;
+pub mod shadow;
+pub mod sunfast;
 pub mod truthdensity;
 pub mod truthfield;
 pub mod math;

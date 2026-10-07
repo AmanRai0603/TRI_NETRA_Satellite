@@ -1,0 +1,29 @@
+## The Earth's shadow on the satellite, transcribed from adcs-sim-core ephem.rs (shadow; the twin's asils.env.shadow): the
+## conical model (Montenbruck and Gill 2000, Satellite Orbits, section 3.4.2): the apparent radii of the Sun and the
+## Earth seen from the satellite and the angle between their centres; the sunlit fraction is one minus the share of
+## the Sun's disc the Earth's disc covers (1 sunlit, 0 umbra). The Sun's radius 6.957e8 m (IAU 2015 Resolution B3,
+## nominal), the Earth's 6378137 m (WGS-84).
+## The developer's transcription (S7.4), unsigned.
+module shadow
+
+## The Sun's nominal radius [m] (IAU 2015 Resolution B3).
+const SHADOW_R_SUN = 6.957e8 [m]
+
+## The sunlit fraction nu of the Sun's disc seen from r_sat, the Sun at r_sun (both geocentric, the same frame).
+## vectors: 160
+fn shadow_fraction(r_sat: vec3[m] in 4e6 .. 6e6, r_sun: vec3[m] in -1.5e11 .. 1.5e11) -> nu: real[1]
+    let d = r_sun - r_sat
+    let a = asin(SHADOW_R_SUN/norm(d))
+    let b = asin(R_E/norm(r_sat))
+    let c = acos(clamp(-dot(r_sat, d)/(norm(r_sat)*norm(d)), -1.0, 1.0))
+    if c >= a + b
+        nu = 1.0
+    elif c < b - a
+        nu = 0.0
+    else
+        let x = (c*c + a*a - b*b)/(2.0*c)
+        let y = sqrt(if a*a - x*x > 0.0 then a*a - x*x else 0.0)
+        let ar = a*a*acos(clamp(x/a, -1.0, 1.0)) + b*b*acos(clamp((c - x)/b, -1.0, 1.0)) - c*y
+        nu = 1.0 - ar/(pi*a*a)
+    end
+end

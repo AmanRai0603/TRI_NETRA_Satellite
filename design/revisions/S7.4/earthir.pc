@@ -1,0 +1,17 @@
+## The pressure of the Earth's emitted (infrared) light on a plate facing the Earth's centre, transcribed from
+## adcs-sim-core torques.rs (earth_pressure: IR; the twin's asils.env.earth_pressure): the Earth's mean outgoing
+## long-wave flux over the speed of light, times the view factor (Re/r)^2; the Earth a point source at the nadir.
+## The flux is the value the engine flies, 237 W/m^2; the code's comment cites Kiehl and Trenberth (1997) for 235 W/m^2
+## (a finding for env, docs/S7_INVENTORY.md S7.4).
+## The developer's transcription (S7.4), unsigned.
+module earthir
+
+## The Earth's mean emitted flux [W/m^2], as flown (torques.rs EARTH_IR_W_M2).
+const EARTH_IR_FLUX = 237.0 [W/m^2]
+
+## The infrared pressure [N/m^2] at the inertial position r.
+fn earth_ir_pressure(r: vec3[m] in -8e6 .. 8e6) -> p: real[Pa]
+    let rn = norm(r)
+    let vf = (R_E/rn)*(R_E/rn)
+    p = EARTH_IR_FLUX/C_LIGHT*vf
+end

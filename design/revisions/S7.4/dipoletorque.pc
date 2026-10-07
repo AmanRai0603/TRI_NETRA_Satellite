@@ -1,0 +1,10 @@
+## The torque of the satellite's residual magnetic dipole in the field, transcribed from adcs-sim-core torques.rs
+## (torques: mag; the twin's asils.env.torques): m_res x B_b (Wertz 1978, eq. 17-48).
+## The developer's transcription (S7.4), unsigned.
+module dipoletorque
+
+## The residual-dipole torque [N m], body axes, of the dipole m_res (body axes) in the field b_eci (inertial), rm the
+## inertial-to-body matrix.
+fn residual_dipole_torque(rm: mat3[1] in -1 .. 1, m_res: vec3[A m^2] in -0.1 .. 0.1, b_eci: vec3[T] in -6e-5 .. 6e-5) -> tau: vec3[N m]
+    tau = cross(m_res, rm*b_eci)
+end

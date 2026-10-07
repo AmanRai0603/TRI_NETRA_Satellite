@@ -167,7 +167,8 @@ def _matches(m, nid, kind, content):
 
 def add_nodes(gdir, groups, revs, report):
     """The nodes the developer's revisions add (`[[revision.node]]`), each a new block of its group under the parent it
-    names, with the behaviour it says: written before the group files, so each group lists them."""
+    names, with the behaviour it says and any content rows it gives (a stated value and its source, S7.4): written
+    before the group files, so each group lists them."""
     have = {f.name[:-len(".node.tndb")] for d in gdir.values() for f in (d / "nodes").glob("*.node.tndb")}
     why = {}
     for r in revs:
@@ -178,7 +179,7 @@ def add_nodes(gdir, groups, revs, report):
             if n["group"] not in groups or n["parent"] not in have:
                 raise SystemExit(f"convert: revision {r['id']} adds {n['id']} to group {n['group']} under {n['parent']}: no such group or block")
             new_node(gdir[n["group"]] / "nodes" / f"{n['id']}.node.tndb", n["id"], n["group"], n.get("kind", "leaf"), n["label"], n.get("layer", 2),
-                     content=[("identity", "question", n["question"], origin)],
+                     content=[("identity", "question", n["question"], origin)] + [(a, b, v, origin) for a, b, v in n.get("content", [])],
                      block=(n["id"], n["parent"], n.get("perspective", "system"), n["behaviour"], None, None))
             with sqlite3.connect(gdir[n["group"]] / "nodes" / f"{n['id']}.node.tndb") as c:
                 c.execute("INSERT INTO revision VALUES (?, ?, ?, ?)", (1, r["at"], r["by"], f"{r['id']}: added ({n['behaviour']}): {n['why']}"))

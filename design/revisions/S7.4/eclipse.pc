@@ -1,0 +1,20 @@
+## The eclipse fraction of an orbit, transcribed from adcs-design lib.rs (survey: eclipse_frac): the share of the
+## orbit's samples, evenly spaced over one period, at which the Earth hides more than half the Sun's disc (the sunlit
+## fraction of env's conical shadow below 0.5).
+## The developer's transcription (S7.4), unsigned.
+module eclipse
+
+## The most samples of one orbit the fraction is taken over (G12).
+const ECLIPSE_NMAX = 2048
+
+## The share of the first n samples of the sunlit fraction nu below one half.
+## vectors: 4
+fn eclipse_fraction(nu: real[1][ECLIPSE_NMAX] in 0 .. 1, n: int in 1 .. 2048) -> f: real[1]
+    let k = 0
+    for i in 0 .. n
+        if nu[i] < 0.5
+            k = k + 1
+        end
+    end
+    f = real(k)/real(n)
+end

@@ -1,0 +1,36 @@
+## The radiation-pressure torque on the faces, transcribed from adcs-sim-core torques.rs (radiation, torques: srp; the
+## twin's asils.env.torques): light of pressure p arriving from a body direction on each face it reaches, absorbed,
+## specularly and diffusely reflected (Wertz 1978, eq. 17-6: -p A cos(theta) ((1 - rho_s) s + 2 (rho_s cos(theta) +
+## rho_d/3) n)); the Sun's light, scaled by the sunlit fraction, and the Earth's reflected and emitted light from the
+## nadir.
+## The developer's transcription (S7.4), unsigned.
+module radiation
+
+## The torque [N m] of light of pressure p arriving from the body direction sb (unit, towards the source) on the faces.
+fn radiation_torque(g: Facets, sb: vec3[1] in -1 .. 1, p: real[Pa] in 0 .. 1e-5) -> tau: vec3[N m]
+    tau = [0, 0, 0]
+    for j in 0 .. 6
+        let c = dot(sb, g.n[j])
+        if not (c <= 0.0)
+            let f: vec3[N] = [0, 0, 0]
+            for k in 0 .. 3
+                f[k] = -p*g.a[j]*c*((1.0 - g.rho_spec)*sb[k] + 2.0*(g.rho_spec*c + g.rho_diff/3.0)*g.n[j][k])
+            end
+            tau = tau + cross(g.rho[j], f)
+        end
+    end
+end
+
+## The radiation torque [N m], body axes: the Sun's light (the Sun at sun_rel from the satellite, nu its sunlit
+## fraction, p_srp its pressure at the satellite) and the Earth's albedo and infrared from the nadir; r the inertial
+## position, rm the inertial-to-body matrix.
+fn light_torque(rm: mat3[1] in -1 .. 1, r: vec3[m] in -8e6 .. 8e6, sun_rel: vec3[m] in -1.5e11 .. 1.5e11, nu: real[1] in 0 .. 1, \
+                p_srp: real[Pa] in 4e-6 .. 5e-6, g: Facets) -> tau: vec3[N m]
+    let sun: vec3[N m] = [0, 0, 0]
+    if nu > 0.0
+        sun = radiation_torque(g, unit_or_zero((rm*sun_rel)*(1.0 [1/m])), nu*p_srp)
+    end
+    let p_earth = albedo_pressure(r, sun_rel, p_srp) + earth_ir_pressure(r)
+    let eb = unit_or_zero((rm*r)*(-1.0 [1/m]))
+    tau = sun + radiation_torque(g, eb, p_earth)
+end

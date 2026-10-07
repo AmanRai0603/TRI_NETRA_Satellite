@@ -9,12 +9,13 @@ content, for tools). Line counts are of the code as it stands.
 
 ## Counts
 
-**Now, after S7.3e (7 Oct 2026): 89 built-in nodes**, the relations computed in code (act 38, design 19, dyn 4,
-env 9, oils 1, pnt 4, sens 14). Behaviours of the 1,183 nodes: open 304, stated 298, children 134, lookup 126,
-evidence 119, built-in 89, method 75, closure 38. (After S7.1b: 91 built-in of 1,155; S7.2b added 3 data nodes, S7.3
+**Now, after S7.5 (8 Oct 2026): 76 built-in nodes**, the relations computed in code (act 38, design 19, oils 1,
+pnt 4, sens 14; env and dyn have none left). Behaviours of the 1,190 nodes: stated 304, open 304, children 134, lookup
+126, evidence 119, method 89, built-in 76, closure 38. (After S7.1b: 91 built-in of 1,155; S7.2b added 3 data nodes, S7.3
 8 method nodes, turned l3_dist_row_07 and l3_dist_row_08 into methods and nav_time_frames into a stated row whose
 method moved to env; S7.3b-e added 6 data nodes and 11 method nodes of env, the published models of the precision
-orbit, which the inventory had called toolbox, so the built-in count did not move.) `python3 tools/health.py tests/regression --built-in` counts them;
+orbit, which the inventory had called toolbox, so the built-in count did not move; S7.4 turned env's 9 into methods
+(89 to 80) and added env_moon_fast and six stated values of dyn; S7.5 turned dyn's 4 into methods (80 to 76).) `python3 tools/health.py tests/regression --built-in` counts them;
 `tests/test_built_in.py` holds the list, and each S7 step takes its nodes out of it. The counts below are the
 inventory's, at `cac5aac`.
 
@@ -150,21 +151,21 @@ answer. *closure*: a KPI comparison. *no code*: nothing computes it. *runtime*: 
 | l3_budget_row_06 | design | Mass budget | adcs-design/src/lib.rs:budget | +sizing | S7.15 |
 | l3_budget_row_07 | design | Power budget | adcs-design/src/lib.rs:budget | +sizing | S7.15 |
 | l3_budget_row_08 | design | Volume budget | adcs-design/src/lib.rs:budget | +sizing | S7.15 |
-| dyn_flexible_mode | dyn | Flexible mode (hybrid coordinates) | adcs-sim-core/src/plant.rs:Body::flexible, deriv; adcs-sim/src/config.rs:build (delta) | +plant/deriv.m; config.m | S7.5 |
-| dyn_rigid_body | dyn | Rigid-body attitude dynamics | adcs-sim-core/src/plant.rs:deriv | +plant/deriv.m | S7.5 |
-| dyn_rotor_coupling | dyn | Rotor and ring momentum coupling | adcs-sim-core/src/plant.rs:Geometry::new, axes, deriv | +plant/deriv.m | S7.5 |
-| dyn_total_momentum | dyn | Total angular momentum | adcs-sim-core/src/plant.rs:momentum | +plant/deriv.m | S7.5 |
-| l3_dist_row_01 | env | Gravity-gradient torque | adcs-sim-core/src/torques.rs:torques (gg) | +env/torques.m, earth_pressure.m, geometry.m | S7.4 |
-| l3_dist_row_02 | env | Aerodynamic torque per facet | adcs-sim-core/src/torques.rs:torques (aero), Facets::boxed | +env/torques.m, earth_pressure.m, geometry.m | S7.4 |
-| l3_dist_row_03 | env | Solar radiation pressure torque per facet | adcs-sim-core/src/torques.rs:radiation, torques (srp) | +env/torques.m, earth_pressure.m, geometry.m | S7.4 |
-| l3_dist_row_04 | env | Earth albedo pressure torque | adcs-sim-core/src/torques.rs:earth_pressure (albedo) | +env/torques.m, earth_pressure.m, geometry.m | S7.4 |
-| l3_dist_row_05 | env | Earth infrared pressure torque | adcs-sim-core/src/torques.rs:earth_pressure (IR) | +env/torques.m, earth_pressure.m, geometry.m | S7.4 |
-| l3_dist_row_06 | env | Residual magnetic dipole torque | adcs-sim-core/src/torques.rs:torques (mag) | +env/torques.m, earth_pressure.m, geometry.m | S7.4 |
+| dyn_flexible_mode | dyn | Flexible mode (hybrid coordinates) | adcs-sim-core/src/plant.rs:Body::flexible, deriv; adcs-sim/src/config.rs:build (delta) | +plant/deriv.m; config.m | S7.5 *(done: method)* |
+| dyn_rigid_body | dyn | Rigid-body attitude dynamics | adcs-sim-core/src/plant.rs:deriv | +plant/deriv.m | S7.5 *(done: method)* |
+| dyn_rotor_coupling | dyn | Rotor and ring momentum coupling | adcs-sim-core/src/plant.rs:Geometry::new, axes, deriv | +plant/deriv.m | S7.5 *(done: method)* |
+| dyn_total_momentum | dyn | Total angular momentum | adcs-sim-core/src/plant.rs:momentum | +plant/deriv.m | S7.5 *(done: method)* |
+| l3_dist_row_01 | env | Gravity-gradient torque | adcs-sim-core/src/torques.rs:torques (gg) | +env/torques.m, earth_pressure.m, geometry.m | S7.4 *(done: method)* |
+| l3_dist_row_02 | env | Aerodynamic torque per facet | adcs-sim-core/src/torques.rs:torques (aero), Facets::boxed | +env/torques.m, earth_pressure.m, geometry.m | S7.4 *(done: method)* |
+| l3_dist_row_03 | env | Solar radiation pressure torque per facet | adcs-sim-core/src/torques.rs:radiation, torques (srp) | +env/torques.m, earth_pressure.m, geometry.m | S7.4 *(done: method)* |
+| l3_dist_row_04 | env | Earth albedo pressure torque | adcs-sim-core/src/torques.rs:earth_pressure (albedo) | +env/torques.m, earth_pressure.m, geometry.m | S7.4 *(done: method)* |
+| l3_dist_row_05 | env | Earth infrared pressure torque | adcs-sim-core/src/torques.rs:earth_pressure (IR) | +env/torques.m, earth_pressure.m, geometry.m | S7.4 *(done: method)* |
+| l3_dist_row_06 | env | Residual magnetic dipole torque | adcs-sim-core/src/torques.rs:torques (mag) | +env/torques.m, earth_pressure.m, geometry.m | S7.4 *(done: method)* |
 | l3_dist_row_07 | env | Atmospheric density at altitude | adcs-sim-core/src/atmos.rs:density (fast model); adcs-pop/src/atmos/dtm2020.rs (pop model, toolbox) | pop DTM2020 | S7.3 |
 | l3_dist_row_08 | env | Main field along the orbit (IGRF) | adcs-sim-core/src/field.rs:gh, geodetic, ned, eci_at | +env/igrf_*.m, field.m | S7.3 |
-| l3_dist_row_09 | env | Sun direction and distance | adcs-sim-core/src/ephem.rs:sun (fast); adcs-pop/src/ephem.rs (DE440, toolbox) | +env/shadow.m; pop DE440 | S7.4 |
-| l3_dist_row_10 | env | Earth shadow | adcs-sim-core/src/ephem.rs:shadow | +env/shadow.m; pop DE440 | S7.4 |
-| m2_7 | env | Eclipse fraction | adcs-design/src/lib.rs:survey (eclipse_frac over one orbit) | +sizing | S7.4 |
+| l3_dist_row_09 | env | Sun direction and distance | adcs-sim-core/src/ephem.rs:sun (fast); adcs-pop/src/ephem.rs (DE440, toolbox) | +env/shadow.m; pop DE440 | S7.4 *(done: method)* |
+| l3_dist_row_10 | env | Earth shadow | adcs-sim-core/src/ephem.rs:shadow | +env/shadow.m; pop DE440 | S7.4 *(done: method)* |
+| m2_7 | env | Eclipse fraction | adcs-design/src/lib.rs:survey (eclipse_frac over one orbit) | +sizing | S7.4 *(done: method)* |
 | l3_oils_row_07 | oils | Byte-level sensor emulation | adcs-sim-core/src/emu.rs (the device codecs) | +hal/pack_sensors.m, lsb.m | S7.12 |
 | gp_0 | pnt | Knowledge contribution | tools/pointing_budget.py (flown AKE p99.73) | none | S7.14 |
 | gp_1 | pnt | Control contribution | tools/pointing_budget.py (sqrt(APE^2 - AKE^2)) | none | S7.14 |
@@ -248,22 +249,22 @@ Kinds: *relation* (write as a method), *already a method* (call the generated on
 | item | code location | lines | node(s) | kind | gaps | step |
 |---|---|---|---|---|---|---|
 | Exponential density table (fast orbit) *design/groups/env.pc holds the same Vallado table (env::atmosphere, density_at); call the generated one times density_scale.* | adcs-sim-core/src/atmos.rs:density (1-24) | 24 | l3_dist_row_07, m3_3 | relation, already a method | — | S7.3 |
-| Low-precision Sun (Montenbruck-Gill) *The flight software's sun_model (fsw/pseudocode/02) is a different series; keep both or choose one (env decides).* | adcs-sim-core/src/ephem.rs:sun, ecl2eq (10-22) | 13 | l3_dist_row_09 | relation | G13 | S7.4 |
-| Low-precision Moon *No node: env adds one.* | adcs-sim-core/src/ephem.rs:moon (25-42) | 18 | none | relation | G13 | S7.4 |
-| Solar pressure at a distance *m3_5 solar_pressure exists; check it gives 4.56e-6 (AU/d)^2.* | adcs-sim-core/src/ephem.rs:p_srp (45) | 1 | m3_5 | relation, already a method | — | S7.3 |
-| Conical Earth shadow | adcs-sim-core/src/ephem.rs:shadow (48-64) | 17 | l3_dist_row_10, m2_7 | relation | G13 | S7.4 |
+| Low-precision Sun (Montenbruck-Gill) *The flight software's sun_model (fsw/pseudocode/02) is a different series; keep both or choose one (env decides).* | adcs-sim-core/src/ephem.rs:sun, ecl2eq (10-22) | 13 | l3_dist_row_09 | relation | G13 | S7.4 *(done: l3_dist_row_09's sunfast, with p_srp; both series kept, env decides)* |
+| Low-precision Moon *No node: env adds one.* | adcs-sim-core/src/ephem.rs:moon (25-42) | 18 | none | relation | G13 | S7.4 *(done: env_moon_fast, a new node)* |
+| Solar pressure at a distance *m3_5 solar_pressure exists; check it gives 4.56e-6 (AU/d)^2.* | adcs-sim-core/src/ephem.rs:p_srp (45) | 1 | m3_5 | relation, already a method | — | S7.3 *(S7.4: m3_5 is another model, 0.46 % below; p_srp transcribed as flown into l3_dist_row_09's sunfast, a finding for env)* |
+| Conical Earth shadow | adcs-sim-core/src/ephem.rs:shadow (48-64) | 17 | l3_dist_row_10, m2_7 | relation | G13 | S7.4 *(done: l3_dist_row_10's shadow; m2_7's eclipse fraction over it)* |
 | IGRF-13 field: coefficients at a date, geodetic, NED synthesis, to ECI *fsw/pseudocode/02 has igrf_gh, geodetic, igrf_ned, field_eci; the core can call the generated fsw-rs alg frames instead of its own copy.* | adcs-sim-core/src/field.rs (1-115) | 115 | l3_dist_row_08, env_igrf13_coefficients, nav_time_frames | relation (published model: IGRF-13), already pseudocode *(was toolbox; ruling of 7 Oct)* | G14 | S7.3 |
 | Julian date, calendar, decimal year, GMST, precession, ECI to ECEF *gmst_rot, prec_rot, eci2ecef, decyear are also in fsw/pseudocode/02: use one.* | adcs-sim-core/src/time.rs (1-56) | 56 | nav_time_frames | relation (published model: time scales and frames) *(was toolbox)* | — | S7.3 |
 | Vectors, matrices, quaternions, q-method; libm wrappers | adcs-sim-core/src/la.rs, pm.rs | 157 | none | toolbox (maths: stays) | — | - |
 | Counter-based random streams | adcs-sim-core/src/rng.rs | 39 | none | toolbox (random streams: stays) | G1 | S7.2 |
-| Box facets from the class box and the centre-of-mass offset | adcs-sim-core/src/torques.rs:Facets::boxed (11-19) | 9 | l3_dist_row_02, s2_0, s2_1, s2_2 | relation | — | S7.4 |
-| Gravity-gradient, aerodynamic per facet, radiation per facet, residual dipole torques *gd_0..gd_3 are worst-case analysis methods; the per-facet in-loop torques are new methods.* | adcs-sim-core/src/torques.rs:torques, radiation (45-89) | 43 | l3_dist_row_01, l3_dist_row_02, l3_dist_row_03, l3_dist_row_06, gd_0, gd_1, gd_2, gd_3 | relation | — | S7.4 |
-| Earth albedo and infrared pressure *Finding for env: the comment cites albedo 0.31 and 235 W/m^2; the code flies 0.30 and 237 W/m^2.* | adcs-sim-core/src/torques.rs:earth_pressure + EARTH_ALBEDO, EARTH_IR_W_M2 (22-41) | 20 | l3_dist_row_04, l3_dist_row_05 | relation + 2 parameters | — | S7.4 |
+| Box facets from the class box and the centre-of-mass offset | adcs-sim-core/src/torques.rs:Facets::boxed (11-19) | 9 | l3_dist_row_02, s2_0, s2_1, s2_2 | relation | — | S7.4 *(done: l3_dist_row_02's facets)* |
+| Gravity-gradient, aerodynamic per facet, radiation per facet, residual dipole torques *gd_0..gd_3 are worst-case analysis methods; the per-facet in-loop torques are new methods.* | adcs-sim-core/src/torques.rs:torques, radiation (45-89) | 43 | l3_dist_row_01, l3_dist_row_02, l3_dist_row_03, l3_dist_row_06, gd_0, gd_1, gd_2, gd_3 | relation | — | S7.4 *(done: gravgrad, facets, radiation, dipoletorque; torques.rs keeps the attitude matrix and the case's switches)* |
+| Earth albedo and infrared pressure *Finding for env: the comment cites albedo 0.31 and 235 W/m^2; the code flies 0.30 and 237 W/m^2.* | adcs-sim-core/src/torques.rs:earth_pressure + EARTH_ALBEDO, EARTH_IR_W_M2 (22-41) | 20 | l3_dist_row_04, l3_dist_row_05 | relation + 2 parameters | — | S7.4 *(done: albedo, earthir, the values as flown, constants of the methods)* |
 | Fast orbit forces: J2-J6 zonal, Sun and Moon point masses, co-rotating drag, SRP with shadow; node context *No node; env adds an orbit-forces node. The fast model is the engine.orbit=fast choice.* | adcs-sim-core/src/orbit.rs:accel, ctx + MU, RE, OMEGA_E, MU_SUN, MU_MOON, J (9-89) | 81 | none | relation + parameters | G13 | S7.6 |
 | Orbit RK4 with Hermite interpolation; context interpolation | adcs-sim-core/src/orbit.rs:Orbit::new, advance, state, context (91-148) | 58 | none | core (integrator) | G8 | S7.6 |
 | Classical elements to state | adcs-sim-core/src/orbit.rs:coe2rv (152-161) | 10 | none | relation (published model: two-body elements to state) *(was toolbox)* | — | S7.6 |
-| Rigid body with rotors, gimbals and one flexible mode; total momentum *dyn_kinematics is already a method; the core keeps RK4 and calls the generated deriv.* | adcs-sim-core/src/plant.rs:Geometry, Body::flexible, deriv, momentum (7-97, 139-146) | 98 | dyn_rigid_body, dyn_rotor_coupling, dyn_flexible_mode, dyn_total_momentum, dyn_kinematics | relation | G8, G12 | S7.5 |
-| Plant RK4, sub-steps for a flexible mode *The rule "Omega h at most 0.5" is a numerical choice of the integrator: keep in core.* | adcs-sim-core/src/plant.rs:axpy, step, step_rk4 (99-137) | 39 | none | core (integrator) | G8 | S7.5 |
+| Rigid body with rotors, gimbals and one flexible mode; total momentum *dyn_kinematics is already a method; the core keeps RK4 and calls the generated deriv.* | adcs-sim-core/src/plant.rs:Geometry, Body::flexible, deriv, momentum (7-97, 139-146) | 98 | dyn_rigid_body, dyn_rotor_coupling, dyn_flexible_mode, dyn_total_momentum, dyn_kinematics | relation | G8, G12 | S7.5 *(done: rotors, flexmode, rigidbody, momentum; the inertia's inverses stay the toolbox's la::inv)* |
+| Plant RK4, sub-steps for a flexible mode *The rule "Omega h at most 0.5" is a numerical choice of the integrator: keep in core.* | adcs-sim-core/src/plant.rs:axpy, step, step_rk4 (99-137) | 39 | none | core (integrator) | G8 | S7.5 *(stays code: calls rigidbody's plant_deriv)* |
 | Magnetorquers: dispersion, allocation pinv, saturation, L/R lag, power, failed coil | adcs-sim-core/src/actuators.rs:lag, Mtq (7-55) | 49 | l3_mtq_row_02, l3_mtq_row_03, l3_mtq_row_04, l3_mtq_row_05, l3_mtq_row_12, l3_mtq_row_13 | relation | G1, G2, G9 | S7.7 |
 | Momentum devices: wheel motor line, friction (Coulomb, viscous, Stribeck, stiction), compensation, noise, power; VSCMG; fluid ring pump, flow filter, field hysteresis; CMG speed loop; gimbal limits | adcs-sim-core/src/actuators.rs:wheel_motor, Mex (57-165) | 109 | l3_rw_row_01, l3_rw_row_02, l3_rw_row_03, l3_rw_row_04, l3_rw_row_05, l3_rw_row_06, l3_rw_row_07, l3_fmr_row_08, l3_fmr_row_09, l3_fmr_row_10, l3_fmr_row_11, l3_fmr_row_12, l3_fmr_row_13, act_cmg_model, act_vscmg_model, act_vscmg_gimbal_limits | relation | G1, G2, G3, G5, G6, G12 | S7.7 |
 | Thrusters: dispersion, minimum impulse, valve resolution, mass flow, valve power, failure | adcs-sim-core/src/actuators.rs:Rcs (167-199) | 33 | l3_rcs_row_01, l3_rcs_row_02, l3_rcs_row_03, l3_rcs_row_04, l3_rcs_row_08, l3_rcs_row_09, l3_rcs_row_10, l3_rcs_row_11 | relation | G1 | S7.7 |
@@ -408,8 +409,8 @@ time would bring the published data back into code.
 | +pcselftest | 12 | 299 | generated (translator self-test) | - | — |
 | +devices | 16 | 436 | relation (device models) | S7.7-S7.9 | mtq, mex, rcs, wheel_motor; gyro, magnetometer, css, sun_sensor, star_tracker, earth_sensor, gps*, st_history, star_catalogue; init (dispersions) |
 | +comp | 17 | 274 | relation (component chains) | S7.8-S7.10 | star_tracker, sun_sensor; earth_sensor (twin only); fluid_loop/drive, magnetorquer/drive, rcs/schedule; magnetometer/calibrate (a stub) |
-| +env | 8 | 236 | relation (torques, shadow, Earth pressure, facets; igrf_* the IGRF synthesis, a published model *(was toolbox)*) | S7.3-S7.4 | — |
-| +plant | 4 | 101 | relation (deriv, geometry, axes); core (step) | S7.5 | — |
+| +env | 8 | 236 | relation (torques, shadow, Earth pressure, facets; igrf_* the IGRF synthesis, a published model *(was toolbox)*) | S7.3-S7.4 | The generated copies are in +asils/+models (+facets, +gravgrad, +radiation, +albedo, +earthir, +dipoletorque, +sunfast, +moonfast, +shadow, +eclipse) since S7.4; the twin flies its own until S7.17. |
+| +plant | 4 | 101 | relation (deriv, geometry, axes); core (step) | S7.5 | The generated copies are in +asils/+models (+rotors, +flexmode, +rigidbody, +momentum) since S7.5; the twin flies its own until S7.17. |
 | +orbit | 6 | 130 | relation (init, node); core (advance, state, context) | S7.6 | The twin flies the POP (matlab_sils/pop), as the engine does with orbit=pop. |
 | +sizing | 9 | 452 | relation (demand, mtq, rw, cmg, fmr, rcs, jitter, size_all); code (print) | S7.15 | Differs from adcs-design: wheels and CMGs by law, no pump design. |
 | +product | 1 | 264 | relation (descriptors, budget_); code (reading) | S7.11 | — |
@@ -480,6 +481,23 @@ The regression copy is 9.6 MB (6.5 MB after S7.3): JB2008's SET indices 2.5 MB, 
 Found on the way: the standard Kp-ap table is still typed twice in code besides env's (tools/engine_campaigns.py
 KP_NODES and AP_NODES, the twin's +campaign/draw.m), held equal by tests/test_kp2ap.py.
 
+**After S7.4 and S7.5 (8 Oct 2026):** no new construct. G8 is met for the plant: the core's RK4 (code) calls the generated
+rate `rigidbody::plant_deriv`, whose records (`PlantState`, `RotorGeometry`, `Flex`) are the engine's `plant::State`,
+`Geometry` and `Flex` (re-exported, with their constructors kept as calls), and the torques' `Facets` likewise. Where the
+code's toolbox differs from the language's builtin by a last bit, the transcription writes the code's form (`la::unit`
+is a times 1/|a| with a 1e-300 floor, the builtin `unit` a over max(|a|, 1e-30): `facets.unit_or_zero`; `f64::max(x,
+0)` gives 0 for nan: `if x > 0 then x else 0`). G11, measured old against generated, per call: the four disturbance
+torques 154-157 against 199-209 ns (+27 to +36 %, the facets record passed by value to each part), the shadow, Sun and
+Moon together 504-609 against 564-587 ns (within the timer's noise), the RK4 step of a body with four wheels 164.5
+against 166.3 ns (+1 %); the 48 scenarios 23.1 s against 24.1 s measured before the change here (24.4 s at S7.3e): a
+torque is called once a control step, so the runs did not slow. The translators on env (now env's and dyn's modules):
+209 functions (186 before) in Rust, C and MATLAB, 676,491 values, every vector equal to the interpreter (bit for bit where exact). The parity gate on
+the regression copy: inputs 166, layout 151, blobs 48, runs 48, campaigns 4,516, all equal; evaluate 1,470 of 1,500:
+the four l3_dist_row_07/08 rows S7.3 named and 26 more of the same kind, l3_dist_row_01 to 06, 09, 10 and m2_7 (S7.4)
+and dyn's four (S7.5) in both cases, each still not computed with no value, only its reason changed: a method's unwired
+inputs (`needs rm (no input names it), ...`) instead of "no value, relation or pseudocode yet"; every closure equal; the
+baseline (results/evaluation.json) is kept, as S7.3 kept it. The regression copy is 9.6 MB (9,621,504 bytes; 9,564,160 after S7.3e).
+
 The translators handle `fn`, `proc` with state, tables (step, linear), records, fixed arrays of arrays, `settle` loops,
 and the Rust translator can route maths to a module. Not yet:
 
@@ -541,7 +559,21 @@ do not change (S7.18).
 
 ## 6 · Found on the way (for the owning groups)
 
-- **env:** `torques.rs` cites albedo 0.31 and 235 W/m^2 (Kiehl and Trenberth) and flies 0.30 and 237 W/m^2.
+- **env:** `torques.rs` cites albedo 0.31 and 235 W/m^2 (Kiehl and Trenberth) and flies 0.30 and 237 W/m^2. *(S7.4:
+  transcribed as flown, l3_dist_row_04 and l3_dist_row_05's constants, the cited values named beside them; env decides.)*
+- **env (S7.4):** the engine's solar pressure (`ephem.rs p_srp`, now l3_dist_row_09's `solar_pressure_at`) is 4.56e-6
+  N/m^2 at 1 AU over the Sun's distance from the spacecraft (Montenbruck and Gill eq. 3.69); m3_5's `env::solar_pressure`
+  is F_sun/c (1360.8 W/m^2, Kopp and Lean 2011) at the Earth-Sun distance of Vallado's series, 0.46 % below it.
+  Transcribed as flown, so every run stays bit for bit; one model is env's choice.
+- **env (S7.4):** two low-precision Sun series remain, the engine's (`sunfast`, Montenbruck and Gill) and the flight
+  software's (`env_time_frames`' `sun_model`, Vallado algorithm 29); env decides whether to keep both.
+- **dyn (S7.4):** the centre-of-mass direction [0.30, 0.70, -0.65] and the surface's accommodation 0.8, re-emitted
+  speed share 0.05 and specular share 0.5 are now stated nodes of dyn (dyn_cm_direction_x/y/z, dyn_surface_*), with
+  the 1.0.0 code as their source; the engine still reads config.rs's copies until S7.11 builds its configuration from
+  the design (`tests/test_built_in.py` holds them equal). `tools/evaluate.py` reads a stated value only from the case,
+  so these six show "not computed" there, as every `value.number` the case does not state.
+- **dyn (S7.5):** the flexible mode's delta (|delta|^2 = mpart J of the axis) is still config.rs's (S7.11); no shipped
+  scenario flies a flexible mode (both cases leave flex.* blank).
 - **design:** the twin sizes wheels and CMGs by a law (`+sizing/rw.m`, `cmg.m`); the engine selects them from the catalogue (`adcs-design/lib.rs:rotor`). The twin's fluid ring has no pump design (`empump.rs`). One method each will force a choice.
 - **design:** `gb_2` (ADCS peak power) is not computed by the sizing: `budget` sums steady power only.
 - **all:** `adcs-physics` is generated and unused by the engine, while `adcs-design` and the core write some of the same laws by hand (slew momentum and torque = `gw_3`, `gw_4`; ring momentum and spin-down = `gf_6`, `gf_7`; magnetorquer dipole = `gm_1`, `gm_2`; density table = `m3_3`).
@@ -565,8 +597,8 @@ across their range. The translator comes first; generated files are never edited
 | S7.3c | **Done (7 Oct 2026).** env_de440 (design/revisions/S7.3c) over env_de440_slice: the record choice, the Chebyshev recurrence, de440.sun, moon, earth and ephemInputs with de440.constants(); spk.rs keeps the DAF/SPK reader and hands its records to the generated evaluation (an epoch outside the slice, another body). Held: 200,000 epochs in the span (from the slice, and through an open kernel), 200,000 elsewhere and 200,000 de440.state calls of every segment, old against generated, 0 bits; the adcs-pop ephemeris tests as before; 48 of 48 scenarios bit for bit. Ephemeris (published model): DE440 Chebyshev evaluation (Clenshaw) of the Sun, EMB, Moon and Earth over the coefficient slice the case's runs span; the per-step bundle as a method. spk.rs (DAF/SPK) stays code and loads the slice into the design. | adcs-pop ephemeris tests (positions bit for bit against today's ephem.rs on the slice); engine scenarios identical |
 | S7.3d | **Done (7 Oct 2026).** env_gravity_field, env_solid_tides, env_ocean_tides (design/revisions/S7.3d) over env_gravity_default_field and env_ocean_tide_tables; gravity/*.rs, solidtides.rs and oceantides.rs are thin calls and workspaces; the ICGEM .gfc reader stays code. Held: 100,000 random points over the default, a 70 x 70 and a 20 x 20 field (every degree and order), the potential, J2..J6, the force in each model, every tide function, old against generated, 0 bits; the adcs-pop gravity and tides tests 0e0 as before; 48 of 48 scenarios bit for bit. Gravity and tides (published models): normalisation and zonals of the field, spherical-harmonic evaluation, potential, the gravity force over the coefficient table; solid-Earth tides (IERS 2010); ocean tides (FES2004 table, the 8 main lines). The ICGEM .gfc and FES .bin readers stay code. | adcs-pop gravity and tides tests against the Octave reference vectors; ENGINE_PARITY truth-environment table unchanged |
 | S7.3e | **Done (7 Oct 2026).** env_relativity (design/revisions/S7.3e): the three terms and relativity.total; relativity.rs is thin calls. Held: 200,000 random states, every term list, old against generated, 0 bits; the adcs-pop relativity tests as before; 48 of 48 scenarios bit for bit. Relativity (published model): the IERS 2010 post-Newtonian terms (Schwarzschild, Lense-Thirring, de Sitter) as methods of orbit. | adcs-pop relativity tests against the Octave reference vectors; scenarios identical |
-| S7.4 | Environment and disturbances (env): facets, gravity gradient, aero and radiation per facet, Earth albedo and IR, residual dipole, Sun (fast), Moon, shadow; their parameters as stated nodes. Transcribe from torques.rs and ephem.rs. | vectors: interpreter = Rust = C = MATLAB; every scenario's metrics identical; twin-parity no worse |
-| S7.5 | The plant (dyn): deriv with rotors, gimbals and the flexible mode, momentum. The core RK4 calls the generated deriv (G8). | vectors; momentum conservation test (adcs-sim-core tests); scenarios identical; twin-parity |
+| S7.4 | **Done (8 Oct 2026).** env's methods (design/revisions/S7.4): l3_dist_row_02 facets (the box's faces, the aerodynamic torque), l3_dist_row_01 gravgrad, l3_dist_row_03 radiation (the Sun's light by the sunlit fraction, the Earth's albedo and infrared from the nadir), l3_dist_row_04 albedo, l3_dist_row_05 earthir, l3_dist_row_06 dipoletorque, l3_dist_row_09 sunfast (the Sun and its pressure, as flown: not m3_5's model, a finding), env_moon_fast moonfast (a new node), l3_dist_row_10 shadow, m2_7 eclipse (the sizing survey calls it); generated into adcs-sim-core/src/gen and the twin's +asils/+models; torques.rs and ephem.rs are thin calls. The values with no node stated by dyn with the 1.0.0 code as source (dyn_cm_direction_x/y/z, dyn_surface_accommodation, dyn_surface_vb_ratio, dyn_surface_specular_share). Held: 200,000 random inputs a function, old against generated, 0 bits different (the shadow with 23,589 in the penumbra); 48 of 48 scenarios bit for bit (channels, metrics, mode logs), the 48 again on the fast orbit, both cases' sizing; fsw-parity 48/48; built-in 89 to 80 (env 9 to 0). Environment and disturbances (env): facets, gravity gradient, aero and radiation per facet, Earth albedo and IR, residual dipole, Sun (fast), Moon, shadow; their parameters as stated nodes. Transcribe from torques.rs and ephem.rs. | vectors: interpreter = Rust = C = MATLAB; every scenario's metrics identical; twin-parity no worse |
+| S7.5 | **Done (8 Oct 2026).** dyn's methods (design/revisions/S7.5): dyn_rotor_coupling rotors (geometry, axes), dyn_flexible_mode flexmode (the reduced inertia, the mode's force), dyn_rigid_body rigidbody (the state and its rate: Euler's equations with the rotors, the mode, the kinematics), dyn_total_momentum momentum; generated into adcs-sim-core/src/gen and the twin's +asils/+models; plant.rs keeps the integrator (RK4, the flexible mode's sub-steps) and the inertia's inverses (toolbox) and calls them. Held: 200,000 random bodies and states (0 to 8 rotors, 0 to 4 gimbals, a third flexible), old against generated: geometry, rate, RK4 step, momentum and axes, 0 bits different; a 20,000-step flexible trajectory with three gimballed rotors in lockstep, 0 bits; 48 of 48 scenarios bit for bit and 48 on flexible-mode variants of both cases (old binary against new); the momentum-conservation tests; fsw-parity 48/48; built-in 80 to 76 (dyn 4 to 0). The plant (dyn): deriv with rotors, gimbals and the flexible mode, momentum. The core RK4 calls the generated deriv (G8). | vectors; momentum conservation test (adcs-sim-core tests); scenarios identical; twin-parity |
 | S7.6 | The orbit: fast forces and context (orbit.rs accel, ctx); RAAN from LTAN; then the POP spacecraft force models (drag, SRP, ERP, third body, force sum, sso_initial) as relations over the published-model methods of S7.3-S7.3e (no POP toolbox remains); coe2rv as a method of orbit. | adcs-pop tests against the Octave reference vectors; ENGINE_PARITY truth-environment table unchanged; scenarios identical |
 | S7.7 | Actuators (act): magnetorquers, wheels, VSCMG, CMG, fluid rings, thrusters, gimbals; m x B and the empty tank. Needs G1, G2/G3, G5, G6. | vectors; scenarios and every campaign identical (same streams); twin-parity |
 | S7.8 | Simple sensors (sens): gyro, magnetometer, fine Sun (noise and chain), coarse Sun, Earth sensor, GNSS; the telemetry noises as stated nodes. | vectors; scenarios and campaigns identical |

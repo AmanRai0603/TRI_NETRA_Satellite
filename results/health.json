@@ -50,8 +50,8 @@
     "group": "dyn",
     "health": "blocked",
     "count": {
-     "unproven": 19,
-     "blocked": 1,
+     "unproven": 21,
+     "blocked": 5,
      "open": 6
     }
    },
@@ -59,8 +59,8 @@
     "group": "env",
     "health": "blocked",
     "count": {
-     "blocked": 24,
-     "unproven": 45,
+     "blocked": 34,
+     "unproven": 36,
      "open": 9
     }
    },
@@ -1983,15 +1983,51 @@
     "cause": []
    },
    {
-    "id": "dyn_flexible_mode",
+    "id": "dyn_cm_direction_x",
     "group": "dyn",
-    "label": "Flexible mode (hybrid coordinates)",
+    "label": "Centre-of-mass offset direction, x",
     "health": "unproven",
     "why": [
-     "unproven: converted from 1.0.0, not yet signed by a person"
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.4 (2026-10-08), not yet signed by a person: added, stated: a value the engine used with no node (docs/S7_INVENTORY.md \u00a71.3): stated as the 1.0.0 code gave it"
     ],
     "value": "",
     "cause": []
+   },
+   {
+    "id": "dyn_cm_direction_y",
+    "group": "dyn",
+    "label": "Centre-of-mass offset direction, y",
+    "health": "unproven",
+    "why": [
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.4 (2026-10-08), not yet signed by a person: added, stated: a value the engine used with no node (docs/S7_INVENTORY.md \u00a71.3): stated as the 1.0.0 code gave it"
+    ],
+    "value": "",
+    "cause": []
+   },
+   {
+    "id": "dyn_cm_direction_z",
+    "group": "dyn",
+    "label": "Centre-of-mass offset direction, z",
+    "health": "unproven",
+    "why": [
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.4 (2026-10-08), not yet signed by a person: added, stated: a value the engine used with no node (docs/S7_INVENTORY.md \u00a71.3): stated as the 1.0.0 code gave it"
+    ],
+    "value": "",
+    "cause": []
+   },
+   {
+    "id": "dyn_flexible_mode",
+    "group": "dyn",
+    "label": "Flexible mode (hybrid coordinates)",
+    "health": "blocked",
+    "why": [
+     "blocked: needs f (no input names it), eta (no input names it), etad (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.5 (2026-10-08), not yet signed by a person: method pseudocode; behaviour built-in -> method: the flexible mode as a method of dyn, generated into the engine; the mode's delta from the case stays config.rs's until S7.11"
+    ],
+    "value": "",
+    "cause": [
+     "dyn_flexible_mode"
+    ]
    },
    {
     "id": "dyn_kinematics",
@@ -2011,20 +2047,59 @@
     "id": "dyn_rigid_body",
     "group": "dyn",
     "label": "Rigid-body attitude dynamics",
-    "health": "unproven",
+    "health": "blocked",
     "why": [
-     "unproven: converted from 1.0.0, not yet signed by a person"
+     "blocked: needs x (no input names it), inertia (no input names it), iinv (no input names it), minv (no input names it), m (no input names it), f (no input names it), tau_ext (no input names it), tau_r (no input names it), gdot (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.5 (2026-10-08), not yet signed by a person: method pseudocode; behaviour built-in -> method: the plant's rate as a method of dyn, generated into the engine; its integrator (RK4, the flexible mode's sub-steps) stays code and calls it"
     ],
     "value": "",
-    "cause": []
+    "cause": [
+     "dyn_rigid_body"
+    ]
    },
    {
     "id": "dyn_rotor_coupling",
     "group": "dyn",
     "label": "Rotor and ring momentum coupling",
+    "health": "blocked",
+    "why": [
+     "blocked: needs m (no input names it), d (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.5 (2026-10-08), not yet signed by a person: method pseudocode; behaviour built-in -> method: the momentum devices' geometry and coupling as a method of dyn, generated into the engine"
+    ],
+    "value": "",
+    "cause": [
+     "dyn_rotor_coupling"
+    ]
+   },
+   {
+    "id": "dyn_surface_accommodation",
+    "group": "dyn",
+    "label": "Surface momentum accommodation",
     "health": "unproven",
     "why": [
-     "unproven: converted from 1.0.0, not yet signed by a person"
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.4 (2026-10-08), not yet signed by a person: added, stated: a value the engine used with no node (docs/S7_INVENTORY.md \u00a71.3): stated as the 1.0.0 code gave it"
+    ],
+    "value": "",
+    "cause": []
+   },
+   {
+    "id": "dyn_surface_specular_share",
+    "group": "dyn",
+    "label": "Specular share of reflected light",
+    "health": "unproven",
+    "why": [
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.4 (2026-10-08), not yet signed by a person: added, stated: a value the engine used with no node (docs/S7_INVENTORY.md \u00a71.3): stated as the 1.0.0 code gave it"
+    ],
+    "value": "",
+    "cause": []
+   },
+   {
+    "id": "dyn_surface_vb_ratio",
+    "group": "dyn",
+    "label": "Re-emitted speed share",
+    "health": "unproven",
+    "why": [
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.4 (2026-10-08), not yet signed by a person: added, stated: a value the engine used with no node (docs/S7_INVENTORY.md \u00a71.3): stated as the 1.0.0 code gave it"
     ],
     "value": "",
     "cause": []
@@ -2033,12 +2108,15 @@
     "id": "dyn_total_momentum",
     "group": "dyn",
     "label": "Total angular momentum",
-    "health": "unproven",
+    "health": "blocked",
     "why": [
-     "unproven: converted from 1.0.0, not yet signed by a person"
+     "blocked: needs x (no input names it), inertia (no input names it), m (no input names it), f (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.5 (2026-10-08), not yet signed by a person: method pseudocode; behaviour built-in -> method: the total angular momentum as a method of dyn, generated into the engine"
     ],
     "value": "",
-    "cause": []
+    "cause": [
+     "dyn_total_momentum"
+    ]
    },
    {
     "id": "env_calendar_time",
@@ -2270,6 +2348,20 @@
     ],
     "value": "",
     "cause": []
+   },
+   {
+    "id": "env_moon_fast",
+    "group": "env",
+    "label": "Moon position (low precision)",
+    "health": "blocked",
+    "why": [
+     "blocked: needs jd_tt (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.4 (2026-10-08), not yet signed by a person: added, method: the fast orbit's Moon, until now adcs-sim-core ephem.rs (moon), which had no node (docs/S7_INVENTORY.md \u00a71.3); the developer's revision S7.4 (2026-10-08), not yet signed by a person: method pseudocode: the fast orbit's Moon as a method of env, generated into the engine"
+    ],
+    "value": "",
+    "cause": [
+     "env_moon_fast"
+    ]
    },
    {
     "id": "env_ocean_tide_tables",
@@ -7440,67 +7532,85 @@
     "id": "l3_dist_row_01",
     "group": "env",
     "label": "Gravity-gradient torque",
-    "health": "unproven",
+    "health": "blocked",
     "why": [
-     "unproven: converted from 1.0.0, not yet signed by a person"
+     "blocked: needs rm (no input names it), r (no input names it), j (no input names it), mu (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.4 (2026-10-08), not yet signed by a person: method pseudocode; behaviour built-in -> method: the gravity-gradient torque as a method of env, generated into the engine"
     ],
     "value": "",
-    "cause": []
+    "cause": [
+     "l3_dist_row_01"
+    ]
    },
    {
     "id": "l3_dist_row_02",
     "group": "env",
     "label": "Aerodynamic torque per facet",
-    "health": "unproven",
+    "health": "blocked",
     "why": [
-     "unproven: converted from 1.0.0, not yet signed by a person"
+     "blocked: needs rm (no input names it), v_rel (no input names it), rho (no input names it), g (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.4 (2026-10-08), not yet signed by a person: method pseudocode; behaviour built-in -> method: the box's faces and the aerodynamic torque on them as a method of env, generated into the engine"
     ],
     "value": "",
-    "cause": []
+    "cause": [
+     "l3_dist_row_02"
+    ]
    },
    {
     "id": "l3_dist_row_03",
     "group": "env",
     "label": "Solar radiation pressure torque per facet",
-    "health": "unproven",
+    "health": "blocked",
     "why": [
-     "unproven: converted from 1.0.0, not yet signed by a person"
+     "blocked: needs rm (no input names it), r (no input names it), sun_rel (no input names it), nu (no input names it), p_srp (no input names it), g (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.4 (2026-10-08), not yet signed by a person: method pseudocode; behaviour built-in -> method: the radiation-pressure torque per face as a method of env, generated into the engine"
     ],
     "value": "",
-    "cause": []
+    "cause": [
+     "l3_dist_row_03"
+    ]
    },
    {
     "id": "l3_dist_row_04",
     "group": "env",
     "label": "Earth albedo pressure torque",
-    "health": "unproven",
+    "health": "blocked",
     "why": [
-     "unproven: converted from 1.0.0, not yet signed by a person"
+     "blocked: needs r (no input names it), sun_rel (no input names it), p_sun (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.4 (2026-10-08), not yet signed by a person: method pseudocode; behaviour built-in -> method: the albedo pressure as a method of env, generated into the engine; the albedo the engine flies (0.30), not the cited 0.31 (a finding for env)"
     ],
     "value": "",
-    "cause": []
+    "cause": [
+     "l3_dist_row_04"
+    ]
    },
    {
     "id": "l3_dist_row_05",
     "group": "env",
     "label": "Earth infrared pressure torque",
-    "health": "unproven",
+    "health": "blocked",
     "why": [
-     "unproven: converted from 1.0.0, not yet signed by a person"
+     "blocked: needs r (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.4 (2026-10-08), not yet signed by a person: method pseudocode; behaviour built-in -> method: the infrared pressure as a method of env, generated into the engine; the flux the engine flies (237 W/m^2), not the cited 235 W/m^2 (a finding for env)"
     ],
     "value": "",
-    "cause": []
+    "cause": [
+     "l3_dist_row_05"
+    ]
    },
    {
     "id": "l3_dist_row_06",
     "group": "env",
     "label": "Residual magnetic dipole torque",
-    "health": "unproven",
+    "health": "blocked",
     "why": [
-     "unproven: converted from 1.0.0, not yet signed by a person"
+     "blocked: needs rm (no input names it), m_res (no input names it), b_eci (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.4 (2026-10-08), not yet signed by a person: method pseudocode; behaviour built-in -> method: the residual-dipole torque as a method of env, generated into the engine"
     ],
     "value": "",
-    "cause": []
+    "cause": [
+     "l3_dist_row_06"
+    ]
    },
    {
     "id": "l3_dist_row_07",
@@ -7534,23 +7644,29 @@
     "id": "l3_dist_row_09",
     "group": "env",
     "label": "Sun direction and distance",
-    "health": "unproven",
+    "health": "blocked",
     "why": [
-     "unproven: converted from 1.0.0, not yet signed by a person"
+     "blocked: needs d (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.4 (2026-10-08), not yet signed by a person: method pseudocode; behaviour built-in -> method: the fast orbit's Sun and its pressure as a method of env, generated into the engine; transcribed as flown, so every run stays bit for bit"
     ],
     "value": "",
-    "cause": []
+    "cause": [
+     "l3_dist_row_09"
+    ]
    },
    {
     "id": "l3_dist_row_10",
     "group": "env",
     "label": "Earth shadow",
-    "health": "unproven",
+    "health": "blocked",
     "why": [
-     "unproven: converted from 1.0.0, not yet signed by a person"
+     "blocked: needs r_sat (no input names it), r_sun (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.4 (2026-10-08), not yet signed by a person: method pseudocode; behaviour built-in -> method: the Earth's shadow as a method of env, generated into the engine"
     ],
     "value": "",
-    "cause": []
+    "cause": [
+     "l3_dist_row_10"
+    ]
    },
    {
     "id": "l3_dist_row_11",
@@ -12582,12 +12698,15 @@
     "id": "m2_7",
     "group": "env",
     "label": "Eclipse fraction",
-    "health": "unproven",
+    "health": "blocked",
     "why": [
-     "unproven: converted from 1.0.0, not yet signed by a person"
+     "blocked: needs nu (no input names it), n (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.4 (2026-10-08), not yet signed by a person: method pseudocode; behaviour built-in -> method: the eclipse fraction as a method of env over env's shadow along one orbit, generated into the engine (the sizing survey calls it)"
     ],
     "value": "",
-    "cause": []
+    "cause": [
+     "m2_7"
+    ]
    },
    {
     "id": "m3",
@@ -15151,8 +15270,8 @@
     "group": "dyn",
     "health": "blocked",
     "count": {
-     "unproven": 19,
-     "blocked": 1,
+     "unproven": 21,
+     "blocked": 5,
      "open": 6
     }
    },
@@ -15160,8 +15279,8 @@
     "group": "env",
     "health": "blocked",
     "count": {
-     "blocked": 24,
-     "unproven": 45,
+     "blocked": 34,
+     "unproven": 36,
      "open": 9
     }
    },
@@ -17050,15 +17169,51 @@
     "cause": []
    },
    {
-    "id": "dyn_flexible_mode",
+    "id": "dyn_cm_direction_x",
     "group": "dyn",
-    "label": "Flexible mode (hybrid coordinates)",
+    "label": "Centre-of-mass offset direction, x",
     "health": "unproven",
     "why": [
-     "unproven: converted from 1.0.0, not yet signed by a person"
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.4 (2026-10-08), not yet signed by a person: added, stated: a value the engine used with no node (docs/S7_INVENTORY.md \u00a71.3): stated as the 1.0.0 code gave it"
     ],
     "value": "",
     "cause": []
+   },
+   {
+    "id": "dyn_cm_direction_y",
+    "group": "dyn",
+    "label": "Centre-of-mass offset direction, y",
+    "health": "unproven",
+    "why": [
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.4 (2026-10-08), not yet signed by a person: added, stated: a value the engine used with no node (docs/S7_INVENTORY.md \u00a71.3): stated as the 1.0.0 code gave it"
+    ],
+    "value": "",
+    "cause": []
+   },
+   {
+    "id": "dyn_cm_direction_z",
+    "group": "dyn",
+    "label": "Centre-of-mass offset direction, z",
+    "health": "unproven",
+    "why": [
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.4 (2026-10-08), not yet signed by a person: added, stated: a value the engine used with no node (docs/S7_INVENTORY.md \u00a71.3): stated as the 1.0.0 code gave it"
+    ],
+    "value": "",
+    "cause": []
+   },
+   {
+    "id": "dyn_flexible_mode",
+    "group": "dyn",
+    "label": "Flexible mode (hybrid coordinates)",
+    "health": "blocked",
+    "why": [
+     "blocked: needs f (no input names it), eta (no input names it), etad (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.5 (2026-10-08), not yet signed by a person: method pseudocode; behaviour built-in -> method: the flexible mode as a method of dyn, generated into the engine; the mode's delta from the case stays config.rs's until S7.11"
+    ],
+    "value": "",
+    "cause": [
+     "dyn_flexible_mode"
+    ]
    },
    {
     "id": "dyn_kinematics",
@@ -17078,20 +17233,59 @@
     "id": "dyn_rigid_body",
     "group": "dyn",
     "label": "Rigid-body attitude dynamics",
-    "health": "unproven",
+    "health": "blocked",
     "why": [
-     "unproven: converted from 1.0.0, not yet signed by a person"
+     "blocked: needs x (no input names it), inertia (no input names it), iinv (no input names it), minv (no input names it), m (no input names it), f (no input names it), tau_ext (no input names it), tau_r (no input names it), gdot (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.5 (2026-10-08), not yet signed by a person: method pseudocode; behaviour built-in -> method: the plant's rate as a method of dyn, generated into the engine; its integrator (RK4, the flexible mode's sub-steps) stays code and calls it"
     ],
     "value": "",
-    "cause": []
+    "cause": [
+     "dyn_rigid_body"
+    ]
    },
    {
     "id": "dyn_rotor_coupling",
     "group": "dyn",
     "label": "Rotor and ring momentum coupling",
+    "health": "blocked",
+    "why": [
+     "blocked: needs m (no input names it), d (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.5 (2026-10-08), not yet signed by a person: method pseudocode; behaviour built-in -> method: the momentum devices' geometry and coupling as a method of dyn, generated into the engine"
+    ],
+    "value": "",
+    "cause": [
+     "dyn_rotor_coupling"
+    ]
+   },
+   {
+    "id": "dyn_surface_accommodation",
+    "group": "dyn",
+    "label": "Surface momentum accommodation",
     "health": "unproven",
     "why": [
-     "unproven: converted from 1.0.0, not yet signed by a person"
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.4 (2026-10-08), not yet signed by a person: added, stated: a value the engine used with no node (docs/S7_INVENTORY.md \u00a71.3): stated as the 1.0.0 code gave it"
+    ],
+    "value": "",
+    "cause": []
+   },
+   {
+    "id": "dyn_surface_specular_share",
+    "group": "dyn",
+    "label": "Specular share of reflected light",
+    "health": "unproven",
+    "why": [
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.4 (2026-10-08), not yet signed by a person: added, stated: a value the engine used with no node (docs/S7_INVENTORY.md \u00a71.3): stated as the 1.0.0 code gave it"
+    ],
+    "value": "",
+    "cause": []
+   },
+   {
+    "id": "dyn_surface_vb_ratio",
+    "group": "dyn",
+    "label": "Re-emitted speed share",
+    "health": "unproven",
+    "why": [
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.4 (2026-10-08), not yet signed by a person: added, stated: a value the engine used with no node (docs/S7_INVENTORY.md \u00a71.3): stated as the 1.0.0 code gave it"
     ],
     "value": "",
     "cause": []
@@ -17100,12 +17294,15 @@
     "id": "dyn_total_momentum",
     "group": "dyn",
     "label": "Total angular momentum",
-    "health": "unproven",
+    "health": "blocked",
     "why": [
-     "unproven: converted from 1.0.0, not yet signed by a person"
+     "blocked: needs x (no input names it), inertia (no input names it), m (no input names it), f (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.5 (2026-10-08), not yet signed by a person: method pseudocode; behaviour built-in -> method: the total angular momentum as a method of dyn, generated into the engine"
     ],
     "value": "",
-    "cause": []
+    "cause": [
+     "dyn_total_momentum"
+    ]
    },
    {
     "id": "env_calendar_time",
@@ -17337,6 +17534,20 @@
     ],
     "value": "",
     "cause": []
+   },
+   {
+    "id": "env_moon_fast",
+    "group": "env",
+    "label": "Moon position (low precision)",
+    "health": "blocked",
+    "why": [
+     "blocked: needs jd_tt (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.4 (2026-10-08), not yet signed by a person: added, method: the fast orbit's Moon, until now adcs-sim-core ephem.rs (moon), which had no node (docs/S7_INVENTORY.md \u00a71.3); the developer's revision S7.4 (2026-10-08), not yet signed by a person: method pseudocode: the fast orbit's Moon as a method of env, generated into the engine"
+    ],
+    "value": "",
+    "cause": [
+     "env_moon_fast"
+    ]
    },
    {
     "id": "env_ocean_tide_tables",
@@ -22498,67 +22709,85 @@
     "id": "l3_dist_row_01",
     "group": "env",
     "label": "Gravity-gradient torque",
-    "health": "unproven",
+    "health": "blocked",
     "why": [
-     "unproven: converted from 1.0.0, not yet signed by a person"
+     "blocked: needs rm (no input names it), r (no input names it), j (no input names it), mu (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.4 (2026-10-08), not yet signed by a person: method pseudocode; behaviour built-in -> method: the gravity-gradient torque as a method of env, generated into the engine"
     ],
     "value": "",
-    "cause": []
+    "cause": [
+     "l3_dist_row_01"
+    ]
    },
    {
     "id": "l3_dist_row_02",
     "group": "env",
     "label": "Aerodynamic torque per facet",
-    "health": "unproven",
+    "health": "blocked",
     "why": [
-     "unproven: converted from 1.0.0, not yet signed by a person"
+     "blocked: needs rm (no input names it), v_rel (no input names it), rho (no input names it), g (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.4 (2026-10-08), not yet signed by a person: method pseudocode; behaviour built-in -> method: the box's faces and the aerodynamic torque on them as a method of env, generated into the engine"
     ],
     "value": "",
-    "cause": []
+    "cause": [
+     "l3_dist_row_02"
+    ]
    },
    {
     "id": "l3_dist_row_03",
     "group": "env",
     "label": "Solar radiation pressure torque per facet",
-    "health": "unproven",
+    "health": "blocked",
     "why": [
-     "unproven: converted from 1.0.0, not yet signed by a person"
+     "blocked: needs rm (no input names it), r (no input names it), sun_rel (no input names it), nu (no input names it), p_srp (no input names it), g (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.4 (2026-10-08), not yet signed by a person: method pseudocode; behaviour built-in -> method: the radiation-pressure torque per face as a method of env, generated into the engine"
     ],
     "value": "",
-    "cause": []
+    "cause": [
+     "l3_dist_row_03"
+    ]
    },
    {
     "id": "l3_dist_row_04",
     "group": "env",
     "label": "Earth albedo pressure torque",
-    "health": "unproven",
+    "health": "blocked",
     "why": [
-     "unproven: converted from 1.0.0, not yet signed by a person"
+     "blocked: needs r (no input names it), sun_rel (no input names it), p_sun (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.4 (2026-10-08), not yet signed by a person: method pseudocode; behaviour built-in -> method: the albedo pressure as a method of env, generated into the engine; the albedo the engine flies (0.30), not the cited 0.31 (a finding for env)"
     ],
     "value": "",
-    "cause": []
+    "cause": [
+     "l3_dist_row_04"
+    ]
    },
    {
     "id": "l3_dist_row_05",
     "group": "env",
     "label": "Earth infrared pressure torque",
-    "health": "unproven",
+    "health": "blocked",
     "why": [
-     "unproven: converted from 1.0.0, not yet signed by a person"
+     "blocked: needs r (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.4 (2026-10-08), not yet signed by a person: method pseudocode; behaviour built-in -> method: the infrared pressure as a method of env, generated into the engine; the flux the engine flies (237 W/m^2), not the cited 235 W/m^2 (a finding for env)"
     ],
     "value": "",
-    "cause": []
+    "cause": [
+     "l3_dist_row_05"
+    ]
    },
    {
     "id": "l3_dist_row_06",
     "group": "env",
     "label": "Residual magnetic dipole torque",
-    "health": "unproven",
+    "health": "blocked",
     "why": [
-     "unproven: converted from 1.0.0, not yet signed by a person"
+     "blocked: needs rm (no input names it), m_res (no input names it), b_eci (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.4 (2026-10-08), not yet signed by a person: method pseudocode; behaviour built-in -> method: the residual-dipole torque as a method of env, generated into the engine"
     ],
     "value": "",
-    "cause": []
+    "cause": [
+     "l3_dist_row_06"
+    ]
    },
    {
     "id": "l3_dist_row_07",
@@ -22592,23 +22821,29 @@
     "id": "l3_dist_row_09",
     "group": "env",
     "label": "Sun direction and distance",
-    "health": "unproven",
+    "health": "blocked",
     "why": [
-     "unproven: converted from 1.0.0, not yet signed by a person"
+     "blocked: needs d (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.4 (2026-10-08), not yet signed by a person: method pseudocode; behaviour built-in -> method: the fast orbit's Sun and its pressure as a method of env, generated into the engine; transcribed as flown, so every run stays bit for bit"
     ],
     "value": "",
-    "cause": []
+    "cause": [
+     "l3_dist_row_09"
+    ]
    },
    {
     "id": "l3_dist_row_10",
     "group": "env",
     "label": "Earth shadow",
-    "health": "unproven",
+    "health": "blocked",
     "why": [
-     "unproven: converted from 1.0.0, not yet signed by a person"
+     "blocked: needs r_sat (no input names it), r_sun (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.4 (2026-10-08), not yet signed by a person: method pseudocode; behaviour built-in -> method: the Earth's shadow as a method of env, generated into the engine"
     ],
     "value": "",
-    "cause": []
+    "cause": [
+     "l3_dist_row_10"
+    ]
    },
    {
     "id": "l3_dist_row_11",
@@ -27640,12 +27875,15 @@
     "id": "m2_7",
     "group": "env",
     "label": "Eclipse fraction",
-    "health": "unproven",
+    "health": "blocked",
     "why": [
-     "unproven: converted from 1.0.0, not yet signed by a person"
+     "blocked: needs nu (no input names it), n (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.4 (2026-10-08), not yet signed by a person: method pseudocode; behaviour built-in -> method: the eclipse fraction as a method of env over env's shadow along one orbit, generated into the engine (the sizing survey calls it)"
     ],
     "value": "",
-    "cause": []
+    "cause": [
+     "m2_7"
+    ]
    },
    {
     "id": "m3",

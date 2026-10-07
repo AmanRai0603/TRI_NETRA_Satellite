@@ -6,14 +6,12 @@ Health, worst first: **fails**, **refused**, **blocked**, **open**, **unproven**
 
 ## Built-in: relations still in code
 
-**89 built-in nodes**, relations still in compiled code (docs/PLAN_2_0.md S7 lowers this to zero): act 38, design 19, dyn 4, env 9, oils 1, pnt 4, sens 14.
+**76 built-in nodes**, relations still in compiled code (docs/PLAN_2_0.md S7 lowers this to zero): act 38, design 19, oils 1, pnt 4, sens 14.
 
 | Group | Built-in nodes |
 |---|---|
 | act | `act_cmg_model`, `act_vscmg_gimbal_limits`, `act_vscmg_model`, `gm_4`, `gm_5`, `gw_2`, `gw_5`, `gw_6`, `l3_fmr_row_07`, `l3_fmr_row_08`, `l3_fmr_row_09`, `l3_fmr_row_10`, `l3_fmr_row_11`, `l3_fmr_row_12`, `l3_fmr_row_13`, `l3_fmr_row_14`, `l3_fmr_row_15`, `l3_mtq_row_02`, `l3_mtq_row_03`, `l3_mtq_row_04`, `l3_mtq_row_05`, `l3_mtq_row_12`, `l3_mtq_row_13`, `l3_rcs_row_01`, `l3_rcs_row_02`, `l3_rcs_row_03`, `l3_rcs_row_04`, `l3_rcs_row_08`, `l3_rcs_row_09`, `l3_rcs_row_10`, `l3_rcs_row_11`, `l3_rw_row_01`, `l3_rw_row_02`, `l3_rw_row_03`, `l3_rw_row_04`, `l3_rw_row_05`, `l3_rw_row_06`, `l3_rw_row_07` |
 | design | `design_sizing_cmg`, `design_sizing_fmr`, `design_sizing_mtq`, `design_sizing_rcs`, `design_sizing_rw`, `design_sizing_sensors`, `design_sizing_vscmg`, `gb_0`, `gb_1`, `gb_2`, `gb_3`, `l3_budget_row_01`, `l3_budget_row_02`, `l3_budget_row_03`, `l3_budget_row_04`, `l3_budget_row_05`, `l3_budget_row_06`, `l3_budget_row_07`, `l3_budget_row_08` |
-| dyn | `dyn_flexible_mode`, `dyn_rigid_body`, `dyn_rotor_coupling`, `dyn_total_momentum` |
-| env | `l3_dist_row_01`, `l3_dist_row_02`, `l3_dist_row_03`, `l3_dist_row_04`, `l3_dist_row_05`, `l3_dist_row_06`, `l3_dist_row_09`, `l3_dist_row_10`, `m2_7` |
 | oils | `l3_oils_row_07` |
 | pnt | `gp_0`, `gp_1`, `gp_2`, `gp_4` |
 | sens | `l3_sens_row_01`, `l3_sens_row_02`, `l3_sens_row_03`, `l3_sens_row_04`, `l3_sens_row_05`, `l3_sens_row_06`, `l3_sens_row_07`, `l3_sens_row_08`, `l3_sens_row_09`, `l3_sens_row_10`, `l3_sens_row_11`, `l3_sens_row_12`, `l3_sens_row_13`, `l3_sens_row_14` |
@@ -31,8 +29,8 @@ From `tests/regression/design.tndb`.
 | catalogue | **open** | 8 open, 94 unproven |
 | ctl | **blocked** | 4 blocked, 26 open, 9 unproven |
 | design | **open** | 15 open, 37 unproven |
-| dyn | **blocked** | 1 blocked, 6 open, 19 unproven |
-| env | **blocked** | 24 blocked, 9 open, 45 unproven |
+| dyn | **blocked** | 5 blocked, 6 open, 21 unproven |
+| env | **blocked** | 34 blocked, 9 open, 36 unproven |
 | fdir | **blocked** | 3 blocked, 4 open, 3 unproven |
 | fsw | **blocked** | 1 blocked, 163 open, 14 unproven |
 | gdn | **blocked** | 7 blocked, 17 open, 7 unproven |
@@ -100,8 +98,8 @@ From `tests/regression/design.tndb`.
 | catalogue | **open** | 8 open, 94 unproven |
 | ctl | **blocked** | 4 blocked, 26 open, 9 unproven |
 | design | **open** | 15 open, 37 unproven |
-| dyn | **blocked** | 1 blocked, 6 open, 19 unproven |
-| env | **blocked** | 24 blocked, 9 open, 45 unproven |
+| dyn | **blocked** | 5 blocked, 6 open, 21 unproven |
+| env | **blocked** | 34 blocked, 9 open, 36 unproven |
 | fdir | **blocked** | 3 blocked, 4 open, 3 unproven |
 | fsw | **blocked** | 1 blocked, 163 open, 14 unproven |
 | gdn | **blocked** | 7 blocked, 17 open, 7 unproven |

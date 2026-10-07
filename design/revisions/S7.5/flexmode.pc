@@ -1,0 +1,30 @@
+## One flexible mode in hybrid coordinates, transcribed from adcs-sim-core plant.rs (Flex, Body::flexible, deriv: the
+## mode's part; the twin's asils.plant.deriv): J wdot + delta etadd = torques - w x (J w + h_rotors + delta etad),
+## etadd + 2 zeta Omega etad + Omega^2 eta + delta . wdot = 0 (Hughes 1986, Spacecraft Attitude Dynamics, chapter 12).
+## delta [sqrt(kg) m] couples the mode to the body; |delta|^2 is the inertia that takes part. Plain numbers in SI.
+## The developer's transcription (S7.5), unsigned.
+module flexmode
+
+## The mode: whether there is one, its coupling delta, its natural frequency Omega [rad/s] and its damping ratio zeta.
+record Flex
+    on: bool
+    delta: vec3[1]
+    omega: real[1]
+    zeta: real[1]
+end
+
+## The reduced inertia J - delta delta^T the body's equation divides by when the mode is on.
+fn flex_reduced_inertia(inertia: mat3[1] in 0.001 .. 1, delta: vec3[1] in -0.05 .. 0.05) -> r: mat3[1]
+    r = inertia
+    for ia in 0 .. 3
+        for ic in 0 .. 3
+            r[ia][ic] = r[ia][ic] - delta[ia]*delta[ic]
+        end
+    end
+end
+
+## The mode's restoring and damping force on its coordinate, 2 zeta Omega etad + Omega^2 eta, which acts on the body
+## through delta.
+fn flex_pull(f: Flex, eta: real[1] in -1 .. 1, etad: real[1] in -1 .. 1) -> pull: real[1]
+    pull = 2.0*f.zeta*f.omega*etad + f.omega*f.omega*eta
+end

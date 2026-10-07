@@ -1,0 +1,30 @@
+## The Moon of the engine's fast orbit, transcribed from adcs-sim-core ephem.rs (moon): the low-precision lunar
+## coordinates of Montenbruck and Gill (2000, Satellite Orbits, section 3.3.2, eq. 3.47-3.49), the mean longitude and
+## the leading periodic terms of the longitude, latitude and distance (Brown's theory, truncated), geocentric, mean
+## equator and equinox of J2000 [m], at a TT Julian date.
+## The developer's transcription (S7.4), unsigned.
+module moonfast
+
+## An angle in degrees reduced to one turn, in rad (ephem.rs moon's d).
+fn moon_turn(x: real[1] in -1e6 .. 1e6) -> a: real[1]
+    a = fmod(x, 360.0)*SUN_D2R
+end
+
+## The Moon's geocentric position [m], J2000, at a TT Julian date.
+fn moon_position_fast(jd_tt: real[1] in 2451545 .. 2470000) -> p: vec3[m]
+    let t = (jd_tt - 2451545.0)/36525.0
+    let l0 = moon_turn(218.31617 + 481267.88088*t - 1.3972*t)
+    let l = moon_turn(134.96292 + 477198.86753*t)
+    let lp = moon_turn(357.52543 + 35999.04944*t)
+    let f = moon_turn(93.27283 + 483202.01873*t)
+    let dd = moon_turn(297.85027 + 445267.11135*t)
+    let lam = l0 + (22640.0*sin(l) + 769.0*sin(2.0*l) - 4586.0*sin(l - 2.0*dd) + 2370.0*sin(2.0*dd) - 668.0*sin(lp) \
+        - 412.0*sin(2.0*f) - 212.0*sin(2.0*l - 2.0*dd) - 206.0*sin(l + lp - 2.0*dd) + 192.0*sin(l + 2.0*dd) \
+        - 165.0*sin(lp - 2.0*dd) + 148.0*sin(l - lp) - 125.0*sin(dd) - 110.0*sin(l + lp) - 55.0*sin(2.0*f - 2.0*dd))/3600.0*SUN_D2R
+    let beta = (18520.0*sin(f + lam - l0 + (412.0*sin(2.0*f) + 541.0*sin(lp))/3600.0*SUN_D2R) - 526.0*sin(f - 2.0*dd) \
+        + 44.0*sin(l + f - 2.0*dd) - 31.0*sin(-l + f - 2.0*dd) - 25.0*sin(-2.0*l + f) - 23.0*sin(lp + f - 2.0*dd) \
+        + 21.0*sin(-l + f) + 11.0*sin(-lp + f - 2.0*dd))/3600.0*SUN_D2R
+    let r = (385000.0 - 20905.0*cos(l) - 3699.0*cos(2.0*dd - l) - 2956.0*cos(2.0*dd) - 570.0*cos(2.0*l) \
+        + 246.0*cos(2.0*l - 2.0*dd) - 205.0*cos(lp - 2.0*dd) - 171.0*cos(l + 2.0*dd) - 152.0*cos(l + lp - 2.0*dd))*1e3 [m]
+    p = ecliptic_to_j2000(lam, beta, r)
+end

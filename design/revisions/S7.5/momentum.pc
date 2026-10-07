@@ -1,0 +1,21 @@
+## The total angular momentum, transcribed from adcs-sim-core plant.rs (momentum; the twin's asils.plant): the body's
+## J w, each rotor's momentum along its axis at the gimbal angles, and the flexible mode's delta etad, in body axes (the
+## conservation diagnostic: with no external torque its inertial image is constant). Plain numbers in SI.
+## The developer's transcription (S7.5), unsigned.
+module momentum
+
+## The total angular momentum [N m s], body axes, of the state x.
+fn total_momentum(x: PlantState, inertia: mat3[1] in 0.001 .. 1, m: RotorGeometry, f: Flex) -> h: vec3[1]
+    let a = rotor_axes(m, x.d)
+    h = inertia*x.w
+    for ir in 0 .. m.nr
+        for k in 0 .. 3
+            h[k] = h[k] + a[ir][k]*x.h[ir]
+        end
+    end
+    if f.on
+        for k2 in 0 .. 3
+            h[k2] = h[k2] + f.delta[k2]*x.etad
+        end
+    end
+end

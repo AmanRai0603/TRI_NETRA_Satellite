@@ -154,7 +154,7 @@ fn survey(root: &Path, case_file: &Path, sets: &[(String, String)]) -> Result<(C
     }
     let mut sv = Survey { tau_peak: [0.0; 4], tau_axis_peak: [[0.0; 4]; 3], h_cyclic: [0.0; 4], h_secular_orbit: [0.0; 4],
         b_min: bm.iter().cloned().fold(f64::MAX, f64::min), b_mean: bm.iter().sum::<f64>()/n as f64,
-        eclipse_frac: nu.iter().filter(|x| **x < 0.5).count() as f64/n as f64 };
+        eclipse_frac: eclipse_fraction(&nu)? };
     for a in 0..4 {
         let mut h = [0.0; 3];
         let mut hs = Vec::with_capacity(n);
@@ -166,6 +166,19 @@ fn survey(root: &Path, case_file: &Path, sets: &[(String, String)]) -> Result<(C
         sv.h_secular_orbit[a] = norm(&hend);
     }
     Ok((c, sv))
+}
+
+/// The eclipse fraction of one orbit's samples of the sunlit fraction: env's method of m2_7, generated from the design
+/// (`adcs_sim_core::gen::eclipse`), which holds at most ECLIPSE_NMAX samples.
+fn eclipse_fraction(nu: &[f64]) -> Result<f64, Error> {
+    use adcs_sim_core::gen::eclipse::{eclipse_fraction, ECLIPSE_NMAX};
+    let cap = ECLIPSE_NMAX as usize;
+    if nu.is_empty() || nu.len() > cap {
+        return Err(Error::refused(format!("the sizing survey's orbit has {} samples; the eclipse fraction (m2_7) takes 1 to {cap}", nu.len())));
+    }
+    let mut a = [0.0; ECLIPSE_NMAX as usize];
+    a[..nu.len()].copy_from_slice(nu);
+    Ok(eclipse_fraction(a, nu.len() as i64))
 }
 
 pub fn demand(root: &Path, case_file: &Path, k: &Knobs) -> Result<Demand, Error> {

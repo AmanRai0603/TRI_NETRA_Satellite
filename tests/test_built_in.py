@@ -1,4 +1,4 @@
-"""The built-in count (docs/PLAN_2_0.md S7; docs/S7_INVENTORY.md S7.1b, S7.3, S7.3b-e): the nodes of the regression copy whose
+"""The built-in count (docs/PLAN_2_0.md S7; docs/S7_INVENTORY.md S7.1b, S7.3, S7.3b-e, S7.4, S7.5): the nodes of the regression copy whose
 relation is still compiled code, by group. S7 lowers it to zero; each step that writes a method takes its nodes
 out of BUILT_IN here, in the same change.
   - the count and the list are exactly these, and tools/health.py reports them;
@@ -12,6 +12,7 @@ Owner: Agastya. Copyright (c) 2026 Agastya. All rights reserved.
 """
 import json
 import pathlib
+import re
 import sqlite3
 import tomllib
 import unittest
@@ -35,9 +36,6 @@ BUILT_IN = {
     "design": ["design_sizing_cmg", "design_sizing_fmr", "design_sizing_mtq", "design_sizing_rcs", "design_sizing_rw",
                "design_sizing_sensors", "design_sizing_vscmg", "gb_0", "gb_1", "gb_2", "gb_3", "l3_budget_row_01", "l3_budget_row_02",
                "l3_budget_row_03", "l3_budget_row_04", "l3_budget_row_05", "l3_budget_row_06", "l3_budget_row_07", "l3_budget_row_08"],
-    "dyn": ["dyn_flexible_mode", "dyn_rigid_body", "dyn_rotor_coupling", "dyn_total_momentum"],
-    "env": ["l3_dist_row_01", "l3_dist_row_02", "l3_dist_row_03", "l3_dist_row_04", "l3_dist_row_05", "l3_dist_row_06",
-            "l3_dist_row_09", "l3_dist_row_10", "m2_7"],
     "oils": ["l3_oils_row_07"],
     "pnt": ["gp_0", "gp_1", "gp_2", "gp_4"],
     "sens": ["l3_sens_row_01", "l3_sens_row_02", "l3_sens_row_03", "l3_sens_row_04", "l3_sens_row_05", "l3_sens_row_06",
@@ -57,10 +55,10 @@ class BuiltIn(unittest.TestCase):
     def beh(self, nid):
         return self.nodes[nid][1]["body"]["block"][0][3]
 
-    def test_the_count_is_89_and_these(self):
+    def test_the_count_is_76_and_these(self):
         bi = health.built_in(REG)
         self.assertEqual(bi["by_group"], BUILT_IN)
-        self.assertEqual(bi["count"], 89)
+        self.assertEqual(bi["count"], 76)
         self.assertEqual(bi["boundary"], BOUNDARY)
 
     def test_what_is_not_a_relation_in_code_is_not_built_in(self):
@@ -133,7 +131,7 @@ class BuiltIn(unittest.TestCase):
     def test_the_ephemeris_is_a_method_the_developer_transcribed(self):
         """S7.3c: the Sun and Moon from DE440 and the per-step bundle are env's method over env's slice of DE440's
         records, the developer's unsigned transcription, generated into adcs-pop. l3_dist_row_09 (the Sun's direction
-        and distance) stays built-in: the fast orbit's analytic Sun (adcs-sim-core ephem.rs) is S7.4's."""
+        and distance) was the fast orbit's analytic Sun (adcs-sim-core ephem.rs), S7.4's."""
         for nid, beh in (("env_de440", "method"), ("env_de440_slice", "lookup")):
             _k, x = self.nodes[nid]
             rows = {(s, f): (v, o) for s, f, v, o in x["body"]["content"]}
@@ -143,7 +141,6 @@ class BuiltIn(unittest.TestCase):
                 self.assertEqual(rows[("code", "generate")][0], "adcs-pop")
             self.assertEqual(x["sealed_as"], "unconfirmed", nid)
             self.assertTrue(any(w.startswith("the developer's revision S7.3c") and "not yet signed by a person" in w for w in x["why"]), nid)
-        self.assertEqual(self.beh("l3_dist_row_09"), "built-in")
 
     def test_gravity_and_tides_are_methods_the_developer_transcribed(self):
         """S7.3d: the Earth's gravity (the field's normalisation and zonals, the spherical harmonics, the potential, the
@@ -173,6 +170,58 @@ class BuiltIn(unittest.TestCase):
         self.assertEqual(rows[("code", "generate")][0], "adcs-pop")
         self.assertEqual(x["sealed_as"], "unconfirmed")
         self.assertTrue(any(w.startswith("the developer's revision S7.3e") and "not yet signed by a person" in w for w in x["why"]))
+
+    def test_the_environment_and_disturbances_are_methods_the_developer_transcribed(self):
+        """S7.4: the disturbance torques (gravity gradient, aerodynamic per face with the box's faces, radiation of the Sun
+        and the Earth's albedo and infrared, the residual dipole), the fast orbit's Sun and its pressure, its Moon (a new
+        node), the conical shadow and the eclipse fraction are env's methods, each the developer's unsigned transcription,
+        generated into adcs-sim-core; env has no built-in node left."""
+        moved = {"l3_dist_row_01", "l3_dist_row_02", "l3_dist_row_03", "l3_dist_row_04", "l3_dist_row_05", "l3_dist_row_06",
+                 "l3_dist_row_09", "l3_dist_row_10", "m2_7"}
+        for nid in moved | {"env_moon_fast"}:
+            _k, x = self.nodes[nid]
+            rows = {(s, f): (v, o) for s, f, v, o in x["body"]["content"]}
+            self.assertEqual(self.beh(nid), "method", nid)
+            self.assertIn("the developer's revision S7.4", rows[("code", "pseudocode")][1], nid)
+            self.assertTrue(rows[("code", "transcribes")][0], nid)
+            self.assertEqual(rows[("code", "generate")][0], "adcs-sim-core", nid)
+            self.assertEqual(x["sealed_as"], "unconfirmed", nid)
+            self.assertTrue(any(w.startswith("the developer's revision S7.4") and "not yet signed by a person" in w for w in x["why"]), nid)
+        self.assertNotIn("env", health.built_in(REG)["by_group"])
+
+    def test_the_plant_is_methods_the_developer_transcribed(self):
+        """S7.5: the rotors' geometry and coupling, the flexible mode, the rigid body's rate with its momentum devices and
+        the total momentum are dyn's methods, each the developer's unsigned transcription, generated into adcs-sim-core;
+        the integrator (RK4, the flexible mode's sub-steps) stays code. dyn has no built-in node left."""
+        for nid in ("dyn_rotor_coupling", "dyn_flexible_mode", "dyn_rigid_body", "dyn_total_momentum"):
+            _k, x = self.nodes[nid]
+            rows = {(s, f): (v, o) for s, f, v, o in x["body"]["content"]}
+            self.assertEqual(self.beh(nid), "method", nid)
+            self.assertIn("the developer's revision S7.5", rows[("code", "pseudocode")][1], nid)
+            self.assertTrue(rows[("code", "transcribes")][0], nid)
+            self.assertEqual(rows[("code", "generate")][0], "adcs-sim-core", nid)
+            self.assertEqual(x["sealed_as"], "unconfirmed", nid)
+            self.assertTrue(any(w.startswith("the developer's revision S7.5") and "not yet signed by a person" in w for w in x["why"]), nid)
+        self.assertNotIn("dyn", health.built_in(REG)["by_group"])
+
+    def test_the_values_the_code_used_with_no_node_are_stated_as_it_gave_them(self):
+        """S7.4: the centre-of-mass direction and the surface's constants, which adcs-sim's config.rs used with no node,
+        are stated by dyn with the value and source the 1.0.0 code gave; until S7.11 builds the engine's configuration from
+        the design, the code's copies are held equal to them here."""
+        cfg = (ROOT / "engine" / "crates" / "adcs-sim" / "src" / "config.rs").read_text(encoding="utf-8")
+        const = {k: float(re.search(rf"pub const {k}: f64 = ([-0-9.e]+);", cfg).group(1)) for k in ("ACCOMMODATION", "VB_RATIO", "SPEC_FRAC")}
+        cmd = [float(v) for v in re.search(r"let cmd = \[([^\]]+)\];", cfg).group(1).split(",")]
+        want = {"dyn_cm_direction_x": cmd[0], "dyn_cm_direction_y": cmd[1], "dyn_cm_direction_z": cmd[2],
+                "dyn_surface_accommodation": const["ACCOMMODATION"], "dyn_surface_vb_ratio": const["VB_RATIO"],
+                "dyn_surface_specular_share": const["SPEC_FRAC"]}
+        for nid, v in want.items():
+            _k, x = self.nodes[nid]
+            rows = {(s, f): (val, o) for s, f, val, o in x["body"]["content"]}
+            self.assertEqual(self.beh(nid), "stated", nid)
+            self.assertEqual(x["body"]["node"]["group_id"], "dyn", nid)
+            self.assertEqual(float(rows[("value", "number")][0]), v, nid)
+            self.assertTrue(rows[("value", "source")][0].startswith("1.0.0 code: engine/crates/adcs-sim/src/config.rs"), nid)
+            self.assertEqual(rows[("value", "number")][1], "the developer's revision S7.4", nid)
 
     def test_every_behaviour_is_one_the_schema_knows(self):
         self.assertEqual(tndb.check(REG / "design.tndb"), [])

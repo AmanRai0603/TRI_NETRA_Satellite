@@ -727,3 +727,244 @@ source = "IERS Conventions (2010), chapter 10, eq. 10.12 (Petit and Luzum, IERS 
 generate = ["adcs-pop"]
 uses = ["env/de440.pc"]
 why = "the post-Newtonian terms as a method of env, generated into adcs-pop"
+
+[[revision]]
+id = "S7.4"
+at = "2026-10-08T04:00:00Z"
+by = "the developer"
+about = "the environment and the disturbances as methods of env (docs/S7_INVENTORY.md S7.4): the box's faces, the gravity-gradient, aerodynamic, radiation (the Sun, the Earth's albedo and infrared) and residual-dipole torques, the fast orbit's Sun and its pressure and its Moon, the conical shadow and the eclipse fraction, each the developer's transcription of the code and of the publication it cites; the values the code used with no node (the centre-of-mass direction, the surface's accommodation, re-emitted speed share and specular share) stated by their owner, dyn, as the 1.0.0 code gave them"
+
+[[revision.node]]
+id = "env_moon_fast"
+group = "env"
+parent = "m3"
+label = "Moon position (low precision)"
+behaviour = "method"
+question = "Where is the Moon from the Earth at an epoch, in the engine's fast orbit (Montenbruck and Gill's low-precision series)?"
+why = "the fast orbit's Moon, until now adcs-sim-core ephem.rs (moon), which had no node (docs/S7_INVENTORY.md §1.3)"
+
+[[revision.node]]
+id = "dyn_cm_direction_x"
+group = "dyn"
+parent = "s1"
+label = "Centre-of-mass offset direction, x"
+behaviour = "stated"
+question = "Along which body direction does the centre of mass sit off the box's centre: its x component (unnormalised; the offset's size is the case's centre-of-pressure offset)?"
+content = [["value", "number", "0.30"], ["value", "source", "1.0.0 code: engine/crates/adcs-sim/src/config.rs build (cmd = [0.30, 0.70, -0.65], the direction the case's surface.cpa offset takes)"]]
+why = "a value the engine used with no node (docs/S7_INVENTORY.md §1.3): stated as the 1.0.0 code gave it"
+
+[[revision.node]]
+id = "dyn_cm_direction_y"
+group = "dyn"
+parent = "s1"
+label = "Centre-of-mass offset direction, y"
+behaviour = "stated"
+question = "Along which body direction does the centre of mass sit off the box's centre: its y component (unnormalised)?"
+content = [["value", "number", "0.70"], ["value", "source", "1.0.0 code: engine/crates/adcs-sim/src/config.rs build (cmd = [0.30, 0.70, -0.65], the direction the case's surface.cpa offset takes)"]]
+why = "a value the engine used with no node (docs/S7_INVENTORY.md §1.3): stated as the 1.0.0 code gave it"
+
+[[revision.node]]
+id = "dyn_cm_direction_z"
+group = "dyn"
+parent = "s1"
+label = "Centre-of-mass offset direction, z"
+behaviour = "stated"
+question = "Along which body direction does the centre of mass sit off the box's centre: its z component (unnormalised)?"
+content = [["value", "number", "-0.65"], ["value", "source", "1.0.0 code: engine/crates/adcs-sim/src/config.rs build (cmd = [0.30, 0.70, -0.65], the direction the case's surface.cpa offset takes)"]]
+why = "a value the engine used with no node (docs/S7_INVENTORY.md §1.3): stated as the 1.0.0 code gave it"
+
+[[revision.node]]
+id = "dyn_surface_accommodation"
+group = "dyn"
+parent = "s2"
+label = "Surface momentum accommodation"
+behaviour = "stated"
+question = "What share of the air's normal and tangential momentum do the surfaces accommodate (free-molecular flow, the same for both)?"
+content = [["value", "number", "0.8"], ["value", "source", "1.0.0 code: engine/crates/adcs-sim/src/config.rs ACCOMMODATION (its comment: Moe and Moe 2005, LEO)"]]
+why = "a value the engine used with no node (docs/S7_INVENTORY.md §1.3): stated as the 1.0.0 code gave it"
+
+[[revision.node]]
+id = "dyn_surface_vb_ratio"
+group = "dyn"
+parent = "s2"
+label = "Re-emitted speed share"
+behaviour = "stated"
+question = "What is the speed of the air the surfaces re-emit, as a share of the incoming speed?"
+content = [["value", "number", "0.05"], ["value", "source", "1.0.0 code: engine/crates/adcs-sim/src/config.rs VB_RATIO (its comment: Moe and Moe 2005, LEO)"]]
+why = "a value the engine used with no node (docs/S7_INVENTORY.md §1.3): stated as the 1.0.0 code gave it"
+
+[[revision.node]]
+id = "dyn_surface_specular_share"
+group = "dyn"
+parent = "s2"
+label = "Specular share of reflected light"
+behaviour = "stated"
+question = "What share of the light the surfaces reflect do they reflect specularly (the rest diffusely)?"
+content = [["value", "number", "0.5"], ["value", "source", "1.0.0 code: engine/crates/adcs-sim/src/config.rs SPEC_FRAC"]]
+why = "a value the engine used with no node (docs/S7_INVENTORY.md §1.3): stated as the 1.0.0 code gave it"
+
+[[revision.method]]
+node = "l3_dist_row_02"
+from = "built-in"
+to = "method"
+pseudocode = "design/revisions/S7.4/facets.pc"
+path = "env/facets.pc"
+transcribes = "engine/crates/adcs-sim-core/src/torques.rs (Facets, Facets::boxed, torques: the aerodynamic part; la::unit as unit_or_zero), the twin's asils.env.geometry and torques"
+source = "Sentman (1961), Free molecule flow theory and its application to the determination of aerodynamic forces, LMSC-448514; Moe and Moe (2005), Gas-surface interactions and satellite drag coefficients, Planet. Space Sci. 53:793"
+generate = ["adcs-sim-core"]
+why = "the box's faces and the aerodynamic torque on them as a method of env, generated into the engine"
+
+[[revision.method]]
+node = "l3_dist_row_01"
+from = "built-in"
+to = "method"
+pseudocode = "design/revisions/S7.4/gravgrad.pc"
+path = "env/gravgrad.pc"
+transcribes = "engine/crates/adcs-sim-core/src/torques.rs (torques: the gravity-gradient part), the twin's asils.env.torques"
+source = "Wertz (1978), Spacecraft Attitude Determination and Control, eq. 17-37"
+generate = ["adcs-sim-core"]
+why = "the gravity-gradient torque as a method of env, generated into the engine"
+
+[[revision.method]]
+node = "l3_dist_row_04"
+from = "built-in"
+to = "method"
+pseudocode = "design/revisions/S7.4/albedo.pc"
+path = "env/albedo.pc"
+transcribes = "engine/crates/adcs-sim-core/src/torques.rs (earth_pressure: the albedo part, EARTH_ALBEDO), the twin's asils.env.earth_pressure"
+source = "Knocke, Ries and Tapley (1988), Earth radiation pressure effects on satellites, AIAA 88-4292 (the point-source form); the albedo as flown, 0.30 (the code cites Kiehl and Trenberth 1997, BAMS 78:197, which gives 0.31)"
+generate = ["adcs-sim-core"]
+uses = ["env/facets.pc", "spec/physics/constants.pc"]
+why = "the albedo pressure as a method of env, generated into the engine; the albedo the engine flies (0.30), not the cited 0.31 (a finding for env)"
+
+[[revision.method]]
+node = "l3_dist_row_05"
+from = "built-in"
+to = "method"
+pseudocode = "design/revisions/S7.4/earthir.pc"
+path = "env/earthir.pc"
+transcribes = "engine/crates/adcs-sim-core/src/torques.rs (earth_pressure: the infrared part, EARTH_IR_W_M2), the twin's asils.env.earth_pressure"
+source = "Knocke, Ries and Tapley (1988), AIAA 88-4292 (the point-source form); the flux as flown, 237 W/m^2 (the code cites Kiehl and Trenberth 1997, BAMS 78:197, which gives 235 W/m^2)"
+generate = ["adcs-sim-core"]
+uses = ["spec/physics/constants.pc"]
+why = "the infrared pressure as a method of env, generated into the engine; the flux the engine flies (237 W/m^2), not the cited 235 W/m^2 (a finding for env)"
+
+[[revision.method]]
+node = "l3_dist_row_03"
+from = "built-in"
+to = "method"
+pseudocode = "design/revisions/S7.4/radiation.pc"
+path = "env/radiation.pc"
+transcribes = "engine/crates/adcs-sim-core/src/torques.rs (radiation; torques: the radiation part, the Sun's light by the sunlit fraction and the Earth's albedo and infrared from the nadir), the twin's asils.env.torques"
+source = "Wertz (1978), Spacecraft Attitude Determination and Control, eq. 17-6 (absorbed, specular and diffuse reflection)"
+generate = ["adcs-sim-core"]
+uses = ["env/facets.pc", "env/albedo.pc", "env/earthir.pc"]
+why = "the radiation-pressure torque per face as a method of env, generated into the engine"
+
+[[revision.method]]
+node = "l3_dist_row_06"
+from = "built-in"
+to = "method"
+pseudocode = "design/revisions/S7.4/dipoletorque.pc"
+path = "env/dipoletorque.pc"
+transcribes = "engine/crates/adcs-sim-core/src/torques.rs (torques: the residual-dipole part), the twin's asils.env.torques"
+source = "Wertz (1978), Spacecraft Attitude Determination and Control, eq. 17-48"
+generate = ["adcs-sim-core"]
+why = "the residual-dipole torque as a method of env, generated into the engine"
+
+[[revision.method]]
+node = "l3_dist_row_09"
+from = "built-in"
+to = "method"
+pseudocode = "design/revisions/S7.4/sunfast.pc"
+path = "env/sunfast.pc"
+transcribes = "engine/crates/adcs-sim-core/src/ephem.rs (sun, ecl2eq, EPS_J2000, p_srp): the Sun's pressure as the engine flies it (4.56e-6 N/m^2 at 1 AU over the Sun's distance from the spacecraft), not m3_5's env::solar_pressure (F_sun/c at the Earth-Sun distance of Vallado's series, 0.46 % below it; a finding for env)"
+source = "Montenbruck and Gill (2000), Satellite Orbits, section 3.3.2, eq. 3.43-3.46 (the Sun) and eq. 3.69 (the solar pressure at 1 AU)"
+generate = ["adcs-sim-core"]
+uses = ["spec/physics/constants.pc"]
+why = "the fast orbit's Sun and its pressure as a method of env, generated into the engine; transcribed as flown, so every run stays bit for bit"
+
+[[revision.method]]
+node = "env_moon_fast"
+pseudocode = "design/revisions/S7.4/moonfast.pc"
+path = "env/moonfast.pc"
+transcribes = "engine/crates/adcs-sim-core/src/ephem.rs (moon)"
+source = "Montenbruck and Gill (2000), Satellite Orbits, section 3.3.2, eq. 3.47-3.49"
+generate = ["adcs-sim-core"]
+uses = ["env/sunfast.pc"]
+why = "the fast orbit's Moon as a method of env, generated into the engine"
+
+[[revision.method]]
+node = "l3_dist_row_10"
+from = "built-in"
+to = "method"
+pseudocode = "design/revisions/S7.4/shadow.pc"
+path = "env/shadow.pc"
+transcribes = "engine/crates/adcs-sim-core/src/ephem.rs (shadow), the twin's asils.env.shadow"
+source = "Montenbruck and Gill (2000), Satellite Orbits, section 3.4.2 (the conical shadow); IAU 2015 Resolution B3 (the Sun's nominal radius); WGS-84 (the Earth's)"
+generate = ["adcs-sim-core"]
+uses = ["spec/physics/constants.pc"]
+why = "the Earth's shadow as a method of env, generated into the engine"
+
+[[revision.method]]
+node = "m2_7"
+from = "built-in"
+to = "method"
+pseudocode = "design/revisions/S7.4/eclipse.pc"
+path = "env/eclipse.pc"
+transcribes = "engine/crates/adcs-design/src/lib.rs (survey: eclipse_frac, the samples of one orbit with the sunlit fraction below one half)"
+source = "Montenbruck and Gill (2000), Satellite Orbits, section 3.4.2 (the sunlit fraction it counts)"
+generate = ["adcs-sim-core"]
+why = "the eclipse fraction as a method of env over env's shadow along one orbit, generated into the engine (the sizing survey calls it)"
+
+[[revision]]
+id = "S7.5"
+at = "2026-10-08T06:00:00Z"
+by = "the developer"
+about = "the plant as methods of dyn (docs/S7_INVENTORY.md S7.5): the rotors' geometry and their momentum in the body, the flexible mode in hybrid coordinates, the rigid body's rate with its momentum devices (Euler's equations and the kinematics) and the total angular momentum, each the developer's transcription of the code and of the publication it cites; the engine's integrator (RK4 with the inputs held, the flexible mode's sub-steps) stays code and calls the generated rate"
+
+[[revision.method]]
+node = "dyn_rotor_coupling"
+from = "built-in"
+to = "method"
+pseudocode = "design/revisions/S7.5/rotors.pc"
+path = "dyn/rotors.pc"
+transcribes = "engine/crates/adcs-sim-core/src/plant.rs (Geometry, Geometry::new, Geometry::axes; deriv: the rotors' momentum and torque in the body), the twin's asils.plant.geometry, axes and deriv"
+source = "Wie (2008), Space Vehicle Dynamics and Control, 2nd ed., sections 7.2 and 7.5 (momentum wheels and control moment gyros); Hughes (1986), Spacecraft Attitude Dynamics, chapter 3"
+generate = ["adcs-sim-core"]
+why = "the momentum devices' geometry and coupling as a method of dyn, generated into the engine"
+
+[[revision.method]]
+node = "dyn_flexible_mode"
+from = "built-in"
+to = "method"
+pseudocode = "design/revisions/S7.5/flexmode.pc"
+path = "dyn/flexmode.pc"
+transcribes = "engine/crates/adcs-sim-core/src/plant.rs (Flex, Body::flexible's reduced inertia J - delta delta^T, deriv: the mode's restoring and damping force), the twin's asils.plant.deriv"
+source = "Hughes (1986), Spacecraft Attitude Dynamics, chapter 12 (hybrid coordinates)"
+generate = ["adcs-sim-core"]
+why = "the flexible mode as a method of dyn, generated into the engine; the mode's delta from the case stays config.rs's until S7.11"
+
+[[revision.method]]
+node = "dyn_rigid_body"
+from = "built-in"
+to = "method"
+pseudocode = "design/revisions/S7.5/rigidbody.pc"
+path = "dyn/rigidbody.pc"
+transcribes = "engine/crates/adcs-sim-core/src/plant.rs (State, deriv) and la.rs (kin), the twin's asils.plant.deriv"
+source = "Wie (2008), Space Vehicle Dynamics and Control, 2nd ed., eq. 7.47 (Euler's equations with stored momentum); Hughes (1986), Spacecraft Attitude Dynamics, chapters 3 and 12; Markley and Crassidis (2014), Fundamentals of Spacecraft Attitude Determination and Control, eq. 3.20 (the quaternion kinematics, scalar last)"
+generate = ["adcs-sim-core"]
+uses = ["dyn/rotors.pc", "dyn/flexmode.pc"]
+why = "the plant's rate as a method of dyn, generated into the engine; its integrator (RK4, the flexible mode's sub-steps) stays code and calls it"
+
+[[revision.method]]
+node = "dyn_total_momentum"
+from = "built-in"
+to = "method"
+pseudocode = "design/revisions/S7.5/momentum.pc"
+path = "dyn/momentum.pc"
+transcribes = "engine/crates/adcs-sim-core/src/plant.rs (momentum), the twin's asils.plant"
+source = "Wie (2008), Space Vehicle Dynamics and Control, 2nd ed., section 7.2 (the total angular momentum of a body with rotors); Hughes (1986), chapter 12"
+generate = ["adcs-sim-core"]
+uses = ["dyn/rigidbody.pc", "dyn/rotors.pc", "dyn/flexmode.pc"]
+why = "the total angular momentum as a method of dyn, generated into the engine"
