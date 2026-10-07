@@ -2,7 +2,8 @@
 """The design files (`design/schema.toml`): make one, open one (checking, or upgrading, its format),
 check its tables against the schema, and dump or load its whole content as canonical JSON.
 
-    python3 tools/tndb.py check FILE...     the format, its version and every table against the schema
+    python3 tools/tndb.py check FILE...     the format, its version and every table against the schema, and
+                                            every block's behaviour against the schema's behaviours
     python3 tools/tndb.py dump FILE         the content as canonical JSON (what a round trip compares)
     python3 tools/tndb.py ddl KIND          the SQL that makes a file of that kind
     python3 tools/tndb.py gen [--check]     write (or check) the files made from the schema:
@@ -215,9 +216,31 @@ def check(path, s=None):
         if "max_attachment_bytes" in f and "attachment" in have:
             big = conn.execute('SELECT name, size FROM attachment WHERE size > ?', (f["max_attachment_bytes"],)).fetchall()
             errs += [f"{path}: attachment {n} is {z} bytes, over {f['max_attachment_bytes']}" for n, z in big]
+        if not errs:
+            known = s.get("behaviours") or {}
+            errs += [f"{path}: {nid}: behaviour {b!r} is none the schema knows ({', '.join(known)})"
+                     for nid, b in behaviours_of(conn, kind) if known and b not in known]
         return errs
     finally:
         conn.close()
+
+
+def behaviours_of(conn, kind):
+    """[(node, behaviour)] of every block a file holds: a node file's block table, and the block of every node
+    body a release (release_node) or a design (design_node) holds."""
+    out = []
+    if kind == "node":
+        out += conn.execute('SELECT "id", "behaviour" FROM block').fetchall()
+    elif kind in ("release", "design"):
+        sql = 'SELECT "id", "content" FROM release_node' if kind == "release" else 'SELECT "id", "content" FROM design_node'
+        for nid, content in conn.execute(sql):
+            try:
+                x = json.loads(content)
+                body = json.loads(x["body"]) if isinstance(x.get("body"), str) else x.get("body") or {}
+            except (TypeError, ValueError, AttributeError):
+                continue
+            out += [(nid, b[3]) for b in body.get("block") or [] if isinstance(b, list) and len(b) > 3]
+    return out
 
 
 def _jsonable(v):
@@ -284,6 +307,7 @@ def gen_sql(s=None):
 def gen_js(s=None):
     s = s or schema()
     body = {"schema": s["schema"],
+            "behaviours": s.get("behaviours", {}),
             "tables": {t: [[c, ty.lower(), k] for c, ty, k in columns(t, s)] for t in s["tables"]},
             "formats": {k: {kk: v for kk, v in f.items()} for k, f in s["formats"].items()},
             "ddl": {k: ddl(k, s) for k in s["formats"]}}

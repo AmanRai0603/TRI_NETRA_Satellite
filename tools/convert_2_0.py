@@ -34,6 +34,13 @@ Behaviour: method (it has pseudocode), stated (a declared value), children (a br
 built-in (its relation is still in code, named by node id; S7 removes every one). A row with none
 of these is open.
 
+The developer's revisions (design/revisions_2_0.toml) are applied on top, in order: each moves the nodes it
+names from one behaviour to another, adds the rows it states, writes itself into each node's history (its
+revision table) and its reason into the node's release (`why`), marked the developer's and not yet signed by a
+person. S7.1b moves the built-in nodes that are not relations in code: achieved holders and the KPIs' evidence
+rows to evidence, the KPI closures to closure, the owner pointers to open (or evidence where a run measures
+them), the flight software's runtime rows to stated (code by the boundary).
+
 Owner: Agastya. Copyright (c) 2026 Agastya. All rights reserved.
 """
 import argparse
@@ -57,6 +64,7 @@ import tndb
 from common import ROOT, V1, v1_root
 
 TREE = ROOT / "design" / "tree_2_0.toml"
+REVISIONS = ROOT / "design" / "revisions_2_0.toml"
 SPEC_TREE = V1 / "spec" / "plan" / "tree.json"
 KPIS = V1 / "spec" / "plan" / "kpis.toml"
 GROUPS_1 = ROOT / "design" / "groups.toml"
@@ -137,6 +145,54 @@ def behaviour(kind, content):
     if kind in ("achieved", "closure_analysis", "closure_verified") or any(content.get(k) for k in ("code.rust", "code.c", "code.twin")):
         return "built-in"
     return "open"
+
+
+def revisions(path=REVISIONS):
+    """The developer's revisions, in order (design/revisions_2_0.toml)."""
+    return tomllib.loads(pathlib.Path(path).read_text(encoding="utf-8"))["revision"]
+
+
+def _matches(m, nid, kind, content):
+    if "nodes" in m:
+        return nid in m["nodes"]
+    if "kind" in m:
+        return kind in (m["kind"] if isinstance(m["kind"], list) else [m["kind"]])
+    if "field" in m:
+        return bool(content.get(m["field"]))
+    raise SystemExit(f"convert: a revision matches by nodes, kind or field, not {sorted(m)}")
+
+
+def revise(gdir, revs, report):
+    """Apply the developer's revisions to the node files: {node: [why, ...]} for their releases. A change whose
+    node has another behaviour than its `from`, or that names a node the design does not have, is refused."""
+    files = {f.name[:-len(".node.tndb")]: f for d in gdir.values() for f in sorted((d / "nodes").glob("*.node.tndb"))}
+    why = {}
+    for r in revs:
+        origin = f"the developer's revision {r['id']}"
+        for ch in r["change"]:
+            named = set(ch["match"].get("nodes", []))
+            if named - set(files):
+                raise SystemExit(f"convert: revision {r['id']} names {sorted(named - set(files))}, which the design does not have")
+            hit = 0
+            for nid, f in sorted(files.items()):
+                with sqlite3.connect(f) as c:
+                    kind = c.execute("SELECT kind FROM node").fetchone()[0]
+                    content = {f"{a}.{b}" if b else a: v for a, b, v in c.execute("SELECT section, field, value FROM content")}
+                    if not _matches(ch["match"], nid, kind, content):
+                        continue
+                    beh = c.execute("SELECT behaviour FROM block").fetchone()[0]
+                    if beh != ch["from"]:
+                        raise SystemExit(f"convert: revision {r['id']}: {nid} is {beh}, not {ch['from']}")
+                    c.execute("UPDATE block SET behaviour = ?", (ch["to"],))
+                    c.executemany("INSERT INTO content VALUES (?, ?, ?, ?)", [(a, b, v, origin) for a, b, v in ch.get("content", [])])
+                    n = c.execute("SELECT coalesce(max(n), 0) + 1 FROM revision").fetchone()[0]
+                    c.execute("INSERT INTO revision VALUES (?, ?, ?, ?)", (n, r["at"], r["by"], f"{r['id']}: behaviour {ch['from']} -> {ch['to']}: {ch['why']}"))
+                hit += 1
+                why.setdefault(nid, []).append(f"{origin} ({r['at'][:10]}), not yet signed by a person: behaviour {ch['from']} -> {ch['to']}: {ch['why']}")
+                report.append(["revision", nid, ch["from"], ch["to"], f"{origin}: {ch['why']}"])
+            if not hit:
+                raise SystemExit(f"convert: revision {r['id']}: a change to {ch['to']} matches no node")
+    return why
 
 
 def state_maturity(kind, beh, content):
@@ -456,9 +512,10 @@ def convert(out, src=None):
             tndb.create(path, "case", cid, written_by=BY, fill=fill, sync=False)
             report.append(["case", rel, rel, f"cases/{cid}.tncase", f"{kind}; its text kept whole" + ("; its lines one by one" if kind == "case" else "")])
 
-    # ------------------------------------------------------------ the baseline releases
+    # ------------------------------------------------------------ the developer's revisions, then the baseline releases
+    revised = revise(gdir, revisions(), report)
     for gid in groups:
-        seal_baseline(gdir[gid], gid)
+        seal_baseline(gdir[gid], gid, revised)
 
     # ------------------------------------------------------------ readable copies
     def write_csv(name, head, body):
@@ -516,9 +573,9 @@ def _case_text(path):
     return r[0] if r else None
 
 
-def seal_baseline(gd, gid):
+def seal_baseline(gd, gid, revised=None):
     """Release 0.1 of a group, sealed by the conversion: every node as it was converted, unconfirmed,
-    with why (tools/release.py's rules hold for it)."""
+    with why (tools/release.py's rules hold for it), and, for a node the developer revised, each revision's why."""
     gf = gd / f"{gid}.group.tndb"
     rel_rows = []
     for f in sorted((gd / "nodes").glob("*.node.tndb")):
@@ -535,7 +592,7 @@ def seal_baseline(gd, gid):
                     "loop": [list(r.values()) for r in rows(c, 'SELECT * FROM "loop" ORDER BY id')],
                     "closure": [list(r.values()) for r in rows(c, "SELECT * FROM closure ORDER BY id")]}
         body_text = json.dumps(body, ensure_ascii=False, separators=(",", ":"))
-        content = json.dumps({"body": body_text, "body_fingerprint": sha(body_text), "sealed_as": "unconfirmed", "why": [WHY],
+        content = json.dumps({"body": body_text, "body_fingerprint": sha(body_text), "sealed_as": "unconfirmed", "why": [WHY, *(revised or {}).get(node["id"], [])],
                               "work": "converted", "author": None, "stage": node["stage"]}, ensure_ascii=False, separators=(",", ":"))
         rel_rows.append((node["id"], sha(content), content))
     fp = sha("\n".join(sorted(f"{i} {h}" for i, h, _ in rel_rows)))

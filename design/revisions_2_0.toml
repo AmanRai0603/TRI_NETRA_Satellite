@@ -1,0 +1,89 @@
+# The developer's revisions of the converted design (docs/PLAN_2_0.md, "The re-plan of 6 October": until the
+# ownership stage the developer changes the design, in the database and in the code together, and marks each
+# change as the developer's, not yet signed by a person).
+#
+# tools/convert_2_0.py applies them, in order, on top of the conversion of 1.0.0 (a corrected conversion, zip 1.x),
+# so the regression copy is still made by the two commands of tests/regression/README.md, byte for byte. Each
+# change names the nodes it moves (by id, or by a kind or a content field they all have), the behaviour they had
+# (`from`: a node with any other is refused by name) and the behaviour they get (`to`), and why. A changed node:
+#   - keeps every row 1.0.0 gave it (a `code.*` pointer stays as provenance: it no longer makes the node built-in);
+#   - gains the rows the change adds (`content`: section, field, value), with the revision as their origin;
+#   - gains a row in its history (the node file's revision table): who, when, what changed and why;
+#   - is sealed unconfirmed with the revision's reason after the conversion's (its release's `why`).
+#
+# Nothing here is a number, a relation or a table: a behaviour, a pointer to where a value comes from, and a reason.
+# Owner: Agastya. Copyright (c) 2026 Agastya. All rights reserved.
+
+schema = "trinetra-revisions/1"
+
+[[revision]]
+id = "S7.1b"
+at = "2026-10-07T00:00:00Z"
+by = "the developer"
+about = "the 180 built-in nodes that are not relations in code, reclassified (docs/S7_INVENTORY.md §1.2 and S7.1b, approved by the owner as proposed); the built-in count falls from 271 to 91, the relations still in code"
+
+[[revision.change]]
+match = { kind = "achieved" }
+from = "built-in"
+to = "evidence"
+why = "an achieved holder: no code computes it; a run or campaign of the time engine answers it (evidence, by result id), not a relation in code"
+
+[[revision.change]]
+match = { field = "evidence.metric" }
+from = "open"
+to = "evidence"
+why = "a KPI's evidence row: the campaign metric it names answers it (by result id); the same behaviour as every achieved holder"
+
+[[revision.change]]
+match = { kind = ["closure_analysis", "closure_verified"] }
+from = "built-in"
+to = "closure"
+why = "a KPI closure: the library compares its requirement with its achieved value in the requirement's sense (its closure row); no code computes it"
+
+[[revision.change]]
+match = { nodes = ["gx_1"] }
+from = "built-in"
+to = "evidence"
+content = [["evidence", "source", "soft OILS runs (adcs run --oils; tools/engine_oils.py): the run manifest's oils.cpu_load_max"]]
+why = "measured by soft OILS, not computed; its code.* pointer names the 1.0.0 group's code (an owner pointer), kept as provenance"
+
+[[revision.change]]
+match = { nodes = ["gx_3"] }
+from = "built-in"
+to = "evidence"
+content = [["evidence", "source", "soft OILS runs (adcs run --oils; tools/engine_oils.py): the run manifest's oils.latency_s.max"]]
+why = "measured by soft OILS, not computed; its code.* pointer names the 1.0.0 group's code (an owner pointer), kept as provenance"
+
+[[revision.change]]
+match = { nodes = ["fa1_1"] }
+from = "built-in"
+to = "evidence"
+content = [["evidence", "source", "campaign summaries (tools/engine_campaigns.py): runs flown per wall-clock hour, from each run's wall_s"]]
+why = "measured from the campaigns' wall-clock time, not computed; its code.* pointer names the 1.0.0 group's code (an owner pointer), kept as provenance"
+
+[[revision.change]]
+match = { nodes = ["ct1_4", "ct2_2", "ct3_2", "hr1_2",
+                   "gc_3", "gc_4", "gc_5",
+                   "ge_1", "ge_2", "ge_3", "ge_4", "ge_5",
+                   "gq_0", "gq_1", "gq_2", "gq_3", "gq_4",
+                   "gx_2", "gx_4",
+                   "v3_0", "v3_1", "v3_2", "v3_3", "v3_4",
+                   "v4_0", "v4_1", "v4_2", "v4_3", "v4_4", "v4_5", "v4_6", "v4_7", "v4_8", "v4_9",
+                   "v4_10", "v4_11", "v4_12", "v4_13", "v4_14", "v4_15"] }
+from = "built-in"
+to = "open"
+why = "no code computes it: its code.* pointer names the 1.0.0 group's code (an owner pointer), kept as provenance; open until its group states it, writes its method or names the run that measures it"
+
+[[revision.change]]
+match = { nodes = ["l3_fsw_row_01", "l3_fsw_row_02", "l3_fsw_row_03", "l3_fsw_row_04"] }
+from = "built-in"
+to = "stated"
+content = [["code", "boundary", "runtime"]]
+why = "describes the flight software's runtime, which is code by the boundary (docs/SYSTEM_MODEL.md §7): a stated description, not a relation; its code.c names the runtime file"
+
+[[revision.change]]
+match = { nodes = ["l3_fsw_row_10"] }
+from = "built-in"
+to = "stated"
+content = [["code", "boundary", "test"]]
+why = "describes a test of the runtime (C and Rust parity), which is code by the boundary (docs/SYSTEM_MODEL.md §7): a stated description, not a relation; its code.c names the test"

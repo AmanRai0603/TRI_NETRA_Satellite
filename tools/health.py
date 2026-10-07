@@ -4,6 +4,7 @@ every node's health with why, rolled up group by group to the ADCS, each closure
 and trace to cause for every closure that does not close.
 
     python3 tools/health.py DIR [CASE ...] [--out DIR]     results/HEALTH.md and health.json
+    python3 tools/health.py DIR --built-in                 the built-in nodes by group (relations still in code)
 
 DIR holds the design database (DIR/design.tndb: today's design, tools/design_build.py, or a released one).
 Every row's value comes from tools/evaluate.py on that design; nothing here computes a value of its own.
@@ -12,10 +13,14 @@ A node's health, worst first (a node shows the worst that applies, and lists eve
   fails     a closure it decides does not hold
   refused   it refused: its value is outside its own range, or its method stopped
   blocked   it cannot run: a node it reads has no value; it names that node
-  open      not decided yet: an open block, or a value nobody states yet
+  open      not decided yet: an open block, a value nobody states yet, or evidence no run gives yet
   unproven  its release is not signed by a person (a converted baseline), or its cases are not reproduced
   tight     it closes, but only for part of the range its inputs may still take
   closes    answered, and every closure it feeds holds
+
+The built-in count (docs/PLAN_2_0.md S7): every node whose behaviour is built-in, its relation still in compiled
+code, by group; S7 lowers it to zero. Beside it, the nodes that describe code by the boundary (the flight
+software's runtime and its tests: content code.boundary), which stay code and are not counted.
 
 A closure's range verdict (docs/SYSTEM_MODEL.md §4) says one of three things: it closes for the whole range,
 for part of it (and where it crosses), or fails for all of it. Today's ranges are the case's dispersions:
@@ -69,6 +74,35 @@ def design_facts(d):
                         "port_states": [p[3] for p in b.get("port", []) if p[1] == "out"],
                         "closure": (b.get("closure") or [None])[0]}
     return out
+
+
+def built_in(d):
+    """The built-in count of a design (DIR/design.tndb): {"count", "by_group" {group: [node]}, "boundary" {node: kind}}.
+    A node is built-in when its behaviour is; a node with content code.boundary describes runtime or test code."""
+    out, boundary = {}, {}
+    with sqlite3.connect(f"file:{pathlib.Path(d) / 'design.tndb'}?mode=ro", uri=True) as c:
+        for nid, gid, content in c.execute("SELECT id, group_id, content FROM design_node ORDER BY id"):
+            b = json.loads(content)["body"]
+            if any(blk[3] == "built-in" for blk in b.get("block") or []):
+                out.setdefault(gid, []).append(nid)
+            kind = next((v for s, f, v, _o in b.get("content", []) if (s, f) == ("code", "boundary")), None)
+            if kind:
+                boundary[nid] = kind
+    return {"count": sum(len(v) for v in out.values()), "by_group": dict(sorted(out.items())), "boundary": boundary}
+
+
+def built_in_lines(bi):
+    """The built-in count as the page and the command show it."""
+    L = [f"**{bi['count']} built-in nodes**, relations still in compiled code (docs/PLAN_2_0.md S7 lowers this to zero): "
+         + (", ".join(f"{g} {len(v)}" for g, v in bi["by_group"].items()) or "none") + ".", ""]
+    if bi["by_group"]:
+        L += ["| Group | Built-in nodes |", "|---|---|"]
+        L += [f"| {g} | " + ", ".join(f"`{n}`" for n in v) + " |" for g, v in bi["by_group"].items()]
+        L.append("")
+    if bi["boundary"]:
+        L += [f"Not counted: {len(bi['boundary'])} nodes describe code by the boundary (docs/SYSTEM_MODEL.md §7): "
+              + ", ".join(f"`{n}` ({k})" for n, k in sorted(bi["boundary"].items())) + ".", ""]
+    return L
 
 
 def _sense_margin(value, req, sense):
@@ -170,6 +204,8 @@ def health(d, case):
     for nid, f in facts.items():
         if f["behaviour"] == "open":
             add(nid, "open", "an open block: not decided yet")
+        if f["behaviour"] == "evidence" and (rows.get(nid) or {}).get("state") != "evidence":
+            add(nid, "open", "evidence that no run gives yet" + (f" ({rows[nid]['why']})" if rows.get(nid) and rows[nid].get("why") else ""))
         if f["sealed_as"] not in (None, "sealed", "confirmed", "signed"):
             add(nid, "unproven", "; ".join(f["why_sealed"]) or f"its release is {f['sealed_as']}")
     # closures: the answer, the range verdict, the tornado
@@ -240,12 +276,14 @@ def health(d, case):
             "closures": closures, "nodes": node_rows}
 
 
-def page(results):
+def page(results, bi=None):
     L = ["# The health map", "",
          "**In one line:** every node's health for each case, worst first, rolled up group by group to the ADCS; each closure's "
          "answer, its range verdict and tornado; and, for every closure that does not close, the nodes that cause it "
          "(`tools/health.py`, `docs/OPERATING_2_0.md` §6).", "",
          "Health, worst first: " + ", ".join(f"**{s}**" for s in ORDER) + ". A node shows the worst that applies and lists every one.", ""]
+    if bi is not None:
+        L += ["## Built-in: relations still in code", ""] + built_in_lines(bi)
     for r in results:
         L += [f"## {r['case']}: the ADCS is **{r['adcs']}**", "", f"From `{r['design']}`.", "",
               "| Group | Health | Nodes by health |", "|---|---|---|"]
@@ -269,16 +307,22 @@ def main(argv=None):
     ap.add_argument("dir")
     ap.add_argument("cases", nargs="*")
     ap.add_argument("--out", default=str(ROOT / "results"))
+    ap.add_argument("--built-in", action="store_true", help="only print the built-in nodes by group (relations still in code)")
     a = ap.parse_args(argv)
     d = pathlib.Path(a.dir)
     if not (d / "design.tndb").is_file():
         sys.exit(f"health: {d} holds no design.tndb (build today's design: python3 tools/design_build.py DRIVE --out {d}/design.tndb)")
+    bi = built_in(d)
+    if a.built_in:
+        print("\n".join(built_in_lines(bi)).rstrip())
+        return 0
     with sqlite3.connect(f"file:{d / 'design.tndb'}?mode=ro", uri=True) as c:
         cases = a.cases or [x for (x,) in c.execute("SELECT DISTINCT case_id FROM design_case ORDER BY case_id") if x != "case_template"]
     results = [health(d, case) for case in cases]
     out = pathlib.Path(a.out)
     write_text(out / "health.json", json.dumps(results, indent=1) + "\n")
-    write_text(out / "HEALTH.md", page(results))
+    write_text(out / "HEALTH.md", page(results, bi))
+    print(f"health: built-in {bi['count']} (" + ", ".join(f"{g} {len(v)}" for g, v in bi["by_group"].items()) + ")")
     for r in results:
         cnt = {}
         for n in r["nodes"]:

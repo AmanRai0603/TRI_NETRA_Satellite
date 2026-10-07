@@ -52,6 +52,9 @@ pub struct Schema {
     pub schema: String,
     pub tables: BTreeMap<String, Table>,
     pub formats: BTreeMap<String, Format>,
+    /// what a block's behaviour may be, and what each means (docs/SYSTEM_MODEL.md §2)
+    #[serde(default)]
+    pub behaviours: BTreeMap<String, String>,
 }
 
 /// A file this program cannot take, said by name.
@@ -189,7 +192,8 @@ pub fn open(path: &Path, kind: Option<&str>, s: &Schema) -> Result<DesignFile, F
     Ok(DesignFile { kind: got, meta: m, conn })
 }
 
-/// Every problem with one file: its format, every table and column against the schema, its size.
+/// Every problem with one file: its format, every table and column against the schema, its size, and every
+/// block's behaviour against the schema's behaviours.
 pub fn check(path: &Path, s: &Schema) -> Vec<String> {
     let f = match open(path, None, s) {
         Ok(f) => f,
@@ -235,7 +239,47 @@ pub fn check(path: &Path, s: &Schema) -> Vec<String> {
             .unwrap_or_default();
         errs.extend(big.into_iter().map(|(n, z)| format!("{p}: attachment {n} is {z} bytes, over {max}")));
     }
+    if errs.is_empty() && !s.behaviours.is_empty() {
+        let known = s.behaviours.keys().cloned().collect::<Vec<_>>().join(", ");
+        for (nid, b) in behaviours_of(&f) {
+            if !s.behaviours.contains_key(&b) {
+                errs.push(format!("{p}: {nid}: behaviour {b:?} is none the schema knows ({known})"));
+            }
+        }
+    }
     errs
+}
+
+/// (node, behaviour) of every block a file holds: a node file's block table, and the block of every node body a
+/// release (release_node) or a design (design_node) holds; as tools/tndb.py behaviours_of.
+pub fn behaviours_of(f: &DesignFile) -> Vec<(String, String)> {
+    let rows = |sql: &str| -> Vec<(String, Option<String>)> {
+        f.conn
+            .prepare(sql)
+            .and_then(|mut st| st.query_map([], |r| Ok((r.get::<_, String>(0)?, r.get::<_, Option<String>>(1)?)))?.collect())
+            .unwrap_or_default()
+    };
+    match f.kind.as_str() {
+        "node" => rows(r#"SELECT "id", "behaviour" FROM block"#).into_iter().filter_map(|(n, b)| b.map(|b| (n, b))).collect(),
+        "release" | "design" => {
+            let sql = if f.kind == "release" { r#"SELECT "id", "content" FROM release_node"# } else { r#"SELECT "id", "content" FROM design_node"# };
+            let mut out = Vec::new();
+            for (nid, content) in rows(sql) {
+                let Some(x) = content.and_then(|c| serde_json::from_str::<serde_json::Value>(&c).ok()) else { continue };
+                let body = match &x["body"] {
+                    serde_json::Value::String(t) => serde_json::from_str::<serde_json::Value>(t).unwrap_or_default(),
+                    v => v.clone(),
+                };
+                for b in body["block"].as_array().into_iter().flatten() {
+                    if let Some(beh) = b.get(3).and_then(|v| v.as_str()) {
+                        out.push((nid.clone(), beh.to_string()));
+                    }
+                }
+            }
+            out
+        }
+        _ => Vec::new(),
+    }
 }
 
 /// One cell, as the reader hands it on.
@@ -354,6 +398,31 @@ mod tests {
         older.formats.get_mut("node").unwrap().version = 0;
         assert!(open(&p, None, &older).unwrap_err().0.contains("newer than this program's 0"));
         std::fs::remove_file(&p).unwrap();
+    }
+
+    #[test]
+    fn a_behaviour_the_schema_does_not_know_is_named() {
+        let s = Schema::embedded().unwrap();
+        for b in ["method", "children", "stated", "lookup", "open", "evidence", "closure", "built-in"] {
+            assert!(s.behaviours.contains_key(b), "{b}");
+        }
+        let p = tmp("beh.node.tndb");
+        let c = make(&p, "node", &s.formats["node"].version.to_string(), &s);
+        c.execute("INSERT INTO block VALUES ('n', 'p', 'subsystem', 'evidence', NULL, NULL)", []).unwrap();
+        drop(c);
+        assert_eq!(check(&p, &s), Vec::<String>::new());
+        Connection::open(&p).unwrap().execute("UPDATE block SET behaviour = 'magic'", []).unwrap();
+        assert!(check(&p, &s).iter().any(|e| e.contains("n: behaviour \"magic\" is none the schema knows")));
+        std::fs::remove_file(&p).unwrap();
+        let d = tmp("beh.design.tndb");
+        let c = make(&d, "design", &s.formats["design"].version.to_string(), &s);
+        let body = r#"{"body":{"block":[["n","p","system","closure",null,null]]}}"#;
+        c.execute("INSERT INTO design_node VALUES ('n', 'g', NULL, '2', 'leaf', 'N', ?1, 'g 0.1')", [body]).unwrap();
+        drop(c);
+        assert_eq!(check(&d, &s), Vec::<String>::new());
+        Connection::open(&d).unwrap().execute("UPDATE design_node SET content = replace(content, 'closure', 'magic')", []).unwrap();
+        assert!(check(&d, &s).iter().any(|e| e.contains("behaviour \"magic\"")));
+        std::fs::remove_file(&d).unwrap();
     }
 
     #[test]

@@ -38,7 +38,7 @@
 | [`tndb.py tndb`](#tndbpy-tndb) | The design files (node, group, release, design database), from design/schema.toml: check a file's format, version and every table; dump it as canonical JSON; print the SQL that makes a kind; write or check the files made from the schema (design/ddl.sql, design/js/tndb_schema.js). An older file is upgraded with a copy kept; a newer one is refused. |
 | [`convert_2_0.py convert-2-0`](#convert_2_0py-convert-2-0) | The design leaves the repository (docs/PLAN_2_0.md S3): the one conversion of the 1.0.0 design (the seeded and carried node and group files) and the repository's library data (catalogue, KPIs, units, the flight software's algorithms, parameters and IGRF table, the cases, scenarios, campaigns and trades) into the 2.0.0 layout of the shared drive: 21 group folders with their nodes and a baseline release 0.1 each, the cases, and readable copies with Conversion.csv placing every field. Writes a new folder only; the same inputs give the same bytes. |
 | [`design_build.py design-build`](#design_buildpy-design-build) | Today's design (docs/PLAN_2_0.md S4): the one database every program reads, built from every group's newest sealed release that passes its checks on the shared drive (or a converted folder). Holds the releases used, every node as released, the wires, the catalogue of outputs, the cases the engine flies line by line and every engine input file, each generated from the design's own blocks and case files; names its toolbox and the application it needs. With --export, writes the same inputs as a data folder for the MATLAB twin and the Python tools. |
-| [`health.py health`](#healthpy-health) | The health map of a design for a case (docs/OPERATING_2_0.md §6): every node's health with why (fails, refused, blocked, open, unproven, tight, closes; worst first), rolled up group by group to the ADCS; each closure's answer, its range verdict (closes for the whole range, for part of it, or fails for all of it) and its tornado from the case's edge campaigns; and trace to cause for every closure that does not close. Every value comes from tools/evaluate.py on the design; nothing here computes one of its own. |
+| [`health.py health`](#healthpy-health) | The health map of a design for a case (docs/OPERATING_2_0.md §6): every node's health with why (fails, refused, blocked, open, unproven, tight, closes; worst first), rolled up group by group to the ADCS; each closure's answer, its range verdict (closes for the whole range, for part of it, or fails for all of it) and its tornado from the case's edge campaigns; and trace to cause for every closure that does not close; and the built-in count, the nodes whose relation is still compiled code, by group (docs/PLAN_2_0.md S7 lowers it to zero; --built-in prints only that). Every value comes from tools/evaluate.py on the design; nothing here computes one of its own. |
 | [`parity_2_0.py parity-2-0`](#parity_2_0py-parity-2-0) | The parity gate (docs/PLAN_2_0.md S4): today's design, read alone by the engine (an empty data folder), gives the repository's own inputs, flight parameter table, parameter blobs, stored scenario runs, stored campaign runs and evaluation; optionally soft OILS on QEMU and the MATLAB twin flown from the design's export. |
 | [`from_design.py from-design`](#from_designpy-from-design) | The design in the repository (docs/PLAN_2_0.md S4): the repository holds no design data of its own, only the regression copy (tests/regression/design.tndb). Every file the code still reads that is design is generated from it and never edited: the engine's input files and cases (matlab_sils/data, matlab_sils/cases), the flight parameter table (fsw/params/params.toml) and the flight algorithms (fsw/pseudocode/03-09). Tools read the rest of 1.0.0's plan from the design by its 1.0.0 path (from_design.text). |
 | [`drive.py drive`](#drivepy-drive) | The shared drive, Trinetra Database (docs/OPERATING_2_0.md §15, docs/PLAN_2_0.md S4): pack zip 1 (the design converted into the 2.0.0 layout: groups with their baseline releases, cases, readable copies, the empty folders with a note each, the guides, START HERE, and MANIFEST.json with every file's size, SHA-256 and MD5), and check a drive's folder, or a listing of it, against that manifest. |
@@ -680,11 +680,12 @@ The design leaves the repository (docs/PLAN_2_0.md S3): the one conversion of th
 2. place every node in its 2.0.0 group, add its block, ports, closures and loop
 3. add the tree's branches, the flight software's modules and parameters, the IGRF table and the library data as blocks
 4. write the 21 group files with their mounts, and the case files
-5. seal each group's baseline release 0.1, unconfirmed: converted, not yet signed by a person
-6. write readable/ (Groups, Nodes, Ports, Wires, Closures, BuiltIn, Conversion)
-7. with --check, check every file, every release and the tree's shape
+5. apply the developer's revisions (design/revisions_2_0.toml): each moves the nodes it names to another behaviour, writes itself into their history and its reason into their release
+6. seal each group's baseline release 0.1, unconfirmed: converted, not yet signed by a person
+7. write readable/ (Groups, Nodes, Ports, Wires, Closures, BuiltIn, Conversion)
+8. with --check, check every file, every release and the tree's shape
 
-- **Reads:** `design/tree_2_0.toml`; `design/groups.toml`; `spec/plan/`; `catalogue/`; `scenarios/`; `campaigns/`; `trades/`; `matlab_sils/cases/`; `fsw/pseudocode/`; `fsw/params/params.toml`; `fsw/tests/pcode_vectors.txt`; `matlab_sils/data/igrf13coeffs.txt`
+- **Reads:** `design/tree_2_0.toml`; `design/groups.toml`; `design/revisions_2_0.toml`; `spec/plan/`; `catalogue/`; `scenarios/`; `campaigns/`; `trades/`; `matlab_sils/cases/`; `fsw/pseudocode/`; `fsw/params/params.toml`; `fsw/tests/pcode_vectors.txt`; `matlab_sils/data/igrf13coeffs.txt`
 - **Writes:** `DIR/groups/`; `DIR/cases/`; `DIR/readable/`; `DIR/design/, daily/, integration/, issues/, results/ (empty)`
 - **Starts:** nothing
 - **Checks:** every file against the schema; every baseline release (tools/release.py); one tree, every parent and mount a block, every group file listing exactly its folder's nodes
@@ -715,9 +716,9 @@ Today's design (docs/PLAN_2_0.md S4): the one database every program reads, buil
 
 ## health.py health
 
-The health map of a design for a case (docs/OPERATING_2_0.md §6): every node's health with why (fails, refused, blocked, open, unproven, tight, closes; worst first), rolled up group by group to the ADCS; each closure's answer, its range verdict (closes for the whole range, for part of it, or fails for all of it) and its tornado from the case's edge campaigns; and trace to cause for every closure that does not close. Every value comes from tools/evaluate.py on the design; nothing here computes one of its own.
+The health map of a design for a case (docs/OPERATING_2_0.md §6): every node's health with why (fails, refused, blocked, open, unproven, tight, closes; worst first), rolled up group by group to the ADCS; each closure's answer, its range verdict (closes for the whole range, for part of it, or fails for all of it) and its tornado from the case's edge campaigns; and trace to cause for every closure that does not close; and the built-in count, the nodes whose relation is still compiled code, by group (docs/PLAN_2_0.md S7 lowers it to zero; --built-in prints only that). Every value comes from tools/evaluate.py on the design; nothing here computes one of its own.
 
-    python3 tools/health.py DIR [CASE ...] [--out DIR]
+    python3 tools/health.py DIR [CASE ...] [--out DIR] [--built-in]
 
 **Steps**
 
@@ -726,12 +727,12 @@ The health map of a design for a case (docs/OPERATING_2_0.md §6): every node's 
 3. mark open, blocked and unsigned nodes
 4. judge each answered closure over the edge campaigns' and the Monte Carlo's runs; rank the dispersions by how far each moves the margin
 5. walk each blocked closure down to the nodes that cause it
-6. roll up by group and to the ADCS; write results/HEALTH.md and health.json
+6. roll up by group and to the ADCS; count the built-in nodes by group; write results/HEALTH.md and health.json
 
 - **Reads:** `DIR/design.tndb`; `matlab_sils/store/pipeline/<case>/mc/summary.json`; `matlab_sils/store/results_engine/campaigns/*/summary.json`; `matlab_sils/data/campaigns/`
 - **Writes:** `results/HEALTH.md`; `results/health.json`
 - **Starts:** `node design/js/pcode_cli.mjs run (through tools/evaluate.py)`
-- **Checks:** tests/test_design_build.py: every group as bad as its worst node and the ADCS as its worst group; no computed row outside its range; every blocked closure names its cause
+- **Checks:** tests/test_design_build.py: every group as bad as its worst node and the ADCS as its worst group; no computed row outside its range; every blocked closure names its cause; tests/test_built_in.py: the built-in count of the regression copy and its list
 - **Undo:** It writes generated files only: `git checkout -- results/HEALTH.md results/health.json`.
 - **Code:** `tools/health.py`
 

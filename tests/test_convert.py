@@ -1,7 +1,8 @@
 """The design leaves the repository (docs/PLAN_2_0.md S3): tools/convert_2_0.py writes the 2.0.0 layout,
 and nothing 1.0.0 holds is dropped:
   - every 1.0.0 node's every 1.0.0 table is in its converted file, field by field (only a dissolved
-    group's node names its new group);
+    group's node names its new group); a row added is the developer's revision (design/revisions_2_0.toml), named
+    in its origin or its history;
   - every library file (catalogue, KPIs, units, flight parameters), every case, scenario, campaign and
     trade is held with its text whole, a case's lines one by one;
   - every flight algorithm module, every one of its vectors, every flight parameter and the IGRF table;
@@ -69,6 +70,12 @@ class Convert(unittest.TestCase):
                 if t == "node" and a != b:
                     self.assertEqual(a[0][2], "case", f"{nid}: only a dissolved group's node changes its group")
                     self.assertEqual(a[0][:2] + a[0][3:], b[0][:2] + b[0][3:], nid)
+                    continue
+                if t in ("content", "revision") and a != b:
+                    self.assertEqual([r for r in a if r not in b], [], f"{nid}: table {t}: a 1.0.0 row is not kept")
+                    added = [r for r in b if r not in a]
+                    mark = (lambda r: r[3].startswith("the developer's revision ")) if t == "content" else (lambda r: r[2] == "the developer")
+                    self.assertTrue(all(mark(r) for r in added), f"{nid}: table {t}: a row added is not the developer's revision: {added}")
                     continue
                 self.assertEqual(a, b, f"{nid}: table {t}")
 

@@ -69,7 +69,30 @@
    "core.field",
    "pop.atmos.exponential"
   ],
-  "translator_gaps": 13
+  "translator_gaps": 13,
+  "after_s7_1b": {
+   "built_in": 91,
+   "built_in_by_group": {
+    "act": 38,
+    "design": 19,
+    "dyn": 4,
+    "env": 11,
+    "oils": 1,
+    "pnt": 4,
+    "sens": 14
+   },
+   "behaviours": {
+    "open": 304,
+    "stated": 297,
+    "children": 134,
+    "evidence": 119,
+    "lookup": 117,
+    "built-in": 91,
+    "method": 55,
+    "closure": 38
+   },
+   "how": "the developer's revision S7.1b (design/revisions_2_0.toml), applied by tools/convert_2_0.py; also the 22 KPI evidence rows open -> evidence"
+  }
  },
  "built_in_nodes": [
   {
@@ -201,7 +224,8 @@
    "computed_in": "none (an achieved holder)",
    "twin": "",
    "fate": "evidence: a wire from the run or campaign metric that answers it; not a relation",
-   "carried_code": {}
+   "carried_code": {},
+   "s7_1b": "evidence"
   },
   {
    "node": "l3_fmr_gf_1_achieved",
@@ -212,7 +236,8 @@
    "computed_in": "none (an achieved holder)",
    "twin": "",
    "fate": "evidence: a wire from the run or campaign metric that answers it; not a relation",
-   "carried_code": {}
+   "carried_code": {},
+   "s7_1b": "evidence"
   },
   {
    "node": "l3_fmr_gf_2_achieved",
@@ -223,7 +248,8 @@
    "computed_in": "none (an achieved holder)",
    "twin": "",
    "fate": "evidence: a wire from the run or campaign metric that answers it; not a relation",
-   "carried_code": {}
+   "carried_code": {},
+   "s7_1b": "evidence"
   },
   {
    "node": "l3_fmr_gf_3_achieved",
@@ -234,7 +260,8 @@
    "computed_in": "none (an achieved holder)",
    "twin": "",
    "fate": "evidence: a wire from the run or campaign metric that answers it; not a relation",
-   "carried_code": {}
+   "carried_code": {},
+   "s7_1b": "evidence"
   },
   {
    "node": "l3_fmr_gf_4_achieved",
@@ -245,7 +272,8 @@
    "computed_in": "none (an achieved holder)",
    "twin": "",
    "fate": "evidence: a wire from the run or campaign metric that answers it; not a relation",
-   "carried_code": {}
+   "carried_code": {},
+   "s7_1b": "evidence"
   },
   {
    "node": "l3_fmr_gf_5_achieved",
@@ -256,7 +284,8 @@
    "computed_in": "none (an achieved holder)",
    "twin": "",
    "fate": "evidence: a wire from the run or campaign metric that answers it; not a relation",
-   "carried_code": {}
+   "carried_code": {},
+   "s7_1b": "evidence"
   },
   {
    "node": "l3_fmr_gf_6_achieved",
@@ -267,7 +296,8 @@
    "computed_in": "none (an achieved holder)",
    "twin": "",
    "fate": "evidence: a wire from the run or campaign metric that answers it; not a relation",
-   "carried_code": {}
+   "carried_code": {},
+   "s7_1b": "evidence"
   },
   {
    "node": "l3_fmr_gf_7_achieved",
@@ -278,7 +308,8 @@
    "computed_in": "none (an achieved holder)",
    "twin": "",
    "fate": "evidence: a wire from the run or campaign metric that answers it; not a relation",
-   "carried_code": {}
+   "carried_code": {},
+   "s7_1b": "evidence"
   },
   {
    "node": "l3_fmr_gf_8_achieved",
@@ -289,7 +320,8 @@
    "computed_in": "none (an achieved holder)",
    "twin": "",
    "fate": "evidence: a wire from the run or campaign metric that answers it; not a relation",
-   "carried_code": {}
+   "carried_code": {},
+   "s7_1b": "evidence"
   },
   {
    "node": "l3_fmr_gf_9_achieved",
@@ -300,7 +332,8 @@
    "computed_in": "none (an achieved holder)",
    "twin": "",
    "fate": "evidence: a wire from the run or campaign metric that answers it; not a relation",
-   "carried_code": {}
+   "carried_code": {},
+   "s7_1b": "evidence"
   },
   {
    "node": "l3_fmr_row_07",
@@ -428,7 +461,8 @@
    "computed_in": "none (an achieved holder)",
    "twin": "",
    "fate": "evidence: a wire from the run or campaign metric that answers it; not a relation",
-   "carried_code": {}
+   "carried_code": {},
+   "s7_1b": "evidence"
   },
   {
    "node": "l3_mtq_gm_1_achieved",
@@ -439,7 +473,8 @@
    "computed_in": "none (an achieved holder)",
    "twin": "",
    "fate": "evidence: a wire from the run or campaign metric that answers it; not a relation",
-   "carried_code": {}
+   "carried_code": {},
+   "s7_1b": "evidence"
   },
   {
    "node": "l3_mtq_gm_2_achieved",
@@ -450,7 +485,8 @@
    "computed_in": "none (an achieved holder)",
    "twin": "",
    "fate": "evidence: a wire from the run or campaign metric that answers it; not a relation",
-   "carried_code": {}
+   "carried_code": {},
+   "s7_1b": "evidence"
   },
   {
    "node": "l3_mtq_gm_3_achieved",
@@ -461,7 +497,8 @@
    "computed_in": "none (an achieved holder)",
    "twin": "",
    "fate": "evidence: a wire from the run or campaign metric that answers it; not a relation",
-   "carried_code": {}
+   "carried_code": {},
+   "s7_1b": "evidence"
   },
   {
    "node": "l3_mtq_gm_4_achieved",
@@ -472,7 +509,8 @@
    "computed_in": "none (an achieved holder)",
    "twin": "",
    "fate": "evidence: a wire from the run or campaign metric that answers it; not a relation",
-   "carried_code": {}
+   "carried_code": {},
+   "s7_1b": "evidence"
   },
   {
    "node": "l3_mtq_gm_5_achieved",
@@ -483,7 +521,8 @@
    "computed_in": "none (an achieved holder)",
    "twin": "",
    "fate": "evidence: a wire from the run or campaign metric that answers it; not a relation",
-   "carried_code": {}
+   "carried_code": {},
+   "s7_1b": "evidence"
   },
   {
    "node": "l3_mtq_row_02",
@@ -572,7 +611,8 @@
    "computed_in": "none (an achieved holder)",
    "twin": "",
    "fate": "evidence: a wire from the run or campaign metric that answers it; not a relation",
-   "carried_code": {}
+   "carried_code": {},
+   "s7_1b": "evidence"
   },
   {
    "node": "l3_rcs_gr_1_achieved",
@@ -583,7 +623,8 @@
    "computed_in": "none (an achieved holder)",
    "twin": "",
    "fate": "evidence: a wire from the run or campaign metric that answers it; not a relation",
-   "carried_code": {}
+   "carried_code": {},
+   "s7_1b": "evidence"
   },
   {
    "node": "l3_rcs_gr_2_achieved",
@@ -594,7 +635,8 @@
    "computed_in": "none (an achieved holder)",
    "twin": "",
    "fate": "evidence: a wire from the run or campaign metric that answers it; not a relation",
-   "carried_code": {}
+   "carried_code": {},
+   "s7_1b": "evidence"
   },
   {
    "node": "l3_rcs_gr_3_achieved",
@@ -605,7 +647,8 @@
    "computed_in": "none (an achieved holder)",
    "twin": "",
    "fate": "evidence: a wire from the run or campaign metric that answers it; not a relation",
-   "carried_code": {}
+   "carried_code": {},
+   "s7_1b": "evidence"
   },
   {
    "node": "l3_rcs_gr_4_achieved",
@@ -616,7 +659,8 @@
    "computed_in": "none (an achieved holder)",
    "twin": "",
    "fate": "evidence: a wire from the run or campaign metric that answers it; not a relation",
-   "carried_code": {}
+   "carried_code": {},
+   "s7_1b": "evidence"
   },
   {
    "node": "l3_rcs_row_01",
@@ -731,7 +775,8 @@
    "computed_in": "none (an achieved holder)",
    "twin": "",
    "fate": "evidence: a wire from the run or campaign metric that answers it; not a relation",
-   "carried_code": {}
+   "carried_code": {},
+   "s7_1b": "evidence"
   },
   {
    "node": "l3_rw_gw_1_achieved",
@@ -742,7 +787,8 @@
    "computed_in": "none (an achieved holder)",
    "twin": "",
    "fate": "evidence: a wire from the run or campaign metric that answers it; not a relation",
-   "carried_code": {}
+   "carried_code": {},
+   "s7_1b": "evidence"
   },
   {
    "node": "l3_rw_gw_2_achieved",
@@ -753,7 +799,8 @@
    "computed_in": "none (an achieved holder)",
    "twin": "",
    "fate": "evidence: a wire from the run or campaign metric that answers it; not a relation",
-   "carried_code": {}
+   "carried_code": {},
+   "s7_1b": "evidence"
   },
   {
    "node": "l3_rw_gw_3_achieved",
@@ -764,7 +811,8 @@
    "computed_in": "none (an achieved holder)",
    "twin": "",
    "fate": "evidence: a wire from the run or campaign metric that answers it; not a relation",
-   "carried_code": {}
+   "carried_code": {},
+   "s7_1b": "evidence"
   },
   {
    "node": "l3_rw_gw_4_achieved",
@@ -775,7 +823,8 @@
    "computed_in": "none (an achieved holder)",
    "twin": "",
    "fate": "evidence: a wire from the run or campaign metric that answers it; not a relation",
-   "carried_code": {}
+   "carried_code": {},
+   "s7_1b": "evidence"
   },
   {
    "node": "l3_rw_gw_5_achieved",
@@ -786,7 +835,8 @@
    "computed_in": "none (an achieved holder)",
    "twin": "",
    "fate": "evidence: a wire from the run or campaign metric that answers it; not a relation",
-   "carried_code": {}
+   "carried_code": {},
+   "s7_1b": "evidence"
   },
   {
    "node": "l3_rw_gw_6_achieved",
@@ -797,7 +847,8 @@
    "computed_in": "none (an achieved holder)",
    "twin": "",
    "fate": "evidence: a wire from the run or campaign metric that answers it; not a relation",
-   "carried_code": {}
+   "carried_code": {},
+   "s7_1b": "evidence"
   },
   {
    "node": "l3_rw_row_01",
@@ -902,7 +953,8 @@
    "carried_code": {
     "code.rust": "[\"adcs-sim/product.rs\"]",
     "code.twin": "[\"+product\"]"
-   }
+   },
+   "s7_1b": "open"
   },
   {
    "node": "hr1_2",
@@ -916,7 +968,8 @@
    "carried_code": {
     "code.rust": "[\"adcs-sim/product.rs\"]",
     "code.twin": "[\"+product\"]"
-   }
+   },
+   "s7_1b": "open"
   },
   {
    "node": "gc_3",
@@ -931,7 +984,8 @@
     "code.c": "[\"adcs_ctl.c\", \"adcs_alloc.c\"]",
     "code.rust": "[\"fsw-rs/ctl.rs\", \"fsw-rs/alloc.rs\"]",
     "code.twin": "[\"+fsw/control_law.m\", \"+fsw/allocate.m\", \"+fsw/bdot.m\"]"
-   }
+   },
+   "s7_1b": "open"
   },
   {
    "node": "gc_4",
@@ -946,7 +1000,8 @@
     "code.c": "[\"adcs_ctl.c\", \"adcs_alloc.c\"]",
     "code.rust": "[\"fsw-rs/ctl.rs\", \"fsw-rs/alloc.rs\"]",
     "code.twin": "[\"+fsw/control_law.m\", \"+fsw/allocate.m\", \"+fsw/bdot.m\"]"
-   }
+   },
+   "s7_1b": "open"
   },
   {
    "node": "gc_5",
@@ -961,7 +1016,8 @@
     "code.c": "[\"adcs_ctl.c\", \"adcs_alloc.c\"]",
     "code.rust": "[\"fsw-rs/ctl.rs\", \"fsw-rs/alloc.rs\"]",
     "code.twin": "[\"+fsw/control_law.m\", \"+fsw/allocate.m\", \"+fsw/bdot.m\"]"
-   }
+   },
+   "s7_1b": "open"
   },
   {
    "node": "l3_ctl_gc_0_achieved",
@@ -972,7 +1028,8 @@
    "computed_in": "none (an achieved holder)",
    "twin": "",
    "fate": "evidence: a wire from the run or campaign metric that answers it; not a relation",
-   "carried_code": {}
+   "carried_code": {},
+   "s7_1b": "evidence"
   },
   {
    "node": "l3_ctl_gc_1_achieved",
@@ -983,7 +1040,8 @@
    "computed_in": "none (an achieved holder)",
    "twin": "",
    "fate": "evidence: a wire from the run or campaign metric that answers it; not a relation",
-   "carried_code": {}
+   "carried_code": {},
+   "s7_1b": "evidence"
   },
   {
    "node": "l3_ctl_gc_2_achieved",
@@ -994,7 +1052,8 @@
    "computed_in": "none (an achieved holder)",
    "twin": "",
    "fate": "evidence: a wire from the run or campaign metric that answers it; not a relation",
-   "carried_code": {}
+   "carried_code": {},
+   "s7_1b": "evidence"
   },
   {
    "node": "l3_ctl_gc_3_achieved",
@@ -1005,7 +1064,8 @@
    "computed_in": "none (an achieved holder)",
    "twin": "",
    "fate": "evidence: a wire from the run or campaign metric that answers it; not a relation",
-   "carried_code": {}
+   "carried_code": {},
+   "s7_1b": "evidence"
   },
   {
    "node": "l3_ctl_gc_4_achieved",
@@ -1016,7 +1076,8 @@
    "computed_in": "none (an achieved holder)",
    "twin": "",
    "fate": "evidence: a wire from the run or campaign metric that answers it; not a relation",
-   "carried_code": {}
+   "carried_code": {},
+   "s7_1b": "evidence"
   },
   {
    "node": "l3_ctl_gc_5_achieved",
@@ -1027,7 +1088,8 @@
    "computed_in": "none (an achieved holder)",
    "twin": "",
    "fate": "evidence: a wire from the run or campaign metric that answers it; not a relation",
-   "carried_code": {}
+   "carried_code": {},
+   "s7_1b": "evidence"
   },
   {
    "node": "ct2_2",
@@ -1041,7 +1103,8 @@
    "carried_code": {
     "code.rust": "[\"adcs-design\"]",
     "code.twin": "[\"+sizing\", \"+solution\"]"
-   }
+   },
+   "s7_1b": "open"
   },
   {
    "node": "ct3_2",
@@ -1055,7 +1118,8 @@
    "carried_code": {
     "code.rust": "[\"adcs-design\"]",
     "code.twin": "[\"+sizing\", \"+solution\"]"
-   }
+   },
+   "s7_1b": "open"
   },
   {
    "node": "design_sizing_cmg",
@@ -1220,7 +1284,8 @@
    "computed_in": "none (an achieved holder)",
    "twin": "",
    "fate": "evidence: a wire from the run or campaign metric that answers it; not a relation",
-   "carried_code": {}
+   "carried_code": {},
+   "s7_1b": "evidence"
   },
   {
    "node": "l3_budget_gb_1_achieved",
@@ -1231,7 +1296,8 @@
    "computed_in": "none (an achieved holder)",
    "twin": "",
    "fate": "evidence: a wire from the run or campaign metric that answers it; not a relation",
-   "carried_code": {}
+   "carried_code": {},
+   "s7_1b": "evidence"
   },
   {
    "node": "l3_budget_gb_2_achieved",
@@ -1242,7 +1308,8 @@
    "computed_in": "none (an achieved holder)",
    "twin": "",
    "fate": "evidence: a wire from the run or campaign metric that answers it; not a relation",
-   "carried_code": {}
+   "carried_code": {},
+   "s7_1b": "evidence"
   },
   {
    "node": "l3_budget_gb_3_achieved",
@@ -1253,7 +1320,8 @@
    "computed_in": "none (an achieved holder)",
    "twin": "",
    "fate": "evidence: a wire from the run or campaign metric that answers it; not a relation",
-   "carried_code": {}
+   "carried_code": {},
+   "s7_1b": "evidence"
   },
   {
    "node": "l3_budget_row_01",
@@ -1424,7 +1492,8 @@
    "computed_in": "none (an achieved holder)",
    "twin": "",
    "fate": "evidence: a wire from the run or campaign metric that answers it; not a relation",
-   "carried_code": {}
+   "carried_code": {},
+   "s7_1b": "evidence"
   },
   {
    "node": "l3_dist_gd_1_achieved",
@@ -1435,7 +1504,8 @@
    "computed_in": "none (an achieved holder)",
    "twin": "",
    "fate": "evidence: a wire from the run or campaign metric that answers it; not a relation",
-   "carried_code": {}
+   "carried_code": {},
+   "s7_1b": "evidence"
   },
   {
    "node": "l3_dist_gd_2_achieved",
@@ -1446,7 +1516,8 @@
    "computed_in": "none (an achieved holder)",
    "twin": "",
    "fate": "evidence: a wire from the run or campaign metric that answers it; not a relation",
-   "carried_code": {}
+   "carried_code": {},
+   "s7_1b": "evidence"
   },
   {
    "node": "l3_dist_gd_3_achieved",
@@ -1457,7 +1528,8 @@
    "computed_in": "none (an achieved holder)",
    "twin": "",
    "fate": "evidence: a wire from the run or campaign metric that answers it; not a relation",
-   "carried_code": {}
+   "carried_code": {},
+   "s7_1b": "evidence"
   },
   {
    "node": "l3_dist_gd_4_achieved",
@@ -1468,7 +1540,8 @@
    "computed_in": "none (an achieved holder)",
    "twin": "",
    "fate": "evidence: a wire from the run or campaign metric that answers it; not a relation",
-   "carried_code": {}
+   "carried_code": {},
+   "s7_1b": "evidence"
   },
   {
    "node": "l3_dist_gd_5_achieved",
@@ -1479,7 +1552,8 @@
    "computed_in": "none (an achieved holder)",
    "twin": "",
    "fate": "evidence: a wire from the run or campaign metric that answers it; not a relation",
-   "carried_code": {}
+   "carried_code": {},
+   "s7_1b": "evidence"
   },
   {
    "node": "l3_dist_row_01",
@@ -1639,7 +1713,8 @@
     "code.c": "[\"adcs_fdir.c\"]",
     "code.rust": "[\"fsw-rs/fdir.rs\"]",
     "code.twin": "[\"+fsw/fdir.m\", \"+faults\"]"
-   }
+   },
+   "s7_1b": "open"
   },
   {
    "node": "gq_3",
@@ -1654,7 +1729,8 @@
     "code.c": "[\"adcs_fdir.c\"]",
     "code.rust": "[\"fsw-rs/fdir.rs\"]",
     "code.twin": "[\"+fsw/fdir.m\", \"+faults\"]"
-   }
+   },
+   "s7_1b": "open"
   },
   {
    "node": "l3_modes_gq_2_achieved",
@@ -1665,7 +1741,8 @@
    "computed_in": "none (an achieved holder)",
    "twin": "",
    "fate": "evidence: a wire from the run or campaign metric that answers it; not a relation",
-   "carried_code": {}
+   "carried_code": {},
+   "s7_1b": "evidence"
   },
   {
    "node": "l3_modes_gq_3_achieved",
@@ -1676,7 +1753,8 @@
    "computed_in": "none (an achieved holder)",
    "twin": "",
    "fate": "evidence: a wire from the run or campaign metric that answers it; not a relation",
-   "carried_code": {}
+   "carried_code": {},
+   "s7_1b": "evidence"
   },
   {
    "node": "gx_1",
@@ -1691,7 +1769,8 @@
     "code.c": "[\"adcs_fsw.c (shell)\", \"adcs_fsw_int.h\", \"adcs_params.c\", \"adcs_math.c\"]",
     "code.rust": "[\"fsw-rs/fsw.rs (shell)\", \"fsw-rs/params.rs\", \"fsw-rs/math.rs\", \"fsw-rs/hal.rs\", \"fsw-rs/cabi.rs\"]",
     "code.twin": "[\"+fsw/step.m (shell)\", \"+fsw/init.m\"]"
-   }
+   },
+   "s7_1b": "evidence"
   },
   {
    "node": "gx_2",
@@ -1706,7 +1785,8 @@
     "code.c": "[\"adcs_fsw.c (shell)\", \"adcs_fsw_int.h\", \"adcs_params.c\", \"adcs_math.c\"]",
     "code.rust": "[\"fsw-rs/fsw.rs (shell)\", \"fsw-rs/params.rs\", \"fsw-rs/math.rs\", \"fsw-rs/hal.rs\", \"fsw-rs/cabi.rs\"]",
     "code.twin": "[\"+fsw/step.m (shell)\", \"+fsw/init.m\"]"
-   }
+   },
+   "s7_1b": "open"
   },
   {
    "node": "gx_3",
@@ -1721,7 +1801,8 @@
     "code.c": "[\"adcs_fsw.c (shell)\", \"adcs_fsw_int.h\", \"adcs_params.c\", \"adcs_math.c\"]",
     "code.rust": "[\"fsw-rs/fsw.rs (shell)\", \"fsw-rs/params.rs\", \"fsw-rs/math.rs\", \"fsw-rs/hal.rs\", \"fsw-rs/cabi.rs\"]",
     "code.twin": "[\"+fsw/step.m (shell)\", \"+fsw/init.m\"]"
-   }
+   },
+   "s7_1b": "evidence"
   },
   {
    "node": "gx_4",
@@ -1736,7 +1817,8 @@
     "code.c": "[\"adcs_fsw.c (shell)\", \"adcs_fsw_int.h\", \"adcs_params.c\", \"adcs_math.c\"]",
     "code.rust": "[\"fsw-rs/fsw.rs (shell)\", \"fsw-rs/params.rs\", \"fsw-rs/math.rs\", \"fsw-rs/hal.rs\", \"fsw-rs/cabi.rs\"]",
     "code.twin": "[\"+fsw/step.m (shell)\", \"+fsw/init.m\"]"
-   }
+   },
+   "s7_1b": "open"
   },
   {
    "node": "l3_fsw_gx_0_achieved",
@@ -1747,7 +1829,8 @@
    "computed_in": "none (an achieved holder)",
    "twin": "",
    "fate": "evidence: a wire from the run or campaign metric that answers it; not a relation",
-   "carried_code": {}
+   "carried_code": {},
+   "s7_1b": "evidence"
   },
   {
    "node": "l3_fsw_gx_1_achieved",
@@ -1758,7 +1841,8 @@
    "computed_in": "none (an achieved holder)",
    "twin": "",
    "fate": "evidence: a wire from the run or campaign metric that answers it; not a relation",
-   "carried_code": {}
+   "carried_code": {},
+   "s7_1b": "evidence"
   },
   {
    "node": "l3_fsw_gx_2_achieved",
@@ -1769,7 +1853,8 @@
    "computed_in": "none (an achieved holder)",
    "twin": "",
    "fate": "evidence: a wire from the run or campaign metric that answers it; not a relation",
-   "carried_code": {}
+   "carried_code": {},
+   "s7_1b": "evidence"
   },
   {
    "node": "l3_fsw_gx_3_achieved",
@@ -1780,7 +1865,8 @@
    "computed_in": "none (an achieved holder)",
    "twin": "",
    "fate": "evidence: a wire from the run or campaign metric that answers it; not a relation",
-   "carried_code": {}
+   "carried_code": {},
+   "s7_1b": "evidence"
   },
   {
    "node": "l3_fsw_gx_4_achieved",
@@ -1791,7 +1877,8 @@
    "computed_in": "none (an achieved holder)",
    "twin": "",
    "fate": "evidence: a wire from the run or campaign metric that answers it; not a relation",
-   "carried_code": {}
+   "carried_code": {},
+   "s7_1b": "evidence"
   },
   {
    "node": "l3_fsw_row_01",
@@ -1804,7 +1891,8 @@
    "fate": "runtime or a test (code by the boundary): stated description, not built-in",
    "carried_code": {
     "code.c": "fsw/src/adcs_fsw.c"
-   }
+   },
+   "s7_1b": "stated"
   },
   {
    "node": "l3_fsw_row_02",
@@ -1817,7 +1905,8 @@
    "fate": "runtime or a test (code by the boundary): stated description, not built-in",
    "carried_code": {
     "code.c": "fsw/src/adcs_params.c"
-   }
+   },
+   "s7_1b": "stated"
   },
   {
    "node": "l3_fsw_row_03",
@@ -1830,7 +1919,8 @@
    "fate": "runtime or a test (code by the boundary): stated description, not built-in",
    "carried_code": {
     "code.c": "fsw/include/adcs_hal.h"
-   }
+   },
+   "s7_1b": "stated"
   },
   {
    "node": "l3_fsw_row_04",
@@ -1843,7 +1933,8 @@
    "fate": "runtime or a test (code by the boundary): stated description, not built-in",
    "carried_code": {
     "code.c": "fsw/src/adcs_drv.c"
-   }
+   },
+   "s7_1b": "stated"
   },
   {
    "node": "l3_fsw_row_10",
@@ -1856,7 +1947,8 @@
    "fate": "runtime or a test (code by the boundary): stated description, not built-in",
    "carried_code": {
     "code.c": "fsw/tests/test_pcode.c"
-   }
+   },
+   "s7_1b": "stated"
   },
   {
    "node": "gq_0",
@@ -1871,7 +1963,8 @@
     "code.c": "[\"adcs_guid.c\", \"adcs_modes.c\"]",
     "code.rust": "[\"fsw-rs/guid.rs\", \"fsw-rs/modes.rs\"]",
     "code.twin": "[\"+fsw/guidance.m\", \"+fsw/mode_manager.m\", \"+fsw/modes.m\", \"+fsw/yaw_flip.m\", \"+fsw/boresight_offset.m\"]"
-   }
+   },
+   "s7_1b": "open"
   },
   {
    "node": "gq_1",
@@ -1886,7 +1979,8 @@
     "code.c": "[\"adcs_guid.c\", \"adcs_modes.c\"]",
     "code.rust": "[\"fsw-rs/guid.rs\", \"fsw-rs/modes.rs\"]",
     "code.twin": "[\"+fsw/guidance.m\", \"+fsw/mode_manager.m\", \"+fsw/modes.m\", \"+fsw/yaw_flip.m\", \"+fsw/boresight_offset.m\"]"
-   }
+   },
+   "s7_1b": "open"
   },
   {
    "node": "gq_4",
@@ -1901,7 +1995,8 @@
     "code.c": "[\"adcs_guid.c\", \"adcs_modes.c\"]",
     "code.rust": "[\"fsw-rs/guid.rs\", \"fsw-rs/modes.rs\"]",
     "code.twin": "[\"+fsw/guidance.m\", \"+fsw/mode_manager.m\", \"+fsw/modes.m\", \"+fsw/yaw_flip.m\", \"+fsw/boresight_offset.m\"]"
-   }
+   },
+   "s7_1b": "open"
   },
   {
    "node": "l3_modes_gq_0_achieved",
@@ -1912,7 +2007,8 @@
    "computed_in": "none (an achieved holder)",
    "twin": "",
    "fate": "evidence: a wire from the run or campaign metric that answers it; not a relation",
-   "carried_code": {}
+   "carried_code": {},
+   "s7_1b": "evidence"
   },
   {
    "node": "l3_modes_gq_1_achieved",
@@ -1923,7 +2019,8 @@
    "computed_in": "none (an achieved holder)",
    "twin": "",
    "fate": "evidence: a wire from the run or campaign metric that answers it; not a relation",
-   "carried_code": {}
+   "carried_code": {},
+   "s7_1b": "evidence"
   },
   {
    "node": "l3_modes_gq_4_achieved",
@@ -1934,7 +2031,8 @@
    "computed_in": "none (an achieved holder)",
    "twin": "",
    "fate": "evidence: a wire from the run or campaign metric that answers it; not a relation",
-   "carried_code": {}
+   "carried_code": {},
+   "s7_1b": "evidence"
   },
   {
    "node": "l3_hils_v4_0_achieved",
@@ -1945,7 +2043,8 @@
    "computed_in": "none (an achieved holder)",
    "twin": "",
    "fate": "evidence: a wire from the run or campaign metric that answers it; not a relation",
-   "carried_code": {}
+   "carried_code": {},
+   "s7_1b": "evidence"
   },
   {
    "node": "l3_hils_v4_10_achieved",
@@ -1956,7 +2055,8 @@
    "computed_in": "none (an achieved holder)",
    "twin": "",
    "fate": "evidence: a wire from the run or campaign metric that answers it; not a relation",
-   "carried_code": {}
+   "carried_code": {},
+   "s7_1b": "evidence"
   },
   {
    "node": "l3_hils_v4_11_achieved",
@@ -1967,7 +2067,8 @@
    "computed_in": "none (an achieved holder)",
    "twin": "",
    "fate": "evidence: a wire from the run or campaign metric that answers it; not a relation",
-   "carried_code": {}
+   "carried_code": {},
+   "s7_1b": "evidence"
   },
   {
    "node": "l3_hils_v4_12_achieved",
@@ -1978,7 +2079,8 @@
    "computed_in": "none (an achieved holder)",
    "twin": "",
    "fate": "evidence: a wire from the run or campaign metric that answers it; not a relation",
-   "carried_code": {}
+   "carried_code": {},
+   "s7_1b": "evidence"
   },
   {
    "node": "l3_hils_v4_13_achieved",
@@ -1989,7 +2091,8 @@
    "computed_in": "none (an achieved holder)",
    "twin": "",
    "fate": "evidence: a wire from the run or campaign metric that answers it; not a relation",
-   "carried_code": {}
+   "carried_code": {},
+   "s7_1b": "evidence"
   },
   {
    "node": "l3_hils_v4_14_achieved",
@@ -2000,7 +2103,8 @@
    "computed_in": "none (an achieved holder)",
    "twin": "",
    "fate": "evidence: a wire from the run or campaign metric that answers it; not a relation",
-   "carried_code": {}
+   "carried_code": {},
+   "s7_1b": "evidence"
   },
   {
    "node": "l3_hils_v4_15_achieved",
@@ -2011,7 +2115,8 @@
    "computed_in": "none (an achieved holder)",
    "twin": "",
    "fate": "evidence: a wire from the run or campaign metric that answers it; not a relation",
-   "carried_code": {}
+   "carried_code": {},
+   "s7_1b": "evidence"
   },
   {
    "node": "l3_hils_v4_1_achieved",
@@ -2022,7 +2127,8 @@
    "computed_in": "none (an achieved holder)",
    "twin": "",
    "fate": "evidence: a wire from the run or campaign metric that answers it; not a relation",
-   "carried_code": {}
+   "carried_code": {},
+   "s7_1b": "evidence"
   },
   {
    "node": "l3_hils_v4_2_achieved",
@@ -2033,7 +2139,8 @@
    "computed_in": "none (an achieved holder)",
    "twin": "",
    "fate": "evidence: a wire from the run or campaign metric that answers it; not a relation",
-   "carried_code": {}
+   "carried_code": {},
+   "s7_1b": "evidence"
   },
   {
    "node": "l3_hils_v4_3_achieved",
@@ -2044,7 +2151,8 @@
    "computed_in": "none (an achieved holder)",
    "twin": "",
    "fate": "evidence: a wire from the run or campaign metric that answers it; not a relation",
-   "carried_code": {}
+   "carried_code": {},
+   "s7_1b": "evidence"
   },
   {
    "node": "l3_hils_v4_4_achieved",
@@ -2055,7 +2163,8 @@
    "computed_in": "none (an achieved holder)",
    "twin": "",
    "fate": "evidence: a wire from the run or campaign metric that answers it; not a relation",
-   "carried_code": {}
+   "carried_code": {},
+   "s7_1b": "evidence"
   },
   {
    "node": "l3_hils_v4_5_achieved",
@@ -2066,7 +2175,8 @@
    "computed_in": "none (an achieved holder)",
    "twin": "",
    "fate": "evidence: a wire from the run or campaign metric that answers it; not a relation",
-   "carried_code": {}
+   "carried_code": {},
+   "s7_1b": "evidence"
   },
   {
    "node": "l3_hils_v4_6_achieved",
@@ -2077,7 +2187,8 @@
    "computed_in": "none (an achieved holder)",
    "twin": "",
    "fate": "evidence: a wire from the run or campaign metric that answers it; not a relation",
-   "carried_code": {}
+   "carried_code": {},
+   "s7_1b": "evidence"
   },
   {
    "node": "l3_hils_v4_7_achieved",
@@ -2088,7 +2199,8 @@
    "computed_in": "none (an achieved holder)",
    "twin": "",
    "fate": "evidence: a wire from the run or campaign metric that answers it; not a relation",
-   "carried_code": {}
+   "carried_code": {},
+   "s7_1b": "evidence"
   },
   {
    "node": "l3_hils_v4_8_achieved",
@@ -2099,7 +2211,8 @@
    "computed_in": "none (an achieved holder)",
    "twin": "",
    "fate": "evidence: a wire from the run or campaign metric that answers it; not a relation",
-   "carried_code": {}
+   "carried_code": {},
+   "s7_1b": "evidence"
   },
   {
    "node": "l3_hils_v4_9_achieved",
@@ -2110,7 +2223,8 @@
    "computed_in": "none (an achieved holder)",
    "twin": "",
    "fate": "evidence: a wire from the run or campaign metric that answers it; not a relation",
-   "carried_code": {}
+   "carried_code": {},
+   "s7_1b": "evidence"
   },
   {
    "node": "v4_0",
@@ -2123,7 +2237,8 @@
    "fate": "HILS rig need: evidence from the runs' stimulus (+hal/stimulus.m), not a relation in code",
    "carried_code": {
     "code.twin": "[\"+hal\"]"
-   }
+   },
+   "s7_1b": "open"
   },
   {
    "node": "v4_1",
@@ -2136,7 +2251,8 @@
    "fate": "HILS rig need: evidence from the runs' stimulus (+hal/stimulus.m), not a relation in code",
    "carried_code": {
     "code.twin": "[\"+hal\"]"
-   }
+   },
+   "s7_1b": "open"
   },
   {
    "node": "v4_10",
@@ -2149,7 +2265,8 @@
    "fate": "HILS rig need: evidence from the runs' stimulus (+hal/stimulus.m), not a relation in code",
    "carried_code": {
     "code.twin": "[\"+hal\"]"
-   }
+   },
+   "s7_1b": "open"
   },
   {
    "node": "v4_11",
@@ -2162,7 +2279,8 @@
    "fate": "HILS rig need: evidence from the runs' stimulus (+hal/stimulus.m), not a relation in code",
    "carried_code": {
     "code.twin": "[\"+hal\"]"
-   }
+   },
+   "s7_1b": "open"
   },
   {
    "node": "v4_12",
@@ -2175,7 +2293,8 @@
    "fate": "HILS rig need: evidence from the runs' stimulus (+hal/stimulus.m), not a relation in code",
    "carried_code": {
     "code.twin": "[\"+hal\"]"
-   }
+   },
+   "s7_1b": "open"
   },
   {
    "node": "v4_13",
@@ -2188,7 +2307,8 @@
    "fate": "HILS rig need: evidence from the runs' stimulus (+hal/stimulus.m), not a relation in code",
    "carried_code": {
     "code.twin": "[\"+hal\"]"
-   }
+   },
+   "s7_1b": "open"
   },
   {
    "node": "v4_14",
@@ -2201,7 +2321,8 @@
    "fate": "HILS rig need: evidence from the runs' stimulus (+hal/stimulus.m), not a relation in code",
    "carried_code": {
     "code.twin": "[\"+hal\"]"
-   }
+   },
+   "s7_1b": "open"
   },
   {
    "node": "v4_15",
@@ -2214,7 +2335,8 @@
    "fate": "HILS rig need: evidence from the runs' stimulus (+hal/stimulus.m), not a relation in code",
    "carried_code": {
     "code.twin": "[\"+hal\"]"
-   }
+   },
+   "s7_1b": "open"
   },
   {
    "node": "v4_2",
@@ -2227,7 +2349,8 @@
    "fate": "HILS rig need: evidence from the runs' stimulus (+hal/stimulus.m), not a relation in code",
    "carried_code": {
     "code.twin": "[\"+hal\"]"
-   }
+   },
+   "s7_1b": "open"
   },
   {
    "node": "v4_3",
@@ -2240,7 +2363,8 @@
    "fate": "HILS rig need: evidence from the runs' stimulus (+hal/stimulus.m), not a relation in code",
    "carried_code": {
     "code.twin": "[\"+hal\"]"
-   }
+   },
+   "s7_1b": "open"
   },
   {
    "node": "v4_4",
@@ -2253,7 +2377,8 @@
    "fate": "HILS rig need: evidence from the runs' stimulus (+hal/stimulus.m), not a relation in code",
    "carried_code": {
     "code.twin": "[\"+hal\"]"
-   }
+   },
+   "s7_1b": "open"
   },
   {
    "node": "v4_5",
@@ -2266,7 +2391,8 @@
    "fate": "HILS rig need: evidence from the runs' stimulus (+hal/stimulus.m), not a relation in code",
    "carried_code": {
     "code.twin": "[\"+hal\"]"
-   }
+   },
+   "s7_1b": "open"
   },
   {
    "node": "v4_6",
@@ -2279,7 +2405,8 @@
    "fate": "HILS rig need: evidence from the runs' stimulus (+hal/stimulus.m), not a relation in code",
    "carried_code": {
     "code.twin": "[\"+hal\"]"
-   }
+   },
+   "s7_1b": "open"
   },
   {
    "node": "v4_7",
@@ -2292,7 +2419,8 @@
    "fate": "HILS rig need: evidence from the runs' stimulus (+hal/stimulus.m), not a relation in code",
    "carried_code": {
     "code.twin": "[\"+hal\"]"
-   }
+   },
+   "s7_1b": "open"
   },
   {
    "node": "v4_8",
@@ -2305,7 +2433,8 @@
    "fate": "HILS rig need: evidence from the runs' stimulus (+hal/stimulus.m), not a relation in code",
    "carried_code": {
     "code.twin": "[\"+hal\"]"
-   }
+   },
+   "s7_1b": "open"
   },
   {
    "node": "v4_9",
@@ -2318,7 +2447,8 @@
    "fate": "HILS rig need: evidence from the runs' stimulus (+hal/stimulus.m), not a relation in code",
    "carried_code": {
     "code.twin": "[\"+hal\"]"
-   }
+   },
+   "s7_1b": "open"
   },
   {
    "node": "kpi_absolute_knowledge_error_ake_analysis",
@@ -2329,7 +2459,8 @@
    "computed_in": "tools/evaluate.py:evaluate (the comparison); adcs-physics mission::closure (generated)",
    "twin": "",
    "fate": "a closure the library checks; give it its own behaviour, not built-in",
-   "carried_code": {}
+   "carried_code": {},
+   "s7_1b": "closure"
   },
   {
    "node": "kpi_absolute_knowledge_error_ake_verified",
@@ -2340,7 +2471,8 @@
    "computed_in": "tools/evaluate.py:evaluate (the comparison); adcs-physics mission::closure (generated)",
    "twin": "",
    "fate": "a closure the library checks; give it its own behaviour, not built-in",
-   "carried_code": {}
+   "carried_code": {},
+   "s7_1b": "closure"
   },
   {
    "node": "kpi_absolute_pointing_error_ape_analysis",
@@ -2351,7 +2483,8 @@
    "computed_in": "tools/evaluate.py:evaluate (the comparison); adcs-physics mission::closure (generated)",
    "twin": "",
    "fate": "a closure the library checks; give it its own behaviour, not built-in",
-   "carried_code": {}
+   "carried_code": {},
+   "s7_1b": "closure"
   },
   {
    "node": "kpi_absolute_pointing_error_ape_verified",
@@ -2362,7 +2495,8 @@
    "computed_in": "tools/evaluate.py:evaluate (the comparison); adcs-physics mission::closure (generated)",
    "twin": "",
    "fate": "a closure the library checks; give it its own behaviour, not built-in",
-   "carried_code": {}
+   "carried_code": {},
+   "s7_1b": "closure"
   },
   {
    "node": "kpi_adcs_mass_analysis",
@@ -2373,7 +2507,8 @@
    "computed_in": "tools/evaluate.py:evaluate (the comparison); adcs-physics mission::closure (generated)",
    "twin": "",
    "fate": "a closure the library checks; give it its own behaviour, not built-in",
-   "carried_code": {}
+   "carried_code": {},
+   "s7_1b": "closure"
   },
   {
    "node": "kpi_adcs_mass_verified",
@@ -2384,7 +2519,8 @@
    "computed_in": "tools/evaluate.py:evaluate (the comparison); adcs-physics mission::closure (generated)",
    "twin": "",
    "fate": "a closure the library checks; give it its own behaviour, not built-in",
-   "carried_code": {}
+   "carried_code": {},
+   "s7_1b": "closure"
   },
   {
    "node": "kpi_adcs_orbit_average_power_analysis",
@@ -2395,7 +2531,8 @@
    "computed_in": "tools/evaluate.py:evaluate (the comparison); adcs-physics mission::closure (generated)",
    "twin": "",
    "fate": "a closure the library checks; give it its own behaviour, not built-in",
-   "carried_code": {}
+   "carried_code": {},
+   "s7_1b": "closure"
   },
   {
    "node": "kpi_adcs_orbit_average_power_verified",
@@ -2406,7 +2543,8 @@
    "computed_in": "tools/evaluate.py:evaluate (the comparison); adcs-physics mission::closure (generated)",
    "twin": "",
    "fate": "a closure the library checks; give it its own behaviour, not built-in",
-   "carried_code": {}
+   "carried_code": {},
+   "s7_1b": "closure"
   },
   {
    "node": "kpi_adcs_peak_power_analysis",
@@ -2417,7 +2555,8 @@
    "computed_in": "tools/evaluate.py:evaluate (the comparison); adcs-physics mission::closure (generated)",
    "twin": "",
    "fate": "a closure the library checks; give it its own behaviour, not built-in",
-   "carried_code": {}
+   "carried_code": {},
+   "s7_1b": "closure"
   },
   {
    "node": "kpi_adcs_peak_power_verified",
@@ -2428,7 +2567,8 @@
    "computed_in": "tools/evaluate.py:evaluate (the comparison); adcs-physics mission::closure (generated)",
    "twin": "",
    "fate": "a closure the library checks; give it its own behaviour, not built-in",
-   "carried_code": {}
+   "carried_code": {},
+   "s7_1b": "closure"
   },
   {
    "node": "kpi_adcs_volume_analysis",
@@ -2439,7 +2579,8 @@
    "computed_in": "tools/evaluate.py:evaluate (the comparison); adcs-physics mission::closure (generated)",
    "twin": "",
    "fate": "a closure the library checks; give it its own behaviour, not built-in",
-   "carried_code": {}
+   "carried_code": {},
+   "s7_1b": "closure"
   },
   {
    "node": "kpi_adcs_volume_verified",
@@ -2450,7 +2591,8 @@
    "computed_in": "tools/evaluate.py:evaluate (the comparison); adcs-physics mission::closure (generated)",
    "twin": "",
    "fate": "a closure the library checks; give it its own behaviour, not built-in",
-   "carried_code": {}
+   "carried_code": {},
+   "s7_1b": "closure"
   },
   {
    "node": "kpi_detumble_time_analysis",
@@ -2461,7 +2603,8 @@
    "computed_in": "tools/evaluate.py:evaluate (the comparison); adcs-physics mission::closure (generated)",
    "twin": "",
    "fate": "a closure the library checks; give it its own behaviour, not built-in",
-   "carried_code": {}
+   "carried_code": {},
+   "s7_1b": "closure"
   },
   {
    "node": "kpi_detumble_time_verified",
@@ -2472,7 +2615,8 @@
    "computed_in": "tools/evaluate.py:evaluate (the comparison); adcs-physics mission::closure (generated)",
    "twin": "",
    "fate": "a closure the library checks; give it its own behaviour, not built-in",
-   "carried_code": {}
+   "carried_code": {},
+   "s7_1b": "closure"
   },
   {
    "node": "kpi_faults_tolerated_analysis",
@@ -2483,7 +2627,8 @@
    "computed_in": "tools/evaluate.py:evaluate (the comparison); adcs-physics mission::closure (generated)",
    "twin": "",
    "fate": "a closure the library checks; give it its own behaviour, not built-in",
-   "carried_code": {}
+   "carried_code": {},
+   "s7_1b": "closure"
   },
   {
    "node": "kpi_faults_tolerated_verified",
@@ -2494,7 +2639,8 @@
    "computed_in": "tools/evaluate.py:evaluate (the comparison); adcs-physics mission::closure (generated)",
    "twin": "",
    "fate": "a closure the library checks; give it its own behaviour, not built-in",
-   "carried_code": {}
+   "carried_code": {},
+   "s7_1b": "closure"
   },
   {
    "node": "kpi_maximum_body_rate_verified",
@@ -2505,7 +2651,8 @@
    "computed_in": "tools/evaluate.py:evaluate (the comparison); adcs-physics mission::closure (generated)",
    "twin": "",
    "fate": "a closure the library checks; give it its own behaviour, not built-in",
-   "carried_code": {}
+   "carried_code": {},
+   "s7_1b": "closure"
   },
   {
    "node": "kpi_momentum_dump_interval_analysis",
@@ -2516,7 +2663,8 @@
    "computed_in": "tools/evaluate.py:evaluate (the comparison); adcs-physics mission::closure (generated)",
    "twin": "",
    "fate": "a closure the library checks; give it its own behaviour, not built-in",
-   "carried_code": {}
+   "carried_code": {},
+   "s7_1b": "closure"
   },
   {
    "node": "kpi_momentum_dump_interval_verified",
@@ -2527,7 +2675,8 @@
    "computed_in": "tools/evaluate.py:evaluate (the comparison); adcs-physics mission::closure (generated)",
    "twin": "",
    "fate": "a closure the library checks; give it its own behaviour, not built-in",
-   "carried_code": {}
+   "carried_code": {},
+   "s7_1b": "closure"
   },
   {
    "node": "kpi_momentum_saturation_margin_verified",
@@ -2538,7 +2687,8 @@
    "computed_in": "tools/evaluate.py:evaluate (the comparison); adcs-physics mission::closure (generated)",
    "twin": "",
    "fate": "a closure the library checks; give it its own behaviour, not built-in",
-   "carried_code": {}
+   "carried_code": {},
+   "s7_1b": "closure"
   },
   {
    "node": "kpi_pointing_drift_error_pde_analysis",
@@ -2549,7 +2699,8 @@
    "computed_in": "tools/evaluate.py:evaluate (the comparison); adcs-physics mission::closure (generated)",
    "twin": "",
    "fate": "a closure the library checks; give it its own behaviour, not built-in",
-   "carried_code": {}
+   "carried_code": {},
+   "s7_1b": "closure"
   },
   {
    "node": "kpi_pointing_drift_error_pde_verified",
@@ -2560,7 +2711,8 @@
    "computed_in": "tools/evaluate.py:evaluate (the comparison); adcs-physics mission::closure (generated)",
    "twin": "",
    "fate": "a closure the library checks; give it its own behaviour, not built-in",
-   "carried_code": {}
+   "carried_code": {},
+   "s7_1b": "closure"
   },
   {
    "node": "kpi_rate_stability_verified",
@@ -2571,7 +2723,8 @@
    "computed_in": "tools/evaluate.py:evaluate (the comparison); adcs-physics mission::closure (generated)",
    "twin": "",
    "fate": "a closure the library checks; give it its own behaviour, not built-in",
-   "carried_code": {}
+   "carried_code": {},
+   "s7_1b": "closure"
   },
   {
    "node": "kpi_rcs_propellant_per_year_analysis",
@@ -2582,7 +2735,8 @@
    "computed_in": "tools/evaluate.py:evaluate (the comparison); adcs-physics mission::closure (generated)",
    "twin": "",
    "fate": "a closure the library checks; give it its own behaviour, not built-in",
-   "carried_code": {}
+   "carried_code": {},
+   "s7_1b": "closure"
   },
   {
    "node": "kpi_rcs_propellant_per_year_verified",
@@ -2593,7 +2747,8 @@
    "computed_in": "tools/evaluate.py:evaluate (the comparison); adcs-physics mission::closure (generated)",
    "twin": "",
    "fate": "a closure the library checks; give it its own behaviour, not built-in",
-   "carried_code": {}
+   "carried_code": {},
+   "s7_1b": "closure"
   },
   {
    "node": "kpi_recovery_time_after_a_single_fault_analysis",
@@ -2604,7 +2759,8 @@
    "computed_in": "tools/evaluate.py:evaluate (the comparison); adcs-physics mission::closure (generated)",
    "twin": "",
    "fate": "a closure the library checks; give it its own behaviour, not built-in",
-   "carried_code": {}
+   "carried_code": {},
+   "s7_1b": "closure"
   },
   {
    "node": "kpi_recovery_time_after_a_single_fault_verified",
@@ -2615,7 +2771,8 @@
    "computed_in": "tools/evaluate.py:evaluate (the comparison); adcs-physics mission::closure (generated)",
    "twin": "",
    "fate": "a closure the library checks; give it its own behaviour, not built-in",
-   "carried_code": {}
+   "carried_code": {},
+   "s7_1b": "closure"
   },
   {
    "node": "kpi_reference_slew_time_analysis",
@@ -2626,7 +2783,8 @@
    "computed_in": "tools/evaluate.py:evaluate (the comparison); adcs-physics mission::closure (generated)",
    "twin": "",
    "fate": "a closure the library checks; give it its own behaviour, not built-in",
-   "carried_code": {}
+   "carried_code": {},
+   "s7_1b": "closure"
   },
   {
    "node": "kpi_reference_slew_time_verified",
@@ -2637,7 +2795,8 @@
    "computed_in": "tools/evaluate.py:evaluate (the comparison); adcs-physics mission::closure (generated)",
    "twin": "",
    "fate": "a closure the library checks; give it its own behaviour, not built-in",
-   "carried_code": {}
+   "carried_code": {},
+   "s7_1b": "closure"
   },
   {
    "node": "kpi_relative_knowledge_error_rke_verified",
@@ -2648,7 +2807,8 @@
    "computed_in": "tools/evaluate.py:evaluate (the comparison); adcs-physics mission::closure (generated)",
    "twin": "",
    "fate": "a closure the library checks; give it its own behaviour, not built-in",
-   "carried_code": {}
+   "carried_code": {},
+   "s7_1b": "closure"
   },
   {
    "node": "kpi_relative_pointing_error_rpe_analysis",
@@ -2659,7 +2819,8 @@
    "computed_in": "tools/evaluate.py:evaluate (the comparison); adcs-physics mission::closure (generated)",
    "twin": "",
    "fate": "a closure the library checks; give it its own behaviour, not built-in",
-   "carried_code": {}
+   "carried_code": {},
+   "s7_1b": "closure"
   },
   {
    "node": "kpi_relative_pointing_error_rpe_verified",
@@ -2670,7 +2831,8 @@
    "computed_in": "tools/evaluate.py:evaluate (the comparison); adcs-physics mission::closure (generated)",
    "twin": "",
    "fate": "a closure the library checks; give it its own behaviour, not built-in",
-   "carried_code": {}
+   "carried_code": {},
+   "s7_1b": "closure"
   },
   {
    "node": "kpi_settling_time_after_a_slew_analysis",
@@ -2681,7 +2843,8 @@
    "computed_in": "tools/evaluate.py:evaluate (the comparison); adcs-physics mission::closure (generated)",
    "twin": "",
    "fate": "a closure the library checks; give it its own behaviour, not built-in",
-   "carried_code": {}
+   "carried_code": {},
+   "s7_1b": "closure"
   },
   {
    "node": "kpi_settling_time_after_a_slew_verified",
@@ -2692,7 +2855,8 @@
    "computed_in": "tools/evaluate.py:evaluate (the comparison); adcs-physics mission::closure (generated)",
    "twin": "",
    "fate": "a closure the library checks; give it its own behaviour, not built-in",
-   "carried_code": {}
+   "carried_code": {},
+   "s7_1b": "closure"
   },
   {
    "node": "kpi_slews_per_orbit_verified",
@@ -2703,7 +2867,8 @@
    "computed_in": "tools/evaluate.py:evaluate (the comparison); adcs-physics mission::closure (generated)",
    "twin": "",
    "fate": "a closure the library checks; give it its own behaviour, not built-in",
-   "carried_code": {}
+   "carried_code": {},
+   "s7_1b": "closure"
   },
   {
    "node": "kpi_sun_acquisition_time_in_safe_mode_analysis",
@@ -2714,7 +2879,8 @@
    "computed_in": "tools/evaluate.py:evaluate (the comparison); adcs-physics mission::closure (generated)",
    "twin": "",
    "fate": "a closure the library checks; give it its own behaviour, not built-in",
-   "carried_code": {}
+   "carried_code": {},
+   "s7_1b": "closure"
   },
   {
    "node": "kpi_sun_acquisition_time_in_safe_mode_verified",
@@ -2725,7 +2891,8 @@
    "computed_in": "tools/evaluate.py:evaluate (the comparison); adcs-physics mission::closure (generated)",
    "twin": "",
    "fate": "a closure the library checks; give it its own behaviour, not built-in",
-   "carried_code": {}
+   "carried_code": {},
+   "s7_1b": "closure"
   },
   {
    "node": "kpi_target_tracking_rate_verified",
@@ -2736,7 +2903,8 @@
    "computed_in": "tools/evaluate.py:evaluate (the comparison); adcs-physics mission::closure (generated)",
    "twin": "",
    "fate": "a closure the library checks; give it its own behaviour, not built-in",
-   "carried_code": {}
+   "carried_code": {},
+   "s7_1b": "closure"
   },
   {
    "node": "ge_1",
@@ -2751,7 +2919,8 @@
     "code.c": "[\"adcs_est.c\"]",
     "code.rust": "[\"fsw-rs/est.rs\"]",
     "code.twin": "[\"+fsw/mekf_*\", \"+fsw/triad.m\", \"+fsw/quest.m\"]"
-   }
+   },
+   "s7_1b": "open"
   },
   {
    "node": "ge_2",
@@ -2766,7 +2935,8 @@
     "code.c": "[\"adcs_est.c\"]",
     "code.rust": "[\"fsw-rs/est.rs\"]",
     "code.twin": "[\"+fsw/mekf_*\", \"+fsw/triad.m\", \"+fsw/quest.m\"]"
-   }
+   },
+   "s7_1b": "open"
   },
   {
    "node": "ge_3",
@@ -2781,7 +2951,8 @@
     "code.c": "[\"adcs_est.c\"]",
     "code.rust": "[\"fsw-rs/est.rs\"]",
     "code.twin": "[\"+fsw/mekf_*\", \"+fsw/triad.m\", \"+fsw/quest.m\"]"
-   }
+   },
+   "s7_1b": "open"
   },
   {
    "node": "ge_4",
@@ -2796,7 +2967,8 @@
     "code.c": "[\"adcs_est.c\"]",
     "code.rust": "[\"fsw-rs/est.rs\"]",
     "code.twin": "[\"+fsw/mekf_*\", \"+fsw/triad.m\", \"+fsw/quest.m\"]"
-   }
+   },
+   "s7_1b": "open"
   },
   {
    "node": "ge_5",
@@ -2811,7 +2983,8 @@
     "code.c": "[\"adcs_est.c\"]",
     "code.rust": "[\"fsw-rs/est.rs\"]",
     "code.twin": "[\"+fsw/mekf_*\", \"+fsw/triad.m\", \"+fsw/quest.m\"]"
-   }
+   },
+   "s7_1b": "open"
   },
   {
    "node": "l3_est_ge_0_achieved",
@@ -2822,7 +2995,8 @@
    "computed_in": "none (an achieved holder)",
    "twin": "",
    "fate": "evidence: a wire from the run or campaign metric that answers it; not a relation",
-   "carried_code": {}
+   "carried_code": {},
+   "s7_1b": "evidence"
   },
   {
    "node": "l3_est_ge_1_achieved",
@@ -2833,7 +3007,8 @@
    "computed_in": "none (an achieved holder)",
    "twin": "",
    "fate": "evidence: a wire from the run or campaign metric that answers it; not a relation",
-   "carried_code": {}
+   "carried_code": {},
+   "s7_1b": "evidence"
   },
   {
    "node": "l3_est_ge_2_achieved",
@@ -2844,7 +3019,8 @@
    "computed_in": "none (an achieved holder)",
    "twin": "",
    "fate": "evidence: a wire from the run or campaign metric that answers it; not a relation",
-   "carried_code": {}
+   "carried_code": {},
+   "s7_1b": "evidence"
   },
   {
    "node": "l3_est_ge_3_achieved",
@@ -2855,7 +3031,8 @@
    "computed_in": "none (an achieved holder)",
    "twin": "",
    "fate": "evidence: a wire from the run or campaign metric that answers it; not a relation",
-   "carried_code": {}
+   "carried_code": {},
+   "s7_1b": "evidence"
   },
   {
    "node": "l3_est_ge_4_achieved",
@@ -2866,7 +3043,8 @@
    "computed_in": "none (an achieved holder)",
    "twin": "",
    "fate": "evidence: a wire from the run or campaign metric that answers it; not a relation",
-   "carried_code": {}
+   "carried_code": {},
+   "s7_1b": "evidence"
   },
   {
    "node": "l3_est_ge_5_achieved",
@@ -2877,7 +3055,8 @@
    "computed_in": "none (an achieved holder)",
    "twin": "",
    "fate": "evidence: a wire from the run or campaign metric that answers it; not a relation",
-   "carried_code": {}
+   "carried_code": {},
+   "s7_1b": "evidence"
   },
   {
    "node": "fa1_1",
@@ -2892,7 +3071,8 @@
     "code.c": "[\"fsw/targets/\"]",
     "code.rust": "[\"adcs-fsw-abi\"]",
     "code.twin": "[\"+hal\"]"
-   }
+   },
+   "s7_1b": "evidence"
   },
   {
    "node": "l3_oils_row_07",
@@ -2916,7 +3096,8 @@
    "computed_in": "none (an achieved holder)",
    "twin": "",
    "fate": "evidence: a wire from the run or campaign metric that answers it; not a relation",
-   "carried_code": {}
+   "carried_code": {},
+   "s7_1b": "evidence"
   },
   {
    "node": "l3_oils_v3_1_achieved",
@@ -2927,7 +3108,8 @@
    "computed_in": "none (an achieved holder)",
    "twin": "",
    "fate": "evidence: a wire from the run or campaign metric that answers it; not a relation",
-   "carried_code": {}
+   "carried_code": {},
+   "s7_1b": "evidence"
   },
   {
    "node": "l3_oils_v3_2_achieved",
@@ -2938,7 +3120,8 @@
    "computed_in": "none (an achieved holder)",
    "twin": "",
    "fate": "evidence: a wire from the run or campaign metric that answers it; not a relation",
-   "carried_code": {}
+   "carried_code": {},
+   "s7_1b": "evidence"
   },
   {
    "node": "l3_oils_v3_3_achieved",
@@ -2949,7 +3132,8 @@
    "computed_in": "none (an achieved holder)",
    "twin": "",
    "fate": "evidence: a wire from the run or campaign metric that answers it; not a relation",
-   "carried_code": {}
+   "carried_code": {},
+   "s7_1b": "evidence"
   },
   {
    "node": "l3_oils_v3_4_achieved",
@@ -2960,7 +3144,8 @@
    "computed_in": "none (an achieved holder)",
    "twin": "",
    "fate": "evidence: a wire from the run or campaign metric that answers it; not a relation",
-   "carried_code": {}
+   "carried_code": {},
+   "s7_1b": "evidence"
   },
   {
    "node": "v3_0",
@@ -2975,7 +3160,8 @@
     "code.c": "[\"fsw/targets/\"]",
     "code.rust": "[\"adcs-fsw-abi\"]",
     "code.twin": "[\"+hal\"]"
-   }
+   },
+   "s7_1b": "open"
   },
   {
    "node": "v3_1",
@@ -2990,7 +3176,8 @@
     "code.c": "[\"fsw/targets/\"]",
     "code.rust": "[\"adcs-fsw-abi\"]",
     "code.twin": "[\"+hal\"]"
-   }
+   },
+   "s7_1b": "open"
   },
   {
    "node": "v3_2",
@@ -3005,7 +3192,8 @@
     "code.c": "[\"fsw/targets/\"]",
     "code.rust": "[\"adcs-fsw-abi\"]",
     "code.twin": "[\"+hal\"]"
-   }
+   },
+   "s7_1b": "open"
   },
   {
    "node": "v3_3",
@@ -3020,7 +3208,8 @@
     "code.c": "[\"fsw/targets/\"]",
     "code.rust": "[\"adcs-fsw-abi\"]",
     "code.twin": "[\"+hal\"]"
-   }
+   },
+   "s7_1b": "open"
   },
   {
    "node": "v3_4",
@@ -3035,7 +3224,8 @@
     "code.c": "[\"fsw/targets/\"]",
     "code.rust": "[\"adcs-fsw-abi\"]",
     "code.twin": "[\"+hal\"]"
-   }
+   },
+   "s7_1b": "open"
   },
   {
    "node": "gp_0",
@@ -3102,7 +3292,8 @@
    "computed_in": "none (an achieved holder)",
    "twin": "",
    "fate": "evidence: a wire from the run or campaign metric that answers it; not a relation",
-   "carried_code": {}
+   "carried_code": {},
+   "s7_1b": "evidence"
   },
   {
    "node": "l3_pnt_gp_1_achieved",
@@ -3113,7 +3304,8 @@
    "computed_in": "none (an achieved holder)",
    "twin": "",
    "fate": "evidence: a wire from the run or campaign metric that answers it; not a relation",
-   "carried_code": {}
+   "carried_code": {},
+   "s7_1b": "evidence"
   },
   {
    "node": "l3_pnt_gp_2_achieved",
@@ -3124,7 +3316,8 @@
    "computed_in": "none (an achieved holder)",
    "twin": "",
    "fate": "evidence: a wire from the run or campaign metric that answers it; not a relation",
-   "carried_code": {}
+   "carried_code": {},
+   "s7_1b": "evidence"
   },
   {
    "node": "l3_pnt_gp_3_achieved",
@@ -3135,7 +3328,8 @@
    "computed_in": "none (an achieved holder)",
    "twin": "",
    "fate": "evidence: a wire from the run or campaign metric that answers it; not a relation",
-   "carried_code": {}
+   "carried_code": {},
+   "s7_1b": "evidence"
   },
   {
    "node": "l3_pnt_gp_4_achieved",
@@ -3146,7 +3340,8 @@
    "computed_in": "none (an achieved holder)",
    "twin": "",
    "fate": "evidence: a wire from the run or campaign metric that answers it; not a relation",
-   "carried_code": {}
+   "carried_code": {},
+   "s7_1b": "evidence"
   },
   {
    "node": "l3_pnt_gp_5_achieved",
@@ -3157,7 +3352,8 @@
    "computed_in": "none (an achieved holder)",
    "twin": "",
    "fate": "evidence: a wire from the run or campaign metric that answers it; not a relation",
-   "carried_code": {}
+   "carried_code": {},
+   "s7_1b": "evidence"
   },
   {
    "node": "l3_sens_gs_0_achieved",
@@ -3168,7 +3364,8 @@
    "computed_in": "none (an achieved holder)",
    "twin": "",
    "fate": "evidence: a wire from the run or campaign metric that answers it; not a relation",
-   "carried_code": {}
+   "carried_code": {},
+   "s7_1b": "evidence"
   },
   {
    "node": "l3_sens_gs_1_achieved",
@@ -3179,7 +3376,8 @@
    "computed_in": "none (an achieved holder)",
    "twin": "",
    "fate": "evidence: a wire from the run or campaign metric that answers it; not a relation",
-   "carried_code": {}
+   "carried_code": {},
+   "s7_1b": "evidence"
   },
   {
    "node": "l3_sens_gs_2_achieved",
@@ -3190,7 +3388,8 @@
    "computed_in": "none (an achieved holder)",
    "twin": "",
    "fate": "evidence: a wire from the run or campaign metric that answers it; not a relation",
-   "carried_code": {}
+   "carried_code": {},
+   "s7_1b": "evidence"
   },
   {
    "node": "l3_sens_gs_3_achieved",
@@ -3201,7 +3400,8 @@
    "computed_in": "none (an achieved holder)",
    "twin": "",
    "fate": "evidence: a wire from the run or campaign metric that answers it; not a relation",
-   "carried_code": {}
+   "carried_code": {},
+   "s7_1b": "evidence"
   },
   {
    "node": "l3_sens_gs_4_achieved",
@@ -3212,7 +3412,8 @@
    "computed_in": "none (an achieved holder)",
    "twin": "",
    "fate": "evidence: a wire from the run or campaign metric that answers it; not a relation",
-   "carried_code": {}
+   "carried_code": {},
+   "s7_1b": "evidence"
   },
   {
    "node": "l3_sens_gs_5_achieved",
@@ -3223,7 +3424,8 @@
    "computed_in": "none (an achieved holder)",
    "twin": "",
    "fate": "evidence: a wire from the run or campaign metric that answers it; not a relation",
-   "carried_code": {}
+   "carried_code": {},
+   "s7_1b": "evidence"
   },
   {
    "node": "l3_sens_gs_6_achieved",
@@ -3234,7 +3436,8 @@
    "computed_in": "none (an achieved holder)",
    "twin": "",
    "fate": "evidence: a wire from the run or campaign metric that answers it; not a relation",
-   "carried_code": {}
+   "carried_code": {},
+   "s7_1b": "evidence"
   },
   {
    "node": "l3_sens_row_01",
@@ -5026,7 +5229,8 @@
   {
    "step": "S7.1b",
    "work": "Reclassify the 180 built-in nodes that are not relations in code: 94 achieved holders become evidence wires; 38 KPI closures get a closure behaviour; 5 fsw runtime rows become stated descriptions; 43 system leafs with only an owner pointer become open (or evidence, where a run or rig measures them). The rule is tools/convert_2_0.py behaviour() (a code.* field makes built-in today). Re-convert, rebuild the regression copy.",
-   "parity": "from_design.py --check: no generated file changes; parity_2_0 unchanged; the built-in count falls from 271 to 91"
+   "parity": "from_design.py --check: no generated file changes; parity_2_0 unchanged; the built-in count falls from 271 to 91",
+   "done": "2026-10-07"
   },
   {
    "step": "S7.2",

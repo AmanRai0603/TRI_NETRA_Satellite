@@ -9,6 +9,12 @@ content, for tools). Line counts are of the code as it stands.
 
 ## Counts
 
+**Now, after S7.1b (7 Oct 2026): 91 built-in nodes**, the relations computed in code (act 38, design 19, dyn 4,
+env 11, oils 1, pnt 4, sens 14). Behaviours of the 1,155 nodes: open 304, stated 297, children 134, evidence 119,
+lookup 117, built-in 91, method 55, closure 38. `python3 tools/health.py tests/regression --built-in` counts them;
+`tests/test_built_in.py` holds the list, and each S7 step takes its nodes out of it. The counts below are the
+inventory's, at `cac5aac`.
+
 - **Built-in nodes: 271** of 1,155 (behaviours: stated 292, open 286, built-in 271, children 134, lookup 117, method 55).
   - **91 are relations computed in code** (90 to transcribe, 1 to decide): act 38, design 19, dyn 4, env 11, oils 1, pnt 4, sens 14.
   - **180 are not relations in code**: 94 achieved holders, 38 KPI closures,
@@ -152,6 +158,16 @@ answer. *closure*: a KPI comparison. *no code*: nothing computes it. *runtime*: 
 | l3_sens_row_14 | sens | GNSS fix noise and latency | adcs-sim-core/src/sensors.rs:Gps::history, delayed, sample; adcs-sim/src/run.rs:sense (ECEF fix) | +devices; run.m | S7.8 |
 
 ### 1.2 The built-in nodes that are not relations in code (180)
+
+**Done in S7.1b** (the developer's revision S7.1b, `design/revisions_2_0.toml`, applied by the conversion; each node
+sealed unconfirmed with its reason): the 94 achieved holders are **evidence**, and so are the 22 KPI evidence rows
+(`p*a_*`, open until then, which name their campaign metric); the 38 KPI closures are **closure** (the library compares
+each one's requirement and achieved rows; `tools/evaluate.py` reads the design's KPI table, which every closure row
+equals, and `tests/test_built_in.py` holds them equal); gx_1, gx_3 and fa1_1 are **evidence** (soft OILS and the
+campaigns measure them); the other 40 owner pointers are **open** (their `code.*` kept as provenance); the 5 runtime
+rows are **stated**, marked `code.boundary` (runtime, or test for l3_fsw_row_10). The fates below are as proposed;
+where a row says "evidence" for a rig need (v3_*, v4_*), the need is not measured, so it is open until oils or hils
+states it.
 
 **Achieved holders (94)**, `l3_*_<row>_achieved`, one per system row: act 28, ctl 6, design 4, env 6, fdir 2, fsw 5, gdn 3, hils 16, nav 6, oils 5, pnt 6, sens 7.
 No code computes them; a run or a campaign answers them (`tools/evaluate.py`, evidence). Fate: an evidence
@@ -414,7 +430,7 @@ do not change (S7.18).
 - **design:** `gb_2` (ADCS peak power) is not computed by the sizing: `budget` sums steady power only.
 - **all:** `adcs-physics` is generated and unused by the engine, while `adcs-design` and the core write some of the same laws by hand (slew momentum and torque = `gw_3`, `gw_4`; ring momentum and spin-down = `gf_6`, `gf_7`; magnetorquer dipole = `gm_1`, `gm_2`; density table = `m3_3`).
 - **fsw:** the 147 `fsw_param_*` nodes hold the layout, not the values (S6's finding); the values are config.rs relations.
-- **the conversion:** `behaviour()` makes any node with a `code.*` field built-in. 180 of the 271 are not relations in code; the count S7 drives to zero is really 91 rows plus the 147 parameters.
+- **the conversion:** `behaviour()` makes any node with a `code.*` field built-in. 180 of the 271 are not relations in code; the count S7 drives to zero is really 91 rows plus the 147 parameters. (S7.1b moved the 180 by a revision on top of the conversion; `behaviour()` is 1.0.0's rule, kept.)
 
 ## 7 · Proposed order of work
 
@@ -425,7 +441,7 @@ across their range. The translator comes first; generated files are never edited
 | step | work | parity check |
 |---|---|---|
 | S7.1 | This inventory. | none (read-only) |
-| S7.1b | Reclassify the 180 built-in nodes that are not relations in code: 94 achieved holders become evidence wires; 38 KPI closures get a closure behaviour; 5 fsw runtime rows become stated descriptions; 43 system leafs with only an owner pointer become open (or evidence, where a run or rig measures them). The rule is tools/convert_2_0.py behaviour() (a code.* field makes built-in today). Re-convert, rebuild the regression copy. | from_design.py --check: no generated file changes; parity_2_0 unchanged; the built-in count falls from 271 to 91 |
+| S7.1b | **Done (7 Oct 2026).** Reclassify the 180 built-in nodes that are not relations in code: 94 achieved holders become evidence wires; 38 KPI closures get a closure behaviour; 5 fsw runtime rows become stated descriptions; 43 system leafs with only an owner pointer become open (or evidence, where a run or rig measures them). The rule is tools/convert_2_0.py behaviour() (a code.* field makes built-in today). Re-convert, rebuild the regression copy. | from_design.py --check: no generated file changes; parity_2_0 unchanged; the built-in count falls from 271 to 91 |
 | S7.2 | Translator and toolbox groundwork, one construct at a time: G1 random streams (toolbox), G5 inf and nan, G6 choices, G4 arrays by reference, G12 named capacities, G7 a toolbox sort. In the JS and Rust interpreters and the Rust, C and MATLAB translators. Raise the toolbox to trinetra-toolbox/2 in adcs-sim/src/source.rs, tools/design_inputs.py and python/trinetra_adcs/design.py together. | pcode.py gen --check; cargo test -p trinetra-pcode -p pcode-selftest; the twin's selftest vectors in Octave; a stream drawn in Rust, C and MATLAB equals rng.rs bit for bit |
 | S7.3 | Use what is already generated: the core's density table calls env::atmosphere and density_at; field.rs and time.rs call the generated frames and IGRF functions of fsw/pseudocode/02 (one copy); p_srp calls m3_5. Delete the hand copies. | every engine scenario: metrics identical (bit for bit where no transcendental changed, else within the twin ledger's bounds); engine.py fsw-parity |
 | S7.4 | Environment and disturbances (env): facets, gravity gradient, aero and radiation per facet, Earth albedo and IR, residual dipole, Sun (fast), Moon, shadow; their parameters as stated nodes. Transcribe from torques.rs and ephem.rs. | vectors: interpreter = Rust = C = MATLAB; every scenario's metrics identical; twin-parity no worse |

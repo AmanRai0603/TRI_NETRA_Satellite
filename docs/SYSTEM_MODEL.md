@@ -49,15 +49,21 @@ There is one kind of element, the **block**. The team calls it a node. There are
 | **connects** | an output of one block is an input of another; every wire | the group files' `edge` table: 238 derivation edges, 23 contribution edges, 46 relations |
 | **closes** | a requirement against an achieved value, with a direction and a margin | the 38 KPI closures and the closure layer's interface row |
 
-A block's **behaviour** is exactly one of five:
+A block's **behaviour** is exactly one of seven (`design/schema.toml`, `[behaviours]`; every program that checks a
+file holds each block to them):
 
 | behaviour | the block's answer is | example |
 |---|---|---|
 | **method** | its pseudocode, run on its inputs (`docs/PSEUDOCODE_V2.md`) | `gd_1` aerodynamic torque |
 | **children** | whatever its children give at its outputs | `l3_dist_row_11` total disturbance torque |
-| **stated** | a value a person states, with its source | `m2_0` altitude, from the case |
+| **stated** | a value or a description a person states, with its source | `m2_0` altitude, from the case |
 | **lookup** | a table and how to read it | a reaction wheel from the datasheet catalogue (`catalogue/`) |
+| **evidence** | what a run, a campaign or a rig measures: the metric or source it names, by result id; open until one gives it | `p1a_0` APE achieved, from a campaign's `ape` |
+| **closure** | its requirement against its achieved value (its closure row), compared by the library in the requirement's sense | `kpi_absolute_pointing_error_ape_verified` |
 | **open** | not decided yet: a draft, refused by name if a run reaches it | a node whose gaps are listed |
+
+A block that describes code by the boundary (section 7: the flight software's runtime, a rig, a test) is stated, and
+says so in its content (`code.boundary`: runtime or test); it is not a relation and never built-in.
 
 **Built-in** is a temporary sixth behaviour. The relation is still compiled code (`adcs-sim-core`,
 `adcs-design`), found by its node's id until its group writes a method for it. It is marked as such on every

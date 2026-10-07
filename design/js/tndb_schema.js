@@ -2,6 +2,16 @@
 // The browser's reader opens a design file with SQLite compiled to WebAssembly (P3) and checks
 // it against this: the same tables, columns and format versions tools/tndb.py checks.
 export const TNDB_SCHEMA = {
+ "behaviours": {
+  "built-in": "temporary: a relation still in compiled code, found by its node id; none remains at 2.0.0 (docs/PLAN_2_0.md S7)",
+  "children": "whatever its children give at its outputs",
+  "closure": "a requirement against its achieved value (its closure row), compared by the library in the requirement's sense",
+  "evidence": "what a run, a campaign or a rig measures: the metric or source it names, by result id; open until one gives it",
+  "lookup": "a table and how to read it",
+  "method": "its pseudocode, run on its inputs",
+  "open": "not decided yet: a draft, refused by name if a run reaches it",
+  "stated": "a value or a description a person states, with its source"
+ },
  "ddl": {
   "answer": [
    "CREATE TABLE \"meta\" (\"key\" TEXT, \"value\" TEXT, PRIMARY KEY (\"key\"))",

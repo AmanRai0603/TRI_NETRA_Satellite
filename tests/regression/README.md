@@ -10,10 +10,14 @@ reads that is design is generated from this copy by `python3 tools/from_design.p
 From S10 it is replaced by a copy of the current released design, taken when an application release is
 prepared (W15): a new application must give that design's answers unchanged.
 
-**How it was made** (6 Oct 2026, from the 1.0.0 sources now in `archive/design-1.0/`):
+**How it was made** (6 Oct 2026, from the 1.0.0 sources now in `archive/design-1.0/`; made again 7 Oct 2026 with the
+developer's revision S7.1b, `design/revisions_2_0.toml`, which the conversion applies on top):
 
     python3 tools/convert_2_0.py --out DRIVE
     python3 tools/design_build.py DRIVE --out tests/regression/design.tndb
+
+The two commands give the same bytes every time. A design change before the ownership stage is a revision in
+`design/revisions_2_0.toml` (the developer's, unsigned, with its reason), and this copy is made again with them.
 
 **What it proves.** `results/PARITY_2_0.md`: the engine reading this design alone gives 1.0.0's inputs,
 parameter blobs, runs, campaigns and evaluation.
