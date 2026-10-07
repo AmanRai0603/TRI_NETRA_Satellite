@@ -343,7 +343,7 @@ Only what the computer needs in order to run the algorithms stays code:
 | the tick, the scheduler, the memory layout (no `malloc`), the configuration blob's format and CRC | how the software runs, not what it decides |
 | the targets: POSIX for SILS, QEMU Cortex-M (`fsw/targets/qemu-mps2`) for soft OILS, the boards for OILS and HILS | build and boot |
 | the byte link (`fsw/targets/link`), the soft OILS emulator, the rig host (`tools/engine_oils.py`) | the test bench, which flies any design |
-| the maths library the algorithms call (`01_math`, `02_time_frames_models`) | the toolbox: a kind of maths, reviewed as code |
+| the maths library the algorithms call (`01_math`) | the toolbox: a kind of maths, reviewed as code (the onboard time, frames and field, `02_time_frames_models`, are env's published models since S7.3: design, generated) |
 
 **A flight image is built from a design.** When the system engineer releases a design, the flight build
 generates the algorithm code from it, compiles it with the runtime for each target, and checks it on the

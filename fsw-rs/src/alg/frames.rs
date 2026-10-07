@@ -147,7 +147,7 @@ pub fn igrf_gh(dy: f64) -> [f64; 195] {
         let __end14: i64 = 25;
         let mut ii: i64 = 0;
         while ii < __end14 {
-            if (crate::alg::igrf13::IGRF_YEAR[((ii + 1)) as usize] <= dy) {
+            if (crate::alg::igrf13::DATA_IGRF_YEAR[((ii + 1)) as usize] <= dy) {
                 i = (ii + 1);
             }
             ii += 1;
@@ -156,12 +156,12 @@ pub fn igrf_gh(dy: f64) -> [f64; 195] {
     if (i >= 25) {
         i = 24;
     }
-    let mut f: f64 = ((dy - crate::alg::igrf13::IGRF_YEAR[(i) as usize]) / (crate::alg::igrf13::IGRF_YEAR[((i + 1)) as usize] - crate::alg::igrf13::IGRF_YEAR[(i) as usize]));
+    let mut f: f64 = ((dy - crate::alg::igrf13::DATA_IGRF_YEAR[(i) as usize]) / (crate::alg::igrf13::DATA_IGRF_YEAR[((i + 1)) as usize] - crate::alg::igrf13::DATA_IGRF_YEAR[(i) as usize]));
     {
         let __end15: i64 = 195;
         let mut k: i64 = 0;
         while k < __end15 {
-            gh[(k) as usize] = (crate::alg::igrf13::IGRF_GH[(i) as usize][(k) as usize] + ((crate::alg::igrf13::IGRF_GH[((i + 1)) as usize][(k) as usize] - crate::alg::igrf13::IGRF_GH[(i) as usize][(k) as usize]) * f));
+            gh[(k) as usize] = (crate::alg::igrf13::DATA_IGRF_GH[(i) as usize][(k) as usize] + ((crate::alg::igrf13::DATA_IGRF_GH[((i + 1)) as usize][(k) as usize] - crate::alg::igrf13::DATA_IGRF_GH[(i) as usize][(k) as usize]) * f));
             k += 1;
         }
     }

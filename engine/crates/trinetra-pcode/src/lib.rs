@@ -21,8 +21,8 @@
 //! Every value is an f64 (an int too, as in JavaScript), and every operation is the JavaScript's,
 //! in its order: `x^k` by repeated multiplication, sums from the left, min/max/abs/clamp/sign
 //! written out, `round` half away from zero, `fmod` and `rem` C's, no fused multiply-add. The maths
-//! library is JavaScript's own, ported (src/vmath.rs): `pow`, `log`, `log10` and `atan2` line for
-//! line from the fdlibm code of V8 (`src/base/ieee754.cc`), and `tan`, `asin`, `acos`, `atan`
+//! library is JavaScript's own, ported (src/vmath.rs): `pow`, `log`, `log10`, `log2` and `atan2` line for
+//! line from the fdlibm code of V8 (`src/base/ieee754.cc`), `hypot` from V8's builtin (`math.tq`), and `tan`, `asin`, `acos`, `atan`
 //! and `exp` from the `libm` crate, whose fdlibm port gives V8's bits (tests/math.rs holds both to
 //! Node's Math on 40 000 arguments a function, no bit different). So every vector is reproduced
 //! bit for bit, but for one exception:
@@ -73,7 +73,7 @@ pub const VERSION: &str = "trinetra-pcode/2";
 /// JavaScript's `Math` functions as the interpreter computes them (see the crate's header), and
 /// `Math.round`, for whoever draws inputs as the JavaScript does.
 pub mod math {
-    pub use crate::vmath::{acos, asin, atan, atan2, cos, exp, log, log10, pow, sin, tan};
+    pub use crate::vmath::{acos, asin, atan, atan2, cos, exp, hypot, log, log10, log2, pow, sin, tan};
 
     /// `Math.round`: the nearest whole number, a half towards +infinity.
     pub fn round(x: f64) -> f64 {
@@ -230,7 +230,7 @@ impl Program {
     }
 
     /// Does a fn call any of these builtins, itself or through the fns it calls? (The vectors call a
-    /// fn `exact` when it uses none of `sin cos tan asin acos atan atan2 exp log log10 pow`.)
+    /// fn `exact` when it uses none of `sin cos tan asin acos atan atan2 exp log log10 log2 pow hypot`.)
     pub fn uses(&self, name: &str, builtins: &[&str]) -> bool {
         fn walk(c: &check::Checked, fi: usize, builtins: &[&str], seen: &mut Vec<bool>) -> bool {
             if seen[fi] {

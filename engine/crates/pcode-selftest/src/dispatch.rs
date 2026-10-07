@@ -163,6 +163,14 @@ pub fn call(name: &str, x: &[f64]) -> Option<Vec<f64>> {
             out.push(r.1);
             for v in io0.words().iter() { let v = *v; out.push(v); }
         }
+        "selftest::platform" => {
+            if x.len() != 4 { return None; }
+            let r = crate::selftest::platform(x[0], x[1], x[2], x[3] as i64);
+            out.push(r.0);
+            out.push(r.1 as f64);
+            out.push(r.2);
+            out.push(r.3);
+        }
         _ => return None,
     }
     Some(out)

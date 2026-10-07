@@ -2,11 +2,11 @@
 """The translators held to the interpreter (docs/PLAN_2_0.md S5): every package of pseudocode translated to Rust, C and
 MATLAB, built, and run on every vector the interpreter (design/js/pcode.js) drew for it.
 
-    python3 tools/translators.py [--lang rust c matlab] [--package physics selftest fsw groups] [--out DIR] [--keep DIR]
+    python3 tools/translators.py [--lang rust c matlab] [--package physics selftest fsw groups env] [--out DIR] [--keep DIR]
 
 For each function and proc of each package: the interpreter's vectors (inputs and outputs as exact IEEE-754 bits; a
 proc's as runs of calls, its state carried); each translation called on the same inputs. An exact function (one that
-calls no transcendental: sin, cos, tan, asin, acos, atan, atan2, exp, log, log10, pow) must give the same bits; any
+calls no transcendental: sin, cos, tan, asin, acos, atan, atan2, exp, log, log10, log2, pow, hypot) must give the same bits; any
 other within 1e-12 relative (the maths library's last bit may differ from the browser's). A function a translation
 cannot build, or a value outside its tolerance, is named.
 
@@ -15,6 +15,7 @@ The packages:
   selftest   the language's own test (design/pcode_selftest): every construct
   fsw        the flight software's algorithms (fsw/pseudocode 01-09)
   groups     each group's generated code (design/groups), when there is one
+  env        the engine's published models (env's methods and the modules they use, tools/engine_build.py)
 
 What it writes: results/TRANSLATORS.md and translators.json (per package and language: functions, values, how many bit
 for bit, the worst relative error, every failure).
@@ -38,6 +39,23 @@ SEED = 20261003
 TOL = 1e-12
 
 
+def env_files():
+    """The engine's published models, every target's (tools/engine_build.py), as files under build/engine_models/."""
+    import engine_build
+    texts = {}
+    for target in engine_build.TARGETS:
+        texts.update(engine_build.modules(target))
+    out = ROOT / "build" / "engine_models"
+    if out.is_dir():
+        shutil.rmtree(out)
+    files = []
+    for p, t in sorted(texts.items()):
+        f = out / pathlib.PurePosixPath(p).name
+        write_text(f, t)
+        files.append(f)
+    return files
+
+
 def packages():
     fsw = ROOT / "fsw" / "pseudocode"
     return {
@@ -45,6 +63,7 @@ def packages():
         "selftest": {"files": sorted((ROOT / "design" / "pcode_selftest").glob("*.pc")), "n": 12, "budget": 1e9},
         "fsw": {"files": sorted(fsw.glob("*.pc")), "n": 32, "budget": 2000},
         "groups": {"files": sorted((ROOT / "design" / "groups").rglob("*.pc")), "n": 12, "budget": 1e9},
+        "env": {"files": env_files(), "n": 12, "budget": 1e9},
     }
 
 

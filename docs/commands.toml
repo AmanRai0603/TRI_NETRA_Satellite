@@ -460,10 +460,34 @@ checks = "every value of every function in every language; each failure named"
 undo = "It writes generated files only: `git checkout -- results/TRANSLATORS.md results/translators.json`."
 
 [[command]]
+tool = "engine_build.py"
+name = "engine-build"
+usage = "python3 tools/engine_build.py gen [--check] [--design FILE] | modules [--design FILE]"
+what = "The engine build (docs/PLAN_2_0.md S7; docs/S7_INVENTORY.md S7.3): the time engine's published models written from the design. Every method block whose code.generate names a target (adcs-sim-core, adcs-pop), with the modules its code.uses names in turn (env's data tables, env's onboard frames and field, the physics' tables, the toolbox), is translated by the library's translator (tndb translate rust; the JavaScript one when it is not built) into a module of the crate: engine/crates/adcs-sim-core/src/gen (maths from crate::pm, no_std) and engine/crates/adcs-pop/src/gen (std maths). The engine's core (step order, recorder, integrators, the file readers) stays code and calls them. `modules` lists what each target takes."
+steps = ["collect the design's method blocks naming each target, and what they use", "translate each target's modules to Rust (crate::gen, its maths module, no dispatcher)", "write them (or, with --check, compare), removing any file the design no longer gives"]
+reads = ["tests/regression/design.tndb (or --design FILE)", "fsw/pseudocode/01_math.pc (the toolbox)"]
+writes = ["engine/crates/adcs-sim-core/src/gen/", "engine/crates/adcs-pop/src/gen/"]
+runs = ["engine/target/release/tndb translate (or node design/js/pcode_cli.mjs)"]
+checks = "--check: every generated engine model is what the design gives, and nothing else sits in the generated folders"
+undo = "It writes generated files only: `git checkout -- engine/crates/adcs-sim-core/src/gen engine/crates/adcs-pop/src/gen`."
+
+[[command]]
+tool = "readers.py"
+name = "readers"
+usage = "python3 tools/readers.py igrf13|matlab_matrix|xys06 FILE"
+what = "The readers of published data (the boundary: code reads files' formats and loads published data into the design, never a model of its own). Each reads one format and gives its tables as the pseudocode's data items: igrf13 (IAGA's igrf13coeffs.txt: the epochs and Gauss coefficients), matlab_matrix (the numeric matrices a MATLAB file assigns: the Octave POP's leap-second and IERS tidal tables), xys06 (the IAU 2006/2000A series exported from xys06_tables.mat). The developer's revisions (design/revisions_2_0.toml, [[revision.data]]) name the reader, the file and the publication; tools/convert_2_0.py runs it. On the command line it prints what a reader reads from a file."
+steps = ["read FILE with the reader", "print its tables as a pseudocode module"]
+reads = ["FILE"]
+writes = []
+runs = []
+checks = "a file the reader cannot read whole, or a value that is not a finite number, is refused by name"
+undo = "It writes nothing."
+
+[[command]]
 tool = "flight_build.py"
 name = "flight-build"
 usage = "python3 tools/flight_build.py gen [--check] [--design FILE] [--out DIR]"
-what = "The flight build (docs/PLAN_2_0.md S6): the flight software's algorithms written from the design (the flight algorithm blocks, fsw/pseudocode/03-09, with the toolbox 01-02) by the library's translators (tndb translate; the JavaScript ones when it is not built): C99 into fsw/alg/ and Rust, a module of the no_std flight crate, into fsw-rs/src/alg/; beside them the algorithms' identity (sha256 over those sources, 16 hex), which both build ids end with (`... alg <id>`), and the translators' vector dispatchers for the vector tests (test code, never in an image). The runtime (the tick, the HAL, the C interface, the parameter blob, the targets) stays code. --design writes from another design's flight algorithm blocks and --out under another folder (a test's)."
+what = "The flight build (docs/PLAN_2_0.md S6): the flight software's algorithms written from the design (the flight algorithm blocks, fsw/pseudocode/03-09, with the toolbox 01 and env's published models 02, all but 01 written from the design by tools/from_design.py) by the library's translators (tndb translate; the JavaScript ones when it is not built): C99 into fsw/alg/ and Rust, a module of the no_std flight crate, into fsw-rs/src/alg/; beside them the algorithms' identity (sha256 over those sources, 16 hex), which both build ids end with (`... alg <id>`), and the translators' vector dispatchers for the vector tests (test code, never in an image). The runtime (the tick, the HAL, the C interface, the parameter blob, the targets) stays code. --design writes from another design's flight algorithm blocks and --out under another folder (a test's)."
 steps = ["translate the flight algorithms to C (adcs_alg, no dispatcher)", "translate them to Rust (crate::alg, maths from crate::m, no dispatcher)", "hash the C and Rust sources into the algorithms' identity (fsw/alg/include/adcs_alg_id.h, fsw-rs/src/alg/alg_id.rs)", "translate them again with the dispatcher and keep the dispatcher alone (fsw/tests/alg_dispatch.c, fsw-rs/tests/alg/dispatch.rs)", "write them (or, with --check, compare), removing any file the design no longer gives"]
 reads = ["fsw/pseudocode/*.pc", "with --design: the design's flight algorithm blocks"]
 writes = ["fsw/alg/", "fsw-rs/src/alg/", "fsw/tests/alg_dispatch.c", "fsw-rs/tests/alg/dispatch.rs", "with --out: the same under DIR"]

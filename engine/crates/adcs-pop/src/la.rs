@@ -17,7 +17,6 @@ pub fn mm(a: &M3, b: &M3) -> M3 {
 }
 pub fn transpose(a: &M3) -> M3 { [[a[0][0], a[1][0], a[2][0]], [a[0][1], a[1][1], a[2][1]], [a[0][2], a[1][2], a[2][2]]] }
 pub const I3: M3 = [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]];
-/// Elementary rotations (passive, as MATLAB R1/R2/R3 in POP): R3(a) = [c s 0; -s c 0; 0 0 1].
-pub fn r1(a: f64) -> M3 { let (s, c) = a.sin_cos(); [[1.0, 0.0, 0.0], [0.0, c, s], [0.0, -s, c]] }
-pub fn r2(a: f64) -> M3 { let (s, c) = a.sin_cos(); [[c, 0.0, -s], [0.0, 1.0, 0.0], [s, 0.0, c]] }
-pub fn r3(a: f64) -> M3 { let (s, c) = a.sin_cos(); [[c, s, 0.0], [-s, c, 0.0], [0.0, 0.0, 1.0]] }
+/// Elementary rotations (passive, as MATLAB R1/R2/R3 in POP): R3(a) = [c s 0; -s c 0; 0 0 1]. The frames' own, env's
+/// (`gen::earthframes::rot1`, `rot2`, `rot3`), generated from the design.
+pub use crate::gen::earthframes::{rot1 as r1, rot2 as r2, rot3 as r3};

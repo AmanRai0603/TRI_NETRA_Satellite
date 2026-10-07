@@ -770,3 +770,26 @@ pub fn noisy(st: &mut NoisyState, x: f64) -> (f64, f64) {
     z = (s.sigma * b);
     (y, z)
 }
+
+/// trunc (toward zero, exact), and the platform's log2 and hypot (each language's maths library, held as any
+/// transcendental: within 1e-12 of the interpreter).
+/// - a: real[m] (passed in m)
+/// - b: real[m] (passed in m)
+/// - x: real[1] (passed a plain number)
+/// - n: int (passed a whole number)
+/// - returns t: real[m] (passed in m)
+/// - returns ti: int (passed a whole number)
+/// - returns l2: real[1] (passed a plain number)
+/// - returns h: real[m] (passed in m)
+#[allow(clippy::too_many_arguments)]
+pub fn platform(a: f64, b: f64, x: f64, n: i64) -> (f64, i64, f64, f64) {
+    let mut t: f64 = 0.0;
+    let mut ti: i64 = 0;
+    let mut l2: f64 = 0.0;
+    let mut h: f64 = 0.0;
+    t = (f64::trunc((a / 3.0)) * 1.0);
+    ti = n;
+    l2 = f64::log2(x);
+    h = f64::hypot(a, b);
+    (t, ti, l2, h)
+}

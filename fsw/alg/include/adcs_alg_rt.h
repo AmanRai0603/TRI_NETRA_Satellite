@@ -16,7 +16,6 @@ static inline int64_t pc_iabs(int64_t a) { return a < 0 ? -a : a; }
 static inline double pc_fabs(double x) { if (x < 0.0) { return -x; } if (x == 0.0) { return 0.0; } return x; }
 static inline double pc_clamp(double x, double lo, double hi) { return pc_fmin(pc_fmax(x, lo), hi); }
 static inline double pc_sign(double x) { return x > 0.0 ? 1.0 : (x < 0.0 ? -1.0 : 0.0); }
-static inline double pc_hypot(double a, double b) { return sqrt(a * a + b * b); }
 /* The last row whose key is at or below x (the first row below the first key). */
 static inline void pc_lookup_step(const double *t, int rows, int cols, double x, double *r) {
     int i = 0, j;

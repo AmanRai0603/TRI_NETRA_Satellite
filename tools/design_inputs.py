@@ -81,7 +81,8 @@ def gather():
 # (engine/crates/adcs-sim/src/source.rs, `cannot_run`). Raise TOOLBOX when the functions a design may
 # call change; NEEDS_APPLICATION follows the program version that wrote the design.
 # /2 (S7.2): data tables, inf and nan, choices, named capacities, inputs by reference, the sort, random streams.
-TOOLBOX = "trinetra-toolbox/2"
+# /3 (S7.3): trunc; log2 and hypot from each language's maths library (the published models' transcriptions).
+TOOLBOX = "trinetra-toolbox/3"
 
 
 def needs_application():

@@ -1,0 +1,22 @@
+## Classical orbital elements to a state, transcribed from adcs-sim-core orbit.rs (coe2rv; Vallado 2013, algorithm 10):
+## the perifocal position and velocity rotated by R3(-RAAN) R1(-i) R3(-argp). The developer's transcription (S7.3),
+## unsigned.
+module elements
+
+## The inertial position and velocity of the elements a, e, i, RAAN, argument of perigee and true anomaly (for a
+## circular orbit the argument of latitude), about a body of gravitational parameter mu.
+fn coe2rv(a: real[m] in 6.5e6 .. 8e6, e: real[1] in 0 .. 0.1, inc: real[1] in 0 .. 3.1, raan: real[1] in 0 .. 6.2, \
+          argp: real[1] in 0 .. 6.2, nu: real[1] in 0 .. 6.2, mu: real[m^3/s^2] in 3.9e14 .. 4e14) -> (r: vec3[m], v: vec3[m/s])
+    let p = a*(1.0 - e*e)
+    let r_pf: vec3[m] = [p*cos(nu)/(1.0 + e*cos(nu)), p*sin(nu)/(1.0 + e*cos(nu)), 0]
+    let v_pf: vec3[m/s] = [-sqrt(mu/p)*sin(nu), sqrt(mu/p)*(e + cos(nu)), 0]
+    let co = cos(raan)
+    let so = sin(raan)
+    let ci = cos(inc)
+    let si = sin(inc)
+    let cw = cos(argp)
+    let sw = sin(argp)
+    let q: mat3[1] = [[co*cw - so*sw*ci, -co*sw - so*cw*ci, so*si], [so*cw + co*sw*ci, -so*sw + co*cw*ci, -co*si], [sw*si, cw*si, ci]]
+    r = q*r_pf
+    v = q*v_pf
+end

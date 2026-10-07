@@ -25,7 +25,7 @@ type F = fn(f64, f64) -> f64;
 
 #[test]
 fn the_maths_is_javascript_s() {
-    let fns: [(&str, F, bool); 11] = [
+    let fns: [(&str, F, bool); 13] = [
         ("sin", |x, _| math::sin(x), true),
         ("cos", |x, _| math::cos(x), true),
         ("tan", |x, _| math::tan(x), false),
@@ -36,6 +36,8 @@ fn the_maths_is_javascript_s() {
         ("exp", |x, _| math::exp(x), false),
         ("log", |x, _| math::log(x), false),
         ("log10", |x, _| math::log10(x), false),
+        ("log2", |x, _| math::log2(x), false),
+        ("hypot", math::hypot, false),
         ("pow", math::pow, false),
     ];
     let mut r = Prng::new(7);
@@ -46,7 +48,7 @@ fn the_maths_is_javascript_s() {
             .map(|i| {
                 let (x, y) = (args(&mut r, i), args(&mut r, i + 1));
                 match *name {
-                    "log" | "log10" => (x.abs(), y),
+                    "log" | "log10" | "log2" => (x.abs(), y),
                     // a whole power of a negative number too, now and then
                     "pow" if i % 7 == 0 => (x, (y % 8.0).trunc()),
                     "pow" => (x.abs(), y / 100.0),

@@ -130,8 +130,8 @@ the body; the `else` block is the answer when the loop did not settle.
 calls. Arrays: `+ -` element by element, a number times or over an array, matrix times vector,
 matrix times matrix.
 
-Builtins: `sqrt abs sin cos tan asin acos atan atan2 exp log log10 pow hypot min max clamp floor
-ceil round sign fmod dot cross norm unit transpose real int len div rem band bor bxor shl shr isnan isfinite
+Builtins: `sqrt abs sin cos tan asin acos atan atan2 exp log log10 log2 pow hypot min max clamp floor
+ceil round trunc sign fmod dot cross norm unit transpose real int len div rem band bor bxor shl shr isnan isfinite
 sort argsort`, the stream's `stream uniform normal normal3` (*Random streams*), and the constants `pi`, `inf` and
 `nan`.
 
@@ -254,13 +254,15 @@ library's last bits differ:
 - `x^k` is repeated multiplication from the left (`x^3 = (x*x)*x`; `x^-k = 1/(x^k)`), never `pow`.
 - `min`, `max`, `abs`, `clamp`, `sign` are written out (`min(a, b)` is `b` only when `b < a`).
 - `dot`, a matrix product and `norm` sum their products from the left; `unit(a) = a / max(norm(a), 1e-30)`.
-- `round` rounds half away from zero; `fmod` is C's.
+- `round` rounds half away from zero; `trunc` drops the fraction (toward zero); `fmod` is C's.
 - Every literal is converted to SI once, by the checker, and written into the translation as the
   shortest decimal that reads back as the same double.
 - An expression is evaluated in the order it is written, with no fused multiply-add.
 
-`sin cos tan asin acos atan atan2 exp log log10 pow` come from each platform's library and may
-differ in their last bits (more after a large argument is reduced). The tests hold a function
+`sin cos tan asin acos atan atan2 exp log log10 log2 pow hypot` come from each platform's library and may
+differ in their last bits (more after a large argument is reduced). `hypot` is the library's own (Rust `f64::hypot`, C
+`hypot`, MATLAB `hypot`), not `sqrt(a*a + b*b)`, so a transcription of code that calls it gives that code's bits
+(trinetra-toolbox/3, S7.3). The tests hold a function
 that uses none of them, directly or through what it calls, to **bit-for-bit** agreement, and the
 others to 1e-12 relative.
 

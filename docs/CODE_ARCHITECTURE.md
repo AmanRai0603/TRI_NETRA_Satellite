@@ -40,7 +40,7 @@ Anywhere else it is a defect, found by the boundary check (S7, `tools/check_all.
 | signatures, seals, versions; flight images of released designs | signing and checking; the library; the application; the CLI, Python package and tools |
 
 **What a design says it needs.** Every design names:
-- the toolbox it was built for (`meta.toolbox`, today `trinetra-toolbox/2`);
+- the toolbox it was built for (`meta.toolbox`, today `trinetra-toolbox/3`);
 - the oldest application that can run it (`meta.needs_application`).
 
 The engine, the app and the Python package refuse a design they cannot run, by name
@@ -58,10 +58,10 @@ Each part may call the parts in the rows below it, and no part above it.
 | 7 | **CLI, Python package, tools** | `engine/crates/adcs-cli` (`adcs`), `python/trinetra_adcs`, `tools/*.py` | the same; they read the design only through the library |
 | 6 | **rigs** | the byte link (`fsw/targets/link`), soft OILS on QEMU (`fsw/targets/qemu-mps2`), the rig host (`tools/engine_oils.py`) | the same, plus Renode (S15) and the board rig host (S16) |
 | 5 | **flight software's runtime** | `fsw/include/adcs_hal.h`, `adcs_fsw.h`; `fsw-rs/src/hal.rs`, `cabi.rs`; `engine/crates/adcs-fsw-abi`; `fsw/targets/posix`; the configuration blob (`tools/fswcfg.py`) | the same; the algorithm sources beside it (`fsw/src`, `fsw-rs/src`) are generated (S6) |
-| 4 | **time engine** | `adcs-sim-core` (plant, no_std), `adcs-sim` (cases, runs, store), `adcs-pop` (orbit), `adcs-design` (sizing), `adcs-plot` (figures) | the core stays code; the models and the sizing laws are generated from the design (S7) |
+| 4 | **time engine** | `adcs-sim-core` (plant, no_std), `adcs-sim` (cases, runs, store), `adcs-pop` (orbit), `adcs-design` (sizing), `adcs-plot` (figures) | the core stays code; the models and the sizing laws are generated from the design (S7). Since S7.3 the published models of time, frames and the field are: `adcs-sim-core/src/gen`, `adcs-pop/src/gen` and the twin's `+asils/+models`, written by `tools/engine_build.py` from env's methods |
 | 3 | **translators** | `design/js/pcode_gen.js` (pseudocode → Rust, MATLAB), driven by `tools/pcode.py` and `tools/groupcode.py` | + C (S5); used by the flight build and the engine build |
 | 2 | **library** | `engine/crates/trinetra-design` (read-only reader); `tools/tndb.py`; `design/js/tnfile.js`, `node_model.js`, `structure.js`, `release.js` | `trinetra-design` grown to read, write and check every file kind, run the interpreter, build today's design, sign (S2); native and WebAssembly; the JavaScript and Python versions become its test oracles, then retire |
-| 1 | **toolbox** | `adcs-physics` (generated relations plus their maths), `fsw/pseudocode/01_math.pc`, `02_time_frames_models.pc`; the published models in `adcs-pop` (DTM2020, JB2008, IGRF, DE440) | the maths only; the relations move out to the design (S3, S7) |
+| 1 | **toolbox** | `adcs-physics` (generated relations plus their maths), `fsw/pseudocode/01_math.pc`; the published models in `adcs-pop` (DTM2020, JB2008, DE440; time, frames and IGRF moved to env's methods in S7.3) | the maths only; the relations and published models move out to the design (S3, S7); `tools/readers.py` reads published data files into it |
 
 **The library today** (`engine/crates/trinetra-design`, with its command `tndb`):
 
@@ -84,8 +84,12 @@ byte for byte.
 **Generated, today:**
 - `adcs-physics`, from `spec/physics/*.pc`;
 - `adcs-groups` and `adcs-groups-wasm`, from the nodes;
-- `fsw/src/adcs_params.c`, `fsw/include/adcs_params.h`, `fsw-rs/src/params.rs`, `fsw-rs/src/igrf13.rs` (the engine's
-  plant field model) and `fsw/pseudocode/02_igrf13.pc`, from `fsw/params/params.toml` and the IGRF coefficients;
+- `fsw/src/adcs_params.c`, `fsw/include/adcs_params.h`, `fsw-rs/src/params.rs`, from `fsw/params/params.toml`;
+  `matlab_sils/data/igrf13.json` (the twin's table) from the IGRF coefficients;
+- `fsw/pseudocode/02_*.pc` (env's onboard time, frames and field, and the IGRF table), from the design
+  (`tools/from_design.py`);
+- the engine's published models (`adcs-sim-core/src/gen`, `adcs-pop/src/gen`, the twin's `+asils/+models`), from env's
+  methods and tables (`tools/engine_build.py`, S7.3);
 - the MATLAB `+groups` package;
 - `docs/COMMANDS.md`;
 - the pages from their templates;

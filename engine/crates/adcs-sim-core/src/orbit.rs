@@ -148,14 +148,6 @@ impl Orbit {
     }
 }
 
-/// Classical elements -> ECI state (argument of latitude u for a circular orbit).
-pub fn coe2rv(a: f64, e: f64, inc: f64, raan: f64, argp: f64, nu: f64) -> (V3, V3) {
-    let p = a*(1.0 - e*e);
-    let r_pf = [p*cos(nu)/(1.0 + e*cos(nu)), p*sin(nu)/(1.0 + e*cos(nu)), 0.0];
-    let v_pf = [-sqrt(MU/p)*sin(nu), sqrt(MU/p)*(e + cos(nu)), 0.0];
-    let (co, so, ci, si, cw, sw) = (cos(raan), sin(raan), cos(inc), sin(inc), cos(argp), sin(argp));
-    let q = [[co*cw - so*sw*ci, -co*sw - so*cw*ci, so*si],
-             [so*cw + co*sw*ci, -so*sw + co*cw*ci, -co*si],
-             [sw*si, cw*si, ci]];
-    (mv(&q, &r_pf), mv(&q, &v_pf))
-}
+/// Classical elements -> ECI state (argument of latitude u for a circular orbit): env's method
+/// (env_two_body_elements, `gen::elements::coe2rv`).
+pub fn coe2rv(a: f64, e: f64, inc: f64, raan: f64, argp: f64, nu: f64) -> (V3, V3) { crate::gen::elements::coe2rv(a, e, inc, raan, argp, nu, MU) }

@@ -59,8 +59,8 @@
     "group": "env",
     "health": "blocked",
     "count": {
-     "unproven": 38,
-     "blocked": 3,
+     "blocked": 13,
+     "unproven": 39,
      "open": 9
     }
    },
@@ -2041,12 +2041,157 @@
     "cause": []
    },
    {
+    "id": "env_calendar_time",
+    "group": "env",
+    "label": "Calendar and sidereal time (the engine's truth)",
+    "health": "blocked",
+    "why": [
+     "blocked: needs jd_ut1 (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.3 (2026-10-07), not yet signed by a person: added, method: the engine's calendar and sidereal time, until now adcs-sim-core time.rs; the developer's revision S7.3 (2026-10-07), not yet signed by a person: method pseudocode: the engine's calendar and sidereal time as a method of env, generated into the engine"
+    ],
+    "value": "",
+    "cause": [
+     "env_calendar_time"
+    ]
+   },
+   {
+    "id": "env_earth_frames",
+    "group": "env",
+    "label": "Earth frames (GMST build) and the Earth's rate",
+    "health": "blocked",
+    "why": [
+     "blocked: needs ctp (no input names it), ctm (no input names it), c0 (no input names it), d (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.3 (2026-10-07), not yet signed by a person: added, method: the precision orbit's GMST frame build and Earth rate, until now adcs-pop frames/mod.rs and la.rs; the developer's revision S7.3 (2026-10-07), not yet signed by a person: method pseudocode: the GMST frame build and the Earth's rate as methods of env, generated into adcs-pop; which build a run takes and the EOP files stay code"
+    ],
+    "value": "",
+    "cause": [
+     "env_earth_frames"
+    ]
+   },
+   {
+    "id": "env_geodetic",
+    "group": "env",
+    "label": "Geodetic coordinates (WGS-84)",
+    "health": "blocked",
+    "why": [
+     "blocked: needs r (no input names it), re (no input names it), f (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.3 (2026-10-07), not yet signed by a person: added, method: the precision orbit's geodetic coordinates, until now adcs-pop geodetic.rs; the developer's revision S7.3 (2026-10-07), not yet signed by a person: method pseudocode: geodetic coordinates as a method of env, generated into adcs-pop"
+    ],
+    "value": "",
+    "cause": [
+     "env_geodetic"
+    ]
+   },
+   {
+    "id": "env_iau2006",
+    "group": "env",
+    "label": "IAU 2006/2000A CIO-based Earth orientation",
+    "health": "blocked",
+    "why": [
+     "blocked: needs u (no input names it), dut1 (no input names it), xp (no input names it), yp (no input names it), dx (no input names it), dy (no input names it), dat (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.3 (2026-10-07), not yet signed by a person: added, method: the precision orbit's IAU 2006/2000A kernel, until now adcs-pop frames/iau2006.rs; the developer's revision S7.3 (2026-10-07), not yet signed by a person: method pseudocode: the IAU 2006/2000A kernel as a method of env over its series, generated into adcs-pop"
+    ],
+    "value": "",
+    "cause": [
+     "env_iau2006"
+    ]
+   },
+   {
     "id": "env_igrf13_coefficients",
     "group": "env",
     "label": "IGRF-13 coefficients",
     "health": "unproven",
     "why": [
-     "unproven: converted from 1.0.0, not yet signed by a person"
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.2b (2026-10-07), not yet signed by a person: data igrf13.pc: the IGRF table as a data table of its node, read by its reader (the IAGA file the flight table was always generated from); the flight build takes it from here (fsw/pseudocode/02_igrf13.pc)"
+    ],
+    "value": "",
+    "cause": []
+   },
+   {
+    "id": "env_leap_seconds",
+    "group": "env",
+    "label": "Leap seconds (TAI - UTC)",
+    "health": "unproven",
+    "why": [
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.2b (2026-10-07), not yet signed by a person: added, lookup: the time scales' leap-second table, until now typed in adcs-pop/src/time.rs (LEAP_TABLE) and the Octave POP (timeconv.leapTable); the developer's revision S7.2b (2026-10-07), not yet signed by a person: data leapsec.pc: the leap seconds, read by their reader from the file the time scales were ported from, value for value"
+    ],
+    "value": "",
+    "cause": []
+   },
+   {
+    "id": "env_tidal_eop",
+    "group": "env",
+    "label": "Tidal Earth-orientation variations (IERS 2010)",
+    "health": "blocked",
+    "why": [
+     "blocked: needs mjd (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.3 (2026-10-07), not yet signed by a person: added, method: the IERS tidal EOP models, until now adcs-pop frames/tidal.rs; the developer's revision S7.3 (2026-10-07), not yet signed by a person: method pseudocode: the tidal EOP models as methods of env over their tables, generated into adcs-pop"
+    ],
+    "value": "",
+    "cause": [
+     "env_tidal_eop"
+    ]
+   },
+   {
+    "id": "env_tidal_eop_terms",
+    "group": "env",
+    "label": "Tidal Earth-orientation terms (IERS 2010)",
+    "health": "unproven",
+    "why": [
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.2b (2026-10-07), not yet signed by a person: added, lookup: the six tables of the IERS tidal EOP models, until now copied into adcs-pop/src/frames/tidal.rs; the developer's revision S7.2b (2026-10-07), not yet signed by a person: data tidaleopterms.pc: the six tidal EOP tables, read by their reader from the MATLAB ports the Rust tables were copied from, value for value"
+    ],
+    "value": "",
+    "cause": []
+   },
+   {
+    "id": "env_time_frames",
+    "group": "env",
+    "label": "Time, frames and the field onboard (IAU 1982, IAU 1976, IGRF-13)",
+    "health": "blocked",
+    "why": [
+     "blocked: needs r_eci (no input names it), jd (no input names it), gh (no input names it), nmax (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.3 (2026-10-07), not yet signed by a person: added, method: the onboard published models (GMST, precession, the low-precision Sun, WGS-84 geodetic coordinates, the IGRF synthesis) move from nav's carried row into env, one copy: the flight build and the engine take them from here; the developer's revision S7.3 (2026-10-07), not yet signed by a person: method pseudocode: one copy of the onboard published models, env's; the flight build takes it from the design (fsw/pseudocode/02 is written from here)"
+    ],
+    "value": "",
+    "cause": [
+     "env_time_frames"
+    ]
+   },
+   {
+    "id": "env_time_scales",
+    "group": "env",
+    "label": "Time scales (UTC, TAI, TT, TDB, UT1, GPS)",
+    "health": "blocked",
+    "why": [
+     "blocked: needs utc (no input names it), sec (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.3 (2026-10-07), not yet signed by a person: added, method: the precision orbit's time scales, until now adcs-pop time.rs; the developer's revision S7.3 (2026-10-07), not yet signed by a person: method pseudocode: the precision orbit's time scales as a method of env over its leap-second table, generated into adcs-pop"
+    ],
+    "value": "",
+    "cause": [
+     "env_time_scales"
+    ]
+   },
+   {
+    "id": "env_two_body_elements",
+    "group": "env",
+    "label": "Orbital elements to state",
+    "health": "blocked",
+    "why": [
+     "blocked: needs a (no input names it), e (no input names it), inc (no input names it), raan (no input names it), argp (no input names it), nu (no input names it), mu (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.3 (2026-10-07), not yet signed by a person: added, method: the engine's elements-to-state conversion (its fast orbit's start), until now adcs-sim-core orbit.rs coe2rv; the developer's revision S7.3 (2026-10-07), not yet signed by a person: method pseudocode: elements to state as a method of env, generated into the engine"
+    ],
+    "value": "",
+    "cause": [
+     "env_two_body_elements"
+    ]
+   },
+   {
+    "id": "env_xys06_series",
+    "group": "env",
+    "label": "IAU 2006/2000A X, Y and s series",
+    "health": "unproven",
+    "why": [
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.2b (2026-10-07), not yet signed by a person: added, lookup: the IAU 2006/2000A kernel's series, until now embedded in adcs-pop from xys06.bin; the developer's revision S7.2b (2026-10-07), not yet signed by a person: data xys06.pc: the IAU 2006/2000A series, read by their reader from the export the kernel embeds today, value for value"
     ],
     "value": "",
     "cause": []
@@ -7141,23 +7286,29 @@
     "id": "l3_dist_row_07",
     "group": "env",
     "label": "Atmospheric density at altitude",
-    "health": "unproven",
+    "health": "blocked",
     "why": [
-     "unproven: converted from 1.0.0, not yet signed by a person"
+     "blocked: needs h_m (no input names it), scale (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.3 (2026-10-07), not yet signed by a person: method pseudocode; behaviour built-in -> method: the fast orbit's density as a method over env's one Vallado table (m3_3's), no second copy in code"
     ],
     "value": "",
-    "cause": []
+    "cause": [
+     "l3_dist_row_07"
+    ]
    },
    {
     "id": "l3_dist_row_08",
     "group": "env",
     "label": "Main field along the orbit (IGRF)",
-    "health": "unproven",
+    "health": "blocked",
     "why": [
-     "unproven: converted from 1.0.0, not yet signed by a person"
+     "blocked: needs r (no input names it), c (no input names it), gh (no input names it), nmax (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.3 (2026-10-07), not yet signed by a person: method pseudocode; behaviour built-in -> method: the main field along the orbit as a method: env's IGRF synthesis (one copy with the flight software's) at the engine's geodetic coordinates, back to J2000"
     ],
     "value": "",
-    "cause": []
+    "cause": [
+     "l3_dist_row_08"
+    ]
    },
    {
     "id": "l3_dist_row_09",
@@ -12391,7 +12542,7 @@
     "health": "blocked",
     "why": [
      "blocked: needs jd (no input names it)",
-     "unproven: converted from 1.0.0, not yet signed by a person"
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.3 (2026-10-07), not yet signed by a person: behaviour method -> stated: its algorithm moved into env (env_time_frames), one copy; nav keeps the row that says what the onboard time and frames are for"
     ],
     "value": "",
     "cause": [
@@ -14789,8 +14940,8 @@
     "group": "env",
     "health": "blocked",
     "count": {
-     "unproven": 38,
-     "blocked": 3,
+     "blocked": 13,
+     "unproven": 39,
      "open": 9
     }
    },
@@ -16737,12 +16888,157 @@
     "cause": []
    },
    {
+    "id": "env_calendar_time",
+    "group": "env",
+    "label": "Calendar and sidereal time (the engine's truth)",
+    "health": "blocked",
+    "why": [
+     "blocked: needs jd_ut1 (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.3 (2026-10-07), not yet signed by a person: added, method: the engine's calendar and sidereal time, until now adcs-sim-core time.rs; the developer's revision S7.3 (2026-10-07), not yet signed by a person: method pseudocode: the engine's calendar and sidereal time as a method of env, generated into the engine"
+    ],
+    "value": "",
+    "cause": [
+     "env_calendar_time"
+    ]
+   },
+   {
+    "id": "env_earth_frames",
+    "group": "env",
+    "label": "Earth frames (GMST build) and the Earth's rate",
+    "health": "blocked",
+    "why": [
+     "blocked: needs ctp (no input names it), ctm (no input names it), c0 (no input names it), d (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.3 (2026-10-07), not yet signed by a person: added, method: the precision orbit's GMST frame build and Earth rate, until now adcs-pop frames/mod.rs and la.rs; the developer's revision S7.3 (2026-10-07), not yet signed by a person: method pseudocode: the GMST frame build and the Earth's rate as methods of env, generated into adcs-pop; which build a run takes and the EOP files stay code"
+    ],
+    "value": "",
+    "cause": [
+     "env_earth_frames"
+    ]
+   },
+   {
+    "id": "env_geodetic",
+    "group": "env",
+    "label": "Geodetic coordinates (WGS-84)",
+    "health": "blocked",
+    "why": [
+     "blocked: needs r (no input names it), re (no input names it), f (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.3 (2026-10-07), not yet signed by a person: added, method: the precision orbit's geodetic coordinates, until now adcs-pop geodetic.rs; the developer's revision S7.3 (2026-10-07), not yet signed by a person: method pseudocode: geodetic coordinates as a method of env, generated into adcs-pop"
+    ],
+    "value": "",
+    "cause": [
+     "env_geodetic"
+    ]
+   },
+   {
+    "id": "env_iau2006",
+    "group": "env",
+    "label": "IAU 2006/2000A CIO-based Earth orientation",
+    "health": "blocked",
+    "why": [
+     "blocked: needs u (no input names it), dut1 (no input names it), xp (no input names it), yp (no input names it), dx (no input names it), dy (no input names it), dat (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.3 (2026-10-07), not yet signed by a person: added, method: the precision orbit's IAU 2006/2000A kernel, until now adcs-pop frames/iau2006.rs; the developer's revision S7.3 (2026-10-07), not yet signed by a person: method pseudocode: the IAU 2006/2000A kernel as a method of env over its series, generated into adcs-pop"
+    ],
+    "value": "",
+    "cause": [
+     "env_iau2006"
+    ]
+   },
+   {
     "id": "env_igrf13_coefficients",
     "group": "env",
     "label": "IGRF-13 coefficients",
     "health": "unproven",
     "why": [
-     "unproven: converted from 1.0.0, not yet signed by a person"
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.2b (2026-10-07), not yet signed by a person: data igrf13.pc: the IGRF table as a data table of its node, read by its reader (the IAGA file the flight table was always generated from); the flight build takes it from here (fsw/pseudocode/02_igrf13.pc)"
+    ],
+    "value": "",
+    "cause": []
+   },
+   {
+    "id": "env_leap_seconds",
+    "group": "env",
+    "label": "Leap seconds (TAI - UTC)",
+    "health": "unproven",
+    "why": [
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.2b (2026-10-07), not yet signed by a person: added, lookup: the time scales' leap-second table, until now typed in adcs-pop/src/time.rs (LEAP_TABLE) and the Octave POP (timeconv.leapTable); the developer's revision S7.2b (2026-10-07), not yet signed by a person: data leapsec.pc: the leap seconds, read by their reader from the file the time scales were ported from, value for value"
+    ],
+    "value": "",
+    "cause": []
+   },
+   {
+    "id": "env_tidal_eop",
+    "group": "env",
+    "label": "Tidal Earth-orientation variations (IERS 2010)",
+    "health": "blocked",
+    "why": [
+     "blocked: needs mjd (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.3 (2026-10-07), not yet signed by a person: added, method: the IERS tidal EOP models, until now adcs-pop frames/tidal.rs; the developer's revision S7.3 (2026-10-07), not yet signed by a person: method pseudocode: the tidal EOP models as methods of env over their tables, generated into adcs-pop"
+    ],
+    "value": "",
+    "cause": [
+     "env_tidal_eop"
+    ]
+   },
+   {
+    "id": "env_tidal_eop_terms",
+    "group": "env",
+    "label": "Tidal Earth-orientation terms (IERS 2010)",
+    "health": "unproven",
+    "why": [
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.2b (2026-10-07), not yet signed by a person: added, lookup: the six tables of the IERS tidal EOP models, until now copied into adcs-pop/src/frames/tidal.rs; the developer's revision S7.2b (2026-10-07), not yet signed by a person: data tidaleopterms.pc: the six tidal EOP tables, read by their reader from the MATLAB ports the Rust tables were copied from, value for value"
+    ],
+    "value": "",
+    "cause": []
+   },
+   {
+    "id": "env_time_frames",
+    "group": "env",
+    "label": "Time, frames and the field onboard (IAU 1982, IAU 1976, IGRF-13)",
+    "health": "blocked",
+    "why": [
+     "blocked: needs r_eci (no input names it), jd (no input names it), gh (no input names it), nmax (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.3 (2026-10-07), not yet signed by a person: added, method: the onboard published models (GMST, precession, the low-precision Sun, WGS-84 geodetic coordinates, the IGRF synthesis) move from nav's carried row into env, one copy: the flight build and the engine take them from here; the developer's revision S7.3 (2026-10-07), not yet signed by a person: method pseudocode: one copy of the onboard published models, env's; the flight build takes it from the design (fsw/pseudocode/02 is written from here)"
+    ],
+    "value": "",
+    "cause": [
+     "env_time_frames"
+    ]
+   },
+   {
+    "id": "env_time_scales",
+    "group": "env",
+    "label": "Time scales (UTC, TAI, TT, TDB, UT1, GPS)",
+    "health": "blocked",
+    "why": [
+     "blocked: needs utc (no input names it), sec (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.3 (2026-10-07), not yet signed by a person: added, method: the precision orbit's time scales, until now adcs-pop time.rs; the developer's revision S7.3 (2026-10-07), not yet signed by a person: method pseudocode: the precision orbit's time scales as a method of env over its leap-second table, generated into adcs-pop"
+    ],
+    "value": "",
+    "cause": [
+     "env_time_scales"
+    ]
+   },
+   {
+    "id": "env_two_body_elements",
+    "group": "env",
+    "label": "Orbital elements to state",
+    "health": "blocked",
+    "why": [
+     "blocked: needs a (no input names it), e (no input names it), inc (no input names it), raan (no input names it), argp (no input names it), nu (no input names it), mu (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.3 (2026-10-07), not yet signed by a person: added, method: the engine's elements-to-state conversion (its fast orbit's start), until now adcs-sim-core orbit.rs coe2rv; the developer's revision S7.3 (2026-10-07), not yet signed by a person: method pseudocode: elements to state as a method of env, generated into the engine"
+    ],
+    "value": "",
+    "cause": [
+     "env_two_body_elements"
+    ]
+   },
+   {
+    "id": "env_xys06_series",
+    "group": "env",
+    "label": "IAU 2006/2000A X, Y and s series",
+    "health": "unproven",
+    "why": [
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.2b (2026-10-07), not yet signed by a person: added, lookup: the IAU 2006/2000A kernel's series, until now embedded in adcs-pop from xys06.bin; the developer's revision S7.2b (2026-10-07), not yet signed by a person: data xys06.pc: the IAU 2006/2000A series, read by their reader from the export the kernel embeds today, value for value"
     ],
     "value": "",
     "cause": []
@@ -21828,23 +22124,29 @@
     "id": "l3_dist_row_07",
     "group": "env",
     "label": "Atmospheric density at altitude",
-    "health": "unproven",
+    "health": "blocked",
     "why": [
-     "unproven: converted from 1.0.0, not yet signed by a person"
+     "blocked: needs h_m (no input names it), scale (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.3 (2026-10-07), not yet signed by a person: method pseudocode; behaviour built-in -> method: the fast orbit's density as a method over env's one Vallado table (m3_3's), no second copy in code"
     ],
     "value": "",
-    "cause": []
+    "cause": [
+     "l3_dist_row_07"
+    ]
    },
    {
     "id": "l3_dist_row_08",
     "group": "env",
     "label": "Main field along the orbit (IGRF)",
-    "health": "unproven",
+    "health": "blocked",
     "why": [
-     "unproven: converted from 1.0.0, not yet signed by a person"
+     "blocked: needs r (no input names it), c (no input names it), gh (no input names it), nmax (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.3 (2026-10-07), not yet signed by a person: method pseudocode; behaviour built-in -> method: the main field along the orbit as a method: env's IGRF synthesis (one copy with the flight software's) at the engine's geodetic coordinates, back to J2000"
     ],
     "value": "",
-    "cause": []
+    "cause": [
+     "l3_dist_row_08"
+    ]
    },
    {
     "id": "l3_dist_row_09",
@@ -27078,7 +27380,7 @@
     "health": "blocked",
     "why": [
      "blocked: needs jd (no input names it)",
-     "unproven: converted from 1.0.0, not yet signed by a person"
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.3 (2026-10-07), not yet signed by a person: behaviour method -> stated: its algorithm moved into env (env_time_frames), one copy; nav keeps the row that says what the onboard time and frames are for"
     ],
     "value": "",
     "cause": [

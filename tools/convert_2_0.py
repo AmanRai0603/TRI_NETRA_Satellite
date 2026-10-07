@@ -39,7 +39,10 @@ names from one behaviour to another, adds the rows it states, writes itself into
 revision table) and its reason into the node's release (`why`), marked the developer's and not yet signed by a
 person. S7.1b moves the built-in nodes that are not relations in code: achieved holders and the KPIs' evidence
 rows to evidence, the KPI closures to closure, the owner pointers to open (or evidence where a run measures
-them), the flight software's runtime rows to stated (code by the boundary).
+them), the flight software's runtime rows to stated (code by the boundary). A revision may also add nodes
+(`[[revision.node]]`), load published data into a node through a reader of tools/readers.py (`[[revision.data]]`,
+S7.2b: the leap seconds, the IGRF table, the IAU 2006 series, the tidal EOP terms) and give a node its method, the
+developer's transcription kept under design/revisions/ (`[[revision.method]]`, S7.3: env's time, frames and field).
 
 Owner: Agastya. Copyright (c) 2026 Agastya. All rights reserved.
 """
@@ -162,14 +165,91 @@ def _matches(m, nid, kind, content):
     raise SystemExit(f"convert: a revision matches by nodes, kind or field, not {sorted(m)}")
 
 
+def add_nodes(gdir, groups, revs, report):
+    """The nodes the developer's revisions add (`[[revision.node]]`), each a new block of its group under the parent it
+    names, with the behaviour it says: written before the group files, so each group lists them."""
+    have = {f.name[:-len(".node.tndb")] for d in gdir.values() for f in (d / "nodes").glob("*.node.tndb")}
+    why = {}
+    for r in revs:
+        origin = f"the developer's revision {r['id']}"
+        for n in r.get("node", []):
+            if n["id"] in have:
+                raise SystemExit(f"convert: revision {r['id']} adds {n['id']}, which the design already has")
+            if n["group"] not in groups or n["parent"] not in have:
+                raise SystemExit(f"convert: revision {r['id']} adds {n['id']} to group {n['group']} under {n['parent']}: no such group or block")
+            new_node(gdir[n["group"]] / "nodes" / f"{n['id']}.node.tndb", n["id"], n["group"], n.get("kind", "leaf"), n["label"], n.get("layer", 2),
+                     content=[("identity", "question", n["question"], origin)],
+                     block=(n["id"], n["parent"], n.get("perspective", "system"), n["behaviour"], None, None))
+            with sqlite3.connect(gdir[n["group"]] / "nodes" / f"{n['id']}.node.tndb") as c:
+                c.execute("INSERT INTO revision VALUES (?, ?, ?, ?)", (1, r["at"], r["by"], f"{r['id']}: added ({n['behaviour']}): {n['why']}"))
+            have.add(n["id"])
+            why.setdefault(n["id"], []).append(f"{origin} ({r['at'][:10]}), not yet signed by a person: added, {n['behaviour']}: {n['why']}")
+            report.append(["revision", n["id"], "(none)", f"groups/{n['group']}/nodes/{n['id']}.node.tndb", f"{origin}: added, {n['behaviour']}: {n['why']}"])
+    return why
+
+
+def data_rows(r, d, origin):
+    """The content rows a `[[revision.data]]` gives its node: the module the reader (tools/readers.py) reads from the
+    file (or files), every table citing its publication and its file (with the file's sha256), and the publication."""
+    import readers
+    tables, docs, files = {}, {}, []
+    for one in d.get("files") or [d]:
+        got = readers.read({"reader": d["reader"], **one})
+        h = readers.sha256(one["file"])
+        files.append(f"{one['file']}, sha256 {h}")
+        for name, t in got.items():
+            tables[name] = t
+            docs[name] = [f"{name}: {d['publication']}", f"read by tools/readers.py ({d['reader']}) from {one['file']} (sha256 {h[:16]}), {origin}"]
+    text = readers.module_text(d["module"], d["about"], tables, docs)
+    where = f"{d['path']} ({origin}: " if d.get("path") else f"{origin} ("
+    return [("data", f"{d['module']}.pc", text, f"{where}reader {d['reader']} of {'; '.join(files)})"),
+            ("sources", f"published.{d['module']}", d["publication"], origin)]
+
+
+def method_rows(m, origin):
+    """The content rows a `[[revision.method]]` gives its node: the pseudocode the developer transcribed (a file under
+    design/revisions/, kept as the revision's source) and what it transcribes, the node's module and what it calls."""
+    text = (ROOT / m["pseudocode"]).read_text(encoding="utf-8")
+    where = f"{m['path']} ({origin}: " if m.get("path") else f"{origin} ("
+    rows = [("code", "pseudocode", text, f"{where}{m['pseudocode']})"),
+            ("code", "transcribes", m["transcribes"], origin),
+            ("code", "generate", ", ".join(m["generate"]), origin)]
+    if m.get("uses"):
+        rows.append(("code", "uses", json.dumps(m["uses"]), origin))
+    if m.get("source"):
+        rows.append(("sources", "transcribed", m["source"], origin))
+    return rows
+
+
 def revise(gdir, revs, report):
     """Apply the developer's revisions to the node files: {node: [why, ...]} for their releases. A change whose
-    node has another behaviour than its `from`, or that names a node the design does not have, is refused."""
+    node has another behaviour than its `from`, or that names a node the design does not have, is refused.
+    Besides behaviour changes (`[[revision.change]]`), a revision may load published data into a node
+    (`[[revision.data]]`: a reader of tools/readers.py on a file of the repository) and give a node its method
+    (`[[revision.method]]`: the developer's transcription of code and of the source it cites, unsigned)."""
     files = {f.name[:-len(".node.tndb")]: f for d in gdir.values() for f in sorted((d / "nodes").glob("*.node.tndb"))}
     why = {}
     for r in revs:
         origin = f"the developer's revision {r['id']}"
-        for ch in r["change"]:
+        for kind, items in (("data", r.get("data", [])), ("method", r.get("method", []))):
+            for d in items:
+                f = files.get(d["node"])
+                if f is None:
+                    raise SystemExit(f"convert: revision {r['id']} gives {kind} to {d['node']}, which the design does not have")
+                rows = data_rows(r, d, origin) if kind == "data" else method_rows(d, origin)
+                with sqlite3.connect(f) as c:
+                    beh = c.execute("SELECT behaviour FROM block").fetchone()[0]
+                    to = d.get("to", beh)
+                    if d.get("from", beh) != beh:
+                        raise SystemExit(f"convert: revision {r['id']}: {d['node']} is {beh}, not {d['from']}")
+                    c.execute("UPDATE block SET behaviour = ?", (to,))
+                    c.executemany("INSERT INTO content VALUES (?, ?, ?, ?)", rows)
+                    n = c.execute("SELECT coalesce(max(n), 0) + 1 FROM revision").fetchone()[0]
+                    what = f"{kind} {rows[0][1] if kind == 'data' else 'pseudocode'}" + (f"; behaviour {beh} -> {to}" if to != beh else "")
+                    c.execute("INSERT INTO revision VALUES (?, ?, ?, ?)", (n, r["at"], r["by"], f"{r['id']}: {what}: {d['why']}"))
+                why.setdefault(d["node"], []).append(f"{origin} ({r['at'][:10]}), not yet signed by a person: {what}: {d['why']}")
+                report.append(["revision", d["node"], beh, to, f"{origin}: {what}: {d['why']}"])
+        for ch in r.get("change", []):
             named = set(ch["match"].get("nodes", []))
             if named - set(files):
                 raise SystemExit(f"convert: revision {r['id']} names {sorted(named - set(files))}, which the design does not have")
@@ -433,6 +513,9 @@ def convert(out, src=None):
              block=("programme_delivery_waves", "mgm", "programme", "lookup", None, None))
     report.append(["library", "design/groups.toml (wave)", "design/groups.toml", "groups/programme/nodes/programme_delivery_waves.node.tndb", "lookup block"])
 
+    # the nodes the developer's revisions add (their content follows with the revisions, below)
+    added = add_nodes(gdir, groups, revisions(), report)
+
     # ------------------------------------------------------------ the group files
     placed = {}
     for gid in groups:
@@ -514,6 +597,8 @@ def convert(out, src=None):
 
     # ------------------------------------------------------------ the developer's revisions, then the baseline releases
     revised = revise(gdir, revisions(), report)
+    for nid, ws in added.items():
+        revised[nid] = ws + revised.get(nid, [])
     for gid in groups:
         seal_baseline(gdir[gid], gid, revised)
 

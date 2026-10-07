@@ -13,8 +13,8 @@ use std::collections::{HashMap, HashSet};
 use std::f64::consts::PI;
 
 pub(crate) const BUILTINS: &[&str] = &[
-    "sqrt", "abs", "sin", "cos", "tan", "asin", "acos", "atan", "atan2", "exp", "log", "log10", "min", "max", "clamp", "floor", "ceil",
-    "round", "sign", "fmod", "pow", "dot", "cross", "norm", "unit", "transpose", "real", "len", "hypot", "int", "div", "rem", "band",
+    "sqrt", "abs", "sin", "cos", "tan", "asin", "acos", "atan", "atan2", "exp", "log", "log10", "log2", "min", "max", "clamp", "floor", "ceil",
+    "round", "trunc", "sign", "fmod", "pow", "dot", "cross", "norm", "unit", "transpose", "real", "len", "hypot", "int", "div", "rem", "band",
     "bor", "bxor", "shl", "shr", "isnan", "isfinite", "sort", "argsort", "stream", "uniform", "normal", "normal3",
 ];
 
@@ -960,7 +960,7 @@ impl Checker {
                 }
                 Ty::Real(dim_mul(&d, 0.5))
             }
-            "abs" | "floor" | "ceil" | "round" => {
+            "abs" | "floor" | "ceil" | "round" | "trunc" => {
                 n(self, 1);
                 if t(0) == Some(&Ty::Int) {
                     return Ty::Int;
@@ -972,7 +972,7 @@ impl Checker {
                 sc(self, t(0), 0);
                 real0()
             }
-            "sin" | "cos" | "tan" | "asin" | "acos" | "atan" | "exp" | "log" | "log10" => {
+            "sin" | "cos" | "tan" | "asin" | "acos" | "atan" | "exp" | "log" | "log10" | "log2" => {
                 n(self, 1);
                 dl(self, t(0), 0);
                 real0()

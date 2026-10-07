@@ -1,0 +1,45 @@
+## The geomagnetic field along the truth orbit, transcribed from adcs-sim-core field.rs (the twin's asils.env.field):
+## IGRF-13 (Alken et al. 2021) by env's synthesis (igrf_gh, igrf_ned: the flight software's model and table, one
+## copy), at WGS-84 geodetic coordinates, rotated north-east-down to Earth-fixed and back to J2000.
+## The developer's transcription (S7.3), unsigned.
+module truthfield
+
+## WGS-84 geodetic latitude, longitude [rad] and height of an Earth-fixed position: five fixed-point passes from
+## Bowring's start (the engine's fast orbit; the precision orbit takes POP's geodetic).
+fn geodetic5(r: vec3[m] in -7.2e6 .. 7.2e6) -> (lat: real[1], lon: real[1], h: real[m])
+    let a = 6378137.0 [m]
+    let f = 1.0/298.257223563
+    let e2 = f*(2.0 - f)
+    let p = sqrt(r[0]*r[0] + r[1]*r[1])
+    lon = atan2(r[1], r[0])
+    let la = atan2(r[2], p*(1.0 - e2))
+    let hh: real[m] = 0
+    for k in 0 .. 5
+        let sl = sin(la)
+        let n = a/sqrt(1.0 - e2*sl*sl)
+        hh = p/cos(la) - n
+        la = atan2(r[2], p*(1.0 - e2*n/(n + hh)))
+    end
+    lat = la
+    h = hh
+end
+
+## The field in J2000 [T, as plain numbers] at geodetic latitude, longitude [rad] and height, given the J2000 to
+## Earth-fixed matrix and the Gauss coefficients at the date, to degree nmax.
+fn field_eci_at(lat: real[1] in -1.5 .. 1.5, lon: real[1] in -3.1 .. 3.1, h: real[m] in 300000 .. 900000, c: mat3[1] in -1 .. 1, \
+                gh: real[1][195] in -30000 .. 30000, nmax: int in 1 .. 13) -> b: vec3[1]
+    let bn = igrf_ned(gh, lat, lon, h/(1000.0 [m]), nmax)*1e-9
+    let sl = sin(lat)
+    let cl = cos(lat)
+    let so = sin(lon)
+    let co = cos(lon)
+    let be: vec3[1] = [-sl*co*bn[0] - so*bn[1] - cl*co*bn[2], -sl*so*bn[0] + co*bn[1] - cl*so*bn[2], cl*bn[0] - sl*bn[2]]
+    b = transpose(c)*be
+end
+
+## The field in J2000 [T, as plain numbers] at an Earth-fixed position, its geodetic coordinates by geodetic5.
+fn field_eci_ecef(r: vec3[m] in -7.2e6 .. 7.2e6, c: mat3[1] in -1 .. 1, gh: real[1][195] in -30000 .. 30000, \
+                  nmax: int in 1 .. 13) -> b: vec3[1]
+    let lat, lon, h = geodetic5(r)
+    b = field_eci_at(lat, lon, h, c, gh, nmax)
+end

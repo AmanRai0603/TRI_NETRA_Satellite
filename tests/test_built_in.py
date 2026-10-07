@@ -1,4 +1,4 @@
-"""The built-in count (docs/PLAN_2_0.md S7; docs/S7_INVENTORY.md S7.1b): the nodes of the regression copy whose
+"""The built-in count (docs/PLAN_2_0.md S7; docs/S7_INVENTORY.md S7.1b, S7.3): the nodes of the regression copy whose
 relation is still compiled code, by group. S7 lowers it to zero; each step that writes a method takes its nodes
 out of BUILT_IN here, in the same change.
   - the count and the list are exactly these, and tools/health.py reports them;
@@ -37,7 +37,7 @@ BUILT_IN = {
                "l3_budget_row_03", "l3_budget_row_04", "l3_budget_row_05", "l3_budget_row_06", "l3_budget_row_07", "l3_budget_row_08"],
     "dyn": ["dyn_flexible_mode", "dyn_rigid_body", "dyn_rotor_coupling", "dyn_total_momentum"],
     "env": ["l3_dist_row_01", "l3_dist_row_02", "l3_dist_row_03", "l3_dist_row_04", "l3_dist_row_05", "l3_dist_row_06",
-            "l3_dist_row_07", "l3_dist_row_08", "l3_dist_row_09", "l3_dist_row_10", "m2_7"],
+            "l3_dist_row_09", "l3_dist_row_10", "m2_7"],
     "oils": ["l3_oils_row_07"],
     "pnt": ["gp_0", "gp_1", "gp_2", "gp_4"],
     "sens": ["l3_sens_row_01", "l3_sens_row_02", "l3_sens_row_03", "l3_sens_row_04", "l3_sens_row_05", "l3_sens_row_06",
@@ -57,10 +57,10 @@ class BuiltIn(unittest.TestCase):
     def beh(self, nid):
         return self.nodes[nid][1]["body"]["block"][0][3]
 
-    def test_the_count_is_91_and_these(self):
+    def test_the_count_is_89_and_these(self):
         bi = health.built_in(REG)
         self.assertEqual(bi["by_group"], BUILT_IN)
-        self.assertEqual(bi["count"], 91)
+        self.assertEqual(bi["count"], 89)
         self.assertEqual(bi["boundary"], BOUNDARY)
 
     def test_what_is_not_a_relation_in_code_is_not_built_in(self):
@@ -94,6 +94,22 @@ class BuiltIn(unittest.TestCase):
                 self.assertEqual(x["sealed_as"], "unconfirmed", nid)
                 self.assertIn("not yet signed by a person", mine[0])
         self.assertEqual(moved, 180 + 22, "the 180 built-in nodes that are not relations in code, and the 22 KPI evidence rows")
+
+    def test_a_relation_out_of_code_is_a_method_the_developer_transcribed(self):
+        """S7.3: the density (l3_dist_row_07) and the main field (l3_dist_row_08) are methods now, each the developer's
+        unsigned transcription of the code it replaced and of its source, generated into the engine
+        (tools/engine_build.py), as are the published models S7.3 added to env."""
+        moved = {"l3_dist_row_07", "l3_dist_row_08", "env_time_frames", "env_calendar_time", "env_two_body_elements",
+                 "env_time_scales", "env_geodetic", "env_earth_frames", "env_iau2006", "env_tidal_eop"}
+        for nid in moved:
+            _k, x = self.nodes[nid]
+            self.assertEqual(self.beh(nid), "method", nid)
+            rows = {(s, f): (v, o) for s, f, v, o in x["body"]["content"]}
+            self.assertIn("the developer's revision S7.3", rows[("code", "pseudocode")][1], nid)
+            self.assertTrue(rows[("code", "transcribes")][0], nid)
+            self.assertEqual(x["sealed_as"], "unconfirmed", nid)
+            self.assertTrue(any(w.startswith("the developer's revision S7.3") and "not yet signed by a person" in w for w in x["why"]), nid)
+        self.assertEqual(self.beh("nav_time_frames"), "stated")
 
     def test_every_behaviour_is_one_the_schema_knows(self):
         self.assertEqual(tndb.check(REG / "design.tndb"), [])

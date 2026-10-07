@@ -1,6 +1,6 @@
 // js_math.mjs -- JavaScript's Math for the maths library's parity test (tests/math.rs).
 // Reads {name: [[x, y], ...]} on stdin, every number as its 64 bits in hex, and writes {name: [r, ...]},
-// r = Math[name](x) (or Math[name](x, y) for atan2 and pow), in hex too.
+// r = Math[name](x) (or Math[name](x, y) for atan2, pow and hypot), in hex too.
 // Owner: Agastya. Copyright (c) 2026 Agastya. All rights reserved.
 import { readFileSync } from "node:fs";
 

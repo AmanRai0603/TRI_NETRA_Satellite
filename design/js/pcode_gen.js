@@ -160,12 +160,13 @@ export function toRust(prog, opts = {}) {
         case "sqrt": return `${fm("f64::sqrt", "sqrt")}(${R(0)})`;
         case "abs": return isInt(e.ty) ? `(${ex(a[0])}).abs()` : `rt::fabs(${R(0)})`;
         case "floor": case "ceil": return isInt(e.ty) ? ex(a[0]) : `${fm(`f64::${f}`, f)}(${R(0)})`;
-        case "round": return isInt(e.ty) ? ex(a[0]) : `${fm("f64::round", "round")}(${R(0)})`;
+        case "round": case "trunc": return isInt(e.ty) ? ex(a[0]) : `${fm(`f64::${f}`, f)}(${R(0)})`;
         case "sign": return `rt::sign(${R(0)})`;
         case "sin": case "cos": case "tan": case "asin": case "acos": case "atan": case "exp": case "log10": return `${fm(`f64::${f}`, f)}(${R(0)})`;
         case "log": return `${fm("f64::ln", "log")}(${R(0)})`;
+        case "log2": return `${fm("f64::log2", "log2")}(${R(0)})`;
         case "atan2": return `${fm("f64::atan2", "atan2")}(${R(0)}, ${R(1)})`;
-        case "hypot": return `rt::hypot(${R(0)}, ${R(1)})`;
+        case "hypot": return `${fm("f64::hypot", "hypot")}(${R(0)}, ${R(1)})`;
         case "fmod": return opts.math ? `${opts.math}::fmod(${R(0)}, ${R(1)})` : `(${R(0)} % ${R(1)})`;
         case "pow": return `${fm("f64::powf", "pow")}(${R(0)}, ${R(1)})`;
         case "min": case "max": {
@@ -351,7 +352,7 @@ export function toRust(prog, opts = {}) {
   }
   disp += "        _ => return None,\n    }\n    Some(outs)\n}\n";
   if (opts.dispatch !== false) files["src/dispatch.rs"] = disp;
-  files["src/rt.rs"] = (opts.math ? RUST_RT.replace("(a * a + b * b).sqrt()", `${opts.math}::sqrt(a * a + b * b)`).replace("dot(a, a).sqrt()", `${opts.math}::sqrt(dot(a, a))`) : RUST_RT) +
+  files["src/rt.rs"] = (opts.math ? RUST_RT.replace("dot(a, a).sqrt()", `${opts.math}::sqrt(dot(a, a))`) : RUST_RT) +
     (extras.has("sort") ? RUST_RT_SORT : "") + (extras.has("stream") ? rustRtStream(opts.math) : "");
   files[root === "crate" ? "src/lib.rs" : "src/mod.rs"] = `//! ${opts.title || "Functions written in the pseudocode"}. ${HEAD}\n//! Every relation is SI in and SI out; each function's doc lists its inputs and outputs with their units.\n` +
     `#![allow(clippy::all)]\npub mod rt;\n${opts.dispatch !== false ? "pub mod dispatch;\n" : ""}` + mods.map((m) => `pub mod ${m.name};\n`).join("");
@@ -385,7 +386,6 @@ pub fn imax(a: i64, b: i64) -> i64 { if b > a { b } else { a } }
 pub fn fabs(x: f64) -> f64 { if x < 0.0 { -x } else if x == 0.0 { 0.0 } else { x } }
 pub fn clamp(x: f64, lo: f64, hi: f64) -> f64 { fmin(fmax(x, lo), hi) }
 pub fn sign(x: f64) -> f64 { if x > 0.0 { 1.0 } else if x < 0.0 { -1.0 } else { 0.0 } }
-pub fn hypot(a: f64, b: f64) -> f64 { (a * a + b * b).sqrt() }
 pub fn dot<const N: usize>(a: [f64; N], b: [f64; N]) -> f64 { let mut s = a[0] * b[0]; for i in 1..N { s = s + a[i] * b[i]; } s }
 pub fn cross(a: [f64; 3], b: [f64; 3]) -> [f64; 3] { [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]] }
 pub fn norm<const N: usize>(a: [f64; N]) -> f64 { dot(a, a).sqrt() }
@@ -559,12 +559,13 @@ export function toMatlab(prog, opts = {}) {
     if (e.builtin) {
       const f = e.f;
       switch (f) {
-        case "sqrt": case "sin": case "cos": case "tan": case "asin": case "acos": case "atan": case "exp": case "log": case "log10":
+        case "sqrt": case "sin": case "cos": case "tan": case "asin": case "acos": case "atan": case "exp": case "log": case "log10": case "log2":
         case "floor": case "ceil": case "round": return `${f}(${a[0]})`;
+        case "trunc": return `fix(${a[0]})`;
         case "abs": return `${rtp}.fabs(${a[0]})`;
         case "sign": return `sign(${a[0]})`;
         case "atan2": return `atan2(${a[0]}, ${a[1]})`;
-        case "hypot": return `sqrt(${a[0]}*${a[0]} + ${a[1]}*${a[1]})`;
+        case "hypot": return `hypot(${a[0]}, ${a[1]})`;
         case "fmod": return `rem(${a[0]}, ${a[1]})`;
         case "pow": return `(${a[0]})^(${a[1]})`;
         case "min": case "max": return a.slice(1).reduce((acc, x) => `${rtp}.f${f}(${acc}, ${x})`, a[0]);

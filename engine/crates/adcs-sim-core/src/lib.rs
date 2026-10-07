@@ -11,6 +11,8 @@
 
 pub mod pm;
 pub mod la;
+/// The environment's published models, written from the design (env's methods) by tools/engine_build.py; never edited.
+pub mod gen;
 pub mod rng;
 pub mod time;
 pub mod ephem;

@@ -74,7 +74,10 @@ class Convert(unittest.TestCase):
                 if t in ("content", "revision") and a != b:
                     self.assertEqual([r for r in a if r not in b], [], f"{nid}: table {t}: a 1.0.0 row is not kept")
                     added = [r for r in b if r not in a]
-                    mark = (lambda r: r[3].startswith("the developer's revision ")) if t == "content" else (lambda r: r[2] == "the developer")
+                    # a row the developer's revision added: its origin says so (after the path the design keeps it under,
+                    # for a method's pseudocode or a data module: tools/from_design.py reads the path first)
+                    mark = ((lambda r: r[3].startswith("the developer's revision ") or " (the developer's revision " in r[3])
+                            if t == "content" else (lambda r: r[2] == "the developer"))
                     self.assertTrue(all(mark(r) for r in added), f"{nid}: table {t}: a row added is not the developer's revision: {added}")
                     continue
                 self.assertEqual(a, b, f"{nid}: table {t}")

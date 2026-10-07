@@ -1,0 +1,197 @@
+## The IAU 2006/2000A CIO-based kernel, transcribed from adcs-pop frames/iau2006.rs, the port of the local functions the
+## Octave POP's frames.eci2ecef_A, _B and _C share (fund_args, xy06, s06, sp00, c2ixys, era00, pom00, cal2jd, mjd_of,
+## time_scales), themselves SOFA's (iauFal03 ... iauFaom03, iauXy06, iauS06, iauSp00, iauC2ixys, iauEra00, iauPom00,
+## iauCal2jd) after the IERS Conventions (2010), chapter 5: C = W R3(era) Q, over env's xys06 series.
+## The developer's transcription (S7.3), unsigned.
+module iau2006
+
+## Two-part UT1 and TT Julian dates and TT centuries since J2000 (the builds' time_scales).
+record TimeScales
+    jd_ut1: real[1][2]
+    jd_tt: real[1][2]
+    t: real[1]
+end
+
+## What the kernel computes for one epoch: X and Y with dX and dY, s, the Earth rotation angle, Q and W.
+record CioParts
+    x: real[1]
+    y: real[1]
+    s: real[1]
+    era: real[1]
+    q: mat3[1]
+    w: mat3[1]
+end
+
+## Arcseconds to radians, as the MATLAB kernel writes it.
+const AS2R = 4.848136811095359935899141e-6
+
+## The 14 fundamental arguments of the IERS Conventions 2003 [rad] at t TT centuries (l, l', F, D, Om; the planets'
+## mean longitudes Me .. Ne; the general precession in longitude).
+fn fund_args(t: real[1] in -1 .. 1) -> fa: real[1][14]
+    fa[0] = omod(485868.249036 + t*(1717915923.2178 + t*(31.8792 + t*(0.051635 + t*(-0.00024470)))), 1296000.0)*AS2R
+    fa[1] = omod(1287104.793048 + t*(129596581.0481 + t*(-0.5532 + t*(0.000136 + t*(-0.00001149)))), 1296000.0)*AS2R
+    fa[2] = omod(335779.526232 + t*(1739527262.8478 + t*(-12.7512 + t*(-0.001037 + t*(0.00000417)))), 1296000.0)*AS2R
+    fa[3] = omod(1072260.703692 + t*(1602961601.2090 + t*(-6.3706 + t*(0.006593 + t*(-0.00003169)))), 1296000.0)*AS2R
+    fa[4] = omod(450160.398036 + t*(-6962890.5431 + t*(7.4722 + t*(0.007702 + t*(-0.00005939)))), 1296000.0)*AS2R
+    fa[5] = omod(4.402608842 + 2608.7903141574*t, 2.0*pi)
+    fa[6] = omod(3.176146697 + 1021.3285546211*t, 2.0*pi)
+    fa[7] = omod(1.753470314 + 628.3075849991*t, 2.0*pi)
+    fa[8] = omod(6.203480913 + 334.0612426700*t, 2.0*pi)
+    fa[9] = omod(0.599546497 + 52.9690962641*t, 2.0*pi)
+    fa[10] = omod(0.874016757 + 21.3299104960*t, 2.0*pi)
+    fa[11] = omod(5.481293872 + 7.4781598567*t, 2.0*pi)
+    fa[12] = omod(5.311886287 + 3.8133035638*t, 2.0*pi)
+    fa[13] = (0.024381750 + 0.00000538691*t)*t
+end
+
+## The CIP's X and Y [rad] from the IAU 2006/2000A series (iauXy06): the polynomials plus the terms, each a power of
+## t times the sine and cosine of its argument.
+fn xy06(t: real[1] in -1 .. 1, fa: real[1][14] in -100 .. 100) -> (x: real[1], y: real[1])
+    let pt: real[1][6] = 0
+    for j in 0 .. 6
+        pt[j] = pow(t, real(j))
+    end
+    let sx: real[1] = 0
+    let sy: real[1] = 0
+    for k in 0 .. len(XYS06_XY)
+        let arg: real[1] = 0
+        for i in 0 .. 14
+            let cm = XYS06_XY[k][2 + i]
+            if cm != 0.0
+                arg = arg + cm*fa[i]
+            end
+        end
+        let comp = pt[int(XYS06_XY[k][1])]*(XYS06_XY[k][16]*sin(arg) + XYS06_XY[k][17]*cos(arg))
+        if XYS06_XY[k][0] == 0.0
+            sx = sx + comp
+        else
+            sy = sy + comp
+        end
+    end
+    let px: real[1] = 0
+    let py: real[1] = 0
+    for j in 0 .. 6
+        px = px + XYS06_XYP[0][j]*pt[j]
+        py = py + XYS06_XYP[1][j]*pt[j]
+    end
+    x = AS2R*(px + sx/1e6)
+    y = AS2R*(py + sy/1e6)
+end
+
+## The CIO locator s [rad] given X and Y (iauS06): the series of s + XY/2, by power of t, minus XY/2.
+fn s06(t: real[1] in -1 .. 1, fa: real[1][14] in -100 .. 100, x: real[1] in -0.001 .. 0.001, y: real[1] in -0.001 .. 0.001) -> s: real[1]
+    let fa8: real[1][8] = [fa[0], fa[1], fa[2], fa[3], fa[4], fa[6], fa[7], fa[13]]
+    let w: real[1][6] = 0
+    for j in 0 .. 6
+        w[j] = XYS06_SPOLY[j]
+    end
+    for k in 0 .. 5
+        let acc: real[1] = 0
+        let any = false
+        for r in 0 .. len(XYS06_S)
+            if XYS06_S[r][0] == real(k)
+                any = true
+                let arg: real[1] = 0
+                for i in 0 .. 8
+                    let cm = XYS06_S[r][1 + i]
+                    if cm != 0.0
+                        arg = arg + cm*fa8[i]
+                    end
+                end
+                acc = acc + (XYS06_S[r][9]*sin(arg) + XYS06_S[r][10]*cos(arg))
+            end
+        end
+        if any
+            w[k] = w[k] + acc
+        end
+    end
+    let poly = w[0] + (w[1] + (w[2] + (w[3] + (w[4] + w[5]*t)*t)*t)*t)*t
+    s = poly*AS2R - x*y/2.0
+end
+
+## The TIO locator s' [rad] (iauSp00).
+fn sp00(t: real[1] in -1 .. 1) -> s: real[1]
+    s = -47e-6*t*4.848136811095359935899141e-6
+end
+
+## The celestial-to-intermediate matrix from X, Y and s (iauC2ixys). (Its inputs' ranges are wider than the Earth's
+## pole and s ever are, so the vectors hold the matrix where its small elements do not come from cancellation.)
+fn c2ixys(x: real[1] in -0.3 .. 0.3, y: real[1] in -0.3 .. 0.3, s: real[1] in -0.5 .. 0.5) -> q: mat3[1]
+    let r2v = x*x + y*y
+    let e: real[1] = 0
+    if r2v > 0.0
+        e = atan2(y, x)
+    end
+    let d = atan(sqrt(r2v/(1.0 - r2v)))
+    q = rot3(-(e + s))*rot2(d)*rot3(e)
+end
+
+## The Earth rotation angle [rad] of a two-part UT1 Julian date (iauEra00).
+fn era00(dj1: real[1] in 0 .. 2500000, dj2: real[1] in 0 .. 2500000) -> th: real[1]
+    let d1 = dj2
+    let d2 = dj1
+    if dj1 < dj2
+        d1 = dj1
+        d2 = dj2
+    end
+    let t = d1 + (d2 - 2451545.0)
+    let f = omod(d1, 1.0) + omod(d2, 1.0)
+    th = omod(2.0*pi*(f + 0.7790572732640 + 0.00273781191135448*t), 2.0*pi)
+    if th < 0.0
+        th = th + 2.0*pi
+    end
+end
+
+## The polar-motion matrix W = R1(-yp) R2(-xp) R3(s') (iauPom00).
+fn pom00(xp: real[1] in -1e-5 .. 1e-5, yp: real[1] in -1e-5 .. 1e-5, sp: real[1] in -1e-9 .. 1e-9) -> w: mat3[1]
+    w = rot1(-yp)*rot2(-xp)*rot3(sp)
+end
+
+## SOFA's iauCal2jd: the two-part modified Julian date (2400000.5, MJD) of a Gregorian date.
+fn cal2jd_sofa(iy: real[1] in 1900 .. 2100, im: real[1] in 1 .. 12, id: real[1] in 1 .. 28) -> (djm0: real[1], djm: real[1])
+    djm0 = 2400000.5
+    let my = trunc((im - 14.0)/12.0)
+    let iypmy = iy + my
+    djm = trunc((1461.0*(iypmy + 4800.0))/4.0) + trunc((367.0*(im - 2.0 - 12.0*my))/12.0) \
+        - trunc((3.0*trunc((iypmy + 4900.0)/100.0))/4.0) + id - 2432076.0
+end
+
+## The UTC modified Julian date of a [Y Mo D H Mi S].
+fn mjd_of(u: real[1][6] in 0 .. 2100) -> m: real[1]
+    let djm0, djm = cal2jd_sofa(u[0], u[1], u[2])
+    m = djm + (u[3]*3600.0 + u[4]*60.0 + u[5])/86400.0
+end
+
+## The builds' time_scales: two-part UT1 and TT Julian dates and TT centuries, given UT1 - UTC and TAI - UTC [s].
+fn time_scales(u: real[1][6] in 0 .. 2100, dut1: real[1] in -1 .. 1, dat: real[1] in 10 .. 40) -> ts: TimeScales
+    let djm0, djm = cal2jd_sofa(u[0], u[1], u[2])
+    let fd = (u[3]*3600.0 + u[4]*60.0 + u[5])/86400.0
+    let utc2 = djm + fd
+    ts = TimeScales()
+    ts.jd_ut1 = [djm0, utc2 + dut1/86400.0]
+    ts.jd_tt = [djm0, utc2 + (dat + 32.184)/86400.0]
+    ts.t = ((ts.jd_tt[0] - 2451545.0) + ts.jd_tt[1])/36525.0
+end
+
+## One epoch of the builds' loop, given its EOP: C = W R3(era) Q (r_ecef = C r_eci), and its parts. Angles rad, UT1 - UTC
+## and TAI - UTC s.
+fn cio_c2t(u: real[1][6] in 0 .. 2100, dut1: real[1] in -1 .. 1, xp: real[1] in -1e-5 .. 1e-5, yp: real[1] in -1e-5 .. 1e-5, \
+           dx: real[1] in -1e-9 .. 1e-9, dy: real[1] in -1e-9 .. 1e-9, dat: real[1] in 10 .. 40) -> (c: mat3[1], parts: CioParts)
+    let ts = time_scales(u, dut1, dat)
+    let fa = fund_args(ts.t)
+    let x0, y0 = xy06(ts.t, fa)
+    let x = x0 + dx
+    let y = y0 + dy
+    let s = s06(ts.t, fa, x, y)
+    let q = c2ixys(x, y, s)
+    let era = era00(ts.jd_ut1[0], ts.jd_ut1[1])
+    let w = pom00(xp, yp, sp00(ts.t))
+    c = w*rot3(era)*q
+    parts = CioParts()
+    parts.x = x
+    parts.y = y
+    parts.s = s
+    parts.era = era
+    parts.q = q
+    parts.w = w
+end

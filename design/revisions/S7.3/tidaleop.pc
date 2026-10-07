@@ -1,0 +1,147 @@
+## The sub-daily and zonal tidal Earth-orientation models, transcribed from adcs-pop frames/tidal.rs, the port of the
+## Octave POP's tidal_eop_models (tidal_eop, tidal_eop_ocean, tidal_pm_libration, tidal_ut1_libration,
+## tidal_ut1_zonal), themselves ports of the IERS Conventions (2010) software ORTHO_EOP/CNMTX (Ray 1994 ocean tides),
+## PMSDNUT2 and UTLIBR (Brzezinski) and RG_ZONT2 (table 8.1), over env's tidal EOP terms.
+## The developer's transcription (S7.3), unsigned.
+module tidaleop
+
+## The IERS 2010 Delaunay arguments l, l', F, D, Om [rad] at t Julian centuries.
+fn delaunay(t: real[1] in -1 .. 1) -> d: real[1][5]
+    let as2r = 4.848136811095359935899141e-6
+    d[0] = omod(485868.249036 + t*(1717915923.2178 + t*(31.8792 + t*(0.051635 + t*(-0.00024470)))), 1296000.0)*as2r
+    d[1] = omod(1287104.793048 + t*(129596581.0481 + t*(-0.5532 + t*(0.000136 + t*(-0.00001149)))), 1296000.0)*as2r
+    d[2] = omod(335779.526232 + t*(1739527262.8478 + t*(-12.7512 + t*(-0.001037 + t*(0.00000417)))), 1296000.0)*as2r
+    d[3] = omod(1072260.703692 + t*(1602961601.2090 + t*(-6.3706 + t*(0.006593 + t*(-0.00003169)))), 1296000.0)*as2r
+    d[4] = omod(450160.398036 + t*(-6962890.5431 + t*(7.4722 + t*(0.007702 + t*(-0.00005939)))), 1296000.0)*as2r
+end
+
+## [GMST + pi, l, l', F, D, Om] [rad] as PMSDNUT2 and UTLIBR build them, at a modified Julian date.
+fn libration_args(rmjd: real[1] in 15020 .. 88070) -> arg: real[1][6]
+    let t = (rmjd - 51544.5)/36525.0
+    let d = delaunay(t)
+    let gmst = omod(67310.54841 + t*((8640184.812866 + 3155760000.0) + t*(0.093104 + t*(-0.0000062))), 86400.0)
+    arg = [omod(gmst/(86400.0/(2.0*pi)) + pi, 2.0*pi), d[0], d[1], d[2], d[3], d[4]]
+end
+
+## ORTHO_EOP: the diurnal and semidiurnal ocean-tide variations of polar motion and UT1 [micro-arcsec, micro-arcsec,
+## micro-s] at a modified Julian date (Ray's tides through the orthoweights).
+fn tidal_eop_ocean(mjd: real[1] in 15020 .. 88070) -> (dxp: real[1], dyp: real[1], dut1: real[1])
+    let tw = 2.0*pi
+    let a: real[1][3][2] = 0
+    let b: real[1][3][2] = 0
+    for kk in 0 .. 3
+        let k = real(kk) - 1.0
+        let dt60 = (mjd - k*2.0) - 37076.5
+        let sa: real[1][2] = 0
+        let sb: real[1][2] = 0
+        for row in 0 .. len(TIDAL_OCEAN)
+            let nj = TIDAL_OCEAN[row][0]
+            let mj = TIDAL_OCEAN[row][1]
+            let hs = TIDAL_OCEAN[row][2]
+            let ph = omod(TIDAL_OCEAN[row][3] - omod(nj + mj, 2.0)*tw/4.0, tw) + omod(TIDAL_OCEAN[row][4]*dt60, tw)
+            let m = -1
+            if mj == 1.0
+                m = 0
+            elif mj == 2.0
+                m = 1
+            end
+            if m >= 0
+                sa[m] = sa[m] + hs*cos(ph)
+                sb[m] = sb[m] + hs*sin(ph)
+            end
+        end
+        for m2 in 0 .. 2
+            a[m2][kk] = sa[m2]
+            b[m2][kk] = -sb[m2]
+        end
+    end
+    let h: real[1][12] = 0
+    for m in 0 .. 2
+        let ap = a[m][2] + a[m][0]
+        let am = a[m][2] - a[m][0]
+        let bp = b[m][2] + b[m][0]
+        let bm = b[m][2] - b[m][0]
+        let s0 = TIDAL_OCEAN_SP[0][m]
+        let s1 = TIDAL_OCEAN_SP[1][m]
+        let s2 = TIDAL_OCEAN_SP[2][m]
+        let s3 = TIDAL_OCEAN_SP[3][m]
+        let s4 = TIDAL_OCEAN_SP[4][m]
+        let s5 = TIDAL_OCEAN_SP[5][m]
+        h[6*m] = s0*a[m][1]
+        h[6*m + 1] = s0*b[m][1]
+        h[6*m + 2] = s1*a[m][1] - s2*ap
+        h[6*m + 3] = s1*b[m][1] - s2*bp
+        h[6*m + 4] = s3*a[m][1] - s4*ap + s5*bm
+        h[6*m + 5] = s3*b[m][1] - s4*bp - s5*am
+    end
+    let eop: real[1][3] = 0
+    for j in 0 .. 3
+        let acc: real[1] = 0
+        for i in 0 .. 12
+            acc = acc + h[i]*TIDAL_OCEAN_ORTHOW[i][j]
+        end
+        eop[j] = acc
+    end
+    dxp = eop[0]
+    dyp = eop[1]
+    dut1 = eop[2]
+end
+
+## PMSDNUT2: the diurnal lunisolar libration in polar motion [micro-arcsec] (rows 16 .. 25 of its table).
+fn tidal_pm_libration(rmjd: real[1] in 15020 .. 88070) -> (dxp: real[1], dyp: real[1])
+    let arg = libration_args(rmjd)
+    dxp = 0.0
+    dyp = 0.0
+    for r in 0 .. len(TIDAL_PM_LIBRATION)
+        let x: real[1] = 0
+        for k in 0 .. 6
+            x = x + TIDAL_PM_LIBRATION[r][k]*arg[k]
+        end
+        let ang = omod(x, 2.0*pi)
+        let sn = sin(ang)
+        let cs = cos(ang)
+        dxp = dxp + (TIDAL_PM_LIBRATION[r][7]*sn + TIDAL_PM_LIBRATION[r][8]*cs)
+        dyp = dyp + (TIDAL_PM_LIBRATION[r][9]*sn + TIDAL_PM_LIBRATION[r][10]*cs)
+    end
+end
+
+## UTLIBR: the subdiurnal libration in UT1 [micro-s] and LOD [micro-s/day].
+fn tidal_ut1_libration(rmjd: real[1] in 15020 .. 88070) -> (dut1: real[1], dlod: real[1])
+    let arg = libration_args(rmjd)
+    dut1 = 0.0
+    dlod = 0.0
+    for r in 0 .. len(TIDAL_UT1_LIBRATION)
+        let x: real[1] = 0
+        for k in 0 .. 6
+            x = x + TIDAL_UT1_LIBRATION[r][k]*arg[k]
+        end
+        let ang = omod(x, 2.0*pi)
+        let sn = sin(ang)
+        let cs = cos(ang)
+        dut1 = dut1 + (TIDAL_UT1_LIBRATION[r][7]*sn + TIDAL_UT1_LIBRATION[r][8]*cs)
+        dlod = dlod + (TIDAL_UT1_LIBRATION[r][9]*sn + TIDAL_UT1_LIBRATION[r][10]*cs)
+    end
+end
+
+## The full sub-daily correction: ocean tides plus the libration in polar motion and UT1 [micro-arcsec, micro-s].
+fn tidal_eop(mjd: real[1] in 15020 .. 88070) -> (dxp: real[1], dyp: real[1], dut1: real[1])
+    let ox, oy, ou = tidal_eop_ocean(mjd)
+    let px, py = tidal_pm_libration(mjd)
+    let uu, ul = tidal_ut1_libration(mjd)
+    dxp = ox + px
+    dyp = oy + py
+    dut1 = ou + uu
+end
+
+## RG_ZONT2: the zonal-tide variation of UT1 [s] (62 terms), to regularise UT1 before it is interpolated.
+fn tidal_ut1_zonal(mjd: real[1] in 15020 .. 88070) -> dut1: real[1]
+    let t = (mjd - 51544.5)/36525.0
+    let d = delaunay(t)
+    let acc: real[1] = 0
+    for r in 0 .. len(TIDAL_UT1_ZONAL)
+        let a = omod(TIDAL_UT1_ZONAL[r][0]*d[0] + TIDAL_UT1_ZONAL[r][1]*d[1] + TIDAL_UT1_ZONAL[r][2]*d[2] \
+                     + TIDAL_UT1_ZONAL[r][3]*d[3] + TIDAL_UT1_ZONAL[r][4]*d[4], 2.0*pi)
+        acc = acc + (TIDAL_UT1_ZONAL[r][6]*sin(a) + TIDAL_UT1_ZONAL[r][7]*cos(a))
+    end
+    dut1 = acc*1e-4
+end

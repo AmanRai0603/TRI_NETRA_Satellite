@@ -1,0 +1,32 @@
+## Earth-fixed to geodetic coordinates, transcribed from adcs-pop geodetic.rs, the port of the Octave POP's
+## op.geodetic: Bowring's start and five fixed-point passes on the WGS-84 ellipsoid (NIMA TR8350.2: a = 6378137 m,
+## 1/f = 298.257223563), then the height once more. The developer's transcription (S7.3), unsigned.
+module geodesy
+
+## Geodetic latitude, longitude [rad] and height of an Earth-fixed position on an ellipsoid of equatorial radius re
+## and flattening f.
+fn geodetic_with(r: vec3[m] in -7.2e6 .. 7.2e6, re: real[m] in 6.3e6 .. 6.4e6, f: real[1] in 0 .. 0.01) -> \
+                 (lat: real[1], lon: real[1], alt: real[m])
+    let x = r[0]
+    let y = r[1]
+    let z = r[2]
+    let e2 = f*(2.0 - f)
+    lon = atan2(y, x)
+    let p = hypot(x, y)
+    let la = atan2(z, p*(1.0 - e2))
+    for k in 0 .. 5
+        let sph = sin(la)
+        let n = re/sqrt(1.0 - e2*pow(sph, 2.0))
+        let al = p/cos(la) - n
+        la = atan2(z, p*(1.0 - e2*n/(n + al)))
+    end
+    let sph2 = sin(la)
+    let n2 = re/sqrt(1.0 - e2*pow(sph2, 2.0))
+    alt = p/cos(la) - n2
+    lat = la
+end
+
+## The same on WGS-84 (de440.constants: Re_earth, f_earth).
+fn geodetic_wgs84(r: vec3[m] in -7.2e6 .. 7.2e6) -> (lat: real[1], lon: real[1], alt: real[m])
+    lat, lon, alt = geodetic_with(r, 6378137.0 [m], 1.0/298.257223563)
+end

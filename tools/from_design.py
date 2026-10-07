@@ -12,6 +12,8 @@ The generated files (until the flight build and the engine build generate code f
   matlab_sils/data/...        the engine's input files (engine_input), what the engine and the twin read
   matlab_sils/cases/<id>.csv  every case the engine flies (design_case), line for line
   fsw/params/params.toml      the flight software's parameter table (its library block, kept whole)
+  fsw/pseudocode/02           the published models the flight software uses: the IGRF table (env's data), from S7.3
+                              time, frames and the field (env's methods)
   fsw/pseudocode/03-09        the flight software's algorithms and their notes (the fsw_* method blocks)
 Files under matlab_sils/data that are the generators' own test vectors (*_vectors.json) are code, not design.
 
@@ -50,15 +52,15 @@ def _bodies(db=None):
 @functools.lru_cache(maxsize=None)
 def _held(db=None):
     """{1.0.0 path: text} of every file the design keeps whole (a lookup block's table, a method's pseudocode
-    and its notes), by the path its origin names."""
+    and its notes, a data block's module), by the path its origin names."""
     out = {}
     for _nid, b in _bodies(db).items():
         for sec, field, value, origin in b.get("content", []):
             if not origin:
                 continue
             src = origin.split(" ")[0]
-            if (sec == "table" and "/" in src) or (sec, field) in (("code", "pseudocode"), ("explain", "theory")):
-                if src.startswith(("spec/", "catalogue/", "fsw/", "matlab_sils/")) and value:
+            if (sec == "table" and "/" in src) or sec == "data" or (sec, field) in (("code", "pseudocode"), ("explain", "theory")):
+                if src.startswith(("spec/", "catalogue/", "fsw/", "matlab_sils/", "env/")) and value:
                     out.setdefault(src, value)
     return out
 
@@ -136,6 +138,8 @@ def outputs(db=None):
     for p in sorted(held):
         if p.startswith("fsw/pseudocode/") and p.split("/")[-1][:2] in ("03", "04", "05", "06", "07", "08", "09"):
             out[p] = (held[p].encode(), "a flight algorithm block (fsw_*)")
+        elif p.startswith("fsw/pseudocode/02"):
+            out[p] = (held[p].encode(), "a published model's method or data the flight software uses (env)")
     return out
 
 

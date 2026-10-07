@@ -11,6 +11,9 @@
 pub mod error;
 pub use error::{PopError, PopResult};
 pub mod la;
+/// The published models written from the design (env's methods: time scales, geodetic coordinates, Earth frames, the
+/// IAU 2006/2000A kernel, the tidal EOP models, with their tables) by tools/engine_build.py; never edited.
+pub mod gen;
 // time scales, Earth orientation, frames (matlab_sils/pop/03_frames_time)
 pub mod time;
 pub mod eop;

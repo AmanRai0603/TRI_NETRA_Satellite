@@ -247,9 +247,15 @@ double math_qangle(pc_a4f a, pc_a4f b);
 /* - returns qe */
 pc_a4f math_qerr(pc_a4f q_ref, pc_a4f q);
 
-extern const pc_a26f igrf13_IGRF_YEAR;
+/* IGRF_YEAR: IAGA Working Group V-MOD, International Geomagnetic Reference Field: the thirteenth generation (Alken et al. 2021, Earth Planets Space 73:49), igrf13coeffs.txt; the 2025.0 epoch is 2020.0 plus five years of the 2020-25 secular variation, the model's own definition */
+/* read by tools/readers.py (igrf13) from matlab_sils/data/igrf13coeffs.txt (sha256 a9f4fbb21c91e00e), the developer's revision S7.2b */
+/* Data: IGRF_YEAR, its values from the design. */
+extern const pc_a26f igrf13_DATA_IGRF_YEAR;
 
-extern const pc_a26a195f igrf13_IGRF_GH;
+/* IGRF_GH: IAGA Working Group V-MOD, International Geomagnetic Reference Field: the thirteenth generation (Alken et al. 2021, Earth Planets Space 73:49), igrf13coeffs.txt; the 2025.0 epoch is 2020.0 plus five years of the 2020-25 secular variation, the model's own definition */
+/* read by tools/readers.py (igrf13) from matlab_sils/data/igrf13coeffs.txt (sha256 a9f4fbb21c91e00e), the developer's revision S7.2b */
+/* Data: IGRF_GH, its values from the design. */
+extern const pc_a26a195f igrf13_DATA_IGRF_GH;
 
 /* The Earth's rotation about z by the Greenwich mean sidereal time (IAU 1982). */
 /* - jd */

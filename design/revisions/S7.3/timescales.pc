@@ -1,0 +1,284 @@
+## The time scales, transcribed from adcs-pop time.rs, the port of the Octave POP's +timeconv (cal2jd, jd2cal, jd2mjd,
+## mjd2jd, taiMinusUTC, utc2tai, tai2utc, tai2tt, tt2tai, tt2utc, utc2tt, tt2tdb, utc2tdb, utc2ut1, tai2gps, utc2gps,
+## tt2jc, j2000sec, gpsWeekSow, gmst82, doy, convertUTC) and op.addsec with Octave's datenum and datevec: UTC, TAI, TT,
+## TDB (Fairhead and Bretagnon's two terms), UT1 and GPS Julian dates, GMST (IAU 1982), the leap seconds from env's
+## table. Every formula keeps the MATLAB's order of operations, so the values are Octave's to the last bit.
+## The developer's transcription (S7.3), unsigned.
+module timescales
+
+## The scales of one UTC instant (timeconv.convertUTC's fields).
+record Times
+    utc_jd: real[1]
+    tai_jd: real[1]
+    tt_jd: real[1]
+    tdb_jd: real[1]
+    ut1_jd: real[1]
+    gps_jd: real[1]
+    utc_mjd: real[1]
+    tt_mjd: real[1]
+    tdb_mjd: real[1]
+    leap: real[1]
+    dut1: real[1]
+    t_tt: real[1]
+    j2000_tt_sec: real[1]
+    gps_week: real[1]
+    gps_sow: real[1]
+    gmst_rad: real[1]
+    doy: real[1]
+end
+
+## Octave's mod(x, y) for doubles: 0 when y is not whole and x/y is within one relative eps of a whole number, else
+## x - y floor(x/y); the result takes the sign of y.
+fn omod(x: real[1] in -10000000 .. 10000000, y: real[1] in -400 .. 400) -> r: real[1]
+    if y == 0.0
+        r = x
+    else
+        let q = x/y
+        let nint_y = floor(y + 0.5)
+        let nint_q = q
+        if isfinite(q)
+            nint_q = floor(q + 0.5)
+        end
+        if nint_y != y and abs((q - nint_q)/nint_q) < 2.220446049250313e-16
+            r = 0.0
+        else
+            r = x - y*floor(q)
+        end
+    end
+    if x != y and y != 0.0
+        if y < 0.0
+            r = -abs(r)
+        else
+            r = abs(r)
+        end
+    end
+end
+
+## Degrees to radians, as Octave's deg2rad: deg (pi/180).
+fn deg2rad(deg: real[1] in -1000 .. 1000) -> r: real[1]
+    r = deg*(pi/180.0)
+end
+
+## timeconv.cal2jd: a Gregorian calendar date and time to a Julian date (any scale).
+fn cal2jd(y: real[1] in 1900 .. 2100, mo: real[1] in 1 .. 12, d: real[1] in 1 .. 28, h: real[1] in 0 .. 23, \
+          mi: real[1] in 0 .. 59, s: real[1] in 0 .. 59) -> j: real[1]
+    let a = floor((14.0 - mo)/12.0)
+    let yy = y + 4800.0 - a
+    let m = mo + 12.0*a - 3.0
+    let jdn = d + floor((153.0*m + 2.0)/5.0) + 365.0*yy + floor(yy/4.0) - floor(yy/100.0) + floor(yy/400.0) - 32045.0
+    j = jdn + (h - 12.0)/24.0 + mi/1440.0 + s/86400.0
+end
+
+## timeconv.jd2cal: a Julian date to the Gregorian [Y M D h mi s].
+fn jd2cal(j: real[1] in 2415020 .. 2488070) -> u: real[1][6]
+    let q = j + 0.5
+    let z = floor(q)
+    let f = q - z
+    let a = z
+    if z >= 2299161.0
+        let al = floor((z - 1867216.25)/36524.25)
+        a = z + 1.0 + al - floor(al/4.0)
+    end
+    let b = a + 1524.0
+    let c = floor((b - 122.1)/365.25)
+    let dd = floor(365.25*c)
+    let e = floor((b - dd)/30.6001)
+    let day = b - dd - floor(30.6001*e) + f
+    let m = if e < 14.0 then e - 1.0 else e - 13.0
+    let y = if m > 2.0 then c - 4716.0 else c - 4715.0
+    let d = floor(day)
+    let fr = (day - d)*24.0
+    let h = floor(fr)
+    fr = (fr - h)*60.0
+    let mi = floor(fr)
+    let s = (fr - mi)*60.0
+    u = [y, m, d, h, mi, s]
+end
+
+## timeconv.jd2mjd and mjd2jd.
+fn jd2mjd(j: real[1] in 2415020 .. 2488070) -> m: real[1]
+    m = j - 2400000.5
+end
+fn mjd2jd(m: real[1] in 15020 .. 88070) -> j: real[1]
+    j = m + 2400000.5
+end
+
+## timeconv.taiMinusUTC: TAI - UTC [s] at a UTC Julian date, 10 before 1972, else the last leap-second row whose
+## first of the month (0 h UTC) is at or before it.
+fn tai_minus_utc(jd_utc: real[1] in 2415020 .. 2488070) -> n: real[1]
+    n = 10.0
+    for i in 0 .. len(LEAP_SECONDS)
+        if jd_utc >= cal2jd(LEAP_SECONDS[i][0], LEAP_SECONDS[i][1], 1.0, 0.0, 0.0, 0.0)
+            n = LEAP_SECONDS[i][2]
+        end
+    end
+end
+
+## UTC to TAI, TAI to UTC (the leap looked up on the TAI date, as MATLAB), TAI to TT and back, TT to UTC, UTC to TT.
+fn utc2tai(jd_utc: real[1] in 2415020 .. 2488070) -> j: real[1]
+    j = jd_utc + tai_minus_utc(jd_utc)/86400.0
+end
+fn tai2utc(jd_tai: real[1] in 2415020 .. 2488070) -> j: real[1]
+    j = jd_tai - tai_minus_utc(jd_tai)/86400.0
+end
+fn tai2tt(jd_tai: real[1] in 2415020 .. 2488070) -> j: real[1]
+    j = jd_tai + 32.184/86400.0
+end
+fn tt2tai(jd_tt: real[1] in 2415020 .. 2488070) -> j: real[1]
+    j = jd_tt - 32.184/86400.0
+end
+fn tt2utc(jd_tt: real[1] in 2415020 .. 2488070) -> j: real[1]
+    j = tai2utc(tt2tai(jd_tt))
+end
+fn utc2tt(jd_utc: real[1] in 2415020 .. 2488070) -> j: real[1]
+    j = tai2tt(utc2tai(jd_utc))
+end
+
+## TT to TDB: the two periodic terms of timeconv.tt2tdb.
+fn tt2tdb(jd_tt: real[1] in 2415020 .. 2488070) -> j: real[1]
+    let g = deg2rad(357.53 + 0.9856003*(jd_tt - 2451545.0))
+    j = jd_tt + (0.001658*sin(g) + 0.000014*sin(2.0*g))/86400.0
+end
+fn utc2tdb(jd_utc: real[1] in 2415020 .. 2488070) -> j: real[1]
+    j = tt2tdb(utc2tt(jd_utc))
+end
+
+## UTC to UT1 given UT1 - UTC [s]; TAI to GPS time (-19 s); UTC to GPS time.
+fn utc2ut1(jd_utc: real[1] in 2415020 .. 2488070, dut1: real[1] in -1 .. 1) -> j: real[1]
+    j = jd_utc + dut1/86400.0
+end
+fn tai2gps(jd_tai: real[1] in 2415020 .. 2488070) -> j: real[1]
+    j = jd_tai - 19.0/86400.0
+end
+fn utc2gps(jd_utc: real[1] in 2415020 .. 2488070) -> j: real[1]
+    j = tai2gps(utc2tai(jd_utc))
+end
+
+## TT Julian centuries since J2000, seconds since J2000 TT, GPS week and seconds of week (epoch 1980-01-06).
+fn tt2jc(jd_tt: real[1] in 2415020 .. 2488070) -> t: real[1]
+    t = (jd_tt - 2451545.0)/36525.0
+end
+fn j2000sec(jd_tt: real[1] in 2415020 .. 2488070) -> s: real[1]
+    s = (jd_tt - 2451545.0)*86400.0
+end
+fn gps_week_sow(jd_gps: real[1] in 2444245 .. 2488070) -> (week: real[1], sow: real[1])
+    let dt = jd_gps - 2444244.5
+    week = floor(dt/7.0)
+    sow = (dt - week*7.0)*86400.0
+end
+
+## timeconv.gmst82: the Greenwich mean sidereal time (IAU 1982) [rad] of a UT1 Julian date.
+fn gmst82(jd_ut1: real[1] in 2415020 .. 2488070) -> g: real[1]
+    let tu = (jd_ut1 - 2451545.0)/36525.0
+    let sec = 67310.54841 + (876600.0*3600.0 + 8640184.812866)*tu + 0.093104*pow(tu, 2.0) - 6.2e-6*pow(tu, 3.0)
+    g = deg2rad(omod(sec, 86400.0)/240.0)
+end
+
+## timeconv.doy: the day of the year (1 .. 366).
+fn doy(y: real[1] in 1900 .. 2100, m: real[1] in 1 .. 12, d: real[1] in 1 .. 28) -> n: real[1]
+    n = cal2jd(y, m, d, 0.0, 0.0, 0.0) - cal2jd(y, 1.0, 1.0, 0.0, 0.0, 0.0) + 1.0
+end
+
+## timeconv.convertUTC: one UTC calendar instant in every scale, given UT1 - UTC [s] (the leap looked up once: the
+## same value MATLAB looks up in each of its calls).
+fn convert_utc(y: real[1] in 1972 .. 2100, mo: real[1] in 1 .. 12, d: real[1] in 1 .. 28, h: real[1] in 0 .. 23, \
+               mi: real[1] in 0 .. 59, s: real[1] in 0 .. 59, dut1: real[1] in -1 .. 1) -> t: Times
+    let jdu = cal2jd(y, mo, d, h, mi, s)
+    let leap = tai_minus_utc(jdu)
+    let tai_jd = jdu + leap/86400.0
+    let tt_jd = tai2tt(tai_jd)
+    let tdb_jd = tt2tdb(tt_jd)
+    let ut1_jd = utc2ut1(jdu, dut1)
+    let gps_jd = tai2gps(tai_jd)
+    let week, sow = gps_week_sow(gps_jd)
+    t = Times()
+    t.utc_jd = jdu
+    t.tai_jd = tai_jd
+    t.tt_jd = tt_jd
+    t.tdb_jd = tdb_jd
+    t.ut1_jd = ut1_jd
+    t.gps_jd = gps_jd
+    t.utc_mjd = jd2mjd(jdu)
+    t.tt_mjd = jd2mjd(tt_jd)
+    t.tdb_mjd = jd2mjd(tdb_jd)
+    t.leap = leap
+    t.dut1 = dut1
+    t.t_tt = tt2jc(tt_jd)
+    t.j2000_tt_sec = j2000sec(tt_jd)
+    t.gps_week = week
+    t.gps_sow = sow
+    t.gmst_rad = gmst82(ut1_jd)
+    t.doy = doy(y, mo, d)
+end
+
+## Octave's leap-year rule, as datenum uses it.
+fn is_leap_year(y: real[1] in 0 .. 3000) -> b: bool
+    b = (omod(y, 4.0) == 0.0 and omod(y, 100.0) != 0.0) or omod(y, 400.0) == 0.0
+end
+
+## Octave's datenum(year, month, day, hour, minute, second) for scalars: days since year 0.
+fn datenum(year: real[1] in 1900 .. 2100, month: real[1] in 1 .. 12, day: real[1] in 1 .. 28, hour: real[1] in 0 .. 23, \
+           minute: real[1] in 0 .. 59, second: real[1] in 0 .. 59) -> dn: real[1]
+    let monthstart: real[1][12] = [306.0, 337.0, 0.0, 31.0, 61.0, 92.0, 122.0, 153.0, 184.0, 214.0, 245.0, 275.0]
+    let monthlength: real[1][12] = [31.0, 28.0, 31.0, 30.0, 31.0, 30.0, 31.0, 31.0, 30.0, 31.0, 30.0, 31.0]
+    let yr = year
+    let mo = month
+    if month < 1.0
+        mo = 1.0
+    end
+    let dd = day
+    if mo != trunc(mo)
+        let fracmonth = mo - floor(mo)
+        mo = floor(mo)
+        let mi = int(omod(mo - 1.0, 12.0) + 1.0) - 1
+        if mi != 1 or not is_leap_year(floor(yr))
+            dd = dd + fracmonth*monthlength[mi]
+        else
+            dd = dd + fracmonth*29.0
+        end
+    end
+    yr = yr + ceil((mo - 14.0)/12.0)
+    dd = dd + (monthstart[int(omod(mo - 1.0, 12.0) + 1.0) - 1] + 60.0)
+    if yr != trunc(yr)
+        let fracyear = yr - floor(yr)
+        yr = floor(yr)
+        dd = dd + fracyear*(365.0 + (if is_leap_year(yr + 1.0) then 1.0 else 0.0))
+    end
+    dd = dd + (365.0*yr + floor(yr/4.0) - floor(yr/100.0) + floor(yr/400.0))
+    dn = dd + (hour + (minute + second/60.0)/60.0)/24.0
+end
+
+## Octave's datevec(datenum) for a scalar: [Y Mo D H Mi S], the seconds rounded to the datenum's resolution as Octave
+## rounds them.
+fn datevec(date: real[1] in 693962 .. 767011) -> v: real[1][6]
+    let z = floor(date) - 60.0
+    let a = floor((z - 0.25)/36524.25)
+    let b = z - 0.25 + a - floor(a/4.0)
+    let y = floor(b/365.25)
+    let c = trunc(b - floor(365.25*y)) + 1.0
+    let m = trunc((5.0*c + 456.0)/153.0)
+    let d = c - trunc((153.0*m - 457.0)/5.0)
+    if m > 12.0
+        y = y + 1.0
+        m = m - 12.0
+    end
+    let fracd = date - floor(date)
+    let tmps = abs(2.220446049250313e-16*86400.0*date)
+    if tmps == 0.0
+        tmps = 1.0
+    end
+    let srnd = pow(2.0, floor(-log2(tmps)))
+    let s = round(86400.0*fracd*srnd)/srnd
+    let h = floor(s/3600.0)
+    s = s - 3600.0*h
+    let mi = floor(s/60.0)
+    s = s - 60.0*mi
+    v = [y, m, d, h, mi, s]
+end
+
+## op.addsec: a UTC [Y Mo D H Mi S] plus some seconds, through datenum and datevec (leap seconds not represented, as
+## MATLAB).
+fn addsec(utc: real[1][6] in 0 .. 2100, sec: real[1] in -100000 .. 100000) -> u: real[1][6]
+    let dn = datenum(utc[0], utc[1], utc[2], utc[3], utc[4], utc[5]) + sec/86400.0
+    u = datevec(dn)
+end

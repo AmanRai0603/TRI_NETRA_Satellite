@@ -17,7 +17,6 @@ pub fn imax(a: i64, b: i64) -> i64 { if b > a { b } else { a } }
 pub fn fabs(x: f64) -> f64 { if x < 0.0 { -x } else if x == 0.0 { 0.0 } else { x } }
 pub fn clamp(x: f64, lo: f64, hi: f64) -> f64 { fmin(fmax(x, lo), hi) }
 pub fn sign(x: f64) -> f64 { if x > 0.0 { 1.0 } else if x < 0.0 { -1.0 } else { 0.0 } }
-pub fn hypot(a: f64, b: f64) -> f64 { (a * a + b * b).sqrt() }
 pub fn dot<const N: usize>(a: [f64; N], b: [f64; N]) -> f64 { let mut s = a[0] * b[0]; for i in 1..N { s = s + a[i] * b[i]; } s }
 pub fn cross(a: [f64; 3], b: [f64; 3]) -> [f64; 3] { [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]] }
 pub fn norm<const N: usize>(a: [f64; N]) -> f64 { dot(a, a).sqrt() }

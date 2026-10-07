@@ -418,8 +418,8 @@ function unitOf(text, pos) {
 }
 
 // ------------------------------------------------------------------ checker
-const BUILTINS = new Set(["sqrt", "abs", "sin", "cos", "tan", "asin", "acos", "atan", "atan2", "exp", "log", "log10", "min", "max", "clamp",
-  "floor", "ceil", "round", "sign", "fmod", "pow", "dot", "cross", "norm", "unit", "transpose", "real", "len", "hypot", "int", "div", "rem", "band", "bor", "bxor", "shl", "shr",
+const BUILTINS = new Set(["sqrt", "abs", "sin", "cos", "tan", "asin", "acos", "atan", "atan2", "exp", "log", "log10", "log2", "min", "max", "clamp",
+  "floor", "ceil", "round", "trunc", "sign", "fmod", "pow", "dot", "cross", "norm", "unit", "transpose", "real", "len", "hypot", "int", "div", "rem", "band", "bor", "bxor", "shl", "shr",
   "isnan", "isfinite", "sort", "argsort", "stream", "uniform", "normal", "normal3"]);
 // the language's constants: pi, and the two values that are not finite (they fit any unit, as a bare 0 does)
 const CONSTS = { pi: Math.PI, inf: Infinity, nan: NaN };
@@ -776,9 +776,9 @@ export function check(files) {
     const vec = (t, i) => { if (!t || t.k !== "arr" || t.of.k === "arr" || !numType(t.of)) { E(`${name}: input ${i + 1} is a vector, not ${typeText(t)}`, e.pos); return { n: 3, dim: DIMLESS }; } return { n: t.n, dim: scalarDim(t.of) }; };
     switch (name) {
       case "sqrt": { n(1); const d = sc(ts[0], 0); if (d.some((x) => x % 2)) E(`sqrt of [${dimText(d)}] has no unit`, e.pos); return tReal(dimMul(d, 0.5)); }
-      case "abs": case "floor": case "ceil": case "round": { n(1); if (ts[0] && ts[0].k === "int") return T_INT; return tReal(sc(ts[0], 0)); }
+      case "abs": case "floor": case "ceil": case "round": case "trunc": { n(1); if (ts[0] && ts[0].k === "int") return T_INT; return tReal(sc(ts[0], 0)); }
       case "sign": n(1); sc(ts[0], 0); return tReal(DIMLESS);
-      case "sin": case "cos": case "tan": case "asin": case "acos": case "atan": case "exp": case "log": case "log10":
+      case "sin": case "cos": case "tan": case "asin": case "acos": case "atan": case "exp": case "log": case "log10": case "log2":
         n(1); dl(ts[0], 0); return tReal(DIMLESS);
       case "atan2": case "hypot": case "fmod": {
         n(2); const d = sc(ts[0], 0), d2 = sc(ts[1], 1);
@@ -1176,10 +1176,11 @@ export function makeInterpreter(prog) {
         case "sqrt": return Math.sqrt(args[0]);
         case "abs": return rt.abs(args[0]);
         case "floor": return Math.floor(args[0]); case "ceil": return Math.ceil(args[0]); case "round": return rt.round(args[0]);
+        case "trunc": return Math.trunc(args[0]);
         case "sign": return rt.sign(args[0]);
-        case "sin": case "cos": case "tan": case "asin": case "acos": case "atan": case "exp": case "log": case "log10": return Math[f](args[0]);
+        case "sin": case "cos": case "tan": case "asin": case "acos": case "atan": case "exp": case "log": case "log10": case "log2": return Math[f](args[0]);
         case "atan2": return Math.atan2(args[0], args[1]);
-        case "hypot": return Math.sqrt(args[0] * args[0] + args[1] * args[1]);
+        case "hypot": return Math.hypot(args[0], args[1]);
         case "fmod": return rt.fmod(args[0], args[1]);
         case "pow": return Math.pow(args[0], args[1]);
         case "min": return args.reduce((m, x) => rt.min(m, x));

@@ -17,7 +17,7 @@ const RESERVED: &[&str] = &[
     "int", "long", "register", "restrict", "return", "short", "signed", "sizeof", "static", "struct", "switch", "typedef", "union", "unsigned",
     "void", "volatile", "while", "_Bool", "_Complex", "_Imaginary", "bool", "true", "false", "NULL", "errno", "assert", "isnan", "isinf",
     "isfinite", "signbit", "fpclassify", "isnormal", "NAN", "INFINITY", "HUGE_VAL", "M_PI", "sqrt", "sin", "cos", "tan", "asin", "acos", "atan",
-    "atan2", "exp", "log", "log10", "pow", "floor", "ceil", "round", "fmod", "fabs", "hypot", "llabs", "int8_t", "int16_t", "int32_t", "int64_t",
+    "atan2", "exp", "log", "log10", "log2", "pow", "floor", "ceil", "round", "trunc", "fmod", "fabs", "hypot", "llabs", "int8_t", "int16_t", "int32_t", "int64_t",
     "uint8_t", "uint16_t", "uint32_t", "uint64_t", "size_t", "st", "main",
 ];
 
@@ -607,7 +607,7 @@ impl<'a> Gen<'a> {
                         format!("pc_fabs({})", r(self, 0))
                     }
                 }
-                "floor" | "ceil" | "round" => {
+                "floor" | "ceil" | "round" | "trunc" => {
                     if is_int(ety) {
                         x(self, 0)
                     } else {
@@ -615,14 +615,14 @@ impl<'a> Gen<'a> {
                     }
                 }
                 "sign" => format!("pc_sign({})", r(self, 0)),
-                "sin" | "cos" | "tan" | "asin" | "acos" | "atan" | "exp" | "log" | "log10" => format!("{f}({})", r(self, 0)),
+                "sin" | "cos" | "tan" | "asin" | "acos" | "atan" | "exp" | "log" | "log10" | "log2" => format!("{f}({})", r(self, 0)),
                 "atan2" | "fmod" | "pow" => {
                     let p = r(self, 0);
                     format!("{f}({p}, {})", r(self, 1))
                 }
                 "hypot" => {
                     let p = r(self, 0);
-                    format!("pc_hypot({p}, {})", r(self, 1))
+                    format!("hypot({p}, {})", r(self, 1))
                 }
                 "min" | "max" => {
                     let all_int = a.iter().all(|&x| is_int(c.ann[x].ty.as_ref()));
@@ -1136,7 +1136,6 @@ static inline int64_t pc_iabs(int64_t a) { return a < 0 ? -a : a; }
 static inline double pc_fabs(double x) { if (x < 0.0) { return -x; } if (x == 0.0) { return 0.0; } return x; }
 static inline double pc_clamp(double x, double lo, double hi) { return pc_fmin(pc_fmax(x, lo), hi); }
 static inline double pc_sign(double x) { return x > 0.0 ? 1.0 : (x < 0.0 ? -1.0 : 0.0); }
-static inline double pc_hypot(double a, double b) { return sqrt(a * a + b * b); }
 /* The last row whose key is at or below x (the first row below the first key). */
 static inline void pc_lookup_step(const double *t, int rows, int cols, double x, double *r) {
     int i = 0, j;

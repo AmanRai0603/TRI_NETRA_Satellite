@@ -293,13 +293,14 @@ impl<'a> Gen<'a> {
         let at = |i: usize| a.get(i).map_or("undefined", String::as_str);
         if let Target::Builtin(f) = ann.target {
             match f {
-                "sqrt" | "sin" | "cos" | "tan" | "asin" | "acos" | "atan" | "exp" | "log" | "log10" | "floor" | "ceil" | "round" => {
+                "sqrt" | "sin" | "cos" | "tan" | "asin" | "acos" | "atan" | "exp" | "log" | "log10" | "log2" | "floor" | "ceil" | "round" => {
                     return format!("{f}({})", at(0))
                 }
+                "trunc" => return format!("fix({})", at(0)),
                 "abs" => return format!("{RTP}.fabs({})", at(0)),
                 "sign" => return format!("sign({})", at(0)),
                 "atan2" => return format!("atan2({}, {})", at(0), at(1)),
-                "hypot" => return format!("sqrt({0}*{0} + {1}*{1})", at(0), at(1)),
+                "hypot" => return format!("hypot({}, {})", at(0), at(1)),
                 "fmod" => return format!("rem({}, {})", at(0), at(1)),
                 "pow" => return format!("({})^({})", at(0), at(1)),
                 "min" | "max" => {

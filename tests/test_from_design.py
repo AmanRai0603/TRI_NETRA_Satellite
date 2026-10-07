@@ -26,7 +26,9 @@ class FromDesign(unittest.TestCase):
         self.assertEqual({f"matlab_sils/{p}" for p, _f, _b in files}, {p for p in outs if p.startswith("matlab_sils/data/")})
         self.assertEqual({f"matlab_sils/cases/{c}.csv" for c in {r[0] for r in rows}}, {p for p in outs if p.startswith("matlab_sils/cases/")})
         self.assertIn("fsw/params/params.toml", outs)
-        self.assertEqual(len([p for p in outs if p.startswith("fsw/pseudocode/") and p.endswith(".pc")]), 7)
+        # the seven flight algorithm blocks (03-09) and env's two modules the flight software uses (02: the onboard time,
+        # frames and field, and the IGRF table; S7.2b, S7.3)
+        self.assertEqual(len([p for p in outs if p.startswith("fsw/pseudocode/") and p.endswith(".pc")]), 9)
 
     def test_the_plan_is_read_from_the_design(self):
         kpis = tomllib.loads(from_design.text("spec/plan/kpis.toml"))

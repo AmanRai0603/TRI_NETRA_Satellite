@@ -12,7 +12,8 @@ target and sealed as a flight image.
                                                 the sealed image a result (its manifest.json, or its folder) flew
 
 The algorithms are the design's: the flight algorithm blocks of nav, gdn, ctl and fsw (fsw/pseudocode/03-09, written
-from the design by tools/from_design.py) with the toolbox they call (fsw/pseudocode/01-02, code). The library's
+from the design by tools/from_design.py) with what they call: the toolbox (fsw/pseudocode/01, code) and the published
+models of env they use (fsw/pseudocode/02, written from the design by tools/from_design.py: the IGRF table). The library's
 translators (trinetra-pcode, `tndb translate`; the JavaScript ones, byte for byte the same, when the library's command
 is not built) write them as:
   fsw/alg/include/adcs_alg.h, adcs_alg_rt.h, fsw/alg/src/<module>.c     C99, no dynamic memory, the flight flags

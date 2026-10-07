@@ -10,7 +10,7 @@
   {
    "check": "layout",
    "what": "the parameter table from its nodes, and the C and Rust it writes",
-   "total": 154,
+   "total": 151,
    "differ": []
   },
   {
@@ -35,7 +35,12 @@
    "check": "evaluate",
    "what": "every row and closure of results/evaluation.json (a node of the dissolved group `case` names its new group)",
    "total": 1500,
-   "differ": []
+   "differ": [
+    "ais_3u: l3_dist_row_07",
+    "ais_3u: l3_dist_row_08",
+    "ais_img_3u: l3_dist_row_07",
+    "ais_img_3u: l3_dist_row_08"
+   ]
   },
   {
    "check": "oils",

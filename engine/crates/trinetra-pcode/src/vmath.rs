@@ -1,6 +1,6 @@
 //! The maths library of the interpreter: JavaScript's `Math` functions, to the last bit where that
-//! can be had. `pow`, `log`, `log10` and `atan2` are ported here line for line from the fdlibm code
-//! JavaScript's engine compiles (V8, `src/base/ieee754.cc`); `tan`, `asin`, `acos`, `atan` and `exp`
+//! can be had. `pow`, `log`, `log10`, `log2` and `atan2` are ported here line for line from the fdlibm code
+//! JavaScript's engine compiles (V8, `src/base/ieee754.cc`), and `hypot` from V8's builtin (`math.tq`); `tan`, `asin`, `acos`, `atan` and `exp`
 //! come from the `libm` crate, whose fdlibm port gives the same bits; `sin` and `cos` too, though
 //! the engine of Node 22 computes those two with a different algorithm (see lib.rs).
 //! Owner: Agastya. Copyright (c) 2026 Agastya. All rights reserved.
@@ -228,6 +228,95 @@ pub fn log10(x: f64) -> f64 {
     x = words(hx, lx);
     let z = y * LOG10_2LO + IVLN10 * log(x);
     z + y * LOG10_2HI
+}
+
+/// fdlibm's k_log1p (k_log.h, as V8 has it): log(1 + f) - f + f*f/2 for 1 + f in [sqrt(2)/2, sqrt(2)].
+fn k_log1p(f: f64) -> f64 {
+    const LG1: f64 = 6.666666666666735130e-01;
+    const LG2: f64 = 3.999999999940941908e-01;
+    const LG3: f64 = 2.857142874366239149e-01;
+    const LG4: f64 = 2.222219843214978396e-01;
+    const LG5: f64 = 1.818357216161805012e-01;
+    const LG6: f64 = 1.531383769920937332e-01;
+    const LG7: f64 = 1.479819860511658591e-01;
+    let s = f / (2.0 + f);
+    let z = s * s;
+    let w = z * z;
+    let t1 = w * (LG2 + w * (LG4 + w * LG6));
+    let t2 = z * (LG1 + w * (LG3 + w * (LG5 + w * LG7)));
+    let r = t2 + t1;
+    let hfsq = 0.5 * f * f;
+    s * (hfsq + r)
+}
+
+/// Math.log2(x) (V8's ieee754::log2, FreeBSD's e_log2.c).
+pub fn log2(x: f64) -> f64 {
+    const TWO54: f64 = 1.80143985094819840000e+16;
+    const IVLN2HI: f64 = 1.44269504072144627571e+00;
+    const IVLN2LO: f64 = 1.67517131648865118353e-10;
+    let mut x = x;
+    let mut hx = hi(x);
+    let lx = lo(x);
+    let mut k: i32 = 0;
+    if hx < 0x00100000 {
+        if ((hx & 0x7FFFFFFF) as u32 | lx) == 0 {
+            return f64::NEG_INFINITY;
+        }
+        if hx < 0 {
+            return f64::NAN;
+        }
+        k -= 54;
+        x *= TWO54;
+        hx = hi(x);
+    }
+    if hx >= 0x7FF00000 {
+        return x + x;
+    }
+    if hx == 0x3FF00000 && lx == 0 {
+        return 0.0;
+    }
+    k += (hx >> 20) - 1023;
+    hx &= 0x000FFFFF;
+    let i = (hx + 0x95F64) & 0x100000;
+    x = with_hi(x, hx | (i ^ 0x3FF00000));
+    k += i >> 20;
+    let y = k as f64;
+    let f = x - 1.0;
+    let hfsq = 0.5 * f * f;
+    let r = k_log1p(f);
+    let hi_ = with_lo(f - hfsq, 0);
+    let lo_ = (f - hi_) - hfsq + r;
+    let mut val_hi = hi_ * IVLN2HI;
+    let mut val_lo = (lo_ + hi_) * IVLN2LO + lo_ * IVLN2HI;
+    let w = y + val_hi;
+    val_lo += (y - w) + val_hi;
+    val_hi = w;
+    val_lo + val_hi
+}
+
+/// Math.hypot(x, y) (V8's builtin, math.tq): both scaled by the larger, the squares summed with Kahan's
+/// compensation, the root times the larger.
+pub fn hypot(x: f64, y: f64) -> f64 {
+    let (ax, ay) = (x.abs(), y.abs());
+    let max = if ay > ax { ay } else { ax };
+    if ax == f64::INFINITY || ay == f64::INFINITY {
+        return f64::INFINITY;
+    }
+    if x.is_nan() || y.is_nan() {
+        return f64::NAN;
+    }
+    if max == 0.0 {
+        return 0.0;
+    }
+    let (mut sum, mut compensation) = (0.0f64, 0.0f64);
+    for v in [ax, ay] {
+        let n = v / max;
+        let summand = n * n - compensation;
+        let preliminary = sum + summand;
+        compensation = (preliminary - sum) - summand;
+        sum = preliminary;
+    }
+    sum.sqrt() * max
 }
 
 /// Math.pow(x, y).

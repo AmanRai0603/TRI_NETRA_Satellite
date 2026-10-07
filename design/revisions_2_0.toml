@@ -11,7 +11,11 @@
 #   - gains a row in its history (the node file's revision table): who, when, what changed and why;
 #   - is sealed unconfirmed with the revision's reason after the conversion's (its release's `why`).
 #
-# Nothing here is a number, a relation or a table: a behaviour, a pointer to where a value comes from, and a reason.
+# Nothing here is a number or a table: a behaviour, a pointer to where a value comes from, and a reason. Published data
+# comes in only through a reader (`[[revision.data]]`: tools/readers.py, code, reads the file the revision names, and
+# every table cites its publication and the file with its sha256); a relation only as the developer's transcription
+# (`[[revision.method]]`: a pseudocode file under design/revisions/, the revision's source, naming the code and the
+# publication it transcribes). A revision may also add a node (`[[revision.node]]`) to hold either.
 # Owner: Agastya. Copyright (c) 2026 Agastya. All rights reserved.
 
 schema = "trinetra-revisions/1"
@@ -87,3 +91,274 @@ from = "built-in"
 to = "stated"
 content = [["code", "boundary", "test"]]
 why = "describes a test of the runtime (C and Rust parity), which is code by the boundary (docs/SYSTEM_MODEL.md §7): a stated description, not a relation; its code.c names the test"
+
+[[revision]]
+id = "S7.2b"
+at = "2026-10-07T12:00:00Z"
+by = "the developer"
+about = "published data into the design (docs/S7_INVENTORY.md S7.2b, the owner's ruling of 7 Oct 2026): the tables the time scales, the frames and the field need, each read by its reader (tools/readers.py) from the file the code reads today, as the tables of env nodes, each citing its publication and file"
+
+[[revision.node]]
+id = "env_leap_seconds"
+group = "env"
+parent = "m3"
+label = "Leap seconds (TAI - UTC)"
+behaviour = "lookup"
+question = "TAI - UTC since 1972: the year and month each step took effect, and the whole seconds after it (IERS Bulletin C)"
+why = "the time scales' leap-second table, until now typed in adcs-pop/src/time.rs (LEAP_TABLE) and the Octave POP (timeconv.leapTable)"
+
+[[revision.node]]
+id = "env_xys06_series"
+group = "env"
+parent = "m3"
+label = "IAU 2006/2000A X, Y and s series"
+behaviour = "lookup"
+question = "The series of the celestial intermediate pole's X and Y and of the CIO locator s (IERS Conventions 2010, tables 5.2a, 5.2b, 5.2d)"
+why = "the IAU 2006/2000A kernel's series, until now embedded in adcs-pop from xys06.bin"
+
+[[revision.node]]
+id = "env_tidal_eop_terms"
+group = "env"
+parent = "m3"
+label = "Tidal Earth-orientation terms (IERS 2010)"
+behaviour = "lookup"
+question = "The terms of the ocean-tide, libration and zonal-tide variations of polar motion and UT1 (IERS Conventions 2010, ORTHO_EOP, PMSDNUT2, UTLIBR, RG_ZONT2)"
+why = "the six tables of the IERS tidal EOP models, until now copied into adcs-pop/src/frames/tidal.rs"
+
+[[revision.data]]
+node = "env_leap_seconds"
+module = "leapsec"
+path = "env/leapsec.pc"
+reader = "matlab_matrix"
+file = "matlab_sils/pop/03_frames_time/ephemeris/+timeconv/leapTable.m"
+tables = { L = "LEAP_SECONDS" }
+publication = "IERS Bulletin C (Earth Orientation Center, Paris Observatory): TAI - UTC, 10 s from 1972-01-01 to 37 s from 2017-01-01; as the Octave POP's timeconv.leapTable"
+about = ["Leap seconds: TAI - UTC in whole seconds from 0 h UTC of the first of the month a row names.",
+         "A row: year, month, TAI - UTC [s]."]
+why = "the leap seconds, read by their reader from the file the time scales were ported from, value for value"
+
+[[revision.data]]
+node = "env_igrf13_coefficients"
+module = "igrf13"
+reader = "igrf13"
+file = "matlab_sils/data/igrf13coeffs.txt"
+path = "fsw/pseudocode/02_igrf13.pc"
+publication = "IAGA Working Group V-MOD, International Geomagnetic Reference Field: the thirteenth generation (Alken et al. 2021, Earth Planets Space 73:49), igrf13coeffs.txt; the 2025.0 epoch is 2020.0 plus five years of the 2020-25 secular variation, the model's own definition"
+about = ["IGRF-13 Gauss coefficients [nT] (the numbers in nT, as plain numbers), 5-year epochs, 195 an epoch (degree 13):",
+         "the flight software's and the engine's table, one copy. A row of IGRF_GH: g(1,0), g(1,1), h(1,1), g(2,0), ..."]
+why = "the IGRF table as a data table of its node, read by its reader (the IAGA file the flight table was always generated from); the flight build takes it from here (fsw/pseudocode/02_igrf13.pc)"
+
+[[revision.data]]
+node = "env_xys06_series"
+module = "xys06"
+path = "env/xys06.pc"
+reader = "xys06"
+file = "engine/crates/adcs-pop/data/time_frames/xys06.bin"
+publication = "IERS Conventions (2010), chapter 5 (Petit and Luzum, IERS Technical Note 36): the IAU 2006/2000A series of X and Y (tables 5.2a, 5.2b) and of s + XY/2 (table 5.2d), as SOFA's iauXy06 and iauS06; exported from the Octave POP's xys06_tables.mat"
+about = ["The IAU 2006/2000A series. XYS06_XYP: the polynomial parts of X and Y [arcsec], a row each, coefficients of t^0..t^5.",
+         "XYS06_SPOLY: the polynomial part of s + XY/2 [arcsec]. XYS06_XY: the X and Y terms, a row each: 0 for X or 1 for Y,",
+         "the power of t, the 14 multipliers of the fundamental arguments, the sine and cosine amplitudes [micro-arcsec].",
+         "XYS06_S: the s + XY/2 terms, a row each: the power of t, the 8 multipliers of fa 1-5, 7, 8 and 14, the sine and",
+         "cosine amplitudes [arcsec]."]
+why = "the IAU 2006/2000A series, read by their reader from the export the kernel embeds today, value for value"
+
+[[revision.data]]
+node = "env_tidal_eop_terms"
+module = "tidaleopterms"
+path = "env/tidaleopterms.pc"
+reader = "matlab_matrix"
+files = [{ file = "matlab_sils/pop/03_frames_time/tidal_eop_models/tidal_eop_ocean.m", tables = { TBL = "TIDAL_OCEAN", SP = "TIDAL_OCEAN_SP", ORTHOW = "TIDAL_OCEAN_ORTHOW" } },
+         { file = "matlab_sils/pop/03_frames_time/tidal_eop_models/tidal_pm_libration.m", tables = { TB = "TIDAL_PM_LIBRATION" } },
+         { file = "matlab_sils/pop/03_frames_time/tidal_eop_models/tidal_ut1_libration.m", tables = { TB = "TIDAL_UT1_LIBRATION" } },
+         { file = "matlab_sils/pop/03_frames_time/tidal_eop_models/tidal_ut1_zonal.m", tables = { TB = "TIDAL_UT1_ZONAL" } }]
+publication = "IERS Conventions (2010), chapters 5 and 8 (Petit and Luzum, IERS Technical Note 36) and their software: ORTHO_EOP and CNMTX (Ray 1994 ocean tides), PMSDNUT2 and UTLIBR (Brzezinski), RG_ZONT2 (table 8.1); as the Octave POP's ports"
+about = ["The IERS tidal Earth-orientation terms. TIDAL_OCEAN: NJ, MJ, HS, phase, frequency (CNMTX); TIDAL_OCEAN_SP and",
+         "TIDAL_OCEAN_ORTHOW: the orthoweights (ORTHO_EOP). TIDAL_PM_LIBRATION and TIDAL_UT1_LIBRATION: six argument",
+         "multipliers (GMST + pi, l, l', F, D, Om), the period, then the sine and cosine amplitudes (PMSDNUT2 rows 16-25, UTLIBR).",
+         "TIDAL_UT1_ZONAL: l, l', F, D, Om multipliers, the period, then the UT1, LOD and omega amplitudes (RG_ZONT2)."]
+why = "the six tidal EOP tables, read by their reader from the MATLAB ports the Rust tables were copied from, value for value"
+
+[[revision]]
+id = "S7.3"
+at = "2026-10-07T18:00:00Z"
+by = "the developer"
+about = "time, frames and the field as methods of env (docs/S7_INVENTORY.md S7.3, the owner's ruling of 7 Oct 2026): the engine's truth time, field, fast atmosphere and elements to state, the precision orbit's time scales, geodetic coordinates, Earth frames, IAU 2006/2000A kernel and tidal EOP, each the developer's transcription of the code and of the publication it cites; the flight software's onboard time, frames and field (fsw/pseudocode/02) move from nav into env, one copy the flight software and the engine both take"
+
+[[revision.node]]
+id = "env_time_frames"
+group = "env"
+parent = "m3"
+label = "Time, frames and the field onboard (IAU 1982, IAU 1976, IGRF-13)"
+behaviour = "method"
+question = "How does the flight software turn time into the rotation between inertial and Earth-fixed frames, the Sun's direction and the geomagnetic field?"
+why = "the onboard published models (GMST, precession, the low-precision Sun, WGS-84 geodetic coordinates, the IGRF synthesis) move from nav's carried row into env, one copy: the flight build and the engine take them from here"
+
+[[revision.node]]
+id = "env_calendar_time"
+group = "env"
+parent = "m3"
+label = "Calendar and sidereal time (the engine's truth)"
+behaviour = "method"
+question = "What Julian date, decimal year, sidereal angle and precession does the engine's truth environment use at a UTC instant?"
+why = "the engine's calendar and sidereal time, until now adcs-sim-core time.rs"
+
+[[revision.node]]
+id = "env_two_body_elements"
+group = "env"
+parent = "m2"
+label = "Orbital elements to state"
+behaviour = "method"
+question = "What inertial position and velocity do classical orbital elements give?"
+why = "the engine's elements-to-state conversion (its fast orbit's start), until now adcs-sim-core orbit.rs coe2rv"
+
+[[revision.node]]
+id = "env_time_scales"
+group = "env"
+parent = "m3"
+label = "Time scales (UTC, TAI, TT, TDB, UT1, GPS)"
+behaviour = "method"
+question = "What is a UTC instant in each time scale, with its sidereal angle, and what is a UTC date some seconds later?"
+why = "the precision orbit's time scales, until now adcs-pop time.rs"
+
+[[revision.node]]
+id = "env_geodetic"
+group = "env"
+parent = "m3"
+label = "Geodetic coordinates (WGS-84)"
+behaviour = "method"
+question = "What geodetic latitude, longitude and height has an Earth-fixed position?"
+why = "the precision orbit's geodetic coordinates, until now adcs-pop geodetic.rs"
+
+[[revision.node]]
+id = "env_earth_frames"
+group = "env"
+parent = "m3"
+label = "Earth frames (GMST build) and the Earth's rate"
+behaviour = "method"
+question = "What rotation takes inertial to Earth-fixed coordinates in the GMST build, and what is the Earth's angular velocity?"
+why = "the precision orbit's GMST frame build and Earth rate, until now adcs-pop frames/mod.rs and la.rs"
+
+[[revision.node]]
+id = "env_iau2006"
+group = "env"
+parent = "m3"
+label = "IAU 2006/2000A CIO-based Earth orientation"
+behaviour = "method"
+question = "What rotation takes GCRF to ITRF at an epoch, given its Earth-orientation parameters (IERS Conventions 2010)?"
+why = "the precision orbit's IAU 2006/2000A kernel, until now adcs-pop frames/iau2006.rs"
+
+[[revision.node]]
+id = "env_tidal_eop"
+group = "env"
+parent = "m3"
+label = "Tidal Earth-orientation variations (IERS 2010)"
+behaviour = "method"
+question = "How do the ocean tides, the libration and the zonal tides move the pole and UT1 at an epoch?"
+why = "the IERS tidal EOP models, until now adcs-pop frames/tidal.rs"
+
+[[revision.method]]
+node = "env_time_frames"
+pseudocode = "fsw/pseudocode/02_time_frames_models.pc"
+path = "fsw/pseudocode/02_time_frames_models.pc"
+transcribes = "fsw/pseudocode/02_time_frames_models.pc (the flight software's onboard models, held to fsw/src/adcs_env.c and fsw-rs/src/env.rs since S5), moved whole"
+source = "Vallado (2013) algorithm 29 (the Sun); IAU 1982 GMST (Aoki et al. 1982); IAU 1976 precession (Lieske et al. 1977); WGS-84 (NIMA TR8350.2); IGRF-13 (Alken et al. 2021) by the Standard Code's env.igrf recursion"
+generate = ["flight"]
+uses = ["fsw/pseudocode/01_math.pc", "fsw/pseudocode/02_igrf13.pc"]
+why = "one copy of the onboard published models, env's; the flight build takes it from the design (fsw/pseudocode/02 is written from here)"
+
+[[revision.change]]
+match = { nodes = ["nav_time_frames"] }
+from = "method"
+to = "stated"
+content = [["code", "moved", "its method is env_time_frames's since S7.3 (fsw/pseudocode/02_time_frames_models.pc, one copy); the pseudocode it carried from 1.0.0 stays as provenance"]]
+why = "its algorithm moved into env (env_time_frames), one copy; nav keeps the row that says what the onboard time and frames are for"
+
+[[revision.method]]
+node = "env_calendar_time"
+pseudocode = "design/revisions/S7.3/caltime.pc"
+path = "env/caltime.pc"
+transcribes = "engine/crates/adcs-sim-core/src/time.rs (jd, jd2utc, decyear, gmst, precession, eci2ecef, TT_MINUS_UTC_S), the twin's asils.util.jd, jd2utc and decyear"
+source = "Vallado (2013) algorithms 14 and 22; IAU 1982 GMST (Aoki et al. 1982); IAU 1976 precession (Lieske et al. 1977); IERS Bulletin C"
+generate = ["adcs-sim-core"]
+why = "the engine's calendar and sidereal time as a method of env, generated into the engine"
+
+[[revision.method]]
+node = "l3_dist_row_08"
+from = "built-in"
+to = "method"
+pseudocode = "design/revisions/S7.3/truthfield.pc"
+path = "env/truthfield.pc"
+transcribes = "engine/crates/adcs-sim-core/src/field.rs (gh, geodetic, ned, eci, eci_at), the twin's asils.env.field, igrf_gh and igrf_ned; gh and ned are env_time_frames's igrf_gh and igrf_ned (the same operations)"
+source = "IGRF-13 (Alken et al. 2021, IAGA); WGS-84 (NIMA TR8350.2)"
+generate = ["adcs-sim-core"]
+uses = ["fsw/pseudocode/02_time_frames_models.pc", "fsw/pseudocode/02_igrf13.pc", "fsw/pseudocode/01_math.pc"]
+why = "the main field along the orbit as a method: env's IGRF synthesis (one copy with the flight software's) at the engine's geodetic coordinates, back to J2000"
+
+[[revision.method]]
+node = "l3_dist_row_07"
+from = "built-in"
+to = "method"
+pseudocode = "design/revisions/S7.3/truthdensity.pc"
+path = "env/truthdensity.pc"
+transcribes = "engine/crates/adcs-sim-core/src/atmos.rs (density): env's atmosphere table (m3_3, env.atmosphere), read in km as atmos.rs reads its copy, times the activity factor"
+source = "Vallado (2013) table 8-4 (the static exponential atmosphere)"
+generate = ["adcs-sim-core"]
+uses = ["spec/physics/env.pc", "spec/physics/constants.pc"]
+why = "the fast orbit's density as a method over env's one Vallado table (m3_3's), no second copy in code"
+
+[[revision.method]]
+node = "env_two_body_elements"
+pseudocode = "design/revisions/S7.3/elements.pc"
+path = "env/elements.pc"
+transcribes = "engine/crates/adcs-sim-core/src/orbit.rs (coe2rv)"
+source = "Vallado (2013) algorithm 10 (COE2RV)"
+generate = ["adcs-sim-core"]
+why = "elements to state as a method of env, generated into the engine"
+
+[[revision.method]]
+node = "env_time_scales"
+pseudocode = "design/revisions/S7.3/timescales.pc"
+path = "env/timescales.pc"
+transcribes = "engine/crates/adcs-pop/src/time.rs (omod, deg2rad, cal2jd ... convert_utc, datenum, datevec, addsec), the port of the Octave POP's +timeconv and op.addsec"
+source = "IERS Conventions (2010) chapter 10 (time scales); IERS Bulletin C (leap seconds); Fairhead and Bretagnon (1990) via timeconv.tt2tdb (TDB); IAU 1982 GMST (Aoki et al. 1982); GNU Octave's datenum and datevec"
+generate = ["adcs-pop"]
+uses = ["env/leapsec.pc"]
+why = "the precision orbit's time scales as a method of env over its leap-second table, generated into adcs-pop"
+
+[[revision.method]]
+node = "env_geodetic"
+pseudocode = "design/revisions/S7.3/geodesy.pc"
+path = "env/geodesy.pc"
+transcribes = "engine/crates/adcs-pop/src/geodetic.rs (geodetic, geodetic_with), the port of the Octave POP's op.geodetic"
+source = "WGS-84 (NIMA TR8350.2); Bowring (1976)"
+generate = ["adcs-pop"]
+why = "geodetic coordinates as a method of env, generated into adcs-pop"
+
+[[revision.method]]
+node = "env_earth_frames"
+pseudocode = "design/revisions/S7.3/earthframes.pc"
+path = "env/earthframes.pc"
+transcribes = "engine/crates/adcs-pop/src/frames/mod.rs (eci2ecef_gmst, earth_rate_eci's central difference) and la.rs (r1, r2, r3), the port of the Octave POP's frames.eci2ecefGMST and op.buildWorld's earthRateECI"
+source = "IAU 1982 GMST (Aoki et al. 1982); IERS Conventions (2010) chapter 5 (polar motion, small-angle form)"
+generate = ["adcs-pop"]
+why = "the GMST frame build and the Earth's rate as methods of env, generated into adcs-pop; which build a run takes and the EOP files stay code"
+
+[[revision.method]]
+node = "env_iau2006"
+pseudocode = "design/revisions/S7.3/iau2006.pc"
+path = "env/iau2006.pc"
+transcribes = "engine/crates/adcs-pop/src/frames/iau2006.rs (fund_args, xy06, s06, sp00, c2ixys, era00, pom00, cal2jd_sofa, mjd_of, time_scales, cio_c2t), the port of the Octave POP's frames.eci2ecef_A/B/C kernel"
+source = "IERS Conventions (2010) chapter 5 (Petit and Luzum, IERS TN 36); SOFA (iauXy06, iauS06, iauSp00, iauC2ixys, iauEra00, iauPom00, iauCal2jd)"
+generate = ["adcs-pop"]
+uses = ["env/timescales.pc", "env/earthframes.pc", "env/xys06.pc"]
+why = "the IAU 2006/2000A kernel as a method of env over its series, generated into adcs-pop"
+
+[[revision.method]]
+node = "env_tidal_eop"
+pseudocode = "design/revisions/S7.3/tidaleop.pc"
+path = "env/tidaleop.pc"
+transcribes = "engine/crates/adcs-pop/src/frames/tidal.rs (tidal_eop, tidal_eop_ocean, tidal_pm_libration, tidal_ut1_libration, tidal_ut1_zonal), the port of the Octave POP's tidal_eop_models"
+source = "IERS Conventions (2010) chapters 5 and 8 and their software: ORTHO_EOP, CNMTX (Ray 1994), PMSDNUT2, UTLIBR (Brzezinski), RG_ZONT2"
+generate = ["adcs-pop"]
+uses = ["env/timescales.pc", "env/tidaleopterms.pc"]
+why = "the tidal EOP models as methods of env over their tables, generated into adcs-pop"

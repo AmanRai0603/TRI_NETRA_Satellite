@@ -113,7 +113,7 @@ pc_a195f frames_igrf_gh(double dy) {
         int64_t end__15 = INT64_C(25);
         int64_t ii = INT64_C(0);
         while (ii < end__15) {
-            if ((igrf13_IGRF_YEAR.v[((ii + INT64_C(1)))] <= dy)) {
+            if ((igrf13_DATA_IGRF_YEAR.v[((ii + INT64_C(1)))] <= dy)) {
                 i = (ii + INT64_C(1));
             }
             ii += 1;
@@ -122,12 +122,12 @@ pc_a195f frames_igrf_gh(double dy) {
     if ((i >= INT64_C(25))) {
         i = INT64_C(24);
     }
-    double f = ((dy - igrf13_IGRF_YEAR.v[(i)]) / (igrf13_IGRF_YEAR.v[((i + INT64_C(1)))] - igrf13_IGRF_YEAR.v[(i)]));
+    double f = ((dy - igrf13_DATA_IGRF_YEAR.v[(i)]) / (igrf13_DATA_IGRF_YEAR.v[((i + INT64_C(1)))] - igrf13_DATA_IGRF_YEAR.v[(i)]));
     {
         int64_t end__16 = INT64_C(195);
         int64_t k = INT64_C(0);
         while (k < end__16) {
-            gh.v[(k)] = (igrf13_IGRF_GH.v[(i)].v[(k)] + ((igrf13_IGRF_GH.v[((i + INT64_C(1)))].v[(k)] - igrf13_IGRF_GH.v[(i)].v[(k)]) * f));
+            gh.v[(k)] = (igrf13_DATA_IGRF_GH.v[(i)].v[(k)] + ((igrf13_DATA_IGRF_GH.v[((i + INT64_C(1)))].v[(k)] - igrf13_DATA_IGRF_GH.v[(i)].v[(k)]) * f));
             k += 1;
         }
     }

@@ -347,3 +347,12 @@ proc noisy(x: real[1] in -1 .. 1) -> (y: real[1], z: real[1])
     h = t
     z = s.sigma*b
 end
+
+## trunc (toward zero, exact), and the platform's log2 and hypot (each language's maths library, held as any
+## transcendental: within 1e-12 of the interpreter).
+fn platform(a: real[m] in -1000 .. 1000, b: real[m] in -1000 .. 1000, x: real[1] in 0.001 .. 1000000, n: int in -9 .. 9) -> (t: real[m], ti: int, l2: real[1], h: real[m])
+    t = trunc(a/(3 [m]))*(1 [m])
+    ti = trunc(n)
+    l2 = log2(x)
+    h = hypot(a, b)
+end

@@ -29,28 +29,28 @@
  {
   "package": "selftest",
   "lang": "rust",
-  "functions": 8,
-  "values": 744,
-  "exact": 744,
-  "worst": 0.0,
+  "functions": 24,
+  "values": 2448,
+  "exact": 2439,
+  "worst": 2.023284851609503e-16,
   "failures": []
  },
  {
   "package": "selftest",
   "lang": "c",
-  "functions": 8,
-  "values": 744,
-  "exact": 744,
-  "worst": 0.0,
+  "functions": 24,
+  "values": 2448,
+  "exact": 2439,
+  "worst": 2.023284851609503e-16,
   "failures": []
  },
  {
   "package": "selftest",
   "lang": "matlab",
-  "functions": 8,
-  "values": 744,
-  "exact": 744,
-  "worst": 0.0,
+  "functions": 24,
+  "values": 2448,
+  "exact": 2439,
+  "worst": 2.023284851609503e-16,
   "failures": []
  },
  {
@@ -105,6 +105,33 @@
   "values": 20480,
   "exact": 20469,
   "worst": 1.3086053638512992e-15,
+  "failures": []
+ },
+ {
+  "package": "env",
+  "lang": "rust",
+  "functions": 96,
+  "values": 7212,
+  "exact": 7068,
+  "worst": 1.2261937685522268e-13,
+  "failures": []
+ },
+ {
+  "package": "env",
+  "lang": "c",
+  "functions": 96,
+  "values": 7212,
+  "exact": 7068,
+  "worst": 1.2261937685522268e-13,
+  "failures": []
+ },
+ {
+  "package": "env",
+  "lang": "matlab",
+  "functions": 96,
+  "values": 7212,
+  "exact": 7068,
+  "worst": 1.2261937685522268e-13,
   "failures": []
  }
 ]

@@ -297,17 +297,18 @@ impl<'a> Gen<'a> {
             match f {
                 "sqrt" => return format!("{}({})", self.fm("f64::sqrt", "sqrt"), r(self, 0)),
                 "abs" => return if is_int(ety) { format!("({}).abs()", x(self, 0)) } else { format!("rt::fabs({})", r(self, 0)) },
-                "floor" | "ceil" | "round" => return if is_int(ety) { x(self, 0) } else { format!("{}({})", self.fm(&format!("f64::{f}"), f), r(self, 0)) },
+                "floor" | "ceil" | "round" | "trunc" => return if is_int(ety) { x(self, 0) } else { format!("{}({})", self.fm(&format!("f64::{f}"), f), r(self, 0)) },
                 "sign" => return format!("rt::sign({})", r(self, 0)),
                 "sin" | "cos" | "tan" | "asin" | "acos" | "atan" | "exp" | "log10" => return format!("{}({})", self.fm(&format!("f64::{f}"), f), r(self, 0)),
                 "log" => return format!("{}({})", self.fm("f64::ln", "log"), r(self, 0)),
+                "log2" => return format!("{}({})", self.fm("f64::log2", "log2"), r(self, 0)),
                 "atan2" => {
                     let p = r(self, 0);
                     return format!("{}({p}, {})", self.fm("f64::atan2", "atan2"), r(self, 1));
                 }
                 "hypot" => {
                     let p = r(self, 0);
-                    return format!("rt::hypot({p}, {})", r(self, 1));
+                    return format!("{}({p}, {})", self.fm("f64::hypot", "hypot"), r(self, 1));
                 }
                 "fmod" => {
                     let p = r(self, 0);
@@ -691,7 +692,7 @@ impl<'a> Gen<'a> {
             set_file(&mut files, "src/dispatch.rs".into(), disp);
         }
         let rt = match &self.math {
-            Some(m) => RUST_RT.replacen("(a * a + b * b).sqrt()", &format!("{m}::sqrt(a * a + b * b)"), 1).replacen("dot(a, a).sqrt()", &format!("{m}::sqrt(dot(a, a))"), 1),
+            Some(m) => RUST_RT.replacen("dot(a, a).sqrt()", &format!("{m}::sqrt(dot(a, a))"), 1),
             None => RUST_RT.to_string(),
         };
         let sort = if self.sort { RUST_RT_SORT } else { "" };
@@ -849,7 +850,6 @@ pub fn imax(a: i64, b: i64) -> i64 { if b > a { b } else { a } }
 pub fn fabs(x: f64) -> f64 { if x < 0.0 { -x } else if x == 0.0 { 0.0 } else { x } }
 pub fn clamp(x: f64, lo: f64, hi: f64) -> f64 { fmin(fmax(x, lo), hi) }
 pub fn sign(x: f64) -> f64 { if x > 0.0 { 1.0 } else if x < 0.0 { -1.0 } else { 0.0 } }
-pub fn hypot(a: f64, b: f64) -> f64 { (a * a + b * b).sqrt() }
 pub fn dot<const N: usize>(a: [f64; N], b: [f64; N]) -> f64 { let mut s = a[0] * b[0]; for i in 1..N { s = s + a[i] * b[i]; } s }
 pub fn cross(a: [f64; 3], b: [f64; 3]) -> [f64; 3] { [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]] }
 pub fn norm<const N: usize>(a: [f64; N]) -> f64 { dot(a, a).sqrt() }

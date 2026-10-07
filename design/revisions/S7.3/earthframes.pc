@@ -1,0 +1,46 @@
+## Inertial (GCRF/J2000) to Earth-fixed rotations, transcribed from adcs-pop frames/mod.rs and la.rs, the port of the
+## Octave POP's +frames (eci2ecefGMST) and op.buildWorld's earthRateECI: the GMST build (IAU 1982 GMST about z, with
+## an optional small-angle polar motion) and the Earth's angular velocity from a central difference of the frame.
+## The elementary rotations are POP's (passive, as MATLAB's R1, R2, R3). The developer's transcription (S7.3), unsigned.
+module earthframes
+
+## The elementary rotations about x, y and z by an angle [rad] (passive: R3(a) = [c s 0; -s c 0; 0 0 1]).
+fn rot1(a: real[1] in -7 .. 7) -> m: mat3[1]
+    let s = sin(a)
+    let c = cos(a)
+    m = [[1.0, 0.0, 0.0], [0.0, c, s], [0.0, -s, c]]
+end
+fn rot2(a: real[1] in -7 .. 7) -> m: mat3[1]
+    let s = sin(a)
+    let c = cos(a)
+    m = [[c, 0.0, -s], [0.0, 1.0, 0.0], [s, 0.0, c]]
+end
+fn rot3(a: real[1] in -7 .. 7) -> m: mat3[1]
+    let s = sin(a)
+    let c = cos(a)
+    m = [[c, s, 0.0], [-s, c, 0.0], [0.0, 0.0, 1.0]]
+end
+
+## frames.eci2ecefGMST: C = W R3(gmst), with W = [1 0 xp; 0 1 -yp; -xp yp 1] only when xp or yp is not 0; and C'.
+fn eci2ecef_gmst(gmst: real[1] in 0 .. 6.3, xp: real[1] in -1e-6 .. 1e-6, yp: real[1] in -1e-6 .. 1e-6) -> (c: mat3[1], ct: mat3[1])
+    let rz = rot3(gmst)
+    c = rz
+    if xp != 0.0 or yp != 0.0
+        let w: mat3[1] = [[1.0, 0.0, xp], [0.0, 1.0, -yp], [-xp, yp, 1.0]]
+        c = w*rz
+    end
+    ct = transpose(c)
+end
+
+## earthRateECI: the Earth's angular velocity in the inertial frame [rad/s] from the frames d seconds after and before
+## (their transposes, Ct = C') and at the epoch: [omega]x = Cdot C0, Cdot = (Ct(+d) - Ct(-d))/(2 d).
+fn earth_rate_from(ctp: mat3[1] in -1 .. 1, ctm: mat3[1] in -1 .. 1, c0: mat3[1] in -1 .. 1, d: real[s] in 1 .. 30) -> w: vec3[1/s]
+    let cdot: mat3[1/s] = 0
+    for i in 0 .. 3
+        for j in 0 .. 3
+            cdot[i][j] = (ctp[i][j] - ctm[i][j])/(2.0*d)
+        end
+    end
+    let m = cdot*c0
+    w = [m[2][1], m[0][2], m[1][0]]
+end

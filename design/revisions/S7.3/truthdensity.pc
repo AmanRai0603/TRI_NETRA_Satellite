@@ -1,0 +1,15 @@
+## The engine's fast-orbit atmosphere, transcribed from adcs-sim-core atmos.rs: env's static exponential atmosphere
+## (env.atmosphere, Vallado 2013 table 8-4, one copy) read in km, times the scenario's activity factor (1 = the
+## table). The developer's transcription (S7.3), unsigned.
+module truthdensity
+
+## The density at a geodetic height, times the activity factor; below the table's floor, the floor's density.
+fn density_scaled(h_m: real[m] in -1000 .. 1200000, scale: real[1] in 0.1 .. 10) -> rho: real[kg/m^3]
+    let h = h_m/(1000.0 [m])
+    let h0, rho0, hs = atmosphere(h_m)
+    if h < 0.0
+        rho = rho0*scale
+    else
+        rho = scale*rho0*exp(-(h - h0/(1000.0 [m]))/(hs/(1000.0 [m])))
+    end
+end

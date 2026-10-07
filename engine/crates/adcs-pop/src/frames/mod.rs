@@ -14,7 +14,7 @@
 //! Like MATLAB, every call returns `(C, Ct)` with `r_ecef = C r_eci` and
 //! `Ct = C'` (the ECEF->ECI matrix; *not* a time derivative -- use
 //! [`earth_rate_eci`] for the rotation rate, as POP does).
-use crate::la::{mm, r3, transpose, M3, V3};
+use crate::la::{transpose, M3, V3};
 use crate::time::convert_utc;
 
 pub mod iau2006;
@@ -138,17 +138,9 @@ pub fn utcvec(utc: &[f64]) -> [f64; 6] {
 }
 
 /// `frames.eci2ecefGMST(gmst_rad, xp, yp)`: `C = W * R3(gmst)` with the small-angle
-/// polar-motion matrix `W = [1 0 xp; 0 1 -yp; -xp yp 1]` (only when xp or yp != 0).
-pub fn eci2ecef_gmst(gmst_rad: f64, xp: f64, yp: f64) -> (M3, M3) {
-    let rz = r3(gmst_rad);
-    let c = if xp != 0.0 || yp != 0.0 {
-        let w = [[1.0, 0.0, xp], [0.0, 1.0, -yp], [-xp, yp, 1.0]];
-        mm(&w, &rz)
-    } else {
-        rz
-    };
-    (c, transpose(&c))
-}
+/// polar-motion matrix `W = [1 0 xp; 0 1 -yp; -xp yp 1]` (only when xp or yp != 0):
+/// env's method env_earth_frames (`gen::earthframes`).
+pub fn eci2ecef_gmst(gmst_rad: f64, xp: f64, yp: f64) -> (M3, M3) { crate::gen::earthframes::eci2ecef_gmst(gmst_rad, xp, yp) }
 
 /// Body of `frames.eci2ecef_A/B/C` for one epoch (the builds differ only in EOP):
 /// EOP from `opt.eop_override` (flag 2) or `eop_interp`, then the CIO chain.
@@ -214,10 +206,7 @@ pub fn earth_rate_eci(epoch: [f64; 6], build: Build, opt: &FrameOpt) -> V3 {
         let (_, ctp, _) = eci2ecef_impl(up, build, opt, Some(tp.gmst_rad))?;
         let (_, ctm, _) = eci2ecef_impl(um, build, opt, Some(tm.gmst_rad))?;
         let (c0, _, _) = eci2ecef_impl(epoch, build, opt, Some(t0.gmst_rad))?;
-        let mut cdot = [[0.0; 3]; 3];
-        for i in 0..3 { for j in 0..3 { cdot[i][j] = (ctp[i][j] - ctm[i][j]) / (2.0 * d); } }
-        let m = mm(&cdot, &c0);
-        Ok([m[2][1], m[0][2], m[1][0]])
+        Ok(crate::gen::earthframes::earth_rate_from(ctp, ctm, c0, d))
     })();
     // MATLAB warns ('op:buildWorld:earthRate') and falls back
     r.unwrap_or([0.0, 0.0, OMEGA_EARTH])
