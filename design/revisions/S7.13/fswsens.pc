@@ -1,0 +1,93 @@
+## The sensors as the flight software is told of them and its estimator's measurement errors, transcribed from adcs-sim
+## config.rs (sensor_params): which sensors the product carries (the Sun direction from fine or coarse Sun sensors), the star
+## tracker's heads and their boresights, its noises and latency, the gyro's angle and rate random walks, the Earth sensor's
+## noise (0 where the part leaves one unstated), the GNSS fix's latency (0 with no receiver); and the MEKF's measurement
+## sigmas from the fitted devices: the fine Sun sensor's noise and bias (at least 0.005 rad), or the coarse cells' albedo
+## error (half the albedo share, at least 0.1 rad: an albedo of 0.3 puts the vector up to about 8 deg off); the
+## magnetometer's direction error, its misalignment and scale factor (at least 0.01 rad), and the error the onboard
+## direction does not model, its bias and noise [T] (1 to 3 deg at 18 to 50 uT). Plain numbers in SI.
+## The developer's transcription (S7.13), unsigned.
+module fswsens
+
+## The star tracker heads the flight software is loaded with (FSW_NH at most).
+const FSW_NH = 2
+
+## A value the part leaves unstated (not finite) flies as 0.
+fn fsw_or_zero(x: real[1]) -> y: real[1]
+    y = if isfinite(x) then x else 0.0
+end
+
+## sqrt(a^2 + b^2) of two errors, each 0 where unstated.
+fn fsw_hyp(a: real[1], b: real[1]) -> h: real[1]
+    let x = fsw_or_zero(a)
+    let y = fsw_or_zero(b)
+    h = sqrt(x*x + y*y)
+end
+
+## The sensors the flight software is told of: has_gyro, has_st, has_sun (fine or coarse Sun sensors), has_es, has_gps
+## (1 fitted, 0 not), and the star tracker's heads n_heads.
+fn fsw_sensor_set(gyro: bool, st: bool, sun: bool, css: bool, es: bool, gps: bool, nh: int in 0 .. 2) \
+                  -> (has_gyro: int, has_st: int, has_sun: int, has_es: int, has_gps: int, n_heads: int)
+    has_gyro = if gyro then 1 else 0
+    has_st = if st then 1 else 0
+    has_sun = if sun or css then 1 else 0
+    has_es = if es then 1 else 0
+    has_gps = if gps then 1 else 0
+    n_heads = nh
+end
+
+## The star tracker as the flight software is told of it: its nh heads' boresights (body) and its cross-boresight and roll
+## noises [rad] and latency [s], each 0 where unstated.
+fn fsw_star_tracker(nh: int in 0 .. 2, bs: real[1][3][FSW_NH] in -1 .. 1, noise_cross: real[1] in 0 .. 0.001, \
+                    noise_roll: real[1] in 0 .. 0.001, latency: real[1] in 0 .. 1) \
+                    -> (st_bs: real[1][3][FSW_NH], st_noise_cross: real[1], st_noise_roll: real[1], st_latency: real[1])
+    st_bs = 0
+    for h in 0 .. FSW_NH
+        if h < nh
+            for k in 0 .. 3
+                st_bs[h][k] = bs[h][k]
+            end
+        end
+    end
+    st_noise_cross = fsw_or_zero(noise_cross)
+    st_noise_roll = fsw_or_zero(noise_roll)
+    st_latency = fsw_or_zero(latency)
+end
+
+## The gyro's angle random walk [rad/s^0.5] and rate random walk [rad/s^1.5] and the Earth sensor's noise [rad] as the
+## flight software is told of them, each 0 where unstated.
+fn fsw_rate_noises(arw: real[1] in 0 .. 0.001, rrw: real[1] in 0 .. 0.001, es_noise: real[1] in 0 .. 0.01) \
+                   -> (gyro_arw: real[1], gyro_rrw: real[1], es: real[1])
+    gyro_arw = fsw_or_zero(arw)
+    gyro_rrw = fsw_or_zero(rrw)
+    es = fsw_or_zero(es_noise)
+end
+
+## The MEKF's measurement sigmas: the Sun vector's [rad] (the fine Sun sensor's noise and bias sigma, at least 0.005; with
+## coarse cells only, half their albedo share, at least 0.1), the magnetometer direction's [rad] (its misalignment and
+## scale-factor sigma, at least 0.01), and the magnetometer's error not in that sigma [T]: sqrt(bias^2 + 3 bias_sigma^2 +
+## 3 noise^2), each 0 where unstated.
+fn fsw_mekf_sigmas(sun_fitted: bool, sun_noise: real[1] in 0 .. 0.01, sun_bias_sigma: real[1] in 0 .. 0.01, \
+                   css_albedo: real[1] in 0 .. 0.5, mag_misalign: real[1] in 0 .. 0.05, mag_sf_sigma: real[1] in 0 .. 0.05, \
+                   mag_bias: real[1] in 0 .. 1e-6, mag_bias_sigma: real[1] in 0 .. 1e-6, mag_noise: real[1] in 0 .. 1e-6) \
+                   -> (sig_sun: real[1], sig_mag: real[1], mag_err: real[1])
+    if sun_fitted
+        let hs = fsw_hyp(sun_noise, sun_bias_sigma)
+        sig_sun = if hs > 0.005 then hs else 0.005
+    else
+        let ca = 0.5*css_albedo
+        sig_sun = if ca > 0.1 then ca else 0.1
+    end
+    let hm = fsw_hyp(mag_misalign, mag_sf_sigma)
+    sig_mag = if hm > 0.01 then hm else 0.01
+    let b = fsw_or_zero(mag_bias)
+    let bs = fsw_or_zero(mag_bias_sigma)
+    let nz = fsw_or_zero(mag_noise)
+    mag_err = sqrt(b*b + 3.0*(bs*bs) + 3.0*(nz*nz))
+end
+
+## The age [s] of a GNSS fix when it arrives, which the flight software carries the fix forward by: the receiver's
+## latency, 0 with no receiver.
+fn fsw_gnss_latency(fitted: bool, latency: real[1] in 0 .. 2) -> lat: real[1]
+    lat = if fitted then latency else 0.0
+end

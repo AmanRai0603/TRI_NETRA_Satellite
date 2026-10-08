@@ -1,0 +1,62 @@
+## The flight software's model of its spacecraft and of the Earth, transcribed from adcs-sim config.rs (build, guidance_params,
+## mtq_gains): the epoch of its tick 0 and the Earth's gravitational parameter; the nominal inertia and the calibrated
+## residual dipole it is loaded with (the truth plant's as the case gives them, dyn_truth_plant: a campaign disperses the
+## truth's, the flight software keeps these); the power face and the Sun-referencing roll axis (the product's Sun axis and
+## payload boresight, gdn's when the product states none); the payload's offset from the nadir frame (the flight software's
+## own boresight_offset, fsw_guidance); and the gravity-gradient feed-forward of the magnetic pointing states, from the
+## inertia in the nadir attitude the flight software's guidance gives. Plain numbers in SI.
+## The developer's transcription (S7.13), unsigned.
+module fswbody
+
+## The flight software's epoch and Earth: the Julian date of its tick 0, the mission's epoch as env_case_orbit sets it up
+## (mission_epoch, its seconds rounded), and the Earth's gravitational parameter (the constants' MU_E).
+fn fsw_epoch_earth(jd: real[1] in 2440000 .. 2470000) -> (jd0: real[1], mu: real[m^3/s^2])
+    jd0 = jd
+    mu = MU_E
+end
+
+## The flight software's model of the body: the nominal inertia j (dyn_truth_plant's principal_inertia), the calibrated
+## residual dipole (dyn_truth_plant's residual_dipole_axes), the power face (the product's Sun axis) and the roll axis of
+## Sun referencing (the product's payload boresight).
+fn fsw_body_model(j: mat3[1] in 0.001 .. 1, m_res: vec3[1] in 0 .. 0.1, sun_axis: vec3[1] in -1 .. 1, boresight: vec3[1] in -1 .. 1) \
+                  -> (jf: mat3[1], mf: vec3[1], sun: vec3[1], roll: vec3[1])
+    jf = j
+    mf = m_res
+    sun = sun_axis
+    roll = boresight
+end
+
+## The payload's offset from the nadir frame the guidance turns by (gd_q_off): the rotation taking +Y_B to the product's
+## payload boresight, the flight software's own boresight_offset (fsw_guidance).
+fn fsw_payload_offset(boresight: vec3[1] in -1 .. 1) -> q: quat
+    q = boresight_offset(boresight)
+end
+
+## The body's inertia about the body axis b = a u, the unit axis u taken through the attitude matrix a: b'J b.
+fn fsw_axis_inertia(a: mat3[1] in -1 .. 1, j: mat3[1] in 0.001 .. 1, u: vec3[1] in -1 .. 1) -> ju: real[1]
+    let b = a*u
+    let jb = j*b
+    ju = b[0]*jb[0] + b[1]*jb[1] + b[2]*jb[2]
+end
+
+## The gravity-gradient feed-forward of the magnetic pointing states (mtq_gg_ff, when the scenario states none): bit 0 the
+## Sun state, bit 1 the nadir state. In the nadir attitude the flight software's guidance gives (at a reference point of
+## the orbit, 7000 km along x moving at 7.5 km/s along y; the payload offset q_off applied) the gradient restores the
+## attitude only inside the Lagrange region, J_normal >= J_along > J_nadir (equal transverse inertias, a relative 1e-9
+## apart, are neutral, not unstable): there the nadir state keeps the gradient as its spring (1: the Sun state only);
+## outside it the nadir state cancels it too (3).
+fn fsw_gg_feedforward(q_off: quat in -1 .. 1, j: mat3[1] in 0.001 .. 1) -> ff: int
+    let r: vec3[m] = [7.0e6, 0.0, 0.0] [m]
+    let v: vec3[m/s] = [0.0, 7.5e3, 0.0] [m/s]
+    let z3: vec3[1] = 0
+    let q0: quat = 0
+    let q, w, wd = guidance(0, r, v, 0, q_off, 0.0, 0, 0, z3, q0, z3, z3, z3, false)
+    let a = dcm(q)
+    let jz = fsw_axis_inertia(a, j, [-1.0, 0.0, 0.0])
+    let ja = fsw_axis_inertia(a, j, [0.0, 1.0, 0.0])
+    let jn = fsw_axis_inertia(a, j, [0.0, 0.0, 1.0])
+    ff = 3
+    if jn >= ja*(1.0 - 1e-9) and ja > jz*(1.0 + 1e-9)
+        ff = 1
+    end
+end

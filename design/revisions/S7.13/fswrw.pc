@@ -1,0 +1,43 @@
+## The fine pointing's parameters of the flight software (wheels and the other momentum devices), transcribed from adcs-sim
+## config.rs (rw_gains): the PID gains, the LQR's weights (its gain the toolbox's Riccati solve), the sliding mode's surface
+## and gain, on one bandwidth wn [rad/s] and damping z, and the control period from its rate. The principal inertia ii
+## [kg m^2]. Plain numbers in SI.
+## The developer's transcription (S7.13), unsigned.
+module fswrw
+
+## The fine pointing's PID gains on each principal axis: K_p = I wn^2, K_d = 2 z I wn, K_i = 0.15 I wn^3.
+fn fsw_rw_pid(ii: vec3[1] in 0.001 .. 1, wn: real[1] in 0.05 .. 3, z: real[1] in 0.3 .. 3) -> (kp: vec3[1], kd: vec3[1], ki: vec3[1])
+    kp = 0
+    kd = 0
+    ki = 0
+    for ax in 0 .. 3
+        kp[ax] = ii[ax]*wn*wn
+        kd[ax] = 2.0*z*ii[ax]*wn
+        ki[ax] = 0.15*ii[ax]*wn*wn*wn
+    end
+end
+
+## The weights of the fine pointing's LQR on one axis of inertia i: the chain of the attitude error's integral, the error
+## and the rate (A = [0 1 0; 0 0 1; 0 0 0], B = [0; 0; b], b = 1/i), Q = diag((wn/(th/2))^2, 1/th^2, 1/(wn th)^2) and
+## R = 1/(i wn^2 th)^2 for an error of th = 1e-3 rad, and the bandwidth p0 = wn the Riccati solve starts its pole placement
+## from. Its gain is the toolbox's Riccati solve of them (Kleinman's iteration, adcs-sim lqr.rs chain3).
+fn fsw_rw_lqr_weights(i: real[1] in 0.001 .. 1, wn: real[1] in 0.05 .. 3) -> (b: real[1], q: vec3[1], r: real[1], p0: real[1])
+    let th = 1e-3
+    q = [(wn/(0.5*th))*(wn/(0.5*th)), 1.0/(th*th), 1.0/((wn*th)*(wn*th))]
+    r = 1.0/((i*wn*wn*th)*(i*wn*wn*th))
+    b = 1.0/i
+    p0 = wn
+end
+
+## The fine pointing's sliding mode: its surface's slope lambda = wn/(2 z) and its gain Gs = 2 z wn phi on each axis, phi
+## the boundary layer (fsw_param_rw_phi).
+fn fsw_rw_smc(wn: real[1] in 0.05 .. 3, z: real[1] in 0.3 .. 3, phi: real[1] in 1e-5 .. 1e-2) -> (lambda: real[1], gs: vec3[1])
+    lambda = wn/(2.0*z)
+    let g = 2.0*z*wn*phi
+    gs = [g, g, g]
+end
+
+## The fine control's period [s] from its rate [Hz].
+fn fsw_rw_period(rate_hz: real[1] in 1 .. 50) -> dt: real[1]
+    dt = 1.0/rate_hz
+end

@@ -27,7 +27,10 @@ Oct 2026 with S7.10, the star tracker's image chain, its methods under `design/r
 `trinetra-toolbox/5` (buffers whose length is the caller's); and again on 8 Oct 2026 with S7.11, the truth plant, the
 case's orbit and epoch, the plant's start and the devices' descriptors, and seven values env states, and S7.12, the device
 emulators' scaling, their methods under `design/revisions/S7.11/` and `S7.12/`; since S7.11 the engine's inputs include
-`data/stated.json`, every stated value of the design, which the engine reads by node):
+`data/stated.json`, every stated value of the design, which the engine reads by node; and again on 8 Oct 2026 with S7.13,
+the flight software's parameters, 77 of the 147 fsw_param_* methods under `design/revisions/S7.13/` and the rest stated,
+with the tuning a law takes and the run's defaults when a scenario states none, so `data/stated.json` holds lists too,
+`adcs-stated/2`):
 
     python3 tools/convert_2_0.py --out DRIVE
     python3 tools/design_build.py DRIVE --out tests/regression/design.tndb

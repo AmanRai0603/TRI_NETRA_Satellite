@@ -1,4 +1,4 @@
-"""The built-in count (docs/PLAN_2_0.md S7; docs/S7_INVENTORY.md S7.1b, S7.3, S7.3b-e, S7.4, S7.5, S7.6, S7.7, S7.8, S7.9, S7.10, S7.11, S7.12): the nodes of the regression copy whose
+"""The built-in count (docs/PLAN_2_0.md S7; docs/S7_INVENTORY.md S7.1b, S7.3, S7.3b-e, S7.4, S7.5, S7.6, S7.7, S7.8, S7.9, S7.10, S7.11, S7.12, S7.13): the nodes of the regression copy whose
 relation is still compiled code, by group. S7 lowers it to zero; each step that writes a method takes its nodes
 out of BUILT_IN here, in the same change.
   - the count and the list are exactly these, and tools/health.py reports them;
@@ -396,6 +396,8 @@ class BuiltIn(unittest.TestCase):
             rows = {(s, f): v for s, f, v, _o in x["body"]["content"]}
             if self.beh(nid) == "stated" and ("value", "number") in rows:
                 want[nid] = float(rows[("value", "number")])
+            elif self.beh(nid) == "stated" and ("value", "list") in rows:     # since S7.13, adcs-stated/2
+                want[nid] = [float(v) for v in json.loads(rows[("value", "list")])]
         self.assertEqual(self.stated_file(), want)
         src = ROOT / "engine" / "crates" / "adcs-sim" / "src"
         cfg, prod, run = ((src / f).read_text(encoding="utf-8") for f in ("config.rs", "product.rs", "run.rs"))
@@ -466,6 +468,66 @@ end
         emu = "\n".join(ln.split("//")[0] for ln in emu.splitlines())     # the code, not its comments
         for gone in ("MAG_LSB_T", "GYRO_LSB", "Q30", "Q15", "H_LSB", "DELTA_LSB", "VALVE_LSB_S", "fn q16", "fn q32", "/0.01", "/0.001"):
             self.assertNotIn(gone, emu, gone)
+
+    def test_the_flight_parameters_are_the_designs(self):
+        """S7.13 (closes S6's finding): every one of the 147 fsw_param_* nodes has its value from the design. 77 are methods
+        of fsw, the developer's unsigned transcriptions generated into adcs-sim (the laws, the choices of law, the copies of
+        the product's, the case's and the constants' values); 67 are stated as the 1.0.0 code gave them (the constants, and
+        the value a run takes when its scenario states none); the schedule's three state none (a run whose scenario states
+        no schedule flies none). The tuning a law takes when the scenario states none (fsw_tune_*) and the run's defaults
+        the engine held with no node are stated too; the engine reads them from data/stated.json, and config.rs holds no
+        law and no constant of the flight software."""
+        params = sorted(n for n in self.nodes if n.startswith("fsw_param_"))
+        self.assertEqual(len(params), 147)
+        stated = self.stated_file()
+        methods, values, none = [], [], []
+        for nid in params:
+            _k, x = self.nodes[nid]
+            rows = {(s, f): (v, o) for s, f, v, o in x["body"]["content"]}
+            self.assertEqual(x["body"]["node"]["group_id"], "fsw", nid)
+            if self.beh(nid) == "method":
+                methods.append(nid)
+                self.assertIn("the developer's revision S7.13", rows[("code", "pseudocode")][1], nid)
+                self.assertTrue(rows[("code", "transcribes")][0], nid)
+                self.assertEqual(rows[("code", "generate")][0], "adcs-sim", nid)
+                self.assertEqual(x["sealed_as"], "unconfirmed", nid)
+                self.assertTrue(any(w.startswith("the developer's revision S7.13") and "not yet signed by a person" in w for w in x["why"]), nid)
+            else:
+                self.assertEqual(self.beh(nid), "stated", nid)
+                src = rows[("value", "source")][0]
+                self.assertTrue(src.startswith(("1.0.0 code: engine/crates/adcs-sim/src/config.rs", "the scenario's ")), nid)
+                self.assertIn("engine/crates/adcs-sim/src/config.rs", src, nid)
+                if ("value", "number") in rows or ("value", "list") in rows:
+                    values.append(nid)
+                    self.assertIn(nid, stated, nid)
+                else:
+                    none.append(nid)
+        self.assertEqual((len(methods), len(values)), (77, 67))
+        self.assertEqual(none, ["fsw_param_n_sched", "fsw_param_sched_mode", "fsw_param_sched_t"])
+        self.assert_stated({"fsw_param_mtq_period": 1.0, "fsw_param_mtq_meas": 0.2, "fsw_param_mtq_eps": 1e-3, "fsw_param_mtq_phi": 5e-4,
+                            "fsw_param_rw_phi": 2e-4,
+                            "fsw_tune_bdot_gain_scale": 3.0, "fsw_tune_mtq_wn": 0.005, "fsw_tune_avanzini_k_over_n": 0.84,
+                            "fsw_tune_rw_bandwidth": 0.9, "fsw_tune_rw_rate_hz": 10.0, "fsw_tune_ss_gain": 1.0},
+                           "fsw", "S7.13", "1.0.0 code: engine/crates/adcs-sim/src/config.rs")
+        self.assert_stated({"fsw_param_detumble_hold_s": 60.0, "fsw_param_dt": 0.1, "fsw_param_mekf_gate": 16.27, "fsw_param_start_mode": 0.0,
+                            "fsw_param_auto_next": 255.0}, "fsw", "S7.13", "the scenario's ")
+        self.assert_stated({"env_density_scale_default": 1.0, "env_force_drag": 1.0, "env_torque_magnetic": 1.0, "env_refresh_step": 1.0,
+                            "env_start_arg_lat_default": 0.0}, "env", "S7.13", "1.0.0 code: engine/crates/adcs-sim/src/config.rs")
+        self.assert_stated({"vv_run_duration_default": 600.0, "vv_record_step_default": 1.0}, "vv", "S7.13", "1.0.0 code: engine/crates/adcs-sim/src/config.rs")
+        self.assertEqual((stated["dyn_initial_error_axis"], stated["dyn_initial_rate_value"]), ([1.0, 0.0, 0.0], [0.0, 0.0, 0.0]))
+        self.assertEqual(len([n for n in self.nodes if n.startswith("fsw_tune_")]), 16)
+        for path, fn in (("fsw/params/fswchoice.pc", "fsw_mtq_law"), ("fsw/params/fswmtq.pc", "fsw_mtq_lqr_weights"), ("fsw/params/fswrw.pc", "fsw_rw_pid"),
+                         ("fsw/params/fswbody.pc", "fsw_gg_feedforward"), ("fsw/params/fswsens.pc", "fsw_mekf_sigmas"), ("fsw/params/fswrotor.pc", "fsw_rotor_targets")):
+            self.assertIn(f"\nfn {fn}(", from_design.text(path, REG / "design.tndb"), path)
+        src = ROOT / "engine" / "crates" / "adcs-sim" / "src"
+        cfg = (src / "config.rs").read_text(encoding="utf-8")
+        cfg = "\n".join(ln.split("//")[0] for ln in cfg.splitlines())     # the code, not its comments
+        for gone in ("0.84", "0.08", "0.15*", "[1e-12", "7.0/15.0", "th = ", "5e-4", "2e-4", "1e6", "wn*wn", "0.5*inertia", "1.0/json", "PI/180",
+                     "gg_stable", '"sunspin_damped" =>', '"mtq_lqr" =>', "json::f(&fsw, \"", "unwrap_or([0.0, 0.0, 0.0, 1.0])"):
+            self.assertFalse(gone in cfg, gone)
+        self.assertEqual(re.findall(r"json::f\([^;()\n]*, -?[0-9][0-9.e-]*\)", cfg), ['json::f(e, "t_s", 0.0)', 'json::f(f, "t_s", 0.0)', 'json::f(f, "index", 0.0)'],
+                         "a scenario's number with a default in code: only the events' clock origin and the fault's unit")
+        self.assertIn("lqr::chain3(", cfg)       # the Riccati solve stays the toolbox's
 
     def test_every_behaviour_is_one_the_schema_knows(self):
         self.assertEqual(tndb.check(REG / "design.tndb"), [])

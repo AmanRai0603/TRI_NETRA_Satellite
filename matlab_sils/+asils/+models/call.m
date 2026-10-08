@@ -983,6 +983,135 @@ function y = call(name, x)
         case 'truthfield::field_eci_ecef'
             [o1] = asils.models.truthfield.field_eci_ecef(reshape(x(1:3), 3, 1), reshape(x(4:12), 3, 3).', reshape(x(13:207), 195, 1), x(208));
             y = [reshape(o1, [], 1)];
+        case 'fswbody::fsw_epoch_earth'
+            [o1, o2] = asils.models.fswbody.fsw_epoch_earth(x(1));
+            y = [double(o1); double(o2)];
+        case 'fswbody::fsw_body_model'
+            [o1, o2, o3, o4] = asils.models.fswbody.fsw_body_model(reshape(x(1:9), 3, 3).', reshape(x(10:12), 3, 1), reshape(x(13:15), 3, 1), reshape(x(16:18), 3, 1));
+            y = [reshape((o1).', [], 1); reshape(o2, [], 1); reshape(o3, [], 1); reshape(o4, [], 1)];
+        case 'fswbody::fsw_payload_offset'
+            [o1] = asils.models.fswbody.fsw_payload_offset(reshape(x(1:3), 3, 1));
+            y = [reshape(o1, [], 1)];
+        case 'fswbody::fsw_axis_inertia'
+            [o1] = asils.models.fswbody.fsw_axis_inertia(reshape(x(1:9), 3, 3).', reshape(x(10:18), 3, 3).', reshape(x(19:21), 3, 1));
+            y = [double(o1)];
+        case 'fswbody::fsw_gg_feedforward'
+            [o1] = asils.models.fswbody.fsw_gg_feedforward(reshape(x(1:4), 4, 1), reshape(x(5:13), 3, 3).');
+            y = [double(o1)];
+        case 'fswchoice::fsw_default_detumble'
+            [o1] = asils.models.fswchoice.fsw_default_detumble(reshape(x(1:4), 4, 1));
+            y = [double(o1)];
+        case 'fswchoice::fsw_default_attitude'
+            [o1] = asils.models.fswchoice.fsw_default_attitude(reshape(x(1), 1, 1));
+            y = [double(o1)];
+        case 'fswchoice::fsw_default_pointing'
+            [o1] = asils.models.fswchoice.fsw_default_pointing(reshape(x(1:3), 3, 1));
+            y = [double(o1)];
+        case 'fswchoice::fsw_default_mtq_pointing'
+            [o1] = asils.models.fswchoice.fsw_default_mtq_pointing(reshape(x(1:9), 9, 1));
+            y = [double(o1)];
+        case 'fswchoice::fsw_default_sun_acquisition'
+            [o1] = asils.models.fswchoice.fsw_default_sun_acquisition(reshape(x(1:5), 5, 1));
+            y = [double(o1)];
+        case 'fswchoice::fsw_default_allocation'
+            [o1] = asils.models.fswchoice.fsw_default_allocation(reshape(x(1:4), 4, 1));
+            y = [double(o1)];
+        case 'fswchoice::fsw_default_thrusters'
+            [o1] = asils.models.fswchoice.fsw_default_thrusters(reshape(x(1), 1, 1));
+            y = [double(o1)];
+        case 'fswchoice::fsw_bdot_law'
+            [o1] = asils.models.fswchoice.fsw_bdot_law(x(1));
+            y = [double(o1)];
+        case 'fswchoice::fsw_rw_law'
+            [o1] = asils.models.fswchoice.fsw_rw_law(x(1));
+            y = [double(o1)];
+        case 'fswchoice::fsw_mtq_law'
+            [o1] = asils.models.fswchoice.fsw_mtq_law(x(1));
+            y = [double(o1)];
+        case 'fswchoice::fsw_alloc'
+            [o1] = asils.models.fswchoice.fsw_alloc(x(1));
+            y = [double(o1)];
+        case 'fswchoice::fsw_sun_acquisition'
+            [o1, o2, o3] = asils.models.fswchoice.fsw_sun_acquisition(x(1));
+            y = [double(o1); double(o2); double(o3)];
+        case 'fswchoice::fsw_guidance_kind'
+            [o1] = asils.models.fswchoice.fsw_guidance_kind(x(1));
+            y = [double(o1)];
+        case 'fswmtq::fsw_coil_limit'
+            [o1] = asils.models.fswmtq.fsw_coil_limit((x(1) ~= 0), x(2));
+            y = [double(o1)];
+        case 'fswmtq::fsw_bdot_gain'
+            [o1] = asils.models.fswmtq.fsw_bdot_gain(x(1), x(2), x(3), reshape(x(4:6), 3, 1));
+            y = [double(o1)];
+        case 'fswmtq::fsw_rate_rad'
+            [o1] = asils.models.fswmtq.fsw_rate_rad(x(1));
+            y = [double(o1)];
+        case 'fswmtq::fsw_mtq_pd'
+            [o1, o2, o3] = asils.models.fswmtq.fsw_mtq_pd(reshape(x(1:3), 3, 1), x(4), x(5));
+            y = [reshape(o1, [], 1); reshape(o2, [], 1); reshape(o3, [], 1)];
+        case 'fswmtq::fsw_mtq_lqr_weights'
+            [o1, o2, o3, o4] = asils.models.fswmtq.fsw_mtq_lqr_weights(x(1), x(2));
+            y = [double(o1); reshape(o2, [], 1); double(o3); double(o4)];
+        case 'fswmtq::fsw_mtq_smc'
+            [o1, o2] = asils.models.fswmtq.fsw_mtq_smc(x(1), x(2), x(3));
+            y = [double(o1); reshape(o2, [], 1)];
+        case 'fswmtq::fsw_mtq_literature'
+            [o1, o2, o3, o4, o5, o6] = asils.models.fswmtq.fsw_mtq_literature(x(1), reshape(x(2:4), 3, 1), x(5), x(6), x(7), x(8), x(9), x(10), x(11), x(12));
+            y = [double(o1); double(o2); double(o3); double(o4); double(o5); double(o6)];
+        case 'fswmtq::fsw_mtq_roll'
+            [o1, o2] = asils.models.fswmtq.fsw_mtq_roll(reshape(x(1:3), 3, 1), reshape(x(4:12), 3, 3).', x(13), x(14), x(15), x(16));
+            y = [double(o1); double(o2)];
+        case 'fswmtq::fsw_roll_gate'
+            [o1] = asils.models.fswmtq.fsw_roll_gate(x(1));
+            y = [double(o1)];
+        case 'fswmtq::fsw_mtq_tango'
+            [o1, o2] = asils.models.fswmtq.fsw_mtq_tango(reshape(x(1:3), 3, 1), x(4), x(5), x(6), x(7));
+            y = [reshape((o1).', [], 1); reshape((o2).', [], 1)];
+        case 'fswrcs::fsw_thrusters'
+            [o1, o2, o3, o4] = asils.models.fswrcs.fsw_thrusters((x(1) ~= 0), x(2), reshape(x(3:20), 3, 6).', x(21), x(22));
+            y = [double(o1); reshape((o2).', [], 1); double(o3); double(o4)];
+        case 'fswrotor::fsw_rotors'
+            [o1, o2, o3, o4, o5, o6, o7, o8, o9, o10] = asils.models.fswrotor.fsw_rotors(x(1), x(2), reshape(x(3:10), 8, 1), reshape(x(11:34), 3, 8).', reshape(x(35:42), 8, 1), reshape(x(43:54), 3, 4).', reshape(x(55:62), 8, 1), reshape(x(63:70), 8, 1), reshape(x(71:78), 8, 1), x(79));
+            y = [double(o1); double(o2); reshape(o3, [], 1); reshape((o4).', [], 1); reshape(o5, [], 1); reshape((o6).', [], 1); reshape(o7, [], 1); reshape(o8, [], 1); reshape(o9, [], 1); double(o10)];
+        case 'fswrotor::fsw_rotor_targets'
+            [o1] = asils.models.fswrotor.fsw_rotor_targets(x(1), reshape(x(2:9), 8, 1), reshape(x(10:17), 8, 1), reshape(x(18:25), 8, 1), x(26));
+            y = [reshape(o1, [], 1)];
+        case 'fswrw::fsw_rw_pid'
+            [o1, o2, o3] = asils.models.fswrw.fsw_rw_pid(reshape(x(1:3), 3, 1), x(4), x(5));
+            y = [reshape(o1, [], 1); reshape(o2, [], 1); reshape(o3, [], 1)];
+        case 'fswrw::fsw_rw_lqr_weights'
+            [o1, o2, o3, o4] = asils.models.fswrw.fsw_rw_lqr_weights(x(1), x(2));
+            y = [double(o1); reshape(o2, [], 1); double(o3); double(o4)];
+        case 'fswrw::fsw_rw_smc'
+            [o1, o2] = asils.models.fswrw.fsw_rw_smc(x(1), x(2), x(3));
+            y = [double(o1); reshape(o2, [], 1)];
+        case 'fswrw::fsw_rw_period'
+            [o1] = asils.models.fswrw.fsw_rw_period(x(1));
+            y = [double(o1)];
+        case 'fswsens::fsw_or_zero'
+            [o1] = asils.models.fswsens.fsw_or_zero(x(1));
+            y = [double(o1)];
+        case 'fswsens::fsw_hyp'
+            [o1] = asils.models.fswsens.fsw_hyp(x(1), x(2));
+            y = [double(o1)];
+        case 'fswsens::fsw_sensor_set'
+            [o1, o2, o3, o4, o5, o6] = asils.models.fswsens.fsw_sensor_set((x(1) ~= 0), (x(2) ~= 0), (x(3) ~= 0), (x(4) ~= 0), (x(5) ~= 0), (x(6) ~= 0), x(7));
+            y = [double(o1); double(o2); double(o3); double(o4); double(o5); double(o6)];
+        case 'fswsens::fsw_star_tracker'
+            [o1, o2, o3, o4] = asils.models.fswsens.fsw_star_tracker(x(1), reshape(x(2:7), 3, 2).', x(8), x(9), x(10));
+            y = [reshape((o1).', [], 1); double(o2); double(o3); double(o4)];
+        case 'fswsens::fsw_rate_noises'
+            [o1, o2, o3] = asils.models.fswsens.fsw_rate_noises(x(1), x(2), x(3));
+            y = [double(o1); double(o2); double(o3)];
+        case 'fswsens::fsw_mekf_sigmas'
+            [o1, o2, o3] = asils.models.fswsens.fsw_mekf_sigmas((x(1) ~= 0), x(2), x(3), x(4), x(5), x(6), x(7), x(8), x(9));
+            y = [double(o1); double(o2); double(o3)];
+        case 'fswsens::fsw_gnss_latency'
+            [o1] = asils.models.fswsens.fsw_gnss_latency((x(1) ~= 0), x(2));
+            y = [double(o1)];
+        case 'fswspin::fsw_sun_spin_gains'
+            [o1, o2, o3, o4] = asils.models.fswspin.fsw_sun_spin_gains(x(1), x(2));
+            y = [double(o1); double(o2); double(o3); double(o4)];
         case 'math::maxabs3'
             [o1] = asils.models.math.maxabs3(reshape(x(1:3), 3, 1));
             y = [double(o1)];
@@ -1057,6 +1186,18 @@ function y = call(name, x)
             y = [reshape(o1, [], 1)];
         case 'frames::field_eci'
             [o1] = asils.models.frames.field_eci(reshape(x(1:3), 3, 1), x(4), reshape(x(5:199), 195, 1), x(200));
+            y = [reshape(o1, [], 1)];
+        case 'guidance::guid_kind'
+            [o1] = asils.models.guidance.guid_kind(x(1));
+            y = [double(o1)];
+        case 'guidance::guidance'
+            [o1, o2, o3] = asils.models.guidance.guidance(x(1), reshape(x(2:4), 3, 1), reshape(x(5:7), 3, 1), x(8), reshape(x(9:12), 4, 1), x(13), x(14), x(15), reshape(x(16:18), 3, 1), reshape(x(19:22), 4, 1), reshape(x(23:25), 3, 1), reshape(x(26:28), 3, 1), reshape(x(29:31), 3, 1), (x(32) ~= 0));
+            y = [reshape(o1, [], 1); reshape(o2, [], 1); reshape(o3, [], 1)];
+        case 'guidance::yaw_flip'
+            [o1] = asils.models.guidance.yaw_flip(reshape(x(1:3), 3, 1), reshape(x(4:6), 3, 1), reshape(x(7:10), 4, 1), reshape(x(11:13), 3, 1), reshape(x(14:16), 3, 1), reshape(x(17:19), 3, 1), (x(20) ~= 0), x(21));
+            y = [double(o1)];
+        case 'guidance::boresight_offset'
+            [o1] = asils.models.guidance.boresight_offset(reshape(x(1:3), 3, 1));
             y = [reshape(o1, [], 1)];
         case 'drivers::crc16'
             [o1] = asils.models.drivers.crc16(reshape(x(1:64), 64, 1), x(65));

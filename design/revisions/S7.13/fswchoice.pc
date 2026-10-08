@@ -1,0 +1,175 @@
+## The flight software's choices of law, transcribed from adcs-sim config.rs: the algorithm each slot flies when neither the
+## product nor the scenario names one (select: the first of the slot's defaults the product can fly), the law each chosen
+## algorithm is in the flight software's parameters (modes_and_laws: bdot_law, rw_law, mtq_law, alloc, and the Sun
+## acquisition's eclipse policy, nutation-damping floor and law, ss_eclipse, ss_rz_floor, ss_law), and the guidance kind
+## (guidance_params: gd_kind). A slot's options are the algorithms the engine flies in it (the registry's ids, data/algorithms,
+## in the order config.rs FLOWN lists them), its last option none: no algorithm of the slot flies (the product can fly none
+## of its defaults). Whole numbers are the flight software's codes (fsw/params/params.toml).
+## The developer's transcription (S7.13), unsigned.
+module fswchoice
+
+## The detumble slot: B-dot fed by the gyro, by the magnetometer, bang-bang, generalised L1 B-dot.
+choice DetumbleAlg = bdot_gyro, bdot_mag, bdot_bangbang, genbdot_l1, none
+## The attitude slot: the multiplicative extended Kalman filter.
+choice AttitudeAlg = mekf, none
+## The fine-pointing slot: PID, LQR, sliding mode.
+choice PointingAlg = pid, lqr, smc, none
+## The magnetic-pointing slot: PD, LQR, sliding mode, rate damping, and the magnetorquer-only literature laws.
+choice MtqAlg = mtq_pd, mtq_lqr, mtq_smc, mtq_rate_damp, mtq_lovera2004, mtq_celani2015, mtq_avanzini2021, mtq_celani2026, \
+    mtq_tango2013, none
+## The Sun-acquisition slot: the L1/L2 Sun spin (eclipse policy E1, E2, damped), de Ruiter's spin law, Celani's boresight law.
+choice SunAcqAlg = sunspin_l1l2, sunspin_l1l2_e2, sunspin_damped, sunspin_deruiter2011, sun_boresight_celani2026, none
+## The allocation slot: the rotors' pseudo-inverse, the IDMAS split, the CMG and VSCMG singularity-robust inverses.
+choice AllocAlg = rotor_pinv, idmas_split, cmg_sr, vscmg_sr, none
+## The thrusters slot: pulse-width modulation.
+choice ThrusterAlg = rcs_pwm, none
+## The guidance the pointing states fly (the scenario's fsw.guidance.kind); an option's number is the flight software's gd_kind.
+choice GuidKind = nadir, target, slew, inertial, sun
+
+## The detumble algorithm a product flies when neither it nor the scenario names one: the gyro-fed B-dot, else the
+## magnetometer's, else none. can[k]: 1 when the product carries every device option k needs (the registry's needs).
+fn fsw_default_detumble(can: int[4] in 0 .. 1) -> a: DetumbleAlg
+    a = DetumbleAlg.none
+    if can[0] == 1
+        a = DetumbleAlg.bdot_gyro
+    elif can[1] == 1
+        a = DetumbleAlg.bdot_mag
+    end
+end
+
+## The attitude estimator a product flies when neither it nor the scenario names one: the MEKF, else none.
+fn fsw_default_attitude(can: int[1] in 0 .. 1) -> a: AttitudeAlg
+    a = AttitudeAlg.none
+    if can[0] == 1
+        a = AttitudeAlg.mekf
+    end
+end
+
+## The fine-pointing law a product flies when neither it nor the scenario names one: PID, else none.
+fn fsw_default_pointing(can: int[3] in 0 .. 1) -> a: PointingAlg
+    a = PointingAlg.none
+    if can[0] == 1
+        a = PointingAlg.pid
+    end
+end
+
+## The magnetic-pointing law a product flies when neither it nor the scenario names one: PD, else none.
+fn fsw_default_mtq_pointing(can: int[9] in 0 .. 1) -> a: MtqAlg
+    a = MtqAlg.none
+    if can[0] == 1
+        a = MtqAlg.mtq_pd
+    end
+end
+
+## The Sun-acquisition law a product flies when neither it nor the scenario names one: the L1/L2 Sun spin, else none.
+fn fsw_default_sun_acquisition(can: int[5] in 0 .. 1) -> a: SunAcqAlg
+    a = SunAcqAlg.none
+    if can[0] == 1
+        a = SunAcqAlg.sunspin_l1l2
+    end
+end
+
+## The allocation a product flies when neither it nor the scenario names one: the first it can fly of the CMG's, the
+## VSCMG's, the IDMAS split and the rotors' pseudo-inverse, else none.
+fn fsw_default_allocation(can: int[4] in 0 .. 1) -> a: AllocAlg
+    a = AllocAlg.none
+    if can[2] == 1
+        a = AllocAlg.cmg_sr
+    elif can[3] == 1
+        a = AllocAlg.vscmg_sr
+    elif can[1] == 1
+        a = AllocAlg.idmas_split
+    elif can[0] == 1
+        a = AllocAlg.rotor_pinv
+    end
+end
+
+## The thrusters' law a product flies when neither it nor the scenario names one: pulse-width modulation, else none.
+fn fsw_default_thrusters(can: int[1] in 0 .. 1) -> a: ThrusterAlg
+    a = ThrusterAlg.none
+    if can[0] == 1
+        a = ThrusterAlg.rcs_pwm
+    end
+end
+
+## bdot_law: 0 gyro, 1 magnetometer (also when no detumble flies), 2 bang-bang, 3 generalised L1.
+fn fsw_bdot_law(a: DetumbleAlg) -> law: int
+    law = 1
+    if a == DetumbleAlg.bdot_gyro
+        law = 0
+    elif a == DetumbleAlg.bdot_bangbang
+        law = 2
+    elif a == DetumbleAlg.genbdot_l1
+        law = 3
+    end
+end
+
+## rw_law: 0 PID (also when no fine-pointing law flies), 1 LQR, 2 sliding mode.
+fn fsw_rw_law(a: PointingAlg) -> law: int
+    law = 0
+    if a == PointingAlg.lqr
+        law = 1
+    elif a == PointingAlg.smc
+        law = 2
+    end
+end
+
+## mtq_law: 0 PD (also when no magnetic law flies), 1 LQR, 2 sliding mode, 3 rate damping, 4 Lovera-Astolfi 2004,
+## 5 Celani 2015, 6 Avanzini 2021, 7 Celani 2026 boresight, 8 TANGO 2013.
+fn fsw_mtq_law(a: MtqAlg) -> law: int
+    law = 0
+    if a == MtqAlg.mtq_lqr
+        law = 1
+    elif a == MtqAlg.mtq_smc
+        law = 2
+    elif a == MtqAlg.mtq_rate_damp
+        law = 3
+    elif a == MtqAlg.mtq_lovera2004
+        law = 4
+    elif a == MtqAlg.mtq_celani2015
+        law = 5
+    elif a == MtqAlg.mtq_avanzini2021
+        law = 6
+    elif a == MtqAlg.mtq_celani2026
+        law = 7
+    elif a == MtqAlg.mtq_tango2013
+        law = 8
+    end
+end
+
+## alloc: 0 the rotors' pseudo-inverse (also when no allocation flies), 1 IDMAS split, 2 CMG SR, 3 VSCMG SR.
+fn fsw_alloc(a: AllocAlg) -> alloc: int
+    alloc = 0
+    if a == AllocAlg.idmas_split
+        alloc = 1
+    elif a == AllocAlg.cmg_sr
+        alloc = 2
+    elif a == AllocAlg.vscmg_sr
+        alloc = 3
+    end
+end
+
+## The Sun acquisition's settings: its eclipse policy (1 E1, coils off; 2 E2, the Sun propagated on the gyro), the floor
+## of the nutation-damping matrix R_z as a share of J_zz (0: the published law), and its law (0 He et al. 2023 Sun spin,
+## 1 de Ruiter 2011, 2 Celani 2026 boresight). With no Sun acquisition: E1, no floor, the Sun spin.
+fn fsw_sun_acquisition(a: SunAcqAlg) -> (eclipse: int, rz_floor: real[1], law: int)
+    eclipse = 1
+    rz_floor = 0.0
+    law = 0
+    if a == SunAcqAlg.sunspin_l1l2_e2
+        eclipse = 2
+    elif a == SunAcqAlg.sunspin_damped
+        eclipse = 2
+        rz_floor = 0.5
+    elif a == SunAcqAlg.sunspin_deruiter2011
+        law = 1
+    elif a == SunAcqAlg.sun_boresight_celani2026
+        eclipse = 2
+        law = 2
+    end
+end
+
+## gd_kind: the guidance of the fine and magnetic states, 0 nadir, 1 target, 2 slew, 3 inertial, 4 Sun (its option's number).
+fn fsw_guidance_kind(k: GuidKind) -> kind: int
+    kind = int(k)
+end

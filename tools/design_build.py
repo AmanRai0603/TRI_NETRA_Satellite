@@ -88,12 +88,15 @@ def _bodies(rel):
 
 
 # Every stated value of the design, by node (docs/S7_INVENTORY.md S7.11): the values the engine reads with no other input
-# (the device defaults, the plant's constants, a run's defaults), each from its node, never a copy in the code.
+# (the device defaults, the plant's constants, a run's defaults, the flight software's parameters), each from its node,
+# never a copy in the code. A number (value.number), or since S7.13 a list of numbers (value.list: a vector a run takes
+# when its scenario states none), hence adcs-stated/2.
 STATED = "data/stated.json"
+STATED_SCHEMA = "adcs-stated/2"
 
 
 def stated_values(bodies):
-    """{node: number} of every stated block that states a number (value.number)."""
+    """{node: number or [numbers]} of every stated block that states a number (value.number) or a list (value.list)."""
     import math
     out = {}
     for nid, body in sorted(bodies.items()):
@@ -108,14 +111,24 @@ def stated_values(bodies):
                 if not math.isfinite(x):
                     raise SystemExit(f"design_build: {nid} states {value!r}, not a finite number")
                 out[nid] = x
+            elif (sec, field) == ("value", "list"):
+                try:
+                    xs = json.loads(value)
+                except ValueError:
+                    raise SystemExit(f"design_build: {nid} states the list {value!r}, not a list of numbers")
+                if not isinstance(xs, list) or not xs or not all(isinstance(x, (int, float)) and not isinstance(x, bool) and math.isfinite(x) for x in xs):
+                    raise SystemExit(f"design_build: {nid} states the list {value!r}, not a list of finite numbers")
+                if nid in out:
+                    raise SystemExit(f"design_build: {nid} states both a number and a list")
+                out[nid] = [float(x) for x in xs]
     return out
 
 
 def engine_inputs(bodies, cases):
     """{path in the data folder: bytes} generated from the design's lookup blocks, stated values and case files."""
-    files = {STATED: (json.dumps({"schema": "adcs-stated/1", "value": stated_values(bodies),
+    files = {STATED: (json.dumps({"schema": STATED_SCHEMA, "value": stated_values(bodies),
                                   "about": "every stated value of the design, by node, as the engine reads it "
-                                           "(tools/design_build.py; docs/S7_INVENTORY.md S7.11)"}, indent=1, sort_keys=True) + "\n").encode()}
+                                           "(tools/design_build.py; docs/S7_INVENTORY.md S7.11, S7.13)"}, indent=1, sort_keys=True) + "\n").encode()}
     for nid, body in bodies.items():
         for sec, field, value, origin in body.get("content", []):
             if sec != "table" or not origin:
@@ -144,8 +157,9 @@ def engine_inputs(bodies, cases):
 
 def flight_layout(bodies):
     """The flight software's parameter table (adcs-fswcfg/1) from the design: each field from its
-    stated block (fsw_param_<name>: its port, its rules, its place in the table), the table's limits
-    from the flight software's own table block. The 1.0.0 software reads blobs of exactly this layout."""
+    block (fsw_param_<name>: its port, its rules, its place in the table; since S7.13 its value a method's or a
+    stated one), the table's limits from the flight software's own table block. The 1.0.0 software reads blobs of
+    exactly this layout."""
     head = None
     fields = []
     for nid, body in bodies.items():

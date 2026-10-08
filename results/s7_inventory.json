@@ -589,6 +589,66 @@
     "oils, fsw: the drivers write their constants inline; the valve word's 1 ms no driver function gives back exactly (stated in emucodec, held to drv_write); naming them is fsw's change; fsw/devices.toml, named by the drivers' page, does not exist"
    ],
    "regression_copy_bytes": 9990144
+  },
+  "after_s7_13": {
+   "built_in": 31,
+   "built_in_by_group": {
+    "act": 8,
+    "design": 19,
+    "pnt": 4
+   },
+   "behaviours": {
+    "open": 302,
+    "stated": 284,
+    "method": 231,
+    "children": 134,
+    "lookup": 126,
+    "evidence": 119,
+    "closure": 38,
+    "built-in": 31
+   },
+   "design_nodes": 1265,
+   "how": "the developer's revision S7.13: the 147 fsw_param_* values from the design, 77 methods of fsw (8 modules under design/revisions/S7.13, generated into adcs-sim) and 70 stated (38 constants, 32 the scenario's with the value a run takes when it states none; the schedule's 3 none); 36 new stated nodes (the tuning a law takes and the run's defaults); data/stated.json adcs-stated/2 (a number or a list)",
+   "moved": [],
+   "fsw_param": {
+    "methods": 77,
+    "laws": 35,
+    "choices": 7,
+    "copies": 35,
+    "stated_constants": 38,
+    "scenario_values": 32,
+    "scenario_values_with_default": 29
+   },
+   "added": {
+    "fsw_tune_* (16)": "stated",
+    "env_density_scale_default": "stated 1",
+    "env_force_third_body": "stated 1",
+    "env_force_drag": "stated 1",
+    "env_force_srp": "stated 1",
+    "env_torque_gravity_gradient": "stated 1",
+    "env_torque_aero": "stated 1",
+    "env_torque_radiation": "stated 1",
+    "env_torque_magnetic": "stated 1",
+    "env_orbit_precision_default": "stated 1",
+    "env_refresh_step": "stated 1",
+    "env_start_arg_lat_default": "stated 0",
+    "vv_run_duration_default": "stated 600",
+    "vv_record_step_default": "stated 1",
+    "dyn_initial_attitude_kind_default": "stated 0 (nadir)",
+    "dyn_initial_error_axis": "stated [1, 0, 0]",
+    "dyn_initial_error_angle": "stated 0",
+    "dyn_initial_rate_kind_default": "stated 0 (body)",
+    "dyn_initial_rate_value": "stated [0, 0, 0]",
+    "dyn_initial_rate_magnitude": "stated 0",
+    "dyn_initial_rate_extra": "stated 0"
+   },
+   "findings": [
+    "fsw: a slot with no algorithm still flies a law (B-dot 1, PID, PD, pseudo-inverse, E1 Sun spin): the blob has no none; the magnetic sliding mode's slope is wn/z, twice the fine pointing's wn/(2 z); the gravity-gradient feed-forward is judged at one reference point, not the case's orbit; the schedule has no default",
+    "fsw, dyn: config.rs keeps GUID (the guidance each start mode gives the truth's start), a mode-manager table no node holds; MISSION is read by nothing",
+    "tools: evaluate reads no stated block's value.number; a method shared by several nodes is stored once per node (0.36 MB of the 0.61 MB growth)",
+    "twin: config.m and +fsw/init.m compute their own flight parameters until S7.17"
+   ],
+   "regression_copy_bytes": 10604544
   }
  },
  "built_in_nodes": [
@@ -4671,7 +4731,7 @@
    ],
    "step": "S7.11",
    "note": "The centre-of-mass direction, accommodation 0.8, vb_ratio 0.05, specular share 0.5, f107 130, kp 2, ap 7 are values with no node.",
-   "status": "done (S7.11): s1_4's cm_offset, dyn_truth_plant (inertia, dipole split, flexible mode, the inertia's dispersions), env_case_orbit (epochs, mean motion, periods), generated into adcs-sim; the values the case leaves to the design read from data/stated.json (dyn's direction and surface, env's space weather, orbit step and degrees); the reading, the checks and the model switches stay code"
+   "status": "done (S7.11): s1_4's cm_offset, dyn_truth_plant (inertia, dipole split, flexible mode, the inertia's dispersions), env_case_orbit (epochs, mean motion, periods), generated into adcs-sim; the values the case leaves to the design read from data/stated.json (dyn's direction and surface, env's space weather, orbit step and degrees); the reading, the checks and the model switches stay code (S7.13: stated by env, read from data/stated.json)"
   },
   {
    "id": "sim.config.fsw",
@@ -4688,7 +4748,8 @@
     "G5"
    ],
    "step": "S7.13",
-   "note": "The 147 fsw_param_* nodes are stated with no value (S6 finding). Split by pattern match, to confirm per node."
+   "note": "The 147 fsw_param_* nodes are stated with no value (S6 finding). Split by pattern match, to confirm per node.",
+   "status": "done (S7.13): done: of the 147, 77 methods of fsw generated into adcs-sim (design/revisions/S7.13: fswchoice the choices of law and each slot's default algorithm, fswbody the epoch, Earth, body model, payload offset and gravity-gradient feed-forward, fswmtq the magnetic gains, the LQR's weights and the literature laws', fswrw the fine pointing's, fswspin the Sun spin's, fswrotor the momentum devices and their targets, fswrcs the thrusters, fswsens the sensors and the MEKF's sigmas): 35 laws, 7 choices, 35 copies of the product's, the case's and the constants' values with their fallbacks; 38 constants stated as the 1.0.0 code gave them; 32 the scenario's, 29 stated with the value a run takes when it states none (the schedule's 3 none: no schedule, none flown); the tuning a law takes when the scenario states none, 16 fsw_tune_* stated; config.rs reads, calls the generated functions, hands the LQR's weights to the toolbox's chain3 and checks, and keeps no law or constant of its own; left code: the slots the engine flies (FLOWN) and the registry's check, the mode names (adcs_mode_t), a schedule's and a fault's clock origin 0 and a fault's unit 0"
   },
   {
    "id": "sim.lqr",
@@ -4703,7 +4764,8 @@
    "kind": "toolbox (a CARE solver); the weights are relation",
    "gaps": [],
    "step": "S7.13",
-   "note": "The Kleinman iteration and Lyapunov solve are a Riccati solver: toolbox. The weights and the single-axis model are relations (S7.13)."
+   "note": "The Kleinman iteration and Lyapunov solve are a Riccati solver: toolbox. The weights and the single-axis model are relations (S7.13).",
+   "status": "done (S7.13): the weights fswmtq's fsw_mtq_lqr_weights and fswrw's fsw_rw_lqr_weights; chain3 the toolbox's, called by config.rs"
   },
   {
    "id": "sim.product",
@@ -5819,7 +5881,7 @@
    "kind": "relation (gains, plant parameters: the twin of config.rs)",
    "step": "S7.11, S7.13",
    "note": "",
-   "status": "the plant's set-up generated in +asils/+models since S7.11 (+cmoffset, +truthplant, +caseorbit, +initstate); the twin flies its own until S7.17"
+   "status": "the plant's set-up generated in +asils/+models since S7.11 (+cmoffset, +truthplant, +caseorbit, +initstate), the flight software's parameters since S7.13 (+fswchoice, +fswbody, +fswmtq, +fswrw, +fswspin, +fswrotor, +fswrcs, +fswsens); the twin flies its own until S7.17"
   },
   {
    "package": "run.m",
@@ -5976,7 +6038,8 @@
   {
    "step": "S7.13",
    "work": "Flight parameters: the 147 fsw_param_* values from the design (47 computed by methods, 9 choices, 38 stated, 29 wires, 24 scenario values); lqr chain3 as a toolbox CARE. Closes S6's finding.",
-   "parity": "every scenario's configuration blob byte for byte (flight_build.py gen --check, fswcfg); fsw-parity; scenarios identical"
+   "parity": "every scenario's configuration blob byte for byte (flight_build.py gen --check, fswcfg); fsw-parity; scenarios identical",
+   "status": "done (8 Oct 2026): The 147 fsw_param_* values from the design (design/revisions/S7.13): 77 methods of fsw, the developer's unsigned transcriptions generated into adcs-sim (35 laws: the gains on one bandwidth, the LQR's weights, the literature laws', the MEKF's sigmas, the payload offset, the gravity-gradient feed-forward; 7 choices of law over G6 choices whose options are the algorithms the engine flies in each slot, with none; 35 copies of the product's, the case's and the constants' values with their fallbacks), 38 constants stated as the 1.0.0 code gave them, 32 the scenario's (29 stated with the value a run takes when it states none; the schedule none); the LQR's Riccati solve the toolbox's (lqr.rs chain3). Stated too, as the 1.0.0 code gave them: the tuning a law takes when the scenario states none (16 fsw_tune_*), and the run's defaults the engine held with no node (env's density scale, the precision orbit's three forces, the four torques, the precision orbit by default, the refresh step, the starting argument of latitude; vv's run length and record step; dyn's start: the attitude's and the rate's kinds, the error's axis and angle, the rate, its magnitude and the rate added). data/stated.json holds lists too (adcs-stated/2). Held: 7,308 configurations (the 48 scenarios, every campaign run's draws, the engine overrides and flexible cases of S7.11, and on each scenario every algorithm of every slot, every fsw key away from its default, the four feed-forward settings, guidance of each kind, start and next modes, the time section and the starting latitude), again on a data folder whose products lack devices so every fallback flies, the old code's against the new, Debug text equal (refusals alike); every scenario's configuration blob byte for byte (flight_build.py gen --check; the gate's 48); the 48 scenarios bit for bit as committed, and old against new on the fast orbit, the flexible cases, the products lacking devices and scenarios with no initial section, 48 of 48 each; soft OILS on QEMU, old against new (slew_rw_rcs, sun_mtq_ais, fine_hold_cmg): the same metrics, timing, input hash, mode log and channels; C = Rust 48 of 48; the parity gate on the regression copy: inputs 167, layout 151, blobs 48, runs 48, campaigns 4,516, soft OILS 2, the twin 1, all equal; evaluate 1,376 of 1,500, the same 124 rows as S7.12, reason text only (the new nodes are not among its rows; none computes a value)."
   },
   {
    "step": "S7.14",

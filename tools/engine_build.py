@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""The engine build (docs/PLAN_2_0.md S7; docs/S7_INVENTORY.md S7.3-S7.12): the time engine's published models and relations
+"""The engine build (docs/PLAN_2_0.md S7; docs/S7_INVENTORY.md S7.3-S7.13): the time engine's published models and relations
 written from the design. Only the engine's core stays hand-written (step order, recorder, integrators, the toolbox); a
 model of the world or of the spacecraft is a method of an env, dyn, act or sens node, and its Rust is generated here, never
 edited.
@@ -40,7 +40,10 @@ its crate:
   engine/crates/adcs-sim/src/gen/        the engine's relations that fly with the platform's maths: the fast orbit's
                                          start from the LTAN (S7.6), what the sensors see of the sky (S7.8), the
                                          set-up from the case: the centre of mass's offset, the truth plant, the
-                                         case's orbit and epoch (S7.11); std maths
+                                         case's orbit and epoch (S7.11); the flight software's parameters: its laws
+                                         of gain, the LQR's weights, its choices of law and the copies of the
+                                         product's, the case's and the constants' values (fsw, S7.13; the guidance
+                                         module it takes the payload offset from); std maths
   matlab_sils/+asils/+models/            the same models for the MATLAB twin (asils.models.<module>.<function>), one
                                          package of every module the engine's targets take, over the twin's shared
                                          runtime +asils/+pc

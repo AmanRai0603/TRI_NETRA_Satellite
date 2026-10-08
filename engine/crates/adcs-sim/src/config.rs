@@ -3,14 +3,14 @@
 use crate::error::Error;
 use crate::case::Case;
 use crate::json::{self, get};
+use crate::gen::{fswbody as fb, fswchoice as fc, fswmtq as fm, fswrcs as frc, fswrotor as fro, fswrw as fr, fswsens as fse, fswspin as fs};
 use crate::lqr;
 use crate::product::Dev;
+use crate::stated::Stated;
 use adcs_fsw::params::{Params, MODE_NONE};
-use adcs_sim_core::actuators::Kind;
 use adcs_sim_core::NR;
 use serde_json::Value;
 use std::collections::BTreeMap;
-use std::f64::consts::PI;
 use std::path::Path;
 
 /// Controller states in adcs_mode_t order (asils.fsw.modes).
@@ -47,8 +47,25 @@ pub struct Config {
     pub spin_dps: f64,
     /// the case's flexible mode (section `flex`, all or none); None: a rigid body
     pub flex: Option<adcs_sim_core::plant::Flex>,
+    /// how a run starts where its scenario's initial section states nothing (dyn's stated values)
+    pub start: Start,
     /// the scenario file this run was built from, and the overrides given with it
     pub scenario_file: String, pub overrides: Vec<(String, String)>,
+}
+
+/// How a run starts where its scenario's initial section states nothing: dyn's stated values (dyn_initial_*), read by
+/// run.rs's initial_state: the attitude's and the rate's kinds (dyn_initial_state's AttStart and RateStart), the error's
+/// axis (body) and angle [deg], the body rate [deg/s], a random direction's rate [deg/s] and the rate added [deg/s].
+#[derive(Clone, Debug, Default)]
+pub struct Start { pub att_kind: i64, pub axis: [f64; 3], pub angle_deg: f64, pub rate_kind: i64, pub rate_deg_s: [f64; 3], pub magnitude_deg_s: f64, pub extra_deg_s: f64 }
+
+impl Start {
+    fn load(st: &Stated) -> Result<Start, Error> {
+        Ok(Start { att_kind: st.whole("dyn_initial_attitude_kind_default", 0, 3)? as i64, axis: st.list("dyn_initial_error_axis")?,
+                   angle_deg: st.get("dyn_initial_error_angle")?, rate_kind: st.whole("dyn_initial_rate_kind_default", 0, 3)? as i64,
+                   rate_deg_s: st.list("dyn_initial_rate_value")?, magnitude_deg_s: st.get("dyn_initial_rate_magnitude")?,
+                   extra_deg_s: st.get("dyn_initial_rate_extra")? })
+    }
 }
 
 /// The algorithms the engine flies, per slot: each id maps to a law in the flight software
@@ -64,10 +81,18 @@ pub const FLOWN: [(&str, &[&str]); 7] = [
     ("thrusters", &["rcs_pwm"]),
 ];
 
+/// The option of slot `slot` that algorithm `id` is: its place in FLOWN (fswchoice's choices list the slot's algorithms in
+/// this order, then none); none (the slot's length) for "" or an id the engine does not fly in it.
+fn option(slot: &str, id: &str) -> i64 {
+    let ids = FLOWN.iter().find(|(s, _)| *s == slot).map(|x| x.1).unwrap_or(&[]);
+    ids.iter().position(|x| *x == id).unwrap_or(ids.len()) as i64
+}
+
+/// A slice as an array of its length (a generated function's input).
+fn arr<T: Copy + Default, const N: usize>(x: &[T]) -> [T; N] { let mut a = [T::default(); N]; a.copy_from_slice(&x[..N]); a }
+
 fn select(root: &Path, dev: &Dev, s: &Value) -> Result<BTreeMap<String, String>, Error> {
     let has = dev.caps();
-    let dflt: [(&str, &[&str]); 7] = [("detumble", &["bdot_gyro", "bdot_mag"]), ("attitude", &["mekf"]), ("pointing", &["pid"]), ("mtq_pointing", &["mtq_pd"]),
-        ("sun_acquisition", &["sunspin_l1l2"]), ("allocation", &["cmg_sr", "vscmg_sr", "idmas_split", "rotor_pinv"]), ("thrusters", &["rcs_pwm"])];
     let mut pick: BTreeMap<String, String> = BTreeMap::new();
     for src in [dev.selected.as_ref(), s.get("fsw").and_then(|f| get(f, "algorithms"))].into_iter().flatten() {
         if let Some(o) = src.as_object() { for (k, v) in o { if let Some(x) = v.as_str() { pick.insert(k.clone(), x.into()); } } }
@@ -86,8 +111,12 @@ fn select(root: &Path, dev: &Dev, s: &Value) -> Result<BTreeMap<String, String>,
         let needs = match a.get("needs") { Some(Value::Array(x)) => x.iter().filter_map(|v| v.as_str().map(String::from)).collect(), Some(Value::String(x)) => vec![x.clone()], _ => vec![] };
         Ok((json::s(&a, "slot", "").to_string(), needs))
     };
+    // whether the product can fly each algorithm of a slot (the registry's needs, its devices), in FLOWN's order
+    let can = |ids: &[&str]| -> Result<Vec<i64>, Error> {
+        ids.iter().map(|c| load(c).map(|(_, needs)| needs.iter().all(|n| has.contains(&n.as_str())) as i64)).collect()
+    };
     let mut alg = BTreeMap::new();
-    for (sl, cands) in dflt {
+    for (sl, ids) in FLOWN {
         if let Some(id) = pick.get(sl) {
             let (slot, needs) = load(id)?;
             let miss: Vec<_> = needs.iter().filter(|n| !has.contains(&n.as_str())).cloned().collect();
@@ -95,9 +124,19 @@ fn select(root: &Path, dev: &Dev, s: &Value) -> Result<BTreeMap<String, String>,
             if slot != sl { return Err(Error::refused(format!("algorithm {id} does {slot}, not {sl}"))); }
             alg.insert(sl.to_string(), id.clone());
         } else {
-            let mut got = String::new();
-            for c in cands { let (_, needs) = load(c)?; if needs.iter().all(|n| has.contains(&n.as_str())) { got = c.to_string(); break; } }
-            alg.insert(sl.to_string(), got);
+            // the slot's default, fswchoice's: the first of its defaults the product can fly, else none ("")
+            let c = can(ids)?;
+            let o = match sl {
+                "detumble" => fc::fsw_default_detumble(arr(&c)),
+                "attitude" => fc::fsw_default_attitude(arr(&c)),
+                "pointing" => fc::fsw_default_pointing(arr(&c)),
+                "mtq_pointing" => fc::fsw_default_mtq_pointing(arr(&c)),
+                "sun_acquisition" => fc::fsw_default_sun_acquisition(arr(&c)),
+                "allocation" => fc::fsw_default_allocation(arr(&c)),
+                "thrusters" => fc::fsw_default_thrusters(arr(&c)),
+                _ => ids.len() as i64,
+            } as usize;
+            alg.insert(sl.to_string(), ids.get(o).copied().unwrap_or("").to_string());
         }
     }
     Ok(alg)
@@ -208,219 +247,174 @@ pub fn class_box(root: &Path, case: &Case) -> Result<[f64; 3], Error> {
 pub const ALT_KM: (f64, f64) = (150.0, 2000.0);
 pub const DURATION_MAX_S: f64 = 30.0*86400.0;
 
-/// What the flight-software parameter stages read from the case, the product and the scenario.
-struct Knowns<'a> { dev: &'a Dev, fsw: &'a Value, inertia: [[f64; 3]; 3], m_res: [f64; 3], n: f64, inc_deg: f64 }
+/// What the flight-software parameter stages read from the case, the product, the scenario and the design's stated values.
+struct Knowns<'a> { dev: &'a Dev, fsw: &'a Value, st: &'a Stated, inertia: [[f64; 3]; 3], m_res: [f64; 3], n: f64, inc_deg: f64 }
 
-/// The start mode, the next mode and the schedule; the law each algorithm slot flies.
-fn modes_and_laws(p: &mut Params, fsw: &Value, alg: &BTreeMap<String, String>) -> Result<(), Error> {
-    let a_ = |k: &str| alg.get(k).cloned().unwrap_or_default();
-    p.start_mode = mode_index(json::s(&fsw, "start_mode", "detumble"))?;
-    let an = json::s(&fsw, "auto_next", "");
-    p.auto_next = if an.is_empty() { MODE_NONE } else { mode_index(an)? };
-    if let Some(sc) = get(&fsw, "schedule") {
+impl Knowns<'_> {
+    /// The principal inertia [kg m^2] on each axis.
+    fn ii(&self) -> [f64; 3] { [self.inertia[0][0], self.inertia[1][1], self.inertia[2][2]] }
+    /// A flight parameter the scenario's fsw section gives (key), else the value fsw_param_<name> states.
+    fn param(&self, name: &str, key: &str) -> Result<f64, Error> { Ok(json::f(self.fsw, key, self.st.get(&format!("fsw_param_{name}"))?)) }
+    /// A yes or no parameter: the scenario's fsw section (key), else what fsw_param_<name> states.
+    fn param_flag(&self, name: &str, key: &str) -> Result<u8, Error> { Ok(json::b(self.fsw, key, self.st.flag(&format!("fsw_param_{name}"))?) as u8) }
+    /// A law's tuning the scenario's fsw section gives (key), else the value fsw_tune_<key> states.
+    fn tune(&self, key: &str) -> Result<f64, Error> { Ok(json::f(self.fsw, key, self.st.get(&format!("fsw_tune_{key}"))?)) }
+    /// A flight parameter the design states (fsw_param_<name>): a constant of the flight software.
+    fn constant(&self, name: &str) -> Result<f64, Error> { self.st.get(&format!("fsw_param_{name}")) }
+}
+
+/// The start mode, the next mode and the schedule; the law each algorithm slot flies (fswchoice).
+fn modes_and_laws(p: &mut Params, k: &Knowns, alg: &BTreeMap<String, String>) -> Result<(), Error> {
+    let fsw = k.fsw;
+    let o = |slot: &str| option(slot, alg.get(slot).map(String::as_str).unwrap_or(""));
+    p.start_mode = match get(fsw, "start_mode").and_then(Value::as_str) { Some(m) => mode_index(m)?, None => k.st.whole("fsw_param_start_mode", 0, 255)? as u8 };
+    p.auto_next = match get(fsw, "auto_next").and_then(Value::as_str) {
+        Some("") => MODE_NONE, Some(m) => mode_index(m)?, None => k.st.whole("fsw_param_auto_next", 0, 255)? as u8 };
+    if let Some(sc) = get(fsw, "schedule") {
         let list: Vec<Value> = match sc { Value::Array(x) => x.clone(), x => vec![x.clone()] };
-        for (i, e) in list.iter().take(8).enumerate() { p.sched_t[i] = json::f(e, "t_s", 0.0); p.sched_mode[i] = mode_index(json::s(e, "mode", ""))?; }
-        p.n_sched = list.len().min(8) as u8;
+        for (i, e) in list.iter().take(p.sched_t.len()).enumerate() { p.sched_t[i] = json::f(e, "t_s", 0.0); p.sched_mode[i] = mode_index(json::s(e, "mode", ""))?; }
+        p.n_sched = list.len().min(p.sched_t.len()) as u8;
     }
-    p.bdot_law = match a_("detumble").as_str() { "bdot_gyro" => 0, "bdot_bangbang" => 2, "genbdot_l1" => 3, _ => 1 };
-    p.rw_law = match a_("pointing").as_str() { "lqr" => 1, "smc" => 2, _ => 0 };
-    p.mtq_law = match a_("mtq_pointing").as_str() {
-        "mtq_lqr" => 1, "mtq_smc" => 2, "mtq_rate_damp" => 3,
-        // magnetorquer-only literature (docs/MTQ_LITERATURE.md)
-        "mtq_lovera2004" => 4, "mtq_celani2015" => 5, "mtq_avanzini2021" => 6, "mtq_celani2026" => 7, "mtq_tango2013" => 8,
-        _ => 0 };
-    p.alloc = match a_("allocation").as_str() { "idmas_split" => 1, "cmg_sr" => 2, "vscmg_sr" => 3, _ => 0 };
-    let (ecl, rzf, sl) = match a_("sun_acquisition").as_str() {
-        "sunspin_l1l2_e2" => (2, 0.0, 0), "sunspin_damped" => (2, 0.5, 0),
-        "sunspin_deruiter2011" => (1, 0.0, 1), "sun_boresight_celani2026" => (2, 0.0, 2),
-        _ => (1, 0.0, 0) };
-    p.ss_eclipse = ecl; p.ss_rz_floor = rzf; p.ss_law = sl;
+    p.bdot_law = fc::fsw_bdot_law(o("detumble")) as u8;
+    p.rw_law = fc::fsw_rw_law(o("pointing")) as u8;
+    p.mtq_law = fc::fsw_mtq_law(o("mtq_pointing")) as u8;
+    p.alloc = fc::fsw_alloc(o("allocation")) as u8;
+    let (ecl, rzf, sl) = fc::fsw_sun_acquisition(o("sun_acquisition"));
+    p.ss_eclipse = ecl as u8; p.ss_rz_floor = rzf; p.ss_law = sl as u8;
     Ok(())
 }
 
-/// The guidance the start mode flies, and the payload and power axes.
-fn guidance_params(p: &mut Params, k: &Knowns) {
-    let (fsw, dev) = (k.fsw, k.dev);
-    let g = get(&fsw, "guidance").cloned().unwrap_or(Value::Null);
-    p.gd_kind = match json::s(&g, "kind", "nadir") { "target" => 1, "slew" => 2, "inertial" => 3, "sun" => 4, _ => 0 };
-    p.gd_q_off = adcs_fsw::guid::boresight_offset(&dev.boresight);
-    p.gd_roll_deg = json::f(&g, "roll_deg", 0.0); p.gd_t0 = json::f(&g, "t0", 0.0); p.gd_T = json::f(&g, "T_s", 1.0);
-    p.gd_axis = get(&g, "axis").and_then(json::v3).unwrap_or([0.0; 3]);
-    p.gd_q_inertial = get(&g, "q_inertial").and_then(|q| q.as_array().map(|a| [a[0].as_f64().unwrap_or(0.0), a[1].as_f64().unwrap_or(0.0), a[2].as_f64().unwrap_or(0.0), a[3].as_f64().unwrap_or(1.0)])).unwrap_or([0.0, 0.0, 0.0, 1.0]);
-    p.sun_axis = dev.sun_axis; p.roll_axis = dev.boresight;
-    p.J = k.inertia; p.m_res_est = k.m_res;
+/// The guidance the start mode flies, the payload and power axes, the body's inertia and residual dipole (fswbody).
+fn guidance_params(p: &mut Params, k: &Knowns) -> Result<(), Error> {
+    let dev = k.dev;
+    let g = get(k.fsw, "guidance").cloned().unwrap_or(Value::Null);
+    // the scenario's word for its guidance, fswchoice's GuidKind; when it states none, fsw_param_gd_kind
+    let kind = match get(&g, "kind").and_then(Value::as_str) {
+        Some("nadir") => fc::GUIDKIND_NADIR, Some("target") => fc::GUIDKIND_TARGET, Some("slew") => fc::GUIDKIND_SLEW,
+        Some("inertial") => fc::GUIDKIND_INERTIAL, Some("sun") => fc::GUIDKIND_SUN, _ => k.st.whole("fsw_param_gd_kind", 0, 4)? as i64 };
+    p.gd_kind = fc::fsw_guidance_kind(kind) as u8;
+    p.gd_q_off = fb::fsw_payload_offset(dev.boresight);
+    let gd = |name: &str, key: &str| -> Result<f64, Error> { Ok(json::f(&g, key, k.st.get(&format!("fsw_param_{name}"))?)) };
+    p.gd_roll_deg = gd("gd_roll_deg", "roll_deg")?; p.gd_t0 = gd("gd_t0", "t0")?; p.gd_T = gd("gd_T", "T_s")?;
+    p.gd_axis = match get(&g, "axis").and_then(json::v3) { Some(a) => a, None => k.st.list("fsw_param_gd_axis")? };
+    let q0: [f64; 4] = k.st.list("fsw_param_gd_q_inertial")?;
+    p.gd_q_inertial = get(&g, "q_inertial").and_then(|q| q.as_array().map(|a| [a[0].as_f64().unwrap_or(q0[0]), a[1].as_f64().unwrap_or(q0[1]), a[2].as_f64().unwrap_or(q0[2]), a[3].as_f64().unwrap_or(q0[3])])).unwrap_or(q0);
+    (p.J, p.m_res_est, p.sun_axis, p.roll_axis) = fb::fsw_body_model(k.inertia, k.m_res, dev.sun_axis, dev.boresight);
+    Ok(())
 }
 
-/// The magnetic pointing gains: one bandwidth for every law, and the literature laws' gains on it.
-fn mtq_gains(p: &mut Params, k: &Knowns) {
-    let (fsw, dev, inertia, n) = (k.fsw, k.dev, k.inertia, k.n);
-    p.mtq_period = 1.0; p.mtq_meas = 0.2;
-    p.m_max = if dev.mtq.fitted { dev.mtq.m_max } else { 1.0 };
-    let jmin = inertia[0][0].min(inertia[1][1]).min(inertia[2][2]);
-    p.bdot_k = json::f(&fsw, "bdot_gain_scale", 3.0)*2.0*n*(1.0 + (k.inc_deg*PI/180.0).sin())*jmin;
-    p.detumble_exit = json::f(&fsw, "detumble_exit_deg_s", 0.5)*PI/180.0;
-    p.detumble_hold_s = json::f(&fsw, "detumble_hold_s", 60.0);
-    let ii = [inertia[0][0], inertia[1][1], inertia[2][2]];
-    // magnetic pointing: one bandwidth for every law
-    let (wn, z) = (json::f(&fsw, "mtq_wn", 0.005), json::f(&fsw, "mtq_zeta", 2.0));
+/// The magnetic gains: one bandwidth for every law, and the literature laws' gains on it (fswmtq); the LQR's gain the
+/// toolbox's Riccati solve (lqr.rs) of the weights fswmtq gives.
+fn mtq_gains(p: &mut Params, k: &Knowns) -> Result<(), Error> {
+    let (dev, ii, n) = (k.dev, k.ii(), k.n);
+    p.mtq_period = k.constant("mtq_period")?; p.mtq_meas = k.constant("mtq_meas")?;
+    p.m_max = fm::fsw_coil_limit(dev.mtq.fitted, dev.mtq.m_max);
+    p.bdot_k = fm::fsw_bdot_gain(k.tune("bdot_gain_scale")?, n, k.inc_deg, ii);
+    p.detumble_exit = fm::fsw_rate_rad(k.tune("detumble_exit_deg_s")?);
+    p.detumble_hold_s = k.param("detumble_hold_s", "detumble_hold_s")?;
+    let (wn, z) = (k.tune("mtq_wn")?, k.tune("mtq_zeta")?);
+    (p.mtq_Kp, p.mtq_Kd, p.mtq_Ki) = fm::fsw_mtq_pd(ii, wn, z);
     for ax in 0..3 {
-        p.mtq_Kp[ax] = ii[ax]*wn*wn; p.mtq_Kd[ax] = 2.0*z*ii[ax]*wn; p.mtq_Ki[ax] = 0.0;
-        let th = 0.05;
-        let q = [1e-12, 1.0/(th*th), 1.0/((wn*th)*(wn*th))];
-        let r = 1.0/((ii[ax]*wn*wn*th)*(ii[ax]*wn*wn*th));
-        p.mtq_Klqr[ax] = lqr::chain3(1.0/ii[ax], q, r, wn);
+        let (b, q, r, p0) = fm::fsw_mtq_lqr_weights(ii[ax], wn);
+        p.mtq_Klqr[ax] = lqr::chain3(b, q, r, p0);
     }
-    p.mtq_err_max = 0.5; p.mtq_int_max = 0.05;
-    // magnetorquer-only literature laws, torque-level gains on the same bandwidth (wn, z) so the
-    // laws compare on structure; fsw.mtq_gain_p / mtq_gain_d scale them (the tune node, Bruni & Celani)
-    {
-        let (gp, gd) = (json::f(&fsw, "mtq_gain_p", 1.0), json::f(&fsw, "mtq_gain_d", 1.0));
-        let jm = (ii[0] + ii[1] + ii[2])/3.0;
-        let eps = 1e-3;                                  // the papers' time-scale parameter
-        p.mtq_eps = eps;
-        p.mtq_k1 = gp*jm*wn*wn/(eps*eps);
-        // Lovera & Astolfi multiply the rate by J; Celani does not
-        p.mtq_k2 = if p.mtq_law == 4 { gd*2.0*z*wn/eps } else { gd*2.0*z*jm*wn/eps };
-        // Avanzini 2021: k below 0.5 (1 + 2 sin xi_m) n; the paper flies k ~ 0.84 n, lambda 0.08
-        p.mtq_k16 = gd*json::f(&fsw, "avanzini_k_over_n", 0.84)*n;
-        p.mtq_lam16 = gp*json::f(&fsw, "avanzini_lambda", 0.08);
-        // Celani 2026 boresight
-        p.sb_kp = gp*jm*wn*wn; p.sb_kd = gd*2.0*z*jm*wn;
-        // weak roll about the payload axis in nadir so the power face is held: its own PD on the roll-axis
-        // inertia at roll_wn orbit rates, damping roll_zeta. A bare fraction of the boresight gain is not enough:
-        // at the tuned rate gain the Floquet multiplier of the loop grows to 4 per orbit (docs/MTQ_LITERATURE.md)
-        let ea = dev.boresight; let je = (0..3).map(|i| ea[i]*(0..3).map(|j| inertia[i][j]*ea[j]).sum::<f64>()).sum::<f64>();
-        let wr = json::f(&fsw, "roll_wn_orbits", 3.0)*n; let zr = json::f(&fsw, "roll_zeta", 1.0);
-        p.sb_kroll = json::f(&fsw, "roll_gain", 1.0)*je*wr*wr; p.sb_kdroll = 2.0*zr*je*wr;
-        p.sb_roll_gate = (json::f(&fsw, "roll_gate_deg", 15.0)*PI/180.0).cos();
-        // hand-over from a spinning body (P11 despin to the reference rate, then the law), and the
-        // gravity-gradient feed-forward in the Sun state (at nadir the gradient is the restoring spring)
-        p.ho_in_dps = json::f(&fsw, "handover_in_dps", 1.0); p.ho_out_dps = json::f(&fsw, "handover_out_dps", 0.5);
-        p.ho_hold_s = json::f(&fsw, "handover_hold_s", 60.0);
-        // the gradient restores the nadir attitude only inside the Lagrange region J_normal >= J_along > J_nadir;
-        // outside it (e.g. a long axis along track) the nadir state cancels it too (bit 1)
-        let gg_stable = {
-            use adcs_fsw::guid::{guidance, Guid};
-            let (r, v) = ([7.0e6, 0.0, 0.0], [0.0, 7.5e3, 0.0]);
-            let q = guidance(0, &r, &v, 0.0, &Guid { q_off: p.gd_q_off, ..Default::default() }).q;
-            let a = adcs_fsw::math::dcm(&q);
-            let ax = |u: [f64; 3]| { let b = adcs_fsw::math::mat3_vec(&a, &u); let jb = adcs_fsw::math::mat3_vec(&inertia, &b); b[0]*jb[0] + b[1]*jb[1] + b[2]*jb[2] };
-            let (jz, ja, jn) = (ax([-1.0, 0.0, 0.0]), ax([0.0, 1.0, 0.0]), ax([0.0, 0.0, 1.0]));
-            jn >= ja*(1.0 - 1e-9) && ja > jz*(1.0 + 1e-9)          // equal transverse inertias: neutral, not unstable
-        };
-        p.mtq_gg_ff = json::f(&fsw, "mtq_gg_ff", if gg_stable { 1.0 } else { 3.0 }) as u8;
-        // TANGO frozen Riccati: P from the CARE with the orbit-averaged B_u R^-1 B_u^T; an isotropic field
-        // average gives E[Gamma D Gamma]_ii = (7/15) D_i + tr(D)/15, D = J^-2 (per-axis double-integrator
-        // CARE). Q is chosen (inverse LQR) so the average axis gets the common bandwidth wn, zeta; each axis
-        // then gets the gain its averaged authority calls for. The paper's Q, R are unpublished.
-        let r = 1.0;
-        let d = [1.0/(ii[0]*ii[0]), 1.0/(ii[1]*ii[1]), 1.0/(ii[2]*ii[2])];
-        let trd = d[0] + d[1] + d[2];
-        let mi: Vec<f64> = (0..3).map(|ax| ((7.0/15.0)*d[ax] + trd/15.0)/r).collect();
-        let mref = (mi[0] + mi[1] + mi[2])/3.0;
-        let qt = mref*(jm*wn*wn*r).powi(2);
-        let qw = (mref*(2.0*z*jm*wn*r).powi(2) - 2.0*(qt/mref).sqrt()).max(0.0);
-        for ax in 0..3 {
-            let p12 = (qt/mi[ax]).sqrt();
-            let p22 = ((qw + 2.0*p12)/mi[ax]).sqrt();
-            p.mtq_Pth[ax][ax] = gp*p12/r; p.mtq_Pw[ax][ax] = gd*p22/r;
-        }
-    }
-    p.mtq_lambda = wn/(2.0*z)*2.0; p.mtq_phi = 5e-4; p.mtq_Gs = [2.0*z*wn*p.mtq_phi; 3];
+    p.mtq_err_max = k.constant("mtq_err_max")?; p.mtq_int_max = k.constant("mtq_int_max")?;
+    let (gp, gd) = (k.tune("mtq_gain_p")?, k.tune("mtq_gain_d")?);
+    p.mtq_eps = k.constant("mtq_eps")?;
+    (p.mtq_k1, p.mtq_k2, p.mtq_k16, p.mtq_lam16, p.sb_kp, p.sb_kd) =
+        fm::fsw_mtq_literature(p.mtq_law as i64, ii, wn, z, p.mtq_eps, gp, gd, k.tune("avanzini_k_over_n")?, k.tune("avanzini_lambda")?, n);
+    (p.sb_kroll, p.sb_kdroll) = fm::fsw_mtq_roll(dev.boresight, k.inertia, n, k.tune("roll_wn_orbits")?, k.tune("roll_zeta")?, k.tune("roll_gain")?);
+    p.sb_roll_gate = fm::fsw_roll_gate(k.tune("roll_gate_deg")?);
+    p.ho_in_dps = k.param("ho_in_dps", "handover_in_dps")?; p.ho_out_dps = k.param("ho_out_dps", "handover_out_dps")?;
+    p.ho_hold_s = k.param("ho_hold_s", "handover_hold_s")?;
+    // the gravity-gradient feed-forward: the scenario's, else fswbody's from the nadir attitude's inertia
+    p.mtq_gg_ff = json::f(k.fsw, "mtq_gg_ff", fb::fsw_gg_feedforward(p.gd_q_off, k.inertia) as f64) as u8;
+    (p.mtq_Pth, p.mtq_Pw) = fm::fsw_mtq_tango(ii, wn, z, gp, gd);
+    p.mtq_phi = k.constant("mtq_phi")?;
+    (p.mtq_lambda, p.mtq_Gs) = fm::fsw_mtq_smc(wn, z, p.mtq_phi);
+    Ok(())
 }
 
-/// The fine-pointing gains (wheels and momentum devices).
-fn rw_gains(p: &mut Params, k: &Knowns) {
-    let fsw = k.fsw;
-    let ii = [k.inertia[0][0], k.inertia[1][1], k.inertia[2][2]];
-    // fine pointing
-    let (wn, z) = (json::f(&fsw, "rw_bandwidth", 0.9), json::f(&fsw, "rw_damping", 2.0));
+/// The fine-pointing gains, wheels and momentum devices (fswrw); the LQR's gain the toolbox's Riccati solve (lqr.rs).
+fn rw_gains(p: &mut Params, k: &Knowns) -> Result<(), Error> {
+    let ii = k.ii();
+    let (wn, z) = (k.tune("rw_bandwidth")?, k.tune("rw_damping")?);
+    (p.rw_Kp, p.rw_Kd, p.rw_Ki) = fr::fsw_rw_pid(ii, wn, z);
     for ax in 0..3 {
-        p.rw_Kp[ax] = ii[ax]*wn*wn; p.rw_Kd[ax] = 2.0*z*ii[ax]*wn; p.rw_Ki[ax] = 0.15*ii[ax]*wn*wn*wn;
-        let th = 1e-3;
-        let q = [(wn/(0.5*th))*(wn/(0.5*th)), 1.0/(th*th), 1.0/((wn*th)*(wn*th))];
-        let r = 1.0/((ii[ax]*wn*wn*th)*(ii[ax]*wn*wn*th));
-        p.rw_Klqr[ax] = lqr::chain3(1.0/ii[ax], q, r, wn);
+        let (b, q, r, p0) = fr::fsw_rw_lqr_weights(ii[ax], wn);
+        p.rw_Klqr[ax] = lqr::chain3(b, q, r, p0);
     }
-    p.rw_err_max = 0.2; p.rw_int_max = 0.02; p.rw_dt = 1.0/json::f(&fsw, "rw_rate_hz", 10.0);
-    p.rw_lambda = wn/(2.0*z); p.rw_phi = 2e-4; p.rw_Gs = [2.0*z*wn*p.rw_phi; 3];
-    p.capture_deg = json::f(&fsw, "capture_deg", 3.0); p.capture_rate_deg_s = json::f(&fsw, "capture_rate_deg_s", 1.0);
+    p.rw_err_max = k.constant("rw_err_max")?; p.rw_int_max = k.constant("rw_int_max")?;
+    p.rw_dt = fr::fsw_rw_period(k.tune("rw_rate_hz")?);
+    p.rw_phi = k.constant("rw_phi")?;
+    (p.rw_lambda, p.rw_Gs) = fr::fsw_rw_smc(wn, z, p.rw_phi);
+    p.capture_deg = k.param("capture_deg", "capture_deg")?; p.capture_rate_deg_s = k.param("capture_rate_deg_s", "capture_rate_deg_s")?;
+    Ok(())
 }
 
-/// The Sun-spin and Sun-acquisition laws.
-fn spin_params(p: &mut Params, k: &Knowns) {
-    let (fsw, inertia) = (k.fsw, k.inertia);
-    // Standard Code L1/L2 spin
-    p.ss_k_l1 = json::f(&fsw, "l1_gain", 1e6); p.ss_spin_dps = json::f(&fsw, "spin_rate_dps", 6.0); p.ss_sigma0 = 1.0;
-    p.ss_z_in_dps = 0.5; p.ss_perp_in_dps = 0.5; p.ss_sun_min = 0.05; p.ss_t_check_s = 60.0; p.ss_omega_max_dps = 100.0;
-    p.ss_dwell_in_s = 60.0; p.ss_k1 = 0.01*json::f(&fsw, "ss_gain", 1.0); p.ss_k2 = 0.05*json::f(&fsw, "ss_gain", 1.0);
-    // de Ruiter 2011: k1 > 1, k2 > 0 (paper 1.5, 0.5, with k2 in inertia units here: 0.5 J_zz); k like He's k1
-    p.ss_dr_k = 0.01*json::f(&fsw, "ss_gain", 1.0); p.ss_dr_k1 = 1.5; p.ss_dr_k2 = 0.5*inertia[2][2]; p.ss_perp_out_dps = json::f(&fsw, "sun_spin_perp_out_dps", 1.0); p.ss_omega_exit_dps = 2.0; p.ss_dwell_out_s = json::f(&fsw, "sun_spin_dwell_out_s", 30.0);
-    p.sa_w_max_deg_s = json::f(&fsw, "sun_acq_rate_deg_s", 1.0); p.sa_kd = 0.1; p.sa_done_deg = 10.0; p.sa_done_hold_s = 60.0;
+/// The Sun-spin and Sun-acquisition laws (fswspin).
+fn spin_params(p: &mut Params, k: &Knowns) -> Result<(), Error> {
+    p.ss_k_l1 = k.param("ss_k_l1", "l1_gain")?; p.ss_spin_dps = k.param("ss_spin_dps", "spin_rate_dps")?;
+    for (x, name) in [(&mut p.ss_sigma0, "ss_sigma0"), (&mut p.ss_z_in_dps, "ss_z_in_dps"), (&mut p.ss_perp_in_dps, "ss_perp_in_dps"),
+                      (&mut p.ss_sun_min, "ss_sun_min"), (&mut p.ss_t_check_s, "ss_t_check_s"), (&mut p.ss_omega_max_dps, "ss_omega_max_dps"),
+                      (&mut p.ss_dwell_in_s, "ss_dwell_in_s"), (&mut p.ss_dr_k1, "ss_dr_k1"), (&mut p.ss_omega_exit_dps, "ss_omega_exit_dps"),
+                      (&mut p.sa_kd, "sa_kd"), (&mut p.sa_done_deg, "sa_done_deg"), (&mut p.sa_done_hold_s, "sa_done_hold_s")] {
+        *x = k.constant(name)?;
+    }
+    (p.ss_k1, p.ss_k2, p.ss_dr_k, p.ss_dr_k2) = fs::fsw_sun_spin_gains(k.tune("ss_gain")?, k.inertia[2][2]);
+    p.ss_perp_out_dps = k.param("ss_perp_out_dps", "sun_spin_perp_out_dps")?; p.ss_dwell_out_s = k.param("ss_dwell_out_s", "sun_spin_dwell_out_s")?;
+    p.sa_w_max_deg_s = k.param("sa_w_max_deg_s", "sun_acq_rate_deg_s")?;
+    Ok(())
 }
 
-/// The momentum devices, in their NOMINAL geometry; returns each rotor's target momentum.
-fn rotor_params(p: &mut Params, k: &Knowns) -> [f64; NR] {
-    let fsw = k.fsw;
-    // momentum devices (NOMINAL geometry)
+/// The momentum devices, in their NOMINAL geometry (fswrotor); returns each rotor's momentum when the scenario states none.
+fn rotor_params(p: &mut Params, k: &Knowns) -> Result<[f64; NR], Error> {
     let x = &k.dev.mex;
-    p.nr = x.n as u8; p.ng = x.ng as u8;
-    let h_bias = json::f(&fsw, "wheel_bias_Nms", 2e-3);
-    let mut h_t_rot = [0.0; NR];
-    for i in 0..x.n {
-        p.rot_kind[i] = match x.kind[i] { Kind::Rw => 0, Kind::Fmr => 1, Kind::Cmg => 2, Kind::Vscmg => 3 };
-        p.rot_a0[i] = x.a0[i]; p.rot_gi[i] = x.gi[i] as u8;
-        p.rot_tmax[i] = x.torque_max[i]; p.rot_hmax[i] = x.h_max[i]; p.rot_h0[i] = x.h0[i];
-        h_t_rot[i] = match x.kind[i] { Kind::Rw => h_bias.min(0.25*x.h_max[i]), Kind::Cmg | Kind::Vscmg => x.h0[i], Kind::Fmr => 0.0 };
+    let kind = x.kind.map(|c| c.choice());
+    let gi = x.gi.map(|g| g as i64);
+    let (nr, ng, rk, a0, rgi, ga, tmax, hmax, h0, grate) =
+        fro::fsw_rotors(x.n as i64, x.ng as i64, kind, x.a0, gi, x.g, x.torque_max, x.h_max, x.h0, x.gimbal_rate_max);
+    p.nr = nr as u8; p.ng = ng as u8;
+    p.rot_kind = rk.map(|c| c as u8); p.rot_a0 = a0; p.rot_gi = rgi.map(|g| g as u8); p.gim_axis = ga;
+    p.rot_tmax = tmax; p.rot_hmax = hmax; p.rot_h0 = h0; p.gim_rate_max = grate;
+    p.h_bias = k.param("h_bias", "wheel_bias_Nms")?; p.dump_k = k.param("dump_k", "dump_gain")?;
+    for (v, name) in [(&mut p.cmg_lam0, "cmg_lam0"), (&mut p.cmg_mu, "cmg_mu"), (&mut p.cmg_k_null, "cmg_k_null"), (&mut p.fdir_s, "fdir_s"),
+                      (&mut p.fdir_win_s, "fdir_win_s"), (&mut p.fdir_h_frac, "fdir_h_frac")] {
+        *v = k.constant(name)?;
     }
-    for j in 0..x.ng { p.gim_axis[j] = x.g[j]; }
-    p.gim_rate_max = if x.ng > 0 { x.gimbal_rate_max } else { 1.0 };
-    p.h_bias = h_bias; p.dump_k = json::f(&fsw, "dump_gain", 2e-3);
-    p.cmg_lam0 = 1e-9; p.cmg_mu = 10.0; p.cmg_k_null = 0.002; p.fdir_s = 3.0;
-    // windowed rotor FDIR (fsw/pseudocode/07): 120 s windows; a commanded change under 0.5 % of h_max is not judged
-    p.fdir_win_s = 120.0; p.fdir_h_frac = 0.005;
-    h_t_rot
+    Ok(fro::fsw_rotor_targets(x.n as i64, kind, x.h_max, x.h0, p.h_bias))
 }
 
-/// The thrusters, and the assist, dump and detumble settings.
-fn rcs_params(p: &mut Params, k: &Knowns) {
-    let (fsw, dev) = (k.fsw, k.dev);
-    // thrusters
-    if dev.rcs.fitted {
-        p.nc = dev.rcs.nc as u8;
-        for j in 0..dev.rcs.nc { p.rcs_tau[j] = dev.rcs.tau[j]; }
-        p.rcs_mib = dev.rcs.mib; p.rcs_res = dev.rcs.res;
-    }
-    p.rcs_assist = json::b(&fsw, "rcs_assist", true) as u8; p.rcs_assist_frac = 0.8;
-    p.rcs_dump = json::b(&fsw, "rcs_dump", true) as u8; p.rcs_dump_hi = 4e-3; p.rcs_dump_lo = 1e-3; p.rcs_dump_k = 0.05;
-    p.rcsd_T_damp_s = json::f(&fsw, "rcs_damp_s", 20.0); p.rcsd_deadband_deg_s = 0.2; p.rcsd_period_s = 1.0;
+/// The thrusters (fswrcs), and the assist, dump and detumble settings.
+fn rcs_params(p: &mut Params, k: &Knowns) -> Result<(), Error> {
+    let r = &k.dev.rcs;
+    let (nc, tau, mib, res) = frc::fsw_thrusters(r.fitted, r.nc as i64, r.tau, r.mib, r.res);
+    p.nc = nc as u8; p.rcs_tau = tau; p.rcs_mib = mib; p.rcs_res = res;
+    p.rcs_assist = k.param_flag("rcs_assist", "rcs_assist")?; p.rcs_assist_frac = k.constant("rcs_assist_frac")?;
+    p.rcs_dump = k.param_flag("rcs_dump", "rcs_dump")?;
+    p.rcs_dump_hi = k.constant("rcs_dump_hi")?; p.rcs_dump_lo = k.constant("rcs_dump_lo")?; p.rcs_dump_k = k.constant("rcs_dump_k")?;
+    p.rcsd_T_damp_s = k.param("rcsd_T_damp_s", "rcs_damp_s")?;
+    p.rcsd_deadband_deg_s = k.constant("rcsd_deadband_deg_s")?; p.rcsd_period_s = k.constant("rcsd_period_s")?;
+    Ok(())
 }
 
-/// The sensors the software is told about, and the estimator's measurement sigmas.
-fn sensor_params(p: &mut Params, k: &Knowns) {
-    let (fsw, dev) = (k.fsw, k.dev);
-    // sensors the software is told about
-    p.has_gyro = dev.gyro.fitted as u8; p.has_st = dev.st.fitted as u8; p.has_sun = (dev.sun.fitted || dev.css.fitted) as u8;
-    p.has_es = dev.es.fitted as u8; p.has_gps = dev.gps.fitted as u8; p.n_heads = dev.st.nh as u8;
-    for h in 0..dev.st.nh { p.st_bs[h] = dev.st.bs[h]; }
-    p.st_noise_cross = dev.st.noise_cross; p.st_noise_roll = dev.st.noise_roll; p.st_latency = dev.st.latency; p.st_coast_s = 900.0;
-    p.gyro_arw = dev.gyro.arw; p.gyro_rrw = dev.gyro.rrw; p.es_noise = dev.es.noise;
-    // measurement sigmas from the fitted devices: the fine Sun sensor's accuracy and bias, the coarse cells'
-    // albedo error (0.3 albedo puts the vector up to ~8 deg off); the magnetometer's direction error plus its
-    // bias and noise over the field strength (applied onboard, 1-3 deg at 18-50 uT)
-    let hyp = |a: f64, b: f64| { let (a, b) = (if a.is_finite() { a } else { 0.0 }, if b.is_finite() { b } else { 0.0 }); (a*a + b*b).sqrt() };
-    p.mekf_sig_sun = if dev.sun.fitted { hyp(dev.sun.noise, dev.sun.bias_sigma).max(0.005) } else { (0.5*dev.css.albedo).max(0.1) };
-    p.mekf_sig_mag = hyp(dev.mag.misalign, dev.mag.sf_sigma).max(0.01);
-    let fin = |x: f64| if x.is_finite() { x } else { 0.0 };
-    p.mekf_mag_err_T = (fin(dev.mag.bias_t).powi(2) + 3.0*fin(dev.mag.bias_sigma).powi(2) + 3.0*fin(dev.mag.noise).powi(2)).sqrt();
-    p.mekf_gate = json::f(&fsw, "mekf_gate", 16.27); p.mekf_rej_max = json::f(&fsw, "mekf_rej_max", 30.0);
-    p.mekf_meas_scale = 1.0;
-    p.gnss_ecef = 1;
-    p.gps_latency = if dev.gps.fitted { dev.gps.latency } else { 0.0 };
-    p.gd_yaw_flip = json::b(&fsw, "yaw_flip", true) as u8; p.gd_flip_hyst = 0.1;
-    p.rate_lpf_s = json::f(&fsw, "rate_lpf_s", 0.3); p.igrf_nmax = 10;
-    if !p.st_noise_cross.is_finite() { p.st_noise_cross = 0.0; }
-    for x in [&mut p.st_noise_roll, &mut p.st_latency, &mut p.gyro_arw, &mut p.gyro_rrw, &mut p.es_noise, &mut p.rcs_mib, &mut p.rcs_res] { if !x.is_finite() { *x = 0.0; } }
+/// The sensors the software is told about, and the estimator's measurement sigmas (fswsens).
+fn sensor_params(p: &mut Params, k: &Knowns) -> Result<(), Error> {
+    let d = k.dev;
+    let (hg, hs, hn, he, hp, nh) = fse::fsw_sensor_set(d.gyro.fitted, d.st.fitted, d.sun.fitted, d.css.fitted, d.es.fitted, d.gps.fitted, d.st.nh as i64);
+    p.has_gyro = hg as u8; p.has_st = hs as u8; p.has_sun = hn as u8; p.has_es = he as u8; p.has_gps = hp as u8; p.n_heads = nh as u8;
+    (p.st_bs, p.st_noise_cross, p.st_noise_roll, p.st_latency) = fse::fsw_star_tracker(d.st.nh as i64, d.st.bs, d.st.noise_cross, d.st.noise_roll, d.st.latency);
+    p.st_coast_s = k.constant("st_coast_s")?;
+    (p.gyro_arw, p.gyro_rrw, p.es_noise) = fse::fsw_rate_noises(d.gyro.arw, d.gyro.rrw, d.es.noise);
+    (p.mekf_sig_sun, p.mekf_sig_mag, p.mekf_mag_err_T) = fse::fsw_mekf_sigmas(d.sun.fitted, d.sun.noise, d.sun.bias_sigma, d.css.albedo,
+        d.mag.misalign, d.mag.sf_sigma, d.mag.bias_t, d.mag.bias_sigma, d.mag.noise);
+    p.mekf_gate = k.param("mekf_gate", "mekf_gate")?; p.mekf_rej_max = k.param("mekf_rej_max", "mekf_rej_max")?;
+    p.mekf_meas_scale = k.constant("mekf_meas_scale")?;
+    p.gnss_ecef = k.st.whole("fsw_param_gnss_ecef", 0, 1)? as u8;
+    p.gps_latency = fse::fsw_gnss_latency(d.gps.fitted, d.gps.latency);
+    p.gd_yaw_flip = k.param_flag("gd_yaw_flip", "yaw_flip")?; p.gd_flip_hyst = k.constant("gd_flip_hyst")?;
+    p.rate_lpf_s = k.param("rate_lpf_s", "rate_lpf_s")?; p.igrf_nmax = k.st.whole("fsw_param_igrf_nmax", 1, 13)? as u8;
+    Ok(())
 }
 
 /// The faults a scenario injects, each naming a device the product carries and a unit it has.
@@ -636,8 +630,8 @@ impl Config {
         let tm = s.get("time").cloned().unwrap_or(Value::Null);
         let v = |k: &str| c.get(k);
 
-        // the values the case leaves to the design: dyn's, env's (data/stated.json)
-        let st = crate::stated::Stated::load(root)?;
+        // the values the case and the scenario leave to the design: dyn's, env's, vv's, fsw's (data/stated.json)
+        let st = Stated::load(root)?;
         // env_case_orbit: the mission's epoch (its seconds rounded), the orbit's mean motion and period
         let (epoch, jd0) = crate::gen::caseorbit::mission_epoch(v("mission.epoch"));
         let mu = crate::gen::constants::MU_E;
@@ -650,30 +644,39 @@ impl Config {
         let box_m = class_box(root, &c)?;
 
         let alg = select(root, &dev, &s)?;
-        let k = Knowns { dev: &dev, fsw: &fsw, inertia, m_res, n, inc_deg: v("orbit.inc") };
+        let k = Knowns { dev: &dev, fsw: &fsw, st: &st, inertia, m_res, n, inc_deg: v("orbit.inc") };
         let mut p = Params::default();
-        let dt = json::f(&tm, "dt_s", 0.1);
-        p.jd0 = jd0; p.dt = dt; p.mu = mu;
-        modes_and_laws(&mut p, &fsw, &alg)?;
-        guidance_params(&mut p, &k);
-        mtq_gains(&mut p, &k);
-        rw_gains(&mut p, &k);
-        spin_params(&mut p, &k);
-        let h_t_rot = rotor_params(&mut p, &k);
-        rcs_params(&mut p, &k);
-        sensor_params(&mut p, &k);
+        // the flight software's tick: the scenario's control step, else fsw_param_dt; its epoch and Earth (fswbody)
+        let dt = json::f(&tm, "dt_s", st.get("fsw_param_dt")?);
+        (p.jd0, p.mu) = fb::fsw_epoch_earth(jd0); p.dt = dt;
+        modes_and_laws(&mut p, &k, &alg)?;
+        guidance_params(&mut p, &k)?;
+        mtq_gains(&mut p, &k)?;
+        rw_gains(&mut p, &k)?;
+        spin_params(&mut p, &k)?;
+        let h_t_rot = rotor_params(&mut p, &k)?;
+        rcs_params(&mut p, &k)?;
+        sensor_params(&mut p, &k)?;
         let faults = faults(&s, &dev)?;
         let gd_kind0 = GUID[p.start_mode as usize];
+        let spin_dps = p.ss_spin_dps;
+        // the run's defaults where the case and the scenario state none: env's, vv's and dyn's stated values
         let mut cfg = Config {
             id: json::s(&s, "id", scenario).into(), case: c.clone(), dev, seed, epoch_utc: epoch, jd0,
-            alt_km: v("orbit.alt"), inc_deg: v("orbit.inc"), ecc: v("orbit.ecc"), ltan_h: v("orbit.ltan"), u0_deg: json::f(&init, "arg_lat_deg", 0.0),
-            orbit_step_s: st.get("env_orbit_step")?, period_s, mu, zonal_max: st.whole("env_fast_zonal_degree", 1, 6)?, third_body: true, drag: true, srp: true, density_scale: 1.0,
-            orbit_model: "pop".into(), f107: st.get("env_f107_default")?, f107a: st.get("env_f107a_default")?, kp: st.get("env_kp_default")?, ap: st.get("env_ap_default")?,
-            igrf_nmax: st.whole("env_field_degree", 1, 13)?, env_dt_s: 1.0, env_on: [true; 4],
+            alt_km: v("orbit.alt"), inc_deg: v("orbit.inc"), ecc: v("orbit.ecc"), ltan_h: v("orbit.ltan"),
+            u0_deg: json::f(&init, "arg_lat_deg", st.get("env_start_arg_lat_default")?),
+            orbit_step_s: st.get("env_orbit_step")?, period_s, mu, zonal_max: st.whole("env_fast_zonal_degree", 1, 6)?,
+            third_body: st.flag("env_force_third_body")?, drag: st.flag("env_force_drag")?, srp: st.flag("env_force_srp")?,
+            density_scale: st.get("env_density_scale_default")?,
+            orbit_model: if st.flag("env_orbit_precision_default")? { "pop" } else { "fast" }.into(),
+            f107: st.get("env_f107_default")?, f107a: st.get("env_f107a_default")?, kp: st.get("env_kp_default")?, ap: st.get("env_ap_default")?,
+            igrf_nmax: st.whole("env_field_degree", 1, 13)?, env_dt_s: st.get("env_refresh_step")?,
+            env_on: [st.flag("env_torque_gravity_gradient")?, st.flag("env_torque_aero")?, st.flag("env_torque_radiation")?, st.flag("env_torque_magnetic")?],
             mass_kg: v("mass.m"), inertia, box_m, cm_offset_m,
             aref_m2: v("surface.afr"), cd: v("surface.cd"), refl: v("surface.refl"), sigma_n: surf[0], sigma_t: surf[0], vb_ratio: surf[1], spec_frac: surf[2], m_res,
-            duration_s: json::f(&tm, "duration_s", 600.0), dt, record_dt: json::f(&tm, "record_dt_s", 1.0),
-            params: p, alg, faults, gd_kind0, h_t_rot, spin_dps: json::f(&fsw, "spin_rate_dps", 6.0), flex: None, scenario: s,
+            duration_s: json::f(&tm, "duration_s", st.get("vv_run_duration_default")?), dt,
+            record_dt: json::f(&tm, "record_dt_s", st.get("vv_record_step_default")?),
+            params: p, alg, faults, gd_kind0, h_t_rot, spin_dps, flex: None, start: Start::load(&st)?, scenario: s,
             scenario_file: sp.display().to_string(), overrides: overrides.to_vec(),
         };
         apply_engine(&mut cfg, &eng)?;

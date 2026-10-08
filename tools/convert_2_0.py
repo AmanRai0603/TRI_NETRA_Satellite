@@ -42,7 +42,8 @@ rows to evidence, the KPI closures to closure, the owner pointers to open (or ev
 them), the flight software's runtime rows to stated (code by the boundary). A revision may also add nodes
 (`[[revision.node]]`), load published data into a node through a reader of tools/readers.py (`[[revision.data]]`,
 S7.2b: the leap seconds, the IGRF table, the IAU 2006 series, the tidal EOP terms) and give a node its method, the
-developer's transcription kept under design/revisions/ (`[[revision.method]]`, S7.3: env's time, frames and field).
+developer's transcription kept under design/revisions/ (`[[revision.method]]`, S7.3: env's time, frames and field; one module
+may be several nodes' method, `nodes`, S7.13: the flight software's parameters).
 
 Owner: Agastya. Copyright (c) 2026 Agastya. All rights reserved.
 """
@@ -233,23 +234,24 @@ def revise(gdir, revs, report):
     for r in revs:
         origin = f"the developer's revision {r['id']}"
         for kind, items in (("data", r.get("data", [])), ("method", r.get("method", []))):
-            for d in items:
-                f = files.get(d["node"])
+            # a method may be several nodes' (`nodes`): one module whose functions give each of them its value (S7.13)
+            for d, nid in ((d, nid) for d in items for nid in (d["nodes"] if "nodes" in d else [d["node"]])):
+                f = files.get(nid)
                 if f is None:
-                    raise SystemExit(f"convert: revision {r['id']} gives {kind} to {d['node']}, which the design does not have")
+                    raise SystemExit(f"convert: revision {r['id']} gives {kind} to {nid}, which the design does not have")
                 rows = data_rows(r, d, origin) if kind == "data" else method_rows(d, origin)
                 with sqlite3.connect(f) as c:
                     beh = c.execute("SELECT behaviour FROM block").fetchone()[0]
                     to = d.get("to", beh)
                     if d.get("from", beh) != beh:
-                        raise SystemExit(f"convert: revision {r['id']}: {d['node']} is {beh}, not {d['from']}")
+                        raise SystemExit(f"convert: revision {r['id']}: {nid} is {beh}, not {d['from']}")
                     c.execute("UPDATE block SET behaviour = ?", (to,))
                     c.executemany("INSERT INTO content VALUES (?, ?, ?, ?)", rows)
                     n = c.execute("SELECT coalesce(max(n), 0) + 1 FROM revision").fetchone()[0]
                     what = f"{kind} {rows[0][1] if kind == 'data' else 'pseudocode'}" + (f"; behaviour {beh} -> {to}" if to != beh else "")
                     c.execute("INSERT INTO revision VALUES (?, ?, ?, ?)", (n, r["at"], r["by"], f"{r['id']}: {what}: {d['why']}"))
-                why.setdefault(d["node"], []).append(f"{origin} ({r['at'][:10]}), not yet signed by a person: {what}: {d['why']}")
-                report.append(["revision", d["node"], beh, to, f"{origin}: {what}: {d['why']}"])
+                why.setdefault(nid, []).append(f"{origin} ({r['at'][:10]}), not yet signed by a person: {what}: {d['why']}")
+                report.append(["revision", nid, beh, to, f"{origin}: {what}: {d['why']}"])
         for ch in r.get("change", []):
             named = set(ch["match"].get("nodes", []))
             if named - set(files):

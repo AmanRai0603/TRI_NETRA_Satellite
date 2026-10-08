@@ -1,0 +1,67 @@
+## The momentum devices as the flight software is told of them, transcribed from adcs-sim config.rs (rotor_params): the
+## product's rotors in their nominal geometry (how many, each one's kind, axis, gimbal, torque and momentum limits and a
+## CMG's rotor momentum; the gimbal axes and their rate limit, 1 rad/s when there is no gimbal), and the momentum each
+## rotor holds when the scenario states none (a wheel the bias momentum h_bias, at most a quarter of its capacity; a CMG's
+## or VSCMG's rotor its own momentum; a ring none). A rotor's kind is act's RotorKind's number (0 wheel, 1 ring, 2 CMG,
+## 3 VSCMG), the flight software's rot_kind. Entries past the product's rotors and gimbals are 0.
+## The developer's transcription (S7.13), unsigned.
+module fswrotor
+
+## The rotors and gimbals the flight software is loaded with (FSW_NR rotors and FSW_NG gimbals at most).
+const FSW_NR = 8
+const FSW_NG = 4
+
+## The product's n rotors and ng gimbals as the flight software's parameters: nr, ng, rot_kind, rot_a0, rot_gi (the gimbal
+## from 1; 0 fixed), rot_tmax [N m], rot_hmax [N m s], rot_h0 [N m s], gim_axis, gim_rate_max [rad/s].
+fn fsw_rotors(n: int in 0 .. 8, ng: int in 0 .. 4, kind: int[FSW_NR] in 0 .. 3, a0: real[1][3][FSW_NR] in -1 .. 1, \
+              gi: int[FSW_NR] in 0 .. 4, g: real[1][3][FSW_NG] in -1 .. 1, tmax: real[1][FSW_NR] in 0 .. 1, \
+              hmax: real[1][FSW_NR] in 0 .. 1, h0: real[1][FSW_NR] in 0 .. 1, rate_max: real[1] in 0 .. 5) \
+              -> (nr: int, ngo: int, rot_kind: int[FSW_NR], rot_a0: real[1][3][FSW_NR], rot_gi: int[FSW_NR], \
+                  gim_axis: real[1][3][FSW_NG], rot_tmax: real[1][FSW_NR], rot_hmax: real[1][FSW_NR], rot_h0: real[1][FSW_NR], \
+                  gim_rate_max: real[1])
+    nr = n
+    ngo = ng
+    rot_kind = 0
+    rot_a0 = 0
+    rot_gi = 0
+    gim_axis = 0
+    rot_tmax = 0
+    rot_hmax = 0
+    rot_h0 = 0
+    for i in 0 .. FSW_NR
+        if i < n
+            rot_kind[i] = kind[i]
+            for k in 0 .. 3
+                rot_a0[i][k] = a0[i][k]
+            end
+            rot_gi[i] = gi[i]
+            rot_tmax[i] = tmax[i]
+            rot_hmax[i] = hmax[i]
+            rot_h0[i] = h0[i]
+        end
+    end
+    for m in 0 .. FSW_NG
+        if m < ng
+            for k in 0 .. 3
+                gim_axis[m][k] = g[m][k]
+            end
+        end
+    end
+    gim_rate_max = if ng > 0 then rate_max else 1.0
+end
+
+## The momentum [N m s] each rotor holds when the scenario states none: a wheel min(h_bias, 0.25 h_max), a CMG's or a
+## VSCMG's rotor its own momentum h0, a ring none.
+fn fsw_rotor_targets(n: int in 0 .. 8, kind: int[FSW_NR] in 0 .. 3, hmax: real[1][FSW_NR] in 0 .. 1, h0: real[1][FSW_NR] in 0 .. 1, \
+                     h_bias: real[1] in 0 .. 0.01) -> h: real[1][FSW_NR]
+    h = 0
+    for i in 0 .. FSW_NR
+        if i < n
+            if kind[i] == 0
+                h[i] = min(h_bias, 0.25*hmax[i])
+            elif kind[i] == 2 or kind[i] == 3
+                h[i] = h0[i]
+            end
+        end
+    end
+end

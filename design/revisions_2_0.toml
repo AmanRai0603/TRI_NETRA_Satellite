@@ -2104,3 +2104,948 @@ source = "the flight software's drivers (fsw_drivers: fsw/pseudocode/09_drivers.
 generate = ["adcs-sim-core"]
 uses = ["fsw/pseudocode/09_drivers.pc"]
 why = "the device emulators' scaling as a method of oils, from the drivers' conversions, generated into the engine; the packets stay the rig's code"
+
+[[revision]]
+id = "S7.13"
+at = "2026-10-08T23:00:00Z"
+by = "the developer"
+about = "the flight software's parameters from the design (docs/S7_INVENTORY.md S7.13; closes S6's finding that the fsw_param_* nodes held the blob's layout but no values): of the 147, 77 are methods (35 laws: the gains, the LQR's weights, the literature laws', the MEKF's sigmas, the payload offset and the gravity-gradient feed-forward; 7 choices of law from the algorithms each slot flies; 35 copies of the product's, the case's or the constants' values, with their fallbacks), 38 are constants stated as the 1.0.0 code gave them, and 32 are the scenario's (29 with the value a run takes when its scenario states none, stated as the 1.0.0 code gave it; the schedule has none); the LQR's Riccati solve stays the toolbox's (adcs-sim lqr.rs). Stated too, with the 1.0.0 code as source: the scenario's tuning a law takes when it states none (fsw_tune_*), and the run's defaults the engine held with no node: the density scale, the precision orbit's forces and the four disturbance torques on, the precision orbit, the environment's refresh step, the starting argument of latitude, the run's length and record step, and the start's attitude and rate. The engine builds the blob from these values (config.rs keeps no law or constant of its own)"
+
+[[revision.node]]
+id = "fsw_tune_bdot_gain_scale"
+group = "fsw"
+parent = "gx"
+label = "B-dot gain's scale a run takes when its scenario states none"
+behaviour = "stated"
+question = "Which scale of the B-dot gain 2 n (1 + sin i) J_min does the flight software fly when the scenario states none (fsw.bdot_gain_scale)?"
+content = [["value", "number", "3"], ["value", "source", "1.0.0 code: engine/crates/adcs-sim/src/config.rs mtq_gains (json::f(fsw, bdot_gain_scale, 3.0))"]]
+why = "a value a flight-software law took with no node (the scenario's default, docs/S7_INVENTORY.md S7.13): stated as the 1.0.0 code gave it"
+
+[[revision.node]]
+id = "fsw_tune_detumble_exit_deg_s"
+group = "fsw"
+parent = "gx"
+label = "Detumble's exit rate [deg/s] a run takes when its scenario states none"
+behaviour = "stated"
+question = "Below which rate [deg/s] does the detumble end when the scenario states none (fsw.detumble_exit_deg_s)?"
+content = [["value", "number", "0.5"], ["value", "source", "1.0.0 code: engine/crates/adcs-sim/src/config.rs mtq_gains (json::f(fsw, detumble_exit_deg_s, 0.5))"]]
+why = "a value a flight-software law took with no node (the scenario's default, docs/S7_INVENTORY.md S7.13): stated as the 1.0.0 code gave it"
+
+[[revision.node]]
+id = "fsw_tune_mtq_wn"
+group = "fsw"
+parent = "gx"
+label = "Magnetic pointing's bandwidth [rad/s] a run takes when its scenario states none"
+behaviour = "stated"
+question = "On which bandwidth [rad/s] are every magnetic pointing law's gains set when the scenario states none (fsw.mtq_wn)?"
+content = [["value", "number", "0.005"], ["value", "source", "1.0.0 code: engine/crates/adcs-sim/src/config.rs mtq_gains (json::f(fsw, mtq_wn, 0.005))"]]
+why = "a value a flight-software law took with no node (the scenario's default, docs/S7_INVENTORY.md S7.13): stated as the 1.0.0 code gave it"
+
+[[revision.node]]
+id = "fsw_tune_mtq_zeta"
+group = "fsw"
+parent = "gx"
+label = "Magnetic pointing's damping a run takes when its scenario states none"
+behaviour = "stated"
+question = "With which damping ratio are every magnetic pointing law's gains set when the scenario states none (fsw.mtq_zeta)?"
+content = [["value", "number", "2"], ["value", "source", "1.0.0 code: engine/crates/adcs-sim/src/config.rs mtq_gains (json::f(fsw, mtq_zeta, 2.0))"]]
+why = "a value a flight-software law took with no node (the scenario's default, docs/S7_INVENTORY.md S7.13): stated as the 1.0.0 code gave it"
+
+[[revision.node]]
+id = "fsw_tune_mtq_gain_p"
+group = "fsw"
+parent = "gx"
+label = "Literature laws' proportional scale a run takes when its scenario states none"
+behaviour = "stated"
+question = "By what are the magnetorquer-only literature laws' proportional gains scaled when the scenario states none (fsw.mtq_gain_p; Bruni and Celani's tuning)?"
+content = [["value", "number", "1"], ["value", "source", "1.0.0 code: engine/crates/adcs-sim/src/config.rs mtq_gains (json::f(fsw, mtq_gain_p, 1.0))"]]
+why = "a value a flight-software law took with no node (the scenario's default, docs/S7_INVENTORY.md S7.13): stated as the 1.0.0 code gave it"
+
+[[revision.node]]
+id = "fsw_tune_mtq_gain_d"
+group = "fsw"
+parent = "gx"
+label = "Literature laws' derivative scale a run takes when its scenario states none"
+behaviour = "stated"
+question = "By what are the magnetorquer-only literature laws' derivative gains scaled when the scenario states none (fsw.mtq_gain_d; Bruni and Celani's tuning)?"
+content = [["value", "number", "1"], ["value", "source", "1.0.0 code: engine/crates/adcs-sim/src/config.rs mtq_gains (json::f(fsw, mtq_gain_d, 1.0))"]]
+why = "a value a flight-software law took with no node (the scenario's default, docs/S7_INVENTORY.md S7.13): stated as the 1.0.0 code gave it"
+
+[[revision.node]]
+id = "fsw_tune_avanzini_k_over_n"
+group = "fsw"
+parent = "gx"
+label = "Avanzini 2021 gain over the mean motion a run takes when its scenario states none"
+behaviour = "stated"
+question = "Which gain k, as a multiple of the mean motion, does Avanzini 2021's law fly when the scenario states none (fsw.avanzini_k_over_n; the paper flies 0.84 n)?"
+content = [["value", "number", "0.84"], ["value", "source", "1.0.0 code: engine/crates/adcs-sim/src/config.rs mtq_gains (json::f(fsw, avanzini_k_over_n, 0.84))"]]
+why = "a value a flight-software law took with no node (the scenario's default, docs/S7_INVENTORY.md S7.13): stated as the 1.0.0 code gave it"
+
+[[revision.node]]
+id = "fsw_tune_avanzini_lambda"
+group = "fsw"
+parent = "gx"
+label = "Avanzini 2021 pitch-correction rate a run takes when its scenario states none"
+behaviour = "stated"
+question = "Which pitch-correction rate lambda does Avanzini 2021's law fly when the scenario states none (fsw.avanzini_lambda; the paper's 0.08)?"
+content = [["value", "number", "0.08"], ["value", "source", "1.0.0 code: engine/crates/adcs-sim/src/config.rs mtq_gains (json::f(fsw, avanzini_lambda, 0.08))"]]
+why = "a value a flight-software law took with no node (the scenario's default, docs/S7_INVENTORY.md S7.13): stated as the 1.0.0 code gave it"
+
+[[revision.node]]
+id = "fsw_tune_roll_wn_orbits"
+group = "fsw"
+parent = "gx"
+label = "Celani 2026 weak roll's bandwidth [orbit rates] a run takes when its scenario states none"
+behaviour = "stated"
+question = "At how many orbit rates is Celani 2026's weak roll about the boresight set when the scenario states none (fsw.roll_wn_orbits)?"
+content = [["value", "number", "3"], ["value", "source", "1.0.0 code: engine/crates/adcs-sim/src/config.rs mtq_gains (json::f(fsw, roll_wn_orbits, 3.0))"]]
+why = "a value a flight-software law took with no node (the scenario's default, docs/S7_INVENTORY.md S7.13): stated as the 1.0.0 code gave it"
+
+[[revision.node]]
+id = "fsw_tune_roll_zeta"
+group = "fsw"
+parent = "gx"
+label = "Celani 2026 weak roll's damping a run takes when its scenario states none"
+behaviour = "stated"
+question = "With which damping ratio is Celani 2026's weak roll set when the scenario states none (fsw.roll_zeta)?"
+content = [["value", "number", "1"], ["value", "source", "1.0.0 code: engine/crates/adcs-sim/src/config.rs mtq_gains (json::f(fsw, roll_zeta, 1.0))"]]
+why = "a value a flight-software law took with no node (the scenario's default, docs/S7_INVENTORY.md S7.13): stated as the 1.0.0 code gave it"
+
+[[revision.node]]
+id = "fsw_tune_roll_gain"
+group = "fsw"
+parent = "gx"
+label = "Celani 2026 weak roll's gain scale a run takes when its scenario states none"
+behaviour = "stated"
+question = "By what is Celani 2026's weak roll gain scaled when the scenario states none (fsw.roll_gain)?"
+content = [["value", "number", "1"], ["value", "source", "1.0.0 code: engine/crates/adcs-sim/src/config.rs mtq_gains (json::f(fsw, roll_gain, 1.0))"]]
+why = "a value a flight-software law took with no node (the scenario's default, docs/S7_INVENTORY.md S7.13): stated as the 1.0.0 code gave it"
+
+[[revision.node]]
+id = "fsw_tune_roll_gate_deg"
+group = "fsw"
+parent = "gx"
+label = "Celani 2026 roll gate [deg] a run takes when its scenario states none"
+behaviour = "stated"
+question = "Within what angle [deg] of its reference must the boresight be before the weak roll runs, when the scenario states none (fsw.roll_gate_deg)?"
+content = [["value", "number", "15"], ["value", "source", "1.0.0 code: engine/crates/adcs-sim/src/config.rs mtq_gains (json::f(fsw, roll_gate_deg, 15.0))"]]
+why = "a value a flight-software law took with no node (the scenario's default, docs/S7_INVENTORY.md S7.13): stated as the 1.0.0 code gave it"
+
+[[revision.node]]
+id = "fsw_tune_rw_bandwidth"
+group = "fsw"
+parent = "gx"
+label = "Fine pointing's bandwidth [rad/s] a run takes when its scenario states none"
+behaviour = "stated"
+question = "On which bandwidth [rad/s] are the fine pointing's gains set when the scenario states none (fsw.rw_bandwidth)?"
+content = [["value", "number", "0.9"], ["value", "source", "1.0.0 code: engine/crates/adcs-sim/src/config.rs rw_gains (json::f(fsw, rw_bandwidth, 0.9))"]]
+why = "a value a flight-software law took with no node (the scenario's default, docs/S7_INVENTORY.md S7.13): stated as the 1.0.0 code gave it"
+
+[[revision.node]]
+id = "fsw_tune_rw_damping"
+group = "fsw"
+parent = "gx"
+label = "Fine pointing's damping a run takes when its scenario states none"
+behaviour = "stated"
+question = "With which damping ratio are the fine pointing's gains set when the scenario states none (fsw.rw_damping)?"
+content = [["value", "number", "2"], ["value", "source", "1.0.0 code: engine/crates/adcs-sim/src/config.rs rw_gains (json::f(fsw, rw_damping, 2.0))"]]
+why = "a value a flight-software law took with no node (the scenario's default, docs/S7_INVENTORY.md S7.13): stated as the 1.0.0 code gave it"
+
+[[revision.node]]
+id = "fsw_tune_rw_rate_hz"
+group = "fsw"
+parent = "gx"
+label = "Fine control's rate [Hz] a run takes when its scenario states none"
+behaviour = "stated"
+question = "At which rate [Hz] does the fine control run when the scenario states none (fsw.rw_rate_hz)?"
+content = [["value", "number", "10"], ["value", "source", "1.0.0 code: engine/crates/adcs-sim/src/config.rs rw_gains (json::f(fsw, rw_rate_hz, 10.0))"]]
+why = "a value a flight-software law took with no node (the scenario's default, docs/S7_INVENTORY.md S7.13): stated as the 1.0.0 code gave it"
+
+[[revision.node]]
+id = "fsw_tune_ss_gain"
+group = "fsw"
+parent = "gx"
+label = "Sun spin's gain scale a run takes when its scenario states none"
+behaviour = "stated"
+question = "By what are the Sun spin's gains (He et al. 2023's k1 and k2, de Ruiter 2011's k) scaled when the scenario states none (fsw.ss_gain)?"
+content = [["value", "number", "1"], ["value", "source", "1.0.0 code: engine/crates/adcs-sim/src/config.rs spin_params (json::f(fsw, ss_gain, 1.0))"]]
+why = "a value a flight-software law took with no node (the scenario's default, docs/S7_INVENTORY.md S7.13): stated as the 1.0.0 code gave it"
+
+[[revision.node]]
+id = "env_density_scale_default"
+group = "env"
+parent = "m3"
+label = "Atmospheric density's scale a run takes when it states none"
+behaviour = "stated"
+question = "By what is the truth orbit's atmospheric density scaled when the run states none (engine.density_scale)?"
+content = [["value", "number", "1"], ["value", "source", "1.0.0 code: engine/crates/adcs-sim/src/config.rs build (density_scale: 1.0)"]]
+why = "a value the engine used with no node (docs/S7_INVENTORY.md S7.11, the owner's ruling of 7 Oct 2026): stated as the 1.0.0 code gave it"
+
+[[revision.node]]
+id = "env_force_third_body"
+group = "env"
+parent = "m2"
+label = "Precision orbit: the Sun's and the Moon's gravity"
+behaviour = "stated"
+question = "Does the precision orbit include the Sun's and the Moon's gravity (1 yes, 0 no)?"
+content = [["value", "number", "1"], ["value", "source", "1.0.0 code: engine/crates/adcs-sim/src/config.rs build (third_body: true)"]]
+why = "a value the engine used with no node (docs/S7_INVENTORY.md S7.11, the owner's ruling of 7 Oct 2026): stated as the 1.0.0 code gave it"
+
+[[revision.node]]
+id = "env_force_drag"
+group = "env"
+parent = "m2"
+label = "Precision orbit: atmospheric drag"
+behaviour = "stated"
+question = "Does the precision orbit include atmospheric drag (1 yes, 0 no)?"
+content = [["value", "number", "1"], ["value", "source", "1.0.0 code: engine/crates/adcs-sim/src/config.rs build (drag: true)"]]
+why = "a value the engine used with no node (docs/S7_INVENTORY.md S7.11, the owner's ruling of 7 Oct 2026): stated as the 1.0.0 code gave it"
+
+[[revision.node]]
+id = "env_force_srp"
+group = "env"
+parent = "m2"
+label = "Precision orbit: solar radiation pressure"
+behaviour = "stated"
+question = "Does the precision orbit include solar radiation pressure (1 yes, 0 no)?"
+content = [["value", "number", "1"], ["value", "source", "1.0.0 code: engine/crates/adcs-sim/src/config.rs build (srp: true)"]]
+why = "a value the engine used with no node (docs/S7_INVENTORY.md S7.11, the owner's ruling of 7 Oct 2026): stated as the 1.0.0 code gave it"
+
+[[revision.node]]
+id = "env_torque_gravity_gradient"
+group = "env"
+parent = "l3_dist"
+label = "Disturbance torques: gravity gradient"
+behaviour = "stated"
+question = "Does the truth body feel the gravity-gradient torque (1 yes, 0 no)?"
+content = [["value", "number", "1"], ["value", "source", "1.0.0 code: engine/crates/adcs-sim/src/config.rs build (env_on: [true; 4], the first)"]]
+why = "a value the engine used with no node (docs/S7_INVENTORY.md S7.11, the owner's ruling of 7 Oct 2026): stated as the 1.0.0 code gave it"
+
+[[revision.node]]
+id = "env_torque_aero"
+group = "env"
+parent = "l3_dist"
+label = "Disturbance torques: aerodynamic"
+behaviour = "stated"
+question = "Does the truth body feel the aerodynamic torque (1 yes, 0 no)?"
+content = [["value", "number", "1"], ["value", "source", "1.0.0 code: engine/crates/adcs-sim/src/config.rs build (env_on: [true; 4], the second)"]]
+why = "a value the engine used with no node (docs/S7_INVENTORY.md S7.11, the owner's ruling of 7 Oct 2026): stated as the 1.0.0 code gave it"
+
+[[revision.node]]
+id = "env_torque_radiation"
+group = "env"
+parent = "l3_dist"
+label = "Disturbance torques: radiation pressure"
+behaviour = "stated"
+question = "Does the truth body feel the radiation pressure torque of the Sun, the Earth's albedo and its infrared (1 yes, 0 no)?"
+content = [["value", "number", "1"], ["value", "source", "1.0.0 code: engine/crates/adcs-sim/src/config.rs build (env_on: [true; 4], the third)"]]
+why = "a value the engine used with no node (docs/S7_INVENTORY.md S7.11, the owner's ruling of 7 Oct 2026): stated as the 1.0.0 code gave it"
+
+[[revision.node]]
+id = "env_torque_magnetic"
+group = "env"
+parent = "l3_dist"
+label = "Disturbance torques: residual dipole"
+behaviour = "stated"
+question = "Does the truth body feel the residual dipole's torque (1 yes, 0 no)?"
+content = [["value", "number", "1"], ["value", "source", "1.0.0 code: engine/crates/adcs-sim/src/config.rs build (env_on: [true; 4], the fourth)"]]
+why = "a value the engine used with no node (docs/S7_INVENTORY.md S7.11, the owner's ruling of 7 Oct 2026): stated as the 1.0.0 code gave it"
+
+[[revision.node]]
+id = "env_orbit_precision_default"
+group = "env"
+parent = "m2"
+label = "Precision orbit a run flies when it states none"
+behaviour = "stated"
+question = "Does a run fly the precision orbit (1: the POP port, adcs-pop) or the fast orbit (0: the analytic one, adcs-sim-core) when it states none (engine.orbit)?"
+content = [["value", "number", "1"], ["value", "source", "1.0.0 code: engine/crates/adcs-sim/src/config.rs build (orbit_model: \"pop\")"]]
+why = "a value the engine used with no node (docs/S7_INVENTORY.md S7.11, the owner's ruling of 7 Oct 2026): stated as the 1.0.0 code gave it"
+
+[[revision.node]]
+id = "env_refresh_step"
+group = "env"
+parent = "m3"
+label = "Truth environment's refresh step"
+behaviour = "stated"
+question = "At which step [s] are the field, the Sun, the Moon, the density and the solar pressure along the truth orbit refreshed (and the attitude handed to the precision orbit's surface models)?"
+content = [["value", "number", "1"], ["value", "source", "1.0.0 code: engine/crates/adcs-sim/src/config.rs build (env_dt_s: 1.0)"]]
+why = "a value the engine used with no node (docs/S7_INVENTORY.md S7.11, the owner's ruling of 7 Oct 2026): stated as the 1.0.0 code gave it"
+
+[[revision.node]]
+id = "env_start_arg_lat_default"
+group = "env"
+parent = "m2"
+label = "Argument of latitude a run starts at when it states none"
+behaviour = "stated"
+question = "At which argument of latitude [deg] does a run start on its orbit when its scenario states none (initial.arg_lat_deg)?"
+content = [["value", "number", "0"], ["value", "source", "1.0.0 code: engine/crates/adcs-sim/src/config.rs build (json::f(initial, arg_lat_deg, 0.0))"]]
+why = "a value the engine used with no node (docs/S7_INVENTORY.md S7.11, the owner's ruling of 7 Oct 2026): stated as the 1.0.0 code gave it"
+
+[[revision.node]]
+id = "vv_run_duration_default"
+group = "vv"
+parent = "v2"
+label = "Run's length when its scenario states none"
+behaviour = "stated"
+question = "How long [s] does a run last when its scenario states none (time.duration_s)?"
+content = [["value", "number", "600"], ["value", "source", "1.0.0 code: engine/crates/adcs-sim/src/config.rs build (json::f(time, duration_s, 600.0))"]]
+why = "a value the engine used with no node (docs/S7_INVENTORY.md S7.11, the owner's ruling of 7 Oct 2026): stated as the 1.0.0 code gave it"
+
+[[revision.node]]
+id = "vv_record_step_default"
+group = "vv"
+parent = "v2"
+label = "Run's record step when its scenario states none"
+behaviour = "stated"
+question = "At which step [s] does a run record its channels when its scenario states none (time.record_dt_s)?"
+content = [["value", "number", "1"], ["value", "source", "1.0.0 code: engine/crates/adcs-sim/src/config.rs build (json::f(time, record_dt_s, 1.0))"]]
+why = "a value the engine used with no node (docs/S7_INVENTORY.md S7.11, the owner's ruling of 7 Oct 2026): stated as the 1.0.0 code gave it"
+
+[[revision.node]]
+id = "dyn_initial_attitude_kind_default"
+group = "dyn"
+parent = "dyn__carried"
+label = "Start's attitude kind when the scenario states none"
+behaviour = "stated"
+question = "In which attitude does a run start when its scenario states none (initial.attitude.kind): dyn_initial_state's AttStart (0 nadir, 1 random, 2 an error from the target's, 3 an error from the guidance's)?"
+content = [["value", "number", "0"], ["value", "source", "1.0.0 code: engine/crates/adcs-sim/src/run.rs initial_state (the kind's match: _ => ATTSTART_NADIR)"]]
+why = "a value the engine used with no node (docs/S7_INVENTORY.md S7.11, the owner's ruling of 7 Oct 2026): stated as the 1.0.0 code gave it"
+
+[[revision.node]]
+id = "dyn_initial_error_axis"
+group = "dyn"
+parent = "dyn__carried"
+label = "Start's attitude error axis when the scenario states none"
+behaviour = "stated"
+question = "About which body axis is a run's initial attitude error turned when its scenario states none (initial.attitude.axis_body)?"
+content = [["value", "list", "[1.0, 0.0, 0.0]"], ["value", "source", "1.0.0 code: engine/crates/adcs-sim/src/run.rs initial_state (unwrap_or([1.0, 0.0, 0.0]))"]]
+why = "a value the engine used with no node (docs/S7_INVENTORY.md S7.11, the owner's ruling of 7 Oct 2026): stated as the 1.0.0 code gave it"
+
+[[revision.node]]
+id = "dyn_initial_error_angle"
+group = "dyn"
+parent = "dyn__carried"
+label = "Start's attitude error when the scenario states none"
+behaviour = "stated"
+question = "How large [deg] is a run's initial attitude error when its scenario states none (initial.attitude.angle_deg)?"
+content = [["value", "number", "0"], ["value", "source", "1.0.0 code: engine/crates/adcs-sim/src/run.rs initial_state (json::f(attitude, angle_deg, 0.0))"]]
+why = "a value the engine used with no node (docs/S7_INVENTORY.md S7.11, the owner's ruling of 7 Oct 2026): stated as the 1.0.0 code gave it"
+
+[[revision.node]]
+id = "dyn_initial_rate_kind_default"
+group = "dyn"
+parent = "dyn__carried"
+label = "Start's rate kind when the scenario states none"
+behaviour = "stated"
+question = "With which rate does a run start when its scenario states none (initial.rate.kind): dyn_initial_state's RateStart (0 the stated body rate, 1 a random direction, 2 the LVLH frame's, 3 the guidance's)?"
+content = [["value", "number", "0"], ["value", "source", "1.0.0 code: engine/crates/adcs-sim/src/run.rs initial_state (the kind's match: _ => RATESTART_VALUE)"]]
+why = "a value the engine used with no node (docs/S7_INVENTORY.md S7.11, the owner's ruling of 7 Oct 2026): stated as the 1.0.0 code gave it"
+
+[[revision.node]]
+id = "dyn_initial_rate_value"
+group = "dyn"
+parent = "dyn__carried"
+label = "Start's body rate when the scenario states none"
+behaviour = "stated"
+question = "Which body rate [deg/s] does a run start with when its scenario states none (initial.rate.value_deg_s)?"
+content = [["value", "list", "[0.0, 0.0, 0.0]"], ["value", "source", "1.0.0 code: engine/crates/adcs-sim/src/run.rs initial_state (unwrap_or([0.0; 3]))"]]
+why = "a value the engine used with no node (docs/S7_INVENTORY.md S7.11, the owner's ruling of 7 Oct 2026): stated as the 1.0.0 code gave it"
+
+[[revision.node]]
+id = "dyn_initial_rate_magnitude"
+group = "dyn"
+parent = "dyn__carried"
+label = "Start's rate magnitude when the scenario states none"
+behaviour = "stated"
+question = "How large a rate [deg/s] does a run start with in a random direction when its scenario states none (initial.rate.magnitude_deg_s)?"
+content = [["value", "number", "0"], ["value", "source", "1.0.0 code: engine/crates/adcs-sim/src/run.rs initial_state (magnitude_deg_s: None => 0.0)"]]
+why = "a value the engine used with no node (docs/S7_INVENTORY.md S7.11, the owner's ruling of 7 Oct 2026): stated as the 1.0.0 code gave it"
+
+[[revision.node]]
+id = "dyn_initial_rate_extra"
+group = "dyn"
+parent = "dyn__carried"
+label = "Start's added rate when the scenario states none"
+behaviour = "stated"
+question = "Which rate [deg/s] is added to the LVLH frame's or the guidance's at the start when the scenario states none (initial.rate.extra_deg_s)?"
+content = [["value", "number", "0"], ["value", "source", "1.0.0 code: engine/crates/adcs-sim/src/run.rs initial_state (json::f(rate, extra_deg_s, 0.0))"]]
+why = "a value the engine used with no node (docs/S7_INVENTORY.md S7.11, the owner's ruling of 7 Oct 2026): stated as the 1.0.0 code gave it"
+
+[[revision.change]]
+match = { nodes = ["fsw_param_mtq_period"] }
+from = "stated"
+to = "stated"
+content = [["value", "number", "1"], ["value", "source", "1.0.0 code: engine/crates/adcs-sim/src/config.rs mtq_gains (p.mtq_period = 1.0)"]]
+why = "a flight parameter the engine set from a constant of its own (docs/S7_INVENTORY.md S7.13): stated as the 1.0.0 code gave it"
+
+[[revision.change]]
+match = { nodes = ["fsw_param_mtq_meas"] }
+from = "stated"
+to = "stated"
+content = [["value", "number", "0.2"], ["value", "source", "1.0.0 code: engine/crates/adcs-sim/src/config.rs mtq_gains (p.mtq_meas = 0.2)"]]
+why = "a flight parameter the engine set from a constant of its own (docs/S7_INVENTORY.md S7.13): stated as the 1.0.0 code gave it"
+
+[[revision.change]]
+match = { nodes = ["fsw_param_mtq_err_max"] }
+from = "stated"
+to = "stated"
+content = [["value", "number", "0.5"], ["value", "source", "1.0.0 code: engine/crates/adcs-sim/src/config.rs mtq_gains (p.mtq_err_max = 0.5)"]]
+why = "a flight parameter the engine set from a constant of its own (docs/S7_INVENTORY.md S7.13): stated as the 1.0.0 code gave it"
+
+[[revision.change]]
+match = { nodes = ["fsw_param_mtq_int_max"] }
+from = "stated"
+to = "stated"
+content = [["value", "number", "0.05"], ["value", "source", "1.0.0 code: engine/crates/adcs-sim/src/config.rs mtq_gains (p.mtq_int_max = 0.05)"]]
+why = "a flight parameter the engine set from a constant of its own (docs/S7_INVENTORY.md S7.13): stated as the 1.0.0 code gave it"
+
+[[revision.change]]
+match = { nodes = ["fsw_param_mtq_eps"] }
+from = "stated"
+to = "stated"
+content = [["value", "number", "0.001"], ["value", "source", "1.0.0 code: engine/crates/adcs-sim/src/config.rs mtq_gains (let eps = 1e-3, the papers' time-scale parameter)"]]
+why = "a flight parameter the engine set from a constant of its own (docs/S7_INVENTORY.md S7.13): stated as the 1.0.0 code gave it"
+
+[[revision.change]]
+match = { nodes = ["fsw_param_mtq_phi"] }
+from = "stated"
+to = "stated"
+content = [["value", "number", "0.0005"], ["value", "source", "1.0.0 code: engine/crates/adcs-sim/src/config.rs mtq_gains (p.mtq_phi = 5e-4)"]]
+why = "a flight parameter the engine set from a constant of its own (docs/S7_INVENTORY.md S7.13): stated as the 1.0.0 code gave it"
+
+[[revision.change]]
+match = { nodes = ["fsw_param_rw_err_max"] }
+from = "stated"
+to = "stated"
+content = [["value", "number", "0.2"], ["value", "source", "1.0.0 code: engine/crates/adcs-sim/src/config.rs rw_gains (p.rw_err_max = 0.2)"]]
+why = "a flight parameter the engine set from a constant of its own (docs/S7_INVENTORY.md S7.13): stated as the 1.0.0 code gave it"
+
+[[revision.change]]
+match = { nodes = ["fsw_param_rw_int_max"] }
+from = "stated"
+to = "stated"
+content = [["value", "number", "0.02"], ["value", "source", "1.0.0 code: engine/crates/adcs-sim/src/config.rs rw_gains (p.rw_int_max = 0.02)"]]
+why = "a flight parameter the engine set from a constant of its own (docs/S7_INVENTORY.md S7.13): stated as the 1.0.0 code gave it"
+
+[[revision.change]]
+match = { nodes = ["fsw_param_rw_phi"] }
+from = "stated"
+to = "stated"
+content = [["value", "number", "0.0002"], ["value", "source", "1.0.0 code: engine/crates/adcs-sim/src/config.rs rw_gains (p.rw_phi = 2e-4)"]]
+why = "a flight parameter the engine set from a constant of its own (docs/S7_INVENTORY.md S7.13): stated as the 1.0.0 code gave it"
+
+[[revision.change]]
+match = { nodes = ["fsw_param_ss_sigma0"] }
+from = "stated"
+to = "stated"
+content = [["value", "number", "1"], ["value", "source", "1.0.0 code: engine/crates/adcs-sim/src/config.rs spin_params (p.ss_sigma0 = 1.0)"]]
+why = "a flight parameter the engine set from a constant of its own (docs/S7_INVENTORY.md S7.13): stated as the 1.0.0 code gave it"
+
+[[revision.change]]
+match = { nodes = ["fsw_param_ss_z_in_dps"] }
+from = "stated"
+to = "stated"
+content = [["value", "number", "0.5"], ["value", "source", "1.0.0 code: engine/crates/adcs-sim/src/config.rs spin_params (p.ss_z_in_dps = 0.5)"]]
+why = "a flight parameter the engine set from a constant of its own (docs/S7_INVENTORY.md S7.13): stated as the 1.0.0 code gave it"
+
+[[revision.change]]
+match = { nodes = ["fsw_param_ss_perp_in_dps"] }
+from = "stated"
+to = "stated"
+content = [["value", "number", "0.5"], ["value", "source", "1.0.0 code: engine/crates/adcs-sim/src/config.rs spin_params (p.ss_perp_in_dps = 0.5)"]]
+why = "a flight parameter the engine set from a constant of its own (docs/S7_INVENTORY.md S7.13): stated as the 1.0.0 code gave it"
+
+[[revision.change]]
+match = { nodes = ["fsw_param_ss_sun_min"] }
+from = "stated"
+to = "stated"
+content = [["value", "number", "0.05"], ["value", "source", "1.0.0 code: engine/crates/adcs-sim/src/config.rs spin_params (p.ss_sun_min = 0.05)"]]
+why = "a flight parameter the engine set from a constant of its own (docs/S7_INVENTORY.md S7.13): stated as the 1.0.0 code gave it"
+
+[[revision.change]]
+match = { nodes = ["fsw_param_ss_t_check_s"] }
+from = "stated"
+to = "stated"
+content = [["value", "number", "60"], ["value", "source", "1.0.0 code: engine/crates/adcs-sim/src/config.rs spin_params (p.ss_t_check_s = 60.0)"]]
+why = "a flight parameter the engine set from a constant of its own (docs/S7_INVENTORY.md S7.13): stated as the 1.0.0 code gave it"
+
+[[revision.change]]
+match = { nodes = ["fsw_param_ss_omega_max_dps"] }
+from = "stated"
+to = "stated"
+content = [["value", "number", "100"], ["value", "source", "1.0.0 code: engine/crates/adcs-sim/src/config.rs spin_params (p.ss_omega_max_dps = 100.0)"]]
+why = "a flight parameter the engine set from a constant of its own (docs/S7_INVENTORY.md S7.13): stated as the 1.0.0 code gave it"
+
+[[revision.change]]
+match = { nodes = ["fsw_param_ss_dwell_in_s"] }
+from = "stated"
+to = "stated"
+content = [["value", "number", "60"], ["value", "source", "1.0.0 code: engine/crates/adcs-sim/src/config.rs spin_params (p.ss_dwell_in_s = 60.0)"]]
+why = "a flight parameter the engine set from a constant of its own (docs/S7_INVENTORY.md S7.13): stated as the 1.0.0 code gave it"
+
+[[revision.change]]
+match = { nodes = ["fsw_param_ss_dr_k1"] }
+from = "stated"
+to = "stated"
+content = [["value", "number", "1.5"], ["value", "source", "1.0.0 code: engine/crates/adcs-sim/src/config.rs spin_params (p.ss_dr_k1 = 1.5; de Ruiter 2011: k1 > 1, the paper's 1.5)"]]
+why = "a flight parameter the engine set from a constant of its own (docs/S7_INVENTORY.md S7.13): stated as the 1.0.0 code gave it"
+
+[[revision.change]]
+match = { nodes = ["fsw_param_ss_omega_exit_dps"] }
+from = "stated"
+to = "stated"
+content = [["value", "number", "2"], ["value", "source", "1.0.0 code: engine/crates/adcs-sim/src/config.rs spin_params (p.ss_omega_exit_dps = 2.0)"]]
+why = "a flight parameter the engine set from a constant of its own (docs/S7_INVENTORY.md S7.13): stated as the 1.0.0 code gave it"
+
+[[revision.change]]
+match = { nodes = ["fsw_param_sa_kd"] }
+from = "stated"
+to = "stated"
+content = [["value", "number", "0.1"], ["value", "source", "1.0.0 code: engine/crates/adcs-sim/src/config.rs spin_params (p.sa_kd = 0.1)"]]
+why = "a flight parameter the engine set from a constant of its own (docs/S7_INVENTORY.md S7.13): stated as the 1.0.0 code gave it"
+
+[[revision.change]]
+match = { nodes = ["fsw_param_sa_done_deg"] }
+from = "stated"
+to = "stated"
+content = [["value", "number", "10"], ["value", "source", "1.0.0 code: engine/crates/adcs-sim/src/config.rs spin_params (p.sa_done_deg = 10.0)"]]
+why = "a flight parameter the engine set from a constant of its own (docs/S7_INVENTORY.md S7.13): stated as the 1.0.0 code gave it"
+
+[[revision.change]]
+match = { nodes = ["fsw_param_sa_done_hold_s"] }
+from = "stated"
+to = "stated"
+content = [["value", "number", "60"], ["value", "source", "1.0.0 code: engine/crates/adcs-sim/src/config.rs spin_params (p.sa_done_hold_s = 60.0)"]]
+why = "a flight parameter the engine set from a constant of its own (docs/S7_INVENTORY.md S7.13): stated as the 1.0.0 code gave it"
+
+[[revision.change]]
+match = { nodes = ["fsw_param_cmg_lam0"] }
+from = "stated"
+to = "stated"
+content = [["value", "number", "1e-09"], ["value", "source", "1.0.0 code: engine/crates/adcs-sim/src/config.rs rotor_params (p.cmg_lam0 = 1e-9)"]]
+why = "a flight parameter the engine set from a constant of its own (docs/S7_INVENTORY.md S7.13): stated as the 1.0.0 code gave it"
+
+[[revision.change]]
+match = { nodes = ["fsw_param_cmg_mu"] }
+from = "stated"
+to = "stated"
+content = [["value", "number", "10"], ["value", "source", "1.0.0 code: engine/crates/adcs-sim/src/config.rs rotor_params (p.cmg_mu = 10.0)"]]
+why = "a flight parameter the engine set from a constant of its own (docs/S7_INVENTORY.md S7.13): stated as the 1.0.0 code gave it"
+
+[[revision.change]]
+match = { nodes = ["fsw_param_cmg_k_null"] }
+from = "stated"
+to = "stated"
+content = [["value", "number", "0.002"], ["value", "source", "1.0.0 code: engine/crates/adcs-sim/src/config.rs rotor_params (p.cmg_k_null = 0.002)"]]
+why = "a flight parameter the engine set from a constant of its own (docs/S7_INVENTORY.md S7.13): stated as the 1.0.0 code gave it"
+
+[[revision.change]]
+match = { nodes = ["fsw_param_fdir_s"] }
+from = "stated"
+to = "stated"
+content = [["value", "number", "3"], ["value", "source", "1.0.0 code: engine/crates/adcs-sim/src/config.rs rotor_params (p.fdir_s = 3.0)"]]
+why = "a flight parameter the engine set from a constant of its own (docs/S7_INVENTORY.md S7.13): stated as the 1.0.0 code gave it"
+
+[[revision.change]]
+match = { nodes = ["fsw_param_fdir_win_s"] }
+from = "stated"
+to = "stated"
+content = [["value", "number", "120"], ["value", "source", "1.0.0 code: engine/crates/adcs-sim/src/config.rs rotor_params (p.fdir_win_s = 120.0: 120 s windows)"]]
+why = "a flight parameter the engine set from a constant of its own (docs/S7_INVENTORY.md S7.13): stated as the 1.0.0 code gave it"
+
+[[revision.change]]
+match = { nodes = ["fsw_param_fdir_h_frac"] }
+from = "stated"
+to = "stated"
+content = [["value", "number", "0.005"], ["value", "source", "1.0.0 code: engine/crates/adcs-sim/src/config.rs rotor_params (p.fdir_h_frac = 0.005: a commanded change under 0.5 % of h_max is not judged)"]]
+why = "a flight parameter the engine set from a constant of its own (docs/S7_INVENTORY.md S7.13): stated as the 1.0.0 code gave it"
+
+[[revision.change]]
+match = { nodes = ["fsw_param_rcs_assist_frac"] }
+from = "stated"
+to = "stated"
+content = [["value", "number", "0.8"], ["value", "source", "1.0.0 code: engine/crates/adcs-sim/src/config.rs rcs_params (p.rcs_assist_frac = 0.8)"]]
+why = "a flight parameter the engine set from a constant of its own (docs/S7_INVENTORY.md S7.13): stated as the 1.0.0 code gave it"
+
+[[revision.change]]
+match = { nodes = ["fsw_param_rcs_dump_hi"] }
+from = "stated"
+to = "stated"
+content = [["value", "number", "0.004"], ["value", "source", "1.0.0 code: engine/crates/adcs-sim/src/config.rs rcs_params (p.rcs_dump_hi = 4e-3)"]]
+why = "a flight parameter the engine set from a constant of its own (docs/S7_INVENTORY.md S7.13): stated as the 1.0.0 code gave it"
+
+[[revision.change]]
+match = { nodes = ["fsw_param_rcs_dump_lo"] }
+from = "stated"
+to = "stated"
+content = [["value", "number", "0.001"], ["value", "source", "1.0.0 code: engine/crates/adcs-sim/src/config.rs rcs_params (p.rcs_dump_lo = 1e-3)"]]
+why = "a flight parameter the engine set from a constant of its own (docs/S7_INVENTORY.md S7.13): stated as the 1.0.0 code gave it"
+
+[[revision.change]]
+match = { nodes = ["fsw_param_rcs_dump_k"] }
+from = "stated"
+to = "stated"
+content = [["value", "number", "0.05"], ["value", "source", "1.0.0 code: engine/crates/adcs-sim/src/config.rs rcs_params (p.rcs_dump_k = 0.05)"]]
+why = "a flight parameter the engine set from a constant of its own (docs/S7_INVENTORY.md S7.13): stated as the 1.0.0 code gave it"
+
+[[revision.change]]
+match = { nodes = ["fsw_param_rcsd_deadband_deg_s"] }
+from = "stated"
+to = "stated"
+content = [["value", "number", "0.2"], ["value", "source", "1.0.0 code: engine/crates/adcs-sim/src/config.rs rcs_params (p.rcsd_deadband_deg_s = 0.2)"]]
+why = "a flight parameter the engine set from a constant of its own (docs/S7_INVENTORY.md S7.13): stated as the 1.0.0 code gave it"
+
+[[revision.change]]
+match = { nodes = ["fsw_param_rcsd_period_s"] }
+from = "stated"
+to = "stated"
+content = [["value", "number", "1"], ["value", "source", "1.0.0 code: engine/crates/adcs-sim/src/config.rs rcs_params (p.rcsd_period_s = 1.0)"]]
+why = "a flight parameter the engine set from a constant of its own (docs/S7_INVENTORY.md S7.13): stated as the 1.0.0 code gave it"
+
+[[revision.change]]
+match = { nodes = ["fsw_param_st_coast_s"] }
+from = "stated"
+to = "stated"
+content = [["value", "number", "900"], ["value", "source", "1.0.0 code: engine/crates/adcs-sim/src/config.rs sensor_params (p.st_coast_s = 900.0)"]]
+why = "a flight parameter the engine set from a constant of its own (docs/S7_INVENTORY.md S7.13): stated as the 1.0.0 code gave it"
+
+[[revision.change]]
+match = { nodes = ["fsw_param_mekf_meas_scale"] }
+from = "stated"
+to = "stated"
+content = [["value", "number", "1"], ["value", "source", "1.0.0 code: engine/crates/adcs-sim/src/config.rs sensor_params (p.mekf_meas_scale = 1.0)"]]
+why = "a flight parameter the engine set from a constant of its own (docs/S7_INVENTORY.md S7.13): stated as the 1.0.0 code gave it"
+
+[[revision.change]]
+match = { nodes = ["fsw_param_gnss_ecef"] }
+from = "stated"
+to = "stated"
+content = [["value", "number", "1"], ["value", "source", "1.0.0 code: engine/crates/adcs-sim/src/config.rs sensor_params (p.gnss_ecef = 1: the receiver's standard frame, converted onboard)"]]
+why = "a flight parameter the engine set from a constant of its own (docs/S7_INVENTORY.md S7.13): stated as the 1.0.0 code gave it"
+
+[[revision.change]]
+match = { nodes = ["fsw_param_gd_flip_hyst"] }
+from = "stated"
+to = "stated"
+content = [["value", "number", "0.1"], ["value", "source", "1.0.0 code: engine/crates/adcs-sim/src/config.rs sensor_params (p.gd_flip_hyst = 0.1)"]]
+why = "a flight parameter the engine set from a constant of its own (docs/S7_INVENTORY.md S7.13): stated as the 1.0.0 code gave it"
+
+[[revision.change]]
+match = { nodes = ["fsw_param_igrf_nmax"] }
+from = "stated"
+to = "stated"
+content = [["value", "number", "10"], ["value", "source", "1.0.0 code: engine/crates/adcs-sim/src/config.rs sensor_params (p.igrf_nmax = 10)"]]
+why = "a flight parameter the engine set from a constant of its own (docs/S7_INVENTORY.md S7.13): stated as the 1.0.0 code gave it"
+
+[[revision.change]]
+match = { nodes = ["fsw_param_dt"] }
+from = "stated"
+to = "stated"
+content = [["value", "number", "0.1"], ["value", "source", "the scenario's time.dt_s; when it states none, as the 1.0.0 code gave it: engine/crates/adcs-sim/src/config.rs build (json::f(time, dt_s, 0.1))"]]
+why = "a flight parameter the scenario gives; the value a run takes when its scenario states none, which the engine held with no node (docs/S7_INVENTORY.md S7.13), stated as the 1.0.0 code gave it"
+
+[[revision.change]]
+match = { nodes = ["fsw_param_start_mode"] }
+from = "stated"
+to = "stated"
+content = [["value", "number", "0"], ["value", "source", "the scenario's fsw.start_mode; when it states none, as the 1.0.0 code gave it: engine/crates/adcs-sim/src/config.rs modes_and_laws (json::s(fsw, start_mode, detumble): detumble, state 0 of adcs_mode_t)"]]
+why = "a flight parameter the scenario gives; the value a run takes when its scenario states none, which the engine held with no node (docs/S7_INVENTORY.md S7.13), stated as the 1.0.0 code gave it"
+
+[[revision.change]]
+match = { nodes = ["fsw_param_auto_next"] }
+from = "stated"
+to = "stated"
+content = [["value", "number", "255"], ["value", "source", "the scenario's fsw.auto_next; when it states none, as the 1.0.0 code gave it: engine/crates/adcs-sim/src/config.rs modes_and_laws (none when it names none: MODE_NONE, 255)"]]
+why = "a flight parameter the scenario gives; the value a run takes when its scenario states none, which the engine held with no node (docs/S7_INVENTORY.md S7.13), stated as the 1.0.0 code gave it"
+
+[[revision.change]]
+match = { nodes = ["fsw_param_gd_kind"] }
+from = "stated"
+to = "stated"
+content = [["value", "number", "0"], ["value", "source", "the scenario's fsw.guidance.kind; when it states none, as the 1.0.0 code gave it: engine/crates/adcs-sim/src/config.rs guidance_params (json::s(guidance, kind, nadir): nadir, fswchoice's GuidKind 0)"]]
+why = "a flight parameter the scenario gives; the value a run takes when its scenario states none, which the engine held with no node (docs/S7_INVENTORY.md S7.13), stated as the 1.0.0 code gave it"
+
+[[revision.change]]
+match = { nodes = ["fsw_param_gd_roll_deg"] }
+from = "stated"
+to = "stated"
+content = [["value", "number", "0"], ["value", "source", "the scenario's fsw.guidance.roll_deg; when it states none, as the 1.0.0 code gave it: engine/crates/adcs-sim/src/config.rs guidance_params (json::f(guidance, roll_deg, 0.0))"]]
+why = "a flight parameter the scenario gives; the value a run takes when its scenario states none, which the engine held with no node (docs/S7_INVENTORY.md S7.13), stated as the 1.0.0 code gave it"
+
+[[revision.change]]
+match = { nodes = ["fsw_param_gd_t0"] }
+from = "stated"
+to = "stated"
+content = [["value", "number", "0"], ["value", "source", "the scenario's fsw.guidance.t0; when it states none, as the 1.0.0 code gave it: engine/crates/adcs-sim/src/config.rs guidance_params (json::f(guidance, t0, 0.0))"]]
+why = "a flight parameter the scenario gives; the value a run takes when its scenario states none, which the engine held with no node (docs/S7_INVENTORY.md S7.13), stated as the 1.0.0 code gave it"
+
+[[revision.change]]
+match = { nodes = ["fsw_param_gd_T"] }
+from = "stated"
+to = "stated"
+content = [["value", "number", "1"], ["value", "source", "the scenario's fsw.guidance.T_s; when it states none, as the 1.0.0 code gave it: engine/crates/adcs-sim/src/config.rs guidance_params (json::f(guidance, T_s, 1.0))"]]
+why = "a flight parameter the scenario gives; the value a run takes when its scenario states none, which the engine held with no node (docs/S7_INVENTORY.md S7.13), stated as the 1.0.0 code gave it"
+
+[[revision.change]]
+match = { nodes = ["fsw_param_gd_axis"] }
+from = "stated"
+to = "stated"
+content = [["value", "list", "[0.0, 0.0, 0.0]"], ["value", "source", "the scenario's fsw.guidance.axis; when it states none, as the 1.0.0 code gave it: engine/crates/adcs-sim/src/config.rs guidance_params (unwrap_or([0.0; 3]))"]]
+why = "a flight parameter the scenario gives; the value a run takes when its scenario states none, which the engine held with no node (docs/S7_INVENTORY.md S7.13), stated as the 1.0.0 code gave it"
+
+[[revision.change]]
+match = { nodes = ["fsw_param_gd_q_inertial"] }
+from = "stated"
+to = "stated"
+content = [["value", "list", "[0.0, 0.0, 0.0, 1.0]"], ["value", "source", "the scenario's fsw.guidance.q_inertial; when it states none, as the 1.0.0 code gave it: engine/crates/adcs-sim/src/config.rs guidance_params (unwrap_or([0.0, 0.0, 0.0, 1.0]))"]]
+why = "a flight parameter the scenario gives; the value a run takes when its scenario states none, which the engine held with no node (docs/S7_INVENTORY.md S7.13), stated as the 1.0.0 code gave it"
+
+[[revision.change]]
+match = { nodes = ["fsw_param_detumble_hold_s"] }
+from = "stated"
+to = "stated"
+content = [["value", "number", "60"], ["value", "source", "the scenario's fsw.detumble_hold_s; when it states none, as the 1.0.0 code gave it: engine/crates/adcs-sim/src/config.rs mtq_gains (json::f(fsw, detumble_hold_s, 60.0))"]]
+why = "a flight parameter the scenario gives; the value a run takes when its scenario states none, which the engine held with no node (docs/S7_INVENTORY.md S7.13), stated as the 1.0.0 code gave it"
+
+[[revision.change]]
+match = { nodes = ["fsw_param_ho_in_dps"] }
+from = "stated"
+to = "stated"
+content = [["value", "number", "1"], ["value", "source", "the scenario's fsw.handover_in_dps; when it states none, as the 1.0.0 code gave it: engine/crates/adcs-sim/src/config.rs mtq_gains (json::f(fsw, handover_in_dps, 1.0))"]]
+why = "a flight parameter the scenario gives; the value a run takes when its scenario states none, which the engine held with no node (docs/S7_INVENTORY.md S7.13), stated as the 1.0.0 code gave it"
+
+[[revision.change]]
+match = { nodes = ["fsw_param_ho_out_dps"] }
+from = "stated"
+to = "stated"
+content = [["value", "number", "0.5"], ["value", "source", "the scenario's fsw.handover_out_dps; when it states none, as the 1.0.0 code gave it: engine/crates/adcs-sim/src/config.rs mtq_gains (json::f(fsw, handover_out_dps, 0.5))"]]
+why = "a flight parameter the scenario gives; the value a run takes when its scenario states none, which the engine held with no node (docs/S7_INVENTORY.md S7.13), stated as the 1.0.0 code gave it"
+
+[[revision.change]]
+match = { nodes = ["fsw_param_ho_hold_s"] }
+from = "stated"
+to = "stated"
+content = [["value", "number", "60"], ["value", "source", "the scenario's fsw.handover_hold_s; when it states none, as the 1.0.0 code gave it: engine/crates/adcs-sim/src/config.rs mtq_gains (json::f(fsw, handover_hold_s, 60.0))"]]
+why = "a flight parameter the scenario gives; the value a run takes when its scenario states none, which the engine held with no node (docs/S7_INVENTORY.md S7.13), stated as the 1.0.0 code gave it"
+
+[[revision.change]]
+match = { nodes = ["fsw_param_capture_deg"] }
+from = "stated"
+to = "stated"
+content = [["value", "number", "3"], ["value", "source", "the scenario's fsw.capture_deg; when it states none, as the 1.0.0 code gave it: engine/crates/adcs-sim/src/config.rs rw_gains (json::f(fsw, capture_deg, 3.0))"]]
+why = "a flight parameter the scenario gives; the value a run takes when its scenario states none, which the engine held with no node (docs/S7_INVENTORY.md S7.13), stated as the 1.0.0 code gave it"
+
+[[revision.change]]
+match = { nodes = ["fsw_param_capture_rate_deg_s"] }
+from = "stated"
+to = "stated"
+content = [["value", "number", "1"], ["value", "source", "the scenario's fsw.capture_rate_deg_s; when it states none, as the 1.0.0 code gave it: engine/crates/adcs-sim/src/config.rs rw_gains (json::f(fsw, capture_rate_deg_s, 1.0))"]]
+why = "a flight parameter the scenario gives; the value a run takes when its scenario states none, which the engine held with no node (docs/S7_INVENTORY.md S7.13), stated as the 1.0.0 code gave it"
+
+[[revision.change]]
+match = { nodes = ["fsw_param_ss_k_l1"] }
+from = "stated"
+to = "stated"
+content = [["value", "number", "1000000"], ["value", "source", "the scenario's fsw.l1_gain; when it states none, as the 1.0.0 code gave it: engine/crates/adcs-sim/src/config.rs spin_params (json::f(fsw, l1_gain, 1e6))"]]
+why = "a flight parameter the scenario gives; the value a run takes when its scenario states none, which the engine held with no node (docs/S7_INVENTORY.md S7.13), stated as the 1.0.0 code gave it"
+
+[[revision.change]]
+match = { nodes = ["fsw_param_ss_spin_dps"] }
+from = "stated"
+to = "stated"
+content = [["value", "number", "6"], ["value", "source", "the scenario's fsw.spin_rate_dps; when it states none, as the 1.0.0 code gave it: engine/crates/adcs-sim/src/config.rs spin_params (json::f(fsw, spin_rate_dps, 6.0)), and build (spin_dps)"]]
+why = "a flight parameter the scenario gives; the value a run takes when its scenario states none, which the engine held with no node (docs/S7_INVENTORY.md S7.13), stated as the 1.0.0 code gave it"
+
+[[revision.change]]
+match = { nodes = ["fsw_param_ss_perp_out_dps"] }
+from = "stated"
+to = "stated"
+content = [["value", "number", "1"], ["value", "source", "the scenario's fsw.sun_spin_perp_out_dps; when it states none, as the 1.0.0 code gave it: engine/crates/adcs-sim/src/config.rs spin_params (json::f(fsw, sun_spin_perp_out_dps, 1.0))"]]
+why = "a flight parameter the scenario gives; the value a run takes when its scenario states none, which the engine held with no node (docs/S7_INVENTORY.md S7.13), stated as the 1.0.0 code gave it"
+
+[[revision.change]]
+match = { nodes = ["fsw_param_ss_dwell_out_s"] }
+from = "stated"
+to = "stated"
+content = [["value", "number", "30"], ["value", "source", "the scenario's fsw.sun_spin_dwell_out_s; when it states none, as the 1.0.0 code gave it: engine/crates/adcs-sim/src/config.rs spin_params (json::f(fsw, sun_spin_dwell_out_s, 30.0))"]]
+why = "a flight parameter the scenario gives; the value a run takes when its scenario states none, which the engine held with no node (docs/S7_INVENTORY.md S7.13), stated as the 1.0.0 code gave it"
+
+[[revision.change]]
+match = { nodes = ["fsw_param_sa_w_max_deg_s"] }
+from = "stated"
+to = "stated"
+content = [["value", "number", "1"], ["value", "source", "the scenario's fsw.sun_acq_rate_deg_s; when it states none, as the 1.0.0 code gave it: engine/crates/adcs-sim/src/config.rs spin_params (json::f(fsw, sun_acq_rate_deg_s, 1.0))"]]
+why = "a flight parameter the scenario gives; the value a run takes when its scenario states none, which the engine held with no node (docs/S7_INVENTORY.md S7.13), stated as the 1.0.0 code gave it"
+
+[[revision.change]]
+match = { nodes = ["fsw_param_h_bias"] }
+from = "stated"
+to = "stated"
+content = [["value", "number", "0.002"], ["value", "source", "the scenario's fsw.wheel_bias_Nms; when it states none, as the 1.0.0 code gave it: engine/crates/adcs-sim/src/config.rs rotor_params (json::f(fsw, wheel_bias_Nms, 2e-3))"]]
+why = "a flight parameter the scenario gives; the value a run takes when its scenario states none, which the engine held with no node (docs/S7_INVENTORY.md S7.13), stated as the 1.0.0 code gave it"
+
+[[revision.change]]
+match = { nodes = ["fsw_param_dump_k"] }
+from = "stated"
+to = "stated"
+content = [["value", "number", "0.002"], ["value", "source", "the scenario's fsw.dump_gain; when it states none, as the 1.0.0 code gave it: engine/crates/adcs-sim/src/config.rs rotor_params (json::f(fsw, dump_gain, 2e-3))"]]
+why = "a flight parameter the scenario gives; the value a run takes when its scenario states none, which the engine held with no node (docs/S7_INVENTORY.md S7.13), stated as the 1.0.0 code gave it"
+
+[[revision.change]]
+match = { nodes = ["fsw_param_rcs_assist"] }
+from = "stated"
+to = "stated"
+content = [["value", "number", "1"], ["value", "source", "the scenario's fsw.rcs_assist; when it states none, as the 1.0.0 code gave it: engine/crates/adcs-sim/src/config.rs rcs_params (json::b(fsw, rcs_assist, true))"]]
+why = "a flight parameter the scenario gives; the value a run takes when its scenario states none, which the engine held with no node (docs/S7_INVENTORY.md S7.13), stated as the 1.0.0 code gave it"
+
+[[revision.change]]
+match = { nodes = ["fsw_param_rcs_dump"] }
+from = "stated"
+to = "stated"
+content = [["value", "number", "1"], ["value", "source", "the scenario's fsw.rcs_dump; when it states none, as the 1.0.0 code gave it: engine/crates/adcs-sim/src/config.rs rcs_params (json::b(fsw, rcs_dump, true))"]]
+why = "a flight parameter the scenario gives; the value a run takes when its scenario states none, which the engine held with no node (docs/S7_INVENTORY.md S7.13), stated as the 1.0.0 code gave it"
+
+[[revision.change]]
+match = { nodes = ["fsw_param_rcsd_T_damp_s"] }
+from = "stated"
+to = "stated"
+content = [["value", "number", "20"], ["value", "source", "the scenario's fsw.rcs_damp_s; when it states none, as the 1.0.0 code gave it: engine/crates/adcs-sim/src/config.rs rcs_params (json::f(fsw, rcs_damp_s, 20.0))"]]
+why = "a flight parameter the scenario gives; the value a run takes when its scenario states none, which the engine held with no node (docs/S7_INVENTORY.md S7.13), stated as the 1.0.0 code gave it"
+
+[[revision.change]]
+match = { nodes = ["fsw_param_mekf_gate"] }
+from = "stated"
+to = "stated"
+content = [["value", "number", "16.27"], ["value", "source", "the scenario's fsw.mekf_gate; when it states none, as the 1.0.0 code gave it: engine/crates/adcs-sim/src/config.rs sensor_params (json::f(fsw, mekf_gate, 16.27))"]]
+why = "a flight parameter the scenario gives; the value a run takes when its scenario states none, which the engine held with no node (docs/S7_INVENTORY.md S7.13), stated as the 1.0.0 code gave it"
+
+[[revision.change]]
+match = { nodes = ["fsw_param_mekf_rej_max"] }
+from = "stated"
+to = "stated"
+content = [["value", "number", "30"], ["value", "source", "the scenario's fsw.mekf_rej_max; when it states none, as the 1.0.0 code gave it: engine/crates/adcs-sim/src/config.rs sensor_params (json::f(fsw, mekf_rej_max, 30.0))"]]
+why = "a flight parameter the scenario gives; the value a run takes when its scenario states none, which the engine held with no node (docs/S7_INVENTORY.md S7.13), stated as the 1.0.0 code gave it"
+
+[[revision.change]]
+match = { nodes = ["fsw_param_gd_yaw_flip"] }
+from = "stated"
+to = "stated"
+content = [["value", "number", "1"], ["value", "source", "the scenario's fsw.yaw_flip; when it states none, as the 1.0.0 code gave it: engine/crates/adcs-sim/src/config.rs sensor_params (json::b(fsw, yaw_flip, true))"]]
+why = "a flight parameter the scenario gives; the value a run takes when its scenario states none, which the engine held with no node (docs/S7_INVENTORY.md S7.13), stated as the 1.0.0 code gave it"
+
+[[revision.change]]
+match = { nodes = ["fsw_param_rate_lpf_s"] }
+from = "stated"
+to = "stated"
+content = [["value", "number", "0.3"], ["value", "source", "the scenario's fsw.rate_lpf_s; when it states none, as the 1.0.0 code gave it: engine/crates/adcs-sim/src/config.rs sensor_params (json::f(fsw, rate_lpf_s, 0.3))"]]
+why = "a flight parameter the scenario gives; the value a run takes when its scenario states none, which the engine held with no node (docs/S7_INVENTORY.md S7.13), stated as the 1.0.0 code gave it"
+
+[[revision.change]]
+match = { nodes = ["fsw_param_n_sched"] }
+from = "stated"
+to = "stated"
+content = [["value", "source", "the scenario's fsw.schedule (at most max_schedule entries; none when it lists none): engine/crates/adcs-sim/src/config.rs modes_and_laws"]]
+why = "a flight parameter the scenario gives (docs/S7_INVENTORY.md S7.13); with no schedule the blob holds none, the format's empty list"
+
+[[revision.change]]
+match = { nodes = ["fsw_param_sched_t"] }
+from = "stated"
+to = "stated"
+content = [["value", "source", "the scenario's fsw.schedule (at most max_schedule entries; none when it lists none): engine/crates/adcs-sim/src/config.rs modes_and_laws"]]
+why = "a flight parameter the scenario gives (docs/S7_INVENTORY.md S7.13); with no schedule the blob holds none, the format's empty list"
+
+[[revision.change]]
+match = { nodes = ["fsw_param_sched_mode"] }
+from = "stated"
+to = "stated"
+content = [["value", "source", "the scenario's fsw.schedule (at most max_schedule entries; none when it lists none): engine/crates/adcs-sim/src/config.rs modes_and_laws"]]
+why = "a flight parameter the scenario gives (docs/S7_INVENTORY.md S7.13); with no schedule the blob holds none, the format's empty list"
+
+[[revision.method]]
+nodes = ["fsw_param_bdot_law", "fsw_param_rw_law", "fsw_param_mtq_law", "fsw_param_alloc", "fsw_param_ss_eclipse", "fsw_param_ss_rz_floor", "fsw_param_ss_law"]
+from = "stated"
+to = "method"
+pseudocode = "design/revisions/S7.13/fswchoice.pc"
+path = "fsw/params/fswchoice.pc"
+transcribes = "engine/crates/adcs-sim/src/config.rs (select: the slots' defaults, the first the product can fly; modes_and_laws: bdot_law, rw_law, mtq_law, alloc, ss_eclipse, ss_rz_floor, ss_law from the algorithm each slot flies; guidance_params: gd_kind's words)"
+source = "the algorithm registry's ids (data/algorithms) in the order the engine flies them (config.rs FLOWN); the laws' codes of fsw/params/params.toml (the flight software's)"
+generate = ["adcs-sim"]
+why = "the flight software's choice of law in each slot, from the algorithm the product or the scenario chooses or the slot's default, as a method of fsw, generated into the engine's configuration"
+
+[[revision.method]]
+nodes = ["fsw_param_jd0", "fsw_param_mu", "fsw_param_J", "fsw_param_m_res_est", "fsw_param_sun_axis", "fsw_param_roll_axis", "fsw_param_gd_q_off", "fsw_param_mtq_gg_ff"]
+from = "stated"
+to = "method"
+pseudocode = "design/revisions/S7.13/fswbody.pc"
+path = "fsw/params/fswbody.pc"
+transcribes = "engine/crates/adcs-sim/src/config.rs (build: jd0, mu; guidance_params: gd_q_off = boresight_offset(boresight), sun_axis, roll_axis, J, m_res_est; mtq_gains: mtq_gg_ff's gravity-gradient stability test)"
+source = "env_case_orbit's mission_epoch, the constants' MU_E (spec/physics/constants.pc), dyn_truth_plant's principal_inertia and residual_dipole_axes, the product's Sun axis and payload boresight (gdn's when it states none), the flight software's guidance (fsw_guidance: boresight_offset, guidance) and its maths (dcm); the Lagrange region of the gravity-gradient's stable attitudes (Hughes 1986, chapter 9)"
+generate = ["adcs-sim"]
+uses = ["fsw/pseudocode/04_guidance.pc", "fsw/pseudocode/01_math.pc", "spec/physics/constants.pc"]
+why = "the flight software's model of its spacecraft and the Earth (its epoch, mu, inertia, residual dipole, axes, the payload offset and the gravity-gradient feed-forward) as a method of fsw, generated into the engine's configuration"
+
+[[revision.method]]
+nodes = ["fsw_param_m_max", "fsw_param_bdot_k", "fsw_param_detumble_exit", "fsw_param_mtq_Kp", "fsw_param_mtq_Kd", "fsw_param_mtq_Ki", "fsw_param_mtq_Klqr", "fsw_param_mtq_lambda", "fsw_param_mtq_Gs", "fsw_param_mtq_k1", "fsw_param_mtq_k2", "fsw_param_mtq_k16", "fsw_param_mtq_lam16", "fsw_param_sb_kp", "fsw_param_sb_kd", "fsw_param_sb_kroll", "fsw_param_sb_kdroll", "fsw_param_sb_roll_gate", "fsw_param_mtq_Pth", "fsw_param_mtq_Pw"]
+from = "stated"
+to = "method"
+pseudocode = "design/revisions/S7.13/fswmtq.pc"
+path = "fsw/params/fswmtq.pc"
+transcribes = "engine/crates/adcs-sim/src/config.rs (mtq_gains: the coils' limit, the B-dot gain and exit rate, the PD, LQR (its weights; the gain lqr.rs chain3, the toolbox's), sliding-mode and literature laws' gains, the weak roll, the roll gate, TANGO's frozen Riccati gains)"
+source = "Avanzini and Giulietti (2012), the B-dot gain; Lovera and Astolfi (2004); Celani (2015); Avanzini et al. (2021); Celani (2026); TANGO (2013); Bruni and Celani's gain scaling (docs/MTQ_LITERATURE.md); the scenario's fsw section and fsw_tune_* when it states none; the 1.0.0 code's own constants (the LQR's 1e-12 and 0.05 rad, the literature laws' shared bandwidth, the isotropic average's 7/15 and 1/15)"
+generate = ["adcs-sim"]
+why = "the magnetic control's gains as a method of fsw, generated into the engine's configuration (the LQR's Riccati solve the toolbox's)"
+
+[[revision.method]]
+nodes = ["fsw_param_rw_Kp", "fsw_param_rw_Kd", "fsw_param_rw_Ki", "fsw_param_rw_Klqr", "fsw_param_rw_lambda", "fsw_param_rw_Gs", "fsw_param_rw_dt"]
+from = "stated"
+to = "method"
+pseudocode = "design/revisions/S7.13/fswrw.pc"
+path = "fsw/params/fswrw.pc"
+transcribes = "engine/crates/adcs-sim/src/config.rs (rw_gains: the PID, the LQR's weights (the gain lqr.rs chain3, the toolbox's), the sliding mode, the control period)"
+source = "the scenario's fsw section and fsw_tune_* when it states none; the 1.0.0 code's own constants (K_i 0.15 I wn^3, the LQR's 1e-3 rad)"
+generate = ["adcs-sim"]
+why = "the fine pointing's gains as a method of fsw, generated into the engine's configuration (the LQR's Riccati solve the toolbox's)"
+
+[[revision.method]]
+nodes = ["fsw_param_ss_k1", "fsw_param_ss_k2", "fsw_param_ss_dr_k", "fsw_param_ss_dr_k2"]
+from = "stated"
+to = "method"
+pseudocode = "design/revisions/S7.13/fswspin.pc"
+path = "fsw/params/fswspin.pc"
+transcribes = "engine/crates/adcs-sim/src/config.rs (spin_params: ss_k1 = 0.01 g, ss_k2 = 0.05 g, ss_dr_k = 0.01 g, ss_dr_k2 = 0.5 J_zz)"
+source = "He et al. (2023), the L1/L2 Sun spin; de Ruiter (2011), the spin law (k1 > 1, k2 > 0); fsw_tune_ss_gain"
+generate = ["adcs-sim"]
+why = "the Sun spin's gains as a method of fsw, generated into the engine's configuration"
+
+[[revision.method]]
+nodes = ["fsw_param_nr", "fsw_param_ng", "fsw_param_rot_kind", "fsw_param_rot_a0", "fsw_param_rot_gi", "fsw_param_rot_tmax", "fsw_param_rot_hmax", "fsw_param_rot_h0", "fsw_param_gim_axis", "fsw_param_gim_rate_max"]
+from = "stated"
+to = "method"
+pseudocode = "design/revisions/S7.13/fswrotor.pc"
+path = "fsw/params/fswrotor.pc"
+transcribes = "engine/crates/adcs-sim/src/config.rs (rotor_params: the rotors and gimbals in their nominal geometry, gim_rate_max 1 with no gimbal, and each rotor's momentum when the scenario states none, h_t_rot)"
+source = "the product's momentum devices (adcs-sim product.rs, act's RotorKind); fsw_param_h_bias"
+generate = ["adcs-sim"]
+why = "the momentum devices as the flight software is told of them, a method of fsw handing the product's values over, generated into the engine's configuration"
+
+[[revision.method]]
+nodes = ["fsw_param_nc", "fsw_param_rcs_tau", "fsw_param_rcs_mib", "fsw_param_rcs_res"]
+from = "stated"
+to = "method"
+pseudocode = "design/revisions/S7.13/fswrcs.pc"
+path = "fsw/params/fswrcs.pc"
+transcribes = "engine/crates/adcs-sim/src/config.rs (rcs_params: the couples, their torques, the minimum impulse bit and the valve resolution; sensor_params: 0 where unstated)"
+source = "the product's thrusters (adcs-sim product.rs, act's couple_torques)"
+generate = ["adcs-sim"]
+why = "the thrusters as the flight software is told of them, a method of fsw handing the product's values over, generated into the engine's configuration"
+
+[[revision.method]]
+nodes = ["fsw_param_has_gyro", "fsw_param_has_st", "fsw_param_has_sun", "fsw_param_has_es", "fsw_param_has_gps", "fsw_param_n_heads", "fsw_param_st_bs", "fsw_param_st_noise_cross", "fsw_param_st_noise_roll", "fsw_param_st_latency", "fsw_param_gyro_arw", "fsw_param_gyro_rrw", "fsw_param_es_noise", "fsw_param_mekf_sig_sun", "fsw_param_mekf_sig_mag", "fsw_param_mekf_mag_err_T", "fsw_param_gps_latency"]
+from = "stated"
+to = "method"
+pseudocode = "design/revisions/S7.13/fswsens.pc"
+path = "fsw/params/fswsens.pc"
+transcribes = "engine/crates/adcs-sim/src/config.rs (sensor_params: the sensors fitted, the star tracker's heads and noises, the gyro's and Earth sensor's noises, 0 where unstated; the MEKF's sigmas; the GNSS fix's latency)"
+source = "the product's sensors (adcs-sim product.rs); the 1.0.0 code's own floors of the MEKF's sigmas (0.005 and 0.1 rad for the Sun, 0.01 rad for the magnetometer) and the coarse cells' albedo share"
+generate = ["adcs-sim"]
+why = "the sensors as the flight software is told of them and its estimator's measurement sigmas, a method of fsw, generated into the engine's configuration"

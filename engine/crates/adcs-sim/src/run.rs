@@ -277,22 +277,25 @@ fn initial_state(c: &Config, r: &V3, v: &V3, gd: &Guid, ir: &mut Rng, nr: usize)
     let q_nad = guidance(0, r, v, 0.0, gd).q;
     let g = (c.gd_kind0 >= 0).then(|| guidance(c.gd_kind0, r, v, 0.0, gd));
     let (q_g, w_g) = g.as_ref().map(|g| (g.q, g.w)).unwrap_or(([0.0, 0.0, 0.0, 1.0], [0.0; 3]));
-    let att_kind = match crate::json::s(&att, "kind", "") {
-        "random" => is::ATTSTART_RANDOM, "error_from_target" => is::ATTSTART_ERROR_FROM_TARGET,
-        "error_from_guidance" => is::ATTSTART_ERROR_FROM_GUIDANCE, _ => is::ATTSTART_NADIR,
+    // the scenario's words for its kinds, dyn_initial_state's AttStart and RateStart; where it states none, how the design
+    // says a run starts (dyn's stated values, Config::start)
+    let d = &c.start;
+    let att_kind = match att.get("kind").and_then(|x| x.as_str()) {
+        Some("nadir") => is::ATTSTART_NADIR, Some("random") => is::ATTSTART_RANDOM, Some("error_from_target") => is::ATTSTART_ERROR_FROM_TARGET,
+        Some("error_from_guidance") => is::ATTSTART_ERROR_FROM_GUIDANCE, _ => d.att_kind,
     };
-    let axis = att.get("axis_body").and_then(crate::json::v3).unwrap_or([1.0, 0.0, 0.0]);
-    let angle = crate::json::f(&att, "angle_deg", 0.0).to_radians();
-    let rate_kind = match crate::json::s(&rate, "kind", "") {
-        "random_direction" => is::RATESTART_RANDOM_DIRECTION, "lvlh" => is::RATESTART_LVLH, "guidance" => is::RATESTART_GUIDANCE,
-        _ => is::RATESTART_VALUE,
+    let axis = att.get("axis_body").and_then(crate::json::v3).unwrap_or(d.axis);
+    let angle = crate::json::f(&att, "angle_deg", d.angle_deg).to_radians();
+    let rate_kind = match rate.get("kind").and_then(|x| x.as_str()) {
+        Some("random_direction") => is::RATESTART_RANDOM_DIRECTION, Some("lvlh") => is::RATESTART_LVLH, Some("guidance") => is::RATESTART_GUIDANCE,
+        Some("body") => is::RATESTART_VALUE, _ => d.rate_kind,
     };
     let mag = match rate.get("magnitude_deg_s") {
         Some(serde_json::Value::String(s)) => c.case.get(s.trim_start_matches("case:")),
-        Some(x) => x.as_f64().unwrap_or(0.0), None => 0.0,
+        Some(x) => x.as_f64().unwrap_or(d.magnitude_deg_s), None => d.magnitude_deg_s,
     }.to_radians();
-    let extra = crate::json::f(&rate, "extra_deg_s", 0.0).to_radians();
-    let value = rate.get("value_deg_s").and_then(crate::json::v3).map(|x| scale(&x, std::f64::consts::PI/180.0)).unwrap_or([0.0; 3]);
+    let extra = crate::json::f(&rate, "extra_deg_s", d.extra_deg_s).to_radians();
+    let value = scale(&rate.get("value_deg_s").and_then(crate::json::v3).unwrap_or(d.rate_deg_s), std::f64::consts::PI/180.0);
     let h0 = crate::json::f(&ini, "wheel_momentum_Nms", f64::NAN);
     let mut s = ir.stream();
     let (q, w, h) = is::initial_state(att_kind, q_nad, g.is_some(), q_g, w_g, axis, angle, rate_kind, *r, *v, value, mag, extra,
@@ -520,7 +523,7 @@ pub fn run(c: &Config, o: &Opts) -> Result<Record, Error> {
         // soft OILS: when does this command reach the actuators?
         let lat = match (oils.as_mut(), o.oils.as_ref()) { (Some(st), Some(m)) => oils_latency(st, m, &fsw, &bus, dt), _ => 0.0 };
         let mut cmd = Commands::default();
-        emu::decode_pwm(&bus.pwm, if d.mtq.fitted { d.mtq.m_max } else { 1.0 }, &u.scale, &mut cmd);
+        emu::decode_pwm(&bus.pwm, p.m_max, &u.scale, &mut cmd);     // the coils' limit the flight software allocates against
         for f in bus.can_tx.drain(..) { emu::decode_can(f.id, &f.data, &tmax, p.gim_rate_max, dt, &u.scale, &mut cmd); }
         bus.can_rx.clear();
         let dbg = fsw.debug();
