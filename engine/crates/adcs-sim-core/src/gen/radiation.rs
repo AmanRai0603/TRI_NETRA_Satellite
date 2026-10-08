@@ -10,6 +10,13 @@ use crate::gen::rigidbody::{PlantState};
 use crate::gen::rotors::{RotorGeometry};
 use crate::gen::facets::{Facets};
 use crate::gen::orbitfast::{FastCtx};
+use crate::gen::css::{CssDesc, CssUnit};
+use crate::gen::earthsensor::{EsDesc, EsUnit};
+use crate::gen::finesun::{SunDesc, SunUnit};
+use crate::gen::gyro::{GyroDesc, GyroUnit};
+use crate::gen::mag::{MagDesc, MagUnit};
+use crate::gen::sttracker::{StDesc, StUnit};
+use crate::gen::sunquad::{SunHead};
 
 /// The torque [N m] of light of pressure p arriving from the body direction sb (unit, towards the source) on the faces.
 /// - g: Facets (passed rec)
@@ -21,16 +28,16 @@ pub fn radiation_torque(g: Facets, sb: [f64; 3], p: f64) -> [f64; 3] {
     let mut tau: [f64; 3] = [0.0; 3];
     tau = [0.0, 0.0, 0.0];
     {
-        let __end43: i64 = 6;
+        let __end44: i64 = 6;
         let mut j: i64 = 0;
-        while j < __end43 {
+        while j < __end44 {
             let mut c: f64 = rt::dot(sb, g.n[(j) as usize]);
             if (!(c <= 0.0)) {
                 let mut f: [f64; 3] = [0.0, 0.0, 0.0];
                 {
-                    let __end44: i64 = 3;
+                    let __end45: i64 = 3;
                     let mut k: i64 = 0;
-                    while k < __end44 {
+                    while k < __end45 {
                         f[(k) as usize] = ((((-(p)) * g.a[(j) as usize]) * c) * (((1.0 - g.rho_spec) * sb[(k) as usize]) + ((2.0 * ((g.rho_spec * c) + (g.rho_diff / 3.0))) * g.n[(j) as usize][(k) as usize])));
                         k += 1;
                     }

@@ -9,6 +9,13 @@ use crate::gen::rigidbody::{PlantState};
 use crate::gen::rotors::{RotorGeometry};
 use crate::gen::facets::{Facets};
 use crate::gen::orbitfast::{FastCtx};
+use crate::gen::css::{CssDesc, CssUnit};
+use crate::gen::earthsensor::{EsDesc, EsUnit};
+use crate::gen::finesun::{SunDesc, SunUnit};
+use crate::gen::gyro::{GyroDesc, GyroUnit};
+use crate::gen::mag::{MagDesc, MagUnit};
+use crate::gen::sttracker::{StDesc, StUnit};
+use crate::gen::sunquad::{SunHead};
 
 /// The mode: whether there is one, its coupling delta, its natural frequency Omega [rad/s] and its damping ratio zeta.
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
@@ -28,13 +35,13 @@ pub fn flex_reduced_inertia(inertia: [[f64; 3]; 3], delta: [f64; 3]) -> [[f64; 3
     let mut r: [[f64; 3]; 3] = [[0.0; 3]; 3];
     r = inertia;
     {
-        let __end18: i64 = 3;
+        let __end19: i64 = 3;
         let mut ia: i64 = 0;
-        while ia < __end18 {
+        while ia < __end19 {
             {
-                let __end19: i64 = 3;
+                let __end20: i64 = 3;
                 let mut ic: i64 = 0;
-                while ic < __end19 {
+                while ic < __end20 {
                     r[(ia) as usize][(ic) as usize] = (r[(ia) as usize][(ic) as usize] - (delta[(ia) as usize] * delta[(ic) as usize]));
                     ic += 1;
                 }

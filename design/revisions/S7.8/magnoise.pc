@@ -1,0 +1,25 @@
+## A magnetometer's bias and noise, transcribed from adcs-sim-core sensors.rs (Mag::new: the bias, the part's bias_T shared
+## equally over the three axes, 1/sqrt(3) each, plus normal draws times its dispersion, from the run's dispersion stream;
+## Mag::sample: the reading, the field through the unit's matrix plus the bias, the part's noise_T_rms times a normal draw
+## on each axis from the magnetometer's noise stream, and the coils' stray field, the part's coil_coupling_T_per_Am2 times
+## the coils' body dipole).
+## The developer's transcription (S7.8), unsigned.
+module magnoise
+
+## A magnetometer's bias [T]: bias_t over sqrt(3) on each axis plus three normal draws times sigma.
+fn mag_bias(bias_t: real[1] in 0 .. 1e-6, sigma: real[1] in 0 .. 1e-6, disp: inout stream) -> b: real[1][3]
+    let e = normal3(disp)
+    let s3 = 1.0/sqrt(3.0)
+    b = [bias_t*s3 + sigma*e[0], bias_t*s3 + sigma*e[1], bias_t*s3 + sigma*e[2]]
+end
+
+## The reading before its range [T]: mb the field through the unit's matrix, b its bias, noise the noise's sigma [T], k_coil
+## the coils' coupling [T/(A m^2)] and m_coil their body dipole [A m^2].
+fn mag_noise(mb: real[1][3] in -6e-5 .. 6e-5, b: real[1][3] in -1e-6 .. 1e-6, noise: real[1] in 0 .. 1e-6, \
+             k_coil: real[1] in 0 .. 1e-6, m_coil: real[1][3] in -1 .. 1, g: inout stream) -> v: real[1][3]
+    let n = normal3(g)
+    v = [0.0, 0.0, 0.0]
+    for i in 0 .. 3
+        v[i] = mb[i] + b[i] + noise*n[i] + k_coil*m_coil[i]
+    end
+end

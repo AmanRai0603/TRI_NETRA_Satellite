@@ -1,0 +1,58 @@
+## A fine Sun sensor's quadrant currents, transcribed from adcs-sim-core comp.rs (head_frame; sun_sensor::Head, currents):
+## a square aperture of side a at height h over a four-quadrant photodiode; the Sun (unit, in the head's frame, z the
+## boresight) casts the square spot displaced by h tan(alpha), h tan(beta); each quadrant's current is its share of the
+## spot's area times the cosine of the incidence, plus noise (a share of the full-Sun current, a normal draw a quadrant
+## from the sensor's noise stream); with the Sun behind the head, none and no draw. The currents in the order ++, -+, --,
+## +- (quadrants in x, y). A sensor head's frame: z on the boresight, x = z x Z_body (or z x X_body when the boresight is
+## along Z_body), y = z x x (the fine Sun sensor's and the star tracker's heads).
+## The developer's transcription (S7.8), unsigned.
+module sunquad
+
+## A quadrant head as the part states it: the aperture's side and height [m], the current noise and the validity
+## threshold as shares of the full-Sun current.
+record SunHead
+    a: real[1]
+    h: real[1]
+    noise: real[1]
+    min_frac: real[1]
+end
+
+## The body to head rotation (rows x, y, z) of a head whose boresight is z (body).
+fn head_frame(z: real[1][3] in -1 .. 1) -> r: real[1][3][3]
+    let zu = unit_or_zero(z)
+    let x = cross(zu, [0.0, 0.0, 1.0])
+    if norm(x) < 1e-6
+        x = cross(zu, [1.0, 0.0, 0.0])
+    end
+    let xu = unit_or_zero(x)
+    let yu = cross(zu, xu)
+    r = [xu, yu, zu]
+end
+
+## The length of the overlap of [lo, hi] and [a, b] (none when they do not overlap).
+fn quad_overlap(lo: real[1] in -1 .. 0, hi: real[1] in 0 .. 1, a: real[1] in -0.01 .. 0.01, b: real[1] in -0.01 .. 0.01) \
+        -> o: real[1]
+    let top = if b < hi then b else hi
+    let bot = if a > lo then a else lo
+    let w = top - bot
+    o = if w > 0.0 then w else 0.0
+end
+
+## The four currents (shares of the full-Sun current) for the Sun s (head frame, unit).
+fn quad_currents(s: real[1][3] in -1 .. 1, p: SunHead, g: inout stream) -> i: real[1][4]
+    i = [0.0, 0.0, 0.0, 0.0]
+    if not (s[2] <= 0.0)
+        let dx = p.h*s[0]/s[2]
+        let dy = p.h*s[1]/s[2]
+        let xp = quad_overlap(0.0, inf, dx - p.a/2.0, dx + p.a/2.0)
+        let xm = quad_overlap(-inf, 0.0, dx - p.a/2.0, dx + p.a/2.0)
+        let yp = quad_overlap(0.0, inf, dy - p.a/2.0, dy + p.a/2.0)
+        let ym = quad_overlap(-inf, 0.0, dy - p.a/2.0, dy + p.a/2.0)
+        let a2 = p.a*p.a
+        i = [s[2]*(xp*yp/a2), s[2]*(xm*yp/a2), s[2]*(xm*ym/a2), s[2]*(xp*ym/a2)]
+        for k in 0 .. 4
+            let z = normal(g)
+            i[k] = i[k] + p.noise*z
+        end
+    end
+end

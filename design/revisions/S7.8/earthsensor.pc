@@ -1,0 +1,41 @@
+## The Earth sensor as the engine flies it, transcribed from adcs-sim-core sensors.rs (EsDesc, Es, new, sample): with
+## nadir inside the field of its boresight it gives nadir turned by its mount bias (a rotation drawn once from the run's
+## dispersion stream) and by the horizon's noise (a rotation vector of normal draws times the part's accuracy, from the
+## sensor's noise stream), made unit; else nothing, and no draw.
+## The developer's transcription (S7.8), unsigned.
+module earthsensor
+
+## The Earth sensor as the part states it: its boresight (body, unit), its accuracy [rad], its field's half-angle [rad]
+## and its mount bias's sigma [rad].
+record EsDesc
+    bs: real[1][3]
+    noise: real[1]
+    fov: real[1]
+    bias_sigma: real[1]
+end
+
+## The Earth sensor in flight: its mount bias and its noise stream.
+record EsUnit
+    bias: quat
+    g: stream
+end
+
+## The Earth sensor of a description, its mount bias drawn from disp, its noise from noise.
+fn es_new(d: EsDesc, disp: inout stream, noise: stream) -> u: EsUnit
+    u = EsUnit()
+    let e = normal3(disp)
+    u.bias = fromrotvec(e*d.bias_sigma)
+    u.g = noise
+end
+
+## The nadir the sensor gives (body, unit) and whether it gives one, for the true nadir nadir_b (body, unit).
+fn es_sample(u: inout EsUnit, d: EsDesc, nadir_b: real[1][3] in -1 .. 1) -> (ok: bool, n: real[1][3])
+    ok = not (acos(act_clamp(dot(d.bs, nadir_b), -1.0, 1.0)) >= d.fov)
+    n = [0.0, 0.0, 0.0]
+    if ok
+        let g = u.g
+        let e0 = normal3(g)
+        u.g = g
+        n = unit_or_zero(dcm(qmult(u.bias, fromrotvec(e0*d.noise)))*nadir_b)
+    end
+end

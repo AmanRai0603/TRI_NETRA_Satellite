@@ -1,0 +1,266 @@
+## The star tracker as the engine flies it, transcribed from adcs-sim-core sensors.rs (StDesc, St, new, history,
+## sample_with) and la.rs (slerp): each head's mount bias and misalignment drawn once (rotation vectors of normal draws
+## times the part's sigmas, a head at a time, the bias first, from the run's dispersion stream); a history of the true
+## attitude over the last 0.5 s, and the attitude the frame saw the part's latency ago (the newest at or before it, or
+## the spherical interpolation to the next; the truth before the history reaches back); a head is dazzled with the Sun
+## or the Moon inside its exclusion cone and stays blind for the part's blind time after, and answers only below the
+## part's largest rate, outside the Earth's limb plus its exclusion, and when it has not failed. The noise grows with the
+## rate, sigma (1 + |w|/w_ref) (the smear over the exposure). The models: the noise model (a rotation of normal draws,
+## cross-boresight and about it) and the onboard QUEST on the 12 brightest catalogue stars in the field (each star's
+## direction through the head's true mount, with cross-direction noise of sigma sqrt(8), the q-method,
+## l3_sens_row_12); the image model is the chain's (comp.rs; S7.10). The 0.5 s span, the 1e-9 s tolerance, the 12 stars
+## and the sqrt(8) as the engine flies them (1.0.0 code). The noise draws from the tracker's stream, a head at a time.
+## The developer's transcription (S7.9), unsigned.
+module sttracker
+
+## The most heads a tracker carries (adcs-sim-core NH).
+const ST_NH = 2
+## The attitudes the history holds (sensors.rs HIST).
+const ST_HIST = 64
+## The stars the QUEST model takes from the field, the brightest.
+const ST_BRIGHT = 12
+
+## Which model answers: the noise model, the onboard QUEST on catalogue stars, the rendered frame's chain.
+choice StModel = noise, quest, image
+
+## The tracker as the part states it: how many heads and their boresights (body, unit), the noise across and about the
+## boresight [rad], the latency [s], the largest rate [rad/s], the Sun's and the Earth's exclusion half-angles [rad], the
+## field's half-angle [rad], the model, the mount bias's and misalignment's sigmas [rad], the Moon's exclusion
+## half-angle [rad], the blind time [s] and the rate at which the noise has doubled [rad/s].
+record StDesc
+    nh: int
+    bs: real[1][3][ST_NH]
+    noise_cross: real[1]
+    noise_roll: real[1]
+    latency: real[1]
+    max_rate: real[1]
+    sun_excl: real[1]
+    earth_excl: real[1]
+    fov: real[1]
+    model: StModel
+    bias_sigma: real[1]
+    misalign_sigma: real[1]
+    moon_excl: real[1]
+    blind_s: real[1]
+    noise_rate_ref: real[1]
+end
+
+## A tracker in flight: each head's mount bias and misalignment, whether it has failed and until when it is blind [s],
+## and the noise stream.
+record StUnit
+    q_bias: real[1][4][ST_NH]
+    q_mis: real[1][4][ST_NH]
+    dead: bool[ST_NH]
+    blind_until: real[1][ST_NH]
+    g: stream
+end
+
+## The tracker of a description, its heads' mounts drawn from disp, its noise from noise.
+fn st_new(d: StDesc, disp: inout stream, noise: stream) -> u: StUnit
+    u = StUnit()
+    for i in 0 .. ST_NH
+        u.q_bias[i] = [0.0, 0.0, 0.0, 1.0]
+        u.q_mis[i] = [0.0, 0.0, 0.0, 1.0]
+        u.blind_until[i] = -inf
+    end
+    for h in 0 .. d.nh
+        let e1 = normal3(disp)
+        u.q_bias[h] = fromrotvec(e1*d.bias_sigma)
+        let e2 = normal3(disp)
+        u.q_mis[h] = fromrotvec(e2*d.misalign_sigma)
+    end
+    u.g = noise
+end
+
+## Record the true attitude q at t into the history (its epochs ht and attitudes hq, the first hn held), keeping the
+## last 0.5 s. The history's length after.
+fn st_history(ht: inout real[1][ST_HIST], hq: inout real[1][4][ST_HIST], hn: int in 0 .. 63, t: real[1] in 0 .. 100, \
+              q: quat in -1 .. 1) -> n: int
+    n = hn
+    if n == ST_HIST
+        for i in 1 .. ST_HIST
+            ht[i - 1] = ht[i]
+            hq[i - 1] = hq[i]
+        end
+        n = n - 1
+    end
+    ht[n] = t
+    hq[n] = q
+    n = n + 1
+    let k = 0
+    let going = true
+    for j in 0 .. n
+        if going and ht[j] < t - 0.5
+            k = j + 1
+        else
+            going = false
+        end
+    end
+    if k > 0
+        for m in k .. n
+            ht[m - k] = ht[m]
+            hq[m - k] = hq[m]
+        end
+        n = n - k
+    end
+end
+
+## The spherical linear interpolation from a to b at s, the shorter arc; above a cosine of 0.9995 the linear one, made
+## unit (la.rs slerp).
+fn st_slerp(a: quat in -1 .. 1, b: quat in -1 .. 1, s: real[1] in 0 .. 1) -> q: quat
+    let d = a[0]*b[0] + a[1]*b[1] + a[2]*b[2] + a[3]*b[3]
+    let bb = b
+    if d < 0.0
+        d = -d
+        bb = [-b[0], -b[1], -b[2], -b[3]]
+    end
+    if d > 0.9995
+        q = qnorm([a[0] + s*(bb[0] - a[0]), a[1] + s*(bb[1] - a[1]), a[2] + s*(bb[2] - a[2]), a[3] + s*(bb[3] - a[3])])
+    else
+        let th = acos(d)
+        let ka = sin((1.0 - s)*th)/sin(th)
+        let kb = sin(s*th)/sin(th)
+        q = [ka*a[0] + kb*bb[0], ka*a[1] + kb*bb[1], ka*a[2] + kb*bb[2], ka*a[3] + kb*bb[3]]
+    end
+end
+
+## The attitude the frame at t saw, the latency [s] ago, from the history; the true attitude q_true when the history does
+## not reach back that far.
+fn st_delayed(ht: inout real[1][ST_HIST] in 0 .. 100, hq: inout real[1][4][ST_HIST] in -1 .. 1, hn: int in 0 .. 64, \
+              latency: real[1] in 0 .. 0.5, t: real[1] in 0 .. 100, q_true: quat in -1 .. 1) -> q_old: quat
+    let tl = t - latency
+    let k = -1
+    for i in 0 .. hn
+        if ht[i] <= tl + 1e-9
+            k = i
+        end
+    end
+    if k < 0
+        q_old = q_true
+    elif k + 1 == hn
+        q_old = hq[k]
+    else
+        q_old = st_slerp(hq[k], hq[k + 1], (tl - ht[k])/(ht[k + 1] - ht[k]))
+    end
+end
+
+## Whether head h answers at t: below the largest rate (slow), not failed, not dazzled by the Sun or the Moon (sun_b,
+## moon_b, body, unit) nor blind since, and the Earth's limb (nadir_b, the Earth's half-angle earth_ang [rad]) outside
+## its exclusion. A dazzled head stays blind for the blind time.
+fn st_head_valid(u: inout StUnit, d: StDesc, h: int in 0 .. 1, t: real[1] in 0 .. 100, sun_b: real[1][3] in -1 .. 1, \
+                 moon_b: real[1][3] in -1 .. 1, nadir_b: real[1][3] in -1 .. 1, earth_ang: real[1] in 0.9 .. 1.4, slow: bool) \
+        -> valid: bool
+    let bs = d.bs[h]
+    let dazzled = acos(act_clamp(dot(bs, sun_b), -1.0, 1.0)) <= d.sun_excl or acos(act_clamp(dot(bs, moon_b), -1.0, 1.0)) <= d.moon_excl
+    if dazzled
+        u.blind_until[h] = t + d.blind_s
+    end
+    valid = slow and not u.dead[h] and not dazzled and t >= u.blind_until[h] \
+        and acos(act_clamp(dot(bs, nadir_b), -1.0, 1.0)) > earth_ang + d.earth_excl
+end
+
+## The noise model's attitude for a head of boresight bs: the attitude q_old through the head's mount dq, turned by
+## normal draws across the boresight (noise_cross) and about it (noise_roll), each times the smear.
+fn st_noise_head(q_old: quat in -1 .. 1, dq: quat in -1 .. 1, bs: real[1][3] in -1 .. 1, noise_cross: real[1] in 0 .. 1e-3, \
+                 noise_roll: real[1] in 0 .. 1e-3, smear: real[1] in 1 .. 3, g: inout stream) -> q: quat
+    let n0 = normal3(g)
+    let nr = normal(g)
+    let e0 = n0*(noise_cross*smear)
+    let e = (e0 - bs*dot(bs, e0)) + bs*(noise_roll*smear*nr)
+    q = qnorm(qmult(q_old, qmult(dq, fromrotvec(e))))
+end
+
+## The QUEST model's attitude for a head of boresight bs: the 12 brightest catalogue stars (cr, cm) within the field fov
+## [rad] of the boresight seen at the attitude rold (ECI to body), each through the head's true mount dq with
+## cross-direction noise (noise_cross times the smear times sqrt 8), and the q-method on them when the head answers
+## (want); (q, whether three stars or more were in the field). The noise is drawn whether or not the head answers.
+fn st_quest_head(rold: real[1][3][3] in -1 .. 1, dq: quat in -1 .. 1, bs: real[1][3] in -1 .. 1, fov: real[1] in 0.05 .. 0.4, \
+                 noise_cross: real[1] in 0 .. 1e-3, smear: real[1] in 1 .. 3, cr: inout real[1][3][N_STARS] in -1 .. 1, \
+                 cm: inout real[1][N_STARS] in 1 .. 6, want: bool, g: inout stream) -> (q: quat, ok: bool)
+    let bs_eci = mat3t_vec(rold, bs)
+    let cf = cos(fov)
+    let sel: int[ST_BRIGHT] = 0
+    let smag: real[1][ST_BRIGHT] = 0
+    for i in 0 .. ST_BRIGHT
+        smag[i] = 1e9
+    end
+    let ns = 0
+    for s in 0 .. N_STARS
+        if not (dot(bs_eci, cr[s]) <= cf)
+            if ns < ST_BRIGHT
+                sel[ns] = s
+                smag[ns] = cm[s]
+                ns = ns + 1
+            else
+                let wi = 0
+                for i in 1 .. ST_BRIGHT
+                    if smag[i] > smag[wi]
+                        wi = i
+                    end
+                end
+                if cm[s] < smag[wi]
+                    sel[wi] = s
+                    smag[wi] = cm[s]
+                end
+            end
+        end
+    end
+    q = [0.0, 0.0, 0.0, 1.0]
+    ok = ns >= 3
+    if ok
+        let rm = transpose(dcm(dq))*rold
+        let sc = noise_cross*smear*sqrt(8.0)
+        let bm: real[1][3][ST_SPOTS] = 0
+        let rr: real[1][3][ST_SPOTS] = 0
+        for i in 0 .. ns
+            let r = cr[sel[i]]
+            let v = rm*r
+            let n0 = normal3(g)
+            let e0 = n0*sc
+            let e = e0 - v*dot(v, e0)
+            bm[i] = unit_or_zero(v + e)
+            rr[i] = r
+        end
+        if want
+            q = st_qmethod(bm, rr, ns)
+        end
+    end
+end
+
+## Each head's attitude (ECI to body) and whether it answers, for the true attitude q_true and body rate w [rad/s] at t,
+## the Sun, the Moon and nadir (body, unit) and the Earth's half-angle earth_ang [rad], from the history (ht, hq, hn) and
+## the catalogue (cr, cm). The image model's heads answer through the chain (comp.rs, S7.10): here only their validity
+## (valid), their mount (dq) and the attitude the frame saw (q_old).
+fn st_sample(u: inout StUnit, d: StDesc, ht: inout real[1][ST_HIST] in 0 .. 100, hq: inout real[1][4][ST_HIST] in -1 .. 1, \
+             hn: int in 0 .. 64, cr: inout real[1][3][N_STARS] in -1 .. 1, cm: inout real[1][N_STARS] in 1 .. 6, \
+             q_true: quat in -1 .. 1, t: real[1] in 0 .. 100, w: real[1][3] in -0.05 .. 0.05, sun_b: real[1][3] in -1 .. 1, \
+             moon_b: real[1][3] in -1 .. 1, nadir_b: real[1][3] in -1 .. 1, earth_ang: real[1] in 0.9 .. 1.4) \
+        -> (ok: bool[ST_NH], q: real[1][4][ST_NH], valid: bool[ST_NH], dq: real[1][4][ST_NH], q_old: quat)
+    q_old = st_delayed(ht, hq, hn, d.latency, t, q_true)
+    let slow = norm(w) < d.max_rate
+    let smear = 1.0 + norm(w)/d.noise_rate_ref
+    let rold = dcm(q_old)
+    ok = [false, false]
+    q = 0
+    valid = [false, false]
+    dq = 0
+    for h in 0 .. d.nh
+        valid[h] = st_head_valid(u, d, h, t, sun_b, moon_b, nadir_b, earth_ang, slow)
+        dq[h] = qmult(u.q_mis[h], u.q_bias[h])
+        let g = u.g
+        if d.model == StModel.quest
+            let qh, enough = st_quest_head(rold, dq[h], d.bs[h], d.fov, d.noise_cross, smear, cr, cm, valid[h], g)
+            if enough and valid[h]
+                ok[h] = true
+                q[h] = qh
+            end
+        elif d.model == StModel.noise
+            let qn = st_noise_head(q_old, dq[h], d.bs[h], d.noise_cross, d.noise_roll, smear, g)
+            if valid[h]
+                ok[h] = true
+                q[h] = qn
+            end
+        end
+        u.g = g
+    end
+end

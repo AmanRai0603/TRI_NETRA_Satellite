@@ -1585,3 +1585,300 @@ source = "Wertz (1978), Spacecraft Attitude Determination and Control, section 1
 generate = ["adcs-sim-core"]
 uses = ["act/rcstorque.pc", "act/rcsthrust.pc", "act/rcsisp.pc", "act/rcsmib.pc", "act/rcsvalve.pc", "act/rcsaxis.pc"]
 why = "the thrusters with a failed couple as a method of act; the engine's step calls it, generated into the engine"
+
+[[revision]]
+id = "S7.8"
+at = "2026-10-08T14:00:00Z"
+by = "the developer"
+about = "the simple sensors as methods of sens (docs/S7_INVENTORY.md S7.8): the gyro (angle and rate random walks, bias, scale factors and misalignment, range), the magnetometer (noise, bias, the coils' stray field, scale factors, misalignment, range, a failed unit), the coarse Sun sensors with the Earth's albedo, the fine Sun sensors (the noise model and the quadrant chain: currents, angles, a head's frame, the sensors as the engine flies them, a new node), the Earth sensor and the GNSS receiver (its latency, noise and the fix in ECEF); what the sensors see of the sky with the Earth's half-angle from the constants' R_E (a new node; the code had a literal); the rotors' telemetry with act's stated noises (a new node of act); each the developer's transcription of the code and of the publication it cites, their random draws the language's streams (rng.rs's); the payload boresight and the Sun axis a product flies when it states none stated by their owner, gdn, as the 1.0.0 code gave them"
+
+[[revision.node]]
+id = "sens_fine_sun"
+group = "sens"
+parent = "l3_sens"
+label = "Fine Sun sensors as the engine flies them"
+behaviour = "method"
+question = "Which Sun direction do the fine Sun sensors give each step: the head facing the Sun, its field, its mount bias, and its noise model or its quadrant chain?"
+why = "the fine Sun sensors' assembly (the head facing the Sun, its field, the noise model), until now adcs-sim-core sensors.rs (Sun), which had no node: the rows l3_sens_row_07 and 08 are its chain"
+
+[[revision.node]]
+id = "sens_sky_view"
+group = "sens"
+parent = "l3_sens"
+label = "What the sensors see of the sky"
+behaviour = "method"
+question = "Where are the field, the Sun, the Moon and nadir in the body, and how large does the Earth look from the satellite (its half-angle), each step?"
+why = "the sky the sensors see, until now adcs-sim run.rs (Sky, the Earth's radius a literal 6378137 m), which had no node (docs/S7_INVENTORY.md §2, S7.6's left-over)"
+
+[[revision.node]]
+id = "act_rotor_telemetry"
+group = "act"
+parent = "sb2"
+label = "Rotor telemetry as the engine flies it"
+behaviour = "method"
+question = "Which momentum and gimbal angle does each momentum device report each step, with act's telemetry noises?"
+why = "the rotors' telemetry, until now adcs-sim run.rs (sense), which had no node; its noises are act's stated values (S7.7)"
+
+[[revision.method]]
+node = "l3_sens_row_03"
+from = "built-in"
+to = "method"
+pseudocode = "design/revisions/S7.8/gyroaxes.pc"
+path = "sens/gyroaxes.pc"
+transcribes = "engine/crates/adcs-sim-core/src/sensors.rs (mis, sf; Gyro::new and Mag::new: the misalignment and the scale factors) and adcs-sim-core la.rs (small_rot, diag, mm)"
+source = "the part's scale_factor and axis_misalignment_rad dispersions, drawn as the engine draws them (1.0.0 code); Wertz (1978), Spacecraft Attitude Determination and Control, section 7.8 (the sensor's misalignment and scale-factor error)"
+generate = ["adcs-sim-core"]
+uses = ["act/coildisp.pc"]
+why = "a sensor's scale factors and misalignment as a method of sens, from the run's dispersion stream, generated into the engine"
+
+[[revision.method]]
+node = "l3_sens_row_02"
+from = "built-in"
+to = "method"
+pseudocode = "design/revisions/S7.8/gyrobias.pc"
+path = "sens/gyrobias.pc"
+transcribes = "engine/crates/adcs-sim-core/src/sensors.rs (Gyro::new: the turn-on bias; Gyro::sample: the rate random walk)"
+source = "IEEE Std 952-1997 (the rate random walk of a gyro); the part's bias_rad_s dispersion and rrw_rad_per_s_sqrt_s"
+generate = ["adcs-sim-core"]
+why = "the gyro's bias and its random walk as a method of sens, from the run's dispersion and the gyro's noise streams, generated into the engine"
+
+[[revision.method]]
+node = "l3_sens_row_01"
+from = "built-in"
+to = "method"
+pseudocode = "design/revisions/S7.8/gyro.pc"
+path = "sens/gyro.pc"
+transcribes = "engine/crates/adcs-sim-core/src/sensors.rs (GyroDesc, Gyro, Gyro::new, Gyro::sample: the angle random walk, the range) and adcs-sim-core pm.rs (clamp)"
+source = "IEEE Std 952-1997 (the angle random walk of a gyro); the part's arw_rad_per_sqrt_s and range_rad_s"
+generate = ["adcs-sim-core"]
+uses = ["sens/gyroaxes.pc", "sens/gyrobias.pc", "act/coilsat.pc"]
+why = "the gyro as the engine flies it as a method of sens; the engine's sensing calls it, generated into the engine"
+
+[[revision.method]]
+node = "l3_sens_row_04"
+from = "built-in"
+to = "method"
+pseudocode = "design/revisions/S7.8/magnoise.pc"
+path = "sens/magnoise.pc"
+transcribes = "engine/crates/adcs-sim-core/src/sensors.rs (Mag::new: the bias; Mag::sample: the noise and the coils' stray field)"
+source = "the part's bias_T, its dispersion, noise_T_rms and coil_coupling_T_per_Am2, as the engine flies them (1.0.0 code)"
+generate = ["adcs-sim-core"]
+why = "the magnetometer's noise and bias as a method of sens, from the run's dispersion and the magnetometer's noise streams, generated into the engine"
+
+[[revision.method]]
+node = "l3_sens_row_05"
+from = "built-in"
+to = "method"
+pseudocode = "design/revisions/S7.8/mag.pc"
+path = "sens/mag.pc"
+transcribes = "engine/crates/adcs-sim-core/src/sensors.rs (MagDesc, Mag, Mag::new, Mag::sample: the matrix, the range, a failed magnetometer) and adcs-sim-core pm.rs (clamp)"
+source = "the part's scale_factor, axis_misalignment_rad and range_T, as the engine flies them (1.0.0 code); Wertz (1978), Spacecraft Attitude Determination and Control, section 6.1 (magnetometers)"
+generate = ["adcs-sim-core"]
+uses = ["sens/gyroaxes.pc", "sens/magnoise.pc", "act/coilsat.pc"]
+why = "the magnetometer as the engine flies it as a method of sens; the engine's sensing calls it, generated into the engine"
+
+[[revision.method]]
+node = "l3_sens_row_06"
+from = "built-in"
+to = "method"
+pseudocode = "design/revisions/S7.8/css.pc"
+path = "sens/css.pc"
+transcribes = "engine/crates/adcs-sim-core/src/sensors.rs (CssDesc, Css, Css::new, Css::sample: the cosine cells with the Earth's albedo, a failed cell, the Sun from opposite cells) and adcs-sim-core la.rs (unit as unit_or_zero)"
+source = "Wertz (1978), Spacecraft Attitude Determination and Control, section 7.2 (cosine detectors; the Earth's albedo on them); the part's albedo, noise_frac and scale dispersion"
+generate = ["adcs-sim-core"]
+uses = ["sens/gyroaxes.pc", "env/facets.pc"]
+why = "the coarse Sun sensors with the Earth's albedo as a method of sens; the engine's sensing calls it, generated into the engine"
+
+[[revision.method]]
+node = "l3_sens_row_07"
+from = "built-in"
+to = "method"
+pseudocode = "design/revisions/S7.8/sunquad.pc"
+path = "sens/sunquad.pc"
+transcribes = "engine/crates/adcs-sim-core/src/comp.rs (head_frame; sun_sensor::Head, sun_sensor::currents)"
+source = "Wertz (1978), Spacecraft Attitude Determination and Control, section 7.1 (slit and quadrant Sun sensors); the part's aperture_side_m, aperture_height_m and current_noise_frac"
+generate = ["adcs-sim-core"]
+uses = ["env/facets.pc"]
+why = "the fine Sun sensor's quadrant currents and a sensor head's frame as a method of sens, generated into the engine"
+
+[[revision.method]]
+node = "l3_sens_row_08"
+from = "built-in"
+to = "method"
+pseudocode = "design/revisions/S7.8/sunangles.pc"
+path = "sens/sunangles.pc"
+transcribes = "engine/crates/adcs-sim-core/src/comp.rs (sun_sensor::angles)"
+source = "Wertz (1978), Spacecraft Attitude Determination and Control, section 7.1; the part's current_min_frac"
+generate = ["adcs-sim-core"]
+uses = ["sens/sunquad.pc", "env/facets.pc"]
+why = "the fine Sun sensor's angles from its currents as a method of sens, generated into the engine"
+
+[[revision.method]]
+node = "sens_fine_sun"
+pseudocode = "design/revisions/S7.8/finesun.pc"
+path = "sens/finesun.pc"
+transcribes = "engine/crates/adcs-sim-core/src/sensors.rs (SunDesc, Sun, Sun::new, Sun::sample: the head facing the Sun, the noise model or the component chain)"
+source = "Wertz (1978), Spacecraft Attitude Determination and Control, section 7.1; the part's accuracy_rad, fov_half_angle_rad, bias_rad and level"
+generate = ["adcs-sim-core"]
+uses = ["sens/sunquad.pc", "sens/sunangles.pc", "sens/css.pc", "act/coildisp.pc", "env/facets.pc", "fsw/pseudocode/01_math.pc"]
+why = "the fine Sun sensors as the engine flies them as a method of sens; the engine's sensing calls it, generated into the engine"
+
+[[revision.method]]
+node = "l3_sens_row_13"
+from = "built-in"
+to = "method"
+pseudocode = "design/revisions/S7.8/earthsensor.pc"
+path = "sens/earthsensor.pc"
+transcribes = "engine/crates/adcs-sim-core/src/sensors.rs (EsDesc, Es, Es::new, Es::sample: the field, the mount bias, the horizon's noise)"
+source = "Wertz (1978), Spacecraft Attitude Determination and Control, section 7.3 (horizon sensors); the part's accuracy_rad, fov_half_angle_rad and bias_rad"
+generate = ["adcs-sim-core"]
+uses = ["act/coilsat.pc", "env/facets.pc", "fsw/pseudocode/01_math.pc"]
+why = "the Earth sensor as the engine flies it as a method of sens; the engine's sensing calls it, generated into the engine"
+
+[[revision.method]]
+node = "l3_sens_row_14"
+from = "built-in"
+to = "method"
+pseudocode = "design/revisions/S7.8/gnss.pc"
+path = "sens/gnss.pc"
+transcribes = "engine/crates/adcs-sim-core/src/sensors.rs (GpsDesc, Gps, Gps::history, Gps::delayed, Gps::sample: the latency and the noise) and engine/crates/adcs-sim/src/run.rs (sense: the fix in ECEF)"
+source = "the part's pos_sigma_m, vel_sigma_m_s and latency_s, as the engine flies them (1.0.0 code); NIMA TR8350.2 (WGS-84, the receiver's frame)"
+generate = ["adcs-sim-core"]
+uses = ["env/caltime.pc", "env/orbitfast.pc"]
+why = "the GNSS receiver's fix, its latency and noise as a method of sens; the engine's sensing calls it, generated into the engine"
+
+[[revision.method]]
+node = "sens_sky_view"
+pseudocode = "design/revisions/S7.8/skyview.pc"
+path = "sens/skyview.pc"
+transcribes = "engine/crates/adcs-sim/src/run.rs (run: the Sky, the field, the Sun, the Moon and nadir in the body and the Earth's half-angle asin(6378137 m/|r|)) and adcs-sim-core la.rs (unit)"
+source = "WGS-84 (the Earth's radius, the constants' R_E); Wertz (1978), Spacecraft Attitude Determination and Control, section 4.2 (the Earth's angular radius)"
+generate = ["adcs-sim"]
+uses = ["spec/physics/constants.pc"]
+why = "what the sensors see of the sky as a method of sens, generated into the engine's set-up target with the platform's maths, as it flew, generated into the engine"
+
+[[revision.method]]
+node = "act_rotor_telemetry"
+pseudocode = "design/revisions/S7.8/rotortlm.pc"
+path = "act/rotortlm.pc"
+transcribes = "engine/crates/adcs-sim/src/run.rs (sense: the rotors' momentum and gimbal angle telemetry, x.h[i] + 1e-7 normal and x.d[g] + 1e-5 normal)"
+source = "act's act_rotor_tlm_noise and act_gimbal_tlm_noise, the 1.0.0 code's values"
+generate = ["adcs-sim-core"]
+uses = ["dyn/rotors.pc"]
+why = "the rotors' telemetry as a method of act; the engine's sensing calls it, generated into the engine"
+
+[[revision.node]]
+id = "gdn_payload_boresight_x"
+group = "gdn"
+parent = "gdn__carried"
+label = "Payload boresight a product flies when it states none, x"
+behaviour = "stated"
+question = "Along which body axis does a product's payload look when its product file states no payload_boresight_body: its x component?"
+content = [["value", "number", "0.0"], ["value", "source", "1.0.0 code: engine/crates/adcs-sim/src/product.rs Dev::load (boresight: [0.0, 1.0, 0.0], the payload boresight the guidance, the metrics and the Earth sensor take when the product states none)"]]
+why = "a value the engine used with no node (docs/S7_INVENTORY.md §1.3): stated as the 1.0.0 code gave it"
+
+[[revision.node]]
+id = "gdn_payload_boresight_y"
+group = "gdn"
+parent = "gdn__carried"
+label = "Payload boresight a product flies when it states none, y"
+behaviour = "stated"
+question = "Along which body axis does a product's payload look when its product file states no payload_boresight_body: its y component?"
+content = [["value", "number", "1.0"], ["value", "source", "1.0.0 code: engine/crates/adcs-sim/src/product.rs Dev::load (boresight: [0.0, 1.0, 0.0], the payload boresight the guidance, the metrics and the Earth sensor take when the product states none)"]]
+why = "a value the engine used with no node (docs/S7_INVENTORY.md §1.3): stated as the 1.0.0 code gave it"
+
+[[revision.node]]
+id = "gdn_payload_boresight_z"
+group = "gdn"
+parent = "gdn__carried"
+label = "Payload boresight a product flies when it states none, z"
+behaviour = "stated"
+question = "Along which body axis does a product's payload look when its product file states no payload_boresight_body: its z component?"
+content = [["value", "number", "0.0"], ["value", "source", "1.0.0 code: engine/crates/adcs-sim/src/product.rs Dev::load (boresight: [0.0, 1.0, 0.0], the payload boresight the guidance, the metrics and the Earth sensor take when the product states none)"]]
+why = "a value the engine used with no node (docs/S7_INVENTORY.md §1.3): stated as the 1.0.0 code gave it"
+
+[[revision.node]]
+id = "gdn_sun_axis_x"
+group = "gdn"
+parent = "gdn__carried"
+label = "Sun axis a product flies when it states none, x"
+behaviour = "stated"
+question = "Which body axis does the guidance turn to the Sun (the power face) when the product file states no sun_axis_body: its x component?"
+content = [["value", "number", "0.0"], ["value", "source", "1.0.0 code: engine/crates/adcs-sim/src/product.rs Dev::load (sun_axis: [0.0, 0.0, -1.0], the power face the guidance turns to the Sun when the product states none)"]]
+why = "a value the engine used with no node (docs/S7_INVENTORY.md §1.3): stated as the 1.0.0 code gave it"
+
+[[revision.node]]
+id = "gdn_sun_axis_y"
+group = "gdn"
+parent = "gdn__carried"
+label = "Sun axis a product flies when it states none, y"
+behaviour = "stated"
+question = "Which body axis does the guidance turn to the Sun (the power face) when the product file states no sun_axis_body: its y component?"
+content = [["value", "number", "0.0"], ["value", "source", "1.0.0 code: engine/crates/adcs-sim/src/product.rs Dev::load (sun_axis: [0.0, 0.0, -1.0], the power face the guidance turns to the Sun when the product states none)"]]
+why = "a value the engine used with no node (docs/S7_INVENTORY.md §1.3): stated as the 1.0.0 code gave it"
+
+[[revision.node]]
+id = "gdn_sun_axis_z"
+group = "gdn"
+parent = "gdn__carried"
+label = "Sun axis a product flies when it states none, z"
+behaviour = "stated"
+question = "Which body axis does the guidance turn to the Sun (the power face) when the product file states no sun_axis_body: its z component?"
+content = [["value", "number", "-1.0"], ["value", "source", "1.0.0 code: engine/crates/adcs-sim/src/product.rs Dev::load (sun_axis: [0.0, 0.0, -1.0], the power face the guidance turns to the Sun when the product states none)"]]
+why = "a value the engine used with no node (docs/S7_INVENTORY.md §1.3): stated as the 1.0.0 code gave it"
+
+[[revision]]
+id = "S7.9"
+at = "2026-10-08T16:00:00Z"
+by = "the developer"
+about = "the star tracker's unit model as methods of sens (docs/S7_INVENTORY.md S7.9): its synthetic onboard star table (a new node, a method: the catalogue is the engine's own, not a published one), its attitude from its stars by the q-method with the residual check (l3_sens_row_12), and the unit as the engine flies it (a new node): the heads' mounts, the latency history, the Sun's, the Moon's and the Earth's exclusion and the blind time, the rate's smear, the noise and the QUEST models; each the developer's transcription of the code and of the publication it cites, their random draws the language's streams (rng.rs's). The image model's chain (rendering, centroiding, identification) is S7.10's"
+
+[[revision.node]]
+id = "sens_star_catalogue"
+group = "sens"
+parent = "l3_sens"
+label = "Star tracker onboard star table"
+behaviour = "method"
+question = "Which stars does the star tracker carry onboard (their directions and magnitudes): the engine's synthetic catalogue of 4000?"
+why = "the star tracker's onboard catalogue, until now adcs-sim-core sensors.rs (star), which had no node (docs/S7_INVENTORY.md §1.3: a table or a method; it is generated, not published, so a method)"
+
+[[revision.node]]
+id = "sens_star_tracker"
+group = "sens"
+parent = "l3_sens"
+label = "Star tracker as the engine flies it"
+behaviour = "method"
+question = "Which attitude does each star-tracker head give each frame: its mount, the latency, the Sun's, the Moon's and the Earth's exclusion and the blind time, the rate's smear, and its noise or QUEST model?"
+why = "the star tracker's unit model, until now adcs-sim-core sensors.rs (St), which had no node: rows l3_sens_row_09 to 12 are its chain"
+
+[[revision.method]]
+node = "sens_star_catalogue"
+pseudocode = "design/revisions/S7.9/starcat.pc"
+path = "sens/starcat.pc"
+transcribes = "engine/crates/adcs-sim-core/src/sensors.rs (star, N_STARS: the synthetic catalogue St::new fills), the twin's asils.devices.star_catalogue"
+source = "Gonzalez (2010), Math. Geosci. 42:49 (the Fibonacci lattice on the sphere); the hash constants and the magnitude law as the engine flies them (1.0.0 code: a synthetic catalogue, not a published one)"
+generate = ["adcs-sim-core"]
+uses = ["env/facets.pc"]
+why = "the star tracker's synthetic onboard star table as a method of sens, generated into the engine"
+
+[[revision.method]]
+node = "l3_sens_row_12"
+from = "built-in"
+to = "method"
+pseudocode = "design/revisions/S7.9/stattitude.pc"
+path = "sens/stattitude.pc"
+transcribes = "engine/crates/adcs-sim-core/src/la.rs (qmethod, jacobi4) and engine/crates/adcs-sim-core/src/comp.rs (star_tracker::attitude: the q-method with the residual check)"
+source = "Davenport (1968), NASA X-546-65-193 (the q-method); Markley and Crassidis (2014), Fundamentals of Spacecraft Attitude Determination and Control, section 5.3; the part's fit_tol_rad"
+generate = ["adcs-sim-core"]
+uses = ["sens/starcat.pc", "fsw/pseudocode/01_math.pc"]
+why = "the star tracker's attitude from its stars and the residual check as a method of sens, generated into the engine"
+
+[[revision.method]]
+node = "sens_star_tracker"
+pseudocode = "design/revisions/S7.9/sttracker.pc"
+path = "sens/sttracker.pc"
+transcribes = "engine/crates/adcs-sim-core/src/sensors.rs (StDesc, St, St::new, history, sample_with: the mounts, the latency history, the exclusion and blinding, the smear, the noise and QUEST models) and engine/crates/adcs-sim-core/src/la.rs (slerp)"
+source = "Liebe (2002), IEEE Aerospace and Electronic Systems Magazine 17(6):10 (star tracker accuracy and exclusion); Shoemake (1985), SIGGRAPH 19(3):245 (slerp); the part's noise_cross_rad, noise_roll_rad, latency_s, max_rate_rad_s, sun_exclusion_rad, earth_exclusion_rad, moon_exclusion_rad, blind_recovery_s, noise_doubling_rate_rad_s, bias_rad and axis_misalignment_rad"
+generate = ["adcs-sim-core"]
+uses = ["sens/stattitude.pc", "sens/starcat.pc", "act/coilsat.pc", "env/facets.pc", "fsw/pseudocode/01_math.pc"]
+why = "the star tracker as the engine flies it (its image model's chain is comp.rs's until S7.10) as a method of sens; the engine's sensing calls it, generated into the engine"

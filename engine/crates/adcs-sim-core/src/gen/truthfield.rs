@@ -10,6 +10,13 @@ use crate::gen::rigidbody::{PlantState};
 use crate::gen::rotors::{RotorGeometry};
 use crate::gen::facets::{Facets};
 use crate::gen::orbitfast::{FastCtx};
+use crate::gen::css::{CssDesc, CssUnit};
+use crate::gen::earthsensor::{EsDesc, EsUnit};
+use crate::gen::finesun::{SunDesc, SunUnit};
+use crate::gen::gyro::{GyroDesc, GyroUnit};
+use crate::gen::mag::{MagDesc, MagUnit};
+use crate::gen::sttracker::{StDesc, StUnit};
+use crate::gen::sunquad::{SunHead};
 
 /// WGS-84 geodetic latitude, longitude [rad] and height of an Earth-fixed position: five fixed-point passes from
 /// Bowring's start (the engine's fast orbit; the precision orbit takes POP's geodetic).
@@ -30,9 +37,9 @@ pub fn geodetic5(r: [f64; 3]) -> (f64, f64, f64) {
     let mut la: f64 = crate::pm::atan2(r[2], (p * (1.0 - e2)));
     let mut hh: f64 = 0.0;
     {
-        let __end45: i64 = 5;
+        let __end46: i64 = 5;
         let mut k: i64 = 0;
-        while k < __end45 {
+        while k < __end46 {
             let mut sl: f64 = crate::pm::sin(la);
             let mut n: f64 = (a / crate::pm::sqrt((1.0 - ((e2 * sl) * sl))));
             hh = ((p / crate::pm::cos(la)) - n);

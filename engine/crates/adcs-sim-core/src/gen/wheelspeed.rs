@@ -10,6 +10,13 @@ use crate::gen::rigidbody::{PlantState};
 use crate::gen::rotors::{RotorGeometry};
 use crate::gen::facets::{Facets};
 use crate::gen::orbitfast::{FastCtx};
+use crate::gen::css::{CssDesc, CssUnit};
+use crate::gen::earthsensor::{EsDesc, EsUnit};
+use crate::gen::finesun::{SunDesc, SunUnit};
+use crate::gen::gyro::{GyroDesc, GyroUnit};
+use crate::gen::mag::{MagDesc, MagUnit};
+use crate::gen::sttracker::{StDesc, StUnit};
+use crate::gen::sunquad::{SunHead};
 
 /// The motor torque t at speed om, none that speeds the wheel past speed_max.
 /// - t: real[1] (passed a plain number)

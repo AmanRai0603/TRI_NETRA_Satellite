@@ -10,6 +10,13 @@ use crate::gen::rigidbody::{PlantState};
 use crate::gen::rotors::{RotorGeometry};
 use crate::gen::facets::{Facets};
 use crate::gen::orbitfast::{FastCtx};
+use crate::gen::css::{CssDesc, CssUnit};
+use crate::gen::earthsensor::{EsDesc, EsUnit};
+use crate::gen::finesun::{SunDesc, SunUnit};
+use crate::gen::gyro::{GyroDesc, GyroUnit};
+use crate::gen::mag::{MagDesc, MagUnit};
+use crate::gen::sttracker::{StDesc, StUnit};
+use crate::gen::sunquad::{SunHead};
 
 /// The propellant used [kg] after a step dt at flow mdot [kg/s], and whether the tank of load prop_kg is empty.
 /// - used: real[kg] (passed in kg)

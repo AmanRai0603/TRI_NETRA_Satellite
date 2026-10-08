@@ -9,6 +9,13 @@ use crate::gen::flexmode::{Flex};
 use crate::gen::rotors::{RotorGeometry};
 use crate::gen::facets::{Facets};
 use crate::gen::orbitfast::{FastCtx};
+use crate::gen::css::{CssDesc, CssUnit};
+use crate::gen::earthsensor::{EsDesc, EsUnit};
+use crate::gen::finesun::{SunDesc, SunUnit};
+use crate::gen::gyro::{GyroDesc, GyroUnit};
+use crate::gen::mag::{MagDesc, MagUnit};
+use crate::gen::sttracker::{StDesc, StUnit};
+use crate::gen::sunquad::{SunHead};
 
 /// The plant's state: attitude (inertial to body, scalar last), body rate [rad/s], rotor momenta [N m s], gimbal angles
 /// [rad], and the flexible mode's coordinate and rate (zero on a rigid body).
@@ -53,9 +60,9 @@ pub fn plant_deriv(x: PlantState, inertia: [[f64; 3]; 3], iinv: [[f64; 3]; 3], m
     let mut hr: [f64; 3] = [0.0, 0.0, 0.0];
     let mut hd: [f64; 3] = [0.0, 0.0, 0.0];
     {
-        let __end23: i64 = m.nr;
+        let __end24: i64 = m.nr;
         let mut ir: i64 = 0;
-        while ir < __end23 {
+        while ir < __end24 {
             let mut a: [f64; 3] = m.a0[(ir) as usize];
             let mut jg: i64 = m.gi[(ir) as usize];
             if (jg > 0) {
@@ -63,9 +70,9 @@ pub fn plant_deriv(x: PlantState, inertia: [[f64; 3]; 3], iinv: [[f64; 3]; 3], m
                 let mut c: f64 = crate::pm::cos(dj);
                 let mut s: f64 = crate::pm::sin(dj);
                 {
-                    let __end24: i64 = 3;
+                    let __end25: i64 = 3;
                     let mut k1: i64 = 0;
-                    while k1 < __end24 {
+                    while k1 < __end25 {
                         a[(k1) as usize] = ((c * m.a0[(ir) as usize][(k1) as usize]) + (s * m.t0[(ir) as usize][(k1) as usize]));
                         let mut ta: f64 = (((-(s)) * m.a0[(ir) as usize][(k1) as usize]) + (c * m.t0[(ir) as usize][(k1) as usize]));
                         hd[(k1) as usize] = (hd[(k1) as usize] + ((x.h[(ir) as usize] * gdot[((jg - 1)) as usize]) * ta));
@@ -74,9 +81,9 @@ pub fn plant_deriv(x: PlantState, inertia: [[f64; 3]; 3], iinv: [[f64; 3]; 3], m
                 }
             }
             {
-                let __end25: i64 = 3;
+                let __end26: i64 = 3;
                 let mut k2: i64 = 0;
-                while k2 < __end25 {
+                while k2 < __end26 {
                     hr[(k2) as usize] = (hr[(k2) as usize] + (a[(k2) as usize] * x.h[(ir) as usize]));
                     hd[(k2) as usize] = (hd[(k2) as usize] + (a[(k2) as usize] * tau_r[(ir) as usize]));
                     k2 += 1;
@@ -107,18 +114,18 @@ pub fn plant_deriv(x: PlantState, inertia: [[f64; 3]; 3], iinv: [[f64; 3]; 3], m
     }
     let mut hdot: [f64; 8] = [0.0; 8];
     {
-        let __end26: i64 = m.nr;
+        let __end27: i64 = m.nr;
         let mut ih: i64 = 0;
-        while ih < __end26 {
+        while ih < __end27 {
             hdot[(ih) as usize] = tau_r[(ih) as usize];
             ih += 1;
         }
     }
     let mut ddot: [f64; 4] = [0.0; 4];
     {
-        let __end27: i64 = m.ng;
+        let __end28: i64 = m.ng;
         let mut jd: i64 = 0;
-        while jd < __end27 {
+        while jd < __end28 {
             ddot[(jd) as usize] = gdot[(jd) as usize];
             jd += 1;
         }

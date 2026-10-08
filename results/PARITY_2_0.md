@@ -11,7 +11,7 @@ Design: `tests/regression/design.tndb`.
 | blobs | every scenario's parameter blob (adcs-fswcfg/1) | 48 of 48 | 0 |
 | runs | every stored scenario run, flown again from the design: inputs and metrics | 48 of 48 | 0 |
 | campaigns | every run of the 8 stored campaigns, its dispersions drawn again: draws and metrics | 4516 of 4516 | 0 |
-| evaluate | every row and closure of results/evaluation.json (a node of the dissolved group `case` names its new group) | 1408 of 1500 | 92 |
+| evaluate | every row and closure of results/evaluation.json (a node of the dissolved group `case` names its new group) | 1388 of 1500 | 112 |
 | oils | soft OILS on QEMU (Cortex-M4F firmware), from the files and from the design: metrics and timing | 2 of 2 | 0 |
 | twin | the MATLAB twin flown from the data folder the design exports, against its stored run | 1 of 1 | 0 |
 

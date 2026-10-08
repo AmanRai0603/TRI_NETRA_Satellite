@@ -9,6 +9,13 @@ use crate::gen::flexmode::{Flex};
 use crate::gen::rigidbody::{PlantState};
 use crate::gen::rotors::{RotorGeometry};
 use crate::gen::facets::{Facets};
+use crate::gen::css::{CssDesc, CssUnit};
+use crate::gen::earthsensor::{EsDesc, EsUnit};
+use crate::gen::finesun::{SunDesc, SunUnit};
+use crate::gen::gyro::{GyroDesc, GyroUnit};
+use crate::gen::mag::{MagDesc, MagUnit};
+use crate::gen::sttracker::{StDesc, StUnit};
+use crate::gen::sunquad::{SunHead};
 
 /// The Earth's nominal rotation rate [rad/s] (IERS Conventions 2010, table 1.1).
 pub const FAST_OMEGA_E: f64 = 0.00007292115;
@@ -79,9 +86,9 @@ pub fn point_mass(r: [f64; 3], rb: [f64; 3], mu: f64) -> [f64; 3] {
     let mut bn: f64 = rt::norm(rb);
     a = [0.0, 0.0, 0.0];
     {
-        let __end37: i64 = 3;
+        let __end38: i64 = 3;
         let mut i: i64 = 0;
-        while i < __end37 {
+        while i < __end38 {
             a[(i) as usize] = (mu * ((d[(i) as usize] / ((dn * dn) * dn)) - (rb[(i) as usize] / ((bn * bn) * bn))));
             i += 1;
         }
@@ -116,9 +123,9 @@ pub fn fast_accel(r: [f64; 3], v: [f64; 3], x: FastCtx, zonal_max: i64, third_bo
     let mut dpm1: f64 = 0.0;
     let mut dp: f64 = 1.0;
     {
-        let __end38: i64 = zonal_max;
+        let __end39: i64 = zonal_max;
         let mut n: i64 = 1;
-        while n < __end38 {
+        while n < __end39 {
             let mut nf: f64 = (n as f64);
             let mut pn1: f64 = ((((((2.0 * nf) + 1.0) * s) * p) - (nf * pm1)) / (nf + 1.0));
             let mut dpn1: f64 = (dpm1 + (((2.0 * nf) + 1.0) * p));
@@ -132,18 +139,18 @@ pub fn fast_accel(r: [f64; 3], v: [f64; 3], x: FastCtx, zonal_max: i64, third_bo
                 let mut q: f64 = (crate::gen::constants::R_E / rn);
                 let mut qn: f64 = 1.0;
                 {
-                    let __end39: i64 = deg;
+                    let __end40: i64 = deg;
                     let mut k: i64 = 0;
-                    while k < __end39 {
+                    while k < __end40 {
                         qn = (qn * q);
                         k += 1;
                     }
                 }
                 let mut f: f64 = ((((-(crate::gen::constants::MU_E)) * crate::gen::orbitfast::FAST_J[(deg) as usize]) * qn) / rn);
                 {
-                    let __end40: i64 = 3;
+                    let __end41: i64 = 3;
                     let mut i: i64 = 0;
-                    while i < __end40 {
+                    while i < __end41 {
                         let mut zi: f64 = (if (i == 2) { 1.0 } else { 0.0 });
                         a[(i) as usize] = (a[(i) as usize] + ((f / rn) * ((((-((df + 1.0))) * p) * rh[(i) as usize]) + (dp * (zi - (s * rh[(i) as usize]))))));
                         i += 1;
@@ -162,9 +169,9 @@ pub fn fast_accel(r: [f64; 3], v: [f64; 3], x: FastCtx, zonal_max: i64, third_bo
         let mut vr: [f64; 3] = crate::gen::orbitfast::corotating_velocity(r, v, crate::gen::orbitfast::FAST_OMEGA_E);
         let mut vn: f64 = rt::norm(vr);
         {
-            let __end41: i64 = 3;
+            let __end42: i64 = 3;
             let mut i: i64 = 0;
-            while i < __end41 {
+            while i < __end42 {
                 a[(i) as usize] = (a[(i) as usize] - (((((0.5 * cd) * am) * x.rho) * vn) * vr[(i) as usize]));
                 i += 1;
             }
@@ -176,9 +183,9 @@ pub fn fast_accel(r: [f64; 3], v: [f64; 3], x: FastCtx, zonal_max: i64, third_bo
             let mut d: [f64; 3] = rt::vsub(r, x.sun);
             let mut dn: f64 = rt::norm(d);
             {
-                let __end42: i64 = 3;
+                let __end43: i64 = 3;
                 let mut i: i64 = 0;
-                while i < __end42 {
+                while i < __end43 {
                     a[(i) as usize] = (a[(i) as usize] + (((((nu * x.p_srp) * cr) * am) * d[(i) as usize]) / dn));
                     i += 1;
                 }

@@ -9,7 +9,7 @@
     "health": "blocked",
     "count": {
      "unproven": 58,
-     "blocked": 45,
+     "blocked": 46,
      "open": 59
     }
    },
@@ -87,7 +87,7 @@
     "health": "blocked",
     "count": {
      "blocked": 7,
-     "unproven": 7,
+     "unproven": 13,
      "open": 17
     }
    },
@@ -161,10 +161,11 @@
    },
    {
     "group": "sens",
-    "health": "open",
+    "health": "blocked",
     "count": {
-     "unproven": 24,
-     "open": 14
+     "unproven": 14,
+     "open": 14,
+     "blocked": 12
     }
    },
    {
@@ -1290,6 +1291,20 @@
     "value": "",
     "cause": [
      "act_rotor_set"
+    ]
+   },
+   {
+    "id": "act_rotor_telemetry",
+    "group": "act",
+    "label": "Rotor telemetry as the engine flies it",
+    "health": "blocked",
+    "why": [
+     "blocked: needs n (no input names it), h (no input names it), d (no input names it), gi (no input names it), tlm (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.8 (2026-10-08), not yet signed by a person: added, method: the rotors' telemetry, until now adcs-sim run.rs (sense), which had no node; its noises are act's stated values (S7.7); the developer's revision S7.8 (2026-10-08), not yet signed by a person: method pseudocode: the rotors' telemetry as a method of act; the engine's sensing calls it, generated into the engine"
+    ],
+    "value": "",
+    "cause": [
+     "act_rotor_telemetry"
     ]
    },
    {
@@ -5638,6 +5653,72 @@
     "cause": [
      "gdn_mode_schedule"
     ]
+   },
+   {
+    "id": "gdn_payload_boresight_x",
+    "group": "gdn",
+    "label": "Payload boresight a product flies when it states none, x",
+    "health": "unproven",
+    "why": [
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.8 (2026-10-08), not yet signed by a person: added, stated: a value the engine used with no node (docs/S7_INVENTORY.md \u00a71.3): stated as the 1.0.0 code gave it"
+    ],
+    "value": "",
+    "cause": []
+   },
+   {
+    "id": "gdn_payload_boresight_y",
+    "group": "gdn",
+    "label": "Payload boresight a product flies when it states none, y",
+    "health": "unproven",
+    "why": [
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.8 (2026-10-08), not yet signed by a person: added, stated: a value the engine used with no node (docs/S7_INVENTORY.md \u00a71.3): stated as the 1.0.0 code gave it"
+    ],
+    "value": "",
+    "cause": []
+   },
+   {
+    "id": "gdn_payload_boresight_z",
+    "group": "gdn",
+    "label": "Payload boresight a product flies when it states none, z",
+    "health": "unproven",
+    "why": [
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.8 (2026-10-08), not yet signed by a person: added, stated: a value the engine used with no node (docs/S7_INVENTORY.md \u00a71.3): stated as the 1.0.0 code gave it"
+    ],
+    "value": "",
+    "cause": []
+   },
+   {
+    "id": "gdn_sun_axis_x",
+    "group": "gdn",
+    "label": "Sun axis a product flies when it states none, x",
+    "health": "unproven",
+    "why": [
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.8 (2026-10-08), not yet signed by a person: added, stated: a value the engine used with no node (docs/S7_INVENTORY.md \u00a71.3): stated as the 1.0.0 code gave it"
+    ],
+    "value": "",
+    "cause": []
+   },
+   {
+    "id": "gdn_sun_axis_y",
+    "group": "gdn",
+    "label": "Sun axis a product flies when it states none, y",
+    "health": "unproven",
+    "why": [
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.8 (2026-10-08), not yet signed by a person: added, stated: a value the engine used with no node (docs/S7_INVENTORY.md \u00a71.3): stated as the 1.0.0 code gave it"
+    ],
+    "value": "",
+    "cause": []
+   },
+   {
+    "id": "gdn_sun_axis_z",
+    "group": "gdn",
+    "label": "Sun axis a product flies when it states none, z",
+    "health": "unproven",
+    "why": [
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.8 (2026-10-08), not yet signed by a person: added, stated: a value the engine used with no node (docs/S7_INVENTORY.md \u00a71.3): stated as the 1.0.0 code gave it"
+    ],
+    "value": "",
+    "cause": []
    },
    {
     "id": "gdn_yaw_flip",
@@ -11406,89 +11487,113 @@
     "id": "l3_sens_row_01",
     "group": "sens",
     "label": "Gyro angle random walk",
-    "health": "unproven",
+    "health": "blocked",
     "why": [
-     "unproven: converted from 1.0.0, not yet signed by a person"
+     "blocked: needs u (no input names it), d (no input names it), w (no input names it), dt (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.8 (2026-10-08), not yet signed by a person: method pseudocode; behaviour built-in -> method: the gyro as the engine flies it as a method of sens; the engine's sensing calls it, generated into the engine"
     ],
     "value": "",
-    "cause": []
+    "cause": [
+     "l3_sens_row_01"
+    ]
    },
    {
     "id": "l3_sens_row_02",
     "group": "sens",
     "label": "Gyro bias and its random walk",
-    "health": "unproven",
+    "health": "blocked",
     "why": [
-     "unproven: converted from 1.0.0, not yet signed by a person"
+     "blocked: needs brw (no input names it), rrw (no input names it), dt (no input names it), g (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.8 (2026-10-08), not yet signed by a person: method pseudocode; behaviour built-in -> method: the gyro's bias and its random walk as a method of sens, from the run's dispersion and the gyro's noise streams, generated into the engine"
     ],
     "value": "",
-    "cause": []
+    "cause": [
+     "l3_sens_row_02"
+    ]
    },
    {
     "id": "l3_sens_row_03",
     "group": "sens",
     "label": "Gyro scale factor and misalignment",
-    "health": "unproven",
+    "health": "blocked",
     "why": [
-     "unproven: converted from 1.0.0, not yet signed by a person"
+     "blocked: needs misalign (no input names it), sf_sigma (no input names it), disp (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.8 (2026-10-08), not yet signed by a person: method pseudocode; behaviour built-in -> method: a sensor's scale factors and misalignment as a method of sens, from the run's dispersion stream, generated into the engine"
     ],
     "value": "",
-    "cause": []
+    "cause": [
+     "l3_sens_row_03"
+    ]
    },
    {
     "id": "l3_sens_row_04",
     "group": "sens",
     "label": "Magnetometer noise and bias",
-    "health": "unproven",
+    "health": "blocked",
     "why": [
-     "unproven: converted from 1.0.0, not yet signed by a person"
+     "blocked: needs mb (no input names it), b (no input names it), noise (no input names it), k_coil (no input names it), m_coil (no input names it), g (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.8 (2026-10-08), not yet signed by a person: method pseudocode; behaviour built-in -> method: the magnetometer's noise and bias as a method of sens, from the run's dispersion and the magnetometer's noise streams, generated into the engine"
     ],
     "value": "",
-    "cause": []
+    "cause": [
+     "l3_sens_row_04"
+    ]
    },
    {
     "id": "l3_sens_row_05",
     "group": "sens",
     "label": "Magnetometer scale factor, misalignment and range",
-    "health": "unproven",
+    "health": "blocked",
     "why": [
-     "unproven: converted from 1.0.0, not yet signed by a person"
+     "blocked: needs u (no input names it), d (no input names it), b_body (no input names it), m_coil (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.8 (2026-10-08), not yet signed by a person: method pseudocode; behaviour built-in -> method: the magnetometer as the engine flies it as a method of sens; the engine's sensing calls it, generated into the engine"
     ],
     "value": "",
-    "cause": []
+    "cause": [
+     "l3_sens_row_05"
+    ]
    },
    {
     "id": "l3_sens_row_06",
     "group": "sens",
     "label": "Coarse Sun sensor cosine response with albedo",
-    "health": "unproven",
+    "health": "blocked",
     "why": [
-     "unproven: converted from 1.0.0, not yet signed by a person"
+     "blocked: needs u (no input names it), d (no input names it), s_b (no input names it), nu (no input names it), nadir_b (no input names it), earth_ang (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.8 (2026-10-08), not yet signed by a person: method pseudocode; behaviour built-in -> method: the coarse Sun sensors with the Earth's albedo as a method of sens; the engine's sensing calls it, generated into the engine"
     ],
     "value": "",
-    "cause": []
+    "cause": [
+     "l3_sens_row_06"
+    ]
    },
    {
     "id": "l3_sens_row_07",
     "group": "sens",
     "label": "Fine Sun sensor quadrant currents",
-    "health": "unproven",
+    "health": "blocked",
     "why": [
-     "unproven: converted from 1.0.0, not yet signed by a person"
+     "blocked: needs s (no input names it), p (no input names it), g (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.8 (2026-10-08), not yet signed by a person: method pseudocode; behaviour built-in -> method: the fine Sun sensor's quadrant currents and a sensor head's frame as a method of sens, generated into the engine"
     ],
     "value": "",
-    "cause": []
+    "cause": [
+     "l3_sens_row_07"
+    ]
    },
    {
     "id": "l3_sens_row_08",
     "group": "sens",
     "label": "Fine Sun sensor angles from currents",
-    "health": "unproven",
+    "health": "blocked",
     "why": [
-     "unproven: converted from 1.0.0, not yet signed by a person"
+     "blocked: needs i (no input names it), p (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.8 (2026-10-08), not yet signed by a person: method pseudocode; behaviour built-in -> method: the fine Sun sensor's angles from its currents as a method of sens, generated into the engine"
     ],
     "value": "",
-    "cause": []
+    "cause": [
+     "l3_sens_row_08"
+    ]
    },
    {
     "id": "l3_sens_row_09",
@@ -11538,23 +11643,29 @@
     "id": "l3_sens_row_13",
     "group": "sens",
     "label": "Earth sensor horizon measurement",
-    "health": "unproven",
+    "health": "blocked",
     "why": [
-     "unproven: converted from 1.0.0, not yet signed by a person"
+     "blocked: needs u (no input names it), d (no input names it), nadir_b (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.8 (2026-10-08), not yet signed by a person: method pseudocode; behaviour built-in -> method: the Earth sensor as the engine flies it as a method of sens; the engine's sensing calls it, generated into the engine"
     ],
     "value": "",
-    "cause": []
+    "cause": [
+     "l3_sens_row_13"
+    ]
    },
    {
     "id": "l3_sens_row_14",
     "group": "sens",
     "label": "GNSS fix noise and latency",
-    "health": "unproven",
+    "health": "blocked",
     "why": [
-     "unproven: converted from 1.0.0, not yet signed by a person"
+     "blocked: needs jd0 (no input names it), te (no input names it), r (no input names it), v (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.8 (2026-10-08), not yet signed by a person: method pseudocode; behaviour built-in -> method: the GNSS receiver's fix, its latency and noise as a method of sens; the engine's sensing calls it, generated into the engine"
     ],
     "value": "",
-    "cause": []
+    "cause": [
+     "l3_sens_row_14"
+    ]
    },
    {
     "id": "l3_x_closure_interface",
@@ -14752,6 +14863,34 @@
     "cause": []
    },
    {
+    "id": "sens_fine_sun",
+    "group": "sens",
+    "label": "Fine Sun sensors as the engine flies them",
+    "health": "blocked",
+    "why": [
+     "blocked: needs u (no input names it), d (no input names it), s_body (no input names it), nu (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.8 (2026-10-08), not yet signed by a person: added, method: the fine Sun sensors' assembly (the head facing the Sun, its field, the noise model), until now adcs-sim-core sensors.rs (Sun), which had no node: the rows l3_sens_row_07 and 08 are its chain; the developer's revision S7.8 (2026-10-08), not yet signed by a person: method pseudocode: the fine Sun sensors as the engine flies them as a method of sens; the engine's sensing calls it, generated into the engine"
+    ],
+    "value": "",
+    "cause": [
+     "sens_fine_sun"
+    ]
+   },
+   {
+    "id": "sens_sky_view",
+    "group": "sens",
+    "label": "What the sensors see of the sky",
+    "health": "blocked",
+    "why": [
+     "blocked: needs rb (no input names it), b_eci (no input names it), sun_rel (no input names it), moon_rel (no input names it), r (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.8 (2026-10-08), not yet signed by a person: added, method: the sky the sensors see, until now adcs-sim run.rs (Sky, the Earth's radius a literal 6378137 m), which had no node (docs/S7_INVENTORY.md \u00a72, S7.6's left-over); the developer's revision S7.8 (2026-10-08), not yet signed by a person: method pseudocode: what the sensors see of the sky as a method of sens, generated into the engine's set-up target with the platform's maths, as it flew, generated into the engine"
+    ],
+    "value": "",
+    "cause": [
+     "sens_sky_view"
+    ]
+   },
+   {
     "id": "st1",
     "group": "vv",
     "label": "AOCS requirements, ECSS-E-ST-60-30C",
@@ -15535,7 +15674,7 @@
     "health": "blocked",
     "count": {
      "unproven": 60,
-     "blocked": 43,
+     "blocked": 44,
      "open": 59
     }
    },
@@ -15613,7 +15752,7 @@
     "health": "blocked",
     "count": {
      "blocked": 7,
-     "unproven": 7,
+     "unproven": 13,
      "open": 17
     }
    },
@@ -15687,10 +15826,11 @@
    },
    {
     "group": "sens",
-    "health": "open",
+    "health": "blocked",
     "count": {
-     "unproven": 24,
-     "open": 14
+     "unproven": 14,
+     "open": 14,
+     "blocked": 12
     }
    },
    {
@@ -16782,6 +16922,20 @@
     "value": "",
     "cause": [
      "act_rotor_set"
+    ]
+   },
+   {
+    "id": "act_rotor_telemetry",
+    "group": "act",
+    "label": "Rotor telemetry as the engine flies it",
+    "health": "blocked",
+    "why": [
+     "blocked: needs n (no input names it), h (no input names it), d (no input names it), gi (no input names it), tlm (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.8 (2026-10-08), not yet signed by a person: added, method: the rotors' telemetry, until now adcs-sim run.rs (sense), which had no node; its noises are act's stated values (S7.7); the developer's revision S7.8 (2026-10-08), not yet signed by a person: method pseudocode: the rotors' telemetry as a method of act; the engine's sensing calls it, generated into the engine"
+    ],
+    "value": "",
+    "cause": [
+     "act_rotor_telemetry"
     ]
    },
    {
@@ -21130,6 +21284,72 @@
     "cause": [
      "gdn_mode_schedule"
     ]
+   },
+   {
+    "id": "gdn_payload_boresight_x",
+    "group": "gdn",
+    "label": "Payload boresight a product flies when it states none, x",
+    "health": "unproven",
+    "why": [
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.8 (2026-10-08), not yet signed by a person: added, stated: a value the engine used with no node (docs/S7_INVENTORY.md \u00a71.3): stated as the 1.0.0 code gave it"
+    ],
+    "value": "",
+    "cause": []
+   },
+   {
+    "id": "gdn_payload_boresight_y",
+    "group": "gdn",
+    "label": "Payload boresight a product flies when it states none, y",
+    "health": "unproven",
+    "why": [
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.8 (2026-10-08), not yet signed by a person: added, stated: a value the engine used with no node (docs/S7_INVENTORY.md \u00a71.3): stated as the 1.0.0 code gave it"
+    ],
+    "value": "",
+    "cause": []
+   },
+   {
+    "id": "gdn_payload_boresight_z",
+    "group": "gdn",
+    "label": "Payload boresight a product flies when it states none, z",
+    "health": "unproven",
+    "why": [
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.8 (2026-10-08), not yet signed by a person: added, stated: a value the engine used with no node (docs/S7_INVENTORY.md \u00a71.3): stated as the 1.0.0 code gave it"
+    ],
+    "value": "",
+    "cause": []
+   },
+   {
+    "id": "gdn_sun_axis_x",
+    "group": "gdn",
+    "label": "Sun axis a product flies when it states none, x",
+    "health": "unproven",
+    "why": [
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.8 (2026-10-08), not yet signed by a person: added, stated: a value the engine used with no node (docs/S7_INVENTORY.md \u00a71.3): stated as the 1.0.0 code gave it"
+    ],
+    "value": "",
+    "cause": []
+   },
+   {
+    "id": "gdn_sun_axis_y",
+    "group": "gdn",
+    "label": "Sun axis a product flies when it states none, y",
+    "health": "unproven",
+    "why": [
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.8 (2026-10-08), not yet signed by a person: added, stated: a value the engine used with no node (docs/S7_INVENTORY.md \u00a71.3): stated as the 1.0.0 code gave it"
+    ],
+    "value": "",
+    "cause": []
+   },
+   {
+    "id": "gdn_sun_axis_z",
+    "group": "gdn",
+    "label": "Sun axis a product flies when it states none, z",
+    "health": "unproven",
+    "why": [
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.8 (2026-10-08), not yet signed by a person: added, stated: a value the engine used with no node (docs/S7_INVENTORY.md \u00a71.3): stated as the 1.0.0 code gave it"
+    ],
+    "value": "",
+    "cause": []
    },
    {
     "id": "gdn_yaw_flip",
@@ -26889,89 +27109,113 @@
     "id": "l3_sens_row_01",
     "group": "sens",
     "label": "Gyro angle random walk",
-    "health": "unproven",
+    "health": "blocked",
     "why": [
-     "unproven: converted from 1.0.0, not yet signed by a person"
+     "blocked: needs u (no input names it), d (no input names it), w (no input names it), dt (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.8 (2026-10-08), not yet signed by a person: method pseudocode; behaviour built-in -> method: the gyro as the engine flies it as a method of sens; the engine's sensing calls it, generated into the engine"
     ],
     "value": "",
-    "cause": []
+    "cause": [
+     "l3_sens_row_01"
+    ]
    },
    {
     "id": "l3_sens_row_02",
     "group": "sens",
     "label": "Gyro bias and its random walk",
-    "health": "unproven",
+    "health": "blocked",
     "why": [
-     "unproven: converted from 1.0.0, not yet signed by a person"
+     "blocked: needs brw (no input names it), rrw (no input names it), dt (no input names it), g (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.8 (2026-10-08), not yet signed by a person: method pseudocode; behaviour built-in -> method: the gyro's bias and its random walk as a method of sens, from the run's dispersion and the gyro's noise streams, generated into the engine"
     ],
     "value": "",
-    "cause": []
+    "cause": [
+     "l3_sens_row_02"
+    ]
    },
    {
     "id": "l3_sens_row_03",
     "group": "sens",
     "label": "Gyro scale factor and misalignment",
-    "health": "unproven",
+    "health": "blocked",
     "why": [
-     "unproven: converted from 1.0.0, not yet signed by a person"
+     "blocked: needs misalign (no input names it), sf_sigma (no input names it), disp (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.8 (2026-10-08), not yet signed by a person: method pseudocode; behaviour built-in -> method: a sensor's scale factors and misalignment as a method of sens, from the run's dispersion stream, generated into the engine"
     ],
     "value": "",
-    "cause": []
+    "cause": [
+     "l3_sens_row_03"
+    ]
    },
    {
     "id": "l3_sens_row_04",
     "group": "sens",
     "label": "Magnetometer noise and bias",
-    "health": "unproven",
+    "health": "blocked",
     "why": [
-     "unproven: converted from 1.0.0, not yet signed by a person"
+     "blocked: needs mb (no input names it), b (no input names it), noise (no input names it), k_coil (no input names it), m_coil (no input names it), g (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.8 (2026-10-08), not yet signed by a person: method pseudocode; behaviour built-in -> method: the magnetometer's noise and bias as a method of sens, from the run's dispersion and the magnetometer's noise streams, generated into the engine"
     ],
     "value": "",
-    "cause": []
+    "cause": [
+     "l3_sens_row_04"
+    ]
    },
    {
     "id": "l3_sens_row_05",
     "group": "sens",
     "label": "Magnetometer scale factor, misalignment and range",
-    "health": "unproven",
+    "health": "blocked",
     "why": [
-     "unproven: converted from 1.0.0, not yet signed by a person"
+     "blocked: needs u (no input names it), d (no input names it), b_body (no input names it), m_coil (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.8 (2026-10-08), not yet signed by a person: method pseudocode; behaviour built-in -> method: the magnetometer as the engine flies it as a method of sens; the engine's sensing calls it, generated into the engine"
     ],
     "value": "",
-    "cause": []
+    "cause": [
+     "l3_sens_row_05"
+    ]
    },
    {
     "id": "l3_sens_row_06",
     "group": "sens",
     "label": "Coarse Sun sensor cosine response with albedo",
-    "health": "unproven",
+    "health": "blocked",
     "why": [
-     "unproven: converted from 1.0.0, not yet signed by a person"
+     "blocked: needs u (no input names it), d (no input names it), s_b (no input names it), nu (no input names it), nadir_b (no input names it), earth_ang (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.8 (2026-10-08), not yet signed by a person: method pseudocode; behaviour built-in -> method: the coarse Sun sensors with the Earth's albedo as a method of sens; the engine's sensing calls it, generated into the engine"
     ],
     "value": "",
-    "cause": []
+    "cause": [
+     "l3_sens_row_06"
+    ]
    },
    {
     "id": "l3_sens_row_07",
     "group": "sens",
     "label": "Fine Sun sensor quadrant currents",
-    "health": "unproven",
+    "health": "blocked",
     "why": [
-     "unproven: converted from 1.0.0, not yet signed by a person"
+     "blocked: needs s (no input names it), p (no input names it), g (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.8 (2026-10-08), not yet signed by a person: method pseudocode; behaviour built-in -> method: the fine Sun sensor's quadrant currents and a sensor head's frame as a method of sens, generated into the engine"
     ],
     "value": "",
-    "cause": []
+    "cause": [
+     "l3_sens_row_07"
+    ]
    },
    {
     "id": "l3_sens_row_08",
     "group": "sens",
     "label": "Fine Sun sensor angles from currents",
-    "health": "unproven",
+    "health": "blocked",
     "why": [
-     "unproven: converted from 1.0.0, not yet signed by a person"
+     "blocked: needs i (no input names it), p (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.8 (2026-10-08), not yet signed by a person: method pseudocode; behaviour built-in -> method: the fine Sun sensor's angles from its currents as a method of sens, generated into the engine"
     ],
     "value": "",
-    "cause": []
+    "cause": [
+     "l3_sens_row_08"
+    ]
    },
    {
     "id": "l3_sens_row_09",
@@ -27021,23 +27265,29 @@
     "id": "l3_sens_row_13",
     "group": "sens",
     "label": "Earth sensor horizon measurement",
-    "health": "unproven",
+    "health": "blocked",
     "why": [
-     "unproven: converted from 1.0.0, not yet signed by a person"
+     "blocked: needs u (no input names it), d (no input names it), nadir_b (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.8 (2026-10-08), not yet signed by a person: method pseudocode; behaviour built-in -> method: the Earth sensor as the engine flies it as a method of sens; the engine's sensing calls it, generated into the engine"
     ],
     "value": "",
-    "cause": []
+    "cause": [
+     "l3_sens_row_13"
+    ]
    },
    {
     "id": "l3_sens_row_14",
     "group": "sens",
     "label": "GNSS fix noise and latency",
-    "health": "unproven",
+    "health": "blocked",
     "why": [
-     "unproven: converted from 1.0.0, not yet signed by a person"
+     "blocked: needs jd0 (no input names it), te (no input names it), r (no input names it), v (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.8 (2026-10-08), not yet signed by a person: method pseudocode; behaviour built-in -> method: the GNSS receiver's fix, its latency and noise as a method of sens; the engine's sensing calls it, generated into the engine"
     ],
     "value": "",
-    "cause": []
+    "cause": [
+     "l3_sens_row_14"
+    ]
    },
    {
     "id": "l3_x_closure_interface",
@@ -30231,6 +30481,34 @@
     ],
     "value": "",
     "cause": []
+   },
+   {
+    "id": "sens_fine_sun",
+    "group": "sens",
+    "label": "Fine Sun sensors as the engine flies them",
+    "health": "blocked",
+    "why": [
+     "blocked: needs u (no input names it), d (no input names it), s_body (no input names it), nu (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.8 (2026-10-08), not yet signed by a person: added, method: the fine Sun sensors' assembly (the head facing the Sun, its field, the noise model), until now adcs-sim-core sensors.rs (Sun), which had no node: the rows l3_sens_row_07 and 08 are its chain; the developer's revision S7.8 (2026-10-08), not yet signed by a person: method pseudocode: the fine Sun sensors as the engine flies them as a method of sens; the engine's sensing calls it, generated into the engine"
+    ],
+    "value": "",
+    "cause": [
+     "sens_fine_sun"
+    ]
+   },
+   {
+    "id": "sens_sky_view",
+    "group": "sens",
+    "label": "What the sensors see of the sky",
+    "health": "blocked",
+    "why": [
+     "blocked: needs rb (no input names it), b_eci (no input names it), sun_rel (no input names it), moon_rel (no input names it), r (no input names it)",
+     "unproven: converted from 1.0.0, not yet signed by a person; the developer's revision S7.8 (2026-10-08), not yet signed by a person: added, method: the sky the sensors see, until now adcs-sim run.rs (Sky, the Earth's radius a literal 6378137 m), which had no node (docs/S7_INVENTORY.md \u00a72, S7.6's left-over); the developer's revision S7.8 (2026-10-08), not yet signed by a person: method pseudocode: what the sensors see of the sky as a method of sens, generated into the engine's set-up target with the platform's maths, as it flew, generated into the engine"
+    ],
+    "value": "",
+    "cause": [
+     "sens_sky_view"
+    ]
    },
    {
     "id": "st1",

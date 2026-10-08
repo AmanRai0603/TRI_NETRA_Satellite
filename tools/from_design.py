@@ -60,7 +60,7 @@ def _held(db=None):
                 continue
             src = origin.split(" ")[0]
             if (sec == "table" and "/" in src) or sec == "data" or (sec, field) in (("code", "pseudocode"), ("explain", "theory")):
-                if src.startswith(("spec/", "catalogue/", "fsw/", "matlab_sils/", "env/", "dyn/", "act/")) and value:
+                if src.startswith(("spec/", "catalogue/", "fsw/", "matlab_sils/", "env/", "dyn/", "act/", "sens/")) and value:
                     out.setdefault(src, value)
     return out
 

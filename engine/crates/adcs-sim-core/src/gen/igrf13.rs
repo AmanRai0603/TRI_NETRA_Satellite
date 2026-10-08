@@ -10,6 +10,13 @@ use crate::gen::rigidbody::{PlantState};
 use crate::gen::rotors::{RotorGeometry};
 use crate::gen::facets::{Facets};
 use crate::gen::orbitfast::{FastCtx};
+use crate::gen::css::{CssDesc, CssUnit};
+use crate::gen::earthsensor::{EsDesc, EsUnit};
+use crate::gen::finesun::{SunDesc, SunUnit};
+use crate::gen::gyro::{GyroDesc, GyroUnit};
+use crate::gen::mag::{MagDesc, MagUnit};
+use crate::gen::sttracker::{StDesc, StUnit};
+use crate::gen::sunquad::{SunHead};
 
 /// IGRF_YEAR: IAGA Working Group V-MOD, International Geomagnetic Reference Field: the thirteenth generation (Alken et al. 2021, Earth Planets Space 73:49), igrf13coeffs.txt; the 2025.0 epoch is 2020.0 plus five years of the 2020-25 secular variation, the model's own definition
 /// read by tools/readers.py (igrf13) from matlab_sils/data/igrf13coeffs.txt (sha256 a9f4fbb21c91e00e), the developer's revision S7.2b

@@ -1,0 +1,48 @@
+## The gyro as the engine flies it, transcribed from adcs-sim-core sensors.rs (GyroDesc, Gyro, new, sample): the true rate
+## through the unit's matrix (its misalignment and scale factors, l3_sens_row_03), plus the turn-on bias and the rate
+## random walk (l3_sens_row_02), plus the angle random walk, the part's arw over sqrt(dt) times a normal draw on each axis,
+## clipped at the part's range (the engine's clamp, act's). The walk is drawn before the angle noise, from the gyro's
+## noise stream.
+## The developer's transcription (S7.8), unsigned.
+module gyro
+
+## The gyro as the part states it: the angle random walk [rad/sqrt(s)], the rate random walk [rad/s/sqrt(s)], the range
+## [rad/s], the bias's, the scale factor's and the axes' dispersion sigmas.
+record GyroDesc
+    arw: real[1]
+    rrw: real[1]
+    range: real[1]
+    bias_sigma: real[1]
+    sf_sigma: real[1]
+    misalign: real[1]
+end
+
+## A gyro in flight: its matrix, its turn-on bias and its random walk's bias [rad/s], and its noise stream.
+record GyroUnit
+    m: real[1][3][3]
+    b: real[1][3]
+    brw: real[1][3]
+    g: stream
+end
+
+## The gyro of a description, its dispersion drawn from disp (the matrix, then the bias), its noise from the stream noise.
+fn gyro_new(d: GyroDesc, disp: inout stream, noise: stream) -> u: GyroUnit
+    u = GyroUnit()
+    u.m = sensor_matrix(d.misalign, d.sf_sigma, disp)
+    u.b = gyro_bias(d.bias_sigma, disp)
+    u.g = noise
+end
+
+## The rate the gyro reads [rad/s] for the true body rate w [rad/s] over a step dt [s].
+fn gyro_sample(u: inout GyroUnit, d: GyroDesc, w: real[1][3] in -0.5 .. 0.5, dt: real[1] in 0.01 .. 1) -> o: real[1][3]
+    let g = u.g
+    let brw = gyro_bias_walk(u.brw, d.rrw, dt, g)
+    u.brw = brw
+    let n2 = normal3(g)
+    u.g = g
+    let mw = u.m*w
+    o = [0.0, 0.0, 0.0]
+    for i in 0 .. 3
+        o[i] = act_clamp(mw[i] + u.b[i] + u.brw[i] + (d.arw/sqrt(dt))*n2[i], -d.range, d.range)
+    end
+end

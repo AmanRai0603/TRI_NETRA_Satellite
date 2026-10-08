@@ -1,0 +1,48 @@
+## The magnetometer as the engine flies it, transcribed from adcs-sim-core sensors.rs (MagDesc, Mag, new, sample): the field
+## through the unit's matrix (its misalignment and scale factors, drawn as the gyro's, l3_sens_row_03), its bias and noise
+## and the coils' stray field (l3_sens_row_04), each axis clipped at the part's range (the engine's clamp, act's); a
+## failed magnetometer reads 1e-9 T along x and draws nothing (the engine's fault value, as flown).
+## The developer's transcription (S7.8), unsigned.
+module mag
+
+## The magnetometer as the part states it: the noise [T], the bias [T] and its sigma, the range [T], the scale factor's
+## and the axes' dispersion sigmas, the coils' coupling [T/(A m^2)].
+record MagDesc
+    noise: real[1]
+    bias_t: real[1]
+    bias_sigma: real[1]
+    range: real[1]
+    sf_sigma: real[1]
+    misalign: real[1]
+    k_coil: real[1]
+end
+
+## A magnetometer in flight: its matrix, its bias [T], whether it has failed, and its noise stream.
+record MagUnit
+    m: real[1][3][3]
+    b: real[1][3]
+    dead: bool
+    g: stream
+end
+
+## The magnetometer of a description, its dispersion drawn from disp (the matrix, then the bias), its noise from noise.
+fn mag_new(d: MagDesc, disp: inout stream, noise: stream) -> u: MagUnit
+    u = MagUnit()
+    u.m = sensor_matrix(d.misalign, d.sf_sigma, disp)
+    u.b = mag_bias(d.bias_t, d.bias_sigma, disp)
+    u.g = noise
+end
+
+## The field the magnetometer reads [T] for the body field b_body [T] with the coils' body dipole m_coil [A m^2].
+fn mag_sample(u: inout MagUnit, d: MagDesc, b_body: real[1][3] in -6e-5 .. 6e-5, m_coil: real[1][3] in -1 .. 1) \
+        -> o: real[1][3]
+    o = [1e-9, 0.0, 0.0]
+    if not u.dead
+        let g = u.g
+        let v = mag_noise(u.m*b_body, u.b, d.noise, d.k_coil, m_coil, g)
+        u.g = g
+        for i in 0 .. 3
+            o[i] = act_clamp(v[i], -d.range, d.range)
+        end
+    end
+end

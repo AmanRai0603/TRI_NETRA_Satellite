@@ -32,14 +32,14 @@ function [a, c, s, f1, f2, v, w] = j2accel(r, mu, re, j, nj, use_sh, c, s, f1, f
         end
         if use_sh
             maxn = (nj + 1);
-            [t__65, t__66, t__67, t__68, t__69, t__70, t__71] = asils.models.gravity.sph_accel(r, mu, re, maxn, maxn, 0, c, s, f1, f2, v, w);
-            sh = t__65;
-            c = t__66;
-            s = t__67;
-            f1 = t__68;
-            f2 = t__69;
-            v = t__70;
-            w = t__71;
+            [t__69, t__70, t__71, t__72, t__73, t__74, t__75] = asils.models.gravity.sph_accel(r, mu, re, maxn, maxn, 0, c, s, f1, f2, v, w);
+            sh = t__69;
+            c = t__70;
+            s = t__71;
+            f1 = t__72;
+            f2 = t__73;
+            v = t__74;
+            w = t__75;
             tb = asils.models.gravity.two_body(r, mu);
             for i = (0):((3) - 1)
                 a((i) + 1) = ((a((i) + 1) + sh((i) + 1)) - tb((i) + 1));

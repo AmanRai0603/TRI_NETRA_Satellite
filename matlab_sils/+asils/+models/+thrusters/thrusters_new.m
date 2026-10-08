@@ -7,16 +7,16 @@ function [s, disp] = thrusters_new(d, disp)
     s = asils.models.thrusters.ThrusterSet_zero();
     s = asils.models.thrusters.ThrusterSet_zero();
     for j = (0):((d.nc) - 1)
-        [t__35, t__36] = asils.models.rcsthrust.thrust_factor(d.thrust_sigma, disp);
-        s.tscale((j) + 1) = t__35;
-        disp = t__36;
+        [t__39, t__40] = asils.models.rcsthrust.thrust_factor(d.thrust_sigma, disp);
+        s.tscale((j) + 1) = t__39;
+        disp = t__40;
     end
     for k = (0):((d.nc) - 1)
-        [t__37, t__38] = asils.models.rcsaxis.couple_axis((d.tau((k) + 1, :)).', d.misalign, disp);
-        s.tau((k) + 1, :) = t__37.';
-        disp = t__38;
+        [t__41, t__42] = asils.models.rcsaxis.couple_axis((d.tau((k) + 1, :)).', d.misalign, disp);
+        s.tau((k) + 1, :) = t__41.';
+        disp = t__42;
     end
-    [t__39, t__40] = asils.models.rcsisp.isp_draw(d.isp_lo, d.isp_hi, disp);
-    s.isp = t__39;
-    disp = t__40;
+    [t__43, t__44] = asils.models.rcsisp.isp_draw(d.isp_lo, d.isp_hi, disp);
+    s.isp = t__43;
+    disp = t__44;
 end

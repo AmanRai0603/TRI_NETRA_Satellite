@@ -1,0 +1,18 @@
+## A gyro's bias and its random walk, transcribed from adcs-sim-core sensors.rs (Gyro::new: the turn-on bias, normal draws
+## times the part's bias_rad_s dispersion from the run's dispersion stream; Gyro::sample: the rate random walk, the bias
+## growing by the part's rrw times sqrt(dt) times a normal draw on each axis, from the gyro's noise stream).
+## The developer's transcription (S7.8), unsigned.
+module gyrobias
+
+## A gyro's turn-on bias [rad/s]: three normal draws times sigma.
+fn gyro_bias(sigma: real[1] in 0 .. 1e-3, disp: inout stream) -> b: real[1][3]
+    let e = normal3(disp)
+    b = e*sigma
+end
+
+## The rate random walk's bias brw [rad/s] after a step dt [s], rrw the walk's density [rad/s/sqrt(s)].
+fn gyro_bias_walk(brw: real[1][3] in -1e-3 .. 1e-3, rrw: real[1] in 0 .. 1e-4, dt: real[1] in 0.01 .. 1, g: inout stream) \
+        -> w: real[1][3]
+    let n1 = normal3(g)
+    w = brw + (rrw*sqrt(dt))*n1
+end

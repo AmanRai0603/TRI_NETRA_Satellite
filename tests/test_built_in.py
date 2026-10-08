@@ -1,4 +1,4 @@
-"""The built-in count (docs/PLAN_2_0.md S7; docs/S7_INVENTORY.md S7.1b, S7.3, S7.3b-e, S7.4, S7.5, S7.6, S7.7): the nodes of the regression copy whose
+"""The built-in count (docs/PLAN_2_0.md S7; docs/S7_INVENTORY.md S7.1b, S7.3, S7.3b-e, S7.4, S7.5, S7.6, S7.7, S7.8, S7.9): the nodes of the regression copy whose
 relation is still compiled code, by group. S7 lowers it to zero; each step that writes a method takes its nodes
 out of BUILT_IN here, in the same change.
   - the count and the list are exactly these, and tools/health.py reports them;
@@ -33,9 +33,7 @@ BUILT_IN = {
                "l3_budget_row_03", "l3_budget_row_04", "l3_budget_row_05", "l3_budget_row_06", "l3_budget_row_07", "l3_budget_row_08"],
     "oils": ["l3_oils_row_07"],
     "pnt": ["gp_0", "gp_1", "gp_2", "gp_4"],
-    "sens": ["l3_sens_row_01", "l3_sens_row_02", "l3_sens_row_03", "l3_sens_row_04", "l3_sens_row_05", "l3_sens_row_06",
-             "l3_sens_row_07", "l3_sens_row_08", "l3_sens_row_09", "l3_sens_row_10", "l3_sens_row_11", "l3_sens_row_12",
-             "l3_sens_row_13", "l3_sens_row_14"],
+    "sens": ["l3_sens_row_09", "l3_sens_row_10", "l3_sens_row_11"],
 }
 BOUNDARY = {"l3_fsw_row_01": "runtime", "l3_fsw_row_02": "runtime", "l3_fsw_row_03": "runtime", "l3_fsw_row_04": "runtime",
             "l3_fsw_row_10": "test"}
@@ -50,10 +48,10 @@ class BuiltIn(unittest.TestCase):
     def beh(self, nid):
         return self.nodes[nid][1]["body"]["block"][0][3]
 
-    def test_the_count_is_46_and_these(self):
+    def test_the_count_is_35_and_these(self):
         bi = health.built_in(REG)
         self.assertEqual(bi["by_group"], BUILT_IN)
-        self.assertEqual(bi["count"], 46)
+        self.assertEqual(bi["count"], 35)
         self.assertEqual(bi["boundary"], BOUNDARY)
 
     def test_what_is_not_a_relation_in_code_is_not_built_in(self):
@@ -243,18 +241,43 @@ class BuiltIn(unittest.TestCase):
             self.assertTrue(any(w.startswith("the developer's revision S7.7") and "not yet signed by a person" in w for w in x["why"]), nid)
         self.assertEqual(set(health.built_in(REG)["by_group"]["act"]) & moved, set())
 
+    def test_the_simple_sensors_are_methods_the_developer_transcribed(self):
+        """S7.8: the gyro, the magnetometer, the coarse and fine Sun sensors (the noise model and the quadrant chain), the
+        Earth sensor and the GNSS receiver are sens's methods, each the developer's unsigned transcription, generated into
+        adcs-sim-core; the fine Sun sensors as the engine flies them (a new node), the sky the sensors see (a new node,
+        into adcs-sim, the Earth's half-angle from the constants' R_E in place of run.rs's literal) and the rotors'
+        telemetry (a new node of act) too. sens keeps only the star tracker's rows (S7.9 and S7.10) built-in."""
+        moved = {"l3_sens_row_01", "l3_sens_row_02", "l3_sens_row_03", "l3_sens_row_04", "l3_sens_row_05", "l3_sens_row_06",
+                 "l3_sens_row_07", "l3_sens_row_08", "l3_sens_row_13", "l3_sens_row_14"}
+        added = {"sens_fine_sun": ("sens", "adcs-sim-core"), "sens_sky_view": ("sens", "adcs-sim"), "act_rotor_telemetry": ("act", "adcs-sim-core")}
+        for nid in moved | set(added):
+            _k, x = self.nodes[nid]
+            rows = {(s, f): (v, o) for s, f, v, o in x["body"]["content"]}
+            group, target = added.get(nid, ("sens", "adcs-sim-core"))
+            self.assertEqual(self.beh(nid), "method", nid)
+            self.assertEqual(x["body"]["node"]["group_id"], group, nid)
+            self.assertIn("the developer's revision S7.8", rows[("code", "pseudocode")][1], nid)
+            self.assertTrue(rows[("code", "transcribes")][0], nid)
+            self.assertEqual(rows[("code", "generate")][0], target, nid)
+            self.assertEqual(x["sealed_as"], "unconfirmed", nid)
+            self.assertTrue(any(w.startswith("the developer's revision S7.8") and "not yet signed by a person" in w for w in x["why"]), nid)
+        self.assertEqual(set(health.built_in(REG)["by_group"]["sens"]) & moved, set())
+        run = (ROOT / "engine" / "crates" / "adcs-sim" / "src" / "run.rs").read_text(encoding="utf-8")
+        self.assertNotIn("6378137", run, "the Earth's radius is the constants' (sens_sky_view), not a literal in run.rs")
+
     def test_the_device_values_the_code_used_with_no_node_are_stated_as_it_gave_them(self):
         """S7.7: the product's device defaults (product.rs Dev::load) and the rotors' telemetry noises (run.rs sense), which
         the engine used with no node, are stated by act with the value and source the 1.0.0 code gave; until S7.11 (the
-        descriptors) and S7.8 (the sampling) take them from the design, the code's copies are held equal to them here."""
+        descriptors) takes them from the design, product.rs's copies are held equal to them here. Since S7.8 the rotors'
+        telemetry is act_rotor_telemetry's method, whose constants are held equal to the two stated noises."""
         prod = (ROOT / "engine" / "crates" / "adcs-sim" / "src" / "product.rs").read_text(encoding="utf-8")
-        run = (ROOT / "engine" / "crates" / "adcs-sim" / "src" / "run.rs").read_text(encoding="utf-8")
+        tlm = from_design.text("act/rotortlm.pc", REG / "design.tndb")
         mex = re.search(r"let mut x = MexDesc \{ ([^}]+)\.\.Default::default\(\) \};", prod).group(1)
         val = {k.strip(): float(v) for k, v in (kv.split(":") for kv in mex.split(",") if kv.strip())}
         want = {"act_rw_torque_noise": val["torque_noise"], "act_rw_friction_comp": val["friction_comp"], "act_rw_drive_efficiency": val["eta"],
                 "act_cmg_speed_gain": val["k_speed"], "act_fmr_flow_gain": val["k_flow"], "act_fmr_flow_tau": val["flow_tau"],
-                "act_rotor_tlm_noise": float(re.search(r"let hm = x\.h\[i\] \+ ([0-9.e-]+)\*u\.tlm\.normal\(\);", run).group(1)),
-                "act_gimbal_tlm_noise": float(re.search(r"x\.d\[d\.mex\.gi\[i\] - 1\] \+ ([0-9.e-]+)\*u\.tlm\.normal\(\)", run).group(1))}
+                "act_rotor_tlm_noise": float(re.search(r"^const ROTOR_TLM_NOISE = ([0-9.e-]+)$", tlm, re.M).group(1)),
+                "act_gimbal_tlm_noise": float(re.search(r"^const GIMBAL_TLM_NOISE = ([0-9.e-]+)$", tlm, re.M).group(1))}
         for nid, v in want.items():
             _k, x = self.nodes[nid]
             rows = {(s, f): (val_, o) for s, f, val_, o in x["body"]["content"]}
@@ -263,6 +286,41 @@ class BuiltIn(unittest.TestCase):
             self.assertEqual(float(rows[("value", "number")][0]), v, nid)
             self.assertTrue(rows[("value", "source")][0].startswith("1.0.0 code: engine/crates/adcs-sim/src/"), nid)
             self.assertEqual(rows[("value", "number")][1], "the developer's revision S7.7", nid)
+
+    def test_the_star_tracker_unit_is_methods_the_developer_transcribed(self):
+        """S7.9: the star tracker's attitude from its stars (the q-method with the residual check, l3_sens_row_12), its
+        synthetic onboard star table (a new node, a method: the engine's own catalogue, not a published one) and the unit
+        as the engine flies it (a new node: the mounts, the latency, the exclusion and blinding, the noise and QUEST models)
+        are sens's methods, each the developer's unsigned transcription, generated into adcs-sim-core. The image model's
+        chain (l3_sens_row_09 to 11) is still comp.rs's (S7.10)."""
+        for nid in ("l3_sens_row_12", "sens_star_catalogue", "sens_star_tracker"):
+            _k, x = self.nodes[nid]
+            rows = {(s, f): (v, o) for s, f, v, o in x["body"]["content"]}
+            self.assertEqual(self.beh(nid), "method", nid)
+            self.assertEqual(x["body"]["node"]["group_id"], "sens", nid)
+            self.assertIn("the developer's revision S7.9", rows[("code", "pseudocode")][1], nid)
+            self.assertTrue(rows[("code", "transcribes")][0], nid)
+            self.assertEqual(rows[("code", "generate")][0], "adcs-sim-core", nid)
+            self.assertEqual(x["sealed_as"], "unconfirmed", nid)
+            self.assertTrue(any(w.startswith("the developer's revision S7.9") and "not yet signed by a person" in w for w in x["why"]), nid)
+        self.assertNotIn("l3_sens_row_12", health.built_in(REG)["by_group"]["sens"])
+
+    def test_the_product_axes_the_code_used_with_no_node_are_stated_as_it_gave_them(self):
+        """S7.8: the payload boresight and the Sun axis a product flies when it states none (product.rs Dev::load), which
+        the engine used with no node, are stated by gdn with the value and source the 1.0.0 code gave; until S7.11 (the
+        descriptors) takes them from the design, product.rs's copies are held equal to them here."""
+        prod = (ROOT / "engine" / "crates" / "adcs-sim" / "src" / "product.rs").read_text(encoding="utf-8")
+        m = re.search(r"boresight: \[([^\]]+)\], sun_axis: \[([^\]]+)\]", prod)
+        bs, sa = ([float(v) for v in g.split(",")] for g in m.groups())
+        want = {f"gdn_payload_boresight_{a}": bs[i] for i, a in enumerate("xyz")} | {f"gdn_sun_axis_{a}": sa[i] for i, a in enumerate("xyz")}
+        for nid, v in want.items():
+            _k, x = self.nodes[nid]
+            rows = {(s, f): (val, o) for s, f, val, o in x["body"]["content"]}
+            self.assertEqual(self.beh(nid), "stated", nid)
+            self.assertEqual(x["body"]["node"]["group_id"], "gdn", nid)
+            self.assertEqual(float(rows[("value", "number")][0]), v, nid)
+            self.assertTrue(rows[("value", "source")][0].startswith("1.0.0 code: engine/crates/adcs-sim/src/product.rs Dev::load"), nid)
+            self.assertEqual(rows[("value", "number")][1], "the developer's revision S7.8", nid)
 
     def test_the_values_the_code_used_with_no_node_are_stated_as_it_gave_them(self):
         """S7.4: the centre-of-mass direction and the surface's constants, which adcs-sim's config.rs used with no node,

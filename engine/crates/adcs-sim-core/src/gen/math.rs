@@ -10,6 +10,13 @@ use crate::gen::rigidbody::{PlantState};
 use crate::gen::rotors::{RotorGeometry};
 use crate::gen::facets::{Facets};
 use crate::gen::orbitfast::{FastCtx};
+use crate::gen::css::{CssDesc, CssUnit};
+use crate::gen::earthsensor::{EsDesc, EsUnit};
+use crate::gen::finesun::{SunDesc, SunUnit};
+use crate::gen::gyro::{GyroDesc, GyroUnit};
+use crate::gen::mag::{MagDesc, MagUnit};
+use crate::gen::sttracker::{StDesc, StUnit};
+use crate::gen::sunquad::{SunHead};
 
 /// The largest |a_i|.
 /// - a: real[1][3] (passed a plain number)
@@ -35,9 +42,9 @@ pub fn maxabs3(a: [f64; 3]) -> f64 {
 pub fn mat3t_vec(m: [[f64; 3]; 3], v: [f64; 3]) -> [f64; 3] {
     let mut r: [f64; 3] = [0.0; 3];
     {
-        let __end46: i64 = 3;
+        let __end47: i64 = 3;
         let mut i: i64 = 0;
-        while i < __end46 {
+        while i < __end47 {
             r[(i) as usize] = (((m[0][(i) as usize] * v[0]) + (m[1][(i) as usize] * v[1])) + (m[2][(i) as usize] * v[2]));
             i += 1;
         }
@@ -93,18 +100,18 @@ pub fn pinv_rows(a: [[f64; 8]; 3], n: i64) -> [[f64; 3]; 8] {
     let mut p: [[f64; 3]; 8] = [[0.0; 3]; 8];
     let mut s: [[f64; 3]; 3] = [[0.0; 3]; 3];
     {
-        let __end47: i64 = 3;
+        let __end48: i64 = 3;
         let mut i: i64 = 0;
-        while i < __end47 {
+        while i < __end48 {
             {
-                let __end48: i64 = 3;
+                let __end49: i64 = 3;
                 let mut j: i64 = 0;
-                while j < __end48 {
+                while j < __end49 {
                     s[(i) as usize][(j) as usize] = 0.0;
                     {
-                        let __end49: i64 = n;
+                        let __end50: i64 = n;
                         let mut k: i64 = 0;
-                        while k < __end49 {
+                        while k < __end50 {
                             s[(i) as usize][(j) as usize] = (s[(i) as usize][(j) as usize] + (a[(i) as usize][(k) as usize] * a[(j) as usize][(k) as usize]));
                             k += 1;
                         }
@@ -118,22 +125,22 @@ pub fn pinv_rows(a: [[f64; 8]; 3], n: i64) -> [[f64; 3]; 8] {
     let mut tr: f64 = (((s[0][0] + s[1][1]) + s[2][2]) / 3.0);
     let mut eps: f64 = (1.0e-12 * (if (tr > 1.0e-30) { tr } else { 1.0e-30 }));
     {
-        let __end50: i64 = 3;
+        let __end51: i64 = 3;
         let mut i: i64 = 0;
-        while i < __end50 {
+        while i < __end51 {
             s[(i) as usize][(i) as usize] = (s[(i) as usize][(i) as usize] + eps);
             i += 1;
         }
     }
     let (mut si, mut ok) = crate::gen::math::inv3(s);
     {
-        let __end51: i64 = n;
+        let __end52: i64 = n;
         let mut k: i64 = 0;
-        while k < __end51 {
+        while k < __end52 {
             {
-                let __end52: i64 = 3;
+                let __end53: i64 = 3;
                 let mut j: i64 = 0;
-                while j < __end52 {
+                while j < __end53 {
                     p[(k) as usize][(j) as usize] = (((a[0][(k) as usize] * si[0][(j) as usize]) + (a[1][(k) as usize] * si[1][(j) as usize])) + (a[2][(k) as usize] * si[2][(j) as usize]));
                     j += 1;
                 }
@@ -158,13 +165,13 @@ pub fn jacobi_eig4(k: [[f64; 4]; 4]) -> ([f64; 4], [[f64; 4]; 4]) {
     let mut pp: [i64; 6] = [0, 0, 0, 1, 1, 2];
     let mut qq: [i64; 6] = [1, 2, 3, 2, 3, 3];
     {
-        let __end53: i64 = 12;
+        let __end54: i64 = 12;
         let mut sweep: i64 = 0;
-        while sweep < __end53 {
+        while sweep < __end54 {
             {
-                let __end54: i64 = 6;
+                let __end55: i64 = 6;
                 let mut pi_: i64 = 0;
-                while pi_ < __end54 {
+                while pi_ < __end55 {
                     let mut p: i64 = pp[(pi_) as usize];
                     let mut q: i64 = qq[(pi_) as usize];
                     let mut apq: f64 = a[(p) as usize][(q) as usize];
@@ -177,9 +184,9 @@ pub fn jacobi_eig4(k: [[f64; 4]; 4]) -> ([f64; 4], [[f64; 4]; 4]) {
                         let mut c: f64 = (1.0 / crate::pm::sqrt(((t * t) + 1.0)));
                         let mut sn: f64 = (t * c);
                         {
-                            let __end55: i64 = 4;
+                            let __end56: i64 = 4;
                             let mut i: i64 = 0;
-                            while i < __end55 {
+                            while i < __end56 {
                                 let mut aip: f64 = a[(i) as usize][(p) as usize];
                                 let mut aiq: f64 = a[(i) as usize][(q) as usize];
                                 a[(i) as usize][(p) as usize] = ((c * aip) - (sn * aiq));
@@ -188,9 +195,9 @@ pub fn jacobi_eig4(k: [[f64; 4]; 4]) -> ([f64; 4], [[f64; 4]; 4]) {
                             }
                         }
                         {
-                            let __end56: i64 = 4;
+                            let __end57: i64 = 4;
                             let mut i: i64 = 0;
-                            while i < __end56 {
+                            while i < __end57 {
                                 let mut api: f64 = a[(p) as usize][(i) as usize];
                                 let mut aqi: f64 = a[(q) as usize][(i) as usize];
                                 a[(p) as usize][(i) as usize] = ((c * api) - (sn * aqi));
@@ -199,9 +206,9 @@ pub fn jacobi_eig4(k: [[f64; 4]; 4]) -> ([f64; 4], [[f64; 4]; 4]) {
                             }
                         }
                         {
-                            let __end57: i64 = 4;
+                            let __end58: i64 = 4;
                             let mut i: i64 = 0;
-                            while i < __end57 {
+                            while i < __end58 {
                                 let mut vip: f64 = v[(i) as usize][(p) as usize];
                                 let mut viq: f64 = v[(i) as usize][(q) as usize];
                                 v[(i) as usize][(p) as usize] = ((c * vip) - (sn * viq));
@@ -217,9 +224,9 @@ pub fn jacobi_eig4(k: [[f64; 4]; 4]) -> ([f64; 4], [[f64; 4]; 4]) {
         }
     }
     {
-        let __end58: i64 = 4;
+        let __end59: i64 = 4;
         let mut i: i64 = 0;
-        while i < __end58 {
+        while i < __end59 {
             lam[(i) as usize] = a[(i) as usize][(i) as usize];
             i += 1;
         }

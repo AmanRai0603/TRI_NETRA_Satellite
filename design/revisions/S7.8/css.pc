@@ -1,0 +1,88 @@
+## The coarse Sun sensors as the engine flies them, transcribed from adcs-sim-core sensors.rs (CssDesc, Css, new, sample):
+## cosine cells, each one's current its dispersed scale factor times the Sun's cosine on it (times the sunlit fraction) plus
+## the Earth's albedo on it, plus noise; the Earth's albedo the part's albedo times the Earth's solid-angle factor sin^2 of
+## its half-angle times the Sun's cosine on the Earth seen from the satellite (Wertz 1978, section 7.2, the cosine law); a
+## failed cell reads nothing. On each body axis the first cell facing it (its normal's component above 0.9) minus the first
+## facing away (below -0.9) gives that axis of the Sun; with the Sun in view (sunlit fraction above 0.5) and the
+## estimate's norm above 0.3 of a full cell, it is made unit and turned by the unit's misalignment. The thresholds as the
+## engine flies them (1.0.0 code). The scale factors are drawn first, then the misalignment (act's small rotation), from
+## the run's dispersion stream; the noise from the cells' stream, a cell at a time.
+## The developer's transcription (S7.8), unsigned.
+module css
+
+## The most cells or heads a sensor carries (adcs-sim-core NS).
+const SENS_NS = 8
+
+## The cells as the part states them: how many, their normals (body), the noise as a share of a full cell, the albedo, the
+## scale factor's and the misalignment's dispersion sigmas.
+record CssDesc
+    n: int
+    normals: real[1][3][SENS_NS]
+    noise: real[1]
+    albedo: real[1]
+    scale_sigma: real[1]
+    misalign: real[1]
+end
+
+## The cells in flight: each one's scale factor and whether it has failed, the unit's misalignment, its noise stream.
+record CssUnit
+    scale: real[1][SENS_NS]
+    dead: bool[SENS_NS]
+    r: real[1][3][3]
+    g: stream
+end
+
+## The cells of a description, their dispersion drawn from disp, their noise from noise.
+fn css_new(d: CssDesc, disp: inout stream, noise: stream) -> u: CssUnit
+    u = CssUnit()
+    for i in 0 .. SENS_NS
+        u.scale[i] = 1.0
+    end
+    for j in 0 .. d.n
+        let z = normal(disp)
+        u.scale[j] = 1.0 + d.scale_sigma*z
+    end
+    u.r = sensor_misalignment(d.misalign, disp)
+    u.g = noise
+end
+
+## The Sun the cells give (body, unit) and whether they give one, for the Sun s_b and nadir nadir_b (body, unit), the
+## sunlit fraction nu and the Earth's half-angle earth_ang [rad].
+fn css_sample(u: inout CssUnit, d: CssDesc, s_b: real[1][3] in -1 .. 1, nu: real[1] in 0 .. 1, nadir_b: real[1][3] in -1 .. 1, \
+              earth_ang: real[1] in 0.9 .. 1.4) -> (ok: bool, s: real[1][3])
+    let c0 = -dot(s_b, nadir_b)
+    let geo = sin(earth_ang)*sin(earth_ang)*(if c0 > 0.0 then c0 else 0.0)
+    let iv: real[1][SENS_NS] = 0
+    let g = u.g
+    for j in 0 .. d.n
+        let cs = dot(d.normals[j], s_b)
+        let ce = dot(d.normals[j], nadir_b)
+        let z = normal(g)
+        iv[j] = u.scale[j]*(nu*(if cs > 0.0 then cs else 0.0) + d.albedo*geo*(if ce > 0.0 then ce else 0.0)) + d.noise*z
+        if u.dead[j]
+            iv[j] = 0.0
+        end
+    end
+    u.g = g
+    let est: real[1][3] = 0
+    for ax in 0 .. 3
+        let p = -1
+        let m = -1
+        for k in 0 .. d.n
+            if p < 0 and d.normals[k][ax] > 0.9
+                p = k
+            end
+            if m < 0 and d.normals[k][ax] < -0.9
+                m = k
+            end
+        end
+        if p >= 0 and m >= 0
+            est[ax] = iv[p] - iv[m]
+        end
+    end
+    ok = nu > 0.5 and norm(est) > 0.3
+    s = [0.0, 0.0, 0.0]
+    if ok
+        s = u.r*unit_or_zero(est)
+    end
+end

@@ -8,7 +8,9 @@
 //!   back to the Sun direction (asils.comp.sun_sensor.{currents,angles}).
 //!
 //! No allocation: the frame, its scratch copy, the onboard pair table and the vote counts are
-//! the caller's slices ([`star_tracker::Work`]). Pixel coordinates are the twin's: 1-based,
+//! the caller's slices ([`star_tracker::Work`]). The onboard star table comes as two slices, its directions `cr` and its
+//! magnitudes `cm` (sens_star_catalogue's, `sensors::St::catalogue`); the attitude with its residual check and the quadrant
+//! Sun sensor are sens's methods, generated from the design (l3_sens_row_12, 07 and 08). Pixel coordinates are the twin's: 1-based,
 //! x the column and y the row, the frame stored column by column.
 //! Twin: matlab_sils/+asils/+comp. Owner: Agastya. Copyright (c) 2026 Agastya. All rights reserved.
 use crate::la::*;
@@ -16,14 +18,9 @@ use crate::pm::*;
 use crate::rng::Rng;
 
 /// Body -> head rotation (rows x, y, z): head z on the boresight `z`, head x = z x Z_body (or
-/// z x X_body when z is along Z_body). The twin's head_ (star tracker) and Rh (Sun sensor).
-pub fn head_frame(z: &V3) -> M3 {
-    let z = unit(z);
-    let mut x = cross(&z, &[0.0, 0.0, 1.0]);
-    if norm(&x) < 1e-6 { x = cross(&z, &[1.0, 0.0, 0.0]); }
-    let x = unit(&x);
-    [x, cross(&z, &x), z]
-}
+/// z x X_body when z is along Z_body). The twin's head_ (star tracker) and Rh (Sun sensor); sens's l3_sens_row_07
+/// `head_frame`, generated from the design.
+pub fn head_frame(z: &V3) -> M3 { crate::gen::sunquad::head_frame(*z) }
 
 pub mod star_tracker {
     use super::*;
@@ -62,21 +59,21 @@ pub mod star_tracker {
     fn near(a: &V3, b: &V3, fov: f64) -> bool { dot(a, b) > cos(2.0*sqrt(2.0)*fov) }
 
     /// How many catalogue pairs lie closer than the field diagonal (the pair table's length).
-    pub fn pair_count(cat: &[(V3, f64)], fov: f64) -> usize {
+    pub fn pair_count(cr: &[V3], fov: f64) -> usize {
         let mut n = 0;
-        for j in 0..cat.len() { for i in 0..j { if near(&cat[i].0, &cat[j].0, fov) { n += 1; } } }
+        for j in 0..cr.len() { for i in 0..j { if near(&cr[i], &cr[j], fov) { n += 1; } } }
         n
     }
 
     /// The onboard pair table (asils.comp.star_tracker.pairs): every catalogue pair closer than
     /// the field diagonal, sorted by angle (ties as the twin's stable sort leaves them). Writes
     /// `out[..pair_count]` and returns that count; `out` must hold it.
-    pub fn pairs(cat: &[(V3, f64)], fov: f64, out: &mut [Pair]) -> usize {
+    pub fn pairs(cr: &[V3], fov: f64, out: &mut [Pair]) -> usize {
         let mut n = 0;
-        for j in 0..cat.len() {
+        for j in 0..cr.len() {
             for i in 0..j {
-                if near(&cat[i].0, &cat[j].0, fov) {
-                    out[n] = Pair { i: i as u16, j: j as u16, ang: acos(dot(&cat[i].0, &cat[j].0).min(1.0)) };
+                if near(&cr[i], &cr[j], fov) {
+                    out[n] = Pair { i: i as u16, j: j as u16, ang: acos(dot(&cr[i], &cr[j]).min(1.0)) };
                     n += 1;
                 }
             }
@@ -101,14 +98,14 @@ pub mod star_tracker {
     /// background; with `noise`, shot noise sqrt(signal) and read noise on every pixel.
     /// `truth` receives (x, y, catalogue index) of the stars drawn, as far as it holds them;
     /// returns how many were drawn.
-    pub fn render(r_eh: &M3, cat: &[(V3, f64)], cam: &Camera, img: &mut [f64], noise: Option<&mut Rng>, truth: &mut [(f64, f64, usize)]) -> usize {
+    pub fn render(r_eh: &M3, cr: &[V3], cm: &[f64], cam: &Camera, img: &mut [f64], noise: Option<&mut Rng>, truth: &mut [(f64, f64, usize)]) -> usize {
         let n = cam.n;
         let nf = n as f64;
         for p in img.iter_mut().take(n*n) { *p = cam.bg; }
         let cmin = cos(cam.fov*sqrt(2.0));
         let s2 = 2.0*cam.psf_px*cam.psf_px;
         let mut drawn = 0;
-        for (k, (r, mag)) in cat.iter().enumerate() {
+        for (k, (r, mag)) in cr.iter().zip(cm).enumerate() {
             let v = mv(r_eh, r);
             if v[2] <= cmin { continue; }
             let x = cam.f*v[0]/v[2] + cam.c;
@@ -197,14 +194,14 @@ pub mod star_tracker {
     /// (within mag_tol); each spot takes its most-voted star (the lowest index on a tie); then a
     /// star is kept only while its angles to at least two other kept stars match the catalogue's
     /// (three passes). id[p] = NONE where none. True when three or more are kept.
-    pub fn identify(b: &[V3], mag: &[f64], pairs: &[Pair], cat: &[(V3, f64)], cam: &Camera, votes: &mut [u32], id: &mut [usize]) -> bool {
+    pub fn identify(b: &[V3], mag: &[f64], pairs: &[Pair], cr: &[V3], cm: &[f64], cam: &Camera, votes: &mut [u32], id: &mut [usize]) -> bool {
         let n = b.len();
         for x in id.iter_mut().take(n) { *x = NONE; }
         if n < 3 { return false; }
         let tol = cam.id_tol;
         let mut cand = [NONE; MAX_SPOTS];
         for p in 0..n {
-            for v in votes.iter_mut().take(cat.len()) { *v = 0; }
+            for v in votes.iter_mut().take(cr.len()) { *v = 0; }
             for q in 0..n {
                 if q == p { continue; }
                 let th = acos(dot(&b[p], &b[q]).min(1.0));
@@ -212,13 +209,13 @@ pub mod star_tracker {
                 let hi = pairs.partition_point(|x| x.ang <= th + tol);
                 for pr in &pairs[lo..hi.max(lo)] {
                     let (i, j) = (pr.i as usize, pr.j as usize);
-                    let (mi, mj) = (cat[i].1, cat[j].1);
+                    let (mi, mj) = (cm[i], cm[j]);
                     if abs(mi - mag[p]) < cam.mag_tol && abs(mj - mag[q]) < cam.mag_tol { votes[i] += 1; }
                     if abs(mj - mag[p]) < cam.mag_tol && abs(mi - mag[q]) < cam.mag_tol { votes[j] += 1; }
                 }
             }
             let (mut best, mut bi) = (0, NONE);
-            for (k, &v) in votes.iter().enumerate().take(cat.len()) { if v > best { best = v; bi = k; } }
+            for (k, &v) in votes.iter().enumerate().take(cr.len()) { if v > best { best = v; bi = k; } }
             cand[p] = bi;
         }
         let mut keep = [false; MAX_SPOTS];
@@ -231,7 +228,7 @@ pub mod star_tracker {
                 for q in 0..n {
                     if q == p || !keep[q] { continue; }
                     let th = acos(dot(&b[p], &b[q]).min(1.0));
-                    let tc = acos(dot(&cat[cand[p]].0, &cat[cand[q]].0).min(1.0));
+                    let tc = acos(dot(&cr[cand[p]], &cr[cand[q]]).min(1.0));
                     if abs(th - tc) < 3.0*tol { good += 1; }
                 }
                 if good < 2 { keep[p] = false; }
@@ -244,29 +241,18 @@ pub mod star_tracker {
 
     /// Identified stars -> ECI -> head attitude (asils.comp.star_tracker.attitude): the q-method,
     /// then the star whose direction misses its catalogue star by the most is dropped while that
-    /// miss is `tol` or more, and the fit repeated. True with three or more stars left.
-    pub fn attitude(b: &[V3], id: &mut [usize], cat: &[(V3, f64)], tol: f64) -> (Q, bool) {
-        let mut q = [0.0, 0.0, 0.0, 1.0];
+    /// miss is `tol` or more, and the fit repeated. True with three or more stars left. l3_sens_row_12's `st_attitude`,
+    /// generated from the design; here its call, each spot's catalogue direction handed over.
+    pub fn attitude(b: &[V3], id: &mut [usize], cr: &[V3], tol: f64) -> (Q, bool) {
         let n = b.len();
-        for _ in 0..n {
-            let mut k = [0usize; MAX_SPOTS];
-            let mut nk = 0;
-            for p in 0..n { if id[p] != NONE { k[nk] = p; nk += 1; } }
-            if nk < 3 { return (q, false); }
-            let mut bb = [[0.0; 3]; MAX_SPOTS];
-            let mut rr = [[0.0; 3]; MAX_SPOTS];
-            for i in 0..nk { bb[i] = b[k[i]]; rr[i] = cat[id[k[i]]].0; }
-            q = qmethod(&bb[..nk], &rr[..nk]);
-            let a = dcm(&q);
-            let (mut rm, mut j) = (f64::NEG_INFINITY, 0);
-            for i in 0..nk {
-                let res = acos(dot(&bb[i], &mv(&a, &rr[i])).min(1.0));
-                if res > rm { rm = res; j = i; }
-            }
-            if rm < tol { return (q, true); }
-            id[k[j]] = NONE;
+        let (mut bb, mut rs, mut ig) = ([[0.0; 3]; MAX_SPOTS], [[0.0; 3]; MAX_SPOTS], [-1i64; MAX_SPOTS]);
+        for p in 0..n {
+            bb[p] = b[p];
+            if id[p] != NONE { rs[p] = cr[id[p]]; ig[p] = id[p] as i64; }
         }
-        (q, false)
+        let (q, ok) = crate::gen::stattitude::st_attitude(bb, rs, n as i64, &mut ig, tol);
+        for p in 0..n { id[p] = if ig[p] < 0 { NONE } else { ig[p] as usize }; }
+        (q, ok)
     }
 
     /// The whole chain for one head (asils.comp.star_tracker.chain): render -> centroid ->
@@ -274,9 +260,9 @@ pub mod star_tracker {
     /// `r_body2head` the head's TRUE mount (misalignment included), `r_head_nominal` the mount
     /// the unit reports through. (q_body, solved, info); q_true when not solved.
     #[allow(clippy::too_many_arguments)]
-    pub fn chain(q_true: &Q, r_body2head: &M3, r_head_nominal: &M3, cat: &[(V3, f64)], cam: &Camera, w: &mut Work, noise: Option<&mut Rng>) -> (Q, bool, Info) {
+    pub fn chain(q_true: &Q, r_body2head: &M3, r_head_nominal: &M3, cr: &[V3], cm: &[f64], cam: &Camera, w: &mut Work, noise: Option<&mut Rng>) -> (Q, bool, Info) {
         let r_eh = mm(r_body2head, &dcm(q_true));
-        render(&r_eh, cat, cam, w.img, noise, &mut []);
+        render(&r_eh, cr, cm, cam, w.img, noise, &mut []);
         let mut spots = [[0.0; 3]; MAX_SPOTS];
         let ns = centroid(w.img, cam, w.scratch, &mut spots);
         let mut info = Info { spots: ns, ..Default::default() };
@@ -288,10 +274,10 @@ pub mod star_tracker {
             mag[k] = 6.0 - 2.5*log10(spots[k][2].max(1.0)/cam.flux0);
         }
         let mut id = [NONE; MAX_SPOTS];
-        let ok = identify(&b[..ns], &mag[..ns], w.pairs, cat, cam, w.votes, &mut id[..ns]);
+        let ok = identify(&b[..ns], &mag[..ns], w.pairs, cr, cm, cam, w.votes, &mut id[..ns]);
         info.identified = id[..ns].iter().filter(|&&x| x != NONE).count();
         if !ok { return (*q_true, false, info); }
-        let (q_eh, ok) = attitude(&b[..ns], &mut id[..ns], cat, cam.fit_tol);
+        let (q_eh, ok) = attitude(&b[..ns], &mut id[..ns], cr, cam.fit_tol);
         info.used = id[..ns].iter().filter(|&&x| x != NONE).count();
         if !ok { return (*q_true, false, info); }
         (fromdcm(&mm(&transpose(r_head_nominal), &dcm(&q_eh))), true, info)
@@ -299,41 +285,35 @@ pub mod star_tracker {
 }
 
 pub mod sun_sensor {
+    //! sens's l3_sens_row_07 (`sunquad`: the currents) and l3_sens_row_08 (`sunangles`: the angles), generated from the
+    //! design; here only their call by the names the engine has always used.
     use super::*;
+    use crate::gen::{sunangles, sunquad};
 
     /// A square aperture of side `a` at height `h` over a four-quadrant photodiode; current
     /// noise and the validity threshold as fractions of the full-Sun current
-    /// (asils.comp.sun_sensor.head), every one from the part.
-    #[derive(Clone, Copy, Debug, Default, PartialEq)]
-    pub struct Head { pub a: f64, pub h: f64, pub noise: f64, pub min_frac: f64 }
+    /// (asils.comp.sun_sensor.head), every one from the part: the design's record.
+    pub use crate::gen::sunquad::SunHead as Head;
 
     /// MODEL SIDE (asils.comp.sun_sensor.currents): the Sun (unit vector, head frame, z the
     /// boresight) casts the square spot displaced by h tan(alpha), h tan(beta); each quadrant's
     /// current is its share of the spot area times cos(incidence), plus noise. I = [++, -+, --, +-]
-    /// (quadrants in x, y). Zero, and no noise drawn, with the Sun behind the head.
+    /// (quadrants in x, y). Zero, and no noise drawn, with the Sun behind the head. With no noise
+    /// stream, no noise (the generated model with a zero noise, its draws on a stream of no one's).
     pub fn currents(s: &V3, p: &Head, noise: Option<&mut Rng>) -> [f64; 4] {
-        if s[2] <= 0.0 { return [0.0; 4]; }
-        let (dx, dy) = (p.h*s[0]/s[2], p.h*s[1]/s[2]);
-        let ov = |lo: f64, hi: f64, a: f64, b: f64| (hi.min(b) - lo.max(a)).max(0.0);
-        let inf = f64::INFINITY;
-        let xp = ov(0.0, inf, dx - p.a/2.0, dx + p.a/2.0);
-        let xm = ov(-inf, 0.0, dx - p.a/2.0, dx + p.a/2.0);
-        let yp = ov(0.0, inf, dy - p.a/2.0, dy + p.a/2.0);
-        let ym = ov(-inf, 0.0, dy - p.a/2.0, dy + p.a/2.0);
-        let a2 = p.a*p.a;
-        let mut i = [s[2]*(xp*yp/a2), s[2]*(xm*yp/a2), s[2]*(xm*ym/a2), s[2]*(xp*ym/a2)];
-        if let Some(g) = noise { for x in i.iter_mut() { *x += p.noise*g.normal(); } }
-        i
+        match noise {
+            Some(r) => {
+                let mut g = r.stream();
+                let i = sunquad::quad_currents(*s, *p, &mut g);
+                *r = Rng::from_stream(&g);
+                i
+            }
+            None => sunquad::quad_currents(*s, Head { noise: 0.0, ..*p }, &mut Rng::new(0, 0).stream()),
+        }
     }
 
     /// Four currents -> the Sun in the head frame (asils.comp.sun_sensor.angles): the normalised
     /// differences give the spot's displacement, tan(alpha) = (a/2) rx / h, likewise beta (exact
     /// while the spot covers the centre). Valid when the total current exceeds min_frac.
-    pub fn angles(i: &[f64; 4], p: &Head) -> (V3, bool) {
-        let tot = i[0] + i[1] + i[2] + i[3];
-        if !(tot > p.min_frac) { return ([0.0, 0.0, 1.0], false); }
-        let rx = ((i[0] + i[3]) - (i[1] + i[2]))/tot;
-        let ry = ((i[0] + i[1]) - (i[2] + i[3]))/tot;
-        (unit(&[p.a/2.0*rx/p.h, p.a/2.0*ry/p.h, 1.0]), true)
-    }
+    pub fn angles(i: &[f64; 4], p: &Head) -> (V3, bool) { sunangles::quad_angles(*i, *p) }
 }

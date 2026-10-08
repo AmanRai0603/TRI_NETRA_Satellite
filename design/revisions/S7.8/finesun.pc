@@ -1,0 +1,74 @@
+## The fine Sun sensors as the engine flies them, transcribed from adcs-sim-core sensors.rs (SunDesc, Sun, new, sample):
+## with the Sun in view (sunlit fraction at least 0.5, the engine's threshold) the head whose normal is nearest the Sun
+## answers if the Sun is inside its field; at the noise-model level its mount bias plus a normal draw a axis times the
+## part's accuracy turn the Sun by a small rotation; at the component level (the product's level = "chain") the Sun goes
+## through the head's true mount (its bias) into the head's frame, the quadrant currents (l3_sens_row_07) and back to the
+## angles (l3_sens_row_08), and the head reports through its nominal frame. The mount biases are drawn once, a head at a
+## time, from the run's dispersion stream; the noise from the sensors' stream.
+## The developer's transcription (S7.8), unsigned.
+module finesun
+
+## The fine Sun sensors as the part states them: how many heads, their normals (body), the accuracy [rad], the field's
+## half-angle [rad], the mount bias's sigma [rad], whether the component chain answers, and its quadrant head.
+record SunDesc
+    n: int
+    normals: real[1][3][SENS_NS]
+    noise: real[1]
+    fov: real[1]
+    bias_sigma: real[1]
+    chain: bool
+    head: SunHead
+end
+
+## The fine Sun sensors in flight: each head's mount bias (a rotation vector [rad]) and the noise stream.
+record SunUnit
+    bias: real[1][3][SENS_NS]
+    g: stream
+end
+
+## The fine Sun sensors of a description, their mount biases drawn from disp, their noise from noise.
+fn sun_new(d: SunDesc, disp: inout stream, noise: stream) -> u: SunUnit
+    u = SunUnit()
+    for j in 0 .. d.n
+        let e = normal3(disp)
+        u.bias[j] = e*d.bias_sigma
+    end
+    u.g = noise
+end
+
+## The Sun the sensors give (body, unit) and whether they give one, for the Sun s_body (body, unit) and the sunlit
+## fraction nu.
+fn sun_sample(u: inout SunUnit, d: SunDesc, s_body: real[1][3] in -1 .. 1, nu: real[1] in 0 .. 1) -> (ok: bool, s: real[1][3])
+    ok = false
+    s = [0.0, 0.0, 0.0]
+    if not (nu < 0.5)
+        let cm = -2.0
+        let jm = 0
+        for j in 0 .. d.n
+            let c = dot(s_body, d.normals[j])
+            if c > cm
+                cm = c
+                jm = j
+            end
+        end
+        if not (cm < cos(d.fov))
+            let g = u.g
+            if d.chain
+                let rh = head_frame(d.normals[jm])
+                let sb = small_rotation(u.bias[jm])*s_body
+                let cur = quad_currents(rh*sb, d.head, g)
+                let sh, okh = quad_angles(cur, d.head)
+                ok = okh
+                if ok
+                    s = mat3t_vec(rh, sh)
+                end
+            else
+                let n = normal3(g)
+                let e = u.bias[jm] + n*d.noise
+                s = unit_or_zero(small_rotation(e)*s_body)
+                ok = true
+            end
+            u.g = g
+        end
+    end
+end

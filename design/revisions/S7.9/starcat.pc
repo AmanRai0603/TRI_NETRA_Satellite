@@ -1,0 +1,52 @@
+## The star tracker's onboard star table as the engine flies it, transcribed from adcs-sim-core sensors.rs (star, N_STARS;
+## the twin's asils.devices.star_catalogue): a synthetic catalogue of 4000 stars, not a published one. Star k of n sits
+## on a Fibonacci (golden-angle) spiral over the sphere (z = 1 - 2 (k + 1/2)/n, longitude pi (1 + sqrt 5)(k + 1/2);
+## Gonzalez 2010, Math. Geosci. 42:49), moved off it by up to 0.35 of the mean spacing sqrt(4 pi/n) along the local east
+## and north by two hashes of k (the fractional parts of sin(k 12.9898) 43758.5453 and sin(k 78.233) 12345.6789, a
+## shader's hash), made unit; its magnitude is 1 + 5 times the fractional part of (k + 1/2) sqrt 2 + h1/2, from 1 to 6.
+## The constants as the engine flies them (1.0.0 code).
+## The developer's transcription (S7.9), unsigned.
+module starcat
+
+## How many stars the onboard table holds (adcs-sim-core N_STARS).
+const N_STARS = 4000
+
+## The fractional part of x, x - floor(x).
+fn star_frac(x: real[1] in -1e5 .. 1e5) -> f: real[1]
+    f = x - floor(x)
+end
+
+## Star k (from 0) of a catalogue of n: its direction (ECI, unit) and its magnitude.
+## tolerance: 1e-10
+## (The hash multiplies sin by 43758.5453 and 12345.6789, so a last-bit difference in sin between the reference
+## interpreter and the platform grows about 4e4 times; the engine's own maths is the platform's.)
+fn star_entry(k: int in 0 .. 3999, n: int in 4000 .. 8000) -> (r: real[1][3], mag: real[1])
+    let kf = real(k) + 0.5
+    let nf = real(n)
+    let z = 1.0 - 2.0*kf/nf
+    let ph = pi*(1.0 + sqrt(5.0))*kf
+    let rr = sqrt(1.0 - z*z)
+    let r0 = [rr*cos(ph), rr*sin(ph), z]
+    let h1 = star_frac(sin(kf*12.9898)*43758.5453) - 0.5
+    let h2 = star_frac(sin(kf*78.233)*12345.6789) - 0.5
+    let e1 = [-sin(ph), cos(ph), 0.0]
+    let e2 = cross(r0, e1)
+    let dsp = 0.35*sqrt(4.0*pi/nf)
+    let v = [r0[0] + dsp*(h1*e1[0] + h2*e2[0]), r0[1] + dsp*(h1*e1[1] + h2*e2[1]), r0[2] + dsp*(h1*e1[2] + h2*e2[2])]
+    r = unit_or_zero(v)
+    mag = 1.0 + 5.0*star_frac(kf*sqrt(2.0) + 0.5*h1)
+end
+
+## The whole table: each star's direction cr and magnitude cm. How many.
+## vectors: 2
+## tolerance: 1e-10
+## (The hash multiplies sin by 43758.5453 and 12345.6789, so a last-bit difference in sin between the reference
+## interpreter and the platform grows about 4e4 times; the engine's own maths is the platform's.)
+fn star_catalogue(cr: inout real[1][3][N_STARS] in -1 .. 1, cm: inout real[1][N_STARS] in 1 .. 6) -> n: int
+    for k in 0 .. N_STARS
+        let r, mag = star_entry(k, N_STARS)
+        cr[k] = r
+        cm[k] = mag
+    end
+    n = N_STARS
+end

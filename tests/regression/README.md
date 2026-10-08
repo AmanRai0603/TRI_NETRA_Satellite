@@ -20,7 +20,9 @@ atmosphere, DE440, gravity and tides and relativity, their data read by `tools/r
 S7.4, env's environment and disturbance torques and six values dyn states, and S7.5, dyn's plant, their methods under
 `design/revisions/S7.4/` and `S7.5/`; and again on 8 Oct 2026 with S7.6, env's orbit (the fast orbit's forces and start, the
 precision orbit's spacecraft force models, force set and sum), and S7.7, act's actuators and eight values act states, their
-methods under `design/revisions/S7.6/` and `S7.7/`, for the toolbox `trinetra-toolbox/4` (erf)):
+methods under `design/revisions/S7.6/` and `S7.7/`, for the toolbox `trinetra-toolbox/4` (erf); and again on 8 Oct 2026
+with S7.8, sens's simple sensors, the sky they see and the rotors' telemetry and six values gdn states, and S7.9, the star
+tracker's unit, its onboard table and its attitude, their methods under `design/revisions/S7.8/` and `S7.9/`):
 
     python3 tools/convert_2_0.py --out DRIVE
     python3 tools/design_build.py DRIVE --out tests/regression/design.tndb

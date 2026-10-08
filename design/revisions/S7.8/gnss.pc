@@ -1,0 +1,100 @@
+## The GNSS receiver as the engine flies it, transcribed from adcs-sim-core sensors.rs (GpsDesc, Gps, history, delayed,
+## sample) and adcs-sim run.rs (sense: the fix in ECEF): the receiver fixes in ECEF (WGS-84), r_e = C r, v_e = C v - w_E x
+## r_e, C the engine's J2000 to ECEF (env_calendar_time) and w_E the Earth's rate (env_orbit_fast's); the fix it reports
+## now solves for the epoch the part's latency ago, the truth linear between the loop's ticks (a history of the truth at
+## every tick, kept back to the newest state at or before t - latency); before the history reaches back that far, its
+## oldest state and that state's epoch; noise on each axis of position and velocity, normal draws times the part's
+## sigmas, from the receiver's noise stream. The 1e-9 s tolerance on the epochs as the engine flies it (1.0.0 code).
+## The developer's transcription (S7.8), unsigned.
+module gnss
+
+## The truth states the latency reaches back over, one a loop tick (adcs-sim-core GPS_HIST).
+const GPS_HIST = 256
+
+## Record the truth (r, v) at t, every tick, into the history (its epochs ht, positions hr, velocities hv, the first hn
+## held); keep what a latency [s] reaches back to. The history's length after.
+fn gps_history(ht: inout real[1][GPS_HIST], hr: inout real[1][3][GPS_HIST], hv: inout real[1][3][GPS_HIST], \
+               hn: int in 0 .. 255, latency: real[1] in 0 .. 1, t: real[1] in 0 .. 100, r: real[1][3] in -7e6 .. 7e6, \
+               v: real[1][3] in -8e3 .. 8e3) -> n: int
+    n = hn
+    if n == GPS_HIST
+        for i in 1 .. n
+            ht[i - 1] = ht[i]
+            hr[i - 1] = hr[i]
+            hv[i - 1] = hv[i]
+        end
+        n = n - 1
+    end
+    ht[n] = t
+    hr[n] = r
+    hv[n] = v
+    n = n + 1
+    let tl = t - latency
+    let k = 0
+    let going = true
+    for j in 1 .. n
+        if going and ht[j] <= tl + 1e-9
+            k = j
+        else
+            going = false
+        end
+    end
+    if k > 0
+        for m in k .. n
+            ht[m - k] = ht[m]
+            hr[m - k] = hr[m]
+            hv[m - k] = hv[m]
+        end
+        n = n - k
+    end
+end
+
+## The truth the fix at t solves for, from the history: (its epoch, position, velocity).
+fn gps_delayed(ht: real[1][GPS_HIST], hr: real[1][3][GPS_HIST], hv: real[1][3][GPS_HIST], hn: int in 0 .. 256, \
+               latency: real[1] in 0 .. 1, t: real[1] in 0 .. 100) -> (te: real[1], r: real[1][3], v: real[1][3])
+    let tl = t - latency
+    te = t
+    r = [0.0, 0.0, 0.0]
+    v = [0.0, 0.0, 0.0]
+    if hn > 0
+        let k = 0
+        let going = true
+        for j in 1 .. hn
+            if going and ht[j] <= tl + 1e-9
+                k = j
+            else
+                going = false
+            end
+        end
+        if k + 1 == hn or tl <= ht[k]
+            te = if tl > ht[k] then tl else ht[k]
+            r = hr[k]
+            v = hv[k]
+        else
+            let s = (tl - ht[k])/(ht[k + 1] - ht[k])
+            te = tl
+            for i in 0 .. 3
+                r[i] = hr[k][i] + s*(hr[k + 1][i] - hr[k][i])
+                v[i] = hv[k][i] + s*(hv[k + 1][i] - hv[k][i])
+            end
+        end
+    end
+end
+
+## The fix the receiver reports: the position r [m] and velocity v [m/s] (ECEF) with their noise, the sigmas pos_sigma
+## [m] and vel_sigma [m/s], the position's draws first.
+fn gps_sample(r: real[1][3] in -7e6 .. 7e6, v: real[1][3] in -8e3 .. 8e3, pos_sigma: real[1] in 0 .. 10, \
+              vel_sigma: real[1] in 0 .. 1, g: inout stream) -> (rg: real[1][3], vg: real[1][3])
+    let a = normal3(g)
+    let b = normal3(g)
+    rg = r + a*pos_sigma
+    vg = v + b*vel_sigma
+end
+
+## The truth (r [m], v [m/s], J2000) at the epoch te [s] of a run that starts at the Julian date jd0, in ECEF.
+fn gnss_ecef(jd0: real[1] in 2451545 .. 2470000, te: real[1] in 0 .. 1e5, r: real[m][3] in -7e6 .. 7e6, \
+             v: real[m/s][3] in -8e3 .. 8e3) -> (re: real[m][3], ve: real[m/s][3])
+    let ce = eci_to_ecef(jd0 + te/86400.0)
+    re = ce*r
+    ve = ce*v - cross([0.0, 0.0, FAST_OMEGA_E], re)
+end

@@ -188,10 +188,10 @@ struct Units {
 pub struct StFrame { img: Vec<f64>, scratch: Vec<(f64, u32)>, pairs: Vec<stc::Pair>, votes: Vec<u32> }
 impl StFrame {
     pub fn new(st: &St) -> StFrame {
-        let (cat, cam) = (st.catalogue(), &st.d.cam);
-        let mut pairs = vec![stc::Pair::default(); stc::pair_count(cat, cam.fov)];
-        stc::pairs(cat, cam.fov, &mut pairs);
-        StFrame { img: vec![0.0; cam.n*cam.n], scratch: vec![(0.0, 0); cam.n*cam.n], pairs, votes: vec![0; cat.len()] }
+        let ((cr, _), cam) = (st.catalogue(), &st.d.cam);
+        let mut pairs = vec![stc::Pair::default(); stc::pair_count(cr, cam.fov)];
+        stc::pairs(cr, cam.fov, &mut pairs);
+        StFrame { img: vec![0.0; cam.n*cam.n], scratch: vec![(0.0, 0); cam.n*cam.n], pairs, votes: vec![0; cr.len()] }
     }
     pub fn work(&mut self) -> stc::Work<'_> { stc::Work { img: &mut self.img, scratch: &mut self.scratch, pairs: &self.pairs, votes: &mut self.votes } }
 }
@@ -341,18 +341,20 @@ fn sense(u: &mut Units, c: &Config, bus: &mut Bus, x: &State, sky: &Sky, m_b: &V
         // a receiver fixes in ECEF (WGS-84): r_e = C r, v_e = C v - w_E x r_e; the fix it reports
         // now solves for the epoch `latency` ago
         let (te, r, v) = u.gps.delayed(t);
-        let ce = time::eci2ecef(c.jd0 + te/86400.0);
-        let re_ = mv(&ce, &r);
-        let ve_ = sub(&mv(&ce, &v), &cross(&[0.0, 0.0, orbit::OMEGA_E], &re_));
+        let (re_, ve_) = Gps::ecef(c.jd0, te, &r, &v);
         let (rg, vg) = u.gps.sample(&re_, &ve_);
         let mut buf = [0u8; 64];
         let len = emu::gps_frame(true, &rg, &vg, &mut buf);
         bus.push_uart(proto::GPS_UART, &buf[..len]);
     }
+    // the rotors' telemetry: act_rotor_telemetry's rotor_telemetry, act's stated noises, from the telemetry stream
+    let mut gi = [0i64; NR];
+    for i in 0..NR { gi[i] = d.mex.gi[i] as i64; }
+    let mut g = u.tlm.stream();
+    let (hm, dm) = adcs_sim_core::gen::rotortlm::rotor_telemetry(d.mex.n as i64, x.h, x.d, gi, &mut g);
+    u.tlm = Rng::from_stream(&g);
     for i in 0..d.mex.n {
-        let hm = x.h[i] + 1e-7*u.tlm.normal();
-        let dm = if d.mex.gi[i] > 0 { x.d[d.mex.gi[i] - 1] + 1e-5*u.tlm.normal() } else { 0.0 };
-        let (id, data) = emu::rotor_tm(i, hm, dm);
+        let (id, data) = emu::rotor_tm(i, hm[i], dm[i]);
         bus.push_can(id, data);
     }
     Sensed { w_meas, b_meas, sun_meas, st_ok }
@@ -501,7 +503,9 @@ pub fn run(c: &Config, o: &Opts) -> Result<Record, Error> {
         }
         u.faults(c, t, &mut fault_done, &mut log)?;
         let rb = dcm(&x.q);
-        let sky = Sky { b_b: mv(&rb, &b_eci), sb: unit(&mv(&rb, &sun_rel)), mb: unit(&mv(&rb, &moon_rel)), nb: scale(&mv(&rb, &r), -1.0/norm(&r)), earth_ang: (6378137.0/norm(&r)).asin() };
+        // what the sensors see of the sky: sens_sky_view's sky_view (the Earth's half-angle from the constants' R_E)
+        let (b_b, sb, mb, nb, earth_ang) = crate::gen::skyview::sky_view(rb, b_eci, sun_rel, moon_rel, r);
+        let sky = Sky { b_b, sb, mb, nb, earth_ang };
 
         // ---- sensors -> bytes ----
         let z = sense(&mut u, c, &mut bus, &x, &sky, &a.m_coil, nu, t, k, &rt, &r, &v);

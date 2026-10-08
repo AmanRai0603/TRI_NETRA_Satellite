@@ -10,6 +10,13 @@ use crate::gen::rigidbody::{PlantState};
 use crate::gen::rotors::{RotorGeometry};
 use crate::gen::facets::{Facets};
 use crate::gen::orbitfast::{FastCtx};
+use crate::gen::css::{CssDesc, CssUnit};
+use crate::gen::earthsensor::{EsDesc, EsUnit};
+use crate::gen::finesun::{SunDesc, SunUnit};
+use crate::gen::gyro::{GyroDesc, GyroUnit};
+use crate::gen::mag::{MagDesc, MagUnit};
+use crate::gen::sttracker::{StDesc, StUnit};
+use crate::gen::sunquad::{SunHead};
 
 /// The most samples of one orbit the fraction is taken over (G12).
 pub const ECLIPSE_NMAX: i64 = 2048;
@@ -24,9 +31,9 @@ pub fn eclipse_fraction(nu: [f64; 2048], n: i64) -> f64 {
     let mut f: f64 = 0.0;
     let mut k: i64 = 0;
     {
-        let __end32: i64 = n;
+        let __end33: i64 = n;
         let mut i: i64 = 0;
-        while i < __end32 {
+        while i < __end33 {
             if (nu[(i) as usize] < 0.5) {
                 k = (k + 1);
             }

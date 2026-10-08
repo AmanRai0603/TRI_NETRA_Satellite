@@ -3,4 +3,5 @@
 #![allow(clippy::all)]
 pub mod rt;
 pub mod orbitstart;
+pub mod skyview;
 pub mod constants;

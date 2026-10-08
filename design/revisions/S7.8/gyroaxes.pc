@@ -1,0 +1,27 @@
+## A sensor's scale factors and misalignment, transcribed from adcs-sim-core sensors.rs (mis, sf; Gyro::new, Mag::new): the
+## misalignment a small rotation of three normal draws times the part's axis_misalignment_rad, the scale factors 1 + sigma
+## n on the diagonal (the part's scale_factor dispersion), the sensor's matrix the misalignment times the scale factors
+## (the misalignment drawn first), from the run's dispersion stream. A small rotation is act's (l3_mtq_row_12, coildisp).
+## The developer's transcription (S7.8), unsigned.
+module gyroaxes
+
+## The matrix of a sensor's misalignment: a small rotation of three normal draws times sigma [rad] (sensors.rs mis).
+fn sensor_misalignment(sigma: real[1] in 0 .. 0.05, disp: inout stream) -> m: real[1][3][3]
+    let e = normal3(disp)
+    m = small_rotation(e*sigma)
+end
+
+## The diagonal matrix of a sensor's scale factors, 1 + sigma n on each axis in turn (sensors.rs sf).
+fn sensor_scale(sigma: real[1] in 0 .. 0.1, disp: inout stream) -> m: real[1][3][3]
+    let z0 = normal(disp)
+    let z1 = normal(disp)
+    let z2 = normal(disp)
+    m = [[1.0 + sigma*z0, 0.0, 0.0], [0.0, 1.0 + sigma*z1, 0.0], [0.0, 0.0, 1.0 + sigma*z2]]
+end
+
+## A sensor's matrix (true axes to measured): its misalignment times its scale factors, drawn in that order.
+fn sensor_matrix(misalign: real[1] in 0 .. 0.05, sf_sigma: real[1] in 0 .. 0.1, disp: inout stream) -> m: real[1][3][3]
+    let a = sensor_misalignment(misalign, disp)
+    let b = sensor_scale(sf_sigma, disp)
+    m = a*b
+end

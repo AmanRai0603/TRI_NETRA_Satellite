@@ -6,7 +6,7 @@ Health, worst first: **fails**, **refused**, **blocked**, **open**, **unproven**
 
 ## Built-in: relations still in code
 
-**46 built-in nodes**, relations still in compiled code (docs/PLAN_2_0.md S7 lowers this to zero): act 8, design 19, oils 1, pnt 4, sens 14.
+**36 built-in nodes**, relations still in compiled code (docs/PLAN_2_0.md S7 lowers this to zero): act 8, design 19, oils 1, pnt 4, sens 4.
 
 | Group | Built-in nodes |
 |---|---|
@@ -14,7 +14,7 @@ Health, worst first: **fails**, **refused**, **blocked**, **open**, **unproven**
 | design | `design_sizing_cmg`, `design_sizing_fmr`, `design_sizing_mtq`, `design_sizing_rcs`, `design_sizing_rw`, `design_sizing_sensors`, `design_sizing_vscmg`, `gb_0`, `gb_1`, `gb_2`, `gb_3`, `l3_budget_row_01`, `l3_budget_row_02`, `l3_budget_row_03`, `l3_budget_row_04`, `l3_budget_row_05`, `l3_budget_row_06`, `l3_budget_row_07`, `l3_budget_row_08` |
 | oils | `l3_oils_row_07` |
 | pnt | `gp_0`, `gp_1`, `gp_2`, `gp_4` |
-| sens | `l3_sens_row_01`, `l3_sens_row_02`, `l3_sens_row_03`, `l3_sens_row_04`, `l3_sens_row_05`, `l3_sens_row_06`, `l3_sens_row_07`, `l3_sens_row_08`, `l3_sens_row_09`, `l3_sens_row_10`, `l3_sens_row_11`, `l3_sens_row_12`, `l3_sens_row_13`, `l3_sens_row_14` |
+| sens | `l3_sens_row_09`, `l3_sens_row_10`, `l3_sens_row_11`, `l3_sens_row_12` |
 
 Not counted: 5 nodes describe code by the boundary (docs/SYSTEM_MODEL.md §7): `l3_fsw_row_01` (runtime), `l3_fsw_row_02` (runtime), `l3_fsw_row_03` (runtime), `l3_fsw_row_04` (runtime), `l3_fsw_row_10` (test).
 
@@ -24,7 +24,7 @@ From `tests/regression/design.tndb`.
 
 | Group | Health | Nodes by health |
 |---|---|---|
-| act | **blocked** | 45 blocked, 59 open, 58 unproven |
+| act | **blocked** | 46 blocked, 59 open, 58 unproven |
 | business | **open** | 32 open, 8 unproven |
 | catalogue | **open** | 8 open, 94 unproven |
 | ctl | **blocked** | 4 blocked, 26 open, 9 unproven |
@@ -33,7 +33,7 @@ From `tests/regression/design.tndb`.
 | env | **blocked** | 42 blocked, 9 open, 36 unproven |
 | fdir | **blocked** | 3 blocked, 4 open, 3 unproven |
 | fsw | **blocked** | 1 blocked, 163 open, 14 unproven |
-| gdn | **blocked** | 7 blocked, 17 open, 7 unproven |
+| gdn | **blocked** | 7 blocked, 17 open, 13 unproven |
 | hils | **open** | 47 open, 19 unproven |
 | kpi | **blocked** | 34 blocked, 39 open, 24 unproven |
 | lab | **open** | 37 open, 6 unproven |
@@ -42,7 +42,7 @@ From `tests/regression/design.tndb`.
 | pnt | **blocked** | 1 blocked, 19 open, 13 unproven |
 | programme | **open** | 5 open, 16 unproven |
 | risk | **blocked** | 3 blocked, 18 open, 4 unproven |
-| sens | **open** | 14 open, 24 unproven |
+| sens | **blocked** | 12 blocked, 14 open, 14 unproven |
 | systems | **open** | 8 open, 33 unproven |
 | vv | **open** | 20 open, 10 unproven |
 
@@ -93,7 +93,7 @@ From `tests/regression/design.tndb`.
 
 | Group | Health | Nodes by health |
 |---|---|---|
-| act | **blocked** | 43 blocked, 59 open, 60 unproven |
+| act | **blocked** | 44 blocked, 59 open, 60 unproven |
 | business | **open** | 32 open, 8 unproven |
 | catalogue | **open** | 8 open, 94 unproven |
 | ctl | **blocked** | 4 blocked, 26 open, 9 unproven |
@@ -102,7 +102,7 @@ From `tests/regression/design.tndb`.
 | env | **blocked** | 42 blocked, 9 open, 36 unproven |
 | fdir | **blocked** | 3 blocked, 4 open, 3 unproven |
 | fsw | **blocked** | 1 blocked, 163 open, 14 unproven |
-| gdn | **blocked** | 7 blocked, 17 open, 7 unproven |
+| gdn | **blocked** | 7 blocked, 17 open, 13 unproven |
 | hils | **open** | 47 open, 19 unproven |
 | kpi | **blocked** | 34 blocked, 38 open, 25 unproven |
 | lab | **open** | 37 open, 6 unproven |
@@ -111,7 +111,7 @@ From `tests/regression/design.tndb`.
 | pnt | **blocked** | 1 blocked, 19 open, 13 unproven |
 | programme | **open** | 5 open, 16 unproven |
 | risk | **blocked** | 3 blocked, 18 open, 4 unproven |
-| sens | **open** | 14 open, 24 unproven |
+| sens | **blocked** | 12 blocked, 14 open, 14 unproven |
 | systems | **open** | 8 open, 33 unproven |
 | vv | **open** | 20 open, 10 unproven |
 

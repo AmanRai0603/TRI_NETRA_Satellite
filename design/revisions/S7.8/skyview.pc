@@ -1,0 +1,28 @@
+## What the sensors see of the sky, transcribed from adcs-sim run.rs (run: the Sky each tick): the field, the Sun, the Moon
+## and nadir in the body (the body's attitude matrix times each; the Sun and the Moon made unit as the engine's la::unit
+## does, times the inverse of the norm), and the Earth's apparent half-angle asin(R_E/|r|) seen from the satellite (R_E the
+## constants', WGS-84; the code had it as a literal). Generated with the platform's maths (adcs-sim, std), as it flew.
+## The developer's transcription (S7.8), unsigned.
+module skyview
+
+## A vector made unit as the engine's la::unit: times the inverse of its norm; below 1e-300 the zero vector.
+fn sky_unit(a: real[1][3] in -2e11 .. 2e11) -> u: real[1][3]
+    let n = norm(a)
+    u = [0.0, 0.0, 0.0]
+    if not (n < 1e-300)
+        u = a*(1.0/n)
+    end
+end
+
+## The body field b_b [T], the Sun sb and the Moon mb (body, unit), nadir nb (body, unit) and the Earth's half-angle
+## earth_ang [rad], from the attitude matrix rb (ECI to body), the field b_eci [T], the Sun's and the Moon's positions
+## from the satellite sun_rel and moon_rel [m] and the satellite's position r [m] (ECI).
+fn sky_view(rb: real[1][3][3] in -1 .. 1, b_eci: real[1][3] in -6e-5 .. 6e-5, sun_rel: real[1][3] in -1.6e11 .. 1.6e11, \
+            moon_rel: real[1][3] in -4e8 .. 4e8, r: real[m][3] in 6.6e6 .. 7.2e6) \
+        -> (b_b: real[1][3], sb: real[1][3], mb: real[1][3], nb: real[1][3], earth_ang: real[1])
+    b_b = rb*b_eci
+    sb = sky_unit(rb*sun_rel)
+    mb = sky_unit(rb*moon_rel)
+    nb = (rb*r)*(-1.0/norm(r))
+    earth_ang = asin(R_E/norm(r))
+end
