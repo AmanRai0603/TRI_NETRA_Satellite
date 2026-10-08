@@ -54,10 +54,10 @@ function [st, k, a, v_rel, cb, po] = drag_force(model, pm, r, v, atm, has_omega,
         cb = asils.models.drag.drag_cannonball(r, v, atm.rho, asils.models.drag.drag_cd(has_cfg_cd, cfg_cd, has_sc_cd, sc_cd), aref, mass, [0; 0; 0], om);
         a = cb.a;
     else
-        [t__61, t__62, t__63] = asils.models.drag.panel_force(r, v, atm, asils.models.drag.drag_facets(f, aref), pm, g, mass, aref, r_bi, [0; 0; 0], om, has_sun, sun);
-        st = t__61;
-        k = t__62;
-        po = t__63;
+        [t__81, t__82, t__83] = asils.models.drag.panel_force(r, v, atm, asils.models.drag.drag_facets(f, aref), pm, g, mass, aref, r_bi, [0; 0; 0], om, has_sun, sun);
+        st = t__81;
+        k = t__82;
+        po = t__83;
         a = po.a;
     end
 end

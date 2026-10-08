@@ -1,10 +1,13 @@
-function [hm, dm, tlm] = rotor_telemetry(n, h, d, gi, tlm)
+function [hm, dm, tlm] = rotor_telemetry(n, h, d, gi, h_noise, d_noise, tlm)
 %ROTOR_TELEMETRY  What the n rotors report: each one's momentum [N m s] from its true momentum h, and the angle [rad] of its gimbal gi
-%   (from 1; 0 none) from the gimbals' true angles d, drawn from tlm.
+%   (from 1; 0 none) from the gimbals' true angles d, drawn from tlm; h_noise [N m s] and d_noise [rad] the telemetry's
+%   noises, one sigma (act_rotor_tlm_noise, act_gimbal_tlm_noise).
 %   n: int (passed a whole number)
 %   h: real[1][DYN_NR] (passed a plain number)
 %   d: real[1][DYN_NG] (passed a plain number)
 %   gi: int[DYN_NR] (passed a whole number)
+%   h_noise: real[1] (passed a plain number)
+%   d_noise: real[1] (passed a plain number)
 %   tlm: inout stream (passed a random stream, as six numbers)
 %   returns hm: real[1][DYN_NR] (passed a plain number)
 %   returns dm: real[1][DYN_NR] (passed a plain number)
@@ -17,12 +20,12 @@ function [hm, dm, tlm] = rotor_telemetry(n, h, d, gi, tlm)
         [t__35, t__36] = asils.pc.stream_normal(tlm);
         z = t__35;
         tlm = t__36;
-        hm((i) + 1) = (h((i) + 1) + (1e-7 * z));
+        hm((i) + 1) = (h((i) + 1) + (h_noise * z));
         if (gi((i) + 1) > 0)
             [t__37, t__38] = asils.pc.stream_normal(tlm);
             w = t__37;
             tlm = t__38;
-            dm((i) + 1) = (d(((gi((i) + 1) - 1)) + 1) + (0.00001 * w));
+            dm((i) + 1) = (d(((gi((i) + 1) - 1)) + 1) + (d_noise * w));
         end
     end
 end

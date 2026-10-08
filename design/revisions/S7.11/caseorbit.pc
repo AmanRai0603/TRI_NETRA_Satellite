@@ -1,0 +1,41 @@
+## The case's orbit and epoch as the engine sets them up, transcribed from adcs-sim config.rs (build and apply_engine):
+## the mission's UTC epoch from the case's epoch in Julian years after J2000.0, its seconds rounded to the whole second
+## (the date the flight software is loaded with), and the same for an epoch moved by a number of days (a campaign's
+## season); the orbit's radius at the case's altitude (a spherical Earth of the constants' R_E, as m2_5's orbit.radius),
+## its mean motion sqrt(mu/r^3) and period 2 pi/n, and the period of a campaign's dispersed altitude, 2 pi sqrt(r^3/mu)
+## (m2_5's circular_period, written here: the physics' orbit module cannot sit beside env's eclipse in one package; the
+## engine's two forms of the period differ in the last bits). Calendar dates by
+## env_calendar_time (Vallado 2013, algorithms 14 and 22). The epochs are plain numbers (Julian dates, days, years).
+## The developer's transcription (S7.11), unsigned.
+module caseorbit
+
+## The UTC calendar date [Y M D h m s] of a Julian date with its seconds rounded to the whole second (half away from
+## zero), and that date's Julian date.
+fn whole_second_epoch(jd: real[1] in 2415386 .. 2488069) -> (u: real[1][6], j: real[1])
+    u = utc_of_jd(jd)
+    u[5] = round(u[5])
+    j = jd_utc(u)
+end
+
+## The mission's epoch from the case's mission.epoch, in Julian years after J2000.0: the UTC date and its Julian date.
+fn mission_epoch(years: real[1] in -50 .. 50) -> (u: real[1][6], j: real[1])
+    u, j = whole_second_epoch(JD_J2000 + years*DAYS_PER_YEAR)
+end
+
+## The epoch moved by days [day] from the Julian date jd0: the UTC date and its Julian date.
+fn shifted_epoch(jd0: real[1] in 2440000 .. 2470000, days: real[1] in -3660 .. 3660) -> (u: real[1][6], j: real[1])
+    u, j = whole_second_epoch(jd0 + days)
+end
+
+## The case's circular orbit at altitude h: its mean motion n and period t.
+fn case_mean_motion(h: real[km] in 150 .. 2000) -> (n: real[1/s], t: real[s])
+    let r = R_E + h
+    n = sqrt(MU_E/(r^3))
+    t = 2.0*pi/n
+end
+
+## The period of the circular orbit at a dispersed altitude h (a campaign's alt_km).
+fn dispersed_period(h: real[km] in 150 .. 2000) -> t: real[s]
+    let r = R_E + h
+    t = 2.0*pi*sqrt(r^3/MU_E)
+end

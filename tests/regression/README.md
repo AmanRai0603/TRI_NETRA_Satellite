@@ -24,7 +24,10 @@ methods under `design/revisions/S7.6/` and `S7.7/`, for the toolbox `trinetra-to
 with S7.8, sens's simple sensors, the sky they see and the rotors' telemetry and six values gdn states, and S7.9, the star
 tracker's unit, its onboard table and its attitude, their methods under `design/revisions/S7.8/` and `S7.9/`; and again on 8
 Oct 2026 with S7.10, the star tracker's image chain, its methods under `design/revisions/S7.10/`, for the toolbox
-`trinetra-toolbox/5` (buffers whose length is the caller's)):
+`trinetra-toolbox/5` (buffers whose length is the caller's); and again on 8 Oct 2026 with S7.11, the truth plant, the
+case's orbit and epoch, the plant's start and the devices' descriptors, and seven values env states, and S7.12, the device
+emulators' scaling, their methods under `design/revisions/S7.11/` and `S7.12/`; since S7.11 the engine's inputs include
+`data/stated.json`, every stated value of the design, which the engine reads by node):
 
     python3 tools/convert_2_0.py --out DRIVE
     python3 tools/design_build.py DRIVE --out tests/regression/design.tndb

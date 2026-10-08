@@ -61,7 +61,7 @@ impl Truth {
                 let (lat, lon, h) = adcs_pop::geodetic::geodetic(&re);
                 let w = o.omega_e;
                 Env { b_eci: field::eci_at(lat, lon, h, &cp, gh, nmax), sun_rel: sub(&x.sun_eci, r), moon_rel: sub(&x.moon_eci, r), nu: ephem::shadow(r, &x.sun_eci),
-                      v_rel: [v[0] + w*r[1], v[1] - w*r[0], v[2]], rho: x.rho, p_srp: x.p_srp }
+                      v_rel: adcs_sim_core::gen::orbitfast::corotating_velocity(*r, *v, w), rho: x.rho, p_srp: x.p_srp }
             }
             Truth::Fast(o, jd0) => {
                 let xc = o.context(t);
@@ -179,6 +179,8 @@ fn mode_changes(log: &mut Vec<(f64, String)>, t: f64, m: u8) {
 struct Units {
     gyro: Option<Gyro>, mag: Mag, sun: Option<Sun>, st: Option<St>, mtq: Mtq, es: Option<Es>, css: Option<Css>,
     mex: Mex, rcs: Option<Rcs>, gps: Gps, tlm: Rng,
+    /// the device emulators' scaling (l3_oils_row_07's, from the drivers' conversions), made once
+    scale: emu::Scale,
     /// the frame buffers of the image star-tracker model (model 2), built once per run
     st_frame: Option<StFrame>,
 }
@@ -213,7 +215,7 @@ impl Units {
         let mex = Mex::new(d.mex, &mut disp, rs("mex"));
         let rcs = if d.rcs.fitted { Some(Rcs::new(d.rcs, &mut disp)) } else { None };
         let st_frame = st.as_mut().filter(|s| s.d.model == 2).map(StFrame::new);
-        Units { gyro, mag, sun, st, mtq, es, css, mex, rcs, gps: Gps::new(d.gps, rs("gps")), tlm: rs("telemetry"), st_frame }
+        Units { gyro, mag, sun, st, mtq, es, css, mex, rcs, gps: Gps::new(d.gps, rs("gps")), tlm: rs("telemetry"), scale: emu::scale(), st_frame }
     }
 
     /// Inject every fault whose time has come (once each), clear the ones that end, and log both.
@@ -264,45 +266,39 @@ impl Rates {
     }
 }
 
-/// The initial attitude and rate the scenario asks for (asils.run initial_), and the rotor momenta.
+/// The initial attitude and rate the scenario asks for (asils.run initial_), and the rotor momenta: dyn_initial_state's
+/// initial_state (gen::initstate), its draws from the run's initial stream. Read here: the scenario's kinds and numbers
+/// (its degrees, its defaults) and the flight software's guidance references, nadir's and the start mode's.
 fn initial_state(c: &Config, r: &V3, v: &V3, gd: &Guid, ir: &mut Rng, nr: usize) -> State {
+    use adcs_sim_core::gen::initstate as is;
     let ini = c.scenario.get("initial").cloned().unwrap_or_default();
     let att = ini.get("attitude").cloned().unwrap_or_default();
     let rate = ini.get("rate").cloned().unwrap_or_default();
     let q_nad = guidance(0, r, v, 0.0, gd).q;
-    let q0 = match crate::json::s(&att, "kind", "") {
-        "random" => { let x = [ir.normal(), ir.normal(), ir.normal(), ir.normal()]; qnorm(&x) }
-        k @ ("error_from_target" | "error_from_guidance") => {
-            let qr = if k == "error_from_guidance" && c.gd_kind0 >= 0 { guidance(c.gd_kind0, r, v, 0.0, gd).q } else { q_nad };
-            let ax = unit(&att.get("axis_body").and_then(crate::json::v3).unwrap_or([1.0, 0.0, 0.0]));
-            qnorm(&qmult(&qr, &fromrotvec(&scale(&ax, crate::json::f(&att, "angle_deg", 0.0).to_radians()))))
-        }
-        _ => q_nad,
+    let g = (c.gd_kind0 >= 0).then(|| guidance(c.gd_kind0, r, v, 0.0, gd));
+    let (q_g, w_g) = g.as_ref().map(|g| (g.q, g.w)).unwrap_or(([0.0, 0.0, 0.0, 1.0], [0.0; 3]));
+    let att_kind = match crate::json::s(&att, "kind", "") {
+        "random" => is::ATTSTART_RANDOM, "error_from_target" => is::ATTSTART_ERROR_FROM_TARGET,
+        "error_from_guidance" => is::ATTSTART_ERROR_FROM_GUIDANCE, _ => is::ATTSTART_NADIR,
     };
-    let w0 = match crate::json::s(&rate, "kind", "") {
-        "random_direction" => {
-            let mag_ = match rate.get("magnitude_deg_s") {
-                Some(serde_json::Value::String(s)) => c.case.get(s.trim_start_matches("case:")),
-                Some(x) => x.as_f64().unwrap_or(0.0), None => 0.0,
-            };
-            scale(&unit(&ir.normal3()), mag_.to_radians())
-        }
-        "lvlh" => mv(&dcm(&q0), &scale(&cross(r, v), 1.0/dot(r, r))),
-        "guidance" => {
-            // the reference rate is in the reference frame: the body at q0 turns with it at dcm(q_e) w_ref
-            let mut w = if c.gd_kind0 >= 0 {
-                let g = guidance(c.gd_kind0, r, v, 0.0, gd);
-                mv(&dcm(&qmult(&qconj(&g.q), &q0)), &g.w)
-            } else { [0.0; 3] };
-            w = add(&w, &scale(&unit(&ir.normal3()), crate::json::f(&rate, "extra_deg_s", 0.0).to_radians()));
-            w
-        }
-        _ => rate.get("value_deg_s").and_then(crate::json::v3).map(|x| scale(&x, std::f64::consts::PI/180.0)).unwrap_or([0.0; 3]),
+    let axis = att.get("axis_body").and_then(crate::json::v3).unwrap_or([1.0, 0.0, 0.0]);
+    let angle = crate::json::f(&att, "angle_deg", 0.0).to_radians();
+    let rate_kind = match crate::json::s(&rate, "kind", "") {
+        "random_direction" => is::RATESTART_RANDOM_DIRECTION, "lvlh" => is::RATESTART_LVLH, "guidance" => is::RATESTART_GUIDANCE,
+        _ => is::RATESTART_VALUE,
     };
-    let mut x = State { q: q0, w: w0, ..Default::default() };
+    let mag = match rate.get("magnitude_deg_s") {
+        Some(serde_json::Value::String(s)) => c.case.get(s.trim_start_matches("case:")),
+        Some(x) => x.as_f64().unwrap_or(0.0), None => 0.0,
+    }.to_radians();
+    let extra = crate::json::f(&rate, "extra_deg_s", 0.0).to_radians();
+    let value = rate.get("value_deg_s").and_then(crate::json::v3).map(|x| scale(&x, std::f64::consts::PI/180.0)).unwrap_or([0.0; 3]);
     let h0 = crate::json::f(&ini, "wheel_momentum_Nms", f64::NAN);
-    for i in 0..nr { x.h[i] = if h0.is_nan() { c.h_t_rot[i] } else { h0 }; }
-    x
+    let mut s = ir.stream();
+    let (q, w, h) = is::initial_state(att_kind, q_nad, g.is_some(), q_g, w_g, axis, angle, rate_kind, *r, *v, value, mag, extra,
+                                      nr as i64, h0, c.h_t_rot, &mut s);
+    *ir = Rng::from_stream(&s);
+    State { q, w, h, ..Default::default() }
 }
 
 /// What the sensors measured this tick (the truth's view the recorder keeps).
@@ -318,11 +314,11 @@ fn sense(u: &mut Units, c: &Config, bus: &mut Bus, x: &State, sky: &Sky, m_b: &V
     let (d, dt) = (&c.dev, c.dt);
     bus.now_ns = (t*1e9).round() as u64;
     let w_meas = match u.gyro.as_mut() { Some(g) => g.sample(&x.w, dt), None => x.w };
-    bus.gyro = u.gyro.as_ref().map(|_| emu::gyro_resp(true, &w_meas));
+    bus.gyro = u.gyro.as_ref().map(|_| emu::gyro_resp(true, &w_meas, &u.scale));
     let b_meas = u.mag.sample(&sky.b_b, m_b);
-    bus.mag = if d.mag.fitted { Some(emu::mag_regs(true, &b_meas)) } else { None };
+    bus.mag = if d.mag.fitted { Some(emu::mag_regs(true, &b_meas, &u.scale)) } else { None };
     let sun_meas = if let Some(s) = u.sun.as_mut() { s.sample(&sky.sb, nu) } else if let Some(s) = u.css.as_mut() { s.sample(&sky.sb, nu, &sky.nb, sky.earth_ang) } else { None };
-    bus.sun = if d.sun.fitted || d.css.fitted { Some(emu::unit_regs(sun_meas.is_some(), &sun_meas.unwrap_or([0.0; 3]))) } else { None };
+    bus.sun = if d.sun.fitted || d.css.fitted { Some(emu::unit_regs(sun_meas.is_some(), &sun_meas.unwrap_or([0.0; 3]), &u.scale)) } else { None };
     let mut st_ok = false;
     if let Some(s) = u.st.as_mut() {
         s.history(t, &x.q);
@@ -332,13 +328,13 @@ fn sense(u: &mut Units, c: &Config, bus: &mut Bus, x: &State, sky: &Sky, m_b: &V
             let mut hv = [(false, [0.0, 0.0, 0.0, 1.0]); 2];
             for h in 0..d.st.nh { if let Some(q) = heads[h] { hv[h] = (true, q); st_ok = true; } }
             let mut buf = [0u8; 64];
-            let len = emu::st_frame(&hv[..d.st.nh], &mut buf);
+            let len = emu::st_frame(&hv[..d.st.nh], &mut buf, &u.scale);
             bus.push_uart(proto::ST_UART, &buf[..len]);
         }
     }
     if let Some(e) = u.es.as_mut() {
         let z = if k % rt.es == 0 { e.sample(&sky.nb) } else { None };
-        bus.es = Some(emu::unit_regs(z.is_some(), &z.unwrap_or([0.0; 3])));
+        bus.es = Some(emu::unit_regs(z.is_some(), &z.unwrap_or([0.0; 3]), &u.scale));
     }
     if d.gps.fitted { u.gps.history(t, r, v); }
     if d.gps.fitted && k % rt.gps == 0 && !u.gps.dead {
@@ -348,17 +344,17 @@ fn sense(u: &mut Units, c: &Config, bus: &mut Bus, x: &State, sky: &Sky, m_b: &V
         let (re_, ve_) = Gps::ecef(c.jd0, te, &r, &v);
         let (rg, vg) = u.gps.sample(&re_, &ve_);
         let mut buf = [0u8; 64];
-        let len = emu::gps_frame(true, &rg, &vg, &mut buf);
+        let len = emu::gps_frame(true, &rg, &vg, &mut buf, &u.scale);
         bus.push_uart(proto::GPS_UART, &buf[..len]);
     }
     // the rotors' telemetry: act_rotor_telemetry's rotor_telemetry, act's stated noises, from the telemetry stream
     let mut gi = [0i64; NR];
     for i in 0..NR { gi[i] = d.mex.gi[i] as i64; }
     let mut g = u.tlm.stream();
-    let (hm, dm) = adcs_sim_core::gen::rotortlm::rotor_telemetry(d.mex.n as i64, x.h, x.d, gi, &mut g);
+    let (hm, dm) = adcs_sim_core::gen::rotortlm::rotor_telemetry(d.mex.n as i64, x.h, x.d, gi, d.rotor_tlm_noise, d.gimbal_tlm_noise, &mut g);
     u.tlm = Rng::from_stream(&g);
     for i in 0..d.mex.n {
-        let (id, data) = emu::rotor_tm(i, hm[i], dm[i]);
+        let (id, data) = emu::rotor_tm(i, hm[i], dm[i], &u.scale);
         bus.push_can(id, data);
     }
     Sensed { w_meas, b_meas, sun_meas, st_ok }
@@ -524,8 +520,8 @@ pub fn run(c: &Config, o: &Opts) -> Result<Record, Error> {
         // soft OILS: when does this command reach the actuators?
         let lat = match (oils.as_mut(), o.oils.as_ref()) { (Some(st), Some(m)) => oils_latency(st, m, &fsw, &bus, dt), _ => 0.0 };
         let mut cmd = Commands::default();
-        emu::decode_pwm(&bus.pwm, if d.mtq.fitted { d.mtq.m_max } else { 1.0 }, &mut cmd);
-        for f in bus.can_tx.drain(..) { emu::decode_can(f.id, &f.data, &tmax, p.gim_rate_max, dt, &mut cmd); }
+        emu::decode_pwm(&bus.pwm, if d.mtq.fitted { d.mtq.m_max } else { 1.0 }, &u.scale, &mut cmd);
+        for f in bus.can_tx.drain(..) { emu::decode_can(f.id, &f.data, &tmax, p.gim_rate_max, dt, &u.scale, &mut cmd); }
         bus.can_rx.clear();
         let dbg = fsw.debug();
         let mode = dbg[1] as u8;

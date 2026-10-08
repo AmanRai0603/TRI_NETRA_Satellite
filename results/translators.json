@@ -110,28 +110,28 @@
  {
   "package": "env",
   "lang": "rust",
-  "functions": 397,
-  "values": 2188592,
-  "exact": 2185431,
-  "worst": 2.124016814948163e-09,
+  "functions": 437,
+  "values": 2263133,
+  "exact": 2259841,
+  "worst": 2.3077755804012238e-09,
   "failures": []
  },
  {
   "package": "env",
   "lang": "c",
-  "functions": 397,
-  "values": 2188592,
-  "exact": 2185431,
-  "worst": 2.124016814948163e-09,
+  "functions": 437,
+  "values": 2263133,
+  "exact": 2259841,
+  "worst": 2.3077755804012238e-09,
   "failures": []
  },
  {
   "package": "env",
   "lang": "matlab",
-  "functions": 397,
-  "values": 2188592,
-  "exact": 2185431,
-  "worst": 2.124016814948163e-09,
+  "functions": 437,
+  "values": 2263133,
+  "exact": 2259841,
+  "worst": 2.3077755804012238e-09,
   "failures": []
  }
 ]

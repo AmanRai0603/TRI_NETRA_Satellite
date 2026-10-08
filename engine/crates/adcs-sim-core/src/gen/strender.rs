@@ -10,6 +10,7 @@ use crate::gen::rigidbody::{PlantState};
 use crate::gen::rotors::{RotorGeometry};
 use crate::gen::facets::{Facets};
 use crate::gen::orbitfast::{FastCtx};
+use crate::gen::emucodec::{EmuScale};
 use crate::gen::css::{CssDesc, CssUnit};
 use crate::gen::earthsensor::{EsDesc, EsUnit};
 use crate::gen::finesun::{SunDesc, SunUnit};
@@ -79,9 +80,9 @@ pub fn st_render(r_eh: [[f64; 3]; 3], cr: &mut [[f64; 3]; 4000], cm: &mut [f64; 
     let mut np: i64 = (n * n);
     let mut nf: f64 = (n as f64);
     {
-        let __end135: i64 = np;
+        let __end166: i64 = np;
         let mut l: i64 = 0;
-        while l < __end135 {
+        while l < __end166 {
             (*img)[(l) as usize] = cam.bg;
             l += 1;
         }
@@ -90,9 +91,9 @@ pub fn st_render(r_eh: [[f64; 3]; 3], cr: &mut [[f64; 3]; 4000], cm: &mut [f64; 
     let mut s2: f64 = ((2.0 * cam.psf_px) * cam.psf_px);
     drawn = 0;
     {
-        let __end136: i64 = nc;
+        let __end167: i64 = nc;
         let mut k: i64 = 0;
-        while k < __end136 {
+        while k < __end167 {
             let mut v: [f64; 3] = rt::mv(r_eh, (*cr)[(k) as usize]);
             if (v[2] > cmin) {
                 let mut x: f64 = (((cam.f * v[0]) / v[2]) + cam.c);
@@ -104,13 +105,13 @@ pub fn st_render(r_eh: [[f64; 3]; 3], cr: &mut [[f64; 3]; 4000], cm: &mut [f64; 
                     let mut w: [[f64; 9]; 9] = [[0.0; 9]; 9];
                     let mut sum: f64 = 0.0;
                     {
-                        let __end137: i64 = 9;
+                        let __end168: i64 = 9;
                         let mut c: i64 = 0;
-                        while c < __end137 {
+                        while c < __end168 {
                             {
-                                let __end138: i64 = 9;
+                                let __end169: i64 = 9;
                                 let mut rr: i64 = 0;
-                                while rr < __end138 {
+                                while rr < __end169 {
                                     let mut gx: f64 = ((c as f64) - 4.0);
                                     let mut gy: f64 = ((rr as f64) - 4.0);
                                     let mut dx: f64 = ((rx + gx) - x);
@@ -126,13 +127,13 @@ pub fn st_render(r_eh: [[f64; 3]; 3], cr: &mut [[f64; 3]; 4000], cm: &mut [f64; 
                     let mut ix: i64 = (rx as i64);
                     let mut iy: i64 = (ry as i64);
                     {
-                        let __end139: i64 = 9;
+                        let __end170: i64 = 9;
                         let mut c2: i64 = 0;
-                        while c2 < __end139 {
+                        while c2 < __end170 {
                             {
-                                let __end140: i64 = 9;
+                                let __end171: i64 = 9;
                                 let mut r2: i64 = 0;
-                                while r2 < __end140 {
+                                while r2 < __end171 {
                                     let mut l2: i64 = (((((ix + c2) - 4) - 1) * n) + (((iy + r2) - 4) - 1));
                                     (*img)[(l2) as usize] = ((*img)[(l2) as usize] + (fl * (w[(c2) as usize][(r2) as usize] / sum)));
                                     r2 += 1;
@@ -154,9 +155,9 @@ pub fn st_render(r_eh: [[f64; 3]; 3], cr: &mut [[f64; 3]; 4000], cm: &mut [f64; 
     }
     if noisy {
         {
-            let __end141: i64 = np;
+            let __end172: i64 = np;
             let mut l3: i64 = 0;
-            while l3 < __end141 {
+            while l3 < __end172 {
                 let mut v3: f64 = (*img)[(l3) as usize];
                 let mut n1: f64 = rt::normal(&mut (*g));
                 let mut n2: f64 = rt::normal(&mut (*g));

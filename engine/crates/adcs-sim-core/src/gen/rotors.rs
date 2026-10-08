@@ -9,6 +9,7 @@ use crate::gen::flexmode::{Flex};
 use crate::gen::rigidbody::{PlantState};
 use crate::gen::facets::{Facets};
 use crate::gen::orbitfast::{FastCtx};
+use crate::gen::emucodec::{EmuScale};
 use crate::gen::css::{CssDesc, CssUnit};
 use crate::gen::earthsensor::{EsDesc, EsUnit};
 use crate::gen::finesun::{SunDesc, SunUnit};
@@ -50,9 +51,9 @@ pub fn rotor_geometry(a0: [[f64; 3]; 8], g: [[f64; 3]; 4], gi: [i64; 8], nr: i64
     let mut gg: [[f64; 3]; 4] = [[0.0; 3]; 4];
     let mut gix: [i64; 8] = [0; 8];
     {
-        let __end29: i64 = nr;
+        let __end30: i64 = nr;
         let mut ir: i64 = 0;
-        while ir < __end29 {
+        while ir < __end30 {
             a[(ir) as usize] = a0[(ir) as usize];
             gix[(ir) as usize] = gi[(ir) as usize];
             if (gi[(ir) as usize] > 0) {
@@ -62,9 +63,9 @@ pub fn rotor_geometry(a0: [[f64; 3]; 8], g: [[f64; 3]; 4], gi: [i64; 8], nr: i64
         }
     }
     {
-        let __end30: i64 = ng;
+        let __end31: i64 = ng;
         let mut jg: i64 = 0;
-        while jg < __end30 {
+        while jg < __end31 {
             gg[(jg) as usize] = g[(jg) as usize];
             jg += 1;
         }
@@ -88,16 +89,16 @@ pub fn rotor_axes(m: RotorGeometry, d: [f64; 4]) -> [[f64; 3]; 8] {
     let mut a: [[f64; 3]; 8] = [[0.0; 3]; 8];
     a = m.a0;
     {
-        let __end31: i64 = m.nr;
+        let __end32: i64 = m.nr;
         let mut ir: i64 = 0;
-        while ir < __end31 {
+        while ir < __end32 {
             let mut jg: i64 = m.gi[(ir) as usize];
             if (jg > 0) {
                 let mut dj: f64 = d[((jg - 1)) as usize];
                 {
-                    let __end32: i64 = 3;
+                    let __end33: i64 = 3;
                     let mut k: i64 = 0;
-                    while k < __end32 {
+                    while k < __end33 {
                         a[(ir) as usize][(k) as usize] = ((crate::pm::cos(dj) * m.a0[(ir) as usize][(k) as usize]) + (crate::pm::sin(dj) * m.t0[(ir) as usize][(k) as usize]));
                         k += 1;
                     }

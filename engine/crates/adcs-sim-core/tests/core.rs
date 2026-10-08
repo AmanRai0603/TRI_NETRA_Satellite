@@ -120,23 +120,25 @@ fn a_circular_orbit_keeps_its_radius_and_period() {
 #[test]
 fn the_bus_codecs_round_trip() {
     let b = [2.1e-5, -3.4e-5, 4.0e-6];
-    let regs = emu::mag_regs(true, &b);
+    let s = emu::scale();   // the scaling, from the drivers' conversions (S7.12)
+    assert_eq!((s.mag, s.word, s.valve), (emu::proto::MAG_LSB_T, emu::proto::Q15, emu::proto::VALVE_LSB_S), "the drivers' scaling is the protocol table's");
+    let regs = emu::mag_regs(true, &b, &s);
     assert_eq!(regs[0] & 1, 1, "the valid flag");
     for k in 0..3 {
         let raw = i16::from_le_bytes([regs[1 + 2*k], regs[2 + 2*k]]) as f64*emu::proto::MAG_LSB_T;
         assert!((raw - b[k]).abs() <= emu::proto::MAG_LSB_T, "axis {k}: {raw} vs {}", b[k]);
     }
     let mut c = Commands::default();
-    emu::decode_pwm(&[16384, -32767, 0, 0, 0, 0, 0, 0], 0.2, &mut c);
+    emu::decode_pwm(&[16384, -32767, 0, 0, 0, 0, 0, 0], 0.2, &s, &mut c);
     assert!(close(c.m_body[0], 0.1, 1e-4) && close(c.m_body[1], -0.2, 1e-4) && c.m_body[2] == 0.0, "{:?}", c.m_body);
     let mut tmax = [0.0; NR];
     tmax[1] = 2e-3;
     let mut d = [0u8; 8];
     d[..2].copy_from_slice(&(-16384i16).to_le_bytes());
-    emu::decode_can(emu::proto::CAN_ROTOR_CMD + 1, &d, &tmax, 1.0, 0.1, &mut c);
+    emu::decode_can(emu::proto::CAN_ROTOR_CMD + 1, &d, &tmax, 1.0, 0.1, &s, &mut c);
     assert!(close(c.cmd_r[1], -1e-3, 1e-4), "{}", c.cmd_r[1]);
     let mut buf = [0u8; 64];
-    let n = emu::gps_frame(true, &[7e6, 1.0, -2.0], &[1.0, 7.5e3, 0.5], &mut buf);
+    let n = emu::gps_frame(true, &[7e6, 1.0, -2.0], &[1.0, 7.5e3, 0.5], &mut buf, &s);
     assert!(n > 6 && buf[..2] == [emu::proto::ST_SYNC1, emu::proto::GPS_SYNC2], "a GNSS frame starts with its sync");
     let len = buf[2] as usize;
     let crc = u16::from_le_bytes([buf[3 + len], buf[4 + len]]);

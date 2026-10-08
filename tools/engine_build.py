@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""The engine build (docs/PLAN_2_0.md S7; docs/S7_INVENTORY.md S7.3-S7.10): the time engine's published models and relations
+"""The engine build (docs/PLAN_2_0.md S7; docs/S7_INVENTORY.md S7.3-S7.12): the time engine's published models and relations
 written from the design. Only the engine's core stays hand-written (step order, recorder, integrators, the toolbox); a
 model of the world or of the spacecraft is a method of an env, dyn, act or sens node, and its Rust is generated here, never
 edited.
@@ -9,8 +9,8 @@ edited.
 
 What a target takes: every method block of the design whose `code.generate` names the target, and every module its
 `code.uses` names, in turn (a published model's data, env's onboard frames and field, the physics' tables, the
-toolbox). A module is found by the path its node's origin names (tools/from_design.py `text`), or, for the toolbox
-(fsw/pseudocode/01_math.pc), in the repository. The library's translator (trinetra-pcode, `tndb translate`; the
+toolbox; a bare name, as the flight algorithms name theirs, is its user's neighbour). A module is found by the path its
+node's origin names (tools/from_design.py `text`), or, for the toolbox (fsw/pseudocode/01_math.pc), in the repository. The library's translator (trinetra-pcode, `tndb translate`; the
 JavaScript one, byte for byte the same, when the library's command is not built) writes each target as a module of
 its crate:
 
@@ -25,7 +25,10 @@ its crate:
                                          GNSS receiver, and the rotors' telemetry (sens and act, S7.8); the star
                                          tracker's unit, its onboard table and its attitude (sens, S7.9), its image
                                          chain: the frame, the spots, their identification and the image model (sens,
-                                         S7.10, over buffers whose length is the caller's); its scalar maths
+                                         S7.10, over buffers whose length is the caller's); the plant's state at the
+                                         start of a run (dyn, S7.11); the device emulators' scaling, the inverse of the
+                                         flight software's drivers, with the drivers' module it takes it from (oils,
+                                         S7.12); its scalar maths
                                          from crate::pm (the pure-Rust libm: the same trajectory on every target), no_std
   engine/crates/adcs-pop/src/gen/        the precision orbit's time scales, geodetic coordinates, Earth frames, the
                                          IAU 2006/2000A kernel and the tidal EOP models (S7.3); the atmosphere
@@ -35,7 +38,9 @@ its crate:
                                          Earth radiation pressure), the force set, its sum and the sun-synchronous start
                                          (S7.6); std maths (as the Octave POP they are held to)
   engine/crates/adcs-sim/src/gen/        the engine's relations that fly with the platform's maths: the fast orbit's
-                                         start from the LTAN (S7.6), what the sensors see of the sky (S7.8); std maths
+                                         start from the LTAN (S7.6), what the sensors see of the sky (S7.8), the
+                                         set-up from the case: the centre of mass's offset, the truth plant, the
+                                         case's orbit and epoch (S7.11); std maths
   matlab_sils/+asils/+models/            the same models for the MATLAB twin (asils.models.<module>.<function>), one
                                          package of every module the engine's targets take, over the twin's shared
                                          runtime +asils/+pc
@@ -48,6 +53,7 @@ Owner: Agastya. Copyright (c) 2026 Agastya. All rights reserved.
 import argparse
 import json
 import pathlib
+import posixpath
 import sqlite3
 import subprocess
 import sys
@@ -107,7 +113,8 @@ def modules(target, db=None):
         if p in got:
             continue
         got[p] = module_text(p, db)
-        todo += [q for q in uses.get(p, []) if q not in got]
+        # a module named bare (the flight algorithms' own uses, "01_math.pc") is its user's neighbour
+        todo += [q if "/" in q else posixpath.join(posixpath.dirname(p), q) for q in uses.get(p, [])]
     return dict(sorted(got.items()))
 
 

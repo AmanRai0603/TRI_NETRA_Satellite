@@ -1,0 +1,89 @@
+## The plant's state at the start of a run, transcribed from adcs-sim run.rs (initial_state; the twin's asils.run
+## initial_) and adcs-sim-core la.rs (qnorm, unit, dcm, qmult, qconj, fromrotvec): the attitude the scenario asks for
+## (nadir; a random attitude, four normal draws made unit; or an error about a body axis from the guidance's reference,
+## or from nadir when the start mode has no guidance or the scenario asks for the error from the target), the rate (a
+## stated one; a random direction of a stated magnitude; the orbit's rate seen in the body, the LVLH frame's; or the
+## guidance's reference rate in the body plus a random direction of a stated extra), and every rotor's momentum (the
+## scenario's, else the flight software's target for it). The draws from the run's initial stream, the attitude's first.
+## The scenario's words are read by the code (the kinds, its degrees, its defaults); the guidance's references are the
+## flight software's own (adcs-fsw guidance), handed in. Plain numbers in SI.
+## The developer's transcription (S7.11), unsigned.
+module initstate
+
+## How the scenario starts the attitude: at nadir, at random, off the target's reference (nadir's), or off the start
+## mode's guidance reference.
+choice AttStart = nadir, random, error_from_target, error_from_guidance
+## How the scenario starts the rate: as stated, in a random direction, with the orbit (LVLH), or with the guidance.
+choice RateStart = value, random_direction, lvlh, guidance
+
+## A quaternion made unit as the engine's la::qnorm: below a norm of 1e-300 the identity.
+fn init_qnorm(q: quat in -3 .. 3) -> r: quat
+    let n = sqrt(q[0]*q[0] + q[1]*q[1] + q[2]*q[2] + q[3]*q[3])
+    if n < 1e-300
+        r = [0.0, 0.0, 0.0, 1.0]
+    else
+        r = [q[0]/n, q[1]/n, q[2]/n, q[3]/n]
+    end
+end
+
+## The attitude (ECI to body) a run starts at: q_nad nadir's reference, q_g the start mode's guidance reference
+## (has_g: the start mode has a guidance), axis (body) and angle [rad] the error asked for, draws from g.
+fn initial_attitude(kind: AttStart, q_nad: quat in -1 .. 1, has_g: bool, q_g: quat in -1 .. 1, axis: vec3[1] in -1 .. 1, \
+                    angle: real[1] in -3 .. 3, g: inout stream) -> q0: quat
+    q0 = q_nad
+    if kind == AttStart.random
+        let x0 = normal(g)
+        let x1 = normal(g)
+        let x2 = normal(g)
+        let x3 = normal(g)
+        q0 = init_qnorm([x0, x1, x2, x3])
+    elif kind == AttStart.error_from_target or kind == AttStart.error_from_guidance
+        let qr = q_nad
+        if kind == AttStart.error_from_guidance and has_g
+            qr = q_g
+        end
+        q0 = init_qnorm(qmult(qr, fromrotvec(unit_or_zero(axis)*angle)))
+    end
+end
+
+## The body rate [rad/s] a run starts at, the body at q0, the satellite at r [m] with velocity v [m/s] (ECI): value the
+## rate stated, mag the random direction's magnitude, w_g the guidance's reference rate (in its reference frame, has_g:
+## the start mode has a guidance, q_g its reference), extra the random direction's magnitude added to it; draws from g.
+fn initial_rate(kind: RateStart, q0: quat in -1 .. 1, r: vec3[1] in -7.2e6 .. 7.2e6, v: vec3[1] in -7600 .. 7600, \
+                value: vec3[1] in -0.2 .. 0.2, mag: real[1] in 0 .. 0.2, has_g: bool, q_g: quat in -1 .. 1, \
+                w_g: vec3[1] in -0.01 .. 0.01, extra: real[1] in 0 .. 0.2, g: inout stream) -> w0: vec3[1]
+    w0 = value
+    if kind == RateStart.random_direction
+        let n = normal3(g)
+        w0 = unit_or_zero(n)*mag
+    elif kind == RateStart.lvlh
+        w0 = dcm(q0)*(cross(r, v)*(1.0/dot(r, r)))
+    elif kind == RateStart.guidance
+        let w: vec3[1] = 0
+        if has_g
+            w = dcm(qmult(qconj(q_g), q0))*w_g
+        end
+        let n = normal3(g)
+        w0 = w + unit_or_zero(n)*extra
+    end
+end
+
+## Every rotor's momentum [N m s] at the start: the scenario's h0 for each of the nr rotors, or, when it states none
+## (nan), the flight software's target for that rotor.
+fn initial_momenta(nr: int in 0 .. 8, h0: real[1] in -0.05 .. 0.05, h_target: real[1][DYN_NR] in -0.05 .. 0.05) -> h: real[1][DYN_NR]
+    h = 0
+    for i in 0 .. nr
+        h[i] = if isnan(h0) then h_target[i] else h0
+    end
+end
+
+## The state a run starts in: the attitude, then the rate (the draws in that order from g), then the rotors' momenta.
+fn initial_state(att: AttStart, q_nad: quat in -1 .. 1, has_g: bool, q_g: quat in -1 .. 1, w_g: vec3[1] in -0.01 .. 0.01, \
+                 axis: vec3[1] in -1 .. 1, angle: real[1] in -3 .. 3, rate: RateStart, r: vec3[1] in -7.2e6 .. 7.2e6, \
+                 v: vec3[1] in -7600 .. 7600, value: vec3[1] in -0.2 .. 0.2, mag: real[1] in 0 .. 0.2, extra: real[1] in 0 .. 0.2, \
+                 nr: int in 0 .. 8, h0: real[1] in -0.05 .. 0.05, h_target: real[1][DYN_NR] in -0.05 .. 0.05, g: inout stream) \
+              -> (q0: quat, w0: vec3[1], h: real[1][DYN_NR])
+    q0 = initial_attitude(att, q_nad, has_g, q_g, axis, angle, g)
+    w0 = initial_rate(rate, q0, r, v, value, mag, has_g, q_g, w_g, extra, g)
+    h = initial_momenta(nr, h0, h_target)
+end

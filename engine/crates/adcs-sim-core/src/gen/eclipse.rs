@@ -10,6 +10,7 @@ use crate::gen::rigidbody::{PlantState};
 use crate::gen::rotors::{RotorGeometry};
 use crate::gen::facets::{Facets};
 use crate::gen::orbitfast::{FastCtx};
+use crate::gen::emucodec::{EmuScale};
 use crate::gen::css::{CssDesc, CssUnit};
 use crate::gen::earthsensor::{EsDesc, EsUnit};
 use crate::gen::finesun::{SunDesc, SunUnit};
@@ -32,9 +33,9 @@ pub fn eclipse_fraction(nu: [f64; 2048], n: i64) -> f64 {
     let mut f: f64 = 0.0;
     let mut k: i64 = 0;
     {
-        let __end33: i64 = n;
+        let __end34: i64 = n;
         let mut i: i64 = 0;
-        while i < __end33 {
+        while i < __end34 {
             if (nu[(i) as usize] < 0.5) {
                 k = (k + 1);
             }

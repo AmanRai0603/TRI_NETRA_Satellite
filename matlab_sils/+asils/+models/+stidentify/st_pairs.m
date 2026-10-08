@@ -34,23 +34,23 @@ function [np, cr, pi, pj, pa, ti, tj, ta] = st_pairs(cr, nc, fov, pi, pj, pa, ti
     for it = (0):((62) - 1)
         if (w < np)
             if (rem(passes, 2) == 0)
-                [t__166, t__167, t__168, t__169, t__170, t__171, t__172] = asils.models.stidentify.st_merge_pairs(ti, tj, ta, pi, pj, pa, np, w);
-                z0 = t__166;
-                ti = t__167;
-                tj = t__168;
-                ta = t__169;
-                pi = t__170;
-                pj = t__171;
-                pa = t__172;
+                [t__190, t__191, t__192, t__193, t__194, t__195, t__196] = asils.models.stidentify.st_merge_pairs(ti, tj, ta, pi, pj, pa, np, w);
+                z0 = t__190;
+                ti = t__191;
+                tj = t__192;
+                ta = t__193;
+                pi = t__194;
+                pj = t__195;
+                pa = t__196;
             else
-                [t__173, t__174, t__175, t__176, t__177, t__178, t__179] = asils.models.stidentify.st_merge_pairs(pi, pj, pa, ti, tj, ta, np, w);
-                z1 = t__173;
-                pi = t__174;
-                pj = t__175;
-                pa = t__176;
-                ti = t__177;
-                tj = t__178;
-                ta = t__179;
+                [t__197, t__198, t__199, t__200, t__201, t__202, t__203] = asils.models.stidentify.st_merge_pairs(pi, pj, pa, ti, tj, ta, np, w);
+                z1 = t__197;
+                pi = t__198;
+                pj = t__199;
+                pa = t__200;
+                ti = t__201;
+                tj = t__202;
+                ta = t__203;
             end
             passes = (passes + 1);
             w = (2 * w);

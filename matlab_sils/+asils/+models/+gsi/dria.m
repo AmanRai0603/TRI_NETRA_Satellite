@@ -11,7 +11,7 @@ function [cp, ct] = dria(s, delta, n_o, t, tw)
     cp = 0;
     ct = 0;
     a_t = asils.models.gsi.sesam(n_o, t);
-    [t__76, t__77] = asils.models.gsi.sentman(s, delta, a_t, tw, t);
-    cp = t__76;
-    ct = t__77;
+    [t__96, t__97] = asils.models.gsi.sentman(s, delta, a_t, tw, t);
+    cp = t__96;
+    ct = t__97;
 end

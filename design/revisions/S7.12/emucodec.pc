@@ -1,0 +1,158 @@
+## The device emulators' scaling, transcribed from adcs-sim-core emu.rs (q16, q32, reg7, mag_regs, unit_regs, gyro_resp,
+## st_frame, gps_frame, rotor_tm, decode_pwm, decode_can; the twin's asils.hal.lsb), as the owner decided (S7.12): the
+## scaling is the drivers', the byte framing the rig's. Each sensor's engineering value becomes the counts of its field,
+## rounded half away from zero within the field's range (a value that is not a number, none); each command word the
+## flight software writes becomes its engineering value again. It is the inverse of the flight software's drivers'
+## conversions (fsw_drivers, fsw/pseudocode/09_drivers.pc), and takes their constants from the drivers' own functions:
+## what drv_read makes of one count in each field it reads, the fields' ranges by rd16 and rd32, and the command words'
+## full scale by q15. The valve on-time's count (1 ms), which drv_write writes inline and no driver function gives back
+## exactly, is stated here and held to drv_write by the test of the built-in nodes. The packets (their layout, sync
+## bytes, CRC and bus) are the rig's code (emu.rs).
+## The developer's transcription (S7.12), unsigned.
+module emucodec
+
+## The valve on-time of one count of a valve word (drv_write's 1 ms).
+const EMU_VALVE_COUNT = 1 [ms]
+
+## One count of each field, in its engineering unit, and the fields' ranges in counts: the magnetometer's field, the
+## gyro's rate, a Sun or Earth sensor's unit vector (Q15), the star tracker's quaternion (Q30), the GNSS fix's position
+## and velocity, a rotor's momentum and its gimbal's angle; the command words' full scale (Q15); a valve word's on-time;
+## the 16-bit and 32-bit fields' least and greatest counts.
+record EmuScale
+    mag: real[T]
+    gyro: real[rad/s]
+    unit: real[1]
+    q: real[1]
+    pos: real[m]
+    vel: real[m/s]
+    h: real[N m s]
+    delta: real[rad]
+    word: real[1]
+    valve: real[s]
+    lo16: real[1]
+    hi16: real[1]
+    lo32: real[1]
+    hi32: real[1]
+end
+
+## The scaling as the drivers read it: drv_read of a frame of each kind holding one count in its first field (the
+## star tracker's and the GNSS receiver's UART frames made by the drivers' uart_stream, a rotor's CAN telemetry), the
+## fields' ranges by rd16 and rd32, the command words' full scale by q15 of 1.
+fn emu_scale() -> s: EmuScale
+    s = EmuScale()
+    let one: int[7] = [1, 1, 0, 0, 0, 0, 0]
+    let gyro_rx: int[13] = 0
+    gyro_rx[0] = 1
+    gyro_rx[1] = 1
+    let junk: int[8] = 0
+    let stp: int[36] = 0
+    stp[0] = 1
+    stp[1] = 1
+    stp[2] = 1
+    let st, st_len = uart_stream(junk, 0, stp, 18, 144, 0, 1)
+    let gpp: int[36] = 0
+    gpp[0] = 1
+    gpp[1] = 1
+    gpp[13] = 1
+    let gps, gps_len = uart_stream(junk, 0, gpp, 25, 145, 0, 1)
+    let can_id: int[8] = 0
+    can_id[0] = 512
+    let can_dlc: int[8] = 0
+    can_dlc[0] = 8
+    let can_data: int[8][8] = 0
+    can_data[0][0] = 1
+    can_data[0][4] = 1
+    let rot_gi: int[8] = 0
+    rot_gi[0] = 1
+    let mag_ok, b, gyro_ok, w, sun_ok, sun, es_ok, nadir, st_ok, st_valid, q_st, gps_ok, r, v, h, delta = \
+        drv_read(one, gyro_rx, one, one, st, st_len, gps, gps_len, can_id, can_dlc, can_data, 1, true, true, true, true, true, 1, rot_gi)
+    s.mag = b[0]
+    s.gyro = w[0]
+    s.unit = sun[0]
+    s.q = q_st[0][0]
+    s.pos = r[0]
+    s.vel = v[0]
+    s.h = h[0]
+    s.delta = delta[0]
+    s.word = real(q15(1.0))
+    s.valve = EMU_VALVE_COUNT
+    s.lo16 = real(rd16(0, 128))
+    s.hi16 = real(rd16(255, 127))
+    s.lo32 = real(rd32(0, 0, 0, 128))
+    s.hi32 = real(rd32(255, 255, 255, 127))
+end
+
+## The counts of x (in counts, not yet whole) in a field from lo to hi: held to the range, rounded half away from zero;
+## a value that is not a number gives none.
+fn emu_count(x: real[1] in -3e9 .. 3e9, lo: real[1] in -2147483648 .. 0, hi: real[1] in 0 .. 2147483647) -> c: int
+    c = 0
+    if not isnan(x)
+        c = int(round(clamp(x, lo, hi)))
+    end
+end
+
+## The magnetometer's field b (body) as its registers' counts.
+fn mag_counts(b: vec3[T] in -1e-4 .. 1e-4, s: EmuScale) -> c: int[3]
+    c = 0
+    for i in 0 .. 3
+        c[i] = emu_count(b[i]/s.mag, s.lo16, s.hi16)
+    end
+end
+
+## A Sun or Earth sensor's unit vector u (body) as its registers' counts (Q15).
+fn unit_counts(u: vec3[1] in -1 .. 1, s: EmuScale) -> c: int[3]
+    c = 0
+    for i in 0 .. 3
+        c[i] = emu_count(u[i]/s.unit, s.lo16, s.hi16)
+    end
+end
+
+## The gyro's rate w (body) as its response's counts.
+fn gyro_counts(w: vec3[rad/s] in -6 .. 6, s: EmuScale) -> c: int[3]
+    c = 0
+    for i in 0 .. 3
+        c[i] = emu_count(w[i]/s.gyro, s.lo32, s.hi32)
+    end
+end
+
+## A star-tracker head's quaternion q (ECI to body, scalar last) as its frame's counts (Q30).
+fn quat_counts(q: quat in -1 .. 1, s: EmuScale) -> c: int[4]
+    c = 0
+    for k in 0 .. 4
+        c[k] = emu_count(q[k]/s.q, s.lo32, s.hi32)
+    end
+end
+
+## The GNSS fix, position r and velocity v (ECEF), as its frame's counts.
+fn fix_counts(r: vec3[m] in -8e6 .. 8e6, v: vec3[m/s] in -8000 .. 8000, s: EmuScale) -> (cr: int[3], cv: int[3])
+    cr = 0
+    cv = 0
+    for i in 0 .. 3
+        cr[i] = emu_count(r[i]/s.pos, s.lo32, s.hi32)
+        cv[i] = emu_count(v[i]/s.vel, s.lo32, s.hi32)
+    end
+end
+
+## A rotor's momentum h and its gimbal's angle delta as its telemetry's counts.
+fn rotor_counts(h: real[N m s] in -0.05 .. 0.05, delta: real[rad] in -4 .. 4, s: EmuScale) -> (ch: int, cd: int)
+    ch = emu_count(h/s.h, s.lo32, s.hi32)
+    cd = emu_count(delta/s.delta, s.lo32, s.hi32)
+end
+
+## The coils' dipole (body) from the flight software's PWM words, each a fraction of m_max.
+fn coil_dipole(pwm: int[3] in -32768 .. 32767, m_max: real[A m^2] in 0.01 .. 10, s: EmuScale) -> m: vec3[A m^2]
+    m = 0
+    for i in 0 .. 3
+        m[i] = real(pwm[i])/s.word*m_max
+    end
+end
+
+## A command word (a rotor's torque, a gimbal's rate) as a value of its full scale.
+fn command_value(w: int in -32768 .. 32767, full: real[1] in 0 .. 10, s: EmuScale) -> x: real[1]
+    x = real(w)/s.word*full
+end
+
+## A valve word (its on-time in counts) as the duty over a control step dt.
+fn valve_duty(on: int in 0 .. 255, dt: real[s] in 0.01 .. 1, s: EmuScale) -> d: real[1]
+    d = real(on)*s.valve/dt
+end

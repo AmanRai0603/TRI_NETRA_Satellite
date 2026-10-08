@@ -1,8 +1,9 @@
 ## The Earth sensor as the engine flies it, transcribed from adcs-sim-core sensors.rs (EsDesc, Es, new, sample): with
 ## nadir inside the field of its boresight it gives nadir turned by its mount bias (a rotation drawn once from the run's
 ## dispersion stream) and by the horizon's noise (a rotation vector of normal draws times the part's accuracy, from the
-## sensor's noise stream), made unit; else nothing, and no draw.
-## The developer's transcription (S7.8), unsigned.
+## sensor's noise stream), made unit; else nothing, and no draw. Since S7.11 also its boresight when the product states
+## none, which adcs-sim product.rs (fit_sensor, earth_sensor) chose.
+## The developer's transcription (S7.8; es_boresight S7.11), unsigned.
 module earthsensor
 
 ## The Earth sensor as the part states it: its boresight (body, unit), its accuracy [rad], its field's half-angle [rad]
@@ -37,5 +38,13 @@ fn es_sample(u: inout EsUnit, d: EsDesc, nadir_b: real[1][3] in -1 .. 1) -> (ok:
         let e0 = normal3(g)
         u.g = g
         n = unit_or_zero(dcm(qmult(u.bias, fromrotvec(e0*d.noise)))*nadir_b)
+    end
+end
+
+## The Earth sensor's boresight (body, unit): the one the product states for it (stated), else the payload's boresight.
+fn es_boresight(stated: bool, bs: real[1][3] in -1 .. 1, payload: real[1][3] in -1 .. 1) -> b: real[1][3]
+    b = payload
+    if stated
+        b = bs
     end
 end

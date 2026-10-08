@@ -10,6 +10,7 @@ use crate::gen::rigidbody::{PlantState};
 use crate::gen::rotors::{RotorGeometry};
 use crate::gen::facets::{Facets};
 use crate::gen::orbitfast::{FastCtx};
+use crate::gen::emucodec::{EmuScale};
 use crate::gen::css::{CssDesc, CssUnit};
 use crate::gen::earthsensor::{EsDesc, EsUnit};
 use crate::gen::finesun::{SunDesc, SunUnit};
@@ -71,9 +72,9 @@ pub fn gyro_sample(u: &mut GyroUnit, d: GyroDesc, w: [f64; 3], dt: f64) -> [f64;
     let mut mw: [f64; 3] = rt::mv((*u).m, w);
     o = [0.0, 0.0, 0.0];
     {
-        let __end77: i64 = 3;
+        let __end108: i64 = 3;
         let mut i: i64 = 0;
-        while i < __end77 {
+        while i < __end108 {
             o[(i) as usize] = crate::gen::coilsat::act_clamp((((mw[(i) as usize] + (*u).b[(i) as usize]) + (*u).brw[(i) as usize]) + ((d.arw / crate::pm::sqrt(dt)) * n2[(i) as usize])), (-(d.range)), d.range);
             i += 1;
         }

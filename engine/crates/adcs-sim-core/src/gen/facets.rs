@@ -9,6 +9,7 @@ use crate::gen::flexmode::{Flex};
 use crate::gen::rigidbody::{PlantState};
 use crate::gen::rotors::{RotorGeometry};
 use crate::gen::orbitfast::{FastCtx};
+use crate::gen::emucodec::{EmuScale};
 use crate::gen::css::{CssDesc, CssUnit};
 use crate::gen::earthsensor::{EsDesc, EsUnit};
 use crate::gen::finesun::{SunDesc, SunUnit};
@@ -66,13 +67,13 @@ pub fn facets_box(box_m: [f64; 3], cm: [f64; 3], sigma_n: f64, sigma_t: f64, vb_
     let mut n: [[f64; 3]; 6] = [[1.0, 0.0, 0.0], [(-(1.0)), 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, (-(1.0)), 0.0], [0.0, 0.0, 1.0], [0.0, 0.0, (-(1.0))]];
     let mut rho: [[f64; 3]; 6] = [[0.0; 3]; 6];
     {
-        let __end34: i64 = 6;
+        let __end35: i64 = 6;
         let mut j: i64 = 0;
-        while j < __end34 {
+        while j < __end35 {
             {
-                let __end35: i64 = 3;
+                let __end36: i64 = 3;
                 let mut k: i64 = 0;
-                while k < __end35 {
+                while k < __end36 {
                     rho[(j) as usize][(k) as usize] = (((n[(j) as usize][(k) as usize] * box_m[(k) as usize]) / 2.0) - cm[(k) as usize]);
                     k += 1;
                 }
@@ -108,17 +109,17 @@ pub fn aero_torque(rm: [[f64; 3]; 3], v_rel: [f64; 3], rho: f64, g: Facets) -> [
         let mut vv: f64 = rt::norm(vb);
         let mut vh: [f64; 3] = rt::vscale(vb, (1.0 / vv));
         {
-            let __end36: i64 = 6;
+            let __end37: i64 = 6;
             let mut j: i64 = 0;
-            while j < __end36 {
+            while j < __end37 {
                 let mut c: f64 = rt::dot(vh, g.n[(j) as usize]);
                 if (!(c <= 0.0)) {
                     let mut k2: f64 = ((g.sigma_n * g.vb_ratio) + (((2.0 - g.sigma_n) - g.sigma_t) * c));
                     let mut f: [f64; 3] = [0.0, 0.0, 0.0];
                     {
-                        let __end37: i64 = 3;
+                        let __end38: i64 = 3;
                         let mut k: i64 = 0;
-                        while k < __end37 {
+                        while k < __end38 {
                             f[(k) as usize] = ((((((-(rho)) * vv) * vv) * g.a[(j) as usize]) * c) * ((g.sigma_t * vh[(k) as usize]) + (k2 * g.n[(j) as usize][(k) as usize])));
                             k += 1;
                         }

@@ -10,7 +10,8 @@
 ## direction through the head's true mount, with cross-direction noise of sigma sqrt(8), the q-method,
 ## l3_sens_row_12); the image model is the chain's (comp.rs; S7.10). The 0.5 s span, the 1e-9 s tolerance, the 12 stars
 ## and the sqrt(8) as the engine flies them (1.0.0 code). The noise draws from the tracker's stream, a head at a time.
-## The developer's transcription (S7.9), unsigned.
+## Since S7.11 also the mount errors of a tracker calibrated on ground, which adcs-sim product.rs (fit_sensor) set.
+## The developer's transcription (S7.9; st_calibrated S7.11), unsigned.
 module sttracker
 
 ## The most heads a tracker carries (adcs-sim-core NH).
@@ -262,5 +263,18 @@ fn st_sample(u: inout StUnit, d: StDesc, ht: inout real[1][ST_HIST] in 0 .. 100,
             end
         end
         u.g = g
+    end
+end
+
+## The mount errors' sigmas [rad] a tracker flies: the part's bias and misalignment sigmas, or, for a tracker calibrated
+## on ground (cal_stated: its product states calibrated_residual_rad), the calibration's residual cal as the bias's sigma
+## and no misalignment.
+fn st_calibrated(bias_sigma: real[1] in 0 .. 1e-3, misalign_sigma: real[1] in 0 .. 1e-3, cal_stated: bool, cal: real[1] in 0 .. 1e-3) \
+              -> (b: real[1], m: real[1])
+    b = bias_sigma
+    m = misalign_sigma
+    if cal_stated
+        b = cal
+        m = 0.0
     end
 end

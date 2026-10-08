@@ -10,6 +10,7 @@ use crate::gen::rigidbody::{PlantState};
 use crate::gen::rotors::{RotorGeometry};
 use crate::gen::facets::{Facets};
 use crate::gen::orbitfast::{FastCtx};
+use crate::gen::emucodec::{EmuScale};
 use crate::gen::css::{CssDesc, CssUnit};
 use crate::gen::earthsensor::{EsDesc, EsUnit};
 use crate::gen::finesun::{SunDesc, SunUnit};
@@ -73,9 +74,9 @@ pub fn star_entry(k: i64, n: i64) -> ([f64; 3], f64) {
 pub fn star_catalogue(cr: &mut [[f64; 3]; 4000], cm: &mut [f64; 4000]) -> i64 {
     let mut n: i64 = 0;
     {
-        let __end80: i64 = crate::gen::starcat::N_STARS;
+        let __end111: i64 = crate::gen::starcat::N_STARS;
         let mut k: i64 = 0;
-        while k < __end80 {
+        while k < __end111 {
             let (mut r, mut mag) = crate::gen::starcat::star_entry(k, crate::gen::starcat::N_STARS);
             (*cr)[(k) as usize] = r;
             (*cm)[(k) as usize] = mag;

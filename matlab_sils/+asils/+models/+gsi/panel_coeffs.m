@@ -12,20 +12,20 @@ function [cp, ct] = panel_coeffs(model, s, delta, g, talt, n_o)
     cp = 0;
     ct = 0;
     if (model == 0)
-        [t__78, t__79] = asils.models.gsi.sentman(s, delta, g.a_t, g.tw, talt);
-        cp = t__78;
-        ct = t__79;
+        [t__98, t__99] = asils.models.gsi.sentman(s, delta, g.a_t, g.tw, talt);
+        cp = t__98;
+        ct = t__99;
     elseif (model == 1)
-        [t__80, t__81] = asils.models.gsi.dria(s, delta, n_o, talt, g.tw);
-        cp = t__80;
-        ct = t__81;
+        [t__100, t__101] = asils.models.gsi.dria(s, delta, n_o, talt, g.tw);
+        cp = t__100;
+        ct = t__101;
     elseif (model == 3)
-        [t__82, t__83] = asils.models.gsi.cll(s, delta, g.sig_n, g.sig_t, g.tw, talt);
-        cp = t__82;
-        ct = t__83;
+        [t__102, t__103] = asils.models.gsi.cll(s, delta, g.sig_n, g.sig_t, g.tw, talt);
+        cp = t__102;
+        ct = t__103;
     else
-        [t__84, t__85] = asils.models.gsi.sentman(s, delta, asils.models.gsi.sesam(n_o, talt), g.tw, talt);
-        cp = t__84;
-        ct = t__85;
+        [t__104, t__105] = asils.models.gsi.sentman(s, delta, asils.models.gsi.sesam(n_o, talt), g.tw, talt);
+        cp = t__104;
+        ct = t__105;
     end
 end

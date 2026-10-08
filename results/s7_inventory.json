@@ -520,6 +520,75 @@
     "translators: S7.9's st_attitude is ill-conditioned on random vectors (another draw's MATLAB chose the other eigenvector); the language's abs is written with branches (mispredicted on random signs)"
    ],
    "regression_copy_bytes": 9961472
+  },
+  "after_s7_11": {
+   "built_in": 32,
+   "built_in_by_group": {
+    "act": 8,
+    "design": 19,
+    "oils": 1,
+    "pnt": 4
+   },
+   "behaviours": {
+    "stated": 325,
+    "open": 302,
+    "method": 153,
+    "children": 134,
+    "lookup": 126,
+    "evidence": 119,
+    "closure": 38,
+    "built-in": 32
+   },
+   "design_nodes": 1229,
+   "how": "the developer's revision S7.11: dyn's and env's methods for the plant's and the orbit's set-up and the plant's start, and the descriptors' rules in their rows' modules, under design/revisions/S7.11 and generated into adcs-sim and adcs-sim-core; every stated value of the design reaches the engine through data/stated.json",
+   "moved": [],
+   "added": {
+    "dyn_truth_plant": "method",
+    "dyn_initial_state": "method",
+    "env_case_orbit": "method",
+    "s1_4": "method (was open)",
+    "env_f107_default": "stated 130",
+    "env_f107a_default": "stated 130",
+    "env_kp_default": "stated 2",
+    "env_ap_default": "stated 7",
+    "env_orbit_step": "stated 10",
+    "env_fast_zonal_degree": "stated 6",
+    "env_field_degree": "stated 13"
+   },
+   "findings": [
+    "env: the case's orbit period has two forms in the engine (2 pi/n, 2 pi sqrt(r^3/mu)), differing in the last bits; the model switches have no node",
+    "dyn: s1_4 is a method now; the initial state is dyn's; the scenario format's defaults are the reader's",
+    "act: a non-ring rotor's neutral ring fields stay code; a ring's imbalance goes with the jitter (S7.14)",
+    "translators: m2_5's orbit module cannot sit beside env's eclipse in the twin's package (two eclipse_fraction)"
+   ]
+  },
+  "after_s7_12": {
+   "built_in": 31,
+   "built_in_by_group": {
+    "act": 8,
+    "design": 19,
+    "pnt": 4
+   },
+   "behaviours": {
+    "stated": 325,
+    "open": 302,
+    "method": 154,
+    "children": 134,
+    "lookup": 126,
+    "evidence": 119,
+    "closure": 38,
+    "built-in": 31
+   },
+   "design_nodes": 1229,
+   "how": "the developer's revision S7.12, as the owner decided: oils's method for the device emulators' scaling, the inverse of the flight software's drivers, its constants from the drivers' functions, under design/revisions/S7.12 and generated into adcs-sim-core with the drivers' module; emu.rs keeps the packets",
+   "moved": [
+    "l3_oils_row_07"
+   ],
+   "added": {},
+   "findings": [
+    "oils, fsw: the drivers write their constants inline; the valve word's 1 ms no driver function gives back exactly (stated in emucodec, held to drv_write); naming them is fsw's change; fsw/devices.toml, named by the drivers' page, does not exist"
+   ],
+   "regression_copy_bytes": 9990144
   }
  },
  "built_in_nodes": [
@@ -3556,7 +3625,8 @@
    "fate": "decide: the codecs are the inverse of the drivers' conversions (design) inside the rig (code)",
    "carried_code": {
     "code.rust": "engine/crates/adcs-sim-core/src/emu.rs"
-   }
+   },
+   "status": "method (S7.12)"
   },
   {
    "node": "l3_oils_v3_0_achieved",
@@ -4570,7 +4640,8 @@
    "kind": "decide (rig code, or the inverse of drv nodes)",
    "gaps": [],
    "step": "S7.12",
-   "note": "Proposed: the scaling (LSBs, ranges) is design and already in the drivers' nodes; the framing stays rig code. The node becomes stated."
+   "note": "Proposed: the scaling (LSBs, ranges) is design and already in the drivers' nodes; the framing stays rig code. The node becomes stated.",
+   "status": "done (S7.12, as the owner decided): l3_oils_row_07's emucodec (the counts within each field's range, the command words' values), its constants from the drivers' functions (drv_read, rd16, rd32, q15; the valve's 1 ms stated, held to drv_write); emu.rs keeps the packets"
   },
   {
    "id": "sim.config.plant",
@@ -4599,7 +4670,8 @@
     "G6"
    ],
    "step": "S7.11",
-   "note": "The centre-of-mass direction, accommodation 0.8, vb_ratio 0.05, specular share 0.5, f107 130, kp 2, ap 7 are values with no node."
+   "note": "The centre-of-mass direction, accommodation 0.8, vb_ratio 0.05, specular share 0.5, f107 130, kp 2, ap 7 are values with no node.",
+   "status": "done (S7.11): s1_4's cm_offset, dyn_truth_plant (inertia, dipole split, flexible mode, the inertia's dispersions), env_case_orbit (epochs, mean motion, periods), generated into adcs-sim; the values the case leaves to the design read from data/stated.json (dyn's direction and surface, env's space weather, orbit step and degrees); the reading, the checks and the model switches stay code"
   },
   {
    "id": "sim.config.fsw",
@@ -4653,7 +4725,7 @@
    ],
    "step": "S7.11",
    "note": "Ring momentum and spin-down time exist as methods (act ring_momentum, spin_down_time): call them. File reading and capacity checks stay code.",
-   "status": "partly (S7.7): the laws are act's methods called here (motor_constants, ring_constants, ring_pump_max, couple_torques); the device defaults stated by act; the rest S7.11"
+   "status": "done (S7.7, S7.11): the laws act's methods (motor_constants, ring_constants, ring_pump_max, couple_torques; S7.11 ring_flow_noise, couple_arms, es_boresight, st_calibrated); the defaults and gdn's axes read from data/stated.json; the reading and the checks stay code"
   },
   {
    "id": "sim.run.truth",
@@ -4672,7 +4744,7 @@
    ],
    "step": "S7.6",
    "note": "",
-   "status": "done (S7.6): env_orbit_start (generated into adcs-sim), corotating_velocity, sils_cr; the Earth's half-angle and the nadir the sensors see done in S7.8: sens_sky_view's sky_view (generated into adcs-sim), R_E the constants'"
+   "status": "done (S7.6, S7.8; S7.11: the POP branch's air velocity calls corotating_velocity too)"
   },
   {
    "id": "sim.run.initial",
@@ -4687,7 +4759,8 @@
     "G6"
    ],
    "step": "S7.11",
-   "note": "No node; the scenario semantics belong to vv or case."
+   "note": "No node; the scenario semantics belong to vv or case.",
+   "status": "done (S7.11): dyn_initial_state's initial_state (generated into adcs-sim-core, the initial stream handed over); run.rs reads the scenario and hands the guidance references over"
   },
   {
    "id": "sim.run.sense",
@@ -5623,7 +5696,8 @@
    "lines": 264,
    "kind": "relation (descriptors, budget_); code (reading)",
    "step": "S7.11",
-   "note": ""
+   "note": "",
+   "status": "the plant's set-up generated in +asils/+models since S7.11 (+cmoffset, +truthplant, +caseorbit, +initstate); the twin flies its own until S7.17"
   },
   {
    "package": "+fsw",
@@ -5647,7 +5721,8 @@
    "lines": 158,
    "kind": "runtime and rig (lsb.m: the drivers' scaling, design)",
    "step": "S7.12",
-   "note": ""
+   "note": "",
+   "status": "the scaling generated in +asils/+models (+emucodec over +drivers) since S7.12; lsb.m the twin's own until S7.17"
   },
   {
    "package": "+faults",
@@ -5743,7 +5818,8 @@
    "lines": 194,
    "kind": "relation (gains, plant parameters: the twin of config.rs)",
    "step": "S7.11, S7.13",
-   "note": ""
+   "note": "",
+   "status": "the plant's set-up generated in +asils/+models since S7.11 (+cmoffset, +truthplant, +caseorbit, +initstate); the twin flies its own until S7.17"
   },
   {
    "package": "run.m",
@@ -5888,12 +5964,14 @@
   {
    "step": "S7.11",
    "work": "Descriptors and plant parameters: product.rs derivations and device defaults, config.rs plant values (centre-of-mass direction, residual dipole split, flexible delta, surface constants, initial state).",
-   "parity": "every Config of every scenario identical (dump and compare); scenarios identical"
+   "parity": "every Config of every scenario identical (dump and compare); scenarios identical",
+   "status": "done (8 Oct 2026): dyn's and env's methods (design/revisions/S7.11): s1_4 cm_offset (open until now), dyn_truth_plant truthplant (the principal inertia, the residual dipole on each axis, the flexible mode, the inertia's dispersions), env_case_orbit caseorbit (the epochs with their seconds rounded, the mean motion and the two periods), generated into adcs-sim; dyn_initial_state initstate (the attitude, the rate and the rotors' momenta a run starts with, its draws the initial stream), into adcs-sim-core; in their rows' modules the ring's flow noise in momentum, the thrusters' arms, the Earth sensor's boresight and a calibrated tracker's mount errors; the rotors' telemetry's noises its inputs. Stated by env with the 1.0.0 code as source: F10.7 and F10.7a 130, Kp 2, Ap 7, the orbit's step 10 s, the zonal degree 6, the field's degree 13. Every stated value of the design reaches the engine through its inputs, data/stated.json (tools/design_build.py), read by adcs-sim's stated.rs: config.rs and product.rs keep no copy of dyn's, act's, gdn's or env's values, nor of the Earth's radius or mu. Held: 5,388 configurations and descriptors (the 48 scenarios, every campaign run's draws, fifteen override sets and two flexible cases on each scenario, every product; 4,588 of them again on the sensor and tracker variants), old against new, the same Debug text; 400,000 random inputs of each set-up function, 0 bits different; 48 of 48 scenarios bit for bit and 48 on the fast orbit, flexible, sensor and noise-model variants; every campaign identical (4,516); fsw-parity 48/48; the built-in count does not move (s1_4 was open)."
   },
   {
    "step": "S7.12",
    "work": "The device codecs: decide (proposed: scaling from the drv nodes, framing stays rig code). The node l3_oils_row_07 becomes stated.",
-   "parity": "soft OILS: same bytes on every tick (record and compare); engine_oils results unchanged"
+   "parity": "soft OILS: same bytes on every tick (record and compare); engine_oils results unchanged",
+   "status": "done (8 Oct 2026, as the owner decided): l3_oils_row_07's emucodec (design/revisions/S7.12): each sensor's engineering value as the counts of its field within the field's range, each command word as its value, the inverse of the flight software's drivers, its constants taken from the drivers' own functions (drv_read of one count in each field, rd16 and rd32, q15), the valve word's 1 ms stated beside them and held to drv_write; generated into adcs-sim-core with the drivers' module; emu.rs keeps the packets (layout, sync bytes, CRC, bus ids). Held: 2,000,000 random and edge inputs of every codec, byte for byte; soft OILS on QEMU, six scenarios, the old binary against the new, the same metrics, timing, input hash, mode log and channels; 48 of 48 scenarios bit for bit and every variant; fsw-parity 48/48; built-in 32 to 31 (oils 1 to 0)."
   },
   {
    "step": "S7.13",

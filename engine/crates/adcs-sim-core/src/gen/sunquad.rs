@@ -10,6 +10,7 @@ use crate::gen::rigidbody::{PlantState};
 use crate::gen::rotors::{RotorGeometry};
 use crate::gen::facets::{Facets};
 use crate::gen::orbitfast::{FastCtx};
+use crate::gen::emucodec::{EmuScale};
 use crate::gen::css::{CssDesc, CssUnit};
 use crate::gen::earthsensor::{EsDesc, EsUnit};
 use crate::gen::finesun::{SunDesc, SunUnit};
@@ -80,9 +81,9 @@ pub fn quad_currents(s: [f64; 3], p: SunHead, g: &mut rt::Stream) -> [f64; 4] {
         let mut a2: f64 = (p.a * p.a);
         i = [(s[2] * ((xp * yp) / a2)), (s[2] * ((xm * yp) / a2)), (s[2] * ((xm * ym) / a2)), (s[2] * ((xp * ym) / a2))];
         {
-            let __end153: i64 = 4;
+            let __end184: i64 = 4;
             let mut k: i64 = 0;
-            while k < __end153 {
+            while k < __end184 {
                 let mut z: f64 = rt::normal(&mut (*g));
                 i[(k) as usize] = (i[(k) as usize] + (p.noise * z));
                 k += 1;

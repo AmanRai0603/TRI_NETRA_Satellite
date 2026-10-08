@@ -14,7 +14,7 @@ function [v, s] = st_select(s, m, k)
     lo = 0;
     hi = (m - 1);
     found = false;
-    n__147 = (m + 1); k__146 = 0;
+    n__171 = (m + 1); k__170 = 0;
     while true
         if (lo < hi)
             mid = (lo + fix(((hi - lo)) / (2)));
@@ -49,9 +49,9 @@ function [v, s] = st_select(s, m, k)
                 end
             end
         end
-        k__146 = k__146 + 1;
+        k__170 = k__170 + 1;
         if (found || (~(lo < hi))), break; end
-        if k__146 >= n__147
+        if k__170 >= n__171
             break;
         end
     end

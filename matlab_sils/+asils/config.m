@@ -66,7 +66,8 @@ function P = config(scenarioId, caseFile, opts)
         error('asils:case:refused', 'case %s: surface.asun = %g m^2, but the facet model lights the class body, largest face %g m^2', C.id, v.surface_asun, face);
     end
     P.sc.aref_m2 = v.surface_afr; P.sc.cd = v.surface_cd; P.sc.refl = v.surface_refl;
-    % surface-model settings, the engine's ACCOMMODATION, VB_RATIO, SPEC_FRAC (config.rs): Moe & Moe (2005) LEO
+    % surface-model settings: dyn's stated values (dyn_surface_*; the engine reads them from the design,
+    % data/stated.json, since S7.11; the twin keeps its copies until S7.17): Moe & Moe (2005) LEO
     P.sc.sigma_n = 0.8; P.sc.sigma_t = 0.8; P.sc.vb_ratio = 0.05;
     P.sc.spec_frac = 0.5;
     P.sc.m_res = v.magnetic_dres*[1;1;1]/sqrt(3);

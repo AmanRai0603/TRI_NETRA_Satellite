@@ -10,6 +10,7 @@ use crate::gen::rigidbody::{PlantState};
 use crate::gen::rotors::{RotorGeometry};
 use crate::gen::facets::{Facets};
 use crate::gen::orbitfast::{FastCtx};
+use crate::gen::emucodec::{EmuScale};
 use crate::gen::css::{CssDesc, CssUnit};
 use crate::gen::earthsensor::{EsDesc, EsUnit};
 use crate::gen::finesun::{SunDesc, SunUnit};
@@ -32,13 +33,13 @@ pub fn st_pair_count(cr: &mut [[f64; 3]; 4000], nc: i64, fov: f64) -> i64 {
     let mut cd: f64 = crate::pm::cos(((2.0 * crate::pm::sqrt(2.0)) * fov));
     np = 0;
     {
-        let __end107: i64 = nc;
+        let __end138: i64 = nc;
         let mut j: i64 = 0;
-        while j < __end107 {
+        while j < __end138 {
             {
-                let __end108: i64 = j;
+                let __end139: i64 = j;
                 let mut i: i64 = 0;
-                while i < __end108 {
+                while i < __end139 {
                     if (rt::dot((*cr)[(i) as usize], (*cr)[(j) as usize]) > cd) {
                         np = (np + 1);
                     }
@@ -69,18 +70,18 @@ pub fn st_merge_pairs(si: &mut [i64], sj: &mut [i64], sa: &mut [f64], di: &mut [
     z = 0;
     let mut nb: i64 = (((m + (2 * w)) - 1) / (2 * w));
     {
-        let __end109: i64 = nb;
+        let __end140: i64 = nb;
         let mut bk: i64 = 0;
-        while bk < __end109 {
+        while bk < __end140 {
             let mut lo: i64 = ((bk * 2) * w);
             let mut mid: i64 = rt::imin((lo + w), m);
             let mut hi: i64 = rt::imin((lo + (2 * w)), m);
             let mut i: i64 = lo;
             let mut j: i64 = mid;
             {
-                let __end110: i64 = hi;
+                let __end141: i64 = hi;
                 let mut k: i64 = lo;
-                while k < __end110 {
+                while k < __end141 {
                     if ((i < mid) && ((j >= hi) || (!((*sa)[(j) as usize] < (*sa)[(i) as usize])))) {
                         (*di)[(k) as usize] = (*si)[(i) as usize];
                         (*dj)[(k) as usize] = (*sj)[(i) as usize];
@@ -122,13 +123,13 @@ pub fn st_pairs(cr: &mut [[f64; 3]; 4000], nc: i64, fov: f64, pi: &mut [i64], pj
     let mut cd: f64 = crate::pm::cos(((2.0 * crate::pm::sqrt(2.0)) * fov));
     np = 0;
     {
-        let __end111: i64 = nc;
+        let __end142: i64 = nc;
         let mut j: i64 = 0;
-        while j < __end111 {
+        while j < __end142 {
             {
-                let __end112: i64 = j;
+                let __end143: i64 = j;
                 let mut i: i64 = 0;
-                while i < __end112 {
+                while i < __end143 {
                     let mut d: f64 = rt::dot((*cr)[(i) as usize], (*cr)[(j) as usize]);
                     if (d > cd) {
                         (*ti)[(np) as usize] = i;
@@ -145,9 +146,9 @@ pub fn st_pairs(cr: &mut [[f64; 3]; 4000], nc: i64, fov: f64, pi: &mut [i64], pj
     let mut passes: i64 = 0;
     let mut w: i64 = 1;
     {
-        let __end113: i64 = 62;
+        let __end144: i64 = 62;
         let mut it: i64 = 0;
-        while it < __end113 {
+        while it < __end144 {
             if (w < np) {
                 if ((passes % 2) == 0) {
                     let mut z0: i64 = crate::gen::stidentify::st_merge_pairs(&mut (*ti), &mut (*tj), &mut (*ta), &mut (*pi), &mut (*pj), &mut (*pa), np, w);
@@ -162,9 +163,9 @@ pub fn st_pairs(cr: &mut [[f64; 3]; 4000], nc: i64, fov: f64, pi: &mut [i64], pj
     }
     if ((passes % 2) == 0) {
         {
-            let __end114: i64 = np;
+            let __end145: i64 = np;
             let mut k: i64 = 0;
-            while k < __end114 {
+            while k < __end145 {
                 (*pi)[(k) as usize] = (*ti)[(k) as usize];
                 (*pj)[(k) as usize] = (*tj)[(k) as usize];
                 (*pa)[(k) as usize] = (*ta)[(k) as usize];
@@ -187,8 +188,8 @@ pub fn st_first_not_below(pa: &mut [f64], np: i64, x: f64) -> i64 {
     lo = 0;
     let mut hi: i64 = np;
     {
-        let __n116: i64 = 64;
-        let mut __k115: i64 = 0;
+        let __n147: i64 = 64;
+        let mut __k146: i64 = 0;
         loop {
             if (lo < hi) {
                 let mut mid: i64 = (lo + ((hi - lo) / 2));
@@ -196,9 +197,9 @@ pub fn st_first_not_below(pa: &mut [f64], np: i64, x: f64) -> i64 {
                 lo = (if left { (mid + 1) } else { lo });
                 hi = (if left { hi } else { mid });
             }
-            __k115 += 1;
+            __k146 += 1;
             if (!(lo < hi)) { break; }
-            if __k115 >= __n116 {
+            if __k146 >= __n147 {
                 break;
             }
         }
@@ -218,8 +219,8 @@ pub fn st_first_above(pa: &mut [f64], np: i64, x: f64) -> i64 {
     lo = 0;
     let mut hi: i64 = np;
     {
-        let __n118: i64 = 64;
-        let mut __k117: i64 = 0;
+        let __n149: i64 = 64;
+        let mut __k148: i64 = 0;
         loop {
             if (lo < hi) {
                 let mut mid: i64 = (lo + ((hi - lo) / 2));
@@ -227,9 +228,9 @@ pub fn st_first_above(pa: &mut [f64], np: i64, x: f64) -> i64 {
                 lo = (if left { (mid + 1) } else { lo });
                 hi = (if left { hi } else { mid });
             }
-            __k117 += 1;
+            __k148 += 1;
             if (!(lo < hi)) { break; }
-            if __k117 >= __n118 {
+            if __k148 >= __n149 {
                 break;
             }
         }
@@ -262,9 +263,9 @@ pub fn st_identify(b: [[f64; 3]; 32], mag: [f64; 32], n: i64, pi: &mut [i64], pj
     let mut id: [i64; 32] = [0; 32];
     let mut ok: bool = false;
     {
-        let __end119: i64 = crate::gen::stattitude::ST_SPOTS;
+        let __end150: i64 = crate::gen::stattitude::ST_SPOTS;
         let mut p0: i64 = 0;
-        while p0 < __end119 {
+        while p0 < __end150 {
             id[(p0) as usize] = (-(1));
             p0 += 1;
         }
@@ -274,14 +275,14 @@ pub fn st_identify(b: [[f64; 3]; 32], mag: [f64; 32], n: i64, pi: &mut [i64], pj
         let mut np: i64 = ((*pa).len() as i64);
         let mut cand: [i64; 32] = [0; 32];
         {
-            let __end120: i64 = n;
+            let __end151: i64 = n;
             let mut p: i64 = 0;
-            while p < __end120 {
+            while p < __end151 {
                 let mut votes: [i64; 4000] = [0; 4000];
                 {
-                    let __end121: i64 = n;
+                    let __end152: i64 = n;
                     let mut q: i64 = 0;
-                    while q < __end121 {
+                    while q < __end152 {
                         if (q != p) {
                             let mut th: f64 = crate::pm::acos(rt::fmin(rt::dot(b[(p) as usize], b[(q) as usize]), 1.0));
                             let mut lo: i64 = crate::gen::stidentify::st_first_not_below(&mut (*pa), np, (th - id_tol));
@@ -289,9 +290,9 @@ pub fn st_identify(b: [[f64; 3]; 32], mag: [f64; 32], n: i64, pi: &mut [i64], pj
                             let mut mp: f64 = mag[(p) as usize];
                             let mut mq: f64 = mag[(q) as usize];
                             {
-                                let __end122: i64 = rt::imax(hi, lo);
+                                let __end153: i64 = rt::imax(hi, lo);
                                 let mut k: i64 = lo;
-                                while k < __end122 {
+                                while k < __end153 {
                                     let mut i: i64 = (*pi)[(k) as usize];
                                     let mut j: i64 = (*pj)[(k) as usize];
                                     let mut mi: f64 = (*cm)[(i) as usize];
@@ -316,9 +317,9 @@ pub fn st_identify(b: [[f64; 3]; 32], mag: [f64; 32], n: i64, pi: &mut [i64], pj
                 let mut best: i64 = 0;
                 let mut bi: i64 = (-(1));
                 {
-                    let __end123: i64 = nc;
+                    let __end154: i64 = nc;
                     let mut k2: i64 = 0;
-                    while k2 < __end123 {
+                    while k2 < __end154 {
                         if (votes[(k2) as usize] > best) {
                             best = votes[(k2) as usize];
                             bi = k2;
@@ -332,28 +333,28 @@ pub fn st_identify(b: [[f64; 3]; 32], mag: [f64; 32], n: i64, pi: &mut [i64], pj
         }
         let mut keep: [bool; 32] = [false; 32];
         {
-            let __end124: i64 = n;
+            let __end155: i64 = n;
             let mut p2: i64 = 0;
-            while p2 < __end124 {
+            while p2 < __end155 {
                 keep[(p2) as usize] = (cand[(p2) as usize] >= 0);
                 p2 += 1;
             }
         }
         {
-            let __end125: i64 = 3;
+            let __end156: i64 = 3;
             let mut pass: i64 = 0;
-            while pass < __end125 {
+            while pass < __end156 {
                 let mut was: [bool; 32] = keep;
                 {
-                    let __end126: i64 = n;
+                    let __end157: i64 = n;
                     let mut p3: i64 = 0;
-                    while p3 < __end126 {
+                    while p3 < __end157 {
                         if was[(p3) as usize] {
                             let mut good: i64 = 0;
                             {
-                                let __end127: i64 = n;
+                                let __end158: i64 = n;
                                 let mut q3: i64 = 0;
-                                while q3 < __end127 {
+                                while q3 < __end158 {
                                     if ((q3 != p3) && keep[(q3) as usize]) {
                                         let mut th3: f64 = crate::pm::acos(rt::fmin(rt::dot(b[(p3) as usize], b[(q3) as usize]), 1.0));
                                         let mut tc: f64 = crate::pm::acos(rt::fmin(rt::dot((*cr)[(cand[(p3) as usize]) as usize], (*cr)[(cand[(q3) as usize]) as usize]), 1.0));
@@ -376,9 +377,9 @@ pub fn st_identify(b: [[f64; 3]; 32], mag: [f64; 32], n: i64, pi: &mut [i64], pj
         }
         let mut kept: i64 = 0;
         {
-            let __end128: i64 = n;
+            let __end159: i64 = n;
             let mut p4: i64 = 0;
-            while p4 < __end128 {
+            while p4 < __end159 {
                 if keep[(p4) as usize] {
                     id[(p4) as usize] = cand[(p4) as usize];
                     kept = (kept + 1);

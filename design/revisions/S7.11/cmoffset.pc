@@ -1,0 +1,11 @@
+## The centre of mass's offset from the box's centre, transcribed from adcs-sim config.rs (build: cm_offset_m): the case's
+## centre-of-pressure offset (surface.cpa, one length for the aerodynamic and the solar torque) along dyn's direction
+## (dyn_cm_direction_x, y, z), made unit by its own norm. The facets' torques take the box about this point.
+## The developer's transcription (S7.11), unsigned.
+module cmoffset
+
+## The offset [m] (body): cpa [m] along the direction dir (unnormalised), cpa dir/|dir|.
+fn cm_offset(cpa: real[m] in 0 .. 0.1, dir: vec3[1] in -1 .. 1) -> o: vec3[m]
+    let n = sqrt(dir[0]*dir[0] + dir[1]*dir[1] + dir[2]*dir[2])
+    o = [cpa*dir[0]/n, cpa*dir[1]/n, cpa*dir[2]/n]
+end

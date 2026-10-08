@@ -2,6 +2,10 @@
 //! Every relation is SI in and SI out; each function's doc lists its inputs and outputs with their units.
 #![allow(clippy::all)]
 pub mod rt;
+pub mod cmoffset;
+pub mod truthplant;
+pub mod caltime;
+pub mod caseorbit;
 pub mod orbitstart;
 pub mod skyview;
 pub mod constants;

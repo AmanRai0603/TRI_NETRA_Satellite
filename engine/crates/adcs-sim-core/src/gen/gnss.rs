@@ -10,6 +10,7 @@ use crate::gen::rigidbody::{PlantState};
 use crate::gen::rotors::{RotorGeometry};
 use crate::gen::facets::{Facets};
 use crate::gen::orbitfast::{FastCtx};
+use crate::gen::emucodec::{EmuScale};
 use crate::gen::css::{CssDesc, CssUnit};
 use crate::gen::earthsensor::{EsDesc, EsUnit};
 use crate::gen::finesun::{SunDesc, SunUnit};
@@ -39,9 +40,9 @@ pub fn gps_history(ht: &mut [f64; 256], hr: &mut [[f64; 3]; 256], hv: &mut [[f64
     n = hn;
     if (n == crate::gen::gnss::GPS_HIST) {
         {
-            let __end72: i64 = n;
+            let __end103: i64 = n;
             let mut i: i64 = 1;
-            while i < __end72 {
+            while i < __end103 {
                 (*ht)[((i - 1)) as usize] = (*ht)[(i) as usize];
                 (*hr)[((i - 1)) as usize] = (*hr)[(i) as usize];
                 (*hv)[((i - 1)) as usize] = (*hv)[(i) as usize];
@@ -58,9 +59,9 @@ pub fn gps_history(ht: &mut [f64; 256], hr: &mut [[f64; 3]; 256], hv: &mut [[f64
     let mut k: i64 = 0;
     let mut going: bool = true;
     {
-        let __end73: i64 = n;
+        let __end104: i64 = n;
         let mut j: i64 = 1;
-        while j < __end73 {
+        while j < __end104 {
             if (going && ((*ht)[(j) as usize] <= (tl + 1.0e-9))) {
                 k = j;
             } else {
@@ -71,9 +72,9 @@ pub fn gps_history(ht: &mut [f64; 256], hr: &mut [[f64; 3]; 256], hv: &mut [[f64
     }
     if (k > 0) {
         {
-            let __end74: i64 = n;
+            let __end105: i64 = n;
             let mut m: i64 = k;
-            while m < __end74 {
+            while m < __end105 {
                 (*ht)[((m - k)) as usize] = (*ht)[(m) as usize];
                 (*hr)[((m - k)) as usize] = (*hr)[(m) as usize];
                 (*hv)[((m - k)) as usize] = (*hv)[(m) as usize];
@@ -108,9 +109,9 @@ pub fn gps_delayed(ht: [f64; 256], hr: [[f64; 3]; 256], hv: [[f64; 3]; 256], hn:
         let mut k: i64 = 0;
         let mut going: bool = true;
         {
-            let __end75: i64 = hn;
+            let __end106: i64 = hn;
             let mut j: i64 = 1;
-            while j < __end75 {
+            while j < __end106 {
                 if (going && (ht[(j) as usize] <= (tl + 1.0e-9))) {
                     k = j;
                 } else {
@@ -127,9 +128,9 @@ pub fn gps_delayed(ht: [f64; 256], hr: [[f64; 3]; 256], hv: [[f64; 3]; 256], hn:
             let mut s: f64 = ((tl - ht[(k) as usize]) / (ht[((k + 1)) as usize] - ht[(k) as usize]));
             te = tl;
             {
-                let __end76: i64 = 3;
+                let __end107: i64 = 3;
                 let mut i: i64 = 0;
-                while i < __end76 {
+                while i < __end107 {
                     r[(i) as usize] = (hr[(k) as usize][(i) as usize] + (s * (hr[((k + 1)) as usize][(i) as usize] - hr[(k) as usize][(i) as usize])));
                     v[(i) as usize] = (hv[(k) as usize][(i) as usize] + (s * (hv[((k + 1)) as usize][(i) as usize] - hv[(k) as usize][(i) as usize])));
                     i += 1;

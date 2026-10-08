@@ -10,6 +10,7 @@ use crate::gen::rigidbody::{PlantState};
 use crate::gen::rotors::{RotorGeometry};
 use crate::gen::facets::{Facets};
 use crate::gen::orbitfast::{FastCtx};
+use crate::gen::emucodec::{EmuScale};
 use crate::gen::css::{CssDesc, CssUnit};
 use crate::gen::earthsensor::{EsDesc, EsUnit};
 use crate::gen::finesun::{SunDesc, SunUnit};
@@ -31,13 +32,13 @@ pub fn total_momentum(x: PlantState, inertia: [[f64; 3]; 3], m: RotorGeometry, f
     let mut a: [[f64; 3]; 8] = crate::gen::rotors::rotor_axes(m, x.d);
     h = rt::mv(inertia, x.w);
     {
-        let __end21: i64 = m.nr;
+        let __end22: i64 = m.nr;
         let mut ir: i64 = 0;
-        while ir < __end21 {
+        while ir < __end22 {
             {
-                let __end22: i64 = 3;
+                let __end23: i64 = 3;
                 let mut k: i64 = 0;
-                while k < __end22 {
+                while k < __end23 {
                     h[(k) as usize] = (h[(k) as usize] + (a[(ir) as usize][(k) as usize] * x.h[(ir) as usize]));
                     k += 1;
                 }
@@ -47,9 +48,9 @@ pub fn total_momentum(x: PlantState, inertia: [[f64; 3]; 3], m: RotorGeometry, f
     }
     if f.on {
         {
-            let __end23: i64 = 3;
+            let __end24: i64 = 3;
             let mut k2: i64 = 0;
-            while k2 < __end23 {
+            while k2 < __end24 {
                 h[(k2) as usize] = (h[(k2) as usize] + (f.delta[(k2) as usize] * x.etad));
                 k2 += 1;
             }

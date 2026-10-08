@@ -10,6 +10,7 @@ use crate::gen::rigidbody::{PlantState};
 use crate::gen::rotors::{RotorGeometry};
 use crate::gen::facets::{Facets};
 use crate::gen::orbitfast::{FastCtx};
+use crate::gen::emucodec::{EmuScale};
 use crate::gen::css::{CssDesc, CssUnit};
 use crate::gen::earthsensor::{EsDesc, EsUnit};
 use crate::gen::finesun::{SunDesc, SunUnit};
@@ -38,9 +39,9 @@ pub fn geodetic5(r: [f64; 3]) -> (f64, f64, f64) {
     let mut la: f64 = crate::pm::atan2(r[2], (p * (1.0 - e2)));
     let mut hh: f64 = 0.0;
     {
-        let __end46: i64 = 5;
+        let __end47: i64 = 5;
         let mut k: i64 = 0;
-        while k < __end46 {
+        while k < __end47 {
             let mut sl: f64 = crate::pm::sin(la);
             let mut n: f64 = (a / crate::pm::sqrt((1.0 - ((e2 * sl) * sl))));
             hh = ((p / crate::pm::cos(la)) - n);

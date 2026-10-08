@@ -17,6 +17,8 @@ pub struct Dev {
     /// each rotor's imbalance as its part states it (static [kg m], dynamic [kg m^2]), in rotor order;
     /// None where the part does not state both (jitter is then not computed); a fluid ring has none
     pub imbalance: Vec<Option<(f64, f64)>>, pub rotor_part: Vec<String>,
+    /// the rotors' telemetry noises, one sigma: momentum [N m s] and gimbal angle [rad] (act's stated values)
+    pub rotor_tlm_noise: f64, pub gimbal_tlm_noise: f64,
     /// the product and part files it was read from (their fingerprint goes in the run's provenance)
     pub files: Vec<PathBuf>,
 }
@@ -165,7 +167,8 @@ fn fit_actuator_(d: &mut Dev, x: &mut MexDesc, slot: &str, pt: &Part) -> bool {
                 add_rotor(x, Kind::Fmr, a, 0, hmax, adcs_sim_core::gen::ringlimits::ring_pump_max(tq, hmax, tsd), k_hv, 0.0, 0.0, 0.0, 0.0, flo, fhi, pt.sig("axis_misalignment_rad"));
                 let i = x.n - 1;
                 x.t_sd[i] = tsd; x.k_hv[i] = k_hv; x.ac[i] = ac; x.s[i] = s; x.l[i] = n("channel_length_m");
-                x.flow_noise_h[i] = k_hv*pt.sig("flow_sensor_noise_m_s");
+                // act's l3_fmr_row_10: the flow sensor's noise in momentum
+                x.flow_noise_h[i] = adcs_sim_core::gen::ringnoise::ring_flow_noise(k_hv, pt.sig("flow_sensor_noise_m_s"));
                 x.field_power[i] = if fp.is_nan() { 0.0 } else { fp };
                 x.eta_lo[i] = elo; x.eta_hi[i] = ehi;
             }
@@ -190,7 +193,7 @@ fn fit_actuator_(d: &mut Dev, x: &mut MexDesc, slot: &str, pt: &Part) -> bool {
         }
         "rcs" => {
             let fth = n("thrust_N");
-            let arm = [n("arm_short_m"), n("arm_long_m"), n("arm_long_m")];
+            let arm = adcs_sim_core::gen::rcstorque::couple_arms(n("arm_short_m"), n("arm_long_m"));   // act's l3_rcs_row_01
             let mut r = RcsDesc { fitted: true, nc: 6, thrust: fth, isp: n("isp_s"), mib: n("mib_s"), res: n("valve_res_s"), prop_kg: n("propellant_kg"), valve_power: n("valve_power_W"), thrust_sigma: pt.sig("thrust_scale"), misalign: pt.sig("axis_misalignment_rad"), ..Default::default() };
             (r.isp_lo, r.isp_hi) = lohi(ds, "isp_s", n("isp_s"));
             r.tau = adcs_sim_core::gen::rcstorque::couple_torques(fth, arm);   // act's l3_rcs_row_01: +-2 F arm about each axis
@@ -213,7 +216,9 @@ fn fit_sensor(d: &mut Dev, slot: &str, pt: &Part) -> bool {
                 bias_sigma: pt.sig("bias_rad"), misalign_sigma: pt.sig("axis_misalignment_rad"),
                 moon_excl: pt.nonneg("moon_exclusion_rad"), blind_s: pt.nonneg("blind_recovery_s"), noise_rate_ref: pt.pos("noise_doubling_rate_rad_s"), ..Default::default() };
             for h in 0..s.nh { s.bs[h] = bs[h]; }
-            if let Some(c) = get(f, "calibrated_residual_rad").and_then(|v| v.as_f64()) { s.bias_sigma = c; s.misalign_sigma = 0.0; }
+            // sens_star_tracker: a tracker calibrated on ground flies its residual as its bias, and no misalignment
+            let cal = get(f, "calibrated_residual_rad").and_then(|v| v.as_f64());
+            (s.bias_sigma, s.misalign_sigma) = adcs_sim_core::gen::sttracker::st_calibrated(s.bias_sigma, s.misalign_sigma, cal.is_some(), cal.unwrap_or(0.0));
             if s.model == 2 {
                 // the rendered-frame chain: the camera and the onboard chain's settings, from the part
                 let whole = |k: &str, lo: f64, hi: f64| {
@@ -249,7 +254,9 @@ fn fit_sensor(d: &mut Dev, slot: &str, pt: &Part) -> bool {
         }
         "gyro" => d.gyro = GyroDesc { fitted: true, arw: n("arw_rad_per_sqrt_s"), rrw: n("rrw_rad_per_s_sqrt_s"), range: n("range_rad_s"), bias_sigma: pt.sig("bias_rad_s"), sf_sigma: pt.sig("scale_factor"), misalign: pt.sig("axis_misalignment_rad") },
         "earth_sensor" => {
-            let bs = get(f, "boresight_body").and_then(json::v3).map(json::unit).unwrap_or(d.boresight);
+            // l3_sens_row_13: the boresight the product states, else the payload's
+            let stated = get(f, "boresight_body").and_then(json::v3).map(json::unit);
+            let bs = adcs_sim_core::gen::earthsensor::es_boresight(stated.is_some(), stated.unwrap_or([0.0; 3]), d.boresight);
             d.es = EsDesc { fitted: true, bs, noise: n("accuracy_rad"), fov: n("fov_half_angle_rad"), rate_hz: n("rate_Hz"), bias_sigma: pt.sig("bias_rad") };
         }
         "gnss" => d.gps = GpsDesc { fitted: true, pos_sigma: n("pos_sigma_m"), vel_sigma: n("vel_sigma_m_s"), rate_hz: n("rate_Hz"), latency: pt.nonneg("latency_s") },
@@ -262,15 +269,19 @@ impl Dev {
     pub fn load(root: &Path, id: &str) -> Result<Dev, Error> {
         let pf = find(root, "products", id)?;
         let pr = json::read(&pf)?;
+        // the values a product leaves to the design: gdn's axes, act's device defaults and telemetry noises
+        let st = crate::stated::Stated::load(root)?;
         let mut d = Dev {
             id: json::s(&pr, "id", id).into(), label: json::s(&pr, "label", "").into(), family: json::s(&pr, "family", "").into(),
             algorithms: pr.get("algorithms").and_then(|a| a.as_array()).map(|a| a.iter().filter_map(|x| x.as_str().map(String::from)).collect()).unwrap_or_default(),
-            selected: pr.get("selected").cloned(), boresight: [0.0, 1.0, 0.0], sun_axis: [0.0, 0.0, -1.0], ..Default::default()
+            selected: pr.get("selected").cloned(), boresight: st.v3("gdn_payload_boresight")?, sun_axis: st.v3("gdn_sun_axis")?,
+            rotor_tlm_noise: st.get("act_rotor_tlm_noise")?, gimbal_tlm_noise: st.get("act_gimbal_tlm_noise")?, ..Default::default()
         };
         if let Some(b) = get(&pr, "payload_boresight_body").and_then(json::v3) { d.boresight = json::unit(b); }
         if let Some(b) = get(&pr, "sun_axis_body").and_then(json::v3) { d.sun_axis = json::unit(b); }
         let fills: Vec<Value> = match pr.get("fill") { Some(Value::Array(a)) => a.clone(), Some(x) => vec![x.clone()], None => vec![] };
-        let mut x = MexDesc { torque_noise: 0.001, friction_comp: 0.95, eta: 0.8, k_speed: 1.0, k_flow: 2.0, flow_tau: 0.3, ..Default::default() };
+        let mut x = MexDesc { torque_noise: st.get("act_rw_torque_noise")?, friction_comp: st.get("act_rw_friction_comp")?, eta: st.get("act_rw_drive_efficiency")?,
+            k_speed: st.get("act_cmg_speed_gain")?, k_flow: st.get("act_fmr_flow_gain")?, flow_tau: st.get("act_fmr_flow_tau")?, ..Default::default() };
         let mut files = vec![pf];
         for f in &fills {
             let part = json::s(f, "part", "");

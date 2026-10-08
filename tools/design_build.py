@@ -14,7 +14,8 @@ What it writes:
     (toolbox, application); and the engine's inputs: every case line by line (design_case) and every
     file under data/ (engine_input), each GENERATED from the design's own blocks and case files.
   - with --export DIR, the same inputs as a data folder (DIR/data/..., DIR/cases/*.csv): what the
-    MATLAB twin and the Python tools read, generated from the design, never edited.
+    MATLAB twin and the Python tools read, generated from the design, never edited. Among them data/stated.json: every
+    stated value of the design, by node (S7.11), which the engine reads where it has no other input.
 
 Loops: every cycle in the wires must be declared on the smallest block that contains it, and is refused by
 name otherwise (docs/SYSTEM_MODEL.md §5). The design loop (sizing -> mass and inertia -> demand) is declared on
@@ -86,9 +87,35 @@ def _bodies(rel):
     return info, nodes, gnodes, edges, contracts
 
 
+# Every stated value of the design, by node (docs/S7_INVENTORY.md S7.11): the values the engine reads with no other input
+# (the device defaults, the plant's constants, a run's defaults), each from its node, never a copy in the code.
+STATED = "data/stated.json"
+
+
+def stated_values(bodies):
+    """{node: number} of every stated block that states a number (value.number)."""
+    import math
+    out = {}
+    for nid, body in sorted(bodies.items()):
+        if not body.get("block") or body["block"][0][3] != "stated":
+            continue
+        for sec, field, value, _o in body.get("content", []):
+            if (sec, field) == ("value", "number"):
+                try:
+                    x = float(value)
+                except ValueError:
+                    raise SystemExit(f"design_build: {nid} states {value!r}, not a number")
+                if not math.isfinite(x):
+                    raise SystemExit(f"design_build: {nid} states {value!r}, not a finite number")
+                out[nid] = x
+    return out
+
+
 def engine_inputs(bodies, cases):
-    """{path in the data folder: bytes} generated from the design's lookup blocks and case files."""
-    files = {}
+    """{path in the data folder: bytes} generated from the design's lookup blocks, stated values and case files."""
+    files = {STATED: (json.dumps({"schema": "adcs-stated/1", "value": stated_values(bodies),
+                                  "about": "every stated value of the design, by node, as the engine reads it "
+                                           "(tools/design_build.py; docs/S7_INVENTORY.md S7.11)"}, indent=1, sort_keys=True) + "\n").encode()}
     for nid, body in bodies.items():
         for sec, field, value, origin in body.get("content", []):
             if sec != "table" or not origin:

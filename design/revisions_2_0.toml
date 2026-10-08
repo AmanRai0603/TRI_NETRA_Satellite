@@ -1408,7 +1408,7 @@ from = "built-in"
 to = "method"
 pseudocode = "design/revisions/S7.7/ringnoise.pc"
 path = "act/ringnoise.pc"
-transcribes = "engine/crates/adcs-sim-core/src/actuators.rs (Mex::apply: the flow sensor's noise in momentum)"
+transcribes = "engine/crates/adcs-sim-core/src/actuators.rs (Mex::apply: the flow sensor's noise in momentum); since S7.11 also adcs-sim product.rs (fit_actuator_, rings: flow_noise_h = k_hv times the part's flow sensor noise)"
 source = "the part's flow_sensor_noise_m_s times k_hv, as the engine flies it (1.0.0 code)"
 generate = ["adcs-sim-core"]
 why = "the ring's flow noise as a method of act, from the run's noise stream, generated into the engine"
@@ -1500,7 +1500,7 @@ from = "built-in"
 to = "method"
 pseudocode = "design/revisions/S7.7/rcstorque.pc"
 path = "act/rcstorque.pc"
-transcribes = "engine/crates/adcs-sim/src/product.rs (fit_actuator_, rcs: the couples' torques 2 F arm) and engine/crates/adcs-sim-core/src/actuators.rs (Rcs::apply)"
+transcribes = "engine/crates/adcs-sim/src/product.rs (fit_actuator_, rcs: the couples' torques 2 F arm) and engine/crates/adcs-sim-core/src/actuators.rs (Rcs::apply); since S7.11 also the arms about each axis (product.rs: [arm_short, arm_long, arm_long])"
 source = "Wertz (1978), Spacecraft Attitude Determination and Control, section 19.3 (mass expulsion torquers)"
 generate = ["adcs-sim-core"]
 why = "the thrusters' torque directions as a method of act, generated into the engine"
@@ -1729,7 +1729,7 @@ from = "built-in"
 to = "method"
 pseudocode = "design/revisions/S7.8/earthsensor.pc"
 path = "sens/earthsensor.pc"
-transcribes = "engine/crates/adcs-sim-core/src/sensors.rs (EsDesc, Es, Es::new, Es::sample: the field, the mount bias, the horizon's noise)"
+transcribes = "engine/crates/adcs-sim-core/src/sensors.rs (EsDesc, Es, Es::new, Es::sample: the field, the mount bias, the horizon's noise); since S7.11 also adcs-sim product.rs (fit_sensor, earth_sensor: the payload's boresight when the product states none)"
 source = "Wertz (1978), Spacecraft Attitude Determination and Control, section 7.3 (horizon sensors); the part's accuracy_rad, fov_half_angle_rad and bias_rad"
 generate = ["adcs-sim-core"]
 uses = ["act/coilsat.pc", "env/facets.pc", "fsw/pseudocode/01_math.pc"]
@@ -1761,7 +1761,7 @@ why = "what the sensors see of the sky as a method of sens, generated into the e
 node = "act_rotor_telemetry"
 pseudocode = "design/revisions/S7.8/rotortlm.pc"
 path = "act/rotortlm.pc"
-transcribes = "engine/crates/adcs-sim/src/run.rs (sense: the rotors' momentum and gimbal angle telemetry, x.h[i] + 1e-7 normal and x.d[g] + 1e-5 normal)"
+transcribes = "engine/crates/adcs-sim/src/run.rs (sense: the rotors' momentum and gimbal angle telemetry, x.h[i] + 1e-7 normal and x.d[g] + 1e-5 normal); since S7.11 the two noises are inputs, act's stated values read from the design"
 source = "act's act_rotor_tlm_noise and act_gimbal_tlm_noise, the 1.0.0 code's values"
 generate = ["adcs-sim-core"]
 uses = ["dyn/rotors.pc"]
@@ -1877,7 +1877,7 @@ why = "the star tracker's attitude from its stars and the residual check as a me
 node = "sens_star_tracker"
 pseudocode = "design/revisions/S7.9/sttracker.pc"
 path = "sens/sttracker.pc"
-transcribes = "engine/crates/adcs-sim-core/src/sensors.rs (StDesc, St, St::new, history, sample_with: the mounts, the latency history, the exclusion and blinding, the smear, the noise and QUEST models) and engine/crates/adcs-sim-core/src/la.rs (slerp)"
+transcribes = "engine/crates/adcs-sim-core/src/sensors.rs (StDesc, St, St::new, history, sample_with: the mounts, the latency history, the exclusion and blinding, the smear, the noise and QUEST models) and engine/crates/adcs-sim-core/src/la.rs (slerp); since S7.11 also adcs-sim product.rs (fit_sensor, star_tracker: a calibrated tracker's residual as its bias, no misalignment)"
 source = "Liebe (2002), IEEE Aerospace and Electronic Systems Magazine 17(6):10 (star tracker accuracy and exclusion); Shoemake (1985), SIGGRAPH 19(3):245 (slerp); the part's noise_cross_rad, noise_roll_rad, latency_s, max_rate_rad_s, sun_exclusion_rad, earth_exclusion_rad, moon_exclusion_rad, blind_recovery_s, noise_doubling_rate_rad_s, bias_rad and axis_misalignment_rad"
 generate = ["adcs-sim-core"]
 uses = ["sens/stattitude.pc", "sens/starcat.pc", "act/coilsat.pc", "env/facets.pc", "fsw/pseudocode/01_math.pc"]
@@ -1943,3 +1943,164 @@ source = "the chain of l3_sens_row_09 to 12; the part's fit_tol_rad; the magnitu
 generate = ["adcs-sim-core"]
 uses = ["sens/strender.pc", "sens/stcentroid.pc", "sens/stidentify.pc", "sens/stattitude.pc", "sens/sttracker.pc", "sens/starcat.pc", "sens/sunquad.pc", "env/facets.pc", "fsw/pseudocode/01_math.pc"]
 why = "the star tracker's image model (the chain for each head that answers) as a method of sens; the engine's sensing calls it, generated into the engine"
+
+[[revision]]
+id = "S7.11"
+at = "2026-10-08T20:00:00Z"
+by = "the developer"
+about = "the device descriptors and the plant's parameters (docs/S7_INVENTORY.md S7.11): what adcs-sim's config.rs, product.rs and run.rs computed or held for the plant and the devices, as methods (the centre of mass's offset, s1_4, open until now; the truth plant from the case: its principal inertia, its residual dipole on each axis, its flexible mode, the inertia's dispersions, a new node of dyn; the case's orbit and epoch, a new node of env; the plant's state at the start of a run, a new node of dyn; and, in the modules of their rows, the ring flow sensor's noise in momentum, the thrusters' arms, the Earth sensor's boresight when the product states none, a calibrated star tracker's mount errors, and the rotors' telemetry with its noises as inputs) and as stated values (the space-weather indices, the orbit's step, the fast orbit's zonal degree and the field's degree a run takes when it states none, stated by env as the 1.0.0 code gave them); every stated value of the design reaches the engine through its inputs (data/stated.json, written from the stated nodes), so the engine reads dyn's, act's, gdn's and env's values from the design and keeps no copy"
+
+[[revision.node]]
+id = "dyn_truth_plant"
+group = "dyn"
+parent = "dyn__carried"
+label = "Truth plant from the case"
+behaviour = "method"
+question = "Which inertia, residual dipole and flexible mode does the engine's truth body take from the case, and how do a campaign's dispersions change its inertia?"
+why = "the truth plant's set-up, until now adcs-sim config.rs (build, apply_engine), which had no node (docs/S7_INVENTORY.md §2, S7.11)"
+
+[[revision.node]]
+id = "dyn_initial_state"
+group = "dyn"
+parent = "dyn__carried"
+label = "Plant state at the start of a run"
+behaviour = "method"
+question = "In which attitude, at which rate and with which rotor momenta does a run start, as its scenario asks?"
+why = "the initial attitude, rate and rotor momenta, until now adcs-sim run.rs (initial_state), which had no node (docs/S7_INVENTORY.md §2: the scenario's semantics; dyn holds the state)"
+
+[[revision.node]]
+id = "env_case_orbit"
+group = "env"
+parent = "m2"
+label = "Case orbit and epoch as the engine sets them up"
+behaviour = "method"
+question = "From the case, at which UTC epoch does the mission start, and what are its orbit's radius, mean motion and period (and the period at a campaign's dispersed altitude)?"
+why = "the orbit's and the epoch's set-up, until now adcs-sim config.rs (build, apply_engine: the radius with a literal 6378137 m, mu a literal), which had no node (docs/S7_INVENTORY.md §2, S7.11)"
+
+[[revision.node]]
+id = "env_f107_default"
+group = "env"
+parent = "m3"
+label = "Solar flux F10.7 a run takes when it states none"
+behaviour = "stated"
+question = "Which daily solar flux F10.7 [sfu] does a run's atmosphere take when the run states none (engine.f107)?"
+content = [["value", "number", "130"], ["value", "source", "1.0.0 code: engine/crates/adcs-sim/src/config.rs build (f107: 130.0)"]]
+why = "a value the engine used with no node (docs/S7_INVENTORY.md §1.3): stated as the 1.0.0 code gave it"
+
+[[revision.node]]
+id = "env_f107a_default"
+group = "env"
+parent = "m3"
+label = "Mean solar flux F10.7a a run takes when it states none"
+behaviour = "stated"
+question = "Which 81-day mean solar flux F10.7a [sfu] does a run's atmosphere take when the run states none (engine.f107a)?"
+content = [["value", "number", "130"], ["value", "source", "1.0.0 code: engine/crates/adcs-sim/src/config.rs build (f107a: 130.0)"]]
+why = "a value the engine used with no node (docs/S7_INVENTORY.md §1.3): stated as the 1.0.0 code gave it"
+
+[[revision.node]]
+id = "env_kp_default"
+group = "env"
+parent = "m3"
+label = "Geomagnetic index Kp a run takes when it states none"
+behaviour = "stated"
+question = "Which planetary geomagnetic index Kp does a run's atmosphere take when the run states none (engine.kp)?"
+content = [["value", "number", "2"], ["value", "source", "1.0.0 code: engine/crates/adcs-sim/src/config.rs build (kp: 2.0)"]]
+why = "a value the engine used with no node (docs/S7_INVENTORY.md §1.3): stated as the 1.0.0 code gave it"
+
+[[revision.node]]
+id = "env_ap_default"
+group = "env"
+parent = "m3"
+label = "Geomagnetic index Ap a run takes when it states none"
+behaviour = "stated"
+question = "Which planetary geomagnetic index Ap does a run's atmosphere take when the run states none (engine.ap)?"
+content = [["value", "number", "7"], ["value", "source", "1.0.0 code: engine/crates/adcs-sim/src/config.rs build (ap: 7.0)"]]
+why = "a value the engine used with no node (docs/S7_INVENTORY.md §1.3): stated as the 1.0.0 code gave it"
+
+[[revision.node]]
+id = "env_orbit_step"
+group = "env"
+parent = "m2"
+label = "Truth orbit's step"
+behaviour = "stated"
+question = "At which step [s] is the truth orbit integrated (the precision orbit's and the fast orbit's), when the run states none (engine.orbit_step_s)?"
+content = [["value", "number", "10"], ["value", "source", "1.0.0 code: engine/crates/adcs-sim/src/config.rs build (orbit_step_s: 10.0)"]]
+why = "a value the engine used with no node (docs/S7_INVENTORY.md §1.3): stated as the 1.0.0 code gave it"
+
+[[revision.node]]
+id = "env_fast_zonal_degree"
+group = "env"
+parent = "m2"
+label = "Fast orbit's zonal degree"
+behaviour = "stated"
+question = "Up to which zonal harmonic (J2 to J6) does the fast orbit's gravity go, when the run states none (engine.zonal_max)?"
+content = [["value", "number", "6"], ["value", "source", "1.0.0 code: engine/crates/adcs-sim/src/config.rs build (zonal_max: 6)"]]
+why = "a value the engine used with no node (docs/S7_INVENTORY.md §1.3): stated as the 1.0.0 code gave it"
+
+[[revision.node]]
+id = "env_field_degree"
+group = "env"
+parent = "m3"
+label = "Main field's degree along the orbit"
+behaviour = "stated"
+question = "Up to which degree is the main field (IGRF-13) synthesised along the truth orbit, when the run states none (engine.igrf_nmax)?"
+content = [["value", "number", "13"], ["value", "source", "1.0.0 code: engine/crates/adcs-sim/src/config.rs build (igrf_nmax: 13)"]]
+why = "a value the engine used with no node (docs/S7_INVENTORY.md §1.3): stated as the 1.0.0 code gave it"
+
+[[revision.method]]
+node = "s1_4"
+from = "open"
+to = "method"
+pseudocode = "design/revisions/S7.11/cmoffset.pc"
+path = "dyn/cmoffset.pc"
+transcribes = "engine/crates/adcs-sim/src/config.rs (build: cm_offset_m = cpa cmd/|cmd|, cmd = [0.30, 0.70, -0.65], now dyn_cm_direction_x, y, z)"
+source = "the case's surface.cpa and dyn's stated direction (dyn_cm_direction_x, y, z, the 1.0.0 code's)"
+generate = ["adcs-sim"]
+why = "the centre of mass's offset as a method of dyn (open until now: nothing stated it, config.rs computed it), generated into the engine's set-up"
+
+[[revision.method]]
+node = "dyn_truth_plant"
+pseudocode = "design/revisions/S7.11/truthplant.pc"
+path = "dyn/truthplant.pc"
+transcribes = "engine/crates/adcs-sim/src/config.rs (build: the inertia, m_res = dres/sqrt(3) on each axis, the flexible mode's delta, Omega and zeta; apply_engine: engine.inertia_scale, engine.inertia_products and its test of a positive definite inertia)"
+source = "the case's mass.imin, mass.iint, mass.imax, magnetic.dres and flex.*; Hughes (1986), Spacecraft Attitude Dynamics, chapter 12 (|delta|^2 the modal participation of the axis's inertia)"
+generate = ["adcs-sim"]
+why = "the truth plant's set-up from the case as a method of dyn, generated into the engine's set-up"
+
+[[revision.method]]
+node = "env_case_orbit"
+pseudocode = "design/revisions/S7.11/caseorbit.pc"
+path = "env/caseorbit.pc"
+transcribes = "engine/crates/adcs-sim/src/config.rs (build: the epoch from mission.epoch, its seconds rounded, the radius 6378137 + 1e3 alt, n = sqrt(mu/a^3), the period 2 pi/n; apply_engine: engine.epoch_days, engine.alt_km's period 2 pi sqrt(a^3/mu))"
+source = "the case's mission.epoch and orbit.alt; WGS-84 and EGM-96 (the constants' R_E and MU_E); Vallado (2013), Fundamentals of Astrodynamics and Applications, algorithms 14 and 22 (env_calendar_time)"
+generate = ["adcs-sim"]
+uses = ["spec/physics/constants.pc", "env/caltime.pc"]
+why = "the case's orbit and epoch as the engine sets them up, a method of env, generated into the engine's set-up"
+
+[[revision.method]]
+node = "dyn_initial_state"
+pseudocode = "design/revisions/S7.11/initstate.pc"
+path = "dyn/initstate.pc"
+transcribes = "engine/crates/adcs-sim/src/run.rs (initial_state) and adcs-sim-core la.rs (qnorm, unit, dcm, qmult, qconj, fromrotvec)"
+source = "the scenario's initial section (attitude, rate, wheel_momentum_Nms) as the engine flies it (1.0.0 code); the flight software's guidance references (fsw_guidance)"
+generate = ["adcs-sim-core"]
+uses = ["fsw/pseudocode/01_math.pc", "env/facets.pc", "dyn/rotors.pc"]
+why = "the plant's state at the start of a run as a method of dyn, its draws the run's initial stream (rng.rs's), generated into the engine"
+
+[[revision]]
+id = "S7.12"
+at = "2026-10-08T22:00:00Z"
+by = "the developer"
+about = "the device emulators' scaling as a method of oils (docs/S7_INVENTORY.md S7.12, as the owner decided: the scaling is the drivers', the byte framing the rig's): each sensor's engineering value as the counts of its field within the field's range, each command word as its engineering value again, the inverse of the flight software's drivers (fsw_drivers), whose one-count values, field ranges and command words' full scale it takes from the drivers' own functions (drv_read, rd16, rd32, q15); the valve word's 1 ms, which the drivers write inline, stated with it; the packets' layout, sync bytes, CRC and bus stay the rig's code (adcs-sim-core emu.rs)"
+
+[[revision.method]]
+node = "l3_oils_row_07"
+from = "built-in"
+to = "method"
+pseudocode = "design/revisions/S7.12/emucodec.pc"
+path = "oils/emucodec.pc"
+transcribes = "engine/crates/adcs-sim-core/src/emu.rs (q16, q32, reg7, mag_regs, unit_regs, gyro_resp, st_frame, gps_frame, rotor_tm: the counts; decode_pwm, decode_can: the command words' values) with fsw-rs/src/devices.rs's scaling (MAG_LSB_T, GYRO_LSB, Q15, Q30, H_LSB, DELTA_LSB, VALVE_LSB_S, the 0.01 m and 0.001 m/s of the fix), the twin's asils.hal.lsb"
+source = "the flight software's drivers (fsw_drivers: fsw/pseudocode/09_drivers.pc drv_read, drv_write, rd16, rd32, q15; 09_drivers_hal.md's protocol table): the emulators' scaling is their conversions' inverse (the owner's decision, S7.12)"
+generate = ["adcs-sim-core"]
+uses = ["fsw/pseudocode/09_drivers.pc"]
+why = "the device emulators' scaling as a method of oils, from the drivers' conversions, generated into the engine; the packets stay the rig's code"

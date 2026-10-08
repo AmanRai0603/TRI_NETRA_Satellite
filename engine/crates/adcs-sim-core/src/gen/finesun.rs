@@ -10,6 +10,7 @@ use crate::gen::rigidbody::{PlantState};
 use crate::gen::rotors::{RotorGeometry};
 use crate::gen::facets::{Facets};
 use crate::gen::orbitfast::{FastCtx};
+use crate::gen::emucodec::{EmuScale};
 use crate::gen::css::{CssDesc, CssUnit};
 use crate::gen::earthsensor::{EsDesc, EsUnit};
 use crate::gen::gyro::{GyroDesc, GyroUnit};
@@ -48,9 +49,9 @@ pub fn sun_new(d: SunDesc, disp: &mut rt::Stream, noise: rt::Stream) -> SunUnit 
     let mut u: SunUnit = SunUnit::default();
     u = SunUnit::default();
     {
-        let __end70: i64 = d.n;
+        let __end101: i64 = d.n;
         let mut j: i64 = 0;
-        while j < __end70 {
+        while j < __end101 {
             let mut e: [f64; 3] = rt::normal3(&mut (*disp));
             u.bias[(j) as usize] = rt::vscale(e, d.bias_sigma);
             j += 1;
@@ -78,9 +79,9 @@ pub fn sun_sample(u: &mut SunUnit, d: SunDesc, s_body: [f64; 3], nu: f64) -> (bo
         let mut cm: f64 = (-(2.0));
         let mut jm: i64 = 0;
         {
-            let __end71: i64 = d.n;
+            let __end102: i64 = d.n;
             let mut j: i64 = 0;
-            while j < __end71 {
+            while j < __end102 {
                 let mut c: f64 = rt::dot(s_body, d.normals[(j) as usize]);
                 if (c > cm) {
                     cm = c;

@@ -7,7 +7,7 @@ use crate::lqr;
 use crate::product::Dev;
 use adcs_fsw::params::{Params, MODE_NONE};
 use adcs_sim_core::actuators::Kind;
-use adcs_sim_core::{time, NR};
+use adcs_sim_core::NR;
 use serde_json::Value;
 use std::collections::BTreeMap;
 use std::f64::consts::PI;
@@ -185,10 +185,9 @@ pub const ENGINE_KEYS: [&str; 22] = ["engine.orbit", "engine.inertia_scale", "en
 
 /// The surface model's settings when no `--set engine.*` changes them (recorded in every run's
 /// manifest under "assumptions"): momentum accommodation, the ratio of the re-emitted to the
-/// incoming speed, and the specular share of the reflected light. Moe & Moe (2005), LEO.
-pub const ACCOMMODATION: f64 = 0.8;
-pub const VB_RATIO: f64 = 0.05;
-pub const SPEC_FRAC: f64 = 0.5;
+/// incoming speed, and the specular share of the reflected light, dyn's stated values (the design's
+/// data/stated.json, S7.11): dyn_surface_accommodation, dyn_surface_vb_ratio, dyn_surface_specular_share.
+pub const SURFACE: [&str; 3] = ["dyn_surface_accommodation", "dyn_surface_vb_ratio", "dyn_surface_specular_share"];
 
 /// The body of a satellite class (catalogue/classes.toml, exported to data/classes.json).
 pub fn class_box(root: &Path, case: &Case) -> Result<[f64; 3], Error> {
@@ -477,18 +476,16 @@ fn apply_engine(cfg: &mut Config, eng: &[(String, String)]) -> Result<(), Error>
             if a.len() != 3 { return Err(Error::refused(format!("{k}: needs 3 values"))); }
             if a.iter().any(|x| !x.is_finite()) { return Err(Error::refused(format!("{k}: every value is a finite number"))); }
             match k.as_str() {
-                "engine.inertia_scale" => for i in 0..3 { cfg.inertia[i][i] *= a[i]; },
+                "engine.inertia_scale" => cfg.inertia = crate::gen::truthplant::scale_inertia(cfg.inertia, [a[0], a[1], a[2]]),
                 // products of inertia, each a fraction of sqrt(I_ii I_jj): [xy, xz, yz]; the body stays a body
                 "engine.inertia_products" => {
-                    for (f, (i, j)) in a.iter().zip([(0, 1), (0, 2), (1, 2)]) {
-                        if f.abs() >= 1.0 { return Err(Error::refused(format!("{k}: each product is a fraction of sqrt(I_ii I_jj) below 1, not {f}"))); }
-                        let pij = f*(cfg.inertia[i][i]*cfg.inertia[j][j]).sqrt();
-                        cfg.inertia[i][j] = pij; cfg.inertia[j][i] = pij;
+                    if let Some(f) = a.iter().find(|f| f.abs() >= 1.0) {
+                        return Err(Error::refused(format!("{k}: each product is a fraction of sqrt(I_ii I_jj) below 1, not {f}")));
                     }
-                    let m = &cfg.inertia;
-                    let d2 = m[0][0]*m[1][1] - m[0][1]*m[1][0];
-                    let d3 = m[0][0]*(m[1][1]*m[2][2] - m[1][2]*m[2][1]) - m[0][1]*(m[1][0]*m[2][2] - m[1][2]*m[2][0]) + m[0][2]*(m[1][0]*m[2][1] - m[1][1]*m[2][0]);
-                    if !(d2 > 0.0 && d3 > 0.0) { return Err(Error::refused(format!("{k}: {a:?} gives an inertia that is not positive definite"))); }
+                    // dyn_truth_plant: the products, and whether the body is still a body
+                    let (m, pd) = crate::gen::truthplant::inertia_products(cfg.inertia, [a[0], a[1], a[2]]);
+                    if !pd { return Err(Error::refused(format!("{k}: {a:?} gives an inertia that is not positive definite"))); }
+                    cfg.inertia = m;
                 }
                 "engine.cm_offset_m" => cfg.cm_offset_m = [a[0], a[1], a[2]],
                 "engine.m_res" => cfg.m_res = [a[0], a[1], a[2]],
@@ -516,11 +513,8 @@ fn apply_engine(cfg: &mut Config, eng: &[(String, String)]) -> Result<(), Error>
             // the flight software's epoch moves with the truth's
             "engine.epoch_days" => {
                 if x.abs() > 3660.0 { return Err(Error::refused(format!("{k}: {x} days; at most ten years either way"))); }
-                cfg.jd0 += x;
-                let mut e = time::jd2utc(cfg.jd0);
-                e[5] = e[5].round();
-                cfg.epoch_utc = e;
-                cfg.jd0 = time::jd(&e);
+                // env_case_orbit: the epoch moved, its seconds rounded
+                (cfg.epoch_utc, cfg.jd0) = crate::gen::caseorbit::shifted_epoch(cfg.jd0, x);
                 cfg.params.jd0 = cfg.jd0;
             }
             // the truth orbit's local time of the ascending node (the beta angle) and altitude; the
@@ -529,8 +523,7 @@ fn apply_engine(cfg: &mut Config, eng: &[(String, String)]) -> Result<(), Error>
             "engine.alt_km" => {
                 if !(150.0..=2000.0).contains(&x) { return Err(Error::refused(format!("{k}: {x} km, from 150 to 2000 (low Earth orbit)"))); }
                 cfg.alt_km = x;
-                let a = 6378137.0 + 1e3*x;
-                cfg.period_s = 2.0*std::f64::consts::PI*(a*a*a/cfg.mu).sqrt();
+                cfg.period_s = crate::gen::caseorbit::dispersed_period(1e3*x);   // env_case_orbit
             }
             _ => return Err(Error::refused(format!("unknown engine override {k}: the engine reads {}", ENGINE_KEYS.join(", ")))),
         }
@@ -643,17 +636,17 @@ impl Config {
         let tm = s.get("time").cloned().unwrap_or(Value::Null);
         let v = |k: &str| c.get(k);
 
-        let mut epoch = time::jd2utc(2451545.0 + v("mission.epoch")*365.25);
-        epoch[5] = epoch[5].round();
-        let jd0 = time::jd(&epoch);
-        let mu = 3.986004418e14;
-        let a = 6378137.0 + v("orbit.alt")*1e3;
-        let n = (mu/(a*a*a)).sqrt();
-        let inertia = [[v("mass.imin"), 0.0, 0.0], [0.0, v("mass.iint"), 0.0], [0.0, 0.0, v("mass.imax")]];
-        let cpa = v("surface.cpa");
-        let cmd = [0.30, 0.70, -0.65];
-        let cmn = (cmd[0]*cmd[0] + cmd[1]*cmd[1] + cmd[2]*cmd[2] as f64).sqrt();
-        let m_res = [v("magnetic.dres")/3f64.sqrt(); 3];
+        // the values the case leaves to the design: dyn's, env's (data/stated.json)
+        let st = crate::stated::Stated::load(root)?;
+        // env_case_orbit: the mission's epoch (its seconds rounded), the orbit's mean motion and period
+        let (epoch, jd0) = crate::gen::caseorbit::mission_epoch(v("mission.epoch"));
+        let mu = crate::gen::constants::MU_E;
+        let (n, period_s) = crate::gen::caseorbit::case_mean_motion(v("orbit.alt")*1e3);
+        // dyn_truth_plant and s1_4: the inertia, the residual dipole on each axis, the centre of mass's offset
+        let inertia = crate::gen::truthplant::principal_inertia(v("mass.imin"), v("mass.iint"), v("mass.imax"));
+        let cm_offset_m = crate::gen::cmoffset::cm_offset(v("surface.cpa"), st.v3("dyn_cm_direction")?);
+        let m_res = crate::gen::truthplant::residual_dipole_axes(v("magnetic.dres"));
+        let surf = [st.get(SURFACE[0])?, st.get(SURFACE[1])?, st.get(SURFACE[2])?];
         let box_m = class_box(root, &c)?;
 
         let alg = select(root, &dev, &s)?;
@@ -674,23 +667,22 @@ impl Config {
         let mut cfg = Config {
             id: json::s(&s, "id", scenario).into(), case: c.clone(), dev, seed, epoch_utc: epoch, jd0,
             alt_km: v("orbit.alt"), inc_deg: v("orbit.inc"), ecc: v("orbit.ecc"), ltan_h: v("orbit.ltan"), u0_deg: json::f(&init, "arg_lat_deg", 0.0),
-            orbit_step_s: 10.0, period_s: 2.0*PI/n, mu, zonal_max: 6, third_body: true, drag: true, srp: true, density_scale: 1.0,
-            orbit_model: "pop".into(), f107: 130.0, f107a: 130.0, kp: 2.0, ap: 7.0,
-            igrf_nmax: 13, env_dt_s: 1.0, env_on: [true; 4],
-            mass_kg: v("mass.m"), inertia, box_m, cm_offset_m: [cpa*cmd[0]/cmn, cpa*cmd[1]/cmn, cpa*cmd[2]/cmn],
-            aref_m2: v("surface.afr"), cd: v("surface.cd"), refl: v("surface.refl"), sigma_n: ACCOMMODATION, sigma_t: ACCOMMODATION, vb_ratio: VB_RATIO, spec_frac: SPEC_FRAC, m_res,
+            orbit_step_s: st.get("env_orbit_step")?, period_s, mu, zonal_max: st.whole("env_fast_zonal_degree", 1, 6)?, third_body: true, drag: true, srp: true, density_scale: 1.0,
+            orbit_model: "pop".into(), f107: st.get("env_f107_default")?, f107a: st.get("env_f107a_default")?, kp: st.get("env_kp_default")?, ap: st.get("env_ap_default")?,
+            igrf_nmax: st.whole("env_field_degree", 1, 13)?, env_dt_s: 1.0, env_on: [true; 4],
+            mass_kg: v("mass.m"), inertia, box_m, cm_offset_m,
+            aref_m2: v("surface.afr"), cd: v("surface.cd"), refl: v("surface.refl"), sigma_n: surf[0], sigma_t: surf[0], vb_ratio: surf[1], spec_frac: surf[2], m_res,
             duration_s: json::f(&tm, "duration_s", 600.0), dt, record_dt: json::f(&tm, "record_dt_s", 1.0),
             params: p, alg, faults, gd_kind0, h_t_rot, spin_dps: json::f(&fsw, "spin_rate_dps", 6.0), flex: None, scenario: s,
             scenario_file: sp.display().to_string(), overrides: overrides.to_vec(),
         };
         apply_engine(&mut cfg, &eng)?;
         cfg.check()?;
-        // the flexible mode on the truth body: |delta|^2 is mpart of the coupled axis's inertia
+        // the flexible mode on the truth body (dyn_truth_plant): |delta|^2 is mpart of the coupled axis's inertia
         if cfg.case.get("flex.fmode").is_finite() {
-            let a = cfg.case.get("flex.axis") as usize - 1;
-            let mut delta = [0.0; 3];
-            delta[a] = (cfg.case.get("flex.mpart")*cfg.inertia[a][a]).sqrt();
-            cfg.flex = Some(adcs_sim_core::plant::Flex { on: true, delta, omega: 2.0*PI*cfg.case.get("flex.fmode"), zeta: cfg.case.get("flex.zeta") });
+            let k = |x: &str| cfg.case.get(x);
+            let (delta, omega, zeta) = crate::gen::truthplant::flexible_mode(k("flex.fmode"), k("flex.mpart"), k("flex.zeta"), k("flex.axis") as i64, cfg.inertia);
+            cfg.flex = Some(adcs_sim_core::plant::Flex { on: true, delta, omega, zeta });
         }
         Ok(cfg)
     }

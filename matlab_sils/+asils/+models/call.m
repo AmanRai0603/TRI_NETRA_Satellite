@@ -65,6 +65,9 @@ function y = call(name, x)
         case 'rcstorque::couple_torques'
             [o1] = asils.models.rcstorque.couple_torques(x(1), reshape(x(2:4), 3, 1));
             y = [reshape((o1).', [], 1)];
+        case 'rcstorque::couple_arms'
+            [o1] = asils.models.rcstorque.couple_arms(x(1), x(2));
+            y = [reshape(o1, [], 1)];
         case 'rcsvalve::valve_power'
             [o1] = asils.models.rcsvalve.valve_power(x(1), x(2));
             y = [double(o1)];
@@ -98,6 +101,9 @@ function y = call(name, x)
         case 'ringnoise::measured_momentum'
             [o1, io3] = asils.models.ringnoise.measured_momentum(x(1), x(2), reshape(x(3:8), 6, 1));
             y = [double(o1); reshape(io3, [], 1)];
+        case 'ringnoise::ring_flow_noise'
+            [o1] = asils.models.ringnoise.ring_flow_noise(x(1), x(2));
+            y = [double(o1)];
         case 'ringpump::pump_efficiency'
             [o1, io3] = asils.models.ringpump.pump_efficiency(x(1), x(2), reshape(x(3:8), 6, 1));
             y = [double(o1); reshape(io3, [], 1)];
@@ -111,8 +117,8 @@ function y = call(name, x)
             [o1, o2, o3, io1] = asils.models.rotorset.rotorset_apply(struct('a0', {reshape(x(1:24), 3, 8).'}, 'tscale', {reshape(x(25:32), 8, 1)}, 'fscale', {reshape(x(33:40), 8, 1)}, 'eta', {reshape(x(41:48), 8, 1)}, 'failed', {reshape(x(49:56), 8, 1)}, 'gfailed', {reshape(x(57:60), 4, 1)}, 'htgt', {reshape(x(61:68), 8, 1)}, 'hf', {reshape(x(69:76), 8, 1)}, 'field_on', {reshape(x(77:84), 8, 1)}, 'g', {reshape(x(85:90), 6, 1)}), struct('n', {x(91)}, 'ng', {x(92)}, 'kind', {reshape(x(93:100), 8, 1)}, 'a0', {reshape(x(101:124), 3, 8).'}, 'gi', {reshape(x(125:132), 8, 1)}, 'h_max', {reshape(x(133:140), 8, 1)}, 'torque_max', {reshape(x(141:148), 8, 1)}, 'jrot', {reshape(x(149:156), 8, 1)}, 'coulomb', {reshape(x(157:164), 8, 1)}, 'viscous', {reshape(x(165:172), 8, 1)}, 'p_steady', {reshape(x(173:180), 8, 1)}, 'tsig', {reshape(x(181:188), 8, 1)}, 'flo', {reshape(x(189:196), 8, 1)}, 'fhi', {reshape(x(197:204), 8, 1)}, 'misalign', {reshape(x(205:212), 8, 1)}, 't_sd', {reshape(x(213:220), 8, 1)}, 'k_hv', {reshape(x(221:228), 8, 1)}, 'ac', {reshape(x(229:236), 8, 1)}, 's', {reshape(x(237:244), 8, 1)}, 'l', {reshape(x(245:252), 8, 1)}, 'flow_noise_h', {reshape(x(253:260), 8, 1)}, 'field_power', {reshape(x(261:268), 8, 1)}, 'eta_lo', {reshape(x(269:276), 8, 1)}, 'eta_hi', {reshape(x(277:284), 8, 1)}, 'h0', {reshape(x(285:292), 8, 1)}, 'speed_max', {reshape(x(293:300), 8, 1)}, 't_stall', {reshape(x(301:308), 8, 1)}, 'w_nl', {reshape(x(309:316), 8, 1)}, 'f_static', {reshape(x(317:324), 8, 1)}, 'w_stribeck', {reshape(x(325:332), 8, 1)}, 'g', {reshape(x(333:344), 3, 4).'}, 'torque_noise', {x(345)}, 'friction_comp', {x(346)}, 'eta', {x(347)}, 'k_speed', {x(348)}, 'k_flow', {x(349)}, 'flow_tau', {x(350)}, 'gimbal_rate_max', {x(351)}, 'gimbal_power', {x(352)}), reshape(x(353:360), 8, 1), reshape(x(361:364), 4, 1), reshape(x(365:372), 8, 1), x(373));
             y = [reshape(o1, [], 1); reshape(o2, [], 1); double(o3); [reshape((io1.a0).', [], 1); reshape(io1.tscale, [], 1); reshape(io1.fscale, [], 1); reshape(io1.eta, [], 1); reshape(io1.failed, [], 1); reshape(io1.gfailed, [], 1); reshape(io1.htgt, [], 1); reshape(io1.hf, [], 1); reshape(io1.field_on, [], 1); reshape(io1.g, [], 1)]];
         case 'rotortlm::rotor_telemetry'
-            [o1, o2, io5] = asils.models.rotortlm.rotor_telemetry(x(1), reshape(x(2:9), 8, 1), reshape(x(10:13), 4, 1), reshape(x(14:21), 8, 1), reshape(x(22:27), 6, 1));
-            y = [reshape(o1, [], 1); reshape(o2, [], 1); reshape(io5, [], 1)];
+            [o1, o2, io7] = asils.models.rotortlm.rotor_telemetry(x(1), reshape(x(2:9), 8, 1), reshape(x(10:13), 4, 1), reshape(x(14:21), 8, 1), x(22), x(23), reshape(x(24:29), 6, 1));
+            y = [reshape(o1, [], 1); reshape(o2, [], 1); reshape(io7, [], 1)];
         case 'thrusters::thrusters_new'
             [o1, io2] = asils.models.thrusters.thrusters_new(struct('fitted', {(x(1) ~= 0)}, 'nc', {x(2)}, 'tau', {reshape(x(3:20), 3, 6).'}, 'thrust', {x(21)}, 'isp', {x(22)}, 'mib', {x(23)}, 'res', {x(24)}, 'prop_kg', {x(25)}, 'valve_power', {x(26)}, 'isp_lo', {x(27)}, 'isp_hi', {x(28)}, 'thrust_sigma', {x(29)}, 'misalign', {x(30)}), reshape(x(31:36), 6, 1));
             y = [[reshape((o1.tau).', [], 1); reshape(o1.tscale, [], 1); reshape(o1.failed, [], 1); double(o1.isp)]; reshape(io2, [], 1)];
@@ -164,12 +170,30 @@ function y = call(name, x)
         case 'wheelspeed::momentum_limited'
             [o1] = asils.models.wheelspeed.momentum_limited(x(1), x(2), x(3), x(4));
             y = [double(o1)];
+        case 'cmoffset::cm_offset'
+            [o1] = asils.models.cmoffset.cm_offset(x(1), reshape(x(2:4), 3, 1));
+            y = [reshape(o1, [], 1)];
         case 'flexmode::flex_reduced_inertia'
             [o1] = asils.models.flexmode.flex_reduced_inertia(reshape(x(1:9), 3, 3).', reshape(x(10:12), 3, 1));
             y = [reshape((o1).', [], 1)];
         case 'flexmode::flex_pull'
             [o1] = asils.models.flexmode.flex_pull(struct('on', {(x(1) ~= 0)}, 'delta', {reshape(x(2:4), 3, 1)}, 'omega', {x(5)}, 'zeta', {x(6)}), x(7), x(8));
             y = [double(o1)];
+        case 'initstate::init_qnorm'
+            [o1] = asils.models.initstate.init_qnorm(reshape(x(1:4), 4, 1));
+            y = [reshape(o1, [], 1)];
+        case 'initstate::initial_attitude'
+            [o1, io7] = asils.models.initstate.initial_attitude(x(1), reshape(x(2:5), 4, 1), (x(6) ~= 0), reshape(x(7:10), 4, 1), reshape(x(11:13), 3, 1), x(14), reshape(x(15:20), 6, 1));
+            y = [reshape(o1, [], 1); reshape(io7, [], 1)];
+        case 'initstate::initial_rate'
+            [o1, io11] = asils.models.initstate.initial_rate(x(1), reshape(x(2:5), 4, 1), reshape(x(6:8), 3, 1), reshape(x(9:11), 3, 1), reshape(x(12:14), 3, 1), x(15), (x(16) ~= 0), reshape(x(17:20), 4, 1), reshape(x(21:23), 3, 1), x(24), reshape(x(25:30), 6, 1));
+            y = [reshape(o1, [], 1); reshape(io11, [], 1)];
+        case 'initstate::initial_momenta'
+            [o1] = asils.models.initstate.initial_momenta(x(1), x(2), reshape(x(3:10), 8, 1));
+            y = [reshape(o1, [], 1)];
+        case 'initstate::initial_state'
+            [o1, o2, o3, io17] = asils.models.initstate.initial_state(x(1), reshape(x(2:5), 4, 1), (x(6) ~= 0), reshape(x(7:10), 4, 1), reshape(x(11:13), 3, 1), reshape(x(14:16), 3, 1), x(17), x(18), reshape(x(19:21), 3, 1), reshape(x(22:24), 3, 1), reshape(x(25:27), 3, 1), x(28), x(29), x(30), x(31), reshape(x(32:39), 8, 1), reshape(x(40:45), 6, 1));
+            y = [reshape(o1, [], 1); reshape(o2, [], 1); reshape(o3, [], 1); reshape(io17, [], 1)];
         case 'momentum::total_momentum'
             [o1] = asils.models.momentum.total_momentum(struct('q', {reshape(x(1:4), 4, 1)}, 'w', {reshape(x(5:7), 3, 1)}, 'h', {reshape(x(8:15), 8, 1)}, 'd', {reshape(x(16:19), 4, 1)}, 'eta', {x(20)}, 'etad', {x(21)}), reshape(x(22:30), 3, 3).', struct('nr', {x(31)}, 'ng', {x(32)}, 'a0', {reshape(x(33:56), 3, 8).'}, 't0', {reshape(x(57:80), 3, 8).'}, 'g', {reshape(x(81:92), 3, 4).'}, 'gi', {reshape(x(93:100), 8, 1)}), struct('on', {(x(101) ~= 0)}, 'delta', {reshape(x(102:104), 3, 1)}, 'omega', {x(105)}, 'zeta', {x(106)}));
             y = [reshape(o1, [], 1)];
@@ -185,6 +209,21 @@ function y = call(name, x)
         case 'rotors::rotor_axes'
             [o1] = asils.models.rotors.rotor_axes(struct('nr', {x(1)}, 'ng', {x(2)}, 'a0', {reshape(x(3:26), 3, 8).'}, 't0', {reshape(x(27:50), 3, 8).'}, 'g', {reshape(x(51:62), 3, 4).'}, 'gi', {reshape(x(63:70), 8, 1)}), reshape(x(71:74), 4, 1));
             y = [reshape((o1).', [], 1)];
+        case 'truthplant::principal_inertia'
+            [o1] = asils.models.truthplant.principal_inertia(x(1), x(2), x(3));
+            y = [reshape((o1).', [], 1)];
+        case 'truthplant::residual_dipole_axes'
+            [o1] = asils.models.truthplant.residual_dipole_axes(x(1));
+            y = [reshape(o1, [], 1)];
+        case 'truthplant::flexible_mode'
+            [o1, o2, o3] = asils.models.truthplant.flexible_mode(x(1), x(2), x(3), x(4), reshape(x(5:13), 3, 3).');
+            y = [reshape(o1, [], 1); double(o2); double(o3)];
+        case 'truthplant::scale_inertia'
+            [o1] = asils.models.truthplant.scale_inertia(reshape(x(1:9), 3, 3).', reshape(x(10:12), 3, 1));
+            y = [reshape((o1).', [], 1)];
+        case 'truthplant::inertia_products'
+            [o1, o2] = asils.models.truthplant.inertia_products(reshape(x(1:9), 3, 3).', reshape(x(10:12), 3, 1));
+            y = [reshape((o1).', [], 1); double(o2)];
         case 'albedo::albedo_pressure'
             [o1] = asils.models.albedo.albedo_pressure(reshape(x(1:3), 3, 1), reshape(x(4:6), 3, 1), x(7));
             y = [double(o1)];
@@ -206,6 +245,21 @@ function y = call(name, x)
         case 'caltime::eci_to_ecef'
             [o1] = asils.models.caltime.eci_to_ecef(x(1));
             y = [reshape((o1).', [], 1)];
+        case 'caseorbit::whole_second_epoch'
+            [o1, o2] = asils.models.caseorbit.whole_second_epoch(x(1));
+            y = [reshape(o1, [], 1); double(o2)];
+        case 'caseorbit::mission_epoch'
+            [o1, o2] = asils.models.caseorbit.mission_epoch(x(1));
+            y = [reshape(o1, [], 1); double(o2)];
+        case 'caseorbit::shifted_epoch'
+            [o1, o2] = asils.models.caseorbit.shifted_epoch(x(1), x(2));
+            y = [reshape(o1, [], 1); double(o2)];
+        case 'caseorbit::case_mean_motion'
+            [o1, o2] = asils.models.caseorbit.case_mean_motion(x(1));
+            y = [double(o1); double(o2)];
+        case 'caseorbit::dispersed_period'
+            [o1] = asils.models.caseorbit.dispersed_period(x(1));
+            y = [double(o1)];
         case 'de440::de440_constants'
             [o1] = asils.models.de440.de440_constants();
             y = [[double(o1.au_m); double(o1.c); double(o1.gm_sun); double(o1.gm_earth); double(o1.gm_moon); double(o1.emrat); double(o1.tsi); double(o1.p0); double(o1.re_earth); double(o1.f_earth); double(o1.rp_earth); double(o1.mu_earth); double(o1.omega_earth); double(o1.n_a); double(o1.rsun)]];
@@ -1004,6 +1058,66 @@ function y = call(name, x)
         case 'frames::field_eci'
             [o1] = asils.models.frames.field_eci(reshape(x(1:3), 3, 1), x(4), reshape(x(5:199), 195, 1), x(200));
             y = [reshape(o1, [], 1)];
+        case 'drivers::crc16'
+            [o1] = asils.models.drivers.crc16(reshape(x(1:64), 64, 1), x(65));
+            y = [double(o1)];
+        case 'drivers::rd16'
+            [o1] = asils.models.drivers.rd16(x(1), x(2));
+            y = [double(o1)];
+        case 'drivers::rd32'
+            [o1] = asils.models.drivers.rd32(x(1), x(2), x(3), x(4));
+            y = [double(o1)];
+        case 'drivers::q15'
+            [o1] = asils.models.drivers.q15(x(1));
+            y = [double(o1)];
+        case 'drivers::drv_write'
+            [o1, o2, o3, o4] = asils.models.drivers.drv_write(reshape(x(1:3), 3, 1), x(4), reshape(x(5:12), 8, 1), reshape(x(13:20), 8, 1), x(21), reshape(x(22:25), 4, 1), x(26), x(27), reshape(x(28:33), 6, 1), x(34), x(35));
+            y = [reshape(o1, [], 1); reshape(o2, [], 1); reshape(o3, [], 1); reshape(o4, [], 1)];
+        case 'drivers::uart_frame'
+            [o1, o2] = asils.models.drivers.uart_frame(reshape(x(1:96), 96, 1), x(97), x(98));
+            y = [reshape(o1, [], 1); double(o2)];
+        case 'drivers::uart_stream'
+            [o1, o2] = asils.models.drivers.uart_stream(reshape(x(1:8), 8, 1), x(9), reshape(x(10:45), 36, 1), x(46), x(47), x(48), x(49));
+            y = [reshape(o1, [], 1); double(o2)];
+        case 'drivers::read_streams'
+            [o1, o2, o3, o4] = asils.models.drivers.read_streams(reshape(x(1:8), 8, 1), x(9), reshape(x(10:45), 36, 1), x(46), x(47), x(48), reshape(x(49:56), 8, 1), x(57), reshape(x(58:93), 36, 1), x(94), x(95), x(96));
+            y = [reshape(o1, [], 1); double(o2); reshape(o3, [], 1); double(o4)];
+        case 'drivers::drv_read'
+            [o1, o2, o3, o4, o5, o6, o7, o8, o9, o10, o11, o12, o13, o14, o15, o16] = asils.models.drivers.drv_read(reshape(x(1:7), 7, 1), reshape(x(8:20), 13, 1), reshape(x(21:27), 7, 1), reshape(x(28:34), 7, 1), reshape(x(35:130), 96, 1), x(131), reshape(x(132:227), 96, 1), x(228), reshape(x(229:236), 8, 1), reshape(x(237:244), 8, 1), reshape(x(245:308), 8, 8).', x(309), (x(310) ~= 0), (x(311) ~= 0), (x(312) ~= 0), (x(313) ~= 0), (x(314) ~= 0), x(315), reshape(x(316:323), 8, 1));
+            y = [double(o1); reshape(o2, [], 1); double(o3); reshape(o4, [], 1); double(o5); reshape(o6, [], 1); double(o7); reshape(o8, [], 1); double(o9); reshape(o10, [], 1); reshape((o11).', [], 1); double(o12); reshape(o13, [], 1); reshape(o14, [], 1); reshape(o15, [], 1); reshape(o16, [], 1)];
+        case 'emucodec::emu_scale'
+            [o1] = asils.models.emucodec.emu_scale();
+            y = [[double(o1.mag); double(o1.gyro); double(o1.unit); double(o1.q); double(o1.pos); double(o1.vel); double(o1.h); double(o1.delta); double(o1.word); double(o1.valve); double(o1.lo16); double(o1.hi16); double(o1.lo32); double(o1.hi32)]];
+        case 'emucodec::emu_count'
+            [o1] = asils.models.emucodec.emu_count(x(1), x(2), x(3));
+            y = [double(o1)];
+        case 'emucodec::mag_counts'
+            [o1] = asils.models.emucodec.mag_counts(reshape(x(1:3), 3, 1), struct('mag', {x(4)}, 'gyro', {x(5)}, 'unit', {x(6)}, 'q', {x(7)}, 'pos', {x(8)}, 'vel', {x(9)}, 'h', {x(10)}, 'delta', {x(11)}, 'word', {x(12)}, 'valve', {x(13)}, 'lo16', {x(14)}, 'hi16', {x(15)}, 'lo32', {x(16)}, 'hi32', {x(17)}));
+            y = [reshape(o1, [], 1)];
+        case 'emucodec::unit_counts'
+            [o1] = asils.models.emucodec.unit_counts(reshape(x(1:3), 3, 1), struct('mag', {x(4)}, 'gyro', {x(5)}, 'unit', {x(6)}, 'q', {x(7)}, 'pos', {x(8)}, 'vel', {x(9)}, 'h', {x(10)}, 'delta', {x(11)}, 'word', {x(12)}, 'valve', {x(13)}, 'lo16', {x(14)}, 'hi16', {x(15)}, 'lo32', {x(16)}, 'hi32', {x(17)}));
+            y = [reshape(o1, [], 1)];
+        case 'emucodec::gyro_counts'
+            [o1] = asils.models.emucodec.gyro_counts(reshape(x(1:3), 3, 1), struct('mag', {x(4)}, 'gyro', {x(5)}, 'unit', {x(6)}, 'q', {x(7)}, 'pos', {x(8)}, 'vel', {x(9)}, 'h', {x(10)}, 'delta', {x(11)}, 'word', {x(12)}, 'valve', {x(13)}, 'lo16', {x(14)}, 'hi16', {x(15)}, 'lo32', {x(16)}, 'hi32', {x(17)}));
+            y = [reshape(o1, [], 1)];
+        case 'emucodec::quat_counts'
+            [o1] = asils.models.emucodec.quat_counts(reshape(x(1:4), 4, 1), struct('mag', {x(5)}, 'gyro', {x(6)}, 'unit', {x(7)}, 'q', {x(8)}, 'pos', {x(9)}, 'vel', {x(10)}, 'h', {x(11)}, 'delta', {x(12)}, 'word', {x(13)}, 'valve', {x(14)}, 'lo16', {x(15)}, 'hi16', {x(16)}, 'lo32', {x(17)}, 'hi32', {x(18)}));
+            y = [reshape(o1, [], 1)];
+        case 'emucodec::fix_counts'
+            [o1, o2] = asils.models.emucodec.fix_counts(reshape(x(1:3), 3, 1), reshape(x(4:6), 3, 1), struct('mag', {x(7)}, 'gyro', {x(8)}, 'unit', {x(9)}, 'q', {x(10)}, 'pos', {x(11)}, 'vel', {x(12)}, 'h', {x(13)}, 'delta', {x(14)}, 'word', {x(15)}, 'valve', {x(16)}, 'lo16', {x(17)}, 'hi16', {x(18)}, 'lo32', {x(19)}, 'hi32', {x(20)}));
+            y = [reshape(o1, [], 1); reshape(o2, [], 1)];
+        case 'emucodec::rotor_counts'
+            [o1, o2] = asils.models.emucodec.rotor_counts(x(1), x(2), struct('mag', {x(3)}, 'gyro', {x(4)}, 'unit', {x(5)}, 'q', {x(6)}, 'pos', {x(7)}, 'vel', {x(8)}, 'h', {x(9)}, 'delta', {x(10)}, 'word', {x(11)}, 'valve', {x(12)}, 'lo16', {x(13)}, 'hi16', {x(14)}, 'lo32', {x(15)}, 'hi32', {x(16)}));
+            y = [double(o1); double(o2)];
+        case 'emucodec::coil_dipole'
+            [o1] = asils.models.emucodec.coil_dipole(reshape(x(1:3), 3, 1), x(4), struct('mag', {x(5)}, 'gyro', {x(6)}, 'unit', {x(7)}, 'q', {x(8)}, 'pos', {x(9)}, 'vel', {x(10)}, 'h', {x(11)}, 'delta', {x(12)}, 'word', {x(13)}, 'valve', {x(14)}, 'lo16', {x(15)}, 'hi16', {x(16)}, 'lo32', {x(17)}, 'hi32', {x(18)}));
+            y = [reshape(o1, [], 1)];
+        case 'emucodec::command_value'
+            [o1] = asils.models.emucodec.command_value(x(1), x(2), struct('mag', {x(3)}, 'gyro', {x(4)}, 'unit', {x(5)}, 'q', {x(6)}, 'pos', {x(7)}, 'vel', {x(8)}, 'h', {x(9)}, 'delta', {x(10)}, 'word', {x(11)}, 'valve', {x(12)}, 'lo16', {x(13)}, 'hi16', {x(14)}, 'lo32', {x(15)}, 'hi32', {x(16)}));
+            y = [double(o1)];
+        case 'emucodec::valve_duty'
+            [o1] = asils.models.emucodec.valve_duty(x(1), x(2), struct('mag', {x(3)}, 'gyro', {x(4)}, 'unit', {x(5)}, 'q', {x(6)}, 'pos', {x(7)}, 'vel', {x(8)}, 'h', {x(9)}, 'delta', {x(10)}, 'word', {x(11)}, 'valve', {x(12)}, 'lo16', {x(13)}, 'hi16', {x(14)}, 'lo32', {x(15)}, 'hi32', {x(16)}));
+            y = [double(o1)];
         case 'css::css_new'
             [o1, io2] = asils.models.css.css_new(struct('n', {x(1)}, 'normals', {reshape(x(2:25), 3, 8).'}, 'noise', {x(26)}, 'albedo', {x(27)}, 'scale_sigma', {x(28)}, 'misalign', {x(29)}), reshape(x(30:35), 6, 1), reshape(x(36:41), 6, 1));
             y = [[reshape(o1.scale, [], 1); reshape(o1.dead, [], 1); reshape((o1.r).', [], 1); reshape(o1.g, [], 1)]; reshape(io2, [], 1)];
@@ -1016,6 +1130,9 @@ function y = call(name, x)
         case 'earthsensor::es_sample'
             [o1, o2, io1] = asils.models.earthsensor.es_sample(struct('bias', {reshape(x(1:4), 4, 1)}, 'g', {reshape(x(5:10), 6, 1)}), struct('bs', {reshape(x(11:13), 3, 1)}, 'noise', {x(14)}, 'fov', {x(15)}, 'bias_sigma', {x(16)}), reshape(x(17:19), 3, 1));
             y = [double(o1); reshape(o2, [], 1); [reshape(io1.bias, [], 1); reshape(io1.g, [], 1)]];
+        case 'earthsensor::es_boresight'
+            [o1] = asils.models.earthsensor.es_boresight((x(1) ~= 0), reshape(x(2:4), 3, 1), reshape(x(5:7), 3, 1));
+            y = [reshape(o1, [], 1)];
         case 'finesun::sun_new'
             [o1, io2] = asils.models.finesun.sun_new(struct('n', {x(1)}, 'normals', {reshape(x(2:25), 3, 8).'}, 'noise', {x(26)}, 'fov', {x(27)}, 'bias_sigma', {x(28)}, 'chain', {(x(29) ~= 0)}, 'head', {struct('a', {x(30)}, 'h', {x(31)}, 'noise', {x(32)}, 'min_frac', {x(33)})}), reshape(x(34:39), 6, 1), reshape(x(40:45), 6, 1));
             y = [[reshape((o1.bias).', [], 1); reshape(o1.g, [], 1)]; reshape(io2, [], 1)];
@@ -1461,6 +1578,9 @@ function y = call(name, x)
         case 'sttracker::st_sample'
             [o1, o2, o3, o4, o5, io1, io3, io4, io6, io7] = asils.models.sttracker.st_sample(struct('q_bias', {reshape(x(1:8), 4, 2).'}, 'q_mis', {reshape(x(9:16), 4, 2).'}, 'dead', {reshape(x(17:18), 2, 1)}, 'blind_until', {reshape(x(19:20), 2, 1)}, 'g', {reshape(x(21:26), 6, 1)}), struct('nh', {x(27)}, 'bs', {reshape(x(28:33), 3, 2).'}, 'noise_cross', {x(34)}, 'noise_roll', {x(35)}, 'latency', {x(36)}, 'max_rate', {x(37)}, 'sun_excl', {x(38)}, 'earth_excl', {x(39)}, 'fov', {x(40)}, 'model', {x(41)}, 'bias_sigma', {x(42)}, 'misalign_sigma', {x(43)}, 'moon_excl', {x(44)}, 'blind_s', {x(45)}, 'noise_rate_ref', {x(46)}), reshape(x(47:110), 64, 1), reshape(x(111:366), 4, 64).', x(367), reshape(x(368:12367), 3, 4000).', reshape(x(12368:16367), 4000, 1), reshape(x(16368:16371), 4, 1), x(16372), reshape(x(16373:16375), 3, 1), reshape(x(16376:16378), 3, 1), reshape(x(16379:16381), 3, 1), reshape(x(16382:16384), 3, 1), x(16385));
             y = [reshape(o1, [], 1); reshape((o2).', [], 1); reshape(o3, [], 1); reshape((o4).', [], 1); reshape(o5, [], 1); [reshape((io1.q_bias).', [], 1); reshape((io1.q_mis).', [], 1); reshape(io1.dead, [], 1); reshape(io1.blind_until, [], 1); reshape(io1.g, [], 1)]; reshape(io3, [], 1); reshape((io4).', [], 1); reshape((io6).', [], 1); reshape(io7, [], 1)];
+        case 'sttracker::st_calibrated'
+            [o1, o2] = asils.models.sttracker.st_calibrated(x(1), x(2), (x(3) ~= 0), x(4));
+            y = [double(o1); double(o2)];
         case 'sunangles::quad_angles'
             [o1, o2] = asils.models.sunangles.quad_angles(reshape(x(1:4), 4, 1), struct('a', {x(5)}, 'h', {x(6)}, 'noise', {x(7)}, 'min_frac', {x(8)}));
             y = [reshape(o1, [], 1); double(o2)];

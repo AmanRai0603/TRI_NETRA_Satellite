@@ -10,6 +10,7 @@ use crate::gen::rigidbody::{PlantState};
 use crate::gen::rotors::{RotorGeometry};
 use crate::gen::facets::{Facets};
 use crate::gen::orbitfast::{FastCtx};
+use crate::gen::emucodec::{EmuScale};
 use crate::gen::css::{CssDesc, CssUnit};
 use crate::gen::earthsensor::{EsDesc, EsUnit};
 use crate::gen::finesun::{SunDesc, SunUnit};
@@ -32,17 +33,17 @@ pub fn st_qmethod(b: [[f64; 3]; 32], r: [[f64; 3]; 32], n: i64) -> [f64; 4] {
     let mut q: [f64; 4] = [0.0; 4];
     let mut bm: [[f64; 3]; 3] = [[0.0; 3]; 3];
     {
-        let __end81: i64 = n;
+        let __end112: i64 = n;
         let mut l: i64 = 0;
-        while l < __end81 {
+        while l < __end112 {
             {
-                let __end82: i64 = 3;
+                let __end113: i64 = 3;
                 let mut i: i64 = 0;
-                while i < __end82 {
+                while i < __end113 {
                     {
-                        let __end83: i64 = 3;
+                        let __end114: i64 = 3;
                         let mut j: i64 = 0;
-                        while j < __end83 {
+                        while j < __end114 {
                             bm[(i) as usize][(j) as usize] = (bm[(i) as usize][(j) as usize] + (b[(l) as usize][(i) as usize] * r[(l) as usize][(j) as usize]));
                             j += 1;
                         }
@@ -57,13 +58,13 @@ pub fn st_qmethod(b: [[f64; 3]; 32], r: [[f64; 3]; 32], n: i64) -> [f64; 4] {
     let mut z: [f64; 3] = [(bm[1][2] - bm[2][1]), (bm[2][0] - bm[0][2]), (bm[0][1] - bm[1][0])];
     let mut k: [[f64; 4]; 4] = [[0.0; 4]; 4];
     {
-        let __end84: i64 = 3;
+        let __end115: i64 = 3;
         let mut i: i64 = 0;
-        while i < __end84 {
+        while i < __end115 {
             {
-                let __end85: i64 = 3;
+                let __end116: i64 = 3;
                 let mut j: i64 = 0;
-                while j < __end85 {
+                while j < __end116 {
                     k[(i) as usize][(j) as usize] = ((bm[(i) as usize][(j) as usize] + bm[(j) as usize][(i) as usize]) - (if (i == j) { sg } else { 0.0 }));
                     j += 1;
                 }
@@ -77,9 +78,9 @@ pub fn st_qmethod(b: [[f64; 3]; 32], r: [[f64; 3]; 32], n: i64) -> [f64; 4] {
     let (mut lam, mut v) = crate::gen::math::jacobi_eig4(k);
     let mut im: i64 = 0;
     {
-        let __end86: i64 = 4;
+        let __end117: i64 = 4;
         let mut i: i64 = 1;
-        while i < __end86 {
+        while i < __end117 {
             if (lam[(i) as usize] > lam[(im) as usize]) {
                 im = i;
             }
@@ -108,16 +109,16 @@ pub fn st_attitude(b: [[f64; 3]; 32], rs: [[f64; 3]; 32], n: i64, id: &mut [i64;
     ok = false;
     let mut done: bool = false;
     {
-        let __end87: i64 = n;
+        let __end118: i64 = n;
         let mut it: i64 = 0;
-        while it < __end87 {
+        while it < __end118 {
             if (!done) {
                 let mut k: [i64; 32] = [0; 32];
                 let mut nk: i64 = 0;
                 {
-                    let __end88: i64 = n;
+                    let __end119: i64 = n;
                     let mut p: i64 = 0;
-                    while p < __end88 {
+                    while p < __end119 {
                         if ((*id)[(p) as usize] >= 0) {
                             k[(nk) as usize] = p;
                             nk = (nk + 1);
@@ -131,9 +132,9 @@ pub fn st_attitude(b: [[f64; 3]; 32], rs: [[f64; 3]; 32], n: i64, id: &mut [i64;
                     let mut bb: [[f64; 3]; 32] = [[0.0; 3]; 32];
                     let mut rr: [[f64; 3]; 32] = [[0.0; 3]; 32];
                     {
-                        let __end89: i64 = nk;
+                        let __end120: i64 = nk;
                         let mut i: i64 = 0;
-                        while i < __end89 {
+                        while i < __end120 {
                             bb[(i) as usize] = b[(k[(i) as usize]) as usize];
                             rr[(i) as usize] = rs[(k[(i) as usize]) as usize];
                             i += 1;
@@ -144,9 +145,9 @@ pub fn st_attitude(b: [[f64; 3]; 32], rs: [[f64; 3]; 32], n: i64, id: &mut [i64;
                     let mut rm: f64 = (-(f64::INFINITY));
                     let mut j: i64 = 0;
                     {
-                        let __end90: i64 = nk;
+                        let __end121: i64 = nk;
                         let mut i: i64 = 0;
-                        while i < __end90 {
+                        while i < __end121 {
                             let mut c: f64 = rt::dot(bb[(i) as usize], rt::mv(a, rr[(i) as usize]));
                             let mut res: f64 = crate::pm::acos((if (c < 1.0) { c } else { 1.0 }));
                             if (res > rm) {

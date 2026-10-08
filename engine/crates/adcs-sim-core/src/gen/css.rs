@@ -10,6 +10,7 @@ use crate::gen::rigidbody::{PlantState};
 use crate::gen::rotors::{RotorGeometry};
 use crate::gen::facets::{Facets};
 use crate::gen::orbitfast::{FastCtx};
+use crate::gen::emucodec::{EmuScale};
 use crate::gen::earthsensor::{EsDesc, EsUnit};
 use crate::gen::finesun::{SunDesc, SunUnit};
 use crate::gen::gyro::{GyroDesc, GyroUnit};
@@ -52,17 +53,17 @@ pub fn css_new(d: CssDesc, disp: &mut rt::Stream, noise: rt::Stream) -> CssUnit 
     let mut u: CssUnit = CssUnit::default();
     u = CssUnit::default();
     {
-        let __end65: i64 = crate::gen::css::SENS_NS;
+        let __end96: i64 = crate::gen::css::SENS_NS;
         let mut i: i64 = 0;
-        while i < __end65 {
+        while i < __end96 {
             u.scale[(i) as usize] = 1.0;
             i += 1;
         }
     }
     {
-        let __end66: i64 = d.n;
+        let __end97: i64 = d.n;
         let mut j: i64 = 0;
-        while j < __end66 {
+        while j < __end97 {
             let mut z: f64 = rt::normal(&mut (*disp));
             u.scale[(j) as usize] = (1.0 + (d.scale_sigma * z));
             j += 1;
@@ -92,9 +93,9 @@ pub fn css_sample(u: &mut CssUnit, d: CssDesc, s_b: [f64; 3], nu: f64, nadir_b: 
     let mut iv: [f64; 8] = [0.0; 8];
     let mut g: rt::Stream = (*u).g;
     {
-        let __end67: i64 = d.n;
+        let __end98: i64 = d.n;
         let mut j: i64 = 0;
-        while j < __end67 {
+        while j < __end98 {
             let mut cs: f64 = rt::dot(d.normals[(j) as usize], s_b);
             let mut ce: f64 = rt::dot(d.normals[(j) as usize], nadir_b);
             let mut z: f64 = rt::normal(&mut g);
@@ -108,15 +109,15 @@ pub fn css_sample(u: &mut CssUnit, d: CssDesc, s_b: [f64; 3], nu: f64, nadir_b: 
     (*u).g = g;
     let mut est: [f64; 3] = [0.0; 3];
     {
-        let __end68: i64 = 3;
+        let __end99: i64 = 3;
         let mut ax: i64 = 0;
-        while ax < __end68 {
+        while ax < __end99 {
             let mut p: i64 = (-(1));
             let mut m: i64 = (-(1));
             {
-                let __end69: i64 = d.n;
+                let __end100: i64 = d.n;
                 let mut k: i64 = 0;
-                while k < __end69 {
+                while k < __end100 {
                     if ((p < 0) && (d.normals[(k) as usize][(ax) as usize] > 0.9)) {
                         p = k;
                     }

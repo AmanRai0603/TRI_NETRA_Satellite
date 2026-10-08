@@ -10,6 +10,7 @@ use crate::gen::rigidbody::{PlantState};
 use crate::gen::rotors::{RotorGeometry};
 use crate::gen::facets::{Facets};
 use crate::gen::orbitfast::{FastCtx};
+use crate::gen::emucodec::{EmuScale};
 use crate::gen::css::{CssDesc, CssUnit};
 use crate::gen::earthsensor::{EsDesc, EsUnit};
 use crate::gen::finesun::{SunDesc, SunUnit};
@@ -67,9 +68,9 @@ pub fn st_chain(q_true: [f64; 4], r_body2head: [[f64; 3]; 3], r_head_nominal: [[
         let mut b: [[f64; 3]; 32] = [[0.0; 3]; 32];
         let mut mag: [f64; 32] = [0.0; 32];
         {
-            let __end129: i64 = ns;
+            let __end160: i64 = ns;
             let mut k: i64 = 0;
-            while k < __end129 {
+            while k < __end160 {
                 b[(k) as usize] = crate::gen::facets::unit_or_zero([((sp[(k) as usize][0] - cam.c) / cam.f), ((sp[(k) as usize][1] - cam.c) / cam.f), 1.0]);
                 mag[(k) as usize] = (6.0 - (2.5 * crate::pm::log10((rt::fmax(sp[(k) as usize][2], 1.0) / cam.flux0))));
                 k += 1;
@@ -77,9 +78,9 @@ pub fn st_chain(q_true: [f64; 4], r_body2head: [[f64; 3]; 3], r_head_nominal: [[
         }
         let (mut id, mut okid) = crate::gen::stidentify::st_identify(b, mag, ns, &mut (*pi), &mut (*pj), &mut (*pa), &mut (*cr), &mut (*cm), nc, cam.id_tol, cam.mag_tol);
         {
-            let __end130: i64 = ns;
+            let __end161: i64 = ns;
             let mut k2: i64 = 0;
-            while k2 < __end130 {
+            while k2 < __end161 {
                 if (id[(k2) as usize] >= 0) {
                     identified = (identified + 1);
                 }
@@ -90,17 +91,17 @@ pub fn st_chain(q_true: [f64; 4], r_body2head: [[f64; 3]; 3], r_head_nominal: [[
             let mut rs: [[f64; 3]; 32] = [[0.0; 3]; 32];
             let mut ig: [i64; 32] = [0; 32];
             {
-                let __end131: i64 = crate::gen::stattitude::ST_SPOTS;
+                let __end162: i64 = crate::gen::stattitude::ST_SPOTS;
                 let mut p: i64 = 0;
-                while p < __end131 {
+                while p < __end162 {
                     ig[(p) as usize] = (-(1));
                     p += 1;
                 }
             }
             {
-                let __end132: i64 = ns;
+                let __end163: i64 = ns;
                 let mut p2: i64 = 0;
-                while p2 < __end132 {
+                while p2 < __end163 {
                     if (id[(p2) as usize] >= 0) {
                         rs[(p2) as usize] = (*cr)[(id[(p2) as usize]) as usize];
                         ig[(p2) as usize] = id[(p2) as usize];
@@ -110,9 +111,9 @@ pub fn st_chain(q_true: [f64; 4], r_body2head: [[f64; 3]; 3], r_head_nominal: [[
             }
             let (mut q_eh, mut oka) = crate::gen::stattitude::st_attitude(b, rs, ns, &mut ig, cam.fit_tol);
             {
-                let __end133: i64 = ns;
+                let __end164: i64 = ns;
                 let mut p3: i64 = 0;
-                while p3 < __end133 {
+                while p3 < __end164 {
                     if (ig[(p3) as usize] >= 0) {
                         used = (used + 1);
                     }
@@ -155,9 +156,9 @@ pub fn st_image(u: &mut StUnit, d: StDesc, cam: StCamera, valid: [bool; 2], dq: 
     let mut ok: [bool; 2] = [false; 2];
     let mut q: [[f64; 4]; 2] = [[0.0; 4]; 2];
     {
-        let __end134: i64 = d.nh;
+        let __end165: i64 = d.nh;
         let mut h: i64 = 0;
-        while h < __end134 {
+        while h < __end165 {
             if valid[(h) as usize] {
                 let mut rbh: [[f64; 3]; 3] = crate::gen::sunquad::head_frame(d.bs[(h) as usize]);
                 let mut rtrue: [[f64; 3]; 3] = rt::mm(rbh, rt::tr(crate::gen::math::dcm(dq[(h) as usize])));
