@@ -10,7 +10,7 @@
 | [`adcs params`](#adcs-params) | The flight software's parameter blob (adcs-fswcfg/1) for a scenario, as an OBC boots from it. |
 | [`adcs size`](#adcs-size) | The demand survey on the case's orbit, then every actuator option sized to it (magnetorquers, fluid loop, RCS, wheels, CMG, VSCMG). |
 | [`adcs parity`](#adcs-parity) | Fly the same scenario with two flight-software targets and report the largest difference in attitude and rate; bit-identical is the expected answer for C and Rust, and any difference exits with status 1. |
-| [`adcs results`](#adcs-results) | The results store: every run with its provenance, one line each; one run in full; runs kept (pinned) or thinned to their manifest when old; a run as one share file, and back; any read-only question to its SQLite index; the runs another engine or other inputs flew; a stored run flown again with what changed. |
+| [`adcs results`](#adcs-results) | The results store: every run with its provenance, one line each; one run in full; runs kept (pinned) or thinned to their manifest when old; a run as one share file, and back; any read-only question to its SQLite index; the runs another engine or other inputs flew; a fine-pointing run's pointing error budget; a stored run flown again with what changed. |
 | [`adcs figures`](#adcs-figures) | A run's figures, the same for an engine run and a MATLAB twin run (both keep manifest.json and channels.csv with the same columns): attitude, disturbance torques, actuators and power, the Sun spin when the run spun up, and with --full the environment, ground track and mode timeline. Drawn by adcs-plot, the one plotting module, as SVG or PDF. |
 | [`adcs report`](#adcs-report) | A run's report: what it flew (scenario, case, product, flight software, seed, duration, engine, result id, input fingerprints), every metric against its requirement with the verdict, and every figure of `adcs figures --full`; as HTML with the figures inline (a print stylesheet, so a browser prints it to PDF) and as PDF. |
 | [`adcs plot`](#adcs-plot) | Figures described as JSON (panels stacked or in a grid; line, step, scatter, histogram and horizontal-bar series; reference lines, notes, legends; linear or log axes), drawn by adcs-plot. The report tools describe every campaign, comparison, trade and solution figure this way; the schema is in engine/crates/adcs-plot/src/lib.rs. |
@@ -167,9 +167,9 @@ Fly the same scenario with two flight-software targets and report the largest di
 
 ## adcs results
 
-The results store: every run with its provenance, one line each; one run in full; runs kept (pinned) or thinned to their manifest when old; a run as one share file, and back; any read-only question to its SQLite index; the runs another engine or other inputs flew; a stored run flown again with what changed.
+The results store: every run with its provenance, one line each; one run in full; runs kept (pinned) or thinned to their manifest when old; a run as one share file, and back; any read-only question to its SQLite index; the runs another engine or other inputs flew; a fine-pointing run's pointing error budget; a stored run flown again with what changed.
 
-    adcs results list [DIR] | show <run> | pin|unpin <run> | thin --older-than DAYS [DIR] [--dry-run] | export <run> --out F.trinetra | import F.trinetra --out DIR | query --sql SELECT [DIR] | stale [DIR] | refly <run> [--out DIR] [--fsw T]
+    adcs results list [DIR] | show <run> | pin|unpin <run> | thin --older-than DAYS [DIR] [--dry-run] | export <run> --out F.trinetra | import F.trinetra --out DIR | query --sql SELECT [DIR] | stale [DIR] | budget <run> [--flown ID] [--knowledge ID] [--jitter ID] | refly <run> [--out DIR] [--fsw T]
 
 **Steps**
 
@@ -180,9 +180,10 @@ The results store: every run with its provenance, one line each; one run in full
 5. import: check every entry's name and checksum, then write them into the folder
 6. query: bring the index up to date, then run one read-only SQL statement on its runs and metrics tables
 7. stale: compare every run's engine source, case, scenario and product fingerprints, and the design it flew (when one was in use), with today's and name what differs; exit 1 when any run is stale
-8. refly: fly the run again from its kept inputs into <store>/refly/<run> and print every metric stored against now
+8. budget: read the run's metrics, its case and its product, and print its pointing error budget as pnt's methods give it (the terms gp_0 to gp_4, the total, the room req.ape leaves for alignment and thermal, the verdict) as JSON
+9. refly: fly the run again from its kept inputs into <store>/refly/<run> and print every metric stored against now
 
-- **Reads:** `matlab_sils/store/results_engine/ (or DIR)`; the case, scenario and product files the runs name (stale); the run's kept inputs (refly)
+- **Reads:** `matlab_sils/store/results_engine/ (or DIR)`; the case, scenario and product files the runs name (stale, budget); the run's kept inputs (refly)
 - **Writes:** `list, query, stale: <folder>/.adcs-index.sqlite; pin: <run>/PINNED; thin: removes the bulk files; export: the .trinetra file; import: the folder; refly: <store>/refly/<run>/ (or --out)`
 - **Starts:** nothing
 - **Checks:** each stored run's provenance against the engine and inputs that made it (stale when they changed)
@@ -1044,11 +1045,10 @@ The absolute pointing error budget (SPEC rows gp_0 to gp_5) of each fine-pointin
 **Steps**
 
 1. fly each fine-pointing scenario once with the jitter term added
-2. read the product's payload alignment and the case's thermal distortion
-3. add the terms in quadrature and judge against req.ape
-4. write the budget page
+2. ask the engine for each run's budget (adcs results budget): pnt's methods over the run's metrics, the product's payload alignment, the case's thermal distortion and req.ape: the terms in quadrature, the room and the verdict
+3. write the budget page
 
-- **Reads:** `matlab_sils/data/scenarios/`; `matlab_sils/cases/`; `catalogue/products/`
+- **Reads:** `matlab_sils/data/scenarios/`; `matlab_sils/cases/`; `matlab_sils/data/products/`
 - **Writes:** `results/POINTING_BUDGET.md`; `results/pointing_budget.json`
 - **Starts:** `engine/target/release/adcs`
 - **Checks:** the budget's total against the required pointing error

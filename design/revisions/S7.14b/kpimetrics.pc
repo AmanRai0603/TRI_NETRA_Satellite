@@ -1,0 +1,300 @@
+## How each metric of a run is measured, transcribed from adcs-sim metrics.rs (evaluate), the twin's
+## asils.metrics.evaluate: for each kind a scenario may ask for, which channel and statistic it takes over its window
+## (kpistats), and the unit its value is stated in; the times to a rate, to a threshold and to a mode; the wheels' peak
+## momentum, the Sun's angle in a mode, the spin rate's error, the share of a mode, the propellant used, the power the ADCS
+## draws and the platform's margin, the battery's depth of discharge and its lowest charge; the ECSS-E-ST-60-10C indices
+## (kpiecss); and the verdict of a value against its requirement. The defaults a metric takes where the scenario states
+## none are the 1.0.0 code's. Times in seconds (a time to a rate or a mode in minutes), angles in degrees, plain numbers;
+## the channels buffers whose length is the run's (G16).
+## The developer's transcription (S7.14b), unsigned.
+module kpimetrics
+
+## The kinds of metric a scenario may ask for, in the order of the scenario's schema (adcs-sim schema.rs METRIC_KINDS);
+## none, a kind the engine does not measure (nan).
+choice MetricKind = time_to_rate, ape, ape_los, ake, ake_los, rate_stability, time_to_threshold, wheel_momentum_peak, \
+                    time_to_mode, sun_angle, spin_rate_error, mode_fraction, propellant, power_mean, power_peak, jitter, rpe, \
+                    rpe_los, mpe, mpe_los, pde, pde_los, rke, rke_los, mke, mke_los, kde, kde_los, power_margin, battery_dod, \
+                    soc_min, none
+
+## The units a metric's value is stated in: degrees, minutes, seconds, degrees per second, newton metre seconds,
+## percent, grams, watts, arcseconds.
+choice MetricUnit = deg, min, s, deg_per_s, n_m_s, percent, g, w, arcsec
+
+## The channels a metric may take (the schema's CHANNELS, in its order).
+choice MetricChannel = ape_3ax, ape_los, ake_3ax, ake_los, rate, rks, sun_angle, sun_angle_geo, spin_z, rate_err
+
+## What a metric takes where the scenario states none: its window (all), its statistic (the largest), the channel of a
+## time to a threshold (the APE across the boresight), a time to a rate's threshold [deg/s] and hold [s], a time to a
+## threshold's threshold [deg], hold [s] and start [s]; judged as at most its requirement; a time to a threshold in
+## seconds; a detumble not ended at its mode's exit.
+fn kpi_metric_defaults() -> (window: MetricWindow, st: MetricStat, channel: MetricChannel, rate_thr: real[1], rate_hold: real[1], \
+                             thr: real[1], thr_hold: real[1], from_s: real[1], sense_min: bool, unit_min: bool, end_at_exit: bool)
+    window = MetricWindow.all
+    st = MetricStat.max
+    channel = MetricChannel.ape_los
+    rate_thr = 0.5
+    rate_hold = 0.0
+    thr = 1.0
+    thr_hold = 10.0
+    from_s = 0.0
+    sense_min = false
+    unit_min = false
+    end_at_exit = false
+end
+
+## The unit a kind's value is stated in (a time to a threshold in minutes when unit_min).
+fn kpi_metric_unit(kind: MetricKind, unit_min: bool) -> u: MetricUnit
+    u = MetricUnit.deg
+    if kind == MetricKind.time_to_rate or kind == MetricKind.time_to_mode
+        u = MetricUnit.min
+    elif kind == MetricKind.rate_stability or kind == MetricKind.spin_rate_error
+        u = MetricUnit.deg_per_s
+    elif kind == MetricKind.time_to_threshold
+        u = MetricUnit.s
+        if unit_min
+            u = MetricUnit.min
+        end
+    elif kind == MetricKind.wheel_momentum_peak
+        u = MetricUnit.n_m_s
+    elif kind == MetricKind.mode_fraction or kind == MetricKind.battery_dod or kind == MetricKind.soc_min
+        u = MetricUnit.percent
+    elif kind == MetricKind.propellant
+        u = MetricUnit.g
+    elif kind == MetricKind.jitter
+        u = MetricUnit.arcsec
+    elif kind == MetricKind.power_margin or kind == MetricKind.power_mean or kind == MetricKind.power_peak
+        u = MetricUnit.w
+    end
+end
+
+## The channel a pointing kind takes its statistic of: the APE and AKE three-axis and across the boresight, the rate
+## stability; has false for any other kind.
+fn kpi_kind_channel(kind: MetricKind) -> (has: bool, ch: MetricChannel)
+    has = true
+    ch = MetricChannel.ape_3ax
+    if kind == MetricKind.ape_los
+        ch = MetricChannel.ape_los
+    elif kind == MetricKind.ake
+        ch = MetricChannel.ake_3ax
+    elif kind == MetricKind.ake_los
+        ch = MetricChannel.ake_los
+    elif kind == MetricKind.rate_stability
+        ch = MetricChannel.rks
+    elif kind != MetricKind.ape
+        has = false
+    end
+end
+
+## Which ECSS index a kind is (is false for any other kind): the relative, mean or drift index, of the knowledge error
+## (rke, mke, kde) or the performance error, across the boresight (_los) or three-axis.
+fn kpi_ecss_kind(kind: MetricKind) -> (is: bool, k: EcssIndex, knowledge: bool, los: bool)
+    is = true
+    k = EcssIndex.relative
+    knowledge = false
+    los = false
+    if kind == MetricKind.rpe or kind == MetricKind.rpe_los or kind == MetricKind.rke or kind == MetricKind.rke_los
+        k = EcssIndex.relative
+    elif kind == MetricKind.mpe or kind == MetricKind.mpe_los or kind == MetricKind.mke or kind == MetricKind.mke_los
+        k = EcssIndex.mean
+    elif kind == MetricKind.pde or kind == MetricKind.pde_los or kind == MetricKind.kde or kind == MetricKind.kde_los
+        k = EcssIndex.drift
+    else
+        is = false
+    end
+    knowledge = kind == MetricKind.rke or kind == MetricKind.rke_los or kind == MetricKind.mke or kind == MetricKind.mke_los \
+                or kind == MetricKind.kde or kind == MetricKind.kde_los
+    los = kind == MetricKind.rpe_los or kind == MetricKind.mpe_los or kind == MetricKind.pde_los or kind == MetricKind.rke_los \
+          or kind == MetricKind.mke_los or kind == MetricKind.kde_los
+end
+
+## The time to a rate [min]: the first time the body rate rate [deg/s] (at times t [s], n samples) goes below thr
+## [deg/s] and stays below it for hold [s]. When end_at_exit, a mission hands over to the next mode when detumble is done:
+## that hand-over, below the threshold, completes the detumble even if the next mode then spins the body up again.
+## length: 64
+fn kpi_time_to_rate(t: inout real[1][*] in 0 .. 100, rate: inout real[1][*] in 0 .. 2, mode: inout int[*] in 0 .. 2, \
+                    n: int in 0 .. 64, thr: real[1] in 0 .. 2, hold: real[1] in 0 .. 20, end_at_exit: bool) -> v: real[1]
+    v = kpi_time_to(t, rate, n, thr, hold)
+    if end_at_exit and n > 0
+        let found = false
+        let j = 0
+        for k in 0 .. n
+            if not found and mode[k] != mode[0]
+                found = true
+                j = k
+            end
+        end
+        if found
+            if rate[j] < thr and not (v <= t[j])
+                v = t[j]
+            end
+        end
+    end
+    v = v/60.0
+end
+
+## The time to a threshold [s, or min when unit_min]: from t0 [s], the first time the channel x goes below thr [deg]
+## and stays below it for hold [s] (tt and xx the samples from t0 on).
+## length: 64
+fn kpi_time_to_threshold(t: inout real[1][*] in 0 .. 100, x: inout real[1][*] in 0 .. 2, n: int in 0 .. 64, t0: real[1] in 0 .. 50, \
+                         thr: real[1] in 0 .. 2, hold: real[1] in 0 .. 20, unit_min: bool, tt: inout real[1][*] in 0 .. 100, \
+                         xx: inout real[1][*] in 0 .. 2) -> v: real[1]
+    v = kpi_time_to_from(t, x, n, t0, thr, hold, tt, xx)
+    if unit_min
+        v = v/60.0
+    end
+end
+
+## The wheels' peak momentum [N m s]: the largest |h| of the nr rotors (h, nr numbers a sample) over the window's
+## samples idx[0..ni]; nan with none.
+## length: 64
+fn kpi_wheel_peak(h: inout real[1][*] in -0.1 .. 0.1, nr: int in 0 .. 4, idx: inout int[*] in 0 .. 15, ni: int in 0 .. 16) -> v: real[1]
+    v = nan
+    for i in 0 .. ni
+        for r in 0 .. nr
+            v = kpi_max(v, |h[idx[i]*nr + r]|)
+        end
+    end
+end
+
+## The time to a mode [min]: the first sample (times t [s], modes mode, n samples) in the mode m; nan if none is.
+## length: 64
+fn kpi_time_to_mode(t: inout real[1][*] in 0 .. 100, mode: inout int[*] in 0 .. 3, n: int in 0 .. 64, m: int in -1 .. 3) -> v: real[1]
+    v = nan
+    let found = false
+    for j in 0 .. n
+        if not found and mode[j] == m
+            v = t[j]/60.0
+            found = true
+        end
+    end
+end
+
+## The Sun's angle [deg]: the statistic st of the sunlit Sun angle sun over the window's samples idx[0..ni], those in
+## the mode m only when by_mode (w, tmp the statistic's).
+## length: 64
+fn kpi_sun_angle_stat(sun: inout real[1][*] in 0 .. 180, mode: inout int[*] in 0 .. 3, idx: inout int[*] in 0 .. 63, \
+                      ni: int in 0 .. 64, by_mode: bool, m: int in -1 .. 3, st: MetricStat, w: inout real[1][*] in 0 .. 180, \
+                      tmp: inout real[1][*] in 0 .. 180) -> v: real[1]
+    let k = 0
+    for i in 0 .. ni
+        let j = idx[i]
+        if not by_mode or mode[j] == m
+            let x = sun[j]
+            if isfinite(x)
+                w[k] = x
+                k = k + 1
+            end
+        end
+    end
+    v = kpi_stat_of(w, k, st, tmp)
+end
+
+## The spin rate's error [deg/s]: the statistic st of | |spin_z| - spin_dps | over the window's samples idx[0..ni]
+## (spin_dps the Sun spin's rate the flight software flies, [deg/s]).
+## length: 64
+fn kpi_spin_error_stat(spin_z: inout real[1][*] in -10 .. 10, idx: inout int[*] in 0 .. 63, ni: int in 0 .. 64, \
+                       spin_dps: real[1] in 0 .. 10, st: MetricStat, w: inout real[1][*] in 0 .. 10, tmp: inout real[1][*] in 0 .. 10) -> v: real[1]
+    let k = 0
+    for i in 0 .. ni
+        let x = abs(abs(spin_z[idx[i]]) - spin_dps)
+        if isfinite(x)
+            w[k] = x
+            k = k + 1
+        end
+    end
+    v = kpi_stat_of(w, k, st, tmp)
+end
+
+## The share [%] of the window's samples idx[0..ni] in the mode m.
+## length: 64
+fn kpi_mode_fraction(mode: inout int[*] in 0 .. 3, idx: inout int[*] in 0 .. 63, ni: int in 0 .. 64, m: int in -1 .. 3) -> v: real[1]
+    let k = 0
+    for i in 0 .. ni
+        if mode[idx[i]] == m
+            k = k + 1
+        end
+    end
+    let d = ni
+    if d < 1
+        d = 1
+    end
+    v = 100.0*real(k)/real(d)
+end
+
+## The propellant used [g]: the most of the run's n samples prop [kg] (from none).
+## length: 64
+fn kpi_propellant(prop: inout real[1][*] in 0 .. 0.1, n: int in 0 .. 64) -> v: real[1]
+    let acc: real[1] = 0.0
+    for j in 0 .. n
+        acc = kpi_max(acc, prop[j])
+    end
+    v = 1e3*acc
+end
+
+## The power the ADCS draws [W] at the window's samples idx[0..ni], its coils', rotors' and thrusters' (p_mtq, p_rw,
+## p_rcs [W]): the mean (nan-free, from -0 as the code's sum) and the peak (from the least number).
+## length: 64
+fn kpi_adcs_power(p_mtq: inout real[1][*] in 0 .. 5, p_rw: inout real[1][*] in 0 .. 5, p_rcs: inout real[1][*] in 0 .. 5, \
+                  idx: inout int[*] in 0 .. 63, ni: int in 0 .. 64) -> (mean: real[1], peak: real[1])
+    let s: real[1] = -0.0
+    let acc = -1.7976931348623157e308
+    for i in 0 .. ni
+        let j = idx[i]
+        let p = p_mtq[j] + p_rw[j] + p_rcs[j]
+        s = s + p
+        acc = kpi_max(acc, p)
+    end
+    let d = ni
+    if d < 1
+        d = 1
+    end
+    mean = s/real(d)
+    peak = acc
+end
+
+## The platform's power margin [W]: the mean over the window's samples idx[0..ni] of the arrays' power p_gen less the
+## platform's load load_w and the ADCS's (p_mtq, p_rw, p_rcs) [W]; nan when the case states no power system (has).
+## length: 64
+fn kpi_power_margin(has: bool, p_gen: inout real[1][*] in 0 .. 10, p_mtq: inout real[1][*] in 0 .. 5, p_rw: inout real[1][*] in 0 .. 5, \
+                    p_rcs: inout real[1][*] in 0 .. 5, idx: inout int[*] in 0 .. 63, ni: int in 0 .. 64, load_w: real[1] in 0 .. 10) -> v: real[1]
+    v = nan
+    if has
+        let s: real[1] = -0.0
+        for i in 0 .. ni
+            let j = idx[i]
+            s = s + (p_gen[j] - load_w - p_mtq[j] - p_rw[j] - p_rcs[j])
+        end
+        let d = ni
+        if d < 1
+            d = 1
+        end
+        v = s/real(d)
+    end
+end
+
+## The battery over the window's samples idx[0..ni] of its state of charge soc: the depth of discharge [%] and the
+## lowest state of charge [%] (nan when the case states no power system).
+## length: 64
+fn kpi_battery(soc: inout real[1][*] in 0 .. 1, idx: inout int[*] in 0 .. 63, ni: int in 0 .. 64) -> (dod: real[1], soc_min: real[1])
+    let acc = nan
+    for i in 0 .. ni
+        acc = kpi_min(acc, soc[idx[i]])
+    end
+    dod = 100.0*(1.0 - acc)
+    soc_min = 100.0*acc
+end
+
+## The verdict of a value val against its requirement rv: 1 met (at most rv, or at least when sense_min), 0 not met (or
+## no value), -1 not judged (no requirement).
+fn kpi_verdict(val: real[1] in 0 .. 2, rv: real[1] in 0 .. 2, sense_min: bool) -> pass: int
+    pass = -1
+    if isfinite(rv)
+        if isnan(val)
+            pass = 0
+        elif sense_min
+            pass = if val >= rv then 1 else 0
+        else
+            pass = if val <= rv then 1 else 0
+        end
+    end
+end

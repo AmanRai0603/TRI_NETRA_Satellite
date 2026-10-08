@@ -26,9 +26,9 @@ pub fn whole_second_epoch(jd: f64) -> ([f64; 6], f64) {
 pub fn mission_epoch(years: f64) -> ([f64; 6], f64) {
     let mut u: [f64; 6] = [0.0; 6];
     let mut j: f64 = 0.0;
-    let __t1 = crate::gen::caseorbit::whole_second_epoch((crate::gen::constants::JD_J2000 + (years * crate::gen::constants::DAYS_PER_YEAR)));
-    u = __t1.0;
-    j = __t1.1;
+    let __t2 = crate::gen::caseorbit::whole_second_epoch((crate::gen::constants::JD_J2000 + (years * crate::gen::constants::DAYS_PER_YEAR)));
+    u = __t2.0;
+    j = __t2.1;
     (u, j)
 }
 
@@ -41,9 +41,9 @@ pub fn mission_epoch(years: f64) -> ([f64; 6], f64) {
 pub fn shifted_epoch(jd0: f64, days: f64) -> ([f64; 6], f64) {
     let mut u: [f64; 6] = [0.0; 6];
     let mut j: f64 = 0.0;
-    let __t2 = crate::gen::caseorbit::whole_second_epoch((jd0 + days));
-    u = __t2.0;
-    j = __t2.1;
+    let __t3 = crate::gen::caseorbit::whole_second_epoch((jd0 + days));
+    u = __t3.0;
+    j = __t3.1;
     (u, j)
 }
 

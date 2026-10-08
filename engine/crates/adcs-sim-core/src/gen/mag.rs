@@ -71,9 +71,9 @@ pub fn mag_sample(u: &mut MagUnit, d: MagDesc, b_body: [f64; 3], m_coil: [f64; 3
         let mut v: [f64; 3] = crate::gen::magnoise::mag_noise(rt::mv((*u).m, b_body), (*u).b, d.noise, d.k_coil, m_coil, &mut g);
         (*u).g = g;
         {
-            let __end109: i64 = 3;
+            let __end117: i64 = 3;
             let mut i: i64 = 0;
-            while i < __end109 {
+            while i < __end117 {
                 o[(i) as usize] = crate::gen::coilsat::act_clamp(v[(i) as usize], (-(d.range)), d.range);
                 i += 1;
             }

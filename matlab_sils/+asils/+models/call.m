@@ -170,6 +170,24 @@ function y = call(name, x)
         case 'wheelspeed::momentum_limited'
             [o1] = asils.models.wheelspeed.momentum_limited(x(1), x(2), x(3), x(4));
             y = [double(o1)];
+        case 'powersys::array_power'
+            [o1] = asils.models.powersys.array_power(reshape(x(1:6), 6, 1), x(7), reshape(x(8:10), 3, 1), x(11));
+            y = [double(o1)];
+        case 'powersys::power_sun_unit'
+            [o1] = asils.models.powersys.power_sun_unit(reshape(x(1:3), 3, 1));
+            y = [reshape(o1, [], 1)];
+        case 'powersys::power_load'
+            [o1] = asils.models.powersys.power_load(x(1), x(2), x(3), x(4));
+            y = [double(o1)];
+        case 'powersys::battery_step'
+            [o1] = asils.models.powersys.battery_step(x(1), x(2), x(3), x(4), x(5), x(6));
+            y = [double(o1)];
+        case 'powersys::battery_start'
+            [o1] = asils.models.powersys.battery_start(x(1), x(2));
+            y = [double(o1)];
+        case 'powersys::battery_soc'
+            [o1] = asils.models.powersys.battery_soc(x(1), x(2));
+            y = [double(o1)];
         case 'cmoffset::cm_offset'
             [o1] = asils.models.cmoffset.cm_offset(x(1), reshape(x(2:4), 3, 1));
             y = [reshape(o1, [], 1)];
@@ -1226,6 +1244,520 @@ function y = call(name, x)
         case 'drivers::drv_read'
             [o1, o2, o3, o4, o5, o6, o7, o8, o9, o10, o11, o12, o13, o14, o15, o16] = asils.models.drivers.drv_read(reshape(x(1:7), 7, 1), reshape(x(8:20), 13, 1), reshape(x(21:27), 7, 1), reshape(x(28:34), 7, 1), reshape(x(35:130), 96, 1), x(131), reshape(x(132:227), 96, 1), x(228), reshape(x(229:236), 8, 1), reshape(x(237:244), 8, 1), reshape(x(245:308), 8, 8).', x(309), (x(310) ~= 0), (x(311) ~= 0), (x(312) ~= 0), (x(313) ~= 0), (x(314) ~= 0), x(315), reshape(x(316:323), 8, 1));
             y = [double(o1); reshape(o2, [], 1); double(o3); reshape(o4, [], 1); double(o5); reshape(o6, [], 1); double(o7); reshape(o8, [], 1); double(o9); reshape(o10, [], 1); reshape((o11).', [], 1); double(o12); reshape(o13, [], 1); reshape(o14, [], 1); reshape(o15, [], 1); reshape(o16, [], 1)];
+        case 'kpichannels::kpi_acosd'
+            [o1] = asils.models.kpichannels.kpi_acosd(x(1));
+            y = [double(o1)];
+        case 'kpichannels::kpi_yaw_flip'
+            [o1] = asils.models.kpichannels.kpi_yaw_flip((x(1) ~= 0), reshape(x(2:4), 3, 1), reshape(x(5:7), 3, 1), reshape(x(8:11), 4, 1), reshape(x(12:14), 3, 1), reshape(x(15:17), 3, 1), reshape(x(18:20), 3, 1), (x(21) ~= 0), x(22));
+            y = [double(o1)];
+        case 'kpichannels::kpi_reference'
+            [o1, o2] = asils.models.kpichannels.kpi_reference(x(1), reshape(x(2:4), 3, 1), reshape(x(5:7), 3, 1), x(8), reshape(x(9:12), 4, 1), x(13), x(14), x(15), reshape(x(16:18), 3, 1), reshape(x(19:22), 4, 1), reshape(x(23:25), 3, 1), reshape(x(26:28), 3, 1), reshape(x(29:31), 3, 1), (x(32) ~= 0));
+            y = [double(o1); reshape(o2, [], 1)];
+        case 'kpichannels::kpi_error'
+            [o1, o2] = asils.models.kpichannels.kpi_error(reshape(x(1:4), 4, 1), reshape(x(5:8), 4, 1), reshape(x(9:11), 3, 1));
+            y = [reshape(o1, [], 1); double(o2)];
+        case 'kpichannels::kpi_three_axis'
+            [o1] = asils.models.kpichannels.kpi_three_axis(reshape(x(1:4), 4, 1), reshape(x(5:8), 4, 1));
+            y = [double(o1)];
+        case 'kpichannels::kpi_rates'
+            [o1, o2] = asils.models.kpichannels.kpi_rates(reshape(x(1:3), 3, 1));
+            y = [double(o1); double(o2)];
+        case 'kpichannels::kpi_sun_angle'
+            [o1, o2] = asils.models.kpichannels.kpi_sun_angle(reshape(x(1:3), 3, 1), reshape(x(4:6), 3, 1), x(7));
+            y = [double(o1); double(o2)];
+        case 'kpichannels::kpi_rks_lag'
+            [o1] = asils.models.kpichannels.kpi_rks_lag(x(1));
+            y = [double(o1)];
+        case 'kpichannels::kpi_rks'
+            [o1] = asils.models.kpichannels.kpi_rks(reshape(x(1:3), 3, 1), reshape(x(4:6), 3, 1), x(7), x(8));
+            y = [double(o1)];
+        case 'kpiecss::kpi_unit_bs'
+            [o1] = asils.models.kpiecss.kpi_unit_bs(reshape(x(1:3), 3, 1));
+            y = [reshape(o1, [], 1)];
+        case 'kpiecss::kpi_ecss_vec'
+            at = 0;
+            n1 = x(at + 1);
+            a1 = reshape(x(at + 2:at + 1 + n1), [], 1);
+            at = at + 1 + n1;
+            xa = x(at + 1:end);
+            a2 = xa(1);
+            at = at + 1;
+            xa = x(at + 1:end);
+            a3 = (xa(1) ~= 0);
+            at = at + 1;
+            xa = x(at + 1:end);
+            a4 = reshape(xa(1:3), 3, 1);
+            at = at + 3;
+            [o1, io1] = asils.models.kpiecss.kpi_ecss_vec(a1, a2, a3, a4);
+            y = [reshape(o1, [], 1); numel(io1); reshape(io1, [], 1)];
+        case 'kpiecss::kpi_ecss_block'
+            [o1] = asils.models.kpiecss.kpi_ecss_block(x(1), x(2), x(3));
+            y = [double(o1)];
+        case 'kpiecss::kpi_ecss_blocks'
+            at = 0;
+            n1 = x(at + 1);
+            a1 = reshape(x(at + 2:at + 1 + n1), [], 1);
+            at = at + 1 + n1;
+            n2 = x(at + 1);
+            a2 = reshape(x(at + 2:at + 1 + n2), [], 1);
+            at = at + 1 + n2;
+            xa = x(at + 1:end);
+            a3 = xa(1);
+            at = at + 1;
+            xa = x(at + 1:end);
+            a4 = xa(1);
+            at = at + 1;
+            [o1, io1, io2] = asils.models.kpiecss.kpi_ecss_blocks(a1, a2, a3, a4);
+            y = [double(o1); numel(io1); reshape(io1, [], 1); numel(io2); reshape(io2, [], 1)];
+        case 'kpiecss::kpi_ecss'
+            at = 0;
+            xa = x(at + 1:end);
+            a1 = xa(1);
+            at = at + 1;
+            xa = x(at + 1:end);
+            a2 = (xa(1) ~= 0);
+            at = at + 1;
+            n3 = x(at + 1);
+            a3 = reshape(x(at + 2:at + 1 + n3), [], 1);
+            at = at + 1 + n3;
+            xa = x(at + 1:end);
+            a4 = reshape(xa(1:3), 3, 1);
+            at = at + 3;
+            n5 = x(at + 1);
+            a5 = reshape(x(at + 2:at + 1 + n5), [], 1);
+            at = at + 1 + n5;
+            n6 = x(at + 1);
+            a6 = reshape(x(at + 2:at + 1 + n6), [], 1);
+            at = at + 1 + n6;
+            xa = x(at + 1:end);
+            a7 = xa(1);
+            at = at + 1;
+            xa = x(at + 1:end);
+            a8 = xa(1);
+            at = at + 1;
+            xa = x(at + 1:end);
+            a9 = xa(1);
+            at = at + 1;
+            n10 = x(at + 1);
+            a10 = reshape(x(at + 2:at + 1 + n10), [], 1);
+            at = at + 1 + n10;
+            n11 = x(at + 1);
+            a11 = reshape(x(at + 2:at + 1 + n11), [], 1);
+            at = at + 1 + n11;
+            n12 = x(at + 1);
+            a12 = reshape(x(at + 2:at + 1 + n12), [], 1);
+            at = at + 1 + n12;
+            [o1, io3, io5, io6, io10, io11, io12] = asils.models.kpiecss.kpi_ecss(a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12);
+            y = [double(o1); numel(io3); reshape(io3, [], 1); numel(io5); reshape(io5, [], 1); numel(io6); reshape(io6, [], 1); numel(io10); reshape(io10, [], 1); numel(io11); reshape(io11, [], 1); numel(io12); reshape(io12, [], 1)];
+        case 'kpimetrics::kpi_metric_defaults'
+            [o1, o2, o3, o4, o5, o6, o7, o8, o9, o10, o11] = asils.models.kpimetrics.kpi_metric_defaults();
+            y = [double(o1); double(o2); double(o3); double(o4); double(o5); double(o6); double(o7); double(o8); double(o9); double(o10); double(o11)];
+        case 'kpimetrics::kpi_metric_unit'
+            [o1] = asils.models.kpimetrics.kpi_metric_unit(x(1), (x(2) ~= 0));
+            y = [double(o1)];
+        case 'kpimetrics::kpi_kind_channel'
+            [o1, o2] = asils.models.kpimetrics.kpi_kind_channel(x(1));
+            y = [double(o1); double(o2)];
+        case 'kpimetrics::kpi_ecss_kind'
+            [o1, o2, o3, o4] = asils.models.kpimetrics.kpi_ecss_kind(x(1));
+            y = [double(o1); double(o2); double(o3); double(o4)];
+        case 'kpimetrics::kpi_time_to_rate'
+            at = 0;
+            n1 = x(at + 1);
+            a1 = reshape(x(at + 2:at + 1 + n1), [], 1);
+            at = at + 1 + n1;
+            n2 = x(at + 1);
+            a2 = reshape(x(at + 2:at + 1 + n2), [], 1);
+            at = at + 1 + n2;
+            n3 = x(at + 1);
+            a3 = reshape(x(at + 2:at + 1 + n3), [], 1);
+            at = at + 1 + n3;
+            xa = x(at + 1:end);
+            a4 = xa(1);
+            at = at + 1;
+            xa = x(at + 1:end);
+            a5 = xa(1);
+            at = at + 1;
+            xa = x(at + 1:end);
+            a6 = xa(1);
+            at = at + 1;
+            xa = x(at + 1:end);
+            a7 = (xa(1) ~= 0);
+            at = at + 1;
+            [o1, io1, io2, io3] = asils.models.kpimetrics.kpi_time_to_rate(a1, a2, a3, a4, a5, a6, a7);
+            y = [double(o1); numel(io1); reshape(io1, [], 1); numel(io2); reshape(io2, [], 1); numel(io3); reshape(io3, [], 1)];
+        case 'kpimetrics::kpi_time_to_threshold'
+            at = 0;
+            n1 = x(at + 1);
+            a1 = reshape(x(at + 2:at + 1 + n1), [], 1);
+            at = at + 1 + n1;
+            n2 = x(at + 1);
+            a2 = reshape(x(at + 2:at + 1 + n2), [], 1);
+            at = at + 1 + n2;
+            xa = x(at + 1:end);
+            a3 = xa(1);
+            at = at + 1;
+            xa = x(at + 1:end);
+            a4 = xa(1);
+            at = at + 1;
+            xa = x(at + 1:end);
+            a5 = xa(1);
+            at = at + 1;
+            xa = x(at + 1:end);
+            a6 = xa(1);
+            at = at + 1;
+            xa = x(at + 1:end);
+            a7 = (xa(1) ~= 0);
+            at = at + 1;
+            n8 = x(at + 1);
+            a8 = reshape(x(at + 2:at + 1 + n8), [], 1);
+            at = at + 1 + n8;
+            n9 = x(at + 1);
+            a9 = reshape(x(at + 2:at + 1 + n9), [], 1);
+            at = at + 1 + n9;
+            [o1, io1, io2, io8, io9] = asils.models.kpimetrics.kpi_time_to_threshold(a1, a2, a3, a4, a5, a6, a7, a8, a9);
+            y = [double(o1); numel(io1); reshape(io1, [], 1); numel(io2); reshape(io2, [], 1); numel(io8); reshape(io8, [], 1); numel(io9); reshape(io9, [], 1)];
+        case 'kpimetrics::kpi_wheel_peak'
+            at = 0;
+            n1 = x(at + 1);
+            a1 = reshape(x(at + 2:at + 1 + n1), [], 1);
+            at = at + 1 + n1;
+            xa = x(at + 1:end);
+            a2 = xa(1);
+            at = at + 1;
+            n3 = x(at + 1);
+            a3 = reshape(x(at + 2:at + 1 + n3), [], 1);
+            at = at + 1 + n3;
+            xa = x(at + 1:end);
+            a4 = xa(1);
+            at = at + 1;
+            [o1, io1, io3] = asils.models.kpimetrics.kpi_wheel_peak(a1, a2, a3, a4);
+            y = [double(o1); numel(io1); reshape(io1, [], 1); numel(io3); reshape(io3, [], 1)];
+        case 'kpimetrics::kpi_time_to_mode'
+            at = 0;
+            n1 = x(at + 1);
+            a1 = reshape(x(at + 2:at + 1 + n1), [], 1);
+            at = at + 1 + n1;
+            n2 = x(at + 1);
+            a2 = reshape(x(at + 2:at + 1 + n2), [], 1);
+            at = at + 1 + n2;
+            xa = x(at + 1:end);
+            a3 = xa(1);
+            at = at + 1;
+            xa = x(at + 1:end);
+            a4 = xa(1);
+            at = at + 1;
+            [o1, io1, io2] = asils.models.kpimetrics.kpi_time_to_mode(a1, a2, a3, a4);
+            y = [double(o1); numel(io1); reshape(io1, [], 1); numel(io2); reshape(io2, [], 1)];
+        case 'kpimetrics::kpi_sun_angle_stat'
+            at = 0;
+            n1 = x(at + 1);
+            a1 = reshape(x(at + 2:at + 1 + n1), [], 1);
+            at = at + 1 + n1;
+            n2 = x(at + 1);
+            a2 = reshape(x(at + 2:at + 1 + n2), [], 1);
+            at = at + 1 + n2;
+            n3 = x(at + 1);
+            a3 = reshape(x(at + 2:at + 1 + n3), [], 1);
+            at = at + 1 + n3;
+            xa = x(at + 1:end);
+            a4 = xa(1);
+            at = at + 1;
+            xa = x(at + 1:end);
+            a5 = (xa(1) ~= 0);
+            at = at + 1;
+            xa = x(at + 1:end);
+            a6 = xa(1);
+            at = at + 1;
+            xa = x(at + 1:end);
+            a7 = xa(1);
+            at = at + 1;
+            n8 = x(at + 1);
+            a8 = reshape(x(at + 2:at + 1 + n8), [], 1);
+            at = at + 1 + n8;
+            n9 = x(at + 1);
+            a9 = reshape(x(at + 2:at + 1 + n9), [], 1);
+            at = at + 1 + n9;
+            [o1, io1, io2, io3, io8, io9] = asils.models.kpimetrics.kpi_sun_angle_stat(a1, a2, a3, a4, a5, a6, a7, a8, a9);
+            y = [double(o1); numel(io1); reshape(io1, [], 1); numel(io2); reshape(io2, [], 1); numel(io3); reshape(io3, [], 1); numel(io8); reshape(io8, [], 1); numel(io9); reshape(io9, [], 1)];
+        case 'kpimetrics::kpi_spin_error_stat'
+            at = 0;
+            n1 = x(at + 1);
+            a1 = reshape(x(at + 2:at + 1 + n1), [], 1);
+            at = at + 1 + n1;
+            n2 = x(at + 1);
+            a2 = reshape(x(at + 2:at + 1 + n2), [], 1);
+            at = at + 1 + n2;
+            xa = x(at + 1:end);
+            a3 = xa(1);
+            at = at + 1;
+            xa = x(at + 1:end);
+            a4 = xa(1);
+            at = at + 1;
+            xa = x(at + 1:end);
+            a5 = xa(1);
+            at = at + 1;
+            n6 = x(at + 1);
+            a6 = reshape(x(at + 2:at + 1 + n6), [], 1);
+            at = at + 1 + n6;
+            n7 = x(at + 1);
+            a7 = reshape(x(at + 2:at + 1 + n7), [], 1);
+            at = at + 1 + n7;
+            [o1, io1, io2, io6, io7] = asils.models.kpimetrics.kpi_spin_error_stat(a1, a2, a3, a4, a5, a6, a7);
+            y = [double(o1); numel(io1); reshape(io1, [], 1); numel(io2); reshape(io2, [], 1); numel(io6); reshape(io6, [], 1); numel(io7); reshape(io7, [], 1)];
+        case 'kpimetrics::kpi_mode_fraction'
+            at = 0;
+            n1 = x(at + 1);
+            a1 = reshape(x(at + 2:at + 1 + n1), [], 1);
+            at = at + 1 + n1;
+            n2 = x(at + 1);
+            a2 = reshape(x(at + 2:at + 1 + n2), [], 1);
+            at = at + 1 + n2;
+            xa = x(at + 1:end);
+            a3 = xa(1);
+            at = at + 1;
+            xa = x(at + 1:end);
+            a4 = xa(1);
+            at = at + 1;
+            [o1, io1, io2] = asils.models.kpimetrics.kpi_mode_fraction(a1, a2, a3, a4);
+            y = [double(o1); numel(io1); reshape(io1, [], 1); numel(io2); reshape(io2, [], 1)];
+        case 'kpimetrics::kpi_propellant'
+            at = 0;
+            n1 = x(at + 1);
+            a1 = reshape(x(at + 2:at + 1 + n1), [], 1);
+            at = at + 1 + n1;
+            xa = x(at + 1:end);
+            a2 = xa(1);
+            at = at + 1;
+            [o1, io1] = asils.models.kpimetrics.kpi_propellant(a1, a2);
+            y = [double(o1); numel(io1); reshape(io1, [], 1)];
+        case 'kpimetrics::kpi_adcs_power'
+            at = 0;
+            n1 = x(at + 1);
+            a1 = reshape(x(at + 2:at + 1 + n1), [], 1);
+            at = at + 1 + n1;
+            n2 = x(at + 1);
+            a2 = reshape(x(at + 2:at + 1 + n2), [], 1);
+            at = at + 1 + n2;
+            n3 = x(at + 1);
+            a3 = reshape(x(at + 2:at + 1 + n3), [], 1);
+            at = at + 1 + n3;
+            n4 = x(at + 1);
+            a4 = reshape(x(at + 2:at + 1 + n4), [], 1);
+            at = at + 1 + n4;
+            xa = x(at + 1:end);
+            a5 = xa(1);
+            at = at + 1;
+            [o1, o2, io1, io2, io3, io4] = asils.models.kpimetrics.kpi_adcs_power(a1, a2, a3, a4, a5);
+            y = [double(o1); double(o2); numel(io1); reshape(io1, [], 1); numel(io2); reshape(io2, [], 1); numel(io3); reshape(io3, [], 1); numel(io4); reshape(io4, [], 1)];
+        case 'kpimetrics::kpi_power_margin'
+            at = 0;
+            xa = x(at + 1:end);
+            a1 = (xa(1) ~= 0);
+            at = at + 1;
+            n2 = x(at + 1);
+            a2 = reshape(x(at + 2:at + 1 + n2), [], 1);
+            at = at + 1 + n2;
+            n3 = x(at + 1);
+            a3 = reshape(x(at + 2:at + 1 + n3), [], 1);
+            at = at + 1 + n3;
+            n4 = x(at + 1);
+            a4 = reshape(x(at + 2:at + 1 + n4), [], 1);
+            at = at + 1 + n4;
+            n5 = x(at + 1);
+            a5 = reshape(x(at + 2:at + 1 + n5), [], 1);
+            at = at + 1 + n5;
+            n6 = x(at + 1);
+            a6 = reshape(x(at + 2:at + 1 + n6), [], 1);
+            at = at + 1 + n6;
+            xa = x(at + 1:end);
+            a7 = xa(1);
+            at = at + 1;
+            xa = x(at + 1:end);
+            a8 = xa(1);
+            at = at + 1;
+            [o1, io2, io3, io4, io5, io6] = asils.models.kpimetrics.kpi_power_margin(a1, a2, a3, a4, a5, a6, a7, a8);
+            y = [double(o1); numel(io2); reshape(io2, [], 1); numel(io3); reshape(io3, [], 1); numel(io4); reshape(io4, [], 1); numel(io5); reshape(io5, [], 1); numel(io6); reshape(io6, [], 1)];
+        case 'kpimetrics::kpi_battery'
+            at = 0;
+            n1 = x(at + 1);
+            a1 = reshape(x(at + 2:at + 1 + n1), [], 1);
+            at = at + 1 + n1;
+            n2 = x(at + 1);
+            a2 = reshape(x(at + 2:at + 1 + n2), [], 1);
+            at = at + 1 + n2;
+            xa = x(at + 1:end);
+            a3 = xa(1);
+            at = at + 1;
+            [o1, o2, io1, io2] = asils.models.kpimetrics.kpi_battery(a1, a2, a3);
+            y = [double(o1); double(o2); numel(io1); reshape(io1, [], 1); numel(io2); reshape(io2, [], 1)];
+        case 'kpimetrics::kpi_verdict'
+            [o1] = asils.models.kpimetrics.kpi_verdict(x(1), x(2), (x(3) ~= 0));
+            y = [double(o1)];
+        case 'kpistats::kpi_max'
+            [o1] = asils.models.kpistats.kpi_max(x(1), x(2));
+            y = [double(o1)];
+        case 'kpistats::kpi_min'
+            [o1] = asils.models.kpistats.kpi_min(x(1), x(2));
+            y = [double(o1)];
+        case 'kpistats::kpi_window'
+            at = 0;
+            xa = x(at + 1:end);
+            a1 = xa(1);
+            at = at + 1;
+            xa = x(at + 1:end);
+            a2 = xa(1);
+            at = at + 1;
+            n3 = x(at + 1);
+            a3 = reshape(x(at + 2:at + 1 + n3), [], 1);
+            at = at + 1 + n3;
+            n4 = x(at + 1);
+            a4 = reshape(x(at + 2:at + 1 + n4), [], 1);
+            at = at + 1 + n4;
+            xa = x(at + 1:end);
+            a5 = xa(1);
+            at = at + 1;
+            xa = x(at + 1:end);
+            a6 = xa(1);
+            at = at + 1;
+            n7 = x(at + 1);
+            a7 = reshape(x(at + 2:at + 1 + n7), [], 1);
+            at = at + 1 + n7;
+            [o1, io3, io4, io7] = asils.models.kpistats.kpi_window(a1, a2, a3, a4, a5, a6, a7);
+            y = [double(o1); numel(io3); reshape(io3, [], 1); numel(io4); reshape(io4, [], 1); numel(io7); reshape(io7, [], 1)];
+        case 'kpistats::kpi_merge'
+            at = 0;
+            n1 = x(at + 1);
+            a1 = reshape(x(at + 2:at + 1 + n1), [], 1);
+            at = at + 1 + n1;
+            n2 = x(at + 1);
+            a2 = reshape(x(at + 2:at + 1 + n2), [], 1);
+            at = at + 1 + n2;
+            xa = x(at + 1:end);
+            a3 = xa(1);
+            at = at + 1;
+            xa = x(at + 1:end);
+            a4 = xa(1);
+            at = at + 1;
+            [o1, io1, io2] = asils.models.kpistats.kpi_merge(a1, a2, a3, a4);
+            y = [double(o1); numel(io1); reshape(io1, [], 1); numel(io2); reshape(io2, [], 1)];
+        case 'kpistats::kpi_sort'
+            at = 0;
+            n1 = x(at + 1);
+            a1 = reshape(x(at + 2:at + 1 + n1), [], 1);
+            at = at + 1 + n1;
+            xa = x(at + 1:end);
+            a2 = xa(1);
+            at = at + 1;
+            n3 = x(at + 1);
+            a3 = reshape(x(at + 2:at + 1 + n3), [], 1);
+            at = at + 1 + n3;
+            [o1, io1, io3] = asils.models.kpistats.kpi_sort(a1, a2, a3);
+            y = [double(o1); numel(io1); reshape(io1, [], 1); numel(io3); reshape(io3, [], 1)];
+        case 'kpistats::kpi_stat_of'
+            at = 0;
+            n1 = x(at + 1);
+            a1 = reshape(x(at + 2:at + 1 + n1), [], 1);
+            at = at + 1 + n1;
+            xa = x(at + 1:end);
+            a2 = xa(1);
+            at = at + 1;
+            xa = x(at + 1:end);
+            a3 = xa(1);
+            at = at + 1;
+            n4 = x(at + 1);
+            a4 = reshape(x(at + 2:at + 1 + n4), [], 1);
+            at = at + 1 + n4;
+            [o1, io1, io4] = asils.models.kpistats.kpi_stat_of(a1, a2, a3, a4);
+            y = [double(o1); numel(io1); reshape(io1, [], 1); numel(io4); reshape(io4, [], 1)];
+        case 'kpistats::kpi_statistic'
+            at = 0;
+            n1 = x(at + 1);
+            a1 = reshape(x(at + 2:at + 1 + n1), [], 1);
+            at = at + 1 + n1;
+            xa = x(at + 1:end);
+            a2 = xa(1);
+            at = at + 1;
+            xa = x(at + 1:end);
+            a3 = xa(1);
+            at = at + 1;
+            n4 = x(at + 1);
+            a4 = reshape(x(at + 2:at + 1 + n4), [], 1);
+            at = at + 1 + n4;
+            n5 = x(at + 1);
+            a5 = reshape(x(at + 2:at + 1 + n5), [], 1);
+            at = at + 1 + n5;
+            [o1, io1, io4, io5] = asils.models.kpistats.kpi_statistic(a1, a2, a3, a4, a5);
+            y = [double(o1); numel(io1); reshape(io1, [], 1); numel(io4); reshape(io4, [], 1); numel(io5); reshape(io5, [], 1)];
+        case 'kpistats::kpi_channel_stat'
+            at = 0;
+            n1 = x(at + 1);
+            a1 = reshape(x(at + 2:at + 1 + n1), [], 1);
+            at = at + 1 + n1;
+            n2 = x(at + 1);
+            a2 = reshape(x(at + 2:at + 1 + n2), [], 1);
+            at = at + 1 + n2;
+            xa = x(at + 1:end);
+            a3 = xa(1);
+            at = at + 1;
+            xa = x(at + 1:end);
+            a4 = xa(1);
+            at = at + 1;
+            n5 = x(at + 1);
+            a5 = reshape(x(at + 2:at + 1 + n5), [], 1);
+            at = at + 1 + n5;
+            n6 = x(at + 1);
+            a6 = reshape(x(at + 2:at + 1 + n6), [], 1);
+            at = at + 1 + n6;
+            [o1, io1, io2, io5, io6] = asils.models.kpistats.kpi_channel_stat(a1, a2, a3, a4, a5, a6);
+            y = [double(o1); numel(io1); reshape(io1, [], 1); numel(io2); reshape(io2, [], 1); numel(io5); reshape(io5, [], 1); numel(io6); reshape(io6, [], 1)];
+        case 'kpistats::kpi_time_to'
+            at = 0;
+            n1 = x(at + 1);
+            a1 = reshape(x(at + 2:at + 1 + n1), [], 1);
+            at = at + 1 + n1;
+            n2 = x(at + 1);
+            a2 = reshape(x(at + 2:at + 1 + n2), [], 1);
+            at = at + 1 + n2;
+            xa = x(at + 1:end);
+            a3 = xa(1);
+            at = at + 1;
+            xa = x(at + 1:end);
+            a4 = xa(1);
+            at = at + 1;
+            xa = x(at + 1:end);
+            a5 = xa(1);
+            at = at + 1;
+            [o1, io1, io2] = asils.models.kpistats.kpi_time_to(a1, a2, a3, a4, a5);
+            y = [double(o1); numel(io1); reshape(io1, [], 1); numel(io2); reshape(io2, [], 1)];
+        case 'kpistats::kpi_time_to_from'
+            at = 0;
+            n1 = x(at + 1);
+            a1 = reshape(x(at + 2:at + 1 + n1), [], 1);
+            at = at + 1 + n1;
+            n2 = x(at + 1);
+            a2 = reshape(x(at + 2:at + 1 + n2), [], 1);
+            at = at + 1 + n2;
+            xa = x(at + 1:end);
+            a3 = xa(1);
+            at = at + 1;
+            xa = x(at + 1:end);
+            a4 = xa(1);
+            at = at + 1;
+            xa = x(at + 1:end);
+            a5 = xa(1);
+            at = at + 1;
+            xa = x(at + 1:end);
+            a6 = xa(1);
+            at = at + 1;
+            n7 = x(at + 1);
+            a7 = reshape(x(at + 2:at + 1 + n7), [], 1);
+            at = at + 1 + n7;
+            n8 = x(at + 1);
+            a8 = reshape(x(at + 2:at + 1 + n8), [], 1);
+            at = at + 1 + n8;
+            [o1, io1, io2, io7, io8] = asils.models.kpistats.kpi_time_to_from(a1, a2, a3, a4, a5, a6, a7, a8);
+            y = [double(o1); numel(io1); reshape(io1, [], 1); numel(io2); reshape(io2, [], 1); numel(io7); reshape(io7, [], 1); numel(io8); reshape(io8, [], 1)];
         case 'emucodec::emu_scale'
             [o1] = asils.models.emucodec.emu_scale();
             y = [[double(o1.mag); double(o1.gyro); double(o1.unit); double(o1.q); double(o1.pos); double(o1.vel); double(o1.h); double(o1.delta); double(o1.word); double(o1.valve); double(o1.lo16); double(o1.hi16); double(o1.lo32); double(o1.hi32)]];
@@ -1259,6 +1791,36 @@ function y = call(name, x)
         case 'emucodec::valve_duty'
             [o1] = asils.models.emucodec.valve_duty(x(1), x(2), struct('mag', {x(3)}, 'gyro', {x(4)}, 'unit', {x(5)}, 'q', {x(6)}, 'pos', {x(7)}, 'vel', {x(8)}, 'h', {x(9)}, 'delta', {x(10)}, 'word', {x(11)}, 'valve', {x(12)}, 'lo16', {x(13)}, 'hi16', {x(14)}, 'lo32', {x(15)}, 'hi32', {x(16)}));
             y = [double(o1)];
+        case 'jitter::jitter_min'
+            [o1] = asils.models.jitter.jitter_min(x(1), x(2));
+            y = [double(o1)];
+        case 'jitter::jitter_eig_min3'
+            [o1] = asils.models.jitter.jitter_eig_min3(reshape(x(1:9), 3, 3).');
+            y = [double(o1)];
+        case 'jitter::rotor_imbalance'
+            [o1, o2, o3] = asils.models.jitter.rotor_imbalance((x(1) ~= 0), x(2), x(3));
+            y = [double(o1); double(o2); double(o3)];
+        case 'jitter::jitter_body'
+            [o1, o2] = asils.models.jitter.jitter_body(reshape(x(1:9), 3, 3).', reshape(x(10:12), 3, 1));
+            y = [double(o1); double(o2)];
+        case 'jitter::rotor_jitter'
+            [o1] = asils.models.jitter.rotor_jitter(x(1), reshape(x(2:9), 8, 1), reshape(x(10:17), 8, 1), reshape(x(18:25), 8, 1), reshape(x(26:33), 8, 1), x(34), x(35), x(36));
+            y = [double(o1)];
+        case 'pntbudget::pointing_knowledge'
+            [o1] = asils.models.pntbudget.pointing_knowledge(x(1));
+            y = [double(o1)];
+        case 'pntbudget::pointing_control'
+            [o1] = asils.models.pntbudget.pointing_control(x(1), x(2));
+            y = [double(o1)];
+        case 'pntbudget::pointing_alignment'
+            [o1] = asils.models.pntbudget.pointing_alignment(x(1));
+            y = [double(o1)];
+        case 'pntbudget::pointing_jitter'
+            [o1] = asils.models.pntbudget.pointing_jitter(x(1));
+            y = [double(o1)];
+        case 'pntbudget::pointing_budget'
+            [o1, o2, o3] = asils.models.pntbudget.pointing_budget(x(1), x(2), x(3), x(4), x(5));
+            y = [double(o1); double(o2); double(o3)];
         case 'css::css_new'
             [o1, io2] = asils.models.css.css_new(struct('n', {x(1)}, 'normals', {reshape(x(2:25), 3, 8).'}, 'noise', {x(26)}, 'albedo', {x(27)}, 'scale_sigma', {x(28)}, 'misalign', {x(29)}), reshape(x(30:35), 6, 1), reshape(x(36:41), 6, 1));
             y = [[reshape(o1.scale, [], 1); reshape(o1.dead, [], 1); reshape((o1.r).', [], 1); reshape(o1.g, [], 1)]; reshape(io2, [], 1)];

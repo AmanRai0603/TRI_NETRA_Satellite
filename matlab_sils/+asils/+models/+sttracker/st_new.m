@@ -13,13 +13,13 @@ function [u, disp] = st_new(d, disp, noise)
         u.blind_until((i) + 1) = (-(Inf));
     end
     for h = (0):((d.nh) - 1)
-        [t__255, t__256] = asils.pc.stream_normal3(disp);
-        e1 = t__255;
-        disp = t__256;
+        [t__291, t__292] = asils.pc.stream_normal3(disp);
+        e1 = t__291;
+        disp = t__292;
         u.q_bias((h) + 1, :) = asils.models.math.fromrotvec((e1 * d.bias_sigma)).';
-        [t__257, t__258] = asils.pc.stream_normal3(disp);
-        e2 = t__257;
-        disp = t__258;
+        [t__293, t__294] = asils.pc.stream_normal3(disp);
+        e2 = t__293;
+        disp = t__294;
         u.q_mis((h) + 1, :) = asils.models.math.fromrotvec((e2 * d.misalign_sigma)).';
     end
     u.g = noise;

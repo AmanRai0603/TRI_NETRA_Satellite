@@ -9,7 +9,7 @@ function [lo, pa] = st_first_above(pa, np, x)
     lo = 0;
     lo = 0;
     hi = np;
-    n__207 = 64; k__206 = 0;
+    n__243 = 64; k__242 = 0;
     while true
         if (lo < hi)
             mid = (lo + fix(((hi - lo)) / (2)));
@@ -17,9 +17,9 @@ function [lo, pa] = st_first_above(pa, np, x)
             lo = asils.pc.choose(left, (mid + 1), lo);
             hi = asils.pc.choose(left, hi, mid);
         end
-        k__206 = k__206 + 1;
+        k__242 = k__242 + 1;
         if (~(lo < hi)), break; end
-        if k__206 >= n__207
+        if k__242 >= n__243
             break;
         end
     end

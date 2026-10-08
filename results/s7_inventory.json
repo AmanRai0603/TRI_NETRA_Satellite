@@ -649,6 +649,53 @@
     "twin: config.m and +fsw/init.m compute their own flight parameters until S7.17"
    ],
    "regression_copy_bytes": 10604544
+  },
+  "after_s7_14b": {
+   "built_in": 27,
+   "built_in_by_group": {
+    "act": 8,
+    "design": 19
+   },
+   "behaviours": {
+    "open": 301,
+    "stated": 284,
+    "method": 241,
+    "children": 134,
+    "lookup": 126,
+    "evidence": 119,
+    "closure": 38,
+    "built-in": 27
+   },
+   "design_nodes": 1270,
+   "how": "the developer's revisions S7.14 (pnt's gp_0, gp_1, gp_2 and l3_pnt_row_09: pntbudget; gp_4: jitter; design_power_system, a new node: powersys) and S7.14b (four new nodes of kpi: kpichannels, kpistats, kpiecss, kpimetrics), transcribed under design/revisions/S7.14 and S7.14b, generated into adcs-sim (kpichannels into adcs-sim-core too) and the twin's +asils/+models",
+   "moved": [
+    "gp_0",
+    "gp_1",
+    "gp_2",
+    "gp_4"
+   ],
+   "added": {
+    "design_power_system": "method",
+    "kpi_metric_channels": "method",
+    "kpi_metric_statistics": "method",
+    "kpi_metric_ecss": "method",
+    "kpi_metric_evaluate": "method"
+   },
+   "open_to_method": [
+    "l3_pnt_row_09"
+   ],
+   "findings": [
+    "kpi: the metrics take their angles from two maths libraries, as flown: the three-axis APE and AKE through the toolbox's qangle with the engine's portable libm (adcs-sim-core's pm), the angles across the boresight and the Sun's angle with the platform's acos; the two differ in the last bit on 2.7 % of arguments in [0, 1]. The transcription keeps both (kpi_metric_channels generated into adcs-sim-core too; the engine takes kpi_three_axis from there); kpi's to choose one, which moves the stored three-axis or line-of-sight values in their last bits.",
+    "kpi: a metric's pointing window is every sample in a mode other than the first (detumble), `mode + 1 > 1`, so the Sun spin and the Sun-pointing modes count as pointing; the APE is measured only in a mode with guidance, by config.rs's GUID table (no node holds it, S7.13's finding). A percentile is the sorted value at rank ceil(q n), with no interpolation: the 99.73rd percentile of fewer than 371 samples is the largest. Over an empty window the peak power is the least number (-1.8e308, recorded as a number) and the mean power and margin -0 (the code's sum starts at -0). Transcribed as flown; kpi's to state.",
+    "kpi: a metric section's defaults (window all, statistic max, the APE across the boresight for a time to a threshold, 0.5 deg/s and no hold for a time to a rate, 1 deg held 10 s from 0 s for a time to a threshold, judged as at most) are kpi_metric_defaults's constants, as the 1.0.0 code gave them. The scenario's words for the kinds, windows, statistics and channels are the schema's lists (adcs-sim schema.rs and the programme's scenario format), which kpi's choices follow in order (tests/test_built_in.py holds them equal).",
+    "pnt: the page's total (tools/pointing_budget.py: the flown APE with gp_2, gp_3 and gp_4 in quadrature) is not gp_5's method (the root sum square of gp_0 to gp_4, spec/physics/gnc.pc's pointing_error_rss): two formulas for one row. Transcribed as the tool's into l3_pnt_row_09, with the room and the verdict; pnt decides. No product states payload_alignment_rad and no case pointing.et, so every budget is incomplete.",
+    "pnt: the jitter's lever is half the class box's smallest side and its loop bandwidth the wheel loop's, for every product (the CMG and VSCMG parts state no imbalance, so their jitter is not computed). metrics.rs had its own copy of the bandwidth's default (0.9 rad/s); the jitter now takes the one the flight software flies (fsw.rw_bandwidth, else fsw_tune_rw_bandwidth: equal today). The smallest principal moment skips a value that is not a number, as the code's f64::min did.",
+    "design: the platform's power system is a new node of design (design_power_system, under s5): body-mounted cells on the six faces at the solar constant 1361 W/m^2 with no seasonal change (+/-3.3 %), no cell temperature or deployable arrays, a battery with no charge efficiency or depth limit; the case's power.* lines have no nodes of their own. Transcribed as flown; design states.",
+    "tools: the catalogue's derive rule (tools/catalogue.py: 6000 rpm, rotor share 0.4, no-load 1.25, static 1.5) and the Floquet certificate (tools/floquet.py) are left: the first with the sizing that selects from the catalogue (S7.15), the second the owner's word (an analysis method of ctl, or an analysis tool). There is no generated Python target and no command of the library that runs a design's method: a tool with a relation of its own (catalogue.py, floquet.py, pipeline_design.py) will need one or an engine subcommand as pointing_budget.py now has (`adcs results budget`).",
+    "tools: evaluate takes one function of a module that several nodes share as each node's (gp_0 and gp_1 show pointing_budget's unwired inputs), as for S7.13's shared modules: reason text only.",
+    "docs: this page's section 1.1 had S7.14b's step row spliced into gm_4's row, and section 7 had no S7.14b row: repaired."
+   ],
+   "regression_copy_bytes": 10674176
   }
  },
  "built_in_nodes": [
@@ -3840,7 +3887,8 @@
    "carried_code": {
     "code.rust": "[\"adcs-sim/metrics.rs (jitter)\"]",
     "code.twin": "[\"+metrics\"]"
-   }
+   },
+   "status": "method (S7.14)"
   },
   {
    "node": "gp_1",
@@ -3854,7 +3902,8 @@
    "carried_code": {
     "code.rust": "[\"adcs-sim/metrics.rs (jitter)\"]",
     "code.twin": "[\"+metrics\"]"
-   }
+   },
+   "status": "method (S7.14)"
   },
   {
    "node": "gp_2",
@@ -3868,7 +3917,8 @@
    "carried_code": {
     "code.rust": "[\"adcs-sim/metrics.rs (jitter)\"]",
     "code.twin": "[\"+metrics\"]"
-   }
+   },
+   "status": "method (S7.14)"
   },
   {
    "node": "gp_4",
@@ -3882,7 +3932,8 @@
    "carried_code": {
     "code.rust": "[\"adcs-sim/metrics.rs (jitter)\"]",
     "code.twin": "[\"+metrics\"]"
-   }
+   },
+   "status": "method (S7.14)"
   },
   {
    "node": "l3_pnt_gp_0_achieved",
@@ -4896,7 +4947,8 @@
    "kind": "relation + parameter",
    "gaps": [],
    "step": "S7.14",
-   "note": "No node: a power node (programme or design) is needed."
+   "note": "No node: a power node (programme or design) is needed.",
+   "status": "done (S7.14): design_power_system's powersys, a new node of design (the six faces' cosine at the solar constant, the battery, the load), generated into adcs-sim; metrics.rs reads the case's power section and hands the record over"
   },
   {
    "id": "sim.metrics.jitter",
@@ -4911,7 +4963,8 @@
    "kind": "relation",
    "gaps": [],
    "step": "S7.14",
-   "note": ""
+   "note": "",
+   "status": "done (S7.14): gp_4's jitter (jitter_eig_min3, jitter_body, rotor_jitter, rotor_imbalance: a ring's none), generated into adcs-sim; the loop's bandwidth the flight software's (Config rw_bandwidth)"
   },
   {
    "id": "sim.metrics.core",
@@ -4924,7 +4977,8 @@
    "gaps": [],
    "step": "S7.14b",
    "note": "The ruling: the metrics become methods of kpi (APE, AKE, RKS, ECSS indices, windows, verdicts). The recorder and the run order stay core.",
-   "kind_before_ruling": "core (metrics)"
+   "kind_before_ruling": "core (metrics)",
+   "status": "done (S7.14b): four new nodes of kpi, kpi_metric_channels (into adcs-sim and adcs-sim-core), kpi_metric_statistics, kpi_metric_ecss, kpi_metric_evaluate; metrics.rs walks the record, reads the scenario's metric sections and hands the channels over"
   },
   {
    "id": "design.survey",
@@ -5594,7 +5648,8 @@
    "kind": "relation",
    "gaps": [],
    "step": "S7.14",
-   "note": ""
+   "note": "",
+   "status": "done (S7.14): pntbudget, the method of gp_0, gp_1, gp_2 and l3_pnt_row_09 (open until now), generated into adcs-sim; tools/pointing_budget.py flies each scenario and asks the engine (adcs results budget)"
   },
   {
    "id": "tools.catalogue",
@@ -5607,8 +5662,9 @@
    ],
    "kind": "relation + parameters",
    "gaps": [],
-   "step": "S7.14",
-   "note": "The derived block is held in the design as data today; the rule that made it is code."
+   "step": "S7.15",
+   "note": "The derived block is held in the design as data today; the rule that made it is code.",
+   "status": "left at S7.14: the datasheet-to-part rule makes the catalogue's data the design holds; with the sizing that selects from it, S7.15"
   },
   {
    "id": "tools.floquet",
@@ -5620,7 +5676,8 @@
    "kind": "relation (analysis)",
    "gaps": [],
    "step": "S7.14",
-   "note": "No node: ctl adds a certify node, or it stays an analysis tool."
+   "note": "No node: ctl adds a certify node, or it stays an analysis tool.",
+   "status": "left at S7.14: decide (the owner's word), an analysis method of ctl or an analysis tool"
   },
   {
    "id": "tools.converge",
@@ -5750,7 +5807,8 @@
    "lines": 452,
    "kind": "relation (demand, mtq, rw, cmg, fmr, rcs, jitter, size_all); code (print)",
    "step": "S7.15",
-   "note": "Differs from adcs-design: wheels and CMGs by law, no pump design."
+   "note": "Differs from adcs-design: wheels and CMGs by law, no pump design.",
+   "status": "the jitter's generated copy in +asils/+models since S7.14 (+jitter), with the power system's (+powersys) and the pointing budget's (+pntbudget); the twin flies its own until S7.17"
   },
   {
    "package": "+product",
@@ -5775,7 +5833,8 @@
    "lines": 280,
    "kind": "relation (the metrics, kpi methods); print.m code",
    "step": "S7.14b",
-   "note": ""
+   "note": "",
+   "status": "the generated copies in +asils/+models since S7.14b (+kpichannels, +kpistats, +kpiecss, +kpimetrics); the twin flies its own until S7.17"
   },
   {
    "package": "+hal",
@@ -6044,12 +6103,14 @@
   {
    "step": "S7.14",
    "work": "Run-side relations: power system, jitter, pointing terms gp_0..gp_2, the catalogue derive rule; floquet as an analysis method or kept as a tool (decide).",
-   "parity": "results/POINTING_BUDGET.md, EVALUATION.md, ENGINE_SOLUTIONS identical"
+   "parity": "results/POINTING_BUDGET.md, EVALUATION.md, ENGINE_SOLUTIONS identical",
+   "status": "done (8 Oct 2026): pnt's and design's methods (design/revisions/S7.14): pntbudget, the method of gp_0 (pointing_knowledge), gp_1 (pointing_control), gp_2 (pointing_alignment) and l3_pnt_row_09 (open until now: the total, the room req.ape leaves and the verdict, as the tool computed them); gp_4's jitter (the smallest principal moment, the lever, a sample's root sum square over the rotors, each rotor's imbalance with a ring's none, which product.rs held); design_power_system's powersys (a new node of design: the arrays, the battery, the solar constant); generated into adcs-sim and the twin's +asils/+models. metrics.rs and product.rs hand values over; the jitter takes the wheel loop's bandwidth the flight software flies (Config rw_bandwidth), where metrics.rs had its own default; tools/pointing_budget.py flies each scenario and asks the engine for the budget (`adcs results budget`, a new subcommand). Held: 400,000 random draws (two seeds), old against generated, 0 bits different (the arrays' power, the Sun made unit, 20,000,000 battery steps, the smallest principal moment, a sample's jitter, the body's set-up, the imbalance rule), and 400,000 budgets against the tool's own Python, 0 different; results/POINTING_BUDGET.md and pointing_budget.json written again byte for byte; 48 of 48 scenarios bit for bit; fsw-parity 48/48; built-in 31 to 27 (pnt 4 to 0)."
   },
   {
    "step": "S7.14b",
    "work": "The metrics (the ruling of 7 Oct): how each KPI is measured from a run (APE, AKE, RKS, the ECSS indices, windows, time-to, verdicts; adcs-sim/src/metrics.rs derive, ecss, time_to, window, evaluate; the twin's +metrics) as methods of kpi, generated into the engine and the twin. The recorder and the step order stay core.",
-   "parity": "every scenario's metrics and every campaign's results identical (results/EVALUATION.md, ENGINE_SOLUTIONS); twin-parity"
+   "parity": "every scenario's metrics and every campaign's results identical (results/EVALUATION.md, ENGINE_SOLUTIONS); twin-parity",
+   "status": "done (8 Oct 2026): kpi's methods (design/revisions/S7.14b), four new nodes: kpi_metric_channels kpichannels (the reference the flight software's guidance gives in each sample's mode with its yaw flip carried, the error vectors and angles three-axis and across the boresight, the rate, the Sun's angle, the spin, the rate stability; generated into adcs-sim-core too, for the three-axis angle's portable maths), kpi_metric_statistics kpistats (the windows, the statistics over a stable merge sort, the time to a threshold), kpi_metric_ecss kpiecss (the ECSS-E-ST-60-10C indices over blocks), kpi_metric_evaluate kpimetrics (each kind's value, unit, defaults and verdict); generated into adcs-sim and the twin's +asils/+models. metrics.rs walks the record, reads the scenario's metric sections and hands the channels over. Held: 400,000 random records and metric sections (two seeds) on every shipped scenario's configuration, old against generated, 0 bits different (derive; evaluate, 2,602,966 metric records, also on one derived for both; time_to); every stored engine run (482) rebuilt from its channels.csv, old and new evaluate equal; every stored engine run flown again from its kept inputs, old binary against new, 482 of 482 the same metrics, mode log and channels; 48 of 48 scenarios bit for bit; every campaign identical (4,516 of 4,516); fsw-parity 48/48; the built-in count does not move (new nodes)."
   },
   {
    "step": "S7.15",

@@ -7,7 +7,7 @@ budget closes against the case's req.ape.
     gp_1 control     the flown APE with the knowledge removed in quadrature (inferred, see below)
     gp_2 alignment   payload to star-tracker alignment: the product's `payload_alignment_rad`
     gp_3 thermal     thermal distortion between payload and sensors: the case's `pointing.et`
-    gp_4 jitter      the engine's rotor-imbalance jitter (metrics::jitter, last orbit)
+    gp_4 jitter      the engine's rotor-imbalance jitter (gp_4's method, last orbit)
     gp_5 total       sqrt(flown APE^2 + gp_2^2 + gp_3^2 + gp_4^2)
 
 The flown APE already contains knowledge and control (and the star tracker's calibrated mount
@@ -16,51 +16,32 @@ quadrature, which holds only for independent random terms (SPEC risk R-15): a bi
 linearly, and the page says so. A term nobody states is "not stated", and a budget with one is
 "incomplete": it never closes on a guess.
 
+The terms, the total, the room and the verdict are pnt's methods (gp_0, gp_1, gp_2, gp_4, l3_pnt_row_09:
+design/revisions/S7.14/pntbudget.pc), generated into the engine: this tool flies each scenario, names
+the run's metrics the budget takes, and asks the engine for the budget (`adcs results budget`).
+
     python3 tools/pointing_budget.py            fly each scenario once, write results/POINTING_BUDGET.md
 
 Copyright (c) 2026 Agastya. All rights reserved.
 """
 import json
-import math
 import pathlib
 import subprocess
 import sys
 import tempfile
 
-from common import ROOT, case_values, write_json, write_text
+from common import ROOT, write_json, write_text
 
 ENGINE = ROOT / "engine" / "target" / "release" / "adcs"
 SCEN = ROOT / "matlab_sils" / "data" / "scenarios"
-PRODUCTS = "catalogue/products"            # the products as the design holds them (tools/from_design.py)
 # the scenarios that judge req.ape on a star-tracker product
 SCENARIOS = ["fine_hold_img", "fine_hold_rw_rcs", "fine_hold_cmg", "fine_hold_fmr", "fine_hold_fmr_rcs", "fine_hold_vscmg", "target_img"]
 JITTER = {"id": "budget_jitter", "kind": "jitter", "window": "last_orbit",
           "diagnostic": "the jitter term of the pointing budget (gp_4)"}
 
 
-def rss(terms):
-    """gp_5: the root-sum-square of the terms (degrees); None when any term is not stated."""
-    return None if any(t is None for t in terms) else math.sqrt(sum(t*t for t in terms))
-
-
-def control_part(ape, ake):
-    """gp_1 inferred from the flown loop: APE with the knowledge removed in quadrature."""
-    return math.sqrt(max(ape*ape - ake*ake, 0.0))
-
-
-def product_alignment(product):
-    """gp_2 from the product file, in degrees; None when the product does not state it."""
-    import tomllib
-    import from_design
-    f = f"{PRODUCTS}/{product}.toml"
-    if f not in from_design.paths(PRODUCTS + "/"):
-        return None
-    x = tomllib.loads(from_design.text(f)).get("payload_alignment_rad")
-    return None if x is None else math.degrees(float(x))
-
-
 def fly(sid, out):
-    """One run of the scenario with the jitter term added to its metrics; {metric id: value}."""
+    """One run of the scenario with the jitter term added to its metrics; its folder."""
     s = json.loads((SCEN / f"{sid}.json").read_text())
     s["metrics"] = list(s.get("metrics", [])) + [JITTER]
     f = out / f"{sid}.json"
@@ -68,28 +49,22 @@ def fly(sid, out):
     r = subprocess.run([str(ENGINE), "run", str(f), "--case", s["case"], "-q", "--out", str(out / sid)], capture_output=True, text=True)
     if r.returncode != 0:
         raise SystemExit(f"pointing_budget: {sid} did not fly: {r.stderr.strip() or r.stdout.strip()}")
-    man = json.loads((out / sid / "manifest.json").read_text())
-    return s, {m["id"]: m.get("value") for m in man["metrics"]}
+    return out / sid
 
 
-def row(sid, s, m):
-    pick = lambda kind_ids: next((m[k] for k in kind_ids if isinstance(m.get(k), (int, float))), None)
-    ape = pick([k for k in m if k.startswith("ape_los") and "p9973" in k])
-    ake = pick([k for k in m if k.startswith("ake_los") and "p9973" in k])
-    jit = m.get("budget_jitter")
-    cv = case_values(s["case"])
-    req = cv.get("req.ape")
-    terms = {"gp_0": ake, "gp_1": None if ape is None or ake is None else control_part(ape, ake),
-             "gp_2": product_alignment(s["product"]), "gp_3": cv.get("pointing.et"),
-             "gp_4": None if not isinstance(jit, (int, float)) or math.isnan(jit) else jit/3600.0}
-    total = rss([ape, terms["gp_2"], terms["gp_3"], terms["gp_4"]])
-    # what req.ape leaves for alignment and thermal together, once the flown loop and the jitter are in
-    room = None if req is None or ape is None or terms["gp_4"] is None else math.sqrt(max(req*req - ape*ape - terms["gp_4"]**2, 0.0))
-    missing = [k for k in ("gp_2", "gp_3", "gp_4") if terms[k] is None]
-    verdict = ("incomplete: " + ", ".join(missing) + " not stated") if missing else \
-              ("closes" if req is not None and total <= req else "does not close")
-    return {"scenario": sid, "case": s["case"], "product": s["product"], "flown_ape_deg": ape, "terms_deg": terms,
-            "total_deg": total, "req_ape_deg": req, "room_gp2_gp3_deg": room, "verdict": verdict}
+def row(run):
+    """The run's budget as the engine gives it (`adcs results budget`): the flown APE and AKE are the run's first
+    computed metrics across the boresight at p99.73, the jitter the term added above."""
+    m = {x["id"]: x.get("value") for x in json.loads((run / "manifest.json").read_text())["metrics"]}
+    pick = lambda pre: next((k for k in m if k.startswith(pre) and "p9973" in k and isinstance(m[k], (int, float))), None)
+    names = [("--flown", pick("ape_los")), ("--knowledge", pick("ake_los")), ("--jitter", "budget_jitter")]
+    r = subprocess.run([str(ENGINE), "results", "budget", str(run), *[a for k, v in names if v for a in (k, v)]], capture_output=True, text=True)
+    if r.returncode != 0:
+        raise SystemExit(f"pointing_budget: the engine gave no budget for {run.name}: {r.stderr.strip() or r.stdout.strip()}")
+    b = json.loads(r.stdout)
+    if b["verdict"] == "incomplete":
+        b["verdict"] = "incomplete: " + ", ".join(k for k in ("gp_2", "gp_3", "gp_4") if b["terms_deg"][k] is None) + " not stated"
+    return {k: b[k] for k in ("scenario", "case", "product", "flown_ape_deg", "terms_deg", "total_deg", "req_ape_deg", "room_gp2_gp3_deg", "verdict")}
 
 
 def markdown(rows):
@@ -115,7 +90,7 @@ def main(argv=None):
     if not ENGINE.exists():
         raise SystemExit(f"pointing_budget: no engine at {ENGINE} (cd engine && cargo build --release)")
     with tempfile.TemporaryDirectory() as tmp:
-        rows = [row(sid, *fly(sid, pathlib.Path(tmp))) for sid in SCENARIOS]
+        rows = [row(fly(sid, pathlib.Path(tmp))) for sid in SCENARIOS]
     write_text(ROOT / "results" / "POINTING_BUDGET.md", markdown(rows))
     write_json(ROOT / "results" / "pointing_budget.json", rows, indent=1)
     for r in rows:

@@ -30,7 +30,9 @@ emulators' scaling, their methods under `design/revisions/S7.11/` and `S7.12/`; 
 `data/stated.json`, every stated value of the design, which the engine reads by node; and again on 8 Oct 2026 with S7.13,
 the flight software's parameters, 77 of the 147 fsw_param_* methods under `design/revisions/S7.13/` and the rest stated,
 with the tuning a law takes and the run's defaults when a scenario states none, so `data/stated.json` holds lists too,
-`adcs-stated/2`):
+`adcs-stated/2`; and again on 8 Oct 2026 with S7.14 and S7.14b, the power system, the rotors' jitter and the pointing
+budget's terms (design, pnt) and the metrics (four new nodes of kpi), methods under `design/revisions/S7.14/` and
+`S7.14b/`):
 
     python3 tools/convert_2_0.py --out DRIVE
     python3 tools/design_build.py DRIVE --out tests/regression/design.tndb

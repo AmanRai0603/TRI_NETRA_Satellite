@@ -40,9 +40,9 @@ pub fn gps_history(ht: &mut [f64; 256], hr: &mut [[f64; 3]; 256], hv: &mut [[f64
     n = hn;
     if (n == crate::gen::gnss::GPS_HIST) {
         {
-            let __end103: i64 = n;
+            let __end111: i64 = n;
             let mut i: i64 = 1;
-            while i < __end103 {
+            while i < __end111 {
                 (*ht)[((i - 1)) as usize] = (*ht)[(i) as usize];
                 (*hr)[((i - 1)) as usize] = (*hr)[(i) as usize];
                 (*hv)[((i - 1)) as usize] = (*hv)[(i) as usize];
@@ -59,9 +59,9 @@ pub fn gps_history(ht: &mut [f64; 256], hr: &mut [[f64; 3]; 256], hv: &mut [[f64
     let mut k: i64 = 0;
     let mut going: bool = true;
     {
-        let __end104: i64 = n;
+        let __end112: i64 = n;
         let mut j: i64 = 1;
-        while j < __end104 {
+        while j < __end112 {
             if (going && ((*ht)[(j) as usize] <= (tl + 1.0e-9))) {
                 k = j;
             } else {
@@ -72,9 +72,9 @@ pub fn gps_history(ht: &mut [f64; 256], hr: &mut [[f64; 3]; 256], hv: &mut [[f64
     }
     if (k > 0) {
         {
-            let __end105: i64 = n;
+            let __end113: i64 = n;
             let mut m: i64 = k;
-            while m < __end105 {
+            while m < __end113 {
                 (*ht)[((m - k)) as usize] = (*ht)[(m) as usize];
                 (*hr)[((m - k)) as usize] = (*hr)[(m) as usize];
                 (*hv)[((m - k)) as usize] = (*hv)[(m) as usize];
@@ -109,9 +109,9 @@ pub fn gps_delayed(ht: [f64; 256], hr: [[f64; 3]; 256], hv: [[f64; 3]; 256], hn:
         let mut k: i64 = 0;
         let mut going: bool = true;
         {
-            let __end106: i64 = hn;
+            let __end114: i64 = hn;
             let mut j: i64 = 1;
-            while j < __end106 {
+            while j < __end114 {
                 if (going && (ht[(j) as usize] <= (tl + 1.0e-9))) {
                     k = j;
                 } else {
@@ -128,9 +128,9 @@ pub fn gps_delayed(ht: [f64; 256], hr: [[f64; 3]; 256], hv: [[f64; 3]; 256], hn:
             let mut s: f64 = ((tl - ht[(k) as usize]) / (ht[((k + 1)) as usize] - ht[(k) as usize]));
             te = tl;
             {
-                let __end107: i64 = 3;
+                let __end115: i64 = 3;
                 let mut i: i64 = 0;
-                while i < __end107 {
+                while i < __end115 {
                     r[(i) as usize] = (hr[(k) as usize][(i) as usize] + (s * (hr[((k + 1)) as usize][(i) as usize] - hr[(k) as usize][(i) as usize])));
                     v[(i) as usize] = (hv[(k) as usize][(i) as usize] + (s * (hv[((k + 1)) as usize][(i) as usize] - hv[(k) as usize][(i) as usize])));
                     i += 1;

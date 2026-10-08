@@ -49,8 +49,8 @@ pub fn st_select(s: &mut [f64], m: i64, k: i64) -> f64 {
     let mut hi: i64 = (m - 1);
     let mut found: bool = false;
     {
-        let __n123: i64 = (m + 1);
-        let mut __k122: i64 = 0;
+        let __n131: i64 = (m + 1);
+        let mut __k130: i64 = 0;
         loop {
             if (lo < hi) {
                 let mut mid: i64 = (lo + ((hi - lo) / 2));
@@ -61,9 +61,9 @@ pub fn st_select(s: &mut [f64], m: i64, k: i64) -> f64 {
                 }
                 let mut lt: i64 = lo;
                 {
-                    let __end124: i64 = (hi + 1);
+                    let __end132: i64 = (hi + 1);
                     let mut i: i64 = lo;
-                    while i < __end124 {
+                    while i < __end132 {
                         let mut x: f64 = (*s)[(i) as usize];
                         (*s)[(i) as usize] = (*s)[(lt) as usize];
                         (*s)[(lt) as usize] = x;
@@ -78,9 +78,9 @@ pub fn st_select(s: &mut [f64], m: i64, k: i64) -> f64 {
                 } else {
                     let mut eq: i64 = lt;
                     {
-                        let __end125: i64 = (hi + 1);
+                        let __end133: i64 = (hi + 1);
                         let mut i2: i64 = lt;
-                        while i2 < __end125 {
+                        while i2 < __end133 {
                             let mut y: f64 = (*s)[(i2) as usize];
                             (*s)[(i2) as usize] = (*s)[(eq) as usize];
                             (*s)[(eq) as usize] = y;
@@ -95,9 +95,9 @@ pub fn st_select(s: &mut [f64], m: i64, k: i64) -> f64 {
                     }
                 }
             }
-            __k122 += 1;
+            __k130 += 1;
             if (found || (!(lo < hi))) { break; }
-            if __k122 >= __n123 {
+            if __k130 >= __n131 {
                 break;
             }
         }
@@ -121,9 +121,9 @@ pub fn st_median(s: &mut [f64], m: i64) -> f64 {
     } else {
         let mut b: f64 = f64::INFINITY;
         {
-            let __end126: i64 = m;
+            let __end134: i64 = m;
             let mut l: i64 = (k + 1);
-            while l < __end126 {
+            while l < __end134 {
                 b = rt::fmin(b, (*s)[(l) as usize]);
                 l += 1;
             }
@@ -148,18 +148,18 @@ pub fn st_merge_desc(key: &mut [f64], src: &mut [i64], dst: &mut [i64], m: i64, 
     z = 0;
     let mut nb: i64 = (((m + (2 * w)) - 1) / (2 * w));
     {
-        let __end127: i64 = nb;
+        let __end135: i64 = nb;
         let mut bk: i64 = 0;
-        while bk < __end127 {
+        while bk < __end135 {
             let mut lo: i64 = ((bk * 2) * w);
             let mut mid: i64 = rt::imin((lo + w), m);
             let mut hi: i64 = rt::imin((lo + (2 * w)), m);
             let mut i: i64 = lo;
             let mut j: i64 = mid;
             {
-                let __end128: i64 = hi;
+                let __end136: i64 = hi;
                 let mut k: i64 = lo;
-                while k < __end128 {
+                while k < __end136 {
                     if ((i < mid) && ((j >= hi) || (!((*key)[((*src)[(j) as usize]) as usize] > (*key)[((*src)[(i) as usize]) as usize])))) {
                         (*dst)[(k) as usize] = (*src)[(i) as usize];
                         i = (i + 1);
@@ -189,9 +189,9 @@ pub fn st_sort_desc(key: &mut [f64], ix: &mut [i64], tmp: &mut [i64], m: i64) ->
     passes = 0;
     let mut w: i64 = 1;
     {
-        let __end129: i64 = 62;
+        let __end137: i64 = 62;
         let mut it: i64 = 0;
-        while it < __end129 {
+        while it < __end137 {
             if (w < m) {
                 if ((passes % 2) == 0) {
                     let mut z0: i64 = crate::gen::stcentroid::st_merge_desc(&mut (*key), &mut (*ix), &mut (*tmp), m, w);
@@ -206,9 +206,9 @@ pub fn st_sort_desc(key: &mut [f64], ix: &mut [i64], tmp: &mut [i64], m: i64) ->
     }
     if ((passes % 2) == 1) {
         {
-            let __end130: i64 = m;
+            let __end138: i64 = m;
             let mut i: i64 = 0;
-            while i < __end130 {
+            while i < __end138 {
                 (*ix)[(i) as usize] = (*tmp)[(i) as usize];
                 i += 1;
             }
@@ -237,18 +237,18 @@ pub fn st_centroid(img: &mut [f64], cam: StCamera, work: &mut [f64], ia: &mut [i
     let mut n: i64 = cam.n;
     let mut np: i64 = (n * n);
     {
-        let __end131: i64 = np;
+        let __end139: i64 = np;
         let mut l: i64 = 0;
-        while l < __end131 {
+        while l < __end139 {
             (*work)[(l) as usize] = (*img)[(l) as usize];
             l += 1;
         }
     }
     let mut bg: f64 = crate::gen::stcentroid::st_median(&mut (*work), np);
     {
-        let __end132: i64 = np;
+        let __end140: i64 = np;
         let mut l2: i64 = 0;
-        while l2 < __end132 {
+        while l2 < __end140 {
             (*work)[(l2) as usize] = rt::fabs(((*img)[(l2) as usize] - bg));
             l2 += 1;
         }
@@ -258,9 +258,9 @@ pub fn st_centroid(img: &mut [f64], cam: StCamera, work: &mut [f64], ia: &mut [i
     let mut thr: f64 = (bg + (cam.k_sigma * sg));
     let mut m: i64 = 0;
     {
-        let __end133: i64 = np;
+        let __end141: i64 = np;
         let mut l3: i64 = 0;
-        while l3 < __end133 {
+        while l3 < __end141 {
             if ((*img)[(l3) as usize] > thr) {
                 (*ia)[(m) as usize] = l3;
                 m = (m + 1);
@@ -273,9 +273,9 @@ pub fn st_centroid(img: &mut [f64], cam: StCamera, work: &mut [f64], ia: &mut [i
     ns = 0;
     let mut done: bool = false;
     {
-        let __end134: i64 = m;
+        let __end142: i64 = m;
         let mut q: i64 = 0;
-        while q < __end134 {
+        while q < __end142 {
             if (!done) {
                 let mut l4: i64 = (*ia)[(q) as usize];
                 let mut x: i64 = ((l4 / n) + 1);
@@ -285,9 +285,9 @@ pub fn st_centroid(img: &mut [f64], cam: StCamera, work: &mut [f64], ia: &mut [i
                     let mut yf: f64 = (y as f64);
                     let mut near: bool = false;
                     {
-                        let __end135: i64 = ns;
+                        let __end143: i64 = ns;
                         let mut s: i64 = 0;
-                        while s < __end135 {
+                        while s < __end143 {
                             if ((rt::fabs((spots[(s) as usize][0] - xf)) < 4.0) && (rt::fabs((spots[(s) as usize][1] - yf)) < 4.0)) {
                                 near = true;
                             }
@@ -299,13 +299,13 @@ pub fn st_centroid(img: &mut [f64], cam: StCamera, work: &mut [f64], ia: &mut [i
                         let mut sx: f64 = 0.0;
                         let mut sy: f64 = 0.0;
                         {
-                            let __end136: i64 = 5;
+                            let __end144: i64 = 5;
                             let mut c: i64 = 0;
-                            while c < __end136 {
+                            while c < __end144 {
                                 {
-                                    let __end137: i64 = 5;
+                                    let __end145: i64 = 5;
                                     let mut r: i64 = 0;
-                                    while r < __end137 {
+                                    while r < __end145 {
                                         let mut w: f64 = rt::fmax(((*img)[((((((x + c) - 2) - 1) * n) + (((y + r) - 2) - 1))) as usize] - bg), 0.0);
                                         tot = (tot + w);
                                         sx = (sx + (((c as f64) - 2.0) * w));

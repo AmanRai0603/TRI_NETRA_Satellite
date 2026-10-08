@@ -29,14 +29,14 @@ pub fn crc16(p: [i64; 64], n: i64) -> i64 {
     let mut c: i64 = 0;
     c = 65535;
     {
-        let __end66: i64 = n;
+        let __end74: i64 = n;
         let mut i: i64 = 0;
-        while i < __end66 {
+        while i < __end74 {
             c = (c ^ (p[(i) as usize] << 8));
             {
-                let __end67: i64 = 8;
+                let __end75: i64 = 8;
                 let mut k: i64 = 0;
-                while k < __end67 {
+                while k < __end75 {
                     if ((c & 32768) != 0) {
                         c = (((c << 1) ^ 4129) & 65535);
                     } else {
@@ -131,34 +131,34 @@ pub fn drv_write(m_body: [f64; 3], m_max: f64, cmd_r: [f64; 8], rot_tmax: [f64; 
     gim_words = [0; 4];
     valves = [0; 6];
     {
-        let __end68: i64 = 3;
+        let __end76: i64 = 3;
         let mut i: i64 = 0;
-        while i < __end68 {
+        while i < __end76 {
             pwm[(i) as usize] = crate::gen::drivers::q15((m_body[(i) as usize] / m_max));
             i += 1;
         }
     }
     {
-        let __end69: i64 = nr;
+        let __end77: i64 = nr;
         let mut i: i64 = 0;
-        while i < __end69 {
+        while i < __end77 {
             rot_words[(i) as usize] = crate::gen::drivers::q15((cmd_r[(i) as usize] / rot_tmax[(i) as usize]));
             i += 1;
         }
     }
     {
-        let __end70: i64 = ng;
+        let __end78: i64 = ng;
         let mut j: i64 = 0;
-        while j < __end70 {
+        while j < __end78 {
             gim_words[(j) as usize] = crate::gen::drivers::q15((cmd_g[(j) as usize] / gim_rate_max));
             j += 1;
         }
     }
     if (nc > 0) {
         {
-            let __end71: i64 = nc;
+            let __end79: i64 = nc;
             let mut i: i64 = 0;
-            while i < __end71 {
+            while i < __end79 {
                 let mut ms: f64 = (((duty[(i) as usize] * dt) / 0.001) + 0.5);
                 if (!((ms - ms) == 0.0)) {
                     valves[(i) as usize] = 0;
@@ -195,15 +195,15 @@ pub fn uart_frame(b: [i64; 96], len: i64, sync2: i64) -> ([i64; 64], i64) {
     let mut base: i64 = 0;
     let mut done: bool = false;
     {
-        let __end72: i64 = 48;
+        let __end80: i64 = 48;
         let mut pass: i64 = 0;
-        while pass < __end72 {
+        while pass < __end80 {
             if (!done) {
                 let mut s: i64 = 0;
                 {
-                    let __end73: i64 = 96;
+                    let __end81: i64 = 96;
                     let mut k: i64 = 0;
-                    while k < __end73 {
+                    while k < __end81 {
                         if ((((base + s) + 1) < len) && (!((b[((base + s)) as usize] == 235) && (b[(((base + s) + 1)) as usize] == sync2)))) {
                             s = (s + 1);
                         }
@@ -220,18 +220,18 @@ pub fn uart_frame(b: [i64; 96], len: i64, sync2: i64) -> ([i64; 64], i64) {
                         let mut pl: [i64; 64] = [0; 64];
                         let mut crc_in: [i64; 64] = [0; 64];
                         {
-                            let __end74: i64 = rt::imin(n, 64);
+                            let __end82: i64 = rt::imin(n, 64);
                             let mut i: i64 = 0;
-                            while i < __end74 {
+                            while i < __end82 {
                                 crc_in[(i) as usize] = b[((((base + s) + 3) + i)) as usize];
                                 i += 1;
                             }
                         }
                         if ((n <= 64) && (crate::gen::drivers::crc16(crc_in, n) == (b[((((base + s) + 3) + n)) as usize] | (b[((((base + s) + 4) + n)) as usize] << 8)))) {
                             {
-                                let __end75: i64 = n;
+                                let __end83: i64 = n;
                                 let mut i: i64 = 0;
-                                while i < __end75 {
+                                while i < __end83 {
                                     pl[(i) as usize] = b[((((base + s) + 3) + i)) as usize];
                                     i += 1;
                                 }
@@ -268,9 +268,9 @@ pub fn uart_stream(junk: [i64; 8], nj: i64, pl: [i64; 36], n: i64, sync2: i64, f
     b = [0; 96];
     len = 0;
     {
-        let __end76: i64 = nj;
+        let __end84: i64 = nj;
         let mut i: i64 = 0;
-        while i < __end76 {
+        while i < __end84 {
             b[(len) as usize] = junk[(i) as usize];
             len = (len + 1);
             i += 1;
@@ -278,14 +278,14 @@ pub fn uart_stream(junk: [i64; 8], nj: i64, pl: [i64; 36], n: i64, sync2: i64, f
     }
     let mut nf: i64 = (if (fault == 0) { 1 } else { 2 });
     {
-        let __end77: i64 = nf;
+        let __end85: i64 = nf;
         let mut f: i64 = 0;
-        while f < __end77 {
+        while f < __end85 {
             let mut p: [i64; 64] = [0; 64];
             {
-                let __end78: i64 = n;
+                let __end86: i64 = n;
                 let mut i: i64 = 0;
-                while i < __end78 {
+                while i < __end86 {
                     p[(i) as usize] = (if (f == 0) { pl[(i) as usize] } else { pl[(((i + k) % 36)) as usize] });
                     i += 1;
                 }
@@ -298,9 +298,9 @@ pub fn uart_stream(junk: [i64; 8], nj: i64, pl: [i64; 36], n: i64, sync2: i64, f
             b[((len + 1)) as usize] = sync2;
             b[((len + 2)) as usize] = n;
             {
-                let __end79: i64 = n;
+                let __end87: i64 = n;
                 let mut i: i64 = 0;
-                while i < __end79 {
+                while i < __end87 {
                     b[(((len + 3) + i)) as usize] = p[(i) as usize];
                     i += 1;
                 }
@@ -340,12 +340,12 @@ pub fn read_streams(st_junk: [i64; 8], st_nj: i64, st_pl: [i64; 36], st_n: i64, 
     let mut st_len: i64 = 0;
     let mut gps: [i64; 96] = [0; 96];
     let mut gps_len: i64 = 0;
-    let __t80 = crate::gen::drivers::uart_stream(st_junk, st_nj, st_pl, st_n, 144, st_fault, st_k);
-    st = __t80.0;
-    st_len = __t80.1;
-    let __t81 = crate::gen::drivers::uart_stream(gps_junk, gps_nj, gps_pl, gps_n, 145, gps_fault, gps_k);
-    gps = __t81.0;
-    gps_len = __t81.1;
+    let __t88 = crate::gen::drivers::uart_stream(st_junk, st_nj, st_pl, st_n, 144, st_fault, st_k);
+    st = __t88.0;
+    st_len = __t88.1;
+    let __t89 = crate::gen::drivers::uart_stream(gps_junk, gps_nj, gps_pl, gps_n, 145, gps_fault, gps_k);
+    gps = __t89.0;
+    gps_len = __t89.1;
     (st, st_len, gps, gps_len)
 }
 
@@ -414,9 +414,9 @@ pub fn drv_read(mag_rx: [i64; 7], gyro_rx: [i64; 13], sun_rx: [i64; 7], es_rx: [
     b = [0.0; 3];
     if mag_ok {
         {
-            let __end82: i64 = 3;
+            let __end90: i64 = 3;
             let mut i: i64 = 0;
-            while i < __end82 {
+            while i < __end90 {
                 b[(i) as usize] = ((crate::gen::drivers::rd16(mag_rx[((1 + (2 * i))) as usize], mag_rx[((2 + (2 * i))) as usize]) as f64) * (0.0001 / 32768.0));
                 i += 1;
             }
@@ -426,9 +426,9 @@ pub fn drv_read(mag_rx: [i64; 7], gyro_rx: [i64; 13], sun_rx: [i64; 7], es_rx: [
     w = [0.0; 3];
     if gyro_ok {
         {
-            let __end83: i64 = 3;
+            let __end91: i64 = 3;
             let mut i: i64 = 0;
-            while i < __end83 {
+            while i < __end91 {
                 w[(i) as usize] = ((crate::gen::drivers::rd32(gyro_rx[((1 + (4 * i))) as usize], gyro_rx[((2 + (4 * i))) as usize], gyro_rx[((3 + (4 * i))) as usize], gyro_rx[((4 + (4 * i))) as usize]) as f64) * (5.0 / 8388608.0));
                 i += 1;
             }
@@ -438,9 +438,9 @@ pub fn drv_read(mag_rx: [i64; 7], gyro_rx: [i64; 13], sun_rx: [i64; 7], es_rx: [
     sun = [0.0; 3];
     if sun_ok {
         {
-            let __end84: i64 = 3;
+            let __end92: i64 = 3;
             let mut i: i64 = 0;
-            while i < __end84 {
+            while i < __end92 {
                 sun[(i) as usize] = ((crate::gen::drivers::rd16(sun_rx[((1 + (2 * i))) as usize], sun_rx[((2 + (2 * i))) as usize]) as f64) / 32767.0);
                 i += 1;
             }
@@ -450,9 +450,9 @@ pub fn drv_read(mag_rx: [i64; 7], gyro_rx: [i64; 13], sun_rx: [i64; 7], es_rx: [
     nadir = [0.0; 3];
     if es_ok {
         {
-            let __end85: i64 = 3;
+            let __end93: i64 = 3;
             let mut i: i64 = 0;
-            while i < __end85 {
+            while i < __end93 {
                 nadir[(i) as usize] = ((crate::gen::drivers::rd16(es_rx[((1 + (2 * i))) as usize], es_rx[((2 + (2 * i))) as usize]) as f64) / 32767.0);
                 i += 1;
             }
@@ -465,16 +465,16 @@ pub fn drv_read(mag_rx: [i64; 7], gyro_rx: [i64; 13], sun_rx: [i64; 7], es_rx: [
         let (mut pl, mut n) = crate::gen::drivers::uart_frame(st, st_len, 144);
         if (n > 0) {
             {
-                let __end86: i64 = 2;
+                let __end94: i64 = 2;
                 let mut hd: i64 = 0;
-                while hd < __end86 {
+                while hd < __end94 {
                     if ((hd < pl[0]) && ((1 + (17 * (hd + 1))) <= n)) {
                         let mut e: i64 = (1 + (17 * hd));
                         st_valid[(hd) as usize] = ((pl[(e) as usize] & 1) == 1);
                         {
-                            let __end87: i64 = 4;
+                            let __end95: i64 = 4;
                             let mut k: i64 = 0;
-                            while k < __end87 {
+                            while k < __end95 {
                                 q_st[(hd) as usize][(k) as usize] = ((crate::gen::drivers::rd32(pl[(((e + 1) + (4 * k))) as usize], pl[(((e + 2) + (4 * k))) as usize], pl[(((e + 3) + (4 * k))) as usize], pl[(((e + 4) + (4 * k))) as usize]) as f64) / 1073741824.0);
                                 k += 1;
                             }
@@ -496,9 +496,9 @@ pub fn drv_read(mag_rx: [i64; 7], gyro_rx: [i64; 13], sun_rx: [i64; 7], es_rx: [
         if ((ng >= 25) && ((pg[0] & 1) == 1)) {
             gps_ok = true;
             {
-                let __end88: i64 = 3;
+                let __end96: i64 = 3;
                 let mut i: i64 = 0;
-                while i < __end88 {
+                while i < __end96 {
                     r[(i) as usize] = ((crate::gen::drivers::rd32(pg[((1 + (4 * i))) as usize], pg[((2 + (4 * i))) as usize], pg[((3 + (4 * i))) as usize], pg[((4 + (4 * i))) as usize]) as f64) * 0.01);
                     v[(i) as usize] = ((crate::gen::drivers::rd32(pg[((13 + (4 * i))) as usize], pg[((14 + (4 * i))) as usize], pg[((15 + (4 * i))) as usize], pg[((16 + (4 * i))) as usize]) as f64) * 0.001);
                     i += 1;
@@ -509,9 +509,9 @@ pub fn drv_read(mag_rx: [i64; 7], gyro_rx: [i64; 13], sun_rx: [i64; 7], es_rx: [
     h = [0.0; 8];
     delta = [0.0; 4];
     {
-        let __end89: i64 = n_can;
+        let __end97: i64 = n_can;
         let mut f: i64 = 0;
-        while f < __end89 {
+        while f < __end97 {
             let mut id: i64 = can_id[(f) as usize];
             if (((id >= 512) && (id < 520)) && (can_dlc[(f) as usize] >= 8)) {
                 let mut ri: i64 = (id - 512);

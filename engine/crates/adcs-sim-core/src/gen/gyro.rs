@@ -72,9 +72,9 @@ pub fn gyro_sample(u: &mut GyroUnit, d: GyroDesc, w: [f64; 3], dt: f64) -> [f64;
     let mut mw: [f64; 3] = rt::mv((*u).m, w);
     o = [0.0, 0.0, 0.0];
     {
-        let __end108: i64 = 3;
+        let __end116: i64 = 3;
         let mut i: i64 = 0;
-        while i < __end108 {
+        while i < __end116 {
             o[(i) as usize] = crate::gen::coilsat::act_clamp((((mw[(i) as usize] + (*u).b[(i) as usize]) + (*u).brw[(i) as usize]) + ((d.arw / crate::pm::sqrt(dt)) * n2[(i) as usize])), (-(d.range)), d.range);
             i += 1;
         }

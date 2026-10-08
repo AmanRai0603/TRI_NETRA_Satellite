@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""The engine build (docs/PLAN_2_0.md S7; docs/S7_INVENTORY.md S7.3-S7.13): the time engine's published models and relations
+"""The engine build (docs/PLAN_2_0.md S7; docs/S7_INVENTORY.md S7.3-S7.14b): the time engine's published models and relations
 written from the design. Only the engine's core stays hand-written (step order, recorder, integrators, the toolbox); a
 model of the world or of the spacecraft is a method of an env, dyn, act or sens node, and its Rust is generated here, never
 edited.
@@ -28,7 +28,8 @@ its crate:
                                          S7.10, over buffers whose length is the caller's); the plant's state at the
                                          start of a run (dyn, S7.11); the device emulators' scaling, the inverse of the
                                          flight software's drivers, with the drivers' module it takes it from (oils,
-                                         S7.12); its scalar maths
+                                         S7.12); the three-axis angle of a metric's channels, with the same
+                                         portable maths the toolbox's qangle flew (kpi, S7.14b); its scalar maths
                                          from crate::pm (the pure-Rust libm: the same trajectory on every target), no_std
   engine/crates/adcs-pop/src/gen/        the precision orbit's time scales, geodetic coordinates, Earth frames, the
                                          IAU 2006/2000A kernel and the tidal EOP models (S7.3); the atmosphere
@@ -43,7 +44,10 @@ its crate:
                                          case's orbit and epoch (S7.11); the flight software's parameters: its laws
                                          of gain, the LQR's weights, its choices of law and the copies of the
                                          product's, the case's and the constants' values (fsw, S7.13; the guidance
-                                         module it takes the payload offset from); std maths
+                                         module it takes the payload offset from); the power system (design), the
+                                         rotors' jitter and the pointing budget (pnt, S7.14); how each metric is
+                                         measured from a run: its channels, windows, statistics, the ECSS indices,
+                                         each kind's value and unit and its verdict (kpi, S7.14b); std maths
   matlab_sils/+asils/+models/            the same models for the MATLAB twin (asils.models.<module>.<function>), one
                                          package of every module the engine's targets take, over the twin's shared
                                          runtime +asils/+pc

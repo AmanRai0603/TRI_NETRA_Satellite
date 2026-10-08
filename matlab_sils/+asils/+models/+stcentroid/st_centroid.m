@@ -20,15 +20,15 @@ function [spots, ns, img, work, ia, ib] = st_centroid(img, cam, work, ia, ib)
     for l = (0):((np) - 1)
         work((l) + 1) = img((l) + 1);
     end
-    [t__182, t__183] = asils.models.stcentroid.st_median(work, np);
-    bg = t__182;
-    work = t__183;
+    [t__218, t__219] = asils.models.stcentroid.st_median(work, np);
+    bg = t__218;
+    work = t__219;
     for l2 = (0):((np) - 1)
         work((l2) + 1) = asils.pc.fabs((img((l2) + 1) - bg));
     end
-    [t__184, t__185] = asils.models.stcentroid.st_median(work, np);
-    mad = t__184;
-    work = t__185;
+    [t__220, t__221] = asils.models.stcentroid.st_median(work, np);
+    mad = t__220;
+    work = t__221;
     sg = (1.4826 * mad);
     thr = (bg + (cam.k_sigma * sg));
     m = 0;
@@ -38,11 +38,11 @@ function [spots, ns, img, work, ia, ib] = st_centroid(img, cam, work, ia, ib)
             m = (m + 1);
         end
     end
-    [t__186, t__187, t__188, t__189] = asils.models.stcentroid.st_sort_desc(img, ia, ib, m);
-    passes = t__186;
-    img = t__187;
-    ia = t__188;
-    ib = t__189;
+    [t__222, t__223, t__224, t__225] = asils.models.stcentroid.st_sort_desc(img, ia, ib, m);
+    passes = t__222;
+    img = t__223;
+    ia = t__224;
+    ib = t__225;
     cap = asils.pc.fmin(cam.max_spots, 32);
     ns = 0;
     done = false;

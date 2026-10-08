@@ -121,10 +121,12 @@ fn add_rotor(x: &mut MexDesc, kind: Kind, a: [f64; 3], gi: usize, hmax: f64, tma
 fn fit_actuator(d: &mut Dev, x: &mut MexDesc, slot: &str, pt: &Part) -> bool {
     let n0 = x.n;
     let fitted = fit_actuator_(d, x, slot, pt);
-    // the imbalance of every rotor this slot added (jitter): stated, or none for a fluid ring
-    let stated = (json::get(&pt.nm, "static_imbalance_kgm").and_then(|v| v.as_f64()), json::get(&pt.nm, "dynamic_imbalance_kgm2").and_then(|v| v.as_f64()));
+    // the imbalance of every rotor this slot added, as the jitter takes it (gp_4's rotor_imbalance): the part's
+    // values, nan where it states none
+    let stated = |k: &str| json::get(&pt.nm, k).and_then(|v| v.as_f64()).unwrap_or(f64::NAN);
+    let (us, ud, known) = crate::gen::jitter::rotor_imbalance(slot == "rings", stated("static_imbalance_kgm"), stated("dynamic_imbalance_kgm2"));
     for _ in n0..x.n {
-        d.imbalance.push(match (slot, stated) { ("rings", _) => Some((0.0, 0.0)), (_, (Some(a), Some(b))) => Some((a, b)), _ => None });
+        d.imbalance.push(known.then_some((us, ud)));
         d.rotor_part.push(json::s(pt.f, "part", "?").to_string());
     }
     fitted

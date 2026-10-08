@@ -19,9 +19,9 @@ pub fn fsw_rw_pid(ii: [f64; 3], wn: f64, z: f64) -> ([f64; 3], [f64; 3], [f64; 3
     kd = [0.0; 3];
     ki = [0.0; 3];
     {
-        let __end13: i64 = 3;
+        let __end14: i64 = 3;
         let mut ax: i64 = 0;
-        while ax < __end13 {
+        while ax < __end14 {
             kp[(ax) as usize] = ((ii[(ax) as usize] * wn) * wn);
             kd[(ax) as usize] = (((2.0 * z) * ii[(ax) as usize]) * wn);
             ki[(ax) as usize] = ((((0.15 * ii[(ax) as usize]) * wn) * wn) * wn);

@@ -12,9 +12,9 @@ function [ok, n, u] = es_sample(u, d, nadir_b)
     n = [0; 0; 0];
     if ok
         g = u.g;
-        [t__124, t__125] = asils.pc.stream_normal3(g);
-        e0 = t__124;
-        g = t__125;
+        [t__160, t__161] = asils.pc.stream_normal3(g);
+        e0 = t__160;
+        g = t__161;
         u.g = g;
         n = asils.models.facets.unit_or_zero(asils.pc.mv(asils.models.math.dcm(asils.models.math.qmult(u.bias, asils.models.math.fromrotvec((e0 * d.noise)))), nadir_b));
     end

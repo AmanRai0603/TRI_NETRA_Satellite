@@ -1,0 +1,122 @@
+## The ECSS-E-ST-60-10C error indices over a metric's window, transcribed from adcs-sim metrics.rs (ecss), on the
+## performance error (rpe, mpe, pde) or the knowledge error (rke, mke, kde), three-axis or across the boresight (_los,
+## the error vector less its part along the boresight). The window is cut into consecutive blocks of delta_s [s] from
+## its first sample:
+##   rpe, rke   |e(t) - the mean of e over t's block|, every sample          (relative error)
+##   mpe, mke   |the mean of e over a block|, every block                    (mean error)
+##   pde, kde   |the mean over block k+s - the mean over block k|, s = separation_s/delta_s   (drift)
+## in degrees; the metric's statistic is taken over them. A block with no finite sample is left out; a drift needs both
+## of its blocks. The error vectors are a buffer of three numbers a sample [rad]; times in seconds, plain numbers.
+## The developer's transcription (S7.14b), unsigned.
+module kpiecss
+
+## The index: the relative error (rpe, rke), the mean error (mpe, mke), the drift (pde, kde).
+choice EcssIndex = relative, mean, drift
+
+## The boresight made unit as the toolbox makes it (la::unit: a times 1/|a|, a zero vector below 1e-300).
+fn kpi_unit_bs(a: vec3[1] in -1 .. 1) -> u: vec3[1]
+    let n = sqrt(a[0]*a[0] + a[1]*a[1] + a[2]*a[2])
+    if n < 1e-300
+        u = [0, 0, 0]
+    else
+        let k = 1.0/n
+        u = [a[0]*k, a[1]*k, a[2]*k]
+    end
+end
+
+## The error vector of sample j [rad] (e holds three numbers a sample), across the boresight b (unit) when los: less
+## its part along b.
+## length: 96
+fn kpi_ecss_vec(e: inout real[1][*] in -0.1 .. 0.1, j: int in 0 .. 31, los: bool, b: vec3[1] in -1 .. 1) -> v: vec3[1]
+    v = [e[3*j], e[3*j + 1], e[3*j + 2]]
+    if los
+        let d = v[0]*b[0] + v[1]*b[1] + v[2]*b[2]
+        v = [v[0] - b[0]*d, v[1] - b[1]*d, v[2] - b[2]*d]
+    end
+end
+
+## The block of a sample at time tj [s]: the whole number of windows of delta [s] from the window's start t0 [s] (a
+## nanosecond's tolerance, so a sample on a block's edge opens it).
+fn kpi_ecss_block(tj: real[1] in 0 .. 100, t0: real[1] in 0 .. 50, delta: real[1] in 0.1 .. 10) -> b: int
+    b = int(floor((tj - t0)/delta + 1e-9))
+end
+
+## How many blocks of delta [s] the window's samples idx[0..ni] (times t [s]) span; none when there is no sample or
+## delta is not above zero.
+## length: 32
+fn kpi_ecss_blocks(t: inout real[1][*] in 0 .. 100, idx: inout int[*] in 0 .. 31, ni: int in 0 .. 32, delta: real[1] in 0.1 .. 10) -> nb: int
+    nb = 0
+    if ni > 0 and delta > 0
+        nb = kpi_ecss_block(t[idx[ni - 1]], t[idx[0]], delta) + 1
+    end
+end
+
+## The values of an index (k) over the window's samples idx[0..ni] (times t [s], error vectors e [rad], across the
+## boresight bs when los), in blocks of delta [s] (a drift over separation sep [s]): in out, in degrees; how many. sums
+## (three numbers a block) and cnt (a block's count) are the blocks' workspace, as many as kpi_ecss_blocks says.
+## length: 32
+fn kpi_ecss(k: EcssIndex, los: bool, e: inout real[1][*] in -0.1 .. 0.1, bs: vec3[1] in -1 .. 1, t: inout real[1][*] in 0 .. 100, \
+            idx: inout int[*] in 0 .. 9, ni: int in 0 .. 10, delta: real[1] in 0.1 .. 10, sep: real[1] in 0.1 .. 20, \
+            sums: inout real[1][*] in 0 .. 1, cnt: inout int[*] in 0 .. 1, out: inout real[1][*] in 0 .. 1) -> nout: int
+    nout = 0
+    if ni > 0 and delta > 0
+        let b = kpi_unit_bs(bs)
+        let t0 = t[idx[0]]
+        let nb = kpi_ecss_block(t[idx[ni - 1]], t0, delta) + 1
+        for bk in 0 .. nb
+            sums[3*bk] = 0
+            sums[3*bk + 1] = 0
+            sums[3*bk + 2] = 0
+            cnt[bk] = 0
+        end
+        for i in 0 .. ni
+            let v = kpi_ecss_vec(e, idx[i], los, b)
+            if isfinite(v[0]) and isfinite(v[1]) and isfinite(v[2])
+                let bk = kpi_ecss_block(t[idx[i]], t0, delta)
+                sums[3*bk] = sums[3*bk] + v[0]
+                sums[3*bk + 1] = sums[3*bk + 1] + v[1]
+                sums[3*bk + 2] = sums[3*bk + 2] + v[2]
+                cnt[bk] = cnt[bk] + 1
+            end
+        end
+        if k == EcssIndex.relative
+            for i in 0 .. ni
+                let v = kpi_ecss_vec(e, idx[i], los, b)
+                let bk = kpi_ecss_block(t[idx[i]], t0, delta)
+                if cnt[bk] > 0 and isfinite(v[0]) and isfinite(v[1]) and isfinite(v[2])
+                    let r = 1.0/real(cnt[bk])
+                    let m: vec3[1] = [sums[3*bk]*r, sums[3*bk + 1]*r, sums[3*bk + 2]*r]
+                    out[nout] = norm(v - m)*(180.0/pi)
+                    nout = nout + 1
+                end
+            end
+        elif k == EcssIndex.mean
+            for bk in 0 .. nb
+                if cnt[bk] > 0
+                    let r = 1.0/real(cnt[bk])
+                    let m: vec3[1] = [sums[3*bk]*r, sums[3*bk + 1]*r, sums[3*bk + 2]*r]
+                    out[nout] = norm(m)*(180.0/pi)
+                    nout = nout + 1
+                end
+            end
+        else
+            let sr = round(sep/delta)
+            if isnan(sr)
+                sr = 1.0
+            elif sr < 1.0
+                sr = 1.0
+            end
+            let s = int(sr)
+            for kb in 0 .. nb - s
+                if cnt[kb] > 0 and cnt[kb + s] > 0
+                    let ra = 1.0/real(cnt[kb])
+                    let rb = 1.0/real(cnt[kb + s])
+                    let ma: vec3[1] = [sums[3*kb]*ra, sums[3*kb + 1]*ra, sums[3*kb + 2]*ra]
+                    let mb: vec3[1] = [sums[3*(kb + s)]*rb, sums[3*(kb + s) + 1]*rb, sums[3*(kb + s) + 2]*rb]
+                    out[nout] = norm(mb - ma)*(180.0/pi)
+                    nout = nout + 1
+                end
+            end
+        end
+    end
+end

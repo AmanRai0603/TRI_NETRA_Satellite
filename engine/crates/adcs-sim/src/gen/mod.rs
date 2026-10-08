@@ -2,6 +2,7 @@
 //! Every relation is SI in and SI out; each function's doc lists its inputs and outputs with their units.
 #![allow(clippy::all)]
 pub mod rt;
+pub mod powersys;
 pub mod cmoffset;
 pub mod truthplant;
 pub mod caltime;
@@ -17,5 +18,11 @@ pub mod fswsens;
 pub mod fswspin;
 pub mod math;
 pub mod guidance;
+pub mod kpichannels;
+pub mod kpiecss;
+pub mod kpimetrics;
+pub mod kpistats;
+pub mod jitter;
+pub mod pntbudget;
 pub mod skyview;
 pub mod constants;

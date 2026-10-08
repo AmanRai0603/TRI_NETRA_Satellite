@@ -45,6 +45,9 @@ pub struct Config {
     pub duration_s: f64, pub dt: f64, pub record_dt: f64,
     pub params: Params, pub alg: BTreeMap<String, String>, pub faults: Vec<Fault>, pub gd_kind0: i32, pub h_t_rot: [f64; NR],
     pub spin_dps: f64,
+    /// the wheel loop's bandwidth [rad/s] the flight software flies (the scenario's fsw.rw_bandwidth, else
+    /// fsw_tune_rw_bandwidth): the jitter's (gp_4) attitude-loop bandwidth
+    pub rw_bandwidth: f64,
     /// the case's flexible mode (section `flex`, all or none); None: a rigid body
     pub flex: Option<adcs_sim_core::plant::Flex>,
     /// how a run starts where its scenario's initial section states nothing (dyn's stated values)
@@ -660,6 +663,7 @@ impl Config {
         let faults = faults(&s, &dev)?;
         let gd_kind0 = GUID[p.start_mode as usize];
         let spin_dps = p.ss_spin_dps;
+        let loop_bw = k.tune("rw_bandwidth")?;
         // the run's defaults where the case and the scenario state none: env's, vv's and dyn's stated values
         let mut cfg = Config {
             id: json::s(&s, "id", scenario).into(), case: c.clone(), dev, seed, epoch_utc: epoch, jd0,
@@ -676,7 +680,7 @@ impl Config {
             aref_m2: v("surface.afr"), cd: v("surface.cd"), refl: v("surface.refl"), sigma_n: surf[0], sigma_t: surf[0], vb_ratio: surf[1], spec_frac: surf[2], m_res,
             duration_s: json::f(&tm, "duration_s", st.get("vv_run_duration_default")?), dt,
             record_dt: json::f(&tm, "record_dt_s", st.get("vv_record_step_default")?),
-            params: p, alg, faults, gd_kind0, h_t_rot, spin_dps, flex: None, start: Start::load(&st)?, scenario: s,
+            params: p, alg, faults, gd_kind0, h_t_rot, spin_dps, rw_bandwidth: loop_bw, flex: None, start: Start::load(&st)?, scenario: s,
             scenario_file: sp.display().to_string(), overrides: overrides.to_vec(),
         };
         apply_engine(&mut cfg, &eng)?;

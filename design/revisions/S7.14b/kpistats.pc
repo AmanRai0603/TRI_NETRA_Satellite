@@ -1,0 +1,231 @@
+## How a metric takes its samples and its statistic, transcribed from adcs-sim metrics.rs (window, stat, time_to), the
+## twin's asils.metrics.window and evaluate: the window of a run a metric looks at (all of it, its last orbit or half
+## orbit, the pointing modes, or after a time), the statistic over the window's finite values (the largest, the root
+## mean square, the mean, and the 95th and 99.73rd percentiles, the 3-sigma level of ECSS-E-ST-60-10C, as the value at
+## rank ceil(q n) of the sorted values), and the first time a channel stays below a threshold for a hold time. The
+## channels are buffers whose length is the run's (G16); times in seconds, plain numbers.
+## The developer's transcription (S7.14b), unsigned.
+module kpistats
+
+## The part of a run a metric looks at: every sample, the last orbit, the last half orbit, the samples in a pointing
+## mode (any mode but the first, detumble), the samples from a time on.
+choice MetricWindow = all, last_orbit, last_half_orbit, pointing, after_s
+
+## The statistic of a metric over its window: the largest, the root mean square, the mean, the 95th and the 99.73rd
+## percentile; none (a statistic the metric does not know) gives nan.
+choice MetricStat = max, rms, mean, p95, p9973, none
+
+## The larger of a and b as the code's f64::max takes it: a value that is not a number left out, equal values the first.
+fn kpi_max(a: real[1] in -10 .. 10, b: real[1] in -10 .. 10) -> c: real[1]
+    if isnan(a)
+        c = b
+    else
+        c = max(a, b)
+    end
+end
+
+## The smaller of a and b as the code's f64::min takes it: a value that is not a number left out, equal values the
+## first.
+fn kpi_min(a: real[1] in -10 .. 10, b: real[1] in -10 .. 10) -> c: real[1]
+    if isnan(a)
+        c = b
+    else
+        c = min(a, b)
+    end
+end
+
+## The samples of the window w of a run of n samples at times t [s] in modes mode, its orbit's period per [s] (after_s:
+## from the time after [s]): their indices, in order, in idx; how many.
+## length: 32
+fn kpi_window(w: MetricWindow, after: real[1] in 0 .. 100, t: inout real[1][*] in 0 .. 100, mode: inout int[*] in 0 .. 10, \
+              n: int in 0 .. 32, per: real[1] in 1 .. 200, idx: inout int[*] in 0 .. 31) -> ni: int
+    let te: real[1] = 0.0
+    if n > 0
+        te = t[n - 1]
+    end
+    ni = 0
+    for j in 0 .. n
+        let inw = true
+        if w == MetricWindow.last_orbit
+            inw = t[j] >= te - per
+        elif w == MetricWindow.last_half_orbit
+            inw = t[j] >= te - per/2.0
+        elif w == MetricWindow.pointing
+            inw = mode[j] + 1 > 1
+        elif w == MetricWindow.after_s
+            inw = t[j] >= after
+        end
+        if inw
+            idx[ni] = j
+            ni = ni + 1
+        end
+    end
+end
+
+## One pass of the merge sort: the runs of width wd of src[0..m] merged in pairs into dst, ascending, a tie to the
+## earlier run.
+## length: 64
+fn kpi_merge(src: inout real[1][*] in -10 .. 10, dst: inout real[1][*] in -10 .. 10, m: int in 0 .. 64, wd: int in 1 .. 64) -> z: int
+    z = 0
+    let nb = div(m + 2*wd - 1, 2*wd)
+    for bk in 0 .. nb
+        let lo = bk*2*wd
+        let mid = min(lo + wd, m)
+        let hi = min(lo + 2*wd, m)
+        let i = lo
+        let j = mid
+        for k in lo .. hi
+            if i < mid and (j >= hi or not (src[j] < src[i]))
+                dst[k] = src[i]
+                i = i + 1
+            else
+                dst[k] = src[j]
+                j = j + 1
+            end
+        end
+    end
+end
+
+## x[0..m] in ascending order, equal values in the order given (the code's stable sort): a bottom-up merge sort (Knuth,
+## The Art of Computer Programming 3, 5.2.4) over tmp. How many passes.
+## length: 64
+fn kpi_sort(x: inout real[1][*] in -10 .. 10, m: int in 0 .. 64, tmp: inout real[1][*] in -10 .. 10) -> passes: int
+    passes = 0
+    let wd = 1
+    for it in 0 .. 62
+        if wd < m
+            if rem(passes, 2) == 0
+                let z0 = kpi_merge(x, tmp, m, wd)
+            else
+                let z1 = kpi_merge(tmp, x, m, wd)
+            end
+            passes = passes + 1
+            wd = 2*wd
+        end
+    end
+    if rem(passes, 2) == 1
+        for i in 0 .. m
+            x[i] = tmp[i]
+        end
+    end
+end
+
+## The statistic st of the m values of w, every one finite (nan when there are none); a percentile sorts w in place,
+## over tmp. The sums start at -0, as the code's sum does.
+## length: 64
+fn kpi_stat_of(w: inout real[1][*] in -10 .. 10, m: int in 0 .. 64, st: MetricStat, tmp: inout real[1][*] in -10 .. 10) -> v: real[1]
+    v = nan
+    if m > 0
+        if st == MetricStat.max
+            let acc = -1.7976931348623157e308
+            for i in 0 .. m
+                acc = max(acc, w[i])
+            end
+            v = acc
+        elif st == MetricStat.rms
+            let s: real[1] = -0.0
+            for i in 0 .. m
+                s = s + w[i]*w[i]
+            end
+            v = sqrt(s/real(m))
+        elif st == MetricStat.mean
+            let s2: real[1] = -0.0
+            for i in 0 .. m
+                s2 = s2 + w[i]
+            end
+            v = s2/real(m)
+        elif st == MetricStat.p95 or st == MetricStat.p9973
+            let q = 0.95
+            if st == MetricStat.p9973
+                q = 0.9973
+            end
+            let passes = kpi_sort(w, m, tmp)
+            let k = int(ceil(q*real(m)))
+            if k < 1
+                k = 1
+            end
+            v = w[k - 1]
+        end
+    end
+end
+
+## The statistic st of the finite values among x[0..n] (copied into w; tmp the sort's).
+## length: 64
+fn kpi_statistic(x: inout real[1][*] in -10 .. 10, n: int in 0 .. 64, st: MetricStat, w: inout real[1][*] in -10 .. 10, \
+                 tmp: inout real[1][*] in -10 .. 10) -> v: real[1]
+    let m = 0
+    for i in 0 .. n
+        if isfinite(x[i])
+            w[m] = x[i]
+            m = m + 1
+        end
+    end
+    v = kpi_stat_of(w, m, st, tmp)
+end
+
+## The statistic st of a channel ch over the window's samples idx[0..ni], its finite values (copied into w; tmp the
+## sort's).
+## length: 64
+fn kpi_channel_stat(ch: inout real[1][*] in -10 .. 10, idx: inout int[*] in 0 .. 63, ni: int in 0 .. 64, st: MetricStat, \
+                    w: inout real[1][*] in -10 .. 10, tmp: inout real[1][*] in -10 .. 10) -> v: real[1]
+    let m = 0
+    for i in 0 .. ni
+        let x = ch[idx[i]]
+        if isfinite(x)
+            w[m] = x
+            m = m + 1
+        end
+    end
+    v = kpi_stat_of(w, m, st, tmp)
+end
+
+## The first time [s] at which the channel x[0..n] (at times t [s]) goes below thr and stays below it for hold [s] or
+## more; nan if it never does.
+## length: 64
+fn kpi_time_to(t: inout real[1][*] in 0 .. 100, x: inout real[1][*] in 0 .. 2, n: int in 0 .. 64, thr: real[1] in 0 .. 2, \
+               hold: real[1] in 0 .. 20) -> v: real[1]
+    v = nan
+    let found = false
+    let start = 0
+    let inrun = false
+    for k in 0 .. n
+        if not found
+            if x[k] < thr
+                if not inrun
+                    start = k
+                    inrun = true
+                end
+                let ends = k == n - 1
+                if not ends
+                    ends = not (x[k + 1] < thr)
+                end
+                if ends
+                    if t[k] - t[start] >= hold
+                        v = t[start]
+                        found = true
+                    end
+                    inrun = false
+                end
+            else
+                inrun = false
+            end
+        end
+    end
+end
+
+## The first time [s] after t0 [s] at which the channel x[0..n] (at times t [s]) goes below thr and stays below it for
+## hold [s] or more, counted from t0 (the samples from t0 on, in tt and xx); nan if it never does.
+## length: 64
+fn kpi_time_to_from(t: inout real[1][*] in 0 .. 100, x: inout real[1][*] in 0 .. 2, n: int in 0 .. 64, t0: real[1] in 0 .. 50, \
+                    thr: real[1] in 0 .. 2, hold: real[1] in 0 .. 20, tt: inout real[1][*] in 0 .. 100, \
+                    xx: inout real[1][*] in 0 .. 2) -> v: real[1]
+    let m = 0
+    for j in 0 .. n
+        if t[j] >= t0
+            tt[m] = t[j] - t0
+            xx[m] = x[j]
+            m = m + 1
+        end
+    end
+    v = kpi_time_to(tt, xx, m, thr, hold)
+end

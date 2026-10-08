@@ -1,8 +1,10 @@
-//! Derived channels and scenario metrics (asils.metrics.{derive,evaluate,time_to,window}).
+//! Derived channels and scenario metrics (asils.metrics.{derive,evaluate,time_to,window}): how each is measured is
+//! kpi's (S7.14b: kpi_metric_channels, _statistics, _ecss, _evaluate), the power system design's, the jitter and the
+//! pointing budget pnt's (S7.14), all generated into the engine (crate::gen); this file walks the record, reads the
+//! scenario's metric sections and hands the channels over.
 use crate::config::{Config, GUID, MODES};
 use crate::json;
 use crate::run::Record;
-use adcs_fsw::guid::{guidance, yaw_flip, Guid};
 use adcs_sim_core::la::*;
 use serde_json::{json, Value};
 
@@ -25,9 +27,8 @@ pub struct PowerSystem { pub area: [f64; 6], pub eff: f64, pub batt_wh: f64, pub
 pub const POWER_KEYS: [&str; 10] = ["power.area_px", "power.area_mx", "power.area_py", "power.area_my", "power.area_pz", "power.area_mz",
     "power.eff", "power.batt_wh", "power.load_w", "power.soc0"];
 
-/// The solar constant at 1 AU [W/m^2] (IAU 2015 B3 nominal); the +/-3.3 % of the Earth's
-/// eccentric orbit is not modelled.
-pub const SOLAR_CONSTANT: f64 = 1361.0;
+/// The solar constant at 1 AU [W/m^2]: design_power_system's (gen::powersys).
+pub const SOLAR_CONSTANT: f64 = crate::gen::powersys::SOLAR_CONSTANT;
 
 impl PowerSystem {
     /// The power system the case states, None when it states none (a partial statement is refused
@@ -37,12 +38,9 @@ impl PowerSystem {
         if !v.iter().all(|x| x.is_finite()) { return None; }
         Some(PowerSystem { area: [v[0], v[1], v[2], v[3], v[4], v[5]], eff: v[6], batt_wh: v[7], load_w: v[8], soc0: v[9] })
     }
-    /// Array power [W] with the Sun along `s` (body, unit) and the shadow factor `nu` (1 sunlit).
-    pub fn generation(&self, s: &V3, nu: f64) -> f64 {
-        let n = [[1.0, 0.0, 0.0], [-1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, -1.0, 0.0], [0.0, 0.0, 1.0], [0.0, 0.0, -1.0]];
-        let lit: f64 = (0..6).map(|f| self.area[f]*dot(&n[f], s).max(0.0)).sum();
-        SOLAR_CONSTANT*nu.clamp(0.0, 1.0)*self.eff*lit
-    }
+    /// Array power [W] with the Sun along `s` (body, unit) and the shadow factor `nu` (1 sunlit):
+    /// design_power_system's array_power (gen::powersys).
+    pub fn generation(&self, s: &V3, nu: f64) -> f64 { crate::gen::powersys::array_power(self.area, self.eff, *s, nu) }
 }
 
 impl Derived {
@@ -56,271 +54,245 @@ impl Derived {
     }
 }
 
-/// The smallest eigenvalue of a symmetric 3x3 matrix (the trigonometric closed form).
-pub fn eig_min3(m: &[[f64; 3]; 3]) -> f64 {
-    let p1 = m[0][1]*m[0][1] + m[0][2]*m[0][2] + m[1][2]*m[1][2];
-    let q = (m[0][0] + m[1][1] + m[2][2])/3.0;
-    if p1 == 0.0 { return m[0][0].min(m[1][1]).min(m[2][2]); }
-    let p2 = (m[0][0] - q).powi(2) + (m[1][1] - q).powi(2) + (m[2][2] - q).powi(2) + 2.0*p1;
-    let p = (p2/6.0).sqrt();
-    let b = |i: usize, j: usize| (m[i][j] - if i == j { q } else { 0.0 })/p;
-    let det = b(0, 0)*(b(1, 1)*b(2, 2) - b(1, 2)*b(2, 1)) - b(0, 1)*(b(1, 0)*b(2, 2) - b(1, 2)*b(2, 0)) + b(0, 2)*(b(1, 0)*b(2, 1) - b(1, 1)*b(2, 0));
-    let phi = (det/2.0).clamp(-1.0, 1.0).acos()/3.0;
-    q + 2.0*p*(phi + 2.0*std::f64::consts::PI/3.0).cos()
-}
+/// The smallest eigenvalue of a symmetric 3x3 matrix: gp_4's (gen::jitter).
+pub fn eig_min3(m: &[[f64; 3]; 3]) -> f64 { crate::gen::jitter::jitter_eig_min3(*m) }
 
-/// Pointing jitter from rotor imbalance, frequency domain (= asils.sizing.jitter) [arcsec, each
-/// sample of the window]. A rotor at speed W with static imbalance U_s at a lever d from the centre
-/// of mass and dynamic imbalance U_d applies (U_s d + U_d) W^2 at W; above the attitude loop's
-/// bandwidth w_bw the body answers as a free rigid body, below it the loop rejects it:
-///     theta = (U_s d + U_d) W^2 / (J_min max(W^2, w_bw^2))
-/// W = |h| / J_rotor from the recorded momentum; the rotors add root-sum-square; fluid rings carry
-/// no rotating mass. d is half the class's smallest cross-section (the wheels sit inside it), w_bw
-/// the scenario's wheel-loop bandwidth. Empty (not computed) when a rotor's part states no imbalance.
+/// Pointing jitter from rotor imbalance, frequency domain [arcsec, each sample of the window]: gp_4's
+/// rotor_jitter (gen::jitter) over the recorded momenta, the body's smallest principal moment and lever
+/// (jitter_body), the wheel loop's bandwidth the flight software flies. Zero with no rotor; empty (not
+/// computed) when a rotor's part states no imbalance.
 pub fn jitter(c: &Config, rec: &Record, idx: &[usize]) -> Vec<f64> {
+    use crate::gen::jitter::{jitter_body, rotor_jitter, JIT_NR};
     let x = &c.dev.mex;
     if x.n == 0 { return idx.iter().map(|_| 0.0).collect(); }
     if c.dev.imbalance.iter().take(x.n).any(|u| u.is_none()) { return vec![]; }
-    let jmin = eig_min3(&c.inertia);
-    let d = c.box_m.iter().cloned().fold(f64::INFINITY, f64::min)/2.0;
-    let wbw = json::f(&c.scenario["fsw"], "rw_bandwidth", 0.9);
+    let (jmin, d) = jitter_body(c.inertia, c.box_m);
+    let (mut jrot, mut us, mut ud) = ([0.0; JIT_NR as usize], [0.0; JIT_NR as usize], [0.0; JIT_NR as usize]);
+    for i in 0..x.n {
+        jrot[i] = x.jrot[i];
+        (us[i], ud[i]) = c.dev.imbalance[i].unwrap_or((0.0, 0.0));
+    }
     idx.iter().map(|&j| {
-        let th2: f64 = (0..x.n).map(|i| {
-            let (us, ud) = c.dev.imbalance[i].unwrap_or((0.0, 0.0));
-            if (us == 0.0 && ud == 0.0) || !(x.jrot[i] > 0.0) { return 0.0; }
-            let w = rec.rows[j].h_w[i].abs()/x.jrot[i];
-            let w = if w.is_finite() { w } else { 0.0 };
-            let th = (us*d + ud)*w*w/(jmin*(w*w).max(wbw*wbw));
-            th*th
-        }).sum();
-        th2.sqrt().to_degrees()*3600.0
+        let mut h = [0.0; JIT_NR as usize];
+        h[..x.n].copy_from_slice(&rec.rows[j].h_w[..x.n]);
+        rotor_jitter(x.n as i64, h, jrot, us, ud, jmin, d, c.rw_bandwidth)
     }).collect()
 }
 
 /// The ECSS-E-ST-60-10C relative, mean and drift indices (see `ecss`).
 pub const ECSS_KINDS: [&str; 12] = ["rpe", "rpe_los", "mpe", "mpe_los", "pde", "pde_los", "rke", "rke_los", "mke", "mke_los", "kde", "kde_los"];
 
-fn acosd(x: f64) -> f64 { x.clamp(-1.0, 1.0).acos().to_degrees() }
+/// How each kind of metric is measured is kpi's (kpi_metric_channels, _statistics, _ecss, _evaluate: gen::kpichannels,
+/// kpistats, kpiecss, kpimetrics). Their choices' options are the scenario's words, in the schema's order: a kind
+/// (schema::METRIC_KINDS, then none), a window (schema::WINDOWS, then after_s), a statistic (schema::STATISTICS, then
+/// none), a channel (schema::CHANNELS); a unit's option is shown as its label (UNITS).
+const UNITS: [&str; 9] = ["deg", "min", "s", "deg/s", "N m s", "%", "g", "W", "arcsec"];
 
+/// The option of a choice the word names: its place in `words`, else `other`.
+fn option(words: &[&str], word: &str, other: i64) -> i64 { words.iter().position(|w| *w == word).map(|i| i as i64).unwrap_or(other) }
+
+/// The mode a metric names (its place in MODES), or -1: no sample is in a mode that is not one.
+fn mode_number(name: &str) -> i64 { option(&MODES, name, -1) }
+
+/// The derived channels of a run, sample by sample: kpi_metric_channels's (gen::kpichannels: the reference the flight
+/// software's guidance gives in each sample's mode, GUID its kind, with its yaw flip carried; the errors; the rate, the
+/// Sun's angle, the spin and the rate stability), the three-axis angles with the engine's portable maths
+/// (adcs-sim-core's generation of the same method), and the power system's (design_power_system: gen::powersys).
 pub fn derive(c: &Config, rec: &Record) -> Derived {
+    use crate::gen::kpichannels as kc;
+    use adcs_sim_core::gen::kpichannels::kpi_three_axis;
     let n = rec.rows.len();
     let bs = c.dev.boresight;
     let p = &c.params;
-    let mut d = Derived { ape_3ax: vec![f64::NAN; n], ape_los: vec![f64::NAN; n], ake_3ax: vec![f64::NAN; n], ake_los: vec![f64::NAN; n], rks: vec![f64::NAN; n], ..Default::default() };
+    let mut d = Derived { ape_3ax: vec![f64::NAN; n], ape_los: vec![f64::NAN; n], ake_3ax: vec![f64::NAN; n], ake_los: vec![f64::NAN; n], rks: vec![f64::NAN; n],
+                          rate: vec![f64::NAN; n], sun_angle: vec![f64::NAN; n], sun_angle_geo: vec![f64::NAN; n], spin_z: vec![f64::NAN; n], ..Default::default() };
     let mut e_vec = vec![[f64::NAN; 3]; n];
     d.e_ake = vec![[f64::NAN; 3]; n];
     d.bs = bs;
-    let mut flip = false;                      // the nadir-family yaw flip, with the flight software's hysteresis
+    let mut flip = false;
     for (j, row) in rec.rows.iter().enumerate() {
-        if p.gd_yaw_flip != 0 {
-            let mut g = Guid { q_off: p.gd_q_off, sun_axis: c.dev.sun_axis, roll_axis: bs, sun_eci: row.sun_eci, flip, ..Default::default() };
-            yaw_flip(&mut g, &row.r, &row.v, p.gd_flip_hyst);
-            flip = g.flip;
-        }
-        let b_true = mtv(&dcm(&row.q), &bs);
+        flip = kc::kpi_yaw_flip(p.gd_yaw_flip != 0, row.r, row.v, p.gd_q_off, c.dev.sun_axis, bs, row.sun_eci, flip, p.gd_flip_hyst);
         let k = GUID.get(row.mode as usize).copied().unwrap_or(-1);
-        if k >= 0 {
-            let gd = Guid { q_off: p.gd_q_off, roll_deg: p.gd_roll_deg, t0: p.gd_t0, t_slew: p.gd_T, axis: p.gd_axis, q_inertial: p.gd_q_inertial,
-                sun_axis: c.dev.sun_axis, roll_axis: bs, sun_eci: row.sun_eci, flip };
-            let qr = guidance(k, &row.r, &row.v, row.t, &gd).q;
-            let mut dq = qmult(&qconj(&qr), &row.q);
-            if dq[3] < 0.0 { dq = [-dq[0], -dq[1], -dq[2], -dq[3]]; }
-            e_vec[j] = [2.0*dq[0], 2.0*dq[1], 2.0*dq[2]];
-            d.ape_3ax[j] = qangle(&row.q, &qr).to_degrees();
-            d.ape_los[j] = acosd(dot(&b_true, &mtv(&dcm(&qr), &bs)));
+        let (has, qr) = kc::kpi_reference(k as i64, row.r, row.v, row.t, p.gd_q_off, p.gd_roll_deg, p.gd_t0, p.gd_T, p.gd_axis, p.gd_q_inertial,
+                                          c.dev.sun_axis, bs, row.sun_eci, flip);
+        if has {
+            (e_vec[j], d.ape_los[j]) = kc::kpi_error(row.q, qr, bs);
+            d.ape_3ax[j] = kpi_three_axis(row.q, qr);
         }
         if let Some(qe) = row.q_est {
-            let mut dk = qmult(&qconj(&qe), &row.q);
-            if dk[3] < 0.0 { dk = [-dk[0], -dk[1], -dk[2], -dk[3]]; }
-            d.e_ake[j] = [2.0*dk[0], 2.0*dk[1], 2.0*dk[2]];
-            d.ake_3ax[j] = qangle(&row.q, &qe).to_degrees();
-            d.ake_los[j] = acosd(dot(&b_true, &mtv(&dcm(&qe), &bs)));
+            (d.e_ake[j], d.ake_los[j]) = kc::kpi_error(row.q, qe, bs);
+            d.ake_3ax[j] = kpi_three_axis(row.q, qe);
         }
+        (d.rate[j], d.spin_z[j]) = kc::kpi_rates(row.w);
+        (d.sun_angle_geo[j], d.sun_angle[j]) = kc::kpi_sun_angle(c.dev.sun_axis, row.sun_body, row.nu);
     }
-    d.rate = rec.rows.iter().map(|r| norm(&r.w).to_degrees()).collect();
-    d.sun_angle_geo = rec.rows.iter().map(|r| acosd(dot(&c.dev.sun_axis, &r.sun_body))).collect();
-    d.sun_angle = rec.rows.iter().zip(&d.sun_angle_geo).map(|(r, &a)| if r.nu < 0.5 { f64::NAN } else { a }).collect();
     d.rate_err = vec![f64::NAN; n];
-    d.spin_z = rec.rows.iter().map(|r| r.w[2].to_degrees()).collect();
-    let lag = ((1.0/c.record_dt.max(1e-9)).round() as usize).max(1);
-    for j in lag..n {
-        let dv = sub(&e_vec[j], &e_vec[j - lag]);
-        d.rks[j] = norm(&dv).to_degrees()/(lag as f64*c.record_dt);
-    }
+    let lag = kc::kpi_rks_lag(c.record_dt) as usize;
+    for j in lag..n { d.rks[j] = kc::kpi_rks(e_vec[j], e_vec[j - lag], lag as i64, c.record_dt); }
     d.e_ape = e_vec;
     d.p_gen = vec![f64::NAN; n];
     d.soc = vec![f64::NAN; n];
     if let Some(ps) = PowerSystem::from(&c.case) {
-        // the battery takes what the arrays give less the platform and the ADCS, up to full; empty is empty
-        let mut e = ps.soc0*ps.batt_wh;
+        // design_power_system (gen::powersys): the arrays, and the battery taking what they give less the load
+        use crate::gen::powersys::{battery_soc, battery_start, battery_step, power_load, power_sun_unit};
+        let mut e = battery_start(ps.soc0, ps.batt_wh);
         for (j, row) in rec.rows.iter().enumerate() {
-            d.p_gen[j] = ps.generation(&unit(&row.sun_body), row.nu);
+            d.p_gen[j] = ps.generation(&power_sun_unit(row.sun_body), row.nu);
             if j > 0 {
-                let dt_h = (row.t - rec.rows[j - 1].t)/3600.0;
-                let load = ps.load_w + row.p_mtq + row.p_rw + row.p_rcs;
-                e = (e + (d.p_gen[j] - load)*dt_h).clamp(0.0, ps.batt_wh);
+                let load = power_load(ps.load_w, row.p_mtq, row.p_rw, row.p_rcs);
+                e = battery_step(e, d.p_gen[j], load, rec.rows[j - 1].t, row.t, ps.batt_wh);
             }
-            d.soc[j] = e/ps.batt_wh;
+            d.soc[j] = battery_soc(e, ps.batt_wh);
         }
     }
     d
 }
 
-/// The ECSS-E-ST-60-10C error indices over a metric window, on the performance error (rpe, mpe,
-/// pde) or the knowledge error (rke, mke, kde), three-axis or across the boresight (`_los`). The
-/// window is cut into consecutive blocks of `delta_s` from its first sample:
-///   rpe / rke   |e(t) - mean of e over t's block|, every sample          (relative error)
-///   mpe / mke   |mean of e over a block|, every block                    (mean error)
-///   pde / kde   |mean over block k+s - mean over block k|, s = separation_s / delta_s   (drift)
-/// The values are in degrees; the metric's statistic is taken over them. A block with no finite
-/// sample is skipped; a drift needs both of its blocks.
+fn usize_ix(idx: &[usize]) -> Vec<i64> { idx.iter().map(|&j| j as i64).collect() }
+
+/// The ECSS-E-ST-60-10C error indices of `kind` (an ECSS kind; any other gives none) over the window's samples `idx`
+/// (times `t`), in blocks of `delta_s` (a drift over `separation_s`), in degrees: kpi_metric_ecss's (gen::kpiecss), the
+/// kind's index and error kpi_metric_evaluate's (kpi_ecss_kind). The metric's statistic is taken over them.
 pub fn ecss(kind: &str, d: &Derived, t: &[f64], idx: &[usize], delta_s: f64, separation_s: f64) -> Vec<f64> {
-    let (base, los) = match kind.strip_suffix("_los") { Some(b) => (b, true), None => (kind, false) };
-    let src = if matches!(base, "rke" | "mke" | "kde") { &d.e_ake } else { &d.e_ape };
-    let bs = unit(&d.bs);
-    let e = |j: usize| -> V3 { let v = src[j]; if los { sub(&v, &scale(&bs, dot(&v, &bs))) } else { v } };
-    if idx.is_empty() || !(delta_s > 0.0) { return vec![]; }
-    let t0 = t[idx[0]];
-    let block = |j: usize| ((t[j] - t0)/delta_s + 1e-9).floor() as usize;
-    let nb = block(*idx.last().unwrap()) + 1;
-    let (mut sum, mut cnt) = (vec![[0.0; 3]; nb], vec![0usize; nb]);
-    for &j in idx {
-        let v = e(j);
-        if v.iter().all(|x| x.is_finite()) { let b = block(j); sum[b] = add(&sum[b], &v); cnt[b] += 1; }
-    }
-    let mean: Vec<Option<V3>> = (0..nb).map(|b| (cnt[b] > 0).then(|| scale(&sum[b], 1.0/cnt[b] as f64))).collect();
-    match base {
-        "rpe" | "rke" => idx.iter().filter_map(|&j| { let v = e(j); mean[block(j)].filter(|_| v.iter().all(|x| x.is_finite())).map(|m| norm(&sub(&v, &m)).to_degrees()) }).collect(),
-        "mpe" | "mke" => mean.iter().flatten().map(|m| norm(m).to_degrees()).collect(),
-        "pde" | "kde" => {
-            let s = (separation_s/delta_s).round().max(1.0) as usize;
-            (0..nb.saturating_sub(s)).filter_map(|k| match (mean[k], mean[k + s]) { (Some(a), Some(b)) => Some(norm(&sub(&b, &a)).to_degrees()), _ => None }).collect()
-        }
-        _ => vec![],
-    }
+    use crate::gen::{kpiecss as ke, kpimetrics as km};
+    let (is, k, knowledge, los) = km::kpi_ecss_kind(option(&crate::schema::METRIC_KINDS, kind, km::METRICKIND_NONE));
+    if !is { return vec![]; }
+    let mut e: Vec<f64> = if knowledge { &d.e_ake } else { &d.e_ape }.iter().flat_map(|v| v.iter().copied()).collect();
+    let (mut tt, mut ix) = (t.to_vec(), usize_ix(idx));
+    let ni = ix.len() as i64;
+    let nb = ke::kpi_ecss_blocks(&mut tt, &mut ix, ni, delta_s).max(0) as usize;
+    let (mut sums, mut cnt, mut out) = (vec![0.0; 3*nb], vec![0i64; nb], vec![0.0; idx.len().max(nb)]);
+    let nout = ke::kpi_ecss(k, los, &mut e, d.bs, &mut tt, &mut ix, ni, delta_s, separation_s, &mut sums, &mut cnt, &mut out);
+    out.truncate(nout.max(0) as usize);
+    out
 }
 
-/// The first time x stays below thr for hold seconds (NaN: never).
+/// The first time x stays below thr for hold seconds (NaN: never): kpi_metric_statistics's kpi_time_to.
 pub fn time_to(t: &[f64], x: &[f64], thr: f64, hold: f64) -> f64 {
-    let n = t.len();
-    let mut k = 0;
-    while k < n {
-        if x[k] < thr {
-            let mut j = k;
-            while j + 1 < n && x[j + 1] < thr { j += 1; }
-            if t[j] - t[k] >= hold { return t[k]; }
-            k = j + 1;
-        } else { k += 1; }
-    }
-    f64::NAN
+    crate::gen::kpistats::kpi_time_to(&mut t.to_vec(), &mut x.to_vec(), t.len() as i64, thr, hold)
 }
 
-fn stat(x: impl Iterator<Item = f64>, s: &str) -> f64 {
-    let mut v: Vec<f64> = x.filter(|x| x.is_finite()).collect();
-    if v.is_empty() { return f64::NAN; }
-    match s {
-        "max" => v.iter().cloned().fold(f64::MIN, f64::max),
-        "rms" => (v.iter().map(|x| x*x).sum::<f64>()/v.len() as f64).sqrt(),
-        "mean" => v.iter().sum::<f64>()/v.len() as f64,
-        "p99.73" | "p95" => {
-            v.sort_by(|a, b| a.partial_cmp(b).unwrap());
-            let q = if s == "p95" { 0.95 } else { 0.9973 };
-            v[((q*v.len() as f64).ceil() as usize).max(1) - 1]
-        }
-        _ => f64::NAN,
-    }
+/// The statistic `st` (a MetricStat) of the finite values among x: kpi_metric_statistics's kpi_statistic.
+fn stat(mut x: Vec<f64>, st: i64) -> f64 {
+    let n = x.len();
+    let (mut w, mut tmp) = (vec![0.0; n], vec![0.0; n]);
+    crate::gen::kpistats::kpi_statistic(&mut x, n as i64, st, &mut w, &mut tmp)
 }
 
-fn window(c: &Config, rec: &Record, spec: &str) -> Vec<usize> {
-    let t: Vec<f64> = rec.rows.iter().map(|r| r.t).collect();
-    let te = *t.last().unwrap_or(&0.0);
-    let per = c.period_s;
-    (0..t.len()).filter(|&j| match spec {
-        "all" => true,
-        "last_orbit" => t[j] >= te - per,
-        "last_half_orbit" => t[j] >= te - per/2.0,
-        "pointing" => rec.rows[j].mode + 1 > 1,
-        s if s.starts_with("after_s:") => t[j] >= s[8..].parse::<f64>().unwrap_or(0.0),
-        _ => true,
-    }).collect()
+/// The samples of a run a metric's window (the scenario's word; after_s:<seconds>) takes: kpi_metric_statistics's
+/// kpi_window over the times, the modes and the orbit's period.
+fn window(c: &Config, t: &mut [f64], mode: &mut [i64], spec: &str) -> Vec<usize> {
+    use crate::gen::kpistats as ks;
+    let (w, after) = match spec.strip_prefix("after_s:") {
+        Some(x) => (ks::METRICWINDOW_AFTER_S, x.parse::<f64>().unwrap_or(0.0)),
+        None => (option(&crate::schema::WINDOWS, spec, ks::METRICWINDOW_ALL), 0.0),
+    };
+    let mut idx = vec![0i64; t.len()];
+    let ni = ks::kpi_window(w, after, t, mode, t.len() as i64, c.period_s, &mut idx);
+    idx[..ni.max(0) as usize].iter().map(|&j| j as usize).collect()
 }
 
+/// Every metric the scenario asks for, measured on the run (kpi_metric_evaluate: gen::kpimetrics): its value, the unit
+/// it is stated in, and its verdict against the case's requirement or the scenario's limit. This reads the scenario's
+/// metric sections (the defaults kpi's where a section states none) and hands the run's channels over.
 pub fn evaluate(c: &Config, rec: &Record, d: &Derived) -> Vec<Value> {
+    use crate::gen::{kpimetrics as km, kpistats as ks};
+    use crate::schema::{CHANNELS, METRIC_KINDS, STATISTICS, WINDOWS};
     let mut out = vec![];
     let ms = c.scenario.get("metrics").and_then(|m| m.as_array()).cloned().unwrap_or_default();
-    let t: Vec<f64> = rec.rows.iter().map(|r| r.t).collect();
+    let (dw, dst, dch, rate_thr, rate_hold, thr, thr_hold, from_s, dsense_min, dunit_min, dend) = km::kpi_metric_defaults();
+    let n = rec.rows.len();
+    let col = |f: &dyn Fn(&crate::run::Row) -> f64| -> Vec<f64> { rec.rows.iter().map(f).collect() };
+    let mut t = col(&|r| r.t);
+    let mut mode: Vec<i64> = rec.rows.iter().map(|r| r.mode as i64).collect();
+    let (mut prop, mut p_mtq, mut p_rw, mut p_rcs) = (col(&|r| r.prop_kg), col(&|r| r.p_mtq), col(&|r| r.p_rw), col(&|r| r.p_rcs));
+    let mut h: Vec<f64> = rec.rows.iter().flat_map(|r| r.h_w[..rec.nr].iter().copied()).collect();
+    // the channels, in MetricChannel's order
+    let mut ch: Vec<Vec<f64>> = CHANNELS.iter().map(|name| d.channel(name).cloned().unwrap_or_default()).collect();
+    let (mut sun, mut spin, mut p_gen, mut soc) = (d.sun_angle.clone(), d.spin_z.clone(), d.p_gen.clone(), d.soc.clone());
+    let (mut w, mut tmp, mut tt, mut xx) = (vec![0.0; n], vec![0.0; n], vec![0.0; n], vec![0.0; n]);
+    let ps = PowerSystem::from(&c.case);
     for m in &ms {
-        let idx = window(c, rec, json::s(m, "window", "all"));
-        let st = json::s(m, "statistic", "max");
-        let pick = |x: &Vec<f64>| idx.iter().map(|&j| x[j]).collect::<Vec<_>>();
-        let mode_is = |j: usize, name: &str| MODES.get(rec.rows[j].mode as usize).map(|&x| x == name).unwrap_or(false);
+        let spec = json::get(m, "window").and_then(|x| x.as_str()).unwrap_or(WINDOWS[dw as usize]);
+        let idx = window(c, &mut t, &mut mode, spec);
+        let mut ix = usize_ix(&idx);
+        let ni = ix.len() as i64;
+        let st = match json::get(m, "statistic").and_then(|x| x.as_str()) { Some(s) => option(&STATISTICS, s, ks::METRICSTAT_NONE), None => dst };
         let kind = json::s(m, "kind", "");
-        let mut unit = "deg";
-        let val = match kind {
-            "time_to_rate" => {
-                unit = "min";
-                let thr = json::f(m, "rate_threshold_deg_s", 0.5);
-                let mut v = time_to(&t, &d.rate, thr, json::f(m, "hold_s", 0.0));
-                // a mission hands over to the next mode when detumble is done; that hand-over (below the
-                // threshold) completes the detumble even if the next mode then spins the body up again
-                if json::b(m, "end_at_mode_exit", false) && !rec.rows.is_empty() {
-                    let m0 = rec.rows[0].mode;
-                    if let Some(j) = (0..t.len()).find(|&j| rec.rows[j].mode != m0) {
-                        if d.rate[j] < thr && !(v <= t[j]) { v = t[j]; }
-                    }
-                }
-                v/60.0
+        let k = option(&METRIC_KINDS, kind, km::METRICKIND_NONE);
+        let unit_min = json::b(m, "unit_min", dunit_min);
+        let mode_named = || mode_number(json::s(m, "mode", ""));
+        let val = match k {
+            km::METRICKIND_TIME_TO_RATE => km::kpi_time_to_rate(&mut t, &mut ch[km::METRICCHANNEL_RATE as usize], &mut mode, n as i64,
+                json::f(m, "rate_threshold_deg_s", rate_thr), json::f(m, "hold_s", rate_hold), json::b(m, "end_at_mode_exit", dend)),
+            km::METRICKIND_TIME_TO_THRESHOLD => {
+                let name = json::s(m, "channel", CHANNELS[dch as usize]);
+                let Some(c_ix) = CHANNELS.iter().position(|x| *x == name) else {
+                    out.push(json!({"id": json::s(m, "id", ""), "kind": kind, "value": Value::Null, "unit": "", "req": Value::Null, "req_key": format!("unknown channel {name}"), "pass": Value::Null}));
+                    continue;
+                };
+                km::kpi_time_to_threshold(&mut t, &mut ch[c_ix], n as i64, json::f(m, "from_s", from_s), json::f(m, "threshold_deg", thr),
+                    json::f(m, "hold_s", thr_hold), unit_min, &mut tt, &mut xx)
             }
-            k if ECSS_KINDS.contains(&k) => stat(ecss(k, d, &t, &idx, json::f(m, "delta_s", f64::NAN), json::f(m, "separation_s", f64::NAN)).into_iter(), st),
-            "ape" => stat(pick(&d.ape_3ax).into_iter(), st),
-            "ape_los" => stat(pick(&d.ape_los).into_iter(), st),
-            "ake" => stat(pick(&d.ake_3ax).into_iter(), st),
-            "ake_los" => stat(pick(&d.ake_los).into_iter(), st),
-            "rate_stability" => { unit = "deg/s"; stat(pick(&d.rks).into_iter(), st) }
-            "time_to_threshold" => {
-                unit = "s";
-                let t0 = json::f(m, "from_s", 0.0);
-                let name = json::s(m, "channel", "ape_los");
-                let Some(ch) = d.channel(name) else { out.push(json!({"id": json::s(m, "id", ""), "kind": kind, "value": Value::Null, "unit": "", "req": Value::Null, "req_key": format!("unknown channel {name}"), "pass": Value::Null})); continue; };
-                let ks: Vec<usize> = (0..t.len()).filter(|&j| t[j] >= t0).collect();
-                let tt: Vec<f64> = ks.iter().map(|&j| t[j] - t0).collect();
-                let xx: Vec<f64> = ks.iter().map(|&j| ch[j]).collect();
-                let mut v = time_to(&tt, &xx, json::f(m, "threshold_deg", 1.0), json::f(m, "hold_s", 10.0));
-                if json::b(m, "unit_min", false) { v /= 60.0; unit = "min"; }
-                v
+            km::METRICKIND_WHEEL_MOMENTUM_PEAK => km::kpi_wheel_peak(&mut h, rec.nr as i64, &mut ix, ni),
+            km::METRICKIND_TIME_TO_MODE => km::kpi_time_to_mode(&mut t, &mut mode, n as i64, mode_named()),
+            km::METRICKIND_SUN_ANGLE => {
+                let by = json::get(m, "mode").and_then(|x| x.as_str());
+                km::kpi_sun_angle_stat(&mut sun, &mut mode, &mut ix, ni, by.is_some(), by.map(mode_number).unwrap_or(-1), st, &mut w, &mut tmp)
             }
-            "wheel_momentum_peak" => { unit = "N m s"; idx.iter().flat_map(|&j| rec.rows[j].h_w[..rec.nr].iter().map(|x| x.abs())).fold(f64::NAN, f64::max) }
-            "time_to_mode" => { unit = "min"; let name = json::s(m, "mode", ""); (0..t.len()).find(|&j| mode_is(j, name)).map(|j| t[j]/60.0).unwrap_or(f64::NAN) }
-            "sun_angle" => {
-                let sel: Vec<usize> = match json::get(m, "mode").and_then(|x| x.as_str()) { Some(name) => idx.iter().copied().filter(|&j| mode_is(j, name)).collect(), None => idx.clone() };
-                stat(sel.iter().map(|&j| d.sun_angle[j]), st)
-            }
-            "spin_rate_error" => { unit = "deg/s"; stat(idx.iter().map(|&j| (d.spin_z[j].abs() - c.spin_dps).abs()), st) }
-            "mode_fraction" => { unit = "%"; let name = json::s(m, "mode", ""); 100.0*idx.iter().filter(|&&j| mode_is(j, name)).count() as f64/idx.len().max(1) as f64 }
-            "propellant" => { unit = "g"; 1e3*rec.rows.iter().map(|r| r.prop_kg).fold(0.0, f64::max) }
-            "jitter" => { unit = "arcsec"; stat(jitter(c, rec, &idx).into_iter(), st) }
-            // the power budget (needs the case's power system): array power less every load, averaged
-            // over the window; the deepest discharge; the lowest state of charge
-            "power_margin" => {
-                unit = "W";
-                let ps = PowerSystem::from(&c.case);
-                ps.map(|ps| idx.iter().map(|&j| { let r = &rec.rows[j]; d.p_gen[j] - ps.load_w - r.p_mtq - r.p_rw - r.p_rcs }).sum::<f64>()/idx.len().max(1) as f64)
-                    .unwrap_or(f64::NAN)
-            }
-            "battery_dod" => { unit = "%"; 100.0*(1.0 - idx.iter().map(|&j| d.soc[j]).fold(f64::NAN, f64::min)) }
-            "soc_min" => { unit = "%"; 100.0*idx.iter().map(|&j| d.soc[j]).fold(f64::NAN, f64::min) }
-            "power_mean" => { unit = "W"; idx.iter().map(|&j| { let r = &rec.rows[j]; r.p_mtq + r.p_rw + r.p_rcs }).sum::<f64>()/idx.len().max(1) as f64 }
-            "power_peak" => { unit = "W"; idx.iter().map(|&j| { let r = &rec.rows[j]; r.p_mtq + r.p_rw + r.p_rcs }).fold(f64::MIN, f64::max) }
-            _ => f64::NAN,
+            km::METRICKIND_SPIN_RATE_ERROR => km::kpi_spin_error_stat(&mut spin, &mut ix, ni, c.spin_dps, st, &mut w, &mut tmp),
+            km::METRICKIND_MODE_FRACTION => km::kpi_mode_fraction(&mut mode, &mut ix, ni, mode_named()),
+            km::METRICKIND_PROPELLANT => km::kpi_propellant(&mut prop, n as i64),
+            km::METRICKIND_JITTER => stat(jitter(c, rec, &idx), st),
+            km::METRICKIND_POWER_MARGIN => km::kpi_power_margin(ps.is_some(), &mut p_gen, &mut p_mtq, &mut p_rw, &mut p_rcs, &mut ix, ni,
+                ps.as_ref().map(|p| p.load_w).unwrap_or(f64::NAN)),
+            km::METRICKIND_BATTERY_DOD => km::kpi_battery(&mut soc, &mut ix, ni).0,
+            km::METRICKIND_SOC_MIN => km::kpi_battery(&mut soc, &mut ix, ni).1,
+            km::METRICKIND_POWER_MEAN => km::kpi_adcs_power(&mut p_mtq, &mut p_rw, &mut p_rcs, &mut ix, ni).0,
+            km::METRICKIND_POWER_PEAK => km::kpi_adcs_power(&mut p_mtq, &mut p_rw, &mut p_rcs, &mut ix, ni).1,
+            _ => match (km::kpi_kind_channel(k), km::kpi_ecss_kind(k).0) {
+                ((true, c_ix), _) => ks::kpi_channel_stat(&mut ch[c_ix as usize], &mut ix, ni, st, &mut w, &mut tmp),
+                (_, true) => stat(ecss(kind, d, &t, &idx, json::f(m, "delta_s", f64::NAN), json::f(m, "separation_s", f64::NAN)), st),
+                _ => f64::NAN,
+            },
         };
+        let unit = UNITS[km::kpi_metric_unit(k, unit_min) as usize];
+        // which requirement: the case's (a requirement key) or the scenario's own limit
         let mut rk = json::s(m, "requirement", "").to_string();
         let mut rv = f64::NAN;
         if !rk.is_empty() { rv = c.case.get(&rk); } else if let Some(l) = json::get(m, "limit").and_then(|x| x.as_f64()) { rv = l; rk = "scenario".into(); }
-        let pass = if rv.is_finite() {
-            if val.is_nan() { Some(0) } else if json::s(m, "sense", "max") == "min" { Some((val >= rv) as i32) } else { Some((val <= rv) as i32) }
-        } else { None };
+        let sense_min = json::get(m, "sense").and_then(|x| x.as_str()).map(|s| s == "min").unwrap_or(dsense_min);
+        let pass = match km::kpi_verdict(val, rv, sense_min) { -1 => Value::Null, p => json!(p) };
         let num = |x: f64| if x.is_finite() { json!(x) } else { Value::Null };
         out.push(json!({"id": json::s(m, "id", ""), "kind": kind, "value": num(val), "unit": unit, "req": num(rv), "req_key": rk, "pass": pass}));
     }
     out
+}
+
+/// The absolute pointing error budget of a stored fine-pointing run (SPEC rows gp_0 to gp_5, ECSS-E-ST-60-10C), as
+/// pnt's methods give it (gen::pntbudget): the knowledge (gp_0) and control (gp_1) contributions from the run's
+/// metrics `flown` (the APE across the boresight, p99.73) and `knowledge` (the AKE likewise), the alignment (gp_2) the
+/// product states (payload_alignment_rad), the thermal distortion (gp_3) the case states (pointing.et), the jitter
+/// (gp_4) from the metric `jitter` [arcsec]; the total, the room req.ape leaves for gp_2 and gp_3, and the verdict.
+/// A metric not named, or not computed, and a value not stated, are null. Degrees. Read by tools/pointing_budget.py.
+pub fn pointing_budget(dir: &std::path::Path, flown: Option<&str>, knowledge: Option<&str>, jitter: Option<&str>) -> Result<Value, crate::Error> {
+    use crate::gen::pntbudget as pb;
+    let f = dir.join("manifest.json");
+    let man: Value = serde_json::from_str(&crate::source::read_to_string(&f)?).map_err(|e| crate::Error::malformed(format!("{}: {e}", f.display())))?;
+    let ms = man["metrics"].as_array().cloned().unwrap_or_default();
+    let metric = |id: Option<&str>| id.and_then(|id| ms.iter().find(|m| m["id"].as_str() == Some(id))).and_then(|m| m["value"].as_f64()).unwrap_or(f64::NAN);
+    let root = crate::data_root();
+    let case = crate::case::Case::read(&crate::flight::case_file(&root, json::s(&man, "scenario", ""), Some(json::s(&man, "case", "")))?)?;
+    let product: Value = serde_json::from_str(&crate::source::read_to_string(&crate::product::find(&root, "products", json::s(&man, "product", ""))?)?)
+        .map_err(|e| crate::Error::malformed(format!("product {}: {e}", json::s(&man, "product", ""))))?;
+    let (ape, ake) = (metric(flown), metric(knowledge));
+    let terms = [pb::pointing_knowledge(ake), pb::pointing_control(ape, ake), pb::pointing_alignment(json::f(&product, "payload_alignment_rad", f64::NAN)),
+                 case.get("pointing.et"), pb::pointing_jitter(metric(jitter))];
+    let req = case.get("req.ape");
+    let (total, room, verdict) = pb::pointing_budget(ape, terms[2], terms[3], terms[4], req);
+    let num = |x: f64| if x.is_finite() { json!(x) } else { Value::Null };
+    let verdict = match verdict { pb::BUDGETVERDICT_INCOMPLETE => "incomplete", pb::BUDGETVERDICT_CLOSES => "closes", _ => "does not close" };
+    Ok(json!({"scenario": json::s(&man, "scenario", ""), "case": case.id, "product": json::s(&man, "product", ""), "flown_ape_deg": num(ape),
+              "terms_deg": {"gp_0": num(terms[0]), "gp_1": num(terms[1]), "gp_2": num(terms[2]), "gp_3": num(terms[3]), "gp_4": num(terms[4])},
+              "total_deg": num(total), "req_ape_deg": num(req), "room_gp2_gp3_deg": num(room), "verdict": verdict}))
 }

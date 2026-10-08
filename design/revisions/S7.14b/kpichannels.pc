@@ -1,0 +1,91 @@
+## The channels a run's metrics are measured on, each sample from the recorded truth, transcribed from adcs-sim metrics.rs
+## (derive, acosd), the twin's asils.metrics.derive: the performance error (the true attitude against the reference the
+## flight software's guidance gives in the sample's mode, with its yaw flip carried with the flight software's
+## hysteresis) and the knowledge error (the true attitude against the estimate), each three-axis and across the payload
+## boresight, with its small-angle error vector; the body rate; the Sun's angle from the power face, sunlit only; the spin
+## about +Z; and the rate stability, the change of the performance error vector over one second (ECSS-E-ST-60-10C). The
+## angles are plain numbers in degrees, the rates in degrees per second, as the record and the metrics state them; the
+## orbit and the attitudes in SI. A channel with nothing to measure is nan.
+## The developer's transcription (S7.14b), unsigned.
+module kpichannels
+
+## The angle [deg] whose cosine is x, x held to [-1, 1].
+fn kpi_acosd(x: real[1] in -1.5 .. 1.5) -> a: real[1]
+    a = acos(clamp(x, -1.0, 1.0))*(180.0/pi)
+end
+
+## The nadir family's yaw flip at a sample (the flight software's yaw_flip, fsw_guidance), carried from the sample before
+## (flip), when the scenario flies it (on); else as it was.
+fn kpi_yaw_flip(on: bool, r: vec3[m] in -7.2e6 .. 7.2e6, v: vec3[m/s] in -7600 .. 7600, q_off: quat in -1 .. 1, \
+                sun_axis: vec3[1] in -1 .. 1, roll_axis: vec3[1] in -1 .. 1, sun_eci: vec3[1] in -1 .. 1, flip: bool, \
+                hyst: real[1] in 0 .. 0.3) -> flip_out: bool
+    flip_out = flip
+    if on
+        flip_out = yaw_flip(r, v, q_off, sun_axis, roll_axis, sun_eci, flip, hyst)
+    end
+end
+
+## The reference attitude of a sample in a mode whose guidance is kind (the flight software's guidance, fsw_guidance;
+## -1, a mode with none: no reference, has false): the attitude the guidance gives at t on the orbit (r, v), the payload
+## boresight bs its roll axis, the nadir family turned by flip.
+fn kpi_reference(kind: int in -1 .. 4, r: vec3[m] in -7.2e6 .. 7.2e6, v: vec3[m/s] in -7600 .. 7600, t: real[s] in 0 .. 600, \
+                 q_off: quat in -1 .. 1, roll_deg: real[1] in -60 .. 60, t0: real[s] in 0 .. 300, t_slew: real[s] in 20 .. 300, \
+                 axis: vec3[1] in -1 .. 1, q_inertial: quat in -1 .. 1, sun_axis: vec3[1] in -1 .. 1, bs: vec3[1] in -1 .. 1, \
+                 sun_eci: vec3[1] in -1 .. 1, flip: bool) -> (has: bool, qr: quat)
+    has = kind >= 0
+    qr = [0, 0, 0, 1]
+    if has
+        let q, w, wd = guidance(kind, r, v, t, q_off, roll_deg, t0, t_slew, axis, q_inertial, sun_axis, bs, sun_eci, flip)
+        qr = q
+    end
+end
+
+## The error of the attitude q against qr (both ECI to body): the small-angle error vector e = 2 dq[0..2] [rad] of
+## dq = conj(qr) q with its scalar made positive, and the angle between the payload boresight bs (body) as q and as qr
+## point it [deg]. The performance error against the guidance's reference, the knowledge error against the estimate.
+fn kpi_error(q: quat in -1 .. 1, qr: quat in -1 .. 1, bs: vec3[1] in -1 .. 1) -> (e: vec3[1], los: real[1])
+    let dq = qmult(qconj(qr), q)
+    if dq[3] < 0
+        dq = [-dq[0], -dq[1], -dq[2], -dq[3]]
+    end
+    e = [2.0*dq[0], 2.0*dq[1], 2.0*dq[2]]
+    let b_true = mat3t_vec(dcm(q), bs)
+    los = kpi_acosd(dot(b_true, mat3t_vec(dcm(qr), bs)))
+end
+
+## The angle between the attitudes q and qr [deg], three-axis (the toolbox's qangle). The engine takes it with its
+## portable maths (adcs-sim-core's, the pure-Rust libm the toolbox's qangle flew), the other angles with the platform's.
+fn kpi_three_axis(q: quat in -1 .. 1, qr: quat in -1 .. 1) -> a: real[1]
+    a = qangle(q, qr)*(180.0/pi)
+end
+
+## The body rate's magnitude [deg/s] and the spin about +Z [deg/s] of the body rate w [rad/s].
+fn kpi_rates(w: vec3[1/s] in -1 .. 1) -> (rate: real[1/s], spin_z: real[1/s])
+    rate = norm(w)*(180.0/pi)
+    spin_z = w[2]*(180.0/pi)
+end
+
+## The Sun's angle from the power face sun_axis (body) [deg], the Sun along sun_body (body): geometric, and only where
+## the spacecraft is lit (the sunlit fraction nu at least one half; nan in the shadow).
+fn kpi_sun_angle(sun_axis: vec3[1] in -1 .. 1, sun_body: vec3[1] in -1 .. 1, nu: real[1] in 0 .. 1) -> (geo: real[1], lit: real[1])
+    geo = kpi_acosd(dot(sun_axis, sun_body))
+    lit = geo
+    if nu < 0.5
+        lit = nan
+    end
+end
+
+## How many record steps the rate stability looks back: one second at the record step record_dt [s] (a plain number),
+## at least one.
+fn kpi_rks_lag(record_dt: real[1] in 0.01 .. 10) -> lag: int
+    lag = int(round(1.0/max(record_dt, 1e-9)))
+    if lag < 1
+        lag = 1
+    end
+end
+
+## The rate stability [deg/s] of a sample: the change of the performance error vector from e_lag, lag record steps of
+## record_dt [s] before, to e.
+fn kpi_rks(e: vec3[1] in -0.1 .. 0.1, e_lag: vec3[1] in -0.1 .. 0.1, lag: int in 1 .. 100, record_dt: real[1] in 0.01 .. 10) -> rks: real[1]
+    rks = norm(e - e_lag)*(180.0/pi)/(real(lag)*record_dt)
+end

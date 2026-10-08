@@ -119,9 +119,9 @@ pub fn mag_counts(b: [f64; 3], s: EmuScale) -> [i64; 3] {
     let mut c: [i64; 3] = [0; 3];
     c = [0; 3];
     {
-        let __end90: i64 = 3;
+        let __end98: i64 = 3;
         let mut i: i64 = 0;
-        while i < __end90 {
+        while i < __end98 {
             c[(i) as usize] = crate::gen::emucodec::emu_count((b[(i) as usize] / s.mag), s.lo16, s.hi16);
             i += 1;
         }
@@ -138,9 +138,9 @@ pub fn unit_counts(u: [f64; 3], s: EmuScale) -> [i64; 3] {
     let mut c: [i64; 3] = [0; 3];
     c = [0; 3];
     {
-        let __end91: i64 = 3;
+        let __end99: i64 = 3;
         let mut i: i64 = 0;
-        while i < __end91 {
+        while i < __end99 {
             c[(i) as usize] = crate::gen::emucodec::emu_count((u[(i) as usize] / s.unit), s.lo16, s.hi16);
             i += 1;
         }
@@ -157,9 +157,9 @@ pub fn gyro_counts(w: [f64; 3], s: EmuScale) -> [i64; 3] {
     let mut c: [i64; 3] = [0; 3];
     c = [0; 3];
     {
-        let __end92: i64 = 3;
+        let __end100: i64 = 3;
         let mut i: i64 = 0;
-        while i < __end92 {
+        while i < __end100 {
             c[(i) as usize] = crate::gen::emucodec::emu_count((w[(i) as usize] / s.gyro), s.lo32, s.hi32);
             i += 1;
         }
@@ -176,9 +176,9 @@ pub fn quat_counts(q: [f64; 4], s: EmuScale) -> [i64; 4] {
     let mut c: [i64; 4] = [0; 4];
     c = [0; 4];
     {
-        let __end93: i64 = 4;
+        let __end101: i64 = 4;
         let mut k: i64 = 0;
-        while k < __end93 {
+        while k < __end101 {
             c[(k) as usize] = crate::gen::emucodec::emu_count((q[(k) as usize] / s.q), s.lo32, s.hi32);
             k += 1;
         }
@@ -199,9 +199,9 @@ pub fn fix_counts(r: [f64; 3], v: [f64; 3], s: EmuScale) -> ([i64; 3], [i64; 3])
     cr = [0; 3];
     cv = [0; 3];
     {
-        let __end94: i64 = 3;
+        let __end102: i64 = 3;
         let mut i: i64 = 0;
-        while i < __end94 {
+        while i < __end102 {
             cr[(i) as usize] = crate::gen::emucodec::emu_count((r[(i) as usize] / s.pos), s.lo32, s.hi32);
             cv[(i) as usize] = crate::gen::emucodec::emu_count((v[(i) as usize] / s.vel), s.lo32, s.hi32);
             i += 1;
@@ -235,9 +235,9 @@ pub fn coil_dipole(pwm: [i64; 3], m_max: f64, s: EmuScale) -> [f64; 3] {
     let mut m: [f64; 3] = [0.0; 3];
     m = [0.0; 3];
     {
-        let __end95: i64 = 3;
+        let __end103: i64 = 3;
         let mut i: i64 = 0;
-        while i < __end95 {
+        while i < __end103 {
             m[(i) as usize] = (((pwm[(i) as usize] as f64) / s.word) * m_max);
             i += 1;
         }

@@ -1,4 +1,4 @@
-"""The built-in count (docs/PLAN_2_0.md S7; docs/S7_INVENTORY.md S7.1b, S7.3, S7.3b-e, S7.4, S7.5, S7.6, S7.7, S7.8, S7.9, S7.10, S7.11, S7.12, S7.13): the nodes of the regression copy whose
+"""The built-in count (docs/PLAN_2_0.md S7; docs/S7_INVENTORY.md S7.1b, S7.3, S7.3b-e, S7.4, S7.5, S7.6, S7.7, S7.8, S7.9, S7.10, S7.11, S7.12, S7.13, S7.14, S7.14b): the nodes of the regression copy whose
 relation is still compiled code, by group. S7 lowers it to zero; each step that writes a method takes its nodes
 out of BUILT_IN here, in the same change.
   - the count and the list are exactly these, and tools/health.py reports them;
@@ -31,7 +31,6 @@ BUILT_IN = {
     "design": ["design_sizing_cmg", "design_sizing_fmr", "design_sizing_mtq", "design_sizing_rcs", "design_sizing_rw",
                "design_sizing_sensors", "design_sizing_vscmg", "gb_0", "gb_1", "gb_2", "gb_3", "l3_budget_row_01", "l3_budget_row_02",
                "l3_budget_row_03", "l3_budget_row_04", "l3_budget_row_05", "l3_budget_row_06", "l3_budget_row_07", "l3_budget_row_08"],
-    "pnt": ["gp_0", "gp_1", "gp_2", "gp_4"],
 }
 BOUNDARY = {"l3_fsw_row_01": "runtime", "l3_fsw_row_02": "runtime", "l3_fsw_row_03": "runtime", "l3_fsw_row_04": "runtime",
             "l3_fsw_row_10": "test"}
@@ -46,10 +45,10 @@ class BuiltIn(unittest.TestCase):
     def beh(self, nid):
         return self.nodes[nid][1]["body"]["block"][0][3]
 
-    def test_the_count_is_31_and_these(self):
+    def test_the_count_is_27_and_these(self):
         bi = health.built_in(REG)
         self.assertEqual(bi["by_group"], BUILT_IN)
-        self.assertEqual(bi["count"], 31)
+        self.assertEqual(bi["count"], 27)
         self.assertEqual(bi["boundary"], BOUNDARY)
 
     def test_what_is_not_a_relation_in_code_is_not_built_in(self):
@@ -528,6 +527,70 @@ end
         self.assertEqual(re.findall(r"json::f\([^;()\n]*, -?[0-9][0-9.e-]*\)", cfg), ['json::f(e, "t_s", 0.0)', 'json::f(f, "t_s", 0.0)', 'json::f(f, "index", 0.0)'],
                          "a scenario's number with a default in code: only the events' clock origin and the fault's unit")
         self.assertIn("lqr::chain3(", cfg)       # the Riccati solve stays the toolbox's
+
+    def test_the_pointing_budget_jitter_and_power_are_methods_the_developer_transcribed(self):
+        """S7.14: the pointing budget's knowledge, control and alignment contributions (gp_0, gp_1, gp_2) and its total, room
+        and verdict (l3_pnt_row_09, open until now) are pnt's methods, the rotors' jitter with each rotor's imbalance gp_4's,
+        and the platform's power system (arrays, battery, the solar constant) a new node of design; each the developer's
+        unsigned transcription, generated into the engine (adcs-sim). tools/pointing_budget.py and the engine's metrics.rs
+        and product.rs keep no relation of them: the tool asks the engine (adcs results budget)."""
+        moved = {"gp_0": "built-in", "gp_1": "built-in", "gp_2": "built-in", "gp_4": "built-in", "l3_pnt_row_09": "open", "design_power_system": None}
+        for nid in moved:
+            _k, x = self.nodes[nid]
+            rows = {(s, f): (v, o) for s, f, v, o in x["body"]["content"]}
+            self.assertEqual(self.beh(nid), "method", nid)
+            self.assertIn("the developer's revision S7.14", rows[("code", "pseudocode")][1], nid)
+            self.assertTrue(rows[("code", "transcribes")][0], nid)
+            self.assertEqual(rows[("code", "generate")][0], "adcs-sim", nid)
+            self.assertEqual(x["sealed_as"], "unconfirmed", nid)
+            self.assertTrue(any(w.startswith("the developer's revision S7.14") and "not yet signed by a person" in w for w in x["why"]), nid)
+        self.assertEqual(self.nodes["design_power_system"][1]["body"]["node"]["group_id"], "design")
+        for path, fn in (("pnt/pntbudget.pc", "pointing_control"), ("pnt/pntbudget.pc", "pointing_budget"), ("pnt/jitter.pc", "rotor_jitter"),
+                         ("pnt/jitter.pc", "rotor_imbalance"), ("design/powersys.pc", "array_power"), ("design/powersys.pc", "battery_step")):
+            self.assertIn(f"\nfn {fn}(", from_design.text(path, REG / "design.tndb"), path)
+        code = lambda rel: "\n".join(ln.split("//")[0] for ln in (ROOT / rel).read_text(encoding="utf-8").splitlines())
+        met = code("engine/crates/adcs-sim/src/metrics.rs")
+        for gone in ("1361", "powi(2)", "to_degrees()*3600", "(us*d + ud)", ".clamp(0.0, ps.batt_wh)", "\"rw_bandwidth\", 0.9"):
+            self.assertNotIn(gone, met, gone)
+        self.assertNotIn('("rings", _) => Some((0.0, 0.0))', code("engine/crates/adcs-sim/src/product.rs"))
+        tool = (ROOT / "tools" / "pointing_budget.py").read_text(encoding="utf-8")
+        for gone in ("math.sqrt", "math.degrees", "/3600", "def rss", "def control_part"):
+            self.assertNotIn(gone, tool, gone)
+        self.assertIn('"results", "budget"', tool)
+
+    def test_the_metrics_are_kpis_methods_the_developer_transcribed(self):
+        """S7.14b (the owner's ruling of 7 Oct 2026: the metrics are relations of kpi): how each metric is measured from a
+        run, its channels, windows, statistics, the ECSS indices, each kind's value, unit, defaults and verdict, are the
+        methods of four new nodes of kpi, each the developer's unsigned transcription of adcs-sim metrics.rs, generated
+        into the engine (the channels into adcs-sim-core too, for the three-axis angle's portable maths). metrics.rs keeps
+        no relation: it walks the record, reads the scenario's metric sections and hands the channels over; the choices'
+        options are the scenario's words in the schema's order."""
+        mods = {"kpi_metric_channels": ("kpi/kpichannels.pc", "adcs-sim, adcs-sim-core"), "kpi_metric_statistics": ("kpi/kpistats.pc", "adcs-sim"),
+                "kpi_metric_ecss": ("kpi/kpiecss.pc", "adcs-sim"), "kpi_metric_evaluate": ("kpi/kpimetrics.pc", "adcs-sim")}
+        for nid, (path, gen) in mods.items():
+            _k, x = self.nodes[nid]
+            rows = {(s, f): (v, o) for s, f, v, o in x["body"]["content"]}
+            self.assertEqual(x["body"]["node"]["group_id"], "kpi", nid)
+            self.assertEqual(self.beh(nid), "method", nid)
+            self.assertTrue(rows[("code", "pseudocode")][1].startswith(path + " (the developer's revision S7.14b"), nid)
+            self.assertTrue(rows[("code", "transcribes")][0], nid)
+            self.assertEqual(rows[("code", "generate")][0], gen, nid)
+            self.assertEqual(x["sealed_as"], "unconfirmed", nid)
+            self.assertTrue(any(w.startswith("the developer's revision S7.14b") and "not yet signed by a person" in w for w in x["why"]), nid)
+        src = ROOT / "engine" / "crates" / "adcs-sim" / "src"
+        met = "\n".join(ln.split("//")[0] for ln in (src / "metrics.rs").read_text(encoding="utf-8").splitlines())
+        for gone in ("0.9973", "0.95", "1e-9", "sort_by", ".acos()", "to_degrees", "qangle", "/60.0", "100.0*", "1e3*", "fold(", ".sum::<f64>()",
+                     "\"rate_threshold_deg_s\", 0.5", "\"hold_s\", 10.0", "\"threshold_deg\", 1.0", "adcs_fsw::guid", "Guid {", "clamp("):
+            self.assertFalse(gone in met, gone)
+        schema = (src / "schema.rs").read_text(encoding="utf-8")
+        words = lambda name: re.findall(r'"([^"]+)"', re.search(rf"pub const {name}: \[&str; \d+\] = \[(.*?)\];", schema, re.S).group(1))
+        gen = lambda mod, choice: [k.lower() for k, _v in sorted(re.findall(rf"pub const {choice}_(\w+): i64 = (\d+);", (src / "gen" / f"{mod}.rs").read_text(encoding="utf-8")), key=lambda x: int(x[1]))]
+        self.assertEqual(gen("kpimetrics", "METRICKIND"), words("METRIC_KINDS") + ["none"])
+        self.assertEqual(gen("kpistats", "METRICWINDOW"), words("WINDOWS") + ["after_s"])
+        self.assertEqual(gen("kpistats", "METRICSTAT"), [w.replace(".", "") for w in words("STATISTICS")] + ["none"])
+        self.assertEqual(gen("kpimetrics", "METRICCHANNEL"), words("CHANNELS"))
+        units = re.findall(r'"([^"]+)"', re.search(r"const UNITS: \[&str; \d+\] = \[(.*?)\];", met).group(1))
+        self.assertEqual(len(units), len(gen("kpimetrics", "METRICUNIT")))
 
     def test_every_behaviour_is_one_the_schema_knows(self):
         self.assertEqual(tndb.check(REG / "design.tndb"), [])

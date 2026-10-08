@@ -58,9 +58,9 @@ pub fn scale_inertia(j: [[f64; 3]; 3], s: [f64; 3]) -> [[f64; 3]; 3] {
     let mut jo: [[f64; 3]; 3] = [[0.0; 3]; 3];
     jo = j;
     {
-        let __end0: i64 = 3;
+        let __end1: i64 = 3;
         let mut i: i64 = 0;
-        while i < __end0 {
+        while i < __end1 {
             jo[(i) as usize][(i) as usize] = (jo[(i) as usize][(i) as usize] * s[(i) as usize]);
             i += 1;
         }

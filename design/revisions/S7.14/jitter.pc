@@ -1,0 +1,96 @@
+## The pointing jitter from rotor imbalance, in the frequency domain, transcribed from adcs-sim metrics.rs (jitter,
+## eig_min3) and product.rs (fit_actuator: each rotor's imbalance), the twin's asils.sizing.jitter. A rotor at speed W with
+## static imbalance U_s at a lever d from the centre of mass and dynamic imbalance U_d applies (U_s d + U_d) W^2 at W; above
+## the attitude loop's bandwidth w_bw the body answers as a free rigid body, below it the loop rejects it:
+##     theta = (U_s d + U_d) W^2 / (J_min max(W^2, w_bw^2))
+## (Bialke 1998, the imbalance of a reaction wheel; Kim et al. 2010, the jitter of a body on its wheels). W = |h| / J_rotor
+## from the recorded momentum; the rotors add root-sum-square; a fluid ring carries no rotating mass, so no imbalance. d is
+## half the class's smallest cross-section (the wheels sit inside it), J_min the inertia's smallest principal moment, w_bw
+## the wheel loop's bandwidth the flight software flies. Plain numbers in SI; the jitter in arcseconds, as the page and
+## the metrics state it.
+## The developer's transcription (S7.14), unsigned.
+module jitter
+
+## The most rotors a product holds (the engine's NR).
+const JIT_NR = 8
+
+## The smaller of a and b, a value that is not a number left out (the code's f64::min).
+fn jitter_min(a: real[1] in -1 .. 1, b: real[1] in -1 .. 1) -> c: real[1]
+    if isnan(a)
+        c = b
+    elif isnan(b)
+        c = a
+    else
+        c = min(a, b)
+    end
+end
+
+## The smallest eigenvalue of a symmetric 3 x 3 matrix, by the trigonometric closed form (Smith 1961): on a diagonal
+## matrix the smallest diagonal element.
+fn jitter_eig_min3(m: mat3[1] in -1 .. 1) -> lam: real[1]
+    let p1 = m[0][1]*m[0][1] + m[0][2]*m[0][2] + m[1][2]*m[1][2]
+    let q = (m[0][0] + m[1][1] + m[2][2])/3.0
+    if p1 == 0
+        lam = jitter_min(jitter_min(m[0][0], m[1][1]), m[2][2])
+    else
+        let p2 = (m[0][0] - q)^2 + (m[1][1] - q)^2 + (m[2][2] - q)^2 + 2.0*p1
+        let p = sqrt(p2/6.0)
+        let b00 = (m[0][0] - q)/p
+        let b11 = (m[1][1] - q)/p
+        let b22 = (m[2][2] - q)/p
+        let b01 = m[0][1]/p
+        let b02 = m[0][2]/p
+        let b10 = m[1][0]/p
+        let b12 = m[1][2]/p
+        let b20 = m[2][0]/p
+        let b21 = m[2][1]/p
+        let det = b00*(b11*b22 - b12*b21) - b01*(b10*b22 - b12*b20) + b02*(b10*b21 - b11*b20)
+        let phi = acos(clamp(det/2.0, -1.0, 1.0))/3.0
+        lam = q + 2.0*p*cos(phi + 2.0*pi/3.0)
+    end
+end
+
+## A rotor's imbalance for the jitter: a fluid ring has none (no rotating mass); a wheel or a gyro's rotor has its part's
+## static [kg m] and dynamic [kg m^2] imbalance when the part states both (nan where it does not), and is not known
+## otherwise (the jitter is then not computed).
+fn rotor_imbalance(ring: bool, us_part: real[1] in 0 .. 1e-4, ud_part: real[1] in 0 .. 1e-6) -> (us: real[1], ud: real[1], known: bool)
+    us = 0
+    ud = 0
+    known = false
+    if ring
+        known = true
+    elif not isnan(us_part) and not isnan(ud_part)
+        us = us_part
+        ud = ud_part
+        known = true
+    end
+end
+
+## The jitter's set-up from the body: the smallest principal moment of the inertia j [kg m^2] and the lever d [m], half the
+## class box's smallest side.
+fn jitter_body(j: mat3[1] in 0.001 .. 1, bx: vec3[1] in 0.05 .. 0.5) -> (jmin: real[1], d: real[1])
+    jmin = jitter_eig_min3(j)
+    d = jitter_min(jitter_min(jitter_min(inf, bx[0]), bx[1]), bx[2])/2.0
+end
+
+## The jitter [arcsec] of one sample: the n rotors' momenta h [N m s], their rotor inertias jrot [kg m^2], static and
+## dynamic imbalances us, ud, over the body's jmin and lever d and the loop's bandwidth wbw [rad/s]. A rotor with no
+## imbalance, or no rotor inertia, adds nothing; a speed that is not finite counts as zero.
+fn rotor_jitter(n: int in 1 .. 8, h: real[1][JIT_NR] in -0.1 .. 0.1, jrot: real[1][JIT_NR] in 1e-6 .. 1e-3, \
+                us: real[1][JIT_NR] in 0 .. 1e-5, ud: real[1][JIT_NR] in 0 .. 1e-7, jmin: real[1] in 0.01 .. 1, \
+                d: real[1] in 0.01 .. 0.2, wbw: real[1] in 0.01 .. 2) -> j: real[1]
+    let th2: real[1] = 0
+    for i in 0 .. n
+        let t: real[1] = 0
+        if not (us[i] == 0 and ud[i] == 0) and jrot[i] > 0
+            let w = |h[i]|/jrot[i]
+            if not isfinite(w)
+                w = 0
+            end
+            let th = (us[i]*d + ud[i])*w*w/(jmin*max(w*w, wbw*wbw))
+            t = th*th
+        end
+        th2 = th2 + t
+    end
+    j = sqrt(th2)*(180.0/pi)*3600.0
+end

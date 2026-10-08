@@ -238,6 +238,19 @@ pub enum ResultsCmd {
         /// the folder (default: <store>/results_engine)
         dir: Option<PathBuf>,
     },
+    /// a stored fine-pointing run's pointing error budget (pnt's gp_0 to gp_5: its terms, total, room and verdict), as JSON
+    Budget {
+        run: PathBuf,
+        /// the run's metric of the flown APE across the boresight, p99.73
+        #[arg(long, value_name = "ID")]
+        flown: Option<String>,
+        /// the run's metric of the AKE across the boresight, p99.73
+        #[arg(long, value_name = "ID")]
+        knowledge: Option<String>,
+        /// the run's metric of the rotors' jitter [arcsec]
+        #[arg(long, value_name = "ID")]
+        jitter: Option<String>,
+    },
     /// fly a stored run again from the inputs it kept, and show what changed
     Refly {
         run: PathBuf,

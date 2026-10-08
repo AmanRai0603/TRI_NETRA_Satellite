@@ -1,0 +1,50 @@
+## The absolute pointing error budget of a flown fine-pointing scenario, transcribed from tools/pointing_budget.py (row,
+## control_part, product_alignment, rss): ECSS-E-ST-60-10C's contributors. The flown APE holds knowledge and control
+## together (and the star tracker's calibrated mount residual, which the engine flies), so the total adds to it only what
+## the loop does not fly: the payload's alignment (gp_2), the thermal distortion (gp_3, the case's pointing.et) and the
+## rotors' jitter (gp_4). The terms add in quadrature, which holds for independent random terms only (a bias adds
+## linearly). Every angle is a plain number in degrees, as the page states it, p99.73 across the boresight; a term nobody
+## states is nan, and a budget with one is incomplete: it never closes on a guess.
+## The developer's transcription (S7.14), unsigned.
+module pntbudget
+
+## How a budget stands against the requirement: a term not stated (incomplete), its total within req.ape (closes), or
+## not (open).
+choice BudgetVerdict = incomplete, closes, open
+
+## gp_0, the knowledge contribution: the flown absolute knowledge error across the boresight, ake [deg].
+fn pointing_knowledge(ake: real[1] in 0 .. 1) -> e_k: real[1]
+    e_k = ake
+end
+
+## gp_1, the control contribution, inferred from the flown loop: the flown APE ape [deg] with the knowledge ake [deg]
+## removed in quadrature, sqrt(max(ape^2 - ake^2, 0)).
+fn pointing_control(ape: real[1] in 0 .. 1, ake: real[1] in 0 .. 1) -> e_c: real[1]
+    e_c = sqrt(max(ape*ape - ake*ake, 0))
+end
+
+## gp_2, the alignment contribution: the payload's alignment to the star tracker as the product states it
+## (payload_alignment_rad) [rad], in degrees.
+fn pointing_alignment(a: real[1] in 0 .. 0.01) -> e_a: real[1]
+    e_a = a*(180.0/pi)
+end
+
+## gp_4 as the budget takes it: the rotors' jitter metric j [arcsec] in degrees.
+fn pointing_jitter(j: real[1] in 0 .. 10) -> e_j: real[1]
+    e_j = j/3600.0
+end
+
+## The budget against the requirement req [deg]: the total, the root-sum-square of the flown APE and the terms the loop
+## does not fly (alignment e_a, thermal e_t, jitter e_j); the room req.ape leaves for alignment and thermal together once
+## the flown loop and the jitter are in, sqrt(max(req^2 - ape^2 - e_j^2, 0)); and the verdict.
+fn pointing_budget(ape: real[1] in 0 .. 1, e_a: real[1] in 0 .. 0.1, e_t: real[1] in 0 .. 0.1, e_j: real[1] in 0 .. 0.01, \
+                   req: real[1] in 0.001 .. 1) -> (total: real[1], room: real[1], verdict: BudgetVerdict)
+    total = sqrt(ape*ape + e_a*e_a + e_t*e_t + e_j*e_j)
+    room = sqrt(max(req*req - ape*ape - e_j*e_j, 0))
+    verdict = BudgetVerdict.open
+    if isnan(e_a) or isnan(e_t) or isnan(e_j)
+        verdict = BudgetVerdict.incomplete
+    elif total <= req
+        verdict = BudgetVerdict.closes
+    end
+end

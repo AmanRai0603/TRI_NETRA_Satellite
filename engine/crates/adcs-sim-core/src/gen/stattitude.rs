@@ -33,17 +33,17 @@ pub fn st_qmethod(b: [[f64; 3]; 32], r: [[f64; 3]; 32], n: i64) -> [f64; 4] {
     let mut q: [f64; 4] = [0.0; 4];
     let mut bm: [[f64; 3]; 3] = [[0.0; 3]; 3];
     {
-        let __end112: i64 = n;
+        let __end120: i64 = n;
         let mut l: i64 = 0;
-        while l < __end112 {
+        while l < __end120 {
             {
-                let __end113: i64 = 3;
+                let __end121: i64 = 3;
                 let mut i: i64 = 0;
-                while i < __end113 {
+                while i < __end121 {
                     {
-                        let __end114: i64 = 3;
+                        let __end122: i64 = 3;
                         let mut j: i64 = 0;
-                        while j < __end114 {
+                        while j < __end122 {
                             bm[(i) as usize][(j) as usize] = (bm[(i) as usize][(j) as usize] + (b[(l) as usize][(i) as usize] * r[(l) as usize][(j) as usize]));
                             j += 1;
                         }
@@ -58,13 +58,13 @@ pub fn st_qmethod(b: [[f64; 3]; 32], r: [[f64; 3]; 32], n: i64) -> [f64; 4] {
     let mut z: [f64; 3] = [(bm[1][2] - bm[2][1]), (bm[2][0] - bm[0][2]), (bm[0][1] - bm[1][0])];
     let mut k: [[f64; 4]; 4] = [[0.0; 4]; 4];
     {
-        let __end115: i64 = 3;
+        let __end123: i64 = 3;
         let mut i: i64 = 0;
-        while i < __end115 {
+        while i < __end123 {
             {
-                let __end116: i64 = 3;
+                let __end124: i64 = 3;
                 let mut j: i64 = 0;
-                while j < __end116 {
+                while j < __end124 {
                     k[(i) as usize][(j) as usize] = ((bm[(i) as usize][(j) as usize] + bm[(j) as usize][(i) as usize]) - (if (i == j) { sg } else { 0.0 }));
                     j += 1;
                 }
@@ -78,9 +78,9 @@ pub fn st_qmethod(b: [[f64; 3]; 32], r: [[f64; 3]; 32], n: i64) -> [f64; 4] {
     let (mut lam, mut v) = crate::gen::math::jacobi_eig4(k);
     let mut im: i64 = 0;
     {
-        let __end117: i64 = 4;
+        let __end125: i64 = 4;
         let mut i: i64 = 1;
-        while i < __end117 {
+        while i < __end125 {
             if (lam[(i) as usize] > lam[(im) as usize]) {
                 im = i;
             }
@@ -109,16 +109,16 @@ pub fn st_attitude(b: [[f64; 3]; 32], rs: [[f64; 3]; 32], n: i64, id: &mut [i64;
     ok = false;
     let mut done: bool = false;
     {
-        let __end118: i64 = n;
+        let __end126: i64 = n;
         let mut it: i64 = 0;
-        while it < __end118 {
+        while it < __end126 {
             if (!done) {
                 let mut k: [i64; 32] = [0; 32];
                 let mut nk: i64 = 0;
                 {
-                    let __end119: i64 = n;
+                    let __end127: i64 = n;
                     let mut p: i64 = 0;
-                    while p < __end119 {
+                    while p < __end127 {
                         if ((*id)[(p) as usize] >= 0) {
                             k[(nk) as usize] = p;
                             nk = (nk + 1);
@@ -132,9 +132,9 @@ pub fn st_attitude(b: [[f64; 3]; 32], rs: [[f64; 3]; 32], n: i64, id: &mut [i64;
                     let mut bb: [[f64; 3]; 32] = [[0.0; 3]; 32];
                     let mut rr: [[f64; 3]; 32] = [[0.0; 3]; 32];
                     {
-                        let __end120: i64 = nk;
+                        let __end128: i64 = nk;
                         let mut i: i64 = 0;
-                        while i < __end120 {
+                        while i < __end128 {
                             bb[(i) as usize] = b[(k[(i) as usize]) as usize];
                             rr[(i) as usize] = rs[(k[(i) as usize]) as usize];
                             i += 1;
@@ -145,9 +145,9 @@ pub fn st_attitude(b: [[f64; 3]; 32], rs: [[f64; 3]; 32], n: i64, id: &mut [i64;
                     let mut rm: f64 = (-(f64::INFINITY));
                     let mut j: i64 = 0;
                     {
-                        let __end121: i64 = nk;
+                        let __end129: i64 = nk;
                         let mut i: i64 = 0;
-                        while i < __end121 {
+                        while i < __end129 {
                             let mut c: f64 = rt::dot(bb[(i) as usize], rt::mv(a, rr[(i) as usize]));
                             let mut res: f64 = crate::pm::acos((if (c < 1.0) { c } else { 1.0 }));
                             if (res > rm) {

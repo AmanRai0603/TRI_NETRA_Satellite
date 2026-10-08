@@ -74,9 +74,9 @@ pub fn star_entry(k: i64, n: i64) -> ([f64; 3], f64) {
 pub fn star_catalogue(cr: &mut [[f64; 3]; 4000], cm: &mut [f64; 4000]) -> i64 {
     let mut n: i64 = 0;
     {
-        let __end111: i64 = crate::gen::starcat::N_STARS;
+        let __end119: i64 = crate::gen::starcat::N_STARS;
         let mut k: i64 = 0;
-        while k < __end111 {
+        while k < __end119 {
             let (mut r, mut mag) = crate::gen::starcat::star_entry(k, crate::gen::starcat::N_STARS);
             (*cr)[(k) as usize] = r;
             (*cm)[(k) as usize] = mag;

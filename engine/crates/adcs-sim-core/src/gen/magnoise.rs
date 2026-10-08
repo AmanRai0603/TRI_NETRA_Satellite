@@ -49,9 +49,9 @@ pub fn mag_noise(mb: [f64; 3], b: [f64; 3], noise: f64, k_coil: f64, m_coil: [f6
     let mut n: [f64; 3] = rt::normal3(&mut (*g));
     v = [0.0, 0.0, 0.0];
     {
-        let __end110: i64 = 3;
+        let __end118: i64 = 3;
         let mut i: i64 = 0;
-        while i < __end110 {
+        while i < __end118 {
             v[(i) as usize] = (((mb[(i) as usize] + b[(i) as usize]) + (noise * n[(i) as usize])) + (k_coil * m_coil[(i) as usize]));
             i += 1;
         }

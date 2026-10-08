@@ -3049,3 +3049,140 @@ transcribes = "engine/crates/adcs-sim/src/config.rs (sensor_params: the sensors 
 source = "the product's sensors (adcs-sim product.rs); the 1.0.0 code's own floors of the MEKF's sigmas (0.005 and 0.1 rad for the Sun, 0.01 rad for the magnetometer) and the coarse cells' albedo share"
 generate = ["adcs-sim"]
 why = "the sensors as the flight software is told of them and its estimator's measurement sigmas, a method of fsw, generated into the engine's configuration"
+
+[[revision]]
+id = "S7.14"
+at = "2026-10-08T23:30:00Z"
+by = "the developer"
+about = "the run-side relations of the pointing budget and the power system (docs/S7_INVENTORY.md S7.14): the pointing error budget's knowledge, control and alignment contributions (gp_0, gp_1, gp_2, built-in until now: tools/pointing_budget.py) and its total, room and verdict (l3_pnt_row_09, open until now), the rotors' jitter in the frequency domain with each rotor's imbalance, a fluid ring's none among them (gp_4, built-in until now: adcs-sim metrics.rs and product.rs), and the platform's power system as the case states it, the arrays and the battery with the solar constant (a new node of design: adcs-sim metrics.rs, which had no node); generated into the engine, which flies the budget's terms for tools/pointing_budget.py when a scenario asks for them"
+
+[[revision.node]]
+id = "design_power_system"
+group = "design"
+parent = "s5"
+label = "Platform power system (arrays and battery)"
+behaviour = "method"
+question = "How much power do the platform's body-mounted arrays give in a sunlit attitude, and how does the battery's state of charge follow the arrays less the platform's and the ADCS's load?"
+why = "the power system the power metrics judge (power margin, depth of discharge, lowest state of charge), until now adcs-sim metrics.rs (PowerSystem, SOLAR_CONSTANT, derive), which had no node (docs/S7_INVENTORY.md §1.3 and §2, S7.14)"
+
+[[revision.method]]
+node = "design_power_system"
+pseudocode = "design/revisions/S7.14/powersys.pc"
+path = "design/powersys.pc"
+transcribes = "engine/crates/adcs-sim/src/metrics.rs (PowerSystem::generation: the six faces' cosine, the solar constant 1361 W/m^2, the shadow and the efficiency; derive: the Sun's direction made unit (la::unit), the battery from soc0, the load of the platform and the ADCS, the energy held between empty and full, the state of charge)"
+source = "the case's power section (power.area_*, power.eff, power.batt_wh, power.load_w, power.soc0); IAU 2015 Resolution B3 (Prsa et al. 2016, the nominal total solar irradiance 1361 W/m^2)"
+generate = ["adcs-sim"]
+why = "the platform's power system as a method of design, generated into the engine's power channels and metrics"
+
+[[revision.method]]
+node = "gp_4"
+from = "built-in"
+to = "method"
+pseudocode = "design/revisions/S7.14/jitter.pc"
+path = "pnt/jitter.pc"
+transcribes = "engine/crates/adcs-sim/src/metrics.rs (jitter, eig_min3: the frequency-domain jitter of each sample, the smallest principal moment, the lever half the class's smallest side); engine/crates/adcs-sim/src/product.rs (fit_actuator: each rotor's imbalance as its part states it, none for a fluid ring); the twin's asils.sizing.jitter"
+source = "Bialke (1998), High fidelity mathematical modeling of reaction wheel performance (static and dynamic imbalance); Smith (1961), Eigenvalues of a symmetric 3 x 3 matrix; the parts' static_imbalance_kgm and dynamic_imbalance_kgm2"
+generate = ["adcs-sim"]
+why = "the rotors' jitter as a method of pnt, generated into the engine's jitter metric (and the budget's gp_4)"
+
+[[revision.method]]
+nodes = ["gp_0", "gp_1", "gp_2"]
+from = "built-in"
+to = "method"
+pseudocode = "design/revisions/S7.14/pntbudget.pc"
+path = "pnt/pntbudget.pc"
+transcribes = "tools/pointing_budget.py (row: gp_0 the flown AKE across the boresight at p99.73, gp_4 the jitter metric in degrees, the total and the room; control_part: gp_1; product_alignment: gp_2, the product's payload_alignment_rad in degrees; rss)"
+source = "ECSS-E-ST-60-10C (the pointing error budget's contributors, added in quadrature when independent and random); the flown run's metrics, the product's payload_alignment_rad and the case's pointing.et and req.ape"
+generate = ["adcs-sim"]
+why = "the pointing budget's knowledge, control and alignment contributions as methods of pnt, generated into the engine, which flies them for tools/pointing_budget.py"
+
+[[revision.method]]
+node = "l3_pnt_row_09"
+from = "open"
+to = "method"
+pseudocode = "design/revisions/S7.14/pntbudget.pc"
+path = "pnt/pntbudget.pc"
+transcribes = "tools/pointing_budget.py (row: the total, the root-sum-square of the flown APE, gp_2, gp_3 and gp_4; the room req.ape leaves for gp_2 and gp_3; the verdict: incomplete, closes, does not close)"
+source = "ECSS-E-ST-60-10C; the case's req.ape"
+generate = ["adcs-sim"]
+why = "the budget's total, room and verdict against the requirement as a method of pnt (open until now: tools/pointing_budget.py computed it), generated into the engine"
+
+[[revision]]
+id = "S7.14b"
+at = "2026-10-08T23:45:00Z"
+by = "the developer"
+about = "the metrics, how each KPI is measured from a run (docs/S7_INVENTORY.md S7.14b; the owner's ruling of 7 Oct 2026: the metrics are relations of kpi): the channels a run's metrics are measured on (the performance and knowledge errors three-axis and across the boresight, the rate, the Sun's angle, the spin, the rate stability), the windows and the statistics, the times to a rate, a threshold and a mode, the ECSS-E-ST-60-10C indices, each kind's value, unit and default, and the verdict against the requirement, as methods of four new nodes of kpi (until now adcs-sim metrics.rs derive, ecss, time_to, window, stat and evaluate, which had no node), generated into the engine and the twin's package; the engine keeps the recorder, the step order and the reading of a scenario's metric sections"
+
+[[revision.node]]
+id = "kpi_metric_channels"
+group = "kpi"
+parent = "x_closure"
+label = "Channels a run's metrics are measured on"
+behaviour = "method"
+question = "From a run's recorded truth, what are its performance and knowledge errors (three-axis and across the payload boresight), its rate, its Sun angle, its spin and its rate stability, sample by sample?"
+why = "the derived channels every pointing metric takes, until now adcs-sim metrics.rs (derive), which had no node (docs/S7_INVENTORY.md §2, S7.14b)"
+
+[[revision.node]]
+id = "kpi_metric_statistics"
+group = "kpi"
+parent = "x_closure"
+label = "Windows, statistics and times of a metric"
+behaviour = "method"
+question = "Over which part of a run does a metric look, which statistic of its samples does it take, and when does a channel first stay below a threshold?"
+why = "a metric's window, its statistic (the largest, the RMS, the mean, the 95th and 99.73rd percentiles) and the time to a threshold, until now adcs-sim metrics.rs (window, stat, time_to), which had no node (docs/S7_INVENTORY.md §2, S7.14b)"
+
+[[revision.node]]
+id = "kpi_metric_ecss"
+group = "kpi"
+parent = "x_closure"
+label = "ECSS pointing and knowledge error indices"
+behaviour = "method"
+question = "What are a run's relative, mean and drift pointing and knowledge errors, in the ECSS-E-ST-60-10C sense, over a window cut into blocks?"
+why = "the ECSS-E-ST-60-10C indices (rpe, mpe, pde, rke, mke, kde, three-axis and across the boresight), until now adcs-sim metrics.rs (ecss), which had no node (docs/S7_INVENTORY.md §2, S7.14b)"
+
+[[revision.node]]
+id = "kpi_metric_evaluate"
+group = "kpi"
+parent = "x_closure"
+label = "Each metric's value, unit and verdict"
+behaviour = "method"
+question = "For each kind of metric a scenario asks for, what value does a run give, in which unit, with which defaults, and does it meet its requirement?"
+why = "how each metric is measured and judged, until now adcs-sim metrics.rs (evaluate), which had no node (docs/S7_INVENTORY.md §2, S7.14b)"
+
+[[revision.method]]
+node = "kpi_metric_channels"
+pseudocode = "design/revisions/S7.14b/kpichannels.pc"
+path = "kpi/kpichannels.pc"
+transcribes = "engine/crates/adcs-sim/src/metrics.rs (derive: the yaw flip carried with the flight software's hysteresis, the guidance's reference in each mode, the error vectors and angles three-axis and across the boresight, acosd, the rate, the Sun's angle sunlit only, the spin, the rate stability over one second); adcs-sim-core la.rs (qangle, with the portable libm: the three-axis angle is generated into adcs-sim-core too)"
+source = "ECSS-E-ST-60-10C (absolute performance and knowledge errors, rate stability); the flight software's guidance and yaw flip (fsw_guidance, fsw/pseudocode/04_guidance.pc)"
+generate = ["adcs-sim", "adcs-sim-core"]
+uses = ["fsw/pseudocode/04_guidance.pc", "fsw/pseudocode/01_math.pc"]
+why = "the channels a run's metrics are measured on, as a method of kpi, generated into the engine's metrics"
+
+[[revision.method]]
+node = "kpi_metric_statistics"
+pseudocode = "design/revisions/S7.14b/kpistats.pc"
+path = "kpi/kpistats.pc"
+transcribes = "engine/crates/adcs-sim/src/metrics.rs (window: all, last_orbit, last_half_orbit, pointing, after_s; stat: max, rms, mean, p95, p99.73 over the finite values, the sorted value at rank ceil(q n); time_to: the first time a channel stays below a threshold for a hold; the time to a threshold from a start); Rust's f64::max and min and its stable sort as the code took them"
+source = "ECSS-E-ST-60-10C (the 99.73 % level, 3 sigma); Knuth, The Art of Computer Programming 3, 5.2.4 (the stable merge sort)"
+generate = ["adcs-sim"]
+why = "a metric's window, statistic and times, as a method of kpi, generated into the engine's metrics"
+
+[[revision.method]]
+node = "kpi_metric_ecss"
+pseudocode = "design/revisions/S7.14b/kpiecss.pc"
+path = "kpi/kpiecss.pc"
+transcribes = "engine/crates/adcs-sim/src/metrics.rs (ecss: the blocks of delta_s from the window's start, the relative, mean and drift indices on the performance or the knowledge error, three-axis or across the boresight)"
+source = "ECSS-E-ST-60-10C, Space engineering: control performance (2008), the relative, mean and drift error indices over windows"
+generate = ["adcs-sim"]
+why = "the ECSS-E-ST-60-10C indices as a method of kpi, generated into the engine's metrics"
+
+[[revision.method]]
+node = "kpi_metric_evaluate"
+pseudocode = "design/revisions/S7.14b/kpimetrics.pc"
+path = "kpi/kpimetrics.pc"
+transcribes = "engine/crates/adcs-sim/src/metrics.rs (evaluate: each kind's value and unit, the defaults a metric section takes where it states none, the time to a rate with a mission's hand-over, the time to a threshold, the wheels' peak momentum, the time to a mode, the Sun's angle in a mode, the spin rate's error, the share of a mode, the propellant, the ADCS's power, the platform's margin, the battery, and the verdict against the requirement)"
+source = "ECSS-E-ST-60-10C; the scenario format's metric sections (adcs-scenario/1) and their defaults as the 1.0.0 code gave them"
+generate = ["adcs-sim"]
+uses = ["kpi/kpistats.pc", "kpi/kpiecss.pc"]
+why = "how each metric is measured and judged, as a method of kpi, generated into the engine's metrics"

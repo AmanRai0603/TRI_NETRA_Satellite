@@ -1,4 +1,4 @@
-//! `adcs results list [DIR] | show <run> | pin|unpin <run> | thin | export | import | query | stale | refly`
+//! `adcs results list [DIR] | show <run> | pin|unpin <run> | thin | export | import | query | stale | budget | refly`
 //! Owner: Agastya. Copyright (c) 2026 Agastya. All rights reserved.
 use adcs_sim::{config::Config, run, store, Error};
 use crate::cli::ResultsCmd;
@@ -51,6 +51,10 @@ pub fn main(cmd: &ResultsCmd) -> Result<(), Error> {
             }
             println!("{n} of {} run(s) stale (engine source {}); `adcs results refly <run>` flies one again from the inputs it kept", found.len(), store::ENGINE_SOURCE);
             if n > 0 { return Err(Error::run(format!("{n} stored run(s) do not stand for today's engine and inputs"))); }
+        }
+        ResultsCmd::Budget { run, flown, knowledge, jitter } => {
+            let b = adcs_sim::metrics::pointing_budget(run, flown.as_deref(), knowledge.as_deref(), jitter.as_deref())?;
+            println!("{}", serde_json::to_string(&b).map_err(|e| Error::run(e.to_string()))?);
         }
         ResultsCmd::Refly { run: dir, out, fsw: on } => {
             let kept = store::kept_inputs(dir);
