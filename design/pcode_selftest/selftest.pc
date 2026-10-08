@@ -363,3 +363,37 @@ fn errorfn(x: real[1] in -7 .. 7) -> (e: real[1], c: real[1])
     e = erf(x)
     c = 1.0 - erf(x/4.0)
 end
+
+## Buffers, as long as the caller's arrays (trinetra-toolbox/5, S7.10: the star tracker's frame and pair table): read and
+## set by index, len() their length, handed on to another buffer input, a sized array handed where one is wanted.
+## length: 6
+fn spread(b: inout real[m][*] in -3 .. 3, k: inout int[*] in 0 .. 9, w: real[m] in 0 .. 2) -> (total: real[m], n: int, kept: int)
+    let s: real[m][4] = 0
+    for i in 0 .. 4
+        s[i] = w
+    end
+    let t1 = blur(b, w)
+    let t2 = blur(s, w)
+    total = t1 + t2
+    n = len(b) + len(k)
+    kept = 0
+    for i in 0 .. len(k)
+        if k[i] > 4
+            k[i] = k[i] - 5
+            kept = kept + 1
+        end
+    end
+end
+
+## A buffer handed on: each element and the one before it, smoothed in place; the sum after.
+## length: 5
+fn blur(b: inout real[m][*] in -3 .. 3, w: real[m] in 0 .. 2) -> total: real[m]
+    total = 0
+    for i in 0 .. len(b)
+        let j = len(b) - 1 - i
+        if j > 0
+            b[j] = (b[j] + b[j - 1])/2.0 + w
+        end
+        total = total + b[j]
+    end
+end

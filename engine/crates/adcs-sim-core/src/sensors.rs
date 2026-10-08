@@ -5,11 +5,12 @@
 //! (`gen::gnss`, l3_sens_row_14); their random draws are the language's streams (rng.rs's, value for value). What is left
 //! here is the engine's descriptors as product.rs fills them from the parts (code: the reading), handed to the generated
 //! models, and the units in flight as the generated state, by the names the engine has always used. The star tracker
-//! (`gen::sttracker`, sens_star_tracker, over l3_sens_row_12's q-method and sens_star_catalogue's table) likewise; its
-//! image model's chain is comp.rs's (S7.10). Engineering values out; `emu` turns them into the bytes the flight drivers read.
+//! (`gen::sttracker`, sens_star_tracker, over l3_sens_row_12's q-method and sens_star_catalogue's table) likewise, and its
+//! image model's heads (`gen::stimage`'s st_image, sens_star_image, over the chain l3_sens_row_09 to 12), the frame's buffers the caller's.
+//! Engineering values out; `emu` turns them into the bytes the flight drivers read.
 use crate::la::*;
-use crate::comp::{self, star_tracker as stc, sun_sensor as ssc};
-use crate::gen::{css, earthsensor, finesun, gnss, gyro, mag, starcat, sttracker};
+use crate::comp::{star_tracker as stc, sun_sensor as ssc};
+use crate::gen::{css, earthsensor, finesun, gnss, gyro, mag, starcat, stimage, sttracker};
 use crate::rng::Rng;
 use crate::{NH, NS};
 
@@ -160,6 +161,8 @@ impl St {
     pub fn history(&mut self, t: f64, q: &Q) { self.hn = sttracker::st_history(&mut self.ht, &mut self.hq, self.hn as i64, t, *q) as usize; }
     /// The onboard star table (filled for models 1 and 2): each star's direction and magnitude.
     pub fn catalogue(&self) -> (&[V3], &[f64]) { (&self.cr, &self.cm) }
+    /// The onboard star table as the generated chain takes it (by reference).
+    pub fn catalogue_mut(&mut self) -> (&mut [V3; N_STARS], &mut [f64; N_STARS]) { (&mut self.cr, &mut self.cm) }
     /// Per head: Some(q_meas) when valid. `moon_b`: the Moon's direction in the body.
     /// Models 0 and 1; model 2 needs [`St::sample_with`].
     pub fn sample(&mut self, q_true: &Q, t: f64, w: &V3, sun_b: &V3, moon_b: &V3, nadir_b: &V3, earth_ang: f64) -> [Option<Q>; NH] {
@@ -169,24 +172,18 @@ impl St {
     /// a run never flies the image model on nothing). Model 2 renders a frame only for a head
     /// that is valid (its noise is drawn from this unit's stream); a frame the chain cannot
     /// solve gives no attitude.
-    pub fn sample_with(&mut self, q_true: &Q, t: f64, w: &V3, sun_b: &V3, moon_b: &V3, nadir_b: &V3, earth_ang: f64, mut work: Option<&mut stc::Work>) -> [Option<Q>; NH] {
+    pub fn sample_with(&mut self, q_true: &Q, t: f64, w: &V3, sun_b: &V3, moon_b: &V3, nadir_b: &V3, earth_ang: f64, work: Option<&mut stc::Work>) -> [Option<Q>; NH] {
         let (ok, q, valid, dq, q_old) = sttracker::st_sample(&mut self.s, self.dg, &mut self.ht, &mut self.hq, self.hn as i64, &mut self.cr, &mut self.cm,
                                                              *q_true, t, *w, *sun_b, *moon_b, *nadir_b, earth_ang);
         let mut out = [None; NH];
         for h in 0..self.d.nh { if ok[h] { out[h] = Some(q[h]); } }
-        if self.d.model == 2 {
-            for h in 0..self.d.nh {
-                if !valid[h] { continue; }
-                // COMPONENT LEVEL: the unit's chain on a rendered frame, through the head's true
-                // mount; it reports the body attitude through its nominal mount
-                let wk = work.as_deref_mut().expect("the image star-tracker model needs its frame buffers (St::sample_with)");
-                let rbh = comp::head_frame(&self.d.bs[h]);
-                let rtrue = mm(&rbh, &transpose(&dcm(&dq[h])));
-                let mut r = Rng::from_stream(&self.s.g);
-                let (qc, okc, _) = stc::chain(&q_old, &rtrue, &rbh, &self.cr, &self.cm, &self.d.cam, wk, Some(&mut r));
-                self.s.g = r.stream();
-                if okc { out[h] = Some(qc); }
-            }
+        if self.d.model == 2 && (0..self.d.nh).any(|h| valid[h]) {
+            // COMPONENT LEVEL: each valid head's chain on a rendered frame, through its true mount; it reports the body
+            // attitude through its nominal mount (sens_star_image's st_image)
+            let wk = work.expect("the image star-tracker model needs its frame buffers (St::sample_with)");
+            let (okc, qc) = stimage::st_image(&mut self.s, self.dg, self.d.cam.rec(), valid, dq, q_old, &mut self.cr, &mut self.cm, N_STARS as i64,
+                                              wk.img, wk.work, wk.ia, wk.ib, wk.pi, wk.pj, wk.pa);
+            for h in 0..self.d.nh { if okc[h] { out[h] = Some(qc[h]); } }
         }
         out
     }

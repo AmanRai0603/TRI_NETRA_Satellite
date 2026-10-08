@@ -14,6 +14,7 @@ use crate::gen::css::{CssDesc, CssUnit};
 use crate::gen::earthsensor::{EsDesc, EsUnit};
 use crate::gen::finesun::{SunDesc, SunUnit};
 use crate::gen::gyro::{GyroDesc, GyroUnit};
+use crate::gen::strender::{StCamera};
 use crate::gen::sttracker::{StDesc, StUnit};
 use crate::gen::sunquad::{SunHead};
 

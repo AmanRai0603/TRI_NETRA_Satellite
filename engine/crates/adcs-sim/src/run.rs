@@ -183,17 +183,21 @@ struct Units {
     st_frame: Option<StFrame>,
 }
 
-/// The image star-tracker model's buffers: the frame, its scratch copy, the onboard pair table
-/// of the unit's catalogue and the vote counts (adcs-sim-core does not allocate).
-pub struct StFrame { img: Vec<f64>, scratch: Vec<(f64, u32)>, pairs: Vec<stc::Pair>, votes: Vec<u32> }
+/// The image star-tracker model's buffers: the frame, its scratch copy and two index lists as long as it, and the onboard
+/// pair table of the unit's catalogue, each as long as the part makes it (adcs-sim-core does not allocate).
+pub struct StFrame { img: Vec<f64>, work: Vec<f64>, ia: Vec<i64>, ib: Vec<i64>, pi: Vec<i64>, pj: Vec<i64>, pa: Vec<f64> }
 impl StFrame {
-    pub fn new(st: &St) -> StFrame {
-        let ((cr, _), cam) = (st.catalogue(), &st.d.cam);
-        let mut pairs = vec![stc::Pair::default(); stc::pair_count(cr, cam.fov)];
-        stc::pairs(cr, cam.fov, &mut pairs);
-        StFrame { img: vec![0.0; cam.n*cam.n], scratch: vec![(0.0, 0); cam.n*cam.n], pairs, votes: vec![0; cr.len()] }
+    pub fn new(st: &mut St) -> StFrame {
+        let (fov, n) = (st.d.cam.fov, st.d.cam.n);
+        let (cr, _) = st.catalogue_mut();
+        let np = stc::pair_count(cr, fov);
+        let (mut pi, mut pj, mut pa) = (vec![0; np], vec![0; np], vec![0.0; np]);
+        stc::pairs(cr, fov, &mut pi, &mut pj, &mut pa, &mut vec![0; np], &mut vec![0; np], &mut vec![0.0; np]);
+        StFrame { img: vec![0.0; n*n], work: vec![0.0; n*n], ia: vec![0; n*n], ib: vec![0; n*n], pi, pj, pa }
     }
-    pub fn work(&mut self) -> stc::Work<'_> { stc::Work { img: &mut self.img, scratch: &mut self.scratch, pairs: &self.pairs, votes: &mut self.votes } }
+    pub fn work(&mut self) -> stc::Work<'_> {
+        stc::Work { img: &mut self.img, work: &mut self.work, ia: &mut self.ia, ib: &mut self.ib, pi: &mut self.pi, pj: &mut self.pj, pa: &mut self.pa }
+    }
 }
 
 impl Units {
@@ -202,13 +206,13 @@ impl Units {
         let gyro = if d.gyro.fitted { Some(Gyro::new(d.gyro, &mut disp, rs("gyro"))) } else { None };
         let mag = Mag::new(d.mag, &mut disp, rs("mag"));
         let sun = if d.sun.fitted { Some(Sun::new(d.sun, &mut disp, rs("sun"))) } else { None };
-        let st = if d.st.fitted { Some(St::new(d.st, &mut disp, rs("st"))) } else { None };
+        let mut st = if d.st.fitted { Some(St::new(d.st, &mut disp, rs("st"))) } else { None };
         let mtq = Mtq::new(d.mtq, &mut disp);
         let es = if d.es.fitted { Some(Es::new(d.es, &mut disp, rs("es"))) } else { None };
         let css = if d.css.fitted { Some(Css::new(d.css, &mut disp, rs("css"))) } else { None };
         let mex = Mex::new(d.mex, &mut disp, rs("mex"));
         let rcs = if d.rcs.fitted { Some(Rcs::new(d.rcs, &mut disp)) } else { None };
-        let st_frame = st.as_ref().filter(|s| s.d.model == 2).map(StFrame::new);
+        let st_frame = st.as_mut().filter(|s| s.d.model == 2).map(StFrame::new);
         Units { gyro, mag, sun, st, mtq, es, css, mex, rcs, gps: Gps::new(d.gps, rs("gps")), tlm: rs("telemetry"), st_frame }
     }
 

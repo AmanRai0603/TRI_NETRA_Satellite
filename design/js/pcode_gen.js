@@ -23,7 +23,7 @@ export function lit(x) {
 }
 // how a value is passed: its SI unit ("in m"), or what it is when it has none
 function siOf(t) {
-  let e = t; while (e.k === "arr") e = e.of;
+  let e = t; while (e.k === "arr" || e.k === "buf") e = e.of;
   if (e.k === "real") { const d = dimText(e.dim); return d === "1" ? "a plain number" : `in ${d}`; }
   return e.k === "bool" ? "true or false" : e.k === "int" ? "a whole number" : e.k === "choice" ? "a choice, as its option's number"
     : e.k === "stream" ? "a random stream, as six numbers" : e.k;
@@ -59,6 +59,7 @@ export function toRust(prog, opts = {}) {
     switch (t.k) {
       case "real": return "f64"; case "int": case "choice": return "i64"; case "bool": return "bool"; case "stream": extras.add("stream"); return "rt::Stream";
       case "arr": return `[${rty(t.of)}; ${t.n}]`;
+      case "buf": return `[${rty(t.of)}]`;          // a buffer: a slice, the caller's array handed over (&mut [f64])
       case "rec": return t.name;
     }
     throw new Error(`no Rust type for ${typeText(t)}`);
@@ -190,7 +191,7 @@ export function toRust(prog, opts = {}) {
         case "bxor": return `(${ex(a[0])} ^ ${ex(a[1])})`;
         case "shl": return `(${ex(a[0])} << ${ex(a[1])})`;
         case "shr": return `(${ex(a[0])} >> ${ex(a[1])})`;
-        case "len": return String(a[0].ty.n);
+        case "len": return a[0].ty.k === "buf" ? `(${ex(a[0])}.len() as i64)` : String(a[0].ty.n);
         case "dot": return `rt::dot(${V(a[0])}, ${V(a[1])})`;
         case "cross": return `rt::cross(${V(a[0])}, ${V(a[1])})`;
         case "norm": return `rt::norm(${V(a[0])})`;
@@ -323,6 +324,12 @@ export function toRust(prog, opts = {}) {
       const [z, v] = t.of.k === "real" ? ["0.0", x] : t.of.k === "bool" ? ["false", `${x} != 0.0`] : ["0i64", `${x} as i64`];
       return [`{ let mut a = [${z}; ${t.n}]; for i in 0..${t.n} { a[i] = ${v}; } a }`, t.n];
     }
+    // a long array of short arrays of numbers (a catalogue of directions) as two loops
+    if (t.of.k === "arr" && t.n * t.of.n > 1024 && ["real", "int", "choice", "bool"].includes(t.of.of.k)) {
+      const m = t.of.n, x = `x[${at} + i * ${m} + j]`;
+      const [z, v] = t.of.of.k === "real" ? ["0.0", x] : t.of.of.k === "bool" ? ["false", `${x} != 0.0`] : ["0i64", `${x} as i64`];
+      return [`{ let mut a = [[${z}; ${m}]; ${t.n}]; for i in 0..${t.n} { for j in 0..${m} { a[i][j] = ${v}; } } a }`, t.n * m];
+    }
     for (let i = 0; i < t.n; i++) { const [s, n] = readArg(t.of, at + k); parts.push(s); k += n; }
     return [`[${parts.join(", ")}]`, k];
   };
@@ -340,7 +347,32 @@ export function toRust(prog, opts = {}) {
   const ioLets = (f, args, I) => f.params.map((p, i) => (p.inout ? `${I}let mut io${i} = ${args[i]};\n` : "")).join("");
   const ioArgs = (f, args) => f.params.map((p, i) => (p.inout ? `&mut io${i}` : args[i]));
   const ioPush = (f, I) => f.params.map((p, i) => (p.inout ? `${I}${pushOut(p.ty, `io${i}`)}\n` : "")).join("");
+  // a function with a buffer (its length the caller's): the inputs read in turn, a buffer its length first, then its
+  // elements, into a vector handed over as the slice
+  const bufCall = (f) => {
+    const I = "            ";
+    let s = `        "${f.module}::${f.name}" => {\n${I}let mut at: usize = 0;\n`;
+    const args = f.params.map((p, i) => {
+      const nm = p.inout ? `io${i}` : `a${i}`;
+      if (p.ty.k === "buf") {
+        const el = p.ty.of.k === "int" ? ".iter().map(|v| *v as i64).collect::<Vec<i64>>()" : ".to_vec()";
+        s += `${I}if x.len() < at + 1 { return None; }\n${I}let n${i} = x[at] as usize;\n${I}if x.len() < at + 1 + n${i} { return None; }\n` +
+          `${I}let mut ${nm} = x[at + 1..at + 1 + n${i}]${el};\n${I}at += 1 + n${i};\n`;
+      } else {
+        const [e, n] = readArg(p.ty, 0);
+        s += `${I}if x.len() < at + ${n} { return None; }\n${I}let ${p.inout ? "mut " : ""}${nm} = { let x = &x[at..]; ${e} };\n${I}at += ${n};\n`;
+      }
+      return p.inout ? `&mut ${nm}` : nm;
+    });
+    const outs = f.outs.length === 1 ? ["r"] : f.outs.map((_, i) => `r.${i}`);
+    s += `${I}if x.len() != at { return None; }\n${I}let r = crate::${f.module}::${f.name}(${args.join(", ")});\n` +
+      f.outs.map((o, i) => `${I}${pushOut(o.ty, outs[i])}\n`).join("") +
+      f.params.map((p, i) => (!p.inout ? "" : p.ty.k === "buf" ? `${I}out.push(io${i}.len() as f64); for v in io${i}.iter() { let v = *v; ${pushOut(p.ty.of, "v")} }\n` : `${I}${pushOut(p.ty, `io${i}`)}\n`)).join("") +
+      "        }\n";
+    return s;
+  };
   for (const f of callable) {
+    if (f.params.some((p) => p.ty.k === "buf")) { disp += bufCall(f); continue; }
     let at = 0; const args = [];
     for (const p of f.params) { const [s, n] = readArg(p.ty, at); args.push(s); at += n; }
     const outs = f.outs.length === 1 ? ["r"] : f.outs.map((_, i) => `r.${i}`);
@@ -603,7 +635,7 @@ export function toMatlab(prog, opts = {}) {
         case "bxor": return `bitxor(${a[0]}, ${a[1]})`;
         case "shl": return `bitshift(${a[0]}, ${a[1]})`;
         case "shr": return `bitshift(${a[0]}, -(${a[1]}))`;
-        case "len": return String(e.args[0].ty.n);
+        case "len": return e.args[0].ty.k === "buf" ? `numel(${a[0]})` : String(e.args[0].ty.n);
         case "dot": return `${rtp}.dot_(${a[0]}, ${a[1]})`;
         case "cross": return `${rtp}.cross_(${a[0]}, ${a[1]})`;
         case "norm": return `${rtp}.norm_(${a[0]})`;
@@ -709,14 +741,14 @@ export function toMatlab(prog, opts = {}) {
   // field in declaration order, as the vectors flatten it
   const flat = (t) => widthOf(prog, t);
   const callable = Object.values(prog.fns).filter((f) => f.kind === "fn");
-  const readArg = (t, at) => {
+  const readArg = (t, at, x = "x") => {
     const n = flat(t);
     if (t.k === "rec") {
       let k = 0;
-      const parts = prog.records[t.name].fields.map((f) => { const r = `'${f.name}', {${readArg(f.ty, at + k)}}`; k += flat(f.ty); return r; });
+      const parts = prog.records[t.name].fields.map((f) => { const r = `'${f.name}', {${readArg(f.ty, at + k, x)}}`; k += flat(f.ty); return r; });
       return `struct(${parts.join(", ")})`;
     }
-    const sl = n === 1 ? `x(${at + 1})` : `x(${at + 1}:${at + n})`;
+    const sl = n === 1 ? `${x}(${at + 1})` : `${x}(${at + 1}:${at + n})`;
     if (t.k === "bool") return `(${sl} ~= 0)`;
     if (t.k === "stream") return `reshape(${sl}, 6, 1)`;
     if (t.k === "arr" && t.of.k === "arr") return `reshape(${sl}, ${t.of.n}, ${t.n}).'`;
@@ -729,7 +761,22 @@ export function toMatlab(prog, opts = {}) {
     "    switch name\n";
   // an inout input's value after the call follows the outputs
   const ioOuts = (f) => f.params.map((p, i) => (p.inout ? [`io${i + 1}`, p] : null)).filter(Boolean);
+  // a function with a buffer (its length the caller's): the inputs read in turn, a buffer its length first
+  const bufCall = (f) => {
+    const I = "            ";
+    let s = `        case '${f.module}::${f.name}'\n${I}at = 0;\n`;
+    const args = f.params.map((p, i) => {
+      if (p.ty.k === "buf") { s += `${I}n${i + 1} = x(at + 1);\n${I}a${i + 1} = reshape(x(at + 2:at + 1 + n${i + 1}), [], 1);\n${I}at = at + 1 + n${i + 1};\n`; return `a${i + 1}`; }
+      s += `${I}xa = x(at + 1:end);\n${I}a${i + 1} = ${readArg(p.ty, 0, "xa")};\n${I}at = at + ${flat(p.ty)};\n`;
+      return `a${i + 1}`;
+    });
+    const outs = f.outs.map((_, i) => `o${i + 1}`);
+    const io = ioOuts(f).map(([n, p]) => (p.ty.k === "buf" ? `numel(${n}); reshape(${n}, [], 1)` : flatOut(p.ty, n)));
+    return s + `${I}[${[...outs, ...ioOuts(f).map((x) => x[0])].join(", ")}] = ${pkg}.${f.module}.${f.name}(${args.join(", ")});\n` +
+      `${I}y = [${[...f.outs.map((o, i) => flatOut(o.ty, outs[i])), ...io].join("; ")}];\n`;
+  };
   for (const f of callable) {
+    if (f.params.some((p) => p.ty.k === "buf")) { disp += bufCall(f); continue; }
     let at = 0; const args = [];
     for (const p of f.params) { args.push(readArg(p.ty, at)); at += flat(p.ty); }
     const outs = f.outs.map((_, i) => `o${i + 1}`);

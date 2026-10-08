@@ -1882,3 +1882,64 @@ source = "Liebe (2002), IEEE Aerospace and Electronic Systems Magazine 17(6):10 
 generate = ["adcs-sim-core"]
 uses = ["sens/stattitude.pc", "sens/starcat.pc", "act/coilsat.pc", "env/facets.pc", "fsw/pseudocode/01_math.pc"]
 why = "the star tracker as the engine flies it (its image model's chain is comp.rs's until S7.10) as a method of sens; the engine's sensing calls it, generated into the engine"
+
+[[revision]]
+id = "S7.10"
+at = "2026-10-08T18:00:00Z"
+by = "the developer"
+about = "the star tracker's image chain as methods of sens (docs/S7_INVENTORY.md S7.10): the frame the detector reads (l3_sens_row_09: the pinhole, the PSF, shot and read noise), its spots (l3_sens_row_10: the median and its absolute deviation, the brightest pixels, the centres of gravity), their identification by pair angles (l3_sens_row_11: the onboard pair table sorted by angle, the votes, the verification), and the image model as the engine flies it (a new node: the chain for each head that answers, through its true mount, reported through its nominal one, over l3_sens_row_12's attitude); each the developer's transcription of the code and of the publication it cites, the frame and the pair table buffers whose length is the caller's (G16, trinetra-toolbox/5), the noise the tracker's stream"
+
+[[revision.node]]
+id = "sens_star_image"
+group = "sens"
+parent = "l3_sens"
+label = "Star tracker image model as the engine flies it"
+behaviour = "method"
+question = "Which attitude does each star-tracker head that answers give from its rendered frame: its spots, their stars and the attitude they give through its mount?"
+why = "the star tracker's image model, until now adcs-sim-core comp.rs (star_tracker::chain) and sensors.rs (St::sample_with), which had no node: rows l3_sens_row_09 to 12 are its chain"
+
+[[revision.method]]
+node = "l3_sens_row_09"
+from = "built-in"
+to = "method"
+pseudocode = "design/revisions/S7.10/strender.pc"
+path = "sens/strender.pc"
+transcribes = "engine/crates/adcs-sim-core/src/comp.rs (star_tracker: Camera::new, the focal length and principal point; render, the frame), the twin's asils.comp.star_tracker.camera and render"
+source = "Liebe (2002), IEEE Aerospace and Electronic Systems Magazine 17(6):10 (the star tracker's pinhole, PSF, shot and read noise); the part's detector_px, fov_half_angle_rad, psf_sigma_px, flux_mag6_e, background_e and read_noise_e; the 9 x 9 window and the margins as the engine flies them (1.0.0 code)"
+generate = ["adcs-sim-core"]
+uses = ["sens/starcat.pc"]
+why = "the star tracker's rendered frame as a method of sens, generated into the engine"
+
+[[revision.method]]
+node = "l3_sens_row_10"
+from = "built-in"
+to = "method"
+pseudocode = "design/revisions/S7.10/stcentroid.pc"
+path = "sens/stcentroid.pc"
+transcribes = "engine/crates/adcs-sim-core/src/comp.rs (star_tracker::centroid and median), the twin's asils.comp.star_tracker.centroid"
+source = "Rousseeuw and Croux (1993), JASA 88:1273 (1.4826 times the median absolute deviation, the robust sigma); Hoare (1961), CACM 4(7):321 (FIND, the selection); Knuth, The Art of Computer Programming 3, 5.2.4 (the merge sort); the part's centroid_k_sigma and max_spots; the 5 x 5 window, the margin and the 4-pixel exclusion as the engine flies them (1.0.0 code)"
+generate = ["adcs-sim-core"]
+uses = ["sens/strender.pc", "sens/stattitude.pc"]
+why = "the star tracker's centroiding as a method of sens, generated into the engine"
+
+[[revision.method]]
+node = "l3_sens_row_11"
+from = "built-in"
+to = "method"
+pseudocode = "design/revisions/S7.10/stidentify.pc"
+path = "sens/stidentify.pc"
+transcribes = "engine/crates/adcs-sim-core/src/comp.rs (star_tracker::pair_count, pairs, identify), the twin's asils.comp.star_tracker.pairs and identify"
+source = "Kosik (1991) (pair-angle voting with a magnitude gate); Knuth, The Art of Computer Programming 3, 5.2.4 (the merge sort); the part's id_tol_rad and id_mag_tol; the 3 id_tol, the two others and the three passes of the verification as the engine flies them (1.0.0 code)"
+generate = ["adcs-sim-core"]
+uses = ["sens/starcat.pc", "sens/stattitude.pc"]
+why = "the star tracker's identification by pair angles as a method of sens, generated into the engine"
+
+[[revision.method]]
+node = "sens_star_image"
+pseudocode = "design/revisions/S7.10/stimage.pc"
+path = "sens/stimage.pc"
+transcribes = "engine/crates/adcs-sim-core/src/comp.rs (star_tracker::chain) and engine/crates/adcs-sim-core/src/sensors.rs (St::sample_with: the image model's heads)"
+source = "the chain of l3_sens_row_09 to 12; the part's fit_tol_rad; the magnitude 6 - 2.5 log10(flux/flux0) of a spot as the engine flies it (1.0.0 code)"
+generate = ["adcs-sim-core"]
+uses = ["sens/strender.pc", "sens/stcentroid.pc", "sens/stidentify.pc", "sens/stattitude.pc", "sens/sttracker.pc", "sens/starcat.pc", "sens/sunquad.pc", "env/facets.pc", "fsw/pseudocode/01_math.pc"]
+why = "the star tracker's image model (the chain for each head that answers) as a method of sens; the engine's sensing calls it, generated into the engine"

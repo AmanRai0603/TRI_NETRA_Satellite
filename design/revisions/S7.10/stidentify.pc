@@ -1,0 +1,221 @@
+## The star tracker's identification of its spots by pair angles, transcribed from adcs-sim-core comp.rs
+## (star_tracker::pair_count, pairs, identify; the twin's asils.comp.star_tracker.pairs and identify): the onboard pair
+## table, every catalogue pair closer than the field's diagonal (2 sqrt 2 times the half-angle) with its angle, sorted by
+## angle (a stable merge sort, Knuth, The Art of Computer Programming 3, 5.2.4: equal angles by the second star, then the
+## first, as the code's sort gives); then each spot's catalogue star by the votes of the measured pairs for the catalogue
+## pairs of their angle (within id_tol, found by binary search) whose two magnitudes match (within mag_tol, either way
+## round), the most-voted star, the lowest on a tie (pair-angle voting with a magnitude gate, Kosik 1991), and a star
+## kept only while its angles to at least two other kept stars are within 3 id_tol of the catalogue's, three passes. The
+## 3 id_tol, the two others and the three passes as the engine flies them (1.0.0 code).
+## The developer's transcription (S7.10), unsigned.
+module stidentify
+
+## How many pairs of the first nc catalogue stars lie closer than the field's diagonal (2 sqrt 2 times the half-angle fov):
+## the onboard pair table's length.
+## vectors: 6
+fn st_pair_count(cr: inout real[1][3][N_STARS] in -1 .. 1, nc: int in 2 .. 300, fov: real[1] in 0.02 .. 0.3) -> np: int
+    let cd = cos(2.0*sqrt(2.0)*fov)
+    np = 0
+    for j in 0 .. nc
+        for i in 0 .. j
+            if dot(cr[i], cr[j]) > cd
+                np = np + 1
+            end
+        end
+    end
+end
+
+## One pass of the merge sort of the pair table: the runs of w of (si, sj, sa)[0..m] merged in pairs into (di, dj, da), by
+## angle sa (ascending), a tie to the earlier run.
+## length: 64
+fn st_merge_pairs(si: inout int[*] in 0 .. 3999, sj: inout int[*] in 0 .. 3999, sa: inout real[1][*] in 0 .. 1, \
+                  di: inout int[*] in 0 .. 3999, dj: inout int[*] in 0 .. 3999, da: inout real[1][*] in 0 .. 1, \
+                  m: int in 0 .. 64, w: int in 1 .. 64) -> z: int
+    z = 0
+    let nb = div(m + 2*w - 1, 2*w)
+    for bk in 0 .. nb
+        let lo = bk*2*w
+        let mid = min(lo + w, m)
+        let hi = min(lo + 2*w, m)
+        let i = lo
+        let j = mid
+        for k in lo .. hi
+            if i < mid and (j >= hi or not (sa[j] < sa[i]))
+                di[k] = si[i]
+                dj[k] = sj[i]
+                da[k] = sa[i]
+                i = i + 1
+            else
+                di[k] = si[j]
+                dj[k] = sj[j]
+                da[k] = sa[j]
+                j = j + 1
+            end
+        end
+    end
+end
+
+## The onboard pair table of the first nc catalogue stars: every pair i < j closer than the field's diagonal, its two
+## indices and its angle [rad], sorted by angle (equal angles by j, then i), into (pi, pj, pa), built in (ti, tj, ta);
+## every one of the six as long as st_pair_count says. How many.
+## length: 4096
+## vectors: 6
+fn st_pairs(cr: inout real[1][3][N_STARS] in -1 .. 1, nc: int in 2 .. 300, fov: real[1] in 0.02 .. 0.3, pi: inout int[*] in 0 .. 1, \
+            pj: inout int[*] in 0 .. 1, pa: inout real[1][*] in 0 .. 1, ti: inout int[*] in 0 .. 1, tj: inout int[*] in 0 .. 1, \
+            ta: inout real[1][*] in 0 .. 1) -> np: int
+    let cd = cos(2.0*sqrt(2.0)*fov)
+    np = 0
+    for j in 0 .. nc
+        for i in 0 .. j
+            let d = dot(cr[i], cr[j])
+            if d > cd
+                ti[np] = i
+                tj[np] = j
+                ta[np] = acos(min(d, 1.0))
+                np = np + 1
+            end
+        end
+    end
+    let passes = 0
+    let w = 1
+    for it in 0 .. 62
+        if w < np
+            if rem(passes, 2) == 0
+                let z0 = st_merge_pairs(ti, tj, ta, pi, pj, pa, np, w)
+            else
+                let z1 = st_merge_pairs(pi, pj, pa, ti, tj, ta, np, w)
+            end
+            passes = passes + 1
+            w = 2*w
+        end
+    end
+    if rem(passes, 2) == 0
+        for k in 0 .. np
+            pi[k] = ti[k]
+            pj[k] = tj[k]
+            pa[k] = ta[k]
+        end
+    end
+end
+
+## The first of the np angles pa (ascending) that is not below x: a binary search.
+## length: 64
+fn st_first_not_below(pa: inout real[1][*] in 0 .. 1, np: int in 0 .. 64, x: real[1] in 0 .. 1) -> lo: int
+    lo = 0
+    let hi = np
+    settle max 64 until not (lo < hi)
+        if lo < hi
+            let mid = lo + div(hi - lo, 2)
+            let left = pa[mid] < x
+            lo = if left then mid + 1 else lo
+            hi = if left then hi else mid
+        end
+    end
+end
+
+## The first of the np angles pa (ascending) that is above x: a binary search.
+## length: 64
+fn st_first_above(pa: inout real[1][*] in 0 .. 1, np: int in 0 .. 64, x: real[1] in 0 .. 1) -> lo: int
+    lo = 0
+    let hi = np
+    settle max 64 until not (lo < hi)
+        if lo < hi
+            let mid = lo + div(hi - lo, 2)
+            let left = pa[mid] <= x
+            lo = if left then mid + 1 else lo
+            hi = if left then hi else mid
+        end
+    end
+end
+
+## The catalogue star (from 0, -1 none) of each of the first n spots, b their directions (head frame, unit) and mag their
+## magnitudes, against the pair table (pi, pj, pa) of the first nc catalogue stars (cr, cm): every other spot q votes, for
+## spot p, for each catalogue pair whose angle is within id_tol of theirs and whose two magnitudes match p's and q's
+## within mag_tol (either way round); p takes its most-voted star (the lowest on a tie). Then, three passes over the spots
+## in turn, a star is kept only while its angles to at least two other kept stars are within 3 id_tol of the catalogue's.
+## Whether three or more are kept.
+## length: 64
+fn st_identify(b: real[1][3][ST_SPOTS] in -1 .. 1, mag: real[1][ST_SPOTS] in 0 .. 8, n: int in 0 .. 32, pi: inout int[*] in 0 .. 3999, \
+               pj: inout int[*] in 0 .. 3999, pa: inout real[1][*] in 0 .. 0.5, cr: inout real[1][3][N_STARS] in -1 .. 1, \
+               cm: inout real[1][N_STARS] in 1 .. 6, nc: int in 3 .. 4000, id_tol: real[1] in 1e-5 .. 0.1, \
+               mag_tol: real[1] in 0.05 .. 2) -> (id: int[ST_SPOTS], ok: bool)
+    for p0 in 0 .. ST_SPOTS
+        id[p0] = -1
+    end
+    ok = false
+    if n >= 3
+        let np = len(pa)
+        let cand: int[ST_SPOTS] = 0
+        for p in 0 .. n
+            let votes: int[N_STARS] = 0
+            for q in 0 .. n
+                if q != p
+                    let th = acos(min(dot(b[p], b[q]), 1.0))
+                    let lo = st_first_not_below(pa, np, th - id_tol)
+                    let hi = st_first_above(pa, np, th + id_tol)
+                    let mp = mag[p]
+                    let mq = mag[q]
+                    # |d| < mag_tol as max(d, -d) < mag_tol: the same test for every d (a zero of either sign, a nan), and no
+                    # branch on the sign of d
+                    for k in lo .. max(hi, lo)
+                        let i = pi[k]
+                        let j = pj[k]
+                        let mi = cm[i]
+                        let mj = cm[j]
+                        let dip = mi - mp
+                        let djq = mj - mq
+                        let djp = mj - mp
+                        let diq = mi - mq
+                        if max(dip, -dip) < mag_tol and max(djq, -djq) < mag_tol
+                            votes[i] = votes[i] + 1
+                        end
+                        if max(djp, -djp) < mag_tol and max(diq, -diq) < mag_tol
+                            votes[j] = votes[j] + 1
+                        end
+                    end
+                end
+            end
+            let best = 0
+            let bi = -1
+            for k2 in 0 .. nc
+                if votes[k2] > best
+                    best = votes[k2]
+                    bi = k2
+                end
+            end
+            cand[p] = bi
+        end
+        let keep: bool[ST_SPOTS] = 0
+        for p2 in 0 .. n
+            keep[p2] = cand[p2] >= 0
+        end
+        for pass in 0 .. 3
+            let was = keep
+            for p3 in 0 .. n
+                if was[p3]
+                    let good = 0
+                    for q3 in 0 .. n
+                        if q3 != p3 and keep[q3]
+                            let th3 = acos(min(dot(b[p3], b[q3]), 1.0))
+                            let tc = acos(min(dot(cr[cand[p3]], cr[cand[q3]]), 1.0))
+                            if |th3 - tc| < 3.0*id_tol
+                                good = good + 1
+                            end
+                        end
+                    end
+                    if good < 2
+                        keep[p3] = false
+                    end
+                end
+            end
+        end
+        let kept = 0
+        for p4 in 0 .. n
+            if keep[p4]
+                id[p4] = cand[p4]
+                kept = kept + 1
+            end
+        end
+        ok = kept >= 3
+    end
+end

@@ -83,7 +83,8 @@ def gather():
 # /2 (S7.2): data tables, inf and nan, choices, named capacities, inputs by reference, the sort, random streams.
 # /3 (S7.3): trunc; log2 and hypot from each language's maths library (the published models' transcriptions).
 # /4 (S7.6): erf from each language's maths library (the gas-surface interaction of the drag's panel models).
-TOOLBOX = "trinetra-toolbox/4"
+# /5 (S7.10): buffers whose length is the caller's (`real[1][*]`, `int[*]`; the star tracker's frame and pair table).
+TOOLBOX = "trinetra-toolbox/5"
 
 
 def needs_application():

@@ -1,0 +1,104 @@
+## The star tracker's frame as the engine renders it (the image model's model side), transcribed from adcs-sim-core
+## comp.rs (star_tracker: Camera::new, render; the twin's asils.comp.star_tracker.camera and render): the detector and
+## optics as the part states them, the focal length and principal point that follow, and the frame the detector reads:
+## every catalogue star within the field's diagonal (sqrt 2 times the half-angle) through a pinhole (head z the
+## boresight), more than 5 pixels inside the edge, its flux (flux0 10^(-0.4 (mag - 6)) electrons) spread by a Gaussian
+## PSF over the 9 x 9 pixels round its nearest pixel, normalised, on the background; with shot noise sqrt(signal) and read
+## noise on every pixel (Liebe 2002, IEEE Aerospace and Electronic Systems Magazine 17(6):10), drawn from the tracker's
+## stream, a pixel at a time, the shot noise first. Pixels are the twin's: 1-based, x the column and y the row, the frame
+## column by column. The 9 x 9 window and the margin as the engine flies them (1.0.0 code).
+## The developer's transcription (S7.10), unsigned.
+module strender
+
+## The detector and optics, and the onboard chain's settings, every one from the part: the pixels a side and the field's
+## half-angle [rad]; the PSF's sigma [px], the electrons of a magnitude-6 star, the background and the read noise [e-];
+## the detection threshold [robust sigmas above the median] and the spots kept; the pair-angle tolerance [rad], the
+## magnitude gate and the residual a star may keep after the fit [rad]; the focal length [px] and the principal point
+## (1-based) that follow (st_focal).
+record StCamera
+    n: int in 16 .. 24
+    fov: real[1] in 0.05 .. 0.3
+    psf_px: real[1] in 0.6 .. 2
+    flux0: real[1] in 1000 .. 10000
+    bg: real[1] in 0 .. 100
+    read_noise: real[1] in 0 .. 20
+    k_sigma: real[1] in 2 .. 8
+    max_spots: int in 3 .. 32
+    id_tol: real[1] in 1e-5 .. 1e-3
+    mag_tol: real[1] in 0.05 .. 1
+    fit_tol: real[1] in 1e-5 .. 1e-3
+    f: real[1] in 10 .. 200
+    c: real[1] in 8 .. 13
+end
+
+## The focal length [px] and the principal point (1-based) of a detector of n pixels a side over a field of half-angle fov.
+fn st_focal(fov: real[1] in 0.02 .. 0.5, n: int in 16 .. 8192) -> (f: real[1], c: real[1])
+    let nf = real(n)
+    f = (nf/2.0)/tan(fov)
+    c = (nf + 1.0)/2.0
+end
+
+## The frame the detector reads at the head attitude r_eh (ECI to head): every one of the first nc catalogue stars (cr, cm)
+## within the field's diagonal through the pinhole, more than 5 pixels inside the edge, its flux spread by the PSF over the
+## 9 x 9 pixels round it, on the background; when noisy, shot and read noise on every pixel from g. Into img (n x n,
+## column by column). The stars drawn: how many, and the first as many as tk holds (x, y, catalogue index) into tx, ty, tk.
+## length: 576
+fn st_render(r_eh: mat3[1] in -1 .. 1, cr: inout real[1][3][N_STARS] in -1 .. 1, cm: inout real[1][N_STARS] in 1 .. 6, \
+             nc: int in 0 .. 4000, cam: StCamera, img: inout real[1][*] in 0 .. 1e5, noisy: bool, g: inout stream, \
+             tx: inout real[1][*] in 0 .. 1, ty: inout real[1][*] in 0 .. 1, tk: inout int[*] in 0 .. 1) -> drawn: int
+    let n = cam.n
+    let np = n*n
+    let nf = real(n)
+    for l in 0 .. np
+        img[l] = cam.bg
+    end
+    let cmin = cos(cam.fov*sqrt(2.0))
+    let s2 = 2.0*cam.psf_px*cam.psf_px
+    drawn = 0
+    for k in 0 .. nc
+        let v = r_eh*cr[k]
+        if v[2] > cmin
+            let x = cam.f*v[0]/v[2] + cam.c
+            let y = cam.f*v[1]/v[2] + cam.c
+            if not (x < 6.0 or y < 6.0 or x > nf - 5.0 or y > nf - 5.0)
+                let fl = cam.flux0*pow(10.0, -0.4*(cm[k] - 6.0))
+                let rx = round(x)
+                let ry = round(y)
+                let w: real[1][9][9] = 0
+                let sum: real[1] = 0
+                for c in 0 .. 9
+                    for rr in 0 .. 9
+                        let gx = real(c) - 4.0
+                        let gy = real(rr) - 4.0
+                        let dx = rx + gx - x
+                        let dy = ry + gy - y
+                        w[c][rr] = exp(-(dx*dx + dy*dy)/s2)
+                        sum = sum + w[c][rr]
+                    end
+                end
+                let ix = int(rx)
+                let iy = int(ry)
+                for c2 in 0 .. 9
+                    for r2 in 0 .. 9
+                        let l2 = (ix + c2 - 4 - 1)*n + (iy + r2 - 4 - 1)
+                        img[l2] = img[l2] + fl*(w[c2][r2]/sum)
+                    end
+                end
+                if drawn < len(tk)
+                    tx[drawn] = x
+                    ty[drawn] = y
+                    tk[drawn] = k
+                end
+                drawn = drawn + 1
+            end
+        end
+    end
+    if noisy
+        for l3 in 0 .. np
+            let v3 = img[l3]
+            let n1 = normal(g)
+            let n2 = normal(g)
+            img[l3] = v3 + sqrt(max(v3, 0.0))*n1 + cam.read_noise*n2
+        end
+    end
+end

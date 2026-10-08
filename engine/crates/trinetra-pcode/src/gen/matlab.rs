@@ -70,7 +70,7 @@ impl<'a> Gen<'a> {
                 format!("{}.{module}.{name}_zero()", self.pkg)
             }
             Ty::Stream => "zeros(6, 1)".into(),
-            Ty::Tuple(_) | Ty::Str => "undefined".into(),
+            Ty::Tuple(_) | Ty::Str | Ty::Buf(_) => "undefined".into(),
         }
     }
     fn value_lit(&mut self, v: &Value, t: &Ty) -> String {
@@ -140,7 +140,7 @@ impl<'a> Gen<'a> {
     /// is the type of `a` an array of arrays (a matrix, so an index of it is a row)?
     fn rows_of(&mut self, a: usize) -> bool {
         match self.b.ty_of(a) {
-            Ty::Arr(_, of) => matches!(**of, Ty::Arr(..)),
+            Ty::Arr(_, of) | Ty::Buf(of) => matches!(**of, Ty::Arr(..)),
             _ => {
                 self.b.fail("cannot read properties of undefined (reading 'k')");
                 false
@@ -326,6 +326,7 @@ impl<'a> Gen<'a> {
                 "len" => {
                     return match args.first().and_then(|&x| c.ann[x].ty.as_ref()) {
                         Some(Ty::Arr(n, _)) => n.to_string(),
+                        Some(Ty::Buf(_)) => format!("numel({})", at(0)),
                         _ => "undefined".into(),
                     }
                 }
@@ -615,10 +616,14 @@ impl<'a> Gen<'a> {
             help("call", &["a function by its registry name (module::name), inputs and outputs flattened (row-major, SI)".into(), head.clone()])
         );
         for f in c.fns.iter().filter(|f| f.kind == FnKind::Fn) {
+            if f.params.iter().any(|p| matches!(p.ty, Ty::Buf(_))) {
+                disp += &self.buf_call(f, &pkg);
+                continue;
+            }
             let mut at = 0;
             let mut args = Vec::new();
             for p in &f.params {
-                args.push(self.read_arg(&p.ty, at));
+                args.push(self.read_arg(&p.ty, at, "x"));
                 at += self.b.flat(&p.ty);
             }
             let outs: Vec<String> = (0..f.outs.len()).map(|i| format!("o{}", i + 1)).chain(io_outs(f).into_iter().map(|x| x.0)).collect();
@@ -642,7 +647,7 @@ impl<'a> Gen<'a> {
             let mut at = 0;
             let mut args = Vec::new();
             for p in &f.params {
-                args.push(self.read_arg(&p.ty, at));
+                args.push(self.read_arg(&p.ty, at, "x"));
                 at += self.b.flat(&p.ty);
             }
             let outs: Vec<String> = (0..f.outs.len()).map(|i| format!("o{}", i + 1)).chain(io_outs(f).into_iter().map(|x| x.0)).collect();
@@ -662,7 +667,7 @@ impl<'a> Gen<'a> {
         files
     }
 
-    fn read_arg(&self, t: &Ty, at: usize) -> String {
+    fn read_arg(&self, t: &Ty, at: usize, x: &str) -> String {
         let n = self.b.flat(t);
         if let Ty::Rec(name) = t {
             let mut k = 0;
@@ -671,7 +676,7 @@ impl<'a> Gen<'a> {
                     .fields
                     .iter()
                     .map(|f| {
-                        let s = format!("'{}', {{{}}}", f.name, self.read_arg(&f.ty, at + k));
+                        let s = format!("'{}', {{{}}}", f.name, self.read_arg(&f.ty, at + k, x));
                         k += self.b.flat(&f.ty);
                         s
                     })
@@ -680,7 +685,7 @@ impl<'a> Gen<'a> {
             };
             return format!("struct({})", parts.join(", "));
         }
-        let sl = if n == 1 { format!("x({})", at + 1) } else { format!("x({}:{})", at + 1, at + n) };
+        let sl = if n == 1 { format!("{x}({})", at + 1) } else { format!("{x}({}:{})", at + 1, at + n) };
         match t {
             Ty::Bool => format!("({sl} ~= 0)"),
             Ty::Stream => format!("reshape({sl}, 6, 1)"),
@@ -690,6 +695,32 @@ impl<'a> Gen<'a> {
             },
             _ => sl,
         }
+    }
+    /// The dispatcher's case of a function with a buffer (its length the caller's): the inputs read in turn, a buffer
+    /// its length first.
+    fn buf_call(&self, f: &crate::ast::Func, pkg: &str) -> String {
+        let ii = "            ";
+        let mut s = format!("        case '{}::{}'\n{ii}at = 0;\n", f.module, f.name);
+        let mut args = Vec::new();
+        for (i, p) in f.params.iter().enumerate() {
+            let k = i + 1;
+            if matches!(p.ty, Ty::Buf(_)) {
+                s += &format!("{ii}n{k} = x(at + 1);\n{ii}a{k} = reshape(x(at + 2:at + 1 + n{k}), [], 1);\n{ii}at = at + 1 + n{k};\n");
+            } else {
+                s += &format!("{ii}xa = x(at + 1:end);\n{ii}a{k} = {};\n{ii}at = at + {};\n", self.read_arg(&p.ty, 0, "xa"), self.b.flat(&p.ty));
+            }
+            args.push(format!("a{k}"));
+        }
+        let outs: Vec<String> = (0..f.outs.len()).map(|i| format!("o{}", i + 1)).collect();
+        let names: Vec<String> = outs.iter().cloned().chain(io_outs(f).into_iter().map(|x| x.0)).collect();
+        let ys: Vec<String> = f
+            .outs
+            .iter()
+            .zip(&outs)
+            .map(|(o, v)| self.flat_out(&o.ty, v))
+            .chain(io_outs(f).into_iter().map(|(n, t)| if matches!(t, Ty::Buf(_)) { format!("numel({n}); reshape({n}, [], 1)") } else { self.flat_out(t, &n) }))
+            .collect();
+        s + &format!("{ii}[{}] = {pkg}.{}.{}({});\n{ii}y = [{}];\n", names.join(", "), f.module, f.name, args.join(", "), ys.join("; "))
     }
     fn flat_out(&self, t: &Ty, v: &str) -> String {
         match t {

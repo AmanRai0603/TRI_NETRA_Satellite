@@ -3,7 +3,7 @@
 //! against closed forms, against the truth they were rendered from, and against the MATLAB
 //! twin's chain on the same noise-free frame (asils.comp.*).
 //! Owner: Agastya. Copyright (c) 2026 Agastya. All rights reserved.
-use adcs_sim_core::comp::star_tracker::{self as stc, Camera, Pair, Work, MAX_SPOTS, NONE};
+use adcs_sim_core::comp::star_tracker::{self as stc, Camera, Work, MAX_SPOTS, NONE};
 use adcs_sim_core::comp::sun_sensor::{angles, currents, Head};
 use adcs_sim_core::comp::head_frame;
 use adcs_sim_core::la::*;
@@ -12,15 +12,25 @@ use adcs_sim_core::sensors::{star, St, StDesc, Sun, SunDesc, N_STARS};
 
 /// The twin's baseline camera (asils.comp.star_tracker.camera(0.17)).
 fn camera() -> Camera { Camera::new(0.17, 1024, 1.2, 3000.0, 50.0, 8.0, 5.0, 20, 2e-4, 0.25, 1e-4) }
-fn catalogue() -> (Vec<V3>, Vec<f64>) { (0..N_STARS).map(|k| star(k, N_STARS)).unzip() }
-
-struct Bufs { img: Vec<f64>, scratch: Vec<(f64, u32)>, pairs: Vec<Pair>, votes: Vec<u32> }
-fn bufs(cr: &[V3], cam: &Camera) -> Bufs {
-    let mut pairs = vec![Pair::default(); stc::pair_count(cr, cam.fov)];
-    stc::pairs(cr, cam.fov, &mut pairs);
-    Bufs { img: vec![0.0; cam.n*cam.n], scratch: vec![(0.0, 0); cam.n*cam.n], pairs, votes: vec![0; cr.len()] }
+type Cat = (Box<[V3; N_STARS]>, Box<[f64; N_STARS]>);
+fn catalogue() -> Cat {
+    let (mut cr, mut cm) = (Box::new([[0.0; 3]; N_STARS]), Box::new([0.0; N_STARS]));
+    for k in 0..N_STARS { (cr[k], cm[k]) = star(k, N_STARS); }
+    (cr, cm)
 }
-fn work(b: &mut Bufs) -> Work<'_> { Work { img: &mut b.img, scratch: &mut b.scratch, pairs: &b.pairs, votes: &mut b.votes } }
+
+/// The frame, its scratch copy and index lists, and the onboard pair table (its two stars and its angle).
+struct Bufs { img: Vec<f64>, work: Vec<f64>, ia: Vec<i64>, ib: Vec<i64>, pi: Vec<i64>, pj: Vec<i64>, pa: Vec<f64> }
+fn bufs(cr: &mut [V3; N_STARS], cam: &Camera) -> Bufs {
+    let np = stc::pair_count(cr, cam.fov);
+    let (mut pi, mut pj, mut pa) = (vec![0; np], vec![0; np], vec![0.0; np]);
+    stc::pairs(cr, cam.fov, &mut pi, &mut pj, &mut pa, &mut vec![0; np], &mut vec![0; np], &mut vec![0.0; np]);
+    let n = cam.n*cam.n;
+    Bufs { img: vec![0.0; n], work: vec![0.0; n], ia: vec![0; n], ib: vec![0; n], pi, pj, pa }
+}
+fn work(b: &mut Bufs) -> Work<'_> {
+    Work { img: &mut b.img, work: &mut b.work, ia: &mut b.ia, ib: &mut b.ib, pi: &mut b.pi, pj: &mut b.pj, pa: &mut b.pa }
+}
 fn arcsec(a: &Q, b: &Q) -> f64 { qangle(a, b)*180.0/std::f64::consts::PI*3600.0 }
 
 /// A frame of known stars centroids back onto them: noise-free within 0.15 px (the 5 x 5
@@ -28,8 +38,8 @@ fn arcsec(a: &Q, b: &Q) -> f64 { qangle(a, b)*180.0/std::f64::consts::PI*3600.0 
 /// brighter than 50 000 e- (magnitude 3.8) that has no neighbour within 8 px.
 #[test]
 fn a_rendered_frame_centroids_onto_its_stars() {
-    let ((cr, cm), cam) = (catalogue(), camera());
-    let mut b = bufs(&cr, &cam);
+    let ((mut cr, mut cm), cam) = (catalogue(), camera());
+    let mut b = bufs(&mut cr, &cam);
     let mut r = Rng::new(11, 1);
     for (noisy, tol) in [(false, 0.15), (true, 0.25)] {
         let mut worst: f64 = 0.0;
@@ -38,9 +48,9 @@ fn a_rendered_frame_centroids_onto_its_stars() {
             let q = qnorm(&[r.normal(), r.normal(), r.normal(), r.normal()]);
             let mut truth = [(0.0, 0.0, 0usize); 128];
             let mut g = Rng::new(5, 2);
-            let nt = stc::render(&dcm(&q), &cr, &cm, &cam, &mut b.img, if noisy { Some(&mut g) } else { None }, &mut truth);
+            let nt = stc::render(&dcm(&q), &mut cr, &mut cm, &cam, &mut b.img, if noisy { Some(&mut g) } else { None }, &mut truth);
             let mut spots = [[0.0; 3]; MAX_SPOTS];
-            let ns = stc::centroid(&b.img, &cam, &mut b.scratch, &mut spots);
+            let ns = stc::centroid(&mut b.img, &cam, &mut b.work, &mut b.ia, &mut b.ib, &mut spots);
             assert!(ns >= 3);
             for &(x, y, k) in &truth[..nt] {
                 let fl = cam.flux0*10f64.powf(-0.4*(cm[k] - 6.0));
@@ -61,15 +71,15 @@ fn a_rendered_frame_centroids_onto_its_stars() {
 /// identified stars are the ones drawn there.
 #[test]
 fn identification_recovers_the_true_attitude() {
-    let ((cr, cm), cam) = (catalogue(), camera());
-    let mut b = bufs(&cr, &cam);
+    let ((mut cr, mut cm), cam) = (catalogue(), camera());
+    let mut b = bufs(&mut cr, &cam);
     let mut r = Rng::new(3, 1);
     let mut g = Rng::new(3, 2);
     let eye = [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]];
     for (noisy, tol) in [(false, 20.0), (true, 60.0)] {
         for k in 0..6 {
             let q = qnorm(&[r.normal(), r.normal(), r.normal(), r.normal()]);
-            let (qm, ok, info) = stc::chain(&q, &eye, &eye, &cr, &cm, &cam, &mut work(&mut b), if noisy { Some(&mut g) } else { None });
+            let (qm, ok, info) = stc::chain(&q, &eye, &eye, &mut cr, &mut cm, &cam, &mut work(&mut b), if noisy { Some(&mut g) } else { None });
             assert!(ok, "frame {k} (noise {noisy}) not solved: {info:?}");
             assert!(info.used >= 3);
             assert!(arcsec(&q, &qm) < tol, "frame {k} (noise {noisy}): {} arcsec", arcsec(&q, &qm));
@@ -78,9 +88,9 @@ fn identification_recovers_the_true_attitude() {
     // the ids themselves: each identified spot is the catalogue star drawn nearest to it
     let q = qnorm(&[0.3, 0.1, -0.4, 0.8]);
     let mut truth = [(0.0, 0.0, 0usize); 128];
-    let nt = stc::render(&dcm(&q), &cr, &cm, &cam, &mut b.img, None, &mut truth);
+    let nt = stc::render(&dcm(&q), &mut cr, &mut cm, &cam, &mut b.img, None, &mut truth);
     let mut spots = [[0.0; 3]; MAX_SPOTS];
-    let ns = stc::centroid(&b.img, &cam, &mut b.scratch, &mut spots);
+    let ns = stc::centroid(&mut b.img, &cam, &mut b.work, &mut b.ia, &mut b.ib, &mut spots);
     let mut bv = [[0.0; 3]; MAX_SPOTS];
     let mut mag = [0.0; MAX_SPOTS];
     for k in 0..ns {
@@ -88,7 +98,7 @@ fn identification_recovers_the_true_attitude() {
         mag[k] = 6.0 - 2.5*(spots[k][2].max(1.0)/cam.flux0).log10();
     }
     let mut id = [NONE; MAX_SPOTS];
-    assert!(stc::identify(&bv[..ns], &mag[..ns], &b.pairs, &cr, &cm, &cam, &mut b.votes, &mut id[..ns]));
+    assert!(stc::identify(&bv[..ns], &mag[..ns], &mut b.pi, &mut b.pj, &mut b.pa, &mut cr, &mut cm, &cam, &mut id[..ns]));
     let mut n_id = 0;
     for k in 0..ns {
         if id[k] == NONE { continue; }
@@ -106,13 +116,13 @@ fn identification_recovers_the_true_attitude() {
 /// A spot that is not a star (a hot pixel) is not identified, and the attitude stands.
 #[test]
 fn a_false_spot_is_dropped() {
-    let ((cr, cm), cam) = (catalogue(), camera());
-    let mut b = bufs(&cr, &cam);
+    let ((mut cr, mut cm), cam) = (catalogue(), camera());
+    let mut b = bufs(&mut cr, &cam);
     let q = qnorm(&[0.1, -0.2, 0.3, 0.9]);
-    stc::render(&dcm(&q), &cr, &cm, &cam, &mut b.img, None, &mut []);
+    stc::render(&dcm(&q), &mut cr, &mut cm, &cam, &mut b.img, None, &mut []);
     b.img[(600 - 1)*1024 + (300 - 1)] += 4e5;         // x 600, y 300: brighter than any star
     let mut spots = [[0.0; 3]; MAX_SPOTS];
-    let ns = stc::centroid(&b.img, &cam, &mut b.scratch, &mut spots);
+    let ns = stc::centroid(&mut b.img, &cam, &mut b.work, &mut b.ia, &mut b.ib, &mut spots);
     assert!((spots[0][0] - 600.0).abs() < 1e-9 && (spots[0][1] - 300.0).abs() < 1e-9, "{:?}", spots[0]);
     let mut bv = [[0.0; 3]; MAX_SPOTS];
     let mut mag = [0.0; MAX_SPOTS];
@@ -121,8 +131,8 @@ fn a_false_spot_is_dropped() {
         mag[k] = 6.0 - 2.5*(spots[k][2].max(1.0)/cam.flux0).log10();
     }
     let mut id = [NONE; MAX_SPOTS];
-    assert!(stc::identify(&bv[..ns], &mag[..ns], &b.pairs, &cr, &cm, &cam, &mut b.votes, &mut id[..ns]));
-    let (qe, ok) = stc::attitude(&bv[..ns], &mut id[..ns], &cr, cam.fit_tol);
+    assert!(stc::identify(&bv[..ns], &mag[..ns], &mut b.pi, &mut b.pj, &mut b.pa, &mut cr, &mut cm, &cam, &mut id[..ns]));
+    let (qe, ok) = stc::attitude(&bv[..ns], &mut id[..ns], &cr[..], cam.fit_tol);
     assert!(ok && id[0] == NONE);
     assert!(arcsec(&q, &qe) < 5.0);
 }
@@ -135,13 +145,13 @@ fn a_false_spot_is_dropped() {
 /// relative, the attitude within 1e-6 arcsec.
 #[test]
 fn the_star_tracker_chain_is_the_twins() {
-    let ((cr, cm), cam) = (catalogue(), camera());
-    let mut b = bufs(&cr, &cam);
-    assert_eq!(b.pairs.len(), 452404);
-    assert_eq!((b.pairs[0].i + 1, b.pairs[0].j + 1), (3973, 3986));
-    assert!((b.pairs[0].ang - 0.030776038627103805).abs() < 1e-14 && (b.pairs[b.pairs.len() - 1].ang - 0.48083169588160557).abs() < 1e-14);
+    let ((mut cr, mut cm), cam) = (catalogue(), camera());
+    let mut b = bufs(&mut cr, &cam);
+    assert_eq!(b.pa.len(), 452404);
+    assert_eq!((b.pi[0] + 1, b.pj[0] + 1), (3973, 3986));
+    assert!((b.pa[0] - 0.030776038627103805).abs() < 1e-14 && (b.pa[b.pa.len() - 1] - 0.48083169588160557).abs() < 1e-14);
     let q = qnorm(&[0.1, -0.2, 0.3, 0.9]);
-    let nt = stc::render(&dcm(&q), &cr, &cm, &cam, &mut b.img, None, &mut []);
+    let nt = stc::render(&dcm(&q), &mut cr, &mut cm, &cam, &mut b.img, None, &mut []);
     assert_eq!(nt, 38);
     let twin: [[f64; 3]; 20] = [
         [402.79524679120351, 342.01110964608188, 275610.86868389987], [452.80796824241332, 461.65305011032717, 255737.29055605855],
@@ -155,14 +165,14 @@ fn the_star_tracker_chain_is_the_twins() {
         [319.36998037063682, 816.17408551664755, 15408.7852604334], [417.34730734840588, 919.34484454577296, 15865.779421626823],
         [224.25127504443947, 699.02664475970425, 14387.963875018171], [773.00827469410081, 916.8667833984988, 14011.925350572936]];
     let mut spots = [[0.0; 3]; MAX_SPOTS];
-    let ns = stc::centroid(&b.img, &cam, &mut b.scratch, &mut spots);
+    let ns = stc::centroid(&mut b.img, &cam, &mut b.work, &mut b.ia, &mut b.ib, &mut spots);
     assert_eq!(ns, 20);
     for k in 0..20 {
         assert!((spots[k][0] - twin[k][0]).abs() < 1e-9 && (spots[k][1] - twin[k][1]).abs() < 1e-9, "spot {k}: {:?} vs the twin's {:?}", spots[k], twin[k]);
         assert!((spots[k][2]/twin[k][2] - 1.0).abs() < 1e-9, "spot {k} flux: {} vs the twin's {}", spots[k][2], twin[k][2]);
     }
     let eye = [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]];
-    let (qm, ok, info) = stc::chain(&q, &eye, &eye, &cr, &cm, &cam, &mut work(&mut b), None);
+    let (qm, ok, info) = stc::chain(&q, &eye, &eye, &mut cr, &mut cm, &cam, &mut work(&mut b), None);
     assert!(ok);
     assert_eq!((info.spots, info.identified, info.used), (20, 20, 20));
     let twin_q = [0.10259925829569796, -0.20519218143710233, 0.30779129307304492, 0.92338187159088136];
@@ -240,7 +250,7 @@ fn the_image_model_answers_in_the_unit() {
         sun_excl: 0.5, earth_excl: 0.3, fov: 0.17, model: 2, moon_excl: 0.26, blind_s: 0.0, noise_rate_ref: 0.01, cam: camera(), ..Default::default() };
     d.bs[0] = [0.0, 1.0, 0.0];
     let mut st = St::new(d, &mut Rng::new(1, 1), Rng::new(1, 3));
-    let mut b = bufs(st.catalogue().0, &d.cam);
+    let mut b = bufs(st.catalogue_mut().0, &d.cam);
     let q = qnorm(&[0.2, 0.1, -0.3, 0.9]);
     let (sun, moon, nadir) = ([0.0, -1.0, 0.0], [0.0, -1.0, 0.0], [0.0, 0.0, 1.0]);
     let z = st.sample_with(&q, 0.0, &[0.0; 3], &sun, &moon, &nadir, 1.0, Some(&mut work(&mut b)))[0].expect("a clear sky");

@@ -7,14 +7,13 @@
 //! - [`sun_sensor`]: a square aperture over a four-quadrant photodiode; the four currents and
 //!   back to the Sun direction (asils.comp.sun_sensor.{currents,angles}).
 //!
-//! No allocation: the frame, its scratch copy, the onboard pair table and the vote counts are
-//! the caller's slices ([`star_tracker::Work`]). The onboard star table comes as two slices, its directions `cr` and its
-//! magnitudes `cm` (sens_star_catalogue's, `sensors::St::catalogue`); the attitude with its residual check and the quadrant
-//! Sun sensor are sens's methods, generated from the design (l3_sens_row_12, 07 and 08). Pixel coordinates are the twin's: 1-based,
+//! No allocation: the frame, its scratch copies and the onboard pair table are the caller's slices
+//! ([`star_tracker::Work`]). The onboard star table comes as two arrays, its directions `cr` and its magnitudes `cm`
+//! (sens_star_catalogue's, `sensors::St::catalogue_mut`); the chain (l3_sens_row_09 to 11), the attitude with its residual
+//! check (l3_sens_row_12) and the quadrant Sun sensor (07 and 08) are sens's methods, generated from the design. Pixel coordinates are the twin's: 1-based,
 //! x the column and y the row, the frame stored column by column.
 //! Twin: matlab_sils/+asils/+comp. Owner: Agastya. Copyright (c) 2026 Agastya. All rights reserved.
 use crate::la::*;
-use crate::pm::*;
 use crate::rng::Rng;
 
 /// Body -> head rotation (rows x, y, z): head z on the boresight `z`, head x = z x Z_body (or
@@ -23,15 +22,23 @@ use crate::rng::Rng;
 pub fn head_frame(z: &V3) -> M3 { crate::gen::sunquad::head_frame(*z) }
 
 pub mod star_tracker {
+    //! sens's star-tracker image chain, generated from the design: l3_sens_row_09 (`gen::strender`, the frame), 10
+    //! (`gen::stcentroid`, the spots), 11 (`gen::stidentify`, the pair table and the identification), the chain
+    //! (`gen::stimage`, sens_star_image) and the attitude (`gen::stattitude`, l3_sens_row_12); here only their call by the
+    //! names the engine has always used, the part's camera (the descriptor product.rs fills) and the caller's buffers handed
+    //! over.
     use super::*;
+    use crate::gen::{stattitude, stcentroid, stidentify, stimage, strender};
 
-    /// The most spots the centroiding keeps (a part's `max_spots` above it is refused).
-    pub const MAX_SPOTS: usize = 32;
+    /// The most spots the centroiding keeps (a part's `max_spots` above it is refused): stattitude's ST_SPOTS.
+    pub const MAX_SPOTS: usize = stattitude::ST_SPOTS as usize;
     /// No catalogue star.
     pub const NONE: usize = usize::MAX;
+    /// The onboard table's stars (sens_star_catalogue's N_STARS).
+    pub const N_STARS: usize = crate::gen::starcat::N_STARS as usize;
 
     /// Detector, optics and the onboard chain's settings, every one from the part
-    /// (asils.comp.star_tracker.camera). `f` [px] and `c` (the principal point, 1-based) follow.
+    /// (asils.comp.star_tracker.camera). `f` [px] and `c` (the principal point, 1-based) follow (`st_focal`).
     #[derive(Clone, Copy, Debug, Default, PartialEq)]
     pub struct Camera {
         /// pixels per side, the field's half-angle [rad]
@@ -47,146 +54,72 @@ pub mod star_tracker {
     impl Camera {
         #[allow(clippy::too_many_arguments)]
         pub fn new(fov: f64, n: usize, psf_px: f64, flux0: f64, bg: f64, read_noise: f64, k_sigma: f64, max_spots: usize, id_tol: f64, mag_tol: f64, fit_tol: f64) -> Camera {
-            let nf = n as f64;
-            Camera { n, fov, psf_px, flux0, bg, read_noise, k_sigma, max_spots, id_tol, mag_tol, fit_tol, f: (nf/2.0)/tan(fov), c: (nf + 1.0)/2.0 }
+            let (f, c) = strender::st_focal(fov, n as i64);
+            Camera { n, fov, psf_px, flux0, bg, read_noise, k_sigma, max_spots, id_tol, mag_tol, fit_tol, f, c }
+        }
+        /// The design's record of the camera.
+        pub fn rec(&self) -> strender::StCamera {
+            strender::StCamera { n: self.n as i64, fov: self.fov, psf_px: self.psf_px, flux0: self.flux0, bg: self.bg, read_noise: self.read_noise,
+                k_sigma: self.k_sigma, max_spots: self.max_spots as i64, id_tol: self.id_tol, mag_tol: self.mag_tol, fit_tol: self.fit_tol, f: self.f, c: self.c }
         }
     }
-
-    /// One onboard pair: catalogue indices i < j (0-based) and their angle [rad].
-    #[derive(Clone, Copy, Debug, Default, PartialEq)]
-    pub struct Pair { pub i: u16, pub j: u16, pub ang: f64 }
-
-    fn near(a: &V3, b: &V3, fov: f64) -> bool { dot(a, b) > cos(2.0*sqrt(2.0)*fov) }
 
     /// How many catalogue pairs lie closer than the field diagonal (the pair table's length).
-    pub fn pair_count(cr: &[V3], fov: f64) -> usize {
-        let mut n = 0;
-        for j in 0..cr.len() { for i in 0..j { if near(&cr[i], &cr[j], fov) { n += 1; } } }
-        n
+    pub fn pair_count(cr: &mut [V3; N_STARS], fov: f64) -> usize { stidentify::st_pair_count(cr, N_STARS as i64, fov) as usize }
+
+    /// The onboard pair table (asils.comp.star_tracker.pairs): every catalogue pair i < j closer than the field diagonal,
+    /// sorted by angle (equal angles by j, then i), into `i`, `j` and `ang`, built in `ti`, `tj` and `ta`: each as long
+    /// as [`pair_count`] says. Returns that count.
+    #[allow(clippy::too_many_arguments)]
+    pub fn pairs(cr: &mut [V3; N_STARS], fov: f64, i: &mut [i64], j: &mut [i64], ang: &mut [f64], ti: &mut [i64], tj: &mut [i64], ta: &mut [f64]) -> usize {
+        stidentify::st_pairs(cr, N_STARS as i64, fov, i, j, ang, ti, tj, ta) as usize
     }
 
-    /// The onboard pair table (asils.comp.star_tracker.pairs): every catalogue pair closer than
-    /// the field diagonal, sorted by angle (ties as the twin's stable sort leaves them). Writes
-    /// `out[..pair_count]` and returns that count; `out` must hold it.
-    pub fn pairs(cr: &[V3], fov: f64, out: &mut [Pair]) -> usize {
-        let mut n = 0;
-        for j in 0..cr.len() {
-            for i in 0..j {
-                if near(&cr[i], &cr[j], fov) {
-                    out[n] = Pair { i: i as u16, j: j as u16, ang: acos(dot(&cr[i], &cr[j]).min(1.0)) };
-                    n += 1;
-                }
-            }
-        }
-        out[..n].sort_unstable_by(|a, b| a.ang.total_cmp(&b.ang).then(a.j.cmp(&b.j)).then(a.i.cmp(&b.i)));
-        n
+    /// The buffers one frame needs: the frame (n*n), its scratch copy and two index lists of the same length, and the
+    /// onboard pair table of the catalogue (the two indices and the angle of each pair).
+    pub struct Work<'a> {
+        pub img: &'a mut [f64], pub work: &'a mut [f64], pub ia: &'a mut [i64], pub ib: &'a mut [i64],
+        pub pi: &'a mut [i64], pub pj: &'a mut [i64], pub pa: &'a mut [f64],
     }
-
-    /// The buffers one frame needs: the frame (n*n), a scratch of the same length, the pair
-    /// table of the catalogue and a vote count per catalogue star.
-    pub struct Work<'a> { pub img: &'a mut [f64], pub scratch: &'a mut [(f64, u32)], pub pairs: &'a [Pair], pub votes: &'a mut [u32] }
 
     /// What one frame gave: spots found, stars identified, stars the fit kept.
     #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
     pub struct Info { pub spots: usize, pub identified: usize, pub used: usize }
 
-    #[inline] fn px(n: usize, x: usize, y: usize) -> usize { (x - 1)*n + (y - 1) }
+    /// The stars `render` reports drawn, at most.
+    pub const TRUTH: usize = 128;
 
     /// MODEL SIDE (asils.comp.star_tracker.render): the frame the detector reads at the head
     /// attitude `r_eh` (ECI -> head DCM): every catalogue star within the field diagonal through
     /// a pinhole (head z the boresight), spread by a Gaussian PSF over 9 x 9 pixels, on the
     /// background; with `noise`, shot noise sqrt(signal) and read noise on every pixel.
-    /// `truth` receives (x, y, catalogue index) of the stars drawn, as far as it holds them;
+    /// `truth` receives (x, y, catalogue index) of the stars drawn, as far as it holds them (up to [`TRUTH`]);
     /// returns how many were drawn.
-    pub fn render(r_eh: &M3, cr: &[V3], cm: &[f64], cam: &Camera, img: &mut [f64], noise: Option<&mut Rng>, truth: &mut [(f64, f64, usize)]) -> usize {
-        let n = cam.n;
-        let nf = n as f64;
-        for p in img.iter_mut().take(n*n) { *p = cam.bg; }
-        let cmin = cos(cam.fov*sqrt(2.0));
-        let s2 = 2.0*cam.psf_px*cam.psf_px;
-        let mut drawn = 0;
-        for (k, (r, mag)) in cr.iter().zip(cm).enumerate() {
-            let v = mv(r_eh, r);
-            if v[2] <= cmin { continue; }
-            let x = cam.f*v[0]/v[2] + cam.c;
-            let y = cam.f*v[1]/v[2] + cam.c;
-            if x < 6.0 || y < 6.0 || x > nf - 5.0 || y > nf - 5.0 { continue; }
-            let fl = cam.flux0*pow(10.0, -0.4*(mag - 6.0));
-            let (ix, iy) = (round(x), round(y));
-            let mut w = [[0.0; 9]; 9];          // [column][row]
-            let mut sum = 0.0;
-            for c in 0..9 {
-                for rr in 0..9 {
-                    let (gx, gy) = (c as f64 - 4.0, rr as f64 - 4.0);
-                    let (dx, dy) = (ix + gx - x, iy + gy - y);
-                    w[c][rr] = exp(-(dx*dx + dy*dy)/s2);
-                    sum += w[c][rr];
-                }
+    pub fn render(r_eh: &M3, cr: &mut [V3; N_STARS], cm: &mut [f64; N_STARS], cam: &Camera, img: &mut [f64], noise: Option<&mut Rng>, truth: &mut [(f64, f64, usize)]) -> usize {
+        let k = truth.len().min(TRUTH);
+        let (mut tx, mut ty, mut tk) = ([0.0; TRUTH], [0.0; TRUTH], [0i64; TRUTH]);
+        let drawn = match noise {
+            Some(r) => {
+                let mut g = r.stream();
+                let d = strender::st_render(*r_eh, cr, cm, N_STARS as i64, cam.rec(), img, true, &mut g, &mut tx[..k], &mut ty[..k], &mut tk[..k]);
+                *r = Rng::from_stream(&g);
+                d
             }
-            let (ix, iy) = (ix as usize, iy as usize);
-            for c in 0..9 { for rr in 0..9 { img[px(n, ix + c - 4, iy + rr - 4)] += fl*(w[c][rr]/sum); } }
-            if drawn < truth.len() { truth[drawn] = (x, y, k); }
-            drawn += 1;
-        }
-        if let Some(g) = noise {
-            for p in img.iter_mut().take(n*n) {
-                let v = *p;
-                *p = v + sqrt(v.max(0.0))*g.normal() + cam.read_noise*g.normal();
-            }
-        }
+            None => strender::st_render(*r_eh, cr, cm, N_STARS as i64, cam.rec(), img, false, &mut Rng::new(0, 0).stream(), &mut tx[..k], &mut ty[..k], &mut tk[..k]),
+        } as usize;
+        for m in 0..k.min(drawn) { truth[m] = (tx[m], ty[m], tk[m] as usize); }
         drawn
-    }
-
-    /// The median of `s[..m].0` (the mean of the two middle values when m is even); reorders s.
-    fn median(s: &mut [(f64, u32)]) -> f64 {
-        let m = s.len();
-        let cmp = |a: &(f64, u32), b: &(f64, u32)| a.0.total_cmp(&b.0);
-        let k = (m - 1)/2;
-        let a = s.select_nth_unstable_by(k, cmp).1.0;
-        if m % 2 == 1 { return a; }
-        let b = s[k + 1..].iter().map(|p| p.0).fold(f64::INFINITY, f64::min);
-        (a + b)/2.0
     }
 
     /// Pixel frame -> spots (asils.comp.star_tracker.centroid): robust background (median and
     /// 1.4826 MAD), threshold k_sigma above it, brightest pixels first with a 4-pixel exclusion
     /// round every spot found, centre of gravity of the background-subtracted 5 x 5 window.
-    /// spots[k] = [x, y, flux (e-)], brightest first; returns how many (at most max_spots).
-    pub fn centroid(img: &[f64], cam: &Camera, scratch: &mut [(f64, u32)], spots: &mut [[f64; 3]; MAX_SPOTS]) -> usize {
-        let n = cam.n;
-        let np = n*n;
-        let s = &mut scratch[..np];
-        for (l, p) in s.iter_mut().enumerate() { *p = (img[l], l as u32); }
-        let bg = median(s);
-        for (l, p) in s.iter_mut().enumerate() { *p = (abs(img[l] - bg), l as u32); }
-        let sg = 1.4826*median(s);
-        let thr = bg + cam.k_sigma*sg;
-        // the pixels above it, brightest first; equal values in the order the twin's find
-        // gives them (column by column)
-        let mut m = 0;
-        for l in 0..np { if img[l] > thr { s[m] = (img[l], l as u32); m += 1; } }
-        s[..m].sort_unstable_by(|a, b| b.0.total_cmp(&a.0).then(a.1.cmp(&b.1)));
-        let mut ns = 0;
-        let cap = cam.max_spots.min(MAX_SPOTS);
-        for &(_, l) in s[..m].iter() {
-            let (x, y) = (l as usize/n + 1, l as usize % n + 1);
-            if x < 3 || y < 3 || x > n - 2 || y > n - 2 { continue; }
-            let (xf, yf) = (x as f64, y as f64);
-            if spots[..ns].iter().any(|sp| abs(sp[0] - xf) < 4.0 && abs(sp[1] - yf) < 4.0) { continue; }
-            let (mut tot, mut sx, mut sy) = (0.0, 0.0, 0.0);
-            for c in 0..5 {
-                for r in 0..5 {
-                    let w = (img[px(n, x + c - 2, y + r - 2)] - bg).max(0.0);
-                    tot += w;
-                    sx += (c as f64 - 2.0)*w;
-                    sy += (r as f64 - 2.0)*w;
-                }
-            }
-            spots[ns] = [xf + sx/tot, yf + sy/tot, tot];
-            ns += 1;
-            if ns >= cap { break; }
-        }
-        ns
+    /// spots[k] = [x, y, flux (e-)], brightest first; returns how many (at most max_spots). `work`, `ia` and `ib` are
+    /// scratch as long as the frame.
+    pub fn centroid(img: &mut [f64], cam: &Camera, work: &mut [f64], ia: &mut [i64], ib: &mut [i64], spots: &mut [[f64; 3]; MAX_SPOTS]) -> usize {
+        let (s, ns) = stcentroid::st_centroid(img, cam.rec(), work, ia, ib);
+        *spots = s;
+        ns as usize
     }
 
     /// Spots -> catalogue indices (asils.comp.star_tracker.identify): every measured pair votes
@@ -194,49 +127,15 @@ pub mod star_tracker {
     /// (within mag_tol); each spot takes its most-voted star (the lowest index on a tie); then a
     /// star is kept only while its angles to at least two other kept stars match the catalogue's
     /// (three passes). id[p] = NONE where none. True when three or more are kept.
-    pub fn identify(b: &[V3], mag: &[f64], pairs: &[Pair], cr: &[V3], cm: &[f64], cam: &Camera, votes: &mut [u32], id: &mut [usize]) -> bool {
+    #[allow(clippy::too_many_arguments)]
+    pub fn identify(b: &[V3], mag: &[f64], pi: &mut [i64], pj: &mut [i64], pa: &mut [f64], cr: &mut [V3; N_STARS], cm: &mut [f64; N_STARS], cam: &Camera, id: &mut [usize]) -> bool {
         let n = b.len();
-        for x in id.iter_mut().take(n) { *x = NONE; }
-        if n < 3 { return false; }
-        let tol = cam.id_tol;
-        let mut cand = [NONE; MAX_SPOTS];
-        for p in 0..n {
-            for v in votes.iter_mut().take(cr.len()) { *v = 0; }
-            for q in 0..n {
-                if q == p { continue; }
-                let th = acos(dot(&b[p], &b[q]).min(1.0));
-                let lo = pairs.partition_point(|x| x.ang < th - tol);
-                let hi = pairs.partition_point(|x| x.ang <= th + tol);
-                for pr in &pairs[lo..hi.max(lo)] {
-                    let (i, j) = (pr.i as usize, pr.j as usize);
-                    let (mi, mj) = (cm[i], cm[j]);
-                    if abs(mi - mag[p]) < cam.mag_tol && abs(mj - mag[q]) < cam.mag_tol { votes[i] += 1; }
-                    if abs(mj - mag[p]) < cam.mag_tol && abs(mi - mag[q]) < cam.mag_tol { votes[j] += 1; }
-                }
-            }
-            let (mut best, mut bi) = (0, NONE);
-            for (k, &v) in votes.iter().enumerate().take(cr.len()) { if v > best { best = v; bi = k; } }
-            cand[p] = bi;
-        }
-        let mut keep = [false; MAX_SPOTS];
-        for p in 0..n { keep[p] = cand[p] != NONE; }
-        for _ in 0..3 {
-            let was = keep;
-            for p in 0..n {
-                if !was[p] { continue; }
-                let mut good = 0;
-                for q in 0..n {
-                    if q == p || !keep[q] { continue; }
-                    let th = acos(dot(&b[p], &b[q]).min(1.0));
-                    let tc = acos(dot(&cr[cand[p]], &cr[cand[q]]).min(1.0));
-                    if abs(th - tc) < 3.0*tol { good += 1; }
-                }
-                if good < 2 { keep[p] = false; }
-            }
-        }
-        let mut kept = 0;
-        for p in 0..n { if keep[p] { id[p] = cand[p]; kept += 1; } }
-        kept >= 3
+        let (mut bb, mut mm_) = ([[0.0; 3]; MAX_SPOTS], [0.0; MAX_SPOTS]);
+        bb[..n].copy_from_slice(b);
+        mm_[..n].copy_from_slice(&mag[..n]);
+        let (ig, ok) = stidentify::st_identify(bb, mm_, n as i64, pi, pj, pa, cr, cm, N_STARS as i64, cam.id_tol, cam.mag_tol);
+        for p in 0..n { id[p] = if ig[p] < 0 { NONE } else { ig[p] as usize }; }
+        ok
     }
 
     /// Identified stars -> ECI -> head attitude (asils.comp.star_tracker.attitude): the q-method,
@@ -250,7 +149,7 @@ pub mod star_tracker {
             bb[p] = b[p];
             if id[p] != NONE { rs[p] = cr[id[p]]; ig[p] = id[p] as i64; }
         }
-        let (q, ok) = crate::gen::stattitude::st_attitude(bb, rs, n as i64, &mut ig, tol);
+        let (q, ok) = stattitude::st_attitude(bb, rs, n as i64, &mut ig, tol);
         for p in 0..n { id[p] = if ig[p] < 0 { NONE } else { ig[p] as usize }; }
         (q, ok)
     }
@@ -260,27 +159,18 @@ pub mod star_tracker {
     /// `r_body2head` the head's TRUE mount (misalignment included), `r_head_nominal` the mount
     /// the unit reports through. (q_body, solved, info); q_true when not solved.
     #[allow(clippy::too_many_arguments)]
-    pub fn chain(q_true: &Q, r_body2head: &M3, r_head_nominal: &M3, cr: &[V3], cm: &[f64], cam: &Camera, w: &mut Work, noise: Option<&mut Rng>) -> (Q, bool, Info) {
-        let r_eh = mm(r_body2head, &dcm(q_true));
-        render(&r_eh, cr, cm, cam, w.img, noise, &mut []);
-        let mut spots = [[0.0; 3]; MAX_SPOTS];
-        let ns = centroid(w.img, cam, w.scratch, &mut spots);
-        let mut info = Info { spots: ns, ..Default::default() };
-        if ns < 3 { return (*q_true, false, info); }
-        let mut b = [[0.0; 3]; MAX_SPOTS];
-        let mut mag = [0.0; MAX_SPOTS];
-        for k in 0..ns {
-            b[k] = unit(&[(spots[k][0] - cam.c)/cam.f, (spots[k][1] - cam.c)/cam.f, 1.0]);
-            mag[k] = 6.0 - 2.5*log10(spots[k][2].max(1.0)/cam.flux0);
-        }
-        let mut id = [NONE; MAX_SPOTS];
-        let ok = identify(&b[..ns], &mag[..ns], w.pairs, cr, cm, cam, w.votes, &mut id[..ns]);
-        info.identified = id[..ns].iter().filter(|&&x| x != NONE).count();
-        if !ok { return (*q_true, false, info); }
-        let (q_eh, ok) = attitude(&b[..ns], &mut id[..ns], cr, cam.fit_tol);
-        info.used = id[..ns].iter().filter(|&&x| x != NONE).count();
-        if !ok { return (*q_true, false, info); }
-        (fromdcm(&mm(&transpose(r_head_nominal), &dcm(&q_eh))), true, info)
+    pub fn chain(q_true: &Q, r_body2head: &M3, r_head_nominal: &M3, cr: &mut [V3; N_STARS], cm: &mut [f64; N_STARS], cam: &Camera, w: &mut Work, noise: Option<&mut Rng>) -> (Q, bool, Info) {
+        let (q, ok, spots, identified, used) = match noise {
+            Some(r) => {
+                let mut g = r.stream();
+                let a = stimage::st_chain(*q_true, *r_body2head, *r_head_nominal, cr, cm, N_STARS as i64, cam.rec(), w.img, w.work, w.ia, w.ib, w.pi, w.pj, w.pa, true, &mut g);
+                *r = Rng::from_stream(&g);
+                a
+            }
+            None => stimage::st_chain(*q_true, *r_body2head, *r_head_nominal, cr, cm, N_STARS as i64, cam.rec(), w.img, w.work, w.ia, w.ib, w.pi, w.pj, w.pa, false,
+                                      &mut Rng::new(0, 0).stream()),
+        };
+        (q, ok, Info { spots: spots as usize, identified: identified as usize, used: used as usize })
     }
 }
 

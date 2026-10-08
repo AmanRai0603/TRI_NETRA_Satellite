@@ -1,4 +1,4 @@
-"""The built-in count (docs/PLAN_2_0.md S7; docs/S7_INVENTORY.md S7.1b, S7.3, S7.3b-e, S7.4, S7.5, S7.6, S7.7, S7.8, S7.9): the nodes of the regression copy whose
+"""The built-in count (docs/PLAN_2_0.md S7; docs/S7_INVENTORY.md S7.1b, S7.3, S7.3b-e, S7.4, S7.5, S7.6, S7.7, S7.8, S7.9, S7.10): the nodes of the regression copy whose
 relation is still compiled code, by group. S7 lowers it to zero; each step that writes a method takes its nodes
 out of BUILT_IN here, in the same change.
   - the count and the list are exactly these, and tools/health.py reports them;
@@ -33,7 +33,6 @@ BUILT_IN = {
                "l3_budget_row_03", "l3_budget_row_04", "l3_budget_row_05", "l3_budget_row_06", "l3_budget_row_07", "l3_budget_row_08"],
     "oils": ["l3_oils_row_07"],
     "pnt": ["gp_0", "gp_1", "gp_2", "gp_4"],
-    "sens": ["l3_sens_row_09", "l3_sens_row_10", "l3_sens_row_11"],
 }
 BOUNDARY = {"l3_fsw_row_01": "runtime", "l3_fsw_row_02": "runtime", "l3_fsw_row_03": "runtime", "l3_fsw_row_04": "runtime",
             "l3_fsw_row_10": "test"}
@@ -48,10 +47,10 @@ class BuiltIn(unittest.TestCase):
     def beh(self, nid):
         return self.nodes[nid][1]["body"]["block"][0][3]
 
-    def test_the_count_is_35_and_these(self):
+    def test_the_count_is_32_and_these(self):
         bi = health.built_in(REG)
         self.assertEqual(bi["by_group"], BUILT_IN)
-        self.assertEqual(bi["count"], 35)
+        self.assertEqual(bi["count"], 32)
         self.assertEqual(bi["boundary"], BOUNDARY)
 
     def test_what_is_not_a_relation_in_code_is_not_built_in(self):
@@ -261,7 +260,7 @@ class BuiltIn(unittest.TestCase):
             self.assertEqual(rows[("code", "generate")][0], target, nid)
             self.assertEqual(x["sealed_as"], "unconfirmed", nid)
             self.assertTrue(any(w.startswith("the developer's revision S7.8") and "not yet signed by a person" in w for w in x["why"]), nid)
-        self.assertEqual(set(health.built_in(REG)["by_group"]["sens"]) & moved, set())
+        self.assertEqual(set(health.built_in(REG)["by_group"].get("sens", [])) & moved, set())
         run = (ROOT / "engine" / "crates" / "adcs-sim" / "src" / "run.rs").read_text(encoding="utf-8")
         self.assertNotIn("6378137", run, "the Earth's radius is the constants' (sens_sky_view), not a literal in run.rs")
 
@@ -303,7 +302,28 @@ class BuiltIn(unittest.TestCase):
             self.assertEqual(rows[("code", "generate")][0], "adcs-sim-core", nid)
             self.assertEqual(x["sealed_as"], "unconfirmed", nid)
             self.assertTrue(any(w.startswith("the developer's revision S7.9") and "not yet signed by a person" in w for w in x["why"]), nid)
-        self.assertNotIn("l3_sens_row_12", health.built_in(REG)["by_group"]["sens"])
+        self.assertNotIn("l3_sens_row_12", health.built_in(REG)["by_group"].get("sens", []))
+
+    def test_the_star_tracker_image_chain_is_methods_the_developer_transcribed(self):
+        """S7.10: the star tracker's image chain, the frame the detector reads (l3_sens_row_09), its spots (10), their
+        identification by pair angles against the onboard pair table (11) and the image model as the engine flies it (a new
+        node: the chain for each head that answers, over l3_sens_row_12's attitude), are sens's methods, each the developer's
+        unsigned transcription, generated into adcs-sim-core over buffers whose length is the caller's (trinetra-toolbox/5).
+        sens has no built-in node left."""
+        for nid in ("l3_sens_row_09", "l3_sens_row_10", "l3_sens_row_11", "sens_star_image"):
+            _k, x = self.nodes[nid]
+            rows = {(s, f): (v, o) for s, f, v, o in x["body"]["content"]}
+            self.assertEqual(self.beh(nid), "method", nid)
+            self.assertEqual(x["body"]["node"]["group_id"], "sens", nid)
+            self.assertIn("the developer's revision S7.10", rows[("code", "pseudocode")][1], nid)
+            self.assertTrue(rows[("code", "transcribes")][0], nid)
+            self.assertEqual(rows[("code", "generate")][0], "adcs-sim-core", nid)
+            self.assertEqual(x["sealed_as"], "unconfirmed", nid)
+            self.assertTrue(any(w.startswith("the developer's revision S7.10") and "not yet signed by a person" in w for w in x["why"]), nid)
+        self.assertNotIn("sens", health.built_in(REG)["by_group"])
+        comp = (ROOT / "engine" / "crates" / "adcs-sim-core" / "src" / "comp.rs").read_text(encoding="utf-8")
+        for gone in ("select_nth_unstable", "sort_unstable_by", "partition_point", "exp(-("):
+            self.assertNotIn(gone, comp, "the chain's relations are the design's, comp.rs only calls them")
 
     def test_the_product_axes_the_code_used_with_no_node_are_stated_as_it_gave_them(self):
         """S7.8: the payload boresight and the Sun axis a product flies when it states none (product.rs Dev::load), which

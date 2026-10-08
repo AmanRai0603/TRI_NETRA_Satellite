@@ -807,3 +807,69 @@ pub fn errorfn(x: f64) -> (f64, f64) {
     c = (1.0 - rt::erf((x / 4.0)));
     (e, c)
 }
+
+/// Buffers, as long as the caller's arrays (trinetra-toolbox/5, S7.10: the star tracker's frame and pair table): read and
+/// set by index, len() their length, handed on to another buffer input, a sized array handed where one is wanted.
+/// length: 6
+/// - b: inout real[m][*] (passed in m)
+/// - k: inout int[*] (passed a whole number)
+/// - w: real[m] (passed in m)
+/// - returns total: real[m] (passed in m)
+/// - returns n: int (passed a whole number)
+/// - returns kept: int (passed a whole number)
+#[allow(clippy::too_many_arguments)]
+pub fn spread(b: &mut [f64], k: &mut [i64], w: f64) -> (f64, i64, i64) {
+    let mut total: f64 = 0.0;
+    let mut n: i64 = 0;
+    let mut kept: i64 = 0;
+    let mut s: [f64; 4] = [0.0; 4];
+    {
+        let __end16: i64 = 4;
+        let mut i: i64 = 0;
+        while i < __end16 {
+            s[(i) as usize] = w;
+            i += 1;
+        }
+    }
+    let mut t1: f64 = crate::selftest::blur(&mut (*b), w);
+    let mut t2: f64 = crate::selftest::blur(&mut s, w);
+    total = (t1 + t2);
+    n = (((*b).len() as i64) + ((*k).len() as i64));
+    kept = 0;
+    {
+        let __end17: i64 = ((*k).len() as i64);
+        let mut i: i64 = 0;
+        while i < __end17 {
+            if ((*k)[(i) as usize] > 4) {
+                (*k)[(i) as usize] = ((*k)[(i) as usize] - 5);
+                kept = (kept + 1);
+            }
+            i += 1;
+        }
+    }
+    (total, n, kept)
+}
+
+/// A buffer handed on: each element and the one before it, smoothed in place; the sum after.
+/// length: 5
+/// - b: inout real[m][*] (passed in m)
+/// - w: real[m] (passed in m)
+/// - returns total: real[m] (passed in m)
+#[allow(clippy::too_many_arguments)]
+pub fn blur(b: &mut [f64], w: f64) -> f64 {
+    let mut total: f64 = 0.0;
+    total = 0.0;
+    {
+        let __end18: i64 = ((*b).len() as i64);
+        let mut i: i64 = 0;
+        while i < __end18 {
+            let mut j: i64 = ((((*b).len() as i64) - 1) - i);
+            if (j > 0) {
+                (*b)[(j) as usize] = ((((*b)[(j) as usize] + (*b)[((j - 1)) as usize]) / 2.0) + w);
+            }
+            total = (total + (*b)[(j) as usize]);
+            i += 1;
+        }
+    }
+    total
+}

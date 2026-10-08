@@ -417,6 +417,8 @@ pub(crate) fn zero_of(c: &Checked, t: &Ty) -> Value {
         Ty::Stream => arr(vec![0.0; 6]),
         Ty::Bool => Value::Bool(false),
         Ty::Arr(n, of) => Value::Arr((0..*n).map(|_| zero_of(c, of)).collect()),
+        // a buffer is the caller's: it has no zero of its own (as the JavaScript's zeroOf, 0)
+        Ty::Buf(_) => Value::Num(0.0),
         Ty::Rec(name) => match c.records.iter().find(|r| &r.name == name) {
             Some(r) => Value::Rec(r.fields.iter().map(|f| zero_of(c, &f.ty)).collect()),
             None => Value::Num(0.0),

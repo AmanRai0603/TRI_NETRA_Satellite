@@ -174,9 +174,11 @@ fn scalar_dim(t: &Ty) -> Option<Dim> {
         _ => None,
     }
 }
+/// A buffer is as long as the caller's array: only an inout input of a fn is one.
+const NOT_BUF: &str = "a buffer [*] is an inout input of a fn (not a proc), its length the caller's";
 fn elem(t: &Ty) -> &Ty {
     match t {
-        Ty::Arr(_, of) => elem(of),
+        Ty::Arr(_, of) | Ty::Buf(of) => elem(of),
         _ => t,
     }
 }
@@ -184,6 +186,7 @@ fn type_eq(a: &Ty, b: &Ty) -> bool {
     match (a, b) {
         (Ty::Real(x), Ty::Real(y)) => dim_eq(x, y),
         (Ty::Arr(n, x), Ty::Arr(m, y)) => n == m && type_eq(x, y),
+        (Ty::Buf(x), Ty::Buf(y)) => type_eq(x, y),
         (Ty::Rec(x), Ty::Rec(y)) | (Ty::Choice(x), Ty::Choice(y)) => x == y,
         (Ty::Int, Ty::Int) | (Ty::Bool, Ty::Bool) | (Ty::Tuple(_), Ty::Tuple(_)) | (Ty::Stream, Ty::Stream) | (Ty::Str, Ty::Str) => true,
         _ => false,
@@ -280,6 +283,13 @@ impl Checker {
                 }
                 Ty::Arr(n, Box::new(of))
             }
+            TypeDecl::Buf { of, pos: bpos } => {
+                let of = self.resolve(of, pos);
+                if !matches!(of, Ty::Real(_) | Ty::Int) {
+                    self.e("a buffer [*] holds numbers: real[unit][*] or int[*]".into(), bpos);
+                }
+                Ty::Buf(Box::new(of))
+            }
             TypeDecl::Rec { name, pos: tpos } => {
                 if self.choice_ix(name).is_some() {
                     return Ty::Choice(name.clone());
@@ -331,6 +341,9 @@ impl Checker {
     fn fits(&mut self, want: &Ty, got: &Ty, e: Option<ExprId>) -> bool {
         if type_eq(want, got) {
             return true;
+        }
+        if let Ty::Buf(wof) = want {
+            return matches!(got, Ty::Arr(_, gof) if type_eq(wof, gof)); // a sized array where a buffer is wanted
         }
         if e.is_some() && self.is_any(e) && shape_eq(want, got) {
             return true; // a bare 0 (or an array of them), inf or nan takes any dimension
@@ -484,6 +497,15 @@ impl Checker {
                 let it = self.ty(i);
                 if it != Ty::Int {
                     self.e(format!("an index is an int, not {}", tt(&it)), &pos);
+                }
+                if let Ty::Buf(of) = at {
+                    if let ExprKind::Num { v, .. } = &self.exprs[i].kind {
+                        if *v < 0.0 {
+                            let v = *v;
+                            self.e(format!("index {} is below 0", jsfmt::num(v)), &pos);
+                        }
+                    }
+                    return *of;
                 }
                 let Ty::Arr(n, of) = at else {
                     self.e(format!("{} cannot be indexed", tt(&at)), &pos);
@@ -1076,7 +1098,7 @@ impl Checker {
             }
             "len" => {
                 n(self, 1);
-                if !matches!(t(0), Some(Ty::Arr(..))) {
+                if !matches!(t(0), Some(Ty::Arr(..) | Ty::Buf(_))) {
                     self.e("len() takes an array".into(), pos);
                 }
                 Ty::Int
@@ -1235,6 +1257,11 @@ impl Checker {
                     }
                     return;
                 }
+                if matches!(t, Ty::Buf(_)) || matches!(decl_ty, Some(Ty::Buf(_))) {
+                    self.e(format!("let {}: {NOT_BUF} (read and set it element by element)", names[0]), pos);
+                    self.declare(&names[0], real0(), pos, VarKind::Local);
+                    return;
+                }
                 if let Some(dt) = &decl_ty {
                     if !self.fits(dt, &t, Some(*e)) {
                         self.e(format!("let {}: declared {}, given {}", names[0], tt(dt), tt(&t)), pos);
@@ -1256,6 +1283,9 @@ impl Checker {
                     self.e("state is declared at the top of the proc's body".into(), pos);
                 }
                 let st = self.resolve(decl, pos);
+                if matches!(st, Ty::Buf(_)) {
+                    self.e(format!("state {name}: {NOT_BUF}"), pos);
+                }
                 let t = self.ty(*e);
                 self.ann[*e].vty = Some(st.clone());
                 if !self.fits(&st, &t, Some(*e)) {
@@ -1308,7 +1338,10 @@ impl Checker {
                         }
                     }
                 } else if let Some(t0) = &tts[0] {
-                    if !self.fits(t0, &t, Some(*e)) {
+                    if matches!(t0, Ty::Buf(_)) {
+                        let name = self.lv_name(targets[0]);
+                        self.e(format!("{name}: a buffer [*] is set element by element"), pos);
+                    } else if !self.fits(t0, &t, Some(*e)) {
                         let name = self.lv_name(targets[0]);
                         self.e(format!("{name}: is {}, given {}", tt(t0), tt(&t)), pos);
                     }
@@ -1417,6 +1450,10 @@ impl Checker {
                 let it = self.ty(i);
                 if it != Ty::Int {
                     self.e("an index is an int".into(), &pos);
+                }
+                if let Ty::Buf(of) = base {
+                    self.ann[lv].ty = Some((*of).clone());
+                    return Some(*of);
                 }
                 let Ty::Arr(_, of) = base else {
                     self.e(format!("{} cannot be indexed", tt(&base)), &pos);
@@ -1661,6 +1698,10 @@ impl Checker {
                     let (r, f) = (self.records[ri].name.clone(), self.records[ri].fields[fi].name.clone());
                     self.e(format!("record {r}: {f}: only an input of a fn or proc is inout"), &pos);
                 }
+                if matches!(self.records[ri].fields[fi].ty, Ty::Buf(_)) {
+                    let (r, f) = (self.records[ri].name.clone(), self.records[ri].fields[fi].name.clone());
+                    self.e(format!("record {r}: {f}: {NOT_BUF}"), &pos);
+                }
             }
         }
         for oi in 0..self.order.len() {
@@ -1670,9 +1711,13 @@ impl Checker {
                         let (d, p) = (self.fns[fi].params[k].decl.clone(), self.fns[fi].params[k].pos.clone());
                         let t = self.resolve(&d, &p);
                         self.fns[fi].params[k].ty = t.clone();
-                        if self.fns[fi].params[k].inout && !matches!(t, Ty::Arr(..) | Ty::Rec(_) | Ty::Stream) {
+                        if self.fns[fi].params[k].inout && !matches!(t, Ty::Arr(..) | Ty::Buf(_) | Ty::Rec(_) | Ty::Stream) {
                             let (f, n) = (self.fns[fi].name.clone(), self.fns[fi].params[k].name.clone());
                             self.e(format!("{f}: {n}: an inout input is an array, a record or a stream (a number is copied, not shared)"), &p);
+                        }
+                        if matches!(t, Ty::Buf(_)) && (!self.fns[fi].params[k].inout || self.fns[fi].kind == FnKind::Proc) {
+                            let (f, n) = (self.fns[fi].name.clone(), self.fns[fi].params[k].name.clone());
+                            self.e(format!("{f}: {n}: {NOT_BUF}"), &p);
                         }
                     }
                     for k in 0..self.fns[fi].outs.len() {
@@ -1681,6 +1726,10 @@ impl Checker {
                         if self.fns[fi].outs[k].inout {
                             let (f, n) = (self.fns[fi].name.clone(), self.fns[fi].outs[k].name.clone());
                             self.e(format!("{f}: {n}: only an input of a fn or proc is inout"), &p);
+                        }
+                        if matches!(self.fns[fi].outs[k].ty, Ty::Buf(_)) {
+                            let (f, n) = (self.fns[fi].name.clone(), self.fns[fi].outs[k].name.clone());
+                            self.e(format!("{f}: {n}: {NOT_BUF}"), &p);
                         }
                     }
                     let f = &self.fns[fi];

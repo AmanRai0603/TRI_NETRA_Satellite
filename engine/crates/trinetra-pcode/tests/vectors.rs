@@ -41,6 +41,8 @@ fn run_package(pkg: &Package) -> Tally {
         assert_eq!(format!("{}::{}", info.module, info.name), e.name, "{}: the module of {}", pkg.name, e.name);
         let trig = prog.uses(name, &["sin", "cos"]);
         let tys: Vec<_> = info.inputs.iter().map(|p| p.ty.clone()).collect();
+        // the outputs' types, then each inout input's (its value after the call follows the outputs; a buffer its length first)
+        let otys: Vec<_> = info.outputs.iter().chain(info.inputs.iter().filter(|p| p.inout)).map(|p| p.ty.clone()).collect();
         t.functions += 1;
         let mut inexact = 0;
         for s in &e.sets {
@@ -55,7 +57,7 @@ fn run_package(pkg: &Package) -> Tally {
                     None => prog.call(name, &args),
                 };
                 let got: Vec<f64> = match r {
-                    Ok(v) => v.iter().flat_map(Value::flatten).collect(),
+                    Ok(v) => v.iter().zip(&otys).flat_map(|(v, ty)| prog.flatten_as(ty, v)).collect(),
                     Err(er) => {
                         failures.push(format!("{} vector {} call {ci}: the run stops: {er}", e.name, t.vectors));
                         continue;

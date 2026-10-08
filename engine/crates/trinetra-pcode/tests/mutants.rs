@@ -93,7 +93,7 @@ fn to_json(prog: &Program, ty: &Ty, v: &Value) -> J {
             let fields = prog.record_fields(name).unwrap();
             J::Object(fields.iter().zip(fs).map(|(f, x)| (f.name.to_string(), to_json(prog, f.ty, x))).collect())
         }
-        (Ty::Arr(_, of), Value::Arr(xs)) => J::Array(xs.iter().map(|x| to_json(prog, of, x)).collect()),
+        (Ty::Arr(_, of) | Ty::Buf(of), Value::Arr(xs)) => J::Array(xs.iter().map(|x| to_json(prog, of, x)).collect()),
         (Ty::Stream, Value::Arr(_)) => J::Array(v.flatten().into_iter().map(|x| json!(x)).collect()),
         (_, Value::Bool(b)) => J::Bool(*b),
         (_, v) => json!(v.flatten()[0]),
@@ -108,6 +108,8 @@ fn draw(prog: &Program, ty: &Ty, range: Option<(f64, f64)>, r: &mut Prng) -> Val
     match ty {
         Ty::Rec(name) => Value::Rec(prog.record_fields(name).unwrap().iter().map(|f| draw(prog, f.ty, bounds(f), r)).collect()),
         Ty::Arr(n, of) => Value::Arr((0..*n).map(|_| draw(prog, of, range, r)).collect()),
+        // a buffer: as long as the caller makes it (eight here)
+        Ty::Buf(of) => Value::Arr((0..8).map(|_| draw(prog, of, range, r)).collect()),
         Ty::Bool => Value::Bool(r.next() < 0.5),
         // a stream: its six numbers, the key and counter whole numbers below 2^32
         Ty::Stream => Value::Arr((0..6).map(|k| Value::Num(if k < 4 { (r.next() * 4294967296.0).floor() } else { r.next() })).collect()),

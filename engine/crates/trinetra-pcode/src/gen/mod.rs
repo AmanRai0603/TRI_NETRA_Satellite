@@ -211,13 +211,14 @@ fn decl_text(t: &TypeDecl) -> String {
             Some((c, _)) => format!("{}[{c}]", decl_text(of)),
             None => format!("{}[{n}]", decl_text(of)),
         },
+        TypeDecl::Buf { of, .. } => format!("{}[*]", decl_text(of)),
         TypeDecl::Rec { name, .. } => name.clone(),
     }
 }
 /// how a value is passed: its SI unit ("in m"), or what it is when it has none
 fn si_of(t: &Ty) -> String {
     let mut e = t;
-    while let Ty::Arr(_, of) = e {
+    while let Ty::Arr(_, of) | Ty::Buf(of) = e {
         e = of;
     }
     match e {
@@ -236,6 +237,7 @@ fn si_of(t: &Ty) -> String {
         Ty::Str => "str".into(),
         Ty::Rec(_) => "rec".into(),
         Ty::Arr(..) => "arr".into(),
+        Ty::Buf(_) => "buf".into(),
         Ty::Tuple(_) => "tuple".into(),
     }
 }

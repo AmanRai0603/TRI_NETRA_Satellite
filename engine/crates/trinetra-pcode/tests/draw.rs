@@ -19,6 +19,8 @@ type Drawn = BTreeMap<String, Vec<Vec<(Vec<f64>, Vec<f64>)>>>;
 struct Drawer<'a> {
     prog: &'a Program,
     rand: Prng,
+    /// the length the function at hand draws its buffers at (`## length: 64`, else 8)
+    blen: usize,
 }
 
 impl Drawer<'_> {
@@ -43,6 +45,7 @@ impl Drawer<'_> {
                 Value::Rec(fields.iter().map(|f| self.draw(f)).collect())
             }
             Ty::Arr(n, of) => Value::Arr((0..*n).map(|_| self.one(of, range)).collect()),
+            Ty::Buf(of) => Value::Arr((0..self.blen).map(|_| self.one(of, range)).collect()),
             Ty::Bool => Value::Bool(self.rand.next() < 0.5),
             // a stream: a random key, a counter below 1000, a spare in -1 .. 1 that is there or not
             Ty::Stream => {
@@ -69,29 +72,34 @@ impl Drawer<'_> {
     }
 }
 
-fn width(prog: &Program, t: &Ty) -> usize {
+fn width(prog: &Program, t: &Ty, blen: usize) -> usize {
     match t {
-        Ty::Arr(n, of) => n * width(prog, of),
-        Ty::Rec(name) => prog.record_fields(name).unwrap().iter().map(|f| width(prog, f.ty)).sum(),
+        Ty::Arr(n, of) => n * width(prog, of, blen),
+        Ty::Buf(of) => 1 + blen * width(prog, of, blen),
+        Ty::Rec(name) => prog.record_fields(name).unwrap().iter().map(|f| width(prog, f.ty, blen)).sum(),
         Ty::Stream => 6,
         _ => 1,
     }
 }
 
-fn flat(vs: &[Value]) -> Vec<f64> {
-    vs.iter().flat_map(Value::flatten).collect()
+/// values of these types as numbers (a buffer its length first)
+fn flat(prog: &Program, tys: &[&Ty], vs: &[Value]) -> Vec<f64> {
+    vs.iter().zip(tys).flat_map(|(v, ty)| prog.flatten_as(ty, v)).collect()
 }
 
 /// `vectors --n N --budget B --seed S`: per function, its sets of (inputs, outputs) calls.
 fn draw_all(prog: &Program, n_want: usize, budget: f64) -> Drawn {
-    let mut d = Drawer { prog, rand: Prng::new(SEED) };
+    let mut d = Drawer { prog, rand: Prng::new(SEED), blen: 8 };
     let mut res = BTreeMap::new();
     for f in prog.functions() {
         let asked = f.doc.iter().find_map(|l| l.strip_prefix("vectors:").map(str::trim).filter(|s| !s.is_empty() && s.chars().all(|c| c.is_ascii_digit())));
+        d.blen = f.doc.iter().find_map(|l| l.strip_prefix("length:").map(str::trim).filter(|s| !s.is_empty() && s.chars().all(|c| c.is_ascii_digit()))).map_or(8, |s| s.parse().unwrap());
+        let itys: Vec<&Ty> = f.inputs.iter().map(|p| p.ty).collect();
+        let otys: Vec<&Ty> = f.outputs.iter().chain(f.inputs.iter().filter(|p| p.inout)).map(|p| p.ty).collect();
         let n = match asked {
             Some(a) => a.parse::<usize>().unwrap(),
             None => {
-                let w: usize = f.inputs.iter().chain(&f.outputs).map(|x| width(prog, x.ty)).sum();
+                let w: usize = f.inputs.iter().chain(&f.outputs).map(|x| width(prog, x.ty, d.blen)).sum();
                 (budget / w as f64).floor().min(n_want as f64).max(4.0) as usize
             }
         };
@@ -107,7 +115,7 @@ fn draw_all(prog: &Program, n_want: usize, budget: f64) -> Drawn {
                 for _ in 0..8 {
                     let ins: Vec<Value> = f.inputs.iter().map(|p| d.draw(p)).collect();
                     match prog.call_with_state(f.name, &ins, &mut st) {
-                        Ok(o) if flat(&o).iter().all(|x| x.is_finite()) => calls.push((flat(&ins), flat(&o))),
+                        Ok(o) if flat(prog, &otys, &o).iter().all(|x| x.is_finite()) => calls.push((flat(prog, &itys, &ins), flat(prog, &otys, &o))),
                         _ => {
                             ok = false;
                             break;
@@ -138,9 +146,9 @@ fn draw_all(prog: &Program, n_want: usize, budget: f64) -> Drawn {
                 }
             }
             if let Ok(o) = prog.call(f.name, &ins) {
-                let fo = flat(&o);
+                let fo = flat(prog, &otys, &o);
                 if fo.iter().all(|x| x.is_finite()) {
-                    sets.push(vec![(flat(&ins), fo)]);
+                    sets.push(vec![(flat(prog, &itys, &ins), fo)]);
                 }
             }
         }

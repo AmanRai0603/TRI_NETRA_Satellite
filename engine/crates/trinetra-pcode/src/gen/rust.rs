@@ -58,6 +58,8 @@ impl<'a> Gen<'a> {
             Ty::Int | Ty::Choice(_) => "i64".into(),
             Ty::Bool => "bool".into(),
             Ty::Arr(n, of) => format!("[{}; {n}]", self.rty(of)),
+            // a buffer: a slice, the caller's array handed over (&mut [f64])
+            Ty::Buf(of) => format!("[{}]", self.rty(of)),
             Ty::Rec(name) => name.clone(),
             Ty::Stream => {
                 self.stream.set(true);
@@ -72,6 +74,7 @@ impl<'a> Gen<'a> {
             Ty::Int | Ty::Choice(_) => "0".into(),
             Ty::Bool => "false".into(),
             Ty::Arr(n, of) => format!("[{}; {n}]", self.zero(of)),
+            Ty::Buf(_) => "undefined".into(),
             Ty::Rec(name) => format!("{name}::default()"),
             Ty::Stream => {
                 self.stream.set(true);
@@ -376,6 +379,7 @@ impl<'a> Gen<'a> {
                 "len" => {
                     return match a.first().and_then(|&x| c.ann[x].ty.as_ref()) {
                         Some(Ty::Arr(n, _)) => n.to_string(),
+                        Some(Ty::Buf(_)) => format!("({}.len() as i64)", x(self, 0)),
                         _ => "undefined".into(),
                     }
                 }
@@ -658,6 +662,10 @@ impl<'a> Gen<'a> {
             "//! The vector dispatcher: call a function by name with its inputs flattened (SI). {head}\n#![allow(unused_mut, unused_variables, unreachable_code, clippy::all)]\n\n/// The outputs, flattened, or None when there is no such function or too few inputs.\npub fn call(name: &str, x: &[f64]) -> Option<Vec<f64>> {{\n    let mut out = Vec::new();\n    match name {{\n"
         );
         for f in c.fns.iter().filter(|f| f.kind == FnKind::Fn) {
+            if f.params.iter().any(|p| matches!(p.ty, Ty::Buf(_))) {
+                disp += &self.buf_call(f);
+                continue;
+            }
             let mut at = 0;
             let mut args = Vec::new();
             for p in &f.params {
@@ -729,6 +737,36 @@ impl<'a> Gen<'a> {
         files
     }
 
+    /// The dispatcher's arm of a function with a buffer (its length the caller's): the inputs read in turn, a buffer its
+    /// length first, then its elements, into a vector handed over as the slice.
+    fn buf_call(&self, f: &crate::ast::Func) -> String {
+        let ii = "            ";
+        let mut s = format!("        \"{}::{}\" => {{\n{ii}let mut at: usize = 0;\n", f.module, f.name);
+        let mut args = Vec::new();
+        for (i, p) in f.params.iter().enumerate() {
+            let nm = if p.inout { format!("io{i}") } else { format!("a{i}") };
+            if let Ty::Buf(of) = &p.ty {
+                let el = if matches!(**of, Ty::Int) { ".iter().map(|v| *v as i64).collect::<Vec<i64>>()" } else { ".to_vec()" };
+                s += &format!("{ii}if x.len() < at + 1 {{ return None; }}\n{ii}let n{i} = x[at] as usize;\n{ii}if x.len() < at + 1 + n{i} {{ return None; }}\n{ii}let mut {nm} = x[at + 1..at + 1 + n{i}]{el};\n{ii}at += 1 + n{i};\n");
+            } else {
+                let (e, n) = self.read_arg(&p.ty, 0);
+                s += &format!("{ii}if x.len() < at + {n} {{ return None; }}\n{ii}let {}{nm} = {{ let x = &x[at..]; {e} }};\n{ii}at += {n};\n", if p.inout { "mut " } else { "" });
+            }
+            args.push(if p.inout { format!("&mut {nm}") } else { nm });
+        }
+        let outs: Vec<String> = if f.outs.len() == 1 { vec!["r".into()] } else { (0..f.outs.len()).map(|i| format!("r.{i}")).collect() };
+        s += &format!("{ii}if x.len() != at {{ return None; }}\n{ii}let r = crate::{}::{}({});\n", f.module, f.name, args.join(", "));
+        for (o, r) in f.outs.iter().zip(&outs) {
+            s += &format!("{ii}{}\n", self.push_out(&o.ty, r));
+        }
+        for (i, p) in f.params.iter().enumerate().filter(|(_, p)| p.inout) {
+            s += &match &p.ty {
+                Ty::Buf(of) => format!("{ii}out.push(io{i}.len() as f64); for v in io{i}.iter() {{ let v = *v; {} }}\n", self.push_out(of, "v")),
+                t => format!("{ii}{}\n", self.push_out(t, &format!("io{i}"))),
+            };
+        }
+        s + "        }\n"
+    }
     /// an inout input's value after the call, pushed after the outputs
     fn io_push(&self, f: &crate::ast::Func, ii: &str) -> String {
         f.params.iter().enumerate().filter(|(_, p)| p.inout).map(|(i, p)| format!("{ii}{}\n", self.push_out(&p.ty, &format!("io{i}")))).collect()
@@ -762,6 +800,17 @@ impl<'a> Gen<'a> {
                 };
                 (format!("{{ let mut a = [{z}; {n}]; for i in 0..{n} {{ a[i] = {v}; }} a }}"), *n)
             }
+            // a long array of short arrays of numbers (a catalogue of directions) as two loops
+            Ty::Arr(n, of) if matches!(&**of, Ty::Arr(m, el) if n * m > 1024 && matches!(**el, Ty::Real(_) | Ty::Int | Ty::Choice(_) | Ty::Bool)) => {
+                let Ty::Arr(m, el) = &**of else { unreachable!() };
+                let x = format!("x[{at} + i * {m} + j]");
+                let (z, v) = match **el {
+                    Ty::Real(_) => ("0.0".to_string(), x),
+                    Ty::Bool => ("false".to_string(), format!("{x} != 0.0")),
+                    _ => ("0i64".to_string(), format!("{x} as i64")),
+                };
+                (format!("{{ let mut a = [[{z}; {m}]; {n}]; for i in 0..{n} {{ for j in 0..{m} {{ a[i][j] = {v}; }} }} a }}"), n * m)
+            }
             Ty::Arr(n, of) => {
                 let (mut parts, mut k) = (Vec::new(), 0);
                 for _ in 0..*n {
@@ -771,7 +820,7 @@ impl<'a> Gen<'a> {
                 }
                 (format!("[{}]", parts.join(", ")), k)
             }
-            Ty::Tuple(_) | Ty::Str => ("[]".into(), 0),
+            Ty::Tuple(_) | Ty::Str | Ty::Buf(_) => ("[]".into(), 0),
         }
     }
     fn push_out(&self, t: &Ty, name: &str) -> String {
@@ -784,7 +833,7 @@ impl<'a> Gen<'a> {
                 Some(r) => r.fields.iter().map(|f| self.push_out(&f.ty, &format!("{name}.{}", f.name))).collect::<Vec<_>>().join(" "),
                 None => String::new(),
             },
-            Ty::Arr(_, of) => format!("for v in {name}.iter() {{ let v = *v; {} }}", self.push_out(of, "v")),
+            Ty::Arr(_, of) | Ty::Buf(of) => format!("for v in {name}.iter() {{ let v = *v; {} }}", self.push_out(of, "v")),
             Ty::Tuple(_) | Ty::Str => format!("for v in {name}.iter() {{ let v = *v; undefined }}"),
         }
     }

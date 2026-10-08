@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""The engine build (docs/PLAN_2_0.md S7; docs/S7_INVENTORY.md S7.3-S7.9): the time engine's published models and relations
+"""The engine build (docs/PLAN_2_0.md S7; docs/S7_INVENTORY.md S7.3-S7.10): the time engine's published models and relations
 written from the design. Only the engine's core stays hand-written (step order, recorder, integrators, the toolbox); a
 model of the world or of the spacecraft is a method of an env, dyn, act or sens node, and its Rust is generated here, never
 edited.
@@ -23,7 +23,9 @@ its crate:
                                          thrusters, their draws the language's streams (act, S7.7); the sensors: the
                                          gyro, the magnetometer, the coarse and fine Sun sensors, the Earth sensor, the
                                          GNSS receiver, and the rotors' telemetry (sens and act, S7.8); the star
-                                         tracker's unit, its onboard table and its attitude (sens, S7.9); its scalar maths
+                                         tracker's unit, its onboard table and its attitude (sens, S7.9), its image
+                                         chain: the frame, the spots, their identification and the image model (sens,
+                                         S7.10, over buffers whose length is the caller's); its scalar maths
                                          from crate::pm (the pure-Rust libm: the same trajectory on every target), no_std
   engine/crates/adcs-pop/src/gen/        the precision orbit's time scales, geodetic coordinates, Earth frames, the
                                          IAU 2006/2000A kernel and the tidal EOP models (S7.3); the atmosphere

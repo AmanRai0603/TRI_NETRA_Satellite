@@ -15,6 +15,7 @@ use crate::gen::earthsensor::{EsDesc, EsUnit};
 use crate::gen::finesun::{SunDesc, SunUnit};
 use crate::gen::gyro::{GyroDesc, GyroUnit};
 use crate::gen::mag::{MagDesc, MagUnit};
+use crate::gen::strender::{StCamera};
 use crate::gen::sttracker::{StDesc, StUnit};
 
 /// A quadrant head as the part states it: the aperture's side and height [m], the current noise and the validity
@@ -79,9 +80,9 @@ pub fn quad_currents(s: [f64; 3], p: SunHead, g: &mut rt::Stream) -> [f64; 4] {
         let mut a2: f64 = (p.a * p.a);
         i = [(s[2] * ((xp * yp) / a2)), (s[2] * ((xm * yp) / a2)), (s[2] * ((xm * ym) / a2)), (s[2] * ((xp * ym) / a2))];
         {
-            let __end102: i64 = 4;
+            let __end153: i64 = 4;
             let mut k: i64 = 0;
-            while k < __end102 {
+            while k < __end153 {
                 let mut z: f64 = rt::normal(&mut (*g));
                 i[(k) as usize] = (i[(k) as usize] + (p.noise * z));
                 k += 1;

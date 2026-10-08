@@ -28,7 +28,7 @@ import sys
 FORMAT_VERSION = 2
 # The toolbox this package's engine offers (engine/crates/adcs-sim/src/source.rs, TOOLBOX); a design
 # built for another, or one that needs a newer application, is refused by name.
-TOOLBOX = "trinetra-toolbox/4"
+TOOLBOX = "trinetra-toolbox/5"
 
 
 def _semver(v):

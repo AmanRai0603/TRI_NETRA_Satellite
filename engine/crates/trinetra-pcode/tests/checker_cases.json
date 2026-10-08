@@ -2275,5 +2275,109 @@
   "js": [
    "t.pc:1:6: f: x: an inout input is an array, a record or a stream (a number is copied, not shared)"
   ]
+ },
+ {
+  "label": "buffers: misused (S7.10)",
+  "files": [
+   [
+    "t.pc",
+    "module bad\nfn f(b: real[1][*]) -> s: real[1]\n    let c = b\n    s = 0\nend\nfn g(b: inout real[1][*]) -> s: real[1][*]\n    b = b\n    s = 0\nend\nrecord R\n    x: real[1][*]\nend\n"
+   ]
+  ],
+  "js": [
+   "t.pc:11:5: record R: x: a buffer [*] is an inout input of a fn (not a proc), its length the caller's",
+   "t.pc:2:6: f: b: a buffer [*] is an inout input of a fn (not a proc), its length the caller's",
+   "t.pc:6:30: g: s: a buffer [*] is an inout input of a fn (not a proc), its length the caller's",
+   "t.pc:3:5: let c: a buffer [*] is an inout input of a fn (not a proc), its length the caller's (read and set it element by element)",
+   "t.pc:7:5: b: a buffer [*] is set element by element",
+   "t.pc:8:5: s: a buffer [*] is set element by element"
+  ]
+ },
+ {
+  "label": "buffers: the outermost bracket",
+  "files": [
+   [
+    "t.pc",
+    "fn f(b: inout real[1][*][3]) -> s: real[1]\n    s = 0\nend\n"
+   ]
+  ],
+  "js": [
+   "t.pc:1:25: a buffer [*] is the outermost: real[1][3][*], not real[1][*][3]"
+  ]
+ },
+ {
+  "label": "buffers: numbers only",
+  "files": [
+   [
+    "t.pc",
+    "fn f(b: inout vec3[1][*], c: inout bool[*]) -> s: real[1]\n    s = 0\nend\n"
+   ]
+  ],
+  "js": [
+   "t.pc:1:23: a buffer [*] holds numbers: real[unit][*] or int[*]",
+   "t.pc:1:41: a buffer [*] holds numbers: real[unit][*] or int[*]"
+  ]
+ },
+ {
+  "label": "buffers: not a proc's",
+  "files": [
+   [
+    "t.pc",
+    "proc p(b: inout real[1][*]) -> s: real[1]\n    state n: real[1] = 0\n    s = n\nend\n"
+   ]
+  ],
+  "js": [
+   "t.pc:1:8: p: b: a buffer [*] is an inout input of a fn (not a proc), its length the caller's"
+  ]
+ },
+ {
+  "label": "buffers: not a state or a let's type",
+  "files": [
+   [
+    "t.pc",
+    "proc p(x: real[1]) -> s: real[1]\n    state n: real[1][*] = 0\n    let y: int[*] = 0\n    s = x\nend\n"
+   ]
+  ],
+  "js": [
+   "t.pc:2:5: state n: a buffer [*] is an inout input of a fn (not a proc), its length the caller's",
+   "t.pc:2:5: state n: declared real[1][*], starts at int",
+   "t.pc:3:5: let y: a buffer [*] is an inout input of a fn (not a proc), its length the caller's (read and set it element by element)"
+  ]
+ },
+ {
+  "label": "buffers: a sized array where one is wanted, not the other way",
+  "files": [
+   [
+    "t.pc",
+    "fn g(a: inout real[1][4]) -> s: real[1]\n    s = a[0]\nend\nfn h(b: inout real[1][*]) -> s: real[1]\n    s = b[0] + real(len(b))\nend\nfn f(b: inout real[1][*]) -> s: real[1]\n    let t: real[1][4] = 0\n    let u = h(t)\n    let v = h(b)\n    let w = g(b)\n    s = u + v + w\nend\n"
+   ]
+  ],
+  "js": [
+   "t.pc:11:15: g: input a: wants real[1][4], gets real[1][*]"
+  ]
+ },
+ {
+  "label": "buffers: no arithmetic on the whole",
+  "files": [
+   [
+    "t.pc",
+    "fn f(b: inout real[m][*], c: inout int[*]) -> s: real[m]\n    s = b + b\n    let k = c[0] + c\n    s = s + b[len(c)]\nend\n"
+   ]
+  ],
+  "js": [
+   "t.pc:2:11: + needs numbers, not real[m][*] and real[m][*]",
+   "t.pc:2:5: s: is real[m], given real[1]",
+   "t.pc:3:18: + needs numbers, not int and int[*]"
+  ]
+ },
+ {
+  "label": "buffers: accepted",
+  "files": [
+   [
+    "t.pc",
+    "## length: 6\nfn f(b: inout real[m][*] in -1 .. 1, k: inout int[*] in 0 .. 9) -> (s: real[m], n: int)\n    s = 0\n    for i in 0 .. len(b)\n        s = s + b[i]\n        b[i] = 2.0*b[i]\n    end\n    n = len(k)\n    k[0] = n\nend\n"
+   ]
+  ],
+  "js": []
  }
 ]

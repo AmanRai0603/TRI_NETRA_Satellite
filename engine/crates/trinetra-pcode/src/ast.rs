@@ -18,6 +18,8 @@ pub(crate) enum TypeDecl {
     Real { unit: String },
     /// `cap`: a named capacity (`real[1][NR]`), the const that states the length
     Arr { n: usize, of: Box<TypeDecl>, cap: Option<(String, Pos)> },
+    /// a buffer, as long as the caller's array (`real[1][*]`): only an inout input of a fn is one
+    Buf { of: Box<TypeDecl>, pos: Pos },
     Rec { name: String, pos: Pos },
 }
 
@@ -25,7 +27,7 @@ impl TypeDecl {
     /// The unit of the innermost element, if it is real.
     pub(crate) fn elem_unit(&self) -> Option<&str> {
         match self {
-            TypeDecl::Arr { of, .. } => of.elem_unit(),
+            TypeDecl::Arr { of, .. } | TypeDecl::Buf { of, .. } => of.elem_unit(),
             TypeDecl::Real { unit } => Some(unit),
             _ => None,
         }
@@ -39,6 +41,8 @@ pub enum Ty {
     Bool,
     Real(Dim),
     Arr(usize, Box<Ty>),
+    /// a buffer: as long as the caller's array (an inout input of a fn), its elements numbers
+    Buf(Box<Ty>),
     Rec(String),
     Tuple(Vec<Ty>),
     /// a choice, by its name: one of its options, numbered from 0
@@ -57,6 +61,7 @@ impl Ty {
             Ty::Bool => "bool".into(),
             Ty::Real(d) => format!("real[{}]", dim_text(d)),
             Ty::Arr(n, of) => format!("{}[{}]", of.text(), n),
+            Ty::Buf(of) => format!("{}[*]", of.text()),
             Ty::Rec(name) | Ty::Choice(name) => name.clone(),
             Ty::Stream => "stream".into(),
             Ty::Str => "a name".into(),

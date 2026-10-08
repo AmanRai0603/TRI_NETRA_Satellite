@@ -15,6 +15,7 @@ use crate::gen::earthsensor::{EsDesc, EsUnit};
 use crate::gen::finesun::{SunDesc, SunUnit};
 use crate::gen::gyro::{GyroDesc, GyroUnit};
 use crate::gen::mag::{MagDesc, MagUnit};
+use crate::gen::strender::{StCamera};
 use crate::gen::sunquad::{SunHead};
 
 /// The most heads a tracker carries (adcs-sim-core NH).
@@ -76,9 +77,9 @@ pub fn st_new(d: StDesc, disp: &mut rt::Stream, noise: rt::Stream) -> StUnit {
     let mut u: StUnit = StUnit::default();
     u = StUnit::default();
     {
-        let __end91: i64 = crate::gen::sttracker::ST_NH;
+        let __end142: i64 = crate::gen::sttracker::ST_NH;
         let mut i: i64 = 0;
-        while i < __end91 {
+        while i < __end142 {
             u.q_bias[(i) as usize] = [0.0, 0.0, 0.0, 1.0];
             u.q_mis[(i) as usize] = [0.0, 0.0, 0.0, 1.0];
             u.blind_until[(i) as usize] = (-(f64::INFINITY));
@@ -86,9 +87,9 @@ pub fn st_new(d: StDesc, disp: &mut rt::Stream, noise: rt::Stream) -> StUnit {
         }
     }
     {
-        let __end92: i64 = d.nh;
+        let __end143: i64 = d.nh;
         let mut h: i64 = 0;
-        while h < __end92 {
+        while h < __end143 {
             let mut e1: [f64; 3] = rt::normal3(&mut (*disp));
             u.q_bias[(h) as usize] = crate::gen::math::fromrotvec(rt::vscale(e1, d.bias_sigma));
             let mut e2: [f64; 3] = rt::normal3(&mut (*disp));
@@ -114,9 +115,9 @@ pub fn st_history(ht: &mut [f64; 64], hq: &mut [[f64; 4]; 64], hn: i64, t: f64, 
     n = hn;
     if (n == crate::gen::sttracker::ST_HIST) {
         {
-            let __end93: i64 = crate::gen::sttracker::ST_HIST;
+            let __end144: i64 = crate::gen::sttracker::ST_HIST;
             let mut i: i64 = 1;
-            while i < __end93 {
+            while i < __end144 {
                 (*ht)[((i - 1)) as usize] = (*ht)[(i) as usize];
                 (*hq)[((i - 1)) as usize] = (*hq)[(i) as usize];
                 i += 1;
@@ -130,9 +131,9 @@ pub fn st_history(ht: &mut [f64; 64], hq: &mut [[f64; 4]; 64], hn: i64, t: f64, 
     let mut k: i64 = 0;
     let mut going: bool = true;
     {
-        let __end94: i64 = n;
+        let __end145: i64 = n;
         let mut j: i64 = 0;
-        while j < __end94 {
+        while j < __end145 {
             if (going && ((*ht)[(j) as usize] < (t - 0.5))) {
                 k = (j + 1);
             } else {
@@ -143,9 +144,9 @@ pub fn st_history(ht: &mut [f64; 64], hq: &mut [[f64; 4]; 64], hn: i64, t: f64, 
     }
     if (k > 0) {
         {
-            let __end95: i64 = n;
+            let __end146: i64 = n;
             let mut m: i64 = k;
-            while m < __end95 {
+            while m < __end146 {
                 (*ht)[((m - k)) as usize] = (*ht)[(m) as usize];
                 (*hq)[((m - k)) as usize] = (*hq)[(m) as usize];
                 m += 1;
@@ -197,9 +198,9 @@ pub fn st_delayed(ht: &mut [f64; 64], hq: &mut [[f64; 4]; 64], hn: i64, latency:
     let mut tl: f64 = (t - latency);
     let mut k: i64 = (-(1));
     {
-        let __end96: i64 = hn;
+        let __end147: i64 = hn;
         let mut i: i64 = 0;
-        while i < __end96 {
+        while i < __end147 {
             if ((*ht)[(i) as usize] <= (tl + 1.0e-9)) {
                 k = i;
             }
@@ -287,18 +288,18 @@ pub fn st_quest_head(rold: [[f64; 3]; 3], dq: [f64; 4], bs: [f64; 3], fov: f64, 
     let mut sel: [i64; 12] = [0; 12];
     let mut smag: [f64; 12] = [0.0; 12];
     {
-        let __end97: i64 = crate::gen::sttracker::ST_BRIGHT;
+        let __end148: i64 = crate::gen::sttracker::ST_BRIGHT;
         let mut i: i64 = 0;
-        while i < __end97 {
+        while i < __end148 {
             smag[(i) as usize] = 1000000000.0;
             i += 1;
         }
     }
     let mut ns: i64 = 0;
     {
-        let __end98: i64 = crate::gen::starcat::N_STARS;
+        let __end149: i64 = crate::gen::starcat::N_STARS;
         let mut s: i64 = 0;
-        while s < __end98 {
+        while s < __end149 {
             if (!(rt::dot(bs_eci, (*cr)[(s) as usize]) <= cf)) {
                 if (ns < crate::gen::sttracker::ST_BRIGHT) {
                     sel[(ns) as usize] = s;
@@ -307,9 +308,9 @@ pub fn st_quest_head(rold: [[f64; 3]; 3], dq: [f64; 4], bs: [f64; 3], fov: f64, 
                 } else {
                     let mut wi: i64 = 0;
                     {
-                        let __end99: i64 = crate::gen::sttracker::ST_BRIGHT;
+                        let __end150: i64 = crate::gen::sttracker::ST_BRIGHT;
                         let mut i: i64 = 1;
-                        while i < __end99 {
+                        while i < __end150 {
                             if (smag[(i) as usize] > smag[(wi) as usize]) {
                                 wi = i;
                             }
@@ -333,9 +334,9 @@ pub fn st_quest_head(rold: [[f64; 3]; 3], dq: [f64; 4], bs: [f64; 3], fov: f64, 
         let mut bm: [[f64; 3]; 32] = [[0.0; 3]; 32];
         let mut rr: [[f64; 3]; 32] = [[0.0; 3]; 32];
         {
-            let __end100: i64 = ns;
+            let __end151: i64 = ns;
             let mut i: i64 = 0;
-            while i < __end100 {
+            while i < __end151 {
                 let mut r: [f64; 3] = (*cr)[(sel[(i) as usize]) as usize];
                 let mut v: [f64; 3] = rt::mv(rm, r);
                 let mut n0: [f64; 3] = rt::normal3(&mut (*g));
@@ -392,9 +393,9 @@ pub fn st_sample(u: &mut StUnit, d: StDesc, ht: &mut [f64; 64], hq: &mut [[f64; 
     valid = [false, false];
     dq = [[0.0; 4]; 2];
     {
-        let __end101: i64 = d.nh;
+        let __end152: i64 = d.nh;
         let mut h: i64 = 0;
-        while h < __end101 {
+        while h < __end152 {
             valid[(h) as usize] = crate::gen::sttracker::st_head_valid(&mut (*u), d, h, t, sun_b, moon_b, nadir_b, earth_ang, slow);
             dq[(h) as usize] = crate::gen::math::qmult((*u).q_mis[(h) as usize], (*u).q_bias[(h) as usize]);
             let mut g: rt::Stream = (*u).g;

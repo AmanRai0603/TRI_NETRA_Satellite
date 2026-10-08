@@ -1,0 +1,93 @@
+## The star tracker's image model as the engine flies it, transcribed from adcs-sim-core comp.rs (star_tracker::chain)
+## and sensors.rs (St::sample_with: the image model's heads): for each head that answers, the frame rendered at the
+## attitude the frame saw (sttracker's latency) through the head's true mount, its spots, their directions through the
+## pinhole and their magnitudes from their fluxes (6 - 2.5 log10(flux/flux0), the flux at least 1 electron), identified
+## against the onboard pair table, and the attitude by the q-method with the residual check (l3_sens_row_12), reported
+## through the head's nominal mount; a frame the chain cannot solve gives no attitude. The frame's buffers are the
+## caller's; the noise draws from the tracker's stream, a head at a time.
+## The developer's transcription (S7.10), unsigned.
+module stimage
+
+## The whole chain for one head: the frame rendered at the true attitude q_true (ECI to body, at the exposure) through the
+## head's true mount r_body2head (misalignment included), its spots, their directions through the pinhole and magnitudes
+## from their fluxes, identified, and the attitude with the residual check reported through the head's nominal mount
+## r_head_nominal: (q_body, solved, how many spots, identified, used); q_true when not solved.
+## length: 576
+fn st_chain(q_true: quat in -1 .. 1, r_body2head: mat3[1] in -1 .. 1, r_head_nominal: mat3[1] in -1 .. 1, \
+            cr: inout real[1][3][N_STARS] in -1 .. 1, cm: inout real[1][N_STARS] in 1 .. 6, nc: int in 3 .. 4000, cam: StCamera, \
+            img: inout real[1][*] in 0 .. 1, work: inout real[1][*] in 0 .. 1, ia: inout int[*] in 0 .. 1, ib: inout int[*] in 0 .. 1, \
+            pi: inout int[*] in 0 .. 3999, pj: inout int[*] in 0 .. 3999, pa: inout real[1][*] in 0 .. 0.5, noisy: bool, \
+            g: inout stream) -> (q_body: quat, ok: bool, spots: int, identified: int, used: int)
+    q_body = q_true
+    ok = false
+    identified = 0
+    used = 0
+    let r_eh = r_body2head*dcm(q_true)
+    let tx: real[1][1] = 0
+    let ty: real[1][1] = 0
+    let tk: int[1] = 0
+    let drawn = st_render(r_eh, cr, cm, nc, cam, img, noisy, g, tx, ty, tk)
+    let sp, ns = st_centroid(img, cam, work, ia, ib)
+    spots = ns
+    if ns >= 3
+        let b: real[1][3][ST_SPOTS] = 0
+        let mag: real[1][ST_SPOTS] = 0
+        for k in 0 .. ns
+            b[k] = unit_or_zero([(sp[k][0] - cam.c)/cam.f, (sp[k][1] - cam.c)/cam.f, 1.0])
+            mag[k] = 6.0 - 2.5*log10(max(sp[k][2], 1.0)/cam.flux0)
+        end
+        let id, okid = st_identify(b, mag, ns, pi, pj, pa, cr, cm, nc, cam.id_tol, cam.mag_tol)
+        for k2 in 0 .. ns
+            if id[k2] >= 0
+                identified = identified + 1
+            end
+        end
+        if okid
+            let rs: real[1][3][ST_SPOTS] = 0
+            let ig: int[ST_SPOTS] = 0
+            for p in 0 .. ST_SPOTS
+                ig[p] = -1
+            end
+            for p2 in 0 .. ns
+                if id[p2] >= 0
+                    rs[p2] = cr[id[p2]]
+                    ig[p2] = id[p2]
+                end
+            end
+            let q_eh, oka = st_attitude(b, rs, ns, ig, cam.fit_tol)
+            for p3 in 0 .. ns
+                if ig[p3] >= 0
+                    used = used + 1
+                end
+            end
+            if oka
+                q_body = fromdcm(transpose(r_head_nominal)*dcm(q_eh))
+                ok = true
+            end
+        end
+    end
+end
+
+## The image model's heads: each head that answers (valid) renders its frame through its true mount, the nominal head
+## frame of its boresight turned by its mount dq, at the attitude the frame saw (q_old, sttracker's st_sample), its noise
+## from the tracker's stream, and gives the attitude its chain solves (ok, q). The frame's buffers are the caller's.
+## length: 576
+fn st_image(u: inout StUnit, d: StDesc, cam: StCamera, valid: bool[ST_NH], dq: real[1][4][ST_NH] in -1 .. 1, \
+            q_old: quat in -1 .. 1, cr: inout real[1][3][N_STARS] in -1 .. 1, cm: inout real[1][N_STARS] in 1 .. 6, \
+            nc: int in 3 .. 4000, img: inout real[1][*] in 0 .. 1, work: inout real[1][*] in 0 .. 1, ia: inout int[*] in 0 .. 1, \
+            ib: inout int[*] in 0 .. 1, pi: inout int[*] in 0 .. 3999, pj: inout int[*] in 0 .. 3999, \
+            pa: inout real[1][*] in 0 .. 0.5) -> (ok: bool[ST_NH], q: real[1][4][ST_NH])
+    for h in 0 .. d.nh
+        if valid[h]
+            let rbh = head_frame(d.bs[h])
+            let rtrue = rbh*transpose(dcm(dq[h]))
+            let g = u.g
+            let qc, okc, ns, nid, nused = st_chain(q_old, rtrue, rbh, cr, cm, nc, cam, img, work, ia, ib, pi, pj, pa, true, g)
+            u.g = g
+            if okc
+                ok[h] = true
+                q[h] = qc
+            end
+        end
+    end
+end

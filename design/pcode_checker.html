@@ -192,6 +192,8 @@ function parse(src, file = "<input>") {
       eat("op", "[");
       // a named capacity: the length a whole-number const states (`const NR = 8`, `real[1][NR]`)
       if (is("id")) { const c = eat("id"); eat("op", "]"); ty = { k: "arr", n: 1, cap: c.v, capPos: pos(c), of: ty }; continue; }
+      // a buffer: as long as the caller's array (`img: inout real[1][*]`, len(img) its length), the outermost
+      if (is("op", "*")) { const s = eat("op", "*"); eat("op", "]"); ty = { k: "buf", of: ty, pos: pos(s) }; if (is("op", "[")) err("a buffer [*] is the outermost: real[1][3][*], not real[1][*][3]"); continue; }
       const n = eat("num"); eat("op", "]");
       if (!n.isInt || +n.v < 1) err("an array's length is a whole number from 1", n);
       ty = { k: "arr", n: +n.v, of: ty };
@@ -433,6 +435,7 @@ function typeText(t) {
     case "int": return "int"; case "bool": return "bool"; case "stream": return "stream"; case "str": return "a name";
     case "real": return `real[${dimText(t.dim)}]`;
     case "arr": return `${typeText(t.of)}[${t.n}]`;
+    case "buf": return `${typeText(t.of)}[*]`;
     case "rec": case "choice": return t.name;
     case "tuple": return `(${t.items.map(typeText).join(", ")})`;
     default: return t.k;
@@ -444,6 +447,7 @@ function declText(t) {
   switch (t.k) {
     case "real": return `real[${t.unit || "1"}]`;
     case "arr": return `${declText(t.of)}[${t.cap || t.n}]`;
+    case "buf": return `${declText(t.of)}[*]`;
     case "rec": return t.name;
     default: return t.k;
   }
@@ -452,6 +456,7 @@ function typeEq(a, b) {
   if (a.k !== b.k) return false;
   if (a.k === "real") return dimEq(a.dim, b.dim);
   if (a.k === "arr") return a.n === b.n && typeEq(a.of, b.of);
+  if (a.k === "buf") return typeEq(a.of, b.of);
   if (a.k === "rec" || a.k === "choice") return a.name === b.name;
   return true;
 }
@@ -508,10 +513,17 @@ function check(files) {
       if (r.of.k === "stream") E("a stream is not an array's element: a record or a state holds one", pos);
       return r;
     }
+    if (t.k === "buf") {
+      const r = { k: "buf", of: resolve(t.of, pos) };
+      if (!(r.of.k === "real" || r.of.k === "int")) E("a buffer [*] holds numbers: real[unit][*] or int[*]", t.pos || pos);
+      return r;
+    }
     if (t.k === "rec" && prog.choices[t.name]) return { k: "choice", name: t.name };
     if (t.k === "rec" && !prog.records[t.name]) { E(`no record ${t.name}`, t.pos || pos); }
     return t;
   };
+  // a buffer is as long as the caller's array: only an inout input of a fn or proc is one
+  const NOT_BUF = "a buffer [*] is an inout input of a fn (not a proc), its length the caller's";
   // a named capacity's length: a const that is a whole-number literal from 1
   function capacity(t) {
     const c = prog.consts[t.cap];
@@ -526,16 +538,19 @@ function check(files) {
   for (const r of Object.values(prog.records)) for (const f of r.fields) {
     f.ty = resolve(f.type, f.pos);
     if (f.inout) E(`record ${r.name}: ${f.name}: only an input of a fn or proc is inout`, f.pos);
+    if (f.ty.k === "buf") E(`record ${r.name}: ${f.name}: ${NOT_BUF}`, f.pos);
   }
   for (const it of prog.order) {
     if (it.kind === "fn" || it.kind === "proc") {
       for (const p of it.params) {
         p.ty = resolve(p.type, p.pos);
-        if (p.inout && !(p.ty.k === "arr" || p.ty.k === "rec" || p.ty.k === "stream")) E(`${it.name}: ${p.name}: an inout input is an array, a record or a stream (a number is copied, not shared)`, p.pos);
+        if (p.inout && !(p.ty.k === "arr" || p.ty.k === "buf" || p.ty.k === "rec" || p.ty.k === "stream")) E(`${it.name}: ${p.name}: an inout input is an array, a record or a stream (a number is copied, not shared)`, p.pos);
+        if (p.ty.k === "buf" && (!p.inout || it.kind === "proc")) E(`${it.name}: ${p.name}: ${NOT_BUF}`, p.pos);
       }
       for (const o of it.outs) {
         o.ty = resolve(o.type, o.pos);
         if (o.inout) E(`${it.name}: ${o.name}: only an input of a fn or proc is inout`, o.pos);
+        if (o.ty.k === "buf") E(`${it.name}: ${o.name}: ${NOT_BUF}`, o.pos);
       }
       const names = [...it.params, ...it.outs].map((x) => x.name);
       const dup = names.find((n, i) => names.indexOf(n) !== i);
@@ -584,7 +599,7 @@ function check(files) {
 
   const numType = (t) => t && (t.k === "real" || t.k === "int");
   const scalarDim = (t) => (t.k === "int" ? DIMLESS : t.dim);
-  const elem = (t) => { while (t.k === "arr") t = t.of; return t; };
+  const elem = (t) => { while (t.k === "arr" || t.k === "buf") t = t.of; return t; };
   const isZero = (e) => (e.e === "num" && e.v === 0 && !e.unit) || (e.e === "arr" && e.items.every(isZero)) || (e.e === "un" && e.op === "-" && isZero(e.a));
   // inf, -inf or nan: like a bare 0, it takes the unit of what it meets
   const isNonFinite = (e) => (e.e === "var" && e.kind === "builtin_const" && e.name !== "pi") || (e.e === "un" && e.op === "-" && isNonFinite(e.a));
@@ -592,6 +607,7 @@ function check(files) {
   // can a value of type `got` (from expression e) go where `want` is wanted?
   const fits = (want, got, e) => {
     if (typeEq(want, got)) return true;
+    if (want.k === "buf") return got.k === "arr" && typeEq(want.of, got.of);     // a sized array where a buffer is wanted
     if (e && isAny(e) && shapeEq(want, got)) return true;           // a bare 0 (or array of them), inf or nan takes any dimension
     if (e && e.e === "num" && e.v === 0 && !e.unit && (want.k === "arr" || want.k === "rec")) { e.fill = want; return true; }   // 0 fills an array
     if (e && e.e === "arr" && !e.unit && want.k === "arr" && got.k === "arr" && want.n === got.n &&
@@ -668,6 +684,7 @@ function check(files) {
       case "index": {
         const a = ty(e.a), i = ty(e.i);
         if (i.k !== "int") E(`an index is an int, not ${typeText(i)}`, e.pos);
+        if (a.k === "buf") { if (e.i.e === "num" && e.i.v < 0) E(`index ${e.i.v} is below 0`, e.pos); return a.of; }
         if (a.k !== "arr") { E(`${typeText(a)} cannot be indexed`, e.pos); return tReal(DIMLESS); }
         if (e.i.e === "num" && (e.i.v < 0 || e.i.v >= a.n)) E(`index ${e.i.v} is outside 0..${a.n - 1}`, e.pos);
         return a.of;
@@ -857,7 +874,7 @@ function check(files) {
       case "band": case "bor": case "bxor": case "shl": case "shr":
         n(2); if (!(ts[0] && ts[0].k === "int" && ts[1] && ts[1].k === "int")) E(`${name} takes two ints (non-negative, below 2^53)`, e.pos); return T_INT;
       case "div": case "rem": n(2); if (!(ts[0] && ts[0].k === "int" && ts[1] && ts[1].k === "int")) E(`${name} takes two ints (whole-number division, truncated as in C)`, e.pos); return T_INT;
-      case "len": n(1); if (!ts[0] || ts[0].k !== "arr") E("len() takes an array", e.pos); return T_INT;
+      case "len": n(1); if (!ts[0] || !(ts[0].k === "arr" || ts[0].k === "buf")) E("len() takes an array", e.pos); return T_INT;
       case "dot": { n(2); const a = vec(ts[0], 0), b = vec(ts[1], 1); if (a.n !== b.n) E(`dot: lengths ${a.n} and ${b.n}`, e.pos); return tReal(dimAdd(a.dim, b.dim)); }
       case "cross": { n(2); const a = vec(ts[0], 0), b = vec(ts[1], 1); if (a.n !== 3 || b.n !== 3) E("cross takes two 3-vectors", e.pos); return { k: "arr", n: 3, of: tReal(dimAdd(a.dim, b.dim)) }; }
       // the toolbox sort: ascending and stable (equal values keep their order), the same insertion sort in every translation
@@ -908,6 +925,7 @@ function check(files) {
           s.names.forEach((n, i) => declare(n, t.items[i], s.pos)); return;
         }
         if (t.k === "tuple") { E(`${s.e.f} gives ${t.items.length} values: let one name for each`, s.pos); declare(s.names[0], t.items[0], s.pos); return; }
+        if (t.k === "buf" || (declTy && declTy.k === "buf")) { E(`let ${s.names[0]}: ${NOT_BUF} (read and set it element by element)`, s.pos); declare(s.names[0], tReal(DIMLESS), s.pos); return; }
         if (declTy && !fits(declTy, t, s.e)) E(`let ${s.names[0]}: declared ${typeText(declTy)}, given ${typeText(t)}`, s.pos);
         let vt = declTy || t;
         if (!declTy && vt.k === "int" && s.e.e === "num") vt = T_INT;
@@ -919,6 +937,7 @@ function check(files) {
         if (!cur || cur.kind !== "proc") E("state is kept by a proc, not a fn", s.pos);
         if (scopeStack.length !== 2) E("state is declared at the top of the proc's body", s.pos);
         const st = resolve(s.type, s.pos); s.vty = st;
+        if (st.k === "buf") E(`state ${s.name}: ${NOT_BUF}`, s.pos);
         const t = ty(s.e);
         if (!fits(st, t, s.e)) E(`state ${s.name}: declared ${typeText(st)}, starts at ${typeText(t)}`, s.pos);
         if (!isConstExpr(s.e)) E(`state ${s.name} starts at a constant`, s.pos);
@@ -937,7 +956,8 @@ function check(files) {
         if (s.targets.length > 1) {
           if (t.k !== "tuple" || t.items.length !== s.targets.length) E(`${s.targets.length} targets, the right side gives ${t.k === "tuple" ? t.items.length : 1}`, s.pos);
           else tts.forEach((tt, i) => tt && !typeEq(tt, t.items[i]) && E(`target ${i + 1}: ${typeText(tt)}, given ${typeText(t.items[i])}`, s.pos));
-        } else if (tts[0] && !fits(tts[0], t, s.e)) E(`${lvName(s.targets[0])}: is ${typeText(tts[0])}, given ${typeText(t)}`, s.pos);
+        } else if (tts[0] && tts[0].k === "buf") E(`${lvName(s.targets[0])}: a buffer [*] is set element by element`, s.pos);
+        else if (tts[0] && !fits(tts[0], t, s.e)) E(`${lvName(s.targets[0])}: is ${typeText(tts[0])}, given ${typeText(t)}`, s.pos);
         for (const lv of s.targets) if (lv.e === "var") assigned.add(lv.name); else if (rootVar(lv)) touched.add(rootVar(lv));
         return;
       }
@@ -984,6 +1004,7 @@ function check(files) {
     const base = lvTy(lv.a); if (!base) return null;
     if (lv.e === "index") {
       const i = ty(lv.i); if (i.k !== "int") E("an index is an int", lv.pos);
+      if (base.k === "buf") { lv.ty = base.of; return base.of; }
       if (base.k !== "arr") { E(`${typeText(base)} cannot be indexed`, lv.pos); return null; }
       lv.ty = base.of; return base.of;
     }
@@ -1036,7 +1057,7 @@ function check(files) {
       // a bound with no unit is in the input's own unit: t_slew: real[s] in 1 .. 600
       scopeStack.length = 0; scopeStack.push(new Map());
       // on an array the range bounds each element
-      let baseType = p.type; while (baseType.k === "arr") baseType = baseType.of;
+      let baseType = p.type; while (baseType.k === "arr" || baseType.k === "buf") baseType = baseType.of;
       const baseTy = elem(p.ty);
       const scale = baseType.k === "real" ? (() => { try { return unitOf(baseType.unit, p.pos).scale; } catch (er) { return 1; } })() : 1;
       p.range.forEach((r) => {

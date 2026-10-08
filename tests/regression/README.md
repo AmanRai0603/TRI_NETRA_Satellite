@@ -22,7 +22,9 @@ S7.4, env's environment and disturbance torques and six values dyn states, and S
 precision orbit's spacecraft force models, force set and sum), and S7.7, act's actuators and eight values act states, their
 methods under `design/revisions/S7.6/` and `S7.7/`, for the toolbox `trinetra-toolbox/4` (erf); and again on 8 Oct 2026
 with S7.8, sens's simple sensors, the sky they see and the rotors' telemetry and six values gdn states, and S7.9, the star
-tracker's unit, its onboard table and its attitude, their methods under `design/revisions/S7.8/` and `S7.9/`):
+tracker's unit, its onboard table and its attitude, their methods under `design/revisions/S7.8/` and `S7.9/`; and again on 8
+Oct 2026 with S7.10, the star tracker's image chain, its methods under `design/revisions/S7.10/`, for the toolbox
+`trinetra-toolbox/5` (buffers whose length is the caller's)):
 
     python3 tools/convert_2_0.py --out DRIVE
     python3 tools/design_build.py DRIVE --out tests/regression/design.tndb

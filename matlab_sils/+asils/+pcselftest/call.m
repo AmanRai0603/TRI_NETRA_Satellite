@@ -62,6 +62,29 @@ function y = call(name, x)
         case 'selftest::errorfn'
             [o1, o2] = asils.pcselftest.selftest.errorfn(x(1));
             y = [double(o1); double(o2)];
+        case 'selftest::spread'
+            at = 0;
+            n1 = x(at + 1);
+            a1 = reshape(x(at + 2:at + 1 + n1), [], 1);
+            at = at + 1 + n1;
+            n2 = x(at + 1);
+            a2 = reshape(x(at + 2:at + 1 + n2), [], 1);
+            at = at + 1 + n2;
+            xa = x(at + 1:end);
+            a3 = xa(1);
+            at = at + 1;
+            [o1, o2, o3, io1, io2] = asils.pcselftest.selftest.spread(a1, a2, a3);
+            y = [double(o1); double(o2); double(o3); numel(io1); reshape(io1, [], 1); numel(io2); reshape(io2, [], 1)];
+        case 'selftest::blur'
+            at = 0;
+            n1 = x(at + 1);
+            a1 = reshape(x(at + 2:at + 1 + n1), [], 1);
+            at = at + 1 + n1;
+            xa = x(at + 1:end);
+            a2 = xa(1);
+            at = at + 1;
+            [o1, io1] = asils.pcselftest.selftest.blur(a1, a2);
+            y = [double(o1); numel(io1); reshape(io1, [], 1)];
         otherwise
             error('pcode:call', 'no function %s', name);
     end

@@ -104,6 +104,18 @@ by no other input of the call and not the assignment's target. Rust hands it ove
 gives it back as an extra output (`[n, img] = render(img, q)`). A vector flattens an inout input among the inputs,
 and its value after the call after the outputs.
 
+**Buffers** (trinetra-toolbox/5, S7.10: the star tracker's frame and pair table, as long as the part makes them). An
+inout input of a fn may be a buffer, its length the caller's: `img: inout real[1][*]`, `ix: inout int[*]` (numbers
+only; `[*]` is the outermost bracket). `len(img)` is its length; it is read and set by index (`img[l]`, `img[l] = v`),
+handed on to another buffer input of a call, and nothing else (no whole-buffer arithmetic, no `let x = img`, no
+assignment of the whole). A sized array goes wherever a buffer of its numbers is wanted (`let t: real[1][1] = 0`, then
+`f(t)`). A buffer is an input of a fn only: not a proc's, an output, a record's field, a state or a `let`. Rust hands it
+over as a slice (`&mut [f64]`, a sized array coerced to it), C as a struct of its address and length
+(`pc_bf { double *v; int64_t n; }`, a sized array as `&((pc_bf){ x.v, INT64_C(N) })`), MATLAB as the array itself. A
+vector flattens a buffer as its length, then its elements, and draws it at the length the function states,
+`## length: 64` (8 when it states none); index a buffer past its length and the interpreter stops the run, as it does
+for an array.
+
 ## Statements
 
 ```
@@ -293,7 +305,8 @@ twin's `t_physics_vectors` run every vector through their translation. Each vect
 each value's exact bits, for readers that do not parse decimals to the nearest double (Octave's
 `jsondecode`).
 
-A function with rare branches asks for more vectors with a line in its documentation,
+A function with buffers draws them at the length it states, `## length: 576` (the inputs that index them drawn in
+ranges that fit). A function with rare branches asks for more vectors with a line in its documentation,
 `## vectors: 160`; otherwise the count is the package's, fewer for a function of many values (a function over large
 workspaces may ask for fewer, `## vectors: 2`).
 
@@ -331,6 +344,7 @@ transcribes from a source (IDMAS v2 today) through the interpreter, within the s
   numbers, and its caller holds requirement and achieved value to one quantity).
 - Calling a `proc` from another `proc` (each `proc` is called by the host with its own state).
 - Arrays of records, strings (but a stream's name), and variable-length arrays (a count beside a fixed array is
-  the way: `real[m][8]` and `n: int`).
+  the way: `real[m][8]` and `n: int`; an inout input may be a buffer of numbers, its length the caller's, but not a
+  buffer of arrays, nor a proc's).
 - A record as a state's start in the Rust and MATLAB translations (C has it): a state that is a record starts at
   zero and is filled on the first call.

@@ -177,6 +177,44 @@ pub fn call(name: &str, x: &[f64]) -> Option<Vec<f64>> {
             out.push(r.0);
             out.push(r.1);
         }
+        "selftest::spread" => {
+            let mut at: usize = 0;
+            if x.len() < at + 1 { return None; }
+            let n0 = x[at] as usize;
+            if x.len() < at + 1 + n0 { return None; }
+            let mut io0 = x[at + 1..at + 1 + n0].to_vec();
+            at += 1 + n0;
+            if x.len() < at + 1 { return None; }
+            let n1 = x[at] as usize;
+            if x.len() < at + 1 + n1 { return None; }
+            let mut io1 = x[at + 1..at + 1 + n1].iter().map(|v| *v as i64).collect::<Vec<i64>>();
+            at += 1 + n1;
+            if x.len() < at + 1 { return None; }
+            let a2 = { let x = &x[at..]; x[0] };
+            at += 1;
+            if x.len() != at { return None; }
+            let r = crate::selftest::spread(&mut io0, &mut io1, a2);
+            out.push(r.0);
+            out.push(r.1 as f64);
+            out.push(r.2 as f64);
+            out.push(io0.len() as f64); for v in io0.iter() { let v = *v; out.push(v); }
+            out.push(io1.len() as f64); for v in io1.iter() { let v = *v; out.push(v as f64); }
+        }
+        "selftest::blur" => {
+            let mut at: usize = 0;
+            if x.len() < at + 1 { return None; }
+            let n0 = x[at] as usize;
+            if x.len() < at + 1 + n0 { return None; }
+            let mut io0 = x[at + 1..at + 1 + n0].to_vec();
+            at += 1 + n0;
+            if x.len() < at + 1 { return None; }
+            let a1 = { let x = &x[at..]; x[0] };
+            at += 1;
+            if x.len() != at { return None; }
+            let r = crate::selftest::blur(&mut io0, a1);
+            out.push(r);
+            out.push(io0.len() as f64); for v in io0.iter() { let v = *v; out.push(v); }
+        }
         _ => return None,
     }
     Some(out)

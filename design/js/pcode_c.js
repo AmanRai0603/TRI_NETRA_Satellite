@@ -35,6 +35,7 @@ export function toC(prog, opts = {}) {
     switch (t.k) {
       case "real": return "f"; case "int": case "choice": return "i"; case "bool": return "b"; case "stream": return "s";
       case "arr": return `a${t.n}${tag(t.of)}`;
+      case "buf": return `b${tag(t.of)}`;
       case "rec": return `r${t.name}`;
     }
     throw new Error(`no C type for ${t.k}`);
@@ -49,6 +50,12 @@ export function toC(prog, opts = {}) {
       case "arr": {
         const n = `pc_${tag(t)}`;
         if (!types.has(n)) { const el = cty(t.of); types.set(n, `typedef struct { ${el} v[${t.n}]; } ${n};`); }
+        return n;
+      }
+      case "buf": {
+        // a buffer: the caller's array, by its address and its length
+        const n = `pc_${tag(t)}`;
+        if (!types.has(n)) { const el = cty(t.of); types.set(n, `/* A buffer: the caller's array and its length. */\ntypedef struct { ${el} *v; int64_t n; } ${n};`); }
         return n;
       }
     }
@@ -249,7 +256,7 @@ export function toC(prog, opts = {}) {
         case "bxor": return `(${ex(a[0])} ^ ${ex(a[1])})`;
         case "shl": return `(${ex(a[0])} << ${ex(a[1])})`;
         case "shr": return `(${ex(a[0])} >> ${ex(a[1])})`;
-        case "len": return `INT64_C(${a[0].ty.n})`;
+        case "len": return a[0].ty.k === "buf" ? `${ex(a[0])}.n` : `INT64_C(${a[0].ty.n})`;
         case "dot": return `${vecOp("dot", realOf(a[0].ty))}(${V(a[0])}, ${V(a[1])})`;
         case "cross": return `${vecOp("cross", realOf(a[0].ty))}(${V(a[0])}, ${V(a[1])})`;
         case "norm": return `${vecOp("norm", realOf(a[0].ty))}(${V(a[0])})`;
@@ -263,7 +270,10 @@ export function toC(prog, opts = {}) {
     }
     const t = e.target;
     // an inout input is handed over by its address
-    const args = a.map((x, i) => (t.kind !== "table" && t.params[i].inout ? `&${ex(x)}` : E(x, (t.kind === "table" ? t.key : t.params[i]).ty)));
+    // (a sized array where a buffer is wanted: its elements and its length)
+    const args = a.map((x, i) => (t.kind !== "table" && t.params[i].inout
+      ? (t.params[i].ty.k === "buf" && x.ty.k === "arr" ? `&((${cty(t.params[i].ty)}){ ${ex(x)}.v, INT64_C(${x.ty.n}) })` : `&${ex(x)}`)
+      : E(x, (t.kind === "table" ? t.key : t.params[i]).ty)));
     if (t.kind === "proc") args.unshift("st");     // never reached: a proc is called by the harness, not from code
     return `${fname(t)}(${args.join(", ")})`;
   };
@@ -380,24 +390,30 @@ export function toC(prog, opts = {}) {
   // ------------------------------------------------------------ the dispatcher: a function by name, flattened
   const flat = (t) => widthOf(prog, t);
   const LONG = 1024;   // an array of numbers longer than this is read and written by a loop
-  const readArg = (t, at, into, I) => {          // statements filling `into` from x[at..]
-    if (t.k === "stream") return [`${I}${into}.key = ((uint64_t)x[${at}] << 32) | (uint64_t)x[${at + 1}];\n${I}${into}.n = ((uint64_t)x[${at + 2}] << 32) | (uint64_t)x[${at + 3}];\n` +
-      `${I}${into}.spare = x[${at + 4}];\n${I}${into}.has = x[${at + 5}] != 0.0;\n`, 6];
-    if (t.k === "real") return [`${I}${into} = x[${at}];\n`, 1];
-    if (t.k === "int" || t.k === "choice") return [`${I}${into} = (int64_t)x[${at}];\n`, 1];
-    if (t.k === "bool") return [`${I}${into} = x[${at}] != 0.0;\n`, 1];
+  const readArg = (t, at, into, I, x = "x") => {          // statements filling `into` from x[at..]
+    if (t.k === "stream") return [`${I}${into}.key = ((uint64_t)${x}[${at}] << 32) | (uint64_t)${x}[${at + 1}];\n${I}${into}.n = ((uint64_t)${x}[${at + 2}] << 32) | (uint64_t)${x}[${at + 3}];\n` +
+      `${I}${into}.spare = ${x}[${at + 4}];\n${I}${into}.has = ${x}[${at + 5}] != 0.0;\n`, 6];
+    if (t.k === "real") return [`${I}${into} = ${x}[${at}];\n`, 1];
+    if (t.k === "int" || t.k === "choice") return [`${I}${into} = (int64_t)${x}[${at}];\n`, 1];
+    if (t.k === "bool") return [`${I}${into} = ${x}[${at}] != 0.0;\n`, 1];
     let s = "", k = 0;
     if (t.k === "rec") {
-      for (const f of prog.records[t.name].fields) { const [c, n] = readArg(f.ty, at + k, `${into}.${cname(f.name)}`, I); s += c; k += n; }
+      for (const f of prog.records[t.name].fields) { const [c, n] = readArg(f.ty, at + k, `${into}.${cname(f.name)}`, I, x); s += c; k += n; }
       return [s, k];
     }
     // a long array of numbers (a workspace, a table) as a loop, not a statement an element
     if (t.n > LONG && ["real", "int", "choice", "bool"].includes(t.of.k)) {
-      const x = `x[${at} + i_]`;
-      const v = t.of.k === "real" ? x : t.of.k === "bool" ? `${x} != 0.0` : `(int64_t)${x}`;
+      const xe = `${x}[${at} + i_]`;
+      const v = t.of.k === "real" ? xe : t.of.k === "bool" ? `${xe} != 0.0` : `(int64_t)${xe}`;
       return [`${I}{ int i_; for (i_ = 0; i_ < ${t.n}; i_++) ${into}.v[i_] = ${v}; }\n`, t.n];
     }
-    for (let i = 0; i < t.n; i++) { const [c, n] = readArg(t.of, at + k, `${into}.v[${i}]`, I); s += c; k += n; }
+    // a long array of short arrays of numbers (a catalogue of directions) as two loops
+    if (t.of.k === "arr" && t.n * t.of.n > LONG && ["real", "int", "choice", "bool"].includes(t.of.of.k)) {
+      const m = t.of.n, xe = `${x}[${at} + i_ * ${m} + j_]`;
+      const v = t.of.of.k === "real" ? xe : t.of.of.k === "bool" ? `${xe} != 0.0` : `(int64_t)${xe}`;
+      return [`${I}{ int i_, j_; for (i_ = 0; i_ < ${t.n}; i_++) for (j_ = 0; j_ < ${m}; j_++) ${into}.v[i_].v[j_] = ${v}; }\n`, t.n * m];
+    }
+    for (let i = 0; i < t.n; i++) { const [c, n] = readArg(t.of, at + k, `${into}.v[${i}]`, I, x); s += c; k += n; }
     return [s, k];
   };
   const pushOut = (t, v, I) => {
@@ -411,6 +427,11 @@ export function toC(prog, opts = {}) {
       const e = `${v}.v[i_]`;
       const o = t.of.k === "real" ? e : t.of.k === "bool" ? `${e} ? 1.0 : 0.0` : `(double)${e}`;
       return `${I}{ int i_; for (i_ = 0; i_ < ${t.n}; i_++) out[(*ny)++] = ${o}; }\n`;
+    }
+    if (t.of.k === "arr" && t.n * t.of.n > LONG && ["real", "int", "choice", "bool"].includes(t.of.of.k)) {
+      const e = `${v}.v[i_].v[j_]`;
+      const o = t.of.of.k === "real" ? e : t.of.of.k === "bool" ? `${e} ? 1.0 : 0.0` : `(double)${e}`;
+      return `${I}{ int i_, j_; for (i_ = 0; i_ < ${t.n}; i_++) for (j_ = 0; j_ < ${t.of.n}; j_++) out[(*ny)++] = ${o}; }\n`;
     }
     let s = "";
     for (let i = 0; i < t.n; i++) s += pushOut(t.of, `${v}.v[${i}]`, I);
@@ -434,7 +455,34 @@ export function toC(prog, opts = {}) {
   const callArgs = (f) => f.params.map((p, i) => (p.inout ? `&a${i}` : `a${i}`));
   disp += "/* 0 and the outputs in out (*ny of them), or -1: no such function, or not the number of inputs it takes. */\n" +
     "int pc_call(const char *name, const double *x, int nx, double *out, int *ny) {\n    *ny = 0;\n";
+  // a function with a buffer (its length the caller's): the inputs read in turn, a buffer its length first, then its
+  // elements, into memory of its own (the dispatcher is a test aid; the translation allocates nothing)
+  const bufFns = allFns.filter((g) => g.kind === "fn" && g.params.some((p) => p.ty.k === "buf"));
+  const bufCall = (f) => {
+    const I = "        ";
+    let s = `    if (strcmp(name, "${f.module}::${f.name}") == 0) {\n${I}int at_ = 0, bad_ = 0;\n`;
+    f.params.forEach((p, i) => { s += `${I}${cty(p.ty)} a${i}${p.ty.k === "buf" ? "" : ` = ${zero(p.ty)}`};\n`; });
+    f.params.forEach((p, i) => {
+      if (p.ty.k === "buf") {
+        const el = cty(p.ty.of), v = p.ty.of.k === "real" ? "x[at_ + 1 + i_]" : `(${el})x[at_ + 1 + i_]`;
+        s += `${I}if (nx < at_ + 1) { bad_ = 1; }\n${I}a${i}.n = bad_ ? 0 : (int64_t)x[at_];\n${I}if (nx < at_ + 1 + a${i}.n) { bad_ = 1; a${i}.n = 0; }\n` +
+          `${I}a${i}.v = (${el} *)malloc(sizeof(${el}) * (size_t)(a${i}.n + 1));\n${I}{ int64_t i_; for (i_ = 0; i_ < a${i}.n; i_++) a${i}.v[i_] = ${v}; }\n${I}at_ += 1 + (int)a${i}.n;\n`;
+      } else {
+        const [c, n] = readArg(p.ty, 0, `a${i}`, `${I}    `, "xa_");
+        s += `${I}if (nx < at_ + ${n}) { bad_ = 1; }\n${I}if (!bad_) {\n${I}    const double *xa_ = x + at_;\n${c}${I}}\n${I}at_ += ${n};\n`;
+      }
+    });
+    const free = f.params.map((p, i) => (p.ty.k === "buf" ? `${I}free(a${i}.v);\n` : "")).join("");
+    const push = (t, v, J) => (t.k === "buf" ? `${J}out[(*ny)++] = (double)${v}.n;\n${J}{ int64_t i_; for (i_ = 0; i_ < ${v}.n; i_++) out[(*ny)++] = ${t.of.k === "real" ? `${v}.v[i_]` : `(double)${v}.v[i_]`}; }\n` : pushOut(t, v, J));
+    const ioP = (J) => f.params.map((p, i) => (p.inout ? push(p.ty, `a${i}`, J) : "")).join("");
+    const call = `${fname(f)}(${callArgs(f).join(", ")})`;
+    const body = f.outs.length === 1 ? `${I}{\n${I}    ${cty(f.outs[0].ty)} r = ${call};\n${pushOut(f.outs[0].ty, "r", I + "    ")}${ioP(I + "    ")}${I}}\n`
+      : `${I}{\n${I}    ${fname(f)}_out r = ${call};\n` + f.outs.map((o) => pushOut(o.ty, `r.${cname(o.name)}`, I + "    ")).join("") + ioP(I + "    ") + `${I}}\n`;
+    return s + `${I}if (bad_ || nx != at_) {\n${free.replace(/^ {8}/gm, "            ")}            return -1;\n${I}}\n` + body + free + `${I}return 0;\n    }\n`;
+  };
+  if (bufFns.length) disp = disp.replace("#include <string.h>\n", "#include <stdlib.h>\n#include <string.h>\n");
   for (const f of allFns.filter((g) => g.kind === "fn")) {
+    if (f.params.some((p) => p.ty.k === "buf")) { disp += bufCall(f); continue; }
     const [setup, at] = callBody(f, "        ");
     disp += `    if (strcmp(name, "${f.module}::${f.name}") == 0) {\n        if (nx != ${at}) { return -1; }\n    {\n${setup}${outsBody(f, `${fname(f)}(${callArgs(f).join(", ")})`, "        ")}    }\n        return 0;\n    }\n`;
   }

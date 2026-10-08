@@ -34,6 +34,10 @@ if (errors.length) {
 // a value as numbers: arrays element by element, a record field by field in declaration order
 const flatten = (v) => (Array.isArray(v) ? v.flatMap(flatten) : typeof v === "boolean" ? [v ? 1 : 0]
   : v && typeof v === "object" ? Object.values(v).flatMap(flatten) : [v]);
+// a value of a type as numbers: a buffer (its length the caller's) its length first, then its elements
+const flatT = (v, t) => (t.k === "buf" ? [v.length, ...v.flatMap(flatten)] : flatten(v));
+// the length a function's buffers are drawn at in its vectors (`## length: 64`), else 8
+const lengthOf = (f) => { const m = (f.doc || []).map((d) => /^length:\s*(\d+)\s*$/.exec(d)).find(Boolean); return m ? +m[1] : 8; };
 
 // a double's exact bits as [high, low] 32-bit words: for readers whose decimal parsing is not
 // correctly rounded (Octave's jsondecode)
@@ -89,7 +93,8 @@ switch (cmd) {
     const I = makeInterpreter(program);
     // n vectors a function, or fewer where its inputs and outputs are many (--budget values a function)
     const nWant = +(opt.n || 12), budget = +(opt.budget || 1e9), rand = prng(+(opt.seed || 1));
-    const width = (t) => (t.k === "arr" ? t.n * width(t.of) : t.k === "rec" ? program.records[t.name].fields.reduce((a, f) => a + width(f.ty), 0) : t.k === "stream" ? 6 : 1);
+    let blen = 8;      // the buffers' length in the function at hand
+    const width = (t) => (t.k === "arr" ? t.n * width(t.of) : t.k === "buf" ? 1 + blen * width(t.of) : t.k === "rec" ? program.records[t.name].fields.reduce((a, f) => a + width(f.ty), 0) : t.k === "stream" ? 6 : 1);
     // a function whose outputs amplify the maths library's last bit (a central difference) states the tolerance its
     // translations are held to, relative to the largest of its outputs (`## tolerance: 1e-8`), its reason beside it
     const tolOf = (f) => {
@@ -100,6 +105,7 @@ switch (cmd) {
     for (const f of Object.values(program.fns)) {
       // a function may ask for its own count in its documentation (`## vectors: 96`): a branchy one
       const asked = (f.doc || []).map((d) => /^vectors:\s*(\d+)\s*$/.exec(d)).find(Boolean);
+      blen = lengthOf(f);
       const n = asked ? +asked[1] : Math.max(4, Math.min(nWant, Math.floor(budget / [...f.params, ...f.outs].reduce((a, x) => a + width(x.ty), 0))));
       const draw = (p) => {
         const t = p.ty;
@@ -111,6 +117,7 @@ switch (cmd) {
         const one = (tt) => {
           if (tt.k === "rec") return Object.fromEntries(program.records[tt.name].fields.map((fl) => [fl.name, draw(fl)]));
           if (tt.k === "arr") return Array.from({ length: tt.n }, () => one(tt.of));
+          if (tt.k === "buf") return Array.from({ length: blen }, () => one(tt.of));
           if (tt.k === "bool") return rand() < 0.5;
           if (tt.k === "choice") { const n = program.choices[tt.name].options.length; return Math.min(n - 1, Math.floor(rand() * n)); }
           // a stream: a random key, a counter below 1000, a spare in -1 .. 1 that is there or not
@@ -121,6 +128,8 @@ switch (cmd) {
         return one(t);
       };
       const sets = [];
+      // the outputs' types, then each inout input's (its value after the call follows the outputs)
+      const outTys = [...f.outs, ...f.params.filter((p) => p.inout)].map((o) => o.ty);
       if (f.kind === "proc") {
         // a proc: runs of 8 consecutive calls, the state carried from each to the next
         for (let k = 0; k < n * 3 && sets.length < Math.max(2, n / 4); k++) {
@@ -128,7 +137,7 @@ switch (cmd) {
           try {
             for (let c = 0; c < 8; c++) {
               const ins = f.params.map(draw);
-              const fo = I.call(f.name, ins, st).flatMap(flatten), fi = ins.flatMap(flatten);
+              const fo = I.call(f.name, ins, st).flatMap((v, j) => flatT(v, outTys[j])), fi = ins.flatMap((v, j) => flatT(v, f.params[j].ty));
               if (fo.some((x) => !Number.isFinite(x))) throw new Error("not finite");
               calls.push({ in: fi, out: fo, in_bits: fi.map(bits), out_bits: fo.map(bits) });
             }
@@ -156,9 +165,9 @@ switch (cmd) {
         try { ins = drawAll(); } catch (e) { continue; }
         try {
           const o = I.call(f.name, ins);
-          const fo = o.flatMap(flatten);
+          const fo = o.flatMap((v, j) => flatT(v, outTys[j]));
           if (fo.some((x) => !Number.isFinite(x))) continue;
-          const fi = ins.flatMap(flatten);
+          const fi = ins.flatMap((v, j) => flatT(v, f.params[j].ty));
           sets.push({ in: fi, out: fo, in_bits: fi.map(bits), out_bits: fo.map(bits) });
         } catch (e) { continue; }
       }
@@ -170,10 +179,11 @@ switch (cmd) {
   case "outkinds": {
     // per fn and proc: for each of its outputs flattened (records field by field), whether it is a whole number or a
     // yes/no (no sign of zero) rather than a real
-    const kinds = (t) => (t.k === "stream" ? [true, true, true, true, false, true] : t.k === "arr" ? Array.from({ length: t.n }, () => kinds(t.of)).flat()
-      : t.k === "rec" ? program.records[t.name].fields.flatMap((f) => kinds(f.ty)) : [t.k === "int" || t.k === "bool" || t.k === "choice"]);
-    // (an inout input's value after the call follows the outputs)
-    out(Object.fromEntries(Object.values(program.fns).map((f) => [`${f.module}::${f.name}`, [...f.outs, ...f.params.filter((p) => p.inout)].flatMap((o) => kinds(o.ty))])));
+    const kinds = (t, bl) => (t.k === "stream" ? [true, true, true, true, false, true] : t.k === "arr" ? Array.from({ length: t.n }, () => kinds(t.of, bl)).flat()
+      : t.k === "buf" ? [true, ...Array.from({ length: bl }, () => kinds(t.of, bl)).flat()]
+      : t.k === "rec" ? program.records[t.name].fields.flatMap((f) => kinds(f.ty, bl)) : [t.k === "int" || t.k === "bool" || t.k === "choice"]);
+    // (an inout input's value after the call follows the outputs; a buffer is as long as the function's vectors draw it)
+    out(Object.fromEntries(Object.values(program.fns).map((f) => [`${f.module}::${f.name}`, [...f.outs, ...f.params.filter((p) => p.inout)].flatMap((o) => kinds(o.ty, lengthOf(f)))])));
     break;
   }
   // --root and --math embed the Rust as a module of a no_std crate (the flight build); --no-dispatch leaves out the

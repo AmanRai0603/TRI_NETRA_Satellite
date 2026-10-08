@@ -260,7 +260,14 @@ impl Program {
     pub fn zero(&self, ty: &Ty) -> Value {
         interp::zero_of(&self.i.c, ty)
     }
-    /// A value of a type from its numbers, as `Value::flatten` writes them (a bool from 0 or not).
+    /// A value of a type as numbers, as the vectors write it: `Value::flatten`, but a buffer its length first.
+    pub fn flatten_as(&self, ty: &Ty, v: &Value) -> Vec<f64> {
+        match (ty, v) {
+            (Ty::Buf(_), Value::Arr(items)) => std::iter::once(items.len() as f64).chain(items.iter().flat_map(Value::flatten)).collect(),
+            _ => v.flatten(),
+        }
+    }
+    /// A value of a type from its numbers, as `Program::flatten_as` writes them (a bool from 0 or not).
     pub fn value_from_flat(&self, ty: &Ty, nums: &mut dyn Iterator<Item = f64>) -> Option<Value> {
         Some(match ty {
             Ty::Int | Ty::Real(_) | Ty::Choice(_) => Value::Num(nums.next()?),
@@ -268,6 +275,11 @@ impl Program {
             Ty::Stream => Value::Arr((0..6).map(|_| nums.next().map(Value::Num)).collect::<Option<Vec<_>>>()?),
             Ty::Str => return None,
             Ty::Arr(n, of) => Value::Arr((0..*n).map(|_| self.value_from_flat(of, nums)).collect::<Option<Vec<_>>>()?),
+            // a buffer: its length, then its elements
+            Ty::Buf(of) => {
+                let n = nums.next()? as usize;
+                Value::Arr((0..n).map(|_| self.value_from_flat(of, nums)).collect::<Option<Vec<_>>>()?)
+            }
             Ty::Rec(name) => {
                 let r = self.i.c.records.iter().find(|r| &r.name == name)?;
                 Value::Rec(r.fields.iter().map(|f| self.value_from_flat(&f.ty, nums)).collect::<Option<Vec<_>>>()?)

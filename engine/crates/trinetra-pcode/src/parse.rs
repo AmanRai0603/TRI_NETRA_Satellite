@@ -318,6 +318,16 @@ impl Parser<'_> {
                 ty = TypeDecl::Arr { n: 1, of: Box::new(ty), cap: Some((c.v.clone(), self.pos_of(&c))) };
                 continue;
             }
+            // a buffer: as long as the caller's array (`img: inout real[1][*]`, len(img) its length), the outermost
+            if self.is(T::Op, Some("*")) {
+                let s = self.eat_op("*")?;
+                self.eat_op("]")?;
+                ty = TypeDecl::Buf { of: Box::new(ty), pos: self.pos_of(&s) };
+                if self.is(T::Op, Some("[")) {
+                    return self.err("a buffer [*] is the outermost: real[1][3][*], not real[1][*][3]".into());
+                }
+                continue;
+            }
             let n = self.eat(T::Num, None)?;
             self.eat_op("]")?;
             let v = num_value(&n.v);

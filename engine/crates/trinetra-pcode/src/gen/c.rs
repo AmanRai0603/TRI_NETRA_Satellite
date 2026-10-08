@@ -86,6 +86,7 @@ impl<'a> Gen<'a> {
             Ty::Int | Ty::Choice(_) => "i".into(),
             Ty::Bool => "b".into(),
             Ty::Arr(n, of) => format!("a{n}{}", self.tag(of)),
+            Ty::Buf(of) => format!("b{}", self.tag(of)),
             Ty::Rec(name) => format!("r{name}"),
             Ty::Stream => "s".into(),
             Ty::Tuple(_) => self.b.fail("no C type for tuple"),
@@ -106,6 +107,15 @@ impl<'a> Gen<'a> {
                 if !self.has_type(&name) {
                     let el = self.cty(of);
                     self.types.push((name.clone(), Some(format!("typedef struct {{ {el} v[{n}]; }} {name};"))));
+                }
+                name
+            }
+            // a buffer: the caller's array, by its address and its length
+            Ty::Buf(of) => {
+                let name = format!("pc_{}", self.tag(t));
+                if !self.has_type(&name) {
+                    let el = self.cty(of);
+                    self.types.push((name.clone(), Some(format!("/* A buffer: the caller's array and its length. */\ntypedef struct {{ {el} *v; int64_t n; }} {name};"))));
                 }
                 name
             }
@@ -664,6 +674,7 @@ impl<'a> Gen<'a> {
                 }
                 "len" => match a.first().and_then(|&x| c.ann[x].ty.as_ref()) {
                     Some(Ty::Arr(n, _)) => format!("INT64_C({n})"),
+                    Some(Ty::Buf(_)) => format!("{}.n", x(self, 0)),
                     _ => "INT64_C(undefined)".into(),
                 },
                 "dot" | "cross" => {
@@ -723,8 +734,23 @@ impl<'a> Gen<'a> {
             }
             _ => return self.b.fail("a call of nothing"),
         };
-        // an inout input is handed over by its address
-        let mut args: Vec<String> = a.iter().zip(wants).map(|(&x, (w, io))| if io { format!("&{}", self.ex(x)) } else { self.e_want(x, Some(w)) }).collect();
+        // an inout input is handed over by its address (a sized array where a buffer is wanted: its elements and its length)
+        let mut args: Vec<String> = a
+            .iter()
+            .zip(wants)
+            .map(|(&x, (w, io))| {
+                if !io {
+                    return self.e_want(x, Some(w));
+                }
+                match (w, c.ann[x].ty.as_ref()) {
+                    (Ty::Buf(_), Some(Ty::Arr(n, _))) => {
+                        let bt = self.cty(w);
+                        format!("&(({bt}){{ {}.v, INT64_C({n}) }})", self.ex(x))
+                    }
+                    _ => format!("&{}", self.ex(x)),
+                }
+            })
+            .collect();
         if proc_ {
             args.insert(0, "st".into()); // never reached: a proc is called by the harness, not from code
         }
@@ -838,11 +864,11 @@ impl<'a> Gen<'a> {
 
     // ------------------------------------------------------------ the dispatcher: a function by name, flattened
     // statements filling `into` from x[at..] (an array of numbers longer than LONG by a loop)
-    fn read_arg(&self, t: &Ty, at: usize, into: &str, ii: &str) -> (String, usize) {
+    fn read_arg(&self, t: &Ty, at: usize, into: &str, ii: &str, x: &str) -> (String, usize) {
         match t {
             Ty::Stream => (
                 format!(
-                    "{ii}{into}.key = ((uint64_t)x[{a0}] << 32) | (uint64_t)x[{a1}];\n{ii}{into}.n = ((uint64_t)x[{a2}] << 32) | (uint64_t)x[{a3}];\n{ii}{into}.spare = x[{a4}];\n{ii}{into}.has = x[{a5}] != 0.0;\n",
+                    "{ii}{into}.key = ((uint64_t){x}[{a0}] << 32) | (uint64_t){x}[{a1}];\n{ii}{into}.n = ((uint64_t){x}[{a2}] << 32) | (uint64_t){x}[{a3}];\n{ii}{into}.spare = {x}[{a4}];\n{ii}{into}.has = {x}[{a5}] != 0.0;\n",
                     a0 = at,
                     a1 = at + 1,
                     a2 = at + 2,
@@ -852,14 +878,14 @@ impl<'a> Gen<'a> {
                 ),
                 6,
             ),
-            Ty::Real(_) => (format!("{ii}{into} = x[{at}];\n"), 1),
-            Ty::Int | Ty::Choice(_) => (format!("{ii}{into} = (int64_t)x[{at}];\n"), 1),
-            Ty::Bool => (format!("{ii}{into} = x[{at}] != 0.0;\n"), 1),
+            Ty::Real(_) => (format!("{ii}{into} = {x}[{at}];\n"), 1),
+            Ty::Int | Ty::Choice(_) => (format!("{ii}{into} = (int64_t){x}[{at}];\n"), 1),
+            Ty::Bool => (format!("{ii}{into} = {x}[{at}] != 0.0;\n"), 1),
             Ty::Rec(name) => {
                 let (mut s, mut k) = (String::new(), 0);
                 if let Some(r) = self.b.record(name) {
                     for f in &r.fields {
-                        let (cs, n) = self.read_arg(&f.ty, at + k, &format!("{into}.{}", cname(&f.name)), ii);
+                        let (cs, n) = self.read_arg(&f.ty, at + k, &format!("{into}.{}", cname(&f.name)), ii, x);
                         s += &cs;
                         k += n;
                     }
@@ -868,24 +894,35 @@ impl<'a> Gen<'a> {
             }
             // a long array of numbers (a workspace, a table) as a loop, not a statement an element
             Ty::Arr(n, of) if *n > LONG && matches!(**of, Ty::Real(_) | Ty::Int | Ty::Choice(_) | Ty::Bool) => {
-                let x = format!("x[{at} + i_]");
+                let xe = format!("{x}[{at} + i_]");
                 let v = match **of {
-                    Ty::Real(_) => x,
-                    Ty::Bool => format!("{x} != 0.0"),
-                    _ => format!("(int64_t){x}"),
+                    Ty::Real(_) => xe,
+                    Ty::Bool => format!("{xe} != 0.0"),
+                    _ => format!("(int64_t){xe}"),
                 };
                 (format!("{ii}{{ int i_; for (i_ = 0; i_ < {n}; i_++) {into}.v[i_] = {v}; }}\n"), *n)
+            }
+            // a long array of short arrays of numbers (a catalogue of directions) as two loops
+            Ty::Arr(n, of) if matches!(&**of, Ty::Arr(m, el) if n * m > LONG && matches!(**el, Ty::Real(_) | Ty::Int | Ty::Choice(_) | Ty::Bool)) => {
+                let Ty::Arr(m, el) = &**of else { unreachable!() };
+                let xe = format!("{x}[{at} + i_ * {m} + j_]");
+                let v = match **el {
+                    Ty::Real(_) => xe,
+                    Ty::Bool => format!("{xe} != 0.0"),
+                    _ => format!("(int64_t){xe}"),
+                };
+                (format!("{ii}{{ int i_, j_; for (i_ = 0; i_ < {n}; i_++) for (j_ = 0; j_ < {m}; j_++) {into}.v[i_].v[j_] = {v}; }}\n"), n * m)
             }
             Ty::Arr(n, of) => {
                 let (mut s, mut k) = (String::new(), 0);
                 for i in 0..*n {
-                    let (cs, m) = self.read_arg(of, at + k, &format!("{into}.v[{i}]"), ii);
+                    let (cs, m) = self.read_arg(of, at + k, &format!("{into}.v[{i}]"), ii, x);
                     s += &cs;
                     k += m;
                 }
                 (s, k)
             }
-            Ty::Tuple(_) | Ty::Str => (String::new(), 0),
+            Ty::Tuple(_) | Ty::Str | Ty::Buf(_) => (String::new(), 0),
         }
     }
     fn push_out(&self, t: &Ty, v: &str, ii: &str) -> String {
@@ -909,9 +946,62 @@ impl<'a> Gen<'a> {
                 };
                 format!("{ii}{{ int i_; for (i_ = 0; i_ < {n}; i_++) out[(*ny)++] = {o}; }}\n")
             }
+            Ty::Arr(n, of) if matches!(&**of, Ty::Arr(m, el) if n * m > LONG && matches!(**el, Ty::Real(_) | Ty::Int | Ty::Choice(_) | Ty::Bool)) => {
+                let Ty::Arr(m, el) = &**of else { unreachable!() };
+                let e = format!("{v}.v[i_].v[j_]");
+                let o = match **el {
+                    Ty::Real(_) => e,
+                    Ty::Bool => format!("{e} ? 1.0 : 0.0"),
+                    _ => format!("(double){e}"),
+                };
+                format!("{ii}{{ int i_, j_; for (i_ = 0; i_ < {n}; i_++) for (j_ = 0; j_ < {m}; j_++) out[(*ny)++] = {o}; }}\n")
+            }
             Ty::Arr(n, of) => (0..*n).map(|i| self.push_out(of, &format!("{v}.v[{i}]"), ii)).collect(),
-            Ty::Tuple(_) | Ty::Str => String::new(),
+            Ty::Tuple(_) | Ty::Str | Ty::Buf(_) => String::new(),
         }
+    }
+    /// The dispatcher's arm of a function with a buffer (its length the caller's): the inputs read in turn, a buffer its
+    /// length first, then its elements, into memory of its own (the dispatcher is a test aid; the translation allocates
+    /// nothing).
+    fn buf_call(&mut self, f: &crate::ast::Func) -> String {
+        let ii = "        ";
+        let mut s = format!("    if (strcmp(name, \"{}::{}\") == 0) {{\n{ii}int at_ = 0, bad_ = 0;\n", f.module, f.name);
+        for (i, p) in f.params.iter().enumerate() {
+            let ct = self.cty(&p.ty);
+            let init = if matches!(p.ty, Ty::Buf(_)) { String::new() } else { format!(" = {}", self.zero(&p.ty)) };
+            s += &format!("{ii}{ct} a{i}{init};\n");
+        }
+        for (i, p) in f.params.iter().enumerate() {
+            if let Ty::Buf(of) = &p.ty {
+                let el = self.cty(of);
+                let v = if matches!(**of, Ty::Real(_)) { "x[at_ + 1 + i_]".to_string() } else { format!("({el})x[at_ + 1 + i_]") };
+                s += &format!("{ii}if (nx < at_ + 1) {{ bad_ = 1; }}\n{ii}a{i}.n = bad_ ? 0 : (int64_t)x[at_];\n{ii}if (nx < at_ + 1 + a{i}.n) {{ bad_ = 1; a{i}.n = 0; }}\n");
+                s += &format!("{ii}a{i}.v = ({el} *)malloc(sizeof({el}) * (size_t)(a{i}.n + 1));\n{ii}{{ int64_t i_; for (i_ = 0; i_ < a{i}.n; i_++) a{i}.v[i_] = {v}; }}\n{ii}at_ += 1 + (int)a{i}.n;\n");
+            } else {
+                let (cs, n) = self.read_arg(&p.ty, 0, &format!("a{i}"), &format!("{ii}    "), "xa_");
+                s += &format!("{ii}if (nx < at_ + {n}) {{ bad_ = 1; }}\n{ii}if (!bad_) {{\n{ii}    const double *xa_ = x + at_;\n{cs}{ii}}}\n{ii}at_ += {n};\n");
+            }
+        }
+        let free: String = f.params.iter().enumerate().filter(|(_, p)| matches!(p.ty, Ty::Buf(_))).map(|(i, _)| format!("{ii}free(a{i}.v);\n")).collect();
+        let free_in: String = f.params.iter().enumerate().filter(|(_, p)| matches!(p.ty, Ty::Buf(_))).map(|(i, _)| format!("            free(a{i}.v);\n")).collect();
+        let push = |g: &Self, t: &Ty, v: &str, jj: &str| match t {
+            Ty::Buf(of) => format!(
+                "{jj}out[(*ny)++] = (double){v}.n;\n{jj}{{ int64_t i_; for (i_ = 0; i_ < {v}.n; i_++) out[(*ny)++] = {}; }}\n",
+                if matches!(**of, Ty::Real(_)) { format!("{v}.v[i_]") } else { format!("(double){v}.v[i_]") }
+            ),
+            t => g.push_out(t, v, jj),
+        };
+        let inner = format!("{ii}    ");
+        let io: String = f.params.iter().enumerate().filter(|(_, p)| p.inout).map(|(i, p)| push(self, &p.ty, &format!("a{i}"), &inner)).collect();
+        let call = format!("{}({})", Self::fname(&f.module, &f.name), Self::call_args(f).join(", "));
+        let body = if f.outs.len() == 1 {
+            let t = self.cty(&f.outs[0].ty);
+            format!("{ii}{{\n{ii}    {t} r = {call};\n{}{io}{ii}}}\n", self.push_out(&f.outs[0].ty, "r", &inner))
+        } else {
+            let pushes: String = f.outs.iter().map(|o| self.push_out(&o.ty, &format!("r.{}", cname(&o.name)), &inner)).collect();
+            format!("{ii}{{\n{ii}    {}_out r = {call};\n{pushes}{io}{ii}}}\n", Self::fname(&f.module, &f.name))
+        };
+        s + &format!("{ii}if (bad_ || nx != at_) {{\n{free_in}            return -1;\n{ii}}}\n") + &body + &free + &format!("{ii}return 0;\n    }}\n")
     }
     fn call_body(&mut self, f: &crate::ast::Func, ii: &str) -> (String, usize) {
         let mut s = String::new();
@@ -920,7 +1010,7 @@ impl<'a> Gen<'a> {
         }
         let mut at = 0;
         for (i, p) in f.params.iter().enumerate() {
-            let (cs, n) = self.read_arg(&p.ty, at, &format!("a{i}"), ii);
+            let (cs, n) = self.read_arg(&p.ty, at, &format!("a{i}"), ii, "x");
             s += &cs;
             at += n;
         }
@@ -1085,8 +1175,16 @@ impl<'a> Gen<'a> {
         }
 
         let mut disp = format!("/* The vector dispatcher: a function by its name (module::name), its inputs and outputs flattened (SI). */\n/* {head} */\n#include <string.h>\n#include \"{lib}.h\"\n\n");
+        // a function with a buffer (its length the caller's) reads it into memory of its own: the dispatcher includes stdlib
+        if c.fns.iter().any(|g| g.kind == FnKind::Fn && g.params.iter().any(|p| matches!(p.ty, Ty::Buf(_)))) {
+            disp = disp.replacen("#include <string.h>\n", "#include <stdlib.h>\n#include <string.h>\n", 1);
+        }
         disp += "/* 0 and the outputs in out (*ny of them), or -1: no such function, or not the number of inputs it takes. */\nint pc_call(const char *name, const double *x, int nx, double *out, int *ny) {\n    *ny = 0;\n";
         for f in c.fns.iter().filter(|g| g.kind == FnKind::Fn) {
+            if f.params.iter().any(|p| matches!(p.ty, Ty::Buf(_))) {
+                disp += &self.buf_call(f);
+                continue;
+            }
             let (setup, at) = self.call_body(f, "        ");
             let call = format!("{}({})", Self::fname(&f.module, &f.name), Self::call_args(f).join(", "));
             let ob = self.outs_body(f, &call, "        ");
