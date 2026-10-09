@@ -6339,7 +6339,8 @@
   {
    "step": "S7.18",
    "work": "The twin reads the .tndb itself: tndb read (JSON on stdout), asils.util.design_read over system() + jsondecode; matlab_sils/data stops being a copy.",
-   "parity": "twin runs identical with inputs from the .tndb and from the files"
+   "parity": "twin runs identical with inputs from the .tndb and from the files",
+   "status": "done (9 Oct 2026): The twin opens the design itself. The library's command (`tndb`, engine/crates/trinetra-design src/twin.rs) gained `tndb read DESIGN [--engine-inputs|--cases]` (the twin's inputs as one JSON array of {path, body}: the 164 engine inputs, each held to its fingerprint, and the 3 cases, the bytes tools/from_design.py exports to matlab_sils/data and cases), `tndb health DESIGN` (meta, nodes by behaviour, the built-in count, groups' releases, signatures, inputs, cases, the content fingerprint) and `tndb build-matlab DESIGN OUTDIR [--groups DIR]` (every MATLAB function the twin flies in one call: +asils/+models, +relations, +alg with alg_id.m, +pc, by the library's translator, the toolbox 01_math.pc compiled in; read-only, with index.json naming each file's node, release and revision; 0.9 s). The twin: `+trinetra` (open with its health, build, run, campaign, which, use; base MATLAB and Octave >= 8, system() + jsondecode) over a source switch in the runner, asils.util.design (as adcs-sim source.rs: with a design in use every data/ and cases/ input is the design's, a missing one refused by name; readjson, case.read, stated, the listings, the fingerprints, the case filed with a run) and the engine's blob from the same design (`TRINETRA_DESIGN=... adcs params`); no Python at run time. matlab_sils/data and cases and the committed +asils packages stay, the committed path flies as before (parallel until the switch). Held (matlab_sils/tests/test_trinetra_open.m, in the suite, and tests/test_trinetra_open.py): in a temporary workspace, the regression copy opened and built: 920 generated files equal to the committed +asils/+models (697), +relations (97), +alg (89), +pc (37) byte for byte, the same files, read-only; 167 inputs equal to from_design's export byte for byte and no other; trinetra.run of nadir_hold_ais (20 s), fine_hold_img, detumble_ais (20 s) and slew_cmg (10 s) equal to asils.run on the committed tree in every channel bit for bit (48 channels each, the blob too); two runs of mc_nadir_ais by trinetra.campaign equal to asils.campaign.run's bit for bit; the run filed names its design and has the same data and case fingerprints as the files'. cargo test -p trinetra-design (the build against the committed packages, the inputs against the files, health, a folder with other files never emptied)."
   },
   {
    "step": "S7.19",
@@ -6353,7 +6354,8 @@
    "tndb_binary": "Add `tndb read FILE [--engine-inputs|--cases|--node ID]` printing JSON (an array of {path, body}: jsondecode turns keys with / into mangled field names). The binary already carries SQLite (rusqlite bundled) and ships with the application. Works the same in MATLAB and Octave 7+; one process per run, cached in a containers.Map. Measured here: Octave 8.4 decodes all 163 engine inputs (280 kB) in 0.02 s.",
    "java_jdbc": "Needs a third-party SQLite JDBC driver jar with native libraries on javaclasspath; Octave may run without a JVM. Fragile, not recommended.",
    "mex": "Needs a C compiler on every user machine and a build per platform and per MATLAB/Octave ABI. Not recommended."
-  }
+  },
+  "done": "S7.18 (9 Oct 2026): tndb read DESIGN [--engine-inputs|--cases], tndb health, tndb build-matlab DESIGN OUTDIR [--groups DIR]; the twin's +trinetra (open, build, run, campaign, which, use) over asils.util.design; Octave 8.4 opens the regression copy in 0.14 s and builds its 920 functions in 0.9 s"
  },
  "amended": "2026-10-07: the owner's ruling (every published model with its data in the database); see counts.after_ruling_7_oct",
  "translator_gaps_closed_by_s7_2": [

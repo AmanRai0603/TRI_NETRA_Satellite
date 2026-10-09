@@ -1,7 +1,5 @@
 function s = readjson(file)
-%ASILS.UTIL.READJSON  Read a JSON file into a struct (jsondecode; MATLAB and Octave 7+).
-    fid = fopen(file, 'r');
-    assert(fid > 0, 'asils:json:open', 'Cannot open %s', file);
-    txt = fread(fid, '*char')'; fclose(fid);
-    s = jsondecode(txt);
+%ASILS.UTIL.READJSON  Read a JSON input into a struct (jsondecode; MATLAB and Octave 7+): the design database's when one
+%   is in use and the path is one of its inputs (asils.util.readtext), else the file's.
+    s = jsondecode(asils.util.readtext(file));
 end

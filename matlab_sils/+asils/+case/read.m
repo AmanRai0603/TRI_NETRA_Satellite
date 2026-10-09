@@ -6,9 +6,14 @@ function c = read(file)
 %   Refuses a file whose meta.schema is not adcs-case/1, a row with fewer than five
 %   fields, a key given twice, and a value that is neither blank (not stated) nor a
 %   finite number -- the same refusals as the engine's case reader (adcs-sim/src/case.rs).
-    fid = fopen(file, 'r');
-    assert(fid > 0, 'asils:case:open', 'Cannot open case file %s', file);
-    txt = fread(fid, '*char')'; fclose(fid);
+%   With a design database in use (asils.util.design), a case under cases/ is the design's.
+    if ~isempty(asils.util.design()) && ~isempty(asils.util.inputkey(file))
+        txt = asils.util.readtext(file);
+    else
+        fid = fopen(file, 'r');
+        assert(fid > 0, 'asils:case:open', 'Cannot open case file %s', file);
+        txt = fread(fid, '*char')'; fclose(fid);
+    end
     lines = regexp(txt, '\r?\n', 'split');
     hdr = splitcsv_(lines{1});
     need = {'section','key','label','unit','value','lo','hi','level','note'};

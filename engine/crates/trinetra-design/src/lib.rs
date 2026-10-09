@@ -9,7 +9,8 @@
 //! tools/tndb.py does; `ddl` is the SQL that makes a file of a kind, and the tests hold it to
 //! design/ddl.sql, which tools/tndb.py writes. [`content`] is the canonical content a signature
 //! covers, [`keys`] the people's keys and the signature chain, [`compare`] two files side by side,
-//! [`node_rules`] the node app's live checks on a node file.
+//! [`node_rules`] the node app's live checks on a node file, [`twin`] what the MATLAB twin reads of a design database
+//! (its inputs, its health, every MATLAB function it flies: `tndb read`, `health`, `build-matlab`).
 //!
 //! Owner: Agastya. Copyright (c) 2026 Agastya. All rights reserved.
 use std::collections::BTreeMap;
@@ -25,6 +26,7 @@ pub mod compare;
 pub mod content;
 pub mod keys;
 pub mod node_rules;
+pub mod twin;
 pub mod write;
 
 /// design/schema.toml as this program was built with it.

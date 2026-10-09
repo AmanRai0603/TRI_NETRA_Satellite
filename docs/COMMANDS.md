@@ -37,6 +37,14 @@
 | [`design_rows.py design-rows`](#design_rowspy-design-rows) | Every row of the ADCS tree, from the spec package: 734 rows (133 in layer 1, 194 in layer 2, 368 in the subsystem layers, 39 closures), each with its short id, the id its node file carries, its layer, kind, branch and label. Fails when the counts SPEC.md states do not hold or an id repeats. |
 | [`groups.py groups`](#groupspy-groups) | The group map (design/groups.toml) against every row of the tree: each row in exactly one of the 20 discipline groups, each group holding the rows it states, each stage inside its group, every override and boundary naming real rows and groups. --row says where one row goes and why. |
 | [`tndb.py tndb`](#tndbpy-tndb) | The design files (node, group, release, design database), from design/schema.toml: check a file's format, version and every table; dump it as canonical JSON; print the SQL that makes a kind; write or check the files made from the schema (design/ddl.sql, design/js/tndb_schema.js). An older file is upgraded with a copy kept; a newer one is refused. |
+| [`tndb read`](#tndb-read) | The MATLAB twin's inputs from a design database (docs/S7_INVENTORY.md S7.18), printed as one JSON array of {path, body}: every engine input (data/scenarios, products, parts, algorithms, the catalogue, the classes, the stated values, ...) and every case (cases/<id>.csv, its lines under the one header): the same bytes tools/from_design.py exports to matlab_sils/data and matlab_sils/cases, and the engine reads from the database. trinetra.open reads it over system() and jsondecode. |
+| [`tndb health`](#tndb-health) | What a design is and how it stands, as JSON, for trinetra.open to show: its id, kind, version, toolbox and the application it needs; its content fingerprint (from_design.py's); its nodes by behaviour and the built-in count by group (tools/health.py's); its groups' releases and its signatures; its inputs by folder, each held to its fingerprint; its cases. |
+| [`tndb build-matlab`](#tndb-build-matlab) | Every MATLAB function the twin flies, from a design, in one call (docs/S7_INVENTORY.md S7.18; what trinetra.build runs): the engine's models (every method block an engine target names, with what its code.uses names, in turn; the toolbox compiled in) as +asils/+models, the relations (the design's library and the groups' wiring DIR, each relation once) as +asils/+relations, the flight software's algorithms (the toolbox and the design's fsw/pseudocode 02-09) as +asils/+alg with their identity (alg_id.m: sha256 over their C and Rust translations), and the language's runtime as +asils/+pc; byte for byte what tools/engine_build.py and tools/flight_build.py write into matlab_sils/+asils, by the same translator (trinetra-pcode). Every file is read-only; OUTDIR/index.json names each file's node, its group's release, the revision its text carries and the design text it came from (trinetra.which). Without --groups the relations are not built, and the index says so. |
+| [`+trinetra open`](#trinetra-open) | Open a design database for the MATLAB twin and show its health: its version and toolbox, its nodes by behaviour and the built-in count, its groups' releases and signatures, its inputs (each held to its fingerprint) and whether its generated code is built and is this design's. Reads it through the library's command (tndb health, tndb read: JSON over system(), no toolbox). |
+| [`+trinetra build`](#trinetra-build) | Generate every MATLAB function the twin flies from the opened design into generated/ beside the user's copy (tndb build-matlab: +asils/+models, +relations, +alg, +pc, read-only, with index.json), and put it on the path ahead of the install's own copies. The groups' wiring is the repository's design/groups when the twin sits in one. |
+| [`+trinetra run`](#trinetra-run) | Fly one scenario of the opened design with its generated code: the twin's runner (asils.run) over the design's inputs and code (trinetra.use: the generated folder first on the path, the design's inputs in place of matlab_sils/data and cases, the engine's blob from the same design), and file it in the user's copy, results/<scenario>/: channels, manifest (naming the design it was flown from), rec.mat, the case, its figures and report (adcs figures, adcs report). |
+| [`+trinetra campaign`](#trinetra-campaign) | Fly a campaign of the opened design (Monte Carlo or edge cases) with its generated code, as trinetra.run flies a scenario: asils.campaign.run over the design's inputs and code, its runs, summary and figures in results/<campaign>/. A run already filed is not flown again. |
+| [`+trinetra which`](#trinetra-which) | Name the node a generated function came from: its node, its group's release, the revision its text carries and the design text it was translated from (generated/index.json); or that it is the runtime, the toolbox or the translator's dispatcher (code). |
 | [`convert_2_0.py convert-2-0`](#convert_2_0py-convert-2-0) | The design leaves the repository (docs/PLAN_2_0.md S3): the one conversion of the 1.0.0 design (the seeded and carried node and group files) and the repository's library data (catalogue, KPIs, units, the flight software's algorithms, parameters and IGRF table, the cases, scenarios, campaigns and trades) into the 2.0.0 layout of the shared drive: 21 group folders with their nodes and a baseline release 0.1 each, the cases, and readable copies with Conversion.csv placing every field. Writes a new folder only; the same inputs give the same bytes. |
 | [`design_build.py design-build`](#design_buildpy-design-build) | Today's design (docs/PLAN_2_0.md S4): the one database every program reads, built from every group's newest sealed release that passes its checks on the shared drive (or a converted folder). Holds the releases used, every node as released, the wires, the catalogue of outputs, the cases the engine flies line by line and every engine input file, each generated from the design's own blocks and case files; names its toolbox and the application it needs. With --export, writes the same inputs as a data folder for the MATLAB twin and the Python tools. |
 | [`health.py health`](#healthpy-health) | The health map of a design for a case (docs/OPERATING_2_0.md §6): every node's health with why (fails, refused, blocked, open, unproven, tight, closes; worst first), rolled up group by group to the ADCS; each closure's answer, its range verdict (closes for the whole range, for part of it, or fails for all of it) and its tornado from the case's edge campaigns; and trace to cause for every closure that does not close; and the built-in count, the nodes whose relation is still compiled code, by group (docs/PLAN_2_0.md S7 lowers it to zero; --built-in prints only that). Every value comes from tools/evaluate.py on the design; nothing here computes one of its own. |
@@ -690,6 +698,170 @@ The design files (node, group, release, design database), from design/schema.tom
 - **Checks:** a file's format, version, tables and columns against design/schema.toml; caps on size and pictures
 - **Undo:** check: nothing, unless it upgraded an older file, which keeps the original beside it (put it back by renaming). gen: It writes generated files only: `git checkout -- <file>` puts back the committed one, or run it again once its source is as you want it.
 - **Code:** `tools/tndb.py`
+
+## tndb read
+
+The MATLAB twin's inputs from a design database (docs/S7_INVENTORY.md S7.18), printed as one JSON array of {path, body}: every engine input (data/scenarios, products, parts, algorithms, the catalogue, the classes, the stated values, ...) and every case (cases/<id>.csv, its lines under the one header): the same bytes tools/from_design.py exports to matlab_sils/data and matlab_sils/cases, and the engine reads from the database. trinetra.open reads it over system() and jsondecode.
+
+    tndb read DESIGN.tndb [--engine-inputs | --cases]
+
+**Steps**
+
+1. open the design database read-only (refused by name when it is not one, or holds no engine inputs)
+2. take every engine input, each held to its fingerprint (FNV-1a), and every case, line by line
+3. print them sorted by path as JSON
+
+- **Reads:** `DESIGN.tndb`
+- **Writes:** nothing
+- **Starts:** nothing
+- **Checks:** a design database of format 2 or later; every engine input what its fingerprint says (exit 1 if not, 2 if the file is not a design database)
+- **Undo:** Nothing to undo: it writes nothing.
+- **Code:** `engine/crates/trinetra-design/ (src/bin/tndb.rs, src/twin.rs)`
+
+## tndb health
+
+What a design is and how it stands, as JSON, for trinetra.open to show: its id, kind, version, toolbox and the application it needs; its content fingerprint (from_design.py's); its nodes by behaviour and the built-in count by group (tools/health.py's); its groups' releases and its signatures; its inputs by folder, each held to its fingerprint; its cases.
+
+    tndb health DESIGN.tndb
+
+**Steps**
+
+1. open the design database read-only
+2. count its nodes by their first block's behaviour, and the built-in ones by group
+3. read its groups, releases and signatures
+4. hold every engine input to its fingerprint
+5. print it as JSON
+
+- **Reads:** `DESIGN.tndb`
+- **Writes:** nothing
+- **Starts:** nothing
+- **Checks:** a design database of format 2 or later
+- **Undo:** Nothing to undo: it writes nothing.
+- **Code:** `engine/crates/trinetra-design/ (src/bin/tndb.rs, src/twin.rs)`
+
+## tndb build-matlab
+
+Every MATLAB function the twin flies, from a design, in one call (docs/S7_INVENTORY.md S7.18; what trinetra.build runs): the engine's models (every method block an engine target names, with what its code.uses names, in turn; the toolbox compiled in) as +asils/+models, the relations (the design's library and the groups' wiring DIR, each relation once) as +asils/+relations, the flight software's algorithms (the toolbox and the design's fsw/pseudocode 02-09) as +asils/+alg with their identity (alg_id.m: sha256 over their C and Rust translations), and the language's runtime as +asils/+pc; byte for byte what tools/engine_build.py and tools/flight_build.py write into matlab_sils/+asils, by the same translator (trinetra-pcode). Every file is read-only; OUTDIR/index.json names each file's node, its group's release, the revision its text carries and the design text it came from (trinetra.which). Without --groups the relations are not built, and the index says so.
+
+    tndb build-matlab DESIGN.tndb OUTDIR [--groups DIR]
+
+**Steps**
+
+1. open the design database read-only
+2. take the texts it keeps whole by the paths their nodes' origins name
+3. collect each engine target's modules and translate them all to MATLAB (asils.models)
+4. with --groups: the library's relations and each group's module without what the library holds, translated (asils.relations)
+5. the flight algorithms translated to MATLAB (asils.alg), and to C and Rust for their identity
+6. the runtime (asils.pc)
+7. empty OUTDIR when it is one this command made (anything else in it is refused, never deleted), write every file read-only and the index
+8. print what it made as JSON
+
+- **Reads:** `DESIGN.tndb`; `DIR (design/groups: the groups' wiring, tools/groupcode.py wire)`
+- **Writes:** `OUTDIR/+asils/+models, +relations, +alg, +pc`; `OUTDIR/index.json`
+- **Starts:** nothing
+- **Checks:** the design's modules compile (the translator's checks); OUTDIR holds nothing it did not make
+- **Undo:** Delete OUTDIR (its files are read-only: chmod -R u+w first on POSIX).
+- **Code:** `engine/crates/trinetra-design/ (src/bin/tndb.rs, src/twin.rs)`
+
+## +trinetra open
+
+Open a design database for the MATLAB twin and show its health: its version and toolbox, its nodes by behaviour and the built-in count, its groups' releases and signatures, its inputs (each held to its fingerprint) and whether its generated code is built and is this design's. Reads it through the library's command (tndb health, tndb read: JSON over system(), no toolbox).
+
+    tn = trinetra.open('path/design.tndb')   (MATLAB or GNU Octave >= 8, after startup_asils)
+
+**Steps**
+
+1. tndb health DESIGN
+2. tndb read DESIGN: the twin's inputs, by path
+3. list its scenarios, campaigns, trades and cases
+4. show its health (trinetra.health)
+
+- **Reads:** `DESIGN.tndb`; `DESIGN's folder/generated/index.json (when built)`
+- **Writes:** nothing
+- **Starts:** tndb health; tndb read
+- **Checks:** a design database; every input what its fingerprint says (shown)
+- **Undo:** Nothing to undo: it writes nothing.
+- **Code:** `matlab_sils/+trinetra/open.m`
+
+## +trinetra build
+
+Generate every MATLAB function the twin flies from the opened design into generated/ beside the user's copy (tndb build-matlab: +asils/+models, +relations, +alg, +pc, read-only, with index.json), and put it on the path ahead of the install's own copies. The groups' wiring is the repository's design/groups when the twin sits in one.
+
+    trinetra.build(tn [, 'groups', DIR])
+
+**Steps**
+
+1. tndb build-matlab DESIGN generated [--groups DIR]
+2. addpath generated (first on the path)
+3. say what it made, and what it did not
+
+- **Reads:** `DESIGN.tndb`; `design/groups/ (when the twin sits in the repository)`
+- **Writes:** `DESIGN's folder/generated/`
+- **Starts:** tndb build-matlab
+- **Checks:** as tndb build-matlab
+- **Undo:** Delete the generated folder (chmod -R u+w first) and rmpath it.
+- **Code:** `matlab_sils/+trinetra/build.m`
+
+## +trinetra run
+
+Fly one scenario of the opened design with its generated code: the twin's runner (asils.run) over the design's inputs and code (trinetra.use: the generated folder first on the path, the design's inputs in place of matlab_sils/data and cases, the engine's blob from the same design), and file it in the user's copy, results/<scenario>/: channels, manifest (naming the design it was flown from), rec.mat, the case, its figures and report (adcs figures, adcs report).
+
+    rec = trinetra.run(tn, SCENARIO [, 'case', ID, 'seed', N, 'set', struct(...), 'quiet', true, 'save', true, 'figures', true, 'report', true])
+
+**Steps**
+
+1. check the code is built from this design (generated/index.json's fingerprint)
+2. put the generated code first on the path (from the user's copy when the current folder is the install's) and refuse an install copy that holds a function the design does not give
+3. use the design's inputs; read the scenario and its case from them
+4. fly asils.run (the blob: TRINETRA_DESIGN=DESIGN adcs params)
+5. file the run in results/<scenario>/; draw its figures and report
+6. put back the path, the folder and the inputs in use
+
+- **Reads:** `DESIGN.tndb (through tn)`; `DESIGN's folder/generated/`; `matlab_sils/+asils (the runner)`; `matlab_sils/pop`
+- **Writes:** `DESIGN's folder/results/<scenario>/: channels.csv, manifest.json, rec.mat, case.csv, figures/, report.html, report.pdf`
+- **Starts:** adcs params; adcs figures; adcs report
+- **Checks:** the scenario and case are the design's; the code flown is the design's (which asils.pc.clamp); the engine's refusals of the configuration, by name
+- **Undo:** Delete results/<scenario>/.
+- **Code:** `matlab_sils/+trinetra/run.m`
+
+## +trinetra campaign
+
+Fly a campaign of the opened design (Monte Carlo or edge cases) with its generated code, as trinetra.run flies a scenario: asils.campaign.run over the design's inputs and code, its runs, summary and figures in results/<campaign>/. A run already filed is not flown again.
+
+    res = trinetra.campaign(tn, CAMPAIGN [, 'runs', 1:N, 'set', struct(...), 'figures', true, 'quiet', true])
+
+**Steps**
+
+1. as trinetra.run: the design's code first on the path, its inputs in use
+2. draw and fly each run (asils.campaign.run; parfor in MATLAB when the Parallel Computing Toolbox is there)
+3. collect, print and write the summary (summary.json, runs.csv) and the figures
+4. put back the path, the folder and the inputs in use
+
+- **Reads:** `DESIGN.tndb (through tn)`; `DESIGN's folder/generated/`
+- **Writes:** `DESIGN's folder/results/<campaign>/: run_NNNN.mat, summary.json, runs.csv, figures`
+- **Starts:** adcs params
+- **Checks:** the campaign is the design's; as trinetra.run
+- **Undo:** Delete results/<campaign>/.
+- **Code:** `matlab_sils/+trinetra/campaign.m`
+
+## +trinetra which
+
+Name the node a generated function came from: its node, its group's release, the revision its text carries and the design text it was translated from (generated/index.json); or that it is the runtime, the toolbox or the translator's dispatcher (code).
+
+    trinetra.which(NAME [, tn])
+
+**Steps**
+
+1. find the generated folder: tn's, the design in use, else every one on the path
+2. match NAME (a function, module.function or its full package name) in its index
+3. print or return each match
+
+- **Reads:** `generated/index.json`
+- **Writes:** nothing
+- **Starts:** nothing
+- **Checks:** nothing: it reads
+- **Undo:** Nothing to undo: it writes nothing.
+- **Code:** `matlab_sils/+trinetra/which.m`
 
 ## convert_2_0.py convert-2-0
 

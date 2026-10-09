@@ -3,13 +3,16 @@ function S = stated()
 %   stated nodes by tools/design_build.py), as the engine's adcs-sim stated.rs reads them: a node's number, list, flag,
 %   whole number or x/y/z triple, each refused by name when the design states none. Read once a session.
 %   S.get(node), S.list(node, n), S.flag(node), S.whole(node, lo, hi), S.v3(prefix)
+%   With a design database in use (asils.util.design), its data/stated.json, read once a design.
 %   Owner: Agastya. Copyright (c) 2026 Agastya. All rights reserved.
     persistent V F
     f = fullfile(asils.util.root(), 'data', 'stated.json');
-    if isempty(V) || ~strcmp(F, f)
+    D = asils.util.design(); id = f;
+    if ~isempty(D), id = [D.file '|' asils.util.getf(D, 'fingerprint', '') '|' f]; end
+    if isempty(V) || ~strcmp(F, id)
         j = asils.util.readjson(f);
         assert(strcmp(asils.util.getf(j, 'schema', ''), 'adcs-stated/2'), 'asils:stated:schema', '%s: not an adcs-stated/2 file', f);
-        V = j.value; F = f;
+        V = j.value; F = id;
     end
     S.get = @(node) get_(V, f, node);
     S.list = @(node, n) list_(V, f, node, n);

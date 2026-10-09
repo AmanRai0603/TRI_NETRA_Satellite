@@ -63,7 +63,7 @@ end
 
 function A = load_(R, id)
     f = fullfile(R, 'data', 'algorithms', [id '.json']);
-    assert(exist(f, 'file') == 2, 'asils:select:unknown', 'no algorithm %s in the registry', id);
+    assert(asils.util.hasinput(f), 'asils:select:unknown', 'no algorithm %s in the registry', id);
     A = asils.util.readjson(f);
     n = asils.util.getf(A, 'needs', {});
     if ischar(n), n = {n}; end

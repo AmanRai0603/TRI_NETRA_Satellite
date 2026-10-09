@@ -9,7 +9,7 @@ function f = find(R, kind, id)
         if exist(g, 'file') == 2, f = g; return, end
     end
     f = fullfile(R, 'data', kind, [id '.json']);
-    if exist(f, 'file') == 2, return, end
+    if asils.util.hasinput(f), return, end
     d = dir(fullfile(R, 'store', 'sized'));
     names = sort({d([d.isdir]).name});
     for i = 1:numel(names)

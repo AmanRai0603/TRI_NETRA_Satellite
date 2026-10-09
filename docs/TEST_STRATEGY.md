@@ -14,7 +14,7 @@ Companion to `docs/TECHNICAL_ROADMAP.md`, `docs/TEST_BENCH_PLAN.md` and `docs/AD
 | Engine crates (13) | 178 tests pass. adcs-sim 58 · adcs-pop 50 (ERFA vectors, MATLAB POP) · adcs-sim-core 25 · adcs-plot 12 · adcs-cli 10 · others 23 |
 | Rust flight software | 58 pass, 1 ignored; **0 unit tests inside `fsw-rs/src`** |
 | C flight software | 45 checks; pseudocode vectors: 78 functions, 38,696 values, 38,636 bit for bit |
-| MATLAB/Octave twin | 43 / 43 |
+| MATLAB/Octave twin | 44 / 44 (with the design opened, built and flown by +trinetra, S7.18) |
 | `tools/check_all.py` | 22 checks always, 4 optional (pages, twin, propagator, mutation) |
 | Fuzzing | Parameter blobs, telecommands, bus bytes: 3,000 × 20 ticks, exact timestamps |
 | C vs Rust differential | 60 random configurations × 200 ticks, bit for bit |

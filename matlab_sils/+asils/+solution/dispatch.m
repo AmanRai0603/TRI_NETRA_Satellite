@@ -64,7 +64,7 @@ function out = dispatch(caseId, familyId)
     header_(fullfile(out, 'adcs_fsw_params.h'), fp, caseId, familyId);
     % ---- HAL / component map
     dev = asils.product.load(pid);
-    comps = dir(fullfile(R, 'data', 'components', '*.json')); hm = struct();
+    comps = asils.util.listinputs(fullfile(R, 'data', 'components'), '*.json'); hm = struct();
     for i = 1:numel(comps)
         C = asils.util.readjson(fullfile(comps(i).folder, comps(i).name));
         if fitted_(C.id, dev), hm.(C.id) = C; end

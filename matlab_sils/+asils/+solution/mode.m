@@ -4,7 +4,7 @@ function M = mode(modeId)
 %   With no argument: the ids of every mode, in mission order.
     R = asils.util.root();
     if nargin < 1
-        d = dir(fullfile(R, 'data', 'modes', '*.json'));
+        d = asils.util.listinputs(fullfile(R, 'data', 'modes'), '*.json');
         ids = cellfun(@(n) n(1:end-5), {d.name}, 'UniformOutput', false);
         o = zeros(1, numel(ids));
         for i = 1:numel(ids), Mi = asils.solution.mode(ids{i}); o(i) = Mi.order; end
