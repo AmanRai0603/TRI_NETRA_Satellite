@@ -608,24 +608,3 @@ find = "any"
 exception = true
 why = "the vendored Octave POP carries its own published models (gravity, the atmospheres, DE440's evaluation, frames and time, tides, relativity, the spacecraft forces), and the twin's in-loop precision orbit (+asils/+orbit init, node, advance) flies them; only its force set and start are env's generated (forcemodel)."
 until = "the twin's precision orbit flies env's generated +models, as the engine's adcs-pop calls its gen modules, and POP stays only as the referent (classified test)"
-
-[[allow]]
-file = "matlab_sils/+asils/+orbit/node.m"
-find = "astronomical unit"
-exception = true
-why = "with no ephemeris in POP's context the twin's orbit node puts the Sun at 1.496e11 m on x and the Moon at 3.84e8 m: published values in the runner."
-until = "the fallback is env's (sunfast, moonfast) or a refusal by name"
-
-[[allow]]
-file = "matlab_sils/+asils/+orbit/node.m"
-find = "solar pressure"
-exception = true
-why = "the same fallback takes the Sun's pressure as 4.56e-6 N/m^2."
-until = "the fallback is env's (m3_5 or sunfast's pressure) or a refusal by name"
-
-[[allow]]
-file = "matlab_sils/+asils/+viz/run.m"
-find = "earth radius"
-exception = true
-why = "a figure plots the radius less 6378137 m (a spherical Earth's altitude)."
-until = "the figure takes the radius from the design's constants (asils.relations.orbit.radius(0)) or plots the record's own altitude"

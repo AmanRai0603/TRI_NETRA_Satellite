@@ -8,7 +8,7 @@ function [acc, x] = node(t, y, W)
     if ~isempty(ctx.E)
         x.sun_eci = ctx.E.sun_eci(:); x.P_srp = ctx.E.P_srp; x.moon_eci = ctx.E.moon_eci(:);
     else
-        x.sun_eci = [1.496e11;0;0]; x.P_srp = 4.56e-6; x.moon_eci = [3.84e8;0;0];
+        [x.sun_eci, x.P_srp, x.moon_eci] = asils.models.forcemodel.no_ephem_env();   % env_force_model's, as adcs-pop's accel
     end
     if isfield(info, 'drag') && isfield(info.drag, 'atm')
         x.rho = info.drag.atm.rho;
