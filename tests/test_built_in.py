@@ -1,4 +1,4 @@
-"""The built-in count (docs/PLAN_2_0.md S7; docs/S7_INVENTORY.md S7.1b, S7.3, S7.3b-e, S7.4, S7.5, S7.6, S7.7, S7.8, S7.9, S7.10, S7.11, S7.12, S7.13, S7.14, S7.14b): the nodes of the regression copy whose
+"""The built-in count (docs/PLAN_2_0.md S7; docs/S7_INVENTORY.md S7.1b, S7.3, S7.3b-e, S7.4, S7.5, S7.6, S7.7, S7.8, S7.9, S7.10, S7.11, S7.12, S7.13, S7.14, S7.14b, S7.15): the nodes of the regression copy whose
 relation is still compiled code, by group. S7 lowers it to zero; each step that writes a method takes its nodes
 out of BUILT_IN here, in the same change.
   - the count and the list are exactly these, and tools/health.py reports them;
@@ -26,12 +26,7 @@ _ = _path  # imported for its effect: tools/ on sys.path
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 REG = ROOT / "tests" / "regression"
 
-BUILT_IN = {
-    "act": ["gm_4", "gm_5", "gw_2", "gw_5", "gw_6", "l3_fmr_row_07", "l3_fmr_row_14", "l3_fmr_row_15"],
-    "design": ["design_sizing_cmg", "design_sizing_fmr", "design_sizing_mtq", "design_sizing_rcs", "design_sizing_rw",
-               "design_sizing_sensors", "design_sizing_vscmg", "gb_0", "gb_1", "gb_2", "gb_3", "l3_budget_row_01", "l3_budget_row_02",
-               "l3_budget_row_03", "l3_budget_row_04", "l3_budget_row_05", "l3_budget_row_06", "l3_budget_row_07", "l3_budget_row_08"],
-}
+BUILT_IN = {}     # S7.15: the sizing's 27 (act 8, design 19) were the last
 BOUNDARY = {"l3_fsw_row_01": "runtime", "l3_fsw_row_02": "runtime", "l3_fsw_row_03": "runtime", "l3_fsw_row_04": "runtime",
             "l3_fsw_row_10": "test"}
 
@@ -45,10 +40,10 @@ class BuiltIn(unittest.TestCase):
     def beh(self, nid):
         return self.nodes[nid][1]["body"]["block"][0][3]
 
-    def test_the_count_is_27_and_these(self):
+    def test_the_count_is_zero(self):
         bi = health.built_in(REG)
         self.assertEqual(bi["by_group"], BUILT_IN)
-        self.assertEqual(bi["count"], 27)
+        self.assertEqual(bi["count"], 0)
         self.assertEqual(bi["boundary"], BOUNDARY)
 
     def test_what_is_not_a_relation_in_code_is_not_built_in(self):
@@ -236,7 +231,7 @@ class BuiltIn(unittest.TestCase):
             self.assertEqual(rows[("code", "generate")][0], "adcs-sim-core", nid)
             self.assertEqual(x["sealed_as"], "unconfirmed", nid)
             self.assertTrue(any(w.startswith("the developer's revision S7.7") and "not yet signed by a person" in w for w in x["why"]), nid)
-        self.assertEqual(set(health.built_in(REG)["by_group"]["act"]) & moved, set())
+        self.assertEqual(set(health.built_in(REG)["by_group"].get("act", [])) & moved, set())
 
     def test_the_simple_sensors_are_methods_the_developer_transcribed(self):
         """S7.8: the gyro, the magnetometer, the coarse and fine Sun sensors (the noise model and the quadrant chain), the
@@ -591,6 +586,74 @@ end
         self.assertEqual(gen("kpimetrics", "METRICCHANNEL"), words("CHANNELS"))
         units = re.findall(r'"([^"]+)"', re.search(r"const UNITS: \[&str; \d+\] = \[(.*?)\];", met).group(1))
         self.assertEqual(len(units), len(gen("kpimetrics", "METRICUNIT")))
+
+    def test_the_sizing_is_methods_the_developer_transcribed(self):
+        """S7.15: the sizing's 27 built-in nodes (act's gm_4, gm_5, gw_2, gw_5, gw_6, l3_fmr_row_07, 14, 15; design's
+        sizing, budget and survey rows) are methods of design and act, the catalogue's derive rule a new node of catalogue
+        and the design loop's rules three new nodes of design (the owner's word), each the developer's unsigned
+        transcription, generated into adcs-design. adcs-design keeps the survey's step order and the files' formats, and
+        the tools ask the engine (adcs design derive, adcs design call): none keeps a law of its own."""
+        mods = {"design/sizedemand.pc": ["l3_budget_row_01", "gw_2"],
+                "design/sizemtq.pc": ["design_sizing_mtq", "l3_budget_row_02", "gm_4", "gm_5"],
+                "design/sizerotor.pc": ["design_sizing_rw", "design_sizing_cmg", "design_sizing_vscmg", "l3_budget_row_03", "gw_5", "gw_6"],
+                "act/sizepump.pc": ["l3_fmr_row_07"], "act/sizering.pc": ["l3_fmr_row_14", "l3_fmr_row_15"],
+                "design/sizefmr.pc": ["design_sizing_fmr", "l3_budget_row_04"], "design/sizercs.pc": ["design_sizing_rcs", "l3_budget_row_05"],
+                "design/sizebudget.pc": ["l3_budget_row_06", "l3_budget_row_07", "l3_budget_row_08", "gb_0", "gb_1", "gb_2", "gb_3"],
+                "design/sizesensors.pc": ["design_sizing_sensors"], "catalogue/catderive.pc": ["catalogue_datasheet_derive"],
+                "design/looprules.pc": ["design_loop_converge", "design_loop_robustness", "design_loop_redundancy"]}
+        self.assertEqual(sum(len(v) for k, v in mods.items() if k not in ("catalogue/catderive.pc", "design/looprules.pc")), 27)
+        for path, nids in mods.items():
+            for nid in nids:
+                _k, x = self.nodes[nid]
+                rows = {(s, f): (v, o) for s, f, v, o in x["body"]["content"]}
+                self.assertEqual(self.beh(nid), "method", nid)
+                self.assertTrue(rows[("code", "pseudocode")][1].startswith(path + " (the developer's revision S7.15"), nid)
+                self.assertTrue(rows[("code", "transcribes")][0], nid)
+                self.assertEqual(rows[("code", "generate")][0], "adcs-design", nid)
+                self.assertEqual(x["sealed_as"], "unconfirmed", nid)
+                self.assertTrue(any(w.startswith("the developer's revision S7.15") and "not yet signed by a person" in w for w in x["why"]), nid)
+        self.assertEqual(self.nodes["catalogue_datasheet_derive"][1]["body"]["node"]["group_id"], "catalogue")
+        for nid in mods["design/looprules.pc"]:
+            self.assertEqual(self.nodes[nid][1]["body"]["node"]["group_id"], "design", nid)
+        code = lambda rel: "\n".join(ln.split("//")[0] for ln in (ROOT / rel).read_text(encoding="utf-8").splitlines())
+        src = ROOT / "engine" / "crates" / "adcs-design" / "src"
+        self.assertFalse((src / "empump.rs").exists())
+        lib = code("engine/crates/adcs-design/src/lib.rs").split("#[cfg(test)]")[0]       # the code, not its tests
+        for gone in ("0.45", "4.5", "6440", "9.80665", "745.0", "2810", "70e5", "250e6", "0.8165", "0.9063", "91.3", "250.0", "5740", "0.25",
+                     "2e-4", "0.999", "0.006", "0.8*", "1.2*", "fold(", ".max(", ".min(", "powf", "powi", ".sqrt()", "PI", "sort_by", "atan2"):
+            self.assertNotIn(gone, lib, gone)
+        cat = (ROOT / "tools" / "catalogue.py").read_text(encoding="utf-8")
+        for gone in ("math.", "RPM", "ASSUMED_RPM", "1e-3", "re.findall", "def wheel_motor", "def volume_L", "(1 - top"):
+            self.assertNotIn(gone, cat, gone)
+        self.assertIn('"design", "derive"', cat)
+        # the notes' and the assumptions' words name the methods' constants, as the code wrote them
+        self.assertIn("a quarter orbit of secular momentum held between dumps", lib)
+        self.assertIn("\n    orbits_held = 0.25\n", from_design.text("design/sizedemand.pc", REG / "design.tndb"))
+        rules = from_design.text("catalogue/catderive.pc", REG / "design.tndb")
+        rule = lambda name: float(re.search(rf"\n    {name} = ([0-9.e-]+)\n", rules).group(1))
+        for name, words in (("balance", "G2.5"), ("coulomb", "Coulomb 1e-5 sqrt"), ("coulomb_ref", "h / 0.01 Nms"), ("viscous", "viscous 1e-8 N m s"),
+                            ("peak_efficiency", "speed / 0.5"), ("supply", "motor supply 5 V"), ("tuna_volume", "volume: 0.2 L per unit")):
+            self.assertIn(words, cat, name)
+            self.assertEqual(rule(name), {"balance": 2.5e-3, "coulomb": 1e-5, "coulomb_ref": 0.01, "viscous": 1e-8, "peak_efficiency": 0.5,
+                                          "supply": 5.0, "tuna_volume": 0.2}[name], name)
+        loop = (ROOT / "tools" / "pipeline_design.py").read_text(encoding="utf-8") + (ROOT / "tools" / "pipeline_verify.py").read_text(encoding="utf-8")
+        for gone in ("round(g0", "lam * 3", "sg / 4", "IMPROVE *", "s * UP", "s * DOWN", "s0 * DOWN", "GYRO_MIN * 1.01", "def node_robust(sel, fails, knobs, history):\n    \"\"\"Node mc's feedback: the Monte Carlo of the dispatched mission fails a requirement in some\n    dispersed run. The selected family's lever for that failure class is moved and the lever that\n    works against it is closed, then the loop runs on from these knobs.\"\"\""):
+            self.assertNotIn(gone, loop, gone)
+        base = (ROOT / "tools" / "pipeline_base.py").read_text(encoding="utf-8")
+        for gone in ("def auth_part", "def rate_violation", "def fam_violation"):
+            self.assertNotIn(gone, base, gone)
+        # the choices' options are the words the code reads and writes, in order
+        gen = lambda mod, choice: [k.lower() for k, _v in sorted(re.findall(rf"pub const {choice}_(\w+): i64 = (\d+);", (src / "gen" / f"{mod}.rs").read_text(encoding="utf-8")), key=lambda x: int(x[1]))]
+        import pipeline_design
+        self.assertEqual(gen("looprules", "PART"), pipeline_design.PARTS)
+        self.assertEqual(gen("looprules", "ACTUATOR"), pipeline_design.ACTUATORS)
+        self.assertEqual(gen("looprules", "LOOPEVENT"), pipeline_design.EVENTS)
+        self.assertEqual(gen("looprules", "MASSLEVER"), [w.replace(".", "_") for w in pipeline_design.LEVERS])
+        slots = re.findall(r'"(\w+)" => gb::SLOT_(\w+)', lib)
+        self.assertEqual([w for w, _c in slots], [c.lower() for _w, c in slots])
+        self.assertEqual([w for w, _c in slots], gen("sizebudget", "SLOT")[:-1])
+        self.assertEqual(gen("sizedemand", "SURVEYATTITUDE"), [w.lower() for w in re.findall(r'"(\w+)"', re.search(r"const ATT: \[&str; 4\] = \[(.*?)\];", lib).group(1))])
+        self.assertEqual(gen("sizedemand", "DIST"), ["normal", "uniform"])
 
     def test_every_behaviour_is_one_the_schema_knows(self):
         self.assertEqual(tndb.check(REG / "design.tndb"), [])

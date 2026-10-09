@@ -9,8 +9,9 @@ sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1] / "tools"))
 import json, math, os, shutil, subprocess, time
 import engine as E
 from common import write_bytes, write_text
+from design_call import Buf, call, take
 from pipeline_base import BIN, LAMBDA_MAX, MS, P, PIPE, ROOT, SCALE_MAX, SLOT, UP, cls, jl_, split_alg, usable, write
-from pipeline_design import node_key
+from pipeline_design import EVENT_BUFS, PARTS, events, node_key
 
 
 def node_select(case, res, sizing, modes, families, faults=None):
@@ -457,29 +458,36 @@ def node_mc(case, disp, sized, runs, jobs, base=None):
 def node_robust(sel, fails, knobs, history):
     """Node mc's feedback: the Monte Carlo of the dispatched mission fails a requirement in some
     dispersed run. The selected family's lever for that failure class is moved and the lever that
-    works against it is closed, then the loop runs on from these knobs."""
+    works against it is closed, then the loop runs on from these knobs (design_loop_robustness,
+    design/looprules.pc, asked through the engine)."""
     k = json.loads(json.dumps(knobs))
     f = sel["selected"]
     changes, blocked = [], []
     kinds = {cls(x["id"]) for x in fails}
-    if "power" in kinds:
-        lam = k.get("fmr_lambda", 0.1)
-        if "fmr" in f and lam < LAMBDA_MAX:
-            k["fmr_lambda"] = min(LAMBDA_MAX, lam * 3)
+    sc = k.get("scale", {})
+    num = lambda x: (True, float(x)) if isinstance(x, (int, float)) else (False, float("nan"))
+    lam, fs, ms = num(k.get("fmr_lambda")), num(sc.get("fmr")), num(sc.get("mtqp"))
+    args = ("power" in kinds, "performance" in kinds, "knowledge" in kinds, "fmr" in f, f == "mtq", sel["class"] == "fine",
+            lam[0], lam[1], fs[0], fs[1], ms[0], ms[1], bool(k.get("star_tracker")), LAMBDA_MAX, SCALE_MAX, UP, *[Buf([0] * 8) for _ in range(EVENT_BUFS)])
+    out = take(call("looprules::loop_robust", *args), 1, *["buf"] * EVENT_BUFS)
+    for kind, _i, p, a, b, _c, _f in events(out[1:], int(out[0])):
+        part = PARTS[p] if p >= 0 else None
+        if kind == "robust_lambda":
+            lam0 = k.get("fmr_lambda", 0.1)
+            k["fmr_lambda"] = b
             history["_lam_up"] = True; history["_closed_fmr_lambda"] = True
-            changes.append(f"robustness ({f}): mean power fails in dispersed runs -> pump with more copper (lambda {lam:g} -> {k['fmr_lambda']:g} kg/W); lighter-pump lever closed")
-        else:
+            changes.append(f"robustness ({f}): mean power fails in dispersed runs -> pump with more copper (lambda {lam0:g} -> {k['fmr_lambda']:g} kg/W); lighter-pump lever closed")
+        elif kind == "robust_power":
             blocked.append(f"robustness ({f}): power fails in dispersed runs and no power lever is left")
-    if "performance" in kinds:
-        part = "fmr" if "fmr" in f else "mtqp" if f == "mtq" else None
-        s0 = k.setdefault("scale", {}).get(part, 1.0) if part else None
-        if part and s0 < SCALE_MAX:
-            k["scale"][part] = min(SCALE_MAX, s0 * UP); history[f"_closed_scale.{part}"] = True
+        elif kind == "robust_authority":
+            s0 = k.setdefault("scale", {}).get(part, 1.0)
+            k["scale"][part] = b; history[f"_closed_scale.{part}"] = True
             changes.append(f"robustness ({f}): performance fails in dispersed runs -> {part} authority x{s0:g} -> x{k['scale'][part]:g}")
-        else:
+        elif kind == "robust_performance":
+            if part:
+                k.setdefault("scale", {})
             blocked.append(f"robustness ({f}): performance fails in dispersed runs and no authority is left")
-    if "knowledge" in kinds:
-        if not k.get("star_tracker") and sel["class"] != "fine":
+        elif kind == "robust_star_tracker":
             k["star_tracker"] = True; changes.append(f"robustness ({f}): knowledge fails in dispersed runs -> fit the star tracker")
         else:
             blocked.append(f"robustness ({f}): knowledge fails in dispersed runs with the star tracker fitted")

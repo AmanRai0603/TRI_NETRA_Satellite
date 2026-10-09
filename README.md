@@ -44,7 +44,7 @@ Who runs what (C / Rust / Python / MATLAB): `docs/figures/architecture_languages
 |---|---|
 | `fsw/` | the flight software in **embedded C** (C99) behind `adcs_fsw.h` / `adcs_hal.h`; `fsw/pseudocode/` is the contract, `fsw/params/params.toml` the parameter set |
 | `fsw-rs/` | the same flight software in **Rust** (`no_std`; feature `cabi` exports the C ABI) |
-| `engine/` | the **Rust SILS engine**: `adcs-design` (demand survey + sizing, identical to the MATLAB laws), `adcs-pop` (the full POP propagator ported to Rust, bit-identical to MATLAB), plant, device emulators speaking bytes, config, metrics, recorder; `adcs-plot` (the one plotting module: run figures and reports as SVG and PDF, engine and twin runs alike); `adcs` CLI |
+| `engine/` | the **Rust SILS engine**: `adcs-design` (demand survey + sizing, its laws generated from the design), `adcs-pop` (the full POP propagator ported to Rust, bit-identical to MATLAB), plant, device emulators speaking bytes, config, metrics, recorder; `adcs-plot` (the one plotting module: run figures and reports as SVG and PDF, engine and twin runs alike); `adcs` CLI |
 | `fsw/targets/` | the **virtual OBC**: the flight software as a process or as Cortex-M4F firmware in QEMU, in lockstep with the engine over adcs-link/1 (`docs/VIRTUAL_OBC.md`); the same link reaches a real OBC |
 | `matlab_sils/` | the SILS twin (MATLAB / GNU Octave), with the Precision Orbit Propagator in the loop; start at `matlab_sils/README.md` |
 | `catalogue/` | parts, products, algorithms (slot + hardware needs), `families.toml` (solution / benchmark), `modes/`, `components/` |

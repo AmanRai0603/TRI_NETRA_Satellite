@@ -111,7 +111,8 @@ switch (cmd) {
         const t = p.ty;
         const scalar = (lo, hi, isI) => {
           let v = lo > 0 && hi / lo > 20 ? Math.exp(Math.log(lo) + rand() * (Math.log(hi) - Math.log(lo))) : lo + rand() * (hi - lo);
-          return isI ? Math.round(v) : v;
+          // an int has no sign of zero (int() gives 0): Math.round of a draw in (-0.5, 0) is -0, which an i64 cannot hold
+          return isI ? Math.round(v) + 0 : v;
         };
         const range = p.range ? p.range.map((r) => r.bound) : null;
         const one = (tt) => {

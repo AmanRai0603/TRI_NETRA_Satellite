@@ -119,6 +119,24 @@ function y = call(name, x)
         case 'rotortlm::rotor_telemetry'
             [o1, o2, io7] = asils.models.rotortlm.rotor_telemetry(x(1), reshape(x(2:9), 8, 1), reshape(x(10:13), 4, 1), reshape(x(14:21), 8, 1), x(22), x(23), reshape(x(24:29), 6, 1));
             y = [reshape(o1, [], 1); reshape(o2, [], 1); reshape(io7, [], 1)];
+        case 'sizepump::pump_fluid'
+            [o1, o2, o3, o4] = asils.models.sizepump.pump_fluid();
+            y = [double(o1); double(o2); double(o3); double(o4)];
+        case 'sizepump::pump_friction'
+            [o1, o2] = asils.models.sizepump.pump_friction(x(1), x(2), x(3));
+            y = [double(o1); double(o2)];
+        case 'sizepump::pump_design'
+            [o1] = asils.models.sizepump.pump_design(x(1), x(2), x(3), x(4), x(5));
+            y = [[double(o1.d); double(o1.loops); double(o1.v_max); double(o1.h_max); double(o1.s); double(o1.l); double(o1.re); double(o1.v_cruise); double(o1.b); double(o1.lp); double(o1.gap); double(o1.ni); double(o1.i_design); double(o1.i_cruise); double(o1.dp_design); double(o1.dp_cruise); double(o1.p_coil); double(o1.p_elec_cruise); double(o1.m_cu); double(o1.m_fe); double(o1.eta_cruise); double(o1.eta); double(o1.tau_max); double(o1.p_steady); double(o1.p_peak); double(o1.m_fluid); double(o1.mass); double(o1.cost); double(o1.found)]];
+        case 'sizepump::pump_pareto'
+            [o1, o2, o3, o4, o5, o6, o7, o8, o9] = asils.models.sizepump.pump_pareto(x(1), x(2), x(3), x(4));
+            y = [reshape(o1, [], 1); reshape(o2, [], 1); reshape(o3, [], 1); reshape(o4, [], 1); reshape(o5, [], 1); reshape(o6, [], 1); reshape(o7, [], 1); reshape(o8, [], 1); reshape(o9, [], 1)];
+        case 'sizering::spare_axis'
+            [o1] = asils.models.sizering.spare_axis();
+            y = [reshape(o1, [], 1)];
+        case 'sizering::ring_section'
+            [o1, o2] = asils.models.sizering.ring_section(reshape(x(1:3), 3, 1), reshape(x(4:6), 3, 1));
+            y = [double(o1); double(o2)];
         case 'thrusters::thrusters_new'
             [o1, io2] = asils.models.thrusters.thrusters_new(struct('fitted', {(x(1) ~= 0)}, 'nc', {x(2)}, 'tau', {reshape(x(3:20), 3, 6).'}, 'thrust', {x(21)}, 'isp', {x(22)}, 'mib', {x(23)}, 'res', {x(24)}, 'prop_kg', {x(25)}, 'valve_power', {x(26)}, 'isp_lo', {x(27)}, 'isp_hi', {x(28)}, 'thrust_sigma', {x(29)}, 'misalign', {x(30)}), reshape(x(31:36), 6, 1));
             y = [[reshape((o1.tau).', [], 1); reshape(o1.tscale, [], 1); reshape(o1.failed, [], 1); double(o1.isp)]; reshape(io2, [], 1)];
@@ -170,6 +188,516 @@ function y = call(name, x)
         case 'wheelspeed::momentum_limited'
             [o1] = asils.models.wheelspeed.momentum_limited(x(1), x(2), x(3), x(4));
             y = [double(o1)];
+        case 'catderive::catalogue_rules'
+            [o1, o2, o3, o4, o5, o6, o7, o8, o9, o10, o11, o12, o13, o14] = asils.models.catderive.catalogue_rules();
+            y = [double(o1); double(o2); double(o3); double(o4); double(o5); double(o6); double(o7); double(o8); double(o9); double(o10); double(o11); double(o12); double(o13); double(o14)];
+        case 'catderive::catalogue_selectable'
+            [o1, o2, o3, o4, o5] = asils.models.catderive.catalogue_selectable(x(1), x(2), x(3), x(4));
+            y = [double(o1); double(o2); double(o3); double(o4); double(o5)];
+        case 'catderive::catalogue_volume'
+            [o1, o2] = asils.models.catderive.catalogue_volume(x(1), x(2), x(3), (x(4) ~= 0), (x(5) ~= 0));
+            y = [double(o1); double(o2)];
+        case 'catderive::catalogue_rotor'
+            [o1, o2, o3, o4, o5, o6, o7, o8, o9, o10, o11, o12, o13, o14] = asils.models.catderive.catalogue_rotor(x(1), x(2), x(3), x(4), x(5), x(6));
+            y = [double(o1); double(o2); double(o3); double(o4); double(o5); double(o6); double(o7); double(o8); double(o9); double(o10); double(o11); double(o12); double(o13); double(o14)];
+        case 'catderive::catalogue_wheel_motor'
+            [o1, o2, o3, o4, o5, o6] = asils.models.catderive.catalogue_wheel_motor(x(1), x(2), x(3), x(4), x(5));
+            y = [double(o1); double(o2); double(o3); double(o4); double(o5); double(o6)];
+        case 'catderive::catalogue_cmg'
+            [o1, o2, o3, o4, o5, o6] = asils.models.catderive.catalogue_cmg(x(1), x(2), x(3));
+            y = [double(o1); double(o2); double(o3); double(o4); double(o5); double(o6)];
+        case 'looprules::loop_part'
+            [o1] = asils.models.looprules.loop_part(x(1));
+            y = [double(o1)];
+        case 'looprules::loop_round3'
+            [o1] = asils.models.looprules.loop_round3(x(1));
+            y = [double(o1)];
+        case 'looprules::loop_rate_violation'
+            at = 0;
+            n1 = x(at + 1);
+            a1 = reshape(x(at + 2:at + 1 + n1), [], 1);
+            at = at + 1 + n1;
+            n2 = x(at + 1);
+            a2 = reshape(x(at + 2:at + 1 + n2), [], 1);
+            at = at + 1 + n2;
+            xa = x(at + 1:end);
+            a3 = xa(1);
+            at = at + 1;
+            [o1, io1, io2] = asils.models.looprules.loop_rate_violation(a1, a2, a3);
+            y = [double(o1); numel(io1); reshape(io1, [], 1); numel(io2); reshape(io2, [], 1)];
+        case 'looprules::loop_option_violation'
+            at = 0;
+            n1 = x(at + 1);
+            a1 = reshape(x(at + 2:at + 1 + n1), [], 1);
+            at = at + 1 + n1;
+            n2 = x(at + 1);
+            a2 = reshape(x(at + 2:at + 1 + n2), [], 1);
+            at = at + 1 + n2;
+            xa = x(at + 1:end);
+            a3 = xa(1);
+            at = at + 1;
+            xa = x(at + 1:end);
+            a4 = xa(1);
+            at = at + 1;
+            xa = x(at + 1:end);
+            a5 = (xa(1) ~= 0);
+            at = at + 1;
+            [o1, io1, io2] = asils.models.looprules.loop_option_violation(a1, a2, a3, a4, a5);
+            y = [double(o1); numel(io1); reshape(io1, [], 1); numel(io2); reshape(io2, [], 1)];
+        case 'looprules::loop_family_violation'
+            at = 0;
+            n1 = x(at + 1);
+            a1 = reshape(x(at + 2:at + 1 + n1), [], 1);
+            at = at + 1 + n1;
+            n2 = x(at + 1);
+            a2 = reshape(x(at + 2:at + 1 + n2), [], 1);
+            at = at + 1 + n2;
+            n3 = x(at + 1);
+            a3 = reshape(x(at + 2:at + 1 + n3), [], 1);
+            at = at + 1 + n3;
+            xa = x(at + 1:end);
+            a4 = xa(1);
+            at = at + 1;
+            n5 = x(at + 1);
+            a5 = reshape(x(at + 2:at + 1 + n5), [], 1);
+            at = at + 1 + n5;
+            n6 = x(at + 1);
+            a6 = reshape(x(at + 2:at + 1 + n6), [], 1);
+            at = at + 1 + n6;
+            n7 = x(at + 1);
+            a7 = reshape(x(at + 2:at + 1 + n7), [], 1);
+            at = at + 1 + n7;
+            xa = x(at + 1:end);
+            a8 = xa(1);
+            at = at + 1;
+            xa = x(at + 1:end);
+            a9 = xa(1);
+            at = at + 1;
+            [o1, io1, io2, io3, io5, io6, io7] = asils.models.looprules.loop_family_violation(a1, a2, a3, a4, a5, a6, a7, a8, a9);
+            y = [double(o1); numel(io1); reshape(io1, [], 1); numel(io2); reshape(io2, [], 1); numel(io3); reshape(io3, [], 1); numel(io5); reshape(io5, [], 1); numel(io6); reshape(io6, [], 1); numel(io7); reshape(io7, [], 1)];
+        case 'looprules::loop_event'
+            at = 0;
+            n1 = x(at + 1);
+            a1 = reshape(x(at + 2:at + 1 + n1), [], 1);
+            at = at + 1 + n1;
+            n2 = x(at + 1);
+            a2 = reshape(x(at + 2:at + 1 + n2), [], 1);
+            at = at + 1 + n2;
+            n3 = x(at + 1);
+            a3 = reshape(x(at + 2:at + 1 + n3), [], 1);
+            at = at + 1 + n3;
+            n4 = x(at + 1);
+            a4 = reshape(x(at + 2:at + 1 + n4), [], 1);
+            at = at + 1 + n4;
+            n5 = x(at + 1);
+            a5 = reshape(x(at + 2:at + 1 + n5), [], 1);
+            at = at + 1 + n5;
+            n6 = x(at + 1);
+            a6 = reshape(x(at + 2:at + 1 + n6), [], 1);
+            at = at + 1 + n6;
+            n7 = x(at + 1);
+            a7 = reshape(x(at + 2:at + 1 + n7), [], 1);
+            at = at + 1 + n7;
+            xa = x(at + 1:end);
+            a8 = xa(1);
+            at = at + 1;
+            xa = x(at + 1:end);
+            a9 = xa(1);
+            at = at + 1;
+            xa = x(at + 1:end);
+            a10 = xa(1);
+            at = at + 1;
+            xa = x(at + 1:end);
+            a11 = xa(1);
+            at = at + 1;
+            xa = x(at + 1:end);
+            a12 = xa(1);
+            at = at + 1;
+            xa = x(at + 1:end);
+            a13 = xa(1);
+            at = at + 1;
+            xa = x(at + 1:end);
+            a14 = xa(1);
+            at = at + 1;
+            xa = x(at + 1:end);
+            a15 = xa(1);
+            at = at + 1;
+            [o1, io1, io2, io3, io4, io5, io6, io7] = asils.models.looprules.loop_event(a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15);
+            y = [double(o1); numel(io1); reshape(io1, [], 1); numel(io2); reshape(io2, [], 1); numel(io3); reshape(io3, [], 1); numel(io4); reshape(io4, [], 1); numel(io5); reshape(io5, [], 1); numel(io6); reshape(io6, [], 1); numel(io7); reshape(io7, [], 1)];
+        case 'looprules::loop_converge'
+            at = 0;
+            n1 = x(at + 1);
+            a1 = reshape(x(at + 2:at + 1 + n1), [], 1);
+            at = at + 1 + n1;
+            n2 = x(at + 1);
+            a2 = reshape(x(at + 2:at + 1 + n2), [], 1);
+            at = at + 1 + n2;
+            n3 = x(at + 1);
+            a3 = reshape(x(at + 2:at + 1 + n3), [], 1);
+            at = at + 1 + n3;
+            n4 = x(at + 1);
+            a4 = reshape(x(at + 2:at + 1 + n4), [], 1);
+            at = at + 1 + n4;
+            n5 = x(at + 1);
+            a5 = reshape(x(at + 2:at + 1 + n5), [], 1);
+            at = at + 1 + n5;
+            n6 = x(at + 1);
+            a6 = reshape(x(at + 2:at + 1 + n6), [], 1);
+            at = at + 1 + n6;
+            n7 = x(at + 1);
+            a7 = reshape(x(at + 2:at + 1 + n7), [], 1);
+            at = at + 1 + n7;
+            n8 = x(at + 1);
+            a8 = reshape(x(at + 2:at + 1 + n8), [], 1);
+            at = at + 1 + n8;
+            n9 = x(at + 1);
+            a9 = reshape(x(at + 2:at + 1 + n9), [], 1);
+            at = at + 1 + n9;
+            n10 = x(at + 1);
+            a10 = reshape(x(at + 2:at + 1 + n10), [], 1);
+            at = at + 1 + n10;
+            n11 = x(at + 1);
+            a11 = reshape(x(at + 2:at + 1 + n11), [], 1);
+            at = at + 1 + n11;
+            n12 = x(at + 1);
+            a12 = reshape(x(at + 2:at + 1 + n12), [], 1);
+            at = at + 1 + n12;
+            n13 = x(at + 1);
+            a13 = reshape(x(at + 2:at + 1 + n13), [], 1);
+            at = at + 1 + n13;
+            n14 = x(at + 1);
+            a14 = reshape(x(at + 2:at + 1 + n14), [], 1);
+            at = at + 1 + n14;
+            n15 = x(at + 1);
+            a15 = reshape(x(at + 2:at + 1 + n15), [], 1);
+            at = at + 1 + n15;
+            n16 = x(at + 1);
+            a16 = reshape(x(at + 2:at + 1 + n16), [], 1);
+            at = at + 1 + n16;
+            n17 = x(at + 1);
+            a17 = reshape(x(at + 2:at + 1 + n17), [], 1);
+            at = at + 1 + n17;
+            n18 = x(at + 1);
+            a18 = reshape(x(at + 2:at + 1 + n18), [], 1);
+            at = at + 1 + n18;
+            n19 = x(at + 1);
+            a19 = reshape(x(at + 2:at + 1 + n19), [], 1);
+            at = at + 1 + n19;
+            n20 = x(at + 1);
+            a20 = reshape(x(at + 2:at + 1 + n20), [], 1);
+            at = at + 1 + n20;
+            n21 = x(at + 1);
+            a21 = reshape(x(at + 2:at + 1 + n21), [], 1);
+            at = at + 1 + n21;
+            n22 = x(at + 1);
+            a22 = reshape(x(at + 2:at + 1 + n22), [], 1);
+            at = at + 1 + n22;
+            xa = x(at + 1:end);
+            a23 = xa(1);
+            at = at + 1;
+            xa = x(at + 1:end);
+            a24 = xa(1);
+            at = at + 1;
+            n25 = x(at + 1);
+            a25 = reshape(x(at + 2:at + 1 + n25), [], 1);
+            at = at + 1 + n25;
+            n26 = x(at + 1);
+            a26 = reshape(x(at + 2:at + 1 + n26), [], 1);
+            at = at + 1 + n26;
+            n27 = x(at + 1);
+            a27 = reshape(x(at + 2:at + 1 + n27), [], 1);
+            at = at + 1 + n27;
+            n28 = x(at + 1);
+            a28 = reshape(x(at + 2:at + 1 + n28), [], 1);
+            at = at + 1 + n28;
+            n29 = x(at + 1);
+            a29 = reshape(x(at + 2:at + 1 + n29), [], 1);
+            at = at + 1 + n29;
+            n30 = x(at + 1);
+            a30 = reshape(x(at + 2:at + 1 + n30), [], 1);
+            at = at + 1 + n30;
+            xa = x(at + 1:end);
+            a31 = xa(1);
+            at = at + 1;
+            n32 = x(at + 1);
+            a32 = reshape(x(at + 2:at + 1 + n32), [], 1);
+            at = at + 1 + n32;
+            n33 = x(at + 1);
+            a33 = reshape(x(at + 2:at + 1 + n33), [], 1);
+            at = at + 1 + n33;
+            xa = x(at + 1:end);
+            a34 = xa(1);
+            at = at + 1;
+            xa = x(at + 1:end);
+            a35 = (xa(1) ~= 0);
+            at = at + 1;
+            xa = x(at + 1:end);
+            a36 = xa(1);
+            at = at + 1;
+            xa = x(at + 1:end);
+            a37 = xa(1);
+            at = at + 1;
+            xa = x(at + 1:end);
+            a38 = (xa(1) ~= 0);
+            at = at + 1;
+            xa = x(at + 1:end);
+            a39 = (xa(1) ~= 0);
+            at = at + 1;
+            xa = x(at + 1:end);
+            a40 = (xa(1) ~= 0);
+            at = at + 1;
+            xa = x(at + 1:end);
+            a41 = (xa(1) ~= 0);
+            at = at + 1;
+            xa = x(at + 1:end);
+            a42 = (xa(1) ~= 0);
+            at = at + 1;
+            xa = x(at + 1:end);
+            a43 = (xa(1) ~= 0);
+            at = at + 1;
+            xa = x(at + 1:end);
+            a44 = (xa(1) ~= 0);
+            at = at + 1;
+            xa = x(at + 1:end);
+            a45 = xa(1);
+            at = at + 1;
+            xa = x(at + 1:end);
+            a46 = xa(1);
+            at = at + 1;
+            xa = x(at + 1:end);
+            a47 = xa(1);
+            at = at + 1;
+            xa = x(at + 1:end);
+            a48 = (xa(1) ~= 0);
+            at = at + 1;
+            xa = x(at + 1:end);
+            a49 = xa(1);
+            at = at + 1;
+            xa = x(at + 1:end);
+            a50 = xa(1);
+            at = at + 1;
+            xa = x(at + 1:end);
+            a51 = xa(1);
+            at = at + 1;
+            n52 = x(at + 1);
+            a52 = reshape(x(at + 2:at + 1 + n52), [], 1);
+            at = at + 1 + n52;
+            n53 = x(at + 1);
+            a53 = reshape(x(at + 2:at + 1 + n53), [], 1);
+            at = at + 1 + n53;
+            xa = x(at + 1:end);
+            a54 = (xa(1) ~= 0);
+            at = at + 1;
+            xa = x(at + 1:end);
+            a55 = xa(1);
+            at = at + 1;
+            xa = x(at + 1:end);
+            a56 = (xa(1) ~= 0);
+            at = at + 1;
+            xa = x(at + 1:end);
+            a57 = xa(1);
+            at = at + 1;
+            xa = x(at + 1:end);
+            a58 = (xa(1) ~= 0);
+            at = at + 1;
+            xa = x(at + 1:end);
+            a59 = xa(1);
+            at = at + 1;
+            xa = x(at + 1:end);
+            a60 = (xa(1) ~= 0);
+            at = at + 1;
+            xa = x(at + 1:end);
+            a61 = (xa(1) ~= 0);
+            at = at + 1;
+            xa = x(at + 1:end);
+            a62 = xa(1);
+            at = at + 1;
+            n63 = x(at + 1);
+            a63 = reshape(x(at + 2:at + 1 + n63), [], 1);
+            at = at + 1 + n63;
+            n64 = x(at + 1);
+            a64 = reshape(x(at + 2:at + 1 + n64), [], 1);
+            at = at + 1 + n64;
+            xa = x(at + 1:end);
+            a65 = (xa(1) ~= 0);
+            at = at + 1;
+            xa = x(at + 1:end);
+            a66 = xa(1);
+            at = at + 1;
+            xa = x(at + 1:end);
+            a67 = (xa(1) ~= 0);
+            at = at + 1;
+            xa = x(at + 1:end);
+            a68 = xa(1);
+            at = at + 1;
+            xa = x(at + 1:end);
+            a69 = (xa(1) ~= 0);
+            at = at + 1;
+            xa = x(at + 1:end);
+            a70 = xa(1);
+            at = at + 1;
+            xa = x(at + 1:end);
+            a71 = (xa(1) ~= 0);
+            at = at + 1;
+            xa = x(at + 1:end);
+            a72 = (xa(1) ~= 0);
+            at = at + 1;
+            xa = x(at + 1:end);
+            a73 = xa(1);
+            at = at + 1;
+            n74 = x(at + 1);
+            a74 = reshape(x(at + 2:at + 1 + n74), [], 1);
+            at = at + 1 + n74;
+            n75 = x(at + 1);
+            a75 = reshape(x(at + 2:at + 1 + n75), [], 1);
+            at = at + 1 + n75;
+            n76 = x(at + 1);
+            a76 = reshape(x(at + 2:at + 1 + n76), [], 1);
+            at = at + 1 + n76;
+            n77 = x(at + 1);
+            a77 = reshape(x(at + 2:at + 1 + n77), [], 1);
+            at = at + 1 + n77;
+            n78 = x(at + 1);
+            a78 = reshape(x(at + 2:at + 1 + n78), [], 1);
+            at = at + 1 + n78;
+            n79 = x(at + 1);
+            a79 = reshape(x(at + 2:at + 1 + n79), [], 1);
+            at = at + 1 + n79;
+            xa = x(at + 1:end);
+            a80 = xa(1);
+            at = at + 1;
+            xa = x(at + 1:end);
+            a81 = xa(1);
+            at = at + 1;
+            xa = x(at + 1:end);
+            a82 = xa(1);
+            at = at + 1;
+            xa = x(at + 1:end);
+            a83 = xa(1);
+            at = at + 1;
+            xa = x(at + 1:end);
+            a84 = xa(1);
+            at = at + 1;
+            xa = x(at + 1:end);
+            a85 = xa(1);
+            at = at + 1;
+            xa = x(at + 1:end);
+            a86 = xa(1);
+            at = at + 1;
+            xa = x(at + 1:end);
+            a87 = xa(1);
+            at = at + 1;
+            xa = x(at + 1:end);
+            a88 = xa(1);
+            at = at + 1;
+            xa = x(at + 1:end);
+            a89 = xa(1);
+            at = at + 1;
+            n90 = x(at + 1);
+            a90 = reshape(x(at + 2:at + 1 + n90), [], 1);
+            at = at + 1 + n90;
+            n91 = x(at + 1);
+            a91 = reshape(x(at + 2:at + 1 + n91), [], 1);
+            at = at + 1 + n91;
+            n92 = x(at + 1);
+            a92 = reshape(x(at + 2:at + 1 + n92), [], 1);
+            at = at + 1 + n92;
+            n93 = x(at + 1);
+            a93 = reshape(x(at + 2:at + 1 + n93), [], 1);
+            at = at + 1 + n93;
+            n94 = x(at + 1);
+            a94 = reshape(x(at + 2:at + 1 + n94), [], 1);
+            at = at + 1 + n94;
+            n95 = x(at + 1);
+            a95 = reshape(x(at + 2:at + 1 + n95), [], 1);
+            at = at + 1 + n95;
+            n96 = x(at + 1);
+            a96 = reshape(x(at + 2:at + 1 + n96), [], 1);
+            at = at + 1 + n96;
+            n97 = x(at + 1);
+            a97 = reshape(x(at + 2:at + 1 + n97), [], 1);
+            at = at + 1 + n97;
+            n98 = x(at + 1);
+            a98 = reshape(x(at + 2:at + 1 + n98), [], 1);
+            at = at + 1 + n98;
+            [o1, io1, io2, io3, io4, io5, io6, io7, io8, io9, io10, io11, io12, io13, io14, io15, io16, io17, io18, io19, io20, io21, io22, io25, io26, io27, io28, io29, io30, io32, io33, io52, io53, io63, io64, io74, io75, io76, io77, io78, io79, io90, io91, io92, io93, io94, io95, io96, io97, io98] = asils.models.looprules.loop_converge(a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17, a18, a19, a20, a21, a22, a23, a24, a25, a26, a27, a28, a29, a30, a31, a32, a33, a34, a35, a36, a37, a38, a39, a40, a41, a42, a43, a44, a45, a46, a47, a48, a49, a50, a51, a52, a53, a54, a55, a56, a57, a58, a59, a60, a61, a62, a63, a64, a65, a66, a67, a68, a69, a70, a71, a72, a73, a74, a75, a76, a77, a78, a79, a80, a81, a82, a83, a84, a85, a86, a87, a88, a89, a90, a91, a92, a93, a94, a95, a96, a97, a98);
+            y = [double(o1); numel(io1); reshape(io1, [], 1); numel(io2); reshape(io2, [], 1); numel(io3); reshape(io3, [], 1); numel(io4); reshape(io4, [], 1); numel(io5); reshape(io5, [], 1); numel(io6); reshape(io6, [], 1); numel(io7); reshape(io7, [], 1); numel(io8); reshape(io8, [], 1); numel(io9); reshape(io9, [], 1); numel(io10); reshape(io10, [], 1); numel(io11); reshape(io11, [], 1); numel(io12); reshape(io12, [], 1); numel(io13); reshape(io13, [], 1); numel(io14); reshape(io14, [], 1); numel(io15); reshape(io15, [], 1); numel(io16); reshape(io16, [], 1); numel(io17); reshape(io17, [], 1); numel(io18); reshape(io18, [], 1); numel(io19); reshape(io19, [], 1); numel(io20); reshape(io20, [], 1); numel(io21); reshape(io21, [], 1); numel(io22); reshape(io22, [], 1); numel(io25); reshape(io25, [], 1); numel(io26); reshape(io26, [], 1); numel(io27); reshape(io27, [], 1); numel(io28); reshape(io28, [], 1); numel(io29); reshape(io29, [], 1); numel(io30); reshape(io30, [], 1); numel(io32); reshape(io32, [], 1); numel(io33); reshape(io33, [], 1); numel(io52); reshape(io52, [], 1); numel(io53); reshape(io53, [], 1); numel(io63); reshape(io63, [], 1); numel(io64); reshape(io64, [], 1); numel(io74); reshape(io74, [], 1); numel(io75); reshape(io75, [], 1); numel(io76); reshape(io76, [], 1); numel(io77); reshape(io77, [], 1); numel(io78); reshape(io78, [], 1); numel(io79); reshape(io79, [], 1); numel(io90); reshape(io90, [], 1); numel(io91); reshape(io91, [], 1); numel(io92); reshape(io92, [], 1); numel(io93); reshape(io93, [], 1); numel(io94); reshape(io94, [], 1); numel(io95); reshape(io95, [], 1); numel(io96); reshape(io96, [], 1); numel(io97); reshape(io97, [], 1); numel(io98); reshape(io98, [], 1)];
+        case 'looprules::loop_robust'
+            at = 0;
+            xa = x(at + 1:end);
+            a1 = (xa(1) ~= 0);
+            at = at + 1;
+            xa = x(at + 1:end);
+            a2 = (xa(1) ~= 0);
+            at = at + 1;
+            xa = x(at + 1:end);
+            a3 = (xa(1) ~= 0);
+            at = at + 1;
+            xa = x(at + 1:end);
+            a4 = (xa(1) ~= 0);
+            at = at + 1;
+            xa = x(at + 1:end);
+            a5 = (xa(1) ~= 0);
+            at = at + 1;
+            xa = x(at + 1:end);
+            a6 = (xa(1) ~= 0);
+            at = at + 1;
+            xa = x(at + 1:end);
+            a7 = (xa(1) ~= 0);
+            at = at + 1;
+            xa = x(at + 1:end);
+            a8 = xa(1);
+            at = at + 1;
+            xa = x(at + 1:end);
+            a9 = (xa(1) ~= 0);
+            at = at + 1;
+            xa = x(at + 1:end);
+            a10 = xa(1);
+            at = at + 1;
+            xa = x(at + 1:end);
+            a11 = (xa(1) ~= 0);
+            at = at + 1;
+            xa = x(at + 1:end);
+            a12 = xa(1);
+            at = at + 1;
+            xa = x(at + 1:end);
+            a13 = (xa(1) ~= 0);
+            at = at + 1;
+            xa = x(at + 1:end);
+            a14 = xa(1);
+            at = at + 1;
+            xa = x(at + 1:end);
+            a15 = xa(1);
+            at = at + 1;
+            xa = x(at + 1:end);
+            a16 = xa(1);
+            at = at + 1;
+            n17 = x(at + 1);
+            a17 = reshape(x(at + 2:at + 1 + n17), [], 1);
+            at = at + 1 + n17;
+            n18 = x(at + 1);
+            a18 = reshape(x(at + 2:at + 1 + n18), [], 1);
+            at = at + 1 + n18;
+            n19 = x(at + 1);
+            a19 = reshape(x(at + 2:at + 1 + n19), [], 1);
+            at = at + 1 + n19;
+            n20 = x(at + 1);
+            a20 = reshape(x(at + 2:at + 1 + n20), [], 1);
+            at = at + 1 + n20;
+            n21 = x(at + 1);
+            a21 = reshape(x(at + 2:at + 1 + n21), [], 1);
+            at = at + 1 + n21;
+            n22 = x(at + 1);
+            a22 = reshape(x(at + 2:at + 1 + n22), [], 1);
+            at = at + 1 + n22;
+            n23 = x(at + 1);
+            a23 = reshape(x(at + 2:at + 1 + n23), [], 1);
+            at = at + 1 + n23;
+            [o1, io17, io18, io19, io20, io21, io22, io23] = asils.models.looprules.loop_robust(a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16, a17, a18, a19, a20, a21, a22, a23);
+            y = [double(o1); numel(io17); reshape(io17, [], 1); numel(io18); reshape(io18, [], 1); numel(io19); reshape(io19, [], 1); numel(io20); reshape(io20, [], 1); numel(io21); reshape(io21, [], 1); numel(io22); reshape(io22, [], 1); numel(io23); reshape(io23, [], 1)];
+        case 'looprules::loop_redundancy'
+            [o1] = asils.models.looprules.loop_redundancy((x(1) ~= 0), (x(2) ~= 0), (x(3) ~= 0));
+            y = [double(o1)];
         case 'powersys::array_power'
             [o1] = asils.models.powersys.array_power(reshape(x(1:6), 6, 1), x(7), reshape(x(8:10), 3, 1), x(11));
             y = [double(o1)];
@@ -187,6 +715,199 @@ function y = call(name, x)
             y = [double(o1)];
         case 'powersys::battery_soc'
             [o1] = asils.models.powersys.battery_soc(x(1), x(2));
+            y = [double(o1)];
+        case 'sizebudget::budget_line'
+            [o1, o2, o3, o4] = asils.models.sizebudget.budget_line(x(1), x(2), x(3), x(4), x(5), x(6), x(7), x(8), x(9), x(10));
+            y = [double(o1); double(o2); double(o3); double(o4)];
+        case 'sizebudget::budget_total'
+            at = 0;
+            n1 = x(at + 1);
+            a1 = reshape(x(at + 2:at + 1 + n1), [], 1);
+            at = at + 1 + n1;
+            n2 = x(at + 1);
+            a2 = reshape(x(at + 2:at + 1 + n2), [], 1);
+            at = at + 1 + n2;
+            n3 = x(at + 1);
+            a3 = reshape(x(at + 2:at + 1 + n3), [], 1);
+            at = at + 1 + n3;
+            xa = x(at + 1:end);
+            a4 = xa(1);
+            at = at + 1;
+            [o1, o2, o3, io1, io2, io3] = asils.models.sizebudget.budget_total(a1, a2, a3, a4);
+            y = [double(o1); double(o2); double(o3); numel(io1); reshape(io1, [], 1); numel(io2); reshape(io2, [], 1); numel(io3); reshape(io3, [], 1)];
+        case 'sizedemand::size_max'
+            [o1] = asils.models.sizedemand.size_max(x(1), x(2));
+            y = [double(o1)];
+        case 'sizedemand::size_min'
+            [o1] = asils.models.sizedemand.size_min(x(1), x(2));
+            y = [double(o1)];
+        case 'sizedemand::survey_runs'
+            [o1] = asils.models.sizedemand.survey_runs();
+            y = [double(o1)];
+        case 'sizedemand::survey_sweep'
+            [o1, o2] = asils.models.sizedemand.survey_sweep(x(1));
+            y = [double(o1); double(o2)];
+        case 'sizedemand::survey_setup'
+            [o1, o2, o3] = asils.models.sizedemand.survey_setup();
+            y = [double(o1); double(o2); double(o3)];
+        case 'sizedemand::survey_samples'
+            [o1] = asils.models.sizedemand.survey_samples(x(1), x(2));
+            y = [double(o1)];
+        case 'sizedemand::survey_attitude'
+            [o1, o2, o3, o4, o5] = asils.models.sizedemand.survey_attitude(x(1));
+            y = [reshape(o1, [], 1); double(o2); double(o3); reshape(o4, [], 1); reshape(o5, [], 1)];
+        case 'sizedemand::survey_orbit'
+            at = 0;
+            n1 = x(at + 1);
+            a1 = reshape(x(at + 2:at + 1 + n1), [], 1);
+            at = at + 1 + n1;
+            xa = x(at + 1:end);
+            a2 = xa(1);
+            at = at + 1;
+            xa = x(at + 1:end);
+            a3 = xa(1);
+            at = at + 1;
+            xa = x(at + 1:end);
+            a4 = xa(1);
+            at = at + 1;
+            [o1, o2, o3, o4, io1] = asils.models.sizedemand.survey_orbit(a1, a2, a3, a4);
+            y = [reshape(o1, [], 1); reshape((o2).', [], 1); reshape(o3, [], 1); reshape(o4, [], 1); numel(io1); reshape(io1, [], 1)];
+        case 'sizedemand::survey_field'
+            at = 0;
+            n1 = x(at + 1);
+            a1 = reshape(x(at + 2:at + 1 + n1), [], 1);
+            at = at + 1 + n1;
+            xa = x(at + 1:end);
+            a2 = xa(1);
+            at = at + 1;
+            [o1, o2, io1] = asils.models.sizedemand.survey_field(a1, a2);
+            y = [double(o1); double(o2); numel(io1); reshape(io1, [], 1)];
+        case 'sizedemand::survey_worst'
+            [o1, o2, o3, o4, o5, o6] = asils.models.sizedemand.survey_worst(reshape(x(1:4), 4, 1), reshape(x(5:8), 4, 1), reshape(x(9:20), 4, 3).', reshape(x(21:32), 4, 3).', reshape(x(33:36), 4, 1), reshape(x(37:40), 4, 1), reshape(x(41:44), 4, 1), reshape(x(45:48), 4, 1), x(49), x(50), x(51), x(52));
+            y = [reshape(o1, [], 1); reshape((o2).', [], 1); reshape(o3, [], 1); reshape(o4, [], 1); double(o5); double(o6)];
+        case 'sizedemand::demand_defaults'
+            [o1, o2, o3, o4, o5, o6, o7, o8] = asils.models.sizedemand.demand_defaults();
+            y = [double(o1); double(o2); double(o3); double(o4); double(o5); double(o6); double(o7); double(o8)];
+        case 'sizedemand::demand'
+            [o1, o2, o3, o4, o5, o6, o7, o8, o9, o10, o11, o12, o13, o14, o15, o16, o17, o18, o19, o20, o21, o22, o23] = asils.models.sizedemand.demand(reshape(x(1:4), 4, 1), reshape(x(5:8), 4, 1), reshape(x(9:12), 4, 1), x(13), x(14), x(15), x(16), x(17), x(18), x(19), x(20), x(21), x(22), reshape(x(23:25), 3, 1), x(26));
+            y = [double(o1); double(o2); double(o3); double(o4); double(o5); double(o6); double(o7); double(o8); double(o9); double(o10); double(o11); double(o12); double(o13); double(o14); double(o15); double(o16); double(o17); double(o18); double(o19); double(o20); double(o21); double(o22); double(o23)];
+        case 'sizedemand::sizing_knobs'
+            [o1, o2, o3, o4, o5, o6, o7, o8, o9, o10, o11, o12, o13, o14, o15] = asils.models.sizedemand.sizing_knobs();
+            y = [double(o1); double(o2); double(o3); double(o4); double(o5); double(o6); double(o7); double(o8); double(o9); double(o10); double(o11); double(o12); double(o13); double(o14); double(o15)];
+        case 'sizefmr::fmr_faces'
+            [o1, o2] = asils.models.sizefmr.fmr_faces(reshape(x(1:3), 3, 1));
+            y = [reshape(o1, [], 1); reshape(o2, [], 1)];
+        case 'sizefmr::fmr_need'
+            [o1, o2] = asils.models.sizefmr.fmr_need(x(1), x(2), x(3));
+            y = [double(o1); double(o2)];
+        case 'sizefmr::fmr_spare_need'
+            [o1, o2] = asils.models.sizefmr.fmr_spare_need(x(1), x(2));
+            y = [double(o1); double(o2)];
+        case 'sizefmr::fmr_loop'
+            [o1, o2] = asils.models.sizefmr.fmr_loop(x(1), x(2));
+            y = [double(o1); double(o2)];
+        case 'sizefmr::fmr_volume'
+            [o1] = asils.models.sizefmr.fmr_volume(x(1));
+            y = [double(o1)];
+        case 'sizefmr::fmr_no_dipole'
+            [o1, o2, o3] = asils.models.sizefmr.fmr_no_dipole();
+            y = [double(o1); double(o2); double(o3)];
+        case 'sizefmr::fmr_dispersion'
+            [o1, o2, o3, o4, o5, o6, o7, o8, o9, o10, o11, o12] = asils.models.sizefmr.fmr_dispersion(x(1), x(2));
+            y = [double(o1); double(o2); double(o3); double(o4); double(o5); double(o6); double(o7); double(o8); double(o9); double(o10); double(o11); double(o12)];
+        case 'sizefmr::fmr_axes'
+            [o1] = asils.models.sizefmr.fmr_axes();
+            y = [reshape((o1).', [], 1)];
+        case 'sizemtq::mtq_dipoles'
+            [o1, o2, o3, o4] = asils.models.sizemtq.mtq_dipoles(x(1), x(2), x(3), x(4), x(5), x(6), x(7));
+            y = [double(o1); double(o2); double(o3); double(o4)];
+        case 'sizemtq::mtq_pointing_dipole'
+            [o1] = asils.models.sizemtq.mtq_pointing_dipole(x(1), x(2));
+            y = [double(o1)];
+        case 'sizemtq::mtq_coil'
+            [o1, o2, o3, o4, o5, o6, o7, o8] = asils.models.sizemtq.mtq_coil(x(1));
+            y = [double(o1); double(o2); double(o3); double(o4); double(o5); double(o6); double(o7); double(o8)];
+        case 'sizemtq::mtq_dispersion'
+            [o1, o2, o3, o4, o5, o6] = asils.models.sizemtq.mtq_dispersion();
+            y = [double(o1); double(o2); double(o3); double(o4); double(o5); double(o6)];
+        case 'sizemtq::mtq_axes'
+            [o1] = asils.models.sizemtq.mtq_axes();
+            y = [reshape((o1).', [], 1)];
+        case 'sizercs::rcs_size'
+            [o1, o2, o3, o4, o5, o6, o7, o8, o9, o10, o11, o12, o13, o14, o15, o16] = asils.models.sizercs.rcs_size(x(1), x(2), x(3), x(4), x(5), x(6), x(7), reshape(x(8:10), 3, 1), reshape(x(11:13), 3, 1), x(14));
+            y = [double(o1); double(o2); double(o3); double(o4); double(o5); double(o6); double(o7); double(o8); double(o9); double(o10); double(o11); double(o12); double(o13); double(o14); double(o15); double(o16)];
+        case 'sizercs::rcs_part'
+            [o1, o2, o3, o4, o5, o6, o7, o8] = asils.models.sizercs.rcs_part();
+            y = [double(o1); double(o2); double(o3); double(o4); double(o5); double(o6); double(o7); double(o8)];
+        case 'sizercs::rcs_dispersion'
+            [o1, o2, o3, o4, o5, o6, o7, o8, o9] = asils.models.sizercs.rcs_dispersion();
+            y = [double(o1); double(o2); double(o3); double(o4); double(o5); double(o6); double(o7); double(o8); double(o9)];
+        case 'sizerotor::rotor_fits'
+            [o1] = asils.models.sizerotor.rotor_fits(x(1), x(2), (x(3) ~= 0));
+            y = [double(o1)];
+        case 'sizerotor::rotor_need'
+            [o1, o2, o3] = asils.models.sizerotor.rotor_need(x(1), x(2), x(3), x(4));
+            y = [double(o1); double(o2); double(o3)];
+        case 'sizerotor::rotor_meets'
+            [o1] = asils.models.sizerotor.rotor_meets(x(1), x(2), x(3), x(4));
+            y = [double(o1)];
+        case 'sizerotor::rotor_pick'
+            at = 0;
+            n1 = x(at + 1);
+            a1 = reshape(x(at + 2:at + 1 + n1), [], 1);
+            at = at + 1 + n1;
+            n2 = x(at + 1);
+            a2 = reshape(x(at + 2:at + 1 + n2), [], 1);
+            at = at + 1 + n2;
+            n3 = x(at + 1);
+            a3 = reshape(x(at + 2:at + 1 + n3), [], 1);
+            at = at + 1 + n3;
+            n4 = x(at + 1);
+            a4 = reshape(x(at + 2:at + 1 + n4), [], 1);
+            at = at + 1 + n4;
+            n5 = x(at + 1);
+            a5 = reshape(x(at + 2:at + 1 + n5), [], 1);
+            at = at + 1 + n5;
+            xa = x(at + 1:end);
+            a6 = xa(1);
+            at = at + 1;
+            xa = x(at + 1:end);
+            a7 = xa(1);
+            at = at + 1;
+            xa = x(at + 1:end);
+            a8 = xa(1);
+            at = at + 1;
+            [o1, o2, io1, io2, io3, io4, io5] = asils.models.sizerotor.rotor_pick(a1, a2, a3, a4, a5, a6, a7, a8);
+            y = [double(o1); double(o2); numel(io1); reshape(io1, [], 1); numel(io2); reshape(io2, [], 1); numel(io3); reshape(io3, [], 1); numel(io4); reshape(io4, [], 1); numel(io5); reshape(io5, [], 1)];
+        case 'sizerotor::rotor_vscmg'
+            [o1] = asils.models.sizerotor.rotor_vscmg(x(1));
+            y = [double(o1)];
+        case 'sizerotor::rotor_dispersion'
+            [o1, o2, o3, o4, o5, o6, o7, o8, o9] = asils.models.sizerotor.rotor_dispersion();
+            y = [double(o1); double(o2); double(o3); double(o4); double(o5); double(o6); double(o7); double(o8); double(o9)];
+        case 'sizerotor::rotor_mounting'
+            [o1, o2, o3] = asils.models.sizerotor.rotor_mounting();
+            y = [reshape((o1).', [], 1); reshape((o2).', [], 1); reshape((o3).', [], 1)];
+        case 'sizesensors::sensor_star_tracker'
+            [o1] = asils.models.sizesensors.sensor_star_tracker((x(1) ~= 0), (x(2) ~= 0));
+            y = [double(o1)];
+        case 'sizesensors::sensor_heads'
+            [o1, o2, o3] = asils.models.sizesensors.sensor_heads((x(1) ~= 0), x(2));
+            y = [double(o1); reshape((o2).', [], 1); double(o3)];
+        case 'sizesensors::sensor_boresight'
+            [o1] = asils.models.sizesensors.sensor_boresight((x(1) ~= 0));
+            y = [reshape(o1, [], 1)];
+        case 'sizesensors::sensor_sun'
+            [o1, o2] = asils.models.sizesensors.sensor_sun();
+            y = [reshape((o1).', [], 1); reshape(o2, [], 1)];
+        case 'sizesensors::gyro_graded'
+            [o1] = asils.models.sizesensors.gyro_graded((x(1) ~= 0), x(2));
+            y = [double(o1)];
+        case 'sizesensors::gyro_noise'
+            [o1] = asils.models.sizesensors.gyro_noise(x(1), x(2));
+            y = [double(o1)];
+        case 'sizesensors::gyro_load'
+            [o1] = asils.models.sizesensors.gyro_load(x(1), x(2));
             y = [double(o1)];
         case 'cmoffset::cm_offset'
             [o1] = asils.models.cmoffset.cm_offset(x(1), reshape(x(2:4), 3, 1));

@@ -1,0 +1,72 @@
+## The fluid momentum loop (our product), transcribed from adcs-design lib.rs (fmr, ring): X, Y and Z rings, each round
+## the box's face normal to its axis, each designed with its electromagnetic DC conduction pump (sizepump) for the case's
+## momentum and torque (at least 0.2 mN m s and 10 uN m) times the loop's authority scale; 80 % of each face and its
+## perimeter used by the loop. When the loop asks for a spare (single-fault tolerance), a fourth ring on the body
+## diagonal (sizering's spare_axis) carries the three's root sum square, in the box's cross-section normal to it. The
+## ring's volume is its face times 6 mm and 0.02 L of pump; its dispersion the friction's scale (uniform 0.8 to 1.2),
+## the pump's efficiency (uniform 0.7 to 1.3 of its cruise efficiency), the flow sensor's noise (normal, the loop's
+## sigma) and the axis's misalignment (normal, 5 mrad). Lengths in m, areas in m^2, momenta in N m s, torques in N m:
+## plain numbers.
+## The developer's transcription (S7.15), unsigned.
+module sizefmr
+
+## The X, Y and Z rings' faces [m^2] and perimeters [m] in a box of sides bx [m].
+fn fmr_faces(bx: vec3[1] in 0.05 .. 0.4) -> (faces: vec3[1], per: vec3[1])
+    faces = [bx[1]*bx[2], bx[0]*bx[2], bx[0]*bx[1]]
+    per = [2.0*(bx[1] + bx[2]), 2.0*(bx[0] + bx[2]), 2.0*(bx[0] + bx[1])]
+end
+
+## Each ring's momentum and torque: the case's (at least 0.2 mN m s and 10 uN m) times the authority scale s.
+fn fmr_need(h_req: real[1] in 0 .. 0.01, tau_req: real[1] in 0 .. 1e-3, s: real[1] in 0.1 .. 10) -> (h: real[1], tau: real[1])
+    h = size_max(h_req, 2e-4)*s
+    tau = size_max(tau_req, 1e-5)*s
+end
+
+## The spare ring's momentum and torque: the root sum square of the three rings' (h, tau each).
+fn fmr_spare_need(h: real[1] in 0 .. 0.01, tau: real[1] in 0 .. 1e-3) -> (hs: real[1], taus: real[1])
+    let r = sqrt(3.0)
+    hs = r*h
+    taus = r*tau
+end
+
+## The loop a ring of face [m^2] and perimeter [m] encloses: 80 % of each.
+fn fmr_loop(face: real[1] in 0.005 .. 0.04, perim: real[1] in 0.2 .. 1) -> (s0: real[1], l1: real[1])
+    s0 = 0.8*face
+    l1 = 0.8*perim
+end
+
+## A ring's volume [L]: its face [m^2] times 6 mm, and 0.02 L of pump.
+fn fmr_volume(face: real[1] in 0.005 .. 0.04) -> v: real[1]
+    v = face*0.006*1e3 + 0.02
+end
+
+## The ring part's stated electrical values: it has no dipole of its own (a dipole, a dipole per ampere and a current of
+## zero, as whole numbers).
+fn fmr_no_dipole() -> (dipole_max: int, per_amp: int, current_max: int)
+    dipole_max = 0
+    per_amp = 0
+    current_max = 0
+end
+
+## The ring's dispersion, for a pump of cruise efficiency eta (at least 0.01) and the loop's flow-sensor sigma [m/s].
+fn fmr_dispersion(eta: real[1] in 0.01 .. 1, sigma: real[1] in 0 .. 0.01) \
+        -> (friction_dist: Dist, friction_lo: real[1], friction_hi: real[1], pump_dist: Dist, pump_lo: real[1], pump_hi: real[1], \
+            flow_dist: Dist, flow_mean: int, flow_sigma: real[1], mis_dist: Dist, mis_mean: int, mis_sigma: real[1])
+    friction_dist = Dist.uniform
+    friction_lo = 0.8
+    friction_hi = 1.2
+    pump_dist = Dist.uniform
+    pump_lo = 0.7*eta
+    pump_hi = 1.3*eta
+    flow_dist = Dist.normal
+    flow_mean = 0
+    flow_sigma = sigma
+    mis_dist = Dist.normal
+    mis_mean = 0
+    mis_sigma = 0.005
+end
+
+## The rings' axes in the body: X, Y and Z (row i the i-th ring's).
+fn fmr_axes() -> axes: real[1][3][3]
+    axes = [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]]
+end

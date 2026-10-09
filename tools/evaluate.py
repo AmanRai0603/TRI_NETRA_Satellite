@@ -115,7 +115,9 @@ def _fn_of(nid, text, symbol):
         bs = carry_over.pc_blocks([p])
     fn = nid if nid in bs else next((k for k, v in bs.items() if v[0] == "fn" and carry_over.fn_outputs(v[2]) == symbol), None)
     if fn is None:
-        fn = next((k for k, v in reversed(list(bs.items())) if v[0] == "fn"), None)
+        # a module of one function is that function; with several, none is named for this node, so none is guessed
+        fns = [k for k, v in bs.items() if v[0] == "fn"]
+        fn = fns[0] if len(fns) == 1 else None
     params, outs = groupcode._header(bs[fn][2], fn) if fn else (None, None)
     return fn, params or [], outs or []
 

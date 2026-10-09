@@ -1,0 +1,92 @@
+## Where a fluid ring lies in the satellite's box, transcribed from adcs-design lib.rs (spare_axis, section): the spare
+## ring's axis (l3_fmr_row_14) and the loop a ring can enclose, the cross-section of the box by the plane through its
+## centre normal to the ring's axis (l3_fmr_row_15). The section is found from the box's twelve edges (each edge's
+## point on the plane), ordered round the normal by their angle in the plane (a stable sort), nearly equal neighbours
+## (within 1e-12 m) taken once; its area by the shoelace formula and its perimeter. Lengths in m, plain numbers; a unit
+## vector made as the engine's la.rs made it (times the reciprocal of its length, none below 1e-300).
+## The developer's transcription (S7.15), unsigned.
+module sizering
+
+## The spare ring's axis: the unit body diagonal, since the three rings are sized alike, so its projection on each axis
+## holds that ring's whole momentum when it carries their root sum square.
+fn spare_axis() -> s: vec3[1]
+    let r = 1.0/sqrt(3.0)
+    s = [r, r, r]
+end
+
+## The area [m^2] and perimeter [m] of the cross-section of a centred box of sides bx [m] by the plane through its centre
+## with unit normal n.
+fn ring_section(bx: vec3[1] in 0.05 .. 0.4, n: vec3[1] in -1 .. 1) -> (area: real[1], perim: real[1])
+    let hx = [bx[0]/2.0, bx[1]/2.0, bx[2]/2.0]
+    let px: real[1][12] = 0
+    let py: real[1][12] = 0
+    let pz: real[1][12] = 0
+    let np = 0
+    let p: real[1][3] = 0
+    let ia = 0
+    let ib = 0
+    for free in 0 .. 3
+        ia = rem(free + 1, 3)
+        ib = rem(free + 2, 3)
+        for ka in 0 .. 2
+            for kb in 0 .. 2
+                if not (|n[free]| < 1e-15)
+                    p = 0
+                    p[ia] = (2.0*real(ka) - 1.0)*hx[ia]
+                    p[ib] = (2.0*real(kb) - 1.0)*hx[ib]
+                    p[free] = -(n[ia]*p[ia] + n[ib]*p[ib])/n[free]
+                    if |p[free]| <= hx[free] + 1e-12
+                        px[np] = p[0]
+                        py[np] = p[1]
+                        pz[np] = p[2]
+                        np = np + 1
+                    end
+                end
+            end
+        end
+    end
+    let t: real[1][3] = [0.0, 1.0, 0.0]
+    if |n[0]| < 0.9
+        t = [1.0, 0.0, 0.0]
+    end
+    let tn = t[0]*n[0] + t[1]*n[1] + t[2]*n[2]
+    let w = [t[0] - n[0]*tn, t[1] - n[1]*tn, t[2] - n[2]*tn]
+    let wn = norm(w)
+    let u: real[1][3] = 0
+    if not (wn < 1e-300)
+        let rw = 1.0/wn
+        u = [w[0]*rw, w[1]*rw, w[2]*rw]
+    end
+    let v = [n[1]*u[2] - n[2]*u[1], n[2]*u[0] - n[0]*u[2], n[0]*u[1] - n[1]*u[0]]
+    let qx: real[1][12] = 0
+    let qy: real[1][12] = 0
+    let ang: real[1][12] = 0
+    for i in 0 .. 12
+        ang[i] = inf
+    end
+    for i in 0 .. np
+        qx[i] = px[i]*u[0] + py[i]*u[1] + pz[i]*u[2]
+        qy[i] = px[i]*v[0] + py[i]*v[1] + pz[i]*v[2]
+        ang[i] = atan2(qy[i], qx[i])
+    end
+    let ord = argsort(ang)
+    let sx: real[1][12] = 0
+    let sy: real[1][12] = 0
+    let m = 0
+    for i in 0 .. np
+        let j = ord[i]
+        if m == 0 or not (|qx[j] - sx[m - 1]| < 1e-12 and |qy[j] - sy[m - 1]| < 1e-12)
+            sx[m] = qx[j]
+            sy[m] = qy[j]
+            m = m + 1
+        end
+    end
+    area = 0.0
+    perim = 0.0
+    for i in 0 .. m
+        let k = rem(i + 1, m)
+        area = area + (sx[i]*sy[k] - sx[k]*sy[i])
+        perim = perim + sqrt((sx[k] - sx[i])^2 + (sy[k] - sy[i])^2)
+    end
+    area = |area|/2.0
+end

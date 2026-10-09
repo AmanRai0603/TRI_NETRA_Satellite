@@ -11,6 +11,7 @@
 | [`adcs size`](#adcs-size) | The demand survey on the case's orbit, then every actuator option sized to it (magnetorquers, fluid loop, RCS, wheels, CMG, VSCMG). |
 | [`adcs parity`](#adcs-parity) | Fly the same scenario with two flight-software targets and report the largest difference in attitude and rate; bit-identical is the expected answer for C and Rust, and any difference exits with status 1. |
 | [`adcs results`](#adcs-results) | The results store: every run with its provenance, one line each; one run in full; runs kept (pinned) or thinned to their manifest when old; a run as one share file, and back; any read-only question to its SQLite index; the runs another engine or other inputs flew; a fine-pointing run's pointing error budget; a stored run flown again with what changed. |
+| [`adcs design`](#adcs-design) | The design's methods a tool asks for, so the tool keeps no relation of its own (docs/S7_INVENTORY.md S7.15): a datasheet catalogue model's derived block (catalogue's method, for tools/catalogue.py), and any method generated into the sizing called by its name (the design loop's rules, for tools/pipeline_design.py and pipeline_verify.py). |
 | [`adcs figures`](#adcs-figures) | A run's figures, the same for an engine run and a MATLAB twin run (both keep manifest.json and channels.csv with the same columns): attitude, disturbance torques, actuators and power, the Sun spin when the run spun up, and with --full the environment, ground track and mode timeline. Drawn by adcs-plot, the one plotting module, as SVG or PDF. |
 | [`adcs report`](#adcs-report) | A run's report: what it flew (scenario, case, product, flight software, seed, duration, engine, result id, input fingerprints), every metric against its requirement with the verdict, and every figure of `adcs figures --full`; as HTML with the figures inline (a print stylesheet, so a browser prints it to PDF) and as PDF. |
 | [`adcs plot`](#adcs-plot) | Figures described as JSON (panels stacked or in a grid; line, step, scatter, histogram and horizontal-bar series; reference lines, notes, legends; linear or log axes), drawn by adcs-plot. The report tools describe every campaign, comparison, trade and solution figure this way; the schema is in engine/crates/adcs-plot/src/lib.rs. |
@@ -43,7 +44,7 @@
 | [`from_design.py from-design`](#from_designpy-from-design) | The design in the repository (docs/PLAN_2_0.md S4): the repository holds no design data of its own, only the regression copy (tests/regression/design.tndb). Every file the code still reads that is design is generated from it and never edited: the engine's input files and cases (matlab_sils/data, matlab_sils/cases), the flight parameter table (fsw/params/params.toml) and the flight algorithms (fsw/pseudocode/03-09). Tools read the rest of 1.0.0's plan from the design by its 1.0.0 path (from_design.text). |
 | [`drive.py drive`](#drivepy-drive) | The shared drive, Trinetra Database (docs/OPERATING_2_0.md §15, docs/PLAN_2_0.md S4): pack zip 1 (the design converted into the 2.0.0 layout: groups with their baseline releases, cases, readable copies, the empty folders with a note each, the guides, START HERE, and MANIFEST.json with every file's size, SHA-256 and MD5), and check a drive's folder, or a listing of it, against that manifest. |
 | [`translators.py translators`](#translatorspy-translators) | The translators held to the interpreter (docs/PLAN_2_0.md S5): every package of pseudocode (the relations, the language's self-test, the flight software's algorithms, each group's code) translated to Rust, C and MATLAB, built, and run on every vector the interpreter drew; an exact function (no transcendental) bit for bit, any other within 1e-12 relative. |
-| [`engine_build.py engine-build`](#engine_buildpy-engine-build) | The engine build (docs/PLAN_2_0.md S7; docs/S7_INVENTORY.md S7.3-S7.13): the time engine's published models and relations written from the design (time, frames, the field; the atmosphere and space weather, DE440, gravity, the tides, relativity; the disturbance torques, the fast Sun, Moon and shadow, the eclipse fraction; the plant's rate and momentum; the fast orbit's forces and start, the precision orbit's spacecraft force models, force set and sum; the actuators; the sensors and what they see of the sky, the rotors' telemetry, the star tracker and its image chain; the truth plant, the case's orbit and epoch and the plant's state at the start of a run; the device emulators' scaling, from the flight software's drivers; the flight software's parameters, the values of its configuration blob). Every method block whose code.generate names a target (adcs-sim-core, adcs-pop, adcs-sim), with the modules its code.uses names in turn (env's data tables, env's onboard frames and field, the physics' tables, the toolbox), (a bare name, as the flight algorithms name theirs, beside its user) is translated by the library's translator (tndb translate rust; the JavaScript one when it is not built) into a module of the crate: engine/crates/adcs-sim-core/src/gen (maths from crate::pm, no_std), engine/crates/adcs-pop/src/gen and engine/crates/adcs-sim/src/gen (std maths). The engine's core (step order, recorder, integrators, the file readers) stays code and calls them. `modules` lists what each target takes. |
+| [`engine_build.py engine-build`](#engine_buildpy-engine-build) | The engine build (docs/PLAN_2_0.md S7; docs/S7_INVENTORY.md S7.3-S7.15): the time engine's published models and relations written from the design (time, frames, the field; the atmosphere and space weather, DE440, gravity, the tides, relativity; the disturbance torques, the fast Sun, Moon and shadow, the eclipse fraction; the plant's rate and momentum; the fast orbit's forces and start, the precision orbit's spacecraft force models, force set and sum; the actuators; the sensors and what they see of the sky, the rotors' telemetry, the star tracker and its image chain; the truth plant, the case's orbit and epoch and the plant's state at the start of a run; the device emulators' scaling, from the flight software's drivers; the flight software's parameters, the values of its configuration blob; the power system, the rotors' jitter and the pointing budget; the metrics; the sizing, the catalogue's derive rule and the design loop's rules). Every method block whose code.generate names a target (adcs-sim-core, adcs-pop, adcs-sim, adcs-design), with the modules its code.uses names in turn (env's data tables, env's onboard frames and field, the physics' tables, the toolbox), (a bare name, as the flight algorithms name theirs, beside its user) is translated by the library's translator (tndb translate rust; the JavaScript one when it is not built) into a module of the crate: engine/crates/adcs-sim-core/src/gen (maths from crate::pm, no_std), engine/crates/adcs-pop/src/gen, engine/crates/adcs-sim/src/gen and engine/crates/adcs-design/src/gen (std maths; the sizing's with the translator's dispatcher, which `adcs design call` serves to the tools). The engine's core (step order, recorder, integrators, the file readers) stays code and calls them. `modules` lists what each target takes. |
 | [`readers.py readers`](#readerspy-readers) | The readers of published data (the boundary: code reads files' formats and loads published data into the design, never a model of its own). Each reads one format and gives its tables as the pseudocode's data items: igrf13 (IAGA's igrf13coeffs.txt: the epochs and Gauss coefficients), matlab_matrix (the numeric matrices and numbers a MATLAB file assigns: the Octave POP's leap-second, IERS tidal, Kp-ap and default-field tables), matlab_cell (the rows of a MATLAB cell array: the ocean tides' main lines), xys06 (the IAU 2006/2000A series exported from xys06_tables.mat), text_table (refgen's DTM2020 coefficient exports), solfsmy and dtcfile (Space Environment Technologies' JB2008 index files), fes_bin (refgen's FES2004 export), de440_slice (a DAF/SPK kernel's Sun, Earth-Moon barycentre, Earth and Moon records over a span of TDB dates). The developer's revisions (design/revisions_2_0.toml, [[revision.data]]) name the reader, the file and the publication; tools/convert_2_0.py runs it. On the command line it prints what a reader reads from a file. |
 | [`flight_build.py flight-build`](#flight_buildpy-flight-build) | The flight build (docs/PLAN_2_0.md S6): the flight software's algorithms written from the design (the flight algorithm blocks, fsw/pseudocode/03-09, with the toolbox 01 and env's published models 02, all but 01 written from the design by tools/from_design.py) by the library's translators (tndb translate; the JavaScript ones when it is not built): C99 into fsw/alg/ and Rust, a module of the no_std flight crate, into fsw-rs/src/alg/; beside them the algorithms' identity (sha256 over those sources, 16 hex), which both build ids end with (`... alg <id>`), and the translators' vector dispatchers for the vector tests (test code, never in an image). The runtime (the tick, the HAL, the C interface, the parameter blob, the targets) stays code. --design writes from another design's flight algorithm blocks and --out under another folder (a test's). |
 | [`flight_build.py flight-seal`](#flight_buildpy-flight-seal) | Seal one target's build of the flight software as a flight image (design/schema.toml formats.flight_image, design-<design version>.<target>.tnfsw): the design it came from (version, content hash), the runtime version (the build id the binary carries), the toolchain, every generated source, the binary and the configuration blob of every scenario (made by the engine from the design), each with its sha256, and the checks made on it. Unsigned: the developer's build. |
@@ -58,7 +59,7 @@
 | [`export_catalogue.py export-catalogue`](#export_cataloguepy-export-catalogue) | The catalogue, scenarios, campaigns and trades from TOML to the JSON the MATLAB twin and the engine read. --check says which JSON has drifted from its TOML, and changes nothing. |
 | [`nodes_doc.py nodes-doc`](#nodes_docpy-nodes-doc) | docs/NODES.md and docs/CATALOGUE.md from the node registry and the datasheet catalogue. |
 | [`components_doc.py components-doc`](#components_docpy-components-doc) | docs/COMPONENTS.md: every sensor and actuator, the model the SILS flies, and its processing chain. |
-| [`catalogue.py catalogue`](#cataloguepy-catalogue) | Re-derive each bought wheel's and CMG's modelling block from its datasheet numbers (never guessed), then the catalogue document. |
+| [`catalogue.py catalogue`](#cataloguepy-catalogue) | Re-derive each bought wheel's and CMG's modelling block from its datasheet numbers (never guessed), by the catalogue's method through the engine (adcs design derive), then the catalogue document. --check says which file's block is not what its datasheet gives, and writes nothing. |
 | [`verify_nodes.py verify-nodes`](#verify_nodespy-verify-nodes) | Node-by-node verification of the design loop: each decision recomputed from the node's stored inputs, not trusted from its verdict. |
 | [`rescore.py rescore`](#rescorepy-rescore) | Re-judge stored runs against the case files as they are now: a changed requirement changes a verdict, not a trajectory. |
 | [`floquet.py floquet`](#floquetpy-floquet) | Floquet multipliers of the coils-only nadir loop: the certificate that the periodic magnetic control is stable. |
@@ -188,6 +189,24 @@ The results store: every run with its provenance, one line each; one run in full
 - **Starts:** nothing
 - **Checks:** each stored run's provenance against the engine and inputs that made it (stale when they changed)
 - **Undo:** list/query/stale: nothing (the index is rebuilt from the runs). pin: delete <run>/PINNED. thin: a thinned time series is gone; fly the run again.
+- **Code:** `engine/crates/adcs-cli/`
+
+## adcs design
+
+The design's methods a tool asks for, so the tool keeps no relation of its own (docs/S7_INVENTORY.md S7.15): a datasheet catalogue model's derived block (catalogue's method, for tools/catalogue.py), and any method generated into the sizing called by its name (the design loop's rules, for tools/pipeline_design.py and pipeline_verify.py).
+
+    adcs design derive FILE... | call MODULE::FUNCTION
+
+**Steps**
+
+1. derive: read each datasheet file (adcs-datasheet/1) and the numbers its supply and dimensions name, run catalogue_datasheet_derive's method, print one JSON line a file: selectable, what it misses, the derived block, what was assumed and the rule's constants
+2. call: read the method's inputs from stdin as numbers (a buffer its length, then its elements), call it through the translator's dispatcher, print its outputs and its changed inputs one a line, exactly (shortest round trip)
+
+- **Reads:** the datasheet files named (derive); stdin (call)
+- **Writes:** nothing
+- **Starts:** nothing
+- **Checks:** derive: a file that is not a datasheet is refused by name; call: a method the sizing does not carry, or the wrong count of inputs, is refused by name
+- **Undo:** Nothing: it only prints.
 - **Code:** `engine/crates/adcs-cli/`
 
 ## adcs figures
@@ -497,8 +516,8 @@ The design loop, node by node: from a customer case to a selected, dispatched, v
 
 - **Reads:** `matlab_sils/cases/<case>.csv`; `matlab_sils/data/`
 - **Writes:** `matlab_sils/store/pipeline/<case>/<node>.json`; `dist/dispatch/<case>/`
-- **Starts:** adcs size; adcs run; adcs params; qemu-system-arm
-- **Checks:** each node's inputs, outputs and rules (matlab_sils/data/pipeline/nodes.json); each decision recomputable
+- **Starts:** adcs size; adcs run; adcs params; adcs design call; qemu-system-arm
+- **Checks:** each node's inputs, outputs and rules (matlab_sils/data/pipeline/nodes.json); each decision recomputable; converge, robust and the spare ring are the design's rules (design_loop_*, design/looprules.pc), asked through the engine
 - **Undo:** Delete matlab_sils/store/pipeline/<case>/ and dist/dispatch/<case>/.
 - **Code:** `tools/pipeline.py`
 
@@ -825,18 +844,18 @@ The translators held to the interpreter (docs/PLAN_2_0.md S5): every package of 
 
 ## engine_build.py engine-build
 
-The engine build (docs/PLAN_2_0.md S7; docs/S7_INVENTORY.md S7.3-S7.13): the time engine's published models and relations written from the design (time, frames, the field; the atmosphere and space weather, DE440, gravity, the tides, relativity; the disturbance torques, the fast Sun, Moon and shadow, the eclipse fraction; the plant's rate and momentum; the fast orbit's forces and start, the precision orbit's spacecraft force models, force set and sum; the actuators; the sensors and what they see of the sky, the rotors' telemetry, the star tracker and its image chain; the truth plant, the case's orbit and epoch and the plant's state at the start of a run; the device emulators' scaling, from the flight software's drivers; the flight software's parameters, the values of its configuration blob). Every method block whose code.generate names a target (adcs-sim-core, adcs-pop, adcs-sim), with the modules its code.uses names in turn (env's data tables, env's onboard frames and field, the physics' tables, the toolbox), (a bare name, as the flight algorithms name theirs, beside its user) is translated by the library's translator (tndb translate rust; the JavaScript one when it is not built) into a module of the crate: engine/crates/adcs-sim-core/src/gen (maths from crate::pm, no_std), engine/crates/adcs-pop/src/gen and engine/crates/adcs-sim/src/gen (std maths). The engine's core (step order, recorder, integrators, the file readers) stays code and calls them. `modules` lists what each target takes.
+The engine build (docs/PLAN_2_0.md S7; docs/S7_INVENTORY.md S7.3-S7.15): the time engine's published models and relations written from the design (time, frames, the field; the atmosphere and space weather, DE440, gravity, the tides, relativity; the disturbance torques, the fast Sun, Moon and shadow, the eclipse fraction; the plant's rate and momentum; the fast orbit's forces and start, the precision orbit's spacecraft force models, force set and sum; the actuators; the sensors and what they see of the sky, the rotors' telemetry, the star tracker and its image chain; the truth plant, the case's orbit and epoch and the plant's state at the start of a run; the device emulators' scaling, from the flight software's drivers; the flight software's parameters, the values of its configuration blob; the power system, the rotors' jitter and the pointing budget; the metrics; the sizing, the catalogue's derive rule and the design loop's rules). Every method block whose code.generate names a target (adcs-sim-core, adcs-pop, adcs-sim, adcs-design), with the modules its code.uses names in turn (env's data tables, env's onboard frames and field, the physics' tables, the toolbox), (a bare name, as the flight algorithms name theirs, beside its user) is translated by the library's translator (tndb translate rust; the JavaScript one when it is not built) into a module of the crate: engine/crates/adcs-sim-core/src/gen (maths from crate::pm, no_std), engine/crates/adcs-pop/src/gen, engine/crates/adcs-sim/src/gen and engine/crates/adcs-design/src/gen (std maths; the sizing's with the translator's dispatcher, which `adcs design call` serves to the tools). The engine's core (step order, recorder, integrators, the file readers) stays code and calls them. `modules` lists what each target takes.
 
     python3 tools/engine_build.py gen [--check] [--design FILE] | modules [--design FILE]
 
 **Steps**
 
 1. collect the design's method blocks naming each target, and what they use
-2. translate each target's modules to Rust (crate::gen, its maths module, no dispatcher)
+2. translate each target's modules to Rust (crate::gen, its maths module; a dispatcher for adcs-design only)
 3. write them (or, with --check, compare), removing any file the design no longer gives
 
 - **Reads:** `tests/regression/design.tndb (or --design FILE)`; `fsw/pseudocode/01_math.pc (the toolbox)`
-- **Writes:** `engine/crates/adcs-sim-core/src/gen/`; `engine/crates/adcs-pop/src/gen/`; `engine/crates/adcs-sim/src/gen/`; `matlab_sils/+asils/+models/`
+- **Writes:** `engine/crates/adcs-sim-core/src/gen/`; `engine/crates/adcs-pop/src/gen/`; `engine/crates/adcs-sim/src/gen/`; `engine/crates/adcs-design/src/gen/`; `matlab_sils/+asils/+models/`
 - **Starts:** `engine/target/release/tndb translate (or node design/js/pcode_cli.mjs)`
 - **Checks:** --check: every generated engine model is what the design gives, and nothing else sits in the generated folders
 - **Undo:** It writes generated files only: `git checkout -- engine/crates/adcs-sim-core/src/gen engine/crates/adcs-pop/src/gen engine/crates/adcs-sim/src/gen matlab_sils/+asils/+models`.
@@ -1111,19 +1130,20 @@ docs/COMPONENTS.md: every sensor and actuator, the model the SILS flies, and its
 
 ## catalogue.py catalogue
 
-Re-derive each bought wheel's and CMG's modelling block from its datasheet numbers (never guessed), then the catalogue document.
+Re-derive each bought wheel's and CMG's modelling block from its datasheet numbers (never guessed), by the catalogue's method through the engine (adcs design derive), then the catalogue document. --check says which file's block is not what its datasheet gives, and writes nothing.
 
-    python3 tools/catalogue.py
+    python3 tools/catalogue.py [--check]
 
 **Steps**
 
-1. derive every model's engine parameters by rule
-2. mark a model not selectable when its datasheet lacks a number the selection needs
+1. ask the engine for every model's derivation (catalogue_datasheet_derive's method)
+2. write each file's derived block, its selectable flag and what it misses, and say in words what was assumed (or, with --check, compare)
+3. write docs/NODES.md and docs/CATALOGUE.md
 
 - **Reads:** `matlab_sils/data/catalogue/`
 - **Writes:** `matlab_sils/data/catalogue/*.json`; `docs/CATALOGUE.md`
 - **Starts:** nothing
-- **Checks:** each modelling block re-derived from its datasheet numbers, never guessed
+- **Checks:** each modelling block re-derived from its datasheet numbers, never guessed; --check: every file is what its datasheet gives
 - **Undo:** It writes generated files only: `git checkout -- <file>` puts back the committed one, or run it again once its source is as you want it.
 - **Code:** `tools/catalogue.py`
 

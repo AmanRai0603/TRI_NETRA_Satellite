@@ -1,0 +1,97 @@
+## The N2O cold-gas thrusters (our product), transcribed from adcs-design lib.rs (rcs) and the twin's asils.sizing.rcs:
+## six couples (twelve thrusters) on arms of 0.45 of the box's sides; the thrust gives the angular acceleration of the
+## larger of the case's torque and a detumble in 600 s on the largest moment, rounded up to a thrust class (5, 10, 20, 50,
+## 100 mN, then in 50 mN steps), times the loop's authority scale; the propellant holds the detumble twice and every
+## orbit's secular momentum over the life (at least 10 g, 20 % margin), at an Isp budget of 60 s (60 to 80 s); the slews
+## on thrusters are said, not held. The tank: self-pressurised N2O (745 kg/m^3 with 25 % ullage), an Al-7075 sphere
+## (250 MPa) at 70 bar MEOP (wall at least 0.5 mm, 2810 kg/m^3); twelve 10 g valves and 50 g of feed. SI throughout,
+## volumes in L, pressures in bar where the part states them: plain numbers.
+## The developer's transcription (S7.15), unsigned.
+module sizercs
+
+## The thruster part sized for the case's torque tau_req [N m], detumble momentum h_detumble and secular momentum per
+## orbit h_secular [N m s], slews a day spd, each slew's momentum h_slew [N m s], life [yr], orbit period [s], principal
+## moments j [kg m^2], box bx [m] and the authority scale s.
+fn rcs_size(tau_req: real[1] in 1e-6 .. 1e-3, h_detumble: real[1] in 1e-3 .. 0.02, h_secular: real[1] in 0 .. 1e-3, \
+            spd: real[1] in 0 .. 20, h_slew: real[1] in 0 .. 0.01, life: real[1] in 0.5 .. 10, period: real[1] in 5000 .. 6000, \
+            j: vec3[1] in 0.01 .. 0.1, bx: vec3[1] in 0.05 .. 0.4, s: real[1] in 0.1 .. 10) \
+        -> (thrust: real[1], f_req: real[1], arm_long: real[1], arm_short: real[1], it_det: real[1], it_dump: real[1], \
+            it_slew: real[1], mprop: real[1], mslew: real[1], tank_volume: real[1], tank_radius: real[1], tank_wall: real[1], \
+            dry_mass: real[1], mass: real[1], volume: real[1], isp_budget: real[1])
+    let g0 = 9.80665
+    let isp = 60.0
+    let jmax: real[1] = -1.7976931348623157e308
+    for i in 0 .. 3
+        jmax = max(jmax, j[i])
+    end
+    let arm = [0.45*bx[1], 0.45*bx[0], 0.45*bx[0]]
+    let alpha = size_max(tau_req/jmax, h_detumble/600.0/jmax)
+    let fr: real[1] = -1.7976931348623157e308
+    for i in 0 .. 3
+        fr = max(fr, j[i]*alpha/(2.0*arm[i]))
+    end
+    f_req = fr*s
+    let cls: real[1][5] = [0.005, 0.010, 0.020, 0.050, 0.100]
+    let found = false
+    thrust = 0.0
+    for c in 0 .. 5
+        if not found and cls[c] >= f_req
+            thrust = cls[c]
+            found = true
+        end
+    end
+    if not found
+        thrust = ceil(f_req/0.05)*0.05
+    end
+    let arm_eff = 3.0/(1.0/arm[0] + 1.0/arm[1] + 1.0/arm[2])
+    let orbits = life*365.25*86400.0/period
+    it_det = 2.0*h_detumble/arm_eff
+    it_dump = h_secular*orbits/arm_eff
+    it_slew = spd*365.25*life*2.0*h_slew/arm_eff
+    mprop = size_max(1.2*(it_det + it_dump)/(isp*g0), 0.01)
+    mslew = 1.2*it_slew/(isp*g0)
+    let v = 1.25*mprop/745.0
+    let rtank = pow(3.0*v/(4.0*pi), 1.0/3.0)
+    let pm = 70e5
+    let sig = 250e6
+    let t = size_max(pm*rtank/(2.0*sig), 0.5e-3)
+    let mtank = 4.0*pi*rtank*rtank*t*2810.0
+    dry_mass = mtank + 12.0*0.010 + 0.050
+    mass = dry_mass + mprop
+    tank_volume = v*1e3
+    tank_radius = rtank
+    tank_wall = t
+    arm_long = arm[1]
+    arm_short = arm[0]
+    volume = (2.0*rtank)^3*1e3 + 0.05
+    isp_budget = isp
+end
+
+## The thruster part's stated values: its nominal Isp [s], thrusters, minimum impulse bit [s], valve resolution [s], the
+## tank's pressure and MEOP [bar], a valve's power and the steady power [W].
+fn rcs_part() -> (isp: int, thrusters: int, mib: real[1], valve_res: real[1], tank_pressure: int, meop: int, valve_power: real[1], \
+                  power_steady: real[1])
+    isp = 70
+    thrusters = 12
+    mib = 0.005
+    valve_res = 0.001
+    tank_pressure = 50
+    meop = 70
+    valve_power = 1.0
+    power_steady = 0.05
+end
+
+## The thrusters' dispersion: the thrust's scale (normal, mean 1, sigma 3 %), the Isp [s] (uniform 60 to 80) and the
+## axis's misalignment [rad] (normal, mean 0, sigma 10 mrad).
+fn rcs_dispersion() -> (thrust_dist: Dist, thrust_mean: int, thrust_sigma: real[1], isp_dist: Dist, isp_lo: int, isp_hi: int, \
+                        mis_dist: Dist, mis_mean: int, mis_sigma: real[1])
+    thrust_dist = Dist.normal
+    thrust_mean = 1
+    thrust_sigma = 0.03
+    isp_dist = Dist.uniform
+    isp_lo = 60
+    isp_hi = 80
+    mis_dist = Dist.normal
+    mis_mean = 0
+    mis_sigma = 0.01
+end

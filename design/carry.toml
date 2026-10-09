@@ -75,7 +75,7 @@ rows = [
   { label = "Pump pressure for a torque", question = "Which pump pressure gives a wanted ring torque?", code = "spec/physics/fmr.pc" },
   { label = "Reynolds number of the ring flow", question = "Is the ring's flow laminar or turbulent at this speed?", code = "spec/physics/fmr.pc" },
   { label = "Conduction pump pressure", question = "Which pressure does the conduction pump give at its current and field?", code = "spec/physics/fmr.pc" },
-  { label = "Electromagnetic pump design", question = "Which pump geometry gives the pressure and flow the ring needs?", code = "engine/crates/adcs-design/src/empump.rs" },
+  { label = "Electromagnetic pump design", question = "Which pump geometry gives the pressure and flow the ring needs?", code = "engine/crates/adcs-design/src/gen/sizepump.rs" },
   { label = "Pump efficiency over its range", question = "How efficient is the pump between its low and high flow?", code = "engine/crates/adcs-sim-core/src/actuators.rs" },
   { label = "Flow response time", question = "How fast does the flow follow the pump command?", code = "engine/crates/adcs-sim-core/src/actuators.rs" },
   { label = "Flow noise", question = "How much noise is on the ring's momentum from the flow?", code = "engine/crates/adcs-sim-core/src/actuators.rs" },

@@ -16,8 +16,8 @@ function [v, x, w, tmp] = kpi_statistic(x, n, st, w, tmp)
             m = (m + 1);
         end
     end
-    [t__143, t__144, t__145] = asils.models.kpistats.kpi_stat_of(w, m, st, tmp);
-    v = t__143;
-    w = t__144;
-    tmp = t__145;
+    [t__448, t__449, t__450] = asils.models.kpistats.kpi_stat_of(w, m, st, tmp);
+    v = t__448;
+    w = t__449;
+    tmp = t__450;
 end

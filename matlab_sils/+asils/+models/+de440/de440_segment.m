@@ -14,8 +14,8 @@ function [ok, pos, vel] = de440_segment(seg, et)
     pos = zeros(3, 1);
     vel = zeros(3, 1);
     if ok
-        [t__69, t__70] = asils.models.de440.cheb_state(rec, nc, et);
-        pos = t__69;
-        vel = t__70;
+        [t__374, t__375] = asils.models.de440.cheb_state(rec, nc, et);
+        pos = t__374;
+        vel = t__375;
     end
 end

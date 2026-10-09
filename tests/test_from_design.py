@@ -38,8 +38,13 @@ class FromDesign(unittest.TestCase):
             from_design.text("spec/plan/no_such_file.toml")
 
     def test_the_archive_is_what_the_design_holds(self):
-        # 1.0.0's sources, archived, are history: the design holds each one the code still reads, byte for byte
+        # 1.0.0's sources, archived, are history: the design holds each one the code still reads, byte for byte. A
+        # method a developer's revision added under the same folders (catalogue/catderive.pc, S7.15) is not one of them.
+        revs = tomllib.loads((ROOT / "design" / "revisions_2_0.toml").read_text(encoding="utf-8"))["revision"]
+        added = {m["path"] for r in revs for m in r.get("method", []) if m.get("path")}
         for p in from_design.paths("spec/") + from_design.paths("catalogue/"):
+            if p in added:
+                continue
             self.assertEqual((ROOT / "archive" / "design-1.0" / p).read_bytes(), from_design.text(p).encode(), p)
 
     def test_a_hand_edit_is_found(self):

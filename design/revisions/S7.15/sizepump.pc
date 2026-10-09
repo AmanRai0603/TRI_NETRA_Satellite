@@ -1,0 +1,237 @@
+## The electromagnetic design of the fluid momentum loop (our product): the galinstan loop and its DC conduction
+## (Faraday) pump with an electromagnet, designed together per ring, transcribed from adcs-design empump.rs (design,
+## friction, pareto, Design::json).
+##   Loop:     h = N rho A 2 S v (N loops of bore d round a face of enclosed area S).
+##   Duty:     cruise at 0.4 v_max (friction), and the ring's share of tau_req (acceleration).
+##   Pressure: dp_f = f (L/d) rho v^2/2 (Darcy; 64/Re laminar, Blasius 0.316 Re^-1/4 above Re 2300);
+##             dp_a = rho L dv/dt, dv/dt = tau/(N rho A 2 S).
+##   Pump:     the bore flattened to a b x a duct in the gap (b = d/2 along B, a = A/b along the current), active
+##             length Lp; dp = B I/b, so I = dp b/B, at most 10 A (a practical low-voltage driver); the fluid's
+##             resistance R = rho_e a/(b Lp), the bypass efficiency 0.7 and the driver's 0.85:
+##             P_e = (I^2 R + dp Q)/(0.7 x 0.85).
+##   Magnet:   a C-core, gap g = b + 2 x 0.5 mm walls, NI = 1.3 B g/mu0 (iron and leakage); the coil P_c = rho_cu l_t
+##             (NI)^2/A_cu, m_cu = d_cu l_t A_cu, so P_c m_cu = K (fixed by the geometry): for a mass/power exchange
+##             rate lambda [kg/W] the best copper is m_cu = sqrt(lambda K) (at least 2 g), P_c = K/m_cu; the iron
+##             carries the flux B a Lp at 1.2 T over a path 2(a + Lp) + 20 mm, 7650 kg/m^3.
+##   Design:   a grid over v_max (0.1 to 2 m/s), d (2 to 6 mm), B (0.05 to 1 T), Lp (10 to 40 mm); the design with the
+##             least mass + lambda x steady power (the first of equals) that meets h and tau; a channel 30 g and 12 g a
+##             further loop, 10 g of fittings.
+## lambda is the design loop's knob: a power failure raises it (more copper, less coil power), a mass failure lowers it.
+## Anchor: IDMAS v2 section 03C (1 to 3 W per pump unit); galinstan rho 6440 kg/m^3, mu 2.4 mPa s, resistivity
+## 2.89e-7 ohm m; copper 1.72e-8 ohm m, 8960 kg/m^3. SI throughout, as plain numbers.
+## The developer's transcription (S7.15), unsigned.
+module sizepump
+
+## The galinstan: density [kg/m^3], viscosity [Pa s], electrical resistivity [ohm m], melting point [K].
+fn pump_fluid() -> (rho: real[1], mu: real[1], rho_e: real[1], melt: int)
+    rho = 6440.0
+    mu = 0.0024
+    rho_e = 2.89e-7
+    melt = 254
+end
+
+## The pressure the wall's friction takes from a flow at speed v [m/s] in a bore d [m] over a length l [m] (Darcy, 64/Re
+## laminar, Blasius above Re 2300), and the flow's Reynolds number (at least 1e-9).
+fn pump_friction(v: real[1] in 0.01 .. 2, d: real[1] in 0.002 .. 0.006, l: real[1] in 0.1 .. 20) -> (dp: real[1], re: real[1])
+    let rho, mu, rho_e, melt = pump_fluid()
+    re = size_max(rho*v*d/mu, 1e-9)
+    let f = if re < 2300.0 then 64.0/re else 0.316*pow(re, -0.25)
+    dp = f*(l/d)*rho*v*v/2.0
+end
+
+## A ring's design: its bore [m], loops, top speed [m/s] and momentum there [N m s], enclosed area [m^2], channel length
+## [m], the cruise's Reynolds number and speed [m/s]; the pump's field [T], active length [m], gap [m], ampere-turns,
+## electrode currents at the design point and at cruise [A], pressures there [Pa], its coil's power [W], the electrodes'
+## power at cruise [W], copper and iron [kg], its efficiency at cruise (and at least 0.01, as the part states it); the
+## pump's torque at the current limit [N m]; the steady and the peak power [W]; the fluid's mass and the whole ring's
+## [kg]; the design's cost (mass + lambda x steady power); whether a design was found.
+record PumpDesign
+    d: real[1]
+    loops: real[1]
+    v_max: real[1]
+    h_max: real[1]
+    s: real[1]
+    l: real[1]
+    re: real[1]
+    v_cruise: real[1]
+    b: real[1]
+    lp: real[1]
+    gap: real[1]
+    ni: real[1]
+    i_design: real[1]
+    i_cruise: real[1]
+    dp_design: real[1]
+    dp_cruise: real[1]
+    p_coil: real[1]
+    p_elec_cruise: real[1]
+    m_cu: real[1]
+    m_fe: real[1]
+    eta_cruise: real[1]
+    eta: real[1]
+    tau_max: real[1]
+    p_steady: real[1]
+    p_peak: real[1]
+    m_fluid: real[1]
+    mass: real[1]
+    cost: real[1]
+    found: bool
+end
+
+## The best design of one ring for momentum h [N m s] and torque tau [N m] in a loop of enclosed area s0 [m^2] and
+## length l1 [m] (one loop), at the exchange rate lambda [kg/W].
+## vectors: 4
+fn pump_design(h: real[1] in 1e-4 .. 0.01, tau: real[1] in 1e-6 .. 1e-3, s0: real[1] in 0.005 .. 0.03, l1: real[1] in 0.2 .. 0.8, \
+               lambda: real[1] in 0.003 .. 3) -> ds: PumpDesign
+    let rho, mu, rho_e, melt = pump_fluid()
+    let mu0 = 4e-7*pi
+    let rho_cu = 1.72e-8
+    let d_cu = 8960.0
+    let d_fe = 7650.0
+    let b_sat = 1.2
+    let i_max = 10.0
+    let eta_bypass = 0.7
+    let eta_drv = 0.85
+    ds = PumpDesign()
+    ds.found = false
+    let v_max: real[1] = 0.0
+    let d: real[1] = 0.0
+    let a_c: real[1] = 0.0
+    let n: real[1] = 0.0
+    let l: real[1] = 0.0
+    let vc: real[1] = 0.0
+    let dpf_max: real[1] = 0.0
+    let re_max: real[1] = 0.0
+    let dpf_c: real[1] = 0.0
+    let re: real[1] = 0.0
+    let dvdt: real[1] = 0.0
+    let dp_design: real[1] = 0.0
+    let b_duct: real[1] = 0.0
+    let a_duct: real[1] = 0.0
+    let gap: real[1] = 0.0
+    let m_fluid: real[1] = 0.0
+    let m_channel: real[1] = 0.0
+    let bf: real[1] = 0.0
+    let lp: real[1] = 0.0
+    let i_d: real[1] = 0.0
+    let r: real[1] = 0.0
+    let i_c: real[1] = 0.0
+    let q_c: real[1] = 0.0
+    let p_ec: real[1] = 0.0
+    let p_ed: real[1] = 0.0
+    let ni: real[1] = 0.0
+    let a_fe: real[1] = 0.0
+    let l_t: real[1] = 0.0
+    let k: real[1] = 0.0
+    let m_cu: real[1] = 0.0
+    let p_c: real[1] = 0.0
+    let m_fe: real[1] = 0.0
+    let mass: real[1] = 0.0
+    let p_steady: real[1] = 0.0
+    let cost: real[1] = 0.0
+    for iv in 0 .. 20
+        v_max = 0.1 + 0.1*real(iv)
+        for id in 0 .. 9
+            d = 0.002 + 0.0005*real(id)
+            a_c = pi*d*d/4.0
+            n = size_max(ceil(h/(rho*a_c*2.0*s0*v_max)), 1.0)
+            l = n*l1
+            vc = 0.4*v_max
+            dpf_max, re_max = pump_friction(v_max, d, l)
+            dpf_c, re = pump_friction(vc, d, l)
+            dvdt = tau/(n*rho*a_c*2.0*s0)
+            dp_design = dpf_max + rho*l*dvdt
+            b_duct = d/2.0
+            a_duct = a_c/b_duct
+            gap = b_duct + 1e-3
+            m_fluid = rho*a_c*l
+            m_channel = 0.03 + 0.012*(n - 1.0)
+            for ib in 0 .. 20
+                bf = 0.05*real(ib + 1)
+                for il in 0 .. 4
+                    lp = 0.010*real(il + 1)
+                    i_d = dp_design*b_duct/bf
+                    if not (i_d > i_max)
+                        r = rho_e*a_duct/(b_duct*lp)
+                        i_c = dpf_c*b_duct/bf
+                        q_c = a_c*vc
+                        p_ec = (i_c*i_c*r + dpf_c*q_c)/(eta_bypass*eta_drv)
+                        p_ed = (i_d*i_d*r + dp_design*a_c*v_max)/(eta_bypass*eta_drv)
+                        ni = 1.3*bf*gap/mu0
+                        a_fe = bf*a_duct*lp/b_sat
+                        l_t = 4.0*sqrt(a_fe) + 0.01
+                        k = rho_cu*d_cu*l_t*l_t*ni*ni
+                        m_cu = size_max(sqrt(lambda*k), 0.002)
+                        p_c = k/m_cu
+                        m_fe = d_fe*a_fe*(2.0*(a_duct + lp) + 0.02)
+                        mass = m_fluid + m_channel + m_cu + m_fe + 0.010
+                        p_steady = p_c + p_ec
+                        cost = mass + lambda*p_steady
+                        if (not ds.found) or cost < ds.cost
+                            ds.found = true
+                            ds.d = d
+                            ds.loops = n
+                            ds.v_max = v_max
+                            ds.h_max = n*rho*a_c*2.0*s0*v_max
+                            ds.s = n*s0
+                            ds.l = l
+                            ds.re = re
+                            ds.v_cruise = 0.4*v_max
+                            ds.b = bf
+                            ds.lp = lp
+                            ds.gap = gap
+                            ds.ni = ni
+                            ds.i_design = i_d
+                            ds.i_cruise = i_c
+                            ds.dp_design = dp_design
+                            ds.dp_cruise = dpf_c
+                            ds.tau_max = i_max*bf/b_duct*n*a_c*2.0*s0/l
+                            ds.p_coil = p_c
+                            ds.p_elec_cruise = p_ec
+                            ds.p_steady = p_steady
+                            ds.p_peak = p_c + p_ed
+                            ds.eta_cruise = if p_ec > 0.0 then dpf_c*q_c/p_ec else 0.0
+                            ds.eta = size_max(ds.eta_cruise, 0.01)
+                            ds.m_fluid = m_fluid
+                            ds.m_cu = m_cu
+                            ds.m_fe = m_fe
+                            ds.mass = mass
+                            ds.cost = cost
+                        end
+                    end
+                end
+            end
+        end
+    end
+end
+
+## The mass and steady-power Pareto front of one ring over the exchange rate (for the report): for each of seven rates
+## lambda [kg/W] (0.003 to 3) whether a design was found, its mass [kg], steady power [W], coil power [W], top speed
+## [m/s], bore [m], field [T] and loops.
+## vectors: 2
+fn pump_pareto(h: real[1] in 1e-4 .. 0.01, tau: real[1] in 1e-6 .. 1e-3, s0: real[1] in 0.005 .. 0.03, l1: real[1] in 0.2 .. 0.8) \
+        -> (ok: int[7], lam: real[1][7], mass: real[1][7], power: real[1][7], coil: real[1][7], v_max: real[1][7], bore: real[1][7], \
+            b: real[1][7], loops: real[1][7])
+    lam = [0.003, 0.01, 0.03, 0.1, 0.3, 1.0, 3.0]
+    ok = 0
+    mass = 0
+    power = 0
+    coil = 0
+    v_max = 0
+    bore = 0
+    b = 0
+    loops = 0
+    let ds = PumpDesign()
+    for i in 0 .. 7
+        ds = pump_design(h, tau, s0, l1, lam[i])
+        if ds.found
+            ok[i] = 1
+            mass[i] = ds.mass
+            power[i] = ds.p_steady
+            coil[i] = ds.p_coil
+            v_max[i] = ds.v_max
+            bore[i] = ds.d
+            b[i] = ds.b
+            loops[i] = ds.loops
+        end
+    end
+end

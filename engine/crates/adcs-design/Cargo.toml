@@ -1,6 +1,6 @@
 [package]
 name = "adcs-design"
-description = "TRI-NETRA ADCS design node: demand survey on the POP engine, parametric sizing of every actuator option, product assembly and budgets (port of matlab_sils/+asils/+sizing)"
+description = "TRI-NETRA ADCS design node: demand survey on the POP engine, sizing of every actuator option, product assembly and budgets; every law generated from the design (src/gen)"
 version.workspace = true
 edition.workspace = true
 authors.workspace = true

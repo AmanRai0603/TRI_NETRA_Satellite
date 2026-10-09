@@ -8,8 +8,8 @@ function [lat, lon, alt] = geodetic_wgs84(r)
     lat = 0;
     lon = 0;
     alt = 0;
-    [t__86, t__87, t__88] = asils.models.geodesy.geodetic_with(r, 6378137, (1 / 298.257223563));
-    lat = t__86;
-    lon = t__87;
-    alt = t__88;
+    [t__391, t__392, t__393] = asils.models.geodesy.geodetic_with(r, 6378137, (1 / 298.257223563));
+    lat = t__391;
+    lon = t__392;
+    alt = t__393;
 end

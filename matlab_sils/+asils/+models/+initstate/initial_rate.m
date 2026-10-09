@@ -18,9 +18,9 @@ function [w0, g] = initial_rate(kind, q0, r, v, value, mag, has_g, q_g, w_g, ext
     w0 = zeros(3, 1);
     w0 = value;
     if (kind == 1)
-        [t__57, t__58] = asils.pc.stream_normal3(g);
-        n = t__57;
-        g = t__58;
+        [t__362, t__363] = asils.pc.stream_normal3(g);
+        n = t__362;
+        g = t__363;
         w0 = (asils.models.facets.unit_or_zero(n) * mag);
     elseif (kind == 2)
         w0 = asils.pc.mv(asils.models.math.dcm(q0), (asils.pc.cross_(r, v) * (1 / asils.pc.dot_(r, r))));
@@ -29,9 +29,9 @@ function [w0, g] = initial_rate(kind, q0, r, v, value, mag, has_g, q_g, w_g, ext
         if has_g
             w = asils.pc.mv(asils.models.math.dcm(asils.models.math.qmult(asils.models.math.qconj(q_g), q0)), w_g);
         end
-        [t__59, t__60] = asils.pc.stream_normal3(g);
-        n = t__59;
-        g = t__60;
+        [t__364, t__365] = asils.pc.stream_normal3(g);
+        n = t__364;
+        g = t__365;
         w0 = (w + (asils.models.facets.unit_or_zero(n) * extra));
     end
 end

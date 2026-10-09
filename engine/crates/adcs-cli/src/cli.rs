@@ -33,6 +33,9 @@ pub enum Cmd {
     /// list, show, keep, thin, export or import runs
     #[command(subcommand)]
     Results(ResultsCmd),
+    /// the design's methods a tool asks for: a catalogue model's parameters, any of the sizing's methods by name
+    #[command(subcommand)]
+    Design(DesignCmd),
     /// draw a run's figures (engine or MATLAB twin run folder) as SVG or PDF
     Figures(FiguresArgs),
     /// write a run's report: report.html (figures inline, prints to PDF) and report.pdf
@@ -263,6 +266,25 @@ pub enum ResultsCmd {
     },
 }
 
+#[derive(Subcommand, Debug)]
+pub enum DesignCmd {
+    /// each datasheet's derived block (catalogue's method, catalogue/catderive.pc), one JSON line per file, for
+    /// tools/catalogue.py
+    Derive {
+        /// datasheet files (adcs-datasheet/1)
+        #[arg(required = true)]
+        files: Vec<PathBuf>,
+    },
+    /// call one of the design's methods generated into the sizing (adcs-design) by its name (module::function), its
+    /// inputs flattened as numbers on stdin (a buffer: its length, then its elements; true 1, false 0, a choice its
+    /// option's number) and its outputs, then its changed inputs, flattened one a line (exact: shortest round trip,
+    /// NaN, inf), for the loop's tools
+    Call {
+        /// the method, module::function (looprules::loop_converge)
+        name: String,
+    },
+}
+
 fn key_value(s: &str) -> Result<(String, String), String> {
     s.split_once('=').filter(|(k, _)| !k.is_empty()).map(|(k, v)| (k.to_string(), v.to_string()))
         .ok_or_else(|| format!("{s:?} is not key=value"))
@@ -324,7 +346,7 @@ pub fn args(cmd: &Cmd) -> Option<Args> {
             cmd: "size".into(), scenario: z.case.clone(), case: None, fsw: Impl::C, fsw_b: None, seed: 1, out: z.out.clone(),
             set: z.knobs.iter().map(|f| ("knobs".to_string(), f.clone())).collect(), quiet: false, realtime: false, oils: None,
         },
-        Cmd::Results(_) | Cmd::Figures(_) | Cmd::Report(_) | Cmd::Plot(_) => return None,
+        Cmd::Results(_) | Cmd::Design(_) | Cmd::Figures(_) | Cmd::Report(_) | Cmd::Plot(_) => return None,
     })
 }
 

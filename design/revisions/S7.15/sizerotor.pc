@@ -1,0 +1,101 @@
+## The benchmarks' momentum actuators are bought, so they are chosen from the datasheet catalogue (the select_rotor node,
+## docs/NODES.md), never sized by a law: transcribed from adcs-design lib.rs (rotor). Three orthogonal reaction wheels,
+## or a four-unit pyramid of CMGs or VSCMGs (two units act on any axis, so each holds half the need). Per unit a wheel
+## must hold h_req and give tau_req, a pyramid unit half of each, both times the loop's authority scale; the lightest
+## selectable model that meets the need wins (then the least steady power, then the least volume; the first in the
+## catalogue's order among equals); when none does, the one with the most momentum is fitted (the last of equals) and
+## the gap is said. A VSCMG runs its rotor at the catalogue's VSCMG momentum (half the datasheet's, so its speed can
+## move both ways). The part's mass (gw_6) and steady power (gw_5) are the model's datasheet values. Momenta in N m s,
+## torques in N m, masses in kg, powers in W, volumes in L: plain numbers.
+## The finding stands (docs/S7_INVENTORY.md): the twin's asils.sizing.rw and cmg size wheels and CMGs by a law; the
+## engine selects from the catalogue, and this is the engine's.
+## The developer's transcription (S7.15), unsigned.
+module sizerotor
+
+## Which momentum actuator is chosen: reaction wheels, CMGs, VSCMGs.
+choice RotorUse = rw, cmg, vscmg
+
+## A catalogue model's type (adcs-datasheet/1 `type`): a reaction wheel, a CMG, a CMG cluster, anything else.
+choice CatalogueKind = reaction_wheel, cmg, cmg_cluster, other
+
+## Whether a catalogue model of kind k may serve use u: a selectable model (its datasheet states momentum, torque, mass
+## and steady power), a wheel for wheels, a CMG or a CMG cluster for CMGs and VSCMGs.
+fn rotor_fits(u: RotorUse, k: CatalogueKind, selectable: bool) -> ok: bool
+    if u == RotorUse.rw
+        ok = selectable and k == CatalogueKind.reaction_wheel
+    else
+        ok = selectable and (k == CatalogueKind.cmg or k == CatalogueKind.cmg_cluster)
+    end
+end
+
+## The need per unit of use u for the case's momentum h_req and torque tau_req at the authority scale s: a wheel the
+## whole of each, a pyramid unit half; and how many units are fitted.
+fn rotor_need(u: RotorUse, h_req: real[1] in 0 .. 0.1, tau_req: real[1] in 0 .. 0.01, s: real[1] in 0.1 .. 10) \
+        -> (h_need: real[1], tau_need: real[1], units: int)
+    let share = if u == RotorUse.rw then 1.0 else 0.5
+    h_need = share*h_req*s
+    tau_need = share*tau_req*s
+    units = if u == RotorUse.rw then 3 else 4
+end
+
+## Whether a model of momentum h and torque tau meets the need per unit (h_need, tau_need).
+fn rotor_meets(h: real[1] in 0 .. 0.1, tau: real[1] in 0 .. 0.01, h_need: real[1] in 0 .. 0.1, tau_need: real[1] in 0 .. 0.01) -> ok: bool
+    ok = h >= h_need and tau >= tau_need
+end
+
+## The model fitted among the n candidates (momentum h, torque tau, mass, steady power p and volume v of each, in the
+## catalogue's order): the lightest that meets the need, then the least power, then the least volume, the first of equals
+## (met); when none meets it, the one with the most momentum, the last of equals (not met).
+## length: 8
+fn rotor_pick(h: inout real[1][*] in 0 .. 0.1, tau: inout real[1][*] in 0 .. 0.01, mass: inout real[1][*] in 0.05 .. 2, \
+              p: inout real[1][*] in 0.1 .. 10, v: inout real[1][*] in 0.01 .. 1, n: int in 1 .. 8, \
+              h_need: real[1] in 0 .. 0.1, tau_need: real[1] in 0 .. 0.01) -> (pick: int, met: bool)
+    pick = -1
+    met = false
+    for i in 0 .. n
+        if rotor_meets(h[i], tau[i], h_need, tau_need)
+            if not met
+                pick = i
+                met = true
+            elif mass[i] < mass[pick] or (mass[i] == mass[pick] and (p[i] < p[pick] or (p[i] == p[pick] and v[i] < v[pick])))
+                pick = i
+            end
+        end
+    end
+    if not met
+        pick = 0
+        for i in 1 .. n
+            if h[i] >= h[pick]
+                pick = i
+            end
+        end
+    end
+end
+
+## Whether use u runs the rotor at the catalogue's VSCMG momentum in place of its datasheet momentum.
+fn rotor_vscmg(u: RotorUse) -> half: bool
+    half = u == RotorUse.vscmg
+end
+
+## The chosen part's dispersion: the torque's scale (normal, mean 1, sigma 1 %), the friction's scale (uniform 0.5 to 2)
+## and the axis's misalignment [rad] (normal, mean 0, sigma 1 mrad).
+fn rotor_dispersion() -> (torque_dist: Dist, torque_mean: int, torque_sigma: real[1], friction_dist: Dist, friction_lo: real[1], \
+                          friction_hi: real[1], mis_dist: Dist, mis_mean: int, mis_sigma: real[1])
+    torque_dist = Dist.normal
+    torque_mean = 1
+    torque_sigma = 0.01
+    friction_dist = Dist.uniform
+    friction_lo = 0.5
+    friction_hi = 2.0
+    mis_dist = Dist.normal
+    mis_mean = 0
+    mis_sigma = 0.001
+end
+
+## How the rotors are mounted: three wheels on the body axes (row i the i-th spin axis); a pyramid's four gimbal axes, 54.7
+## deg from +Z (0.8165, 0.5774), and its rotors' spin axes at the zero gimbal angle.
+fn rotor_mounting() -> (wheel_axes: real[1][3][3], gimbal_axes: real[1][3][4], spin_axes: real[1][3][4])
+    wheel_axes = [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]]
+    gimbal_axes = [[0.8165, 0.0, 0.5774], [0.0, 0.8165, 0.5774], [-0.8165, 0.0, 0.5774], [0.0, -0.8165, 0.5774]]
+    spin_axes = [[0.0, 1.0, 0.0], [-1.0, 0.0, 0.0], [0.0, -1.0, 0.0], [1.0, 0.0, 0.0]]
+end

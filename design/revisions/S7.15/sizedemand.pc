@@ -1,0 +1,286 @@
+## What the case asks of an actuator, transcribed from adcs-design lib.rs (survey, demand, SURVEY_EPOCH_DAYS, SURVEY_F107,
+## Knobs) and the twin's asils.sizing.demand: one orbit of the disturbance torque at four attitudes (the payload axes X, Y
+## and Z on nadir, and the Sun on the power face), flown for four seasons (the Sun's direction against the orbit plane,
+## so the beta angle and the eclipses) and the long-term low and high solar activity (ECSS-E-ST-10-04C's F10.7, so the
+## density and the aerodynamic torque); the worst of every survey, each attitude and axis on its own, is what the parts
+## are sized for: the peak torque, the cyclic and the secular momentum an orbit leaves, the field's least and mean
+## strength, the eclipse fraction. To it the case adds the detumble from its tip-off rate, the reference slew (a
+## bang-bang slew of the case's angle in its time), the momentum held between dumps, and the margins. A value the case
+## leaves blank takes the default stated here, and the sizing says so. Momenta in N m s, torques in N m, the field in T,
+## times in s, angles in deg, rates in deg/s, as the code took them: plain numbers.
+## The developer's transcription (S7.15), unsigned.
+module sizedemand
+
+## How a part's dispersion is drawn: normal (mean, sigma) or uniform (lo, hi).
+choice Dist = normal, uniform
+
+## The attitudes of the survey: the payload's X, Y or Z axis on nadir, and the Sun on the power face.
+choice SurveyAttitude = x_nadir, y_nadir, z_nadir, sun
+
+## The larger of a and b as the code's f64::max takes it: a value that is not a number left out, equal values the first.
+fn size_max(a: real[1] in -10 .. 10, b: real[1] in -10 .. 10) -> c: real[1]
+    if isnan(a)
+        c = b
+    else
+        c = max(a, b)
+    end
+end
+
+## The smaller of a and b as the code's f64::min takes it: a value that is not a number left out, equal values the first.
+fn size_min(a: real[1] in -10 .. 10, b: real[1] in -10 .. 10) -> c: real[1]
+    if isnan(a)
+        c = b
+    else
+        c = min(a, b)
+    end
+end
+
+## How many surveys the sizing flies: four seasons by two solar activities.
+fn survey_runs() -> n: int
+    n = 8
+end
+
+## The season and the solar activity of survey i (seasons outer, activities inner): the days from the case's epoch to
+## the season (a quarter year apart) and the F10.7 index [sfu] the density takes (ECSS-E-ST-10-04C's long-term low and
+## high), its 81-day mean the same.
+fn survey_sweep(i: int in 0 .. 7) -> (epoch_days: real[1], f107: real[1])
+    let days: real[1][4] = [0.0, 91.3, 182.6, 273.9]
+    let flux: real[1][2] = [65.0, 250.0]
+    epoch_days = days[div(i, 2)]
+    f107 = flux[rem(i, 2)]
+end
+
+## The survey's run: one orbit (the duration covers the longest orbit the sizing flies), the engine's step and the
+## recorder's [s]; the samples are taken every dt.
+fn survey_setup() -> (duration: real[1], dt: real[1], record_dt: real[1])
+    duration = 5740.0
+    dt = 10.0
+    record_dt = 10.0
+end
+
+## How many samples one orbit of t_orb [s] takes at dt [s]: every dt from the start to the orbit's end, both counted.
+fn survey_samples(t_orb: real[1] in 3000 .. 7000, dt: real[1] in 1 .. 20) -> n: int
+    n = int(floor(t_orb/dt)) + 1
+end
+
+## The attitude a of the survey: the payload axis put on nadir (the flight software's nadir guidance, mode 0, with that
+## axis as its boresight), or the Sun on the power face (its Sun-pointing guidance, mode 4: the Sun on -Z, the roll
+## about X).
+fn survey_attitude(a: SurveyAttitude) -> (boresight: vec3[1], sun: bool, mode: int, sun_axis: vec3[1], roll_axis: vec3[1])
+    boresight = [0.0, 0.0, 0.0]
+    sun = false
+    mode = 0
+    sun_axis = [0.0, 0.0, -1.0]
+    roll_axis = [1.0, 0.0, 0.0]
+    if a == SurveyAttitude.x_nadir
+        boresight = [1.0, 0.0, 0.0]
+    elif a == SurveyAttitude.y_nadir
+        boresight = [0.0, 1.0, 0.0]
+    elif a == SurveyAttitude.z_nadir
+        boresight = [0.0, 0.0, 1.0]
+    else
+        sun = true
+        mode = 4
+    end
+end
+
+## One orbit of the disturbance torque: tau holds n samples taken every dt [s] over an orbit of t_orb [s], each the four
+## attitudes' torque vectors [N m] (sample k, attitude a, axis i at 12 k + 3 a + i). Per attitude: the largest torque,
+## the largest torque on each axis (row i), the momentum the orbit leaves (its secular part, the integral at the end)
+## and the largest swing of the momentum about the straight line to it (the cyclic part), the integral the running sum
+## of torque x dt.
+## length: 48
+fn survey_orbit(tau: inout real[1][*] in -1e-5 .. 1e-5, n: int in 1 .. 4, dt: real[1] in 1 .. 20, t_orb: real[1] in 10 .. 80) \
+        -> (tau_peak: real[1][4], tau_axis_peak: real[1][4][3], h_cyclic: real[1][4], h_secular_orbit: real[1][4])
+    tau_peak = 0
+    tau_axis_peak = 0
+    h_cyclic = 0
+    h_secular_orbit = 0
+    let h: real[1][3] = 0
+    let hend: real[1][3] = 0
+    let x: real[1][3] = 0
+    let f: real[1] = 0.0
+    let pk: real[1] = 0.0
+    for a in 0 .. 4
+        h = 0
+        for k in 0 .. n
+            for i in 0 .. 3
+                h[i] = h[i] + tau[12*k + 3*a + i]*dt
+            end
+        end
+        hend = h
+        pk = 0.0
+        for k in 0 .. n
+            x = [tau[12*k + 3*a], tau[12*k + 3*a + 1], tau[12*k + 3*a + 2]]
+            pk = max(pk, norm(x))
+        end
+        tau_peak[a] = pk
+        for i in 0 .. 3
+            pk = 0.0
+            for k in 0 .. n
+                pk = max(pk, |tau[12*k + 3*a + i]|)
+            end
+            tau_axis_peak[i][a] = pk
+        end
+        h = 0
+        pk = 0.0
+        for k in 0 .. n
+            for i in 0 .. 3
+                h[i] = h[i] + tau[12*k + 3*a + i]*dt
+            end
+            f = real(k)*dt/t_orb
+            x = [h[0] - hend[0]*f, h[1] - hend[1]*f, h[2] - hend[2]*f]
+            pk = max(pk, norm(x))
+        end
+        h_cyclic[a] = pk
+        h_secular_orbit[a] = norm(hend)
+    end
+end
+
+## The field along one orbit: the least and the mean of the n samples of its strength bm [T] (the sum from -0, as the
+## code's sum).
+## length: 8
+fn survey_field(bm: inout real[1][*] in 1e-5 .. 6e-5, n: int in 1 .. 8) -> (b_min: real[1], b_mean: real[1])
+    b_min = 1.7976931348623157e308
+    let s: real[1] = -0.0
+    for k in 0 .. n
+        b_min = min(b_min, bm[k])
+        s = s + bm[k]
+    end
+    b_mean = s/real(n)
+end
+
+## The worst of two surveys, the one so far (w) and the next (s): the larger peak torque, cyclic and secular momentum
+## and eclipse fraction, each attitude and axis on its own, and the weaker least field. The field's mean is the first
+## survey's (the code keeps it).
+fn survey_worst(tau_peak_w: real[1][4] in 0 .. 1e-5, tau_peak_s: real[1][4] in 0 .. 1e-5, \
+                tap_w: real[1][4][3] in 0 .. 1e-5, tap_s: real[1][4][3] in 0 .. 1e-5, \
+                hc_w: real[1][4] in 0 .. 1e-3, hc_s: real[1][4] in 0 .. 1e-3, hs_w: real[1][4] in 0 .. 1e-3, hs_s: real[1][4] in 0 .. 1e-3, \
+                bmin_w: real[1] in 1e-5 .. 6e-5, bmin_s: real[1] in 1e-5 .. 6e-5, ecl_w: real[1] in 0 .. 0.5, ecl_s: real[1] in 0 .. 0.5) \
+        -> (tau_peak: real[1][4], tau_axis_peak: real[1][4][3], h_cyclic: real[1][4], h_secular_orbit: real[1][4], \
+            b_min: real[1], eclipse_frac: real[1])
+    tau_peak = tau_peak_w
+    tau_axis_peak = tap_w
+    h_cyclic = hc_w
+    h_secular_orbit = hs_w
+    for a in 0 .. 4
+        tau_peak[a] = size_max(tau_peak_w[a], tau_peak_s[a])
+        h_cyclic[a] = size_max(hc_w[a], hc_s[a])
+        h_secular_orbit[a] = size_max(hs_w[a], hs_s[a])
+        for i in 0 .. 3
+            tau_axis_peak[i][a] = size_max(tap_w[i][a], tap_s[i][a])
+        end
+    end
+    b_min = size_min(bmin_w, bmin_s)
+    eclipse_frac = size_max(ecl_w, ecl_s)
+end
+
+## The defaults the sizing takes where the case is blank: the tip-off rate [deg/s], the reference slew's angle [deg]
+## and time [s], the mission's life [yr], the slews a day, the momentum margin when req.hsat is blank, the momentum held
+## between dumps when req.dump is blank [orbits], and the finest knowledge [deg] of the coarse class.
+fn demand_defaults() -> (w0: real[1], slew_deg: real[1], slew_s: real[1], life_yr: real[1], slews_per_day: real[1], \
+                         k_h: real[1], orbits_held: real[1], ake_fine: real[1])
+    w0 = 10.0
+    slew_deg = 30.0
+    slew_s = 60.0
+    life_yr = 3.0
+    slews_per_day = 0.0
+    k_h = 2.0
+    orbits_held = 0.25
+    ake_fine = 0.05
+end
+
+## What the case asks of an actuator, from the worst survey (tau_peak, h_cyclic, h_secular_orbit per attitude, the
+## orbit's period t_orb [s]), the case's lines (req.dump [h], mission.w0 [deg/s], mission.sangle [deg], req.slew [s],
+## mission.life [yr], mission.spd, req.hsat, req.ake [deg]: nan when blank), the momentum margin the loop sets (k_h_knob,
+## nan when it sets none), the torque margin k_tau and the principal moments j [kg m^2]:
+## - the worst attitude (the first of the largest peak torques) and its torque;
+## - the momentum held between dumps: req.dump hours of the secular momentum, or a quarter orbit's, with the cyclic;
+## - the detumble's momentum, the largest moment at the tip-off rate;
+## - the reference slew: twice its angle over its time (rate), 2 pi its angle over its time squared (acceleration), at
+##   the largest moment;
+## - the margins: k_h (the loop's, else 1/(1 - req.hsat) for a stated share of saturation, else 2) on the larger of the
+##   held and the slew's momentum, k_tau on the larger of the worst and the slew's torque;
+## - the fine class: a stated req.ake at most 0.05 deg.
+## Each default taken is said (the *_dflt flags).
+fn demand(tau_peak: real[1][4] in 0 .. 1e-5, h_cyclic: real[1][4] in 0 .. 1e-3, h_secular_orbit: real[1][4] in 0 .. 1e-3, \
+          t_orb: real[1] in 5000 .. 6000, dump_h: real[1] in -1 .. 24, w0_case: real[1] in 0 .. 20, sangle_case: real[1] in 0 .. 90, \
+          slew_case: real[1] in 1 .. 300, life_case: real[1] in 0.5 .. 10, spd_case: real[1] in 0 .. 20, hsat: real[1] in -0.5 .. 1.5, \
+          k_h_knob: real[1] in 0 .. 5, k_tau: real[1] in 0 .. 5, j: vec3[1] in 0.01 .. 0.1, ake: real[1] in 0 .. 0.2) \
+        -> (worst: int, tau_dist: real[1], h_dist: real[1], h_secular: real[1], dump_dflt: bool, w0: real[1], w0_dflt: bool, \
+            h_detumble: real[1], slew_deg: real[1], sangle_dflt: bool, slew_s: real[1], slew_dflt: bool, w_slew: real[1], \
+            a_slew: real[1], h_slew: real[1], tau_slew: real[1], life_yr: real[1], life_dflt: bool, slews_per_day: real[1], \
+            k_h: real[1], h_req: real[1], tau_req: real[1], fine: bool)
+    let dw0, dsl, dss, dlf, dspd, dkh, dheld, dake = demand_defaults()
+    worst = 0
+    for a in 0 .. 4
+        if tau_peak[a] > tau_peak[worst]
+            worst = a
+        end
+    end
+    tau_dist = tau_peak[worst]
+    let held: real[1] = dheld
+    dump_dflt = true
+    if isfinite(dump_h) and dump_h > 0.0
+        held = dump_h*3600.0/t_orb
+        dump_dflt = false
+    end
+    h_dist = -1.7976931348623157e308
+    h_secular = -1.7976931348623157e308
+    for a in 0 .. 4
+        h_dist = max(h_dist, h_cyclic[a] + held*h_secular_orbit[a])
+        h_secular = max(h_secular, h_secular_orbit[a])
+    end
+    w0_dflt = isnan(w0_case)
+    w0 = if w0_dflt then dw0 else w0_case
+    let jmax: real[1] = -1.7976931348623157e308
+    for i in 0 .. 3
+        jmax = max(jmax, j[i])
+    end
+    h_detumble = jmax*w0*pi/180.0
+    sangle_dflt = isnan(sangle_case)
+    slew_deg = if sangle_dflt then dsl else sangle_case
+    slew_dflt = isnan(slew_case)
+    slew_s = if slew_dflt then dss else slew_case
+    w_slew = 2.0*slew_deg*pi/180.0/slew_s
+    a_slew = 2.0*pi*slew_deg*pi/180.0/(slew_s*slew_s)
+    h_slew = jmax*w_slew
+    tau_slew = jmax*a_slew
+    life_dflt = isnan(life_case)
+    life_yr = if life_dflt then dlf else life_case
+    slews_per_day = if isnan(spd_case) then dspd else spd_case
+    if isnan(k_h_knob)
+        k_h = dkh
+        if isfinite(hsat) and hsat > 0.0 and hsat < 1.0
+            k_h = 1.0/(1.0 - hsat)
+        end
+    else
+        k_h = k_h_knob
+    end
+    h_req = k_h*size_max(h_dist, h_slew)
+    tau_req = k_tau*size_max(tau_dist, tau_slew)
+    fine = isfinite(ake) and ake <= dake
+end
+
+## The knobs of the sizing (the design loop turns them) where a file states none: the torque margin, the fluid loop's
+## pump exchange rate [kg/W], the star tracker's heads, the fluid loop's flow-sensor noise [m/s, 1 sigma] and the gyro
+## grade (the precision gyro's noise scale); and the range each may take (the momentum margin's the torque margin's).
+fn sizing_knobs() -> (k_tau: real[1], fmr_lambda: real[1], st_heads: int, fmr_flow_sigma: real[1], gyro_grade: real[1], \
+                      k_lo: real[1], k_hi: real[1], lambda_lo: real[1], lambda_hi: real[1], heads_lo: real[1], heads_hi: real[1], \
+                      sigma_lo: real[1], sigma_hi: real[1], grade_lo: real[1], grade_hi: real[1])
+    k_tau = 1.5
+    fmr_lambda = 0.1
+    st_heads = 2
+    fmr_flow_sigma = 0.002
+    gyro_grade = 1.0
+    k_lo = 0.0
+    k_hi = 100.0
+    lambda_lo = 0.0
+    lambda_hi = 10.0
+    heads_lo = 1.0
+    heads_hi = 3.0
+    sigma_lo = 0.0
+    sigma_hi = 1.0
+    grade_lo = 0.0
+    grade_hi = 100.0
+end

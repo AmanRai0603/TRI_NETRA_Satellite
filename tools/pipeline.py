@@ -46,8 +46,8 @@ from pipeline_base import (
     BIN, CACHE, CANDIDATES, DOWN, FAMILIES, FLOW_SIGMA_MIN,
     GYRO_MIN, IMPROVE, LAMBDA_MAX, LAMBDA_MIN, MS, NODES,
     OUT, P, PIPE, ROOT, SCALE_MAX, SCALE_MIN,
-    SLOT, TUNE, UP, auth_part, case_bytes, cls,
-    fam_violation, jl_, rate_violation, sha, split_alg, tune_grid,
+    SLOT, TUNE, UP, case_bytes, cls,
+    jl_, sha, split_alg, tune_grid,
     usable, write,
 )
 from pipeline_design import (
@@ -67,11 +67,11 @@ __all__ = [
     'BIN', 'CACHE', 'CANDIDATES', 'DOWN', 'FAMILIES', 'FLOW_SIGMA_MIN',
     'GYRO_MIN', 'IMPROVE', 'LAMBDA_MAX', 'LAMBDA_MIN', 'MS', 'NODES',
     'OUT', 'P', 'PAPER', 'PIPE', 'ROOT', 'SCALE_MAX',
-    'SCALE_MIN', 'SLOT', 'TUNE', 'UP', 'auth_part', 'case_bytes',
-    'cls', 'fam_violation', 'jl_', 'ledger', 'literature_table', 'node_assess',
+    'SCALE_MIN', 'SLOT', 'TUNE', 'UP', 'case_bytes',
+    'cls', 'jl_', 'ledger', 'literature_table', 'node_assess',
     'node_certify', 'node_converge', 'node_dispatch', 'node_family_missions', 'node_faults', 'node_key', 'node_matrix',
     'node_mc', 'node_robust', 'node_select', 'node_size', 'node_soft_oils', 'product_blob',
-    'rate_violation', 'run_job', 'select_pick', 'sha', 'split_alg', 'tune_grid', 'usable',
+    'run_job', 'select_pick', 'sha', 'split_alg', 'tune_grid', 'usable',
     'write',
 ]
 

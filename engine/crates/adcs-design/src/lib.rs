@@ -1,11 +1,15 @@
-//! The design node of the pipeline (docs/DESIGN_LOOP.md): what the case asks of an actuator
-//! (demand survey on the POP orbit, the SILS torque models), every actuator option sized to it
-//! (ours: MTQ, fluid loop, N2O RCS, designed; benchmarks: RW, CMG, VSCMG, chosen from the datasheet
-//! catalogue), one product per family and
-//! its mass / power / volume budget. A port of matlab_sils/+asils/+sizing (demand, mtq, rw,
-//! cmg, fmr, rcs, size_all) with the laws unchanged, plus the KNOBS the convergence loop turns
-//! (tools/pipeline.py): per-part authority scales, the margins, the fluid loop's electromagnetic pump
-//! (mass/power rate lambda, flow-sensor grade), star-tracker heads, gyro grade.
+//! The design node of the pipeline (docs/DESIGN_LOOP.md): what the case asks of an actuator (the demand survey on the
+//! engine's orbit and torque models), every actuator option sized to it (ours: MTQ, fluid loop, N2O RCS, designed;
+//! benchmarks: RW, CMG, VSCMG, chosen from the datasheet catalogue), one product per family and its mass / power /
+//! volume budget, with the KNOBS the convergence loop turns (tools/pipeline.py): per-part authority scales, the
+//! margins, the fluid loop's electromagnetic pump (mass/power rate lambda, flow-sensor grade), star-tracker heads, gyro
+//! grade.
+//!
+//! Every law is the design's (docs/S7_INVENTORY.md S7.15): the methods of design and act (design/sizedemand.pc,
+//! sizemtq.pc, sizerotor.pc, sizefmr.pc, sizercs.pc, sizebudget.pc, sizesensors.pc; act/sizepump.pc, sizering.pc),
+//! generated into `gen` by tools/engine_build.py. This crate keeps the survey's step order (the orbit flown and the
+//! torques taken by the engine's generated models), the reading of the case, the catalogue and the parts, and the
+//! writing of the parts, the products and sizing.json in their formats.
 //! Owner: Agastya. Copyright (c) 2026 Agastya. All rights reserved.
 use adcs_sim::Error;
 use adcs_fsw::guid::{boresight_offset, guidance, Guid};
@@ -17,23 +21,28 @@ use adcs_sim_core::torques::{self, Facets};
 use adcs_sim_core::{field, time};
 use serde_json::{json, Value};
 use std::collections::BTreeMap;
-use std::f64::consts::PI;
 use std::path::Path;
 
-pub mod empump;
+pub mod catalogue;
+pub mod gen;
+// the translator's dispatcher (gen/dispatch.rs, which `adcs design call` serves) names the methods' modules
+// crate::<module>, as the flight software's vector test does: they are brought in at the crate's root
+pub use gen::*;
+use gen::{sizebudget as gb, sizedemand as gd, sizefmr as gf, sizemtq as gm, sizepump as gp, sizercs as gc, sizering as gs,
+          sizerotor as gr, sizesensors as gx};
 
 /// What the convergence loop may change between iterations.
 #[derive(Clone, Debug)]
 pub struct Knobs {
     /// authority scale per sized part: mtq, mtqp, rw, cmg, vscmg, fmr, rcs (1 = the law's size)
     pub scale: BTreeMap<String, f64>,
-    /// momentum margin (default 2, or 1/(1 - req.hsat)); torque margin (default 1.5)
+    /// momentum margin (the design's default, or 1/(1 - req.hsat)); torque margin
     pub k_h: Option<f64>, pub k_tau: f64,
-    /// fluid loop: mass/power exchange rate of the electromagnetic pump design [kg/W] (empump.rs)
+    /// fluid loop: mass/power exchange rate of the electromagnetic pump design [kg/W] (act/sizepump.pc)
     pub fmr_lambda: f64,
     /// fit the star tracker on a coarse-class product too (knowledge upgrade)
     pub star_tracker: bool,
-    /// star-tracker heads (2 by default; 1 saves a head's mass where knowledge allows)
+    /// star-tracker heads (1 saves a head's mass where knowledge allows)
     pub st_heads: u8,
     /// fluid-loop flow sensor noise, 1 sigma [m/s] (the in-house loop's sensor requirement)
     pub fmr_flow_sigma: f64,
@@ -43,17 +52,22 @@ pub struct Knobs {
     pub fmr_spare: bool,
 }
 impl Default for Knobs {
-    fn default() -> Self { Knobs { scale: BTreeMap::new(), k_h: None, k_tau: 1.5, fmr_lambda: 0.1, star_tracker: false, st_heads: 2, fmr_flow_sigma: 0.002, gyro_grade: 1.0, fmr_spare: false } }
+    /// The knobs where a file states none: the design's (design/sizedemand.pc sizing_knobs).
+    fn default() -> Self {
+        let (k_tau, fmr_lambda, st_heads, fmr_flow_sigma, gyro_grade, ..) = gd::sizing_knobs();
+        Knobs { scale: BTreeMap::new(), k_h: None, k_tau, fmr_lambda, star_tracker: false, st_heads: st_heads as u8, fmr_flow_sigma, gyro_grade, fmr_spare: false }
+    }
 }
 impl Knobs {
     /// The knobs a file states; a key left out keeps its default. A key the sizing does not
-    /// read, or a value of the wrong kind, is refused by name.
+    /// read, or a value of the wrong kind or outside the design's range, is refused by name.
     pub fn from_json(v: &Value) -> Result<Knobs, Error> {
         const KEYS: [&str; 9] = ["scale", "k_h", "k_tau", "fmr_lambda", "st_heads", "fmr_flow_sigma", "gyro_grade", "star_tracker", "fmr_spare"];
         let o = v.as_object().ok_or_else(|| Error::refused("knobs: must be a JSON object"))?;
         if let Some(k) = o.keys().find(|k| !KEYS.contains(&k.as_str())) {
             return Err(Error::refused(format!("knobs: {k} is not a knob the sizing reads ({})", KEYS.join(", "))));
         }
+        let (_k_tau, _lambda, _heads, _sigma, _grade, k_lo, k_hi, lambda_lo, lambda_hi, heads_lo, heads_hi, sigma_lo, sigma_hi, grade_lo, grade_hi) = gd::sizing_knobs();
         let num = |k: &str, lo: f64, hi: f64, d: f64| -> Result<f64, Error> {
             match o.get(k) {
                 None | Some(Value::Null) => Ok(d),
@@ -69,12 +83,12 @@ impl Knobs {
                 k.scale.insert(a.clone(), x);
             }
         }
-        k.k_h = match o.get("k_h") { None | Some(Value::Null) => None, Some(_) => Some(num("k_h", 0.0, 100.0, 0.0)?) };
-        k.k_tau = num("k_tau", 0.0, 100.0, 1.5)?;
-        k.fmr_lambda = num("fmr_lambda", 0.0, 10.0, 0.1)?;
-        k.st_heads = num("st_heads", 1.0, 3.0, 2.0)? as u8;
-        k.fmr_flow_sigma = num("fmr_flow_sigma", 0.0, 1.0, 0.002)?;
-        k.gyro_grade = num("gyro_grade", 0.0, 100.0, 1.0)?;
+        k.k_h = match o.get("k_h") { None | Some(Value::Null) => None, Some(_) => Some(num("k_h", k_lo, k_hi, 0.0)?) };
+        k.k_tau = num("k_tau", k_lo, k_hi, k.k_tau)?;
+        k.fmr_lambda = num("fmr_lambda", lambda_lo, lambda_hi, k.fmr_lambda)?;
+        k.st_heads = num("st_heads", heads_lo, heads_hi, k.st_heads as f64)? as u8;
+        k.fmr_flow_sigma = num("fmr_flow_sigma", sigma_lo, sigma_hi, k.fmr_flow_sigma)?;
+        k.gyro_grade = num("gyro_grade", grade_lo, grade_hi, k.gyro_grade)?;
         k.star_tracker = match o.get("star_tracker") {
             None | Some(Value::Null) => false,
             Some(Value::Bool(b)) => *b,
@@ -88,10 +102,11 @@ impl Knobs {
         Ok(k)
     }
     pub fn json(&self) -> Value { json!({"scale": self.scale, "k_h": self.k_h, "k_tau": self.k_tau, "fmr_lambda": self.fmr_lambda, "star_tracker": self.star_tracker, "st_heads": self.st_heads, "fmr_flow_sigma": self.fmr_flow_sigma, "gyro_grade": self.gyro_grade, "fmr_spare": self.fmr_spare}) }
+    /// A part's authority scale: the loop's, or 1 (the law's size) where it sets none.
     fn s(&self, p: &str) -> f64 { self.scale.get(p).copied().unwrap_or(1.0) }
 }
 
-/// asils.sizing.demand
+/// What the case asks of an actuator (design/sizedemand.pc).
 #[derive(Clone, Debug, Default)]
 pub struct Demand {
     pub case: String, pub period_s: f64,
@@ -108,21 +123,18 @@ pub struct Demand {
     pub sweep: Vec<Value>,
 }
 
+/// The survey's attitudes as sizing.json names them, in the order of sizedemand's SurveyAttitude.
 const ATT: [&str; 4] = ["X_nadir", "Y_nadir", "Z_nadir", "sun"];
-
-/// The environment the survey sweeps over the mission life: four seasons (the Sun's direction
-/// against the orbit plane, so the beta angle and the eclipses) and the long-term low and high
-/// solar activity (the density, so the aerodynamic torque): ECSS-E-ST-10-04C long-term F10.7.
-pub const SURVEY_EPOCH_DAYS: [f64; 4] = [0.0, 91.3, 182.6, 273.9];
-pub const SURVEY_F107: [f64; 2] = [65.0, 250.0];
 
 /// One orbit of disturbance at the four attitudes, for one season and one solar activity.
 struct Survey { tau_peak: [f64; 4], tau_axis_peak: [[f64; 4]; 3], h_cyclic: [f64; 4], h_secular_orbit: [f64; 4], b_min: f64, b_mean: f64, eclipse_frac: f64 }
 
+/// One survey: the orbit flown by the engine (Truth), at each sample the environment, the four attitudes' reference by
+/// the flight software's guidance and the disturbance torques by the engine's models; the design reduces them.
 fn survey(root: &Path, case_file: &Path, sets: &[(String, String)]) -> Result<(Config, Survey), Error> {
-    // the survey scenario of asils.sizing.demand: nadir, 10 s, one orbit
+    let (duration, dt, record_dt) = gd::survey_setup();
     let s = json!({"schema": "adcs-scenario/1", "id": "sizing_survey", "product": "TRN-P-3U-AIS", "label": "sizing survey",
-        "time": {"duration_s": 5740, "dt_s": 10, "record_dt_s": 10}, "initial": {"attitude": {"kind": "nadir"}, "rate": {"kind": "lvlh"}},
+        "time": {"duration_s": duration, "dt_s": dt, "record_dt_s": record_dt}, "initial": {"attitude": {"kind": "nadir"}, "rate": {"kind": "lvlh"}},
         "fsw": {"start_mode": "detumble", "guidance": {"kind": "nadir"}}, "metrics": []});
     static N: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
     let tmp = std::env::temp_dir().join(format!("adcs-survey-{}-{}.json", std::process::id(), N.fetch_add(1, std::sync::atomic::Ordering::Relaxed)));
@@ -134,38 +146,28 @@ fn survey(root: &Path, case_file: &Path, sets: &[(String, String)]) -> Result<(C
     let gh = field::gh(time::decyear(c.jd0));
     let facets = Facets::boxed(&c.box_m, &c.cm_offset_m, c.sigma_n, c.sigma_t, c.vb_ratio, c.refl, c.spec_frac);
     let t_orb = c.period_s;
-    let dt = 10.0;
-    let n = (t_orb/dt).floor() as usize + 1;
-    let offs = [boresight_offset(&[1.0, 0.0, 0.0]), boresight_offset(&[0.0, 1.0, 0.0]), boresight_offset(&[0.0, 0.0, 1.0])];
-    let mut tau = vec![[[0.0; 3]; 4]; n];
+    let n = gd::survey_samples(t_orb, dt) as usize;
+    let att: Vec<_> = (0..4).map(gd::survey_attitude).collect();
+    let offs: Vec<_> = att.iter().map(|x| if x.1 { None } else { Some(boresight_offset(&x.0)) }).collect();
+    let mut tau = vec![0.0; 12*n];
     let (mut bm, mut nu) = (vec![0.0; n], vec![0.0; n]);
     for kk in 0..n {
         let t = kk as f64*dt;
         let (r, vv) = orb.state(t)?;
-        let e = orb.env(t, c.jd0, &r, &vv, &gh, 13);
+        let e = orb.env(t, c.jd0, &r, &vv, &gh, c.igrf_nmax);
         bm[kk] = norm(&e.b_eci); nu[kk] = e.nu;
         for a in 0..4 {
-            let g = if a < 3 { Guid { q_off: offs[a], ..Default::default() } }
-                    else { Guid { sun_eci: unit(&e.sun_rel), sun_axis: [0.0, 0.0, -1.0], roll_axis: [1.0, 0.0, 0.0], ..Default::default() } };
-            let q = guidance(if a < 3 { 0 } else { 4 }, &r, &vv, t, &g).q;
+            let (_, _, mode, sun_axis, roll_axis) = att[a];
+            let g = match offs[a] { Some(q_off) => Guid { q_off, ..Default::default() },
+                                    None => Guid { sun_eci: unit(&e.sun_rel), sun_axis, roll_axis, ..Default::default() } };
+            let q = guidance(mode as i32, &r, &vv, t, &g).q;
             let p = torques::torques(&q, &r, &e.v_rel, &e.b_eci, &e.sun_rel, e.nu, e.p_srp, e.rho, &c.inertia, &facets, &c.m_res, c.mu, c.env_on);
-            tau[kk][a] = add(&add(&p[0], &p[1]), &add(&p[2], &p[3]));
+            tau[12*kk + 3*a..12*kk + 3*a + 3].copy_from_slice(&add(&add(&p[0], &p[1]), &add(&p[2], &p[3])));
         }
     }
-    let mut sv = Survey { tau_peak: [0.0; 4], tau_axis_peak: [[0.0; 4]; 3], h_cyclic: [0.0; 4], h_secular_orbit: [0.0; 4],
-        b_min: bm.iter().cloned().fold(f64::MAX, f64::min), b_mean: bm.iter().sum::<f64>()/n as f64,
-        eclipse_frac: eclipse_fraction(&nu)? };
-    for a in 0..4 {
-        let mut h = [0.0; 3];
-        let mut hs = Vec::with_capacity(n);
-        for kk in 0..n { for i in 0..3 { h[i] += tau[kk][a][i]*dt; } hs.push(h); }
-        let hend = hs[n - 1];
-        sv.tau_peak[a] = tau.iter().map(|x| norm(&x[a])).fold(0.0, f64::max);
-        for i in 0..3 { sv.tau_axis_peak[i][a] = tau.iter().map(|x| x[a][i].abs()).fold(0.0, f64::max); }
-        sv.h_cyclic[a] = (0..n).map(|kk| { let f = kk as f64*dt/t_orb; norm(&sub(&hs[kk], &scale(&hend, f))) }).fold(0.0, f64::max);
-        sv.h_secular_orbit[a] = norm(&hend);
-    }
-    Ok((c, sv))
+    let (tau_peak, tau_axis_peak, h_cyclic, h_secular_orbit) = gd::survey_orbit(&mut tau, n as i64, dt, t_orb);
+    let (b_min, b_mean) = gd::survey_field(&mut bm, n as i64);
+    Ok((c, Survey { tau_peak, tau_axis_peak, h_cyclic, h_secular_orbit, b_min, b_mean, eclipse_frac: eclipse_fraction(&nu)? }))
 }
 
 /// The eclipse fraction of one orbit's samples of the sunlit fraction: env's method of m2_7, generated from the design
@@ -181,67 +183,50 @@ fn eclipse_fraction(nu: &[f64]) -> Result<f64, Error> {
     Ok(eclipse_fraction(a, nu.len() as i64))
 }
 
+/// What the case asks of an actuator: every survey of the design's sweep flown, the worst of them, and the case's lines
+/// with the design's defaults where it is blank (design/sizedemand.pc).
 pub fn demand(root: &Path, case_file: &Path, k: &Knobs) -> Result<Demand, Error> {
-    // the worst of every season and solar activity, each attitude and axis on its own
     let mut base: Option<(Config, Survey)> = None;
     let mut sweep = vec![];
-    for ep in SURVEY_EPOCH_DAYS {
-        for f in SURVEY_F107 {
-            let sets = [("engine.epoch_days".to_string(), format!("{ep}")), ("engine.f107".to_string(), format!("{f}")), ("engine.f107a".to_string(), format!("{f}"))];
-            let (c, sv) = survey(root, case_file, &sets)?;
-            sweep.push(json!({"epoch_days": ep, "f107": f, "tau_peak": sv.tau_peak, "h_secular_orbit": sv.h_secular_orbit, "eclipse_frac": sv.eclipse_frac}));
-            base = Some(match base {
-                None => (c, sv),
-                Some((c0, mut w)) => {
-                    for a in 0..4 {
-                        w.tau_peak[a] = w.tau_peak[a].max(sv.tau_peak[a]); w.h_cyclic[a] = w.h_cyclic[a].max(sv.h_cyclic[a]);
-                        w.h_secular_orbit[a] = w.h_secular_orbit[a].max(sv.h_secular_orbit[a]);
-                        for i in 0..3 { w.tau_axis_peak[i][a] = w.tau_axis_peak[i][a].max(sv.tau_axis_peak[i][a]); }
-                    }
-                    w.b_min = w.b_min.min(sv.b_min); w.eclipse_frac = w.eclipse_frac.max(sv.eclipse_frac);
-                    (c0, w)
-                }
-            });
-        }
+    for i in 0..gd::survey_runs() {
+        let (ep, f) = gd::survey_sweep(i);
+        let sets = [("engine.epoch_days".to_string(), format!("{ep}")), ("engine.f107".to_string(), format!("{f}")), ("engine.f107a".to_string(), format!("{f}"))];
+        let (c, sv) = survey(root, case_file, &sets)?;
+        sweep.push(json!({"epoch_days": ep, "f107": f, "tau_peak": sv.tau_peak, "h_secular_orbit": sv.h_secular_orbit, "eclipse_frac": sv.eclipse_frac}));
+        base = Some(match base {
+            None => (c, sv),
+            Some((c0, w)) => {
+                let (tau_peak, tau_axis_peak, h_cyclic, h_secular_orbit, b_min, eclipse_frac) = gd::survey_worst(w.tau_peak, sv.tau_peak,
+                    w.tau_axis_peak, sv.tau_axis_peak, w.h_cyclic, sv.h_cyclic, w.h_secular_orbit, sv.h_secular_orbit, w.b_min, sv.b_min,
+                    w.eclipse_frac, sv.eclipse_frac);
+                (c0, Survey { tau_peak, tau_axis_peak, h_cyclic, h_secular_orbit, b_min, b_mean: w.b_mean, eclipse_frac })
+            }
+        });
     }
     let (c, sv) = base.expect("the sweep has at least one survey");
     let v = |key: &str| c.case.get(key);
     let t_orb = c.period_s;
-    let mut d = Demand { case: c.case.id.clone(), period_s: t_orb, class: c.case.class.clone(), box_m: c.box_m,
-        tau_peak: sv.tau_peak, tau_axis_peak: sv.tau_axis_peak, h_cyclic: sv.h_cyclic, h_secular_orbit: sv.h_secular_orbit,
-        b_min: sv.b_min, b_mean: sv.b_mean, eclipse_frac: sv.eclipse_frac, sweep, ..Default::default() };
-    let ia = (0..4).fold(0, |b, a| if d.tau_peak[a] > d.tau_peak[b] { a } else { b });
-    d.tau_dist = d.tau_peak[ia]; d.worst_attitude = ATT[ia].into();
-    // the secular momentum held between dumps: req.dump hours of it, or a quarter orbit when the case is blank
-    let dump_h = v("req.dump");
-    let orbits_held = if dump_h.is_finite() && dump_h > 0.0 { dump_h*3600.0/t_orb } else { 0.25 };
-    d.h_dist = (0..4).map(|a| d.h_cyclic[a] + orbits_held*d.h_secular_orbit[a]).fold(f64::MIN, f64::max);
-    d.h_secular = d.h_secular_orbit.iter().cloned().fold(f64::MIN, f64::max);
-    let dflt = |x: f64, dv: f64, note: &str, notes: &mut Vec<String>| if x.is_nan() { notes.push(note.into()); dv } else { x };
+    let j = [c.inertia[0][0], c.inertia[1][1], c.inertia[2][2]];
+    let (worst, tau_dist, h_dist, h_secular, dump_dflt, w0, w0_dflt, h_detumble, slew_deg, sangle_dflt, slew_s, slew_dflt, w_slew, a_slew,
+         h_slew, tau_slew, life_yr, life_dflt, slews_per_day, k_h, h_req, tau_req, fine) = gd::demand(sv.tau_peak, sv.h_cyclic, sv.h_secular_orbit,
+        t_orb, v("req.dump"), v("mission.w0"), v("mission.sangle"), v("req.slew"), v("mission.life"), v("mission.spd"), v("req.hsat"),
+        k.k_h.unwrap_or(f64::NAN), k.k_tau, j, v("req.ake"));
+    // each default the design took where the case is blank, said in the case's terms
     let mut notes = vec![];
-    if !(dump_h.is_finite() && dump_h > 0.0) { notes.push("req.dump blank: a quarter orbit of secular momentum held between dumps taken".into()); }
-    d.w0_deg_s = dflt(v("mission.w0"), 10.0, "mission.w0 blank: 10 deg/s taken", &mut notes);
-    d.j = [c.inertia[0][0], c.inertia[1][1], c.inertia[2][2]];
-    let jmax = d.j.iter().cloned().fold(f64::MIN, f64::max);
-    d.h_detumble = jmax*d.w0_deg_s*PI/180.0;
-    d.slew_deg = dflt(v("mission.sangle"), 30.0, "mission.sangle blank: 30 deg taken", &mut notes);
-    d.slew_s = dflt(v("req.slew"), 60.0, "req.slew blank: 60 s taken for the reference slew", &mut notes);
-    d.w_slew = 2.0*d.slew_deg*PI/180.0/d.slew_s;
-    d.a_slew = 2.0*PI*d.slew_deg*PI/180.0/(d.slew_s*d.slew_s);
-    d.h_slew = jmax*d.w_slew; d.tau_slew = jmax*d.a_slew;
-    d.life_yr = dflt(v("mission.life"), 3.0, "mission.life blank: 3 years taken", &mut notes);
-    d.slews_per_day = { let x = v("mission.spd"); if x.is_nan() { 0.0 } else { x } };
-    let hsat = v("req.hsat");
-    d.k_h = k.k_h.unwrap_or(if hsat.is_finite() && hsat > 0.0 && hsat < 1.0 { 1.0/(1.0 - hsat) } else { 2.0 });
-    d.k_tau = k.k_tau;
-    d.h_req = d.k_h*d.h_dist.max(d.h_slew);
-    d.tau_req = d.k_tau*d.tau_dist.max(d.tau_slew);
-    for r in ["ape", "ake", "rks", "mass", "pavg", "ppk", "vol", "detumble", "sunacq"] { d.req.insert(r.into(), v(&format!("req.{r}"))); }
+    if dump_dflt { notes.push("req.dump blank: a quarter orbit of secular momentum held between dumps taken".to_string()); }
+    if w0_dflt { notes.push(format!("mission.w0 blank: {w0} deg/s taken")); }
+    if sangle_dflt { notes.push(format!("mission.sangle blank: {slew_deg} deg taken")); }
+    if slew_dflt { notes.push(format!("req.slew blank: {slew_s} s taken for the reference slew")); }
+    if life_dflt { notes.push(format!("mission.life blank: {life_yr} years taken")); }
+    let mut req = BTreeMap::new();
+    for r in ["ape", "ake", "rks", "mass", "pavg", "ppk", "vol", "detumble", "sunacq"] { req.insert(r.into(), v(&format!("req.{r}"))); }
     // what the platform allocates to the ADCS (blank: no allocation stated, nothing checked)
-    for r in ["malloc", "palloc", "valloc"] { d.req.insert(r.into(), v(&format!("resources.{r}"))); }
-    d.fine = d.req["ake"].is_finite() && d.req["ake"] <= 0.05;
-    d.notes = notes;
-    Ok(d)
+    for r in ["malloc", "palloc", "valloc"] { req.insert(r.into(), v(&format!("resources.{r}"))); }
+    Ok(Demand { case: c.case.id.clone(), period_s: t_orb, class: c.case.class.clone(), box_m: c.box_m,
+        tau_peak: sv.tau_peak, tau_axis_peak: sv.tau_axis_peak, h_cyclic: sv.h_cyclic, h_secular_orbit: sv.h_secular_orbit,
+        b_min: sv.b_min, b_mean: sv.b_mean, eclipse_frac: sv.eclipse_frac, sweep,
+        tau_dist, worst_attitude: ATT[worst as usize].into(), h_dist, h_secular, w0_deg_s: w0, j, h_detumble, slew_deg, slew_s, w_slew, a_slew,
+        h_slew, tau_slew, life_yr, slews_per_day, k_h, k_tau: k.k_tau, h_req, tau_req, req, notes, fine })
 }
 
 impl Demand {
@@ -263,215 +248,194 @@ fn part(case: &str, tag: &str, kind: &str, name: &str, made: &str) -> Value {
         "source": "adcs-design (asils.sizing laws)", "made": made, "descriptor_version": 1})
 }
 
-/// asils.sizing.mtq: (the coil of every family, the pointing-grade coil of the coils-only family)
+/// A dispersion as the part files write it: the design's distribution (sizedemand's Dist) and its two values.
+fn spread(dist: i64, a: Value, b: Value) -> Value {
+    if dist == gd::DIST_UNIFORM { json!({"dist": "uniform", "lo": a, "hi": b}) } else { json!({"dist": "normal", "mean": a, "sigma": b}) }
+}
+
+/// A direction as the part and product files write it: a whole component as a whole number.
+fn dir(v: &[f64; 3]) -> Value {
+    let c = |x: f64| if x.fract() == 0.0 && x.abs() < 1e15 { json!(x as i64) } else { json!(x) };
+    json!([c(v[0]), c(v[1]), c(v[2])])
+}
+fn dirs(v: &[[f64; 3]]) -> Value { Value::Array(v.iter().map(dir).collect()) }
+
+/// The coil of every family and the pointing-grade coil of the coils-only family (design/sizemtq.pc).
 pub fn mtq(d: &Demand, k: &Knobs) -> (Value, Value) {
-    let td = if d.req["detumble"].is_nan() { 3.0*d.period_s/60.0 } else { d.req["detumble"] };
-    let m_dump = 2.0*d.tau_dist/(0.5*d.b_min);
-    let m_mom = 2.0*d.h_secular/(0.3*d.b_mean*d.period_s);
-    let m_det = d.h_detumble/(0.3*d.b_mean*0.5*td*60.0);
-    let m = m_dump.max(m_mom).max(m_det).max(0.05);
+    let (m_dump, m_mom, m_det, m) = gm::mtq_dipoles(d.tau_dist, d.b_min, d.h_secular, d.b_mean, d.period_s, d.h_detumble, d.req["detumble"]);
     let coil = |m: f64, tag: &str, name: &str| {
-        let kk = m/0.45;
+        let (dipole_max, per_amp, current_max, resistance, time_constant, mass, power, volume) = gm::mtq_coil(m);
+        let (sd, sm, ss, md, mm, ms) = gm::mtq_dispersion();
         let mut p = part(&d.case, tag, "coil_tile", name, "in-house");
-        p["nominal"] = json!({"dipole_max_Am2": m, "dipole_per_amp_Am2_per_A": 4.5, "current_max_A": m/4.5, "resistance_ohm": 30,
-            "time_constant_s": 0.005, "mass_kg": 0.03*kk, "power_at_max_W": 0.3*kk, "volume_L": 0.012*kk});
-        p["dispersion"] = json!({"dipole_scale": {"dist": "normal", "mean": 1, "sigma": 0.02}, "axis_misalignment_rad": {"dist": "normal", "mean": 0, "sigma": 0.005}});
+        p["nominal"] = json!({"dipole_max_Am2": dipole_max, "dipole_per_amp_Am2_per_A": per_amp, "current_max_A": current_max, "resistance_ohm": resistance,
+            "time_constant_s": time_constant, "mass_kg": mass, "power_at_max_W": power, "volume_L": volume});
+        p["dispersion"] = json!({"dipole_scale": spread(sd, json!(sm), json!(ss)), "axis_misalignment_rad": spread(md, json!(mm), json!(ms))});
         p["sizing"] = json!({"m_dump_Am2": m_dump, "m_momentum_Am2": m_mom, "m_detumble_Am2": m_det, "scale": k.s(if tag == "MTQ" { "mtq" } else { "mtqp" }),
             "law": "max(dumping, momentum, detumble) dipole; mass and power linear in the dipole (SYN-CT-1 anchor)"});
         p
     };
     (coil(m*k.s("mtq"), "MTQ", "Sized magnetorquer coil (our product)"),
-     coil(m.max(2.0*m_dump)*k.s("mtqp"), "MTQP", "Sized pointing-grade magnetorquer coil (our product, coils-only family)"))
+     coil(gm::mtq_pointing_dipole(m, m_dump)*k.s("mtqp"), "MTQP", "Sized pointing-grade magnetorquer coil (our product, coils-only family)"))
 }
 
-/// The select_rotor node (docs/NODES.md): the benchmarks' momentum actuators are bought, so they
-/// are chosen from the datasheet catalogue (matlab_sils/data/catalogue, tools/catalogue.py), never
-/// sized by a law. `which` is rw (three orthogonal wheels) or cmg / vscmg (a four-unit pyramid).
-/// Per unit: a wheel must hold h_req and give tau_req; a pyramid unit half of each (two units act on
-/// any axis). The lightest selectable model that meets the need wins (then steady power, volume);
-/// when none does, the largest is taken and the gap is recorded.
+/// The select_rotor node (docs/NODES.md; design/sizerotor.pc): the benchmarks' momentum actuators are bought, so they
+/// are chosen from the datasheet catalogue (matlab_sils/data/catalogue, tools/catalogue.py), never sized by a law.
+/// `which` is rw (three orthogonal wheels) or cmg / vscmg (a four-unit pyramid).
 pub fn rotor(root: &Path, d: &Demand, k: &Knobs, which: &str) -> Result<Value, Error> {
+    let u = match which { "rw" => gr::ROTORUSE_RW, "cmg" => gr::ROTORUSE_CMG, _ => gr::ROTORUSE_VSCMG };
     let s = k.s(which);
-    let types: &[&str] = if which == "rw" { &["reaction_wheel"] } else { &["cmg", "cmg_cluster"] };
-    let share = if which == "rw" { 1.0 } else { 0.5 };
-    let (h_need, tau_need) = (share*d.h_req*s, share*d.tau_req*s);
+    let (h_need, tau_need, units) = gr::rotor_need(u, d.h_req, d.tau_req, s);
     let mut cands: Vec<Value> = vec![];
     let dir = root.join("data/catalogue");
     let files = adcs_sim::source::list(&dir);
     if files.is_empty() { return Err(Error::refused(format!("catalogue: {} holds no model", dir.display()))); }
     for f in files {
         let c = json::read(&f)?;
-        if !types.contains(&json::s(&c, "type", "")) || !json::b(&c, "selectable", false) { continue; }
+        let kind = match json::s(&c, "type", "") { "reaction_wheel" => gr::CATALOGUEKIND_REACTION_WHEEL, "cmg" => gr::CATALOGUEKIND_CMG,
+                                                   "cmg_cluster" => gr::CATALOGUEKIND_CMG_CLUSTER, _ => gr::CATALOGUEKIND_OTHER };
+        if !gr::rotor_fits(u, kind, json::b(&c, "selectable", false)) { continue; }
         cands.push(c);
     }
     if cands.is_empty() { return Err(Error::refused(format!("catalogue: no selectable {which} model in {}", dir.display()))); }
     let g = |c: &Value, key: &str| c["derived"][key].as_f64().unwrap_or(f64::NAN);
-    let meets = |c: &Value| g(c, "h_max_Nms") >= h_need && g(c, "torque_max_Nm") >= tau_need;
-    let key = |c: &Value| (g(c, "mass_kg"), g(c, "power_steady_W"), g(c, "volume_L"));
-    let mut ok: Vec<&Value> = cands.iter().filter(|c| meets(c)).collect();
-    ok.sort_by(|a, b| key(a).partial_cmp(&key(b)).unwrap());
-    let (pick, gap) = match ok.first() {
-        Some(c) => ((*c).clone(), Value::Null),
-        None => {
-            let c = cands.iter().max_by(|a, b| g(a, "h_max_Nms").partial_cmp(&g(b, "h_max_Nms")).unwrap()).unwrap().clone();
-            (c, json!(format!("no catalogue {which} meets h {:.3e} N m s, tau {:.3e} N m per unit; the largest is fitted", h_need, tau_need)))
-        }
+    let col = |key: &str| cands.iter().map(|c| g(c, key)).collect::<Vec<f64>>();
+    let (mut h, mut tau, mut mass, mut pw, mut vol) = (col("h_max_Nms"), col("torque_max_Nm"), col("mass_kg"), col("power_steady_W"), col("volume_L"));
+    let (pick, met) = gr::rotor_pick(&mut h, &mut tau, &mut mass, &mut pw, &mut vol, cands.len() as i64, h_need, tau_need);
+    let pick = cands[pick as usize].clone();
+    let gap = if met { Value::Null } else {
+        json!(format!("no catalogue {which} meets h {:.3e} N m s, tau {:.3e} N m per unit; the largest is fitted", h_need, tau_need))
     };
     let x = &pick["derived"];
     let mut nm = x.clone();
-    let (kind, suffix, units) = match which { "rw" => ("reaction_wheel", "", 3), "cmg" => ("cmg", "", 4), _ => ("vscmg", "-VSCMG", 4) };
-    if which == "vscmg" { nm["rotor_momentum_Nms"] = x["vscmg_rotor_momentum_Nms"].clone(); }
+    let (kind, suffix) = match which { "rw" => ("reaction_wheel", ""), "cmg" => ("cmg", ""), _ => ("vscmg", "-VSCMG") };
+    if gr::rotor_vscmg(u) { nm["rotor_momentum_Nms"] = x["vscmg_rotor_momentum_Nms"].clone(); }
     let pn = format!("{}{suffix}", json::s(&pick, "part_number", ""));
     let mut p = json!({"part_number": pn, "kind": kind, "name": format!("{} {} ({}, one of {units})", json::s(&pick, "vendor", ""), json::s(&pick, "model", ""), which.to_uppercase()),
         "status": "catalogue", "source": pick["source_url"], "made": "bought", "descriptor_version": 1, "vendor": pick["vendor"], "model": pick["model"],
         "verification": pick["verification"], "assumptions": pick["assumptions"]});
     p["nominal"] = nm;
-    p["dispersion"] = json!({"torque_scale": {"dist": "normal", "mean": 1, "sigma": 0.01}, "friction_scale": {"dist": "uniform", "lo": 0.5, "hi": 2.0},
-        "axis_misalignment_rad": {"dist": "normal", "mean": 0, "sigma": 0.001}});
+    let (td, tm, ts, fd, flo, fhi, md, mm, ms) = gr::rotor_dispersion();
+    p["dispersion"] = json!({"torque_scale": spread(td, json!(tm), json!(ts)), "friction_scale": spread(fd, json!(flo), json!(fhi)),
+        "axis_misalignment_rad": spread(md, json!(mm), json!(ms))});
     p["sizing"] = json!({"node": "select_rotor", "h_req_Nms": d.h_req, "tau_req_Nm": d.tau_req, "scale": s, "units": units,
         "need_per_unit": {"h_Nms": h_need, "tau_Nm": tau_need}, "gap": gap,
         "rule": "lightest selectable catalogue model meeting the per-unit need (then steady power, volume)",
         "candidates": cands.iter().map(|c| json!({"part_number": c["part_number"], "vendor": c["vendor"], "model": c["model"],
             "h_Nms": g(c, "h_max_Nms"), "tau_Nm": g(c, "torque_max_Nm"), "mass_kg": g(c, "mass_kg"), "power_W": g(c, "power_steady_W"),
-            "meets": meets(c)})).collect::<Vec<_>>()});
+            "meets": gr::rotor_meets(g(c, "h_max_Nms"), g(c, "torque_max_Nm"), h_need, tau_need)})).collect::<Vec<_>>()});
     Ok(p)
 }
 
-/// The fluid loop, X, Y, Z rings, each designed with its electromagnetic DC conduction pump
-/// (empump.rs): momentum h_req, torque tau_req, for the knob fmr_lambda [kg/W].
+/// The fluid loop, X, Y, Z rings, each designed with its electromagnetic DC conduction pump (design/sizefmr.pc,
+/// act/sizepump.pc), and the spare when the loop asks for it (act/sizering.pc).
 pub fn fmr(d: &Demand, k: &Knobs, bx: [f64; 3]) -> Vec<Value> {
-    let faces = [bx[1]*bx[2], bx[0]*bx[2], bx[0]*bx[1]];
-    let per = [2.0*(bx[1] + bx[2]), 2.0*(bx[0] + bx[2]), 2.0*(bx[0] + bx[1])];
-    let h = d.h_req.max(2e-4)*k.s("fmr");
-    let tau = d.tau_req.max(1e-5)*k.s("fmr");
+    let (faces, per) = gf::fmr_faces(bx);
+    let (h, tau) = gf::fmr_need(d.h_req, d.tau_req, k.s("fmr"));
     let ax = ["X", "Y", "Z"];
     let mut rings: Vec<Value> = (0..3).map(|i| ring(d, k, h, tau, faces[i], per[i], ax[i], &format!("{} axis", ax[i]))).collect();
     if k.fmr_spare {
-        // the spare stands in for any one ring: its axis follows the rings' momenta (all equal here,
-        // so the body diagonal) and it carries their root-sum-square, so its projection on each axis
-        // holds that ring's whole momentum and torque; its loop lies in the box's cross-section
-        // perpendicular to that axis
-        let s = spare_axis();
-        let (area, perim) = section(bx, s);
-        let n = 3f64.sqrt();
-        rings.push(ring(d, k, n*h, n*tau, area, perim, "S", "spare, skewed on the body diagonal"));
+        let (area, perim) = section(bx, spare_axis());
+        let (hs, taus) = gf::fmr_spare_need(h, tau);
+        rings.push(ring(d, k, hs, taus, area, perim, "S", "spare, skewed on the body diagonal"));
     }
     rings
 }
 
-/// The spare ring's axis: the unit body diagonal (the rings are sized alike).
-pub fn spare_axis() -> [f64; 3] { let r = 1.0/3f64.sqrt(); [r, r, r] }
+/// The spare ring's axis (act/sizering.pc).
+pub fn spare_axis() -> [f64; 3] { gs::spare_axis() }
 
-/// Area and perimeter of the cross-section of a centred box (sides `bx`) by the plane through its
-/// centre with unit normal `n`: the loop a skewed ring can enclose.
-pub fn section(bx: [f64; 3], n: [f64; 3]) -> (f64, f64) {
-    let hx = [bx[0]/2.0, bx[1]/2.0, bx[2]/2.0];
-    let mut pts: Vec<[f64; 3]> = vec![];
-    // every box edge: two coordinates at a corner value, the third free; solve n . p = 0 on it
-    for free in 0..3 {
-        let (a, b) = ((free + 1) % 3, (free + 2) % 3);
-        for sa in [-1.0, 1.0] { for sb in [-1.0, 1.0] {
-            if n[free].abs() < 1e-15 { continue; }
-            let mut p = [0.0; 3];
-            p[a] = sa*hx[a]; p[b] = sb*hx[b];
-            p[free] = -(n[a]*p[a] + n[b]*p[b])/n[free];
-            if p[free].abs() <= hx[free] + 1e-12 { pts.push(p); }
-        } }
-    }
-    // order them around the normal, then the shoelace area and the perimeter in the plane
-    let u = { let t = if n[0].abs() < 0.9 { [1.0, 0.0, 0.0] } else { [0.0, 1.0, 0.0] }; unit(&sub(&t, &scale(&n, t[0]*n[0] + t[1]*n[1] + t[2]*n[2]))) };
-    let v = [n[1]*u[2] - n[2]*u[1], n[2]*u[0] - n[0]*u[2], n[0]*u[1] - n[1]*u[0]];
-    let mut q: Vec<(f64, f64)> = pts.iter().map(|p| (p[0]*u[0] + p[1]*u[1] + p[2]*u[2], p[0]*v[0] + p[1]*v[1] + p[2]*v[2])).collect();
-    q.sort_by(|a, b| a.1.atan2(a.0).partial_cmp(&b.1.atan2(b.0)).unwrap());
-    q.dedup_by(|a, b| (a.0 - b.0).abs() < 1e-12 && (a.1 - b.1).abs() < 1e-12);
-    let m = q.len();
-    let (mut area, mut perim) = (0.0, 0.0);
-    for i in 0..m {
-        let (a, b) = (q[i], q[(i + 1) % m]);
-        area += a.0*b.1 - b.0*a.1;
-        perim += ((b.0 - a.0).powi(2) + (b.1 - a.1).powi(2)).sqrt();
-    }
-    (area.abs()/2.0, perim)
+/// Area and perimeter of the cross-section of a centred box (sides `bx`) by the plane through its centre with unit
+/// normal `n`: the loop a skewed ring can enclose (act/sizering.pc).
+pub fn section(bx: [f64; 3], n: [f64; 3]) -> (f64, f64) { gs::ring_section(bx, n) }
+
+/// A pump design as the ring part writes it.
+fn design_json(ds: &gp::PumpDesign, lambda: f64) -> Value {
+    json!({"bore_m": ds.d, "loops": ds.loops, "v_max_m_s": ds.v_max, "h_max_Nms": ds.h_max, "enclosed_area_m2": ds.s,
+        "channel_length_m": ds.l, "reynolds_cruise": ds.re, "v_cruise_m_s": ds.v_cruise,
+        "pump": {"type": "DC conduction pump, electromagnet C-core", "B_gap_T": ds.b, "active_length_m": ds.lp, "gap_m": ds.gap,
+                 "ampere_turns": ds.ni, "electrode_current_design_A": ds.i_design, "electrode_current_cruise_A": ds.i_cruise,
+                 "dp_design_Pa": ds.dp_design, "dp_cruise_Pa": ds.dp_cruise, "coil_power_W": ds.p_coil,
+                 "electrode_power_cruise_W": ds.p_elec_cruise, "copper_kg": ds.m_cu, "iron_kg": ds.m_fe, "lambda_kg_per_W": lambda,
+                 "efficiency_cruise": ds.eta_cruise},
+        "pump_torque_max_Nm": ds.tau_max, "field_power_W": ds.p_coil, "power_steady_W": ds.p_steady, "power_peak_W": ds.p_peak,
+        "pump_efficiency": ds.eta, "fluid_mass_kg": ds.m_fluid, "mass_kg": ds.mass})
 }
 
-/// One fluid ring with its electromagnetic pump, designed for momentum `h` and torque `tau` in a
-/// loop of `face` m^2 and `perim` m (80 % of each used).
+/// One fluid ring with its electromagnetic pump, designed for momentum `h` and torque `tau` in a loop of `face` m^2 and
+/// `perim` m.
 fn ring(d: &Demand, k: &Knobs, h: f64, tau: f64, face: f64, perim: f64, tag: &str, what: &str) -> Value {
-    let (s0, l1) = (0.8*face, 0.8*perim);
-    let ds = empump::design(h, tau, s0, l1, k.fmr_lambda).expect("no feasible pump design");
-    let mut nm = ds.json(k.fmr_lambda);
-    for (key, val) in [("fluid", json!("galinstan")), ("fluid_density_kg_m3", json!(6440.0)), ("fluid_viscosity_Pa_s", json!(0.0024)),
-                       ("pump_type", json!("dc-conduction, electromagnet")), ("melt_point_K", json!(254)), ("dipole_max_Am2", json!(0)),
-                       ("dipole_per_amp_Am2_per_A", json!(0)), ("current_max_A", json!(0)), ("volume_L", json!(face*0.006*1e3 + 0.02))] {
+    let (s0, l1) = gf::fmr_loop(face, perim);
+    let ds = Some(gp::pump_design(h, tau, s0, l1, k.fmr_lambda)).filter(|x| x.found).expect("no feasible pump design");
+    let mut nm = design_json(&ds, k.fmr_lambda);
+    let (rho, mu, _rho_e, melt) = gp::pump_fluid();
+    let (dipole_max, per_amp, current_max) = gf::fmr_no_dipole();
+    for (key, val) in [("fluid", json!("galinstan")), ("fluid_density_kg_m3", json!(rho)), ("fluid_viscosity_Pa_s", json!(mu)),
+                       ("pump_type", json!("dc-conduction, electromagnet")), ("melt_point_K", json!(melt)), ("dipole_max_Am2", json!(dipole_max)),
+                       ("dipole_per_amp_Am2_per_A", json!(per_amp)), ("current_max_A", json!(current_max)), ("volume_L", json!(gf::fmr_volume(face)))] {
         nm[key] = val;
     }
-    let eta = ds.eta_cruise.max(0.01);
+    let (fd, flo, fhi, pd, plo, phi, wd, wm, ws, md, mm, ms) = gf::fmr_dispersion(ds.eta, k.fmr_flow_sigma);
     let mut p = json!({"part_number": format!("SZ-{}-FMR-{}", d.case, tag), "kind": "magneto_fluidic_panel",
         "name": format!("Sized fluid momentum loop with electromagnetic pump, {what} (our product) — {}", d.case), "status": "sized",
         "source": "adcs-design (empump)", "made": "in-house", "descriptor_version": 1});
     p["nominal"] = nm;
-    p["dispersion"] = json!({"friction_scale": {"dist": "uniform", "lo": 0.8, "hi": 1.2}, "pump_efficiency": {"dist": "uniform", "lo": 0.7*eta, "hi": 1.3*eta},
-        "flow_sensor_noise_m_s": {"dist": "normal", "mean": 0, "sigma": k.fmr_flow_sigma}, "axis_misalignment_rad": {"dist": "normal", "mean": 0, "sigma": 0.005}});
+    p["dispersion"] = json!({"friction_scale": spread(fd, json!(flo), json!(fhi)), "pump_efficiency": spread(pd, json!(plo), json!(phi)),
+        "flow_sensor_noise_m_s": spread(wd, json!(wm), json!(ws)), "axis_misalignment_rad": spread(md, json!(mm), json!(ms))});
+    let (ok, lam, mass, power, coil, v_max, bore, b, loops) = gp::pump_pareto(h, tau, s0, l1);
+    let pareto: Vec<Value> = (0..ok.len()).filter(|&i| ok[i] == 1).map(|i| json!({"lambda": lam[i], "mass_kg": mass[i], "power_W": power[i],
+        "coil_W": coil[i], "v_max": v_max[i], "bore_m": bore[i], "B_T": b[i], "loops": loops[i]})).collect();
     p["sizing"] = json!({"h_req_Nms": d.h_req, "tau_req_Nm": d.tau_req, "h_ring_Nms": h, "tau_ring_Nm": tau, "flow_sensor_sigma_m_s": k.fmr_flow_sigma, "face_m2": face, "perimeter_m": perim,
-        "scale": k.s("fmr"), "lambda_kg_per_W": k.fmr_lambda, "pareto": empump::pareto(h, tau, s0, l1),
+        "scale": k.s("fmr"), "lambda_kg_per_W": k.fmr_lambda, "pareto": pareto,
         "law": "galinstan loop + DC conduction pump with an electromagnet, designed together: least mass + lambda x steady power (empump.rs)"});
     p
 }
 
-/// asils.sizing.rcs
+/// The N2O cold-gas thrusters (design/sizercs.pc).
 pub fn rcs(d: &Demand, k: &Knobs, bx: [f64; 3]) -> Value {
-    let (g0, isp) = (9.80665, 60.0);
-    let j = d.j; let jmax = j.iter().cloned().fold(f64::MIN, f64::max);
-    let arm = [0.45*bx[1], 0.45*bx[0], 0.45*bx[0]];
-    let alpha = (d.tau_req/jmax).max(d.h_detumble/600.0/jmax);
-    let freq = (0..3).map(|i| j[i]*alpha/(2.0*arm[i])).fold(f64::MIN, f64::max)*k.s("rcs");
-    let cls = [0.005, 0.010, 0.020, 0.050, 0.100];
-    let f = cls.iter().copied().find(|c| *c >= freq).unwrap_or((freq/0.05).ceil()*0.05);
-    let arm_eff = 3.0/(1.0/arm[0] + 1.0/arm[1] + 1.0/arm[2]);
-    let orbits = d.life_yr*365.25*86400.0/d.period_s;
-    let it_det = 2.0*d.h_detumble/arm_eff;
-    let it_dump = d.h_secular*orbits/arm_eff;
-    let it_slew = d.slews_per_day*365.25*d.life_yr*2.0*d.h_slew/arm_eff;
-    let mprop = (1.2*(it_det + it_dump)/(isp*g0)).max(0.01);
-    let mslew = 1.2*it_slew/(isp*g0);
-    let v = 1.25*mprop/745.0;
-    let rt = (3.0*v/(4.0*PI)).powf(1.0/3.0); let (pm, sig) = (70e5, 250e6);
-    let t = (pm*rt/(2.0*sig)).max(0.5e-3);
-    let mtank = 4.0*PI*rt*rt*t*2810.0;
-    let mdry = mtank + 12.0*0.010 + 0.050;
+    let (thrust, f_req, arm_long, arm_short, it_det, it_dump, it_slew, mprop, mslew, tank_volume, tank_radius, tank_wall, dry_mass, mass, volume,
+         isp_budget) = gc::rcs_size(d.tau_req, d.h_detumble, d.h_secular, d.slews_per_day, d.h_slew, d.life_yr, d.period_s, d.j, bx, k.s("rcs"));
+    let (isp, thrusters, mib, valve_res, tank_pressure, meop, valve_power, power_steady) = gc::rcs_part();
     let mut p = part(&d.case, "RCS", "rcs", "Sized N2O cold-gas RCS, 6 couples (our product)", "in-house");
-    p["nominal"] = json!({"thrust_N": f, "isp_s": 70, "propellant": "N2O", "thrusters": 12, "mib_s": 0.005, "valve_res_s": 0.001,
-        "arm_long_m": arm[1], "arm_short_m": arm[0], "propellant_kg": mprop, "tank_volume_L": v*1e3, "tank_radius_m": rt, "tank_wall_m": t,
-        "tank_pressure_bar": 50, "meop_bar": 70, "valve_power_W": 1.0, "power_steady_W": 0.05, "dry_mass_kg": mdry, "mass_kg": mdry + mprop,
-        "volume_L": (2.0*rt).powi(3)*1e3 + 0.05});
-    p["dispersion"] = json!({"thrust_scale": {"dist": "normal", "mean": 1, "sigma": 0.03}, "isp_s": {"dist": "uniform", "lo": 60, "hi": 80},
-        "axis_misalignment_rad": {"dist": "normal", "mean": 0, "sigma": 0.01}});
-    p["sizing"] = json!({"F_req_N": freq, "impulse_detumble_Ns": it_det, "impulse_dumping_Ns": it_dump, "impulse_slews_Ns": it_slew,
-        "propellant_if_slews_on_rcs_kg": mslew, "life_yr": d.life_yr, "isp_budget_s": isp, "scale": k.s("rcs"),
+    p["nominal"] = json!({"thrust_N": thrust, "isp_s": isp, "propellant": "N2O", "thrusters": thrusters, "mib_s": mib, "valve_res_s": valve_res,
+        "arm_long_m": arm_long, "arm_short_m": arm_short, "propellant_kg": mprop, "tank_volume_L": tank_volume, "tank_radius_m": tank_radius, "tank_wall_m": tank_wall,
+        "tank_pressure_bar": tank_pressure, "meop_bar": meop, "valve_power_W": valve_power, "power_steady_W": power_steady, "dry_mass_kg": dry_mass, "mass_kg": mass,
+        "volume_L": volume});
+    let (td, tm, ts, id, ilo, ihi, md, mm, ms) = gc::rcs_dispersion();
+    p["dispersion"] = json!({"thrust_scale": spread(td, json!(tm), json!(ts)), "isp_s": spread(id, json!(ilo), json!(ihi)),
+        "axis_misalignment_rad": spread(md, json!(mm), json!(ms))});
+    p["sizing"] = json!({"F_req_N": f_req, "impulse_detumble_Ns": it_det, "impulse_dumping_Ns": it_dump, "impulse_slews_Ns": it_slew,
+        "propellant_if_slews_on_rcs_kg": mslew, "life_yr": d.life_yr, "isp_budget_s": isp_budget, "scale": k.s("rcs"),
         "law": "N2O self-pressurised, Isp 60 s budget (60-80 s), Al-7075 sphere at 70 bar MEOP"});
     p
 }
 
-fn num(v: &Value, k: &str) -> Option<f64> { v.get(k).and_then(|x| x.as_f64()) }
+fn num(v: &Value, k: &str) -> f64 { v.get(k).and_then(|x| x.as_f64()).unwrap_or(f64::NAN) }
 
-/// asils.product.load budget_: ADCS mass / nominal power / volume per fill.
+/// A fill slot's word (adcs-product/1) as sizebudget's Slot.
+fn slot_of(s: &str) -> i64 {
+    match s {
+        "coils" => gb::SLOT_COILS, "wheels" => gb::SLOT_WHEELS, "rings" => gb::SLOT_RINGS, "cmg" => gb::SLOT_CMG, "vscmg" => gb::SLOT_VSCMG,
+        "rcs" => gb::SLOT_RCS, "star_tracker" => gb::SLOT_STAR_TRACKER, "magnetometer" => gb::SLOT_MAGNETOMETER, "sun_sensors" => gb::SLOT_SUN_SENSORS,
+        "gyro" => gb::SLOT_GYRO, "gnss" => gb::SLOT_GNSS, "earth_sensor" => gb::SLOT_EARTH_SENSOR, "coarse_sun_sensors" => gb::SLOT_COARSE_SUN_SENSORS,
+        _ => gb::SLOT_OTHER,
+    }
+}
+
+/// The ADCS's mass / power / volume per fill (design/sizebudget.pc).
 fn budget(fill: &[Value], lookup: &dyn Fn(&str) -> Result<Value, Error>) -> Result<Value, Error> {
-    let (mut m, mut p, mut vol) = (0.0, 0.0, 0.0);
     let mut items = vec![];
+    let (mut ms, mut ps, mut vs) = (vec![], vec![], vec![]);
     for f in fill {
         let slot = json::s(f, "slot", "");
-        let mut n = 1.0;
-        for key in ["axes_body", "spin_axes_body", "boresights_body", "normals_body"] {
-            if let Some(a) = f.get(key).and_then(|x| x.as_array()) { n = a.len() as f64; if slot == "coarse_sun_sensors" { n = 1.0; } }
-        }
+        let count = |key: &str| f.get(key).and_then(|x| x.as_array()).map(|a| a.len() as i64).unwrap_or(-1);
         let pt = lookup(json::s(f, "part", ""))?;
         let nm = pt.get("nominal").cloned().unwrap_or(Value::Null);
-        let mm = num(&nm, "mass_kg").unwrap_or(0.0);
-        let pp = num(&nm, "power_steady_W").or_else(|| num(&nm, "power_W")).or_else(|| num(&nm, "power_at_max_W")).unwrap_or(0.0);
-        let vv = num(&nm, "volume_L").unwrap_or(0.0);
-        m += n*mm; p += n*pp; vol += n*vv;
-        items.push(json!({"slot": slot, "part": f["part"], "n": n, "mass_kg": n*mm, "power_W": n*pp, "volume_L": n*vv}));
+        let (n, m, p, v) = gb::budget_line(slot_of(slot), count("axes_body"), count("spin_axes_body"), count("boresights_body"), count("normals_body"),
+            num(&nm, "mass_kg"), num(&nm, "power_steady_W"), num(&nm, "power_W"), num(&nm, "power_at_max_W"), num(&nm, "volume_L"));
+        items.push(json!({"slot": slot, "part": f["part"], "n": n, "mass_kg": m, "power_W": p, "volume_L": v}));
+        ms.push(m); ps.push(p); vs.push(v);
     }
+    let (m, p, vol) = gb::budget_total(&mut ms, &mut ps, &mut vs, fill.len() as i64);
     Ok(json!({"mass_kg": m, "power_W": p, "volume_L": vol, "items": items}))
 }
 
@@ -494,16 +458,15 @@ pub fn size_all(root: &Path, case_file: &Path, k: &Knobs, out: &Path) -> Result<
         adcs_sim::fsio::write(&out.join("parts").join(format!("{pn}.json")), serde_json::to_string(p).map_err(|e| Error::run(e.to_string()))?)?;
         by_pn.insert(pn, p.clone());
     }
-    // a better gyro than the catalogue's precision unit when the loop asks for it: noise x grade,
-    // mass and power / grade (anchored on the small fibre-optic class: noise x0.3 ~ 0.2 kg, 1 W)
+    // a better gyro than the catalogue's precision unit when the loop asks for it (design/sizesensors.pc)
     let mut gyro_id = "TRN-GYRO-P1".to_string();
-    if d.fine && k.gyro_grade < 0.999 {
+    if gx::gyro_graded(d.fine, k.gyro_grade) {
         let mut g = json::read(&adcs_sim::product::find(root, "parts", "TRN-GYRO-P1")?)?;
         let gr = k.gyro_grade;
         for key in ["arw_rad_per_sqrt_s", "rrw_rad_per_s_sqrt_s", "bias_instability_rad_s"] {
-            if let Some(x) = g["nominal"][key].as_f64() { g["nominal"][key] = json!(x*gr); }
+            if let Some(x) = g["nominal"][key].as_f64() { g["nominal"][key] = json!(gx::gyro_noise(x, gr)); }
         }
-        for key in ["mass_kg", "power_W"] { if let Some(x) = g["nominal"][key].as_f64() { g["nominal"][key] = json!(x/gr); } }
+        for key in ["mass_kg", "power_W"] { if let Some(x) = g["nominal"][key].as_f64() { g["nominal"][key] = json!(gx::gyro_load(x, gr)); } }
         gyro_id = format!("SZ-{case}-GYRO");
         g["part_number"] = json!(gyro_id); g["status"] = json!("sized"); g["source"] = json!("adcs-design (gyro grade)");
         g["name"] = json!(format!("Gyro, noise x{gr} of TRN-GYRO-P1 (fibre-optic class) — {case}"));
@@ -517,8 +480,14 @@ pub fn size_all(root: &Path, case_file: &Path, k: &Knobs, out: &Path) -> Result<
     };
     let fams = json::read(&root.join("data/families.json"))?;
     let fam_list: Vec<Value> = match fams.get("family") { Some(Value::Array(a)) => a.clone(), Some(x) => vec![x.clone()], None => vec![] };
-    let i3 = json!([[1, 0, 0], [0, 1, 0], [0, 0, 1]]);
-    let st_fit = d.fine || k.star_tracker;
+    // how each kind of unit is mounted and which sensors a product carries (design/sizemtq.pc, sizerotor.pc, sizefmr.pc, sizesensors.pc)
+    let coil_axes = dirs(&gm::mtq_axes());
+    let (wheel_axes, gimbal_axes, spin_axes) = gr::rotor_mounting();
+    let ring_axes = gf::fmr_axes();
+    let st_fit = gx::sensor_star_tracker(d.fine, k.star_tracker);
+    let (n_heads, heads, residual) = gx::sensor_heads(d.fine, k.st_heads as i64);
+    let bs = dir(&gx::sensor_boresight(d.fine));
+    let (normals, sun_axis) = gx::sensor_sun();
     let mut families = serde_json::Map::new();
     for fa in &fam_list {
         let id = json::s(fa, "id", "");
@@ -526,38 +495,32 @@ pub fn size_all(root: &Path, case_file: &Path, k: &Knobs, out: &Path) -> Result<
                                                            Some(Value::String(s)) => vec![s.clone()], _ => vec![] };
         let mut algs = vec!["bdot", "mekf"];
         let coil = if acts == ["mtq"] { pn("mtqp") } else { pn("mtq") };
-        let mut fill = vec![json!({"slot": "coils", "part": coil, "axes_body": i3})];
+        let mut fill = vec![json!({"slot": "coils", "part": coil, "axes_body": coil_axes})];
         for a in &acts {
             match a.as_str() {
-                "rw" => fill.push(json!({"slot": "wheels", "part": pn("rw"), "axes_body": i3})),
+                "rw" => fill.push(json!({"slot": "wheels", "part": pn("rw"), "axes_body": dirs(&wheel_axes)})),
                 "fmr" => {
-                    for (key, axv) in [("fmr_x", [1, 0, 0]), ("fmr_y", [0, 1, 0]), ("fmr_z", [0, 0, 1])] { fill.push(json!({"slot": "rings", "part": pn(key), "axes_body": [axv]})); }
-                    if k.fmr_spare { fill.push(json!({"slot": "rings", "part": pn("fmr_s"), "axes_body": [spare_axis()]})); }
+                    for (i, key) in ["fmr_x", "fmr_y", "fmr_z"].into_iter().enumerate() { fill.push(json!({"slot": "rings", "part": pn(key), "axes_body": [dir(&ring_axes[i])]})); }
+                    if k.fmr_spare { fill.push(json!({"slot": "rings", "part": pn("fmr_s"), "axes_body": [dir(&spare_axis())]})); }
                     algs.push("idmas_split");
                 }
-                "cmg" | "vscmg" => fill.push(json!({"slot": a, "part": pn(a),
-                    "gimbal_axes_body": [[0.8165, 0, 0.5774], [0, 0.8165, 0.5774], [-0.8165, 0, 0.5774], [0, -0.8165, 0.5774]],
-                    "spin_axes_body": [[0, 1, 0], [-1, 0, 0], [0, -1, 0], [1, 0, 0]]})),
+                "cmg" | "vscmg" => fill.push(json!({"slot": a, "part": pn(a), "gimbal_axes_body": dirs(&gimbal_axes), "spin_axes_body": dirs(&spin_axes)})),
                 "rcs" => { fill.push(json!({"slot": "rcs", "part": pn("rcs")})); algs.push("rcs_pwm"); }
                 _ => {}
             }
         }
-        let bs = if d.fine { [0, 1, 0] } else { [1, 0, 0] };
         if st_fit {
-            // heads away from nadir: on -Y for the imaging class (payload +Y), on -X for the coarse class (payload +X)
-            let mut heads = if d.fine { json!([[0, -0.9063, 0.4226], [0, -0.9063, -0.4226]]) } else { json!([[-0.9063, 0, 0.4226], [-0.9063, 0, -0.4226]]) };
-            if k.st_heads == 1 { heads = json!([heads[0].clone()]); }
-            fill.push(json!({"slot": "star_tracker", "part": "SYN-ST-1", "boresights_body": heads, "calibrated_residual_rad": 1e-5}));
+            fill.push(json!({"slot": "star_tracker", "part": "SYN-ST-1", "boresights_body": dirs(&heads[..n_heads as usize]), "calibrated_residual_rad": residual}));
         }
         fill.push(json!({"slot": "magnetometer", "part": "SYN-MAG-1"}));
-        fill.push(json!({"slot": "sun_sensors", "part": "SYN-SUN-1", "normals_body": [[1, 0, 0], [-1, 0, 0], [0, 1, 0], [0, -1, 0], [0, 0, 1], [0, 0, -1]]}));
+        fill.push(json!({"slot": "sun_sensors", "part": "SYN-SUN-1", "normals_body": dirs(&normals)}));
         fill.push(json!({"slot": "gyro", "part": if d.fine { gyro_id.as_str() } else { "SYN-GYRO-1" }}));
         fill.push(json!({"slot": "gnss", "part": "TRN-GPS-1"}));
         fill.push(json!({"slot": "earth_sensor", "part": "SYN-ES-1", "boresight_body": bs}));
         let label = json::s(fa, "label", id);
         let pr = json!({"schema": "adcs-product/1", "id": format!("SZ-{case}-{id}"), "label": format!("{label} — sized to {case}"), "family": id,
             "role": fa["role"], "classes": ["cubesat_3u"], "status": "sized", "origin": "designed", "source": "adcs-design",
-            "algorithms": algs, "sun_axis_body": [0, 0, -1], "payload_boresight_body": bs, "fill": fill, "knobs": k.json()});
+            "algorithms": algs, "sun_axis_body": dir(&sun_axis), "payload_boresight_body": bs, "fill": fill, "knobs": k.json()});
         adcs_sim::fsio::write(&out.join("products").join(format!("SZ-{case}-{id}.json")), serde_json::to_string(&pr).map_err(|e| Error::run(e.to_string()))?)?;
         let b = budget(pr["fill"].as_array().unwrap(), &lookup)?;
         families.insert(id.to_string(), json!({"product": format!("SZ-{case}-{id}"), "role": fa["role"], "label": label,
@@ -602,13 +565,14 @@ mod tests {
     #[test]
     fn the_survey_sizes_for_the_worst_season_and_solar_activity() {
         let d = demand(&root(), &root().join("cases/ais_3u.csv"), &Knobs::default()).unwrap();
-        assert_eq!(d.sweep.len(), SURVEY_EPOCH_DAYS.len()*SURVEY_F107.len());
+        assert_eq!(d.sweep.len(), gd::survey_runs() as usize);
         let worst = d.sweep.iter().flat_map(|s| s["tau_peak"].as_array().unwrap().iter().map(|x| x.as_f64().unwrap())).fold(0.0, f64::max);
         assert_eq!(d.tau_dist, worst, "the peak torque is the worst of every survey");
         assert_eq!(d.box_m, [0.34, 0.10, 0.10], "the 3U class body");
-        // req.dump is blank in the case: the quarter-orbit default is taken and said
+        // req.dump is blank in the case: the design's default is taken and said
         assert!(d.notes.iter().any(|n| n.starts_with("req.dump blank")));
-        let h = (0..4).map(|a| d.h_cyclic[a] + 0.25*d.h_secular_orbit[a]).fold(f64::MIN, f64::max);
+        let held = gd::demand_defaults().6;
+        let h = (0..4).map(|a| d.h_cyclic[a] + held*d.h_secular_orbit[a]).fold(f64::MIN, f64::max);
         assert_eq!(d.h_dist, h);
     }
 

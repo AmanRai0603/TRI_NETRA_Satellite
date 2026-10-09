@@ -24,11 +24,11 @@ function [q0, w0, h, g] = initial_state(att, q_nad, has_g, q_g, w_g, axis, angle
     q0 = zeros(4, 1);
     w0 = zeros(3, 1);
     h = zeros(8, 1);
-    [t__61, t__62] = asils.models.initstate.initial_attitude(att, q_nad, has_g, q_g, axis, angle, g);
-    q0 = t__61;
-    g = t__62;
-    [t__63, t__64] = asils.models.initstate.initial_rate(rate, q0, r, v, value, mag, has_g, q_g, w_g, extra, g);
-    w0 = t__63;
-    g = t__64;
+    [t__366, t__367] = asils.models.initstate.initial_attitude(att, q_nad, has_g, q_g, axis, angle, g);
+    q0 = t__366;
+    g = t__367;
+    [t__368, t__369] = asils.models.initstate.initial_rate(rate, q0, r, v, value, mag, has_g, q_g, w_g, extra, g);
+    w0 = t__368;
+    g = t__369;
     h = asils.models.initstate.initial_momenta(nr, h0, h_target);
 end

@@ -5,6 +5,7 @@
 //!   adcs size <case> [--knobs k.json] [--out DIR]                        demand survey + every actuator option sized (adcs-design)
 //!   adcs parity <scenario> [--fsw A --against B] ...                  two flight-software targets, same loop, same bytes
 //!   adcs results list [DIR] | show <run> | export <run> --out F.trinetra | import F.trinetra --out DIR
+//!   adcs design derive FILE...                                           the design's methods a tool asks for (tools/catalogue.py)
 //!   adcs figures RUN_DIR --out DIR [--format svg|pdf] [--full]           a run's figures (engine or twin run folder)
 //!   adcs report RUN_DIR [--out DIR]                                      report.html and report.pdf of a run
 //!   adcs plot SPEC.json --out FILE.svg|FILE.pdf                          figures described as JSON (adcs-plot)
@@ -21,6 +22,7 @@
 //! Owner: Agastya. Copyright (c) 2026 Agastya. All rights reserved.
 mod args;
 mod cli;
+mod design;
 mod fly;
 mod plots;
 mod results;
@@ -34,6 +36,7 @@ fn main() -> ExitCode {
     let cli = cli::Cli::parse();
     let r = match &cli.cmd {
         cli::Cmd::Results(c) => results::main(c),
+        cli::Cmd::Design(c) => design::main(c),
         cli::Cmd::Figures(a) => plots::figures(a),
         cli::Cmd::Report(a) => plots::report(a),
         cli::Cmd::Plot(a) => plots::plot(a),

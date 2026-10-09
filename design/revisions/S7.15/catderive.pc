@@ -1,0 +1,131 @@
+## A bought wheel's or CMG's model parameters from its datasheet, transcribed from tools/catalogue.py (derive,
+## wheel_motor, volume_L, NEED and its constants): the parameters the engine flies, each from the vendor's numbers by a
+## rule, and assumed where the datasheet does not state one (each assumption said in the file's list). A model is
+## selectable when its datasheet states the momentum, the torque, the mass and the steady power (select_rotor reads only
+## those). The rotor: the speed at the nominal momentum (6000 rpm when not stated), its inertia from the momentum, its
+## mass a share of the unit's (0.4), its radius of gyration from 0.9 of the rotor's mass, its static imbalance at ISO
+## 1940 balance grade G2.5 and the dynamic from it; the bearing's Coulomb friction 1e-5 sqrt(h/0.01 N m s) N m and its
+## viscous 1e-8 N m s (Bialke 1998; not on datasheets); the peak power the steady and the torque at speed over 0.5 when
+## not stated. A wheel's motor (none on a datasheet): on the lowest supply the datasheet states (5 V when it states
+## none), its no-load speed 1.25 times the top stated speed, the line through the stated torque there, k_t = V/w_nl and
+## R = k_t V/stall torque; the breakaway friction 1.5 times the Coulomb, the Stribeck speed 1 rad/s. A CMG's (or CMG
+## cluster's) torque is its gyroscopic output, h times its gimbal rate; its rotor's torque 0.2 of the output; as a
+## VSCMG its rotor runs at half its momentum. The datasheet's units (mN m s, mN m, g, rpm, mm, W, V) in; SI out, the
+## volume in L; plain numbers, nan where a number is not stated.
+## The developer's transcription (S7.15), unsigned.
+module catderive
+
+## The rule's constants: the speed assumed at the nominal momentum [rpm], the rotor's share of the unit's mass, the
+## radius of gyration's share, the balance grade [m/s], the Coulomb friction's coefficient [N m] at its reference
+## momentum [N m s], the viscous friction [N m s], the drive's efficiency the peak power is assumed at, the motor's
+## no-load speed over the top stated speed, the breakaway friction over the Coulomb, the Stribeck speed [rad/s], the
+## supply assumed [V], the CMG rotor's torque over the output torque, the volume of a 0.2U tuna-can unit [L].
+fn catalogue_rules() -> (assumed_rpm: real[1], rotor_share: real[1], gyration: real[1], balance: real[1], coulomb: real[1], \
+                         coulomb_ref: real[1], viscous: real[1], peak_efficiency: real[1], no_load: real[1], static_fraction: real[1], \
+                         stribeck: real[1], supply: real[1], cmg_rotor_torque: real[1], tuna_volume: real[1])
+    assumed_rpm = 6000.0
+    rotor_share = 0.4
+    gyration = 0.9
+    balance = 2.5e-3
+    coulomb = 1e-5
+    coulomb_ref = 0.01
+    viscous = 1e-8
+    peak_efficiency = 0.5
+    no_load = 1.25
+    static_fraction = 1.5
+    stribeck = 1.0
+    supply = 5.0
+    cmg_rotor_torque = 0.2
+    tuna_volume = 0.2
+end
+
+## Whether a model is selectable: its datasheet states the momentum h [mN m s], the torque [mN m], the mass [g] and the
+## steady power [W] (nan: not stated); and which of them it does not state.
+fn catalogue_selectable(h: real[1] in 0 .. 1000, torque: real[1] in 0 .. 100, mass: real[1] in 10 .. 2000, p_steady: real[1] in 0 .. 20) \
+        -> (selectable: bool, miss_h: bool, miss_torque: bool, miss_mass: bool, miss_power: bool)
+    miss_h = isnan(h)
+    miss_torque = isnan(torque)
+    miss_mass = isnan(mass)
+    miss_power = isnan(p_steady)
+    selectable = not (miss_h or miss_torque or miss_mass or miss_power)
+end
+
+## The unit's volume [L]: a box of sides a, b, c [mm] when the datasheet gives one (boxed), else a 0.2U tuna can per unit
+## when it says so (tuna, an assumption), else not stated (nan).
+fn catalogue_volume(a: real[1] in 10 .. 200, b: real[1] in 10 .. 200, c: real[1] in 10 .. 200, boxed: bool, tuna: bool) \
+        -> (volume: real[1], tuna_assumed: bool)
+    let a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, tv = catalogue_rules()
+    volume = nan
+    tuna_assumed = false
+    if boxed
+        volume = a*b*c*1e-6
+    elif tuna
+        volume = tv
+        tuna_assumed = true
+    end
+end
+
+## The rotor of a model from its datasheet's momentum h [mN m s], torque [mN m], speed at that momentum rpm [rpm, nan:
+## not stated], mass [g], steady and peak power [W, the peak nan when not stated]: its momentum [N m s], torque [N m],
+## speed [rad/s], inertia [kg m^2], radius [m], mass [kg], Coulomb [N m] and viscous [N m s] friction, static [kg m] and
+## dynamic [kg m^2] imbalance, the peak power [W] and the unit's mass [kg]; which values were assumed.
+fn catalogue_rotor(h_mnms: real[1] in 0.5 .. 1000, torque_mnm: real[1] in 0.1 .. 100, rpm: real[1] in 1000 .. 10000, \
+                   mass_g: real[1] in 10 .. 2000, p_steady: real[1] in 0.05 .. 20, p_peak: real[1] in 0.5 .. 50) \
+        -> (h: real[1], tau: real[1], w: real[1], j: real[1], radius: real[1], rotor_mass: real[1], coulomb: real[1], viscous: real[1], \
+            static_imbalance: real[1], dynamic_imbalance: real[1], peak: real[1], mass: real[1], rpm_assumed: bool, peak_assumed: bool)
+    let assumed_rpm, share, gyration, balance, c_coulomb, c_ref, c_viscous, peak_eff, a8, a9, a10, a11, a12, a13 = catalogue_rules()
+    let rpm_rad = 2.0*pi/60.0
+    h = h_mnms*1e-3
+    tau = torque_mnm*1e-3
+    rpm_assumed = isnan(rpm)
+    let speed = if rpm_assumed then assumed_rpm else rpm
+    w = speed*rpm_rad
+    j = h/w
+    mass = mass_g*1e-3
+    rotor_mass = share*mass
+    radius = sqrt(j/(gyration*rotor_mass))
+    static_imbalance = rotor_mass*balance/w
+    coulomb = c_coulomb*sqrt(h/c_ref)
+    viscous = c_viscous
+    dynamic_imbalance = static_imbalance*radius/2.0
+    peak_assumed = isnan(p_peak)
+    peak = if peak_assumed then p_steady + tau*w/peak_eff else p_peak
+end
+
+## A wheel's motor and bearing values the engine's wheel model reads: on the supply v [V] (the lowest the datasheet
+## states, nan when none: assumed), its top stated speed top_rpm [rpm, nan or 0: none, the speed at the nominal momentum
+## w [rad/s] in its place], the torque tau [N m] and the Coulomb friction [N m]: the torque constant [N m/A], the
+## winding's resistance [ohm], the supply [V], the breakaway friction [N m] and the Stribeck speed [rad/s].
+fn catalogue_wheel_motor(v: real[1] in 3 .. 24, top_rpm: real[1] in 0 .. 10000, w: real[1] in 100 .. 1100, tau: real[1] in 1e-4 .. 0.05, \
+                         coulomb: real[1] in 1e-6 .. 1e-4) \
+        -> (kt: real[1], resistance: real[1], supply: real[1], friction_static: real[1], stribeck: real[1], supply_assumed: bool)
+    let a0, a1, a2, a3, a4, a5, a6, a7, no_load, static_fraction, c_stribeck, c_supply, a12, a13 = catalogue_rules()
+    let rpm_rad = 2.0*pi/60.0
+    supply_assumed = isnan(v)
+    supply = if supply_assumed then c_supply else v
+    let top = w
+    if not (isnan(top_rpm) or top_rpm == 0.0)
+        top = top_rpm*rpm_rad
+    end
+    let w_nl = no_load*top
+    let t_stall = tau/(1.0 - top/w_nl)
+    kt = supply/w_nl
+    resistance = kt*supply/t_stall
+    friction_static = static_fraction*coulomb
+    stribeck = c_stribeck
+end
+
+## A CMG's (or a CMG cluster's) values from its momentum h [N m s], output torque tau [N m] and rotor speed w [rad/s]:
+## the rotor's momentum and speed, its torque, the gimbal's rate limit (the output torque over the momentum) and power
+## (none apart: the datasheet's figure is the whole unit's), and the rotor's momentum as a VSCMG (half).
+fn catalogue_cmg(h: real[1] in 1e-3 .. 0.1, tau: real[1] in 1e-4 .. 0.1, w: real[1] in 100 .. 1100) \
+        -> (rotor_momentum: real[1], rotor_speed: real[1], rotor_torque: real[1], gimbal_rate: real[1], gimbal_power: real[1], \
+            vscmg_momentum: real[1])
+    let a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, cmg_rotor_torque, a13 = catalogue_rules()
+    rotor_momentum = h
+    rotor_speed = w
+    rotor_torque = cmg_rotor_torque*tau
+    gimbal_rate = tau/h
+    gimbal_power = 0.0
+    vscmg_momentum = h/2.0
+end

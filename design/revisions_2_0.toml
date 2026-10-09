@@ -3186,3 +3186,176 @@ source = "ECSS-E-ST-60-10C; the scenario format's metric sections (adcs-scenario
 generate = ["adcs-sim"]
 uses = ["kpi/kpistats.pc", "kpi/kpiecss.pc"]
 why = "how each metric is measured and judged, as a method of kpi, generated into the engine's metrics"
+
+[[revision]]
+id = "S7.15"
+at = "2026-10-08T23:55:00Z"
+by = "the developer"
+about = "the sizing (docs/S7_INVENTORY.md S7.15): the demand survey and what the case asks of an actuator, the magnetorquer coil, the momentum actuators chosen from the datasheet catalogue (select_rotor), the fluid rings with their electromagnetic pump, where a ring lies in the box, the thrusters, the sensor suite and the mass, power and volume budget, as methods of design and act (the 27 built-in nodes, built-in until now: adcs-design lib.rs and empump.rs), generated into adcs-design and the twin's package; adcs-design keeps the survey's step order (the orbit flown and the torques taken by the engine's generated models), the reading of the case, the catalogue and the parts, and the writing of the parts, the products and sizing.json"
+
+[[revision.method]]
+nodes = ["l3_budget_row_01", "gw_2"]
+from = "built-in"
+to = "method"
+pseudocode = "design/revisions/S7.15/sizedemand.pc"
+path = "design/sizedemand.pc"
+transcribes = "engine/crates/adcs-design/src/lib.rs (survey: one orbit's peak torque per attitude and axis, the cyclic and the secular momentum, the field's least and mean; demand: the worst of the sweep SURVEY_EPOCH_DAYS x SURVEY_F107, the worst attitude, the momentum held between dumps, the detumble, the reference slew, the margins k_h and k_tau, the fine class and the defaults a blank case takes; Knobs: the knobs' defaults and ranges); the twin's asils.sizing.demand"
+source = "ECSS-E-ST-10-04C (the long-term solar activity, F10.7 65 and 250), as the code cites it; the twin's asils.sizing.demand, which the code ports; the case's req.* and mission.* lines"
+generate = ["adcs-design"]
+why = "the demand survey and what the case asks of an actuator as a method of design (gw_2: the cyclic momentum to store), generated into the sizing"
+
+[[revision.method]]
+nodes = ["design_sizing_mtq", "l3_budget_row_02", "gm_4", "gm_5"]
+from = "built-in"
+to = "method"
+pseudocode = "design/revisions/S7.15/sizemtq.pc"
+path = "design/sizemtq.pc"
+transcribes = "engine/crates/adcs-design/src/lib.rs (mtq: the dumping, momentum and detumble dipoles, the floor 0.05 A m^2, the coils-only family's pointing-grade coil, the coil's values linear in the dipole from the SYN-CT-1 anchor, its dispersion; size_all: the coils on the body axes); the twin's asils.sizing.mtq"
+source = "the SYN-CT-1 coil tile (0.45 A m^2, 0.03 kg, 0.3 W, 0.012 L; the catalogue's part), the anchor the code cites; the twin's asils.sizing.mtq"
+generate = ["adcs-design"]
+uses = ["design/sizedemand.pc"]
+why = "the magnetorquer's sizing as a method of design (gm_4 its power, gm_5 its mass), generated into the sizing"
+
+[[revision.method]]
+nodes = ["design_sizing_rw", "design_sizing_cmg", "design_sizing_vscmg", "l3_budget_row_03", "gw_5", "gw_6"]
+from = "built-in"
+to = "method"
+pseudocode = "design/revisions/S7.15/sizerotor.pc"
+path = "design/sizerotor.pc"
+transcribes = "engine/crates/adcs-design/src/lib.rs (rotor, the select_rotor node: the catalogue models that may serve, the need per unit, the lightest model that meets it, else the largest with the gap said, a VSCMG's rotor momentum, the part's dispersion; size_all: the wheels on the body axes, the pyramid's gimbal and spin axes)"
+source = "the datasheet catalogue (adcs-datasheet/1: each model's derived momentum, torque, mass, steady power and volume); docs/NODES.md select_rotor"
+generate = ["adcs-design"]
+uses = ["design/sizedemand.pc"]
+why = "the momentum actuators chosen from the catalogue as a method of design (gw_5 the wheel's power, gw_6 its mass: the chosen model's), generated into the sizing; the engine's selection, where the twin sizes wheels and CMGs by a law (the finding stands)"
+
+[[revision.method]]
+node = "l3_fmr_row_07"
+from = "built-in"
+to = "method"
+pseudocode = "design/revisions/S7.15/sizepump.pc"
+path = "act/sizepump.pc"
+transcribes = "engine/crates/adcs-design/src/empump.rs (design: the grid over top speed, bore, field and active length, Darcy's friction, the pump's current and power, the electromagnet's copper and iron, the least mass + lambda x steady power; friction; pareto; Design::json: the cruise speed and the efficiency's floor)"
+source = "IDMAS v2 section 03C (1 to 3 W per pump unit) and galinstan (6440 kg/m^3, 2.4 mPa s, 2.89e-7 ohm m), as the code cites them; Darcy's friction, 64/Re laminar and Blasius above Re 2300, as the code names them"
+generate = ["adcs-design"]
+uses = ["design/sizedemand.pc"]
+why = "the electromagnetic pump's design as a method of act, generated into the sizing"
+
+[[revision.method]]
+nodes = ["l3_fmr_row_14", "l3_fmr_row_15"]
+from = "built-in"
+to = "method"
+pseudocode = "design/revisions/S7.15/sizering.pc"
+path = "act/sizering.pc"
+transcribes = "engine/crates/adcs-design/src/lib.rs (spare_axis: the unit body diagonal; section: the box's edges cut by the plane, ordered round its normal by a stable sort, near neighbours taken once, the shoelace area and the perimeter; la.rs unit as the engine made it)"
+source = "the box of the case's class (catalogue/classes.toml); the shoelace formula"
+generate = ["adcs-design"]
+why = "the spare ring's axis and the loop a ring encloses in the box as methods of act, generated into the sizing"
+
+[[revision.method]]
+nodes = ["design_sizing_fmr", "l3_budget_row_04"]
+from = "built-in"
+to = "method"
+pseudocode = "design/revisions/S7.15/sizefmr.pc"
+path = "design/sizefmr.pc"
+transcribes = "engine/crates/adcs-design/src/lib.rs (fmr: the faces and perimeters, the floors 0.2 mN m s and 10 uN m, the spare's root sum square; ring: 80 % of the face and perimeter, the ring's volume, its no dipole, its dispersion with the pump's efficiency floor 0.01; size_all: the rings on the body axes)"
+source = "IDMAS v2 (the fluid momentum ring); the box of the case's class"
+generate = ["adcs-design"]
+uses = ["design/sizedemand.pc", "act/sizepump.pc", "act/sizering.pc"]
+why = "the fluid rings' sizing as a method of design, generated into the sizing"
+
+[[revision.method]]
+nodes = ["design_sizing_rcs", "l3_budget_row_05"]
+from = "built-in"
+to = "method"
+pseudocode = "design/revisions/S7.15/sizercs.pc"
+path = "design/sizercs.pc"
+transcribes = "engine/crates/adcs-design/src/lib.rs (rcs: the arms, the thrust class, the impulses of the detumble, the dumping and the slews, the propellant with its margin, the N2O tank and its wall, the dry mass, the part's stated values and dispersion); the twin's asils.sizing.rcs"
+source = "the code's law: N2O self-pressurised, an Isp budget of 60 s (60 to 80 s), an Al-7075 sphere at 70 bar MEOP; the twin's asils.sizing.rcs"
+generate = ["adcs-design"]
+uses = ["design/sizedemand.pc"]
+why = "the thrusters' sizing as a method of design, generated into the sizing"
+
+[[revision.method]]
+nodes = ["l3_budget_row_06", "l3_budget_row_07", "l3_budget_row_08", "gb_0", "gb_1", "gb_2", "gb_3"]
+from = "built-in"
+to = "method"
+pseudocode = "design/revisions/S7.15/sizebudget.pc"
+path = "design/sizebudget.pc"
+transcribes = "engine/crates/adcs-design/src/lib.rs (budget: each fill line's units, its part's mass, steady power with its fallbacks and volume, the totals in the fill's order; gb_2 the steady sum, the sizing computing no peak); the twin's asils.product.load budget_"
+source = "the product format (adcs-product/1: the fill's slots and their axes); the parts' nominal values"
+generate = ["adcs-design"]
+why = "the ADCS's mass, power and volume budget as a method of design, generated into the sizing"
+
+[[revision.method]]
+node = "design_sizing_sensors"
+from = "built-in"
+to = "method"
+pseudocode = "design/revisions/S7.15/sizesensors.pc"
+path = "design/sizesensors.pc"
+transcribes = "engine/crates/adcs-design/src/lib.rs (size_all: the star tracker on the fine class or by the knob, its heads and their number, the calibrated residual, the payload's boresight by class, the fine Sun sensors' normals and the power face; the gyro grade on the fine class: noise times the grade, mass and power over it)"
+source = "the SYN-ST-1 star tracker and the TRN-GYRO-P1 gyro (the catalogue's parts); the code's anchor for a graded gyro, the small fibre-optic class (noise x0.3 at about 0.2 kg, 1 W)"
+generate = ["adcs-design"]
+why = "the sensor suite's sizing as a method of design, generated into the sizing"
+
+[[revision.node]]
+id = "catalogue_datasheet_derive"
+group = "catalogue"
+parent = "ct1"
+perspective = "programme"
+layer = 1
+label = "Model parameters from a datasheet"
+behaviour = "method"
+question = "From a bought wheel's or CMG's datasheet, which parameters does the engine fly (its rotor, friction, imbalance, motor and gimbal), which are assumed where the datasheet states none, and may the sizing select it?"
+why = "the rule that makes each datasheet catalogue model's derived block, until now tools/catalogue.py (derive, wheel_motor, volume_L), which had no node; it moves with the sizing that selects from the catalogue (docs/S7_INVENTORY.md §1.3 and the tools' table, S7.15)"
+
+[[revision.method]]
+node = "catalogue_datasheet_derive"
+pseudocode = "design/revisions/S7.15/catderive.pc"
+path = "catalogue/catderive.pc"
+transcribes = "tools/catalogue.py (NEED: a model is selectable when it states momentum, torque, mass and steady power; derive: the rotor's speed, inertia, mass, radius, imbalance, friction and peak power, ASSUMED_RPM, ROTOR_FRACTION; wheel_motor: the supply, NO_LOAD, STATIC_FRACTION, STRIBECK; CMG_ROTOR_TORQUE and the VSCMG's half momentum; volume_L: a box, or the 0.2U tuna can)"
+source = "the vendors' datasheets (each file's source_url); Bialke (1998), the friction and imbalance not on datasheets; ISO 1940 balance grade G2.5, as tools/catalogue.py cites them"
+generate = ["adcs-design"]
+why = "the catalogue's derive rule as a method of catalogue, generated into the engine, which tools/catalogue.py asks (adcs design derive)"
+
+[[revision.node]]
+id = "design_loop_converge"
+group = "design"
+parent = "ct2"
+perspective = "programme"
+layer = 1
+label = "Design loop: which knob each failure moves"
+behaviour = "method"
+question = "After an iteration of the design loop, which knobs do its failures move (algorithms flown, gains tuned, authority, the gyro's grade, the flow sensor, the star tracker, the pump's copper, the mass levers), by how much, which moves are undone, and which are blocked?"
+why = "the design loop's convergence rules, until now tools/pipeline_design.py (node_converge) with tools/pipeline_base.py (auth_part, rate_violation, fam_violation), which had no node; the owner's word: the design-loop rules are design (docs/S7_INVENTORY.md §1.3 and the tools' table, S7.15)"
+
+[[revision.node]]
+id = "design_loop_robustness"
+group = "design"
+parent = "ct2"
+perspective = "programme"
+layer = 1
+label = "Design loop: the Monte Carlo's feedback"
+behaviour = "method"
+question = "When the dispatched mission's Monte Carlo fails a requirement in some dispersed run, which lever of the selected family moves, and which is closed?"
+why = "the design loop's robustness rule, until now tools/pipeline_verify.py (node_robust), which had no node; the owner's word: the design-loop rules are design (S7.15)"
+
+[[revision.node]]
+id = "design_loop_redundancy"
+group = "design"
+parent = "ct2"
+perspective = "programme"
+layer = 1
+label = "Design loop: the spare ring"
+behaviour = "method"
+question = "When the selected fluid-ring family does not survive losing a ring, is a spare ring fitted?"
+why = "the design loop's redundancy rule, until now tools/pipeline_design.py (node_redundancy), which had no node; the owner's word: the design-loop rules are design (S7.15)"
+
+[[revision.method]]
+nodes = ["design_loop_converge", "design_loop_robustness", "design_loop_redundancy"]
+pseudocode = "design/revisions/S7.15/looprules.pc"
+path = "design/looprules.pc"
+transcribes = "tools/pipeline_design.py (node_converge: the gyro move and the authority moves judged and undone, each failing option's algorithms, tuning, gyro grade, flow sensor, authority, star tracker, pump and propellant, the thin margin, the mass move judged and undone, the mass levers, the authority asked part by part; node_redundancy); tools/pipeline_verify.py (node_robust); tools/pipeline_base.py (auth_part, rate_violation, fam_violation); Python's round(x, 3) as the tool rounded the gyro's grade"
+source = "docs/DESIGN_LOOP.md (the converge node); the registry's converge and tune parameters (matlab_sils/data/pipeline/nodes.json); Bruni and Celani (2017), the gains tuned on the worst seed, as the tool cites them; CPython's round(x, 3) (the exact value rounded half to even), by Dekker (1971)'s exact product"
+generate = ["adcs-design"]
+uses = ["design/sizedemand.pc"]
+why = "the design loop's rules as methods of design, generated into the engine, which the loop's tools ask (adcs design call)"

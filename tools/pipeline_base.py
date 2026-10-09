@@ -74,12 +74,6 @@ def tune_grid(slot):
     return [f"{law}@" + ",".join(f"{k}={v:g}" for k, v in zip(keys, pt)) for law in CANDIDATES[slot] for pt in pts]
 
 
-# the sized part that gives an option its authority
-def auth_part(mode, o):
-    a = o["actuator"]
-    return {"mtq": "mtqp", "rw": "rw", "cmg": "cmg", "vscmg": "vscmg", "fmr": "fmr", "rcs": "rcs"}[a]
-
-
 (SCALE_MIN, SCALE_MAX), UP, DOWN = P("converge")["scale_bounds"], P("converge")["scale_up"], P("converge")["scale_down"]
 
 
@@ -123,20 +117,6 @@ def case_bytes(case):
 def write(p, obj):
     p.parent.mkdir(parents=True, exist_ok=True)
     write_text(p, json.dumps(obj, indent=1))
-
-
-def rate_violation(res):
-    return sum(min(v, 10.0) for r in res.values() for m, v in r.get("violation", {}).items() if m.startswith("rate_stability"))
-
-
-def fam_violation(fam_opts, modes):
-    """Sum over the modes of the best usable option's requirement violation (0 when a mode passes)."""
-    tot = 0.0
-    for M in modes:
-        rs = [r for (m, _), r in fam_opts.items() if m == M["id"]]
-        if rs:
-            tot += min(sum(r.get("violation", {}).values()) if not r["feasible"] else 0.0 for r in rs)
-    return tot
 
 
 def usable(o, fam_acts):

@@ -26,7 +26,7 @@ and `docs/NODES.md` is generated from it (`python3 tools/nodes_doc.py`).
 | 3 | size / select_rotor | Rust (`adcs size`) | MTQ, fluid loop, N2O RCS (ours) designed to the demand with the current **knobs**; RW, CMG, VSCMG (benchmarks) **chosen from the datasheet catalogue** (`matlab_sils/data/catalogue`, `docs/CATALOGUE.md`): the lightest model that meets the per-unit need; one product per family; mass / power / volume budget | `iter_k/sized/{parts,products}/` |
 | 4 | matrix | Rust engine, C flight software | every mission mode × option × seed on the sized products (`ADCS_SIZED_DIR`); options that failed on performance also fly every algorithm of their slot | cached runs `cache/<hash>/` |
 | 5 | assess | Python | per option: feasible on every seed? each failing requirement classed as performance, knowledge, power or propellant | `iter_k/assess.json` |
-| 6 | converge | Python | the knob changes the failures call for (below); converged when nothing is left to change | `loop.json` |
+| 6 | converge | the design's rules (`design_loop_converge`, `design/looprules.pc`), through the engine | the knob changes the failures call for (below); converged when nothing is left to change. Python hands the iteration over (`adcs design call`) and says each decision in words | `loop.json` |
 | 7 | select | Python | every family scored on the same modes and budget; the **lightest feasible solution** family is selected (then steady power, volume); the benchmarks are ranked by the same rule and the best one is reported beside it. When no solution passes, the closest one is named with its gaps. Once the loop has converged, node **faults** flies each solution family's mission fault-free and once per single fault its hardware can carry (one coil, one rotor, the second star-tracker head, a gyro bias step, a GNSS outage, one RCS valve; `nodes.json` `faults.set`), and select runs again counting it: with `select.fault_policy = "gap"` (the default) a fault that breaks a requirement the fault-free run meets is a gap `fault: <kind>: <metrics>`; with `"rank"` it only ranks the family lower. | `selection.json`, `faults.json` |
 | 8 | dispatch | Rust | the selected family's mission (detumble → Sun acquisition → nadir), its adcs-fswcfg/1 blob, the converged sized products, a C and Rust check (bit-identical) | `dist/dispatch/<case>/<family>/` |
 | 9 | mc | Rust engine | Monte Carlo of the dispatched mission with the case's dispersions | `mc/summary.json` |
@@ -50,7 +50,7 @@ A part that one failure pushes up and another pushes down is frozen and reported
 conflict. The loop stops when no change is proposed. `results/DESIGN_<case>.md` lists every
 iteration, every change and, for the last one, why each remaining failure cannot be fixed by a knob.
 
-## The fluid loop's electromagnetic pump (`engine/crates/adcs-design/src/empump.rs`)
+## The fluid loop's electromagnetic pump (act's `l3_fmr_row_07`, `act/sizepump.pc`)
 
 Our fluid loop is pumped by a DC conduction (Faraday) pump with an electromagnet. There is no
 permanent magnet. The loop and its pump are designed together, per ring:
@@ -76,7 +76,16 @@ from the hydraulic load and the designed efficiency, and the pressure-limited to
 
 ## Why the sizing is in Rust now
 
-`adcs-design` is a port of `+asils/+sizing`. Its demand survey and the coil, fluid-loop and RCS laws
+Since S7.15 every law of the sizing is the design's: methods of design and act (the survey's reductions and the
+demand, the coil, the rotors' selection, the rings and their pump, the thrusters, the sensors, the budget), the
+catalogue's derive rule a method of catalogue, and the loop's rules (converge, the Monte Carlo's feedback, the spare
+ring) methods of design, all generated into `adcs-design` (`tools/engine_build.py`); the crate keeps the survey's
+step order and the files' formats, and the loop's tools ask the engine for the rules (`adcs design call`,
+`tools/design_call.py`). The robustness rule and the spare ring are the same kind of rule, `design_loop_robustness`
+and `design_loop_redundancy`. The Floquet certificate (node certify, `tools/floquet.py`) stays a tool: its numpy
+monodromy and eigenvalues cannot be reproduced bit for bit by a generated method (docs/S7_INVENTORY.md S7.15).
+
+`adcs-design` began as a port of `+asils/+sizing`. Its demand survey and the coil, fluid-loop and RCS laws
 matched the MATLAB sizing to 1e-14 on both cases. The benchmarks' wheels and CMGs now come from the datasheet catalogue,
 not from the MATLAB rotor laws. Those laws made a notional unit sized exactly to the demand, with mass
 and power from a scaling anchor. A bought unit comes in fixed sizes, with the mass, power and volume on its datasheet.

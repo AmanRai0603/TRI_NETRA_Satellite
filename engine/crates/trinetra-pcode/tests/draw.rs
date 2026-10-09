@@ -28,7 +28,8 @@ impl Drawer<'_> {
         let r = self.rand.next();
         let v = if lo > 0.0 && hi / lo > 20.0 { math::exp(math::log(lo) + r * (math::log(hi) - math::log(lo))) } else { lo + r * (hi - lo) };
         if int {
-            math::round(v)
+            // an int has no sign of zero: the JavaScript adds 0 (Math.round of a draw in (-0.5, 0) is -0)
+            math::round(v) + 0.0
         } else {
             v
         }

@@ -1,0 +1,56 @@
+## The sensor suite of a sized product, transcribed from adcs-design lib.rs (size_all): the star tracker on the fine class
+## (req.ake at most 0.05 deg) or when the design loop asks for it on a coarse one, its heads away from nadir (on -Y for the
+## imaging class, whose payload looks along +Y; on -X for the coarse class, whose payload looks along +X), 25 deg off the
+## boresight's plane (0.9063, 0.4226), two of them or one where knowledge allows, with a calibrated mount residual of
+## 10 urad; the payload's boresight by class; six fine Sun sensors on the faces; the power face -Z. On the fine class a
+## better gyro than the catalogue's precision unit when the loop asks for it (a grade below 0.999): its noises times the
+## grade, its mass and power over the grade (anchored on the small fibre-optic class: noise x0.3 at about 0.2 kg, 1 W).
+## Directions are unit vectors in the body; plain numbers.
+## The developer's transcription (S7.15), unsigned.
+module sizesensors
+
+## Whether the star tracker is fitted: the fine class, or the loop's knob.
+fn sensor_star_tracker(fine: bool, knob: bool) -> fit: bool
+    fit = fine or knob
+end
+
+## The star tracker's heads for the class (fine or not) and the loop's heads knob: how many (one when the knob says one,
+## else two) and their boresights (row i the i-th head's); the calibrated mount residual [rad].
+fn sensor_heads(fine: bool, knob: int in 1 .. 3) -> (n: int, heads: real[1][3][2], residual: real[1])
+    if fine
+        heads = [[0.0, -0.9063, 0.4226], [0.0, -0.9063, -0.4226]]
+    else
+        heads = [[-0.9063, 0.0, 0.4226], [-0.9063, 0.0, -0.4226]]
+    end
+    n = if knob == 1 then 1 else 2
+    residual = 1e-5
+end
+
+## The payload's boresight for the class: +Y for the imaging (fine) class, +X for the coarse.
+fn sensor_boresight(fine: bool) -> b: vec3[1]
+    b = [1.0, 0.0, 0.0]
+    if fine
+        b = [0.0, 1.0, 0.0]
+    end
+end
+
+## The fine Sun sensors' normals, one on each face (row i the i-th sensor's), and the power face's axis.
+fn sensor_sun() -> (normals: real[1][3][6], sun_axis: vec3[1])
+    normals = [[1.0, 0.0, 0.0], [-1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, -1.0, 0.0], [0.0, 0.0, 1.0], [0.0, 0.0, -1.0]]
+    sun_axis = [0.0, 0.0, -1.0]
+end
+
+## Whether the precision gyro is graded: on the fine class, when the loop's grade is below 0.999.
+fn gyro_graded(fine: bool, grade: real[1] in 0 .. 2) -> graded: bool
+    graded = fine and grade < 0.999
+end
+
+## A graded gyro's noise (angle and rate random walk, bias instability): the catalogue unit's x times the grade.
+fn gyro_noise(x: real[1] in 0 .. 1e-3, grade: real[1] in 0.01 .. 2) -> y: real[1]
+    y = x*grade
+end
+
+## A graded gyro's mass [kg] and power [W]: the catalogue unit's x over the grade.
+fn gyro_load(x: real[1] in 0 .. 2, grade: real[1] in 0.01 .. 2) -> y: real[1]
+    y = x/grade
+end

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""The engine build (docs/PLAN_2_0.md S7; docs/S7_INVENTORY.md S7.3-S7.14b): the time engine's published models and relations
+"""The engine build (docs/PLAN_2_0.md S7; docs/S7_INVENTORY.md S7.3-S7.15): the time engine's published models and relations
 written from the design. Only the engine's core stays hand-written (step order, recorder, integrators, the toolbox); a
 model of the world or of the spacecraft is a method of an env, dyn, act or sens node, and its Rust is generated here, never
 edited.
@@ -48,6 +48,13 @@ its crate:
                                          rotors' jitter and the pointing budget (pnt, S7.14); how each metric is
                                          measured from a run: its channels, windows, statistics, the ECSS indices,
                                          each kind's value and unit and its verdict (kpi, S7.14b); std maths
+  engine/crates/adcs-design/src/gen/     the sizing (design and act, S7.15): the demand survey's reductions and what the
+                                         case asks of an actuator, the magnetorquer coil, the momentum actuators chosen
+                                         from the catalogue, the fluid rings and their electromagnetic pump, where a ring
+                                         lies in the box, the thrusters, the sensor suite, the budget; the catalogue's
+                                         derive rule (catalogue); the design loop's rules (design); std maths, and the
+                                         translator's dispatcher, by which `adcs design call` serves a method by name to
+                                         the tools (tools/design_call.py)
   matlab_sils/+asils/+models/            the same models for the MATLAB twin (asils.models.<module>.<function>), one
                                          package of every module the engine's targets take, over the twin's shared
                                          runtime +asils/+pc
@@ -76,6 +83,7 @@ TARGETS = {
     "adcs-sim-core": {"dir": "engine/crates/adcs-sim-core/src/gen", "root": "crate::gen", "math": "crate::pm"},
     "adcs-pop": {"dir": "engine/crates/adcs-pop/src/gen", "root": "crate::gen", "math": None},
     "adcs-sim": {"dir": "engine/crates/adcs-sim/src/gen", "root": "crate::gen", "math": None},
+    "adcs-design": {"dir": "engine/crates/adcs-design/src/gen", "root": "crate::gen", "math": None, "dispatch": True},
 }
 # the MATLAB twin's package: every module the engine's targets take, one copy, beside the twin's own code
 TWIN = {"dir": "matlab_sils/+asils/+models", "pkg": "asils.models", "takes": list(TARGETS)}
@@ -125,7 +133,7 @@ def modules(target, db=None):
     return dict(sorted(got.items()))
 
 
-def translate(texts, root=None, math=None, lang="rust", pkg=None):
+def translate(texts, root=None, math=None, lang="rust", pkg=None, dispatch=False):
     with tempfile.TemporaryDirectory(prefix="engine_build_") as tmp:
         files = []
         for p, t in texts.items():
@@ -135,7 +143,7 @@ def translate(texts, root=None, math=None, lang="rust", pkg=None):
             f.write_text(t, encoding="utf-8")
             files.append(str(f))
         if lang == "rust":
-            opts = ["--root", root, "--no-dispatch", "--title", TITLE] + (["--math", math] if math else [])
+            opts = ["--root", root, "--title", TITLE] + ([] if dispatch else ["--no-dispatch"]) + (["--math", math] if math else [])
         else:
             opts = ["--pkg", pkg]
         cmd = [str(TNDB), "translate", lang, *files, *opts] if TNDB.is_file() else \
@@ -152,7 +160,7 @@ def outputs(db=None):
     twin = {}
     for target, t in TARGETS.items():
         mods = modules(target, db)
-        for rel, text in translate(mods, t["root"], t["math"]).items():
+        for rel, text in translate(mods, t["root"], t["math"], dispatch=t.get("dispatch", False)).items():
             out[f"{t['dir']}/{pathlib.PurePosixPath(rel).name}"] = text
         if target in TWIN["takes"]:
             twin.update(mods)

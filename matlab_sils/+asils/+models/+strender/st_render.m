@@ -68,12 +68,12 @@ function [drawn, cr, cm, img, g, tx, ty, tk] = st_render(r_eh, cr, cm, nc, cam, 
     if noisy
         for l3 = (0):((np) - 1)
             v3 = img((l3) + 1);
-            [t__287, t__288] = asils.pc.stream_normal(g);
-            n1 = t__287;
-            g = t__288;
-            [t__289, t__290] = asils.pc.stream_normal(g);
-            n2 = t__289;
-            g = t__290;
+            [t__592, t__593] = asils.pc.stream_normal(g);
+            n1 = t__592;
+            g = t__593;
+            [t__594, t__595] = asils.pc.stream_normal(g);
+            n2 = t__594;
+            g = t__595;
             img((l3) + 1) = ((v3 + (sqrt(asils.pc.fmax(v3, 0)) * n1)) + (cam.read_noise * n2));
         end
     end

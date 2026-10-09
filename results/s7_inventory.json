@@ -696,6 +696,69 @@
     "docs: this page's section 1.1 had S7.14b's step row spliced into gm_4's row, and section 7 had no S7.14b row: repaired."
    ],
    "regression_copy_bytes": 10674176
+  },
+  "after_s7_15": {
+   "built_in": 0,
+   "built_in_by_group": {},
+   "behaviours": {
+    "open": 301,
+    "stated": 284,
+    "method": 272,
+    "children": 134,
+    "lookup": 126,
+    "evidence": 119,
+    "closure": 38,
+    "built-in": 0
+   },
+   "design_nodes": 1274,
+   "how": "the developer's revision S7.15: the sizing's 27 built-in nodes (act 8, design 19) as methods of design and act (sizedemand, sizemtq, sizerotor, sizefmr, sizercs, sizebudget, sizesensors; act's sizepump and sizering), the catalogue's derive rule (catalogue_datasheet_derive, a new node: catderive) and the design loop's rules (design_loop_converge, design_loop_robustness, design_loop_redundancy, new nodes: looprules), transcribed under design/revisions/S7.15, generated into adcs-design (with the translator's dispatcher, which adcs design call serves) and the twin's +asils/+models",
+   "moved": [
+    "design_sizing_cmg",
+    "design_sizing_fmr",
+    "design_sizing_mtq",
+    "design_sizing_rcs",
+    "design_sizing_rw",
+    "design_sizing_sensors",
+    "design_sizing_vscmg",
+    "gb_0",
+    "gb_1",
+    "gb_2",
+    "gb_3",
+    "gm_4",
+    "gm_5",
+    "gw_2",
+    "gw_5",
+    "gw_6",
+    "l3_budget_row_01",
+    "l3_budget_row_02",
+    "l3_budget_row_03",
+    "l3_budget_row_04",
+    "l3_budget_row_05",
+    "l3_budget_row_06",
+    "l3_budget_row_07",
+    "l3_budget_row_08",
+    "l3_fmr_row_07",
+    "l3_fmr_row_14",
+    "l3_fmr_row_15"
+   ],
+   "added": {
+    "catalogue_datasheet_derive": "method",
+    "design_loop_converge": "method",
+    "design_loop_robustness": "method",
+    "design_loop_redundancy": "method"
+   },
+   "not_moved": {
+    "tools/floquet.py": "bit-identity impossible: numpy's matrix products (OpenBLAS, fused multiply-add kernels) and LAPACK's dgeev; a sequential evaluation without them differs by at most |dmu| 2.8e-13 (ais_3u, celani2026; the eigen-solver alone 1.4e-14), and all 14 verdicts are identical; its own step"
+   },
+   "findings": [
+    "tools: evaluate takes a module's last function when none is the node's by name or output symbol (`_fn_of`): gw_2 (the cyclic momentum to store) and l3_budget_row_01 (the demand survey), whose module is sizedemand, show its sizing_knobs(), a function of no input, as computed: 1.5 (SI), the torque margin k_tau's default (the code's Knobs gives the same; `adcs design call sizedemand::sizing_knobs` returns it), not the quantity either row holds. The fallback should not compute a row from a function that is not the node's, or the node should name its function.",
+    "act, design: the sizing stops with a crash (a panic, exit 101, \"no feasible pump design\": lib.rs takes sizepump's design unchecked) when the pump's grid has no feasible point: 4 of 300 random knob sets, the fluid loop's authority 3 to 7 times (two within the loop's bound 4, with the momentum margin k_h near 4); the old code and the new alike. A refusal that names the ring would let the loop block the lever.",
+    "catalogue: catderive divides by stated numbers (the speed at the momentum, the rotor's share of a stated mass, the stall torque): a datasheet stating 0 for one (22 of 419 random sheets) made the 1.0.0 Python stop (ZeroDivisionError); the method gives IEEE's infinity or NaN, which the tool writes null, and the model stays selectable (NEED asks only that the four numbers be stated). No shipped datasheet states a zero. The rule should refuse a zero, or NEED ask for positive numbers.",
+    "translators: the vectors' drawer (design/js/pcode_cli.mjs) drew an integer input as -0 (Math.round of a draw just below zero), a value Rust's and C's i64 cannot hold, and the interpreter carried it through real(); fixed (the drawer adds 0, and its Rust port in trinetra-pcode's draw test), the self-test's vectors moved in 4 values. Left: the interpreter's div and rem, and MATLAB's fix, can still make an integer -0 inside a function, which real() keeps where Rust and C give 0; no function's vectors reach it today.",
+    "design: the loop's rules cost a process a call through the engine (2.5 ms; 0.25 ms in Python), a few calls an iteration; negligible against the runs, but an in-process library call is the cure if a loop ever makes many. The selection's being unchanged is held by its parts (every sizing and every rule's decision identical), not by flying the whole loop again.",
+    "docs: results/HEALTH.md still says 36 built-in nodes (made at S7.8 and S7.9); `tools/health.py --built-in` on the regression copy says 0."
+   ],
+   "regression_copy_bytes": 10960896
   }
  },
  "built_in_nodes": [
@@ -760,7 +823,8 @@
     "code.c": "[\"adcs_drv.c (actuator drivers)\"]",
     "code.rust": "[\"adcs-sim-core/actuators.rs\", \"adcs-design/empump.rs\"]",
     "code.twin": "[\"+devices\", \"+plant (actuator parts)\"]"
-   }
+   },
+   "status": "method (S7.15)"
   },
   {
    "node": "gm_5",
@@ -775,7 +839,8 @@
     "code.c": "[\"adcs_drv.c (actuator drivers)\"]",
     "code.rust": "[\"adcs-sim-core/actuators.rs\", \"adcs-design/empump.rs\"]",
     "code.twin": "[\"+devices\", \"+plant (actuator parts)\"]"
-   }
+   },
+   "status": "method (S7.15)"
   },
   {
    "node": "gw_2",
@@ -790,7 +855,8 @@
     "code.c": "[\"adcs_drv.c (actuator drivers)\"]",
     "code.rust": "[\"adcs-sim-core/actuators.rs\", \"adcs-design/empump.rs\"]",
     "code.twin": "[\"+devices\", \"+plant (actuator parts)\"]"
-   }
+   },
+   "status": "method (S7.15)"
   },
   {
    "node": "gw_5",
@@ -805,7 +871,8 @@
     "code.c": "[\"adcs_drv.c (actuator drivers)\"]",
     "code.rust": "[\"adcs-sim-core/actuators.rs\", \"adcs-design/empump.rs\"]",
     "code.twin": "[\"+devices\", \"+plant (actuator parts)\"]"
-   }
+   },
+   "status": "method (S7.15)"
   },
   {
    "node": "gw_6",
@@ -820,7 +887,8 @@
     "code.c": "[\"adcs_drv.c (actuator drivers)\"]",
     "code.rust": "[\"adcs-sim-core/actuators.rs\", \"adcs-design/empump.rs\"]",
     "code.twin": "[\"+devices\", \"+plant (actuator parts)\"]"
-   }
+   },
+   "status": "method (S7.15)"
   },
   {
    "node": "l3_fmr_gf_0_achieved",
@@ -953,7 +1021,8 @@
    "fate": "write as a method (transcription)",
    "carried_code": {
     "code.rust": "engine/crates/adcs-design/src/empump.rs"
-   }
+   },
+   "status": "method (S7.15)"
   },
   {
    "node": "l3_fmr_row_08",
@@ -1050,7 +1119,8 @@
    "fate": "write as a method (transcription)",
    "carried_code": {
     "code.rust": "engine/crates/adcs-design/src/lib.rs"
-   }
+   },
+   "status": "method (S7.15)"
   },
   {
    "node": "l3_fmr_row_15",
@@ -1063,7 +1133,8 @@
    "fate": "write as a method (transcription)",
    "carried_code": {
     "code.rust": "engine/crates/adcs-design/src/lib.rs"
-   }
+   },
+   "status": "method (S7.15)"
   },
   {
    "node": "l3_mtq_gm_0_achieved",
@@ -1767,7 +1838,8 @@
    "carried_code": {
     "code.rust": "engine/crates/adcs-design/src/lib.rs",
     "code.twin": "[\"+sizing\", \"+solution\"]"
-   }
+   },
+   "status": "method (S7.15)"
   },
   {
    "node": "design_sizing_fmr",
@@ -1781,7 +1853,8 @@
    "carried_code": {
     "code.rust": "engine/crates/adcs-design/src/lib.rs",
     "code.twin": "[\"+sizing\", \"+solution\"]"
-   }
+   },
+   "status": "method (S7.15)"
   },
   {
    "node": "design_sizing_mtq",
@@ -1795,7 +1868,8 @@
    "carried_code": {
     "code.rust": "engine/crates/adcs-design/src/lib.rs",
     "code.twin": "[\"+sizing\", \"+solution\"]"
-   }
+   },
+   "status": "method (S7.15)"
   },
   {
    "node": "design_sizing_rcs",
@@ -1809,7 +1883,8 @@
    "carried_code": {
     "code.rust": "engine/crates/adcs-design/src/lib.rs",
     "code.twin": "[\"+sizing\", \"+solution\"]"
-   }
+   },
+   "status": "method (S7.15)"
   },
   {
    "node": "design_sizing_rw",
@@ -1823,7 +1898,8 @@
    "carried_code": {
     "code.rust": "engine/crates/adcs-design/src/lib.rs",
     "code.twin": "[\"+sizing\", \"+solution\"]"
-   }
+   },
+   "status": "method (S7.15)"
   },
   {
    "node": "design_sizing_sensors",
@@ -1837,7 +1913,8 @@
    "carried_code": {
     "code.rust": "engine/crates/adcs-design/src/lib.rs",
     "code.twin": "[\"+sizing\", \"+solution\"]"
-   }
+   },
+   "status": "method (S7.15)"
   },
   {
    "node": "design_sizing_vscmg",
@@ -1851,7 +1928,8 @@
    "carried_code": {
     "code.rust": "engine/crates/adcs-design/src/lib.rs",
     "code.twin": "[\"+sizing\", \"+solution\"]"
-   }
+   },
+   "status": "method (S7.15)"
   },
   {
    "node": "gb_0",
@@ -1865,7 +1943,8 @@
    "carried_code": {
     "code.rust": "[\"adcs-design\"]",
     "code.twin": "[\"+sizing\", \"+solution\"]"
-   }
+   },
+   "status": "method (S7.15)"
   },
   {
    "node": "gb_1",
@@ -1879,7 +1958,8 @@
    "carried_code": {
     "code.rust": "[\"adcs-design\"]",
     "code.twin": "[\"+sizing\", \"+solution\"]"
-   }
+   },
+   "status": "method (S7.15)"
   },
   {
    "node": "gb_2",
@@ -1893,7 +1973,8 @@
    "carried_code": {
     "code.rust": "[\"adcs-design\"]",
     "code.twin": "[\"+sizing\", \"+solution\"]"
-   }
+   },
+   "status": "method (S7.15)"
   },
   {
    "node": "gb_3",
@@ -1907,7 +1988,8 @@
    "carried_code": {
     "code.rust": "[\"adcs-design\"]",
     "code.twin": "[\"+sizing\", \"+solution\"]"
-   }
+   },
+   "status": "method (S7.15)"
   },
   {
    "node": "l3_budget_gb_0_achieved",
@@ -1968,7 +2050,8 @@
    "fate": "write as a method (transcription)",
    "carried_code": {
     "code.rust": "engine/crates/adcs-design/src/lib.rs"
-   }
+   },
+   "status": "method (S7.15)"
   },
   {
    "node": "l3_budget_row_02",
@@ -1981,7 +2064,8 @@
    "fate": "write as a method (transcription)",
    "carried_code": {
     "code.rust": "engine/crates/adcs-design/src/lib.rs"
-   }
+   },
+   "status": "method (S7.15)"
   },
   {
    "node": "l3_budget_row_03",
@@ -1994,7 +2078,8 @@
    "fate": "write as a method (transcription)",
    "carried_code": {
     "code.rust": "engine/crates/adcs-design/src/lib.rs"
-   }
+   },
+   "status": "method (S7.15)"
   },
   {
    "node": "l3_budget_row_04",
@@ -2007,7 +2092,8 @@
    "fate": "write as a method (transcription)",
    "carried_code": {
     "code.rust": "engine/crates/adcs-design/src/lib.rs"
-   }
+   },
+   "status": "method (S7.15)"
   },
   {
    "node": "l3_budget_row_05",
@@ -2020,7 +2106,8 @@
    "fate": "write as a method (transcription)",
    "carried_code": {
     "code.rust": "engine/crates/adcs-design/src/lib.rs"
-   }
+   },
+   "status": "method (S7.15)"
   },
   {
    "node": "l3_budget_row_06",
@@ -2033,7 +2120,8 @@
    "fate": "write as a method (transcription)",
    "carried_code": {
     "code.rust": "engine/crates/adcs-design/src/lib.rs"
-   }
+   },
+   "status": "method (S7.15)"
   },
   {
    "node": "l3_budget_row_07",
@@ -2046,7 +2134,8 @@
    "fate": "write as a method (transcription)",
    "carried_code": {
     "code.rust": "engine/crates/adcs-design/src/lib.rs"
-   }
+   },
+   "status": "method (S7.15)"
   },
   {
    "node": "l3_budget_row_08",
@@ -2059,7 +2148,8 @@
    "fate": "write as a method (transcription)",
    "carried_code": {
     "code.rust": "engine/crates/adcs-design/src/lib.rs"
-   }
+   },
+   "status": "method (S7.15)"
   },
   {
    "node": "dyn_flexible_mode",
@@ -4999,7 +5089,8 @@
     "G8"
    ],
    "step": "S7.15",
-   "note": "Calls the engine (Config, Truth, torques) as a subroutine. The slew laws equal gw_3 and gw_4 (methods). Defaults 10 deg/s, 30 deg, 60 s, 3 years, k_h 2, quarter orbit are values with no node."
+   "note": "Calls the engine (Config, Truth, torques) as a subroutine. The slew laws equal gw_3 and gw_4 (methods). Defaults 10 deg/s, 30 deg, 60 s, 3 years, k_h 2, quarter orbit are values with no node.",
+   "status": "done (S7.15): sizedemand (l3_budget_row_01, gw_2), generated into adcs-design; lib.rs keeps the survey's step order (the orbit flown, the guidance and the torques the engine's generated models)"
   },
   {
    "id": "design.mtq",
@@ -5019,7 +5110,8 @@
    "kind": "relation",
    "gaps": [],
    "step": "S7.15",
-   "note": "gm_1..gm_3 and magnetorquer_dipole_required already exist as methods."
+   "note": "gm_1..gm_3 and magnetorquer_dipole_required already exist as methods.",
+   "status": "done (S7.15): sizemtq (design_sizing_mtq, l3_budget_row_02, gm_4, gm_5), generated into adcs-design"
   },
   {
    "id": "design.rotor",
@@ -5042,7 +5134,8 @@
     "G10"
    ],
    "step": "S7.15",
-   "note": "Finding for design: the twin sizes wheels and CMGs by law (+sizing/rw.m, cmg.m); the engine selects from the catalogue."
+   "note": "Finding for design: the twin sizes wheels and CMGs by law (+sizing/rw.m, cmg.m); the engine selects from the catalogue.",
+   "status": "done (S7.15): sizerotor (design_sizing_rw, design_sizing_cmg, design_sizing_vscmg, l3_budget_row_03, gw_5, gw_6), the catalogue's selection as the engine makes it; the finding stands (the twin sizes by a law)"
   },
   {
    "id": "design.fmr",
@@ -5062,7 +5155,8 @@
     "G7"
    ],
    "step": "S7.15",
-   "note": ""
+   "note": "",
+   "status": "done (S7.15): sizefmr (design_sizing_fmr, l3_budget_row_04) and sizering (l3_fmr_row_14, l3_fmr_row_15), generated into adcs-design"
   },
   {
    "id": "design.empump",
@@ -5079,7 +5173,8 @@
     "G7"
    ],
    "step": "S7.15",
-   "note": "Finding for design: the twin's +sizing/fmr.m is the older law without the pump design."
+   "note": "Finding for design: the twin's +sizing/fmr.m is the older law without the pump design.",
+   "status": "done (S7.15): sizepump (l3_fmr_row_07), generated into adcs-design; empump.rs deleted"
   },
   {
    "id": "design.rcs",
@@ -5094,7 +5189,8 @@
    "kind": "relation + parameters",
    "gaps": [],
    "step": "S7.15",
-   "note": ""
+   "note": "",
+   "status": "done (S7.15): sizercs (design_sizing_rcs, l3_budget_row_05), generated into adcs-design"
   },
   {
    "id": "design.budget",
@@ -5119,7 +5215,8 @@
     "G10"
    ],
    "step": "S7.15",
-   "note": "gb_2 (peak power) is not computed by the sizing: budget sums steady power only."
+   "note": "gb_2 (peak power) is not computed by the sizing: budget sums steady power only.",
+   "status": "done (S7.15): sizebudget (l3_budget_row_06-08, gb_0-gb_3: gb_2 the steady sum, as flown) and sizesensors (design_sizing_sensors), generated into adcs-design"
   },
   {
    "id": "design.knobs",
@@ -5131,7 +5228,8 @@
    "kind": "code (the loop's interface)",
    "gaps": [],
    "step": "-",
-   "note": ""
+   "note": "",
+   "status": "code (the loop's interface); since S7.15 the knobs' defaults and ranges are sizedemand's sizing_knobs"
   },
   {
    "id": "physics.gen",
@@ -5664,7 +5762,7 @@
    "gaps": [],
    "step": "S7.15",
    "note": "The derived block is held in the design as data today; the rule that made it is code.",
-   "status": "left at S7.14: the datasheet-to-part rule makes the catalogue's data the design holds; with the sizing that selects from it, S7.15"
+   "status": "done (S7.15): catalogue_datasheet_derive's catderive, a new node of catalogue, generated into adcs-design; tools/catalogue.py asks the engine (adcs design derive) and writes the block, the assumptions in words"
   },
   {
    "id": "tools.floquet",
@@ -5675,9 +5773,9 @@
    "nodes": [],
    "kind": "relation (analysis)",
    "gaps": [],
-   "step": "S7.14",
+   "step": "S7.15",
    "note": "No node: ctl adds a certify node, or it stays an analysis tool.",
-   "status": "left at S7.14: decide (the owner's word), an analysis method of ctl or an analysis tool"
+   "status": "left (S7.15): not moved (bit-identity impossible: numpy's matrix products (OpenBLAS, fused multiply-add kernels) and LAPACK's dgeev; a sequential evaluation without them differs by at most |dmu| 2.8e-13 (ais_3u, celani2026; the eigen-solver alone 1.4e-14), and all 14 verdicts are identical; its own step)"
   },
   {
    "id": "tools.converge",
@@ -5688,8 +5786,9 @@
    "nodes": [],
    "kind": "decide (design-loop rules)",
    "gaps": [],
-   "step": "later",
-   "note": "Rules of the design loop: design or code is the owner's word; not needed for built-in zero."
+   "step": "S7.15",
+   "note": "Rules of the design loop: design or code is the owner's word; not needed for built-in zero.",
+   "status": "done (S7.15): looprules, three new nodes of design (design_loop_converge, design_loop_robustness, design_loop_redundancy), generated into adcs-design; tools/pipeline_design.py and pipeline_verify.py ask the engine (adcs design call) and say the decisions in words"
   },
   {
    "id": "tools.evaluate",
@@ -5808,7 +5907,7 @@
    "kind": "relation (demand, mtq, rw, cmg, fmr, rcs, jitter, size_all); code (print)",
    "step": "S7.15",
    "note": "Differs from adcs-design: wheels and CMGs by law, no pump design.",
-   "status": "the jitter's generated copy in +asils/+models since S7.14 (+jitter), with the power system's (+powersys) and the pointing budget's (+pntbudget); the twin flies its own until S7.17"
+   "status": "the generated copies in +asils/+models: the jitter's, the power system's and the pointing budget's since S7.14, the sizing's, the catalogue's derive rule's and the loop's rules' since S7.15; the twin flies its own until S7.17"
   },
   {
    "package": "+product",
@@ -6115,7 +6214,8 @@
   {
    "step": "S7.15",
    "work": "Sizing (design): demand survey, magnetorquer, select_rotor, fluid rings with the pump design, RCS, budgets, sensors. One method each; the twin's +sizing generated from the same methods (the engine's laws win where they differ, after the owner's word).",
-   "parity": "sizing.json and the parts and products of both cases byte for byte; the pipeline's selection unchanged"
+   "parity": "sizing.json and the parts and products of both cases byte for byte; the pipeline's selection unchanged",
+   "status": "done (8 Oct 2026): The sizing (design/revisions/S7.15): the 27 built-in nodes (act 8, design 19) as methods of design and act, nine modules generated into adcs-design and the twin's +asils/+models (sizedemand: the survey's reductions, the demand and the knobs' defaults; sizemtq; sizerotor, select_rotor from the catalogue; sizefmr with act's sizepump and sizering; sizercs; sizebudget; sizesensors); adcs-design keeps the survey's step order and the files' formats; empump.rs deleted. Four new nodes: catalogue_datasheet_derive (catderive: tools/catalogue.py asks `adcs design derive`) and design_loop_converge, design_loop_robustness, design_loop_redundancy (looprules: tools/pipeline_design.py and pipeline_verify.py ask `adcs design call`). Held: 320 sizings, 6,449 files identical, old binary against new; every function 0 bits different on 400,000 random inputs and a third seed; the catalogue 19 of 19 and 10,000 random datasheets byte for byte; the loop's rules 44,953 calls, 0 different; the parity gate all equal, evaluate 1,304 of 1,500 (S7.14's 134 and the moved rows' reasons; gw_2 and l3_budget_row_01 computed by evaluate's fallback, a finding). The Floquet certificate not moved (bit-identity impossible: numpy's matrix products (OpenBLAS, fused multiply-add kernels) and LAPACK's dgeev; a sequential evaluation without them differs by at most |dmu| 2.8e-13 (ais_3u, celani2026; the eigen-solver alone 1.4e-14), and all 14 verdicts are identical; its own step). Built-in 27 -> 0."
   },
   {
    "step": "S7.16",

@@ -94,13 +94,13 @@ function [st, k, o] = panel_force(r, v, atm, f, model, g, mass, aref, r_bi, wind
                         cp = 0;
                         ct = 0;
                         if (model == 3)
-                            [t__77, t__78] = asils.models.gsi.cll(s, delta, g.sig_n, g.sig_t, g.tw, atm.t);
-                            cp = t__77;
-                            ct = t__78;
+                            [t__382, t__383] = asils.models.gsi.cll(s, delta, g.sig_n, g.sig_t, g.tw, atm.t);
+                            cp = t__382;
+                            ct = t__383;
                         else
-                            [t__79, t__80] = asils.models.gsi.sentman(s, delta, a_t, g.tw, atm.t);
-                            cp = t__79;
-                            ct = t__80;
+                            [t__384, t__385] = asils.models.gsi.sentman(s, delta, a_t, g.tw, atm.t);
+                            cp = t__384;
+                            ct = t__385;
                         end
                         q = (((0.5 * rho_s((jj) + 1)) * (vm)^(2)) * f.a((j) + 1));
                         for i = (0):((3) - 1)

@@ -71,6 +71,18 @@ undo = "list/query/stale: nothing (the index is rebuilt from the runs). pin: del
 
 [[command]]
 tool = "adcs"
+name = "design"
+usage = "adcs design derive FILE... | call MODULE::FUNCTION"
+what = "The design's methods a tool asks for, so the tool keeps no relation of its own (docs/S7_INVENTORY.md S7.15): a datasheet catalogue model's derived block (catalogue's method, for tools/catalogue.py), and any method generated into the sizing called by its name (the design loop's rules, for tools/pipeline_design.py and pipeline_verify.py)."
+steps = ["derive: read each datasheet file (adcs-datasheet/1) and the numbers its supply and dimensions name, run catalogue_datasheet_derive's method, print one JSON line a file: selectable, what it misses, the derived block, what was assumed and the rule's constants", "call: read the method's inputs from stdin as numbers (a buffer its length, then its elements), call it through the translator's dispatcher, print its outputs and its changed inputs one a line, exactly (shortest round trip)"]
+reads = ["the datasheet files named (derive)", "stdin (call)"]
+writes = []
+runs = []
+checks = "derive: a file that is not a datasheet is refused by name; call: a method the sizing does not carry, or the wrong count of inputs, is refused by name"
+undo = "Nothing: it only prints."
+
+[[command]]
+tool = "adcs"
 name = "figures"
 usage = "adcs figures RUN_DIR --out DIR [--format svg|pdf] [--full] [--prefix P]"
 what = "A run's figures, the same for an engine run and a MATLAB twin run (both keep manifest.json and channels.csv with the same columns): attitude, disturbance torques, actuators and power, the Sun spin when the run spun up, and with --full the environment, ground track and mode timeline. Drawn by adcs-plot, the one plotting module, as SVG or PDF."
@@ -259,8 +271,8 @@ what = "The design loop, node by node: from a customer case to a selected, dispa
 steps = ["size: the demand survey and every option sized", "matrix: every mode x option x seed flown with the sized products", "assess: each failing requirement classed (performance, knowledge, power, propellant)", "select: the lightest solution family (then power, then volume) that passes every mode within the mass and volume budget", "converge: resize or upgrade what failed, and repeat from size until nothing is left to change", "faults: each solution family's mission flown once per single fault its hardware can carry; select counts the faults it does not survive", "dispatch: the selected family's flight configuration, checked with C and Rust", "mc: a Monte Carlo of the dispatched mission", "robust: a requirement the Monte Carlo breaks sends the loop back to size with more margin", "family_missions: every solution family's mission flown (SILS C and Rust, and a Monte Carlo)", "certify: the Floquet certificate of each magnetic pointing law", "soft_oils: the dispatched mission on the Cortex-M4F firmware (unless --no-oils)", "ledger: the design ledger and its JSON"]
 reads = ["matlab_sils/cases/<case>.csv", "matlab_sils/data/"]
 writes = ["matlab_sils/store/pipeline/<case>/<node>.json", "dist/dispatch/<case>/"]
-runs = ["adcs size", "adcs run", "adcs params", "qemu-system-arm"]
-checks = "each node's inputs, outputs and rules (matlab_sils/data/pipeline/nodes.json); each decision recomputable"
+runs = ["adcs size", "adcs run", "adcs params", "adcs design call", "qemu-system-arm"]
+checks = "each node's inputs, outputs and rules (matlab_sils/data/pipeline/nodes.json); each decision recomputable; converge, robust and the spare ring are the design's rules (design_loop_*, design/looprules.pc), asked through the engine"
 undo = "Delete matlab_sils/store/pipeline/<case>/ and dist/dispatch/<case>/."
 
 # ---------------------------------------------------------------- reports and packages
@@ -463,10 +475,10 @@ undo = "It writes generated files only: `git checkout -- results/TRANSLATORS.md 
 tool = "engine_build.py"
 name = "engine-build"
 usage = "python3 tools/engine_build.py gen [--check] [--design FILE] | modules [--design FILE]"
-what = "The engine build (docs/PLAN_2_0.md S7; docs/S7_INVENTORY.md S7.3-S7.13): the time engine's published models and relations written from the design (time, frames, the field; the atmosphere and space weather, DE440, gravity, the tides, relativity; the disturbance torques, the fast Sun, Moon and shadow, the eclipse fraction; the plant's rate and momentum; the fast orbit's forces and start, the precision orbit's spacecraft force models, force set and sum; the actuators; the sensors and what they see of the sky, the rotors' telemetry, the star tracker and its image chain; the truth plant, the case's orbit and epoch and the plant's state at the start of a run; the device emulators' scaling, from the flight software's drivers; the flight software's parameters, the values of its configuration blob). Every method block whose code.generate names a target (adcs-sim-core, adcs-pop, adcs-sim), with the modules its code.uses names in turn (env's data tables, env's onboard frames and field, the physics' tables, the toolbox), (a bare name, as the flight algorithms name theirs, beside its user) is translated by the library's translator (tndb translate rust; the JavaScript one when it is not built) into a module of the crate: engine/crates/adcs-sim-core/src/gen (maths from crate::pm, no_std), engine/crates/adcs-pop/src/gen and engine/crates/adcs-sim/src/gen (std maths). The engine's core (step order, recorder, integrators, the file readers) stays code and calls them. `modules` lists what each target takes."
-steps = ["collect the design's method blocks naming each target, and what they use", "translate each target's modules to Rust (crate::gen, its maths module, no dispatcher)", "write them (or, with --check, compare), removing any file the design no longer gives"]
+what = "The engine build (docs/PLAN_2_0.md S7; docs/S7_INVENTORY.md S7.3-S7.15): the time engine's published models and relations written from the design (time, frames, the field; the atmosphere and space weather, DE440, gravity, the tides, relativity; the disturbance torques, the fast Sun, Moon and shadow, the eclipse fraction; the plant's rate and momentum; the fast orbit's forces and start, the precision orbit's spacecraft force models, force set and sum; the actuators; the sensors and what they see of the sky, the rotors' telemetry, the star tracker and its image chain; the truth plant, the case's orbit and epoch and the plant's state at the start of a run; the device emulators' scaling, from the flight software's drivers; the flight software's parameters, the values of its configuration blob; the power system, the rotors' jitter and the pointing budget; the metrics; the sizing, the catalogue's derive rule and the design loop's rules). Every method block whose code.generate names a target (adcs-sim-core, adcs-pop, adcs-sim, adcs-design), with the modules its code.uses names in turn (env's data tables, env's onboard frames and field, the physics' tables, the toolbox), (a bare name, as the flight algorithms name theirs, beside its user) is translated by the library's translator (tndb translate rust; the JavaScript one when it is not built) into a module of the crate: engine/crates/adcs-sim-core/src/gen (maths from crate::pm, no_std), engine/crates/adcs-pop/src/gen, engine/crates/adcs-sim/src/gen and engine/crates/adcs-design/src/gen (std maths; the sizing's with the translator's dispatcher, which `adcs design call` serves to the tools). The engine's core (step order, recorder, integrators, the file readers) stays code and calls them. `modules` lists what each target takes."
+steps = ["collect the design's method blocks naming each target, and what they use", "translate each target's modules to Rust (crate::gen, its maths module; a dispatcher for adcs-design only)", "write them (or, with --check, compare), removing any file the design no longer gives"]
 reads = ["tests/regression/design.tndb (or --design FILE)", "fsw/pseudocode/01_math.pc (the toolbox)"]
-writes = ["engine/crates/adcs-sim-core/src/gen/", "engine/crates/adcs-pop/src/gen/", "engine/crates/adcs-sim/src/gen/", "matlab_sils/+asils/+models/"]
+writes = ["engine/crates/adcs-sim-core/src/gen/", "engine/crates/adcs-pop/src/gen/", "engine/crates/adcs-sim/src/gen/", "engine/crates/adcs-design/src/gen/", "matlab_sils/+asils/+models/"]
 runs = ["engine/target/release/tndb translate (or node design/js/pcode_cli.mjs)"]
 checks = "--check: every generated engine model is what the design gives, and nothing else sits in the generated folders"
 undo = "It writes generated files only: `git checkout -- engine/crates/adcs-sim-core/src/gen engine/crates/adcs-pop/src/gen engine/crates/adcs-sim/src/gen matlab_sils/+asils/+models`."
@@ -642,13 +654,13 @@ undo = "It writes generated files only: `git checkout -- <file>` puts back the c
 [[command]]
 tool = "catalogue.py"
 name = "catalogue"
-usage = "python3 tools/catalogue.py"
-what = "Re-derive each bought wheel's and CMG's modelling block from its datasheet numbers (never guessed), then the catalogue document."
-steps = ["derive every model's engine parameters by rule", "mark a model not selectable when its datasheet lacks a number the selection needs"]
+usage = "python3 tools/catalogue.py [--check]"
+what = "Re-derive each bought wheel's and CMG's modelling block from its datasheet numbers (never guessed), by the catalogue's method through the engine (adcs design derive), then the catalogue document. --check says which file's block is not what its datasheet gives, and writes nothing."
+steps = ["ask the engine for every model's derivation (catalogue_datasheet_derive's method)", "write each file's derived block, its selectable flag and what it misses, and say in words what was assumed (or, with --check, compare)", "write docs/NODES.md and docs/CATALOGUE.md"]
 reads = ["matlab_sils/data/catalogue/"]
 writes = ["matlab_sils/data/catalogue/*.json", "docs/CATALOGUE.md"]
 runs = []
-checks = "each modelling block re-derived from its datasheet numbers, never guessed"
+checks = "each modelling block re-derived from its datasheet numbers, never guessed; --check: every file is what its datasheet gives"
 undo = "It writes generated files only: `git checkout -- <file>` puts back the committed one, or run it again once its source is as you want it."
 
 # ---------------------------------------------------------------- checks and analysis

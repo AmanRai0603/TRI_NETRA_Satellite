@@ -1,0 +1,521 @@
+## The design loop's rules (docs/DESIGN_LOOP.md, the converge node and its feedback), transcribed from
+## tools/pipeline_design.py (node_converge, node_redundancy), tools/pipeline_verify.py (node_robust) and
+## tools/pipeline_base.py (auth_part, rate_violation, fam_violation): which knob a failure moves and by how much.
+## - A performance failure first flies every algorithm of the option's slot, then tunes every law's gains (a coils-only
+##   option of a tuned slot), then grades the gyro (a fine-class rate-stability failure: noise x0.3 to the floor) or the
+##   fluid loop's flow sensor (/4 to the floor), else asks the option's part for more authority (x up, to the bound).
+## - A knowledge failure fits the star tracker on the coarse class (blocked when it is fitted); a power failure gives the
+##   fluid ring's pump more copper (lambda x3, to the bound; blocked when the thrusters dump, or the mass needs it lower),
+##   asks the pointing-grade coil for less authority, or is blocked at the part's floor; a propellant failure asks the
+##   thrusters for more authority.
+## - A feasible coils-only option of a tuned slot with less than the tune margin left (its worst seed above margin x
+##   req) flies every algorithm, then is tuned.
+## - A move that did not help is undone at the next iteration and its lever closed: the gyro grade when the rate-stability
+##   violation did not fall by the improvement needed, a part's authority when its options' performance violation did not;
+##   a mass move that broke an option which passed (or raised the closest family's violation) likewise.
+## - When nothing else changes, the closest solution family with a mass gap takes one mass lever: a lighter gyro (x3, to
+##   1), one star-tracker head, a lighter pump (lambda /3, to the bound), less fluid-loop momentum (x down, to the bound).
+## - Authority moves are taken part by part in the parts' order; a part frozen, at its bound, or asked both ways
+##   (performance against power) is blocked.
+## The Monte Carlo's feedback (node_robust) and the spare ring (node_redundancy) are the same kind of rule. The loop's
+## bounds and steps are its registry's (the converge and tune nodes' parameters, handed in); a knob's value where the
+## loop has set none is the sizing's default (sizedemand's sizing_knobs). Every decision comes back as an event in the
+## order the loop makes them, with its numbers; the tool says each in words.
+## Rounding a grade to three decimals is Python's round(x, 3), as the tool rounded it: the exact value of x rounded to
+## the nearest thousandth, a tie to the even one (the product by 1000 split exactly, Dekker 1971), and the nearest
+## double to that.
+## The developer's transcription (S7.15), unsigned.
+module looprules
+
+## A sized part whose authority the loop scales, in the order the loop takes them (alphabetical, as the tool sorted them).
+choice Part = cmg, fmr, mtq, mtqp, rcs, rw, vscmg
+
+## An option's actuator (the modes' options).
+choice Actuator = mtq, rw, cmg, vscmg, fmr, rcs
+
+## The mass lever a move took, which a later iteration may undo.
+choice MassLever = gyro_grade, st_heads, fmr_lambda, scale_fmr
+
+## What the loop decided, in order: the changes and the blocked moves the tool reports.
+choice LoopEvent = gyro_back, authority_back, thin_fly, thin_tune, fly_every, tune, perf_and_power, gyro_down, flow_sensor, \
+                   star_tracker, knowledge_blocked, rcs_power, lambda_up, lambda_blocked, power_floor, mass_undo, mass_gyro, \
+                   mass_heads, mass_lambda, mass_fmr, mass_none, frozen, bound_up, conflict_up, bound_down, conflict_down, \
+                   authority, robust_lambda, robust_power, robust_authority, robust_performance, robust_star_tracker, \
+                   robust_knowledge
+
+## The part (its Part's number) that gives an option of actuator a (its Actuator's number) its authority: the
+## pointing-grade coil for the coils, else the actuator's.
+fn loop_part(a: int in 0 .. 5) -> p: int
+    p = int(Part.mtqp)
+    if a == int(Actuator.rw)
+        p = int(Part.rw)
+    elif a == int(Actuator.cmg)
+        p = int(Part.cmg)
+    elif a == int(Actuator.vscmg)
+        p = int(Part.vscmg)
+    elif a == int(Actuator.fmr)
+        p = int(Part.fmr)
+    elif a == int(Actuator.rcs)
+        p = int(Part.rcs)
+    end
+end
+
+## x rounded to three decimals as Python's round(x, 3): its magnitude times 1000 split exactly into p + e (Veltkamp's
+## split and Dekker's product), rounded to the nearest whole number with a tie to the even one, over 1000, with x's sign
+## (a zero keeps it); a value that is not finite, or beyond 4.5e12 (the product past 2^52), is itself.
+fn loop_round3(x: real[1] in -10 .. 10) -> y: real[1]
+    let ax = |x|
+    if not isfinite(x) or ax*1000.0 >= 4503599627370496.0
+        y = x
+    else
+        let p = ax*1000.0
+        let c = 134217729.0*ax
+        let xh = c - (c - ax)
+        let xl = ax - xh
+        let e = (xh*1000.0 - p) + xl*1000.0
+        let r = floor(p)
+        let d = (p - r) - 0.5
+        let s = d + e
+        let n = r
+        if s > 0.0
+            n = r + 1.0
+        elif s == 0.0
+            if fmod(r, 2.0) != 0.0
+                n = r + 1.0
+            end
+        end
+        y = n/1000.0
+        if x < 0.0 or (x == 0.0 and 1.0/x < 0.0)
+            y = -y
+        end
+    end
+end
+
+## The rate-stability violation of an iteration: the sum, over its options in the loop's order and each option's
+## violations in order (vval, those of a rate-stability metric flagged vrate), of each capped at 10.
+## length: 16
+fn loop_rate_violation(vval: inout real[1][*] in 0 .. 20, vrate: inout int[*] in 0 .. 1, nv: int in 0 .. 16) -> rv: real[1]
+    rv = 0.0
+    for i in 0 .. min(nv, len(vval))
+        if vrate[i] == 1
+            rv = rv + min(vval[i], 10.0)
+        end
+    end
+end
+
+## An option's violation: the sum of its violations vval[v0 .. v1] (those flagged in perf only, when perf_only), from 0.
+## length: 16
+fn loop_option_violation(vval: inout real[1][*] in 0 .. 20, vperf: inout int[*] in 0 .. 1, v0: int in 0 .. 16, v1: int in 0 .. 16, \
+                         perf_only: bool) -> s: real[1]
+    s = 0.0
+    for i in v0 .. min(v1, len(vval))
+        if (not perf_only) or vperf[i] == 1
+            s = s + vval[i]
+        end
+    end
+end
+
+## A family's requirement violation (pipeline_base's fam_violation): for each of the nm modes, among the family's usable
+## options of that mode (bit b of usable), the least violation (0 for a feasible option, else the sum of its violations, the
+## first of equals), summed over the modes that have one.
+## length: 16
+fn loop_family_violation(mode_ix: inout int[*] in 0 .. 3, feasible: inout int[*] in 0 .. 1, usable: inout int[*] in 0 .. 511, b: int in 0 .. 8, \
+                         vstart: inout int[*] in 0 .. 15, vval: inout real[1][*] in 0 .. 20, vperf: inout int[*] in 0 .. 1, \
+                         no: int in 0 .. 15, nm: int in 0 .. 4) -> tot: real[1]
+    tot = 0.0
+    for m in 0 .. nm
+        let have = false
+        let best: real[1] = 0.0
+        for i in 0 .. min(no, len(vstart) - 1)
+            if mode_ix[i] == m and band(shr(usable[i], b), 1) == 1
+                let x: real[1] = 0.0
+                if feasible[i] == 0
+                    x = loop_option_violation(vval, vperf, vstart[i], vstart[i + 1], false)
+                end
+                if not have
+                    best = x
+                    have = true
+                elif x < best
+                    best = x
+                end
+            end
+        end
+        if have
+            tot = tot + best
+        end
+    end
+end
+
+## An event: its kind, option (or -1), part (or -1), three numbers and a flag, at the next place of the lists (n of them).
+## length: 8
+fn loop_event(ek: inout int[*] in 0 .. 32, eo: inout int[*] in -1 .. 7, ep: inout int[*] in -1 .. 6, ea: inout real[1][*] in 0 .. 10, \
+              eb: inout real[1][*] in 0 .. 10, ec: inout real[1][*] in 0 .. 10, ef: inout int[*] in 0 .. 1, n: int in 0 .. 9, \
+              kind: LoopEvent, o: int in -1 .. 7, p: int in -1 .. 6, a: real[1] in 0 .. 10, b: real[1] in 0 .. 10, c: real[1] in 0 .. 10, \
+              f: int in 0 .. 1) -> m: int
+    m = n
+    if n < len(ek) and n < len(eo) and n < len(ep) and n < len(ea) and n < len(eb) and n < len(ec) and n < len(ef)
+        ek[n] = int(kind)
+        eo[n] = o
+        ep[n] = p
+        ea[n] = a
+        eb[n] = b
+        ec[n] = c
+        ef[n] = f
+        m = n + 1
+    end
+end
+
+## The knob changes the failures of an iteration call for (pipeline_design's node_converge).
+## The iteration's no options, in the order they were flown: each one's mode (mode_ix, of nm modes), actuator (act),
+## whether it dumps by thrusters (dump_rcs), whether it is feasible, has an algorithm slot (has_slot) of a tuned slot on a
+## tuned actuator (tunable), its objective (has_obj) and requirement (has_req), the classes of its failures (f_perf,
+## f_know, f_power, f_prop, f_rate: a rate-stability metric), whether it flies its slot's every algorithm (in_v) and is
+## tuned (tuned), its violations vval[vstart[i] .. vstart[i + 1]] (vperf: a performance metric's; vrate: a rate-stability
+## metric's), and order: the options by mode and option id.
+## The iteration before the authority moves (prev): its np options, their actuators, feasibility, violations and each
+## one's place among this iteration's (p_cur, -1: none); the parts it moved up (lu_part, in order) and their scales.
+## The history: the gyro move to judge (lg_has, lg_g0, lg_vb), the levers closed, the moves made (lam_up, lam_down, st2),
+## the parts frozen (frozen), tried up or down (tried_up, tried_down, bit p of each), the mass move to judge (lm_has,
+## lm_key, lm_vb; lm_before: the options feasible then; lm_use: those its family could use).
+## The knobs (with has_*: whether set; else the sizing's default), and the knobs the iteration started from (k0_*).
+## The fine class; the solution families (nf): gap counts, simplicity, a mass gap, a power gap, a fluid loop, and bit f
+## of fam_use[i] whether family f can use option i.
+## The registry's parameters: the improvement needed, the scale's bounds and steps, the pump's bounds, the flow sensor's
+## floor, the gyro grade's floor, the tune margin.
+## The events (ek .. ef) and, per option, the mass move's flags out (o_lost: an option it broke; o_feas: feasible in the
+## family that takes a mass lever); how many events.
+## length: 16
+fn loop_converge(mode_ix: inout int[*] in 0 .. 3, act: inout int[*] in 0 .. 5, dump_rcs: inout int[*] in 0 .. 1, feasible: inout int[*] in 0 .. 1, \
+                 has_slot: inout int[*] in 0 .. 1, tunable: inout int[*] in 0 .. 1, has_obj: inout int[*] in 0 .. 1, \
+                 objective: inout real[1][*] in 0 .. 10, has_req: inout int[*] in 0 .. 1, req: inout real[1][*] in 0 .. 10, \
+                 f_perf: inout int[*] in 0 .. 1, f_know: inout int[*] in 0 .. 1, f_power: inout int[*] in 0 .. 1, f_prop: inout int[*] in 0 .. 1, \
+                 f_rate: inout int[*] in 0 .. 1, in_v: inout int[*] in 0 .. 1, tuned: inout int[*] in 0 .. 1, vstart: inout int[*] in 0 .. 15, \
+                 vval: inout real[1][*] in 0 .. 20, vperf: inout int[*] in 0 .. 1, vrate: inout int[*] in 0 .. 1, order: inout int[*] in 0 .. 14, \
+                 no: int in 0 .. 15, nm: int in 1 .. 4, \
+                 p_act: inout int[*] in 0 .. 5, p_feas: inout int[*] in 0 .. 1, p_vstart: inout int[*] in 0 .. 15, p_vval: inout real[1][*] in 0 .. 20, \
+                 p_vperf: inout int[*] in 0 .. 1, p_cur: inout int[*] in -1 .. 14, np: int in 0 .. 15, \
+                 lu_part: inout int[*] in 0 .. 6, lu_scale: inout real[1][*] in 0.5 .. 4, nlu: int in 0 .. 7, \
+                 lg_has: bool, lg_g0: real[1] in 0.1 .. 1, lg_vb: real[1] in 0 .. 20, closed_gyro: bool, closed_heads: bool, \
+                 closed_lambda: bool, closed_scale_fmr: bool, lam_up: bool, lam_down: bool, st2: bool, \
+                 frozen: int in 0 .. 127, tried_up: int in 0 .. 127, tried_down: int in 0 .. 127, \
+                 lm_has: bool, lm_key: MassLever, lm_old: real[1] in 0.01 .. 4, lm_vb: real[1] in 0 .. 20, lm_before: inout int[*] in 0 .. 1, lm_use: inout int[*] in 0 .. 1, \
+                 has_gyro: bool, gyro: real[1] in 0.05 .. 2, has_sigma: bool, sigma: real[1] in 0 .. 0.01, has_lambda: bool, lambda: real[1] in 0.005 .. 4, \
+                 star_tracker: bool, has_heads: bool, heads: real[1] in 1 .. 3, has_scale: inout int[*] in 0 .. 1, scale: inout real[1][*] in 0.5 .. 4, \
+                 k0_has_gyro: bool, k0_gyro: real[1] in 0.05 .. 2, k0_has_sigma: bool, k0_sigma: real[1] in 0 .. 0.01, k0_has_lambda: bool, \
+                 k0_lambda: real[1] in 0.005 .. 4, fine: bool, has_sel: bool, nf: int in 0 .. 9, fam_gaps: inout int[*] in 0 .. 5, \
+                 fam_simplicity: inout real[1][*] in 1 .. 9, fam_mass: inout int[*] in 0 .. 1, fam_power: inout int[*] in 0 .. 1, \
+                 fam_fmr: inout int[*] in 0 .. 1, fam_use: inout int[*] in 0 .. 511, \
+                 improvement: real[1] in 0 .. 0.5, scale_min: real[1] in 0.1 .. 1, scale_max: real[1] in 1 .. 8, up: real[1] in 1 .. 2, \
+                 down: real[1] in 0.5 .. 1, lambda_min: real[1] in 0.001 .. 0.1, lambda_max: real[1] in 1 .. 10, sigma_min: real[1] in 1e-5 .. 1e-3, \
+                 gyro_min: real[1] in 0.01 .. 0.5, margin: real[1] in 0.1 .. 1, \
+                 ek: inout int[*] in 0 .. 32, eo: inout int[*] in -1 .. 14, ep: inout int[*] in -1 .. 6, ea: inout real[1][*] in 0 .. 10, \
+                 eb: inout real[1][*] in 0 .. 10, ec: inout real[1][*] in 0 .. 10, ef: inout int[*] in 0 .. 1, \
+                 o_lost: inout int[*] in 0 .. 1, o_feas: inout int[*] in 0 .. 1) -> n: int
+    let d_k_tau, d_lambda, d_heads, d_sigma, d_grade, b0, b1, b2, b3, b4, b5, b6, b7, b8, b9 = sizing_knobs()
+    let improve = 1.0 - improvement
+    let cap = min(no, len(vstart) - 1)
+    n = 0
+    let changes = 0
+    let k_gyro = if has_gyro then gyro else d_grade
+    let k_sigma = if has_sigma then sigma else d_sigma
+    let k_lambda = if has_lambda then lambda else d_lambda
+    let k_heads = if has_heads then heads else real(d_heads)
+    let k_st = star_tracker
+    let k0g = if k0_has_gyro then k0_gyro else d_grade
+    let k0s = if k0_has_sigma then k0_sigma else d_sigma
+    let k0l = if k0_has_lambda then k0_lambda else d_lambda
+    let sc: real[1][7] = 0
+    for p in 0 .. 7
+        sc[p] = 1.0
+        if p < len(has_scale) and p < len(scale) and has_scale[p] == 1
+            sc[p] = scale[p]
+        end
+    end
+    let closed_g = closed_gyro
+    let lup = lam_up
+    let ldown = lam_down
+    let frz = frozen
+    let tried_dn = tried_down
+    let nv = 0
+    if cap >= 0 and cap < len(vstart)
+        nv = vstart[cap]
+    end
+    for i in 0 .. min(cap, len(o_lost))
+        o_lost[i] = 0
+    end
+    for i in 0 .. min(cap, len(o_feas))
+        o_feas[i] = 0
+    end
+    # the gyro move made last time, judged by the rate-stability violation
+    if lg_has
+        let vn = loop_rate_violation(vval, vrate, nv)
+        if vn > improve*lg_vb
+            k_gyro = lg_g0
+            closed_g = true
+            n = loop_event(ek, eo, ep, ea, eb, ec, ef, n, LoopEvent.gyro_back, -1, -1, lg_g0, lg_vb, vn, 0)
+            changes = changes + 1
+        end
+    end
+    # each authority moved up last time, judged by its options' performance violation
+    for u in 0 .. min(nlu, len(lu_part))
+        let part = lu_part[u]
+        let before: real[1] = 0.0
+        let now: real[1] = 0.0
+        let pv: real[1] = 0.0
+        for j in 0 .. min(np, len(p_vstart) - 1)
+            if loop_part(p_act[j]) == part and p_feas[j] == 0
+                pv = loop_option_violation(p_vval, p_vperf, p_vstart[j], p_vstart[j + 1], true)
+                before = before + pv
+                let c = p_cur[j]
+                if c >= 0 and c < cap
+                    pv = loop_option_violation(vval, vperf, vstart[c], vstart[c + 1], true)
+                end
+                now = now + pv
+            end
+        end
+        if before > 0.0 and now > improve*before
+            if part >= 0 and part < 7
+                sc[part] = lu_scale[u]
+                frz = bor(frz, shl(1, part))
+            end
+            n = loop_event(ek, eo, ep, ea, eb, ec, ef, n, LoopEvent.authority_back, -1, part, lu_scale[u], before, now, 0)
+            changes = changes + 1
+        end
+    end
+    # every option's failures, by mode and option id
+    let want: int[7] = 0
+    for jj in 0 .. cap
+        let i = order[jj]
+        if i >= 0 and i < cap
+            let pt = loop_part(act[i])
+            if feasible[i] == 1
+                if tunable[i] == 1 and has_req[i] == 1 and req[i] > 0.0 and has_obj[i] == 1 and objective[i] > margin*req[i]
+                    if in_v[i] == 0
+                        in_v[i] = 1
+                        n = loop_event(ek, eo, ep, ea, eb, ec, ef, n, LoopEvent.thin_fly, i, -1, objective[i], req[i], 0.0, 0)
+                        changes = changes + 1
+                    elif tuned[i] == 0
+                        tuned[i] = 1
+                        n = loop_event(ek, eo, ep, ea, eb, ec, ef, n, LoopEvent.thin_tune, i, -1, objective[i], req[i], 0.0, 0)
+                        changes = changes + 1
+                    end
+                end
+            else
+                if f_perf[i] == 1
+                    if has_slot[i] == 1 and in_v[i] == 0
+                        in_v[i] = 1
+                        n = loop_event(ek, eo, ep, ea, eb, ec, ef, n, LoopEvent.fly_every, i, -1, 0.0, 0.0, 0.0, 0)
+                        changes = changes + 1
+                    elif tunable[i] == 1 and tuned[i] == 0
+                        tuned[i] = 1
+                        n = loop_event(ek, eo, ep, ea, eb, ec, ef, n, LoopEvent.tune, i, -1, 0.0, 0.0, 0.0, 0)
+                        changes = changes + 1
+                    elif f_power[i] == 1
+                        n = loop_event(ek, eo, ep, ea, eb, ec, ef, n, LoopEvent.perf_and_power, i, -1, 0.0, 0.0, 0.0, 0)
+                    elif fine and f_rate[i] == 1 and k_gyro > gyro_min*1.01 and not closed_g
+                        if k_gyro == k0g
+                            let g0 = k_gyro
+                            k_gyro = max(gyro_min, loop_round3(g0*0.3))
+                            let rv = loop_rate_violation(vval, vrate, nv)
+                            n = loop_event(ek, eo, ep, ea, eb, ec, ef, n, LoopEvent.gyro_down, i, -1, g0, k_gyro, rv, 0)
+                            changes = changes + 1
+                        end
+                    elif act[i] == int(Actuator.fmr) and k_sigma > sigma_min*1.01
+                        let sg = k_sigma
+                        if sg == k0s
+                            k_sigma = max(sigma_min, sg/4.0)
+                            n = loop_event(ek, eo, ep, ea, eb, ec, ef, n, LoopEvent.flow_sensor, i, -1, sg, k_sigma, 0.0, 0)
+                            changes = changes + 1
+                        end
+                    elif pt >= 0 and pt < 7
+                        if want[pt] == 0
+                            want[pt] = 1
+                        end
+                    end
+                end
+                if f_know[i] == 1
+                    if (not fine) and (not k_st)
+                        k_st = true
+                        n = loop_event(ek, eo, ep, ea, eb, ec, ef, n, LoopEvent.star_tracker, i, -1, 0.0, 0.0, 0.0, 0)
+                        changes = changes + 1
+                    else
+                        n = loop_event(ek, eo, ep, ea, eb, ec, ef, n, LoopEvent.knowledge_blocked, i, -1, 0.0, 0.0, 0.0, 0)
+                    end
+                end
+                if f_power[i] == 1
+                    let lam = k_lambda
+                    let fmr = act[i] == int(Actuator.fmr)
+                    if fmr and k_lambda != k0l
+                        lam = k_lambda
+                    elif fmr and dump_rcs[i] == 1
+                        n = loop_event(ek, eo, ep, ea, eb, ec, ef, n, LoopEvent.rcs_power, i, -1, 0.0, 0.0, 0.0, 0)
+                    elif fmr and lam < lambda_max and not ldown
+                        k_lambda = min(lambda_max, lam*3.0)
+                        lup = true
+                        n = loop_event(ek, eo, ep, ea, eb, ec, ef, n, LoopEvent.lambda_up, i, -1, lam, k_lambda, 0.0, 0)
+                        changes = changes + 1
+                    elif fmr
+                        n = loop_event(ek, eo, ep, ea, eb, ec, ef, n, LoopEvent.lambda_blocked, i, -1, lam, 0.0, 0.0, if ldown then 1 else 0)
+                    elif f_perf[i] == 0 and pt == int(Part.mtqp)
+                        if want[pt] == 0
+                            want[pt] = 2
+                        end
+                    elif f_perf[i] == 0
+                        n = loop_event(ek, eo, ep, ea, eb, ec, ef, n, LoopEvent.power_floor, i, pt, 0.0, 0.0, 0.0, 0)
+                    end
+                end
+                if f_prop[i] == 1
+                    want[int(Part.rcs)] = 1
+                end
+            end
+        end
+    end
+    # the mass move made last time, judged by what it broke
+    let closed_h = closed_heads
+    let closed_l = closed_lambda
+    let closed_f = closed_scale_fmr
+    if lm_has
+        let lost = 0
+        for i in 0 .. min(cap, len(o_lost))
+            if lm_before[i] == 1 and lm_use[i] == 1 and feasible[i] == 0
+                o_lost[i] = 1
+                lost = lost + 1
+            end
+        end
+        let v_now = loop_family_violation(mode_ix, feasible, lm_use, 0, vstart, vval, vperf, cap, nm)
+        let worse = v_now > (2.0 - improve)*lm_vb + 1e-9
+        if lost > 0 or worse
+            if lm_key == MassLever.gyro_grade
+                closed_g = true
+                k_gyro = lm_old
+            elif lm_key == MassLever.st_heads
+                closed_h = true
+                k_heads = lm_old
+            elif lm_key == MassLever.fmr_lambda
+                closed_l = true
+                k_lambda = lm_old
+            else
+                closed_f = true
+                sc[int(Part.fmr)] = lm_old
+            end
+            n = loop_event(ek, eo, ep, ea, eb, ec, ef, n, LoopEvent.mass_undo, -1, -1, lm_vb, v_now, 0.0, if worse then 1 else 0)
+            changes = changes + 1
+        end
+    end
+    # a mass lever for the closest solution family, when nothing else changes
+    if has_sel and changes == 0 and nf > 0
+        let f = 0
+        for g in 1 .. min(nf, len(fam_gaps))
+            if fam_gaps[g] < fam_gaps[f] or (fam_gaps[g] == fam_gaps[f] and fam_simplicity[g] < fam_simplicity[f])
+                f = g
+            end
+        end
+        if fam_mass[f] == 1
+            for i in 0 .. min(cap, len(o_feas))
+                if band(shr(fam_use[i], f), 1) == 1 and feasible[i] == 1
+                    o_feas[i] = 1
+                end
+            end
+            let vb = loop_family_violation(mode_ix, feasible, fam_use, f, vstart, vval, vperf, cap, nm)
+            if fine and k_gyro < 0.999 and not closed_g
+                let g0 = k_gyro
+                k_gyro = min(1.0, loop_round3(g0*3.0))
+                n = loop_event(ek, eo, ep, ea, eb, ec, ef, n, LoopEvent.mass_gyro, -1, f, g0, k_gyro, vb, 0)
+            elif fine and k_heads == 2.0 and not st2 and not closed_h
+                k_heads = 1.0
+                n = loop_event(ek, eo, ep, ea, eb, ec, ef, n, LoopEvent.mass_heads, -1, f, 2.0, 1.0, vb, 0)
+            elif fam_fmr[f] == 1 and fam_power[f] == 0 and k_lambda > lambda_min and not lup and not closed_l
+                let lam = k_lambda
+                k_lambda = max(lambda_min, lam/3.0)
+                ldown = true
+                n = loop_event(ek, eo, ep, ea, eb, ec, ef, n, LoopEvent.mass_lambda, -1, f, lam, k_lambda, vb, 0)
+            elif fam_fmr[f] == 1 and not closed_f and sc[int(Part.fmr)] > scale_min
+                let s0 = sc[int(Part.fmr)]
+                sc[int(Part.fmr)] = max(scale_min, s0*down)
+                tried_dn = bor(tried_dn, shl(1, int(Part.fmr)))
+                n = loop_event(ek, eo, ep, ea, eb, ec, ef, n, LoopEvent.mass_fmr, -1, f, s0, sc[int(Part.fmr)], vb, 0)
+            else
+                n = loop_event(ek, eo, ep, ea, eb, ec, ef, n, LoopEvent.mass_none, -1, f, 0.0, 0.0, vb, 0)
+            end
+        end
+    end
+    # the authority each part is asked for, in the parts' order
+    for p in 0 .. 7
+        if want[p] != 0
+            let s = sc[p]
+            if band(shr(frz, p), 1) == 1
+                n = loop_event(ek, eo, ep, ea, eb, ec, ef, n, LoopEvent.frozen, -1, p, s, 0.0, 0.0, 0)
+            elif want[p] == 1 and s >= scale_max
+                n = loop_event(ek, eo, ep, ea, eb, ec, ef, n, LoopEvent.bound_up, -1, p, s, 0.0, 0.0, 0)
+            elif want[p] == 1 and band(shr(tried_dn, p), 1) == 1
+                n = loop_event(ek, eo, ep, ea, eb, ec, ef, n, LoopEvent.conflict_up, -1, p, s, 0.0, 0.0, 0)
+            elif want[p] == 2 and s <= scale_min
+                n = loop_event(ek, eo, ep, ea, eb, ec, ef, n, LoopEvent.bound_down, -1, p, s, 0.0, 0.0, 0)
+            elif want[p] == 2 and band(shr(tried_up, p), 1) == 1
+                n = loop_event(ek, eo, ep, ea, eb, ec, ef, n, LoopEvent.conflict_down, -1, p, s, 0.0, 0.0, 0)
+            elif want[p] == 1
+                sc[p] = min(scale_max, s*up)
+                n = loop_event(ek, eo, ep, ea, eb, ec, ef, n, LoopEvent.authority, -1, p, s, sc[p], 0.0, 1)
+            else
+                sc[p] = max(scale_min, s*down)
+                n = loop_event(ek, eo, ep, ea, eb, ec, ef, n, LoopEvent.authority, -1, p, s, sc[p], 0.0, 0)
+            end
+        end
+    end
+end
+
+## The Monte Carlo's feedback (pipeline_verify's node_robust): the selected family's lever for each class of failure in
+## the dispersed runs (power, performance, knowledge, in that order), the lever against it closed. The family (fmr: it
+## carries the fluid loop; coils_only: it is the coils-only family, whose lever is the pointing-grade coil), its class,
+## the knobs (has_*: set; else the sizing's default) and the registry's bounds and step; the events.
+## length: 8
+fn loop_robust(f_power: bool, f_perf: bool, f_know: bool, fmr: bool, coils_only: bool, fine: bool, \
+               has_lambda: bool, lambda: real[1] in 0.005 .. 4, has_fmr_scale: bool, fmr_scale: real[1] in 0.5 .. 4, \
+               has_mtqp_scale: bool, mtqp_scale: real[1] in 0.5 .. 4, star_tracker: bool, lambda_max: real[1] in 1 .. 10, \
+               scale_max: real[1] in 1 .. 8, up: real[1] in 1 .. 2, \
+               ek: inout int[*] in 0 .. 32, eo: inout int[*] in -1 .. 7, ep: inout int[*] in -1 .. 6, ea: inout real[1][*] in 0 .. 10, \
+               eb: inout real[1][*] in 0 .. 10, ec: inout real[1][*] in 0 .. 10, ef: inout int[*] in 0 .. 1) -> n: int
+    let d_k_tau, d_lambda, d_heads, d_sigma, d_grade, b0, b1, b2, b3, b4, b5, b6, b7, b8, b9 = sizing_knobs()
+    n = 0
+    if f_power
+        let lam = if has_lambda then lambda else d_lambda
+        if fmr and lam < lambda_max
+            n = loop_event(ek, eo, ep, ea, eb, ec, ef, n, LoopEvent.robust_lambda, -1, -1, lam, min(lambda_max, lam*3.0), 0.0, 0)
+        else
+            n = loop_event(ek, eo, ep, ea, eb, ec, ef, n, LoopEvent.robust_power, -1, -1, 0.0, 0.0, 0.0, 0)
+        end
+    end
+    if f_perf
+        let part = -1
+        let s0: real[1] = 1.0
+        if fmr
+            part = int(Part.fmr)
+            if has_fmr_scale
+                s0 = fmr_scale
+            end
+        elif coils_only
+            part = int(Part.mtqp)
+            if has_mtqp_scale
+                s0 = mtqp_scale
+            end
+        end
+        if part >= 0 and s0 < scale_max
+            n = loop_event(ek, eo, ep, ea, eb, ec, ef, n, LoopEvent.robust_authority, -1, part, s0, min(scale_max, s0*up), 0.0, 0)
+        else
+            n = loop_event(ek, eo, ep, ea, eb, ec, ef, n, LoopEvent.robust_performance, -1, part, 0.0, 0.0, 0.0, 0)
+        end
+    end
+    if f_know
+        if (not star_tracker) and (not fine)
+            n = loop_event(ek, eo, ep, ea, eb, ec, ef, n, LoopEvent.robust_star_tracker, -1, -1, 0.0, 0.0, 0.0, 0)
+        else
+            n = loop_event(ek, eo, ep, ea, eb, ec, ef, n, LoopEvent.robust_knowledge, -1, -1, 0.0, 0.0, 0.0, 0)
+        end
+    end
+end
+
+## The fault campaign's lever (pipeline_design's node_redundancy): a family that carries fluid rings (fmr), loses a
+## requirement to a single ring's failure (ring_gap) and has no spare yet fits the spare ring, once.
+fn loop_redundancy(fmr: bool, ring_gap: bool, spare: bool) -> fit: bool
+    fit = fmr and ring_gap and not spare
+end

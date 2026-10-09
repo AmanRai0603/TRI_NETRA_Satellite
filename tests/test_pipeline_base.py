@@ -8,6 +8,8 @@ import unittest
 
 import _path  # puts tools/ on the import path
 import pipeline_base as B
+import pipeline_design as D
+from design_call import Buf, call
 
 _ = _path  # imported for its effect: tools/ on sys.path
 
@@ -63,12 +65,15 @@ class Candidates(unittest.TestCase):
 
 class Parts(unittest.TestCase):
     def test_each_actuator_is_given_authority_by_its_sized_part(self):
+        """design_loop_converge's method (design/looprules.pc, S7.15), through the engine: the coils' pointing-grade coil,
+        else the actuator's own part."""
         for a, part in (("mtq", "mtqp"), ("rw", "rw"), ("cmg", "cmg"), ("vscmg", "vscmg"), ("fmr", "fmr"), ("rcs", "rcs")):
-            self.assertEqual(B.auth_part("nadir_pointing", {"actuator": a, "dump": "mtq"}), part)
+            p = call("looprules::loop_part", D.ACTUATORS.index(a))[0]
+            self.assertEqual(D.PARTS[int(p)], part)
 
     def test_an_unknown_actuator_is_refused(self):
-        with self.assertRaises(KeyError):
-            B.auth_part("nadir_pointing", {"actuator": "sail"})
+        with self.assertRaises(ValueError):
+            D.ACTUATORS.index("sail")
 
     def test_the_failure_class_comes_from_the_metric_name(self):
         self.assertEqual([B.cls(m) for m in ("power_mean", "power_peak", "ake_los_p9973", "propellant", "ape_los_p9973", "rate_stability_p9973",
@@ -120,21 +125,20 @@ class Files(unittest.TestCase):
 
 
 class Violations(unittest.TestCase):
+    """The loop's violation sums are design_loop_converge's (design/looprules.pc, S7.15), asked through the engine."""
+
     def test_rate_violation_sums_only_rate_stability_each_capped_at_ten(self):
-        res = {("a", "x"): {"violation": {"rate_stability_p9973": 0.5, "ape_los_p9973": 3.0}},
-               ("b", "y"): {"violation": {"rate_stability_p9973": 40.0}},
-               ("c", "z"): {}}
-        self.assertEqual(B.rate_violation(res), 10.5)
-        self.assertEqual(B.rate_violation({}), 0.0)
+        # the options' violations in order: rate_stability_p9973 0.5, ape_los_p9973 3.0; rate_stability_p9973 40.0
+        vval, vrate = [0.5, 3.0, 40.0], [1, 0, 1]
+        self.assertEqual(call("looprules::loop_rate_violation", Buf(vval), Buf(vrate), 3)[0], 10.5)
+        self.assertEqual(call("looprules::loop_rate_violation", Buf([0.0]), Buf([0]), 0)[0], 0.0)
 
     def test_family_violation_is_the_best_option_per_mode_and_zero_for_a_passing_mode(self):
-        modes = [{"id": "m1"}, {"id": "m2"}, {"id": "m3"}]
-        fam = {("m1", "a"): {"feasible": False, "violation": {"p": 2.0, "q": 1.0}},
-               ("m1", "b"): {"feasible": False, "violation": {"p": 0.5}},
-               ("m2", "a"): {"feasible": True, "violation": {"p": 9.0}},
-               ("m2", "b"): {"feasible": False, "violation": {"p": 1.0}}}
-        self.assertEqual(B.fam_violation(fam, modes), 0.5, "m1 best is 0.5, m2 passes, m3 has no option")
-        self.assertEqual(B.fam_violation({}, modes), 0.0)
+        # modes m1, m2, m3; options (m1 a) {p 2, q 1}, (m1 b) {p 0.5}, (m2 a) feasible {p 9}, (m2 b) {p 1}
+        mode_ix, feas, use, vstart, vval = [0, 0, 1, 1, 0], [0, 0, 1, 0, 0], [1, 1, 1, 1, 0], [0, 2, 3, 4, 5], [2.0, 1.0, 0.5, 9.0, 1.0]
+        fv = lambda n: call("looprules::loop_family_violation", Buf(mode_ix), Buf(feas), Buf(use), 0, Buf(vstart), Buf(vval), Buf([0] * 5), n, 3)[0]
+        self.assertEqual(fv(4), 0.5, "m1 best is 0.5, m2 passes, m3 has no option")
+        self.assertEqual(fv(0), 0.0)
 
 
 if __name__ == "__main__":
