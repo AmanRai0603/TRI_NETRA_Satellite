@@ -55,6 +55,10 @@ def code_of(c):
         return "engine/crates/adcs-cli/"
     if t == "adcs-sim":
         return "engine/crates/adcs-sim/"
+    if t == "tndb":
+        return "engine/crates/trinetra-design/ (src/bin/tndb.rs, src/twin.rs)"
+    if t == "+trinetra":
+        return f"matlab_sils/+trinetra/{c['name']}.m"
     return f"tools/{t}"
 
 
@@ -88,7 +92,7 @@ def document():
          "> as what would happen and runs nothing (`--dry-run` on `engine.py` and `pipeline.py` too).", "",
          "| command | what it does |", "|---|---|"]
     for c in cs:
-        L.append(f"| [`{c['tool']} {c['name']}`](#{(c['tool'] + '-' + c['name']).replace('.', '').replace(' ', '-').lower()}) | {c['what']} |")
+        L.append(f"| [`{c['tool']} {c['name']}`](#{(c['tool'] + '-' + c['name']).replace('.', '').replace('+', '').replace(' ', '-').lower()}) | {c['what']} |")
     for c in cs:
         L += ["", f"## {c['tool']} {c['name']}", "", c["what"], "", f"    {c['usage']}", "", "**Steps**", ""]
         L += [f"{i}. {s}" for i, s in enumerate(c["steps"], 1)]

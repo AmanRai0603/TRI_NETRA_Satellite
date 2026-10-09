@@ -9,7 +9,9 @@ function P = config(scenarioId, caseFile, opts)
 %   (asils.product.load); the design's stated values where the case and the scenario state none (data/stated.json:
 %   dyn's, env's, vv's); the set-up's rules, generated from the design (+asils/+models: caseorbit's mission_epoch,
 %   case_mean_motion, dispersed_period and shifted_epoch, truthplant's principal_inertia, residual_dipole_axes,
-%   scale_inertia, inertia_products and flexible_mode, cmoffset's cm_offset, facets_box).
+%   scale_inertia, inertia_products and flexible_mode, cmoffset's cm_offset, facets_box). With a design database in
+%   use (asils.util.design: trinetra.run), the case, the scenario, the product, its parts and the stated values are the
+%   design's inputs, and the engine builds the blob from the same design (TRINETRA_DESIGN).
 %
 %   The flight software's parameters are the blob the engine builds for the same scenario, case and overrides
 %   (`adcs params`, the engine's Config::build and its checks: a configuration the engine refuses is refused here, with
@@ -22,7 +24,7 @@ function P = config(scenarioId, caseFile, opts)
 %   Owner: Agastya. Copyright (c) 2026 Agastya. All rights reserved.
     if nargin < 3, opts = struct(); end
     R = asils.util.root();
-    if ~exist(caseFile, 'file'), caseFile = fullfile(R, caseFile); end
+    if ~asils.util.hasinput(caseFile), caseFile = fullfile(R, caseFile); end
     if isstruct(scenarioId), S = scenarioId; sfile = ''; else, S = asils.scenario.load(scenarioId); sfile = scenarioId; end
     [sc_set, eng_set, P.hal] = asils.util.overrides(asils.util.getf(opts, 'set', struct()));
     for i = 1:size(sc_set, 1), S = asils.util.set_override(S, sc_set{i, 1}, sc_set{i, 2}); end
@@ -144,7 +146,10 @@ function b = blob_(R, S, sfile, caseFile, ov)
     end
     args = sprintf(' --set %s', strjoin(cellfun(@(k, x) shellq_([k '=' setval_(x)]), ov(:, 1)', ov(:, 2)', 'UniformOutput', false), ' --set '));
     if isempty(ov), args = ''; end
-    cmd = sprintf('ADCS_ROOT=%s %s params %s --case %s --out %s%s 2>&1', shellq_(R), shellq_(exe), shellq_(sfile), shellq_(caseFile), shellq_(out), args);
+    % with a design database in use (asils.util.design), the engine reads the same inputs from the same design
+    D = asils.util.design(); env = '';
+    if ~isempty(D), env = sprintf('TRINETRA_DESIGN=%s ', shellq_(D.file)); end
+    cmd = sprintf('%sADCS_ROOT=%s %s params %s --case %s --out %s%s 2>&1', env, shellq_(R), shellq_(exe), shellq_(sfile), shellq_(caseFile), shellq_(out), args);
     [rc, txt] = system(cmd);
     if rc ~= 0
         error('asils:config:refused', 'the engine refuses this configuration (adcs params): %s', strtrim(txt));

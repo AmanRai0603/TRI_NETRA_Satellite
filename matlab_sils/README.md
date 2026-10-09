@@ -36,6 +36,46 @@ addpath tools; run_campaign('mc_slew_img')                 % a Monte Carlo
 addpath tests; run_all_tests                               % the test suite
 ```
 
+## Open a design and fly it (`+trinetra`)
+
+The twin opens a design database (`.tndb`) itself, through the library's own command (`tndb`, bundled with the
+application: JSON over `system()`, no toolbox, MATLAB and GNU Octave ≥ 8), generates every function it flies from it,
+and files each run beside your copy of the design. No Python at run time.
+
+```matlab
+startup_asils                                         % once per session
+tn = trinetra.open('work/design.tndb')                % shows the design's health
+trinetra.build(tn)                                    % work/generated/: every generated function, read-only, on the path
+rec = trinetra.run(tn, 'detumble_ais')                % work/results/detumble_ais/: channels, manifest, rec.mat, figures, report
+res = trinetra.campaign(tn, 'mc_nadir_ais')           % work/results/mc_nadir_ais/
+trinetra.which('aero_torque')                         % the node (and its release and revision) a function came from
+```
+
+- **`trinetra.open(file)`** reads the design (`tndb health`, `tndb read`): its version and toolbox, its nodes by
+  behaviour and the built-in count, its groups' releases and signatures, its inputs (each held to its fingerprint),
+  and whether its generated code is built and is this design's. `tn.inputs` holds the twin's inputs by path
+  (`data/...`, `cases/<id>.csv`): the bytes `tools/from_design.py` exports to `data/` and `cases/` here.
+- **`trinetra.build(tn)`** runs `tndb build-matlab`: the design's models (`+asils/+models`), relations
+  (`+asils/+relations`, with the groups' wiring `design/groups` when the twin sits in the repository), flight
+  algorithms (`+asils/+alg`) and the language's runtime (`+asils/+pc`), byte for byte what `tools/engine_build.py`
+  and `tools/flight_build.py` write here, into `generated/` beside the design, read-only, with `generated/index.json`
+  naming each file's node, release and revision (`trinetra.which`). It goes on the path ahead of this folder's copies.
+- **`trinetra.run(tn, scenario, ...)`** and **`trinetra.campaign(tn, id, ...)`** fly the runner here (`asils.run`,
+  `asils.campaign.run`) on the design's inputs and generated code (`trinetra.use`): the case, scenario, product, parts,
+  algorithms, catalogue and stated values are the design's (`asils.util.design`), never `data/`'s, and the engine
+  builds the flight software's blob from the same design (`TRINETRA_DESIGN=… adcs params`). The run is filed in
+  `results/<scenario>/` (its manifest names the design), with its figures and report drawn by the engine's plotting
+  (`adcs figures`, `adcs report`). Options as `asils.run` (`'seed'`, `'set'`, `'quiet'`, `'checkpoint'`) and
+  `'case'`, `'save'`, `'figures'`, `'report'`, `'out'`.
+- **`c = trinetra.use(tn)`** makes any of the twin's own functions run on the design until `clear c`
+  (`asils.config`, `asils.sizing.size_all`, ...).
+- The programs are found as `$TNDB_BIN` / `$ADCS_BIN`, else `bin/` here (an install's), else the repository's
+  `engine/target/release/` (`cargo build --release -p trinetra-design -p adcs-cli` in `engine/`).
+
+Until the switch, the committed path stays as it was: `asils.run('nadir_hold_ais', 'cases/ais_3u.csv')` flies the
+copies committed here (`data/`, `cases/`, `+asils/+models`, `+relations`, `+alg`, `+pc`). The two give the same run bit
+for bit on the regression copy (`tests/test_trinetra_open.m`, in the suite).
+
 ## Your input is a case CSV
 
 `cases/ais_3u.csv` and `cases/ais_img_3u.csv` (format `adcs-case/1`, every key
@@ -145,7 +185,8 @@ Helmholtz-cage field, Sun-simulator direction and air-bearing rate for a HILS re
 | `+asils/` | the SILS: generated `+models` (the design's models), `+relations`, `+alg` (the flight software's algorithms), `+pc` (the language's runtime); by hand `+orbit` (in-loop POP), `+env`, `+plant`, `+devices` (the units' states, stepped through `+models`), `+fsw` (the tick, the blob), `+hal`, `+faults`, `+metrics`, `+sizing`, `+solution`, `+campaign`, `+trade`, `+rec`, `+viz`, `+result`, `run.m`, `config.m` |
 | `pop/` | Precision Orbit Propagator v51 (vendored) |
 | `cases/`, `data/` | the case CSVs; exported parts, products, algorithms, modes, families, components, scenarios, campaigns, trades (JSON) |
-| `examples/`, `tests/`, `tools/` | worked examples, the test suite (43 tests), batch drivers |
+| `+trinetra/` | open a design database, build its code, fly it (`open`, `build`, `run`, `campaign`, `which`, `use`, `health`) |
+| `examples/`, `tests/`, `tools/` | worked examples, the test suite (44 tests), batch drivers |
 | `store/` | your results, filed per scenario |
 
 Architecture, node by node: `../docs/ARCHITECTURE_PLAN.md`. Results: `../docs/RESULTS.md`. Selection: `../docs/SELECTION.md`. Solutions: `../docs/SOLUTION_PIPELINE.md`, `../docs/SOLUTIONS.md`.

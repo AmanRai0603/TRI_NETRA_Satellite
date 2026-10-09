@@ -13,7 +13,7 @@ function p = rotor(Dm, k, which)
     s = asils.sizing.scale_(k, which);
     [h_need, tau_need, units] = asils.models.sizerotor.rotor_need(u, Dm.h_req, Dm.tau_req, s);
     d = fullfile(asils.util.root(), 'data', 'catalogue');
-    L = dir(fullfile(d, '*')); L = L(~[L.isdir]);
+    L = asils.util.listinputs(d, '*');
     names = sort({L.name});           % the engine's order: the file names, byte by byte
     assert(~isempty(names), 'asils:sizing:refused', 'catalogue: %s holds no model', d);
     cands = {};

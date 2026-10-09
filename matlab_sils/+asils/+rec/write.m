@@ -61,7 +61,7 @@ function dir_out = write(rec, dir_out)
     % what it was flown from, so `adcs results stale` can judge it (asils.util.fingerprint)
     R = asils.util.root();
     cf = rec.P.case.file;
-    if ~exist(cf, 'file'), cf = fullfile(R, cf); end
+    if ~asils.util.hasinput(cf), cf = fullfile(R, cf); end
     rel = strrep(cf, '\', '/');
     rr = [strrep(R, '\', '/') '/'];
     if strncmp(rel, rr, numel(rr)), rel = rel(numel(rr)+1:end); end
@@ -72,6 +72,15 @@ function dir_out = write(rec, dir_out)
     end
     man.inputs = struct('case_file', rel, 'case_fingerprint', asils.util.fingerprint('file', cf), ...
                         'data_fingerprint', asils.util.fingerprint('data'), 'seed', rec.P.seed, 'overrides', {ov});
+    % flown from a design database (trinetra.run): which one, as the engine names it in its runs (its inputs' fingerprint,
+    % released version, toolbox and file name), and the generated code the twin flew
+    D = asils.util.design();
+    if ~isempty(D)
+        [~, n, e] = fileparts(D.file);
+        man.inputs.design = struct('fingerprint', asils.util.getf(D, 'inputs_fingerprint', ''), ...
+            'version', asils.util.getf(D, 'design_version', []), 'toolbox', asils.util.getf(D, 'toolbox', ''), 'file', [n e], ...
+            'content_fingerprint', asils.util.getf(D, 'fingerprint', ''), 'generated', asils.util.getf(D, 'generated', ''));
+    end
     fid = fopen(fullfile(dir_out, 'manifest.json'), 'w');
     fprintf(fid, '%s\n', jsonencode(man));
     fclose(fid);

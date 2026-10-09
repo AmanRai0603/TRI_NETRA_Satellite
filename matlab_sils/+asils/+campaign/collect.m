@@ -20,8 +20,10 @@ function res = collect(campaignId, out)
     for m = 1:numel(M0)
         vals = cellfun(@(r) r.metrics(m).value, res.runs);
         lvl = 95;
-        if ~isempty(M0(m).req_key)
-            L = caseV.level.(strrep(M0(m).req_key, '.', '_'));
+        % the case's level for a case requirement; a scenario's own limit (req_key 'scenario') has none
+        k = strrep(M0(m).req_key, '.', '_');
+        if ~isempty(k) && isfield(caseV, 'level') && isfield(caseV.level, k)
+            L = caseV.level.(k);
             if isfinite(L), lvl = L; end
         end
         v = sort(vals(isfinite(vals)));

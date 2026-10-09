@@ -7,7 +7,7 @@ function T = run_trade(ids)
 %   Copyright (c) 2026 Agastya. All rights reserved.
     R = asils.util.root();
     if nargin < 1 || isempty(ids)
-        d = dir(fullfile(R, 'data', 'trades', '*.json'));
+        d = asils.util.listinputs(fullfile(R, 'data', 'trades'), '*.json');
         ids = cellfun(@(n) n(1:end-5), {d.name}, 'UniformOutput', false);
     end
     if ischar(ids), ids = {ids}; end
