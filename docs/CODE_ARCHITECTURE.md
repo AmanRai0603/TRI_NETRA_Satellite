@@ -28,7 +28,13 @@ appear only:
 - in the toolbox, when it is a kind of maths and not a use of it;
 - in a test fixture or the regression copy of a released design.
 
-Anywhere else it is a defect, found by the boundary check (S7, `tools/check_all.py`).
+Anywhere else it is a defect, found by the boundary check (S7.19, `tools/boundary.py`, the `boundary` step of
+`tools/check_all.py`). Every source file of the code is either generated (its folder in `tools/boundary.toml`
+`[[generated]]`, and it says so) or classified there by what part of the code it is (toolbox, reader, core, runtime,
+rig, translator, library, application, cli, tools, test, vendored), with no class for a relation or a published model.
+Every classified file but a test is searched for published constants, the shapes of a gravity or drag law and
+coefficient tables; a find passes only by an allowance with its reason, and a relation still in code is a declared
+exception, with what removes it, printed on every run (`tests/test_boundary.py` plants relations and finds them).
 
 | design (database) | code (repository) |
 |---|---|

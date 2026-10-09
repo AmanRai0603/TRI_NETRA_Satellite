@@ -524,6 +524,18 @@ checks = "tests/test_design_build.py: every group as bad as its worst node and t
 undo = "It writes generated files only: `git checkout -- results/HEALTH.md results/health.json`."
 
 [[command]]
+tool = "boundary.py"
+name = "boundary"
+usage = "python3 tools/boundary.py [--list] [--root DIR] [--registry FILE]"
+what = "The database/code boundary (docs/PLAN_2_0.md S7 done-when, docs/CODE_ARCHITECTURE.md §1): every source file of the code is either generated from the design (and says so) or classified in tools/boundary.toml as toolbox, reader, core, runtime, rig, translator, library, application, cli, tools, test or vendored, with no class for a relation or a published model; every classified file but a test is searched for the marks of a relation or a published model (published constants, the shapes of a gravity or drag law, a coefficient table), and a find passes only by an allowance with its reason. A relation still in code is a declared exception with what removes it, printed on every run."
+steps = ["walk the code's folders (tools/boundary.toml scope) for source files", "hold every file of a generated folder to its generated header", "classify every other file by the first matching part; refuse an unclassified file and a class for design", "search every classified file but a test for the marks of a relation or a published model (a Rust file up to its #[cfg(test)])", "pass a find only by an allowance; refuse a stale part or allowance", "print the counts by class and every declared exception"]
+reads = ["tools/boundary.toml", "engine/crates/", "fsw/", "fsw-rs/", "matlab_sils/", "tools/", "python/trinetra_adcs/", "design/js/"]
+writes = []
+runs = []
+checks = "tests/test_boundary.py: the repository holds the boundary; a published constant and a gravity law planted in the engine's core, a table in a tool, a hand-written file in a generated folder, an unclassified file, a class for design and a stale allowance are each found by name"
+undo = "It writes nothing."
+
+[[command]]
 tool = "parity_2_0.py"
 name = "parity-2-0"
 usage = "python3 tools/parity_2_0.py DESIGN.tndb [--quick] [--oils SCENARIO ...] [--twin SCENARIO ...] [--jobs N]"
@@ -998,8 +1010,8 @@ undo = "deliver: delete the delivery's three files from deliveries/ (and restore
 tool = "evaluate.py"
 name = "evaluate"
 usage = "python3 tools/evaluate.py DIR [CASE ...] [--out DIR] [--check]"
-what = "Every row of the design evaluated for a case, or shown as not computed and why; every KPI closure answered or blocked by name (docs/RELEASE_PLAN.md P13). A row's value is stated by the case (from design.tndb, in SI), computed by its pseudocode in the interpreter from the rows its inputs name, or supplied as evidence by the selected design's Monte Carlo; a closure compares its requirement with its evidence or its analysis row in the requirement's sense."
-steps = ["read the design (merged releases, else the node files) and the case from design.tndb", "state the case's values on the rows that declare them, in SI", "run every row's pseudocode once its inputs have values", "take each KPI's evidence from the design loop's Monte Carlo", "answer or block every closure", "write results/EVALUATION.md and evaluation.json"]
+what = "Every row of the design evaluated for a case, or shown as not computed and why; every KPI closure answered or blocked by name (docs/RELEASE_PLAN.md P13). A row's value is stated by the case (from design.tndb, in SI) or by the design (a stated block's value.number in its output's unit, or value.list), computed by its pseudocode in the interpreter (with the modules it uses) from the rows its inputs name (an element of an array, one output of a supplier's function, in the unit the function takes), or supplied as evidence by the selected design's Monte Carlo; a row computed during a run (its inputs the run's, code.run_inputs) says so; a closure compares its requirement with its evidence or its analysis row in the requirement's sense."
+steps = ["read the design (merged releases, else the node files) and the case from design.tndb", "state the case's values on the rows that declare them, in SI, then the design's own stated values", "take each KPI's evidence from the design loop's Monte Carlo", "run each method's function (code.function, else the one its id or symbol names) on the rows its inputs name, each supplier in turn", "answer or block every closure", "write results/EVALUATION.md and evaluation.json"]
 reads = ["DIR/design.tndb", "DIR/nodes/", "spec/plan/kpis.toml", "spec/plan/case_inputs.toml", "matlab_sils/store/pipeline/<case>/mc/summary.json"]
 writes = ["results/EVALUATION.md", "results/evaluation.json"]
 runs = ["node design/js/pcode_cli.mjs run"]

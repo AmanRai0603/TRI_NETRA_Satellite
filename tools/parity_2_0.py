@@ -213,9 +213,12 @@ class Gate:
         design_build.write_export(t, *self._export())
         (t / "store").mkdir()
         differ = []
+        # since S7.17 the twin flies the blob the engine builds (`adcs params`, asils.config): the copy has no engine beside
+        # it, so it is told which (ADCS_BIN, asils.util.engine), the one this gate flies
+        env = dict(os.environ, ADCS_BIN=str(ADCS))
         for sc in scenarios:
             r = subprocess.run(["octave-cli", "--no-gui", "-q", "--eval", f"startup_asils; addpath tools; run_scenarios({{'{sc}'}})"],
-                               cwd=t, capture_output=True, text=True, timeout=7200)
+                               cwd=t, capture_output=True, text=True, timeout=7200, env=env)
             got = t / "store" / "results" / sc / "manifest.json"
             want = STORE / "results" / sc / "manifest.json"
             if r.returncode or not got.is_file():

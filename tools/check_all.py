@@ -40,6 +40,8 @@ CHECKS = [
      [PY, "tools/build_wheel.py", "--selftest"], ".", []),
     ("from-design", "every file the code reads that is design (the engine's inputs and cases, the flight parameter table, the flight algorithms) is what the regression copy gives, and nothing else sits in the generated folders",
      [PY, "tools/from_design.py", "--check"], ".", []),
+    ("boundary", "no relation or published model in code outside the generated files and the toolbox: every source file generated (and saying so) or classified in tools/boundary.toml with no class for design, every classified file searched for published constants, gravity and drag laws and coefficient tables, each find allowed by its reason, every relation still in code a declared exception printed with what removes it (docs/PLAN_2_0.md S7)",
+     [PY, "tools/boundary.py"], ".", []),
     ("fsw-params", "the C and Rust parameter tables are their definition",
      [PY, "tools/gen_fsw_params.py", "--check"], ".", []),
     ("commands-doc", "docs/COMMANDS.md is the registry",

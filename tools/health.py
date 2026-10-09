@@ -185,6 +185,8 @@ def health(d, case):
         if r is None:
             continue
         if r["state"] in ("computed", "stated", "evidence") and r["si"] is not None:
+            if isinstance(r["si"], list):
+                continue                  # a vector or a matrix: its outputs' ranges are each element's, not stated per element
             for oname, (unit, lo, hi) in f["outputs"].items():
                 k = to_si(unit)
                 if r["state"] != "computed" or k is None or (lo is None and hi is None):
@@ -193,6 +195,10 @@ def health(d, case):
                     add(nid, "refused", f"{oname} = {r['si'] / k:.6g} {unit} is outside its own range [{lo}, {hi}] {unit}")
         elif r["state"] == "not computed":
             w = r["why"]
+            if w.startswith("computed during a run"):
+                # a model the engine or the flight software runs at each step: its inputs are the run's (code.run_inputs),
+                # so it has no one value to wait for; its method is there, which is all a design row can be
+                continue
             if w.startswith("needs"):
                 add(nid, "blocked", w)
             elif re.match(r"^\w+: ", w) and "interpreter" in w or w.startswith(("its pseudocode defines no function",)):

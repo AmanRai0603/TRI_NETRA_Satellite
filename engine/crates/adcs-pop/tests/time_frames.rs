@@ -191,7 +191,8 @@ fn cio_builds_without_eop_behave_like_matlab_offline() {
     for b in [Build::A, Build::B, Build::C] {
         assert_eq!(frames::try_eci2ecef([2027., 1., 1., 6., 0., 0.], b, &opt).err(), Some(frames::FrameError::NoEop));
         // buildWorld/earthRateECI falls back to [0;0;omega] when the build fails
-        assert_eq!(frames::earth_rate_eci([2027., 1., 1., 6., 0., 0.], b, &opt), [0.0, 0.0, frames::OMEGA_EARTH]);
+        assert_eq!(frames::earth_rate_eci([2027., 1., 1., 6., 0., 0.], b, &opt), [0.0, 0.0, frames::omega_earth()]);
+        assert_eq!(frames::omega_earth(), 7.2921150e-5);     // the value the hand-written constant held
     }
 }
 

@@ -48,6 +48,7 @@
 | [`convert_2_0.py convert-2-0`](#convert_2_0py-convert-2-0) | The design leaves the repository (docs/PLAN_2_0.md S3): the one conversion of the 1.0.0 design (the seeded and carried node and group files) and the repository's library data (catalogue, KPIs, units, the flight software's algorithms, parameters and IGRF table, the cases, scenarios, campaigns and trades) into the 2.0.0 layout of the shared drive: 21 group folders with their nodes and a baseline release 0.1 each, the cases, and readable copies with Conversion.csv placing every field. Writes a new folder only; the same inputs give the same bytes. |
 | [`design_build.py design-build`](#design_buildpy-design-build) | Today's design (docs/PLAN_2_0.md S4): the one database every program reads, built from every group's newest sealed release that passes its checks on the shared drive (or a converted folder). Holds the releases used, every node as released, the wires, the catalogue of outputs, the cases the engine flies line by line and every engine input file, each generated from the design's own blocks and case files; names its toolbox and the application it needs. With --export, writes the same inputs as a data folder for the MATLAB twin and the Python tools. |
 | [`health.py health`](#healthpy-health) | The health map of a design for a case (docs/OPERATING_2_0.md §6): every node's health with why (fails, refused, blocked, open, unproven, tight, closes; worst first), rolled up group by group to the ADCS; each closure's answer, its range verdict (closes for the whole range, for part of it, or fails for all of it) and its tornado from the case's edge campaigns; and trace to cause for every closure that does not close; and the built-in count, the nodes whose relation is still compiled code, by group (docs/PLAN_2_0.md S7 lowers it to zero; --built-in prints only that). Every value comes from tools/evaluate.py on the design; nothing here computes one of its own. |
+| [`boundary.py boundary`](#boundarypy-boundary) | The database/code boundary (docs/PLAN_2_0.md S7 done-when, docs/CODE_ARCHITECTURE.md §1): every source file of the code is either generated from the design (and says so) or classified in tools/boundary.toml as toolbox, reader, core, runtime, rig, translator, library, application, cli, tools, test or vendored, with no class for a relation or a published model; every classified file but a test is searched for the marks of a relation or a published model (published constants, the shapes of a gravity or drag law, a coefficient table), and a find passes only by an allowance with its reason. A relation still in code is a declared exception with what removes it, printed on every run. |
 | [`parity_2_0.py parity-2-0`](#parity_2_0py-parity-2-0) | The parity gate (docs/PLAN_2_0.md S4): today's design, read alone by the engine (an empty data folder), gives the repository's own inputs, flight parameter table, parameter blobs, stored scenario runs, stored campaign runs and evaluation; optionally soft OILS on QEMU and the MATLAB twin flown from the design's export. |
 | [`from_design.py from-design`](#from_designpy-from-design) | The design in the repository (docs/PLAN_2_0.md S4): the repository holds no design data of its own, only the regression copy (tests/regression/design.tndb). Every file the code still reads that is design is generated from it and never edited: the engine's input files and cases (matlab_sils/data, matlab_sils/cases), the flight parameter table (fsw/params/params.toml) and the flight algorithms (fsw/pseudocode/03-09). Tools read the rest of 1.0.0's plan from the design by its 1.0.0 path (from_design.text). |
 | [`drive.py drive`](#drivepy-drive) | The shared drive, Trinetra Database (docs/OPERATING_2_0.md §15, docs/PLAN_2_0.md S4): pack zip 1 (the design converted into the 2.0.0 layout: groups with their baseline releases, cases, readable copies, the empty folders with a note each, the guides, START HERE, and MANIFEST.json with every file's size, SHA-256 and MD5), and check a drive's folder, or a listing of it, against that manifest. |
@@ -87,7 +88,7 @@
 | [`groupcode.py groupcode`](#groupcodepy-groupcode) | Each group's code, wired from its nodes (docs/RELEASE_PLAN.md P10, docs/GENERATORS.md): wire puts every computing row's pseudocode into a module per group (design/groups/, with shared.pc for what several groups call alike, and a wire file naming each row's function and its own test vectors), from the merged releases or from the design as seeded and carried; deliver builds a test app per group, with the WebAssembly of the relations crate. The code itself is generated from the wiring by tools/engine_build.py gen (engine/crates/adcs-relations and +asils/+relations, folded with the design's relations, each relation once; S7.16) and tested by cargo test -p adcs-relations. |
 | [`group.py group`](#grouppy-group) | The structure of a design folder (structure/ and nodes/, as tools/seed_design.py writes it and the group app changes it), checked from Python: every node in exactly one group with its node file saying the same group, stage, label and state; every edge kept by the group of the node that reads, from a node that exists and is not archived; every author, contract and stage owner about the group's own nodes and people; no structure action left unfinished. The same rules as the group app's own check (design/js/structure.js), written a second time. verify checks every group's latest sealed release (tools/release.py) and that it is still the group's; merge takes every latest release into design.tndb with the catalogue of every output (the contract at every group boundary); impact lists who reads a node, across groups. |
 | [`delivery.py delivery`](#deliverypy-delivery) | Test, deliver, accept, ship (docs/RELEASE_PLAN.md P12, docs/DELIVERY.md): a group's sealed release delivered in its wave's order, with its generated code checked to be the release's, its tests run, its test app and a note; its lead accepts it in the group app; the shipping record says, group by group, who accepted which version, and which group ships visibly UNCONFIRMED and why. |
-| [`evaluate.py evaluate`](#evaluatepy-evaluate) | Every row of the design evaluated for a case, or shown as not computed and why; every KPI closure answered or blocked by name (docs/RELEASE_PLAN.md P13). A row's value is stated by the case (from design.tndb, in SI), computed by its pseudocode in the interpreter from the rows its inputs name, or supplied as evidence by the selected design's Monte Carlo; a closure compares its requirement with its evidence or its analysis row in the requirement's sense. |
+| [`evaluate.py evaluate`](#evaluatepy-evaluate) | Every row of the design evaluated for a case, or shown as not computed and why; every KPI closure answered or blocked by name (docs/RELEASE_PLAN.md P13). A row's value is stated by the case (from design.tndb, in SI) or by the design (a stated block's value.number in its output's unit, or value.list), computed by its pseudocode in the interpreter (with the modules it uses) from the rows its inputs name (an element of an array, one output of a supplier's function, in the unit the function takes), or supplied as evidence by the selected design's Monte Carlo; a row computed during a run (its inputs the run's, code.run_inputs) says so; a closure compares its requirement with its evidence or its analysis row in the requirement's sense. |
 | [`end_to_end.py end-to-end`](#end_to_endpy-end-to-end) | Both cases through everything from the design database (docs/RELEASE_PLAN.md P13, docs/END_TO_END.md): the design loop and the case's campaigns with every engine run reading its inputs from design.tndb alone (TRINETRA_DESIGN), every number held to the one stored before, every row and closure evaluated, the traceability. |
 | [`release_notes.py release-notes`](#release_notespy-release-notes) | The release notes' generated part (docs/RELEASE_PLAN.md P14): what ships, group by group, from the shipping record (tools/delivery.py ship), and every known gap from docs/ADCS_GAPS.md, written into docs/RELEASE_NOTES.md between its markers. |
 | [`manual.py manual`](#manualpy-manual) | The apps' manual (design/manual/: a guide per role, the journey of a node, the glossary, the guide to TRI-NETRA Files, and the tours in tours.toml) written as design/js/manual.js, which every app opens in place with Help, and the journey diagram as design/manual/journey.svg. --check says whether both are current and holds the rules: every page starts with its one line (the explanation standard), every tour target is in its app, every field, choice and set of checks in the apps has help beside it. |
@@ -931,6 +932,28 @@ The health map of a design for a case (docs/OPERATING_2_0.md §6): every node's 
 - **Undo:** It writes generated files only: `git checkout -- results/HEALTH.md results/health.json`.
 - **Code:** `tools/health.py`
 
+## boundary.py boundary
+
+The database/code boundary (docs/PLAN_2_0.md S7 done-when, docs/CODE_ARCHITECTURE.md §1): every source file of the code is either generated from the design (and says so) or classified in tools/boundary.toml as toolbox, reader, core, runtime, rig, translator, library, application, cli, tools, test or vendored, with no class for a relation or a published model; every classified file but a test is searched for the marks of a relation or a published model (published constants, the shapes of a gravity or drag law, a coefficient table), and a find passes only by an allowance with its reason. A relation still in code is a declared exception with what removes it, printed on every run.
+
+    python3 tools/boundary.py [--list] [--root DIR] [--registry FILE]
+
+**Steps**
+
+1. walk the code's folders (tools/boundary.toml scope) for source files
+2. hold every file of a generated folder to its generated header
+3. classify every other file by the first matching part; refuse an unclassified file and a class for design
+4. search every classified file but a test for the marks of a relation or a published model (a Rust file up to its #[cfg(test)])
+5. pass a find only by an allowance; refuse a stale part or allowance
+6. print the counts by class and every declared exception
+
+- **Reads:** `tools/boundary.toml`; `engine/crates/`; `fsw/`; `fsw-rs/`; `matlab_sils/`; `tools/`; `python/trinetra_adcs/`; `design/js/`
+- **Writes:** nothing
+- **Starts:** nothing
+- **Checks:** tests/test_boundary.py: the repository holds the boundary; a published constant and a gravity law planted in the engine's core, a table in a tool, a hand-written file in a generated folder, an unclassified file, a class for design and a stale allowance are each found by name
+- **Undo:** It writes nothing.
+- **Code:** `tools/boundary.py`
+
 ## parity_2_0.py parity-2-0
 
 The parity gate (docs/PLAN_2_0.md S4): today's design, read alone by the engine (an empty data folder), gives the repository's own inputs, flight parameter table, parameter blobs, stored scenario runs, stored campaign runs and evaluation; optionally soft OILS on QEMU and the MATLAB twin flown from the design's export.
@@ -1694,16 +1717,16 @@ Test, deliver, accept, ship (docs/RELEASE_PLAN.md P12, docs/DELIVERY.md): a grou
 
 ## evaluate.py evaluate
 
-Every row of the design evaluated for a case, or shown as not computed and why; every KPI closure answered or blocked by name (docs/RELEASE_PLAN.md P13). A row's value is stated by the case (from design.tndb, in SI), computed by its pseudocode in the interpreter from the rows its inputs name, or supplied as evidence by the selected design's Monte Carlo; a closure compares its requirement with its evidence or its analysis row in the requirement's sense.
+Every row of the design evaluated for a case, or shown as not computed and why; every KPI closure answered or blocked by name (docs/RELEASE_PLAN.md P13). A row's value is stated by the case (from design.tndb, in SI) or by the design (a stated block's value.number in its output's unit, or value.list), computed by its pseudocode in the interpreter (with the modules it uses) from the rows its inputs name (an element of an array, one output of a supplier's function, in the unit the function takes), or supplied as evidence by the selected design's Monte Carlo; a row computed during a run (its inputs the run's, code.run_inputs) says so; a closure compares its requirement with its evidence or its analysis row in the requirement's sense.
 
     python3 tools/evaluate.py DIR [CASE ...] [--out DIR] [--check]
 
 **Steps**
 
 1. read the design (merged releases, else the node files) and the case from design.tndb
-2. state the case's values on the rows that declare them, in SI
-3. run every row's pseudocode once its inputs have values
-4. take each KPI's evidence from the design loop's Monte Carlo
+2. state the case's values on the rows that declare them, in SI, then the design's own stated values
+3. take each KPI's evidence from the design loop's Monte Carlo
+4. run each method's function (code.function, else the one its id or symbol names) on the rows its inputs name, each supplier in turn
 5. answer or block every closure
 6. write results/EVALUATION.md and evaluation.json
 
