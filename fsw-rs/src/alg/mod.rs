@@ -6,6 +6,7 @@ pub mod math;
 pub mod igrf13;
 pub mod frames;
 pub mod estimation;
+pub mod navorbit;
 pub mod guidance;
 pub mod control;
 pub mod steplaws;

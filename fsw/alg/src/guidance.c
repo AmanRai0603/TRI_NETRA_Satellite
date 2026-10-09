@@ -28,9 +28,9 @@ guidance_guidance_out guidance_guidance(int64_t kind, pc_a3f r, pc_a3f v, double
     pc_a3f ram = pc_unit_a3f(pc_cross_a3f(mr, nrm));
     pc_a3a3f rr = ((pc_a3a3f){0});
     {
-        int64_t end__77 = INT64_C(3);
+        int64_t end__80 = INT64_C(3);
         int64_t i = INT64_C(0);
-        while (i < end__77) {
+        while (i < end__80) {
             rr.v[0].v[(i)] = (-(ram.v[(i)]));
             rr.v[1].v[(i)] = (-(rh.v[(i)]));
             rr.v[2].v[(i)] = (-(nrm.v[(i)]));
@@ -71,9 +71,9 @@ guidance_guidance_out guidance_guidance(int64_t kind, pc_a3f r, pc_a3f v, double
         pc_a3f wo = pc_mv_a3a3f(math_dcm(q_ref), w_orb);
         pc_a3f tr = pc_cross_a3f(pc_scale_a3f(ax, (ph * sd)), wo);
         {
-            int64_t end__78 = INT64_C(3);
+            int64_t end__81 = INT64_C(3);
             int64_t i = INT64_C(0);
-            while (i < end__78) {
+            while (i < end__81) {
                 w_ref.v[(i)] = (wo.v[(i)] + ((ax.v[(i)] * ph) * sd));
                 wd_ref.v[(i)] = (((ax.v[(i)] * ph) * sdd) - tr.v[(i)]);
                 i += 1;
@@ -93,9 +93,9 @@ guidance_guidance_out guidance_guidance(int64_t kind, pc_a3f r, pc_a3f v, double
         }
         double ab = pc_dot_a3f(a, b);
         {
-            int64_t end__79 = INT64_C(3);
+            int64_t end__82 = INT64_C(3);
             int64_t i = INT64_C(0);
-            while (i < end__79) {
+            while (i < end__82) {
                 b.v[(i)] = (b.v[(i)] - (ab * a.v[(i)]));
                 i += 1;
             }
@@ -107,9 +107,9 @@ guidance_guidance_out guidance_guidance(int64_t kind, pc_a3f r, pc_a3f v, double
         pc_a3f s = pc_unit_a3f(sun_eci);
         pc_a3f e2 = ((pc_a3f){0});
         {
-            int64_t end__80 = INT64_C(3);
+            int64_t end__83 = INT64_C(3);
             int64_t i = INT64_C(0);
-            while (i < end__80) {
+            while (i < end__83) {
                 e2.v[(i)] = (nrm.v[(i)] - (pc_dot_a3f(nrm, s) * s.v[(i)]));
                 i += 1;
             }
@@ -122,13 +122,13 @@ guidance_guidance_out guidance_guidance(int64_t kind, pc_a3f r, pc_a3f v, double
         pc_a3f e3 = pc_cross_a3f(s, e2);
         pc_a3a3f m = ((pc_a3a3f){0});
         {
-            int64_t end__81 = INT64_C(3);
+            int64_t end__84 = INT64_C(3);
             int64_t i = INT64_C(0);
-            while (i < end__81) {
+            while (i < end__84) {
                 {
-                    int64_t end__82 = INT64_C(3);
+                    int64_t end__85 = INT64_C(3);
                     int64_t j = INT64_C(0);
-                    while (j < end__82) {
+                    while (j < end__85) {
                         m.v[(i)].v[(j)] = (((a.v[(i)] * s.v[(j)]) + (b.v[(i)] * e2.v[(j)])) + (b3.v[(i)] * e3.v[(j)]));
                         j += 1;
                     }
@@ -154,10 +154,10 @@ guidance_guidance_out guidance_guidance(int64_t kind, pc_a3f r, pc_a3f v, double
 bool guidance_yaw_flip(pc_a3f r, pc_a3f v, pc_a4f q_off, pc_a3f sun_axis, pc_a3f roll_axis, pc_a3f sun_eci, bool flip, double hyst) {
     bool flip_out = false;
     pc_a3f z = ((pc_a3f){0});
-    guidance_guidance_out t__83 = guidance_guidance(INT64_C(0), r, v, 0.0, q_off, 0.0, 0.0, 1.0, z, ((pc_a4f){ { 0.0, 0.0, 0.0, 1.0 } }), sun_axis, roll_axis, sun_eci, false);
-    pc_a4f q = t__83.q_ref;
-    pc_a3f w = t__83.w_ref;
-    pc_a3f wd = t__83.wd_ref;
+    guidance_guidance_out t__86 = guidance_guidance(INT64_C(0), r, v, 0.0, q_off, 0.0, 0.0, 1.0, z, ((pc_a4f){ { 0.0, 0.0, 0.0, 1.0 } }), sun_axis, roll_axis, sun_eci, false);
+    pc_a4f q = t__86.q_ref;
+    pc_a3f w = t__86.w_ref;
+    pc_a3f wd = t__86.wd_ref;
     pc_a3f sb = pc_mv_a3a3f(math_dcm(q), pc_unit_a3f(sun_eci));
     pc_a3f a = ((pc_a3f){ { 0.0, 0.0, ((double)((-(INT64_C(1))))) } });
     if ((pc_norm_a3f(sun_axis) > 0.0)) {
@@ -191,13 +191,13 @@ pc_a4f guidance_boresight_offset(pc_a3f bs_in) {
         pc_a3a3f k2 = pc_mm_a3a3f_a3a3f(kk, kk);
         pc_a3a3f a = ((pc_a3a3f){0});
         {
-            int64_t end__84 = INT64_C(3);
+            int64_t end__87 = INT64_C(3);
             int64_t i = INT64_C(0);
-            while (i < end__84) {
+            while (i < end__87) {
                 {
-                    int64_t end__85 = INT64_C(3);
+                    int64_t end__88 = INT64_C(3);
                     int64_t j = INT64_C(0);
-                    while (j < end__85) {
+                    while (j < end__88) {
                         a.v[(i)].v[(j)] = ((((i == j) ? 1.0 : 0.0) + (s * kk.v[(i)].v[(j)])) + ((1.0 - c) * k2.v[(i)].v[(j)]));
                         j += 1;
                     }

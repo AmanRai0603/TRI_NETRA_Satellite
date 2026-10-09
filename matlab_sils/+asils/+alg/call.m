@@ -101,6 +101,18 @@ function y = call(name, x)
         case 'estimation::latency'
             [o1] = asils.alg.estimation.latency(reshape(x(1:4), 4, 1), reshape(x(5:7), 3, 1), x(8));
             y = [reshape(o1, [], 1)];
+        case 'navorbit::gnss_usable'
+            [o1] = asils.alg.navorbit.gnss_usable((x(1) ~= 0), reshape(x(2:4), 3, 1));
+            y = [double(o1)];
+        case 'navorbit::verlet'
+            [o1, o2] = asils.alg.navorbit.verlet(reshape(x(1:3), 3, 1), reshape(x(4:6), 3, 1), x(7), x(8));
+            y = [reshape(o1, [], 1); reshape(o2, [], 1)];
+        case 'navorbit::fix_eci'
+            [o1, o2] = asils.alg.navorbit.fix_eci(reshape(x(1:3), 3, 1), reshape(x(4:6), 3, 1), x(7));
+            y = [reshape(o1, [], 1); reshape(o2, [], 1)];
+        case 'navorbit::onboard_orbit'
+            [o1, o2, o3] = asils.alg.navorbit.onboard_orbit(reshape(x(1:3), 3, 1), reshape(x(4:6), 3, 1), (x(7) ~= 0), (x(8) ~= 0), reshape(x(9:11), 3, 1), reshape(x(12:14), 3, 1), (x(15) ~= 0), x(16), x(17), x(18), x(19));
+            y = [reshape(o1, [], 1); reshape(o2, [], 1); double(o3)];
         case 'guidance::guid_kind'
             [o1] = asils.alg.guidance.guid_kind(x(1));
             y = [double(o1)];

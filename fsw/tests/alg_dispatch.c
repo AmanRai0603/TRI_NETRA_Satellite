@@ -1850,6 +1850,120 @@ int pc_call(const char *name, const double *x, int nx, double *out, int *ny) {
     }
         return 0;
     }
+    if (strcmp(name, "navorbit::gnss_usable") == 0) {
+        if (nx != 4) { return -1; }
+    {
+        bool a0;
+        pc_a3f a1;
+        a0 = x[0] != 0.0;
+        a1.v[0] = x[1];
+        a1.v[1] = x[2];
+        a1.v[2] = x[3];
+        {
+            bool r = navorbit_gnss_usable(a0, a1);
+            out[(*ny)++] = r ? 1.0 : 0.0;
+        }
+    }
+        return 0;
+    }
+    if (strcmp(name, "navorbit::verlet") == 0) {
+        if (nx != 8) { return -1; }
+    {
+        pc_a3f a0;
+        pc_a3f a1;
+        double a2;
+        double a3;
+        a0.v[0] = x[0];
+        a0.v[1] = x[1];
+        a0.v[2] = x[2];
+        a1.v[0] = x[3];
+        a1.v[1] = x[4];
+        a1.v[2] = x[5];
+        a2 = x[6];
+        a3 = x[7];
+        {
+            navorbit_verlet_out r = navorbit_verlet(a0, a1, a2, a3);
+            out[(*ny)++] = r.r.v[0];
+            out[(*ny)++] = r.r.v[1];
+            out[(*ny)++] = r.r.v[2];
+            out[(*ny)++] = r.v.v[0];
+            out[(*ny)++] = r.v.v[1];
+            out[(*ny)++] = r.v.v[2];
+        }
+    }
+        return 0;
+    }
+    if (strcmp(name, "navorbit::fix_eci") == 0) {
+        if (nx != 7) { return -1; }
+    {
+        pc_a3f a0;
+        pc_a3f a1;
+        double a2;
+        a0.v[0] = x[0];
+        a0.v[1] = x[1];
+        a0.v[2] = x[2];
+        a1.v[0] = x[3];
+        a1.v[1] = x[4];
+        a1.v[2] = x[5];
+        a2 = x[6];
+        {
+            navorbit_fix_eci_out r = navorbit_fix_eci(a0, a1, a2);
+            out[(*ny)++] = r.r.v[0];
+            out[(*ny)++] = r.r.v[1];
+            out[(*ny)++] = r.r.v[2];
+            out[(*ny)++] = r.v.v[0];
+            out[(*ny)++] = r.v.v[1];
+            out[(*ny)++] = r.v.v[2];
+        }
+    }
+        return 0;
+    }
+    if (strcmp(name, "navorbit::onboard_orbit") == 0) {
+        if (nx != 19) { return -1; }
+    {
+        pc_a3f a0;
+        pc_a3f a1;
+        bool a2;
+        bool a3;
+        pc_a3f a4;
+        pc_a3f a5;
+        bool a6;
+        double a7;
+        double a8;
+        double a9;
+        double a10;
+        a0.v[0] = x[0];
+        a0.v[1] = x[1];
+        a0.v[2] = x[2];
+        a1.v[0] = x[3];
+        a1.v[1] = x[4];
+        a1.v[2] = x[5];
+        a2 = x[6] != 0.0;
+        a3 = x[7] != 0.0;
+        a4.v[0] = x[8];
+        a4.v[1] = x[9];
+        a4.v[2] = x[10];
+        a5.v[0] = x[11];
+        a5.v[1] = x[12];
+        a5.v[2] = x[13];
+        a6 = x[14] != 0.0;
+        a7 = x[15];
+        a8 = x[16];
+        a9 = x[17];
+        a10 = x[18];
+        {
+            navorbit_onboard_orbit_out r = navorbit_onboard_orbit(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10);
+            out[(*ny)++] = r.r.v[0];
+            out[(*ny)++] = r.r.v[1];
+            out[(*ny)++] = r.r.v[2];
+            out[(*ny)++] = r.v.v[0];
+            out[(*ny)++] = r.v.v[1];
+            out[(*ny)++] = r.v.v[2];
+            out[(*ny)++] = r.have_r ? 1.0 : 0.0;
+        }
+    }
+        return 0;
+    }
     if (strcmp(name, "guidance::guid_kind") == 0) {
         if (nx != 1) { return -1; }
     {

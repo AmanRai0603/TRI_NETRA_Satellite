@@ -75,6 +75,8 @@ void adcs_modes_step(fsw_t *s, double dt);
 /* the shell's own laws over the state (adcs_fsw.c), held to fsw/pseudocode/05_control.pc,
  * 07_allocation.pc and 02_time_frames_models.pc */
 void adcs_orbit_acc(const adcs_real r[3], adcs_real mu, adcs_real a[3]);
+void adcs_onboard_orbit(const adcs_real r0[3], const adcs_real v0[3], int have, int ok, const adcs_real r_fix[3], const adcs_real v_fix[3],
+                        int ecef, double lat, double jd, double dt, double mu, adcs_real r[3], adcs_real v[3], int *have_r);
 void adcs_ctl_mtq(fsw_t *st);
 int adcs_ctl_capture(fsw_t *st, const adcs_real Hdev[3]);
 void adcs_ctl_sun_acq(fsw_t *st, const adcs_real Hdev[3]);

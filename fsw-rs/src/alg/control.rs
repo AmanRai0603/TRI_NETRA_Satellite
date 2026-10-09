@@ -35,9 +35,9 @@ pub fn control_law(q: [f64; 4], w: [f64; 3], q_ref: [f64; 4], w_ref: [f64; 3], i
     let mut qe: [f64; 4] = crate::alg::math::qerr(q_ref, q);
     let mut e: [f64; 3] = [0.0; 3];
     {
-        let __end81: i64 = 3;
+        let __end84: i64 = 3;
         let mut i: i64 = 0;
-        while i < __end81 {
+        while i < __end84 {
             e[(i) as usize] = rt::clamp(qe[(i) as usize], (-(err_max)), err_max);
             i += 1;
         }
@@ -50,9 +50,9 @@ pub fn control_law(q: [f64; 4], w: [f64; 3], q_ref: [f64; 4], w_ref: [f64; 3], i
     i_q = i_q0;
     if (law == 1) {
         {
-            let __end82: i64 = 3;
+            let __end85: i64 = 3;
             let mut i: i64 = 0;
-            while i < __end82 {
+            while i < __end85 {
                 i_q[(i) as usize] = rt::clamp((i_q[(i) as usize] + ((2.0 * e[(i) as usize]) * dt)), (-(int_max)), int_max);
                 tau[(i) as usize] = (-((((klqr[(i) as usize][0] * i_q[(i) as usize]) + (klqr[(i) as usize][1] * (2.0 * e[(i) as usize]))) + (klqr[(i) as usize][2] * we[(i) as usize]))));
                 i += 1;
@@ -62,9 +62,9 @@ pub fn control_law(q: [f64; 4], w: [f64; 3], q_ref: [f64; 4], w_ref: [f64; 3], i
         let mut c: [f64; 3] = rt::cross(e, we);
         let mut x: [f64; 3] = [0.0; 3];
         {
-            let __end83: i64 = 3;
+            let __end86: i64 = 3;
             let mut i: i64 = 0;
-            while i < __end83 {
+            while i < __end86 {
                 let mut s: f64 = (we[(i) as usize] + (lambda * e[(i) as usize]));
                 let mut sat: f64 = rt::clamp((s / phi), (-(1.0)), 1.0);
                 let mut ed: f64 = (0.5 * ((qe[3] * we[(i) as usize]) + c[(i) as usize]));
@@ -75,9 +75,9 @@ pub fn control_law(q: [f64; 4], w: [f64; 3], q_ref: [f64; 4], w_ref: [f64; 3], i
         tau = rt::vscale(rt::mv(j, x), (-(1.0)));
     } else {
         {
-            let __end84: i64 = 3;
+            let __end87: i64 = 3;
             let mut i: i64 = 0;
-            while i < __end84 {
+            while i < __end87 {
                 i_q[(i) as usize] = rt::clamp((i_q[(i) as usize] + (e[(i) as usize] * dt)), (-(int_max)), int_max);
                 tau[(i) as usize] = ((((-(kp[(i) as usize])) * e[(i) as usize]) - (kd[(i) as usize] * we[(i) as usize])) - (ki[(i) as usize] * i_q[(i) as usize]));
                 i += 1;
@@ -85,9 +85,9 @@ pub fn control_law(q: [f64; 4], w: [f64; 3], q_ref: [f64; 4], w_ref: [f64; 3], i
         }
     }
     {
-        let __end85: i64 = 3;
+        let __end88: i64 = 3;
         let mut i: i64 = 0;
-        while i < __end85 {
+        while i < __end88 {
             tau[(i) as usize] = (tau[(i) as usize] + (gyro[(i) as usize] + ff[(i) as usize]));
             i += 1;
         }
@@ -113,9 +113,9 @@ pub fn mtq_pd(q: [f64; 4], w: [f64; 3], q_ref: [f64; 4], w_ref: [f64; 3], kp: [f
     }
     let mut wr: [f64; 3] = rt::mv(crate::alg::math::dcm(qe), w_ref);
     {
-        let __end86: i64 = 3;
+        let __end89: i64 = 3;
         let mut i: i64 = 0;
-        while i < __end86 {
+        while i < __end89 {
             tau[(i) as usize] = (((-(kp[(i) as usize])) * (s * qe[(i) as usize])) - (kd[(i) as usize] * (w[(i) as usize] - wr[(i) as usize])));
             i += 1;
         }
@@ -132,9 +132,9 @@ pub fn sat_dipole(m: [f64; 3], m_max: f64) -> [f64; 3] {
     let mut r: [f64; 3] = [0.0; 3];
     let mut a: f64 = 1.0;
     {
-        let __end87: i64 = 3;
+        let __end90: i64 = 3;
         let mut i: i64 = 0;
-        while i < __end87 {
+        while i < __end90 {
             let mut d: f64 = rt::fabs(m[(i) as usize]);
             if (d < 1.0e-30) {
                 d = 1.0e-30;
@@ -182,9 +182,9 @@ pub fn bdot(b1: [f64; 3], b2: [f64; 3], dt: f64, bn: f64, k: f64, m_max: f64) ->
     let mut u2: [f64; 3] = rt::unit(b2);
     let mut r: [f64; 3] = [0.0; 3];
     {
-        let __end88: i64 = 3;
+        let __end91: i64 = 3;
         let mut i: i64 = 0;
-        while i < __end88 {
+        while i < __end91 {
             r[(i) as usize] = (((-((k / bn))) * (u2[(i) as usize] - u1[(i) as usize])) / dt);
             i += 1;
         }
@@ -204,9 +204,9 @@ pub fn gen_bdot(b: [f64; 3], bd: [f64; 3], wd: [f64; 3], k: f64) -> [f64; 3] {
     let mut m0: [f64; 3] = [0.0; 3];
     let mut c: [f64; 3] = rt::cross(wd, b);
     {
-        let __end89: i64 = 3;
+        let __end92: i64 = 3;
         let mut i: i64 = 0;
-        while i < __end89 {
+        while i < __end92 {
             m0[(i) as usize] = ((-(k)) * (bd[(i) as usize] + c[(i) as usize]));
             i += 1;
         }
@@ -239,9 +239,9 @@ pub fn sun_spin(b: [f64; 3], w: [f64; 3], s: [f64; 3], eclipse: bool, j: [[f64; 
         let mut h: [f64; 3] = rt::mv(j, w);
         let mut ht: [f64; 3] = [0.0; 3];
         {
-            let __end90: i64 = 3;
+            let __end93: i64 = 3;
             let mut i: i64 = 0;
-            while i < __end90 {
+            while i < __end93 {
                 let mut hd: f64 = (((sg * j[2][2]) * ws) * s[(i) as usize]);
                 ht[(i) as usize] = (h[(i) as usize] - hd);
                 i += 1;
@@ -256,9 +256,9 @@ pub fn sun_spin(b: [f64; 3], w: [f64; 3], s: [f64; 3], eclipse: bool, j: [[f64; 
         }
         let mut x: [f64; 3] = [0.0; 3];
         {
-            let __end91: i64 = 3;
+            let __end94: i64 = 3;
             let mut i: i64 = 0;
-            while i < __end91 {
+            while i < __end94 {
                 x[(i) as usize] = ((k1 * ht[(i) as usize]) + ((k2 * rz[(i) as usize]) * w[(i) as usize]));
                 i += 1;
             }
@@ -267,9 +267,9 @@ pub fn sun_spin(b: [f64; 3], w: [f64; 3], s: [f64; 3], eclipse: bool, j: [[f64; 
         let mut bs: f64 = rt::dot(b, b);
         if (bs >= 1.0e-18) {
             {
-                let __end92: i64 = 3;
+                let __end95: i64 = 3;
                 let mut i: i64 = 0;
-                while i < __end92 {
+                while i < __end95 {
                     m0[(i) as usize] = ((-(aa[(i) as usize])) / bs);
                     i += 1;
                 }
@@ -321,9 +321,9 @@ pub fn mtq_lovera(q: [f64; 4], w: [f64; 3], q_ref: [f64; 4], w_ref: [f64; 3], j:
     let (mut qe, mut s, mut wr, mut we) = crate::alg::control::mtq_err(q, w, q_ref, w_ref);
     let mut jw: [f64; 3] = rt::mv(j, we);
     {
-        let __end93: i64 = 3;
+        let __end96: i64 = 3;
         let mut i: i64 = 0;
-        while i < __end93 {
+        while i < __end96 {
             tau[(i) as usize] = (-(((((eps * eps) * kp) * (s * qe[(i) as usize])) + ((eps * kv) * jw[(i) as usize]))));
             i += 1;
         }
@@ -345,9 +345,9 @@ pub fn mtq_celani(q: [f64; 4], w: [f64; 3], q_ref: [f64; 4], w_ref: [f64; 3], ep
     let mut tau: [f64; 3] = [0.0; 3];
     let (mut qe, mut s, mut wr, mut we) = crate::alg::control::mtq_err(q, w, q_ref, w_ref);
     {
-        let __end94: i64 = 3;
+        let __end97: i64 = 3;
         let mut i: i64 = 0;
-        while i < __end94 {
+        while i < __end97 {
             tau[(i) as usize] = (-(((((eps * eps) * k1) * (s * qe[(i) as usize])) + ((eps * k2) * we[(i) as usize]))));
             i += 1;
         }
@@ -378,9 +378,9 @@ pub fn mtq_avanzini(q: [f64; 4], w: [f64; 3], q_ref: [f64; 4], w_ref: [f64; 3], 
         let (mut qe, mut s, mut wr, mut we) = crate::alg::control::mtq_err(q, w, q_ref, w_ref);
         let mut ep: [f64; 3] = [0.0; 3];
         {
-            let __end95: i64 = 3;
+            let __end98: i64 = 3;
             let mut i: i64 = 0;
-            while i < __end95 {
+            while i < __end98 {
                 ep[(i) as usize] = (w_ref[(i) as usize] / n);
                 i += 1;
             }
@@ -392,9 +392,9 @@ pub fn mtq_avanzini(q: [f64; 4], w: [f64; 3], q_ref: [f64; 4], w_ref: [f64; 3], 
         let mut eta: f64 = ((jp * n) * (1.0 - (lam * th)));
         let mut jw: [f64; 3] = rt::mv(j, w);
         {
-            let __end96: i64 = 3;
+            let __end99: i64 = 3;
             let mut i: i64 = 0;
-            while i < __end96 {
+            while i < __end99 {
                 tau[(i) as usize] = ((k * ((eta * sg[(i) as usize]) - jw[(i) as usize])) + (k * ((eta * ep[(i) as usize]) - jw[(i) as usize])));
                 i += 1;
             }
@@ -416,9 +416,9 @@ pub fn mtq_boresight(e3: [f64; 3], a: [f64; 3], we: [f64; 3], kp: f64, kd: f64) 
     let mut tau: [f64; 3] = [0.0; 3];
     let mut c: [f64; 3] = rt::cross(e3, a);
     {
-        let __end97: i64 = 3;
+        let __end100: i64 = 3;
         let mut i: i64 = 0;
-        while i < __end97 {
+        while i < __end100 {
             tau[(i) as usize] = ((kp * c[(i) as usize]) - (kd * we[(i) as usize]));
             i += 1;
         }
@@ -441,9 +441,9 @@ pub fn mtq_tango(q: [f64; 4], w: [f64; 3], q_ref: [f64; 4], w_ref: [f64; 3], pth
     let (mut qe, mut s, mut wr, mut we) = crate::alg::control::mtq_err(q, w, q_ref, w_ref);
     let mut th: [f64; 3] = [0.0; 3];
     {
-        let __end98: i64 = 3;
+        let __end101: i64 = 3;
         let mut i: i64 = 0;
-        while i < __end98 {
+        while i < __end101 {
             th[(i) as usize] = ((2.0 * s) * qe[(i) as usize]);
             i += 1;
         }
@@ -451,9 +451,9 @@ pub fn mtq_tango(q: [f64; 4], w: [f64; 3], q_ref: [f64; 4], w_ref: [f64; 3], pth
     let mut aa: [f64; 3] = rt::mv(pth, th);
     let mut bb: [f64; 3] = rt::mv(pw, we);
     {
-        let __end99: i64 = 3;
+        let __end102: i64 = 3;
         let mut i: i64 = 0;
-        while i < __end99 {
+        while i < __end102 {
             tau[(i) as usize] = (-((aa[(i) as usize] + bb[(i) as usize])));
             i += 1;
         }
@@ -487,9 +487,9 @@ pub fn sun_spin_deruiter(b: [f64; 3], w: [f64; 3], s: [f64; 3], eclipse: bool, j
         let mut ehz: f64 = (h[2] - ((sg * j[2][2]) * ws));
         let mut x: [f64; 3] = [0.0; 3];
         {
-            let __end100: i64 = 3;
+            let __end103: i64 = 3;
             let mut i: i64 = 0;
-            while i < __end100 {
+            while i < __end103 {
                 x[(i) as usize] = (h[(i) as usize] + (((sg * j[2][2]) * ws) * s[(i) as usize]));
                 i += 1;
             }
@@ -501,9 +501,9 @@ pub fn sun_spin_deruiter(b: [f64; 3], w: [f64; 3], s: [f64; 3], eclipse: bool, j
         let mut bs: f64 = rt::dot(b, b);
         if (bs >= 1.0e-18) {
             {
-                let __end101: i64 = 3;
+                let __end104: i64 = 3;
                 let mut i: i64 = 0;
-                while i < __end101 {
+                while i < __end104 {
                     m0[(i) as usize] = (((-(k)) * aa[(i) as usize]) / bs);
                     i += 1;
                 }

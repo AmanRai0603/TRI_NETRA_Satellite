@@ -19,7 +19,6 @@
 
 static fsw_t S;
 
-#define GNSS_R_MIN (0.9*ADCS_RE)                        /* a fix below this radius is refused */
 /* A star-tracker quaternion further than ST_NORM_TOL from unit length is not a reading. (Its
  * innovation is not gated: after a slew or a coast the filter's covariance is too small, and a
  * gate rejects the very updates that correct it; gating waits on a consistent filter.) */
@@ -29,6 +28,17 @@ static fsw_t S;
  * speak of, no acceleration (not a division by zero) */
 /* written from the design: steplaws::orbit_acc (fsw/alg) */
 void adcs_orbit_acc(const adcs_real r[3], adcs_real mu, adcs_real a[3]) { gl_o3(steplaws_orbit_acc(gl_v3(r), mu), a); }
+
+/* nav's onboard orbit after the tick's step 1: the receiver's fix taken in (its gate, its frame, its age), else the orbit
+ * held carried one tick dt (two-body + J2 by velocity Verlet), else none */
+/* written from the design: navorbit::onboard_orbit (fsw/alg) */
+void adcs_onboard_orbit(const adcs_real r0[3], const adcs_real v0[3], int have, int ok, const adcs_real r_fix[3], const adcs_real v_fix[3],
+                        int ecef, double lat, double jd, double dt, double mu, adcs_real r[3], adcs_real v[3], int *have_r)
+{
+    navorbit_onboard_orbit_out o = navorbit_onboard_orbit(gl_v3(r0), gl_v3(v0), have != 0, ok != 0, gl_v3(r_fix), gl_v3(v_fix), ecef != 0,
+                                                          lat, jd, dt, mu);
+    gl_o3(o.r, r); gl_o3(o.v, v); *have_r = o.have_r ? 1 : 0;
+}
 
 static void set_gains(adcs_gains_t *g, int law, const double Kp[3], const double Kd[3], const double Ki[3], double Klqr[3][3],
                       double lambda, double phi, const double Gs[3], double err_max, double int_max)
@@ -185,31 +195,9 @@ int32_t adcs_fsw_step(uint64_t now_ns)
     adcs_drv_read(p, z);
     adcs_fdir_sensors(&S, dt);
 
-    /* 1 onboard orbit (02): the GNSS fix, else two-body + J2 by velocity Verlet */
-    /* a fix inside the Earth is not a fix: it is dropped and the orbit is propagated as without one */
-    if (z->gps_ok && adcs_norm3(z->r) > GNSS_R_MIN) {
-        double L = p->gps_latency;   /* the fix is the state L seconds ago */
-        if (p->gnss_ecef) {          /* receiver fix in ECEF: r = C' r_e, v = C' (v_e + w_E x r_e), C at the fix's epoch */
-            adcs_real C[3][3], wr[3], ve[3], we[3] = {0, 0, ADCS_OMEGA_E};
-            adcs_eci2ecef(S.jd - L/86400.0, C);
-            adcs_cross(we, z->r, wr); adcs_add3(z->v, wr, ve);
-            adcs_mat3t_vec(C, z->r, S.r); adcs_mat3t_vec(C, ve, S.v);
-        } else { adcs_copy3(z->r, S.r); adcs_copy3(z->v, S.v); }
-        if (L > 0) {                 /* carried forward to now: one Verlet step of L */
-            adcs_real a0[3], a1[3];
-            adcs_orbit_acc(S.r, p->mu, a0);
-            for (i = 0; i < 3; i++) S.r[i] += S.v[i]*L + 0.5*a0[i]*L*L;
-            adcs_orbit_acc(S.r, p->mu, a1);
-            for (i = 0; i < 3; i++) S.v[i] += 0.5*(a0[i] + a1[i])*L;
-        }
-        S.have_r = 1;
-    } else if (S.have_r) {
-        adcs_real a0[3], a1[3];
-        adcs_orbit_acc(S.r, p->mu, a0);
-        for (i = 0; i < 3; i++) S.r[i] += S.v[i]*dt + 0.5*a0[i]*dt*dt;
-        adcs_orbit_acc(S.r, p->mu, a1);
-        for (i = 0; i < 3; i++) S.v[i] += 0.5*(a0[i] + a1[i])*dt;
-    }
+    /* 1 onboard orbit (02): nav's (navorbit::onboard_orbit): the GNSS fix (a fix inside the Earth is none; one in ECEF
+     * taken to J2000 at its epoch; a late one carried forward by its age), else two-body + J2 by velocity Verlet */
+    adcs_onboard_orbit(S.r, S.v, S.have_r, z->gps_ok, z->r, z->v, p->gnss_ecef, p->gps_latency, S.jd, dt, p->mu, S.r, S.v, &S.have_r);
 
     /* 2 estimation */
     adcs_sun_model(S.jd, S.gd.sun_eci);

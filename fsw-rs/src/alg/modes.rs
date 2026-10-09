@@ -167,9 +167,9 @@ pub fn modes_schedule(st: Modes, mp: ModeParams) -> Modes {
     let mut s: Modes = Modes::default();
     s = st;
     {
-        let __end139: i64 = 8;
+        let __end142: i64 = 8;
         let mut k: i64 = 0;
-        while k < __end139 {
+        while k < __end142 {
             if ((s.sched_i < mp.n_sched) && (s.t >= mp.sched_t[(s.sched_i) as usize])) {
                 s = crate::alg::modes::modes_enter(s, mp.sched_mode[(s.sched_i) as usize]);
                 s.sched_i = (s.sched_i + 1);
@@ -364,9 +364,9 @@ pub fn fdir_rotors(st: RotorFdir, rp: RotorParams, t: f64, dt: f64, zh: [f64; 8]
     let mut nr: i64 = rp.nr;
     if ((nr > 0) && s.h_prev_ok) {
         {
-            let __end140: i64 = nr;
+            let __end143: i64 = nr;
             let mut i: i64 = 0;
-            while i < __end140 {
+            while i < __end143 {
                 let mut tmax: f64 = rp.rot_tmax[(i) as usize];
                 let mut meas: f64 = ((zh[(i) as usize] - s.h_prev[(i) as usize]) / dt);
                 let mut expect: f64 = rt::clamp(s.cmd_r_prev[(i) as usize], ((-(0.8)) * tmax), (0.8 * tmax));
@@ -381,9 +381,9 @@ pub fn fdir_rotors(st: RotorFdir, rp: RotorParams, t: f64, dt: f64, zh: [f64; 8]
         }
         if ((!s.fw_on) || ((t - s.fw_last) > (1.5 * dt))) {
             {
-                let __end141: i64 = nr;
+                let __end144: i64 = nr;
                 let mut i: i64 = 0;
-                while i < __end141 {
+                while i < __end144 {
                     s.fw_e[(i) as usize] = 0.0;
                     s.fw_h0[(i) as usize] = zh[(i) as usize];
                     i += 1;
@@ -393,18 +393,18 @@ pub fn fdir_rotors(st: RotorFdir, rp: RotorParams, t: f64, dt: f64, zh: [f64; 8]
             s.fw_on = true;
         } else {
             {
-                let __end142: i64 = nr;
+                let __end145: i64 = nr;
                 let mut i: i64 = 0;
-                while i < __end142 {
+                while i < __end145 {
                     s.fw_e[(i) as usize] = (s.fw_e[(i) as usize] + (rt::clamp(s.cmd_r_prev[(i) as usize], ((-(0.8)) * rp.rot_tmax[(i) as usize]), (0.8 * rp.rot_tmax[(i) as usize])) * dt));
                     i += 1;
                 }
             }
             if ((t - s.fw_t0) >= (rp.fdir_win_s - 1.0e-9)) {
                 {
-                    let __end143: i64 = nr;
+                    let __end146: i64 = nr;
                     let mut i: i64 = 0;
-                    while i < __end143 {
+                    while i < __end146 {
                         let mut hmax: f64 = rp.rot_hmax[(i) as usize];
                         let mut e: f64 = s.fw_e[(i) as usize];
                         let mut m: f64 = (zh[(i) as usize] - s.fw_h0[(i) as usize]);
@@ -420,9 +420,9 @@ pub fn fdir_rotors(st: RotorFdir, rp: RotorParams, t: f64, dt: f64, zh: [f64; 8]
                     }
                 }
                 {
-                    let __end144: i64 = nr;
+                    let __end147: i64 = nr;
                     let mut i: i64 = 0;
-                    while i < __end144 {
+                    while i < __end147 {
                         s.fw_e[(i) as usize] = 0.0;
                         s.fw_h0[(i) as usize] = zh[(i) as usize];
                         i += 1;

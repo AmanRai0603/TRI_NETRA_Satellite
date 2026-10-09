@@ -431,6 +431,58 @@ estimation_quest_out estimation_quest(pc_a16a3f bv, pc_a16a3f rv, pc_a16f w, int
 /* - returns q */
 pc_a4f estimation_latency(pc_a4f q_st, pc_a3f w, double lat);
 
+/* Whether a GNSS fix may be taken: the receiver's flag, and the fix outside 0.9 R_E. */
+/* - ok */
+/* - r */
+/* - returns good */
+bool navorbit_gnss_usable(bool ok, pc_a3f r);
+
+typedef struct { pc_a3f r; pc_a3f v; } navorbit_verlet_out;
+
+/* One velocity-Verlet step of h over the two-body + J2 acceleration: r + (v h + a0 h h/2), then v + (a0 + a1) h/2 with */
+/* a1 at the new r, element by element as the tick wrote them. */
+/* - r0 */
+/* - v0 */
+/* - h */
+/* - mu */
+/* - returns r */
+/* - returns v */
+navorbit_verlet_out navorbit_verlet(pc_a3f r0, pc_a3f v0, double h, double mu);
+
+typedef struct { pc_a3f r; pc_a3f v; } navorbit_fix_eci_out;
+
+/* An Earth-fixed fix taken to J2000 at the Julian date jd: r = C' r_e, v = C' (v_e + w_E x r_e), C the onboard */
+/* eci2ecef at jd. */
+/* - r_e */
+/* - v_e */
+/* - jd */
+/* - returns r */
+/* - returns v */
+navorbit_fix_eci_out navorbit_fix_eci(pc_a3f r_e, pc_a3f v_e, double jd);
+
+typedef struct { pc_a3f r; pc_a3f v; bool have_r; } navorbit_onboard_orbit_out;
+
+/* The onboard orbit after the tick's step 1, from the orbit it held (r0, v0; have: whether it holds one) and the */
+/* receiver's fix (ok, r_fix, v_fix; in ECEF when ecef; lat seconds old) at the Julian date jd: a usable fix, taken from */
+/* ECEF at its epoch jd - lat when it is Earth-fixed, carried forward to now by one Verlet step of lat when lat > 0; else */
+/* the orbit held carried one tick dt; else none. The orbit, and whether there is one. */
+/* vectors: 48 */
+/* - r0 */
+/* - v0 */
+/* - have */
+/* - ok */
+/* - r_fix */
+/* - v_fix */
+/* - ecef */
+/* - lat */
+/* - jd */
+/* - dt */
+/* - mu */
+/* - returns r */
+/* - returns v */
+/* - returns have_r */
+navorbit_onboard_orbit_out navorbit_onboard_orbit(pc_a3f r0, pc_a3f v0, bool have, bool ok, pc_a3f r_fix, pc_a3f v_fix, bool ecef, double lat, double jd, double dt, double mu);
+
 /* The guidance a controller state flies: 0 nadir, 1 target, 2 slew, 4 Sun (states as adcs_params.h: */
 /* 3 target_fine, 4 slew_fine, 9 sun_mtq, 10 sun_fine). */
 /* - mode */

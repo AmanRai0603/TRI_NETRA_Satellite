@@ -63,8 +63,8 @@ function [s] = ctl_mtq(st, cp)
         s.tau_req = asils.alg.control.mtq_tango(s.q, s.w_est, s.q_ref, s.w_ref, cp.mtq_pth, cp.mtq_pw);
     else
         z = zeros(3, 1);
-        [t__9, t__10] = asils.alg.control.control_law(s.q, s.w_est, s.q_ref, s.w_ref, s.i_q, cp.mtq_period, cp.g_law, cp.g_kp, cp.g_kd, cp.g_ki, cp.g_klqr, cp.g_lambda, cp.g_phi, cp.g_gs, cp.g_err_max, cp.g_int_max, cp.j, z, z);
-        s.tau_req = t__9;
-        s.i_q = t__10;
+        [t__15, t__16] = asils.alg.control.control_law(s.q, s.w_est, s.q_ref, s.w_ref, s.i_q, cp.mtq_period, cp.g_law, cp.g_kp, cp.g_kd, cp.g_ki, cp.g_klqr, cp.g_lambda, cp.g_phi, cp.g_gs, cp.g_err_max, cp.g_int_max, cp.j, z, z);
+        s.tau_req = t__15;
+        s.i_q = t__16;
     end
 end

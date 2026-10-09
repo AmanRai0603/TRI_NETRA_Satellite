@@ -7,14 +7,14 @@ int64_t drivers_crc16(pc_a64i p, int64_t n) {
     int64_t c = 0;
     c = INT64_C(65535);
     {
-        int64_t end__157 = n;
+        int64_t end__160 = n;
         int64_t i = INT64_C(0);
-        while (i < end__157) {
+        while (i < end__160) {
             c = (c ^ (p.v[(i)] << INT64_C(8)));
             {
-                int64_t end__158 = INT64_C(8);
+                int64_t end__161 = INT64_C(8);
                 int64_t k = INT64_C(0);
-                while (k < end__158) {
+                while (k < end__161) {
                     if (((c & INT64_C(32768)) != INT64_C(0))) {
                         c = (((c << INT64_C(1)) ^ INT64_C(4129)) & INT64_C(65535));
                     } else {
@@ -73,34 +73,34 @@ drivers_drv_write_out drivers_drv_write(pc_a3f m_body, double m_max, pc_a8f cmd_
     gim_words = ((pc_a4i){0});
     valves = ((pc_a6i){0});
     {
-        int64_t end__159 = INT64_C(3);
+        int64_t end__162 = INT64_C(3);
         int64_t i = INT64_C(0);
-        while (i < end__159) {
+        while (i < end__162) {
             pwm.v[(i)] = drivers_q15((m_body.v[(i)] / m_max));
             i += 1;
         }
     }
     {
-        int64_t end__160 = nr;
+        int64_t end__163 = nr;
         int64_t i = INT64_C(0);
-        while (i < end__160) {
+        while (i < end__163) {
             rot_words.v[(i)] = drivers_q15((cmd_r.v[(i)] / rot_tmax.v[(i)]));
             i += 1;
         }
     }
     {
-        int64_t end__161 = ng;
+        int64_t end__164 = ng;
         int64_t j = INT64_C(0);
-        while (j < end__161) {
+        while (j < end__164) {
             gim_words.v[(j)] = drivers_q15((cmd_g.v[(j)] / gim_rate_max));
             j += 1;
         }
     }
     if ((nc > INT64_C(0))) {
         {
-            int64_t end__162 = nc;
+            int64_t end__165 = nc;
             int64_t i = INT64_C(0);
-            while (i < end__162) {
+            while (i < end__165) {
                 double ms = (((duty.v[(i)] * dt) / 0.001) + 0.5);
                 if ((!((ms - ms) == 0.0))) {
                     valves.v[(i)] = INT64_C(0);
@@ -133,15 +133,15 @@ drivers_uart_frame_out drivers_uart_frame(pc_a96i b, int64_t len, int64_t sync2)
     int64_t base = INT64_C(0);
     bool done = false;
     {
-        int64_t end__163 = INT64_C(48);
+        int64_t end__166 = INT64_C(48);
         int64_t pass = INT64_C(0);
-        while (pass < end__163) {
+        while (pass < end__166) {
             if ((!done)) {
                 int64_t s = INT64_C(0);
                 {
-                    int64_t end__164 = INT64_C(96);
+                    int64_t end__167 = INT64_C(96);
                     int64_t k = INT64_C(0);
-                    while (k < end__164) {
+                    while (k < end__167) {
                         if (((((base + s) + INT64_C(1)) < len) && (!((b.v[((base + s))] == INT64_C(235)) && (b.v[(((base + s) + INT64_C(1)))] == sync2))))) {
                             s = (s + INT64_C(1));
                         }
@@ -158,18 +158,18 @@ drivers_uart_frame_out drivers_uart_frame(pc_a96i b, int64_t len, int64_t sync2)
                         pc_a64i pl = ((pc_a64i){0});
                         pc_a64i crc_in = ((pc_a64i){0});
                         {
-                            int64_t end__165 = pc_imin(n, INT64_C(64));
+                            int64_t end__168 = pc_imin(n, INT64_C(64));
                             int64_t i = INT64_C(0);
-                            while (i < end__165) {
+                            while (i < end__168) {
                                 crc_in.v[(i)] = b.v[((((base + s) + INT64_C(3)) + i))];
                                 i += 1;
                             }
                         }
                         if (((n <= INT64_C(64)) && (drivers_crc16(crc_in, n) == (b.v[((((base + s) + INT64_C(3)) + n))] | (b.v[((((base + s) + INT64_C(4)) + n))] << INT64_C(8)))))) {
                             {
-                                int64_t end__166 = n;
+                                int64_t end__169 = n;
                                 int64_t i = INT64_C(0);
-                                while (i < end__166) {
+                                while (i < end__169) {
                                     pl.v[(i)] = b.v[((((base + s) + INT64_C(3)) + i))];
                                     i += 1;
                                 }
@@ -198,9 +198,9 @@ drivers_uart_stream_out drivers_uart_stream(pc_a8i junk, int64_t nj, pc_a36i pl,
     b = ((pc_a96i){0});
     len = INT64_C(0);
     {
-        int64_t end__167 = nj;
+        int64_t end__170 = nj;
         int64_t i = INT64_C(0);
-        while (i < end__167) {
+        while (i < end__170) {
             b.v[(len)] = junk.v[(i)];
             len = (len + INT64_C(1));
             i += 1;
@@ -208,14 +208,14 @@ drivers_uart_stream_out drivers_uart_stream(pc_a8i junk, int64_t nj, pc_a36i pl,
     }
     int64_t nf = ((fault == INT64_C(0)) ? INT64_C(1) : INT64_C(2));
     {
-        int64_t end__168 = nf;
+        int64_t end__171 = nf;
         int64_t f = INT64_C(0);
-        while (f < end__168) {
+        while (f < end__171) {
             pc_a64i p = ((pc_a64i){0});
             {
-                int64_t end__169 = n;
+                int64_t end__172 = n;
                 int64_t i = INT64_C(0);
-                while (i < end__169) {
+                while (i < end__172) {
                     p.v[(i)] = ((f == INT64_C(0)) ? pl.v[(i)] : pl.v[(((i + k) % INT64_C(36)))]);
                     i += 1;
                 }
@@ -228,9 +228,9 @@ drivers_uart_stream_out drivers_uart_stream(pc_a8i junk, int64_t nj, pc_a36i pl,
             b.v[((len + INT64_C(1)))] = sync2;
             b.v[((len + INT64_C(2)))] = n;
             {
-                int64_t end__170 = n;
+                int64_t end__173 = n;
                 int64_t i = INT64_C(0);
-                while (i < end__170) {
+                while (i < end__173) {
                     b.v[(((len + INT64_C(3)) + i))] = p.v[(i)];
                     i += 1;
                 }
@@ -258,14 +258,14 @@ drivers_read_streams_out drivers_read_streams(pc_a8i st_junk, int64_t st_nj, pc_
     pc_a96i gps = ((pc_a96i){0});
     int64_t gps_len = 0;
     {
-        drivers_uart_stream_out t__171 = drivers_uart_stream(st_junk, st_nj, st_pl, st_n, INT64_C(144), st_fault, st_k);
-        st_ = t__171.b;
-        st_len = t__171.len;
+        drivers_uart_stream_out t__174 = drivers_uart_stream(st_junk, st_nj, st_pl, st_n, INT64_C(144), st_fault, st_k);
+        st_ = t__174.b;
+        st_len = t__174.len;
     }
     {
-        drivers_uart_stream_out t__172 = drivers_uart_stream(gps_junk, gps_nj, gps_pl, gps_n, INT64_C(145), gps_fault, gps_k);
-        gps = t__172.b;
-        gps_len = t__172.len;
+        drivers_uart_stream_out t__175 = drivers_uart_stream(gps_junk, gps_nj, gps_pl, gps_n, INT64_C(145), gps_fault, gps_k);
+        gps = t__175.b;
+        gps_len = t__175.len;
     }
     {
         drivers_read_streams_out r__;
@@ -298,9 +298,9 @@ drivers_drv_read_out drivers_drv_read(pc_a7i mag_rx, pc_a13i gyro_rx, pc_a7i sun
     b = ((pc_a3f){0});
     if (mag_ok) {
         {
-            int64_t end__173 = INT64_C(3);
+            int64_t end__176 = INT64_C(3);
             int64_t i = INT64_C(0);
-            while (i < end__173) {
+            while (i < end__176) {
                 b.v[(i)] = (((double)(drivers_rd16(mag_rx.v[((INT64_C(1) + (INT64_C(2) * i)))], mag_rx.v[((INT64_C(2) + (INT64_C(2) * i)))]))) * (0.0001 / 32768.0));
                 i += 1;
             }
@@ -310,9 +310,9 @@ drivers_drv_read_out drivers_drv_read(pc_a7i mag_rx, pc_a13i gyro_rx, pc_a7i sun
     w = ((pc_a3f){0});
     if (gyro_ok) {
         {
-            int64_t end__174 = INT64_C(3);
+            int64_t end__177 = INT64_C(3);
             int64_t i = INT64_C(0);
-            while (i < end__174) {
+            while (i < end__177) {
                 w.v[(i)] = (((double)(drivers_rd32(gyro_rx.v[((INT64_C(1) + (INT64_C(4) * i)))], gyro_rx.v[((INT64_C(2) + (INT64_C(4) * i)))], gyro_rx.v[((INT64_C(3) + (INT64_C(4) * i)))], gyro_rx.v[((INT64_C(4) + (INT64_C(4) * i)))]))) * (5.0 / 8388608.0));
                 i += 1;
             }
@@ -322,9 +322,9 @@ drivers_drv_read_out drivers_drv_read(pc_a7i mag_rx, pc_a13i gyro_rx, pc_a7i sun
     sun = ((pc_a3f){0});
     if (sun_ok) {
         {
-            int64_t end__175 = INT64_C(3);
+            int64_t end__178 = INT64_C(3);
             int64_t i = INT64_C(0);
-            while (i < end__175) {
+            while (i < end__178) {
                 sun.v[(i)] = (((double)(drivers_rd16(sun_rx.v[((INT64_C(1) + (INT64_C(2) * i)))], sun_rx.v[((INT64_C(2) + (INT64_C(2) * i)))]))) / 32767.0);
                 i += 1;
             }
@@ -334,9 +334,9 @@ drivers_drv_read_out drivers_drv_read(pc_a7i mag_rx, pc_a13i gyro_rx, pc_a7i sun
     nadir = ((pc_a3f){0});
     if (es_ok) {
         {
-            int64_t end__176 = INT64_C(3);
+            int64_t end__179 = INT64_C(3);
             int64_t i = INT64_C(0);
-            while (i < end__176) {
+            while (i < end__179) {
                 nadir.v[(i)] = (((double)(drivers_rd16(es_rx.v[((INT64_C(1) + (INT64_C(2) * i)))], es_rx.v[((INT64_C(2) + (INT64_C(2) * i)))]))) / 32767.0);
                 i += 1;
             }
@@ -346,21 +346,21 @@ drivers_drv_read_out drivers_drv_read(pc_a7i mag_rx, pc_a13i gyro_rx, pc_a7i sun
     st_valid = ((pc_a2b){ { false, false } });
     q_st = ((pc_a2a4f){0});
     if (has_st) {
-        drivers_uart_frame_out t__177 = drivers_uart_frame(st_, st_len, INT64_C(144));
-        pc_a64i pl = t__177.payload;
-        int64_t n = t__177.n_found;
+        drivers_uart_frame_out t__180 = drivers_uart_frame(st_, st_len, INT64_C(144));
+        pc_a64i pl = t__180.payload;
+        int64_t n = t__180.n_found;
         if ((n > INT64_C(0))) {
             {
-                int64_t end__178 = INT64_C(2);
+                int64_t end__181 = INT64_C(2);
                 int64_t hd = INT64_C(0);
-                while (hd < end__178) {
+                while (hd < end__181) {
                     if (((hd < pl.v[0]) && ((INT64_C(1) + (INT64_C(17) * (hd + INT64_C(1)))) <= n))) {
                         int64_t e = (INT64_C(1) + (INT64_C(17) * hd));
                         st_valid.v[(hd)] = ((pl.v[(e)] & INT64_C(1)) == INT64_C(1));
                         {
-                            int64_t end__179 = INT64_C(4);
+                            int64_t end__182 = INT64_C(4);
                             int64_t k = INT64_C(0);
-                            while (k < end__179) {
+                            while (k < end__182) {
                                 q_st.v[(hd)].v[(k)] = (((double)(drivers_rd32(pl.v[(((e + INT64_C(1)) + (INT64_C(4) * k)))], pl.v[(((e + INT64_C(2)) + (INT64_C(4) * k)))], pl.v[(((e + INT64_C(3)) + (INT64_C(4) * k)))], pl.v[(((e + INT64_C(4)) + (INT64_C(4) * k)))]))) / 1073741824.0);
                                 k += 1;
                             }
@@ -378,15 +378,15 @@ drivers_drv_read_out drivers_drv_read(pc_a7i mag_rx, pc_a13i gyro_rx, pc_a7i sun
     r = ((pc_a3f){0});
     v = ((pc_a3f){0});
     if (has_gps) {
-        drivers_uart_frame_out t__180 = drivers_uart_frame(gps, gps_len, INT64_C(145));
-        pc_a64i pg = t__180.payload;
-        int64_t ng = t__180.n_found;
+        drivers_uart_frame_out t__183 = drivers_uart_frame(gps, gps_len, INT64_C(145));
+        pc_a64i pg = t__183.payload;
+        int64_t ng = t__183.n_found;
         if (((ng >= INT64_C(25)) && ((pg.v[0] & INT64_C(1)) == INT64_C(1)))) {
             gps_ok = true;
             {
-                int64_t end__181 = INT64_C(3);
+                int64_t end__184 = INT64_C(3);
                 int64_t i = INT64_C(0);
-                while (i < end__181) {
+                while (i < end__184) {
                     r.v[(i)] = (((double)(drivers_rd32(pg.v[((INT64_C(1) + (INT64_C(4) * i)))], pg.v[((INT64_C(2) + (INT64_C(4) * i)))], pg.v[((INT64_C(3) + (INT64_C(4) * i)))], pg.v[((INT64_C(4) + (INT64_C(4) * i)))]))) * 0.01);
                     v.v[(i)] = (((double)(drivers_rd32(pg.v[((INT64_C(13) + (INT64_C(4) * i)))], pg.v[((INT64_C(14) + (INT64_C(4) * i)))], pg.v[((INT64_C(15) + (INT64_C(4) * i)))], pg.v[((INT64_C(16) + (INT64_C(4) * i)))]))) * 0.001);
                     i += 1;
@@ -397,9 +397,9 @@ drivers_drv_read_out drivers_drv_read(pc_a7i mag_rx, pc_a13i gyro_rx, pc_a7i sun
     h = ((pc_a8f){0});
     delta = ((pc_a4f){0});
     {
-        int64_t end__182 = n_can;
+        int64_t end__185 = n_can;
         int64_t f = INT64_C(0);
-        while (f < end__182) {
+        while (f < end__185) {
             int64_t id = can_id.v[(f)];
             if ((((id >= INT64_C(512)) && (id < INT64_C(520))) && (can_dlc.v[(f)] >= INT64_C(8)))) {
                 int64_t ri = (id - INT64_C(512));
