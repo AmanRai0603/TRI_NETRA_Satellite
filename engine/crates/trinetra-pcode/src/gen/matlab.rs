@@ -12,7 +12,7 @@ use crate::check::{ItemRef, Shape, Target, VarKind};
 const RTP: &str = "asils.pc";
 
 pub(super) fn to_matlab(i: &Interp, pkg: Option<&str>) -> Result<Files, String> {
-    let pkg = pkg.filter(|p| !p.is_empty()).unwrap_or("asils.physics").to_string();
+    let pkg = pkg.filter(|p| !p.is_empty()).unwrap_or("asils.relations").to_string();
     let mut g = Gen { b: Base::new(i, ["Inf", "-Inf", "NaN"]), pkg, tmp: 0 };
     let files = g.run();
     g.b.done(files)

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""The engine build (docs/PLAN_2_0.md S7; docs/S7_INVENTORY.md S7.3-S7.15b): the time engine's published models and relations
+"""The engine build (docs/PLAN_2_0.md S7; docs/S7_INVENTORY.md S7.3-S7.16): the time engine's published models and relations
 written from the design. Only the engine's core stays hand-written (step order, recorder, integrators, the toolbox); a
 model of the world or of the spacecraft is a method of an env, dyn, act or sens node, and its Rust is generated here, never
 edited.
@@ -59,6 +59,18 @@ its crate:
   matlab_sils/+asils/+models/            the same models for the MATLAB twin (asils.models.<module>.<function>), one
                                          package of every module the engine's targets take, over the twin's shared
                                          runtime +asils/+pc
+  engine/crates/adcs-relations/          the relations (S7.16), a crate generated whole: the design's relations library
+                                         (1.0.0's spec/physics, its lib_spec_physics_* nodes) and every group's computing
+                                         rows as tools/groupcode.py wires them (design/groups), each relation once: an item
+                                         of a group's module the library holds word for word is the library's, and the
+                                         group's rows call it there (modules of one name, env, ctl and risk, are one module);
+                                         under src/gen with the translator's dispatcher (std maths), src/wasm.rs the groups'
+                                         test apps' WebAssembly face (tools/groupcode.py deliver), and its tests: each
+                                         package's vectors as the interpreter draws them from the package's own files
+                                         (physics_vectors.json, groups_vectors.json, the twin's copies in matlab_sils/data;
+                                         the groups' `library` names where the crate holds a group's copy), and the nodes'
+                                         own test vectors (fixtures.json)
+  matlab_sils/+asils/+relations/         the same relations for the twin, one package
 
 Every file it writes says so in its first line. --check exits 1 when one is not what the design gives, or a file in a
 generated folder is not one the design gives.
@@ -69,6 +81,7 @@ import argparse
 import json
 import pathlib
 import posixpath
+import re
 import sqlite3
 import subprocess
 import sys
@@ -89,6 +102,23 @@ TARGETS = {
 # the MATLAB twin's package: every module the engine's targets take, one copy, beside the twin's own code
 TWIN = {"dir": "matlab_sils/+asils/+models", "pkg": "asils.models", "takes": list(TARGETS)}
 TOOLBOX = ("fsw/pseudocode/01",)       # the toolbox's pseudocode: code, read from the repository
+# The relations (S7.16): the design's relations library (1.0.0's spec/physics, its lib_spec_physics_* nodes) and every
+# group's computing rows as tools/groupcode.py wires them (design/groups), one crate and one MATLAB package, each relation
+# once: a group's item the library holds word for word is the library's (the group's rows call it there). The crate is
+# generated whole (its Cargo.toml, its lib.rs, its WebAssembly face for the groups' test apps, its tests), with the
+# translator's dispatcher; each package's vectors are drawn by the interpreter as the package's own files give them.
+RELATIONS = {
+    "crate": "engine/crates/adcs-relations", "name": "adcs-relations", "pkg": "asils.relations", "mdir": "matlab_sils/+asils/+relations",
+    "about": "TRI-NETRA relations: the design's relations (spec/physics) and every group's computing rows (design/groups), "
+             "each once, written from the design by tools/engine_build.py",
+    "library": "spec/physics/", "groups": ROOT / "design" / "groups",
+    # the vectors: the package, how many a function, the twin's copy (the crate's own beside its tests)
+    "vectors": {"physics": (12, "matlab_sils/data/physics_vectors.json"), "groups": (8, "matlab_sils/data/groups_vectors.json")},
+}
+SEED_VECTORS = 20261003
+SCALAR = re.compile(r"^real(\[[^\]]*\])?(\s+in\s.*)?$")     # a plain number with its unit, not an array
+PLAIN = re.compile(r"^(real|int|bool)(\[[^\]]*\])*$")     # a value the dispatcher takes and gives as numbers
+DECL = re.compile(r"^(fn|proc|record|table|const|data|choice)\s+([A-Za-z_][A-Za-z0-9_]*)")
 
 
 def blocks(db=None):
@@ -134,17 +164,19 @@ def modules(target, db=None):
     return dict(sorted(got.items()))
 
 
-def translate(texts, root=None, math=None, lang="rust", pkg=None, dispatch=False):
+def translate(texts, root=None, math=None, lang="rust", pkg=None, dispatch=False, title=TITLE):
     with tempfile.TemporaryDirectory(prefix="engine_build_") as tmp:
         files = []
         for p, t in texts.items():
-            f = pathlib.Path(tmp) / pathlib.PurePosixPath(p).name
+            # a file by its design path: the relations' env.pc and the env group's are two files of one module
+            f = pathlib.Path(tmp) / pathlib.PurePosixPath(p)
             if f.exists():
-                raise SystemExit(f"engine_build: two modules named {f.name}")
+                raise SystemExit(f"engine_build: two modules at {p}")
+            f.parent.mkdir(parents=True, exist_ok=True)
             f.write_text(t, encoding="utf-8")
             files.append(str(f))
         if lang == "rust":
-            opts = ["--root", root, "--title", TITLE] + ([] if dispatch else ["--no-dispatch"]) + (["--math", math] if math else [])
+            opts = ["--root", root, "--title", title] + ([] if dispatch else ["--no-dispatch"]) + (["--math", math] if math else [])
         else:
             opts = ["--pkg", pkg]
         cmd = [str(TNDB), "translate", lang, *files, *opts] if TNDB.is_file() else \
@@ -167,14 +199,291 @@ def outputs(db=None):
             twin.update(mods)
     for rel, text in translate(dict(sorted(twin.items())), lang="matlab", pkg=TWIN["pkg"]).items():
         out[f"{TWIN['dir']}/{rel}"] = text
+    out.update(relations(db))
+    return out
+
+
+# ------------------------------------------------------------------ the relations (S7.16)
+
+def _items(text):
+    """(the module's head, [(name, the item's text with the comments above it)]) of a module's top-level items."""
+    lines = text.rstrip("\n").split("\n")
+    head, items, notes, i = [], [], [], 0
+    while i < len(lines):
+        ln = lines[i]
+        m = DECL.match(ln)
+        if ln.startswith("##"):
+            notes.append(ln)
+        elif m:
+            body = [ln]
+            if m.group(1) in ("const", "choice"):
+                while body[-1].rstrip().endswith("\\") and i + 1 < len(lines):
+                    i += 1
+                    body.append(lines[i])
+            else:
+                while i + 1 < len(lines) and lines[i] != "end":
+                    i += 1
+                    body.append(lines[i])
+            items.append((m.group(2), "\n".join(notes + body)))
+            notes = []
+        elif ln.strip():
+            if items:
+                raise SystemExit(f"engine_build: a top-level line the relations cannot place: {ln!r}")
+            head += notes + [ln]
+            notes = []
+        elif notes and not items:
+            head += notes
+            notes = []
+        i += 1
+    return head, items
+
+
+def _same(a, b):
+    # how an item is drawn (`## inputs from:`) is its package's vectors', not the relation
+    strip = lambda t: "\n".join(x for x in t.split("\n") if not x.startswith("## inputs from:"))  # noqa: E731
+    return strip(a) == strip(b)
+
+
+def relations_sources(db=None):
+    """({design path: text} the relations crate is translated from, {a group's name: the library's name}): the library's
+    modules whole, then each group's module without the items the library holds word for word (refused when a group writes
+    one of the library's names another way: two relations of one name in one package)."""
+    lib = {p: from_design.text(p, db) for p in from_design.paths(RELATIONS["library"], db)}
+    if not lib:
+        raise SystemExit(f"engine_build: the design holds no relations under {RELATIONS['library']}")
+    held = {}
+    for p, t in lib.items():
+        head, items = _items(t)
+        mod = next(x.split()[1] for x in head if x.startswith("module "))
+        for name, text in items:
+            held[name] = (mod, text)
+    out, moved = dict(lib), {}
+    for f in sorted(RELATIONS["groups"].glob("*.pc")):
+        head, items = _items(f.read_text(encoding="utf-8"))
+        mod = next(x.split()[1] for x in head if x.startswith("module "))
+        kept = []
+        for name, text in items:
+            if name not in held:
+                kept.append(text)
+            elif _same(held[name][1], text):
+                moved[f"{mod}::{name}"] = f"{held[name][0]}::{name}"
+            else:
+                raise SystemExit(f"engine_build: {name} is written one way in {RELATIONS['library']}{held[name][0]}.pc and another "
+                                 f"in design/groups/{f.name}")
+        out[f"design/groups/{f.name}"] = "\n".join(head) + "\n\n" + "\n\n".join(kept) + "\n"
+    return out, moved
+
+
+RELATIONS_CARGO = """# Generated by tools/engine_build.py; do not edit.
+[package]
+name = "{name}"
+description = "{about}"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+publish.workspace = true
+
+[lib]
+# the Rust library (its tests), and WebAssembly for the groups' test apps (tools/groupcode.py deliver)
+crate-type = ["cdylib", "rlib"]
+
+[dev-dependencies]
+# read every decimal to the double it was written from
+serde_json = {{ version = "1", features = ["float_roundtrip"] }}
+"""
+
+RELATIONS_LIB = """//! {about}; do not edit.
+//! The translator's modules are under `gen`, re-exported here; `wasm` is the groups' test apps' WebAssembly face.
+#![allow(clippy::all)]
+pub mod gen;
+pub use gen::*;
+pub mod wasm;
+"""
+
+RELATIONS_WASM = """//! The relations as WebAssembly, for the groups' test apps (tools/groupcode.py deliver): one entry, `call`, that runs a
+//! function by its index in NAMES on the doubles in the input buffer. Generated by tools/engine_build.py; do not edit.
+#![allow(clippy::missing_safety_doc)]
+
+/// Each function as a group's test app names it (its group's module, or shared), in the order the apps index them.
+pub const NAMES: &[&str] = &[NAMES_HERE];
+/// Where each is in this crate: an item the relations library holds word for word is the library's.
+pub const CALLS: &[&str] = &[CALLS_HERE];
+static mut BUF_IN: [f64; 256] = [0.0; 256];
+static mut BUF_OUT: [f64; 64] = [0.0; 64];
+
+#[cfg_attr(target_arch = "wasm32", no_mangle)]
+pub extern "C" fn input() -> *mut f64 { core::ptr::addr_of_mut!(BUF_IN) as *mut f64 }
+#[cfg_attr(target_arch = "wasm32", no_mangle)]
+pub extern "C" fn output() -> *const f64 { core::ptr::addr_of!(BUF_OUT) as *const f64 }
+
+/// Run NAMES[which] on the first `n` inputs; the number of outputs written, or -1.
+#[cfg_attr(target_arch = "wasm32", no_mangle)]
+pub extern "C" fn call(which: u32, n: u32) -> i32 {
+    let Some(name) = CALLS.get(which as usize) else { return -1 };
+    let x = unsafe { core::slice::from_raw_parts(core::ptr::addr_of!(BUF_IN) as *const f64, n.min(256) as usize) };
+    match crate::dispatch::call(name, x) {
+        Some(y) => {
+            let out = unsafe { core::slice::from_raw_parts_mut(core::ptr::addr_of_mut!(BUF_OUT) as *mut f64, 64) };
+            for (o, v) in out.iter_mut().zip(&y) { *o = *v; }
+            y.len().min(64) as i32
+        }
+        None => -1,
+    }
+}
+"""
+
+RELATIONS_FIXTURES = """//! Every node's own test vectors (answers from outside the code), through the generated Rust.
+//! Generated by tools/engine_build.py from design/groups/*.wire.json; do not edit.
+
+#[test]
+fn every_node_reproduces_its_own_test_vectors() {
+    let v: serde_json::Value = serde_json::from_str(include_str!("fixtures.json")).unwrap();
+    let mut n = 0;
+    for f in v.as_array().unwrap() {
+        let name = f["call"].as_str().unwrap();
+        let x: Vec<f64> = f["inputs"].as_array().unwrap().iter().map(|a| a.as_f64().unwrap()).collect();
+        let got = adcs_relations::dispatch::call(name, &x).unwrap_or_else(|| panic!("{name}: no such function"))[0];
+        let (want, tol) = (f["expected"].as_f64().unwrap(), f["tolerance"].as_f64().unwrap());
+        let err = (got - want).abs();
+        assert!(err <= tol * want.abs().max(if want == 0.0 { 1.0 } else { 0.0 }),
+                "{} {}: Rust gives {got:e}, the node expects {want:e} within {tol:e}", f["node"].as_str().unwrap(), f["vector"].as_str().unwrap());
+        n += 1;
+    }
+    assert!(n > 0, "no test vector at all");
+}
+
+#[test]
+fn every_function_of_the_test_apps_is_called_where_the_crate_holds_it() {
+    use adcs_relations::wasm::{CALLS, NAMES};
+    assert_eq!(NAMES.len(), CALLS.len());
+    let groups: serde_json::Value = serde_json::from_str(include_str!("groups_vectors.json")).unwrap();
+    for (n, c) in NAMES.iter().zip(CALLS) {
+        let e = groups["vectors"].get(*n).unwrap_or_else(|| panic!("{n}: the groups' package drew no vector"));
+        assert_eq!(groups["library"].get(*n).map(|x| x.as_str().unwrap()).unwrap_or(n), *c, "{n}: called where the crate does not hold it");
+        if let Some(s) = e["sets"].as_array().unwrap().first().filter(|_| !e["proc"].as_bool().unwrap_or(false)) {
+            let x: Vec<f64> = s["in"].as_array().unwrap().iter().map(|a| a.as_f64().unwrap()).collect();
+            assert!(adcs_relations::dispatch::call(c, &x).is_some(), "{n}: the crate cannot call {c}");
+        }
+    }
+}
+"""
+
+
+RELATIONS_VECTORS = """//! Translator = interpreter: every vector the interpreter (design/js/pcode.js) drew for each package the crate holds (the
+//! relations library, physics_vectors.json; the groups' computing rows, groups_vectors.json), through the Rust translation.
+//! A group's function the library holds word for word is called where the crate holds it (the file's `library`).
+//! Generated by tools/engine_build.py; do not edit.
+//!
+//! The arithmetic is the same on both sides (x^k by repeated multiplication, sums from the left,
+//! min/max written out), so a function that uses no transcendental (directly or through what it
+//! calls) must agree bit for bit. A sin, exp, log or atan2 may differ in its last bits between the
+//! platform's maths library and JavaScript's (more after a large argument is reduced), so those are
+//! held to 1e-12 relative, and the test reports how many values are bit for bit.
+//! A proc's vector is a run of calls, its state carried from each call to the next.
+
+fn nums(v: &serde_json::Value) -> Vec<f64> {
+    v.as_array().unwrap().iter().map(|a| a.as_f64().unwrap()).collect()
+}
+
+fn every_vector(file: &str, text: &str) {
+    let v: serde_json::Value = serde_json::from_str(text).unwrap();
+    let (mut n, mut values, mut exact, mut worst) = (0, 0, 0, 0.0f64);
+    for (key, entry) in v["vectors"].as_object().unwrap() {
+        let name = v["library"].get(key).map(|x| x.as_str().unwrap()).unwrap_or(key);
+        let must_be_exact = entry["exact"].as_bool().unwrap();
+        let sets = entry["sets"].as_array().unwrap();
+        assert!(!sets.is_empty(), "{key}: no vector drawn");
+        for s in sets {
+            let (got, want): (Vec<Vec<f64>>, Vec<Vec<f64>>) = if entry["proc"].as_bool().unwrap_or(false) {
+                let calls = s["calls"].as_array().unwrap();
+                let xs: Vec<Vec<f64>> = calls.iter().map(|c| nums(&c["in"])).collect();
+                let got = adcs_relations::dispatch::call_seq(name, &xs).unwrap_or_else(|| panic!("{key}: no such proc {name}"));
+                (got, calls.iter().map(|c| nums(&c["out"])).collect())
+            } else {
+                let got = adcs_relations::dispatch::call(name, &nums(&s["in"])).unwrap_or_else(|| panic!("{key}: no such function {name}"));
+                (vec![got], vec![nums(&s["out"])])
+            };
+            for (g, w) in got.iter().zip(&want) {
+                assert_eq!(g.len(), w.len(), "{key}: output count");
+                for (g, w) in g.iter().zip(w) {
+                    let err = (g - w).abs() / w.abs().max(1e-300);
+                    worst = worst.max(err);
+                    values += 1;
+                    if g.to_bits() == w.to_bits() { exact += 1; }
+                    assert!(g.to_bits() == w.to_bits() || (!must_be_exact && err < 1e-12),
+                            "{key}: Rust {g:e}, interpreter {w:e}{}", if must_be_exact { " (no transcendental: must agree bit for bit)" } else { "" });
+                }
+            }
+            n += 1;
+        }
+    }
+    println!("{file}: {n} vectors, {values} values, {exact} bit for bit, worst relative difference {worst:e}");
+}
+
+#[test]
+fn every_vector_of_the_relations_library_is_reproduced() {
+    every_vector("physics_vectors.json", include_str!("physics_vectors.json"));
+}
+
+#[test]
+fn every_vector_of_the_groups_rows_is_reproduced() {
+    every_vector("groups_vectors.json", include_str!("groups_vectors.json"));
+}
+"""
+
+
+def relations(db=None):
+    """{repository path: text} of the relations crate, its MATLAB package and its vectors."""
+    import pcode
+    R = RELATIONS
+    crate = R["crate"]
+    srcs, moved = relations_sources(db)
+    out = {f"{crate}/Cargo.toml": RELATIONS_CARGO.format(name=R["name"], about=R["about"]),
+           f"{crate}/src/lib.rs": RELATIONS_LIB.format(about=R["about"])}
+    for rel, text in translate(srcs, "crate::gen", None, dispatch=True, title=R["about"]).items():
+        out[f"{crate}/src/gen/{pathlib.PurePosixPath(rel).name}"] = text
+    for rel, text in translate(srcs, lang="matlab", pkg=R["pkg"]).items():
+        out[f"{R['mdir']}/{rel}"] = text
+    # each package's vectors as its own files give them (the interpreter draws them in order: the same files, the same
+    # draws); the groups' only for what the dispatcher calls with numbers, and not for what is the library's
+    lib_files = sorted(from_design.folder(R["library"], db).glob("*.pc"))
+    group_files = sorted(R["groups"].glob("*.pc"))
+    plain = {f"{f['module']}::{f['name']}" for f in pcode.cli("signatures", *map(str, group_files))
+             if all(PLAIN.match(x["type"]) for x in f["inputs"] + f["outputs"])}
+    for pkg, files, keep in (("physics", lib_files, None), ("groups", group_files, plain)):
+        n, twin = R["vectors"][pkg]
+        vec = pcode.cli("vectors", *map(str, files), "--n", n, "--seed", SEED_VECTORS)
+        if keep is not None:
+            vec = {k: v for k, v in vec.items() if k in keep}
+        body = {"generated_by": f"tools/engine_build.py (the interpreter, design/js/pcode.js, on the {pkg} package's own files)",
+                "vectors": vec}
+        lib = {k: moved[k] for k in vec if pkg == "groups" and moved.get(k, k) != k}
+        if lib:     # a group's function the library holds: where the crate (and the twin's package) has it
+            body["library"] = lib
+        text = json.dumps(body, indent=1, sort_keys=True) + "\n"
+        out[f"{crate}/tests/{pkg}_vectors.json"] = text
+        out[twin] = text
+    out[f"{crate}/tests/vectors.rs"] = RELATIONS_VECTORS
+    # every node's own test vectors and the test apps' names, each called where the crate holds it
+    wires = [json.loads(f.read_text(encoding="utf-8")) for f in sorted(R["groups"].glob("*.wire.json"))]
+    page = lambda w, r: f"{'shared' if r['fn'] in w.get('shared', []) else w['group']}::{r['fn']}"  # noqa: E731
+    fixtures = [{"node": r["id"], "vector": v["name"], "call": moved.get(page(w, r), page(w, r)), "inputs": v["inputs"],
+                 "expected": v["expected"], "tolerance": v["tolerance"]}
+                for w in wires for r in w["rows"] for v in r["vectors"]
+                if r["fn"] and len(r["outputs"]) == 1 and all(SCALAR.match(t) for _, t in r["params"] + r["outputs"])]
+    out[f"{crate}/tests/fixtures.json"] = json.dumps(fixtures, indent=1, sort_keys=True) + "\n"
+    out[f"{crate}/tests/fixtures.rs"] = RELATIONS_FIXTURES
+    names = sorted({page(w, r) for w in wires for r in w["rows"] if r["fn"]} & plain)
+    out[f"{crate}/src/wasm.rs"] = RELATIONS_WASM.replace("NAMES_HERE", ", ".join(json.dumps(x) for x in names)) \
+        .replace("CALLS_HERE", ", ".join(json.dumps(moved.get(x, x)) for x in names))
     return out
 
 
 def gen(a):
     db = pathlib.Path(a.design).resolve() if a.design else None
     outs = outputs(db)
-    have = {p.relative_to(ROOT).as_posix() for t in [*TARGETS.values(), TWIN] if (ROOT / t["dir"]).is_dir()
-            for p in (ROOT / t["dir"]).rglob("*") if p.is_file()}
+    dirs = [t["dir"] for t in [*TARGETS.values(), TWIN]] + [RELATIONS["crate"], RELATIONS["mdir"]]
+    have = {p.relative_to(ROOT).as_posix() for d in dirs if (ROOT / d).is_dir() for p in (ROOT / d).rglob("*") if p.is_file()}
     stale = sorted(rel for rel, t in outs.items() if not (ROOT / rel).is_file() or (ROOT / rel).read_text() != t)
     extra = sorted(have - set(outs))
     if a.check:
@@ -206,6 +515,8 @@ def main(argv=None):
     db = pathlib.Path(a.design).resolve() if a.design else None
     for target in TARGETS:
         print(f"{target}: " + ", ".join(modules(target, db)))
+    srcs, moved = relations_sources(db)
+    print(f"{RELATIONS['name']}: " + ", ".join(srcs) + f" ({len(moved)} item(s) of the groups' the library's)")
     return 0
 
 

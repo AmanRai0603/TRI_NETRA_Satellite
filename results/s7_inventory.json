@@ -796,6 +796,69 @@
     "language (S7.15b): a buffer is an inout input only, so `adcs design call floquet::fq_frame` hands back the run's nine columns (17,218 samples each) it only reads; a read-only buffer would save the echo (0.1 s)."
    ],
    "regression_copy_bytes": 10981376
+  },
+  "after_s7_16": {
+   "built_in": 0,
+   "design_nodes": 1275,
+   "how": "no change to the design: tools/engine_build.py writes the relations crate (engine/crates/adcs-relations) and package (+asils/+relations) from the design's relations library and the groups' wiring, each relation once",
+   "moved": [],
+   "added": {},
+   "retired": [
+    "engine/crates/adcs-physics",
+    "engine/crates/adcs-groups",
+    "engine/crates/adcs-groups-wasm",
+    "matlab_sils/+asils/+physics",
+    "matlab_sils/+asils/+groups",
+    "tools/pcode.py physics package",
+    "tools/groupcode.py gen, test"
+   ],
+   "relations_crate": {
+    "functions": 90,
+    "library_functions": 41,
+    "group_functions": 49,
+    "group_items_the_library_holds": 43,
+    "of_them_functions": 33,
+    "constants": 9,
+    "tables": 1,
+    "in_another_module": 22,
+    "rust_lines": 2923,
+    "rust_lines_before": 3633,
+    "matlab_files": 97,
+    "matlab_files_before": 133,
+    "matlab_lines": 1999,
+    "matlab_lines_before": 2502,
+    "wasm_bytes": 119256,
+    "wasm_bytes_before": 115125
+   },
+   "vectors": {
+    "physics": {
+     "functions": 41,
+     "vectors": 492,
+     "values": 540,
+     "bit_for_bit": 530
+    },
+    "groups": {
+     "functions": 76,
+     "vectors": 608,
+     "values": 2144,
+     "bit_for_bit": 2138
+    },
+    "same_as_before": true
+   },
+   "parity": {
+    "inputs": 167,
+    "layout": 151,
+    "blobs": 48,
+    "runs": 48,
+    "evaluate_equal": 1304,
+    "evaluate_of": 1500
+   },
+   "findings": [
+    "the design (carried 1.0.0 pointers): the computing rows carried from spec/physics name their code as adcs_physics::<module>::<fn> and asils.physics.<module>.<fn> (code.rust, code.twin; tools/carry_over.py), and the eleven lib_spec_physics_* nodes' labels say 'adcs-physics is generated from them'; both now name adcs-relations and +asils/+relations. Design content, the owners' to restate; left as carried.",
+    "act and design: the slew is stated twice: gw_3 and gw_4 (spec/physics/rw.pc: H = 2 I theta/T, tau = 4 I theta/T^2) and the sizing's demand (design/sizedemand.pc, S7.15, as flown: the rate twice the angle over the time, the acceleration 2 pi the angle over the time squared). The engine flies the sizing's; the relations crate holds gw_3's and gw_4's. Which law a slew takes, and one node stating it, is theirs.",
+    "translators: the language has one namespace per translation, so a module of the relations library cannot yet sit in an engine target beside a module defining one of its names otherwise (S7.11's eclipse_fraction): the fold keeps them in separate crates and packages. Engine targets that want a library relation (spec/physics/orbit.pc's circular_period in env_case_orbit) need names scoped to their module in the language (both interpreters, every translator) or the target to call the relations crate.",
+    "build: constants.pc, env.pc (the library's) and the toolbox 01_math.pc are still translated into each engine target that takes them (adcs-sim-core with its portable maths, adcs-pop, adcs-sim, adcs-design) and into adcs-relations: one design copy, one translation per crate. A translator option naming modules another crate holds would let the std-maths targets share adcs-relations' copy."
+   ]
   }
  },
  "built_in_nodes": [
@@ -6265,7 +6328,8 @@
   {
    "step": "S7.16",
    "work": "Fold adcs-physics, adcs-groups and adcs-groups-wasm into one generated crate and one MATLAB package; the hand copies of their laws (adcs-design slew, dipole, ring) call it.",
-   "parity": "cargo test -p adcs-physics -p adcs-groups (as one); groupcode.py gen --check; app routes"
+   "parity": "cargo test -p adcs-physics -p adcs-groups (as one); groupcode.py gen --check; app routes",
+   "status": "done (9 Oct 2026): adcs-physics, adcs-groups and adcs-groups-wasm folded into one generated crate, engine/crates/adcs-relations, and one MATLAB package, +asils/+relations, written by tools/engine_build.py from the design's relations library (spec/physics, the lib_spec_physics_* nodes) and the groups' wiring (design/groups), each relation once: 43 of the groups' items (33 functions, 9 constants, the atmosphere table) are the library's; names that differ from the engine targets' (eclipse_fraction, aero_torque, coil_dipole, rotor_axes) kept apart by module scoping (crate and package), not renamed; the test apps' WebAssembly from the same crate; tools/pcode.py's physics package and tools/groupcode.py gen and test retired. No hand copy of the laws was left (S7.3-S7.15). Both packages' vectors the same; the parity gate as after S7.15b; check_all --octave 27/27."
   },
   {
    "step": "S7.17",

@@ -43,27 +43,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "adcs-groups"
-version = "1.0.0"
-dependencies = [
- "serde_json",
-]
-
-[[package]]
-name = "adcs-groups-wasm"
-version = "1.0.0"
-dependencies = [
- "adcs-groups",
-]
-
-[[package]]
-name = "adcs-physics"
-version = "1.0.0"
-dependencies = [
- "serde_json",
-]
-
-[[package]]
 name = "adcs-plot"
 version = "1.0.0"
 dependencies = [
@@ -72,6 +51,13 @@ dependencies = [
 
 [[package]]
 name = "adcs-pop"
+version = "1.0.0"
+dependencies = [
+ "serde_json",
+]
+
+[[package]]
+name = "adcs-relations"
 version = "1.0.0"
 dependencies = [
  "serde_json",

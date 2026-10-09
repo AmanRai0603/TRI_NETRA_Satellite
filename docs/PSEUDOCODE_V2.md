@@ -14,8 +14,8 @@ dependencies, serves every use:
 | the translators to Rust and to MATLAB | `design/js/pcode_gen.js` |
 
 The physics relations of `spec/plan/physics.toml` are written in it (`spec/physics/*.pc`); their
-Rust translation is the crate `engine/crates/adcs-physics`, their MATLAB translation the package
-`matlab_sils/+asils/+physics`. The flight algorithms of `fsw/pseudocode/` are written in it too
+Rust translation is in the crate `engine/crates/adcs-relations`, their MATLAB translation in the package
+`matlab_sils/+asils/+relations`, with every group's computing rows, each relation once (`tools/engine_build.py`, S7.16). The flight algorithms of `fsw/pseudocode/` are written in it too
 (`fsw/pseudocode/*.pc`, beside the prose `.md` of each chapter); the hand-written C and Rust flight
 software are held to them (see *The flight software against its pseudocode*).
 
@@ -314,8 +314,10 @@ python3 tools/pcode.py fixtures                       # the seeded test vectors 
 `spec/plan/physics.toml`: the same functions, with the same arguments in the same order.
 
 **Translator = interpreter.** `gen` draws test vectors from the interpreter (inputs within each
-input's range, from a fixed seed) into `engine/crates/adcs-physics/tests/vectors.json` and
-`matlab_sils/data/physics_vectors.json`. The Rust test (`cargo test -p adcs-physics`) and the
+input's range, from a fixed seed) into each package's vectors file: the language's self-test's here
+(`matlab_sils/data/pcselftest_vectors.json`), the relations' and the groups' by `tools/engine_build.py`
+(`engine/crates/adcs-relations/tests/physics_vectors.json` and `groups_vectors.json`, and the twin's copies in
+`matlab_sils/data/`). The Rust tests (`cargo test -p pcode-selftest -p adcs-relations`) and the
 twin's `t_physics_vectors` run every vector through their translation. Each vector also carries
 each value's exact bits, for readers that do not parse decimals to the nearest double (Octave's
 `jsondecode`).

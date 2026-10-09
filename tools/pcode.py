@@ -1,22 +1,22 @@
 #!/usr/bin/env python3
 """The pseudocode v2 tools (docs/PSEUDOCODE_V2.md): check a file, run a function, and make (or check)
-everything generated from the physics relations (spec/physics/*.pc, as the design holds them: tools/from_design.py).
+what the language makes of itself: its self-test, its MATLAB runtime, the flight algorithms' vectors and the checker.
 
     python3 tools/pcode.py check FILE...                  units, types, every output set, no recursion
     python3 tools/pcode.py run FILE... --fn NAME --args JSON   the interpreter's outputs (SI)
-    python3 tools/pcode.py gen [--check]                  write (or check) everything the pseudocode makes:
-        engine/crates/adcs-physics/                       the physics (spec/physics/*.pc) in Rust: a crate,
-                                                          with test vectors drawn from the interpreter
-        matlab_sils/+asils/+physics/                      the physics in MATLAB, and the same vectors in
-                                                          matlab_sils/data/physics_vectors.json
-        engine/crates/pcode-selftest/, +asils/+pcselftest the language's own test (design/pcode_selftest)
+    python3 tools/pcode.py gen [--check]                  write (or check) everything the language makes:
+        engine/crates/pcode-selftest/, +asils/+pcselftest the language's own test (design/pcode_selftest), in Rust
+                                                          and MATLAB, with its vectors drawn from the interpreter
         fsw/tests/pcode_vectors.txt                       the flight algorithms' vectors (fsw/pseudocode/*.pc),
                                                           which the C and Rust tests both read
-        matlab_sils/+asils/+pc/*.m                        the MATLAB runtime they share
+        matlab_sils/+asils/+pc/*.m                        the MATLAB runtime every package shares
         design/pcode_checker.html                         the checker in the browser: one offline page
     python3 tools/pcode.py fixtures                       every seeded test vector (spec/plan/seed_content.toml)
                                                           of a physics row, run in the interpreter
 
+The design's relations (spec/physics/*.pc, as the design holds them: tools/from_design.py) are generated with the groups'
+code by tools/engine_build.py into one crate and one MATLAB package (engine/crates/adcs-relations,
+matlab_sils/+asils/+relations; S7.16).
 `gen --check` also holds the relations to the registry: spec/plan/physics.toml names each function
 with its module and arguments, and the pseudocode defines exactly those, in that order.
 
@@ -48,14 +48,11 @@ N_FSW_VECTORS, FSW_BUDGET = 32, 2000   # the flight algorithms branch more; a fu
 
 # What the pseudocode makes: each package's sources, its Rust crate, its MATLAB package, its vectors.
 PACKAGES = [
-    {"name": "physics", "src": from_design.folder("spec/physics/"), "crate": ROOT / "engine" / "crates" / "adcs-physics", "crate_name": "adcs-physics",
-     "about": "TRI-NETRA physics: the relations of spec/plan/physics.toml, translated from the pseudocode (spec/physics/*.pc) by tools/pcode.py",
-     "mpkg": "asils.physics", "vectors": ROOT / "matlab_sils" / "data" / "physics_vectors.json", "registry": True},
     {"name": "selftest", "src": ROOT / "design" / "pcode_selftest", "crate": ROOT / "engine" / "crates" / "pcode-selftest", "crate_name": "pcode-selftest",
      "about": "The pseudocode's own test: every feature of the language, translated by tools/pcode.py and held to the interpreter",
      "mpkg": "asils.pcselftest", "vectors": ROOT / "matlab_sils" / "data" / "pcselftest_vectors.json", "registry": False},
 ]
-PHYSICS = PACKAGES[0]["src"]
+PHYSICS = from_design.folder("spec/physics/")      # the relations: their registry and fixtures held here, their code engine_build's
 
 # The flight software's algorithms (fsw/pseudocode/*.pc) are not translated: the hand-written C
 # (fsw/src) and Rust (fsw-rs/src) are held to the interpreter on its vectors, written here as
@@ -320,7 +317,7 @@ def main(argv=None):
     errs = gen(a.check)
     for e in errs:
         print("pcode: " + e, file=sys.stderr)
-    print(f"pcode: {len(PACKAGES)} packages ({', '.join(p['name'] for p in PACKAGES)}) {'checked' if a.check else 'generated'}, {len(errs)} problem(s)")
+    print(f"pcode: {len(PACKAGES)} package(s) ({', '.join(p['name'] for p in PACKAGES)}) {'checked' if a.check else 'generated'}, {len(errs)} problem(s)")
     return 1 if errs else 0
 
 

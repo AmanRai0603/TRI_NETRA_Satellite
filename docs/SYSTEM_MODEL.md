@@ -317,7 +317,7 @@ The design is data. The code makes it run, shows it and checks it.
 | sign-offs, seals, versions; the flight images built from a released design | the checks, signing and verifying; one library that reads and writes every file, in the installed application and in the page |
 
 **Generated, never edited.** Everything the time engine, the flight software and the MATLAB twin compute is
-generated from the database by the translators. That covers `adcs-physics`, the device and environment models,
+generated from the database by the translators. That covers the design's relations (`adcs-relations`), the device and environment models,
 the flight algorithms in C and in Rust, and the twin's functions. Each generated file says so in its header, and
 the parity tests hold it equal to the interpreter.
 

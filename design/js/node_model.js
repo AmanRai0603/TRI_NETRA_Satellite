@@ -116,8 +116,8 @@ export const STEPS = [
   ] },
   { id: "code", title: "Code", kinds: ["computed"], fields: [
     f("code.c", "C flight software", "Where it is computed in the C flight software, if it is.", "Each relation has one home in each implementation.", "fsw/src/adcs_ctl.c: adcs_sat_dipole"),
-    f("code.rust", "Rust", "Where it is computed in Rust (engine or flight software).", "So the code can be held to the pseudocode.", "engine/crates/adcs-physics: mtq::dipole"),
-    f("code.twin", "MATLAB twin", "Where it is computed in the MATLAB twin.", "The twin is checked against the engine.", "+asils/+physics/+mtq/dipole.m"),
+    f("code.rust", "Rust", "Where it is computed in Rust (engine or flight software).", "So the code can be held to the pseudocode.", "engine/crates/adcs-relations: mtq::dipole"),
+    f("code.twin", "MATLAB twin", "Where it is computed in the MATLAB twin.", "The twin is checked against the engine.", "+asils/+relations/+mtq/dipole.m"),
   ] },
   { id: "belief", title: "Belief record", kinds: ALL, fields: [
     f("belief.area", "Area", "Which of the seven areas does the belief behind this node sit in (D01)?", "The risk register is kept by area.", "model", { type: "choice", choices: CATALOG.areas, need: ALL }),

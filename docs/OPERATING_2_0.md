@@ -89,7 +89,7 @@ Each piece is kept, changed or retired, once. Nothing is laid over the old.
 | the design in the repository (`spec/`, `catalogue/`, `scenarios/`, `campaigns/`, `trades/`, `matlab_sils/cases`, `design/carry.toml`), seeded into node files | the design in the groups' signed files on the shared drive; the repository holds no design | changed |
 | the tree's layers and 20 groups by discipline (`design/groups.toml`) | the programme's and the systems' own files; each group mounted on the block it answers | changed |
 | stages inside a group, each signed by its owner | child blocks of the group's branch; each node signed by its node engineer | changed |
-| the developer takes sealed releases in (`tools/group.py verify` and `merge`), generates code (`tools/groupcode.py`), builds a test app and delivers it (`tools/delivery.py`) | the system engineer integrates in the application, which runs the same checks | changed |
+| the developer takes sealed releases in (`tools/group.py verify` and `merge`), wires the groups' code (`tools/groupcode.py`) and generates it (`tools/engine_build.py`), builds a test app and delivers it (`tools/delivery.py`) | the system engineer integrates in the application, which runs the same checks | changed |
 | a test application per release, accepted by the lead | today's design, which every group sees as soon as it seals | retired |
 | `design.tndb`, built by the developer from repository files | today's design, rebuilt from the drive on opening; the released design, released by the system engineer | changed |
 | a sign-off as a typed name | a signature with the person's own key | changed |

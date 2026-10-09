@@ -685,14 +685,15 @@ function chain_product_(dd, base, fills, ist, isun, model, level)
 end
 
 function m = t_physics_vectors()
-    % translator = interpreter: the vectors the pseudocode's interpreter drew (tools/pcode.py gen)
-    % through the MATLAB translations: the physics (+asils/+physics) and the language's own test
-    % (+asils/+pcselftest, every feature: records, procs with state, settling loops, tables), and every
-    % group's computing rows (+asils/+groups).
+    % translator = interpreter: the vectors the pseudocode's interpreter drew through the MATLAB
+    % translations: the design's relations and every group's computing rows, one package
+    % (+asils/+relations, tools/engine_build.py: each relation once, a group's copy of the library's
+    % called where the package holds it, the file's `library`), and the language's own test
+    % (+asils/+pcselftest, tools/pcode.py: every feature: records, procs with state, settling loops, tables).
     % Bit for bit where a function uses no transcendental; else within 1e-12 relative.
     here = fileparts(mfilename('fullpath'));
-    pk = {'physics_vectors.json', 'asils.physics'; 'pcselftest_vectors.json', 'asils.pcselftest'; ...
-          'groups_vectors.json', 'asils.groups'};     % the groups' generated code (tools/groupcode.py gen)
+    pk = {'physics_vectors.json', 'asils.relations'; 'pcselftest_vectors.json', 'asils.pcselftest'; ...
+          'groups_vectors.json', 'asils.relations'};
     n = 0; exact = 0; vals = 0; worst = 0;
     for p = 1:size(pk, 1)
         v = jsondecode(fileread(fullfile(here, '..', 'data', pk{p, 1})));
@@ -700,6 +701,7 @@ function m = t_physics_vectors()
         names = fieldnames(v.vectors);
         for i = 1:numel(names)
             e = v.vectors.(names{i}); name = regexprep(names{i}, '__', '::', 'once');   % jsondecode writes :: as __
+            if isfield(v, 'library') && isfield(v.library, names{i}), name = v.library.(names{i}); end
             sets = e.sets;
             for k = 1:numel(sets)
                 if iscell(sets), s = sets{k}; else, s = sets(k); end

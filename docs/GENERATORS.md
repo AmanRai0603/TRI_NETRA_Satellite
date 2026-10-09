@@ -1,6 +1,6 @@
 # From a node to tested code, by example
 
-**In one line:** a node's pseudocode is the one statement of what it computes; `tools/groupcode.py` wires every computing row of a group into one module, translates it to Rust (the engine), MATLAB (the twin) and WebAssembly (the test app), and holds every translation to the interpreter and to the node's own test vectors, so no row's physics is written by hand (`docs/RELEASE_PLAN.md` P10).
+**In one line:** a node's pseudocode is the one statement of what it computes; `tools/groupcode.py` wires every computing row of a group into one module, `tools/engine_build.py` translates it with the design's relations, each relation once, to Rust (the crate `adcs-relations`), MATLAB (the twin's `+asils/+relations`) and WebAssembly (the test app), and every translation is held to the interpreter and to the node's own test vectors, so no row's physics is written by hand (`docs/RELEASE_PLAN.md` P10; one crate since S7.16).
 
 ## Say it simply
 
@@ -25,28 +25,28 @@ end
 
 **2. Wired** (`python3 tools/groupcode.py wire`): into `design/groups/env.pc` with every other computing row of `env`, and `design/groups/env.wire.json` says `gd_0` is answered by the function `gd_0`, with inputs `r, i_max, i_min` and the node's own test vectors.
 
-**3. Translated** (`python3 tools/groupcode.py gen`): Rust, in `engine/crates/adcs-groups/src/env.rs`:
+**3. Translated** (`python3 tools/engine_build.py gen`): with the design's relations (`spec/physics`), into one crate. `gravity_gradient_torque_worst` is the library's relation word for word (`gnc`), so the crate holds it once, there, and `gd_0` calls it. Rust, in `engine/crates/adcs-relations/src/gen/env.rs`:
 
 ```rust
 pub fn gd_0(r: f64, i_max: f64, i_min: f64) -> f64 {
     let mut tau_gg: f64 = 0.0;
-    tau_gg = crate::env::gravity_gradient_torque_worst(r, i_max, i_min);
+    tau_gg = crate::gen::gnc::gravity_gradient_torque_worst(r, i_max, i_min);
     tau_gg
 }
 ```
 
-MATLAB, in `matlab_sils/+asils/+groups/+env/gd_0.m`:
+MATLAB, in `matlab_sils/+asils/+relations/+env/gd_0.m`:
 
 ```matlab
 function [tau_gg] = gd_0(r, i_max, i_min)
-    tau_gg = asils.groups.env.gravity_gradient_torque_worst(r, i_max, i_min);
+    tau_gg = asils.relations.gnc.gravity_gradient_torque_worst(r, i_max, i_min);
 end
 ```
 
 Every value is passed in SI (metres, kilograms, seconds), whatever unit the pseudocode states; the translator writes the conversion once.
 
-**4. Tested** (`python3 tools/groupcode.py test`):
-- the interpreter draws vectors inside each input's stated range; the Rust (`tests/vectors.rs`) and the twin (`t_physics_vectors` in Octave) must give the same outputs, bit for bit where no transcendental is involved, else within 1e-12;
+**4. Tested** (`cargo test -p adcs-relations`, in `engine/`):
+- the interpreter draws vectors inside each input's stated range, from each package's own files (the relations' and the groups'); the Rust (`tests/vectors.rs`) and the twin (`t_physics_vectors` in Octave) must give the same outputs, bit for bit where no transcendental is involved, else within 1e-12 (a group's copy of a library relation is called where the crate holds it: the vectors file's `library`);
 - every node's own test vectors (`tests/fixtures.json`, answers from outside the code) through the generated Rust, within each vector's tolerance.
 
 **5. Delivered** (`python3 tools/groupcode.py deliver`): `dist/test-apps/env.test-app.html`, one file the lead opens from disk. It runs each test vector in the interpreter and in WebAssembly built from the same Rust, side by side, and lets the lead try `gd_0` on numbers of their own.
@@ -60,7 +60,7 @@ Every value is passed in SI (metres, kilograms, seconds), whatever unit the pseu
 | The browser's WebAssembly is the Rust | it is the Rust, compiled for `wasm32-unknown-unknown`; the test apps compare it with the interpreter (`tests/browser/testapp.test.mjs`) |
 | The pseudocode is right | the node's own test vectors, answers from outside the code |
 | Nothing is hand-written | every computing row with pseudocode is in the generated code (`tests/test_groupcode.py`); the generated files say "do not edit" and `gen --check` finds an edit |
-| Today's numbers are unchanged | the generated crates sit beside the engine; `check_all` flies the engine's own tests and parity as before |
+| Today's numbers are unchanged | the generated crate sits beside the engine; `check_all` flies the engine's own tests and parity as before |
 
 ## When something fails
 

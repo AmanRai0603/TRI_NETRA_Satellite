@@ -217,6 +217,6 @@ fn flight_software_drawn_again() {
 
 #[test]
 fn groups_drawn_again() {
-    // tools/groupcode.py keeps the functions its generated dispatcher can call
+    // tools/engine_build.py keeps the functions the generated dispatcher can call with numbers
     redraw(&PACKAGES[3], 8, 1e9, false);
 }

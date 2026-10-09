@@ -70,7 +70,7 @@ impl Program {
         self.to_c_files(title, lib).map(by_path)
     }
     /// The program in MATLAB, as `toMatlab(program, { pkg })`: `+<module>/<name>.m` for each fn,
-    /// proc, table and record, then `call.m` and `call_seq.m`. `pkg` ("asils.physics" when not
+    /// proc, table and record, then `call.m` and `call_seq.m`. `pkg` ("asils.relations" when not
     /// given) is the package the files are placed in; the runtime is `asils.pc` (`matlab_runtime`).
     pub fn to_matlab_files(&self, pkg: Option<&str>) -> Result<Files, String> {
         matlab::to_matlab(&self.i, pkg)

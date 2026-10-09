@@ -60,7 +60,8 @@ pub const PACKAGES: &[Package] = &[
     Package { name: "physics", src: "archive/design-1.0/spec/physics", vectors: "matlab_sils/data/physics_vectors.json" },
     Package { name: "selftest", src: "design/pcode_selftest", vectors: "matlab_sils/data/pcselftest_vectors.json" },
     Package { name: "flight software", src: "fsw/pseudocode", vectors: "fsw/tests/pcode_vectors.txt" },
-    Package { name: "groups", src: "design/groups", vectors: "engine/crates/adcs-groups/tests/vectors.json" },
+    // the groups' computing rows as tools/groupcode.py wires them; their vectors drawn by tools/engine_build.py (adcs-relations)
+    Package { name: "groups", src: "design/groups", vectors: "matlab_sils/data/groups_vectors.json" },
 ];
 
 fn bits_of(v: &serde_json::Value) -> f64 {

@@ -8,8 +8,8 @@ You work on TRI-NETRA's code that is generated or held to the pseudocode.
 
 - **Translator first.** When generated Rust or MATLAB disagrees with the interpreter, the fault is in
   `design/js/pcode_gen.js` (or the interpreter, `design/js/pcode.js`), never in the generated file.
-  Fix the translator, then `python3 tools/pcode.py gen` and `python3 tools/groupcode.py gen`, and
-  show `pcode.py gen --check` and `cargo test -p adcs-physics -p pcode-selftest -p adcs-groups` pass.
+  Fix the translator, then `python3 tools/pcode.py gen` and `python3 tools/engine_build.py gen`, and
+  show `pcode.py gen --check`, `engine_build.py gen --check` and `cargo test -p adcs-relations -p pcode-selftest` pass.
 - **Never change a node's pseudocode or test vector** to make a test pass: it is its group's, from
   its sealed release. Name the node and send it back.
 - **Engine = twin, C = Rust.** A change to the plant, environment or flight software is made in Rust,

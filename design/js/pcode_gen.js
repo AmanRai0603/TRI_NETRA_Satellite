@@ -49,7 +49,6 @@ export function toRust(prog, opts = {}) {
   const interp = makeInterpreter(prog);
   const files = {};
   const extras = new Set();                       // runtime pieces a program uses beyond RUST_RT (rt.rs carries them only then)
-  const crate = opts.crate || "adcs_physics";
   // the flight build (tools/flight_build.py) embeds the code as a module of a no_std crate: its root path, the
   // module its scalar maths comes from, and no vector dispatcher (a test aid that needs the heap)
   const root = opts.root || "crate";
@@ -733,7 +732,7 @@ pub fn normal3(s: &mut Stream) -> [f64; 3] { let a = normal(s); let b = normal(s
 
 // ================================================================== MATLAB
 export function toMatlab(prog, opts = {}) {
-  const pkg = opts.pkg || "asils.physics";          // e.g. functions at +asils/+physics/+orbit/radius.m
+  const pkg = opts.pkg || "asils.relations";        // e.g. functions at +asils/+relations/+orbit/radius.m
   const rtp = opts.rt || "asils.pc";
   const files = {};
   const zero = (t) => {

@@ -21,7 +21,8 @@ The rules:
     is the repository's generated code: the functions its nodes state and every computing row's
     function, inputs and test vectors are those of design/groups/ (else: wire, gen and test it first);
   - the group's tests are the generated Rust reproducing the interpreter and every node's own test
-    vectors (`cargo test -p adcs-groups`), recorded pass or fail in the delivery;
+    vectors (`cargo test -p adcs-relations`, the crate tools/engine_build.py writes from the wiring), recorded pass
+    or fail in the delivery;
   - an acceptance is the lead's signature in the group file, naming the version, the release's
     fingerprint and the delivery's (SHA-256 of its JSON); one that names another fingerprint, or
     is by someone who is not the group's lead, does not count;
@@ -117,9 +118,9 @@ def _code_differences(root, gid):
 
 
 def _tests():
-    r = subprocess.run(["cargo", "test", "--locked", "--release", "-q", "-p", "adcs-groups"], cwd=ROOT / "engine", capture_output=True, text=True)
+    r = subprocess.run(["cargo", "test", "--locked", "--release", "-q", "-p", "adcs-relations"], cwd=ROOT / "engine", capture_output=True, text=True)
     tail = (r.stdout + r.stderr).strip().splitlines()[-6:]
-    return {"command": "cargo test -p adcs-groups", "passed": r.returncode == 0, "tail": tail}
+    return {"command": "cargo test -p adcs-relations", "passed": r.returncode == 0, "tail": tail}
 
 
 def deliver(root, gids=None, wave=None, *, test=True, out_of_order=None):
@@ -161,7 +162,8 @@ def deliver(root, gids=None, wave=None, *, test=True, out_of_order=None):
         d = _code_differences(root, g)
         if d:
             problems.append(f"{g}: the generated code is not this release's ({'; '.join(d[:4])}{'; …' if len(d) > 4 else ''}): "
-                            f"python3 tools/groupcode.py wire --design {root} && python3 tools/groupcode.py gen && python3 tools/groupcode.py test, then commit")
+                            f"python3 tools/groupcode.py wire --design {root} && python3 tools/engine_build.py gen && "
+                            "(cd engine && cargo test --release -p adcs-relations), then commit")
     if problems:
         return [], problems
     tests = _tests() if test else {"command": "not run (--no-test)", "passed": None, "tail": []}

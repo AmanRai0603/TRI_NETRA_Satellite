@@ -1,7 +1,7 @@
 // testapp_app.js -- a group's test app (docs/RELEASE_PLAN.md P10; tools/groupcode.py deliver): the
 // group's computing rows, each run on its own test vectors twice, in the pseudocode's interpreter
 // (design/js/pcode.js, what the node app's "Try it" runs) and in WebAssembly built from the Rust the
-// pseudocode was translated to (engine/crates/adcs-groups), side by side; any row can be tried on
+// pseudocode was translated to (engine/crates/adcs-relations), side by side; any row can be tried on
 // numbers of one's own. The rows the group has no code for yet are listed with their owner team.
 // Owner: Agastya. Copyright (c) 2026 Agastya. All rights reserved.
 import { compile, makeInterpreter } from "./pcode.js";
