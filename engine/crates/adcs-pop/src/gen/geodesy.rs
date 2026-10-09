@@ -38,9 +38,9 @@ pub fn geodetic_with(r: [f64; 3], re: f64, f: f64) -> (f64, f64, f64) {
     let mut p: f64 = f64::hypot(x, y);
     let mut la: f64 = f64::atan2(z, (p * (1.0 - e2)));
     {
-        let __end39: i64 = 5;
+        let __end57: i64 = 5;
         let mut k: i64 = 0;
-        while k < __end39 {
+        while k < __end57 {
             let mut sph: f64 = f64::sin(la);
             let mut n: f64 = (re / f64::sqrt((1.0 - (e2 * rt::ipow(sph, 2)))));
             let mut al: f64 = ((p / f64::cos(la)) - n);
@@ -65,9 +65,9 @@ pub fn geodetic_wgs84(r: [f64; 3]) -> (f64, f64, f64) {
     let mut lat: f64 = 0.0;
     let mut lon: f64 = 0.0;
     let mut alt: f64 = 0.0;
-    let __t40 = crate::gen::geodesy::geodetic_with(r, 6378137.0, (1.0 / 298.257223563));
-    lat = __t40.0;
-    lon = __t40.1;
-    alt = __t40.2;
+    let __t58 = crate::gen::geodesy::geodetic_with(r, 6378137.0, (1.0 / 298.257223563));
+    lat = __t58.0;
+    lon = __t58.1;
+    alt = __t58.2;
     (lat, lon, alt)
 }

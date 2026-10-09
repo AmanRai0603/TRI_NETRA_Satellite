@@ -135,9 +135,9 @@ pub fn cap_element(r_sat: [f64; 3], zhat: [f64; 3], e1: [f64; 3], e2: [f64; 3], 
     let mut ca: f64 = f64::cos(az);
     n_el = [0.0; 3];
     {
-        let __end30: i64 = 3;
+        let __end48: i64 = 3;
         let mut i: i64 = 0;
-        while i < __end30 {
+        while i < __end48 {
             n_el[(i) as usize] = ((cp * zhat[(i) as usize]) + (sp * ((ca * e1[(i) as usize]) + (sa * e2[(i) as usize]))));
             i += 1;
         }
@@ -217,22 +217,22 @@ pub fn erp_knocke(r_sat: [f64; 3], r_sun: [f64; 3], cr_aom: f64, doy: f64, nring
     let mut sw: [f64; 3] = [0.0, 0.0, 0.0];
     let mut lw: [f64; 3] = [0.0, 0.0, 0.0];
     {
-        let __end31: i64 = (nrings + 1);
+        let __end49: i64 = (nrings + 1);
         let mut ir: i64 = 1;
-        while ir < __end31 {
+        while ir < __end49 {
             {
-                let __end32: i64 = (nseg + 1);
+                let __end50: i64 = (nseg + 1);
                 let mut js: i64 = 1;
-                while js < __end32 {
+                while js < __end50 {
                     let (mut vis, mut n_el, mut es, mut cos_e, mut da, mut rho, mut lat) = crate::gen::erp::cap_element(r_sat, zhat, e1, e2, rho_max, ir, js, nrings, nseg);
                     if vis {
                         let (mut alb, mut emi) = crate::gen::erp::zonal_coeffs(lat, doy);
                         let (mut msw, mut mlw, mut geo) = crate::gen::erp::cap_exitance(alb, emi, n_el, shat, cos_e, da, rho);
                         let (mut ds, mut dl) = crate::gen::erp::cap_cannon(cr_aom, cos_e, da, rho, es, msw, mlw);
                         {
-                            let __end33: i64 = 3;
+                            let __end51: i64 = 3;
                             let mut i: i64 = 0;
-                            while i < __end33 {
+                            while i < __end51 {
                                 sw[(i) as usize] = (sw[(i) as usize] + ds[(i) as usize]);
                                 lw[(i) as usize] = (lw[(i) as usize] + dl[(i) as usize]);
                                 i += 1;
@@ -304,13 +304,13 @@ pub fn erp_boxwing(r_sat: [f64; 3], r_sun: [f64; 3], r_b2i: [[f64; 3]; 3], f: Sc
     let mut fsw: [f64; 3] = [0.0, 0.0, 0.0];
     let mut flw: [f64; 3] = [0.0, 0.0, 0.0];
     {
-        let __end34: i64 = (nrings + 1);
+        let __end52: i64 = (nrings + 1);
         let mut ir: i64 = 1;
-        while ir < __end34 {
+        while ir < __end52 {
             {
-                let __end35: i64 = (nseg + 1);
+                let __end53: i64 = (nseg + 1);
                 let mut js: i64 = 1;
-                while js < __end35 {
+                while js < __end53 {
                     let (mut vis, mut n_el, mut es, mut cos_e, mut da, mut rho, mut lat) = crate::gen::erp::cap_element(r_sat, zhat, e1, e2, rho_max, ir, js, nrings, nseg);
                     if vis {
                         let (mut alb, mut emi) = crate::gen::erp::zonal_coeffs(lat, doy);
@@ -322,9 +322,9 @@ pub fn erp_boxwing(r_sat: [f64; 3], r_sun: [f64; 3], r_b2i: [[f64; 3]; 3], f: Sc
                             let mut s: [f64; 3] = rt::mv(r_b2i, crate::gen::srp::facet_sum(f, u_b, (esw / c)));
                             let mut l: [f64; 3] = rt::mv(r_b2i, crate::gen::srp::facet_sum(f, u_b, (elw / c)));
                             {
-                                let __end36: i64 = 3;
+                                let __end54: i64 = 3;
                                 let mut i: i64 = 0;
-                                while i < __end36 {
+                                while i < __end54 {
                                     fsw[(i) as usize] = (fsw[(i) as usize] + s[(i) as usize]);
                                     flw[(i) as usize] = (flw[(i) as usize] + l[(i) as usize]);
                                     i += 1;

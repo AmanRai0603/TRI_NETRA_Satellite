@@ -1,0 +1,280 @@
+## Earth-orientation parameters for the precision orbit's IAU 2006/2000A frame builds (A, B and C), transcribed from
+## adcs-pop eop.rs, the port of the EOP half of the Octave POP's frames.eci2ecef_A, _B and _C (splice, finalize_eop,
+## eop_interp, lagr, leap_at): the IERS EOP 20 C04 series over its span, then the finals2000A rows beyond it (the IERS
+## Rapid Service/Prediction Centre: Bulletin B where it has a value, else Bulletin A), ordered by MJD; the celestial pole
+## offsets dX, dY from C04 when it carries them, else the finals' interpolated at each row (0 outside them); UT1 carried
+## as UT1 - TAI, which no leap second breaks, and given back as UT1 - UTC with the leap-second file's TAI - UTC. Builds A
+## and B interpolate every column linearly (Octave's interp1 'linear', the end segments extrapolated), the IERS sub-daily
+## tidal variations added when asked; build C takes the 4-point Lagrange interpolation the IERS gives for EOP (IERS
+## Conventions 2010, section 5.5.1, and its interp.f, LAGINT), with UT1 regularised for the zonal tides first (RG_ZONT2)
+## and the sub-daily tidal model always on (env_tidal_eop). The readers of Leap_Second.dat, finals2000A.all and the C04
+## file stay code (eop.rs) and hand their columns here; x, y, dX, dY in arcseconds, UT1 in seconds, MJD in days (UTC).
+## The developer's transcription (S7.19b), unsigned.
+module eop
+
+## TAI - UTC [s] at a UTC MJD from the leap-second file's rows (their MJD and TAI - UTC): the last row at or before it,
+## else the first row's.
+## length: 8
+fn leap_at(ls_mjd: inout real[1][*] in 41317 .. 62000, ls_dat: inout real[1][*] in 10 .. 37, mjd: real[1] in 40000 .. 64000) -> d: real[1]
+    d = ls_dat[0]
+    for i in 0 .. len(ls_mjd)
+        if ls_mjd[i] <= mjd
+            d = ls_dat[i]
+        end
+    end
+end
+
+## How many of the first n numbers of x are at or below xi, x ascending (a binary search: the count where x[i] <= xi
+## turns false).
+## length: 16
+fn count_at_or_below(x: inout real[1][*] in 40000 .. 64000, n: int in 0 .. 16, xi: real[1] in 40000 .. 64000) -> c: int
+    let lo = 0
+    let hi = n
+    settle max 64 until not (lo < hi)
+        if lo < hi
+            let mid = lo + div(hi - lo, 2)
+            if x[mid] <= xi
+                lo = mid + 1
+            else
+                hi = mid
+            end
+        end
+    end
+    c = lo
+end
+
+## Octave's interp1(x, y, xi, 'linear') over x (ascending) and y, in its piecewise form (y_i+1 - y_i)/(x_i+1 - x_i)
+## (xi - x_i) + y_i on the segment xi falls in: outside [x_1, x_n] the end segment extrapolated, or, with has_out, the
+## value out. nan for fewer than two points or a nan xi.
+## length: 16
+fn interp1_linear(x: inout real[1][*] in 40000 .. 64000, y: inout real[1][*] in -1 .. 1, xi: real[1] in 39000 .. 65000, \
+                  has_out: bool, out: real[1] in -1 .. 1) -> v: real[1]
+    let n = len(x)
+    if n < 2 or isnan(xi)
+        v = nan
+    elif has_out and (xi < x[0] or xi > x[n - 1])
+        v = out
+    else
+        let cnt = count_at_or_below(x, n, xi)
+        let i = min(max(cnt, 1), n - 1) - 1
+        let c1 = (y[i + 1] - y[i])/(x[i + 1] - x[i])
+        v = c1*(xi - x[i]) + y[i]
+    end
+end
+
+## Lagrange's polynomial through the points (x, f) at xi: the sum of f_a times the product over b != a of
+## (xi - x_b)/(x_a - x_b), each factor taken in turn.
+## length: 4
+fn lagr(x: inout real[1][*] in 40000 .. 64000, f: inout real[1][*] in -1 .. 1, xi: real[1] in 40000 .. 64000) -> y: real[1]
+    y = 0.0
+    for a in 0 .. len(x)
+        let l = 1.0
+        for b in 0 .. len(x)
+            if b != a
+                l = l*(xi - x[b])/(x[a] - x[b])
+            end
+        end
+        y = y + f[a]*l
+    end
+end
+
+## UT1 - TAI [s] of each row of a table (out): its UT1 - UTC less the leap-second file's TAI - UTC at its MJD. How many.
+## length: 16
+fn ut1_tai(mjd: inout real[1][*] in 40000 .. 64000, dut1: inout real[1][*] in -1 .. 1, ls_mjd: inout real[1][*] in 41317 .. 62000, \
+           ls_dat: inout real[1][*] in 10 .. 37, out: inout real[1][*] in -40 .. 0) -> n: int
+    n = len(mjd)
+    for i in 0 .. n
+        let d = leap_at(ls_mjd, ls_dat, mjd[i])
+        out[i] = dut1[i] - d
+    end
+end
+
+## One pass of the merge sort: the runs of w of src[0..m] merged in pairs into dst, by key ascending, a tie to the
+## earlier run.
+## length: 16
+fn merge_asc(key: inout real[1][*] in 40000 .. 64000, src: inout int[*] in 0 .. 15, dst: inout int[*] in 0 .. 15, \
+             m: int in 0 .. 16, w: int in 1 .. 16) -> z: int
+    z = 0
+    let nb = div(m + 2*w - 1, 2*w)
+    for bk in 0 .. nb
+        let lo = bk*2*w
+        let mid = min(lo + w, m)
+        let hi = min(lo + 2*w, m)
+        let i = lo
+        let j = mid
+        for k in lo .. hi
+            if i < mid and (j >= hi or not (key[src[j]] < key[src[i]]))
+                dst[k] = src[i]
+                i = i + 1
+            else
+                dst[k] = src[j]
+                j = j + 1
+            end
+        end
+    end
+end
+
+## The rows 0..m in order of key ascending, equal keys in the order given (ix, over tmp): a bottom-up merge sort. How
+## many passes.
+## length: 16
+fn sort_asc(key: inout real[1][*] in 40000 .. 64000, ix: inout int[*] in 0 .. 15, tmp: inout int[*] in 0 .. 15, \
+            m: int in 0 .. 16) -> passes: int
+    passes = 0
+    for i0 in 0 .. m
+        ix[i0] = i0
+    end
+    let w = 1
+    for it in 0 .. 62
+        if w < m
+            if rem(passes, 2) == 0
+                let z0 = merge_asc(key, ix, tmp, m, w)
+            else
+                let z1 = merge_asc(key, tmp, ix, m, w)
+            end
+            passes = passes + 1
+            w = 2*w
+        end
+    end
+    if rem(passes, 2) == 1
+        for i in 0 .. m
+            ix[i] = tmp[i]
+        end
+    end
+end
+
+## The first m numbers of v put in the order ix gives (over w).
+## length: 16
+fn permute(v: inout real[1][*] in -1 .. 1, ix: inout int[*] in 0 .. 15, w: inout real[1][*] in -1 .. 1, m: int in 0 .. 16) -> z: int
+    z = m
+    for i in 0 .. m
+        w[i] = v[ix[i]]
+    end
+    for k in 0 .. m
+        v[k] = w[k]
+    end
+end
+
+## The spliced table of builds B and C (o_*, as long as both inputs together): the C04 rows (its MJD, x, y, UT1 - UTC and,
+## when it carries them, has_cdx, its dX, dY), then the finals rows (f_*) whose MJD is after C04's last, ordered by MJD
+## (equal ones in that order); without C04's dX, dY each row takes the finals' interpolated at its MJD, 0 outside them.
+## How many rows, and C04's last MJD; ix, tmp and w are scratch as long as the output.
+## length: 12
+fn splice(c_mjd: inout real[1][*] in 40000 .. 64000, c_xp: inout real[1][*] in -1 .. 1, c_yp: inout real[1][*] in -1 .. 1, \
+          c_ut: inout real[1][*] in -1 .. 1, c_dx: inout real[1][*] in -0.001 .. 0.001, c_dy: inout real[1][*] in -0.001 .. 0.001, \
+          has_cdx: bool, f_mjd: inout real[1][*] in 40000 .. 64000, f_xp: inout real[1][*] in -1 .. 1, \
+          f_yp: inout real[1][*] in -1 .. 1, f_ut: inout real[1][*] in -1 .. 1, f_dx: inout real[1][*] in -0.001 .. 0.001, \
+          f_dy: inout real[1][*] in -0.001 .. 0.001, o_mjd: inout real[1][*] in 0 .. 1, o_xp: inout real[1][*] in 0 .. 1, \
+          o_yp: inout real[1][*] in 0 .. 1, o_ut: inout real[1][*] in 0 .. 1, o_dx: inout real[1][*] in 0 .. 1, \
+          o_dy: inout real[1][*] in 0 .. 1, ix: inout int[*] in 0 .. 1, tmp: inout int[*] in 0 .. 1, \
+          w: inout real[1][*] in 0 .. 1) -> (n: int, mmax: real[1])
+    mmax = -inf
+    for i in 0 .. len(c_mjd)
+        mmax = max(mmax, c_mjd[i])
+    end
+    n = 0
+    for i1 in 0 .. len(c_mjd)
+        o_mjd[n] = c_mjd[i1]
+        o_xp[n] = c_xp[i1]
+        o_yp[n] = c_yp[i1]
+        o_ut[n] = c_ut[i1]
+        if has_cdx
+            o_dx[n] = c_dx[i1]
+            o_dy[n] = c_dy[i1]
+        end
+        n = n + 1
+    end
+    for i2 in 0 .. len(f_mjd)
+        if f_mjd[i2] > mmax
+            o_mjd[n] = f_mjd[i2]
+            o_xp[n] = f_xp[i2]
+            o_yp[n] = f_yp[i2]
+            o_ut[n] = f_ut[i2]
+            if has_cdx
+                o_dx[n] = f_dx[i2]
+                o_dy[n] = f_dy[i2]
+            end
+            n = n + 1
+        end
+    end
+    if not has_cdx
+        for i3 in 0 .. n
+            let vx = interp1_linear(f_mjd, f_dx, o_mjd[i3], true, 0.0)
+            let vy = interp1_linear(f_mjd, f_dy, o_mjd[i3], true, 0.0)
+            o_dx[i3] = vx
+            o_dy[i3] = vy
+        end
+    end
+    let p = sort_asc(o_mjd, ix, tmp, n)
+    let z1 = permute(o_mjd, ix, w, n)
+    let z2 = permute(o_xp, ix, w, n)
+    let z3 = permute(o_yp, ix, w, n)
+    let z4 = permute(o_ut, ix, w, n)
+    let z5 = permute(o_dx, ix, w, n)
+    let z6 = permute(o_dy, ix, w, n)
+end
+
+## eop_interp of builds A and B at a UTC MJD over a table (MJD ascending; x, y, dX, dY [arcsec]; UT1 - TAI [s]) and the
+## leap-second rows: UT1 - UTC [s], the pole's x and y and the offsets dX and dY [rad], TAI - UTC [s], and 1 when the MJD
+## is outside the table (extrapolated), else 0; with tidal, the IERS sub-daily tidal variations added to x, y and UT1.
+## length: 16
+fn eop_linear(mjd_t: inout real[1][*] in 40000 .. 64000, xp_t: inout real[1][*] in -1 .. 1, yp_t: inout real[1][*] in -1 .. 1, \
+              dx_t: inout real[1][*] in -0.001 .. 0.001, dy_t: inout real[1][*] in -0.001 .. 0.001, ut_t: inout real[1][*] in -40 .. 0, \
+              ls_mjd: inout real[1][*] in 41317 .. 62000, ls_dat: inout real[1][*] in 10 .. 37, mjd: real[1] in 39000 .. 65000, \
+              tidal: bool) -> (dut1: real[1], xp: real[1], yp: real[1], dx: real[1], dy: real[1], dat: real[1], flag: int)
+    let n = len(mjd_t)
+    flag = if mjd < mjd_t[0] or mjd > mjd_t[n - 1] then 1 else 0
+    let ix = interp1_linear(mjd_t, xp_t, mjd, false, 0.0)
+    let iy = interp1_linear(mjd_t, yp_t, mjd, false, 0.0)
+    let idx = interp1_linear(mjd_t, dx_t, mjd, false, 0.0)
+    let idy = interp1_linear(mjd_t, dy_t, mjd, false, 0.0)
+    xp = ix*AS2R
+    yp = iy*AS2R
+    dx = idx*AS2R
+    dy = idy*AS2R
+    dat = leap_at(ls_mjd, ls_dat, mjd)
+    let iut = interp1_linear(mjd_t, ut_t, mjd, false, 0.0)
+    dut1 = iut + dat
+    if tidal
+        let tx, ty, tu = tidal_eop(mjd)
+        xp = xp + tx*1e-6*AS2R
+        yp = yp + ty*1e-6*AS2R
+        dut1 = dut1 + tu*1e-6
+    end
+end
+
+## eop_interp of build C at a UTC MJD over the same table: the 4 rows round it (from the last row at or before it, one
+## before it, kept inside the table), Lagrange's polynomial through them for x, y, dX and dY, and for UT1 - TAI less the
+## zonal tides' UT1 (RG_ZONT2) at each row, the zonal tides then added back at the MJD; the sub-daily tidal variations
+## always added. The table has 4 rows or more.
+## length: 16
+fn eop_lagrange(mjd_t: inout real[1][*] in 40000 .. 64000, xp_t: inout real[1][*] in -1 .. 1, yp_t: inout real[1][*] in -1 .. 1, \
+                dx_t: inout real[1][*] in -0.001 .. 0.001, dy_t: inout real[1][*] in -0.001 .. 0.001, ut_t: inout real[1][*] in -40 .. 0, \
+                ls_mjd: inout real[1][*] in 41317 .. 62000, ls_dat: inout real[1][*] in 10 .. 37, mjd: real[1] in 39000 .. 65000) \
+                -> (dut1: real[1], xp: real[1], yp: real[1], dx: real[1], dy: real[1], dat: real[1], flag: int)
+    let n = len(mjd_t)
+    flag = if mjd < mjd_t[0] or mjd > mjd_t[n - 1] then 1 else 0
+    let cnt = count_at_or_below(mjd_t, n, mjd)
+    let j = if cnt == 0 then 1 else cnt
+    let i0 = min(max(j - 1, 1), n + 1 - 4) - 1
+    let mw: real[1][4] = [mjd_t[i0], mjd_t[i0 + 1], mjd_t[i0 + 2], mjd_t[i0 + 3]]
+    let xw: real[1][4] = [xp_t[i0], xp_t[i0 + 1], xp_t[i0 + 2], xp_t[i0 + 3]]
+    let yw: real[1][4] = [yp_t[i0], yp_t[i0 + 1], yp_t[i0 + 2], yp_t[i0 + 3]]
+    let dxw: real[1][4] = [dx_t[i0], dx_t[i0 + 1], dx_t[i0 + 2], dx_t[i0 + 3]]
+    let dyw: real[1][4] = [dy_t[i0], dy_t[i0 + 1], dy_t[i0 + 2], dy_t[i0 + 3]]
+    let tx, ty, tu = tidal_eop(mjd)
+    let lx = lagr(mw, xw, mjd)
+    let ly = lagr(mw, yw, mjd)
+    let ldx = lagr(mw, dxw, mjd)
+    let ldy = lagr(mw, dyw, mjd)
+    xp = (lx + tx*1e-6)*AS2R
+    yp = (ly + ty*1e-6)*AS2R
+    dx = ldx*AS2R
+    dy = ldy*AS2R
+    dat = leap_at(ls_mjd, ls_dat, mjd)
+    let reg: real[1][4] = [0.0, 0.0, 0.0, 0.0]
+    for k in 0 .. 4
+        reg[k] = ut_t[i0 + k] - tidal_ut1_zonal(mw[k])
+    end
+    let ut1r = lagr(mw, reg, mjd)
+    dut1 = ut1r + tidal_ut1_zonal(mjd) + tu*1e-6 + dat
+end

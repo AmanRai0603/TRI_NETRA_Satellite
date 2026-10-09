@@ -41,8 +41,8 @@ function [nr, ngo, rot_kind, rot_a0, rot_gi, gim_axis, rot_tmax, rot_hmax, rot_h
     rot_tmax = zeros(8, 1);
     rot_hmax = zeros(8, 1);
     rot_h0 = zeros(8, 1);
-    t__422 = ((0):((8) - 1)).';
-    for i = t__422(logical((t__422 < n))).'
+    t__510 = ((0):((8) - 1)).';
+    for i = t__510(logical((t__510 < n))).'
         rot_kind((i) + 1) = kind((i) + 1);
         for k = (0):((3) - 1)
             rot_a0((i) + 1, (k) + 1) = a0((i) + 1, (k) + 1);
@@ -52,8 +52,8 @@ function [nr, ngo, rot_kind, rot_a0, rot_gi, gim_axis, rot_tmax, rot_hmax, rot_h
         rot_hmax((i) + 1) = hmax((i) + 1);
         rot_h0((i) + 1) = h0((i) + 1);
     end
-    t__423 = ((0):((4) - 1)).';
-    for m = t__423(logical((t__423 < ng))).'
+    t__511 = ((0):((4) - 1)).';
+    for m = t__511(logical((t__511 < ng))).'
         for k = (0):((3) - 1)
             gim_axis((m) + 1, (k) + 1) = g((m) + 1, (k) + 1);
         end

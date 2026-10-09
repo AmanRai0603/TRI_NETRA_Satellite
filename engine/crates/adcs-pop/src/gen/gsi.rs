@@ -184,9 +184,9 @@ pub fn dria(s: f64, delta: f64, n_o: f64, t: f64, tw: f64) -> (f64, f64) {
     let mut cp: f64 = 0.0;
     let mut ct: f64 = 0.0;
     let mut a_t: f64 = crate::gen::gsi::sesam(n_o, t);
-    let __t60 = crate::gen::gsi::sentman(s, delta, a_t, tw, t);
-    cp = __t60.0;
-    ct = __t60.1;
+    let __t78 = crate::gen::gsi::sentman(s, delta, a_t, tw, t);
+    cp = __t78.0;
+    ct = __t78.1;
     (cp, ct)
 }
 
@@ -204,21 +204,21 @@ pub fn panel_coeffs(model: i64, s: f64, delta: f64, g: Gsi, talt: f64, n_o: f64)
     let mut cp: f64 = 0.0;
     let mut ct: f64 = 0.0;
     if (model == crate::gen::gsi::PANELMODEL_SENTMAN) {
-        let __t61 = crate::gen::gsi::sentman(s, delta, g.a_t, g.tw, talt);
-        cp = __t61.0;
-        ct = __t61.1;
+        let __t79 = crate::gen::gsi::sentman(s, delta, g.a_t, g.tw, talt);
+        cp = __t79.0;
+        ct = __t79.1;
     } else if (model == crate::gen::gsi::PANELMODEL_DRIA) {
-        let __t62 = crate::gen::gsi::dria(s, delta, n_o, talt, g.tw);
-        cp = __t62.0;
-        ct = __t62.1;
+        let __t80 = crate::gen::gsi::dria(s, delta, n_o, talt, g.tw);
+        cp = __t80.0;
+        ct = __t80.1;
     } else if (model == crate::gen::gsi::PANELMODEL_CLL) {
-        let __t63 = crate::gen::gsi::cll(s, delta, g.sig_n, g.sig_t, g.tw, talt);
-        cp = __t63.0;
-        ct = __t63.1;
+        let __t81 = crate::gen::gsi::cll(s, delta, g.sig_n, g.sig_t, g.tw, talt);
+        cp = __t81.0;
+        ct = __t81.1;
     } else {
-        let __t64 = crate::gen::gsi::sentman(s, delta, crate::gen::gsi::sesam(n_o, talt), g.tw, talt);
-        cp = __t64.0;
-        ct = __t64.1;
+        let __t82 = crate::gen::gsi::sentman(s, delta, crate::gen::gsi::sesam(n_o, talt), g.tw, talt);
+        cp = __t82.0;
+        ct = __t82.1;
     }
     (cp, ct)
 }

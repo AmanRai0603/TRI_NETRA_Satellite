@@ -37,7 +37,8 @@ its crate:
                                          (S7.3b); DE440 (S7.3c); gravity and the tides (S7.3d); relativity (S7.3e); the
                                          spacecraft force models (third body, gas-surface interaction, drag, solar and
                                          Earth radiation pressure), the force set, its sum and the sun-synchronous start
-                                         (S7.6); std maths (as the Octave POP they are held to)
+                                         (S7.6); the EOP splice and interpolation of the frame builds A, B and C
+                                         (S7.19b); std maths (as the Octave POP they are held to)
   engine/crates/adcs-sim/src/gen/        the engine's relations that fly with the platform's maths: the fast orbit's
                                          start from the LTAN (S7.6), what the sensors see of the sky (S7.8), the
                                          set-up from the case: the centre of mass's offset, the truth plant, the

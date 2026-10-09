@@ -27,18 +27,18 @@ function [ok, s, u] = sun_sample(u, d, s_body, nu)
             if d.chain
                 rh = asils.models.sunquad.head_frame((d.normals((jm) + 1, :)).');
                 sb = asils.pc.mv(asils.models.coildisp.small_rotation((u.bias((jm) + 1, :)).'), s_body);
-                [t__479, t__480] = asils.models.sunquad.quad_currents([rh(1, 1)*sb(1) + rh(1, 2)*sb(2) + rh(1, 3)*sb(3); rh(2, 1)*sb(1) + rh(2, 2)*sb(2) + rh(2, 3)*sb(3); rh(3, 1)*sb(1) + rh(3, 2)*sb(2) + rh(3, 3)*sb(3)], d.head, g);
-                cur = t__479;
-                g = t__480;
+                [t__567, t__568] = asils.models.sunquad.quad_currents([rh(1, 1)*sb(1) + rh(1, 2)*sb(2) + rh(1, 3)*sb(3); rh(2, 1)*sb(1) + rh(2, 2)*sb(2) + rh(2, 3)*sb(3); rh(3, 1)*sb(1) + rh(3, 2)*sb(2) + rh(3, 3)*sb(3)], d.head, g);
+                cur = t__567;
+                g = t__568;
                 [sh, okh] = asils.models.sunangles.quad_angles(cur, d.head);
                 ok = okh;
                 if ok
                     s = asils.models.math.mat3t_vec(rh, sh);
                 end
             else
-                [t__481, t__482] = asils.pc.stream_normal3(g);
-                n = t__481;
-                g = t__482;
+                [t__569, t__570] = asils.pc.stream_normal3(g);
+                n = t__569;
+                g = t__570;
                 e = ((u.bias((jm) + 1, :)).' + (n * d.noise));
                 s = asils.models.facets.unit_or_zero(asils.pc.mv(asils.models.coildisp.small_rotation(e), s_body));
                 ok = true;

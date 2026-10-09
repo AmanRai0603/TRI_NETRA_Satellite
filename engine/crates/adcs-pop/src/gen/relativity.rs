@@ -128,9 +128,9 @@ pub fn rel_total(r: [f64; 3], v: [f64; 3], has_helio: bool, helio_pos: [f64; 3],
     parts = RelParts::default();
     ok = true;
     {
-        let __end93: i64 = nterms;
+        let __end111: i64 = nterms;
         let mut i: i64 = 0;
-        while i < __end93 {
+        while i < __end111 {
             if ok {
                 let mut p: [f64; 3] = [0.0; 3];
                 if (terms[(i) as usize] == (crate::gen::relativity::RELTERM_SCHWARZSCHILD as i64)) {
@@ -150,9 +150,9 @@ pub fn rel_total(r: [f64; 3], v: [f64; 3], has_helio: bool, helio_pos: [f64; 3],
                 }
                 if ok {
                     {
-                        let __end94: i64 = 3;
+                        let __end112: i64 = 3;
                         let mut k: i64 = 0;
-                        while k < __end94 {
+                        while k < __end112 {
                             a[(k) as usize] = (a[(k) as usize] + p[(k) as usize]);
                             k += 1;
                         }

@@ -11,13 +11,13 @@ function [u, disp] = css_new(d, disp, noise)
         u.scale((i) + 1) = 1;
     end
     for j = (0):((d.n) - 1)
-        [t__467, t__468] = asils.pc.stream_normal(disp);
-        z = t__467;
-        disp = t__468;
+        [t__555, t__556] = asils.pc.stream_normal(disp);
+        z = t__555;
+        disp = t__556;
         u.scale((j) + 1) = (1 + (d.scale_sigma * z));
     end
-    [t__469, t__470] = asils.models.gyroaxes.sensor_misalignment(d.misalign, disp);
-    u.r = t__469;
-    disp = t__470;
+    [t__557, t__558] = asils.models.gyroaxes.sensor_misalignment(d.misalign, disp);
+    u.r = t__557;
+    disp = t__558;
     u.g = noise;
 end

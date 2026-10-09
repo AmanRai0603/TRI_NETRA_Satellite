@@ -226,7 +226,7 @@ why = "the NAIF DAF/SPK reader that brings DE440's slice in; the Chebyshev evalu
 [[part]]
 glob = "engine/crates/adcs-pop/src/eop.rs"
 class = "reader"
-why = "the IERS leap-second, finals2000A and C04 file readers (the EOP splice and interpolation it still holds are a declared exception below)"
+why = "the IERS leap-second, finals2000A and C04 file readers; the splice, the leap-second lookup and the interpolation are env_eop's generated method (S7.19b)"
 
 [[part]]
 glob = "engine/crates/adcs-pop/src/spaceweather.rs"
@@ -594,13 +594,6 @@ find = "known"
 exception = true
 why = "the twin's tick shell, the same Verlet propagation of the onboard orbit as adcs_fsw.c."
 until = "nav's onboard-orbit step is a method of nav_onboard_orbit (as for adcs_math.h)"
-
-[[allow]]
-file = "engine/crates/adcs-pop/src/eop.rs"
-find = "known"
-exception = true
-why = "the EOP splice (finals2000A over C04) and its 4-point Lagrange interpolation (eop_interp, lagr), a published procedure (IERS), are still the code's: S7.3 moved every other frame model but EOP, because the design holds no EOP data; no shipped run flies a build that reads EOP."
-until = "EOP data are read into env (tools/readers.py) and the splice and interpolation become env's method"
 
 [[allow]]
 file = "matlab_sils/pop/*"

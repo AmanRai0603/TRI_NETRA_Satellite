@@ -159,9 +159,9 @@ pub fn tai_minus_utc(jd_utc: f64) -> f64 {
     let mut n: f64 = 0.0;
     n = 10.0;
     {
-        let __end129: i64 = 28;
+        let __end147: i64 = 28;
         let mut i: i64 = 0;
-        while i < __end129 {
+        while i < __end147 {
             if (jd_utc >= crate::gen::timescales::cal2jd(crate::gen::leapsec::DATA_LEAP_SECONDS[(i) as usize][0], crate::gen::leapsec::DATA_LEAP_SECONDS[(i) as usize][1], 1.0, 0.0, 0.0, 0.0)) {
                 n = crate::gen::leapsec::DATA_LEAP_SECONDS[(i) as usize][2];
             }

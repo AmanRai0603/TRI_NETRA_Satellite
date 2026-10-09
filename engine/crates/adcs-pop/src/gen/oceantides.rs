@@ -75,18 +75,18 @@ pub fn main_lines(jd_tt: f64) -> Dcs5 {
     let mut beta: [f64; 6] = crate::gen::oceantides::doodson(jd_tt);
     d = Dcs5::default();
     {
-        let __end88: i64 = 8;
+        let __end106: i64 = 8;
         let mut i: i64 = 0;
-        while i < __end88 {
+        while i < __end106 {
             let mut deg: i64 = (crate::gen::tidelines::DATA_OCEAN_MAIN_LINES[(i) as usize][6] as i64);
             let mut m: i64 = (crate::gen::tidelines::DATA_OCEAN_MAIN_LINES[(i) as usize][7] as i64);
             let mut cp: f64 = (crate::gen::tidelines::DATA_OCEAN_MAIN_LINES[(i) as usize][8] * 1.0e-11);
             let mut sp: f64 = (crate::gen::tidelines::DATA_OCEAN_MAIN_LINES[(i) as usize][9] * 1.0e-11);
             let mut th: f64 = 0.0;
             {
-                let __end89: i64 = 6;
+                let __end107: i64 = 6;
                 let mut k: i64 = 0;
-                while k < __end89 {
+                while k < __end107 {
                     th = (th + (crate::gen::tidelines::DATA_OCEAN_MAIN_LINES[(i) as usize][(k) as usize] * beta[(k) as usize]));
                     k += 1;
                 }
@@ -108,9 +108,9 @@ pub fn fes_nmax() -> i64 {
     let mut n: i64 = 0;
     n = 0;
     {
-        let __end90: i64 = 1052;
+        let __end108: i64 = 1052;
         let mut i: i64 = 0;
-        while i < __end90 {
+        while i < __end108 {
             n = rt::imax(n, (crate::gen::tidelines::DATA_FES2004[(i) as usize][6] as i64));
             i += 1;
         }
@@ -132,14 +132,14 @@ pub fn from_model(jd_tt: f64) -> ([f64; 121], [f64; 121]) {
     dc = [0.0; 121];
     ds = [0.0; 121];
     {
-        let __end91: i64 = 1052;
+        let __end109: i64 = 1052;
         let mut i: i64 = 0;
-        while i < __end91 {
+        while i < __end109 {
             let mut th: f64 = 0.0;
             {
-                let __end92: i64 = 6;
+                let __end110: i64 = 6;
                 let mut j: i64 = 0;
-                while j < __end92 {
+                while j < __end110 {
                     th = (th + (crate::gen::tidelines::DATA_FES2004[(i) as usize][(j) as usize] * beta[(j) as usize]));
                     j += 1;
                 }
