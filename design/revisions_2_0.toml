@@ -15,7 +15,11 @@
 # comes in only through a reader (`[[revision.data]]`: tools/readers.py, code, reads the file the revision names, and
 # every table cites its publication and the file with its sha256); a relation only as the developer's transcription
 # (`[[revision.method]]`: a pseudocode file under design/revisions/, the revision's source, naming the code and the
-# publication it transcribes). A revision may also add a node (`[[revision.node]]`) to hold either.
+# publication it transcribes). A revision may also add a node (`[[revision.node]]`) to hold either, and wire a method
+# (`[[revision.wire]]`, S7.19): its function's inputs to the nodes that supply them (input rows with their ports; a
+# parameter `p[i]` an element of an array; the supplier's output `function.output[i]` when it has several; the unit the
+# function takes it in when not SI), the function and output that give its value (code.function, code.output,
+# code.output_unit), and the inputs that are a run's, which no node holds (code.run_inputs). A wire adds, never replaces.
 # Owner: Agastya. Copyright (c) 2026 Agastya. All rights reserved.
 
 schema = "trinetra-revisions/1"
@@ -3386,3 +3390,306 @@ source = "Celani (2026), the certificate method for magnetic attitude control; B
 generate = ["adcs-design"]
 uses = ["fsw/params/fswchoice.pc", "fsw/pseudocode/01_math.pc"]
 why = "the Floquet certificate as a method of ctl, generated into the engine, which tools/floquet.py asks (adcs design call); held to the multipliers the tool committed within 1e-12 with every verdict the same, not bit for bit (numpy's matrix products with fused multiply-add and LAPACK's dgeev)"
+
+[[revision]]
+id = "S7.19"
+at = "2026-10-09T20:00:00Z"
+by = "the developer"
+about = "every method node's inputs wired to the nodes that supply them (docs/S7_INVENTORY.md S7.19): 1.0.0's rows whose bindings named other parameters than their functions'; the plant, the case's orbit and the flight parameters a case and the design's stated values give, as config.rs builds them; the pointing budget from the flown evidence; for a module of several functions, the function and output that give its node's value; and, for the models the engine and the flight software run at each step, that their inputs are the run's (code.run_inputs), which no node holds. Nothing here is a number: a wire, a function's name, a reason"
+
+[[revision.wire]]
+node = "gd_3"
+inputs = [["residual_dipole", "s3_0"], ["field", "m3_1"]]
+why = "1.0.0 bound d_res and b_max, which the function does not name; its parameters are residual_dipole and field"
+
+[[revision.wire]]
+node = "gd_4"
+inputs = [["aerodynamic", "gd_1"], ["gravity_gradient", "gd_0"], ["solar", "gd_2"], ["magnetic", "gd_3"]]
+why = "1.0.0 bound tau_a, tau_gg, tau_s and tau_m; the function's parameters are aerodynamic, gravity_gradient, solar and magnetic"
+
+[[revision.wire]]
+node = "gm_2"
+inputs = [["momentum", "gd_5"], ["field", "m3_0"], ["dump_time", "m2_5"]]
+why = "1.0.0 bound h, b and td; the function's parameters are momentum, field and dump_time (the orbit period, as 1.0.0 bound it)"
+
+[[revision.wire]]
+node = "gp_5"
+inputs = [["terms[1]", "gp_0"], ["terms[2]", "gp_1"], ["terms[3]", "gp_2"], ["terms[4]", "gp_3"], ["terms[5]", "gp_4"]]
+why = "1.0.0 bound the five terms one by one (e_k, e_c, e_a, e_t, e_j); the function takes them as one array, terms, summed in quadrature"
+
+[[revision.wire]]
+node = "rk4_0"
+inputs = [["levels[1]", "rk3_0"], ["levels[2]", "rk3_1"], ["levels[3]", "rk3_2"], ["levels[4]", "rk3_3"], ["levels[5]", "rk3_4"], ["levels[6]", "rk3_5"], ["levels[7]", "rk3_6"]]
+why = "1.0.0 bound the seven levels one by one; the function takes them as one array, levels"
+
+[[revision.wire]]
+node = "rk4_1"
+inputs = [["closed", "rk1_4"], ["opened", "rk1_3"]]
+why = "1.0.0 bound n_closed_q and n_opened_q; the function's parameters are closed and opened"
+
+[[revision.wire]]
+node = "rk4_2"
+inputs = [["untested", "rk2_2"], ["total", "rk2_3"]]
+why = "1.0.0 bound n_untested and n_beliefs; the function's parameters are untested and total"
+
+[[revision.wire]]
+node = "s1_4"
+inputs = [["cpa", "s2_1"], ["dir[1]", "dyn_cm_direction_x"], ["dir[2]", "dyn_cm_direction_y"], ["dir[3]", "dyn_cm_direction_z"]]
+why = "the centre of mass's offset: the case's centre-of-pressure offset along dyn's stated direction (config.rs build: cm_offset(surface.cpa, dyn_cm_direction))"
+
+[[revision.wire]]
+node = "dyn_truth_plant"
+function = "principal_inertia"
+output = "j"
+inputs = [["imin", "s1_3"], ["iint", "s1_2"], ["imax", "s1_1"], ["dres", "s3_0"]]
+why = "the truth plant's inertia from the case's principal moments and its residual dipole on each axis (config.rs build); the node's value is the inertia"
+
+[[revision.wire]]
+node = "env_case_orbit"
+function = "case_mean_motion"
+output = "t"
+inputs = [["years", "m1_1", "", "Year"], ["h", "m2_0"]]
+why = "the case's epoch and circular orbit (config.rs build: mission_epoch(mission.epoch), case_mean_motion(orbit.alt)); the node's value is the orbit's period; the epoch is in years as the case states it"
+
+[[revision.wire]]
+nodes = ["fsw_param_jd0", "fsw_param_mu"]
+function = "fsw_epoch_earth"
+outputs = { fsw_param_jd0 = "jd0", fsw_param_mu = "mu" }
+inputs = [["jd", "env_case_orbit", "mission_epoch.j"]]
+why = "the flight software's epoch and Earth (config.rs build: fsw_epoch_earth(the case's mission epoch))"
+
+[[revision.wire]]
+nodes = ["fsw_param_J", "fsw_param_m_res_est", "fsw_param_sun_axis", "fsw_param_roll_axis"]
+function = "fsw_body_model"
+outputs = { fsw_param_J = "jf", fsw_param_m_res_est = "mf", fsw_param_sun_axis = "sun", fsw_param_roll_axis = "roll" }
+inputs = [["j", "dyn_truth_plant", "principal_inertia.j"], ["m_res", "dyn_truth_plant", "residual_dipole_axes.m"], ["sun_axis[1]", "gdn_sun_axis_x"], ["sun_axis[2]", "gdn_sun_axis_y"], ["sun_axis[3]", "gdn_sun_axis_z"], ["boresight[1]", "gdn_payload_boresight_x"], ["boresight[2]", "gdn_payload_boresight_y"], ["boresight[3]", "gdn_payload_boresight_z"]]
+why = "the flight software's body model (config.rs guidance_params: fsw_body_model(inertia, residual dipole, Sun axis, boresight)); the axes are the product's axes when it states them, else gdn's stated defaults (product.rs Dev::load): evaluate has no product, so it takes the defaults, the axes every product that states none flies"
+
+[[revision.wire]]
+node = "fsw_param_gd_q_off"
+function = "fsw_payload_offset"
+output = "q"
+inputs = [["boresight[1]", "gdn_payload_boresight_x"], ["boresight[2]", "gdn_payload_boresight_y"], ["boresight[3]", "gdn_payload_boresight_z"]]
+why = "the payload's offset (config.rs guidance_params: fsw_payload_offset(boresight)); the boresight is the product's axes when it states them, else gdn's stated defaults (product.rs Dev::load): evaluate has no product, so it takes the defaults, the axes every product that states none flies"
+
+[[revision.wire]]
+node = "fsw_param_mtq_gg_ff"
+function = "fsw_gg_feedforward"
+output = "ff"
+inputs = [["q_off", "fsw_param_gd_q_off"], ["j", "dyn_truth_plant", "principal_inertia.j"]]
+why = "the gravity-gradient feed-forward (config.rs mtq_gains: the scenario's mtq_gg_ff, else fsw_gg_feedforward(gd_q_off, inertia)); evaluate has no scenario, so it takes the design's rule"
+
+[[revision.wire]]
+node = "fsw_param_bdot_k"
+function = "fsw_bdot_gain"
+output = "k"
+inputs = [["scale", "fsw_tune_bdot_gain_scale"], ["n", "env_case_orbit", "case_mean_motion.n"], ["inc_deg", "m2_1", "", "Degree"], ["ii[1]", "dyn_truth_plant", "principal_inertia.j[1][1]"], ["ii[2]", "dyn_truth_plant", "principal_inertia.j[2][2]"], ["ii[3]", "dyn_truth_plant", "principal_inertia.j[3][3]"]]
+why = "the B-dot gain (config.rs mtq_gains: fsw_bdot_gain(the scale, the mean motion, the inclination in degrees as the case states it, the principal moments)); the scale is the scenario's fsw section when it states one, else fsw_tune_* (config.rs Knowns::tune): evaluate has no scenario, so it takes the stated tuning, the value every run flies whose scenario states none"
+
+[[revision.wire]]
+node = "fsw_param_detumble_exit"
+function = "fsw_rate_rad"
+output = "w"
+inputs = [["deg_s", "fsw_tune_detumble_exit_deg_s"]]
+why = "the detumble's exit rate (config.rs mtq_gains: fsw_rate_rad(the exit rate in degrees per second)); the rate is the scenario's fsw section when it states one, else fsw_tune_* (config.rs Knowns::tune): evaluate has no scenario, so it takes the stated tuning, the value every run flies whose scenario states none"
+
+[[revision.wire]]
+nodes = ["fsw_param_mtq_Kp", "fsw_param_mtq_Kd", "fsw_param_mtq_Ki"]
+function = "fsw_mtq_pd"
+outputs = { fsw_param_mtq_Kp = "kp", fsw_param_mtq_Kd = "kd", fsw_param_mtq_Ki = "ki" }
+inputs = [["ii[1]", "dyn_truth_plant", "principal_inertia.j[1][1]"], ["ii[2]", "dyn_truth_plant", "principal_inertia.j[2][2]"], ["ii[3]", "dyn_truth_plant", "principal_inertia.j[3][3]"], ["wn", "fsw_tune_mtq_wn"], ["z", "fsw_tune_mtq_zeta"]]
+why = "the magnetic PD gains (config.rs mtq_gains: fsw_mtq_pd(the principal moments, wn, z)); wn and z are the scenario's fsw section when it states one, else fsw_tune_* (config.rs Knowns::tune): evaluate has no scenario, so it takes the stated tuning, the value every run flies whose scenario states none"
+
+[[revision.wire]]
+nodes = ["fsw_param_mtq_lambda", "fsw_param_mtq_Gs"]
+function = "fsw_mtq_smc"
+outputs = { fsw_param_mtq_lambda = "lambda", fsw_param_mtq_Gs = "gs" }
+inputs = [["wn", "fsw_tune_mtq_wn"], ["z", "fsw_tune_mtq_zeta"], ["phi", "fsw_param_mtq_phi"]]
+why = "the magnetic sliding mode (config.rs mtq_gains: fsw_mtq_smc(wn, z, mtq_phi)); wn and z are the scenario's fsw section when it states one, else fsw_tune_* (config.rs Knowns::tune): evaluate has no scenario, so it takes the stated tuning, the value every run flies whose scenario states none"
+
+[[revision.wire]]
+nodes = ["fsw_param_mtq_k1", "fsw_param_mtq_k2", "fsw_param_mtq_k16", "fsw_param_mtq_lam16", "fsw_param_sb_kp", "fsw_param_sb_kd"]
+function = "fsw_mtq_literature"
+outputs = { fsw_param_mtq_k1 = "k1", fsw_param_mtq_k2 = "k2", fsw_param_mtq_k16 = "k16", fsw_param_mtq_lam16 = "lam16", fsw_param_sb_kp = "sb_kp", fsw_param_sb_kd = "sb_kd" }
+inputs = [["law", "fsw_param_mtq_law"], ["ii[1]", "dyn_truth_plant", "principal_inertia.j[1][1]"], ["ii[2]", "dyn_truth_plant", "principal_inertia.j[2][2]"], ["ii[3]", "dyn_truth_plant", "principal_inertia.j[3][3]"], ["wn", "fsw_tune_mtq_wn"], ["z", "fsw_tune_mtq_zeta"], ["eps", "fsw_param_mtq_eps"], ["gp", "fsw_tune_mtq_gain_p"], ["gd", "fsw_tune_mtq_gain_d"], ["k_over_n", "fsw_tune_avanzini_k_over_n"], ["lam", "fsw_tune_avanzini_lambda"], ["n", "env_case_orbit", "case_mean_motion.n"]]
+why = "the literature laws' gains (config.rs mtq_gains: fsw_mtq_literature(the law flown, the principal moments, wn, z, eps, gp, gd, Avanzini's k/n and lambda, n)); the tunings are the scenario's fsw section when it states one, else fsw_tune_* (config.rs Knowns::tune): evaluate has no scenario, so it takes the stated tuning, the value every run flies whose scenario states none; the law is the one the product's algorithms fly (fswchoice), which needs the product"
+
+[[revision.wire]]
+nodes = ["fsw_param_sb_kroll", "fsw_param_sb_kdroll"]
+function = "fsw_mtq_roll"
+outputs = { fsw_param_sb_kroll = "kroll", fsw_param_sb_kdroll = "kdroll" }
+inputs = [["e[1]", "gdn_payload_boresight_x"], ["e[2]", "gdn_payload_boresight_y"], ["e[3]", "gdn_payload_boresight_z"], ["j", "dyn_truth_plant", "principal_inertia.j"], ["n", "env_case_orbit", "case_mean_motion.n"], ["roll_wn_orbits", "fsw_tune_roll_wn_orbits"], ["roll_zeta", "fsw_tune_roll_zeta"], ["roll_gain", "fsw_tune_roll_gain"]]
+why = "Celani 2026's weak roll (config.rs mtq_gains: fsw_mtq_roll(boresight, inertia, n, the roll's bandwidth in orbit rates, damping and gain)); the boresight is the product's axes when it states them, else gdn's stated defaults (product.rs Dev::load): evaluate has no product, so it takes the defaults, the axes every product that states none flies; the roll's tunings are the scenario's fsw section when it states one, else fsw_tune_* (config.rs Knowns::tune): evaluate has no scenario, so it takes the stated tuning, the value every run flies whose scenario states none"
+
+[[revision.wire]]
+node = "fsw_param_sb_roll_gate"
+function = "fsw_roll_gate"
+output = "c"
+inputs = [["roll_gate_deg", "fsw_tune_roll_gate_deg"]]
+why = "the roll gate's cosine (config.rs mtq_gains: fsw_roll_gate(roll_gate_deg)); the gate is the scenario's fsw section when it states one, else fsw_tune_* (config.rs Knowns::tune): evaluate has no scenario, so it takes the stated tuning, the value every run flies whose scenario states none"
+
+[[revision.wire]]
+nodes = ["fsw_param_mtq_Pth", "fsw_param_mtq_Pw"]
+function = "fsw_mtq_tango"
+outputs = { fsw_param_mtq_Pth = "pth", fsw_param_mtq_Pw = "pw" }
+inputs = [["ii[1]", "dyn_truth_plant", "principal_inertia.j[1][1]"], ["ii[2]", "dyn_truth_plant", "principal_inertia.j[2][2]"], ["ii[3]", "dyn_truth_plant", "principal_inertia.j[3][3]"], ["wn", "fsw_tune_mtq_wn"], ["z", "fsw_tune_mtq_zeta"], ["gp", "fsw_tune_mtq_gain_p"], ["gd", "fsw_tune_mtq_gain_d"]]
+why = "TANGO's frozen Riccati gains (config.rs mtq_gains: fsw_mtq_tango(the principal moments, wn, z, gp, gd)); the tunings are the scenario's fsw section when it states one, else fsw_tune_* (config.rs Knowns::tune): evaluate has no scenario, so it takes the stated tuning, the value every run flies whose scenario states none"
+
+[[revision.wire]]
+nodes = ["fsw_param_rw_Kp", "fsw_param_rw_Kd", "fsw_param_rw_Ki"]
+function = "fsw_rw_pid"
+outputs = { fsw_param_rw_Kp = "kp", fsw_param_rw_Kd = "kd", fsw_param_rw_Ki = "ki" }
+inputs = [["ii[1]", "dyn_truth_plant", "principal_inertia.j[1][1]"], ["ii[2]", "dyn_truth_plant", "principal_inertia.j[2][2]"], ["ii[3]", "dyn_truth_plant", "principal_inertia.j[3][3]"], ["wn", "fsw_tune_rw_bandwidth"], ["z", "fsw_tune_rw_damping"]]
+why = "the fine pointing's PID (config.rs rw_gains: fsw_rw_pid(the principal moments, wn, z)); wn and z are the scenario's fsw section when it states one, else fsw_tune_* (config.rs Knowns::tune): evaluate has no scenario, so it takes the stated tuning, the value every run flies whose scenario states none"
+
+[[revision.wire]]
+nodes = ["fsw_param_rw_lambda", "fsw_param_rw_Gs"]
+function = "fsw_rw_smc"
+outputs = { fsw_param_rw_lambda = "lambda", fsw_param_rw_Gs = "gs" }
+inputs = [["wn", "fsw_tune_rw_bandwidth"], ["z", "fsw_tune_rw_damping"], ["phi", "fsw_param_rw_phi"]]
+why = "the fine pointing's sliding mode (config.rs rw_gains: fsw_rw_smc(wn, z, rw_phi)); wn and z are the scenario's fsw section when it states one, else fsw_tune_* (config.rs Knowns::tune): evaluate has no scenario, so it takes the stated tuning, the value every run flies whose scenario states none"
+
+[[revision.wire]]
+node = "fsw_param_rw_dt"
+function = "fsw_rw_period"
+output = "dt"
+inputs = [["rate_hz", "fsw_tune_rw_rate_hz"]]
+why = "the fine control's period (config.rs rw_gains: fsw_rw_period(the rate in Hz)); the rate is the scenario's fsw section when it states one, else fsw_tune_* (config.rs Knowns::tune): evaluate has no scenario, so it takes the stated tuning, the value every run flies whose scenario states none"
+
+[[revision.wire]]
+nodes = ["fsw_param_ss_k1", "fsw_param_ss_k2", "fsw_param_ss_dr_k", "fsw_param_ss_dr_k2"]
+function = "fsw_sun_spin_gains"
+outputs = { fsw_param_ss_k1 = "k1", fsw_param_ss_k2 = "k2", fsw_param_ss_dr_k = "dr_k", fsw_param_ss_dr_k2 = "dr_k2" }
+inputs = [["g", "fsw_tune_ss_gain"], ["jzz", "dyn_truth_plant", "principal_inertia.j[3][3]"]]
+why = "the Sun spin's gains (config.rs spin_params: fsw_sun_spin_gains(the gain scale, J_zz)); the scale is the scenario's fsw section when it states one, else fsw_tune_* (config.rs Knowns::tune): evaluate has no scenario, so it takes the stated tuning, the value every run flies whose scenario states none"
+
+[[revision.wire]]
+node = "fsw_param_m_max"
+function = "fsw_coil_limit"
+output = "m"
+run = ["fitted", "m_max"]
+why = "the coils' limit (config.rs mtq_gains: fsw_coil_limit(the product's coils)); a value of the product the scenario flies (its parts' descriptors, product.rs Dev::load), which no node of the design holds: evaluate, with a case and no product, cannot give it"
+
+[[revision.wire]]
+node = "fsw_param_bdot_law"
+function = "fsw_bdot_law"
+run = ["a"]
+why = "the law each slot flies (config.rs modes_and_laws): the algorithm the product or the scenario chooses, else the slot's default; a value of the product the scenario flies (its parts' descriptors, product.rs Dev::load), which no node of the design holds: evaluate, with a case and no product, cannot give it"
+
+[[revision.wire]]
+node = "fsw_param_rw_law"
+function = "fsw_rw_law"
+run = ["a"]
+why = "the law each slot flies (config.rs modes_and_laws): the algorithm the product or the scenario chooses, else the slot's default; a value of the product the scenario flies (its parts' descriptors, product.rs Dev::load), which no node of the design holds: evaluate, with a case and no product, cannot give it"
+
+[[revision.wire]]
+node = "fsw_param_mtq_law"
+function = "fsw_mtq_law"
+run = ["a"]
+why = "the law each slot flies (config.rs modes_and_laws): the algorithm the product or the scenario chooses, else the slot's default; a value of the product the scenario flies (its parts' descriptors, product.rs Dev::load), which no node of the design holds: evaluate, with a case and no product, cannot give it"
+
+[[revision.wire]]
+node = "fsw_param_alloc"
+function = "fsw_alloc"
+run = ["a"]
+why = "the law each slot flies (config.rs modes_and_laws): the algorithm the product or the scenario chooses, else the slot's default; a value of the product the scenario flies (its parts' descriptors, product.rs Dev::load), which no node of the design holds: evaluate, with a case and no product, cannot give it"
+
+[[revision.wire]]
+nodes = ["fsw_param_ss_eclipse", "fsw_param_ss_rz_floor", "fsw_param_ss_law"]
+function = "fsw_sun_acquisition"
+outputs = { fsw_param_ss_eclipse = "eclipse", fsw_param_ss_rz_floor = "rz_floor", fsw_param_ss_law = "law" }
+run = ["a"]
+why = "the Sun acquisition flown (config.rs modes_and_laws: fsw_sun_acquisition(the slot's algorithm)); a value of the product the scenario flies (its parts' descriptors, product.rs Dev::load), which no node of the design holds: evaluate, with a case and no product, cannot give it"
+
+[[revision.wire]]
+nodes = ["fsw_param_nr", "fsw_param_ng", "fsw_param_rot_kind", "fsw_param_rot_a0", "fsw_param_rot_gi", "fsw_param_gim_axis", "fsw_param_rot_tmax", "fsw_param_rot_hmax", "fsw_param_rot_h0", "fsw_param_gim_rate_max"]
+function = "fsw_rotors"
+outputs = { fsw_param_nr = "nr", fsw_param_ng = "ngo", fsw_param_rot_kind = "rot_kind", fsw_param_rot_a0 = "rot_a0", fsw_param_rot_gi = "rot_gi", fsw_param_gim_axis = "gim_axis", fsw_param_rot_tmax = "rot_tmax", fsw_param_rot_hmax = "rot_hmax", fsw_param_rot_h0 = "rot_h0", fsw_param_gim_rate_max = "gim_rate_max" }
+run = ["n", "ng", "kind", "a0", "gi", "g", "tmax", "hmax", "h0", "rate_max"]
+why = "the momentum devices (config.rs rotor_params: fsw_rotors(the product's rotors and gimbals)); a value of the product the scenario flies (its parts' descriptors, product.rs Dev::load), which no node of the design holds: evaluate, with a case and no product, cannot give it"
+
+[[revision.wire]]
+nodes = ["fsw_param_nc", "fsw_param_rcs_tau", "fsw_param_rcs_mib", "fsw_param_rcs_res"]
+function = "fsw_thrusters"
+outputs = { fsw_param_nc = "n", fsw_param_rcs_tau = "rcs_tau", fsw_param_rcs_mib = "rcs_mib", fsw_param_rcs_res = "rcs_res" }
+run = ["fitted", "nc", "tau", "mib", "res"]
+why = "the thrusters (config.rs rcs_params: fsw_thrusters(the product's couples)); a value of the product the scenario flies (its parts' descriptors, product.rs Dev::load), which no node of the design holds: evaluate, with a case and no product, cannot give it"
+
+[[revision.wire]]
+nodes = ["fsw_param_has_gyro", "fsw_param_has_st", "fsw_param_has_sun", "fsw_param_has_es", "fsw_param_has_gps", "fsw_param_n_heads"]
+function = "fsw_sensor_set"
+outputs = { fsw_param_has_gyro = "has_gyro", fsw_param_has_st = "has_st", fsw_param_has_sun = "has_sun", fsw_param_has_es = "has_es", fsw_param_has_gps = "has_gps", fsw_param_n_heads = "n_heads" }
+run = ["gyro", "st", "sun", "css", "es", "gps", "nh"]
+why = "the sensors the software is told about (config.rs sensor_params: fsw_sensor_set(the product's sensors)); a value of the product the scenario flies (its parts' descriptors, product.rs Dev::load), which no node of the design holds: evaluate, with a case and no product, cannot give it"
+
+[[revision.wire]]
+nodes = ["fsw_param_st_bs", "fsw_param_st_noise_cross", "fsw_param_st_noise_roll", "fsw_param_st_latency"]
+function = "fsw_star_tracker"
+outputs = { fsw_param_st_bs = "st_bs", fsw_param_st_noise_cross = "st_noise_cross", fsw_param_st_noise_roll = "st_noise_roll", fsw_param_st_latency = "st_latency" }
+run = ["nh", "bs", "noise_cross", "noise_roll", "latency"]
+why = "the star tracker the software is told about (config.rs sensor_params: fsw_star_tracker(the product's heads)); a value of the product the scenario flies (its parts' descriptors, product.rs Dev::load), which no node of the design holds: evaluate, with a case and no product, cannot give it"
+
+[[revision.wire]]
+nodes = ["fsw_param_gyro_arw", "fsw_param_gyro_rrw", "fsw_param_es_noise"]
+function = "fsw_rate_noises"
+outputs = { fsw_param_gyro_arw = "gyro_arw", fsw_param_gyro_rrw = "gyro_rrw", fsw_param_es_noise = "es" }
+run = ["arw", "rrw", "es_noise"]
+why = "the rate sensors' noises (config.rs sensor_params: fsw_rate_noises(the product's gyro and Earth sensor)); a value of the product the scenario flies (its parts' descriptors, product.rs Dev::load), which no node of the design holds: evaluate, with a case and no product, cannot give it"
+
+[[revision.wire]]
+nodes = ["fsw_param_mekf_sig_sun", "fsw_param_mekf_sig_mag", "fsw_param_mekf_mag_err_T"]
+function = "fsw_mekf_sigmas"
+outputs = { fsw_param_mekf_sig_sun = "sig_sun", fsw_param_mekf_sig_mag = "sig_mag", fsw_param_mekf_mag_err_T = "mag_err" }
+run = ["sun_fitted", "sun_noise", "sun_bias_sigma", "css_albedo", "mag_misalign", "mag_sf_sigma", "mag_bias", "mag_bias_sigma", "mag_noise"]
+why = "the estimator's measurement sigmas (config.rs sensor_params: fsw_mekf_sigmas(the product's Sun sensors and magnetometer)); a value of the product the scenario flies (its parts' descriptors, product.rs Dev::load), which no node of the design holds: evaluate, with a case and no product, cannot give it"
+
+[[revision.wire]]
+node = "fsw_param_gps_latency"
+function = "fsw_gnss_latency"
+output = "lat"
+run = ["fitted", "latency"]
+why = "the GNSS fix's age (config.rs sensor_params: fsw_gnss_latency(the product's receiver)); a value of the product the scenario flies (its parts' descriptors, product.rs Dev::load), which no node of the design holds: evaluate, with a case and no product, cannot give it"
+
+[[revision.wire]]
+node = "gp_0"
+function = "pointing_knowledge"
+output = "e_k"
+output_unit = "Degree"
+run = ["ake"]
+why = "the knowledge contribution is a flown run's AKE across the boresight (pointing_knowledge), as tools/pointing_budget.py takes it from each run (adcs results budget); the design's evidence row p1a_1 is not wired to it: 1.0.0 lets the budget's total (gp_5) supply the achieved APE (p1a_0), so a wire back from p1a_* would close an undeclared loop (tools/design_build.py refuses it)"
+
+[[revision.wire]]
+node = "gp_1"
+function = "pointing_control"
+output = "e_c"
+output_unit = "Degree"
+run = ["ape", "ake"]
+why = "the control contribution is a flown run's APE with its AKE removed in quadrature (pointing_control), as tools/pointing_budget.py takes them from each run; not wired to p1a_0 and p1a_1 for the loop it would close (as gp_0)"
+
+[[revision.wire]]
+node = "gp_2"
+function = "pointing_alignment"
+output = "e_a"
+output_unit = "Degree"
+run = ["a"]
+why = "the alignment contribution (pointing_alignment) is the product's payload_alignment_rad, which no product states and no node holds"
+
+[[revision.wire]]
+node = "l3_pnt_row_09"
+function = "pointing_budget"
+output = "total"
+output_unit = "Degree"
+inputs = [["e_a", "gp_2", "", "Degree"], ["e_t", "gp_3", "", "Degree"], ["e_j", "gp_4", "", "Degree"], ["req", "p1k_0", "", "Degree"]]
+run = ["ape"]
+why = "the budget against the requirement (pointing_budget): a flown run's APE (the run's, as gp_1's), the alignment (gp_2), thermal (gp_3) and jitter (gp_4) terms and req.ape (p1k_0), each in degrees"
+
+[[revision.wire]]
+nodes = ["act_cmg_axes", "act_cmg_model", "act_cmg_steering", "act_rotor_telemetry", "act_vscmg_model", "dyn_kinematics", "dyn_total_momentum", "env_two_body_elements", "fdir_rotor_health", "fdir_safe_mode", "fdir_sensor_health", "gdn_boresight_offset", "gdn_guidance", "gdn_mode_manager", "gdn_mode_schedule", "gdn_yaw_flip", "l3_dist_row_01", "l3_dist_row_04", "l3_dist_row_05", "l3_dist_row_06", "l3_dist_row_07", "l3_dist_row_10", "l3_fmr_row_09", "l3_fmr_row_13", "l3_mtq_row_02", "l3_mtq_row_04", "l3_mtq_row_06", "l3_rcs_row_02", "l3_rcs_row_04", "l3_rcs_row_08", "l3_rcs_row_09", "l3_rcs_row_10", "l3_rw_row_05", "l3_rw_row_06", "l3_rw_row_07", "l3_sens_row_08", "m2_7", "nav_gnss_fix", "nav_gyro_filter", "nav_onboard_orbit", "nav_quest", "nav_triad"]
+run = ["*"]
+why = "a model the engine or the flight software runs at each step: its inputs are the run's state (attitude, rates, orbit, the devices' commands and readings, the mode) and the product it flies, which the step order hands over; no node of the design holds them, so it has no one value"
+
+[[revision.wire]]
+nodes = ["act_rotor_set", "act_vscmg_gimbal_limits", "dyn_flexible_mode", "dyn_initial_state", "dyn_rigid_body", "dyn_rotor_coupling", "env_calendar_time", "env_de440", "env_density_model", "env_drag_force", "env_dtm2020_operational", "env_dtm2020_research", "env_earth_frames", "env_erp_force", "env_exponential_atmosphere", "env_force_model", "env_gas_surface", "env_geodetic", "env_gravity_field", "env_iau2006", "env_jb2008", "env_moon_fast", "env_ocean_tides", "env_orbit_fast", "env_orbit_start", "env_relativity", "env_solid_tides", "env_space_weather", "env_srp_force", "env_third_body", "env_tidal_eop", "env_time_frames", "env_time_scales", "fsw_allocation", "fsw_control", "fsw_drivers", "fsw_estimation", "fsw_guidance", "fsw_modes", "fsw_steplaws", "kpi_metric_channels", "kpi_metric_ecss", "kpi_metric_evaluate", "kpi_metric_statistics", "l3_dist_row_02", "l3_dist_row_03", "l3_dist_row_08", "l3_dist_row_09", "l3_fmr_row_08", "l3_fmr_row_10", "l3_fmr_row_11", "l3_fmr_row_12", "l3_mtq_row_03", "l3_mtq_row_05", "l3_mtq_row_12", "l3_mtq_row_13", "l3_oils_row_07", "l3_rcs_row_01", "l3_rcs_row_03", "l3_rcs_row_11", "l3_rw_row_01", "l3_rw_row_02", "l3_rw_row_03", "l3_rw_row_04", "l3_sens_row_01", "l3_sens_row_02", "l3_sens_row_03", "l3_sens_row_04", "l3_sens_row_05", "l3_sens_row_06", "l3_sens_row_07", "l3_sens_row_09", "l3_sens_row_10", "l3_sens_row_11", "l3_sens_row_12", "l3_sens_row_13", "l3_sens_row_14", "sens_fine_sun", "sens_sky_view", "sens_star_catalogue", "sens_star_image", "sens_star_tracker"]
+run = ["*"]
+why = "a module of models the engine or the flight software calls during a run (code.generate): its functions take the run's state and the product it flies, which the step order hands over; no node of the design holds them, so it has no one value"
+

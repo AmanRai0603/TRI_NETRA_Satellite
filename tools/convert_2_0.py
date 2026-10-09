@@ -223,6 +223,56 @@ def method_rows(m, origin):
     return rows
 
 
+def wire_node(files, nid, w, r, origin):
+    """Wire one method node (`[[revision.wire]]`, S7.19): each of its function's inputs to the node that supplies it, as an
+    input row (the parameter's name, or `name[i]` for an element of an array; the supplier; which of the supplier's outputs,
+    `function.output[i]`, when it has several; the unit the function takes it in, when not SI) with its port; the function
+    and output that give the node's value (code.function, code.output) where its module has several; and the inputs that
+    are the run's (code.run_inputs: the state the engine hands over at each step, or the product a scenario flies), which no
+    node of the design supplies. A wire adds: it never replaces a binding 1.0.0 gave, and names only nodes the design has."""
+    f = files.get(nid)
+    if f is None:
+        raise SystemExit(f"convert: revision {r['id']} wires {nid}, which the design does not have")
+    ins = [tuple((list(i) + ["", ""])[:4]) for i in w.get("inputs", [])]
+    for name, src, _o, _u in ins:
+        if src not in files:
+            raise SystemExit(f"convert: revision {r['id']} wires {nid}.{name} to {src}, which the design does not have")
+        if src == nid:
+            raise SystemExit(f"convert: revision {r['id']} wires {nid}.{name} to itself")
+    with sqlite3.connect(f) as c:
+        beh = c.execute("SELECT behaviour FROM block").fetchone()[0]
+        if beh != "method":
+            raise SystemExit(f"convert: revision {r['id']}: {nid} is {beh}; a wire feeds a method")
+        have = {x for (x,) in c.execute("SELECT name FROM input")}
+        ports = {x for (x,) in c.execute("SELECT name FROM port WHERE direction = 'in'")}
+        for name, src, out, unit in ins:
+            if name in have:
+                raise SystemExit(f"convert: revision {r['id']}: {nid} already reads {name}; a wire adds, it does not replace")
+            c.execute("INSERT INTO input VALUES (?, ?, ?, ?)", (name, src, out or None, unit or None))
+            have.add(name)
+            p = name.split("[")[0]
+            if p not in ports:
+                c.execute("INSERT INTO port VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)", (p, "in", "number", None, None, None, None, None, None))
+                ports.add(p)
+        rows = []
+        if w.get("function"):
+            rows.append(("code", "function", w["function"]))
+        out = (w.get("outputs") or {}).get(nid) or w.get("output")
+        if out:
+            rows.append(("code", "output", out))
+        if w.get("output_unit"):
+            rows.append(("code", "output_unit", w["output_unit"]))
+        if w.get("run"):
+            rows.append(("code", "run_inputs", json.dumps(w["run"])))
+        c.executemany("INSERT INTO content VALUES (?, ?, ?, ?)", [(a, b, v, origin) for a, b, v in rows])
+        what = "wired: " + (", ".join(f"{n} from {s}" + (f" {o}" if o else "") + (f" in {u}" if u else "") for n, s, o, u in ins) or "no input")
+        what += (f"; its value {w['function']}" + (f" -> {out}" if out else "") if w.get("function") else "")
+        what += (f"; the run's: {', '.join(w['run'])}" if w.get("run") else "")
+        n = c.execute("SELECT coalesce(max(n), 0) + 1 FROM revision").fetchone()[0]
+        c.execute("INSERT INTO revision VALUES (?, ?, ?, ?)", (n, r["at"], r["by"], f"{r['id']}: {what}: {w['why']}"))
+    return what
+
+
 def revise(gdir, revs, report):
     """Apply the developer's revisions to the node files: {node: [why, ...]} for their releases. A change whose
     node has another behaviour than its `from`, or that names a node the design does not have, is refused.
@@ -252,6 +302,11 @@ def revise(gdir, revs, report):
                     c.execute("INSERT INTO revision VALUES (?, ?, ?, ?)", (n, r["at"], r["by"], f"{r['id']}: {what}: {d['why']}"))
                 why.setdefault(nid, []).append(f"{origin} ({r['at'][:10]}), not yet signed by a person: {what}: {d['why']}")
                 report.append(["revision", nid, beh, to, f"{origin}: {what}: {d['why']}"])
+        for w in r.get("wire", []):
+            for nid in (w["nodes"] if "nodes" in w else [w["node"]]):
+                what = wire_node(files, nid, w, r, origin)
+                why.setdefault(nid, []).append(f"{origin} ({r['at'][:10]}), not yet signed by a person: {what}: {w['why']}")
+                report.append(["revision", nid, "method", "method", f"{origin}: {what}: {w['why']}"])
         for ch in r.get("change", []):
             named = set(ch["match"].get("nodes", []))
             if named - set(files):

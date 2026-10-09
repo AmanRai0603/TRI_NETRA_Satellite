@@ -71,6 +71,14 @@ class Convert(unittest.TestCase):
                     self.assertEqual(a[0][2], "case", f"{nid}: only a dissolved group's node changes its group")
                     self.assertEqual(a[0][:2] + a[0][3:], b[0][:2] + b[0][3:], nid)
                     continue
+                if t == "input" and a != b:
+                    # an input the developer's wire added (S7.19, `[[revision.wire]]`): every 1.0.0 binding kept, each added
+                    # one named in the node's history by the wire that added it
+                    self.assertEqual([r for r in a if r not in b], [], f"{nid}: a 1.0.0 input is not kept")
+                    wired = " ".join(h[3] for h in table(g, "revision") if h[2] == "the developer" and "wired:" in h[3])
+                    for r in (r for r in b if r not in a):
+                        self.assertIn(f"{r[0]} from {r[1]}", wired, f"{nid}: input {r[0]} added by no developer's wire")
+                    continue
                 if t in ("content", "revision") and a != b:
                     self.assertEqual([r for r in a if r not in b], [], f"{nid}: table {t}: a 1.0.0 row is not kept")
                     added = [r for r in b if r not in a]

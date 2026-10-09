@@ -202,6 +202,12 @@ class DesignBuild(unittest.TestCase):
                 if n["health"] in ("closes", "tight"):
                     self.fail(f"{n['id']}: shows {n['health']}, but its release is a converted baseline nobody has signed")
             answered = [c for c in h["closures"] if c["answer"] != "blocked"]
+            # by analysis (S7.19, evaluate reads the design's stated values): ais_img_3u states req.settle 20 s, and gc_2's
+            # settling time from 1.0.0's stated bandwidth 0.1 rad/s and damping 0.707 is 56.6 s: the closure fails, a finding
+            analysed = [c for c in answered if c["id"].endswith("_analysis")]
+            self.assertEqual([(c["id"], c["answer"], c["verdict"]) for c in analysed],
+                             [("kpi_settling_time_after_a_slew_analysis", "fail", "fails")] if case == "ais_img_3u" else [])
+            answered = [c for c in answered if not c["id"].endswith("_analysis")]
             self.assertEqual(sorted(c["id"] for c in answered), sorted(f"kpi_{k}_verified" for k in (
                 "absolute_pointing_error_ape", "absolute_knowledge_error_ake", "detumble_time", "adcs_orbit_average_power")))
             for c in answered:

@@ -34,7 +34,10 @@ with the tuning a law takes and the run's defaults when a scenario states none, 
 budget's terms (design, pnt) and the metrics (four new nodes of kpi), methods under `design/revisions/S7.14/` and
 `S7.14b/`; and again on 8 Oct 2026 with S7.15, the sizing (design, act), the catalogue's derive rule and the design
 loop's rules (four new nodes), methods under `design/revisions/S7.15/`; and again on 9 Oct 2026 with S7.15b, the Floquet
-certificate (a new node of ctl), its method under `design/revisions/S7.15b/`, for the toolbox `trinetra-toolbox/6` (eig)):
+certificate (a new node of ctl), its method under `design/revisions/S7.15b/`, for the toolbox `trinetra-toolbox/6` (eig);
+and again on 9 Oct 2026 with S7.19, the wiring: every method's inputs to the nodes that supply them, each method's function
+and output where its module has several, and the inputs that are a run's, `[[revision.wire]]`, which adds input rows and
+their ports and changes no method, table or value: 11.2 MB, 11,153,408 bytes):
 
     python3 tools/convert_2_0.py --out DRIVE
     python3 tools/design_build.py DRIVE --out tests/regression/design.tndb
