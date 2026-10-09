@@ -5,7 +5,7 @@ function J = jobs(caseId, seeds)
     J = struct('mode', {}, 'option', {}, 'seed', {}, 'cost', {});
     R = asils.util.root();
     C = asils.case.read(fullfile(R, 'cases', [caseId '.csv']));
-    a = 6378137 + C.v.orbit_alt*1e3; T = 2*pi*sqrt(a^3/3.986004418e14);
+    T = asils.models.caseorbit.dispersed_period(C.v.orbit_alt*1e3);   % env_case_orbit's period (generated)
     for m = asils.solution.mode()
         M = asils.solution.mode(m{1});
         for i = 1:numel(M.options)

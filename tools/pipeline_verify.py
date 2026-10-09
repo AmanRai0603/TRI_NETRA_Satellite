@@ -9,7 +9,7 @@ sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1] / "tools"))
 import json, math, os, shutil, subprocess, time
 import engine as E
 from common import write_bytes, write_text
-from design_call import Buf, call, take
+from design_call import Buf, call, orbit_period as design_period, take
 from pipeline_base import BIN, LAMBDA_MAX, MS, P, PIPE, ROOT, SCALE_MAX, SLOT, UP, cls, jl_, split_alg, usable, write
 from pipeline_design import EVENT_BUFS, PARTS, events, node_key
 
@@ -214,8 +214,8 @@ def fault_gaps(rec):
 
 
 def orbit_period(case):
-    a_ = 6378137 + E.case_value(case, "orbit.alt") * 1e3
-    return 2 * math.pi * math.sqrt(a_ ** 3 / 3.986004418e14)
+    """The case's orbit period: env_case_orbit's, asked of the engine (design_call.orbit_period)."""
+    return design_period(E.case_value(case, "orbit.alt"))
 
 
 def node_faults(case, sel, sized, modes, build, jobs, seeds=None, base=None):

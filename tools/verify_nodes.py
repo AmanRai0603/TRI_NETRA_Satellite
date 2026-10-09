@@ -13,6 +13,7 @@ Copyright (c) 2026 Agastya. All rights reserved.
 """
 import json, math, sys
 from common import case_values, write_text, ROOT
+from design_call import orbit_period
 
 MS = ROOT / "matlab_sils"
 PIPE = MS / "store" / "pipeline"
@@ -252,7 +253,7 @@ def verify_faults(C, case, sel, it):
         return None
     FP = P["faults"]
     alt = case_req(case)["orbit.alt"]
-    T = 2 * math.pi * math.sqrt((6378137 + alt * 1e3) ** 3 / 3.986004418e14)
+    T = orbit_period(alt)                    # env_case_orbit's, asked of the engine
     fams = [f for f, v in sel["families"].items() if v["role"] in FP["roles"]]
     C("faults", case, f"every family of roles {', '.join(FP['roles'])} flown", sorted(fl["families"]) == sorted(fams), ", ".join(sorted(fl["families"])))
     for f, rec in fl["families"].items():

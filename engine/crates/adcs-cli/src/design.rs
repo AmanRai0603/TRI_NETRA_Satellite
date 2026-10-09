@@ -1,7 +1,8 @@
 //! `adcs design derive FILE...` | `adcs design call MODULE::FN`: the design's methods a Python tool asks for, so a tool
 //! keeps no relation of its own (docs/S7_INVENTORY.md S7.15): a catalogue model's parameters from its datasheet
-//! (tools/catalogue.py), and any method generated into the sizing by its name, through the translator's dispatcher
-//! (the design loop's rules, tools/pipeline_design.py).
+//! (tools/catalogue.py), and any method generated into the sizing or the engine's set-up by its name, through the
+//! translator's dispatchers (the design loop's rules, tools/pipeline_design.py; the case's orbit period,
+//! env_case_orbit's caseorbit, for the tools that size a run by it, S7.19b).
 //! Owner: Agastya. Copyright (c) 2026 Agastya. All rights reserved.
 use crate::cli::DesignCmd;
 use adcs_sim::Error;
@@ -20,8 +21,9 @@ pub fn main(cmd: &DesignCmd) -> Result<(), Error> {
             std::io::Read::read_to_string(&mut std::io::stdin(), &mut text).map_err(|e| Error::run(format!("stdin: {e}")))?;
             let x = text.split_whitespace().map(|w| w.parse::<f64>().map_err(|_| Error::refused(format!("{name}: {w:?} is not a number"))))
                 .collect::<Result<Vec<f64>, Error>>()?;
-            let out = adcs_design::gen::dispatch::call(name, &x)
-                .ok_or_else(|| Error::refused(format!("{name}: no such method in the sizing, or not its {} input number(s)", x.len())))?;
+            // the sizing's (adcs-design) first, then the engine's set-up (adcs-sim): a module of one name is one module
+            let out = adcs_design::gen::dispatch::call(name, &x).or_else(|| adcs_sim::gen::dispatch::call(name, &x))
+                .ok_or_else(|| Error::refused(format!("{name}: no such method in the sizing or the engine's set-up, or not its {} input number(s)", x.len())))?;
             let mut s = String::with_capacity(out.len()*24);
             for v in out { s += &format!("{v:?}\n"); }
             print!("{s}");

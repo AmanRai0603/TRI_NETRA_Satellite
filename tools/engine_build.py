@@ -47,7 +47,9 @@ its crate:
                                          module it takes the payload offset from); the power system (design), the
                                          rotors' jitter and the pointing budget (pnt, S7.14); how each metric is
                                          measured from a run: its channels, windows, statistics, the ECSS indices,
-                                         each kind's value and unit and its verdict (kpi, S7.14b); std maths
+                                         each kind's value and unit and its verdict (kpi, S7.14b); std maths, and the
+                                         translator's dispatcher, by which `adcs design call` serves the case's orbit
+                                         period (caseorbit) to the tools that size a run by it (S7.19b)
   engine/crates/adcs-design/src/gen/     the sizing (design and act, S7.15): the demand survey's reductions and what the
                                          case asks of an actuator, the magnetorquer coil, the momentum actuators chosen
                                          from the catalogue, the fluid rings and their electromagnetic pump, where a ring
@@ -96,7 +98,7 @@ TITLE = "TRI-NETRA engine models, written from the design by tools/engine_build.
 TARGETS = {
     "adcs-sim-core": {"dir": "engine/crates/adcs-sim-core/src/gen", "root": "crate::gen", "math": "crate::pm"},
     "adcs-pop": {"dir": "engine/crates/adcs-pop/src/gen", "root": "crate::gen", "math": None},
-    "adcs-sim": {"dir": "engine/crates/adcs-sim/src/gen", "root": "crate::gen", "math": None},
+    "adcs-sim": {"dir": "engine/crates/adcs-sim/src/gen", "root": "crate::gen", "math": None, "dispatch": True},
     "adcs-design": {"dir": "engine/crates/adcs-design/src/gen", "root": "crate::gen", "math": None, "dispatch": True},
 }
 # the MATLAB twin's package: every module the engine's targets take, one copy, beside the twin's own code

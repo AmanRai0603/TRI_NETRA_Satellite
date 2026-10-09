@@ -13,7 +13,7 @@ function S = scenario(caseId, modeId, optionId)
     assert(~isempty(opt), 'asils:solution:option', 'Mode %s has no option %s', modeId, optionId);
     R = asils.util.root();
     C = asils.case.read(fullfile(R, 'cases', [caseId '.csv']));
-    a = 6378137 + C.v.orbit_alt*1e3; T = 2*pi*sqrt(a^3/3.986004418e14);
+    T = asils.models.caseorbit.dispersed_period(C.v.orbit_alt*1e3);   % env_case_orbit's period (generated)
     orbits = asils.util.getf(opt, 'duration_orbits', M.test.duration_orbits);
     win = asils.util.getf(opt, 'window', M.test.window);
     S = struct();

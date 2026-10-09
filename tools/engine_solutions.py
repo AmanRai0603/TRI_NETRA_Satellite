@@ -2,8 +2,9 @@
 
 Copyright (c) 2026 Agastya. All rights reserved.
 """
-import concurrent.futures as cf, json, math, shutil, subprocess, sys, time
+import concurrent.futures as cf, json, shutil, subprocess, sys, time
 from common import Steps, case_values, sh, write_text
+from design_call import orbit_period
 from engine_base import BIN, OUT, ROOT
 
 
@@ -22,8 +23,7 @@ def case_value(case, key):
 
 def mode_scenario(case, M, o):
     """asils.solution.scenario: one mode test of one option on the case's sized product."""
-    a = 6378137 + case_value(case, "orbit.alt") * 1e3
-    T = 2 * math.pi * math.sqrt(a ** 3 / 3.986004418e14)
+    T = orbit_period(case_value(case, "orbit.alt"))      # env_case_orbit's, asked of the engine
     orbits = o.get("duration_orbits", M["test"]["duration_orbits"])
     win = o.get("window", M["test"]["window"])
     g = M["guidance"] if M["guidance"] not in ("none", "sun_vector") else "nadir"
@@ -142,8 +142,7 @@ def dispatch(a):
             dt = min(dt, o["dt_s"])
         det, acq = opt("detumble"), opt("sun_acquisition")
         fine = opt("nadir_pointing")
-        a_ = 6378137 + case_value(c, "orbit.alt") * 1e3
-        T = 2 * math.pi * math.sqrt(a_ ** 3 / 3.986004418e14)
+        T = orbit_period(case_value(c, "orbit.alt"))     # env_case_orbit's, asked of the engine
         scen = {"schema": "adcs-scenario/1", "id": f"dispatch_{c}_{fam}", "case": c, "product": f"SZ-{c}-{fam}",
                 "label": f"{c} — dispatched {fam}: {det['fsw_mode']} -> {acq['fsw_mode']} (auto), then {fine['fsw_mode']} by command",
                 "time": {"duration_s": round(2 * T), "dt_s": dt, "record_dt_s": 1.0},

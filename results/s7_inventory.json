@@ -6347,6 +6347,12 @@
    "work": "The boundary check in tools/check_all.py (a relation outside generated files and the toolbox fails), built-in count zero, the S4 parity gate on the whole chain.",
    "parity": "check_all; parity_2_0; built-in count 0",
    "status": "done (9 Oct 2026): the boundary check (tools/boundary.py, tools/boundary.toml, check_all's boundary step, tests/test_boundary.py) passes with 20 declared exceptions, each with what removes it, and found adcs-pop's own Earth rate (fixed); built-in count 0; the wiring (revision S7.19: 213 method nodes, 239 inputs, 81 functions named, 167 told their run inputs) and evaluate reading the design's stated values: 43 and 46 rows computed more, every new value against the engine (349 equal bit for bit, 13 differ with reasons, 15 no counterpart; results/S7_19_CHANGES.md); one closure moves (ais_img_3u settling time by analysis: fail); the parity gate in full: inputs 167, layout 152, blobs 48, runs 48, campaigns 4,516, soft OILS 2, the twin 1, evaluate 2,520 of 2,520 against the new baseline"
+  },
+  {
+   "step": "S7.19b",
+   "work": "Remove the 20 declared exceptions of the boundary check: every relation still in code moved into the design (or asked of the engine), so tools/boundary.py passes with no exception that is a relation.",
+   "parity": "per item: the stored results that must not move, bit for bit; boundary 0 problems",
+   "status": "in progress (9 Oct 2026): (1, the orbit period) The orbit period 2 pi sqrt((R_E + h)^3/mu) that four tools (engine_solutions.py, pipeline_verify.py, run_matrix.py, verify_nodes.py) and the twin's +solution (jobs.m, scenario.m) copied is asked of the design: the tools call env_case_orbit's caseorbit::dispersed_period through `adcs design call` (design_call.orbit_period), which now reaches adcs-sim's generated set-up (engine_build gives adcs-sim the translator's dispatcher, served after the sizing's), the twin calls asils.models.caseorbit.dispersed_period. Held: at the cases' 550 km the period is the same double (5738.992815014798 s) in Python's pow, the engine's (r r) r and Octave's ^, so no stored length or decision can move; the 50 stored engine solution scenarios regenerated equal in every field; verify_nodes 330 of 330 with its results byte for byte; on 100,000 random altitudes (150-2000 km) pow and (r r) r differ in T's last bit 10,106 times and in a rounded length (0.25 to 3 orbits) never; the engine's answer equals (r r) r on 300 of them. 4 exceptions removed."
   }
  ],
  "tndb_from_matlab": {

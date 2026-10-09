@@ -629,31 +629,3 @@ find = "earth radius"
 exception = true
 why = "a figure plots the radius less 6378137 m (a spherical Earth's altitude)."
 until = "the figure takes the radius from the design's constants (asils.relations.orbit.radius(0)) or plots the record's own altitude"
-
-[[allow]]
-file = ["matlab_sils/+asils/+solution/jobs.m", "matlab_sils/+asils/+solution/scenario.m"]
-find = "earth GM"
-exception = true
-why = "the twin's solution runner sizes a run's length by the orbit period 2 pi sqrt(a^3/mu) of the case's altitude: Kepler's third law, env_case_orbit's dispersed_period, copied."
-until = "the period is the design's (asils.models.caseorbit.dispersed_period)"
-
-[[allow]]
-file = ["matlab_sils/+asils/+solution/jobs.m", "matlab_sils/+asils/+solution/scenario.m"]
-find = "earth radius"
-exception = true
-why = "the same period's a = R_E + h."
-until = "the period is the design's (asils.models.caseorbit.dispersed_period)"
-
-[[allow]]
-file = ["tools/engine_solutions.py", "tools/pipeline_verify.py", "tools/run_matrix.py", "tools/verify_nodes.py"]
-find = "earth GM"
-exception = true
-why = "four tools (engine_solutions.py, pipeline_verify.py, run_matrix.py, verify_nodes.py) size a run or check a stored decision with the orbit period 2 pi sqrt((R_E + h)^3/mu), env_case_orbit's dispersed_period copied; bit for bit it is Python's pow, not the generated r*r*r, so the stored pipeline's scenario lengths hang on it."
-until = "the tools ask the engine for env_case_orbit's period (adcs design call reaching adcs-sim's caseorbit), the stored pipeline flown again where a length moves"
-
-[[allow]]
-file = ["tools/engine_solutions.py", "tools/pipeline_verify.py", "tools/run_matrix.py", "tools/verify_nodes.py"]
-find = "earth radius"
-exception = true
-why = "the same period's a = R_E + h in those four tools."
-until = "the tools ask the engine for env_case_orbit's period (as above)"
