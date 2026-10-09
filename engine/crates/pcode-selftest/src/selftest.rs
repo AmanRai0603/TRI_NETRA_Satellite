@@ -873,3 +873,71 @@ pub fn blur(b: &mut [f64], w: f64) -> f64 {
     }
     total
 }
+
+/// eig, the toolbox's eigenvalues (trinetra-toolbox/6, S7.15b: the Floquet multipliers of the coils-only loop): of a
+/// square matrix of reals, each [re, im] in the matrix's unit, in the order the QR iteration leaves them. Only + - * /,
+/// sqrt and |x|: every translation gives the interpreter's bits. A 5 x 5 (complex pairs, the double-step QR), a matrix in
+/// a unit, a 1 x 1; the sum of the squared moduli.
+/// - m: real[1][5][5] (passed a plain number)
+/// - r: real[1/s][2][2] (passed in 1/s)
+/// - k: real[1] (passed a plain number)
+/// - returns e: real[1][2][5] (passed a plain number)
+/// - returns f: real[1/s][2][2] (passed in 1/s)
+/// - returns g: real[1][2][1] (passed a plain number)
+/// - returns s: real[1] (passed a plain number)
+#[allow(clippy::too_many_arguments)]
+pub fn eigen(m: [[f64; 5]; 5], r: [[f64; 2]; 2], k: f64) -> ([[f64; 2]; 5], [[f64; 2]; 2], [[f64; 2]; 1], f64) {
+    let mut e: [[f64; 2]; 5] = [[0.0; 2]; 5];
+    let mut f: [[f64; 2]; 2] = [[0.0; 2]; 2];
+    let mut g: [[f64; 2]; 1] = [[0.0; 2]; 1];
+    let mut s: f64 = 0.0;
+    e = rt::eig(m);
+    f = rt::eig(r);
+    g = rt::eig([[k]]);
+    s = 0.0;
+    {
+        let __end19: i64 = 5;
+        let mut i: i64 = 0;
+        while i < __end19 {
+            s = ((s + (e[(i) as usize][0] * e[(i) as usize][0])) + (e[(i) as usize][1] * e[(i) as usize][1]));
+            i += 1;
+        }
+    }
+    (e, f, g, s)
+}
+
+/// Outside the real domain sqrt, asin, acos, log, log10, log2 and pow give nan in every translation, as C's, Rust's and the
+/// interpreter's do (MATLAB's own are complex there: its runtime's asils.pc.sqrt_ and the rest give nan). Which are nan, as
+/// bits, and a value from inside the domain.
+/// - x: real[1] (passed a plain number)
+/// - returns n: int (passed a whole number)
+/// - returns v: real[1] (passed a plain number)
+#[allow(clippy::too_many_arguments)]
+pub fn domain(x: f64) -> (i64, f64) {
+    let mut n: i64 = 0;
+    let mut v: f64 = 0.0;
+    n = 0;
+    if (f64::sqrt(x)).is_nan() {
+        n = (n + 1);
+    }
+    if (f64::asin(x)).is_nan() {
+        n = (n + 2);
+    }
+    if (f64::acos(x)).is_nan() {
+        n = (n + 4);
+    }
+    if (f64::ln(x)).is_nan() {
+        n = (n + 8);
+    }
+    if (f64::log10(x)).is_nan() {
+        n = (n + 16);
+    }
+    if (f64::log2(x)).is_nan() {
+        n = (n + 32);
+    }
+    if (f64::powf(x, core::hint::black_box(0.5))).is_nan() {
+        n = (n + 64);
+    }
+    v = (if (x >= 0.0) { (f64::sqrt(x) + f64::ln((x + 1.0))) } else { f64::acos((x / 3.0)) });
+    (n, v)
+}

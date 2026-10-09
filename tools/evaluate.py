@@ -119,7 +119,7 @@ def _fn_of(nid, text, symbol):
         fns = [k for k, v in bs.items() if v[0] == "fn"]
         fn = fns[0] if len(fns) == 1 else None
     params, outs = groupcode._header(bs[fn][2], fn) if fn else (None, None)
-    return fn, params or [], outs or []
+    return fn, params or [], outs or [], sum(1 for v in bs.values() if v[0] == "fn")
 
 
 def _run(text, fn, args):
@@ -212,9 +212,11 @@ def evaluate(d, case):
         for nid, n in code.items():
             if nid in out:
                 continue
-            fn, params, _ = plans[nid]
+            fn, params, _, nfns = plans[nid]
             if not fn:
-                put(nid, "not computed", why="its pseudocode defines no function")
+                # a module of several functions that names none for this node is not refused: no row value to compute yet
+                put(nid, "not computed", why="its pseudocode defines no function" if not nfns else
+                    f"its module has {nfns} functions and names none for this node (by its id or its output's symbol)")
                 progress = True
                 continue
             src = dict(n["inputs"])
@@ -240,7 +242,7 @@ def evaluate(d, case):
             progress = True
     for nid, n in code.items():
         if nid not in out:
-            fn, params, _ = plans[nid]
+            fn, params, _, _n = plans[nid]
             src = dict(n["inputs"])
             need = [f"{p} from {src.get(p)}" for p, _ in params if src.get(p) not in out or out[src.get(p)]["si"] is None]
             put(nid, "not computed", why="needs " + ", ".join(need) + " (a loop, or rows not computed)")

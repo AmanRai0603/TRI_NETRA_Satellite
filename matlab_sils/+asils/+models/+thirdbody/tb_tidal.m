@@ -8,7 +8,7 @@ function [a] = tb_tidal(s, b, gm)
     a = zeros(3, 1);
     rb = asils.pc.norm_(b);
     rh = [(b(1) / rb); (b(2) / rb); (b(3) / rb)];
-    k = ((-(gm)) / (rb)^(3));
+    k = ((-(gm)) / asils.pc.pow_(rb, 3));
     sr = (3 * asils.pc.dot_(s, rh));
     a = [(k * (s(1) - (sr * rh(1)))); (k * (s(2) - (sr * rh(2)))); (k * (s(3) - (sr * rh(3))))];
 end

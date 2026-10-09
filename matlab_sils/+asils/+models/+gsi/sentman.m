@@ -13,10 +13,10 @@ function [cp, ct] = sentman(s, delta, a_t, tw, talt)
     ct = 0;
     c = cos(delta);
     sn = (s * c);
-    ti = (((2 / 3) * (s)^(2)) * talt);
+    ti = (((2 / 3) * asils.pc.pow_(s, 2)) * talt);
     e = (1 + erf(sn));
-    p = exp((-((sn)^(2))));
-    sqpi = sqrt(pi);
-    cp = ((((c / (sqpi * s)) * p) + (((1 / (2 * (s)^(2))) + (c)^(2)) * e)) + ((0.5 * sqrt(((2 / 3) * (1 + (a_t * ((tw / ti) - 1)))))) * (((sqpi * c) * e) + ((1 / s) * p))));
+    p = exp((-(asils.pc.pow_(sn, 2))));
+    sqpi = asils.pc.sqrt_(pi);
+    cp = ((((c / (sqpi * s)) * p) + (((1 / (2 * asils.pc.pow_(s, 2))) + asils.pc.pow_(c, 2)) * e)) + ((0.5 * asils.pc.sqrt_(((2 / 3) * (1 + (a_t * ((tw / ti) - 1)))))) * (((sqpi * c) * e) + ((1 / s) * p))));
     ct = ((sin(delta) / (sqpi * s)) * (p + ((sqpi * sn) * e)));
 end

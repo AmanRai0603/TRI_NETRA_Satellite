@@ -45,5 +45,5 @@ function [vis, n_el, es, cos_e, da, rho, lat] = cap_element(r_sat, zhat, e1, e2,
     cos_e = asils.pc.dot_(n_el, es);
     vis = (~(cos_e <= 0));
     da = ((((re * re) * sp) * dpsi) * ((2 * pi) / nsg));
-    lat = asin(asils.models.thirdbody.unit_clip(n_el(3)));
+    lat = asils.pc.asin_(asils.models.thirdbody.unit_clip(n_el(3)));
 end

@@ -119,6 +119,110 @@ pub fn call(name: &str, x: &[f64]) -> Option<Vec<f64>> {
             out.push(r.4);
             out.push(r.5);
         }
+        "floquet::fq_laws" => {
+            if x.len() != 0 { return None; }
+            let r = crate::floquet::fq_laws();
+            for v in r.iter() { let v = *v; out.push(v as f64); }
+        }
+        "floquet::fq_frame" => {
+            let mut at: usize = 0;
+            if x.len() < at + 1 { return None; }
+            let n0 = x[at] as usize;
+            if x.len() < at + 1 + n0 { return None; }
+            let mut io0 = x[at + 1..at + 1 + n0].to_vec();
+            at += 1 + n0;
+            if x.len() < at + 1 { return None; }
+            let n1 = x[at] as usize;
+            if x.len() < at + 1 + n1 { return None; }
+            let mut io1 = x[at + 1..at + 1 + n1].to_vec();
+            at += 1 + n1;
+            if x.len() < at + 1 { return None; }
+            let n2 = x[at] as usize;
+            if x.len() < at + 1 + n2 { return None; }
+            let mut io2 = x[at + 1..at + 1 + n2].to_vec();
+            at += 1 + n2;
+            if x.len() < at + 1 { return None; }
+            let n3 = x[at] as usize;
+            if x.len() < at + 1 + n3 { return None; }
+            let mut io3 = x[at + 1..at + 1 + n3].to_vec();
+            at += 1 + n3;
+            if x.len() < at + 1 { return None; }
+            let n4 = x[at] as usize;
+            if x.len() < at + 1 + n4 { return None; }
+            let mut io4 = x[at + 1..at + 1 + n4].to_vec();
+            at += 1 + n4;
+            if x.len() < at + 1 { return None; }
+            let n5 = x[at] as usize;
+            if x.len() < at + 1 + n5 { return None; }
+            let mut io5 = x[at + 1..at + 1 + n5].to_vec();
+            at += 1 + n5;
+            if x.len() < at + 1 { return None; }
+            let n6 = x[at] as usize;
+            if x.len() < at + 1 + n6 { return None; }
+            let mut io6 = x[at + 1..at + 1 + n6].to_vec();
+            at += 1 + n6;
+            if x.len() < at + 1 { return None; }
+            let n7 = x[at] as usize;
+            if x.len() < at + 1 + n7 { return None; }
+            let mut io7 = x[at + 1..at + 1 + n7].to_vec();
+            at += 1 + n7;
+            if x.len() < at + 1 { return None; }
+            let n8 = x[at] as usize;
+            if x.len() < at + 1 + n8 { return None; }
+            let mut io8 = x[at + 1..at + 1 + n8].to_vec();
+            at += 1 + n8;
+            if x.len() < at + 4 { return None; }
+            let a9 = { let x = &x[at..]; [x[0], x[1], x[2], x[3]] };
+            at += 4;
+            if x.len() < at + 3 { return None; }
+            let a10 = { let x = &x[at..]; [x[0], x[1], x[2]] };
+            at += 3;
+            if x.len() != at { return None; }
+            let r = crate::floquet::fq_frame(&mut io0, &mut io1, &mut io2, &mut io3, &mut io4, &mut io5, &mut io6, &mut io7, &mut io8, a9, a10);
+            for v in r.iter() { let v = *v; for v in v.iter() { let v = *v; out.push(v); } }
+            out.push(io0.len() as f64); for v in io0.iter() { let v = *v; out.push(v); }
+            out.push(io1.len() as f64); for v in io1.iter() { let v = *v; out.push(v); }
+            out.push(io2.len() as f64); for v in io2.iter() { let v = *v; out.push(v); }
+            out.push(io3.len() as f64); for v in io3.iter() { let v = *v; out.push(v); }
+            out.push(io4.len() as f64); for v in io4.iter() { let v = *v; out.push(v); }
+            out.push(io5.len() as f64); for v in io5.iter() { let v = *v; out.push(v); }
+            out.push(io6.len() as f64); for v in io6.iter() { let v = *v; out.push(v); }
+            out.push(io7.len() as f64); for v in io7.iter() { let v = *v; out.push(v); }
+            out.push(io8.len() as f64); for v in io8.iter() { let v = *v; out.push(v); }
+        }
+        "floquet::fq_rv2q" => {
+            if x.len() != 3 { return None; }
+            let r = crate::floquet::fq_rv2q([x[0], x[1], x[2]]);
+            for v in r.iter() { let v = *v; out.push(v); }
+        }
+        "floquet::fq_torque" => {
+            if x.len() != 66 { return None; }
+            let r = crate::floquet::fq_torque(x[0] as i64, crate::floquet::FqGains { J: [[x[1], x[2], x[3]], [x[4], x[5], x[6]], [x[7], x[8], x[9]]], mtq_meas: x[10], mtq_period: x[11], roll_axis: [x[12], x[13], x[14]], mtq_gg_ff: x[15] as i64, mtq_Kp: [x[16], x[17], x[18]], mtq_Kd: [x[19], x[20], x[21]], mtq_eps: x[22], mtq_k1: x[23], mtq_k2: x[24], mtq_k16: x[25], mtq_lam16: x[26], sb_kp: x[27], sb_kd: x[28], sb_kroll: x[29], sb_kdroll: x[30], sb_roll_gate: x[31], sun_axis: [x[32], x[33], x[34]], mtq_Pth: [[x[35], x[36], x[37]], [x[38], x[39], x[40]], [x[41], x[42], x[43]]], mtq_Pw: [[x[44], x[45], x[46]], [x[47], x[48], x[49]], [x[50], x[51], x[52]]] }, [x[53], x[54], x[55], x[56]], [x[57], x[58], x[59]], [x[60], x[61], x[62]], [x[63], x[64], x[65]]);
+            for v in r.iter() { let v = *v; out.push(v); }
+        }
+        "floquet::fq_rate" => {
+            if x.len() != 87 { return None; }
+            let r = crate::floquet::fq_rate(x[0] as i64, crate::floquet::FqGains { J: [[x[1], x[2], x[3]], [x[4], x[5], x[6]], [x[7], x[8], x[9]]], mtq_meas: x[10], mtq_period: x[11], roll_axis: [x[12], x[13], x[14]], mtq_gg_ff: x[15] as i64, mtq_Kp: [x[16], x[17], x[18]], mtq_Kd: [x[19], x[20], x[21]], mtq_eps: x[22], mtq_k1: x[23], mtq_k2: x[24], mtq_k16: x[25], mtq_lam16: x[26], sb_kp: x[27], sb_kd: x[28], sb_kroll: x[29], sb_kdroll: x[30], sb_roll_gate: x[31], sun_axis: [x[32], x[33], x[34]], mtq_Pth: [[x[35], x[36], x[37]], [x[38], x[39], x[40]], [x[41], x[42], x[43]]], mtq_Pw: [[x[44], x[45], x[46]], [x[47], x[48], x[49]], [x[50], x[51], x[52]]] }, [[x[53], x[54], x[55]], [x[56], x[57], x[58]], [x[59], x[60], x[61]]], x[62], x[63], [[x[64], x[65], x[66]], [x[67], x[68], x[69]], [x[70], x[71], x[72]]], x[73], [x[74], x[75], x[76]], [x[77], x[78], x[79]], x[80], [x[81], x[82], x[83], x[84], x[85], x[86]]);
+            for v in r.iter() { let v = *v; out.push(v); }
+        }
+        "floquet::fq_jacobian" => {
+            if x.len() != 81 { return None; }
+            let r = crate::floquet::fq_jacobian(x[0] as i64, crate::floquet::FqGains { J: [[x[1], x[2], x[3]], [x[4], x[5], x[6]], [x[7], x[8], x[9]]], mtq_meas: x[10], mtq_period: x[11], roll_axis: [x[12], x[13], x[14]], mtq_gg_ff: x[15] as i64, mtq_Kp: [x[16], x[17], x[18]], mtq_Kd: [x[19], x[20], x[21]], mtq_eps: x[22], mtq_k1: x[23], mtq_k2: x[24], mtq_k16: x[25], mtq_lam16: x[26], sb_kp: x[27], sb_kd: x[28], sb_kroll: x[29], sb_kdroll: x[30], sb_roll_gate: x[31], sun_axis: [x[32], x[33], x[34]], mtq_Pth: [[x[35], x[36], x[37]], [x[38], x[39], x[40]], [x[41], x[42], x[43]]], mtq_Pw: [[x[44], x[45], x[46]], [x[47], x[48], x[49]], [x[50], x[51], x[52]]] }, [[x[53], x[54], x[55]], [x[56], x[57], x[58]], [x[59], x[60], x[61]]], x[62], x[63], [[x[64], x[65], x[66]], [x[67], x[68], x[69]], [x[70], x[71], x[72]]], x[73], [x[74], x[75], x[76]], [x[77], x[78], x[79]], x[80]);
+            for v in r.iter() { let v = *v; for v in v.iter() { let v = *v; out.push(v); } }
+        }
+        "floquet::fq_monodromy" => {
+            if x.len() != 65 { return None; }
+            let r = crate::floquet::fq_monodromy(x[0] as i64, crate::floquet::FqGains { J: [[x[1], x[2], x[3]], [x[4], x[5], x[6]], [x[7], x[8], x[9]]], mtq_meas: x[10], mtq_period: x[11], roll_axis: [x[12], x[13], x[14]], mtq_gg_ff: x[15] as i64, mtq_Kp: [x[16], x[17], x[18]], mtq_Kd: [x[19], x[20], x[21]], mtq_eps: x[22], mtq_k1: x[23], mtq_k2: x[24], mtq_k16: x[25], mtq_lam16: x[26], sb_kp: x[27], sb_kd: x[28], sb_kroll: x[29], sb_kdroll: x[30], sb_roll_gate: x[31], sun_axis: [x[32], x[33], x[34]], mtq_Pth: [[x[35], x[36], x[37]], [x[38], x[39], x[40]], [x[41], x[42], x[43]]], mtq_Pw: [[x[44], x[45], x[46]], [x[47], x[48], x[49]], [x[50], x[51], x[52]]] }, [[x[53], x[54], x[55]], [x[56], x[57], x[58]], [x[59], x[60], x[61]]], x[62], x[63], x[64] as i64);
+            for v in r.iter() { let v = *v; for v in v.iter() { let v = *v; out.push(v); } }
+        }
+        "floquet::fq_certify" => {
+            if x.len() != 64 { return None; }
+            let r = crate::floquet::fq_certify(x[0] as i64, crate::floquet::FqGains { J: [[x[1], x[2], x[3]], [x[4], x[5], x[6]], [x[7], x[8], x[9]]], mtq_meas: x[10], mtq_period: x[11], roll_axis: [x[12], x[13], x[14]], mtq_gg_ff: x[15] as i64, mtq_Kp: [x[16], x[17], x[18]], mtq_Kd: [x[19], x[20], x[21]], mtq_eps: x[22], mtq_k1: x[23], mtq_k2: x[24], mtq_k16: x[25], mtq_lam16: x[26], sb_kp: x[27], sb_kd: x[28], sb_kroll: x[29], sb_kdroll: x[30], sb_roll_gate: x[31], sun_axis: [x[32], x[33], x[34]], mtq_Pth: [[x[35], x[36], x[37]], [x[38], x[39], x[40]], [x[41], x[42], x[43]]], mtq_Pw: [[x[44], x[45], x[46]], [x[47], x[48], x[49]], [x[50], x[51], x[52]]] }, [[x[53], x[54], x[55]], [x[56], x[57], x[58]], [x[59], x[60], x[61]]], x[62], x[63]);
+            for v in r.0.iter() { let v = *v; out.push(v); }
+            out.push(r.1);
+            out.push(r.2 as f64);
+            out.push(if r.3 { 1.0 } else { 0.0 });
+        }
         "looprules::loop_part" => {
             if x.len() != 1 { return None; }
             let r = crate::looprules::loop_part(x[0] as i64);
@@ -1302,6 +1406,150 @@ pub fn call(name: &str, x: &[f64]) -> Option<Vec<f64>> {
             if x.len() != 2 { return None; }
             let r = crate::sizesensors::gyro_load(x[0], x[1]);
             out.push(r);
+        }
+        "fswchoice::fsw_default_detumble" => {
+            if x.len() != 4 { return None; }
+            let r = crate::fswchoice::fsw_default_detumble([x[0] as i64, x[1] as i64, x[2] as i64, x[3] as i64]);
+            out.push(r as f64);
+        }
+        "fswchoice::fsw_default_attitude" => {
+            if x.len() != 1 { return None; }
+            let r = crate::fswchoice::fsw_default_attitude([x[0] as i64]);
+            out.push(r as f64);
+        }
+        "fswchoice::fsw_default_pointing" => {
+            if x.len() != 3 { return None; }
+            let r = crate::fswchoice::fsw_default_pointing([x[0] as i64, x[1] as i64, x[2] as i64]);
+            out.push(r as f64);
+        }
+        "fswchoice::fsw_default_mtq_pointing" => {
+            if x.len() != 9 { return None; }
+            let r = crate::fswchoice::fsw_default_mtq_pointing([x[0] as i64, x[1] as i64, x[2] as i64, x[3] as i64, x[4] as i64, x[5] as i64, x[6] as i64, x[7] as i64, x[8] as i64]);
+            out.push(r as f64);
+        }
+        "fswchoice::fsw_default_sun_acquisition" => {
+            if x.len() != 5 { return None; }
+            let r = crate::fswchoice::fsw_default_sun_acquisition([x[0] as i64, x[1] as i64, x[2] as i64, x[3] as i64, x[4] as i64]);
+            out.push(r as f64);
+        }
+        "fswchoice::fsw_default_allocation" => {
+            if x.len() != 4 { return None; }
+            let r = crate::fswchoice::fsw_default_allocation([x[0] as i64, x[1] as i64, x[2] as i64, x[3] as i64]);
+            out.push(r as f64);
+        }
+        "fswchoice::fsw_default_thrusters" => {
+            if x.len() != 1 { return None; }
+            let r = crate::fswchoice::fsw_default_thrusters([x[0] as i64]);
+            out.push(r as f64);
+        }
+        "fswchoice::fsw_bdot_law" => {
+            if x.len() != 1 { return None; }
+            let r = crate::fswchoice::fsw_bdot_law(x[0] as i64);
+            out.push(r as f64);
+        }
+        "fswchoice::fsw_rw_law" => {
+            if x.len() != 1 { return None; }
+            let r = crate::fswchoice::fsw_rw_law(x[0] as i64);
+            out.push(r as f64);
+        }
+        "fswchoice::fsw_mtq_law" => {
+            if x.len() != 1 { return None; }
+            let r = crate::fswchoice::fsw_mtq_law(x[0] as i64);
+            out.push(r as f64);
+        }
+        "fswchoice::fsw_alloc" => {
+            if x.len() != 1 { return None; }
+            let r = crate::fswchoice::fsw_alloc(x[0] as i64);
+            out.push(r as f64);
+        }
+        "fswchoice::fsw_sun_acquisition" => {
+            if x.len() != 1 { return None; }
+            let r = crate::fswchoice::fsw_sun_acquisition(x[0] as i64);
+            out.push(r.0 as f64);
+            out.push(r.1);
+            out.push(r.2 as f64);
+        }
+        "fswchoice::fsw_guidance_kind" => {
+            if x.len() != 1 { return None; }
+            let r = crate::fswchoice::fsw_guidance_kind(x[0] as i64);
+            out.push(r as f64);
+        }
+        "math::maxabs3" => {
+            if x.len() != 3 { return None; }
+            let r = crate::math::maxabs3([x[0], x[1], x[2]]);
+            out.push(r);
+        }
+        "math::mat3t_vec" => {
+            if x.len() != 12 { return None; }
+            let r = crate::math::mat3t_vec([[x[0], x[1], x[2]], [x[3], x[4], x[5]], [x[6], x[7], x[8]]], [x[9], x[10], x[11]]);
+            for v in r.iter() { let v = *v; out.push(v); }
+        }
+        "math::skew" => {
+            if x.len() != 3 { return None; }
+            let r = crate::math::skew([x[0], x[1], x[2]]);
+            for v in r.iter() { let v = *v; for v in v.iter() { let v = *v; out.push(v); } }
+        }
+        "math::det3" => {
+            if x.len() != 9 { return None; }
+            let r = crate::math::det3([[x[0], x[1], x[2]], [x[3], x[4], x[5]], [x[6], x[7], x[8]]]);
+            out.push(r);
+        }
+        "math::inv3" => {
+            if x.len() != 9 { return None; }
+            let r = crate::math::inv3([[x[0], x[1], x[2]], [x[3], x[4], x[5]], [x[6], x[7], x[8]]]);
+            for v in r.0.iter() { let v = *v; for v in v.iter() { let v = *v; out.push(v); } }
+            out.push(if r.1 { 1.0 } else { 0.0 });
+        }
+        "math::pinv_rows" => {
+            if x.len() != 25 { return None; }
+            let r = crate::math::pinv_rows([[x[0], x[1], x[2], x[3], x[4], x[5], x[6], x[7]], [x[8], x[9], x[10], x[11], x[12], x[13], x[14], x[15]], [x[16], x[17], x[18], x[19], x[20], x[21], x[22], x[23]]], x[24] as i64);
+            for v in r.iter() { let v = *v; for v in v.iter() { let v = *v; out.push(v); } }
+        }
+        "math::jacobi_eig4" => {
+            if x.len() != 16 { return None; }
+            let r = crate::math::jacobi_eig4([[x[0], x[1], x[2], x[3]], [x[4], x[5], x[6], x[7]], [x[8], x[9], x[10], x[11]], [x[12], x[13], x[14], x[15]]]);
+            for v in r.0.iter() { let v = *v; out.push(v); }
+            for v in r.1.iter() { let v = *v; for v in v.iter() { let v = *v; out.push(v); } }
+        }
+        "math::qmult" => {
+            if x.len() != 8 { return None; }
+            let r = crate::math::qmult([x[0], x[1], x[2], x[3]], [x[4], x[5], x[6], x[7]]);
+            for v in r.iter() { let v = *v; out.push(v); }
+        }
+        "math::qconj" => {
+            if x.len() != 4 { return None; }
+            let r = crate::math::qconj([x[0], x[1], x[2], x[3]]);
+            for v in r.iter() { let v = *v; out.push(v); }
+        }
+        "math::qnorm" => {
+            if x.len() != 4 { return None; }
+            let r = crate::math::qnorm([x[0], x[1], x[2], x[3]]);
+            for v in r.iter() { let v = *v; out.push(v); }
+        }
+        "math::dcm" => {
+            if x.len() != 4 { return None; }
+            let r = crate::math::dcm([x[0], x[1], x[2], x[3]]);
+            for v in r.iter() { let v = *v; for v in v.iter() { let v = *v; out.push(v); } }
+        }
+        "math::fromdcm" => {
+            if x.len() != 9 { return None; }
+            let r = crate::math::fromdcm([[x[0], x[1], x[2]], [x[3], x[4], x[5]], [x[6], x[7], x[8]]]);
+            for v in r.iter() { let v = *v; out.push(v); }
+        }
+        "math::fromrotvec" => {
+            if x.len() != 3 { return None; }
+            let r = crate::math::fromrotvec([x[0], x[1], x[2]]);
+            for v in r.iter() { let v = *v; out.push(v); }
+        }
+        "math::qangle" => {
+            if x.len() != 8 { return None; }
+            let r = crate::math::qangle([x[0], x[1], x[2], x[3]], [x[4], x[5], x[6], x[7]]);
+            out.push(r);
+        }
+        "math::qerr" => {
+            if x.len() != 8 { return None; }
+            let r = crate::math::qerr([x[0], x[1], x[2], x[3]], [x[4], x[5], x[6], x[7]]);
+            for v in r.iter() { let v = *v; out.push(v); }
         }
         _ => return None,
     }

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""The engine build (docs/PLAN_2_0.md S7; docs/S7_INVENTORY.md S7.3-S7.15): the time engine's published models and relations
+"""The engine build (docs/PLAN_2_0.md S7; docs/S7_INVENTORY.md S7.3-S7.15b): the time engine's published models and relations
 written from the design. Only the engine's core stays hand-written (step order, recorder, integrators, the toolbox); a
 model of the world or of the spacecraft is a method of an env, dyn, act or sens node, and its Rust is generated here, never
 edited.
@@ -52,7 +52,8 @@ its crate:
                                          case asks of an actuator, the magnetorquer coil, the momentum actuators chosen
                                          from the catalogue, the fluid rings and their electromagnetic pump, where a ring
                                          lies in the box, the thrusters, the sensor suite, the budget; the catalogue's
-                                         derive rule (catalogue); the design loop's rules (design); std maths, and the
+                                         derive rule (catalogue); the design loop's rules (design); the Floquet
+                                         certificate of the coils-only loop (ctl, S7.15b); std maths, and the
                                          translator's dispatcher, by which `adcs design call` serves a method by name to
                                          the tools (tools/design_call.py)
   matlab_sils/+asils/+models/            the same models for the MATLAB twin (asils.models.<module>.<function>), one

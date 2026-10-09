@@ -35,7 +35,7 @@ function [s] = modes_step(st, mp, zw, sun_ok, sun, dt)
         end
     end
     if ((s.mode == 8) && (mp.auto_next ~= 255))
-        ok = ((sun_ok && (acos(asils.pc.clamp(asils.pc.dot_(sun, mp.sun_axis), (-(1)), 1)) < (mp.sa_done_deg * (pi / 180)))) && s.ad_ok);
+        ok = ((sun_ok && (asils.pc.acos_(asils.pc.clamp(asils.pc.dot_(sun, mp.sun_axis), (-(1)), 1)) < (mp.sa_done_deg * (pi / 180)))) && s.ad_ok);
         if ok
             s.acq_hold = (s.acq_hold + dt);
         else

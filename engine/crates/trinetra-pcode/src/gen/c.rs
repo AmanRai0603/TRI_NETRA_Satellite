@@ -349,6 +349,18 @@ impl<'a> Gen<'a> {
             format!("static inline {a} pc_sort_{tg}({a} v) {{ {i} ix = {as_}(v); {a} r = v; int i; for (i = 0; i < {n}; i++) {{ r.v[i] = v.v[ix.v[i]]; }} return r; }}"),
         )
     }
+    // the toolbox's eigenvalues (pcode.js rt.eig): the one routine, and a call of it at each size of matrix
+    fn eig_op(&mut self, t: &Ty) -> String {
+        let Ty::Arr(n, _) = t else { return self.b.fail("eig of what is not a matrix") };
+        let n = *n;
+        let a = self.cty(t);
+        let r = self.cty(&arr(n, arr(2, REAL)));
+        let name = format!("pc_eig_{}", self.tag(t));
+        self.need("pc_eig".into(), C_EIG.into());
+        let nn = n * n;
+        let body = format!("static inline {r} {name}({a} m) {{ {r} r; double a[{nn}], wr[{n}], wi[{n}], ort[{n}]; int i, j; for (i = 0; i < {n}; i++) {{ for (j = 0; j < {n}; j++) {{ a[i * {n} + j] = m.v[i].v[j]; }} }} pc_eig(a, {n}, wr, wi, ort); for (i = 0; i < {n}; i++) {{ r.v[i].v[0] = wr[i]; r.v[i].v[1] = wi[i]; }} return r; }}");
+        self.need(name, body)
+    }
     fn tr_op(&mut self, t: &Ty) -> String {
         let Ty::Arr(n, of) = t else { return self.b.fail("transpose of what is not a matrix") };
         let Ty::Arr(m, el) = &**of else { return self.b.fail("transpose of what is not a matrix") };
@@ -691,6 +703,11 @@ impl<'a> Gen<'a> {
                 "transpose" => {
                     let t = real_first(self);
                     let op = self.tr_op(&t);
+                    format!("{op}({})", v(self, 0))
+                }
+                "eig" => {
+                    let t = real_first(self);
+                    let op = self.eig_op(&t);
                     format!("{op}({})", v(self, 0))
                 }
                 "stream" => {
@@ -1245,6 +1262,157 @@ impl<'a> Gen<'a> {
 }
 
 /// The scalar runtime every C translation carries (pcode_c.js `C_RT`).
+/// The toolbox's eigenvalues (pcode_c.js `C_EIG`).
+const C_EIG: &str = r#"/* The eigenvalues of a real n x n matrix a (row by row; overwritten) into wr and wi, in the order the QR iteration leaves
+   them on the diagonal (pcode.js rt.eig, trinetra-toolbox/6): EISPACK's balanc by powers of 2 without its permutations
+   (Parlett and Reinsch 1969; at most 100 sweeps), orthes (Martin and Wilkinson 1968) and hqr (Martin, Peters and
+   Wilkinson 1970; the 1983 revision; at most 30 n iterations, after which the eigenvalues not found are nan),
+   sequential, no fused multiply-add; ort is n numbers of scratch. */
+static inline double pc_eig_sgn(double x, double y) { return y >= 0.0 ? pc_fabs(x) : -pc_fabs(x); }
+static inline void pc_eig(double *a, int n, double *wr, double *wi, double *ort) {
+    int i, j, k, m, l, en, na, enm2, its, itn, sweep, done, notlas, jm, left;
+    double c = 0.0, r = 0.0, g = 0.0, f = 0.0, s = 0.0, h = 0.0, scale = 0.0, norm = 0.0, t = 0.0, x = 0.0, y = 0.0, w = 0.0, p = 0.0, q = 0.0, zz = 0.0, tst1 = 0.0;
+    for (i = 0; i < n; i++) { wr[i] = 0.0; wi[i] = 0.0; ort[i] = 0.0; }
+    done = 0;
+    for (sweep = 0; sweep < 100 && !done; sweep++) {
+        done = 1;
+        for (i = 0; i < n; i++) {
+            c = 0.0; r = 0.0;
+            for (j = 0; j < n; j++) { if (j != i) { c = c + pc_fabs(a[j * n + i]); r = r + pc_fabs(a[i * n + j]); } }
+            if (c != 0.0 && r != 0.0 && isfinite(c + r)) {
+                g = r / 2.0; f = 1.0; s = c + r;
+                while (c < g) { f = f * 2.0; c = c * 4.0; }
+                g = r * 2.0;
+                while (c > g) { f = f / 2.0; c = c / 4.0; }
+                if ((c + r) / f < 0.95 * s) {
+                    done = 0;
+                    g = 1.0 / f;
+                    for (j = 0; j < n; j++) { a[i * n + j] = a[i * n + j] * g; }
+                    for (j = 0; j < n; j++) { a[j * n + i] = a[j * n + i] * f; }
+                }
+            }
+        }
+    }
+    for (m = 1; m < n - 1; m++) {
+        h = 0.0; scale = 0.0; ort[m] = 0.0;
+        for (i = m; i < n; i++) { scale = scale + pc_fabs(a[i * n + m - 1]); }
+        if (scale != 0.0) {
+            for (i = n - 1; i >= m; i--) { ort[i] = a[i * n + m - 1] / scale; h = h + ort[i] * ort[i]; }
+            g = -pc_eig_sgn(sqrt(h), ort[m]);
+            h = h - ort[m] * g;
+            ort[m] = ort[m] - g;
+            for (j = m; j < n; j++) {
+                f = 0.0;
+                for (i = n - 1; i >= m; i--) { f = f + ort[i] * a[i * n + j]; }
+                f = f / h;
+                for (i = m; i < n; i++) { a[i * n + j] = a[i * n + j] - f * ort[i]; }
+            }
+            for (i = 0; i < n; i++) {
+                f = 0.0;
+                for (j = n - 1; j >= m; j--) { f = f + ort[j] * a[i * n + j]; }
+                f = f / h;
+                for (j = m; j < n; j++) { a[i * n + j] = a[i * n + j] - f * ort[j]; }
+            }
+            ort[m] = scale * ort[m];
+            a[m * n + m - 1] = scale * g;
+        }
+    }
+    for (i = 2; i < n; i++) { for (j = 0; j < i - 1; j++) { a[i * n + j] = 0.0; } }
+    norm = 0.0; k = 0;
+    for (i = 0; i < n; i++) { for (j = k; j < n; j++) { norm = norm + pc_fabs(a[i * n + j]); } k = i; }
+    left = n; t = 0.0; itn = 30 * n;
+    while (left > 0) {
+        en = left - 1; its = 0;
+        for (;;) {
+            l = en;
+            while (l > 0) {
+                s = pc_fabs(a[(l - 1) * n + l - 1]) + pc_fabs(a[l * n + l]);
+                if (s == 0.0) { s = norm; }
+                if (s + pc_fabs(a[l * n + l - 1]) == s) { break; }
+                l = l - 1;
+            }
+            x = a[en * n + en];
+            if (l == en) { wr[en] = x + t; wi[en] = 0.0; left = left - 1; break; }
+            na = en - 1;
+            y = a[na * n + na];
+            w = a[en * n + na] * a[na * n + en];
+            if (l == na) {
+                p = (y - x) / 2.0;
+                q = p * p + w;
+                zz = sqrt(pc_fabs(q));
+                x = x + t;
+                if (q >= 0.0) {
+                    zz = p + pc_eig_sgn(zz, p);
+                    wr[na] = x + zz; wr[en] = wr[na];
+                    if (zz != 0.0) { wr[en] = x - w / zz; }
+                    wi[na] = 0.0; wi[en] = 0.0;
+                } else {
+                    wr[na] = x + p; wr[en] = x + p; wi[na] = zz; wi[en] = -zz;
+                }
+                left = left - 2;
+                break;
+            }
+            if (itn == 0) { for (i = 0; i <= en; i++) { wr[i] = NAN; wi[i] = NAN; } left = 0; break; }
+            enm2 = na - 1;
+            if (its == 10 || its == 20) {
+                t = t + x;
+                for (i = 0; i <= en; i++) { a[i * n + i] = a[i * n + i] - x; }
+                s = pc_fabs(a[en * n + na]) + pc_fabs(a[na * n + enm2]);
+                x = 0.75 * s; y = x; w = -0.4375 * s * s;
+            }
+            its = its + 1; itn = itn - 1;
+            m = enm2;
+            for (;;) {
+                zz = a[m * n + m];
+                r = x - zz;
+                s = y - zz;
+                p = (r * s - w) / a[(m + 1) * n + m] + a[m * n + m + 1];
+                q = a[(m + 1) * n + m + 1] - zz - r - s;
+                r = a[(m + 2) * n + m + 1];
+                s = pc_fabs(p) + pc_fabs(q) + pc_fabs(r);
+                p = p / s; q = q / s; r = r / s;
+                if (m == l) { break; }
+                tst1 = pc_fabs(p) * (pc_fabs(a[(m - 1) * n + m - 1]) + pc_fabs(zz) + pc_fabs(a[(m + 1) * n + m + 1]));
+                if (tst1 + pc_fabs(a[m * n + m - 1]) * (pc_fabs(q) + pc_fabs(r)) == tst1) { break; }
+                m = m - 1;
+            }
+            for (i = m + 2; i <= en; i++) { a[i * n + i - 2] = 0.0; if (i != m + 2) { a[i * n + i - 3] = 0.0; } }
+            for (k = m; k <= na; k++) {
+                notlas = k != na;
+                if (k != m) {
+                    p = a[k * n + k - 1]; q = a[(k + 1) * n + k - 1]; r = 0.0;
+                    if (notlas) { r = a[(k + 2) * n + k - 1]; }
+                    x = pc_fabs(p) + pc_fabs(q) + pc_fabs(r);
+                    if (x == 0.0) { continue; }
+                    p = p / x; q = q / x; r = r / x;
+                }
+                s = pc_eig_sgn(sqrt(p * p + q * q + r * r), p);
+                if (k != m) { a[k * n + k - 1] = -s * x; } else if (l != m) { a[k * n + k - 1] = -a[k * n + k - 1]; }
+                p = p + s; x = p / s; y = q / s; zz = r / s; q = q / p; r = r / p;
+                jm = k + 3 < en ? k + 3 : en;
+                if (notlas) {
+                    for (j = k; j <= en; j++) {
+                        p = a[k * n + j] + q * a[(k + 1) * n + j] + r * a[(k + 2) * n + j];
+                        a[k * n + j] = a[k * n + j] - p * x; a[(k + 1) * n + j] = a[(k + 1) * n + j] - p * y; a[(k + 2) * n + j] = a[(k + 2) * n + j] - p * zz;
+                    }
+                    for (i = l; i <= jm; i++) {
+                        p = x * a[i * n + k] + y * a[i * n + k + 1] + zz * a[i * n + k + 2];
+                        a[i * n + k] = a[i * n + k] - p; a[i * n + k + 1] = a[i * n + k + 1] - p * q; a[i * n + k + 2] = a[i * n + k + 2] - p * r;
+                    }
+                } else {
+                    for (j = k; j <= en; j++) {
+                        p = a[k * n + j] + q * a[(k + 1) * n + j];
+                        a[k * n + j] = a[k * n + j] - p * x; a[(k + 1) * n + j] = a[(k + 1) * n + j] - p * y;
+                    }
+                    for (i = l; i <= jm; i++) {
+                        p = x * a[i * n + k] + y * a[i * n + k + 1];
+                        a[i * n + k] = a[i * n + k] - p; a[i * n + k + 1] = a[i * n + k + 1] - p * q;
+                    }
+                }
+            }
+        }
+    }
+}"#;
 const C_RT: &str = r#"/* x^k by repeated multiplication, left to right; x^-k = 1/(x^k). */
 static inline double pc_ipow(double x, int k) { double r = x; int i, n = k < 0 ? -k : k; if (k == 0) { return 1.0; } for (i = 1; i < n; i++) { r = r * x; } return k < 0 ? 1.0 / r : r; }
 static inline int64_t pc_ipowi(int64_t x, int k) { int64_t r = 1; int i; for (i = 0; i < k; i++) { r *= x; } return r; }

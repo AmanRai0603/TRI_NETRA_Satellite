@@ -18,11 +18,11 @@ function [lam, v] = jacobi_eig4(k)
             apq = a((p) + 1, (q) + 1);
             if (asils.pc.fabs(apq) >= 1e-300)
                 th = ((a((q) + 1, (q) + 1) - a((p) + 1, (p) + 1)) / (2 * apq));
-                t = (sign(th) / (asils.pc.fabs(th) + sqrt(((th * th) + 1))));
+                t = (sign(th) / (asils.pc.fabs(th) + asils.pc.sqrt_(((th * th) + 1))));
                 if (th == 0)
                     t = 1;
                 end
-                c = (1 / sqrt(((t * t) + 1)));
+                c = (1 / asils.pc.sqrt_(((t * t) + 1)));
                 sn = (t * c);
                 for i = (0):((4) - 1)
                     aip = a((i) + 1, (p) + 1);

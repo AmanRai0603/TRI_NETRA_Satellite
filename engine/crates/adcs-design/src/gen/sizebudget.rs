@@ -3,6 +3,7 @@
 #![allow(unused_mut, unused_variables, unused_parens, unused_assignments, unused_imports, unreachable_code, non_snake_case, clippy::all)]
 use crate::gen::rt;
 use crate::gen::sizepump::{PumpDesign};
+use crate::gen::floquet::{FqGains};
 
 /// A product's fill slot (adcs-product/1): the coils, wheels, fluid rings, CMGs, VSCMGs, thrusters, the star tracker, the
 /// magnetometer, the fine Sun sensors, the gyro, the GNSS receiver, the Earth sensor, the coarse Sun sensors, any other.
@@ -48,9 +49,9 @@ pub fn budget_line(s: i64, na: i64, ns: i64, nb: i64, nn: i64, mass: f64, ps: f6
     n = 1.0;
     let mut counts: [i64; 4] = [na, ns, nb, nn];
     {
-        let __end28: i64 = 4;
+        let __end44: i64 = 4;
         let mut i: i64 = 0;
-        while i < __end28 {
+        while i < __end44 {
             if (counts[(i) as usize] >= 0) {
                 n = (counts[(i) as usize] as f64);
                 if (s == crate::gen::sizebudget::SLOT_COARSE_SUN_SENSORS) {
@@ -95,9 +96,9 @@ pub fn budget_total(m: &mut [f64], p: &mut [f64], v: &mut [f64], k: i64) -> (f64
     power = 0.0;
     volume = 0.0;
     {
-        let __end29: i64 = k;
+        let __end45: i64 = k;
         let mut i: i64 = 0;
-        while i < __end29 {
+        while i < __end45 {
             mass = (mass + (*m)[(i) as usize]);
             power = (power + (*p)[(i) as usize]);
             volume = (volume + (*v)[(i) as usize]);

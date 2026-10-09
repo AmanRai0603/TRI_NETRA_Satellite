@@ -24,7 +24,7 @@ function [drawn, cr, cm, img, g, tx, ty, tk] = st_render(r_eh, cr, cm, nc, cam, 
     for l = (0):((np) - 1)
         img((l) + 1) = cam.bg;
     end
-    cmin = cos((cam.fov * sqrt(2)));
+    cmin = cos((cam.fov * asils.pc.sqrt_(2)));
     s2 = ((2 * cam.psf_px) * cam.psf_px);
     drawn = 0;
     for k = (0):((nc) - 1)
@@ -33,7 +33,7 @@ function [drawn, cr, cm, img, g, tx, ty, tk] = st_render(r_eh, cr, cm, nc, cam, 
             x = (((cam.f * v(1)) / v(3)) + cam.c);
             y = (((cam.f * v(2)) / v(3)) + cam.c);
             if (~((((x < 6) || (y < 6)) || (x > (nf - 5))) || (y > (nf - 5))))
-                fl = (cam.flux0 * (10)^(((-(0.4)) * (cm((k) + 1) - 6))));
+                fl = (cam.flux0 * asils.pc.pow_(10, ((-(0.4)) * (cm((k) + 1) - 6))));
                 rx = round(x);
                 ry = round(y);
                 w = zeros(9, 9);
@@ -74,7 +74,7 @@ function [drawn, cr, cm, img, g, tx, ty, tk] = st_render(r_eh, cr, cm, nc, cam, 
             [t__594, t__595] = asils.pc.stream_normal(g);
             n2 = t__594;
             g = t__595;
-            img((l3) + 1) = ((v3 + (sqrt(asils.pc.fmax(v3, 0)) * n1)) + (cam.read_noise * n2));
+            img((l3) + 1) = ((v3 + (asils.pc.sqrt_(asils.pc.fmax(v3, 0)) * n1)) + (cam.read_noise * n2));
         end
     end
 end

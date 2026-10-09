@@ -397,3 +397,46 @@ fn blur(b: inout real[m][*] in -3 .. 3, w: real[m] in 0 .. 2) -> total: real[m]
         total = total + b[j]
     end
 end
+
+## eig, the toolbox's eigenvalues (trinetra-toolbox/6, S7.15b: the Floquet multipliers of the coils-only loop): of a
+## square matrix of reals, each [re, im] in the matrix's unit, in the order the QR iteration leaves them. Only + - * /,
+## sqrt and |x|: every translation gives the interpreter's bits. A 5 x 5 (complex pairs, the double-step QR), a matrix in
+## a unit, a 1 x 1; the sum of the squared moduli.
+fn eigen(m: real[1][5][5] in -3 .. 3, r: real[1/s][2][2] in -1 .. 1, k: real[1] in -2 .. 2) -> (e: real[1][2][5], f: real[1/s][2][2], g: real[1][2][1], s: real[1])
+    e = eig(m)
+    f = eig(r)
+    g = eig([[k]])
+    s = 0
+    for i in 0 .. 5
+        s = s + e[i][0]*e[i][0] + e[i][1]*e[i][1]
+    end
+end
+
+## Outside the real domain sqrt, asin, acos, log, log10, log2 and pow give nan in every translation, as C's, Rust's and the
+## interpreter's do (MATLAB's own are complex there: its runtime's asils.pc.sqrt_ and the rest give nan). Which are nan, as
+## bits, and a value from inside the domain.
+fn domain(x: real[1] in -3 .. 3) -> (n: int, v: real[1])
+    n = 0
+    if isnan(sqrt(x))
+        n = n + 1
+    end
+    if isnan(asin(x))
+        n = n + 2
+    end
+    if isnan(acos(x))
+        n = n + 4
+    end
+    if isnan(log(x))
+        n = n + 8
+    end
+    if isnan(log10(x))
+        n = n + 16
+    end
+    if isnan(log2(x))
+        n = n + 32
+    end
+    if isnan(pow(x, 0.5))
+        n = n + 64
+    end
+    v = if x >= 0.0 then sqrt(x) + log(x + 1.0) else acos(x/3.0)
+end

@@ -15,7 +15,7 @@ use std::f64::consts::PI;
 pub(crate) const BUILTINS: &[&str] = &[
     "sqrt", "abs", "sin", "cos", "tan", "asin", "acos", "atan", "atan2", "exp", "log", "log10", "log2", "erf", "min", "max", "clamp", "floor", "ceil",
     "round", "trunc", "sign", "fmod", "pow", "dot", "cross", "norm", "unit", "transpose", "real", "len", "hypot", "int", "div", "rem", "band",
-    "bor", "bxor", "shl", "shr", "isnan", "isfinite", "sort", "argsort", "stream", "uniform", "normal", "normal3",
+    "bor", "bxor", "shl", "shr", "isnan", "isfinite", "sort", "argsort", "eig", "stream", "uniform", "normal", "normal3",
 ];
 
 /// The language's constants: pi, and the two values that are not finite.
@@ -1134,6 +1134,21 @@ impl Checker {
                 n(self, 1);
                 let a = vec(self, t(0), 0);
                 Ty::Arr(a.0, Box::new(Ty::Int))
+            }
+            // the toolbox's eigenvalues (trinetra-toolbox/6): of a square matrix of reals, each [re, im] in its unit
+            "eig" => {
+                n(self, 1);
+                if let Some(Ty::Arr(rows, of)) = t(0) {
+                    if let Ty::Arr(cols, el) = &**of {
+                        if let Ty::Real(d) = &**el {
+                            if cols == rows {
+                                return Ty::Arr(*rows, Box::new(Ty::Arr(2, Box::new(Ty::Real(*d)))));
+                            }
+                        }
+                    }
+                }
+                self.e(format!("eig takes a square matrix of reals, not {}", type_text(t(0))), pos);
+                Ty::Arr(1, Box::new(Ty::Arr(2, Box::new(real0()))))
             }
             // random streams (the toolbox's: adcs-sim-core rng.rs): a stream by its seed and its number or name; a
             // draw advances the stream it is given, an inout input

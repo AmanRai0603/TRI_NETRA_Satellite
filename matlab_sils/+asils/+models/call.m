@@ -206,6 +206,64 @@ function y = call(name, x)
         case 'catderive::catalogue_cmg'
             [o1, o2, o3, o4, o5, o6] = asils.models.catderive.catalogue_cmg(x(1), x(2), x(3));
             y = [double(o1); double(o2); double(o3); double(o4); double(o5); double(o6)];
+        case 'floquet::fq_laws'
+            [o1] = asils.models.floquet.fq_laws();
+            y = [reshape(o1, [], 1)];
+        case 'floquet::fq_frame'
+            at = 0;
+            n1 = x(at + 1);
+            a1 = reshape(x(at + 2:at + 1 + n1), [], 1);
+            at = at + 1 + n1;
+            n2 = x(at + 1);
+            a2 = reshape(x(at + 2:at + 1 + n2), [], 1);
+            at = at + 1 + n2;
+            n3 = x(at + 1);
+            a3 = reshape(x(at + 2:at + 1 + n3), [], 1);
+            at = at + 1 + n3;
+            n4 = x(at + 1);
+            a4 = reshape(x(at + 2:at + 1 + n4), [], 1);
+            at = at + 1 + n4;
+            n5 = x(at + 1);
+            a5 = reshape(x(at + 2:at + 1 + n5), [], 1);
+            at = at + 1 + n5;
+            n6 = x(at + 1);
+            a6 = reshape(x(at + 2:at + 1 + n6), [], 1);
+            at = at + 1 + n6;
+            n7 = x(at + 1);
+            a7 = reshape(x(at + 2:at + 1 + n7), [], 1);
+            at = at + 1 + n7;
+            n8 = x(at + 1);
+            a8 = reshape(x(at + 2:at + 1 + n8), [], 1);
+            at = at + 1 + n8;
+            n9 = x(at + 1);
+            a9 = reshape(x(at + 2:at + 1 + n9), [], 1);
+            at = at + 1 + n9;
+            xa = x(at + 1:end);
+            a10 = reshape(xa(1:4), 4, 1);
+            at = at + 4;
+            xa = x(at + 1:end);
+            a11 = reshape(xa(1:3), 3, 1);
+            at = at + 3;
+            [o1, io1, io2, io3, io4, io5, io6, io7, io8, io9] = asils.models.floquet.fq_frame(a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11);
+            y = [reshape((o1).', [], 1); numel(io1); reshape(io1, [], 1); numel(io2); reshape(io2, [], 1); numel(io3); reshape(io3, [], 1); numel(io4); reshape(io4, [], 1); numel(io5); reshape(io5, [], 1); numel(io6); reshape(io6, [], 1); numel(io7); reshape(io7, [], 1); numel(io8); reshape(io8, [], 1); numel(io9); reshape(io9, [], 1)];
+        case 'floquet::fq_rv2q'
+            [o1] = asils.models.floquet.fq_rv2q(reshape(x(1:3), 3, 1));
+            y = [reshape(o1, [], 1)];
+        case 'floquet::fq_torque'
+            [o1] = asils.models.floquet.fq_torque(x(1), struct('J', {reshape(x(2:10), 3, 3).'}, 'mtq_meas', {x(11)}, 'mtq_period', {x(12)}, 'roll_axis', {reshape(x(13:15), 3, 1)}, 'mtq_gg_ff', {x(16)}, 'mtq_Kp', {reshape(x(17:19), 3, 1)}, 'mtq_Kd', {reshape(x(20:22), 3, 1)}, 'mtq_eps', {x(23)}, 'mtq_k1', {x(24)}, 'mtq_k2', {x(25)}, 'mtq_k16', {x(26)}, 'mtq_lam16', {x(27)}, 'sb_kp', {x(28)}, 'sb_kd', {x(29)}, 'sb_kroll', {x(30)}, 'sb_kdroll', {x(31)}, 'sb_roll_gate', {x(32)}, 'sun_axis', {reshape(x(33:35), 3, 1)}, 'mtq_Pth', {reshape(x(36:44), 3, 3).'}, 'mtq_Pw', {reshape(x(45:53), 3, 3).'}), reshape(x(54:57), 4, 1), reshape(x(58:60), 3, 1), reshape(x(61:63), 3, 1), reshape(x(64:66), 3, 1));
+            y = [reshape(o1, [], 1)];
+        case 'floquet::fq_rate'
+            [o1] = asils.models.floquet.fq_rate(x(1), struct('J', {reshape(x(2:10), 3, 3).'}, 'mtq_meas', {x(11)}, 'mtq_period', {x(12)}, 'roll_axis', {reshape(x(13:15), 3, 1)}, 'mtq_gg_ff', {x(16)}, 'mtq_Kp', {reshape(x(17:19), 3, 1)}, 'mtq_Kd', {reshape(x(20:22), 3, 1)}, 'mtq_eps', {x(23)}, 'mtq_k1', {x(24)}, 'mtq_k2', {x(25)}, 'mtq_k16', {x(26)}, 'mtq_lam16', {x(27)}, 'sb_kp', {x(28)}, 'sb_kd', {x(29)}, 'sb_kroll', {x(30)}, 'sb_kdroll', {x(31)}, 'sb_roll_gate', {x(32)}, 'sun_axis', {reshape(x(33:35), 3, 1)}, 'mtq_Pth', {reshape(x(36:44), 3, 3).'}, 'mtq_Pw', {reshape(x(45:53), 3, 3).'}), reshape(x(54:62), 3, 3).', x(63), x(64), reshape(x(65:73), 3, 3).', x(74), reshape(x(75:77), 3, 1), reshape(x(78:80), 3, 1), x(81), reshape(x(82:87), 6, 1));
+            y = [reshape(o1, [], 1)];
+        case 'floquet::fq_jacobian'
+            [o1] = asils.models.floquet.fq_jacobian(x(1), struct('J', {reshape(x(2:10), 3, 3).'}, 'mtq_meas', {x(11)}, 'mtq_period', {x(12)}, 'roll_axis', {reshape(x(13:15), 3, 1)}, 'mtq_gg_ff', {x(16)}, 'mtq_Kp', {reshape(x(17:19), 3, 1)}, 'mtq_Kd', {reshape(x(20:22), 3, 1)}, 'mtq_eps', {x(23)}, 'mtq_k1', {x(24)}, 'mtq_k2', {x(25)}, 'mtq_k16', {x(26)}, 'mtq_lam16', {x(27)}, 'sb_kp', {x(28)}, 'sb_kd', {x(29)}, 'sb_kroll', {x(30)}, 'sb_kdroll', {x(31)}, 'sb_roll_gate', {x(32)}, 'sun_axis', {reshape(x(33:35), 3, 1)}, 'mtq_Pth', {reshape(x(36:44), 3, 3).'}, 'mtq_Pw', {reshape(x(45:53), 3, 3).'}), reshape(x(54:62), 3, 3).', x(63), x(64), reshape(x(65:73), 3, 3).', x(74), reshape(x(75:77), 3, 1), reshape(x(78:80), 3, 1), x(81));
+            y = [reshape((o1).', [], 1)];
+        case 'floquet::fq_monodromy'
+            [o1] = asils.models.floquet.fq_monodromy(x(1), struct('J', {reshape(x(2:10), 3, 3).'}, 'mtq_meas', {x(11)}, 'mtq_period', {x(12)}, 'roll_axis', {reshape(x(13:15), 3, 1)}, 'mtq_gg_ff', {x(16)}, 'mtq_Kp', {reshape(x(17:19), 3, 1)}, 'mtq_Kd', {reshape(x(20:22), 3, 1)}, 'mtq_eps', {x(23)}, 'mtq_k1', {x(24)}, 'mtq_k2', {x(25)}, 'mtq_k16', {x(26)}, 'mtq_lam16', {x(27)}, 'sb_kp', {x(28)}, 'sb_kd', {x(29)}, 'sb_kroll', {x(30)}, 'sb_kdroll', {x(31)}, 'sb_roll_gate', {x(32)}, 'sun_axis', {reshape(x(33:35), 3, 1)}, 'mtq_Pth', {reshape(x(36:44), 3, 3).'}, 'mtq_Pw', {reshape(x(45:53), 3, 3).'}), reshape(x(54:62), 3, 3).', x(63), x(64), x(65));
+            y = [reshape((o1).', [], 1)];
+        case 'floquet::fq_certify'
+            [o1, o2, o3, o4] = asils.models.floquet.fq_certify(x(1), struct('J', {reshape(x(2:10), 3, 3).'}, 'mtq_meas', {x(11)}, 'mtq_period', {x(12)}, 'roll_axis', {reshape(x(13:15), 3, 1)}, 'mtq_gg_ff', {x(16)}, 'mtq_Kp', {reshape(x(17:19), 3, 1)}, 'mtq_Kd', {reshape(x(20:22), 3, 1)}, 'mtq_eps', {x(23)}, 'mtq_k1', {x(24)}, 'mtq_k2', {x(25)}, 'mtq_k16', {x(26)}, 'mtq_lam16', {x(27)}, 'sb_kp', {x(28)}, 'sb_kd', {x(29)}, 'sb_kroll', {x(30)}, 'sb_kdroll', {x(31)}, 'sb_roll_gate', {x(32)}, 'sun_axis', {reshape(x(33:35), 3, 1)}, 'mtq_Pth', {reshape(x(36:44), 3, 3).'}, 'mtq_Pw', {reshape(x(45:53), 3, 3).'}), reshape(x(54:62), 3, 3).', x(63), x(64));
+            y = [reshape(o1, [], 1); double(o2); double(o3); double(o4)];
         case 'looprules::loop_part'
             [o1] = asils.models.looprules.loop_part(x(1));
             y = [double(o1)];

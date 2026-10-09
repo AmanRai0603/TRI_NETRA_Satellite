@@ -19,7 +19,7 @@ function [zhat, e1, e2, shat, rho_max] = cap_frame(r_sat, r_sun)
     zhat = [(r_sat(1) / d); (r_sat(2) / d); (r_sat(3) / d)];
     ns = asils.pc.norm_(r_sun);
     shat = [(r_sun(1) / ns); (r_sun(2) / ns); (r_sun(3) / ns)];
-    rho_max = acos(asils.models.srp.min_one((re / d)));
+    rho_max = asils.pc.acos_(asils.models.srp.min_one((re / d)));
     t = [1; 0; 0];
     if (asils.pc.fabs(zhat(1)) > 0.9)
         t = [0; 1; 0];

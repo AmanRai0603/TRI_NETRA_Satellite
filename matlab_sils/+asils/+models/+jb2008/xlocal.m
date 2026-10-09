@@ -7,8 +7,8 @@ function [t] = xlocal(z, tcf)
     t = 0;
     dz = (z - 125);
     if (dz > 0)
-        t = (tcf(1) + (tcf(3) * atan(((tcf(4) * dz) * (1 + (0.0000045 * (dz)^(2.5)))))));
+        t = (tcf(1) + (tcf(3) * atan(((tcf(4) * dz) * (1 + (0.0000045 * asils.pc.pow_(dz, 2.5)))))));
     else
-        t = ((((((((-(0.0000098204695)) * dz) - 0.00073039742) * (dz)^(2)) + 1) * dz) * tcf(2)) + tcf(1));
+        t = ((((((((-(0.0000098204695)) * dz) - 0.00073039742) * asils.pc.pow_(dz, 2)) + 1) * dz) * tcf(2)) + tcf(1));
     end
 end

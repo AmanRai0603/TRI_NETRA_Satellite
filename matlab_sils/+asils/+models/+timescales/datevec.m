@@ -21,7 +21,7 @@ function [v] = datevec(date)
     if (tmps == 0)
         tmps = 1;
     end
-    srnd = (2)^(floor((-(log2(tmps)))));
+    srnd = asils.pc.pow_(2, floor((-(asils.pc.log2_(tmps)))));
     s = (round(((86400 * fracd) * srnd)) / srnd);
     h = floor((s / 3600));
     s = (s - (3600 * h));

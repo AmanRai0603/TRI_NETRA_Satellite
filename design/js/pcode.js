@@ -425,7 +425,7 @@ function unitOf(text, pos) {
 // ------------------------------------------------------------------ checker
 const BUILTINS = new Set(["sqrt", "abs", "sin", "cos", "tan", "asin", "acos", "atan", "atan2", "exp", "log", "log10", "log2", "erf", "min", "max", "clamp",
   "floor", "ceil", "round", "trunc", "sign", "fmod", "pow", "dot", "cross", "norm", "unit", "transpose", "real", "len", "hypot", "int", "div", "rem", "band", "bor", "bxor", "shl", "shr",
-  "isnan", "isfinite", "sort", "argsort", "stream", "uniform", "normal", "normal3"]);
+  "isnan", "isfinite", "sort", "argsort", "eig", "stream", "uniform", "normal", "normal3"]);
 // the language's constants: pi, and the two values that are not finite (they fit any unit, as a bare 0 does)
 const CONSTS = { pi: Math.PI, inf: Infinity, nan: NaN };
 
@@ -823,6 +823,14 @@ export function check(files) {
       // the toolbox sort: ascending and stable (equal values keep their order), the same insertion sort in every translation
       case "sort": { n(1); const a = vec(ts[0], 0); return ts[0] && ts[0].k === "arr" && ts[0].of.k !== "arr" && numType(ts[0].of) ? ts[0] : { k: "arr", n: a.n, of: tReal(a.dim) }; }
       case "argsort": { n(1); const a = vec(ts[0], 0); return { k: "arr", n: a.n, of: T_INT }; }
+      // the toolbox's eigenvalues (trinetra-toolbox/6): of a square matrix of reals, each [re, im] in its unit
+      case "eig": {
+        n(1); const t = ts[0];
+        if (!t || t.k !== "arr" || t.of.k !== "arr" || t.of.n !== t.n || t.of.of.k !== "real") {
+          E(`eig takes a square matrix of reals, not ${typeText(t)}`, e.pos); return { k: "arr", n: 1, of: { k: "arr", n: 2, of: tReal(DIMLESS) } };
+        }
+        return { k: "arr", n: t.n, of: { k: "arr", n: 2, of: tReal(t.of.of.dim) } };
+      }
       // random streams (the toolbox's: adcs-sim-core rng.rs): a stream by its seed and its number or name; a draw
       // advances the stream it is given, an inout input
       case "stream":
@@ -1092,6 +1100,161 @@ export const rt = {
     return ix;
   },
   sort(v) { return rt.argsort(v).map((i) => v[i]); },
+  // the eigenvalues of a real square matrix, each [re, im], in the order the QR iteration leaves them on the diagonal
+  // (trinetra-toolbox/6): EISPACK's algorithm, sequential, with no fused multiply-add, the same arithmetic in every
+  // translation. (1) Balancing by powers of 2 (Parlett and Reinsch 1969; EISPACK balanc without its permutations, at most
+  // 100 sweeps); (2) Householder reduction to upper Hessenberg form (Martin and Wilkinson 1968; EISPACK orthes), the
+  // entries below the subdiagonal then zero; (3) the shifted double-step QR iteration on the Hessenberg matrix (Martin,
+  // Peters and Wilkinson 1970; EISPACK hqr, 1983 revision), at most 30 n iterations, after which the eigenvalues not
+  // found are nan. Only + - * / sqrt and |x|: exact, so every translation gives the interpreter's bits.
+  eig(M) {
+    const n = M.length, a = M.map((row) => row.slice()), wr = new Array(n).fill(0), wi = new Array(n).fill(0), ort = new Array(n).fill(0);
+    const sgn = (x, y) => (y >= 0 ? rt.abs(x) : -rt.abs(x));
+    // (1) balance
+    let done = false;
+    for (let sweep = 0; sweep < 100 && !done; sweep++) {
+      done = true;
+      for (let i = 0; i < n; i++) {
+        let c = 0, r = 0;
+        for (let j = 0; j < n; j++) if (j !== i) { c = c + rt.abs(a[j][i]); r = r + rt.abs(a[i][j]); }
+        if (c !== 0 && r !== 0 && Number.isFinite(c + r)) {
+          let g = r / 2, f = 1;
+          const s = c + r;
+          while (c < g) { f = f * 2; c = c * 4; }
+          g = r * 2;
+          while (c > g) { f = f / 2; c = c / 4; }
+          if ((c + r) / f < 0.95 * s) {
+            done = false;
+            g = 1 / f;
+            for (let j = 0; j < n; j++) a[i][j] = a[i][j] * g;
+            for (let j = 0; j < n; j++) a[j][i] = a[j][i] * f;
+          }
+        }
+      }
+    }
+    // (2) Householder reduction to Hessenberg form
+    for (let m = 1; m < n - 1; m++) {
+      let h = 0, scale = 0;
+      ort[m] = 0;
+      for (let i = m; i < n; i++) scale = scale + rt.abs(a[i][m - 1]);
+      if (scale !== 0) {
+        for (let i = n - 1; i >= m; i--) { ort[i] = a[i][m - 1] / scale; h = h + ort[i] * ort[i]; }
+        const g = -sgn(Math.sqrt(h), ort[m]);
+        h = h - ort[m] * g;
+        ort[m] = ort[m] - g;
+        for (let j = m; j < n; j++) {
+          let f = 0;
+          for (let i = n - 1; i >= m; i--) f = f + ort[i] * a[i][j];
+          f = f / h;
+          for (let i = m; i < n; i++) a[i][j] = a[i][j] - f * ort[i];
+        }
+        for (let i = 0; i < n; i++) {
+          let f = 0;
+          for (let j = n - 1; j >= m; j--) f = f + ort[j] * a[i][j];
+          f = f / h;
+          for (let j = m; j < n; j++) a[i][j] = a[i][j] - f * ort[j];
+        }
+        ort[m] = scale * ort[m];
+        a[m][m - 1] = scale * g;
+      }
+    }
+    for (let i = 2; i < n; i++) for (let j = 0; j < i - 1; j++) a[i][j] = 0;
+    // (3) the shifted QR iteration
+    let norm = 0, k0 = 0;
+    for (let i = 0; i < n; i++) { for (let j = k0; j < n; j++) norm = norm + rt.abs(a[i][j]); k0 = i; }
+    let en = n - 1, t = 0, itn = 30 * n;
+    while (en >= 0) {
+      let its = 0;
+      const na = en - 1, enm2 = na - 1;
+      for (;;) {
+        let l = en;
+        while (l > 0) {
+          let s = rt.abs(a[l - 1][l - 1]) + rt.abs(a[l][l]);
+          if (s === 0) s = norm;
+          if (s + rt.abs(a[l][l - 1]) === s) break;
+          l = l - 1;
+        }
+        let x = a[en][en];
+        if (l === en) { wr[en] = x + t; wi[en] = 0; en = na; break; }
+        let y = a[na][na], w = a[en][na] * a[na][en];
+        if (l === na) {
+          let p = (y - x) / 2;
+          const q = p * p + w;
+          let zz = Math.sqrt(rt.abs(q));
+          x = x + t;
+          if (q >= 0) {
+            zz = p + sgn(zz, p);
+            wr[na] = x + zz; wr[en] = wr[na];
+            if (zz !== 0) wr[en] = x - w / zz;
+            wi[na] = 0; wi[en] = 0;
+          } else {
+            wr[na] = x + p; wr[en] = x + p; wi[na] = zz; wi[en] = -zz;
+          }
+          en = enm2;
+          break;
+        }
+        if (itn === 0) { for (let i = 0; i <= en; i++) { wr[i] = NaN; wi[i] = NaN; } en = -1; break; }
+        if (its === 10 || its === 20) {
+          t = t + x;
+          for (let i = 0; i <= en; i++) a[i][i] = a[i][i] - x;
+          const s = rt.abs(a[en][na]) + rt.abs(a[na][enm2]);
+          x = 0.75 * s; y = x; w = -0.4375 * s * s;
+        }
+        its = its + 1; itn = itn - 1;
+        let m = enm2, p = 0, q = 0, r = 0, zz = 0;
+        for (;;) {
+          zz = a[m][m];
+          r = x - zz;
+          let s = y - zz;
+          p = (r * s - w) / a[m + 1][m] + a[m][m + 1];
+          q = a[m + 1][m + 1] - zz - r - s;
+          r = a[m + 2][m + 1];
+          s = rt.abs(p) + rt.abs(q) + rt.abs(r);
+          p = p / s; q = q / s; r = r / s;
+          if (m === l) break;
+          const tst1 = rt.abs(p) * (rt.abs(a[m - 1][m - 1]) + rt.abs(zz) + rt.abs(a[m + 1][m + 1]));
+          if (tst1 + rt.abs(a[m][m - 1]) * (rt.abs(q) + rt.abs(r)) === tst1) break;
+          m = m - 1;
+        }
+        for (let i = m + 2; i <= en; i++) { a[i][i - 2] = 0; if (i !== m + 2) a[i][i - 3] = 0; }
+        for (let k = m; k <= na; k++) {
+          const notlas = k !== na;
+          if (k !== m) {
+            p = a[k][k - 1]; q = a[k + 1][k - 1]; r = 0;
+            if (notlas) r = a[k + 2][k - 1];
+            x = rt.abs(p) + rt.abs(q) + rt.abs(r);
+            if (x === 0) continue;
+            p = p / x; q = q / x; r = r / x;
+          }
+          const s = sgn(Math.sqrt(p * p + q * q + r * r), p);
+          if (k !== m) a[k][k - 1] = -s * x;
+          else if (l !== m) a[k][k - 1] = -a[k][k - 1];
+          p = p + s; x = p / s; y = q / s; zz = r / s; q = q / p; r = r / p;
+          const jm = rt.min(en, k + 3);
+          if (notlas) {
+            for (let j = k; j <= en; j++) {
+              p = a[k][j] + q * a[k + 1][j] + r * a[k + 2][j];
+              a[k][j] = a[k][j] - p * x; a[k + 1][j] = a[k + 1][j] - p * y; a[k + 2][j] = a[k + 2][j] - p * zz;
+            }
+            for (let i = l; i <= jm; i++) {
+              p = x * a[i][k] + y * a[i][k + 1] + zz * a[i][k + 2];
+              a[i][k] = a[i][k] - p; a[i][k + 1] = a[i][k + 1] - p * q; a[i][k + 2] = a[i][k + 2] - p * r;
+            }
+          } else {
+            for (let j = k; j <= en; j++) {
+              p = a[k][j] + q * a[k + 1][j];
+              a[k][j] = a[k][j] - p * x; a[k + 1][j] = a[k + 1][j] - p * y;
+            }
+            for (let i = l; i <= jm; i++) {
+              p = x * a[i][k] + y * a[i][k + 1];
+              a[i][k] = a[i][k] - p; a[i][k + 1] = a[i][k + 1] - p * q;
+            }
+          }
+        }
+      }
+    }
+    return wr.map((v, i) => [v, wi[i]]);
+  },
   // the error function: fdlibm's s_erf.c (Sun Microsystems 1993, the C library's own form), over Math.exp; JavaScript has
   // none. The translations call their platform's erf (C erf, MATLAB erf), whose last bits may differ (as exp's).
   erf(x) {
@@ -1287,6 +1450,7 @@ export function makeInterpreter(prog) {
         case "transpose": return rt.tr(args[0]);
         case "sort": return rt.sort(args[0]);
         case "argsort": return rt.argsort(args[0]);
+        case "eig": return rt.eig(args[0]);
         case "stream": return rt.stream(args[0], args[1]);
         case "uniform": case "normal": case "normal3": {
           // the stream drawn from goes back into the caller's variable

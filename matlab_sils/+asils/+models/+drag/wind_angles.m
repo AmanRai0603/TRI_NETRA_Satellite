@@ -15,5 +15,5 @@ function [alpha, beta, vm, vb] = wind_angles(vrel, r_bi)
     vb = asils.pc.mv((r_bi).', vrel);
     vm = asils.models.gravity.onorm(vb);
     alpha = atan2(vb(3), vb(1));
-    beta = asin(asils.models.thirdbody.unit_clip((vb(2) / vm)));
+    beta = asils.pc.asin_(asils.models.thirdbody.unit_clip((vb(2) / vm)));
 end

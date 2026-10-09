@@ -3,6 +3,7 @@
 #![allow(unused_mut, unused_variables, unused_parens, unused_assignments, unused_imports, unreachable_code, non_snake_case, clippy::all)]
 use crate::gen::rt;
 use crate::gen::sizepump::{PumpDesign};
+use crate::gen::floquet::{FqGains};
 
 /// The dipoles the coil must give: dumping the worst torque tau_dist at half the least field b_min, the orbit's secular
 /// momentum h_secular over an orbit of period [s] at 0.3 of the mean field b_mean, the detumble's momentum h_detumble in

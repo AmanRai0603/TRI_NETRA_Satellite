@@ -17,9 +17,9 @@ function [nu] = frac_conical(r_sat, r_sun, re, rsun)
     if (se < 0)
         nu = 1;
     else
-        th_s = asin(asils.models.srp.min_one((rsun / ds)));
-        th_e = asin(asils.models.srp.min_one((re / rr)));
-        th_sep = acos(asils.models.thirdbody.unit_clip(se));
+        th_s = asils.pc.asin_(asils.models.srp.min_one((rsun / ds)));
+        th_e = asils.pc.asin_(asils.models.srp.min_one((re / rr)));
+        th_sep = asils.pc.acos_(asils.models.thirdbody.unit_clip(se));
         if (th_sep >= (th_s + th_e))
             nu = 1;
         elseif ((th_e - th_s) >= th_sep)

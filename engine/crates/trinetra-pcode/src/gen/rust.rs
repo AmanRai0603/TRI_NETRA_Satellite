@@ -14,6 +14,7 @@ pub(super) fn to_rust(i: &Interp, o: &RustOptions) -> Result<Files, String> {
         sort: false,
         stream: std::cell::Cell::new(false),
         erf: false,
+        eig: false,
         root: o.root.filter(|r| !r.is_empty()).unwrap_or("crate").to_string(),
         math: o.math.filter(|m| !m.is_empty()).map(str::to_string),
         dispatch: o.dispatch,
@@ -29,6 +30,7 @@ struct Gen<'a> {
     sort: bool,
     stream: std::cell::Cell<bool>,
     erf: bool,
+    eig: bool,
     /// the path the modules are under (`crate`, or `crate::alg` when embedded in a crate)
     root: String,
     /// the module the scalar maths comes from (a no_std crate's), else `f64`'s own
@@ -394,6 +396,10 @@ impl<'a> Gen<'a> {
                 "norm" => return format!("rt::norm({})", v(self, 0)),
                 "unit" => return format!("rt::unit({})", v(self, 0)),
                 "transpose" => return format!("rt::tr({})", v(self, 0)),
+                "eig" => {
+                    self.eig = true;
+                    return format!("rt::eig({})", v(self, 0));
+                }
                 "sort" | "argsort" => {
                     self.sort = true;
                     return format!("rt::{f}({})", x(self, 0));
@@ -723,7 +729,12 @@ impl<'a> Gen<'a> {
         let sort = if self.sort { RUST_RT_SORT } else { "" };
         let stream = if self.stream.get() { rust_rt_stream(self.math.as_deref()) } else { String::new() };
         let erf = if self.erf { RUST_RT_ERF } else { "" };
-        set_file(&mut files, "src/rt.rs".into(), format!("//! The arithmetic every translation shares with the interpreter (design/js/pcode.js `rt`). {head}\n{rt}{sort}{stream}{erf}"));
+        let eig = match (self.eig, &self.math) {
+            (false, _) => String::new(),
+            (true, Some(m)) => RUST_RT_EIG.replacen("{ x.sqrt() }", &format!("{{ {m}::sqrt(x) }}"), 1),
+            (true, None) => RUST_RT_EIG.to_string(),
+        };
+        set_file(&mut files, "src/rt.rs".into(), format!("//! The arithmetic every translation shares with the interpreter (design/js/pcode.js `rt`). {head}\n{rt}{sort}{stream}{erf}{eig}"));
         let title = title.filter(|t| !t.is_empty()).unwrap_or("Functions written in the pseudocode");
         let mods: String = c.modules.iter().map(|(m, _)| format!("pub mod {m};\n")).collect();
         set_file(
@@ -900,6 +911,204 @@ const RUST_RT_ERF: &str = r#"extern "C" {
 pub fn erf(x: f64) -> f64 {
     // SAFETY: erf is a pure C99 <math.h> function of one double, in the system libm std already links.
     unsafe { c_erf(x) }
+}
+"#;
+
+/// The toolbox's eigenvalues (pcode_gen.js `RUST_RT_EIG`), carried by a translation that asks for them.
+const RUST_RT_EIG: &str = r#"fn eig_sqrt(x: f64) -> f64 { x.sqrt() }
+fn eig_sgn(x: f64, y: f64) -> f64 { if y >= 0.0 { fabs(x) } else { -fabs(x) } }
+/// The eigenvalues of a real square matrix, each [re, im], in the order the QR iteration leaves them on the diagonal
+/// (pcode.js rt.eig, trinetra-toolbox/6): EISPACK's balanc by powers of 2 without its permutations (Parlett and Reinsch
+/// 1969; at most 100 sweeps), orthes (Martin and Wilkinson 1968) and hqr (Martin, Peters and Wilkinson 1970; the 1983
+/// revision; at most 30 n iterations, after which the eigenvalues not found are nan), sequential, no fused multiply-add.
+pub fn eig<const N: usize>(m: [[f64; N]; N]) -> [[f64; 2]; N] {
+    let n = N;
+    let mut a = m;
+    let mut wr = [0.0f64; N];
+    let mut wi = [0.0f64; N];
+    let mut ort = [0.0f64; N];
+    let mut done = false;
+    let mut sweep = 0;
+    while sweep < 100 && !done {
+        done = true;
+        for i in 0..n {
+            let mut c = 0.0;
+            let mut r = 0.0;
+            for j in 0..n { if j != i { c = c + fabs(a[j][i]); r = r + fabs(a[i][j]); } }
+            if c != 0.0 && r != 0.0 && (c + r).is_finite() {
+                let mut g = r / 2.0;
+                let mut f = 1.0;
+                let s = c + r;
+                while c < g { f = f * 2.0; c = c * 4.0; }
+                g = r * 2.0;
+                while c > g { f = f / 2.0; c = c / 4.0; }
+                if (c + r) / f < 0.95 * s {
+                    done = false;
+                    g = 1.0 / f;
+                    for j in 0..n { a[i][j] = a[i][j] * g; }
+                    for j in 0..n { a[j][i] = a[j][i] * f; }
+                }
+            }
+        }
+        sweep += 1;
+    }
+    for m in 1..n.saturating_sub(1) {
+        let mut h = 0.0;
+        let mut scale = 0.0;
+        ort[m] = 0.0;
+        for i in m..n { scale = scale + fabs(a[i][m - 1]); }
+        if scale != 0.0 {
+            for i in (m..n).rev() { ort[i] = a[i][m - 1] / scale; h = h + ort[i] * ort[i]; }
+            let g = -eig_sgn(eig_sqrt(h), ort[m]);
+            h = h - ort[m] * g;
+            ort[m] = ort[m] - g;
+            for j in m..n {
+                let mut f = 0.0;
+                for i in (m..n).rev() { f = f + ort[i] * a[i][j]; }
+                f = f / h;
+                for i in m..n { a[i][j] = a[i][j] - f * ort[i]; }
+            }
+            for i in 0..n {
+                let mut f = 0.0;
+                for j in (m..n).rev() { f = f + ort[j] * a[i][j]; }
+                f = f / h;
+                for j in m..n { a[i][j] = a[i][j] - f * ort[j]; }
+            }
+            ort[m] = scale * ort[m];
+            a[m][m - 1] = scale * g;
+        }
+    }
+    for i in 2..n { for j in 0..i - 1 { a[i][j] = 0.0; } }
+    let mut norm = 0.0;
+    let mut k0 = 0;
+    for i in 0..n { for j in k0..n { norm = norm + fabs(a[i][j]); } k0 = i; }
+    let mut left = n;
+    let mut t = 0.0;
+    let mut itn = 30 * n;
+    while left > 0 {
+        let en = left - 1;
+        let mut its = 0;
+        loop {
+            let mut l = en;
+            while l > 0 {
+                let mut s = fabs(a[l - 1][l - 1]) + fabs(a[l][l]);
+                if s == 0.0 { s = norm; }
+                if s + fabs(a[l][l - 1]) == s { break; }
+                l -= 1;
+            }
+            let mut x = a[en][en];
+            if l == en { wr[en] = x + t; wi[en] = 0.0; left -= 1; break; }
+            let na = en - 1;
+            let mut y = a[na][na];
+            let mut w = a[en][na] * a[na][en];
+            if l == na {
+                let p = (y - x) / 2.0;
+                let q = p * p + w;
+                let mut zz = eig_sqrt(fabs(q));
+                x = x + t;
+                if q >= 0.0 {
+                    zz = p + eig_sgn(zz, p);
+                    wr[na] = x + zz;
+                    wr[en] = wr[na];
+                    if zz != 0.0 { wr[en] = x - w / zz; }
+                    wi[na] = 0.0;
+                    wi[en] = 0.0;
+                } else {
+                    wr[na] = x + p;
+                    wr[en] = x + p;
+                    wi[na] = zz;
+                    wi[en] = -zz;
+                }
+                left -= 2;
+                break;
+            }
+            if itn == 0 { for i in 0..=en { wr[i] = f64::NAN; wi[i] = f64::NAN; } left = 0; break; }
+            let enm2 = na - 1;
+            if its == 10 || its == 20 {
+                t = t + x;
+                for i in 0..=en { a[i][i] = a[i][i] - x; }
+                let s = fabs(a[en][na]) + fabs(a[na][enm2]);
+                x = 0.75 * s;
+                y = x;
+                w = -0.4375 * s * s;
+            }
+            its += 1;
+            itn -= 1;
+            let mut m = enm2;
+            let mut p;
+            let mut q;
+            let mut r;
+            let mut zz;
+            loop {
+                zz = a[m][m];
+                r = x - zz;
+                let mut s = y - zz;
+                p = (r * s - w) / a[m + 1][m] + a[m][m + 1];
+                q = a[m + 1][m + 1] - zz - r - s;
+                r = a[m + 2][m + 1];
+                s = fabs(p) + fabs(q) + fabs(r);
+                p = p / s;
+                q = q / s;
+                r = r / s;
+                if m == l { break; }
+                let tst1 = fabs(p) * (fabs(a[m - 1][m - 1]) + fabs(zz) + fabs(a[m + 1][m + 1]));
+                if tst1 + fabs(a[m][m - 1]) * (fabs(q) + fabs(r)) == tst1 { break; }
+                m -= 1;
+            }
+            for i in m + 2..=en { a[i][i - 2] = 0.0; if i != m + 2 { a[i][i - 3] = 0.0; } }
+            for k in m..=na {
+                let notlas = k != na;
+                if k != m {
+                    p = a[k][k - 1];
+                    q = a[k + 1][k - 1];
+                    r = 0.0;
+                    if notlas { r = a[k + 2][k - 1]; }
+                    x = fabs(p) + fabs(q) + fabs(r);
+                    if x == 0.0 { continue; }
+                    p = p / x;
+                    q = q / x;
+                    r = r / x;
+                }
+                let s = eig_sgn(eig_sqrt(p * p + q * q + r * r), p);
+                if k != m { a[k][k - 1] = -s * x; } else if l != m { a[k][k - 1] = -a[k][k - 1]; }
+                p = p + s;
+                x = p / s;
+                y = q / s;
+                zz = r / s;
+                q = q / p;
+                r = r / p;
+                let jm = if k + 3 < en { k + 3 } else { en };
+                if notlas {
+                    for j in k..=en {
+                        p = a[k][j] + q * a[k + 1][j] + r * a[k + 2][j];
+                        a[k][j] = a[k][j] - p * x;
+                        a[k + 1][j] = a[k + 1][j] - p * y;
+                        a[k + 2][j] = a[k + 2][j] - p * zz;
+                    }
+                    for i in l..=jm {
+                        p = x * a[i][k] + y * a[i][k + 1] + zz * a[i][k + 2];
+                        a[i][k] = a[i][k] - p;
+                        a[i][k + 1] = a[i][k + 1] - p * q;
+                        a[i][k + 2] = a[i][k + 2] - p * r;
+                    }
+                } else {
+                    for j in k..=en {
+                        p = a[k][j] + q * a[k + 1][j];
+                        a[k][j] = a[k][j] - p * x;
+                        a[k + 1][j] = a[k + 1][j] - p * y;
+                    }
+                    for i in l..=jm {
+                        p = x * a[i][k] + y * a[i][k + 1];
+                        a[i][k] = a[i][k] - p;
+                        a[i][k + 1] = a[i][k + 1] - p * q;
+                    }
+                }
+            }
+        }
+    }
+    let mut out = [[0.0f64; 2]; N];
+    for i in 0..N { out[i] = [wr[i], wi[i]]; }
+    out
 }
 "#;
 

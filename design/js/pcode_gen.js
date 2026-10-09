@@ -198,6 +198,7 @@ export function toRust(prog, opts = {}) {
         case "unit": return `rt::unit(${V(a[0])})`;
         case "transpose": return `rt::tr(${V(a[0])})`;
         case "sort": case "argsort": extras.add("sort"); return `rt::${f}(${ex(a[0])})`;
+        case "eig": extras.add("eig"); return `rt::eig(${V(a[0])})`;
         case "stream": extras.add("stream"); return `rt::stream(${ex(a[0])}, ${e.sid ? sidHex(e.sid) : `(${ex(a[1])}) as u64`})`;
         case "uniform": case "normal": case "normal3": extras.add("stream"); return `rt::${f}(&mut ${ex(a[0])})`;
       }
@@ -395,7 +396,8 @@ export function toRust(prog, opts = {}) {
   disp += "        _ => return None,\n    }\n    Some(outs)\n}\n";
   if (opts.dispatch !== false) files["src/dispatch.rs"] = disp;
   files["src/rt.rs"] = (opts.math ? RUST_RT.replace("dot(a, a).sqrt()", `${opts.math}::sqrt(dot(a, a))`) : RUST_RT) +
-    (extras.has("sort") ? RUST_RT_SORT : "") + (extras.has("stream") ? rustRtStream(opts.math) : "") + (extras.has("erf") ? RUST_RT_ERF : "");
+    (extras.has("sort") ? RUST_RT_SORT : "") + (extras.has("stream") ? rustRtStream(opts.math) : "") + (extras.has("erf") ? RUST_RT_ERF : "") +
+    (extras.has("eig") ? (opts.math ? RUST_RT_EIG.replace("{ x.sqrt() }", `{ ${opts.math}::sqrt(x) }`) : RUST_RT_EIG) : "");
   files[root === "crate" ? "src/lib.rs" : "src/mod.rs"] = `//! ${opts.title || "Functions written in the pseudocode"}. ${HEAD}\n//! Every relation is SI in and SI out; each function's doc lists its inputs and outputs with their units.\n` +
     `#![allow(clippy::all)]\npub mod rt;\n${opts.dispatch !== false ? "pub mod dispatch;\n" : ""}` + mods.map((m) => `pub mod ${m.name};\n`).join("");
   return files;
@@ -479,6 +481,203 @@ const RUST_RT_ERF = `extern "C" {
 pub fn erf(x: f64) -> f64 {
     // SAFETY: erf is a pure C99 <math.h> function of one double, in the system libm std already links.
     unsafe { c_erf(x) }
+}
+`;
+// the toolbox's eigenvalues (pcode.js rt.eig): the same arithmetic, over a fixed square array
+const RUST_RT_EIG = `fn eig_sqrt(x: f64) -> f64 { x.sqrt() }
+fn eig_sgn(x: f64, y: f64) -> f64 { if y >= 0.0 { fabs(x) } else { -fabs(x) } }
+/// The eigenvalues of a real square matrix, each [re, im], in the order the QR iteration leaves them on the diagonal
+/// (pcode.js rt.eig, trinetra-toolbox/6): EISPACK's balanc by powers of 2 without its permutations (Parlett and Reinsch
+/// 1969; at most 100 sweeps), orthes (Martin and Wilkinson 1968) and hqr (Martin, Peters and Wilkinson 1970; the 1983
+/// revision; at most 30 n iterations, after which the eigenvalues not found are nan), sequential, no fused multiply-add.
+pub fn eig<const N: usize>(m: [[f64; N]; N]) -> [[f64; 2]; N] {
+    let n = N;
+    let mut a = m;
+    let mut wr = [0.0f64; N];
+    let mut wi = [0.0f64; N];
+    let mut ort = [0.0f64; N];
+    let mut done = false;
+    let mut sweep = 0;
+    while sweep < 100 && !done {
+        done = true;
+        for i in 0..n {
+            let mut c = 0.0;
+            let mut r = 0.0;
+            for j in 0..n { if j != i { c = c + fabs(a[j][i]); r = r + fabs(a[i][j]); } }
+            if c != 0.0 && r != 0.0 && (c + r).is_finite() {
+                let mut g = r / 2.0;
+                let mut f = 1.0;
+                let s = c + r;
+                while c < g { f = f * 2.0; c = c * 4.0; }
+                g = r * 2.0;
+                while c > g { f = f / 2.0; c = c / 4.0; }
+                if (c + r) / f < 0.95 * s {
+                    done = false;
+                    g = 1.0 / f;
+                    for j in 0..n { a[i][j] = a[i][j] * g; }
+                    for j in 0..n { a[j][i] = a[j][i] * f; }
+                }
+            }
+        }
+        sweep += 1;
+    }
+    for m in 1..n.saturating_sub(1) {
+        let mut h = 0.0;
+        let mut scale = 0.0;
+        ort[m] = 0.0;
+        for i in m..n { scale = scale + fabs(a[i][m - 1]); }
+        if scale != 0.0 {
+            for i in (m..n).rev() { ort[i] = a[i][m - 1] / scale; h = h + ort[i] * ort[i]; }
+            let g = -eig_sgn(eig_sqrt(h), ort[m]);
+            h = h - ort[m] * g;
+            ort[m] = ort[m] - g;
+            for j in m..n {
+                let mut f = 0.0;
+                for i in (m..n).rev() { f = f + ort[i] * a[i][j]; }
+                f = f / h;
+                for i in m..n { a[i][j] = a[i][j] - f * ort[i]; }
+            }
+            for i in 0..n {
+                let mut f = 0.0;
+                for j in (m..n).rev() { f = f + ort[j] * a[i][j]; }
+                f = f / h;
+                for j in m..n { a[i][j] = a[i][j] - f * ort[j]; }
+            }
+            ort[m] = scale * ort[m];
+            a[m][m - 1] = scale * g;
+        }
+    }
+    for i in 2..n { for j in 0..i - 1 { a[i][j] = 0.0; } }
+    let mut norm = 0.0;
+    let mut k0 = 0;
+    for i in 0..n { for j in k0..n { norm = norm + fabs(a[i][j]); } k0 = i; }
+    let mut left = n;
+    let mut t = 0.0;
+    let mut itn = 30 * n;
+    while left > 0 {
+        let en = left - 1;
+        let mut its = 0;
+        loop {
+            let mut l = en;
+            while l > 0 {
+                let mut s = fabs(a[l - 1][l - 1]) + fabs(a[l][l]);
+                if s == 0.0 { s = norm; }
+                if s + fabs(a[l][l - 1]) == s { break; }
+                l -= 1;
+            }
+            let mut x = a[en][en];
+            if l == en { wr[en] = x + t; wi[en] = 0.0; left -= 1; break; }
+            let na = en - 1;
+            let mut y = a[na][na];
+            let mut w = a[en][na] * a[na][en];
+            if l == na {
+                let p = (y - x) / 2.0;
+                let q = p * p + w;
+                let mut zz = eig_sqrt(fabs(q));
+                x = x + t;
+                if q >= 0.0 {
+                    zz = p + eig_sgn(zz, p);
+                    wr[na] = x + zz;
+                    wr[en] = wr[na];
+                    if zz != 0.0 { wr[en] = x - w / zz; }
+                    wi[na] = 0.0;
+                    wi[en] = 0.0;
+                } else {
+                    wr[na] = x + p;
+                    wr[en] = x + p;
+                    wi[na] = zz;
+                    wi[en] = -zz;
+                }
+                left -= 2;
+                break;
+            }
+            if itn == 0 { for i in 0..=en { wr[i] = f64::NAN; wi[i] = f64::NAN; } left = 0; break; }
+            let enm2 = na - 1;
+            if its == 10 || its == 20 {
+                t = t + x;
+                for i in 0..=en { a[i][i] = a[i][i] - x; }
+                let s = fabs(a[en][na]) + fabs(a[na][enm2]);
+                x = 0.75 * s;
+                y = x;
+                w = -0.4375 * s * s;
+            }
+            its += 1;
+            itn -= 1;
+            let mut m = enm2;
+            let mut p;
+            let mut q;
+            let mut r;
+            let mut zz;
+            loop {
+                zz = a[m][m];
+                r = x - zz;
+                let mut s = y - zz;
+                p = (r * s - w) / a[m + 1][m] + a[m][m + 1];
+                q = a[m + 1][m + 1] - zz - r - s;
+                r = a[m + 2][m + 1];
+                s = fabs(p) + fabs(q) + fabs(r);
+                p = p / s;
+                q = q / s;
+                r = r / s;
+                if m == l { break; }
+                let tst1 = fabs(p) * (fabs(a[m - 1][m - 1]) + fabs(zz) + fabs(a[m + 1][m + 1]));
+                if tst1 + fabs(a[m][m - 1]) * (fabs(q) + fabs(r)) == tst1 { break; }
+                m -= 1;
+            }
+            for i in m + 2..=en { a[i][i - 2] = 0.0; if i != m + 2 { a[i][i - 3] = 0.0; } }
+            for k in m..=na {
+                let notlas = k != na;
+                if k != m {
+                    p = a[k][k - 1];
+                    q = a[k + 1][k - 1];
+                    r = 0.0;
+                    if notlas { r = a[k + 2][k - 1]; }
+                    x = fabs(p) + fabs(q) + fabs(r);
+                    if x == 0.0 { continue; }
+                    p = p / x;
+                    q = q / x;
+                    r = r / x;
+                }
+                let s = eig_sgn(eig_sqrt(p * p + q * q + r * r), p);
+                if k != m { a[k][k - 1] = -s * x; } else if l != m { a[k][k - 1] = -a[k][k - 1]; }
+                p = p + s;
+                x = p / s;
+                y = q / s;
+                zz = r / s;
+                q = q / p;
+                r = r / p;
+                let jm = if k + 3 < en { k + 3 } else { en };
+                if notlas {
+                    for j in k..=en {
+                        p = a[k][j] + q * a[k + 1][j] + r * a[k + 2][j];
+                        a[k][j] = a[k][j] - p * x;
+                        a[k + 1][j] = a[k + 1][j] - p * y;
+                        a[k + 2][j] = a[k + 2][j] - p * zz;
+                    }
+                    for i in l..=jm {
+                        p = x * a[i][k] + y * a[i][k + 1] + zz * a[i][k + 2];
+                        a[i][k] = a[i][k] - p;
+                        a[i][k + 1] = a[i][k + 1] - p * q;
+                        a[i][k + 2] = a[i][k + 2] - p * r;
+                    }
+                } else {
+                    for j in k..=en {
+                        p = a[k][j] + q * a[k + 1][j];
+                        a[k][j] = a[k][j] - p * x;
+                        a[k + 1][j] = a[k + 1][j] - p * y;
+                    }
+                    for i in l..=jm {
+                        p = x * a[i][k] + y * a[i][k + 1];
+                        a[i][k] = a[i][k] - p;
+                        a[i][k + 1] = a[i][k + 1] - p * q;
+                    }
+                }
+            }
+        }
+    }
+    let mut out = [[0.0f64; 2]; N];
+    for i in 0..N { out[i] = [wr[i], wi[i]]; }
+    out
 }
 `;
 const RUST_RT_SORT = `/// The indices of a vector in ascending order, equal values in their order (an insertion sort).
@@ -613,15 +812,17 @@ export function toMatlab(prog, opts = {}) {
     if (e.builtin) {
       const f = e.f;
       switch (f) {
-        case "sqrt": case "sin": case "cos": case "tan": case "asin": case "acos": case "atan": case "exp": case "log": case "log10": case "log2": case "erf":
+        case "sin": case "cos": case "tan": case "atan": case "exp": case "erf":
         case "floor": case "ceil": case "round": return `${f}(${a[0]})`;
+        // MATLAB's are complex outside the real domain (sqrt(-1), acos(1.5)): the runtime's give nan there, as the rest do
+        case "sqrt": case "asin": case "acos": case "log": case "log10": case "log2": return `${rtp}.${f}_(${a[0]})`;
         case "trunc": return `fix(${a[0]})`;
         case "abs": return `${rtp}.fabs(${a[0]})`;
         case "sign": return `sign(${a[0]})`;
         case "atan2": return `atan2(${a[0]}, ${a[1]})`;
         case "hypot": return `hypot(${a[0]}, ${a[1]})`;
         case "fmod": return `rem(${a[0]}, ${a[1]})`;
-        case "pow": return `(${a[0]})^(${a[1]})`;
+        case "pow": return `${rtp}.pow_(${a[0]}, ${a[1]})`;
         case "min": case "max": return a.slice(1).reduce((acc, x) => `${rtp}.f${f}(${acc}, ${x})`, a[0]);
         case "clamp": return `${rtp}.clamp(${a[0]}, ${a[1]}, ${a[2]})`;
         case "real": return a[0];
@@ -645,6 +846,7 @@ export function toMatlab(prog, opts = {}) {
         case "stream": return `${rtp}.stream_new(${a[0]}, ${e.sid ? `[${e.sid[0]}, ${e.sid[1]}]` : a[1]})`;
         case "uniform": case "normal": case "normal3": return `${rtp}.stream_${f}(${a[0]})`;
         case "argsort": return `${rtp}.argsort_(${a[0]})`;
+        case "eig": return `${rtp}.eig_(${a[0]})`;
       }
     }
     return `${pkg}.${e.target.module}.${e.target.name}(${a.join(", ")})`;
@@ -827,6 +1029,174 @@ export function matlabRuntime() {
   fn("argsort_", "v", "ix", "the indices (from 0) of a vector in ascending order, equal values in their order: an insertion sort.",
     "    ix = (0:numel(v) - 1).';\n    for i = 2:numel(ix)\n        k = ix(i); j = i - 1;\n        while j >= 1 && v(ix(j) + 1) > v(k + 1), ix(j + 1) = ix(j); j = j - 1; end\n        ix(j + 1) = k;\n    end\n");
   fn("sort_", "v", "r", "the vector in ascending order, equal values in their order.", "    r = reshape(v(asils.pc.argsort_(v) + 1), [], 1);\n");
+  // the functions whose MATLAB value is complex outside their real domain: nan there, as every other translation gives
+  fn("sqrt_", "x", "r", "sqrt(x), nan where x < 0 (MATLAB's is complex there; C's, Rust's and the interpreter's nan).", "    r = sqrt(x);\n    if ~isreal(r), r = NaN; end\n");
+  fn("asin_", "x", "r", "asin(x), nan where |x| > 1 (MATLAB's is complex there; C's, Rust's and the interpreter's nan).", "    r = asin(x);\n    if ~isreal(r), r = NaN; end\n");
+  fn("acos_", "x", "r", "acos(x), nan where |x| > 1 (MATLAB's is complex there; C's, Rust's and the interpreter's nan).", "    r = acos(x);\n    if ~isreal(r), r = NaN; end\n");
+  fn("log_", "x", "r", "log(x), nan where x < 0 (MATLAB's is complex there; C's, Rust's and the interpreter's nan).", "    r = log(x);\n    if ~isreal(r), r = NaN; end\n");
+  fn("log10_", "x", "r", "log10(x), nan where x < 0 (MATLAB's is complex there; C's, Rust's and the interpreter's nan).", "    r = log10(x);\n    if ~isreal(r), r = NaN; end\n");
+  fn("log2_", "x", "r", "log2(x), nan where x < 0 (MATLAB's is complex there; C's, Rust's and the interpreter's nan).", "    r = log2(x);\n    if ~isreal(r), r = NaN; end\n");
+  fn("pow_", "x, y", "r", "x^y, nan where x < 0 and y is not whole (MATLAB's is complex there; C's, Rust's and the interpreter's nan).", "    r = x^y;\n    if ~isreal(r), r = NaN; end\n");
+  // the toolbox's eigenvalues (pcode.js rt.eig): the same arithmetic, element by element
+  fn("eig_sgn_", "x, y", "r", "|x| with the sign of y (y = 0 or -0: positive).", "    if y >= 0, r = abs(x); else, r = -abs(x); end\n");
+  fn("eig_", "M", "e", "the eigenvalues of a real square matrix, a row [re, im] each, in the order the QR iteration leaves them (pcode.js rt.eig): EISPACK's balanc by powers of 2, orthes and hqr.",
+    `    a = M; n = size(a, 1); wr = zeros(n, 1); wi = zeros(n, 1); ort = zeros(n, 1);
+    done = false; sweep = 0;
+    while sweep < 100 && ~done
+        done = true;
+        for i = 0:n - 1
+            c = 0; r = 0;
+            for j = 0:n - 1
+                if j ~= i, c = c + abs(a(j + 1, i + 1)); r = r + abs(a(i + 1, j + 1)); end
+            end
+            if c ~= 0 && r ~= 0 && isfinite(c + r)
+                g = r / 2; f = 1; s = c + r;
+                while c < g, f = f * 2; c = c * 4; end
+                g = r * 2;
+                while c > g, f = f / 2; c = c / 4; end
+                if (c + r) / f < 0.95 * s
+                    done = false;
+                    g = 1 / f;
+                    for j = 0:n - 1, a(i + 1, j + 1) = a(i + 1, j + 1) * g; end
+                    for j = 0:n - 1, a(j + 1, i + 1) = a(j + 1, i + 1) * f; end
+                end
+            end
+        end
+        sweep = sweep + 1;
+    end
+    for m = 1:n - 2
+        h = 0; scale = 0; ort(m + 1) = 0;
+        for i = m:n - 1, scale = scale + abs(a(i + 1, m)); end
+        if scale ~= 0
+            for i = n - 1:-1:m, ort(i + 1) = a(i + 1, m) / scale; h = h + ort(i + 1) * ort(i + 1); end
+            g = -asils.pc.eig_sgn_(sqrt(h), ort(m + 1));
+            h = h - ort(m + 1) * g;
+            ort(m + 1) = ort(m + 1) - g;
+            for j = m:n - 1
+                f = 0;
+                for i = n - 1:-1:m, f = f + ort(i + 1) * a(i + 1, j + 1); end
+                f = f / h;
+                for i = m:n - 1, a(i + 1, j + 1) = a(i + 1, j + 1) - f * ort(i + 1); end
+            end
+            for i = 0:n - 1
+                f = 0;
+                for j = n - 1:-1:m, f = f + ort(j + 1) * a(i + 1, j + 1); end
+                f = f / h;
+                for j = m:n - 1, a(i + 1, j + 1) = a(i + 1, j + 1) - f * ort(j + 1); end
+            end
+            ort(m + 1) = scale * ort(m + 1);
+            a(m + 1, m) = scale * g;
+        end
+    end
+    for i = 2:n - 1
+        for j = 0:i - 2, a(i + 1, j + 1) = 0; end
+    end
+    nrm = 0; k = 0;
+    for i = 0:n - 1
+        for j = k:n - 1, nrm = nrm + abs(a(i + 1, j + 1)); end
+        k = i;
+    end
+    left = n; t = 0; itn = 30 * n;
+    while left > 0
+        en = left - 1; its = 0;
+        while true
+            l = en;
+            while l > 0
+                s = abs(a(l, l)) + abs(a(l + 1, l + 1));
+                if s == 0, s = nrm; end
+                if s + abs(a(l + 1, l)) == s, break; end
+                l = l - 1;
+            end
+            x = a(en + 1, en + 1);
+            if l == en, wr(en + 1) = x + t; wi(en + 1) = 0; left = left - 1; break; end
+            na = en - 1;
+            y = a(na + 1, na + 1);
+            w = a(en + 1, na + 1) * a(na + 1, en + 1);
+            if l == na
+                p = (y - x) / 2;
+                q = p * p + w;
+                zz = sqrt(abs(q));
+                x = x + t;
+                if q >= 0
+                    zz = p + asils.pc.eig_sgn_(zz, p);
+                    wr(na + 1) = x + zz; wr(en + 1) = wr(na + 1);
+                    if zz ~= 0, wr(en + 1) = x - w / zz; end
+                    wi(na + 1) = 0; wi(en + 1) = 0;
+                else
+                    wr(na + 1) = x + p; wr(en + 1) = x + p; wi(na + 1) = zz; wi(en + 1) = -zz;
+                end
+                left = left - 2;
+                break;
+            end
+            if itn == 0, wr(1:en + 1) = NaN; wi(1:en + 1) = NaN; left = 0; break; end
+            enm2 = na - 1;
+            if its == 10 || its == 20
+                t = t + x;
+                for i = 0:en, a(i + 1, i + 1) = a(i + 1, i + 1) - x; end
+                s = abs(a(en + 1, na + 1)) + abs(a(na + 1, enm2 + 1));
+                x = 0.75 * s; y = x; w = -0.4375 * s * s;
+            end
+            its = its + 1; itn = itn - 1;
+            m = enm2;
+            while true
+                zz = a(m + 1, m + 1);
+                r = x - zz;
+                s = y - zz;
+                p = (r * s - w) / a(m + 2, m + 1) + a(m + 1, m + 2);
+                q = a(m + 2, m + 2) - zz - r - s;
+                r = a(m + 3, m + 2);
+                s = abs(p) + abs(q) + abs(r);
+                p = p / s; q = q / s; r = r / s;
+                if m == l, break; end
+                tst1 = abs(p) * (abs(a(m, m)) + abs(zz) + abs(a(m + 2, m + 2)));
+                if tst1 + abs(a(m + 1, m)) * (abs(q) + abs(r)) == tst1, break; end
+                m = m - 1;
+            end
+            for i = m + 2:en
+                a(i + 1, i - 1) = 0;
+                if i ~= m + 2, a(i + 1, i - 2) = 0; end
+            end
+            for k = m:na
+                notlas = k ~= na;
+                if k ~= m
+                    p = a(k + 1, k); q = a(k + 2, k); r = 0;
+                    if notlas, r = a(k + 3, k); end
+                    x = abs(p) + abs(q) + abs(r);
+                    if x == 0, continue; end
+                    p = p / x; q = q / x; r = r / x;
+                end
+                s = asils.pc.eig_sgn_(sqrt(p * p + q * q + r * r), p);
+                if k ~= m
+                    a(k + 1, k) = -s * x;
+                elseif l ~= m
+                    a(k + 1, k) = -a(k + 1, k);
+                end
+                p = p + s; x = p / s; y = q / s; zz = r / s; q = q / p; r = r / p;
+                if k + 3 < en, jm = k + 3; else, jm = en; end
+                if notlas
+                    for j = k:en
+                        p = a(k + 1, j + 1) + q * a(k + 2, j + 1) + r * a(k + 3, j + 1);
+                        a(k + 1, j + 1) = a(k + 1, j + 1) - p * x; a(k + 2, j + 1) = a(k + 2, j + 1) - p * y; a(k + 3, j + 1) = a(k + 3, j + 1) - p * zz;
+                    end
+                    for i = l:jm
+                        p = x * a(i + 1, k + 1) + y * a(i + 1, k + 2) + zz * a(i + 1, k + 3);
+                        a(i + 1, k + 1) = a(i + 1, k + 1) - p; a(i + 1, k + 2) = a(i + 1, k + 2) - p * q; a(i + 1, k + 3) = a(i + 1, k + 3) - p * r;
+                    end
+                else
+                    for j = k:en
+                        p = a(k + 1, j + 1) + q * a(k + 2, j + 1);
+                        a(k + 1, j + 1) = a(k + 1, j + 1) - p * x; a(k + 2, j + 1) = a(k + 2, j + 1) - p * y;
+                    end
+                    for i = l:jm
+                        p = x * a(i + 1, k + 1) + y * a(i + 1, k + 2);
+                        a(i + 1, k + 1) = a(i + 1, k + 1) - p; a(i + 1, k + 2) = a(i + 1, k + 2) - p * q;
+                    end
+                end
+            end
+        end
+    end
+    e = [wr, wi];
+`);
   // random streams (pcode.js rt.stream: adcs-sim-core rng.rs): a stream is six numbers, its 64-bit key and counter as
   // 32-bit halves; the 64-bit arithmetic in halves and 16-bit limbs, every step exact in doubles
   fn("u64_of_", "x", "h", "a whole number (below 2^53 in size) as the 32-bit halves [high, low] of its 64-bit two's complement.",

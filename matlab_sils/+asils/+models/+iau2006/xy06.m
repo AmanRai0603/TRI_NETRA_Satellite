@@ -13,7 +13,7 @@ function [x, y] = xy06(t, fa)
         if (j == 2)
             pt((j) + 1) = asils.pc.ipow(t, 2);
         else
-            pt((j) + 1) = (t)^(j);
+            pt((j) + 1) = asils.pc.pow_(t, j);
         end
     end
     sx = 0;

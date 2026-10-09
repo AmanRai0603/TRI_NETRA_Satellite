@@ -144,7 +144,7 @@ matrix times matrix.
 
 Builtins: `sqrt abs sin cos tan asin acos atan atan2 exp log log10 log2 erf pow hypot min max clamp floor
 ceil round trunc sign fmod dot cross norm unit transpose real int len div rem band bor bxor shl shr isnan isfinite
-sort argsort`, the stream's `stream uniform normal normal3` (*Random streams*), and the constants `pi`, `inf` and
+sort argsort eig`, the stream's `stream uniform normal normal3` (*Random streams*), and the constants `pi`, `inf` and
 `nan`.
 
 `div(a, b)` and `rem(a, b)` take ints and truncate as C and Rust do. `band bor bxor shl shr` take non-negative ints
@@ -162,6 +162,16 @@ order it (an `int` array): both stable, equal values keeping their order, by the
 writes (so even a nan lands in the same place). A median is `sort(v)[n/2]`; the three largest are the first three of
 `argsort(-v)`. They are the toolbox's (Rust `rt::sort`, C `pc_sort_*`, MATLAB `asils.pc.sort_`), not the platform's
 sort, whose order of equal values and of nan differs.
+
+`eig(m)` (trinetra-toolbox/6, S7.15b: the Floquet certificate's multipliers) is the eigenvalues of a square matrix of
+reals, `real[u][2][n]` for `real[u][n][n]`: each eigenvalue `[re, im]` in the matrix's unit, in the order the QR iteration
+leaves them on the diagonal (a complex pair together, `+im` first). It is the toolbox's, EISPACK's algorithm written once
+in every translation (Rust `rt::eig`, C `pc_eig`, MATLAB `asils.pc.eig_`, not the platform's `eig`): balancing by powers of
+2 without permutations (Parlett and Reinsch 1969; at most 100 sweeps), the Householder reduction to Hessenberg form
+(Martin and Wilkinson 1968, `orthes`) and the shifted double-step QR iteration (Martin, Peters and Wilkinson 1970, `hqr`,
+its 1983 revision; at most 30 n iterations, after which the eigenvalues not found are nan). It uses only `+ - * /`, `sqrt`
+and `|x|`, with no fused multiply-add, so every translation gives the interpreter's bits. Held to LAPACK's `dgeev` within
+1e-12 of the largest (`tests/test_eig.py`; docs/references.toml `eig`); its last bits are not LAPACK's.
 
 ## Tables
 
@@ -271,6 +281,11 @@ library's last bits differ:
 - Every literal is converted to SI once, by the checker, and written into the translation as the
   shortest decimal that reads back as the same double.
 - An expression is evaluated in the order it is written, with no fused multiply-add.
+
+Outside their real domain `sqrt`, `asin`, `acos`, `log`, `log10`, `log2` and `pow` give nan in every translation, as
+C, Rust and the interpreter do (`sqrt(-1)`, `acos(1.5)`, `pow(-2, 0.5)`); MATLAB's own give a complex number there, which
+compares by its real part, so the MATLAB translation calls the runtime's `asils.pc.sqrt_`, `asin_`, `acos_`, `log_`,
+`log10_`, `log2_` and `pow_`, which give nan (S7.15b; the language's self-test `domain`).
 
 `sin cos tan asin acos atan atan2 exp log log10 log2 erf pow hypot` come from each platform's library and may
 differ in their last bits (more after a large argument is reduced). `erf`, the error function (trinetra-toolbox/4,

@@ -77,7 +77,7 @@ function [area, perim] = ring_section(bx, n)
     for i = (0):((m) - 1)
         k = rem((i + 1), m);
         area = (area + ((sx((i) + 1) * sy((k) + 1)) - (sx((k) + 1) * sy((i) + 1))));
-        perim = (perim + sqrt((asils.pc.ipow((sx((k) + 1) - sx((i) + 1)), 2) + asils.pc.ipow((sy((k) + 1) - sy((i) + 1)), 2))));
+        perim = (perim + asils.pc.sqrt_((asils.pc.ipow((sx((k) + 1) - sx((i) + 1)), 2) + asils.pc.ipow((sy((k) + 1) - sy((i) + 1)), 2))));
     end
     area = (asils.pc.fabs(area) / 2);
 end

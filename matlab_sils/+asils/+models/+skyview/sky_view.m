@@ -22,5 +22,5 @@ function [b_b, sb, mb, nb, earth_ang] = sky_view(rb, b_eci, sun_rel, moon_rel, r
     sb = asils.models.skyview.sky_unit(asils.pc.mv(rb, sun_rel));
     mb = asils.models.skyview.sky_unit(asils.pc.mv(rb, moon_rel));
     nb = (asils.pc.mv(rb, r) * ((-(1)) / asils.pc.norm_(r)));
-    earth_ang = asin((6378137 / asils.pc.norm_(r)));
+    earth_ang = asils.pc.asin_((6378137 / asils.pc.norm_(r)));
 end

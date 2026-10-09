@@ -48,9 +48,9 @@ function [h, tau, w, j, radius, rotor_mass, coulomb, viscous, static_imbalance, 
     j = (h / w);
     mass = (mass_g * 0.001);
     rotor_mass = (share * mass);
-    radius = sqrt((j / (gyration * rotor_mass)));
+    radius = asils.pc.sqrt_((j / (gyration * rotor_mass)));
     static_imbalance = ((rotor_mass * balance) / w);
-    coulomb = (c_coulomb * sqrt((h / c_ref)));
+    coulomb = (c_coulomb * asils.pc.sqrt_((h / c_ref)));
     viscous = c_viscous;
     dynamic_imbalance = ((static_imbalance * radius) / 2);
     peak_assumed = isnan(p_peak);

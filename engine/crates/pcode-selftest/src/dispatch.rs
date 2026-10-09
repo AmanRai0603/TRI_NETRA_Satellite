@@ -215,6 +215,20 @@ pub fn call(name: &str, x: &[f64]) -> Option<Vec<f64>> {
             out.push(r);
             out.push(io0.len() as f64); for v in io0.iter() { let v = *v; out.push(v); }
         }
+        "selftest::eigen" => {
+            if x.len() != 30 { return None; }
+            let r = crate::selftest::eigen([[x[0], x[1], x[2], x[3], x[4]], [x[5], x[6], x[7], x[8], x[9]], [x[10], x[11], x[12], x[13], x[14]], [x[15], x[16], x[17], x[18], x[19]], [x[20], x[21], x[22], x[23], x[24]]], [[x[25], x[26]], [x[27], x[28]]], x[29]);
+            for v in r.0.iter() { let v = *v; for v in v.iter() { let v = *v; out.push(v); } }
+            for v in r.1.iter() { let v = *v; for v in v.iter() { let v = *v; out.push(v); } }
+            for v in r.2.iter() { let v = *v; for v in v.iter() { let v = *v; out.push(v); } }
+            out.push(r.3);
+        }
+        "selftest::domain" => {
+            if x.len() != 1 { return None; }
+            let r = crate::selftest::domain(x[0]);
+            out.push(r.0 as f64);
+            out.push(r.1);
+        }
         _ => return None,
     }
     Some(out)

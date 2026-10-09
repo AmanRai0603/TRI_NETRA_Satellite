@@ -3,6 +3,7 @@
 #![allow(unused_mut, unused_variables, unused_parens, unused_assignments, unused_imports, unreachable_code, non_snake_case, clippy::all)]
 use crate::gen::rt;
 use crate::gen::sizepump::{PumpDesign};
+use crate::gen::floquet::{FqGains};
 
 /// The spare ring's axis: the unit body diagonal, since the three rings are sized alike, so its projection on each axis
 /// holds that ring's whole momentum when it carries their root sum square.

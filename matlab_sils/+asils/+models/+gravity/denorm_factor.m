@@ -10,5 +10,5 @@ function [f] = denorm_factor(n, m)
     for k = (((n - m) + 1)):((((n + m) + 1)) - 1)
         p = (p * k);
     end
-    f = sqrt(((d * ((2 * n) + 1)) / p));
+    f = asils.pc.sqrt_(((d * ((2 * n) + 1)) / p));
 end

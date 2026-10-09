@@ -1,4 +1,4 @@
-"""The built-in count (docs/PLAN_2_0.md S7; docs/S7_INVENTORY.md S7.1b, S7.3, S7.3b-e, S7.4, S7.5, S7.6, S7.7, S7.8, S7.9, S7.10, S7.11, S7.12, S7.13, S7.14, S7.14b, S7.15): the nodes of the regression copy whose
+"""The built-in count (docs/PLAN_2_0.md S7; docs/S7_INVENTORY.md S7.1b, S7.3, S7.3b-e, S7.4, S7.5, S7.6, S7.7, S7.8, S7.9, S7.10, S7.11, S7.12, S7.13, S7.14, S7.14b, S7.15, S7.15b): the nodes of the regression copy whose
 relation is still compiled code, by group. S7 lowers it to zero; each step that writes a method takes its nodes
 out of BUILT_IN here, in the same change.
   - the count and the list are exactly these, and tools/health.py reports them;
@@ -654,6 +654,29 @@ end
         self.assertEqual([w for w, _c in slots], gen("sizebudget", "SLOT")[:-1])
         self.assertEqual(gen("sizedemand", "SURVEYATTITUDE"), [w.lower() for w in re.findall(r'"(\w+)"', re.search(r"const ATT: \[&str; 4\] = \[(.*?)\];", lib).group(1))])
         self.assertEqual(gen("sizedemand", "DIST"), ["normal", "uniform"])
+
+    def test_the_floquet_certificate_is_ctls_method_the_developer_transcribed(self):
+        """S7.15b (decision 3, as proposed): the Floquet certificate is an analysis method of ctl, a new node, the developer's
+        unsigned transcription of tools/floquet.py, generated into adcs-design; its multipliers are the toolbox's eig
+        (trinetra-toolbox/6). The tool reads, asks the engine (adcs design call) and writes: it keeps no law of its own."""
+        _k, x = self.nodes["ctl_floquet_certificate"]
+        rows = {(s, f): (v, o) for s, f, v, o in x["body"]["content"]}
+        self.assertEqual(x["body"]["node"]["group_id"], "ctl")
+        self.assertEqual(self.beh("ctl_floquet_certificate"), "method")
+        self.assertTrue(rows[("code", "pseudocode")][1].startswith("ctl/floquet.pc (the developer's revision S7.15b"))
+        self.assertIn("tools/floquet.py", rows[("code", "transcribes")][0])
+        self.assertEqual(rows[("code", "generate")][0], "adcs-design")
+        self.assertEqual(x["sealed_as"], "unconfirmed")
+        self.assertTrue(any(w.startswith("the developer's revision S7.15b") and "not yet signed by a person" in w for w in x["why"]))
+        pc = from_design.text("ctl/floquet.pc", REG / "design.tndb")
+        self.assertIn("eig(phi)", pc)
+        self.assertIn("\nconst FLOQUET_STEPS = 1500\n", pc)
+        self.assertTrue((ROOT / "engine" / "crates" / "adcs-design" / "src" / "gen" / "floquet.rs").is_file())
+        tool = (ROOT / "tools" / "floquet.py").read_text(encoding="utf-8").split('"""', 2)[2]     # the code, not its words
+        for gone in ("numpy", "np.", "math.", "def monodromy", "def law_torque", "def dcm", "def rv2q", "def body_from_orbit", "3.986004418e14",
+                     "6378137", "1500", "1e-7", "< 1.0", "eigvals", "radians"):
+            self.assertNotIn(gone, tool, gone)
+        self.assertIn('"floquet::fq_certify"', tool)
 
     def test_every_behaviour_is_one_the_schema_knows(self):
         self.assertEqual(tndb.check(REG / "design.tndb"), [])

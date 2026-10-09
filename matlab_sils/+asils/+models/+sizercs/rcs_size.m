@@ -78,7 +78,7 @@ function [thrust, f_req, arm_long, arm_short, it_det, it_dump, it_slew, mprop, m
     mprop = asils.models.sizedemand.size_max(((1.2 * (it_det + it_dump)) / (isp * g0)), 0.01);
     mslew = ((1.2 * it_slew) / (isp * g0));
     v = ((1.25 * mprop) / 745);
-    rtank = (((3 * v) / (4 * pi)))^((1 / 3));
+    rtank = asils.pc.pow_(((3 * v) / (4 * pi)), (1 / 3));
     pm = 7000000;
     sig = 250000000;
     t = asils.models.sizedemand.size_max(((pm * rtank) / (2 * sig)), 0.0005);

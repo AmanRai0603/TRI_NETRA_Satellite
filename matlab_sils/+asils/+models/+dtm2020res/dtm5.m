@@ -25,10 +25,10 @@ function [ok, o] = dtm5(day, f, fbar, ap60, alti, hl, alat, xlon)
     if ok
         gmlatr = (gmlatd * (pi / 180));
         cm = sin(gmlatr);
-        cm2 = (cm)^(2);
-        cm4 = (cm2)^(2);
+        cm2 = asils.pc.pow_(cm, 2);
+        cm4 = asils.pc.pow_(cm2, 2);
         sm = cos(gmlatr);
-        sm2 = (sm)^(2);
+        sm2 = asils.pc.pow_(sm, 2);
         plg.p10mg = cm;
         plg.p20mg = ((1.5 * cm2) - 0.5);
         plg.p30mg = (cm * ((2.5 * cm2) - 1.5));

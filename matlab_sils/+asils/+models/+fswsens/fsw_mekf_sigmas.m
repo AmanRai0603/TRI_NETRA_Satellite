@@ -31,5 +31,5 @@ function [sig_sun, sig_mag, mag_err] = fsw_mekf_sigmas(sun_fitted, sun_noise, su
     b = asils.models.fswsens.fsw_or_zero(mag_bias);
     bs = asils.models.fswsens.fsw_or_zero(mag_bias_sigma);
     nz = asils.models.fswsens.fsw_or_zero(mag_noise);
-    mag_err = sqrt((((b * b) + (3 * (bs * bs))) + (3 * (nz * nz))));
+    mag_err = asils.pc.sqrt_((((b * b) + (3 * (bs * bs))) + (3 * (nz * nz))));
 end

@@ -22,7 +22,7 @@ function [v, w, tmp] = kpi_stat_of(w, m, st, tmp)
             for i = (0):((m) - 1)
                 s = (s + (w((i) + 1) * w((i) + 1)));
             end
-            v = sqrt((s / m));
+            v = asils.pc.sqrt_((s / m));
         elseif (st == 2)
             s2 = (-(0));
             for i = (0):((m) - 1)

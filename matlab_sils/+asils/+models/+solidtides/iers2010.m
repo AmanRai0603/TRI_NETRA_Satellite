@@ -26,13 +26,13 @@ function [d] = iers2010(r_moon, r_sun, mu, re)
         p = asils.models.solidtides.norm_legendre5(sin(phi), 4);
         for n = (2):((4) - 1)
             for m = (0):(((n + 1)) - 1)
-                fac = ((((k((n) + 1, (m) + 1) / ((2 * n) + 1)) * (gmb / mu)) * ((re / r))^((n + 1))) * p((n) + 1, (m) + 1));
+                fac = ((((k((n) + 1, (m) + 1) / ((2 * n) + 1)) * (gmb / mu)) * asils.pc.pow_((re / r), (n + 1))) * p((n) + 1, (m) + 1));
                 d.dc((n) + 1, (m) + 1) = (d.dc((n) + 1, (m) + 1) + (fac * cos((m * lam))));
                 d.ds((n) + 1, (m) + 1) = (d.ds((n) + 1, (m) + 1) + (fac * sin((m * lam))));
             end
         end
         for m = (0):((3) - 1)
-            fac4 = ((((kp((m) + 1) / 5) * (gmb / mu)) * ((re / r))^(3)) * p(3, (m) + 1));
+            fac4 = ((((kp((m) + 1) / 5) * (gmb / mu)) * asils.pc.pow_((re / r), 3)) * p(3, (m) + 1));
             d.dc(5, (m) + 1) = (d.dc(5, (m) + 1) + (fac4 * cos((m * lam))));
             d.ds(5, (m) + 1) = (d.ds(5, (m) + 1) + (fac4 * sin((m * lam))));
         end

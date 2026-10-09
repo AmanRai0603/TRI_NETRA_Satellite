@@ -50,7 +50,7 @@ function [q, ok, cr, cm, g] = st_quest_head(rold, dq, bs, fov, noise_cross, smea
     ok = (ns >= 3);
     if ok
         rm = asils.pc.mm((asils.models.math.dcm(dq)).', rold);
-        sc = ((noise_cross * smear) * sqrt(8));
+        sc = ((noise_cross * smear) * asils.pc.sqrt_(8));
         bm = zeros(32, 3);
         rr = zeros(32, 3);
         for i = (0):((ns) - 1)

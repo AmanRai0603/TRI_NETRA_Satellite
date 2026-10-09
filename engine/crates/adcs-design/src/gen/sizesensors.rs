@@ -3,6 +3,7 @@
 #![allow(unused_mut, unused_variables, unused_parens, unused_assignments, unused_imports, unreachable_code, non_snake_case, clippy::all)]
 use crate::gen::rt;
 use crate::gen::sizepump::{PumpDesign};
+use crate::gen::floquet::{FqGains};
 
 /// Whether the star tracker is fitted: the fine class, or the loop's knob.
 /// - fine: bool (passed true or false)

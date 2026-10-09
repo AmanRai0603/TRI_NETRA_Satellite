@@ -24,13 +24,13 @@ function [pth, pw] = fsw_mtq_tango(ii, wn, z, gp, gd)
     end
     mref = (((mi(1) + mi(2)) + mi(3)) / 3);
     qt = (mref * asils.pc.ipow((((jm * wn) * wn) * r), 2));
-    qw0 = ((mref * asils.pc.ipow(((((2 * z) * jm) * wn) * r), 2)) - (2 * sqrt((qt / mref))));
+    qw0 = ((mref * asils.pc.ipow(((((2 * z) * jm) * wn) * r), 2)) - (2 * asils.pc.sqrt_((qt / mref))));
     qw = asils.pc.choose((qw0 > 0), qw0, 0);
     pth = zeros(3, 3);
     pw = zeros(3, 3);
     for ax = (0):((3) - 1)
-        p12 = sqrt((qt / mi((ax) + 1)));
-        p22 = sqrt(((qw + (2 * p12)) / mi((ax) + 1)));
+        p12 = asils.pc.sqrt_((qt / mi((ax) + 1)));
+        p22 = asils.pc.sqrt_(((qw + (2 * p12)) / mi((ax) + 1)));
         pth((ax) + 1, (ax) + 1) = ((gp * p12) / r);
         pw((ax) + 1, (ax) + 1) = ((gd * p22) / r);
     end

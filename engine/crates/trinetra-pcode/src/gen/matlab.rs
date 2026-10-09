@@ -295,16 +295,16 @@ impl<'a> Gen<'a> {
         let at = |i: usize| a.get(i).map_or("undefined", String::as_str);
         if let Target::Builtin(f) = ann.target {
             match f {
-                "sqrt" | "sin" | "cos" | "tan" | "asin" | "acos" | "atan" | "exp" | "log" | "log10" | "log2" | "erf" | "floor" | "ceil" | "round" => {
-                    return format!("{f}({})", at(0))
-                }
+                "sin" | "cos" | "tan" | "atan" | "exp" | "erf" | "floor" | "ceil" | "round" => return format!("{f}({})", at(0)),
+                // MATLAB's are complex outside the real domain (sqrt(-1), acos(1.5)): the runtime's give nan there, as the rest do
+                "sqrt" | "asin" | "acos" | "log" | "log10" | "log2" => return format!("{RTP}.{f}_({})", at(0)),
                 "trunc" => return format!("fix({})", at(0)),
                 "abs" => return format!("{RTP}.fabs({})", at(0)),
                 "sign" => return format!("sign({})", at(0)),
                 "atan2" => return format!("atan2({}, {})", at(0), at(1)),
                 "hypot" => return format!("hypot({}, {})", at(0), at(1)),
                 "fmod" => return format!("rem({}, {})", at(0), at(1)),
-                "pow" => return format!("({})^({})", at(0), at(1)),
+                "pow" => return format!("{RTP}.pow_({}, {})", at(0), at(1)),
                 "min" | "max" => {
                     let Some((first, rest)) = a.split_first() else {
                         return self.b.fail("Reduce of empty array with no initial value");
@@ -345,6 +345,7 @@ impl<'a> Gen<'a> {
                 }
                 "uniform" | "normal" | "normal3" => return format!("{RTP}.stream_{f}({})", at(0)),
                 "argsort" => return format!("{RTP}.argsort_({})", at(0)),
+                "eig" => return format!("{RTP}.eig_({})", at(0)),
                 _ => {}
             }
         }
@@ -803,6 +804,179 @@ pub(super) fn runtime() -> Files {
         "    ix = (0:numel(v) - 1).';\n    for i = 2:numel(ix)\n        k = ix(i); j = i - 1;\n        while j >= 1 && v(ix(j) + 1) > v(k + 1), ix(j + 1) = ix(j); j = j - 1; end\n        ix(j + 1) = k;\n    end\n",
     );
     add("sort_", "v", "r", "the vector in ascending order, equal values in their order.", "    r = reshape(v(asils.pc.argsort_(v) + 1), [], 1);\n");
+    // the functions whose MATLAB value is complex outside their real domain: nan there, as every other translation gives
+    add("sqrt_", "x", "r", "sqrt(x), nan where x < 0 (MATLAB's is complex there; C's, Rust's and the interpreter's nan).", "    r = sqrt(x);\n    if ~isreal(r), r = NaN; end\n");
+    add("asin_", "x", "r", "asin(x), nan where |x| > 1 (MATLAB's is complex there; C's, Rust's and the interpreter's nan).", "    r = asin(x);\n    if ~isreal(r), r = NaN; end\n");
+    add("acos_", "x", "r", "acos(x), nan where |x| > 1 (MATLAB's is complex there; C's, Rust's and the interpreter's nan).", "    r = acos(x);\n    if ~isreal(r), r = NaN; end\n");
+    add("log_", "x", "r", "log(x), nan where x < 0 (MATLAB's is complex there; C's, Rust's and the interpreter's nan).", "    r = log(x);\n    if ~isreal(r), r = NaN; end\n");
+    add("log10_", "x", "r", "log10(x), nan where x < 0 (MATLAB's is complex there; C's, Rust's and the interpreter's nan).", "    r = log10(x);\n    if ~isreal(r), r = NaN; end\n");
+    add("log2_", "x", "r", "log2(x), nan where x < 0 (MATLAB's is complex there; C's, Rust's and the interpreter's nan).", "    r = log2(x);\n    if ~isreal(r), r = NaN; end\n");
+    add("pow_", "x, y", "r", "x^y, nan where x < 0 and y is not whole (MATLAB's is complex there; C's, Rust's and the interpreter's nan).", "    r = x^y;\n    if ~isreal(r), r = NaN; end\n");
+    // the toolbox's eigenvalues (pcode.js rt.eig): the same arithmetic, element by element
+    add("eig_sgn_", "x, y", "r", "|x| with the sign of y (y = 0 or -0: positive).", "    if y >= 0, r = abs(x); else, r = -abs(x); end\n");
+    add(
+        "eig_",
+        "M",
+        "e",
+        "the eigenvalues of a real square matrix, a row [re, im] each, in the order the QR iteration leaves them (pcode.js rt.eig): EISPACK's balanc by powers of 2, orthes and hqr.",
+        r#"    a = M; n = size(a, 1); wr = zeros(n, 1); wi = zeros(n, 1); ort = zeros(n, 1);
+    done = false; sweep = 0;
+    while sweep < 100 && ~done
+        done = true;
+        for i = 0:n - 1
+            c = 0; r = 0;
+            for j = 0:n - 1
+                if j ~= i, c = c + abs(a(j + 1, i + 1)); r = r + abs(a(i + 1, j + 1)); end
+            end
+            if c ~= 0 && r ~= 0 && isfinite(c + r)
+                g = r / 2; f = 1; s = c + r;
+                while c < g, f = f * 2; c = c * 4; end
+                g = r * 2;
+                while c > g, f = f / 2; c = c / 4; end
+                if (c + r) / f < 0.95 * s
+                    done = false;
+                    g = 1 / f;
+                    for j = 0:n - 1, a(i + 1, j + 1) = a(i + 1, j + 1) * g; end
+                    for j = 0:n - 1, a(j + 1, i + 1) = a(j + 1, i + 1) * f; end
+                end
+            end
+        end
+        sweep = sweep + 1;
+    end
+    for m = 1:n - 2
+        h = 0; scale = 0; ort(m + 1) = 0;
+        for i = m:n - 1, scale = scale + abs(a(i + 1, m)); end
+        if scale ~= 0
+            for i = n - 1:-1:m, ort(i + 1) = a(i + 1, m) / scale; h = h + ort(i + 1) * ort(i + 1); end
+            g = -asils.pc.eig_sgn_(sqrt(h), ort(m + 1));
+            h = h - ort(m + 1) * g;
+            ort(m + 1) = ort(m + 1) - g;
+            for j = m:n - 1
+                f = 0;
+                for i = n - 1:-1:m, f = f + ort(i + 1) * a(i + 1, j + 1); end
+                f = f / h;
+                for i = m:n - 1, a(i + 1, j + 1) = a(i + 1, j + 1) - f * ort(i + 1); end
+            end
+            for i = 0:n - 1
+                f = 0;
+                for j = n - 1:-1:m, f = f + ort(j + 1) * a(i + 1, j + 1); end
+                f = f / h;
+                for j = m:n - 1, a(i + 1, j + 1) = a(i + 1, j + 1) - f * ort(j + 1); end
+            end
+            ort(m + 1) = scale * ort(m + 1);
+            a(m + 1, m) = scale * g;
+        end
+    end
+    for i = 2:n - 1
+        for j = 0:i - 2, a(i + 1, j + 1) = 0; end
+    end
+    nrm = 0; k = 0;
+    for i = 0:n - 1
+        for j = k:n - 1, nrm = nrm + abs(a(i + 1, j + 1)); end
+        k = i;
+    end
+    left = n; t = 0; itn = 30 * n;
+    while left > 0
+        en = left - 1; its = 0;
+        while true
+            l = en;
+            while l > 0
+                s = abs(a(l, l)) + abs(a(l + 1, l + 1));
+                if s == 0, s = nrm; end
+                if s + abs(a(l + 1, l)) == s, break; end
+                l = l - 1;
+            end
+            x = a(en + 1, en + 1);
+            if l == en, wr(en + 1) = x + t; wi(en + 1) = 0; left = left - 1; break; end
+            na = en - 1;
+            y = a(na + 1, na + 1);
+            w = a(en + 1, na + 1) * a(na + 1, en + 1);
+            if l == na
+                p = (y - x) / 2;
+                q = p * p + w;
+                zz = sqrt(abs(q));
+                x = x + t;
+                if q >= 0
+                    zz = p + asils.pc.eig_sgn_(zz, p);
+                    wr(na + 1) = x + zz; wr(en + 1) = wr(na + 1);
+                    if zz ~= 0, wr(en + 1) = x - w / zz; end
+                    wi(na + 1) = 0; wi(en + 1) = 0;
+                else
+                    wr(na + 1) = x + p; wr(en + 1) = x + p; wi(na + 1) = zz; wi(en + 1) = -zz;
+                end
+                left = left - 2;
+                break;
+            end
+            if itn == 0, wr(1:en + 1) = NaN; wi(1:en + 1) = NaN; left = 0; break; end
+            enm2 = na - 1;
+            if its == 10 || its == 20
+                t = t + x;
+                for i = 0:en, a(i + 1, i + 1) = a(i + 1, i + 1) - x; end
+                s = abs(a(en + 1, na + 1)) + abs(a(na + 1, enm2 + 1));
+                x = 0.75 * s; y = x; w = -0.4375 * s * s;
+            end
+            its = its + 1; itn = itn - 1;
+            m = enm2;
+            while true
+                zz = a(m + 1, m + 1);
+                r = x - zz;
+                s = y - zz;
+                p = (r * s - w) / a(m + 2, m + 1) + a(m + 1, m + 2);
+                q = a(m + 2, m + 2) - zz - r - s;
+                r = a(m + 3, m + 2);
+                s = abs(p) + abs(q) + abs(r);
+                p = p / s; q = q / s; r = r / s;
+                if m == l, break; end
+                tst1 = abs(p) * (abs(a(m, m)) + abs(zz) + abs(a(m + 2, m + 2)));
+                if tst1 + abs(a(m + 1, m)) * (abs(q) + abs(r)) == tst1, break; end
+                m = m - 1;
+            end
+            for i = m + 2:en
+                a(i + 1, i - 1) = 0;
+                if i ~= m + 2, a(i + 1, i - 2) = 0; end
+            end
+            for k = m:na
+                notlas = k ~= na;
+                if k ~= m
+                    p = a(k + 1, k); q = a(k + 2, k); r = 0;
+                    if notlas, r = a(k + 3, k); end
+                    x = abs(p) + abs(q) + abs(r);
+                    if x == 0, continue; end
+                    p = p / x; q = q / x; r = r / x;
+                end
+                s = asils.pc.eig_sgn_(sqrt(p * p + q * q + r * r), p);
+                if k ~= m
+                    a(k + 1, k) = -s * x;
+                elseif l ~= m
+                    a(k + 1, k) = -a(k + 1, k);
+                end
+                p = p + s; x = p / s; y = q / s; zz = r / s; q = q / p; r = r / p;
+                if k + 3 < en, jm = k + 3; else, jm = en; end
+                if notlas
+                    for j = k:en
+                        p = a(k + 1, j + 1) + q * a(k + 2, j + 1) + r * a(k + 3, j + 1);
+                        a(k + 1, j + 1) = a(k + 1, j + 1) - p * x; a(k + 2, j + 1) = a(k + 2, j + 1) - p * y; a(k + 3, j + 1) = a(k + 3, j + 1) - p * zz;
+                    end
+                    for i = l:jm
+                        p = x * a(i + 1, k + 1) + y * a(i + 1, k + 2) + zz * a(i + 1, k + 3);
+                        a(i + 1, k + 1) = a(i + 1, k + 1) - p; a(i + 1, k + 2) = a(i + 1, k + 2) - p * q; a(i + 1, k + 3) = a(i + 1, k + 3) - p * r;
+                    end
+                else
+                    for j = k:en
+                        p = a(k + 1, j + 1) + q * a(k + 2, j + 1);
+                        a(k + 1, j + 1) = a(k + 1, j + 1) - p * x; a(k + 2, j + 1) = a(k + 2, j + 1) - p * y;
+                    end
+                    for i = l:jm
+                        p = x * a(i + 1, k + 1) + y * a(i + 1, k + 2);
+                        a(i + 1, k + 1) = a(i + 1, k + 1) - p; a(i + 1, k + 2) = a(i + 1, k + 2) - p * q;
+                    end
+                end
+            end
+        end
+    end
+    e = [wr, wi];
+"#,
+    );
     // random streams (pcode.js rt.stream: adcs-sim-core rng.rs): a stream is six numbers, its 64-bit key and counter as
     // 32-bit halves; the 64-bit arithmetic in halves and 16-bit limbs, every step exact in doubles
     add(

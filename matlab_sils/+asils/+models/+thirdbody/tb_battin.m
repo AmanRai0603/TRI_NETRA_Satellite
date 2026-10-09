@@ -9,8 +9,8 @@ function [a] = tb_battin(s, b, gm)
     rb2 = asils.pc.dot_(b, b);
     s2b = [(s(1) - (2 * b(1))); (s(2) - (2 * b(2))); (s(3) - (2 * b(3)))];
     q = (asils.pc.dot_(s, s2b) / rb2);
-    f = ((q * ((3 + (3 * q)) + (q * q))) / (1 + ((1 + q))^(1.5)));
-    d3 = ((rb2 * sqrt(rb2)) * ((1 + q))^(1.5));
+    f = ((q * ((3 + (3 * q)) + (q * q))) / (1 + asils.pc.pow_((1 + q), 1.5)));
+    d3 = ((rb2 * asils.pc.sqrt_(rb2)) * asils.pc.pow_((1 + q), 1.5));
     k = ((-(gm)) / d3);
     a = [(k * (s(1) + (f * b(1)))); (k * (s(2) + (f * b(2)))); (k * (s(3) + (f * b(3))))];
 end

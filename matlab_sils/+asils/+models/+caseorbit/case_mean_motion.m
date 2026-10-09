@@ -7,6 +7,6 @@ function [n, t] = case_mean_motion(h)
     n = 0;
     t = 0;
     r = (6378137 + h);
-    n = sqrt((398600441800000 / asils.pc.ipow(r, 3)));
+    n = asils.pc.sqrt_((398600441800000 / asils.pc.ipow(r, 3)));
     t = ((2 * pi) / n);
 end

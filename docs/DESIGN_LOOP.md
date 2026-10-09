@@ -82,8 +82,10 @@ catalogue's derive rule a method of catalogue, and the loop's rules (converge, t
 ring) methods of design, all generated into `adcs-design` (`tools/engine_build.py`); the crate keeps the survey's
 step order and the files' formats, and the loop's tools ask the engine for the rules (`adcs design call`,
 `tools/design_call.py`). The robustness rule and the spare ring are the same kind of rule, `design_loop_robustness`
-and `design_loop_redundancy`. The Floquet certificate (node certify, `tools/floquet.py`) stays a tool: its numpy
-monodromy and eigenvalues cannot be reproduced bit for bit by a generated method (docs/S7_INVENTORY.md S7.15).
+and `design_loop_redundancy`. The Floquet certificate (node certify) is ctl's analysis method since S7.15b
+(`ctl_floquet_certificate`, generated into `adcs-design`; the owner's decision 3): `tools/floquet.py` reads the inputs,
+asks the engine (`adcs design call floquet::...`) and writes `floquet.json`. Its multipliers are the toolbox's `eig`, not
+numpy's: within 1e-12 of the committed results with every verdict the same, not bit for bit (docs/S7_INVENTORY.md S7.15b).
 
 `adcs-design` began as a port of `+asils/+sizing`. Its demand survey and the coil, fluid-loop and RCS laws
 matched the MATLAB sizing to 1e-14 on both cases. The benchmarks' wheels and CMGs now come from the datasheet catalogue,

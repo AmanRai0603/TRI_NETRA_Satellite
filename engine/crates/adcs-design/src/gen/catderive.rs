@@ -3,6 +3,7 @@
 #![allow(unused_mut, unused_variables, unused_parens, unused_assignments, unused_imports, unreachable_code, non_snake_case, clippy::all)]
 use crate::gen::rt;
 use crate::gen::sizepump::{PumpDesign};
+use crate::gen::floquet::{FqGains};
 
 /// The rule's constants: the speed assumed at the nominal momentum [rpm], the rotor's share of the unit's mass, the
 /// radius of gyration's share, the balance grade [m/s], the Coulomb friction's coefficient [N m] at its reference

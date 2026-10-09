@@ -3359,3 +3359,30 @@ source = "docs/DESIGN_LOOP.md (the converge node); the registry's converge and t
 generate = ["adcs-design"]
 uses = ["design/sizedemand.pc"]
 why = "the design loop's rules as methods of design, generated into the engine, which the loop's tools ask (adcs design call)"
+
+[[revision]]
+id = "S7.15b"
+at = "2026-10-09T12:00:00Z"
+by = "the developer"
+about = "the Floquet certificate of the coils-only nadir loop (docs/S7_INVENTORY.md S7.15b; decision 3, as proposed: an analysis method of ctl): the nadir reference frame the mission flew, the closed loop linearised about it, the monodromy matrix over one orbit and the multipliers' verdict, as a method of a new ctl node, generated into adcs-design and the twin's package, which tools/floquet.py asks (adcs design call); the multipliers are the eigenvalues of the toolbox's eig (trinetra-toolbox/6)"
+
+[[revision.node]]
+id = "ctl_floquet_certificate"
+group = "ctl"
+parent = "l3_ctl"
+perspective = "subsystem"
+layer = 3
+label = "Floquet certificate of the coils-only nadir loop"
+behaviour = "method"
+question = "Is each magnetic pointing law, with the gains the flight software boots with, locally exponentially stable about the nadir reference over one orbit: are all its Floquet multipliers inside the unit circle (the boresight law's free direction aside)?"
+why = "the Floquet certificate, until now tools/floquet.py (body_from_orbit, law_torque, monodromy, certify), which had no node; the owner's decision 3, as proposed: floquet.py becomes design, a method of ctl's analysis (docs/S7_INVENTORY.md §1.3 and the tools' table, S7.15b)"
+
+[[revision.method]]
+node = "ctl_floquet_certificate"
+pseudocode = "design/revisions/S7.15b/floquet.pc"
+path = "ctl/floquet.pc"
+transcribes = "tools/floquet.py (body_from_orbit: the nadir reference R0, the boresight offset and the yaw flip, the candidate nearer the attitude flown in the later half of the nadir phases; dcm; rv2q; law_torque: the seven magnetic pointing laws as flown; monodromy: the field of an aligned dipole along a circular orbit, the coils' projection at the duty, the gravity gradient and its feed-forward, the Jacobian by central differences of 1e-7, RK4 in 1500 steps; certify: the orbit's mean motion, the multipliers' moduli in descending order, the boresight law's free direction, the verdict)"
+source = "Celani (2026), the certificate method for magnetic attitude control; Bittanti and Colaneri (2009), Periodic Systems, the Floquet multipliers of a periodic linear system; the eigenvalues by EISPACK (Smith et al. 1976: balanc, Parlett and Reinsch 1969; orthes, Martin and Wilkinson 1968; hqr, Martin, Peters and Wilkinson 1970), the toolbox's eig"
+generate = ["adcs-design"]
+uses = ["fsw/params/fswchoice.pc", "fsw/pseudocode/01_math.pc"]
+why = "the Floquet certificate as a method of ctl, generated into the engine, which tools/floquet.py asks (adcs design call); held to the multipliers the tool committed within 1e-12 with every verdict the same, not bit for bit (numpy's matrix products with fused multiply-add and LAPACK's dgeev)"

@@ -20,7 +20,7 @@ function [rho] = jb_finish(aln_in, z, mjd, sat, f10b, s10b, xm10b)
     aln = aln_in;
     trash = ((mjd - 36204) / 365.2422);
     capphi = asils.models.timescales.omod(trash, 1);
-    dlrsl = (((((0.02 * (sat(3) - 90)) * exp(((-(0.045)) * (sat(3) - 90)))) * asils.models.jb2008.jb_sign(1, sat(2))) * sin(((twopi * capphi) + 1.72))) * (sin(sat(2)))^(2));
+    dlrsl = (((((0.02 * (sat(3) - 90)) * exp(((-(0.045)) * (sat(3) - 90)))) * asils.models.jb2008.jb_sign(1, sat(2))) * sin(((twopi * capphi) + 1.72))) * asils.pc.pow_(sin(sat(2)), 2));
     dlrsa = 0;
     if (z < 2000)
         yrday = asils.models.jb2008.tmoutd(mjd);

@@ -121,3 +121,12 @@ reference = "the datasheet page each number is on"
 test = ""
 status = "owed"
 note = "the 14 synthetic parts have no datasheet; replacing them with real units is the owner's choice (B8.4, B8.6)"
+
+[[ref]]
+id = "eig"
+what = "eigenvalues of a real square matrix: the toolbox's eig (trinetra-toolbox/6), the Floquet certificate's multipliers"
+where = "design/js/pcode.js (rt.eig) and every translation of it: engine/crates/trinetra-pcode (interp.rs; gen/rust.rs RUST_RT_EIG, gen/c.rs C_EIG, gen/matlab.rs eig_)"
+reference = "EISPACK (Smith et al. 1976, Matrix Eigensystem Routines - EISPACK Guide): balanc (Parlett and Reinsch 1969), orthes (Martin and Wilkinson 1968), hqr (Martin, Peters and Wilkinson 1970, the 1983 revision); checked against numpy 2.4 linalg.eigvals (LAPACK dgeev) and closed forms"
+test = "tests/test_eig.py, tests/test_floquet.py"
+status = "checked"
+note = "132 random matrices of order 1 to 10 (a third badly scaled, a quarter triangular) within 1e-12 of dgeev relative to the largest; a diagonal, a rotation, a companion matrix and a Jordan block's neighbour exactly or within 1e-15; the 14 Floquet monodromy matrices within 6.6e-14 of dgeev. The translations are held to the interpreter bit for bit (selftest::eigen, tools/translators.py)"

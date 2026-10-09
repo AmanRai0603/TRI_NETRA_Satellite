@@ -3,6 +3,7 @@
 #![allow(unused_mut, unused_variables, unused_parens, unused_assignments, unused_imports, unreachable_code, non_snake_case, clippy::all)]
 use crate::gen::rt;
 use crate::gen::sizepump::{PumpDesign};
+use crate::gen::floquet::{FqGains};
 
 /// Which momentum actuator is chosen: reaction wheels, CMGs, VSCMGs.
 /// Choice RotorUse: rw, cmg, vscmg.
@@ -89,9 +90,9 @@ pub fn rotor_pick(h: &mut [f64], tau: &mut [f64], mass: &mut [f64], p: &mut [f64
     pick = (-(1));
     met = false;
     {
-        let __end47: i64 = n;
+        let __end63: i64 = n;
         let mut i: i64 = 0;
-        while i < __end47 {
+        while i < __end63 {
             if crate::gen::sizerotor::rotor_meets((*h)[(i) as usize], (*tau)[(i) as usize], h_need, tau_need) {
                 if (!met) {
                     pick = i;
@@ -106,9 +107,9 @@ pub fn rotor_pick(h: &mut [f64], tau: &mut [f64], mass: &mut [f64], p: &mut [f64
     if (!met) {
         pick = 0;
         {
-            let __end48: i64 = n;
+            let __end64: i64 = n;
             let mut i: i64 = 1;
-            while i < __end48 {
+            while i < __end64 {
                 if ((*h)[(i) as usize] >= (*h)[(pick) as usize]) {
                     pick = i;
                 }

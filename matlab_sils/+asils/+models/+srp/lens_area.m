@@ -14,7 +14,7 @@ function [ar] = lens_area(d, r1, r2)
     else
         a = ((((d * d) + (r1 * r1)) - (r2 * r2)) / (2 * d));
         h2 = ((r1 * r1) - (a * a));
-        h = sqrt(asils.pc.choose((h2 > 0), h2, 0));
-        ar = ((((r1 * r1) * acos((a / r1))) + ((r2 * r2) * acos(((d - a) / r2)))) - (d * h));
+        h = asils.pc.sqrt_(asils.pc.choose((h2 > 0), h2, 0));
+        ar = ((((r1 * r1) * asils.pc.acos_((a / r1))) + ((r2 * r2) * asils.pc.acos_(((d - a) / r2)))) - (d * h));
     end
 end

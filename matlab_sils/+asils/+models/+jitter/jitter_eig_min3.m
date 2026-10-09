@@ -11,7 +11,7 @@ function [lam] = jitter_eig_min3(m)
         lam = asils.models.jitter.jitter_min(asils.models.jitter.jitter_min(m(1, 1), m(2, 2)), m(3, 3));
     else
         p2 = (((asils.pc.ipow((m(1, 1) - q), 2) + asils.pc.ipow((m(2, 2) - q), 2)) + asils.pc.ipow((m(3, 3) - q), 2)) + (2 * p1));
-        p = sqrt((p2 / 6));
+        p = asils.pc.sqrt_((p2 / 6));
         b00 = ((m(1, 1) - q) / p);
         b11 = ((m(2, 2) - q) / p);
         b22 = ((m(3, 3) - q) / p);
@@ -22,7 +22,7 @@ function [lam] = jitter_eig_min3(m)
         b20 = (m(3, 1) / p);
         b21 = (m(3, 2) / p);
         det = (((b00 * ((b11 * b22) - (b12 * b21))) - (b01 * ((b10 * b22) - (b12 * b20)))) + (b02 * ((b10 * b21) - (b11 * b20))));
-        phi = (acos(asils.pc.clamp((det / 2), (-(1)), 1)) / 3);
+        phi = (asils.pc.acos_(asils.pc.clamp((det / 2), (-(1)), 1)) / 3);
         lam = (q + ((2 * p) * cos((phi + ((2 * pi) / 3)))));
     end
 end

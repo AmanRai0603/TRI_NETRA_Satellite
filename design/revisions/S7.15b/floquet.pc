@@ -1,0 +1,303 @@
+## The Floquet certificate of the coils-only nadir loop (Celani 2026's certificate method), transcribed from
+## tools/floquet.py (body_from_orbit, dcm, rv2q, law_torque, monodromy, certify).
+## For each magnetic pointing law the closed loop, as flown (the law's nonlinear form, the rigid body's gyroscopic
+## coupling, the gravity gradient, the coil duty d = 1 - mtq_meas/mtq_period), is linearised numerically about the nadir
+## reference, where the body turns at the orbit rate about the orbit normal (the reference is the flight software's own
+## nadir frame, with its yaw flip):
+##     x = [error rotation, body rate],  J w_dot = -w x J w + 3 n^2 c x J c + d Gamma(t) tau(q_e, w),  Gamma = I - b b^T,
+## b(t) the unit field in the reference body frame along one circular orbit, from an aligned dipole in the orbit frame
+## (x along track, y = -orbit normal, z = nadir). The body-to-orbit rotation is the guidance frame itself (the boresight
+## offset, and the yaw flip if the mission flew it). The monodromy matrix over one orbit (the Jacobian by central
+## differences of step 1e-7, the variational equation by RK4 in 1500 steps) gives the multipliers, the eigenvalues of
+## the toolbox (eig); all |mu| < 1 certifies local exponential stability of that periodic linear loop. A boresight law
+## leaves the rotation about its boresight free, so one multiplier stays at 1 by design, unless its weak roll term
+## (sb_kroll) holds the power face. The gains are the ones the flight software boots with (its configuration blob, which
+## the tool reads). Every number is SI, held as a plain number: the state mixes a rotation and a rate.
+## The developer's transcription (S7.15b), unsigned.
+module floquet
+
+## The laws the certificate judges, by the flight software's number (fswchoice's MtqAlg, the configuration's mtq_law):
+## PD, rate damping, Lovera-Astolfi 2004, Celani 2015, Avanzini 2021 (nadir), Celani 2026 boresight and TANGO
+## frozen-Riccati, in that order (the LQR and the sliding mode are not judged: fq_torque gives them none).
+fn fq_laws() -> laws: int[7]
+    laws = [int(MtqAlg.mtq_pd), int(MtqAlg.mtq_rate_damp), int(MtqAlg.mtq_lovera2004), int(MtqAlg.mtq_celani2015), \
+            int(MtqAlg.mtq_avanzini2021), int(MtqAlg.mtq_celani2026), int(MtqAlg.mtq_tango2013)]
+end
+
+## The RK4 steps over one orbit.
+const FLOQUET_STEPS = 1500
+
+## The flight software's parameters the certificate reads, as its configuration blob holds them (SI): the inertia
+## [kg m^2], the coil-off measurement window and the coil cycle [s], the Sun-referencing roll axis (body), the
+## gravity-gradient feed-forward's bits (bit 1 the nadir state), the PD gains [N m] and [N m s], the averaging laws' eps,
+## k1 and k2, Avanzini 2021's k [1/s] and lambda, Celani 2026's boresight gains k_p [N m] and k_d [N m s], its weak roll's
+## gain [N m], its damping [N m s] and gate (a cosine), the power face (body), and TANGO's gains on the attitude and the
+## rate error.
+record FqGains
+    J: mat3[1] in 0.001 .. 0.05
+    mtq_meas: real[1] in 0 .. 0.1
+    mtq_period: real[1] in 0.5 .. 2
+    roll_axis: vec3[1] in -1 .. 1
+    mtq_gg_ff: int in 0 .. 3
+    mtq_Kp: vec3[1] in 0 .. 1e-4
+    mtq_Kd: vec3[1] in 0 .. 1e-2
+    mtq_eps: real[1] in 0 .. 1
+    mtq_k1: real[1] in 0 .. 1e-4
+    mtq_k2: real[1] in 0 .. 1e-2
+    mtq_k16: real[1] in 0 .. 1e-2
+    mtq_lam16: real[1] in 0 .. 1
+    sb_kp: real[1] in 0 .. 1e-4
+    sb_kd: real[1] in 0 .. 1e-2
+    sb_kroll: real[1] in 0 .. 1e-5
+    sb_kdroll: real[1] in 0 .. 1e-3
+    sb_roll_gate: real[1] in 0 .. 1
+    sun_axis: vec3[1] in -1 .. 1
+    mtq_Pth: mat3[1] in -1e-4 .. 1e-4
+    mtq_Pw: mat3[1] in -1e-2 .. 1e-2
+end
+
+## The flight software's nadir reference, body <- orbit (x along track, y = -orbit normal, z = nadir). Guidance builds the
+## reference rows [-ram, -r, -n] (04_guidance.md), R0 in orbit axes, then applies the boresight offset q_off and, when
+## the yaw flip is on, 180 deg about the boresight (the roll axis). Which of the two the mission flew is read from its
+## nadir phases (modes 2 and 3, nadir_mtq and nadir_fine, numbered from 1): their later half (of n samples, the last n -
+## floor(n/2)), each sample's orbit axes from its position and the velocity since the one before, summed as the attitude
+## flown makes them (dcm(q) times the orbit axes); the candidate nearer that sum (the larger trace of C^T acc; the first
+## on a tie). The run's channels by sample: time [s], mode, position (ECI) [m], attitude (x y z w).
+## length: 16
+fn fq_frame(t: inout real[1][*] in 0 .. 6000, mode: inout real[1][*] in 1 .. 4, rx: inout real[1][*] in -7e6 .. 7e6, \
+            ry: inout real[1][*] in -7e6 .. 7e6, rz: inout real[1][*] in -7e6 .. 7e6, qx: inout real[1][*] in -1 .. 1, \
+            qy: inout real[1][*] in -1 .. 1, qz: inout real[1][*] in -1 .. 1, qw: inout real[1][*] in -1 .. 1, \
+            q_off: quat in -1 .. 1, roll_axis: vec3[1] in -1 .. 1) -> c_bo: mat3[1]
+    let r0m: mat3[1] = [[-1.0, 0.0, 0.0], [0.0, 0.0, 1.0], [0.0, 1.0, 0.0]]
+    let u = roll_axis/norm(roll_axis)
+    let a0 = dcm(q_off)*r0m
+    let a1 = dcm([u[0], u[1], u[2], 0.0])*a0
+    let nsel = 0
+    for k in 0 .. len(t)
+        let ma = int(mode[k]) - 1
+        if ma == 1 or ma == 2
+            nsel = nsel + 1
+        end
+    end
+    let skip = div(nsel, 2)
+    let acc: mat3[1] = 0
+    let seen = 0
+    let have = false
+    let rp: vec3[1] = 0
+    let tp: real[1] = 0
+    for k in 0 .. len(t)
+        let mb = int(mode[k]) - 1
+        if mb == 1 or mb == 2
+            if seen >= skip
+                let r1 = [rx[k], ry[k], rz[k]]
+                if have
+                    let v = (r1 - rp)/(t[k] - tp)
+                    let z = -r1/norm(r1)
+                    let hv = cross(r1, v)
+                    let y = -hv/norm(hv)
+                    let x = cross(y, z)
+                    let co: mat3[1] = [x, y, z]
+                    acc = acc + dcm([qx[k], qy[k], qz[k], qw[k]])*transpose(co)
+                end
+                rp = r1
+                tp = t[k]
+                have = true
+            end
+            seen = seen + 1
+        end
+    end
+    let m0 = transpose(a0)*acc
+    let m1 = transpose(a1)*acc
+    c_bo = a0
+    if m1[0][0] + m1[1][1] + m1[2][2] > m0[0][0] + m0[1][1] + m0[2][2]
+        c_bo = a1
+    end
+end
+
+## The quaternion of a small rotation vector: [v sin(|v|/2)/|v|, cos(|v|/2)]; below 1e-15 rad [v/2, 1].
+fn fq_rv2q(v: vec3[1] in -0.1 .. 0.1) -> q: quat
+    let a = norm(v)
+    if a < 1e-15
+        q = [v[0]/2, v[1]/2, v[2]/2, 1.0]
+    else
+        let s = sin(a/2)/a
+        q = [v[0]*s, v[1]*s, v[2]*s, cos(a/2)]
+    end
+end
+
+## The flight software's law (05_control.md), nonlinear, with q_e = q_ref^-1 q and the reference rate w_ref in the
+## reference frame, its sign the scalar part's; e3 the roll axis.
+fn fq_torque(law: MtqAlg, g: FqGains, qe: quat in -1 .. 1, w: vec3[1] in -0.01 .. 0.01, wref_r: vec3[1] in -0.002 .. 0.002, \
+             e3: vec3[1] in -1 .. 1) -> tau: vec3[1]
+    let am = dcm(qe)
+    let we = w - am*wref_r
+    let sg = if qe[3] >= 0 then 1.0 else -1.0
+    let qv = [qe[0], qe[1], qe[2]]
+    tau = 0
+    if law == MtqAlg.mtq_pd
+        for i in 0 .. 3
+            tau[i] = -g.mtq_Kp[i]*(sg*qv[i]) - g.mtq_Kd[i]*we[i]
+        end
+    elif law == MtqAlg.mtq_rate_damp
+        for i in 0 .. 3
+            tau[i] = -g.mtq_Kd[i]*we[i]
+        end
+    elif law == MtqAlg.mtq_lovera2004
+        let e = g.mtq_eps
+        let jwe = g.J*we
+        for i in 0 .. 3
+            tau[i] = -(e*e*g.mtq_k1*(sg*qv[i]) + e*g.mtq_k2*jwe[i])
+        end
+    elif law == MtqAlg.mtq_celani2015
+        let e5 = g.mtq_eps
+        for i in 0 .. 3
+            tau[i] = -(e5*e5*g.mtq_k1*(sg*qv[i]) + e5*g.mtq_k2*we[i])
+        end
+    elif law == MtqAlg.mtq_avanzini2021
+        let n = norm(wref_r)
+        let ep = wref_r/n
+        let sgm = am*ep
+        let jp = dot(transpose(g.J)*ep, ep)
+        let th = 2*sg*dot(qv, ep)
+        let eta = jp*n*(1 - g.mtq_lam16*th)
+        let jw = g.J*w
+        let k = g.mtq_k16
+        for i in 0 .. 3
+            tau[i] = k*(eta*sgm[i] - jw[i]) + k*(eta*ep[i] - jw[i])
+        end
+    elif law == MtqAlg.mtq_celani2026
+        let ab = am*e3
+        tau = g.sb_kp*cross(e3, ab) - g.sb_kd*we
+        if g.sb_kroll > 0 and dot(e3, ab) > g.sb_roll_gate
+            let pa = g.sun_axis - dot(g.sun_axis, e3)*e3
+            if norm(pa) > 1e-6
+                let pn = pa/norm(pa)
+                let pd = am*pn
+                tau = tau + (g.sb_kroll*atan2(dot(cross(pn, pd), e3), dot(pn, pd)) - g.sb_kdroll*dot(we, e3))*e3
+            end
+        end
+    elif law == MtqAlg.mtq_tango2013
+        let pq = g.mtq_Pth*(2*sg*qv)
+        let pw = g.mtq_Pw*we
+        for i in 0 .. 3
+            tau[i] = -(pq[i] + pw[i])
+        end
+    end
+end
+
+## The closed loop's rate at time t from the state x = [error rotation, body rate], about the reference: the field of an
+## aligned dipole along the circular orbit (inclination inc, mean motion n) in the reference body frame (c_bo, body <-
+## orbit), the law's torque through the coils' projection Gamma = I - b b^T at the duty d, the nadir gravity-gradient
+## feed-forward when its bit is set, the rigid body's gyroscopic and gravity-gradient torques; ji the inverse inertia,
+## nad the nadir and wref_r the reference rate in the reference body frame.
+fn fq_rate(law: MtqAlg, g: FqGains, c_bo: mat3[1] in -1 .. 1, inc: real[1] in 0 .. 3, n: real[1] in 0.0008 .. 0.0013, \
+           ji: mat3[1] in -100 .. 100, duty: real[1] in 0.5 .. 1, nad: vec3[1] in -1 .. 1, wref_r: vec3[1] in -0.002 .. 0.002, \
+           t: real[1] in 0 .. 6000, x: real[1][6] in -0.01 .. 0.01) -> xd: real[1][6]
+    let qe = fq_rv2q([x[0], x[1], x[2]])
+    let w = [x[3], x[4], x[5]]
+    let am = dcm(qe)
+    let u = n*t
+    let bo = [cos(u)*sin(inc), -cos(inc), 2*sin(u)*sin(inc)]
+    let b = am*(c_bo*(bo/norm(bo)))
+    let gm: mat3[1] = 0
+    for i in 0 .. 3
+        for j in 0 .. 3
+            gm[i][j] = (if i == j then 1.0 else 0.0) - b[i]*b[j]
+        end
+    end
+    let tau = fq_torque(law, g, qe, w, wref_r, g.roll_axis)
+    let c = am*nad
+    if band(g.mtq_gg_ff, 2) != 0
+        tau = tau - 3*n*n*cross(c, g.J*c)
+    end
+    let wd = ji*(-cross(w, g.J*w) + 3*n*n*cross(c, g.J*c) + duty*(gm*tau))
+    let we = w - am*wref_r
+    xd = [we[0], we[1], we[2], wd[0], wd[1], wd[2]]
+end
+
+## The loop's Jacobian about the reference at time t, by central differences of step 1e-7 in each state.
+## tolerance: 1e-6
+fn fq_jacobian(law: MtqAlg, g: FqGains, c_bo: mat3[1] in -1 .. 1, inc: real[1] in 0 .. 3, n: real[1] in 0.0008 .. 0.0013, \
+               ji: mat3[1] in -100 .. 100, duty: real[1] in 0.5 .. 1, nad: vec3[1] in -1 .. 1, \
+               wref_r: vec3[1] in -0.002 .. 0.002, t: real[1] in 0 .. 6000) -> jm: real[1][6][6]
+    let x0 = [0.0, 0.0, 0.0, wref_r[0], wref_r[1], wref_r[2]]
+    let h = 1e-7
+    for j in 0 .. 6
+        let d: real[1][6] = 0
+        d[j] = h
+        let fp = fq_rate(law, g, c_bo, inc, n, ji, duty, nad, wref_r, t, x0 + d)
+        let fm = fq_rate(law, g, c_bo, inc, n, ji, duty, nad, wref_r, t, x0 - d)
+        for i in 0 .. 6
+            jm[i][j] = (fp[i] - fm[i])/(2*h)
+        end
+    end
+end
+
+## The monodromy matrix of the loop over one orbit: the variational equation Phi' = A(t) Phi from Phi = I, by RK4 in
+## the given number of steps, A from fq_jacobian at the step's start, middle and end. The inverse inertia is the
+## toolbox's (inv3, the adjugate); c_bo's columns give the orbit normal (-y) and the nadir (z) in the reference body
+## frame, and the reference rate is n times the orbit normal.
+## tolerance: 1e-6
+## vectors: 4
+fn fq_monodromy(law: MtqAlg, g: FqGains, c_bo: mat3[1] in -1 .. 1, inc: real[1] in 0 .. 3, n: real[1] in 0.0008 .. 0.0013, \
+                steps: int in 2 .. 40) -> phi: real[1][6][6]
+    let ji, ok = inv3(g.J)
+    let duty = 1 - g.mtq_meas/g.mtq_period
+    let ep = [-c_bo[0][1], -c_bo[1][1], -c_bo[2][1]]
+    let nad = [c_bo[0][2], c_bo[1][2], c_bo[2][2]]
+    let wref_r = n*ep
+    let tp = 2*pi/n
+    let h = tp/real(steps)
+    for i in 0 .. 6
+        phi[i][i] = 1.0
+    end
+    let t: real[1] = 0
+    for s in 0 .. steps
+        let a1 = fq_jacobian(law, g, c_bo, inc, n, ji, duty, nad, wref_r, t)
+        let a2 = fq_jacobian(law, g, c_bo, inc, n, ji, duty, nad, wref_r, t + h/2)
+        let a3 = fq_jacobian(law, g, c_bo, inc, n, ji, duty, nad, wref_r, t + h)
+        let k1 = a1*phi
+        let k2 = a2*(phi + h/2*k1)
+        let k3 = a2*(phi + h/2*k2)
+        let k4 = a3*(phi + h*k3)
+        phi = phi + h/6*(k1 + 2*k2 + 2*k3 + k4)
+        t = t + h
+    end
+end
+
+## The certificate of one law: the case's orbit (its inclination [deg] and altitude [km]: a circle of radius 6378137 m
+## plus the altitude, mean motion sqrt(3.986004418e14/a^3)), the monodromy matrix in FLOQUET_STEPS steps, its
+## multipliers' moduli (the toolbox's eig, |mu| by hypot) in descending order, the free directions (1 for the boresight
+## law without its weak roll, else 0), the largest multiplier past them, and whether it is below 1 (certified).
+## Held to the multipliers tools/floquet.py committed with numpy (1.0.0) within the absolute tolerance below on each |mu|,
+## with every verdict the same (tests/test_floquet.py), and not bit for bit: numpy's matrix products ran on OpenBLAS's
+## kernels with fused multiply-add and its eigenvalues on LAPACK's dgeev, where this method sums left to right with none
+## and takes EISPACK's eigenvalues. Measured (9 Oct 2026, the 14 certificates of both cases): 2.3e-13 at most (ais_3u,
+## Celani 2026, whose small multipliers lie close together), the eigenvalue solve alone 6.6e-14 at most (the toolbox's
+## eig against dgeev on the same matrix); the reference frame equal. A verdict decided within the tolerance of 1 is not
+## held by it: ais_3u's rate damping is certified at max |mu| = 1 - 2.5e-13 (1 - 3.0e-13 here), a direction the law
+## leaves marginal, judged by rounding.
+## held to numpy: 1e-12
+## The translations are held to the interpreter within the tolerance below, relative to the largest output: the central
+## difference amplifies the maths library's last bit (sin, cos, pow, hypot) about 1e7 times.
+## tolerance: 1e-6
+## vectors: 2
+fn fq_certify(law: MtqAlg, g: FqGains, c_bo: mat3[1] in -1 .. 1, inc_deg: real[1] in 0 .. 180, alt_km: real[1] in 300 .. 900) \
+        -> (mu: real[1][6], max_mu: real[1], free: int, certified: bool)
+    let inc = inc_deg*(pi/180.0)
+    let a = 6378137.0 + alt_km*1000.0
+    let n = sqrt(3.986004418e14/pow(a, 3.0))
+    let phi = fq_monodromy(law, g, c_bo, inc, n, FLOQUET_STEPS)
+    let ev = eig(phi)
+    let am: real[1][6] = 0
+    for i in 0 .. 6
+        am[i] = hypot(ev[i][0], ev[i][1])
+    end
+    let s = sort(am)
+    for i in 0 .. 6
+        mu[i] = s[5 - i]
+    end
+    free = if law == MtqAlg.mtq_celani2026 and not (g.sb_kroll > 0) then 1 else 0
+    max_mu = mu[free]
+    certified = max_mu < 1.0
+end

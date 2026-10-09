@@ -3,6 +3,7 @@
 #![allow(unused_mut, unused_variables, unused_parens, unused_assignments, unused_imports, unreachable_code, non_snake_case, clippy::all)]
 use crate::gen::rt;
 use crate::gen::sizepump::{PumpDesign};
+use crate::gen::floquet::{FqGains};
 
 /// The X, Y and Z rings' faces [m^2] and perimeters [m] in a box of sides bx [m].
 /// - bx: real[1][3] (passed a plain number)

@@ -16,6 +16,6 @@ function [t, ti, l2, h] = platform(a, b, x, n)
     h = 0;
     t = (fix((a / 3)) * 1);
     ti = fix(n);
-    l2 = log2(x);
+    l2 = asils.pc.log2_(x);
     h = hypot(a, b);
 end

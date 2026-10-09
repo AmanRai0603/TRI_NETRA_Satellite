@@ -82,9 +82,9 @@ function [st, k, o] = panel_force(r, v, atm, f, model, g, mass, aref, r_bi, wind
                 end
                 if (~(cosd <= 0))
                     aproj = (aproj + (f.a((j) + 1) * cosd));
-                    delta = acos(asils.models.srp.min_one(cosd));
-                    s2 = (1 - (cosd)^(2));
-                    sind = sqrt(asils.pc.choose((s2 > 0), s2, 0));
+                    delta = asils.pc.acos_(asils.models.srp.min_one(cosd));
+                    s2 = (1 - asils.pc.pow_(cosd, 2));
+                    sind = asils.pc.sqrt_(asils.pc.choose((s2 > 0), s2, 0));
                     tgas = [0; 0; 0];
                     if (sind > 1e-9)
                         tgas = [(((-(uhat(1))) + (cosd * n(1))) / sind); (((-(uhat(2))) + (cosd * n(2))) / sind); (((-(uhat(3))) + (cosd * n(3))) / sind)];
@@ -102,7 +102,7 @@ function [st, k, o] = panel_force(r, v, atm, f, model, g, mass, aref, r_bi, wind
                             cp = t__384;
                             ct = t__385;
                         end
-                        q = (((0.5 * rho_s((jj) + 1)) * (vm)^(2)) * f.a((j) + 1));
+                        q = (((0.5 * rho_s((jj) + 1)) * asils.pc.pow_(vm, 2)) * f.a((j) + 1));
                         for i = (0):((3) - 1)
                             fs((i) + 1) = (fs((i) + 1) + (q * ((ct * tgas((i) + 1)) - (cp * n((i) + 1)))));
                         end
@@ -121,7 +121,7 @@ function [st, k, o] = panel_force(r, v, atm, f, model, g, mass, aref, r_bi, wind
         for i2 = (0):((ns) - 1)
             rho_tot = (rho_tot + rho_s((i2) + 1));
         end
-        qd = ((0.5 * rho_tot) * (vm)^(2));
+        qd = ((0.5 * rho_tot) * asils.pc.pow_(vm, 2));
         fu = asils.pc.dot_(fs, uhat);
         dv = [(fu * uhat(1)); (fu * uhat(2)); (fu * uhat(3))];
         o.f = fs;

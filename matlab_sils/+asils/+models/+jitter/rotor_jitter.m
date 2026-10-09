@@ -26,5 +26,5 @@ function [j] = rotor_jitter(n, h, jrot, us, ud, jmin, d, wbw)
         end
         th2 = (th2 + t);
     end
-    j = ((sqrt(th2) * (180 / pi)) * 3600);
+    j = ((asils.pc.sqrt_(th2) * (180 / pi)) * 3600);
 end

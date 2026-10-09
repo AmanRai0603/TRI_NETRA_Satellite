@@ -13,6 +13,6 @@ function [c] = zonal_c(j, nj)
     c(1) = 1;
     for kk = (2):(((nj + 1)) - 1)
         n = (kk + 1);
-        c(((n * st)) + 1) = ((-(j(((kk - 1)) + 1))) / sqrt(((2 * n) + 1)));
+        c(((n * st)) + 1) = ((-(j(((kk - 1)) + 1))) / asils.pc.sqrt_(((2 * n) + 1)));
     end
 end

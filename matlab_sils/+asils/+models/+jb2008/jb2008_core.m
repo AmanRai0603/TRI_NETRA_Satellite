@@ -29,7 +29,7 @@ function [o] = jb2008_core(mjd, sun, sat, f10, f10b, s10, s10b, xm10, xm10b, y10
     wt = [0.311111111111111; 1.422222222222222; 0.533333333333333; 1.422222222222222; 0.311111111111111];
     degrad = (pi / 180);
     o = asils.models.jb2008.JbOut_zero();
-    fn_ = ((f10b / 240))^((1 / 4));
+    fn_ = asils.pc.pow_((f10b / 240), (1 / 4));
     if (fn_ > 1)
         fn_ = 1;
     end
@@ -49,9 +49,9 @@ function [o] = jb2008_core(mjd, sun, sat, f10, f10b, s10, s10b, xm10, xm10b, y10
     if (glsthr < 0)
         glsthr = (glsthr + 24);
     end
-    c = (cos(eta))^(2.5);
-    s = (sin(theta))^(2.5);
-    df = (s + ((c - s) * (asils.pc.fabs(cos((0.5 * tau))))^(3)));
+    c = asils.pc.pow_(cos(eta), 2.5);
+    s = asils.pc.pow_(sin(theta), 2.5);
+    df = (s + ((c - s) * asils.pc.pow_(asils.pc.fabs(cos((0.5 * tau))), 3)));
     tsubl = (tsubc * (1 + (0.31 * df)));
     dtclst = asils.models.jb2008.dtsub(f10, glsthr, glat, zht);
     o.temp(1) = (tsubl + dstdtc);
@@ -65,7 +65,7 @@ function [o] = jb2008_core(mjd, sun, sat, f10, f10b, s10, s10b, xm10, xm10b, y10
     tcf(4) = (gsubx / tcf(3));
     z1 = 90;
     z2 = asils.pc.fmin(sat(3), 105);
-    al = log((z2 / z1));
+    al = asils.pc.log_((z2 / z1));
     n = (floor((al / r1)) + 1);
     zr = exp((al / n));
     ambar1 = asils.models.jb2008.xambar(z1);
@@ -98,18 +98,18 @@ function [o] = jb2008_core(mjd, sun, sat, f10, f10b, s10, s10b, xm10, xm10b, y10
     an = (anm / ambar2);
     fact2 = (anm / 28.96);
     aln = zeros(6, 1);
-    aln(1) = log((frac(1) * fact2));
-    aln(4) = log((frac(3) * fact2));
-    aln(5) = log((frac(4) * fact2));
-    aln(2) = log(((fact2 * (1 + frac(2))) - an));
-    aln(3) = log((2 * (an - fact2)));
+    aln(1) = asils.pc.log_((frac(1) * fact2));
+    aln(4) = asils.pc.log_((frac(3) * fact2));
+    aln(5) = asils.pc.log_((frac(4) * fact2));
+    aln(2) = asils.pc.log_(((fact2 * (1 + frac(2))) - an));
+    aln(3) = asils.pc.log_((2 * (an - fact2)));
     if (sat(3) <= 105)
         o.temp(2) = tloc2;
         aln(6) = (aln(5) - 25);
         o.rho = asils.models.jb2008.jb_finish(aln, z, mjd, sat, f10b, s10b, xm10b);
     else
         z3 = asils.pc.fmin(sat(3), 500);
-        al = log((z3 / z));
+        al = asils.pc.log_((z3 / z));
         n = (floor((al / r2)) + 1);
         zr = exp((al / n));
         sum2 = 0;
@@ -130,7 +130,7 @@ function [o] = jb2008_core(mjd, sun, sat, f10, f10b, s10, s10b, xm10, xm10b, y10
             sum2 = (sum2 + (dz * sum1));
         end
         z4 = asils.pc.fmax(sat(3), 500);
-        al = log((z4 / z));
+        al = asils.pc.log_((z4 / z));
         r = r2;
         if (sat(3) > 500)
             r = r3;
@@ -157,21 +157,21 @@ function [o] = jb2008_core(mjd, sun, sat, f10, f10b, s10, s10b, xm10, xm10b, y10
         hsign = 0;
         if (sat(3) > 500)
             o.temp(2) = tloc4;
-            altr = log((tloc4 / tloc2));
+            altr = asils.pc.log_((tloc4 / tloc2));
             fact2 = (fact1 * (sum2 + sum3));
             hsign = (-(1));
         else
             o.temp(2) = tloc3;
-            altr = log((tloc3 / tloc2));
+            altr = asils.pc.log_((tloc3 / tloc2));
             fact2 = (fact1 * sum2);
             hsign = 1;
         end
         for i = (0):((5) - 1)
             aln((i) + 1) = ((aln((i) + 1) - ((1 + alpha((i) + 1)) * altr)) - (fact2 * amw((i) + 1)));
         end
-        al10t5 = log10(tinf);
+        al10t5 = asils.pc.log10_(tinf);
         alnh5 = ((((5.5 * al10t5) - 39.4) * al10t5) + 73.13);
-        aln(6) = ((al10 * (alnh5 + 6)) + (hsign * (log((tloc4 / tloc3)) + ((fact1 * sum3) * amw(6)))));
+        aln(6) = ((al10 * (alnh5 + 6)) + (hsign * (asils.pc.log_((tloc4 / tloc3)) + ((fact1 * sum3) * amw(6)))));
         o.rho = asils.models.jb2008.jb_finish(aln, z, mjd, sat, f10b, s10b, xm10b);
     end
 end

@@ -22,20 +22,20 @@ function [gmlat, gmlong, ok] = geogm(xlat, xlong_in)
     rlat = (xlat * rfac);
     rlong = (xlong * rfac);
     slm = ((spl * sin(rlat)) + ((cpl * cos(rlat)) * cos((plongr - rlong))));
-    clm = sqrt((1 - (slm)^(2)));
+    clm = asils.pc.sqrt_((1 - asils.pc.pow_(slm, 2)));
     phim1 = ((cos(rlat) * sin((rlong - plongr))) / clm);
     phim2 = (((spl * slm) - sin(rlat)) / (cpl * clm));
-    gmlat = (asin(slm) / rfac);
+    gmlat = (asils.pc.asin_(slm) / rfac);
     gmlong = 0;
     ok = true;
     if ((phim1 >= 0) && (phim2 >= 0))
-        gmlong = (asin(phim1) / rfac);
+        gmlong = (asils.pc.asin_(phim1) / rfac);
     elseif ((phim1 >= 0) && (phim2 < 0))
-        gmlong = ((pi - asils.pc.fabs(asin(phim1))) / rfac);
+        gmlong = ((pi - asils.pc.fabs(asils.pc.asin_(phim1))) / rfac);
     elseif ((phim1 < 0) && (phim2 < 0))
-        gmlong = ((pi + asils.pc.fabs(asin(phim1))) / rfac);
+        gmlong = ((pi + asils.pc.fabs(asils.pc.asin_(phim1))) / rfac);
     elseif ((phim1 < 0) && (phim2 >= 0))
-        gmlong = (((2 * pi) - asils.pc.fabs(asin(phim1))) / rfac);
+        gmlong = (((2 * pi) - asils.pc.fabs(asils.pc.asin_(phim1))) / rfac);
     else
         ok = false;
     end

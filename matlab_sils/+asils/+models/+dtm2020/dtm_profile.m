@@ -31,7 +31,7 @@ function [o] = dtm_profile(set, gd_tt, gd_t0, gd_tp, gd_sp, alti)
         sp = asils.models.dtm2020.dtm_column(set, (i + 1));
         dbase((i) + 1) = (sp(2) * exp(gd_sp((i) + 1)));
     end
-    glb = (980.665 / ((1 + (zlb / 6356.77)))^(2));
+    glb = (980.665 / asils.pc.pow_((1 + (zlb / 6356.77)), 2));
     glb = (glb / ((sigma * 831.4) * tinf));
     t120tz = (t120 / tz);
     o = asils.models.dtm2020.DtmRaw_zero();
@@ -40,7 +40,7 @@ function [o] = dtm_profile(set, gd_tt, gd_t0, gd_tp, gd_sp, alti)
     for i = (0):((6) - 1)
         gamma = (ma((i) + 1) * glb);
         upapg = ((1 + alefa((i) + 1)) + gamma);
-        fz_i = ((t120tz)^(upapg) * exp(((-(sigzeta)) * gamma)));
+        fz_i = (asils.pc.pow_(t120tz, upapg) * exp(((-(sigzeta)) * gamma)));
         cc((i) + 1) = (dbase((i) + 1) * fz_i);
         o.d((i) + 1) = (cc((i) + 1) * vma((i) + 1));
         ro = (ro + o.d((i) + 1));

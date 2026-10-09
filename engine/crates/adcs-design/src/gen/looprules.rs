@@ -3,6 +3,7 @@
 #![allow(unused_mut, unused_variables, unused_parens, unused_assignments, unused_imports, unreachable_code, non_snake_case, clippy::all)]
 use crate::gen::rt;
 use crate::gen::sizepump::{PumpDesign};
+use crate::gen::floquet::{FqGains};
 
 /// A sized part whose authority the loop scales, in the order the loop takes them (alphabetical, as the tool sorted them).
 /// Choice Part: cmg, fmr, mtq, mtqp, rcs, rw, vscmg.
@@ -136,9 +137,9 @@ pub fn loop_rate_violation(vval: &mut [f64], vrate: &mut [i64], nv: i64) -> f64 
     let mut rv: f64 = 0.0;
     rv = 0.0;
     {
-        let __end14: i64 = rt::imin(nv, ((*vval).len() as i64));
+        let __end30: i64 = rt::imin(nv, ((*vval).len() as i64));
         let mut i: i64 = 0;
-        while i < __end14 {
+        while i < __end30 {
             if ((*vrate)[(i) as usize] == 1) {
                 rv = (rv + rt::fmin((*vval)[(i) as usize], 10.0));
             }
@@ -161,9 +162,9 @@ pub fn loop_option_violation(vval: &mut [f64], vperf: &mut [i64], v0: i64, v1: i
     let mut s: f64 = 0.0;
     s = 0.0;
     {
-        let __end15: i64 = rt::imin(v1, ((*vval).len() as i64));
+        let __end31: i64 = rt::imin(v1, ((*vval).len() as i64));
         let mut i: i64 = v0;
-        while i < __end15 {
+        while i < __end31 {
             if ((!perf_only) || ((*vperf)[(i) as usize] == 1)) {
                 s = (s + (*vval)[(i) as usize]);
             }
@@ -192,15 +193,15 @@ pub fn loop_family_violation(mode_ix: &mut [i64], feasible: &mut [i64], usable: 
     let mut tot: f64 = 0.0;
     tot = 0.0;
     {
-        let __end16: i64 = nm;
+        let __end32: i64 = nm;
         let mut m: i64 = 0;
-        while m < __end16 {
+        while m < __end32 {
             let mut have: bool = false;
             let mut best: f64 = 0.0;
             {
-                let __end17: i64 = rt::imin(no, (((*vstart).len() as i64) - 1));
+                let __end33: i64 = rt::imin(no, (((*vstart).len() as i64) - 1));
                 let mut i: i64 = 0;
-                while i < __end17 {
+                while i < __end33 {
                     if (((*mode_ix)[(i) as usize] == m) && ((((*usable)[(i) as usize] >> b) & 1) == 1)) {
                         let mut x: f64 = 0.0;
                         if ((*feasible)[(i) as usize] == 0) {
@@ -397,9 +398,9 @@ pub fn loop_converge(mode_ix: &mut [i64], act: &mut [i64], dump_rcs: &mut [i64],
     let mut k0l: f64 = (if k0_has_lambda { k0_lambda } else { d_lambda });
     let mut sc: [f64; 7] = [0.0; 7];
     {
-        let __end18: i64 = 7;
+        let __end34: i64 = 7;
         let mut p: i64 = 0;
-        while p < __end18 {
+        while p < __end34 {
             sc[(p) as usize] = 1.0;
             if (((p < ((*has_scale).len() as i64)) && (p < ((*scale).len() as i64))) && ((*has_scale)[(p) as usize] == 1)) {
                 sc[(p) as usize] = (*scale)[(p) as usize];
@@ -417,17 +418,17 @@ pub fn loop_converge(mode_ix: &mut [i64], act: &mut [i64], dump_rcs: &mut [i64],
         nv = (*vstart)[(cap) as usize];
     }
     {
-        let __end19: i64 = rt::imin(cap, ((*o_lost).len() as i64));
+        let __end35: i64 = rt::imin(cap, ((*o_lost).len() as i64));
         let mut i: i64 = 0;
-        while i < __end19 {
+        while i < __end35 {
             (*o_lost)[(i) as usize] = 0;
             i += 1;
         }
     }
     {
-        let __end20: i64 = rt::imin(cap, ((*o_feas).len() as i64));
+        let __end36: i64 = rt::imin(cap, ((*o_feas).len() as i64));
         let mut i: i64 = 0;
-        while i < __end20 {
+        while i < __end36 {
             (*o_feas)[(i) as usize] = 0;
             i += 1;
         }
@@ -442,17 +443,17 @@ pub fn loop_converge(mode_ix: &mut [i64], act: &mut [i64], dump_rcs: &mut [i64],
         }
     }
     {
-        let __end21: i64 = rt::imin(nlu, ((*lu_part).len() as i64));
+        let __end37: i64 = rt::imin(nlu, ((*lu_part).len() as i64));
         let mut u: i64 = 0;
-        while u < __end21 {
+        while u < __end37 {
             let mut part: i64 = (*lu_part)[(u) as usize];
             let mut before: f64 = 0.0;
             let mut now: f64 = 0.0;
             let mut pv: f64 = 0.0;
             {
-                let __end22: i64 = rt::imin(np, (((*p_vstart).len() as i64) - 1));
+                let __end38: i64 = rt::imin(np, (((*p_vstart).len() as i64) - 1));
                 let mut j: i64 = 0;
-                while j < __end22 {
+                while j < __end38 {
                     if ((crate::gen::looprules::loop_part((*p_act)[(j) as usize]) == part) && ((*p_feas)[(j) as usize] == 0)) {
                         pv = crate::gen::looprules::loop_option_violation(&mut (*p_vval), &mut (*p_vperf), (*p_vstart)[(j) as usize], (*p_vstart)[((j + 1)) as usize], true);
                         before = (before + pv);
@@ -478,9 +479,9 @@ pub fn loop_converge(mode_ix: &mut [i64], act: &mut [i64], dump_rcs: &mut [i64],
     }
     let mut want: [i64; 7] = [0; 7];
     {
-        let __end23: i64 = cap;
+        let __end39: i64 = cap;
         let mut jj: i64 = 0;
-        while jj < __end23 {
+        while jj < __end39 {
             let mut i: i64 = (*order)[(jj) as usize];
             if ((i >= 0) && (i < cap)) {
                 let mut pt: i64 = crate::gen::looprules::loop_part((*act)[(i) as usize]);
@@ -574,9 +575,9 @@ pub fn loop_converge(mode_ix: &mut [i64], act: &mut [i64], dump_rcs: &mut [i64],
     if lm_has {
         let mut lost: i64 = 0;
         {
-            let __end24: i64 = rt::imin(cap, ((*o_lost).len() as i64));
+            let __end40: i64 = rt::imin(cap, ((*o_lost).len() as i64));
             let mut i: i64 = 0;
-            while i < __end24 {
+            while i < __end40 {
                 if ((((*lm_before)[(i) as usize] == 1) && ((*lm_use)[(i) as usize] == 1)) && ((*feasible)[(i) as usize] == 0)) {
                     (*o_lost)[(i) as usize] = 1;
                     lost = (lost + 1);
@@ -607,9 +608,9 @@ pub fn loop_converge(mode_ix: &mut [i64], act: &mut [i64], dump_rcs: &mut [i64],
     if ((has_sel && (changes == 0)) && (nf > 0)) {
         let mut f: i64 = 0;
         {
-            let __end25: i64 = rt::imin(nf, ((*fam_gaps).len() as i64));
+            let __end41: i64 = rt::imin(nf, ((*fam_gaps).len() as i64));
             let mut g: i64 = 1;
-            while g < __end25 {
+            while g < __end41 {
                 if (((*fam_gaps)[(g) as usize] < (*fam_gaps)[(f) as usize]) || (((*fam_gaps)[(g) as usize] == (*fam_gaps)[(f) as usize]) && ((*fam_simplicity)[(g) as usize] < (*fam_simplicity)[(f) as usize]))) {
                     f = g;
                 }
@@ -618,9 +619,9 @@ pub fn loop_converge(mode_ix: &mut [i64], act: &mut [i64], dump_rcs: &mut [i64],
         }
         if ((*fam_mass)[(f) as usize] == 1) {
             {
-                let __end26: i64 = rt::imin(cap, ((*o_feas).len() as i64));
+                let __end42: i64 = rt::imin(cap, ((*o_feas).len() as i64));
                 let mut i: i64 = 0;
-                while i < __end26 {
+                while i < __end42 {
                     if (((((*fam_use)[(i) as usize] >> f) & 1) == 1) && ((*feasible)[(i) as usize] == 1)) {
                         (*o_feas)[(i) as usize] = 1;
                     }
@@ -651,9 +652,9 @@ pub fn loop_converge(mode_ix: &mut [i64], act: &mut [i64], dump_rcs: &mut [i64],
         }
     }
     {
-        let __end27: i64 = 7;
+        let __end43: i64 = 7;
         let mut p: i64 = 0;
-        while p < __end27 {
+        while p < __end43 {
             if (want[(p) as usize] != 0) {
                 let mut s: f64 = sc[(p) as usize];
                 if (((frz >> p) & 1) == 1) {

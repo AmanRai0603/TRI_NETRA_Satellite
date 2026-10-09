@@ -21,5 +21,5 @@ function [n] = onorm(v)
             sum = (sum + (q2 * q2));
         end
     end
-    n = (scl * sqrt(sum));
+    n = (scl * asils.pc.sqrt_(sum));
 end

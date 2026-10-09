@@ -40,7 +40,7 @@ function [q, ok, id] = st_attitude(b, rs, n, id, tol)
                 j = 0;
                 for i = (0):((nk) - 1)
                     c = asils.pc.dot_((bb((i) + 1, :)).', asils.pc.mv(a, (rr((i) + 1, :)).'));
-                    res = acos(asils.pc.choose((c < 1), c, 1));
+                    res = asils.pc.acos_(asils.pc.choose((c < 1), c, 1));
                     if (res > rm)
                         rm = res;
                         j = i;

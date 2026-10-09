@@ -29,27 +29,27 @@
  {
   "package": "selftest",
   "lang": "rust",
-  "functions": 27,
-  "values": 2760,
-  "exact": 2751,
+  "functions": 29,
+  "values": 2988,
+  "exact": 2979,
   "worst": 2.023284851609503e-16,
   "failures": []
  },
  {
   "package": "selftest",
   "lang": "c",
-  "functions": 27,
-  "values": 2760,
-  "exact": 2751,
+  "functions": 29,
+  "values": 2988,
+  "exact": 2979,
   "worst": 2.023284851609503e-16,
   "failures": []
  },
  {
   "package": "selftest",
   "lang": "matlab",
-  "functions": 27,
-  "values": 2760,
-  "exact": 2751,
+  "functions": 29,
+  "values": 2988,
+  "exact": 2979,
   "worst": 2.023284851609503e-16,
   "failures": []
  },
@@ -110,28 +110,28 @@
  {
   "package": "env",
   "lang": "rust",
-  "functions": 606,
-  "values": 2469872,
-  "exact": 2466534,
-  "worst": 1.2271761757286962e-09,
+  "functions": 614,
+  "values": 2307603,
+  "exact": 2303770,
+  "worst": 1.9252301721601583e-09,
   "failures": []
  },
  {
   "package": "env",
   "lang": "c",
-  "functions": 606,
-  "values": 2469872,
-  "exact": 2466534,
-  "worst": 1.2271761757286962e-09,
+  "functions": 614,
+  "values": 2307603,
+  "exact": 2303774,
+  "worst": 1.9252301721601583e-09,
   "failures": []
  },
  {
   "package": "env",
   "lang": "matlab",
-  "functions": 606,
-  "values": 2469872,
-  "exact": 2466534,
-  "worst": 1.2271761757286962e-09,
+  "functions": 614,
+  "values": 2307603,
+  "exact": 2303770,
+  "worst": 1.9252301721601583e-09,
   "failures": []
  }
 ]

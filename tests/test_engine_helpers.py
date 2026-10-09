@@ -1,6 +1,6 @@
 """The engine orchestration's pure parts: a campaign's dispersed draws, the campaign statistics,
-a mode test's scenario, the orbit period, the parity line, and the Floquet tool's attitude maths.
-Nothing here runs the engine. Copyright (c) 2026 Agastya. All rights reserved."""
+a mode test's scenario, the orbit period and the parity line (the Floquet certificate's own tests:
+tests/test_floquet.py). Nothing here runs the engine. Copyright (c) 2026 Agastya. All rights reserved."""
 import json
 import math
 import subprocess
@@ -12,8 +12,6 @@ import common
 import engine_campaigns as C
 import engine_runs
 import engine_solutions as S
-import floquet as F
-import numpy as np
 import rescore
 import run_matrix
 
@@ -162,70 +160,6 @@ class Small(unittest.TestCase):
         self.assertEqual((m[0]["req"], m[0]["pass"]), (ape, 1))
         self.assertEqual(m[1]["pass"], 0, "no number is no pass")
         self.assertEqual(n[0], 2, "an unchanged requirement is not counted")
-
-
-class Floquet(unittest.TestCase):
-    def setUp(self):
-        rng = np.random.default_rng(7)
-        self.q = [x / np.linalg.norm(x) for x in rng.normal(size=(6, 4))]
-
-    def test_the_dcm_is_a_rotation_and_identity_at_the_identity(self):
-        np.testing.assert_allclose(F.dcm(np.array([0, 0, 0, 1.0])), np.eye(3))
-        for q in self.q:
-            A = F.dcm(q)
-            np.testing.assert_allclose(A @ A.T, np.eye(3), atol=1e-12)
-            self.assertAlmostEqual(np.linalg.det(A), 1.0)
-            np.testing.assert_allclose(F.dcm(-q), A, atol=1e-12, err_msg="q and -q are one attitude")
-
-    def test_the_dcm_is_passive_and_composes_as_the_flight_software(self):
-        q = F.rv2q(np.array([0, 0, math.pi / 2]))
-        np.testing.assert_allclose(F.dcm(q) @ [1, 0, 0], [0, -1, 0], atol=1e-12)
-        for a, b in zip(self.q[:3], self.q[3:]):
-            np.testing.assert_allclose(F.dcm(F.qmul(a, b)), F.dcm(b) @ F.dcm(a), atol=1e-12)
-
-    def test_qmul_has_the_identity_and_the_conjugate_inverse(self):
-        e = np.array([0, 0, 0, 1.0])
-        for q in self.q:
-            np.testing.assert_allclose(F.qmul(q, e), q)
-            np.testing.assert_allclose(F.qmul(e, q), q)
-            np.testing.assert_allclose(F.qmul(q, np.array([-q[0], -q[1], -q[2], q[3]])), e, atol=1e-12)
-
-    def test_rv2q_is_a_unit_quaternion_of_that_angle_and_safe_at_zero(self):
-        for v in ([0.3, -0.2, 0.1], [math.pi, 0, 0], [0, 0, 1e-17], [0, 0, 0]):
-            q = F.rv2q(np.array(v, dtype=float))
-            self.assertAlmostEqual(np.linalg.norm(q), 1.0, places=12)
-            self.assertAlmostEqual(2 * math.acos(min(1.0, q[3])), np.linalg.norm(v), places=7)
-        np.testing.assert_allclose(F.rv2q(np.array([math.pi, 0, 0])), [1, 0, 0, 0], atol=1e-12)
-
-    P = {"J": np.diag([0.01, 0.04, 0.04]).tolist(), "mtq_Kp": [1e-4] * 3, "mtq_Kd": [2e-3] * 3, "mtq_eps": 0.1, "mtq_k1": 1.0, "mtq_k2": 1.0,
-         "mtq_lam16": 0.5, "mtq_k16": 1e-3, "sb_kp": 1e-4, "sb_kd": 1e-3, "sb_kroll": 0.0, "sb_roll_gate": 0.9, "sun_axis": [0, 0, 1],
-         "mtq_Pth": (1e-4 * np.eye(3)).tolist(), "mtq_Pw": (1e-3 * np.eye(3)).tolist()}
-
-    def test_every_law_asks_no_torque_on_the_reference(self):
-        n = 1.1e-3
-        wref = np.array([0, -n, 0])                    # about the orbit normal, a principal axis
-        e3 = np.array([0, 0, 1.0])
-        qe = np.array([0, 0, 0, 1.0])
-        for law in F.LAWS:
-            np.testing.assert_allclose(F.law_torque(law, self.P, qe, wref.copy(), wref, e3, None), 0, atol=1e-15, err_msg=F.LAWS[law])
-
-    def test_the_pd_law_restores_an_error_and_damps_a_rate(self):
-        qe = F.rv2q(np.array([0.1, 0, 0]))
-        tau = F.law_torque(0, self.P, qe, np.zeros(3), np.zeros(3), np.array([0, 0, 1.0]), None)
-        self.assertLess(tau[0], 0)
-        tau = F.law_torque(3, self.P, np.array([0, 0, 0, 1.0]), np.array([0, 0.01, 0]), np.zeros(3), np.array([0, 0, 1.0]), None)
-        np.testing.assert_allclose(tau, [0, -2e-5, 0])
-        # the short way round: q and -q ask the same torque
-        np.testing.assert_allclose(F.law_torque(0, self.P, -qe, np.zeros(3), np.zeros(3), None, None),
-                                   F.law_torque(0, self.P, qe, np.zeros(3), np.zeros(3), None, None))
-
-    def test_an_unknown_law_is_refused(self):
-        with self.assertRaises(ValueError):
-            F.law_torque(1, self.P, np.array([0, 0, 0, 1.0]), np.zeros(3), np.zeros(3), np.array([0, 0, 1.0]), None)
-
-    def test_the_laws_are_the_registrys_candidates(self):
-        import pipeline_base
-        self.assertLessEqual(set(F.LAWS.values()), set(pipeline_base.CANDIDATES["mtq_pointing"]))
 
 
 if __name__ == "__main__":

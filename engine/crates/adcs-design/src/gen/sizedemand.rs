@@ -3,6 +3,7 @@
 #![allow(unused_mut, unused_variables, unused_parens, unused_assignments, unused_imports, unreachable_code, non_snake_case, clippy::all)]
 use crate::gen::rt;
 use crate::gen::sizepump::{PumpDesign};
+use crate::gen::floquet::{FqGains};
 
 /// How a part's dispersion is drawn: normal (mean, sigma) or uniform (lo, hi).
 /// Choice Dist: normal, uniform.
@@ -163,18 +164,18 @@ pub fn survey_orbit(tau: &mut [f64], n: i64, dt: f64, t_orb: f64) -> ([f64; 4], 
     let mut f: f64 = 0.0;
     let mut pk: f64 = 0.0;
     {
-        let __end30: i64 = 4;
+        let __end46: i64 = 4;
         let mut a: i64 = 0;
-        while a < __end30 {
+        while a < __end46 {
             h = [0.0; 3];
             {
-                let __end31: i64 = n;
+                let __end47: i64 = n;
                 let mut k: i64 = 0;
-                while k < __end31 {
+                while k < __end47 {
                     {
-                        let __end32: i64 = 3;
+                        let __end48: i64 = 3;
                         let mut i: i64 = 0;
-                        while i < __end32 {
+                        while i < __end48 {
                             h[(i) as usize] = (h[(i) as usize] + ((*tau)[((((12 * k) + (3 * a)) + i)) as usize] * dt));
                             i += 1;
                         }
@@ -185,9 +186,9 @@ pub fn survey_orbit(tau: &mut [f64], n: i64, dt: f64, t_orb: f64) -> ([f64; 4], 
             hend = h;
             pk = 0.0;
             {
-                let __end33: i64 = n;
+                let __end49: i64 = n;
                 let mut k: i64 = 0;
-                while k < __end33 {
+                while k < __end49 {
                     x = [(*tau)[(((12 * k) + (3 * a))) as usize], (*tau)[((((12 * k) + (3 * a)) + 1)) as usize], (*tau)[((((12 * k) + (3 * a)) + 2)) as usize]];
                     pk = rt::fmax(pk, rt::norm(x));
                     k += 1;
@@ -195,14 +196,14 @@ pub fn survey_orbit(tau: &mut [f64], n: i64, dt: f64, t_orb: f64) -> ([f64; 4], 
             }
             tau_peak[(a) as usize] = pk;
             {
-                let __end34: i64 = 3;
+                let __end50: i64 = 3;
                 let mut i: i64 = 0;
-                while i < __end34 {
+                while i < __end50 {
                     pk = 0.0;
                     {
-                        let __end35: i64 = n;
+                        let __end51: i64 = n;
                         let mut k: i64 = 0;
-                        while k < __end35 {
+                        while k < __end51 {
                             pk = rt::fmax(pk, rt::fabs((*tau)[((((12 * k) + (3 * a)) + i)) as usize]));
                             k += 1;
                         }
@@ -214,13 +215,13 @@ pub fn survey_orbit(tau: &mut [f64], n: i64, dt: f64, t_orb: f64) -> ([f64; 4], 
             h = [0.0; 3];
             pk = 0.0;
             {
-                let __end36: i64 = n;
+                let __end52: i64 = n;
                 let mut k: i64 = 0;
-                while k < __end36 {
+                while k < __end52 {
                     {
-                        let __end37: i64 = 3;
+                        let __end53: i64 = 3;
                         let mut i: i64 = 0;
-                        while i < __end37 {
+                        while i < __end53 {
                             h[(i) as usize] = (h[(i) as usize] + ((*tau)[((((12 * k) + (3 * a)) + i)) as usize] * dt));
                             i += 1;
                         }
@@ -253,9 +254,9 @@ pub fn survey_field(bm: &mut [f64], n: i64) -> (f64, f64) {
     b_min = 1.7976931348623157e+308;
     let mut s: f64 = (-(0.0));
     {
-        let __end38: i64 = n;
+        let __end54: i64 = n;
         let mut k: i64 = 0;
-        while k < __end38 {
+        while k < __end54 {
             b_min = rt::fmin(b_min, (*bm)[(k) as usize]);
             s = (s + (*bm)[(k) as usize]);
             k += 1;
@@ -299,16 +300,16 @@ pub fn survey_worst(tau_peak_w: [f64; 4], tau_peak_s: [f64; 4], tap_w: [[f64; 4]
     h_cyclic = hc_w;
     h_secular_orbit = hs_w;
     {
-        let __end39: i64 = 4;
+        let __end55: i64 = 4;
         let mut a: i64 = 0;
-        while a < __end39 {
+        while a < __end55 {
             tau_peak[(a) as usize] = crate::gen::sizedemand::size_max(tau_peak_w[(a) as usize], tau_peak_s[(a) as usize]);
             h_cyclic[(a) as usize] = crate::gen::sizedemand::size_max(hc_w[(a) as usize], hc_s[(a) as usize]);
             h_secular_orbit[(a) as usize] = crate::gen::sizedemand::size_max(hs_w[(a) as usize], hs_s[(a) as usize]);
             {
-                let __end40: i64 = 3;
+                let __end56: i64 = 3;
                 let mut i: i64 = 0;
-                while i < __end40 {
+                while i < __end56 {
                     tau_axis_peak[(i) as usize][(a) as usize] = crate::gen::sizedemand::size_max(tap_w[(i) as usize][(a) as usize], tap_s[(i) as usize][(a) as usize]);
                     i += 1;
                 }
@@ -432,9 +433,9 @@ pub fn demand(tau_peak: [f64; 4], h_cyclic: [f64; 4], h_secular_orbit: [f64; 4],
     let (mut dw0, mut dsl, mut dss, mut dlf, mut dspd, mut dkh, mut dheld, mut dake) = crate::gen::sizedemand::demand_defaults();
     worst = 0;
     {
-        let __end41: i64 = 4;
+        let __end57: i64 = 4;
         let mut a: i64 = 0;
-        while a < __end41 {
+        while a < __end57 {
             if (tau_peak[(a) as usize] > tau_peak[(worst) as usize]) {
                 worst = a;
             }
@@ -451,9 +452,9 @@ pub fn demand(tau_peak: [f64; 4], h_cyclic: [f64; 4], h_secular_orbit: [f64; 4],
     h_dist = (-(1.7976931348623157e+308));
     h_secular = (-(1.7976931348623157e+308));
     {
-        let __end42: i64 = 4;
+        let __end58: i64 = 4;
         let mut a: i64 = 0;
-        while a < __end42 {
+        while a < __end58 {
             h_dist = rt::fmax(h_dist, (h_cyclic[(a) as usize] + (held * h_secular_orbit[(a) as usize])));
             h_secular = rt::fmax(h_secular, h_secular_orbit[(a) as usize]);
             a += 1;
@@ -463,9 +464,9 @@ pub fn demand(tau_peak: [f64; 4], h_cyclic: [f64; 4], h_secular_orbit: [f64; 4],
     w0 = (if w0_dflt { dw0 } else { w0_case });
     let mut jmax: f64 = (-(1.7976931348623157e+308));
     {
-        let __end43: i64 = 3;
+        let __end59: i64 = 3;
         let mut i: i64 = 0;
-        while i < __end43 {
+        while i < __end59 {
             jmax = rt::fmax(jmax, j[(i) as usize]);
             i += 1;
         }

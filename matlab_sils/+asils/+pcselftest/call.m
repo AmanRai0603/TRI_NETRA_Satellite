@@ -85,6 +85,12 @@ function y = call(name, x)
             at = at + 1;
             [o1, io1] = asils.pcselftest.selftest.blur(a1, a2);
             y = [double(o1); numel(io1); reshape(io1, [], 1)];
+        case 'selftest::eigen'
+            [o1, o2, o3, o4] = asils.pcselftest.selftest.eigen(reshape(x(1:25), 5, 5).', reshape(x(26:29), 2, 2).', x(30));
+            y = [reshape((o1).', [], 1); reshape((o2).', [], 1); reshape((o3).', [], 1); double(o4)];
+        case 'selftest::domain'
+            [o1, o2] = asils.pcselftest.selftest.domain(x(1));
+            y = [double(o1); double(o2)];
         otherwise
             error('pcode:call', 'no function %s', name);
     end

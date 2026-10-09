@@ -3,6 +3,7 @@
 #![allow(unused_mut, unused_variables, unused_parens, unused_assignments, unused_imports, unreachable_code, non_snake_case, clippy::all)]
 use crate::gen::rt;
 use crate::gen::sizepump::{PumpDesign};
+use crate::gen::floquet::{FqGains};
 
 /// The thruster part sized for the case's torque tau_req [N m], detumble momentum h_detumble and secular momentum per
 /// orbit h_secular [N m s], slews a day spd, each slew's momentum h_slew [N m s], life [yr], orbit period [s], principal
@@ -55,9 +56,9 @@ pub fn rcs_size(tau_req: f64, h_detumble: f64, h_secular: f64, spd: f64, h_slew:
     let mut isp: f64 = 60.0;
     let mut jmax: f64 = (-(1.7976931348623157e+308));
     {
-        let __end44: i64 = 3;
+        let __end60: i64 = 3;
         let mut i: i64 = 0;
-        while i < __end44 {
+        while i < __end60 {
             jmax = rt::fmax(jmax, j[(i) as usize]);
             i += 1;
         }
@@ -66,9 +67,9 @@ pub fn rcs_size(tau_req: f64, h_detumble: f64, h_secular: f64, spd: f64, h_slew:
     let mut alpha: f64 = crate::gen::sizedemand::size_max((tau_req / jmax), ((h_detumble / 600.0) / jmax));
     let mut fr: f64 = (-(1.7976931348623157e+308));
     {
-        let __end45: i64 = 3;
+        let __end61: i64 = 3;
         let mut i: i64 = 0;
-        while i < __end45 {
+        while i < __end61 {
             fr = rt::fmax(fr, ((j[(i) as usize] * alpha) / (2.0 * arm[(i) as usize])));
             i += 1;
         }
@@ -78,9 +79,9 @@ pub fn rcs_size(tau_req: f64, h_detumble: f64, h_secular: f64, spd: f64, h_slew:
     let mut found: bool = false;
     thrust = 0.0;
     {
-        let __end46: i64 = 5;
+        let __end62: i64 = 5;
         let mut c: i64 = 0;
-        while c < __end46 {
+        while c < __end62 {
             if ((!found) && (cls[(c) as usize] >= f_req)) {
                 thrust = cls[(c) as usize];
                 found = true;

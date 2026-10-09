@@ -14,6 +14,6 @@ function [gm, re, cbar] = default_field()
     cbar(1) = 1;
     for k = (0):((5) - 1)
         n = (k + 2);
-        cbar(((n * 7)) + 1) = ((-(asils.models.gravfield.GRAV_DEFAULT_J((k) + 1))) / sqrt(((2 * n) + 1)));
+        cbar(((n * 7)) + 1) = ((-(asils.models.gravfield.GRAV_DEFAULT_J((k) + 1))) / asils.pc.sqrt_(((2 * n) + 1)));
     end
 end

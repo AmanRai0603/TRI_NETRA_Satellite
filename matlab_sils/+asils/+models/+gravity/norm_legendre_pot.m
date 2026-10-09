@@ -12,16 +12,16 @@ function [p] = norm_legendre_pot(sp, cp, nn)
     p = zeros(14641, 1);
     p(1) = 1;
     if (nn >= 1)
-        p((st) + 1) = (sqrt(3) * sp);
-        p(((st + 1)) + 1) = (sqrt(3) * cp);
+        p((st) + 1) = (asils.pc.sqrt_(3) * sp);
+        p(((st + 1)) + 1) = (asils.pc.sqrt_(3) * cp);
     end
     for n = (2):(((nn + 1)) - 1)
         nf = n;
-        p((((n * st) + n)) + 1) = ((sqrt((((2 * nf) + 1) / (2 * nf))) * cp) * p((((((n - 1) * st) + n) - 1)) + 1));
+        p((((n * st) + n)) + 1) = ((asils.pc.sqrt_((((2 * nf) + 1) / (2 * nf))) * cp) * p((((((n - 1) * st) + n) - 1)) + 1));
         for m = (0):((n) - 1)
             mf = m;
-            a = sqrt(((((2 * nf) + 1) * ((2 * nf) - 1)) / ((nf - mf) * (nf + mf))));
-            b = sqrt((((((2 * nf) + 1) * ((nf + mf) - 1)) * ((nf - mf) - 1)) / ((((2 * nf) - 3) * (nf - mf)) * (nf + mf))));
+            a = asils.pc.sqrt_(((((2 * nf) + 1) * ((2 * nf) - 1)) / ((nf - mf) * (nf + mf))));
+            b = asils.pc.sqrt_((((((2 * nf) + 1) * ((nf + mf) - 1)) * ((nf - mf) - 1)) / ((((2 * nf) - 3) * (nf - mf)) * (nf + mf))));
             if (m == (n - 1))
                 p((((n * st) + m)) + 1) = ((a * sp) * p(((((n - 1) * st) + m)) + 1));
             else
