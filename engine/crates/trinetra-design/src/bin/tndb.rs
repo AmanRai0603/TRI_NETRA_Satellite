@@ -18,11 +18,25 @@
 //!     tndb translate matlab-rt      the pseudocode files translated (trinetra-pcode's translators), as
 //!                               design/js/pcode_cli.mjs prints them: a JSON object of path to text.
 //!                               Exit 1 if the files have problems or cannot be translated
+//!     tndb read DESIGN [--engine-inputs | --cases]   the MATLAB twin's inputs from a design database
+//!                               (docs/S7_INVENTORY.md S7.18): a JSON array of {path, body}, every engine
+//!                               input (data/...) and every case (cases/<id>.csv), the bytes
+//!                               tools/from_design.py writes for the twin. Exit 1 if an input is not what
+//!                               its fingerprint says, 2 if the file is not a design database
+//!     tndb health DESIGN        what a design is and how it stands (its meta, nodes by behaviour, the
+//!                               built-in count, its groups' releases, inputs, signatures), as JSON
+//!     tndb build-matlab DESIGN OUTDIR [--groups DIR]  every MATLAB function the twin flies, from the design
+//!                               (the engine's models +asils/+models, the relations +asils/+relations with the
+//!                               groups' wiring DIR, the flight algorithms +asils/+alg, the runtime +asils/+pc),
+//!                               byte for byte what tools/engine_build.py and tools/flight_build.py write,
+//!                               read-only, with OUTDIR/index.json naming each file's node, release and
+//!                               revision; prints what it made as JSON. OUTDIR is new, empty, or one it made
+//!                               before (anything else in it is refused, never deleted)
 //!
 //! Owner: Agastya. Copyright (c) 2026 Agastya. All rights reserved.
 use std::path::Path;
 use std::process::ExitCode;
-use trinetra_design::{check, checks, compare, content, node_rules, open, write, Schema};
+use trinetra_design::{check, checks, compare, content, node_rules, open, twin, write, Schema};
 
 fn main() -> ExitCode {
     let a: Vec<String> = std::env::args().skip(1).collect();
@@ -30,7 +44,7 @@ fn main() -> ExitCode {
         Ok(s) => s,
         Err(e) => { eprintln!("tndb: {e}"); return ExitCode::from(2); }
     };
-    let usage = || { eprintln!("usage: tndb check FILE... | upgrade FILE... | hash FILE | compare A B | check-folder DIR | check-release FILE [--catalogue JSON] | check-node FILE [--folder DIR] | translate rust|c|matlab|matlab-rt FILE... [--title T] [--lib L] [--pkg P]"); ExitCode::from(2) };
+    let usage = || { eprintln!("usage: tndb check FILE... | upgrade FILE... | hash FILE | compare A B | check-folder DIR | check-release FILE [--catalogue JSON] | check-node FILE [--folder DIR] | translate rust|c|matlab|matlab-rt FILE... [--title T] [--lib L] [--pkg P] | read DESIGN [--engine-inputs|--cases] | health DESIGN | build-matlab DESIGN OUTDIR [--groups DIR]"); ExitCode::from(2) };
     match a.first().map(String::as_str) {
         Some("check") if a.len() > 1 => {
             let errs: Vec<String> = a[1..].iter().flat_map(|f| check(Path::new(f), &s)).collect();
@@ -77,6 +91,21 @@ fn main() -> ExitCode {
         }
         Some("check-node") if a.len() == 2 || (a.len() == 4 && a[2] == "--folder") => check_node(Path::new(&a[1]), a.get(3).map(Path::new)),
         Some("translate") if a.len() > 1 && ["rust", "c", "matlab", "matlab-rt"].contains(&a[1].as_str()) => translate(&a[1], &a[2..]),
+        Some("read") if a.len() == 2 || (a.len() == 3 && ["--engine-inputs", "--cases"].contains(&a[2].as_str())) => {
+            let which = match a.get(2).map(String::as_str) {
+                Some("--engine-inputs") => twin::Which::EngineInputs,
+                Some("--cases") => twin::Which::Cases,
+                _ => twin::Which::All,
+            };
+            read(Path::new(&a[1]), which)
+        }
+        Some("health") if a.len() == 2 => match twin::health(Path::new(&a[1])) {
+            Ok(h) => { println!("{}", serde_json::to_string_pretty(&h).unwrap_or_default()); ExitCode::SUCCESS }
+            Err(e) => { eprintln!("tndb: {e}"); ExitCode::from(2) }
+        },
+        Some("build-matlab") if a.len() == 3 || (a.len() == 5 && a[3] == "--groups") => {
+            build_matlab(Path::new(&a[1]), Path::new(&a[2]), a.get(4).map(Path::new))
+        }
         _ => usage(),
     }
 }
@@ -133,6 +162,35 @@ fn translate(lang: &str, args: &[String]) -> ExitCode {
         Ok(files) => { print!("{}", trinetra_pcode::files_json(&files)); ExitCode::SUCCESS }
         Err(e) => { eprintln!("tndb: cannot translate: {e}"); ExitCode::from(1) }
     }
+}
+
+/// `read`: the twin's inputs, as one JSON array of {path, body}.
+fn read(file: &Path, which: twin::Which) -> ExitCode {
+    if let Err(e) = twin::connect(file) {
+        eprintln!("tndb: {e}");
+        return ExitCode::from(2);
+    }
+    match twin::inputs(file, which).and_then(|x| twin::inputs_json(&x)) {
+        Ok(j) => { println!("{j}"); ExitCode::SUCCESS }
+        Err(e) => { eprintln!("tndb: {e}"); ExitCode::from(1) }
+    }
+}
+
+/// `build-matlab`: every MATLAB function the twin flies, written under `out`; what was made, as JSON.
+fn build_matlab(file: &Path, out: &Path, groups: Option<&Path>) -> ExitCode {
+    let b = match twin::build_matlab(file, groups) {
+        Ok(b) => b,
+        Err(e) => { eprintln!("tndb: {}: {e}", file.display()); return ExitCode::from(1); }
+    };
+    if let Err(e) = twin::write_build(out, &b) {
+        eprintln!("tndb: {e}");
+        return ExitCode::from(1);
+    }
+    let i = &b.index;
+    let summary = serde_json::json!({"out": out.display().to_string(), "files": b.files.len(), "packages": i["packages"],
+        "alg_id": i["alg_id"], "fingerprint": i["fingerprint"], "skipped": i["skipped"]});
+    println!("{}", serde_json::to_string(&summary).unwrap_or_default());
+    ExitCode::SUCCESS
 }
 
 /// `check-node`: the node app's checks, one line each.
