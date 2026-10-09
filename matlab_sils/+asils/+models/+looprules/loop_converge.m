@@ -537,82 +537,81 @@ function [n, mode_ix, act, dump_rcs, feasible, has_slot, tunable, has_obj, objec
             end
         end
     end
-    for p = (0):((7) - 1)
-        if (want((p) + 1) ~= 0)
-            s = sc((p) + 1);
-            if (bitand(bitshift(frz, -(p)), 1) == 1)
-                [t__250, t__251, t__252, t__253, t__254, t__255, t__256, t__257] = asils.models.looprules.loop_event(ek, eo, ep, ea, eb, ec, ef, n, 21, (-(1)), p, s, 0, 0, 0);
-                n = t__250;
-                ek = t__251;
-                eo = t__252;
-                ep = t__253;
-                ea = t__254;
-                eb = t__255;
-                ec = t__256;
-                ef = t__257;
-            elseif ((want((p) + 1) == 1) && (s >= scale_max))
-                [t__258, t__259, t__260, t__261, t__262, t__263, t__264, t__265] = asils.models.looprules.loop_event(ek, eo, ep, ea, eb, ec, ef, n, 22, (-(1)), p, s, 0, 0, 0);
-                n = t__258;
-                ek = t__259;
-                eo = t__260;
-                ep = t__261;
-                ea = t__262;
-                eb = t__263;
-                ec = t__264;
-                ef = t__265;
-            elseif ((want((p) + 1) == 1) && (bitand(bitshift(tried_dn, -(p)), 1) == 1))
-                [t__266, t__267, t__268, t__269, t__270, t__271, t__272, t__273] = asils.models.looprules.loop_event(ek, eo, ep, ea, eb, ec, ef, n, 23, (-(1)), p, s, 0, 0, 0);
-                n = t__266;
-                ek = t__267;
-                eo = t__268;
-                ep = t__269;
-                ea = t__270;
-                eb = t__271;
-                ec = t__272;
-                ef = t__273;
-            elseif ((want((p) + 1) == 2) && (s <= scale_min))
-                [t__274, t__275, t__276, t__277, t__278, t__279, t__280, t__281] = asils.models.looprules.loop_event(ek, eo, ep, ea, eb, ec, ef, n, 24, (-(1)), p, s, 0, 0, 0);
-                n = t__274;
-                ek = t__275;
-                eo = t__276;
-                ep = t__277;
-                ea = t__278;
-                eb = t__279;
-                ec = t__280;
-                ef = t__281;
-            elseif ((want((p) + 1) == 2) && (bitand(bitshift(tried_up, -(p)), 1) == 1))
-                [t__282, t__283, t__284, t__285, t__286, t__287, t__288, t__289] = asils.models.looprules.loop_event(ek, eo, ep, ea, eb, ec, ef, n, 25, (-(1)), p, s, 0, 0, 0);
-                n = t__282;
-                ek = t__283;
-                eo = t__284;
-                ep = t__285;
-                ea = t__286;
-                eb = t__287;
-                ec = t__288;
-                ef = t__289;
-            elseif (want((p) + 1) == 1)
-                sc((p) + 1) = asils.pc.fmin(scale_max, (s * up));
-                [t__290, t__291, t__292, t__293, t__294, t__295, t__296, t__297] = asils.models.looprules.loop_event(ek, eo, ep, ea, eb, ec, ef, n, 26, (-(1)), p, s, sc((p) + 1), 0, 1);
-                n = t__290;
-                ek = t__291;
-                eo = t__292;
-                ep = t__293;
-                ea = t__294;
-                eb = t__295;
-                ec = t__296;
-                ef = t__297;
-            else
-                sc((p) + 1) = asils.pc.fmax(scale_min, (s * down));
-                [t__298, t__299, t__300, t__301, t__302, t__303, t__304, t__305] = asils.models.looprules.loop_event(ek, eo, ep, ea, eb, ec, ef, n, 26, (-(1)), p, s, sc((p) + 1), 0, 0);
-                n = t__298;
-                ek = t__299;
-                eo = t__300;
-                ep = t__301;
-                ea = t__302;
-                eb = t__303;
-                ec = t__304;
-                ef = t__305;
-            end
+    t__250 = ((0):((7) - 1)).';
+    for p = t__250(logical((want((t__250) + 1) ~= 0))).'
+        s = sc((p) + 1);
+        if (bitand(bitshift(frz, -(p)), 1) == 1)
+            [t__251, t__252, t__253, t__254, t__255, t__256, t__257, t__258] = asils.models.looprules.loop_event(ek, eo, ep, ea, eb, ec, ef, n, 21, (-(1)), p, s, 0, 0, 0);
+            n = t__251;
+            ek = t__252;
+            eo = t__253;
+            ep = t__254;
+            ea = t__255;
+            eb = t__256;
+            ec = t__257;
+            ef = t__258;
+        elseif ((want((p) + 1) == 1) && (s >= scale_max))
+            [t__259, t__260, t__261, t__262, t__263, t__264, t__265, t__266] = asils.models.looprules.loop_event(ek, eo, ep, ea, eb, ec, ef, n, 22, (-(1)), p, s, 0, 0, 0);
+            n = t__259;
+            ek = t__260;
+            eo = t__261;
+            ep = t__262;
+            ea = t__263;
+            eb = t__264;
+            ec = t__265;
+            ef = t__266;
+        elseif ((want((p) + 1) == 1) && (bitand(bitshift(tried_dn, -(p)), 1) == 1))
+            [t__267, t__268, t__269, t__270, t__271, t__272, t__273, t__274] = asils.models.looprules.loop_event(ek, eo, ep, ea, eb, ec, ef, n, 23, (-(1)), p, s, 0, 0, 0);
+            n = t__267;
+            ek = t__268;
+            eo = t__269;
+            ep = t__270;
+            ea = t__271;
+            eb = t__272;
+            ec = t__273;
+            ef = t__274;
+        elseif ((want((p) + 1) == 2) && (s <= scale_min))
+            [t__275, t__276, t__277, t__278, t__279, t__280, t__281, t__282] = asils.models.looprules.loop_event(ek, eo, ep, ea, eb, ec, ef, n, 24, (-(1)), p, s, 0, 0, 0);
+            n = t__275;
+            ek = t__276;
+            eo = t__277;
+            ep = t__278;
+            ea = t__279;
+            eb = t__280;
+            ec = t__281;
+            ef = t__282;
+        elseif ((want((p) + 1) == 2) && (bitand(bitshift(tried_up, -(p)), 1) == 1))
+            [t__283, t__284, t__285, t__286, t__287, t__288, t__289, t__290] = asils.models.looprules.loop_event(ek, eo, ep, ea, eb, ec, ef, n, 25, (-(1)), p, s, 0, 0, 0);
+            n = t__283;
+            ek = t__284;
+            eo = t__285;
+            ep = t__286;
+            ea = t__287;
+            eb = t__288;
+            ec = t__289;
+            ef = t__290;
+        elseif (want((p) + 1) == 1)
+            sc((p) + 1) = asils.pc.fmin(scale_max, (s * up));
+            [t__291, t__292, t__293, t__294, t__295, t__296, t__297, t__298] = asils.models.looprules.loop_event(ek, eo, ep, ea, eb, ec, ef, n, 26, (-(1)), p, s, sc((p) + 1), 0, 1);
+            n = t__291;
+            ek = t__292;
+            eo = t__293;
+            ep = t__294;
+            ea = t__295;
+            eb = t__296;
+            ec = t__297;
+            ef = t__298;
+        else
+            sc((p) + 1) = asils.pc.fmax(scale_min, (s * down));
+            [t__299, t__300, t__301, t__302, t__303, t__304, t__305, t__306] = asils.models.looprules.loop_event(ek, eo, ep, ea, eb, ec, ef, n, 26, (-(1)), p, s, sc((p) + 1), 0, 0);
+            n = t__299;
+            ek = t__300;
+            eo = t__301;
+            ep = t__302;
+            ea = t__303;
+            eb = t__304;
+            ec = t__305;
+            ef = t__306;
         end
     end
 end

@@ -21,10 +21,10 @@ function [st, st_len, gps, gps_len] = read_streams(st_junk, st_nj, st_pl, st_n, 
     st_len = 0;
     gps = zeros(96, 1);
     gps_len = 0;
-    [t__417, t__418] = asils.models.drivers.uart_stream(st_junk, st_nj, st_pl, st_n, 144, st_fault, st_k);
-    st = t__417;
-    st_len = t__418;
-    [t__419, t__420] = asils.models.drivers.uart_stream(gps_junk, gps_nj, gps_pl, gps_n, 145, gps_fault, gps_k);
-    gps = t__419;
-    gps_len = t__420;
+    [t__427, t__428] = asils.models.drivers.uart_stream(st_junk, st_nj, st_pl, st_n, 144, st_fault, st_k);
+    st = t__427;
+    st_len = t__428;
+    [t__429, t__430] = asils.models.drivers.uart_stream(gps_junk, gps_nj, gps_pl, gps_n, 145, gps_fault, gps_k);
+    gps = t__429;
+    gps_len = t__430;
 end

@@ -21,4 +21,7 @@ function T = modes()
     T.mission = {'detumble', 'nadir_pointing', 'nadir_pointing', 'target_pointing', 'slew', 'sun_acquisition', ...
                  'sun_acquisition', 'detumble', 'sun_acquisition', 'sun_referencing', 'sun_referencing'};
     T.guidance = {'', 'nadir', 'nadir', 'target', 'slew', '', '', '', '', 'sun', 'sun'};
+    % the guidance law of each state as the flight software's guidance takes it (-1 none; 0 nadir, 1 target, 2 slew,
+    % 3 inertial, 4 sun): the engine's config.rs GUID (no node holds it, S7.13's finding)
+    T.guid = [-1, 0, 0, 1, 2, -1, -1, -1, -1, 4, 4];
 end

@@ -9,7 +9,7 @@ function [kp] = ap2kp_forecast(ap)
     xi = asils.pc.choose(isnan(ap), 400, asils.pc.fmin(ap, 400));
     lo = 0;
     hi = n;
-    n__416 = 16; k__415 = 0;
+    n__420 = 16; k__419 = 0;
     while true
         mid = fix(((lo + hi)) / (2));
         if (asils.models.kpap.KP_AP_AP((mid) + 1) <= xi)
@@ -17,9 +17,9 @@ function [kp] = ap2kp_forecast(ap)
         else
             hi = mid;
         end
-        k__415 = k__415 + 1;
+        k__419 = k__419 + 1;
         if (lo >= hi), break; end
-        if k__415 >= n__416
+        if k__419 >= n__420
             break;
         end
     end

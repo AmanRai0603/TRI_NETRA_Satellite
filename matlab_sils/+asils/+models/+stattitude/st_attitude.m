@@ -19,11 +19,10 @@ function [q, ok, id] = st_attitude(b, rs, n, id, tol)
         if (~done)
             k = zeros(32, 1);
             nk = 0;
-            for p = (0):((n) - 1)
-                if (id((p) + 1) >= 0)
-                    k((nk) + 1) = p;
-                    nk = (nk + 1);
-                end
+            t__521 = ((0):((n) - 1)).';
+            for p = t__521(logical((id((t__521) + 1) >= 0))).'
+                k((nk) + 1) = p;
+                nk = (nk + 1);
             end
             if (nk < 3)
                 done = true;
@@ -39,7 +38,7 @@ function [q, ok, id] = st_attitude(b, rs, n, id, tol)
                 rm = (-(Inf));
                 j = 0;
                 for i = (0):((nk) - 1)
-                    c = asils.pc.dot_((bb((i) + 1, :)).', asils.pc.mv(a, (rr((i) + 1, :)).'));
+                    c = asils.pc.dot_((bb((i) + 1, :)).', [a(1, 1)*rr((i) + 1, 1) + a(1, 2)*rr((i) + 1, 2) + a(1, 3)*rr((i) + 1, 3); a(2, 1)*rr((i) + 1, 1) + a(2, 2)*rr((i) + 1, 2) + a(2, 3)*rr((i) + 1, 3); a(3, 1)*rr((i) + 1, 1) + a(3, 2)*rr((i) + 1, 2) + a(3, 3)*rr((i) + 1, 3)]);
                     res = asils.pc.acos_(asils.pc.choose((c < 1), c, 1));
                     if (res > rm)
                         rm = res;

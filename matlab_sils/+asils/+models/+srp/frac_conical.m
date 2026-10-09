@@ -13,7 +13,7 @@ function [nu] = frac_conical(r_sat, r_sun, re, rsun)
     s = [(d(1) / ds); (d(2) / ds); (d(3) / ds)];
     rr = asils.models.gravity.onorm(r_sat);
     e = [((-(r_sat(1))) / rr); ((-(r_sat(2))) / rr); ((-(r_sat(3))) / rr)];
-    se = asils.pc.dot_(s, e);
+    se = (s(1)*e(1) + s(2)*e(2) + s(3)*e(3));
     if (se < 0)
         nu = 1;
     else

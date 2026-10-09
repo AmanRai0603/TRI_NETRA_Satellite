@@ -20,7 +20,7 @@ function [np, cr, pi, pj, pa, ti, tj, ta] = st_pairs(cr, nc, fov, pi, pj, pa, ti
     np = 0;
     for j = (0):((nc) - 1)
         for i = (0):((j) - 1)
-            d = asils.pc.dot_((cr((i) + 1, :)).', (cr((j) + 1, :)).');
+            d = (cr((i) + 1, 1)*cr((j) + 1, 1) + cr((i) + 1, 2)*cr((j) + 1, 2) + cr((i) + 1, 3)*cr((j) + 1, 3));
             if (d > cd)
                 ti((np) + 1) = i;
                 tj((np) + 1) = j;
@@ -34,23 +34,23 @@ function [np, cr, pi, pj, pa, ti, tj, ta] = st_pairs(cr, nc, fov, pi, pj, pa, ti
     for it = (0):((62) - 1)
         if (w < np)
             if (rem(passes, 2) == 0)
-                [t__531, t__532, t__533, t__534, t__535, t__536, t__537] = asils.models.stidentify.st_merge_pairs(ti, tj, ta, pi, pj, pa, np, w);
-                z0 = t__531;
-                ti = t__532;
-                tj = t__533;
-                ta = t__534;
-                pi = t__535;
-                pj = t__536;
-                pa = t__537;
+                [t__543, t__544, t__545, t__546, t__547, t__548, t__549] = asils.models.stidentify.st_merge_pairs(ti, tj, ta, pi, pj, pa, np, w);
+                z0 = t__543;
+                ti = t__544;
+                tj = t__545;
+                ta = t__546;
+                pi = t__547;
+                pj = t__548;
+                pa = t__549;
             else
-                [t__538, t__539, t__540, t__541, t__542, t__543, t__544] = asils.models.stidentify.st_merge_pairs(pi, pj, pa, ti, tj, ta, np, w);
-                z1 = t__538;
-                pi = t__539;
-                pj = t__540;
-                pa = t__541;
-                ti = t__542;
-                tj = t__543;
-                ta = t__544;
+                [t__550, t__551, t__552, t__553, t__554, t__555, t__556] = asils.models.stidentify.st_merge_pairs(pi, pj, pa, ti, tj, ta, np, w);
+                z1 = t__550;
+                pi = t__551;
+                pj = t__552;
+                pa = t__553;
+                ti = t__554;
+                tj = t__555;
+                ta = t__556;
             end
             passes = (passes + 1);
             w = (2 * w);

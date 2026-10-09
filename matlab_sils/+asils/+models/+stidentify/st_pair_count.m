@@ -11,10 +11,9 @@ function [np, cr] = st_pair_count(cr, nc, fov)
     cd = cos(((2 * asils.pc.sqrt_(2)) * fov));
     np = 0;
     for j = (0):((nc) - 1)
-        for i = (0):((j) - 1)
-            if (asils.pc.dot_((cr((i) + 1, :)).', (cr((j) + 1, :)).') > cd)
-                np = (np + 1);
-            end
+        t__542 = ((0):((j) - 1)).';
+        for i = t__542(logical(((cr((t__542) + 1, 1) .* cr((j) + 1, 1) + cr((t__542) + 1, 2) .* cr((j) + 1, 2) + cr((t__542) + 1, 3) .* cr((j) + 1, 3)) > cd))).'
+            np = (np + 1);
         end
     end
 end

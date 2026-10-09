@@ -32,7 +32,7 @@
 | [`vv_report.py vv-report`](#vv_reportpy-vv-report) | The downloadable V&V report: the template filled from the filed results, as self-contained HTML and as a PDF. |
 | [`pack_matlab.py pack-matlab`](#pack_matlabpy-pack-matlab) | The downloadable MATLAB SILS zip, deterministic (sorted files, fixed timestamps), with its SHA-256 manifest. |
 | [`pack_flight.py pack-flight`](#pack_flightpy-pack-flight) | The flight software and Rust engine zip, in the repository's layout so it builds as unpacked. |
-| [`gen_fsw_params.py gen-fsw-params`](#gen_fsw_paramspy-gen-fsw-params) | The flight software's parameter and table sources, C and Rust, from their one definition. --check says which generated file is stale, and changes nothing. |
+| [`gen_fsw_params.py gen-fsw-params`](#gen_fsw_paramspy-gen-fsw-params) | The flight software's parameter and table sources, C and Rust, from their one definition, and the MATLAB twin's decoder of the same adcs-fswcfg/1 blob (asils.fsw.params_decode). --check says which generated file is stale, and changes nothing. |
 | [`fsw_stack.py fsw-stack`](#fsw_stackpy-fsw-stack) | The flight software's deepest stack on the Cortex-M4 firmware, from GCC's call graph, against the stack the linker script reserves. Recursion and unbounded frames are refused; a library routine is charged a fixed frame and named. |
 | [`design_rows.py design-rows`](#design_rowspy-design-rows) | Every row of the ADCS tree, from the spec package: 734 rows (133 in layer 1, 194 in layer 2, 368 in the subsystem layers, 39 closures), each with its short id, the id its node file carries, its layer, kind, branch and label. Fails when the counts SPEC.md states do not hold or an id repeats. |
 | [`groups.py groups`](#groupspy-groups) | The group map (design/groups.toml) against every row of the tree: each row in exactly one of the 20 discipline groups, each group holding the rows it states, each stage inside its group, every override and boundary naming real rows and groups. --row says where one row goes and why. |
@@ -46,7 +46,7 @@
 | [`translators.py translators`](#translatorspy-translators) | The translators held to the interpreter (docs/PLAN_2_0.md S5): every package of pseudocode (the relations, the language's self-test, the flight software's algorithms, each group's code) translated to Rust, C and MATLAB, built, and run on every vector the interpreter drew; an exact function (no transcendental) bit for bit, any other within 1e-12 relative. |
 | [`engine_build.py engine-build`](#engine_buildpy-engine-build) | The engine build (docs/PLAN_2_0.md S7; docs/S7_INVENTORY.md S7.3-S7.16): the time engine's published models and relations written from the design (time, frames, the field; the atmosphere and space weather, DE440, gravity, the tides, relativity; the disturbance torques, the fast Sun, Moon and shadow, the eclipse fraction; the plant's rate and momentum; the fast orbit's forces and start, the precision orbit's spacecraft force models, force set and sum; the actuators; the sensors and what they see of the sky, the rotors' telemetry, the star tracker and its image chain; the truth plant, the case's orbit and epoch and the plant's state at the start of a run; the device emulators' scaling, from the flight software's drivers; the flight software's parameters, the values of its configuration blob; the power system, the rotors' jitter and the pointing budget; the metrics; the sizing, the catalogue's derive rule and the design loop's rules; the Floquet certificate). Every method block whose code.generate names a target (adcs-sim-core, adcs-pop, adcs-sim, adcs-design), with the modules its code.uses names in turn (env's data tables, env's onboard frames and field, the physics' tables, the toolbox), (a bare name, as the flight algorithms name theirs, beside its user) is translated by the library's translator (tndb translate rust; the JavaScript one when it is not built) into a module of the crate: engine/crates/adcs-sim-core/src/gen (maths from crate::pm, no_std), engine/crates/adcs-pop/src/gen, engine/crates/adcs-sim/src/gen and engine/crates/adcs-design/src/gen (std maths; the sizing's with the translator's dispatcher, which `adcs design call` serves to the tools). The engine's core (step order, recorder, integrators, the file readers) stays code and calls them. It writes, too, the relations crate (S7.16): the design's relations (spec/physics, its lib_spec_physics nodes) and every group's computing rows (design/groups, tools/groupcode.py wire), each relation once (a group's item the library holds word for word is the library's), as one generated crate, engine/crates/adcs-relations (with the translator's dispatcher, its WebAssembly face for the groups' test apps and its tests: the interpreter's vectors of both packages and the nodes' own test vectors), and one MATLAB package, +asils/+relations. `modules` lists what each target takes. |
 | [`readers.py readers`](#readerspy-readers) | The readers of published data (the boundary: code reads files' formats and loads published data into the design, never a model of its own). Each reads one format and gives its tables as the pseudocode's data items: igrf13 (IAGA's igrf13coeffs.txt: the epochs and Gauss coefficients), matlab_matrix (the numeric matrices and numbers a MATLAB file assigns: the Octave POP's leap-second, IERS tidal, Kp-ap and default-field tables), matlab_cell (the rows of a MATLAB cell array: the ocean tides' main lines), xys06 (the IAU 2006/2000A series exported from xys06_tables.mat), text_table (refgen's DTM2020 coefficient exports), solfsmy and dtcfile (Space Environment Technologies' JB2008 index files), fes_bin (refgen's FES2004 export), de440_slice (a DAF/SPK kernel's Sun, Earth-Moon barycentre, Earth and Moon records over a span of TDB dates). The developer's revisions (design/revisions_2_0.toml, [[revision.data]]) name the reader, the file and the publication; tools/convert_2_0.py runs it. On the command line it prints what a reader reads from a file. |
-| [`flight_build.py flight-build`](#flight_buildpy-flight-build) | The flight build (docs/PLAN_2_0.md S6): the flight software's algorithms written from the design (the flight algorithm blocks, fsw/pseudocode/03-09, with the toolbox 01 and env's published models 02, all but 01 written from the design by tools/from_design.py) by the library's translators (tndb translate; the JavaScript ones when it is not built): C99 into fsw/alg/ and Rust, a module of the no_std flight crate, into fsw-rs/src/alg/; beside them the algorithms' identity (sha256 over those sources, 16 hex), which both build ids end with (`... alg <id>`), and the translators' vector dispatchers for the vector tests (test code, never in an image). The runtime (the tick, the HAL, the C interface, the parameter blob, the targets) stays code. --design writes from another design's flight algorithm blocks and --out under another folder (a test's). |
+| [`flight_build.py flight-build`](#flight_buildpy-flight-build) | The flight build (docs/PLAN_2_0.md S6): the flight software's algorithms written from the design (the flight algorithm blocks, fsw/pseudocode/03-09, with the toolbox 01 and env's published models 02, all but 01 written from the design by tools/from_design.py) by the library's translators (tndb translate; the JavaScript ones when it is not built): C99 into fsw/alg/ and Rust, a module of the no_std flight crate, into fsw-rs/src/alg/; beside them the algorithms' identity (sha256 over those sources, 16 hex), which both build ids end with (`... alg <id>`), and the translators' vector dispatchers for the vector tests (test code, never in an image); and MATLAB into matlab_sils/+asils/+alg/, the flight software the twin flies (outside the identity and the seal, with the identity beside it in alg_id.m). The runtime (the tick, the HAL, the C interface, the parameter blob, the targets) stays code. --design writes from another design's flight algorithm blocks and --out under another folder (a test's). |
 | [`flight_build.py flight-seal`](#flight_buildpy-flight-seal) | Seal one target's build of the flight software as a flight image (design/schema.toml formats.flight_image, design-<design version>.<target>.tnfsw): the design it came from (version, content hash), the runtime version (the build id the binary carries), the toolchain, every generated source, the binary and the configuration blob of every scenario (made by the engine from the design), each with its sha256, and the checks made on it. Unsigned: the developer's build. |
 | [`flight_build.py flight-verify`](#flight_buildpy-flight-verify) | Reopen a sealed flight image, recheck the hash of every file it holds and of its image, and say whether today's tree is it: the generated sources, the binary in the build folder and (with the engine built) every scenario's blob made again from the design. |
 | [`flight_build.py flight-which`](#flight_buildpy-flight-which) | The sealed flight image a result flew: its manifest's fsw.build_id (which ends with the algorithms' identity) against each image's runtime version, the target from fsw.impl (in-process C and Rust: the same sources the engine compiles into itself; QEMU: the firmware, and whether the one the engine loads today is the sealed one). A result flown before the build ids named their algorithms names no image, and is said so. |
@@ -64,6 +64,7 @@
 | [`rescore.py rescore`](#rescorepy-rescore) | Re-judge stored runs against the case files as they are now: a changed requirement changes a verdict, not a trajectory. |
 | [`floquet.py floquet`](#floquetpy-floquet) | Floquet multipliers of the coils-only nadir loop: the certificate that the periodic magnetic control is stable. The certificate is ctl's method (ctl_floquet_certificate, docs/S7_INVENTORY.md S7.15b), which the tool asks the engine for: it reads the inputs and writes the answers. |
 | [`run_matrix.py run-matrix`](#run_matrixpy-run-matrix) | The whole MATLAB-twin test matrix in GNU Octave on N workers, longest jobs first; campaigns and trades collected at the end. |
+| [`twin_refly.py twin-refly`](#twin_reflypy-twin-refly) | The MATLAB twin's stored runs flown again by the twin of today (docs/S7_INVENTORY.md S7.17): every scenario and every campaign the store holds, each staged and then put in place of the old one (never two full copies). Resumable: a run already swapped in or staged is skipped, a run cut short goes on from its checkpoint. status says what is flown, staged, running and left. |
 | [`fswcfg.py fswcfg`](#fswcfgpy-fswcfg) | Decode and check a flight-software parameter blob (adcs-fswcfg/1) and print every field as JSON. |
 | [`trinetra.py explain`](#trinetrapy-explain) | This registry: every command, what it does before it does it; `why` names the command that writes a file; `status` puts the evidence debt first (unconfirmed algorithms, synthetic parts, unselectable catalogue models, engine-twin disagreements, failing design-loop checks); `docs` writes docs/COMMANDS.md. |
 | [`carry_over.py carry_over`](#carry_overpy-carry_over) | Carries everything the repository already says into a seeded design folder's node files (docs/RELEASE_PLAN.md P8): the spec's seed content into the nodes' own fields, each physics relation as pseudocode with what it calls and where it runs, the case keys and suppliers of declared values, the KPIs' senses and metrics, the algorithms' parameters, the tree's notes; names the internal layer-3 rows and adds the rows a discipline had no node for, from design/carry.toml. Each item is marked with its origin; a field already written is never replaced; what is still missing is listed in each node (status.gaps) with its owner team. --check seeds and carries into a temporary folder and checks every file and rule. |
@@ -598,17 +599,17 @@ The flight software and Rust engine zip, in the repository's layout so it builds
 
 ## gen_fsw_params.py gen-fsw-params
 
-The flight software's parameter and table sources, C and Rust, from their one definition. --check says which generated file is stale, and changes nothing.
+The flight software's parameter and table sources, C and Rust, from their one definition, and the MATLAB twin's decoder of the same adcs-fswcfg/1 blob (asils.fsw.params_decode). --check says which generated file is stale, and changes nothing.
 
     python3 tools/gen_fsw_params.py [--check]
 
 **Steps**
 
 1. read fsw/params/params.toml and the IGRF table
-2. write the C header and source and the Rust module
+2. write the C header and source, the Rust module and the twin's MATLAB decoder
 
 - **Reads:** `fsw/params/params.toml`; `matlab_sils/data/igrf13coeffs.txt`
-- **Writes:** `fsw/include/adcs_params.h`; `fsw/src/adcs_params.c`; `fsw-rs/src/params.rs`; `matlab_sils/data/igrf13.json`; `fsw-rs/src/igrf13.rs`; `fsw/pseudocode/02_igrf13.pc`
+- **Writes:** `fsw/include/adcs_params.h`; `fsw/src/adcs_params.c`; `fsw-rs/src/params.rs`; `matlab_sils/+asils/+fsw/params_decode.m`; `matlab_sils/data/igrf13.json`; `fsw-rs/src/igrf13.rs`; `fsw/pseudocode/02_igrf13.pc`
 - **Starts:** nothing
 - **Checks:** --check: every generated parameter file is its definition
 - **Undo:** It writes generated files only: `git checkout -- <file>` puts back the committed one, or run it again once its source is as you want it.
@@ -882,7 +883,7 @@ The readers of published data (the boundary: code reads files' formats and loads
 
 ## flight_build.py flight-build
 
-The flight build (docs/PLAN_2_0.md S6): the flight software's algorithms written from the design (the flight algorithm blocks, fsw/pseudocode/03-09, with the toolbox 01 and env's published models 02, all but 01 written from the design by tools/from_design.py) by the library's translators (tndb translate; the JavaScript ones when it is not built): C99 into fsw/alg/ and Rust, a module of the no_std flight crate, into fsw-rs/src/alg/; beside them the algorithms' identity (sha256 over those sources, 16 hex), which both build ids end with (`... alg <id>`), and the translators' vector dispatchers for the vector tests (test code, never in an image). The runtime (the tick, the HAL, the C interface, the parameter blob, the targets) stays code. --design writes from another design's flight algorithm blocks and --out under another folder (a test's).
+The flight build (docs/PLAN_2_0.md S6): the flight software's algorithms written from the design (the flight algorithm blocks, fsw/pseudocode/03-09, with the toolbox 01 and env's published models 02, all but 01 written from the design by tools/from_design.py) by the library's translators (tndb translate; the JavaScript ones when it is not built): C99 into fsw/alg/ and Rust, a module of the no_std flight crate, into fsw-rs/src/alg/; beside them the algorithms' identity (sha256 over those sources, 16 hex), which both build ids end with (`... alg <id>`), and the translators' vector dispatchers for the vector tests (test code, never in an image); and MATLAB into matlab_sils/+asils/+alg/, the flight software the twin flies (outside the identity and the seal, with the identity beside it in alg_id.m). The runtime (the tick, the HAL, the C interface, the parameter blob, the targets) stays code. --design writes from another design's flight algorithm blocks and --out under another folder (a test's).
 
     python3 tools/flight_build.py gen [--check] [--design FILE] [--out DIR]
 
@@ -892,13 +893,14 @@ The flight build (docs/PLAN_2_0.md S6): the flight software's algorithms written
 2. translate them to Rust (crate::alg, maths from crate::m, no dispatcher)
 3. hash the C and Rust sources into the algorithms' identity (fsw/alg/include/adcs_alg_id.h, fsw-rs/src/alg/alg_id.rs)
 4. translate them again with the dispatcher and keep the dispatcher alone (fsw/tests/alg_dispatch.c, fsw-rs/tests/alg/dispatch.rs)
-5. write them (or, with --check, compare), removing any file the design no longer gives
+5. translate them to MATLAB for the twin (package asils.alg)
+6. write them (or, with --check, compare), removing any file the design no longer gives
 
 - **Reads:** `fsw/pseudocode/*.pc`; with --design: the design's flight algorithm blocks
-- **Writes:** `fsw/alg/`; `fsw-rs/src/alg/`; `fsw/tests/alg_dispatch.c`; `fsw-rs/tests/alg/dispatch.rs`; with --out: the same under DIR
+- **Writes:** `fsw/alg/`; `fsw-rs/src/alg/`; `fsw/tests/alg_dispatch.c`; `fsw-rs/tests/alg/dispatch.rs`; `matlab_sils/+asils/+alg/`; with --out: the same under DIR
 - **Starts:** `engine/target/release/tndb translate (or node design/js/pcode_cli.mjs)`
 - **Checks:** --check: every generated algorithm source is what the design gives
-- **Undo:** It writes generated files only: `git checkout -- fsw/alg fsw-rs/src/alg fsw/tests/alg_dispatch.c fsw-rs/tests/alg`.
+- **Undo:** It writes generated files only: `git checkout -- fsw/alg fsw-rs/src/alg fsw/tests/alg_dispatch.c fsw-rs/tests/alg matlab_sils/+asils/+alg`.
 - **Code:** `tools/flight_build.py`
 
 ## flight_build.py flight-seal
@@ -1223,6 +1225,25 @@ The whole MATLAB-twin test matrix in GNU Octave on N workers, longest jobs first
 - **Checks:** every job of the twin's matrix finishes and passes
 - **Undo:** Delete the store folders it wrote.
 - **Code:** `tools/run_matrix.py`
+
+## twin_refly.py twin-refly
+
+The MATLAB twin's stored runs flown again by the twin of today (docs/S7_INVENTORY.md S7.17): every scenario and every campaign the store holds, each staged and then put in place of the old one (never two full copies). Resumable: a run already swapped in or staged is skipped, a run cut short goes on from its checkpoint. status says what is flown, staged, running and left.
+
+    python3 tools/twin_refly.py status | run [--workers N] [--only ID ...] [--singles | --campaigns]
+
+**Steps**
+
+1. list the scenarios and the campaigns the store holds, less those the twin of today flew (its manifest's engine, a campaign's refly.json)
+2. fly each in GNU Octave, N at a time, shortest first, into matlab_sils/store/refly/<id> with a checkpoint
+3. put each whole run in place of the old one; collect a campaign's runs (summary, runs table, figures) when every run is in
+
+- **Reads:** `matlab_sils/data/scenarios/`; `matlab_sils/data/campaigns/`; `matlab_sils/store/results/`
+- **Writes:** `matlab_sils/store/results/<id>/ (each run, in place of the old one)`; `matlab_sils/store/refly/ (staging, logs, checkpoints, progress.log)`
+- **Starts:** octave-cli
+- **Checks:** a run that fails is named in progress.log and left to fly again
+- **Undo:** The old runs are replaced, not kept: `git checkout -- matlab_sils/store/results` puts back the committed manifests and summaries; rm -r matlab_sils/store/refly drops the staging.
+- **Code:** `tools/twin_refly.py`
 
 ## fswcfg.py fswcfg
 

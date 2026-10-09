@@ -24,6 +24,6 @@ function [r, v] = pop_coe2rv(a, e, inc, raan, argp, nu, mu)
     cw = cos(argp);
     sw = sin(argp);
     q = [([((co * cw) - ((so * sw) * ci)); (((-(co)) * sw) - ((so * cw) * ci)); (so * si)]).'; ([((so * cw) + ((co * sw) * ci)); (((-(so)) * sw) + ((co * cw) * ci)); ((-(co)) * si)]).'; ([(sw * si); (cw * si); ci]).'];
-    r = asils.pc.mv(q, r_pf);
-    v = asils.pc.mv(q, v_pf);
+    r = [q(1, 1)*r_pf(1) + q(1, 2)*r_pf(2) + q(1, 3)*r_pf(3); q(2, 1)*r_pf(1) + q(2, 2)*r_pf(2) + q(2, 3)*r_pf(3); q(3, 1)*r_pf(1) + q(3, 2)*r_pf(2) + q(3, 3)*r_pf(3)];
+    v = [q(1, 1)*v_pf(1) + q(1, 2)*v_pf(2) + q(1, 3)*v_pf(3); q(2, 1)*v_pf(1) + q(2, 2)*v_pf(2) + q(2, 3)*v_pf(3); q(3, 1)*v_pf(1) + q(3, 2)*v_pf(2) + q(3, 3)*v_pf(3)];
 end

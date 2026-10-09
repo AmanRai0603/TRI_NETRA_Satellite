@@ -1,42 +1,38 @@
-function [D, F] = apply(faults, t, D, F)
-%ASILS.FAULTS.APPLY  Inject scheduled faults into the devices (once, at t_s); clear the ones that end.
-%   faults: struct array (from the scenario) with fields
-%     kind   'rotor_fail' | 'gimbal_stuck' | 'st_head_fail' | 'coil_fail' |
-%            'gyro_bias_step' | 'gps_outage' | 'rcs_valve_fail' | 'mag_fail'
-%     t_s    time of the fault [s]
-%     index  which unit (rotor, gimbal, head, coil, couple); ignored otherwise
-%     value  size of the fault where it has one (gyro bias step [rad/s], 3x1)
-%     end_s  when the device answers again (mag_fail, gps_outage only); absent: for good
-%   The FSW is NOT told: it must detect what it can (asils.fsw.step FDIR).
-    if ~isfield(D, 'fault_done'), D.fault_done = false(1, numel(faults)); end
+function [U, done, log] = apply(faults, t, U, done, log)
+%ASILS.FAULTS.APPLY  Inject every fault whose time has come (once each), clear the ones that end, and log both: the
+%   engine's run.rs Units::faults, in MATLAB (the runner's fault injection, core).
+%   faults: the scenario's list (kind, t_s, index from 1, value, end_s); done: which are in; log: the mode log
+%   (struct array t, mode). The flight software is NOT told: it must detect what it can.
+%   Owner: Agastya. Copyright (c) 2026 Agastya. All rights reserved.
     for i = 1:numel(faults)
-        f = faults(i);
-        if iscell(faults), f = faults{i}; end
-        if D.fault_done(i)
-            % a device back from silence (end_s): it answers again from then on (engine Units::faults)
+        if iscell(faults), f = faults{i}; else, f = faults(i); end
+        idx = asils.util.getf(f, 'index', 0);
+        if done(i)
+            % a device back from silence (end_s): it answers again from then on
             e = asils.util.getf(f, 'end_s', []);
             if ~isempty(e) && t >= e
-                if strcmp(f.kind, 'gps_outage'), dead = D.gps_dead; else, dead = D.mag.dead; end
-                if dead
-                    if strcmp(f.kind, 'gps_outage'), D.gps_dead = false; else, D.mag.dead = false; end
-                    F.log(end+1).t = t; F.log(end).mode = sprintf('FAULT cleared: %s %d', f.kind, asils.util.getf(f, 'index', 0));
+                if strcmp(f.kind, 'gps_outage')
+                    if U.gps.dead, U.gps.dead = false; log(end+1) = struct('t', t, 'mode', sprintf('FAULT cleared: %s %d', f.kind, idx)); end %#ok<AGROW>
+                elseif U.mag.dead
+                    U.mag.dead = false; log(end+1) = struct('t', t, 'mode', sprintf('FAULT cleared: %s %d', f.kind, idx)); %#ok<AGROW>
                 end
             end
             continue
         end
         if t < f.t_s, continue, end
-        D.fault_done(i) = true;
+        done(i) = true;
+        ix = max(idx, 1);
         switch f.kind
-            case 'rotor_fail',     D.mex.failed(f.index) = true;
-            case 'gimbal_stuck',   D.mex.gfailed(f.index) = true;
-            case 'st_head_fail',   D.st.dead(f.index) = true;
-            case 'coil_fail',      D.mtq.dead(f.index) = true;
-            case 'gyro_bias_step', D.gyro.b = D.gyro.b + f.value(:);
-            case 'gps_outage',     D.gps_dead = true;
-            case 'rcs_valve_fail', D.rcs.failed(f.index) = true;
-            case 'mag_fail',       D.mag.dead = true;
+            case 'rotor_fail',     U.mex.failed(ix) = true;
+            case 'gimbal_stuck',   U.mex.gfailed(ix) = true;
+            case 'st_head_fail',   if ~isempty(U.st), U.st.dead(ix) = true; end
+            case 'coil_fail',      U.mtq.dead(ix) = true;
+            case 'gyro_bias_step', if ~isempty(U.gyro), U.gyro.b = U.gyro.b + f.value(:); end
+            case 'gps_outage',     U.gps.dead = true;
+            case 'rcs_valve_fail', if ~isempty(U.rcs), U.rcs.failed(ix) = true; end
+            case 'mag_fail',       U.mag.dead = true;
             otherwise, error('asils:faults:kind', 'unknown fault %s', f.kind);
         end
-        F.log(end+1).t = t; F.log(end).mode = sprintf('FAULT injected: %s %d', f.kind, asils.util.getf(f, 'index', 0));
+        log(end+1) = struct('t', t, 'mode', sprintf('FAULT injected: %s %d', f.kind, idx)); %#ok<AGROW>
     end
 end

@@ -53,6 +53,10 @@ function dir_out = write(rec, dir_out)
         'orbit', struct('alt_km', rec.P.orbit.alt_km, 'inc_deg', rec.P.orbit.inc_deg, 'ltan_h', rec.P.orbit.ltan_h, ...
                         'raan_deg', rec.orbit.raan_rad*180/pi, 'period_s', rec.P.orbit.period_s, 'atmosphere', rec.P.orbit.atmos), ...
         'boresight_body', rec.P.dev.boresight', 'metrics', rec.metrics);
+    % the flight software it flew: the twin's runtime over the design's algorithms (+asils/+alg), booted from the blob
+    % the engine builds for the same run (asils.config)
+    man.fsw = struct('impl', 'matlab (in-process: asils.fsw over +asils/+alg)', ...
+                     'build_id', ['asils-fsw/1.0.0 (adcs-fswcfg/1) alg ' asils.alg.alg_id()]);
     man.mode_log = rec.mode_log;
     % what it was flown from, so `adcs results stale` can judge it (asils.util.fingerprint)
     R = asils.util.root();
@@ -62,8 +66,12 @@ function dir_out = write(rec, dir_out)
     rr = [strrep(R, '\', '/') '/'];
     if strncmp(rel, rr, numel(rr)), rel = rel(numel(rr)+1:end); end
     man.engine_source = asils.util.fingerprint('source');
+    ov = {};
+    if isfield(rec.P, 'overrides')
+        for i = 1:size(rec.P.overrides, 1), ov{end+1} = sprintf('%s=%s', rec.P.overrides{i, 1}, mat2str(rec.P.overrides{i, 2}, 17)); end %#ok<AGROW>
+    end
     man.inputs = struct('case_file', rel, 'case_fingerprint', asils.util.fingerprint('file', cf), ...
-                        'data_fingerprint', asils.util.fingerprint('data'), 'seed', rec.P.seed);
+                        'data_fingerprint', asils.util.fingerprint('data'), 'seed', rec.P.seed, 'overrides', {ov});
     fid = fopen(fullfile(dir_out, 'manifest.json'), 'w');
     fprintf(fid, '%s\n', jsonencode(man));
     fclose(fid);

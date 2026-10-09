@@ -14,10 +14,10 @@ function [nu] = srp_eclipse(r_sat, r_sun, model, re, rp, rsun, h_atm)
     nu = 0;
     if (model == 0)
         d = [(r_sun(1) - r_sat(1)); (r_sun(2) - r_sat(2)); (r_sun(3) - r_sat(3))];
-        nd = asils.pc.norm_(d);
+        nd = sqrt(d(1)*d(1) + d(2)*d(2) + d(3)*d(3));
         s = [(d(1) / nd); (d(2) / nd); (d(3) / nd)];
         m = [(-(r_sat(1))); (-(r_sat(2))); (-(r_sat(3)))];
-        ms = asils.pc.dot_(m, s);
+        ms = (m(1)*s(1) + m(2)*s(2) + m(3)*s(3));
         if (ms < 0)
             nu = 1;
         else

@@ -31,6 +31,12 @@ NOTES = [
      "sigma flip reverses the spin every 60 s check, which drives the body through zero spin and never moves the Sun "
      "to -Z. Engine seed 1 is that case; 3 of 24 Monte Carlo seeds lock up (mean sun angle 26 deg, range 2.7-173 deg), "
      "the MATLAB run (6.5 deg) is inside. Finding: the sign-flip guard needs a hemisphere manoeuvre, not a spin reversal."),
+    ("sun_spin_ais, detumble_ais_bangbang (the twin of today) · sun_angle, spin_rate_error, share; power_mean",
+     "Not a model difference: the same realisation parts by the last bits. The orbit is the same to the file's 9 digits "
+     "over the whole run; the attitude first differs in the 9th digit at 235 s (the maths library: Octave's glibc against "
+     "the engine's libm crate, and the POP port's last bits) and the tumble amplifies it; the Sun-spin entry comes 12 s "
+     "apart (3793 s engine, 3806 s twin) and the two spins then part (the spin-reversal lock-up above decides one of them). "
+     "The bang-bang detumble's power mean is 1e-4 apart the same way (its sign decisions)."),
     ("nadir_hold_ais, mission_ais · ake_los / ape_los",
      "Realisation spread of the coils-only MEKF (magnetometer + Sun): engine 24-seed AKE mean 4.0 deg (0.8-8.5 deg); "
      "the MATLAB runs (3.9-4.0 deg) are inside the distribution."),
@@ -46,18 +52,22 @@ NOTES = [
 
 def twin_parity(_):
     """Engine (Rust) vs the MATLAB twin, same scenario, same case, same product.
-    One realisation each: the random streams differ (MATLAB twister vs counter-based
-    SplitMix64), so a value-by-value match is not expected; the ledger records the
-    verdict agreement and the ratio, and the model differences named in fsw/twin_map.toml."""
+    The twin of today flies the design's generated models and flight algorithms, loaded with the engine's blob, and
+    draws the language's SplitMix64 streams as the engine does (docs/S7_INVENTORY.md S7.17): one realisation each, the
+    same one, so the values agree to the last bits the two maths libraries and POP ports leave. A twin run filed before
+    (its manifest's engine without "generated from the design": its own models, MATLAB's twister) is named as such.
+    The ledger records the verdict agreement and the ratio."""
     S = Steps("engine.py", "twin-parity")
     S(1)
-    rows, unpaired = [], []
+    rows, unpaired, older = [], [], []
     for s in scenarios([]):
         a, b = TWIN / s / "manifest.json", ENG / s / "manifest.json"
         if not (a.exists() and b.exists()):
             unpaired.append(f"{s} (no {'twin' if not a.exists() else 'engine'} run)")
             continue
         ma, mb = json.loads(a.read_text()), json.loads(b.read_text())
+        if "generated from the design" not in str(ma.get("engine", "")):
+            older.append(s)
         lst = lambda x: x if isinstance(x, list) else [x]
         mb_by = {m["id"]: m for m in lst(mb["metrics"])}
         for m in lst(ma["metrics"]):
@@ -88,11 +98,14 @@ def twin_parity(_):
          "`matlab_sils/store/results_engine/<scenario>` (Rust engine, C flight software behind the byte HAL).", "",
          "The engine steps the Rust port of POP inside the loop exactly as the twin steps the MATLAB POP",
          "(adcs-pop: time scales, frames, DE440, degree-6 field, Battin third body, DTM2020 drag, conical",
-         "SRP, RK4 10 s + Hermite): orbit, Sun, Moon, shadow, density and field are bit-identical to the",
-         "twin's filed channels (see 'Truth environment' below). What still differs is the random stream",
-         "(MATLAB Mersenne twister vs the engine's counter-based SplitMix64), so single runs are",
-         "compared by metric ratio and verdict agreement, and Monte Carlo on both sides compares",
-         "distributions (`tools/engine.py mc`).", "",
+         "SRP, RK4 10 s + Hermite). The twin flies the design's models and the flight software's algorithms",
+         "generated into MATLAB (`+asils/+models`, `+asils/+alg`), loaded with the engine's adcs-fswcfg/1 blob,",
+         "and draws the language's SplitMix64 streams as the engine does: the same realisation on both sides,",
+         "so a ratio away from 1 or a verdict that differs is a difference to trace, not chance",
+         "(docs/S7_INVENTORY.md S7.17).", "",
+         (f"Twin runs filed before the twin flew the design's code (its own models, MATLAB's twister), "
+          f"compared as they are: {', '.join(older)}." if older else
+          "Every twin run here was flown by the twin of today."), "",
          f"**Verdict agreement: {agree} of {len(judged)} judged metrics** "
          f"({len(rows)} metrics over {len(walls)} scenarios).", "",
          "| scenario | metric | MATLAB | engine | engine/MATLAB | req | MATLAB | engine |",

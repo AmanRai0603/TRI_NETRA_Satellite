@@ -13,7 +13,7 @@ function [fb] = facet_sum(f, u_b, p)
         if (f.kind((j) + 1) == fix(2))
             n = asils.models.srp.srp_array_normal((f.axis((j) + 1, :)).', u_b);
         end
-        cth = asils.pc.dot_(n, u_b);
+        cth = (n(1)*u_b(1) + n(2)*u_b(2) + n(3)*u_b(3));
         if ((f.dbl((j) + 1) == 1) && (cth < 0))
             n = [(-(n(1))); (-(n(2))); (-(n(3)))];
             cth = (-(cth));

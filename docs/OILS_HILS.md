@@ -28,8 +28,8 @@ software reads or writes already crosses it as **integer register values**
 
 | backend | what crosses | used for |
 |---|---|---|
-| `sils` (default) | quantised values in memory | every SILS run and campaign |
-| `loopback` | every frame is packed to bytes and unpacked again each tick | proving the byte layout the OILS/HILS link carries (`tests/run_all_tests` → `t_hal_loopback`) |
+| `sils` (default) | the bus's bytes in memory | every SILS run and campaign |
+| `loopback` | every frame is packed to bytes and unpacked again each tick | proving the byte layout the OILS/HILS link carries (`tests/run_all_tests` → `t_hal_link`) |
 | `udp` | sensor frames out to the OBC, actuator frames back | OILS (flight OBC in the loop), HILS (rig interface unit) |
 
 Set it per run: `asils.run(id, case, 'set', struct('hal__backend', 'loopback'))`.
@@ -37,28 +37,32 @@ Real-time pacing: `'hal__realtime', 1` (wall clock = simulated time; required fo
 
 ## 2. Frame layouts (little-endian)
 
-**Sensor frame** (SILS → OBC), `asils.hal.pack_sensors`:
+Every sensor reaches the flight software, and every command leaves it, as the bytes of its part on the bus
+(`asils.hal.bus`, the engine's bus): the I2C register blocks (magnetometer, Sun sensor, Earth sensor), the gyro's
+SPI response, the star tracker's and the GNSS receiver's UART frames, the rotors' CAN telemetry, the coils' PWM
+words and the CAN command frames. The counts are the design's emulator scaling (`asils.models.emucodec`, the
+inverse of the flight drivers). The link carries that bus in two frames (`asils.hal.link`):
 
-| field | type | LSB |
-|---|---|---|
-| gyro rate x,y,z | int32 ×3 | 5/2²³ rad/s (24-bit, ±5 rad/s) |
-| magnetometer x,y,z | int16 ×3 | 1e-4/2¹⁵ T (3.05 nT, ±100 µT) |
-| Sun unit vector | int16 ×3 | Q15 |
-| flags | uint8 | bit0 Sun valid, bit1 star tracker valid, bit2 GNSS fix, bit3 coils off (clean field) |
-| star-tracker quaternion (head 1) | int32 ×4 | Q30, scalar last |
-| GNSS position | int32 ×3 | 1 cm |
-| GNSS velocity | int32 ×3 | 1 mm/s |
-| rotor momentum (wheels, rings, CMG rotors) | int32 × nr | 1e-9 N m s |
-| gimbal angle | int32 × ng | 1e-7 rad |
+**Sensor frame** (SILS → OBC), `asils.hal.link('pack_sensors', bus)`:
 
-**Actuator frame** (OBC → SILS), `asils.hal.unpack_actuators`:
+| field | type |
+|---|---|
+| time | u64, ns |
+| present | u8: bit0 magnetometer, bit1 gyro, bit2 Sun sensor, bit3 Earth sensor |
+| magnetometer registers | 7 bytes |
+| gyro SPI response | 13 bytes |
+| Sun sensor registers | 7 bytes |
+| Earth sensor registers | 7 bytes |
+| UART port 1 (star tracker) | u16 n, n bytes |
+| UART port 2 (GNSS) | u16 n, n bytes |
+| CAN frames received (rotor telemetry) | u8 count, each u32 id, u8 dlc, 8 data |
 
-| field | type | scaling |
-|---|---|---|
-| coil PWM duty x,y,z | int16 ×3 | Q15 of the part's full dipole (`adcs_hal_pwm_set`) |
-| rotor torque command | int16 × nr | Q15 of the part's maximum torque |
-| gimbal rate command | int16 × ng | Q15 of the maximum gimbal rate |
-| thruster valve on-time | uint8 × nc | 1 % of the 100 ms control period (1 ms) |
+**Command frame** (OBC → SILS), `asils.hal.link('pack_commands', bus)`:
+
+| field | type |
+|---|---|
+| PWM words, channels 1–8 (coils on 1–3) | i16 ×8 |
+| CAN frames sent (rotor commands 0x100+i, gimbal 0x140+j, valves 0x300) | u8 count, each u32 id, u8 dlc, 8 data |
 
 ## 3. HILS stimulus
 

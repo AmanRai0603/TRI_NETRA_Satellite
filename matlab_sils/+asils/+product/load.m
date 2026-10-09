@@ -1,264 +1,369 @@
 function dev = load(productId)
-%ASILS.PRODUCT.LOAD  A catalogue product -> the device parameter block P.dev.
-%   Reads data/products/<id>.json and every part it fills from data/parts/.
-%   A slot the product does not fill is marked fitted = false.
+%ASILS.PRODUCT.LOAD  A catalogue product -> the device descriptors a run flies (the engine's adcs-sim product.rs Dev::load,
+%   in MATLAB): data/products/<id>.json and every part it fills from data/parts/ (or a case-sized one in store/sized).
 %
-%   Momentum-exchange devices of every kind (reaction wheels, fluid rings,
-%   CMG and VSCMG rotors) are gathered into ONE block, dev.mex, one entry per
-%   rotor, because the plant treats them alike (asils.plant.deriv):
-%     dev.mex.kind{i}  'rw' | 'fmr' | 'cmg' | 'vscmg'
-%     dev.mex.A0       spin axes at zero gimbal angle (3 x nr)
-%     dev.mex.G, gi    gimbal axes (3 x ng) and each rotor's gimbal index
+%   Reading only: each fitted device's descriptor is the design's record (the generated models' GyroDesc, MagDesc,
+%   SunDesc, CssDesc, StDesc, EsDesc, CoilDesc, RotorDesc, ThrusterDesc: dev.<device>.rec) filled from its part, the
+%   descriptors' rules called where the design states one (act's motor_constants, ring_constants, ring_pump_max,
+%   ring_flow_noise, couple_arms, couple_torques; sens's st_calibrated, es_boresight, st_focal; pnt's rotor_imbalance;
+%   the budget's budget_line and budget_total), the values a product leaves to the design read from data/stated.json
+%   (gdn's axes, act's device defaults and telemetry noises). Every value a fitted device reads must be stated by its
+%   part; one it does not state refuses the product by name, never read as 0. A slot not filled is fitted = false.
+%   Owner: Agastya. Copyright (c) 2026 Agastya. All rights reserved.
     R = asils.util.root();
-    pr = asils.util.readjson(find_(R, 'products', productId));
-    fills = pr.fill; if ~iscell(fills), fills = num2cell(fills); end
-    dev = struct('id', pr.id, 'label', pr.label, 'family', pr.family, 'algorithms', {pr.algorithms});
-    if isfield(pr, 'selected'), dev.selected = pr.selected; end     % promoted outcome of a trade
-    dev.boresight = [0;1;0];
-    if isfield(pr, 'payload_boresight_body'), dev.boresight = pr.payload_boresight_body(:)/norm(pr.payload_boresight_body); end
-    dev.sun_axis = [0;0;-1];                  % power face (Sun referencing / acquisition), Standard Code -Z
-    if isfield(pr, 'sun_axis_body'), dev.sun_axis = pr.sun_axis_body(:)/norm(pr.sun_axis_body); end
-    dev.budget = struct('mass_kg', 0, 'power_W', 0, 'volume_L', 0, 'items', {{}});
-    dev.es.fitted = false;
-    dev.gyro.fitted = false; dev.mag.fitted = false; dev.sun.fitted = false; dev.css.fitted = false;
-    dev.st.fitted = false; dev.mtq.fitted = false; dev.gps.fitted = false; dev.rcs.fitted = false;
-    X = mex_empty_();
+    pf = asils.product.find(R, 'products', productId);
+    pr = asils.util.readjson(pf);
+    st = asils.util.stated();
+    fills = asils.util.getf(pr, 'fill', {}); if ~iscell(fills), fills = num2cell(fills); end
+    dev = struct('id', asils.util.getf(pr, 'id', productId), 'label', asils.util.getf(pr, 'label', ''), ...
+                 'family', asils.util.getf(pr, 'family', ''), 'algorithms', {cellstr_(asils.util.getf(pr, 'algorithms', {}))});
+    if isfield(pr, 'selected'), dev.selected = pr.selected; end
+    dev.boresight = st.v3('gdn_payload_boresight'); dev.sun_axis = st.v3('gdn_sun_axis');
+    if isfield(pr, 'payload_boresight_body'), dev.boresight = unit_(pr.payload_boresight_body); end
+    if isfield(pr, 'sun_axis_body'), dev.sun_axis = unit_(pr.sun_axis_body); end
+    dev.rotor_tlm_noise = st.get('act_rotor_tlm_noise'); dev.gimbal_tlm_noise = st.get('act_gimbal_tlm_noise');
+    % every device, not fitted, its record zero (the engine's Dev::default)
+    dev.gyro = struct('fitted', false, 'rec', asils.models.gyro.GyroDesc_zero());
+    dev.mag = struct('fitted', false, 'rec', asils.models.mag.MagDesc_zero());
+    dev.sun = struct('fitted', false, 'rec', asils.models.finesun.SunDesc_zero());
+    dev.css = struct('fitted', false, 'rec', asils.models.css.CssDesc_zero());
+    dev.st = struct('fitted', false, 'rec', asils.models.sttracker.StDesc_zero(), 'nh', 0, 'rate_hz', 0, 'model', 1, ...
+                    'cam', asils.models.strender.StCamera_zero());
+    dev.es = struct('fitted', false, 'rec', asils.models.earthsensor.EsDesc_zero(), 'rate_hz', 0);
+    dev.gps = struct('fitted', false, 'pos_sigma', 0, 'vel_sigma', 0, 'rate_hz', 0, 'latency', 0);
+    dev.mtq = struct('fitted', false, 'rec', asils.models.coilset.CoilDesc_zero());
+    dev.rcs = struct('fitted', false, 'rec', asils.models.thrusters.ThrusterDesc_zero());
+    x = asils.models.rotorset.RotorDesc_zero();
+    x.torque_noise = st.get('act_rw_torque_noise'); x.friction_comp = st.get('act_rw_friction_comp');
+    x.eta = st.get('act_rw_drive_efficiency'); x.k_speed = st.get('act_cmg_speed_gain');
+    x.k_flow = st.get('act_fmr_flow_gain'); x.flow_tau = st.get('act_fmr_flow_tau');
+    dev.imbalance = zeros(0, 3);          % each rotor's [static kg m, dynamic kg m^2, known] (pnt's rotor_imbalance)
+    dev.rotor_part = {};
+    dev.files = {pf};
+    ms = zeros(0, 1); ps = ms; vs = ms; items = {};
     for i = 1:numel(fills)
         f = fills{i};
-        p = asils.util.readjson(find_(R, 'parts', f.part));
-        nm = p.nominal; ds = asils.util.getf(p, 'dispersion', struct());
-        sig = @(key, d) sigma_(ds, key, d);
-        dev.budget = budget_(dev.budget, f, nm);
-        switch f.slot
-            case 'coils'
-                dev.mtq = struct('fitted', true, 'part', f.part, 'axes', axes_(f.axes_body), ...
-                    'm_max', nm.dipole_max_Am2, 'p_max', nm.power_at_max_W, ...
-                    'scale_sigma', sig('dipole_scale', 0), 'misalign_rad', sig('axis_misalignment_rad', 0), ...
-                    'tau', need_(f.part, nm, 'time_constant_s', 0));          % coil L/R (RL lag)
-            case 'wheels'
-                A = axes_(f.axes_body); n = size(A, 2);
-                % B3.5 motor and bearing: back-EMF line T_s (1 -+ w/w_nl), speed limit, stiction
-                kt = need_(f.part, nm, 'motor_kt_Nm_per_A', 1); Rw = need_(f.part, nm, 'motor_resistance_ohm', 1);
-                Vb = need_(f.part, nm, 'bus_voltage_V', 1); wmax = need_(f.part, nm, 'speed_max_rad_s', 1);
-                fst = need_(f.part, nm, 'friction_static_Nm', 1); wst = need_(f.part, nm, 'stribeck_speed_rad_s', 1);
-                if fst < nm.friction_coulomb_Nm
-                    error('asils:product:refused', 'part %s does not state friction_static_Nm of at least friction_coulomb_Nm (it states %g)', f.part, fst);
-                end
-                for k = 1:n
-                    X = add_(X, 'rw', f.part, A(:,k), 0, nm.h_max_Nms, nm.torque_max_Nm, nm.rotor_inertia_kgm2, ...
-                        nm.friction_coulomb_Nm, nm.friction_viscous_Nms, nm.power_steady_W, sig('torque_scale', 0), ...
-                        ds.friction_scale.lo, ds.friction_scale.hi, sig('axis_misalignment_rad', 0));
-                    X.speed_max(end) = wmax; X.t_stall(end) = kt*Vb/Rw; X.w_nl(end) = Vb/kt;
-                    X.f_static(end) = fst; X.w_stribeck(end) = wst;
-                end
-            case 'rings'                      % fluid momentum rings (IDMAS magneto-fluidic panel)
-                A = axes_(f.axes_body); n = size(A, 2);
-                Ac = pi*nm.bore_m^2/4; S = nm.enclosed_area_m2; rho = nm.fluid_density_kg_m3;
-                k_hv = rho*Ac*2*S;                               % h = k_hv * v   [N m s per m/s]
-                Tsd = rho*nm.bore_m^2/(32*nm.fluid_viscosity_Pa_s);   % laminar spin-down time
-                hmax = k_hv*nm.v_max_m_s;
-                for k = 1:n
-                    X = add_(X, 'fmr', f.part, A(:,k), 0, hmax, 2*hmax/Tsd, k_hv, 0, 0, 0, 0, ...
-                        ds.friction_scale.lo, ds.friction_scale.hi, sig('axis_misalignment_rad', 0));
-                    X.T_sd(end) = Tsd; X.k_hv(end) = k_hv; X.Ac(end) = Ac; X.S(end) = S; X.l(end) = nm.channel_length_m;
-                    X.flow_noise_h(end) = k_hv*sig('flow_sensor_noise_m_s', 0);
-                    fp = asils.util.getf(nm, 'field_power_W', 0); if isnan(fp), fp = 0; end
-                    X.field_power(end) = fp;
-                    X.eta_lo(end) = ds.pump_efficiency.lo; X.eta_hi(end) = ds.pump_efficiency.hi;
-                end
-                dev.fmr_cruise_h = k_hv*nm.v_cruise_m_s;
-            case {'cmg', 'vscmg'}
-                G = axes_(f.gimbal_axes_body); A = axes_(f.spin_axes_body); n = size(A, 2);
-                g0 = size(X.G, 2);
-                X.G = [X.G, G];
-                for k = 1:n
-                    if strcmp(f.slot, 'cmg')
-                        X = add_(X, 'cmg', f.part, A(:,k), g0 + k, nm.rotor_momentum_Nms, nm.rotor_torque_max_Nm, ...
-                            nm.rotor_inertia_kgm2, 0, 0, nm.power_steady_W, sig('torque_scale', 0), 1, 1, sig('axis_misalignment_rad', 0));
-                    else
-                        X = add_(X, 'vscmg', f.part, A(:,k), g0 + k, nm.h_max_Nms, nm.rotor_torque_max_Nm, ...
-                            nm.rotor_inertia_kgm2, nm.friction_coulomb_Nm, nm.friction_viscous_Nms, nm.power_steady_W, ...
-                            sig('torque_scale', 0), ds.friction_scale.lo, ds.friction_scale.hi, sig('axis_misalignment_rad', 0));
-                    end
-                    X.h0(end) = nm.rotor_momentum_Nms;
-                end
-                X.gimbal_rate_max = nm.gimbal_rate_max_rad_s; X.gimbal_power = nm.gimbal_power_W;
-            case 'rcs'
-                F = nm.thrust_N; a = [nm.arm_short_m, nm.arm_long_m, nm.arm_long_m];
-                T = zeros(3, 6);
-                for ax = 1:3, T(ax, 2*ax-1) = 2*F*a(ax); T(ax, 2*ax) = -2*F*a(ax); end
-                dev.rcs = struct('fitted', true, 'part', f.part, 'tau_couple', T, 'thrust_N', F, ...
-                    'isp_s', nm.isp_s, 'mib_s', nm.mib_s, 'valve_res_s', nm.valve_res_s, ...
-                    'propellant_kg', nm.propellant_kg, 'valve_power_W', nm.valve_power_W, ...
-                    'isp_lo', lohi_(ds, 'isp_s', nm.isp_s, 1), 'isp_hi', lohi_(ds, 'isp_s', nm.isp_s, 2), ...
-                    'thrust_sigma', sig('thrust_scale', 0), 'misalign_rad', sig('axis_misalignment_rad', 0));
-            case 'star_tracker'
-                if isfield(f, 'boresights_body'), bs = axes_(f.boresights_body); else, bs = axes_(f.boresight_body(:)'); end
-                dev.st = struct('fitted', true, 'part', f.part, 'boresight', bs, ...
-                    'noise_cross', nm.noise_cross_rad, 'noise_roll', nm.noise_roll_rad, ...
-                    'rate_hz', nm.rate_Hz, 'latency', nm.latency_s, 'max_rate', nm.max_rate_rad_s, ...
-                    'sun_excl', nm.sun_exclusion_rad, 'earth_excl', nm.earth_exclusion_rad, ...
-                    'fov', nm.fov_half_angle_rad, 'model', asils.util.getf(f, 'model', 'quest'), ...
-                    'bias_sigma', sig('bias_rad', 0), 'misalign_sigma', sig('axis_misalignment_rad', 0), ...
-                    'power', nm.power_W, ...
-                    'moon_excl', need_(f.part, nm, 'moon_exclusion_rad', 0), 'blind_s', need_(f.part, nm, 'blind_recovery_s', 0), ...
-                    'noise_rate_ref', need_(f.part, nm, 'noise_doubling_rate_rad_s', 1));
-                if isfield(f, 'calibrated_residual_rad')     % in-orbit alignment calibration
-                    dev.st.bias_sigma = f.calibrated_residual_rad; dev.st.misalign_sigma = 0;
-                end
-                if ~any(strcmp(dev.st.model, {'noise', 'quest', 'image'}))
-                    error('asils:product:refused', 'product %s: star-tracker model %s; the models are noise, quest and image', pr.id, dev.st.model);
-                end
-                if strcmp(dev.st.model, 'image')             % the rendered-frame chain reads the camera from the part
-                    dev.st.camera = camera_(f.part, nm);
-                end
-            case 'magnetometer'
-                dev.mag = struct('fitted', true, 'part', f.part, 'noise', nm.noise_T_rms, ...
-                    'bias_T', nm.bias_T, 'bias_sigma', sig('bias_T', 0), 'range', nm.range_T, ...
-                    'rate_hz', nm.rate_Hz, 'sf_sigma', sig('scale_factor', 0), ...
-                    'misalign_rad', sig('axis_misalignment_rad', 0), 'k_coil', nm.coil_coupling_T_per_Am2);
-            case 'sun_sensors'
-                dev.sun = struct('fitted', true, 'part', f.part, 'normals', axes_(f.normals_body), ...
-                    'noise', nm.accuracy_rad, 'fov_rad', nm.fov_half_angle_rad, 'rate_hz', nm.rate_Hz, ...
-                    'bias_sigma', sig('bias_rad', 0), 'level', asils.util.getf(f, 'level', 'model'));
-                if ~any(strcmp(dev.sun.level, {'model', 'chain'}))
-                    error('asils:product:refused', 'product %s: Sun-sensor level %s; the levels are model and chain', pr.id, dev.sun.level);
-                end
-                if strcmp(dev.sun.level, 'chain')            % quadrant currents -> angles: the head from the part
-                    dev.sun.head = asils.comp.sun_sensor.head(struct('aperture_side_m', need_(f.part, nm, 'aperture_side_m', 1), ...
-                        'aperture_height_m', need_(f.part, nm, 'aperture_height_m', 1), ...
-                        'current_noise_frac', need_(f.part, nm, 'current_noise_frac', 0), ...
-                        'current_min_frac', need_(f.part, nm, 'current_min_frac', 1)));
-                end
-            case 'coarse_sun_sensors'
-                dev.css = struct('fitted', true, 'part', f.part, 'normals', axes_(f.normals_body), ...
-                    'noise', nm.noise_frac, 'albedo', nm.albedo, 'fov_rad', nm.fov_half_angle_rad, ...
-                    'scale_sigma', sig('scale', 0), 'misalign_rad', sig('axis_misalignment_rad', 0));
-            case 'gyro'
-                dev.gyro = struct('fitted', true, 'part', f.part, 'arw', nm.arw_rad_per_sqrt_s, ...
-                    'rrw', nm.rrw_rad_per_s_sqrt_s, 'range', nm.range_rad_s, 'rate_hz', nm.rate_Hz, ...
-                    'bias_sigma', sig('bias_rad_s', 0), 'sf_sigma', sig('scale_factor', 0), ...
-                    'misalign_rad', sig('axis_misalignment_rad', 0));
-            case 'earth_sensor'
-                bsv = dev.boresight; if isfield(f, 'boresight_body'), bsv = f.boresight_body(:)/norm(f.boresight_body); end
-                dev.es = struct('fitted', true, 'part', f.part, 'boresight', bsv, 'noise', nm.accuracy_rad, ...
-                    'fov_rad', nm.fov_half_angle_rad, 'rate_hz', nm.rate_Hz, 'bias_sigma', sig('bias_rad', 0));
-            case 'gnss'
-                dev.gps = struct('fitted', true, 'part', f.part, 'pos_sigma', nm.pos_sigma_m, ...
-                    'vel_sigma', nm.vel_sigma_m_s, 'rate_hz', nm.rate_Hz, 'latency', need_(f.part, nm, 'latency_s', 0));
+        part = asils.util.getf(f, 'part', '');
+        partf = asils.product.find(R, 'parts', part);
+        pj = asils.util.readjson(partf);
+        dev.files{end+1} = partf;
+        P = struct('f', f, 'nm', asils.util.getf(pj, 'nominal', struct()), 'ds', asils.util.getf(pj, 'dispersion', struct()), ...
+                   'missing', {{}}, 'part', part);
+        slot = asils.util.getf(f, 'slot', '');
+        capacity_(dev.id, part, slot, f, P, x);
+        selector_(dev.id, slot, f);
+        n0 = x.n;
+        [dev, x, P, done] = fit_actuator_(dev, x, slot, P);
+        if done
+            % the imbalance of every rotor this slot added, as the jitter takes it (gp_4's rotor_imbalance)
+            [us, ud, known] = asils.models.jitter.rotor_imbalance(strcmp(slot, 'rings'), stated_(P.nm, 'static_imbalance_kgm'), ...
+                                                                   stated_(P.nm, 'dynamic_imbalance_kgm2'));
+            for k = n0 + 1:x.n
+                dev.imbalance(end+1, :) = [us, ud, known];
+                dev.rotor_part{end+1} = part;
+            end
+        else
+            [dev, P, done] = fit_sensor_(dev, slot, P);
         end
-    end
-    X.fitted = ~isempty(X.kind);
-    X.Us = zeros(1, numel(X.kind)); X.Ud = X.Us;       % rotor imbalance (jitter, asils.sizing.jitter)
-    k = 0;
-    for i = 1:numel(fills)
-        f = fills{i};
-        if ~any(strcmp(f.slot, {'wheels', 'rings', 'cmg', 'vscmg'})), continue, end
-        pj = asils.util.readjson(find_(R, 'parts', f.part)); nm = pj.nominal;
-        if isfield(f, 'spin_axes_body'), a = f.spin_axes_body; else, a = f.axes_body; end
-        if iscell(a), n = numel(a); elseif isvector(a), n = 1; else, n = size(a, 1); end
-        % stated, or NaN (jitter not computed); a fluid ring has no rotating mass
-        if strcmp(f.slot, 'rings'), us = 0; ud = 0;
-        else, us = asils.util.getf(nm, 'static_imbalance_kgm', NaN); ud = asils.util.getf(nm, 'dynamic_imbalance_kgm2', NaN); end
-        X.Us(k+1:k+n) = us;
-        X.Ud(k+1:k+n) = ud;
-        k = k + n;
-    end
-    dev.mex = X;
-    dev.rw.fitted = X.fitted;          % legacy name: "has momentum-exchange devices"
-end
-
-function f = find_(R, kind, id)
-%FIND_  A catalogue record (data/<kind>/<id>.json), or a case-sized one written
-%   by asils.sizing (store/sized/<case>/<kind>/<id>.json).
-    f = fullfile(R, 'data', kind, [id '.json']);
-    if exist(f, 'file') == 2, return, end
-    d = dir(fullfile(R, 'store', 'sized'));
-    for i = 1:numel(d)
-        g = fullfile(R, 'store', 'sized', d(i).name, kind, [id '.json']);
-        if d(i).isdir && exist(g, 'file') == 2, f = g; return, end
-    end
-    error('asils:product:missing', 'No %s record %s (data/%s or store/sized/*/%s)', kind(1:end-1), id, kind, kind);
-end
-
-function X = mex_empty_()
-    X = struct('kind', {{}}, 'part', {{}}, 'A0', zeros(3,0), 'G', zeros(3,0), 'gi', zeros(1,0), ...
-        'h_max', [], 'torque_max', [], 'J', [], 'coulomb', [], 'viscous', [], 'p_steady', [], ...
-        'torque_scale_sigma', [], 'friction_scale_lo', [], 'friction_scale_hi', [], 'misalign_rad', [], ...
-        'T_sd', [], 'k_hv', [], 'Ac', [], 'S', [], 'l', [], 'flow_noise_h', [], 'field_power', [], 'eta_lo', [], 'eta_hi', [], 'h0', [], ...
-        'speed_max', [], 't_stall', [], 'w_nl', [], 'f_static', [], 'w_stribeck', [], ...
-        'torque_noise', 0.001, 'friction_comp', 0.95, 'eta', 0.8, 'k_speed', 1.0, 'k_flow', 2.0, 'flow_tau', 0.3, ...
-        'gimbal_rate_max', 0, 'gimbal_power', 0);
-end
-
-function X = add_(X, kind, part, a, gi, hmax, tmax, J, cou, vis, pst, tsig, flo, fhi, mis)
-    X.kind{end+1} = kind; X.part{end+1} = part; X.A0(:, end+1) = a; X.gi(end+1) = gi;
-    X.h_max(end+1) = hmax; X.torque_max(end+1) = tmax; X.J(end+1) = J; X.coulomb(end+1) = cou;
-    X.viscous(end+1) = vis; X.p_steady(end+1) = pst; X.torque_scale_sigma(end+1) = tsig;
-    X.friction_scale_lo(end+1) = flo; X.friction_scale_hi(end+1) = fhi; X.misalign_rad(end+1) = mis;
-    X.T_sd(end+1) = Inf; X.k_hv(end+1) = 1; X.Ac(end+1) = 1; X.S(end+1) = 1; X.l(end+1) = 1;
-    X.flow_noise_h(end+1) = 0; X.field_power(end+1) = 0; X.eta_lo(end+1) = 1; X.eta_hi(end+1) = 1; X.h0(end+1) = 0;
-    % the wheel motor/bearing values (set for 'rw' only; NaN: a rotor kind that does not read them)
-    X.speed_max(end+1) = NaN; X.t_stall(end+1) = NaN; X.w_nl(end+1) = NaN; X.f_static(end+1) = NaN; X.w_stribeck(end+1) = NaN;
-end
-
-function v = camera_(part, nm)
-%CAMERA_  The camera and onboard-chain values the 'image' star-tracker model reads,
-%   every one stated by the part (asils.comp.star_tracker.camera).
-    v = struct();
-    for k = {'psf_sigma_px', 'flux_mag6_e', 'id_tol_rad', 'id_mag_tol', 'fit_tol_rad', 'centroid_k_sigma'}
-        v.(k{1}) = need_(part, nm, k{1}, 1);
-    end
-    for k = {'background_e', 'read_noise_e'}, v.(k{1}) = need_(part, nm, k{1}, 0); end
-    for k = {'detector_px', 'max_spots'}
-        v.(k{1}) = need_(part, nm, k{1}, 1);
-        if v.(k{1}) ~= round(v.(k{1})), error('asils:product:refused', 'part %s does not state %s as a whole number (it states %g)', part, k{1}, v.(k{1})); end
-    end
-    if v.detector_px < 16, error('asils:product:refused', 'part %s does not state detector_px of 16 or more (it states %g)', part, v.detector_px); end
-end
-
-function x = need_(part, nm, key, positive)
-%NEED_  A value the fitted device reads: stated, and above 0 (positive) or at
-%   least 0; otherwise the part is refused by name (as the engine's Part::pos/nonneg).
-    if ~isfield(nm, key) || isempty(nm.(key)) || ~isfinite(nm.(key))
-        error('asils:product:refused', 'part %s does not state %s, which the twin needs', part, key);
-    end
-    x = nm.(key);
-    if positive && ~(x > 0), error('asils:product:refused', 'part %s does not state %s above 0 (it states %g)', part, key, x); end
-    if ~positive && ~(x >= 0), error('asils:product:refused', 'part %s does not state %s 0 or more (it states %g)', part, key, x); end
-end
-
-function A = axes_(a)
-    if iscell(a), a = cell2mat(cellfun(@(x) x(:)', a, 'UniformOutput', false)); end
-    A = a';                                   % 3 x n
-    for j = 1:size(A,2), A(:,j) = A(:,j)/norm(A(:,j)); end
-end
-
-function B = budget_(B, f, nm)
-%BUDGET_  ADCS mass / nominal power / volume, per fill (unit count from its axes).
-    n = 1;
-    for key = {'axes_body', 'spin_axes_body', 'boresights_body', 'normals_body'}
-        if isfield(f, key{1})
-            a = f.(key{1}); if iscell(a), n = numel(a); elseif isvector(a), n = numel(a)/3; else, n = size(a, 1); end
-            if strcmp(f.slot, 'coarse_sun_sensors'), n = 1; end   % one board of cosine cells
+        if ~done, error('asils:product:refused', 'product %s: unknown slot %s', dev.id, slot); end
+        if ~isempty(P.missing)
+            error('asils:product:refused', 'part %s (%s of product %s) does not state %s, which the twin needs', ...
+                  part, slot, dev.id, strjoin(P.missing, ', '));
         end
+        % the ADCS's mass, power and volume, per fill (design/sizebudget.pc)
+        nm = P.nm;
+        [nu, m, p, v] = asils.models.sizebudget.budget_line(slot_of_(slot), count_(f, 'axes_body'), count_(f, 'spin_axes_body'), ...
+            count_(f, 'boresights_body'), count_(f, 'normals_body'), stated_(nm, 'mass_kg'), stated_(nm, 'power_steady_W'), ...
+            stated_(nm, 'power_W'), stated_(nm, 'power_at_max_W'), stated_(nm, 'volume_L'));
+        items{end+1} = struct('slot', slot, 'part', part, 'n', nu, 'mass_kg', m, 'power_W', p, 'volume_L', v); %#ok<AGROW>
+        ms(end+1, 1) = m; ps(end+1, 1) = p; vs(end+1, 1) = v; %#ok<AGROW>
     end
-    m = asils.util.getf(nm, 'mass_kg', 0);
-    p = asils.util.getf(nm, 'power_steady_W', asils.util.getf(nm, 'power_W', asils.util.getf(nm, 'power_at_max_W', 0)));
-    v = asils.util.getf(nm, 'volume_L', 0);
-    B.mass_kg = B.mass_kg + n*m; B.power_W = B.power_W + n*p; B.volume_L = B.volume_L + n*v;
-    B.items{end+1} = struct('slot', f.slot, 'part', f.part, 'n', n, 'mass_kg', n*m, 'power_W', n*p, 'volume_L', n*v);
+    [bm, bp, bv] = asils.models.sizebudget.budget_total(ms, ps, vs, numel(ms));
+    dev.budget = struct('mass_kg', bm, 'power_W', bp, 'volume_L', bv, 'items', {items});
+    dev.mex = struct('rec', x, 'n', x.n, 'ng', x.ng, 'fitted', x.n > 0);
 end
 
-function x = lohi_(ds, key, d, k)
-    x = d;
-    if isfield(ds, key)
-        if k == 1 && isfield(ds.(key), 'lo'), x = ds.(key).lo; end
-        if k == 2 && isfield(ds.(key), 'hi'), x = ds.(key).hi; end
+% ---------------- the slots ----------------
+function [dev, x, P, done] = fit_actuator_(dev, x, slot, P)
+    done = true;
+    switch slot
+        case 'coils'
+            a = axes_(P, 'axes_body');
+            c = asils.models.coilset.CoilDesc_zero();
+            c.fitted = true; c.n = size(a, 1); [c.m_max, P] = n_(P, 'dipole_max_Am2'); [c.p_max, P] = n_(P, 'power_at_max_W');
+            c.scale_sigma = sig_(P, 'dipole_scale'); c.misalign = sig_(P, 'axis_misalignment_rad'); [c.tau, P] = nonneg_(P, 'time_constant_s');
+            c.axes(1:size(a, 1), :) = a;
+            dev.mtq = struct('fitted', true, 'rec', c);
+        case 'wheels'
+            [flo, fhi] = lohi_(P.ds, 'friction_scale', 1.0);
+            % the motor's torque-speed line from its constants: stall torque k_t V / R, no-load speed V / k_t
+            [kt, P] = pos_(P, 'motor_kt_Nm_per_A'); [rw, P] = pos_(P, 'motor_resistance_ohm'); [vb, P] = pos_(P, 'bus_voltage_V');
+            [wmax, P] = pos_(P, 'speed_max_rad_s'); [fst, P] = pos_(P, 'friction_static_Nm'); [wst, P] = pos_(P, 'stribeck_speed_rad_s');
+            [cou, P] = n_(P, 'friction_coulomb_Nm');
+            if fst < cou, P.missing{end+1} = sprintf('friction_static_Nm of at least friction_coulomb_Nm (it states %g)', fst); end
+            a = axes_(P, 'axes_body');
+            for k = 1:size(a, 1)
+                [hm, P] = n_(P, 'h_max_Nms'); [tm, P] = n_(P, 'torque_max_Nm'); [jr, P] = n_(P, 'rotor_inertia_kgm2');
+                [cc, P] = n_(P, 'friction_coulomb_Nm'); [vi, P] = n_(P, 'friction_viscous_Nms'); [pst, P] = n_(P, 'power_steady_W');
+                x = add_rotor_(x, 0, a(k, :), 0, hm, tm, jr, cc, vi, pst, sig_(P, 'torque_scale'), flo, fhi, sig_(P, 'axis_misalignment_rad'));
+                i = x.n;
+                % act's l3_rw_row_01: the motor's stall torque and no-load speed
+                [ts, wn] = asils.models.wheelmotor.motor_constants(kt, rw, vb);
+                x.speed_max(i) = wmax; x.t_stall(i) = ts; x.w_nl(i) = wn; x.f_static(i) = fst; x.w_stribeck(i) = wst;
+            end
+        case 'rings'
+            % act's l3_fmr_row_12: the bore's area, the momentum per flow speed, the spin-down time, the capacity
+            [s, P] = n_(P, 'enclosed_area_m2'); [bore, P] = n_(P, 'bore_m'); [rho, P] = n_(P, 'fluid_density_kg_m3');
+            [mu, P] = n_(P, 'fluid_viscosity_Pa_s'); [vmax, P] = n_(P, 'v_max_m_s');
+            [ac, k_hv, tsd, hmax] = asils.models.ringlimits.ring_constants(bore, s, rho, mu, vmax);
+            [flo, fhi] = lohi_(P.ds, 'friction_scale', 1.0);
+            [elo, ehi] = lohi_(P.ds, 'pump_efficiency', 1.0);
+            fp = getnum_(P.nm, 'field_power_W', 0.0);
+            a = axes_(P, 'axes_body');
+            for k = 1:size(a, 1)
+                % an electromagnetic pump designed by adcs-design states its pressure-limited torque
+                tq = getnum_(P.nm, 'pump_torque_max_Nm', NaN);
+                x = add_rotor_(x, 1, a(k, :), 0, hmax, asils.models.ringlimits.ring_pump_max(tq, hmax, tsd), k_hv, 0, 0, 0, 0, flo, fhi, ...
+                               sig_(P, 'axis_misalignment_rad'));
+                i = x.n;
+                [cl, P] = n_(P, 'channel_length_m');
+                x.t_sd(i) = tsd; x.k_hv(i) = k_hv; x.ac(i) = ac; x.s(i) = s; x.l(i) = cl;
+                % act's l3_fmr_row_10: the flow sensor's noise in momentum
+                x.flow_noise_h(i) = asils.models.ringnoise.ring_flow_noise(k_hv, sig_(P, 'flow_sensor_noise_m_s'));
+                if isnan(fp), x.field_power(i) = 0.0; else, x.field_power(i) = fp; end
+                x.eta_lo(i) = elo; x.eta_hi(i) = ehi;
+            end
+        case {'cmg', 'vscmg'}
+            g = axes_(P, 'gimbal_axes_body');
+            a = axes_(P, 'spin_axes_body');
+            g0 = x.ng;
+            for j = 1:size(g, 1), x.g(g0 + j, :) = g(j, :); end
+            x.ng = x.ng + size(g, 1);
+            [flo, fhi] = lohi_(P.ds, 'friction_scale', 1.0);
+            for k = 1:size(a, 1)
+                if strcmp(slot, 'cmg')
+                    [hm, P] = n_(P, 'rotor_momentum_Nms'); [tm, P] = n_(P, 'rotor_torque_max_Nm'); [jr, P] = n_(P, 'rotor_inertia_kgm2');
+                    [pst, P] = n_(P, 'power_steady_W');
+                    x = add_rotor_(x, 2, a(k, :), g0 + k, hm, tm, jr, 0, 0, pst, sig_(P, 'torque_scale'), 1, 1, sig_(P, 'axis_misalignment_rad'));
+                else
+                    [hm, P] = n_(P, 'h_max_Nms'); [tm, P] = n_(P, 'rotor_torque_max_Nm'); [jr, P] = n_(P, 'rotor_inertia_kgm2');
+                    [cc, P] = n_(P, 'friction_coulomb_Nm'); [vi, P] = n_(P, 'friction_viscous_Nms'); [pst, P] = n_(P, 'power_steady_W');
+                    x = add_rotor_(x, 3, a(k, :), g0 + k, hm, tm, jr, cc, vi, pst, sig_(P, 'torque_scale'), flo, fhi, sig_(P, 'axis_misalignment_rad'));
+                end
+                [x.h0(x.n), P] = n_(P, 'rotor_momentum_Nms');
+            end
+            [x.gimbal_rate_max, P] = n_(P, 'gimbal_rate_max_rad_s');
+            [x.gimbal_power, P] = n_(P, 'gimbal_power_W');
+        case 'rcs'
+            [fth, P] = n_(P, 'thrust_N'); [as, P] = n_(P, 'arm_short_m'); [al, P] = n_(P, 'arm_long_m');
+            arm = asils.models.rcstorque.couple_arms(as, al);           % act's l3_rcs_row_01
+            r = asils.models.thrusters.ThrusterDesc_zero();
+            r.fitted = true; r.nc = 6; r.thrust = fth; [r.isp, P] = n_(P, 'isp_s'); [r.mib, P] = n_(P, 'mib_s');
+            [r.res, P] = n_(P, 'valve_res_s'); [r.prop_kg, P] = n_(P, 'propellant_kg'); [r.valve_power, P] = n_(P, 'valve_power_W');
+            r.thrust_sigma = sig_(P, 'thrust_scale'); r.misalign = sig_(P, 'axis_misalignment_rad');
+            [isp, P] = n_(P, 'isp_s');
+            [r.isp_lo, r.isp_hi] = lohi_(P.ds, 'isp_s', isp);
+            r.tau = asils.models.rcstorque.couple_torques(fth, arm);    % act's l3_rcs_row_01: +-2 F arm about each axis
+            dev.rcs = struct('fitted', true, 'rec', r);
+        otherwise
+            done = false;
     end
 end
 
-function s = sigma_(ds, key, d)
-    s = d;
-    if isfield(ds, key) && isfield(ds.(key), 'sigma'), s = ds.(key).sigma; end
+function [dev, P, done] = fit_sensor_(dev, slot, P)
+    done = true; f = P.f;
+    switch slot
+        case 'star_tracker'
+            if isfield(f, 'boresights_body'), bs = axes_(P, 'boresights_body'); else, bs = axes_(P, 'boresight_body'); end
+            s = asils.models.sttracker.StDesc_zero();
+            s.nh = size(bs, 1); s.bs(1:s.nh, :) = bs;
+            [s.noise_cross, P] = n_(P, 'noise_cross_rad'); [s.noise_roll, P] = n_(P, 'noise_roll_rad'); [rate, P] = n_(P, 'rate_Hz');
+            [s.latency, P] = n_(P, 'latency_s'); [s.max_rate, P] = n_(P, 'max_rate_rad_s'); [s.sun_excl, P] = n_(P, 'sun_exclusion_rad');
+            [s.earth_excl, P] = n_(P, 'earth_exclusion_rad'); [s.fov, P] = n_(P, 'fov_half_angle_rad');
+            switch asils.util.getf(f, 'model', 'quest')
+                case 'noise', model = 0;
+                case 'image', model = 2;
+                otherwise, model = 1;
+            end
+            s.model = model;                                       % sttracker's StModel: noise, quest, image
+            s.bias_sigma = sig_(P, 'bias_rad'); s.misalign_sigma = sig_(P, 'axis_misalignment_rad');
+            [s.moon_excl, P] = nonneg_(P, 'moon_exclusion_rad'); [s.blind_s, P] = nonneg_(P, 'blind_recovery_s');
+            [s.noise_rate_ref, P] = pos_(P, 'noise_doubling_rate_rad_s');
+            % sens_star_tracker: a tracker calibrated on ground flies its residual as its bias, and no misalignment
+            cal = getnum_(f, 'calibrated_residual_rad', NaN);
+            [s.bias_sigma, s.misalign_sigma] = asils.models.sttracker.st_calibrated(s.bias_sigma, s.misalign_sigma, ~isnan(cal), ...
+                                                                                    nan2zero_(cal));
+            cam = asils.models.strender.StCamera_zero();
+            if model == 2
+                % the rendered-frame chain: the camera and the onboard chain's settings, from the part
+                [npx, P] = whole_(P, 'detector_px', 16, 8192);
+                [cam.psf_px, P] = pos_(P, 'psf_sigma_px'); [cam.flux0, P] = pos_(P, 'flux_mag6_e'); [cam.bg, P] = nonneg_(P, 'background_e');
+                [cam.read_noise, P] = nonneg_(P, 'read_noise_e'); [cam.k_sigma, P] = pos_(P, 'centroid_k_sigma');
+                [cam.max_spots, P] = whole_(P, 'max_spots', 3, 32); [cam.id_tol, P] = pos_(P, 'id_tol_rad');
+                [cam.mag_tol, P] = pos_(P, 'id_mag_tol'); [cam.fit_tol, P] = pos_(P, 'fit_tol_rad');
+                cam.n = npx; cam.fov = s.fov;
+                [cam.f, cam.c] = asils.models.strender.st_focal(s.fov, npx);
+            end
+            dev.st = struct('fitted', true, 'rec', s, 'nh', s.nh, 'rate_hz', rate, 'model', model, 'cam', cam);
+        case 'magnetometer'
+            m = asils.models.mag.MagDesc_zero();
+            [m.noise, P] = n_(P, 'noise_T_rms'); [m.bias_t, P] = n_(P, 'bias_T'); m.bias_sigma = sig_(P, 'bias_T');
+            [m.range, P] = n_(P, 'range_T'); m.sf_sigma = sig_(P, 'scale_factor'); m.misalign = sig_(P, 'axis_misalignment_rad');
+            [m.k_coil, P] = n_(P, 'coil_coupling_T_per_Am2');
+            dev.mag = struct('fitted', true, 'rec', m);
+        case 'sun_sensors'
+            a = axes_(P, 'normals_body');
+            s = asils.models.finesun.SunDesc_zero();
+            s.n = size(a, 1); [s.noise, P] = n_(P, 'accuracy_rad'); [s.fov, P] = n_(P, 'fov_half_angle_rad'); s.bias_sigma = sig_(P, 'bias_rad');
+            if strcmp(asils.util.getf(f, 'level', 'model'), 'chain')
+                % quadrant currents -> angles: the head's aperture, height, current noise and threshold
+                s.chain = true;
+                [s.head.a, P] = pos_(P, 'aperture_side_m'); [s.head.h, P] = pos_(P, 'aperture_height_m');
+                [s.head.noise, P] = nonneg_(P, 'current_noise_frac'); [s.head.min_frac, P] = pos_(P, 'current_min_frac');
+            end
+            s.normals(1:s.n, :) = a;
+            dev.sun = struct('fitted', true, 'rec', s);
+        case 'coarse_sun_sensors'
+            a = axes_(P, 'normals_body');
+            s = asils.models.css.CssDesc_zero();
+            s.n = size(a, 1); [s.noise, P] = n_(P, 'noise_frac'); [s.albedo, P] = n_(P, 'albedo');
+            s.scale_sigma = sig_(P, 'scale'); s.misalign = sig_(P, 'axis_misalignment_rad');
+            s.normals(1:s.n, :) = a;
+            dev.css = struct('fitted', true, 'rec', s);
+        case 'gyro'
+            g = asils.models.gyro.GyroDesc_zero();
+            [g.arw, P] = n_(P, 'arw_rad_per_sqrt_s'); [g.rrw, P] = n_(P, 'rrw_rad_per_s_sqrt_s'); [g.range, P] = n_(P, 'range_rad_s');
+            g.bias_sigma = sig_(P, 'bias_rad_s'); g.sf_sigma = sig_(P, 'scale_factor'); g.misalign = sig_(P, 'axis_misalignment_rad');
+            dev.gyro = struct('fitted', true, 'rec', g);
+        case 'earth_sensor'
+            % l3_sens_row_13: the boresight the product states, else the payload's
+            if isfield(f, 'boresight_body'), sb = unit_(f.boresight_body); stated = true; else, sb = zeros(3, 1); stated = false; end
+            e = asils.models.earthsensor.EsDesc_zero();
+            e.bs = asils.models.earthsensor.es_boresight(stated, sb, dev.boresight);
+            [e.noise, P] = n_(P, 'accuracy_rad'); [e.fov, P] = n_(P, 'fov_half_angle_rad'); [rate, P] = n_(P, 'rate_Hz');
+            e.bias_sigma = sig_(P, 'bias_rad');
+            dev.es = struct('fitted', true, 'rec', e, 'rate_hz', rate);
+        case 'gnss'
+            [ps, P] = n_(P, 'pos_sigma_m'); [vs, P] = n_(P, 'vel_sigma_m_s'); [rate, P] = n_(P, 'rate_Hz'); [lat, P] = nonneg_(P, 'latency_s');
+            dev.gps = struct('fitted', true, 'pos_sigma', ps, 'vel_sigma', vs, 'rate_hz', rate, 'latency', lat);
+        otherwise
+            done = false;
+    end
+end
+
+function x = add_rotor_(x, kind, a, gi, hmax, tmax, j, cou, vis, pst, tsig, flo, fhi, mis)
+% one rotor added to the momentum-device set (kind: rotorset's RotorKind, 0 wheel, 1 ring, 2 CMG, 3 VSCMG)
+    x.n = x.n + 1; i = x.n;
+    x.kind(i) = kind; x.a0(i, :) = a; x.gi(i) = gi; x.h_max(i) = hmax; x.torque_max(i) = tmax; x.jrot(i) = j;
+    x.coulomb(i) = cou; x.viscous(i) = vis; x.p_steady(i) = pst; x.tsig(i) = tsig; x.flo(i) = flo; x.fhi(i) = fhi; x.misalign(i) = mis;
+    x.t_sd(i) = Inf; x.k_hv(i) = 1.0; x.ac(i) = 1.0; x.s(i) = 1.0; x.l(i) = 1.0; x.eta_lo(i) = 1.0; x.eta_hi(i) = 1.0;
+end
+
+% ---------------- what the engine holds, refused by name ----------------
+function capacity_(id, part, slot, f, P, x)
+    cnt = @(key) count0_(f, key);
+    over = @(what, have, cap) assert(have <= cap, 'asils:product:refused', 'product %s: %d %s; the twin holds at most %d', id, have, what, cap);
+    switch slot
+        case 'coils', over('magnetorquer coils', cnt('axes_body'), 8);
+        case {'wheels', 'rings'}, over('rotors', x.n + cnt('axes_body'), 8);
+        case {'cmg', 'vscmg'}, over('rotors', x.n + cnt('spin_axes_body'), 8); over('gimbals', x.ng + cnt('gimbal_axes_body'), 4);
+        case 'star_tracker', over('star-tracker heads', max(cnt('boresights_body'), cnt('boresight_body')), 2);
+        case {'sun_sensors', 'coarse_sun_sensors'}, over('Sun sensor heads', cnt('normals_body'), 8);
+        case 'rcs'
+            t = getnum_(P.nm, 'thrusters', NaN);
+            assert(t == 12, 'asils:product:refused', 'part %s: %g thrusters; the twin models 12 (six couples)', part, t);
+    end
+end
+
+function selector_(id, slot, f)
+    switch slot
+        case 'star_tracker', key = 'model'; have = {'noise', 'quest', 'image'};
+        case 'sun_sensors', key = 'level'; have = {'model', 'chain'};
+        otherwise, return
+    end
+    if isfield(f, key) && ~any(strcmp(f.(key), have))
+        error('asils:product:refused', 'product %s: %s %s %s; the twin models %s', id, slot, key, f.(key), strjoin(have, ', '));
+    end
+end
+
+% ---------------- reading a part ----------------
+function [v, P] = n_(P, k)
+    v = getnum_(P.nm, k, NaN);
+    if ~isfinite(v), P.missing{end+1} = k; end
+end
+function [v, P] = pos_(P, k)
+    [v, P] = bounded_(P, k, @(x) x > 0, 'above 0');
+end
+function [v, P] = nonneg_(P, k)
+    [v, P] = bounded_(P, k, @(x) x >= 0, '0 or more');
+end
+function [v, P] = bounded_(P, k, ok, what)
+    v = getnum_(P.nm, k, NaN);
+    if ~isfinite(v), P.missing{end+1} = k;
+    elseif ~ok(v), P.missing{end+1} = sprintf('%s %s (it states %g)', k, what, v); end
+end
+function [v, P] = whole_(P, k, lo, hi)
+    [v, P] = pos_(P, k);
+    if isfinite(v) && (v ~= round(v) || v < lo || v > hi)
+        P.missing{end+1} = sprintf('%s as a whole number from %g to %g (it states %g)', k, lo, hi, v);
+    end
+end
+function s = sig_(P, k)
+    s = 0.0;
+    if isfield(P.ds, k) && isstruct(P.ds.(k)) && isfield(P.ds.(k), 'sigma') && isnumeric(P.ds.(k).sigma), s = P.ds.(k).sigma; end
+end
+function [lo, hi] = lohi_(ds, k, d)
+    lo = d; hi = d;
+    if isfield(ds, k) && isstruct(ds.(k))
+        if isfield(ds.(k), 'lo') && isnumeric(ds.(k).lo), lo = ds.(k).lo; end
+        if isfield(ds.(k), 'hi') && isnumeric(ds.(k).hi), hi = ds.(k).hi; end
+    end
+end
+function v = getnum_(s, k, d)
+    v = d;
+    if isstruct(s) && isfield(s, k) && isnumeric(s.(k)) && isscalar(s.(k)), v = double(s.(k)); end
+end
+function v = stated_(s, k)
+    v = getnum_(s, k, NaN);
+end
+function x = nan2zero_(x)
+    if isnan(x), x = 0; end
+end
+function A = axes_(P, k)
+% a list of 3-vectors ([[..],[..]] or a single [x,y,z]), each made unit: one row each
+    A = zeros(0, 3);
+    if ~isfield(P.f, k), return, end
+    a = P.f.(k);
+    if iscell(a), a = cell2mat(cellfun(@(x) reshape(x, 1, []), a, 'UniformOutput', false)); end
+    if isvector(a) && numel(a) == 3, a = reshape(a, 1, 3); end
+    for i = 1:size(a, 1)
+        v = a(i, :); n = sqrt(v(1)*v(1) + v(2)*v(2) + v(3)*v(3));
+        A(i, :) = [v(1)/n, v(2)/n, v(3)/n];
+    end
+end
+function u = unit_(a)
+    n = sqrt(a(1)*a(1) + a(2)*a(2) + a(3)*a(3)); u = [a(1)/n; a(2)/n; a(3)/n];
+end
+function n = count0_(f, key)
+    n = 0;
+    if ~isfield(f, key), return, end
+    a = f.(key);
+    if iscell(a), n = numel(a); elseif isvector(a) && numel(a) == 3, n = 1; else, n = size(a, 1); end
+end
+function n = count_(f, key)
+% the length of a list the fill states (-1 where it states none), as adcs-design's budget counts it
+    n = -1;
+    if ~isfield(f, key), return, end
+    a = f.(key);
+    if iscell(a) || iscolumn(a), n = numel(a); else, n = size(a, 1); end
+end
+function s = slot_of_(slot)
+% sizebudget's Slot (design/sizebudget.pc): the fill's word as the choice's option number
+    names = {'coils', 'wheels', 'rings', 'cmg', 'vscmg', 'rcs', 'star_tracker', 'magnetometer', 'sun_sensors', 'gyro', 'gnss', ...
+             'earth_sensor', 'coarse_sun_sensors'};
+    s = find(strcmp(names, slot), 1) - 1;
+    if isempty(s), s = 13; end
+end
+function c = cellstr_(a)
+    if iscell(a), c = a; elseif ischar(a), c = {a}; else, c = {}; end
 end

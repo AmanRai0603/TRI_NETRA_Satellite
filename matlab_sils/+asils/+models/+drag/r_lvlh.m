@@ -8,9 +8,9 @@ function [m] = r_lvlh(r, v)
     m = zeros(3, 3);
     nr = asils.models.gravity.onorm(r);
     zb = [((-(r(1))) / nr); ((-(r(2))) / nr); ((-(r(3))) / nr)];
-    h = asils.pc.cross_(r, v);
+    h = [r(2)*v(3) - r(3)*v(2); r(3)*v(1) - r(1)*v(3); r(1)*v(2) - r(2)*v(1)];
     nh = asils.models.gravity.onorm(h);
     yb = [((-(h(1))) / nh); ((-(h(2))) / nh); ((-(h(3))) / nh)];
-    xb = asils.models.drag.ounit(asils.pc.cross_(yb, zb));
+    xb = asils.models.drag.ounit([yb(2)*zb(3) - yb(3)*zb(2); yb(3)*zb(1) - yb(1)*zb(3); yb(1)*zb(2) - yb(2)*zb(1)]);
     m = asils.models.drag.from_cols(xb, yb, zb);
 end

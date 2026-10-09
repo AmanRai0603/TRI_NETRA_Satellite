@@ -38,25 +38,25 @@ function [st, a] = atmos_density(model, alt_km, lat_deg, lon_deg, lst_h, doy, ut
         st = 11;
     elseif (model == 3)
         if (drv == 1)
-            [t__376, t__377] = asils.models.densitymodel.dtm2020_atm(alt_km, lat_deg, lon_deg, lst_h, doy, f107, f107a, akp);
-            st = t__376;
-            a = t__377;
+            [t__378, t__379] = asils.models.densitymodel.dtm2020_atm(alt_km, lat_deg, lon_deg, lst_h, doy, f107, f107a, akp);
+            st = t__378;
+            a = t__379;
         else
             st = 1;
         end
     elseif (model == 4)
         if (drv == 2)
-            [t__378, t__379] = asils.models.densitymodel.dtm2020_research_atm(alt_km, lat_deg, lon_deg, lst_h, doy, utc, f30, f30_bar, ap60, f30_is_derived);
-            st = t__378;
-            a = t__379;
+            [t__380, t__381] = asils.models.densitymodel.dtm2020_research_atm(alt_km, lat_deg, lon_deg, lst_h, doy, utc, f30, f30_bar, ap60, f30_is_derived);
+            st = t__380;
+            a = t__381;
         else
             st = 4;
         end
     else
         if (drv == 3)
-            [t__380, t__381] = asils.models.densitymodel.jb2008_atm(alt_km, lat_deg, lon_deg, utc, has_tinf, tinf);
-            st = t__380;
-            a = t__381;
+            [t__382, t__383] = asils.models.densitymodel.jb2008_atm(alt_km, lat_deg, lon_deg, utc, has_tinf, tinf);
+            st = t__382;
+            a = t__383;
         else
             st = 7;
         end

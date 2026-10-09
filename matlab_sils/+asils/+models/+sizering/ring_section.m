@@ -42,7 +42,7 @@ function [area, perim] = ring_section(bx, n)
     end
     tn = (((t(1) * n(1)) + (t(2) * n(2))) + (t(3) * n(3)));
     w = [(t(1) - (n(1) * tn)); (t(2) - (n(2) * tn)); (t(3) - (n(3) * tn))];
-    wn = asils.pc.norm_(w);
+    wn = sqrt(w(1)*w(1) + w(2)*w(2) + w(3)*w(3));
     u = zeros(3, 1);
     if (~(wn < 1e-300))
         rw = (1 / wn);

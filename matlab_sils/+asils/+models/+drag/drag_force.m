@@ -42,7 +42,7 @@ function [st, k, a, v_rel, cb, po] = drag_force(model, pm, r, v, atm, has_omega,
     om = [0; 0; 0];
     v_rel = v;
     if corotate
-        c = asils.pc.cross_(om_ctx, r);
+        c = [om_ctx(2)*r(3) - om_ctx(3)*r(2); om_ctx(3)*r(1) - om_ctx(1)*r(3); om_ctx(1)*r(2) - om_ctx(2)*r(1)];
         v_rel = [(v(1) - c(1)); (v(2) - c(2)); (v(3) - c(3))];
         om = om_ctx;
     end
@@ -54,10 +54,10 @@ function [st, k, a, v_rel, cb, po] = drag_force(model, pm, r, v, atm, has_omega,
         cb = asils.models.drag.drag_cannonball(r, v, atm.rho, asils.models.drag.drag_cd(has_cfg_cd, cfg_cd, has_sc_cd, sc_cd), aref, mass, [0; 0; 0], om);
         a = cb.a;
     else
-        [t__386, t__387, t__388] = asils.models.drag.panel_force(r, v, atm, asils.models.drag.drag_facets(f, aref), pm, g, mass, aref, r_bi, [0; 0; 0], om, has_sun, sun);
-        st = t__386;
-        k = t__387;
-        po = t__388;
+        [t__388, t__389, t__390] = asils.models.drag.panel_force(r, v, atm, asils.models.drag.drag_facets(f, aref), pm, g, mass, aref, r_bi, [0; 0; 0], om, has_sun, sun);
+        st = t__388;
+        k = t__389;
+        po = t__390;
         a = po.a;
     end
 end

@@ -6,9 +6,9 @@ function [q] = boresight_offset(bs_in)
     q = zeros(4, 1);
     ey = [0; 1; 0];
     bs = asils.pc.unit_(bs_in);
-    ax = asils.pc.cross_(ey, bs);
-    c = asils.pc.dot_(ey, bs);
-    s = asils.pc.norm_(ax);
+    ax = [ey(2)*bs(3) - ey(3)*bs(2); ey(3)*bs(1) - ey(1)*bs(3); ey(1)*bs(2) - ey(2)*bs(1)];
+    c = (ey(1)*bs(1) + ey(2)*bs(2) + ey(3)*bs(3));
+    s = sqrt(ax(1)*ax(1) + ax(2)*ax(2) + ax(3)*ax(3));
     if (s < 1e-12)
         q = [0; 0; 0; 1];
         if (c <= 0)

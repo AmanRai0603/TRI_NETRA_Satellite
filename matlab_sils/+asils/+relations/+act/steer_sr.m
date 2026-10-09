@@ -19,16 +19,15 @@ function [gdot, hdot] = steer_sr(tau, a, h, nr, ng, rot_gi, gim_axis, gim_rate_m
     hdot = zeros(8, 1);
     jg = zeros(3, 4);
     h0 = 0;
-    for i = (0):((nr) - 1)
-        if (rot_gi((i) + 1) > 0)
-            j = (rot_gi((i) + 1) - 1);
-            c = asils.pc.cross_((gim_axis((j) + 1, :)).', [a(1, (i) + 1); a(2, (i) + 1); a(3, (i) + 1)]);
-            for k = (0):((3) - 1)
-                jg((k) + 1, (j) + 1) = ((-(h((i) + 1))) * c((k) + 1));
-            end
-            if (asils.pc.fabs(h((i) + 1)) > h0)
-                h0 = asils.pc.fabs(h((i) + 1));
-            end
+    t__0 = ((0):((nr) - 1)).';
+    for i = t__0(logical((rot_gi((t__0) + 1) > 0))).'
+        j = (rot_gi((i) + 1) - 1);
+        c = asils.pc.cross_((gim_axis((j) + 1, :)).', [a(1, (i) + 1); a(2, (i) + 1); a(3, (i) + 1)]);
+        for k = (0):((3) - 1)
+            jg((k) + 1, (j) + 1) = ((-(h((i) + 1))) * c((k) + 1));
+        end
+        if (asils.pc.fabs(h((i) + 1)) > h0)
+            h0 = asils.pc.fabs(h((i) + 1));
         end
     end
     m = zeros(3, 3);
@@ -70,7 +69,7 @@ function [gdot, hdot] = steer_sr(tau, a, h, nr, ng, rot_gi, gim_axis, gim_rate_m
         end
     end
     [mi, ok] = asils.relations.act.inv3(m);
-    x = asils.pc.mv(mi, tau);
+    x = [mi(1, 1)*tau(1) + mi(1, 2)*tau(2) + mi(1, 3)*tau(3); mi(2, 1)*tau(1) + mi(2, 2)*tau(2) + mi(2, 3)*tau(3); mi(3, 1)*tau(1) + mi(3, 2)*tau(2) + mi(3, 3)*tau(3)];
     u = zeros(12, 1);
     for k = (0):((n) - 1)
         u((k) + 1) = (w((k) + 1) * (((jj(1, (k) + 1) * x(1)) + (jj(2, (k) + 1) * x(2))) + (jj(3, (k) + 1) * x(3))));

@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """Generate the flight-software parameter and table sources from their single definitions.
 
-  fsw/params/params.toml      -> fsw/include/adcs_params.h, fsw/src/adcs_params.c, fsw-rs/src/params.rs
+  fsw/params/params.toml      -> fsw/include/adcs_params.h, fsw/src/adcs_params.c, fsw-rs/src/params.rs,
+                                 matlab_sils/+asils/+fsw/params_decode.m (the MATLAB twin's decoder, S7.17)
   matlab_sils/data/igrf13coeffs.txt (IAGA) -> matlab_sils/data/igrf13.json (the MATLAB twin's table)
   (the flight software's and the engine's table, fsw/pseudocode/02_igrf13.pc, is the design's since S7.2b: the IGRF
   node's data table, read by tools/readers.py with igrf_table below, written by tools/from_design.py and generated into
@@ -369,6 +370,58 @@ def rs_source():
     return "\n".join(L) + rs_validate()
 
 
+def m_source():
+    """The MATLAB twin's decoder (S7.17): the blob's bytes -> a struct of every field, by its name; a vector is a
+    column, a matrix [n, m] n rows of m (the layout's row-major order). Little-endian host (x86, ARM)."""
+    L = ["function p = params_decode(blob)",
+         "%PARAMS_DECODE  Decode an adcs-fswcfg/1 blob (uint8) into the flight software's parameters, by name.",
+         f"%   {HDR}",
+         "%   Refused (an error): bad magic, bad length, bad CRC-32 (IEEE 802.3) of the payload.",
+         "%   A vector is a column; a matrix [n, m] has n rows of m (the blob's row-major order).",
+         "%   Copyright (c) 2026 Agastya. All rights reserved.",
+         f"    PAYLOAD = {PAYLOAD}; BLOB = {BLOB};",
+         "    b = uint8(blob(:));",
+         "    if numel(b) < BLOB || ~isequal(char(b(1:8)'), 'ADCSCFG1')",
+         "        error('asils:fswcfg:magic', 'not an adcs-fswcfg/1 blob (bad magic or shorter than %d bytes)', BLOB);",
+         "    end",
+         "    if double(typecast(b(9:12), 'uint32')) ~= PAYLOAD",
+         "        error('asils:fswcfg:length', 'adcs-fswcfg/1: the payload is not %d bytes', PAYLOAD);",
+         "    end",
+         "    if crc32_(b(13:12 + PAYLOAD)) ~= double(typecast(b(13 + PAYLOAD:16 + PAYLOAD), 'uint32'))",
+         "        error('asils:fswcfg:crc', 'adcs-fswcfg/1: the payload fails its CRC-32');",
+         "    end",
+         "    p = struct();",
+         "    i = 13;"]
+    for f in F:
+        n, t, sh = count(f), f["type"], f.get("shape", [])
+        nb = SIZE[t] * n
+        rd = {"f64": f"double(typecast(b(i:i + {nb - 1}), 'double'))", "u32": f"double(typecast(b(i:i + {nb - 1}), 'uint32'))",
+              "u8": f"double(b(i:i + {nb - 1}))"}[t]
+        if len(sh) == 2:
+            rd = f"reshape({rd}, {sh[1]}, {sh[0]})'"
+        L.append(f"    p.{f['name']} = {rd}; i = i + {nb};")
+    L += ["end", "", "function c = crc32_(d)",
+          "%CRC32_  CRC-32 (IEEE 802.3, reflected, init and xorout 0xFFFFFFFF) of the bytes d, by its table.",
+          "    persistent T",
+          "    if isempty(T)",
+          "        T = zeros(256, 1);",
+          "        for n = 0:255",
+          "            c = n;",
+          "            for k = 1:8",
+          "                if bitand(c, 1), c = bitxor(floor(c / 2), 3988292384); else, c = floor(c / 2); end",
+          "            end",
+          "            T(n + 1) = c;",
+          "        end",
+          "    end",
+          "    c = 4294967295;",
+          "    for k = 1:numel(d)",
+          "        c = bitxor(T(bitand(bitxor(c, double(d(k))), 255) + 1), floor(c / 256));",
+          "    end",
+          "    c = bitxor(c, 4294967295);",
+          "end", ""]
+    return "\n".join(L)
+
+
 IGRF_SRC = ROOT / "matlab_sils" / "data" / "igrf13coeffs.txt"
 
 
@@ -417,7 +470,8 @@ def outputs():
         raise SystemExit("gen_fsw_params: refused, matlab_sils/data/igrf13.json:\n  " + "\n  ".join(bad))
     return [(ROOT / "matlab_sils" / "data" / "igrf13.json", igrf_json(d)),
             (ROOT / "fsw" / "include" / "adcs_params.h", c_header()), (ROOT / "fsw" / "src" / "adcs_params.c", c_source()),
-            (ROOT / "fsw-rs" / "src" / "params.rs", rs_source())]
+            (ROOT / "fsw-rs" / "src" / "params.rs", rs_source()),
+            (ROOT / "matlab_sils" / "+asils" / "+fsw" / "params_decode.m", m_source())]
 
 
 if __name__ == "__main__":

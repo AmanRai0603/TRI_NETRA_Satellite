@@ -25,8 +25,8 @@ function [q_ref, w_ref, wd_ref] = guidance(kind, r, v, t, q_off, roll_deg, t0, t
     rh = asils.pc.unit_(r);
     vh = asils.pc.unit_(v);
     mr = (rh * (-(1)));
-    nrm = asils.pc.unit_(asils.pc.cross_(vh, mr));
-    ram = asils.pc.unit_(asils.pc.cross_(mr, nrm));
+    nrm = asils.pc.unit_([vh(2)*mr(3) - vh(3)*mr(2); vh(3)*mr(1) - vh(1)*mr(3); vh(1)*mr(2) - vh(2)*mr(1)]);
+    ram = asils.pc.unit_([mr(2)*nrm(3) - mr(3)*nrm(2); mr(3)*nrm(1) - mr(1)*nrm(3); mr(1)*nrm(2) - mr(2)*nrm(1)]);
     rr = zeros(3, 3);
     for i = (0):((3) - 1)
         rr(1, (i) + 1) = (-(ram((i) + 1)));
@@ -39,15 +39,15 @@ function [q_ref, w_ref, wd_ref] = guidance(kind, r, v, t, q_off, roll_deg, t0, t
     end
     if flip
         u = [1; 0; 0];
-        if (asils.pc.norm_(roll_axis) > 0)
+        if (sqrt(roll_axis(1)*roll_axis(1) + roll_axis(2)*roll_axis(2) + roll_axis(3)*roll_axis(3)) > 0)
             u = asils.pc.unit_(roll_axis);
         end
         q_nad = asils.relations.shared.qmult(q_nad, [u(1); u(2); u(3); 0]);
     end
-    w_orb = (asils.pc.cross_(r, v) * (1 / asils.pc.dot_(r, r)));
+    w_orb = ([r(2)*v(3) - r(3)*v(2); r(3)*v(1) - r(1)*v(3); r(1)*v(2) - r(2)*v(1)] * (1 / (r(1)*r(1) + r(2)*r(2) + r(3)*r(3))));
     wd_ref = zeros(3, 1);
     ax = [1; 0; 0];
-    if (asils.pc.norm_(axis) > 0)
+    if (sqrt(axis(1)*axis(1) + axis(2)*axis(2) + axis(3)*axis(3)) > 0)
         ax = asils.pc.unit_(axis);
     end
     if (kind == 1)
@@ -75,32 +75,32 @@ function [q_ref, w_ref, wd_ref] = guidance(kind, r, v, t, q_off, roll_deg, t0, t
         w_ref = zeros(3, 1);
     elseif (kind == 4)
         a = [0; 0; (-(1))];
-        if (asils.pc.norm_(sun_axis) > 0)
+        if (sqrt(sun_axis(1)*sun_axis(1) + sun_axis(2)*sun_axis(2) + sun_axis(3)*sun_axis(3)) > 0)
             a = asils.pc.unit_(sun_axis);
         end
         b = [1; 0; 0];
-        if (asils.pc.norm_(roll_axis) > 0)
+        if (sqrt(roll_axis(1)*roll_axis(1) + roll_axis(2)*roll_axis(2) + roll_axis(3)*roll_axis(3)) > 0)
             b = roll_axis;
         end
-        ab = asils.pc.dot_(a, b);
+        ab = (a(1)*b(1) + a(2)*b(2) + a(3)*b(3));
         for i = (0):((3) - 1)
             b((i) + 1) = (b((i) + 1) - (ab * a((i) + 1)));
         end
-        if (asils.pc.norm_(b) < 0.000001)
+        if (sqrt(b(1)*b(1) + b(2)*b(2) + b(3)*b(3)) < 0.000001)
             b = [((-(a(2))) * a(1)); (1 - (a(2) * a(2))); ((-(a(2))) * a(3))];
         end
         b = asils.pc.unit_(b);
         s = asils.pc.unit_(sun_eci);
         e2 = zeros(3, 1);
         for i = (0):((3) - 1)
-            e2((i) + 1) = (nrm((i) + 1) - (asils.pc.dot_(nrm, s) * s((i) + 1)));
+            e2((i) + 1) = (nrm((i) + 1) - ((nrm(1)*s(1) + nrm(2)*s(2) + nrm(3)*s(3)) * s((i) + 1)));
         end
-        if (asils.pc.norm_(e2) < 0.000001)
+        if (sqrt(e2(1)*e2(1) + e2(2)*e2(2) + e2(3)*e2(3)) < 0.000001)
             e2 = [((-(s(3))) * s(1)); ((-(s(3))) * s(2)); (1 - (s(3) * s(3)))];
         end
         e2 = asils.pc.unit_(e2);
-        b3 = asils.pc.cross_(a, b);
-        e3 = asils.pc.cross_(s, e2);
+        b3 = [a(2)*b(3) - a(3)*b(2); a(3)*b(1) - a(1)*b(3); a(1)*b(2) - a(2)*b(1)];
+        e3 = [s(2)*e2(3) - s(3)*e2(2); s(3)*e2(1) - s(1)*e2(3); s(1)*e2(2) - s(2)*e2(1)];
         m = zeros(3, 3);
         for i = (0):((3) - 1)
             for j = (0):((3) - 1)

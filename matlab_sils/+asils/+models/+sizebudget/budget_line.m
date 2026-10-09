@@ -23,12 +23,11 @@ function [n, m, p, v] = budget_line(s, na, ns, nb, nn, mass, ps, pw, pm, vol)
     v = 0;
     n = 1;
     counts = [na; ns; nb; nn];
-    for i = (0):((4) - 1)
-        if (counts((i) + 1) >= 0)
-            n = counts((i) + 1);
-            if (s == 12)
-                n = 1;
-            end
+    t__355 = ((0):((4) - 1)).';
+    for i = t__355(logical((counts((t__355) + 1) >= 0))).'
+        n = counts((i) + 1);
+        if (s == 12)
+            n = 1;
         end
     end
     mm = asils.pc.choose(isnan(mass), 0, mass);

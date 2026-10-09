@@ -41,23 +41,21 @@ function [nr, ngo, rot_kind, rot_a0, rot_gi, gim_axis, rot_tmax, rot_hmax, rot_h
     rot_tmax = zeros(8, 1);
     rot_hmax = zeros(8, 1);
     rot_h0 = zeros(8, 1);
-    for i = (0):((8) - 1)
-        if (i < n)
-            rot_kind((i) + 1) = kind((i) + 1);
-            for k = (0):((3) - 1)
-                rot_a0((i) + 1, (k) + 1) = a0((i) + 1, (k) + 1);
-            end
-            rot_gi((i) + 1) = gi((i) + 1);
-            rot_tmax((i) + 1) = tmax((i) + 1);
-            rot_hmax((i) + 1) = hmax((i) + 1);
-            rot_h0((i) + 1) = h0((i) + 1);
+    t__422 = ((0):((8) - 1)).';
+    for i = t__422(logical((t__422 < n))).'
+        rot_kind((i) + 1) = kind((i) + 1);
+        for k = (0):((3) - 1)
+            rot_a0((i) + 1, (k) + 1) = a0((i) + 1, (k) + 1);
         end
+        rot_gi((i) + 1) = gi((i) + 1);
+        rot_tmax((i) + 1) = tmax((i) + 1);
+        rot_hmax((i) + 1) = hmax((i) + 1);
+        rot_h0((i) + 1) = h0((i) + 1);
     end
-    for m = (0):((4) - 1)
-        if (m < ng)
-            for k = (0):((3) - 1)
-                gim_axis((m) + 1, (k) + 1) = g((m) + 1, (k) + 1);
-            end
+    t__423 = ((0):((4) - 1)).';
+    for m = t__423(logical((t__423 < ng))).'
+        for k = (0):((3) - 1)
+            gim_axis((m) + 1, (k) + 1) = g((m) + 1, (k) + 1);
         end
     end
     gim_rate_max = asils.pc.choose((ng > 0), rate_max, 1);

@@ -7,10 +7,10 @@ function [m] = ram_attitude(vrel)
     m = zeros(3, 3);
     x = asils.models.drag.ounit(vrel);
     zref = [0; 0; 1];
-    if (asils.pc.fabs(asils.pc.dot_(x, zref)) > 0.98)
+    if (asils.pc.fabs((x(1)*zref(1) + x(2)*zref(2) + x(3)*zref(3))) > 0.98)
         zref = [0; 1; 0];
     end
-    y = asils.models.drag.ounit(asils.pc.cross_(zref, x));
-    z = asils.pc.cross_(x, y);
+    y = asils.models.drag.ounit([zref(2)*x(3) - zref(3)*x(2); zref(3)*x(1) - zref(1)*x(3); zref(1)*x(2) - zref(2)*x(1)]);
+    z = [x(2)*y(3) - x(3)*y(2); x(3)*y(1) - x(1)*y(3); x(1)*y(2) - x(2)*y(1)];
     m = asils.models.drag.from_cols(x, y, z);
 end

@@ -37,23 +37,23 @@ function [xd] = plant_deriv(x, inertia, iinv, minv, m, f, tau_ext, tau_r, gdot)
     end
     ht = [0; 0; 0];
     if f.on
-        ht = ((asils.pc.mv(inertia, w) + hr) + (f.delta * x.etad));
+        ht = (([inertia(1, 1)*w(1) + inertia(1, 2)*w(2) + inertia(1, 3)*w(3); inertia(2, 1)*w(1) + inertia(2, 2)*w(2) + inertia(2, 3)*w(3); inertia(3, 1)*w(1) + inertia(3, 2)*w(2) + inertia(3, 3)*w(3)] + hr) + (f.delta * x.etad));
     else
-        ht = (asils.pc.mv(inertia, w) + hr);
+        ht = ([inertia(1, 1)*w(1) + inertia(1, 2)*w(2) + inertia(1, 3)*w(3); inertia(2, 1)*w(1) + inertia(2, 2)*w(2) + inertia(2, 3)*w(3); inertia(3, 1)*w(1) + inertia(3, 2)*w(2) + inertia(3, 3)*w(3)] + hr);
     end
-    g = asils.pc.cross_(w, ht);
+    g = [w(2)*ht(3) - w(3)*ht(2); w(3)*ht(1) - w(1)*ht(3); w(1)*ht(2) - w(2)*ht(1)];
     xd = asils.models.rigidbody.PlantState_zero();
     xd.q = asils.models.rigidbody.quat_rate(x.q, w);
     if f.on
         pull = asils.models.flexmode.flex_pull(f, x.eta, x.etad);
         rhs = [(((tau_ext(1) - hd(1)) - g(1)) + (f.delta(1) * pull)); (((tau_ext(2) - hd(2)) - g(2)) + (f.delta(2) * pull)); (((tau_ext(3) - hd(3)) - g(3)) + (f.delta(3) * pull))];
-        wd = asils.pc.mv(minv, rhs);
+        wd = [minv(1, 1)*rhs(1) + minv(1, 2)*rhs(2) + minv(1, 3)*rhs(3); minv(2, 1)*rhs(1) + minv(2, 2)*rhs(2) + minv(2, 3)*rhs(3); minv(3, 1)*rhs(1) + minv(3, 2)*rhs(2) + minv(3, 3)*rhs(3)];
         xd.w = wd;
         xd.eta = x.etad;
-        xd.etad = ((-(pull)) - asils.pc.dot_(f.delta, wd));
+        xd.etad = ((-(pull)) - (f.delta(1)*wd(1) + f.delta(2)*wd(2) + f.delta(3)*wd(3)));
     else
         rhs0 = [((tau_ext(1) - hd(1)) - g(1)); ((tau_ext(2) - hd(2)) - g(2)); ((tau_ext(3) - hd(3)) - g(3))];
-        xd.w = asils.pc.mv(iinv, rhs0);
+        xd.w = [iinv(1, 1)*rhs0(1) + iinv(1, 2)*rhs0(2) + iinv(1, 3)*rhs0(3); iinv(2, 1)*rhs0(1) + iinv(2, 2)*rhs0(2) + iinv(2, 3)*rhs0(3); iinv(3, 1)*rhs0(1) + iinv(3, 2)*rhs0(2) + iinv(3, 3)*rhs0(3)];
     end
     hdot = zeros(8, 1);
     for ih = (0):((m.nr) - 1)

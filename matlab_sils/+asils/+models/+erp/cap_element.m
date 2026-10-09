@@ -40,9 +40,9 @@ function [vis, n_el, es, cos_e, da, rho, lat] = cap_element(r_sat, zhat, e1, e2,
         n_el((i) + 1) = ((cp * zhat((i) + 1)) + (sp * ((ca * e1((i) + 1)) + (sa * e2((i) + 1)))));
     end
     sv = [(r_sat(1) - (re * n_el(1))); (r_sat(2) - (re * n_el(2))); (r_sat(3) - (re * n_el(3)))];
-    rho = asils.pc.norm_(sv);
+    rho = sqrt(sv(1)*sv(1) + sv(2)*sv(2) + sv(3)*sv(3));
     es = [(sv(1) / rho); (sv(2) / rho); (sv(3) / rho)];
-    cos_e = asils.pc.dot_(n_el, es);
+    cos_e = (n_el(1)*es(1) + n_el(2)*es(2) + n_el(3)*es(3));
     vis = (~(cos_e <= 0));
     da = ((((re * re) * sp) * dpsi) * ((2 * pi) / nsg));
     lat = asils.pc.asin_(asils.models.thirdbody.unit_clip(n_el(3)));

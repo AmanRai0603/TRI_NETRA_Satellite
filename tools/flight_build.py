@@ -27,6 +27,11 @@ is not built) write them as:
                                                                        its name, inputs flattened): test code only, never
                                                                        in an image; the vector tests call through it the
                                                                        functions the runtime does not call by itself
+  matlab_sils/+asils/+alg/                                             MATLAB, the MATLAB twin's flight software (S7.17):
+                                                                       the same algorithms, package asils.alg, over the
+                                                                       twin's shared runtime +asils/+pc; its tick is the
+                                                                       twin's runtime (+asils/+fsw/step.m). Not in the
+                                                                       algorithms' identity (no flight image carries it)
 The runtime stays code (fsw/src/adcs_fsw.c and fsw-rs/src/fsw.rs: the tick and its schedule; the HAL, the C interface,
 the parameter blob, the targets); it calls the algorithms through the hand-written signatures the tick has always
 called, which now only hand the values to the generated functions.
@@ -73,7 +78,8 @@ C_ID = "fsw/alg/include/adcs_alg_id.h"
 RS_ID = "fsw-rs/src/alg/alg_id.rs"
 C_DISPATCH = "fsw/tests/alg_dispatch.c"
 RS_DISPATCH = "fsw-rs/tests/alg/dispatch.rs"
-GEN_DIRS = ("fsw/alg", "fsw-rs/src/alg")
+M_OUT = "matlab_sils/+asils/+alg"
+GEN_DIRS = ("fsw/alg", "fsw-rs/src/alg", M_OUT)
 DESIGN_BLOCKS = ("03", "04", "05", "06", "07", "08", "09")     # fsw/pseudocode/NN_*: the flight algorithm blocks
 IMAGES = ROOT / "results" / "flight_images"
 INDEX_MD = ROOT / "results" / "FLIGHT_IMAGES.md"
@@ -154,6 +160,13 @@ def outputs(sources=SOURCES):
     out[C_DISPATCH] = translate("c", "--lib", LIB, "--title", TITLE, sources=sources)["src/dispatch.c"]
     out[RS_DISPATCH] = translate("rust", "--root", "crate::alg", "--math", "crate::m", "--title", TITLE,
                                  sources=sources)["src/dispatch.rs"]
+    # the MATLAB twin's flight software (S7.17): the same algorithms in MATLAB, outside the identity (no image carries it),
+    # with the identity of the C and Rust they are the translation of, so a twin run names the algorithms it flew
+    for rel, text in translate("matlab", "--pkg", "asils.alg", sources=sources).items():
+        out[f"{M_OUT}/{rel}"] = text
+    out[f"{M_OUT}/alg_id.m"] = (f"function id = alg_id()\n%ALG_ID  The flight algorithms' identity (the C and Rust sources' sha256, first 16 hex), written by\n"
+                                f"%   tools/flight_build.py; do not edit. This package is the MATLAB translation of the same design.\n"
+                                f"    id = '{aid}';\nend\n")
     return out, aid
 
 
@@ -336,7 +349,7 @@ def seal(a):
     if path.exists():
         path.unlink()                    # a seal of today's build replaces the last seal of the same design and target
     files = [(rel, sha256(text.encode()), text.encode()) for rel, text in sorted(outs.items())
-             if not rel.startswith(("fsw/tests/", "fsw-rs/tests/"))]
+             if not rel.startswith(("fsw/tests/", "fsw-rs/tests/", M_OUT + "/"))]
     files.append((t["image"], sha256(binary), binary))
     files += [(f"blob/{s}.fswcfg", sha256(b), b) for s, b in sorted(cfg.items())]
     image = (target, version, from_design.fingerprint(design), rv or "?", toolchain(target),

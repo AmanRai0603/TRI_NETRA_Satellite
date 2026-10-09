@@ -28,7 +28,7 @@ function [drawn, cr, cm, img, g, tx, ty, tk] = st_render(r_eh, cr, cm, nc, cam, 
     s2 = ((2 * cam.psf_px) * cam.psf_px);
     drawn = 0;
     for k = (0):((nc) - 1)
-        v = asils.pc.mv(r_eh, (cr((k) + 1, :)).');
+        v = [r_eh(1, 1)*cr((k) + 1, 1) + r_eh(1, 2)*cr((k) + 1, 2) + r_eh(1, 3)*cr((k) + 1, 3); r_eh(2, 1)*cr((k) + 1, 1) + r_eh(2, 2)*cr((k) + 1, 2) + r_eh(2, 3)*cr((k) + 1, 3); r_eh(3, 1)*cr((k) + 1, 1) + r_eh(3, 2)*cr((k) + 1, 2) + r_eh(3, 3)*cr((k) + 1, 3)];
         if (v(3) > cmin)
             x = (((cam.f * v(1)) / v(3)) + cam.c);
             y = (((cam.f * v(2)) / v(3)) + cam.c);
@@ -68,12 +68,12 @@ function [drawn, cr, cm, img, g, tx, ty, tk] = st_render(r_eh, cr, cm, nc, cam, 
     if noisy
         for l3 = (0):((np) - 1)
             v3 = img((l3) + 1);
-            [t__592, t__593] = asils.pc.stream_normal(g);
-            n1 = t__592;
-            g = t__593;
-            [t__594, t__595] = asils.pc.stream_normal(g);
-            n2 = t__594;
-            g = t__595;
+            [t__611, t__612] = asils.pc.stream_normal(g);
+            n1 = t__611;
+            g = t__612;
+            [t__613, t__614] = asils.pc.stream_normal(g);
+            n2 = t__613;
+            g = t__614;
             img((l3) + 1) = ((v3 + (asils.pc.sqrt_(asils.pc.fmax(v3, 0)) * n1)) + (cam.read_noise * n2));
         end
     end

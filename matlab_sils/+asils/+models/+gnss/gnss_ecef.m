@@ -10,6 +10,6 @@ function [re, ve] = gnss_ecef(jd0, te, r, v)
     re = zeros(3, 1);
     ve = zeros(3, 1);
     ce = asils.models.caltime.eci_to_ecef((jd0 + (te / 86400)));
-    re = asils.pc.mv(ce, r);
-    ve = (asils.pc.mv(ce, v) - asils.pc.cross_([0; 0; 0.00007292115], re));
+    re = [ce(1, 1)*r(1) + ce(1, 2)*r(2) + ce(1, 3)*r(3); ce(2, 1)*r(1) + ce(2, 2)*r(2) + ce(2, 3)*r(3); ce(3, 1)*r(1) + ce(3, 2)*r(2) + ce(3, 3)*r(3)];
+    ve = ([ce(1, 1)*v(1) + ce(1, 2)*v(2) + ce(1, 3)*v(3); ce(2, 1)*v(1) + ce(2, 2)*v(2) + ce(2, 3)*v(3); ce(3, 1)*v(1) + ce(3, 2)*v(2) + ce(3, 3)*v(3)] - asils.pc.cross_([0; 0; 0.00007292115], re));
 end

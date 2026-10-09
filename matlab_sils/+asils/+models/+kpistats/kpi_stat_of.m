@@ -34,10 +34,10 @@ function [v, w, tmp] = kpi_stat_of(w, m, st, tmp)
             if (st == 4)
                 q = 0.9973;
             end
-            [t__445, t__446, t__447] = asils.models.kpistats.kpi_sort(w, m, tmp);
-            passes = t__445;
-            w = t__446;
-            tmp = t__447;
+            [t__455, t__456, t__457] = asils.models.kpistats.kpi_sort(w, m, tmp);
+            passes = t__455;
+            w = t__456;
+            tmp = t__457;
             k = fix(ceil((q * m)));
             if (k < 1)
                 k = 1;

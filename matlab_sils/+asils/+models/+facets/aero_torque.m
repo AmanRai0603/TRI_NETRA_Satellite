@@ -10,18 +10,18 @@ function [tau] = aero_torque(rm, v_rel, rho, g)
     tau = zeros(3, 1);
     tau = [0; 0; 0];
     if (rho > 0)
-        vb = asils.pc.mv(rm, v_rel);
-        vv = asils.pc.norm_(vb);
+        vb = [rm(1, 1)*v_rel(1) + rm(1, 2)*v_rel(2) + rm(1, 3)*v_rel(3); rm(2, 1)*v_rel(1) + rm(2, 2)*v_rel(2) + rm(2, 3)*v_rel(3); rm(3, 1)*v_rel(1) + rm(3, 2)*v_rel(2) + rm(3, 3)*v_rel(3)];
+        vv = sqrt(vb(1)*vb(1) + vb(2)*vb(2) + vb(3)*vb(3));
         vh = (vb * (1 / vv));
         for j = (0):((6) - 1)
-            c = asils.pc.dot_(vh, (g.n((j) + 1, :)).');
+            c = (vh(1)*g.n((j) + 1, 1) + vh(2)*g.n((j) + 1, 2) + vh(3)*g.n((j) + 1, 3));
             if (~(c <= 0))
                 k2 = ((g.sigma_n * g.vb_ratio) + (((2 - g.sigma_n) - g.sigma_t) * c));
                 f = [0; 0; 0];
                 for k = (0):((3) - 1)
                     f((k) + 1) = ((((((-(rho)) * vv) * vv) * g.a((j) + 1)) * c) * ((g.sigma_t * vh((k) + 1)) + (k2 * g.n((j) + 1, (k) + 1))));
                 end
-                tau = (tau + asils.pc.cross_((g.rho((j) + 1, :)).', f));
+                tau = (tau + [g.rho((j) + 1, 2)*f(3) - g.rho((j) + 1, 3)*f(2); g.rho((j) + 1, 3)*f(1) - g.rho((j) + 1, 1)*f(3); g.rho((j) + 1, 1)*f(2) - g.rho((j) + 1, 2)*f(1)]);
             end
         end
     end

@@ -19,10 +19,10 @@ function [mx, mmt, c, d, u, s] = algebra(x, y, rate)
     M = [([rate; 0; 0]).'; ([0; (2 * rate); 0]).'; ([0; 0; (3 * rate)]).'];
     M(1, 2) = (0.5 * rate);
     M(3, :) = [rate; rate; rate].';
-    mx = asils.pc.mv(M, x);
+    mx = [M(1, 1)*x(1) + M(1, 2)*x(2) + M(1, 3)*x(3); M(2, 1)*x(1) + M(2, 2)*x(2) + M(2, 3)*x(3); M(3, 1)*x(1) + M(3, 2)*x(2) + M(3, 3)*x(3)];
     mmt = asils.pc.mm(M, (M).');
-    c = asils.pc.cross_(x, y);
-    d = asils.pc.dot_(x, y);
+    c = [x(2)*y(3) - x(3)*y(2); x(3)*y(1) - x(1)*y(3); x(1)*y(2) - x(2)*y(1)];
+    d = (x(1)*y(1) + x(2)*y(2) + x(3)*y(3));
     u = asils.pc.unit_((x - y));
     s = ((((-(x)) + (2 * y)) - [1.0; 0.0; 0.0]) + (x / 2));
 end

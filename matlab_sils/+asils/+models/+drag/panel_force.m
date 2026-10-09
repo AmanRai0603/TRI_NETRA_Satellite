@@ -72,10 +72,10 @@ function [st, k, o] = panel_force(r, v, atm, f, model, g, mass, aref, r_bi, wind
                 k = (j + 1);
             end
             if (st == 0)
-                n0 = asils.pc.mv(r_bi, nb);
+                n0 = [r_bi(1, 1)*nb(1) + r_bi(1, 2)*nb(2) + r_bi(1, 3)*nb(3); r_bi(2, 1)*nb(1) + r_bi(2, 2)*nb(2) + r_bi(2, 3)*nb(3); r_bi(3, 1)*nb(1) + r_bi(3, 2)*nb(2) + r_bi(3, 3)*nb(3)];
                 nn = asils.models.gravity.onorm(n0);
                 n = [(n0(1) / nn); (n0(2) / nn); (n0(3) / nn)];
-                cosd = asils.pc.dot_(n, uhat);
+                cosd = (n(1)*uhat(1) + n(2)*uhat(2) + n(3)*uhat(3));
                 if ((f.dbl((j) + 1) == 1) && (cosd < 0))
                     n = [(-(n(1))); (-(n(2))); (-(n(3)))];
                     cosd = (-(cosd));
@@ -94,13 +94,13 @@ function [st, k, o] = panel_force(r, v, atm, f, model, g, mass, aref, r_bi, wind
                         cp = 0;
                         ct = 0;
                         if (model == 3)
-                            [t__382, t__383] = asils.models.gsi.cll(s, delta, g.sig_n, g.sig_t, g.tw, atm.t);
-                            cp = t__382;
-                            ct = t__383;
-                        else
-                            [t__384, t__385] = asils.models.gsi.sentman(s, delta, a_t, g.tw, atm.t);
+                            [t__384, t__385] = asils.models.gsi.cll(s, delta, g.sig_n, g.sig_t, g.tw, atm.t);
                             cp = t__384;
                             ct = t__385;
+                        else
+                            [t__386, t__387] = asils.models.gsi.sentman(s, delta, a_t, g.tw, atm.t);
+                            cp = t__386;
+                            ct = t__387;
                         end
                         q = (((0.5 * rho_s((jj) + 1)) * asils.pc.pow_(vm, 2)) * f.a((j) + 1));
                         for i = (0):((3) - 1)
@@ -122,7 +122,7 @@ function [st, k, o] = panel_force(r, v, atm, f, model, g, mass, aref, r_bi, wind
             rho_tot = (rho_tot + rho_s((i2) + 1));
         end
         qd = ((0.5 * rho_tot) * asils.pc.pow_(vm, 2));
-        fu = asils.pc.dot_(fs, uhat);
+        fu = (fs(1)*uhat(1) + fs(2)*uhat(2) + fs(3)*uhat(3));
         dv = [(fu * uhat(1)); (fu * uhat(2)); (fu * uhat(3))];
         o.f = fs;
         o.a = [(fs(1) / mass); (fs(2) / mass); (fs(3) / mass)];

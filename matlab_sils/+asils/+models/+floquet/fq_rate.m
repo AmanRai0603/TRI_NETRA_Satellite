@@ -23,7 +23,7 @@ function [xd] = fq_rate(law, g, c_bo, inc, n, ji, duty, nad, wref_r, t, x)
     am = asils.models.math.dcm(qe);
     u = (n * t);
     bo = [(cos(u) * sin(inc)); (-(cos(inc))); ((2 * sin(u)) * sin(inc))];
-    b = asils.pc.mv(am, asils.pc.mv(c_bo, (bo / asils.pc.norm_(bo))));
+    b = asils.pc.mv(am, asils.pc.mv(c_bo, (bo / sqrt(bo(1)*bo(1) + bo(2)*bo(2) + bo(3)*bo(3)))));
     gm = zeros(3, 3);
     for i = (0):((3) - 1)
         for j = (0):((3) - 1)
@@ -31,11 +31,11 @@ function [xd] = fq_rate(law, g, c_bo, inc, n, ji, duty, nad, wref_r, t, x)
         end
     end
     tau = asils.models.floquet.fq_torque(law, g, qe, w, wref_r, g.roll_axis);
-    c = asils.pc.mv(am, nad);
+    c = [am(1, 1)*nad(1) + am(1, 2)*nad(2) + am(1, 3)*nad(3); am(2, 1)*nad(1) + am(2, 2)*nad(2) + am(2, 3)*nad(3); am(3, 1)*nad(1) + am(3, 2)*nad(2) + am(3, 3)*nad(3)];
     if (bitand(g.mtq_gg_ff, 2) ~= 0)
-        tau = (tau - (((3 * n) * n) * asils.pc.cross_(c, asils.pc.mv(g.J, c))));
+        tau = (tau - (((3 * n) * n) * asils.pc.cross_(c, [g.J(1, 1)*c(1) + g.J(1, 2)*c(2) + g.J(1, 3)*c(3); g.J(2, 1)*c(1) + g.J(2, 2)*c(2) + g.J(2, 3)*c(3); g.J(3, 1)*c(1) + g.J(3, 2)*c(2) + g.J(3, 3)*c(3)])));
     end
-    wd = asils.pc.mv(ji, (((-(asils.pc.cross_(w, asils.pc.mv(g.J, w)))) + (((3 * n) * n) * asils.pc.cross_(c, asils.pc.mv(g.J, c)))) + (duty * asils.pc.mv(gm, tau))));
-    we = (w - asils.pc.mv(am, wref_r));
+    wd = asils.pc.mv(ji, (((-(asils.pc.cross_(w, [g.J(1, 1)*w(1) + g.J(1, 2)*w(2) + g.J(1, 3)*w(3); g.J(2, 1)*w(1) + g.J(2, 2)*w(2) + g.J(2, 3)*w(3); g.J(3, 1)*w(1) + g.J(3, 2)*w(2) + g.J(3, 3)*w(3)]))) + (((3 * n) * n) * asils.pc.cross_(c, [g.J(1, 1)*c(1) + g.J(1, 2)*c(2) + g.J(1, 3)*c(3); g.J(2, 1)*c(1) + g.J(2, 2)*c(2) + g.J(2, 3)*c(3); g.J(3, 1)*c(1) + g.J(3, 2)*c(2) + g.J(3, 3)*c(3)]))) + (duty * [gm(1, 1)*tau(1) + gm(1, 2)*tau(2) + gm(1, 3)*tau(3); gm(2, 1)*tau(1) + gm(2, 2)*tau(2) + gm(2, 3)*tau(3); gm(3, 1)*tau(1) + gm(3, 2)*tau(2) + gm(3, 3)*tau(3)])));
+    we = (w - [am(1, 1)*wref_r(1) + am(1, 2)*wref_r(2) + am(1, 3)*wref_r(3); am(2, 1)*wref_r(1) + am(2, 2)*wref_r(2) + am(2, 3)*wref_r(3); am(3, 1)*wref_r(1) + am(3, 2)*wref_r(2) + am(3, 3)*wref_r(3)]);
     xd = [we(1); we(2); we(3); wd(1); wd(2); wd(3)];
 end

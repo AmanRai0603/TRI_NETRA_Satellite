@@ -8,13 +8,13 @@ function [tau] = radiation_torque(g, sb, p)
     tau = zeros(3, 1);
     tau = [0; 0; 0];
     for j = (0):((6) - 1)
-        c = asils.pc.dot_(sb, (g.n((j) + 1, :)).');
+        c = (sb(1)*g.n((j) + 1, 1) + sb(2)*g.n((j) + 1, 2) + sb(3)*g.n((j) + 1, 3));
         if (~(c <= 0))
             f = [0; 0; 0];
             for k = (0):((3) - 1)
                 f((k) + 1) = ((((-(p)) * g.a((j) + 1)) * c) * (((1 - g.rho_spec) * sb((k) + 1)) + ((2 * ((g.rho_spec * c) + (g.rho_diff / 3))) * g.n((j) + 1, (k) + 1))));
             end
-            tau = (tau + asils.pc.cross_((g.rho((j) + 1, :)).', f));
+            tau = (tau + [g.rho((j) + 1, 2)*f(3) - g.rho((j) + 1, 3)*f(2); g.rho((j) + 1, 3)*f(1) - g.rho((j) + 1, 1)*f(3); g.rho((j) + 1, 1)*f(2) - g.rho((j) + 1, 2)*f(1)]);
         end
     end
 end

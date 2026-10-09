@@ -20,8 +20,8 @@ function [v, spin_z, idx, w, tmp] = kpi_spin_error_stat(spin_z, idx, ni, spin_dp
             k = (k + 1);
         end
     end
-    [t__436, t__437, t__438] = asils.models.kpistats.kpi_stat_of(w, k, st, tmp);
-    v = t__436;
-    w = t__437;
-    tmp = t__438;
+    [t__446, t__447, t__448] = asils.models.kpistats.kpi_stat_of(w, k, st, tmp);
+    v = t__446;
+    w = t__447;
+    tmp = t__448;
 end

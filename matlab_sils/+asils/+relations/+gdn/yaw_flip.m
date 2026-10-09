@@ -16,10 +16,10 @@ function [flip_out] = yaw_flip(r, v, q_off, sun_axis, roll_axis, sun_eci, flip, 
     [q, w, wd] = asils.relations.gdn.guidance(0, r, v, 0, q_off, 0, 0, 1, z, [0; 0; 0; 1], sun_axis, roll_axis, sun_eci, false);
     sb = asils.pc.mv(asils.relations.gdn.dcm(q), asils.pc.unit_(sun_eci));
     a = [0; 0; (-(1))];
-    if (asils.pc.norm_(sun_axis) > 0)
+    if (sqrt(sun_axis(1)*sun_axis(1) + sun_axis(2)*sun_axis(2) + sun_axis(3)*sun_axis(3)) > 0)
         a = asils.pc.unit_(sun_axis);
     end
-    d = asils.pc.dot_(a, sb);
+    d = (a(1)*sb(1) + a(2)*sb(2) + a(3)*sb(3));
     flip_out = flip;
     if (d < (-(hyst)))
         flip_out = true;

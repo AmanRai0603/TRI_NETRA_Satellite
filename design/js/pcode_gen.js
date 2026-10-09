@@ -792,6 +792,32 @@ export function toMatlab(prog, opts = {}) {
     return ["a", "b", "c", "i"].some((k) => e[k] && typeof e[k] === "object" && mayFail(e[k])) || (e.items || []).some(mayFail) || (e.args || []).some(mayFail);
   };
   const dataRef = (x) => (x.e === "var" && x.kind === "data" ? `${pkg}.${prog.data[x.name].module}.${x.name}` : null);
+  // Read in place (speed, the same arithmetic): a small vector or matrix the expression names, whose elements can be
+  // read where they are (a variable, a record's field of one, a row of a matrix variable or data table, its index free
+  // of calls): the text of its element, else null. dot, norm, cross and the matrix-vector product of such operands are
+  // written out term by term, summed left to right as the runtime's dot_ and mv sum them.
+  const noCall = (e) => !e || typeof e !== "object" || (e.e !== "call" &&
+    ["a", "b", "c", "i"].every((k) => noCall(e[k])) && (e.items || []).every(noCall) && (e.args || []).every(noCall));
+  const plainBase = (e) => (e.e === "var" && !["const", "builtin_const", "data"].includes(e.kind)) ||
+    (e.e === "field" && !e.choice && e.a.e !== "call" && noCall(e.a));
+  const elems = (e, n) => {
+    const t = e.ty;
+    if (!t || t.k !== "arr" || t.n !== n || t.of.k === "arr") return null;
+    if (plainBase(e)) { const b = ex(e); return (k) => `${b}(${k})`; }
+    if (e.e === "index" && e.a.ty.k === "arr" && e.a.ty.of.k === "arr" && noCall(e.i) && (plainBase(e.a) || dataRef(e.a))) {
+      const m = dataRef(e.a) || ex(e.a), r = idx(e.i);
+      return (k) => `${m}(${r}, ${k})`;
+    }
+    return null;
+  };
+  const melems = (e, n, m) => {
+    const t = e.ty;
+    if (!t || t.k !== "arr" || t.n !== n || t.of.k !== "arr" || t.of.n !== m || t.of.of.k === "arr") return null;
+    if (plainBase(e) || dataRef(e)) { const b = dataRef(e) || ex(e); return (i, j) => `${b}(${i}, ${j})`; }
+    return null;
+  };
+  const SMALL = (n) => n >= 1 && n <= 4;
+  const sumOf = (terms) => terms.join(" + ");
   const valueLitM = (v, t) => (t.k === "real" ? (v < 0 ? `(${ml(v)})` : ml(v)) : valueLit(v, t));
   const idx = (i) => (i.e === "num" ? String(i.v + 1) : `(${ex(i)}) + 1`);
   const bin = (e) => {
@@ -801,7 +827,12 @@ export function toMatlab(prog, opts = {}) {
     if (op === "^") return `${rtp}.ipow(${ex(e.a)}, ${e.k})`;
     if (op === "!=") return `(${ex(e.a)} ~= ${ex(e.b)})`;
     if (["==", "<", "<=", ">", ">="].includes(op)) return `(${ex(e.a)} ${op} ${ex(e.b)})`;
-    if (e.shape === "mv") return `${rtp}.mv(${ex(e.a)}, ${ex(e.b)})`;
+    if (e.shape === "mv") {
+      const at = e.a.ty, n = at && at.k === "arr" ? at.n : 0, m = at && at.k === "arr" && at.of.k === "arr" ? at.of.n : 0;
+      const M = SMALL(n) && SMALL(m) ? melems(e.a, n, m) : null, V = M ? elems(e.b, m) : null;
+      if (M && V) return `[${Array.from({ length: n }, (_, i) => sumOf(Array.from({ length: m }, (_, j) => `${M(i + 1, j + 1)}*${V(j + 1)}`))).join("; ")}]`;
+      return `${rtp}.mv(${ex(e.a)}, ${ex(e.b)})`;
+    }
     if (e.shape === "mm") return `${rtp}.mm(${ex(e.a)}, ${ex(e.b)})`;
     return `(${ex(e.a)} ${op} ${ex(e.b)})`;
   };
@@ -836,9 +867,23 @@ export function toMatlab(prog, opts = {}) {
         case "shl": return `bitshift(${a[0]}, ${a[1]})`;
         case "shr": return `bitshift(${a[0]}, -(${a[1]}))`;
         case "len": return e.args[0].ty.k === "buf" ? `numel(${a[0]})` : String(e.args[0].ty.n);
-        case "dot": return `${rtp}.dot_(${a[0]}, ${a[1]})`;
-        case "cross": return `${rtp}.cross_(${a[0]}, ${a[1]})`;
-        case "norm": return `${rtp}.norm_(${a[0]})`;
+        case "dot": {
+          const n = e.args[0].ty && e.args[0].ty.k === "arr" ? e.args[0].ty.n : 0;
+          const A = SMALL(n) ? elems(e.args[0], n) : null, B = A ? elems(e.args[1], n) : null;
+          if (A && B) return `(${sumOf(Array.from({ length: n }, (_, k) => `${A(k + 1)}*${B(k + 1)}`))})`;
+          return `${rtp}.dot_(${a[0]}, ${a[1]})`;
+        }
+        case "cross": {
+          const A = elems(e.args[0], 3), B = A ? elems(e.args[1], 3) : null;
+          if (A && B) return `[${A(2)}*${B(3)} - ${A(3)}*${B(2)}; ${A(3)}*${B(1)} - ${A(1)}*${B(3)}; ${A(1)}*${B(2)} - ${A(2)}*${B(1)}]`;
+          return `${rtp}.cross_(${a[0]}, ${a[1]})`;
+        }
+        case "norm": {
+          const n = e.args[0].ty && e.args[0].ty.k === "arr" ? e.args[0].ty.n : 0;
+          const A = SMALL(n) ? elems(e.args[0], n) : null;
+          if (A) return `sqrt(${sumOf(Array.from({ length: n }, (_, k) => `${A(k + 1)}*${A(k + 1)}`))})`;
+          return `${rtp}.norm_(${a[0]})`;
+        }
         case "unit": return `${rtp}.unit_(${a[0]})`;
         case "transpose": return `(${a[0]}).'`;
         case "sort": return `${rtp}.sort_(${a[0]})`;
@@ -860,6 +905,73 @@ export function toMatlab(prog, opts = {}) {
     return `${lv(l.a)}.${l.f}`;
   };
   const isRowTarget = (l) => l.e === "index" && !(l.a.e === "index" && l.a.a.ty.k === "arr" && l.a.a.ty.of.k === "arr") && l.a.ty.of.k === "arr";
+  // A loop's guard read at once (speed, the same arithmetic): a loop whose whole body is one `if` with no other arm, its
+  // condition naming the loop's variable and reading, besides it, only numbers and the variables and tables the loop
+  // does not change, through + - * /, comparisons, `not`, a minus, the elements of vectors and the small dot of a vector
+  // with a matrix's row (no other call, no `and` or `or`): the condition is taken for every value of the loop at once,
+  // element by element, and the loop runs over the values that pass it, in their order.
+  const rootOf = (l) => (!l || typeof l !== "object" ? "" : l.e === "var" ? l.name : rootOf(l.a));
+  const setsIn = (body, out) => {
+    for (const s of body) {
+      if (s.s === "let") s.names.forEach((n) => out.add(n));
+      if (s.s === "set") s.targets.forEach((t) => out.add(rootOf(t)));
+      if ((s.s === "let" || s.s === "set") && s.e.inout) s.e.inoutArgs.forEach((i) => out.add(rootOf(s.e.args[i])));
+      if (s.s === "state") out.add(s.name);
+      if (s.s === "for") { out.add(s.v); setsIn(s.body, out); }
+      if (s.s === "if") { s.arms.forEach((a) => setsIn(a.body, out)); if (s.els) setsIn(s.els, out); }
+      if (s.s === "settle") { setsIn(s.body, out); if (s.els) setsIn(s.els, out); }
+    }
+    return out;
+  };
+  const scalarT = (t) => !!t && ["real", "int", "bool", "choice"].includes(t.k);
+  const VMARK = "V__LOOP";
+  const vcond = (e, v, sets) => {
+    const kept = (x) => x.e === "var" && x.name !== v && !sets.has(x.name) && !["const", "builtin_const"].includes(x.kind);
+    switch (e.e) {
+      case "num": case "bool": return ex(e);
+      case "var":
+        if (e.name === v) return VMARK;
+        return kept(e) && e.kind !== "data" && scalarT(e.ty) ? ex(e) : null;
+      case "index": {
+        if (!scalarT(e.ty) || e.a.e !== "var" || !kept(e.a) || e.a.ty.k !== "arr" || e.a.ty.of.k === "arr") return null;
+        const i = vcond(e.i, v, sets);
+        return i === null ? null : `${dataRef(e.a) || ex(e.a)}((${i}) + 1)`;
+      }
+      case "field": return !e.choice && scalarT(e.ty) && e.a.e === "var" && kept(e.a) ? ex(e) : null;
+      case "un": { const a = vcond(e.a, v, sets); return a === null ? null : e.op === "not" ? `(~${a})` : `(-(${a}))`; }
+      case "bin": {
+        if (!["+", "-", "*", "/", "==", "!=", "<", "<=", ">", ">="].includes(e.op) || e.shape === "mv" || e.shape === "mm") return null;
+        if (!scalarT(e.a.ty) || !scalarT(e.b.ty)) return null;
+        const a = vcond(e.a, v, sets), b = vcond(e.b, v, sets);
+        if (a === null || b === null) return null;
+        const op = { "*": ".*", "/": "./", "!=": "~=" }[e.op] || e.op;
+        return `(${a} ${op} ${b})`;
+      }
+      case "call": {
+        if (!e.builtin || e.f !== "dot") return null;
+        const n = e.args[0].ty && e.args[0].ty.k === "arr" ? e.args[0].ty.n : 0;
+        if (!SMALL(n)) return null;
+        const side = (x) => {
+          if (x.e === "var" && kept(x) && x.kind !== "data" && x.ty.k === "arr" && x.ty.n === n && x.ty.of.k !== "arr") { const b = ex(x); return (k) => `${b}(${k})`; }
+          if (x.e === "index" && x.a.e === "var" && kept(x.a) && x.a.ty.k === "arr" && x.a.ty.of.k === "arr" && x.a.ty.of.n === n) {
+            const i = vcond(x.i, v, sets);
+            if (i === null) return null;
+            const m = dataRef(x.a) || ex(x.a);
+            return (k) => `${m}((${i}) + 1, ${k})`;
+          }
+          return null;
+        };
+        const A = side(e.args[0]), B = A ? side(e.args[1]) : null;
+        return A && B ? `(${sumOf(Array.from({ length: n }, (_, k) => `${A(k + 1)} .* ${B(k + 1)}`))})` : null;
+      }
+    }
+    return null;
+  };
+  const guarded = (s) => {
+    if (s.body.length !== 1 || s.body[0].s !== "if" || s.body[0].arms.length !== 1 || s.body[0].els) return null;
+    const c = vcond(s.body[0].arms[0].c, s.v, setsIn(s.body, new Set()));
+    return c !== null && c.includes(VMARK) ? c : null;
+  };
   let tmp = 0;
   const stmts = (body, ind) => body.map((s) => stmt(s, ind)).join("");
   const stmt = (s, ind) => {
@@ -885,7 +997,15 @@ export function toMatlab(prog, opts = {}) {
         if (s.els) out += `${I}else\n${stmts(s.els, ind + 1)}`;
         return out + `${I}end\n`;
       }
-      case "for": return `${I}for ${s.v} = (${ex(s.a)}):((${ex(s.b)}) - 1)\n${stmts(s.body, ind + 1)}${I}end\n`;
+      case "for": {
+        const g = guarded(s);
+        if (g !== null) {
+          const V = `t__${tmp++}`;
+          const head = `${I}${V} = ((${ex(s.a)}):((${ex(s.b)}) - 1)).';\n${I}for ${s.v} = ${V}(logical(${g.split(VMARK).join(V)})).'\n`;
+          return head + `${stmts(s.body[0].arms[0].body, ind + 1)}${I}end\n`;
+        }
+        return `${I}for ${s.v} = (${ex(s.a)}):((${ex(s.b)}) - 1)\n${stmts(s.body, ind + 1)}${I}end\n`;
+      }
       case "settle": {
         const k = `k__${tmp++}`, n = `n__${tmp++}`;
         return `${I}${n} = ${ex(s.n)}; ${k} = 0;\n${I}while true\n${stmts(s.body, ind + 1)}${I}    ${k} = ${k} + 1;\n` +
@@ -1013,7 +1133,8 @@ export function matlabRuntime() {
   fn("clamp", "x, lo, hi", "r", "min(max(x, lo), hi).", "    r = asils.pc.fmin(asils.pc.fmax(x, lo), hi);\n");
   fn("choose", "c, a, b", "r", "a when c, else b (both are evaluated).", "    if c, r = a; else, r = b; end\n");
   fn("choose_lazy", "c, a, b", "r", "a() when c, else b(): only the branch taken is evaluated.", "    if c, r = a(); else, r = b(); end\n");
-  fn("dot_", "a, b", "s", "sum of products, left to right.", "    s = a(1)*b(1);\n    for i = 2:numel(a), s = s + a(i)*b(i); end\n");
+  fn("dot_", "a, b", "s", "sum of products, left to right.",
+    "    if numel(a) == 3\n        s = a(1)*b(1) + a(2)*b(2) + a(3)*b(3);\n    else\n        s = a(1)*b(1);\n        for i = 2:numel(a), s = s + a(i)*b(i); end\n    end\n");
   fn("cross_", "a, b", "c", "cross product of two 3-vectors.", "    c = [a(2)*b(3) - a(3)*b(2); a(3)*b(1) - a(1)*b(3); a(1)*b(2) - a(2)*b(1)];\n");
   fn("norm_", "a", "n", "sqrt(dot(a, a)).", "    n = sqrt(asils.pc.dot_(a, a));\n");
   fn("unit_", "a", "u", "a / max(norm(a), 1e-30).", "    u = a / asils.pc.fmax(asils.pc.norm_(a), 1e-30);\n");
@@ -1220,13 +1341,12 @@ export function matlabRuntime() {
   fn("stream_new", "seed, id", "s", "the random stream of a seed and an id (a whole number, or a name's [high, low] halves).",
     "    if numel(id) == 2, i = reshape(id, 1, 2); else, i = asils.pc.u64_of_(id); end\n" +
     "    k = asils.pc.sm64_(asils.pc.u64_xor_(asils.pc.u64_of_(seed), asils.pc.sm64_(i)));\n    s = [k(1); k(2); 0; 0; 0; 0];\n");
+  fn("stream_block", "kh, kl, nh, nl", "w", "the 257 uniform draws of the stream with key [kh, kl] at the counters [nh, nl] + 1 on, as stream_uniform draws them.",
+    "    % the counters [nh, nl] + 1 to + 257, each its own SplitMix64 as stream_uniform makes it, element by element\n    zl = nl + (1:257)'; zh = nh + zeros(257, 1);\n    c = zl >= 4294967296; zl(c) = zl(c) - 4294967296; zh(c) = mod(zh(c) + 1, 4294967296);\n    lo = zl + 2135587861; cy = floor(lo / 4294967296); zl = lo - cy*4294967296; zh = mod(zh + 2654435769 + cy, 4294967296);\n    zh_ = floor(zh / 1073741824); zl_ = mod(zh, 1073741824)*4 + floor(zl / 1073741824); zh = bitxor(zh, zh_); zl = bitxor(zl, zl_);\n    x1 = mod(zl, 65536); x2 = floor(zl / 65536); x3 = mod(zh, 65536); x4 = floor(zh / 65536);\n    c0 = x1*58809; c1 = x1*7396 + x2*58809; c2 = x1*18285 + x2*7396 + x3*58809; c3 = x1*48984 + x2*18285 + x3*7396 + x4*58809;\n    r0 = mod(c0, 65536); t = floor(c0 / 65536) + c1; r1 = mod(t, 65536); t = floor(t / 65536) + c2;\n    r2 = mod(t, 65536); t = floor(t / 65536) + c3; zh = r2 + mod(t, 65536)*65536; zl = r0 + r1*65536;\n    zh_ = floor(zh / 134217728); zl_ = mod(zh, 134217728)*32 + floor(zl / 134217728); zh = bitxor(zh, zh_); zl = bitxor(zl, zl_);\n    x1 = mod(zl, 65536); x2 = floor(zl / 65536); x3 = mod(zh, 65536); x4 = floor(zh / 65536);\n    c0 = x1*4587; c1 = x1*4913 + x2*4587; c2 = x1*18875 + x2*4913 + x3*4587; c3 = x1*38096 + x2*18875 + x3*4913 + x4*4587;\n    r0 = mod(c0, 65536); t = floor(c0 / 65536) + c1; r1 = mod(t, 65536); t = floor(t / 65536) + c2;\n    r2 = mod(t, 65536); t = floor(t / 65536) + c3; zh = r2 + mod(t, 65536)*65536; zl = r0 + r1*65536;\n    zh_ = floor(zh / 2147483648); zl_ = mod(zh, 2147483648)*2 + floor(zl / 2147483648); zh = bitxor(zh, zh_); zl = bitxor(zl, zl_);\n    zh = bitxor(kh, zh); zl = bitxor(kl, zl);\n    lo = zl + 2135587861; cy = floor(lo / 4294967296); zl = lo - cy*4294967296; zh = mod(zh + 2654435769 + cy, 4294967296);\n    zh_ = floor(zh / 1073741824); zl_ = mod(zh, 1073741824)*4 + floor(zl / 1073741824); zh = bitxor(zh, zh_); zl = bitxor(zl, zl_);\n    x1 = mod(zl, 65536); x2 = floor(zl / 65536); x3 = mod(zh, 65536); x4 = floor(zh / 65536);\n    c0 = x1*58809; c1 = x1*7396 + x2*58809; c2 = x1*18285 + x2*7396 + x3*58809; c3 = x1*48984 + x2*18285 + x3*7396 + x4*58809;\n    r0 = mod(c0, 65536); t = floor(c0 / 65536) + c1; r1 = mod(t, 65536); t = floor(t / 65536) + c2;\n    r2 = mod(t, 65536); t = floor(t / 65536) + c3; zh = r2 + mod(t, 65536)*65536; zl = r0 + r1*65536;\n    zh_ = floor(zh / 134217728); zl_ = mod(zh, 134217728)*32 + floor(zl / 134217728); zh = bitxor(zh, zh_); zl = bitxor(zl, zl_);\n    x1 = mod(zl, 65536); x2 = floor(zl / 65536); x3 = mod(zh, 65536); x4 = floor(zh / 65536);\n    c0 = x1*4587; c1 = x1*4913 + x2*4587; c2 = x1*18875 + x2*4913 + x3*4587; c3 = x1*38096 + x2*18875 + x3*4913 + x4*4587;\n    r0 = mod(c0, 65536); t = floor(c0 / 65536) + c1; r1 = mod(t, 65536); t = floor(t / 65536) + c2;\n    r2 = mod(t, 65536); t = floor(t / 65536) + c3; zh = r2 + mod(t, 65536)*65536; zl = r0 + r1*65536;\n    zh_ = floor(zh / 2147483648); zl_ = mod(zh, 2147483648)*2 + floor(zl / 2147483648); zh = bitxor(zh, zh_); zl = bitxor(zl, zl_);\n    w = (zh*2097152 + floor(zl / 2048) + 0.5)*(1/9007199254740992);\n");
   fn("stream_uniform", "s", "[u, s]", "a uniform draw on (0, 1), and the stream advanced.",
-    "    n = asils.pc.u64_add_([s(3), s(4)], [0, 1]);\n    z = asils.pc.sm64_(asils.pc.u64_xor_([s(1), s(2)], asils.pc.sm64_(n)));\n" +
-    "    u = (z(1)*2097152 + floor(z(2) / 2048) + 0.5)*(1/9007199254740992);\n    s(3) = n(1); s(4) = n(2);\n");
+    "    % a draw is a function of the stream's key and counter alone: the next 257 draws of a key are made at once\n    % (stream_block) and kept, and a run of draws reads them (the same numbers, sooner)\n    persistent K1 K2 BH BL U r\n    if isempty(r), K1 = NaN(64, 1); K2 = K1; BH = K1; BL = K1; U = zeros(64, 257); r = 1; end\n    nl = s(4) + 1; nh = s(3);\n    if nl == 4294967296, nl = 0; nh = mod(nh + 1, 4294967296); end\n    if ~(K1(r) == s(1) && K2(r) == s(2))\n        r = find(K1 == s(1) & K2 == s(2), 1);\n        if isempty(r)\n            r = find(isnan(K1), 1); if isempty(r), r = 1 + mod(nl, 64); end\n            K1(r) = s(1); K2(r) = s(2); BH(r) = NaN;\n        end\n    end\n    j = nl - BL(r);\n    if ~(BH(r) == nh && j >= 1 && j <= 256)\n        BH(r) = nh; BL(r) = nl - 1; U(r, :) = asils.pc.stream_block(s(1), s(2), nh, nl - 1).'; j = 1;\n    end\n    u = U(r, j);\n    s(3) = nh; s(4) = nl;\n");
   fn("stream_normal", "s", "[z, s]", "a normal draw by Box-Muller (the spare kept), and the stream advanced.",
-    "    if s(6) ~= 0\n        z = s(5); s(5) = 0; s(6) = 0;\n        return;\n    end\n" +
-    "    [u1, s] = asils.pc.stream_uniform(s);\n    [u2, s] = asils.pc.stream_uniform(s);\n    r = sqrt(-2*log(u1));\n" +
-    "    s(5) = r*sin(2*pi*u2); s(6) = 1;\n    z = r*cos(2*pi*u2);\n");
+    "    persistent K1 K2 BH BL U r\n    if s(6) ~= 0\n        z = s(5); s(5) = 0; s(6) = 0;\n        return;\n    end\n    % its two uniform draws read from kept blocks of stream_block, as stream_uniform reads them\n    if isempty(r), K1 = NaN(64, 1); K2 = K1; BH = K1; BL = K1; U = zeros(64, 257); r = 1; end\n    nl = s(4) + 1; nh = s(3);\n    if nl == 4294967296, nl = 0; nh = mod(nh + 1, 4294967296); end\n    if ~(K1(r) == s(1) && K2(r) == s(2))\n        r = find(K1 == s(1) & K2 == s(2), 1);\n        if isempty(r)\n            r = find(isnan(K1), 1); if isempty(r), r = 1 + mod(nl, 64); end\n            K1(r) = s(1); K2(r) = s(2); BH(r) = NaN;\n        end\n    end\n    j = nl - BL(r);\n    if ~(BH(r) == nh && j >= 1 && j <= 256)\n        BH(r) = nh; BL(r) = nl - 1; U(r, :) = asils.pc.stream_block(s(1), s(2), nh, nl - 1).'; j = 1;\n    end\n    u1 = U(r, j); u2 = U(r, j + 1);\n    if nl == 4294967295, s(3) = mod(nh + 1, 4294967296); s(4) = 0; else, s(3) = nh; s(4) = nl + 1; end\n    rr = sqrt(-2*log(u1));\n    s(5) = rr*sin(2*pi*u2); s(6) = 1;\n    z = rr*cos(2*pi*u2);\n");
   fn("stream_normal3", "s", "[v, s]", "three normal draws, and the stream advanced.",
     "    [a, s] = asils.pc.stream_normal(s);\n    [b, s] = asils.pc.stream_normal(s);\n    [c, s] = asils.pc.stream_normal(s);\n    v = [a; b; c];\n");
   return f;

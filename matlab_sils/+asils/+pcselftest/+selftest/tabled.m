@@ -23,7 +23,7 @@ function [g, row, s, whole, p, n] = tabled(i, j, x)
         s = (s + (asils.pcselftest.selftest.GAINS((i) + 1, (k) + 1) * x));
     end
     whole = asils.pcselftest.selftest.GAINS();
-    whole((i) + 1, (j) + 1) = (whole((i) + 1, (j) + 1) + (asils.pc.dot_((asils.pcselftest.selftest.GAINS(1, ':')).', (asils.pcselftest.selftest.GAINS(2, ':')).') / 1));
+    whole((i) + 1, (j) + 1) = (whole((i) + 1, (j) + 1) + ((asils.pcselftest.selftest.GAINS(1, 1)*asils.pcselftest.selftest.GAINS(2, 1) + asils.pcselftest.selftest.GAINS(1, 2)*asils.pcselftest.selftest.GAINS(2, 2) + asils.pcselftest.selftest.GAINS(1, 3)*asils.pcselftest.selftest.GAINS(2, 3)) / 1));
     p = (asils.pcselftest.selftest.PRIMES(((j + 9)) + 1) - asils.pcselftest.selftest.PRIMES((i) + 1));
     n = (12 + 2);
 end

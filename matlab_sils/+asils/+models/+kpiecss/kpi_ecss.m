@@ -30,9 +30,9 @@ function [nout, e, t, idx, sums, cnt, out] = kpi_ecss(k, los, e, bs, t, idx, ni,
             cnt((bk) + 1) = 0;
         end
         for i = (0):((ni) - 1)
-            [t__421, t__422] = asils.models.kpiecss.kpi_ecss_vec(e, idx((i) + 1), los, b);
-            v = t__421;
-            e = t__422;
+            [t__431, t__432] = asils.models.kpiecss.kpi_ecss_vec(e, idx((i) + 1), los, b);
+            v = t__431;
+            e = t__432;
             if ((isfinite(v(1)) && isfinite(v(2))) && isfinite(v(3)))
                 bk = asils.models.kpiecss.kpi_ecss_block(t((idx((i) + 1)) + 1), t0, delta);
                 sums(((3 * bk)) + 1) = (sums(((3 * bk)) + 1) + v(1));
@@ -43,9 +43,9 @@ function [nout, e, t, idx, sums, cnt, out] = kpi_ecss(k, los, e, bs, t, idx, ni,
         end
         if (k == 0)
             for i = (0):((ni) - 1)
-                [t__423, t__424] = asils.models.kpiecss.kpi_ecss_vec(e, idx((i) + 1), los, b);
-                v = t__423;
-                e = t__424;
+                [t__433, t__434] = asils.models.kpiecss.kpi_ecss_vec(e, idx((i) + 1), los, b);
+                v = t__433;
+                e = t__434;
                 bk = asils.models.kpiecss.kpi_ecss_block(t((idx((i) + 1)) + 1), t0, delta);
                 if ((((cnt((bk) + 1) > 0) && isfinite(v(1))) && isfinite(v(2))) && isfinite(v(3)))
                     r = (1 / cnt((bk) + 1));
@@ -59,7 +59,7 @@ function [nout, e, t, idx, sums, cnt, out] = kpi_ecss(k, los, e, bs, t, idx, ni,
                 if (cnt((bk) + 1) > 0)
                     r = (1 / cnt((bk) + 1));
                     m = [(sums(((3 * bk)) + 1) * r); (sums((((3 * bk) + 1)) + 1) * r); (sums((((3 * bk) + 2)) + 1) * r)];
-                    out((nout) + 1) = (asils.pc.norm_(m) * (180 / pi));
+                    out((nout) + 1) = (sqrt(m(1)*m(1) + m(2)*m(2) + m(3)*m(3)) * (180 / pi));
                     nout = (nout + 1);
                 end
             end

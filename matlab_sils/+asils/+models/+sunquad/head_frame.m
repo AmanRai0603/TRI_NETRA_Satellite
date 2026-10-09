@@ -6,10 +6,10 @@ function [r] = head_frame(z)
     r = zeros(3, 3);
     zu = asils.models.facets.unit_or_zero(z);
     x = asils.pc.cross_(zu, [0; 0; 1]);
-    if (asils.pc.norm_(x) < 0.000001)
+    if (sqrt(x(1)*x(1) + x(2)*x(2) + x(3)*x(3)) < 0.000001)
         x = asils.pc.cross_(zu, [1; 0; 0]);
     end
     xu = asils.models.facets.unit_or_zero(x);
-    yu = asils.pc.cross_(zu, xu);
+    yu = [zu(2)*xu(3) - zu(3)*xu(2); zu(3)*xu(1) - zu(1)*xu(3); zu(1)*xu(2) - zu(2)*xu(1)];
     r = [(xu).'; (yu).'; (zu).'];
 end

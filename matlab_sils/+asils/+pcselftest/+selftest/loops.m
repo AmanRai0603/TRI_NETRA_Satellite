@@ -31,7 +31,7 @@ function [sum, prod, at_k, count, last] = loops(v, k)
         p.m((j) + 1, (j) + 1) = 1;
     end
     at_k = v((k) + 1);
-    last = asils.pc.mv(p.m, p.v);
+    last = [p.m(1, 1)*p.v(1) + p.m(1, 2)*p.v(2) + p.m(1, 3)*p.v(3); p.m(2, 1)*p.v(1) + p.m(2, 2)*p.v(2) + p.m(2, 3)*p.v(3); p.m(3, 1)*p.v(1) + p.m(3, 2)*p.v(2) + p.m(3, 3)*p.v(3)];
     if (~p.seen)
         last = [0; 0; 0];
     end

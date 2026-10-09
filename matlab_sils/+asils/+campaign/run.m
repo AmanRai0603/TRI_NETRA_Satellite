@@ -33,10 +33,10 @@ function one_(C, P0, k, caseFile, out)
     f = fullfile(out, sprintf('run_%04d.mat', k));
     if exist(f, 'file'), return, end
     [set, d] = asils.campaign.draw(C, P0, k);
-    t0 = tic;
-    rec = asils.run(C.scenario, caseFile, 'seed', C.seed + 7919*k, 'set', set, 'quiet', true);
+    % a run cut short (a machine restarted) goes on from its checkpoint (asils.run)
+    rec = asils.run(C.scenario, caseFile, 'seed', C.seed + 7919*k, 'set', set, 'quiet', true, 'checkpoint', [f '.ckpt']);
     s = asils.campaign.summarise(rec);
-    s.k = k; s.draws = d; s.wall_s = toc(t0);
+    s.k = k; s.draws = d; s.wall_s = rec.wall_s;
     save_(f, s);
     fprintf('[campaign %s] run %d done (%.0f s)\n', C.id, k, s.wall_s);
 end

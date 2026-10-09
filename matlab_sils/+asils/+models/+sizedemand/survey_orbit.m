@@ -38,7 +38,7 @@ function [tau_peak, tau_axis_peak, h_cyclic, h_secular_orbit, tau] = survey_orbi
         pk = 0;
         for k = (0):((n) - 1)
             x = [tau((((12 * k) + (3 * a))) + 1); tau(((((12 * k) + (3 * a)) + 1)) + 1); tau(((((12 * k) + (3 * a)) + 2)) + 1)];
-            pk = asils.pc.fmax(pk, asils.pc.norm_(x));
+            pk = asils.pc.fmax(pk, sqrt(x(1)*x(1) + x(2)*x(2) + x(3)*x(3)));
         end
         tau_peak((a) + 1) = pk;
         for i = (0):((3) - 1)
@@ -56,9 +56,9 @@ function [tau_peak, tau_axis_peak, h_cyclic, h_secular_orbit, tau] = survey_orbi
             end
             f = ((k * dt) / t_orb);
             x = [(h(1) - (hend(1) * f)); (h(2) - (hend(2) * f)); (h(3) - (hend(3) * f))];
-            pk = asils.pc.fmax(pk, asils.pc.norm_(x));
+            pk = asils.pc.fmax(pk, sqrt(x(1)*x(1) + x(2)*x(2) + x(3)*x(3)));
         end
         h_cyclic((a) + 1) = pk;
-        h_secular_orbit((a) + 1) = asils.pc.norm_(hend);
+        h_secular_orbit((a) + 1) = sqrt(hend(1)*hend(1) + hend(2)*hend(2) + hend(3)*hend(3));
     end
 end

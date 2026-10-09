@@ -13,7 +13,7 @@ function [s] = spin_guards(st, mp, sun_ok, sun, dt)
     d = (pi / 180);
     wz = s.w_est(3);
     wp = asils.pc.sqrt_(((s.w_est(1) * s.w_est(1)) + (s.w_est(2) * s.w_est(2))));
-    if (asils.pc.norm_(s.w_est) > (mp.ss_omega_max_dps * d))
+    if (sqrt(s.w_est(1)*s.w_est(1) + s.w_est(2)*s.w_est(2) + s.w_est(3)*s.w_est(3)) > (mp.ss_omega_max_dps * d))
         s = asils.relations.shared.modes_enter(s, 0);
     elseif (s.mode == 5)
         conv = ((asils.pc.fabs((wz - ((s.sigma * mp.ss_spin_dps) * d))) < (mp.ss_z_in_dps * d)) && (wp < (mp.ss_perp_in_dps * d)));

@@ -86,11 +86,12 @@ class FlightBuild(unittest.TestCase):
         set_method(db, NODE, OLD, NEW)
         out = self.tmp / "out"
         self.assertEqual(flight_build.main(["gen", "--design", str(db), "--out", str(out)]), 0)
-        # the sources: the control module changes in C and Rust, and nothing else but the identity
+        # the sources: the control module changes in C, Rust and the twin's MATLAB, and nothing else but the identity
         changed = sorted(rel for d in flight_build.GEN_DIRS for p in (out / d).rglob("*") if p.is_file()
                          for rel in [p.relative_to(out).as_posix()] if p.read_text() != (ROOT / rel).read_text())
         self.assertEqual(changed, ["fsw-rs/src/alg/alg_id.rs", "fsw-rs/src/alg/control.rs",
-                                   "fsw/alg/include/adcs_alg_id.h", "fsw/alg/src/control.c"])
+                                   "fsw/alg/include/adcs_alg_id.h", "fsw/alg/src/control.c",
+                                   "matlab_sils/+asils/+alg/+control/control_law.m", "matlab_sils/+asils/+alg/alg_id.m"])
         self.assertIn("0.25", (out / "fsw/alg/src/control.c").read_text())
         new_id = flight_build.current_id(out)
         self.assertNotEqual(new_id, flight_build.current_id())

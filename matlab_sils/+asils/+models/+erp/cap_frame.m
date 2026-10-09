@@ -15,17 +15,17 @@ function [zhat, e1, e2, shat, rho_max] = cap_frame(r_sat, r_sun)
     shat = zeros(3, 1);
     rho_max = 0;
     re = getfield(asils.models.de440.de440_constants(), 're_earth');
-    d = asils.pc.norm_(r_sat);
+    d = sqrt(r_sat(1)*r_sat(1) + r_sat(2)*r_sat(2) + r_sat(3)*r_sat(3));
     zhat = [(r_sat(1) / d); (r_sat(2) / d); (r_sat(3) / d)];
-    ns = asils.pc.norm_(r_sun);
+    ns = sqrt(r_sun(1)*r_sun(1) + r_sun(2)*r_sun(2) + r_sun(3)*r_sun(3));
     shat = [(r_sun(1) / ns); (r_sun(2) / ns); (r_sun(3) / ns)];
     rho_max = asils.pc.acos_(asils.models.srp.min_one((re / d)));
     t = [1; 0; 0];
     if (asils.pc.fabs(zhat(1)) > 0.9)
         t = [0; 1; 0];
     end
-    c = asils.pc.cross_(zhat, t);
-    n1 = asils.pc.norm_(c);
+    c = [zhat(2)*t(3) - zhat(3)*t(2); zhat(3)*t(1) - zhat(1)*t(3); zhat(1)*t(2) - zhat(2)*t(1)];
+    n1 = sqrt(c(1)*c(1) + c(2)*c(2) + c(3)*c(3));
     e1 = [(c(1) / n1); (c(2) / n1); (c(3) / n1)];
-    e2 = asils.pc.cross_(zhat, e1);
+    e2 = [zhat(2)*e1(3) - zhat(3)*e1(2); zhat(3)*e1(1) - zhat(1)*e1(3); zhat(1)*e1(2) - zhat(2)*e1(1)];
 end

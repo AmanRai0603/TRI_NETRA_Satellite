@@ -52,3 +52,4 @@ results/index.html
 # results/FLIGHT_IMAGES.md say what each held
 results/flight_images/*.tnfsw
 results/flight_images/*.tnfsw.tmp
+matlab_sils/store/refly/

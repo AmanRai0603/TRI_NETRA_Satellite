@@ -16,7 +16,7 @@ function [ok, s, u] = sun_sample(u, d, s_body, nu)
         cm = (-(2));
         jm = 0;
         for j = (0):((d.n) - 1)
-            c = asils.pc.dot_(s_body, (d.normals((j) + 1, :)).');
+            c = (s_body(1)*d.normals((j) + 1, 1) + s_body(2)*d.normals((j) + 1, 2) + s_body(3)*d.normals((j) + 1, 3));
             if (c > cm)
                 cm = c;
                 jm = j;
@@ -27,18 +27,18 @@ function [ok, s, u] = sun_sample(u, d, s_body, nu)
             if d.chain
                 rh = asils.models.sunquad.head_frame((d.normals((jm) + 1, :)).');
                 sb = asils.pc.mv(asils.models.coildisp.small_rotation((u.bias((jm) + 1, :)).'), s_body);
-                [t__469, t__470] = asils.models.sunquad.quad_currents(asils.pc.mv(rh, sb), d.head, g);
-                cur = t__469;
-                g = t__470;
+                [t__479, t__480] = asils.models.sunquad.quad_currents([rh(1, 1)*sb(1) + rh(1, 2)*sb(2) + rh(1, 3)*sb(3); rh(2, 1)*sb(1) + rh(2, 2)*sb(2) + rh(2, 3)*sb(3); rh(3, 1)*sb(1) + rh(3, 2)*sb(2) + rh(3, 3)*sb(3)], d.head, g);
+                cur = t__479;
+                g = t__480;
                 [sh, okh] = asils.models.sunangles.quad_angles(cur, d.head);
                 ok = okh;
                 if ok
                     s = asils.models.math.mat3t_vec(rh, sh);
                 end
             else
-                [t__471, t__472] = asils.pc.stream_normal3(g);
-                n = t__471;
-                g = t__472;
+                [t__481, t__482] = asils.pc.stream_normal3(g);
+                n = t__481;
+                g = t__482;
                 e = ((u.bias((jm) + 1, :)).' + (n * d.noise));
                 s = asils.models.facets.unit_or_zero(asils.pc.mv(asils.models.coildisp.small_rotation(e), s_body));
                 ok = true;

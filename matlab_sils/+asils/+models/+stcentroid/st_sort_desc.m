@@ -13,17 +13,17 @@ function [passes, key, ix, tmp] = st_sort_desc(key, ix, tmp, m)
     for it = (0):((62) - 1)
         if (w < m)
             if (rem(passes, 2) == 0)
-                [t__515, t__516, t__517, t__518] = asils.models.stcentroid.st_merge_desc(key, ix, tmp, m, w);
-                z0 = t__515;
-                key = t__516;
-                ix = t__517;
-                tmp = t__518;
+                [t__526, t__527, t__528, t__529] = asils.models.stcentroid.st_merge_desc(key, ix, tmp, m, w);
+                z0 = t__526;
+                key = t__527;
+                ix = t__528;
+                tmp = t__529;
             else
-                [t__519, t__520, t__521, t__522] = asils.models.stcentroid.st_merge_desc(key, tmp, ix, m, w);
-                z1 = t__519;
-                key = t__520;
-                tmp = t__521;
-                ix = t__522;
+                [t__530, t__531, t__532, t__533] = asils.models.stcentroid.st_merge_desc(key, tmp, ix, m, w);
+                z1 = t__530;
+                key = t__531;
+                tmp = t__532;
+                ix = t__533;
             end
             passes = (passes + 1);
             w = (2 * w);

@@ -39,22 +39,22 @@ function [q_body, ok, spots, identified, used, cr, cm, img, work, ia, ib, pi, pj
     tx = zeros(1, 1);
     ty = zeros(1, 1);
     tk = zeros(1, 1);
-    [t__553, t__554, t__555, t__556, t__557, t__558, t__559, t__560] = asils.models.strender.st_render(r_eh, cr, cm, nc, cam, img, noisy, g, tx, ty, tk);
-    drawn = t__553;
-    cr = t__554;
-    cm = t__555;
-    img = t__556;
-    g = t__557;
-    tx = t__558;
-    ty = t__559;
-    tk = t__560;
-    [t__561, t__562, t__563, t__564, t__565, t__566] = asils.models.stcentroid.st_centroid(img, cam, work, ia, ib);
-    sp = t__561;
-    ns = t__562;
-    img = t__563;
-    work = t__564;
-    ia = t__565;
-    ib = t__566;
+    [t__568, t__569, t__570, t__571, t__572, t__573, t__574, t__575] = asils.models.strender.st_render(r_eh, cr, cm, nc, cam, img, noisy, g, tx, ty, tk);
+    drawn = t__568;
+    cr = t__569;
+    cm = t__570;
+    img = t__571;
+    g = t__572;
+    tx = t__573;
+    ty = t__574;
+    tk = t__575;
+    [t__576, t__577, t__578, t__579, t__580, t__581] = asils.models.stcentroid.st_centroid(img, cam, work, ia, ib);
+    sp = t__576;
+    ns = t__577;
+    img = t__578;
+    work = t__579;
+    ia = t__580;
+    ib = t__581;
     spots = ns;
     if (ns >= 3)
         b = zeros(32, 3);
@@ -63,18 +63,17 @@ function [q_body, ok, spots, identified, used, cr, cm, img, work, ia, ib, pi, pj
             b((k) + 1, :) = asils.models.facets.unit_or_zero([((sp((k) + 1, 1) - cam.c) / cam.f); ((sp((k) + 1, 2) - cam.c) / cam.f); 1]).';
             mag((k) + 1) = (6 - (2.5 * asils.pc.log10_((asils.pc.fmax(sp((k) + 1, 3), 1) / cam.flux0))));
         end
-        [t__567, t__568, t__569, t__570, t__571, t__572, t__573] = asils.models.stidentify.st_identify(b, mag, ns, pi, pj, pa, cr, cm, nc, cam.id_tol, cam.mag_tol);
-        id = t__567;
-        okid = t__568;
-        pi = t__569;
-        pj = t__570;
-        pa = t__571;
-        cr = t__572;
-        cm = t__573;
-        for k2 = (0):((ns) - 1)
-            if (id((k2) + 1) >= 0)
-                identified = (identified + 1);
-            end
+        [t__582, t__583, t__584, t__585, t__586, t__587, t__588] = asils.models.stidentify.st_identify(b, mag, ns, pi, pj, pa, cr, cm, nc, cam.id_tol, cam.mag_tol);
+        id = t__582;
+        okid = t__583;
+        pi = t__584;
+        pj = t__585;
+        pa = t__586;
+        cr = t__587;
+        cm = t__588;
+        t__589 = ((0):((ns) - 1)).';
+        for k2 = t__589(logical((id((t__589) + 1) >= 0))).'
+            identified = (identified + 1);
         end
         if okid
             rs = zeros(32, 3);
@@ -82,20 +81,18 @@ function [q_body, ok, spots, identified, used, cr, cm, img, work, ia, ib, pi, pj
             for p = (0):((32) - 1)
                 ig((p) + 1) = (-(1));
             end
-            for p2 = (0):((ns) - 1)
-                if (id((p2) + 1) >= 0)
-                    rs((p2) + 1, :) = (cr((id((p2) + 1)) + 1, :)).'.';
-                    ig((p2) + 1) = id((p2) + 1);
-                end
+            t__590 = ((0):((ns) - 1)).';
+            for p2 = t__590(logical((id((t__590) + 1) >= 0))).'
+                rs((p2) + 1, :) = (cr((id((p2) + 1)) + 1, :)).'.';
+                ig((p2) + 1) = id((p2) + 1);
             end
-            [t__574, t__575, t__576] = asils.models.stattitude.st_attitude(b, rs, ns, ig, cam.fit_tol);
-            q_eh = t__574;
-            oka = t__575;
-            ig = t__576;
-            for p3 = (0):((ns) - 1)
-                if (ig((p3) + 1) >= 0)
-                    used = (used + 1);
-                end
+            [t__591, t__592, t__593] = asils.models.stattitude.st_attitude(b, rs, ns, ig, cam.fit_tol);
+            q_eh = t__591;
+            oka = t__592;
+            ig = t__593;
+            t__594 = ((0):((ns) - 1)).';
+            for p3 = t__594(logical((ig((t__594) + 1) >= 0))).'
+                used = (used + 1);
             end
             if oka
                 q_body = asils.models.math.fromdcm(asils.pc.mm((r_head_nominal).', asils.models.math.dcm(q_eh)));

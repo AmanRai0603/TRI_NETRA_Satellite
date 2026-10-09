@@ -12,11 +12,11 @@ function [ecc, inc, om, w] = vectors2elem(j, e)
     inc = 0;
     om = 0;
     w = 0;
-    jn = asils.pc.norm_(j);
-    ecc = asils.pc.norm_(e);
+    jn = sqrt(j(1)*j(1) + j(2)*j(2) + j(3)*j(3));
+    ecc = sqrt(e(1)*e(1) + e(2)*e(2) + e(3)*e(3));
     inc = asils.pc.acos_(asils.models.thirdbody.unit_clip((j(3) / jn)));
     node = asils.pc.cross_([0; 0; 1], j);
-    nn = asils.pc.norm_(node);
+    nn = sqrt(node(1)*node(1) + node(2)*node(2) + node(3)*node(3));
     nodeu = [1; 0; 0];
     if (nn < 1e-12)
         om = 0;
@@ -29,6 +29,6 @@ function [ecc, inc, om, w] = vectors2elem(j, e)
     else
         ehat = [(e(1) / ecc); (e(2) / ecc); (e(3) / ecc)];
         ip = asils.pc.cross_([(j(1) / jn); (j(2) / jn); (j(3) / jn)], nodeu);
-        w = atan2(asils.pc.dot_(ip, ehat), asils.pc.dot_(nodeu, ehat));
+        w = atan2((ip(1)*ehat(1) + ip(2)*ehat(2) + ip(3)*ehat(3)), (nodeu(1)*ehat(1) + nodeu(2)*ehat(2) + nodeu(3)*ehat(3)));
     end
 end

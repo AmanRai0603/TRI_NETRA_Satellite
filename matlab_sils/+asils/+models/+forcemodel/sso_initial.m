@@ -20,7 +20,7 @@ function [r, v, raan] = sso_initial(sun_unit, alt_km, ecc, inc_deg, ltan_h, argp
     inc = ((inc_deg * pi) / 180);
     ra_sun = atan2(sun_unit(2), sun_unit(1));
     raan = asils.models.timescales.omod((ra_sun + ((((ltan_h - 12) * 15) * pi) / 180)), (2 * pi));
-    [t__389, t__390] = asils.models.forcemodel.pop_coe2rv(a, ecc, inc, raan, ((argp_deg * pi) / 180), ((u0_deg * pi) / 180), k.mu_earth);
-    r = t__389;
-    v = t__390;
+    [t__392, t__393] = asils.models.forcemodel.pop_coe2rv(a, ecc, inc, raan, ((argp_deg * pi) / 180), ((u0_deg * pi) / 180), k.mu_earth);
+    r = t__392;
+    v = t__393;
 end

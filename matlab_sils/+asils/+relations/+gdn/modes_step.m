@@ -13,7 +13,7 @@ function [s] = modes_step(st, mp, zw, sun_ok, sun, dt)
     s = asils.relations.shared.Modes_zero();
     s = st;
     if ((((s.mode == 0) || (s.mode == 7)) && (mp.auto_next ~= 255)) && (bitand(s.faults, bitor(256, 512)) == 0))
-        if (asils.pc.norm_(zw) < mp.detumble_exit)
+        if (sqrt(zw(1)*zw(1) + zw(2)*zw(2) + zw(3)*zw(3)) < mp.detumble_exit)
             s.hold = (s.hold + dt);
         else
             s.hold = 0;
@@ -31,11 +31,11 @@ function [s] = modes_step(st, mp, zw, sun_ok, sun, dt)
             s.s_prop_ok = true;
         elseif s.s_prop_ok
             a = asils.relations.gdn.dcm(asils.relations.shared.fromrotvec((s.w_est * dt)));
-            s.s_prop = asils.pc.unit_(asils.pc.mv(a, s.s_prop));
+            s.s_prop = asils.pc.unit_([a(1, 1)*s.s_prop(1) + a(1, 2)*s.s_prop(2) + a(1, 3)*s.s_prop(3); a(2, 1)*s.s_prop(1) + a(2, 2)*s.s_prop(2) + a(2, 3)*s.s_prop(3); a(3, 1)*s.s_prop(1) + a(3, 2)*s.s_prop(2) + a(3, 3)*s.s_prop(3)]);
         end
     end
     if ((s.mode == 8) && (mp.auto_next ~= 255))
-        ok = ((sun_ok && (asils.pc.acos_(asils.pc.clamp(asils.pc.dot_(sun, mp.sun_axis), (-(1)), 1)) < (mp.sa_done_deg * (pi / 180)))) && s.ad_ok);
+        ok = ((sun_ok && (asils.pc.acos_(asils.pc.clamp((sun(1)*mp.sun_axis(1) + sun(2)*mp.sun_axis(2) + sun(3)*mp.sun_axis(3)), (-(1)), 1)) < (mp.sa_done_deg * (pi / 180)))) && s.ad_ok);
         if ok
             s.acq_hold = (s.acq_hold + dt);
         else

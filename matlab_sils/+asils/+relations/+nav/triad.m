@@ -12,14 +12,14 @@ function [q, ok] = triad(b1, b2, r1, r2)
     ok = false;
     ok = false;
     q = zeros(4, 1);
-    if ((asils.pc.norm_(asils.pc.cross_(b1, b2)) > ((0.001 * asils.pc.norm_(b1)) * asils.pc.norm_(b2))) && (asils.pc.norm_(asils.pc.cross_(r1, r2)) > ((0.001 * asils.pc.norm_(r1)) * asils.pc.norm_(r2))))
+    if ((asils.pc.norm_([b1(2)*b2(3) - b1(3)*b2(2); b1(3)*b2(1) - b1(1)*b2(3); b1(1)*b2(2) - b1(2)*b2(1)]) > ((0.001 * sqrt(b1(1)*b1(1) + b1(2)*b1(2) + b1(3)*b1(3))) * sqrt(b2(1)*b2(1) + b2(2)*b2(2) + b2(3)*b2(3)))) && (asils.pc.norm_([r1(2)*r2(3) - r1(3)*r2(2); r1(3)*r2(1) - r1(1)*r2(3); r1(1)*r2(2) - r1(2)*r2(1)]) > ((0.001 * sqrt(r1(1)*r1(1) + r1(2)*r1(2) + r1(3)*r1(3))) * sqrt(r2(1)*r2(1) + r2(2)*r2(2) + r2(3)*r2(3)))))
         ok = true;
         tb0 = asils.pc.unit_(b1);
-        tb1 = asils.pc.unit_(asils.pc.cross_(b1, b2));
-        tb2 = asils.pc.cross_(tb0, tb1);
+        tb1 = asils.pc.unit_([b1(2)*b2(3) - b1(3)*b2(2); b1(3)*b2(1) - b1(1)*b2(3); b1(1)*b2(2) - b1(2)*b2(1)]);
+        tb2 = [tb0(2)*tb1(3) - tb0(3)*tb1(2); tb0(3)*tb1(1) - tb0(1)*tb1(3); tb0(1)*tb1(2) - tb0(2)*tb1(1)];
         tr0 = asils.pc.unit_(r1);
-        tr1 = asils.pc.unit_(asils.pc.cross_(r1, r2));
-        tr2 = asils.pc.cross_(tr0, tr1);
+        tr1 = asils.pc.unit_([r1(2)*r2(3) - r1(3)*r2(2); r1(3)*r2(1) - r1(1)*r2(3); r1(1)*r2(2) - r1(2)*r2(1)]);
+        tr2 = [tr0(2)*tr1(3) - tr0(3)*tr1(2); tr0(3)*tr1(1) - tr0(1)*tr1(3); tr0(1)*tr1(2) - tr0(2)*tr1(1)];
         a = zeros(3, 3);
         for i = (0):((3) - 1)
             for j = (0):((3) - 1)

@@ -9,6 +9,16 @@ environment quantity — magnetic field, Sun, eclipse, density, atmosphere-relat
 velocity, SRP pressure — flows from it into the disturbance torques, the sensors
 and the flight software.
 
+**The twin flies the design's code.** Every model (the plant, the environment, the units and their chains, the
+emulators' codecs, the metrics, the sizing laws) is the design's, generated into `+asils/+models` (and the relations
+into `+asils/+relations`) by `../tools/engine_build.py`; the flight software's algorithms are `../fsw/pseudocode`,
+generated into `+asils/+alg` by `../tools/flight_build.py`, behind a tick (`asils.fsw.step`, the engine's flight
+software's `fsw.rs` step in MATLAB) loaded with the very adcs-fswcfg/1 blob the engine builds (`adcs params`, decoded
+by the generated `asils.fsw.params_decode`). What is written by hand is the runner: the time stepping, the bus and
+the hardware-abstraction plumbing, the recording, the set-up's reading of the case, scenario and product, the
+campaigns and trades, the plots and the files. A run's noise and dispersions draw from the language's SplitMix64
+streams (`asils.pc`), the engine's, so the twin and the engine fly the same run value for value.
+
 Runs in **MATLAB** (base MATLAB, no toolboxes; `parfor` used if the Parallel
 Computing Toolbox is present) and **GNU Octave ≥ 8**.
 
@@ -35,7 +45,7 @@ per run without editing code:
 
 ```matlab
 rec = asils.run('nadir_hold_ais', 'cases/ais_3u.csv', 'seed', 7, ...
-      'set', struct('env__F107', 220, 'sc__mass_kg', 4.3, 'sim__duration_s', 6000));
+      'set', struct('engine__f107', 220, 'engine__mass_kg', 4.3, 'engine__duration_s', 6000));
 ```
 
 ## Actuator families (products in `data/products`)
@@ -68,14 +78,14 @@ asils.solution.dispatch('ais_3u');              % ../dist/dispatch/ais_3u/<famil
 - **Families** (`data/families.json`): our solutions `mtq`, `mtq_fmr`, `mtq_fmr_rcs`; the benchmarks
   `mtq_rw`, `mtq_cmg` and `mtq_vscmg`, each also with RCS. The simplest solution that passes every
   mode is recommended; the benchmarks are only compared.
-- **Sizing** (`+asils/+sizing`): the disturbance survey on the POP orbit, then physical sizing laws for
-  the coils, the fluid loop (with pump field power), the N2O cold-gas RCS (Isp 60–80 s), wheels, CMG
-  and VSCMG, and a frequency-domain jitter figure.
-- **Components** (`+asils/+comp`, `data/components`): each unit's own processing chain, next to the
-  model the SILS flies. Examples: the star tracker's render → centroid → identify → QUEST, the Sun
-  sensor's quadrant currents → angles, the Earth sensor's limb → horizon fit, and the fluid-loop flow
-  servo. Set a device's level with `dev__st__model = 'image'` (the star tracker's full chain) or
-  `dev__sun__level = 'chain'`. See `../docs/COMPONENTS.md`.
+- **Sizing** (`+asils/+sizing`, the engine's `adcs size` in MATLAB): the disturbance survey on the POP
+  orbit over the design's sweep of seasons and solar activity, then the design's laws (sizedemand,
+  sizemtq, sizefmr with its pump, sizercs, sizebudget, sizesensors) and the catalogue's lightest
+  wheel, CMG or VSCMG that meets the need (sizerotor). The convergence loop's knobs:
+  `asils.sizing.knobs`.
+- **Unit chains**: each unit's own processing chain (the star tracker's render → centroid → identify →
+  QUEST, the Sun sensor's quadrant currents → angles, the fluid loop's flow servo) is the design's,
+  flown by `asils.devices.sense` / `actuate` as the part's level asks. See `../docs/COMPONENTS.md`.
 
 ## Algorithms: one job, several algorithms, several hardware sets
 
@@ -132,10 +142,10 @@ Helmholtz-cage field, Sun-simulator direction and air-bearing rate for a HILS re
 
 | folder | contents |
 |---|---|
-| `+asils/` | the SILS: `+orbit` (in-loop POP), `+env`, `+plant`, `+devices` (unit models), `+comp` (unit chains), `+fsw`, `+hal`, `+faults`, `+metrics`, `+sizing`, `+solution`, `+campaign`, `+trade`, `+rec`, `+viz`, `+result`, `run.m`, `config.m` |
+| `+asils/` | the SILS: generated `+models` (the design's models), `+relations`, `+alg` (the flight software's algorithms), `+pc` (the language's runtime); by hand `+orbit` (in-loop POP), `+env`, `+plant`, `+devices` (the units' states, stepped through `+models`), `+fsw` (the tick, the blob), `+hal`, `+faults`, `+metrics`, `+sizing`, `+solution`, `+campaign`, `+trade`, `+rec`, `+viz`, `+result`, `run.m`, `config.m` |
 | `pop/` | Precision Orbit Propagator v51 (vendored) |
 | `cases/`, `data/` | the case CSVs; exported parts, products, algorithms, modes, families, components, scenarios, campaigns, trades (JSON) |
-| `examples/`, `tests/`, `tools/` | worked examples, the test suite (27 tests), batch drivers |
+| `examples/`, `tests/`, `tools/` | worked examples, the test suite (43 tests), batch drivers |
 | `store/` | your results, filed per scenario |
 
 Architecture, node by node: `../docs/ARCHITECTURE_PLAN.md`. Results: `../docs/RESULTS.md`. Selection: `../docs/SELECTION.md`. Solutions: `../docs/SOLUTION_PIPELINE.md`, `../docs/SOLUTIONS.md`.

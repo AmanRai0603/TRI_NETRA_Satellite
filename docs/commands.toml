@@ -331,10 +331,10 @@ undo = "Delete the zip from dist/."
 tool = "gen_fsw_params.py"
 name = "gen-fsw-params"
 usage = "python3 tools/gen_fsw_params.py [--check]"
-what = "The flight software's parameter and table sources, C and Rust, from their one definition. --check says which generated file is stale, and changes nothing."
-steps = ["read fsw/params/params.toml and the IGRF table", "write the C header and source and the Rust module"]
+what = "The flight software's parameter and table sources, C and Rust, from their one definition, and the MATLAB twin's decoder of the same adcs-fswcfg/1 blob (asils.fsw.params_decode). --check says which generated file is stale, and changes nothing."
+steps = ["read fsw/params/params.toml and the IGRF table", "write the C header and source, the Rust module and the twin's MATLAB decoder"]
 reads = ["fsw/params/params.toml", "matlab_sils/data/igrf13coeffs.txt"]
-writes = ["fsw/include/adcs_params.h", "fsw/src/adcs_params.c", "fsw-rs/src/params.rs", "matlab_sils/data/igrf13.json", "fsw-rs/src/igrf13.rs", "fsw/pseudocode/02_igrf13.pc"]
+writes = ["fsw/include/adcs_params.h", "fsw/src/adcs_params.c", "fsw-rs/src/params.rs", "matlab_sils/+asils/+fsw/params_decode.m", "matlab_sils/data/igrf13.json", "fsw-rs/src/igrf13.rs", "fsw/pseudocode/02_igrf13.pc"]
 runs = []
 checks = "--check: every generated parameter file is its definition"
 undo = "It writes generated files only: `git checkout -- <file>` puts back the committed one, or run it again once its source is as you want it."
@@ -499,13 +499,13 @@ undo = "It writes nothing."
 tool = "flight_build.py"
 name = "flight-build"
 usage = "python3 tools/flight_build.py gen [--check] [--design FILE] [--out DIR]"
-what = "The flight build (docs/PLAN_2_0.md S6): the flight software's algorithms written from the design (the flight algorithm blocks, fsw/pseudocode/03-09, with the toolbox 01 and env's published models 02, all but 01 written from the design by tools/from_design.py) by the library's translators (tndb translate; the JavaScript ones when it is not built): C99 into fsw/alg/ and Rust, a module of the no_std flight crate, into fsw-rs/src/alg/; beside them the algorithms' identity (sha256 over those sources, 16 hex), which both build ids end with (`... alg <id>`), and the translators' vector dispatchers for the vector tests (test code, never in an image). The runtime (the tick, the HAL, the C interface, the parameter blob, the targets) stays code. --design writes from another design's flight algorithm blocks and --out under another folder (a test's)."
-steps = ["translate the flight algorithms to C (adcs_alg, no dispatcher)", "translate them to Rust (crate::alg, maths from crate::m, no dispatcher)", "hash the C and Rust sources into the algorithms' identity (fsw/alg/include/adcs_alg_id.h, fsw-rs/src/alg/alg_id.rs)", "translate them again with the dispatcher and keep the dispatcher alone (fsw/tests/alg_dispatch.c, fsw-rs/tests/alg/dispatch.rs)", "write them (or, with --check, compare), removing any file the design no longer gives"]
+what = "The flight build (docs/PLAN_2_0.md S6): the flight software's algorithms written from the design (the flight algorithm blocks, fsw/pseudocode/03-09, with the toolbox 01 and env's published models 02, all but 01 written from the design by tools/from_design.py) by the library's translators (tndb translate; the JavaScript ones when it is not built): C99 into fsw/alg/ and Rust, a module of the no_std flight crate, into fsw-rs/src/alg/; beside them the algorithms' identity (sha256 over those sources, 16 hex), which both build ids end with (`... alg <id>`), and the translators' vector dispatchers for the vector tests (test code, never in an image); and MATLAB into matlab_sils/+asils/+alg/, the flight software the twin flies (outside the identity and the seal, with the identity beside it in alg_id.m). The runtime (the tick, the HAL, the C interface, the parameter blob, the targets) stays code. --design writes from another design's flight algorithm blocks and --out under another folder (a test's)."
+steps = ["translate the flight algorithms to C (adcs_alg, no dispatcher)", "translate them to Rust (crate::alg, maths from crate::m, no dispatcher)", "hash the C and Rust sources into the algorithms' identity (fsw/alg/include/adcs_alg_id.h, fsw-rs/src/alg/alg_id.rs)", "translate them again with the dispatcher and keep the dispatcher alone (fsw/tests/alg_dispatch.c, fsw-rs/tests/alg/dispatch.rs)", "translate them to MATLAB for the twin (package asils.alg)", "write them (or, with --check, compare), removing any file the design no longer gives"]
 reads = ["fsw/pseudocode/*.pc", "with --design: the design's flight algorithm blocks"]
-writes = ["fsw/alg/", "fsw-rs/src/alg/", "fsw/tests/alg_dispatch.c", "fsw-rs/tests/alg/dispatch.rs", "with --out: the same under DIR"]
+writes = ["fsw/alg/", "fsw-rs/src/alg/", "fsw/tests/alg_dispatch.c", "fsw-rs/tests/alg/dispatch.rs", "matlab_sils/+asils/+alg/", "with --out: the same under DIR"]
 runs = ["engine/target/release/tndb translate (or node design/js/pcode_cli.mjs)"]
 checks = "--check: every generated algorithm source is what the design gives"
-undo = "It writes generated files only: `git checkout -- fsw/alg fsw-rs/src/alg fsw/tests/alg_dispatch.c fsw-rs/tests/alg`."
+undo = "It writes generated files only: `git checkout -- fsw/alg fsw-rs/src/alg fsw/tests/alg_dispatch.c fsw-rs/tests/alg matlab_sils/+asils/+alg`."
 
 [[command]]
 tool = "flight_build.py"
@@ -712,6 +712,18 @@ writes = ["matlab_sils/store/results/", "matlab_sils/store/trades/", "matlab_sil
 runs = ["octave-cli"]
 checks = "every job of the twin's matrix finishes and passes"
 undo = "Delete the store folders it wrote."
+
+[[command]]
+tool = "twin_refly.py"
+name = "twin-refly"
+usage = "python3 tools/twin_refly.py status | run [--workers N] [--only ID ...] [--singles | --campaigns]"
+what = "The MATLAB twin's stored runs flown again by the twin of today (docs/S7_INVENTORY.md S7.17): every scenario and every campaign the store holds, each staged and then put in place of the old one (never two full copies). Resumable: a run already swapped in or staged is skipped, a run cut short goes on from its checkpoint. status says what is flown, staged, running and left."
+steps = ["list the scenarios and the campaigns the store holds, less those the twin of today flew (its manifest's engine, a campaign's refly.json)", "fly each in GNU Octave, N at a time, shortest first, into matlab_sils/store/refly/<id> with a checkpoint", "put each whole run in place of the old one; collect a campaign's runs (summary, runs table, figures) when every run is in"]
+reads = ["matlab_sils/data/scenarios/", "matlab_sils/data/campaigns/", "matlab_sils/store/results/"]
+writes = ["matlab_sils/store/results/<id>/ (each run, in place of the old one)", "matlab_sils/store/refly/ (staging, logs, checkpoints, progress.log)"]
+runs = ["octave-cli"]
+checks = "a run that fails is named in progress.log and left to fly again"
+undo = "The old runs are replaced, not kept: `git checkout -- matlab_sils/store/results` puts back the committed manifests and summaries; rm -r matlab_sils/store/refly drops the staging."
 
 [[command]]
 tool = "fswcfg.py"

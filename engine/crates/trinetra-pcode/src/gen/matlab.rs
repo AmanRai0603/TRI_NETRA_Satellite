@@ -10,6 +10,8 @@ use crate::check::{ItemRef, Shape, Target, VarKind};
 
 /// the shared runtime's package (`opts.rt`)
 const RTP: &str = "asils.pc";
+/// the loop's values, in a guard read at once, until the loop's vector is named (toMatlab's VMARK)
+const VMARK: &str = "V__LOOP";
 
 pub(super) fn to_matlab(i: &Interp, pkg: Option<&str>) -> Result<Files, String> {
     let pkg = pkg.filter(|p| !p.is_empty()).unwrap_or("asils.relations").to_string();
@@ -148,6 +150,238 @@ impl<'a> Gen<'a> {
         }
     }
 
+    // Read in place (speed, the same arithmetic): a small vector or matrix the expression names, whose elements can be
+    // read where they are (a variable, a record's field of one, a row of a matrix variable or data table, its index free
+    // of calls): the text of its elements, else none. dot, norm, cross and the matrix-vector product of such operands are
+    // written out term by term, summed left to right as the runtime's dot_ and mv sum them (toMatlab's elems, melems).
+    fn no_call(&self, e: usize) -> bool {
+        let c = self.b.c;
+        match &c.exprs[e].kind {
+            ExprKind::Call { .. } => false,
+            ExprKind::Num { .. } | ExprKind::Bool(_) | ExprKind::Var(_) | ExprKind::Str(_) => true,
+            ExprKind::Arr { items, .. } => items.iter().all(|&x| self.no_call(x)),
+            ExprKind::Index { a, i } => self.no_call(*a) && self.no_call(*i),
+            ExprKind::Field { a, .. } | ExprKind::Not(a) | ExprKind::Neg(a) => self.no_call(*a),
+            ExprKind::Ifx { c: cc, a, b } => self.no_call(*a) && self.no_call(*b) && self.no_call(*cc),
+            ExprKind::Bin { a, b, .. } => self.no_call(*a) && self.no_call(*b),
+        }
+    }
+    fn plain_base(&self, e: usize) -> bool {
+        let c = self.b.c;
+        match &c.exprs[e].kind {
+            ExprKind::Var(_) => !matches!(c.ann[e].var, VarKind::Const(_) | VarKind::Data(_) | VarKind::Pi | VarKind::Inf | VarKind::Nan),
+            ExprKind::Field { a, .. } => c.ann[e].choice.is_none() && !matches!(c.exprs[*a].kind, ExprKind::Call { .. }) && self.no_call(*a),
+            _ => false,
+        }
+    }
+    fn elems(&mut self, e: usize, n: usize) -> Option<Vec<String>> {
+        let c = self.b.c;
+        match c.ann[e].ty.as_ref() {
+            Some(Ty::Arr(m, of)) if *m == n && !matches!(**of, Ty::Arr(..)) => {}
+            _ => return None,
+        }
+        if self.plain_base(e) {
+            let b = self.ex(e);
+            return Some((1..=n).map(|k| format!("{b}({k})")).collect());
+        }
+        if let ExprKind::Index { a, i } = &c.exprs[e].kind {
+            let rows = matches!(c.ann[*a].ty.as_ref(), Some(Ty::Arr(_, of)) if matches!(**of, Ty::Arr(..)));
+            if rows && self.no_call(*i) && (self.plain_base(*a) || self.data_ref(*a).is_some()) {
+                let m = match self.data_ref(*a) {
+                    Some(d) => d,
+                    None => self.ex(*a),
+                };
+                let r = self.idx(*i);
+                return Some((1..=n).map(|k| format!("{m}({r}, {k})")).collect());
+            }
+        }
+        None
+    }
+    fn melems(&mut self, e: usize, n: usize, m: usize) -> Option<String> {
+        let c = self.b.c;
+        match c.ann[e].ty.as_ref() {
+            Some(Ty::Arr(rn, of)) if *rn == n => match &**of {
+                Ty::Arr(cm, el) if *cm == m && !matches!(**el, Ty::Arr(..)) => {}
+                _ => return None,
+            },
+            _ => return None,
+        }
+        if self.plain_base(e) || self.data_ref(e).is_some() {
+            return Some(match self.data_ref(e) {
+                Some(d) => d,
+                None => self.ex(e),
+            });
+        }
+        None
+    }
+    fn arr_len(&self, e: usize) -> usize {
+        match self.b.c.ann[e].ty.as_ref() {
+            Some(Ty::Arr(n, _)) => *n,
+            _ => 0,
+        }
+    }
+
+    // A loop's guard read at once (speed, the same arithmetic): toMatlab's guarded, vcond and setsIn.
+    fn sets_in(&self, body: &[Stmt], out: &mut Vec<String>) {
+        let c = self.b.c;
+        let root = |mut x: usize| -> String {
+            loop {
+                match &c.exprs[x].kind {
+                    ExprKind::Var(n) => return n.clone(),
+                    ExprKind::Index { a, .. } | ExprKind::Field { a, .. } => x = *a,
+                    _ => return String::new(),
+                }
+            }
+        };
+        for st in body {
+            match &st.kind {
+                StmtKind::Let { names, e, .. } => {
+                    out.extend(names.iter().cloned());
+                    if c.ann[*e].inout {
+                        if let ExprKind::Call { args, .. } = &c.exprs[*e].kind {
+                            for &i in &c.ann[*e].inout_args {
+                                if let Some(&a) = args.get(i) { out.push(root(a)); }
+                            }
+                        }
+                    }
+                }
+                StmtKind::Set { targets, e } => {
+                    out.extend(targets.iter().map(|&t| root(t)));
+                    if c.ann[*e].inout {
+                        if let ExprKind::Call { args, .. } = &c.exprs[*e].kind {
+                            for &i in &c.ann[*e].inout_args {
+                                if let Some(&a) = args.get(i) { out.push(root(a)); }
+                            }
+                        }
+                    }
+                }
+                StmtKind::State { name, .. } => out.push(name.clone()),
+                StmtKind::For { v, body, .. } => {
+                    out.push(v.clone());
+                    self.sets_in(body, out);
+                }
+                StmtKind::If { arms, els } => {
+                    for (_, b) in arms { self.sets_in(b, out); }
+                    if let Some(b) = els { self.sets_in(b, out); }
+                }
+                StmtKind::Settle { body, els, .. } => {
+                    self.sets_in(body, out);
+                    if let Some(b) = els { self.sets_in(b, out); }
+                }
+            }
+        }
+    }
+    fn scalar_t(&self, e: usize) -> bool {
+        matches!(self.b.c.ann[e].ty.as_ref(), Some(Ty::Real(_) | Ty::Int | Ty::Bool | Ty::Choice(_)))
+    }
+    fn kept(&self, x: usize, v: &str, sets: &[String]) -> bool {
+        let c = self.b.c;
+        match &c.exprs[x].kind {
+            ExprKind::Var(n) => n != v && !sets.iter().any(|s| s == n) && !matches!(c.ann[x].var, VarKind::Const(_) | VarKind::Pi | VarKind::Inf | VarKind::Nan),
+            _ => false,
+        }
+    }
+    fn vcond(&mut self, e: usize, v: &str, sets: &[String]) -> Option<String> {
+        let c = self.b.c;
+        match &c.exprs[e].kind {
+            ExprKind::Num { .. } | ExprKind::Bool(_) => Some(self.ex(e)),
+            ExprKind::Var(n) => {
+                if n == v {
+                    return Some(VMARK.into());
+                }
+                if self.kept(e, v, sets) && !matches!(c.ann[e].var, VarKind::Data(_)) && self.scalar_t(e) { Some(self.ex(e)) } else { None }
+            }
+            ExprKind::Index { a, i } => {
+                let vec = matches!(c.ann[*a].ty.as_ref(), Some(Ty::Arr(_, of)) if !matches!(**of, Ty::Arr(..)));
+                if !self.scalar_t(e) || !matches!(c.exprs[*a].kind, ExprKind::Var(_)) || !self.kept(*a, v, sets) || !vec {
+                    return None;
+                }
+                let iv = self.vcond(*i, v, sets)?;
+                let base = match self.data_ref(*a) {
+                    Some(d) => d,
+                    None => self.ex(*a),
+                };
+                Some(format!("{base}(({iv}) + 1)"))
+            }
+            ExprKind::Field { a, .. } => {
+                if c.ann[e].choice.is_none() && self.scalar_t(e) && matches!(c.exprs[*a].kind, ExprKind::Var(_)) && self.kept(*a, v, sets) {
+                    Some(self.ex(e))
+                } else {
+                    None
+                }
+            }
+            ExprKind::Not(a) => self.vcond(*a, v, sets).map(|x| format!("(~{x})")),
+            ExprKind::Neg(a) => self.vcond(*a, v, sets).map(|x| format!("(-({x}))")),
+            ExprKind::Bin { op, a, b } => {
+                use BinOp::*;
+                if !matches!(op, Add | Sub | Mul | Div | Eq | Ne | Lt | Le | Gt | Ge) || matches!(c.ann[e].shape, Shape::Mv | Shape::Mm) {
+                    return None;
+                }
+                if !self.scalar_t(*a) || !self.scalar_t(*b) {
+                    return None;
+                }
+                let x = self.vcond(*a, v, sets)?;
+                let y = self.vcond(*b, v, sets)?;
+                let o = match op {
+                    Mul => ".*",
+                    Div => "./",
+                    Ne => "~=",
+                    _ => op.text(),
+                };
+                Some(format!("({x} {o} {y})"))
+            }
+            ExprKind::Call { args, .. } => {
+                if !matches!(c.ann[e].target, Target::Builtin("dot")) {
+                    return None;
+                }
+                let n = args.first().map_or(0, |&x| self.arr_len(x));
+                if !(1..=4).contains(&n) {
+                    return None;
+                }
+                let a0 = self.vside(args[0], n, v, sets)?;
+                let a1 = self.vside(*args.get(1)?, n, v, sets)?;
+                let t: Vec<String> = (0..n).map(|k| format!("{} .* {}", a0[k], a1[k])).collect();
+                Some(format!("({})", t.join(" + ")))
+            }
+            _ => None,
+        }
+    }
+    fn vside(&mut self, x: usize, n: usize, v: &str, sets: &[String]) -> Option<Vec<String>> {
+        let c = self.b.c;
+        if let ExprKind::Var(_) = &c.exprs[x].kind {
+            let vec = matches!(c.ann[x].ty.as_ref(), Some(Ty::Arr(m, of)) if *m == n && !matches!(**of, Ty::Arr(..)));
+            if self.kept(x, v, sets) && !matches!(c.ann[x].var, VarKind::Data(_)) && vec {
+                let b = self.ex(x);
+                return Some((1..=n).map(|k| format!("{b}({k})")).collect());
+            }
+        }
+        if let ExprKind::Index { a, i } = &c.exprs[x].kind {
+            let rows = matches!(c.ann[*a].ty.as_ref(), Some(Ty::Arr(_, of)) if matches!(&**of, Ty::Arr(m, _) if *m == n));
+            if matches!(c.exprs[*a].kind, ExprKind::Var(_)) && self.kept(*a, v, sets) && rows {
+                let iv = self.vcond(*i, v, sets)?;
+                let m = match self.data_ref(*a) {
+                    Some(d) => d,
+                    None => self.ex(*a),
+                };
+                return Some((1..=n).map(|k| format!("{m}(({iv}) + 1, {k})")).collect());
+            }
+        }
+        None
+    }
+    fn guarded(&mut self, v: &str, body: &[Stmt]) -> Option<String> {
+        if body.len() != 1 {
+            return None;
+        }
+        let StmtKind::If { arms, els } = &body[0].kind else { return None };
+        if arms.len() != 1 || els.is_some() {
+            return None;
+        }
+        let mut sets = Vec::new();
+        self.sets_in(body, &mut sets);
+        let g = self.vcond(arms[0].0, v, &sets)?;
+        if g.contains(VMARK) { Some(g) } else { None }
+    }
+
     // a branch that could fail when it is not the one taken (an index, a call)
     fn may_fail(&self, e: usize) -> bool {
         let c = self.b.c;
@@ -278,7 +512,24 @@ impl<'a> Gen<'a> {
             return format!("({} {} {})", self.ex(a), op.text(), self.ex(b));
         }
         match ann.shape {
-            Shape::Mv => format!("{RTP}.mv({}, {})", self.ex(a), self.ex(b)),
+            Shape::Mv => {
+                let (n, m) = match self.b.c.ann[a].ty.as_ref() {
+                    Some(Ty::Arr(n, of)) => match &**of {
+                        Ty::Arr(m, _) => (*n, *m),
+                        _ => (*n, 0),
+                    },
+                    _ => (0, 0),
+                };
+                let small = |x: usize| (1..=4).contains(&x);
+                let mat = if small(n) && small(m) { self.melems(a, n, m) } else { None };
+                let v = if mat.is_some() { self.elems(b, m) } else { None };
+                if let (Some(mb), Some(v)) = (mat, v) {
+                    let rows: Vec<String> =
+                        (1..=n).map(|i| (1..=m).map(|j| format!("{mb}({i}, {j})*{}", v[j - 1])).collect::<Vec<_>>().join(" + ")).collect();
+                    return format!("[{}]", rows.join("; "));
+                }
+                format!("{RTP}.mv({}, {})", self.ex(a), self.ex(b))
+            }
             Shape::Mm => format!("{RTP}.mm({}, {})", self.ex(a), self.ex(b)),
             _ => format!("({} {} {})", self.ex(a), op.text(), self.ex(b)),
         }
@@ -330,9 +581,36 @@ impl<'a> Gen<'a> {
                         _ => "undefined".into(),
                     }
                 }
-                "dot" => return format!("{RTP}.dot_({}, {})", at(0), at(1)),
-                "cross" => return format!("{RTP}.cross_({}, {})", at(0), at(1)),
-                "norm" => return format!("{RTP}.norm_({})", at(0)),
+                "dot" => {
+                    let n = args.first().map_or(0, |&x| self.arr_len(x));
+                    let aa = if (1..=4).contains(&n) { self.elems(args[0], n) } else { None };
+                    let bb = if aa.is_some() { args.get(1).and_then(|&x| self.elems(x, n)) } else { None };
+                    if let (Some(aa), Some(bb)) = (aa, bb) {
+                        let t: Vec<String> = (0..n).map(|k| format!("{}*{}", aa[k], bb[k])).collect();
+                        return format!("({})", t.join(" + "));
+                    }
+                    return format!("{RTP}.dot_({}, {})", at(0), at(1));
+                }
+                "cross" => {
+                    let aa = args.first().and_then(|&x| self.elems(x, 3));
+                    let bb = if aa.is_some() { args.get(1).and_then(|&x| self.elems(x, 3)) } else { None };
+                    if let (Some(x), Some(y)) = (aa, bb) {
+                        return format!(
+                            "[{}*{} - {}*{}; {}*{} - {}*{}; {}*{} - {}*{}]",
+                            x[1], y[2], x[2], y[1], x[2], y[0], x[0], y[2], x[0], y[1], x[1], y[0]
+                        );
+                    }
+                    return format!("{RTP}.cross_({}, {})", at(0), at(1));
+                }
+                "norm" => {
+                    let n = args.first().map_or(0, |&x| self.arr_len(x));
+                    let aa = if (1..=4).contains(&n) { self.elems(args[0], n) } else { None };
+                    if let Some(aa) = aa {
+                        let t: Vec<String> = (0..n).map(|k| format!("{}*{}", aa[k], aa[k])).collect();
+                        return format!("sqrt({})", t.join(" + "));
+                    }
+                    return format!("{RTP}.norm_({})", at(0));
+                }
                 "unit" => return format!("{RTP}.unit_({})", at(0)),
                 "transpose" => return format!("({}).'", at(0)),
                 "sort" => return format!("{RTP}.sort_({})", at(0)),
@@ -489,6 +767,15 @@ impl<'a> Gen<'a> {
                 out + &format!("{ii}end\n")
             }
             StmtKind::For { v, a, b, body } => {
+                if let Some(g) = self.guarded(v, body) {
+                    let vn = format!("t__{}", self.tmp);
+                    self.tmp += 1;
+                    let as_ = self.ex(*a);
+                    let bs = self.ex(*b);
+                    let StmtKind::If { arms, .. } = &body[0].kind else { return String::new() };
+                    let inner = self.stmts(&arms[0].1, ind + 1);
+                    return format!("{ii}{vn} = (({as_}):(({bs}) - 1)).';\n{ii}for {v} = {vn}(logical({})).'\n{inner}{ii}end\n", g.replace(VMARK, &vn));
+                }
                 let as_ = self.ex(*a);
                 let bs = self.ex(*b);
                 format!("{ii}for {v} = ({as_}):(({bs}) - 1)\n{}{ii}end\n", self.stmts(body, ind + 1))
@@ -764,7 +1051,7 @@ pub(super) fn runtime() -> Files {
     add("clamp", "x, lo, hi", "r", "min(max(x, lo), hi).", "    r = asils.pc.fmin(asils.pc.fmax(x, lo), hi);\n");
     add("choose", "c, a, b", "r", "a when c, else b (both are evaluated).", "    if c, r = a; else, r = b; end\n");
     add("choose_lazy", "c, a, b", "r", "a() when c, else b(): only the branch taken is evaluated.", "    if c, r = a(); else, r = b(); end\n");
-    add("dot_", "a, b", "s", "sum of products, left to right.", "    s = a(1)*b(1);\n    for i = 2:numel(a), s = s + a(i)*b(i); end\n");
+    add("dot_", "a, b", "s", "sum of products, left to right.", "    if numel(a) == 3\n        s = a(1)*b(1) + a(2)*b(2) + a(3)*b(3);\n    else\n        s = a(1)*b(1);\n        for i = 2:numel(a), s = s + a(i)*b(i); end\n    end\n");
     add("cross_", "a, b", "c", "cross product of two 3-vectors.", "    c = [a(2)*b(3) - a(3)*b(2); a(3)*b(1) - a(1)*b(3); a(1)*b(2) - a(2)*b(1)];\n");
     add("norm_", "a", "n", "sqrt(dot(a, a)).", "    n = sqrt(asils.pc.dot_(a, a));\n");
     add("unit_", "a", "u", "a / max(norm(a), 1e-30).", "    u = a / asils.pc.fmax(asils.pc.norm_(a), 1e-30);\n");
@@ -1023,18 +1310,25 @@ pub(super) fn runtime() -> Files {
         "    if numel(id) == 2, i = reshape(id, 1, 2); else, i = asils.pc.u64_of_(id); end\n    k = asils.pc.sm64_(asils.pc.u64_xor_(asils.pc.u64_of_(seed), asils.pc.sm64_(i)));\n    s = [k(1); k(2); 0; 0; 0; 0];\n",
     );
     add(
+        "stream_block",
+        "kh, kl, nh, nl",
+        "w",
+        "the 257 uniform draws of the stream with key [kh, kl] at the counters [nh, nl] + 1 on, as stream_uniform draws them.",
+        "    % the counters [nh, nl] + 1 to + 257, each its own SplitMix64 as stream_uniform makes it, element by element\n    zl = nl + (1:257)'; zh = nh + zeros(257, 1);\n    c = zl >= 4294967296; zl(c) = zl(c) - 4294967296; zh(c) = mod(zh(c) + 1, 4294967296);\n    lo = zl + 2135587861; cy = floor(lo / 4294967296); zl = lo - cy*4294967296; zh = mod(zh + 2654435769 + cy, 4294967296);\n    zh_ = floor(zh / 1073741824); zl_ = mod(zh, 1073741824)*4 + floor(zl / 1073741824); zh = bitxor(zh, zh_); zl = bitxor(zl, zl_);\n    x1 = mod(zl, 65536); x2 = floor(zl / 65536); x3 = mod(zh, 65536); x4 = floor(zh / 65536);\n    c0 = x1*58809; c1 = x1*7396 + x2*58809; c2 = x1*18285 + x2*7396 + x3*58809; c3 = x1*48984 + x2*18285 + x3*7396 + x4*58809;\n    r0 = mod(c0, 65536); t = floor(c0 / 65536) + c1; r1 = mod(t, 65536); t = floor(t / 65536) + c2;\n    r2 = mod(t, 65536); t = floor(t / 65536) + c3; zh = r2 + mod(t, 65536)*65536; zl = r0 + r1*65536;\n    zh_ = floor(zh / 134217728); zl_ = mod(zh, 134217728)*32 + floor(zl / 134217728); zh = bitxor(zh, zh_); zl = bitxor(zl, zl_);\n    x1 = mod(zl, 65536); x2 = floor(zl / 65536); x3 = mod(zh, 65536); x4 = floor(zh / 65536);\n    c0 = x1*4587; c1 = x1*4913 + x2*4587; c2 = x1*18875 + x2*4913 + x3*4587; c3 = x1*38096 + x2*18875 + x3*4913 + x4*4587;\n    r0 = mod(c0, 65536); t = floor(c0 / 65536) + c1; r1 = mod(t, 65536); t = floor(t / 65536) + c2;\n    r2 = mod(t, 65536); t = floor(t / 65536) + c3; zh = r2 + mod(t, 65536)*65536; zl = r0 + r1*65536;\n    zh_ = floor(zh / 2147483648); zl_ = mod(zh, 2147483648)*2 + floor(zl / 2147483648); zh = bitxor(zh, zh_); zl = bitxor(zl, zl_);\n    zh = bitxor(kh, zh); zl = bitxor(kl, zl);\n    lo = zl + 2135587861; cy = floor(lo / 4294967296); zl = lo - cy*4294967296; zh = mod(zh + 2654435769 + cy, 4294967296);\n    zh_ = floor(zh / 1073741824); zl_ = mod(zh, 1073741824)*4 + floor(zl / 1073741824); zh = bitxor(zh, zh_); zl = bitxor(zl, zl_);\n    x1 = mod(zl, 65536); x2 = floor(zl / 65536); x3 = mod(zh, 65536); x4 = floor(zh / 65536);\n    c0 = x1*58809; c1 = x1*7396 + x2*58809; c2 = x1*18285 + x2*7396 + x3*58809; c3 = x1*48984 + x2*18285 + x3*7396 + x4*58809;\n    r0 = mod(c0, 65536); t = floor(c0 / 65536) + c1; r1 = mod(t, 65536); t = floor(t / 65536) + c2;\n    r2 = mod(t, 65536); t = floor(t / 65536) + c3; zh = r2 + mod(t, 65536)*65536; zl = r0 + r1*65536;\n    zh_ = floor(zh / 134217728); zl_ = mod(zh, 134217728)*32 + floor(zl / 134217728); zh = bitxor(zh, zh_); zl = bitxor(zl, zl_);\n    x1 = mod(zl, 65536); x2 = floor(zl / 65536); x3 = mod(zh, 65536); x4 = floor(zh / 65536);\n    c0 = x1*4587; c1 = x1*4913 + x2*4587; c2 = x1*18875 + x2*4913 + x3*4587; c3 = x1*38096 + x2*18875 + x3*4913 + x4*4587;\n    r0 = mod(c0, 65536); t = floor(c0 / 65536) + c1; r1 = mod(t, 65536); t = floor(t / 65536) + c2;\n    r2 = mod(t, 65536); t = floor(t / 65536) + c3; zh = r2 + mod(t, 65536)*65536; zl = r0 + r1*65536;\n    zh_ = floor(zh / 2147483648); zl_ = mod(zh, 2147483648)*2 + floor(zl / 2147483648); zh = bitxor(zh, zh_); zl = bitxor(zl, zl_);\n    w = (zh*2097152 + floor(zl / 2048) + 0.5)*(1/9007199254740992);\n",
+    );
+    add(
         "stream_uniform",
         "s",
         "[u, s]",
         "a uniform draw on (0, 1), and the stream advanced.",
-        "    n = asils.pc.u64_add_([s(3), s(4)], [0, 1]);\n    z = asils.pc.sm64_(asils.pc.u64_xor_([s(1), s(2)], asils.pc.sm64_(n)));\n    u = (z(1)*2097152 + floor(z(2) / 2048) + 0.5)*(1/9007199254740992);\n    s(3) = n(1); s(4) = n(2);\n",
+        "    % a draw is a function of the stream's key and counter alone: the next 257 draws of a key are made at once\n    % (stream_block) and kept, and a run of draws reads them (the same numbers, sooner)\n    persistent K1 K2 BH BL U r\n    if isempty(r), K1 = NaN(64, 1); K2 = K1; BH = K1; BL = K1; U = zeros(64, 257); r = 1; end\n    nl = s(4) + 1; nh = s(3);\n    if nl == 4294967296, nl = 0; nh = mod(nh + 1, 4294967296); end\n    if ~(K1(r) == s(1) && K2(r) == s(2))\n        r = find(K1 == s(1) & K2 == s(2), 1);\n        if isempty(r)\n            r = find(isnan(K1), 1); if isempty(r), r = 1 + mod(nl, 64); end\n            K1(r) = s(1); K2(r) = s(2); BH(r) = NaN;\n        end\n    end\n    j = nl - BL(r);\n    if ~(BH(r) == nh && j >= 1 && j <= 256)\n        BH(r) = nh; BL(r) = nl - 1; U(r, :) = asils.pc.stream_block(s(1), s(2), nh, nl - 1).'; j = 1;\n    end\n    u = U(r, j);\n    s(3) = nh; s(4) = nl;\n",
     );
     add(
         "stream_normal",
         "s",
         "[z, s]",
         "a normal draw by Box-Muller (the spare kept), and the stream advanced.",
-        "    if s(6) ~= 0\n        z = s(5); s(5) = 0; s(6) = 0;\n        return;\n    end\n    [u1, s] = asils.pc.stream_uniform(s);\n    [u2, s] = asils.pc.stream_uniform(s);\n    r = sqrt(-2*log(u1));\n    s(5) = r*sin(2*pi*u2); s(6) = 1;\n    z = r*cos(2*pi*u2);\n",
+        "    persistent K1 K2 BH BL U r\n    if s(6) ~= 0\n        z = s(5); s(5) = 0; s(6) = 0;\n        return;\n    end\n    % its two uniform draws read from kept blocks of stream_block, as stream_uniform reads them\n    if isempty(r), K1 = NaN(64, 1); K2 = K1; BH = K1; BL = K1; U = zeros(64, 257); r = 1; end\n    nl = s(4) + 1; nh = s(3);\n    if nl == 4294967296, nl = 0; nh = mod(nh + 1, 4294967296); end\n    if ~(K1(r) == s(1) && K2(r) == s(2))\n        r = find(K1 == s(1) & K2 == s(2), 1);\n        if isempty(r)\n            r = find(isnan(K1), 1); if isempty(r), r = 1 + mod(nl, 64); end\n            K1(r) = s(1); K2(r) = s(2); BH(r) = NaN;\n        end\n    end\n    j = nl - BL(r);\n    if ~(BH(r) == nh && j >= 1 && j <= 256)\n        BH(r) = nh; BL(r) = nl - 1; U(r, :) = asils.pc.stream_block(s(1), s(2), nh, nl - 1).'; j = 1;\n    end\n    u1 = U(r, j); u2 = U(r, j + 1);\n    if nl == 4294967295, s(3) = mod(nh + 1, 4294967296); s(4) = 0; else, s(3) = nh; s(4) = nl + 1; end\n    rr = sqrt(-2*log(u1));\n    s(5) = rr*sin(2*pi*u2); s(6) = 1;\n    z = rr*cos(2*pi*u2);\n",
     );
     add(
         "stream_normal3",

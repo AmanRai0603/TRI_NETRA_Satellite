@@ -13,9 +13,9 @@ function [tau] = light_torque(rm, r, sun_rel, nu, p_srp, g)
     tau = zeros(3, 1);
     sun = [0; 0; 0];
     if (nu > 0)
-        sun = asils.models.radiation.radiation_torque(g, asils.models.facets.unit_or_zero((asils.pc.mv(rm, sun_rel) * 1)), (nu * p_srp));
+        sun = asils.models.radiation.radiation_torque(g, asils.models.facets.unit_or_zero(([rm(1, 1)*sun_rel(1) + rm(1, 2)*sun_rel(2) + rm(1, 3)*sun_rel(3); rm(2, 1)*sun_rel(1) + rm(2, 2)*sun_rel(2) + rm(2, 3)*sun_rel(3); rm(3, 1)*sun_rel(1) + rm(3, 2)*sun_rel(2) + rm(3, 3)*sun_rel(3)] * 1)), (nu * p_srp));
     end
     p_earth = (asils.models.albedo.albedo_pressure(r, sun_rel, p_srp) + asils.models.earthir.earth_ir_pressure(r));
-    eb = asils.models.facets.unit_or_zero((asils.pc.mv(rm, r) * (-(1))));
+    eb = asils.models.facets.unit_or_zero(([rm(1, 1)*r(1) + rm(1, 2)*r(2) + rm(1, 3)*r(3); rm(2, 1)*r(1) + rm(2, 2)*r(2) + rm(2, 3)*r(3); rm(3, 1)*r(1) + rm(3, 2)*r(2) + rm(3, 3)*r(3)] * (-(1))));
     tau = (sun + asils.models.radiation.radiation_torque(g, eb, p_earth));
 end

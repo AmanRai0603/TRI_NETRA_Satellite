@@ -13,5 +13,5 @@ function x = context(O, t)
     end
     th = O.omega_e*(t - O.t0);
     c = cos(th); sn = sin(th);
-    x.C = [c sn 0; -sn c 0; 0 0 1] * O.x0.C;
+    x.C = asils.la.mm([c sn 0; -sn c 0; 0 0 1], O.x0.C);   % each element summed left to right (the engine's la mm)
 end

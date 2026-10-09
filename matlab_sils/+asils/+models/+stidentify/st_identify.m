@@ -31,32 +31,31 @@ function [id, ok, pi, pj, pa, cr, cm] = st_identify(b, mag, n, pi, pj, pa, cr, c
         cand = zeros(32, 1);
         for p = (0):((n) - 1)
             votes = zeros(4000, 1);
-            for q = (0):((n) - 1)
-                if (q ~= p)
-                    th = asils.pc.acos_(asils.pc.fmin(asils.pc.dot_((b((p) + 1, :)).', (b((q) + 1, :)).'), 1));
-                    [t__549, t__550] = asils.models.stidentify.st_first_not_below(pa, np, (th - id_tol));
-                    lo = t__549;
-                    pa = t__550;
-                    [t__551, t__552] = asils.models.stidentify.st_first_above(pa, np, (th + id_tol));
-                    hi = t__551;
-                    pa = t__552;
-                    mp = mag((p) + 1);
-                    mq = mag((q) + 1);
-                    for k = (lo):((asils.pc.fmax(hi, lo)) - 1)
-                        i = pi((k) + 1);
-                        j = pj((k) + 1);
-                        mi = cm((i) + 1);
-                        mj = cm((j) + 1);
-                        dip = (mi - mp);
-                        djq = (mj - mq);
-                        djp = (mj - mp);
-                        diq = (mi - mq);
-                        if ((asils.pc.fmax(dip, (-(dip))) < mag_tol) && (asils.pc.fmax(djq, (-(djq))) < mag_tol))
-                            votes((i) + 1) = (votes((i) + 1) + 1);
-                        end
-                        if ((asils.pc.fmax(djp, (-(djp))) < mag_tol) && (asils.pc.fmax(diq, (-(diq))) < mag_tol))
-                            votes((j) + 1) = (votes((j) + 1) + 1);
-                        end
+            t__561 = ((0):((n) - 1)).';
+            for q = t__561(logical((t__561 ~= p))).'
+                th = asils.pc.acos_(asils.pc.fmin((b((p) + 1, 1)*b((q) + 1, 1) + b((p) + 1, 2)*b((q) + 1, 2) + b((p) + 1, 3)*b((q) + 1, 3)), 1));
+                [t__562, t__563] = asils.models.stidentify.st_first_not_below(pa, np, (th - id_tol));
+                lo = t__562;
+                pa = t__563;
+                [t__564, t__565] = asils.models.stidentify.st_first_above(pa, np, (th + id_tol));
+                hi = t__564;
+                pa = t__565;
+                mp = mag((p) + 1);
+                mq = mag((q) + 1);
+                for k = (lo):((asils.pc.fmax(hi, lo)) - 1)
+                    i = pi((k) + 1);
+                    j = pj((k) + 1);
+                    mi = cm((i) + 1);
+                    mj = cm((j) + 1);
+                    dip = (mi - mp);
+                    djq = (mj - mq);
+                    djp = (mj - mp);
+                    diq = (mi - mq);
+                    if ((asils.pc.fmax(dip, (-(dip))) < mag_tol) && (asils.pc.fmax(djq, (-(djq))) < mag_tol))
+                        votes((i) + 1) = (votes((i) + 1) + 1);
+                    end
+                    if ((asils.pc.fmax(djp, (-(djp))) < mag_tol) && (asils.pc.fmax(diq, (-(diq))) < mag_tol))
+                        votes((j) + 1) = (votes((j) + 1) + 1);
                     end
                 end
             end
@@ -76,30 +75,28 @@ function [id, ok, pi, pj, pa, cr, cm] = st_identify(b, mag, n, pi, pj, pa, cr, c
         end
         for pass = (0):((3) - 1)
             was = keep;
-            for p3 = (0):((n) - 1)
-                if was((p3) + 1)
-                    good = 0;
-                    for q3 = (0):((n) - 1)
-                        if ((q3 ~= p3) && keep((q3) + 1))
-                            th3 = asils.pc.acos_(asils.pc.fmin(asils.pc.dot_((b((p3) + 1, :)).', (b((q3) + 1, :)).'), 1));
-                            tc = asils.pc.acos_(asils.pc.fmin(asils.pc.dot_((cr((cand((p3) + 1)) + 1, :)).', (cr((cand((q3) + 1)) + 1, :)).'), 1));
-                            if (asils.pc.fabs((th3 - tc)) < (3 * id_tol))
-                                good = (good + 1);
-                            end
+            t__566 = ((0):((n) - 1)).';
+            for p3 = t__566(logical(was((t__566) + 1))).'
+                good = 0;
+                for q3 = (0):((n) - 1)
+                    if ((q3 ~= p3) && keep((q3) + 1))
+                        th3 = asils.pc.acos_(asils.pc.fmin((b((p3) + 1, 1)*b((q3) + 1, 1) + b((p3) + 1, 2)*b((q3) + 1, 2) + b((p3) + 1, 3)*b((q3) + 1, 3)), 1));
+                        tc = asils.pc.acos_(asils.pc.fmin((cr((cand((p3) + 1)) + 1, 1)*cr((cand((q3) + 1)) + 1, 1) + cr((cand((p3) + 1)) + 1, 2)*cr((cand((q3) + 1)) + 1, 2) + cr((cand((p3) + 1)) + 1, 3)*cr((cand((q3) + 1)) + 1, 3)), 1));
+                        if (asils.pc.fabs((th3 - tc)) < (3 * id_tol))
+                            good = (good + 1);
                         end
                     end
-                    if (good < 2)
-                        keep((p3) + 1) = false;
-                    end
+                end
+                if (good < 2)
+                    keep((p3) + 1) = false;
                 end
             end
         end
         kept = 0;
-        for p4 = (0):((n) - 1)
-            if keep((p4) + 1)
-                id((p4) + 1) = cand((p4) + 1);
-                kept = (kept + 1);
-            end
+        t__567 = ((0):((n) - 1)).';
+        for p4 = t__567(logical(keep((t__567) + 1))).'
+            id((p4) + 1) = cand((p4) + 1);
+            kept = (kept + 1);
         end
         ok = (kept >= 3);
     end

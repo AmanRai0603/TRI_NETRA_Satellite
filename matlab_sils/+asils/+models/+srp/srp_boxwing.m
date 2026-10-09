@@ -14,6 +14,6 @@ function [acc, force] = srp_boxwing(p, nu, s, r_b2i, f, mass)
     force = zeros(3, 1);
     s_b = asils.pc.mv((r_b2i).', s);
     fb = asils.models.srp.facet_sum(f, s_b, p);
-    force = asils.pc.mv(r_b2i, fb);
+    force = [r_b2i(1, 1)*fb(1) + r_b2i(1, 2)*fb(2) + r_b2i(1, 3)*fb(3); r_b2i(2, 1)*fb(1) + r_b2i(2, 2)*fb(2) + r_b2i(2, 3)*fb(3); r_b2i(3, 1)*fb(1) + r_b2i(3, 2)*fb(2) + r_b2i(3, 3)*fb(3)];
     acc = [((nu * force(1)) / mass); ((nu * force(2)) / mass); ((nu * force(3)) / mass)];
 end

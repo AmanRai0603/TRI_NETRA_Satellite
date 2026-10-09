@@ -7,7 +7,7 @@ function [y] = dtc_interp(x)
     n = (10729 * 24);
     lo = 0;
     hi = n;
-    n__414 = 64; k__413 = 0;
+    n__418 = 64; k__417 = 0;
     while true
         mid = fix(((lo + hi)) / (2));
         if (asils.models.jb2008.dtc_hour(mid) <= x)
@@ -15,9 +15,9 @@ function [y] = dtc_interp(x)
         else
             hi = mid;
         end
-        k__413 = k__413 + 1;
+        k__417 = k__417 + 1;
         if (lo >= hi), break; end
-        if k__413 >= n__414
+        if k__417 >= n__418
             break;
         end
     end

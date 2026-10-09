@@ -9,7 +9,7 @@ function [y] = sol_interp(j, x)
     n = 10729;
     lo = 0;
     hi = n;
-    n__412 = 64; k__411 = 0;
+    n__416 = 64; k__415 = 0;
     while true
         mid = fix(((lo + hi)) / (2));
         if (asils.models.jb2008.sol_day(mid) <= x)
@@ -17,9 +17,9 @@ function [y] = sol_interp(j, x)
         else
             hi = mid;
         end
-        k__411 = k__411 + 1;
+        k__415 = k__415 + 1;
         if (lo >= hi), break; end
-        if k__411 >= n__412
+        if k__415 >= n__416
             break;
         end
     end
