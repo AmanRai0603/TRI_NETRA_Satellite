@@ -27,7 +27,7 @@ use gsi::{Gsi, PanelModel};
 
 /// Earth rotation rate [rad/s] (`de440.constants().omega_earth`), the default of
 /// relVelocity / cannonball / drag.force and of `ctx.omega_eci` in forces.drag.
-pub use crate::frames::OMEGA_EARTH;
+pub use crate::frames::omega_earth;
 
 /// `drag.relVelocity(r, v, wind, omega)`: `v - (omega x r) - wind` (the Octave
 /// `norm`), returns (vrel, uhat, |vrel|).

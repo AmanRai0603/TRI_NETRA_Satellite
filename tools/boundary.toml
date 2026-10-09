@@ -1,0 +1,659 @@
+# The database/code boundary, as tools/boundary.py checks it (docs/PLAN_2_0.md S7 done-when; docs/CODE_ARCHITECTURE.md §1).
+#
+# Every source file of the code is either generated from the design (`[[generated]]`: its generator's --check holds it
+# to the design, and it says so in its first lines) or hand-written and classified here (`[[part]]`, the first glob that
+# matches; `*` crosses folders). A class says what part of the code a file is (docs/PLAN_2_0.md, "The code, as 2.0.0
+# arranges it"); there is no class for a relation, a published model or a flight algorithm: those are design, and reach
+# the code only generated. Every classified file but a test is searched for the marks of a relation or a published model
+# (tools/boundary.py MARKS, and tables); a find is allowed only by an `[[allow]]` with its reason. An allowance that is a
+# relation still in code is a declared exception (`exception = true`), with what removes it (`until`); the check prints
+# every one of them on every run, so none is forgotten.
+# Owner: Agastya. Copyright (c) 2026 Agastya. All rights reserved.
+
+schema = "trinetra-boundary/1"
+scope = ["engine/crates", "fsw", "fsw-rs", "matlab_sils", "tools", "python/trinetra_adcs", "design/js"]
+extensions = [".rs", ".c", ".h", ".m", ".py", ".js", ".mjs"]
+skip = ["*/target/*", "*/build/*", "*/node_modules/*", "matlab_sils/store/*"]
+
+[classes]
+toolbox = "the maths the methods may call, with units, and nothing that is a model of the world or the spacecraft (vectors, matrices, quaternions, libm, random streams, integrators, linear and Riccati solvers, units)"
+reader = "reads a file's format (SQLite, DAF/SPK, CSV, the space-weather, EOP, gravity and tide files) and hands its numbers on; never a model of its own"
+core = "the time engine's core and the twin's runner: step order, the calls to the generated models, the recorder, results, campaigns, figures"
+runtime = "the flight software's runtime: HAL, C interface, tick and scheduler, the configuration blob's format, the targets; the algorithms it calls are generated"
+rig = "the rigs: soft OILS, the byte link, the rig host, emulation channels"
+translator = "the interpreter and the translators of the pseudocode (Rust, C, MATLAB)"
+library = "reads, writes and checks every file kind; the design graph; today's design; the health map; signing"
+application = "the application and the pages"
+cli = "the command line and the Python package: scripted use over the engine and the library"
+tools = "the developer's tools: generators, checks, the release, reports; they ask the engine or the interpreter for a design's relation"
+test = "a test; a fixture may hold a published value (docs/CODE_ARCHITECTURE.md §1), so a test is classified, not searched"
+vendored = "a third-party program kept whole beside the code"
+
+# ------------------------------------------------------------------ generated from the design
+[[generated]]
+glob = "engine/crates/adcs-sim-core/src/gen/*"
+by = "tools/engine_build.py: the engine's models (adcs-sim-core)"
+
+[[generated]]
+glob = "engine/crates/adcs-pop/src/gen/*"
+by = "tools/engine_build.py: the published models (adcs-pop)"
+
+[[generated]]
+glob = "engine/crates/adcs-sim/src/gen/*"
+by = "tools/engine_build.py: the engine's models (adcs-sim)"
+
+[[generated]]
+glob = "engine/crates/adcs-design/src/gen/*"
+by = "tools/engine_build.py: the sizing (adcs-design)"
+
+[[generated]]
+glob = "engine/crates/adcs-relations/*"
+by = "tools/engine_build.py: the relations crate is generated whole"
+
+[[generated]]
+glob = "engine/crates/pcode-selftest/*"
+by = "tools/pcode.py gen: the language's self-test"
+
+[[generated]]
+glob = "fsw/alg/*"
+by = "tools/flight_build.py: the C flight algorithms"
+
+[[generated]]
+glob = "fsw-rs/src/alg/*"
+by = "tools/flight_build.py: the Rust flight algorithms"
+
+[[generated]]
+glob = "fsw/tests/alg_dispatch.c"
+by = "tools/pcode.py: the C vectors' dispatcher"
+
+[[generated]]
+glob = "fsw-rs/tests/alg/*"
+by = "tools/pcode.py: the Rust vectors' dispatcher"
+
+[[generated]]
+glob = "fsw/src/adcs_params.c"
+by = "tools/gen_fsw_params.py: the parameter table"
+
+[[generated]]
+glob = "fsw/include/adcs_params.h"
+by = "tools/gen_fsw_params.py: the parameter table"
+
+[[generated]]
+glob = "fsw-rs/src/params.rs"
+by = "tools/gen_fsw_params.py: the parameter table"
+
+[[generated]]
+glob = "matlab_sils/+asils/+models/*"
+by = "tools/engine_build.py: the twin's models"
+
+[[generated]]
+glob = "matlab_sils/+asils/+relations/*"
+by = "tools/engine_build.py: the relations' MATLAB package"
+
+[[generated]]
+glob = "matlab_sils/+asils/+alg/*"
+by = "tools/flight_build.py: the twin's flight algorithms"
+
+[[generated]]
+glob = "matlab_sils/+asils/+pc/*"
+by = "tools/pcode.py: the MATLAB translator's runtime"
+
+[[generated]]
+glob = "matlab_sils/+asils/+pcselftest/*"
+by = "tools/pcode.py gen: the language's self-test in MATLAB"
+
+[[generated]]
+glob = "design/js/tndb_schema.js"
+by = "tools/tndb.py gen: the browser's schema"
+
+# ------------------------------------------------------------------ hand-written: tests (classified, not searched)
+[[part]]
+glob = "engine/crates/*/tests/*"
+class = "test"
+why = "the crates' tests: fixtures and published reference values beside the code they test"
+
+[[part]]
+glob = "engine/crates/adcs-pop/refgen/*"
+class = "test"
+why = "the Octave scripts that draw the adcs-pop tests' reference values from the vendored POP"
+
+[[part]]
+glob = "fsw/tests/*"
+class = "test"
+why = "the C flight software's tests and its HAL stub"
+
+[[part]]
+glob = "fsw-rs/tests/*"
+class = "test"
+why = "the Rust flight software's tests"
+
+[[part]]
+glob = "matlab_sils/tests/*"
+class = "test"
+why = "the twin's tests"
+
+[[part]]
+glob = "matlab_sils/pop/08_test/*"
+class = "test"
+why = "the vendored POP's own regression suite"
+
+[[part]]
+glob = "matlab_sils/pop/06_validation/*"
+class = "test"
+why = "the vendored POP's validation against TLEs (its referents)"
+
+[[part]]
+glob = "matlab_sils/pop/11_compare/*"
+class = "test"
+why = "the vendored POP's comparisons against other propagators"
+
+# ------------------------------------------------------------------ the time engine
+[[part]]
+glob = "engine/crates/adcs-sim-core/src/la.rs"
+class = "toolbox"
+why = "fixed-size linear algebra and quaternions"
+
+[[part]]
+glob = "engine/crates/adcs-sim-core/src/pm.rs"
+class = "toolbox"
+why = "portable maths: the pure-Rust libm, so a trajectory is the same on every target"
+
+[[part]]
+glob = "engine/crates/adcs-sim-core/src/rng.rs"
+class = "toolbox"
+why = "counter-based random streams (SplitMix64, Box-Muller)"
+
+[[part]]
+glob = "engine/crates/adcs-sim-core/src/orbit.rs"
+class = "core"
+why = "the in-loop orbit's RK4 at a node step with Hermite interpolation (an integrator, toolbox maths); the forces are env's generated orbitfast"
+
+[[part]]
+glob = "engine/crates/adcs-sim-core/src/emu.rs"
+class = "rig"
+why = "the device emulators' packets and byte order (the scaling is oils' generated emucodec)"
+
+[[part]]
+glob = "engine/crates/adcs-sim-core/src/*"
+class = "core"
+why = "the plant's state and the calls, by the names the engine has always used, to env's, dyn's, act's and sens's generated models; the caller's buffers handed over"
+
+[[part]]
+glob = "engine/crates/adcs-sim/src/lqr.rs"
+class = "toolbox"
+why = "the continuous LQR by Kleinman's iteration on the Riccati equation (a Riccati solver; its weights are fsw's generated methods)"
+
+[[part]]
+glob = "engine/crates/adcs-sim/src/case.rs"
+class = "reader"
+why = "the adcs-case/1 reader"
+
+[[part]]
+glob = "engine/crates/adcs-sim/src/rec.rs"
+class = "core"
+why = "the recorder: the run folder's channels.csv and manifest.json"
+
+[[part]]
+glob = "engine/crates/adcs-sim/src/*"
+class = "core"
+why = "the engine's core: reading the case, the scenario, the product and the design's stated values (source, stated, product, schema), the configuration's reading, calls and checks (config, whose laws are fsw's generated methods), the tick order (run), the metrics' walk of the record (the measures are kpi's), the results store and index, errors"
+
+[[part]]
+glob = "engine/crates/adcs-design/src/*"
+class = "core"
+why = "the sizing's step order over the engine's models (the demand survey), the reading of the case, the knobs, the catalogue and the parts, and the writing of the parts, products and sizing.json; every law is design's or act's generated sizing"
+
+[[part]]
+glob = "engine/crates/adcs-pop/src/integ.rs"
+class = "toolbox"
+why = "the integrators (RK4, RK45, RK78, RK6 Luther, Nystrom, Gauss-Jackson, Hermite dense output)"
+
+[[part]]
+glob = "engine/crates/adcs-pop/src/la.rs"
+class = "toolbox"
+why = "fixed-size linear algebra"
+
+[[part]]
+glob = "engine/crates/adcs-pop/src/atmos/octave.rs"
+class = "toolbox"
+why = "Octave's numerics the ported models depend on (pow, mod, rem, norm, interp1, erf), bit for bit"
+
+[[part]]
+glob = "engine/crates/adcs-pop/src/spk.rs"
+class = "reader"
+why = "the NAIF DAF/SPK reader that brings DE440's slice in; the Chebyshev evaluation is env_de440's generated method"
+
+[[part]]
+glob = "engine/crates/adcs-pop/src/eop.rs"
+class = "reader"
+why = "the IERS leap-second, finals2000A and C04 file readers (the EOP splice and interpolation it still holds are a declared exception below)"
+
+[[part]]
+glob = "engine/crates/adcs-pop/src/spaceweather.rs"
+class = "reader"
+why = "the space-weather file parsers and samplers (OMNI2, GFZ Hpo, SWPC); which index each model takes is env_space_weather's generated method"
+
+[[part]]
+glob = "engine/crates/adcs-pop/src/gravity/field.rs"
+class = "reader"
+why = "the ICGEM .gfc reader and the field's containers; the default field and the zonals are env's generated gravity"
+
+[[part]]
+glob = "engine/crates/adcs-pop/src/oceantides.rs"
+class = "reader"
+why = "the FES ocean-tide reader and the calls; the tide model is env_ocean_tides' generated method over env's tables"
+
+[[part]]
+glob = "engine/crates/adcs-pop/src/*"
+class = "core"
+why = "the precision orbit's world set-up, context and in-loop RK4, and the crate's types, model switches as enums and calls into env's generated published models (time, frames, IAU 2006, tides, DE440, the atmospheres, gravity, the spacecraft forces, relativity)"
+
+[[part]]
+glob = "engine/crates/adcs-fsw-abi/*"
+class = "runtime"
+why = "the engine's side of the flight software's C interface and of adcs-link/1"
+
+[[part]]
+glob = "engine/crates/adcs-plot/src/*"
+class = "core"
+why = "the figures and the run report, drawn as SVG and PDF"
+
+[[part]]
+glob = "engine/crates/adcs-cli/src/*"
+class = "cli"
+why = "the engine's command line (run, params, size, results, design derive and call, figures)"
+
+[[part]]
+glob = "engine/crates/trinetra-app/*"
+class = "application"
+why = "the desktop app: its HTTP server and routes"
+
+[[part]]
+glob = "engine/crates/trinetra-design/*"
+class = "library"
+why = "the library: the schema, writing, content hash, keys, signatures, checks, comparison, the node rules, the twin's tndb read"
+
+[[part]]
+glob = "engine/crates/trinetra-pcode/src/vmath.rs"
+class = "toolbox"
+why = "the interpreter's maths library: JavaScript's Math to the last bit"
+
+[[part]]
+glob = "engine/crates/trinetra-pcode/src/*"
+class = "translator"
+why = "the pseudocode language in Rust: lexer, parser, checker, interpreter, units and the Rust, C and MATLAB translators"
+
+[[part]]
+glob = "engine/crates/*/build.rs"
+class = "cli"
+why = "a crate's build script (the engine's source fingerprint, the flight software's C library, the app's page)"
+
+# ------------------------------------------------------------------ the flight software (runtime; the algorithms are generated)
+[[part]]
+glob = "fsw/include/adcs_math.h"
+class = "toolbox"
+why = "the C flight software's vector and quaternion maths and its real type"
+
+[[part]]
+glob = "fsw/src/adcs_math.c"
+class = "toolbox"
+why = "the C flight software's vector and quaternion maths"
+
+[[part]]
+glob = "fsw/targets/link/*"
+class = "rig"
+why = "adcs-link/1, the byte link to the rig"
+
+[[part]]
+glob = "fsw/targets/*"
+class = "runtime"
+why = "the targets: POSIX and QEMU Cortex-M (MPS2) mains, the instruction counter"
+
+[[part]]
+glob = "fsw/include/*"
+class = "runtime"
+why = "the C interface, the HAL, the devices' and drivers' types and the runtime's headers"
+
+[[part]]
+glob = "fsw/src/*"
+class = "runtime"
+why = "the C runtime: the tick and its state, the HAL calls, and the hand-overs to the generated algorithms (fsw/alg)"
+
+[[part]]
+glob = "fsw-rs/src/math.rs"
+class = "toolbox"
+why = "the Rust flight software's vector and quaternion maths"
+
+[[part]]
+glob = "fsw-rs/src/m.rs"
+class = "toolbox"
+why = "the Rust flight software's maths library calls"
+
+[[part]]
+glob = "fsw-rs/src/*"
+class = "runtime"
+why = "the Rust runtime: the tick, the HAL, the C ABI, and the hand-overs to the generated algorithms (src/alg)"
+
+# ------------------------------------------------------------------ the MATLAB twin (its runner; the models and algorithms are generated)
+[[part]]
+glob = "matlab_sils/+asils/+la/*"
+class = "toolbox"
+why = "the twin's linear algebra"
+
+[[part]]
+glob = "matlab_sils/+asils/+quat/*"
+class = "toolbox"
+why = "the twin's quaternions"
+
+[[part]]
+glob = "matlab_sils/+asils/+hal/*"
+class = "rig"
+why = "the twin's HAL and link: frames, CRC, register maps, the stimulus and the pacing"
+
+[[part]]
+glob = "matlab_sils/+asils/+fsw/*"
+class = "runtime"
+why = "the twin's flight-software tick shell over the generated +alg (the twin of fsw/src/adcs_fsw.c)"
+
+[[part]]
+glob = "matlab_sils/+asils/+case/*"
+class = "reader"
+why = "the adcs-case/1 reader"
+
+[[part]]
+glob = "matlab_sils/+asils/+scenario/*"
+class = "reader"
+why = "the scenario reader and its checks"
+
+[[part]]
+glob = "matlab_sils/+asils/+product/*"
+class = "reader"
+why = "the product and parts reader (the descriptors' rules are generated)"
+
+[[part]]
+glob = "matlab_sils/+asils/+util/*"
+class = "core"
+why = "the twin's utilities: reading JSON and the design (tndb read), the fingerprint, overrides, paths; jd and jd2utc call env's generated caltime"
+
+[[part]]
+glob = "matlab_sils/+asils/*"
+class = "core"
+why = "the twin's runner: the tick order (run), the configuration's reading and calls (config), the devices', plant's, orbit's and environment's calls into the generated +models, faults, the recorder, the metrics' walk, campaigns, trades, solutions, figures"
+
+[[part]]
+glob = "matlab_sils/+trinetra/*"
+class = "cli"
+why = "the twin's way into a design: open, build, run, campaign, health, which"
+
+[[part]]
+glob = "matlab_sils/tools/*"
+class = "cli"
+why = "the twin's batch runners"
+
+[[part]]
+glob = "matlab_sils/examples/*"
+class = "cli"
+why = "worked examples of the twin's use"
+
+[[part]]
+glob = "matlab_sils/startup_asils.m"
+class = "cli"
+why = "puts the twin and the vendored POP on the path"
+
+[[part]]
+glob = "matlab_sils/pop/*"
+class = "vendored"
+why = "the Precision Orbit Propagator (POP v51), vendored whole: the reference adcs-pop is held to, and the twin's in-loop precision orbit (a declared exception below)"
+
+# ------------------------------------------------------------------ tools, the Python package, the pages
+[[part]]
+glob = "tools/readers.py"
+class = "reader"
+why = "the readers that bring published data files into the design (IGRF, the IERS tables, xys06, DTM2020, JB2008, DE440's slice, gravity, tides)"
+
+[[part]]
+glob = "tools/fswcfg.py"
+class = "runtime"
+why = "the configuration blob's format and CRC (adcs-fswcfg/1)"
+
+[[part]]
+glob = "tools/engine_oils.py"
+class = "rig"
+why = "the soft-OILS rig host"
+
+[[part]]
+glob = "tools/evaluate.py"
+class = "library"
+why = "every row evaluated by the design's own pseudocode in the interpreter, and every closure compared (a library check)"
+
+[[part]]
+glob = "tools/health.py"
+class = "library"
+why = "the health map, range verdicts and tornadoes over evaluate's rows"
+
+[[part]]
+glob = "tools/*"
+class = "tools"
+why = "the developer's tools: the generators and their checks, the conversion and today's design, the release, reports, the design loop's driver (which asks the engine for the design's methods)"
+
+[[part]]
+glob = "python/trinetra_adcs/*"
+class = "cli"
+why = "the Python package over the engine and the design"
+
+[[part]]
+glob = "design/js/pcode*"
+class = "translator"
+why = "the pseudocode interpreter (the reference) with its units, the translators (Rust, MATLAB, C) and their command line"
+
+[[part]]
+glob = "design/js/tn*"
+class = "library"
+why = "the page's library: files, content hash, keys"
+
+[[part]]
+glob = "design/js/*"
+class = "application"
+why = "the pages' scripts: the apps, the node model and view, structure and release, the manual"
+
+# ------------------------------------------------------------------ finds that are not a relation
+[[allow]]
+file = "tools/boundary.py"
+find = "earth radius"
+why = "the check's own pattern for the mark"
+
+[[allow]]
+file = "tools/boundary.py"
+find = "solar constant"
+why = "the check's own pattern for the mark"
+
+[[allow]]
+file = "tools/boundary.py"
+find = "speed of light"
+why = "the check's own pattern for the mark"
+
+[[allow]]
+file = "tools/boundary.py"
+find = "astronomical unit"
+why = "the check's own pattern for the mark"
+
+[[allow]]
+file = "design/js/pcode.js"
+find = "astronomical unit"
+why = "the unit au in the language's units table (IAU 2012 resolution B2 defines it as a unit of length): the toolbox's units, not a relation"
+
+[[allow]]
+file = "engine/crates/trinetra-pcode/src/units.rs"
+find = "astronomical unit"
+why = "the unit au in the Rust interpreter's units table, design/js/pcode.js's"
+
+[[allow]]
+file = "design/js/pcode.js"
+find = "table"
+why = "fdlibm's erf and erfc rational approximations (s_erf.c): the toolbox's erf (trinetra-toolbox/4)"
+
+[[allow]]
+file = "design/js/pcode_gen.js"
+find = "table"
+why = "the MATLAB runtime's 64-bit integer arithmetic in 16-bit limbs (2^16, 2^32) for the toolbox's random streams"
+
+[[allow]]
+file = "engine/crates/trinetra-pcode/src/gen/matlab.rs"
+find = "table"
+why = "the MATLAB runtime's 64-bit integer arithmetic in 16-bit limbs (2^16, 2^32) for the toolbox's random streams, design/js/pcode_gen.js's"
+
+[[allow]]
+file = "engine/crates/adcs-pop/src/integ.rs"
+find = "table"
+why = "the integrators' Butcher tableaux and Gauss-Jackson coefficients (Dormand and Prince 1980, Prince and Dormand 1981, Luther 1968, Berry and Healy 2004): toolbox maths"
+
+[[allow]]
+file = "engine/crates/adcs-pop/src/spaceweather.rs"
+find = "table"
+why = "the fill values of OMNI2's columns (NASA OMNIWeb's format description): what the reader takes as no value"
+
+[[allow]]
+file = "tools/readers.py"
+find = "earth GM"
+why = "a comment naming what a MATLAB file assigns (`F.mu = ...`), which the matlab_matrix reader reads from the file"
+
+# ------------------------------------------------------------------ declared exceptions: relations still in code
+[[allow]]
+file = "fsw/include/adcs_math.h"
+find = "earth rotation rate"
+exception = true
+why = "the runtime tick's onboard orbit (fsw/src/adcs_fsw.c tick step 1) turns an ECEF GNSS fix into ECI with v + w_E x r, the Earth's rate a runtime constant; S6 left this step of nav's onboard orbit in the tick."
+until = "nav's onboard-orbit step (the fix's frame and its Verlet propagation) is a method of nav_onboard_orbit, generated into fsw/alg, fsw-rs/src/alg and +asils/+alg, with w_E env_time_frames' (new flight images, fsw-parity)"
+
+[[allow]]
+file = "fsw/include/adcs_math.h"
+find = "earth radius"
+exception = true
+why = "the tick's GNSS_R_MIN = 0.9 R_E (a fix inside the Earth is dropped) is a validity gate of nav's onboard orbit held in the runtime."
+until = "the gate is a parameter or a method of nav (with the onboard-orbit step above)"
+
+[[allow]]
+file = "fsw/include/adcs_math.h"
+find = "J2"
+exception = true
+why = "ADCS_J2, the Earth's J2, sits in the runtime's maths header; no runtime code reads it (the onboard orbit's J2 is the generated steplaws::orbit_acc's)."
+until = "removed with the onboard-orbit step above (removing it alone changes the flight software's sources and so its images)"
+
+[[allow]]
+file = "fsw-rs/src/math.rs"
+find = "earth rotation rate"
+exception = true
+why = "the Rust twin of adcs_math.h's ADCS_OMEGA_E, for the tick's ECEF fix (fsw-rs/src/fsw.rs, as adcs_fsw.c)."
+until = "nav's onboard-orbit step is a method of nav_onboard_orbit (as for adcs_math.h)"
+
+[[allow]]
+file = "fsw-rs/src/math.rs"
+find = "earth radius"
+exception = true
+why = "the Rust twin of ADCS_RE, for the tick's GNSS_R_MIN = 0.9 R_E (fsw-rs/src/fsw.rs)."
+until = "the gate is a parameter or a method of nav (as for adcs_math.h)"
+
+[[allow]]
+file = "fsw-rs/src/math.rs"
+find = "J2"
+exception = true
+why = "the Rust twin of ADCS_J2; nothing reads it."
+until = "removed with the onboard-orbit step (as for adcs_math.h)"
+
+[[allow]]
+file = "matlab_sils/+asils/+fsw/step.m"
+find = "earth radius"
+exception = true
+why = "the twin's tick shell holds the same GNSS gate (0.9 R_E) as adcs_fsw.c."
+until = "the gate is a parameter or a method of nav (as for adcs_math.h)"
+
+[[allow]]
+file = "matlab_sils/+asils/+fsw/step.m"
+find = "earth rotation rate"
+exception = true
+why = "the twin's tick shell turns the ECEF fix into ECI with the Earth's rate, as adcs_fsw.c."
+until = "nav's onboard-orbit step is a method of nav_onboard_orbit (as for adcs_math.h)"
+
+[[allow]]
+file = "fsw/src/adcs_fsw.c"
+find = "known"
+exception = true
+why = "the tick's step 1 propagates the onboard orbit between fixes by a velocity-Verlet step over the generated orbit_acc, and carries a late fix forward by its latency the same way: a flight algorithm (nav) in the runtime."
+until = "nav's onboard-orbit step is a method of nav_onboard_orbit (as for adcs_math.h)"
+
+[[allow]]
+file = "fsw-rs/src/fsw.rs"
+find = "known"
+exception = true
+why = "the Rust tick's step 1, the same Verlet propagation of the onboard orbit as adcs_fsw.c."
+until = "nav's onboard-orbit step is a method of nav_onboard_orbit (as for adcs_math.h)"
+
+[[allow]]
+file = "matlab_sils/+asils/+fsw/step.m"
+find = "known"
+exception = true
+why = "the twin's tick shell, the same Verlet propagation of the onboard orbit as adcs_fsw.c."
+until = "nav's onboard-orbit step is a method of nav_onboard_orbit (as for adcs_math.h)"
+
+[[allow]]
+file = "engine/crates/adcs-pop/src/eop.rs"
+find = "known"
+exception = true
+why = "the EOP splice (finals2000A over C04) and its 4-point Lagrange interpolation (eop_interp, lagr), a published procedure (IERS), are still the code's: S7.3 moved every other frame model but EOP, because the design holds no EOP data; no shipped run flies a build that reads EOP."
+until = "EOP data are read into env (tools/readers.py) and the splice and interpolation become env's method"
+
+[[allow]]
+file = "matlab_sils/pop/*"
+find = "any"
+exception = true
+why = "the vendored Octave POP carries its own published models (gravity, the atmospheres, DE440's evaluation, frames and time, tides, relativity, the spacecraft forces), and the twin's in-loop precision orbit (+asils/+orbit init, node, advance) flies them; only its force set and start are env's generated (forcemodel)."
+until = "the twin's precision orbit flies env's generated +models, as the engine's adcs-pop calls its gen modules, and POP stays only as the referent (classified test)"
+
+[[allow]]
+file = "matlab_sils/+asils/+orbit/node.m"
+find = "astronomical unit"
+exception = true
+why = "with no ephemeris in POP's context the twin's orbit node puts the Sun at 1.496e11 m on x and the Moon at 3.84e8 m: published values in the runner."
+until = "the fallback is env's (sunfast, moonfast) or a refusal by name"
+
+[[allow]]
+file = "matlab_sils/+asils/+orbit/node.m"
+find = "solar pressure"
+exception = true
+why = "the same fallback takes the Sun's pressure as 4.56e-6 N/m^2."
+until = "the fallback is env's (m3_5 or sunfast's pressure) or a refusal by name"
+
+[[allow]]
+file = "matlab_sils/+asils/+viz/run.m"
+find = "earth radius"
+exception = true
+why = "a figure plots the radius less 6378137 m (a spherical Earth's altitude)."
+until = "the figure takes the radius from the design's constants (asils.relations.orbit.radius(0)) or plots the record's own altitude"
+
+[[allow]]
+file = ["matlab_sils/+asils/+solution/jobs.m", "matlab_sils/+asils/+solution/scenario.m"]
+find = "earth GM"
+exception = true
+why = "the twin's solution runner sizes a run's length by the orbit period 2 pi sqrt(a^3/mu) of the case's altitude: Kepler's third law, env_case_orbit's dispersed_period, copied."
+until = "the period is the design's (asils.models.caseorbit.dispersed_period)"
+
+[[allow]]
+file = ["matlab_sils/+asils/+solution/jobs.m", "matlab_sils/+asils/+solution/scenario.m"]
+find = "earth radius"
+exception = true
+why = "the same period's a = R_E + h."
+until = "the period is the design's (asils.models.caseorbit.dispersed_period)"
+
+[[allow]]
+file = ["tools/engine_solutions.py", "tools/pipeline_verify.py", "tools/run_matrix.py", "tools/verify_nodes.py"]
+find = "earth GM"
+exception = true
+why = "four tools (engine_solutions.py, pipeline_verify.py, run_matrix.py, verify_nodes.py) size a run or check a stored decision with the orbit period 2 pi sqrt((R_E + h)^3/mu), env_case_orbit's dispersed_period copied; bit for bit it is Python's pow, not the generated r*r*r, so the stored pipeline's scenario lengths hang on it."
+until = "the tools ask the engine for env_case_orbit's period (adcs design call reaching adcs-sim's caseorbit), the stored pipeline flown again where a length moves"
+
+[[allow]]
+file = ["tools/engine_solutions.py", "tools/pipeline_verify.py", "tools/run_matrix.py", "tools/verify_nodes.py"]
+find = "earth radius"
+exception = true
+why = "the same period's a = R_E + h in those four tools."
+until = "the tools ask the engine for env_case_orbit's period (as above)"

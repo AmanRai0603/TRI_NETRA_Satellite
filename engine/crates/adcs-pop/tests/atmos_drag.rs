@@ -686,7 +686,7 @@ fn golden_16u_dria_dtm2020() {
         // faces lie exactly along the flow, and whether their shear counts hangs on the
         // sign of a ~1e-17 dot product -- a knife edge of the MATLAB model, reproduced
         // bit for bit in (1).)
-        let omz = [0.0, 0.0, drag::OMEGA_EARTH];
+        let omz = [0.0, 0.0, drag::omega_earth()];
         let (a, info) = drag::accel(&mk(omz, m3(&row["R_bi"]))).unwrap();
         let gd = &row["golden"];
         let ga = vecn(&gd["a"]);

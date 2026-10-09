@@ -188,8 +188,11 @@ pub fn eci2ecef(utc: [f64; 6], build: Build, opt: &FrameOpt) -> (M3, M3) {
     }
 }
 
-/// Earth mean rotation rate `de440.constants().omega_earth` (rad/s).
-pub const OMEGA_EARTH: f64 = 7.2921150e-5;
+/// Earth mean rotation rate `de440.constants().omega_earth` (rad/s): env_de440's constant, generated from the design
+/// (`gen::de440`), not a copy of it.
+pub fn omega_earth() -> f64 {
+    crate::gen::de440::de440_constants().omega_earth
+}
 
 /// `earthRateECI(epoch, build, fopt)` (local function of `op.buildWorld`): the true
 /// Earth angular-velocity vector in ECI (rad/s), from a +-15 s central difference of
@@ -209,5 +212,5 @@ pub fn earth_rate_eci(epoch: [f64; 6], build: Build, opt: &FrameOpt) -> V3 {
         Ok(crate::gen::earthframes::earth_rate_from(ctp, ctm, c0, d))
     })();
     // MATLAB warns ('op:buildWorld:earthRate') and falls back
-    r.unwrap_or([0.0, 0.0, OMEGA_EARTH])
+    r.unwrap_or([0.0, 0.0, omega_earth()])
 }
