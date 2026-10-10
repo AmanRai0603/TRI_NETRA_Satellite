@@ -402,8 +402,8 @@ why = "puts the twin and the vendored POP on the path"
 
 [[part]]
 glob = "matlab_sils/pop/*"
-class = "vendored"
-why = "the Precision Orbit Propagator (POP v51), vendored whole: the reference adcs-pop is held to, and the twin's in-loop precision orbit (a declared exception below)"
+class = "test"
+why = "the Precision Orbit Propagator (POP v51), vendored whole as the referent only: the generated models (adcs-pop's gen, the twin's +asils/+models) are held to it (engine/crates/adcs-pop/refgen, the twin's t_orbit_vs_pop, its own suite); no run calls it (S7.19b: the twin's in-loop orbit flies the generated models, asils.orbit.accel; the engine reads only its DE440 kernel file)"
 
 # ------------------------------------------------------------------ tools, the Python package, the pages
 [[part]]
@@ -518,9 +518,4 @@ find = "earth GM"
 why = "a comment naming what a MATLAB file assigns (`F.mu = ...`), which the matlab_matrix reader reads from the file"
 
 # ------------------------------------------------------------------ declared exceptions: relations still in code
-[[allow]]
-file = "matlab_sils/pop/*"
-find = "any"
-exception = true
-why = "the vendored Octave POP carries its own published models (gravity, the atmospheres, DE440's evaluation, frames and time, tides, relativity, the spacecraft forces), and the twin's in-loop precision orbit (+asils/+orbit init, node, advance) flies them; only its force set and start are env's generated (forcemodel)."
-until = "the twin's precision orbit flies env's generated +models, as the engine's adcs-pop calls its gen modules, and POP stays only as the referent (classified test)"
+# none (S7.19b removed the last 20: every relation is the design's, generated or asked of the engine)

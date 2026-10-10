@@ -3,9 +3,10 @@ function fp = fingerprint(what, arg)
 %   judges it (engine/crates/adcs-sim/src/store.rs, twin_*): Adler-32 over bytes with carriage
 %   returns removed, written 'a32:' and eight hex digits.
 %
-%   asils.util.fingerprint('source')       the twin's own code: +asils/**/*.m and POP's code
-%                                          (pop/0[1-5]_*/**/*.m), each file's path and Adler-32
-%                                          in one listing, sorted by path
+%   asils.util.fingerprint('source')       the twin's own code: +asils/**/*.m, each file's path
+%                                          and Adler-32 in one listing, sorted by path (the
+%                                          vendored POP is not its code since S7.19b: no run
+%                                          calls it)
 %   asils.util.fingerprint('data')         every file under data/ but the generators' test vectors
 %   asils.util.fingerprint('file', F)      one file
 %
@@ -28,7 +29,7 @@ function fp = fingerprint(what, arg)
         case {'source', 'data'}
             if isKey(cache, [what tag]), fp = cache([what tag]); return; end
             if strcmp(what, 'source')
-                files = [listm(R, '+asils'); listpop(R)];
+                files = listm(R, '+asils');
                 roots = repmat({R}, numel(files), 1);
                 if ~isempty(G)
                     for p = {'+models', '+relations', '+alg', '+pc'}
@@ -93,16 +94,6 @@ end
 function out = listm(R, top)
     out = listall(R, top);
     out = out(cellfun(@(f) numel(f) > 2 && strcmp(f(end-1:end), '.m'), out));
-end
-
-function out = listpop(R)
-    out = {};
-    d = dir(fullfile(R, 'pop', '0*'));
-    for i = 1:numel(d)
-        if d(i).isdir && ~isempty(regexp(d(i).name, '^0[1-5]_', 'once'))
-            out = [out; listm(R, ['pop/' d(i).name])]; %#ok<AGROW>
-        end
-    end
 end
 
 function out = listall(R, top)

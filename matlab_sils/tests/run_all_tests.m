@@ -399,11 +399,24 @@ function m = t_modes_table()
 end
 
 function m = t_orbit_vs_pop()
-    % The in-loop RK4 + Hermite must reproduce the POP's own batch propagator.
+    % The in-loop precision orbit (env's generated models, asils.orbit.accel) against the vendored POP, its referent:
+    % the force model at the run's states (to the last bits: POP takes the Sun's distance by norm, the design by the
+    % square root of the dot product), and RK4 + Hermite against POP's own batch propagator (rk78).
+    pop_path_();
     P = asils.config('nadir_hold_ais', fullfile(asils.util.root(), 'cases', 'ais_3u.csv'), struct());
     P.sim.duration_s = 600;
     O = asils.orbit.init(P);
-    cfg = O.cfg; cfg.tspan = 600; cfg.output = struct('times', [0; 300; 555; 600]);
+    cfg = pop_cfg_(P, O.y0);
+    evalc('W = op.buildWorld(cfg);');
+    da = 0;
+    for tt = [0 7 300 555 600]
+        [r, v, O] = asils.orbit.state(O, tt);
+        a1 = asils.orbit.accel(O.W, tt, r, v); a2 = op.accel(tt, r, v, W);
+        da = max(da, norm(a1 - a2)/norm(a2));
+    end
+    assert(da < 1e-14, 'the generated force model vs POP''s op.accel: %.2e relative', da);
+    O = asils.orbit.init(P);
+    cfg.tspan = 600; cfg.output = struct('times', [0; 300; 555; 600]);
     cfg.integrator = struct('method', 'rk78', 'rtol', 1e-12, 'atol', 1e-12);
     evalc('sol = op.propagate(cfg);');
     e = 0;
@@ -412,7 +425,34 @@ function m = t_orbit_vs_pop()
         rp = sol.stateAt(tt); e = max(e, norm(r - rp(1:3)));
     end
     assert(e < 1.0, 'in-loop vs POP rk78 differ by %.3f m', e);
-    m = sprintf('in-loop POP vs op.propagate rk78: max %.3f m over 600 s', e);
+    m = sprintf('force model vs POP %.1e relative; in-loop orbit vs POP op.propagate rk78: max %.3f m over 600 s', da, e);
+end
+
+function pop_path_()
+    % the vendored POP on the path: the referent only (the twin's runs do not call it)
+    if exist('ephemInputs', 'file') == 2, return, end
+    addpath(fullfile(asils.util.root(), 'pop'));
+    evalc('setup_paths();');
+end
+
+function cfg = pop_cfg_(P, y0)
+    % the run's force set and start in POP's words (op.buildWorld's config), as the twin flew POP until S7.19b
+    cr = asils.models.forcemodel.sils_cr(P.sc.refl);
+    fs = asils.models.forcemodel.sils_forces(cr);
+    cfg = config.defaultConfig();
+    cfg.epoch = P.epoch_utc;
+    cfg.spacecraft = struct('mass', P.sc.mass_kg, 'Aref', P.sc.aref_m2, 'Cd', P.sc.cd, 'Cr', cr, 'R_bi', eye(3));
+    cfg.gravityField = struct('field', 'default', 'degree', fs.grav_degree);
+    gm = {'twobody', 'zonal', 'sphharm'}; tb = {'battin', 'direct', 'tidal', 'legendre'};
+    at = {'exponential', 'nrlmsise', 'jb2008', 'dtm2020', 'dtm2020_research'}; ec = {'cylindrical', 'conical', 'fine'};
+    dm = {'cannonball', 'panel'}; sm = {'cannonball', 'boxwing'};
+    cfg.forces.gravity   = struct('on', true, 'model', gm{fs.grav_model + 1}, 'degree', fs.grav_degree, 'order', fs.grav_order);
+    cfg.forces.thirdbody = struct('on', fs.tb_on, 'model', tb{fs.tb_model + 1});
+    cfg.forces.drag      = struct('on', fs.drag_on, 'model', dm{fs.drag_model + 1}, 'atmos', at{fs.drag_atmos + 1}, 'corotate', fs.drag_corotate);
+    cfg.forces.srp       = struct('on', fs.srp_on, 'model', sm{fs.srp_model + 1}, 'eclipse', ec{fs.srp_eclipse + 1}, 'Cr', fs.srp_cr);
+    cfg.spaceweather.manual = struct('F107', P.env.F107, 'F107a', P.env.F107a, 'Kp', P.env.Kp, 'ap', P.env.ap);
+    cfg.frame = struct('build', 'gmst', 'dUT1', 0.0, 'data_dir', '');
+    cfg.r0 = y0(1:3); cfg.v0 = y0(4:6); cfg.tspan = P.sim.duration_s;
 end
 
 function m = t_short_runs()
