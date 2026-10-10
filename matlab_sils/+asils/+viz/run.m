@@ -50,7 +50,7 @@ function files = run(rec, outdir, visible)
     files{end+1} = save_(f, outdir, 'fig4_actuators');
 
     f = figure('visible', vis, 'position', [50 50 1100 750]);
-    alt = (sqrt(sum(rec.r.^2,1)) - 6378137)/1e3;
+    alt = (sqrt(sum(rec.r.^2,1)) - asils.relations.orbit.radius(0))/1e3;   % the design's R_E (orbit.radius)
     subplot(4,1,1); semilogy(t, rec.rho); grid on; ylabel('\rho [kg/m^3]'); title([ttl ' - environment from the in-loop precision orbit (POP)'], 'interpreter', 'none');
     subplot(4,1,2); plot(t, rec.nu); grid on; ylabel('sunlit fraction'); ylim([-0.05 1.05]);
     subplot(4,1,3); plot(t, sqrt(sum(rec.B.^2,1))*1e9); grid on; ylabel('|B| [nT]');

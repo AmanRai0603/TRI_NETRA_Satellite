@@ -18,9 +18,6 @@ typedef double adcs_real;
 #endif
 
 #define ADCS_PI 3.14159265358979323846
-#define ADCS_OMEGA_E 7.2921158553e-5          /* Earth rotation rate [rad/s] */
-#define ADCS_J2 1.08262668e-3                 /* Earth J2 */
-#define ADCS_RE 6378137.0                     /* Earth equatorial radius [m] */
 #define ADCS_D2R (ADCS_PI / 180.0)
 
 adcs_real adcs_dot(const adcs_real a[3], const adcs_real b[3]);

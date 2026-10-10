@@ -56,7 +56,7 @@ Each run's manifest (`inputs`) now also says:
 
 ## Stale runs, engine and twin
 
-`adcs results stale` judges every stored run. An engine run names the engine's source fingerprint and its inputs; a twin run now names the twin's (`asils.util.fingerprint`): its source (`+asils` and POP's code), its case and the data it read, each as Adler-32 over the bytes with carriage returns removed, which the engine recomputes (`twin_tree_fp` in `store.rs`). `tests/test_twin_fingerprint.py` holds the twin, Python's `zlib.adler32` and the engine to one answer.
+`adcs results stale` judges every stored run. An engine run names the engine's source fingerprint and its inputs; a twin run now names the twin's (`asils.util.fingerprint`): its source (`+asils`; the vendored POP was part of it until S7.19b, when the twin's precision orbit moved to the generated models), its case and the data it read, each as Adler-32 over the bytes with carriage returns removed, which the engine recomputes (`twin_tree_fp` in `store.rs`). `tests/test_twin_fingerprint.py` holds the twin, Python's `zlib.adler32` and the engine to one answer.
 
 ## Sweeps keep what their figures need
 

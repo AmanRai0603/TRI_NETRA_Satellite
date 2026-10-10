@@ -39,6 +39,9 @@ static const char *const BY_NAME[][2] = {
     {"drivers::uart_frame", "called only by the generated drv_read, on both UARTs"},
     {"drivers::uart_stream", "the vectors' byte-stream builder: no flight function calls it"},
     {"drivers::read_streams", "the vectors' byte-stream builder: no flight function calls it"},
+    {"navorbit::gnss_usable", "called only by the generated onboard_orbit"},
+    {"navorbit::verlet", "called only by the generated onboard_orbit"},
+    {"navorbit::fix_eci", "called only by the generated onboard_orbit"},
     {NULL, NULL},
 };
 int pc_call(const char *name, const double *x, int nx, double *out, int *ny);     /* tests/alg_dispatch.c */
@@ -385,6 +388,14 @@ static int call(const char *name, const double *x, int nx, out_t *o)
         adcs_alloc_idle(&S, cr, zc); OV(o, cr, 8);
     }
     else if (!strcmp(name, "steplaws::orbit_acc")) { double r[3], mu, acc[3]; V(&a, r, 3); mu = F(&a); adcs_orbit_acc(r, mu, acc); OV(o, acc, 3); }
+    else if (!strcmp(name, "navorbit::onboard_orbit")) {
+        double r0[3], v0[3], rf[3], vf[3], lat, jd, dt, mu, r[3], v[3];
+        int have, ok, ecef, have_r;
+        V(&a, r0, 3); V(&a, v0, 3); have = F(&a) != 0; ok = F(&a) != 0; V(&a, rf, 3); V(&a, vf, 3); ecef = F(&a) != 0;
+        lat = F(&a); jd = F(&a); dt = F(&a); mu = F(&a);
+        adcs_onboard_orbit(r0, v0, have, ok, rf, vf, ecef, lat, jd, dt, mu, r, v, &have_r);
+        OV(o, r, 3); OV(o, v, 3); O(o, have_r);
+    }
     else if (!strcmp(name, "estimation::latency")) { double q[4], w[3], l, r[4]; V(&a, q, 4); V(&a, w, 3); l = F(&a); adcs_latency(q, w, l, r); OV(o, r, 4); }
     else if (!strcmp(name, "guidance::boresight_offset")) { double v[3], q[4]; V(&a, v, 3); adcs_boresight_offset(v, q); OV(o, q, 4); }
     else if (!strcmp(name, "drivers::crc16")) {

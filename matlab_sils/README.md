@@ -3,7 +3,8 @@
 **Owner: Agastya.** Copyright (c) 2026 Agastya. All rights reserved.
 
 A complete, closed-loop software-in-the-loop simulation of the TRI-NETRA 3U
-ADCS. The truth orbit is the **Precision Orbit Propagator (POP v51)** stepped
+ADCS. The truth orbit is the **Precision Orbit Propagator (POP v51)**'s force model, env's
+methods generated into `+asils/+models` (the engine's adcs-pop calls the same), stepped
 *inside* the attitude loop (no pre-computed or recorded orbit data), and every
 environment quantity — magnetic field, Sun, eclipse, density, atmosphere-relative
 velocity, SRP pressure — flows from it into the disturbance torques, the sensors
@@ -182,8 +183,8 @@ Helmholtz-cage field, Sun-simulator direction and air-bearing rate for a HILS re
 
 | folder | contents |
 |---|---|
-| `+asils/` | the SILS: generated `+models` (the design's models), `+relations`, `+alg` (the flight software's algorithms), `+pc` (the language's runtime); by hand `+orbit` (in-loop POP), `+env`, `+plant`, `+devices` (the units' states, stepped through `+models`), `+fsw` (the tick, the blob), `+hal`, `+faults`, `+metrics`, `+sizing`, `+solution`, `+campaign`, `+trade`, `+rec`, `+viz`, `+result`, `run.m`, `config.m` |
-| `pop/` | Precision Orbit Propagator v51 (vendored) |
+| `+asils/` | the SILS: generated `+models` (the design's models), `+relations`, `+alg` (the flight software's algorithms), `+pc` (the language's runtime); by hand `+orbit` (the in-loop precision orbit: its world, RK4 and Hermite over the generated force model), `+env`, `+plant`, `+devices` (the units' states, stepped through `+models`), `+fsw` (the tick, the blob), `+hal`, `+faults`, `+metrics`, `+sizing`, `+solution`, `+campaign`, `+trade`, `+rec`, `+viz`, `+result`, `run.m`, `config.m` |
+| `pop/` | Precision Orbit Propagator v51 (vendored): the referent the generated models are held to (the tests put it on the path); no run calls it |
 | `cases/`, `data/` | the case CSVs; exported parts, products, algorithms, modes, families, components, scenarios, campaigns, trades (JSON) |
 | `+trinetra/` | open a design database, build its code, fly it (`open`, `build`, `run`, `campaign`, `which`, `use`, `health`) |
 | `examples/`, `tests/`, `tools/` | worked examples, the test suite (44 tests), batch drivers |

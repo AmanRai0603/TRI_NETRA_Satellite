@@ -19,9 +19,9 @@ function [ok, s, u] = css_sample(u, d, s_b, nu, nadir_b, earth_ang)
     for j = (0):((d.n) - 1)
         cs = (d.normals((j) + 1, 1)*s_b(1) + d.normals((j) + 1, 2)*s_b(2) + d.normals((j) + 1, 3)*s_b(3));
         ce = (d.normals((j) + 1, 1)*nadir_b(1) + d.normals((j) + 1, 2)*nadir_b(2) + d.normals((j) + 1, 3)*nadir_b(3));
-        [t__471, t__472] = asils.pc.stream_normal(g);
-        z = t__471;
-        g = t__472;
+        [t__559, t__560] = asils.pc.stream_normal(g);
+        z = t__559;
+        g = t__560;
         iv((j) + 1) = ((u.scale((j) + 1) * ((nu * asils.pc.choose((cs > 0), cs, 0)) + ((d.albedo * geo) * asils.pc.choose((ce > 0), ce, 0)))) + (d.noise * z));
         if u.dead((j) + 1)
             iv((j) + 1) = 0;

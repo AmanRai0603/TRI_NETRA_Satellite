@@ -31,15 +31,15 @@ function [id, ok, pi, pj, pa, cr, cm] = st_identify(b, mag, n, pi, pj, pa, cr, c
         cand = zeros(32, 1);
         for p = (0):((n) - 1)
             votes = zeros(4000, 1);
-            t__561 = ((0):((n) - 1)).';
-            for q = t__561(logical((t__561 ~= p))).'
+            t__649 = ((0):((n) - 1)).';
+            for q = t__649(logical((t__649 ~= p))).'
                 th = asils.pc.acos_(asils.pc.fmin((b((p) + 1, 1)*b((q) + 1, 1) + b((p) + 1, 2)*b((q) + 1, 2) + b((p) + 1, 3)*b((q) + 1, 3)), 1));
-                [t__562, t__563] = asils.models.stidentify.st_first_not_below(pa, np, (th - id_tol));
-                lo = t__562;
-                pa = t__563;
-                [t__564, t__565] = asils.models.stidentify.st_first_above(pa, np, (th + id_tol));
-                hi = t__564;
-                pa = t__565;
+                [t__650, t__651] = asils.models.stidentify.st_first_not_below(pa, np, (th - id_tol));
+                lo = t__650;
+                pa = t__651;
+                [t__652, t__653] = asils.models.stidentify.st_first_above(pa, np, (th + id_tol));
+                hi = t__652;
+                pa = t__653;
                 mp = mag((p) + 1);
                 mq = mag((q) + 1);
                 for k = (lo):((asils.pc.fmax(hi, lo)) - 1)
@@ -75,8 +75,8 @@ function [id, ok, pi, pj, pa, cr, cm] = st_identify(b, mag, n, pi, pj, pa, cr, c
         end
         for pass = (0):((3) - 1)
             was = keep;
-            t__566 = ((0):((n) - 1)).';
-            for p3 = t__566(logical(was((t__566) + 1))).'
+            t__654 = ((0):((n) - 1)).';
+            for p3 = t__654(logical(was((t__654) + 1))).'
                 good = 0;
                 for q3 = (0):((n) - 1)
                     if ((q3 ~= p3) && keep((q3) + 1))
@@ -93,8 +93,8 @@ function [id, ok, pi, pj, pa, cr, cm] = st_identify(b, mag, n, pi, pj, pa, cr, c
             end
         end
         kept = 0;
-        t__567 = ((0):((n) - 1)).';
-        for p4 = t__567(logical(keep((t__567) + 1))).'
+        t__655 = ((0):((n) - 1)).';
+        for p4 = t__655(logical(keep((t__655) + 1))).'
             id((p4) + 1) = cand((p4) + 1);
             kept = (kept + 1);
         end

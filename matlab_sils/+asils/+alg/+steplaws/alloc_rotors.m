@@ -47,8 +47,8 @@ function [cmd_r, cmd_g] = alloc_rotors(tau_rot, a, cmd_r0, cmd_g0, nr, ng, rot_g
     end
     if (ng > 0)
         wheels = false;
-        t__11 = ((0):((nr) - 1)).';
-        for i = t__11(logical((rot_kind((t__11) + 1) == 3))).'
+        t__17 = ((0):((nr) - 1)).';
+        for i = t__17(logical((rot_kind((t__17) + 1) == 3))).'
             wheels = true;
         end
         [gd, hd] = asils.alg.allocation.steer_sr(tau_rot, a, zh, nr, ng, rot_gi, gim_axis, gim_rate_max, cmg_lam0, cmg_mu, wheels);
@@ -56,8 +56,8 @@ function [cmd_r, cmd_g] = alloc_rotors(tau_rot, a, cmd_r0, cmd_g0, nr, ng, rot_g
             cmd_g((j) + 1) = gd((j) + 1);
         end
         if wheels
-            t__12 = ((0):((nr) - 1)).';
-            for i = t__12(logical((rot_gi((t__12) + 1) > 0))).'
+            t__18 = ((0):((nr) - 1)).';
+            for i = t__18(logical((rot_gi((t__18) + 1) > 0))).'
                 cmd_r((i) + 1) = (hd((i) + 1) - (cmg_k_null * (zh((i) + 1) - rot_h0((i) + 1))));
             end
         end

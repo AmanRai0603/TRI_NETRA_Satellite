@@ -26,9 +26,7 @@ def files(top):
 
 def tree(what):
     if what == "source":
-        fs = files("+asils") + [f for d in sorted((MS / "pop").iterdir()) if d.is_dir() and d.name[:1] == "0" and d.name[1] in "12345" and d.name[2] == "_"
-                                for f in files(f"pop/{d.name}")]
-        fs = sorted(f for f in fs if f.endswith(".m"))
+        fs = sorted(f for f in files("+asils") if f.endswith(".m"))     # the twin's code (POP is not, since S7.19b)
     else:
         fs = [f for f in files("data") if not f.endswith("_vectors.json")]
     return fp("".join(f"{f} {fp((MS / f).read_bytes())[4:]}\n" for f in fs).encode())

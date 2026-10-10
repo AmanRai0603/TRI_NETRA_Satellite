@@ -19,8 +19,8 @@ function [q, ok, id] = st_attitude(b, rs, n, id, tol)
         if (~done)
             k = zeros(32, 1);
             nk = 0;
-            t__521 = ((0):((n) - 1)).';
-            for p = t__521(logical((id((t__521) + 1) >= 0))).'
+            t__609 = ((0):((n) - 1)).';
+            for p = t__609(logical((id((t__609) + 1) >= 0))).'
                 k((nk) + 1) = p;
                 nk = (nk + 1);
             end

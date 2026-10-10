@@ -41,9 +41,9 @@ pub fn onorm(v: [f64; 3]) -> f64 {
     let mut scl: f64 = 0.0;
     let mut sum: f64 = 1.0;
     {
-        let __end41: i64 = 3;
+        let __end59: i64 = 3;
         let mut i: i64 = 0;
-        while i < __end41 {
+        while i < __end59 {
             let mut t: f64 = rt::fabs(v[(i) as usize]);
             if (scl == t) {
                 sum = (sum + 1.0);
@@ -73,9 +73,9 @@ pub fn denorm_factor(n: i64, m: i64) -> f64 {
     let mut d: f64 = (if (m == 0) { 1.0 } else { 2.0 });
     let mut p: f64 = 1.0;
     {
-        let __end42: i64 = ((n + m) + 1);
+        let __end60: i64 = ((n + m) + 1);
         let mut k: i64 = ((n - m) + 1);
-        while k < __end42 {
+        while k < __end60 {
             p = (p * (k as f64));
             k += 1;
         }
@@ -99,9 +99,9 @@ pub fn default_field() -> (f64, f64, [f64; 49]) {
     cbar = [0.0; 49];
     cbar[0] = 1.0;
     {
-        let __end43: i64 = 5;
+        let __end61: i64 = 5;
         let mut k: i64 = 0;
-        while k < __end43 {
+        while k < __end61 {
             let mut n: i64 = (k + 2);
             cbar[((n * 7)) as usize] = ((-(crate::gen::gravfield::DATA_GRAV_DEFAULT_J[(k) as usize])) / f64::sqrt((((2 * n) + 1) as f64)));
             k += 1;
@@ -139,13 +139,13 @@ pub fn sph_setup(nmax: i64, cbar: &mut [f64; 14641], sbar: &mut [f64; 14641], st
     let mut ok: bool = false;
     let mut cs: i64 = (nmax + 1);
     {
-        let __end44: i64 = (nmax + 1);
+        let __end62: i64 = (nmax + 1);
         let mut n: i64 = 0;
-        while n < __end44 {
+        while n < __end62 {
             {
-                let __end45: i64 = (n + 1);
+                let __end63: i64 = (n + 1);
                 let mut m: i64 = 0;
-                while m < __end45 {
+                while m < __end63 {
                     let mut pi_: f64 = crate::gen::gravity::denorm_factor(n, m);
                     (*c)[(((n * cs) + m)) as usize] = ((*cbar)[(((n * stride) + m)) as usize] * pi_);
                     if (m > 0) {
@@ -159,13 +159,13 @@ pub fn sph_setup(nmax: i64, cbar: &mut [f64; 14641], sbar: &mut [f64; 14641], st
     }
     let mut vs: i64 = (nmax + 3);
     {
-        let __end46: i64 = (nmax + 2);
+        let __end64: i64 = (nmax + 2);
         let mut m: i64 = 1;
-        while m < __end46 {
+        while m < __end64 {
             {
-                let __end47: i64 = (nmax + 2);
+                let __end65: i64 = (nmax + 2);
                 let mut n: i64 = (m + 2);
-                while n < __end47 {
+                while n < __end65 {
                     let mut nf: f64 = (n as f64);
                     let mut mf: f64 = (m as f64);
                     (*f1)[(((n * vs) + m)) as usize] = (((2.0 * nf) - 1.0) / (nf - mf));
@@ -216,9 +216,9 @@ pub fn sph_accel(r: [f64; 3], mu: f64, re: f64, nws: i64, nmax: i64, mmax_in: i6
     (*w)[0] = 0.0;
     let mut mcol: i64 = (mmax + 1);
     {
-        let __end48: i64 = (nmax + 2);
+        let __end66: i64 = (nmax + 2);
         let mut n: i64 = 1;
-        while n < __end48 {
+        while n < __end66 {
             let mut nf: f64 = (n as f64);
             let mut row: i64 = (n * vs);
             let mut row1: i64 = (row - vs);
@@ -233,9 +233,9 @@ pub fn sph_accel(r: [f64; 3], mu: f64, re: f64, nws: i64, nmax: i64, mmax_in: i6
                 let mut mg: i64 = rt::imin((n - 2), mcol);
                 let mut rowb: i64 = (row - (2 * vs));
                 {
-                    let __end49: i64 = (mg + 1);
+                    let __end67: i64 = (mg + 1);
                     let mut m: i64 = 1;
-                    while m < __end49 {
+                    while m < __end67 {
                         (*v)[((row + m)) as usize] = ((((*f1)[((row + m)) as usize] * zf) * (*v)[((row1 + m)) as usize]) - (((*f2)[((row + m)) as usize] * rr2) * (*v)[((rowb + m)) as usize]));
                         (*w)[((row + m)) as usize] = ((((*f1)[((row + m)) as usize] * zf) * (*w)[((row1 + m)) as usize]) - (((*f2)[((row + m)) as usize] * rr2) * (*w)[((rowb + m)) as usize]));
                         m += 1;
@@ -262,9 +262,9 @@ pub fn sph_accel(r: [f64; 3], mu: f64, re: f64, nws: i64, nmax: i64, mmax_in: i6
     let mut az: f64 = 0.0;
     let mut cs: i64 = (nws + 1);
     {
-        let __end50: i64 = (nmax + 1);
+        let __end68: i64 = (nmax + 1);
         let mut n: i64 = 0;
-        while n < __end50 {
+        while n < __end68 {
             let mut mt: i64 = rt::imin(n, mmax);
             let mut rowa: i64 = ((n + 1) * vs);
             let mut c0: f64 = (*c)[((n * cs)) as usize];
@@ -275,9 +275,9 @@ pub fn sph_accel(r: [f64; 3], mu: f64, re: f64, nws: i64, nmax: i64, mmax_in: i6
                 az = (az + (((n + 1) as f64) * (((-(c0)) * (*v)[(rowa) as usize]) - (s0 * (*w)[(rowa) as usize]))));
             }
             {
-                let __end51: i64 = (mt + 1);
+                let __end69: i64 = (mt + 1);
                 let mut m: i64 = 1;
-                while m < __end51 {
+                while m < __end69 {
                     let mut cnm: f64 = (*c)[(((n * cs) + m)) as usize];
                     let mut snm: f64 = (*s)[(((n * cs) + m)) as usize];
                     if (!((cnm == 0.0) && (snm == 0.0))) {
@@ -319,15 +319,15 @@ pub fn norm_legendre_pot(sp: f64, cp: f64, nn: i64) -> [f64; 14641] {
         p[((st + 1)) as usize] = (f64::sqrt(3.0) * cp);
     }
     {
-        let __end52: i64 = (nn + 1);
+        let __end70: i64 = (nn + 1);
         let mut n: i64 = 2;
-        while n < __end52 {
+        while n < __end70 {
             let mut nf: f64 = (n as f64);
             p[(((n * st) + n)) as usize] = ((f64::sqrt((((2.0 * nf) + 1.0) / (2.0 * nf))) * cp) * p[(((((n - 1) * st) + n) - 1)) as usize]);
             {
-                let __end53: i64 = n;
+                let __end71: i64 = n;
                 let mut m: i64 = 0;
-                while m < __end53 {
+                while m < __end71 {
                     let mut mf: f64 = (m as f64);
                     let mut a: f64 = f64::sqrt(((((2.0 * nf) + 1.0) * ((2.0 * nf) - 1.0)) / ((nf - mf) * (nf + mf))));
                     let mut b: f64 = f64::sqrt((((((2.0 * nf) + 1.0) * ((nf + mf) - 1.0)) * ((nf - mf) - 1.0)) / ((((2.0 * nf) - 3.0) * (nf - mf)) * (nf + mf))));
@@ -372,9 +372,9 @@ pub fn potential(r: [f64; 3], mu: f64, re: f64, cbar: &mut [f64; 14641], sbar: &
     let mut cml: [f64; 121] = [0.0; 121];
     let mut sml: [f64; 121] = [0.0; 121];
     {
-        let __end54: i64 = (nmax + 1);
+        let __end72: i64 = (nmax + 1);
         let mut m: i64 = 0;
-        while m < __end54 {
+        while m < __end72 {
             cml[(m) as usize] = f64::cos(((m as f64) * lam));
             sml[(m) as usize] = f64::sin(((m as f64) * lam));
             m += 1;
@@ -383,15 +383,15 @@ pub fn potential(r: [f64; 3], mu: f64, re: f64, cbar: &mut [f64; 14641], sbar: &
     let mut acc: f64 = 0.0;
     let mut rr: f64 = (re / rn);
     {
-        let __end55: i64 = (nmax + 1);
+        let __end73: i64 = (nmax + 1);
         let mut n: i64 = 0;
-        while n < __end55 {
+        while n < __end73 {
             let mut rn_pow: f64 = f64::powf(rr, core::hint::black_box((n as f64)));
             let mut inner: f64 = 0.0;
             {
-                let __end56: i64 = (n + 1);
+                let __end74: i64 = (n + 1);
                 let mut m: i64 = 0;
-                while m < __end56 {
+                while m < __end74 {
                     inner = (inner + (p[(((n * st) + m)) as usize] * (((*cbar)[(((n * stride) + m)) as usize] * cml[(m) as usize]) + ((*sbar)[(((n * stride) + m)) as usize] * sml[(m) as usize]))));
                     m += 1;
                 }
@@ -430,9 +430,9 @@ pub fn zonal_c(j: [f64; 5], nj: i64) -> [f64; 14641] {
     c = [0.0; 14641];
     c[0] = 1.0;
     {
-        let __end57: i64 = (nj + 1);
+        let __end75: i64 = (nj + 1);
         let mut kk: i64 = 2;
-        while kk < __end57 {
+        while kk < __end75 {
             let mut n: i64 = (kk + 1);
             c[((n * st)) as usize] = ((-(j[((kk - 1)) as usize])) / f64::sqrt((((2 * n) + 1) as f64)));
             kk += 1;
@@ -450,9 +450,9 @@ pub fn zonal_uses_sh(j: [f64; 5], nj: i64) -> bool {
     let mut b: bool = false;
     b = false;
     {
-        let __end58: i64 = nj;
+        let __end76: i64 = nj;
         let mut k: i64 = 1;
-        while k < __end58 {
+        while k < __end76 {
             if (j[(k) as usize] != 0.0) {
                 b = true;
             }
@@ -499,9 +499,9 @@ pub fn j2accel(r: [f64; 3], mu: f64, re: f64, j: [f64; 5], nj: i64, use_sh: bool
             let mut sh: [f64; 3] = crate::gen::gravity::sph_accel(r, mu, re, maxn, maxn, 0, &mut (*c), &mut (*s), &mut (*f1), &mut (*f2), &mut (*v), &mut (*w));
             let mut tb: [f64; 3] = crate::gen::gravity::two_body(r, mu);
             {
-                let __end59: i64 = 3;
+                let __end77: i64 = 3;
                 let mut i: i64 = 0;
-                while i < __end59 {
+                while i < __end77 {
                     a[(i) as usize] = ((a[(i) as usize] + sh[(i) as usize]) - tb[(i) as usize]);
                     i += 1;
                 }

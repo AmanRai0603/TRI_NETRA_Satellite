@@ -3693,3 +3693,43 @@ nodes = ["act_rotor_set", "act_vscmg_gimbal_limits", "dyn_flexible_mode", "dyn_i
 run = ["*"]
 why = "a module of models the engine or the flight software calls during a run (code.generate): its functions take the run's state and the product it flies, which the step order hands over; no node of the design holds them, so it has no one value"
 
+
+[[revision]]
+id = "S7.19b"
+at = "2026-10-09T23:00:00Z"
+by = "the developer"
+about = "the relations the boundary check still declared in code moved into the design (docs/S7_INVENTORY.md S7.19b): the precision orbit's Earth-orientation parameters, the splice of the IERS series and their interpolation, as a method of env; the flight software's onboard orbit (the GNSS fix's gate, frame and age, the propagation between fixes), which S6 left in the runtime's tick, as nav's; each the developer's transcription of the code and of the publication it cites"
+
+[[revision.node]]
+id = "env_eop"
+group = "env"
+parent = "m3"
+label = "Earth-orientation parameters: the IERS series spliced and interpolated"
+behaviour = "method"
+question = "What UT1 - UTC, polar motion and celestial pole offsets does the precision orbit's IAU 2006/2000A frame take at an epoch, from the IERS's C04 and finals2000A series?"
+why = "the EOP splice and interpolation of the precision orbit's frame builds A, B and C, until now adcs-pop eop.rs (S7.3 moved every other frame model; the file readers stay code)"
+
+[[revision.method]]
+node = "env_eop"
+pseudocode = "design/revisions/S7.19b/eop.pc"
+path = "env/eop.pc"
+transcribes = "engine/crates/adcs-pop/src/eop.rs (leap_at, interp1_linear, lagr, splice, finalize_eop, interp_linear, interp_c), the port of the EOP half of the Octave POP's frames.eci2ecef_A, _B and _C (leap_at, splice, finalize_eop, eop_interp, lagr)"
+source = "IERS Conventions (2010) section 5.5.1 (Petit and Luzum, IERS TN 36) and the IERS's interp.f (LAGINT, 4-point Lagrange; RG_ZONT2); IERS EOP 20 C04 and finals2000A (IERS Rapid Service/Prediction Centre) as the files define their columns; GNU Octave's interp1 ('linear', extrapolated)"
+generate = ["adcs-pop"]
+uses = ["env/tidaleop.pc", "env/iau2006.pc"]
+why = "the EOP splice and interpolation as a method of env, generated into adcs-pop; the readers of the leap-second, finals2000A and C04 files stay code and hand their columns to it"
+
+[[revision.wire]]
+nodes = ["env_eop"]
+run = ["*"]
+why = "a module of models the engine calls during a run (code.generate): its functions take the IERS files' columns the run's frame build reads and the epoch, which the step order hands over; no node of the design holds them, so it has no one value"
+
+[[revision.method]]
+node = "nav_onboard_orbit"
+pseudocode = "design/revisions/S7.19b/navorbit.pc"
+path = "fsw/pseudocode/03_onboard_orbit.pc"
+transcribes = "fsw/src/adcs_fsw.c (adcs_fsw_step, step 1: GNSS_R_MIN = 0.9 ADCS_RE, the ECEF fix with ADCS_OMEGA_E, the velocity-Verlet steps over adcs_orbit_acc), fsw-rs/src/fsw.rs (Fsw::step, step 1, GNSS_R_MIN, OMEGA_E) and the twin's asils.fsw.step (step 1)"
+source = "WGS-84 (NIMA TR8350.2: R_E 6378137 m); Vallado (2013) (the Earth's rate 7.2921158553e-5 rad/s, IAU-76/FK5); the transport theorem; Swope, Andersen, Berens and Wilson (1982), J. Chem. Phys. 76:637 (velocity Verlet)"
+generate = ["flight"]
+uses = ["fsw/pseudocode/01_math.pc", "fsw/pseudocode/02_time_frames_models.pc", "fsw/pseudocode/06_step_laws.pc"]
+why = "nav's onboard orbit as a flight algorithm of the design (fsw/pseudocode/03_onboard_orbit.pc is written from here), generated into fsw/alg, fsw-rs/src/alg and +asils/+alg; the tick only hands it the fix and the orbit it holds (S6 left this step in the runtime)"

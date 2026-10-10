@@ -25,8 +25,8 @@ function [v, sun, mode, idx, w, tmp] = kpi_sun_angle_stat(sun, mode, idx, ni, by
             end
         end
     end
-    [t__443, t__444, t__445] = asils.models.kpistats.kpi_stat_of(w, k, st, tmp);
-    v = t__443;
-    w = t__444;
-    tmp = t__445;
+    [t__531, t__532, t__533] = asils.models.kpistats.kpi_stat_of(w, k, st, tmp);
+    v = t__531;
+    w = t__532;
+    tmp = t__533;
 end

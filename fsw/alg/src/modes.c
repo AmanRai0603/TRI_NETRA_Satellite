@@ -85,9 +85,9 @@ Modes modes_modes_schedule(Modes st_, ModeParams mp) {
     Modes s = ((Modes){0});
     s = st_;
     {
-        int64_t end__151 = INT64_C(8);
+        int64_t end__154 = INT64_C(8);
         int64_t k = INT64_C(0);
-        while (k < end__151) {
+        while (k < end__154) {
             if (((s.sched_i < mp.n_sched) && (s.t >= mp.sched_t.v[(s.sched_i)]))) {
                 s = modes_modes_enter(s, mp.sched_mode.v[(s.sched_i)]);
                 s.sched_i = (s.sched_i + INT64_C(1));
@@ -211,9 +211,9 @@ RotorFdir modes_fdir_rotors(RotorFdir st_, RotorParams rp, double t, double dt, 
     int64_t nr = rp.nr;
     if (((nr > INT64_C(0)) && s.h_prev_ok)) {
         {
-            int64_t end__152 = nr;
+            int64_t end__155 = nr;
             int64_t i = INT64_C(0);
-            while (i < end__152) {
+            while (i < end__155) {
                 double tmax = rp.rot_tmax.v[(i)];
                 double meas = ((zh.v[(i)] - s.h_prev.v[(i)]) / dt);
                 double expect = pc_clamp(s.cmd_r_prev.v[(i)], ((-(0.8)) * tmax), (0.8 * tmax));
@@ -228,9 +228,9 @@ RotorFdir modes_fdir_rotors(RotorFdir st_, RotorParams rp, double t, double dt, 
         }
         if (((!s.fw_on) || ((t - s.fw_last) > (1.5 * dt)))) {
             {
-                int64_t end__153 = nr;
+                int64_t end__156 = nr;
                 int64_t i = INT64_C(0);
-                while (i < end__153) {
+                while (i < end__156) {
                     s.fw_e.v[(i)] = 0.0;
                     s.fw_h0.v[(i)] = zh.v[(i)];
                     i += 1;
@@ -240,18 +240,18 @@ RotorFdir modes_fdir_rotors(RotorFdir st_, RotorParams rp, double t, double dt, 
             s.fw_on = true;
         } else {
             {
-                int64_t end__154 = nr;
+                int64_t end__157 = nr;
                 int64_t i = INT64_C(0);
-                while (i < end__154) {
+                while (i < end__157) {
                     s.fw_e.v[(i)] = (s.fw_e.v[(i)] + (pc_clamp(s.cmd_r_prev.v[(i)], ((-(0.8)) * rp.rot_tmax.v[(i)]), (0.8 * rp.rot_tmax.v[(i)])) * dt));
                     i += 1;
                 }
             }
             if (((t - s.fw_t0) >= (rp.fdir_win_s - 1.0e-9))) {
                 {
-                    int64_t end__155 = nr;
+                    int64_t end__158 = nr;
                     int64_t i = INT64_C(0);
-                    while (i < end__155) {
+                    while (i < end__158) {
                         double hmax = rp.rot_hmax.v[(i)];
                         double e = s.fw_e.v[(i)];
                         double m = (zh.v[(i)] - s.fw_h0.v[(i)]);
@@ -267,9 +267,9 @@ RotorFdir modes_fdir_rotors(RotorFdir st_, RotorParams rp, double t, double dt, 
                     }
                 }
                 {
-                    int64_t end__156 = nr;
+                    int64_t end__159 = nr;
                     int64_t i = INT64_C(0);
-                    while (i < end__156) {
+                    while (i < end__159) {
                         s.fw_e.v[(i)] = 0.0;
                         s.fw_h0.v[(i)] = zh.v[(i)];
                         i += 1;

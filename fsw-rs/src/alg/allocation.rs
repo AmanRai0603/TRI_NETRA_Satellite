@@ -18,26 +18,26 @@ pub fn rotor_axes(nr: i64, rot_a0: [[f64; 3]; 8], rot_gi: [i64; 8], gim_axis: [[
     let mut a: [[f64; 8]; 3] = [[0.0; 8]; 3];
     a = [[0.0; 8]; 3];
     {
-        let __end118: i64 = nr;
+        let __end121: i64 = nr;
         let mut i: i64 = 0;
-        while i < __end118 {
+        while i < __end121 {
             let mut a0: [f64; 3] = rot_a0[(i) as usize];
             if (rot_gi[(i) as usize] > 0) {
                 let mut j: i64 = (rot_gi[(i) as usize] - 1);
                 let mut t0: [f64; 3] = rt::cross(gim_axis[(j) as usize], a0);
                 {
-                    let __end119: i64 = 3;
+                    let __end122: i64 = 3;
                     let mut k: i64 = 0;
-                    while k < __end119 {
+                    while k < __end122 {
                         a[(k) as usize][(i) as usize] = ((crate::m::cos(delta[(j) as usize]) * a0[(k) as usize]) + (crate::m::sin(delta[(j) as usize]) * t0[(k) as usize]));
                         k += 1;
                     }
                 }
             } else {
                 {
-                    let __end120: i64 = 3;
+                    let __end123: i64 = 3;
                     let mut k: i64 = 0;
-                    while k < __end120 {
+                    while k < __end123 {
                         a[(k) as usize][(i) as usize] = a0[(k) as usize];
                         k += 1;
                     }
@@ -71,16 +71,16 @@ pub fn steer_sr(tau: [f64; 3], a: [[f64; 8]; 3], h: [f64; 8], nr: i64, ng: i64, 
     let mut jg: [[f64; 4]; 3] = [[0.0; 4]; 3];
     let mut h0: f64 = 0.0;
     {
-        let __end121: i64 = nr;
+        let __end124: i64 = nr;
         let mut i: i64 = 0;
-        while i < __end121 {
+        while i < __end124 {
             if (rot_gi[(i) as usize] > 0) {
                 let mut j: i64 = (rot_gi[(i) as usize] - 1);
                 let mut c: [f64; 3] = rt::cross(gim_axis[(j) as usize], [a[0][(i) as usize], a[1][(i) as usize], a[2][(i) as usize]]);
                 {
-                    let __end122: i64 = 3;
+                    let __end125: i64 = 3;
                     let mut k: i64 = 0;
-                    while k < __end122 {
+                    while k < __end125 {
                         jg[(k) as usize][(j) as usize] = ((-(h[(i) as usize])) * c[(k) as usize]);
                         k += 1;
                     }
@@ -94,18 +94,18 @@ pub fn steer_sr(tau: [f64; 3], a: [[f64; 8]; 3], h: [f64; 8], nr: i64, ng: i64, 
     }
     let mut m: [[f64; 3]; 3] = [[0.0; 3]; 3];
     {
-        let __end123: i64 = 3;
+        let __end126: i64 = 3;
         let mut i: i64 = 0;
-        while i < __end123 {
+        while i < __end126 {
             {
-                let __end124: i64 = 3;
+                let __end127: i64 = 3;
                 let mut j: i64 = 0;
-                while j < __end124 {
+                while j < __end127 {
                     m[(i) as usize][(j) as usize] = 0.0;
                     {
-                        let __end125: i64 = ng;
+                        let __end128: i64 = ng;
                         let mut k: i64 = 0;
-                        while k < __end125 {
+                        while k < __end128 {
                             m[(i) as usize][(j) as usize] = (m[(i) as usize][(j) as usize] + (jg[(i) as usize][(k) as usize] * jg[(j) as usize][(k) as usize]));
                             k += 1;
                         }
@@ -123,22 +123,22 @@ pub fn steer_sr(tau: [f64; 3], a: [[f64; 8]; 3], h: [f64; 8], nr: i64, ng: i64, 
     let mut n: i64 = (if wheels { (ng + nr) } else { ng });
     let mut jj: [[f64; 12]; 3] = [[0.0; 12]; 3];
     {
-        let __end126: i64 = 3;
+        let __end129: i64 = 3;
         let mut i: i64 = 0;
-        while i < __end126 {
+        while i < __end129 {
             {
-                let __end127: i64 = ng;
+                let __end130: i64 = ng;
                 let mut j: i64 = 0;
-                while j < __end127 {
+                while j < __end130 {
                     jj[(i) as usize][(j) as usize] = jg[(i) as usize][(j) as usize];
                     j += 1;
                 }
             }
             if wheels {
                 {
-                    let __end128: i64 = nr;
+                    let __end131: i64 = nr;
                     let mut j: i64 = 0;
-                    while j < __end128 {
+                    while j < __end131 {
                         jj[(i) as usize][((ng + j)) as usize] = (-(a[(i) as usize][(j) as usize]));
                         j += 1;
                     }
@@ -149,27 +149,27 @@ pub fn steer_sr(tau: [f64; 3], a: [[f64; 8]; 3], h: [f64; 8], nr: i64, ng: i64, 
     }
     let mut w: [f64; 12] = [0.0; 12];
     {
-        let __end129: i64 = n;
+        let __end132: i64 = n;
         let mut j: i64 = 0;
-        while j < __end129 {
+        while j < __end132 {
             w[(j) as usize] = (if (j < ng) { 1.0 } else { (0.01 + (2.0 * crate::m::exp(((-(10.0)) * ms)))) });
             j += 1;
         }
     }
     let mut lam: f64 = (cmg_lam0 * crate::m::exp(((-(cmg_mu)) * ms)));
     {
-        let __end130: i64 = 3;
+        let __end133: i64 = 3;
         let mut i: i64 = 0;
-        while i < __end130 {
+        while i < __end133 {
             {
-                let __end131: i64 = 3;
+                let __end134: i64 = 3;
                 let mut j: i64 = 0;
-                while j < __end131 {
+                while j < __end134 {
                     m[(i) as usize][(j) as usize] = (if (i == j) { lam } else { 0.0 });
                     {
-                        let __end132: i64 = n;
+                        let __end135: i64 = n;
                         let mut k: i64 = 0;
-                        while k < __end132 {
+                        while k < __end135 {
                             m[(i) as usize][(j) as usize] = (m[(i) as usize][(j) as usize] + ((jj[(i) as usize][(k) as usize] * w[(k) as usize]) * jj[(j) as usize][(k) as usize]));
                             k += 1;
                         }
@@ -184,9 +184,9 @@ pub fn steer_sr(tau: [f64; 3], a: [[f64; 8]; 3], h: [f64; 8], nr: i64, ng: i64, 
     let mut x: [f64; 3] = rt::mv(mi, tau);
     let mut u: [f64; 12] = [0.0; 12];
     {
-        let __end133: i64 = n;
+        let __end136: i64 = n;
         let mut k: i64 = 0;
-        while k < __end133 {
+        while k < __end136 {
             u[(k) as usize] = (w[(k) as usize] * (((jj[0][(k) as usize] * x[0]) + (jj[1][(k) as usize] * x[1])) + (jj[2][(k) as usize] * x[2])));
             k += 1;
         }
@@ -194,9 +194,9 @@ pub fn steer_sr(tau: [f64; 3], a: [[f64; 8]; 3], h: [f64; 8], nr: i64, ng: i64, 
     let mut s: f64 = 1.0;
     gdot = [0.0; 4];
     {
-        let __end134: i64 = ng;
+        let __end137: i64 = ng;
         let mut j: i64 = 0;
-        while j < __end134 {
+        while j < __end137 {
             gdot[(j) as usize] = u[(j) as usize];
             if ((rt::fabs(u[(j) as usize]) / gim_rate_max) > s) {
                 s = (rt::fabs(u[(j) as usize]) / gim_rate_max);
@@ -205,18 +205,18 @@ pub fn steer_sr(tau: [f64; 3], a: [[f64; 8]; 3], h: [f64; 8], nr: i64, ng: i64, 
         }
     }
     {
-        let __end135: i64 = ng;
+        let __end138: i64 = ng;
         let mut j: i64 = 0;
-        while j < __end135 {
+        while j < __end138 {
             gdot[(j) as usize] = (gdot[(j) as usize] / s);
             j += 1;
         }
     }
     hdot = [0.0; 8];
     {
-        let __end136: i64 = nr;
+        let __end139: i64 = nr;
         let mut i: i64 = 0;
-        while i < __end136 {
+        while i < __end139 {
             hdot[(i) as usize] = (if wheels { (u[((ng + i)) as usize] / s) } else { 0.0 });
             i += 1;
         }
@@ -262,9 +262,9 @@ pub fn rcs_duty(req: [f64; 3], nc: i64, rcs_tau: [[f64; 3]; 6], rcs_mib: f64, rc
     duty = [0.0; 6];
     tau = [0.0; 3];
     {
-        let __end137: i64 = 3;
+        let __end140: i64 = 3;
         let mut ax: i64 = 0;
-        while ax < __end137 {
+        while ax < __end140 {
             let mut u: f64 = req[(ax) as usize];
             if (u != 0.0) {
                 let mut k: i64 = (if (u > 0.0) { (2 * ax) } else { ((2 * ax) + 1) });
@@ -278,9 +278,9 @@ pub fn rcs_duty(req: [f64; 3], nc: i64, rcs_tau: [[f64; 3]; 6], rcs_mib: f64, rc
                         on = (crate::m::round((on / rcs_res)) * rcs_res);
                         duty[(k) as usize] = (on / t);
                         {
-                            let __end138: i64 = 3;
+                            let __end141: i64 = 3;
                             let mut i: i64 = 0;
-                            while i < __end138 {
+                            while i < __end141 {
                                 tau[(i) as usize] = (tau[(i) as usize] + (rcs_tau[(k) as usize][(i) as usize] * duty[(k) as usize]));
                                 i += 1;
                             }

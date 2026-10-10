@@ -405,18 +405,14 @@ fn twin_files(root: &Path, top: &str, out: &mut Vec<String>) {
     }
 }
 
-/// The twin's source fingerprint (+asils/**/*.m and POP's code, pop/0[1-5]_*/**/*.m) or its data
-/// fingerprint (data/** but the test vectors), from the data folder, as the twin computes them;
-/// None when the data folder does not carry the twin (a kit).
+/// The twin's source fingerprint (+asils/**/*.m: since S7.19b its precision orbit flies the generated models, so the
+/// vendored POP is no longer its code) or its data fingerprint (data/** but the test vectors), from the data folder,
+/// as the twin computes them; None when the data folder does not carry the twin (a kit).
 pub fn twin_tree_fp(root: &Path, what: &str) -> Option<String> {
     let mut files = vec![];
     if what == "source" {
         if !root.join("+asils").is_dir() { return None; }
         twin_files(root, "+asils", &mut files);
-        let mut pops: Vec<String> = std::fs::read_dir(root.join("pop")).ok()?.flatten().map(|e| e.file_name().to_string_lossy().into_owned())
-            .filter(|n| n.len() > 3 && n.starts_with('0') && (b'1'..=b'5').contains(&n.as_bytes()[1]) && n.as_bytes()[2] == b'_').collect();
-        pops.sort();
-        for d in pops { if root.join("pop").join(&d).is_dir() { twin_files(root, &format!("pop/{d}"), &mut files); } }
         files.retain(|f| f.ends_with(".m"));
     } else {
         twin_files(root, "data", &mut files);

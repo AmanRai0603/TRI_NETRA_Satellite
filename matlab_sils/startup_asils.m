@@ -1,6 +1,8 @@
 function startup_asils()
-%STARTUP_ASILS  Put the TRI-NETRA ADCS SILS (asils) and the Precision Orbit
-%   Propagator (pop/) on the path. Run once per MATLAB/Octave session.
+%STARTUP_ASILS  Put the TRI-NETRA ADCS SILS (asils) on the path. Run once per
+%   MATLAB/Octave session. The vendored Precision Orbit Propagator (pop/) is
+%   not: no run calls it (the twin's precision orbit flies env's generated
+%   models); it is the referent the tests put on the path themselves.
 %
 %     >> startup_asils
 %     >> rec = asils.run('nadir_hold_ais', 'cases/ais_3u.csv');
@@ -12,11 +14,5 @@ function startup_asils()
         warning('off', 'Octave:language-extension');
     end
     addpath(here);
-    % The POP organises itself into numbered segments; its own setup adds them.
-    popRoot = fullfile(here, 'pop');
-    old = pwd; cleaner = onCleanup(@() cd(old)); %#ok<NASGU>
-    cd(popRoot);
-    evalc('setup_paths();');          % silence its banner
-    cd(old);
     fprintf('TRI-NETRA ADCS SILS %s ready (root: %s)\n', asils.version(), here);
 end

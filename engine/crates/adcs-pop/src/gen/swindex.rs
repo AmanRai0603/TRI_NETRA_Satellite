@@ -68,9 +68,9 @@ pub fn kp_ap_nearest(to_ap: bool, xi: f64) -> f64 {
         let mut k: i64 = 0;
         let mut stop: bool = false;
         {
-            let __end107: i64 = (n - 1);
+            let __end125: i64 = (n - 1);
             let mut i: i64 = 0;
-            while i < __end107 {
+            while i < __end125 {
                 let mut a: f64 = (if to_ap { crate::gen::kpap::DATA_KP_AP_KP[(i) as usize] } else { crate::gen::kpap::DATA_KP_AP_AP[(i) as usize] });
                 let mut b: f64 = (if to_ap { crate::gen::kpap::DATA_KP_AP_KP[((i + 1)) as usize] } else { crate::gen::kpap::DATA_KP_AP_AP[((i + 1)) as usize] });
                 if (!stop) {
@@ -129,8 +129,8 @@ pub fn ap2kp_forecast(ap: f64) -> f64 {
     let mut lo: i64 = 0;
     let mut hi: i64 = n;
     {
-        let __n109: i64 = 16;
-        let mut __k108: i64 = 0;
+        let __n127: i64 = 16;
+        let mut __k126: i64 = 0;
         loop {
             let mut mid: i64 = ((lo + hi) / 2);
             if (crate::gen::kpap::DATA_KP_AP_AP[(mid) as usize] <= xi) {
@@ -138,9 +138,9 @@ pub fn ap2kp_forecast(ap: f64) -> f64 {
             } else {
                 hi = mid;
             }
-            __k108 += 1;
+            __k126 += 1;
             if (lo >= hi) { break; }
-            if __k108 >= __n109 {
+            if __k126 >= __n127 {
                 break;
             }
         }
@@ -213,9 +213,9 @@ pub fn from_manual(f107: f64, has_f107a: bool, f107a: f64, kp_kind: i64, akp: [f
         sw.ap = ap;
         sw.ap3 = (if has_ap3 { ap3_in } else { ap });
         {
-            let __end110: i64 = 7;
+            let __end128: i64 = 7;
             let mut i: i64 = 0;
-            while i < __end110 {
+            while i < __end128 {
                 sw.aph[(i) as usize] = sw.ap3;
                 i += 1;
             }

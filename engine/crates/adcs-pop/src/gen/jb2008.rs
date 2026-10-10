@@ -111,8 +111,8 @@ pub fn sol_interp(j: i64, x: f64) -> f64 {
     let mut lo: i64 = 0;
     let mut hi: i64 = n;
     {
-        let __n74: i64 = 64;
-        let mut __k73: i64 = 0;
+        let __n92: i64 = 64;
+        let mut __k91: i64 = 0;
         loop {
             let mut mid: i64 = ((lo + hi) / 2);
             if (crate::gen::jb2008::sol_day(mid) <= x) {
@@ -120,9 +120,9 @@ pub fn sol_interp(j: i64, x: f64) -> f64 {
             } else {
                 hi = mid;
             }
-            __k73 += 1;
+            __k91 += 1;
             if (lo >= hi) { break; }
-            if __k73 >= __n74 {
+            if __k91 >= __n92 {
                 break;
             }
         }
@@ -151,8 +151,8 @@ pub fn dtc_interp(x: f64) -> f64 {
     let mut lo: i64 = 0;
     let mut hi: i64 = n;
     {
-        let __n76: i64 = 64;
-        let mut __k75: i64 = 0;
+        let __n94: i64 = 64;
+        let mut __k93: i64 = 0;
         loop {
             let mut mid: i64 = ((lo + hi) / 2);
             if (crate::gen::jb2008::dtc_hour(mid) <= x) {
@@ -160,9 +160,9 @@ pub fn dtc_interp(x: f64) -> f64 {
             } else {
                 hi = mid;
             }
-            __k75 += 1;
+            __k93 += 1;
             if (lo >= hi) { break; }
-            if __k75 >= __n76 {
+            if __k93 >= __n94 {
                 break;
             }
         }
@@ -191,9 +191,9 @@ pub fn xambar(z: f64) -> f64 {
     let mut dz: f64 = (z - 100.0);
     amb = c[6];
     {
-        let __end77: i64 = 7;
+        let __end95: i64 = 7;
         let mut i: i64 = 1;
-        while i < __end77 {
+        while i < __end95 {
             amb = ((dz * amb) + c[((6 - i)) as usize]);
             i += 1;
         }
@@ -378,9 +378,9 @@ pub fn finddays(year: f64, month: f64, day: f64, hr: f64, min_: f64, sec: f64) -
     }
     days = 0.0;
     {
-        let __end78: i64 = 12;
+        let __end96: i64 = 12;
         let mut k: i64 = 1;
-        while k < __end78 {
+        while k < __end96 {
             if ((k as f64) < month) {
                 days = (days + lmonth[((k - 1)) as usize]);
             }
@@ -437,18 +437,18 @@ pub fn jb_finish(aln_in: [f64; 6], z: f64, mjd: f64, sat: [f64; 3], f10b: f64, s
     }
     let mut dlr: f64 = (al10 * (dlrsl + dlrsa));
     {
-        let __end79: i64 = 6;
+        let __end97: i64 = 6;
         let mut i: i64 = 0;
-        while i < __end79 {
+        while i < __end97 {
             aln[(i) as usize] = (aln[(i) as usize] + dlr);
             i += 1;
         }
     }
     let mut sumnm: f64 = 0.0;
     {
-        let __end80: i64 = 6;
+        let __end98: i64 = 6;
         let mut i: i64 = 0;
-        while i < __end80 {
+        while i < __end98 {
             let mut an: f64 = f64::exp(aln[(i) as usize]);
             sumnm = (sumnm + (an * amw[(i) as usize]));
             i += 1;
@@ -553,17 +553,17 @@ pub fn jb2008_core(mjd: f64, sun: [f64; 2], sat: [f64; 3], f10: f64, f10b: f64, 
     let mut tloc2: f64 = 0.0;
     let mut gravl: f64 = 0.0;
     {
-        let __end81: i64 = (n as i64);
+        let __end99: i64 = (n as i64);
         let mut k: i64 = 0;
-        while k < __end81 {
+        while k < __end99 {
             z = zend;
             zend = (zr * z);
             let mut dz: f64 = (0.25 * (zend - z));
             let mut sum1: f64 = (wt[0] * ain);
             {
-                let __end82: i64 = 5;
+                let __end100: i64 = 5;
                 let mut j: i64 = 1;
-                while j < __end82 {
+                while j < __end100 {
                     z = (z + dz);
                     ambar2 = crate::gen::jb2008::xambar(z);
                     tloc2 = crate::gen::jb2008::xlocal(z, tcf);
@@ -601,17 +601,17 @@ pub fn jb2008_core(mjd: f64, sun: [f64; 2], sat: [f64; 3], f10: f64, f10b: f64, 
         ain = (gravl / tloc2);
         let mut tloc3: f64 = 0.0;
         {
-            let __end83: i64 = (n as i64);
+            let __end101: i64 = (n as i64);
             let mut k: i64 = 0;
-            while k < __end83 {
+            while k < __end101 {
                 z = zend;
                 zend = (zr * z);
                 let mut dz: f64 = (0.25 * (zend - z));
                 let mut sum1: f64 = (wt[0] * ain);
                 {
-                    let __end84: i64 = 5;
+                    let __end102: i64 = 5;
                     let mut j: i64 = 1;
-                    while j < __end84 {
+                    while j < __end102 {
                         z = (z + dz);
                         tloc3 = crate::gen::jb2008::xlocal(z, tcf);
                         gravl = crate::gen::jb2008::xgrav(z);
@@ -635,17 +635,17 @@ pub fn jb2008_core(mjd: f64, sun: [f64; 2], sat: [f64; 3], f10: f64, f10b: f64, 
         let mut sum3: f64 = 0.0;
         let mut tloc4: f64 = 0.0;
         {
-            let __end85: i64 = (n as i64);
+            let __end103: i64 = (n as i64);
             let mut k: i64 = 0;
-            while k < __end85 {
+            while k < __end103 {
                 z = zend;
                 zend = (zr * z);
                 let mut dz: f64 = (0.25 * (zend - z));
                 let mut sum1: f64 = (wt[0] * ain);
                 {
-                    let __end86: i64 = 5;
+                    let __end104: i64 = 5;
                     let mut j: i64 = 1;
-                    while j < __end86 {
+                    while j < __end104 {
                         z = (z + dz);
                         tloc4 = crate::gen::jb2008::xlocal(z, tcf);
                         gravl = crate::gen::jb2008::xgrav(z);
@@ -672,9 +672,9 @@ pub fn jb2008_core(mjd: f64, sun: [f64; 2], sat: [f64; 3], f10: f64, f10b: f64, 
             hsign = 1.0;
         }
         {
-            let __end87: i64 = 5;
+            let __end105: i64 = 5;
             let mut i: i64 = 0;
-            while i < __end87 {
+            while i < __end105 {
                 aln[(i) as usize] = ((aln[(i) as usize] - ((1.0 + alpha[(i) as usize]) * altr)) - (fact2 * amw[(i) as usize]));
                 i += 1;
             }

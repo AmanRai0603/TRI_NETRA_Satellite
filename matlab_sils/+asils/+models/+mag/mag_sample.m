@@ -10,9 +10,9 @@ function [o, u] = mag_sample(u, d, b_body, m_coil)
     o = [1e-9; 0; 0];
     if (~u.dead)
         g = u.g;
-        [t__515, t__516] = asils.models.magnoise.mag_noise([u.m(1, 1)*b_body(1) + u.m(1, 2)*b_body(2) + u.m(1, 3)*b_body(3); u.m(2, 1)*b_body(1) + u.m(2, 2)*b_body(2) + u.m(2, 3)*b_body(3); u.m(3, 1)*b_body(1) + u.m(3, 2)*b_body(2) + u.m(3, 3)*b_body(3)], u.b, d.noise, d.k_coil, m_coil, g);
-        v = t__515;
-        g = t__516;
+        [t__603, t__604] = asils.models.magnoise.mag_noise([u.m(1, 1)*b_body(1) + u.m(1, 2)*b_body(2) + u.m(1, 3)*b_body(3); u.m(2, 1)*b_body(1) + u.m(2, 2)*b_body(2) + u.m(2, 3)*b_body(3); u.m(3, 1)*b_body(1) + u.m(3, 2)*b_body(2) + u.m(3, 3)*b_body(3)], u.b, d.noise, d.k_coil, m_coil, g);
+        v = t__603;
+        g = t__604;
         u.g = g;
         for i = (0):((3) - 1)
             o((i) + 1) = asils.models.coilsat.act_clamp(v((i) + 1), (-(d.range)), d.range);

@@ -26,6 +26,9 @@ pub mod stated;
 /// The engine's set-up relations written from the design with the platform's maths (env_orbit_start; tools/engine_build.py):
 /// generated, never edited.
 pub mod gen;
+// the translator's dispatcher (gen/dispatch.rs, which `adcs design call` serves after the sizing's) names the methods'
+// modules crate::<module>: they are brought in at the crate's root, as in adcs-design
+pub use gen::*;
 
 pub use error::{Error, Kind};
 

@@ -275,10 +275,10 @@ pub enum DesignCmd {
         #[arg(required = true)]
         files: Vec<PathBuf>,
     },
-    /// call one of the design's methods generated into the sizing (adcs-design) by its name (module::function), its
-    /// inputs flattened as numbers on stdin (a buffer: its length, then its elements; true 1, false 0, a choice its
-    /// option's number) and its outputs, then its changed inputs, flattened one a line (exact: shortest round trip,
-    /// NaN, inf), for the loop's tools
+    /// call one of the design's methods generated into the sizing (adcs-design) or the engine's set-up (adcs-sim) by
+    /// its name (module::function), its inputs flattened as numbers on stdin (a buffer: its length, then its elements;
+    /// true 1, false 0, a choice its option's number) and its outputs, then its changed inputs, flattened one a line
+    /// (exact: shortest round trip, NaN, inf), for the loop's tools and those that size a run by the case's orbit
     Call {
         /// the method, module::function (looprules::loop_converge)
         name: String,

@@ -65,9 +65,9 @@ pub fn tb_direct(s: [f64; 3], b: [f64; 3], gm: f64) -> [f64; 3] {
     let mut nb3: f64 = f64::powf(crate::gen::gravity::onorm(b), core::hint::black_box(3.0));
     a = [0.0; 3];
     {
-        let __end111: i64 = 3;
+        let __end129: i64 = 3;
         let mut i: i64 = 0;
-        while i < __end111 {
+        while i < __end129 {
             a[(i) as usize] = (gm * ((d[(i) as usize] / nd3) - (b[(i) as usize] / nb3)));
             i += 1;
         }
@@ -114,9 +114,9 @@ pub fn tb_legendre(s: [f64; 3], b: [f64; 3], gm: f64, nmax: i64) -> [f64; 3] {
         dp[1] = 1.0;
     }
     {
-        let __end112: i64 = (nmax + 1);
+        let __end130: i64 = (nmax + 1);
         let mut n: i64 = 2;
-        while n < __end112 {
+        while n < __end130 {
             let mut nf: f64 = (n as f64);
             p[(n) as usize] = ((((((2.0 * nf) - 1.0) * u) * p[((n - 1)) as usize]) - ((nf - 1.0) * p[((n - 2)) as usize])) / nf);
             dp[(n) as usize] = ((u * dp[((n - 1)) as usize]) + (nf * p[((n - 1)) as usize]));
@@ -125,15 +125,15 @@ pub fn tb_legendre(s: [f64; 3], b: [f64; 3], gm: f64, nmax: i64) -> [f64; 3] {
     }
     a = [0.0; 3];
     {
-        let __end113: i64 = (nmax + 1);
+        let __end131: i64 = (nmax + 1);
         let mut m: i64 = 2;
-        while m < __end113 {
+        while m < __end131 {
             let mut mf: f64 = (m as f64);
             let mut k: f64 = ((gm / f64::powf(rb, core::hint::black_box((mf + 1.0)))) * f64::powf(rho, core::hint::black_box((mf - 1.0))));
             {
-                let __end114: i64 = 3;
+                let __end132: i64 = 3;
                 let mut i: i64 = 0;
-                while i < __end114 {
+                while i < __end132 {
                     a[(i) as usize] = (a[(i) as usize] + (k * (((mf * p[(m) as usize]) * rs[(i) as usize]) + (dp[(m) as usize] * (rbh[(i) as usize] - (u * rs[(i) as usize]))))));
                     i += 1;
                 }
@@ -289,9 +289,9 @@ pub fn kozai_rates(j: [f64; 3], e: [f64; 3], nhat: [f64; 3], phi_q: f64) -> ([f6
     dj = [0.0; 3];
     de = [0.0; 3];
     {
-        let __end115: i64 = 3;
+        let __end133: i64 = 3;
         let mut i: i64 = 0;
-        while i < __end115 {
+        while i < __end133 {
             dj[(i) as usize] = (phi_q * ((jn * jxn[(i) as usize]) - ((5.0 * en) * exn[(i) as usize])));
             de[(i) as usize] = (phi_q * (((jn * exn[(i) as usize]) + (2.0 * jxe[(i) as usize])) - ((5.0 * en) * jxn[(i) as usize])));
             i += 1;
@@ -315,14 +315,14 @@ pub fn secular_rates(j: [f64; 3], e: [f64; 3], nhat: [[f64; 3]; 8], phi_q: [f64;
     dj = [0.0; 3];
     de = [0.0; 3];
     {
-        let __end116: i64 = np;
+        let __end134: i64 = np;
         let mut m: i64 = 0;
-        while m < __end116 {
+        while m < __end134 {
             let (mut d1, mut d2) = crate::gen::thirdbody::kozai_rates(j, e, nhat[(m) as usize], phi_q[(m) as usize]);
             {
-                let __end117: i64 = 3;
+                let __end135: i64 = 3;
                 let mut i: i64 = 0;
-                while i < __end117 {
+                while i < __end135 {
                     dj[(i) as usize] = (dj[(i) as usize] + d1[(i) as usize]);
                     de[(i) as usize] = (de[(i) as usize] + d2[(i) as usize]);
                     i += 1;

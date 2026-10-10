@@ -188,6 +188,30 @@ pub fn call(name: &str, x: &[f64]) -> Option<Vec<f64>> {
             let r = crate::estimation::latency([x[0], x[1], x[2], x[3]], [x[4], x[5], x[6]], x[7]);
             for v in r.iter() { let v = *v; out.push(v); }
         }
+        "navorbit::gnss_usable" => {
+            if x.len() != 4 { return None; }
+            let r = crate::navorbit::gnss_usable(x[0] != 0.0, [x[1], x[2], x[3]]);
+            out.push(if r { 1.0 } else { 0.0 });
+        }
+        "navorbit::verlet" => {
+            if x.len() != 8 { return None; }
+            let r = crate::navorbit::verlet([x[0], x[1], x[2]], [x[3], x[4], x[5]], x[6], x[7]);
+            for v in r.0.iter() { let v = *v; out.push(v); }
+            for v in r.1.iter() { let v = *v; out.push(v); }
+        }
+        "navorbit::fix_eci" => {
+            if x.len() != 7 { return None; }
+            let r = crate::navorbit::fix_eci([x[0], x[1], x[2]], [x[3], x[4], x[5]], x[6]);
+            for v in r.0.iter() { let v = *v; out.push(v); }
+            for v in r.1.iter() { let v = *v; out.push(v); }
+        }
+        "navorbit::onboard_orbit" => {
+            if x.len() != 19 { return None; }
+            let r = crate::navorbit::onboard_orbit([x[0], x[1], x[2]], [x[3], x[4], x[5]], x[6] != 0.0, x[7] != 0.0, [x[8], x[9], x[10]], [x[11], x[12], x[13]], x[14] != 0.0, x[15], x[16], x[17], x[18]);
+            for v in r.0.iter() { let v = *v; out.push(v); }
+            for v in r.1.iter() { let v = *v; out.push(v); }
+            out.push(if r.2 { 1.0 } else { 0.0 });
+        }
         "guidance::guid_kind" => {
             if x.len() != 1 { return None; }
             let r = crate::guidance::guid_kind(x[0] as i64);

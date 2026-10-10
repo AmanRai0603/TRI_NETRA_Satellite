@@ -37,7 +37,8 @@ its crate:
                                          (S7.3b); DE440 (S7.3c); gravity and the tides (S7.3d); relativity (S7.3e); the
                                          spacecraft force models (third body, gas-surface interaction, drag, solar and
                                          Earth radiation pressure), the force set, its sum and the sun-synchronous start
-                                         (S7.6); std maths (as the Octave POP they are held to)
+                                         (S7.6); the EOP splice and interpolation of the frame builds A, B and C
+                                         (S7.19b); std maths (as the Octave POP they are held to)
   engine/crates/adcs-sim/src/gen/        the engine's relations that fly with the platform's maths: the fast orbit's
                                          start from the LTAN (S7.6), what the sensors see of the sky (S7.8), the
                                          set-up from the case: the centre of mass's offset, the truth plant, the
@@ -47,7 +48,9 @@ its crate:
                                          module it takes the payload offset from); the power system (design), the
                                          rotors' jitter and the pointing budget (pnt, S7.14); how each metric is
                                          measured from a run: its channels, windows, statistics, the ECSS indices,
-                                         each kind's value and unit and its verdict (kpi, S7.14b); std maths
+                                         each kind's value and unit and its verdict (kpi, S7.14b); std maths, and the
+                                         translator's dispatcher, by which `adcs design call` serves the case's orbit
+                                         period (caseorbit) to the tools that size a run by it (S7.19b)
   engine/crates/adcs-design/src/gen/     the sizing (design and act, S7.15): the demand survey's reductions and what the
                                          case asks of an actuator, the magnetorquer coil, the momentum actuators chosen
                                          from the catalogue, the fluid rings and their electromagnetic pump, where a ring
@@ -96,7 +99,7 @@ TITLE = "TRI-NETRA engine models, written from the design by tools/engine_build.
 TARGETS = {
     "adcs-sim-core": {"dir": "engine/crates/adcs-sim-core/src/gen", "root": "crate::gen", "math": "crate::pm"},
     "adcs-pop": {"dir": "engine/crates/adcs-pop/src/gen", "root": "crate::gen", "math": None},
-    "adcs-sim": {"dir": "engine/crates/adcs-sim/src/gen", "root": "crate::gen", "math": None},
+    "adcs-sim": {"dir": "engine/crates/adcs-sim/src/gen", "root": "crate::gen", "math": None, "dispatch": True},
     "adcs-design": {"dir": "engine/crates/adcs-design/src/gen", "root": "crate::gen", "math": None, "dispatch": True},
 }
 # the MATLAB twin's package: every module the engine's targets take, one copy, beside the twin's own code

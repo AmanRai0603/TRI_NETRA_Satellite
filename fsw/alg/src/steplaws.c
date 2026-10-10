@@ -13,9 +13,9 @@ CtlState steplaws_ctl_mtq(CtlState st_, CtlParams cp) {
         pc_a4f qe = math_qmult(math_qconj(s.q_ref), s.q);
         pc_a3f wr = pc_mv_a3a3f(math_dcm(qe), s.w_ref);
         {
-            int64_t end__111 = INT64_C(3);
+            int64_t end__114 = INT64_C(3);
             int64_t i = INT64_C(0);
-            while (i < end__111) {
+            while (i < end__114) {
                 s.tau_req.v[(i)] = ((-(cp.g_kd.v[(i)])) * (s.w_est.v[(i)] - wr.v[(i)]));
                 i += 1;
             }
@@ -25,9 +25,9 @@ CtlState steplaws_ctl_mtq(CtlState st_, CtlParams cp) {
     } else if (((law == INT64_C(5)) || (law == INT64_C(6)))) {
         bool ok = false;
         if ((law == INT64_C(6))) {
-            control_mtq_avanzini_out t__112 = control_mtq_avanzini(s.q, s.w_est, s.q_ref, s.w_ref, cp.j, cp.mtq_k16, cp.mtq_lam16);
-            pc_a3f t6 = t__112.tau;
-            bool ok6 = t__112.ok;
+            control_mtq_avanzini_out t__115 = control_mtq_avanzini(s.q, s.w_est, s.q_ref, s.w_ref, cp.j, cp.mtq_k16, cp.mtq_lam16);
+            pc_a3f t6 = t__115.tau;
+            bool ok6 = t__115.ok;
             ok = ok6;
             if (ok) {
                 s.tau_req = t6;
@@ -51,9 +51,9 @@ CtlState steplaws_ctl_mtq(CtlState st_, CtlParams cp) {
             double d = pc_dot_a3f(cp.sun_axis, e3);
             pc_a3f pa = ((pc_a3f){0});
             {
-                int64_t end__113 = INT64_C(3);
+                int64_t end__116 = INT64_C(3);
                 int64_t i = INT64_C(0);
-                while (i < end__113) {
+                while (i < end__116) {
                     pa.v[(i)] = (cp.sun_axis.v[(i)] - (d * e3.v[(i)]));
                     i += 1;
                 }
@@ -64,9 +64,9 @@ CtlState steplaws_ctl_mtq(CtlState st_, CtlParams cp) {
                 pc_a3f c = pc_cross_a3f(pa, pd);
                 double r = ((cp.sb_kroll * atan2(pc_dot_a3f(c, e3), pc_dot_a3f(pa, pd))) - (cp.sb_kdroll * pc_dot_a3f(we, e3)));
                 {
-                    int64_t end__114 = INT64_C(3);
+                    int64_t end__117 = INT64_C(3);
                     int64_t i = INT64_C(0);
-                    while (i < end__114) {
+                    while (i < end__117) {
                         s.tau_req.v[(i)] = (s.tau_req.v[(i)] + (r * e3.v[(i)]));
                         i += 1;
                     }
@@ -78,9 +78,9 @@ CtlState steplaws_ctl_mtq(CtlState st_, CtlParams cp) {
     } else {
         pc_a3f z = ((pc_a3f){0});
         {
-            control_control_law_out t__115 = control_control_law(s.q, s.w_est, s.q_ref, s.w_ref, s.i_q, cp.mtq_period, cp.g_law, cp.g_kp, cp.g_kd, cp.g_ki, cp.g_klqr, cp.g_lambda, cp.g_phi, cp.g_gs, cp.g_err_max, cp.g_int_max, cp.j, z, z);
-            s.tau_req = t__115.tau;
-            s.i_q = t__115.i_q;
+            control_control_law_out t__118 = control_control_law(s.q, s.w_est, s.q_ref, s.w_ref, s.i_q, cp.mtq_period, cp.g_law, cp.g_kp, cp.g_kd, cp.g_ki, cp.g_klqr, cp.g_lambda, cp.g_phi, cp.g_gs, cp.g_err_max, cp.g_int_max, cp.j, z, z);
+            s.tau_req = t__118.tau;
+            s.i_q = t__118.i_q;
         }
     }
     return s;
@@ -111,9 +111,9 @@ steplaws_ctl_capture_out steplaws_ctl_capture(CtlState st_, CtlParams cp, pc_a3f
             double mincap = s.cap.v[0];
             double minh = s.hcap.v[0];
             {
-                int64_t end__116 = INT64_C(3);
+                int64_t end__119 = INT64_C(3);
                 int64_t i = INT64_C(1);
-                while (i < end__116) {
+                while (i < end__119) {
                     if ((s.cap.v[(i)] < mincap)) {
                         mincap = s.cap.v[(i)];
                     }
@@ -135,9 +135,9 @@ steplaws_ctl_capture_out steplaws_ctl_capture(CtlState st_, CtlParams cp, pc_a3f
             }
             pc_a3f wc = ((pc_a3f){0});
             {
-                int64_t end__117 = INT64_C(3);
+                int64_t end__120 = INT64_C(3);
                 int64_t i = INT64_C(0);
-                while (i < end__117) {
+                while (i < end__120) {
                     wc.v[(i)] = (wref.v[(i)] - (e.v[(i)] * sp));
                     i += 1;
                 }
@@ -149,9 +149,9 @@ steplaws_ctl_capture_out steplaws_ctl_capture(CtlState st_, CtlParams cp, pc_a3f
             pc_a3f gy = pc_cross_a3f(s.w_est, pc_add_a3f(pc_mv_a3a3f(cp.j, s.w_est), hdev));
             pc_a3f x = ((pc_a3f){0});
             {
-                int64_t end__118 = INT64_C(3);
+                int64_t end__121 = INT64_C(3);
                 int64_t i = INT64_C(0);
-                while (i < end__118) {
+                while (i < end__121) {
                     x.v[(i)] = (kr * (wc.v[(i)] - s.w_est.v[(i)]));
                     i += 1;
                 }
@@ -192,9 +192,9 @@ CtlState steplaws_ctl_sun_acq(CtlState st_, CtlParams cp, pc_a3f hdev) {
     pc_a3f gy = pc_cross_a3f(s.w_est, pc_add_a3f(pc_mv_a3a3f(cp.j, s.w_est), hdev));
     pc_a3f x = ((pc_a3f){0});
     {
-        int64_t end__119 = INT64_C(3);
+        int64_t end__122 = INT64_C(3);
         int64_t i = INT64_C(0);
-        while (i < end__119) {
+        while (i < end__122) {
             x.v[(i)] = (cp.sa_kd * (wc.v[(i)] - s.w_est.v[(i)]));
             i += 1;
         }
@@ -211,9 +211,9 @@ steplaws_alloc_rotors_out steplaws_alloc_rotors(pc_a3f tau_rot, pc_a3a8f a, pc_a
     pc_a8i fixed = ((pc_a8i){0});
     int64_t nf = INT64_C(0);
     {
-        int64_t end__120 = nr;
+        int64_t end__123 = nr;
         int64_t i = INT64_C(0);
-        while (i < end__120) {
+        while (i < end__123) {
             if (((rot_gi.v[(i)] == INT64_C(0)) && (!rot_failed.v[(i)]))) {
                 fixed.v[(nf)] = i;
                 nf = (nf + INT64_C(1));
@@ -224,13 +224,13 @@ steplaws_alloc_rotors_out steplaws_alloc_rotors(pc_a3f tau_rot, pc_a3a8f a, pc_a
     if ((nf > INT64_C(0))) {
         pc_a3a8f af = ((pc_a3a8f){0});
         {
-            int64_t end__121 = nf;
+            int64_t end__124 = nf;
             int64_t i = INT64_C(0);
-            while (i < end__121) {
+            while (i < end__124) {
                 {
-                    int64_t end__122 = INT64_C(3);
+                    int64_t end__125 = INT64_C(3);
                     int64_t k = INT64_C(0);
-                    while (k < end__122) {
+                    while (k < end__125) {
                         af.v[(k)].v[(i)] = a.v[(k)].v[(fixed.v[(i)])];
                         k += 1;
                     }
@@ -240,9 +240,9 @@ steplaws_alloc_rotors_out steplaws_alloc_rotors(pc_a3f tau_rot, pc_a3a8f a, pc_a
         }
         pc_a8a3f pi8 = math_pinv_rows(af, nf);
         {
-            int64_t end__123 = nf;
+            int64_t end__126 = nf;
             int64_t i = INT64_C(0);
-            while (i < end__123) {
+            while (i < end__126) {
                 cmd_r.v[(fixed.v[(i)])] = (-((((pi8.v[(i)].v[0] * tau_rot.v[0]) + (pi8.v[(i)].v[1] * tau_rot.v[1])) + (pi8.v[(i)].v[2] * tau_rot.v[2]))));
                 i += 1;
             }
@@ -251,31 +251,31 @@ steplaws_alloc_rotors_out steplaws_alloc_rotors(pc_a3f tau_rot, pc_a3a8f a, pc_a
     if ((ng > INT64_C(0))) {
         bool wheels = false;
         {
-            int64_t end__124 = nr;
+            int64_t end__127 = nr;
             int64_t i = INT64_C(0);
-            while (i < end__124) {
+            while (i < end__127) {
                 if ((rot_kind.v[(i)] == INT64_C(3))) {
                     wheels = true;
                 }
                 i += 1;
             }
         }
-        allocation_steer_sr_out t__125 = allocation_steer_sr(tau_rot, a, zh, nr, ng, rot_gi, gim_axis, gim_rate_max, cmg_lam0, cmg_mu, wheels);
-        pc_a4f gd = t__125.gdot;
-        pc_a8f hd = t__125.hdot;
+        allocation_steer_sr_out t__128 = allocation_steer_sr(tau_rot, a, zh, nr, ng, rot_gi, gim_axis, gim_rate_max, cmg_lam0, cmg_mu, wheels);
+        pc_a4f gd = t__128.gdot;
+        pc_a8f hd = t__128.hdot;
         {
-            int64_t end__126 = ng;
+            int64_t end__129 = ng;
             int64_t j = INT64_C(0);
-            while (j < end__126) {
+            while (j < end__129) {
                 cmd_g.v[(j)] = gd.v[(j)];
                 j += 1;
             }
         }
         if (wheels) {
             {
-                int64_t end__127 = nr;
+                int64_t end__130 = nr;
                 int64_t i = INT64_C(0);
-                while (i < end__127) {
+                while (i < end__130) {
                     if ((rot_gi.v[(i)] > INT64_C(0))) {
                         cmd_r.v[(i)] = (hd.v[(i)] - (cmg_k_null * (zh.v[(i)] - rot_h0.v[(i)])));
                     }
@@ -296,9 +296,9 @@ pc_a8f steplaws_alloc_idle(pc_a8f cmd_r0, int64_t nr, pc_a8f zh, pc_a8f h_t_rot,
     pc_a8f cmd_r = ((pc_a8f){0});
     cmd_r = cmd_r0;
     {
-        int64_t end__128 = nr;
+        int64_t end__131 = nr;
         int64_t i = INT64_C(0);
-        while (i < end__128) {
+        while (i < end__131) {
             cmd_r.v[(i)] = ((-(0.2)) * (zh.v[(i)] - h_t_rot.v[(i)]));
             if (((zero_cmg && (rot_gi.v[(i)] > INT64_C(0))) && (rot_kind.v[(i)] == INT64_C(2)))) {
                 cmd_r.v[(i)] = 0.0;

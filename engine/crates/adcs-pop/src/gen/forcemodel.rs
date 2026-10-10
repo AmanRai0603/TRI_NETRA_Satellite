@@ -118,9 +118,9 @@ pub fn empirical_accel(r: [f64; 3], v: [f64; 3], acc: [f64; 3]) -> [f64; 3] {
     let mut tt: [f64; 3] = rt::cross(nn, rr);
     a = [0.0; 3];
     {
-        let __end37: i64 = 3;
+        let __end55: i64 = 3;
         let mut i: i64 = 0;
-        while i < __end37 {
+        while i < __end55 {
             a[(i) as usize] = (((acc[0] * rr[(i) as usize]) + (acc[1] * tt[(i) as usize])) + (acc[2] * nn[(i) as usize]));
             i += 1;
         }
@@ -223,8 +223,8 @@ pub fn sso_initial(sun_unit: [f64; 3], alt_km: f64, ecc: f64, inc_deg: f64, ltan
     let mut inc: f64 = ((inc_deg * core::f64::consts::PI) / 180.0);
     let mut ra_sun: f64 = f64::atan2(sun_unit[1], sun_unit[0]);
     raan = crate::gen::timescales::omod((ra_sun + ((((ltan_h - 12.0) * 15.0) * core::f64::consts::PI) / 180.0)), (2.0 * core::f64::consts::PI));
-    let __t38 = crate::gen::forcemodel::pop_coe2rv(a, ecc, inc, raan, ((argp_deg * core::f64::consts::PI) / 180.0), ((u0_deg * core::f64::consts::PI) / 180.0), k.mu_earth);
-    r = __t38.0;
-    v = __t38.1;
+    let __t56 = crate::gen::forcemodel::pop_coe2rv(a, ecc, inc, raan, ((argp_deg * core::f64::consts::PI) / 180.0), ((u0_deg * core::f64::consts::PI) / 180.0), k.mu_earth);
+    r = __t56.0;
+    v = __t56.1;
     (r, v, raan)
 }

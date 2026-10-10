@@ -21,32 +21,10 @@ function [F, bus] = step(F, bus)
         ~isempty(F.bref), bref_(F), F.b_good, F.mag_age, F.mag_seen, p.has_gyro ~= 0, z.gyro_ok, z.w, F.gyro_age, dt);
     F.z = z;
 
-    % 1 onboard orbit (02): the GNSS fix, else two-body + J2 by velocity Verlet
-    % a fix inside the Earth is not a fix: dropped, the orbit propagated as without one
-    if z.gps_ok && norm3_(z.r) > 0.9*6378137.0
-        l = p.gps_latency;          % the fix is the state l seconds ago
-        if p.gnss_ecef ~= 0
-            % receiver fix in ECEF: r = C' r_e, v = C' (v_e + w_E x r_e), C at the fix's epoch
-            c = asils.alg.frames.eci2ecef(F.jd - l/86400.0);
-            ve = z.v + cross3_([0; 0; 7.2921158553e-5], z.r);
-            F.r = asils.alg.math.mat3t_vec(c, z.r); F.v = asils.alg.math.mat3t_vec(c, ve);
-        else
-            F.r = z.r; F.v = z.v;
-        end
-        if l > 0
-            % carried forward to now: one Verlet step of l
-            a0 = asils.alg.steplaws.orbit_acc(F.r, p.mu);
-            for i = 1:3, F.r(i) = F.r(i) + F.v(i)*l + 0.5*a0(i)*l*l; end
-            a1 = asils.alg.steplaws.orbit_acc(F.r, p.mu);
-            for i = 1:3, F.v(i) = F.v(i) + 0.5*(a0(i) + a1(i))*l; end
-        end
-        F.have_r = true;
-    elseif F.have_r
-        a0 = asils.alg.steplaws.orbit_acc(F.r, p.mu);
-        for i = 1:3, F.r(i) = F.r(i) + F.v(i)*dt + 0.5*a0(i)*dt*dt; end
-        a1 = asils.alg.steplaws.orbit_acc(F.r, p.mu);
-        for i = 1:3, F.v(i) = F.v(i) + 0.5*(a0(i) + a1(i))*dt; end
-    end
+    % 1 onboard orbit (02): nav's (asils.alg.navorbit.onboard_orbit), as adcs_fsw.c and fsw.rs: a usable GNSS fix (taken
+    % from ECEF at its epoch, carried forward by its age), else the orbit held carried one tick, else none
+    [F.r, F.v, F.have_r] = asils.alg.navorbit.onboard_orbit(F.r, F.v, F.have_r, z.gps_ok, z.r, z.v, p.gnss_ecef ~= 0, ...
+        p.gps_latency, F.jd, dt, p.mu);
 
     % 2 estimation
     F.gd.sun_eci = asils.alg.frames.sun_model(F.jd);

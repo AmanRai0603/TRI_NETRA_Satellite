@@ -1,0 +1,63 @@
+## 02 at the level of the tick (08_mode_manager.md, the tick's step 1): nav's onboard orbit - the GNSS fix taken in (its
+## validity gate, its frame and its age) and the orbit carried between fixes - transcribed operation for operation from
+## the tick of fsw/src/adcs_fsw.c and fsw-rs/src/fsw.rs (adcs_fsw_step, Fsw::step: step 1), which S6 left in the runtime.
+## A fix is taken when the receiver says it is good and it lies outside 0.9 R_E (R_E = 6378137 m, WGS-84, NIMA TR8350.2):
+## one inside the Earth is no fix. An Earth-fixed fix (ECEF) is taken to J2000 at its epoch by the onboard frame (env's
+## eci2ecef) with the transport theorem, v = C' (v_e + w_E x r_e), w_E = 7.2921158553e-5 rad/s (the IAU-76/FK5 rate,
+## Vallado 2013). The orbit is carried by one velocity-Verlet step (Swope, Andersen, Berens and Wilson 1982, J. Chem.
+## Phys. 76:637) over the two-body + J2 acceleration (steplaws' orbit_acc): a late fix by its age, the orbit between
+## fixes by the tick.
+## The developer's transcription (S7.19b), unsigned.
+module navorbit
+
+## Whether a GNSS fix may be taken: the receiver's flag, and the fix outside 0.9 R_E.
+fn gnss_usable(ok: bool, r: vec3[1] in -7.2e6 .. 7.2e6) -> good: bool
+    good = ok and norm(r) > 0.9*6378137.0
+end
+
+## One velocity-Verlet step of h over the two-body + J2 acceleration: r + (v h + a0 h h/2), then v + (a0 + a1) h/2 with
+## a1 at the new r, element by element as the tick wrote them.
+fn verlet(r0: vec3[1] in -7.2e6 .. 7.2e6, v0: vec3[1] in -8000 .. 8000, h: real[1] in 0 .. 2, mu: real[1] in 3.9e14 .. 4e14) \
+          -> (r: vec3[1], v: vec3[1])
+    let a0 = orbit_acc(r0, mu)
+    r = [r0[0] + (v0[0]*h + 0.5*a0[0]*h*h), r0[1] + (v0[1]*h + 0.5*a0[1]*h*h), r0[2] + (v0[2]*h + 0.5*a0[2]*h*h)]
+    let a1 = orbit_acc(r, mu)
+    v = [v0[0] + 0.5*(a0[0] + a1[0])*h, v0[1] + 0.5*(a0[1] + a1[1])*h, v0[2] + 0.5*(a0[2] + a1[2])*h]
+end
+
+## An Earth-fixed fix taken to J2000 at the Julian date jd: r = C' r_e, v = C' (v_e + w_E x r_e), C the onboard
+## eci2ecef at jd.
+fn fix_eci(r_e: vec3[1] in -7.2e6 .. 7.2e6, v_e: vec3[1] in -8000 .. 8000, jd: real[1] in 2459000 .. 2463000) -> (r: vec3[1], v: vec3[1])
+    let c = eci2ecef(jd)
+    let ve = v_e + cross([0.0, 0.0, 7.2921158553e-5], r_e)
+    r = mat3t_vec(c, r_e)
+    v = mat3t_vec(c, ve)
+end
+
+## The onboard orbit after the tick's step 1, from the orbit it held (r0, v0; have: whether it holds one) and the
+## receiver's fix (ok, r_fix, v_fix; in ECEF when ecef; lat seconds old) at the Julian date jd: a usable fix, taken from
+## ECEF at its epoch jd - lat when it is Earth-fixed, carried forward to now by one Verlet step of lat when lat > 0; else
+## the orbit held carried one tick dt; else none. The orbit, and whether there is one.
+## vectors: 48
+fn onboard_orbit(r0: vec3[1] in -7.2e6 .. 7.2e6, v0: vec3[1] in -8000 .. 8000, have: bool, ok: bool, \
+                 r_fix: vec3[1] in -7.2e6 .. 7.2e6, v_fix: vec3[1] in -8000 .. 8000, ecef: bool, lat: real[1] in 0 .. 2, \
+                 jd: real[1] in 2459000 .. 2463000, dt: real[1] in 0.05 .. 1, mu: real[1] in 3.9e14 .. 4e14) \
+                 -> (r: vec3[1], v: vec3[1], have_r: bool)
+    r = r0
+    v = v0
+    have_r = have
+    if gnss_usable(ok, r_fix)
+        if ecef
+            r, v = fix_eci(r_fix, v_fix, jd - lat/86400.0)
+        else
+            r = r_fix
+            v = v_fix
+        end
+        if lat > 0
+            r, v = verlet(r, v, lat, mu)
+        end
+        have_r = true
+    elif have
+        r, v = verlet(r0, v0, dt, mu)
+    end
+end

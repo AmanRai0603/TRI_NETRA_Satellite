@@ -2,6 +2,7 @@
 //! Every relation is SI in and SI out; each function's doc lists its inputs and outputs with their units.
 #![allow(clippy::all)]
 pub mod rt;
+pub mod dispatch;
 pub mod powersys;
 pub mod cmoffset;
 pub mod truthplant;

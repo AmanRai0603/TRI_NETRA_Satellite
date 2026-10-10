@@ -2,6 +2,7 @@
 //! Tick order: fsw/pseudocode/08_mode_manager.md, one branch per controller state as
 //! asils.fsw.step (MATLAB) and adcs_fsw.c (C). The shell owns the tick, the state and the HAL;
 //! guidance is guid.rs, the mode manager modes.rs, FDIR fdir.rs.
+use crate::alg::navorbit;
 use crate::alg::steplaws::{self as laws, CtlParams, CtlState};
 use crate::alloc::{self, A38};
 use crate::ctl::{self, Gains};
@@ -218,30 +219,10 @@ impl Fsw {
         self.fdir_sensors(&mut z, dt);
         self.z = z;
 
-        // 1 onboard orbit (02): the GNSS fix, else two-body + J2 by velocity Verlet
-        // a fix inside the Earth is not a fix: dropped, the orbit propagated as without one
-        if z.gps_ok && norm3(&z.r) > GNSS_R_MIN {
-            let l = p.gps_latency;   // the fix is the state l seconds ago
-            if p.gnss_ecef != 0 {
-                // receiver fix in ECEF: r = C' r_e, v = C' (v_e + w_E x r_e), C at the fix's epoch
-                let c = env::eci2ecef(self.jd - l/86400.0);
-                let ve = add3(&z.v, &cross(&[0.0, 0.0, OMEGA_E], &z.r));
-                self.r = mat3t_vec(&c, &z.r); self.v = mat3t_vec(&c, &ve);
-            } else { self.r = z.r; self.v = z.v; }
-            if l > 0.0 {
-                // carried forward to now: one Verlet step of l
-                let a0 = orbit_acc(&self.r, p.mu);
-                for i in 0..3 { self.r[i] += self.v[i]*l + 0.5*a0[i]*l*l; }
-                let a1 = orbit_acc(&self.r, p.mu);
-                for i in 0..3 { self.v[i] += 0.5*(a0[i] + a1[i])*l; }
-            }
-            self.have_r = true;
-        } else if self.have_r {
-            let a0 = orbit_acc(&self.r, p.mu);
-            for i in 0..3 { self.r[i] += self.v[i]*dt + 0.5*a0[i]*dt*dt; }
-            let a1 = orbit_acc(&self.r, p.mu);
-            for i in 0..3 { self.v[i] += 0.5*(a0[i] + a1[i])*dt; }
-        }
+        // 1 onboard orbit (02): nav's (navorbit::onboard_orbit, src/alg): the GNSS fix (a fix inside the Earth is none; one
+        // in ECEF taken to J2000 at its epoch; a late one carried forward by its age), else two-body + J2 by velocity Verlet
+        (self.r, self.v, self.have_r) = navorbit::onboard_orbit(self.r, self.v, self.have_r, z.gps_ok, z.r, z.v, p.gnss_ecef != 0,
+                                                                p.gps_latency, self.jd, dt, p.mu);
 
         // 2 estimation
         self.gd.sun_eci = env::sun_model(self.jd);
@@ -616,8 +597,6 @@ impl Fsw {
     pub fn time(&self) -> f64 { self.t }
 }
 
-/// a GNSS fix below this radius is refused (= GNSS_R_MIN in adcs_fsw.c)
-const GNSS_R_MIN: f64 = 0.9*RE;
 /// The coils act on a held field for at most this many coil cycles (fdir.rs holds it).
 const MAG_HOLD_CYCLES: f64 = 2.0;
 /// Fault bits a sensor silent too long sets (fdir.rs); the mode manager reads them.
@@ -626,7 +605,3 @@ pub const FAULT_GYRO_STALE: u16 = 1 << 9;
 /// a star-tracker quaternion further than this from unit length is not a reading; its innovation is
 /// not gated (= adcs_fsw.c)
 const ST_NORM_TOL: f64 = 1e-3;
-
-/// Two-body + J2 acceleration in J2000 (the pole of date is 0.4 deg off: second order on J2).
-/// Written from the design: steplaws::orbit_acc (src/alg).
-fn orbit_acc(r: &V3, mu: f64) -> V3 { laws::orbit_acc(*r, mu) }

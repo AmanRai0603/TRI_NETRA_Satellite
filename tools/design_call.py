@@ -64,3 +64,10 @@ def take(flat, *shapes):
     if at != len(flat):
         raise SystemExit(f"design_call: {len(flat)} numbers back, {at} expected")
     return out
+
+
+def orbit_period(alt_km):
+    """The period [s] of the circular orbit at an altitude [km] (a case's orbit.alt, or a dispersed one): env_case_orbit's
+    dispersed_period, asked of the engine (adcs-sim's caseorbit), so a tool that sizes a run by the orbit keeps no
+    Kepler's law of its own (S7.19b)."""
+    return call("caseorbit::dispersed_period", float(alt_km) * 1e3)[0]

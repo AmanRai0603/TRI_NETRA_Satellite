@@ -2,7 +2,10 @@
 //! `matlab_sils/pop/03_frames_time/+frames/eci2ecef_A.m / _B.m / _C.m`
 //! (`get_eop`, `eop_paths`, `parse_leap`, `parse_finals`, `parse_c04`,
 //! `read_c04_numeric`, `locate_mjd_col`, `splice`, `finalize_eop`, `eop_interp`,
-//! `lagr`, `leap_at`).
+//! `lagr`, `leap_at`). The readers of the three files are the code's; the splice, the
+//! leap-second lookup and the interpolation of every build are env's method env_eop,
+//! generated from the design into `gen::eop` (tools/engine_build.py, S7.19b), which the
+//! functions below hand the files' columns to.
 //!
 //! POP caches three IERS files in one folder (`cfg.frame.data_dir`, wired by
 //! `op.buildWorld` to `data.eop_dir()` = `<data.root>/eop`):
@@ -12,11 +15,9 @@
 //! MATLAB's A/B/C builds stop with "could not obtain <file>"; the Rust builds
 //! return [`crate::frames::FrameError::NoEop`] in that case (see `frames`). The
 //! offline default of POP is the `gmst` build, which needs no EOP at all.
-use crate::frames::tidal::{tidal_eop, tidal_ut1_zonal};
 use crate::frames::{Build, FrameError};
+use crate::gen::eop as gen;
 use std::path::Path;
-
-const AS2R: f64 = 4.848136811095359935899141e-6;
 
 /// One EOP table after `finalize_eop` (per-row, daily; x/y/dX/dY in arcsec, UT1-UTC in s).
 #[derive(Clone, Debug, Default)]
@@ -131,13 +132,10 @@ impl Eop {
     pub fn leap_at(&self, mjd: f64) -> f64 { leap_at(&self.leap, mjd) }
 }
 
-/// `leap_at(LS, mjd)`: last row with MJD <= mjd, else the first row's value.
+/// `leap_at(LS, mjd)`: last row with MJD <= mjd, else the first row's value (env's `eop::leap_at`).
 pub fn leap_at(ls: &[[f64; 2]], mjd: f64) -> f64 {
-    let mut d = ls[0][1];
-    for r in ls.iter() {
-        if r[0] <= mjd { d = r[1]; }
-    }
-    d
+    let (mut lm, mut ld) = leap_cols(ls);
+    gen::leap_at(&mut lm, &mut ld, mjd)
 }
 
 /// MATLAB `sscanf(L,'%f')`: whitespace-separated numbers until the first that fails.
@@ -369,114 +367,70 @@ pub fn parse_c04(txt: &str, opt: &EopLoadOpt) -> Result<C04, crate::PopError> {
     Ok(e)
 }
 
-/// Octave `interp1(x, y, xi, 'linear', extrap)`: piecewise-linear through the
-/// `mkpp`/`ppval` form `(dy/dx)*(xi - x_i) + y_i`; outside [x1, xn] either
-/// extrapolates the end segment (`None`) or returns the given value.
+/// Octave `interp1(x, y, xi, 'linear', extrap)` (x ascending): env's `eop::interp1_linear` (env_eop); outside [x1, xn]
+/// either the end segment extrapolated (`None`) or the given value.
 pub fn interp1_linear(x: &[f64], y: &[f64], xi: f64, extrap: Option<f64>) -> f64 {
-    let n = x.len();
-    if n < 2 { return f64::NAN; }
-    if xi.is_nan() { return f64::NAN; }
-    if let Some(v) = extrap {
-        if xi < x[0] || xi > x[n - 1] { return v; }
-    }
-    // lookup: count of x <= xi, clamped to 1..n-1 (1-based segment index)
-    let cnt = x.partition_point(|&v| v <= xi);
-    let i = cnt.clamp(1, n - 1) - 1;
-    let c1 = (y[i + 1] - y[i]) / (x[i + 1] - x[i]);
-    c1 * (xi - x[i]) + y[i]
+    gen::interp1_linear(&mut x.to_vec(), &mut y.to_vec(), xi, extrap.is_some(), extrap.unwrap_or(0.0))
 }
 
-/// `splice(C04, FIN, opt)`: C04 x/y/UT1 over its span + finals rows beyond it;
-/// dX,dY from C04 if it carried them, else finals interpolated (0 outside).
+/// `splice(C04, FIN, opt)`: C04 x/y/UT1 over its span + finals rows beyond it; dX,dY from C04 if it carried them, else
+/// finals interpolated (0 outside): env's `eop::splice` (env_eop) over the readers' columns.
 pub fn splice(c04: &C04, fin: &EopTable) -> EopTable {
-    let mmax = c04.mjd.iter().cloned().fold(f64::NEG_INFINITY, f64::max);
-    let t: Vec<usize> = (0..fin.mjd.len()).filter(|&i| fin.mjd[i] > mmax).collect();
-    let cat = |a: &[f64], b: &[f64]| -> Vec<f64> { a.iter().cloned().chain(t.iter().map(|&i| b[i])).collect() };
-    let mjd = cat(&c04.mjd, &fin.mjd);
-    let xp = cat(&c04.xp, &fin.xp);
-    let yp = cat(&c04.yp, &fin.yp);
-    let dut1 = cat(&c04.dut1, &fin.dut1);
-    let (dx, dy, dsrc) = match (&c04.dx, &c04.dy) {
-        (Some(cx), Some(cy)) => (cat(cx, &fin.dx), cat(cy, &fin.dy), "C04-native"),
-        _ => (
-            mjd.iter().map(|&m| interp1_linear(&fin.mjd, &fin.dx, m, Some(0.0))).collect(),
-            mjd.iter().map(|&m| interp1_linear(&fin.mjd, &fin.dy, m, Some(0.0))).collect(),
-            "finals",
-        ),
-    };
-    // [E.mjd,ix]=sort(E.mjd) (stable)
-    let mut ix: Vec<usize> = (0..mjd.len()).collect();
-    ix.sort_by(|&a, &b| mjd[a].partial_cmp(&mjd[b]).unwrap_or(std::cmp::Ordering::Equal));
-    let p = |v: &Vec<f64>| -> Vec<f64> { ix.iter().map(|&i| v[i]).collect() };
-    EopTable {
-        mjd: p(&mjd), xp: p(&xp), yp: p(&yp), dut1: p(&dut1), dx: p(&dx), dy: p(&dy), dut1_tai: Vec::new(),
-        source: format!("C04(<={:.0})+finals tail; dX,dY={}", mmax, dsrc),
-    }
+    let native = c04.dx.is_some() && c04.dy.is_some();
+    let n = c04.mjd.len() + fin.mjd.len();
+    let (mut cdx, mut cdy) = match (&c04.dx, &c04.dy) { (Some(x), Some(y)) => (x.clone(), y.clone()), _ => (vec![], vec![]) };
+    let (mut om, mut ox, mut oy, mut ou, mut odx, mut ody) = (vec![0.0; n], vec![0.0; n], vec![0.0; n], vec![0.0; n], vec![0.0; n], vec![0.0; n]);
+    let (mut ix, mut tmp, mut w) = (vec![0i64; n], vec![0i64; n], vec![0.0; n]);
+    let (k, mmax) = gen::splice(&mut c04.mjd.clone(), &mut c04.xp.clone(), &mut c04.yp.clone(), &mut c04.dut1.clone(), &mut cdx, &mut cdy, native,
+        &mut fin.mjd.clone(), &mut fin.xp.clone(), &mut fin.yp.clone(), &mut fin.dut1.clone(), &mut fin.dx.clone(), &mut fin.dy.clone(),
+        &mut om, &mut ox, &mut oy, &mut ou, &mut odx, &mut ody, &mut ix, &mut tmp, &mut w);
+    let k = k as usize;
+    for v in [&mut om, &mut ox, &mut oy, &mut ou, &mut odx, &mut ody] { v.truncate(k); }
+    EopTable { mjd: om, xp: ox, yp: oy, dut1: ou, dx: odx, dy: ody, dut1_tai: Vec::new(),
+        source: format!("C04(<={:.0})+finals tail; dX,dY={}", mmax, if native { "C04-native" } else { "finals" }) }
 }
 
-/// `finalize_eop(E, LS, build)`: attach `dut1_tai = dut1 - leap_at(LS, mjd)`.
+/// The leap-second rows as env's methods take them: their MJDs, their TAI - UTC.
+fn leap_cols(ls: &[[f64; 2]]) -> (Vec<f64>, Vec<f64>) {
+    (ls.iter().map(|r| r[0]).collect(), ls.iter().map(|r| r[1]).collect())
+}
+
+/// `finalize_eop(E, LS, build)`: attach `dut1_tai = dut1 - leap_at(LS, mjd)` (env's `eop::ut1_tai`).
 pub fn finalize_eop(mut e: EopTable, ls: &[[f64; 2]]) -> EopTable {
-    e.dut1_tai = e.mjd.iter().zip(e.dut1.iter()).map(|(&m, &d)| d - leap_at(ls, m)).collect();
+    let (mut lm, mut ld) = leap_cols(ls);
+    let n = e.mjd.len().min(e.dut1.len());
+    let mut out = vec![0.0; n];
+    gen::ut1_tai(&mut e.mjd[..n].to_vec(), &mut e.dut1[..n].to_vec(), &mut lm, &mut ld, &mut out);
+    e.dut1_tai = out;
     e
 }
 
-/// `eop_interp` of builds A/B (linear interp1 with extrapolation, optional tidal).
+/// The table's columns as env's methods take them.
+fn table_cols(e: &EopTable) -> [Vec<f64>; 6] {
+    [e.mjd.clone(), e.xp.clone(), e.yp.clone(), e.dx.clone(), e.dy.clone(), e.dut1_tai.clone()]
+}
+
+fn eop_at(r: (f64, f64, f64, f64, f64, f64, i64)) -> EopAt {
+    EopAt { dut1: r.0, xp: r.1, yp: r.2, dx: r.3, dy: r.4, dat: r.5, flag: r.6 as i32 }
+}
+
+/// `eop_interp` of builds A/B (linear interp1 with extrapolation, optional tidal): env's `eop::eop_linear`.
 pub fn interp_linear(e: &EopTable, ls: &[[f64; 2]], mjd: f64, tidal: bool) -> EopAt {
-    let m = &e.mjd;
-    let flag = if mjd < m[0] || mjd > m[m.len() - 1] { 1 } else { 0 };
-    let mut xp = interp1_linear(m, &e.xp, mjd, None) * AS2R;
-    let mut yp = interp1_linear(m, &e.yp, mjd, None) * AS2R;
-    let dx = interp1_linear(m, &e.dx, mjd, None) * AS2R;
-    let dy = interp1_linear(m, &e.dy, mjd, None) * AS2R;
-    let dat = leap_at(ls, mjd);
-    let mut dut1 = interp1_linear(m, &e.dut1_tai, mjd, None) + dat;
-    if tidal {
-        let (tx, ty, tu) = tidal_eop(mjd);
-        xp += tx * 1e-6 * AS2R;
-        yp += ty * 1e-6 * AS2R;
-        dut1 += tu * 1e-6;
-    }
-    EopAt { dut1, xp, yp, dx, dy, dat, flag }
+    let [mut m, mut x, mut y, mut dx, mut dy, mut u] = table_cols(e);
+    let (mut lm, mut ld) = leap_cols(ls);
+    eop_at(gen::eop_linear(&mut m, &mut x, &mut y, &mut dx, &mut dy, &mut u, &mut lm, &mut ld, mjd, tidal))
 }
 
-/// `lagr(x, f, xi)`: N-point Lagrange interpolation (build C).
+/// `lagr(x, f, xi)`: N-point Lagrange interpolation (build C): env's `eop::lagr`.
 pub fn lagr(x: &[f64], f: &[f64], xi: f64) -> f64 {
-    let n = x.len();
-    let mut y = 0.0;
-    for a in 0..n {
-        let mut l = 1.0;
-        for b in 0..n {
-            if b != a { l = l * (xi - x[b]) / (x[a] - x[b]); }
-        }
-        y += f[a] * l;
-    }
-    y
+    gen::lagr(&mut x.to_vec(), &mut f.to_vec(), xi)
 }
 
-/// `eop_interp` of build C: 4-point Lagrange, RG_ZONT2-regularised UT1 and the
-/// sub-daily tidal model (ocean + PM libration + UT1 libration).
+/// `eop_interp` of build C: 4-point Lagrange, RG_ZONT2-regularised UT1 and the sub-daily tidal model (ocean + PM
+/// libration + UT1 libration): env's `eop::eop_lagrange`. (`E.zonal` is never set by eci2ecef_C, so the RG_ZONT2 branch
+/// is the one MATLAB always takes.)
 pub fn interp_c(e: &EopTable, ls: &[[f64; 2]], mjd: f64) -> EopAt {
-    const NPTS: usize = 4;
-    let m = &e.mjd;
-    let n = m.len();
-    let flag = if mjd < m[0] || mjd > m[n - 1] { 1 } else { 0 };
-    let cnt = m.partition_point(|&v| v <= mjd);
-    let j = if cnt == 0 { 1 } else { cnt }; // 1-based last index with m <= mjd
-    let half = (NPTS - 1) / 2;
-    let i0 = (j.saturating_sub(half).max(1)).min(n + 1 - NPTS); // 1-based
-    let r = i0 - 1..i0 - 1 + NPTS;
-    let mw = &m[r.clone()];
-    let (dxp_t, dyp_t, dut1_t) = tidal_eop(mjd);
-    let xp = (lagr(mw, &e.xp[r.clone()], mjd) + dxp_t * 1e-6) * AS2R;
-    let yp = (lagr(mw, &e.yp[r.clone()], mjd) + dyp_t * 1e-6) * AS2R;
-    let dx = lagr(mw, &e.dx[r.clone()], mjd) * AS2R;
-    let dy = lagr(mw, &e.dy[r.clone()], mjd) * AS2R;
-    let dat = leap_at(ls, mjd);
-    // E.zonal is never set by eci2ecef_C (opt.zonal is not copied into E), so the
-    // RG_ZONT2 branch is the one MATLAB always takes.
-    let mut reg = [0.0f64; NPTS];
-    for k in 0..NPTS { reg[k] = e.dut1_tai[i0 - 1 + k] - tidal_ut1_zonal(mw[k]); }
-    let ut1r = lagr(mw, &reg, mjd);
-    let dut1 = ut1r + tidal_ut1_zonal(mjd) + dut1_t * 1e-6 + dat;
-    EopAt { dut1, xp, yp, dx, dy, dat, flag }
+    let [mut m, mut x, mut y, mut dx, mut dy, mut u] = table_cols(e);
+    let (mut lm, mut ld) = leap_cols(ls);
+    eop_at(gen::eop_lagrange(&mut m, &mut x, &mut y, &mut dx, &mut dy, &mut u, &mut lm, &mut ld, mjd))
 }

@@ -315,9 +315,9 @@ pub fn facet_sum(f: ScFacets, u_b: [f64; 3], p: f64) -> [f64; 3] {
     let mut fb: [f64; 3] = [0.0; 3];
     fb = [0.0; 3];
     {
-        let __end105: i64 = f.nf;
+        let __end123: i64 = f.nf;
         let mut j: i64 = 0;
-        while j < __end105 {
+        while j < __end123 {
             let mut n: [f64; 3] = f.n[(j) as usize];
             if (f.kind[(j) as usize] == (crate::gen::srp::FACETKIND_ARRAY as i64)) {
                 n = crate::gen::srp::srp_array_normal(f.axis[(j) as usize], u_b);
@@ -332,9 +332,9 @@ pub fn facet_sum(f: ScFacets, u_b: [f64; 3], p: f64) -> [f64; 3] {
                 let mut ka: f64 = (f.alpha[(j) as usize] + f.rho_d[(j) as usize]);
                 let mut kn: f64 = (2.0 * ((f.rho_s[(j) as usize] * cth) + (f.rho_d[(j) as usize] / 3.0)));
                 {
-                    let __end106: i64 = 3;
+                    let __end124: i64 = 3;
                     let mut i: i64 = 0;
-                    while i < __end106 {
+                    while i < __end124 {
                         fb[(i) as usize] = (fb[(i) as usize] - (k * ((ka * u_b[(i) as usize]) + (kn * n[(i) as usize]))));
                         i += 1;
                     }

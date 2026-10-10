@@ -60,17 +60,17 @@ pub fn tidal_eop_ocean(mjd: f64) -> (f64, f64, f64) {
     let mut a: [[f64; 3]; 2] = [[0.0; 3]; 2];
     let mut b: [[f64; 3]; 2] = [[0.0; 3]; 2];
     {
-        let __end118: i64 = 3;
+        let __end136: i64 = 3;
         let mut kk: i64 = 0;
-        while kk < __end118 {
+        while kk < __end136 {
             let mut k: f64 = ((kk as f64) - 1.0);
             let mut dt60: f64 = ((mjd - (k * 2.0)) - 37076.5);
             let mut sa: [f64; 2] = [0.0; 2];
             let mut sb: [f64; 2] = [0.0; 2];
             {
-                let __end119: i64 = 71;
+                let __end137: i64 = 71;
                 let mut row: i64 = 0;
-                while row < __end119 {
+                while row < __end137 {
                     let mut nj: f64 = crate::gen::tidaleopterms::DATA_TIDAL_OCEAN[(row) as usize][0];
                     let mut mj: f64 = crate::gen::tidaleopterms::DATA_TIDAL_OCEAN[(row) as usize][1];
                     let mut hs: f64 = crate::gen::tidaleopterms::DATA_TIDAL_OCEAN[(row) as usize][2];
@@ -89,9 +89,9 @@ pub fn tidal_eop_ocean(mjd: f64) -> (f64, f64, f64) {
                 }
             }
             {
-                let __end120: i64 = 2;
+                let __end138: i64 = 2;
                 let mut m2: i64 = 0;
-                while m2 < __end120 {
+                while m2 < __end138 {
                     a[(m2) as usize][(kk) as usize] = sa[(m2) as usize];
                     b[(m2) as usize][(kk) as usize] = (-(sb[(m2) as usize]));
                     m2 += 1;
@@ -102,9 +102,9 @@ pub fn tidal_eop_ocean(mjd: f64) -> (f64, f64, f64) {
     }
     let mut h: [f64; 12] = [0.0; 12];
     {
-        let __end121: i64 = 2;
+        let __end139: i64 = 2;
         let mut m: i64 = 0;
-        while m < __end121 {
+        while m < __end139 {
             let mut ap: f64 = (a[(m) as usize][2] + a[(m) as usize][0]);
             let mut am: f64 = (a[(m) as usize][2] - a[(m) as usize][0]);
             let mut bp: f64 = (b[(m) as usize][2] + b[(m) as usize][0]);
@@ -126,14 +126,14 @@ pub fn tidal_eop_ocean(mjd: f64) -> (f64, f64, f64) {
     }
     let mut eop: [f64; 3] = [0.0; 3];
     {
-        let __end122: i64 = 3;
+        let __end140: i64 = 3;
         let mut j: i64 = 0;
-        while j < __end122 {
+        while j < __end140 {
             let mut acc: f64 = 0.0;
             {
-                let __end123: i64 = 12;
+                let __end141: i64 = 12;
                 let mut i: i64 = 0;
-                while i < __end123 {
+                while i < __end141 {
                     acc = (acc + (h[(i) as usize] * crate::gen::tidaleopterms::DATA_TIDAL_OCEAN_ORTHOW[(i) as usize][(j) as usize]));
                     i += 1;
                 }
@@ -160,14 +160,14 @@ pub fn tidal_pm_libration(rmjd: f64) -> (f64, f64) {
     dxp = 0.0;
     dyp = 0.0;
     {
-        let __end124: i64 = 10;
+        let __end142: i64 = 10;
         let mut r: i64 = 0;
-        while r < __end124 {
+        while r < __end142 {
             let mut x: f64 = 0.0;
             {
-                let __end125: i64 = 6;
+                let __end143: i64 = 6;
                 let mut k: i64 = 0;
-                while k < __end125 {
+                while k < __end143 {
                     x = (x + (crate::gen::tidaleopterms::DATA_TIDAL_PM_LIBRATION[(r) as usize][(k) as usize] * arg[(k) as usize]));
                     k += 1;
                 }
@@ -195,14 +195,14 @@ pub fn tidal_ut1_libration(rmjd: f64) -> (f64, f64) {
     dut1 = 0.0;
     dlod = 0.0;
     {
-        let __end126: i64 = 11;
+        let __end144: i64 = 11;
         let mut r: i64 = 0;
-        while r < __end126 {
+        while r < __end144 {
             let mut x: f64 = 0.0;
             {
-                let __end127: i64 = 6;
+                let __end145: i64 = 6;
                 let mut k: i64 = 0;
-                while k < __end127 {
+                while k < __end145 {
                     x = (x + (crate::gen::tidaleopterms::DATA_TIDAL_UT1_LIBRATION[(r) as usize][(k) as usize] * arg[(k) as usize]));
                     k += 1;
                 }
@@ -247,9 +247,9 @@ pub fn tidal_ut1_zonal(mjd: f64) -> f64 {
     let mut d: [f64; 5] = crate::gen::tidaleop::delaunay(t);
     let mut acc: f64 = 0.0;
     {
-        let __end128: i64 = 62;
+        let __end146: i64 = 62;
         let mut r: i64 = 0;
-        while r < __end128 {
+        while r < __end146 {
             let mut a: f64 = crate::gen::timescales::omod((((((crate::gen::tidaleopterms::DATA_TIDAL_UT1_ZONAL[(r) as usize][0] * d[0]) + (crate::gen::tidaleopterms::DATA_TIDAL_UT1_ZONAL[(r) as usize][1] * d[1])) + (crate::gen::tidaleopterms::DATA_TIDAL_UT1_ZONAL[(r) as usize][2] * d[2])) + (crate::gen::tidaleopterms::DATA_TIDAL_UT1_ZONAL[(r) as usize][3] * d[3])) + (crate::gen::tidaleopterms::DATA_TIDAL_UT1_ZONAL[(r) as usize][4] * d[4])), (2.0 * core::f64::consts::PI));
             acc = (acc + ((crate::gen::tidaleopterms::DATA_TIDAL_UT1_ZONAL[(r) as usize][6] * f64::sin(a)) + (crate::gen::tidaleopterms::DATA_TIDAL_UT1_ZONAL[(r) as usize][7] * f64::cos(a))));
             r += 1;

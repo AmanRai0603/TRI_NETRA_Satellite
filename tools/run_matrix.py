@@ -22,13 +22,13 @@ def octave(code, log):
         return subprocess.run(cmd, cwd=ROOT, stdout=f, stderr=subprocess.STDOUT).returncode
 
 def orbit_period(case):
-    """Orbit period [s] from the case's altitude (circular)."""
-    import math
+    """Orbit period [s] from the case's altitude (circular): env_case_orbit's, asked of the engine."""
     from common import case_values
+    from design_call import orbit_period as design_period
     alt = case_values(case).get("orbit.alt")
     if alt is None:
         raise SystemExit(f"case {case} does not state orbit.alt")
-    return 2 * math.pi * math.sqrt((6378137 + alt * 1e3) ** 3 / 3.986004418e14)
+    return design_period(alt)
 
 
 def main():
