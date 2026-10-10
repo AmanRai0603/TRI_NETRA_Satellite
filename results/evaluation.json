@@ -1090,6 +1090,15 @@
     "why": "computed during a run (generated into adcs-pop): its module's 5 functions take the run's state and the product it flies, not rows of the design, so it has no one value"
    },
    {
+    "id": "env_eop",
+    "group": "env",
+    "label": "Earth-orientation parameters: the IERS series spliced and interpolated",
+    "state": "not computed",
+    "si": null,
+    "value": "",
+    "why": "computed during a run (generated into adcs-pop): its module's 11 functions take the run's state and the product it flies, not rows of the design, so it has no one value"
+   },
+   {
     "id": "env_erp_force",
     "group": "env",
     "label": "Earth radiation pressure force (albedo and infrared)",
@@ -9257,7 +9266,7 @@
     "state": "not computed",
     "si": null,
     "value": "",
-    "why": "computed during a run (by the flight software or the engine, at each step): its inputs r, mu are the run's state and the product it flies, not rows of the design"
+    "why": "computed during a run (generated into flight): its module's 4 functions take the run's state and the product it flies, not rows of the design, so it has no one value"
    },
    {
     "id": "nav_quest",
@@ -12456,6 +12465,15 @@
     "si": null,
     "value": "",
     "why": "computed during a run (generated into adcs-pop): its module's 5 functions take the run's state and the product it flies, not rows of the design, so it has no one value"
+   },
+   {
+    "id": "env_eop",
+    "group": "env",
+    "label": "Earth-orientation parameters: the IERS series spliced and interpolated",
+    "state": "not computed",
+    "si": null,
+    "value": "",
+    "why": "computed during a run (generated into adcs-pop): its module's 11 functions take the run's state and the product it flies, not rows of the design, so it has no one value"
    },
    {
     "id": "env_erp_force",
@@ -20625,7 +20643,7 @@
     "state": "not computed",
     "si": null,
     "value": "",
-    "why": "computed during a run (by the flight software or the engine, at each step): its inputs r, mu are the run's state and the product it flies, not rows of the design"
+    "why": "computed during a run (generated into flight): its module's 4 functions take the run's state and the product it flies, not rows of the design, so it has no one value"
    },
    {
     "id": "nav_quest",

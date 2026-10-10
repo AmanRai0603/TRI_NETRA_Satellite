@@ -4,7 +4,7 @@
 
 ## ais_3u
 
-From the merged releases (design.tndb). Rows: 55 computed, 4 evidence, 992 not computed, 171 stated. Closures: 34 blocked, 4 pass.
+From the merged releases (design.tndb). Rows: 55 computed, 4 evidence, 993 not computed, 171 stated. Closures: 34 blocked, 4 pass.
 
 | Closure | KPI | Answer | Why |
 |---|---|---|---|
@@ -280,13 +280,13 @@ From the merged releases (design.tndb). Rows: 55 computed, 4 evidence, 992 not c
 | `vv_record_step_default` | vv | stated | 1 | the design, 1.0.0 code: engine/crates/adcs-sim/src/config.rs build (json::f(time, record_dt_s, 1.0)) |
 | `vv_run_duration_default` | vv | stated | 600 | the design, 1.0.0 code: engine/crates/adcs-sim/src/config.rs build (json::f(time, duration_s, 600.0)) |
 
-**Not computed (992), by why:**
+**Not computed (993), by why:**
 
 - no value, relation or pseudocode yet: 711 (act__cmg, act__vscmg, cas, cat, cf, cf_1, cf_4, cf_5, ci1, ci1_0, ci1_1, ci1_2, …)
 - computed during a run (generated into adcs-sim-core): 72 (act_cmg_model, act_rotor_set, act_rotor_telemetry, act_vscmg_gimbal_limits, act_vscmg_model, dyn_flexible_mode, dyn_initial_state, dyn_rigid_body, dyn_rotor_coupling, dyn_total_momentum, env_calendar_time, env_moon_fast, …)
 - computed during a run (generated into adcs-sim): 47 (env_orbit_start, fsw_param_alloc, fsw_param_bdot_law, fsw_param_es_noise, fsw_param_gim_axis, fsw_param_gim_rate_max, fsw_param_gps_latency, fsw_param_gyro_arw, fsw_param_gyro_rrw, fsw_param_has_es, fsw_param_has_gps, fsw_param_has_gyro, …)
-- computed during a run (by the flight software or the engine, at each step): 23 (act_cmg_axes, act_cmg_steering, dyn_kinematics, fdir_rotor_health, fdir_safe_mode, fdir_sensor_health, fsw_allocation, fsw_control, fsw_drivers, fsw_estimation, fsw_guidance, fsw_modes, …)
-- computed during a run (generated into adcs-pop): 22 (env_de440, env_density_model, env_drag_force, env_dtm2020_operational, env_dtm2020_research, env_earth_frames, env_erp_force, env_exponential_atmosphere, env_force_model, env_gas_surface, env_geodetic, env_gravity_field, …)
+- computed during a run (generated into adcs-pop): 23 (env_de440, env_density_model, env_drag_force, env_dtm2020_operational, env_dtm2020_research, env_earth_frames, env_eop, env_erp_force, env_exponential_atmosphere, env_force_model, env_gas_surface, env_geodetic, …)
+- computed during a run (by the flight software or the engine, at each step): 22 (act_cmg_axes, act_cmg_steering, dyn_kinematics, fdir_rotor_health, fdir_safe_mode, fdir_sensor_health, fsw_allocation, fsw_control, fsw_drivers, fsw_estimation, fsw_guidance, fsw_modes, …)
 - a relation, but no pseudocode yet: its author writes it: 18 (rk1_0, rk1_1, rk1_2, rk1_3, rk1_4, rk2_0, rk2_1, rk2_2, rk2_3, rk2_4, rk2_5, rk3_0, …)
 - needs an input that has no value: 16 (fsw_param_mtq_k1, fsw_param_mtq_k16, fsw_param_mtq_k2, fsw_param_mtq_lam16, fsw_param_sb_kd, fsw_param_sb_kp, gf_9, gp_5, gr_3, gr_4, gw_3, gw_4, …)
 - its module has 2 functions and names none for this node (by its id or its output's symbol): 9 (gb_0, gb_1, gb_2, gb_3, l3_budget_row_06, l3_budget_row_07, l3_budget_row_08, l3_fmr_row_14, l3_fmr_row_15)
@@ -296,9 +296,9 @@ From the merged releases (design.tndb). Rows: 55 computed, 4 evidence, 992 not c
 - its module has 9 functions and names none for this node (by its id or its output's symbol): 3 (design_loop_converge, design_loop_redundancy, design_loop_robustness)
 - its module has 6 functions and names none for this node (by its id or its output's symbol): 2 (catalogue_datasheet_derive, design_power_system)
 - its module has 3 functions and names none for this node (by its id or its output's symbol): 2 (design_sizing_rcs, l3_budget_row_05)
+- computed during a run (generated into flight): 2 (env_time_frames, nav_onboard_orbit)
 - its module has 4 functions and names none for this node (by its id or its output's symbol): 2 (fsw_param_rw_Klqr, l3_fmr_row_07)
 - its module has 13 functions and names none for this node (by its id or its output's symbol): 2 (gw_2, l3_budget_row_01)
-- computed during a run (generated into flight): 1 (env_time_frames)
 - its module has 10 functions and names none for this node (by its id or its output's symbol): 1 (fsw_param_mtq_Klqr)
 - the case does not state pointing.et: 1 (gp_3)
 - computed during a run (generated into adcs-sim, adcs-sim-core): 1 (kpi_metric_channels)
@@ -349,7 +349,7 @@ From the merged releases (design.tndb). Rows: 55 computed, 4 evidence, 992 not c
 
 ## ais_img_3u
 
-From the merged releases (design.tndb). Rows: 60 computed, 4 evidence, 984 not computed, 174 stated. Closures: 33 blocked, 1 fail, 4 pass.
+From the merged releases (design.tndb). Rows: 60 computed, 4 evidence, 985 not computed, 174 stated. Closures: 33 blocked, 1 fail, 4 pass.
 
 | Closure | KPI | Answer | Why |
 |---|---|---|---|
@@ -633,13 +633,13 @@ From the merged releases (design.tndb). Rows: 60 computed, 4 evidence, 984 not c
 | `vv_record_step_default` | vv | stated | 1 | the design, 1.0.0 code: engine/crates/adcs-sim/src/config.rs build (json::f(time, record_dt_s, 1.0)) |
 | `vv_run_duration_default` | vv | stated | 600 | the design, 1.0.0 code: engine/crates/adcs-sim/src/config.rs build (json::f(time, duration_s, 600.0)) |
 
-**Not computed (984), by why:**
+**Not computed (985), by why:**
 
 - no value, relation or pseudocode yet: 711 (act__cmg, act__vscmg, cas, cat, cf, cf_1, cf_4, cf_5, ci1, ci1_0, ci1_1, ci1_2, …)
 - computed during a run (generated into adcs-sim-core): 72 (act_cmg_model, act_rotor_set, act_rotor_telemetry, act_vscmg_gimbal_limits, act_vscmg_model, dyn_flexible_mode, dyn_initial_state, dyn_rigid_body, dyn_rotor_coupling, dyn_total_momentum, env_calendar_time, env_moon_fast, …)
 - computed during a run (generated into adcs-sim): 47 (env_orbit_start, fsw_param_alloc, fsw_param_bdot_law, fsw_param_es_noise, fsw_param_gim_axis, fsw_param_gim_rate_max, fsw_param_gps_latency, fsw_param_gyro_arw, fsw_param_gyro_rrw, fsw_param_has_es, fsw_param_has_gps, fsw_param_has_gyro, …)
-- computed during a run (by the flight software or the engine, at each step): 23 (act_cmg_axes, act_cmg_steering, dyn_kinematics, fdir_rotor_health, fdir_safe_mode, fdir_sensor_health, fsw_allocation, fsw_control, fsw_drivers, fsw_estimation, fsw_guidance, fsw_modes, …)
-- computed during a run (generated into adcs-pop): 22 (env_de440, env_density_model, env_drag_force, env_dtm2020_operational, env_dtm2020_research, env_earth_frames, env_erp_force, env_exponential_atmosphere, env_force_model, env_gas_surface, env_geodetic, env_gravity_field, …)
+- computed during a run (generated into adcs-pop): 23 (env_de440, env_density_model, env_drag_force, env_dtm2020_operational, env_dtm2020_research, env_earth_frames, env_eop, env_erp_force, env_exponential_atmosphere, env_force_model, env_gas_surface, env_geodetic, …)
+- computed during a run (by the flight software or the engine, at each step): 22 (act_cmg_axes, act_cmg_steering, dyn_kinematics, fdir_rotor_health, fdir_safe_mode, fdir_sensor_health, fsw_allocation, fsw_control, fsw_drivers, fsw_estimation, fsw_guidance, fsw_modes, …)
 - a relation, but no pseudocode yet: its author writes it: 18 (rk1_0, rk1_1, rk1_2, rk1_3, rk1_4, rk2_0, rk2_1, rk2_2, rk2_3, rk2_4, rk2_5, rk3_0, …)
 - needs an input that has no value: 11 (fsw_param_mtq_k1, fsw_param_mtq_k16, fsw_param_mtq_k2, fsw_param_mtq_lam16, fsw_param_sb_kd, fsw_param_sb_kp, gp_5, l3_pnt_row_09, rk4_0, rk4_1, rk4_2)
 - its module has 2 functions and names none for this node (by its id or its output's symbol): 9 (gb_0, gb_1, gb_2, gb_3, l3_budget_row_06, l3_budget_row_07, l3_budget_row_08, l3_fmr_row_14, l3_fmr_row_15)
@@ -649,9 +649,9 @@ From the merged releases (design.tndb). Rows: 60 computed, 4 evidence, 984 not c
 - its module has 9 functions and names none for this node (by its id or its output's symbol): 3 (design_loop_converge, design_loop_redundancy, design_loop_robustness)
 - its module has 6 functions and names none for this node (by its id or its output's symbol): 2 (catalogue_datasheet_derive, design_power_system)
 - its module has 3 functions and names none for this node (by its id or its output's symbol): 2 (design_sizing_rcs, l3_budget_row_05)
+- computed during a run (generated into flight): 2 (env_time_frames, nav_onboard_orbit)
 - its module has 4 functions and names none for this node (by its id or its output's symbol): 2 (fsw_param_rw_Klqr, l3_fmr_row_07)
 - its module has 13 functions and names none for this node (by its id or its output's symbol): 2 (gw_2, l3_budget_row_01)
-- computed during a run (generated into flight): 1 (env_time_frames)
 - its module has 10 functions and names none for this node (by its id or its output's symbol): 1 (fsw_param_mtq_Klqr)
 - the case does not state pointing.et: 1 (gp_3)
 - computed during a run (generated into adcs-sim, adcs-sim-core): 1 (kpi_metric_channels)
