@@ -8,6 +8,9 @@ function [c] = size_min(a, b)
     if isnan(a)
         c = b;
     else
-        c = asils.pc.fmin(a, b);
+        h__114 = a;
+        h__115 = b;
+        if h__115 < h__114, h__114 = h__115; end
+        c = h__114;
     end
 end

@@ -43,16 +43,30 @@ function [h, tau, w, j, radius, rotor_mass, coulomb, viscous, static_imbalance, 
     h = (h_mnms * 0.001);
     tau = (torque_mnm * 0.001);
     rpm_assumed = isnan(rpm);
-    speed = asils.pc.choose(rpm_assumed, assumed_rpm, rpm);
+    if rpm_assumed
+        h__33 = assumed_rpm;
+    else
+        h__33 = rpm;
+    end
+    speed = h__33;
     w = (speed * rpm_rad);
     j = (h / w);
     mass = (mass_g * 0.001);
     rotor_mass = (share * mass);
-    radius = asils.pc.sqrt_((j / (gyration * rotor_mass)));
+    h__34 = (j / (gyration * rotor_mass));
+    if h__34 < 0, h__34 = NaN; else, h__34 = sqrt(h__34); end
+    radius = h__34;
     static_imbalance = ((rotor_mass * balance) / w);
-    coulomb = (c_coulomb * asils.pc.sqrt_((h / c_ref)));
+    h__35 = (h / c_ref);
+    if h__35 < 0, h__35 = NaN; else, h__35 = sqrt(h__35); end
+    coulomb = (c_coulomb * h__35);
     viscous = c_viscous;
     dynamic_imbalance = ((static_imbalance * radius) / 2);
     peak_assumed = isnan(p_peak);
-    peak = asils.pc.choose(peak_assumed, (p_steady + ((tau * w) / peak_eff)), p_peak);
+    if peak_assumed
+        h__36 = (p_steady + ((tau * w) / peak_eff));
+    else
+        h__36 = p_peak;
+    end
+    peak = h__36;
 end

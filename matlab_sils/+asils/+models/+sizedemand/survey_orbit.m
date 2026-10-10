@@ -30,33 +30,42 @@ function [tau_peak, tau_axis_peak, h_cyclic, h_secular_orbit, tau] = survey_orbi
     for a = (0):((4) - 1)
         h = zeros(3, 1);
         for k = (0):((n) - 1)
-            for i = (0):((3) - 1)
-                h((i) + 1) = (h((i) + 1) + (tau(((((12 * k) + (3 * a)) + i)) + 1) * dt));
-            end
+            i = ((0):((3) - 1)).';
+            h((i) + 1) = (reshape(h((i) + 1), [], 1) + (reshape(tau(((((12 * k) + (3 * a)) + i)) + 1), [], 1) .* dt));
         end
         hend = h;
         pk = 0;
         for k = (0):((n) - 1)
             x = [tau((((12 * k) + (3 * a))) + 1); tau(((((12 * k) + (3 * a)) + 1)) + 1); tau(((((12 * k) + (3 * a)) + 2)) + 1)];
-            pk = asils.pc.fmax(pk, sqrt(x(1)*x(1) + x(2)*x(2) + x(3)*x(3)));
+            h__116 = pk;
+            h__117 = sqrt(x(1)*x(1) + x(2)*x(2) + x(3)*x(3));
+            if h__117 > h__116, h__116 = h__117; end
+            pk = h__116;
         end
         tau_peak((a) + 1) = pk;
         for i = (0):((3) - 1)
             pk = 0;
             for k = (0):((n) - 1)
-                pk = asils.pc.fmax(pk, asils.pc.fabs(tau(((((12 * k) + (3 * a)) + i)) + 1)));
+                h__118 = tau(((((12 * k) + (3 * a)) + i)) + 1);
+                if h__118 < 0, h__118 = -h__118; elseif h__118 == 0, h__118 = 0; end
+                h__119 = pk;
+                h__120 = h__118;
+                if h__120 > h__119, h__119 = h__120; end
+                pk = h__119;
             end
             tau_axis_peak((i) + 1, (a) + 1) = pk;
         end
         h = zeros(3, 1);
         pk = 0;
         for k = (0):((n) - 1)
-            for i = (0):((3) - 1)
-                h((i) + 1) = (h((i) + 1) + (tau(((((12 * k) + (3 * a)) + i)) + 1) * dt));
-            end
+            i = ((0):((3) - 1)).';
+            h((i) + 1) = (reshape(h((i) + 1), [], 1) + (reshape(tau(((((12 * k) + (3 * a)) + i)) + 1), [], 1) .* dt));
             f = ((k * dt) / t_orb);
             x = [(h(1) - (hend(1) * f)); (h(2) - (hend(2) * f)); (h(3) - (hend(3) * f))];
-            pk = asils.pc.fmax(pk, sqrt(x(1)*x(1) + x(2)*x(2) + x(3)*x(3)));
+            h__121 = pk;
+            h__122 = sqrt(x(1)*x(1) + x(2)*x(2) + x(3)*x(3));
+            if h__122 > h__121, h__121 = h__122; end
+            pk = h__121;
         end
         h_cyclic((a) + 1) = pk;
         h_secular_orbit((a) + 1) = sqrt(hend(1)*hend(1) + hend(2)*hend(2) + hend(3)*hend(3));

@@ -23,6 +23,7 @@ function [scale, a, disp] = coil_dispersion(n, axes, scale_sigma, misalign, disp
         [t__2, t__3] = asils.pc.stream_normal3(disp);
         th = t__2;
         disp = t__3;
-        a((k) + 1, :) = asils.pc.mv(asils.models.coildisp.small_rotation((th * misalign)), (axes((k) + 1, :)).').';
+        h__1 = asils.models.coildisp.small_rotation((th * misalign));
+        a((k) + 1, :) = [h__1(1, 1)*axes((k) + 1, 1) + h__1(1, 2)*axes((k) + 1, 2) + h__1(1, 3)*axes((k) + 1, 3); h__1(2, 1)*axes((k) + 1, 1) + h__1(2, 2)*axes((k) + 1, 2) + h__1(2, 3)*axes((k) + 1, 3); h__1(3, 1)*axes((k) + 1, 1) + h__1(3, 2)*axes((k) + 1, 2) + h__1(3, 3)*axes((k) + 1, 3)].';
     end
 end

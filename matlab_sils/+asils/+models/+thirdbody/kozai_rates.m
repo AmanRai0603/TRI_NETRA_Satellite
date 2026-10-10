@@ -19,8 +19,7 @@ function [dj, de] = kozai_rates(j, e, nhat, phi_q)
     jxe = [j(2)*e(3) - j(3)*e(2); j(3)*e(1) - j(1)*e(3); j(1)*e(2) - j(2)*e(1)];
     dj = zeros(3, 1);
     de = zeros(3, 1);
-    for i = (0):((3) - 1)
-        dj((i) + 1) = (phi_q * ((jn * jxn((i) + 1)) - ((5 * en) * exn((i) + 1))));
-        de((i) + 1) = (phi_q * (((jn * exn((i) + 1)) + (2 * jxe((i) + 1))) - ((5 * en) * jxn((i) + 1))));
-    end
+    i = ((0):((3) - 1)).';
+    dj((i) + 1) = (phi_q .* ((jn .* reshape(jxn((i) + 1), [], 1)) - ((5 * en) .* reshape(exn((i) + 1), [], 1))));
+    de((i) + 1) = (phi_q .* (((jn .* reshape(exn((i) + 1), [], 1)) + (2 .* reshape(jxe((i) + 1), [], 1))) - ((5 * en) .* reshape(jxn((i) + 1), [], 1))));
 end

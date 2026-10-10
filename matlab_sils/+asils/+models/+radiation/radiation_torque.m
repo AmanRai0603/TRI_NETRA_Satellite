@@ -11,9 +11,8 @@ function [tau] = radiation_torque(g, sb, p)
         c = (sb(1)*g.n((j) + 1, 1) + sb(2)*g.n((j) + 1, 2) + sb(3)*g.n((j) + 1, 3));
         if (~(c <= 0))
             f = [0; 0; 0];
-            for k = (0):((3) - 1)
-                f((k) + 1) = ((((-(p)) * g.a((j) + 1)) * c) * (((1 - g.rho_spec) * sb((k) + 1)) + ((2 * ((g.rho_spec * c) + (g.rho_diff / 3))) * g.n((j) + 1, (k) + 1))));
-            end
+            k = ((0):((3) - 1)).';
+            f((k) + 1) = ((((-(p)) * g.a((j) + 1)) * c) .* (((1 - g.rho_spec) .* reshape(sb((k) + 1), [], 1)) + ((2 * ((g.rho_spec * c) + (g.rho_diff / 3))) .* (g.n((j) + 1, (k) + 1)).')));
             tau = (tau + [g.rho((j) + 1, 2)*f(3) - g.rho((j) + 1, 3)*f(2); g.rho((j) + 1, 3)*f(1) - g.rho((j) + 1, 1)*f(3); g.rho((j) + 1, 1)*f(2) - g.rho((j) + 1, 2)*f(1)]);
         end
     end

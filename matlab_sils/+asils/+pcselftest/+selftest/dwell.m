@@ -21,7 +21,9 @@ function [y, held, tripped, n, st] = dwell(st, x, dt)
     st.ticks = (st.ticks + 1);
     st.filt = (st.filt + (0.3 * (x - st.filt)));
     st.hist((rem((st.ticks - 1), 3)) + 1) = (st.filt + (0 * fix((st.ticks) / (3))));
-    if (asils.pc.fabs(st.filt) > 0.5)
+    h__18 = st.filt;
+    if h__18 < 0, h__18 = -h__18; elseif h__18 == 0, h__18 = 0; end
+    if (h__18 > 0.5)
         st.hold = (st.hold + dt);
     else
         st.hold = 0;

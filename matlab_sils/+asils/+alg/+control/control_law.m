@@ -27,37 +27,33 @@ function [tau, i_q] = control_law(q, w, q_ref, w_ref, i_q0, dt, law, kp, kd, ki,
     i_q = zeros(3, 1);
     qe = asils.alg.math.qerr(q_ref, q);
     e = zeros(3, 1);
-    for i = (0):((3) - 1)
-        e((i) + 1) = asils.pc.clamp(qe((i) + 1), (-(err_max)), err_max);
-    end
-    wr = asils.pc.mv(asils.alg.math.dcm(qe), w_ref);
+    i = ((0):((3) - 1)).';
+    e((i) + 1) = asils.pc.vfmin(asils.pc.vfmax(reshape(qe((i) + 1), [], 1), (-(err_max))), err_max);
+    h__58 = asils.alg.math.dcm(qe);
+    wr = [h__58(1, 1)*w_ref(1) + h__58(1, 2)*w_ref(2) + h__58(1, 3)*w_ref(3); h__58(2, 1)*w_ref(1) + h__58(2, 2)*w_ref(2) + h__58(2, 3)*w_ref(3); h__58(3, 1)*w_ref(1) + h__58(3, 2)*w_ref(2) + h__58(3, 3)*w_ref(3)];
     we = (w - wr);
     hh = ([j(1, 1)*w(1) + j(1, 2)*w(2) + j(1, 3)*w(3); j(2, 1)*w(1) + j(2, 2)*w(2) + j(2, 3)*w(3); j(3, 1)*w(1) + j(3, 2)*w(2) + j(3, 3)*w(3)] + hs);
     gyro = [w(2)*hh(3) - w(3)*hh(2); w(3)*hh(1) - w(1)*hh(3); w(1)*hh(2) - w(2)*hh(1)];
     ff = [j(1, 1)*wd_ref(1) + j(1, 2)*wd_ref(2) + j(1, 3)*wd_ref(3); j(2, 1)*wd_ref(1) + j(2, 2)*wd_ref(2) + j(2, 3)*wd_ref(3); j(3, 1)*wd_ref(1) + j(3, 2)*wd_ref(2) + j(3, 3)*wd_ref(3)];
     i_q = i_q0;
     if (law == 1)
-        for i = (0):((3) - 1)
-            i_q((i) + 1) = asils.pc.clamp((i_q((i) + 1) + ((2 * e((i) + 1)) * dt)), (-(int_max)), int_max);
-            tau((i) + 1) = (-((((klqr((i) + 1, 1) * i_q((i) + 1)) + (klqr((i) + 1, 2) * (2 * e((i) + 1)))) + (klqr((i) + 1, 3) * we((i) + 1)))));
-        end
+        i = ((0):((3) - 1)).';
+        i_q((i) + 1) = asils.pc.vfmin(asils.pc.vfmax((reshape(i_q((i) + 1), [], 1) + ((2 .* reshape(e((i) + 1), [], 1)) .* dt)), (-(int_max))), int_max);
+        tau((i) + 1) = (-((((klqr((i) + 1, 1) .* reshape(i_q((i) + 1), [], 1)) + (klqr((i) + 1, 2) .* (2 .* reshape(e((i) + 1), [], 1)))) + (klqr((i) + 1, 3) .* reshape(we((i) + 1), [], 1)))));
     elseif (law == 2)
         c = [e(2)*we(3) - e(3)*we(2); e(3)*we(1) - e(1)*we(3); e(1)*we(2) - e(2)*we(1)];
         x = zeros(3, 1);
-        for i = (0):((3) - 1)
-            s = (we((i) + 1) + (lambda * e((i) + 1)));
-            sat = asils.pc.clamp((s / phi), (-(1)), 1);
-            ed = (0.5 * ((qe(4) * we((i) + 1)) + c((i) + 1)));
-            x((i) + 1) = ((lambda * ed) + (gs((i) + 1) * sat));
-        end
+        i = ((0):((3) - 1)).';
+        s = (reshape(we((i) + 1), [], 1) + (lambda .* reshape(e((i) + 1), [], 1)));
+        sat = asils.pc.vfmin(asils.pc.vfmax((s ./ phi), (-(1))), 1);
+        ed = (0.5 .* ((qe(4) .* reshape(we((i) + 1), [], 1)) + reshape(c((i) + 1), [], 1)));
+        x((i) + 1) = ((lambda .* ed) + (reshape(gs((i) + 1), [], 1) .* sat));
         tau = ([j(1, 1)*x(1) + j(1, 2)*x(2) + j(1, 3)*x(3); j(2, 1)*x(1) + j(2, 2)*x(2) + j(2, 3)*x(3); j(3, 1)*x(1) + j(3, 2)*x(2) + j(3, 3)*x(3)] * (-(1)));
     else
-        for i = (0):((3) - 1)
-            i_q((i) + 1) = asils.pc.clamp((i_q((i) + 1) + (e((i) + 1) * dt)), (-(int_max)), int_max);
-            tau((i) + 1) = ((((-(kp((i) + 1))) * e((i) + 1)) - (kd((i) + 1) * we((i) + 1))) - (ki((i) + 1) * i_q((i) + 1)));
-        end
+        i = ((0):((3) - 1)).';
+        i_q((i) + 1) = asils.pc.vfmin(asils.pc.vfmax((reshape(i_q((i) + 1), [], 1) + (reshape(e((i) + 1), [], 1) .* dt)), (-(int_max))), int_max);
+        tau((i) + 1) = ((((-(reshape(kp((i) + 1), [], 1))) .* reshape(e((i) + 1), [], 1)) - (reshape(kd((i) + 1), [], 1) .* reshape(we((i) + 1), [], 1))) - (reshape(ki((i) + 1), [], 1) .* reshape(i_q((i) + 1), [], 1)));
     end
-    for i = (0):((3) - 1)
-        tau((i) + 1) = (tau((i) + 1) + (gyro((i) + 1) + ff((i) + 1)));
-    end
+    i = ((0):((3) - 1)).';
+    tau((i) + 1) = (reshape(tau((i) + 1), [], 1) + (reshape(gyro((i) + 1), [], 1) + reshape(ff((i) + 1), [], 1)));
 end

@@ -15,8 +15,12 @@ function [b] = igrf_ned(gh, lat, lon, alt_km, nmax0)
     bb = (a * (1 - f));
     ct = cos(((pi / 2) - lat));
     st = sin(((pi / 2) - lat));
-    rho = asils.pc.sqrt_((((a * st) * (a * st)) + ((bb * ct) * (bb * ct))));
-    r = asils.pc.sqrt_((((alt_km * alt_km) + ((2 * alt_km) * rho)) + (((((((a * a) * a) * a) * st) * st) + (((((bb * bb) * bb) * bb) * ct) * ct)) / (rho * rho))));
+    h__587 = (((a * st) * (a * st)) + ((bb * ct) * (bb * ct)));
+    if h__587 < 0, h__587 = NaN; else, h__587 = sqrt(h__587); end
+    rho = h__587;
+    h__588 = (((alt_km * alt_km) + ((2 * alt_km) * rho)) + (((((((a * a) * a) * a) * st) * st) + (((((bb * bb) * bb) * bb) * ct) * ct)) / (rho * rho)));
+    if h__588 < 0, h__588 = NaN; else, h__588 = sqrt(h__588); end
+    r = h__588;
     cd = ((alt_km + rho) / r);
     sd = ((((((a * a) - (bb * bb)) / rho) * ct) * st) / r);
     oc = ct;
@@ -55,13 +59,19 @@ function [b] = igrf_ned(gh, lat, lon, alt_km, nmax0)
         if ((m < n) && (pi_ ~= 3))
             l1 = ((pi_ - n) - 1);
             l2 = (pi_ - (2 * n));
-            k1 = (((2 * n) - 1) / asils.pc.sqrt_(((n * n) - (m * m))));
-            k2 = asils.pc.sqrt_(((((n - 1) * (n - 1)) - (m * m)) / ((n * n) - (m * m))));
+            h__589 = ((n * n) - (m * m));
+            if h__589 < 0, h__589 = NaN; else, h__589 = sqrt(h__589); end
+            k1 = (((2 * n) - 1) / h__589);
+            h__590 = ((((n - 1) * (n - 1)) - (m * m)) / ((n * n) - (m * m)));
+            if h__590 < 0, h__590 = NaN; else, h__590 = sqrt(h__590); end
+            k2 = h__590;
             pp((ix) + 1) = (((k1 * ct) * pp((l1) + 1)) - (k2 * pp((l2) + 1)));
             dp((ix) + 1) = ((k1 * ((ct * dp((l1) + 1)) - (st * pp((l1) + 1)))) - (k2 * dp((l2) + 1)));
         elseif (pi_ ~= 3)
             ln = ((pi_ - n) - 2);
-            kk = asils.pc.sqrt_((1 - (1 / (2 * m))));
+            h__591 = (1 - (1 / (2 * m)));
+            if h__591 < 0, h__591 = NaN; else, h__591 = sqrt(h__591); end
+            kk = h__591;
             pp((ix) + 1) = ((kk * st) * pp((ln) + 1));
             dp((ix) + 1) = (kk * ((st * dp((ln) + 1)) + (ct * pp((ln) + 1))));
         end

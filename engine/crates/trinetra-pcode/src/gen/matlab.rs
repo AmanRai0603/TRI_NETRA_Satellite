@@ -7,6 +7,7 @@
 use super::*;
 use crate::ast::{BinOp, ExprKind, FnKind, Stmt, StmtKind, TableMode};
 use crate::check::{ItemRef, Shape, Target, VarKind};
+use std::collections::BTreeMap;
 
 /// the shared runtime's package (`opts.rt`)
 const RTP: &str = "asils.pc";
@@ -15,7 +16,7 @@ const VMARK: &str = "V__LOOP";
 
 pub(super) fn to_matlab(i: &Interp, pkg: Option<&str>) -> Result<Files, String> {
     let pkg = pkg.filter(|p| !p.is_empty()).unwrap_or("asils.relations").to_string();
-    let mut g = Gen { b: Base::new(i, ["Inf", "-Inf", "NaN"]), pkg, tmp: 0 };
+    let mut g = Gen { b: Base::new(i, ["Inf", "-Inf", "NaN"]), pkg, tmp: 0, hoist: BTreeMap::new(), pre: None, hn: 0 };
     let files = g.run();
     g.b.done(files)
 }
@@ -24,6 +25,60 @@ struct Gen<'a> {
     b: Base<'a>,
     pkg: String,
     tmp: usize,
+    /// the data tables the function being written reads: name -> module (toMatlab's hoist, in name order)
+    hoist: BTreeMap<String, String>,
+    /// the statement's lines before it, where a helper may be written out (toMatlab's pre; none: not here)
+    pre: Option<Vec<String>>,
+    /// the helpers' temporaries (h__N)
+    hn: usize,
+}
+
+/// A loop's lanes (toMatlab's lanes): its counters and their axes (1 the rows, 2 the columns), the lanes' own
+/// scalars and the axes they vary over, the axes of the lanes here, and the elements an `if` of a lane's own
+/// condition is on (its mask's name).
+#[derive(Clone)]
+struct Cx {
+    lanes: Vec<(String, u8)>,
+    privs: Vec<(String, u8)>,
+    mask: u8,
+    sel: Option<String>,
+}
+
+impl Cx {
+    fn lane(&self, n: &str) -> Option<u8> {
+        self.lanes.iter().find(|l| l.0 == n).map(|l| l.1)
+    }
+    fn priv_of(&self, n: &str) -> Option<u8> {
+        self.privs.iter().find(|p| p.0 == n).map(|p| p.1)
+    }
+    fn set_priv(&mut self, n: &str, m: u8) {
+        match self.privs.iter_mut().find(|p| p.0 == n) {
+            Some(p) => p.1 = m,
+            None => self.privs.push((n.to_string(), m)),
+        }
+    }
+}
+
+/// a value in the lanes: its text and the axes it varies over
+struct L {
+    t: String,
+    m: u8,
+}
+
+/// an element in the lanes (toMatlab's lelem): its text, its axes, and whether it is read transposed
+struct Elem {
+    t: String,
+    m: u8,
+    flip: bool,
+}
+
+/// what a loop sets (toMatlab's laneSets)
+#[derive(Default)]
+struct LaneSets {
+    lets: Vec<String>,
+    vars: Vec<String>,
+    arrays: Vec<String>,
+    bad: bool,
 }
 
 fn mode_text(m: TableMode) -> &'static str {
@@ -113,11 +168,15 @@ impl<'a> Gen<'a> {
         self.value_lit(v, t)
     }
 
-    /// a data table named by the expression: its function (`pkg.module.NAME`)
-    fn data_ref(&self, x: usize) -> Option<String> {
+    /// a data table named by the expression: its local copy (`D__NAME`), taken once at the top of the function that
+    /// reads it (toMatlab's dataRef and hoist)
+    fn data_ref(&mut self, x: usize) -> Option<String> {
         let c = self.b.c;
         match (&c.exprs[x].kind, c.ann[x].var) {
-            (ExprKind::Var(name), VarKind::Data(di)) => Some(format!("{}.{}.{name}", self.pkg, c.data[di].module)),
+            (ExprKind::Var(name), VarKind::Data(di)) => {
+                self.hoist.insert(name.clone(), c.data[di].module.clone());
+                Some(format!("D__{name}"))
+            }
             _ => None,
         }
     }
@@ -382,6 +441,450 @@ impl<'a> Gen<'a> {
         if g.contains(VMARK) { Some(g) } else { None }
     }
 
+    // Lanes (speed, the same arithmetic): a loop run for all its values at once (toMatlab's lanes, laneSets,
+    // laneAccess, lelem, lx, lstmt).
+    /// the expressions an expression is made of, in the JavaScript's order (a, b, c, i, items, args)
+    fn kids(&self, e: usize) -> Vec<usize> {
+        match &self.b.c.exprs[e].kind {
+            ExprKind::Num { .. } | ExprKind::Bool(_) | ExprKind::Var(_) | ExprKind::Str(_) => Vec::new(),
+            ExprKind::Arr { items, .. } => items.clone(),
+            ExprKind::Index { a, i } => vec![*a, *i],
+            ExprKind::Field { a, .. } | ExprKind::Not(a) | ExprKind::Neg(a) => vec![*a],
+            ExprKind::Ifx { c: cc, a, b } => vec![*a, *b, *cc],
+            ExprKind::Bin { a, b, .. } => vec![*a, *b],
+            ExprKind::Call { args, .. } => args.clone(),
+        }
+    }
+    fn mentions(&self, e: usize, v: &str) -> bool {
+        matches!(&self.b.c.exprs[e].kind, ExprKind::Var(n) if n == v) || self.kids(e).into_iter().any(|x| self.mentions(x, v))
+    }
+    /// an array's place: a variable, or a field of one (no index, no call)
+    fn simple_base(&self, x: usize) -> bool {
+        let c = self.b.c;
+        match &c.exprs[x].kind {
+            ExprKind::Var(_) => !matches!(c.ann[x].var, VarKind::Const(_) | VarKind::Data(_) | VarKind::Pi | VarKind::Inf | VarKind::Nan),
+            ExprKind::Field { a, .. } => c.ann[x].choice.is_none() && self.simple_base(*a),
+            _ => false,
+        }
+    }
+    /// an element read or written: its array and its indices
+    fn element(&self, e: usize) -> Option<(usize, Vec<usize>)> {
+        let c = self.b.c;
+        let ExprKind::Index { a, i } = &c.exprs[e].kind else { return None };
+        if let Some((aa, ai)) = self.matrix_pair(*a) {
+            return Some((aa, vec![ai, *i]));
+        }
+        match c.ann[*a].ty.as_ref() {
+            Some(Ty::Arr(_, of)) | Some(Ty::Buf(of)) if !matches!(**of, Ty::Arr(..)) => Some((*a, vec![*i])),
+            _ => None,
+        }
+    }
+    fn base_key(&self, x: usize) -> Option<String> {
+        match &self.b.c.exprs[x].kind {
+            ExprKind::Var(n) => Some(n.clone()),
+            ExprKind::Field { a, f } if self.simple_base(x) => self.base_key(*a).map(|k| format!("{k}.{f}")),
+            _ => None,
+        }
+    }
+    /// the loop's statements: the names it declares and the arrays (by place) and scalars it sets
+    fn lane_sets(&self, body: &[Stmt], out: &mut LaneSets) {
+        let c = self.b.c;
+        for s in body {
+            match &s.kind {
+                StmtKind::Let { names, e, .. } => {
+                    out.lets.extend(names.iter().cloned());
+                    if c.ann[*e].inout {
+                        out.bad = true;
+                    }
+                }
+                StmtKind::Set { targets, e } => {
+                    for &t in targets {
+                        if let ExprKind::Var(n) = &c.exprs[t].kind {
+                            out.vars.push(n.clone());
+                        } else {
+                            match self.element(t).filter(|el| self.simple_base(el.0)).and_then(|el| self.base_key(el.0)) {
+                                Some(k) => out.arrays.push(k),
+                                None => out.bad = true,
+                            }
+                        }
+                    }
+                    if c.ann[*e].inout {
+                        out.bad = true;
+                    }
+                }
+                StmtKind::State { .. } | StmtKind::Settle { .. } => out.bad = true,
+                StmtKind::For { body, .. } => self.lane_sets(body, out),
+                StmtKind::If { arms, els } => {
+                    for (_, b) in arms {
+                        self.lane_sets(b, out);
+                    }
+                    if let Some(b) = els {
+                        self.lane_sets(b, out);
+                    }
+                }
+            }
+        }
+    }
+    /// every read and write of an array the loop writes is an element with the counter v alone in one place (the same
+    /// place each time), v nowhere else in it
+    fn lane_access(&self, e: usize, v: &str, arrays: &[String], place: &mut Vec<(String, usize)>) -> bool {
+        let c = self.b.c;
+        if let Some((base, ix)) = self.element(e) {
+            if self.simple_base(base) {
+                if let Some(k) = self.base_key(base).filter(|k| arrays.contains(k)) {
+                    let Some(at) = ix.iter().position(|&i| matches!(&c.exprs[i].kind, ExprKind::Var(n) if n == v)) else { return false };
+                    if ix.iter().enumerate().any(|(j, &i)| j != at && self.mentions(i, v)) {
+                        return false;
+                    }
+                    match place.iter().find(|p| p.0 == k).map(|p| p.1) {
+                        Some(p) if p != at => return false,
+                        Some(_) => {}
+                        None => place.push((k, at)),
+                    }
+                    return ix.iter().all(|&i| self.lane_access(i, v, arrays, place));
+                }
+            }
+        }
+        if matches!(c.exprs[e].kind, ExprKind::Var(_) | ExprKind::Field { .. }) && self.simple_base(e) && self.base_key(e).is_some_and(|k| arrays.contains(&k)) {
+            return false;
+        }
+        self.kids(e).into_iter().all(|x| self.lane_access(x, v, arrays, place))
+    }
+    fn lane_access_in(&self, body: &[Stmt], v: &str, arrays: &[String], place: &mut Vec<(String, usize)>) -> bool {
+        body.iter().all(|s| match &s.kind {
+            StmtKind::Let { e, .. } => self.lane_access(*e, v, arrays, place),
+            StmtKind::Set { targets, e } => targets.iter().all(|&t| self.lane_access(t, v, arrays, place)) && self.lane_access(*e, v, arrays, place),
+            StmtKind::If { arms, els } => {
+                arms.iter().all(|(cc, b)| self.lane_access(*cc, v, arrays, place) && self.lane_access_in(b, v, arrays, place))
+                    && els.as_ref().is_none_or(|b| self.lane_access_in(b, v, arrays, place))
+            }
+            StmtKind::For { a, b, body, .. } => self.lane_access(*a, v, arrays, place) && self.lane_access(*b, v, arrays, place) && self.lane_access_in(body, v, arrays, place),
+            _ => false,
+        })
+    }
+    /// ones the shape of the lanes in mask (1 the rows, 2 the columns)
+    fn ones_of(cx: &Cx, m: u8) -> String {
+        let r = cx.lanes.iter().find(|l| l.1 == 1).map_or("", |l| l.0.as_str());
+        let k = cx.lanes.iter().find(|l| l.1 == 2).map_or("", |l| l.0.as_str());
+        match m {
+            1 => format!("ones(size({r}))"),
+            2 => format!("ones(size({k}))"),
+            _ => format!("ones(numel({r}), numel({k}))"),
+        }
+    }
+    /// a value given the shape of mask (it is the same in each lane it does not vary over): times one, exact
+    fn widen(cx: &Cx, r: &L, m: u8) -> String {
+        if r.m == m {
+            r.t.clone()
+        } else {
+            format!("({}) .* {}", r.t, Self::ones_of(cx, m))
+        }
+    }
+    fn lidx(&self, i: usize, r: &L) -> String {
+        match &self.b.c.exprs[i].kind {
+            ExprKind::Num { v, .. } => jsfmt::num(v + 1.0),
+            _ => format!("({}) + 1", r.t),
+        }
+    }
+    /// an element in the lanes: its text, as rows by the first axis and columns by the second, and its axes
+    fn lelem(&mut self, e: usize, cx: &Cx) -> Option<Elem> {
+        let (base, ix) = self.element(e)?;
+        if !(self.simple_base(base) || self.data_ref(base).is_some()) {
+            return None;
+        }
+        let rs: Vec<Option<L>> = ix.iter().map(|&i| self.lx(i, cx)).collect();
+        if rs.iter().any(|r| r.as_ref().is_none_or(|r| r.m == 3)) {
+            return None;
+        }
+        let rs: Vec<L> = rs.into_iter().flatten().collect();
+        let b = match self.data_ref(base) {
+            Some(d) => d,
+            None => self.ex(base),
+        };
+        let ixs: Vec<String> = ix.iter().zip(&rs).map(|(&i, r)| self.lidx(i, r)).collect();
+        if rs.len() == 1 {
+            let m = rs[0].m;
+            let t = if m == 0 { format!("{b}({})", ixs[0]) } else { format!("reshape({b}({}), {})", ixs[0], if m == 1 { "[], 1" } else { "1, []" }) };
+            return Some(Elem { t, m, flip: false });
+        }
+        let (m0, m1) = (rs[0].m, rs[1].m);
+        if m0 != 0 && m0 == m1 {
+            return None;
+        }
+        Some(Elem { t: format!("{b}({}, {})", ixs[0], ixs[1]), m: m0 | m1, flip: !((m0 == 0 || m0 == 1) && (m1 == 0 || m1 == 2)) })
+    }
+    /// free of the lanes: names no lane and no lane's own scalar (so the same in every lane: as it is written, once)
+    fn lane_free(&self, e: usize, cx: &Cx) -> bool {
+        !cx.lanes.iter().any(|l| self.mentions(e, &l.0)) && !cx.privs.iter().any(|p| self.mentions(e, &p.0))
+    }
+    fn lx(&mut self, e: usize, cx: &Cx) -> Option<L> {
+        let c = self.b.c;
+        if self.scalar_t(e) && self.lane_free(e, cx) {
+            return Some(L { t: self.ex(e), m: 0 });
+        }
+        match &c.exprs[e].kind {
+            ExprKind::Var(n) => {
+                if let Some(ax) = cx.lane(n) {
+                    let t = match &cx.sel {
+                        Some(s) => format!("{n}({s})"),
+                        None => n.clone(),
+                    };
+                    return Some(L { t, m: ax });
+                }
+                let m = cx.priv_of(n)?;
+                let t = match &cx.sel {
+                    Some(s) if m != 0 => format!("{n}({s})"),
+                    _ => n.clone(),
+                };
+                Some(L { t, m })
+            }
+            ExprKind::Index { .. } => {
+                let r = self.lelem(e, cx)?;
+                if !self.scalar_t(e) {
+                    return None;
+                }
+                Some(L { t: if r.flip { format!("({}).'", r.t) } else { r.t }, m: r.m })
+            }
+            ExprKind::Not(a) => self.lx(*a, cx).map(|x| L { t: format!("(~{})", x.t), m: x.m }),
+            ExprKind::Neg(a) => self.lx(*a, cx).map(|x| L { t: format!("(-({}))", x.t), m: x.m }),
+            ExprKind::Bin { op, a, b } => {
+                if matches!(c.ann[e].shape, Shape::Mv | Shape::Mm) || !self.scalar_t(*a) || !self.scalar_t(e) {
+                    return None;
+                }
+                let x = self.lx(*a, cx)?;
+                if *op == BinOp::Pow {
+                    let k = c.ann[e].k;
+                    if x.m == 0 {
+                        return Some(L { t: self.ex(e), m: 0 });
+                    }
+                    let p = vec![format!("({})", x.t); k.abs() as usize].join(" .* ");
+                    let t = if k == 0.0 {
+                        "1".to_string()
+                    } else if k < 0.0 {
+                        format!("(1 ./ ({p}))")
+                    } else {
+                        format!("({p})")
+                    };
+                    return Some(L { t, m: if k == 0.0 { 0 } else { x.m } });
+                }
+                let y = if self.scalar_t(*b) { self.lx(*b, cx)? } else { return None };
+                if matches!(op, BinOp::And | BinOp::Or) {
+                    if x.m != 0 || y.m != 0 {
+                        return None;
+                    }
+                    return Some(L { t: format!("({} {} {})", x.t, if *op == BinOp::And { "&&" } else { "||" }, y.t), m: 0 });
+                }
+                let o = match op {
+                    BinOp::Mul => ".*",
+                    BinOp::Div => "./",
+                    BinOp::Ne => "~=",
+                    BinOp::Add | BinOp::Sub | BinOp::Eq | BinOp::Lt | BinOp::Le | BinOp::Gt | BinOp::Ge => op.text(),
+                    _ => return None,
+                };
+                Some(L { t: format!("({} {o} {})", x.t, y.t), m: x.m | y.m })
+            }
+            ExprKind::Ifx { c: cc, a, b } => {
+                let xc = self.lx(*cc, cx)?;
+                let xa = self.lx(*a, cx)?;
+                let xb = self.lx(*b, cx)?;
+                if !self.scalar_t(e) {
+                    return None;
+                }
+                let m = xc.m | xa.m | xb.m;
+                if m == 0 {
+                    return Some(L { t: self.ex(e), m: 0 });
+                }
+                if self.may_fail(*a) || self.may_fail(*b) {
+                    return None;
+                }
+                Some(L { t: format!("{RTP}.vchoose({}, {}, {})", xc.t, xa.t, xb.t), m })
+            }
+            ExprKind::Call { args, .. } => {
+                let Target::Builtin(f) = c.ann[e].target else { return None };
+                if !self.scalar_t(e) || !args.iter().all(|&x| self.scalar_t(x)) {
+                    return None;
+                }
+                let mut a: Vec<L> = Vec::new();
+                for &x in args {
+                    a.push(self.lx(x, cx)?);
+                }
+                let m = a.iter().fold(0, |s, x| s | x.m);
+                let t = match f {
+                    "floor" | "ceil" | "round" | "sign" | "isnan" | "isfinite" => format!("{f}({})", a[0].t),
+                    "trunc" | "int" => format!("fix({})", a[0].t),
+                    "real" => return a.into_iter().next(),
+                    "div" => format!("fix(({}) ./ ({}))", a[0].t, a[1].t),
+                    "sqrt" => format!("{RTP}.vsqrt_({})", a[0].t),
+                    "abs" => format!("{RTP}.vfabs_({})", a[0].t),
+                    "min" | "max" => a.iter().skip(1).fold(a[0].t.clone(), |acc, x| format!("{RTP}.vf{f}({acc}, {})", x.t)),
+                    "clamp" => format!("{RTP}.vfmin({RTP}.vfmax({}, {}), {})", a[0].t, a[1].t, a[2].t),
+                    _ => return None,
+                };
+                Some(L { t, m })
+            }
+            _ => None,
+        }
+    }
+    fn lstmts(&mut self, body: &[Stmt], cx: &mut Cx, ind: usize) -> Option<String> {
+        let mut out = String::new();
+        for s in body {
+            out += &self.lstmt(s, cx, ind)?;
+        }
+        Some(out)
+    }
+    fn lstmt(&mut self, s: &Stmt, cx: &mut Cx, ind: usize) -> Option<String> {
+        let c = self.b.c;
+        let ii = "    ".repeat(ind);
+        match &s.kind {
+            StmtKind::Let { names, e, .. } => {
+                let scalar = matches!(c.ann[*e].vty.as_ref(), Some(Ty::Real(_) | Ty::Int | Ty::Bool | Ty::Choice(_)));
+                if names.len() != 1 || c.ann[*e].inout || cx.sel.is_some() || !scalar {
+                    return None;
+                }
+                let r = self.lx(*e, cx)?;
+                cx.set_priv(&names[0], cx.mask);
+                Some(format!("{ii}{} = {};\n", names[0], Self::widen(cx, &r, cx.mask)))
+            }
+            StmtKind::Set { targets, e } => {
+                if targets.len() != 1 || c.ann[*e].inout {
+                    return None;
+                }
+                let t = targets[0];
+                let r = self.lx(*e, cx)?;
+                if let ExprKind::Var(n) = &c.exprs[t].kind {
+                    if cx.priv_of(n) != Some(cx.mask) {
+                        return None;
+                    }
+                    return Some(match &cx.sel {
+                        Some(sel) => format!("{ii}{n}({sel}) = {};\n", r.t),
+                        None => format!("{ii}{n} = {};\n", Self::widen(cx, &r, cx.mask)),
+                    });
+                }
+                let (base, ix) = self.element(t)?;
+                if !self.simple_base(base) || !self.scalar_t(t) {
+                    return None;
+                }
+                let p = self.lelem(t, cx)?;
+                if p.m != cx.mask {
+                    return None;
+                }
+                let v = if cx.sel.is_some() || r.m == 0 { r.t.clone() } else { Self::widen(cx, &r, cx.mask) };
+                let mut ixs = Vec::new();
+                for &i in &ix {
+                    let ri = self.lx(i, cx)?;
+                    ixs.push(self.lidx(i, &ri));
+                }
+                let l = self.lv(base);
+                Some(format!("{ii}{l}({}) = {};\n", ixs.join(", "), if p.flip { format!("({v}).'") } else { v }))
+            }
+            StmtKind::If { arms, els } => {
+                let cs: Vec<Option<L>> = arms.iter().map(|(cc, _)| self.lx(*cc, cx)).collect();
+                if cs.iter().any(Option::is_none) {
+                    return None;
+                }
+                let cs: Vec<L> = cs.into_iter().flatten().collect();
+                if cs.iter().all(|x| x.m == 0) {
+                    let mut out = String::new();
+                    for (k, (_, body)) in arms.iter().enumerate() {
+                        let b = self.lstmts(body, cx, ind + 1)?;
+                        out += &format!("{ii}{} {}\n{b}", if k > 0 { "elseif" } else { "if" }, cs[k].t);
+                    }
+                    if let Some(els) = els {
+                        let b = self.lstmts(els, cx, ind + 1)?;
+                        out += &format!("{ii}else\n{b}");
+                    }
+                    return Some(out + &format!("{ii}end\n"));
+                }
+                // a lane's own condition (one axis, one arm and maybe an else, sets only): each arm on its lanes' elements
+                if cx.sel.is_some() || cx.lanes.len() != 1 || arms.len() != 1 || cs[0].m != cx.mask {
+                    return None;
+                }
+                let m = format!("m__{}", self.tmp);
+                self.tmp += 1;
+                let a = self.masked(&arms[0].1, cx, &m, ind)?;
+                let mut out = format!("{ii}{m} = logical({});\n{ii}if any({m})\n{a}{ii}end\n", cs[0].t);
+                if let Some(els) = els {
+                    let b = self.masked(els, cx, &format!("~{m}"), ind)?;
+                    out += &format!("{ii}if ~all({m})\n{b}{ii}end\n");
+                }
+                Some(out)
+            }
+            StmtKind::For { a, b, body, v } => {
+                if cx.sel.is_some() {
+                    return None;
+                }
+                if let Some(t) = self.lanes(s, Some(&*cx), ind) {
+                    return Some(t);
+                }
+                let xa = self.lx(*a, cx)?;
+                let xb = self.lx(*b, cx)?;
+                if xa.m != 0 || xb.m != 0 {
+                    return None;
+                }
+                let inner = self.lstmts(body, cx, ind + 1)?;
+                Some(format!("{ii}for {v} = ({}):(({}) - 1)\n{inner}{ii}end\n", xa.t, xb.t))
+            }
+            _ => None,
+        }
+    }
+    /// an arm of an `if` on a lane's own condition: its sets, on the lanes' elements sel
+    fn masked(&mut self, body: &[Stmt], cx: &Cx, sel: &str, ind: usize) -> Option<String> {
+        let mut c2 = cx.clone();
+        c2.sel = Some(sel.to_string());
+        let mut out = String::new();
+        for x in body {
+            if !matches!(x.kind, StmtKind::Set { .. }) {
+                return None;
+            }
+            out += &self.lstmt(x, &mut c2, ind + 1)?;
+        }
+        Some(out)
+    }
+    /// the loop s as lanes (inside the lanes of cx, or none): its text, or none
+    fn lanes(&mut self, s: &Stmt, cx: Option<&Cx>, ind: usize) -> Option<String> {
+        let c = self.b.c;
+        let StmtKind::For { v, a, b, body } = &s.kind else { return None };
+        if cx.is_some_and(|x| x.lanes.len() > 1) {
+            return None;
+        }
+        let lit = match (&c.exprs[*a].kind, &c.exprs[*b].kind) {
+            (ExprKind::Num { v: x, .. }, ExprKind::Num { v: y, .. }) => {
+                if y <= x {
+                    return None;
+                }
+                true
+            }
+            _ => false,
+        };
+        let mut sets = LaneSets::default();
+        self.lane_sets(body, &mut sets);
+        if sets.bad || sets.vars.iter().any(|n| !sets.lets.contains(n) && !cx.is_some_and(|x| x.priv_of(n).is_some())) {
+            return None;
+        }
+        if !self.lane_access_in(body, v, &sets.arrays, &mut Vec::new()) {
+            return None;
+        }
+        let ax = if cx.is_some() { 2 } else { 1 };
+        let c0 = cx.cloned().unwrap_or(Cx { lanes: Vec::new(), privs: Vec::new(), mask: 0, sel: None });
+        let xa = self.lx(*a, &c0)?;
+        let xb = self.lx(*b, &c0)?;
+        if xa.m != 0 || xb.m != 0 {
+            return None;
+        }
+        let mut cl = c0.clone();
+        cl.lanes.push((v.clone(), ax));
+        cl.mask |= ax;
+        cl.sel = None;
+        let t0 = self.tmp;
+        let ii = "    ".repeat(ind);
+        let Some(inner) = self.lstmts(body, &mut cl, if lit { ind } else { ind + 1 }) else {
+            self.tmp = t0;
+            return None;
+        };
+        let head = if ax == 1 { format!("{ii}{v} = (({}):(({}) - 1)).';\n", xa.t, xb.t) } else { format!("{ii}{v} = ({}):(({}) - 1);\n", xa.t, xb.t) };
+        Some(if lit { head + &inner } else { format!("{head}{ii}if ~isempty({v})\n{inner}{ii}end\n") })
+    }
+
     // a branch that could fail when it is not the one taken (an index, a call)
     fn may_fail(&self, e: usize) -> bool {
         let c = self.b.c;
@@ -397,6 +900,69 @@ impl<'a> Gen<'a> {
             ExprKind::Ifx { c: cc, a, b } => self.may_fail(*a) || self.may_fail(*b) || self.may_fail(*cc),
             ExprKind::Bin { a, b, .. } => self.may_fail(*a) || self.may_fail(*b),
         }
+    }
+
+    // Helpers written out (speed, the same arithmetic): toMatlab's pre, H, into, quiet, withPre, held, elemsOr,
+    // melemsOr and simpleVar.
+    fn h(&mut self) -> String {
+        self.hn += 1;
+        format!("h__{}", self.hn - 1)
+    }
+    fn push_pre(&mut self, lines: Vec<String>) {
+        if let Some(p) = self.pre.as_mut() {
+            p.extend(lines);
+        }
+    }
+    /// a value into a temporary: its name
+    fn held(&mut self, t: String) -> String {
+        let h = self.h();
+        self.push_pre(vec![format!("{h} = {t};")]);
+        h
+    }
+    /// what f writes, with none of the helpers written out before it
+    fn quiet<T>(&mut self, f: impl FnOnce(&mut Self) -> T) -> T {
+        let saved = self.pre.take();
+        let r = f(self);
+        self.pre = saved;
+        r
+    }
+    /// a statement with what it needs written before it
+    fn with_pre(&mut self, ii: &str, f: impl FnOnce(&mut Self) -> String) -> String {
+        let saved = self.pre.replace(Vec::new());
+        let t = f(self);
+        let lines = std::mem::replace(&mut self.pre, saved).unwrap_or_default();
+        lines.iter().map(|l| format!("{ii}{l}\n")).collect::<String>() + &t
+    }
+    /// the elements of a small vector: read in place, else (in a statement) from a temporary
+    fn elems_or(&mut self, e: usize, n: usize) -> Option<Vec<String>> {
+        if let Some(v) = self.elems(e, n) {
+            return Some(v);
+        }
+        let vec = matches!(self.b.c.ann[e].ty.as_ref(), Some(Ty::Arr(m, of)) if *m == n && !matches!(**of, Ty::Arr(..)));
+        if self.pre.is_none() || !vec {
+            return None;
+        }
+        let t = self.ex(e);
+        let h = self.held(t);
+        Some((1..=n).map(|k| format!("{h}({k})")).collect())
+    }
+    fn melems_or(&mut self, e: usize, n: usize, m: usize) -> Option<String> {
+        if let Some(v) = self.melems(e, n, m) {
+            return Some(v);
+        }
+        let mat = match self.b.c.ann[e].ty.as_ref() {
+            Some(Ty::Arr(rn, of)) if *rn == n => matches!(&**of, Ty::Arr(cm, el) if *cm == m && !matches!(**el, Ty::Arr(..))),
+            _ => false,
+        };
+        if self.pre.is_none() || !mat {
+            return None;
+        }
+        let t = self.ex(e);
+        Some(self.held(t))
+    }
+    fn simple_var(&self, e: usize) -> bool {
+        let c = self.b.c;
+        matches!(c.exprs[e].kind, ExprKind::Var(_)) && !matches!(c.ann[e].var, VarKind::Const(_) | VarKind::Data(_) | VarKind::Pi | VarKind::Inf | VarKind::Nan)
     }
 
     fn ex(&mut self, e: usize) -> String {
@@ -419,7 +985,7 @@ impl<'a> Gen<'a> {
                     let t = self.b.ty_of(k.e);
                     self.value_lit_m(&v, t)
                 }
-                VarKind::Data(_) => format!("{}()", self.data_ref(e).unwrap_or_default()),
+                VarKind::Data(_) => self.data_ref(e).unwrap_or_default(),
                 VarKind::State => format!("st.{name}"),
                 _ => name.clone(),
             },
@@ -451,7 +1017,7 @@ impl<'a> Gen<'a> {
                 format!("[{}]", parts.join("; "))
             }
             ExprKind::Index { a, i } => {
-                // a data table is a function holding its one copy: it is indexed through its call
+                // a data table is read in its local copy (D__NAME, taken at the top of the function)
                 if let Some((aa, ai)) = self.matrix_pair(*a) {
                     let m = match self.data_ref(aa) {
                         Some(d) => d,
@@ -461,10 +1027,10 @@ impl<'a> Gen<'a> {
                     return format!("{m}({r}, {})", self.idx(*i));
                 }
                 if self.rows_of(*a) {
-                    if let Some(d) = self.data_ref(*a) {
-                        return format!("({d}({}, ':')).'", self.idx(*i));
-                    }
-                    let m = self.ex(*a);
+                    let m = match self.data_ref(*a) {
+                        Some(d) => d,
+                        None => self.ex(*a),
+                    };
                     return format!("({m}({}, :)).'", self.idx(*i));
                 }
                 let m = match self.data_ref(*a) {
@@ -482,8 +1048,27 @@ impl<'a> Gen<'a> {
             ExprKind::Not(a) => format!("(~{})", self.ex(*a)),
             ExprKind::Neg(a) => format!("(-({}))", self.ex(*a)),
             ExprKind::Ifx { c: cc, a, b } => {
-                // MATLAB has no conditional expression: a branch that could fail when it is not the one taken (an index,
-                // a call) is handed over unevaluated, so only the branch taken runs, as in the interpreter
+                // MATLAB has no conditional expression: in a statement, an if before it into a temporary (only the branch
+                // taken runs, as in the interpreter); elsewhere a branch that could fail when it is not the one taken (an
+                // index, a call) is handed over unevaluated
+                if self.pre.is_some() {
+                    let cs = self.ex(*cc);
+                    let h = self.h();
+                    let saved = self.pre.replace(Vec::new());
+                    let ta = self.ex(*a);
+                    let la = std::mem::replace(&mut self.pre, Some(Vec::new())).unwrap_or_default();
+                    let tb = self.ex(*b);
+                    let lb = std::mem::replace(&mut self.pre, saved).unwrap_or_default();
+                    let mut lines = vec![format!("if {cs}")];
+                    lines.extend(la.iter().map(|l| format!("    {l}")));
+                    lines.push(format!("    {h} = {ta};"));
+                    lines.push("else".into());
+                    lines.extend(lb.iter().map(|l| format!("    {l}")));
+                    lines.push(format!("    {h} = {tb};"));
+                    lines.push("end".into());
+                    self.push_pre(lines);
+                    return h;
+                }
                 let lazy = self.may_fail(*a) || self.may_fail(*b);
                 let cs = self.ex(*cc);
                 let as_ = self.ex(*a);
@@ -502,9 +1087,31 @@ impl<'a> Gen<'a> {
     fn bin(&mut self, e: usize, op: BinOp, a: usize, b: usize) -> String {
         let ann = &self.b.c.ann[e];
         match op {
-            BinOp::And => return format!("({} && {})", self.ex(a), self.ex(b)),
-            BinOp::Or => return format!("({} || {})", self.ex(a), self.ex(b)),
-            BinOp::Pow => return format!("{RTP}.ipow({}, {})", self.ex(a), jsfmt::num(ann.k)),
+            BinOp::And | BinOp::Or => {
+                let x = self.ex(a);
+                let y = self.quiet(|g| g.ex(b));
+                return format!("({x} {} {y})", if op == BinOp::And { "&&" } else { "||" });
+            }
+            BinOp::Pow => {
+                // x^k by repeated multiplication, left to right (x^-k = 1/(x^k)): written out on a variable or a temporary
+                if !self.simple_var(a) && self.pre.is_none() {
+                    return format!("{RTP}.ipow({}, {})", self.ex(a), jsfmt::num(ann.k));
+                }
+                let x = if self.simple_var(a) {
+                    self.ex(a)
+                } else {
+                    let t = self.ex(a);
+                    self.held(t)
+                };
+                let p = vec![x; ann.k.abs() as usize].join(" * ");
+                return if ann.k == 0.0 {
+                    "1".into()
+                } else if ann.k < 0.0 {
+                    format!("(1 / ({p}))")
+                } else {
+                    format!("({p})")
+                };
+            }
             BinOp::Ne => return format!("({} ~= {})", self.ex(a), self.ex(b)),
             _ => {}
         }
@@ -521,8 +1128,8 @@ impl<'a> Gen<'a> {
                     _ => (0, 0),
                 };
                 let small = |x: usize| (1..=4).contains(&x);
-                let mat = if small(n) && small(m) { self.melems(a, n, m) } else { None };
-                let v = if mat.is_some() { self.elems(b, m) } else { None };
+                let mat = if small(n) && small(m) { self.melems_or(a, n, m) } else { None };
+                let v = if mat.is_some() { self.elems_or(b, m) } else { None };
                 if let (Some(mb), Some(v)) = (mat, v) {
                     let rows: Vec<String> =
                         (1..=n).map(|i| (1..=m).map(|j| format!("{mb}({i}, {j})*{}", v[j - 1])).collect::<Vec<_>>().join(" + ")).collect();
@@ -542,8 +1149,95 @@ impl<'a> Gen<'a> {
             let r = &c.records[ri];
             return format!("{}.{}.{}_zero()", self.pkg, r.module, r.name);
         }
+        if let Target::Builtin(f) = ann.target {
+            let n = args.first().map_or(0, |&x| self.arr_len(x));
+            let small = (1..=4).contains(&n);
+            match f {
+                "dot" => {
+                    let aa = if small { self.elems_or(args[0], n) } else { None };
+                    let bb = if aa.is_some() { args.get(1).and_then(|&x| self.elems_or(x, n)) } else { None };
+                    if let (Some(aa), Some(bb)) = (aa, bb) {
+                        let t: Vec<String> = (0..n).map(|k| format!("{}*{}", aa[k], bb[k])).collect();
+                        return format!("({})", t.join(" + "));
+                    }
+                }
+                "cross" => {
+                    let aa = args.first().and_then(|&x| self.elems_or(x, 3));
+                    let bb = if aa.is_some() { args.get(1).and_then(|&x| self.elems_or(x, 3)) } else { None };
+                    if let (Some(x), Some(y)) = (aa, bb) {
+                        return format!(
+                            "[{}*{} - {}*{}; {}*{} - {}*{}; {}*{} - {}*{}]",
+                            x[1], y[2], x[2], y[1], x[2], y[0], x[0], y[2], x[0], y[1], x[1], y[0]
+                        );
+                    }
+                }
+                "norm" => {
+                    if let Some(aa) = if small { self.elems_or(args[0], n) } else { None } {
+                        let t: Vec<String> = (0..n).map(|k| format!("{}*{}", aa[k], aa[k])).collect();
+                        return format!("sqrt({})", t.join(" + "));
+                    }
+                }
+                "unit" => {
+                    // a / max(norm(a), 1e-30), the norm's sum left to right
+                    let rows = matches!(c.ann[args[0]].ty.as_ref(), Some(Ty::Arr(_, of)) if matches!(**of, Ty::Arr(..)));
+                    if self.pre.is_some() && small && !rows {
+                        let x = if self.simple_var(args[0]) {
+                            self.ex(args[0])
+                        } else {
+                            let t = self.ex(args[0]);
+                            self.held(t)
+                        };
+                        let h = self.h();
+                        let t: Vec<String> = (1..=n).map(|k| format!("{x}({k})*{x}({k})")).collect();
+                        self.push_pre(vec![format!("{h} = sqrt({});", t.join(" + ")), format!("if 1e-30 > {h}, {h} = 1e-30; end")]);
+                        return format!("({x} / {h})");
+                    }
+                }
+                _ => {}
+            }
+        }
         let a: Vec<String> = args.iter().map(|&x| self.ex(x)).collect();
         let at = |i: usize| a.get(i).map_or("undefined", String::as_str);
+        if let (Target::Builtin(f), true) = (&ann.target, self.pre.is_some()) {
+            let f = *f;
+            // the runtime's arithmetic, written out before the statement
+            match f {
+                "sqrt" => {
+                    let h = self.h();
+                    self.push_pre(vec![format!("{h} = {};", at(0)), format!("if {h} < 0, {h} = NaN; else, {h} = sqrt({h}); end")]);
+                    return h;
+                }
+                "asin" | "acos" | "log" | "log10" | "log2" => {
+                    let h = self.h();
+                    self.push_pre(vec![format!("{h} = {f}({});", at(0)), format!("if ~isreal({h}), {h} = NaN; end")]);
+                    return h;
+                }
+                "pow" => {
+                    let h = self.h();
+                    self.push_pre(vec![format!("{h} = ({})^({});", at(0), at(1)), format!("if ~isreal({h}), {h} = NaN; end")]);
+                    return h;
+                }
+                "abs" => {
+                    let h = self.h();
+                    self.push_pre(vec![format!("{h} = {};", at(0)), format!("if {h} < 0, {h} = -{h}; elseif {h} == 0, {h} = 0; end")]);
+                    return h;
+                }
+                "min" | "max" | "clamp" => {
+                    // fmin, fmax: the second only when it is below (above) the first; clamp: fmin(fmax(x, lo), hi)
+                    let h = self.h();
+                    let u = self.h();
+                    let mut lines = vec![format!("{h} = {};", at(0))];
+                    for (i, x) in a.iter().enumerate().skip(1) {
+                        let lt = if f == "clamp" { i == 2 } else { f == "min" };
+                        lines.push(format!("{u} = {x};"));
+                        lines.push(format!("if {u} {} {h}, {h} = {u}; end", if lt { "<" } else { ">" }));
+                    }
+                    self.push_pre(lines);
+                    return h;
+                }
+                _ => {}
+            }
+        }
         if let Target::Builtin(f) = ann.target {
             match f {
                 "sin" | "cos" | "tan" | "atan" | "exp" | "erf" | "floor" | "ceil" | "round" => return format!("{f}({})", at(0)),
@@ -581,36 +1275,9 @@ impl<'a> Gen<'a> {
                         _ => "undefined".into(),
                     }
                 }
-                "dot" => {
-                    let n = args.first().map_or(0, |&x| self.arr_len(x));
-                    let aa = if (1..=4).contains(&n) { self.elems(args[0], n) } else { None };
-                    let bb = if aa.is_some() { args.get(1).and_then(|&x| self.elems(x, n)) } else { None };
-                    if let (Some(aa), Some(bb)) = (aa, bb) {
-                        let t: Vec<String> = (0..n).map(|k| format!("{}*{}", aa[k], bb[k])).collect();
-                        return format!("({})", t.join(" + "));
-                    }
-                    return format!("{RTP}.dot_({}, {})", at(0), at(1));
-                }
-                "cross" => {
-                    let aa = args.first().and_then(|&x| self.elems(x, 3));
-                    let bb = if aa.is_some() { args.get(1).and_then(|&x| self.elems(x, 3)) } else { None };
-                    if let (Some(x), Some(y)) = (aa, bb) {
-                        return format!(
-                            "[{}*{} - {}*{}; {}*{} - {}*{}; {}*{} - {}*{}]",
-                            x[1], y[2], x[2], y[1], x[2], y[0], x[0], y[2], x[0], y[1], x[1], y[0]
-                        );
-                    }
-                    return format!("{RTP}.cross_({}, {})", at(0), at(1));
-                }
-                "norm" => {
-                    let n = args.first().map_or(0, |&x| self.arr_len(x));
-                    let aa = if (1..=4).contains(&n) { self.elems(args[0], n) } else { None };
-                    if let Some(aa) = aa {
-                        let t: Vec<String> = (0..n).map(|k| format!("{}*{}", aa[k], aa[k])).collect();
-                        return format!("sqrt({})", t.join(" + "));
-                    }
-                    return format!("{RTP}.norm_({})", at(0));
-                }
+                "dot" => return format!("{RTP}.dot_({}, {})", at(0), at(1)),
+                "cross" => return format!("{RTP}.cross_({}, {})", at(0), at(1)),
+                "norm" => return format!("{RTP}.norm_({})", at(0)),
                 "unit" => return format!("{RTP}.unit_({})", at(0)),
                 "transpose" => return format!("({}).'", at(0)),
                 "sort" => return format!("{RTP}.sort_({})", at(0)),
@@ -701,13 +1368,13 @@ impl<'a> Gen<'a> {
             }
         } else if let Some(targets) = targets {
             for (&tg, t) in targets.iter().zip(&outs) {
-                let l = self.lv(tg);
+                let l = self.quiet(|g| g.lv(tg));
                 let tr = if self.is_row_target(tg) { ".'" } else { "" };
                 out += &format!("{ii}{l} = {t}{tr};\n");
             }
         }
         for (tv, a) in ios {
-            let l = self.lv(a);
+            let l = self.quiet(|g| g.lv(a));
             out += &format!("{ii}{l} = {tv};\n");
         }
         out
@@ -720,18 +1387,20 @@ impl<'a> Gen<'a> {
         let ii = "    ".repeat(ind);
         match &s.kind {
             StmtKind::Let { names, e, .. } => {
-                if self.b.c.ann[*e].inout {
-                    return self.inout_stmt(Some(names), None, *e, &ii);
+                let e = *e;
+                if self.b.c.ann[e].inout {
+                    return self.with_pre(&ii, |g| g.inout_stmt(Some(names), None, e, &ii));
                 }
                 if names.len() > 1 {
-                    return format!("{ii}[{}] = {};\n", names.join(", "), self.ex(*e));
+                    return self.with_pre(&ii, |g| format!("{ii}[{}] = {};\n", names.join(", "), g.ex(e)));
                 }
-                format!("{ii}{} = {};\n", names[0], self.ex(*e))
+                self.with_pre(&ii, |g| format!("{ii}{} = {};\n", names[0], g.ex(e)))
             }
             StmtKind::State { .. } => String::new(),
             StmtKind::Set { targets, e } => {
-                if self.b.c.ann[*e].inout {
-                    return self.inout_stmt(None, Some(targets), *e, &ii);
+                let e = *e;
+                if self.b.c.ann[e].inout {
+                    return self.with_pre(&ii, |g| g.inout_stmt(None, Some(targets), e, &ii));
                 }
                 if targets.len() > 1 {
                     let ts: Vec<String> = targets
@@ -741,7 +1410,7 @@ impl<'a> Gen<'a> {
                             format!("t__{}", self.tmp - 1)
                         })
                         .collect();
-                    let mut out = format!("{ii}[{}] = {};\n", ts.join(", "), self.ex(*e));
+                    let mut out = self.with_pre(&ii, |g| format!("{ii}[{}] = {};\n", ts.join(", "), g.ex(e)));
                     for (t, n) in targets.iter().zip(&ts) {
                         let l = self.lv(*t);
                         let tr = if self.is_row_target(*t) { ".'" } else { "" };
@@ -751,15 +1420,16 @@ impl<'a> Gen<'a> {
                 }
                 let t = targets[0];
                 let l = self.lv(t);
-                let v = self.ex(*e);
                 let tr = if self.is_row_target(t) { ".'" } else { "" };
-                format!("{ii}{l} = {v}{tr};\n")
+                self.with_pre(&ii, |g| format!("{ii}{l} = {}{tr};\n", g.ex(e)))
             }
             StmtKind::If { arms, els } => {
-                let mut out = String::new();
-                for (i, (cond, body)) in arms.iter().enumerate() {
+                let c0 = arms[0].0;
+                let mut out = self.with_pre(&ii, |g| format!("{ii}if {}\n", g.ex(c0)));
+                out += &self.stmts(&arms[0].1, ind + 1);
+                for (cond, body) in arms.iter().skip(1) {
                     let cs = self.ex(*cond);
-                    out += &format!("{ii}{} {cs}\n{}", if i > 0 { "elseif" } else { "if" }, self.stmts(body, ind + 1));
+                    out += &format!("{ii}elseif {cs}\n{}", self.stmts(body, ind + 1));
                 }
                 if let Some(els) = els {
                     out += &format!("{ii}else\n{}", self.stmts(els, ind + 1));
@@ -767,6 +1437,9 @@ impl<'a> Gen<'a> {
                 out + &format!("{ii}end\n")
             }
             StmtKind::For { v, a, b, body } => {
+                if let Some(t) = self.lanes(s, None, ind) {
+                    return t;
+                }
                 if let Some(g) = self.guarded(v, body) {
                     let vn = format!("t__{}", self.tmp);
                     self.tmp += 1;
@@ -776,25 +1449,29 @@ impl<'a> Gen<'a> {
                     let inner = self.stmts(&arms[0].1, ind + 1);
                     return format!("{ii}{vn} = (({as_}):(({bs}) - 1)).';\n{ii}for {v} = {vn}(logical({})).'\n{inner}{ii}end\n", g.replace(VMARK, &vn));
                 }
-                let as_ = self.ex(*a);
-                let bs = self.ex(*b);
-                format!("{ii}for {v} = ({as_}):(({bs}) - 1)\n{}{ii}end\n", self.stmts(body, ind + 1))
+                let (a, b) = (*a, *b);
+                let head = self.with_pre(&ii, |g| {
+                    let as_ = g.ex(a);
+                    let bs = g.ex(b);
+                    format!("{ii}for {v} = ({as_}):(({bs}) - 1)\n")
+                });
+                format!("{head}{}{ii}end\n", self.stmts(body, ind + 1))
             }
             StmtKind::Settle { n: ne, c: ce, body, els } => {
                 let k = format!("k__{}", self.tmp);
                 self.tmp += 1;
                 let n = format!("n__{}", self.tmp);
                 self.tmp += 1;
-                let ns = self.ex(*ne);
+                let (ne, ce) = (*ne, *ce);
+                let first = self.with_pre(&ii, |g| format!("{ii}{n} = {}; {k} = 0;\n", g.ex(ne)));
                 let inner = self.stmts(body, ind + 1);
-                let cs = self.ex(*ce);
+                let i4 = format!("{ii}    ");
+                let until = self.with_pre(&i4, |g| format!("{i4}if {}, break; end\n", g.ex(ce)));
                 let es = match els {
                     Some(els) => self.stmts(els, ind + 2),
                     None => String::new(),
                 };
-                format!(
-                    "{ii}{n} = {ns}; {k} = 0;\n{ii}while true\n{inner}{ii}    {k} = {k} + 1;\n{ii}    if {cs}, break; end\n{ii}    if {k} >= {n}\n{es}{ii}        break;\n{ii}    end\n{ii}end\n"
-                )
+                format!("{first}{ii}while true\n{inner}{ii}    {k} = {k} + 1;\n{until}{ii}    if {k} >= {n}\n{es}{ii}        break;\n{ii}    end\n{ii}end\n")
             }
         }
     }
@@ -826,10 +1503,15 @@ impl<'a> Gen<'a> {
                             }
                             body += "    end\n";
                         }
+                        self.hoist.clear();
+                        let code = self.stmts(&f.body, 1);
                         for o in &f.outs {
                             body += &format!("    {} = {};\n", o.name, self.zero(&o.ty));
                         }
-                        body += &self.stmts(&f.body, 1);
+                        for (n, module) in &self.hoist {
+                            body += &format!("    D__{n} = {pkg}.{module}.{n}();\n");
+                        }
+                        body += &code;
                         let mut lines: Vec<String> = f.doc.clone();
                         lines.extend(f.params.iter().map(io));
                         lines.extend(f.outs.iter().map(|o| format!("returns {}", io(o))));
@@ -1055,20 +1737,21 @@ pub(super) fn runtime() -> Files {
     add("cross_", "a, b", "c", "cross product of two 3-vectors.", "    c = [a(2)*b(3) - a(3)*b(2); a(3)*b(1) - a(1)*b(3); a(1)*b(2) - a(2)*b(1)];\n");
     add("norm_", "a", "n", "sqrt(dot(a, a)).", "    n = sqrt(asils.pc.dot_(a, a));\n");
     add("unit_", "a", "u", "a / max(norm(a), 1e-30).", "    u = a / asils.pc.fmax(asils.pc.norm_(a), 1e-30);\n");
+    // the products' sums for every row (and column) at once, each element's sum its own, left to right
+    add("mv", "M, v", "r", "matrix times vector, each row summed left to right.", "    r = M(:, 1) .* v(1);\n    for k = 2:size(M, 2), r = r + M(:, k) .* v(k); end\n");
+    add("mm", "A, B", "C", "matrix product, summed left to right.", "    C = A(:, 1) .* B(1, :);\n    for k = 2:size(B, 1), C = C + A(:, k) .* B(k, :); end\n");
+    // element by element over a loop's lanes (toMatlab's lanes): each element as the scalar helper makes it
     add(
-        "mv",
-        "M, v",
+        "vchoose",
+        "c, a, b",
         "r",
-        "matrix times vector, each row summed left to right.",
-        "    r = zeros(size(M, 1), 1);\n    for i = 1:size(M, 1), r(i) = asils.pc.dot_(M(i, :), v); end\n",
+        "a where c, else b, element by element (both are evaluated).",
+        "    o = ones(size(c)) .* ones(size(a)) .* ones(size(b));\n    r = b .* o; a = a .* o; c = (c .* o) ~= 0;\n    r(c) = a(c);\n",
     );
-    add(
-        "mm",
-        "A, B",
-        "C",
-        "matrix product, summed left to right.",
-        "    C = zeros(size(A, 1), size(B, 2));\n    for i = 1:size(A, 1)\n        for j = 1:size(B, 2)\n            s = A(i, 1)*B(1, j);\n            for k = 2:size(B, 1), s = s + A(i, k)*B(k, j); end\n            C(i, j) = s;\n        end\n    end\n",
-    );
+    add("vfmin", "a, b", "r", "the smaller, element by element (b only where b < a).", "    o = ones(size(a)) .* ones(size(b));\n    r = a .* o; b = b .* o; m = b < r;\n    r(m) = b(m);\n");
+    add("vfmax", "a, b", "r", "the larger, element by element (b only where b > a).", "    o = ones(size(a)) .* ones(size(b));\n    r = a .* o; b = b .* o; m = b > r;\n    r(m) = b(m);\n");
+    add("vfabs_", "x", "r", "|x|, element by element, as fabs.", "    r = x;\n    m = x < 0; r(m) = -x(m);\n    r(x == 0) = 0;\n");
+    add("vsqrt_", "x", "r", "sqrt(x), element by element, nan where x < 0, as sqrt_.", "    r = NaN(size(x));\n    m = ~(x < 0); r(m) = sqrt(x(m));\n");
     add(
         "lookup_step",
         "T, x",

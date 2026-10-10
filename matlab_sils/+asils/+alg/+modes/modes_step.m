@@ -31,7 +31,10 @@ function [s] = modes_step(st, mp, zw, sun_ok, sun, dt)
             s.s_prop_ok = true;
         elseif s.s_prop_ok
             a = asils.alg.math.dcm(asils.alg.math.fromrotvec((s.w_est * dt)));
-            s.s_prop = asils.pc.unit_([a(1, 1)*s.s_prop(1) + a(1, 2)*s.s_prop(2) + a(1, 3)*s.s_prop(3); a(2, 1)*s.s_prop(1) + a(2, 2)*s.s_prop(2) + a(2, 3)*s.s_prop(3); a(3, 1)*s.s_prop(1) + a(3, 2)*s.s_prop(2) + a(3, 3)*s.s_prop(3)]);
+            h__99 = [a(1, 1)*s.s_prop(1) + a(1, 2)*s.s_prop(2) + a(1, 3)*s.s_prop(3); a(2, 1)*s.s_prop(1) + a(2, 2)*s.s_prop(2) + a(2, 3)*s.s_prop(3); a(3, 1)*s.s_prop(1) + a(3, 2)*s.s_prop(2) + a(3, 3)*s.s_prop(3)];
+            h__100 = sqrt(h__99(1)*h__99(1) + h__99(2)*h__99(2) + h__99(3)*h__99(3));
+            if 1e-30 > h__100, h__100 = 1e-30; end
+            s.s_prop = (h__99 / h__100);
         end
     end
     if ((s.mode == 8) && (mp.auto_next ~= 255))

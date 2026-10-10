@@ -21,8 +21,7 @@ function [jm] = fq_jacobian(law, g, c_bo, inc, n, ji, duty, nad, wref_r, t)
         d((j) + 1) = h;
         fp = asils.models.floquet.fq_rate(law, g, c_bo, inc, n, ji, duty, nad, wref_r, t, (x0 + d));
         fm = asils.models.floquet.fq_rate(law, g, c_bo, inc, n, ji, duty, nad, wref_r, t, (x0 - d));
-        for i = (0):((6) - 1)
-            jm((i) + 1, (j) + 1) = ((fp((i) + 1) - fm((i) + 1)) / (2 * h));
-        end
+        i = ((0):((6) - 1)).';
+        jm((i) + 1, (j) + 1) = ((reshape(fp((i) + 1), [], 1) - reshape(fm((i) + 1), [], 1)) ./ (2 * h));
     end
 end

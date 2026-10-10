@@ -14,10 +14,16 @@ function [flip_out] = yaw_flip(r, v, q_off, sun_axis, roll_axis, sun_eci, flip, 
     flip_out = false;
     z = zeros(3, 1);
     [q, w, wd] = asils.relations.gdn.guidance(0, r, v, 0, q_off, 0, 0, 1, z, [0; 0; 0; 1], sun_axis, roll_axis, sun_eci, false);
-    sb = asils.pc.mv(asils.relations.gdn.dcm(q), asils.pc.unit_(sun_eci));
+    h__66 = asils.relations.gdn.dcm(q);
+    h__67 = sqrt(sun_eci(1)*sun_eci(1) + sun_eci(2)*sun_eci(2) + sun_eci(3)*sun_eci(3));
+    if 1e-30 > h__67, h__67 = 1e-30; end
+    h__68 = (sun_eci / h__67);
+    sb = [h__66(1, 1)*h__68(1) + h__66(1, 2)*h__68(2) + h__66(1, 3)*h__68(3); h__66(2, 1)*h__68(1) + h__66(2, 2)*h__68(2) + h__66(2, 3)*h__68(3); h__66(3, 1)*h__68(1) + h__66(3, 2)*h__68(2) + h__66(3, 3)*h__68(3)];
     a = [0; 0; (-(1))];
     if (sqrt(sun_axis(1)*sun_axis(1) + sun_axis(2)*sun_axis(2) + sun_axis(3)*sun_axis(3)) > 0)
-        a = asils.pc.unit_(sun_axis);
+        h__69 = sqrt(sun_axis(1)*sun_axis(1) + sun_axis(2)*sun_axis(2) + sun_axis(3)*sun_axis(3));
+        if 1e-30 > h__69, h__69 = 1e-30; end
+        a = (sun_axis / h__69);
     end
     d = (a(1)*sb(1) + a(2)*sb(2) + a(3)*sb(3));
     flip_out = flip;

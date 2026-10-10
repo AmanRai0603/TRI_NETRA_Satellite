@@ -12,5 +12,7 @@ function [ra, dec] = sun_ra_dec(epoch)
     lam = (lm + (((1.914666471 * sin(m)) + (0.019994643 * sin((2 * m)))) * 0.017453292519943295));
     eps = ((23.439291 - (0.0130042 * tc)) * 0.017453292519943295);
     ra = atan2((cos(eps) * sin(lam)), cos(lam));
-    dec = asils.pc.asin_((sin(eps) * sin(lam)));
+    h__23 = asin((sin(eps) * sin(lam)));
+    if ~isreal(h__23), h__23 = NaN; end
+    dec = h__23;
 end

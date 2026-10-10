@@ -16,5 +16,6 @@ function [b] = field_eci_at(lat, lon, h, c, gh, nmax)
     so = sin(lon);
     co = cos(lon);
     be = [(((((-(sl)) * co) * bn(1)) - (so * bn(2))) - ((cl * co) * bn(3))); (((((-(sl)) * so) * bn(1)) + (co * bn(2))) - ((cl * so) * bn(3))); ((cl * bn(1)) - (sl * bn(3)))];
-    b = asils.pc.mv((c).', be);
+    h__542 = (c).';
+    b = [h__542(1, 1)*be(1) + h__542(1, 2)*be(2) + h__542(1, 3)*be(3); h__542(2, 1)*be(1) + h__542(2, 2)*be(2) + h__542(2, 3)*be(3); h__542(3, 1)*be(1) + h__542(3, 2)*be(2) + h__542(3, 3)*be(3)];
 end

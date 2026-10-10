@@ -19,9 +19,13 @@ function [zhat, e1, e2, shat, rho_max] = cap_frame(r_sat, r_sun)
     zhat = [(r_sat(1) / d); (r_sat(2) / d); (r_sat(3) / d)];
     ns = sqrt(r_sun(1)*r_sun(1) + r_sun(2)*r_sun(2) + r_sun(3)*r_sun(3));
     shat = [(r_sun(1) / ns); (r_sun(2) / ns); (r_sun(3) / ns)];
-    rho_max = asils.pc.acos_(asils.models.srp.min_one((re / d)));
+    h__244 = acos(asils.models.srp.min_one((re / d)));
+    if ~isreal(h__244), h__244 = NaN; end
+    rho_max = h__244;
     t = [1; 0; 0];
-    if (asils.pc.fabs(zhat(1)) > 0.9)
+    h__245 = zhat(1);
+    if h__245 < 0, h__245 = -h__245; elseif h__245 == 0, h__245 = 0; end
+    if (h__245 > 0.9)
         t = [0; 1; 0];
     end
     c = [zhat(2)*t(3) - zhat(3)*t(2); zhat(3)*t(1) - zhat(1)*t(3); zhat(1)*t(2) - zhat(2)*t(1)];

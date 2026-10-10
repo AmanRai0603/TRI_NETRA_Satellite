@@ -28,8 +28,9 @@ function [passes, x, tmp] = kpi_sort(x, m, tmp)
         end
     end
     if (rem(passes, 2) == 1)
-        for i = (0):((m) - 1)
-            x((i) + 1) = tmp((i) + 1);
+        i = ((0):((m) - 1)).';
+        if ~isempty(i)
+            x((i) + 1) = reshape(tmp((i) + 1), [], 1);
         end
     end
 end

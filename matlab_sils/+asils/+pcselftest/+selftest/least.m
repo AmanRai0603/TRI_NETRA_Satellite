@@ -10,7 +10,15 @@ function [y, seen, st] = least(st, x)
     end
     y = 0;
     seen = false;
-    st.low = asils.pc.fmin(st.low, x);
+    h__28 = st.low;
+    h__29 = x;
+    if h__29 < h__28, h__28 = h__29; end
+    st.low = h__28;
     seen = isfinite(st.low);
-    y = asils.pc.choose(seen, st.low, 0);
+    if seen
+        h__30 = st.low;
+    else
+        h__30 = 0;
+    end
+    y = h__30;
 end

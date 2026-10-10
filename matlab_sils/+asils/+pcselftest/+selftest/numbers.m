@@ -25,14 +25,43 @@ function [lo, hi, cl, ri, fl, fm, q, ni, pick, pos] = numbers(a, b, n, m)
     ni = 0;
     pick = 0;
     pos = false;
-    lo = asils.pc.fmin(asils.pc.fmin(a, b), 0);
-    hi = asils.pc.fmax(a, b);
-    cl = asils.pc.clamp(a, (-(1)), b);
+    h__3 = a;
+    h__4 = b;
+    if h__4 < h__3, h__3 = h__4; end
+    h__4 = 0;
+    if h__4 < h__3, h__3 = h__4; end
+    lo = h__3;
+    h__5 = a;
+    h__6 = b;
+    if h__6 > h__5, h__5 = h__6; end
+    hi = h__5;
+    h__7 = a;
+    h__8 = (-(1));
+    if h__8 > h__7, h__7 = h__8; end
+    h__8 = b;
+    if h__8 < h__7, h__7 = h__8; end
+    cl = h__7;
     ri = round((a * 2.5));
     fl = (floor(a) + ceil(b));
     fm = rem(a, 0.75);
     q = (n / m);
-    ni = ((asils.pc.clamp((n * m), (-(10)), 10) + asils.pc.fmax(n, m)) - asils.pc.fmin(n, 2));
-    pick = asils.pc.choose((a > b), asils.pc.ipow(a, 2), (-(asils.pc.ipow(b, 3))));
+    h__9 = (n * m);
+    h__10 = (-(10));
+    if h__10 > h__9, h__9 = h__10; end
+    h__10 = 10;
+    if h__10 < h__9, h__9 = h__10; end
+    h__11 = n;
+    h__12 = m;
+    if h__12 > h__11, h__11 = h__12; end
+    h__13 = n;
+    h__14 = 2;
+    if h__14 < h__13, h__13 = h__14; end
+    ni = ((h__9 + h__11) - h__13);
+    if (a > b)
+        h__15 = (a * a);
+    else
+        h__15 = (-((b * b * b)));
+    end
+    pick = h__15;
     pos = (((a > 0) && (~(b > 0))) || (n == 0));
 end

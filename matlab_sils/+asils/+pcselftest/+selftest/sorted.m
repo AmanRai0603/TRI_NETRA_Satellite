@@ -19,9 +19,8 @@ function [s, ix, med, top3, ws, wix] = sorted(v, w)
     ix = asils.pc.argsort_(v);
     med = s(4);
     big = asils.pc.argsort_((-(v)));
-    for k = (0):((3) - 1)
-        top3((k) + 1) = big((k) + 1);
-    end
+    k = ((0):((3) - 1)).';
+    top3((k) + 1) = reshape(big((k) + 1), [], 1);
     ws = asils.pc.sort_(w);
     wix = asils.pc.argsort_(w);
 end

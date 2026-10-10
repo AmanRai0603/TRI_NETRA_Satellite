@@ -10,13 +10,11 @@ function [h] = total_momentum(x, inertia, m, f)
     a = asils.models.rotors.rotor_axes(m, x.d);
     h = [inertia(1, 1)*x.w(1) + inertia(1, 2)*x.w(2) + inertia(1, 3)*x.w(3); inertia(2, 1)*x.w(1) + inertia(2, 2)*x.w(2) + inertia(2, 3)*x.w(3); inertia(3, 1)*x.w(1) + inertia(3, 2)*x.w(2) + inertia(3, 3)*x.w(3)];
     for ir = (0):((m.nr) - 1)
-        for k = (0):((3) - 1)
-            h((k) + 1) = (h((k) + 1) + (a((ir) + 1, (k) + 1) * x.h((ir) + 1)));
-        end
+        k = ((0):((3) - 1)).';
+        h((k) + 1) = (reshape(h((k) + 1), [], 1) + ((a((ir) + 1, (k) + 1)).' .* x.h((ir) + 1)));
     end
     if f.on
-        for k2 = (0):((3) - 1)
-            h((k2) + 1) = (h((k2) + 1) + (f.delta((k2) + 1) * x.etad));
-        end
+        k2 = ((0):((3) - 1)).';
+        h((k2) + 1) = (reshape(h((k2) + 1), [], 1) + (reshape(f.delta((k2) + 1), [], 1) .* x.etad));
     end
 end

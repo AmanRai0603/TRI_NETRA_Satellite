@@ -10,7 +10,6 @@ function [a] = point_mass(r, rb, mu)
     dn = sqrt(d(1)*d(1) + d(2)*d(2) + d(3)*d(3));
     bn = sqrt(rb(1)*rb(1) + rb(2)*rb(2) + rb(3)*rb(3));
     a = [0; 0; 0];
-    for i = (0):((3) - 1)
-        a((i) + 1) = (mu * ((d((i) + 1) / ((dn * dn) * dn)) - (rb((i) + 1) / ((bn * bn) * bn))));
-    end
+    i = ((0):((3) - 1)).';
+    a((i) + 1) = (mu .* ((reshape(d((i) + 1), [], 1) ./ ((dn * dn) * dn)) - (reshape(rb((i) + 1), [], 1) ./ ((bn * bn) * bn))));
 end

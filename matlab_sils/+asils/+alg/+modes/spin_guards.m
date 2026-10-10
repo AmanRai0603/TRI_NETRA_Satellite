@@ -12,11 +12,15 @@ function [s] = spin_guards(st, mp, sun_ok, sun, dt)
     s = st;
     d = (pi / 180);
     wz = s.w_est(3);
-    wp = asils.pc.sqrt_(((s.w_est(1) * s.w_est(1)) + (s.w_est(2) * s.w_est(2))));
+    h__96 = ((s.w_est(1) * s.w_est(1)) + (s.w_est(2) * s.w_est(2)));
+    if h__96 < 0, h__96 = NaN; else, h__96 = sqrt(h__96); end
+    wp = h__96;
     if (sqrt(s.w_est(1)*s.w_est(1) + s.w_est(2)*s.w_est(2) + s.w_est(3)*s.w_est(3)) > (mp.ss_omega_max_dps * d))
         s = asils.alg.modes.modes_enter(s, 0);
     elseif (s.mode == 5)
-        conv = ((asils.pc.fabs((wz - ((s.sigma * mp.ss_spin_dps) * d))) < (mp.ss_z_in_dps * d)) && (wp < (mp.ss_perp_in_dps * d)));
+        h__97 = (wz - ((s.sigma * mp.ss_spin_dps) * d));
+        if h__97 < 0, h__97 = -h__97; elseif h__97 == 0, h__97 = 0; end
+        conv = ((h__97 < (mp.ss_z_in_dps * d)) && (wp < (mp.ss_perp_in_dps * d)));
         if (conv && sun_ok)
             s.sz_sum = (s.sz_sum + sun(3));
             s.sz_n = (s.sz_n + 1);
@@ -37,7 +41,9 @@ function [s] = spin_guards(st, mp, sun_ok, sun, dt)
             s = asils.alg.modes.modes_enter(s, 6);
         end
     else
-        bad = ((asils.pc.fabs(wz) < (mp.ss_omega_exit_dps * d)) || (wp > (mp.ss_perp_out_dps * d)));
+        h__98 = wz;
+        if h__98 < 0, h__98 = -h__98; elseif h__98 == 0, h__98 = 0; end
+        bad = ((h__98 < (mp.ss_omega_exit_dps * d)) || (wp > (mp.ss_perp_out_dps * d)));
         if bad
             s.hold = (s.hold + dt);
         else

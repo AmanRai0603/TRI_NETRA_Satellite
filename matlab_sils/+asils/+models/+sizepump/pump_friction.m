@@ -11,6 +11,13 @@ function [dp, re] = pump_friction(v, d, l)
     re = 0;
     [rho, mu, rho_e, melt] = asils.models.sizepump.pump_fluid();
     re = asils.models.sizedemand.size_max((((rho * v) * d) / mu), 1e-9);
-    f = asils.pc.choose((re < 2300), (64 / re), (0.316 * asils.pc.pow_(re, (-(0.25)))));
+    if (re < 2300)
+        h__11 = (64 / re);
+    else
+        h__12 = (re)^((-(0.25)));
+        if ~isreal(h__12), h__12 = NaN; end
+        h__11 = (0.316 * h__12);
+    end
+    f = h__11;
     dp = (((((f * (l / d)) * rho) * v) * v) / 2);
 end

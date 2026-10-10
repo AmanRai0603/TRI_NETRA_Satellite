@@ -7,8 +7,12 @@ function [t] = xlocal(z, tcf)
     t = 0;
     dz = (z - 125);
     if (dz > 0)
-        t = (tcf(1) + (tcf(3) * atan(((tcf(4) * dz) * (1 + (0.0000045 * asils.pc.pow_(dz, 2.5)))))));
+        h__313 = (dz)^(2.5);
+        if ~isreal(h__313), h__313 = NaN; end
+        t = (tcf(1) + (tcf(3) * atan(((tcf(4) * dz) * (1 + (0.0000045 * h__313))))));
     else
-        t = ((((((((-(0.0000098204695)) * dz) - 0.00073039742) * asils.pc.pow_(dz, 2)) + 1) * dz) * tcf(2)) + tcf(1));
+        h__314 = (dz)^(2);
+        if ~isreal(h__314), h__314 = NaN; end
+        t = ((((((((-(0.0000098204695)) * dz) - 0.00073039742) * h__314) + 1) * dz) * tcf(2)) + tcf(1));
     end
 end

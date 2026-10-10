@@ -20,19 +20,33 @@ function [d] = iers2010(r_moon, r_sun, mu, re)
     k4 = asils.models.de440.de440_constants();
     d = asils.models.solidtides.Dcs5_zero();
     for body = (0):((2) - 1)
-        rb = asils.pc.choose((body == 0), r_moon, r_sun);
-        gmb = asils.pc.choose((body == 0), k4.gm_moon, k4.gm_sun);
+        if (body == 0)
+            h__466 = r_moon;
+        else
+            h__466 = r_sun;
+        end
+        rb = h__466;
+        if (body == 0)
+            h__467 = k4.gm_moon;
+        else
+            h__467 = k4.gm_sun;
+        end
+        gmb = h__467;
         [r, phi, lam] = asils.models.solidtides.body_angles(rb);
         p = asils.models.solidtides.norm_legendre5(sin(phi), 4);
         for n = (2):((4) - 1)
             for m = (0):(((n + 1)) - 1)
-                fac = ((((k((n) + 1, (m) + 1) / ((2 * n) + 1)) * (gmb / mu)) * asils.pc.pow_((re / r), (n + 1))) * p((n) + 1, (m) + 1));
+                h__468 = ((re / r))^((n + 1));
+                if ~isreal(h__468), h__468 = NaN; end
+                fac = ((((k((n) + 1, (m) + 1) / ((2 * n) + 1)) * (gmb / mu)) * h__468) * p((n) + 1, (m) + 1));
                 d.dc((n) + 1, (m) + 1) = (d.dc((n) + 1, (m) + 1) + (fac * cos((m * lam))));
                 d.ds((n) + 1, (m) + 1) = (d.ds((n) + 1, (m) + 1) + (fac * sin((m * lam))));
             end
         end
         for m = (0):((3) - 1)
-            fac4 = ((((kp((m) + 1) / 5) * (gmb / mu)) * asils.pc.pow_((re / r), 3)) * p(3, (m) + 1));
+            h__469 = ((re / r))^(3);
+            if ~isreal(h__469), h__469 = NaN; end
+            fac4 = ((((kp((m) + 1) / 5) * (gmb / mu)) * h__469) * p(3, (m) + 1));
             d.dc(5, (m) + 1) = (d.dc(5, (m) + 1) + (fac4 * cos((m * lam))));
             d.ds(5, (m) + 1) = (d.ds(5, (m) + 1) + (fac4 * sin((m * lam))));
         end

@@ -50,7 +50,8 @@ function [nout, e, t, idx, sums, cnt, out] = kpi_ecss(k, los, e, bs, t, idx, ni,
                 if ((((cnt((bk) + 1) > 0) && isfinite(v(1))) && isfinite(v(2))) && isfinite(v(3)))
                     r = (1 / cnt((bk) + 1));
                     m = [(sums(((3 * bk)) + 1) * r); (sums((((3 * bk) + 1)) + 1) * r); (sums((((3 * bk) + 2)) + 1) * r)];
-                    out((nout) + 1) = (asils.pc.norm_((v - m)) * (180 / pi));
+                    h__626 = (v - m);
+                    out((nout) + 1) = (sqrt(h__626(1)*h__626(1) + h__626(2)*h__626(2) + h__626(3)*h__626(3)) * (180 / pi));
                     nout = (nout + 1);
                 end
             end
@@ -77,7 +78,8 @@ function [nout, e, t, idx, sums, cnt, out] = kpi_ecss(k, los, e, bs, t, idx, ni,
                     rb = (1 / cnt(((kb + s)) + 1));
                     ma = [(sums(((3 * kb)) + 1) * ra); (sums((((3 * kb) + 1)) + 1) * ra); (sums((((3 * kb) + 2)) + 1) * ra)];
                     mb = [(sums(((3 * (kb + s))) + 1) * rb); (sums((((3 * (kb + s)) + 1)) + 1) * rb); (sums((((3 * (kb + s)) + 2)) + 1) * rb)];
-                    out((nout) + 1) = (asils.pc.norm_((mb - ma)) * (180 / pi));
+                    h__627 = (mb - ma);
+                    out((nout) + 1) = (sqrt(h__627(1)*h__627(1) + h__627(2)*h__627(2) + h__627(3)*h__627(3)) * (180 / pi));
                     nout = (nout + 1);
                 end
             end

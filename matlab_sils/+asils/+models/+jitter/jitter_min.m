@@ -10,6 +10,9 @@ function [c] = jitter_min(a, b)
     elseif isnan(b)
         c = a;
     else
-        c = asils.pc.fmin(a, b);
+        h__646 = a;
+        h__647 = b;
+        if h__647 < h__646, h__646 = h__647; end
+        c = h__646;
     end
 end

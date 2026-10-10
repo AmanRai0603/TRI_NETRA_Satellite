@@ -12,40 +12,42 @@ function [tau] = fq_torque(law, g, qe, w, wref_r, e3)
     tau = zeros(3, 1);
     am = asils.models.math.dcm(qe);
     we = (w - [am(1, 1)*wref_r(1) + am(1, 2)*wref_r(2) + am(1, 3)*wref_r(3); am(2, 1)*wref_r(1) + am(2, 2)*wref_r(2) + am(2, 3)*wref_r(3); am(3, 1)*wref_r(1) + am(3, 2)*wref_r(2) + am(3, 3)*wref_r(3)]);
-    sg = asils.pc.choose((qe(4) >= 0), 1, (-(1)));
+    if (qe(4) >= 0)
+        h__38 = 1;
+    else
+        h__38 = (-(1));
+    end
+    sg = h__38;
     qv = [qe(1); qe(2); qe(3)];
     tau = zeros(3, 1);
     if (law == 0)
-        for i = (0):((3) - 1)
-            tau((i) + 1) = (((-(g.mtq_Kp((i) + 1))) * (sg * qv((i) + 1))) - (g.mtq_Kd((i) + 1) * we((i) + 1)));
-        end
+        i = ((0):((3) - 1)).';
+        tau((i) + 1) = (((-(reshape(g.mtq_Kp((i) + 1), [], 1))) .* (sg .* reshape(qv((i) + 1), [], 1))) - (reshape(g.mtq_Kd((i) + 1), [], 1) .* reshape(we((i) + 1), [], 1)));
     elseif (law == 3)
-        for i = (0):((3) - 1)
-            tau((i) + 1) = ((-(g.mtq_Kd((i) + 1))) * we((i) + 1));
-        end
+        i = ((0):((3) - 1)).';
+        tau((i) + 1) = ((-(reshape(g.mtq_Kd((i) + 1), [], 1))) .* reshape(we((i) + 1), [], 1));
     elseif (law == 4)
         e = g.mtq_eps;
         jwe = [g.J(1, 1)*we(1) + g.J(1, 2)*we(2) + g.J(1, 3)*we(3); g.J(2, 1)*we(1) + g.J(2, 2)*we(2) + g.J(2, 3)*we(3); g.J(3, 1)*we(1) + g.J(3, 2)*we(2) + g.J(3, 3)*we(3)];
-        for i = (0):((3) - 1)
-            tau((i) + 1) = (-(((((e * e) * g.mtq_k1) * (sg * qv((i) + 1))) + ((e * g.mtq_k2) * jwe((i) + 1)))));
-        end
+        i = ((0):((3) - 1)).';
+        tau((i) + 1) = (-(((((e * e) * g.mtq_k1) .* (sg .* reshape(qv((i) + 1), [], 1))) + ((e * g.mtq_k2) .* reshape(jwe((i) + 1), [], 1)))));
     elseif (law == 5)
         e5 = g.mtq_eps;
-        for i = (0):((3) - 1)
-            tau((i) + 1) = (-(((((e5 * e5) * g.mtq_k1) * (sg * qv((i) + 1))) + ((e5 * g.mtq_k2) * we((i) + 1)))));
-        end
+        i = ((0):((3) - 1)).';
+        tau((i) + 1) = (-(((((e5 * e5) * g.mtq_k1) .* (sg .* reshape(qv((i) + 1), [], 1))) + ((e5 * g.mtq_k2) .* reshape(we((i) + 1), [], 1)))));
     elseif (law == 6)
         n = sqrt(wref_r(1)*wref_r(1) + wref_r(2)*wref_r(2) + wref_r(3)*wref_r(3));
         ep = (wref_r / n);
         sgm = [am(1, 1)*ep(1) + am(1, 2)*ep(2) + am(1, 3)*ep(3); am(2, 1)*ep(1) + am(2, 2)*ep(2) + am(2, 3)*ep(3); am(3, 1)*ep(1) + am(3, 2)*ep(2) + am(3, 3)*ep(3)];
-        jp = asils.pc.dot_(asils.pc.mv((g.J).', ep), ep);
+        h__39 = (g.J).';
+        h__40 = [h__39(1, 1)*ep(1) + h__39(1, 2)*ep(2) + h__39(1, 3)*ep(3); h__39(2, 1)*ep(1) + h__39(2, 2)*ep(2) + h__39(2, 3)*ep(3); h__39(3, 1)*ep(1) + h__39(3, 2)*ep(2) + h__39(3, 3)*ep(3)];
+        jp = (h__40(1)*ep(1) + h__40(2)*ep(2) + h__40(3)*ep(3));
         th = ((2 * sg) * (qv(1)*ep(1) + qv(2)*ep(2) + qv(3)*ep(3)));
         eta = ((jp * n) * (1 - (g.mtq_lam16 * th)));
         jw = [g.J(1, 1)*w(1) + g.J(1, 2)*w(2) + g.J(1, 3)*w(3); g.J(2, 1)*w(1) + g.J(2, 2)*w(2) + g.J(2, 3)*w(3); g.J(3, 1)*w(1) + g.J(3, 2)*w(2) + g.J(3, 3)*w(3)];
         k = g.mtq_k16;
-        for i = (0):((3) - 1)
-            tau((i) + 1) = ((k * ((eta * sgm((i) + 1)) - jw((i) + 1))) + (k * ((eta * ep((i) + 1)) - jw((i) + 1))));
-        end
+        i = ((0):((3) - 1)).';
+        tau((i) + 1) = ((k .* ((eta .* reshape(sgm((i) + 1), [], 1)) - reshape(jw((i) + 1), [], 1))) + (k .* ((eta .* reshape(ep((i) + 1), [], 1)) - reshape(jw((i) + 1), [], 1))));
     elseif (law == 7)
         ab = [am(1, 1)*e3(1) + am(1, 2)*e3(2) + am(1, 3)*e3(3); am(2, 1)*e3(1) + am(2, 2)*e3(2) + am(2, 3)*e3(3); am(3, 1)*e3(1) + am(3, 2)*e3(2) + am(3, 3)*e3(3)];
         tau = ((g.sb_kp * [e3(2)*ab(3) - e3(3)*ab(2); e3(3)*ab(1) - e3(1)*ab(3); e3(1)*ab(2) - e3(2)*ab(1)]) - (g.sb_kd * we));
@@ -54,14 +56,15 @@ function [tau] = fq_torque(law, g, qe, w, wref_r, e3)
             if (sqrt(pa(1)*pa(1) + pa(2)*pa(2) + pa(3)*pa(3)) > 0.000001)
                 pn = (pa / sqrt(pa(1)*pa(1) + pa(2)*pa(2) + pa(3)*pa(3)));
                 pd = [am(1, 1)*pn(1) + am(1, 2)*pn(2) + am(1, 3)*pn(3); am(2, 1)*pn(1) + am(2, 2)*pn(2) + am(2, 3)*pn(3); am(3, 1)*pn(1) + am(3, 2)*pn(2) + am(3, 3)*pn(3)];
-                tau = (tau + (((g.sb_kroll * atan2(asils.pc.dot_([pn(2)*pd(3) - pn(3)*pd(2); pn(3)*pd(1) - pn(1)*pd(3); pn(1)*pd(2) - pn(2)*pd(1)], e3), (pn(1)*pd(1) + pn(2)*pd(2) + pn(3)*pd(3)))) - (g.sb_kdroll * (we(1)*e3(1) + we(2)*e3(2) + we(3)*e3(3)))) * e3));
+                h__41 = [pn(2)*pd(3) - pn(3)*pd(2); pn(3)*pd(1) - pn(1)*pd(3); pn(1)*pd(2) - pn(2)*pd(1)];
+                tau = (tau + (((g.sb_kroll * atan2((h__41(1)*e3(1) + h__41(2)*e3(2) + h__41(3)*e3(3)), (pn(1)*pd(1) + pn(2)*pd(2) + pn(3)*pd(3)))) - (g.sb_kdroll * (we(1)*e3(1) + we(2)*e3(2) + we(3)*e3(3)))) * e3));
             end
         end
     elseif (law == 8)
-        pq = asils.pc.mv(g.mtq_Pth, ((2 * sg) * qv));
+        h__42 = ((2 * sg) * qv);
+        pq = [g.mtq_Pth(1, 1)*h__42(1) + g.mtq_Pth(1, 2)*h__42(2) + g.mtq_Pth(1, 3)*h__42(3); g.mtq_Pth(2, 1)*h__42(1) + g.mtq_Pth(2, 2)*h__42(2) + g.mtq_Pth(2, 3)*h__42(3); g.mtq_Pth(3, 1)*h__42(1) + g.mtq_Pth(3, 2)*h__42(2) + g.mtq_Pth(3, 3)*h__42(3)];
         pw = [g.mtq_Pw(1, 1)*we(1) + g.mtq_Pw(1, 2)*we(2) + g.mtq_Pw(1, 3)*we(3); g.mtq_Pw(2, 1)*we(1) + g.mtq_Pw(2, 2)*we(2) + g.mtq_Pw(2, 3)*we(3); g.mtq_Pw(3, 1)*we(1) + g.mtq_Pw(3, 2)*we(2) + g.mtq_Pw(3, 3)*we(3)];
-        for i = (0):((3) - 1)
-            tau((i) + 1) = (-((pq((i) + 1) + pw((i) + 1))));
-        end
+        i = ((0):((3) - 1)).';
+        tau((i) + 1) = (-((reshape(pq((i) + 1), [], 1) + reshape(pw((i) + 1), [], 1))));
     end
 end

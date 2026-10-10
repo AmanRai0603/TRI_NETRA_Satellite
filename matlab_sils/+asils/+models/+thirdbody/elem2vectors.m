@@ -20,7 +20,9 @@ function [j, e] = elem2vectors(ecc, inc, om, w)
     cw = cos(w);
     sw = sin(w);
     ehat = [((cw * node(1)) + (sw * ip(1))); ((cw * node(2)) + (sw * ip(2))); ((cw * node(3)) + (sw * ip(3)))];
-    sj = asils.pc.sqrt_((1 - (ecc * ecc)));
+    h__522 = (1 - (ecc * ecc));
+    if h__522 < 0, h__522 = NaN; else, h__522 = sqrt(h__522); end
+    sj = h__522;
     j = [(sj * jhat(1)); (sj * jhat(2)); (sj * jhat(3))];
     e = [(ecc * ehat(1)); (ecc * ehat(2)); (ecc * ehat(3))];
 end

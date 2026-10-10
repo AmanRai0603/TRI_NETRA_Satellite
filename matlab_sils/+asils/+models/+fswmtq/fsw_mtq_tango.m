@@ -19,18 +19,30 @@ function [pth, pw] = fsw_mtq_tango(ii, wn, z, gp, gd)
     d = [(1 / (ii(1) * ii(1))); (1 / (ii(2) * ii(2))); (1 / (ii(3) * ii(3)))];
     trd = ((d(1) + d(2)) + d(3));
     mi = zeros(3, 1);
-    for ax = (0):((3) - 1)
-        mi((ax) + 1) = ((((7 / 15) * d((ax) + 1)) + (trd / 15)) / r);
-    end
+    ax = ((0):((3) - 1)).';
+    mi((ax) + 1) = ((((7 / 15) .* reshape(d((ax) + 1), [], 1)) + (trd / 15)) ./ r);
     mref = (((mi(1) + mi(2)) + mi(3)) / 3);
-    qt = (mref * asils.pc.ipow((((jm * wn) * wn) * r), 2));
-    qw0 = ((mref * asils.pc.ipow(((((2 * z) * jm) * wn) * r), 2)) - (2 * asils.pc.sqrt_((qt / mref))));
-    qw = asils.pc.choose((qw0 > 0), qw0, 0);
+    h__548 = (((jm * wn) * wn) * r);
+    qt = (mref * (h__548 * h__548));
+    h__549 = ((((2 * z) * jm) * wn) * r);
+    h__550 = (qt / mref);
+    if h__550 < 0, h__550 = NaN; else, h__550 = sqrt(h__550); end
+    qw0 = ((mref * (h__549 * h__549)) - (2 * h__550));
+    if (qw0 > 0)
+        h__551 = qw0;
+    else
+        h__551 = 0;
+    end
+    qw = h__551;
     pth = zeros(3, 3);
     pw = zeros(3, 3);
     for ax = (0):((3) - 1)
-        p12 = asils.pc.sqrt_((qt / mi((ax) + 1)));
-        p22 = asils.pc.sqrt_(((qw + (2 * p12)) / mi((ax) + 1)));
+        h__552 = (qt / mi((ax) + 1));
+        if h__552 < 0, h__552 = NaN; else, h__552 = sqrt(h__552); end
+        p12 = h__552;
+        h__553 = ((qw + (2 * p12)) / mi((ax) + 1));
+        if h__553 < 0, h__553 = NaN; else, h__553 = sqrt(h__553); end
+        p22 = h__553;
         pth((ax) + 1, (ax) + 1) = ((gp * p12) / r);
         pw((ax) + 1, (ax) + 1) = ((gd * p22) / r);
     end

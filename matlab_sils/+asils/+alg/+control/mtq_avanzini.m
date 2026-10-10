@@ -20,17 +20,16 @@ function [tau, ok] = mtq_avanzini(q, w, q_ref, w_ref, j, k, lam)
     if ok
         [qe, s, wr, we] = asils.alg.control.mtq_err(q, w, q_ref, w_ref);
         ep = zeros(3, 1);
-        for i = (0):((3) - 1)
-            ep((i) + 1) = (w_ref((i) + 1) / n);
-        end
-        sg = asils.pc.mv(asils.alg.math.dcm(qe), ep);
+        i = ((0):((3) - 1)).';
+        ep((i) + 1) = (reshape(w_ref((i) + 1), [], 1) ./ n);
+        h__65 = asils.alg.math.dcm(qe);
+        sg = [h__65(1, 1)*ep(1) + h__65(1, 2)*ep(2) + h__65(1, 3)*ep(3); h__65(2, 1)*ep(1) + h__65(2, 2)*ep(2) + h__65(2, 3)*ep(3); h__65(3, 1)*ep(1) + h__65(3, 2)*ep(2) + h__65(3, 3)*ep(3)];
         jep = [j(1, 1)*ep(1) + j(1, 2)*ep(2) + j(1, 3)*ep(3); j(2, 1)*ep(1) + j(2, 2)*ep(2) + j(2, 3)*ep(3); j(3, 1)*ep(1) + j(3, 2)*ep(2) + j(3, 3)*ep(3)];
         jp = (ep(1)*jep(1) + ep(2)*jep(2) + ep(3)*jep(3));
         th = ((2 * s) * (((qe(1) * ep(1)) + (qe(2) * ep(2))) + (qe(3) * ep(3))));
         eta = ((jp * n) * (1 - (lam * th)));
         jw = [j(1, 1)*w(1) + j(1, 2)*w(2) + j(1, 3)*w(3); j(2, 1)*w(1) + j(2, 2)*w(2) + j(2, 3)*w(3); j(3, 1)*w(1) + j(3, 2)*w(2) + j(3, 3)*w(3)];
-        for i = (0):((3) - 1)
-            tau((i) + 1) = ((k * ((eta * sg((i) + 1)) - jw((i) + 1))) + (k * ((eta * ep((i) + 1)) - jw((i) + 1))));
-        end
+        i = ((0):((3) - 1)).';
+        tau((i) + 1) = ((k .* ((eta .* reshape(sg((i) + 1), [], 1)) - reshape(jw((i) + 1), [], 1))) + (k .* ((eta .* reshape(ep((i) + 1), [], 1)) - reshape(jw((i) + 1), [], 1))));
     end
 end

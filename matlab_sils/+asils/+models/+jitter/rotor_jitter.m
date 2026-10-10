@@ -17,14 +17,21 @@ function [j] = rotor_jitter(n, h, jrot, us, ud, jmin, d, wbw)
     for i = (0):((n) - 1)
         t = 0;
         if ((~((us((i) + 1) == 0) && (ud((i) + 1) == 0))) && (jrot((i) + 1) > 0))
-            w = (asils.pc.fabs(h((i) + 1)) / jrot((i) + 1));
+            h__655 = h((i) + 1);
+            if h__655 < 0, h__655 = -h__655; elseif h__655 == 0, h__655 = 0; end
+            w = (h__655 / jrot((i) + 1));
             if (~isfinite(w))
                 w = 0;
             end
-            th = (((((us((i) + 1) * d) + ud((i) + 1)) * w) * w) / (jmin * asils.pc.fmax((w * w), (wbw * wbw))));
+            h__656 = (w * w);
+            h__657 = (wbw * wbw);
+            if h__657 > h__656, h__656 = h__657; end
+            th = (((((us((i) + 1) * d) + ud((i) + 1)) * w) * w) / (jmin * h__656));
             t = (th * th);
         end
         th2 = (th2 + t);
     end
-    j = ((asils.pc.sqrt_(th2) * (180 / pi)) * 3600);
+    h__658 = th2;
+    if h__658 < 0, h__658 = NaN; else, h__658 = sqrt(h__658); end
+    j = ((h__658 * (180 / pi)) * 3600);
 end

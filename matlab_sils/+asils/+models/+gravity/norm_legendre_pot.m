@@ -12,16 +12,26 @@ function [p] = norm_legendre_pot(sp, cp, nn)
     p = zeros(14641, 1);
     p(1) = 1;
     if (nn >= 1)
-        p((st) + 1) = (asils.pc.sqrt_(3) * sp);
-        p(((st + 1)) + 1) = (asils.pc.sqrt_(3) * cp);
+        h__279 = 3;
+        if h__279 < 0, h__279 = NaN; else, h__279 = sqrt(h__279); end
+        p((st) + 1) = (h__279 * sp);
+        h__280 = 3;
+        if h__280 < 0, h__280 = NaN; else, h__280 = sqrt(h__280); end
+        p(((st + 1)) + 1) = (h__280 * cp);
     end
     for n = (2):(((nn + 1)) - 1)
         nf = n;
-        p((((n * st) + n)) + 1) = ((asils.pc.sqrt_((((2 * nf) + 1) / (2 * nf))) * cp) * p((((((n - 1) * st) + n) - 1)) + 1));
+        h__281 = (((2 * nf) + 1) / (2 * nf));
+        if h__281 < 0, h__281 = NaN; else, h__281 = sqrt(h__281); end
+        p((((n * st) + n)) + 1) = ((h__281 * cp) * p((((((n - 1) * st) + n) - 1)) + 1));
         for m = (0):((n) - 1)
             mf = m;
-            a = asils.pc.sqrt_(((((2 * nf) + 1) * ((2 * nf) - 1)) / ((nf - mf) * (nf + mf))));
-            b = asils.pc.sqrt_((((((2 * nf) + 1) * ((nf + mf) - 1)) * ((nf - mf) - 1)) / ((((2 * nf) - 3) * (nf - mf)) * (nf + mf))));
+            h__282 = ((((2 * nf) + 1) * ((2 * nf) - 1)) / ((nf - mf) * (nf + mf)));
+            if h__282 < 0, h__282 = NaN; else, h__282 = sqrt(h__282); end
+            a = h__282;
+            h__283 = (((((2 * nf) + 1) * ((nf + mf) - 1)) * ((nf - mf) - 1)) / ((((2 * nf) - 3) * (nf - mf)) * (nf + mf)));
+            if h__283 < 0, h__283 = NaN; else, h__283 = sqrt(h__283); end
+            b = h__283;
             if (m == (n - 1))
                 p((((n * st) + m)) + 1) = ((a * sp) * p(((((n - 1) * st) + m)) + 1));
             else

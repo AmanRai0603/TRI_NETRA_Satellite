@@ -21,10 +21,35 @@ function [has_gyro, has_st, has_sun, has_es, has_gps, n_heads] = fsw_sensor_set(
     has_es = 0;
     has_gps = 0;
     n_heads = 0;
-    has_gyro = asils.pc.choose(gyro, 1, 0);
-    has_st = asils.pc.choose(st, 1, 0);
-    has_sun = asils.pc.choose((sun || css), 1, 0);
-    has_es = asils.pc.choose(es, 1, 0);
-    has_gps = asils.pc.choose(gps, 1, 0);
+    if gyro
+        h__559 = 1;
+    else
+        h__559 = 0;
+    end
+    has_gyro = h__559;
+    if st
+        h__560 = 1;
+    else
+        h__560 = 0;
+    end
+    has_st = h__560;
+    if (sun || css)
+        h__561 = 1;
+    else
+        h__561 = 0;
+    end
+    has_sun = h__561;
+    if es
+        h__562 = 1;
+    else
+        h__562 = 0;
+    end
+    has_es = h__562;
+    if gps
+        h__563 = 1;
+    else
+        h__563 = 0;
+    end
+    has_gps = h__563;
     n_heads = nh;
 end

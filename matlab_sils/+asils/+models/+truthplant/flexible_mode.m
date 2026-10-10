@@ -15,7 +15,9 @@ function [delta, omega, z] = flexible_mode(fmode, mpart, zeta, axis, j)
     z = 0;
     delta = zeros(3, 1);
     a = (axis - 1);
-    delta((a) + 1) = asils.pc.sqrt_((mpart * j((a) + 1, (a) + 1)));
+    h__154 = (mpart * j((a) + 1, (a) + 1));
+    if h__154 < 0, h__154 = NaN; else, h__154 = sqrt(h__154); end
+    delta((a) + 1) = h__154;
     omega = ((2 * pi) * fmode);
     z = zeta;
 end

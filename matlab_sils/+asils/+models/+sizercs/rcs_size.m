@@ -49,13 +49,19 @@ function [thrust, f_req, arm_long, arm_short, it_det, it_dump, it_slew, mprop, m
     isp = 60;
     jmax = (-(1.7976931348623157e+308));
     for i = (0):((3) - 1)
-        jmax = asils.pc.fmax(jmax, j((i) + 1));
+        h__138 = jmax;
+        h__139 = j((i) + 1);
+        if h__139 > h__138, h__138 = h__139; end
+        jmax = h__138;
     end
     arm = [(0.45 * bx(2)); (0.45 * bx(1)); (0.45 * bx(1))];
     alpha = asils.models.sizedemand.size_max((tau_req / jmax), ((h_detumble / 600) / jmax));
     fr = (-(1.7976931348623157e+308));
     for i = (0):((3) - 1)
-        fr = asils.pc.fmax(fr, ((j((i) + 1) * alpha) / (2 * arm((i) + 1))));
+        h__140 = fr;
+        h__141 = ((j((i) + 1) * alpha) / (2 * arm((i) + 1)));
+        if h__141 > h__140, h__140 = h__141; end
+        fr = h__140;
     end
     f_req = (fr * s);
     cls = [0.005; 0.01; 0.02; 0.05; 0.1];
@@ -78,7 +84,9 @@ function [thrust, f_req, arm_long, arm_short, it_det, it_dump, it_slew, mprop, m
     mprop = asils.models.sizedemand.size_max(((1.2 * (it_det + it_dump)) / (isp * g0)), 0.01);
     mslew = ((1.2 * it_slew) / (isp * g0));
     v = ((1.25 * mprop) / 745);
-    rtank = asils.pc.pow_(((3 * v) / (4 * pi)), (1 / 3));
+    h__142 = (((3 * v) / (4 * pi)))^((1 / 3));
+    if ~isreal(h__142), h__142 = NaN; end
+    rtank = h__142;
     pm = 7000000;
     sig = 250000000;
     t = asils.models.sizedemand.size_max(((pm * rtank) / (2 * sig)), 0.0005);
@@ -90,6 +98,7 @@ function [thrust, f_req, arm_long, arm_short, it_det, it_dump, it_slew, mprop, m
     tank_wall = t;
     arm_long = arm(2);
     arm_short = arm(1);
-    volume = ((asils.pc.ipow((2 * rtank), 3) * 1000) + 0.05);
+    h__143 = (2 * rtank);
+    volume = (((h__143 * h__143 * h__143) * 1000) + 0.05);
     isp_budget = isp;
 end

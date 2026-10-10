@@ -9,26 +9,51 @@ function [n, v] = domain(x)
     n = 0;
     v = 0;
     n = 0;
-    if isnan(asils.pc.sqrt_(x))
+    h__35 = x;
+    if h__35 < 0, h__35 = NaN; else, h__35 = sqrt(h__35); end
+    if isnan(h__35)
         n = (n + 1);
     end
-    if isnan(asils.pc.asin_(x))
+    h__36 = asin(x);
+    if ~isreal(h__36), h__36 = NaN; end
+    if isnan(h__36)
         n = (n + 2);
     end
-    if isnan(asils.pc.acos_(x))
+    h__37 = acos(x);
+    if ~isreal(h__37), h__37 = NaN; end
+    if isnan(h__37)
         n = (n + 4);
     end
-    if isnan(asils.pc.log_(x))
+    h__38 = log(x);
+    if ~isreal(h__38), h__38 = NaN; end
+    if isnan(h__38)
         n = (n + 8);
     end
-    if isnan(asils.pc.log10_(x))
+    h__39 = log10(x);
+    if ~isreal(h__39), h__39 = NaN; end
+    if isnan(h__39)
         n = (n + 16);
     end
-    if isnan(asils.pc.log2_(x))
+    h__40 = log2(x);
+    if ~isreal(h__40), h__40 = NaN; end
+    if isnan(h__40)
         n = (n + 32);
     end
-    if isnan(asils.pc.pow_(x, 0.5))
+    h__41 = (x)^(0.5);
+    if ~isreal(h__41), h__41 = NaN; end
+    if isnan(h__41)
         n = (n + 64);
     end
-    v = asils.pc.choose((x >= 0), (asils.pc.sqrt_(x) + asils.pc.log_((x + 1))), asils.pc.acos_((x / 3)));
+    if (x >= 0)
+        h__43 = x;
+        if h__43 < 0, h__43 = NaN; else, h__43 = sqrt(h__43); end
+        h__44 = log((x + 1));
+        if ~isreal(h__44), h__44 = NaN; end
+        h__42 = (h__43 + h__44);
+    else
+        h__45 = acos((x / 3));
+        if ~isreal(h__45), h__45 = NaN; end
+        h__42 = h__45;
+    end
+    v = h__42;
 end

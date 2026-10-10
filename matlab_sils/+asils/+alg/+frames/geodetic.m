@@ -12,14 +12,18 @@ function [lat, lon, h] = geodetic(r)
     a = 6378137;
     f = (1 / 298.257223563);
     e2 = (f * (2 - f));
-    p = asils.pc.sqrt_(((r(1) * r(1)) + (r(2) * r(2))));
+    h__16 = ((r(1) * r(1)) + (r(2) * r(2)));
+    if h__16 < 0, h__16 = NaN; else, h__16 = sqrt(h__16); end
+    p = h__16;
     lon = atan2(r(2), r(1));
     la = atan2(r(3), (p * (1 - e2)));
     nn = a;
     hh = 0;
     for k = (0):((3) - 1)
         sl = sin(la);
-        nn = (a / asils.pc.sqrt_((1 - ((e2 * sl) * sl))));
+        h__17 = (1 - ((e2 * sl) * sl));
+        if h__17 < 0, h__17 = NaN; else, h__17 = sqrt(h__17); end
+        nn = (a / h__17);
         hh = ((p / cos(la)) - nn);
         la = atan2(r(3), (p * (1 - ((e2 * nn) / (nn + hh)))));
     end

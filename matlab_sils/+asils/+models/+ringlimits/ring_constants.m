@@ -16,8 +16,8 @@ function [ac, k_hv, tsd, hmax] = ring_constants(bore_m, s_m2, rho, mu, v_max)
     k_hv = 0;
     tsd = 0;
     hmax = 0;
-    ac = ((pi * asils.pc.ipow(bore_m, 2)) / 4);
+    ac = ((pi * (bore_m * bore_m)) / 4);
     k_hv = (((rho * ac) * 2) * s_m2);
-    tsd = ((rho * asils.pc.ipow(bore_m, 2)) / (32 * mu));
+    tsd = ((rho * (bore_m * bore_m)) / (32 * mu));
     hmax = (k_hv * v_max);
 end

@@ -22,71 +22,88 @@ function [gdot, hdot] = steer_sr(tau, a, h, nr, ng, rot_gi, gim_axis, gim_rate_m
     t__0 = ((0):((nr) - 1)).';
     for i = t__0(logical((rot_gi((t__0) + 1) > 0))).'
         j = (rot_gi((i) + 1) - 1);
-        c = asils.pc.cross_((gim_axis((j) + 1, :)).', [a(1, (i) + 1); a(2, (i) + 1); a(3, (i) + 1)]);
-        for k = (0):((3) - 1)
-            jg((k) + 1, (j) + 1) = ((-(h((i) + 1))) * c((k) + 1));
-        end
-        if (asils.pc.fabs(h((i) + 1)) > h0)
-            h0 = asils.pc.fabs(h((i) + 1));
+        h__28 = [a(1, (i) + 1); a(2, (i) + 1); a(3, (i) + 1)];
+        c = [gim_axis((j) + 1, 2)*h__28(3) - gim_axis((j) + 1, 3)*h__28(2); gim_axis((j) + 1, 3)*h__28(1) - gim_axis((j) + 1, 1)*h__28(3); gim_axis((j) + 1, 1)*h__28(2) - gim_axis((j) + 1, 2)*h__28(1)];
+        k = ((0):((3) - 1)).';
+        jg((k) + 1, (j) + 1) = ((-(h((i) + 1))) .* reshape(c((k) + 1), [], 1));
+        h__29 = h((i) + 1);
+        if h__29 < 0, h__29 = -h__29; elseif h__29 == 0, h__29 = 0; end
+        if (h__29 > h0)
+            h__30 = h((i) + 1);
+            if h__30 < 0, h__30 = -h__30; elseif h__30 == 0, h__30 = 0; end
+            h0 = h__30;
         end
     end
     m = zeros(3, 3);
-    for i = (0):((3) - 1)
-        for j = (0):((3) - 1)
-            m((i) + 1, (j) + 1) = 0;
-            for k = (0):((ng) - 1)
-                m((i) + 1, (j) + 1) = (m((i) + 1, (j) + 1) + (jg((i) + 1, (k) + 1) * jg((j) + 1, (k) + 1)));
-            end
-        end
+    i = ((0):((3) - 1)).';
+    j = (0):((3) - 1);
+    m((i) + 1, (j) + 1) = 0;
+    for k = (0):((ng) - 1)
+        m((i) + 1, (j) + 1) = (m((i) + 1, (j) + 1) + (jg((i) + 1, (k) + 1) .* (jg((j) + 1, (k) + 1)).'));
     end
     if (h0 < 1e-12)
         h0 = 1e-12;
     end
     ms = (asils.relations.act.det3(m) / (((((h0 * h0) * h0) * h0) * h0) * h0));
-    n = asils.pc.choose(wheels, (ng + nr), ng);
+    if wheels
+        h__31 = (ng + nr);
+    else
+        h__31 = ng;
+    end
+    n = h__31;
     jj = zeros(3, 12);
-    for i = (0):((3) - 1)
-        for j = (0):((ng) - 1)
-            jj((i) + 1, (j) + 1) = jg((i) + 1, (j) + 1);
-        end
-        if wheels
-            for j = (0):((nr) - 1)
-                jj((i) + 1, ((ng + j)) + 1) = (-(a((i) + 1, (j) + 1)));
-            end
+    i = ((0):((3) - 1)).';
+    j = (0):((ng) - 1);
+    if ~isempty(j)
+        jj((i) + 1, (j) + 1) = jg((i) + 1, (j) + 1);
+    end
+    if wheels
+        for j = (0):((nr) - 1)
+            jj((i) + 1, ((ng + j)) + 1) = (-(a((i) + 1, (j) + 1)));
         end
     end
     w = zeros(12, 1);
-    for j = (0):((n) - 1)
-        w((j) + 1) = asils.pc.choose((j < ng), 1, (0.01 + (2 * exp(((-(10)) * ms)))));
+    j = ((0):((n) - 1)).';
+    if ~isempty(j)
+        w((j) + 1) = asils.pc.vchoose((j < ng), 1, (0.01 + (2 * exp(((-(10)) * ms)))));
     end
     lam = (cmg_lam0 * exp(((-(cmg_mu)) * ms)));
-    for i = (0):((3) - 1)
-        for j = (0):((3) - 1)
-            m((i) + 1, (j) + 1) = asils.pc.choose((i == j), lam, 0);
-            for k = (0):((n) - 1)
-                m((i) + 1, (j) + 1) = (m((i) + 1, (j) + 1) + ((jj((i) + 1, (k) + 1) * w((k) + 1)) * jj((j) + 1, (k) + 1)));
-            end
-        end
+    i = ((0):((3) - 1)).';
+    j = (0):((3) - 1);
+    m((i) + 1, (j) + 1) = asils.pc.vchoose((i == j), lam, 0);
+    for k = (0):((n) - 1)
+        m((i) + 1, (j) + 1) = (m((i) + 1, (j) + 1) + ((jj((i) + 1, (k) + 1) .* w((k) + 1)) .* (jj((j) + 1, (k) + 1)).'));
     end
     [mi, ok] = asils.relations.act.inv3(m);
     x = [mi(1, 1)*tau(1) + mi(1, 2)*tau(2) + mi(1, 3)*tau(3); mi(2, 1)*tau(1) + mi(2, 2)*tau(2) + mi(2, 3)*tau(3); mi(3, 1)*tau(1) + mi(3, 2)*tau(2) + mi(3, 3)*tau(3)];
     u = zeros(12, 1);
-    for k = (0):((n) - 1)
-        u((k) + 1) = (w((k) + 1) * (((jj(1, (k) + 1) * x(1)) + (jj(2, (k) + 1) * x(2))) + (jj(3, (k) + 1) * x(3))));
+    k = ((0):((n) - 1)).';
+    if ~isempty(k)
+        u((k) + 1) = (reshape(w((k) + 1), [], 1) .* ((((jj(1, (k) + 1)).' .* x(1)) + ((jj(2, (k) + 1)).' .* x(2))) + ((jj(3, (k) + 1)).' .* x(3))));
     end
     s = 1;
     gdot = zeros(4, 1);
     for j = (0):((ng) - 1)
         gdot((j) + 1) = u((j) + 1);
-        if ((asils.pc.fabs(u((j) + 1)) / gim_rate_max) > s)
-            s = (asils.pc.fabs(u((j) + 1)) / gim_rate_max);
+        h__32 = u((j) + 1);
+        if h__32 < 0, h__32 = -h__32; elseif h__32 == 0, h__32 = 0; end
+        if ((h__32 / gim_rate_max) > s)
+            h__33 = u((j) + 1);
+            if h__33 < 0, h__33 = -h__33; elseif h__33 == 0, h__33 = 0; end
+            s = (h__33 / gim_rate_max);
         end
     end
-    for j = (0):((ng) - 1)
-        gdot((j) + 1) = (gdot((j) + 1) / s);
+    j = ((0):((ng) - 1)).';
+    if ~isempty(j)
+        gdot((j) + 1) = (reshape(gdot((j) + 1), [], 1) ./ s);
     end
     hdot = zeros(8, 1);
     for i = (0):((nr) - 1)
-        hdot((i) + 1) = asils.pc.choose_lazy(wheels, @() (u(((ng + i)) + 1) / s), @() 0);
+        if wheels
+            h__34 = (u(((ng + i)) + 1) / s);
+        else
+            h__34 = 0;
+        end
+        hdot((i) + 1) = h__34;
     end
 end

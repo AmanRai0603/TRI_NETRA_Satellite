@@ -41,10 +41,9 @@ function [a] = fast_accel(r, v, x, zonal_max, third_body, drag, srp, mass_kg, ar
                 qn = (qn * q);
             end
             f = ((((-(398600441800000)) * [0.0; 0.0; 0.00108262668; -0.00000253265649; -0.00000161962159; -2.27296083e-7; 5.40681239e-7]((deg) + 1)) * qn) / rn);
-            for i = (0):((3) - 1)
-                zi = asils.pc.choose((i == 2), 1, 0);
-                a((i) + 1) = (a((i) + 1) + ((f / rn) * ((((-((df + 1))) * p) * rh((i) + 1)) + (dp * (zi - (s * rh((i) + 1)))))));
-            end
+            i = ((0):((3) - 1)).';
+            zi = asils.pc.vchoose((i == 2), 1, 0);
+            a((i) + 1) = (reshape(a((i) + 1), [], 1) + ((f / rn) .* ((((-((df + 1))) * p) .* reshape(rh((i) + 1), [], 1)) + (dp .* (zi - (s .* reshape(rh((i) + 1), [], 1)))))));
         end
     end
     if third_body
@@ -55,18 +54,16 @@ function [a] = fast_accel(r, v, x, zonal_max, third_body, drag, srp, mass_kg, ar
     if (drag && (x.rho > 0))
         vr = asils.models.orbitfast.corotating_velocity(r, v, 0.00007292115);
         vn = sqrt(vr(1)*vr(1) + vr(2)*vr(2) + vr(3)*vr(3));
-        for i = (0):((3) - 1)
-            a((i) + 1) = (a((i) + 1) - (((((0.5 * cd) * am) * x.rho) * vn) * vr((i) + 1)));
-        end
+        i = ((0):((3) - 1)).';
+        a((i) + 1) = (reshape(a((i) + 1), [], 1) - (((((0.5 * cd) * am) * x.rho) * vn) .* reshape(vr((i) + 1), [], 1)));
     end
     if srp
         nu = asils.models.shadow.shadow_fraction(r, x.sun);
         if (nu > 0)
             d = (r - x.sun);
             dn = sqrt(d(1)*d(1) + d(2)*d(2) + d(3)*d(3));
-            for i = (0):((3) - 1)
-                a((i) + 1) = (a((i) + 1) + (((((nu * x.p_srp) * cr) * am) * d((i) + 1)) / dn));
-            end
+            i = ((0):((3) - 1)).';
+            a((i) + 1) = (reshape(a((i) + 1), [], 1) + (((((nu * x.p_srp) * cr) * am) .* reshape(d((i) + 1), [], 1)) ./ dn));
         end
     end
 end

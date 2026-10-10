@@ -23,9 +23,13 @@ function [r] = omod(x, y)
     end
     if ((x ~= y) && (y ~= 0))
         if (y < 0)
-            r = (-(asils.pc.fabs(r)));
+            h__531 = r;
+            if h__531 < 0, h__531 = -h__531; elseif h__531 == 0, h__531 = 0; end
+            r = (-(h__531));
         else
-            r = asils.pc.fabs(r);
+            h__532 = r;
+            if h__532 < 0, h__532 = -h__532; elseif h__532 == 0, h__532 = 0; end
+            r = h__532;
         end
     end
 end

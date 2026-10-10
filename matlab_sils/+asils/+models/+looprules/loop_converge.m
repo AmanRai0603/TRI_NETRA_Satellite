@@ -122,17 +122,55 @@ function [n, mode_ix, act, dump_rcs, feasible, has_slot, tunable, has_obj, objec
     n = 0;
     [d_k_tau, d_lambda, d_heads, d_sigma, d_grade, b0, b1, b2, b3, b4, b5, b6, b7, b8, b9] = asils.models.sizedemand.sizing_knobs();
     improve = (1 - improvement);
-    cap = asils.pc.fmin(no, (numel(vstart) - 1));
+    h__61 = no;
+    h__62 = (numel(vstart) - 1);
+    if h__62 < h__61, h__61 = h__62; end
+    cap = h__61;
     n = 0;
     changes = 0;
-    k_gyro = asils.pc.choose(has_gyro, gyro, d_grade);
-    k_sigma = asils.pc.choose(has_sigma, sigma, d_sigma);
-    k_lambda = asils.pc.choose(has_lambda, lambda, d_lambda);
-    k_heads = asils.pc.choose(has_heads, heads, d_heads);
+    if has_gyro
+        h__63 = gyro;
+    else
+        h__63 = d_grade;
+    end
+    k_gyro = h__63;
+    if has_sigma
+        h__64 = sigma;
+    else
+        h__64 = d_sigma;
+    end
+    k_sigma = h__64;
+    if has_lambda
+        h__65 = lambda;
+    else
+        h__65 = d_lambda;
+    end
+    k_lambda = h__65;
+    if has_heads
+        h__66 = heads;
+    else
+        h__66 = d_heads;
+    end
+    k_heads = h__66;
     k_st = star_tracker;
-    k0g = asils.pc.choose(k0_has_gyro, k0_gyro, d_grade);
-    k0s = asils.pc.choose(k0_has_sigma, k0_sigma, d_sigma);
-    k0l = asils.pc.choose(k0_has_lambda, k0_lambda, d_lambda);
+    if k0_has_gyro
+        h__67 = k0_gyro;
+    else
+        h__67 = d_grade;
+    end
+    k0g = h__67;
+    if k0_has_sigma
+        h__68 = k0_sigma;
+    else
+        h__68 = d_sigma;
+    end
+    k0s = h__68;
+    if k0_has_lambda
+        h__69 = k0_lambda;
+    else
+        h__69 = d_lambda;
+    end
+    k0l = h__69;
     sc = zeros(7, 1);
     for p = (0):((7) - 1)
         sc((p) + 1) = 1;
@@ -149,10 +187,12 @@ function [n, mode_ix, act, dump_rcs, feasible, has_slot, tunable, has_obj, objec
     if ((cap >= 0) && (cap < numel(vstart)))
         nv = vstart((cap) + 1);
     end
-    for i = (0):((asils.pc.fmin(cap, numel(o_lost))) - 1)
+    i = ((0):((asils.pc.fmin(cap, numel(o_lost))) - 1)).';
+    if ~isempty(i)
         o_lost((i) + 1) = 0;
     end
-    for i = (0):((asils.pc.fmin(cap, numel(o_feas))) - 1)
+    i = ((0):((asils.pc.fmin(cap, numel(o_feas))) - 1)).';
+    if ~isempty(i)
         o_feas((i) + 1) = 0;
     end
     if lg_has
@@ -175,12 +215,18 @@ function [n, mode_ix, act, dump_rcs, feasible, has_slot, tunable, has_obj, objec
             changes = (changes + 1);
         end
     end
-    for u = (0):((asils.pc.fmin(nlu, numel(lu_part))) - 1)
+    h__70 = nlu;
+    h__71 = numel(lu_part);
+    if h__71 < h__70, h__70 = h__71; end
+    for u = (0):((h__70) - 1)
         part = lu_part((u) + 1);
         before = 0;
         now = 0;
         pv = 0;
-        for j = (0):((asils.pc.fmin(np, (numel(p_vstart) - 1))) - 1)
+        h__72 = np;
+        h__73 = (numel(p_vstart) - 1);
+        if h__73 < h__72, h__72 = h__73; end
+        for j = (0):((h__72) - 1)
             if ((asils.models.looprules.loop_part(p_act((j) + 1)) == part) && (p_feas((j) + 1) == 0))
                 [t__67, t__68, t__69] = asils.models.looprules.loop_option_violation(p_vval, p_vperf, p_vstart((j) + 1), p_vstart(((j + 1)) + 1), true);
                 pv = t__67;
@@ -286,7 +332,10 @@ function [n, mode_ix, act, dump_rcs, feasible, has_slot, tunable, has_obj, objec
                     elseif (((fine && (f_rate((i) + 1) == 1)) && (k_gyro > (gyro_min * 1.01))) && (~closed_g))
                         if (k_gyro == k0g)
                             g0 = k_gyro;
-                            k_gyro = asils.pc.fmax(gyro_min, asils.models.looprules.loop_round3((g0 * 0.3)));
+                            h__74 = gyro_min;
+                            h__75 = asils.models.looprules.loop_round3((g0 * 0.3));
+                            if h__75 > h__74, h__74 = h__75; end
+                            k_gyro = h__74;
                             [t__121, t__122, t__123] = asils.models.looprules.loop_rate_violation(vval, vrate, nv);
                             rv = t__121;
                             vval = t__122;
@@ -305,7 +354,10 @@ function [n, mode_ix, act, dump_rcs, feasible, has_slot, tunable, has_obj, objec
                     elseif ((act((i) + 1) == fix(4)) && (k_sigma > (sigma_min * 1.01)))
                         sg = k_sigma;
                         if (sg == k0s)
-                            k_sigma = asils.pc.fmax(sigma_min, (sg / 4));
+                            h__76 = sigma_min;
+                            h__77 = (sg / 4);
+                            if h__77 > h__76, h__76 = h__77; end
+                            k_sigma = h__76;
                             [t__132, t__133, t__134, t__135, t__136, t__137, t__138, t__139] = asils.models.looprules.loop_event(ek, eo, ep, ea, eb, ec, ef, n, 8, i, (-(1)), sg, k_sigma, 0, 0);
                             n = t__132;
                             ek = t__133;
@@ -364,7 +416,10 @@ function [n, mode_ix, act, dump_rcs, feasible, has_slot, tunable, has_obj, objec
                         ec = t__162;
                         ef = t__163;
                     elseif ((fmr && (lam < lambda_max)) && (~ldown))
-                        k_lambda = asils.pc.fmin(lambda_max, (lam * 3));
+                        h__78 = lambda_max;
+                        h__79 = (lam * 3);
+                        if h__79 < h__78, h__78 = h__79; end
+                        k_lambda = h__78;
                         lup = true;
                         [t__164, t__165, t__166, t__167, t__168, t__169, t__170, t__171] = asils.models.looprules.loop_event(ek, eo, ep, ea, eb, ec, ef, n, 12, i, (-(1)), lam, k_lambda, 0, 0);
                         n = t__164;
@@ -377,7 +432,12 @@ function [n, mode_ix, act, dump_rcs, feasible, has_slot, tunable, has_obj, objec
                         ef = t__171;
                         changes = (changes + 1);
                     elseif fmr
-                        [t__172, t__173, t__174, t__175, t__176, t__177, t__178, t__179] = asils.models.looprules.loop_event(ek, eo, ep, ea, eb, ec, ef, n, 13, i, (-(1)), lam, 0, 0, asils.pc.choose(ldown, 1, 0));
+                        if ldown
+                            h__80 = 1;
+                        else
+                            h__80 = 0;
+                        end
+                        [t__172, t__173, t__174, t__175, t__176, t__177, t__178, t__179] = asils.models.looprules.loop_event(ek, eo, ep, ea, eb, ec, ef, n, 13, i, (-(1)), lam, 0, 0, h__80);
                         n = t__172;
                         ek = t__173;
                         eo = t__174;
@@ -413,7 +473,10 @@ function [n, mode_ix, act, dump_rcs, feasible, has_slot, tunable, has_obj, objec
     closed_f = closed_scale_fmr;
     if lm_has
         lost = 0;
-        for i = (0):((asils.pc.fmin(cap, numel(o_lost))) - 1)
+        h__81 = cap;
+        h__82 = numel(o_lost);
+        if h__82 < h__81, h__81 = h__82; end
+        for i = (0):((h__81) - 1)
             if (((lm_before((i) + 1) == 1) && (lm_use((i) + 1) == 1)) && (feasible((i) + 1) == 0))
                 o_lost((i) + 1) = 1;
                 lost = (lost + 1);
@@ -442,7 +505,12 @@ function [n, mode_ix, act, dump_rcs, feasible, has_slot, tunable, has_obj, objec
                 closed_f = true;
                 sc((fix(1)) + 1) = lm_old;
             end
-            [t__195, t__196, t__197, t__198, t__199, t__200, t__201, t__202] = asils.models.looprules.loop_event(ek, eo, ep, ea, eb, ec, ef, n, 15, (-(1)), (-(1)), lm_vb, v_now, 0, asils.pc.choose(worse, 1, 0));
+            if worse
+                h__83 = 1;
+            else
+                h__83 = 0;
+            end
+            [t__195, t__196, t__197, t__198, t__199, t__200, t__201, t__202] = asils.models.looprules.loop_event(ek, eo, ep, ea, eb, ec, ef, n, 15, (-(1)), (-(1)), lm_vb, v_now, 0, h__83);
             n = t__195;
             ek = t__196;
             eo = t__197;
@@ -456,13 +524,19 @@ function [n, mode_ix, act, dump_rcs, feasible, has_slot, tunable, has_obj, objec
     end
     if ((has_sel && (changes == 0)) && (nf > 0))
         f = 0;
-        for g = (1):((asils.pc.fmin(nf, numel(fam_gaps))) - 1)
+        h__84 = nf;
+        h__85 = numel(fam_gaps);
+        if h__85 < h__84, h__84 = h__85; end
+        for g = (1):((h__84) - 1)
             if ((fam_gaps((g) + 1) < fam_gaps((f) + 1)) || ((fam_gaps((g) + 1) == fam_gaps((f) + 1)) && (fam_simplicity((g) + 1) < fam_simplicity((f) + 1))))
                 f = g;
             end
         end
         if (fam_mass((f) + 1) == 1)
-            for i = (0):((asils.pc.fmin(cap, numel(o_feas))) - 1)
+            h__86 = cap;
+            h__87 = numel(o_feas);
+            if h__87 < h__86, h__86 = h__87; end
+            for i = (0):((h__86) - 1)
                 if ((bitand(bitshift(fam_use((i) + 1), -(f)), 1) == 1) && (feasible((i) + 1) == 1))
                     o_feas((i) + 1) = 1;
                 end
@@ -477,7 +551,10 @@ function [n, mode_ix, act, dump_rcs, feasible, has_slot, tunable, has_obj, objec
             vperf = t__209;
             if ((fine && (k_gyro < 0.999)) && (~closed_g))
                 g0 = k_gyro;
-                k_gyro = asils.pc.fmin(1, asils.models.looprules.loop_round3((g0 * 3)));
+                h__88 = 1;
+                h__89 = asils.models.looprules.loop_round3((g0 * 3));
+                if h__89 < h__88, h__88 = h__89; end
+                k_gyro = h__88;
                 [t__210, t__211, t__212, t__213, t__214, t__215, t__216, t__217] = asils.models.looprules.loop_event(ek, eo, ep, ea, eb, ec, ef, n, 16, (-(1)), f, g0, k_gyro, vb, 0);
                 n = t__210;
                 ek = t__211;
@@ -500,7 +577,10 @@ function [n, mode_ix, act, dump_rcs, feasible, has_slot, tunable, has_obj, objec
                 ef = t__225;
             elseif (((((fam_fmr((f) + 1) == 1) && (fam_power((f) + 1) == 0)) && (k_lambda > lambda_min)) && (~lup)) && (~closed_l))
                 lam = k_lambda;
-                k_lambda = asils.pc.fmax(lambda_min, (lam / 3));
+                h__90 = lambda_min;
+                h__91 = (lam / 3);
+                if h__91 > h__90, h__90 = h__91; end
+                k_lambda = h__90;
                 ldown = true;
                 [t__226, t__227, t__228, t__229, t__230, t__231, t__232, t__233] = asils.models.looprules.loop_event(ek, eo, ep, ea, eb, ec, ef, n, 18, (-(1)), f, lam, k_lambda, vb, 0);
                 n = t__226;
@@ -513,7 +593,10 @@ function [n, mode_ix, act, dump_rcs, feasible, has_slot, tunable, has_obj, objec
                 ef = t__233;
             elseif (((fam_fmr((f) + 1) == 1) && (~closed_f)) && (sc((fix(1)) + 1) > scale_min))
                 s0 = sc((fix(1)) + 1);
-                sc((fix(1)) + 1) = asils.pc.fmax(scale_min, (s0 * down));
+                h__92 = scale_min;
+                h__93 = (s0 * down);
+                if h__93 > h__92, h__92 = h__93; end
+                sc((fix(1)) + 1) = h__92;
                 tried_dn = bitor(tried_dn, bitshift(1, fix(1)));
                 [t__234, t__235, t__236, t__237, t__238, t__239, t__240, t__241] = asils.models.looprules.loop_event(ek, eo, ep, ea, eb, ec, ef, n, 19, (-(1)), f, s0, sc((fix(1)) + 1), vb, 0);
                 n = t__234;
@@ -591,7 +674,10 @@ function [n, mode_ix, act, dump_rcs, feasible, has_slot, tunable, has_obj, objec
             ec = t__289;
             ef = t__290;
         elseif (want((p) + 1) == 1)
-            sc((p) + 1) = asils.pc.fmin(scale_max, (s * up));
+            h__94 = scale_max;
+            h__95 = (s * up);
+            if h__95 < h__94, h__94 = h__95; end
+            sc((p) + 1) = h__94;
             [t__291, t__292, t__293, t__294, t__295, t__296, t__297, t__298] = asils.models.looprules.loop_event(ek, eo, ep, ea, eb, ec, ef, n, 26, (-(1)), p, s, sc((p) + 1), 0, 1);
             n = t__291;
             ek = t__292;
@@ -602,7 +688,10 @@ function [n, mode_ix, act, dump_rcs, feasible, has_slot, tunable, has_obj, objec
             ec = t__297;
             ef = t__298;
         else
-            sc((p) + 1) = asils.pc.fmax(scale_min, (s * down));
+            h__96 = scale_min;
+            h__97 = (s * down);
+            if h__97 > h__96, h__96 = h__97; end
+            sc((p) + 1) = h__96;
             [t__299, t__300, t__301, t__302, t__303, t__304, t__305, t__306] = asils.models.looprules.loop_event(ek, eo, ep, ea, eb, ec, ef, n, 26, (-(1)), p, s, sc((p) + 1), 0, 0);
             n = t__299;
             ek = t__300;

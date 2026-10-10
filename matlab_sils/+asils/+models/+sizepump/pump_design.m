@@ -90,9 +90,13 @@ function [ds] = pump_design(h, tau, s0, l1, lambda)
                         p_ed = ((((i_d * i_d) * r) + ((dp_design * a_c) * v_max)) / (eta_bypass * eta_drv));
                         ni = (((1.3 * bf) * gap) / mu0);
                         a_fe = (((bf * a_duct) * lp) / b_sat);
-                        l_t = ((4 * asils.pc.sqrt_(a_fe)) + 0.01);
+                        h__13 = a_fe;
+                        if h__13 < 0, h__13 = NaN; else, h__13 = sqrt(h__13); end
+                        l_t = ((4 * h__13) + 0.01);
                         k = (((((rho_cu * d_cu) * l_t) * l_t) * ni) * ni);
-                        m_cu = asils.models.sizedemand.size_max(asils.pc.sqrt_((lambda * k)), 0.002);
+                        h__14 = (lambda * k);
+                        if h__14 < 0, h__14 = NaN; else, h__14 = sqrt(h__14); end
+                        m_cu = asils.models.sizedemand.size_max(h__14, 0.002);
                         p_c = (k / m_cu);
                         m_fe = ((d_fe * a_fe) * ((2 * (a_duct + lp)) + 0.02));
                         mass = ((((m_fluid + m_channel) + m_cu) + m_fe) + 0.01);
@@ -121,7 +125,12 @@ function [ds] = pump_design(h, tau, s0, l1, lambda)
                             ds.p_elec_cruise = p_ec;
                             ds.p_steady = p_steady;
                             ds.p_peak = (p_c + p_ed);
-                            ds.eta_cruise = asils.pc.choose((p_ec > 0), ((dpf_c * q_c) / p_ec), 0);
+                            if (p_ec > 0)
+                                h__15 = ((dpf_c * q_c) / p_ec);
+                            else
+                                h__15 = 0;
+                            end
+                            ds.eta_cruise = h__15;
                             ds.eta = asils.models.sizedemand.size_max(ds.eta_cruise, 0.01);
                             ds.m_fluid = m_fluid;
                             ds.m_cu = m_cu;

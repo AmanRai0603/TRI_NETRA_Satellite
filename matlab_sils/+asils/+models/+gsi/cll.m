@@ -15,10 +15,20 @@ function [cp, ct] = cll(s, delta, sig_n, sig_t, tw, talt)
     c = cos(delta);
     sn = (s * c);
     e = (1 + erf(sn));
-    p = exp((-(asils.pc.pow_(sn, 2))));
-    vr = asils.pc.sqrt_((tw / talt));
-    sqpi = asils.pc.sqrt_(pi);
-    ip = (((c / (sqpi * s)) * p) + (((1 / (2 * asils.pc.pow_(s, 2))) + asils.pc.pow_(c, 2)) * e));
+    h__298 = (sn)^(2);
+    if ~isreal(h__298), h__298 = NaN; end
+    p = exp((-(h__298)));
+    h__299 = (tw / talt);
+    if h__299 < 0, h__299 = NaN; else, h__299 = sqrt(h__299); end
+    vr = h__299;
+    h__300 = pi;
+    if h__300 < 0, h__300 = NaN; else, h__300 = sqrt(h__300); end
+    sqpi = h__300;
+    h__301 = (s)^(2);
+    if ~isreal(h__301), h__301 = NaN; end
+    h__302 = (c)^(2);
+    if ~isreal(h__302), h__302 = NaN; end
+    ip = (((c / (sqpi * s)) * p) + (((1 / (2 * h__301)) + h__302) * e));
     dp = ((vr / (2 * s)) * (((sqpi * c) * e) + ((1 / s) * p)));
     st = ((sin(delta) / (sqpi * s)) * (p + ((sqpi * sn) * e)));
     cp = (((2 - sig_n) * ip) + (sig_n * dp));

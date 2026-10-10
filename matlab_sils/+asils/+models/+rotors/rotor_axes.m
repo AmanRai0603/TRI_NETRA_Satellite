@@ -10,9 +10,8 @@ function [a] = rotor_axes(m, d)
         jg = m.gi((ir) + 1);
         if (jg > 0)
             dj = d(((jg - 1)) + 1);
-            for k = (0):((3) - 1)
-                a((ir) + 1, (k) + 1) = ((cos(dj) * m.a0((ir) + 1, (k) + 1)) + (sin(dj) * m.t0((ir) + 1, (k) + 1)));
-            end
+            k = ((0):((3) - 1)).';
+            a((ir) + 1, (k) + 1) = (((cos(dj) .* (m.a0((ir) + 1, (k) + 1)).') + (sin(dj) .* (m.t0((ir) + 1, (k) + 1)).'))).';
         end
     end
 end

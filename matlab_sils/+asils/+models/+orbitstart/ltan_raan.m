@@ -9,5 +9,12 @@ function [raan] = ltan_raan(sun, ltan_h)
     x = (atan2(sun(2), sun(1)) + ((((ltan_h - 12) * 15) * pi) / 180));
     turn = (2 * pi);
     m = rem(x, turn);
-    raan = asils.pc.choose((m < 0), (m + asils.pc.fabs(turn)), m);
+    if (m < 0)
+        h__440 = turn;
+        if h__440 < 0, h__440 = -h__440; elseif h__440 == 0, h__440 = 0; end
+        h__439 = (m + h__440);
+    else
+        h__439 = m;
+    end
+    raan = h__439;
 end

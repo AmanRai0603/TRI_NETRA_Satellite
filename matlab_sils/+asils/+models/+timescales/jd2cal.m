@@ -17,8 +17,18 @@ function [u] = jd2cal(j)
     dd = floor((365.25 * c));
     e = floor(((b - dd) / 30.6001));
     day = (((b - dd) - floor((30.6001 * e))) + f);
-    m = asils.pc.choose((e < 14), (e - 1), (e - 13));
-    y = asils.pc.choose((m > 2), (c - 4716), (c - 4715));
+    if (e < 14)
+        h__533 = (e - 1);
+    else
+        h__533 = (e - 13);
+    end
+    m = h__533;
+    if (m > 2)
+        h__534 = (c - 4716);
+    else
+        h__534 = (c - 4715);
+    end
+    y = h__534;
     d = floor(day);
     fr = ((day - d) * 24);
     h = floor(fr);

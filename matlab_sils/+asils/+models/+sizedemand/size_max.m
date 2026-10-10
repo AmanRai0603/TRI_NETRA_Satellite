@@ -8,6 +8,9 @@ function [c] = size_max(a, b)
     if isnan(a)
         c = b;
     else
-        c = asils.pc.fmax(a, b);
+        h__112 = a;
+        h__113 = b;
+        if h__113 > h__112, h__112 = h__113; end
+        c = h__112;
     end
 end

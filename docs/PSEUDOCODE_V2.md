@@ -208,8 +208,9 @@ values here.
 
 Each translation holds one copy and indexes it in place: Rust a `static` (`DATA_IGRF_GH`), C a `const` array
 (`module_DATA_IGRF_GH`), MATLAB a function that keeps the table in a persistent variable (`IGRF_GH()` is the
-table, `IGRF_GH(i, j)` an element, `IGRF_GH(i, ':')` a row). A `const` array is written into the MATLAB at each
-use; a table of more than a few values is `data`.
+table, `IGRF_GH(i, j)` an element, `IGRF_GH(i, ':')` a row); a MATLAB function that reads a table takes it once, at
+its top, into a local (`D__IGRF_GH = ...IGRF_GH();`) and indexes it there. A `const` array is written into the MATLAB
+at each use; a table of more than a few values is `data`.
 
 ## Choices
 
@@ -286,6 +287,18 @@ Outside their real domain `sqrt`, `asin`, `acos`, `log`, `log10`, `log2` and `po
 C, Rust and the interpreter do (`sqrt(-1)`, `acos(1.5)`, `pow(-2, 0.5)`); MATLAB's own give a complex number there, which
 compares by its real part, so the MATLAB translation calls the runtime's `asils.pc.sqrt_`, `asin_`, `acos_`, `log_`,
 `log10_`, `log2_` and `pow_`, which give nan (S7.15b; the language's self-test `domain`).
+
+The MATLAB translation is written for speed with the same arithmetic, operation for operation, so its results are
+the same bits as before: in a statement, where a value is taken whatever happens (not the right of `and` or `or`,
+not an `elif`'s condition), the runtime's `fabs`, `fmin`, `fmax`, `clamp`, `sqrt_` (and the other domain functions),
+`ipow` and a conditional value are written out as statements before it (`h__N`; a conditional value as an `if`, only
+its branch run), and a `dot`, `norm`, `cross`, `unit` or small matrix-vector product of a value that is not a
+variable is taken into a temporary and written term by term. A `for` loop whose lanes (its counter's values) each
+read and write only their own elements (every array it writes indexed by the counter alone, in one place, wherever
+it is read or written; every scalar it sets declared in it) is run for all its lanes at once, statement by
+statement, element by element (`+ - * /`, comparisons and the runtime's element-wise `vchoose`, `vfmin`, `vfmax`,
+`vfabs_`, `vsqrt_`; no sum across lanes, so every sum keeps its order); two such loops nest as rows and columns.
+`asils.pc.mv` and `mm` sum each element's products in order for all rows (and columns) at once.
 
 `sin cos tan asin acos atan atan2 exp log log10 log2 erf pow hypot` come from each platform's library and may
 differ in their last bits (more after a large argument is reduced). `erf`, the error function (trinetra-toolbox/4,

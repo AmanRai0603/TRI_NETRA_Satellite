@@ -16,14 +16,16 @@ function [g, row, s, whole, p, n] = tabled(i, j, x)
     whole = zeros(2, 3);
     p = 0;
     n = 0;
-    g = asils.pcselftest.selftest.GAINS((i) + 1, (j) + 1);
-    row = (asils.pcselftest.selftest.GAINS(((1 - i)) + 1, ':')).';
+    D__GAINS = asils.pcselftest.selftest.GAINS();
+    D__PRIMES = asils.pcselftest.selftest.PRIMES();
+    g = D__GAINS((i) + 1, (j) + 1);
+    row = (D__GAINS(((1 - i)) + 1, :)).';
     s = 0;
     for k = (0):((3) - 1)
-        s = (s + (asils.pcselftest.selftest.GAINS((i) + 1, (k) + 1) * x));
+        s = (s + (D__GAINS((i) + 1, (k) + 1) * x));
     end
-    whole = asils.pcselftest.selftest.GAINS();
-    whole((i) + 1, (j) + 1) = (whole((i) + 1, (j) + 1) + ((asils.pcselftest.selftest.GAINS(1, 1)*asils.pcselftest.selftest.GAINS(2, 1) + asils.pcselftest.selftest.GAINS(1, 2)*asils.pcselftest.selftest.GAINS(2, 2) + asils.pcselftest.selftest.GAINS(1, 3)*asils.pcselftest.selftest.GAINS(2, 3)) / 1));
-    p = (asils.pcselftest.selftest.PRIMES(((j + 9)) + 1) - asils.pcselftest.selftest.PRIMES((i) + 1));
+    whole = D__GAINS;
+    whole((i) + 1, (j) + 1) = (whole((i) + 1, (j) + 1) + ((D__GAINS(1, 1)*D__GAINS(2, 1) + D__GAINS(1, 2)*D__GAINS(2, 2) + D__GAINS(1, 3)*D__GAINS(2, 3)) / 1));
+    p = (D__PRIMES(((j + 9)) + 1) - D__PRIMES((i) + 1));
     n = (12 + 2);
 end

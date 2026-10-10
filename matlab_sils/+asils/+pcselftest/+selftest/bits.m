@@ -23,13 +23,23 @@ function [c, hi, lo, sw, r, d, m] = bits(b, w, x)
     for i = (0):((4) - 1)
         c = bitxor(c, bitshift(b((i) + 1), 8));
         for k = (0):((8) - 1)
-            c = asils.pc.choose((bitand(c, 32768) ~= 0), bitand(bitxor(bitshift(c, 1), 4129), 65535), bitand(bitshift(c, 1), 65535));
+            if (bitand(c, 32768) ~= 0)
+                h__16 = bitand(bitxor(bitshift(c, 1), 4129), 65535);
+            else
+                h__16 = bitand(bitshift(c, 1), 65535);
+            end
+            c = h__16;
         end
     end
     hi = bitshift(w, -(8));
     lo = bitand(w, 255);
     sw = bitor(bitshift(lo, 8), hi);
-    r = fix(asils.pc.choose((x < 0), (x - 0.5), (x + 0.5)));
+    if (x < 0)
+        h__17 = (x - 0.5);
+    else
+        h__17 = (x + 0.5);
+    end
+    r = fix(h__17);
     d = fix((r) / (7));
     m = rem(r, 7);
 end

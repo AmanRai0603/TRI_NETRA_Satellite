@@ -20,7 +20,12 @@ function [st, a] = jb2008_atm(alt_km, lat_deg, lon_deg, utc, has_tinf, tinf)
     else
         avog16 = ((6.02214076e+23 * 1000) / 16);
         a.rho = rho;
-        a.t = asils.pc.choose(has_tinf, tinf, 1000);
+        if has_tinf
+            h__166 = tinf;
+        else
+            h__166 = 1000;
+        end
+        a.t = h__166;
         a.species = false;
         a.mmol = 16;
         a.n_o = (rho * avog16);

@@ -12,14 +12,21 @@ function [s] = ctl_sun_acq(st, cp, hdev)
     wc = zeros(3, 1);
     a = cp.sun_axis;
     if s.s_prop_ok
-        sv = asils.pc.unit_(s.s_prop);
+        h__79 = s.s_prop;
+        h__80 = sqrt(h__79(1)*h__79(1) + h__79(2)*h__79(2) + h__79(3)*h__79(3));
+        if 1e-30 > h__80, h__80 = 1e-30; end
+        sv = (h__79 / h__80);
         c = [a(2)*sv(3) - a(3)*sv(2); a(3)*sv(1) - a(1)*sv(3); a(1)*sv(2) - a(2)*sv(1)];
         if ((sv(1)*a(1) + sv(2)*a(2) + sv(3)*a(3)) < (-(0.95)))
-            c = asils.pc.cross_(a, [1; 0; 0]);
+            h__81 = [1; 0; 0];
+            c = [a(2)*h__81(3) - a(3)*h__81(2); a(3)*h__81(1) - a(1)*h__81(3); a(1)*h__81(2) - a(2)*h__81(1)];
             if (sqrt(c(1)*c(1) + c(2)*c(2) + c(3)*c(3)) < 0.1)
-                c = asils.pc.cross_(a, [0; 1; 0]);
+                h__82 = [0; 1; 0];
+                c = [a(2)*h__82(3) - a(3)*h__82(2); a(3)*h__82(1) - a(1)*h__82(3); a(1)*h__82(2) - a(2)*h__82(1)];
             end
-            c = asils.pc.unit_(c);
+            h__83 = sqrt(c(1)*c(1) + c(2)*c(2) + c(3)*c(3));
+            if 1e-30 > h__83, h__83 = 1e-30; end
+            c = (c / h__83);
         end
         wc = (c * (wmax / 0.5));
         n = sqrt(wc(1)*wc(1) + wc(2)*wc(2) + wc(3)*wc(3));
@@ -27,10 +34,10 @@ function [s] = ctl_sun_acq(st, cp, hdev)
             wc = (wc * (wmax / n));
         end
     end
-    gy = asils.pc.cross_(s.w_est, ([cp.j(1, 1)*s.w_est(1) + cp.j(1, 2)*s.w_est(2) + cp.j(1, 3)*s.w_est(3); cp.j(2, 1)*s.w_est(1) + cp.j(2, 2)*s.w_est(2) + cp.j(2, 3)*s.w_est(3); cp.j(3, 1)*s.w_est(1) + cp.j(3, 2)*s.w_est(2) + cp.j(3, 3)*s.w_est(3)] + hdev));
+    h__84 = ([cp.j(1, 1)*s.w_est(1) + cp.j(1, 2)*s.w_est(2) + cp.j(1, 3)*s.w_est(3); cp.j(2, 1)*s.w_est(1) + cp.j(2, 2)*s.w_est(2) + cp.j(2, 3)*s.w_est(3); cp.j(3, 1)*s.w_est(1) + cp.j(3, 2)*s.w_est(2) + cp.j(3, 3)*s.w_est(3)] + hdev);
+    gy = [s.w_est(2)*h__84(3) - s.w_est(3)*h__84(2); s.w_est(3)*h__84(1) - s.w_est(1)*h__84(3); s.w_est(1)*h__84(2) - s.w_est(2)*h__84(1)];
     x = zeros(3, 1);
-    for i = (0):((3) - 1)
-        x((i) + 1) = (cp.sa_kd * (wc((i) + 1) - s.w_est((i) + 1)));
-    end
+    i = ((0):((3) - 1)).';
+    x((i) + 1) = (cp.sa_kd .* (reshape(wc((i) + 1), [], 1) - reshape(s.w_est((i) + 1), [], 1)));
     s.tau_req = ([cp.j(1, 1)*x(1) + cp.j(1, 2)*x(2) + cp.j(1, 3)*x(3); cp.j(2, 1)*x(1) + cp.j(2, 2)*x(2) + cp.j(2, 3)*x(3); cp.j(3, 1)*x(1) + cp.j(3, 2)*x(2) + cp.j(3, 3)*x(3)] + gy);
 end

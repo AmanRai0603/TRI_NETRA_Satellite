@@ -22,9 +22,8 @@ function [fb] = facet_sum(f, u_b, p)
             k = ((p * f.a((j) + 1)) * cth);
             ka = (f.alpha((j) + 1) + f.rho_d((j) + 1));
             kn = (2 * ((f.rho_s((j) + 1) * cth) + (f.rho_d((j) + 1) / 3)));
-            for i = (0):((3) - 1)
-                fb((i) + 1) = (fb((i) + 1) - (k * ((ka * u_b((i) + 1)) + (kn * n((i) + 1)))));
-            end
+            i = ((0):((3) - 1)).';
+            fb((i) + 1) = (reshape(fb((i) + 1), [], 1) - (k .* ((ka .* reshape(u_b((i) + 1), [], 1)) + (kn .* reshape(n((i) + 1), [], 1)))));
         end
     end
 end

@@ -12,8 +12,18 @@ function [h_need, tau_need, units] = rotor_need(u, h_req, tau_req, s)
     h_need = 0;
     tau_need = 0;
     units = 0;
-    share = asils.pc.choose((u == 0), 1, 0.5);
+    if (u == 0)
+        h__144 = 1;
+    else
+        h__144 = 0.5;
+    end
+    share = h__144;
     h_need = ((share * h_req) * s);
     tau_need = ((share * tau_req) * s);
-    units = asils.pc.choose((u == 0), 3, 4);
+    if (u == 0)
+        h__145 = 3;
+    else
+        h__145 = 4;
+    end
+    units = h__145;
 end

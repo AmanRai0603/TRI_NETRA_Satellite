@@ -15,17 +15,18 @@ function [m0] = sun_spin(b, w, s, eclipse, j, spin_dps, k1, k2, rz_floor)
     m0 = zeros(3, 1);
     if (~eclipse)
         fl = (rz_floor * j(3, 3));
-        ws = (-(asils.pc.fabs((spin_dps * (pi / 180)))));
+        h__63 = (spin_dps * (pi / 180));
+        if h__63 < 0, h__63 = -h__63; elseif h__63 == 0, h__63 = 0; end
+        ws = (-(h__63));
         sg = sign(w(3));
         if (sg == 0)
             sg = 1;
         end
         h = [j(1, 1)*w(1) + j(1, 2)*w(2) + j(1, 3)*w(3); j(2, 1)*w(1) + j(2, 2)*w(2) + j(2, 3)*w(3); j(3, 1)*w(1) + j(3, 2)*w(2) + j(3, 3)*w(3)];
         ht = zeros(3, 1);
-        for i = (0):((3) - 1)
-            hd = (((sg * j(3, 3)) * ws) * s((i) + 1));
-            ht((i) + 1) = (h((i) + 1) - hd);
-        end
+        i = ((0):((3) - 1)).';
+        hd = (((sg * j(3, 3)) * ws) .* reshape(s((i) + 1), [], 1));
+        ht((i) + 1) = (reshape(h((i) + 1), [], 1) - hd);
         rz = [(j(3, 3) - j(1, 1)); (j(3, 3) - j(2, 2)); 0];
         if (rz(1) < fl)
             rz(1) = fl;
@@ -34,15 +35,13 @@ function [m0] = sun_spin(b, w, s, eclipse, j, spin_dps, k1, k2, rz_floor)
             rz(2) = fl;
         end
         x = zeros(3, 1);
-        for i = (0):((3) - 1)
-            x((i) + 1) = ((k1 * ht((i) + 1)) + ((k2 * rz((i) + 1)) * w((i) + 1)));
-        end
+        i = ((0):((3) - 1)).';
+        x((i) + 1) = ((k1 .* reshape(ht((i) + 1), [], 1)) + ((k2 .* reshape(rz((i) + 1), [], 1)) .* reshape(w((i) + 1), [], 1)));
         aa = [b(2)*x(3) - b(3)*x(2); b(3)*x(1) - b(1)*x(3); b(1)*x(2) - b(2)*x(1)];
         bs = (b(1)*b(1) + b(2)*b(2) + b(3)*b(3));
         if (bs >= 1e-18)
-            for i = (0):((3) - 1)
-                m0((i) + 1) = ((-(aa((i) + 1))) / bs);
-            end
+            i = ((0):((3) - 1)).';
+            m0((i) + 1) = ((-(reshape(aa((i) + 1), [], 1))) ./ bs);
         end
     end
 end

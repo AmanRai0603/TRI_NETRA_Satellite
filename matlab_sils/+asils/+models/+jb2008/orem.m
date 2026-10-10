@@ -18,7 +18,9 @@ function [r] = orem(x, y)
         else
             r = (x - (y * fix(q)));
             if (x ~= y)
-                r = (asils.pc.fabs(r) * sign(x));
+                h__305 = r;
+                if h__305 < 0, h__305 = -h__305; elseif h__305 == 0, h__305 = 0; end
+                r = (h__305 * sign(x));
             end
         end
     end

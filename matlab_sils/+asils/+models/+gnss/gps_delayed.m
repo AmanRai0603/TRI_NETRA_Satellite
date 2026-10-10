@@ -28,16 +28,20 @@ function [te, r, v] = gps_delayed(ht, hr, hv, hn, latency, t)
             end
         end
         if (((k + 1) == hn) || (tl <= ht((k) + 1)))
-            te = asils.pc.choose_lazy((tl > ht((k) + 1)), @() tl, @() ht((k) + 1));
+            if (tl > ht((k) + 1))
+                h__674 = tl;
+            else
+                h__674 = ht((k) + 1);
+            end
+            te = h__674;
             r = (hr((k) + 1, :)).';
             v = (hv((k) + 1, :)).';
         else
             s = ((tl - ht((k) + 1)) / (ht(((k + 1)) + 1) - ht((k) + 1)));
             te = tl;
-            for i = (0):((3) - 1)
-                r((i) + 1) = (hr((k) + 1, (i) + 1) + (s * (hr(((k + 1)) + 1, (i) + 1) - hr((k) + 1, (i) + 1))));
-                v((i) + 1) = (hv((k) + 1, (i) + 1) + (s * (hv(((k + 1)) + 1, (i) + 1) - hv((k) + 1, (i) + 1))));
-            end
+            i = ((0):((3) - 1)).';
+            r((i) + 1) = ((hr((k) + 1, (i) + 1)).' + (s .* ((hr(((k + 1)) + 1, (i) + 1)).' - (hr((k) + 1, (i) + 1)).')));
+            v((i) + 1) = ((hv((k) + 1, (i) + 1)).' + (s .* ((hv(((k + 1)) + 1, (i) + 1)).' - (hv((k) + 1, (i) + 1)).')));
         end
     end
 end

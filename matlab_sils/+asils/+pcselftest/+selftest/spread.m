@@ -13,9 +13,8 @@ function [total, n, kept, b, k] = spread(b, k, w)
     n = 0;
     kept = 0;
     s = zeros(4, 1);
-    for i = (0):((4) - 1)
-        s((i) + 1) = w;
-    end
+    i = ((0):((4) - 1)).';
+    s((i) + 1) = w;
     [t__35, t__36] = asils.pcselftest.selftest.blur(b, w);
     t1 = t__35;
     b = t__36;

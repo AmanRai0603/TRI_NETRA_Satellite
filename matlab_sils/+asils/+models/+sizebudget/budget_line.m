@@ -30,7 +30,12 @@ function [n, m, p, v] = budget_line(s, na, ns, nb, nn, mass, ps, pw, pm, vol)
             n = 1;
         end
     end
-    mm = asils.pc.choose(isnan(mass), 0, mass);
+    if isnan(mass)
+        h__110 = 0;
+    else
+        h__110 = mass;
+    end
+    mm = h__110;
     pp = 0;
     if (~isnan(ps))
         pp = ps;
@@ -39,7 +44,12 @@ function [n, m, p, v] = budget_line(s, na, ns, nb, nn, mass, ps, pw, pm, vol)
     elseif (~isnan(pm))
         pp = pm;
     end
-    vv = asils.pc.choose(isnan(vol), 0, vol);
+    if isnan(vol)
+        h__111 = 0;
+    else
+        h__111 = vol;
+    end
+    vv = h__111;
     m = (n * mm);
     p = (n * pp);
     v = (n * vv);

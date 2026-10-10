@@ -17,14 +17,16 @@ function [spots, ns, img, work, ia, ib] = st_centroid(img, cam, work, ia, ib)
     ns = 0;
     n = cam.n;
     np = (n * n);
-    for l = (0):((np) - 1)
-        work((l) + 1) = img((l) + 1);
+    l = ((0):((np) - 1)).';
+    if ~isempty(l)
+        work((l) + 1) = reshape(img((l) + 1), [], 1);
     end
     [t__622, t__623] = asils.models.stcentroid.st_median(work, np);
     bg = t__622;
     work = t__623;
-    for l2 = (0):((np) - 1)
-        work((l2) + 1) = asils.pc.fabs((img((l2) + 1) - bg));
+    l2 = ((0):((np) - 1)).';
+    if ~isempty(l2)
+        work((l2) + 1) = asils.pc.vfabs_((reshape(img((l2) + 1), [], 1) - bg));
     end
     [t__624, t__625] = asils.models.stcentroid.st_median(work, np);
     mad = t__624;
@@ -43,7 +45,10 @@ function [spots, ns, img, work, ia, ib] = st_centroid(img, cam, work, ia, ib)
     img = t__627;
     ia = t__628;
     ib = t__629;
-    cap = asils.pc.fmin(cam.max_spots, 32);
+    h__703 = cam.max_spots;
+    h__704 = 32;
+    if h__704 < h__703, h__703 = h__704; end
+    cap = h__703;
     ns = 0;
     done = false;
     for q = (0):((m) - 1)
@@ -56,7 +61,9 @@ function [spots, ns, img, work, ia, ib] = st_centroid(img, cam, work, ia, ib)
                 yf = y;
                 near = false;
                 for s = (0):((ns) - 1)
-                    if ((asils.pc.fabs((spots((s) + 1, 1) - xf)) < 4) && (asils.pc.fabs((spots((s) + 1, 2) - yf)) < 4))
+                    h__705 = (spots((s) + 1, 1) - xf);
+                    if h__705 < 0, h__705 = -h__705; elseif h__705 == 0, h__705 = 0; end
+                    if ((h__705 < 4) && (asils.pc.fabs((spots((s) + 1, 2) - yf)) < 4))
                         near = true;
                     end
                 end
@@ -66,7 +73,10 @@ function [spots, ns, img, work, ia, ib] = st_centroid(img, cam, work, ia, ib)
                     sy = 0;
                     for c = (0):((5) - 1)
                         for r = (0):((5) - 1)
-                            w = asils.pc.fmax((img(((((((x + c) - 2) - 1) * n) + (((y + r) - 2) - 1))) + 1) - bg), 0);
+                            h__706 = (img(((((((x + c) - 2) - 1) * n) + (((y + r) - 2) - 1))) + 1) - bg);
+                            h__707 = 0;
+                            if h__707 > h__706, h__706 = h__707; end
+                            w = h__706;
                             tot = (tot + w);
                             sx = (sx + ((c - 2) * w));
                             sy = (sy + ((r - 2) * w));

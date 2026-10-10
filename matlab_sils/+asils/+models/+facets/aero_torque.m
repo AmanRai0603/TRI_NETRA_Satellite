@@ -18,9 +18,8 @@ function [tau] = aero_torque(rm, v_rel, rho, g)
             if (~(c <= 0))
                 k2 = ((g.sigma_n * g.vb_ratio) + (((2 - g.sigma_n) - g.sigma_t) * c));
                 f = [0; 0; 0];
-                for k = (0):((3) - 1)
-                    f((k) + 1) = ((((((-(rho)) * vv) * vv) * g.a((j) + 1)) * c) * ((g.sigma_t * vh((k) + 1)) + (k2 * g.n((j) + 1, (k) + 1))));
-                end
+                k = ((0):((3) - 1)).';
+                f((k) + 1) = ((((((-(rho)) * vv) * vv) * g.a((j) + 1)) * c) .* ((g.sigma_t .* reshape(vh((k) + 1), [], 1)) + (k2 .* (g.n((j) + 1, (k) + 1)).')));
                 tau = (tau + [g.rho((j) + 1, 2)*f(3) - g.rho((j) + 1, 3)*f(2); g.rho((j) + 1, 3)*f(1) - g.rho((j) + 1, 1)*f(3); g.rho((j) + 1, 1)*f(2) - g.rho((j) + 1, 2)*f(1)]);
             end
         end

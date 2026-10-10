@@ -10,5 +10,6 @@ function [tau] = gravity_gradient_torque(rm, r, j, mu)
     tau = zeros(3, 1);
     rb = [rm(1, 1)*r(1) + rm(1, 2)*r(2) + rm(1, 3)*r(3); rm(2, 1)*r(1) + rm(2, 2)*r(2) + rm(2, 3)*r(3); rm(3, 1)*r(1) + rm(3, 2)*r(2) + rm(3, 3)*r(3)];
     rn = sqrt(rb(1)*rb(1) + rb(2)*rb(2) + rb(3)*rb(3));
-    tau = (asils.pc.cross_(rb, [j(1, 1)*rb(1) + j(1, 2)*rb(2) + j(1, 3)*rb(3); j(2, 1)*rb(1) + j(2, 2)*rb(2) + j(2, 3)*rb(3); j(3, 1)*rb(1) + j(3, 2)*rb(2) + j(3, 3)*rb(3)]) * ((3 * mu) / asils.pc.ipow(rn, 5)));
+    h__265 = [j(1, 1)*rb(1) + j(1, 2)*rb(2) + j(1, 3)*rb(3); j(2, 1)*rb(1) + j(2, 2)*rb(2) + j(2, 3)*rb(3); j(3, 1)*rb(1) + j(3, 2)*rb(2) + j(3, 3)*rb(3)];
+    tau = ([rb(2)*h__265(3) - rb(3)*h__265(2); rb(3)*h__265(1) - rb(1)*h__265(3); rb(1)*h__265(2) - rb(2)*h__265(1)] * ((3 * mu) / (rn * rn * rn * rn * rn)));
 end

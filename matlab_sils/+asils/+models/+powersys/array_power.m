@@ -15,7 +15,15 @@ function [p] = array_power(area, eff, s, nu)
         if isnan(c)
             c = 0;
         end
-        lit = (lit + (area((f) + 1) * asils.pc.fmax(c, 0)));
+        h__103 = c;
+        h__104 = 0;
+        if h__104 > h__103, h__103 = h__104; end
+        lit = (lit + (area((f) + 1) * h__103));
     end
-    p = (((1361 * asils.pc.clamp(nu, 0, 1)) * eff) * lit);
+    h__105 = nu;
+    h__106 = 0;
+    if h__106 > h__105, h__105 = h__106; end
+    h__106 = 1;
+    if h__106 < h__105, h__105 = h__106; end
+    p = (((1361 * h__105) * eff) * lit);
 end

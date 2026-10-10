@@ -28,7 +28,12 @@ function [v, s] = st_select(s, m, k)
                 x = s((i) + 1);
                 s((i) + 1) = s((lt) + 1);
                 s((lt) + 1) = x;
-                lt = (lt + asils.pc.choose((x < p), 1, 0));
+                if (x < p)
+                    h__695 = 1;
+                else
+                    h__695 = 0;
+                end
+                lt = (lt + h__695);
             end
             if (k < lt)
                 hi = (lt - 1);
@@ -40,7 +45,12 @@ function [v, s] = st_select(s, m, k)
                     y = s((i2) + 1);
                     s((i2) + 1) = s((eq) + 1);
                     s((eq) + 1) = y;
-                    eq = (eq + asils.pc.choose((y > p), 0, 1));
+                    if (y > p)
+                        h__696 = 0;
+                    else
+                        h__696 = 1;
+                    end
+                    eq = (eq + h__696);
                 end
                 if (k < eq)
                     found = true;

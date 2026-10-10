@@ -33,7 +33,10 @@ function [n, mmax, c_mjd, c_xp, c_yp, c_ut, c_dx, c_dy, f_mjd, f_xp, f_yp, f_ut,
     mmax = 0;
     mmax = (-(Inf));
     for i = (0):((numel(c_mjd)) - 1)
-        mmax = asils.pc.fmax(mmax, c_mjd((i) + 1));
+        h__235 = mmax;
+        h__236 = c_mjd((i) + 1);
+        if h__236 > h__235, h__235 = h__236; end
+        mmax = h__235;
     end
     n = 0;
     for i1 = (0):((numel(c_mjd)) - 1)

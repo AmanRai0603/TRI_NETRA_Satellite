@@ -10,8 +10,13 @@ function [lam] = jitter_eig_min3(m)
     if (p1 == 0)
         lam = asils.models.jitter.jitter_min(asils.models.jitter.jitter_min(m(1, 1), m(2, 2)), m(3, 3));
     else
-        p2 = (((asils.pc.ipow((m(1, 1) - q), 2) + asils.pc.ipow((m(2, 2) - q), 2)) + asils.pc.ipow((m(3, 3) - q), 2)) + (2 * p1));
-        p = asils.pc.sqrt_((p2 / 6));
+        h__648 = (m(1, 1) - q);
+        h__649 = (m(2, 2) - q);
+        h__650 = (m(3, 3) - q);
+        p2 = ((((h__648 * h__648) + (h__649 * h__649)) + (h__650 * h__650)) + (2 * p1));
+        h__651 = (p2 / 6);
+        if h__651 < 0, h__651 = NaN; else, h__651 = sqrt(h__651); end
+        p = h__651;
         b00 = ((m(1, 1) - q) / p);
         b11 = ((m(2, 2) - q) / p);
         b22 = ((m(3, 3) - q) / p);
@@ -22,7 +27,14 @@ function [lam] = jitter_eig_min3(m)
         b20 = (m(3, 1) / p);
         b21 = (m(3, 2) / p);
         det = (((b00 * ((b11 * b22) - (b12 * b21))) - (b01 * ((b10 * b22) - (b12 * b20)))) + (b02 * ((b10 * b21) - (b11 * b20))));
-        phi = (asils.pc.acos_(asils.pc.clamp((det / 2), (-(1)), 1)) / 3);
+        h__652 = (det / 2);
+        h__653 = (-(1));
+        if h__653 > h__652, h__652 = h__653; end
+        h__653 = 1;
+        if h__653 < h__652, h__652 = h__653; end
+        h__654 = acos(h__652);
+        if ~isreal(h__654), h__654 = NaN; end
+        phi = (h__654 / 3);
         lam = (q + ((2 * p) * cos((phi + ((2 * pi) / 3)))));
     end
 end

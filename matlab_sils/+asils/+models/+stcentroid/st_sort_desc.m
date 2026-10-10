@@ -30,8 +30,9 @@ function [passes, key, ix, tmp] = st_sort_desc(key, ix, tmp, m)
         end
     end
     if (rem(passes, 2) == 1)
-        for i = (0):((m) - 1)
-            ix((i) + 1) = tmp((i) + 1);
+        i = ((0):((m) - 1)).';
+        if ~isempty(i)
+            ix((i) + 1) = reshape(tmp((i) + 1), [], 1);
         end
     end
 end

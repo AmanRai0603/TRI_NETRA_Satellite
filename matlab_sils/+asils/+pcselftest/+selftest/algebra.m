@@ -23,6 +23,9 @@ function [mx, mmt, c, d, u, s] = algebra(x, y, rate)
     mmt = asils.pc.mm(M, (M).');
     c = [x(2)*y(3) - x(3)*y(2); x(3)*y(1) - x(1)*y(3); x(1)*y(2) - x(2)*y(1)];
     d = (x(1)*y(1) + x(2)*y(2) + x(3)*y(3));
-    u = asils.pc.unit_((x - y));
+    h__1 = (x - y);
+    h__2 = sqrt(h__1(1)*h__1(1) + h__1(2)*h__1(2) + h__1(3)*h__1(3));
+    if 1e-30 > h__2, h__2 = 1e-30; end
+    u = (h__1 / h__2);
     s = ((((-(x)) + (2 * y)) - [1.0; 0.0; 0.0]) + (x / 2));
 end

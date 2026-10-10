@@ -14,6 +14,11 @@ function [w] = q15(x)
         if (v < (-(32767)))
             v = (-(32767));
         end
-        w = fix(asils.pc.choose((v < 0), (v - 0.5), (v + 0.5)));
+        if (v < 0)
+            h__108 = (v - 0.5);
+        else
+            h__108 = (v + 0.5);
+        end
+        w = fix(h__108);
     end
 end

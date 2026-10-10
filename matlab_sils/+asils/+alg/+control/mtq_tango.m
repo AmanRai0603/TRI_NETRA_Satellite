@@ -12,12 +12,10 @@ function [tau] = mtq_tango(q, w, q_ref, w_ref, pth, pw)
     tau = zeros(3, 1);
     [qe, s, wr, we] = asils.alg.control.mtq_err(q, w, q_ref, w_ref);
     th = zeros(3, 1);
-    for i = (0):((3) - 1)
-        th((i) + 1) = ((2 * s) * qe((i) + 1));
-    end
+    i = ((0):((3) - 1)).';
+    th((i) + 1) = ((2 * s) .* reshape(qe((i) + 1), [], 1));
     aa = [pth(1, 1)*th(1) + pth(1, 2)*th(2) + pth(1, 3)*th(3); pth(2, 1)*th(1) + pth(2, 2)*th(2) + pth(2, 3)*th(3); pth(3, 1)*th(1) + pth(3, 2)*th(2) + pth(3, 3)*th(3)];
     bb = [pw(1, 1)*we(1) + pw(1, 2)*we(2) + pw(1, 3)*we(3); pw(2, 1)*we(1) + pw(2, 2)*we(2) + pw(2, 3)*we(3); pw(3, 1)*we(1) + pw(3, 2)*we(2) + pw(3, 3)*we(3)];
-    for i = (0):((3) - 1)
-        tau((i) + 1) = (-((aa((i) + 1) + bb((i) + 1))));
-    end
+    i = ((0):((3) - 1)).';
+    tau((i) + 1) = (-((reshape(aa((i) + 1), [], 1) + reshape(bb((i) + 1), [], 1))));
 end

@@ -27,13 +27,16 @@ function [a, comp] = erp_boxwing(r_sat, r_sun, r_b2i, f, mass, doy, nrings, nseg
                 esw = (msw * geo);
                 elw = (mlw * geo);
                 if (~((esw <= 0) && (elw <= 0)))
-                    u_b = asils.pc.mv((r_b2i).', [(-(es(1))); (-(es(2))); (-(es(3)))]);
-                    s = asils.pc.mv(r_b2i, asils.models.srp.facet_sum(f, u_b, (esw / c)));
-                    l = asils.pc.mv(r_b2i, asils.models.srp.facet_sum(f, u_b, (elw / c)));
-                    for i = (0):((3) - 1)
-                        fsw((i) + 1) = (fsw((i) + 1) + s((i) + 1));
-                        flw((i) + 1) = (flw((i) + 1) + l((i) + 1));
-                    end
+                    h__250 = (r_b2i).';
+                    h__251 = [(-(es(1))); (-(es(2))); (-(es(3)))];
+                    u_b = [h__250(1, 1)*h__251(1) + h__250(1, 2)*h__251(2) + h__250(1, 3)*h__251(3); h__250(2, 1)*h__251(1) + h__250(2, 2)*h__251(2) + h__250(2, 3)*h__251(3); h__250(3, 1)*h__251(1) + h__250(3, 2)*h__251(2) + h__250(3, 3)*h__251(3)];
+                    h__252 = asils.models.srp.facet_sum(f, u_b, (esw / c));
+                    s = [r_b2i(1, 1)*h__252(1) + r_b2i(1, 2)*h__252(2) + r_b2i(1, 3)*h__252(3); r_b2i(2, 1)*h__252(1) + r_b2i(2, 2)*h__252(2) + r_b2i(2, 3)*h__252(3); r_b2i(3, 1)*h__252(1) + r_b2i(3, 2)*h__252(2) + r_b2i(3, 3)*h__252(3)];
+                    h__253 = asils.models.srp.facet_sum(f, u_b, (elw / c));
+                    l = [r_b2i(1, 1)*h__253(1) + r_b2i(1, 2)*h__253(2) + r_b2i(1, 3)*h__253(3); r_b2i(2, 1)*h__253(1) + r_b2i(2, 2)*h__253(2) + r_b2i(2, 3)*h__253(3); r_b2i(3, 1)*h__253(1) + r_b2i(3, 2)*h__253(2) + r_b2i(3, 3)*h__253(3)];
+                    i = ((0):((3) - 1)).';
+                    fsw((i) + 1) = (reshape(fsw((i) + 1), [], 1) + reshape(s((i) + 1), [], 1));
+                    flw((i) + 1) = (reshape(flw((i) + 1), [], 1) + reshape(l((i) + 1), [], 1));
                 end
             end
         end

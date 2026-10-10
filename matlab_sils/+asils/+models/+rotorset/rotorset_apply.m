@@ -62,7 +62,11 @@ function [hd, gd, p, s] = rotorset_apply(s, d, cmd_r, cmd_g, h, dt)
             pump = asils.models.ringlimits.ring_pump(cmd_r((i) + 1), s.hf((i) + 1), tsd, d.k_flow, s.htgt((i) + 1), d.torque_max((i) + 1));
             hd((i) + 1) = asils.models.ringlimits.ring_rate(pump, h((i) + 1), tsd, s.fscale((i) + 1), d.h_max((i) + 1));
             p = (p + asils.models.ringpump.pump_power(pump, h((i) + 1), d.k_hv((i) + 1), d.l((i) + 1), d.s((i) + 1), d.ac((i) + 1), s.eta((i) + 1)));
-            s.field_on((i) + 1) = asils.models.ringfield.field_switch(s.field_on((i) + 1), (asils.pc.fabs(s.htgt((i) + 1)) / d.h_max((i) + 1)), (asils.pc.fabs(cmd_r((i) + 1)) / d.torque_max((i) + 1)));
+            h__9 = s.htgt((i) + 1);
+            if h__9 < 0, h__9 = -h__9; elseif h__9 == 0, h__9 = 0; end
+            h__10 = cmd_r((i) + 1);
+            if h__10 < 0, h__10 = -h__10; elseif h__10 == 0, h__10 = 0; end
+            s.field_on((i) + 1) = asils.models.ringfield.field_switch(s.field_on((i) + 1), (h__9 / d.h_max((i) + 1)), (h__10 / d.torque_max((i) + 1)));
             if s.field_on((i) + 1)
                 p = (p + asils.models.ringfield.field_power(s.field_on((i) + 1), d.field_power((i) + 1)));
             end

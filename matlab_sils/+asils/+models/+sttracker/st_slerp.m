@@ -16,7 +16,9 @@ function [q] = st_slerp(a, b, s)
     if (d > 0.9995)
         q = asils.models.math.qnorm([(a(1) + (s * (bb(1) - a(1)))); (a(2) + (s * (bb(2) - a(2)))); (a(3) + (s * (bb(3) - a(3)))); (a(4) + (s * (bb(4) - a(4))))]);
     else
-        th = asils.pc.acos_(d);
+        h__745 = acos(d);
+        if ~isreal(h__745), h__745 = NaN; end
+        th = h__745;
         ka = (sin(((1 - s) * th)) / sin(th));
         kb = (sin((s * th)) / sin(th));
         q = [((ka * a(1)) + (kb * bb(1))); ((ka * a(2)) + (kb * bb(2))); ((ka * a(3)) + (kb * bb(3))); ((ka * a(4)) + (kb * bb(4)))];

@@ -9,6 +9,11 @@ function [c] = emu_count(x, lo, hi)
     c = 0;
     c = 0;
     if (~isnan(x))
-        c = fix(round(asils.pc.clamp(x, lo, hi)));
+        h__644 = x;
+        h__645 = lo;
+        if h__645 > h__644, h__644 = h__645; end
+        h__645 = hi;
+        if h__645 < h__644, h__644 = h__645; end
+        c = fix(round(h__644));
     end
 end

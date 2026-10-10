@@ -24,16 +24,14 @@ function [xd] = plant_deriv(x, inertia, iinv, minv, m, f, tau_ext, tau_r, gdot)
             dj = x.d(((jg - 1)) + 1);
             c = cos(dj);
             s = sin(dj);
-            for k1 = (0):((3) - 1)
-                a((k1) + 1) = ((c * m.a0((ir) + 1, (k1) + 1)) + (s * m.t0((ir) + 1, (k1) + 1)));
-                ta = (((-(s)) * m.a0((ir) + 1, (k1) + 1)) + (c * m.t0((ir) + 1, (k1) + 1)));
-                hd((k1) + 1) = (hd((k1) + 1) + ((x.h((ir) + 1) * gdot(((jg - 1)) + 1)) * ta));
-            end
+            k1 = ((0):((3) - 1)).';
+            a((k1) + 1) = ((c .* (m.a0((ir) + 1, (k1) + 1)).') + (s .* (m.t0((ir) + 1, (k1) + 1)).'));
+            ta = (((-(s)) .* (m.a0((ir) + 1, (k1) + 1)).') + (c .* (m.t0((ir) + 1, (k1) + 1)).'));
+            hd((k1) + 1) = (reshape(hd((k1) + 1), [], 1) + ((x.h((ir) + 1) * gdot(((jg - 1)) + 1)) .* ta));
         end
-        for k2 = (0):((3) - 1)
-            hr((k2) + 1) = (hr((k2) + 1) + (a((k2) + 1) * x.h((ir) + 1)));
-            hd((k2) + 1) = (hd((k2) + 1) + (a((k2) + 1) * tau_r((ir) + 1)));
-        end
+        k2 = ((0):((3) - 1)).';
+        hr((k2) + 1) = (reshape(hr((k2) + 1), [], 1) + (reshape(a((k2) + 1), [], 1) .* x.h((ir) + 1)));
+        hd((k2) + 1) = (reshape(hd((k2) + 1), [], 1) + (reshape(a((k2) + 1), [], 1) .* tau_r((ir) + 1)));
     end
     ht = [0; 0; 0];
     if f.on
@@ -56,12 +54,14 @@ function [xd] = plant_deriv(x, inertia, iinv, minv, m, f, tau_ext, tau_r, gdot)
         xd.w = [iinv(1, 1)*rhs0(1) + iinv(1, 2)*rhs0(2) + iinv(1, 3)*rhs0(3); iinv(2, 1)*rhs0(1) + iinv(2, 2)*rhs0(2) + iinv(2, 3)*rhs0(3); iinv(3, 1)*rhs0(1) + iinv(3, 2)*rhs0(2) + iinv(3, 3)*rhs0(3)];
     end
     hdot = zeros(8, 1);
-    for ih = (0):((m.nr) - 1)
-        hdot((ih) + 1) = tau_r((ih) + 1);
+    ih = ((0):((m.nr) - 1)).';
+    if ~isempty(ih)
+        hdot((ih) + 1) = reshape(tau_r((ih) + 1), [], 1);
     end
     ddot = zeros(4, 1);
-    for jd = (0):((m.ng) - 1)
-        ddot((jd) + 1) = gdot((jd) + 1);
+    jd = ((0):((m.ng) - 1)).';
+    if ~isempty(jd)
+        ddot((jd) + 1) = reshape(gdot((jd) + 1), [], 1);
     end
     xd.h = hdot;
     xd.d = ddot;

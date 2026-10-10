@@ -22,9 +22,8 @@ function [n, rcs_tau, rcs_mib, rcs_res] = fsw_thrusters(fitted, nc, tau, mib, re
         n = nc;
         t__509 = ((0):((6) - 1)).';
         for c = t__509(logical((t__509 < nc))).'
-            for k = (0):((3) - 1)
-                rcs_tau((c) + 1, (k) + 1) = tau((c) + 1, (k) + 1);
-            end
+            k = ((0):((3) - 1)).';
+            rcs_tau((c) + 1, (k) + 1) = ((tau((c) + 1, (k) + 1)).').';
         end
         rcs_mib = mib;
         rcs_res = res;

@@ -9,6 +9,9 @@ function [c] = kpi_min(a, b)
     if isnan(a)
         c = b;
     else
-        c = asils.pc.fmin(a, b);
+        h__635 = a;
+        h__636 = b;
+        if h__636 < h__635, h__635 = h__636; end
+        c = h__635;
     end
 end
