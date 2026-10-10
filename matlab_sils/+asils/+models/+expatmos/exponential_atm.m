@@ -17,7 +17,10 @@ function [rho, t, mmol, n_o] = exponential_atm(alt_km)
     end
     [h0, rho0, hs] = asils.models.env.atmosphere((h * 1000));
     rho = ((rho0 / 1) * exp(((-((h - (h0 / 1000)))) / (hs / 1000))));
-    t = (1000 - ((1000 - 186) * exp(((-((asils.pc.fmax(h, 90) - 90))) / 70))));
+    h__260 = h;
+    h__261 = 90;
+    if h__261 > h__260, h__260 = h__261; end
+    t = (1000 - ((1000 - 186) * exp(((-((h__260 - 90))) / 70))));
     mmol = asils.models.expatmos.mean_molar_mass(h);
     na = (6.02214076e+23 * 1000);
     n_o = ((rho * na) / mmol);

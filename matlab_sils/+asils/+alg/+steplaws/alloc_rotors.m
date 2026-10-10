@@ -35,10 +35,10 @@ function [cmd_r, cmd_g] = alloc_rotors(tau_rot, a, cmd_r0, cmd_g0, nr, ng, rot_g
     end
     if (nf > 0)
         af = zeros(3, 8);
-        for i = (0):((nf) - 1)
-            for k = (0):((3) - 1)
-                af((k) + 1, (i) + 1) = a((k) + 1, (fixed((i) + 1)) + 1);
-            end
+        i = ((0):((nf) - 1)).';
+        if ~isempty(i)
+            k = (0):((3) - 1);
+            af((k) + 1, (i) + 1) = ((a((k) + 1, (reshape(fixed((i) + 1), [], 1)) + 1)).').';
         end
         pi8 = asils.alg.math.pinv_rows(af, nf);
         for i = (0):((nf) - 1)
@@ -52,13 +52,17 @@ function [cmd_r, cmd_g] = alloc_rotors(tau_rot, a, cmd_r0, cmd_g0, nr, ng, rot_g
             wheels = true;
         end
         [gd, hd] = asils.alg.allocation.steer_sr(tau_rot, a, zh, nr, ng, rot_gi, gim_axis, gim_rate_max, cmg_lam0, cmg_mu, wheels);
-        for j = (0):((ng) - 1)
-            cmd_g((j) + 1) = gd((j) + 1);
+        j = ((0):((ng) - 1)).';
+        if ~isempty(j)
+            cmd_g((j) + 1) = reshape(gd((j) + 1), [], 1);
         end
         if wheels
-            t__18 = ((0):((nr) - 1)).';
-            for i = t__18(logical((rot_gi((t__18) + 1) > 0))).'
-                cmd_r((i) + 1) = (hd((i) + 1) - (cmg_k_null * (zh((i) + 1) - rot_h0((i) + 1))));
+            i = ((0):((nr) - 1)).';
+            if ~isempty(i)
+                m__18 = logical((reshape(rot_gi((i) + 1), [], 1) > 0));
+                if any(m__18)
+                    cmd_r((i(m__18)) + 1) = (reshape(hd((i(m__18)) + 1), [], 1) - (cmg_k_null .* (reshape(zh((i(m__18)) + 1), [], 1) - reshape(rot_h0((i(m__18)) + 1), [], 1))));
+                end
             end
         end
     end

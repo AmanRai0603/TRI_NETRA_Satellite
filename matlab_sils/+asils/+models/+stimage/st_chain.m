@@ -61,7 +61,12 @@ function [q_body, ok, spots, identified, used, cr, cm, img, work, ia, ib, pi, pj
         mag = zeros(32, 1);
         for k = (0):((ns) - 1)
             b((k) + 1, :) = asils.models.facets.unit_or_zero([((sp((k) + 1, 1) - cam.c) / cam.f); ((sp((k) + 1, 2) - cam.c) / cam.f); 1]).';
-            mag((k) + 1) = (6 - (2.5 * asils.pc.log10_((asils.pc.fmax(sp((k) + 1, 3), 1) / cam.flux0))));
+            h__737 = sp((k) + 1, 3);
+            h__738 = 1;
+            if h__738 > h__737, h__737 = h__738; end
+            h__739 = log10((h__737 / cam.flux0));
+            if ~isreal(h__739), h__739 = NaN; end
+            mag((k) + 1) = (6 - (2.5 * h__739));
         end
         [t__670, t__671, t__672, t__673, t__674, t__675, t__676] = asils.models.stidentify.st_identify(b, mag, ns, pi, pj, pa, cr, cm, nc, cam.id_tol, cam.mag_tol);
         id = t__670;
@@ -78,7 +83,8 @@ function [q_body, ok, spots, identified, used, cr, cm, img, work, ia, ib, pi, pj
         if okid
             rs = zeros(32, 3);
             ig = zeros(32, 1);
-            for p = (0):((32) - 1)
+            p = ((0):((32) - 1)).';
+            if ~isempty(p)
                 ig((p) + 1) = (-(1));
             end
             t__678 = ((0):((ns) - 1)).';

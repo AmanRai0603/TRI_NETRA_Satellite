@@ -10,7 +10,17 @@ function [t] = motor_line(tm, om, ts, wn)
     t = 0;
     lo0 = ((-(ts)) * (1 + (om / wn)));
     hi0 = (ts * (1 - (om / wn)));
-    lo = asils.pc.choose((lo0 < 0), lo0, 0);
-    hi = asils.pc.choose((hi0 > 0), hi0, 0);
+    if (lo0 < 0)
+        h__26 = lo0;
+    else
+        h__26 = 0;
+    end
+    lo = h__26;
+    if (hi0 > 0)
+        h__27 = hi0;
+    else
+        h__27 = 0;
+    end
+    hi = h__27;
     t = asils.models.coilsat.act_clamp(tm, lo, hi);
 end

@@ -13,8 +13,18 @@ function [u] = utc_of_jd(j)
     d = floor((365.25 * c));
     e = floor(((b - d) / 30.6001));
     day = ((b - d) - floor((30.6001 * e)));
-    mon = asils.pc.choose((e < 14), (e - 1), (e - 13));
-    yr = asils.pc.choose((mon > 2), (c - 4716), (c - 4715));
+    if (e < 14)
+        h__161 = (e - 1);
+    else
+        h__161 = (e - 13);
+    end
+    mon = h__161;
+    if (mon > 2)
+        h__162 = (c - 4716);
+    else
+        h__162 = (c - 4715);
+    end
+    yr = h__162;
     s = (f * 86400);
     h = floor((s / 3600));
     s = (s - (3600 * h));

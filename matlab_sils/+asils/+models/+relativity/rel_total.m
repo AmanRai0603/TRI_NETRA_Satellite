@@ -39,9 +39,8 @@ function [ok, a, parts] = rel_total(r, v, has_helio, helio_pos, helio_vel, terms
                 ok = false;
             end
             if ok
-                for k = (0):((3) - 1)
-                    a((k) + 1) = (a((k) + 1) + p((k) + 1));
-                end
+                k = ((0):((3) - 1)).';
+                a((k) + 1) = (reshape(a((k) + 1), [], 1) + reshape(p((k) + 1), [], 1));
             end
         end
     end

@@ -13,7 +13,6 @@ function [tau] = mtq_lovera(q, w, q_ref, w_ref, j, eps, kp, kv)
     tau = zeros(3, 1);
     [qe, s, wr, we] = asils.alg.control.mtq_err(q, w, q_ref, w_ref);
     jw = [j(1, 1)*we(1) + j(1, 2)*we(2) + j(1, 3)*we(3); j(2, 1)*we(1) + j(2, 2)*we(2) + j(2, 3)*we(3); j(3, 1)*we(1) + j(3, 2)*we(2) + j(3, 3)*we(3)];
-    for i = (0):((3) - 1)
-        tau((i) + 1) = (-(((((eps * eps) * kp) * (s * qe((i) + 1))) + ((eps * kv) * jw((i) + 1)))));
-    end
+    i = ((0):((3) - 1)).';
+    tau((i) + 1) = (-(((((eps * eps) * kp) .* (s .* reshape(qe((i) + 1), [], 1))) + ((eps * kv) .* reshape(jw((i) + 1), [], 1)))));
 end

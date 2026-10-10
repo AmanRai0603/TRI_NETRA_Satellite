@@ -33,12 +33,14 @@ function [payload, n_found] = uart_frame(b, len, sync2)
                 else
                     pl = zeros(64, 1);
                     crc_in = zeros(64, 1);
-                    for i = (0):((asils.pc.fmin(n, 64)) - 1)
-                        crc_in((i) + 1) = b(((((base + s) + 3) + i)) + 1);
+                    i = ((0):((asils.pc.fmin(n, 64)) - 1)).';
+                    if ~isempty(i)
+                        crc_in((i) + 1) = reshape(b(((((base + s) + 3) + i)) + 1), [], 1);
                     end
                     if ((n <= 64) && (asils.models.drivers.crc16(crc_in, n) == bitor(b(((((base + s) + 3) + n)) + 1), bitshift(b(((((base + s) + 4) + n)) + 1), 8))))
-                        for i = (0):((n) - 1)
-                            pl((i) + 1) = b(((((base + s) + 3) + i)) + 1);
+                        i = ((0):((n) - 1)).';
+                        if ~isempty(i)
+                            pl((i) + 1) = reshape(b(((((base + s) + 3) + i)) + 1), [], 1);
                         end
                         payload = pl;
                         n_found = n;

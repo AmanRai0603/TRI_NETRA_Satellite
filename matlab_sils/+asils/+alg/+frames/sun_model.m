@@ -18,5 +18,7 @@ function [s] = sun_model(jd)
     a = [((cos(z) * sm(1)) + (sin(z) * sm(2))); (((-(sin(z))) * sm(1)) + (cos(z) * sm(2))); sm(3)];
     b = [((cos((-(th))) * a(1)) - (sin((-(th))) * a(3))); a(2); ((sin((-(th))) * a(1)) + (cos((-(th))) * a(3)))];
     r = [((cos(zeta) * b(1)) + (sin(zeta) * b(2))); (((-(sin(zeta))) * b(1)) + (cos(zeta) * b(2))); b(3)];
-    s = asils.pc.unit_(r);
+    h__15 = sqrt(r(1)*r(1) + r(2)*r(2) + r(3)*r(3));
+    if 1e-30 > h__15, h__15 = 1e-30; end
+    s = (r / h__15);
 end

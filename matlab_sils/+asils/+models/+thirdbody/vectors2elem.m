@@ -14,8 +14,11 @@ function [ecc, inc, om, w] = vectors2elem(j, e)
     w = 0;
     jn = sqrt(j(1)*j(1) + j(2)*j(2) + j(3)*j(3));
     ecc = sqrt(e(1)*e(1) + e(2)*e(2) + e(3)*e(3));
-    inc = asils.pc.acos_(asils.models.thirdbody.unit_clip((j(3) / jn)));
-    node = asils.pc.cross_([0; 0; 1], j);
+    h__523 = acos(asils.models.thirdbody.unit_clip((j(3) / jn)));
+    if ~isreal(h__523), h__523 = NaN; end
+    inc = h__523;
+    h__524 = [0; 0; 1];
+    node = [h__524(2)*j(3) - h__524(3)*j(2); h__524(3)*j(1) - h__524(1)*j(3); h__524(1)*j(2) - h__524(2)*j(1)];
     nn = sqrt(node(1)*node(1) + node(2)*node(2) + node(3)*node(3));
     nodeu = [1; 0; 0];
     if (nn < 1e-12)
@@ -28,7 +31,8 @@ function [ecc, inc, om, w] = vectors2elem(j, e)
         w = 0;
     else
         ehat = [(e(1) / ecc); (e(2) / ecc); (e(3) / ecc)];
-        ip = asils.pc.cross_([(j(1) / jn); (j(2) / jn); (j(3) / jn)], nodeu);
+        h__525 = [(j(1) / jn); (j(2) / jn); (j(3) / jn)];
+        ip = [h__525(2)*nodeu(3) - h__525(3)*nodeu(2); h__525(3)*nodeu(1) - h__525(1)*nodeu(3); h__525(1)*nodeu(2) - h__525(2)*nodeu(1)];
         w = atan2((ip(1)*ehat(1) + ip(2)*ehat(2) + ip(3)*ehat(3)), (nodeu(1)*ehat(1) + nodeu(2)*ehat(2) + nodeu(3)*ehat(3)));
     end
 end

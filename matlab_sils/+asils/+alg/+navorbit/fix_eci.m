@@ -10,7 +10,8 @@ function [r, v] = fix_eci(r_e, v_e, jd)
     r = zeros(3, 1);
     v = zeros(3, 1);
     c = asils.alg.frames.eci2ecef(jd);
-    ve = (v_e + asils.pc.cross_([0; 0; 0.000072921158553], r_e));
+    h__34 = [0; 0; 0.000072921158553];
+    ve = (v_e + [h__34(2)*r_e(3) - h__34(3)*r_e(2); h__34(3)*r_e(1) - h__34(1)*r_e(3); h__34(1)*r_e(2) - h__34(2)*r_e(1)]);
     r = asils.alg.math.mat3t_vec(c, r_e);
     v = asils.alg.math.mat3t_vec(c, ve);
 end

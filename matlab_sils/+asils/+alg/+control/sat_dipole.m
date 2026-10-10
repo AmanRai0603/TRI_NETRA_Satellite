@@ -7,7 +7,9 @@ function [r] = sat_dipole(m, m_max)
     r = zeros(3, 1);
     a = 1;
     for i = (0):((3) - 1)
-        d = asils.pc.fabs(m((i) + 1));
+        h__60 = m((i) + 1);
+        if h__60 < 0, h__60 = -h__60; elseif h__60 == 0, h__60 = 0; end
+        d = h__60;
         if (d < 1e-30)
             d = 1e-30;
         end

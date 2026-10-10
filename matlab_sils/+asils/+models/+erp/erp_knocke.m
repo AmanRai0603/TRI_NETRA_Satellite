@@ -22,10 +22,9 @@ function [a, comp] = erp_knocke(r_sat, r_sun, cr_aom, doy, nrings, nseg)
                 [alb, emi] = asils.models.erp.zonal_coeffs(lat, doy);
                 [msw, mlw, geo] = asils.models.erp.cap_exitance(alb, emi, n_el, shat, cos_e, da, rho);
                 [ds, dl] = asils.models.erp.cap_cannon(cr_aom, cos_e, da, rho, es, msw, mlw);
-                for i = (0):((3) - 1)
-                    sw((i) + 1) = (sw((i) + 1) + ds((i) + 1));
-                    lw((i) + 1) = (lw((i) + 1) + dl((i) + 1));
-                end
+                i = ((0):((3) - 1)).';
+                sw((i) + 1) = (reshape(sw((i) + 1), [], 1) + reshape(ds((i) + 1), [], 1));
+                lw((i) + 1) = (reshape(lw((i) + 1), [], 1) + reshape(dl((i) + 1), [], 1));
             end
         end
     end

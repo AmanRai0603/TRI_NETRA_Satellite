@@ -8,12 +8,17 @@ function [gm, re, cbar] = default_field()
     gm = 0;
     re = 0;
     cbar = zeros(49, 1);
-    gm = asils.models.gravfield.GRAV_DEFAULT_GM(1);
-    re = asils.models.gravfield.GRAV_DEFAULT_RE(1);
+    D__GRAV_DEFAULT_GM = asils.models.gravfield.GRAV_DEFAULT_GM();
+    D__GRAV_DEFAULT_J = asils.models.gravfield.GRAV_DEFAULT_J();
+    D__GRAV_DEFAULT_RE = asils.models.gravfield.GRAV_DEFAULT_RE();
+    gm = D__GRAV_DEFAULT_GM(1);
+    re = D__GRAV_DEFAULT_RE(1);
     cbar = zeros(49, 1);
     cbar(1) = 1;
     for k = (0):((5) - 1)
         n = (k + 2);
-        cbar(((n * 7)) + 1) = ((-(asils.models.gravfield.GRAV_DEFAULT_J((k) + 1))) / asils.pc.sqrt_(((2 * n) + 1)));
+        h__270 = ((2 * n) + 1);
+        if h__270 < 0, h__270 = NaN; else, h__270 = sqrt(h__270); end
+        cbar(((n * 7)) + 1) = ((-(D__GRAV_DEFAULT_J((k) + 1))) / h__270);
     end
 end

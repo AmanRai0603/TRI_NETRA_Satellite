@@ -20,11 +20,37 @@ function [first, capped, fin, nn, k, z] = nonfinite(x, y, n)
     if (x < 0)
         t = (-(Inf));
     end
-    first = asils.pc.fmin(x, (Inf * 1));
-    capped = asils.pc.clamp(x, (-(Inf)), 2);
+    h__19 = x;
+    h__20 = (Inf * 1);
+    if h__20 < h__19, h__19 = h__20; end
+    first = h__19;
+    h__21 = x;
+    h__22 = (-(Inf));
+    if h__22 > h__21, h__21 = h__22; end
+    h__22 = 2;
+    if h__22 < h__21, h__21 = h__22; end
+    capped = h__21;
     fin = (isfinite(t) || isfinite((y / n)));
     q = ((y - y) / (y - y));
     nn = ((isnan(q) && (~isnan(y))) && (~isnan(n)));
-    k = asils.pc.choose(isfinite(t), 1, asils.pc.choose((t > 0), 2, 3));
-    z = asils.pc.choose(isfinite(t), t, asils.pc.fmax((-(Inf)), x));
+    if isfinite(t)
+        h__23 = 1;
+    else
+        if (t > 0)
+            h__24 = 2;
+        else
+            h__24 = 3;
+        end
+        h__23 = h__24;
+    end
+    k = h__23;
+    if isfinite(t)
+        h__25 = t;
+    else
+        h__26 = (-(Inf));
+        h__27 = x;
+        if h__27 > h__26, h__26 = h__27; end
+        h__25 = h__26;
+    end
+    z = h__25;
 end

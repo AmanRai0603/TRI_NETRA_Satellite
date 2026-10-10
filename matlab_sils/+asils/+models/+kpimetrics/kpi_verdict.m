@@ -12,9 +12,19 @@ function [pass] = kpi_verdict(val, rv, sense_min)
         if isnan(val)
             pass = 0;
         elseif sense_min
-            pass = asils.pc.choose((val >= rv), 1, 0);
+            if (val >= rv)
+                h__631 = 1;
+            else
+                h__631 = 0;
+            end
+            pass = h__631;
         else
-            pass = asils.pc.choose((val <= rv), 1, 0);
+            if (val <= rv)
+                h__632 = 1;
+            else
+                h__632 = 0;
+            end
+            pass = h__632;
         end
     end
 end

@@ -10,5 +10,7 @@ function [beta] = beta_angle(inc, ltan, epoch)
     beta = 0;
     [ra, dec] = asils.relations.orbit.sun_ra_dec(epoch);
     raan = (ra + ((ltan - 43200) * ((2 * pi) / 86400)));
-    beta = asils.pc.asin_((((sin(inc) * cos(dec)) * sin((raan - ra))) + (cos(inc) * sin(dec))));
+    h__24 = asin((((sin(inc) * cos(dec)) * sin((raan - ra))) + (cos(inc) * sin(dec))));
+    if ~isreal(h__24), h__24 = NaN; end
+    beta = h__24;
 end

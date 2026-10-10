@@ -91,27 +91,61 @@ function [worst, tau_dist, h_dist, h_secular, dump_dflt, w0, w0_dflt, h_detumble
     h_dist = (-(1.7976931348623157e+308));
     h_secular = (-(1.7976931348623157e+308));
     for a = (0):((4) - 1)
-        h_dist = asils.pc.fmax(h_dist, (h_cyclic((a) + 1) + (held * h_secular_orbit((a) + 1))));
-        h_secular = asils.pc.fmax(h_secular, h_secular_orbit((a) + 1));
+        h__125 = h_dist;
+        h__126 = (h_cyclic((a) + 1) + (held * h_secular_orbit((a) + 1)));
+        if h__126 > h__125, h__125 = h__126; end
+        h_dist = h__125;
+        h__127 = h_secular;
+        h__128 = h_secular_orbit((a) + 1);
+        if h__128 > h__127, h__127 = h__128; end
+        h_secular = h__127;
     end
     w0_dflt = isnan(w0_case);
-    w0 = asils.pc.choose(w0_dflt, dw0, w0_case);
+    if w0_dflt
+        h__129 = dw0;
+    else
+        h__129 = w0_case;
+    end
+    w0 = h__129;
     jmax = (-(1.7976931348623157e+308));
     for i = (0):((3) - 1)
-        jmax = asils.pc.fmax(jmax, j((i) + 1));
+        h__130 = jmax;
+        h__131 = j((i) + 1);
+        if h__131 > h__130, h__130 = h__131; end
+        jmax = h__130;
     end
     h_detumble = (((jmax * w0) * pi) / 180);
     sangle_dflt = isnan(sangle_case);
-    slew_deg = asils.pc.choose(sangle_dflt, dsl, sangle_case);
+    if sangle_dflt
+        h__132 = dsl;
+    else
+        h__132 = sangle_case;
+    end
+    slew_deg = h__132;
     slew_dflt = isnan(slew_case);
-    slew_s = asils.pc.choose(slew_dflt, dss, slew_case);
+    if slew_dflt
+        h__133 = dss;
+    else
+        h__133 = slew_case;
+    end
+    slew_s = h__133;
     w_slew = ((((2 * slew_deg) * pi) / 180) / slew_s);
     a_slew = (((((2 * pi) * slew_deg) * pi) / 180) / (slew_s * slew_s));
     h_slew = (jmax * w_slew);
     tau_slew = (jmax * a_slew);
     life_dflt = isnan(life_case);
-    life_yr = asils.pc.choose(life_dflt, dlf, life_case);
-    slews_per_day = asils.pc.choose(isnan(spd_case), dspd, spd_case);
+    if life_dflt
+        h__134 = dlf;
+    else
+        h__134 = life_case;
+    end
+    life_yr = h__134;
+    if isnan(spd_case)
+        h__135 = dspd;
+    else
+        h__135 = spd_case;
+    end
+    slews_per_day = h__135;
     if isnan(k_h_knob)
         k_h = dkh;
         if ((isfinite(hsat) && (hsat > 0)) && (hsat < 1))

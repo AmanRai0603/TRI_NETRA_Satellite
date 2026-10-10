@@ -13,10 +13,22 @@ function [cp, ct] = sentman(s, delta, a_t, tw, talt)
     ct = 0;
     c = cos(delta);
     sn = (s * c);
-    ti = (((2 / 3) * asils.pc.pow_(s, 2)) * talt);
+    h__292 = (s)^(2);
+    if ~isreal(h__292), h__292 = NaN; end
+    ti = (((2 / 3) * h__292) * talt);
     e = (1 + erf(sn));
-    p = exp((-(asils.pc.pow_(sn, 2))));
-    sqpi = asils.pc.sqrt_(pi);
-    cp = ((((c / (sqpi * s)) * p) + (((1 / (2 * asils.pc.pow_(s, 2))) + asils.pc.pow_(c, 2)) * e)) + ((0.5 * asils.pc.sqrt_(((2 / 3) * (1 + (a_t * ((tw / ti) - 1)))))) * (((sqpi * c) * e) + ((1 / s) * p))));
+    h__293 = (sn)^(2);
+    if ~isreal(h__293), h__293 = NaN; end
+    p = exp((-(h__293)));
+    h__294 = pi;
+    if h__294 < 0, h__294 = NaN; else, h__294 = sqrt(h__294); end
+    sqpi = h__294;
+    h__295 = (s)^(2);
+    if ~isreal(h__295), h__295 = NaN; end
+    h__296 = (c)^(2);
+    if ~isreal(h__296), h__296 = NaN; end
+    h__297 = ((2 / 3) * (1 + (a_t * ((tw / ti) - 1))));
+    if h__297 < 0, h__297 = NaN; else, h__297 = sqrt(h__297); end
+    cp = ((((c / (sqpi * s)) * p) + (((1 / (2 * h__295)) + h__296) * e)) + ((0.5 * h__297) * (((sqpi * c) * e) + ((1 / s) * p))));
     ct = ((sin(delta) / (sqpi * s)) * (p + ((sqpi * sn) * e)));
 end

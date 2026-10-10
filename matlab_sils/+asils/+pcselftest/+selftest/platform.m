@@ -16,6 +16,8 @@ function [t, ti, l2, h] = platform(a, b, x, n)
     h = 0;
     t = (fix((a / 3)) * 1);
     ti = fix(n);
-    l2 = asils.pc.log2_(x);
+    h__34 = log2(x);
+    if ~isreal(h__34), h__34 = NaN; end
+    l2 = h__34;
     h = hypot(a, b);
 end

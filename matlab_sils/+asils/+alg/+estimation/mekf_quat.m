@@ -19,19 +19,15 @@ function [q, b, p, took] = mekf_quat(q0, b0, p0, qm, sc, sr, bs, gate)
     took = false;
     dq = asils.alg.math.qerr(q0, qm);
     y = zeros(3, 1);
-    for i = (0):((3) - 1)
-        y((i) + 1) = (2 * dq((i) + 1));
-    end
+    i = ((0):((3) - 1)).';
+    y((i) + 1) = (2 .* reshape(dq((i) + 1), [], 1));
     h = zeros(3, 6);
     r = zeros(3, 3);
-    for i = (0):((3) - 1)
-        for j = (0):((6) - 1)
-            h((i) + 1, (j) + 1) = asils.pc.choose((i == j), 1, 0);
-        end
-        for j = (0):((3) - 1)
-            r((i) + 1, (j) + 1) = (asils.pc.choose((i == j), (sc * sc), 0) + ((((sr * sr) - (sc * sc)) * bs((i) + 1)) * bs((j) + 1)));
-        end
-    end
+    i = ((0):((3) - 1)).';
+    j = (0):((6) - 1);
+    h((i) + 1, (j) + 1) = asils.pc.vchoose((i == j), 1, 0);
+    j = (0):((3) - 1);
+    r((i) + 1, (j) + 1) = (asils.pc.vchoose((i == j), (sc * sc), 0) + ((((sr * sr) - (sc * sc)) .* reshape(bs((i) + 1), [], 1)) .* reshape(bs((j) + 1), 1, [])));
     [t__5, t__6, t__7, t__8] = asils.alg.estimation.update3(q0, b0, p0, h, r, y, gate);
     q = t__5;
     b = t__6;

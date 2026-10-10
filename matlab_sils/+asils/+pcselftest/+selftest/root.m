@@ -17,7 +17,9 @@ function [r, steps, settled] = root(a, cap)
         r = (0.5 * (r + (a / r)));
         steps = (steps + 1);
         k__0 = k__0 + 1;
-        if (asils.pc.fabs(((r * r) - a)) < (1e-12 * a)), break; end
+        h__0 = ((r * r) - a);
+        if h__0 < 0, h__0 = -h__0; elseif h__0 == 0, h__0 = 0; end
+        if (h__0 < (1e-12 * a)), break; end
         if k__0 >= n__1
             settled = false;
             r = (-(1));

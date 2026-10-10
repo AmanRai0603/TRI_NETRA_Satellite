@@ -16,32 +16,37 @@ function [lam, v] = jacobi_eig4(k)
             p = pp((pi_) + 1);
             q = qq((pi_) + 1);
             apq = a((p) + 1, (q) + 1);
-            if (asils.pc.fabs(apq) >= 1e-300)
+            h__7 = apq;
+            if h__7 < 0, h__7 = -h__7; elseif h__7 == 0, h__7 = 0; end
+            if (h__7 >= 1e-300)
                 th = ((a((q) + 1, (q) + 1) - a((p) + 1, (p) + 1)) / (2 * apq));
-                t = (sign(th) / (asils.pc.fabs(th) + asils.pc.sqrt_(((th * th) + 1))));
+                h__8 = th;
+                if h__8 < 0, h__8 = -h__8; elseif h__8 == 0, h__8 = 0; end
+                h__9 = ((th * th) + 1);
+                if h__9 < 0, h__9 = NaN; else, h__9 = sqrt(h__9); end
+                t = (sign(th) / (h__8 + h__9));
                 if (th == 0)
                     t = 1;
                 end
-                c = (1 / asils.pc.sqrt_(((t * t) + 1)));
+                h__10 = ((t * t) + 1);
+                if h__10 < 0, h__10 = NaN; else, h__10 = sqrt(h__10); end
+                c = (1 / h__10);
                 sn = (t * c);
-                for i = (0):((4) - 1)
-                    aip = a((i) + 1, (p) + 1);
-                    aiq = a((i) + 1, (q) + 1);
-                    a((i) + 1, (p) + 1) = ((c * aip) - (sn * aiq));
-                    a((i) + 1, (q) + 1) = ((sn * aip) + (c * aiq));
-                end
-                for i = (0):((4) - 1)
-                    api = a((p) + 1, (i) + 1);
-                    aqi = a((q) + 1, (i) + 1);
-                    a((p) + 1, (i) + 1) = ((c * api) - (sn * aqi));
-                    a((q) + 1, (i) + 1) = ((sn * api) + (c * aqi));
-                end
-                for i = (0):((4) - 1)
-                    vip = v((i) + 1, (p) + 1);
-                    viq = v((i) + 1, (q) + 1);
-                    v((i) + 1, (p) + 1) = ((c * vip) - (sn * viq));
-                    v((i) + 1, (q) + 1) = ((sn * vip) + (c * viq));
-                end
+                i = ((0):((4) - 1)).';
+                aip = a((i) + 1, (p) + 1);
+                aiq = a((i) + 1, (q) + 1);
+                a((i) + 1, (p) + 1) = ((c .* aip) - (sn .* aiq));
+                a((i) + 1, (q) + 1) = ((sn .* aip) + (c .* aiq));
+                i = ((0):((4) - 1)).';
+                api = (a((p) + 1, (i) + 1)).';
+                aqi = (a((q) + 1, (i) + 1)).';
+                a((p) + 1, (i) + 1) = (((c .* api) - (sn .* aqi))).';
+                a((q) + 1, (i) + 1) = (((sn .* api) + (c .* aqi))).';
+                i = ((0):((4) - 1)).';
+                vip = v((i) + 1, (p) + 1);
+                viq = v((i) + 1, (q) + 1);
+                v((i) + 1, (p) + 1) = ((c .* vip) - (sn .* viq));
+                v((i) + 1, (q) + 1) = ((sn .* vip) + (c .* viq));
             end
         end
     end

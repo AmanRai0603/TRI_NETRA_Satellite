@@ -19,7 +19,12 @@ function [st, sw] = from_manual(f107, has_f107a, f107a, kp_kind, akp, has_ap, ap
     sw = asils.models.swindex.SwManual_zero();
     st = 0;
     sw.f107 = f107;
-    sw.f107a = asils.pc.choose(has_f107a, f107a, f107);
+    if has_f107a
+        h__510 = f107a;
+    else
+        h__510 = f107;
+    end
+    sw.f107a = h__510;
     given_kp = false;
     if (kp_kind == 1)
         given_kp = (~isnan(akp(1)));
@@ -54,10 +59,14 @@ function [st, sw] = from_manual(f107, has_f107a, f107a, kp_kind, akp, has_ap, ap
             sw.akp = [sw.kp; 0; sw.kp; 0];
         end
         sw.ap = ap;
-        sw.ap3 = asils.pc.choose(has_ap3, ap3_in, ap);
-        for i = (0):((7) - 1)
-            sw.aph((i) + 1) = sw.ap3;
+        if has_ap3
+            h__511 = ap3_in;
+        else
+            h__511 = ap;
         end
+        sw.ap3 = h__511;
+        i = ((0):((7) - 1)).';
+        sw.aph((i) + 1) = sw.ap3;
         sw.aph(1) = ap;
         sw.f107_today = f107;
         kp_ok = (((isfinite(sw.akp(1)) && isfinite(sw.akp(2))) && isfinite(sw.akp(3))) && isfinite(sw.akp(4)));

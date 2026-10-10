@@ -28,9 +28,12 @@ function [a] = tb_legendre(s, b, gm, nmax)
     a = zeros(3, 1);
     for m = (2):(((nmax + 1)) - 1)
         mf = m;
-        k = ((gm / asils.pc.pow_(rb, (mf + 1))) * asils.pc.pow_(rho, (mf - 1)));
-        for i = (0):((3) - 1)
-            a((i) + 1) = (a((i) + 1) + (k * (((mf * p((m) + 1)) * rs((i) + 1)) + (dp((m) + 1) * (rbh((i) + 1) - (u * rs((i) + 1)))))));
-        end
+        h__518 = (rb)^((mf + 1));
+        if ~isreal(h__518), h__518 = NaN; end
+        h__519 = (rho)^((mf - 1));
+        if ~isreal(h__519), h__519 = NaN; end
+        k = ((gm / h__518) * h__519);
+        i = ((0):((3) - 1)).';
+        a((i) + 1) = (reshape(a((i) + 1), [], 1) + (k .* (((mf * p((m) + 1)) .* reshape(rs((i) + 1), [], 1)) + (dp((m) + 1) .* (reshape(rbh((i) + 1), [], 1) - (u .* reshape(rs((i) + 1), [], 1)))))));
     end
 end

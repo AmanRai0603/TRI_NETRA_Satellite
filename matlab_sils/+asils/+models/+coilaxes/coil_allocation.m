@@ -7,15 +7,14 @@ function [p] = coil_allocation(axes, n)
     p = zeros(8, 3);
     aat = zeros(3, 3);
     for j = (0):((n) - 1)
-        for r = (0):((3) - 1)
-            for c = (0):((3) - 1)
-                aat((r) + 1, (c) + 1) = (aat((r) + 1, (c) + 1) + (axes((j) + 1, (r) + 1) * axes((j) + 1, (c) + 1)));
-            end
-        end
+        r = ((0):((3) - 1)).';
+        c = (0):((3) - 1);
+        aat((r) + 1, (c) + 1) = (aat((r) + 1, (c) + 1) + ((axes((j) + 1, (r) + 1)).' .* axes((j) + 1, (c) + 1)));
     end
     ai = asils.models.coilaxes.coil_inverse(aat);
     p = zeros(8, 3);
     for k = (0):((n) - 1)
-        p((k) + 1, :) = asils.pc.mv((ai).', (axes((k) + 1, :)).').';
+        h__0 = (ai).';
+        p((k) + 1, :) = [h__0(1, 1)*axes((k) + 1, 1) + h__0(1, 2)*axes((k) + 1, 2) + h__0(1, 3)*axes((k) + 1, 3); h__0(2, 1)*axes((k) + 1, 1) + h__0(2, 2)*axes((k) + 1, 2) + h__0(2, 3)*axes((k) + 1, 3); h__0(3, 1)*axes((k) + 1, 1) + h__0(3, 2)*axes((k) + 1, 2) + h__0(3, 3)*axes((k) + 1, 3)].';
     end
 end

@@ -15,6 +15,11 @@ function [n, heads, residual] = sensor_heads(fine, knob)
     else
         heads = [([(-(0.9063)); 0; 0.4226]).'; ([(-(0.9063)); 0; (-(0.4226))]).'];
     end
-    n = asils.pc.choose((knob == 1), 1, 2);
+    if (knob == 1)
+        h__146 = 1;
+    else
+        h__146 = 2;
+    end
+    n = h__146;
     residual = 0.00001;
 end

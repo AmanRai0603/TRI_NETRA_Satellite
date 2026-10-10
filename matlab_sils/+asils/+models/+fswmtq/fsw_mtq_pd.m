@@ -13,8 +13,7 @@ function [kp, kd, ki] = fsw_mtq_pd(ii, wn, z)
     kp = zeros(3, 1);
     kd = zeros(3, 1);
     ki = zeros(3, 1);
-    for ax = (0):((3) - 1)
-        kp((ax) + 1) = ((ii((ax) + 1) * wn) * wn);
-        kd((ax) + 1) = (((2 * z) * ii((ax) + 1)) * wn);
-    end
+    ax = ((0):((3) - 1)).';
+    kp((ax) + 1) = ((reshape(ii((ax) + 1), [], 1) .* wn) .* wn);
+    kd((ax) + 1) = (((2 * z) .* reshape(ii((ax) + 1), [], 1)) .* wn);
 end

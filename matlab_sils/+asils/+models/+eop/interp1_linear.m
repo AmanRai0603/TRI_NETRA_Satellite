@@ -20,7 +20,13 @@ function [v, x, y] = interp1_linear(x, y, xi, has_out, out)
         [t__394, t__395] = asils.models.eop.count_at_or_below(x, n, xi);
         cnt = t__394;
         x = t__395;
-        i = (asils.pc.fmin(asils.pc.fmax(cnt, 1), (n - 1)) - 1);
+        h__227 = cnt;
+        h__228 = 1;
+        if h__228 > h__227, h__227 = h__228; end
+        h__229 = h__227;
+        h__230 = (n - 1);
+        if h__230 < h__229, h__229 = h__230; end
+        i = (h__229 - 1);
         c1 = ((y(((i + 1)) + 1) - y((i) + 1)) / (x(((i + 1)) + 1) - x((i) + 1)));
         v = ((c1 * (xi - x((i) + 1))) + y((i) + 1));
     end

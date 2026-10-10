@@ -22,7 +22,8 @@ function [q, ok, cr, cm, g] = st_quest_head(rold, dq, bs, fov, noise_cross, smea
     cf = cos(fov);
     sel = zeros(12, 1);
     smag = zeros(12, 1);
-    for i = (0):((12) - 1)
+    i = ((0):((12) - 1)).';
+    if ~isempty(i)
         smag((i) + 1) = 1000000000;
     end
     ns = 0;
@@ -49,7 +50,9 @@ function [q, ok, cr, cm, g] = st_quest_head(rold, dq, bs, fov, noise_cross, smea
     ok = (ns >= 3);
     if ok
         rm = asils.pc.mm((asils.models.math.dcm(dq)).', rold);
-        sc = ((noise_cross * smear) * asils.pc.sqrt_(8));
+        h__747 = 8;
+        if h__747 < 0, h__747 = NaN; else, h__747 = sqrt(h__747); end
+        sc = ((noise_cross * smear) * h__747);
         bm = zeros(32, 3);
         rr = zeros(32, 3);
         for i = (0):((ns) - 1)

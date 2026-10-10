@@ -13,10 +13,25 @@ function [u, store, n, same, next] = chosen(k, h)
     n = 0;
     same = false;
     next = 0;
-    u.kind = asils.pc.choose((h > 0), 1, k);
+    if (h > 0)
+        h__31 = 1;
+    else
+        h__31 = k;
+    end
+    u.kind = h__31;
     u.h = h;
-    store = asils.pc.choose(((k == 0) || (k == 3)), (2 * h), h);
+    if ((k == 0) || (k == 3))
+        h__32 = (2 * h);
+    else
+        h__32 = h;
+    end
+    store = h__32;
     n = (fix(u.kind) + (10 * fix(k)));
     same = (u.kind == k);
-    next = asils.pc.choose((k == 3), 0, 2);
+    if (k == 3)
+        h__33 = 0;
+    else
+        h__33 = 2;
+    end
+    next = h__33;
 end

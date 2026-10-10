@@ -16,11 +16,9 @@ function [g] = facets_box(box_m, cm, sigma_n, sigma_t, vb_ratio, refl, spec_frac
     lz = box_m(3);
     n = [([1; 0; 0]).'; ([(-(1)); 0; 0]).'; ([0; 1; 0]).'; ([0; (-(1)); 0]).'; ([0; 0; 1]).'; ([0; 0; (-(1))]).'];
     rho = zeros(6, 3);
-    for j = (0):((6) - 1)
-        for k = (0):((3) - 1)
-            rho((j) + 1, (k) + 1) = (((n((j) + 1, (k) + 1) * box_m((k) + 1)) / 2) - cm((k) + 1));
-        end
-    end
+    j = ((0):((6) - 1)).';
+    k = (0):((3) - 1);
+    rho((j) + 1, (k) + 1) = (((n((j) + 1, (k) + 1) .* reshape(box_m((k) + 1), 1, [])) ./ 2) - reshape(cm((k) + 1), 1, []));
     g = asils.models.facets.Facets_zero();
     g.n = n;
     g.a = [(ly * lz); (ly * lz); (lx * lz); (lx * lz); (lx * ly); (lx * ly)];

@@ -9,15 +9,13 @@ function [n, peak, f] = render(f, at, w)
     n = 0;
     peak = 0;
     big = zeros(8, 1);
-    for i = (0):((6) - 1)
-        big((i) + 1) = f.px((i) + 1);
-    end
+    i = ((0):((6) - 1)).';
+    big((i) + 1) = reshape(f.px((i) + 1), [], 1);
     [t__5, t__6] = asils.pcselftest.selftest.smear(big, at, w);
     t = t__5;
     big = t__6;
-    for i = (0):((6) - 1)
-        f.px((i) + 1) = big((i) + 1);
-    end
+    i = ((0):((6) - 1)).';
+    f.px((i) + 1) = reshape(big((i) + 1), [], 1);
     f.n = (f.n + 1);
     n = f.n;
     [t__7, t__8, t__9, t__10] = asils.pcselftest.selftest.again(big, f, t);

@@ -20,9 +20,13 @@ function [o] = drag_cannonball(r, v, rho, cd, area, mass, wind, omega)
     k = (((((-(0.5)) * cd) * area) * rho) * vm);
     o.f = [(k * vrel(1)); (k * vrel(2)); (k * vrel(3))];
     o.a = [(o.f(1) / mass); (o.f(2) / mass); (o.f(3) / mass)];
-    o.drag = ((((0.5 * cd) * area) * rho) * asils.pc.pow_(vm, 2));
+    h__170 = (vm)^(2);
+    if ~isreal(h__170), h__170 = NaN; end
+    o.drag = ((((0.5 * cd) * area) * rho) * h__170);
     o.vrel = vm;
     o.cd = cd;
-    o.qd = ((0.5 * rho) * asils.pc.pow_(vm, 2));
+    h__171 = (vm)^(2);
+    if ~isreal(h__171), h__171 = NaN; end
+    o.qd = ((0.5 * rho) * h__171);
     o.a_proj = area;
 end

@@ -32,7 +32,11 @@ function [mu, max_mu, free, certified] = fq_certify(law, g, c_bo, inc_deg, alt_k
     certified = false;
     inc = (inc_deg * (pi / 180));
     a = (6378137 + (alt_km * 1000));
-    n = asils.pc.sqrt_((398600441800000 / asils.pc.pow_(a, 3)));
+    h__49 = (a)^(3);
+    if ~isreal(h__49), h__49 = NaN; end
+    h__50 = (398600441800000 / h__49);
+    if h__50 < 0, h__50 = NaN; else, h__50 = sqrt(h__50); end
+    n = h__50;
     phi = asils.models.floquet.fq_monodromy(law, g, c_bo, inc, n, 1500);
     ev = asils.pc.eig_(phi);
     am = zeros(6, 1);
@@ -40,10 +44,14 @@ function [mu, max_mu, free, certified] = fq_certify(law, g, c_bo, inc_deg, alt_k
         am((i) + 1) = hypot(ev((i) + 1, 1), ev((i) + 1, 2));
     end
     s = asils.pc.sort_(am);
-    for i = (0):((6) - 1)
-        mu((i) + 1) = s(((5 - i)) + 1);
+    i = ((0):((6) - 1)).';
+    mu((i) + 1) = reshape(s(((5 - i)) + 1), [], 1);
+    if ((law == 7) && (~(g.sb_kroll > 0)))
+        h__51 = 1;
+    else
+        h__51 = 0;
     end
-    free = asils.pc.choose(((law == 7) && (~(g.sb_kroll > 0))), 1, 0);
+    free = h__51;
     max_mu = mu((free) + 1);
     certified = (max_mu < 1);
 end

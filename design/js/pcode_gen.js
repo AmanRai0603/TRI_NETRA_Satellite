@@ -759,7 +759,7 @@ export function toMatlab(prog, opts = {}) {
       case "var":
         if (e.kind === "builtin_const") return e.name === "pi" ? "pi" : nonFinite(CONST_OF[e.name], MATLAB_NF);
         if (e.kind === "const") return valueLitM(constOf(prog, prog.consts[e.name].e), prog.consts[e.name].ty);
-        if (e.kind === "data") return `${dataRef(e)}()`;
+        if (e.kind === "data") return dataRef(e);
         if (e.kind === "state") return `st.${e.name}`;
         return e.name;
       case "arr": {
@@ -768,17 +768,24 @@ export function toMatlab(prog, opts = {}) {
         return `[${e.items.map(ex).join("; ")}]`;
       }
       case "index": {
-        // a data table is a function holding its one copy: it is indexed through its call
+        // a data table is read in its local copy (D__NAME, taken at the top of the function)
         if (e.a.e === "index" && e.a.a.ty.k === "arr" && e.a.a.ty.of.k === "arr") return `${dataRef(e.a.a) || ex(e.a.a)}(${idx(e.a.i)}, ${idx(e.i)})`;
-        if (e.a.ty.of.k === "arr") return dataRef(e.a) ? `(${dataRef(e.a)}(${idx(e.i)}, ':')).'` : `(${ex(e.a)}(${idx(e.i)}, :)).'`;
+        if (e.a.ty.of.k === "arr") return `(${dataRef(e.a) || ex(e.a)}(${idx(e.i)}, :)).'`;
         return `${dataRef(e.a) || ex(e.a)}(${idx(e.i)})`;
       }
       // a call's result cannot be indexed in MATLAB (f().x): its field through getfield
       case "field": return e.choice ? String(e.choice.i) : e.a.e === "call" ? `getfield(${ex(e.a)}, '${e.f}')` : `${ex(e.a)}.${e.f}`;
       case "un": return e.op === "not" ? `(~${ex(e.a)})` : `(-(${ex(e.a)}))`;
       case "ifx":
-        // MATLAB has no conditional expression: a branch that could fail when it is not the one taken (an index,
-        // a call) is handed over unevaluated, so only the branch taken runs, as in the interpreter
+        // MATLAB has no conditional expression: in a statement, an if before it into a temporary (only the branch
+        // taken runs, as in the interpreter); elsewhere a branch that could fail when it is not the one taken (an
+        // index, a call) is handed over unevaluated
+        if (pre) {
+          const c = ex(e.c), h = H(), la = [], lb = [];
+          const ta = into(la, () => ex(e.a)), tb = into(lb, () => ex(e.b));
+          pre.push(`if ${c}`, ...la.map((l) => `    ${l}`), `    ${h} = ${ta};`, "else", ...lb.map((l) => `    ${l}`), `    ${h} = ${tb};`, "end");
+          return h;
+        }
         if (mayFail(e.a) || mayFail(e.b)) return `${rtp}.choose_lazy(${ex(e.c)}, @() ${ex(e.a)}, @() ${ex(e.b)})`;
         return `${rtp}.choose(${ex(e.c)}, ${ex(e.a)}, ${ex(e.b)})`;
       case "bin": return bin(e);
@@ -791,7 +798,34 @@ export function toMatlab(prog, opts = {}) {
     if (e.e === "index" || (e.e === "call" && !e.record && !e.builtin)) return true;
     return ["a", "b", "c", "i"].some((k) => e[k] && typeof e[k] === "object" && mayFail(e[k])) || (e.items || []).some(mayFail) || (e.args || []).some(mayFail);
   };
-  const dataRef = (x) => (x.e === "var" && x.kind === "data" ? `${pkg}.${prog.data[x.name].module}.${x.name}` : null);
+  // a data table is a function holding its one copy: a function that reads it takes the whole table once, at its top,
+  // into a local (D__NAME), and reads its elements there (speed: no call for each element)
+  let hoist = new Set();
+  const dataRef = (x) => {
+    if (!(x.e === "var" && x.kind === "data")) return null;
+    hoist.add(x.name);
+    return `D__${x.name}`;
+  };
+  const hoisted = () => [...hoist].sort().map((n) => `    D__${n} = ${pkg}.${prog.data[n].module}.${n}();\n`).join("");
+  // Helpers written out (speed, the same arithmetic): in a statement, where a value is taken whatever happens (not
+  // the right of an `and` or `or`, not an elif's condition), a runtime helper's arithmetic is written as statements
+  // before it, into a temporary (h__N): abs, min, max, clamp, sqrt and the functions MATLAB makes complex outside their
+  // domain, x^k, a conditional value (an if, only its branch run), and the dot, norm, cross, unit and small
+  // matrix-vector product of a value that is not a variable (into a temporary, then term by term). pre: the
+  // statement's lines before it (null: none may be written here).
+  let pre = null, hn = 0;
+  const H = () => `h__${hn++}`;
+  const into = (lines, f) => { const p = pre; pre = lines; try { return f(); } finally { pre = p; } };
+  const quiet = (f) => into(null, f);
+  // a statement with what it needs written before it
+  const withPre = (I, f) => { const lines = []; const t = into(lines, f); return lines.map((l) => `${I}${l}\n`).join("") + t; };
+  // a value into a temporary: its name
+  const held = (t) => { const h = H(); pre.push(`${h} = ${t};`); return h; };
+  // the elements of a small vector: read in place, else (in a statement) from a temporary
+  const elemsOr = (e, n) => elems(e, n) || (pre && e.ty && e.ty.k === "arr" && e.ty.n === n && e.ty.of.k !== "arr" ? ((h) => (k) => `${h}(${k})`)(held(ex(e))) : null);
+  const melemsOr = (e, n, m) => melems(e, n, m) || (pre && e.ty && e.ty.k === "arr" && e.ty.n === n && e.ty.of.k === "arr" && e.ty.of.n === m && e.ty.of.of.k !== "arr"
+    ? ((h) => (i, j) => `${h}(${i}, ${j})`)(held(ex(e))) : null);
+  const simpleVar = (e) => e.e === "var" && !["const", "builtin_const", "data"].includes(e.kind);
   // Read in place (speed, the same arithmetic): a small vector or matrix the expression names, whose elements can be
   // read where they are (a variable, a record's field of one, a row of a matrix variable or data table, its index free
   // of calls): the text of its element, else null. dot, norm, cross and the matrix-vector product of such operands are
@@ -822,14 +856,19 @@ export function toMatlab(prog, opts = {}) {
   const idx = (i) => (i.e === "num" ? String(i.v + 1) : `(${ex(i)}) + 1`);
   const bin = (e) => {
     const op = e.op;
-    if (op === "and") return `(${ex(e.a)} && ${ex(e.b)})`;
-    if (op === "or") return `(${ex(e.a)} || ${ex(e.b)})`;
-    if (op === "^") return `${rtp}.ipow(${ex(e.a)}, ${e.k})`;
+    if (op === "and") { const a = ex(e.a); return `(${a} && ${quiet(() => ex(e.b))})`; }
+    if (op === "or") { const a = ex(e.a); return `(${a} || ${quiet(() => ex(e.b))})`; }
+    if (op === "^") {
+      // x^k by repeated multiplication, left to right (x^-k = 1/(x^k)): written out on a variable or a temporary
+      if (!simpleVar(e.a) && !pre) return `${rtp}.ipow(${ex(e.a)}, ${e.k})`;
+      const x = simpleVar(e.a) ? ex(e.a) : held(ex(e.a)), p = Array(Math.abs(e.k)).fill(x).join(" * ");
+      return e.k === 0 ? "1" : e.k < 0 ? `(1 / (${p}))` : `(${p})`;
+    }
     if (op === "!=") return `(${ex(e.a)} ~= ${ex(e.b)})`;
     if (["==", "<", "<=", ">", ">="].includes(op)) return `(${ex(e.a)} ${op} ${ex(e.b)})`;
     if (e.shape === "mv") {
       const at = e.a.ty, n = at && at.k === "arr" ? at.n : 0, m = at && at.k === "arr" && at.of.k === "arr" ? at.of.n : 0;
-      const M = SMALL(n) && SMALL(m) ? melems(e.a, n, m) : null, V = M ? elems(e.b, m) : null;
+      const M = SMALL(n) && SMALL(m) ? melemsOr(e.a, n, m) : null, V = M ? elemsOr(e.b, m) : null;
       if (M && V) return `[${Array.from({ length: n }, (_, i) => sumOf(Array.from({ length: m }, (_, j) => `${M(i + 1, j + 1)}*${V(j + 1)}`))).join("; ")}]`;
       return `${rtp}.mv(${ex(e.a)}, ${ex(e.b)})`;
     }
@@ -838,7 +877,50 @@ export function toMatlab(prog, opts = {}) {
   };
   const call = (e) => {
     if (e.record) return `${pkg}.${prog.records[e.record].module}.${e.record}_zero()`;
+    if (e.builtin) {
+      const n = e.args[0] && e.args[0].ty && e.args[0].ty.k === "arr" ? e.args[0].ty.n : 0;
+      switch (e.f) {
+        case "dot": {
+          const A = SMALL(n) ? elemsOr(e.args[0], n) : null, B = A ? elemsOr(e.args[1], n) : null;
+          if (A && B) return `(${sumOf(Array.from({ length: n }, (_, k) => `${A(k + 1)}*${B(k + 1)}`))})`;
+          break;
+        }
+        case "cross": {
+          const A = elemsOr(e.args[0], 3), B = A ? elemsOr(e.args[1], 3) : null;
+          if (A && B) return `[${A(2)}*${B(3)} - ${A(3)}*${B(2)}; ${A(3)}*${B(1)} - ${A(1)}*${B(3)}; ${A(1)}*${B(2)} - ${A(2)}*${B(1)}]`;
+          break;
+        }
+        case "norm": {
+          const A = SMALL(n) ? elemsOr(e.args[0], n) : null;
+          if (A) return `sqrt(${sumOf(Array.from({ length: n }, (_, k) => `${A(k + 1)}*${A(k + 1)}`))})`;
+          break;
+        }
+        case "unit": {
+          // a / max(norm(a), 1e-30), the norm's sum left to right
+          if (!pre || !SMALL(n) || e.args[0].ty.of.k === "arr") break;
+          const x = simpleVar(e.args[0]) ? ex(e.args[0]) : held(ex(e.args[0])), h = H();
+          pre.push(`${h} = sqrt(${sumOf(Array.from({ length: n }, (_, k) => `${x}(${k + 1})*${x}(${k + 1})`))});`, `if 1e-30 > ${h}, ${h} = 1e-30; end`);
+          return `(${x} / ${h})`;
+        }
+      }
+    }
     const a = e.args.map(ex);
+    if (e.builtin && pre) {
+      // the runtime's arithmetic, written out before the statement
+      switch (e.f) {
+        case "sqrt": { const h = H(); pre.push(`${h} = ${a[0]};`, `if ${h} < 0, ${h} = NaN; else, ${h} = sqrt(${h}); end`); return h; }
+        case "asin": case "acos": case "log": case "log10": case "log2": { const h = H(); pre.push(`${h} = ${e.f}(${a[0]});`, `if ~isreal(${h}), ${h} = NaN; end`); return h; }
+        case "pow": { const h = H(); pre.push(`${h} = (${a[0]})^(${a[1]});`, `if ~isreal(${h}), ${h} = NaN; end`); return h; }
+        case "abs": { const h = H(); pre.push(`${h} = ${a[0]};`, `if ${h} < 0, ${h} = -${h}; elseif ${h} == 0, ${h} = 0; end`); return h; }
+        case "min": case "max": case "clamp": {
+          // fmin, fmax: the second only when it is below (above) the first; clamp: fmin(fmax(x, lo), hi)
+          const h = H(), u = H();
+          pre.push(`${h} = ${a[0]};`);
+          a.slice(1).forEach((x, i) => pre.push(`${u} = ${x};`, `if ${u} ${(e.f === "clamp" ? i === 1 : e.f === "min") ? "<" : ">"} ${h}, ${h} = ${u}; end`));
+          return h;
+        }
+      }
+    }
     if (e.builtin) {
       const f = e.f;
       switch (f) {
@@ -867,23 +949,9 @@ export function toMatlab(prog, opts = {}) {
         case "shl": return `bitshift(${a[0]}, ${a[1]})`;
         case "shr": return `bitshift(${a[0]}, -(${a[1]}))`;
         case "len": return e.args[0].ty.k === "buf" ? `numel(${a[0]})` : String(e.args[0].ty.n);
-        case "dot": {
-          const n = e.args[0].ty && e.args[0].ty.k === "arr" ? e.args[0].ty.n : 0;
-          const A = SMALL(n) ? elems(e.args[0], n) : null, B = A ? elems(e.args[1], n) : null;
-          if (A && B) return `(${sumOf(Array.from({ length: n }, (_, k) => `${A(k + 1)}*${B(k + 1)}`))})`;
-          return `${rtp}.dot_(${a[0]}, ${a[1]})`;
-        }
-        case "cross": {
-          const A = elems(e.args[0], 3), B = A ? elems(e.args[1], 3) : null;
-          if (A && B) return `[${A(2)}*${B(3)} - ${A(3)}*${B(2)}; ${A(3)}*${B(1)} - ${A(1)}*${B(3)}; ${A(1)}*${B(2)} - ${A(2)}*${B(1)}]`;
-          return `${rtp}.cross_(${a[0]}, ${a[1]})`;
-        }
-        case "norm": {
-          const n = e.args[0].ty && e.args[0].ty.k === "arr" ? e.args[0].ty.n : 0;
-          const A = SMALL(n) ? elems(e.args[0], n) : null;
-          if (A) return `sqrt(${sumOf(Array.from({ length: n }, (_, k) => `${A(k + 1)}*${A(k + 1)}`))})`;
-          return `${rtp}.norm_(${a[0]})`;
-        }
+        case "dot": return `${rtp}.dot_(${a[0]}, ${a[1]})`;
+        case "cross": return `${rtp}.cross_(${a[0]}, ${a[1]})`;
+        case "norm": return `${rtp}.norm_(${a[0]})`;
         case "unit": return `${rtp}.unit_(${a[0]})`;
         case "transpose": return `(${a[0]}).'`;
         case "sort": return `${rtp}.sort_(${a[0]})`;
@@ -972,44 +1040,282 @@ export function toMatlab(prog, opts = {}) {
     const c = vcond(s.body[0].arms[0].c, s.v, setsIn(s.body, new Set()));
     return c !== null && c.includes(VMARK) ? c : null;
   };
+  // Lanes (speed, the same arithmetic): a loop run for all its values at once. Each value of the loop's counter is a
+  // lane; the loop is run as whole vectors when every lane reads and writes only its own elements: each array the loop
+  // writes is indexed, wherever the loop reads or writes it, by the counter itself in one and the same place, and no
+  // other way; a scalar the loop sets is one it declares (a lane's own: a vector of lanes). Its body is lets and sets
+  // of scalars through + - * / and comparisons (element by element, each lane's own arithmetic), floor, ceil, round,
+  // trunc, sign, sqrt, abs, min, max, clamp and conditional values (element by element, the runtime's v*), an `if`
+  // whose condition is the same for every lane (once), an `if` whose condition is a lane's own (its lanes' elements
+  // only, in a one-axis loop), and inner loops: lanes of their own (the outer loop's lanes are rows, the inner's
+  // columns) or run in turn. Each statement is done for every lane before the next: what the loop did lane by lane,
+  // value for value, as no lane reads what another writes. Anything else and the loop is run as it is written.
+  const laneOf = (cx, n) => cx.lanes.find((l) => l.v === n);
+  const mentions = (e, v) => !!e && typeof e === "object" && ((e.e === "var" && e.name === v) ||
+    ["a", "b", "c", "i"].some((k) => mentions(e[k], v)) || (e.items || []).some((x) => mentions(x, v)) || (e.args || []).some((x) => mentions(x, v)));
+  // an array's place: a variable, or a field of one (no index, no call)
+  const simpleBase = (x) => (x.e === "var" && !["const", "builtin_const", "data"].includes(x.kind)) || (x.e === "field" && !x.choice && simpleBase(x.a));
+  const isMatrix = (t) => !!t && t.k === "arr" && t.of.k === "arr";
+  // an element read or written: [its array, its indices], or null
+  const element = (e) => {
+    if (e.e !== "index") return null;
+    if (e.a.e === "index" && isMatrix(e.a.a.ty)) return [e.a.a, [e.a.i, e.i]];
+    if (e.a.ty && (e.a.ty.k === "arr" || e.a.ty.k === "buf") && e.a.ty.of.k !== "arr") return [e.a, [e.i]];
+    return null;
+  };
+  const baseKey = (x) => (x.e === "var" ? x.name : x.e === "field" && simpleBase(x) ? `${baseKey(x.a)}.${x.f}` : null);
+  // the loop's statements: the names it declares and the arrays (by place) and scalars it sets
+  const laneSets = (body, out) => {
+    for (const s of body) {
+      if (s.s === "let") s.names.forEach((n) => out.lets.add(n));
+      if (s.s === "set") for (const t of s.targets) {
+        if (t.e === "var") out.vars.add(t.name);
+        else { const el = element(t); const k = el && simpleBase(el[0]) ? baseKey(el[0]) : null; if (k === null) out.bad = true; else out.arrays.add(k); }
+      }
+      if ((s.s === "let" || s.s === "set") && s.e.inout) out.bad = true;
+      if (s.s === "state" || s.s === "settle") out.bad = true;
+      if (s.s === "for") laneSets(s.body, out);
+      if (s.s === "if") { s.arms.forEach((a) => laneSets(a.body, out)); if (s.els) laneSets(s.els, out); }
+    }
+    return out;
+  };
+  // every read and write of an array the loop writes is an element with the counter v alone in one place (the same
+  // place each time), v nowhere else in it
+  const laneAccess = (e, v, arrays, place) => {
+    if (!e || typeof e !== "object") return true;
+    const el = element(e);
+    if (el && simpleBase(el[0]) && arrays.has(baseKey(el[0]))) {
+      const k = baseKey(el[0]), at = el[1].findIndex((i) => i.e === "var" && i.name === v);
+      if (at < 0 || el[1].some((i, j) => j !== at && mentions(i, v))) return false;
+      if (place.has(k) && place.get(k) !== at) return false;
+      place.set(k, at);
+      return el[1].every((i) => laneAccess(i, v, arrays, place));
+    }
+    if ((e.e === "var" || e.e === "field") && simpleBase(e) && arrays.has(baseKey(e))) return false;
+    return ["a", "b", "c", "i"].every((k) => laneAccess(e[k], v, arrays, place)) && (e.items || []).every((x) => laneAccess(x, v, arrays, place)) &&
+      (e.args || []).every((x) => laneAccess(x, v, arrays, place));
+  };
+  const laneAccessIn = (body, v, arrays, place) => body.every((s) => {
+    switch (s.s) {
+      case "let": return laneAccess(s.e, v, arrays, place);
+      case "set": return s.targets.every((t) => laneAccess(t, v, arrays, place)) && laneAccess(s.e, v, arrays, place);
+      case "if": return s.arms.every((a) => laneAccess(a.c, v, arrays, place) && laneAccessIn(a.body, v, arrays, place)) && (!s.els || laneAccessIn(s.els, v, arrays, place));
+      case "for": return laneAccess(s.a, v, arrays, place) && laneAccess(s.b, v, arrays, place) && laneAccessIn(s.body, v, arrays, place);
+      default: return false;
+    }
+  });
+  // ones the shape of the lanes in mask (1 the rows, 2 the columns)
+  const onesOf = (cx, m) => {
+    const r = cx.lanes.find((l) => l.ax === 1), c = cx.lanes.find((l) => l.ax === 2);
+    return m === 1 ? `ones(size(${r.v}))` : m === 2 ? `ones(size(${c.v}))` : `ones(numel(${r.v}), numel(${c.v}))`;
+  };
+  // a value given the shape of mask (it is the same in each lane it does not vary over): times one, exact
+  const widen = (cx, r, m) => (r.m === m ? r.t : `(${r.t}) .* ${onesOf(cx, m)}`);
+  const lidx = (i, r) => (i.e === "num" ? String(i.v + 1) : `(${r.t}) + 1`);
+  // an element in the lanes: its text, as rows by the first axis and columns by the second, and its mask
+  const lelem = (e, cx) => {
+    const el = element(e);
+    if (!el || !(simpleBase(el[0]) || dataRef(el[0]))) return null;
+    const rs = el[1].map((i) => lx(i, cx));
+    if (rs.some((r) => !r || r.m === 3)) return null;
+    const b = dataRef(el[0]) || ex(el[0]), ix = el[1].map((i, k) => lidx(i, rs[k]));
+    if (rs.length === 1) {
+      const m = rs[0].m;
+      return { t: m === 0 ? `${b}(${ix[0]})` : `reshape(${b}(${ix[0]}), ${m === 1 ? "[], 1" : "1, []"})`, m, n: 1 };
+    }
+    const [m0, m1] = [rs[0].m, rs[1].m];
+    if (m0 && m0 === m1) return null;
+    const t = `${b}(${ix[0]}, ${ix[1]})`;
+    return { t, m: m0 | m1, n: 2, flip: !((m0 === 0 || m0 === 1) && (m1 === 0 || m1 === 2)) };
+  };
+  // free of the lanes: names no lane and no lane's own scalar (so the same in every lane: as it is written, once)
+  const laneFree = (e, cx) => !cx.lanes.some((l) => mentions(e, l.v)) && ![...cx.priv.keys()].some((n) => mentions(e, n));
+  const lx = (e, cx) => {
+    if (scalarT(e.ty) && laneFree(e, cx)) return { t: ex(e), m: 0 };
+    switch (e.e) {
+      case "var": {
+        const l = laneOf(cx, e.name);
+        if (l) return { t: cx.sel ? `${e.name}(${cx.sel})` : e.name, m: l.ax };
+        if (cx.priv.has(e.name)) { const m = cx.priv.get(e.name); return { t: cx.sel && m ? `${e.name}(${cx.sel})` : e.name, m }; }
+        return null;
+      }
+      case "index": { const r = lelem(e, cx); return r && scalarT(e.ty) ? { t: r.flip ? `(${r.t}).'` : r.t, m: r.m } : null; }
+      case "un": { const a = lx(e.a, cx); return a && { t: e.op === "not" ? `(~${a.t})` : `(-(${a.t}))`, m: a.m }; }
+      case "bin": {
+        if (e.shape === "mv" || e.shape === "mm" || !scalarT(e.a.ty) || !scalarT(e.ty)) return null;
+        const a = lx(e.a, cx);
+        if (!a) return null;
+        if (e.op === "^") {
+          if (!a.m) return { t: ex(e), m: 0 };
+          const p = Array(Math.abs(e.k)).fill(`(${a.t})`).join(" .* ");
+          return { t: e.k === 0 ? "1" : e.k < 0 ? `(1 ./ (${p}))` : `(${p})`, m: e.k === 0 ? 0 : a.m };
+        }
+        const b = scalarT(e.b.ty) ? lx(e.b, cx) : null;
+        if (!b) return null;
+        if (e.op === "and" || e.op === "or") return a.m || b.m ? null : { t: `(${a.t} ${e.op === "and" ? "&&" : "||"} ${b.t})`, m: 0 };
+        const op = { "*": ".*", "/": "./", "!=": "~=" }[e.op] || e.op;
+        return ["+", "-", ".*", "./", "==", "~=", "<", "<=", ">", ">="].includes(op) ? { t: `(${a.t} ${op} ${b.t})`, m: a.m | b.m } : null;
+      }
+      case "ifx": {
+        const c = lx(e.c, cx), a = c && lx(e.a, cx), b = a && lx(e.b, cx);
+        if (!b || !scalarT(e.ty)) return null;
+        const m = c.m | a.m | b.m;
+        if (!m) return { t: ex(e), m: 0 };
+        return mayFail(e.a) || mayFail(e.b) ? null : { t: `${rtp}.vchoose(${c.t}, ${a.t}, ${b.t})`, m };
+      }
+      case "call": {
+        if (!e.builtin || !scalarT(e.ty) || !e.args.every((x) => scalarT(x.ty))) return null;
+        const a = [];
+        for (const x of e.args) { const r = lx(x, cx); if (!r) return null; a.push(r); }
+        const m = a.reduce((s, x) => s | x.m, 0);
+        switch (e.f) {
+          case "floor": case "ceil": case "round": case "sign": case "isnan": case "isfinite": return { t: `${e.f}(${a[0].t})`, m };
+          case "trunc": case "int": return { t: `fix(${a[0].t})`, m };
+          case "real": return a[0];
+          case "div": return { t: `fix((${a[0].t}) ./ (${a[1].t}))`, m };
+          case "sqrt": return { t: `${rtp}.vsqrt_(${a[0].t})`, m };
+          case "abs": return { t: `${rtp}.vfabs_(${a[0].t})`, m };
+          case "min": case "max": return { t: a.slice(1).reduce((acc, x) => `${rtp}.vf${e.f}(${acc}, ${x.t})`, a[0].t), m };
+          case "clamp": return { t: `${rtp}.vfmin(${rtp}.vfmax(${a[0].t}, ${a[1].t}), ${a[2].t})`, m };
+        }
+        return null;
+      }
+    }
+    return null;
+  };
+  const lstmts = (body, cx, ind) => {
+    let out = "";
+    for (const s of body) { const t = lstmt(s, cx, ind); if (t === null) return null; out += t; }
+    return out;
+  };
+  const lstmt = (s, cx, ind) => {
+    const I = "    ".repeat(ind);
+    switch (s.s) {
+      case "let": {
+        if (s.names.length !== 1 || s.e.inout || cx.sel || !scalarT(s.vty)) return null;
+        const r = lx(s.e, cx);
+        if (!r) return null;
+        cx.priv.set(s.names[0], cx.mask);
+        return `${I}${s.names[0]} = ${widen(cx, r, cx.mask)};\n`;
+      }
+      case "set": {
+        if (s.targets.length !== 1 || s.e.inout) return null;
+        const t = s.targets[0], r = lx(s.e, cx);
+        if (!r) return null;
+        if (t.e === "var") {
+          if (!cx.priv.has(t.name) || cx.priv.get(t.name) !== cx.mask) return null;
+          return cx.sel ? `${I}${t.name}(${cx.sel}) = ${r.t};\n` : `${I}${t.name} = ${widen(cx, r, cx.mask)};\n`;
+        }
+        const el = element(t);
+        if (!el || !simpleBase(el[0]) || !scalarT(t.ty)) return null;
+        const p = lelem(t, cx);
+        if (!p || p.m !== cx.mask) return null;
+        const v = cx.sel || r.m === 0 ? r.t : widen(cx, r, cx.mask);
+        const rs = el[1].map((i) => lx(i, cx)), ix = el[1].map((i, k) => lidx(i, rs[k]));
+        return `${I}${lv(el[0])}(${ix.join(", ")}) = ${p.flip ? `(${v}).'` : v};\n`;
+      }
+      case "if": {
+        const cs = s.arms.map((a) => lx(a.c, cx));
+        if (cs.some((c) => !c)) return null;
+        if (cs.every((c) => c.m === 0)) {
+          let out = "";
+          for (let k = 0; k < s.arms.length; k++) {
+            const b = lstmts(s.arms[k].body, cx, ind + 1);
+            if (b === null) return null;
+            out += `${I}${k ? "elseif" : "if"} ${cs[k].t}\n${b}`;
+          }
+          if (s.els) { const b = lstmts(s.els, cx, ind + 1); if (b === null) return null; out += `${I}else\n${b}`; }
+          return out + `${I}end\n`;
+        }
+        // a lane's own condition (one axis, one arm and maybe an else, sets only): each arm on its lanes' elements
+        if (cx.sel || cx.lanes.length !== 1 || s.arms.length !== 1 || cs[0].m !== cx.mask) return null;
+        const m = `m__${tmp++}`;
+        const arm = (body, sel) => {
+          const c2 = { ...cx, sel };
+          let out = "";
+          for (const x of body) { if (x.s !== "set") return null; const t = lstmt(x, c2, ind + 1); if (t === null) return null; out += t; }
+          return out;
+        };
+        const a = arm(s.arms[0].body, m);
+        if (a === null) return null;
+        let out = `${I}${m} = logical(${cs[0].t});\n${I}if any(${m})\n${a}${I}end\n`;
+        if (s.els) {
+          const b = arm(s.els, `~${m}`);
+          if (b === null) return null;
+          out += `${I}if ~all(${m})\n${b}${I}end\n`;
+        }
+        return out;
+      }
+      case "for": {
+        if (cx.sel) return null;
+        const inner = lanes(s, cx, ind);
+        if (inner !== null) return inner;
+        const a = lx(s.a, cx), b = a && lx(s.b, cx);
+        if (!b || a.m || b.m) return null;
+        const body = lstmts(s.body, cx, ind + 1);
+        return body === null ? null : `${I}for ${s.v} = (${a.t}):((${b.t}) - 1)\n${body}${I}end\n`;
+      }
+    }
+    return null;
+  };
+  // the loop s as lanes (inside the lanes of cx, or none): its text, or null
+  const lanes = (s, cx, ind) => {
+    if (cx && cx.lanes.length > 1) return null;
+    const lit = s.a.e === "num" && s.b.e === "num";
+    if (lit && s.b.v <= s.a.v) return null;
+    const sets = laneSets(s.body, { lets: new Set(), vars: new Set(), arrays: new Set(), bad: false });
+    if (sets.bad || [...sets.vars].some((n) => !sets.lets.has(n) && !(cx && cx.priv.has(n)))) return null;
+    if (!laneAccessIn(s.body, s.v, sets.arrays, new Map())) return null;
+    const ax = cx ? 2 : 1, c0 = cx || { lanes: [], priv: new Map(), mask: 0, sel: null };
+    const a = lx(s.a, c0), b = a && lx(s.b, c0);
+    if (!b || a.m || b.m) return null;
+    const c = { lanes: [...c0.lanes, { v: s.v, ax }], priv: new Map(c0.priv), mask: c0.mask | ax, sel: null };
+    const t0 = tmp, I = "    ".repeat(ind);
+    const body = lstmts(s.body, c, lit ? ind : ind + 1);
+    if (body === null) { tmp = t0; return null; }
+    const head = ax === 1 ? `${I}${s.v} = ((${a.t}):((${b.t}) - 1)).';\n` : `${I}${s.v} = (${a.t}):((${b.t}) - 1);\n`;
+    return lit ? head + body : `${head}${I}if ~isempty(${s.v})\n${body}${I}end\n`;
+  };
   let tmp = 0;
   const stmts = (body, ind) => body.map((s) => stmt(s, ind)).join("");
   const stmt = (s, ind) => {
     const I = "    ".repeat(ind);
     switch (s.s) {
       case "let":
-        if (s.e.inout) return inoutStmt(s.names, null, s.e, I);
-        if (s.names.length > 1) return `${I}[${s.names.join(", ")}] = ${ex(s.e)};\n`;
-        return `${I}${s.names[0]} = ${ex(s.e)};\n`;
+        if (s.e.inout) return withPre(I, () => inoutStmt(s.names, null, s.e, I));
+        if (s.names.length > 1) return withPre(I, () => `${I}[${s.names.join(", ")}] = ${ex(s.e)};\n`);
+        return withPre(I, () => `${I}${s.names[0]} = ${ex(s.e)};\n`);
       case "state": return "";
       case "set": {
-        if (s.e.inout) return inoutStmt(null, s.targets, s.e, I);
+        if (s.e.inout) return withPre(I, () => inoutStmt(null, s.targets, s.e, I));
         if (s.targets.length > 1) {
           const ts = s.targets.map(() => `t__${tmp++}`);
-          return `${I}[${ts.join(", ")}] = ${ex(s.e)};\n` + s.targets.map((t, i) => `${I}${lv(t)} = ${ts[i]}${isRowTarget(t) ? ".'" : ""};\n`).join("");
+          return withPre(I, () => `${I}[${ts.join(", ")}] = ${ex(s.e)};\n`) + s.targets.map((t, i) => `${I}${lv(t)} = ${ts[i]}${isRowTarget(t) ? ".'" : ""};\n`).join("");
         }
-        const t = s.targets[0];
-        return `${I}${lv(t)} = ${ex(s.e)}${isRowTarget(t) ? ".'" : ""};\n`;
+        const t = s.targets[0], l = lv(t);
+        return withPre(I, () => `${I}${l} = ${ex(s.e)}${isRowTarget(t) ? ".'" : ""};\n`);
       }
       case "if": {
-        let out = "";
-        s.arms.forEach((arm, i) => { out += `${I}${i ? "elseif" : "if"} ${ex(arm.c)}\n${stmts(arm.body, ind + 1)}`; });
+        let out = withPre(I, () => `${I}if ${ex(s.arms[0].c)}\n`) + stmts(s.arms[0].body, ind + 1);
+        s.arms.slice(1).forEach((arm) => { out += `${I}elseif ${ex(arm.c)}\n${stmts(arm.body, ind + 1)}`; });
         if (s.els) out += `${I}else\n${stmts(s.els, ind + 1)}`;
         return out + `${I}end\n`;
       }
       case "for": {
+        const v = lanes(s, null, ind);
+        if (v !== null) return v;
         const g = guarded(s);
         if (g !== null) {
           const V = `t__${tmp++}`;
           const head = `${I}${V} = ((${ex(s.a)}):((${ex(s.b)}) - 1)).';\n${I}for ${s.v} = ${V}(logical(${g.split(VMARK).join(V)})).'\n`;
           return head + `${stmts(s.body[0].arms[0].body, ind + 1)}${I}end\n`;
         }
-        return `${I}for ${s.v} = (${ex(s.a)}):((${ex(s.b)}) - 1)\n${stmts(s.body, ind + 1)}${I}end\n`;
+        return withPre(I, () => `${I}for ${s.v} = (${ex(s.a)}):((${ex(s.b)}) - 1)\n`) + `${stmts(s.body, ind + 1)}${I}end\n`;
       }
       case "settle": {
         const k = `k__${tmp++}`, n = `n__${tmp++}`;
-        return `${I}${n} = ${ex(s.n)}; ${k} = 0;\n${I}while true\n${stmts(s.body, ind + 1)}${I}    ${k} = ${k} + 1;\n` +
-          `${I}    if ${ex(s.c)}, break; end\n${I}    if ${k} >= ${n}\n${s.els ? stmts(s.els, ind + 2) : ""}${I}        break;\n${I}    end\n${I}end\n`;
+        return withPre(I, () => `${I}${n} = ${ex(s.n)}; ${k} = 0;\n`) + `${I}while true\n${stmts(s.body, ind + 1)}${I}    ${k} = ${k} + 1;\n` +
+          withPre(`${I}    `, () => `${I}    if ${ex(s.c)}, break; end\n`) + `${I}    if ${k} >= ${n}\n${s.els ? stmts(s.els, ind + 2) : ""}${I}        break;\n${I}    end\n${I}end\n`;
       }
     }
     throw new Error(`cannot translate statement ${s.s}`);
@@ -1021,8 +1327,8 @@ export function toMatlab(prog, opts = {}) {
     const ios = e.inoutArgs.map((i) => [`t__${tmp++}`, e.args[i]]);
     let out = `${I}[${[...outs, ...ios.map((x) => x[0])].join(", ")}] = ${ex(e)};\n`;
     if (names) out += names.map((n, i) => `${I}${n} = ${outs[i]};\n`).join("");
-    else out += targets.map((t, i) => `${I}${lv(t)} = ${outs[i]}${isRowTarget(t) ? ".'" : ""};\n`).join("");
-    return out + ios.map(([tv, a]) => `${I}${lv(a)} = ${tv};\n`).join("");
+    else out += targets.map((t, i) => `${I}${quiet(() => lv(t))} = ${outs[i]}${isRowTarget(t) ? ".'" : ""};\n`).join("");
+    return out + ios.map(([tv, a]) => `${I}${quiet(() => lv(a))} = ${tv};\n`).join("");
   };
   const help = (name, lines) => lines.length ? `%${name.toUpperCase()}  ${lines[0]}\n` + lines.slice(1).map((l) => `%   ${l}`.trimEnd() + "\n").join("") : `%${name.toUpperCase()}\n`;
   for (const m of Object.values(prog.modules)) {
@@ -1033,7 +1339,9 @@ export function toMatlab(prog, opts = {}) {
         if (it.kind === "proc") { outs.push("st"); ins.unshift("st"); }
         let body = "";
         if (it.kind === "proc") body += `    if isempty(st)\n        st = struct();\n` + it.states.map((s) => `        st.${s.name} = ${valueLitM(constOf(prog, s.e), s.vty)};\n`).join("") + "    end\n";
-        body += it.outs.map((o) => `    ${o.name} = ${zero(o.ty)};\n`).join("") + stmts(it.body, 1);
+        hoist = new Set();
+        const code = stmts(it.body, 1);
+        body += it.outs.map((o) => `    ${o.name} = ${zero(o.ty)};\n`).join("") + hoisted() + code;
         files[`${dir}/${it.name}.m`] = `function [${outs.join(", ")}] = ${it.name}(${ins.join(", ")})\n` +
           help(it.name, [...it.doc, ...it.params.map(io), ...it.outs.map((o) => `returns ${io(o)}`), HEAD]) +
           body + "end\n";
@@ -1138,9 +1446,20 @@ export function matlabRuntime() {
   fn("cross_", "a, b", "c", "cross product of two 3-vectors.", "    c = [a(2)*b(3) - a(3)*b(2); a(3)*b(1) - a(1)*b(3); a(1)*b(2) - a(2)*b(1)];\n");
   fn("norm_", "a", "n", "sqrt(dot(a, a)).", "    n = sqrt(asils.pc.dot_(a, a));\n");
   fn("unit_", "a", "u", "a / max(norm(a), 1e-30).", "    u = a / asils.pc.fmax(asils.pc.norm_(a), 1e-30);\n");
-  fn("mv", "M, v", "r", "matrix times vector, each row summed left to right.", "    r = zeros(size(M, 1), 1);\n    for i = 1:size(M, 1), r(i) = asils.pc.dot_(M(i, :), v); end\n");
+  // the products' sums for every row (and column) at once, each element's sum its own, left to right
+  fn("mv", "M, v", "r", "matrix times vector, each row summed left to right.",
+    "    r = M(:, 1) .* v(1);\n    for k = 2:size(M, 2), r = r + M(:, k) .* v(k); end\n");
   fn("mm", "A, B", "C", "matrix product, summed left to right.",
-    "    C = zeros(size(A, 1), size(B, 2));\n    for i = 1:size(A, 1)\n        for j = 1:size(B, 2)\n            s = A(i, 1)*B(1, j);\n            for k = 2:size(B, 1), s = s + A(i, k)*B(k, j); end\n            C(i, j) = s;\n        end\n    end\n");
+    "    C = A(:, 1) .* B(1, :);\n    for k = 2:size(B, 1), C = C + A(:, k) .* B(k, :); end\n");
+  // element by element over a loop's lanes (toMatlab's lanes): each element as the scalar helper makes it
+  fn("vchoose", "c, a, b", "r", "a where c, else b, element by element (both are evaluated).",
+    "    o = ones(size(c)) .* ones(size(a)) .* ones(size(b));\n    r = b .* o; a = a .* o; c = (c .* o) ~= 0;\n    r(c) = a(c);\n");
+  fn("vfmin", "a, b", "r", "the smaller, element by element (b only where b < a).",
+    "    o = ones(size(a)) .* ones(size(b));\n    r = a .* o; b = b .* o; m = b < r;\n    r(m) = b(m);\n");
+  fn("vfmax", "a, b", "r", "the larger, element by element (b only where b > a).",
+    "    o = ones(size(a)) .* ones(size(b));\n    r = a .* o; b = b .* o; m = b > r;\n    r(m) = b(m);\n");
+  fn("vfabs_", "x", "r", "|x|, element by element, as fabs.", "    r = x;\n    m = x < 0; r(m) = -x(m);\n    r(x == 0) = 0;\n");
+  fn("vsqrt_", "x", "r", "sqrt(x), element by element, nan where x < 0, as sqrt_.", "    r = NaN(size(x));\n    m = ~(x < 0); r(m) = sqrt(x(m));\n");
   fn("lookup_step", "T, x", "r", "the last row whose key is at or below x (the first row below the first key).",
     "    i = 1;\n    while i + 1 <= size(T, 1) && T(i + 1, 1) <= x, i = i + 1; end\n    r = T(i, :);\n");
   fn("lookup_linear", "T, x", "r", "straight-line between the two rows around x, held at the ends.",

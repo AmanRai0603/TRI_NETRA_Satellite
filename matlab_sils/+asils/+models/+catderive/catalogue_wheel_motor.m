@@ -24,7 +24,12 @@ function [kt, resistance, supply, friction_static, stribeck, supply_assumed] = c
     [a0, a1, a2, a3, a4, a5, a6, a7, no_load, static_fraction, c_stribeck, c_supply, a12, a13] = asils.models.catderive.catalogue_rules();
     rpm_rad = ((2 * pi) / 60);
     supply_assumed = isnan(v);
-    supply = asils.pc.choose(supply_assumed, c_supply, v);
+    if supply_assumed
+        h__37 = c_supply;
+    else
+        h__37 = v;
+    end
+    supply = h__37;
     top = w;
     if (~(isnan(top_rpm) || (top_rpm == 0)))
         top = (top_rpm * rpm_rad);

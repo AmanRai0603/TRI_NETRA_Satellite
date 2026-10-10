@@ -15,6 +15,7 @@ function [x] = fast_context(jd0_utc, t, r, density_scale)
     x.moon = asils.models.moonfast.moon_position_fast(jd_tt);
     c = asils.models.caltime.eci_to_ecef((jd0_utc + (t / 86400)));
     [lat, lon, h] = asils.models.truthfield.geodetic5([c(1, 1)*r(1) + c(1, 2)*r(2) + c(1, 3)*r(3); c(2, 1)*r(1) + c(2, 2)*r(2) + c(2, 3)*r(3); c(3, 1)*r(1) + c(3, 2)*r(2) + c(3, 3)*r(3)]);
-    x.p_srp = asils.models.sunfast.solar_pressure_at(asils.pc.norm_((x.sun - r)));
+    h__438 = (x.sun - r);
+    x.p_srp = asils.models.sunfast.solar_pressure_at(sqrt(h__438(1)*h__438(1) + h__438(2)*h__438(2) + h__438(3)*h__438(3)));
     x.rho = asils.models.truthdensity.density_scaled(h, density_scale);
 end

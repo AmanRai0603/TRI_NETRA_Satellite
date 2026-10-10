@@ -14,7 +14,6 @@ function [v, g] = mag_noise(mb, b, noise, k_coil, m_coil, g)
     n = t__607;
     g = t__608;
     v = [0; 0; 0];
-    for i = (0):((3) - 1)
-        v((i) + 1) = (((mb((i) + 1) + b((i) + 1)) + (noise * n((i) + 1))) + (k_coil * m_coil((i) + 1)));
-    end
+    i = ((0):((3) - 1)).';
+    v((i) + 1) = (((reshape(mb((i) + 1), [], 1) + reshape(b((i) + 1), [], 1)) + (noise .* reshape(n((i) + 1), [], 1))) + (k_coil .* reshape(m_coil((i) + 1), [], 1)));
 end

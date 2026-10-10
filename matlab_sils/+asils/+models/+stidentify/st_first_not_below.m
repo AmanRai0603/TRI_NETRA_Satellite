@@ -14,8 +14,18 @@ function [lo, pa] = st_first_not_below(pa, np, x)
         if (lo < hi)
             mid = (lo + fix(((hi - lo)) / (2)));
             left = (pa((mid) + 1) < x);
-            lo = asils.pc.choose(left, (mid + 1), lo);
-            hi = asils.pc.choose(left, hi, mid);
+            if left
+                h__717 = (mid + 1);
+            else
+                h__717 = lo;
+            end
+            lo = h__717;
+            if left
+                h__718 = hi;
+            else
+                h__718 = mid;
+            end
+            hi = h__718;
         end
         k__645 = k__645 + 1;
         if (~(lo < hi)), break; end

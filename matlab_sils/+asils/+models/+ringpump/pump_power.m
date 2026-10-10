@@ -13,5 +13,7 @@ function [p] = pump_power(pump, h, k_hv, l, s, ac, eta)
     p = 0;
     v = (h / k_hv);
     dp = ((pump * l) / ((2 * s) * ac));
-    p = (asils.pc.fabs(((dp * ac) * v)) / eta);
+    h__8 = ((dp * ac) * v);
+    if h__8 < 0, h__8 = -h__8; elseif h__8 == 0, h__8 = 0; end
+    p = (h__8 / eta);
 end

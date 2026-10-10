@@ -14,9 +14,8 @@ function [dj, de] = secular_rates(j, e, nhat, phi_q, np)
     de = zeros(3, 1);
     for m = (0):((np) - 1)
         [d1, d2] = asils.models.thirdbody.kozai_rates(j, e, (nhat((m) + 1, :)).', phi_q((m) + 1));
-        for i = (0):((3) - 1)
-            dj((i) + 1) = (dj((i) + 1) + d1((i) + 1));
-            de((i) + 1) = (de((i) + 1) + d2((i) + 1));
-        end
+        i = ((0):((3) - 1)).';
+        dj((i) + 1) = (reshape(dj((i) + 1), [], 1) + reshape(d1((i) + 1), [], 1));
+        de((i) + 1) = (reshape(de((i) + 1), [], 1) + reshape(d2((i) + 1), [], 1));
     end
 end

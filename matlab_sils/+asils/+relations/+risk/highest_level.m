@@ -6,6 +6,9 @@ function [l_max] = highest_level(levels)
     l_max = 0;
     l_max = levels(1);
     for k = (1):((7) - 1)
-        l_max = asils.pc.fmax(l_max, levels((k) + 1));
+        h__25 = l_max;
+        h__26 = levels((k) + 1);
+        if h__26 > h__25, h__25 = h__26; end
+        l_max = h__25;
     end
 end

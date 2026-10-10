@@ -10,12 +10,17 @@ function [ok, rec, nc] = de440_record(seg, et)
     ok = false;
     rec = zeros(62, 1);
     nc = 0;
+    D__DE440_EARTH = asils.models.de440slice.DE440_EARTH();
+    D__DE440_EMB = asils.models.de440slice.DE440_EMB();
+    D__DE440_MOON = asils.models.de440slice.DE440_MOON();
+    D__DE440_SEGMENTS = asils.models.de440slice.DE440_SEGMENTS();
+    D__DE440_SUN = asils.models.de440slice.DE440_SUN();
     s = fix(seg);
-    init = asils.models.de440slice.DE440_SEGMENTS((s) + 1, 3);
-    intlen = asils.models.de440slice.DE440_SEGMENTS((s) + 1, 4);
-    rsize = fix(asils.models.de440slice.DE440_SEGMENTS((s) + 1, 5));
-    nc = fix(asils.models.de440slice.DE440_SEGMENTS((s) + 1, 6));
-    n = asils.models.de440slice.DE440_SEGMENTS((s) + 1, 7);
+    init = D__DE440_SEGMENTS((s) + 1, 3);
+    intlen = D__DE440_SEGMENTS((s) + 1, 4);
+    rsize = fix(D__DE440_SEGMENTS((s) + 1, 5));
+    nc = fix(D__DE440_SEGMENTS((s) + 1, 6));
+    n = D__DE440_SEGMENTS((s) + 1, 7);
     kf = floor(((et - init) / intlen));
     if (~(kf >= 0))
         kf = 0;
@@ -23,19 +28,20 @@ function [ok, rec, nc] = de440_record(seg, et)
     if (kf > (n - 1))
         kf = (n - 1);
     end
-    j = (fix(kf) - fix(asils.models.de440slice.DE440_SEGMENTS((s) + 1, 8)));
-    ok = ((j >= 0) && (j < fix(asils.models.de440slice.DE440_SEGMENTS((s) + 1, 9))));
+    j = (fix(kf) - fix(D__DE440_SEGMENTS((s) + 1, 8)));
+    ok = ((j >= 0) && (j < fix(D__DE440_SEGMENTS((s) + 1, 9))));
     rec = zeros(62, 1);
     if ok
-        for i = (0):((rsize) - 1)
+        i = ((0):((rsize) - 1)).';
+        if ~isempty(i)
             if (seg == 0)
-                rec((i) + 1) = asils.models.de440slice.DE440_SUN((j) + 1, (i) + 1);
+                rec((i) + 1) = (D__DE440_SUN((j) + 1, (i) + 1)).';
             elseif (seg == 1)
-                rec((i) + 1) = asils.models.de440slice.DE440_EMB((j) + 1, (i) + 1);
+                rec((i) + 1) = (D__DE440_EMB((j) + 1, (i) + 1)).';
             elseif (seg == 2)
-                rec((i) + 1) = asils.models.de440slice.DE440_EARTH((j) + 1, (i) + 1);
+                rec((i) + 1) = (D__DE440_EARTH((j) + 1, (i) + 1)).';
             else
-                rec((i) + 1) = asils.models.de440slice.DE440_MOON((j) + 1, (i) + 1);
+                rec((i) + 1) = (D__DE440_MOON((j) + 1, (i) + 1)).';
             end
         end
     end

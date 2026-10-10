@@ -6,9 +6,8 @@ function [o] = dtm_pack(r)
     o = asils.models.dtm2020.DtmDensity_zero();
     vma = asils.models.dtm2020.dtm_vma();
     o = asils.models.dtm2020.DtmDensity_zero();
-    for i = (0):((6) - 1)
-        o.n_cm3((i) + 1) = (r.d((i) + 1) / vma((i) + 1));
-    end
+    i = ((0):((6) - 1)).';
+    o.n_cm3((i) + 1) = (reshape(r.d((i) + 1), [], 1) ./ reshape(vma((i) + 1), [], 1));
     o.rho_gcm3 = r.ro;
     o.rho_kgm3 = (r.ro * 1000);
     o.t_k = r.tz;

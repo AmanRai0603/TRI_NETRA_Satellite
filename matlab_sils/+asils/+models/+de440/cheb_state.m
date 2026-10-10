@@ -33,14 +33,13 @@ function [pos, vel] = cheb_state(rec, nc, et)
     end
     pos = zeros(3, 1);
     vel = zeros(3, 1);
-    for c = (0):((3) - 1)
-        val = 0;
-        der = 0;
-        for i = (0):((nc) - 1)
-            val = (val + (rec((((2 + (c * nc)) + i)) + 1) * t((i) + 1)));
-            der = (der + (rec((((2 + (c * nc)) + i)) + 1) * dt((i) + 1)));
-        end
-        pos((c) + 1) = val;
-        vel((c) + 1) = (der / radius);
+    c = ((0):((3) - 1)).';
+    val = (0) .* ones(size(c));
+    der = (0) .* ones(size(c));
+    for i = (0):((nc) - 1)
+        val = (val + (reshape(rec((((2 + (c .* nc)) + i)) + 1), [], 1) .* t((i) + 1)));
+        der = (der + (reshape(rec((((2 + (c .* nc)) + i)) + 1), [], 1) .* dt((i) + 1)));
     end
+    pos((c) + 1) = val;
+    vel((c) + 1) = (der ./ radius);
 end

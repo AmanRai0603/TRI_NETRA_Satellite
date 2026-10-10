@@ -23,11 +23,14 @@ function [w0, g] = initial_rate(kind, q0, r, v, value, mag, has_g, q_g, w_g, ext
         g = t__365;
         w0 = (asils.models.facets.unit_or_zero(n) * mag);
     elseif (kind == 2)
-        w0 = asils.pc.mv(asils.models.math.dcm(q0), ([r(2)*v(3) - r(3)*v(2); r(3)*v(1) - r(1)*v(3); r(1)*v(2) - r(2)*v(1)] * (1 / (r(1)*r(1) + r(2)*r(2) + r(3)*r(3)))));
+        h__149 = asils.models.math.dcm(q0);
+        h__150 = ([r(2)*v(3) - r(3)*v(2); r(3)*v(1) - r(1)*v(3); r(1)*v(2) - r(2)*v(1)] * (1 / (r(1)*r(1) + r(2)*r(2) + r(3)*r(3))));
+        w0 = [h__149(1, 1)*h__150(1) + h__149(1, 2)*h__150(2) + h__149(1, 3)*h__150(3); h__149(2, 1)*h__150(1) + h__149(2, 2)*h__150(2) + h__149(2, 3)*h__150(3); h__149(3, 1)*h__150(1) + h__149(3, 2)*h__150(2) + h__149(3, 3)*h__150(3)];
     elseif (kind == 3)
         w = zeros(3, 1);
         if has_g
-            w = asils.pc.mv(asils.models.math.dcm(asils.models.math.qmult(asils.models.math.qconj(q_g), q0)), w_g);
+            h__151 = asils.models.math.dcm(asils.models.math.qmult(asils.models.math.qconj(q_g), q0));
+            w = [h__151(1, 1)*w_g(1) + h__151(1, 2)*w_g(2) + h__151(1, 3)*w_g(3); h__151(2, 1)*w_g(1) + h__151(2, 2)*w_g(2) + h__151(2, 3)*w_g(3); h__151(3, 1)*w_g(1) + h__151(3, 2)*w_g(2) + h__151(3, 3)*w_g(3)];
         end
         [t__366, t__367] = asils.pc.stream_normal3(g);
         n = t__366;

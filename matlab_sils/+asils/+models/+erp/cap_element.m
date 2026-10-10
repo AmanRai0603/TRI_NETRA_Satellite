@@ -36,14 +36,15 @@ function [vis, n_el, es, cos_e, da, rho, lat] = cap_element(r_sat, zhat, e1, e2,
     sa = sin(az);
     ca = cos(az);
     n_el = zeros(3, 1);
-    for i = (0):((3) - 1)
-        n_el((i) + 1) = ((cp * zhat((i) + 1)) + (sp * ((ca * e1((i) + 1)) + (sa * e2((i) + 1)))));
-    end
+    i = ((0):((3) - 1)).';
+    n_el((i) + 1) = ((cp .* reshape(zhat((i) + 1), [], 1)) + (sp .* ((ca .* reshape(e1((i) + 1), [], 1)) + (sa .* reshape(e2((i) + 1), [], 1)))));
     sv = [(r_sat(1) - (re * n_el(1))); (r_sat(2) - (re * n_el(2))); (r_sat(3) - (re * n_el(3)))];
     rho = sqrt(sv(1)*sv(1) + sv(2)*sv(2) + sv(3)*sv(3));
     es = [(sv(1) / rho); (sv(2) / rho); (sv(3) / rho)];
     cos_e = (n_el(1)*es(1) + n_el(2)*es(2) + n_el(3)*es(3));
     vis = (~(cos_e <= 0));
     da = ((((re * re) * sp) * dpsi) * ((2 * pi) / nsg));
-    lat = asils.pc.asin_(asils.models.thirdbody.unit_clip(n_el(3)));
+    h__246 = asin(asils.models.thirdbody.unit_clip(n_el(3)));
+    if ~isreal(h__246), h__246 = NaN; end
+    lat = h__246;
 end

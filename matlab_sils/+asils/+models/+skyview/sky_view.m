@@ -22,5 +22,7 @@ function [b_b, sb, mb, nb, earth_ang] = sky_view(rb, b_eci, sun_rel, moon_rel, r
     sb = asils.models.skyview.sky_unit([rb(1, 1)*sun_rel(1) + rb(1, 2)*sun_rel(2) + rb(1, 3)*sun_rel(3); rb(2, 1)*sun_rel(1) + rb(2, 2)*sun_rel(2) + rb(2, 3)*sun_rel(3); rb(3, 1)*sun_rel(1) + rb(3, 2)*sun_rel(2) + rb(3, 3)*sun_rel(3)]);
     mb = asils.models.skyview.sky_unit([rb(1, 1)*moon_rel(1) + rb(1, 2)*moon_rel(2) + rb(1, 3)*moon_rel(3); rb(2, 1)*moon_rel(1) + rb(2, 2)*moon_rel(2) + rb(2, 3)*moon_rel(3); rb(3, 1)*moon_rel(1) + rb(3, 2)*moon_rel(2) + rb(3, 3)*moon_rel(3)]);
     nb = ([rb(1, 1)*r(1) + rb(1, 2)*r(2) + rb(1, 3)*r(3); rb(2, 1)*r(1) + rb(2, 2)*r(2) + rb(2, 3)*r(3); rb(3, 1)*r(1) + rb(3, 2)*r(2) + rb(3, 3)*r(3)] * ((-(1)) / sqrt(r(1)*r(1) + r(2)*r(2) + r(3)*r(3))));
-    earth_ang = asils.pc.asin_((6378137 / sqrt(r(1)*r(1) + r(2)*r(2) + r(3)*r(3))));
+    h__679 = asin((6378137 / sqrt(r(1)*r(1) + r(2)*r(2) + r(3)*r(3))));
+    if ~isreal(h__679), h__679 = NaN; end
+    earth_ang = h__679;
 end

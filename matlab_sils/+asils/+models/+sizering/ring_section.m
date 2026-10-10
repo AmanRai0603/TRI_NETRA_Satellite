@@ -21,12 +21,16 @@ function [area, perim] = ring_section(bx, n)
         ib = rem((free + 2), 3);
         for ka = (0):((2) - 1)
             for kb = (0):((2) - 1)
-                if (~(asils.pc.fabs(n((free) + 1)) < 1e-15))
+                h__17 = n((free) + 1);
+                if h__17 < 0, h__17 = -h__17; elseif h__17 == 0, h__17 = 0; end
+                if (~(h__17 < 1e-15))
                     p = zeros(3, 1);
                     p((ia) + 1) = (((2 * ka) - 1) * hx((ia) + 1));
                     p((ib) + 1) = (((2 * kb) - 1) * hx((ib) + 1));
                     p((free) + 1) = ((-(((n((ia) + 1) * p((ia) + 1)) + (n((ib) + 1) * p((ib) + 1))))) / n((free) + 1));
-                    if (asils.pc.fabs(p((free) + 1)) <= (hx((free) + 1) + 1e-12))
+                    h__18 = p((free) + 1);
+                    if h__18 < 0, h__18 = -h__18; elseif h__18 == 0, h__18 = 0; end
+                    if (h__18 <= (hx((free) + 1) + 1e-12))
                         px((np) + 1) = p(1);
                         py((np) + 1) = p(2);
                         pz((np) + 1) = p(3);
@@ -37,7 +41,9 @@ function [area, perim] = ring_section(bx, n)
         end
     end
     t = [0; 1; 0];
-    if (asils.pc.fabs(n(1)) < 0.9)
+    h__19 = n(1);
+    if h__19 < 0, h__19 = -h__19; elseif h__19 == 0, h__19 = 0; end
+    if (h__19 < 0.9)
         t = [1; 0; 0];
     end
     tn = (((t(1) * n(1)) + (t(2) * n(2))) + (t(3) * n(3)));
@@ -52,9 +58,8 @@ function [area, perim] = ring_section(bx, n)
     qx = zeros(12, 1);
     qy = zeros(12, 1);
     ang = zeros(12, 1);
-    for i = (0):((12) - 1)
-        ang((i) + 1) = Inf;
-    end
+    i = ((0):((12) - 1)).';
+    ang((i) + 1) = Inf;
     for i = (0):((np) - 1)
         qx((i) + 1) = (((px((i) + 1) * u(1)) + (py((i) + 1) * u(2))) + (pz((i) + 1) * u(3)));
         qy((i) + 1) = (((px((i) + 1) * v(1)) + (py((i) + 1) * v(2))) + (pz((i) + 1) * v(3)));
@@ -77,7 +82,13 @@ function [area, perim] = ring_section(bx, n)
     for i = (0):((m) - 1)
         k = rem((i + 1), m);
         area = (area + ((sx((i) + 1) * sy((k) + 1)) - (sx((k) + 1) * sy((i) + 1))));
-        perim = (perim + asils.pc.sqrt_((asils.pc.ipow((sx((k) + 1) - sx((i) + 1)), 2) + asils.pc.ipow((sy((k) + 1) - sy((i) + 1)), 2))));
+        h__20 = (sx((k) + 1) - sx((i) + 1));
+        h__21 = (sy((k) + 1) - sy((i) + 1));
+        h__22 = ((h__20 * h__20) + (h__21 * h__21));
+        if h__22 < 0, h__22 = NaN; else, h__22 = sqrt(h__22); end
+        perim = (perim + h__22);
     end
-    area = (asils.pc.fabs(area) / 2);
+    h__23 = area;
+    if h__23 < 0, h__23 = -h__23; elseif h__23 == 0, h__23 = 0; end
+    area = (h__23 / 2);
 end

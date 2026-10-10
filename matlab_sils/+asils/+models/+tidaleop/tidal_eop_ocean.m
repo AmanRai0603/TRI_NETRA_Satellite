@@ -9,6 +9,9 @@ function [dxp, dyp, dut1] = tidal_eop_ocean(mjd)
     dxp = 0;
     dyp = 0;
     dut1 = 0;
+    D__TIDAL_OCEAN = asils.models.tidaleopterms.TIDAL_OCEAN();
+    D__TIDAL_OCEAN_ORTHOW = asils.models.tidaleopterms.TIDAL_OCEAN_ORTHOW();
+    D__TIDAL_OCEAN_SP = asils.models.tidaleopterms.TIDAL_OCEAN_SP();
     tw = (2 * pi);
     a = zeros(2, 3);
     b = zeros(2, 3);
@@ -18,10 +21,10 @@ function [dxp, dyp, dut1] = tidal_eop_ocean(mjd)
         sa = zeros(2, 1);
         sb = zeros(2, 1);
         for row = (0):((71) - 1)
-            nj = asils.models.tidaleopterms.TIDAL_OCEAN((row) + 1, 1);
-            mj = asils.models.tidaleopterms.TIDAL_OCEAN((row) + 1, 2);
-            hs = asils.models.tidaleopterms.TIDAL_OCEAN((row) + 1, 3);
-            ph = (asils.models.timescales.omod((asils.models.tidaleopterms.TIDAL_OCEAN((row) + 1, 4) - ((asils.models.timescales.omod((nj + mj), 2) * tw) / 4)), tw) + asils.models.timescales.omod((asils.models.tidaleopterms.TIDAL_OCEAN((row) + 1, 5) * dt60), tw));
+            nj = D__TIDAL_OCEAN((row) + 1, 1);
+            mj = D__TIDAL_OCEAN((row) + 1, 2);
+            hs = D__TIDAL_OCEAN((row) + 1, 3);
+            ph = (asils.models.timescales.omod((D__TIDAL_OCEAN((row) + 1, 4) - ((asils.models.timescales.omod((nj + mj), 2) * tw) / 4)), tw) + asils.models.timescales.omod((D__TIDAL_OCEAN((row) + 1, 5) * dt60), tw));
             m = (-(1));
             if (mj == 1)
                 m = 0;
@@ -33,10 +36,9 @@ function [dxp, dyp, dut1] = tidal_eop_ocean(mjd)
                 sb((m) + 1) = (sb((m) + 1) + (hs * sin(ph)));
             end
         end
-        for m2 = (0):((2) - 1)
-            a((m2) + 1, (kk) + 1) = sa((m2) + 1);
-            b((m2) + 1, (kk) + 1) = (-(sb((m2) + 1)));
-        end
+        m2 = ((0):((2) - 1)).';
+        a((m2) + 1, (kk) + 1) = reshape(sa((m2) + 1), [], 1);
+        b((m2) + 1, (kk) + 1) = (-(reshape(sb((m2) + 1), [], 1)));
     end
     h = zeros(12, 1);
     for m = (0):((2) - 1)
@@ -44,12 +46,12 @@ function [dxp, dyp, dut1] = tidal_eop_ocean(mjd)
         am = (a((m) + 1, 3) - a((m) + 1, 1));
         bp = (b((m) + 1, 3) + b((m) + 1, 1));
         bm = (b((m) + 1, 3) - b((m) + 1, 1));
-        s0 = asils.models.tidaleopterms.TIDAL_OCEAN_SP(1, (m) + 1);
-        s1 = asils.models.tidaleopterms.TIDAL_OCEAN_SP(2, (m) + 1);
-        s2 = asils.models.tidaleopterms.TIDAL_OCEAN_SP(3, (m) + 1);
-        s3 = asils.models.tidaleopterms.TIDAL_OCEAN_SP(4, (m) + 1);
-        s4 = asils.models.tidaleopterms.TIDAL_OCEAN_SP(5, (m) + 1);
-        s5 = asils.models.tidaleopterms.TIDAL_OCEAN_SP(6, (m) + 1);
+        s0 = D__TIDAL_OCEAN_SP(1, (m) + 1);
+        s1 = D__TIDAL_OCEAN_SP(2, (m) + 1);
+        s2 = D__TIDAL_OCEAN_SP(3, (m) + 1);
+        s3 = D__TIDAL_OCEAN_SP(4, (m) + 1);
+        s4 = D__TIDAL_OCEAN_SP(5, (m) + 1);
+        s5 = D__TIDAL_OCEAN_SP(6, (m) + 1);
         h(((6 * m)) + 1) = (s0 * a((m) + 1, 2));
         h((((6 * m) + 1)) + 1) = (s0 * b((m) + 1, 2));
         h((((6 * m) + 2)) + 1) = ((s1 * a((m) + 1, 2)) - (s2 * ap));
@@ -58,13 +60,12 @@ function [dxp, dyp, dut1] = tidal_eop_ocean(mjd)
         h((((6 * m) + 5)) + 1) = (((s3 * b((m) + 1, 2)) - (s4 * bp)) - (s5 * am));
     end
     eop = zeros(3, 1);
-    for j = (0):((3) - 1)
-        acc = 0;
-        for i = (0):((12) - 1)
-            acc = (acc + (h((i) + 1) * asils.models.tidaleopterms.TIDAL_OCEAN_ORTHOW((i) + 1, (j) + 1)));
-        end
-        eop((j) + 1) = acc;
+    j = ((0):((3) - 1)).';
+    acc = (0) .* ones(size(j));
+    for i = (0):((12) - 1)
+        acc = (acc + (h((i) + 1) .* (D__TIDAL_OCEAN_ORTHOW((i) + 1, (j) + 1)).'));
     end
+    eop((j) + 1) = acc;
     dxp = eop(1);
     dyp = eop(2);
     dut1 = eop(3);

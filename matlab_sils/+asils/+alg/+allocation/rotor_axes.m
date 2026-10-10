@@ -15,13 +15,11 @@ function [a] = rotor_axes(nr, rot_a0, rot_gi, gim_axis, delta)
         if (rot_gi((i) + 1) > 0)
             j = (rot_gi((i) + 1) - 1);
             t0 = [gim_axis((j) + 1, 2)*a0(3) - gim_axis((j) + 1, 3)*a0(2); gim_axis((j) + 1, 3)*a0(1) - gim_axis((j) + 1, 1)*a0(3); gim_axis((j) + 1, 1)*a0(2) - gim_axis((j) + 1, 2)*a0(1)];
-            for k = (0):((3) - 1)
-                a((k) + 1, (i) + 1) = ((cos(delta((j) + 1)) * a0((k) + 1)) + (sin(delta((j) + 1)) * t0((k) + 1)));
-            end
+            k = ((0):((3) - 1)).';
+            a((k) + 1, (i) + 1) = ((cos(delta((j) + 1)) .* reshape(a0((k) + 1), [], 1)) + (sin(delta((j) + 1)) .* reshape(t0((k) + 1), [], 1)));
         else
-            for k = (0):((3) - 1)
-                a((k) + 1, (i) + 1) = a0((k) + 1);
-            end
+            k = ((0):((3) - 1)).';
+            a((k) + 1, (i) + 1) = reshape(a0((k) + 1), [], 1);
         end
     end
 end

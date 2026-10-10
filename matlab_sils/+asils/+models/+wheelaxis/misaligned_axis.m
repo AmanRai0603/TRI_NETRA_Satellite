@@ -9,5 +9,6 @@ function [b, disp] = misaligned_axis(a, sigma, disp)
     [t__49, t__50] = asils.pc.stream_normal3(disp);
     th = t__49;
     disp = t__50;
-    b = asils.pc.mv(asils.models.coildisp.small_rotation((th * sigma)), a);
+    h__24 = asils.models.coildisp.small_rotation((th * sigma));
+    b = [h__24(1, 1)*a(1) + h__24(1, 2)*a(2) + h__24(1, 3)*a(3); h__24(2, 1)*a(1) + h__24(2, 2)*a(2) + h__24(2, 3)*a(3); h__24(3, 1)*a(1) + h__24(3, 2)*a(2) + h__24(3, 3)*a(3)];
 end

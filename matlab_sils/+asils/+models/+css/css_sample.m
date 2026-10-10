@@ -13,7 +13,12 @@ function [ok, s, u] = css_sample(u, d, s_b, nu, nadir_b, earth_ang)
     ok = false;
     s = zeros(3, 1);
     c0 = (-((s_b(1)*nadir_b(1) + s_b(2)*nadir_b(2) + s_b(3)*nadir_b(3))));
-    geo = ((sin(earth_ang) * sin(earth_ang)) * asils.pc.choose((c0 > 0), c0, 0));
+    if (c0 > 0)
+        h__666 = c0;
+    else
+        h__666 = 0;
+    end
+    geo = ((sin(earth_ang) * sin(earth_ang)) * h__666);
     iv = zeros(8, 1);
     g = u.g;
     for j = (0):((d.n) - 1)
@@ -22,7 +27,17 @@ function [ok, s, u] = css_sample(u, d, s_b, nu, nadir_b, earth_ang)
         [t__559, t__560] = asils.pc.stream_normal(g);
         z = t__559;
         g = t__560;
-        iv((j) + 1) = ((u.scale((j) + 1) * ((nu * asils.pc.choose((cs > 0), cs, 0)) + ((d.albedo * geo) * asils.pc.choose((ce > 0), ce, 0)))) + (d.noise * z));
+        if (cs > 0)
+            h__667 = cs;
+        else
+            h__667 = 0;
+        end
+        if (ce > 0)
+            h__668 = ce;
+        else
+            h__668 = 0;
+        end
+        iv((j) + 1) = ((u.scale((j) + 1) * ((nu * h__667) + ((d.albedo * geo) * h__668))) + (d.noise * z));
         if u.dead((j) + 1)
             iv((j) + 1) = 0;
         end
@@ -47,6 +62,7 @@ function [ok, s, u] = css_sample(u, d, s_b, nu, nadir_b, earth_ang)
     ok = ((nu > 0.5) && (sqrt(est(1)*est(1) + est(2)*est(2) + est(3)*est(3)) > 0.3));
     s = [0; 0; 0];
     if ok
-        s = asils.pc.mv(u.r, asils.models.facets.unit_or_zero(est));
+        h__669 = asils.models.facets.unit_or_zero(est);
+        s = [u.r(1, 1)*h__669(1) + u.r(1, 2)*h__669(2) + u.r(1, 3)*h__669(3); u.r(2, 1)*h__669(1) + u.r(2, 2)*h__669(2) + u.r(2, 3)*h__669(3); u.r(3, 1)*h__669(1) + u.r(3, 2)*h__669(2) + u.r(3, 3)*h__669(3)];
     end
 end

@@ -13,7 +13,6 @@ function [a] = empirical_accel(r, v, acc)
     nn = [(h(1) * (1 / nh)); (h(2) * (1 / nh)); (h(3) * (1 / nh))];
     tt = [nn(2)*rr(3) - nn(3)*rr(2); nn(3)*rr(1) - nn(1)*rr(3); nn(1)*rr(2) - nn(2)*rr(1)];
     a = zeros(3, 1);
-    for i = (0):((3) - 1)
-        a((i) + 1) = (((acc(1) * rr((i) + 1)) + (acc(2) * tt((i) + 1))) + (acc(3) * nn((i) + 1)));
-    end
+    i = ((0):((3) - 1)).';
+    a((i) + 1) = (((acc(1) .* reshape(rr((i) + 1), [], 1)) + (acc(2) .* reshape(tt((i) + 1), [], 1))) + (acc(3) .* reshape(nn((i) + 1), [], 1)));
 end

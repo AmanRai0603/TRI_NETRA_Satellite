@@ -20,11 +20,21 @@ function [b, len] = uart_stream(junk, nj, pl, n, sync2, fault, k)
         b((len) + 1) = junk((i) + 1);
         len = (len + 1);
     end
-    nf = asils.pc.choose((fault == 0), 1, 2);
+    if (fault == 0)
+        h__616 = 1;
+    else
+        h__616 = 2;
+    end
+    nf = h__616;
     for f = (0):((nf) - 1)
         p = zeros(64, 1);
         for i = (0):((n) - 1)
-            p((i) + 1) = asils.pc.choose_lazy((f == 0), @() pl((i) + 1), @() pl((rem((i + k), 36)) + 1));
+            if (f == 0)
+                h__617 = pl((i) + 1);
+            else
+                h__617 = pl((rem((i + k), 36)) + 1);
+            end
+            p((i) + 1) = h__617;
         end
         c = asils.models.drivers.crc16(p, n);
         if ((f == 1) && (fault == 2))

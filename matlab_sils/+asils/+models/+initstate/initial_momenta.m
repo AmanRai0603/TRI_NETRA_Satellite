@@ -9,6 +9,11 @@ function [h] = initial_momenta(nr, h0, h_target)
     h = zeros(8, 1);
     h = zeros(8, 1);
     for i = (0):((nr) - 1)
-        h((i) + 1) = asils.pc.choose_lazy(isnan(h0), @() h_target((i) + 1), @() h0);
+        if isnan(h0)
+            h__152 = h_target((i) + 1);
+        else
+            h__152 = h0;
+        end
+        h((i) + 1) = h__152;
     end
 end

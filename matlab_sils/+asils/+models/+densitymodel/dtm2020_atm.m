@@ -29,9 +29,8 @@ function [st, a] = dtm2020_atm(alt_km, lat_deg, lon_deg, lst_h, doy, f107, f107a
             a.rho = o.rho_kgm3;
             a.t = o.t_k;
             a.species = true;
-            for i = (0):((6) - 1)
-                a.n((i) + 1) = (o.n_cm3((i) + 1) * 1000000);
-            end
+            i = ((0):((6) - 1)).';
+            a.n((i) + 1) = (reshape(o.n_cm3((i) + 1), [], 1) .* 1000000);
         end
     end
 end

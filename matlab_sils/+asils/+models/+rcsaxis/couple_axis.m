@@ -9,5 +9,6 @@ function [t, disp] = couple_axis(tau, sigma, disp)
     [t__7, t__8] = asils.pc.stream_normal3(disp);
     th = t__7;
     disp = t__8;
-    t = asils.pc.mv(asils.models.coildisp.small_rotation((th * sigma)), tau);
+    h__4 = asils.models.coildisp.small_rotation((th * sigma));
+    t = [h__4(1, 1)*tau(1) + h__4(1, 2)*tau(2) + h__4(1, 3)*tau(3); h__4(2, 1)*tau(1) + h__4(2, 2)*tau(2) + h__4(2, 3)*tau(3); h__4(3, 1)*tau(1) + h__4(3, 2)*tau(2) + h__4(3, 3)*tau(3)];
 end

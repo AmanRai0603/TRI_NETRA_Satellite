@@ -12,7 +12,10 @@ function [b_min, b_mean, bm] = survey_field(bm, n)
     b_min = 1.7976931348623157e+308;
     s = (-(0));
     for k = (0):((n) - 1)
-        b_min = asils.pc.fmin(b_min, bm((k) + 1));
+        h__123 = b_min;
+        h__124 = bm((k) + 1);
+        if h__124 < h__123, h__123 = h__124; end
+        b_min = h__123;
         s = (s + bm((k) + 1));
     end
     b_mean = (s / n);

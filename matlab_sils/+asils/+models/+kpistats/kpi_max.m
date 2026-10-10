@@ -8,6 +8,9 @@ function [c] = kpi_max(a, b)
     if isnan(a)
         c = b;
     else
-        c = asils.pc.fmax(a, b);
+        h__633 = a;
+        h__634 = b;
+        if h__634 > h__633, h__633 = h__634; end
+        c = h__633;
     end
 end

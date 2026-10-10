@@ -18,9 +18,18 @@ function [duty, tau] = rcs_duty(req, nc, rcs_tau, rcs_mib, rcs_res, t)
     for ax = (0):((3) - 1)
         u = req((ax) + 1);
         if (u ~= 0)
-            k = asils.pc.choose((u > 0), (2 * ax), ((2 * ax) + 1));
+            if (u > 0)
+                h__93 = (2 * ax);
+            else
+                h__93 = ((2 * ax) + 1);
+            end
+            k = h__93;
             if ((k < nc) && (asils.pc.fabs(rcs_tau((k) + 1, (ax) + 1)) > 0))
-                on = (asils.pc.fabs(u) / asils.pc.fabs(rcs_tau((k) + 1, (ax) + 1)));
+                h__94 = u;
+                if h__94 < 0, h__94 = -h__94; elseif h__94 == 0, h__94 = 0; end
+                h__95 = rcs_tau((k) + 1, (ax) + 1);
+                if h__95 < 0, h__95 = -h__95; elseif h__95 == 0, h__95 = 0; end
+                on = (h__94 / h__95);
                 if (on > 1)
                     on = 1;
                 end
@@ -28,9 +37,8 @@ function [duty, tau] = rcs_duty(req, nc, rcs_tau, rcs_mib, rcs_res, t)
                 if (~(on < rcs_mib))
                     on = (round((on / rcs_res)) * rcs_res);
                     duty((k) + 1) = (on / t);
-                    for i = (0):((3) - 1)
-                        tau((i) + 1) = (tau((i) + 1) + (rcs_tau((k) + 1, (i) + 1) * duty((k) + 1)));
-                    end
+                    i = ((0):((3) - 1)).';
+                    tau((i) + 1) = (reshape(tau((i) + 1), [], 1) + ((rcs_tau((k) + 1, (i) + 1)).' .* duty((k) + 1)));
                 end
             end
         end

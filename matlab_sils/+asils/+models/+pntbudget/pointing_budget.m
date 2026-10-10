@@ -14,8 +14,15 @@ function [total, room, verdict] = pointing_budget(ape, e_a, e_t, e_j, req)
     total = 0;
     room = 0;
     verdict = 0;
-    total = asils.pc.sqrt_(((((ape * ape) + (e_a * e_a)) + (e_t * e_t)) + (e_j * e_j)));
-    room = asils.pc.sqrt_(asils.pc.fmax((((req * req) - (ape * ape)) - (e_j * e_j)), 0));
+    h__662 = ((((ape * ape) + (e_a * e_a)) + (e_t * e_t)) + (e_j * e_j));
+    if h__662 < 0, h__662 = NaN; else, h__662 = sqrt(h__662); end
+    total = h__662;
+    h__663 = (((req * req) - (ape * ape)) - (e_j * e_j));
+    h__664 = 0;
+    if h__664 > h__663, h__663 = h__664; end
+    h__665 = h__663;
+    if h__665 < 0, h__665 = NaN; else, h__665 = sqrt(h__665); end
+    room = h__665;
     verdict = 2;
     if ((isnan(e_a) || isnan(e_t)) || isnan(e_j))
         verdict = 0;
