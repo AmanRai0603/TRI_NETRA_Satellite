@@ -4,11 +4,17 @@
 with a summary.json), each run staged, then swapped in for the old one (never two full copies kept).
 
     python3 tools/twin_refly.py status                     what is flown, staged, running and left
-    python3 tools/twin_refly.py run [--workers N] [--only ID ...] [--singles | --campaigns]
+    python3 tools/twin_refly.py run [--workers N] [--only ID ...] [--singles | --campaigns] [--again]
                                                             fly what is left, N GNU Octave processes at a time (3);
                                                             resumable: a run already swapped in, staged, or a campaign's
                                                             run already kept is skipped, and a run cut short goes on from
                                                             its checkpoint (asils.run 'checkpoint')
+    python3 tools/twin_refly.py status --again              the same, counted as --again counts
+
+--again: the twin's code changed since the last re-fly, so every run is flown again: a run counts as flown only when
+the twin of today flew it, i.e. its manifest's engine_source (a campaign's refly.json "source") is today's
+asils.util.fingerprint('source'); a staged run, a campaign's staged runs or a checkpoint another twin left are
+discarded (each job notes the fingerprint it was started with, so an --again re-fly cut short resumes with --again).
 
 Staging: matlab_sils/store/refly/<id>/ (a scenario's run, or a campaign's run_NNNN.mat files), its checkpoints and logs
 under matlab_sils/store/refly/logs/; progress in matlab_sils/store/refly/progress.log. A scenario's staged run replaces
@@ -37,6 +43,54 @@ LOGS = STAGE / "logs"
 PROGRESS = STAGE / "progress.log"
 PIDFILE = STAGE / "refly.pid"
 MARK = "generated from the design"          # in asils.version(): the twin that flies the design's code
+SOURCE = None                               # --again: today's twin source fingerprint (asils.util.fingerprint('source'))
+
+
+def twin_source():
+    """The twin's source fingerprint now, as asils.rec.write records it (engine_source)."""
+    r = subprocess.run(octave("printf('@@%s@@', asils.util.fingerprint('source'))"), cwd=TW, capture_output=True, text=True)
+    out = r.stdout.split("@@")
+    if r.returncode or len(out) < 3 or not out[1].startswith("a32:"):
+        sys.exit(f"twin_refly: cannot read the twin's source fingerprint:\n{r.stdout[-400:]}{r.stderr[-400:]}")
+    return out[1]
+
+
+def src_note(path):
+    """The fingerprint a staged job was started with (its note), or None."""
+    try:
+        return path.read_text().strip()
+    except OSError:
+        return None
+
+
+def stale_stage(sid):
+    """--again: drop what another twin staged for a scenario (its staged run, its checkpoint)."""
+    if SOURCE is None:
+        return
+    st = STAGE / sid
+    m = st / "manifest.json"
+    if m.exists():
+        try:
+            same = json.loads(m.read_text()).get("engine_source") == SOURCE
+        except ValueError:
+            same = False
+        if not same:
+            shutil.rmtree(st)
+    ck = LOGS / f"{sid}.ckpt"
+    if ck.exists() and src_note(LOGS / f"{sid}.ckpt.source") != SOURCE:
+        ck.unlink()
+
+
+def cid_note(cid):
+    return pathlib.Path(cid) / "source.txt"
+
+
+def stale_camp(cid):
+    """--again: drop a campaign's staged runs another twin flew."""
+    if SOURCE is None or not (STAGE / cid).is_dir():
+        return
+    if src_note(STAGE / cid_note(cid)) != SOURCE:
+        shutil.rmtree(STAGE / cid)
 
 
 def log(msg):
@@ -71,13 +125,22 @@ def campaigns():
 def swapped(sid):
     m = RES / sid / "manifest.json"
     try:
-        return MARK in json.loads(m.read_text()).get("engine", "")
+        man = json.loads(m.read_text())
     except (OSError, ValueError):
         return False
+    if SOURCE is not None:
+        return man.get("engine_source") == SOURCE
+    return MARK in man.get("engine", "")
 
 
 def camp_swapped(cid):
-    return (RES / cid / "refly.json").exists()
+    f = RES / cid / "refly.json"
+    if SOURCE is not None:
+        try:
+            return json.loads(f.read_text()).get("source") == SOURCE
+        except (OSError, ValueError):
+            return False
+    return f.exists()
 
 
 def cost(info):
@@ -105,6 +168,7 @@ def jobs(want_singles, want_camps, only):
                 continue
             if swapped(sid):
                 continue
+            stale_stage(sid)
             if (STAGE / sid / "manifest.json").exists() and (STAGE / sid / "rec.mat").exists():
                 out.append(("swap", sid, None))
                 continue
@@ -118,6 +182,7 @@ def jobs(want_singles, want_camps, only):
                 continue
             if camp_swapped(cid):
                 continue
+            stale_camp(cid)
             for k in range(1, info["runs"] + 1):
                 if (STAGE / cid / f"run_{k:04d}.mat").exists():
                     continue
@@ -141,7 +206,10 @@ def collect(cid):
     if r.returncode or not (STAGE / cid / "summary.json").exists():
         log(f"collect {cid} FAILED (see logs/{cid}.collect.log)")
         return False
-    (STAGE / cid / "refly.json").write_text(json.dumps({"runs": n, "twin": MARK, "flown": datetime.datetime.now().isoformat(timespec="seconds")}) + "\n")
+    note = {"runs": n, "twin": MARK, "flown": datetime.datetime.now().isoformat(timespec="seconds")}
+    if SOURCE is not None:
+        note["source"] = SOURCE
+    (STAGE / cid / "refly.json").write_text(json.dumps(note) + "\n")
     swap(STAGE / cid, RES / cid)
     log(f"campaign {cid}: {n} runs collected and swapped in")
     return True
@@ -160,8 +228,9 @@ def run(a):
     PIDFILE.write_text(str(os.getpid()))
     want_s = not a.campaigns
     want_c = not a.singles
+    again(a)
     todo = jobs(want_s, want_c, set(a.only or []))
-    log(f"start: {len(todo)} job(s), {a.workers} worker(s)")
+    log(f"start: {len(todo)} job(s), {a.workers} worker(s)" + (f", again: the twin of today is {SOURCE}" if SOURCE else ""))
     running = {}
     stop = {"now": False}
     signal.signal(signal.SIGTERM, lambda *_: stop.update(now=True))
@@ -202,6 +271,12 @@ def run(a):
                     collect(cid)
                     continue
                 todo.pop(0)
+                if SOURCE is not None:          # the twin this job is flown by, for an --again re-fly cut short
+                    if kind == "single":
+                        (LOGS / f"{name}.ckpt.source").write_text(SOURCE + "\n")
+                    else:
+                        (STAGE / name.split("#")[0]).mkdir(parents=True, exist_ok=True)
+                        (STAGE / cid_note(name.split("#")[0])).write_text(SOURCE + "\n")
                 fh = open(LOGS / f"{name.replace('#', '_')}.log", "a")
                 p = subprocess.Popen(octave(code), cwd=TW, stdout=fh, stderr=subprocess.STDOUT)
                 running[name] = (p, kind, time.time(), fh)
@@ -216,10 +291,18 @@ def run(a):
     log("done" if not todo and not running else "stopped")
 
 
-def status(_a):
+def again(a):
+    global SOURCE
+    if getattr(a, "again", False):
+        SOURCE = twin_source()
+
+
+def status(a):
+    again(a)
     S, C = scenarios(), campaigns()
     done = [s for s in S if swapped(s)]
-    staged = [s for s in S if not swapped(s) and (STAGE / s / "manifest.json").exists()]
+    staged = [s for s in S if not swapped(s) and (STAGE / s / "manifest.json").exists()
+              and (SOURCE is None or json.loads((STAGE / s / "manifest.json").read_text()).get("engine_source") == SOURCE)]
     left = [s for s in S if s not in done and s not in staged]
     print(f"scenarios: {len(done)} of {len(S)} flown again; staged {staged or '-'}")
     print(f"  left ({len(left)}): {' '.join(left) or '-'}")
@@ -247,7 +330,10 @@ def main(argv=None):
     g.add_argument("--singles", action="store_true")
     g.add_argument("--campaigns", action="store_true")
     r.set_defaults(f=run)
-    sp.add_parser("status").set_defaults(f=status)
+    r.add_argument("--again", action="store_true", help="the twin changed: fly again every run today's twin did not fly")
+    st = sp.add_parser("status")
+    st.add_argument("--again", action="store_true", help="count as run --again counts")
+    st.set_defaults(f=status)
     a = ap.parse_args(argv)
     a.f(a)
 
