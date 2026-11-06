@@ -8,8 +8,8 @@ function [worst, tau_dist, h_dist, h_secular, dump_dflt, w0, w0_dflt, h_detumble
 %   - the detumble's momentum, the largest moment at the tip-off rate;
 %   - the reference slew: twice its angle over its time (rate), 2 pi its angle over its time squared (acceleration), at
 %   the largest moment;
-%   - the margins: k_h (the loop's, else 1/(1 - req.hsat) for a stated share of saturation, else 2) on the larger of the
-%   held and the slew's momentum, k_tau on the larger of the worst and the slew's torque;
+%   - the margins: k_h (the loop's, else 1/(1 - req.hsat) for a stated share of saturation but not below the floor, else the
+%   floor, 2) on the sum of the held and the slew's momentum, k_tau on the larger of the worst and the slew's torque;
 %   - the fine class: a stated req.ake at most 0.05 deg.
 %   Each default taken is said (the *_dflt flags).
 %   tau_peak: real[1][4] (passed a plain number)
@@ -149,12 +149,15 @@ function [worst, tau_dist, h_dist, h_secular, dump_dflt, w0, w0_dflt, h_detumble
     if isnan(k_h_knob)
         k_h = dkh;
         if ((isfinite(hsat) && (hsat > 0)) && (hsat < 1))
-            k_h = (1 / (1 - hsat));
+            h__136 = dkh;
+            h__137 = (1 / (1 - hsat));
+            if h__137 > h__136, h__136 = h__137; end
+            k_h = h__136;
         end
     else
         k_h = k_h_knob;
     end
-    h_req = (k_h * asils.models.sizedemand.size_max(h_dist, h_slew));
+    h_req = (k_h * (h_dist + h_slew));
     tau_req = (k_tau * asils.models.sizedemand.size_max(tau_dist, tau_slew));
     fine = (isfinite(ake) && (ake <= dake));
 end

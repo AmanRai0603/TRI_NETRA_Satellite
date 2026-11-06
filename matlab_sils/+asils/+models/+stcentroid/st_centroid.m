@@ -45,10 +45,10 @@ function [spots, ns, img, work, ia, ib] = st_centroid(img, cam, work, ia, ib)
     img = t__627;
     ia = t__628;
     ib = t__629;
-    h__701 = cam.max_spots;
-    h__702 = 32;
-    if h__702 < h__701, h__701 = h__702; end
-    cap = h__701;
+    h__703 = cam.max_spots;
+    h__704 = 32;
+    if h__704 < h__703, h__703 = h__704; end
+    cap = h__703;
     ns = 0;
     done = false;
     for q = (0):((m) - 1)
@@ -61,9 +61,9 @@ function [spots, ns, img, work, ia, ib] = st_centroid(img, cam, work, ia, ib)
                 yf = y;
                 near = false;
                 for s = (0):((ns) - 1)
-                    h__703 = (spots((s) + 1, 1) - xf);
-                    if h__703 < 0, h__703 = -h__703; elseif h__703 == 0, h__703 = 0; end
-                    if ((h__703 < 4) && (asils.pc.fabs((spots((s) + 1, 2) - yf)) < 4))
+                    h__705 = (spots((s) + 1, 1) - xf);
+                    if h__705 < 0, h__705 = -h__705; elseif h__705 == 0, h__705 = 0; end
+                    if ((h__705 < 4) && (asils.pc.fabs((spots((s) + 1, 2) - yf)) < 4))
                         near = true;
                     end
                 end
@@ -73,10 +73,10 @@ function [spots, ns, img, work, ia, ib] = st_centroid(img, cam, work, ia, ib)
                     sy = 0;
                     for c = (0):((5) - 1)
                         for r = (0):((5) - 1)
-                            h__704 = (img(((((((x + c) - 2) - 1) * n) + (((y + r) - 2) - 1))) + 1) - bg);
-                            h__705 = 0;
-                            if h__705 > h__704, h__704 = h__705; end
-                            w = h__704;
+                            h__706 = (img(((((((x + c) - 2) - 1) * n) + (((y + r) - 2) - 1))) + 1) - bg);
+                            h__707 = 0;
+                            if h__707 > h__706, h__706 = h__707; end
+                            w = h__706;
                             tot = (tot + w);
                             sx = (sx + ((c - 2) * w));
                             sy = (sy + ((r - 2) * w));

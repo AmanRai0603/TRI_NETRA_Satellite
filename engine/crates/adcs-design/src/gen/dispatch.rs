@@ -1089,6 +1089,21 @@ pub fn call(name: &str, x: &[f64]) -> Option<Vec<f64>> {
             out.push(r.4);
             out.push(r.5);
         }
+        "sizedemand::momentum_margin_floor" => {
+            if x.len() != 0 { return None; }
+            let r = crate::sizedemand::momentum_margin_floor();
+            out.push(r);
+        }
+        "sizedemand::margin_keeps_floor" => {
+            if x.len() != 1 { return None; }
+            let r = crate::sizedemand::margin_keeps_floor(x[0]);
+            out.push(if r { 1.0 } else { 0.0 });
+        }
+        "sizedemand::margin_achieved" => {
+            if x.len() != 4 { return None; }
+            let r = crate::sizedemand::margin_achieved(x[0], x[1], x[2], x[3]);
+            out.push(r);
+        }
         "sizedemand::demand_defaults" => {
             if x.len() != 0 { return None; }
             let r = crate::sizedemand::demand_defaults();

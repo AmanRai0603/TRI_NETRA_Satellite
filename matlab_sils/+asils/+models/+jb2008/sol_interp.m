@@ -28,10 +28,10 @@ function [y] = sol_interp(j, x)
     if (lo > 0)
         i = (lo - 1);
     end
-    h__306 = i;
-    h__307 = (n - 2);
-    if h__307 < h__306, h__306 = h__307; end
-    i = h__306;
+    h__308 = i;
+    h__309 = (n - 2);
+    if h__309 < h__308, h__308 = h__309; end
+    i = h__308;
     x0 = asils.models.jb2008.sol_day(i);
     x1 = asils.models.jb2008.sol_day((i + 1));
     y0 = D__SOLFSMY((i) + 1, ((j + 2)) + 1);

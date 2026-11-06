@@ -261,7 +261,7 @@ The knob changes the failures call for; converged when nothing is left to change
 
 | parameter | value |
 |---|---|
-| `scale_bounds` | 0.5, 4.0 |
+| `scale_bounds` | 1.0, 4.0 |
 | `scale_up` | 1.5 |
 | `scale_down` | 0.75 |
 | `improvement_needed` | 0.05 |

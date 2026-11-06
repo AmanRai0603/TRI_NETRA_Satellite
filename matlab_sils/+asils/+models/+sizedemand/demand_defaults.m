@@ -24,7 +24,7 @@ function [w0, slew_deg, slew_s, life_yr, slews_per_day, k_h, orbits_held, ake_fi
     slew_s = 60;
     life_yr = 3;
     slews_per_day = 0;
-    k_h = 2;
+    k_h = asils.models.sizedemand.momentum_margin_floor();
     orbits_held = 0.25;
     ake_fine = 0.05;
 end

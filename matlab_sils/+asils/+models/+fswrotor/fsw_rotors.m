@@ -57,9 +57,9 @@ function [nr, ngo, rot_kind, rot_a0, rot_gi, gim_axis, rot_tmax, rot_hmax, rot_h
         gim_axis((m) + 1, (k) + 1) = ((g((m) + 1, (k) + 1)).').';
     end
     if (ng > 0)
-        h__552 = rate_max;
+        h__554 = rate_max;
     else
-        h__552 = 1;
+        h__554 = 1;
     end
-    gim_rate_max = h__552;
+    gim_rate_max = h__554;
 end

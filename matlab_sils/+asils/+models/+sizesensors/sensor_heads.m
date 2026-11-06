@@ -16,10 +16,10 @@ function [n, heads, residual] = sensor_heads(fine, knob)
         heads = [([(-(0.9063)); 0; 0.4226]).'; ([(-(0.9063)); 0; (-(0.4226))]).'];
     end
     if (knob == 1)
-        h__144 = 1;
+        h__146 = 1;
     else
-        h__144 = 2;
+        h__146 = 2;
     end
-    n = h__144;
+    n = h__146;
     residual = 0.00001;
 end

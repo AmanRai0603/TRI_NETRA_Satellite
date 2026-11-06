@@ -84,6 +84,7 @@ impl Knobs {
             }
         }
         k.k_h = match o.get("k_h") { None | Some(Value::Null) => None, Some(_) => Some(num("k_h", k_lo, k_hi, 0.0)?) };
+        if let Some(x) = k.k_h { margin_floor("knobs: k_h", x)?; }
         k.k_tau = num("k_tau", k_lo, k_hi, k.k_tau)?;
         k.fmr_lambda = num("fmr_lambda", lambda_lo, lambda_hi, k.fmr_lambda)?;
         k.st_heads = num("st_heads", heads_lo, heads_hi, k.st_heads as f64)? as u8;
@@ -104,6 +105,12 @@ impl Knobs {
     pub fn json(&self) -> Value { json!({"scale": self.scale, "k_h": self.k_h, "k_tau": self.k_tau, "fmr_lambda": self.fmr_lambda, "star_tracker": self.star_tracker, "st_heads": self.st_heads, "fmr_flow_sigma": self.fmr_flow_sigma, "gyro_grade": self.gyro_grade, "fmr_spare": self.fmr_spare}) }
     /// A part's authority scale: the loop's, or 1 (the law's size) where it sets none.
     fn s(&self, p: &str) -> f64 { self.scale.get(p).copied().unwrap_or(1.0) }
+}
+
+/// A momentum margin below the floor (design/sizedemand.pc, DR-design-003) is refused, by the name of the lever that set it.
+fn margin_floor(lever: &str, k: f64) -> Result<(), Error> {
+    if gd::margin_keeps_floor(k) { return Ok(()); }
+    Err(Error::refused(format!("{lever} leaves the momentum margin at {k}, below the floor {} (DR-design-003: the stated margin is the least the sizing keeps)", gd::momentum_margin_floor())))
 }
 
 /// What the case asks of an actuator (design/sizedemand.pc).
@@ -284,6 +291,7 @@ pub fn mtq(d: &Demand, k: &Knobs) -> (Value, Value) {
 pub fn rotor(root: &Path, d: &Demand, k: &Knobs, which: &str) -> Result<Value, Error> {
     let u = match which { "rw" => gr::ROTORUSE_RW, "cmg" => gr::ROTORUSE_CMG, _ => gr::ROTORUSE_VSCMG };
     let s = k.s(which);
+    margin_floor(&format!("the authority scale of the {which} (scale.{which} = {s}, k_h = {})", d.k_h), d.k_h*s)?;
     let mut cands: Vec<Value> = vec![];
     let mut kinds: Vec<i64> = vec![];
     let dir = root.join("data/catalogue");
@@ -310,6 +318,7 @@ pub fn rotor(root: &Path, d: &Demand, k: &Knobs, which: &str) -> Result<Value, E
     }
     let (pick, met) = gr::rotor_pick(&mut h, &mut tau, &mut mass, &mut pw, &mut vol, cands.len() as i64, &mut hn, &mut tn);
     let (pick, kind, units, h_need, tau_need) = (pick as usize, kinds[pick as usize], un[pick as usize], hn[pick as usize], tn[pick as usize]);
+    let margin = gd::margin_achieved(h[pick], h_need, d.k_h, s);
     let pick = cands[pick].clone();
     let gap = if met { Value::Null } else {
         json!(format!("no catalogue {which} meets h {:.3e} N m s, tau {:.3e} N m per unit; the largest is fitted", h_need, tau_need))
@@ -328,7 +337,7 @@ pub fn rotor(root: &Path, d: &Demand, k: &Knobs, which: &str) -> Result<Value, E
     p["dispersion"] = json!({"torque_scale": spread(td, json!(tm), json!(ts)), "friction_scale": spread(fd, json!(flo), json!(fhi)),
         "axis_misalignment_rad": spread(md, json!(mm), json!(ms))});
     p["sizing"] = json!({"node": "select_rotor", "h_req_Nms": d.h_req, "tau_req_Nm": d.tau_req, "scale": s, "units": units,
-        "need_per_unit": {"h_Nms": h_need, "tau_Nm": tau_need}, "gap": gap,
+        "need_per_unit": {"h_Nms": h_need, "tau_Nm": tau_need}, "gap": gap, "margin_stated": d.k_h*s, "margin_achieved": margin,
         "rule": "lightest selectable catalogue model meeting the per-unit need (then steady power, volume)",
         "candidates": cands.iter().enumerate().map(|(i, c)| json!({"part_number": c["part_number"], "vendor": c["vendor"], "model": c["model"],
             "h_Nms": h[i], "tau_Nm": tau[i], "mass_kg": mass[i], "power_W": pw[i], "units": un[i],
@@ -338,17 +347,19 @@ pub fn rotor(root: &Path, d: &Demand, k: &Knobs, which: &str) -> Result<Value, E
 
 /// The fluid loop, X, Y, Z rings, each designed with its electromagnetic DC conduction pump (design/sizefmr.pc,
 /// act/sizepump.pc), and the spare when the loop asks for it (act/sizering.pc).
-pub fn fmr(d: &Demand, k: &Knobs, bx: [f64; 3]) -> Vec<Value> {
+pub fn fmr(d: &Demand, k: &Knobs, bx: [f64; 3]) -> Result<Vec<Value>, Error> {
+    margin_floor(&format!("the authority scale of the fluid loop (scale.fmr = {}, k_h = {})", k.s("fmr"), d.k_h), d.k_h*k.s("fmr"))?;
     let (faces, per) = gf::fmr_faces(bx);
     let (h, tau) = gf::fmr_need(d.h_req, d.tau_req, k.s("fmr"));
     let ax = ["X", "Y", "Z"];
-    let mut rings: Vec<Value> = (0..3).map(|i| ring(d, k, h, tau, faces[i], per[i], ax[i], &format!("{} axis", ax[i]))).collect();
+    let mut rings: Vec<Value> = vec![];
+    for i in 0..3 { rings.push(ring(d, k, h, tau, faces[i], per[i], ax[i], &format!("{} axis", ax[i]))?); }
     if k.fmr_spare {
         let (area, perim) = section(bx, spare_axis());
         let (hs, taus) = gf::fmr_spare_need(h, tau);
-        rings.push(ring(d, k, hs, taus, area, perim, "S", "spare, skewed on the body diagonal"));
+        rings.push(ring(d, k, hs, taus, area, perim, "S", "spare, skewed on the body diagonal")?);
     }
-    rings
+    Ok(rings)
 }
 
 /// The spare ring's axis (act/sizering.pc).
@@ -373,9 +384,11 @@ fn design_json(ds: &gp::PumpDesign, lambda: f64) -> Value {
 
 /// One fluid ring with its electromagnetic pump, designed for momentum `h` and torque `tau` in a loop of `face` m^2 and
 /// `perim` m.
-fn ring(d: &Demand, k: &Knobs, h: f64, tau: f64, face: f64, perim: f64, tag: &str, what: &str) -> Value {
+fn ring(d: &Demand, k: &Knobs, h: f64, tau: f64, face: f64, perim: f64, tag: &str, what: &str) -> Result<Value, Error> {
     let (s0, l1) = gf::fmr_loop(face, perim);
-    let ds = Some(gp::pump_design(h, tau, s0, l1, k.fmr_lambda)).filter(|x| x.found).expect("no feasible pump design");
+    let ds = Some(gp::pump_design(h, tau, s0, l1, k.fmr_lambda)).filter(|x| x.found).ok_or_else(|| Error::refused(format!(
+        "fluid ring {tag} ({what}): no feasible pump design for h {h:.3e} N m s and tau {tau:.3e} N m in a loop of {face:.3e} m^2 at lambda {} kg/W (case {}, k_h = {}): \
+         the loop's lever or the demand asks more than the box can hold", k.fmr_lambda, d.case, d.k_h)))?;
     let mut nm = design_json(&ds, k.fmr_lambda);
     let (rho, mu, _rho_e, melt) = gp::pump_fluid();
     let (dipole_max, per_amp, current_max) = gf::fmr_no_dipole();
@@ -395,9 +408,10 @@ fn ring(d: &Demand, k: &Knobs, h: f64, tau: f64, face: f64, perim: f64, tag: &st
     let pareto: Vec<Value> = (0..ok.len()).filter(|&i| ok[i] == 1).map(|i| json!({"lambda": lam[i], "mass_kg": mass[i], "power_W": power[i],
         "coil_W": coil[i], "v_max": v_max[i], "bore_m": bore[i], "B_T": b[i], "loops": loops[i]})).collect();
     p["sizing"] = json!({"h_req_Nms": d.h_req, "tau_req_Nm": d.tau_req, "h_ring_Nms": h, "tau_ring_Nm": tau, "flow_sensor_sigma_m_s": k.fmr_flow_sigma, "face_m2": face, "perimeter_m": perim,
-        "scale": k.s("fmr"), "lambda_kg_per_W": k.fmr_lambda, "pareto": pareto,
+        "scale": k.s("fmr"), "margin_stated": d.k_h*k.s("fmr"), "margin_achieved": gd::margin_achieved(ds.h_max, h, d.k_h, k.s("fmr")),
+        "lambda_kg_per_W": k.fmr_lambda, "pareto": pareto,
         "law": "galinstan loop + DC conduction pump with an electromagnet, designed together: least mass + lambda x steady power (empump.rs)"});
-    p
+    Ok(p)
 }
 
 /// The N2O cold-gas thrusters (design/sizercs.pc).
@@ -456,7 +470,7 @@ pub fn size_all(root: &Path, case_file: &Path, k: &Knobs, out: &Path) -> Result<
     let case = d.case.clone();
     let bx = d.box_m;
     let (pm, pmp) = mtq(&d, k);
-    let fm = fmr(&d, k, bx);
+    let fm = fmr(&d, k, bx)?;
     let parts: Vec<(&str, Value)> = vec![("mtq", pm), ("mtqp", pmp), ("rw", rotor(root, &d, k, "rw")?), ("cmg", rotor(root, &d, k, "cmg")?), ("vscmg", rotor(root, &d, k, "vscmg")?),
         ("fmr_x", fm[0].clone()), ("fmr_y", fm[1].clone()), ("fmr_z", fm[2].clone()), ("rcs", rcs(&d, k, bx))];
     let mut parts = parts;
@@ -562,14 +576,14 @@ mod tests {
 
     #[test]
     fn the_spare_ring_holds_any_one_rings_momentum_on_its_axis() {
-        let d = Demand { case: "t".into(), h_req: 2e-3, tau_req: 6e-5, ..Default::default() };
+        let d = Demand { case: "t".into(), k_h: 2.0, h_req: 2e-3, tau_req: 6e-5, ..Default::default() };
         let k = Knobs { fmr_spare: true, ..Knobs::default() };
-        let r = fmr(&d, &k, [0.34, 0.10, 0.10]);
+        let r = fmr(&d, &k, [0.34, 0.10, 0.10]).unwrap();
         assert_eq!(r.len(), 4);
         let h = |p: &Value| p["sizing"]["h_ring_Nms"].as_f64().unwrap();
         let ax = spare_axis();
         for i in 0..3 { assert!((h(&r[3])*ax[i] - h(&r[i])).abs() < 1e-12, "its projection on axis {i} holds that ring's momentum"); }
-        assert_eq!(fmr(&d, &Knobs::default(), [0.34, 0.10, 0.10]).len(), 3, "no spare unless the knob asks");
+        assert_eq!(fmr(&d, &Knobs::default(), [0.34, 0.10, 0.10]).unwrap().len(), 3, "no spare unless the knob asks");
     }
 
     #[test]
@@ -588,7 +602,7 @@ mod tests {
 
     #[test]
     fn select_rotor_takes_the_lightest_model_that_meets_the_need() {
-        let mut d = Demand { case: "t".into(), h_req: 1.5e-3, tau_req: 5e-5, ..Default::default() };
+        let mut d = Demand { case: "t".into(), k_h: 2.0, h_req: 1.5e-3, tau_req: 5e-5, ..Default::default() };
         let k = Knobs::default();
         let p = rotor(&root(), &d, &k, "rw").unwrap();
         assert_eq!(p["part_number"], "CAT-CUBESPACE-CUBEWHEEL-CW0017");
@@ -608,7 +622,7 @@ mod tests {
 
     #[test]
     fn vscmg_runs_its_rotor_at_half_momentum() {
-        let d = Demand { case: "t".into(), h_req: 1e-3, tau_req: 5e-5, ..Default::default() };
+        let d = Demand { case: "t".into(), k_h: 2.0, h_req: 1e-3, tau_req: 5e-5, ..Default::default() };
         let v = rotor(&root(), &d, &Knobs::default(), "vscmg").unwrap();
         let n = &v["nominal"];
         assert!((n["rotor_momentum_Nms"].as_f64().unwrap() - n["h_max_Nms"].as_f64().unwrap()/2.0).abs() < 1e-12);
@@ -619,7 +633,7 @@ mod tests {
     fn a_cmg_cluster_is_one_unit_carrying_the_whole_need() {
         // 8 mN m s and 3 mN m: the ADCS400 cluster (20 mN m s, 4 mN m, 1.2 kg, 4 W) holds it whole; one of four on a single
         // unit's 1 mN m would not meet half of it (1.5 mN m)
-        let d = Demand { case: "t".into(), h_req: 8e-3, tau_req: 3e-3, ..Default::default() };
+        let d = Demand { case: "t".into(), k_h: 2.0, h_req: 8e-3, tau_req: 3e-3, ..Default::default() };
         let p = rotor(&root(), &d, &Knobs::default(), "cmg").unwrap();
         assert_eq!(p["part_number"], "CAT-TENSOR-TECH-ADCS400");
         assert!(p["sizing"]["gap"].is_null(), "{}", p["sizing"]["gap"]);
@@ -634,5 +648,41 @@ mod tests {
         // above the cluster's momentum: not met, the gap said
         let d = Demand { h_req: 25e-3, ..d };
         assert!(rotor(&root(), &d, &Knobs::default(), "cmg").unwrap()["sizing"]["gap"].is_string());
+    }
+
+    #[test]
+    fn the_momentum_to_store_is_the_margin_on_the_sum_not_the_larger() {
+        let d = demand(&root(), &root().join("cases/ais_3u.csv"), &Knobs::default()).unwrap();
+        assert!(d.k_h >= gd::momentum_margin_floor());
+        assert_eq!(d.h_req, d.k_h*(d.h_dist + d.h_slew), "h_req = k_h (h_dist + h_slew)");
+        assert!(d.h_req > d.k_h*d.h_dist.max(d.h_slew)*(1.0 + 1e-9), "the sum is more than the larger");
+    }
+
+    #[test]
+    fn a_margin_below_the_floor_is_refused_by_name_and_the_achieved_margin_is_reported() {
+        // the loop's lever on k_h
+        let e = Knobs::from_json(&json!({"k_h": 1.14})).unwrap_err().to_string();
+        assert!(e.contains("knobs: k_h") && e.contains("below the floor"), "{e}");
+        assert_eq!(Knobs::from_json(&json!({"k_h": 2.0})).unwrap().k_h, Some(2.0), "the floor itself is kept");
+        // the authority scale of a part, which multiplies the margin: 0.5 x 2 = 1, below the floor
+        let d = Demand { case: "t".into(), h_req: 4e-3, tau_req: 5e-5, k_h: 2.0, ..Default::default() };
+        let mut k = Knobs::default(); k.scale.insert("rw".into(), 0.5);
+        let e = rotor(&root(), &d, &k, "rw").unwrap_err().to_string();
+        assert!(e.contains("authority scale of the rw") && e.contains("below the floor"), "{e}");
+        let mut k = Knobs::default(); k.scale.insert("fmr".into(), 0.5);
+        assert!(fmr(&d, &k, [0.34, 0.10, 0.10]).unwrap_err().to_string().contains("authority scale of the fluid loop"));
+        // at the floor the part carries at least the stated margin, and says how much it does
+        let p = rotor(&root(), &d, &Knobs::default(), "rw").unwrap();
+        let m = p["sizing"]["margin_achieved"].as_f64().unwrap();
+        assert!(m >= p["sizing"]["margin_stated"].as_f64().unwrap() - 1e-12 && m >= 2.0, "{m}");
+        let r = fmr(&d, &Knobs::default(), [0.34, 0.10, 0.10]).unwrap();
+        assert!(r[0]["sizing"]["margin_achieved"].as_f64().unwrap() >= 2.0 - 1e-9);
+    }
+
+    #[test]
+    fn a_pump_with_no_feasible_point_is_a_refusal_not_a_panic() {
+        let d = Demand { case: "t".into(), h_req: 5.0, tau_req: 1.0, k_h: 2.0, ..Default::default() };
+        let e = fmr(&d, &Knobs::default(), [0.34, 0.10, 0.10]).unwrap_err().to_string();
+        assert!(e.contains("fluid ring X") && e.contains("no feasible pump design"), "{e}");
     }
 }

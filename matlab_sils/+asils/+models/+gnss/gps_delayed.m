@@ -29,11 +29,11 @@ function [te, r, v] = gps_delayed(ht, hr, hv, hn, latency, t)
         end
         if (((k + 1) == hn) || (tl <= ht((k) + 1)))
             if (tl > ht((k) + 1))
-                h__672 = tl;
+                h__674 = tl;
             else
-                h__672 = ht((k) + 1);
+                h__674 = ht((k) + 1);
             end
-            te = h__672;
+            te = h__674;
             r = (hr((k) + 1, :)).';
             v = (hv((k) + 1, :)).';
         else

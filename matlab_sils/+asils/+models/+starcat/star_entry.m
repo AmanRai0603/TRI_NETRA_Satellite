@@ -13,23 +13,23 @@ function [r, mag] = star_entry(k, n)
     kf = (k + 0.5);
     nf = n;
     z = (1 - ((2 * kf) / nf));
-    h__678 = 5;
-    if h__678 < 0, h__678 = NaN; else, h__678 = sqrt(h__678); end
-    ph = ((pi * (1 + h__678)) * kf);
-    h__679 = (1 - (z * z));
-    if h__679 < 0, h__679 = NaN; else, h__679 = sqrt(h__679); end
-    rr = h__679;
+    h__680 = 5;
+    if h__680 < 0, h__680 = NaN; else, h__680 = sqrt(h__680); end
+    ph = ((pi * (1 + h__680)) * kf);
+    h__681 = (1 - (z * z));
+    if h__681 < 0, h__681 = NaN; else, h__681 = sqrt(h__681); end
+    rr = h__681;
     r0 = [(rr * cos(ph)); (rr * sin(ph)); z];
     h1 = (asils.models.starcat.star_frac((sin((kf * 12.9898)) * 43758.5453)) - 0.5);
     h2 = (asils.models.starcat.star_frac((sin((kf * 78.233)) * 12345.6789)) - 0.5);
     e1 = [(-(sin(ph))); cos(ph); 0];
     e2 = [r0(2)*e1(3) - r0(3)*e1(2); r0(3)*e1(1) - r0(1)*e1(3); r0(1)*e1(2) - r0(2)*e1(1)];
-    h__680 = ((4 * pi) / nf);
-    if h__680 < 0, h__680 = NaN; else, h__680 = sqrt(h__680); end
-    dsp = (0.35 * h__680);
+    h__682 = ((4 * pi) / nf);
+    if h__682 < 0, h__682 = NaN; else, h__682 = sqrt(h__682); end
+    dsp = (0.35 * h__682);
     v = [(r0(1) + (dsp * ((h1 * e1(1)) + (h2 * e2(1))))); (r0(2) + (dsp * ((h1 * e1(2)) + (h2 * e2(2))))); (r0(3) + (dsp * ((h1 * e1(3)) + (h2 * e2(3)))))];
     r = asils.models.facets.unit_or_zero(v);
-    h__681 = 2;
-    if h__681 < 0, h__681 = NaN; else, h__681 = sqrt(h__681); end
-    mag = (1 + (5 * asils.models.starcat.star_frac(((kf * h__681) + (0.5 * h1)))));
+    h__683 = 2;
+    if h__683 < 0, h__683 = NaN; else, h__683 = sqrt(h__683); end
+    mag = (1 + (5 * asils.models.starcat.star_frac(((kf * h__683) + (0.5 * h1)))));
 end

@@ -20,11 +20,11 @@ function [st, sw] = from_manual(f107, has_f107a, f107a, kp_kind, akp, has_ap, ap
     st = 0;
     sw.f107 = f107;
     if has_f107a
-        h__508 = f107a;
+        h__510 = f107a;
     else
-        h__508 = f107;
+        h__510 = f107;
     end
-    sw.f107a = h__508;
+    sw.f107a = h__510;
     given_kp = false;
     if (kp_kind == 1)
         given_kp = (~isnan(akp(1)));
@@ -60,11 +60,11 @@ function [st, sw] = from_manual(f107, has_f107a, f107a, kp_kind, akp, has_ap, ap
         end
         sw.ap = ap;
         if has_ap3
-            h__509 = ap3_in;
+            h__511 = ap3_in;
         else
-            h__509 = ap;
+            h__511 = ap;
         end
-        sw.ap3 = h__509;
+        sw.ap3 = h__511;
         i = ((0):((7) - 1)).';
         sw.aph((i) + 1) = sw.ap3;
         sw.aph(1) = ap;

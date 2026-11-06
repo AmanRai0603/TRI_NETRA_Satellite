@@ -8,14 +8,14 @@ function [kp] = ap2kp_forecast(ap)
     D__KP_AP_AP = asils.models.kpap.KP_AP_AP();
     n = 28;
     if isnan(ap)
-        h__503 = 400;
-    else
-        h__504 = ap;
         h__505 = 400;
-        if h__505 < h__504, h__504 = h__505; end
-        h__503 = h__504;
+    else
+        h__506 = ap;
+        h__507 = 400;
+        if h__507 < h__506, h__506 = h__507; end
+        h__505 = h__506;
     end
-    xi = h__503;
+    xi = h__505;
     lo = 0;
     hi = n;
     n__508 = 16; k__507 = 0;
@@ -36,10 +36,10 @@ function [kp] = ap2kp_forecast(ap)
     if (lo > 0)
         i = (lo - 1);
     end
-    h__506 = i;
-    h__507 = (n - 2);
-    if h__507 < h__506, h__506 = h__507; end
-    i = h__506;
+    h__508 = i;
+    h__509 = (n - 2);
+    if h__509 < h__508, h__508 = h__509; end
+    i = h__508;
     slope = ((((i + 1) / 3) - (i / 3)) / (D__KP_AP_AP(((i + 1)) + 1) - D__KP_AP_AP((i) + 1)));
     kp = ((slope * (xi - D__KP_AP_AP((i) + 1))) + (i / 3));
 end

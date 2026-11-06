@@ -8,9 +8,9 @@ function [n] = onorm(v)
     scl = 0;
     sum = 1;
     for i = (0):((3) - 1)
-        h__264 = v((i) + 1);
-        if h__264 < 0, h__264 = -h__264; elseif h__264 == 0, h__264 = 0; end
-        t = h__264;
+        h__266 = v((i) + 1);
+        if h__266 < 0, h__266 = -h__266; elseif h__266 == 0, h__266 = 0; end
+        t = h__266;
         if (scl == t)
             sum = (sum + 1);
         elseif (scl < t)
@@ -23,7 +23,7 @@ function [n] = onorm(v)
             sum = (sum + (q2 * q2));
         end
     end
-    h__265 = sum;
-    if h__265 < 0, h__265 = NaN; else, h__265 = sqrt(h__265); end
-    n = (scl * h__265);
+    h__267 = sum;
+    if h__267 < 0, h__267 = NaN; else, h__267 = sqrt(h__267); end
+    n = (scl * h__267);
 end

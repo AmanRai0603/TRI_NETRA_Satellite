@@ -852,6 +852,15 @@ function y = call(name, x)
         case 'sizedemand::survey_worst'
             [o1, o2, o3, o4, o5, o6] = asils.models.sizedemand.survey_worst(reshape(x(1:4), 4, 1), reshape(x(5:8), 4, 1), reshape(x(9:20), 4, 3).', reshape(x(21:32), 4, 3).', reshape(x(33:36), 4, 1), reshape(x(37:40), 4, 1), reshape(x(41:44), 4, 1), reshape(x(45:48), 4, 1), x(49), x(50), x(51), x(52));
             y = [reshape(o1, [], 1); reshape((o2).', [], 1); reshape(o3, [], 1); reshape(o4, [], 1); double(o5); double(o6)];
+        case 'sizedemand::momentum_margin_floor'
+            [o1] = asils.models.sizedemand.momentum_margin_floor();
+            y = [double(o1)];
+        case 'sizedemand::margin_keeps_floor'
+            [o1] = asils.models.sizedemand.margin_keeps_floor(x(1));
+            y = [double(o1)];
+        case 'sizedemand::margin_achieved'
+            [o1] = asils.models.sizedemand.margin_achieved(x(1), x(2), x(3), x(4));
+            y = [double(o1)];
         case 'sizedemand::demand_defaults'
             [o1, o2, o3, o4, o5, o6, o7, o8] = asils.models.sizedemand.demand_defaults();
             y = [double(o1); double(o2); double(o3); double(o4); double(o5); double(o6); double(o7); double(o8)];
