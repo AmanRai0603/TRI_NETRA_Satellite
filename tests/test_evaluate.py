@@ -93,7 +93,7 @@ class WiredDesign(unittest.TestCase):
         self.assertEqual(rows["dyn_truth_plant"]["si"], [[0.0067, 0, 0], [0, 0.042, 0], [0, 0, 0.042]])
         self.assertAlmostEqual(rows["fsw_param_ss_dr_k2"]["si"], 0.5 * 0.042, delta=1e-18)  # J_zz, an element of the plant's inertia
         self.assertAlmostEqual(rows["fsw_param_detumble_exit"]["si"], 0.5 * math.pi / 180, delta=1e-18)
-        self.assertEqual(rows["fsw_param_mtq_Kp"]["si"], [2 * 0.0067 * 0.005 ** 2, 2 * 0.042 * 0.005 ** 2, 2 * 0.042 * 0.005 ** 2])   # 2 J wn^2 since S11.6 (G6)
+        self.assertEqual(rows["fsw_param_mtq_Kp"]["si"], [0.0067 * 0.005 ** 2, 0.042 * 0.005 ** 2, 0.042 * 0.005 ** 2])   # J wn^2: the factor 2 stays off the magnetic PD (kp_factor, DR-ctl-001)
         self.assertAlmostEqual(rows["fsw_param_jd0"]["si"], 2461406.75, delta=1e-6)           # 2027-01-01 06:00 UTC
         self.assertEqual(rows["fsw_param_mu"]["si"], 3.986004418e14)
 

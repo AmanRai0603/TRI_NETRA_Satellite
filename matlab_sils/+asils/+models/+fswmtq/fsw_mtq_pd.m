@@ -1,6 +1,9 @@
 function [kp, kd, ki] = fsw_mtq_pd(ii, wn, z)
 %FSW_MTQ_PD  The magnetic pointing's PD gains on each principal axis. The law multiplies the quaternion's vector part (half the angle),
-%   so K_p = 2 I wn^2 puts the stiffness I wn^2 on the angle (DR-ctl-001, S11.6); the rate gain stays K_d = 2 z I wn; no integral.
+%   so a factor 2 on K_p would put the stiffness I wn^2 on the angle, as it does for the wheel PID (DR-ctl-001, S11.6). The
+%   magnetic loop is periodic and its placement rests on an averaged field, no test of the loop holds it, and flown with the
+%   factor it was worse (DR-ctl-001): the factor stays off here until a magnetic loop test proves a placement. The one switch
+%   is kp_factor below: 1.0 is S7.13's K_p = I wn^2, 2.0 is the factor of the vector part. The rate gain is K_d = 2 z I wn; no integral.
 %   ii: real[1][3] (passed a plain number)
 %   wn: real[1] (passed a plain number)
 %   z: real[1] (passed a plain number)
@@ -11,10 +14,11 @@ function [kp, kd, ki] = fsw_mtq_pd(ii, wn, z)
     kp = zeros(3, 1);
     kd = zeros(3, 1);
     ki = zeros(3, 1);
+    kp_factor = 1;
     kp = zeros(3, 1);
     kd = zeros(3, 1);
     ki = zeros(3, 1);
     ax = ((0):((3) - 1)).';
-    kp((ax) + 1) = (((2 .* reshape(ii((ax) + 1), [], 1)) .* wn) .* wn);
+    kp((ax) + 1) = (((kp_factor .* reshape(ii((ax) + 1), [], 1)) .* wn) .* wn);
     kd((ax) + 1) = (((2 * z) .* reshape(ii((ax) + 1), [], 1)) .* wn);
 end

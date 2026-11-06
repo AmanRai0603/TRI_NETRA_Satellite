@@ -3,14 +3,14 @@
  "decision": "DR-vv-003",
  "seed": 1,
  "fsw": "c",
- "campaign_relative_tolerance": 0.05,
- "campaign_relative_tolerance_note": "DR-vv-003: a campaign run flown on another toolchain fingerprint passes when every verdict is equal and every metric is within this relative tolerance; a Monte Carlo run of fine pointing is noise-dominated, so another libm moves its metrics by up to percent; 5 % is the tolerance O19 uses for SILS against soft OILS (docs/TEST_BENCH_PLAN.md section 5)",
  "fingerprint": {
   "rustc": "rustc 1.94.1 (e408947bf 2026-03-25)",
   "engine": "adcs-engine-rs/1.0.0 (adcs-case/1, POP v51 port in-loop, adcs-design, soft OILS)",
   "fsw": "trinetra-fsw-c/1.0.0 (adcs-fswcfg/1) alg de1905be024c8a82",
   "machine": "x86_64"
  },
+ "campaign_relative_tolerance": 0.05,
+ "campaign_relative_tolerance_note": "DR-vv-003: a campaign run flown on another toolchain fingerprint passes when every verdict is equal and every metric is within this relative tolerance; a Monte Carlo run of fine pointing is noise-dominated, so another libm moves its metrics by up to percent; 5 % is the tolerance O19 uses for SILS against soft OILS (docs/TEST_BENCH_PLAN.md section 5)",
  "scenarios": {
   "agile_slew_cmg": {
    "algorithms": {
@@ -379,13 +379,13 @@
    "metrics": {
     "ape_los_last_orbit": {
      "kind": "ape_los",
-     "value": 18.074872116923995,
+     "value": 11.352709246027764,
      "pass": null,
      "rel_tol": 1e-06
     },
     "ake_los_last_orbit": {
      "kind": "ake_los",
-     "value": 0.8446591130860758,
+     "value": 1.1583121047297131,
      "pass": 1,
      "rel_tol": 1e-06
     },
@@ -416,13 +416,13 @@
    "metrics": {
     "ape_los_last_orbit": {
      "kind": "ape_los",
-     "value": 18.074872116923995,
+     "value": 11.352704486509369,
      "pass": null,
      "rel_tol": 1e-06
     },
     "ake_los_last_orbit": {
      "kind": "ake_los",
-     "value": 0.8446591142735882,
+     "value": 1.158312108262547,
      "pass": 1,
      "rel_tol": 1e-06
     },
@@ -484,13 +484,13 @@
    "metrics": {
     "ape_los_last_orbit": {
      "kind": "ape_los",
-     "value": 16.92074182272817,
+     "value": 8.968310575373899,
      "pass": null,
      "rel_tol": 1e-06
     },
     "ake_los_last_orbit": {
      "kind": "ake_los",
-     "value": 0.9801966001153657,
+     "value": 1.0467047231192004,
      "pass": 1,
      "rel_tol": 1e-06
     },
@@ -613,25 +613,25 @@
    "metrics": {
     "ape_3axis_last_orbit": {
      "kind": "ape",
-     "value": 163.2594451204373,
+     "value": 142.21146628373995,
      "pass": null,
      "rel_tol": 1e-06
     },
     "ape_los_last_orbit": {
      "kind": "ape_los",
-     "value": 26.638665884729345,
+     "value": 11.566343939024454,
      "pass": 0,
      "rel_tol": 1e-06
     },
     "ake_los_last_orbit": {
      "kind": "ake_los",
-     "value": 1.2056408336300295,
+     "value": 1.0438294001686055,
      "pass": 1,
      "rel_tol": 1e-06
     },
     "power_mean": {
      "kind": "power_mean",
-     "value": 0.010646002302893637,
+     "value": 0.010819551006570585,
      "pass": 1,
      "rel_tol": 1e-06
     }
@@ -1377,31 +1377,31 @@
     },
     "ape_los_last_orbit": {
      "kind": "ape_los",
-     "value": 18.236575844807597,
+     "value": 10.776010796950027,
      "pass": 0,
      "rel_tol": 1e-06
     },
     "ape_3axis_last_orbit": {
      "kind": "ape",
-     "value": 179.97222592587008,
+     "value": 140.23663373992187,
      "pass": null,
      "rel_tol": 1e-06
     },
     "ake_los_last_orbit": {
      "kind": "ake_los",
-     "value": 0.8686858632438549,
+     "value": 1.2863630309063974,
      "pass": 1,
      "rel_tol": 1e-06
     },
     "power_margin_last_orbit": {
      "kind": "power_margin",
-     "value": 6.89818791253176,
+     "value": 6.451545834827894,
      "pass": 1,
      "rel_tol": 1e-06
     },
     "battery_dod_last_orbit": {
      "kind": "battery_dod",
-     "value": 2.9426776004812916,
+     "value": 2.9435003980698426,
      "pass": null,
      "rel_tol": 1e-06
     }
@@ -1582,37 +1582,37 @@
    "metrics": {
     "ape_3axis_last_orbit": {
      "kind": "ape",
-     "value": 169.39346737640818,
+     "value": 141.2285725878308,
      "pass": null,
      "rel_tol": 1e-06
     },
     "ape_los_last_orbit": {
      "kind": "ape_los",
-     "value": 17.057314170949372,
+     "value": 10.612696276488737,
      "pass": 0,
      "rel_tol": 1e-06
     },
     "ake_los_last_orbit": {
      "kind": "ake_los",
-     "value": 0.9810214853200191,
+     "value": 1.6048381000516592,
      "pass": 1,
      "rel_tol": 1e-06
     },
     "power_mean": {
      "kind": "power_mean",
-     "value": 0.010934368649030872,
+     "value": 0.010600178330278574,
      "pass": 1,
      "rel_tol": 1e-06
     },
     "power_margin_last_orbit": {
      "kind": "power_margin",
-     "value": 5.701090330044468,
+     "value": 6.448792864022736,
      "pass": 1,
      "rel_tol": 1e-06
     },
     "battery_dod_last_orbit": {
      "kind": "battery_dod",
-     "value": 2.9452338972957293,
+     "value": 2.944550245038935,
      "pass": null,
      "rel_tol": 1e-06
     }
@@ -1631,25 +1631,25 @@
    "metrics": {
     "ape_3axis_last_orbit": {
      "kind": "ape",
-     "value": 88.85508356782594,
+     "value": 179.98900753763718,
      "pass": null,
      "rel_tol": 1e-06
     },
     "ape_los_last_orbit": {
      "kind": "ape_los",
-     "value": 10.93649809816003,
-     "pass": 0,
+     "value": 9.709416958725154,
+     "pass": 1,
      "rel_tol": 1e-06
     },
     "ake_los_last_orbit": {
      "kind": "ake_los",
-     "value": 1.8918094513641805,
+     "value": 1.562754138306161,
      "pass": 1,
      "rel_tol": 1e-06
     },
     "power_mean": {
      "kind": "power_mean",
-     "value": 0.010949611131968462,
+     "value": 0.010992412190485258,
      "pass": 1,
      "rel_tol": 1e-06
     }
@@ -1674,13 +1674,13 @@
     },
     "recovery_to_ape": {
      "kind": "time_to_threshold",
-     "value": 128.42333333333335,
+     "value": 85.87333333333336,
      "pass": null,
      "rel_tol": 0.01
     },
     "ape_los_last_orbit": {
      "kind": "ape_los",
-     "value": 17.959865377430546,
+     "value": 12.044261581738368,
      "pass": 0,
      "rel_tol": 1e-06
     }

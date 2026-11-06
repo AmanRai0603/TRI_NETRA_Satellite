@@ -5,7 +5,7 @@
 ## 2015, Avanzini 2021, Celani 2026's boresight law with its weak roll in nadir, TANGO's frozen Riccati gains, Bruni and
 ## Celani's scaling of the proportional and derivative gains by gp and gd). The principal inertia ii [kg m^2], the mean
 ## motion n [rad/s]. Plain numbers in SI; degrees where the scenario states degrees.
-## The developer's transcription (S7.13), unsigned; the PD's stiffness with the factor 2 and the sliding slope settled (S11.6, DR-ctl-001).
+## The developer's transcription (S7.13), unsigned; the sliding slope settled (S11.6, DR-ctl-001); the PD's factor 2 withheld, one switch kp_factor in fsw_mtq_pd.
 module fswmtq
 
 ## The coils' dipole limit [A m^2] the flight software allocates against: the product's coils' m_max, or 1 when it carries none.
@@ -27,14 +27,18 @@ fn fsw_rate_rad(deg_s: real[1] in 0 .. 10) -> w: real[1]
 end
 
 ## The magnetic pointing's PD gains on each principal axis. The law multiplies the quaternion's vector part (half the angle),
-## so K_p = 2 I wn^2 puts the stiffness I wn^2 on the angle (DR-ctl-001, S11.6); the rate gain stays K_d = 2 z I wn; no integral.
+## so a factor 2 on K_p would put the stiffness I wn^2 on the angle, as it does for the wheel PID (DR-ctl-001, S11.6). The
+## magnetic loop is periodic and its placement rests on an averaged field, no test of the loop holds it, and flown with the
+## factor it was worse (DR-ctl-001): the factor stays off here until a magnetic loop test proves a placement. The one switch
+## is kp_factor below: 1.0 is S7.13's K_p = I wn^2, 2.0 is the factor of the vector part. The rate gain is K_d = 2 z I wn; no integral.
 fn fsw_mtq_pd(ii: vec3[1] in 0.001 .. 1, wn: real[1] in 0.001 .. 0.05, z: real[1] in 0.3 .. 3) \
               -> (kp: vec3[1], kd: vec3[1], ki: vec3[1])
+    let kp_factor = 1.0
     kp = 0
     kd = 0
     ki = 0
     for ax in 0 .. 3
-        kp[ax] = 2.0*ii[ax]*wn*wn
+        kp[ax] = kp_factor*ii[ax]*wn*wn
         kd[ax] = 2.0*z*ii[ax]*wn
     end
 end
