@@ -42,10 +42,58 @@ import design_inputs
 import evaluate
 import fsw_firmware
 import gen_fsw_params
+import golden
 from common import ROOT, write_text
 
 ADCS = ROOT / "engine" / "target" / "release" / "adcs"
 STORE = ROOT / "matlab_sils" / "store"
+
+CAMPAIGN_FINGERPRINT = STORE / "results_engine" / "campaigns" / "fingerprint.json"
+
+
+def campaign_fingerprint():
+    """The toolchain fingerprint (golden.fingerprint) the stored campaign runs were flown with, or "unrecorded":
+    a string never equals a fingerprint, so a record of an unknown machine is compared within tolerance."""
+    if not CAMPAIGN_FINGERPRINT.is_file():
+        return "unrecorded"
+    return json.loads(CAMPAIGN_FINGERPRINT.read_text()).get("fingerprint", "unrecorded")
+
+
+def golden_tolerances():
+    """Relative tolerance per metric kind from results/golden.json (the largest the table states for the kind)."""
+    t = json.loads(golden.TABLE.read_text())
+    out = {}
+    for sc in t["scenarios"].values():
+        for m in sc["metrics"].values():
+            out[m["kind"]] = max(out.get(m["kind"], 0.0), m["rel_tol"])
+    return out
+
+
+def as_row(metrics, tols):
+    return {"algorithms": {}, "metrics": {m["id"]: {"kind": m["kind"], "value": m["value"], "pass": m["pass"],
+                                                     "rel_tol": tols.get(m["kind"], golden.DEFAULT_TOL)} for m in metrics}}
+
+
+def relative(a, b):
+    if not all(isinstance(x, (int, float)) and not isinstance(x, bool) for x in (a, b)) or a == b:
+        return 0.0
+    m = max(abs(a), abs(b))
+    return abs(a - b) / m if m else 0.0
+
+
+def judge(got, want, fingerprint, recorded, tols):
+    """(status, why, largest relative difference) of one re-flown run against its stored metrics: bit-exact; else, when the
+    fingerprint is not the record's, each metric within its kind's tolerance and every verdict equal; else why not."""
+    if got == want:
+        return "exact", None, 0.0
+    if fingerprint == recorded:      # the toolchain is the record's: any change is a change
+        return None, "its metrics differ", 0.0
+    if [m["id"] for m in got] != [m["id"] for m in want]:
+        return None, "its metrics differ (the metric ids)", 0.0
+    diffs = golden.compare(as_row(want, tols), as_row(got, tols), False)
+    if diffs:
+        return None, "; ".join(f"{m}: {why} (stored {a}, new {b})" for m, a, b, why in diffs), 0.0
+    return "tolerance", None, max([relative(w["value"], g["value"]) for w, g in zip(want, got)] or [0.0])
 
 
 class Gate:
@@ -152,22 +200,33 @@ class Gate:
                 sets, d = ec.draw(C, r["k"])
                 jobs.append((C, r, sets, d, summ.get("fsw") if summ.get("fsw") in ("c", "rust") else "c"))
 
+        recorded = campaign_fingerprint()
+        tols = golden_tolerances()
+
         def one(j):
             C, want, sets, d, fsw = j
             tag = f"{C['id']}_{want['k']}"
             if d != want["draws"]:
-                return tag, "its draws differ"
+                return tag, "its draws differ", None, 0.0
             y, err = self.fly(C["scenario"], ["--case", C["case"], "--seed", str(C["seed"] + 7919 * want["k"]), "--fsw", fsw,
                                               *sum((["--set", s] for s in sets), [])], True, f"c_{tag}")
             if err:
-                return tag, f"refused: {err[0]}" if not want.get("failed") else None
+                return tag, (f"refused: {err[0]}" if not want.get("failed") else None), None, 0.0
             got = y["metrics"] if isinstance(y["metrics"], list) else [y["metrics"]]
-            return tag, None if got == want["metrics"] else "its metrics differ"
+            status, why, rel = judge(got, want["metrics"], golden.fingerprint(y), recorded, tols)
+            return tag, why, status, rel
         with cf.ThreadPoolExecutor(self.jobs) as ex:
             res = list(ex.map(one, jobs))
         n = len({j[0]["id"] for j in jobs})
-        self.record("campaigns", f"every run of the {n} stored campaigns, its dispersions drawn again: draws and metrics", len(jobs),
-                    [f"{a}: {b}" for a, b in res if b])
+        exact = sum(1 for r in res if r[2] == "exact")
+        tol = sum(1 for r in res if r[2] == "tolerance")
+        bad = [f"{a}: {b}" for a, b, _c, _d in res if b]
+        worst = max([r[3] for r in res], default=0.0)
+        print(f"parity: campaigns: {exact} bit-exact, {tol} within tolerance (fingerprint differs), {len(bad)} differ; "
+              f"largest relative difference {worst:.3g}", flush=True)
+        self.record("campaigns", f"every run of the {n} stored campaigns, its dispersions drawn again: draws and metrics "
+                    f"({exact} bit-exact, {tol} within tolerance (fingerprint differs), {len(bad)} differ)", len(jobs), bad)
+        self.items[-1].update(bit_exact=exact, within_tolerance=tol, largest_relative_difference=worst)
 
     def evaluate(self):
         d = self.work / "design"

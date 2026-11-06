@@ -1,0 +1,6 @@
+{
+ "schema": "trinetra-campaign-fingerprint/1",
+ "decision": "DR-vv-003",
+ "fingerprint": "unrecorded",
+ "note": "The machine and toolchain that flew the stored campaign runs were not recorded (no fingerprint came with them). A fingerprint that is not the running one counts as different: tools/parity_2_0.py compares these runs within the per-metric relative tolerance of results/golden.json and keeps every verdict equal. When campaigns are flown again, write tools/golden.py's fingerprint here."
+}
