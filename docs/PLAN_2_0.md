@@ -225,8 +225,11 @@ than all 29 agents together.
   session's cost. They came from check-ins on the re-fly and on agents.
 
 **So, from now on:**
-1. The main session never watches a run. A light `runner` agent does, and only its last message wakes the main
-   session. Check-ins scheduled into the main session are only a fallback for when no agent can run.
+1. The main session never watches a run. A watchdog script does it first, at no token cost: it relaunches the run,
+   commits its results and wakes the main session once, at the end. A light `runner` agent watches only where a
+   step needs reading, such as a failure with no known cause. On 6 Nov a light agent asked to loop for hours
+   handed back after one check, twice, so a model is not trusted with a long loop. Check-ins scheduled into the
+   main session are only a fallback for when neither can run.
 2. The main session hands over to a new session at the end of a phase, or past 200 k of context. The plan, the
    phase's inventory or report and its ledger are the hand-over.
 3. Agents are briefed with the files and the checks, not with the history, and report a verdict, counts and
