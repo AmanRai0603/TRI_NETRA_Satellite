@@ -12,9 +12,9 @@ and draws the language's SplitMix64 streams as the engine does: the same realisa
 so a ratio away from 1 or a verdict that differs is a difference to trace, not chance
 (docs/S7_INVENTORY.md S7.17).
 
-Twin runs filed before the twin flew the design's code (its own models, MATLAB's twister), compared as they are: detumble_img, fault_gimbal_cmg, fault_st_img, fault_wheel_img, fine_hold_cmg, fine_hold_fmr, fine_hold_fmr_rcs, fine_hold_img, fine_hold_img_lqr, fine_hold_img_smc, fine_hold_rw_rcs, fine_hold_vscmg, mission_ais, mission_cmg, mission_fmr, mission_fmr_rcs, mission_img, mission_rw_rcs, mission_vscmg.
+Every twin run here was flown by the twin of today.
 
-**Verdict agreement: 115 of 116 judged metrics** (192 metrics over 43 scenarios).
+**Verdict agreement: 129 of 129 judged metrics** (207 metrics over 48 scenarios).
 
 | scenario | metric | MATLAB | engine | engine/MATLAB | req | MATLAB | engine |
 |---|---|---:|---:|---:|---:|---|---|
@@ -42,129 +42,135 @@ Twin runs filed before the twin flew the design's code (its own models, MATLAB's
 | detumble_ais_mag | detumble_time (min) | 41.09 | 41.09 | 1 | 284 | pass | pass |
 | detumble_ais_mag | power_mean (W) | 0.07734 | 0.07734 | 1 | 0.5 | pass | pass |
 | detumble_ais_mag | power_peak (W) | 0.6483 | 0.6483 | 1 | 1.5 | pass | pass |
-| detumble_img | detumble_time (min) | 21.99 | 47.58 | 2.163 | 284 | pass | pass |
+| detumble_img | detumble_time (min) | 47.58 | 47.58 | 1 | 284 | pass | pass |
 | detumble_rcs | detumble_time (min) | — | — | — | 284 | FAIL | FAIL |
 | detumble_rcs | propellant (g) | 0.1021 | 0.1021 | 1 | — | — | — |
 | fault_coil_ais | detumble_time (min) | 82.19 | 82.19 | 1 | 284 | pass | pass |
 | fault_coil_ais | power_mean (W) | 0.01819 | 0.01819 | 1 | 0.5 | pass | pass |
 | fault_coil_ais | power_peak (W) | 0.5476 | 0.5476 | 1 | 1.5 | pass | pass |
-| fault_gimbal_cmg | ape_los_p9973 (deg) | 0.005649 | 0.005705 | 1.01 | 0.01 | pass | pass |
-| fault_gimbal_cmg | ape_los_max (deg) | 0.006918 | 0.006534 | 0.9446 | — | — | — |
-| fault_gimbal_cmg | ape_3ax_p9973 (deg) | 0.006284 | 0.007069 | 1.125 | — | — | — |
-| fault_gimbal_cmg | ake_los_p9973 (deg) | 0.002776 | 0.002868 | 1.033 | 0.005 | pass | pass |
-| fault_gimbal_cmg | rate_stability_p9973 (deg/s) | 0.002929 | 0.002987 | 1.02 | 0.005 | pass | pass |
-| fault_gimbal_cmg | time_to_0p01_deg (s) | 83.8 | 67.2 | 0.8019 | — | — | — |
+| fault_gimbal_cmg | ape_los_p9973 (deg) | 0.005711 | 0.005705 | 0.9989 | 0.01 | pass | pass |
+| fault_gimbal_cmg | ape_los_max (deg) | 0.006531 | 0.006534 | 1.001 | — | — | — |
+| fault_gimbal_cmg | ape_3ax_p9973 (deg) | 0.007069 | 0.007069 | 1 | — | — | — |
+| fault_gimbal_cmg | ake_los_p9973 (deg) | 0.00287 | 0.002868 | 0.9994 | 0.005 | pass | pass |
+| fault_gimbal_cmg | rate_stability_p9973 (deg/s) | 0.002987 | 0.002987 | 1 | 0.005 | pass | pass |
+| fault_gimbal_cmg | time_to_0p01_deg (s) | 67.2 | 67.2 | 1 | — | — | — |
 | fault_gimbal_cmg | wheel_momentum_peak (N m s) | 0.004 | 0.004 | 1 | — | — | — |
-| fault_gimbal_cmg | power_mean (W) | 1.61 | 1.61 | 0.9999 | 2 | pass | pass |
+| fault_gimbal_cmg | power_mean (W) | 1.61 | 1.61 | 1 | 2 | pass | pass |
+| fault_gps_img | ape_los_p9973 (deg) | 0.01119 | 0.0112 | 1 | 0.01 | FAIL | FAIL |
+| fault_gps_img | ake_los_p9973 (deg) | 0.002836 | 0.002839 | 1.001 | 0.005 | pass | pass |
+| fault_gps_img | power_mean (W) | 1.559 | 1.559 | 1 | 2 | pass | pass |
 | fault_gyro_ais | ape_3axis_last_orbit (deg) | 147.8 | 147.8 | 1 | — | — | — |
 | fault_gyro_ais | ape_los_last_orbit (deg) | 10.92 | 10.92 | 1 | 10 | FAIL | FAIL |
 | fault_gyro_ais | ake_los_last_orbit (deg) | 1.038 | 1.038 | 1 | 5 | pass | pass |
 | fault_gyro_ais | power_mean (W) | 0.01084 | 0.01084 | 1 | 0.5 | pass | pass |
-| fault_st_img | ape_los_p9973 (deg) | 0.006859 | 0.00698 | 1.018 | 0.01 | pass | pass |
-| fault_st_img | ape_los_max (deg) | 0.007978 | 0.007945 | 0.9958 | — | — | — |
-| fault_st_img | ape_3ax_p9973 (deg) | 0.007515 | 0.007764 | 1.033 | — | — | — |
-| fault_st_img | ake_los_p9973 (deg) | 0.00319 | 0.003056 | 0.9577 | 0.005 | pass | pass |
-| fault_st_img | rate_stability_p9973 (deg/s) | 0.003719 | 0.003484 | 0.9367 | 0.005 | pass | pass |
-| fault_st_img | time_to_0p01_deg (s) | 83.5 | 67.2 | 0.8048 | — | — | — |
-| fault_st_img | wheel_momentum_peak (N m s) | 0.00268 | 0.002615 | 0.976 | — | — | — |
-| fault_st_img | power_mean (W) | 1.56 | 1.559 | 0.9992 | 2 | pass | pass |
-| fault_wheel_img | ape_los_p9973 (deg) | 0.7583 | 0.68 | 0.8968 | 0.01 | FAIL | FAIL |
-| fault_wheel_img | ape_los_max (deg) | 0.7725 | 0.6993 | 0.9052 | — | — | — |
-| fault_wheel_img | ape_3ax_p9973 (deg) | 0.7583 | 0.68 | 0.8968 | — | — | — |
-| fault_wheel_img | ake_los_p9973 (deg) | 0.002696 | 0.002983 | 1.106 | 0.005 | pass | pass |
-| fault_wheel_img | rate_stability_p9973 (deg/s) | 0.03106 | 0.03143 | 1.012 | 0.005 | FAIL | FAIL |
-| fault_wheel_img | time_to_0p01_deg (s) | 83.5 | 67.2 | 0.8048 | — | — | — |
-| fault_wheel_img | wheel_momentum_peak (N m s) | 0.002599 | 0.002596 | 0.9986 | — | — | — |
-| fault_wheel_img | power_mean (W) | 1.14 | 1.138 | 0.9984 | 2 | pass | pass |
-| fine_hold_cmg | ape_los_p9973 (deg) | 0.005033 | 0.005218 | 1.037 | 0.01 | pass | pass |
-| fine_hold_cmg | ape_los_max (deg) | 0.006299 | 0.006223 | 0.988 | — | — | — |
-| fine_hold_cmg | ape_3ax_p9973 (deg) | 0.006092 | 0.006818 | 1.119 | — | — | — |
-| fine_hold_cmg | ake_los_p9973 (deg) | 0.00278 | 0.002848 | 1.024 | 0.005 | pass | pass |
-| fine_hold_cmg | rate_stability_p9973 (deg/s) | 0.00239 | 0.002469 | 1.033 | 0.005 | pass | pass |
-| fine_hold_cmg | time_to_0p01_deg (s) | 83.8 | 67.2 | 0.8019 | — | — | — |
+| fault_st_img | ape_los_p9973 (deg) | 0.006989 | 0.00698 | 0.9988 | 0.01 | pass | pass |
+| fault_st_img | ape_los_max (deg) | 0.00794 | 0.007945 | 1.001 | — | — | — |
+| fault_st_img | ape_3ax_p9973 (deg) | 0.007771 | 0.007764 | 0.9991 | — | — | — |
+| fault_st_img | ake_los_p9973 (deg) | 0.00305 | 0.003056 | 1.002 | 0.005 | pass | pass |
+| fault_st_img | rate_stability_p9973 (deg/s) | 0.003478 | 0.003484 | 1.002 | 0.005 | pass | pass |
+| fault_st_img | time_to_0p01_deg (s) | 67.2 | 67.2 | 1 | — | — | — |
+| fault_st_img | wheel_momentum_peak (N m s) | 0.002615 | 0.002615 | 1 | — | — | — |
+| fault_st_img | power_mean (W) | 1.559 | 1.559 | 1 | 2 | pass | pass |
+| fault_valve_rcs | ape_los_p9973 (deg) | 2.749 | 2.749 | 1 | 0.01 | FAIL | FAIL |
+| fault_valve_rcs | ake_los_p9973 (deg) | 0.002728 | 0.002728 | 1 | 0.005 | pass | pass |
+| fault_valve_rcs | power_mean (W) | 1.513 | 1.513 | 1 | 2 | pass | pass |
+| fault_wheel_img | ape_los_p9973 (deg) | 0.68 | 0.68 | 1 | 0.01 | FAIL | FAIL |
+| fault_wheel_img | ape_los_max (deg) | 0.6993 | 0.6993 | 1 | — | — | — |
+| fault_wheel_img | ape_3ax_p9973 (deg) | 0.68 | 0.68 | 1 | — | — | — |
+| fault_wheel_img | ake_los_p9973 (deg) | 0.002985 | 0.002983 | 0.9992 | 0.005 | pass | pass |
+| fault_wheel_img | rate_stability_p9973 (deg/s) | 0.03143 | 0.03143 | 1 | 0.005 | FAIL | FAIL |
+| fault_wheel_img | time_to_0p01_deg (s) | 67.2 | 67.2 | 1 | — | — | — |
+| fault_wheel_img | wheel_momentum_peak (N m s) | 0.002596 | 0.002596 | 1 | — | — | — |
+| fault_wheel_img | power_mean (W) | 1.138 | 1.138 | 1 | 2 | pass | pass |
+| fine_hold_cmg | ape_los_p9973 (deg) | 0.005218 | 0.005218 | 1 | 0.01 | pass | pass |
+| fine_hold_cmg | ape_los_max (deg) | 0.006223 | 0.006223 | 1 | — | — | — |
+| fine_hold_cmg | ape_3ax_p9973 (deg) | 0.006818 | 0.006818 | 1 | — | — | — |
+| fine_hold_cmg | ake_los_p9973 (deg) | 0.002848 | 0.002848 | 1 | 0.005 | pass | pass |
+| fine_hold_cmg | rate_stability_p9973 (deg/s) | 0.002469 | 0.002469 | 1 | 0.005 | pass | pass |
+| fine_hold_cmg | time_to_0p01_deg (s) | 67.2 | 67.2 | 1 | — | — | — |
 | fine_hold_cmg | wheel_momentum_peak (N m s) | 0.004 | 0.004 | 1 | — | — | — |
-| fine_hold_cmg | power_mean (W) | 1.61 | 1.61 | 0.9999 | 2 | pass | pass |
-| fine_hold_fmr | ape_los_p9973 (deg) | 0.005744 | 0.005962 | 1.038 | 0.01 | pass | pass |
-| fine_hold_fmr | ape_los_max (deg) | 0.007961 | 0.007703 | 0.9676 | — | — | — |
-| fine_hold_fmr | ape_3ax_p9973 (deg) | 0.006603 | 0.007083 | 1.073 | — | — | — |
-| fine_hold_fmr | ake_los_p9973 (deg) | 0.00281 | 0.002868 | 1.021 | 0.005 | pass | pass |
-| fine_hold_fmr | rate_stability_p9973 (deg/s) | 0.004733 | 0.004811 | 1.017 | 0.005 | pass | pass |
-| fine_hold_fmr | time_to_0p01_deg (s) | 84.2 | 66.9 | 0.7945 | — | — | — |
-| fine_hold_fmr | wheel_momentum_peak (N m s) | 0.0001355 | 0.0001434 | 1.058 | — | — | — |
-| fine_hold_fmr | power_mean (W) | 0.1111 | 0.1012 | 0.9114 | 2 | pass | pass |
-| fine_hold_fmr_rcs | ape_los_p9973 (deg) | 0.006131 | 0.005962 | 0.9725 | 0.01 | pass | pass |
-| fine_hold_fmr_rcs | ape_los_max (deg) | 0.008045 | 0.007703 | 0.9575 | — | — | — |
-| fine_hold_fmr_rcs | ape_3ax_p9973 (deg) | 0.007555 | 0.007083 | 0.9376 | — | — | — |
-| fine_hold_fmr_rcs | ake_los_p9973 (deg) | 0.002836 | 0.002868 | 1.011 | 0.005 | pass | pass |
-| fine_hold_fmr_rcs | rate_stability_p9973 (deg/s) | 0.004658 | 0.004811 | 1.033 | 0.005 | pass | pass |
-| fine_hold_fmr_rcs | time_to_0p01_deg (s) | 88.3 | 66.9 | 0.7576 | — | — | — |
-| fine_hold_fmr_rcs | wheel_momentum_peak (N m s) | 0.0001377 | 0.0001434 | 1.041 | — | — | — |
-| fine_hold_fmr_rcs | power_mean (W) | 0.1122 | 0.1012 | 0.902 | 2 | pass | pass |
-| fine_hold_img | ape_los_p9973 (deg) | 0.006746 | 0.006873 | 1.019 | 0.01 | pass | pass |
-| fine_hold_img | ape_los_max (deg) | 0.007833 | 0.00797 | 1.018 | — | — | — |
-| fine_hold_img | ape_3ax_p9973 (deg) | 0.007266 | 0.00743 | 1.023 | — | — | — |
-| fine_hold_img | ake_los_p9973 (deg) | 0.002771 | 0.002842 | 1.026 | 0.005 | pass | pass |
-| fine_hold_img | rate_stability_p9973 (deg/s) | 0.003723 | 0.003493 | 0.9384 | 0.005 | pass | pass |
-| fine_hold_img | time_to_0p01_deg (s) | 83.5 | 67.2 | 0.8048 | — | — | — |
-| fine_hold_img | wheel_momentum_peak (N m s) | 0.00268 | 0.002615 | 0.976 | — | — | — |
-| fine_hold_img | power_mean (W) | 1.56 | 1.559 | 0.9992 | 2 | pass | pass |
-| fine_hold_img | rpe_los_10s_p9973 (deg) | 0.004582 | 0.004254 | 0.9284 | — | — | — |
-| fine_hold_img | pde_los_10s_60s_max (deg) | 0.006694 | 0.007327 | 1.095 | — | — | — |
-| fine_hold_img | rke_los_10s_p9973 (deg) | 0.001833 | 0.001941 | 1.059 | — | — | — |
-| fine_hold_img | power_margin_last_orbit (W) | 1.643 | 1.645 | 1.001 | 0 | pass | pass |
-| fine_hold_img | battery_dod_last_orbit (%) | 7.789 | 7.788 | 0.9998 | — | — | — |
-| fine_hold_img_lqr | ape_los_p9973 (deg) | 0.004416 | 0.004237 | 0.9593 | 0.01 | pass | pass |
-| fine_hold_img_lqr | ape_los_max (deg) | 0.005595 | 0.004977 | 0.8896 | — | — | — |
-| fine_hold_img_lqr | ape_3ax_p9973 (deg) | 0.006447 | 0.007347 | 1.14 | — | — | — |
-| fine_hold_img_lqr | ake_los_p9973 (deg) | 0.002787 | 0.002857 | 1.025 | 0.005 | pass | pass |
-| fine_hold_img_lqr | rate_stability_p9973 (deg/s) | 0.00672 | 0.006898 | 1.027 | 0.005 | FAIL | FAIL |
+| fine_hold_cmg | power_mean (W) | 1.61 | 1.61 | 1 | 2 | pass | pass |
+| fine_hold_fmr | ape_los_p9973 (deg) | 0.005967 | 0.005962 | 0.9991 | 0.01 | pass | pass |
+| fine_hold_fmr | ape_los_max (deg) | 0.007703 | 0.007703 | 1 | — | — | — |
+| fine_hold_fmr | ape_3ax_p9973 (deg) | 0.007081 | 0.007083 | 1 | — | — | — |
+| fine_hold_fmr | ake_los_p9973 (deg) | 0.00287 | 0.002868 | 0.9993 | 0.005 | pass | pass |
+| fine_hold_fmr | rate_stability_p9973 (deg/s) | 0.004801 | 0.004811 | 1.002 | 0.005 | pass | pass |
+| fine_hold_fmr | time_to_0p01_deg (s) | 66.9 | 66.9 | 1 | — | — | — |
+| fine_hold_fmr | wheel_momentum_peak (N m s) | 0.0001434 | 0.0001434 | 1 | — | — | — |
+| fine_hold_fmr | power_mean (W) | 0.1012 | 0.1012 | 1 | 2 | pass | pass |
+| fine_hold_fmr_rcs | ape_los_p9973 (deg) | 0.005967 | 0.005962 | 0.9991 | 0.01 | pass | pass |
+| fine_hold_fmr_rcs | ape_los_max (deg) | 0.007703 | 0.007703 | 1 | — | — | — |
+| fine_hold_fmr_rcs | ape_3ax_p9973 (deg) | 0.007081 | 0.007083 | 1 | — | — | — |
+| fine_hold_fmr_rcs | ake_los_p9973 (deg) | 0.00287 | 0.002868 | 0.9993 | 0.005 | pass | pass |
+| fine_hold_fmr_rcs | rate_stability_p9973 (deg/s) | 0.004801 | 0.004811 | 1.002 | 0.005 | pass | pass |
+| fine_hold_fmr_rcs | time_to_0p01_deg (s) | 66.9 | 66.9 | 1 | — | — | — |
+| fine_hold_fmr_rcs | wheel_momentum_peak (N m s) | 0.0001434 | 0.0001434 | 1 | — | — | — |
+| fine_hold_fmr_rcs | power_mean (W) | 0.1012 | 0.1012 | 1 | 2 | pass | pass |
+| fine_hold_img | ape_los_p9973 (deg) | 0.006869 | 0.006873 | 1.001 | 0.01 | pass | pass |
+| fine_hold_img | ape_los_max (deg) | 0.007968 | 0.00797 | 1 | — | — | — |
+| fine_hold_img | ape_3ax_p9973 (deg) | 0.007427 | 0.00743 | 1 | — | — | — |
+| fine_hold_img | ake_los_p9973 (deg) | 0.002842 | 0.002842 | 1 | 0.005 | pass | pass |
+| fine_hold_img | rate_stability_p9973 (deg/s) | 0.003491 | 0.003493 | 1.001 | 0.005 | pass | pass |
+| fine_hold_img | time_to_0p01_deg (s) | 67.2 | 67.2 | 1 | — | — | — |
+| fine_hold_img | wheel_momentum_peak (N m s) | 0.002615 | 0.002615 | 1 | — | — | — |
+| fine_hold_img | power_mean (W) | 1.559 | 1.559 | 1 | 2 | pass | pass |
+| fine_hold_img | rpe_los_10s_p9973 (deg) | 0.004255 | 0.004254 | 0.9997 | — | — | — |
+| fine_hold_img | pde_los_10s_60s_max (deg) | 0.007347 | 0.007327 | 0.9973 | — | — | — |
+| fine_hold_img | rke_los_10s_p9973 (deg) | 0.001941 | 0.001941 | 1 | — | — | — |
+| fine_hold_img | power_margin_last_orbit (W) | 1.645 | 1.645 | 1 | 0 | pass | pass |
+| fine_hold_img | battery_dod_last_orbit (%) | 7.788 | 7.788 | 1 | — | — | — |
+| fine_hold_img_lqr | ape_los_p9973 (deg) | 0.004238 | 0.004237 | 0.9996 | 0.01 | pass | pass |
+| fine_hold_img_lqr | ape_los_max (deg) | 0.004971 | 0.004977 | 1.001 | — | — | — |
+| fine_hold_img_lqr | ape_3ax_p9973 (deg) | 0.00735 | 0.007347 | 0.9996 | — | — | — |
+| fine_hold_img_lqr | ake_los_p9973 (deg) | 0.00286 | 0.002857 | 0.9991 | 0.005 | pass | pass |
+| fine_hold_img_lqr | rate_stability_p9973 (deg/s) | 0.00689 | 0.006898 | 1.001 | 0.005 | FAIL | FAIL |
 | fine_hold_img_lqr | time_to_0p01_deg (s) | 7.4 | 7.4 | 1 | — | — | — |
-| fine_hold_img_lqr | wheel_momentum_peak (N m s) | 0.002978 | 0.002968 | 0.9964 | — | — | — |
-| fine_hold_img_lqr | power_mean (W) | 1.561 | 1.56 | 0.9993 | 2 | pass | pass |
-| fine_hold_img_smc | ape_los_p9973 (deg) | 0.01686 | 0.01914 | 1.135 | 0.01 | FAIL | FAIL |
-| fine_hold_img_smc | ape_los_max (deg) | 0.01831 | 0.02078 | 1.135 | — | — | — |
-| fine_hold_img_smc | ape_3ax_p9973 (deg) | 0.01746 | 0.01924 | 1.102 | — | — | — |
-| fine_hold_img_smc | ake_los_p9973 (deg) | 0.002786 | 0.00275 | 0.9869 | 0.005 | pass | pass |
-| fine_hold_img_smc | rate_stability_p9973 (deg/s) | 0.00362 | 0.00339 | 0.9365 | 0.005 | pass | pass |
-| fine_hold_img_smc | time_to_0p01_deg (s) | 728.4 | — | — | — | — | — |
-| fine_hold_img_smc | wheel_momentum_peak (N m s) | 0.00268 | 0.002616 | 0.9761 | — | — | — |
-| fine_hold_img_smc | power_mean (W) | 1.56 | 1.559 | 0.9992 | 2 | pass | pass |
-| fine_hold_rw_rcs | ape_los_p9973 (deg) | 0.006934 | 0.00681 | 0.982 | 0.01 | pass | pass |
-| fine_hold_rw_rcs | ape_los_max (deg) | 0.008272 | 0.007803 | 0.9432 | — | — | — |
-| fine_hold_rw_rcs | ape_3ax_p9973 (deg) | 0.007877 | 0.007359 | 0.9342 | — | — | — |
-| fine_hold_rw_rcs | ake_los_p9973 (deg) | 0.002847 | 0.002828 | 0.9931 | 0.005 | pass | pass |
-| fine_hold_rw_rcs | rate_stability_p9973 (deg/s) | 0.0036 | 0.003533 | 0.9814 | 0.005 | pass | pass |
-| fine_hold_rw_rcs | time_to_0p01_deg (s) | 87.4 | 67.1 | 0.7677 | — | — | — |
-| fine_hold_rw_rcs | wheel_momentum_peak (N m s) | 0.002826 | 0.002821 | 0.9981 | — | — | — |
+| fine_hold_img_lqr | wheel_momentum_peak (N m s) | 0.002968 | 0.002968 | 1 | — | — | — |
+| fine_hold_img_lqr | power_mean (W) | 1.56 | 1.56 | 1 | 2 | pass | pass |
+| fine_hold_img_smc | ape_los_p9973 (deg) | 0.01914 | 0.01914 | 1 | 0.01 | FAIL | FAIL |
+| fine_hold_img_smc | ape_los_max (deg) | 0.02081 | 0.02078 | 0.9983 | — | — | — |
+| fine_hold_img_smc | ape_3ax_p9973 (deg) | 0.01924 | 0.01924 | 1 | — | — | — |
+| fine_hold_img_smc | ake_los_p9973 (deg) | 0.002749 | 0.00275 | 1 | 0.005 | pass | pass |
+| fine_hold_img_smc | rate_stability_p9973 (deg/s) | 0.003388 | 0.00339 | 1.001 | 0.005 | pass | pass |
+| fine_hold_img_smc | time_to_0p01_deg (s) | — | — | — | — | — | — |
+| fine_hold_img_smc | wheel_momentum_peak (N m s) | 0.002616 | 0.002616 | 1 | — | — | — |
+| fine_hold_img_smc | power_mean (W) | 1.559 | 1.559 | 1 | 2 | pass | pass |
+| fine_hold_rw_rcs | ape_los_p9973 (deg) | 0.006817 | 0.00681 | 0.999 | 0.01 | pass | pass |
+| fine_hold_rw_rcs | ape_los_max (deg) | 0.007811 | 0.007803 | 0.999 | — | — | — |
+| fine_hold_rw_rcs | ape_3ax_p9973 (deg) | 0.00735 | 0.007359 | 1.001 | — | — | — |
+| fine_hold_rw_rcs | ake_los_p9973 (deg) | 0.002827 | 0.002828 | 1 | 0.005 | pass | pass |
+| fine_hold_rw_rcs | rate_stability_p9973 (deg/s) | 0.003525 | 0.003533 | 1.002 | 0.005 | pass | pass |
+| fine_hold_rw_rcs | time_to_0p01_deg (s) | 67.1 | 67.1 | 1 | — | — | — |
+| fine_hold_rw_rcs | wheel_momentum_peak (N m s) | 0.002821 | 0.002821 | 1 | — | — | — |
 | fine_hold_rw_rcs | power_mean (W) | 1.532 | 1.532 | 1 | 2 | pass | pass |
-| fine_hold_vscmg | ape_los_p9973 (deg) | 0.009003 | 0.008369 | 0.9296 | 0.01 | pass | pass |
-| fine_hold_vscmg | ape_los_max (deg) | 0.01047 | 0.01036 | 0.9895 | — | — | — |
-| fine_hold_vscmg | ape_3ax_p9973 (deg) | 0.009192 | 0.008799 | 0.9572 | — | — | — |
-| fine_hold_vscmg | ake_los_p9973 (deg) | 0.002774 | 0.002852 | 1.028 | 0.005 | pass | pass |
-| fine_hold_vscmg | rate_stability_p9973 (deg/s) | 0.004547 | 0.004737 | 1.042 | 0.005 | pass | pass |
-| fine_hold_vscmg | time_to_0p01_deg (s) | 89.2 | 67.7 | 0.759 | — | — | — |
-| fine_hold_vscmg | wheel_momentum_peak (N m s) | 0.004176 | 0.004182 | 1.001 | — | — | — |
-| fine_hold_vscmg | power_mean (W) | 2.015 | 2.014 | 0.9997 | 2 | FAIL | FAIL |
-| mission_ais | detumble_time (min) | 58.27 | 37.74 | 0.6476 | 284 | pass | pass |
-| mission_ais | ape_los_last_orbit (deg) | 11.48 | 11.5 | 1.002 | 10 | FAIL | FAIL |
-| mission_ais | ape_3axis_last_orbit (deg) | 168.5 | 138.7 | 0.8234 | — | — | — |
-| mission_ais | ake_los_last_orbit (deg) | 1.176 | 1.316 | 1.119 | 5 | pass | pass |
-| mission_ais | power_margin_last_orbit (W) | 6.944 | 6.736 | 0.9701 | 0 | pass | pass |
-| mission_ais | battery_dod_last_orbit (%) | 2.942 | 2.943 | 1 | — | — | — |
-| mission_cmg | detumble_time (min) | 59.83 | 56.77 | 0.949 | 284 | pass | pass |
-| mission_cmg | ape_los_last_half_orbit_p9973 (deg) | 0.00531 | 0.005214 | 0.982 | 0.01 | pass | pass |
-| mission_fmr | detumble_time (min) | 26.01 | 61.12 | 2.35 | 284 | pass | pass |
-| mission_fmr | ape_los_last_half_orbit_p9973 (deg) | 0.005673 | 0.005884 | 1.037 | 0.01 | pass | pass |
-| mission_fmr_rcs | detumble_time (min) | 64.76 | 61.12 | 0.9439 | 284 | pass | pass |
-| mission_fmr_rcs | ape_los_last_half_orbit_p9973 (deg) | 0.00623 | 0.005884 | 0.9444 | 0.01 | pass | pass |
-| mission_img | detumble_time (min) | 24.81 | 49.84 | 2.009 | 284 | pass | pass |
-| mission_img | ape_los_last_half_orbit_p9973 (deg) | 0.006641 | 0.00734 | 1.105 | 0.01 | pass | pass |
-| mission_img | power_margin_last_orbit (W) | 1.633 | 1.634 | 1.001 | 0 | pass | pass |
-| mission_img | battery_dod_last_orbit (%) | 7.788 | 7.787 | 0.9999 | — | — | — |
-| mission_rw_rcs | detumble_time (min) | 24.76 | 49.83 | 2.012 | 284 | pass | pass |
-| mission_rw_rcs | ape_los_last_half_orbit_p9973 (deg) | 0.007492 | 0.01489 | 1.987 | 0.01 | pass | FAIL ⚠ |
-| mission_vscmg | detumble_time (min) | 59.99 | 56.89 | 0.9483 | 284 | pass | pass |
-| mission_vscmg | ape_los_last_half_orbit_p9973 (deg) | 0.008361 | 0.009745 | 1.166 | 0.01 | pass | pass |
+| fine_hold_vscmg | ape_los_p9973 (deg) | 0.008369 | 0.008369 | 1 | 0.01 | pass | pass |
+| fine_hold_vscmg | ape_los_max (deg) | 0.01036 | 0.01036 | 1 | — | — | — |
+| fine_hold_vscmg | ape_3ax_p9973 (deg) | 0.008799 | 0.008799 | 1 | — | — | — |
+| fine_hold_vscmg | ake_los_p9973 (deg) | 0.002852 | 0.002852 | 1 | 0.005 | pass | pass |
+| fine_hold_vscmg | rate_stability_p9973 (deg/s) | 0.004737 | 0.004737 | 1 | 0.005 | pass | pass |
+| fine_hold_vscmg | time_to_0p01_deg (s) | 67.7 | 67.7 | 1 | — | — | — |
+| fine_hold_vscmg | wheel_momentum_peak (N m s) | 0.004182 | 0.004182 | 1 | — | — | — |
+| fine_hold_vscmg | power_mean (W) | 2.014 | 2.014 | 1 | 2 | FAIL | FAIL |
+| mission_ais | detumble_time (min) | 37.74 | 37.74 | 1 | 284 | pass | pass |
+| mission_ais | ape_los_last_orbit (deg) | 11.5 | 11.5 | 1 | 10 | FAIL | FAIL |
+| mission_ais | ape_3axis_last_orbit (deg) | 138.7 | 138.7 | 1 | — | — | — |
+| mission_ais | ake_los_last_orbit (deg) | 1.316 | 1.316 | 1 | 5 | pass | pass |
+| mission_ais | power_margin_last_orbit (W) | 6.736 | 6.736 | 1 | 0 | pass | pass |
+| mission_ais | battery_dod_last_orbit (%) | 2.943 | 2.943 | 1 | — | — | — |
+| mission_cmg | detumble_time (min) | 56.77 | 56.77 | 1 | 284 | pass | pass |
+| mission_cmg | ape_los_last_half_orbit_p9973 (deg) | 0.005178 | 0.005214 | 1.007 | 0.01 | pass | pass |
+| mission_fmr | detumble_time (min) | 61.12 | 61.12 | 1 | 284 | pass | pass |
+| mission_fmr | ape_los_last_half_orbit_p9973 (deg) | 0.005863 | 0.005884 | 1.004 | 0.01 | pass | pass |
+| mission_fmr_rcs | detumble_time (min) | 61.12 | 61.12 | 1 | 284 | pass | pass |
+| mission_fmr_rcs | ape_los_last_half_orbit_p9973 (deg) | 0.005863 | 0.005884 | 1.004 | 0.01 | pass | pass |
+| mission_img | detumble_time (min) | 49.84 | 49.84 | 1 | 284 | pass | pass |
+| mission_img | ape_los_last_half_orbit_p9973 (deg) | 0.007308 | 0.00734 | 1.004 | 0.01 | pass | pass |
+| mission_img | power_margin_last_orbit (W) | 1.634 | 1.634 | 1 | 0 | pass | pass |
+| mission_img | battery_dod_last_orbit (%) | 7.787 | 7.787 | 1 | — | — | — |
+| mission_rw_rcs | detumble_time (min) | 49.83 | 49.83 | 1 | 284 | pass | pass |
+| mission_rw_rcs | ape_los_last_half_orbit_p9973 (deg) | 0.01488 | 0.01489 | 1.001 | 0.01 | FAIL | FAIL |
+| mission_vscmg | detumble_time (min) | 56.89 | 56.89 | 1 | 284 | pass | pass |
+| mission_vscmg | ape_los_last_half_orbit_p9973 (deg) | 0.009733 | 0.009745 | 1.001 | 0.01 | pass | pass |
 | nadir_hold_ais | ape_3axis_last_orbit (deg) | 141.5 | 141.5 | 1 | — | — | — |
 | nadir_hold_ais | ape_los_last_orbit (deg) | 10.67 | 10.67 | 1 | 10 | FAIL | FAIL |
 | nadir_hold_ais | ake_los_last_orbit (deg) | 1.638 | 1.638 | 1 | 5 | pass | pass |
@@ -202,6 +208,12 @@ Twin runs filed before the twin flew the design's code (its own models, MATLAB's
 | slew_vscmg | settle_time_after_slew (s) | 13.2 | 13.2 | 1 | 20 | pass | pass |
 | slew_vscmg | ape_los_on_target_p9973 (deg) | 0.01082 | 0.01082 | 1 | 0.01 | FAIL | FAIL |
 | slew_vscmg | wheel_momentum_peak (N m s) | 0.004053 | 0.004053 | 1 | — | — | — |
+| sun_acq_rotor_img | sun_acquisition_time (min) | 2.208 | 2.208 | 1 | 95 | pass | pass |
+| sun_acq_rotor_img | power_margin_orbit (W) | 2.435 | 2.435 | 1 | — | — | — |
+| sun_acq_rotor_img | battery_dod_orbit (%) | 7.677 | 7.677 | 1 | — | — | — |
+| sun_fine_img | sun_angle_p95 (deg) | 0.006896 | 0.006891 | 0.9994 | 5 | pass | pass |
+| sun_fine_img | power_margin_orbit (W) | 2.298 | 2.298 | 1 | 0 | pass | pass |
+| sun_fine_img | power_mean (W) | 1.526 | 1.526 | 1 | 2 | pass | pass |
 | sun_mtq_ais | sun_angle_last_orbit_p95 (deg) | 87.26 | 87.26 | 1 | 20 | FAIL | FAIL |
 | sun_mtq_ais | power_margin_last_orbit (W) | 6.326 | 6.326 | 1 | 0 | pass | pass |
 | sun_mtq_ais | power_mean (W) | 0.01113 | 0.01113 | 1 | 0.5 | pass | pass |
@@ -210,54 +222,14 @@ Twin runs filed before the twin flew the design's code (its own models, MATLAB's
 | sun_spin_ais | spin_rate_error_last_orbit (deg/s) | 1.394 | 1.954 | 1.402 | 0.5 | FAIL | FAIL |
 | sun_spin_ais | sun_spin_share_last_orbit (%) | 0.7318 | 0 | 0 | 90 | FAIL | FAIL |
 | sun_spin_ais | power_mean (W) | 0.4716 | 0.4641 | 0.9841 | 0.5 | pass | pass |
+| target_img | ape_los_p9973 (deg) | 0.01211 | 0.01207 | 0.9966 | 0.01 | FAIL | FAIL |
+| target_img | ake_los_p9973 (deg) | 0.01151 | 0.01149 | 0.9988 | 0.005 | FAIL | FAIL |
+| target_img | power_mean (W) | 1.564 | 1.564 | 1 | 2 | pass | pass |
 
 ## Truth environment: engine vs MATLAB twin, every recorded sample
 
 | scenario | samples | max |r| difference [m] | max density ratio - 1 | max Sun-direction difference | max |B| ratio - 1 |
 |---|---:|---:|---:|---:|---:|
-| agile_slew_cmg | 6001 | 0 | 0 | 0 | 0 |
-| agile_slew_fmr_rcs | 6001 | 0 | 0 | 0 | 0 |
-| agile_slew_img | 6001 | 0 | 0 | 0 | 0 |
-| agile_slew_rw_rcs | 6001 | 0 | 0 | 0 | 0 |
-| agile_slew_vscmg | 6001 | 0 | 0 | 0 | 0 |
-| detumble_ais | 17221 | 0 | 0 | 0 | 5.84e-09 |
-| detumble_ais_bangbang | 17221 | 0 | 0 | 0 | 6.79e-09 |
-| detumble_ais_mag | 17221 | 0 | 0 | 0 | 9.98e-10 |
-| detumble_img | 17221 | 0 | 0 | 0 | 0.00589 |
-| detumble_rcs | 1801 | 0 | 0 | 0 | 0 |
-| fault_coil_ais | 17221 | 0 | 0 | 0 | 5.74e-09 |
-| fault_gimbal_cmg | 57401 | 0 | 0 | 0 | 0.00589 |
-| fault_gyro_ais | 17221 | 0 | 0 | 0 | 3.61e-09 |
-| fault_st_img | 57401 | 0 | 0 | 0 | 0.00589 |
-| fault_wheel_img | 57401 | 0 | 0 | 0 | 0.00589 |
-| fine_hold_cmg | 57401 | 0 | 0 | 0 | 0.00589 |
-| fine_hold_fmr | 57401 | 0 | 0 | 0 | 0.00589 |
-| fine_hold_fmr_rcs | 57401 | 0 | 0 | 0 | 0.00589 |
-| fine_hold_img | 57401 | 0 | 0 | 0 | 0.00589 |
-| fine_hold_img_lqr | 57401 | 0 | 0 | 0 | 0.00589 |
-| fine_hold_img_smc | 57401 | 0 | 0 | 0 | 0.00589 |
-| fine_hold_rw_rcs | 57401 | 0 | 0 | 0 | 0.00589 |
-| fine_hold_vscmg | 57401 | 0 | 0 | 0 | 0.00589 |
-| mission_ais | 28701 | 0 | 0 | 0 | 0.00358 |
-| mission_cmg | 17221 | 0 | 0 | 0 | 0.00589 |
-| mission_fmr | 17221 | 0 | 0 | 0 | 0.00589 |
-| mission_fmr_rcs | 17221 | 0 | 0 | 0 | 0.00589 |
-| mission_img | 17221 | 0 | 0 | 0 | 0.00589 |
-| mission_rw_rcs | 17221 | 0 | 0 | 0 | 0.00589 |
-| mission_vscmg | 17221 | 0 | 0 | 0 | 0.00589 |
-| nadir_hold_ais | 17221 | 0 | 0 | 0 | 5.92e-09 |
-| nadir_hold_ais_css | 17221 | 0 | 0 | 0 | 5.19e-09 |
-| safe_mode_ais | 17221 | 0 | 0 | 0 | 4.27e-09 |
-| slew_cmg | 6001 | 0 | 0 | 0 | 0 |
-| slew_fmr | 6001 | 0 | 0 | 0 | 0 |
-| slew_fmr_rcs | 6001 | 0 | 0 | 0 | 0 |
-| slew_img | 6001 | 0 | 0 | 0 | 0 |
-| slew_img_lqr | 6001 | 0 | 0 | 0 | 0 |
-| slew_img_smc | 6001 | 0 | 0 | 0 | 3.08e-09 |
-| slew_rw_rcs | 6001 | 0 | 0 | 0 | 0 |
-| slew_vscmg | 6001 | 0 | 0 | 0 | 0 |
-| sun_mtq_ais | 17221 | 0 | 0 | 0 | 6.06e-09 |
-| sun_spin_ais | 17221 | 0 | 0 | 0 | 5.94e-09 |
 
 Channels are filed with 9 significant digits, so differences below ~1e-8 relative are the
 file's rounding, not the models.
@@ -303,48 +275,51 @@ reflectivity; the engine Monte Carlo disperses the units and the initial state o
 
 | scenario | MATLAB/Octave [s] | engine [s] | speed-up |
 |---|---:|---:|---:|
-| agile_slew_cmg | 764 | 0.13 | 5822x |
-| agile_slew_fmr_rcs | 733 | 0.13 | 5484x |
-| agile_slew_img | 423 | 0.16 | 2580x |
-| agile_slew_rw_rcs | 439 | 0.13 | 3454x |
-| agile_slew_vscmg | 458 | 0.15 | 3121x |
-| detumble_ais | 1728 | 0.31 | 5491x |
-| detumble_ais_bangbang | 1710 | 0.27 | 6230x |
-| detumble_ais_mag | 1708 | 0.35 | 4817x |
-| detumble_img | 5753 | 1.71 | 3373x |
-| detumble_rcs | 683 | 0.26 | 2624x |
-| fault_coil_ais | 1728 | 0.32 | 5416x |
-| fault_gimbal_cmg | 2833 | 0.83 | 3406x |
-| fault_gyro_ais | 2626 | 0.35 | 7406x |
-| fault_st_img | 469 | 0.77 | 613x |
-| fault_wheel_img | 473 | 0.83 | 568x |
-| fine_hold_cmg | 505 | 1.01 | 501x |
-| fine_hold_fmr | 458 | 0.78 | 585x |
-| fine_hold_fmr_rcs | 467 | 0.95 | 491x |
-| fine_hold_img | 455 | 0.83 | 545x |
-| fine_hold_img_lqr | 437 | 0.75 | 580x |
-| fine_hold_img_smc | 440 | 0.95 | 462x |
-| fine_hold_rw_rcs | 463 | 0.75 | 619x |
-| fine_hold_vscmg | 524 | 0.82 | 641x |
-| mission_ais | 920 | 0.55 | 1671x |
-| mission_cmg | 1374 | 2.26 | 609x |
-| mission_fmr | 1327 | 2.02 | 658x |
-| mission_fmr_rcs | 1308 | 2.11 | 619x |
-| mission_img | 1307 | 2.24 | 584x |
-| mission_rw_rcs | 1348 | 2.21 | 609x |
-| mission_vscmg | 1460 | 2.40 | 607x |
-| nadir_hold_ais | 2611 | 0.34 | 7583x |
-| nadir_hold_ais_css | 2578 | 0.34 | 7560x |
-| safe_mode_ais | 2506 | 0.33 | 7523x |
-| slew_cmg | 461 | 0.16 | 2910x |
-| slew_fmr | 436 | 0.12 | 3633x |
-| slew_fmr_rcs | 435 | 0.11 | 3915x |
-| slew_img | 437 | 0.12 | 3763x |
-| slew_img_lqr | 438 | 0.13 | 3247x |
-| slew_img_smc | 437 | 0.13 | 3326x |
-| slew_rw_rcs | 456 | 0.14 | 3334x |
-| slew_vscmg | 484 | 0.19 | 2594x |
-| sun_mtq_ais | 2599 | 0.34 | 7753x |
-| sun_spin_ais | 1713 | 0.28 | 6081x |
-
-Not compared (a run is missing on one side): fault_gps_img (no twin run), fault_valve_rcs (no twin run), sun_acq_rotor_img (no twin run), sun_fine_img (no twin run), target_img (no twin run).
+| agile_slew_cmg | 309 | 0.13 | 2354x |
+| agile_slew_fmr_rcs | 300 | 0.13 | 2242x |
+| agile_slew_img | 293 | 0.16 | 1785x |
+| agile_slew_rw_rcs | 299 | 0.13 | 2347x |
+| agile_slew_vscmg | 308 | 0.15 | 2098x |
+| detumble_ais | 1686 | 0.31 | 5359x |
+| detumble_ais_bangbang | 1680 | 0.27 | 6120x |
+| detumble_ais_mag | 1687 | 0.35 | 4759x |
+| detumble_img | 4787 | 1.71 | 2807x |
+| detumble_rcs | 624 | 0.26 | 2394x |
+| fault_coil_ais | 1712 | 0.32 | 5368x |
+| fault_gimbal_cmg | 2656 | 0.83 | 3193x |
+| fault_gps_img | 2516 | 0.85 | 2953x |
+| fault_gyro_ais | 1866 | 0.35 | 5263x |
+| fault_st_img | 2413 | 0.77 | 3153x |
+| fault_valve_rcs | 2187 | 0.85 | 2578x |
+| fault_wheel_img | 2086 | 0.83 | 2504x |
+| fine_hold_cmg | 2231 | 1.01 | 2215x |
+| fine_hold_fmr | 2118 | 0.78 | 2706x |
+| fine_hold_fmr_rcs | 2141 | 0.95 | 2254x |
+| fine_hold_img | 2139 | 0.83 | 2562x |
+| fine_hold_img_lqr | 2130 | 0.75 | 2829x |
+| fine_hold_img_smc | 2114 | 0.95 | 2222x |
+| fine_hold_rw_rcs | 2136 | 0.75 | 2857x |
+| fine_hold_vscmg | 2258 | 0.82 | 2764x |
+| mission_ais | 2977 | 0.55 | 5406x |
+| mission_cmg | 6138 | 2.26 | 2722x |
+| mission_fmr | 5815 | 2.02 | 2882x |
+| mission_fmr_rcs | 6005 | 2.11 | 2842x |
+| mission_img | 6012 | 2.24 | 2688x |
+| mission_rw_rcs | 6184 | 2.21 | 2793x |
+| mission_vscmg | 6372 | 2.40 | 2652x |
+| nadir_hold_ais | 1874 | 0.34 | 5442x |
+| nadir_hold_ais_css | 1934 | 0.34 | 5672x |
+| safe_mode_ais | 1885 | 0.33 | 5659x |
+| slew_cmg | 300 | 0.16 | 1897x |
+| slew_fmr | 283 | 0.12 | 2361x |
+| slew_fmr_rcs | 292 | 0.11 | 2628x |
+| slew_img | 282 | 0.12 | 2423x |
+| slew_img_lqr | 278 | 0.13 | 2067x |
+| slew_img_smc | 282 | 0.13 | 2144x |
+| slew_rw_rcs | 287 | 0.14 | 2098x |
+| slew_vscmg | 305 | 0.19 | 1634x |
+| sun_acq_rotor_img | 1889 | 0.67 | 2822x |
+| sun_fine_img | 2016 | 0.69 | 2903x |
+| sun_mtq_ais | 1938 | 0.34 | 5783x |
+| sun_spin_ais | 1756 | 0.28 | 6232x |
+| target_img | 2124 | 0.76 | 2791x |

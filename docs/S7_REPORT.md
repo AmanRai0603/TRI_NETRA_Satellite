@@ -9,13 +9,12 @@
 >
 > The MATLAB twin opens the database itself and flies only code generated from it.
 >
-> One check is still running: the twin's full re-fly with the final twin, then its comparison against the engine
-> (§4). The verdict on that line is filled in when the re-fly ends. Seventy findings for the owning groups are
+> The twin's re-fly with the final S7 twin is in: the engine and the twin agree on all 129 judged verdicts in
+> 48 scenarios (§4). Seventy findings for the owning groups are
 > listed in `docs/S7_INVENTORY.md` §6 and placed in the next phases by `docs/S11_INVENTORY.md`. None of them
 > changes a number today; each is a choice the design's owners make.
 >
-> **Kind:** report · **For:** the owner · **Status:** waiting for the twin's re-fly (§4), then for the owner's word
-> before the next phase
+> **Kind:** report · **For:** the owner · **Status:** complete; S11 started on the owner's word (6 Nov 2026)
 
 ## 1 · The three tests
 
@@ -65,15 +64,44 @@ wiring the design gives, where before it guessed. Each moved row is named with i
   streams. The POP is kept only as a test reference.
 - Faster MATLAB code generation made the twin 1.26 to 1.69 times faster, with bit-identical results.
 
-## 4 · The twin's full re-fly (running)
+## 4 · The twin's full re-fly
 
-Every stored twin run is being flown again by the final twin: 48 scenarios and 8 campaigns (184 runs). It resumes
-from its checkpoints and its results are committed as they come. When it ends:
-- `python3 tools/engine.py twin-parity` compares the engine with the twin on every scenario;
-- `results/ENGINE_PARITY.md` is rewritten from it;
-- the result is entered here.
+Every stored twin scenario is being flown again by the final S7 twin (48 scenarios; 46 in at 11:20 UTC on 6 Nov).
+It resumes from its checkpoints and its results are committed as they come.
 
-*Pending: the engine against the twin, scenario by scenario, and every difference traced.*
+The 8 twin campaigns (184 runs) are not flown again on the S7 twin. S11 already changes the engine code the twin's
+parameter blob comes from (`adcs-sim/src/config.rs`), so campaigns flown now would be stale when they land. They
+are flown once, with the S11 twin, in S11.16. The engine's campaigns are already held by the parity gate (4,516 of
+4,516), and the comparison below is per scenario.
+
+The re-fly ended at 12:40 UTC on 6 Nov: all 48 scenarios flown by the final S7 twin. `python3 tools/engine.py twin-parity`
+wrote `results/ENGINE_PARITY.md`. Before S7 it said 115 of 116 verdicts over 43 scenarios.
+
+**The engine and the twin agree on every verdict: 129 of 129 judged metrics**, over 207 metrics in 48 scenarios.
+
+| how close the 203 numeric pairs are | pairs |
+|---|---|
+| identical | 79 |
+| within 0.1 % | 177 |
+| within 1 % | 199 |
+| more than 1 % apart | 4, all in `sun_spin_ais` |
+
+- **`sun_spin_ais`.** This is the one scenario whose numbers part: Sun angle 111 against 142 deg, spin-rate error
+  1.39 against 1.95 deg/s, Sun-spin share 0.73 against 0 %, power 1.6 % apart. Both sides fail the same three
+  requirements, so no verdict differs. It was traced in S7.17, and it is not a model difference. The two sides
+  first differ in the 9th digit at 235 s: Octave's maths library against the engine's. The tumble amplifies that,
+  and the spin-up enters 12 s apart. Then the flight logic's spin-reversal lock-up decides one of them. That
+  lock-up is a GNC finding: the sign-flip guard needs a hemisphere manoeuvre, not a spin reversal.
+- **The rest are within 0.71 %.** The largest is `mission_cmg`'s pointing over the last half orbit, which is the
+  same last-bits effect over a long run.
+
+**The browser test:** the group app's offline pages pass alone, 9 of 9, run after the re-fly (155 s). They had
+failed once inside the full test run while the re-fly held all four processors. That points to a timing margin
+under load, not a fault in the pages. It is kept as an item for S8, where the application's browser tests are
+rebuilt.
+
+**Verdict on section 4:** the twin flown from the database reproduces the engine on every verdict, and on every
+number to within the known last-bits effect.
 
 ## 5 · Costs you accepted, and what is still open
 
@@ -82,8 +110,7 @@ from its checkpoints and its results are committed as they come. When it ends:
 - **Not yet:** a flight image's manifest does not carry the image's hash; runs map to their image by build id.
   This is placed in S15.
 - **Your approvals, still open:** S0 (the notes correction) and S1 (with a second reviewer).
-- **One browser test** (the group app's offline pages) failed once in the full run and passed alone. It is run
-  again after the re-fly, alone, to settle whether it is flaky.
+- **One browser test** (the group app's offline pages) failed once under load and passes alone (§4); kept for S8.
 
 ## 6 · Found on the way, for the owning groups
 
@@ -116,5 +143,5 @@ phase's report shows its ledger against this one.
 
 ## 8 · What you are asked
 
-When §4 is filled in: are you satisfied with S7? Then S11 starts, as the plan orders it: S11 to S16, then S8,
-then S17.
+Nothing: S7 is complete. You said to go ahead with S11, and it is running in its own session (S11 to S16, then S8,
+then S17). The twin's campaigns are flown there, with the S11 twin (S11.16).
