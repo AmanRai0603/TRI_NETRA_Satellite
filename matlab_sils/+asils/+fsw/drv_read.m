@@ -26,6 +26,10 @@ function [z, F, bus] = drv_read(F, bus)
     z.st_ok = st_ok; z.st_valid = st_valid;
     if st_len > 0, z.q_st = q_st; end
     z.gps_ok = gps_ok; if gps_ok, z.r = r; z.v = v; end
+    % the fix's date, after its velocity (clocktime::gnss_jd): none when the frame stops at the velocity
+    n_gps = -1; pl = zeros(64, 1);
+    if gps_len >= 5, n_gps = gps_len - 5; pl(1:min(64, n_gps)) = gps(4:3 + min(64, n_gps)); end
+    [z.gps_t_ok, z.gps_jd] = asils.alg.clocktime.gnss_jd(pl, n_gps);
     % the momentum devices' telemetry: every frame waiting, 8 at a time in the order they came
     z = hold_telemetry_(p, z, can, h, delta);
     while n_can == 8

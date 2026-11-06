@@ -365,7 +365,7 @@ fn sense(u: &mut Units, c: &Config, bus: &mut Bus, x: &State, sky: &Sky, m_b: &V
         let (re_, ve_) = Gps::ecef(c.jd0, te, &r, &v);
         let (rg, vg) = u.gps.sample(&re_, &ve_);
         let mut buf = [0u8; 64];
-        let len = emu::gps_frame(true, &rg, &vg, &mut buf, &u.scale);
+        let len = emu::gps_frame(true, &rg, &vg, Some(c.jd0 + t/86400.0), &mut buf, &u.scale);
         bus.push_uart(proto::GPS_UART, &buf[..len]);
     }
     // the rotors' telemetry: act_rotor_telemetry's rotor_telemetry, act's stated noises, from the telemetry stream

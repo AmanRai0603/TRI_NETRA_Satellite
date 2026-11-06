@@ -136,7 +136,7 @@ static int run_detumble(int16_t pwm_log[30][3])
     p.J[0][0] = 0.0067; p.J[1][1] = 0.042; p.J[2][2] = 0.042; p.igrf_nmax = 10; p.rate_lpf_s = 0.3;
     /* the values params.toml requires to be positive (the flight software refuses a blob without them) */
     p.ss_eclipse = 1; p.gd_T = 1.0; p.mtq_phi = 0.01; p.rw_phi = 0.01; p.rw_dt = 0.1; p.fdir_s = 3.0; p.fdir_win_s = 120.0; p.fdir_h_frac = 0.005; p.rcsd_T_damp_s = 20.0; p.rcsd_period_s = 1.0;
-    p.st_coast_s = 900.0; p.mekf_sig_mag = 0.01; p.mekf_sig_sun = 0.005; p.mekf_meas_scale = 1.0;
+    p.st_coast_s = 900.0; p.mekf_sig_mag = 0.01; p.mekf_sig_sun = 0.005; p.mekf_meas_scale = 1.0; p.clock_step_max_s = 60.0;
     adcs_params_encode(&p, blob, sizeof blob);
     hal_stub_reset();
     in.abi_version = ADCS_FSW_ABI_VERSION; in.config_blob = blob; in.config_len = sizeof blob; in.start_ns = 0;
@@ -182,7 +182,7 @@ static void t_abi(void)
             p.jd0 = 2461407.25; p.dt = 0.1; p.mu = 3.986004418e14; p.start_mode = ADCS_MODE_DETUMBLE; p.auto_next = ADCS_MODE_NONE;
             p.mtq_period = 1.0; p.mtq_meas = 0.2; p.m_max = 0.2; p.bdot_k = 1e-3; p.J[0][0] = 0.0067; p.J[1][1] = 0.042; p.J[2][2] = 0.042;
             p.igrf_nmax = 10; p.ss_eclipse = 1; p.gd_T = 1.0; p.mtq_phi = 0.01; p.rw_phi = 0.01; p.rw_dt = 0.1; p.fdir_s = 3.0; p.fdir_win_s = 120.0; p.fdir_h_frac = 0.005;
-            p.rcsd_T_damp_s = 20.0; p.rcsd_period_s = 1.0; p.st_coast_s = 900.0; p.mekf_sig_mag = 0.01; p.mekf_sig_sun = 0.005; p.mekf_meas_scale = 1.0;
+            p.rcsd_T_damp_s = 20.0; p.rcsd_period_s = 1.0; p.st_coast_s = 900.0; p.mekf_sig_mag = 0.01; p.mekf_sig_sun = 0.005; p.mekf_meas_scale = 1.0; p.clock_step_max_s = 60.0;
             if (k == 1) p.nr = 9;                      /* more rotors than the arrays hold */
             if (k == 2) p.m_max = 0.0/0.0;             /* NaN */
             if (k == 3) p.start_mode = 11;             /* no such controller state */
@@ -228,7 +228,7 @@ static void t_safe(void)
         p.mtq_period = 1.0; p.mtq_meas = 0.2; p.m_max = 0.2; p.bdot_k = 1e-3; p.has_gyro = 1;
         p.J[0][0] = 0.0067; p.J[1][1] = 0.042; p.J[2][2] = 0.042; p.igrf_nmax = 10; p.rate_lpf_s = 0.3;
         p.ss_eclipse = 1; p.gd_T = 1.0; p.mtq_phi = 0.01; p.rw_phi = 0.01; p.rw_dt = 0.1; p.fdir_s = 3.0; p.fdir_win_s = 120.0; p.fdir_h_frac = 0.005; p.rcsd_T_damp_s = 20.0; p.rcsd_period_s = 1.0;
-        p.st_coast_s = 900.0; p.mekf_sig_mag = 0.01; p.mekf_sig_sun = 0.005; p.mekf_meas_scale = 1.0;
+        p.st_coast_s = 900.0; p.mekf_sig_mag = 0.01; p.mekf_sig_sun = 0.005; p.mekf_meas_scale = 1.0; p.clock_step_max_s = 60.0;
         adcs_params_encode(&p, blob, sizeof blob);
         hal_stub_reset();
         in.abi_version = ADCS_FSW_ABI_VERSION; in.config_blob = blob; in.config_len = sizeof blob; in.start_ns = 0;
@@ -276,10 +276,10 @@ static void t_nonfinite(void)
 
 /* ---- the tick tests (docs/S11_INVENTORY.md TS4, S11.4; fsw-rs/tests/tick.rs holds the same) ----
  * What the tick does with a warm reset, a step or a jitter in the time it is handed, and a gyro that has gone quiet. Each
- * states the BEHAVIOUR THE FIXES OWE (docs/TECHNICAL_ROADMAP.md F1 persistent, monotonic time; F2 a silent gyro is flagged and
- * its rate dropped; F3 the rate groups on an integer tick counter), so each fails today: they are in the skipped list below, not
- * in main's run. The step that fixes one moves it from the list to the run; ADCS_RUN_SKIPPED=1 runs the list and says what
- * each shows today. The sensors are exact and the attitude held: the test is of the tick, not of the estimate. */
+ * states the BEHAVIOUR THE FIXES OWE (docs/TECHNICAL_ROADMAP.md F1 monotonic time kept through a reset and a step; F2 a silent gyro
+ * is flagged and its rate dropped; F3 the rate groups on an integer tick counter). F1 and F3 are fixed (S11.4b) and run in main;
+ * F2's fail today and are in the skipped list below. The step that fixes one moves it from the list to the run;
+ * ADCS_RUN_SKIPPED=1 runs the list and says what each shows today. The sensors are exact and the attitude held: the test is of the tick, not of the estimate. */
 int32_t adcs_fsw_debug(double *out, int n);
 #define TK_JD0 2461407.25
 #define TK_DAY 86400.0
@@ -292,7 +292,7 @@ static void tk_params(adcs_params_t *p, int start, int sun_gps)
     p->bdot_law = 0; p->mtq_period = 1.0; p->mtq_meas = 0.2; p->m_max = 0.2; p->bdot_k = 1e-3; p->has_gyro = 1;
     p->J[0][0] = 0.0067; p->J[1][1] = 0.042; p->J[2][2] = 0.042; p->igrf_nmax = 10; p->rate_lpf_s = 0.3;
     p->ss_eclipse = 1; p->gd_T = 1.0; p->mtq_phi = 0.01; p->rw_phi = 0.01; p->rw_dt = 0.1; p->fdir_s = 3.0; p->fdir_win_s = 120.0; p->fdir_h_frac = 0.005;
-    p->rcsd_T_damp_s = 20.0; p->rcsd_period_s = 1.0; p->st_coast_s = 900.0; p->mekf_sig_mag = 0.01; p->mekf_sig_sun = 0.005; p->mekf_meas_scale = 1.0;
+    p->rcsd_T_damp_s = 20.0; p->rcsd_period_s = 1.0; p->st_coast_s = 900.0; p->mekf_sig_mag = 0.01; p->mekf_sig_sun = 0.005; p->mekf_meas_scale = 1.0; p->clock_step_max_s = 60.0;
     if (sun_gps) {
         int i;
         p->has_sun = 1; p->has_gps = 1; p->gnss_ecef = 0; p->gyro_arw = 1e-6; p->gyro_rrw = 1e-8;
@@ -362,7 +362,8 @@ static void tk_feed(double t, double jd)
     adcs_real r[3] = {rr*cos(u), rr*sin(u)*cos(inc), rr*sin(u)*sin(inc)};
     adcs_real v[3] = {-rr*n*sin(u), rr*n*cos(u)*cos(inc), rr*n*cos(u)*sin(inc)};
     adcs_real A[3][3], B[3], Bb[3], S[3], Sb[3];
-    uint8_t pl[25], fr[40], i; uint16_t c;
+    uint8_t pl[33], fr[48], i; uint16_t c;
+    double ds = (jd - 2451545.0)*86400.0, ws = floor(ds);        /* the fix's date after its velocity: seconds and microseconds from J2000.0 */
     adcs_dcm(TK_Q, A);
     adcs_field_eci(r, jd, TK_GH, 10, B); adcs_mat3_vec(A, B, Bb);
     adcs_sun_model(jd, S); adcs_mat3_vec(A, S, Sb);
@@ -371,9 +372,10 @@ static void tk_feed(double t, double jd)
     HS.gyro[0] = 1;
     memset(pl, 0, sizeof pl); pl[0] = 1;
     for (i = 0; i < 3; i++) { put32(pl + 1 + 4*i, r[i]*100.0); put32(pl + 13 + 4*i, v[i]*1000.0); }
-    fr[0] = ADCS_ST_SYNC1; fr[1] = ADCS_GPS_SYNC2; fr[2] = 25; memcpy(fr + 3, pl, 25);
-    c = adcs_crc16(pl, 25); fr[28] = (uint8_t)(c & 0xFF); fr[29] = (uint8_t)(c >> 8);
-    hal_stub_uart_push(ADCS_GPS_UART, fr, 30);
+    put32(pl + 25, ws); put32(pl + 29, (ds - ws)*1e6);
+    fr[0] = ADCS_ST_SYNC1; fr[1] = ADCS_GPS_SYNC2; fr[2] = 33; memcpy(fr + 3, pl, 33);
+    c = adcs_crc16(pl, 33); fr[36] = (uint8_t)(c & 0xFF); fr[37] = (uint8_t)(c >> 8);
+    hal_stub_uart_push(ADCS_GPS_UART, fr, 38);
 }
 
 /* the angle [deg] between the flight software's attitude estimate and the held attitude (180: none) */
@@ -488,6 +490,10 @@ static void tk_gyro_frozen(void) { tk_quiet_gyro(0); }
 static const struct { const char *name; void (*fn)(void); } ticks[] = {
     { "timestamps off by 1 us change no command (F3)", tk_jitter_1us },
     { "timestamps off by 5 ms change no command (F3)", tk_jitter_5ms },
+    { "a warm reset 30 days in keeps the date (F1)", tk_reset_day30 },
+    { "a clock step of +1 h keeps the date (F1)", tk_step_plus_1h },
+    { "a clock step of -1 s never runs the time back (F1)", tk_step_minus_1s },
+    { "a clock step back past the start does not wrap (F1)", tk_step_back_past_start },
 };
 
 static void t_ticks(void)
@@ -502,10 +508,6 @@ static void t_ticks(void)
 
 /* The skipped list: the tick tests no fix has made pass yet. The step that fixes one (named with it) moves it into main's run. */
 static const struct { const char *name; void (*fn)(void); const char *fixed_by; } skipped[] = {
-    { "a warm reset 30 days in keeps the date (F1)",                   tk_reset_day30,         "S11.4b/S11.5" },
-    { "a clock step of +1 h keeps the date (F1)",                      tk_step_plus_1h,        "S11.4b/S11.5" },
-    { "a clock step of -1 s never runs the time back (F1)",            tk_step_minus_1s,       "S11.4b/S11.5" },
-    { "a clock step back past the start does not wrap (F1)",           tk_step_back_past_start, "S11.4b/S11.5" },
     { "a gyro that stops answering is flagged, its rate dropped (F2)", tk_gyro_stops_answering, "S11.4b/S11.5" },
     { "a gyro frozen on its last sample is flagged, rate dropped (F2)", tk_gyro_frozen,        "S11.4b/S11.5" },
 };

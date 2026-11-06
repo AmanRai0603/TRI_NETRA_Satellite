@@ -55,6 +55,7 @@
   "fsw_param_auto_next": 255.0,
   "fsw_param_capture_deg": 3.0,
   "fsw_param_capture_rate_deg_s": 1.0,
+  "fsw_param_clock_step_max_s": 60.0,
   "fsw_param_cmg_k_null": 0.002,
   "fsw_param_cmg_lam0": 1e-09,
   "fsw_param_cmg_mu": 10.0,

@@ -66,16 +66,25 @@ pub fn st_frame(heads: &[(bool, Q)], out: &mut [u8; 64], s: &Scale) -> usize {
     }
     frame(ST_SYNC2, &pl[..1 + 17*nh], out)
 }
-/// GNSS UART frame: fix u8, r int32 [cm] x3, v int32 [mm/s] x3.
-pub fn gps_frame(fix: bool, r: &V3, v: &V3, out: &mut [u8; 64], s: &Scale) -> usize {
-    let mut pl = [0u8; 25];
+/// GNSS UART frame: fix u8, r int32 [cm] x3, v int32 [mm/s] x3 and, when the receiver gives its date (jd, a Julian date), the date
+/// after the velocity: int32 whole seconds and int32 microseconds from JD 2451545.0 (J2000.0).
+pub fn gps_frame(fix: bool, r: &V3, v: &V3, jd: Option<f64>, out: &mut [u8; 64], s: &Scale) -> usize {
+    let mut pl = [0u8; 33];
     pl[0] = fix as u8;
     let (cr, cv) = ec::fix_counts(*r, *v, *s);
     for i in 0..3 {
         pl[1 + 4*i..5 + 4*i].copy_from_slice(&(cr[i] as i32).to_le_bytes());
         pl[13 + 4*i..17 + 4*i].copy_from_slice(&(cv[i] as i32).to_le_bytes());
     }
-    frame(GPS_SYNC2, &pl, out)
+    if let Some(jd) = jd {
+        let ds = (jd - 2451545.0)*86400.0;
+        let (mut sec, mut us) = (libm::floor(ds), libm::round((ds - libm::floor(ds))*1e6));
+        if us >= 1e6 { sec += 1.0; us -= 1e6; }
+        pl[25..29].copy_from_slice(&(sec as i32).to_le_bytes());
+        pl[29..33].copy_from_slice(&(us as i32).to_le_bytes());
+        return frame(GPS_SYNC2, &pl, out);
+    }
+    frame(GPS_SYNC2, &pl[..25], out)
 }
 /// Rotor telemetry CAN frame: (id, data) with h [1e-9 N m s] and gimbal angle [1e-7 rad].
 pub fn rotor_tm(i: usize, h: f64, delta: f64, s: &Scale) -> (u32, [u8; 8]) {

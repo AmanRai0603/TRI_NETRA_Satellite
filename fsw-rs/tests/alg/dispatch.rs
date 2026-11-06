@@ -477,6 +477,29 @@ pub fn call(name: &str, x: &[f64]) -> Option<Vec<f64>> {
             for v in r.14.iter() { let v = *v; out.push(v); }
             for v in r.15.iter() { let v = *v; out.push(v); }
         }
+        "clocktime::gnss_jd" => {
+            if x.len() != 65 { return None; }
+            let r = crate::clocktime::gnss_jd([x[0] as i64, x[1] as i64, x[2] as i64, x[3] as i64, x[4] as i64, x[5] as i64, x[6] as i64, x[7] as i64, x[8] as i64, x[9] as i64, x[10] as i64, x[11] as i64, x[12] as i64, x[13] as i64, x[14] as i64, x[15] as i64, x[16] as i64, x[17] as i64, x[18] as i64, x[19] as i64, x[20] as i64, x[21] as i64, x[22] as i64, x[23] as i64, x[24] as i64, x[25] as i64, x[26] as i64, x[27] as i64, x[28] as i64, x[29] as i64, x[30] as i64, x[31] as i64, x[32] as i64, x[33] as i64, x[34] as i64, x[35] as i64, x[36] as i64, x[37] as i64, x[38] as i64, x[39] as i64, x[40] as i64, x[41] as i64, x[42] as i64, x[43] as i64, x[44] as i64, x[45] as i64, x[46] as i64, x[47] as i64, x[48] as i64, x[49] as i64, x[50] as i64, x[51] as i64, x[52] as i64, x[53] as i64, x[54] as i64, x[55] as i64, x[56] as i64, x[57] as i64, x[58] as i64, x[59] as i64, x[60] as i64, x[61] as i64, x[62] as i64, x[63] as i64], x[64] as i64);
+            out.push(if r.0 { 1.0 } else { 0.0 });
+            out.push(r.1);
+        }
+        "clocktime::clock_advance" => {
+            if x.len() != 3 { return None; }
+            let r = crate::clocktime::clock_advance(x[0] as i64, x[1] as i64, x[2] as i64);
+            out.push(r.0 as f64);
+            out.push(r.1 as f64);
+        }
+        "clocktime::clock_adopt" => {
+            if x.len() != 4 { return None; }
+            let r = crate::clocktime::clock_adopt(x[0] as i64, x[1] != 0.0, x[2], x[3]);
+            out.push(r.0 as f64);
+            out.push(if r.1 { 1.0 } else { 0.0 });
+        }
+        "clocktime::clock_sched_skip" => {
+            if x.len() != 11 { return None; }
+            let r = crate::clocktime::clock_sched_skip(x[0], x[1] as i64, x[2] as i64, [x[3], x[4], x[5], x[6], x[7], x[8], x[9], x[10]]);
+            out.push(r as f64);
+        }
         _ => return None,
     }
     Some(out)

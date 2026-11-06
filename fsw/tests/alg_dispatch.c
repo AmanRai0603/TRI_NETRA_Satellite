@@ -5538,6 +5538,145 @@ int pc_call(const char *name, const double *x, int nx, double *out, int *ny) {
     }
         return 0;
     }
+    if (strcmp(name, "clocktime::gnss_jd") == 0) {
+        if (nx != 65) { return -1; }
+    {
+        pc_a64i a0;
+        int64_t a1;
+        a0.v[0] = (int64_t)x[0];
+        a0.v[1] = (int64_t)x[1];
+        a0.v[2] = (int64_t)x[2];
+        a0.v[3] = (int64_t)x[3];
+        a0.v[4] = (int64_t)x[4];
+        a0.v[5] = (int64_t)x[5];
+        a0.v[6] = (int64_t)x[6];
+        a0.v[7] = (int64_t)x[7];
+        a0.v[8] = (int64_t)x[8];
+        a0.v[9] = (int64_t)x[9];
+        a0.v[10] = (int64_t)x[10];
+        a0.v[11] = (int64_t)x[11];
+        a0.v[12] = (int64_t)x[12];
+        a0.v[13] = (int64_t)x[13];
+        a0.v[14] = (int64_t)x[14];
+        a0.v[15] = (int64_t)x[15];
+        a0.v[16] = (int64_t)x[16];
+        a0.v[17] = (int64_t)x[17];
+        a0.v[18] = (int64_t)x[18];
+        a0.v[19] = (int64_t)x[19];
+        a0.v[20] = (int64_t)x[20];
+        a0.v[21] = (int64_t)x[21];
+        a0.v[22] = (int64_t)x[22];
+        a0.v[23] = (int64_t)x[23];
+        a0.v[24] = (int64_t)x[24];
+        a0.v[25] = (int64_t)x[25];
+        a0.v[26] = (int64_t)x[26];
+        a0.v[27] = (int64_t)x[27];
+        a0.v[28] = (int64_t)x[28];
+        a0.v[29] = (int64_t)x[29];
+        a0.v[30] = (int64_t)x[30];
+        a0.v[31] = (int64_t)x[31];
+        a0.v[32] = (int64_t)x[32];
+        a0.v[33] = (int64_t)x[33];
+        a0.v[34] = (int64_t)x[34];
+        a0.v[35] = (int64_t)x[35];
+        a0.v[36] = (int64_t)x[36];
+        a0.v[37] = (int64_t)x[37];
+        a0.v[38] = (int64_t)x[38];
+        a0.v[39] = (int64_t)x[39];
+        a0.v[40] = (int64_t)x[40];
+        a0.v[41] = (int64_t)x[41];
+        a0.v[42] = (int64_t)x[42];
+        a0.v[43] = (int64_t)x[43];
+        a0.v[44] = (int64_t)x[44];
+        a0.v[45] = (int64_t)x[45];
+        a0.v[46] = (int64_t)x[46];
+        a0.v[47] = (int64_t)x[47];
+        a0.v[48] = (int64_t)x[48];
+        a0.v[49] = (int64_t)x[49];
+        a0.v[50] = (int64_t)x[50];
+        a0.v[51] = (int64_t)x[51];
+        a0.v[52] = (int64_t)x[52];
+        a0.v[53] = (int64_t)x[53];
+        a0.v[54] = (int64_t)x[54];
+        a0.v[55] = (int64_t)x[55];
+        a0.v[56] = (int64_t)x[56];
+        a0.v[57] = (int64_t)x[57];
+        a0.v[58] = (int64_t)x[58];
+        a0.v[59] = (int64_t)x[59];
+        a0.v[60] = (int64_t)x[60];
+        a0.v[61] = (int64_t)x[61];
+        a0.v[62] = (int64_t)x[62];
+        a0.v[63] = (int64_t)x[63];
+        a1 = (int64_t)x[64];
+        {
+            clocktime_gnss_jd_out r = clocktime_gnss_jd(a0, a1);
+            out[(*ny)++] = r.ok ? 1.0 : 0.0;
+            out[(*ny)++] = r.jd;
+        }
+    }
+        return 0;
+    }
+    if (strcmp(name, "clocktime::clock_advance") == 0) {
+        if (nx != 3) { return -1; }
+    {
+        int64_t a0;
+        int64_t a1;
+        int64_t a2;
+        a0 = (int64_t)x[0];
+        a1 = (int64_t)x[1];
+        a2 = (int64_t)x[2];
+        {
+            clocktime_clock_advance_out r = clocktime_clock_advance(a0, a1, a2);
+            out[(*ny)++] = (double)r.adv_ns;
+            out[(*ny)++] = (double)r.kind;
+        }
+    }
+        return 0;
+    }
+    if (strcmp(name, "clocktime::clock_adopt") == 0) {
+        if (nx != 4) { return -1; }
+    {
+        int64_t a0;
+        bool a1;
+        double a2;
+        double a3;
+        a0 = (int64_t)x[0];
+        a1 = x[1] != 0.0;
+        a2 = x[2];
+        a3 = x[3];
+        {
+            clocktime_clock_adopt_out r = clocktime_clock_adopt(a0, a1, a2, a3);
+            out[(*ny)++] = (double)r.t_new_ns;
+            out[(*ny)++] = r.adopted ? 1.0 : 0.0;
+        }
+    }
+        return 0;
+    }
+    if (strcmp(name, "clocktime::clock_sched_skip") == 0) {
+        if (nx != 11) { return -1; }
+    {
+        double a0;
+        int64_t a1;
+        int64_t a2;
+        pc_a8f a3;
+        a0 = x[0];
+        a1 = (int64_t)x[1];
+        a2 = (int64_t)x[2];
+        a3.v[0] = x[3];
+        a3.v[1] = x[4];
+        a3.v[2] = x[5];
+        a3.v[3] = x[6];
+        a3.v[4] = x[7];
+        a3.v[5] = x[8];
+        a3.v[6] = x[9];
+        a3.v[7] = x[10];
+        {
+            int64_t r = clocktime_clock_sched_skip(a0, a1, a2, a3);
+            out[(*ny)++] = (double)r;
+        }
+    }
+        return 0;
+    }
     (void)x; (void)nx; (void)out;
     return -1;
 }

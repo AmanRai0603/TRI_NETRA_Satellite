@@ -71,7 +71,8 @@ int32_t adcs_fsw_init(const adcs_fsw_init_t *init)
     if (!adcs_modes_feasible(&S.p, S.p.start_mode) || (S.p.auto_next != ADCS_MODE_NONE && !adcs_modes_feasible(&S.p, S.p.auto_next))) return -13;
     for (i = 0; i < S.p.n_sched; i++) if (!adcs_modes_feasible(&S.p, S.p.sched_mode[i])) return -13;
     p = &S.p;
-    S.start_ns = init->start_ns;
+    S.start_ns = init->start_ns; S.last_ns = init->start_ns;
+    S.dt_ns = (int64_t)(p->dt*1e9 + 0.5); S.max_ns = (int64_t)(p->clock_step_max_s*1e9 + 0.5);
     S.mode = p->start_mode; S.t_st = -1e9; S.k_bref = -1; S.k_ctrl = -1; S.k_es = -1;
     S.n_mtq = ticks_of(p->mtq_period, p->dt); S.n_rcs = ticks_of(p->rcsd_period_s, p->dt); S.n_rw = ticks_of(p->rw_dt, p->dt);
     S.meas_i = (int)floor(p->mtq_meas/p->dt + 0.5); S.meas_c = (int)ceil(p->mtq_meas/p->dt - 1e-9);
@@ -199,9 +200,25 @@ int32_t adcs_fsw_step(uint64_t now_ns)
     adcs_real m_body[3], cmd_r[NR], cmd_g[NG], duty[NC];
     if (!S.ready) return -1;
     dt = p->dt; nr = p->nr; ng = p->ng;
-    S.t = (double)(now_ns - S.start_ns)*1e-9;
-    S.jd = p->jd0 + S.t/86400.0;
     adcs_drv_read(p, z);
+    /* 0 the onboard clock (clocktime): the time since the blob's date is the clock's step, held when it goes back and refused when
+     * it jumps past the bound (the first reading is the baseline, taken as it comes), then the fix's date when it holds one; the
+     * schedule entries a restored date has passed are done */
+    {
+        clocktime_clock_advance_out a = clocktime_clock_advance((int64_t)(now_ns - S.last_ns), S.dt_ns, S.have_clk ? S.max_ns : INT64_MAX);
+        clocktime_clock_adopt_out ad;
+        S.last_ns = now_ns; S.have_clk = 1;
+        if (a.kind == 1) S.clk_held++; else if (a.kind == 2) S.clk_refused++;
+        S.clk_ns += a.adv_ns;
+        ad = clocktime_clock_adopt(S.clk_ns, z->gps_t_ok != 0, z->gps_jd, p->jd0);
+        if (ad.adopted) {
+            int forward = ad.t_new_ns > S.clk_ns;
+            S.clk_ns = ad.t_new_ns; S.clk_adopted++;
+            if (forward) S.sched_i = (int)clocktime_clock_sched_skip((double)S.clk_ns*1e-9, S.sched_i, p->n_sched, gl_v8(p->sched_t));
+        }
+    }
+    S.t = (double)S.clk_ns*1e-9;
+    S.jd = p->jd0 + S.t/86400.0;
     adcs_fdir_sensors(&S, dt);
 
     /* 1 onboard orbit (02): nav's (navorbit::onboard_orbit): the GNSS fix (a fix inside the Earth is none; one in ECEF
@@ -549,6 +566,9 @@ int32_t adcs_fsw_peek(adcs_fsw_state_t *o)
     o->mode = S.mode; o->faults = S.faults;
     return 0;
 }
+
+/* the onboard clock's counts: steps held, steps refused, GNSS dates adopted (for the tests and the SILS) */
+void adcs_fsw_clock_counts(uint32_t out[3]) { out[0] = S.clk_held; out[1] = S.clk_refused; out[2] = S.clk_adopted; }
 
 const char *adcs_fsw_build_id(void) { return "trinetra-fsw-c/1.0.0 (adcs-fswcfg/1) alg " ADCS_ALG_ID; }
 

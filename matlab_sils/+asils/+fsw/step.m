@@ -13,9 +13,23 @@ function [F, bus] = step(F, bus)
     p = F.p;
     dt = p.dt; nr = p.nr;
     D2R = pi/180;
-    F.t = (bus.now_ns - F.start_ns)*1e-9;
-    F.jd = p.jd0 + F.t/86400.0;
     [z, F, bus] = asils.fsw.drv_read(F, bus);
+    % 0 the onboard clock (asils.alg.clocktime), as adcs_fsw.c and fsw.rs: the time since the blob's date is the clock's step, held when
+    % it goes back and refused when it jumps past the bound (the first reading is the baseline, taken as it comes), then the fix's
+    % date when it holds one; the schedule entries a restored date has passed are done
+    if F.have_clk, max_ns = F.max_ns; else, max_ns = 2^62; end
+    [adv, kind] = asils.alg.clocktime.clock_advance(bus.now_ns - F.last_ns, F.dt_ns, max_ns);
+    F.last_ns = bus.now_ns; F.have_clk = true;
+    if kind == 1, F.clk_held = F.clk_held + 1; elseif kind == 2, F.clk_refused = F.clk_refused + 1; end
+    F.clk_ns = F.clk_ns + adv;
+    [t_new, adopted] = asils.alg.clocktime.clock_adopt(F.clk_ns, z.gps_t_ok, z.gps_jd, p.jd0);
+    if adopted
+        forward = t_new > F.clk_ns;
+        F.clk_ns = t_new; F.clk_adopted = F.clk_adopted + 1;
+        if forward, F.sched_i = asils.alg.clocktime.clock_sched_skip(F.clk_ns*1e-9, F.sched_i, p.n_sched, p.sched_t); end
+    end
+    F.t = F.clk_ns*1e-9;
+    F.jd = p.jd0 + F.t/86400.0;
     % sensor health (modes::fdir_sensors)
     [z.mag_ok, z.b, z.w, F.b_good, F.mag_age, F.mag_seen, F.gyro_age] = asils.alg.modes.fdir_sensors(z.mag_ok, z.b, ...
         ~isempty(F.bref), bref_(F), F.b_good, F.mag_age, F.mag_seen, p.has_gyro ~= 0, z.gyro_ok, z.w, F.gyro_age, dt);

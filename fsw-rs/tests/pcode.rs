@@ -12,7 +12,7 @@ use adcs_fsw::math as hmath;
 // tools/flight_build.py, never in the flight crate). It names the algorithms' modules crate::<module>, so they are
 // brought in at this test's root.
 #[allow(unused_imports)]
-use adcs_fsw::alg::{allocation, control, drivers, estimation, frames, guidance, math, modes, navorbit, steplaws};
+use adcs_fsw::alg::{allocation, control, drivers, estimation, frames, guidance, math, modes, navorbit, steplaws, clocktime};
 #[allow(dead_code)]
 #[path = "alg/dispatch.rs"]
 mod dispatch;
@@ -55,6 +55,10 @@ const BY_NAME: &[(&str, &str)] = &[
     ("navorbit::gnss_usable", "called only by the generated onboard_orbit"),
     ("navorbit::verlet", "called only by the generated onboard_orbit"),
     ("navorbit::fix_eci", "called only by the generated onboard_orbit"),
+    ("clocktime::gnss_jd", "the driver calls it (drv.rs Drv::read): no public signature"),
+    ("clocktime::clock_advance", "the runtime calls it in the tick's step 0 (fsw.rs Fsw::step): no public signature"),
+    ("clocktime::clock_adopt", "the runtime calls it in the tick's step 0 (fsw.rs Fsw::step): no public signature"),
+    ("clocktime::clock_sched_skip", "the runtime calls it in the tick's step 0 (fsw.rs Fsw::step): no public signature"),
     ("frames::mod360", "called only by the generated sun_model"),
     ("control::mtq_err", "called only by the generated magnetic laws (Lovera, Celani, Avanzini, TANGO)"),
     ("estimation::update3", "called only by the generated mekf_vector and mekf_quat"),

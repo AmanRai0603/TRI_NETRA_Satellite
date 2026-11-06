@@ -61,7 +61,7 @@ function [U, bus, z] = sense(U, dev, bus, x, sky, m_coil, nu, t, k, rt, r, v, jd
         [te, rd, vd] = asils.models.gnss.gps_delayed(G.ht, G.hr, G.hv, G.hn, dev.gps.latency, t);
         [re, ve] = asils.models.gnss.gnss_ecef(jd0, te, rd, vd);
         [rg, vg, G.g] = asils.models.gnss.gps_sample(re, ve, dev.gps.pos_sigma, dev.gps.vel_sigma, G.g);
-        bus.uart{3} = [bus.uart{3}, asils.hal.gps_frame(true, rg, vg, scale).'];
+        bus.uart{3} = [bus.uart{3}, asils.hal.gps_frame(true, rg, vg, scale, jd0 + t/86400.0).'];
     end
     U.gps = G;
     % the rotors' telemetry: act_rotor_telemetry's rotor_telemetry, act's stated noises, from the telemetry stream

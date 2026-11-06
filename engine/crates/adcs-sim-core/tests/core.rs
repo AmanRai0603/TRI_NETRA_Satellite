@@ -138,7 +138,7 @@ fn the_bus_codecs_round_trip() {
     emu::decode_can(emu::proto::CAN_ROTOR_CMD + 1, &d, &tmax, 1.0, 0.1, &s, &mut c);
     assert!(close(c.cmd_r[1], -1e-3, 1e-4), "{}", c.cmd_r[1]);
     let mut buf = [0u8; 64];
-    let n = emu::gps_frame(true, &[7e6, 1.0, -2.0], &[1.0, 7.5e3, 0.5], &mut buf, &s);
+    let n = emu::gps_frame(true, &[7e6, 1.0, -2.0], &[1.0, 7.5e3, 0.5], None, &mut buf, &s);
     assert!(n > 6 && buf[..2] == [emu::proto::ST_SYNC1, emu::proto::GPS_SYNC2], "a GNSS frame starts with its sync");
     let len = buf[2] as usize;
     let crc = u16::from_le_bytes([buf[3 + len], buf[4 + len]]);

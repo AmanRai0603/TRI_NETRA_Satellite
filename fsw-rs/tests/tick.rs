@@ -1,9 +1,9 @@
 //! The tick tests of the flight software (docs/S11_INVENTORY.md TS4, step S11.4): what the tick does with a warm reset, with a
 //! step or a jitter in the time it is handed, and with a gyro that has gone quiet. Each test states the BEHAVIOUR THE FIXES OWE
-//! (docs/TECHNICAL_ROADMAP.md F1 persistent, monotonic time; F2 a silent gyro is flagged and its rate dropped; F3 the rate
-//! groups on an integer tick counter), so each fails today, and each is `#[ignore]`d with the step that fixes it. The step
-//! that fixes one removes its `#[ignore]` (and its name from the C list in fsw/tests/test_fsw.c); `cargo test -- --ignored`
-//! shows what each says today. Their scenario twins are `fault_fsw_reset_day30`, `fault_clock_step_back`/`_fwd`,
+//! (docs/TECHNICAL_ROADMAP.md F1 monotonic time kept through a reset and a step; F2 a silent gyro is flagged and its rate
+//! dropped; F3 the rate groups on an integer tick counter). F1 and F3 are fixed (S11.4b) and run; F2's fail today and are
+//! `#[ignore]`d with the step that fixes them. The step that fixes one removes its `#[ignore]` (and its name from the C list in
+//! fsw/tests/test_fsw.c); `cargo test -- --ignored` shows what each says today. Their scenario twins are `fault_fsw_reset_day30`, `fault_clock_step_back`/`_fwd`,
 //! `fault_clock_jitter_1us`/`_5ms` and `fault_gyro_silent`, flown by the engine.
 //! The sensors here are exact and the attitude is held (no noise, no dynamics): the test is of the tick, not of the estimate.
 #![allow(clippy::needless_range_loop, clippy::field_reassign_with_default)]
@@ -60,7 +60,7 @@ fn params(start: Mode, sun_gps: bool) -> Params {
     p.bdot_law = 0; p.mtq_period = 1.0; p.mtq_meas = 0.2; p.m_max = 0.2; p.bdot_k = 1e-3; p.has_gyro = 1;
     p.J[0][0] = 0.0067; p.J[1][1] = 0.042; p.J[2][2] = 0.042; p.igrf_nmax = 10; p.rate_lpf_s = 0.3;
     p.ss_eclipse = 1; p.gd_T = 1.0; p.mtq_phi = 0.01; p.rw_phi = 0.01; p.rw_dt = 0.1; p.fdir_s = 3.0; p.fdir_win_s = 120.0; p.fdir_h_frac = 0.005; p.rcsd_T_damp_s = 20.0; p.rcsd_period_s = 1.0;
-    p.st_coast_s = 900.0; p.mekf_sig_mag = 0.01; p.mekf_sig_sun = 0.005; p.mekf_meas_scale = 1.0;
+    p.st_coast_s = 900.0; p.mekf_sig_mag = 0.01; p.mekf_sig_sun = 0.005; p.mekf_meas_scale = 1.0; p.clock_step_max_s = 60.0;
     if sun_gps {
         p.has_sun = 1; p.has_gps = 1; p.gnss_ecef = 0; p.gyro_arw = 1e-6; p.gyro_rrw = 1e-8;
         p.mtq_Kp = [1e-3; 3]; p.mtq_Kd = [1e-2; 3];
@@ -132,10 +132,12 @@ impl Scene {
         hal.mag[0] = 1; for i in 0..3 { put16(&mut hal.mag[1 + 2*i..], b[i]/MAG_LSB_T); }
         hal.sun[0] = 1; for i in 0..3 { put16(&mut hal.sun[1 + 2*i..], s[i]*ADCS_Q15); }
         hal.gyro[0] = 1;                                                    // at rest: the counts are zero
-        let mut pl = [0u8; 25];
+        let mut pl = [0u8; 33];
         pl[0] = 1;
         for i in 0..3 { put32(&mut pl[1 + 4*i..], r[i]*100.0); put32(&mut pl[13 + 4*i..], v[i]*1000.0); }
-        let mut fr = vec![ST_SYNC1, GPS_SYNC2, 25];
+        let ds = (jd - 2451545.0)*86400.0;                                  // the fix's date after its velocity: seconds and microseconds from J2000.0
+        put32(&mut pl[25..], ds.floor()); put32(&mut pl[29..], (ds - ds.floor())*1e6);
+        let mut fr = vec![ST_SYNC1, GPS_SYNC2, 33];
         fr.extend_from_slice(&pl);
         fr.extend_from_slice(&crc16(&pl).to_le_bytes());
         hal.uart[GPS_UART as usize].extend_from_slice(&fr);
@@ -167,7 +169,6 @@ fn fly(f: &mut Fsw, hal: &mut Stub, sc: &Scene, age_s: f64, t0: f64, secs: f64, 
 
 /// A warm reset 30 days after the blob's date: the clock goes on, the state starts again, and the date stays the truth's.
 #[test]
-#[ignore = "S11.4b/S11.5 fixes it"]
 fn a_warm_reset_30_days_in_keeps_the_date() {
     let (age, p) = (30.0*DAY, params(Mode::NadirMtq, true));
     let (mut hal, mut f, sc) = (Stub::default(), Fsw::new(), Scene::new());
@@ -182,7 +183,6 @@ fn a_warm_reset_30_days_in_keeps_the_date() {
 
 /// The time source steps forward by an hour: the date does not (a bounded step, or none).
 #[test]
-#[ignore = "S11.4b/S11.5 fixes it"]
 fn a_clock_step_of_plus_1_hour_keeps_the_date() {
     let (p, mut hal, mut f, sc) = (params(Mode::NadirMtq, true), Stub::default(), Fsw::new(), Scene::new());
     f.init(ABI_VERSION, &blob(&p), 0).expect("init");
@@ -194,7 +194,6 @@ fn a_clock_step_of_plus_1_hour_keeps_the_date() {
 
 /// The time source steps back by a second: the time the software keeps does not go back.
 #[test]
-#[ignore = "S11.4b/S11.5 fixes it"]
 fn a_clock_step_of_minus_1_s_never_runs_the_time_back() {
     let (p, mut hal, mut f) = (params(Mode::Detumble, false), Stub::default(), Fsw::new());
     f.init(ABI_VERSION, &blob(&p), 0).expect("init");
@@ -211,7 +210,6 @@ fn a_clock_step_of_minus_1_s_never_runs_the_time_back() {
 
 /// The software starts at the clock's 100 s (a reset) and the clock steps back by a second: the time stays a few seconds, not centuries.
 #[test]
-#[ignore = "S11.4b/S11.5 fixes it"]
 fn a_clock_step_back_past_the_start_does_not_wrap() {
     let (p, mut hal, mut f) = (params(Mode::Detumble, false), Stub::default(), Fsw::new());
     f.init(ABI_VERSION, &blob(&p), 100_000_000_000).expect("init");

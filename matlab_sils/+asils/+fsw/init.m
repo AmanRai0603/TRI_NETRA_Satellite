@@ -24,10 +24,14 @@ function F = init(blob, start_ns)
     end
     F = struct();
     F.p = p; F.ready = true; F.start_ns = start_ns;
+    % the onboard clock (asils.alg.clocktime, DR-fsw-001): the time since the blob's date in ns, the previous reading, the tick and the
+    % forward bound in ns, and the counts of steps held (back), refused (beyond the bound) and of GNSS dates adopted
+    F.clk_ns = 0; F.last_ns = start_ns; F.have_clk = false; F.clk_held = 0; F.clk_refused = 0; F.clk_adopted = 0;
+    F.dt_ns = floor(p.dt*1e9 + 0.5); F.max_ns = floor(p.clock_step_max_s*1e9 + 0.5);
     F.t = 0; F.jd = p.jd0; F.mode = p.start_mode; F.t_mode = 0; F.hold = 0;
     F.z = struct('mag_ok', false, 'b', zeros(3, 1), 'gyro_ok', false, 'w', zeros(3, 1), 'sun_ok', false, 'sun', zeros(3, 1), ...
                  'es_ok', false, 'nadir', zeros(3, 1), 'st_ok', false, 'st_valid', zeros(2, 1), 'q_st', zeros(2, 4), ...
-                 'gps_ok', false, 'r', zeros(3, 1), 'v', zeros(3, 1), 'h', zeros(NR, 1), 'delta', zeros(NG, 1));
+                 'gps_ok', false, 'r', zeros(3, 1), 'v', zeros(3, 1), 'gps_t_ok', false, 'gps_jd', 0, 'h', zeros(NR, 1), 'delta', zeros(NG, 1));
     F.rx = {zeros(0, 1), zeros(0, 1), zeros(0, 1)};       % the UART frame assembly buffers, ports 0 to 2
     F.clean = true;
     F.mag_age = 0; F.gyro_age = 0; F.mag_seen = false; F.b_good = zeros(3, 1);

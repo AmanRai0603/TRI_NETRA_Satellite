@@ -248,6 +248,18 @@ function y = call(name, x)
         case 'drivers::drv_read'
             [o1, o2, o3, o4, o5, o6, o7, o8, o9, o10, o11, o12, o13, o14, o15, o16] = asils.alg.drivers.drv_read(reshape(x(1:7), 7, 1), reshape(x(8:20), 13, 1), reshape(x(21:27), 7, 1), reshape(x(28:34), 7, 1), reshape(x(35:130), 96, 1), x(131), reshape(x(132:227), 96, 1), x(228), reshape(x(229:236), 8, 1), reshape(x(237:244), 8, 1), reshape(x(245:308), 8, 8).', x(309), (x(310) ~= 0), (x(311) ~= 0), (x(312) ~= 0), (x(313) ~= 0), (x(314) ~= 0), x(315), reshape(x(316:323), 8, 1));
             y = [double(o1); reshape(o2, [], 1); double(o3); reshape(o4, [], 1); double(o5); reshape(o6, [], 1); double(o7); reshape(o8, [], 1); double(o9); reshape(o10, [], 1); reshape((o11).', [], 1); double(o12); reshape(o13, [], 1); reshape(o14, [], 1); reshape(o15, [], 1); reshape(o16, [], 1)];
+        case 'clocktime::gnss_jd'
+            [o1, o2] = asils.alg.clocktime.gnss_jd(reshape(x(1:64), 64, 1), x(65));
+            y = [double(o1); double(o2)];
+        case 'clocktime::clock_advance'
+            [o1, o2] = asils.alg.clocktime.clock_advance(x(1), x(2), x(3));
+            y = [double(o1); double(o2)];
+        case 'clocktime::clock_adopt'
+            [o1, o2] = asils.alg.clocktime.clock_adopt(x(1), (x(2) ~= 0), x(3), x(4));
+            y = [double(o1); double(o2)];
+        case 'clocktime::clock_sched_skip'
+            [o1] = asils.alg.clocktime.clock_sched_skip(x(1), x(2), x(3), reshape(x(4:11), 8, 1));
+            y = [double(o1)];
         otherwise
             error('pcode:call', 'no function %s', name);
     end

@@ -141,6 +141,13 @@ void adcs_drv_read(const adcs_params_t *p, adcs_meas_t *z)
                 if (n_st > 0 && i < pl_st[0] && 1 + 17*(i + 1) <= n_st) gl_o4(o.q_st.v[i], z->q_st[i]);   /* the heads the frame holds */
             }
             z->gps_ok = o.gps_ok; if (o.gps_ok) { gl_o3(o.r, z->r); gl_o3(o.v, z->v); }
+            {   /* the fix's date, after its velocity (clocktime::gnss_jd): none when the frame stops at the velocity */
+                pc_a64i pl = {{0}};
+                clocktime_gnss_jd_out g;
+                for (i = 0; i < 64 && i < n_gps; i++) pl.v[i] = pl_gps[i];
+                g = clocktime_gnss_jd(pl, n_gps);
+                z->gps_t_ok = g.ok; z->gps_jd = g.ok ? g.jd : 0;
+            }
             first = 0;
         }
         for (i = 0; i < ADCS_MAX_ROTORS; i++) if (h_set[i]) z->h[i] = o.h.v[i];

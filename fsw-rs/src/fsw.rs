@@ -2,7 +2,7 @@
 //! Tick order: fsw/pseudocode/08_mode_manager.md, one branch per controller state as
 //! asils.fsw.step (MATLAB) and adcs_fsw.c (C). The shell owns the tick, the state and the HAL;
 //! guidance is guid.rs, the mode manager modes.rs, FDIR fdir.rs.
-use crate::alg::navorbit;
+use crate::alg::{clocktime, navorbit};
 use crate::alg::steplaws::{self as laws, CtlParams, CtlState};
 use crate::alloc::{self, A38};
 use crate::ctl::{self, Gains};
@@ -45,6 +45,9 @@ pub struct Fsw {
     pub p: Params,
     ready: bool,
     start_ns: u64,
+    // the onboard clock (clocktime, DR-fsw-001): the time since the blob's date in ns, the previous reading, the tick and the forward
+    // bound in ns, and the counts of steps held (back), refused (beyond the bound) and of GNSS dates adopted
+    clk_ns: i64, dt_ns: i64, max_ns: i64, last_ns: u64, have_clk: bool, clk_held: u32, clk_refused: u32, clk_adopted: u32,
     t: f64, jd: f64,
     // the rate groups: one integer tick counter each (docs/CHANGING.md, DR-ctl-001); the group lengths and the coil-cycle marks in
     // ticks, worked out once at init from the periods; the ticks of the latest runs, -1: not yet
@@ -107,7 +110,8 @@ impl Fsw {
             if !feasible(&p, m) { return Err(InitError::Infeasible(m)); }
         }
         self.p = p;
-        self.start_ns = start_ns;
+        self.start_ns = start_ns; self.last_ns = start_ns;
+        self.dt_ns = (p.dt*1e9 + 0.5) as i64; self.max_ns = (p.clock_step_max_s*1e9 + 0.5) as i64;
         self.mode = p.start_mode;
         self.t_st = -1e9; self.k_bref = -1; self.k_ctrl = -1; self.k_es = -1;
         self.n_mtq = ticks_of(p.mtq_period, p.dt); self.n_rcs = ticks_of(p.rcsd_period_s, p.dt); self.n_rw = ticks_of(p.rw_dt, p.dt);
@@ -218,10 +222,23 @@ impl Fsw {
         let p = self.p;
         let dt = p.dt;
         let nr = p.nr as usize;
-        self.t = now_ns.wrapping_sub(self.start_ns) as f64*1e-9;
-        self.jd = p.jd0 + self.t/86400.0;
         let mut z = self.z;
         self.drv.read(hal, &p, &mut z);
+        // 0 the onboard clock (clocktime): the time since the blob's date is the clock's step, held when it goes back and refused when
+        // it jumps past the bound (the first reading is the baseline, taken as it comes), then the fix's date when it holds one; the
+        // schedule entries a restored date has passed are done
+        let (adv, kind) = clocktime::clock_advance(now_ns.wrapping_sub(self.last_ns) as i64, self.dt_ns, if self.have_clk { self.max_ns } else { i64::MAX });
+        self.last_ns = now_ns; self.have_clk = true;
+        if kind == 1 { self.clk_held += 1; } else if kind == 2 { self.clk_refused += 1; }
+        self.clk_ns += adv;
+        let (t_new, adopted) = clocktime::clock_adopt(self.clk_ns, z.gps_t_ok, z.gps_jd, p.jd0);
+        if adopted {
+            let forward = t_new > self.clk_ns;
+            self.clk_ns = t_new; self.clk_adopted += 1;
+            if forward { self.sched_i = clocktime::clock_sched_skip(self.clk_ns as f64*1e-9, self.sched_i as i64, p.n_sched as i64, p.sched_t) as usize; }
+        }
+        self.t = self.clk_ns as f64*1e-9;
+        self.jd = p.jd0 + self.t/86400.0;
         self.fdir_sensors(&mut z, dt);
         self.z = z;
 
@@ -602,6 +619,8 @@ impl Fsw {
 
     pub fn mode(&self) -> u8 { self.mode }
     pub fn time(&self) -> f64 { self.t }
+    /// The onboard clock's counts: steps held, steps refused, GNSS dates adopted.
+    pub fn clock_counts(&self) -> (u32, u32, u32) { (self.clk_held, self.clk_refused, self.clk_adopted) }
 }
 
 /// The field model's refresh: at most once in this many seconds (a whole number of ticks, rounded up)

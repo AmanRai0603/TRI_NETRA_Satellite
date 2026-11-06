@@ -5,8 +5,8 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#define ADCS_PARAMS_PAYLOAD 2233u
-#define ADCS_PARAMS_BLOB_SIZE 2249u
+#define ADCS_PARAMS_PAYLOAD 2241u
+#define ADCS_PARAMS_BLOB_SIZE 2257u
 #define ADCS_MAX_ROTORS 8
 #define ADCS_MAX_GIMBALS 4
 #define ADCS_MAX_COUPLES 6
@@ -177,6 +177,7 @@ typedef struct {
     double rate_lpf_s;
     uint8_t igrf_nmax;
     double gps_latency;  /* age of a GNSS fix when it arrives [s]: the fix is carried forward by it (0 = taken as current) */
+    double clock_step_max_s;  /* the forward bound of the onboard clock [s]: a clock reading further on than this after the previous one is refused and counted (the time moves by one tick); a step back holds (DR-fsw-001) */
 } adcs_params_t;
 
 /* Decode an adcs-fswcfg/1 blob. 0 on success; -1 bad magic, -2 bad length, -3 bad CRC. */

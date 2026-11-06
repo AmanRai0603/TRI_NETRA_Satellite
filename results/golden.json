@@ -6,7 +6,7 @@
  "fingerprint": {
   "rustc": "rustc 1.94.1 (e408947bf 2026-03-25)",
   "engine": "adcs-engine-rs/1.0.0 (adcs-case/1, POP v51 port in-loop, adcs-design, soft OILS)",
-  "fsw": "trinetra-fsw-c/1.0.0 (adcs-fswcfg/1) alg 5b76ca7fa3c1161b",
+  "fsw": "trinetra-fsw-c/1.0.0 (adcs-fswcfg/1) alg b4775d4a964b63d3",
   "machine": "x86_64"
  },
  "scenarios": {
@@ -377,20 +377,20 @@
    "metrics": {
     "ape_los_last_orbit": {
      "kind": "ape_los",
-     "value": 12.55691923483996,
+     "value": 12.569000398392735,
      "pass": null,
      "rel_tol": 1e-06
     },
     "ake_los_last_orbit": {
      "kind": "ake_los",
-     "value": 1.167030259926974,
+     "value": 1.1661477899085557,
      "pass": 1,
      "rel_tol": 1e-06
     },
     "date_error_s": {
      "kind": "date_error",
-     "value": 1.000000000001819,
-     "pass": 0,
+     "value": 4.470002750167623e-06,
+     "pass": 1,
      "rel_tol": 1e-06
     },
     "schedule_replays": {
@@ -414,20 +414,20 @@
    "metrics": {
     "ape_los_last_orbit": {
      "kind": "ape_los",
-     "value": 7.336977137560721,
+     "value": 12.569000398392735,
      "pass": null,
      "rel_tol": 1e-06
     },
     "ake_los_last_orbit": {
      "kind": "ake_los",
-     "value": 16.165474253670226,
-     "pass": 0,
+     "value": 1.1661477934273439,
+     "pass": 1,
      "rel_tol": 1e-06
     },
     "date_error_s": {
      "kind": "date_error",
-     "value": 3600.0000000000036,
-     "pass": 0,
+     "value": 1.8189894035458565e-12,
+     "pass": 1,
      "rel_tol": 1e-06
     },
     "schedule_replays": {
@@ -482,26 +482,26 @@
    "metrics": {
     "ape_los_last_orbit": {
      "kind": "ape_los",
-     "value": 89.42855492158091,
+     "value": 9.486474409256116,
      "pass": null,
      "rel_tol": 1e-06
     },
     "ake_los_last_orbit": {
      "kind": "ake_los",
-     "value": 36.93578514829804,
-     "pass": 0,
+     "value": 1.0812097875802071,
+     "pass": 1,
      "rel_tol": 1e-06
     },
     "date_error_s": {
      "kind": "date_error",
-     "value": 2598000.0,
-     "pass": 0,
+     "value": 4.471279680728912e-06,
+     "pass": 1,
      "rel_tol": 1e-06
     },
     "schedule_replays": {
      "kind": "schedule_replays",
-     "value": 2.0,
-     "pass": 0,
+     "value": 0.0,
+     "pass": 1,
      "rel_tol": 1e-06
     }
    }

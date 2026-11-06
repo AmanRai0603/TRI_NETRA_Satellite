@@ -418,6 +418,7 @@ fn sensor_params(p: &mut Params, k: &Knowns) -> Result<(), Error> {
     p.mekf_meas_scale = k.constant("mekf_meas_scale")?;
     p.gnss_ecef = k.st.whole("fsw_param_gnss_ecef", 0, 1)? as u8;
     p.gps_latency = fse::fsw_gnss_latency(d.gps.fitted, d.gps.latency);
+    p.clock_step_max_s = k.constant("clock_step_max_s")?;       // DR-fsw-001: the design states the onboard clock's forward bound
     p.gd_yaw_flip = k.param_flag("gd_yaw_flip", "yaw_flip")?; p.gd_flip_hyst = k.constant("gd_flip_hyst")?;
     p.rate_lpf_s = k.param("rate_lpf_s", "rate_lpf_s")?; p.igrf_nmax = k.st.whole("fsw_param_igrf_nmax", 1, 13)? as u8;
     Ok(())

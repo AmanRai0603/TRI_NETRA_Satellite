@@ -20,6 +20,9 @@ typedef struct {
     adcs_params_t p;
     int ready;
     uint64_t start_ns;
+    /* the onboard clock (clocktime, DR-fsw-001): the time since the blob's date in ns, the previous reading, the tick and the
+     * forward bound in ns, and the counts of steps held (back), refused (beyond the bound) and of GNSS dates adopted */
+    int64_t clk_ns, dt_ns, max_ns; uint64_t last_ns; int have_clk; uint32_t clk_held, clk_refused, clk_adopted;
     double t, jd;
     /* the rate groups: one integer tick counter each (docs/CHANGING.md, DR-ctl-001); the group lengths and the coil-cycle
      * marks in ticks, worked out once at init from the periods; the ticks of the latest runs, -1: not yet */

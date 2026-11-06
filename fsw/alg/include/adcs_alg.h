@@ -1064,4 +1064,50 @@ typedef struct { bool mag_ok; pc_a3f b; bool gyro_ok; pc_a3f w; bool sun_ok; pc_
 /* - returns delta */
 drivers_drv_read_out drivers_drv_read(pc_a7i mag_rx, pc_a13i gyro_rx, pc_a7i sun_rx, pc_a7i es_rx, pc_a96i st_, int64_t st_len, pc_a96i gps, int64_t gps_len, pc_a8i can_id, pc_a8i can_dlc, pc_a8a8i can_data, int64_t n_can, bool has_gyro, bool has_sun, bool has_es, bool has_st, bool has_gps, int64_t nr, pc_a8i rot_gi);
 
+typedef struct { bool ok; double jd; } clocktime_gnss_jd_out;
+
+/* The Julian date of a GNSS fix: the payload of its frame (n bytes, -1: none) holds a fix and its date. */
+/* vectors: 48 */
+/* - pl */
+/* - n */
+/* - returns ok */
+/* - returns jd */
+clocktime_gnss_jd_out clocktime_gnss_jd(pc_a64i pl, int64_t n);
+
+typedef struct { int64_t adv_ns; int64_t kind; } clocktime_clock_advance_out;
+
+/* One tick of the carried clock: the clock's own step d_ns (the difference of its last two readings, which may be negative), */
+/* the tick's length dt_ns and the bound max_ns, all in ns. The time it advances by, and what happened: 0 the step as read, */
+/* 1 a step back (held: no advance), 2 a step forward beyond the bound (refused: one tick). */
+/* vectors: 48 */
+/* - d_ns */
+/* - dt_ns */
+/* - max_ns */
+/* - returns adv_ns */
+/* - returns kind */
+clocktime_clock_advance_out clocktime_clock_advance(int64_t d_ns, int64_t dt_ns, int64_t max_ns);
+
+typedef struct { int64_t t_new_ns; bool adopted; } clocktime_clock_adopt_out;
+
+/* The time since the blob's date (t_ns), corrected by a fix's date jd (have: a fix holds one) against the blob's date jd0: */
+/* adopted when they differ by more than 20 ms (four times the 5 ms of timestamp jitter the rig flies), and the fix is not */
+/* before the blob's date. The time, and whether the fix's date was adopted. */
+/* vectors: 48 */
+/* - t_ns */
+/* - have */
+/* - jd */
+/* - jd0 */
+/* - returns t_new_ns */
+/* - returns adopted */
+clocktime_clock_adopt_out clocktime_clock_adopt(int64_t t_ns, bool have, double jd, double jd0);
+
+/* The first schedule entry (from i) whose time the date t has not reached: the entries before it are done. */
+/* vectors: 48 */
+/* - t */
+/* - i */
+/* - n */
+/* - sched_t */
+/* - returns j */
+int64_t clocktime_clock_sched_skip(double t, int64_t i, int64_t n, pc_a8f sched_t);
+
 #endif

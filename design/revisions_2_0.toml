@@ -3829,3 +3829,36 @@ kind = "scenario"
 [[revision.case]]
 file = "design/revisions/S11.4/fault_clock_jitter_5ms.toml"
 kind = "scenario"
+
+[[revision]]
+id = "S11.4b"
+at = "2026-11-06T18:00:00Z"
+by = "the developer"
+about = "the flight software's onboard time (docs/S11_INVENTORY.md F1; decision DR-fsw-001, option (a), the owner's default): the time since the blob's date kept in whole nanoseconds by a monotonic bounded clock (a step back holds, a step forward beyond a stated bound is refused and counted) and corrected by the GNSS fix's date when a fix is held, which a warm reset therefore does not lose once a fix comes; the schedule entries the restored date has passed are done, not played again. The clock's rules are a method of fsw (fsw_clock, fsw/pseudocode/09_time.pc, generated into C, Rust and the twin); the forward bound is a stated parameter of the blob (fsw_param_clock_step_max_s); the GNSS frame carries the fix's date after its velocity"
+
+[[revision.node]]
+id = "fsw_clock"
+group = "fsw"
+parent = "gx"
+perspective = "subsystem"
+label = "Onboard clock: the monotonic bounded time and the GNSS date"
+behaviour = "method"
+question = "What time since its blob's date does the flight software keep: by how much does its clock's step advance it (a step back holds, a step forward beyond the bound is refused), when is a GNSS fix's date adopted instead, and which schedule entries has the restored date passed?"
+why = "the onboard date, until now the unsigned difference of the HAL clock and its reading at init in the tick (DR-fsw-001: every reset rewound the calendar, a step back wrapped it to 585 years and the schedule replayed after a reboot); the rules are the design's, the tick only orders them"
+
+[[revision.method]]
+node = "fsw_clock"
+pseudocode = "design/revisions/S11.4b/clock.pc"
+path = "fsw/pseudocode/09_time.pc"
+transcribes = "fsw/src/adcs_fsw.c (adcs_fsw_step: S.t = (now_ns - S.start_ns)*1e-9), fsw-rs/src/fsw.rs (Fsw::step) and the twin's asils.fsw.step, which kept the time as the unsigned difference of the HAL clock and its reading at init; the GNSS frame of fsw/pseudocode/09_drivers_hal.md (EB 91, fix, r, v) with the date after the velocity"
+source = "docs/S11_INVENTORY.md F1 and DR-fsw-001 (design/decisions/DR-fsw-001.toml): the owner's option (a), GNSS time when a fix is held else the last good time carried by a monotonic bounded clock; ECSS-E-ST-70-41C (PUS time management) and CCSDS 301.0-B for the time standard the later telecommand and non-volatile options take up; JD 2451545.0 is J2000.0 (IAU 1976)"
+generate = ["flight"]
+uses = ["fsw/pseudocode/01_math.pc", "fsw/pseudocode/09_drivers.pc"]
+why = "the onboard clock as a flight algorithm of the design (fsw/pseudocode/09_time.pc is written from here), generated into fsw/alg, fsw-rs/src/alg and +asils/+alg; the tick hands it the clock's step, the fix's date and the schedule, and keeps only the order (DR-fsw-001)"
+
+[[revision.change]]
+match = { nodes = ["fsw_param_clock_step_max_s"] }
+from = "stated"
+to = "stated"
+content = [["value", "number", "60"], ["value", "source", "DR-fsw-001 (design/decisions/DR-fsw-001.toml), option (a): the forward bound of the monotonic clock, a minute: a tick that reads further on than this after the previous one (a stalled processor sees seconds, not minutes) is a step of the time source, refused and counted; the developer's value, for the owner to sign or override"]]
+why = "the forward bound of DR-fsw-001's bounded clock (docs/S11_INVENTORY.md F1, S11.4b): a stated flight parameter, a minute"

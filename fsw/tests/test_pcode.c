@@ -42,6 +42,10 @@ static const char *const BY_NAME[][2] = {
     {"navorbit::gnss_usable", "called only by the generated onboard_orbit"},
     {"navorbit::verlet", "called only by the generated onboard_orbit"},
     {"navorbit::fix_eci", "called only by the generated onboard_orbit"},
+    {"clocktime::gnss_jd", "called by the driver and the tick as the generated function, no signature of their own"},
+    {"clocktime::clock_advance", "called by the tick as the generated function, no signature of its own"},
+    {"clocktime::clock_adopt", "called by the tick as the generated function, no signature of its own"},
+    {"clocktime::clock_sched_skip", "called by the tick as the generated function, no signature of its own"},
     {NULL, NULL},
 };
 int pc_call(const char *name, const double *x, int nx, double *out, int *ny);     /* tests/alg_dispatch.c */

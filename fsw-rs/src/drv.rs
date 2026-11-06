@@ -3,6 +3,7 @@
 //! stays here is the runtime around them: the bus transfers, the UART frame assembly that keeps a
 //! frame not yet whole for the next read, and the last reading held when a read brings none.
 use crate::alg::drivers as alg;
+use crate::alg::clocktime;
 use crate::devices::*;
 use crate::hal::{CanFrame, Hal, Status};
 use crate::math::ints;
@@ -16,6 +17,8 @@ pub struct Meas {
     pub es_ok: bool, pub nadir: [f64; 3],
     pub st_ok: bool, pub st_valid: [bool; MAX_HEADS], pub q_st: [[f64; 4]; MAX_HEADS],
     pub gps_ok: bool, pub r: [f64; 3], pub v: [f64; 3],
+    /// the fix holds its date (the frame carries it after the velocity), as a Julian date
+    pub gps_t_ok: bool, pub gps_jd: f64,
     pub h: [f64; MAX_ROTORS], pub delta: [f64; MAX_GIMBALS],
 }
 
@@ -129,6 +132,10 @@ impl Drv {
         if st_len > 0 { z.q_st = q_st; }
         z.gps_ok = gps_ok;
         if gps_ok { z.r = r; z.v = v; }
+        // the fix's date, after its velocity (clocktime::gnss_jd): none when the frame stops at the velocity
+        let (n_gps, mut pl) = (if gps_len >= 5 { gps_len - 5 } else { -1 }, [0i64; PAYLOAD_MAX]);
+        for i in 0..PAYLOAD_MAX.min(n_gps.max(0) as usize) { pl[i] = gps[3 + i]; }
+        (z.gps_t_ok, z.gps_jd) = clocktime::gnss_jd(pl, n_gps);
         // the momentum devices' telemetry: every frame waiting, CAN_BATCH at a time in the order they came
         hold_telemetry(p, z, &can[..n_can], h, delta);
         while n_can == CAN_BATCH {

@@ -12,6 +12,7 @@ typedef struct {
     int es_ok;    adcs_real nadir[3];
     int st_ok;    int st_valid[ADCS_MAX_HEADS]; adcs_real q_st[ADCS_MAX_HEADS][4];
     int gps_ok;   adcs_real r[3], v[3];
+    int gps_t_ok; double gps_jd;          /* the fix holds its date (the frame carries it after the velocity), as a Julian date */
     adcs_real h[ADCS_MAX_ROTORS], delta[ADCS_MAX_GIMBALS];
 } adcs_meas_t;
 

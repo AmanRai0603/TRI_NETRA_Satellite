@@ -1,0 +1,69 @@
+## 09 - The onboard clock (DR-fsw-001, option (a)): the time the flight software keeps since its blob's date, in whole
+## nanoseconds, carried by a monotonic bounded clock and corrected by GNSS time when a fix holds it. The tick hands these
+## functions the facts (the clock's reading, the fix's date) and keeps the order; the rules are here.
+##
+## The carried time only moves forward, by the clock's own step: a step back holds (the time stands still for that tick);
+## a step forward beyond the stated bound (fsw_param_clock_step_max_s) is refused, the time moving by one tick instead; each
+## refusal is counted. A time that is wrong by more than the tolerance against a fix's date is the fix's: GNSS time is
+## adopted when a fix is held. A warm reset keeps no time, as there is no non-volatile time in S11 (a HAL change for S15); the
+## carried time starts again from the blob's date, and the first fix with a date restores it. The schedule entries whose time
+## the restored date has passed are done, not played again.
+##
+## A GNSS fix carries its date after its position and velocity: two int32 little-endian fields, the whole seconds and the
+## microseconds, counted from JD 2451545.0 (J2000.0); a frame that stops at the velocity carries none.
+## The developer's transcription (S11.4b), unsigned.
+module clocktime
+
+## The Julian date of a GNSS fix: the payload of its frame (n bytes, -1: none) holds a fix and its date.
+## vectors: 48
+fn gnss_jd(pl: int[64] in 0 .. 255, n: int in -1 .. 64) -> (ok: bool, jd: real[1])
+    ok = false
+    jd = 0
+    if n >= 33 and band(pl[0], 1) == 1
+        ok = true
+        jd = 2451545.0 + (real(rd32(pl[25], pl[26], pl[27], pl[28])) + real(rd32(pl[29], pl[30], pl[31], pl[32]))*1.0e-6)/86400.0
+    end
+end
+
+## One tick of the carried clock: the clock's own step d_ns (the difference of its last two readings, which may be negative),
+## the tick's length dt_ns and the bound max_ns, all in ns. The time it advances by, and what happened: 0 the step as read,
+## 1 a step back (held: no advance), 2 a step forward beyond the bound (refused: one tick).
+## vectors: 48
+fn clock_advance(d_ns: int in -10000000000 .. 100000000000, dt_ns: int in 50000000 .. 1000000000, max_ns: int in 1000000000 .. 600000000000) \
+                 -> (adv_ns: int, kind: int)
+    adv_ns = d_ns
+    kind = 0
+    if d_ns < 0
+        adv_ns = 0
+        kind = 1
+    elif d_ns > max_ns
+        adv_ns = dt_ns
+        kind = 2
+    end
+end
+
+## The time since the blob's date (t_ns), corrected by a fix's date jd (have: a fix holds one) against the blob's date jd0:
+## adopted when they differ by more than 20 ms (four times the 5 ms of timestamp jitter the rig flies), and the fix is not
+## before the blob's date. The time, and whether the fix's date was adopted.
+## vectors: 48
+fn clock_adopt(t_ns: int in 0 .. 4000000000000000, have: bool, jd: real[1] in 2459000 .. 2463000, jd0: real[1] in 2459000 .. 2463000) \
+               -> (t_new_ns: int, adopted: bool)
+    t_new_ns = t_ns
+    adopted = false
+    let tg = (jd - jd0)*86400.0
+    if have and tg >= 0 and abs(tg - real(t_ns)*1.0e-9) > 0.02
+        t_new_ns = int(tg*1.0e9 + 0.5)
+        adopted = true
+    end
+end
+
+## The first schedule entry (from i) whose time the date t has not reached: the entries before it are done.
+## vectors: 48
+fn clock_sched_skip(t: real[1] in 0 .. 4000000, i: int in 0 .. 8, n: int in 0 .. 8, sched_t: real[1][8] in 0 .. 4000000) -> j: int
+    j = i
+    for k in 0 .. 8
+        if j < n and t >= sched_t[j]
+            j = j + 1
+        end
+    end
+end
