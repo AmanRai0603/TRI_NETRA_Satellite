@@ -166,6 +166,43 @@ def _matches(m, nid, kind, content):
     raise SystemExit(f"convert: a revision matches by nodes, kind or field, not {sorted(m)}")
 
 
+DECISION_REQUIRED = ["schema", "id", "decisions", "title", "group", "parent", "owner_team", "status", "context", "current", "choice",
+                     "rationale", "consequences", "signature", "option"]
+DECISION_SCALARS = ["status", "owner_team", "owner_question", "context", "current", "choice", "rationale", "consequences", "method", "revisit_when"]
+DECISION_LISTS = ["decisions", "items", "drivers", "standard", "sets"]
+
+
+def decision_node(rel):
+    """The node a decision record (`[[revision.decision]]`, design/decisions/DR-*.toml) becomes: a node of kind decision in
+    the group and under the block the record names, behaviour stated when it makes a choice and open when it makes none,
+    its fields as content rows of section decision, unsigned, its source the file with its sha256. A record that misses a
+    required field, carries a signature, or has a status other than proposed is refused by name."""
+    raw = (ROOT / rel).read_bytes()
+    d = tomllib.loads(raw.decode("utf-8"))
+    miss = [k for k in DECISION_REQUIRED if k not in d]
+    if miss:
+        raise SystemExit(f"convert: decision {rel} misses {', '.join(miss)}")
+    if d["signature"]:
+        raise SystemExit(f"convert: decision {rel} is signed; S11 signs nothing")
+    if d["status"] != "proposed":
+        raise SystemExit(f"convert: decision {rel} has status {d['status']!r}, not proposed")
+    src = f"{rel} (sha256 {sha(raw)})"
+    content = []
+    for k in DECISION_SCALARS:
+        if k in d:
+            content.append(("decision", k, str(d[k]), src))
+    for k in DECISION_LISTS:
+        if k in d:
+            content.append(("decision", k, "; ".join(str(x) for x in d[k]), src))
+    for i, o in enumerate(d["option"], 1):
+        for k in ("name", "evidence", "rejected_because"):
+            content.append(("decision", f"option_{i}_{k}", str(o.get(k, "")), src))
+    content.append(("decision", "signature", "", src))
+    return {"id": d["id"].lower().replace("-", "_"), "kind": "decision", "group": d["group"], "parent": d["parent"], "label": d["title"],
+            "behaviour": "stated" if d["choice"] else "open", "question": d["title"], "content": content,
+            "why": f"the decision record {d['id']} ({', '.join(d['decisions'])}), proposed, from {rel}"}
+
+
 def add_nodes(gdir, groups, revs, report):
     """The nodes the developer's revisions add (`[[revision.node]]`), each a new block of its group under the parent it
     names, with the behaviour it says and any content rows it gives (a stated value and its source, S7.4): written
@@ -174,13 +211,13 @@ def add_nodes(gdir, groups, revs, report):
     why = {}
     for r in revs:
         origin = f"the developer's revision {r['id']}"
-        for n in r.get("node", []):
+        for n in r.get("node", []) + [decision_node(x["file"]) for x in r.get("decision", [])]:
             if n["id"] in have:
                 raise SystemExit(f"convert: revision {r['id']} adds {n['id']}, which the design already has")
             if n["group"] not in groups or n["parent"] not in have:
                 raise SystemExit(f"convert: revision {r['id']} adds {n['id']} to group {n['group']} under {n['parent']}: no such group or block")
             new_node(gdir[n["group"]] / "nodes" / f"{n['id']}.node.tndb", n["id"], n["group"], n.get("kind", "leaf"), n["label"], n.get("layer", 2),
-                     content=[("identity", "question", n["question"], origin)] + [(a, b, v, origin) for a, b, v in n.get("content", [])],
+                     content=[("identity", "question", n["question"], origin)] + [(c[0], c[1], c[2], c[3] if len(c) > 3 else origin) for c in n.get("content", [])],
                      block=(n["id"], n["parent"], n.get("perspective", "system"), n["behaviour"], None, None))
             with sqlite3.connect(gdir[n["group"]] / "nodes" / f"{n['id']}.node.tndb") as c:
                 c.execute("INSERT INTO revision VALUES (?, ?, ?, ?)", (1, r["at"], r["by"], f"{r['id']}: added ({n['behaviour']}): {n['why']}"))

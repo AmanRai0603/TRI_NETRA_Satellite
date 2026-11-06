@@ -3733,3 +3733,69 @@ source = "WGS-84 (NIMA TR8350.2: R_E 6378137 m); Vallado (2013) (the Earth's rat
 generate = ["flight"]
 uses = ["fsw/pseudocode/01_math.pc", "fsw/pseudocode/02_time_frames_models.pc", "fsw/pseudocode/06_step_laws.pc"]
 why = "nav's onboard orbit as a flight algorithm of the design (fsw/pseudocode/03_onboard_orbit.pc is written from here), generated into fsw/alg, fsw-rs/src/alg and +asils/+alg; the tick only hands it the fix and the orbit it holds (S6 left this step in the runtime)"
+
+[[revision]]
+id = "S11.2"
+at = "2026-11-06T00:00:00Z"
+by = "the developer"
+about = "the 15 decision stubs of docs/DESIGN_DECISIONS.md and five owner questions of docs/S11_INVENTORY.md section 5 (A5, F5, O12, TS11, M5), carried from design/decisions/DR-*.toml as nodes of kind decision, each in the group that owns it; unsigned: the developer's proposals, which each owner signs or overrides in the ownership stage"
+
+[[revision.decision]]
+file = "design/decisions/DR-act-001.toml"
+
+[[revision.decision]]
+file = "design/decisions/DR-act-002.toml"
+
+[[revision.decision]]
+file = "design/decisions/DR-ctl-001.toml"
+
+[[revision.decision]]
+file = "design/decisions/DR-design-001.toml"
+
+[[revision.decision]]
+file = "design/decisions/DR-design-002.toml"
+
+[[revision.decision]]
+file = "design/decisions/DR-design-003.toml"
+
+[[revision.decision]]
+file = "design/decisions/DR-fdir-001.toml"
+
+[[revision.decision]]
+file = "design/decisions/DR-fdir-002.toml"
+
+[[revision.decision]]
+file = "design/decisions/DR-fsw-001.toml"
+
+[[revision.decision]]
+file = "design/decisions/DR-fsw-002.toml"
+
+[[revision.decision]]
+file = "design/decisions/DR-gdn-001.toml"
+
+[[revision.decision]]
+file = "design/decisions/DR-gdn-002.toml"
+
+[[revision.decision]]
+file = "design/decisions/DR-gdn-003.toml"
+
+[[revision.decision]]
+file = "design/decisions/DR-kpi-001.toml"
+
+[[revision.decision]]
+file = "design/decisions/DR-oils-001.toml"
+
+[[revision.decision]]
+file = "design/decisions/DR-risk-001.toml"
+
+[[revision.decision]]
+file = "design/decisions/DR-sens-001.toml"
+
+[[revision.decision]]
+file = "design/decisions/DR-vv-001.toml"
+
+[[revision.decision]]
+file = "design/decisions/DR-vv-002.toml"
+
+[[revision.decision]]
+file = "design/decisions/DR-vv-003.toml"

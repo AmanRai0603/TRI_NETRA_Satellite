@@ -37,7 +37,10 @@ loop's rules (four new nodes), methods under `design/revisions/S7.15/`; and agai
 certificate (a new node of ctl), its method under `design/revisions/S7.15b/`, for the toolbox `trinetra-toolbox/6` (eig);
 and again on 9 Oct 2026 with S7.19, the wiring: every method's inputs to the nodes that supply them, each method's function
 and output where its module has several, and the inputs that are a run's, `[[revision.wire]]`, which adds input rows and
-their ports and changes no method, table or value: 11.2 MB, 11,153,408 bytes):
+their ports and changes no method, table or value; and again on 6 Nov 2026 with S11.2, the twenty decision records of
+`design/decisions/` (the 15 decision stubs of `docs/DESIGN_DECISIONS.md` and five owner questions of the inventory) as nodes of
+kind decision, each in the group that owns it and unsigned, which hold text and no value, so `data/stated.json` is
+unchanged: 11.3 MB, 11,304,960 bytes):
 
     python3 tools/convert_2_0.py --out DRIVE
     python3 tools/design_build.py DRIVE --out tests/regression/design.tndb
