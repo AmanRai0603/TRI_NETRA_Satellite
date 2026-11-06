@@ -97,6 +97,8 @@
 | [`node_catalog.py node_catalog`](#node_catalogpy-node_catalog) | The node app's catalogue (design/js/node_catalog.js), written from the spec: the units and the quantities each measures, the physics relations, the sources, the evidence metrics and rungs, the provenance and belief words, the tags and every row of the tree with its label, kind, quantity, unit and layer. The node app offers these as its choices, so they are never typed by hand. --check says whether the committed file is current. |
 | [`release.py release`](#releasepy-release) | Sealed group releases (releases/<group>-<version>.tnrel, as the group app seals them), checked from Python: each file passes tools/tndb.py check and is named for its group and version; every node's fingerprint, body fingerprint and the release's fingerprint are the SHA-256 of what they cover; its nodes are the group's as sealed, each confirmed or unconfirmed with why; a confirmed node was checked by someone other than its author and, when it computes, has a test vector from outside the code; the lead's seal names the version and the fingerprint. The same rules as design/js/release.js, written a second time. |
 | [`drive_pack.py drive-pack`](#drive_packpy-drive-pack) | The Drive pack: the two offline apps (TRI-NETRA Files, TRI-NETRA Group) and the design seeded from the spec (20 group files, 734 node files), in the layout the shared Drive folder of the design takes, with a README. CI builds it on every push as the trinetra-drive-pack artifact. |
+| [`golden.py golden write`](#goldenpy-golden-write) | Re-fly the scenarios on the engine (C flight software, the stored seed) and write the golden table: every metric's value and verdict, the algorithms each run names, the toolchain fingerprint and a relative tolerance per metric. A tolerance already in the table is kept. |
+| [`golden.py golden check`](#goldenpy-golden-check) | Re-fly the scenarios and compare with results/golden.json: bit for bit when the toolchain fingerprint is the table's, otherwise each metric within its relative tolerance; a verdict or the algorithms named never has a tolerance. A difference names the scenario, the metric, the stored value and the new one; exit 1 on any. |
 
 ## adcs run
 
@@ -1894,3 +1896,41 @@ The Drive pack: the two offline apps (TRI-NETRA Files, TRI-NETRA Group) and the 
 - **Checks:** the seeded and carried design checks
 - **Undo:** Delete dist/trinetra-drive-pack/.
 - **Code:** `tools/drive_pack.py`
+
+## golden.py golden write
+
+Re-fly the scenarios on the engine (C flight software, the stored seed) and write the golden table: every metric's value and verdict, the algorithms each run names, the toolchain fingerprint and a relative tolerance per metric. A tolerance already in the table is kept.
+
+    python3 tools/golden.py write [--jobs N] [--only scenario ...]
+
+**Steps**
+
+1. one `adcs run` per scenario, on --jobs processes
+2. read each run's metrics, verdicts and algorithms
+3. write the table with the toolchain fingerprint
+
+- **Reads:** `matlab_sils/data/scenarios/`
+- **Writes:** `results/golden.json`
+- **Starts:** adcs run; rustc
+- **Checks:** every scenario flies
+- **Undo:** `git checkout -- results/golden.json` puts back the committed table.
+- **Code:** `tools/golden.py`
+
+## golden.py golden check
+
+Re-fly the scenarios and compare with results/golden.json: bit for bit when the toolchain fingerprint is the table's, otherwise each metric within its relative tolerance; a verdict or the algorithms named never has a tolerance. A difference names the scenario, the metric, the stored value and the new one; exit 1 on any.
+
+    python3 tools/golden.py check [--jobs N] [--only scenario ...]
+
+**Steps**
+
+1. one `adcs run` per scenario, on --jobs processes
+2. compare each metric, verdict and the algorithms with the table
+3. name every difference
+
+- **Reads:** `matlab_sils/data/scenarios/`; `results/golden.json`
+- **Writes:** nothing
+- **Starts:** adcs run; rustc
+- **Checks:** no scenario differs from the table (DR-vv-003)
+- **Undo:** It writes nothing.
+- **Code:** `tools/golden.py`

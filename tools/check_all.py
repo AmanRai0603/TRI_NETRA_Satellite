@@ -4,6 +4,7 @@
     python3 tools/check_all.py                 the fast checks (a few minutes)
     python3 tools/check_all.py --octave        and the MATLAB twin's suites in GNU Octave
     python3 tools/check_all.py --pages         and rebuild the rendered pages (needs the runs' time series)
+    python3 tools/check_all.py --golden        and re-fly every scenario against results/golden.json (the engine built)
     python3 tools/check_all.py --mutation      and mutation testing of the flight software (about 30 min)
     python3 tools/check_all.py --only NAME...  just those checks (names as printed)
     python3 tools/check_all.py --strict        a check that cannot run here fails (the release runs this)
@@ -110,6 +111,12 @@ MUTATION = [
      [PY, "tools/mutation.py", "--check"], ".", ["cargo-mutants"]),
 ]
 
+# The golden table re-flies all 48 scenarios on the engine (minutes), so it runs when asked (and in CI).
+GOLDEN = [
+    ("golden", "every scenario re-flown on the engine agrees with results/golden.json: bit-exact on the table's toolchain, within each metric's tolerance otherwise",
+     [PY, "tools/golden.py", "check"], ".", ["cargo"]),
+]
+
 
 def have(need):
     """Is a check's need here: a program on PATH, a Python module (py:<name>), the built engine (engine), or a
@@ -129,6 +136,7 @@ def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--octave", action="store_true", help="also run the MATLAB twin's suites in GNU Octave")
     ap.add_argument("--pages", action="store_true", help="also build the rendered pages (figures, results page, V&V report)")
+    ap.add_argument("--golden", action="store_true", help="also re-fly every scenario against results/golden.json (needs the engine built)")
     ap.add_argument("--mutation", action="store_true", help="also run mutation testing of the flight software (about 30 min)")
     ap.add_argument("--only", nargs="+", metavar="NAME", help="run only these checks")
     ap.add_argument("--strict", action="store_true",
@@ -136,11 +144,11 @@ def main(argv=None):
     a = ap.parse_args(argv)
     wants = lambda group, flag: flag or bool(a.only and set(a.only) & {n for n, *_ in group})
     todo = CHECKS + (OCTAVE if wants(OCTAVE, a.octave) else []) + (PAGES if wants(PAGES, a.pages) else []) \
-        + (MUTATION if wants(MUTATION, a.mutation) else [])
+        + (MUTATION if wants(MUTATION, a.mutation) else []) + (GOLDEN if wants(GOLDEN, a.golden) else [])
     if a.only:
         unknown = set(a.only) - {c[0] for c in todo}
         if unknown:
-            ap.error("no check " + ", ".join(sorted(unknown)) + "; the checks are " + ", ".join(c[0] for c in CHECKS + OCTAVE + PAGES + MUTATION))
+            ap.error("no check " + ", ".join(sorted(unknown)) + "; the checks are " + ", ".join(c[0] for c in CHECKS + OCTAVE + PAGES + MUTATION + GOLDEN))
         todo = [c for c in todo if c[0] in a.only]
     rows, failed = [], []
     for name, what, cmd, cwd, needs in todo:

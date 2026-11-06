@@ -1113,3 +1113,27 @@ writes = ["dist/trinetra-drive-pack/"]
 runs = []
 checks = "the seeded and carried design checks"
 undo = "Delete dist/trinetra-drive-pack/."
+
+[[command]]
+tool = "golden.py"
+name = "golden write"
+usage = "python3 tools/golden.py write [--jobs N] [--only scenario ...]"
+what = "Re-fly the scenarios on the engine (C flight software, the stored seed) and write the golden table: every metric's value and verdict, the algorithms each run names, the toolchain fingerprint and a relative tolerance per metric. A tolerance already in the table is kept."
+steps = ["one `adcs run` per scenario, on --jobs processes", "read each run's metrics, verdicts and algorithms", "write the table with the toolchain fingerprint"]
+reads = ["matlab_sils/data/scenarios/"]
+writes = ["results/golden.json"]
+runs = ["adcs run", "rustc"]
+checks = "every scenario flies"
+undo = "`git checkout -- results/golden.json` puts back the committed table."
+
+[[command]]
+tool = "golden.py"
+name = "golden check"
+usage = "python3 tools/golden.py check [--jobs N] [--only scenario ...]"
+what = "Re-fly the scenarios and compare with results/golden.json: bit for bit when the toolchain fingerprint is the table's, otherwise each metric within its relative tolerance; a verdict or the algorithms named never has a tolerance. A difference names the scenario, the metric, the stored value and the new one; exit 1 on any."
+steps = ["one `adcs run` per scenario, on --jobs processes", "compare each metric, verdict and the algorithms with the table", "name every difference"]
+reads = ["matlab_sils/data/scenarios/", "results/golden.json"]
+writes = []
+runs = ["adcs run", "rustc"]
+checks = "no scenario differs from the table (DR-vv-003)"
+undo = "It writes nothing."

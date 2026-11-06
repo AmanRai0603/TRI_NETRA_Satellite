@@ -1,0 +1,1880 @@
+{
+ "schema": "trinetra-golden/1",
+ "decision": "DR-vv-003",
+ "seed": 1,
+ "fsw": "c",
+ "fingerprint": {
+  "rustc": "rustc 1.94.1 (e408947bf 2026-03-25)",
+  "engine": "adcs-engine-rs/1.0.0 (adcs-case/1, POP v51 port in-loop, adcs-design, soft OILS)",
+  "fsw": "trinetra-fsw-c/1.0.0 (adcs-fswcfg/1) alg 5b76ca7fa3c1161b",
+  "machine": "x86_64"
+ },
+ "scenarios": {
+  "agile_slew_cmg": {
+   "algorithms": {
+    "allocation": "cmg_sr",
+    "attitude": "mekf",
+    "detumble": "bdot_gyro",
+    "mtq_pointing": "mtq_pd",
+    "pointing": "pid",
+    "sun_acquisition": "sunspin_l1l2",
+    "thrusters": ""
+   },
+   "metrics": {
+    "settle_time_after_slew": {
+     "kind": "time_to_threshold",
+     "value": 28.200000000000017,
+     "pass": null,
+     "rel_tol": 0.01
+    },
+    "ape_los_on_target_p9973": {
+     "kind": "ape_los",
+     "value": 0.005506229902498288,
+     "pass": 1,
+     "rel_tol": 1e-06
+    },
+    "wheel_momentum_peak": {
+     "kind": "wheel_momentum_peak",
+     "value": 0.004,
+     "pass": null,
+     "rel_tol": 1e-06
+    }
+   }
+  },
+  "agile_slew_fmr_rcs": {
+   "algorithms": {
+    "allocation": "idmas_split",
+    "attitude": "mekf",
+    "detumble": "bdot_gyro",
+    "mtq_pointing": "mtq_pd",
+    "pointing": "pid",
+    "sun_acquisition": "sunspin_l1l2",
+    "thrusters": "rcs_pwm"
+   },
+   "metrics": {
+    "settle_time_after_slew": {
+     "kind": "time_to_threshold",
+     "value": 51.19999999999999,
+     "pass": null,
+     "rel_tol": 0.01
+    },
+    "ape_los_on_target_p9973": {
+     "kind": "ape_los",
+     "value": 0.006691616030785554,
+     "pass": 1,
+     "rel_tol": 1e-06
+    },
+    "wheel_momentum_peak": {
+     "kind": "wheel_momentum_peak",
+     "value": 0.0010015354048830616,
+     "pass": null,
+     "rel_tol": 1e-06
+    }
+   }
+  },
+  "agile_slew_img": {
+   "algorithms": {
+    "allocation": "rotor_pinv",
+    "attitude": "mekf",
+    "detumble": "bdot_gyro",
+    "mtq_pointing": "mtq_pd",
+    "pointing": "pid",
+    "sun_acquisition": "sunspin_l1l2",
+    "thrusters": ""
+   },
+   "metrics": {
+    "settle_time_after_slew": {
+     "kind": "time_to_threshold",
+     "value": 54.400000000000034,
+     "pass": null,
+     "rel_tol": 0.01
+    },
+    "ape_los_on_target_p9973": {
+     "kind": "ape_los",
+     "value": 0.007962962674457466,
+     "pass": 1,
+     "rel_tol": 1e-06
+    },
+    "wheel_momentum_peak": {
+     "kind": "wheel_momentum_peak",
+     "value": 0.006911049074125494,
+     "pass": null,
+     "rel_tol": 1e-06
+    }
+   }
+  },
+  "agile_slew_rw_rcs": {
+   "algorithms": {
+    "allocation": "rotor_pinv",
+    "attitude": "mekf",
+    "detumble": "bdot_gyro",
+    "mtq_pointing": "mtq_pd",
+    "pointing": "pid",
+    "sun_acquisition": "sunspin_l1l2",
+    "thrusters": "rcs_pwm"
+   },
+   "metrics": {
+    "settle_time_after_slew": {
+     "kind": "time_to_threshold",
+     "value": 36.0,
+     "pass": null,
+     "rel_tol": 0.01
+    },
+    "ape_los_on_target_p9973": {
+     "kind": "ape_los",
+     "value": 0.008166906672949035,
+     "pass": 1,
+     "rel_tol": 1e-06
+    },
+    "wheel_momentum_peak": {
+     "kind": "wheel_momentum_peak",
+     "value": 0.00339358486290572,
+     "pass": null,
+     "rel_tol": 1e-06
+    }
+   }
+  },
+  "agile_slew_vscmg": {
+   "algorithms": {
+    "allocation": "vscmg_sr",
+    "attitude": "mekf",
+    "detumble": "bdot_gyro",
+    "mtq_pointing": "mtq_pd",
+    "pointing": "pid",
+    "sun_acquisition": "sunspin_l1l2",
+    "thrusters": ""
+   },
+   "metrics": {
+    "settle_time_after_slew": {
+     "kind": "time_to_threshold",
+     "value": 49.69999999999999,
+     "pass": null,
+     "rel_tol": 0.01
+    },
+    "ape_los_on_target_p9973": {
+     "kind": "ape_los",
+     "value": 0.011646084670752,
+     "pass": 0,
+     "rel_tol": 1e-06
+    },
+    "wheel_momentum_peak": {
+     "kind": "wheel_momentum_peak",
+     "value": 0.008037417611313352,
+     "pass": null,
+     "rel_tol": 1e-06
+    }
+   }
+  },
+  "detumble_ais": {
+   "algorithms": {
+    "allocation": "",
+    "attitude": "mekf",
+    "detumble": "bdot_gyro",
+    "mtq_pointing": "mtq_pd",
+    "pointing": "",
+    "sun_acquisition": "sunspin_l1l2",
+    "thrusters": ""
+   },
+   "metrics": {
+    "detumble_time": {
+     "kind": "time_to_rate",
+     "value": 37.74,
+     "pass": 1,
+     "rel_tol": 1e-06
+    },
+    "power_mean": {
+     "kind": "power_mean",
+     "value": 0.02192329232985533,
+     "pass": 1,
+     "rel_tol": 1e-06
+    },
+    "power_peak": {
+     "kind": "power_peak",
+     "value": 0.5476232337412641,
+     "pass": 1,
+     "rel_tol": 1e-06
+    }
+   }
+  },
+  "detumble_ais_bangbang": {
+   "algorithms": {
+    "allocation": "",
+    "attitude": "mekf",
+    "detumble": "bdot_bangbang",
+    "mtq_pointing": "mtq_pd",
+    "pointing": "",
+    "sun_acquisition": "sunspin_l1l2",
+    "thrusters": ""
+   },
+   "metrics": {
+    "detumble_time": {
+     "kind": "time_to_rate",
+     "value": 55.74,
+     "pass": 1,
+     "rel_tol": 1e-06
+    },
+    "power_mean": {
+     "kind": "power_mean",
+     "value": 0.45558814696658373,
+     "pass": 1,
+     "rel_tol": 1e-06
+    },
+    "power_peak": {
+     "kind": "power_peak",
+     "value": 0.7169983520004882,
+     "pass": 1,
+     "rel_tol": 1e-06
+    }
+   }
+  },
+  "detumble_ais_mag": {
+   "algorithms": {
+    "allocation": "",
+    "attitude": "mekf",
+    "detumble": "bdot_mag",
+    "mtq_pointing": "mtq_pd",
+    "pointing": "",
+    "sun_acquisition": "sunspin_l1l2",
+    "thrusters": ""
+   },
+   "metrics": {
+    "detumble_time": {
+     "kind": "time_to_rate",
+     "value": 41.09,
+     "pass": 1,
+     "rel_tol": 1e-06
+    },
+    "power_mean": {
+     "kind": "power_mean",
+     "value": 0.07734011413759496,
+     "pass": 1,
+     "rel_tol": 1e-06
+    },
+    "power_peak": {
+     "kind": "power_peak",
+     "value": 0.6482654194769127,
+     "pass": 1,
+     "rel_tol": 1e-06
+    }
+   }
+  },
+  "detumble_img": {
+   "algorithms": {
+    "allocation": "rotor_pinv",
+    "attitude": "mekf",
+    "detumble": "bdot_gyro",
+    "mtq_pointing": "mtq_pd",
+    "pointing": "pid",
+    "sun_acquisition": "sunspin_l1l2",
+    "thrusters": ""
+   },
+   "metrics": {
+    "detumble_time": {
+     "kind": "time_to_rate",
+     "value": 47.575,
+     "pass": 1,
+     "rel_tol": 1e-06
+    }
+   }
+  },
+  "detumble_rcs": {
+   "algorithms": {
+    "allocation": "rotor_pinv",
+    "attitude": "mekf",
+    "detumble": "bdot_gyro",
+    "mtq_pointing": "mtq_pd",
+    "pointing": "pid",
+    "sun_acquisition": "sunspin_l1l2",
+    "thrusters": "rcs_pwm"
+   },
+   "metrics": {
+    "detumble_time": {
+     "kind": "time_to_rate",
+     "value": null,
+     "pass": 0,
+     "rel_tol": 1e-06
+    },
+    "propellant": {
+     "kind": "propellant",
+     "value": 0.10214937538432924,
+     "pass": null,
+     "rel_tol": 1e-06
+    }
+   }
+  },
+  "fault_coil_ais": {
+   "algorithms": {
+    "allocation": "",
+    "attitude": "mekf",
+    "detumble": "bdot_gyro",
+    "mtq_pointing": "mtq_pd",
+    "pointing": "",
+    "sun_acquisition": "sunspin_l1l2",
+    "thrusters": ""
+   },
+   "metrics": {
+    "detumble_time": {
+     "kind": "time_to_rate",
+     "value": 82.19000000000001,
+     "pass": 1,
+     "rel_tol": 1e-06
+    },
+    "power_mean": {
+     "kind": "power_mean",
+     "value": 0.01818570313469999,
+     "pass": 1,
+     "rel_tol": 1e-06
+    },
+    "power_peak": {
+     "kind": "power_peak",
+     "value": 0.5476232337412641,
+     "pass": 1,
+     "rel_tol": 1e-06
+    }
+   }
+  },
+  "fault_gimbal_cmg": {
+   "algorithms": {
+    "allocation": "cmg_sr",
+    "attitude": "mekf",
+    "detumble": "bdot_gyro",
+    "mtq_pointing": "mtq_pd",
+    "pointing": "pid",
+    "sun_acquisition": "sunspin_l1l2",
+    "thrusters": ""
+   },
+   "metrics": {
+    "ape_los_p9973": {
+     "kind": "ape_los",
+     "value": 0.005704917870394455,
+     "pass": 1,
+     "rel_tol": 1e-06
+    },
+    "ape_los_max": {
+     "kind": "ape_los",
+     "value": 0.006534094323968318,
+     "pass": null,
+     "rel_tol": 1e-06
+    },
+    "ape_3ax_p9973": {
+     "kind": "ape",
+     "value": 0.007068612651389451,
+     "pass": null,
+     "rel_tol": 1e-06
+    },
+    "ake_los_p9973": {
+     "kind": "ake_los",
+     "value": 0.002868412380909158,
+     "pass": 1,
+     "rel_tol": 1e-06
+    },
+    "rate_stability_p9973": {
+     "kind": "rate_stability",
+     "value": 0.0029871894406951665,
+     "pass": 1,
+     "rel_tol": 1e-06
+    },
+    "time_to_0p01_deg": {
+     "kind": "time_to_threshold",
+     "value": 67.2,
+     "pass": null,
+     "rel_tol": 0.01
+    },
+    "wheel_momentum_peak": {
+     "kind": "wheel_momentum_peak",
+     "value": 0.004,
+     "pass": null,
+     "rel_tol": 1e-06
+    },
+    "power_mean": {
+     "kind": "power_mean",
+     "value": 1.6100357949455288,
+     "pass": 1,
+     "rel_tol": 1e-06
+    }
+   }
+  },
+  "fault_gps_img": {
+   "algorithms": {
+    "allocation": "rotor_pinv",
+    "attitude": "mekf",
+    "detumble": "bdot_gyro",
+    "mtq_pointing": "mtq_pd",
+    "pointing": "pid",
+    "sun_acquisition": "sunspin_l1l2",
+    "thrusters": ""
+   },
+   "metrics": {
+    "ape_los_p9973": {
+     "kind": "ape_los",
+     "value": 0.011195902058714414,
+     "pass": 0,
+     "rel_tol": 1e-06
+    },
+    "ake_los_p9973": {
+     "kind": "ake_los",
+     "value": 0.0028393882780055357,
+     "pass": 1,
+     "rel_tol": 1e-06
+    },
+    "power_mean": {
+     "kind": "power_mean",
+     "value": 1.5592197402484875,
+     "pass": 1,
+     "rel_tol": 1e-06
+    }
+   }
+  },
+  "fault_gyro_ais": {
+   "algorithms": {
+    "allocation": "",
+    "attitude": "mekf",
+    "detumble": "bdot_gyro",
+    "mtq_pointing": "mtq_pd",
+    "pointing": "",
+    "sun_acquisition": "sunspin_l1l2",
+    "thrusters": ""
+   },
+   "metrics": {
+    "ape_3axis_last_orbit": {
+     "kind": "ape",
+     "value": 147.82600704377793,
+     "pass": null,
+     "rel_tol": 1e-06
+    },
+    "ape_los_last_orbit": {
+     "kind": "ape_los",
+     "value": 10.918155064822782,
+     "pass": 0,
+     "rel_tol": 1e-06
+    },
+    "ake_los_last_orbit": {
+     "kind": "ake_los",
+     "value": 1.0382992304791432,
+     "pass": 1,
+     "rel_tol": 1e-06
+    },
+    "power_mean": {
+     "kind": "power_mean",
+     "value": 0.01084420430901046,
+     "pass": 1,
+     "rel_tol": 1e-06
+    }
+   }
+  },
+  "fault_st_img": {
+   "algorithms": {
+    "allocation": "rotor_pinv",
+    "attitude": "mekf",
+    "detumble": "bdot_gyro",
+    "mtq_pointing": "mtq_pd",
+    "pointing": "pid",
+    "sun_acquisition": "sunspin_l1l2",
+    "thrusters": ""
+   },
+   "metrics": {
+    "ape_los_p9973": {
+     "kind": "ape_los",
+     "value": 0.006980034947293854,
+     "pass": 1,
+     "rel_tol": 1e-06
+    },
+    "ape_los_max": {
+     "kind": "ape_los",
+     "value": 0.007944739096783983,
+     "pass": null,
+     "rel_tol": 1e-06
+    },
+    "ape_3ax_p9973": {
+     "kind": "ape",
+     "value": 0.007763784726969883,
+     "pass": null,
+     "rel_tol": 1e-06
+    },
+    "ake_los_p9973": {
+     "kind": "ake_los",
+     "value": 0.003055652182755497,
+     "pass": 1,
+     "rel_tol": 1e-06
+    },
+    "rate_stability_p9973": {
+     "kind": "rate_stability",
+     "value": 0.003483718210793635,
+     "pass": 1,
+     "rel_tol": 1e-06
+    },
+    "time_to_0p01_deg": {
+     "kind": "time_to_threshold",
+     "value": 67.2,
+     "pass": null,
+     "rel_tol": 0.01
+    },
+    "wheel_momentum_peak": {
+     "kind": "wheel_momentum_peak",
+     "value": 0.0026152529848998385,
+     "pass": null,
+     "rel_tol": 1e-06
+    },
+    "power_mean": {
+     "kind": "power_mean",
+     "value": 1.5592203215119478,
+     "pass": 1,
+     "rel_tol": 1e-06
+    }
+   }
+  },
+  "fault_valve_rcs": {
+   "algorithms": {
+    "allocation": "rotor_pinv",
+    "attitude": "mekf",
+    "detumble": "bdot_gyro",
+    "mtq_pointing": "mtq_pd",
+    "pointing": "pid",
+    "sun_acquisition": "sunspin_l1l2",
+    "thrusters": "rcs_pwm"
+   },
+   "metrics": {
+    "ape_los_p9973": {
+     "kind": "ape_los",
+     "value": 2.7485240528683623,
+     "pass": 0,
+     "rel_tol": 1e-06
+    },
+    "ake_los_p9973": {
+     "kind": "ake_los",
+     "value": 0.0027277711256880784,
+     "pass": 1,
+     "rel_tol": 1e-06
+    },
+    "power_mean": {
+     "kind": "power_mean",
+     "value": 1.5129131523755033,
+     "pass": 1,
+     "rel_tol": 1e-06
+    }
+   }
+  },
+  "fault_wheel_img": {
+   "algorithms": {
+    "allocation": "rotor_pinv",
+    "attitude": "mekf",
+    "detumble": "bdot_gyro",
+    "mtq_pointing": "mtq_pd",
+    "pointing": "pid",
+    "sun_acquisition": "sunspin_l1l2",
+    "thrusters": ""
+   },
+   "metrics": {
+    "ape_los_p9973": {
+     "kind": "ape_los",
+     "value": 0.6800073401388947,
+     "pass": 0,
+     "rel_tol": 1e-06
+    },
+    "ape_los_max": {
+     "kind": "ape_los",
+     "value": 0.6992970768013816,
+     "pass": null,
+     "rel_tol": 1e-06
+    },
+    "ape_3ax_p9973": {
+     "kind": "ape",
+     "value": 0.6800087289838576,
+     "pass": null,
+     "rel_tol": 1e-06
+    },
+    "ake_los_p9973": {
+     "kind": "ake_los",
+     "value": 0.002982978579997313,
+     "pass": 1,
+     "rel_tol": 1e-06
+    },
+    "rate_stability_p9973": {
+     "kind": "rate_stability",
+     "value": 0.03142886711997564,
+     "pass": 0,
+     "rel_tol": 1e-06
+    },
+    "time_to_0p01_deg": {
+     "kind": "time_to_threshold",
+     "value": 67.2,
+     "pass": null,
+     "rel_tol": 0.01
+    },
+    "wheel_momentum_peak": {
+     "kind": "wheel_momentum_peak",
+     "value": 0.002595751665067093,
+     "pass": null,
+     "rel_tol": 1e-06
+    },
+    "power_mean": {
+     "kind": "power_mean",
+     "value": 1.1380259126253365,
+     "pass": 1,
+     "rel_tol": 1e-06
+    }
+   }
+  },
+  "fine_hold_cmg": {
+   "algorithms": {
+    "allocation": "cmg_sr",
+    "attitude": "mekf",
+    "detumble": "bdot_gyro",
+    "mtq_pointing": "mtq_pd",
+    "pointing": "pid",
+    "sun_acquisition": "sunspin_l1l2",
+    "thrusters": ""
+   },
+   "metrics": {
+    "ape_los_p9973": {
+     "kind": "ape_los",
+     "value": 0.005217901465699834,
+     "pass": 1,
+     "rel_tol": 1e-06
+    },
+    "ape_los_max": {
+     "kind": "ape_los",
+     "value": 0.006223455199435985,
+     "pass": null,
+     "rel_tol": 1e-06
+    },
+    "ape_3ax_p9973": {
+     "kind": "ape",
+     "value": 0.006818021022255577,
+     "pass": null,
+     "rel_tol": 1e-06
+    },
+    "ake_los_p9973": {
+     "kind": "ake_los",
+     "value": 0.0028476312918719274,
+     "pass": 1,
+     "rel_tol": 1e-06
+    },
+    "rate_stability_p9973": {
+     "kind": "rate_stability",
+     "value": 0.002468584428508412,
+     "pass": 1,
+     "rel_tol": 1e-06
+    },
+    "time_to_0p01_deg": {
+     "kind": "time_to_threshold",
+     "value": 67.2,
+     "pass": null,
+     "rel_tol": 0.01
+    },
+    "wheel_momentum_peak": {
+     "kind": "wheel_momentum_peak",
+     "value": 0.004,
+     "pass": null,
+     "rel_tol": 1e-06
+    },
+    "power_mean": {
+     "kind": "power_mean",
+     "value": 1.610055876359756,
+     "pass": 1,
+     "rel_tol": 1e-06
+    }
+   }
+  },
+  "fine_hold_fmr": {
+   "algorithms": {
+    "allocation": "idmas_split",
+    "attitude": "mekf",
+    "detumble": "bdot_gyro",
+    "mtq_pointing": "mtq_pd",
+    "pointing": "pid",
+    "sun_acquisition": "sunspin_l1l2",
+    "thrusters": ""
+   },
+   "metrics": {
+    "ape_los_p9973": {
+     "kind": "ape_los",
+     "value": 0.005961977239161324,
+     "pass": 1,
+     "rel_tol": 1e-06
+    },
+    "ape_los_max": {
+     "kind": "ape_los",
+     "value": 0.007703375169450033,
+     "pass": null,
+     "rel_tol": 1e-06
+    },
+    "ape_3ax_p9973": {
+     "kind": "ape",
+     "value": 0.007083129490055442,
+     "pass": null,
+     "rel_tol": 1e-06
+    },
+    "ake_los_p9973": {
+     "kind": "ake_los",
+     "value": 0.002868093820091756,
+     "pass": 1,
+     "rel_tol": 1e-06
+    },
+    "rate_stability_p9973": {
+     "kind": "rate_stability",
+     "value": 0.004811370410433045,
+     "pass": 1,
+     "rel_tol": 1e-06
+    },
+    "time_to_0p01_deg": {
+     "kind": "time_to_threshold",
+     "value": 66.9,
+     "pass": null,
+     "rel_tol": 0.01
+    },
+    "wheel_momentum_peak": {
+     "kind": "wheel_momentum_peak",
+     "value": 0.00014337412788191487,
+     "pass": null,
+     "rel_tol": 1e-06
+    },
+    "power_mean": {
+     "kind": "power_mean",
+     "value": 0.1012297024303643,
+     "pass": 1,
+     "rel_tol": 1e-06
+    }
+   }
+  },
+  "fine_hold_fmr_rcs": {
+   "algorithms": {
+    "allocation": "idmas_split",
+    "attitude": "mekf",
+    "detumble": "bdot_gyro",
+    "mtq_pointing": "mtq_pd",
+    "pointing": "pid",
+    "sun_acquisition": "sunspin_l1l2",
+    "thrusters": "rcs_pwm"
+   },
+   "metrics": {
+    "ape_los_p9973": {
+     "kind": "ape_los",
+     "value": 0.005961977239161324,
+     "pass": 1,
+     "rel_tol": 1e-06
+    },
+    "ape_los_max": {
+     "kind": "ape_los",
+     "value": 0.007703375169450033,
+     "pass": null,
+     "rel_tol": 1e-06
+    },
+    "ape_3ax_p9973": {
+     "kind": "ape",
+     "value": 0.007083129490055442,
+     "pass": null,
+     "rel_tol": 1e-06
+    },
+    "ake_los_p9973": {
+     "kind": "ake_los",
+     "value": 0.002868093820091756,
+     "pass": 1,
+     "rel_tol": 1e-06
+    },
+    "rate_stability_p9973": {
+     "kind": "rate_stability",
+     "value": 0.004811370410433045,
+     "pass": 1,
+     "rel_tol": 1e-06
+    },
+    "time_to_0p01_deg": {
+     "kind": "time_to_threshold",
+     "value": 66.9,
+     "pass": null,
+     "rel_tol": 0.01
+    },
+    "wheel_momentum_peak": {
+     "kind": "wheel_momentum_peak",
+     "value": 0.00014337412788191487,
+     "pass": null,
+     "rel_tol": 1e-06
+    },
+    "power_mean": {
+     "kind": "power_mean",
+     "value": 0.1012297024303643,
+     "pass": 1,
+     "rel_tol": 1e-06
+    }
+   }
+  },
+  "fine_hold_img": {
+   "algorithms": {
+    "allocation": "rotor_pinv",
+    "attitude": "mekf",
+    "detumble": "bdot_gyro",
+    "mtq_pointing": "mtq_pd",
+    "pointing": "pid",
+    "sun_acquisition": "sunspin_l1l2",
+    "thrusters": ""
+   },
+   "metrics": {
+    "ape_los_p9973": {
+     "kind": "ape_los",
+     "value": 0.006872698614672029,
+     "pass": 1,
+     "rel_tol": 1e-06
+    },
+    "ape_los_max": {
+     "kind": "ape_los",
+     "value": 0.007970323846471925,
+     "pass": null,
+     "rel_tol": 1e-06
+    },
+    "ape_3ax_p9973": {
+     "kind": "ape",
+     "value": 0.007430356286701845,
+     "pass": null,
+     "rel_tol": 1e-06
+    },
+    "ake_los_p9973": {
+     "kind": "ake_los",
+     "value": 0.002841851342298204,
+     "pass": 1,
+     "rel_tol": 1e-06
+    },
+    "rate_stability_p9973": {
+     "kind": "rate_stability",
+     "value": 0.0034932579292065937,
+     "pass": 1,
+     "rel_tol": 1e-06
+    },
+    "time_to_0p01_deg": {
+     "kind": "time_to_threshold",
+     "value": 67.2,
+     "pass": null,
+     "rel_tol": 0.01
+    },
+    "wheel_momentum_peak": {
+     "kind": "wheel_momentum_peak",
+     "value": 0.0026152553613971747,
+     "pass": null,
+     "rel_tol": 1e-06
+    },
+    "power_mean": {
+     "kind": "power_mean",
+     "value": 1.5592202806815467,
+     "pass": 1,
+     "rel_tol": 1e-06
+    },
+    "rpe_los_10s_p9973": {
+     "kind": "rpe_los",
+     "value": 0.004253595506023906,
+     "pass": null,
+     "rel_tol": 1e-06
+    },
+    "pde_los_10s_60s_max": {
+     "kind": "pde_los",
+     "value": 0.007326753198115117,
+     "pass": null,
+     "rel_tol": 1e-06
+    },
+    "rke_los_10s_p9973": {
+     "kind": "rke_los",
+     "value": 0.0019411208667568201,
+     "pass": null,
+     "rel_tol": 1e-06
+    },
+    "power_margin_last_orbit": {
+     "kind": "power_margin",
+     "value": 1.6445995191255818,
+     "pass": 1,
+     "rel_tol": 1e-06
+    },
+    "battery_dod_last_orbit": {
+     "kind": "battery_dod",
+     "value": 7.787623473728944,
+     "pass": null,
+     "rel_tol": 1e-06
+    }
+   }
+  },
+  "fine_hold_img_lqr": {
+   "algorithms": {
+    "allocation": "rotor_pinv",
+    "attitude": "mekf",
+    "detumble": "bdot_gyro",
+    "mtq_pointing": "mtq_pd",
+    "pointing": "lqr",
+    "sun_acquisition": "sunspin_l1l2",
+    "thrusters": ""
+   },
+   "metrics": {
+    "ape_los_p9973": {
+     "kind": "ape_los",
+     "value": 0.0042366786181092814,
+     "pass": 1,
+     "rel_tol": 1e-06
+    },
+    "ape_los_max": {
+     "kind": "ape_los",
+     "value": 0.004977393233629942,
+     "pass": null,
+     "rel_tol": 1e-06
+    },
+    "ape_3ax_p9973": {
+     "kind": "ape",
+     "value": 0.007347096618045559,
+     "pass": null,
+     "rel_tol": 1e-06
+    },
+    "ake_los_p9973": {
+     "kind": "ake_los",
+     "value": 0.0028572238890409423,
+     "pass": 1,
+     "rel_tol": 1e-06
+    },
+    "rate_stability_p9973": {
+     "kind": "rate_stability",
+     "value": 0.006898274943426381,
+     "pass": 0,
+     "rel_tol": 1e-06
+    },
+    "time_to_0p01_deg": {
+     "kind": "time_to_threshold",
+     "value": 7.4,
+     "pass": null,
+     "rel_tol": 0.01
+    },
+    "wheel_momentum_peak": {
+     "kind": "wheel_momentum_peak",
+     "value": 0.002967702724226005,
+     "pass": null,
+     "rel_tol": 1e-06
+    },
+    "power_mean": {
+     "kind": "power_mean",
+     "value": 1.5596440948924053,
+     "pass": 1,
+     "rel_tol": 1e-06
+    }
+   }
+  },
+  "fine_hold_img_smc": {
+   "algorithms": {
+    "allocation": "rotor_pinv",
+    "attitude": "mekf",
+    "detumble": "bdot_gyro",
+    "mtq_pointing": "mtq_pd",
+    "pointing": "smc",
+    "sun_acquisition": "sunspin_l1l2",
+    "thrusters": ""
+   },
+   "metrics": {
+    "ape_los_p9973": {
+     "kind": "ape_los",
+     "value": 0.019135399902392804,
+     "pass": 0,
+     "rel_tol": 1e-06
+    },
+    "ape_los_max": {
+     "kind": "ape_los",
+     "value": 0.02077931191995189,
+     "pass": null,
+     "rel_tol": 1e-06
+    },
+    "ape_3ax_p9973": {
+     "kind": "ape",
+     "value": 0.019242405768762776,
+     "pass": null,
+     "rel_tol": 1e-06
+    },
+    "ake_los_p9973": {
+     "kind": "ake_los",
+     "value": 0.0027497116050227643,
+     "pass": 1,
+     "rel_tol": 1e-06
+    },
+    "rate_stability_p9973": {
+     "kind": "rate_stability",
+     "value": 0.0033901569865150646,
+     "pass": 1,
+     "rel_tol": 1e-06
+    },
+    "time_to_0p01_deg": {
+     "kind": "time_to_threshold",
+     "value": null,
+     "pass": null,
+     "rel_tol": 0.01
+    },
+    "wheel_momentum_peak": {
+     "kind": "wheel_momentum_peak",
+     "value": 0.0026161179731348802,
+     "pass": null,
+     "rel_tol": 1e-06
+    },
+    "power_mean": {
+     "kind": "power_mean",
+     "value": 1.5592264001905014,
+     "pass": 1,
+     "rel_tol": 1e-06
+    }
+   }
+  },
+  "fine_hold_rw_rcs": {
+   "algorithms": {
+    "allocation": "rotor_pinv",
+    "attitude": "mekf",
+    "detumble": "bdot_gyro",
+    "mtq_pointing": "mtq_pd",
+    "pointing": "pid",
+    "sun_acquisition": "sunspin_l1l2",
+    "thrusters": "rcs_pwm"
+   },
+   "metrics": {
+    "ape_los_p9973": {
+     "kind": "ape_los",
+     "value": 0.006809842095918563,
+     "pass": 1,
+     "rel_tol": 1e-06
+    },
+    "ape_los_max": {
+     "kind": "ape_los",
+     "value": 0.0078025672931295,
+     "pass": null,
+     "rel_tol": 1e-06
+    },
+    "ape_3ax_p9973": {
+     "kind": "ape",
+     "value": 0.00735885132840874,
+     "pass": null,
+     "rel_tol": 1e-06
+    },
+    "ake_los_p9973": {
+     "kind": "ake_los",
+     "value": 0.0028277257703111292,
+     "pass": 1,
+     "rel_tol": 1e-06
+    },
+    "rate_stability_p9973": {
+     "kind": "rate_stability",
+     "value": 0.003533114784284647,
+     "pass": 1,
+     "rel_tol": 1e-06
+    },
+    "time_to_0p01_deg": {
+     "kind": "time_to_threshold",
+     "value": 67.10000000000001,
+     "pass": null,
+     "rel_tol": 0.01
+    },
+    "wheel_momentum_peak": {
+     "kind": "wheel_momentum_peak",
+     "value": 0.00282112135427007,
+     "pass": null,
+     "rel_tol": 1e-06
+    },
+    "power_mean": {
+     "kind": "power_mean",
+     "value": 1.5320263680137451,
+     "pass": 1,
+     "rel_tol": 1e-06
+    }
+   }
+  },
+  "fine_hold_vscmg": {
+   "algorithms": {
+    "allocation": "vscmg_sr",
+    "attitude": "mekf",
+    "detumble": "bdot_gyro",
+    "mtq_pointing": "mtq_pd",
+    "pointing": "pid",
+    "sun_acquisition": "sunspin_l1l2",
+    "thrusters": ""
+   },
+   "metrics": {
+    "ape_los_p9973": {
+     "kind": "ape_los",
+     "value": 0.00836937684281587,
+     "pass": 1,
+     "rel_tol": 1e-06
+    },
+    "ape_los_max": {
+     "kind": "ape_los",
+     "value": 0.010362153928743014,
+     "pass": null,
+     "rel_tol": 1e-06
+    },
+    "ape_3ax_p9973": {
+     "kind": "ape",
+     "value": 0.008798988383788932,
+     "pass": null,
+     "rel_tol": 1e-06
+    },
+    "ake_los_p9973": {
+     "kind": "ake_los",
+     "value": 0.0028518102573415415,
+     "pass": 1,
+     "rel_tol": 1e-06
+    },
+    "rate_stability_p9973": {
+     "kind": "rate_stability",
+     "value": 0.00473720147339445,
+     "pass": 1,
+     "rel_tol": 1e-06
+    },
+    "time_to_0p01_deg": {
+     "kind": "time_to_threshold",
+     "value": 67.7,
+     "pass": null,
+     "rel_tol": 0.01
+    },
+    "wheel_momentum_peak": {
+     "kind": "wheel_momentum_peak",
+     "value": 0.004181813468180432,
+     "pass": null,
+     "rel_tol": 1e-06
+    },
+    "power_mean": {
+     "kind": "power_mean",
+     "value": 2.0142026840849696,
+     "pass": 0,
+     "rel_tol": 1e-06
+    }
+   }
+  },
+  "mission_ais": {
+   "algorithms": {
+    "allocation": "",
+    "attitude": "mekf",
+    "detumble": "bdot_gyro",
+    "mtq_pointing": "mtq_pd",
+    "pointing": "",
+    "sun_acquisition": "sunspin_l1l2",
+    "thrusters": ""
+   },
+   "metrics": {
+    "detumble_time": {
+     "kind": "time_to_rate",
+     "value": 37.74,
+     "pass": 1,
+     "rel_tol": 1e-06
+    },
+    "ape_los_last_orbit": {
+     "kind": "ape_los",
+     "value": 11.501901673586454,
+     "pass": 0,
+     "rel_tol": 1e-06
+    },
+    "ape_3axis_last_orbit": {
+     "kind": "ape",
+     "value": 138.70501757357312,
+     "pass": null,
+     "rel_tol": 1e-06
+    },
+    "ake_los_last_orbit": {
+     "kind": "ake_los",
+     "value": 1.3160544273519241,
+     "pass": 1,
+     "rel_tol": 1e-06
+    },
+    "power_margin_last_orbit": {
+     "kind": "power_margin",
+     "value": 6.73639149977774,
+     "pass": 1,
+     "rel_tol": 1e-06
+    },
+    "battery_dod_last_orbit": {
+     "kind": "battery_dod",
+     "value": 2.9427722574955406,
+     "pass": null,
+     "rel_tol": 1e-06
+    }
+   }
+  },
+  "mission_cmg": {
+   "algorithms": {
+    "allocation": "cmg_sr",
+    "attitude": "mekf",
+    "detumble": "bdot_gyro",
+    "mtq_pointing": "mtq_pd",
+    "pointing": "pid",
+    "sun_acquisition": "sunspin_l1l2",
+    "thrusters": ""
+   },
+   "metrics": {
+    "detumble_time": {
+     "kind": "time_to_rate",
+     "value": 56.775,
+     "pass": 1,
+     "rel_tol": 1e-06
+    },
+    "ape_los_last_half_orbit_p9973": {
+     "kind": "ape_los",
+     "value": 0.005214474810386373,
+     "pass": 1,
+     "rel_tol": 1e-06
+    }
+   }
+  },
+  "mission_fmr": {
+   "algorithms": {
+    "allocation": "idmas_split",
+    "attitude": "mekf",
+    "detumble": "bdot_gyro",
+    "mtq_pointing": "mtq_pd",
+    "pointing": "pid",
+    "sun_acquisition": "sunspin_l1l2",
+    "thrusters": ""
+   },
+   "metrics": {
+    "detumble_time": {
+     "kind": "time_to_rate",
+     "value": 61.125,
+     "pass": 1,
+     "rel_tol": 1e-06
+    },
+    "ape_los_last_half_orbit_p9973": {
+     "kind": "ape_los",
+     "value": 0.005883743160414358,
+     "pass": 1,
+     "rel_tol": 1e-06
+    }
+   }
+  },
+  "mission_fmr_rcs": {
+   "algorithms": {
+    "allocation": "idmas_split",
+    "attitude": "mekf",
+    "detumble": "bdot_gyro",
+    "mtq_pointing": "mtq_pd",
+    "pointing": "pid",
+    "sun_acquisition": "sunspin_l1l2",
+    "thrusters": "rcs_pwm"
+   },
+   "metrics": {
+    "detumble_time": {
+     "kind": "time_to_rate",
+     "value": 61.125,
+     "pass": 1,
+     "rel_tol": 1e-06
+    },
+    "ape_los_last_half_orbit_p9973": {
+     "kind": "ape_los",
+     "value": 0.005883743160414358,
+     "pass": 1,
+     "rel_tol": 1e-06
+    }
+   }
+  },
+  "mission_img": {
+   "algorithms": {
+    "allocation": "rotor_pinv",
+    "attitude": "mekf",
+    "detumble": "bdot_gyro",
+    "mtq_pointing": "mtq_pd",
+    "pointing": "pid",
+    "sun_acquisition": "sunspin_l1l2",
+    "thrusters": ""
+   },
+   "metrics": {
+    "detumble_time": {
+     "kind": "time_to_rate",
+     "value": 49.84166666666667,
+     "pass": 1,
+     "rel_tol": 1e-06
+    },
+    "ape_los_last_half_orbit_p9973": {
+     "kind": "ape_los",
+     "value": 0.007339627175564502,
+     "pass": 1,
+     "rel_tol": 1e-06
+    },
+    "power_margin_last_orbit": {
+     "kind": "power_margin",
+     "value": 1.634309237238627,
+     "pass": 1,
+     "rel_tol": 1e-06
+    },
+    "battery_dod_last_orbit": {
+     "kind": "battery_dod",
+     "value": 7.786887412099441,
+     "pass": null,
+     "rel_tol": 1e-06
+    }
+   }
+  },
+  "mission_rw_rcs": {
+   "algorithms": {
+    "allocation": "rotor_pinv",
+    "attitude": "mekf",
+    "detumble": "bdot_gyro",
+    "mtq_pointing": "mtq_pd",
+    "pointing": "pid",
+    "sun_acquisition": "sunspin_l1l2",
+    "thrusters": "rcs_pwm"
+   },
+   "metrics": {
+    "detumble_time": {
+     "kind": "time_to_rate",
+     "value": 49.825,
+     "pass": 1,
+     "rel_tol": 1e-06
+    },
+    "ape_los_last_half_orbit_p9973": {
+     "kind": "ape_los",
+     "value": 0.014886904471609062,
+     "pass": 0,
+     "rel_tol": 1e-06
+    }
+   }
+  },
+  "mission_vscmg": {
+   "algorithms": {
+    "allocation": "vscmg_sr",
+    "attitude": "mekf",
+    "detumble": "bdot_gyro",
+    "mtq_pointing": "mtq_pd",
+    "pointing": "pid",
+    "sun_acquisition": "sunspin_l1l2",
+    "thrusters": ""
+   },
+   "metrics": {
+    "detumble_time": {
+     "kind": "time_to_rate",
+     "value": 56.891666666666666,
+     "pass": 1,
+     "rel_tol": 1e-06
+    },
+    "ape_los_last_half_orbit_p9973": {
+     "kind": "ape_los",
+     "value": 0.009744620504449427,
+     "pass": 1,
+     "rel_tol": 1e-06
+    }
+   }
+  },
+  "nadir_hold_ais": {
+   "algorithms": {
+    "allocation": "",
+    "attitude": "mekf",
+    "detumble": "bdot_gyro",
+    "mtq_pointing": "mtq_pd",
+    "pointing": "",
+    "sun_acquisition": "sunspin_l1l2",
+    "thrusters": ""
+   },
+   "metrics": {
+    "ape_3axis_last_orbit": {
+     "kind": "ape",
+     "value": 141.50478261208073,
+     "pass": null,
+     "rel_tol": 1e-06
+    },
+    "ape_los_last_orbit": {
+     "kind": "ape_los",
+     "value": 10.668629181550926,
+     "pass": 0,
+     "rel_tol": 1e-06
+    },
+    "ake_los_last_orbit": {
+     "kind": "ake_los",
+     "value": 1.6379604164162762,
+     "pass": 1,
+     "rel_tol": 1e-06
+    },
+    "power_mean": {
+     "kind": "power_mean",
+     "value": 0.010596882533282304,
+     "pass": 1,
+     "rel_tol": 1e-06
+    },
+    "power_margin_last_orbit": {
+     "kind": "power_margin",
+     "value": 6.506427939978209,
+     "pass": 1,
+     "rel_tol": 1e-06
+    },
+    "battery_dod_last_orbit": {
+     "kind": "battery_dod",
+     "value": 2.9446600558885816,
+     "pass": null,
+     "rel_tol": 1e-06
+    }
+   }
+  },
+  "nadir_hold_ais_css": {
+   "algorithms": {
+    "allocation": "",
+    "attitude": "mekf",
+    "detumble": "bdot_gyro",
+    "mtq_pointing": "mtq_pd",
+    "pointing": "",
+    "sun_acquisition": "sunspin_l1l2",
+    "thrusters": ""
+   },
+   "metrics": {
+    "ape_3axis_last_orbit": {
+     "kind": "ape",
+     "value": 179.93938653639137,
+     "pass": null,
+     "rel_tol": 1e-06
+    },
+    "ape_los_last_orbit": {
+     "kind": "ape_los",
+     "value": 9.706064604999048,
+     "pass": 1,
+     "rel_tol": 1e-06
+    },
+    "ake_los_last_orbit": {
+     "kind": "ake_los",
+     "value": 1.5687609453593554,
+     "pass": 1,
+     "rel_tol": 1e-06
+    },
+    "power_mean": {
+     "kind": "power_mean",
+     "value": 0.010984113333902592,
+     "pass": 1,
+     "rel_tol": 1e-06
+    }
+   }
+  },
+  "safe_mode_ais": {
+   "algorithms": {
+    "allocation": "",
+    "attitude": "mekf",
+    "detumble": "bdot_gyro",
+    "mtq_pointing": "mtq_pd",
+    "pointing": "",
+    "sun_acquisition": "sunspin_l1l2",
+    "thrusters": ""
+   },
+   "metrics": {
+    "safe_mode_entry": {
+     "kind": "time_to_mode",
+     "value": 101.00666666666667,
+     "pass": null,
+     "rel_tol": 1e-06
+    },
+    "recovery_to_ape": {
+     "kind": "time_to_threshold",
+     "value": 72.50666666666669,
+     "pass": null,
+     "rel_tol": 0.01
+    },
+    "ape_los_last_orbit": {
+     "kind": "ape_los",
+     "value": 12.295126389129983,
+     "pass": 0,
+     "rel_tol": 1e-06
+    }
+   }
+  },
+  "slew_cmg": {
+   "algorithms": {
+    "allocation": "cmg_sr",
+    "attitude": "mekf",
+    "detumble": "bdot_gyro",
+    "mtq_pointing": "mtq_pd",
+    "pointing": "pid",
+    "sun_acquisition": "sunspin_l1l2",
+    "thrusters": ""
+   },
+   "metrics": {
+    "settle_time_after_slew": {
+     "kind": "time_to_threshold",
+     "value": 12.400000000000034,
+     "pass": 1,
+     "rel_tol": 0.01
+    },
+    "ape_los_on_target_p9973": {
+     "kind": "ape_los",
+     "value": 0.0036812971256004455,
+     "pass": 1,
+     "rel_tol": 1e-06
+    },
+    "wheel_momentum_peak": {
+     "kind": "wheel_momentum_peak",
+     "value": 0.004,
+     "pass": null,
+     "rel_tol": 1e-06
+    }
+   }
+  },
+  "slew_fmr": {
+   "algorithms": {
+    "allocation": "idmas_split",
+    "attitude": "mekf",
+    "detumble": "bdot_gyro",
+    "mtq_pointing": "mtq_pd",
+    "pointing": "pid",
+    "sun_acquisition": "sunspin_l1l2",
+    "thrusters": ""
+   },
+   "metrics": {
+    "settle_time_after_slew": {
+     "kind": "time_to_threshold",
+     "value": 12.900000000000034,
+     "pass": 1,
+     "rel_tol": 0.01
+    },
+    "ape_los_on_target_p9973": {
+     "kind": "ape_los",
+     "value": 0.006193293040951817,
+     "pass": 1,
+     "rel_tol": 1e-06
+    },
+    "wheel_momentum_peak": {
+     "kind": "wheel_momentum_peak",
+     "value": 0.00010568941860899686,
+     "pass": null,
+     "rel_tol": 1e-06
+    }
+   }
+  },
+  "slew_fmr_rcs": {
+   "algorithms": {
+    "allocation": "idmas_split",
+    "attitude": "mekf",
+    "detumble": "bdot_gyro",
+    "mtq_pointing": "mtq_pd",
+    "pointing": "pid",
+    "sun_acquisition": "sunspin_l1l2",
+    "thrusters": "rcs_pwm"
+   },
+   "metrics": {
+    "settle_time_after_slew": {
+     "kind": "time_to_threshold",
+     "value": 12.900000000000034,
+     "pass": 1,
+     "rel_tol": 0.01
+    },
+    "ape_los_on_target_p9973": {
+     "kind": "ape_los",
+     "value": 0.006193293040951817,
+     "pass": 1,
+     "rel_tol": 1e-06
+    },
+    "wheel_momentum_peak": {
+     "kind": "wheel_momentum_peak",
+     "value": 0.00010568941860899686,
+     "pass": null,
+     "rel_tol": 1e-06
+    }
+   }
+  },
+  "slew_img": {
+   "algorithms": {
+    "allocation": "rotor_pinv",
+    "attitude": "mekf",
+    "detumble": "bdot_gyro",
+    "mtq_pointing": "mtq_pd",
+    "pointing": "pid",
+    "sun_acquisition": "sunspin_l1l2",
+    "thrusters": ""
+   },
+   "metrics": {
+    "settle_time_after_slew": {
+     "kind": "time_to_threshold",
+     "value": 12.100000000000023,
+     "pass": 1,
+     "rel_tol": 0.01
+    },
+    "ape_los_on_target_p9973": {
+     "kind": "ape_los",
+     "value": 0.007934166871821106,
+     "pass": 1,
+     "rel_tol": 1e-06
+    },
+    "wheel_momentum_peak": {
+     "kind": "wheel_momentum_peak",
+     "value": 0.0027589568120630135,
+     "pass": null,
+     "rel_tol": 1e-06
+    }
+   }
+  },
+  "slew_img_lqr": {
+   "algorithms": {
+    "allocation": "rotor_pinv",
+    "attitude": "mekf",
+    "detumble": "bdot_gyro",
+    "mtq_pointing": "mtq_pd",
+    "pointing": "lqr",
+    "sun_acquisition": "sunspin_l1l2",
+    "thrusters": ""
+   },
+   "metrics": {
+    "settle_time_after_slew": {
+     "kind": "time_to_threshold",
+     "value": 0.0,
+     "pass": 1,
+     "rel_tol": 0.01
+    },
+    "ape_los_on_target_p9973": {
+     "kind": "ape_los",
+     "value": 0.0047102174424519085,
+     "pass": 1,
+     "rel_tol": 1e-06
+    },
+    "wheel_momentum_peak": {
+     "kind": "wheel_momentum_peak",
+     "value": 0.0027591318600510444,
+     "pass": null,
+     "rel_tol": 1e-06
+    }
+   }
+  },
+  "slew_img_smc": {
+   "algorithms": {
+    "allocation": "rotor_pinv",
+    "attitude": "mekf",
+    "detumble": "bdot_gyro",
+    "mtq_pointing": "mtq_pd",
+    "pointing": "smc",
+    "sun_acquisition": "sunspin_l1l2",
+    "thrusters": ""
+   },
+   "metrics": {
+    "settle_time_after_slew": {
+     "kind": "time_to_threshold",
+     "value": null,
+     "pass": 0,
+     "rel_tol": 0.01
+    },
+    "ape_los_on_target_p9973": {
+     "kind": "ape_los",
+     "value": 0.017837471937538686,
+     "pass": 0,
+     "rel_tol": 1e-06
+    },
+    "wheel_momentum_peak": {
+     "kind": "wheel_momentum_peak",
+     "value": 0.0027589695599758777,
+     "pass": null,
+     "rel_tol": 1e-06
+    }
+   }
+  },
+  "slew_rw_rcs": {
+   "algorithms": {
+    "allocation": "rotor_pinv",
+    "attitude": "mekf",
+    "detumble": "bdot_gyro",
+    "mtq_pointing": "mtq_pd",
+    "pointing": "pid",
+    "sun_acquisition": "sunspin_l1l2",
+    "thrusters": "rcs_pwm"
+   },
+   "metrics": {
+    "settle_time_after_slew": {
+     "kind": "time_to_threshold",
+     "value": 12.100000000000023,
+     "pass": 1,
+     "rel_tol": 0.01
+    },
+    "ape_los_on_target_p9973": {
+     "kind": "ape_los",
+     "value": 0.007921379577610054,
+     "pass": 1,
+     "rel_tol": 1e-06
+    },
+    "wheel_momentum_peak": {
+     "kind": "wheel_momentum_peak",
+     "value": 0.002795523548768937,
+     "pass": null,
+     "rel_tol": 1e-06
+    }
+   }
+  },
+  "slew_vscmg": {
+   "algorithms": {
+    "allocation": "vscmg_sr",
+    "attitude": "mekf",
+    "detumble": "bdot_gyro",
+    "mtq_pointing": "mtq_pd",
+    "pointing": "pid",
+    "sun_acquisition": "sunspin_l1l2",
+    "thrusters": ""
+   },
+   "metrics": {
+    "settle_time_after_slew": {
+     "kind": "time_to_threshold",
+     "value": 13.199999999999989,
+     "pass": 1,
+     "rel_tol": 0.01
+    },
+    "ape_los_on_target_p9973": {
+     "kind": "ape_los",
+     "value": 0.01081680340935087,
+     "pass": 0,
+     "rel_tol": 1e-06
+    },
+    "wheel_momentum_peak": {
+     "kind": "wheel_momentum_peak",
+     "value": 0.004052510532094248,
+     "pass": null,
+     "rel_tol": 1e-06
+    }
+   }
+  },
+  "sun_acq_rotor_img": {
+   "algorithms": {
+    "allocation": "rotor_pinv",
+    "attitude": "mekf",
+    "detumble": "bdot_gyro",
+    "mtq_pointing": "mtq_pd",
+    "pointing": "pid",
+    "sun_acquisition": "sunspin_l1l2",
+    "thrusters": ""
+   },
+   "metrics": {
+    "sun_acquisition_time": {
+     "kind": "time_to_threshold",
+     "value": 2.2083333333333335,
+     "pass": 1,
+     "rel_tol": 0.01
+    },
+    "power_margin_orbit": {
+     "kind": "power_margin",
+     "value": 2.435332193756373,
+     "pass": null,
+     "rel_tol": 1e-06
+    },
+    "battery_dod_orbit": {
+     "kind": "battery_dod",
+     "value": 7.6766067932212305,
+     "pass": null,
+     "rel_tol": 1e-06
+    }
+   }
+  },
+  "sun_fine_img": {
+   "algorithms": {
+    "allocation": "rotor_pinv",
+    "attitude": "mekf",
+    "detumble": "bdot_gyro",
+    "mtq_pointing": "mtq_pd",
+    "pointing": "pid",
+    "sun_acquisition": "sunspin_l1l2",
+    "thrusters": ""
+   },
+   "metrics": {
+    "sun_angle_p95": {
+     "kind": "sun_angle",
+     "value": 0.0068914562091378605,
+     "pass": 1,
+     "rel_tol": 1e-06
+    },
+    "power_margin_orbit": {
+     "kind": "power_margin",
+     "value": 2.297786998894214,
+     "pass": 1,
+     "rel_tol": 1e-06
+    },
+    "power_mean": {
+     "kind": "power_mean",
+     "value": 1.5257310725637643,
+     "pass": 1,
+     "rel_tol": 1e-06
+    }
+   }
+  },
+  "sun_mtq_ais": {
+   "algorithms": {
+    "allocation": "",
+    "attitude": "mekf",
+    "detumble": "bdot_gyro",
+    "mtq_pointing": "mtq_avanzini2021",
+    "pointing": "",
+    "sun_acquisition": "sunspin_l1l2",
+    "thrusters": ""
+   },
+   "metrics": {
+    "sun_angle_last_orbit_p95": {
+     "kind": "sun_angle",
+     "value": 87.26169949427154,
+     "pass": 0,
+     "rel_tol": 1e-06
+    },
+    "power_margin_last_orbit": {
+     "kind": "power_margin",
+     "value": 6.326072815422088,
+     "pass": 1,
+     "rel_tol": 1e-06
+    },
+    "power_mean": {
+     "kind": "power_mean",
+     "value": 0.011127525765301717,
+     "pass": 1,
+     "rel_tol": 1e-06
+    }
+   }
+  },
+  "sun_spin_ais": {
+   "algorithms": {
+    "allocation": "",
+    "attitude": "mekf",
+    "detumble": "genbdot_l1",
+    "mtq_pointing": "mtq_pd",
+    "pointing": "",
+    "sun_acquisition": "sunspin_l1l2",
+    "thrusters": ""
+   },
+   "metrics": {
+    "sun_spin_entry": {
+     "kind": "time_to_mode",
+     "value": 63.223333333333336,
+     "pass": 1,
+     "rel_tol": 1e-06
+    },
+    "sun_angle_last_orbit": {
+     "kind": "sun_angle",
+     "value": 142.34976005965504,
+     "pass": 0,
+     "rel_tol": 1e-06
+    },
+    "spin_rate_error_last_orbit": {
+     "kind": "spin_rate_error",
+     "value": 1.9540002372320848,
+     "pass": 0,
+     "rel_tol": 1e-06
+    },
+    "sun_spin_share_last_orbit": {
+     "kind": "mode_fraction",
+     "value": 0.0,
+     "pass": 0,
+     "rel_tol": 1e-06
+    },
+    "power_mean": {
+     "kind": "power_mean",
+     "value": 0.4641378108999595,
+     "pass": 1,
+     "rel_tol": 1e-06
+    }
+   }
+  },
+  "target_img": {
+   "algorithms": {
+    "allocation": "rotor_pinv",
+    "attitude": "mekf",
+    "detumble": "bdot_gyro",
+    "mtq_pointing": "mtq_pd",
+    "pointing": "pid",
+    "sun_acquisition": "sunspin_l1l2",
+    "thrusters": ""
+   },
+   "metrics": {
+    "ape_los_p9973": {
+     "kind": "ape_los",
+     "value": 0.012072315785867403,
+     "pass": 0,
+     "rel_tol": 1e-06
+    },
+    "ake_los_p9973": {
+     "kind": "ake_los",
+     "value": 0.01149205053705737,
+     "pass": 0,
+     "rel_tol": 1e-06
+    },
+    "power_mean": {
+     "kind": "power_mean",
+     "value": 1.5643925203271642,
+     "pass": 1,
+     "rel_tol": 1e-06
+    }
+   }
+  }
+ }
+}

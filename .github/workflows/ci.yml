@@ -45,6 +45,25 @@ jobs:
           python3 -m pip install -q -r tools/requirements-ci.txt
           python3 tools/check_all.py
 
+  golden:
+    name: every scenario re-flown against results/golden.json (tools/golden.py)
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: "3.12"
+      - name: the pinned Rust toolchain (rust-toolchain.toml)
+        run: rustup toolchain install
+      - uses: Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6 # v2
+        with:
+          workspaces: engine
+      - name: the engine
+        run: cargo build --locked --release -p adcs-cli --manifest-path engine/Cargo.toml
+      - name: python3 tools/golden.py check --jobs 4
+        run: python3 tools/golden.py check --jobs 4
+
   firmware:
     name: the flight software on a virtual Cortex-M4 (QEMU)
     runs-on: ubuntu-latest
