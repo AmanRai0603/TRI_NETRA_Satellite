@@ -16,8 +16,8 @@ pub fn call(name: &str, x: &[f64]) -> Option<Vec<f64>> {
             for v in r.iter() { let v = *v; out.push(v); }
         }
         "powersys::power_load" => {
-            if x.len() != 4 { return None; }
-            let r = crate::powersys::power_load(x[0], x[1], x[2], x[3]);
+            if x.len() != 5 { return None; }
+            let r = crate::powersys::power_load(x[0], x[1], x[2], x[3], x[4]);
             out.push(r);
         }
         "powersys::battery_step" => {
@@ -34,6 +34,51 @@ pub fn call(name: &str, x: &[f64]) -> Option<Vec<f64>> {
             if x.len() != 2 { return None; }
             let r = crate::powersys::battery_soc(x[0], x[1]);
             out.push(r);
+        }
+        "sizebudget::budget_line" => {
+            if x.len() != 11 { return None; }
+            let r = crate::sizebudget::budget_line(x[0] as i64, x[1] as i64, x[2] as i64, x[3] as i64, x[4] as i64, x[5], x[6], x[7], x[8], x[9], x[10]);
+            out.push(r.0);
+            out.push(r.1);
+            out.push(r.2);
+            out.push(r.3);
+            out.push(r.4);
+        }
+        "sizebudget::budget_total" => {
+            let mut at: usize = 0;
+            if x.len() < at + 1 { return None; }
+            let n0 = x[at] as usize;
+            if x.len() < at + 1 + n0 { return None; }
+            let mut io0 = x[at + 1..at + 1 + n0].to_vec();
+            at += 1 + n0;
+            if x.len() < at + 1 { return None; }
+            let n1 = x[at] as usize;
+            if x.len() < at + 1 + n1 { return None; }
+            let mut io1 = x[at + 1..at + 1 + n1].to_vec();
+            at += 1 + n1;
+            if x.len() < at + 1 { return None; }
+            let n2 = x[at] as usize;
+            if x.len() < at + 1 + n2 { return None; }
+            let mut io2 = x[at + 1..at + 1 + n2].to_vec();
+            at += 1 + n2;
+            if x.len() < at + 1 { return None; }
+            let n3 = x[at] as usize;
+            if x.len() < at + 1 + n3 { return None; }
+            let mut io3 = x[at + 1..at + 1 + n3].to_vec();
+            at += 1 + n3;
+            if x.len() < at + 1 { return None; }
+            let a4 = { let x = &x[at..]; x[0] as i64 };
+            at += 1;
+            if x.len() != at { return None; }
+            let r = crate::sizebudget::budget_total(&mut io0, &mut io1, &mut io2, &mut io3, a4);
+            out.push(r.0);
+            out.push(r.1);
+            out.push(r.2);
+            out.push(r.3);
+            out.push(io0.len() as f64); for v in io0.iter() { let v = *v; out.push(v); }
+            out.push(io1.len() as f64); for v in io1.iter() { let v = *v; out.push(v); }
+            out.push(io2.len() as f64); for v in io2.iter() { let v = *v; out.push(v); }
+            out.push(io3.len() as f64); for v in io3.iter() { let v = *v; out.push(v); }
         }
         "cmoffset::cm_offset" => {
             if x.len() != 4 { return None; }
@@ -999,19 +1044,25 @@ pub fn call(name: &str, x: &[f64]) -> Option<Vec<f64>> {
             if x.len() < at + 1 { return None; }
             let n3 = x[at] as usize;
             if x.len() < at + 1 + n3 { return None; }
-            let mut io3 = x[at + 1..at + 1 + n3].iter().map(|v| *v as i64).collect::<Vec<i64>>();
+            let mut io3 = x[at + 1..at + 1 + n3].to_vec();
             at += 1 + n3;
             if x.len() < at + 1 { return None; }
-            let a4 = { let x = &x[at..]; x[0] as i64 };
+            let n4 = x[at] as usize;
+            if x.len() < at + 1 + n4 { return None; }
+            let mut io4 = x[at + 1..at + 1 + n4].iter().map(|v| *v as i64).collect::<Vec<i64>>();
+            at += 1 + n4;
+            if x.len() < at + 1 { return None; }
+            let a5 = { let x = &x[at..]; x[0] as i64 };
             at += 1;
             if x.len() != at { return None; }
-            let r = crate::kpimetrics::kpi_adcs_power(&mut io0, &mut io1, &mut io2, &mut io3, a4);
+            let r = crate::kpimetrics::kpi_adcs_power(&mut io0, &mut io1, &mut io2, &mut io3, &mut io4, a5);
             out.push(r.0);
             out.push(r.1);
             out.push(io0.len() as f64); for v in io0.iter() { let v = *v; out.push(v); }
             out.push(io1.len() as f64); for v in io1.iter() { let v = *v; out.push(v); }
             out.push(io2.len() as f64); for v in io2.iter() { let v = *v; out.push(v); }
-            out.push(io3.len() as f64); for v in io3.iter() { let v = *v; out.push(v as f64); }
+            out.push(io3.len() as f64); for v in io3.iter() { let v = *v; out.push(v); }
+            out.push(io4.len() as f64); for v in io4.iter() { let v = *v; out.push(v as f64); }
         }
         "kpimetrics::kpi_power_margin" => {
             let mut at: usize = 0;
@@ -1041,22 +1092,28 @@ pub fn call(name: &str, x: &[f64]) -> Option<Vec<f64>> {
             if x.len() < at + 1 { return None; }
             let n5 = x[at] as usize;
             if x.len() < at + 1 + n5 { return None; }
-            let mut io5 = x[at + 1..at + 1 + n5].iter().map(|v| *v as i64).collect::<Vec<i64>>();
+            let mut io5 = x[at + 1..at + 1 + n5].to_vec();
             at += 1 + n5;
             if x.len() < at + 1 { return None; }
-            let a6 = { let x = &x[at..]; x[0] as i64 };
+            let n6 = x[at] as usize;
+            if x.len() < at + 1 + n6 { return None; }
+            let mut io6 = x[at + 1..at + 1 + n6].iter().map(|v| *v as i64).collect::<Vec<i64>>();
+            at += 1 + n6;
+            if x.len() < at + 1 { return None; }
+            let a7 = { let x = &x[at..]; x[0] as i64 };
             at += 1;
             if x.len() < at + 1 { return None; }
-            let a7 = { let x = &x[at..]; x[0] };
+            let a8 = { let x = &x[at..]; x[0] };
             at += 1;
             if x.len() != at { return None; }
-            let r = crate::kpimetrics::kpi_power_margin(a0, &mut io1, &mut io2, &mut io3, &mut io4, &mut io5, a6, a7);
+            let r = crate::kpimetrics::kpi_power_margin(a0, &mut io1, &mut io2, &mut io3, &mut io4, &mut io5, &mut io6, a7, a8);
             out.push(r);
             out.push(io1.len() as f64); for v in io1.iter() { let v = *v; out.push(v); }
             out.push(io2.len() as f64); for v in io2.iter() { let v = *v; out.push(v); }
             out.push(io3.len() as f64); for v in io3.iter() { let v = *v; out.push(v); }
             out.push(io4.len() as f64); for v in io4.iter() { let v = *v; out.push(v); }
-            out.push(io5.len() as f64); for v in io5.iter() { let v = *v; out.push(v as f64); }
+            out.push(io5.len() as f64); for v in io5.iter() { let v = *v; out.push(v); }
+            out.push(io6.len() as f64); for v in io6.iter() { let v = *v; out.push(v as f64); }
         }
         "kpimetrics::kpi_battery" => {
             let mut at: usize = 0;
@@ -1389,6 +1446,16 @@ pub fn call(name: &str, x: &[f64]) -> Option<Vec<f64>> {
             out.push(r.0);
             out.push(r.1);
             out.push(r.2 as f64);
+        }
+        "sensorpower::sensor_on" => {
+            if x.len() != 2 { return None; }
+            let r = crate::sensorpower::sensor_on(x[0] as i64, x[1] as i64);
+            out.push(if r { 1.0 } else { 0.0 });
+        }
+        "sensorpower::sensor_power" => {
+            if x.len() != 8 { return None; }
+            let r = crate::sensorpower::sensor_power(x[0] as i64, [x[1], x[2], x[3], x[4], x[5], x[6], x[7]]);
+            out.push(r);
         }
         "skyview::sky_unit" => {
             if x.len() != 3 { return None; }

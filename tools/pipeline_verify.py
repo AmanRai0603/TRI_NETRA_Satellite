@@ -33,7 +33,7 @@ def node_select(case, res, sizing, modes, families, faults=None):
             if not best or not best["feasible"]:
                 gaps.append(f"{M['id']}: " + (", ".join(f"{a} ({b})" for a, b in best["failing"].items()) if best else "no option"))
         # the case's requirements, then what the platform allocates (resources.*), each when stated
-        for key, name in (("mass", "mass_kg"), ("vol", "volume_L"), ("malloc", "mass_kg"), ("valloc", "volume_L"), ("palloc", "power_W")):
+        for key, name in (("mass", "mass_kg"), ("vol", "volume_L"), ("malloc", "mass_kg"), ("valloc", "volume_L"), ("palloc", "power_W"), ("ppk", "power_peak_W")):
             lim = req.get(key)
             if lim is not None and bud[name] > lim:
                 over.append(bud[name] / lim - 1 if lim > 0 else 10.0)

@@ -106,7 +106,7 @@ function Z = size_all(caseId, opts)
         write_(fullfile(out, 'products', [pr.id '.json']), pr);
         b = asils.sizing.budget(fill, lookup);
         families.(id) = struct('product', pr.id, 'role', fa.role, 'label', label, 'mass_kg', b.mass_kg, 'power_W', b.power_W, ...
-            'volume_L', b.volume_L, 'items', {b.items});
+            'power_peak_W', b.power_peak_W, 'volume_L', b.volume_L, 'items', {b.items});
     end
     Z = struct('schema', 'adcs-sizing/1', 'case', cs, 'class', Dm.class, 'star_tracker', logical(st_fit), 'demand', Dm, ...
         'knobs', k, 'families', families, 'parts', parts);

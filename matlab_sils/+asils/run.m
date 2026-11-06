@@ -66,7 +66,7 @@ function rec = run(scenarioId, caseFile, varargin)
     Z = @(n) nan(n, M);
     R_ = struct('t', Z(1), 'q', Z(4), 'w', Z(3), 'q_est', Z(4), 'q_ref', Z(4), 'w_ref', Z(3), ...
         'w_meas', Z(3), 'h_w', Z(max(nr,1)), 'cmd_r', Z(max(nr,1)), 'hdot', Z(max(nr,1)), 'delta', Z(max(ng,1)), 'm', Z(3), 'tau_dist', Z(12), 'tau_mtq', Z(3), ...
-        'tau_rw', Z(3), 'tau_rcs', Z(3), 'tau_req', Z(3), 'mode', Z(1), 'P_mtq', Z(1), 'P_rw', Z(1), 'P_rcs', Z(1), ...
+        'tau_rw', Z(3), 'tau_rcs', Z(3), 'tau_req', Z(3), 'mode', Z(1), 'P_mtq', Z(1), 'P_rw', Z(1), 'P_rcs', Z(1), 'P_sens', Z(1), ...
         'prop_kg', Z(1), 'r', Z(3), 'v', Z(3), 'rho', Z(1), 'nu', Z(1), 'B', Z(3), 'B_meas', Z(3), ...
         'sun_ok', Z(1), 'st_ok', Z(1), 'ad_ok', Z(1), 'sun_eci', Z(3), 'sun_body', Z(3), 'n_failed', Z(1));
     MT = asils.fsw.modes(); modes = MT.state;
@@ -164,6 +164,7 @@ function rec = run(scenarioId, caseFile, varargin)
             R_.tau_rcs(:,j) = a.tau_rcs; R_.prop_kg(j) = prop;
             R_.m(:,j) = a.m_b; R_.tau_dist(:,j) = parts(:); R_.tau_mtq(:,j) = tau_mtq;
             R_.mode(j) = mode + 1; R_.P_mtq(j) = pavg(1); R_.P_rw(j) = pavg(2); R_.P_rcs(j) = pavg(3);
+            R_.P_sens(j) = asils.models.sensorpower.sensor_power(mode, dev.sens_w);   % the sensors' steady power in the mode flown (sens_power)
             R_.r(:,j) = r; R_.v(:,j) = v; R_.rho(j) = rho; R_.nu(j) = nu; R_.B(:,j) = sky.b_b; R_.B_meas(:,j) = z.b_meas;
             R_.sun_ok(j) = z.sun_ok; R_.st_ok(j) = z.st_ok; R_.ad_ok(j) = ad_ok;
             R_.sun_eci(:,j) = unit_(sun_rel); R_.sun_body(:,j) = sky.sb;

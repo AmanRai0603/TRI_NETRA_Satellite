@@ -80,7 +80,7 @@ pub struct Row {
     pub t: f64, pub q: Q, pub w: V3, pub q_est: Option<Q>, pub w_meas: V3, pub tau_req: V3,
     pub h_w: [f64; NR], pub tau_rw: V3, pub cmd_r: [f64; NR], pub n_failed: u32, pub delta: [f64; NG],
     pub tau_rcs: V3, pub prop_kg: f64, pub m: V3, pub tau_dist: [V3; 4], pub tau_mtq: V3,
-    pub mode: u8, pub p_mtq: f64, pub p_rw: f64, pub p_rcs: f64,
+    pub mode: u8, pub p_mtq: f64, pub p_rw: f64, pub p_rcs: f64, pub p_sens: f64,
     pub r: V3, pub v: V3, pub rho: f64, pub nu: f64, pub b: V3, pub b_meas: V3,
     pub sun_ok: bool, pub st_ok: bool, pub ad_ok: bool, pub sun_eci: V3, pub sun_body: V3,
 }
@@ -430,7 +430,7 @@ fn actuate(u: &mut Units, c: &Config, cmd: &Commands, x: &State, a: &mut Actuati
 struct Held { m: V3, hdot: [f64; NR], gdot: [f64; NG], rcs: V3 }
 
 /// The rest of what a recorded row holds that the tick computed.
-struct Tick { t: f64, r: V3, v: V3, rho: f64, nu: f64, sun_rel: V3, mode: u8, ad_ok: bool, pavg: [f64; 3], faults: u16, parts: [V3; 4], tau_mtq: V3, prop: f64 }
+struct Tick { t: f64, r: V3, v: V3, rho: f64, nu: f64, sun_rel: V3, mode: u8, ad_ok: bool, pavg: [f64; 3], p_sens: f64, faults: u16, parts: [V3; 4], tau_mtq: V3, prop: f64 }
 
 /// One recorded row: the truth, the flight software's view (debug vector), the actuation, the environment.
 #[allow(clippy::too_many_arguments)]
@@ -441,7 +441,7 @@ fn row(k: &Tick, x: &State, geo: &Geometry, nr: usize, a: &Actuation, cmd: &Comm
     Row {
         t: k.t, q: x.q, w: x.w, q_est: if k.ad_ok { Some([dbg[3], dbg[4], dbg[5], dbg[6]]) } else { None }, w_meas: z.w_meas,
         tau_req: [dbg[17], dbg[18], dbg[19]], h_w: x.h, tau_rw, cmd_r: cmd.cmd_r, n_failed: k.faults.count_ones(), delta: x.d,
-        tau_rcs: a.tau_rcs, prop_kg: k.prop, m: a.m_b, tau_dist: k.parts, tau_mtq: k.tau_mtq, mode: k.mode, p_mtq: k.pavg[0], p_rw: k.pavg[1], p_rcs: k.pavg[2],
+        tau_rcs: a.tau_rcs, prop_kg: k.prop, m: a.m_b, tau_dist: k.parts, tau_mtq: k.tau_mtq, mode: k.mode, p_mtq: k.pavg[0], p_rw: k.pavg[1], p_rcs: k.pavg[2], p_sens: k.p_sens,
         r: k.r, v: k.v, rho: k.rho, nu: k.nu, b: sky.b_b, b_meas: z.b_meas, sun_ok: z.sun_meas.is_some(), st_ok: z.st_ok, ad_ok: k.ad_ok, sun_eci: unit(&k.sun_rel), sun_body: sky.sb,
     }
 }
@@ -592,7 +592,9 @@ pub fn run(c: &Config, o: &Opts) -> Result<Record, Error> {
             let pavg = if k > 0 { [eacc[0]/rt.every as f64, eacc[1]/rt.every as f64, eacc[2]/rt.every as f64] } else { [a.p_mtq, a.p_mex, a.p_rcs] };
             eacc = [0.0; 3];
             let faults = fsw.peek().map(|s| s.faults).unwrap_or(0);
-            let tick = Tick { t, r, v, rho, nu, sun_rel, mode, ad_ok, pavg, faults, parts, tau_mtq, prop };
+            // the sensors' steady power in the mode flown (sens_power), the fourth of the run's power channels
+            let p_sens = crate::gen::sensorpower::sensor_power(mode as i64, d.sens_w);
+            let tick = Tick { t, r, v, rho, nu, sun_rel, mode, ad_ok, pavg, p_sens, faults, parts, tau_mtq, prop };
             rows.push(row(&tick, &x, &geo, nr, &a, &cmd, &dbg, &z, &sky));
         }
         if k == rt.n { break; }

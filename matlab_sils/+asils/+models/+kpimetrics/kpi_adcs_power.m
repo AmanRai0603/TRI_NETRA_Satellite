@@ -1,10 +1,12 @@
-function [mean, peak, p_mtq, p_rw, p_rcs, idx] = kpi_adcs_power(p_mtq, p_rw, p_rcs, idx, ni)
-%KPI_ADCS_POWER  The power the ADCS draws [W] at the window's samples idx[0..ni], its coils', rotors' and thrusters' (p_mtq, p_rw,
-%   p_rcs [W]): the mean (nan-free, from -0 as the code's sum) and the peak (from the least number).
+function [mean, peak, p_mtq, p_rw, p_rcs, p_sens, idx] = kpi_adcs_power(p_mtq, p_rw, p_rcs, p_sens, idx, ni)
+%KPI_ADCS_POWER  The power the ADCS draws [W] at the window's samples idx[0..ni], its coils', rotors', thrusters' and sensors' (p_mtq,
+%   p_rw, p_rcs, p_sens [W]; S11.8: the sensors are in it): the mean (nan-free, from -0 as the code's sum) and the peak
+%   (from the least number).
 %   length: 64
 %   p_mtq: inout real[1][*] (passed a plain number)
 %   p_rw: inout real[1][*] (passed a plain number)
 %   p_rcs: inout real[1][*] (passed a plain number)
+%   p_sens: inout real[1][*] (passed a plain number)
 %   idx: inout int[*] (passed a whole number)
 %   ni: int (passed a whole number)
 %   returns mean: real[1] (passed a plain number)
@@ -16,7 +18,7 @@ function [mean, peak, p_mtq, p_rw, p_rcs, idx] = kpi_adcs_power(p_mtq, p_rw, p_r
     acc = (-(1.7976931348623157e+308));
     for i = (0):((ni) - 1)
         j = idx((i) + 1);
-        p = ((p_mtq((j) + 1) + p_rw((j) + 1)) + p_rcs((j) + 1));
+        p = (((p_mtq((j) + 1) + p_rw((j) + 1)) + p_rcs((j) + 1)) + p_sens((j) + 1));
         s = (s + p);
         acc = asils.models.kpistats.kpi_max(acc, p);
     end

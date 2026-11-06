@@ -4045,7 +4045,7 @@ why = "the star tracker's latency span is stated once, in the design, for the en
 id = "S11.8"
 at = "2026-11-07T12:00:00Z"
 by = "the developer"
-about = "power and sizing (docs/S11_INVENTORY.md Y2, Y4, Y5, Y1; decision DR-design-003): the demand survey integrates the disturbance torque in the inertial frame (the body's rotation, omega x h, is in the sum; the cyclic and the secular momentum are those of the inertial integral); the momentum to store is k_h x (h_dist + h_slew), k_h = 2 the floor and the achieved margin reported (a lever result below it refused by name; a pump with no feasible point refused, not a panic); a catalogue CMG cluster is one unit carrying the whole need, judged on the cluster's own momentum and torque, with its mass and power the cluster's, not one of four each carrying half (select_rotor), and a datasheet number stated as zero is not stated (the catalogue's derive no longer divides by it)"
+about = "power and sizing (docs/S11_INVENTORY.md Y2, Y4, Y5, Y1; decision DR-design-003): the ADCS's power is the whole ADCS's: the sensors' steady power by flight mode (sensorpower) is in the run's power channels, the power metrics and the battery's load, and the sizing's budget computes its peak power (gb_2); the demand survey integrates the disturbance torque in the inertial frame (the body's rotation, omega x h, is in the sum; the cyclic and the secular momentum are those of the inertial integral); the momentum to store is k_h x (h_dist + h_slew), k_h = 2 the floor and the achieved margin reported (a lever result below it refused by name; a pump with no feasible point refused, not a panic); a catalogue CMG cluster is one unit carrying the whole need, judged on the cluster's own momentum and torque, with its mass and power the cluster's, not one of four each carrying half (select_rotor), and a datasheet number stated as zero is not stated (the catalogue's derive no longer divides by it)"
 
 [[revision.method]]
 nodes = ["design_sizing_rw", "design_sizing_cmg", "design_sizing_vscmg", "l3_budget_row_03", "gw_5", "gw_6"]
@@ -4074,3 +4074,49 @@ transcribes = "design/revisions/S7.15/sizedemand.pc as S7.15 left it, with the s
 source = "docs/S11_INVENTORY.md Y4 and section 5 question 8; DR-design-003 (design/decisions/DR-design-003.toml), the developer's unsigned choice: k_h = 2 is the floor, applied to the sum, and the achieved margin is reported"
 generate = ["adcs-design"]
 why = "the stated margin x2 is true (Y4): the momentum to store carries it on the sum of the held and the slew's momentum; a lever result below the floor is refused by name; the survey integrates the torque where momentum is conserved, the inertial frame, so the body's rotation (omega x h) is in the sum (Y5)"
+
+[[revision.node]]
+id = "sens_power"
+group = "sens"
+parent = "l3_sens"
+label = "The sensors' power by flight mode"
+behaviour = "method"
+question = "How much power do the ADCS's sensors draw in each flight mode: which of them are powered in it, each at its steady power?"
+why = "the power the sensors draw, which the run's power channels left out (docs/S11_INVENTORY.md Y1; decision DR-design-003: the power budget is the whole ADCS's)"
+
+[[revision.method]]
+node = "sens_power"
+pseudocode = "design/revisions/S11.8/sensorpower.pc"
+path = "sens/sensorpower.pc"
+transcribes = "docs/S11_INVENTORY.md Y1 (sensors' steady power by mode: the 1.6 W of an AIS product, 2.6 W with the star tracker, appeared in no power channel); the part's power_steady_W, else power_W, counted by the units of the fill line as sizebudget's budget_line counts them"
+source = "DR-design-003 (design/decisions/DR-design-003.toml): the scope of the power budget is the whole ADCS; the per-mode duty (every sensor powered in every mode, the star tracker only in the modes that estimate from it) is the developer's, unsigned"
+generate = ["adcs-sim"]
+why = "the sensors' steady power by flight mode, generated into the engine's run, which the twin's run takes from the same method"
+
+[[revision.method]]
+nodes = ["l3_budget_row_06", "l3_budget_row_07", "l3_budget_row_08", "gb_0", "gb_1", "gb_2", "gb_3"]
+pseudocode = "design/revisions/S11.8/sizebudget.pc"
+path = "design/sizebudget.pc"
+transcribes = "design/revisions/S7.15/sizebudget.pc as S7.15 left it, with each unit's peak power (the part's stated peak, never less than its steady power) and the ADCS's peak power gb_2 their sum, where the steady sum stood for it"
+source = "docs/S11_INVENTORY.md Y1; DR-design-003; the parts' power_peak_W"
+generate = ["adcs-design", "adcs-sim"]
+why = "the ADCS's budget is the whole ADCS's, its sensors and its peak power computed (gb_2); the engine's run counts a sensor line's units by the same method"
+
+[[revision.method]]
+node = "design_power_system"
+pseudocode = "design/revisions/S11.8/powersys.pc"
+path = "design/powersys.pc"
+transcribes = "design/revisions/S7.14/powersys.pc as S7.14 left it, with the sensors' power in the load of the bus"
+source = "docs/S11_INVENTORY.md Y1; DR-design-003"
+generate = ["adcs-sim"]
+why = "the battery's load is the platform's and the whole ADCS's"
+
+[[revision.method]]
+node = "kpi_metric_evaluate"
+pseudocode = "design/revisions/S11.8/kpimetrics.pc"
+path = "kpi/kpimetrics.pc"
+transcribes = "design/revisions/S7.14b/kpimetrics.pc as it stands, with the sensors' power (p_sens) in the ADCS's mean and peak power and in the platform's power margin"
+source = "docs/S11_INVENTORY.md Y1; DR-design-003"
+generate = ["adcs-sim"]
+uses = ["kpi/kpistats.pc", "kpi/kpiecss.pc"]
+why = "power_mean, power_peak and power_margin are of the whole ADCS (Y1)"

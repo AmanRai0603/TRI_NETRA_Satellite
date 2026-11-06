@@ -4,6 +4,7 @@
 pub mod rt;
 pub mod dispatch;
 pub mod powersys;
+pub mod sizebudget;
 pub mod cmoffset;
 pub mod truthplant;
 pub mod caltime;
@@ -25,5 +26,6 @@ pub mod kpimetrics;
 pub mod kpistats;
 pub mod jitter;
 pub mod pntbudget;
+pub mod sensorpower;
 pub mod skyview;
 pub mod constants;

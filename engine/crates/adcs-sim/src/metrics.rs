@@ -139,7 +139,7 @@ pub fn derive(c: &Config, rec: &Record) -> Derived {
         for (j, row) in rec.rows.iter().enumerate() {
             d.p_gen[j] = ps.generation(&power_sun_unit(row.sun_body), row.nu);
             if j > 0 {
-                let load = power_load(ps.load_w, row.p_mtq, row.p_rw, row.p_rcs);
+                let load = power_load(ps.load_w, row.p_mtq, row.p_rw, row.p_rcs, row.p_sens);
                 e = battery_step(e, d.p_gen[j], load, rec.rows[j - 1].t, row.t, ps.batt_wh);
             }
             d.soc[j] = battery_soc(e, ps.batt_wh);
@@ -205,7 +205,7 @@ pub fn evaluate(c: &Config, rec: &Record, d: &Derived) -> Vec<Value> {
     let col = |f: &dyn Fn(&crate::run::Row) -> f64| -> Vec<f64> { rec.rows.iter().map(f).collect() };
     let mut t = col(&|r| r.t);
     let mut mode: Vec<i64> = rec.rows.iter().map(|r| r.mode as i64).collect();
-    let (mut prop, mut p_mtq, mut p_rw, mut p_rcs) = (col(&|r| r.prop_kg), col(&|r| r.p_mtq), col(&|r| r.p_rw), col(&|r| r.p_rcs));
+    let (mut prop, mut p_mtq, mut p_rw, mut p_rcs, mut p_sens) = (col(&|r| r.prop_kg), col(&|r| r.p_mtq), col(&|r| r.p_rw), col(&|r| r.p_rcs), col(&|r| r.p_sens));
     let mut h: Vec<f64> = rec.rows.iter().flat_map(|r| r.h_w[..rec.nr].iter().copied()).collect();
     // the channels, in MetricChannel's order
     let mut ch: Vec<Vec<f64>> = CHANNELS.iter().map(|name| d.channel(name).cloned().unwrap_or_default()).collect();
@@ -251,12 +251,12 @@ pub fn evaluate(c: &Config, rec: &Record, d: &Derived) -> Vec<Value> {
             }
             km::METRICKIND_PROPELLANT => km::kpi_propellant(&mut prop, n as i64),
             km::METRICKIND_JITTER => stat(jitter(c, rec, &idx), st),
-            km::METRICKIND_POWER_MARGIN => km::kpi_power_margin(ps.is_some(), &mut p_gen, &mut p_mtq, &mut p_rw, &mut p_rcs, &mut ix, ni,
+            km::METRICKIND_POWER_MARGIN => km::kpi_power_margin(ps.is_some(), &mut p_gen, &mut p_mtq, &mut p_rw, &mut p_rcs, &mut p_sens, &mut ix, ni,
                 ps.as_ref().map(|p| p.load_w).unwrap_or(f64::NAN)),
             km::METRICKIND_BATTERY_DOD => km::kpi_battery(&mut soc, &mut ix, ni).0,
             km::METRICKIND_SOC_MIN => km::kpi_battery(&mut soc, &mut ix, ni).1,
-            km::METRICKIND_POWER_MEAN => km::kpi_adcs_power(&mut p_mtq, &mut p_rw, &mut p_rcs, &mut ix, ni).0,
-            km::METRICKIND_POWER_PEAK => km::kpi_adcs_power(&mut p_mtq, &mut p_rw, &mut p_rcs, &mut ix, ni).1,
+            km::METRICKIND_POWER_MEAN => km::kpi_adcs_power(&mut p_mtq, &mut p_rw, &mut p_rcs, &mut p_sens, &mut ix, ni).0,
+            km::METRICKIND_POWER_PEAK => km::kpi_adcs_power(&mut p_mtq, &mut p_rw, &mut p_rcs, &mut p_sens, &mut ix, ni).1,
             _ => match (km::kpi_kind_channel(k), km::kpi_ecss_kind(k).0) {
                 ((true, c_ix), _) => ks::kpi_channel_stat(&mut ch[c_ix as usize], &mut ix, ni, st, &mut w, &mut tmp),
                 (_, true) => stat(ecss(kind, d, &t, &idx, json::f(m, "delta_s", f64::NAN), json::f(m, "separation_s", f64::NAN)), st),

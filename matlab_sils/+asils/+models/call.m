@@ -772,7 +772,7 @@ function y = call(name, x)
             [o1] = asils.models.powersys.power_sun_unit(reshape(x(1:3), 3, 1));
             y = [reshape(o1, [], 1)];
         case 'powersys::power_load'
-            [o1] = asils.models.powersys.power_load(x(1), x(2), x(3), x(4));
+            [o1] = asils.models.powersys.power_load(x(1), x(2), x(3), x(4), x(5));
             y = [double(o1)];
         case 'powersys::battery_step'
             [o1] = asils.models.powersys.battery_step(x(1), x(2), x(3), x(4), x(5), x(6));
@@ -784,8 +784,8 @@ function y = call(name, x)
             [o1] = asils.models.powersys.battery_soc(x(1), x(2));
             y = [double(o1)];
         case 'sizebudget::budget_line'
-            [o1, o2, o3, o4] = asils.models.sizebudget.budget_line(x(1), x(2), x(3), x(4), x(5), x(6), x(7), x(8), x(9), x(10));
-            y = [double(o1); double(o2); double(o3); double(o4)];
+            [o1, o2, o3, o4, o5] = asils.models.sizebudget.budget_line(x(1), x(2), x(3), x(4), x(5), x(6), x(7), x(8), x(9), x(10), x(11));
+            y = [double(o1); double(o2); double(o3); double(o4); double(o5)];
         case 'sizebudget::budget_total'
             at = 0;
             n1 = x(at + 1);
@@ -797,11 +797,14 @@ function y = call(name, x)
             n3 = x(at + 1);
             a3 = reshape(x(at + 2:at + 1 + n3), [], 1);
             at = at + 1 + n3;
+            n4 = x(at + 1);
+            a4 = reshape(x(at + 2:at + 1 + n4), [], 1);
+            at = at + 1 + n4;
             xa = x(at + 1:end);
-            a4 = xa(1);
+            a5 = xa(1);
             at = at + 1;
-            [o1, o2, o3, io1, io2, io3] = asils.models.sizebudget.budget_total(a1, a2, a3, a4);
-            y = [double(o1); double(o2); double(o3); numel(io1); reshape(io1, [], 1); numel(io2); reshape(io2, [], 1); numel(io3); reshape(io3, [], 1)];
+            [o1, o2, o3, o4, io1, io2, io3, io4] = asils.models.sizebudget.budget_total(a1, a2, a3, a4, a5);
+            y = [double(o1); double(o2); double(o3); double(o4); numel(io1); reshape(io1, [], 1); numel(io2); reshape(io2, [], 1); numel(io3); reshape(io3, [], 1); numel(io4); reshape(io4, [], 1)];
         case 'sizedemand::size_max'
             [o1] = asils.models.sizedemand.size_max(x(1), x(2));
             y = [double(o1)];
@@ -2627,11 +2630,14 @@ function y = call(name, x)
             n4 = x(at + 1);
             a4 = reshape(x(at + 2:at + 1 + n4), [], 1);
             at = at + 1 + n4;
+            n5 = x(at + 1);
+            a5 = reshape(x(at + 2:at + 1 + n5), [], 1);
+            at = at + 1 + n5;
             xa = x(at + 1:end);
-            a5 = xa(1);
+            a6 = xa(1);
             at = at + 1;
-            [o1, o2, io1, io2, io3, io4] = asils.models.kpimetrics.kpi_adcs_power(a1, a2, a3, a4, a5);
-            y = [double(o1); double(o2); numel(io1); reshape(io1, [], 1); numel(io2); reshape(io2, [], 1); numel(io3); reshape(io3, [], 1); numel(io4); reshape(io4, [], 1)];
+            [o1, o2, io1, io2, io3, io4, io5] = asils.models.kpimetrics.kpi_adcs_power(a1, a2, a3, a4, a5, a6);
+            y = [double(o1); double(o2); numel(io1); reshape(io1, [], 1); numel(io2); reshape(io2, [], 1); numel(io3); reshape(io3, [], 1); numel(io4); reshape(io4, [], 1); numel(io5); reshape(io5, [], 1)];
         case 'kpimetrics::kpi_power_margin'
             at = 0;
             xa = x(at + 1:end);
@@ -2652,14 +2658,17 @@ function y = call(name, x)
             n6 = x(at + 1);
             a6 = reshape(x(at + 2:at + 1 + n6), [], 1);
             at = at + 1 + n6;
-            xa = x(at + 1:end);
-            a7 = xa(1);
-            at = at + 1;
+            n7 = x(at + 1);
+            a7 = reshape(x(at + 2:at + 1 + n7), [], 1);
+            at = at + 1 + n7;
             xa = x(at + 1:end);
             a8 = xa(1);
             at = at + 1;
-            [o1, io2, io3, io4, io5, io6] = asils.models.kpimetrics.kpi_power_margin(a1, a2, a3, a4, a5, a6, a7, a8);
-            y = [double(o1); numel(io2); reshape(io2, [], 1); numel(io3); reshape(io3, [], 1); numel(io4); reshape(io4, [], 1); numel(io5); reshape(io5, [], 1); numel(io6); reshape(io6, [], 1)];
+            xa = x(at + 1:end);
+            a9 = xa(1);
+            at = at + 1;
+            [o1, io2, io3, io4, io5, io6, io7] = asils.models.kpimetrics.kpi_power_margin(a1, a2, a3, a4, a5, a6, a7, a8, a9);
+            y = [double(o1); numel(io2); reshape(io2, [], 1); numel(io3); reshape(io3, [], 1); numel(io4); reshape(io4, [], 1); numel(io5); reshape(io5, [], 1); numel(io6); reshape(io6, [], 1); numel(io7); reshape(io7, [], 1)];
         case 'kpimetrics::kpi_battery'
             at = 0;
             n1 = x(at + 1);
@@ -2969,6 +2978,12 @@ function y = call(name, x)
         case 'magnoise::mag_noise'
             [o1, io6] = asils.models.magnoise.mag_noise(reshape(x(1:3), 3, 1), reshape(x(4:6), 3, 1), x(7), x(8), reshape(x(9:11), 3, 1), reshape(x(12:17), 6, 1));
             y = [reshape(o1, [], 1); reshape(io6, [], 1)];
+        case 'sensorpower::sensor_on'
+            [o1] = asils.models.sensorpower.sensor_on(x(1), x(2));
+            y = [double(o1)];
+        case 'sensorpower::sensor_power'
+            [o1] = asils.models.sensorpower.sensor_power(x(1), reshape(x(2:8), 7, 1));
+            y = [double(o1)];
         case 'skyview::sky_unit'
             [o1] = asils.models.skyview.sky_unit(reshape(x(1:3), 3, 1));
             y = [reshape(o1, [], 1)];

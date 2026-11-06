@@ -53,6 +53,7 @@ pub fn write(dir: &Path, c: &Config, rec: &Record, d: &Derived, metrics: &[Value
     for (i, a) in ["x", "y", "z"].iter().enumerate() { col(&format!("tau_rcs_{a}_Nm"), &|j| rows[j].tau_rcs[i]); }
     col("prop_kg", &|j| rows[j].prop_kg);
     col("P_rcs_W", &|j| rows[j].p_rcs);
+    col("P_sens_W", &|j| rows[j].p_sens);
     col("n_rotors_isolated", &|j| if nr > 0 { rows[j].n_failed as f64 } else { f64::NAN });
     for (i, a) in ["x", "y", "z"].iter().enumerate() { col(&format!("sun_body_{a}"), &|j| rows[j].sun_body[i]); }
     col("P_mtq_W", &|j| rows[j].p_mtq); col("P_rw_W", &|j| rows[j].p_rw);

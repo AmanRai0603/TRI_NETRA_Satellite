@@ -186,14 +186,14 @@
     },
     "power_mean": {
      "kind": "power_mean",
-     "value": 0.02192329232985533,
-     "pass": 1,
+     "value": 1.5219232923298602,
+     "pass": 0,
      "rel_tol": 1e-06
     },
     "power_peak": {
      "kind": "power_peak",
-     "value": 0.5476232337412641,
-     "pass": 1,
+     "value": 2.0476232337412643,
+     "pass": 0,
      "rel_tol": 1e-06
     }
    }
@@ -217,14 +217,14 @@
     },
     "power_mean": {
      "kind": "power_mean",
-     "value": 0.45558814696658373,
-     "pass": 1,
+     "value": 1.9555881469664376,
+     "pass": 0,
      "rel_tol": 1e-06
     },
     "power_peak": {
      "kind": "power_peak",
-     "value": 0.7169983520004882,
-     "pass": 1,
+     "value": 2.216998352000488,
+     "pass": 0,
      "rel_tol": 1e-06
     }
    }
@@ -248,14 +248,14 @@
     },
     "power_mean": {
      "kind": "power_mean",
-     "value": 0.07734011413759496,
-     "pass": 1,
+     "value": 1.577340114137595,
+     "pass": 0,
      "rel_tol": 1e-06
     },
     "power_peak": {
      "kind": "power_peak",
-     "value": 0.6482654194769127,
-     "pass": 1,
+     "value": 2.1482654194769126,
+     "pass": 0,
      "rel_tol": 1e-06
     }
    }
@@ -459,14 +459,14 @@
     },
     "power_mean": {
      "kind": "power_mean",
-     "value": 0.01818570313469999,
-     "pass": 1,
+     "value": 1.5181857031346975,
+     "pass": 0,
      "rel_tol": 1e-06
     },
     "power_peak": {
      "kind": "power_peak",
-     "value": 0.5476232337412641,
-     "pass": 1,
+     "value": 2.0476232337412643,
+     "pass": 0,
      "rel_tol": 1e-06
     }
    }
@@ -563,8 +563,8 @@
     },
     "power_mean": {
      "kind": "power_mean",
-     "value": 1.610063949853567,
-     "pass": 1,
+     "value": 5.110063949853588,
+     "pass": 0,
      "rel_tol": 1e-06
     }
    }
@@ -594,8 +594,8 @@
     },
     "power_mean": {
      "kind": "power_mean",
-     "value": 1.559321548012008,
-     "pass": 1,
+     "value": 5.059321548011998,
+     "pass": 0,
      "rel_tol": 1e-06
     }
    }
@@ -631,8 +631,8 @@
     },
     "power_mean": {
      "kind": "power_mean",
-     "value": 0.010819551006570585,
-     "pass": 1,
+     "value": 1.5108195510065716,
+     "pass": 0,
      "rel_tol": 1e-06
     }
    }
@@ -742,8 +742,8 @@
     },
     "power_mean": {
      "kind": "power_mean",
-     "value": 1.5593241887661193,
-     "pass": 1,
+     "value": 5.059324188766196,
+     "pass": 0,
      "rel_tol": 1e-06
     }
    }
@@ -773,8 +773,8 @@
     },
     "power_mean": {
      "kind": "power_mean",
-     "value": 1.513014331861861,
-     "pass": 1,
+     "value": 5.013014331861799,
+     "pass": 0,
      "rel_tol": 1e-06
     }
    }
@@ -834,8 +834,8 @@
     },
     "power_mean": {
      "kind": "power_mean",
-     "value": 1.1407655191413963,
-     "pass": 1,
+     "value": 4.640765519141343,
+     "pass": 0,
      "rel_tol": 1e-06
     }
    }
@@ -895,8 +895,8 @@
     },
     "power_mean": {
      "kind": "power_mean",
-     "value": 1.6100851817530408,
-     "pass": 1,
+     "value": 5.110085181753034,
+     "pass": 0,
      "rel_tol": 1e-06
     }
    }
@@ -956,8 +956,8 @@
     },
     "power_mean": {
      "kind": "power_mean",
-     "value": 0.1280963364468045,
-     "pass": 1,
+     "value": 3.628096336446793,
+     "pass": 0,
      "rel_tol": 1e-06
     }
    }
@@ -1017,8 +1017,8 @@
     },
     "power_mean": {
      "kind": "power_mean",
-     "value": 0.1280963364468045,
-     "pass": 1,
+     "value": 3.628096336446793,
+     "pass": 0,
      "rel_tol": 1e-06
     }
    }
@@ -1078,8 +1078,8 @@
     },
     "power_mean": {
      "kind": "power_mean",
-     "value": 1.5593244695684456,
-     "pass": 1,
+     "value": 5.059324469568445,
+     "pass": 0,
      "rel_tol": 1e-06
     },
     "rpe_los_10s_p9973": {
@@ -1102,13 +1102,13 @@
     },
     "power_margin_last_orbit": {
      "kind": "power_margin",
-     "value": 1.6445763888330633,
-     "pass": 1,
+     "value": -1.8554236111669271,
+     "pass": 0,
      "rel_tol": 1e-06
     },
     "battery_dod_last_orbit": {
      "kind": "battery_dod",
-     "value": 7.78771084594434,
+     "value": 16.850390713357676,
      "pass": null,
      "rel_tol": 1e-06
     }
@@ -1169,8 +1169,8 @@
     },
     "power_mean": {
      "kind": "power_mean",
-     "value": 1.5602338153347046,
-     "pass": 1,
+     "value": 5.060233815334724,
+     "pass": 0,
      "rel_tol": 1e-06
     }
    }
@@ -1230,8 +1230,8 @@
     },
     "power_mean": {
      "kind": "power_mean",
-     "value": 1.5592834237371638,
-     "pass": 1,
+     "value": 5.059283423737106,
+     "pass": 0,
      "rel_tol": 1e-06
     }
    }
@@ -1291,8 +1291,8 @@
     },
     "power_mean": {
      "kind": "power_mean",
-     "value": 1.532267767409396,
-     "pass": 1,
+     "value": 5.032267767409461,
+     "pass": 0,
      "rel_tol": 1e-06
     }
    }
@@ -1352,7 +1352,7 @@
     },
     "power_mean": {
      "kind": "power_mean",
-     "value": 2.014834321653803,
+     "value": 5.514834321653903,
      "pass": 0,
      "rel_tol": 1e-06
     }
@@ -1395,13 +1395,13 @@
     },
     "power_margin_last_orbit": {
      "kind": "power_margin",
-     "value": 6.451545834827894,
+     "value": 4.951545834827896,
      "pass": 1,
      "rel_tol": 1e-06
     },
     "battery_dod_last_orbit": {
      "kind": "battery_dod",
-     "value": 2.9435003980698426,
+     "value": 4.7142725184195715,
      "pass": null,
      "rel_tol": 1e-06
     }
@@ -1507,13 +1507,13 @@
     },
     "power_margin_last_orbit": {
      "kind": "power_margin",
-     "value": 1.6342647737865217,
-     "pass": 1,
+     "value": -1.8657352262134745,
+     "pass": 0,
      "rel_tol": 1e-06
     },
     "battery_dod_last_orbit": {
      "kind": "battery_dod",
-     "value": 7.786971300649093,
+     "value": 32.59854875031557,
      "pass": null,
      "rel_tol": 1e-06
     }
@@ -1600,19 +1600,19 @@
     },
     "power_mean": {
      "kind": "power_mean",
-     "value": 0.010600178330278574,
-     "pass": 1,
+     "value": 1.5106001783302687,
+     "pass": 0,
      "rel_tol": 1e-06
     },
     "power_margin_last_orbit": {
      "kind": "power_margin",
-     "value": 6.448792864022736,
+     "value": 4.948792864022725,
      "pass": 1,
      "rel_tol": 1e-06
     },
     "battery_dod_last_orbit": {
      "kind": "battery_dod",
-     "value": 2.944550245038935,
+     "value": 4.715924861409537,
      "pass": null,
      "rel_tol": 1e-06
     }
@@ -1649,8 +1649,8 @@
     },
     "power_mean": {
      "kind": "power_mean",
-     "value": 0.010992412190485258,
-     "pass": 1,
+     "value": 1.230992412190479,
+     "pass": 0,
      "rel_tol": 1e-06
     }
    }
@@ -1953,13 +1953,13 @@
     },
     "power_margin_orbit": {
      "kind": "power_margin",
-     "value": 2.4352492505762,
+     "value": 0.9352492505762023,
      "pass": null,
      "rel_tol": 1e-06
     },
     "battery_dod_orbit": {
      "kind": "battery_dod",
-     "value": 7.676560656871622,
+     "value": 10.544574838137821,
      "pass": null,
      "rel_tol": 1e-06
     }
@@ -1984,14 +1984,14 @@
     },
     "power_margin_orbit": {
      "kind": "power_margin",
-     "value": 2.297569523302884,
-     "pass": 1,
+     "value": -1.202430476697121,
+     "pass": 0,
      "rel_tol": 1e-06
     },
     "power_mean": {
      "kind": "power_mean",
-     "value": 1.5259210278562885,
-     "pass": 1,
+     "value": 5.025921027856286,
+     "pass": 0,
      "rel_tol": 1e-06
     }
    }
@@ -2015,14 +2015,14 @@
     },
     "power_margin_last_orbit": {
      "kind": "power_margin",
-     "value": 6.3260344211620865,
+     "value": 4.826034421162089,
      "pass": 1,
      "rel_tol": 1e-06
     },
     "power_mean": {
      "kind": "power_mean",
-     "value": 0.011128284962181094,
-     "pass": 1,
+     "value": 1.5111282849621837,
+     "pass": 0,
      "rel_tol": 1e-06
     }
    }
@@ -2064,8 +2064,8 @@
     },
     "power_mean": {
      "kind": "power_mean",
-     "value": 0.4641378108999595,
-     "pass": 1,
+     "value": 1.964137810899969,
+     "pass": 0,
      "rel_tol": 1e-06
     }
    }
@@ -2095,8 +2095,8 @@
     },
     "power_mean": {
      "kind": "power_mean",
-     "value": 1.5644445309390207,
-     "pass": 1,
+     "value": 5.064444530939061,
+     "pass": 0,
      "rel_tol": 1e-06
     }
    }

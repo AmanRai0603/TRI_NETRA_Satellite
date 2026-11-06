@@ -22,6 +22,7 @@ function dev = load(productId)
     if isfield(pr, 'payload_boresight_body'), dev.boresight = unit_(pr.payload_boresight_body); end
     if isfield(pr, 'sun_axis_body'), dev.sun_axis = unit_(pr.sun_axis_body); end
     dev.rotor_tlm_noise = st.get('act_rotor_tlm_noise'); dev.gimbal_tlm_noise = st.get('act_gimbal_tlm_noise');
+    dev.sens_w = zeros(1, 7);       % each sensor's whole steady power [W] (sens_power)
     % every device, not fitted, its record zero (the engine's Dev::default)
     dev.gyro = struct('fitted', false, 'rec', asils.models.gyro.GyroDesc_zero());
     dev.mag = struct('fitted', false, 'rec', asils.models.mag.MagDesc_zero());
@@ -41,7 +42,7 @@ function dev = load(productId)
     dev.imbalance = zeros(0, 3);          % each rotor's [static kg m, dynamic kg m^2, known] (pnt's rotor_imbalance)
     dev.rotor_part = {};
     dev.files = {pf};
-    ms = zeros(0, 1); ps = ms; vs = ms; items = {};
+    ms = zeros(0, 1); ps = ms; pks = ms; vs = ms; items = {};
     for i = 1:numel(fills)
         f = fills{i};
         part = asils.util.getf(f, 'part', '');
@@ -73,14 +74,17 @@ function dev = load(productId)
         end
         % the ADCS's mass, power and volume, per fill (design/sizebudget.pc)
         nm = P.nm;
-        [nu, m, p, v] = asils.models.sizebudget.budget_line(slot_of_(slot), count_(f, 'axes_body'), count_(f, 'spin_axes_body'), ...
+        [nu, m, p, pk, v] = asils.models.sizebudget.budget_line(slot_of_(slot), count_(f, 'axes_body'), count_(f, 'spin_axes_body'), ...
             count_(f, 'boresights_body'), count_(f, 'normals_body'), stated_(nm, 'mass_kg'), stated_(nm, 'power_steady_W'), ...
-            stated_(nm, 'power_W'), stated_(nm, 'power_at_max_W'), stated_(nm, 'volume_L'));
-        items{end+1} = struct('slot', slot, 'part', part, 'n', nu, 'mass_kg', m, 'power_W', p, 'volume_L', v); %#ok<AGROW>
-        ms(end+1, 1) = m; ps(end+1, 1) = p; vs(end+1, 1) = v; %#ok<AGROW>
+            stated_(nm, 'power_W'), stated_(nm, 'power_at_max_W'), stated_(nm, 'power_peak_W'), stated_(nm, 'volume_L'));
+        items{end+1} = struct('slot', slot, 'part', part, 'n', nu, 'mass_kg', m, 'power_W', p, 'power_peak_W', pk, 'volume_L', v); %#ok<AGROW>
+        ms(end+1, 1) = m; ps(end+1, 1) = p; pks(end+1, 1) = pk; vs(end+1, 1) = v; %#ok<AGROW>
+        % a sensor line's whole steady power, in the order of sensorpower's Sensor (sens_power)
+        si = find(strcmp(sensors_, slot), 1);
+        if ~isempty(si), dev.sens_w(si) = p; end
     end
-    [bm, bp, bv] = asils.models.sizebudget.budget_total(ms, ps, vs, numel(ms));
-    dev.budget = struct('mass_kg', bm, 'power_W', bp, 'volume_L', bv, 'items', {items});
+    [bm, bp, bpk, bv] = asils.models.sizebudget.budget_total(ms, ps, pks, vs, numel(ms));
+    dev.budget = struct('mass_kg', bm, 'power_W', bp, 'power_peak_W', bpk, 'volume_L', bv, 'items', {items});
     dev.mex = struct('rec', x, 'n', x.n, 'ng', x.ng, 'fitted', x.n > 0);
 end
 
@@ -376,6 +380,10 @@ function s = slot_of_(slot)
              'earth_sensor', 'coarse_sun_sensors'};
     s = find(strcmp(names, slot), 1) - 1;
     if isempty(s), s = 13; end
+end
+function s = sensors_()
+% sensorpower's Sensor (design/sensorpower.pc): the fill's words in the choice's order
+    s = {'gyro', 'magnetometer', 'sun_sensors', 'coarse_sun_sensors', 'star_tracker', 'earth_sensor', 'gnss'};
 end
 function c = cellstr_(a)
     if iscell(a), c = a; elseif ischar(a), c = {a}; else, c = {}; end

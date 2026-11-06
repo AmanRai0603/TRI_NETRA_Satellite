@@ -961,12 +961,13 @@ pub fn call(name: &str, x: &[f64]) -> Option<Vec<f64>> {
             out.push(if r { 1.0 } else { 0.0 });
         }
         "sizebudget::budget_line" => {
-            if x.len() != 10 { return None; }
-            let r = crate::sizebudget::budget_line(x[0] as i64, x[1] as i64, x[2] as i64, x[3] as i64, x[4] as i64, x[5], x[6], x[7], x[8], x[9]);
+            if x.len() != 11 { return None; }
+            let r = crate::sizebudget::budget_line(x[0] as i64, x[1] as i64, x[2] as i64, x[3] as i64, x[4] as i64, x[5], x[6], x[7], x[8], x[9], x[10]);
             out.push(r.0);
             out.push(r.1);
             out.push(r.2);
             out.push(r.3);
+            out.push(r.4);
         }
         "sizebudget::budget_total" => {
             let mut at: usize = 0;
@@ -986,16 +987,23 @@ pub fn call(name: &str, x: &[f64]) -> Option<Vec<f64>> {
             let mut io2 = x[at + 1..at + 1 + n2].to_vec();
             at += 1 + n2;
             if x.len() < at + 1 { return None; }
-            let a3 = { let x = &x[at..]; x[0] as i64 };
+            let n3 = x[at] as usize;
+            if x.len() < at + 1 + n3 { return None; }
+            let mut io3 = x[at + 1..at + 1 + n3].to_vec();
+            at += 1 + n3;
+            if x.len() < at + 1 { return None; }
+            let a4 = { let x = &x[at..]; x[0] as i64 };
             at += 1;
             if x.len() != at { return None; }
-            let r = crate::sizebudget::budget_total(&mut io0, &mut io1, &mut io2, a3);
+            let r = crate::sizebudget::budget_total(&mut io0, &mut io1, &mut io2, &mut io3, a4);
             out.push(r.0);
             out.push(r.1);
             out.push(r.2);
+            out.push(r.3);
             out.push(io0.len() as f64); for v in io0.iter() { let v = *v; out.push(v); }
             out.push(io1.len() as f64); for v in io1.iter() { let v = *v; out.push(v); }
             out.push(io2.len() as f64); for v in io2.iter() { let v = *v; out.push(v); }
+            out.push(io3.len() as f64); for v in io3.iter() { let v = *v; out.push(v); }
         }
         "sizedemand::size_max" => {
             if x.len() != 2 { return None; }

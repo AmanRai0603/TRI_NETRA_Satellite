@@ -123,8 +123,9 @@ pub fn run_figures(man: &Value, ch: &Channels, full: bool) -> Vec<(String, Figur
         ps.push(Panel::new("cold-gas propellant used").ylabel("propellant [g]").with(Series::line(&t, &v, S1)));
     }
     let (pm, pr, pc) = (c("P_mtq_W"), c("P_rw_W"), if ch.has("P_rcs_W") { c("P_rcs_W") } else { vec![0.0; ch.len()] });
-    let tot: Vec<f64> = (0..ch.len()).map(|i| pm[i] + pr[i] + pc[i]).collect();
-    let mut pw = Panel::new("actuator power (cycle average)").ylabel("ADCS power [W]").xlabel(tm).with(Series::line(&t, &tot, S1));
+    let ps_ = if ch.has("P_sens_W") { c("P_sens_W") } else { vec![0.0; ch.len()] };
+    let tot: Vec<f64> = (0..ch.len()).map(|i| pm[i] + pr[i] + pc[i] + ps_[i]).collect();
+    let mut pw = Panel::new("ADCS power (actuators cycle average, sensors by mode)").ylabel("ADCS power [W]").xlabel(tm).with(Series::line(&t, &tot, S1));
     req_line(&mut pw, case_req(man, "req.pavg"), "orbit-average req");
     ps.push(pw);
     let h = 2.3 * ps.len() as f64 + 0.6;

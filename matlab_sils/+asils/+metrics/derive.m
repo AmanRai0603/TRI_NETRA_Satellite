@@ -46,7 +46,7 @@ function rec = derive(rec)
         for j = 1:n
             rec.P_gen(j) = asils.models.powersys.array_power(ps.area, ps.eff, asils.models.powersys.power_sun_unit(rec.sun_body(:, j)), rec.nu(j));
             if j > 1
-                load = asils.models.powersys.power_load(ps.load_w, rec.P_mtq(j), rec.P_rw(j), rec.P_rcs(j));
+                load = asils.models.powersys.power_load(ps.load_w, rec.P_mtq(j), rec.P_rw(j), rec.P_rcs(j), rec.P_sens(j));
                 e = asils.models.powersys.battery_step(e, rec.P_gen(j), load, rec.t(j - 1), rec.t(j), ps.batt_wh);
             end
             rec.soc(j) = asils.models.powersys.battery_soc(e, ps.batt_wh);

@@ -189,7 +189,7 @@ def family_missions(c, sel):
                 if i % 10:
                     continue
                 t.append(float(r["t_s"]) / 3600); ape.append(max(float(r["ape_los_deg"]), 1e-4)); w.append(float(r["rate_degps"]))
-                pw.append(float(r["P_mtq_W"]) + float(r["P_rw_W"]) + float(r["P_rcs_W"])); mode.append(float(r["mode"]))
+                pw.append(float(r["P_mtq_W"]) + float(r["P_rw_W"]) + float(r["P_rcs_W"]) + float(r.get("P_sens_W") or 0)); mode.append(float(r["mode"]))
         lab = f + (" (selected)" if v["selected"] else "")
         for a_, y, kind, lw in ((ax[0], w, "line", 1), (ax[1], ape, "line", 1), (ax[2], pw, "line", 0.8), (ax[3], mode, "step", 1)):
             a_["series"].append({"kind": kind, "x": t, "y": y, "color": col, "width": lw, **({"label": lab} if a_ is ax[0] else {})})

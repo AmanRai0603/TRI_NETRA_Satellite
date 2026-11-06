@@ -20,7 +20,7 @@ function M = evaluate(rec)
     [dw, dst, dch, rate_thr, rate_hold, thr, thr_hold, from_s, dsense_min, dunit_min, dend] = asils.models.kpimetrics.kpi_metric_defaults();
     n = numel(rec.t);
     t = rec.t(:); mode = rec.mode(:) - 1;           % the flight software's state numbers
-    prop = rec.prop_kg(:); p_mtq = rec.P_mtq(:); p_rw = rec.P_rw(:); p_rcs = rec.P_rcs(:);
+    prop = rec.prop_kg(:); p_mtq = rec.P_mtq(:); p_rw = rec.P_rw(:); p_rcs = rec.P_rcs(:); p_sens = rec.P_sens(:);
     nr = P.dev.mex.rec.n;
     if nr > 0, h = reshape(rec.h_w(1:nr, :), [], 1); else, h = zeros(0, 1); end
     ch = cell(1, numel(CHANNELS));
@@ -67,11 +67,11 @@ function M = evaluate(rec)
             case 15, val = stat_(jitter_(rec, idx + 1), st);
             case 28
                 lw = NaN; if ps, lw = C.power_load_w; end
-                val = asils.models.kpimetrics.kpi_power_margin(ps, rec.P_gen(:), p_mtq, p_rw, p_rcs, idx, ni, lw);
+                val = asils.models.kpimetrics.kpi_power_margin(ps, rec.P_gen(:), p_mtq, p_rw, p_rcs, p_sens, idx, ni, lw);
             case 29, [val, ~] = asils.models.kpimetrics.kpi_battery(rec.soc(:), idx, ni);
             case 30, [~, val] = asils.models.kpimetrics.kpi_battery(rec.soc(:), idx, ni);
-            case 13, [val, ~] = asils.models.kpimetrics.kpi_adcs_power(p_mtq, p_rw, p_rcs, idx, ni);
-            case 14, [~, val] = asils.models.kpimetrics.kpi_adcs_power(p_mtq, p_rw, p_rcs, idx, ni);
+            case 13, [val, ~] = asils.models.kpimetrics.kpi_adcs_power(p_mtq, p_rw, p_rcs, p_sens, idx, ni);
+            case 14, [~, val] = asils.models.kpimetrics.kpi_adcs_power(p_mtq, p_rw, p_rcs, p_sens, idx, ni);
             otherwise
                 [has, c] = asils.models.kpimetrics.kpi_kind_channel(k);
                 [isk, ek, know, los] = asils.models.kpimetrics.kpi_ecss_kind(k);

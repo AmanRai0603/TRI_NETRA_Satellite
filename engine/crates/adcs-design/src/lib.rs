@@ -449,19 +449,19 @@ fn slot_of(s: &str) -> i64 {
 /// The ADCS's mass / power / volume per fill (design/sizebudget.pc).
 fn budget(fill: &[Value], lookup: &dyn Fn(&str) -> Result<Value, Error>) -> Result<Value, Error> {
     let mut items = vec![];
-    let (mut ms, mut ps, mut vs) = (vec![], vec![], vec![]);
+    let (mut ms, mut ps, mut pks, mut vs) = (vec![], vec![], vec![], vec![]);
     for f in fill {
         let slot = json::s(f, "slot", "");
         let count = |key: &str| f.get(key).and_then(|x| x.as_array()).map(|a| a.len() as i64).unwrap_or(-1);
         let pt = lookup(json::s(f, "part", ""))?;
         let nm = pt.get("nominal").cloned().unwrap_or(Value::Null);
-        let (n, m, p, v) = gb::budget_line(slot_of(slot), count("axes_body"), count("spin_axes_body"), count("boresights_body"), count("normals_body"),
-            num(&nm, "mass_kg"), num(&nm, "power_steady_W"), num(&nm, "power_W"), num(&nm, "power_at_max_W"), num(&nm, "volume_L"));
-        items.push(json!({"slot": slot, "part": f["part"], "n": n, "mass_kg": m, "power_W": p, "volume_L": v}));
-        ms.push(m); ps.push(p); vs.push(v);
+        let (n, m, p, pk, v) = gb::budget_line(slot_of(slot), count("axes_body"), count("spin_axes_body"), count("boresights_body"), count("normals_body"),
+            num(&nm, "mass_kg"), num(&nm, "power_steady_W"), num(&nm, "power_W"), num(&nm, "power_at_max_W"), num(&nm, "power_peak_W"), num(&nm, "volume_L"));
+        items.push(json!({"slot": slot, "part": f["part"], "n": n, "mass_kg": m, "power_W": p, "power_peak_W": pk, "volume_L": v}));
+        ms.push(m); ps.push(p); pks.push(pk); vs.push(v);
     }
-    let (m, p, vol) = gb::budget_total(&mut ms, &mut ps, &mut vs, fill.len() as i64);
-    Ok(json!({"mass_kg": m, "power_W": p, "volume_L": vol, "items": items}))
+    let (m, p, peak, vol) = gb::budget_total(&mut ms, &mut ps, &mut pks, &mut vs, fill.len() as i64);
+    Ok(json!({"mass_kg": m, "power_W": p, "power_peak_W": peak, "volume_L": vol, "items": items}))
 }
 
 /// asils.sizing.size_all: every part, one product per family, budgets. Writes
@@ -549,7 +549,7 @@ pub fn size_all(root: &Path, case_file: &Path, k: &Knobs, out: &Path) -> Result<
         adcs_sim::fsio::write(&out.join("products").join(format!("SZ-{case}-{id}.json")), serde_json::to_string(&pr).map_err(|e| Error::run(e.to_string()))?)?;
         let b = budget(pr["fill"].as_array().unwrap(), &lookup)?;
         families.insert(id.to_string(), json!({"product": format!("SZ-{case}-{id}"), "role": fa["role"], "label": label,
-            "mass_kg": b["mass_kg"], "power_W": b["power_W"], "volume_L": b["volume_L"], "items": b["items"]}));
+            "mass_kg": b["mass_kg"], "power_W": b["power_W"], "power_peak_W": b["power_peak_W"], "volume_L": b["volume_L"], "items": b["items"]}));
     }
     let z = json!({"schema": "adcs-sizing/1", "case": case, "class": if d.fine { "fine" } else { "coarse" }, "star_tracker": st_fit,
         "demand": d.json(), "knobs": k.json(), "families": families,
@@ -713,5 +713,26 @@ mod tests {
             assert!((sec[a] - mag*(n as f64)*dt).abs() < 1e-9*sec[a], "secular {} against {}", sec[a], mag*(n as f64)*dt);
             assert!((cyc[a] - mag*dt).abs() < 1e-9*cyc[a], "cyclic {} against {}", cyc[a], mag*dt);
         }
+    }
+
+    #[test]
+    fn the_static_budget_is_the_whole_adcs_with_its_sensors_and_its_peak() {
+        // S11.8 (Y1): the sensors are lines of the budget at their steady power, and gb_2 (the peak) is computed
+        let out = std::env::temp_dir().join(format!("adcs-design-budget-{}", std::process::id()));
+        let z = size_all(&root(), &root().join("cases/ais_3u.csv"), &Knobs::default(), &out).unwrap();
+        let _ = std::fs::remove_dir_all(&out);
+        let f = &z["families"]["mtq_rw"];
+        let items = f["items"].as_array().unwrap();
+        let line = |slot: &str| items.iter().find(|x| x["slot"] == slot).unwrap_or_else(|| panic!("no {slot} line in the budget"));
+        let sensors = ["magnetometer", "sun_sensors", "gyro", "gnss"].iter().map(|s| line(s)["power_W"].as_f64().unwrap()).sum::<f64>();
+        assert!(sensors >= 1.5 - 1e-9, "the sensors' steady power is in the budget: {sensors}");
+        let p = f["power_W"].as_f64().unwrap();
+        let actuators: f64 = items.iter().filter(|x| ["coils", "wheels", "rcs"].contains(&x["slot"].as_str().unwrap())).map(|x| x["power_W"].as_f64().unwrap()).sum();
+        assert!(p >= actuators + sensors - 1e-9, "the steady power holds the actuators and the sensors: {p}");
+        // the peak is computed: the sum of the units' peaks, never below the steady power
+        let pk = f["power_peak_W"].as_f64().unwrap();
+        assert!(pk >= p - 1e-12, "peak {pk} below steady {p}");
+        assert!((pk - items.iter().map(|x| x["power_peak_W"].as_f64().unwrap()).sum::<f64>()).abs() < 1e-9);
+        assert!(pk > p, "the wheels and coils peak above their steady power: {pk} against {p}");
     }
 }

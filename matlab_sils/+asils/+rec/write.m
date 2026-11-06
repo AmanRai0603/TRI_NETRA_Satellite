@@ -34,7 +34,7 @@ function dir_out = write(rec, dir_out)
     end
     if isfield(rec, 'tau_rcs')
         for a = 1:3, C(end+1,:) = {sprintf('tau_rcs_%s_Nm', ax(a)), rec.tau_rcs(a,:)}; end %#ok<AGROW>
-        C = [C; {'prop_kg', rec.prop_kg; 'P_rcs_W', rec.P_rcs; 'n_rotors_isolated', rec.n_failed}];
+        C = [C; {'prop_kg', rec.prop_kg; 'P_rcs_W', rec.P_rcs; 'P_sens_W', rec.P_sens; 'n_rotors_isolated', rec.n_failed}];
         for a = 1:3, C(end+1,:) = {sprintf('sun_body_%s', ax(a)), rec.sun_body(a,:)}; end %#ok<AGROW>
     end
     C = [C; {'P_mtq_W', rec.P_mtq; 'P_rw_W', rec.P_rw; 'rho_kgm3', rec.rho; 'shadow_nu', rec.nu; 'P_gen_W', rec.P_gen; 'soc', rec.soc; ...

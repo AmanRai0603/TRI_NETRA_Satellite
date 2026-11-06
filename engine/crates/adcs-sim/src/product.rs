@@ -19,6 +19,8 @@ pub struct Dev {
     pub imbalance: Vec<Option<(f64, f64)>>, pub rotor_part: Vec<String>,
     /// the rotors' telemetry noises, one sigma: momentum [N m s] and gimbal angle [rad] (act's stated values)
     pub rotor_tlm_noise: f64, pub gimbal_tlm_noise: f64,
+    /// each sensor's whole steady power [W], every unit of its fill line, in the order of sensorpower's Sensor (sens_power)
+    pub sens_w: [f64; 7],
     /// the product and part files it was read from (their fingerprint goes in the run's provenance)
     pub files: Vec<PathBuf>,
 }
@@ -222,6 +224,23 @@ fn fit_actuator_(d: &mut Dev, x: &mut MexDesc, slot: &str, pt: &Part) -> bool {
     true
 }
 
+/// A sensor fill line's place in sensorpower's Sensor and its whole steady power: the units the line lists (the normals,
+/// boresights) at the part's steady power, else its power (sizebudget's budget_line, the budget's own rule).
+fn sensor_whole_power(slot: &str, f: &Value, pt: &Part) -> Option<(usize, f64)> {
+    use crate::gen::{sensorpower as sp, sizebudget as gb};
+    let (sensor, bslot) = match slot {
+        "gyro" => (sp::SENSOR_GYRO, gb::SLOT_GYRO), "magnetometer" => (sp::SENSOR_MAGNETOMETER, gb::SLOT_MAGNETOMETER),
+        "sun_sensors" => (sp::SENSOR_SUN_SENSORS, gb::SLOT_SUN_SENSORS), "coarse_sun_sensors" => (sp::SENSOR_COARSE_SUN_SENSORS, gb::SLOT_COARSE_SUN_SENSORS),
+        "star_tracker" => (sp::SENSOR_STAR_TRACKER, gb::SLOT_STAR_TRACKER), "earth_sensor" => (sp::SENSOR_EARTH_SENSOR, gb::SLOT_EARTH_SENSOR),
+        "gnss" => (sp::SENSOR_GNSS, gb::SLOT_GNSS), _ => return None,
+    };
+    let count = |key: &str| f.get(key).and_then(|x| x.as_array()).map(|a| a.len() as i64).unwrap_or(-1);
+    let num = |key: &str| json::f(&pt.nm, key, f64::NAN);
+    let (_n, _m, p, _pk, _v) = gb::budget_line(bslot, count("axes_body"), count("spin_axes_body"), count("boresights_body"), count("normals_body"),
+        num("mass_kg"), num("power_steady_W"), num("power_W"), num("power_at_max_W"), num("power_peak_W"), num("volume_L"));
+    Some((sensor as usize, p))
+}
+
 /// The sensor slots. False when `slot` is not one.
 fn fit_sensor(d: &mut Dev, slot: &str, pt: &Part) -> bool {
     let (n, f) = (|k: &str| pt.n(k), pt.f);
@@ -310,6 +329,7 @@ impl Dev {
             let slot = json::s(f, "slot", "");
             capacity(id, part, slot, f, &pt, &x)?;
             selector(id, slot, f)?;
+            if let Some((i, w)) = sensor_whole_power(slot, f, &pt) { d.sens_w[i] = w; }
             if !fit_actuator(&mut d, &mut x, slot, &pt) && !fit_sensor(&mut d, slot, &pt) {
                 return Err(Error::refused(format!("product {id}: unknown slot {slot}")));
             }

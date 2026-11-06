@@ -543,11 +543,12 @@ end
             _k, x = self.nodes[nid]
             rows = {(s, f): (v, o) for s, f, v, o in x["body"]["content"]}
             self.assertEqual(self.beh(nid), "method", nid)
-            self.assertIn("the developer's revision S7.14", rows[("code", "pseudocode")][1], nid)
+            rev = "S11.8" if nid == "design_power_system" else "S7.14"        # S11.8 put the sensors in the bus load (Y1)
+            self.assertIn(f"the developer's revision {rev}", rows[("code", "pseudocode")][1], nid)
             self.assertTrue(rows[("code", "transcribes")][0], nid)
             self.assertEqual(rows[("code", "generate")][0], "adcs-sim", nid)
             self.assertEqual(x["sealed_as"], "unconfirmed", nid)
-            self.assertTrue(any(w.startswith("the developer's revision S7.14") and "not yet signed by a person" in w for w in x["why"]), nid)
+            self.assertTrue(any(w.startswith(f"the developer's revision {rev}") and "not yet signed by a person" in w for w in x["why"]), nid)
         self.assertEqual(self.nodes["design_power_system"][1]["body"]["node"]["group_id"], "design")
         for path, fn in (("pnt/pntbudget.pc", "pointing_control"), ("pnt/pntbudget.pc", "pointing_budget"), ("pnt/jitter.pc", "rotor_jitter"),
                          ("pnt/jitter.pc", "rotor_imbalance"), ("design/powersys.pc", "array_power"), ("design/powersys.pc", "battery_step")):
@@ -576,11 +577,12 @@ end
             rows = {(s, f): (v, o) for s, f, v, o in x["body"]["content"]}
             self.assertEqual(x["body"]["node"]["group_id"], "kpi", nid)
             self.assertEqual(self.beh(nid), "method", nid)
-            self.assertTrue(rows[("code", "pseudocode")][1].startswith(path + " (the developer's revision S7.14b"), nid)
+            rev = "S11.8" if nid == "kpi_metric_evaluate" else "S7.14b"      # S11.8 put the sensors' power in the power kinds (Y1)
+            self.assertTrue(rows[("code", "pseudocode")][1].startswith(path + f" (the developer's revision {rev}"), nid)
             self.assertTrue(rows[("code", "transcribes")][0], nid)
             self.assertEqual(rows[("code", "generate")][0], gen, nid)
             self.assertEqual(x["sealed_as"], "unconfirmed", nid)
-            self.assertTrue(any(w.startswith("the developer's revision S7.14b") and "not yet signed by a person" in w for w in x["why"]), nid)
+            self.assertTrue(any(w.startswith(f"the developer's revision {rev}") and "not yet signed by a person" in w for w in x["why"]), nid)
         src = ROOT / "engine" / "crates" / "adcs-sim" / "src"
         met = "\n".join(ln.split("//")[0] for ln in (src / "metrics.rs").read_text(encoding="utf-8").splitlines())
         for gone in ("0.9973", "0.95", "1e-9", "sort_by", ".acos()", "to_degrees", "qangle", "/60.0", "100.0*", "1e3*", "fold(", ".sum::<f64>()",
@@ -618,7 +620,7 @@ end
                 self.assertEqual(self.beh(nid), "method", nid)
                 self.assertTrue(any(rows[("code", "pseudocode")][1].startswith(path + f" (the developer's revision {r}") for r in ("S7.15", "S11.8")), nid)   # S11.8 revised the sizing (Y2, Y4, Y5, Y1)
                 self.assertTrue(rows[("code", "transcribes")][0], nid)
-                self.assertEqual(rows[("code", "generate")][0], "adcs-design", nid)
+                self.assertEqual(rows[("code", "generate")][0], "adcs-design, adcs-sim" if path == "design/sizebudget.pc" else "adcs-design", nid)   # S11.8: the run counts a sensor line's units by budget_line
                 self.assertEqual(x["sealed_as"], "unconfirmed", nid)
                 self.assertTrue(any(w.startswith(f"the developer's revision {r}") and "not yet signed by a person" in w for w in x["why"] for r in ("S7.15", "S11.8")), nid)
         self.assertEqual(self.nodes["catalogue_datasheet_derive"][1]["body"]["node"]["group_id"], "catalogue")
