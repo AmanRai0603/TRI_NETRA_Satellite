@@ -195,7 +195,12 @@ Each entry: what the item says (its id in its source), whether it is open and ho
 - Status: **open**. Known from: 08_mode_manager.pc:240 'if not gyro_ok and not has_gyro: w = 0'; exit test at adcs_fsw.c:369 (ho_t) on z->w.
 - Lives in: both. Design: fsw_modes (gdn); the B-dot rate (adcs_fsw.c:310) already computes a field derivative. Code: tick :360-372.
 - Fails before the fix: fsw test: has_gyro=0, tumbling body, hold elapsed: no exit while the B-dot rate is above ho_out; before: exits.
-- Work: code (standard tier), size S, step S11.5. Depends on: F2/G3. Owner decision: YES (small): B-dot rate estimate for the exit (recommended; exists in the tick) or refuse auto-next without a gyro.
+- Also fails before the fix: a healthy gyro, where the exit must use the gyro's rate; and a gyro failing during
+  detumble, where the exit must move to the B-dot rate and not exit early. Scenario cases: gyro, no gyro, and a
+  gyro failing in detumble.
+- Work: code (standard tier), size S, step S11.5. Depends on: F2/G3. **Owner's answer (6 Nov 2026, section 5):
+  both rate sources.** The gyro's rate when the gyro is healthy; the B-dot rate estimate from the magnetometer
+  when there is no gyro or it has failed. The gyro's health does the switching.
 
 ### flight software
 
