@@ -47,8 +47,30 @@ def oils(a):
                 failed += 1
                 print(txt[-2000:])
     S(3)
-    oils_ledger(scen, a.fsw)
-    return failed
+    return failed + (oils_ledger(scen, a.fsw) or 0)
+
+
+# docs/TEST_BENCH_PLAN.md section 5, SILS vs soft OILS with the latency model: every verdict equal, except a
+# metric within 5 % of its requirement (knife-edge), whose verdict may flip on noise; the per-metric difference
+# is at most 5 % (the 3-sigma of a 12-seed spread is not available from one pair and only widens this).
+KNIFE_EDGE = 0.05
+DIFF_TOL = 0.05
+
+
+def pair_verdict(sils, oils, req, pass_sils, pass_oils):
+    """One SILS/OILS pair against the section-5 thresholds: (accepted, why).
+
+    A pair with no value on one side (the OILS-only timing metrics) is judged on the verdict alone."""
+    if sils is None or oils is None:
+        return pass_sils == pass_oils, "verdict only"
+    scale = max(abs(sils), abs(oils), abs(req or 0.0))
+    diff = abs(sils - oils)
+    if scale > 0 and diff > DIFF_TOL * scale:
+        return False, f"differs by {diff / scale:.1%} (limit {DIFF_TOL:.0%})"
+    if pass_sils == pass_oils:
+        return True, "agrees"
+    edge = req is not None and req != 0 and min(abs(sils - req), abs(oils - req)) <= KNIFE_EDGE * abs(req)
+    return (True, "knife-edge: verdict flipped within the numeric tolerance") if edge else (False, "verdict flipped away from the requirement")
 
 
 def cpi_runs(d):
@@ -86,7 +108,10 @@ def oils_ledger(scen=None, fsw="qemu", announce=False):
                     "lat_mean_ms": 1e3 * o["latency_s"]["mean"] if o.get("latency_s") else None, "lat_max_ms": 1e3 * o["latency_s"]["max"] if o.get("latency_s") else None,
                     "exec_max_ms": 1e3 * o["exec_s"]["max"] if o.get("exec_s") else None, "model": o.get("model")})
     judged = [r for r in rows if r["pass_sils"] is not None]
+    for r in judged:
+        r["accepted"], r["why"] = pair_verdict(r["sils"], r["oils"], r["req"], r["pass_sils"], r["pass_oils"])
     agree = sum(r["pass_sils"] == r["pass_oils"] for r in judged)
+    accepted = sum(r["accepted"] for r in judged)
     model = next((t["model"] for t in tim if t.get("model")), {}) or {}
     L = ["# Soft OILS: SILS and the flight software on the virtual OBC, side by side", "",
          "Owner: Agastya. `tools/engine.py oils` flies every scenario twice on the Rust engine (POP in the loop):",
@@ -98,7 +123,8 @@ def oils_ledger(scen=None, fsw="qemu", announce=False):
          f"fsw/targets/qemu-mps2/insn_count.c) x CPI {model.get('cpi', 1.25)} / {model.get('cpu_hz', 168e6) / 1e6:.0f} MHz;",
          f"buses: I2C {model.get('i2c_hz', 4e5) / 1e3:.0f} kHz, SPI {model.get('spi_hz', 1e6) / 1e6:.0f} MHz, CAN {model.get('can_bps', 1e6) / 1e6:.0f} Mbit/s.",
          "Runs are deterministic: the same scenario gives the same instruction counts and trajectory every time.", "",
-         f"**Verdict agreement SILS vs soft OILS: {agree} of {len(judged)} judged metrics** over {len(tim)} scenarios.", "",
+         f"**Verdict agreement SILS vs soft OILS: {agree} of {len(judged)} judged metrics** over {len(tim)} scenarios.",
+         f"**Accepted at the TEST_BENCH_PLAN section 5 tolerance** (difference <= {DIFF_TOL:.0%}; a flipped verdict only within {KNIFE_EDGE:.0%} of the requirement): {accepted} of {len(judged)}.", "",
          "## OBC timing budget", "",
          "| scenario | period [ms] | instructions mean / max | exec max [ms] | latency mean / max [ms] | CPU load mean / max | overruns | deadline margin min [ms] |",
          "|---|---:|---:|---:|---:|---:|---:|---:|"]
@@ -133,9 +159,11 @@ def oils_ledger(scen=None, fsw="qemu", announce=False):
         if r["req"] is None:
             continue
         flag = "" if r["pass_sils"] == r["pass_oils"] else " ⚠"
+        flag += "" if r.get("accepted", True) else " REJECTED: " + r["why"]
         L.append(f"| {r['scenario']} | {r['metric']} ({r['unit']}) | {fmt(r['req'])} | {fmt(r['sils'])} | {fmt(r['oils'])} | {v(r['pass_sils'])} | {v(r['pass_oils'])}{flag} |")
     OUT.mkdir(exist_ok=True)
     S(2)
     write_text(OUT / "soft_oils.json", json.dumps({"metrics": rows, "timing": tim}, indent=1))
     write_text(OUT / "SOFT_OILS.md", "\n".join(L) + "\n")
-    print(f"soft OILS verdict agreement {agree}/{len(judged)}; wrote results/SOFT_OILS.md")
+    print(f"soft OILS verdict agreement {agree}/{len(judged)}, accepted {accepted}/{len(judged)}; wrote results/SOFT_OILS.md")
+    return len(judged) - accepted
