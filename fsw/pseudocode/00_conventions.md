@@ -15,8 +15,10 @@ A change goes to the pseudocode first, then to all three in the same pull reques
 
 ## Numbers
 
-- `real` is IEEE-754 double by default. A single-precision build (`ADCS_REAL_FLOAT`, Rust feature
-  `f32`) exists for FPU-single targets and is tested separately.
+- `real` is IEEE-754 double, and the build is double only. There is no single-precision build: `ADCS_REAL_FLOAT` is
+  refused at compile time, and the Rust crate has no `f32` feature (DR-fsw-002). A single-precision build waits for the
+  board's choice of FPU (H1) and a numerics review; `tests/test_precision_claim.py` fails if a document claims one while
+  `gcc -DADCS_REAL_FLOAT -fsyntax-only` does not build clean.
 - Angles are in rad, rates in rad/s, time in s (tick time `t = tick · dt`, exact), field in T,
   dipole in A m², torque in N m, momentum in N m s.
 - A guarded division `x / max(|y|, eps)` is always written with its `eps`, and it is the same in

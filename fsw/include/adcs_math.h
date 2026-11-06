@@ -11,11 +11,13 @@
 #include <math.h>
 #include <stdint.h>
 
+/* double only (DR-fsw-002): the flight software has no single-precision build. A float typedef here compiled with incompatible
+ * pointers (the generated algorithms' arrays are double) and hundreds of conversion warnings, so it is refused, not offered.
+ * tests/test_precision_claim.py holds the documents to this. */
 #ifdef ADCS_REAL_FLOAT
-typedef float adcs_real;
-#else
-typedef double adcs_real;
+#error "ADCS_REAL_FLOAT: the flight software is double only (DR-fsw-002); there is no single-precision build"
 #endif
+typedef double adcs_real;
 
 #define ADCS_PI 3.14159265358979323846
 #define ADCS_D2R (ADCS_PI / 180.0)
