@@ -60,7 +60,7 @@ pub struct Fsw {
     // sensor health: seconds since the last good sample, the last good field
     mag_age: f64, gyro_age: f64, mag_seen: bool, b_good: V3,
     // the gyro chain (DR-fdir-002, DR-gdn-003): the last sample, the ticks it has stayed the same, quiet (stale); the B-dot rate estimate of the coil cycle
-    w_prev: V3, gyro_same: i64, gyro_quiet: bool,
+    w_prev: V3, gyro_same: i64, gyro_quiet: bool, wbd: Option<f64>,
     q_prev: Option<Q>,       // the filter's attitude of the last tick: with a quiet gyro its change is the controllers' rate
     have_r: bool, r: V3, v: V3,
     k: Mekf, ad_ok: bool, t_st: f64, mag_done: bool, n_rej: f64, gh_jd: f64,
@@ -357,7 +357,7 @@ impl Fsw {
                         self.bn += 1;
                     }
                     // no field this cycle: no dipole, no rate across the gap
-                    if mi == self.meas_i && self.bn == 0 { self.b1 = None; self.b1raw = None; }
+                    if mi == self.meas_i && self.bn == 0 { self.b1 = None; self.b1raw = None; self.wbd = None; }
                     else if mi == self.meas_i {
                         let b = unit(&scale3(&self.bsum, 1.0/self.bn as f64));
                         let mut law = p.bdot_law;
@@ -390,6 +390,8 @@ impl Fsw {
                             self.b1raw = Some(bav);
                         }
                         if !is_zero3(&m_body) { m_body = ctl::sat_dipole(&sub3(&m_body, &p.m_res_est), p.m_max); }
+                        // the B-dot rate estimate of the cycle, the detumble exit's rate without a healthy gyro (DR-gdn-003: modes::bdot_rate)
+                        self.wbd = self.b1.map(|b1| crate::alg::modes::bdot_rate(b, b1, p.mtq_period));
                         self.b1 = Some(b);
                     }
                 }

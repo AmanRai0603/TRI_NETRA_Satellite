@@ -183,6 +183,9 @@ pub fn modes_schedule(st: Modes, mp: ModeParams) -> Modes {
 
 /// The transitions of one tick (after safe mode): the detumble exit, the spin guards, the
 /// gyro-propagated Sun vector of the acquisition laws, the end of the rotor Sun acquisition.
+/// The detumble exit is judged on the gyro's rate while the gyro answers with fresh samples, and on the B-dot rate
+/// estimate (bdot_rate: the field derivative of the coil cycle) when there is no gyro or it is stale (DR-gdn-003, F5):
+/// no estimate yet is no exit, so a body that tumbles is not released on a rate nobody measured.
 /// vectors: 96
 /// - st: Modes (passed rec)
 /// - mp: ModeParams (passed rec)
@@ -190,13 +193,22 @@ pub fn modes_schedule(st: Modes, mp: ModeParams) -> Modes {
 /// - sun_ok: bool (passed true or false)
 /// - sun: real[1][3] (passed a plain number)
 /// - dt: real[1] (passed a plain number)
+/// - has_gyro: bool (passed true or false)
+/// - wbd: real[1] (passed a plain number)
+/// - wbd_ok: bool (passed true or false)
 /// - returns s: Modes (passed rec)
 #[allow(clippy::too_many_arguments)]
-pub fn modes_step(st: Modes, mp: ModeParams, zw: [f64; 3], sun_ok: bool, sun: [f64; 3], dt: f64) -> Modes {
+pub fn modes_step(st: Modes, mp: ModeParams, zw: [f64; 3], sun_ok: bool, sun: [f64; 3], dt: f64, has_gyro: bool, wbd: f64, wbd_ok: bool) -> Modes {
     let mut s: Modes = Modes::default();
     s = st;
     if ((((s.mode == 0) || (s.mode == 7)) && (mp.auto_next != 255)) && ((s.faults & (256 | 512)) == 0)) {
-        if (rt::norm(zw) < mp.detumble_exit) {
+        let mut low: bool = false;
+        if ((has_gyro && (!s.gyro_quiet)) && (s.gyro_age == 0.0)) {
+            low = (rt::norm(zw) < mp.detumble_exit);
+        } else {
+            low = (wbd_ok && (wbd < mp.detumble_exit));
+        }
+        if low {
             s.hold = (s.hold + dt);
         } else {
             s.hold = 0.0;
@@ -349,6 +361,20 @@ pub fn fdir_sensors(mag_ok0: bool, b0: [f64; 3], bref_ok: bool, bref: [f64; 3], 
         w = [0.0; 3];
     }
     (mag_ok, b, w, b_good, mag_age, mag_seen, gyro_age, w_prev, same, quiet)
+}
+
+/// The B-dot rate estimate of the coil cycle: the field's direction turns at the body's rate across it, so the change of
+/// the unit field b over the period (b0 the previous cycle's, both unit) has the norm of the rate component perpendicular
+/// to the field, |w x b| (Stickler and Alfriend 1976). A lower bound of the body rate, which is what the exit needs.
+/// - b: real[1][3] (passed a plain number)
+/// - b0: real[1][3] (passed a plain number)
+/// - period: real[1] (passed a plain number)
+/// - returns w: real[1] (passed a plain number)
+#[allow(clippy::too_many_arguments)]
+pub fn bdot_rate(b: [f64; 3], b0: [f64; 3], period: f64) -> f64 {
+    let mut w: f64 = 0.0;
+    w = (rt::norm(rt::vsub(b, b0)) / period);
+    w
 }
 
 /// The rotor FDIR's own state (part of fsw_t).

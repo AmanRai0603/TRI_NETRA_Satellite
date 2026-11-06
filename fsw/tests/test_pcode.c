@@ -42,6 +42,7 @@ static const char *const BY_NAME[][2] = {
     {"navorbit::gnss_usable", "called only by the generated onboard_orbit"},
     {"navorbit::verlet", "called only by the generated onboard_orbit"},
     {"navorbit::fix_eci", "called only by the generated onboard_orbit"},
+    {"modes::bdot_rate", "called by the tick as the generated function, no signature of its own"},
     {"estimation::st_coasting", "called by the tick as the generated function, no signature of its own"},
     {"estimation::att_rate", "called by the tick as the generated function, no signature of its own"},
     {"clocktime::gnss_jd", "called by the driver and the tick as the generated function, no signature of their own"},
@@ -343,6 +344,7 @@ static int call(const char *name, const double *x, int nx, out_t *o)
         double dt;
         memset(&S, 0, sizeof S); get_modes(&a); get_mode_params(&a);
         V(&a, S.z.w, 3); S.z.sun_ok = F(&a) != 0; V(&a, S.z.sun, 3); dt = F(&a);
+        S.p.has_gyro = (uint8_t)(F(&a) != 0); S.wbd = F(&a); S.wbd_ok = F(&a) != 0;
         adcs_modes_step(&S, dt); put_modes(o);
     }
     else if (!strcmp(name, "modes::fdir_safe")) { memset(&S, 0, sizeof S); get_modes(&a); adcs_fdir_safe(&S); put_modes(o); }

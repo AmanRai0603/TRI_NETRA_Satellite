@@ -3930,7 +3930,7 @@ int pc_call(const char *name, const double *x, int nx, double *out, int *ny) {
         return 0;
     }
     if (strcmp(name, "modes::modes_step") == 0) {
-        if (nx != 73) { return -1; }
+        if (nx != 76) { return -1; }
     {
         Modes a0;
         ModeParams a1;
@@ -3938,6 +3938,9 @@ int pc_call(const char *name, const double *x, int nx, double *out, int *ny) {
         bool a3;
         pc_a3f a4;
         double a5;
+        bool a6;
+        double a7;
+        bool a8;
         a0.mode = (int64_t)x[0];
         a0.t = x[1];
         a0.t_mode = x[2];
@@ -4011,8 +4014,11 @@ int pc_call(const char *name, const double *x, int nx, double *out, int *ny) {
         a4.v[1] = x[70];
         a4.v[2] = x[71];
         a5 = x[72];
+        a6 = x[73] != 0.0;
+        a7 = x[74];
+        a8 = x[75] != 0.0;
         {
-            Modes r = modes_modes_step(a0, a1, a2, a3, a4, a5);
+            Modes r = modes_modes_step(a0, a1, a2, a3, a4, a5, a6, a7, a8);
             out[(*ny)++] = (double)r.mode;
             out[(*ny)++] = r.t;
             out[(*ny)++] = r.t_mode;
@@ -4177,6 +4183,26 @@ int pc_call(const char *name, const double *x, int nx, double *out, int *ny) {
             out[(*ny)++] = r.w_prev.v[2];
             out[(*ny)++] = (double)r.same;
             out[(*ny)++] = r.quiet ? 1.0 : 0.0;
+        }
+    }
+        return 0;
+    }
+    if (strcmp(name, "modes::bdot_rate") == 0) {
+        if (nx != 7) { return -1; }
+    {
+        pc_a3f a0;
+        pc_a3f a1;
+        double a2;
+        a0.v[0] = x[0];
+        a0.v[1] = x[1];
+        a0.v[2] = x[2];
+        a1.v[0] = x[3];
+        a1.v[1] = x[4];
+        a1.v[2] = x[5];
+        a2 = x[6];
+        {
+            double r = modes_bdot_rate(a0, a1, a2);
+            out[(*ny)++] = r;
         }
     }
         return 0;

@@ -487,6 +487,50 @@ static void tk_quiet_gyro(int silent)
 static void tk_gyro_stops_answering(void) { tk_quiet_gyro(1); }
 static void tk_gyro_frozen(void) { tk_quiet_gyro(0); }
 
+/* F5: the detumble exit's rate source (DR-gdn-003). 40 s of detumble with the exit at 0.01 rad/s held for 5 s, then the next state.
+ * The field turns in the body at spin rad/s about z (a tumbling body); the gyro reads w_gyro with counts that change, as a gyro's do;
+ * gyro says whether the product has one, fail_at the second it stops answering (-1: never). Returns the second the mode left detumble, -1: it did not. */
+static int tk_exit_run(int gyro, double w_gyro, double spin, int fail_at)
+{
+    static adcs_params_t p; static uint8_t blob[ADCS_PARAMS_BLOB_SIZE];
+    adcs_fsw_init_t in; adcs_fsw_state_t st; int k, i;
+    tk_params(&p, ADCS_MODE_DETUMBLE, 0);
+    p.has_gyro = (uint8_t)gyro; p.auto_next = ADCS_MODE_NADIR_MTQ; p.detumble_exit = 0.01; p.detumble_hold_s = 5.0;
+    adcs_params_encode(&p, blob, sizeof blob);
+    hal_stub_reset();
+    in.abi_version = ADCS_FSW_ABI_VERSION; in.config_blob = blob; in.config_len = sizeof blob; in.start_ns = 0;
+    if (adcs_fsw_init(&in) != 0) return -2;
+    for (k = 0; k < 400; k++) {
+        double t = k*0.1, c = cos(spin*t), s = sin(spin*t), b0[3] = {2e-5, -1e-5, 3e-5};
+        double b[3] = {b0[0]*c + b0[1]*s, -b0[0]*s + b0[1]*c, b0[2]};
+        HS.now_ns = (uint64_t)k*100000000ull;
+        HS.mag[0] = 1; for (i = 0; i < 3; i++) put16(HS.mag + 1 + 2*i, b[i]/ADCS_MAG_LSB_T);
+        if (gyro) {
+            HS.gyro[0] = 1; for (i = 0; i < 3; i++) put32(HS.gyro + 1 + 4*i, w_gyro/ADCS_GYRO_LSB + (double)((k*7 + i*3) % 5));
+            HS.gyro_silent = fail_at >= 0 && k >= fail_at*10;
+        }
+        adcs_fsw_step(HS.now_ns);
+        adcs_fsw_peek(&st);
+        if (st.mode != ADCS_MODE_DETUMBLE) return k/10;
+    }
+    return -1;
+}
+static void tk_exit_healthy_gyro(void)
+{
+    CHECK(tk_exit_run(1, 0.0, 0.0, -1) >= 0, "a still body with a healthy gyro never left detumble");
+    CHECK(tk_exit_run(1, 0.1, 0.0, -1) < 0, "a gyro reading 0.1 rad/s let the body leave detumble");
+    CHECK(tk_exit_run(1, 0.0, 0.1, -1) >= 0, "the field's turn kept a body the healthy gyro reads still in detumble: the gyro judges");
+}
+static void tk_exit_no_gyro(void)
+{
+    CHECK(tk_exit_run(0, 0.0, 0.0, -1) >= 0, "a still field with no gyro never let the body go");
+    CHECK(tk_exit_run(0, 0.0, 0.1, -1) < 0, "a body whose field turns at 0.1 rad/s left detumble after the hold, with no gyro");
+}
+static void tk_exit_gyro_fails(void)
+{
+    CHECK(tk_exit_run(1, 0.0, 0.1, 3) < 0, "a gyro that failed at 3 s let the tumbling body leave detumble");
+}
+
 /* The tick tests a fix has made pass: in main's run. A fix moves its tests here from the skipped list below. */
 static const struct { const char *name; void (*fn)(void); } ticks[] = {
     { "timestamps off by 1 us change no command (F3)", tk_jitter_1us },
@@ -497,6 +541,9 @@ static const struct { const char *name; void (*fn)(void); } ticks[] = {
     { "a clock step back past the start does not wrap (F1)", tk_step_back_past_start },
     { "a gyro that stops answering is flagged, its rate dropped (F2)", tk_gyro_stops_answering },
     { "a gyro frozen on its last sample is flagged, rate dropped (F2)", tk_gyro_frozen },
+    { "a healthy gyro leaves detumble on its rate (F5)", tk_exit_healthy_gyro },
+    { "with no gyro a tumbling body does not leave detumble (F5)", tk_exit_no_gyro },
+    { "a gyro failing in detumble does not let a tumbling body go (F5)", tk_exit_gyro_fails },
 };
 
 static void t_ticks(void)

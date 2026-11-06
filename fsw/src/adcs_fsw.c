@@ -320,7 +320,7 @@ int32_t adcs_fsw_step(uint64_t now_ns)
             adcs_zero3(m_body);
             if (first) { adcs_zero3(S.bsum); adcs_zero3(S.bsum_raw); S.bn = 0; }
             if (z->mag_ok) { adcs_real u[3]; adcs_unit(z->B, u); adcs_add3(S.bsum, u, S.bsum); adcs_add3(S.bsum_raw, z->B, S.bsum_raw); S.bn++; }
-            if (mi == S.meas_i && S.bn == 0) { S.b1_ok = 0; S.B1raw_ok = 0; }   /* no field this cycle: no dipole, no rate across the gap */
+            if (mi == S.meas_i && S.bn == 0) { S.b1_ok = 0; S.B1raw_ok = 0; S.wbd_ok = 0; }   /* no field this cycle: no dipole, no rate across the gap */
             else if (mi == S.meas_i) {
                 adcs_real b[3];
                 int law = p->bdot_law;
@@ -356,6 +356,8 @@ int32_t adcs_fsw_step(uint64_t now_ns)
                 if (m_body[0] != 0 || m_body[1] != 0 || m_body[2] != 0) {
                     adcs_sub3(m_body, p->m_res_est, m_body); adcs_sat_dipole(m_body, p->m_max);
                 }
+                /* the B-dot rate estimate of the cycle, the detumble exit's rate without a healthy gyro (DR-gdn-003: modes::bdot_rate) */
+                S.wbd_ok = S.b1_ok; if (S.b1_ok) S.wbd = modes_bdot_rate(gl_v3(b), gl_v3(S.b1), p->mtq_period);
                 adcs_copy3(b, S.b1); S.b1_ok = 1;
             }
         }

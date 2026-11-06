@@ -6,7 +6,7 @@
  "fingerprint": {
   "rustc": "rustc 1.94.1 (e408947bf 2026-03-25)",
   "engine": "adcs-engine-rs/1.0.0 (adcs-case/1, POP v51 port in-loop, adcs-design, soft OILS)",
-  "fsw": "trinetra-fsw-c/1.0.0 (adcs-fswcfg/1) alg 65b10ec566bbc6fa",
+  "fsw": "trinetra-fsw-c/1.0.0 (adcs-fswcfg/1) alg 916f319b81c3e9ce",
   "machine": "x86_64"
  },
  "scenarios": {

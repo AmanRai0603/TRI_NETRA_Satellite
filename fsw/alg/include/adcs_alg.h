@@ -887,6 +887,9 @@ Modes modes_modes_schedule(Modes st_, ModeParams mp);
 
 /* The transitions of one tick (after safe mode): the detumble exit, the spin guards, the */
 /* gyro-propagated Sun vector of the acquisition laws, the end of the rotor Sun acquisition. */
+/* The detumble exit is judged on the gyro's rate while the gyro answers with fresh samples, and on the B-dot rate */
+/* estimate (bdot_rate: the field derivative of the coil cycle) when there is no gyro or it is stale (DR-gdn-003, F5): */
+/* no estimate yet is no exit, so a body that tumbles is not released on a rate nobody measured. */
 /* vectors: 96 */
 /* - st */
 /* - mp */
@@ -894,8 +897,11 @@ Modes modes_modes_schedule(Modes st_, ModeParams mp);
 /* - sun_ok */
 /* - sun */
 /* - dt */
+/* - has_gyro */
+/* - wbd */
+/* - wbd_ok */
 /* - returns s */
-Modes modes_modes_step(Modes st_, ModeParams mp, pc_a3f zw, bool sun_ok, pc_a3f sun, double dt);
+Modes modes_modes_step(Modes st_, ModeParams mp, pc_a3f zw, bool sun_ok, pc_a3f sun, double dt, bool has_gyro, double wbd, bool wbd_ok);
 
 /* Safe mode: a magnetometer (once seen) or a gyro silent more than 60 s sets its fault bit (8 and 9) */
 /* and holds the spacecraft in magnetorquer detumble. The level below it (DR-fdir-002, F2): a gyro quiet for */
@@ -940,6 +946,15 @@ typedef struct { bool mag_ok; pc_a3f b; pc_a3f w; pc_a3f b_good; double mag_age;
 /* - returns same */
 /* - returns quiet */
 modes_fdir_sensors_out modes_fdir_sensors(bool mag_ok0, pc_a3f b0, bool bref_ok, pc_a3f bref, pc_a3f b_good0, double mag_age0, bool mag_seen0, bool has_gyro, bool gyro_ok, pc_a3f w0, double gyro_age0, double dt, pc_a3f w_prev0, int64_t same0, int64_t stale_n);
+
+/* The B-dot rate estimate of the coil cycle: the field's direction turns at the body's rate across it, so the change of */
+/* the unit field b over the period (b0 the previous cycle's, both unit) has the norm of the rate component perpendicular */
+/* to the field, |w x b| (Stickler and Alfriend 1976). A lower bound of the body rate, which is what the exit needs. */
+/* - b */
+/* - b0 */
+/* - period */
+/* - returns w */
+double modes_bdot_rate(pc_a3f b, pc_a3f b0, double period);
 
 /* The rotor FDIR in the momentum-device states: a fixed rotor that does not follow its command is */
 /* isolated. Instantaneous: the momentum rate against the command clipped to what the rotor can do; */

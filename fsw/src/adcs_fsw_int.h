@@ -35,7 +35,7 @@ typedef struct {
     /* sensor health: seconds since the last good sample, the last good field */
     double mag_age, gyro_age; int mag_seen; adcs_real B_good[3];
     /* the gyro chain (DR-fdir-002, DR-gdn-003): the last sample, the ticks it has stayed the same, quiet (stale); the B-dot rate estimate of the coil cycle */
-    adcs_real w_prev[3]; int gyro_same, gyro_quiet;
+    adcs_real w_prev[3]; int gyro_same, gyro_quiet; double wbd; int wbd_ok;
     adcs_real q_prev[4]; int qp_ok;       /* the filter's attitude of the last tick: with a quiet gyro its change is the controllers' rate */
     /* orbit */
     int have_r; adcs_real r[3], v[3];

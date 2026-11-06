@@ -268,3 +268,52 @@ fn a_gyro_that_stops_answering_is_flagged_and_its_rate_dropped() { gyro_quiet_is
 /// A gyro that answers with its last sample, flagged ok (the engine's gyro_fail): the same samples for ten seconds are no rate.
 #[test]
 fn a_gyro_frozen_on_its_last_sample_is_flagged_and_its_rate_dropped() { gyro_quiet_is_flagged_and_dropped(false); }
+
+// ---- F5: the detumble exit's rate source (DR-gdn-003) ----
+
+/// 40 s of detumble with the exit at 0.01 rad/s held for 5 s, then the next state. The field turns in the body at `spin` rad/s
+/// about z (a tumbling body: the B-dot rate is then `spin` times the field's sine to z). The gyro reads `w_gyro` with counts
+/// that change, as a gyro's do; `gyro` says whether the product has one and `fail_at` the second at which it stops answering.
+/// Returns the second the mode left detumble (None: it did not).
+fn detumble_exit(gyro: bool, w_gyro: f64, spin: f64, fail_at: Option<u64>) -> Option<u64> {
+    let mut p = params(Mode::Detumble, false);
+    p.has_gyro = gyro as u8; p.auto_next = Mode::NadirMtq as u8; p.detumble_exit = 0.01; p.detumble_hold_s = 5.0;
+    let (mut hal, mut f) = (Stub::default(), Fsw::new());
+    f.init(ABI_VERSION, &blob(&p), 0).expect("init");
+    for k in 0..400u64 {
+        let t = k as f64*0.1;
+        let b0 = [2e-5f64, -1e-5, 3e-5];
+        let (c, s) = ((spin*t).cos(), (spin*t).sin());
+        let b = [b0[0]*c + b0[1]*s, -b0[0]*s + b0[1]*c, b0[2]];
+        hal.now_ns = k*100_000_000;
+        hal.mag[0] = 1; for i in 0..3 { put16(&mut hal.mag[1 + 2*i..], b[i]/MAG_LSB_T); }
+        if gyro {
+            hal.gyro[0] = 1; for i in 0..3 { put32(&mut hal.gyro[1 + 4*i..], w_gyro/GYRO_LSB + ((k*7 + i as u64*3) % 5) as f64); }
+            if let Some(s) = fail_at { hal.gyro_silent = k >= s*10; }
+        }
+        let now = hal.now_ns; f.step(&mut hal, now);
+        if f.peek().unwrap().mode != Mode::Detumble as u16 { return Some(k/10); }
+    }
+    None
+}
+
+/// A healthy gyro: the exit is judged on its rate, whatever the field does.
+#[test]
+fn a_healthy_gyro_leaves_detumble_on_its_rate() {
+    assert!(detumble_exit(true, 0.0, 0.0, None).is_some(), "a still body with a healthy gyro never left detumble");
+    assert!(detumble_exit(true, 0.1, 0.0, None).is_none(), "a gyro reading 0.1 rad/s let the body leave detumble");
+    assert!(detumble_exit(true, 0.0, 0.1, None).is_some(), "the field's turn kept a body the healthy gyro reads still in detumble: the gyro judges");
+}
+
+/// No gyro: the exit is judged on the B-dot rate estimate, so a turning field keeps the body in detumble, a still one lets it go.
+#[test]
+fn without_a_gyro_a_tumbling_body_does_not_leave_detumble() {
+    assert!(detumble_exit(false, 0.0, 0.0, None).is_some(), "a still field with no gyro never let the body go");
+    assert!(detumble_exit(false, 0.0, 0.1, None).is_none(), "a body whose field turns at 0.1 rad/s left detumble after the hold, with no gyro");
+}
+
+/// A gyro that stops answering during detumble reading a still body while the field turns: the exit moves to the B-dot rate.
+#[test]
+fn a_gyro_failing_in_detumble_does_not_let_a_tumbling_body_go() {
+    assert!(detumble_exit(true, 0.0, 0.1, Some(3)).is_none(), "a gyro that failed at 3 s let the tumbling body leave detumble");
+}

@@ -55,6 +55,7 @@ const BY_NAME: &[(&str, &str)] = &[
     ("navorbit::gnss_usable", "called only by the generated onboard_orbit"),
     ("navorbit::verlet", "called only by the generated onboard_orbit"),
     ("navorbit::fix_eci", "called only by the generated onboard_orbit"),
+    ("modes::bdot_rate", "the runtime calls it in the tick's step 4 (fsw.rs Fsw::step): no public signature"),
     ("estimation::st_coasting", "the runtime calls it in the tick's step 2 (fsw.rs Fsw::step): no public signature"),
     ("estimation::att_rate", "the runtime calls it in the tick's step 2 (fsw.rs Fsw::step): no public signature"),
     ("clocktime::gnss_jd", "the driver calls it (drv.rs Drv::read): no public signature"),

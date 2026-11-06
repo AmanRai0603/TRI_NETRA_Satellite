@@ -52,6 +52,6 @@ impl Fsw {
     /// The transitions of one tick (after safe mode, fdir_safe), the spin guards among them.
     /// Written from the design: modes::modes_step (src/alg).
     pub(super) fn modes_step(&mut self, z: &Meas, dt: f64) {
-        self.set_modes_state(alg::modes_step(self.modes_state(), self.mode_params(), z.w, z.sun_ok, z.sun, dt));
+        self.set_modes_state(alg::modes_step(self.modes_state(), self.mode_params(), z.w, z.sun_ok, z.sun, dt, self.p.has_gyro != 0, self.wbd.unwrap_or(0.0), self.wbd.is_some()));
     }
 }

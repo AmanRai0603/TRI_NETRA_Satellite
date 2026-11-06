@@ -26,5 +26,6 @@ void adcs_modes_schedule(fsw_t *s) { gl_put_modes(modes_modes_schedule(gl_modes(
 /* written from the design: modes::modes_step (fsw/alg) */
 void adcs_modes_step(fsw_t *s, double dt)
 {
-    gl_put_modes(modes_modes_step(gl_modes(s), gl_mode_params(&s->p), gl_v3(s->z.w), s->z.sun_ok != 0, gl_v3(s->z.sun), dt), s);
+    gl_put_modes(modes_modes_step(gl_modes(s), gl_mode_params(&s->p), gl_v3(s->z.w), s->z.sun_ok != 0, gl_v3(s->z.sun), dt,
+                                    s->p.has_gyro != 0, s->wbd, s->wbd_ok != 0), s);
 }

@@ -98,11 +98,17 @@ Modes modes_modes_schedule(Modes st_, ModeParams mp) {
     return s;
 }
 
-Modes modes_modes_step(Modes st_, ModeParams mp, pc_a3f zw, bool sun_ok, pc_a3f sun, double dt) {
+Modes modes_modes_step(Modes st_, ModeParams mp, pc_a3f zw, bool sun_ok, pc_a3f sun, double dt, bool has_gyro, double wbd, bool wbd_ok) {
     Modes s = ((Modes){0});
     s = st_;
     if (((((s.mode == INT64_C(0)) || (s.mode == INT64_C(7))) && (mp.auto_next != INT64_C(255))) && ((s.faults & (INT64_C(256) | INT64_C(512))) == INT64_C(0)))) {
-        if ((pc_norm_a3f(zw) < mp.detumble_exit)) {
+        bool low = false;
+        if (((has_gyro && (!s.gyro_quiet)) && (s.gyro_age == 0.0))) {
+            low = (pc_norm_a3f(zw) < mp.detumble_exit);
+        } else {
+            low = (wbd_ok && (wbd < mp.detumble_exit));
+        }
+        if (low) {
             s.hold = (s.hold + dt);
         } else {
             s.hold = 0.0;
@@ -228,6 +234,12 @@ modes_fdir_sensors_out modes_fdir_sensors(bool mag_ok0, pc_a3f b0, bool bref_ok,
         r__.quiet = quiet;
         return r__;
     }
+}
+
+double modes_bdot_rate(pc_a3f b, pc_a3f b0, double period) {
+    double w = 0.0;
+    w = (pc_norm_a3f(pc_sub_a3f(b, b0)) / period);
+    return w;
 }
 
 RotorFdir modes_fdir_rotors(RotorFdir st_, RotorParams rp, double t, double dt, pc_a8f zh) {

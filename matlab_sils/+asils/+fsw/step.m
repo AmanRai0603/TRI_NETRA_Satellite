@@ -139,7 +139,7 @@ function [F, bus] = step(F, bus)
     % 3 mode manager: commanded changes, safe mode, the transitions
     F = set_modes_(F, asils.alg.modes.modes_schedule(modes_state_(F), F.mp));
     F = set_modes_(F, asils.alg.modes.fdir_safe(modes_state_(F)));
-    F = set_modes_(F, asils.alg.modes.modes_step(modes_state_(F), F.mp, z.w, z.sun_ok, z.sun, dt));
+    F = set_modes_(F, asils.alg.modes.modes_step(modes_state_(F), F.mp, z.w, z.sun_ok, z.sun, dt, p.has_gyro ~= 0, F.wbd, F.wbd_ok));
 
     % 4 guidance / control / commands
     m_body = F.m_hold;
@@ -156,7 +156,7 @@ function [F, bus] = step(F, bus)
                 end
                 % no field this cycle: no dipole, no rate across the gap
                 if mi == F.meas_i && F.bn == 0
-                    F.b1 = []; F.b1raw = [];
+                    F.b1 = []; F.b1raw = []; F.wbd_ok = false;
                 elseif mi == F.meas_i
                     b = unit_(F.bsum*(1.0/F.bn));
                     law = p.bdot_law;
@@ -189,6 +189,9 @@ function [F, bus] = step(F, bus)
                         F.b1raw = bav;
                     end
                     if ~is_zero3_(m_body), m_body = asils.alg.control.sat_dipole(m_body - p.m_res_est, p.m_max); end
+                    % the B-dot rate estimate of the cycle, the detumble exit's rate without a healthy gyro (DR-gdn-003: modes::bdot_rate)
+                    F.wbd_ok = ~isempty(F.b1);
+                    if F.wbd_ok, F.wbd = asils.alg.modes.bdot_rate(b, F.b1, p.mtq_period); end
                     F.b1 = b;
                 end
             end
