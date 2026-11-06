@@ -119,6 +119,14 @@ pub fn call(name: &str, x: &[f64]) -> Option<Vec<f64>> {
             out.push(r.4);
             out.push(r.5);
         }
+        "catderive::catalogue_cluster" => {
+            if x.len() != 5 { return None; }
+            let r = crate::catderive::catalogue_cluster(x[0], x[1], x[2], x[3], x[4]);
+            out.push(r.0);
+            out.push(r.1);
+            out.push(r.2);
+            out.push(r.3);
+        }
         "floquet::fq_laws" => {
             if x.len() != 0 { return None; }
             let r = crate::floquet::fq_laws();
@@ -1287,11 +1295,19 @@ pub fn call(name: &str, x: &[f64]) -> Option<Vec<f64>> {
             out.push(if r { 1.0 } else { 0.0 });
         }
         "sizerotor::rotor_need" => {
-            if x.len() != 4 { return None; }
-            let r = crate::sizerotor::rotor_need(x[0] as i64, x[1], x[2], x[3]);
+            if x.len() != 5 { return None; }
+            let r = crate::sizerotor::rotor_need(x[0] as i64, x[1] as i64, x[2], x[3], x[4]);
             out.push(r.0);
             out.push(r.1);
             out.push(r.2 as f64);
+        }
+        "sizerotor::rotor_unit" => {
+            if x.len() != 9 { return None; }
+            let r = crate::sizerotor::rotor_unit(x[0] as i64, x[1], x[2], x[3], x[4], x[5], x[6], x[7], x[8]);
+            out.push(r.0);
+            out.push(r.1);
+            out.push(r.2);
+            out.push(r.3);
         }
         "sizerotor::rotor_meets" => {
             if x.len() != 4 { return None; }
@@ -1329,13 +1345,17 @@ pub fn call(name: &str, x: &[f64]) -> Option<Vec<f64>> {
             let a5 = { let x = &x[at..]; x[0] as i64 };
             at += 1;
             if x.len() < at + 1 { return None; }
-            let a6 = { let x = &x[at..]; x[0] };
-            at += 1;
+            let n6 = x[at] as usize;
+            if x.len() < at + 1 + n6 { return None; }
+            let mut io6 = x[at + 1..at + 1 + n6].to_vec();
+            at += 1 + n6;
             if x.len() < at + 1 { return None; }
-            let a7 = { let x = &x[at..]; x[0] };
-            at += 1;
+            let n7 = x[at] as usize;
+            if x.len() < at + 1 + n7 { return None; }
+            let mut io7 = x[at + 1..at + 1 + n7].to_vec();
+            at += 1 + n7;
             if x.len() != at { return None; }
-            let r = crate::sizerotor::rotor_pick(&mut io0, &mut io1, &mut io2, &mut io3, &mut io4, a5, a6, a7);
+            let r = crate::sizerotor::rotor_pick(&mut io0, &mut io1, &mut io2, &mut io3, &mut io4, a5, &mut io6, &mut io7);
             out.push(r.0 as f64);
             out.push(if r.1 { 1.0 } else { 0.0 });
             out.push(io0.len() as f64); for v in io0.iter() { let v = *v; out.push(v); }
@@ -1343,6 +1363,8 @@ pub fn call(name: &str, x: &[f64]) -> Option<Vec<f64>> {
             out.push(io2.len() as f64); for v in io2.iter() { let v = *v; out.push(v); }
             out.push(io3.len() as f64); for v in io3.iter() { let v = *v; out.push(v); }
             out.push(io4.len() as f64); for v in io4.iter() { let v = *v; out.push(v); }
+            out.push(io6.len() as f64); for v in io6.iter() { let v = *v; out.push(v); }
+            out.push(io7.len() as f64); for v in io7.iter() { let v = *v; out.push(v); }
         }
         "sizerotor::rotor_vscmg" => {
             if x.len() != 1 { return None; }

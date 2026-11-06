@@ -16,9 +16,9 @@ function [selectable, miss_h, miss_torque, miss_mass, miss_power] = catalogue_se
     miss_torque = false;
     miss_mass = false;
     miss_power = false;
-    miss_h = isnan(h);
-    miss_torque = isnan(torque);
-    miss_mass = isnan(mass);
-    miss_power = isnan(p_steady);
+    miss_h = (isnan(h) || (h <= 0));
+    miss_torque = (isnan(torque) || (torque <= 0));
+    miss_mass = (isnan(mass) || (mass <= 0));
+    miss_power = (isnan(p_steady) || (p_steady <= 0));
     selectable = (~(((miss_h || miss_torque) || miss_mass) || miss_power));
 end

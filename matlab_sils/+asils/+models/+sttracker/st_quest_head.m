@@ -50,9 +50,9 @@ function [q, ok, cr, cm, g] = st_quest_head(rold, dq, bs, fov, noise_cross, smea
     ok = (ns >= 3);
     if ok
         rm = asils.pc.mm((asils.models.math.dcm(dq)).', rold);
-        h__747 = 8;
-        if h__747 < 0, h__747 = NaN; else, h__747 = sqrt(h__747); end
-        sc = ((noise_cross * smear) * h__747);
+        h__745 = 8;
+        if h__745 < 0, h__745 = NaN; else, h__745 = sqrt(h__745); end
+        sc = ((noise_cross * smear) * h__745);
         bm = zeros(32, 3);
         rr = zeros(32, 3);
         for i = (0):((ns) - 1)

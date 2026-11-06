@@ -29,20 +29,20 @@ function [o] = jb2008_core(mjd, sun, sat, f10, f10b, s10, s10b, xm10, xm10b, y10
     wt = [0.311111111111111; 1.422222222222222; 0.533333333333333; 1.422222222222222; 0.311111111111111];
     degrad = (pi / 180);
     o = asils.models.jb2008.JbOut_zero();
-    h__407 = ((f10b / 240))^((1 / 4));
-    if ~isreal(h__407), h__407 = NaN; end
-    fn_ = h__407;
+    h__405 = ((f10b / 240))^((1 / 4));
+    if ~isreal(h__405), h__405 = NaN; end
+    fn_ = h__405;
     if (fn_ > 1)
         fn_ = 1;
     end
     fsb = ((f10b * fn_) + (s10b * (1 - fn_)));
     tsubc = (((((392.4 + (3.227 * fsb)) + (0.298 * (f10 - f10b))) + (2.259 * (s10 - s10b))) + (0.312 * (xm10 - xm10b))) + (0.178 * (y10 - y10b)));
-    h__408 = (sat(2) - sun(2));
-    if h__408 < 0, h__408 = -h__408; elseif h__408 == 0, h__408 = 0; end
-    eta = (0.5 * h__408);
-    h__409 = (sat(2) + sun(2));
-    if h__409 < 0, h__409 = -h__409; elseif h__409 == 0, h__409 = 0; end
-    theta = (0.5 * h__409);
+    h__406 = (sat(2) - sun(2));
+    if h__406 < 0, h__406 = -h__406; elseif h__406 == 0, h__406 = 0; end
+    eta = (0.5 * h__406);
+    h__407 = (sat(2) + sun(2));
+    if h__407 < 0, h__407 = -h__407; elseif h__407 == 0, h__407 = 0; end
+    theta = (0.5 * h__407);
     h = (sat(1) - sun(1));
     tau = ((h - 0.64577182) + (0.10471976 * sin((h + 0.75049158))));
     glat = sat(2);
@@ -55,17 +55,17 @@ function [o] = jb2008_core(mjd, sun, sat, f10, f10b, s10, s10b, xm10, xm10b, y10
     if (glsthr < 0)
         glsthr = (glsthr + 24);
     end
-    h__410 = (cos(eta))^(2.5);
-    if ~isreal(h__410), h__410 = NaN; end
-    c = h__410;
-    h__411 = (sin(theta))^(2.5);
+    h__408 = (cos(eta))^(2.5);
+    if ~isreal(h__408), h__408 = NaN; end
+    c = h__408;
+    h__409 = (sin(theta))^(2.5);
+    if ~isreal(h__409), h__409 = NaN; end
+    s = h__409;
+    h__410 = cos((0.5 * tau));
+    if h__410 < 0, h__410 = -h__410; elseif h__410 == 0, h__410 = 0; end
+    h__411 = (h__410)^(3);
     if ~isreal(h__411), h__411 = NaN; end
-    s = h__411;
-    h__412 = cos((0.5 * tau));
-    if h__412 < 0, h__412 = -h__412; elseif h__412 == 0, h__412 = 0; end
-    h__413 = (h__412)^(3);
-    if ~isreal(h__413), h__413 = NaN; end
-    df = (s + ((c - s) * h__413));
+    df = (s + ((c - s) * h__411));
     tsubl = (tsubc * (1 + (0.31 * df)));
     dtclst = asils.models.jb2008.dtsub(f10, glsthr, glat, zht);
     o.temp(1) = (tsubl + dstdtc);
@@ -78,13 +78,13 @@ function [o] = jb2008_core(mjd, sun, sat, f10, f10b, s10, s10b, xm10, xm10b, y10
     tcf(3) = ((tinf - tsubx) / piov2);
     tcf(4) = (gsubx / tcf(3));
     z1 = 90;
-    h__414 = sat(3);
-    h__415 = 105;
-    if h__415 < h__414, h__414 = h__415; end
-    z2 = h__414;
-    h__416 = log((z2 / z1));
-    if ~isreal(h__416), h__416 = NaN; end
-    al = h__416;
+    h__412 = sat(3);
+    h__413 = 105;
+    if h__413 < h__412, h__412 = h__413; end
+    z2 = h__412;
+    h__414 = log((z2 / z1));
+    if ~isreal(h__414), h__414 = NaN; end
+    al = h__414;
     n = (floor((al / r1)) + 1);
     zr = exp((al / n));
     ambar1 = asils.models.jb2008.xambar(z1);
@@ -117,33 +117,33 @@ function [o] = jb2008_core(mjd, sun, sat, f10, f10b, s10, s10b, xm10, xm10b, y10
     an = (anm / ambar2);
     fact2 = (anm / 28.96);
     aln = zeros(6, 1);
-    h__417 = log((frac(1) * fact2));
+    h__415 = log((frac(1) * fact2));
+    if ~isreal(h__415), h__415 = NaN; end
+    aln(1) = h__415;
+    h__416 = log((frac(3) * fact2));
+    if ~isreal(h__416), h__416 = NaN; end
+    aln(4) = h__416;
+    h__417 = log((frac(4) * fact2));
     if ~isreal(h__417), h__417 = NaN; end
-    aln(1) = h__417;
-    h__418 = log((frac(3) * fact2));
+    aln(5) = h__417;
+    h__418 = log(((fact2 * (1 + frac(2))) - an));
     if ~isreal(h__418), h__418 = NaN; end
-    aln(4) = h__418;
-    h__419 = log((frac(4) * fact2));
+    aln(2) = h__418;
+    h__419 = log((2 * (an - fact2)));
     if ~isreal(h__419), h__419 = NaN; end
-    aln(5) = h__419;
-    h__420 = log(((fact2 * (1 + frac(2))) - an));
-    if ~isreal(h__420), h__420 = NaN; end
-    aln(2) = h__420;
-    h__421 = log((2 * (an - fact2)));
-    if ~isreal(h__421), h__421 = NaN; end
-    aln(3) = h__421;
+    aln(3) = h__419;
     if (sat(3) <= 105)
         o.temp(2) = tloc2;
         aln(6) = (aln(5) - 25);
         o.rho = asils.models.jb2008.jb_finish(aln, z, mjd, sat, f10b, s10b, xm10b);
     else
-        h__422 = sat(3);
-        h__423 = 500;
-        if h__423 < h__422, h__422 = h__423; end
-        z3 = h__422;
-        h__424 = log((z3 / z));
-        if ~isreal(h__424), h__424 = NaN; end
-        al = h__424;
+        h__420 = sat(3);
+        h__421 = 500;
+        if h__421 < h__420, h__420 = h__421; end
+        z3 = h__420;
+        h__422 = log((z3 / z));
+        if ~isreal(h__422), h__422 = NaN; end
+        al = h__422;
         n = (floor((al / r2)) + 1);
         zr = exp((al / n));
         sum2 = 0;
@@ -163,13 +163,13 @@ function [o] = jb2008_core(mjd, sun, sat, f10, f10b, s10, s10b, xm10, xm10b, y10
             end
             sum2 = (sum2 + (dz * sum1));
         end
-        h__425 = sat(3);
-        h__426 = 500;
-        if h__426 > h__425, h__425 = h__426; end
-        z4 = h__425;
-        h__427 = log((z4 / z));
-        if ~isreal(h__427), h__427 = NaN; end
-        al = h__427;
+        h__423 = sat(3);
+        h__424 = 500;
+        if h__424 > h__423, h__423 = h__424; end
+        z4 = h__423;
+        h__425 = log((z4 / z));
+        if ~isreal(h__425), h__425 = NaN; end
+        al = h__425;
         r = r2;
         if (sat(3) > 500)
             r = r3;
@@ -196,28 +196,28 @@ function [o] = jb2008_core(mjd, sun, sat, f10, f10b, s10, s10b, xm10, xm10b, y10
         hsign = 0;
         if (sat(3) > 500)
             o.temp(2) = tloc4;
-            h__428 = log((tloc4 / tloc2));
-            if ~isreal(h__428), h__428 = NaN; end
-            altr = h__428;
+            h__426 = log((tloc4 / tloc2));
+            if ~isreal(h__426), h__426 = NaN; end
+            altr = h__426;
             fact2 = (fact1 * (sum2 + sum3));
             hsign = (-(1));
         else
             o.temp(2) = tloc3;
-            h__429 = log((tloc3 / tloc2));
-            if ~isreal(h__429), h__429 = NaN; end
-            altr = h__429;
+            h__427 = log((tloc3 / tloc2));
+            if ~isreal(h__427), h__427 = NaN; end
+            altr = h__427;
             fact2 = (fact1 * sum2);
             hsign = 1;
         end
         i = ((0):((5) - 1)).';
         aln((i) + 1) = ((reshape(aln((i) + 1), [], 1) - ((1 + reshape(alpha((i) + 1), [], 1)) .* altr)) - (fact2 .* reshape(amw((i) + 1), [], 1)));
-        h__430 = log10(tinf);
-        if ~isreal(h__430), h__430 = NaN; end
-        al10t5 = h__430;
+        h__428 = log10(tinf);
+        if ~isreal(h__428), h__428 = NaN; end
+        al10t5 = h__428;
         alnh5 = ((((5.5 * al10t5) - 39.4) * al10t5) + 73.13);
-        h__431 = log((tloc4 / tloc3));
-        if ~isreal(h__431), h__431 = NaN; end
-        aln(6) = ((al10 * (alnh5 + 6)) + (hsign * (h__431 + ((fact1 * sum3) * amw(6)))));
+        h__429 = log((tloc4 / tloc3));
+        if ~isreal(h__429), h__429 = NaN; end
+        aln(6) = ((al10 * (alnh5 + 6)) + (hsign * (h__429 + ((fact1 * sum3) * amw(6)))));
         o.rho = asils.models.jb2008.jb_finish(aln, z, mjd, sat, f10b, s10b, xm10b);
     end
 end

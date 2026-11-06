@@ -9,8 +9,8 @@ function [b, disp] = mag_bias(bias_t, sigma, disp)
     [t__605, t__606] = asils.pc.stream_normal3(disp);
     e = t__605;
     disp = t__606;
-    h__678 = 3;
-    if h__678 < 0, h__678 = NaN; else, h__678 = sqrt(h__678); end
-    s3 = (1 / h__678);
+    h__676 = 3;
+    if h__676 < 0, h__676 = NaN; else, h__676 = sqrt(h__676); end
+    s3 = (1 / h__676);
     b = [((bias_t * s3) + (sigma * e(1))); ((bias_t * s3) + (sigma * e(2))); ((bias_t * s3) + (sigma * e(3)))];
 end

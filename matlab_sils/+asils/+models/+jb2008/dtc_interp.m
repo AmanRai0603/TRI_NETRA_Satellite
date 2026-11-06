@@ -26,10 +26,10 @@ function [y] = dtc_interp(x)
     if (lo > 0)
         i = (lo - 1);
     end
-    h__310 = i;
-    h__311 = (n - 2);
-    if h__311 < h__310, h__310 = h__311; end
-    i = h__310;
+    h__308 = i;
+    h__309 = (n - 2);
+    if h__309 < h__308, h__308 = h__309; end
+    i = h__308;
     x0 = asils.models.jb2008.dtc_hour(i);
     x1 = asils.models.jb2008.dtc_hour((i + 1));
     y0 = D__DTCFILE((fix((i) / (24))) + 1, ((rem(i, 24) + 2)) + 1);

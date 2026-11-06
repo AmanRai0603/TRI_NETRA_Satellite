@@ -44,7 +44,7 @@ function [vis, n_el, es, cos_e, da, rho, lat] = cap_element(r_sat, zhat, e1, e2,
     cos_e = (n_el(1)*es(1) + n_el(2)*es(2) + n_el(3)*es(3));
     vis = (~(cos_e <= 0));
     da = ((((re * re) * sp) * dpsi) * ((2 * pi) / nsg));
-    h__246 = asin(asils.models.thirdbody.unit_clip(n_el(3)));
-    if ~isreal(h__246), h__246 = NaN; end
-    lat = h__246;
+    h__244 = asin(asils.models.thirdbody.unit_clip(n_el(3)));
+    if ~isreal(h__244), h__244 = NaN; end
+    lat = h__244;
 end

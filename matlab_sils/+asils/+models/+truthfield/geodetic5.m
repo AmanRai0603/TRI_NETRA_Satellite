@@ -12,17 +12,17 @@ function [lat, lon, h] = geodetic5(r)
     a = 6378137;
     f = (1 / 298.257223563);
     e2 = (f * (2 - f));
-    h__540 = ((r(1) * r(1)) + (r(2) * r(2)));
-    if h__540 < 0, h__540 = NaN; else, h__540 = sqrt(h__540); end
-    p = h__540;
+    h__538 = ((r(1) * r(1)) + (r(2) * r(2)));
+    if h__538 < 0, h__538 = NaN; else, h__538 = sqrt(h__538); end
+    p = h__538;
     lon = atan2(r(2), r(1));
     la = atan2(r(3), (p * (1 - e2)));
     hh = 0;
     for k = (0):((5) - 1)
         sl = sin(la);
-        h__541 = (1 - ((e2 * sl) * sl));
-        if h__541 < 0, h__541 = NaN; else, h__541 = sqrt(h__541); end
-        n = (a / h__541);
+        h__539 = (1 - ((e2 * sl) * sl));
+        if h__539 < 0, h__539 = NaN; else, h__539 = sqrt(h__539); end
+        n = (a / h__539);
         hh = ((p / cos(la)) - n);
         la = atan2(r(3), (p * (1 - ((e2 * n) / (n + hh)))));
     end

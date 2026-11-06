@@ -1,7 +1,9 @@
-function [h_need, tau_need, units] = rotor_need(u, h_req, tau_req, s)
-%ROTOR_NEED  The need per unit of use u for the case's momentum h_req and torque tau_req at the authority scale s: a wheel the
-%   whole of each, a pyramid unit half; and how many units are fitted.
+function [h_need, tau_need, units] = rotor_need(u, k, h_req, tau_req, s)
+%ROTOR_NEED  The need per unit of use u (and of the kind k of the model) for the case's momentum h_req and torque tau_req at the
+%   authority scale s: a wheel the whole of each, a cluster the whole of each (it is one unit), a pyramid unit of single
+%   CMGs half; and how many units are fitted (three wheels, one cluster, four single CMGs).
 %   u: RotorUse (passed a choice, as its option's number)
+%   k: CatalogueKind (passed a choice, as its option's number)
 %   h_req: real[1] (passed a plain number)
 %   tau_req: real[1] (passed a plain number)
 %   s: real[1] (passed a plain number)
@@ -12,18 +14,15 @@ function [h_need, tau_need, units] = rotor_need(u, h_req, tau_req, s)
     h_need = 0;
     tau_need = 0;
     units = 0;
+    share = 0.5;
+    units = 4;
     if (u == 0)
-        h__144 = 1;
-    else
-        h__144 = 0.5;
+        share = 1;
+        units = 3;
+    elseif (k == 2)
+        share = 1;
+        units = 1;
     end
-    share = h__144;
     h_need = ((share * h_req) * s);
     tau_need = ((share * tau_req) * s);
-    if (u == 0)
-        h__145 = 3;
-    else
-        h__145 = 4;
-    end
-    units = h__145;
 end

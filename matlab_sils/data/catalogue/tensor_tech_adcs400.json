@@ -49,7 +49,12 @@
   "rotor_torque_max_Nm": 0.0002,
   "gimbal_rate_max_rad_s": 0.1,
   "gimbal_power_W": 0.0,
-  "vscmg_rotor_momentum_Nms": 0.005
+  "vscmg_rotor_momentum_Nms": 0.005,
+  "cluster_h_Nms": 0.02,
+  "cluster_torque_Nm": 0.004,
+  "cluster_mass_kg": 1.2,
+  "cluster_power_W": 4.0,
+  "units_in_cluster": 4
  },
  "assumptions": [
   "speed at the nominal momentum: 6000 rpm (not stated)",

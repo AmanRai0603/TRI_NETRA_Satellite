@@ -212,6 +212,9 @@ function y = call(name, x)
         case 'catderive::catalogue_cmg'
             [o1, o2, o3, o4, o5, o6] = asils.models.catderive.catalogue_cmg(x(1), x(2), x(3));
             y = [double(o1); double(o2); double(o3); double(o4); double(o5); double(o6)];
+        case 'catderive::catalogue_cluster'
+            [o1, o2, o3, o4] = asils.models.catderive.catalogue_cluster(x(1), x(2), x(3), x(4), x(5));
+            y = [double(o1); double(o2); double(o3); double(o4)];
         case 'floquet::fq_laws'
             [o1] = asils.models.floquet.fq_laws();
             y = [reshape(o1, [], 1)];
@@ -910,8 +913,11 @@ function y = call(name, x)
             [o1] = asils.models.sizerotor.rotor_fits(x(1), x(2), (x(3) ~= 0));
             y = [double(o1)];
         case 'sizerotor::rotor_need'
-            [o1, o2, o3] = asils.models.sizerotor.rotor_need(x(1), x(2), x(3), x(4));
+            [o1, o2, o3] = asils.models.sizerotor.rotor_need(x(1), x(2), x(3), x(4), x(5));
             y = [double(o1); double(o2); double(o3)];
+        case 'sizerotor::rotor_unit'
+            [o1, o2, o3, o4] = asils.models.sizerotor.rotor_unit(x(1), x(2), x(3), x(4), x(5), x(6), x(7), x(8), x(9));
+            y = [double(o1); double(o2); double(o3); double(o4)];
         case 'sizerotor::rotor_meets'
             [o1] = asils.models.sizerotor.rotor_meets(x(1), x(2), x(3), x(4));
             y = [double(o1)];
@@ -935,14 +941,14 @@ function y = call(name, x)
             xa = x(at + 1:end);
             a6 = xa(1);
             at = at + 1;
-            xa = x(at + 1:end);
-            a7 = xa(1);
-            at = at + 1;
-            xa = x(at + 1:end);
-            a8 = xa(1);
-            at = at + 1;
-            [o1, o2, io1, io2, io3, io4, io5] = asils.models.sizerotor.rotor_pick(a1, a2, a3, a4, a5, a6, a7, a8);
-            y = [double(o1); double(o2); numel(io1); reshape(io1, [], 1); numel(io2); reshape(io2, [], 1); numel(io3); reshape(io3, [], 1); numel(io4); reshape(io4, [], 1); numel(io5); reshape(io5, [], 1)];
+            n7 = x(at + 1);
+            a7 = reshape(x(at + 2:at + 1 + n7), [], 1);
+            at = at + 1 + n7;
+            n8 = x(at + 1);
+            a8 = reshape(x(at + 2:at + 1 + n8), [], 1);
+            at = at + 1 + n8;
+            [o1, o2, io1, io2, io3, io4, io5, io7, io8] = asils.models.sizerotor.rotor_pick(a1, a2, a3, a4, a5, a6, a7, a8);
+            y = [double(o1); double(o2); numel(io1); reshape(io1, [], 1); numel(io2); reshape(io2, [], 1); numel(io3); reshape(io3, [], 1); numel(io4); reshape(io4, [], 1); numel(io5); reshape(io5, [], 1); numel(io7); reshape(io7, [], 1); numel(io8); reshape(io8, [], 1)];
         case 'sizerotor::rotor_vscmg'
             [o1] = asils.models.sizerotor.rotor_vscmg(x(1));
             y = [double(o1)];

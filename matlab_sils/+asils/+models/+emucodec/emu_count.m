@@ -9,11 +9,11 @@ function [c] = emu_count(x, lo, hi)
     c = 0;
     c = 0;
     if (~isnan(x))
-        h__644 = x;
-        h__645 = lo;
-        if h__645 > h__644, h__644 = h__645; end
-        h__645 = hi;
-        if h__645 < h__644, h__644 = h__645; end
-        c = fix(round(h__644));
+        h__642 = x;
+        h__643 = lo;
+        if h__643 > h__642, h__642 = h__643; end
+        h__643 = hi;
+        if h__643 < h__642, h__642 = h__643; end
+        c = fix(round(h__642));
     end
 end

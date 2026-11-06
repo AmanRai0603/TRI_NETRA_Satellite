@@ -616,11 +616,11 @@ end
                 _k, x = self.nodes[nid]
                 rows = {(s, f): (v, o) for s, f, v, o in x["body"]["content"]}
                 self.assertEqual(self.beh(nid), "method", nid)
-                self.assertTrue(rows[("code", "pseudocode")][1].startswith(path + " (the developer's revision S7.15"), nid)
+                self.assertTrue(any(rows[("code", "pseudocode")][1].startswith(path + f" (the developer's revision {r}") for r in ("S7.15", "S11.8")), nid)   # S11.8 revised the sizing (Y2, Y4, Y5, Y1)
                 self.assertTrue(rows[("code", "transcribes")][0], nid)
                 self.assertEqual(rows[("code", "generate")][0], "adcs-design", nid)
                 self.assertEqual(x["sealed_as"], "unconfirmed", nid)
-                self.assertTrue(any(w.startswith("the developer's revision S7.15") and "not yet signed by a person" in w for w in x["why"]), nid)
+                self.assertTrue(any(w.startswith(f"the developer's revision {r}") and "not yet signed by a person" in w for w in x["why"] for r in ("S7.15", "S11.8")), nid)
         self.assertEqual(self.nodes["catalogue_datasheet_derive"][1]["body"]["node"]["group_id"], "catalogue")
         for nid in mods["design/looprules.pc"]:
             self.assertEqual(self.nodes[nid][1]["body"]["node"]["group_id"], "design", nid)

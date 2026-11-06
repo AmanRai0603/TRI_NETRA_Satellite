@@ -284,8 +284,8 @@ pub fn mtq(d: &Demand, k: &Knobs) -> (Value, Value) {
 pub fn rotor(root: &Path, d: &Demand, k: &Knobs, which: &str) -> Result<Value, Error> {
     let u = match which { "rw" => gr::ROTORUSE_RW, "cmg" => gr::ROTORUSE_CMG, _ => gr::ROTORUSE_VSCMG };
     let s = k.s(which);
-    let (h_need, tau_need, units) = gr::rotor_need(u, d.h_req, d.tau_req, s);
     let mut cands: Vec<Value> = vec![];
+    let mut kinds: Vec<i64> = vec![];
     let dir = root.join("data/catalogue");
     let files = adcs_sim::source::list(&dir);
     if files.is_empty() { return Err(Error::refused(format!("catalogue: {} holds no model", dir.display()))); }
@@ -295,22 +295,32 @@ pub fn rotor(root: &Path, d: &Demand, k: &Knobs, which: &str) -> Result<Value, E
                                                    "cmg_cluster" => gr::CATALOGUEKIND_CMG_CLUSTER, _ => gr::CATALOGUEKIND_OTHER };
         if !gr::rotor_fits(u, kind, json::b(&c, "selectable", false)) { continue; }
         cands.push(c);
+        kinds.push(kind);
     }
     if cands.is_empty() { return Err(Error::refused(format!("catalogue: no selectable {which} model in {}", dir.display()))); }
     let g = |c: &Value, key: &str| c["derived"][key].as_f64().unwrap_or(f64::NAN);
-    let col = |key: &str| cands.iter().map(|c| g(c, key)).collect::<Vec<f64>>();
-    let (mut h, mut tau, mut mass, mut pw, mut vol) = (col("h_max_Nms"), col("torque_max_Nm"), col("mass_kg"), col("power_steady_W"), col("volume_L"));
-    let (pick, met) = gr::rotor_pick(&mut h, &mut tau, &mut mass, &mut pw, &mut vol, cands.len() as i64, h_need, tau_need);
-    let pick = cands[pick as usize].clone();
+    // each model as one unit of its kind (a cluster by its own figures), and the need per unit of its kind
+    let (mut h, mut tau, mut mass, mut pw, mut vol) = (vec![], vec![], vec![], vec![], vec![]);
+    let (mut hn, mut tn, mut un) = (vec![], vec![], vec![]);
+    for (c, &kind) in cands.iter().zip(&kinds) {
+        let (hu, tu, mu, pu) = gr::rotor_unit(kind, g(c, "h_max_Nms"), g(c, "torque_max_Nm"), g(c, "mass_kg"), g(c, "power_steady_W"),
+            g(c, "cluster_h_Nms"), g(c, "cluster_torque_Nm"), g(c, "cluster_mass_kg"), g(c, "cluster_power_W"));
+        let (a, b, n) = gr::rotor_need(u, kind, d.h_req, d.tau_req, s);
+        h.push(hu); tau.push(tu); mass.push(mu); pw.push(pu); vol.push(g(c, "volume_L")); hn.push(a); tn.push(b); un.push(n);
+    }
+    let (pick, met) = gr::rotor_pick(&mut h, &mut tau, &mut mass, &mut pw, &mut vol, cands.len() as i64, &mut hn, &mut tn);
+    let (pick, kind, units, h_need, tau_need) = (pick as usize, kinds[pick as usize], un[pick as usize], hn[pick as usize], tn[pick as usize]);
+    let pick = cands[pick].clone();
     let gap = if met { Value::Null } else {
         json!(format!("no catalogue {which} meets h {:.3e} N m s, tau {:.3e} N m per unit; the largest is fitted", h_need, tau_need))
     };
     let x = &pick["derived"];
     let mut nm = x.clone();
-    let (kind, suffix) = match which { "rw" => ("reaction_wheel", ""), "cmg" => ("cmg", ""), _ => ("vscmg", "-VSCMG") };
+    let (kind_word, suffix) = match which { "rw" => ("reaction_wheel", ""), "cmg" => ("cmg", ""), _ => ("vscmg", "-VSCMG") };
     if gr::rotor_vscmg(u) { nm["rotor_momentum_Nms"] = x["vscmg_rotor_momentum_Nms"].clone(); }
     let pn = format!("{}{suffix}", json::s(&pick, "part_number", ""));
-    let mut p = json!({"part_number": pn, "kind": kind, "name": format!("{} {} ({}, one of {units})", json::s(&pick, "vendor", ""), json::s(&pick, "model", ""), which.to_uppercase()),
+    let one = if kind == gr::CATALOGUEKIND_CMG_CLUSTER { format!("one cluster of {} rotors", pick["datasheet"]["units_in_cluster"]) } else { format!("one of {units}") };
+    let mut p = json!({"part_number": pn, "kind": kind_word, "name": format!("{} {} ({}, {one})", json::s(&pick, "vendor", ""), json::s(&pick, "model", ""), which.to_uppercase()),
         "status": "catalogue", "source": pick["source_url"], "made": "bought", "descriptor_version": 1, "vendor": pick["vendor"], "model": pick["model"],
         "verification": pick["verification"], "assumptions": pick["assumptions"]});
     p["nominal"] = nm;
@@ -320,9 +330,9 @@ pub fn rotor(root: &Path, d: &Demand, k: &Knobs, which: &str) -> Result<Value, E
     p["sizing"] = json!({"node": "select_rotor", "h_req_Nms": d.h_req, "tau_req_Nm": d.tau_req, "scale": s, "units": units,
         "need_per_unit": {"h_Nms": h_need, "tau_Nm": tau_need}, "gap": gap,
         "rule": "lightest selectable catalogue model meeting the per-unit need (then steady power, volume)",
-        "candidates": cands.iter().map(|c| json!({"part_number": c["part_number"], "vendor": c["vendor"], "model": c["model"],
-            "h_Nms": g(c, "h_max_Nms"), "tau_Nm": g(c, "torque_max_Nm"), "mass_kg": g(c, "mass_kg"), "power_W": g(c, "power_steady_W"),
-            "meets": gr::rotor_meets(g(c, "h_max_Nms"), g(c, "torque_max_Nm"), h_need, tau_need)})).collect::<Vec<_>>()});
+        "candidates": cands.iter().enumerate().map(|(i, c)| json!({"part_number": c["part_number"], "vendor": c["vendor"], "model": c["model"],
+            "h_Nms": h[i], "tau_Nm": tau[i], "mass_kg": mass[i], "power_W": pw[i], "units": un[i],
+            "meets": gr::rotor_meets(h[i], tau[i], hn[i], tn[i])})).collect::<Vec<_>>()});
     Ok(p)
 }
 
@@ -603,5 +613,26 @@ mod tests {
         let n = &v["nominal"];
         assert!((n["rotor_momentum_Nms"].as_f64().unwrap() - n["h_max_Nms"].as_f64().unwrap()/2.0).abs() < 1e-12);
         assert!(v["part_number"].as_str().unwrap().ends_with("-VSCMG"));
+    }
+
+    #[test]
+    fn a_cmg_cluster_is_one_unit_carrying_the_whole_need() {
+        // 8 mN m s and 3 mN m: the ADCS400 cluster (20 mN m s, 4 mN m, 1.2 kg, 4 W) holds it whole; one of four on a single
+        // unit's 1 mN m would not meet half of it (1.5 mN m)
+        let d = Demand { case: "t".into(), h_req: 8e-3, tau_req: 3e-3, ..Default::default() };
+        let p = rotor(&root(), &d, &Knobs::default(), "cmg").unwrap();
+        assert_eq!(p["part_number"], "CAT-TENSOR-TECH-ADCS400");
+        assert!(p["sizing"]["gap"].is_null(), "{}", p["sizing"]["gap"]);
+        assert_eq!(p["sizing"]["units"], 1);
+        assert_eq!(p["sizing"]["need_per_unit"]["h_Nms"].as_f64().unwrap(), 8e-3, "the whole need, not half");
+        assert_eq!(p["sizing"]["need_per_unit"]["tau_Nm"].as_f64().unwrap(), 3e-3);
+        assert!(p["name"].as_str().unwrap().contains("one cluster of 4"), "{}", p["name"]);
+        // what is judged and fitted is the cluster's: its mass and power once, not four times
+        let c = &p["sizing"]["candidates"][0];
+        assert!((c["mass_kg"].as_f64().unwrap() - 1.2).abs() < 1e-12 && (c["power_W"].as_f64().unwrap() - 4.0).abs() < 1e-12, "{c}");
+        assert_eq!(c["units"], 1);
+        // above the cluster's momentum: not met, the gap said
+        let d = Demand { h_req: 25e-3, ..d };
+        assert!(rotor(&root(), &d, &Knobs::default(), "cmg").unwrap()["sizing"]["gap"].is_string());
     }
 }

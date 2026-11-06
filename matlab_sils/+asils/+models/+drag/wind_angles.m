@@ -12,11 +12,11 @@ function [alpha, beta, vm, vb] = wind_angles(vrel, r_bi)
     beta = 0;
     vm = 0;
     vb = zeros(3, 1);
-    h__168 = (r_bi).';
-    vb = [h__168(1, 1)*vrel(1) + h__168(1, 2)*vrel(2) + h__168(1, 3)*vrel(3); h__168(2, 1)*vrel(1) + h__168(2, 2)*vrel(2) + h__168(2, 3)*vrel(3); h__168(3, 1)*vrel(1) + h__168(3, 2)*vrel(2) + h__168(3, 3)*vrel(3)];
+    h__166 = (r_bi).';
+    vb = [h__166(1, 1)*vrel(1) + h__166(1, 2)*vrel(2) + h__166(1, 3)*vrel(3); h__166(2, 1)*vrel(1) + h__166(2, 2)*vrel(2) + h__166(2, 3)*vrel(3); h__166(3, 1)*vrel(1) + h__166(3, 2)*vrel(2) + h__166(3, 3)*vrel(3)];
     vm = asils.models.gravity.onorm(vb);
     alpha = atan2(vb(3), vb(1));
-    h__169 = asin(asils.models.thirdbody.unit_clip((vb(2) / vm)));
-    if ~isreal(h__169), h__169 = NaN; end
-    beta = h__169;
+    h__167 = asin(asils.models.thirdbody.unit_clip((vb(2) / vm)));
+    if ~isreal(h__167), h__167 = NaN; end
+    beta = h__167;
 end

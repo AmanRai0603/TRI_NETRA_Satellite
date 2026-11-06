@@ -18,17 +18,17 @@ function [u] = jd2cal(j)
     e = floor(((b - dd) / 30.6001));
     day = (((b - dd) - floor((30.6001 * e))) + f);
     if (e < 14)
-        h__533 = (e - 1);
+        h__531 = (e - 1);
     else
-        h__533 = (e - 13);
+        h__531 = (e - 13);
     end
-    m = h__533;
+    m = h__531;
     if (m > 2)
-        h__534 = (c - 4716);
+        h__532 = (c - 4716);
     else
-        h__534 = (c - 4715);
+        h__532 = (c - 4715);
     end
-    y = h__534;
+    y = h__532;
     d = floor(day);
     fr = ((day - d) * 24);
     h = floor(fr);

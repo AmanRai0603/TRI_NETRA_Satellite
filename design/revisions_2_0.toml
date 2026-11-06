@@ -4040,3 +4040,28 @@ source = "docs/S11_INVENTORY.md M9: a latency beyond the history's span fell bac
 generate = ["adcs-sim-core"]
 uses = ["sens/stattitude.pc", "sens/starcat.pc", "act/coilsat.pc", "env/facets.pc", "fsw/pseudocode/01_math.pc"]
 why = "the star tracker's latency span is stated once, in the design, for the engine's product check (M9)"
+
+[[revision]]
+id = "S11.8"
+at = "2026-11-07T12:00:00Z"
+by = "the developer"
+about = "power and sizing (docs/S11_INVENTORY.md Y2, Y4, Y5, Y1; decision DR-design-003): a catalogue CMG cluster is one unit carrying the whole need, judged on the cluster's own momentum and torque, with its mass and power the cluster's, not one of four each carrying half (select_rotor), and a datasheet number stated as zero is not stated (the catalogue's derive no longer divides by it)"
+
+[[revision.method]]
+nodes = ["design_sizing_rw", "design_sizing_cmg", "design_sizing_vscmg", "l3_budget_row_03", "gw_5", "gw_6"]
+pseudocode = "design/revisions/S11.8/sizerotor.pc"
+path = "design/sizerotor.pc"
+transcribes = "design/revisions/S7.15/sizerotor.pc as S7.15 left it, with the need per unit and the units by the kind of model (rotor_need), the figures a model offers as one unit (rotor_unit: a cluster its own), and the need per candidate in the pick"
+source = "docs/S11_INVENTORY.md Y2; the Tensor Tech ADCS400 datasheet (a cluster of four RS100 CMGs sold as one unit: cluster momentum 20 mN m s, torque 4 mN m, mass 1200 g)"
+generate = ["adcs-design"]
+uses = ["design/sizedemand.pc"]
+why = "a cluster is one unit carrying the whole need (Y2): before, it was one of four, each held to half the need on a single unit's figures"
+
+[[revision.method]]
+node = "catalogue_datasheet_derive"
+pseudocode = "design/revisions/S11.8/catderive.pc"
+path = "catalogue/catderive.pc"
+transcribes = "design/revisions/S7.15/catderive.pc as S7.15 left it, with a stated zero not stated (selectable, the assumed speed) and a CMG cluster's own momentum, torque, mass and power (catalogue_cluster)"
+source = "docs/S11_INVENTORY.md Y2 and the S7 finding that the catalogue divides by a stated zero (the rotor's inertia h/w, the gimbal rate tau/h)"
+generate = ["adcs-design"]
+why = "a datasheet's zero is a missing number, not a divisor; a cluster's figures are derived from what its datasheet states of the cluster"

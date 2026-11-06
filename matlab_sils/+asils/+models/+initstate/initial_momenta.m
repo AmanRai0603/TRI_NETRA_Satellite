@@ -10,10 +10,10 @@ function [h] = initial_momenta(nr, h0, h_target)
     h = zeros(8, 1);
     for i = (0):((nr) - 1)
         if isnan(h0)
-            h__152 = h_target((i) + 1);
+            h__150 = h_target((i) + 1);
         else
-            h__152 = h0;
+            h__150 = h0;
         end
-        h((i) + 1) = h__152;
+        h((i) + 1) = h__150;
     end
 end

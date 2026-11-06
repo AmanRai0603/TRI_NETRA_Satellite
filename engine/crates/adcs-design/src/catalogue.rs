@@ -94,6 +94,14 @@ pub fn derive(c: &Value) -> Result<Value, Error> {
             x[k] = json!(v);
         }
     }
+    if kind == "cmg_cluster" {
+        // the cluster's own figures, when the datasheet states them (null where it does not)
+        let (ch, ct, cm, cp) = cd::catalogue_cluster(stated(d, "units_in_cluster"), stated(d, "cluster_h_mNms"), stated(d, "cluster_torque_mNm"),
+                                                      stated(d, "cluster_mass_g"), ps);
+        let f = |v: f64| if v.is_nan() { Value::Null } else { json!(v) };
+        for (k, v) in [("cluster_h_Nms", ch), ("cluster_torque_Nm", ct), ("cluster_mass_kg", cm), ("cluster_power_W", cp)] { x[k] = f(v); }
+        x["units_in_cluster"] = d.get("units_in_cluster").cloned().unwrap_or(Value::Null);
+    }
     Ok(json!({"selectable": true, "missing": missing, "derived": x, "assumed": assumed, "rules": rules}))
 }
 
@@ -109,5 +117,19 @@ mod tests {
         assert_eq!(numbers("33.5 x 33.5 x 17"), [33.5, 33.5, 17.0]);
         assert_eq!(numbers("1.2.3 x."), [1.2, 3.0]);
         assert!(numbers("none").is_empty());
+    }
+
+    #[test]
+    fn a_stated_zero_is_not_stated_and_nothing_divides_by_it() {
+        let c = |h: f64, rpm: f64| json!({"type": "cmg", "datasheet": {"h_mNms": h, "torque_mNm": 1.0, "mass_g": 300.0, "power_steady_W": 1.0, "h_speed_rpm": rpm}});
+        // a zero momentum is a missing one: not selectable (it would give a zero gimbal-rate divisor, tau/h)
+        let d = derive(&c(0.0, f64::NAN)).unwrap();
+        assert_eq!(d["selectable"], false);
+        assert_eq!(d["missing"], json!(["h_mNms"]));
+        // a zero speed is the speed assumed: no zero divisor in the rotor's inertia h/w
+        let d = derive(&c(10.0, 0.0)).unwrap();
+        assert_eq!(d["selectable"], true);
+        assert!(d["derived"]["rotor_inertia_kgm2"].as_f64().unwrap().is_finite());
+        assert_eq!(d["assumed"]["rpm"], true);
     }
 }

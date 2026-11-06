@@ -42,7 +42,7 @@ function [h, tau, w, j, radius, rotor_mass, coulomb, viscous, static_imbalance, 
     rpm_rad = ((2 * pi) / 60);
     h = (h_mnms * 0.001);
     tau = (torque_mnm * 0.001);
-    rpm_assumed = isnan(rpm);
+    rpm_assumed = (isnan(rpm) || (rpm <= 0));
     if rpm_assumed
         h__33 = assumed_rpm;
     else
