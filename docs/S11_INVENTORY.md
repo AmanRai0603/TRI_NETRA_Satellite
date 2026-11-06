@@ -430,7 +430,7 @@ Each step is one agent's job of one kind of work. Every code step ends with `pyt
 | S11.13 | code | standard | M | Soft OILS hardening, first half: O2, O12 (check in CI), O19, O20, O21. | O2, O12, O19, O20, O21 |
 | S11.14 | code | standard | M | O11: bus-level fault injection for soft OILS (NACK, CRC, stuck register, delay, brownout). | O11 |
 | S11.15 | code | standard | S | TS17: replace the weak oracles; audit every test for the same pattern and list what was changed. | TS17 |
-| S11.16 | run | light | M | Regenerate (pcode.py gen, engine_build.py gen), the parity gates (twin-parity, fsw-parity), reseal the flight images, re-fly the cases that moved (a long twin re-fly goes to a watch step), the 100-draw A2 campaign, refresh the golden table. | all |
+| S11.16 | run | light | M | Regenerate (pcode.py gen, engine_build.py gen), the parity gates (twin-parity, fsw-parity), reseal the flight images, re-fly the cases that moved, and every twin campaign (all 8, 184 runs: not flown on the S7 twin, docs/S7_REPORT.md section 4; a long twin re-fly goes to a watch step), the 100-draw A2 campaign, refresh the golden table. | all |
 | S11.17 | chore | light | S | Counts and tables: results/HEALTH.md, the ledger, ENGINE_PARITY and ENGINE_CAMPAIGNS regenerated, the zip 1.x corrected conversion for the drive. | all |
 | S11.18 | decide | deep | S | The phase review: every fix has its failing test, source and comparison on its revision; the owner's list for S20. | all |
 
