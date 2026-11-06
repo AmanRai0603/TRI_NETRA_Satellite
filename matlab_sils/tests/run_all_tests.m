@@ -410,7 +410,7 @@ function m = t_sizing()
 %   need, an authority knob raising the need, the largest fitted with its gap when none meets it, the VSCMG's rotor at
 %   half momentum, the spare ring holding any one ring's momentum on its axis, a skewed ring's section.
     k = asils.sizing.knobs();
-    Dm = struct('case', 't', 'h_req', 1.5e-3, 'tau_req', 5e-5);
+    Dm = struct('case', 't', 'h_req', 1.5e-3, 'tau_req', 5e-5, 'k_h', 2);
     p = asils.sizing.rotor(Dm, k, 'rw');
     assert(strcmp(p.part_number, 'CAT-CUBESPACE-CUBEWHEEL-CW0017') && isempty(p.sizing.gap), 'rw pick %s', p.part_number);
     Dm.h_req = 5e-3;
@@ -423,9 +423,9 @@ function m = t_sizing()
     Dm.h_req = 10;
     c = asils.sizing.rotor(Dm, k, 'cmg');
     assert(ischar(c.sizing.gap), 'no cmg meets 10 N m s: the gap is said');
-    v = asils.sizing.rotor(struct('case', 't', 'h_req', 1e-3, 'tau_req', 5e-5), k, 'vscmg');
+    v = asils.sizing.rotor(struct('case', 't', 'h_req', 1e-3, 'tau_req', 5e-5, 'k_h', 2), k, 'vscmg');
     assert(abs(v.nominal.rotor_momentum_Nms - v.nominal.h_max_Nms/2) < 1e-12 && ~isempty(strfind(v.part_number, '-VSCMG')), 'vscmg');
-    Dm = struct('case', 't', 'h_req', 2e-3, 'tau_req', 6e-5);
+    Dm = struct('case', 't', 'h_req', 2e-3, 'tau_req', 6e-5, 'k_h', 2);
     r = asils.sizing.fmr(Dm, asils.sizing.knobs(struct('fmr_spare', true)), [0.34 0.10 0.10]);
     assert(numel(r) == 4, 'the spare ring');
     ax = asils.models.sizering.spare_axis();
@@ -436,7 +436,16 @@ function m = t_sizing()
     [a, pe] = asils.models.sizering.ring_section([1; 1; 1], ax);
     s = 1/sqrt(2);
     assert(abs(a - 1.5*sqrt(3)*s*s) < 1e-9 && abs(pe - 6*s) < 1e-9, 'a cube cut normal to its diagonal: the regular hexagon');
-    m = sprintf('rw CW0017 / CW0057 / RL RW-0.01 (x4), cmg gap, vscmg half, spare ring %.3g N m s', r{4}.sizing.h_ring_Nms);
+    % S11.8: a CMG cluster is one unit carrying the whole need (Y2); a margin below the floor is refused by name (Y4)
+    Dc = struct('case', 't', 'h_req', 8e-3, 'tau_req', 3e-3, 'k_h', 2);
+    c = asils.sizing.rotor(Dc, k, 'cmg');
+    assert(strcmp(c.part_number, 'CAT-TENSOR-TECH-ADCS400') && isempty(c.sizing.gap) && c.sizing.units == 1 && c.sizing.need_per_unit.h_Nms == 8e-3, 'a cluster is one unit');
+    k5 = asils.sizing.knobs(struct('scale', struct('rw', 0.5)));
+    ok = false;
+    try, asils.sizing.rotor(Dm, k5, 'rw'); catch e, ok = ~isempty(strfind(e.message, 'below the floor')); end
+    assert(ok, 'a scale that takes the margin below the floor is refused by name');
+    assert(c.sizing.margin_achieved >= 2, 'the achieved margin is reported');
+    m = sprintf('rw CW0017 / CW0057 / RL RW-0.01 (x4), cmg gap, cluster one unit, margin floor, vscmg half, spare ring %.3g N m s', r{4}.sizing.h_ring_Nms);
 end
 
 function m = t_modes_table()

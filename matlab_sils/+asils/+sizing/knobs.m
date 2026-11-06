@@ -28,7 +28,10 @@ function k = knobs(s)
             k.scale.(g{i}) = x;
         end
     end
-    if isfield(s, 'k_h') && ~isempty(s.k_h), k.k_h = num_(s, 'k_h', k_lo, k_hi, 0); end
+    if isfield(s, 'k_h') && ~isempty(s.k_h)
+        k.k_h = num_(s, 'k_h', k_lo, k_hi, 0);
+        asils.sizing.margin_floor('knobs: k_h', k.k_h);
+    end
     k.k_tau = num_(s, 'k_tau', k_lo, k_hi, k.k_tau);
     k.fmr_lambda = num_(s, 'fmr_lambda', l_lo, l_hi, k.fmr_lambda);
     k.st_heads = fix(num_(s, 'st_heads', h_lo, h_hi, k.st_heads));

@@ -4,6 +4,8 @@ function rings = fmr(Dm, k, bx)
 %   (act/sizering.pc). The engine's adcs-design fmr and ring.
 %   rings = asils.sizing.fmr(Dm, asils.sizing.knobs(), [0.34 0.10 0.10])     a cell of 3 (or 4) parts
 %   Owner: Agastya. Copyright (c) 2026 Agastya. All rights reserved.
+    asils.sizing.margin_floor(sprintf('the authority scale of the fluid loop (scale.fmr = %g, k_h = %g)', asils.sizing.scale_(k, 'fmr'), Dm.k_h), ...
+        Dm.k_h*asils.sizing.scale_(k, 'fmr'));
     [faces, per] = asils.models.sizefmr.fmr_faces(bx(:));
     [h, tau] = asils.models.sizefmr.fmr_need(Dm.h_req, Dm.tau_req, asils.sizing.scale_(k, 'fmr'));
     ax = {'X', 'Y', 'Z'};
@@ -20,8 +22,8 @@ function p = ring_(Dm, k, h, tau, face, perim, tag, what)
 % one fluid ring with its electromagnetic pump, designed for momentum h and torque tau in a loop of face m^2, perim m
     [s0, l1] = asils.models.sizefmr.fmr_loop(face, perim);
     ds = asils.models.sizepump.pump_design(h, tau, s0, l1, k.fmr_lambda);
-    assert(ds.found, 'asils:sizing:refused', 'no feasible pump design (ring %s: h %.3g N m s, tau %.3g N m, lambda %g)', ...
-        tag, h, tau, k.fmr_lambda);
+    assert(ds.found, 'asils:sizing:refused', ['fluid ring %s (%s): no feasible pump design for h %.3e N m s and tau %.3e N m in a loop of %.3e m^2 at lambda %g kg/W ' ...
+        '(case %s, k_h = %g): the loop''s lever or the demand asks more than the box can hold'], tag, what, h, tau, face, k.fmr_lambda, Dm.case, Dm.k_h);
     [rho, mu, ~, melt] = asils.models.sizepump.pump_fluid();
     [dipole_max, per_amp, current_max] = asils.models.sizefmr.fmr_no_dipole();
     nm = struct('bore_m', ds.d, 'loops', ds.loops, 'v_max_m_s', ds.v_max, 'h_max_Nms', ds.h_max, 'enclosed_area_m2', ds.s, ...
@@ -53,6 +55,7 @@ function p = ring_(Dm, k, h, tau, face, perim, tag, what)
     end
     p.sizing = struct('h_req_Nms', Dm.h_req, 'tau_req_Nm', Dm.tau_req, 'h_ring_Nms', h, 'tau_ring_Nm', tau, ...
         'flow_sensor_sigma_m_s', k.fmr_flow_sigma, 'face_m2', face, 'perimeter_m', perim, 'scale', asils.sizing.scale_(k, 'fmr'), ...
+        'margin_stated', Dm.k_h*asils.sizing.scale_(k, 'fmr'), 'margin_achieved', asils.models.sizedemand.margin_achieved(ds.h_max, h, Dm.k_h, asils.sizing.scale_(k, 'fmr')), ...
         'lambda_kg_per_W', k.fmr_lambda, 'pareto', {par}, ...
         'law', 'galinstan loop + DC conduction pump with an electromagnet, designed together: least mass + lambda x steady power (empump.rs)');
 end
