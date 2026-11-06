@@ -396,6 +396,12 @@ All have a default; the developer takes the default and marks it unsigned if the
 | 8 | Margin floor for h_req | Y4 (DD9) | the stated k_h = 2; a derived margin | k_h = 2 floor, achieved margin reported |
 | 9 | CMG bearing friction and spin-down | M5 | a datasheet field with a source (catalogue change); the wheel's friction ratio as a stated developer value | the wheel's ratio, source named |
 
+**The owner's answers (6 Nov 2026):** the defaults for 1-4 and 6-9. For 5, both sources of rate: a product with a
+healthy gyro leaves detumble on the gyro's rate. A product with no gyro, or whose gyro has failed or been declared
+unhealthy, leaves on the B-dot rate estimate from the magnetometer. The switch between them is the gyro's health,
+not a setting, and the scenario cases hold all three: gyro, no gyro, and a gyro failing during detumble. It is
+still the developer's revision, marked unsigned like the rest.
+
 Smaller choices the developer makes and marks unsigned, with the source on the revision: G1's sin threshold (0.15-0.25, Shuster and Oh), F4's plausibility placement (a design method both the init and the update call), P5 (cap at 30 s; RK78 is S12), E6 (high bundle for "worst").
 
 ## 6 · Proposed order of work
