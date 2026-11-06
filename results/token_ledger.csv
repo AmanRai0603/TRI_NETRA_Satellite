@@ -29,4 +29,15 @@ ad9bf6324268e05c2,2026-10-09,S7,migrate,deep,standard,356532,204,150.9,,Finish S
 a83169540ba192279,2026-10-10,,watch,deep,light,0,0,0.0,,Babysit the twin re-fly
 abb5bd7ff4ba25a4b,2026-10-10,,code,deep,standard,461858,276,146.3,,Speed up generated MATLAB code
 a11805d61ec083044,2026-11-06,S7,watch,light,light,79106,16,21.0,,watch: S7 twin re-fly to the end
+a25f243c96aa6fbb2,2026-11-06,S11,code,standard,standard,52496,67,63.7,,code: campaign cross-machine tolerance and the python-tests failures
+a28e4bdc8ac6c488b,2026-11-06,S11,code,standard,standard,0,0,0.0,,code: S11.4b F3 F1 F10 tick time and rate groups
+a370ea8e05e64aad0,2026-11-06,S11,code,standard,standard,59839,45,53.2,,code: S11.3 TS11 golden table
+a8253bb44e4b09b8e,2026-11-06,S11,code,standard,standard,128569,91,72.2,,code: S11.12 P5 orbit step and S11.15 TS17 oracles
 a9578668c91eda6e3,2026-11-06,S11,decide,standard,deep,183051,100,11.7,,decide-prep: S11 inventory draft
+aa8dc41a08452d687,2026-11-06,S11,code,standard,standard,44463,25,54.0,,code: S11.2 decision records into the design
+aaa6b98a246c03e48,2026-11-06,S11,code,standard,standard,374378,11,17.6,,code: S11.5 F2/G3 F5 G4 gyro chain
+ab2d49b1a0cce6c5e,2026-11-06,S11,code,standard,standard,53997,45,63.1,,code: parity gate campaign comparison by machine fingerprint
+abca20bfc1e756bdb,2026-11-06,S11,code,standard,standard,419619,239,144.7,,code: S11.6 F4 G1 G2 G6 TS3 estimator allocation gains
+ac298b8088a1c6e76,2026-11-06,S11,code,standard,standard,131841,85,75.1,,code: S11.13 soft OILS O2 O12 O19 O20 O21
+ad03ed8402e555792,2026-11-06,S11,code,standard,standard,97202,75,91.4,,code: S11 parity differences after the tick fixes
+af06edbe2d843f0ac,2026-11-06,S11,code,standard,standard,330570,129,67.5,,code: S11.4a TS4 fault rig gyro reset clock jitter
