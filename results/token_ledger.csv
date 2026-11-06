@@ -1,0 +1,31 @@
+agent,date,stage,kind,tier,policy_tier,tokens,tool_uses,minutes,checked,description
+abd1a3a477e0e99ac,2026-10-06,S6,run,deep,light,256105,169,442.3,,S6 step 5 full parity
+a2d7ab1b28607f3f9,2026-10-07,S7,transcribe,deep,standard,739214,281,168.9,,"S7.3b-e atmosphere, ephemeris, gravity"
+a3479c724f649021f,2026-10-07,S7,code,deep,standard,727283,238,118.7,,S7.2 translator groundwork
+a4c5cbc9eb5011f5f,2026-10-07,S6,code,deep,standard,287013,152,83.5,,S6 step 6 flight image
+a4d90ad2dad3feb97,2026-10-07,S7,decide,deep,deep,338511,100,38.1,,S7 inventory of code relations
+a852bdbd39715a395,2026-10-07,S7,migrate,deep,standard,0,0,0.0,,S7.8-S7.10 sensors and star tracker
+a910e13c5cac1645d,2026-10-07,S7,migrate,deep,standard,315388,163,118.7,,Resume S7.6-S7.7 after restart
+ab8cc22a58a9cdc12,2026-10-07,S7,migrate,deep,standard,266669,124,137.6,,S7.1b reclassify non-relations
+abb315627a8259961,2026-10-07,S7,migrate,deep,standard,428468,182,89.5,,S7.4-S7.5 disturbances and plant
+ac0eabcb5bcbf0c8e,2026-10-07,S7,transcribe,deep,standard,620626,266,251.0,,"S7.2b+S7.3 data, time, frames, IGRF"
+af57719e1548964d3,2026-10-07,S7,migrate,deep,standard,0,0,0.0,,S7.6-S7.7 orbit forces and actuators
+a0a81a4b009c4bc17,2026-10-08,S7,code,deep,standard,323937,204,171.9,,Resume S7.13 flight parameters
+a0ec51dc2378c75cb,2026-10-08,S7,run,deep,light,0,0,0.0,,Verify S7.8-S7.9 after restart
+a1b641d0364b8e2df,2026-10-08,S7,migrate,deep,standard,753554,349,273.2,,S7.10 star-tracker chain
+a20509db53d4e6331,2026-10-08,S7,code,deep,standard,0,0,0.0,,S7.13 flight parameters
+a2dcccbd283c78977,2026-10-08,S7,migrate,deep,standard,0,0,0.0,,"S7.15 sizing, floquet, loop rules"
+a9c9e27480bbcd816,2026-10-08,S7,migrate,deep,standard,636308,277,196.8,,S7.14 power/jitter/pointing + metrics
+a9d90c3576598c973,2026-10-08,S7,migrate,deep,standard,584906,267,299.4,,S7.11-S7.12 descriptors and codecs
+a1efe8e8fe7d84450,2026-10-09,S7,migrate,deep,standard,439699,506,275.6,,S7.17 twin flies generated code
+a26778aca90b3444f,2026-10-09,S7,unclassified,deep,,100553,34,116.3,,Finish S7.18 in its worktree
+a2bdd83f1a9be7e95,2026-10-09,S7,unclassified,deep,,256435,160,115.9,,Finish S7.15 after usage limit
+a593efe94c5250c02,2026-10-09,S7,migrate,deep,standard,0,0,0.0,,S7.18 twin opens the database
+a675c14dde030c773,2026-10-09,S7,migrate,deep,standard,678912,365,180.1,,S7.19 boundary check and wiring
+a6bd5600f6b5d8075,2026-10-09,S7,migrate,deep,standard,566896,285,168.3,,S7.15b Floquet into the design
+a8b7aaca7cbc38826,2026-10-09,S7,code,deep,standard,335316,182,108.6,,S7.16 fold generated crates
+ab313b4c7d650defa,2026-10-09,S7,migrate,deep,standard,0,0,0.0,,S7.19b clear the 20 exceptions
+ad9bf6324268e05c2,2026-10-09,S7,migrate,deep,standard,356532,204,150.9,,Finish S7.19b with twin switches
+a83169540ba192279,2026-10-10,,watch,deep,light,0,0,0.0,,Babysit the twin re-fly
+abb5bd7ff4ba25a4b,2026-10-10,,code,deep,standard,461858,276,146.3,,Speed up generated MATLAB code
+a11805d61ec083044,2026-11-06,S7,watch,light,light,79106,16,21.0,,watch: S7 twin re-fly to the end

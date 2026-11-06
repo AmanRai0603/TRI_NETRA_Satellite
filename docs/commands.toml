@@ -838,6 +838,30 @@ checks = "a run that fails is named in progress.log and left to fly again"
 undo = "The old runs are replaced, not kept: `git checkout -- matlab_sils/store/results` puts back the committed manifests and summaries; rm -r matlab_sils/store/refly drops the staging."
 
 [[command]]
+tool = "tokens.py"
+name = "tokens"
+usage = "python3 tools/tokens.py report | record [--stage SN] | ledger [--stage SN] | checked AGENT ok|failed"
+what = "The token ledger (docs/PLAN_2_0.md \"Working economy\"): what each piece of work cost, on which model tier, and whether it ran on the tier .claude/model_policy.toml gives its kind of work. report reads this project's Claude Code transcripts: the main session by tier and day, its context size and cold wakes, and every agent; record keeps the agents in the committed ledger, since transcripts go with the container."
+steps = ["read the transcripts: each reply's usage in the main session, each agent's description, model and total tokens", "classify each agent's work by its description against the policy's kinds, and weigh its tokens by the tier's weight", "report, or add the agents not yet in results/token_ledger.csv, or sum the ledger by stage, kind and tier"]
+reads = ["~/.claude/projects/<this folder>/*.jsonl", ".claude/model_policy.toml", "results/token_ledger.csv"]
+writes = ["results/token_ledger.csv (record, checked)"]
+runs = []
+checks = "tests/test_model_policy.py holds the policy, the agents' tiers and the transcript reading"
+undo = "git checkout -- results/token_ledger.csv"
+
+[[command]]
+tool = "verify_work.py"
+name = "verify-work"
+usage = "python3 tools/verify_work.py --since REV [--kind KIND] [--list] [--agent ID]"
+what = "A piece of work checked by the files it changed (docs/PLAN_2_0.md \"Working economy\"): the checks .claude/model_policy.toml [[paths]] gives each changed file, the checks of its kind of work, and the parity gate when the design, a generator or the engine moved. How a light or standard agent's work is proven before anyone reads it."
+steps = ["list the files changed since REV (and the untracked ones)", "pick each file's checks by the first glob that matches it, and the kind's checks", "run them through tools/check_all.py and the policy's own checks; with --agent, mark the agent in the token ledger"]
+reads = [".claude/model_policy.toml", "git"]
+writes = ["results/token_ledger.csv (with --agent)"]
+runs = ["the checks it picks"]
+checks = "exit status 1 when a check fails"
+undo = "nothing to undo but the ledger mark: git checkout -- results/token_ledger.csv"
+
+[[command]]
 tool = "fswcfg.py"
 name = "fswcfg"
 usage = "python3 tools/fswcfg.py <blob>"

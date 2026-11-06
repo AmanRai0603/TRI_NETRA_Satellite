@@ -1,0 +1,236 @@
+# Which model does which work, how its tokens are counted, and how the work is checked.
+#
+# Read by tools/tokens.py (the token ledger and its advice) and tools/verify_work.py (the checks a change
+# needs), and held by tests/test_model_policy.py: every agent in .claude/agents names the tier its work type
+# here gives, and every check named here is a check of tools/check_all.py or one listed under [checks].
+# docs/PLAN_2_0.md "Working economy" says how the plan uses it.
+#
+# The rule: the smallest tier that does the work right. Deterministic checks (the parity gate, the boundary
+# check, the tests) cost no tokens, so a cheaper tier's work is proven by them, not by a bigger model
+# re-reading it. Work moves up one tier only when its checks fail twice on the same task.
+
+# The three tiers. `alias` is what an agent's `model:` line says; `match` the words a transcript's model
+# name is recognised by. `weight` is the tier's relative price per token (light = 1); edit it when the
+# price list changes. The weights only rank work, they are not a bill.
+[tiers.light]
+alias = "haiku"
+match = ["haiku"]
+weight = 1.0
+
+[tiers.standard]
+alias = "sonnet"
+match = ["sonnet"]
+weight = 3.0
+
+[tiers.deep]
+alias = "opus"
+match = ["opus"]
+weight = 5.0
+
+# Within a tier, what each kind of token costs against a fresh input token (the price list's ratios).
+[token_weights]
+input = 1.0
+cache_write_5m = 1.25
+cache_write_1h = 2.0
+cache_read = 0.1
+output = 5.0
+
+# The main session's own habits. Its cost is its context times its replies, and after an idle hour the whole
+# context is written to the cache again (twice a fresh input's price): one wake of a 700 k context costs as
+# much as a whole light agent's task. So the main session never watches a run (a light agent does, and only
+# its last word wakes the main session), and it hands over to a new session at a stage's end or past
+# `context_limit`, with the plan and the stage's inventory as the hand-over.
+[main]
+context_limit = 200000
+# a reply that writes more than this to the cache is a cold wake (the cache had expired)
+cold_write = 100000
+
+[escalation]
+# Failed checks on the same task before the work moves up one tier.
+failures = 2
+# The main session (where the owner talks) plans, decides and reviews; it hands the rest down.
+main_session = "deep"
+
+# The kinds of work. An agent's description (the few words it is started with) says its kind first,
+# "code: S11 F2 GNC logic"; a description without one is matched against `words`, first kind that matches
+# wins, so the ledger knows what each agent did and whether it ran on its tier.
+# `checks` are what tools/verify_work.py runs for the kind when the changed files do not already say more.
+
+[[work]]
+kind = "watch"
+tier = "light"
+agent = "runner"
+what = "keep a long run alive (the twin re-fly, a campaign, soft OILS): check, relaunch, commit its results"
+words = ["watch", "babysit", "keep alive", "re-fly", "refly", "relaunch", "monitor"]
+checks = []
+
+[[work]]
+kind = "run"
+tier = "light"
+agent = "runner"
+what = "run what is already written: regenerate, rebuild the design, the parity gate, a campaign, seal images, re-run a test"
+words = ["regenerate", "rebuild", "parity", "gate", "campaign", "seal", "re-run", "rerun", "run ", "status", "check-in", "verify"]
+checks = ["from-design", "boundary"]
+
+[[work]]
+kind = "chore"
+tier = "light"
+agent = "runner"
+what = "mechanical edits with no judgement: counts and tables in docs from a result, the ledger, a rename everywhere, gitignore"
+words = ["counts", "ledger", "rename", "chore", "tidy", "update docs", "format"]
+checks = ["lint", "commands-doc"]
+
+[[work]]
+kind = "code"
+tier = "standard"
+agent = "backend"
+what = "a bounded code change with a failing test or vector: translator, toolbox, engine core, runtime, rig, reader"
+words = ["translator", "toolbox", "fix", "engine", "runtime", "rig", "reader", "codegen", "flight", "fsw", "port", "crate", "test", "speed up", "fold"]
+checks = ["python-tests", "engine-build", "flight-build", "translators"]
+
+[[work]]
+kind = "migrate"
+tier = "standard"
+agent = "backend"
+what = "move a relation, a model or a table already in code into the design, word for word, with the parity gate proving nothing moved"
+words = ["into the design", "reclassify", "forces", "actuators", "sensors", "star", "descriptors", "codecs", "sizing",
+         "floquet", "plant", "disturbances", "power", "jitter", "pointing", "metrics", "exceptions", "twin", "boundary", "wiring"]
+checks = ["from-design", "engine-build", "boundary", "parity"]
+
+[[work]]
+kind = "page"
+tier = "standard"
+agent = "frontend"
+what = "a page, the application's screens, the manual, a browser test"
+words = ["page", "app", "screen", "manual", "browser", "ui", "tour"]
+checks = ["offline-pages", "design-files"]
+
+[[work]]
+kind = "transcribe"
+tier = "standard"
+agent = "backend"
+what = "a design revision transcribed from a cited source (a published model, a datasheet, a standard) with its published-vector case"
+words = ["transcribe", "datasheet", "published", "igrf", "atmosphere", "ephemeris", "vector case", "revision"]
+checks = ["pseudocode", "engine-build", "from-design", "boundary"]
+
+[[work]]
+kind = "investigate"
+tier = "deep"
+agent = ""
+what = "a break no single file explains: parity lost across components, a result no one can trace, a failure that survived two standard attempts"
+words = ["investigate", "diagnose", "root cause", "why", "audit"]
+checks = []
+
+[[work]]
+kind = "decide"
+tier = "deep"
+agent = ""
+what = "plans, design decisions, architecture, the boundary between design and code, stage reports to the owner, an adversarial review of a stage"
+words = ["plan", "decide", "design decision", "architecture", "report", "review", "inventory", "propose"]
+checks = []
+
+# Checks verify_work.py knows beyond check_all's: name = [command, ...]. The parity gate is the
+# expensive one (an hour or more), so it runs when the design, the generators or the engine moved.
+[checks]
+parity = ["python3", "tools/parity_2_0.py", "tests/regression/design.tndb", "--oils", "detumble_ais", "fine_hold_img", "--twin", "detumble_ais", "--jobs", "4", "--out", "build/parity_verify"]
+
+# Which changed paths need which checks (first glob of a path wins; a path no glob matches needs python-tests).
+[[paths]]
+glob = "design/js/pcode*.js"
+checks = ["pseudocode", "translators", "engine-build", "flight-build"]
+
+[[paths]]
+glob = "engine/crates/trinetra-pcode/**"
+checks = ["pseudocode", "translators", "engine"]
+
+[[paths]]
+glob = "design/revisions*"
+checks = ["from-design", "engine-build", "flight-build", "boundary", "parity"]
+
+[[paths]]
+glob = "tests/regression/**"
+checks = ["from-design", "engine-build", "flight-build", "parity"]
+
+[[paths]]
+glob = "tools/convert_2_0.py"
+checks = ["python-tests", "from-design", "parity"]
+
+[[paths]]
+glob = "tools/design_build.py"
+checks = ["python-tests", "from-design", "parity"]
+
+[[paths]]
+glob = "tools/engine_build.py"
+checks = ["engine-build", "engine", "parity"]
+
+[[paths]]
+glob = "tools/flight_build.py"
+checks = ["flight-build", "flight-image", "fsw-c", "fsw-rs"]
+
+[[paths]]
+glob = "engine/**"
+checks = ["engine", "engine-build", "boundary", "parity"]
+
+[[paths]]
+glob = "fsw/**"
+checks = ["fsw-c", "flight-build", "flight-image", "boundary"]
+
+[[paths]]
+glob = "fsw-rs/**"
+checks = ["fsw-rs", "flight-build", "boundary"]
+
+[[paths]]
+glob = "matlab_sils/store/**"
+checks = []
+
+[[paths]]
+glob = "matlab_sils/**"
+checks = ["twin", "boundary"]
+
+[[paths]]
+glob = "design/pages/**"
+checks = ["offline-pages", "design-files"]
+
+[[paths]]
+glob = "design/js/**"
+checks = ["offline-pages", "structure", "groupcode"]
+
+[[paths]]
+glob = "design/css/**"
+checks = ["offline-pages"]
+
+[[paths]]
+glob = "design/manual/**"
+checks = ["design-files"]
+
+[[paths]]
+glob = "tools/boundary*"
+checks = ["boundary", "python-tests"]
+
+[[paths]]
+glob = "tools/**"
+checks = ["lint", "python-tests"]
+
+[[paths]]
+glob = "tests/**"
+checks = ["lint", "python-tests"]
+
+[[paths]]
+glob = "docs/COMMANDS.md"
+checks = ["commands-doc"]
+
+[[paths]]
+glob = "docs/**"
+checks = []
+
+[[paths]]
+glob = "results/**"
+checks = []
+
+[[paths]]
+glob = ".claude/**"
+checks = ["python-tests"]
+
+[[paths]]
+glob = "VERSION"
+checks = ["version"]

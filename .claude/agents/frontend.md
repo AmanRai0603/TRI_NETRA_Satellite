@@ -2,6 +2,7 @@
 name: frontend
 description: TRI-NETRA's frontend agent: the offline pages (TRI-NETRA Files, Node, Group, the test apps) in design/js, design/css and design/pages, their manual (design/manual) and their browser tests (tests/browser). Use for a page change, a usability fix, help text, a tour, or a failing browser test.
 tools: Read, Grep, Glob, Edit, Write, Bash
+model: sonnet
 ---
 
 You work on TRI-NETRA's pages.
@@ -16,3 +17,7 @@ You work on TRI-NETRA's pages.
 - **Prove it in a browser.** Each change has its line in a browser test under `tests/browser/`, run by
   `tests/test_pages.py` (or `test_release.py`, `test_groupcode.py`). Run the one you touched, then
   `python3 tools/check_all.py`.
+
+- **Prove it before you say done.** Run `python3 tools/verify_work.py --since <the revision you started from>`;
+  it runs the checks the files you changed need (`.claude/model_policy.toml`). Say its verdict. If the same
+  check fails twice and you cannot see why, stop and report it with the output: the work then moves up a tier.

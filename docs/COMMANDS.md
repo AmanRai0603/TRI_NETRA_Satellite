@@ -74,6 +74,8 @@
 | [`floquet.py floquet`](#floquetpy-floquet) | Floquet multipliers of the coils-only nadir loop: the certificate that the periodic magnetic control is stable. The certificate is ctl's method (ctl_floquet_certificate, docs/S7_INVENTORY.md S7.15b), which the tool asks the engine for: it reads the inputs and writes the answers. |
 | [`run_matrix.py run-matrix`](#run_matrixpy-run-matrix) | The whole MATLAB-twin test matrix in GNU Octave on N workers, longest jobs first; campaigns and trades collected at the end. |
 | [`twin_refly.py twin-refly`](#twin_reflypy-twin-refly) | The MATLAB twin's stored runs flown again by the twin of today (docs/S7_INVENTORY.md S7.17): every scenario and every campaign the store holds, each staged and then put in place of the old one (never two full copies). Resumable: a run already swapped in or staged is skipped, a run cut short goes on from its checkpoint. status says what is flown, staged, running and left. |
+| [`tokens.py tokens`](#tokenspy-tokens) | The token ledger (docs/PLAN_2_0.md "Working economy"): what each piece of work cost, on which model tier, and whether it ran on the tier .claude/model_policy.toml gives its kind of work. report reads this project's Claude Code transcripts: the main session by tier and day, its context size and cold wakes, and every agent; record keeps the agents in the committed ledger, since transcripts go with the container. |
+| [`verify_work.py verify-work`](#verify_workpy-verify-work) | A piece of work checked by the files it changed (docs/PLAN_2_0.md "Working economy"): the checks .claude/model_policy.toml [[paths]] gives each changed file, the checks of its kind of work, and the parity gate when the design, a generator or the engine moved. How a light or standard agent's work is proven before anyone reads it. |
 | [`fswcfg.py fswcfg`](#fswcfgpy-fswcfg) | Decode and check a flight-software parameter blob (adcs-fswcfg/1) and print every field as JSON. |
 | [`trinetra.py explain`](#trinetrapy-explain) | This registry: every command, what it does before it does it; `why` names the command that writes a file; `status` puts the evidence debt first (unconfirmed algorithms, synthetic parts, unselectable catalogue models, engine-twin disagreements, failing design-loop checks); `docs` writes docs/COMMANDS.md. |
 | [`carry_over.py carry_over`](#carry_overpy-carry_over) | Carries everything the repository already says into a seeded design folder's node files (docs/RELEASE_PLAN.md P8): the spec's seed content into the nodes' own fields, each physics relation as pseudocode with what it calls and where it runs, the case keys and suppliers of declared values, the KPIs' senses and metrics, the algorithms' parameters, the tree's notes; names the internal layer-3 rows and adds the rows a discipline had no node for, from design/carry.toml. Each item is marked with its origin; a field already written is never replaced; what is still missing is listed in each node (status.gaps) with its owner team. --check seeds and carries into a temporary folder and checks every file and rule. |
@@ -1439,6 +1441,44 @@ The MATLAB twin's stored runs flown again by the twin of today (docs/S7_INVENTOR
 - **Checks:** a run that fails is named in progress.log and left to fly again
 - **Undo:** The old runs are replaced, not kept: `git checkout -- matlab_sils/store/results` puts back the committed manifests and summaries; rm -r matlab_sils/store/refly drops the staging.
 - **Code:** `tools/twin_refly.py`
+
+## tokens.py tokens
+
+The token ledger (docs/PLAN_2_0.md "Working economy"): what each piece of work cost, on which model tier, and whether it ran on the tier .claude/model_policy.toml gives its kind of work. report reads this project's Claude Code transcripts: the main session by tier and day, its context size and cold wakes, and every agent; record keeps the agents in the committed ledger, since transcripts go with the container.
+
+    python3 tools/tokens.py report | record [--stage SN] | ledger [--stage SN] | checked AGENT ok|failed
+
+**Steps**
+
+1. read the transcripts: each reply's usage in the main session, each agent's description, model and total tokens
+2. classify each agent's work by its description against the policy's kinds, and weigh its tokens by the tier's weight
+3. report, or add the agents not yet in results/token_ledger.csv, or sum the ledger by stage, kind and tier
+
+- **Reads:** `~/.claude/projects/<this folder>/*.jsonl`; `.claude/model_policy.toml`; `results/token_ledger.csv`
+- **Writes:** `results/token_ledger.csv (record, checked)`
+- **Starts:** nothing
+- **Checks:** tests/test_model_policy.py holds the policy, the agents' tiers and the transcript reading
+- **Undo:** git checkout -- results/token_ledger.csv
+- **Code:** `tools/tokens.py`
+
+## verify_work.py verify-work
+
+A piece of work checked by the files it changed (docs/PLAN_2_0.md "Working economy"): the checks .claude/model_policy.toml [[paths]] gives each changed file, the checks of its kind of work, and the parity gate when the design, a generator or the engine moved. How a light or standard agent's work is proven before anyone reads it.
+
+    python3 tools/verify_work.py --since REV [--kind KIND] [--list] [--agent ID]
+
+**Steps**
+
+1. list the files changed since REV (and the untracked ones)
+2. pick each file's checks by the first glob that matches it, and the kind's checks
+3. run them through tools/check_all.py and the policy's own checks; with --agent, mark the agent in the token ledger
+
+- **Reads:** `.claude/model_policy.toml`; git
+- **Writes:** `results/token_ledger.csv (with --agent)`
+- **Starts:** the checks it picks
+- **Checks:** exit status 1 when a check fails
+- **Undo:** nothing to undo but the ledger mark: git checkout -- results/token_ledger.csv
+- **Code:** `tools/verify_work.py`
 
 ## fswcfg.py fswcfg
 

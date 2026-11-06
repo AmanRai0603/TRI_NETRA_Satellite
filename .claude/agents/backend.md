@@ -2,6 +2,7 @@
 name: backend
 description: TRI-NETRA's backend agent: the pseudocode translator (design/js/pcode_gen.js), the generated Rust and MATLAB (tools/pcode.py, tools/groupcode.py), the engine and the flight software. Use for a translator bug, a generated crate that does not build or does not reproduce the interpreter, or engine and twin parity.
 tools: Read, Grep, Glob, Edit, Write, Bash
+model: sonnet
 ---
 
 You work on TRI-NETRA's code that is generated or held to the pseudocode.
@@ -22,3 +23,7 @@ You work on TRI-NETRA's code that is generated or held to the pseudocode.
   targets) and the rigs are code.
 - **A design names what it needs.** Changing what a relation may call raises the toolbox version in
   `adcs-sim/src/source.rs`, `tools/design_inputs.py` and `python/trinetra_adcs/design.py` together.
+
+- **Prove it before you say done.** Run `python3 tools/verify_work.py --since <the revision you started from>`;
+  it runs the checks the files you changed need (`.claude/model_policy.toml`). Say its verdict. If the same
+  check fails twice and you cannot see why, stop and report it with the output: the work then moves up a tier.

@@ -184,6 +184,75 @@ unsigned, and after it is signed by the person who checked it.
   breaking down and editing the design, and handing it to its people, is the ownership stage after the
   release.
 
+## Working economy: which model does which work (added 6 Nov 2026, on the owner's word)
+
+The work to 2.0.0 is done by models, and their tokens are the budget. So each piece of work goes to the smallest
+model that does it right. The deterministic checks prove it, and they cost no tokens. The rules are in
+`.claude/model_policy.toml`, and `tests/test_model_policy.py` holds the agents to them.
+
+**Three tiers.**
+- **Light**, the `runner` agent. It keeps long runs alive (the twin re-fly, campaigns, the parity gate, soft OILS),
+  regenerates, rebuilds, re-runs and commits results. It changes nothing by judgement.
+- **Standard**, the `backend` and `frontend` agents. They make bounded code changes with a failing test,
+  transcriptions from a cited source with their published-vector case, relations moved from code into the
+  design word for word, and the application's screens.
+- **Deep**, the main session, where the owner talks. It plans, takes design decisions, settles the boundary
+  between design and code, investigates a break no single file explains, reviews each phase adversarially and
+  writes the reports to the owner.
+
+**Every piece of work is checked before anyone reads it.** `tools/verify_work.py --since REV` runs the checks the
+changed files need: the policy's `[[paths]]`, and the parity gate whenever the design, a generator or the engine
+moved. The agent's work is done only when the verdict is ok. The main session reads that verdict and the diff
+summary, not the logs. If the same check fails twice, the work moves up one tier (`[escalation]`). Each phase
+ends with one deep review of the whole phase, not one review per agent.
+
+**The ledger.** `tools/tokens.py` reads the session transcripts:
+- `report` gives the main session by tier and day, its context size and its cold wakes, then every agent with its
+  kind of work, the tier it ran on and the tier it should have used.
+- `record` adds the agents to `results/token_ledger.csv`. The ledger is committed, because transcripts are lost
+  when the container goes.
+- `checked AGENT ok|failed`, or `verify_work.py --agent`, marks each agent's check.
+- `ledger --stage SN` sums a phase.
+
+Every phase report from S7 on ends with its ledger. An agent's description starts with its kind of work
+(`code: S11 F2 GNC logic`), so the ledger knows what it did.
+
+**What it found in S6–S7** (the ledger's first record, 6–10 Oct): the main session cost about seven times more
+than all 29 agents together.
+- Every agent ran on the deep tier. On the policy's tiers they would have cost 38 % less.
+- The main session's context was 384 k tokens per reply (median), and 775 k at most.
+- 51 cold wakes, each rewriting that whole context to the cache after an idle hour, were 59 % of the main
+  session's cost. They came from check-ins on the re-fly and on agents.
+
+**So, from now on:**
+1. The main session never watches a run. A light `runner` agent does, and only its last message wakes the main
+   session. Check-ins scheduled into the main session are only a fallback for when no agent can run.
+2. The main session hands over to a new session at the end of a phase, or past 200 k of context. The plan, the
+   phase's inventory or report and its ledger are the hand-over.
+3. Agents are briefed with the files and the checks, not with the history, and report a verdict, counts and
+   commits, not logs.
+4. Long runs are launched detached and resume from their checkpoints, so a lost container costs a relaunch, not
+   the run.
+5. New sessions start on the **TRI-NETRA** cloud environment. Its setup script installs Octave, the arm toolchain and
+   QEMU, and builds the engine, so a fresh container can run the twin and every check without spending a turn on
+   setting itself up.
+
+The estimate is about half the tokens of S6–S7 for the same work. Each phase's ledger shows whether it held.
+
+**Who does what in each remaining phase:**
+
+| phase | light (`runner`) | standard (`backend`, `frontend`) | deep (main session) |
+|---|---|---|---|
+| S7, the rest | the twin re-fly, twin parity, the browser test re-run, the ledger | — | the S7 check report |
+| S11 Corrections | the gates, the flight images resealed, the cases re-flown | the code fixes (A, Y, M, F, G, E, P, O, TS items); DTM2020 transcribed | the 15 design decisions, the verdict-with-confidence method, the phase review |
+| S12 Environment, frames, orbit | the published-vector runs, the gates | IGRF-14, the frames and the environment models from their sources; the propagator items | the requirements stated or refused (Y14–Y18), the phase review |
+| S13 Margins, statistics | the campaigns, Monte Carlo, the reference tools' runs (Basilisk, 42, Orekit) | the margin and statistics code, OEM export | the statistical method and credibility (A4, T3), the phase review |
+| S14 Devices, GNC | the 14-day soak, the fault matrix runs | the devices from their datasheets, the GNC items | the FMECA's shape, the mode set against ECSS, the phase review |
+| S15 Flight-software assurance | mutation, coverage, the reproducible-build runs | TM/TC, the Renode backend, MISRA fixes | the assurance argument and the verification report's shape, the phase review |
+| S16 OILS and HILS | the emulation runs | the rig, the IEU and the board target | the board and lab options for the owner, the phase review |
+| S8 The application | the browser test runs | the screens (`frontend`), the application's back end (`backend`) | the application's architecture, the phase review |
+| S17 Release | the whole chain re-flown, zip 2 packed | the release notes drafted | the release check, the notes per role |
+
 ## The phases
 
 | stage | phase | delivers | your part | size |

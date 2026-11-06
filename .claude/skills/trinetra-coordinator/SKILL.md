@@ -10,6 +10,14 @@ Rust and MATLAB and the engine; the frontend agent (`.claude/agents/frontend.md`
 (`design/js`, `design/css`, `design/pages`) and their browser tests. Neither edits a node's content:
 that comes only from the group's sealed release (`CONTRIBUTING.md`, rule 1).
 
+**Which model, and how it is checked** (`.claude/model_policy.toml`, `docs/PLAN_2_0.md` "Working economy"):
+running, watching, regenerating and committing results go to the `runner` agent (light tier); code,
+transcription and page work to `backend` or `frontend` (standard); you keep the plan, the decisions
+and the phase review. Start each agent with a description that says its kind first (`run: S11 gates`).
+Its work is done when `python3 tools/verify_work.py --since REV --agent ID` says ok; read that verdict,
+not its logs. Never watch a run from your own session. At a phase's end, `python3 tools/tokens.py record
+--stage SN` and put `tokens.py ledger --stage SN` in the phase's report.
+
 ## The loop
 
 1. **Verify.** `python3 tools/group.py verify DIR` — every group's latest release checks
