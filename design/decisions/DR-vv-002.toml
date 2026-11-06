@@ -1,0 +1,30 @@
+schema = "trinetra-decision/1"
+id = "DR-vv-002"
+decisions = ["DD57"]
+title = "How to disperse the inertia"
+group = "vv"
+parent = "v2"
+owner_team = "vv"
+status = "proposed"
+owner_question = 4
+items = ["A5"]
+context = "Each principal moment is scaled independently by +/- frac (matlab_sils/+asils/+campaign/draw.m:30-33; the engine's scale_inertia, design/revisions/S7.11/truthplant.pc): about 4 % of Monte Carlo draws and every edge-campaign corner break the triangle inequality, so the body is impossible."
+drivers = ["every Monte Carlo and edge campaign"]
+standard = ["the triangle inequality of principal moments (I1 + I2 >= I3 for every ordering)"]
+current = "independent scaling, no check"
+choice = "redraw until the triangle inequality holds (the same seed stream, the next draw), and refuse by name a stated inertia that breaks it; edge corners that break it are moved to the nearest realisable corner and say so"
+rationale = "Redrawing keeps the stored dispersion and its seeds readable: every draw that was realisable is unchanged."
+consequences = "About 4 % of draws change; campaign verdicts may move."
+sets = ["dyn_truth_plant (truthplant.pc scale_inertia), S11.9", "the twin's asils.campaign.draw"]
+revisit_when = "S13, when each dispersion gets its pedigree"
+signature = {}
+
+[[option]]
+name = "reject and redraw"
+evidence = "docs/S11_INVENTORY.md A5"
+rejected_because = ""
+
+[[option]]
+name = "disperse R diag(I) R^T with bounded moments"
+evidence = "docs/TECHNICAL_ROADMAP.md A5"
+rejected_because = "changes every draw, so no stored run can be compared; the owner may still prefer it"

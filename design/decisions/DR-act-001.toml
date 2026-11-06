@@ -1,0 +1,29 @@
+schema = "trinetra-decision/1"
+id = "DR-act-001"
+decisions = ["DD22", "DD23"]
+title = "Momentum envelope, saturation margin, dump strategy and interval"
+group = "act"
+parent = "gw"
+owner_team = "act"
+status = "proposed"
+items = ["Y4"]
+context = "Wheel bias 2e-3 N m s; req.hsat and req.dump blank; the sizing takes a quarter orbit of secular momentum between dumps when req.dump is blank (engine/crates/adcs-design/src/lib.rs:216); coil dump gain 2e-3, thruster dump hysteresis 4e-3/1e-3."
+drivers = ["req.hsat", "req.dump", "mission.life"]
+standard = ["SMAD (Wertz et al. 2011) section 19.1", "Sidi (1997) ch. 7"]
+current = "bias 2e-3 N m s; dump interval a quarter orbit by default; continuous coil dumping"
+choice = ""
+rationale = "req.hsat and req.dump are requirements, the owner's to state; the developer records the defaults the sizing takes meanwhile."
+consequences = "Each sizing run notes the default it took (lib.rs:216)."
+sets = ["req.hsat", "req.dump", "fsw_param_dump_k", "fsw_param_rcs_dump_hi", "fsw_param_rcs_dump_lo"]
+revisit_when = "the owner states req.hsat and req.dump"
+signature = {}
+
+[[option]]
+name = "continuous coil dumping, quarter-orbit sizing (today)"
+evidence = "lib.rs:216"
+rejected_because = ""
+
+[[option]]
+name = "scheduled dumps, by coils or by thrusters"
+evidence = "docs/DESIGN_DECISIONS.md DD23"
+rejected_because = ""

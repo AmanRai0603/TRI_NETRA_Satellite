@@ -1,0 +1,30 @@
+schema = "trinetra-decision/1"
+id = "DR-vv-003"
+decisions = ["DD58"]
+title = "The golden table's tolerance"
+group = "vv"
+parent = "v1"
+owner_team = "vv"
+status = "proposed"
+owner_question = 7
+items = ["TS11"]
+context = "CI never re-flies the scenarios (TS11): a gain change can merge green with every stored verdict stale. The golden table (results/golden.json) re-flies all 48 scenarios and compares; it needs a stated tolerance."
+drivers = ["TS11"]
+standard = ["NASA-STD-7009B"]
+current = "no golden table"
+choice = "bit-exact when the toolchain fingerprint is the table's; otherwise a relative tolerance per metric, stated in the table"
+rationale = "The engine is deterministic, so on the same toolchain any difference is a change; another compiler or libm moves the last bits, which a per-metric tolerance absorbs without hiding a change."
+consequences = "A change that moves any golden metric names its scenario and metric."
+sets = ["results/golden.json (its tolerance column), S11.3"]
+revisit_when = "the engine and twin parity thresholds (DD58, SPEC D23) are set by the owner"
+signature = {}
+
+[[option]]
+name = "bit-exact per fingerprint, per-metric relative otherwise"
+evidence = "docs/S11_INVENTORY.md section 5 question 7"
+rejected_because = ""
+
+[[option]]
+name = "one tolerance everywhere"
+evidence = ""
+rejected_because = "hides changes in small metrics or flags noise in large ones"

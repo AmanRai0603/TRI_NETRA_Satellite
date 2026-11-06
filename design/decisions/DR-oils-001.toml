@@ -1,0 +1,30 @@
+schema = "trinetra-decision/1"
+id = "DR-oils-001"
+decisions = ["DD49"]
+title = "Which is the truth: the device map or the HAL header"
+group = "oils"
+parent = "v3"
+owner_team = "oils"
+status = "proposed"
+owner_question = 6
+items = ["O12"]
+context = "The rig's device map (archive/design-1.0/spec/rig/device_maps/example_3u.toml) contradicts the HAL header on almost every port: magnetometer bus 1 address 0x1E against fsw/include/adcs_devices.h:13 ADCS_MAG_BUS 0, coils and rotors on CAN. Nothing reads the map."
+drivers = ["soft OILS", "O11 fault points"]
+standard = ["ECSS-E-ST-50C"]
+current = "two sources that disagree; the header flies"
+choice = "the header is the truth (it is what the code and the emulators run); the map is corrected from it and a check in CI holds them equal"
+rationale = "The header is what has been flown in every soft-OILS run; generating the header from the map is the larger change and can follow."
+consequences = "O11's fault points are read from the corrected map."
+sets = ["fsw/include/adcs_devices.h", "the device map and its CI check (S11.13)"]
+revisit_when = "the board (H1) fixes the buses"
+signature = {}
+
+[[option]]
+name = "the header wins, the map checked in CI"
+evidence = "docs/S11_INVENTORY.md O12"
+rejected_because = ""
+
+[[option]]
+name = "generate the header from the map"
+evidence = ""
+rejected_because = "an M-size change; later"

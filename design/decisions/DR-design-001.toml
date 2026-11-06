@@ -1,0 +1,29 @@
+schema = "trinetra-decision/1"
+id = "DR-design-001"
+decisions = ["DD12"]
+title = "Solution versus benchmark family policy"
+group = "design"
+parent = "ct3"
+owner_team = "design"
+status = "proposed"
+items = ["D10"]
+context = "The catalogue's families carry roles (solution or benchmark); the design loop selects only solution families. For ais_img_3u it selects the in-house fluid ring at 1.794 kg and 3.52 W while the feasible wheel benchmark needs 0.701 kg and 3.71 W. That may be the right business choice; it is not recorded as an engineering one."
+drivers = ["business: the in-house products", "engineering: mass, power, TRL, risk"]
+standard = ["NASA/SP-2016-6105 Rev2 section 6.8 (decision analysis)"]
+current = "solution families only; lighter feasible benchmarks excluded"
+choice = ""
+rationale = "A business and engineering decision with drivers the developer does not hold (TRL, cost, strategy); recorded with the evidence for the owner."
+consequences = "The selection keeps excluding benchmarks until decided; the selection report names the benchmark it excluded."
+sets = ["the catalogue's family roles"]
+revisit_when = "the owner's business plan, or a TRL assessment of the in-house parts"
+signature = {}
+
+[[option]]
+name = "solution families only (today)"
+evidence = "ais_img_3u: fluid ring 1.794 kg, 3.52 W"
+rejected_because = ""
+
+[[option]]
+name = "in-house versus bought, TRL-weighted"
+evidence = "ais_img_3u: wheel benchmark 0.701 kg, 3.71 W, feasible"
+rejected_because = ""

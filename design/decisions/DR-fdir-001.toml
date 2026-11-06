@@ -1,0 +1,34 @@
+schema = "trinetra-decision/1"
+id = "DR-fdir-001"
+decisions = ["DD39", "DD15"]
+title = "Safe-mode concept, independence and magnetometer redundancy"
+group = "fdir"
+parent = "gq"
+owner_team = "fdir"
+status = "proposed"
+items = ["G5", "H5", "Y11"]
+context = "Safe mode is a coils-only detumble after 60 s of sensor silence; it can deadlock (G5) and runs on the same OBC and magnetometer as nominal (H5). There is a single magnetometer, a single-point failure, and mag_fail is excluded from the fault campaigns (Y11)."
+drivers = ["req.faults (blank)", "the FMECA (S14)"]
+standard = ["ECSS-E-ST-60-30C", "SAVOIR FDIR handbook", "ECSS-Q-ST-30-02C (FMECA)"]
+current = "coils-only detumble safe mode on the nominal chain; one magnetometer"
+choice = ""
+rationale = "The safe-mode concept follows from the FMECA, which S14 shapes; the developer records the present concept and its known deadlock so the owner decides with the FMECA."
+consequences = "mag_fail stays outside the single-fault campaigns until decided."
+sets = ["fdir_safe_mode", "fsw_modes"]
+revisit_when = "the FMECA (S14)"
+signature = {}
+
+[[option]]
+name = "coils-only detumble on the nominal chain (today)"
+evidence = "fdir_safe_mode; G5 deadlock"
+rejected_because = ""
+
+[[option]]
+name = "Sun-spin safe mode"
+evidence = "the Sun-spin acquisition mode exists"
+rejected_because = ""
+
+[[option]]
+name = "a second magnetometer, or a separate safe controller"
+evidence = "docs/DESIGN_DECISIONS.md DD15, DD39"
+rejected_because = ""

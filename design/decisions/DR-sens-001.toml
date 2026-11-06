@@ -1,0 +1,34 @@
+schema = "trinetra-decision/1"
+id = "DR-sens-001"
+decisions = ["DD14", "DD19"]
+title = "Star-tracker heads, placement and keep-out"
+group = "sens"
+parent = "gs"
+owner_team = "sens"
+status = "proposed"
+items = ["D3", "T11"]
+context = "Two heads at +/-25 deg, with the rationale in a product comment; the design loop removes one as a mass lever, overriding it; 51 of 55 Monte Carlo failures are both heads blind (D3). The 30 deg Sun exclusion is in the part, none in guidance."
+drivers = ["req.ape in eclipse transitions", "the D3 study"]
+standard = ["Markley and Crassidis (2014) ch. 5"]
+current = "two heads at +/-25 deg, removable by the loop; no keep-out in guidance"
+choice = ""
+rationale = "The head count and the lever lock are the owner's with the sens team; the developer records the conflict between the rationale and the loop."
+consequences = "The loop may still remove a head; A7's eclipse-transition window (S11.10) judges what that costs."
+sets = ["fsw_param_n_heads", "the design loop's levers"]
+revisit_when = "the D3 study (T11)"
+signature = {}
+
+[[option]]
+name = "two heads, removable by the loop (today)"
+evidence = "docs/ADCS_GAPS.md D3"
+rejected_because = ""
+
+[[option]]
+name = "two heads, lever locked"
+evidence = "the product comment's rationale"
+rejected_because = ""
+
+[[option]]
+name = "three heads, or one along the orbit normal"
+evidence = "docs/DESIGN_DECISIONS.md DD14"
+rejected_because = ""

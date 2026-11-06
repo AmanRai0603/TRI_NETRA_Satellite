@@ -1,0 +1,29 @@
+schema = "trinetra-decision/1"
+id = "DR-ctl-001"
+decisions = ["DD33", "DD35"]
+title = "Gain design method with margins; integer-tick rate groups"
+group = "ctl"
+parent = "gc"
+owner_team = "ctl"
+status = "proposed"
+items = ["G6", "TS3", "F3", "T1"]
+context = "The PID gains place the poles at rw_bandwidth with damping 2 using Kp = J wn^2 (design/revisions/S7.13/fswrw.pc:14; fswmtq.pc:36 for the magnetic PD), but the loop acts on the quaternion's vector part, which is half the angle, so the loops fly at about 0.7x the bandwidth. No gain is checked against margins (T1). Rate groups are scheduled from floating time (fsw/src/adcs_fsw.c:205, :401), so with +/-1 us jitter the fine law runs on 63 % of its ticks (F3)."
+drivers = ["fsw_tune_rw_bandwidth", "gc_0, gc_1 (settling by analysis)", "TS3 step test"]
+standard = ["ECSS-E-ST-60-10C", "Wie (2008) ch. 7", "Wie, Weiss and Arapostathis (1989), J. Guidance 12:375 (quaternion feedback)", "ECSS-E-ST-40C section 5.4"]
+current = "Kp = J wn^2 and Ki = 0.15 J wn^3 on the quaternion vector part; no margin check; rate groups from floating time"
+choice = "pole placement on the angle: the proportional and integral gains on the quaternion vector part carry the factor 2 (Kp = 2 J wn^2, Ki = 2 x 0.15 J wn^3), the derivative gain unchanged; the flown loop is the referent and a step-response and sweep test holds it (rise and 2 % settling within 10 % of the poles, bandwidth within 10 % of rw_bandwidth, GM >= 6 dB, PM >= 30 deg). The magnetic sliding-mode slope is settled in the same revision. Rate groups run on integer tick counters, one per group."
+rationale = "For small angles the vector part is theta/2, so the factor 2 makes the stiffness J wn^2 on the angle, which is what the placement assumed (Wie et al. 1989). Integer counters make the groups independent of timestamp jitter, the roadmap's fix for F3."
+consequences = "The fine-pointing loops get stiffer by sqrt(2) in bandwidth; settling verdicts move; gc_0/gc_1 are stated as flown or wired to the tuning."
+sets = ["fswrw.pc fsw_rw_pid and fswmtq.pc fsw_mtq_pd (fsw_param_rw_Kp, _Ki, fsw_param_mtq_Kp), S11.6", "the tick's rate groups (runtime, S11.4)"]
+revisit_when = "a margin analysis by loop shaping or mu-analysis (T1, S13)"
+signature = {}
+
+[[option]]
+name = "pole placement on the angle (factor 2), tested against the flown loop"
+evidence = "docs/TECHNICAL_ROADMAP.md G6; docs/TEST_STRATEGY.md TS3"
+rejected_because = ""
+
+[[option]]
+name = "loop shaping with stated margins, or mu-analysis"
+evidence = "docs/DESIGN_DECISIONS.md DD33"
+rejected_because = "S13's (T1); the step and sweep test is the first check"

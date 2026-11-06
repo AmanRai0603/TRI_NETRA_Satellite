@@ -1,0 +1,34 @@
+schema = "trinetra-decision/1"
+id = "DR-risk-001"
+decisions = ["DD52"]
+title = "N2O pressure vessel factors; galinstan limits; material compatibility"
+group = "risk"
+parent = "rk1"
+owner_team = "risk"
+status = "proposed"
+items = ["Y9"]
+context = "The cold-gas tank is sized at MEOP 70 bar with no maximum design pressure, proof or burst factor; galinstan freezes at -19 C; gallium and aluminium compatibility is unrecorded (Y9)."
+drivers = ["launch safety review", "the fluid ring and thruster products"]
+standard = ["ECSS-E-ST-32-02C (pressurised hardware)", "CubeSat Design Specification (pressure vessels)", "the launch provider's safety rules"]
+current = "MEOP 70 bar, no factors; no thermal limit on the ring; compatibility unrecorded"
+choice = ""
+rationale = "Safety factors and launch rules are the owner's with the launch provider; the developer states none."
+consequences = "No thruster or ring product can claim launch safety until decided."
+sets = ["the catalogue's thruster and ring parts"]
+revisit_when = "a launch provider is chosen"
+signature = {}
+
+[[option]]
+name = "the factors of ECSS-E-ST-32-02C"
+evidence = "docs/DESIGN_DECISIONS.md DD52"
+rejected_because = ""
+
+[[option]]
+name = "the launch provider's rules"
+evidence = ""
+rejected_because = ""
+
+[[option]]
+name = "no pressurised propulsion"
+evidence = ""
+rejected_because = ""

@@ -1,0 +1,35 @@
+schema = "trinetra-decision/1"
+id = "DR-fsw-002"
+decisions = ["DD46", "DD47"]
+title = "OBC, FPU and numeric precision"
+group = "fsw"
+parent = "gx"
+owner_team = "fsw"
+status = "proposed"
+owner_question = 3
+items = ["F9", "F10/G8", "H1"]
+context = "The flight software computes in double on a Cortex-M4F, whose FPU is single precision, so double is done in software (F9). A single-precision build is claimed tested (fsw/pseudocode/00_conventions.md:18) but does not compile cleanly: incompatible pointers at fsw/src/adcs_alg_glue.h:61,67 and 278 conversion warnings (F10). The board is open (H1)."
+drivers = ["the worst-case step time (gx_1, gx_3)", "the board choice (H1)"]
+standard = ["ECSS-E-ST-40C section 5.8.3"]
+current = "double everywhere, Cortex-M4F under QEMU; a broken single-precision build claimed tested"
+choice = "remove the single-precision claim now (the build is double only, and a test holds the documentation to the build); the board and FPU stay open for the owner (Cortex-M4F as flown in emulation)"
+rationale = "Supporting single precision is an M-size job that only pays once the board's FPU is chosen; a claim that the build does not keep is worse than no claim."
+consequences = "fsw/pseudocode/00_conventions.md and fsw/include/adcs_math.h say double only; a docs test fails if a float build is claimed again without a build that passes."
+sets = ["fsw/pseudocode/00_conventions.md:18 (the claim)", "fsw/include/adcs_math.h:14 (ADCS_REAL_FLOAT)"]
+revisit_when = "the owner chooses the board (H1): an M7 with a double FPU, or a single-precision build after a numerics review"
+signature = {}
+
+[[option]]
+name = "remove the claim (S)"
+evidence = "docs/S11_INVENTORY.md F10/G8"
+rejected_because = ""
+
+[[option]]
+name = "support the single-precision build (M)"
+evidence = "gcc -DADCS_REAL_FLOAT -fsyntax-only on fsw/src/adcs_fsw.c"
+rejected_because = "needs DD46's FPU choice first"
+
+[[option]]
+name = "an M7 with a double-precision FPU"
+evidence = "docs/DESIGN_DECISIONS.md DD46"
+rejected_because = "a board decision, the owner's"

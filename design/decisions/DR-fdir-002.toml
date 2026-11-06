@@ -1,0 +1,29 @@
+schema = "trinetra-decision/1"
+id = "DR-fdir-002"
+decisions = ["DD40"]
+title = "FDIR hierarchy: gyro staleness, the star-tracker coast, the watchdog"
+group = "fdir"
+parent = "gq"
+owner_team = "fdir"
+status = "proposed"
+items = ["F2/G3", "G4"]
+context = "A silent gyro keeps feeding its last rate to the MEKF, the controllers and the detumble exit for 60 s (fsw/pseudocode/08_mode_manager.pc:198), and the 900 s tracker coast (fsw_param_st_coast_s) then lets the attitude diverge with no fault (143 deg in 50 s)."
+drivers = ["F2/G3", "the detumble hold", "fsw_param_st_coast_s (900 s)"]
+standard = ["ECSS-E-ST-60-30C", "SAVOIR FDIR handbook (levels 0-4)"]
+current = "a stale gyro is a fault only after 60 s; the tracker coast of 900 s runs on the stale rate; no rate damping while the attitude is invalid"
+choice = "a gyro sample unchanged for 3 ticks is stale: the rate is zeroed for the controllers, the MEKF propagates with inflated process noise and the tracker coast ends; the 60 s fault stays as the level above it; with the attitude invalid the pointing modes damp the rate (G4). The stale limit is shorter than the detumble hold, as the roadmap requires."
+rationale = "Three ticks (0.3 s at 10 Hz) is the shortest limit a healthy gyro never trips on a frozen-count check and is far below the detumble hold; the numbers are the developer's, recorded here so the owner signs them."
+consequences = "Scenario fault_gyro_silent keeps the attitude error bounded; the fine-hold verdicts with a healthy gyro do not move."
+sets = ["fsw_modes fdir_hold (the stale count), a stated node fsw_param_gyro_stale_ticks (3), added with F2 in S11.5", "fsw_estimation (the inflated process noise)"]
+revisit_when = "the FMECA (S14) sets the levels"
+signature = {}
+
+[[option]]
+name = "stale after 3 ticks; rate zeroed, Q inflated, coast ended; 60 s fault above it"
+evidence = "docs/TECHNICAL_ROADMAP.md F2/G3"
+rejected_because = ""
+
+[[option]]
+name = "innovation-based isolation"
+evidence = "docs/DESIGN_DECISIONS.md DD40"
+rejected_because = "needs the redundancy decision (DR-fdir-001) first"

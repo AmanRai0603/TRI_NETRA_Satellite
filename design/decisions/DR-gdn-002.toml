@@ -1,0 +1,29 @@
+schema = "trinetra-decision/1"
+id = "DR-gdn-002"
+decisions = ["DD1", "DD38"]
+title = "The complete mode set with its transition matrix; LEOP and tip-off range"
+group = "gdn"
+parent = "gq"
+owner_team = "gdn"
+status = "proposed"
+items = ["Y8"]
+context = "The modes are detumble, Sun acquisition, Sun referencing, nadir, target and slew, with 11 flight-software states; there is no separation or LEOP mode, and the tip-off rate 10 deg/s is UNCONFIRMED. The detumble exit is 0.5 deg/s held 60 s while the catalogue's detumble mode says 10 min and the metric uses 600 s (DD37)."
+drivers = ["the launch provider's tip-off figure", "first-acquisition energy"]
+standard = ["ECSS-E-ST-60-30C section 4", "CubeSat Design Specification (inhibit timers)"]
+current = "six modes, 11 states, no LEOP mode; tip-off 10 deg/s UNCONFIRMED"
+choice = ""
+rationale = "A mode set and a tip-off range are the owner's with the launch provider; the developer records the present set and the conflicts (detumble exit 60 s vs 600 s) for that decision."
+consequences = "Scenarios keep the 10 deg/s tip-off, read as unconfirmed."
+sets = ["fsw_modes", "the catalogue's modes"]
+revisit_when = "the launch provider names the tip-off range"
+signature = {}
+
+[[option]]
+name = "the present six modes (today)"
+evidence = "fsw/pseudocode/08_mode_manager.pc; the catalogue's modes"
+rejected_because = ""
+
+[[option]]
+name = "add separation/LEOP, dump, inertial hold and payload calibration, with a transition matrix"
+evidence = "ECSS-E-ST-60-30C section 4"
+rejected_because = ""

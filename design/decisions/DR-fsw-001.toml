@@ -1,0 +1,35 @@
+schema = "trinetra-decision/1"
+id = "DR-fsw-001"
+decisions = ["DD50"]
+title = "Onboard time after a reset; synchronisation; TM/TC standard"
+group = "fsw"
+parent = "gx"
+owner_team = "fsw"
+status = "proposed"
+owner_question = 2
+items = ["F1", "F3", "F8"]
+context = "The onboard date is the blob's jd0 plus the time since init (fsw/src/adcs_fsw.c:193-194, fsw-rs/src/fsw.rs:216, the twin's step.m): every reset rewinds the calendar, a clock step backwards wraps the unsigned subtraction to 585 years, and the schedule replays after a reboot."
+drivers = ["the onboard frames and field (env_time_frames)", "the mode schedule", "TS4 reset and clock-step tests"]
+standard = ["ECSS-E-ST-70-41C (PUS time management)", "CCSDS 301.0-B (time code formats)"]
+current = "date = jd0 + (now - start); no time source after a reset; no TM/TC"
+choice = "(a) GNSS time when a fix is held; else the last good time carried forward by a monotonic, bounded clock (a backwards step holds, a forward step beyond a stated bound is refused and counted); no HAL change in S11. (b) a time telecommand and (c) non-volatile time through a new HAL call wait for TM/TC and HAL v2 (S15)"
+rationale = "(a) needs no new hardware interface and fixes the three failures F1 names; the GNSS receiver is in every product's suite. A warm reset still loses time when no fix is held, which (c) closes later."
+consequences = "The tick's time arithmetic changes in C, Rust and the twin together (S11.4); a warm reset at day 30 keeps the date within 1 s once a fix is held; with no fix after a cold start the date is jd0 and stated so in telemetry."
+sets = ["the tick's time step in fsw/src/adcs_fsw.c, fsw-rs/src/fsw.rs and matlab_sils/+asils/+fsw/step.m (runtime, S11.4)", "a stated node fsw_param_clock_step_max_s (the forward bound), added with F1 in S11.4"]
+revisit_when = "TM/TC (F8) and HAL v2 are designed (S15)"
+signature = {}
+
+[[option]]
+name = "(a) GNSS time held by a monotonic bounded clock"
+evidence = "docs/TECHNICAL_ROADMAP.md F1; docs/S11_INVENTORY.md section 5 question 2"
+rejected_because = ""
+
+[[option]]
+name = "(b) a time telecommand"
+evidence = "PUS service 9"
+rejected_because = "there is no TM/TC yet (F8); later"
+
+[[option]]
+name = "(c) non-volatile time through a new HAL call"
+evidence = "fsw/include/adcs_hal.h has no such call"
+rejected_because = "a HAL change (v2) belongs to S15"

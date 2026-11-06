@@ -1,0 +1,30 @@
+schema = "trinetra-decision/1"
+id = "DR-gdn-003"
+decisions = ["DD37"]
+title = "Detumble exit without a gyro"
+group = "gdn"
+parent = "gq"
+owner_team = "gdn"
+status = "proposed"
+owner_question = 5
+items = ["F5"]
+context = "With no gyro the mode manager zeroes the rate (fsw/pseudocode/08_mode_manager.pc:240), so the detumble exit test (fsw/src/adcs_fsw.c:369) always passes once the hold has elapsed, even while the body tumbles."
+drivers = ["products with has_gyro = 0", "the detumble exit rate fsw_param ho_out"]
+standard = ["Stickler and Alfriend (1976), the B-dot rate"]
+current = "a zeroed rate: exits after the hold"
+choice = "judge the exit on the B-dot rate estimate (the field derivative the tick already computes, adcs_fsw.c:310) when there is no gyro: no exit while it is above the exit rate"
+rationale = "The estimate exists and is what the B-dot law itself acts on; refusing auto-next would leave a gyroless product in detumble until a ground command."
+consequences = "A gyroless product leaves detumble later, when the field derivative says the rate is low."
+sets = ["fsw_modes (the exit test's rate source), S11.5"]
+revisit_when = "a gyroless product is flown in a campaign"
+signature = {}
+
+[[option]]
+name = "the B-dot rate estimate"
+evidence = "docs/TECHNICAL_ROADMAP.md F5"
+rejected_because = ""
+
+[[option]]
+name = "refuse auto-next without a gyro"
+evidence = "docs/S11_INVENTORY.md section 5 question 5"
+rejected_because = "a gyroless product would need a ground command to leave detumble"

@@ -1,0 +1,30 @@
+schema = "trinetra-decision/1"
+id = "DR-design-003"
+decisions = ["DD9", "DD61"]
+title = "Margins policy and budget scope"
+group = "design"
+parent = "gb"
+owner_team = "design"
+status = "proposed"
+owner_question = 8
+items = ["Y1", "Y3", "Y4"]
+context = "The sizing's margins are literals with no source: k_h = 2 (design/revisions/S7.15/sizedemand.pc:188), k_tau 1.5, x2 coil, x1.2 propellant. The momentum need is sized on max(h_dist, h_slew), not their sum (Y4), so the stated x2 leaves 1.14x. The power budget counts the actuators only (Y1); mass has no growth allowance (Y3)."
+drivers = ["req.pavg", "req.hsat", "gb_2 ADCS peak power", "l3_budget_row_01"]
+standard = ["ECSS-E-ST-10C", "AIAA S-120A-2015 (mass properties control)"]
+current = "k_h = 2 on max(h_dist, h_slew); power = coils, wheels and thrusters only; no mass growth allowance"
+choice = "k_h = 2 is the floor, applied to h_dist + h_slew, and the achieved margin is reported; a lever result below the floor is refused by name. The budget scope is the whole ADCS: the sensors' steady power by mode is in the run's power and in the static budget (the plan's S11 done-when). Mass growth (Y3) is S12's."
+rationale = "The floor keeps the stated number and makes it true; reporting the achieved margin lets the owner see how much each design carries. 'Power is whole-ADCS' is the plan's S11 done-when."
+consequences = "Every sized momentum need grows (h_dist + h_slew), some selections change; ais_3u nominal reads at least 1.6 W more and breaks req.pavg 0.5 W."
+sets = ["sizedemand.pc k_h (design_sizing method, S11.8)", "kpi_metric_evaluate power kinds and the sens nodes' steady power (S11.8)"]
+revisit_when = "a margins policy by maturity (ECSS-E-ST-10C) is written, with each constant derived"
+signature = {}
+
+[[option]]
+name = "k_h = 2 as the floor on the sum, achieved margin reported; whole-ADCS power"
+evidence = "docs/TECHNICAL_ROADMAP.md Y1, Y4; docs/S11_INVENTORY.md section 5 question 8"
+rejected_because = ""
+
+[[option]]
+name = "a margin derived per maturity"
+evidence = "ECSS-E-ST-10C; AIAA S-120A"
+rejected_because = "needs each part's maturity, which the catalogue does not state; the revisit"

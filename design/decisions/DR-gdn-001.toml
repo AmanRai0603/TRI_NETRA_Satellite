@@ -1,0 +1,34 @@
+schema = "trinetra-decision/1"
+id = "DR-gdn-001"
+decisions = ["DD2"]
+title = "Nadir definition and yaw steering"
+group = "gdn"
+parent = "gq"
+owner_team = "gdn"
+status = "proposed"
+items = ["E7"]
+context = "Nadir is the geocentric -r direction with no yaw steering (docs/NAV_GUIDANCE_AUDIT.md). Geodetic nadir differs by up to 0.17 deg (E7), larger than APE 0.01 deg, so any APE claim depends on which nadir the payload means."
+drivers = ["req.ape", "the payload ICD (not yet written)"]
+standard = ["ECSS-E-ST-60-10C"]
+current = "geocentric -r, no yaw steering"
+choice = ""
+rationale = "The developer makes no choice: it is the payload's and the owner's. The current definition flies until then, and the APE verdicts are read as against geocentric nadir."
+consequences = "Until decided, an APE verdict says which nadir it is against."
+sets = ["fsw_guidance (the nadir frame)"]
+revisit_when = "the payload ICD v1"
+signature = {}
+
+[[option]]
+name = "geocentric -r, no yaw steering (today)"
+evidence = "docs/NAV_GUIDANCE_AUDIT.md"
+rejected_because = ""
+
+[[option]]
+name = "geodetic nadir"
+evidence = "E7: up to 0.17 deg from geocentric"
+rejected_because = ""
+
+[[option]]
+name = "yaw steering, or a target-fixed frame"
+evidence = "docs/DESIGN_DECISIONS.md DD2"
+rejected_because = ""

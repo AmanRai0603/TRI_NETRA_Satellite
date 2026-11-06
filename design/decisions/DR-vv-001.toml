@@ -1,0 +1,29 @@
+schema = "trinetra-decision/1"
+id = "DR-vv-001"
+decisions = ["DD57"]
+title = "Monte Carlo sizing and dispersion pedigree"
+group = "vv"
+parent = "v2"
+owner_team = "vv"
+status = "proposed"
+items = ["A15", "A2", "A5"]
+context = "Campaigns fly 15-24 runs, 1109 for the claims; every dispersion is uniform, with no pedigree (A15); the twin and the engine campaigns differ in run count (A2)."
+drivers = ["DR-kpi-001 (the confidence)", "the claims campaigns"]
+standard = ["ECSS-E-ST-60-10C section 5", "Hanson and Beard (2010), NASA/TP-2010-216189"]
+current = "15-24 runs per campaign, 1109 for claims; uniform dispersions"
+choice = "the run count follows the verdict method of DR-kpi-001: a claim needs n >= ln(1 - 0.95)/ln(p) runs with no failure (1109 at 99.73 %), a smaller campaign reports 'not demonstrated' with its bound; dispersions stay as stated until each gets its pedigree (S13); inertia draws are realisable (DR-vv-002)"
+rationale = "Tying the run count to the stated confidence makes every campaign's verdict readable; the dispersions' pedigree is S13's work."
+consequences = "No small campaign is read as a pass."
+sets = ["the campaigns' run counts", "kpi_verdict_confidence (DR-kpi-001)"]
+revisit_when = "S13 (A4, T3: the statistical method and credibility)"
+signature = {}
+
+[[option]]
+name = "run count from the confidence (Clopper-Pearson sizing)"
+evidence = "DR-kpi-001"
+rejected_because = ""
+
+[[option]]
+name = "worst-case search instead of Monte Carlo for some indices"
+evidence = "docs/DESIGN_DECISIONS.md DD57"
+rejected_because = "S13's"

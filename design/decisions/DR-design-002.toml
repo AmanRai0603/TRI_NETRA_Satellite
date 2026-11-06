@@ -1,0 +1,34 @@
+schema = "trinetra-decision/1"
+id = "DR-design-002"
+decisions = ["DD59", "DD60"]
+title = "Ranking rule; may the robustness step break the budget"
+group = "design"
+parent = "ct2"
+owner_team = "design"
+status = "proposed"
+items = ["D10", "D15", "Y6"]
+context = "The code ranks feasible designs by least mass; SPEC section 8.6 says worst margin (D10). The robustness step escalates past the budget (D15, Y6)."
+drivers = ["the selection", "the budget rows gb_*"]
+standard = ["NASA/SP-2016-6105 Rev2 section 6.8"]
+current = "least mass; robustness escalates past the budget"
+choice = ""
+rationale = "Two documents disagree and both are the owner's; the developer records the conflict and keeps the code's rule flying."
+consequences = "Until decided, the selection report states the rule it ranked by."
+sets = ["the design loop's ranking (design group)"]
+revisit_when = "the owner reconciles SPEC 8.6 with the code"
+signature = {}
+
+[[option]]
+name = "least mass (the code)"
+evidence = "engine/crates/adcs-design"
+rejected_because = ""
+
+[[option]]
+name = "worst margin first (SPEC 8.6)"
+evidence = "docs/ADCS_GAPS.md D10"
+rejected_because = ""
+
+[[option]]
+name = "stop at the budget and name the failure"
+evidence = "docs/ADCS_GAPS.md D15; docs/TECHNICAL_ROADMAP.md Y6"
+rejected_because = ""
