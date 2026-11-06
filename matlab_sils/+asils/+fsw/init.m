@@ -40,6 +40,7 @@ function F = init(blob, start_ns)
     F.have_r = false; F.r = zeros(3, 1); F.v = zeros(3, 1);
     F.K = struct('q', zeros(4, 1), 'b', zeros(3, 1), 'P', zeros(6, 6), 'arw', 0, 'rrw', 0);
     F.ad_ok = false; F.t_st = -1e9; F.mag_done = false; F.n_rej = 0; F.gh_jd = 0;
+    F.st_refused = 0; F.reinits = 0; F.rej = [0 0 0];          % F4, G1 (S11.6): readings refused as implausible, re-starts of the filter, each vector sensor's rejections in a row
     F.es_n = zeros(3, 1); F.k_es = -1; F.w_est = zeros(3, 1);
     F.gh = []; F.bref = []; F.k_bref = -1;
     % the rate groups: one integer tick counter each (docs/CHANGING.md, DR-ctl-001); the group lengths and the coil-cycle marks in

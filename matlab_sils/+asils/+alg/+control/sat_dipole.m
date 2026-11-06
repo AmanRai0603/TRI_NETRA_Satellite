@@ -7,9 +7,9 @@ function [r] = sat_dipole(m, m_max)
     r = zeros(3, 1);
     a = 1;
     for i = (0):((3) - 1)
-        h__61 = m((i) + 1);
-        if h__61 < 0, h__61 = -h__61; elseif h__61 == 0, h__61 = 0; end
-        d = h__61;
+        h__65 = m((i) + 1);
+        if h__65 < 0, h__65 = -h__65; elseif h__65 == 0, h__65 = 0; end
+        d = h__65;
         if (d < 1e-30)
             d = 1e-30;
         end

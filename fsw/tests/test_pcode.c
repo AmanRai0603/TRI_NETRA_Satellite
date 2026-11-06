@@ -45,6 +45,10 @@ static const char *const BY_NAME[][2] = {
     {"modes::bdot_rate", "called by the tick as the generated function, no signature of its own"},
     {"estimation::st_coasting", "called by the tick as the generated function, no signature of its own"},
     {"estimation::att_rate", "called by the tick as the generated function, no signature of its own"},
+    {"estimation::st_plausible", "called by the tick (the start, the updates) and the generated st_head as the generated function, no signature of its own"},
+    {"estimation::st_head", "called by the tick as the generated function, no signature of its own"},
+    {"estimation::triad_cov", "called by the tick as the generated function, no signature of its own"},
+    {"estimation::mekf_init_cov", "called by the tick as the generated function, no signature of its own"},
     {"steplaws::damp_excess", "called only by the generated damp_torque and damp_dipole"},
     {"steplaws::damp_torque", "called by the tick as the generated function, no signature of its own"},
     {"steplaws::damp_dipole", "called by the tick as the generated function, no signature of its own"},
@@ -216,9 +220,9 @@ static int call(const char *name, const double *x, int nx, out_t *o)
         OV(o, k.q, 4); OV(o, k.b, 3); for (i = 0; i < 6; i++) OV(o, k.P[i], 6); O(o, took ? 1 : 0);
     }
     else if (!strcmp(name, "estimation::triad")) {
-        double b1[3], b2[3], r1[3], r2[3], q[4] = {0, 0, 0, 0}; int ok;
-        V(&a, b1, 3); V(&a, b2, 3); V(&a, r1, 3); V(&a, r2, 3);
-        ok = adcs_triad(b1, b2, r1, r2, q) == 0;
+        double b1[3], b2[3], r1[3], r2[3], smin, q[4] = {0, 0, 0, 0}; int ok;
+        V(&a, b1, 3); V(&a, b2, 3); V(&a, r1, 3); V(&a, r2, 3); smin = F(&a);
+        ok = adcs_triad(b1, b2, r1, r2, smin, q) == 0;
         if (!ok) { q[0] = 0; q[1] = 0; q[2] = 0; q[3] = 0; }
         OV(o, q, 4); O(o, ok);
     }

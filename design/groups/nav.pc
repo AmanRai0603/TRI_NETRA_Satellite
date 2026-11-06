@@ -186,12 +186,14 @@ fn eci2ecef(jd: real[1] in 2459000 .. 2463000) -> c: mat3[1]
     c = gmst_rot(jd)*prec_rot(jd)
 end
 
-## TRIAD from two body vectors and their references; ok = false when either pair is within
-## 1e-3 (0.06 deg) of parallel, which fixes no attitude.
-fn triad(b1: vec3[1] in -1 .. 1, b2: vec3[1] in -1 .. 1, r1: vec3[1] in -1 .. 1, r2: vec3[1] in -1 .. 1) -> (q: quat, ok: bool)
+## TRIAD from two body vectors and their references; ok = false when either pair has the sine of its angle below smin
+## (S11.6, G1): the attitude about the first vector comes from the second, with an error of the second's noise over that sine
+## (Shuster and Oh 1981: the covariance below), so a pair 5 deg apart fixes nothing the filter should
+## trust. smin is fsw_param_triad_sin_min (0.2, the developer's value within the 0.15 to 0.25 the inventory allows).
+fn triad(b1: vec3[1] in -1 .. 1, b2: vec3[1] in -1 .. 1, r1: vec3[1] in -1 .. 1, r2: vec3[1] in -1 .. 1, smin: real[1] in 0.01 .. 0.5) -> (q: quat, ok: bool)
     ok = false
     q = 0
-    if norm(cross(b1, b2)) > 1e-3*norm(b1)*norm(b2) and norm(cross(r1, r2)) > 1e-3*norm(r1)*norm(r2)
+    if norm(cross(b1, b2)) > smin*norm(b1)*norm(b2) and norm(cross(r1, r2)) > smin*norm(r1)*norm(r2)
         ok = true
         let tb0 = unit(b1)
         let tb1 = unit(cross(b1, b2))

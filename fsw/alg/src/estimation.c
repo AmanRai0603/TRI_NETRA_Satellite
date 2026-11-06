@@ -28,6 +28,79 @@ estimation_mekf_init_out estimation_mekf_init(pc_a4f q0, double sa, double sb) {
     }
 }
 
+estimation_mekf_init_cov_out estimation_mekf_init_cov(pc_a4f q0, pc_a3a3f pa, double sb) {
+    pc_a4f q = ((pc_a4f){0});
+    pc_a3f b = ((pc_a3f){0});
+    pc_a6a6f p = ((pc_a6a6f){0});
+    q = q0;
+    b = ((pc_a3f){0});
+    p = ((pc_a6a6f){0});
+    {
+        int64_t end__21 = INT64_C(3);
+        int64_t i = INT64_C(0);
+        while (i < end__21) {
+            {
+                int64_t end__22 = INT64_C(3);
+                int64_t j = INT64_C(0);
+                while (j < end__22) {
+                    p.v[(i)].v[(j)] = pa.v[(i)].v[(j)];
+                    j += 1;
+                }
+            }
+            p.v[((i + INT64_C(3)))].v[((i + INT64_C(3)))] = (sb * sb);
+            i += 1;
+        }
+    }
+    {
+        estimation_mekf_init_cov_out r__;
+        r__.q = q;
+        r__.b = b;
+        r__.p = p;
+        return r__;
+    }
+}
+
+bool estimation_st_plausible(pc_a4f q, bool valid, int64_t h, int64_t n_heads, double tol) {
+    bool ok = false;
+    double qn = sqrt(((((q.v[0] * q.v[0]) + (q.v[1] * q.v[1])) + (q.v[2] * q.v[2])) + (q.v[3] * q.v[3])));
+    double d = ((qn > 1.0) ? (qn - 1.0) : (1.0 - qn));
+    ok = (((h < n_heads) && valid) && (d < tol));
+    return ok;
+}
+
+estimation_st_head_out estimation_st_head(pc_a2a4f q_st, pc_a2b valid, int64_t n_heads, double tol) {
+    int64_t h = 0;
+    bool found = false;
+    int64_t refused = 0;
+    h = INT64_C(0);
+    found = false;
+    refused = INT64_C(0);
+    {
+        int64_t end__23 = n_heads;
+        int64_t k = INT64_C(0);
+        while (k < end__23) {
+            if (valid.v[(k)]) {
+                if (estimation_st_plausible(q_st.v[(k)], valid.v[(k)], k, n_heads, tol)) {
+                    if ((!found)) {
+                        h = k;
+                        found = true;
+                    }
+                } else {
+                    refused = (refused + INT64_C(1));
+                }
+            }
+            k += 1;
+        }
+    }
+    {
+        estimation_st_head_out r__;
+        r__.h = h;
+        r__.found = found;
+        r__.refused = refused;
+        return r__;
+    }
+}
+
 estimation_mekf_predict_out estimation_mekf_predict(pc_a4f q0, pc_a3f b, pc_a6a6f p0, double arw, double rrw, pc_a3f wm, double dt, bool stale) {
     pc_a4f q = ((pc_a4f){0});
     pc_a6a6f p = ((pc_a6a6f){0});
@@ -43,13 +116,13 @@ estimation_mekf_predict_out estimation_mekf_predict(pc_a4f q0, pc_a3f b, pc_a6a6
     pc_a3a3f w2 = pc_mm_a3a3f_a3a3f(ww, ww);
     pc_a6a6f phi = ((pc_a6a6f){0});
     {
-        int64_t end__21 = INT64_C(3);
+        int64_t end__24 = INT64_C(3);
         int64_t i = INT64_C(0);
-        while (i < end__21) {
+        while (i < end__24) {
             {
-                int64_t end__22 = INT64_C(3);
+                int64_t end__25 = INT64_C(3);
                 int64_t j = INT64_C(0);
-                while (j < end__22) {
+                while (j < end__25) {
                     phi.v[(i)].v[(j)] = ((((i == j) ? 1.0 : 0.0) - (ww.v[(i)].v[(j)] * dt)) + (((0.5 * w2.v[(i)].v[(j)]) * dt) * dt));
                     j += 1;
                 }
@@ -61,18 +134,18 @@ estimation_mekf_predict_out estimation_mekf_predict(pc_a4f q0, pc_a3f b, pc_a6a6
     }
     pc_a6a6f t = ((pc_a6a6f){0});
     {
-        int64_t end__23 = INT64_C(6);
+        int64_t end__26 = INT64_C(6);
         int64_t i = INT64_C(0);
-        while (i < end__23) {
+        while (i < end__26) {
             {
-                int64_t end__24 = INT64_C(6);
+                int64_t end__27 = INT64_C(6);
                 int64_t j = INT64_C(0);
-                while (j < end__24) {
+                while (j < end__27) {
                     t.v[(i)].v[(j)] = 0.0;
                     {
-                        int64_t end__25 = INT64_C(6);
+                        int64_t end__28 = INT64_C(6);
                         int64_t l = INT64_C(0);
-                        while (l < end__25) {
+                        while (l < end__28) {
                             t.v[(i)].v[(j)] = (t.v[(i)].v[(j)] + (phi.v[(i)].v[(l)] * p0.v[(l)].v[(j)]));
                             l += 1;
                         }
@@ -85,18 +158,18 @@ estimation_mekf_predict_out estimation_mekf_predict(pc_a4f q0, pc_a3f b, pc_a6a6
     }
     p = ((pc_a6a6f){0});
     {
-        int64_t end__26 = INT64_C(6);
+        int64_t end__29 = INT64_C(6);
         int64_t i = INT64_C(0);
-        while (i < end__26) {
+        while (i < end__29) {
             {
-                int64_t end__27 = INT64_C(6);
+                int64_t end__30 = INT64_C(6);
                 int64_t j = INT64_C(0);
-                while (j < end__27) {
+                while (j < end__30) {
                     p.v[(i)].v[(j)] = 0.0;
                     {
-                        int64_t end__28 = INT64_C(6);
+                        int64_t end__31 = INT64_C(6);
                         int64_t l = INT64_C(0);
-                        while (l < end__28) {
+                        while (l < end__31) {
                             p.v[(i)].v[(j)] = (p.v[(i)].v[(j)] + (t.v[(i)].v[(l)] * phi.v[(j)].v[(l)]));
                             l += 1;
                         }
@@ -108,9 +181,9 @@ estimation_mekf_predict_out estimation_mekf_predict(pc_a4f q0, pc_a3f b, pc_a6a6
         }
     }
     {
-        int64_t end__29 = INT64_C(3);
+        int64_t end__32 = INT64_C(3);
         int64_t i = INT64_C(0);
-        while (i < end__29) {
+        while (i < end__32) {
             p.v[(i)].v[(i)] = (p.v[(i)].v[(i)] + ((sv2 * dt) + ((((su2 * dt) * dt) * dt) / 3.0)));
             p.v[(i)].v[((i + INT64_C(3)))] = (p.v[(i)].v[((i + INT64_C(3)))] + ((((-(su2)) * dt) * dt) / 2.0));
             p.v[((i + INT64_C(3)))].v[(i)] = (p.v[((i + INT64_C(3)))].v[(i)] + ((((-(su2)) * dt) * dt) / 2.0));
@@ -150,18 +223,18 @@ estimation_update3_out estimation_update3(pc_a4f q0, pc_a3f b0, pc_a6a6f p0, pc_
     took = false;
     pc_a6a3f pht = ((pc_a6a3f){0});
     {
-        int64_t end__30 = INT64_C(6);
+        int64_t end__33 = INT64_C(6);
         int64_t i = INT64_C(0);
-        while (i < end__30) {
+        while (i < end__33) {
             {
-                int64_t end__31 = INT64_C(3);
+                int64_t end__34 = INT64_C(3);
                 int64_t j = INT64_C(0);
-                while (j < end__31) {
+                while (j < end__34) {
                     pht.v[(i)].v[(j)] = 0.0;
                     {
-                        int64_t end__32 = INT64_C(6);
+                        int64_t end__35 = INT64_C(6);
                         int64_t l = INT64_C(0);
-                        while (l < end__32) {
+                        while (l < end__35) {
                             pht.v[(i)].v[(j)] = (pht.v[(i)].v[(j)] + (p0.v[(i)].v[(l)] * h.v[(j)].v[(l)]));
                             l += 1;
                         }
@@ -174,18 +247,18 @@ estimation_update3_out estimation_update3(pc_a4f q0, pc_a3f b0, pc_a6a6f p0, pc_
     }
     pc_a3a3f s = ((pc_a3a3f){0});
     {
-        int64_t end__33 = INT64_C(3);
+        int64_t end__36 = INT64_C(3);
         int64_t i = INT64_C(0);
-        while (i < end__33) {
+        while (i < end__36) {
             {
-                int64_t end__34 = INT64_C(3);
+                int64_t end__37 = INT64_C(3);
                 int64_t j = INT64_C(0);
-                while (j < end__34) {
+                while (j < end__37) {
                     s.v[(i)].v[(j)] = r.v[(i)].v[(j)];
                     {
-                        int64_t end__35 = INT64_C(6);
+                        int64_t end__38 = INT64_C(6);
                         int64_t l = INT64_C(0);
-                        while (l < end__35) {
+                        while (l < end__38) {
                             s.v[(i)].v[(j)] = (s.v[(i)].v[(j)] + (h.v[(i)].v[(l)] * pht.v[(l)].v[(j)]));
                             l += 1;
                         }
@@ -196,19 +269,19 @@ estimation_update3_out estimation_update3(pc_a4f q0, pc_a3f b0, pc_a6a6f p0, pc_
             i += 1;
         }
     }
-    math_inv3_out t__36 = math_inv3(s);
-    pc_a3a3f si = t__36.r;
-    bool ok = t__36.ok;
+    math_inv3_out t__39 = math_inv3(s);
+    pc_a3a3f si = t__39.r;
+    bool ok = t__39.ok;
     if (ok) {
         double chi = 0.0;
         {
-            int64_t end__37 = INT64_C(3);
+            int64_t end__40 = INT64_C(3);
             int64_t i = INT64_C(0);
-            while (i < end__37) {
+            while (i < end__40) {
                 {
-                    int64_t end__38 = INT64_C(3);
+                    int64_t end__41 = INT64_C(3);
                     int64_t j = INT64_C(0);
-                    while (j < end__38) {
+                    while (j < end__41) {
                         chi = (chi + ((y.v[(i)] * si.v[(i)].v[(j)]) * y.v[(j)]));
                         j += 1;
                     }
@@ -220,18 +293,18 @@ estimation_update3_out estimation_update3(pc_a4f q0, pc_a3f b0, pc_a6a6f p0, pc_
             took = true;
             pc_a6a3f g = ((pc_a6a3f){0});
             {
-                int64_t end__39 = INT64_C(6);
+                int64_t end__42 = INT64_C(6);
                 int64_t i = INT64_C(0);
-                while (i < end__39) {
+                while (i < end__42) {
                     {
-                        int64_t end__40 = INT64_C(3);
+                        int64_t end__43 = INT64_C(3);
                         int64_t j = INT64_C(0);
-                        while (j < end__40) {
+                        while (j < end__43) {
                             g.v[(i)].v[(j)] = 0.0;
                             {
-                                int64_t end__41 = INT64_C(3);
+                                int64_t end__44 = INT64_C(3);
                                 int64_t l = INT64_C(0);
-                                while (l < end__41) {
+                                while (l < end__44) {
                                     g.v[(i)].v[(j)] = (g.v[(i)].v[(j)] + (pht.v[(i)].v[(l)] * si.v[(l)].v[(j)]));
                                     l += 1;
                                 }
@@ -244,14 +317,14 @@ estimation_update3_out estimation_update3(pc_a4f q0, pc_a3f b0, pc_a6a6f p0, pc_
             }
             pc_a6f dx = ((pc_a6f){0});
             {
-                int64_t end__42 = INT64_C(6);
+                int64_t end__45 = INT64_C(6);
                 int64_t i = INT64_C(0);
-                while (i < end__42) {
+                while (i < end__45) {
                     dx.v[(i)] = 0.0;
                     {
-                        int64_t end__43 = INT64_C(3);
+                        int64_t end__46 = INT64_C(3);
                         int64_t l = INT64_C(0);
-                        while (l < end__43) {
+                        while (l < end__46) {
                             dx.v[(i)] = (dx.v[(i)] + (g.v[(i)].v[(l)] * y.v[(l)]));
                             l += 1;
                         }
@@ -261,27 +334,27 @@ estimation_update3_out estimation_update3(pc_a4f q0, pc_a3f b0, pc_a6a6f p0, pc_
             }
             q = math_qnorm(math_qmult(q0, ((pc_a4f){ { (0.5 * dx.v[0]), (0.5 * dx.v[1]), (0.5 * dx.v[2]), 1.0 } })));
             {
-                int64_t end__44 = INT64_C(3);
+                int64_t end__47 = INT64_C(3);
                 int64_t i = INT64_C(0);
-                while (i < end__44) {
+                while (i < end__47) {
                     b.v[(i)] = (b0.v[(i)] + dx.v[((i + INT64_C(3)))]);
                     i += 1;
                 }
             }
             pc_a6a6f ikh = ((pc_a6a6f){0});
             {
-                int64_t end__45 = INT64_C(6);
+                int64_t end__48 = INT64_C(6);
                 int64_t i = INT64_C(0);
-                while (i < end__45) {
+                while (i < end__48) {
                     {
-                        int64_t end__46 = INT64_C(6);
+                        int64_t end__49 = INT64_C(6);
                         int64_t j = INT64_C(0);
-                        while (j < end__46) {
+                        while (j < end__49) {
                             ikh.v[(i)].v[(j)] = ((i == j) ? 1.0 : 0.0);
                             {
-                                int64_t end__47 = INT64_C(3);
+                                int64_t end__50 = INT64_C(3);
                                 int64_t l = INT64_C(0);
-                                while (l < end__47) {
+                                while (l < end__50) {
                                     ikh.v[(i)].v[(j)] = (ikh.v[(i)].v[(j)] - (g.v[(i)].v[(l)] * h.v[(l)].v[(j)]));
                                     l += 1;
                                 }
@@ -294,29 +367,6 @@ estimation_update3_out estimation_update3(pc_a4f q0, pc_a3f b0, pc_a6a6f p0, pc_
             }
             pc_a6a6f t = ((pc_a6a6f){0});
             {
-                int64_t end__48 = INT64_C(6);
-                int64_t i = INT64_C(0);
-                while (i < end__48) {
-                    {
-                        int64_t end__49 = INT64_C(6);
-                        int64_t j = INT64_C(0);
-                        while (j < end__49) {
-                            t.v[(i)].v[(j)] = 0.0;
-                            {
-                                int64_t end__50 = INT64_C(6);
-                                int64_t l = INT64_C(0);
-                                while (l < end__50) {
-                                    t.v[(i)].v[(j)] = (t.v[(i)].v[(j)] + (ikh.v[(i)].v[(l)] * p0.v[(l)].v[(j)]));
-                                    l += 1;
-                                }
-                            }
-                            j += 1;
-                        }
-                    }
-                    i += 1;
-                }
-            }
-            {
                 int64_t end__51 = INT64_C(6);
                 int64_t i = INT64_C(0);
                 while (i < end__51) {
@@ -324,12 +374,12 @@ estimation_update3_out estimation_update3(pc_a4f q0, pc_a3f b0, pc_a6a6f p0, pc_
                         int64_t end__52 = INT64_C(6);
                         int64_t j = INT64_C(0);
                         while (j < end__52) {
-                            p.v[(i)].v[(j)] = 0.0;
+                            t.v[(i)].v[(j)] = 0.0;
                             {
                                 int64_t end__53 = INT64_C(6);
                                 int64_t l = INT64_C(0);
                                 while (l < end__53) {
-                                    p.v[(i)].v[(j)] = (p.v[(i)].v[(j)] + (t.v[(i)].v[(l)] * ikh.v[(j)].v[(l)]));
+                                    t.v[(i)].v[(j)] = (t.v[(i)].v[(j)] + (ikh.v[(i)].v[(l)] * p0.v[(l)].v[(j)]));
                                     l += 1;
                                 }
                             }
@@ -347,14 +397,37 @@ estimation_update3_out estimation_update3(pc_a4f q0, pc_a3f b0, pc_a6a6f p0, pc_
                         int64_t end__55 = INT64_C(6);
                         int64_t j = INT64_C(0);
                         while (j < end__55) {
+                            p.v[(i)].v[(j)] = 0.0;
                             {
-                                int64_t end__56 = INT64_C(3);
+                                int64_t end__56 = INT64_C(6);
+                                int64_t l = INT64_C(0);
+                                while (l < end__56) {
+                                    p.v[(i)].v[(j)] = (p.v[(i)].v[(j)] + (t.v[(i)].v[(l)] * ikh.v[(j)].v[(l)]));
+                                    l += 1;
+                                }
+                            }
+                            j += 1;
+                        }
+                    }
+                    i += 1;
+                }
+            }
+            {
+                int64_t end__57 = INT64_C(6);
+                int64_t i = INT64_C(0);
+                while (i < end__57) {
+                    {
+                        int64_t end__58 = INT64_C(6);
+                        int64_t j = INT64_C(0);
+                        while (j < end__58) {
+                            {
+                                int64_t end__59 = INT64_C(3);
                                 int64_t a = INT64_C(0);
-                                while (a < end__56) {
+                                while (a < end__59) {
                                     {
-                                        int64_t end__57 = INT64_C(3);
+                                        int64_t end__60 = INT64_C(3);
                                         int64_t c = INT64_C(0);
-                                        while (c < end__57) {
+                                        while (c < end__60) {
                                             p.v[(i)].v[(j)] = (p.v[(i)].v[(j)] + ((g.v[(i)].v[(a)] * r.v[(a)].v[(c)]) * g.v[(j)].v[(c)]));
                                             c += 1;
                                         }
@@ -391,13 +464,13 @@ estimation_mekf_vector_out estimation_mekf_vector(pc_a4f q0, pc_a3f b0, pc_a6a6f
     pc_a3a3f sk = math_skew(bh);
     pc_a3a6f h = ((pc_a3a6f){0});
     {
-        int64_t end__58 = INT64_C(3);
+        int64_t end__61 = INT64_C(3);
         int64_t i = INT64_C(0);
-        while (i < end__58) {
+        while (i < end__61) {
             {
-                int64_t end__59 = INT64_C(6);
+                int64_t end__62 = INT64_C(6);
                 int64_t j = INT64_C(0);
-                while (j < end__59) {
+                while (j < end__62) {
                     h.v[(i)].v[(j)] = ((j < INT64_C(3)) ? sk.v[(i)].v[(j)] : 0.0);
                     j += 1;
                 }
@@ -407,13 +480,13 @@ estimation_mekf_vector_out estimation_mekf_vector(pc_a4f q0, pc_a3f b0, pc_a6a6f
     }
     pc_a3a3f r = ((pc_a3a3f){0});
     {
-        int64_t end__60 = INT64_C(3);
+        int64_t end__63 = INT64_C(3);
         int64_t i = INT64_C(0);
-        while (i < end__60) {
+        while (i < end__63) {
             {
-                int64_t end__61 = INT64_C(3);
+                int64_t end__64 = INT64_C(3);
                 int64_t j = INT64_C(0);
-                while (j < end__61) {
+                while (j < end__64) {
                     r.v[(i)].v[(j)] = ((i == j) ? (sigma * sigma) : 0.0);
                     j += 1;
                 }
@@ -422,11 +495,11 @@ estimation_mekf_vector_out estimation_mekf_vector(pc_a4f q0, pc_a3f b0, pc_a6a6f
         }
     }
     {
-        estimation_update3_out t__62 = estimation_update3(q0, b0, p0, h, r, pc_sub_a3f(bu, bh), gate);
-        q = t__62.q;
-        b = t__62.b;
-        p = t__62.p;
-        took = t__62.took;
+        estimation_update3_out t__65 = estimation_update3(q0, b0, p0, h, r, pc_sub_a3f(bu, bh), gate);
+        q = t__65.q;
+        b = t__65.b;
+        p = t__65.p;
+        took = t__65.took;
     }
     {
         estimation_mekf_vector_out r__;
@@ -446,9 +519,9 @@ estimation_mekf_quat_out estimation_mekf_quat(pc_a4f q0, pc_a3f b0, pc_a6a6f p0,
     pc_a4f dq = math_qerr(q0, qm);
     pc_a3f y = ((pc_a3f){0});
     {
-        int64_t end__63 = INT64_C(3);
+        int64_t end__66 = INT64_C(3);
         int64_t i = INT64_C(0);
-        while (i < end__63) {
+        while (i < end__66) {
             y.v[(i)] = (2.0 * dq.v[(i)]);
             i += 1;
         }
@@ -456,21 +529,21 @@ estimation_mekf_quat_out estimation_mekf_quat(pc_a4f q0, pc_a3f b0, pc_a6a6f p0,
     pc_a3a6f h = ((pc_a3a6f){0});
     pc_a3a3f r = ((pc_a3a3f){0});
     {
-        int64_t end__64 = INT64_C(3);
+        int64_t end__67 = INT64_C(3);
         int64_t i = INT64_C(0);
-        while (i < end__64) {
+        while (i < end__67) {
             {
-                int64_t end__65 = INT64_C(6);
+                int64_t end__68 = INT64_C(6);
                 int64_t j = INT64_C(0);
-                while (j < end__65) {
+                while (j < end__68) {
                     h.v[(i)].v[(j)] = ((i == j) ? 1.0 : 0.0);
                     j += 1;
                 }
             }
             {
-                int64_t end__66 = INT64_C(3);
+                int64_t end__69 = INT64_C(3);
                 int64_t j = INT64_C(0);
-                while (j < end__66) {
+                while (j < end__69) {
                     r.v[(i)].v[(j)] = (((i == j) ? (sc * sc) : 0.0) + ((((sr * sr) - (sc * sc)) * bs.v[(i)]) * bs.v[(j)]));
                     j += 1;
                 }
@@ -479,11 +552,11 @@ estimation_mekf_quat_out estimation_mekf_quat(pc_a4f q0, pc_a3f b0, pc_a6a6f p0,
         }
     }
     {
-        estimation_update3_out t__67 = estimation_update3(q0, b0, p0, h, r, y, gate);
-        q = t__67.q;
-        b = t__67.b;
-        p = t__67.p;
-        took = t__67.took;
+        estimation_update3_out t__70 = estimation_update3(q0, b0, p0, h, r, y, gate);
+        q = t__70.q;
+        b = t__70.b;
+        p = t__70.p;
+        took = t__70.took;
     }
     {
         estimation_mekf_quat_out r__;
@@ -495,12 +568,12 @@ estimation_mekf_quat_out estimation_mekf_quat(pc_a4f q0, pc_a3f b0, pc_a6a6f p0,
     }
 }
 
-estimation_triad_out estimation_triad(pc_a3f b1, pc_a3f b2, pc_a3f r1, pc_a3f r2) {
+estimation_triad_out estimation_triad(pc_a3f b1, pc_a3f b2, pc_a3f r1, pc_a3f r2, double smin) {
     pc_a4f q = ((pc_a4f){0});
     bool ok = false;
     ok = false;
     q = ((pc_a4f){0});
-    if (((pc_norm_a3f(pc_cross_a3f(b1, b2)) > ((0.001 * pc_norm_a3f(b1)) * pc_norm_a3f(b2))) && (pc_norm_a3f(pc_cross_a3f(r1, r2)) > ((0.001 * pc_norm_a3f(r1)) * pc_norm_a3f(r2))))) {
+    if (((pc_norm_a3f(pc_cross_a3f(b1, b2)) > ((smin * pc_norm_a3f(b1)) * pc_norm_a3f(b2))) && (pc_norm_a3f(pc_cross_a3f(r1, r2)) > ((smin * pc_norm_a3f(r1)) * pc_norm_a3f(r2))))) {
         ok = true;
         pc_a3f tb0 = pc_unit_a3f(b1);
         pc_a3f tb1 = pc_unit_a3f(pc_cross_a3f(b1, b2));
@@ -510,13 +583,13 @@ estimation_triad_out estimation_triad(pc_a3f b1, pc_a3f b2, pc_a3f r1, pc_a3f r2
         pc_a3f tr2 = pc_cross_a3f(tr0, tr1);
         pc_a3a3f a = ((pc_a3a3f){0});
         {
-            int64_t end__68 = INT64_C(3);
+            int64_t end__71 = INT64_C(3);
             int64_t i = INT64_C(0);
-            while (i < end__68) {
+            while (i < end__71) {
                 {
-                    int64_t end__69 = INT64_C(3);
+                    int64_t end__72 = INT64_C(3);
                     int64_t j = INT64_C(0);
-                    while (j < end__69) {
+                    while (j < end__72) {
                         a.v[(i)].v[(j)] = (((tb0.v[(i)] * tr0.v[(j)]) + (tb1.v[(i)] * tr1.v[(j)])) + (tb2.v[(i)] * tr2.v[(j)]));
                         j += 1;
                     }
@@ -534,25 +607,56 @@ estimation_triad_out estimation_triad(pc_a3f b1, pc_a3f b2, pc_a3f r1, pc_a3f r2
     }
 }
 
+pc_a3a3f estimation_triad_cov(pc_a3f b1, pc_a3f b2, double s1, double s2) {
+    pc_a3a3f pa = ((pc_a3a3f){0});
+    double n1 = pc_norm_a3f(b1);
+    double n2 = pc_norm_a3f(b2);
+    pc_a3f cr = pc_cross_a3f(b1, b2);
+    pc_a3f t0 = pc_unit_a3f(b1);
+    pc_a3f t1 = pc_unit_a3f(cr);
+    pc_a3f t2 = pc_cross_a3f(t0, t1);
+    double sn = (pc_norm_a3f(cr) / (n1 * n2));
+    double c = (pc_dot_a3f(b1, b2) / (n1 * n2));
+    double d0 = (((s2 * s2) + (((c * c) * s1) * s1)) / (sn * sn));
+    double x = ((((-(c)) * s1) * s1) / sn);
+    pa = ((pc_a3a3f){0});
+    {
+        int64_t end__73 = INT64_C(3);
+        int64_t i = INT64_C(0);
+        while (i < end__73) {
+            {
+                int64_t end__74 = INT64_C(3);
+                int64_t j = INT64_C(0);
+                while (j < end__74) {
+                    pa.v[(i)].v[(j)] = (((((d0 * t0.v[(i)]) * t0.v[(j)]) + (((s1 * s1) * t1.v[(i)]) * t1.v[(j)])) + (((s1 * s1) * t2.v[(i)]) * t2.v[(j)])) + (x * ((t0.v[(i)] * t2.v[(j)]) + (t2.v[(i)] * t0.v[(j)]))));
+                    j += 1;
+                }
+            }
+            i += 1;
+        }
+    }
+    return pa;
+}
+
 estimation_quest_out estimation_quest(pc_a16a3f bv, pc_a16a3f rv, pc_a16f w, int64_t n) {
     pc_a4f q = ((pc_a4f){0});
     double loss = 0.0;
     pc_a3a3f bb = ((pc_a3a3f){0});
     double ws = 0.0;
     {
-        int64_t end__70 = n;
+        int64_t end__75 = n;
         int64_t l = INT64_C(0);
-        while (l < end__70) {
+        while (l < end__75) {
             double wl = w.v[(l)];
             ws = (ws + wl);
             {
-                int64_t end__71 = INT64_C(3);
+                int64_t end__76 = INT64_C(3);
                 int64_t i = INT64_C(0);
-                while (i < end__71) {
+                while (i < end__76) {
                     {
-                        int64_t end__72 = INT64_C(3);
+                        int64_t end__77 = INT64_C(3);
                         int64_t j = INT64_C(0);
-                        while (j < end__72) {
+                        while (j < end__77) {
                             bb.v[(i)].v[(j)] = (bb.v[(i)].v[(j)] + ((wl * bv.v[(l)].v[(i)]) * rv.v[(l)].v[(j)]));
                             j += 1;
                         }
@@ -567,13 +671,13 @@ estimation_quest_out estimation_quest(pc_a16a3f bv, pc_a16a3f rv, pc_a16f w, int
     pc_a3f z = ((pc_a3f){ { (bb.v[1].v[2] - bb.v[2].v[1]), (bb.v[2].v[0] - bb.v[0].v[2]), (bb.v[0].v[1] - bb.v[1].v[0]) } });
     pc_a4a4f k = ((pc_a4a4f){0});
     {
-        int64_t end__73 = INT64_C(3);
+        int64_t end__78 = INT64_C(3);
         int64_t i = INT64_C(0);
-        while (i < end__73) {
+        while (i < end__78) {
             {
-                int64_t end__74 = INT64_C(3);
+                int64_t end__79 = INT64_C(3);
                 int64_t j = INT64_C(0);
-                while (j < end__74) {
+                while (j < end__79) {
                     k.v[(i)].v[(j)] = ((bb.v[(i)].v[(j)] + bb.v[(j)].v[(i)]) - ((i == j) ? sg : 0.0));
                     j += 1;
                 }
@@ -584,14 +688,14 @@ estimation_quest_out estimation_quest(pc_a16a3f bv, pc_a16a3f rv, pc_a16f w, int
         }
     }
     k.v[3].v[3] = sg;
-    math_jacobi_eig4_out t__75 = math_jacobi_eig4(k);
-    pc_a4f lam = t__75.lam;
-    pc_a4a4f v = t__75.v;
+    math_jacobi_eig4_out t__80 = math_jacobi_eig4(k);
+    pc_a4f lam = t__80.lam;
+    pc_a4a4f v = t__80.v;
     int64_t im = INT64_C(0);
     {
-        int64_t end__76 = INT64_C(4);
+        int64_t end__81 = INT64_C(4);
         int64_t i = INT64_C(1);
-        while (i < end__76) {
+        while (i < end__81) {
             if ((lam.v[(i)] > lam.v[(im)])) {
                 im = i;
             }

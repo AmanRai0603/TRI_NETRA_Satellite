@@ -32,6 +32,96 @@ pub fn mekf_init(q0: [f64; 4], sa: f64, sb: f64) -> ([f64; 4], [f64; 3], [[f64; 
     (q, b, p)
 }
 
+/// A filter at q0, bias zero, with the attitude covariance pa (3 x 3, body frame, rad^2) and the bias variance sb^2: the start
+/// from a TRIAD attitude, whose covariance the measurement geometry gives (triad_cov, S11.6, G1).
+/// - q0: real[1][4] (passed a plain number)
+/// - pa: real[1][3][3] (passed a plain number)
+/// - sb: real[1] (passed a plain number)
+/// - returns q: real[1][4] (passed a plain number)
+/// - returns b: real[1][3] (passed a plain number)
+/// - returns p: real[1][6][6] (passed a plain number)
+#[allow(clippy::too_many_arguments)]
+pub fn mekf_init_cov(q0: [f64; 4], pa: [[f64; 3]; 3], sb: f64) -> ([f64; 4], [f64; 3], [[f64; 6]; 6]) {
+    let mut q: [f64; 4] = [0.0; 4];
+    let mut b: [f64; 3] = [0.0; 3];
+    let mut p: [[f64; 6]; 6] = [[0.0; 6]; 6];
+    q = q0;
+    b = [0.0; 3];
+    p = [[0.0; 6]; 6];
+    {
+        let __end19: i64 = 3;
+        let mut i: i64 = 0;
+        while i < __end19 {
+            {
+                let __end20: i64 = 3;
+                let mut j: i64 = 0;
+                while j < __end20 {
+                    p[(i) as usize][(j) as usize] = pa[(i) as usize][(j) as usize];
+                    j += 1;
+                }
+            }
+            p[((i + 3)) as usize][((i + 3)) as usize] = (sb * sb);
+            i += 1;
+        }
+    }
+    (q, b, p)
+}
+
+/// Whether head h of the star tracker gives a reading the filter may take (S11.6, F4): the head is one the product carries
+/// (h < n_heads: with no head configured none is ever chosen), the frame says it is valid, and its quaternion is of unit
+/// length within tol (a reading of norm 0.5 is not an attitude). The filter's start and its updates both ask this.
+/// - q: real[1][4] (passed a plain number)
+/// - valid: bool (passed true or false)
+/// - h: int (passed a whole number)
+/// - n_heads: int (passed a whole number)
+/// - tol: real[1] (passed a plain number)
+/// - returns ok: bool (passed true or false)
+#[allow(clippy::too_many_arguments)]
+pub fn st_plausible(q: [f64; 4], valid: bool, h: i64, n_heads: i64, tol: f64) -> bool {
+    let mut ok: bool = false;
+    let mut qn: f64 = crate::m::sqrt(((((q[0] * q[0]) + (q[1] * q[1])) + (q[2] * q[2])) + (q[3] * q[3])));
+    let mut d: f64 = (if (qn > 1.0) { (qn - 1.0) } else { (1.0 - qn) });
+    ok = (((h < n_heads) && valid) && (d < tol));
+    ok
+}
+
+/// The head the filter starts from: the first configured head whose reading is plausible; refused counts the heads that
+/// flagged a valid frame whose quaternion was not (the tick counts them).
+/// - q_st: real[1][4][2] (passed a plain number)
+/// - valid: bool[2] (passed true or false)
+/// - n_heads: int (passed a whole number)
+/// - tol: real[1] (passed a plain number)
+/// - returns h: int (passed a whole number)
+/// - returns found: bool (passed true or false)
+/// - returns refused: int (passed a whole number)
+#[allow(clippy::too_many_arguments)]
+pub fn st_head(q_st: [[f64; 4]; 2], valid: [bool; 2], n_heads: i64, tol: f64) -> (i64, bool, i64) {
+    let mut h: i64 = 0;
+    let mut found: bool = false;
+    let mut refused: i64 = 0;
+    h = 0;
+    found = false;
+    refused = 0;
+    {
+        let __end21: i64 = n_heads;
+        let mut k: i64 = 0;
+        while k < __end21 {
+            if valid[(k) as usize] {
+                if crate::alg::estimation::st_plausible(q_st[(k) as usize], valid[(k) as usize], k, n_heads, tol) {
+                    if (!found) {
+                        h = k;
+                        found = true;
+                    }
+                } else {
+                    refused = (refused + 1);
+                }
+            }
+            k += 1;
+        }
+    }
+    (h, found, refused)
+}
+
 /// The prediction over dt on the measured rate wm, with gyro angle and rate random walks arw, rrw:
 /// q <- q fromrotvec((wm - b) dt), P <- Phi P Phi' + Q.
 /// With the gyro quiet (stale, DR-fdir-002, F2) the rate wm is the controllers' zero, not a measurement: the angle random
@@ -63,13 +153,13 @@ pub fn mekf_predict(q0: [f64; 4], b: [f64; 3], p0: [[f64; 6]; 6], arw: f64, rrw:
     let mut w2: [[f64; 3]; 3] = rt::mm(ww, ww);
     let mut phi: [[f64; 6]; 6] = [[0.0; 6]; 6];
     {
-        let __end19: i64 = 3;
+        let __end22: i64 = 3;
         let mut i: i64 = 0;
-        while i < __end19 {
+        while i < __end22 {
             {
-                let __end20: i64 = 3;
+                let __end23: i64 = 3;
                 let mut j: i64 = 0;
-                while j < __end20 {
+                while j < __end23 {
                     phi[(i) as usize][(j) as usize] = (((if (i == j) { 1.0 } else { 0.0 }) - (ww[(i) as usize][(j) as usize] * dt)) + (((0.5 * w2[(i) as usize][(j) as usize]) * dt) * dt));
                     j += 1;
                 }
@@ -81,18 +171,18 @@ pub fn mekf_predict(q0: [f64; 4], b: [f64; 3], p0: [[f64; 6]; 6], arw: f64, rrw:
     }
     let mut t: [[f64; 6]; 6] = [[0.0; 6]; 6];
     {
-        let __end21: i64 = 6;
+        let __end24: i64 = 6;
         let mut i: i64 = 0;
-        while i < __end21 {
+        while i < __end24 {
             {
-                let __end22: i64 = 6;
+                let __end25: i64 = 6;
                 let mut j: i64 = 0;
-                while j < __end22 {
+                while j < __end25 {
                     t[(i) as usize][(j) as usize] = 0.0;
                     {
-                        let __end23: i64 = 6;
+                        let __end26: i64 = 6;
                         let mut l: i64 = 0;
-                        while l < __end23 {
+                        while l < __end26 {
                             t[(i) as usize][(j) as usize] = (t[(i) as usize][(j) as usize] + (phi[(i) as usize][(l) as usize] * p0[(l) as usize][(j) as usize]));
                             l += 1;
                         }
@@ -105,18 +195,18 @@ pub fn mekf_predict(q0: [f64; 4], b: [f64; 3], p0: [[f64; 6]; 6], arw: f64, rrw:
     }
     p = [[0.0; 6]; 6];
     {
-        let __end24: i64 = 6;
+        let __end27: i64 = 6;
         let mut i: i64 = 0;
-        while i < __end24 {
+        while i < __end27 {
             {
-                let __end25: i64 = 6;
+                let __end28: i64 = 6;
                 let mut j: i64 = 0;
-                while j < __end25 {
+                while j < __end28 {
                     p[(i) as usize][(j) as usize] = 0.0;
                     {
-                        let __end26: i64 = 6;
+                        let __end29: i64 = 6;
                         let mut l: i64 = 0;
-                        while l < __end26 {
+                        while l < __end29 {
                             p[(i) as usize][(j) as usize] = (p[(i) as usize][(j) as usize] + (t[(i) as usize][(l) as usize] * phi[(j) as usize][(l) as usize]));
                             l += 1;
                         }
@@ -128,9 +218,9 @@ pub fn mekf_predict(q0: [f64; 4], b: [f64; 3], p0: [[f64; 6]; 6], arw: f64, rrw:
         }
     }
     {
-        let __end27: i64 = 3;
+        let __end30: i64 = 3;
         let mut i: i64 = 0;
-        while i < __end27 {
+        while i < __end30 {
             p[(i) as usize][(i) as usize] = (p[(i) as usize][(i) as usize] + ((sv2 * dt) + ((((su2 * dt) * dt) * dt) / 3.0)));
             p[(i) as usize][((i + 3)) as usize] = (p[(i) as usize][((i + 3)) as usize] + ((((-(su2)) * dt) * dt) / 2.0));
             p[((i + 3)) as usize][(i) as usize] = (p[((i + 3)) as usize][(i) as usize] + ((((-(su2)) * dt) * dt) / 2.0));
@@ -196,18 +286,18 @@ pub fn update3(q0: [f64; 4], b0: [f64; 3], p0: [[f64; 6]; 6], h: [[f64; 6]; 3], 
     took = false;
     let mut pht: [[f64; 3]; 6] = [[0.0; 3]; 6];
     {
-        let __end28: i64 = 6;
+        let __end31: i64 = 6;
         let mut i: i64 = 0;
-        while i < __end28 {
+        while i < __end31 {
             {
-                let __end29: i64 = 3;
+                let __end32: i64 = 3;
                 let mut j: i64 = 0;
-                while j < __end29 {
+                while j < __end32 {
                     pht[(i) as usize][(j) as usize] = 0.0;
                     {
-                        let __end30: i64 = 6;
+                        let __end33: i64 = 6;
                         let mut l: i64 = 0;
-                        while l < __end30 {
+                        while l < __end33 {
                             pht[(i) as usize][(j) as usize] = (pht[(i) as usize][(j) as usize] + (p0[(i) as usize][(l) as usize] * h[(j) as usize][(l) as usize]));
                             l += 1;
                         }
@@ -220,18 +310,18 @@ pub fn update3(q0: [f64; 4], b0: [f64; 3], p0: [[f64; 6]; 6], h: [[f64; 6]; 3], 
     }
     let mut s: [[f64; 3]; 3] = [[0.0; 3]; 3];
     {
-        let __end31: i64 = 3;
+        let __end34: i64 = 3;
         let mut i: i64 = 0;
-        while i < __end31 {
+        while i < __end34 {
             {
-                let __end32: i64 = 3;
+                let __end35: i64 = 3;
                 let mut j: i64 = 0;
-                while j < __end32 {
+                while j < __end35 {
                     s[(i) as usize][(j) as usize] = r[(i) as usize][(j) as usize];
                     {
-                        let __end33: i64 = 6;
+                        let __end36: i64 = 6;
                         let mut l: i64 = 0;
-                        while l < __end33 {
+                        while l < __end36 {
                             s[(i) as usize][(j) as usize] = (s[(i) as usize][(j) as usize] + (h[(i) as usize][(l) as usize] * pht[(l) as usize][(j) as usize]));
                             l += 1;
                         }
@@ -246,13 +336,13 @@ pub fn update3(q0: [f64; 4], b0: [f64; 3], p0: [[f64; 6]; 6], h: [[f64; 6]; 3], 
     if ok {
         let mut chi: f64 = 0.0;
         {
-            let __end34: i64 = 3;
+            let __end37: i64 = 3;
             let mut i: i64 = 0;
-            while i < __end34 {
+            while i < __end37 {
                 {
-                    let __end35: i64 = 3;
+                    let __end38: i64 = 3;
                     let mut j: i64 = 0;
-                    while j < __end35 {
+                    while j < __end38 {
                         chi = (chi + ((y[(i) as usize] * si[(i) as usize][(j) as usize]) * y[(j) as usize]));
                         j += 1;
                     }
@@ -264,18 +354,18 @@ pub fn update3(q0: [f64; 4], b0: [f64; 3], p0: [[f64; 6]; 6], h: [[f64; 6]; 3], 
             took = true;
             let mut g: [[f64; 3]; 6] = [[0.0; 3]; 6];
             {
-                let __end36: i64 = 6;
+                let __end39: i64 = 6;
                 let mut i: i64 = 0;
-                while i < __end36 {
+                while i < __end39 {
                     {
-                        let __end37: i64 = 3;
+                        let __end40: i64 = 3;
                         let mut j: i64 = 0;
-                        while j < __end37 {
+                        while j < __end40 {
                             g[(i) as usize][(j) as usize] = 0.0;
                             {
-                                let __end38: i64 = 3;
+                                let __end41: i64 = 3;
                                 let mut l: i64 = 0;
-                                while l < __end38 {
+                                while l < __end41 {
                                     g[(i) as usize][(j) as usize] = (g[(i) as usize][(j) as usize] + (pht[(i) as usize][(l) as usize] * si[(l) as usize][(j) as usize]));
                                     l += 1;
                                 }
@@ -288,14 +378,14 @@ pub fn update3(q0: [f64; 4], b0: [f64; 3], p0: [[f64; 6]; 6], h: [[f64; 6]; 3], 
             }
             let mut dx: [f64; 6] = [0.0; 6];
             {
-                let __end39: i64 = 6;
+                let __end42: i64 = 6;
                 let mut i: i64 = 0;
-                while i < __end39 {
+                while i < __end42 {
                     dx[(i) as usize] = 0.0;
                     {
-                        let __end40: i64 = 3;
+                        let __end43: i64 = 3;
                         let mut l: i64 = 0;
-                        while l < __end40 {
+                        while l < __end43 {
                             dx[(i) as usize] = (dx[(i) as usize] + (g[(i) as usize][(l) as usize] * y[(l) as usize]));
                             l += 1;
                         }
@@ -305,27 +395,27 @@ pub fn update3(q0: [f64; 4], b0: [f64; 3], p0: [[f64; 6]; 6], h: [[f64; 6]; 3], 
             }
             q = crate::alg::math::qnorm(crate::alg::math::qmult(q0, [(0.5 * dx[0]), (0.5 * dx[1]), (0.5 * dx[2]), 1.0]));
             {
-                let __end41: i64 = 3;
+                let __end44: i64 = 3;
                 let mut i: i64 = 0;
-                while i < __end41 {
+                while i < __end44 {
                     b[(i) as usize] = (b0[(i) as usize] + dx[((i + 3)) as usize]);
                     i += 1;
                 }
             }
             let mut ikh: [[f64; 6]; 6] = [[0.0; 6]; 6];
             {
-                let __end42: i64 = 6;
+                let __end45: i64 = 6;
                 let mut i: i64 = 0;
-                while i < __end42 {
+                while i < __end45 {
                     {
-                        let __end43: i64 = 6;
+                        let __end46: i64 = 6;
                         let mut j: i64 = 0;
-                        while j < __end43 {
+                        while j < __end46 {
                             ikh[(i) as usize][(j) as usize] = (if (i == j) { 1.0 } else { 0.0 });
                             {
-                                let __end44: i64 = 3;
+                                let __end47: i64 = 3;
                                 let mut l: i64 = 0;
-                                while l < __end44 {
+                                while l < __end47 {
                                     ikh[(i) as usize][(j) as usize] = (ikh[(i) as usize][(j) as usize] - (g[(i) as usize][(l) as usize] * h[(l) as usize][(j) as usize]));
                                     l += 1;
                                 }
@@ -338,29 +428,6 @@ pub fn update3(q0: [f64; 4], b0: [f64; 3], p0: [[f64; 6]; 6], h: [[f64; 6]; 3], 
             }
             let mut t: [[f64; 6]; 6] = [[0.0; 6]; 6];
             {
-                let __end45: i64 = 6;
-                let mut i: i64 = 0;
-                while i < __end45 {
-                    {
-                        let __end46: i64 = 6;
-                        let mut j: i64 = 0;
-                        while j < __end46 {
-                            t[(i) as usize][(j) as usize] = 0.0;
-                            {
-                                let __end47: i64 = 6;
-                                let mut l: i64 = 0;
-                                while l < __end47 {
-                                    t[(i) as usize][(j) as usize] = (t[(i) as usize][(j) as usize] + (ikh[(i) as usize][(l) as usize] * p0[(l) as usize][(j) as usize]));
-                                    l += 1;
-                                }
-                            }
-                            j += 1;
-                        }
-                    }
-                    i += 1;
-                }
-            }
-            {
                 let __end48: i64 = 6;
                 let mut i: i64 = 0;
                 while i < __end48 {
@@ -368,12 +435,12 @@ pub fn update3(q0: [f64; 4], b0: [f64; 3], p0: [[f64; 6]; 6], h: [[f64; 6]; 3], 
                         let __end49: i64 = 6;
                         let mut j: i64 = 0;
                         while j < __end49 {
-                            p[(i) as usize][(j) as usize] = 0.0;
+                            t[(i) as usize][(j) as usize] = 0.0;
                             {
                                 let __end50: i64 = 6;
                                 let mut l: i64 = 0;
                                 while l < __end50 {
-                                    p[(i) as usize][(j) as usize] = (p[(i) as usize][(j) as usize] + (t[(i) as usize][(l) as usize] * ikh[(j) as usize][(l) as usize]));
+                                    t[(i) as usize][(j) as usize] = (t[(i) as usize][(j) as usize] + (ikh[(i) as usize][(l) as usize] * p0[(l) as usize][(j) as usize]));
                                     l += 1;
                                 }
                             }
@@ -391,14 +458,37 @@ pub fn update3(q0: [f64; 4], b0: [f64; 3], p0: [[f64; 6]; 6], h: [[f64; 6]; 3], 
                         let __end52: i64 = 6;
                         let mut j: i64 = 0;
                         while j < __end52 {
+                            p[(i) as usize][(j) as usize] = 0.0;
                             {
-                                let __end53: i64 = 3;
+                                let __end53: i64 = 6;
+                                let mut l: i64 = 0;
+                                while l < __end53 {
+                                    p[(i) as usize][(j) as usize] = (p[(i) as usize][(j) as usize] + (t[(i) as usize][(l) as usize] * ikh[(j) as usize][(l) as usize]));
+                                    l += 1;
+                                }
+                            }
+                            j += 1;
+                        }
+                    }
+                    i += 1;
+                }
+            }
+            {
+                let __end54: i64 = 6;
+                let mut i: i64 = 0;
+                while i < __end54 {
+                    {
+                        let __end55: i64 = 6;
+                        let mut j: i64 = 0;
+                        while j < __end55 {
+                            {
+                                let __end56: i64 = 3;
                                 let mut a: i64 = 0;
-                                while a < __end53 {
+                                while a < __end56 {
                                     {
-                                        let __end54: i64 = 3;
+                                        let __end57: i64 = 3;
                                         let mut c: i64 = 0;
-                                        while c < __end54 {
+                                        while c < __end57 {
                                             p[(i) as usize][(j) as usize] = (p[(i) as usize][(j) as usize] + ((g[(i) as usize][(a) as usize] * r[(a) as usize][(c) as usize]) * g[(j) as usize][(c) as usize]));
                                             c += 1;
                                         }
@@ -441,13 +531,13 @@ pub fn mekf_vector(q0: [f64; 4], b0: [f64; 3], p0: [[f64; 6]; 6], bm: [f64; 3], 
     let mut sk: [[f64; 3]; 3] = crate::alg::math::skew(bh);
     let mut h: [[f64; 6]; 3] = [[0.0; 6]; 3];
     {
-        let __end55: i64 = 3;
+        let __end58: i64 = 3;
         let mut i: i64 = 0;
-        while i < __end55 {
+        while i < __end58 {
             {
-                let __end56: i64 = 6;
+                let __end59: i64 = 6;
                 let mut j: i64 = 0;
-                while j < __end56 {
+                while j < __end59 {
                     h[(i) as usize][(j) as usize] = (if (j < 3) { sk[(i) as usize][(j) as usize] } else { 0.0 });
                     j += 1;
                 }
@@ -457,13 +547,13 @@ pub fn mekf_vector(q0: [f64; 4], b0: [f64; 3], p0: [[f64; 6]; 6], bm: [f64; 3], 
     }
     let mut r: [[f64; 3]; 3] = [[0.0; 3]; 3];
     {
-        let __end57: i64 = 3;
+        let __end60: i64 = 3;
         let mut i: i64 = 0;
-        while i < __end57 {
+        while i < __end60 {
             {
-                let __end58: i64 = 3;
+                let __end61: i64 = 3;
                 let mut j: i64 = 0;
-                while j < __end58 {
+                while j < __end61 {
                     r[(i) as usize][(j) as usize] = (if (i == j) { (sigma * sigma) } else { 0.0 });
                     j += 1;
                 }
@@ -471,11 +561,11 @@ pub fn mekf_vector(q0: [f64; 4], b0: [f64; 3], p0: [[f64; 6]; 6], bm: [f64; 3], 
             i += 1;
         }
     }
-    let __t59 = crate::alg::estimation::update3(q0, b0, p0, h, r, rt::vsub(bu, bh), gate);
-    q = __t59.0;
-    b = __t59.1;
-    p = __t59.2;
-    took = __t59.3;
+    let __t62 = crate::alg::estimation::update3(q0, b0, p0, h, r, rt::vsub(bu, bh), gate);
+    q = __t62.0;
+    b = __t62.1;
+    p = __t62.2;
+    took = __t62.3;
     (q, b, p, took)
 }
 
@@ -501,9 +591,9 @@ pub fn mekf_quat(q0: [f64; 4], b0: [f64; 3], p0: [[f64; 6]; 6], qm: [f64; 4], sc
     let mut dq: [f64; 4] = crate::alg::math::qerr(q0, qm);
     let mut y: [f64; 3] = [0.0; 3];
     {
-        let __end60: i64 = 3;
+        let __end63: i64 = 3;
         let mut i: i64 = 0;
-        while i < __end60 {
+        while i < __end63 {
             y[(i) as usize] = (2.0 * dq[(i) as usize]);
             i += 1;
         }
@@ -511,21 +601,21 @@ pub fn mekf_quat(q0: [f64; 4], b0: [f64; 3], p0: [[f64; 6]; 6], qm: [f64; 4], sc
     let mut h: [[f64; 6]; 3] = [[0.0; 6]; 3];
     let mut r: [[f64; 3]; 3] = [[0.0; 3]; 3];
     {
-        let __end61: i64 = 3;
+        let __end64: i64 = 3;
         let mut i: i64 = 0;
-        while i < __end61 {
+        while i < __end64 {
             {
-                let __end62: i64 = 6;
+                let __end65: i64 = 6;
                 let mut j: i64 = 0;
-                while j < __end62 {
+                while j < __end65 {
                     h[(i) as usize][(j) as usize] = (if (i == j) { 1.0 } else { 0.0 });
                     j += 1;
                 }
             }
             {
-                let __end63: i64 = 3;
+                let __end66: i64 = 3;
                 let mut j: i64 = 0;
-                while j < __end63 {
+                while j < __end66 {
                     r[(i) as usize][(j) as usize] = ((if (i == j) { (sc * sc) } else { 0.0 }) + ((((sr * sr) - (sc * sc)) * bs[(i) as usize]) * bs[(j) as usize]));
                     j += 1;
                 }
@@ -533,29 +623,32 @@ pub fn mekf_quat(q0: [f64; 4], b0: [f64; 3], p0: [[f64; 6]; 6], qm: [f64; 4], sc
             i += 1;
         }
     }
-    let __t64 = crate::alg::estimation::update3(q0, b0, p0, h, r, y, gate);
-    q = __t64.0;
-    b = __t64.1;
-    p = __t64.2;
-    took = __t64.3;
+    let __t67 = crate::alg::estimation::update3(q0, b0, p0, h, r, y, gate);
+    q = __t67.0;
+    b = __t67.1;
+    p = __t67.2;
+    took = __t67.3;
     (q, b, p, took)
 }
 
-/// TRIAD from two body vectors and their references; ok = false when either pair is within
-/// 1e-3 (0.06 deg) of parallel, which fixes no attitude.
+/// TRIAD from two body vectors and their references; ok = false when either pair has the sine of its angle below smin
+/// (S11.6, G1): the attitude about the first vector comes from the second, with an error of the second's noise over that sine
+/// (Shuster and Oh 1981: the covariance below), so a pair 5 deg apart fixes nothing the filter should
+/// trust. smin is fsw_param_triad_sin_min (0.2, the developer's value within the 0.15 to 0.25 the inventory allows).
 /// - b1: real[1][3] (passed a plain number)
 /// - b2: real[1][3] (passed a plain number)
 /// - r1: real[1][3] (passed a plain number)
 /// - r2: real[1][3] (passed a plain number)
+/// - smin: real[1] (passed a plain number)
 /// - returns q: real[1][4] (passed a plain number)
 /// - returns ok: bool (passed true or false)
 #[allow(clippy::too_many_arguments)]
-pub fn triad(b1: [f64; 3], b2: [f64; 3], r1: [f64; 3], r2: [f64; 3]) -> ([f64; 4], bool) {
+pub fn triad(b1: [f64; 3], b2: [f64; 3], r1: [f64; 3], r2: [f64; 3], smin: f64) -> ([f64; 4], bool) {
     let mut q: [f64; 4] = [0.0; 4];
     let mut ok: bool = false;
     ok = false;
     q = [0.0; 4];
-    if ((rt::norm(rt::cross(b1, b2)) > ((0.001 * rt::norm(b1)) * rt::norm(b2))) && (rt::norm(rt::cross(r1, r2)) > ((0.001 * rt::norm(r1)) * rt::norm(r2)))) {
+    if ((rt::norm(rt::cross(b1, b2)) > ((smin * rt::norm(b1)) * rt::norm(b2))) && (rt::norm(rt::cross(r1, r2)) > ((smin * rt::norm(r1)) * rt::norm(r2)))) {
         ok = true;
         let mut tb0: [f64; 3] = rt::unit(b1);
         let mut tb1: [f64; 3] = rt::unit(rt::cross(b1, b2));
@@ -565,13 +658,13 @@ pub fn triad(b1: [f64; 3], b2: [f64; 3], r1: [f64; 3], r2: [f64; 3]) -> ([f64; 4
         let mut tr2: [f64; 3] = rt::cross(tr0, tr1);
         let mut a: [[f64; 3]; 3] = [[0.0; 3]; 3];
         {
-            let __end65: i64 = 3;
+            let __end68: i64 = 3;
             let mut i: i64 = 0;
-            while i < __end65 {
+            while i < __end68 {
                 {
-                    let __end66: i64 = 3;
+                    let __end69: i64 = 3;
                     let mut j: i64 = 0;
-                    while j < __end66 {
+                    while j < __end69 {
                         a[(i) as usize][(j) as usize] = (((tb0[(i) as usize] * tr0[(j) as usize]) + (tb1[(i) as usize] * tr1[(j) as usize])) + (tb2[(i) as usize] * tr2[(j) as usize]));
                         j += 1;
                     }
@@ -582,6 +675,48 @@ pub fn triad(b1: [f64; 3], b2: [f64; 3], r1: [f64; 3], r2: [f64; 3]) -> ([f64; 4
         q = crate::alg::math::fromdcm(a);
     }
     (q, ok)
+}
+
+/// The covariance of the TRIAD attitude in the body frame [rad^2], from the geometry and the two vectors' noises s1 (the
+/// first, whose direction the attitude keeps exactly) and s2 (S11.6, G1; Shuster and Oh 1981, J. Guidance and Control 4(1):70-77,
+/// the covariance of the TRIAD error). In the frame of the first vector t0, the normal t1 of the pair's plane and t2 = t0 x t1,
+/// with c and sn the cosine and sine of the angle between the vectors: variance (s2^2 + c^2 s1^2)/sn^2 about t0, s1^2 about t1
+/// and t2, and -c s1^2/sn between t0 and t2. The attitude about t0 is only as good as the second vector over sn.
+/// - b1: real[1][3] (passed a plain number)
+/// - b2: real[1][3] (passed a plain number)
+/// - s1: real[1] (passed a plain number)
+/// - s2: real[1] (passed a plain number)
+/// - returns pa: real[1][3][3] (passed a plain number)
+#[allow(clippy::too_many_arguments)]
+pub fn triad_cov(b1: [f64; 3], b2: [f64; 3], s1: f64, s2: f64) -> [[f64; 3]; 3] {
+    let mut pa: [[f64; 3]; 3] = [[0.0; 3]; 3];
+    let mut n1: f64 = rt::norm(b1);
+    let mut n2: f64 = rt::norm(b2);
+    let mut cr: [f64; 3] = rt::cross(b1, b2);
+    let mut t0: [f64; 3] = rt::unit(b1);
+    let mut t1: [f64; 3] = rt::unit(cr);
+    let mut t2: [f64; 3] = rt::cross(t0, t1);
+    let mut sn: f64 = (rt::norm(cr) / (n1 * n2));
+    let mut c: f64 = (rt::dot(b1, b2) / (n1 * n2));
+    let mut d0: f64 = (((s2 * s2) + (((c * c) * s1) * s1)) / (sn * sn));
+    let mut x: f64 = ((((-(c)) * s1) * s1) / sn);
+    pa = [[0.0; 3]; 3];
+    {
+        let __end70: i64 = 3;
+        let mut i: i64 = 0;
+        while i < __end70 {
+            {
+                let __end71: i64 = 3;
+                let mut j: i64 = 0;
+                while j < __end71 {
+                    pa[(i) as usize][(j) as usize] = (((((d0 * t0[(i) as usize]) * t0[(j) as usize]) + (((s1 * s1) * t1[(i) as usize]) * t1[(j) as usize])) + (((s1 * s1) * t2[(i) as usize]) * t2[(j) as usize])) + (x * ((t0[(i) as usize] * t2[(j) as usize]) + (t2[(i) as usize] * t0[(j) as usize]))));
+                    j += 1;
+                }
+            }
+            i += 1;
+        }
+    }
+    pa
 }
 
 /// The q-method on n <= 16 weighted pairs: Davenport's K, its largest eigenvalue by Jacobi; the
@@ -599,19 +734,19 @@ pub fn quest(bv: [[f64; 3]; 16], rv: [[f64; 3]; 16], w: [f64; 16], n: i64) -> ([
     let mut bb: [[f64; 3]; 3] = [[0.0; 3]; 3];
     let mut ws: f64 = 0.0;
     {
-        let __end67: i64 = n;
+        let __end72: i64 = n;
         let mut l: i64 = 0;
-        while l < __end67 {
+        while l < __end72 {
             let mut wl: f64 = w[(l) as usize];
             ws = (ws + wl);
             {
-                let __end68: i64 = 3;
+                let __end73: i64 = 3;
                 let mut i: i64 = 0;
-                while i < __end68 {
+                while i < __end73 {
                     {
-                        let __end69: i64 = 3;
+                        let __end74: i64 = 3;
                         let mut j: i64 = 0;
-                        while j < __end69 {
+                        while j < __end74 {
                             bb[(i) as usize][(j) as usize] = (bb[(i) as usize][(j) as usize] + ((wl * bv[(l) as usize][(i) as usize]) * rv[(l) as usize][(j) as usize]));
                             j += 1;
                         }
@@ -626,13 +761,13 @@ pub fn quest(bv: [[f64; 3]; 16], rv: [[f64; 3]; 16], w: [f64; 16], n: i64) -> ([
     let mut z: [f64; 3] = [(bb[1][2] - bb[2][1]), (bb[2][0] - bb[0][2]), (bb[0][1] - bb[1][0])];
     let mut k: [[f64; 4]; 4] = [[0.0; 4]; 4];
     {
-        let __end70: i64 = 3;
+        let __end75: i64 = 3;
         let mut i: i64 = 0;
-        while i < __end70 {
+        while i < __end75 {
             {
-                let __end71: i64 = 3;
+                let __end76: i64 = 3;
                 let mut j: i64 = 0;
-                while j < __end71 {
+                while j < __end76 {
                     k[(i) as usize][(j) as usize] = ((bb[(i) as usize][(j) as usize] + bb[(j) as usize][(i) as usize]) - (if (i == j) { sg } else { 0.0 }));
                     j += 1;
                 }
@@ -646,9 +781,9 @@ pub fn quest(bv: [[f64; 3]; 16], rv: [[f64; 3]; 16], w: [f64; 16], n: i64) -> ([
     let (mut lam, mut v) = crate::alg::math::jacobi_eig4(k);
     let mut im: i64 = 0;
     {
-        let __end72: i64 = 4;
+        let __end77: i64 = 4;
         let mut i: i64 = 1;
-        while i < __end72 {
+        while i < __end77 {
             if (lam[(i) as usize] > lam[(im) as usize]) {
                 im = i;
             }

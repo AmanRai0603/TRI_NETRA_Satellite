@@ -1,0 +1,353 @@
+## 03 - Estimation (03_estimation.md): the multiplicative extended Kalman filter, TRIAD, the q-method
+## and the star-tracker latency, operation for operation as fsw/src/adcs_est.c and fsw-rs/src/est.rs.
+## The filter's record (adcs_mekf_t, est::Mekf) is passed as its parts: q, b, P.
+module estimation
+
+## A filter at q0, bias zero, attitude and bias variances sa^2 and sb^2.
+fn mekf_init(q0: quat in -1 .. 1, sa: real[1] in 1e-4 .. 0.1, sb: real[1] in 1e-6 .. 1e-3) -> (q: quat, b: vec3[1], p: real[1][6][6])
+    q = q0
+    b = 0
+    p = 0
+    for i in 0 .. 3
+        p[i][i] = sa*sa
+        p[i + 3][i + 3] = sb*sb
+    end
+end
+
+## A filter at q0, bias zero, with the attitude covariance pa (3 x 3, body frame, rad^2) and the bias variance sb^2: the start
+## from a TRIAD attitude, whose covariance the measurement geometry gives (triad_cov, S11.6, G1).
+fn mekf_init_cov(q0: quat in -1 .. 1, pa: mat3[1] in -1 .. 1, sb: real[1] in 1e-6 .. 1e-3) -> (q: quat, b: vec3[1], p: real[1][6][6])
+    q = q0
+    b = 0
+    p = 0
+    for i in 0 .. 3
+        for j in 0 .. 3
+            p[i][j] = pa[i][j]
+        end
+        p[i + 3][i + 3] = sb*sb
+    end
+end
+
+## Whether head h of the star tracker gives a reading the filter may take (S11.6, F4): the head is one the product carries
+## (h < n_heads: with no head configured none is ever chosen), the frame says it is valid, and its quaternion is of unit
+## length within tol (a reading of norm 0.5 is not an attitude). The filter's start and its updates both ask this.
+fn st_plausible(q: quat in -2 .. 2, valid: bool, h: int in 0 .. 2, n_heads: int in 0 .. 2, tol: real[1] in 1e-6 .. 0.1) -> ok: bool
+    let qn = sqrt(q[0]*q[0] + q[1]*q[1] + q[2]*q[2] + q[3]*q[3])
+    let d = if qn > 1.0 then qn - 1.0 else 1.0 - qn
+    ok = h < n_heads and valid and d < tol
+end
+
+## The head the filter starts from: the first configured head whose reading is plausible; refused counts the heads that
+## flagged a valid frame whose quaternion was not (the tick counts them).
+fn st_head(q_st: real[1][4][2] in -2 .. 2, valid: bool[2], n_heads: int in 0 .. 2, tol: real[1] in 1e-6 .. 0.1) -> (h: int, found: bool, refused: int)
+    h = 0
+    found = false
+    refused = 0
+    for k in 0 .. n_heads
+        if valid[k]
+            if st_plausible(q_st[k], valid[k], k, n_heads, tol)
+                if not found
+                    h = k
+                    found = true
+                end
+            else
+                refused = refused + 1
+            end
+        end
+    end
+end
+
+## The prediction over dt on the measured rate wm, with gyro angle and rate random walks arw, rrw:
+## q <- q fromrotvec((wm - b) dt), P <- Phi P Phi' + Q.
+## With the gyro quiet (stale, DR-fdir-002, F2) the rate wm is the controllers' zero, not a measurement: the angle random
+## walk is raised to the rate the body may have, 2e-3 rad/s (about twice the orbital rate of a low orbit; the developer's
+## value, for fdir to sign) over the step, so that P grows by that uncertainty and the vector updates take the attitude back.
+fn mekf_predict(q0: quat in -1 .. 1, b: vec3[1] in -1e-3 .. 1e-3, p0: real[1][6][6] in -1e-4 .. 1e-4, arw: real[1] in 1e-6 .. 1e-3, \
+                rrw: real[1] in 1e-8 .. 1e-5, wm: vec3[1] in -0.1 .. 0.1, dt: real[1] in 0.01 .. 1, stale: bool) -> (q: quat, p: real[1][6][6])
+    let arw_eff = arw
+    if stale and 2e-3*sqrt(dt) > arw
+        arw_eff = 2e-3*sqrt(dt)
+    end
+    let sv2 = arw_eff*arw_eff
+    let su2 = rrw*rrw
+    let w = wm - b
+    q = qnorm(qmult(q0, fromrotvec(w*dt)))
+    let ww = skew(w)
+    let w2 = ww*ww
+    let phi: real[1][6][6] = 0
+    for i in 0 .. 3
+        for j in 0 .. 3
+            phi[i][j] = (if i == j then 1.0 else 0.0) - ww[i][j]*dt + 0.5*w2[i][j]*dt*dt
+        end
+        phi[i][i + 3] = -dt
+        phi[i + 3][i + 3] = 1.0
+    end
+    let t: real[1][6][6] = 0
+    for i in 0 .. 6
+        for j in 0 .. 6
+            t[i][j] = 0
+            for l in 0 .. 6
+                t[i][j] = t[i][j] + phi[i][l]*p0[l][j]
+            end
+        end
+    end
+    p = 0
+    for i in 0 .. 6
+        for j in 0 .. 6
+            p[i][j] = 0
+            for l in 0 .. 6
+                p[i][j] = p[i][j] + t[i][l]*phi[j][l]
+            end
+        end
+    end
+    for i in 0 .. 3
+        p[i][i] = p[i][i] + (sv2*dt + su2*dt*dt*dt/3.0)
+        p[i][i + 3] = p[i][i + 3] + -su2*dt*dt/2.0
+        p[i + 3][i] = p[i + 3][i] + -su2*dt*dt/2.0
+        p[i + 3][i + 3] = p[i + 3][i + 3] + su2*dt
+    end
+end
+
+## The body rate between two estimated attitudes dt apart, w = 2 vec(conj(q0) q1)/dt (a small rotation, its sign fixed
+## so that the scalar part is not negative). With a quiet gyro (DR-fdir-002, F2) it is the controllers' rate: their loops
+## have no damping without a rate, and the filter's attitude, held by the star tracker or the vector updates, has one.
+fn att_rate(q0: quat in -1 .. 1, q1: quat in -1 .. 1, dt: real[1] in 0.01 .. 1) -> w: vec3[1]
+    let d = qerr(q0, q1)
+    w = [2.0*d[0]/dt, 2.0*d[1]/dt, 2.0*d[2]/dt]
+end
+
+## Whether the star tracker's outage is still a coast on the gyro: within the coast time of the last tracker update, and
+## the gyro answering with fresh samples (a quiet gyro ends the coast, DR-fdir-002, F2: the attitude it carries is not
+## held by a rate nobody measures, and the vector updates take over).
+fn st_coasting(t: real[s] in 0 .. 3000, t_st: real[s] in 0 .. 3000, coast_s: real[s] in 0 .. 3000, stale: bool) -> on: bool
+    on = (t - t_st < coast_s) and not stale
+end
+
+## The Joseph-form update with a 3-row measurement H (3 x 6), noise R and innovation y. With
+## gate > 0 an update whose chi-square y' S^-1 y passes the gate is refused (took = false).
+fn update3(q0: quat in -1 .. 1, b0: vec3[1] in -1e-3 .. 1e-3, p0: real[1][6][6] in -1e-4 .. 1e-4, h: real[1][6][3] in -1 .. 1, \
+           r: mat3[1] in 0 .. 1e-4, y: vec3[1] in -0.01 .. 0.01, gate: real[1] in 0 .. 20) -> (q: quat, b: vec3[1], p: real[1][6][6], took: bool)
+    q = q0
+    b = b0
+    p = p0
+    took = false
+    let pht: real[1][3][6] = 0
+    for i in 0 .. 6
+        for j in 0 .. 3
+            pht[i][j] = 0
+            for l in 0 .. 6
+                pht[i][j] = pht[i][j] + p0[i][l]*h[j][l]
+            end
+        end
+    end
+    let s: mat3[1] = 0
+    for i in 0 .. 3
+        for j in 0 .. 3
+            s[i][j] = r[i][j]
+            for l in 0 .. 6
+                s[i][j] = s[i][j] + h[i][l]*pht[l][j]
+            end
+        end
+    end
+    let si, ok = inv3(s)
+    if ok
+        let chi: real[1] = 0
+        for i in 0 .. 3
+            for j in 0 .. 3
+                chi = chi + y[i]*si[i][j]*y[j]
+            end
+        end
+        if chi == chi and not (gate > 0 and chi > gate)
+            took = true
+            let g: real[1][3][6] = 0
+            for i in 0 .. 6
+                for j in 0 .. 3
+                    g[i][j] = 0
+                    for l in 0 .. 3
+                        g[i][j] = g[i][j] + pht[i][l]*si[l][j]
+                    end
+                end
+            end
+            let dx: real[1][6] = 0
+            for i in 0 .. 6
+                dx[i] = 0
+                for l in 0 .. 3
+                    dx[i] = dx[i] + g[i][l]*y[l]
+                end
+            end
+            q = qnorm(qmult(q0, [0.5*dx[0], 0.5*dx[1], 0.5*dx[2], 1.0]))
+            for i in 0 .. 3
+                b[i] = b0[i] + dx[i + 3]
+            end
+            let ikh: real[1][6][6] = 0
+            for i in 0 .. 6
+                for j in 0 .. 6
+                    ikh[i][j] = if i == j then 1.0 else 0.0
+                    for l in 0 .. 3
+                        ikh[i][j] = ikh[i][j] - g[i][l]*h[l][j]
+                    end
+                end
+            end
+            let t: real[1][6][6] = 0
+            for i in 0 .. 6
+                for j in 0 .. 6
+                    t[i][j] = 0
+                    for l in 0 .. 6
+                        t[i][j] = t[i][j] + ikh[i][l]*p0[l][j]
+                    end
+                end
+            end
+            for i in 0 .. 6
+                for j in 0 .. 6
+                    p[i][j] = 0
+                    for l in 0 .. 6
+                        p[i][j] = p[i][j] + t[i][l]*ikh[j][l]
+                    end
+                end
+            end
+            ## + G R G'
+            for i in 0 .. 6
+                for j in 0 .. 6
+                    for a in 0 .. 3
+                        for c in 0 .. 3
+                            p[i][j] = p[i][j] + g[i][a]*r[a][c]*g[j][c]
+                        end
+                    end
+                end
+            end
+        end
+    end
+end
+
+## A vector measurement: the body vector bm against the reference rr (both made unit), noise sigma.
+fn mekf_vector(q0: quat in -1 .. 1, b0: vec3[1] in -1e-3 .. 1e-3, p0: real[1][6][6] in -1e-4 .. 1e-4, bm: vec3[1] in -1 .. 1, \
+               rr: vec3[1] in -1 .. 1, sigma: real[1] in 1e-3 .. 0.05, gate: real[1] in 0 .. 20) -> (q: quat, b: vec3[1], p: real[1][6][6], took: bool)
+    let bu = unit(bm)
+    let ru = unit(rr)
+    let bh = dcm(q0)*ru
+    let sk = skew(bh)
+    let h: real[1][6][3] = 0
+    for i in 0 .. 3
+        for j in 0 .. 6
+            h[i][j] = if j < 3 then sk[i][j] else 0.0
+        end
+    end
+    let r: mat3[1] = 0
+    for i in 0 .. 3
+        for j in 0 .. 3
+            r[i][j] = if i == j then sigma*sigma else 0.0
+        end
+    end
+    q, b, p, took = update3(q0, b0, p0, h, r, bu - bh, gate)
+end
+
+## A star-tracker quaternion qm with cross-boresight and roll noises sc, sr about boresight bs.
+fn mekf_quat(q0: quat in -1 .. 1, b0: vec3[1] in -1e-3 .. 1e-3, p0: real[1][6][6] in -1e-4 .. 1e-4, qm: quat in -1 .. 1, \
+             sc: real[1] in 1e-5 .. 1e-3, sr: real[1] in 1e-5 .. 1e-2, bs: vec3[1] in -1 .. 1, gate: real[1] in 0 .. 20) -> (q: quat, b: vec3[1], p: real[1][6][6], took: bool)
+    let dq = qerr(q0, qm)
+    let y: vec3[1] = 0
+    for i in 0 .. 3
+        y[i] = 2.0*dq[i]
+    end
+    let h: real[1][6][3] = 0
+    let r: mat3[1] = 0
+    for i in 0 .. 3
+        for j in 0 .. 6
+            h[i][j] = if i == j then 1.0 else 0.0
+        end
+        for j in 0 .. 3
+            r[i][j] = (if i == j then sc*sc else 0.0) + (sr*sr - sc*sc)*bs[i]*bs[j]
+        end
+    end
+    q, b, p, took = update3(q0, b0, p0, h, r, y, gate)
+end
+
+## TRIAD from two body vectors and their references; ok = false when either pair has the sine of its angle below smin
+## (S11.6, G1): the attitude about the first vector comes from the second, with an error of the second's noise over that sine
+## (Shuster and Oh 1981: the covariance below), so a pair 5 deg apart fixes nothing the filter should
+## trust. smin is fsw_param_triad_sin_min (0.2, the developer's value within the 0.15 to 0.25 the inventory allows).
+fn triad(b1: vec3[1] in -1 .. 1, b2: vec3[1] in -1 .. 1, r1: vec3[1] in -1 .. 1, r2: vec3[1] in -1 .. 1, smin: real[1] in 0.01 .. 0.5) -> (q: quat, ok: bool)
+    ok = false
+    q = 0
+    if norm(cross(b1, b2)) > smin*norm(b1)*norm(b2) and norm(cross(r1, r2)) > smin*norm(r1)*norm(r2)
+        ok = true
+        let tb0 = unit(b1)
+        let tb1 = unit(cross(b1, b2))
+        let tb2 = cross(tb0, tb1)
+        let tr0 = unit(r1)
+        let tr1 = unit(cross(r1, r2))
+        let tr2 = cross(tr0, tr1)
+        let a: mat3[1] = 0
+        for i in 0 .. 3
+            for j in 0 .. 3
+                a[i][j] = tb0[i]*tr0[j] + tb1[i]*tr1[j] + tb2[i]*tr2[j]
+            end
+        end
+        q = fromdcm(a)
+    end
+end
+
+## The covariance of the TRIAD attitude in the body frame [rad^2], from the geometry and the two vectors' noises s1 (the
+## first, whose direction the attitude keeps exactly) and s2 (S11.6, G1; Shuster and Oh 1981, J. Guidance and Control 4(1):70-77,
+## the covariance of the TRIAD error). In the frame of the first vector t0, the normal t1 of the pair's plane and t2 = t0 x t1,
+## with c and sn the cosine and sine of the angle between the vectors: variance (s2^2 + c^2 s1^2)/sn^2 about t0, s1^2 about t1
+## and t2, and -c s1^2/sn between t0 and t2. The attitude about t0 is only as good as the second vector over sn.
+fn triad_cov(b1: vec3[1] in -1 .. 1, b2: vec3[1] in -1 .. 1, s1: real[1] in 1e-4 .. 0.1, s2: real[1] in 1e-4 .. 0.1) -> pa: mat3[1]
+    let n1 = norm(b1)
+    let n2 = norm(b2)
+    let cr = cross(b1, b2)
+    let t0 = unit(b1)
+    let t1 = unit(cr)
+    let t2 = cross(t0, t1)
+    let sn = norm(cr)/(n1*n2)
+    let c = dot(b1, b2)/(n1*n2)
+    let d0 = (s2*s2 + c*c*s1*s1)/(sn*sn)
+    let x = -c*s1*s1/sn
+    pa = 0
+    for i in 0 .. 3
+        for j in 0 .. 3
+            pa[i][j] = d0*t0[i]*t0[j] + s1*s1*t1[i]*t1[j] + s1*s1*t2[i]*t2[j] + x*(t0[i]*t2[j] + t2[i]*t0[j])
+        end
+    end
+end
+
+## The q-method on n <= 16 weighted pairs: Davenport's K, its largest eigenvalue by Jacobi; the
+## loss is the weight sum less that eigenvalue.
+fn quest(bv: real[1][3][16] in -1 .. 1, rv: real[1][3][16] in -1 .. 1, w: real[1][16] in 0.1 .. 1, n: int in 2 .. 16) -> (q: quat, loss: real[1])
+    let bb: mat3[1] = 0
+    let ws: real[1] = 0
+    for l in 0 .. n
+        let wl = w[l]
+        ws = ws + wl
+        for i in 0 .. 3
+            for j in 0 .. 3
+                bb[i][j] = bb[i][j] + wl*bv[l][i]*rv[l][j]
+            end
+        end
+    end
+    let sg = bb[0][0] + bb[1][1] + bb[2][2]
+    let z: vec3[1] = [bb[1][2] - bb[2][1], bb[2][0] - bb[0][2], bb[0][1] - bb[1][0]]
+    let k: real[1][4][4] = 0
+    for i in 0 .. 3
+        for j in 0 .. 3
+            k[i][j] = bb[i][j] + bb[j][i] - (if i == j then sg else 0.0)
+        end
+        k[i][3] = z[i]
+        k[3][i] = z[i]
+    end
+    k[3][3] = sg
+    let lam, v = jacobi_eig4(k)
+    let im = 0
+    for i in 1 .. 4
+        if lam[i] > lam[im]
+            im = i
+        end
+    end
+    q = qnorm([v[0][im], v[1][im], v[2][im], v[3][im]])
+    loss = ws - lam[im]
+end
+
+## A star-tracker attitude carried from t - lat to t with the gyro: q_st fromrotvec(w lat), unit.
+fn latency(q_st: quat in -1 .. 1, w: vec3[1] in -0.1 .. 0.1, lat: real[1] in 0 .. 0.5) -> q: quat
+    q = qnorm(qmult(q_st, fromrotvec(w*lat)))
+end

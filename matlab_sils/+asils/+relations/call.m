@@ -246,7 +246,7 @@ function y = call(name, x)
             [o1] = asils.relations.nav.eci2ecef(x(1));
             y = [reshape((o1).', [], 1)];
         case 'nav::triad'
-            [o1, o2] = asils.relations.nav.triad(reshape(x(1:3), 3, 1), reshape(x(4:6), 3, 1), reshape(x(7:9), 3, 1), reshape(x(10:12), 3, 1));
+            [o1, o2] = asils.relations.nav.triad(reshape(x(1:3), 3, 1), reshape(x(4:6), 3, 1), reshape(x(7:9), 3, 1), reshape(x(10:12), 3, 1), x(13));
             y = [reshape(o1, [], 1); double(o2)];
         case 'pnt::gp_5'
             [o1] = asils.relations.pnt.gp_5(reshape(x(1:5), 5, 1));

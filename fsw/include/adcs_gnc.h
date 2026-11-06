@@ -19,8 +19,8 @@ void adcs_mekf_init(adcs_mekf_t *k, const adcs_real q0[4], adcs_real sig_att0, a
 void adcs_mekf_predict(adcs_mekf_t *k, const adcs_real w_meas[3], adcs_real dt, int stale);   /* stale: the gyro is quiet, the process noise raised (DR-fdir-002) */
 int adcs_mekf_vector(adcs_mekf_t *k, const adcs_real b_meas[3], const adcs_real r_ref[3], adcs_real sigma, adcs_real gate);
 int adcs_mekf_quat(adcs_mekf_t *k, const adcs_real q_meas[4], adcs_real sig_cross, adcs_real sig_roll, const adcs_real bs[3], adcs_real gate);
-/* 0, or -1 when either pair is (nearly) parallel and fixes no attitude (q is then left as is) */
-int adcs_triad(const adcs_real b1[3], const adcs_real b2[3], const adcs_real r1[3], const adcs_real r2[3], adcs_real q[4]);
+/* 0, or -1 when the sine of the angle between the vectors of either pair is below smin and fixes no attitude (q is then left as is) */
+int adcs_triad(const adcs_real b1[3], const adcs_real b2[3], const adcs_real r1[3], const adcs_real r2[3], adcs_real smin, adcs_real q[4]);
 /* q-method on n <= 16 vector pairs; returns the loss sum(w) - lambda_max */
 adcs_real adcs_quest(adcs_real b[][3], adcs_real r[][3], const adcs_real *w, int n, adcs_real q[4]);
 void adcs_latency(const adcs_real q_st[4], const adcs_real w[3], adcs_real lat, adcs_real q[4]);

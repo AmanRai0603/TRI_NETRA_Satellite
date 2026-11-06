@@ -14,6 +14,13 @@ impl Mekf {
         Mekf { q, b, p, arw, rrw }
     }
 
+    /// A filter at q0 with the attitude covariance pa (body frame, rad^2).
+    /// Written from the design: estimation::mekf_init_cov (src/alg).
+    pub fn with_cov(q0: &Q, pa: &[[f64; 3]; 3], sb: f64, arw: f64, rrw: f64) -> Mekf {
+        let (q, b, p) = alg::mekf_init_cov(*q0, *pa, sb);
+        Mekf { q, b, p, arw, rrw }
+    }
+
     /// Written from the design: estimation::mekf_predict (src/alg).
     pub fn predict(&mut self, wm: &V3, dt: f64, stale: bool) {
         (self.q, self.p) = alg::mekf_predict(self.q, self.b, self.p, self.arw, self.rrw, *wm, dt, stale);
@@ -36,10 +43,10 @@ impl Mekf {
     }
 }
 
-/// None when either pair is (nearly) parallel.
+/// None when the sine of the angle between the vectors of either pair is below smin (fsw_param_triad_sin_min).
 /// Written from the design: estimation::triad (src/alg).
-pub fn triad(b1: &V3, b2: &V3, r1: &V3, r2: &V3) -> Option<Q> {
-    let (q, ok) = alg::triad(*b1, *b2, *r1, *r2);
+pub fn triad(b1: &V3, b2: &V3, r1: &V3, r2: &V3, smin: f64) -> Option<Q> {
+    let (q, ok) = alg::triad(*b1, *b2, *r1, *r2, smin);
     if ok { Some(q) } else { None }
 }
 

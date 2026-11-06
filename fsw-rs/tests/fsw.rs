@@ -89,9 +89,9 @@ fn estimation() {
     }
     let (qm, _) = est::quest(&b, &r, None);
     assert!(qangle(&q, &qm) < 1e-9, "QUEST");
-    let qt = est::triad(&b[0], &b[1], &r[0], &r[1]).unwrap();
+    let qt = est::triad(&b[0], &b[1], &r[0], &r[1], 0.2).unwrap();
     assert!(qangle(&q, &qt) < 1e-9, "TRIAD");
-    assert!(est::triad(&b[0], &scale3(&b[0], 2.0), &r[0], &r[1]).is_none(), "TRIAD on parallel vectors fixes no attitude");
+    assert!(est::triad(&b[0], &scale3(&b[0], 2.0), &r[0], &r[1], 0.2).is_none(), "TRIAD on parallel vectors fixes no attitude");
     let q0 = qmult(&q, &fromrotvec(&[0.1, -0.12, 0.08]));
     let mut k = est::Mekf::new(&q0, 0.2, 1e-3, 1e-6, 1e-8);
     for _ in 0..200 {
@@ -174,7 +174,7 @@ fn detumble_blob() -> Vec<u8> {
     p.J[0][0] = 0.0067; p.J[1][1] = 0.042; p.J[2][2] = 0.042; p.igrf_nmax = 10; p.rate_lpf_s = 0.3;
     // the values params.toml requires to be positive (the flight software refuses a blob without them)
     p.ss_eclipse = 1; p.gd_T = 1.0; p.mtq_phi = 0.01; p.rw_phi = 0.01; p.rw_dt = 0.1; p.fdir_s = 3.0; p.fdir_win_s = 120.0; p.fdir_h_frac = 0.005; p.rcsd_T_damp_s = 20.0; p.rcsd_period_s = 1.0;
-    p.st_coast_s = 900.0; p.mekf_sig_mag = 0.01; p.mekf_sig_sun = 0.005; p.mekf_meas_scale = 1.0; p.clock_step_max_s = 60.0; p.gyro_stale_ticks = 3;
+    p.st_coast_s = 900.0; p.mekf_sig_mag = 0.01; p.mekf_sig_sun = 0.005; p.mekf_meas_scale = 1.0; p.clock_step_max_s = 60.0; p.gyro_stale_ticks = 3; p.st_norm_tol = 1e-3; p.triad_sin_min = 0.2;
     let mut blob = vec![0u8; adcs_fsw::params::BLOB_SIZE];
     p.encode(&mut blob);
     blob
@@ -268,7 +268,7 @@ fn a_silent_magnetometer_brings_safe_mode() {
         p.mtq_period = 1.0; p.mtq_meas = 0.2; p.m_max = 0.2; p.bdot_k = 1e-3; p.has_gyro = 1;
         p.J[0][0] = 0.0067; p.J[1][1] = 0.042; p.J[2][2] = 0.042; p.igrf_nmax = 10; p.rate_lpf_s = 0.3;
         p.ss_eclipse = 1; p.gd_T = 1.0; p.mtq_phi = 0.01; p.rw_phi = 0.01; p.rw_dt = 0.1; p.fdir_s = 3.0; p.fdir_win_s = 120.0; p.fdir_h_frac = 0.005; p.rcsd_T_damp_s = 20.0; p.rcsd_period_s = 1.0;
-        p.st_coast_s = 900.0; p.mekf_sig_mag = 0.01; p.mekf_sig_sun = 0.005; p.mekf_meas_scale = 1.0; p.clock_step_max_s = 60.0; p.gyro_stale_ticks = 3;
+        p.st_coast_s = 900.0; p.mekf_sig_mag = 0.01; p.mekf_sig_sun = 0.005; p.mekf_meas_scale = 1.0; p.clock_step_max_s = 60.0; p.gyro_stale_ticks = 3; p.st_norm_tol = 1e-3; p.triad_sin_min = 0.2;
         let mut blob = vec![0u8; adcs_fsw::params::BLOB_SIZE];
         p.encode(&mut blob);
         let mut hal = Stub::default();
@@ -299,7 +299,7 @@ fn a_silent_magnetometer_brings_safe_mode() {
     p.mtq_period = 1.0; p.mtq_meas = 0.2; p.m_max = 0.2; p.bdot_k = 1e-3; p.has_gyro = 1;
     p.J[0][0] = 0.0067; p.J[1][1] = 0.042; p.J[2][2] = 0.042; p.igrf_nmax = 10; p.rate_lpf_s = 0.3;
     p.ss_eclipse = 1; p.gd_T = 1.0; p.mtq_phi = 0.01; p.rw_phi = 0.01; p.rw_dt = 0.1; p.fdir_s = 3.0; p.fdir_win_s = 120.0; p.fdir_h_frac = 0.005; p.rcsd_T_damp_s = 20.0; p.rcsd_period_s = 1.0;
-    p.st_coast_s = 900.0; p.mekf_sig_mag = 0.01; p.mekf_sig_sun = 0.005; p.mekf_meas_scale = 1.0; p.clock_step_max_s = 60.0; p.gyro_stale_ticks = 3;
+    p.st_coast_s = 900.0; p.mekf_sig_mag = 0.01; p.mekf_sig_sun = 0.005; p.mekf_meas_scale = 1.0; p.clock_step_max_s = 60.0; p.gyro_stale_ticks = 3; p.st_norm_tol = 1e-3; p.triad_sin_min = 0.2;
     let mut blob = vec![0u8; adcs_fsw::params::BLOB_SIZE];
     p.encode(&mut blob);
     let mut f = Fsw::new();

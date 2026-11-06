@@ -3951,3 +3951,27 @@ from = "stated"
 to = "stated"
 content = [["value", "number", "2.0"], ["value", "source", "the loop as the flight software flies it: fsw_tune_rw_damping (2.0, S7.13); 1.0.0's 0.707 (adcs_ref_c1) was a figure of the analysis row, not of the flown loop (DR-ctl-001)"]]
 why = "ctl's analysis row states the loop as flown (docs/S11_INVENTORY.md G6)"
+
+[[revision.method]]
+node = "fsw_estimation"
+pseudocode = "design/revisions/S11.6/estimation.pc"
+path = "fsw/pseudocode/03_estimation.pc"
+transcribes = "fsw/pseudocode/03_estimation.pc as S11.5 left it, with st_plausible and st_head (the plausibility test the filter's start and its updates both call), triad's refusal by the sine of the angle between its vectors (the threshold an argument), triad_cov (the covariance of the TRIAD attitude from the geometry) and mekf_init_cov (the start with that covariance)"
+source = "docs/S11_INVENTORY.md F4 (a design method both the start and the update call; the tracker's quaternion within fsw_param_st_norm_tol of unit length, a head the product carries) and G1 (TRIAD refused when the sine of the angle between the Sun and the field is below fsw_param_triad_sin_min; the start covariance from the geometry; a sensor rejected for good restarts the filter); Shuster and Oh (1981), Three-axis attitude determination from vector observations, J. Guidance and Control 4(1):70-77: the TRIAD attitude error about the first vector is the second vector's noise over the sine of the angle between them (the covariance of triad_cov; checked here by 2e5 Monte Carlo draws, matching within 0.3 %); Markley and Crassidis (2014), Fundamentals of Spacecraft Attitude Determination and Control, the TRIAD method"
+generate = ["flight"]
+uses = ["01_math.pc", "02_time_frames_models.pc", "02_igrf13.pc"]
+why = "the estimator's start as the design's: the plausibility test of a tracker reading (F4) and the TRIAD refusal and start covariance (G1); the tick hands the facts and keeps the order"
+
+[[revision.change]]
+match = { nodes = ["fsw_param_st_norm_tol"] }
+from = "stated"
+to = "stated"
+content = [["value", "number", "0.001"], ["value", "source", "docs/S11_INVENTORY.md F4 (S11.6): how far from unit length a star tracker's quaternion may be and still be a reading, 1e-3, the value the tick held as ST_NORM_TOL for its updates (the start now asks the same test); the developer's, for the owner to sign or override"]]
+why = "the tracker plausibility tolerance as a stated flight parameter (F4, S11.6), what the tick held as a constant"
+
+[[revision.change]]
+match = { nodes = ["fsw_param_triad_sin_min"] }
+from = "stated"
+to = "stated"
+content = [["value", "number", "0.2"], ["value", "source", "docs/S11_INVENTORY.md G1 (S11.6): the least sine of the angle between the Sun and the field (11.5 deg) at which TRIAD fixes an attitude, 0.2 within the 0.15 to 0.25 the inventory allows; Shuster and Oh (1981), J. Guidance and Control 4(1):70-77: the attitude error about the first vector is the second vector's noise over this sine, 5 times the field's noise at 0.2; the developer's, for the owner to sign or override"]]
+why = "TRIAD's threshold as a stated flight parameter (G1, S11.6), 1e-3 before"

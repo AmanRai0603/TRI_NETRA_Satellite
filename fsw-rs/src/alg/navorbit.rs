@@ -82,23 +82,23 @@ pub fn onboard_orbit(r0: [f64; 3], v0: [f64; 3], have: bool, ok: bool, r_fix: [f
     have_r = have;
     if crate::alg::navorbit::gnss_usable(ok, r_fix) {
         if ecef {
-            let __t73 = crate::alg::navorbit::fix_eci(r_fix, v_fix, (jd - (lat / 86400.0)));
-            r = __t73.0;
-            v = __t73.1;
+            let __t78 = crate::alg::navorbit::fix_eci(r_fix, v_fix, (jd - (lat / 86400.0)));
+            r = __t78.0;
+            v = __t78.1;
         } else {
             r = r_fix;
             v = v_fix;
         }
         if (lat > 0.0) {
-            let __t74 = crate::alg::navorbit::verlet(r, v, lat, mu);
-            r = __t74.0;
-            v = __t74.1;
+            let __t79 = crate::alg::navorbit::verlet(r, v, lat, mu);
+            r = __t79.0;
+            v = __t79.1;
         }
         have_r = true;
     } else if have {
-        let __t75 = crate::alg::navorbit::verlet(r0, v0, dt, mu);
-        r = __t75.0;
-        v = __t75.1;
+        let __t80 = crate::alg::navorbit::verlet(r0, v0, dt, mu);
+        r = __t80.0;
+        v = __t80.1;
     }
     (r, v, have_r)
 }

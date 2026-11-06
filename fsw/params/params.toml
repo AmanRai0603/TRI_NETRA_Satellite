@@ -665,3 +665,15 @@ type = "u8"
 doc = "ticks a gyro sample may stay unchanged (or unanswered) before the gyro is quiet: its rate is zeroed for the controllers, the estimator's process noise is raised and the star-tracker coast ends (DR-fdir-002)"
 min = 1
 max = 100
+[[field]]
+name = "st_norm_tol"
+type = "f64"
+doc = "how far from unit length a star tracker's quaternion may be and still be a reading: the filter's start and its updates both refuse a frame beyond it and count it (F4, S11.6)"
+positive = true
+max = 0.1
+[[field]]
+name = "triad_sin_min"
+type = "f64"
+doc = "the least sine of the angle between the Sun and the field at which TRIAD fixes an attitude; below it the pair is refused (G1, S11.6; Shuster and Oh 1981)"
+positive = true
+max = 0.5

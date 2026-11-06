@@ -1201,6 +1201,126 @@ int pc_call(const char *name, const double *x, int nx, double *out, int *ny) {
     }
         return 0;
     }
+    if (strcmp(name, "estimation::mekf_init_cov") == 0) {
+        if (nx != 14) { return -1; }
+    {
+        pc_a4f a0;
+        pc_a3a3f a1;
+        double a2;
+        a0.v[0] = x[0];
+        a0.v[1] = x[1];
+        a0.v[2] = x[2];
+        a0.v[3] = x[3];
+        a1.v[0].v[0] = x[4];
+        a1.v[0].v[1] = x[5];
+        a1.v[0].v[2] = x[6];
+        a1.v[1].v[0] = x[7];
+        a1.v[1].v[1] = x[8];
+        a1.v[1].v[2] = x[9];
+        a1.v[2].v[0] = x[10];
+        a1.v[2].v[1] = x[11];
+        a1.v[2].v[2] = x[12];
+        a2 = x[13];
+        {
+            estimation_mekf_init_cov_out r = estimation_mekf_init_cov(a0, a1, a2);
+            out[(*ny)++] = r.q.v[0];
+            out[(*ny)++] = r.q.v[1];
+            out[(*ny)++] = r.q.v[2];
+            out[(*ny)++] = r.q.v[3];
+            out[(*ny)++] = r.b.v[0];
+            out[(*ny)++] = r.b.v[1];
+            out[(*ny)++] = r.b.v[2];
+            out[(*ny)++] = r.p.v[0].v[0];
+            out[(*ny)++] = r.p.v[0].v[1];
+            out[(*ny)++] = r.p.v[0].v[2];
+            out[(*ny)++] = r.p.v[0].v[3];
+            out[(*ny)++] = r.p.v[0].v[4];
+            out[(*ny)++] = r.p.v[0].v[5];
+            out[(*ny)++] = r.p.v[1].v[0];
+            out[(*ny)++] = r.p.v[1].v[1];
+            out[(*ny)++] = r.p.v[1].v[2];
+            out[(*ny)++] = r.p.v[1].v[3];
+            out[(*ny)++] = r.p.v[1].v[4];
+            out[(*ny)++] = r.p.v[1].v[5];
+            out[(*ny)++] = r.p.v[2].v[0];
+            out[(*ny)++] = r.p.v[2].v[1];
+            out[(*ny)++] = r.p.v[2].v[2];
+            out[(*ny)++] = r.p.v[2].v[3];
+            out[(*ny)++] = r.p.v[2].v[4];
+            out[(*ny)++] = r.p.v[2].v[5];
+            out[(*ny)++] = r.p.v[3].v[0];
+            out[(*ny)++] = r.p.v[3].v[1];
+            out[(*ny)++] = r.p.v[3].v[2];
+            out[(*ny)++] = r.p.v[3].v[3];
+            out[(*ny)++] = r.p.v[3].v[4];
+            out[(*ny)++] = r.p.v[3].v[5];
+            out[(*ny)++] = r.p.v[4].v[0];
+            out[(*ny)++] = r.p.v[4].v[1];
+            out[(*ny)++] = r.p.v[4].v[2];
+            out[(*ny)++] = r.p.v[4].v[3];
+            out[(*ny)++] = r.p.v[4].v[4];
+            out[(*ny)++] = r.p.v[4].v[5];
+            out[(*ny)++] = r.p.v[5].v[0];
+            out[(*ny)++] = r.p.v[5].v[1];
+            out[(*ny)++] = r.p.v[5].v[2];
+            out[(*ny)++] = r.p.v[5].v[3];
+            out[(*ny)++] = r.p.v[5].v[4];
+            out[(*ny)++] = r.p.v[5].v[5];
+        }
+    }
+        return 0;
+    }
+    if (strcmp(name, "estimation::st_plausible") == 0) {
+        if (nx != 8) { return -1; }
+    {
+        pc_a4f a0;
+        bool a1;
+        int64_t a2;
+        int64_t a3;
+        double a4;
+        a0.v[0] = x[0];
+        a0.v[1] = x[1];
+        a0.v[2] = x[2];
+        a0.v[3] = x[3];
+        a1 = x[4] != 0.0;
+        a2 = (int64_t)x[5];
+        a3 = (int64_t)x[6];
+        a4 = x[7];
+        {
+            bool r = estimation_st_plausible(a0, a1, a2, a3, a4);
+            out[(*ny)++] = r ? 1.0 : 0.0;
+        }
+    }
+        return 0;
+    }
+    if (strcmp(name, "estimation::st_head") == 0) {
+        if (nx != 12) { return -1; }
+    {
+        pc_a2a4f a0;
+        pc_a2b a1;
+        int64_t a2;
+        double a3;
+        a0.v[0].v[0] = x[0];
+        a0.v[0].v[1] = x[1];
+        a0.v[0].v[2] = x[2];
+        a0.v[0].v[3] = x[3];
+        a0.v[1].v[0] = x[4];
+        a0.v[1].v[1] = x[5];
+        a0.v[1].v[2] = x[6];
+        a0.v[1].v[3] = x[7];
+        a1.v[0] = x[8] != 0.0;
+        a1.v[1] = x[9] != 0.0;
+        a2 = (int64_t)x[10];
+        a3 = x[11];
+        {
+            estimation_st_head_out r = estimation_st_head(a0, a1, a2, a3);
+            out[(*ny)++] = (double)r.h;
+            out[(*ny)++] = r.found ? 1.0 : 0.0;
+            out[(*ny)++] = (double)r.refused;
+        }
+    }
+        return 0;
+    }
     if (strcmp(name, "estimation::mekf_predict") == 0) {
         if (nx != 50) { return -1; }
     {
@@ -1710,12 +1830,13 @@ int pc_call(const char *name, const double *x, int nx, double *out, int *ny) {
         return 0;
     }
     if (strcmp(name, "estimation::triad") == 0) {
-        if (nx != 12) { return -1; }
+        if (nx != 13) { return -1; }
     {
         pc_a3f a0;
         pc_a3f a1;
         pc_a3f a2;
         pc_a3f a3;
+        double a4;
         a0.v[0] = x[0];
         a0.v[1] = x[1];
         a0.v[2] = x[2];
@@ -1728,13 +1849,44 @@ int pc_call(const char *name, const double *x, int nx, double *out, int *ny) {
         a3.v[0] = x[9];
         a3.v[1] = x[10];
         a3.v[2] = x[11];
+        a4 = x[12];
         {
-            estimation_triad_out r = estimation_triad(a0, a1, a2, a3);
+            estimation_triad_out r = estimation_triad(a0, a1, a2, a3, a4);
             out[(*ny)++] = r.q.v[0];
             out[(*ny)++] = r.q.v[1];
             out[(*ny)++] = r.q.v[2];
             out[(*ny)++] = r.q.v[3];
             out[(*ny)++] = r.ok ? 1.0 : 0.0;
+        }
+    }
+        return 0;
+    }
+    if (strcmp(name, "estimation::triad_cov") == 0) {
+        if (nx != 8) { return -1; }
+    {
+        pc_a3f a0;
+        pc_a3f a1;
+        double a2;
+        double a3;
+        a0.v[0] = x[0];
+        a0.v[1] = x[1];
+        a0.v[2] = x[2];
+        a1.v[0] = x[3];
+        a1.v[1] = x[4];
+        a1.v[2] = x[5];
+        a2 = x[6];
+        a3 = x[7];
+        {
+            pc_a3a3f r = estimation_triad_cov(a0, a1, a2, a3);
+            out[(*ny)++] = r.v[0].v[0];
+            out[(*ny)++] = r.v[0].v[1];
+            out[(*ny)++] = r.v[0].v[2];
+            out[(*ny)++] = r.v[1].v[0];
+            out[(*ny)++] = r.v[1].v[1];
+            out[(*ny)++] = r.v[1].v[2];
+            out[(*ny)++] = r.v[2].v[0];
+            out[(*ny)++] = r.v[2].v[1];
+            out[(*ny)++] = r.v[2].v[2];
         }
     }
         return 0;

@@ -80,6 +80,15 @@ function y = call(name, x)
         case 'estimation::mekf_init'
             [o1, o2, o3] = asils.alg.estimation.mekf_init(reshape(x(1:4), 4, 1), x(5), x(6));
             y = [reshape(o1, [], 1); reshape(o2, [], 1); reshape((o3).', [], 1)];
+        case 'estimation::mekf_init_cov'
+            [o1, o2, o3] = asils.alg.estimation.mekf_init_cov(reshape(x(1:4), 4, 1), reshape(x(5:13), 3, 3).', x(14));
+            y = [reshape(o1, [], 1); reshape(o2, [], 1); reshape((o3).', [], 1)];
+        case 'estimation::st_plausible'
+            [o1] = asils.alg.estimation.st_plausible(reshape(x(1:4), 4, 1), (x(5) ~= 0), x(6), x(7), x(8));
+            y = [double(o1)];
+        case 'estimation::st_head'
+            [o1, o2, o3] = asils.alg.estimation.st_head(reshape(x(1:8), 4, 2).', reshape(x(9:10), 2, 1), x(11), x(12));
+            y = [double(o1); double(o2); double(o3)];
         case 'estimation::mekf_predict'
             [o1, o2] = asils.alg.estimation.mekf_predict(reshape(x(1:4), 4, 1), reshape(x(5:7), 3, 1), reshape(x(8:43), 6, 6).', x(44), x(45), reshape(x(46:48), 3, 1), x(49), (x(50) ~= 0));
             y = [reshape(o1, [], 1); reshape((o2).', [], 1)];
@@ -99,8 +108,11 @@ function y = call(name, x)
             [o1, o2, o3, o4] = asils.alg.estimation.mekf_quat(reshape(x(1:4), 4, 1), reshape(x(5:7), 3, 1), reshape(x(8:43), 6, 6).', reshape(x(44:47), 4, 1), x(48), x(49), reshape(x(50:52), 3, 1), x(53));
             y = [reshape(o1, [], 1); reshape(o2, [], 1); reshape((o3).', [], 1); double(o4)];
         case 'estimation::triad'
-            [o1, o2] = asils.alg.estimation.triad(reshape(x(1:3), 3, 1), reshape(x(4:6), 3, 1), reshape(x(7:9), 3, 1), reshape(x(10:12), 3, 1));
+            [o1, o2] = asils.alg.estimation.triad(reshape(x(1:3), 3, 1), reshape(x(4:6), 3, 1), reshape(x(7:9), 3, 1), reshape(x(10:12), 3, 1), x(13));
             y = [reshape(o1, [], 1); double(o2)];
+        case 'estimation::triad_cov'
+            [o1] = asils.alg.estimation.triad_cov(reshape(x(1:3), 3, 1), reshape(x(4:6), 3, 1), x(7), x(8));
+            y = [reshape((o1).', [], 1)];
         case 'estimation::quest'
             [o1, o2] = asils.alg.estimation.quest(reshape(x(1:48), 3, 16).', reshape(x(49:96), 3, 16).', reshape(x(97:112), 16, 1), x(113));
             y = [reshape(o1, [], 1); double(o2)];

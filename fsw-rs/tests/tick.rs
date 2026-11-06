@@ -60,7 +60,7 @@ fn params(start: Mode, sun_gps: bool) -> Params {
     p.bdot_law = 0; p.mtq_period = 1.0; p.mtq_meas = 0.2; p.m_max = 0.2; p.bdot_k = 1e-3; p.has_gyro = 1;
     p.J[0][0] = 0.0067; p.J[1][1] = 0.042; p.J[2][2] = 0.042; p.igrf_nmax = 10; p.rate_lpf_s = 0.3;
     p.ss_eclipse = 1; p.gd_T = 1.0; p.mtq_phi = 0.01; p.rw_phi = 0.01; p.rw_dt = 0.1; p.fdir_s = 3.0; p.fdir_win_s = 120.0; p.fdir_h_frac = 0.005; p.rcsd_T_damp_s = 20.0; p.rcsd_period_s = 1.0;
-    p.st_coast_s = 900.0; p.mekf_sig_mag = 0.01; p.mekf_sig_sun = 0.005; p.mekf_meas_scale = 1.0; p.clock_step_max_s = 60.0; p.gyro_stale_ticks = 3;
+    p.st_coast_s = 900.0; p.mekf_sig_mag = 0.01; p.mekf_sig_sun = 0.005; p.mekf_meas_scale = 1.0; p.clock_step_max_s = 60.0; p.gyro_stale_ticks = 3; p.st_norm_tol = 1e-3; p.triad_sin_min = 0.2;
     if sun_gps {
         p.has_sun = 1; p.has_gps = 1; p.gnss_ecef = 0; p.gyro_arw = 1e-6; p.gyro_rrw = 1e-8;
         p.mtq_Kp = [1e-3; 3]; p.mtq_Kd = [1e-2; 3];
@@ -127,8 +127,12 @@ impl Scene {
         let (u, du) = (n*t, n);
         let r = [rr*u.cos(), rr*u.sin()*inc.cos(), rr*u.sin()*inc.sin()];
         let v = [-rr*du*u.sin(), rr*du*u.cos()*inc.cos(), rr*du*u.cos()*inc.sin()];
+        self.feed_at(hal, &r, &v, t, jd);
+    }
+    /// The same scene at a given position and velocity (a test that wants the Sun and the field at an angle of its choosing).
+    fn feed_at(&self, hal: &mut Stub, r: &V3, v: &V3, t: f64, jd: f64) {
         let a = dcm(&self.q);
-        let b = mat3_vec(&a, &env::field_eci(&r, jd, &self.gh, 10));
+        let b = mat3_vec(&a, &env::field_eci(r, jd, &self.gh, 10));
         let s = mat3_vec(&a, &env::sun_model(jd));
         hal.mag[0] = 1; for i in 0..3 { put16(&mut hal.mag[1 + 2*i..], b[i]/MAG_LSB_T); }
         hal.sun[0] = 1; for i in 0..3 { put16(&mut hal.sun[1 + 2*i..], s[i]*ADCS_Q15); }
@@ -316,4 +320,134 @@ fn without_a_gyro_a_tumbling_body_does_not_leave_detumble() {
 #[test]
 fn a_gyro_failing_in_detumble_does_not_let_a_tumbling_body_go() {
     assert!(detumble_exit(true, 0.0, 0.1, Some(3)).is_none(), "a gyro that failed at 3 s let the tumbling body leave detumble");
+}
+
+// ---- F4, G1: the estimator's start (S11.6) ----
+
+/// A star-tracker frame of one head, valid or not, carrying the quaternion `q` as it is (its norm is the caller's).
+fn st_frame(hal: &mut Stub, q: &Q, valid: bool) {
+    let mut pl = [0u8; 18];
+    pl[0] = 1; pl[1] = valid as u8;
+    for k in 0..4 { put32(&mut pl[2 + 4*k..], q[k]*1073741824.0); }
+    let mut fr = vec![ST_SYNC1, ST_SYNC2, 18];
+    fr.extend_from_slice(&pl);
+    fr.extend_from_slice(&crc16(&pl).to_le_bytes());
+    hal.uart[ST_UART as usize].extend_from_slice(&fr);
+}
+
+/// `secs` of the scene at the fixed position `r` (no velocity), the star tracker's frame as `st` makes it (None: no tracker);
+/// returns the flight software with its attitude error [deg] at the end (180: no attitude).
+fn start_run(p: &Params, sc: &Scene, r: V3, secs: f64, st: Option<&dyn Fn(&Q) -> Q>) -> (Fsw, f64) {
+    let (mut hal, mut f) = (Stub::default(), Fsw::new());
+    f.init(ABI_VERSION, &blob(p), 0).expect("init");
+    for k in 0..(secs/0.1).round() as u64 {
+        let t = k as f64*0.1;
+        sc.feed_at(&mut hal, &r, &[0.0; 3], t, JD0 + t/DAY);
+        if let Some(mk) = st { st_frame(&mut hal, &mk(&sc.q), true); }
+        hal.now_ns = (t*1e9).round() as u64;
+        let now = hal.now_ns; f.step(&mut hal, now);
+    }
+    let e = sc.err_deg(&f);
+    (f, e)
+}
+
+fn tracker_params(heads: u8) -> Params {
+    let mut p = params(Mode::NadirMtq, true);
+    p.has_st = 1; p.n_heads = heads; p.st_bs = [[0.0, 0.0, 1.0]; 2]; p.st_noise_cross = 1e-4; p.st_noise_roll = 1e-3;
+    p
+}
+
+/// A tracker frame whose quaternion has the norm 0.5 (the right attitude, the wrong length) is no reading: the filter does not
+/// start from it, the refusal is counted, and the Sun and the field start the filter in its place.
+#[test]
+fn a_tracker_frame_of_norm_half_is_refused_at_the_start_and_counted() {
+    let sc = Scene::new();
+    let half = |q: &Q| [0.5*q[0], 0.5*q[1], 0.5*q[2], 0.5*q[3]];
+    let (f, e) = start_run(&tracker_params(1), &sc, [6.9e6, 0.0, 0.0], 60.0, Some(&half));
+    assert!(f.est_counts().0 > 0, "no refusal counted for a frame of norm 0.5");
+    assert!(e < 1.0, "the filter started from the frame of norm 0.5 (or from nothing): its attitude is {e} deg off");
+}
+
+/// A unit frame starts the filter at once, and nothing is refused.
+#[test]
+fn a_unit_tracker_frame_starts_the_filter() {
+    let sc = Scene::new();
+    let unit = |q: &Q| *q;
+    let (f, e) = start_run(&tracker_params(1), &sc, [6.9e6, 0.0, 0.0], 5.0, Some(&unit));
+    assert!(e < 0.01, "the filter started from a unit frame is {e} deg off");
+    assert_eq!(f.est_counts().0, 0, "a unit frame was refused");
+}
+
+/// A product that carries no tracker head (n_heads = 0) never has one selected, whatever the frame says.
+#[test]
+fn with_no_head_configured_none_is_ever_selected() {
+    let mut p = params(Mode::NadirMtq, false);
+    p.has_st = 1; p.n_heads = 0; p.st_bs = [[0.0, 0.0, 1.0]; 2];
+    let sc = Scene::new();
+    let unit = |q: &Q| *q;
+    let (_f, e) = start_run(&p, &sc, [6.9e6, 0.0, 0.0], 30.0, Some(&unit));
+    assert!(e == 180.0, "a head the product does not carry started the filter ({e} deg off)");
+}
+
+/// The angle [deg] between the Sun and the field at the position r, at the date of the scene's start.
+fn sun_field_deg(sc: &Scene, r: &V3) -> f64 {
+    let (s, b) = (env::sun_model(JD0), env::field_eci(r, JD0, &sc.gh, 10));
+    let c = (dot(&s, &b)/(norm3(&s)*norm3(&b))).clamp(-1.0, 1.0);
+    c.acos().to_degrees()
+}
+
+/// The position on the orbit's sphere where the Sun and the field are closest to `deg` apart (a grid of 1 deg).
+fn position_at_angle(sc: &Scene, deg: f64) -> V3 {
+    let mut best = ([6.9e6, 0.0, 0.0], f64::INFINITY);
+    for la in -89..90 {
+        for lo in 0..360 {
+            let (la, lo) = ((la as f64).to_radians(), (lo as f64).to_radians());
+            let r = [6.9e6*la.cos()*lo.cos(), 6.9e6*la.cos()*lo.sin(), 6.9e6*la.sin()];
+            let d = (sun_field_deg(sc, &r) - deg).abs();
+            if d < best.1 { best = (r, d); }
+        }
+    }
+    assert!(best.1 < 0.5, "no position with the Sun and the field {deg} deg apart");
+    best.0
+}
+
+/// TRIAD with the Sun and the field 5 deg apart fixes the attitude about the Sun with the field's noise over the sine of that
+/// angle (Shuster and Oh 1981): it is refused (the sine below 0.15 to 0.25), and the filter does not start. Well apart it does.
+#[test]
+fn triad_is_refused_when_the_sun_and_the_field_are_5_deg_apart() {
+    let (sc, p) = (Scene::new(), params(Mode::NadirMtq, true));
+    let near = position_at_angle(&sc, 5.0);
+    let (_f, e) = start_run(&p, &sc, near, 30.0, None);
+    assert!(e == 180.0, "TRIAD started the filter with the Sun and the field {:.1} deg apart ({e} deg off)", sun_field_deg(&sc, &near));
+    let far = position_at_angle(&sc, 60.0);
+    let (_f, e) = start_run(&p, &sc, far, 30.0, None);
+    assert!(e < 1.0, "TRIAD with the Sun and the field 60 deg apart left the filter {e} deg off");
+}
+
+fn get16(b: &[u8]) -> i16 { i16::from_le_bytes([b[0], b[1]]) }
+
+/// A magnetometer whose readings are rejected for good, with the Sun accepted every cycle, restarts the filter: the divergence
+/// count is the sensor's own, not reset by another sensor's accepted update.
+#[test]
+fn a_sensor_rejected_for_good_restarts_the_filter_while_another_is_accepted() {
+    let mut p = params(Mode::NadirMtq, true);
+    p.mekf_gate = 11.34; p.mekf_rej_max = 20.0;
+    let (sc, mut hal, mut f) = (Scene::new(), Stub::default(), Fsw::new());
+    f.init(ABI_VERSION, &blob(&p), 0).expect("init");
+    let mut at_60 = 0;
+    for k in 0..1200u64 {
+        let t = k as f64*0.1;
+        sc.feed(&mut hal, t, JD0 + t/DAY);
+        if t >= 60.0 {
+            // the field turned a quarter turn about the body's x axis, from here on: a magnetometer that is wrong for good
+            let (y, z) = (get16(&hal.mag[3..]), get16(&hal.mag[5..]));
+            hal.mag[3..5].copy_from_slice(&(-z).to_le_bytes()); hal.mag[5..7].copy_from_slice(&y.to_le_bytes());
+        }
+        hal.now_ns = (t*1e9).round() as u64;
+        let now = hal.now_ns; f.step(&mut hal, now);
+        if k == 599 { at_60 = f.est_counts().1; }
+    }
+    assert!(sc.err_deg(&f) < 180.0, "the filter did not start at all");
+    assert_eq!(at_60, 0, "the filter restarted with every sensor right");
+    assert!(f.est_counts().1 > at_60, "a magnetometer wrong for 60 s and a Sun sensor right never restarted the filter");
 }

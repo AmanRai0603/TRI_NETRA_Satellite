@@ -354,21 +354,24 @@ pub fn eci2ecef(jd: f64) -> [[f64; 3]; 3] {
     c
 }
 
-/// TRIAD from two body vectors and their references; ok = false when either pair is within
-/// 1e-3 (0.06 deg) of parallel, which fixes no attitude.
+/// TRIAD from two body vectors and their references; ok = false when either pair has the sine of its angle below smin
+/// (S11.6, G1): the attitude about the first vector comes from the second, with an error of the second's noise over that sine
+/// (Shuster and Oh 1981: the covariance below), so a pair 5 deg apart fixes nothing the filter should
+/// trust. smin is fsw_param_triad_sin_min (0.2, the developer's value within the 0.15 to 0.25 the inventory allows).
 /// - b1: real[1][3] (passed a plain number)
 /// - b2: real[1][3] (passed a plain number)
 /// - r1: real[1][3] (passed a plain number)
 /// - r2: real[1][3] (passed a plain number)
+/// - smin: real[1] (passed a plain number)
 /// - returns q: real[1][4] (passed a plain number)
 /// - returns ok: bool (passed true or false)
 #[allow(clippy::too_many_arguments)]
-pub fn triad(b1: [f64; 3], b2: [f64; 3], r1: [f64; 3], r2: [f64; 3]) -> ([f64; 4], bool) {
+pub fn triad(b1: [f64; 3], b2: [f64; 3], r1: [f64; 3], r2: [f64; 3], smin: f64) -> ([f64; 4], bool) {
     let mut q: [f64; 4] = [0.0; 4];
     let mut ok: bool = false;
     ok = false;
     q = [0.0; 4];
-    if ((rt::norm(rt::cross(b1, b2)) > ((0.001 * rt::norm(b1)) * rt::norm(b2))) && (rt::norm(rt::cross(r1, r2)) > ((0.001 * rt::norm(r1)) * rt::norm(r2)))) {
+    if ((rt::norm(rt::cross(b1, b2)) > ((smin * rt::norm(b1)) * rt::norm(b2))) && (rt::norm(rt::cross(r1, r2)) > ((smin * rt::norm(r1)) * rt::norm(r2)))) {
         ok = true;
         let mut tb0: [f64; 3] = rt::unit(b1);
         let mut tb1: [f64; 3] = rt::unit(rt::cross(b1, b2));

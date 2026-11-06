@@ -61,18 +61,28 @@ function [F, bus] = step(F, bus)
     m = F.mode;
     if ~(m == 0 || m == 7 || m == 5 || m == 6)            % not DETUMBLE, DETUMBLE_RCS, SPINUP, SUN_SPIN
         if ~F.ad_ok
+            h = 0; found = false;
             if p.has_st ~= 0 && z.st_ok
-                h = 0;
-                while h < p.n_heads && ~z.st_valid(h + 1), h = h + 1; end
+                % estimation::st_head: the first configured head whose reading is plausible, and how many valid frames were not
+                [h, found, refused] = asils.alg.estimation.st_head(z.q_st, z.st_valid, p.n_heads, p.st_norm_tol);
+                F.st_refused = F.st_refused + refused;
+            end
+            F.rej = [0 0 0];
+            if found
                 q0 = asils.alg.estimation.latency(z.q_st(h + 1, :).', z.w, p.st_latency);
                 F.K = mekf_new_(q0, 1e-3, 2e-4, p.gyro_arw, p.gyro_rrw);
                 F.ad_ok = true;
                 F.t_st = F.t;
             elseif z.sun_ok && z.mag_ok && F.clean && ~isempty(F.bref)
-                % Sun and field not parallel
-                [q0, ok] = asils.alg.estimation.triad(z.sun, z.b, F.gd.sun_eci, F.bref);
+                % the Sun and the field far enough apart
+                [q0, ok] = asils.alg.estimation.triad(z.sun, z.b, F.gd.sun_eci, F.bref, p.triad_sin_min);
                 if ok
-                    F.K = mekf_new_(q0, 0.05, 2e-4, p.gyro_arw, p.gyro_rrw);
+                    % the start's covariance is the geometry's (Shuster and Oh 1981): the Sun's noise and the field's, as the updates use them
+                    bn = norm3_(z.b);
+                    if bn > 1e-9, e = p.mekf_mag_err_T/bn; else, e = p.mekf_mag_err_T/1e-9; end
+                    pa = asils.alg.estimation.triad_cov(z.sun, z.b, p.mekf_sig_sun, sqrt(p.mekf_sig_mag*p.mekf_sig_mag + e*e));
+                    [q, b, P] = asils.alg.estimation.mekf_init_cov(q0, pa, 2e-4);
+                    F.K = struct('q', q, 'b', b, 'P', P, 'arw', p.gyro_arw, 'rrw', p.gyro_rrw);
                     F.ad_ok = true;
                 end
             end
@@ -81,8 +91,9 @@ function [F, bus] = step(F, bus)
             if p.has_st ~= 0 && z.st_ok
                 for h = 1:p.n_heads
                     qs = z.q_st(h, :);
-                    qn = sqrt(qs(1)*qs(1) + qs(2)*qs(2) + qs(3)*qs(3) + qs(4)*qs(4));
-                    if z.st_valid(h) && fabs_(qn - 1.0) < 1e-3          % a unit quaternion, or no reading
+                    plausible = asils.alg.estimation.st_plausible(qs.', z.st_valid(h), h - 1, p.n_heads, p.st_norm_tol);
+                    if z.st_valid(h) && ~plausible, F.st_refused = F.st_refused + 1; end       % counted, not taken
+                    if plausible                                                                % a unit quaternion, or no reading
                         wb = z.w - F.K.b;
                         ql = asils.alg.estimation.latency(qs.', wb, p.st_latency);
                         [F.K.q, F.K.b, F.K.P] = asils.alg.estimation.mekf_quat(F.K.q, F.K.b, F.K.P, ql, ...
@@ -98,26 +109,29 @@ function [F, bus] = step(F, bus)
                 if z.sun_ok && first
                     tried = tried + 1;
                     [F.K, ok] = mekf_vector_(F.K, z.sun, F.gd.sun_eci, p.mekf_sig_sun, p.mekf_gate);
-                    if ok, took = took + 1; end
+                    if ok, took = took + 1; F.rej(1) = 0; else, F.rej(1) = F.rej(1) + 1; end
                 end
                 if F.clean && ~F.mag_done && z.mag_ok && ~isempty(F.bref)
                     bn = norm3_(z.b);
                     if bn > 1e-9, e = p.mekf_mag_err_T/bn; else, e = p.mekf_mag_err_T/1e-9; end
                     F.mag_done = true; tried = tried + 1;
                     [F.K, ok] = mekf_vector_(F.K, z.b, F.bref, sqrt(p.mekf_sig_mag*p.mekf_sig_mag + e*e), p.mekf_gate);
-                    if ok, took = took + 1; end
+                    if ok, took = took + 1; F.rej(2) = 0; else, F.rej(2) = F.rej(2) + 1; end
                 end
                 if first && F.have_r && F.k_es >= 0 && F.tick - F.k_es < F.n_mtq
                     % latest Earth-sensor sample of the cycle
                     if p.es_noise > 1e-3, sg = p.es_noise; else, sg = 1e-3; end
                     tried = tried + 1;
                     [F.K, ok] = mekf_vector_(F.K, F.es_n, F.r*(-1.0), 2.0*sg, p.mekf_gate);
-                    if ok, took = took + 1; end
+                    if ok, took = took + 1; F.rej(3) = 0; else, F.rej(3) = F.rej(3) + 1; end
                     F.k_es = -1;
                 end
-                % every update gated for mekf_rej_max in a row: the estimate has diverged, re-initialise
+                % every update gated for mekf_rej_max in a row, or one sensor's alone (G1: each sensor counts its own rejections, and
+                % another sensor's accepted update does not reset them): the estimate has diverged, re-initialise
                 if tried > 0, if took > 0, F.n_rej = 0; else, F.n_rej = F.n_rej + tried; end, end
-                if p.mekf_rej_max > 0 && F.n_rej >= p.mekf_rej_max, F.ad_ok = false; F.n_rej = 0; end
+                if p.mekf_rej_max > 0 && (F.n_rej >= p.mekf_rej_max || any(F.rej >= p.mekf_rej_max))
+                    F.ad_ok = false; F.n_rej = 0; F.reinits = F.reinits + 1;
+                end
             end
         end
     end

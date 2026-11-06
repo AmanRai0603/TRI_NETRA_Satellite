@@ -20,6 +20,8 @@ typedef struct { double v[14]; } pc_a14f;
 typedef struct { double v[120]; } pc_a120f;
 typedef struct { double v[6]; } pc_a6f;
 typedef struct { pc_a6f v[6]; } pc_a6a6f;
+typedef struct { pc_a4f v[2]; } pc_a2a4f;
+typedef struct { bool v[2]; } pc_a2b;
 typedef struct { pc_a6f v[3]; } pc_a3a6f;
 typedef struct { pc_a3f v[6]; } pc_a6a3f;
 typedef struct { pc_a3f v[16]; } pc_a16a3f;
@@ -155,8 +157,6 @@ typedef struct { int64_t v[36]; } pc_a36i;
 typedef struct { int64_t v[7]; } pc_a7i;
 typedef struct { int64_t v[13]; } pc_a13i;
 typedef struct { pc_a8i v[8]; } pc_a8a8i;
-typedef struct { bool v[2]; } pc_a2b;
-typedef struct { pc_a4f v[2]; } pc_a2a4f;
 
 /* The largest |a_i|. */
 /* - a */
@@ -336,6 +336,42 @@ typedef struct { pc_a4f q; pc_a3f b; pc_a6a6f p; } estimation_mekf_init_out;
 /* - returns p */
 estimation_mekf_init_out estimation_mekf_init(pc_a4f q0, double sa, double sb);
 
+typedef struct { pc_a4f q; pc_a3f b; pc_a6a6f p; } estimation_mekf_init_cov_out;
+
+/* A filter at q0, bias zero, with the attitude covariance pa (3 x 3, body frame, rad^2) and the bias variance sb^2: the start */
+/* from a TRIAD attitude, whose covariance the measurement geometry gives (triad_cov, S11.6, G1). */
+/* - q0 */
+/* - pa */
+/* - sb */
+/* - returns q */
+/* - returns b */
+/* - returns p */
+estimation_mekf_init_cov_out estimation_mekf_init_cov(pc_a4f q0, pc_a3a3f pa, double sb);
+
+/* Whether head h of the star tracker gives a reading the filter may take (S11.6, F4): the head is one the product carries */
+/* (h < n_heads: with no head configured none is ever chosen), the frame says it is valid, and its quaternion is of unit */
+/* length within tol (a reading of norm 0.5 is not an attitude). The filter's start and its updates both ask this. */
+/* - q */
+/* - valid */
+/* - h */
+/* - n_heads */
+/* - tol */
+/* - returns ok */
+bool estimation_st_plausible(pc_a4f q, bool valid, int64_t h, int64_t n_heads, double tol);
+
+typedef struct { int64_t h; bool found; int64_t refused; } estimation_st_head_out;
+
+/* The head the filter starts from: the first configured head whose reading is plausible; refused counts the heads that */
+/* flagged a valid frame whose quaternion was not (the tick counts them). */
+/* - q_st */
+/* - valid */
+/* - n_heads */
+/* - tol */
+/* - returns h */
+/* - returns found */
+/* - returns refused */
+estimation_st_head_out estimation_st_head(pc_a2a4f q_st, pc_a2b valid, int64_t n_heads, double tol);
+
 typedef struct { pc_a4f q; pc_a6a6f p; } estimation_mekf_predict_out;
 
 /* The prediction over dt on the measured rate wm, with gyro angle and rate random walks arw, rrw: */
@@ -426,15 +462,30 @@ estimation_mekf_quat_out estimation_mekf_quat(pc_a4f q0, pc_a3f b0, pc_a6a6f p0,
 
 typedef struct { pc_a4f q; bool ok; } estimation_triad_out;
 
-/* TRIAD from two body vectors and their references; ok = false when either pair is within */
-/* 1e-3 (0.06 deg) of parallel, which fixes no attitude. */
+/* TRIAD from two body vectors and their references; ok = false when either pair has the sine of its angle below smin */
+/* (S11.6, G1): the attitude about the first vector comes from the second, with an error of the second's noise over that sine */
+/* (Shuster and Oh 1981: the covariance below), so a pair 5 deg apart fixes nothing the filter should */
+/* trust. smin is fsw_param_triad_sin_min (0.2, the developer's value within the 0.15 to 0.25 the inventory allows). */
 /* - b1 */
 /* - b2 */
 /* - r1 */
 /* - r2 */
+/* - smin */
 /* - returns q */
 /* - returns ok */
-estimation_triad_out estimation_triad(pc_a3f b1, pc_a3f b2, pc_a3f r1, pc_a3f r2);
+estimation_triad_out estimation_triad(pc_a3f b1, pc_a3f b2, pc_a3f r1, pc_a3f r2, double smin);
+
+/* The covariance of the TRIAD attitude in the body frame [rad^2], from the geometry and the two vectors' noises s1 (the */
+/* first, whose direction the attitude keeps exactly) and s2 (S11.6, G1; Shuster and Oh 1981, J. Guidance and Control 4(1):70-77, */
+/* the covariance of the TRIAD error). In the frame of the first vector t0, the normal t1 of the pair's plane and t2 = t0 x t1, */
+/* with c and sn the cosine and sine of the angle between the vectors: variance (s2^2 + c^2 s1^2)/sn^2 about t0, s1^2 about t1 */
+/* and t2, and -c s1^2/sn between t0 and t2. The attitude about t0 is only as good as the second vector over sn. */
+/* - b1 */
+/* - b2 */
+/* - s1 */
+/* - s2 */
+/* - returns pa */
+pc_a3a3f estimation_triad_cov(pc_a3f b1, pc_a3f b2, double s1, double s2);
 
 typedef struct { pc_a4f q; double loss; } estimation_quest_out;
 

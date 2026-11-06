@@ -39,11 +39,11 @@ int adcs_mekf_quat(adcs_mekf_t *k, const adcs_real qm[4], adcs_real sc, adcs_rea
     return r.took ? 1 : 0;
 }
 
-/* written from the design: estimation::triad (fsw/alg); -1 (q left as it is) when either pair is
- * within 1e-3 (0.06 deg) of parallel and fixes no attitude */
-int adcs_triad(const adcs_real b1[3], const adcs_real b2[3], const adcs_real r1[3], const adcs_real r2[3], adcs_real q[4])
+/* written from the design: estimation::triad (fsw/alg); -1 (q left as it is) when the sine of the angle between the vectors of either
+ * pair is below smin (fsw_param_triad_sin_min) and fixes no attitude */
+int adcs_triad(const adcs_real b1[3], const adcs_real b2[3], const adcs_real r1[3], const adcs_real r2[3], adcs_real smin, adcs_real q[4])
 {
-    estimation_triad_out r = estimation_triad(gl_v3(b1), gl_v3(b2), gl_v3(r1), gl_v3(r2));
+    estimation_triad_out r = estimation_triad(gl_v3(b1), gl_v3(b2), gl_v3(r1), gl_v3(r2), smin);
     if (!r.ok) return -1;
     gl_o4(r.q, q);
     return 0;

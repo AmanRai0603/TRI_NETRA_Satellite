@@ -4,7 +4,7 @@ function p = params_decode(blob)
 %   Refused (an error): bad magic, bad length, bad CRC-32 (IEEE 802.3) of the payload.
 %   A vector is a column; a matrix [n, m] has n rows of m (the blob's row-major order).
 %   Copyright (c) 2026 Agastya. All rights reserved.
-    PAYLOAD = 2242; BLOB = 2258;
+    PAYLOAD = 2258; BLOB = 2274;
     b = uint8(blob(:));
     if numel(b) < BLOB || ~isequal(char(b(1:8)'), 'ADCSCFG1')
         error('asils:fswcfg:magic', 'not an adcs-fswcfg/1 blob (bad magic or shorter than %d bytes)', BLOB);
@@ -166,6 +166,8 @@ function p = params_decode(blob)
     p.gps_latency = double(typecast(b(i:i + 7), 'double')); i = i + 8;
     p.clock_step_max_s = double(typecast(b(i:i + 7), 'double')); i = i + 8;
     p.gyro_stale_ticks = double(b(i:i + 0)); i = i + 1;
+    p.st_norm_tol = double(typecast(b(i:i + 7), 'double')); i = i + 8;
+    p.triad_sin_min = double(typecast(b(i:i + 7), 'double')); i = i + 8;
 end
 
 function c = crc32_(d)

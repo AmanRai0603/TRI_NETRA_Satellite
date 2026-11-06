@@ -72,10 +72,10 @@ static void t_estimation(void)
     adcs_quest(b, r, 0, 8, qm);
     e = adcs_qangle(q, qm);
     CHECK(e < 1e-9, "QUEST on exact stars %g rad", e);
-    adcs_triad(b[0], b[1], r[0], r[1], qm);
+    adcs_triad(b[0], b[1], r[0], r[1], 0.2, qm);
     CHECK(adcs_qangle(q, qm) < 1e-9, "TRIAD %g rad", adcs_qangle(q, qm));
     {   adcs_real bb[3] = {2*b[0][0], 2*b[0][1], 2*b[0][2]}, q1[4] = {9, 9, 9, 9};
-        CHECK(adcs_triad(b[0], bb, r[0], r[1], q1) == -1 && q1[0] == 9, "TRIAD on parallel vectors fixes no attitude"); }
+        CHECK(adcs_triad(b[0], bb, r[0], r[1], 0.2, q1) == -1 && q1[0] == 9, "TRIAD on parallel vectors fixes no attitude"); }
     {   /* MEKF converges from a 10 deg error with two exact vectors, gyro at rest */
         adcs_mekf_t K; adcs_real q0[4], th[3] = {0.1, -0.12, 0.08}, dq[4], w[3] = {0, 0, 0};
         adcs_fromrotvec(th, dq); adcs_qmult(q, dq, q0);
@@ -136,7 +136,7 @@ static int run_detumble(int16_t pwm_log[30][3])
     p.J[0][0] = 0.0067; p.J[1][1] = 0.042; p.J[2][2] = 0.042; p.igrf_nmax = 10; p.rate_lpf_s = 0.3;
     /* the values params.toml requires to be positive (the flight software refuses a blob without them) */
     p.ss_eclipse = 1; p.gd_T = 1.0; p.mtq_phi = 0.01; p.rw_phi = 0.01; p.rw_dt = 0.1; p.fdir_s = 3.0; p.fdir_win_s = 120.0; p.fdir_h_frac = 0.005; p.rcsd_T_damp_s = 20.0; p.rcsd_period_s = 1.0;
-    p.st_coast_s = 900.0; p.mekf_sig_mag = 0.01; p.mekf_sig_sun = 0.005; p.mekf_meas_scale = 1.0; p.clock_step_max_s = 60.0; p.gyro_stale_ticks = 3;
+    p.st_coast_s = 900.0; p.mekf_sig_mag = 0.01; p.mekf_sig_sun = 0.005; p.mekf_meas_scale = 1.0; p.clock_step_max_s = 60.0; p.gyro_stale_ticks = 3; p.st_norm_tol = 1e-3; p.triad_sin_min = 0.2;
     adcs_params_encode(&p, blob, sizeof blob);
     hal_stub_reset();
     in.abi_version = ADCS_FSW_ABI_VERSION; in.config_blob = blob; in.config_len = sizeof blob; in.start_ns = 0;
@@ -182,7 +182,7 @@ static void t_abi(void)
             p.jd0 = 2461407.25; p.dt = 0.1; p.mu = 3.986004418e14; p.start_mode = ADCS_MODE_DETUMBLE; p.auto_next = ADCS_MODE_NONE;
             p.mtq_period = 1.0; p.mtq_meas = 0.2; p.m_max = 0.2; p.bdot_k = 1e-3; p.J[0][0] = 0.0067; p.J[1][1] = 0.042; p.J[2][2] = 0.042;
             p.igrf_nmax = 10; p.ss_eclipse = 1; p.gd_T = 1.0; p.mtq_phi = 0.01; p.rw_phi = 0.01; p.rw_dt = 0.1; p.fdir_s = 3.0; p.fdir_win_s = 120.0; p.fdir_h_frac = 0.005;
-            p.rcsd_T_damp_s = 20.0; p.rcsd_period_s = 1.0; p.st_coast_s = 900.0; p.mekf_sig_mag = 0.01; p.mekf_sig_sun = 0.005; p.mekf_meas_scale = 1.0; p.clock_step_max_s = 60.0; p.gyro_stale_ticks = 3;
+            p.rcsd_T_damp_s = 20.0; p.rcsd_period_s = 1.0; p.st_coast_s = 900.0; p.mekf_sig_mag = 0.01; p.mekf_sig_sun = 0.005; p.mekf_meas_scale = 1.0; p.clock_step_max_s = 60.0; p.gyro_stale_ticks = 3; p.st_norm_tol = 1e-3; p.triad_sin_min = 0.2;
             if (k == 1) p.nr = 9;                      /* more rotors than the arrays hold */
             if (k == 2) p.m_max = 0.0/0.0;             /* NaN */
             if (k == 3) p.start_mode = 11;             /* no such controller state */
@@ -228,7 +228,7 @@ static void t_safe(void)
         p.mtq_period = 1.0; p.mtq_meas = 0.2; p.m_max = 0.2; p.bdot_k = 1e-3; p.has_gyro = 1;
         p.J[0][0] = 0.0067; p.J[1][1] = 0.042; p.J[2][2] = 0.042; p.igrf_nmax = 10; p.rate_lpf_s = 0.3;
         p.ss_eclipse = 1; p.gd_T = 1.0; p.mtq_phi = 0.01; p.rw_phi = 0.01; p.rw_dt = 0.1; p.fdir_s = 3.0; p.fdir_win_s = 120.0; p.fdir_h_frac = 0.005; p.rcsd_T_damp_s = 20.0; p.rcsd_period_s = 1.0;
-        p.st_coast_s = 900.0; p.mekf_sig_mag = 0.01; p.mekf_sig_sun = 0.005; p.mekf_meas_scale = 1.0; p.clock_step_max_s = 60.0; p.gyro_stale_ticks = 3;
+        p.st_coast_s = 900.0; p.mekf_sig_mag = 0.01; p.mekf_sig_sun = 0.005; p.mekf_meas_scale = 1.0; p.clock_step_max_s = 60.0; p.gyro_stale_ticks = 3; p.st_norm_tol = 1e-3; p.triad_sin_min = 0.2;
         adcs_params_encode(&p, blob, sizeof blob);
         hal_stub_reset();
         in.abi_version = ADCS_FSW_ABI_VERSION; in.config_blob = blob; in.config_len = sizeof blob; in.start_ns = 0;
@@ -292,7 +292,7 @@ static void tk_params(adcs_params_t *p, int start, int sun_gps)
     p->bdot_law = 0; p->mtq_period = 1.0; p->mtq_meas = 0.2; p->m_max = 0.2; p->bdot_k = 1e-3; p->has_gyro = 1;
     p->J[0][0] = 0.0067; p->J[1][1] = 0.042; p->J[2][2] = 0.042; p->igrf_nmax = 10; p->rate_lpf_s = 0.3;
     p->ss_eclipse = 1; p->gd_T = 1.0; p->mtq_phi = 0.01; p->rw_phi = 0.01; p->rw_dt = 0.1; p->fdir_s = 3.0; p->fdir_win_s = 120.0; p->fdir_h_frac = 0.005;
-    p->rcsd_T_damp_s = 20.0; p->rcsd_period_s = 1.0; p->st_coast_s = 900.0; p->mekf_sig_mag = 0.01; p->mekf_sig_sun = 0.005; p->mekf_meas_scale = 1.0; p->clock_step_max_s = 60.0; p->gyro_stale_ticks = 3;
+    p->rcsd_T_damp_s = 20.0; p->rcsd_period_s = 1.0; p->st_coast_s = 900.0; p->mekf_sig_mag = 0.01; p->mekf_sig_sun = 0.005; p->mekf_meas_scale = 1.0; p->clock_step_max_s = 60.0; p->gyro_stale_ticks = 3; p->st_norm_tol = 1e-3; p->triad_sin_min = 0.2;
     if (sun_gps) {
         int i;
         p->has_sun = 1; p->has_gps = 1; p->gnss_ecef = 0; p->gyro_arw = 1e-6; p->gyro_rrw = 1e-8;
@@ -356,14 +356,22 @@ static void tk_scene_init(void)
     adcs_igrf_gh(adcs_decyear(TK_JD0), TK_GH);
 }
 
+static void tk_feed_at(double t, double jd, const adcs_real r[3], const adcs_real v[3]);
 static void tk_feed(double t, double jd)
 {
     double n = 0.0011, rr = 6.9e6, inc = 97.0*ADCS_PI/180.0, u = n*t;
     adcs_real r[3] = {rr*cos(u), rr*sin(u)*cos(inc), rr*sin(u)*sin(inc)};
     adcs_real v[3] = {-rr*n*sin(u), rr*n*cos(u)*cos(inc), rr*n*cos(u)*sin(inc)};
+    tk_feed_at(t, jd, r, v);
+}
+
+/* the same scene at a given position and velocity (a test that wants the Sun and the field at an angle of its choosing) */
+static void tk_feed_at(double t, double jd, const adcs_real r[3], const adcs_real v[3])
+{
     adcs_real A[3][3], B[3], Bb[3], S[3], Sb[3];
     uint8_t pl[33], fr[48], i; uint16_t c;
-    double ds = (jd - 2451545.0)*86400.0, ws = floor(ds);        /* the fix's date after its velocity: seconds and microseconds from J2000.0 */
+    double ds = (jd - 2451545.0)*86400.0, ws = floor(ds);
+    (void)t;        /* the fix's date after its velocity: seconds and microseconds from J2000.0 */
     adcs_dcm(TK_Q, A);
     adcs_field_eci(r, jd, TK_GH, 10, B); adcs_mat3_vec(A, B, Bb);
     adcs_sun_model(jd, S); adcs_mat3_vec(A, S, Sb);
@@ -531,6 +539,121 @@ static void tk_exit_gyro_fails(void)
     CHECK(tk_exit_run(1, 0.0, 0.1, 3) < 0, "a gyro that failed at 3 s let the tumbling body leave detumble");
 }
 
+/* F4, G1 (S11.6): the estimator's start. A star-tracker frame of one head, valid, carrying the quaternion q as it is (its norm is the caller's) */
+void adcs_fsw_est_counts(uint32_t out[2]);
+
+static void tk_st_frame(const adcs_real q[4])
+{
+    uint8_t f[64], pl[18]; int k; uint16_t c;
+    pl[0] = 1; pl[1] = 1;
+    for (k = 0; k < 4; k++) put32(pl + 2 + 4*k, q[k]*ADCS_Q30);
+    f[0] = ADCS_ST_SYNC1; f[1] = ADCS_ST_SYNC2; f[2] = 18;
+    memcpy(f + 3, pl, 18); c = adcs_crc16(pl, 18); f[21] = (uint8_t)(c & 0xFF); f[22] = (uint8_t)(c >> 8);
+    hal_stub_uart_push(ADCS_ST_UART, f, 23);
+}
+
+/* `secs` of the scene at the fixed position r (no velocity), the tracker's frame the held attitude times st_scale (0: no tracker,
+ * has_st and heads as given); returns the attitude error [deg] at the end (180: no attitude); wrong_mag_from: the second from which
+ * the field is read turned a quarter turn about x (negative: never); rej_max, gate for the filter's divergence test */
+static double tk_start_run(int sun_gps, int has_st, int heads, double st_scale, const adcs_real r[3], double secs,
+                           double wrong_mag_from, double rej_max, double gate, uint32_t counts_at_60[2])
+{
+    static adcs_params_t p; static uint8_t blob[ADCS_PARAMS_BLOB_SIZE];
+    adcs_fsw_init_t in; int k, n = (int)(secs/0.1 + 0.5);
+    adcs_real v[3] = {0, 0, 0};
+    tk_scene_init(); hal_stub_reset();
+    tk_params(&p, ADCS_MODE_NADIR_MTQ, sun_gps);
+    if (has_st) {
+        p.has_st = 1; p.n_heads = (uint8_t)heads; p.st_bs[0][2] = 1; p.st_bs[1][2] = 1; p.st_noise_cross = 1e-4; p.st_noise_roll = 1e-3;
+    }
+    p.mekf_gate = gate; p.mekf_rej_max = rej_max;
+    adcs_params_encode(&p, blob, sizeof blob);
+    in.abi_version = ADCS_FSW_ABI_VERSION; in.config_blob = blob; in.config_len = sizeof blob; in.start_ns = 0;
+    CHECK(adcs_fsw_init(&in) == 0, "init (estimator start test)");
+    for (k = 0; k < n; k++) {
+        double t = k*0.1;
+        tk_feed_at(t, TK_JD0 + t/TK_DAY, r, v);
+        if (wrong_mag_from >= 0 && t >= wrong_mag_from) {       /* the field turned a quarter turn about the body's x axis: a magnetometer wrong for good */
+            int16_t y = (int16_t)(HS.mag[3] | (HS.mag[4] << 8)), z = (int16_t)(HS.mag[5] | (HS.mag[6] << 8)), ny = (int16_t)-z;
+            HS.mag[3] = (uint8_t)(ny & 0xFF); HS.mag[4] = (uint8_t)((ny >> 8) & 0xFF); HS.mag[5] = (uint8_t)(y & 0xFF); HS.mag[6] = (uint8_t)((y >> 8) & 0xFF);
+        }
+        if (has_st && st_scale > 0) { adcs_real q[4]; int i; for (i = 0; i < 4; i++) q[i] = st_scale*TK_Q[i]; tk_st_frame(q); }
+        HS.now_ns = (uint64_t)(t*1e9 + 0.5);
+        adcs_fsw_step(HS.now_ns);
+        if (counts_at_60 && k == 599) adcs_fsw_est_counts(counts_at_60);
+    }
+    return tk_err_deg();
+}
+
+static const adcs_real TK_R0[3] = {6.9e6, 0, 0};
+
+static void tk_st_norm_half(void)
+{
+    uint32_t c[2]; double e = tk_start_run(1, 1, 1, 0.5, TK_R0, 60.0, -1, 0, 0, NULL);
+    adcs_fsw_est_counts(c);
+    CHECK(c[0] > 0, "no refusal counted for a frame of norm 0.5");
+    CHECK(e < 1.0, "the filter started from the frame of norm 0.5 (or from nothing): its attitude is %g deg off", e);
+}
+
+static void tk_st_unit_starts(void)
+{
+    uint32_t c[2]; double e = tk_start_run(1, 1, 1, 1.0, TK_R0, 5.0, -1, 0, 0, NULL);
+    adcs_fsw_est_counts(c);
+    CHECK(e < 0.01, "the filter started from a unit frame is %g deg off", e);
+    CHECK(c[0] == 0, "a unit frame was refused");
+}
+
+static void tk_no_head_none_selected(void)
+{
+    double e = tk_start_run(0, 1, 0, 1.0, TK_R0, 30.0, -1, 0, 0, NULL);
+    CHECK(e == 180.0, "a head the product does not carry started the filter (%g deg off)", e);
+}
+
+/* the angle [deg] between the Sun and the field at the position r, at the date of the scene's start */
+static double tk_sun_field_deg(const adcs_real r[3])
+{
+    adcs_real s[3], b[3], c;
+    adcs_sun_model(TK_JD0, s); adcs_field_eci(r, TK_JD0, TK_GH, 10, b);
+    c = adcs_dot(s, b)/(adcs_norm3(s)*adcs_norm3(b));
+    if (c > 1) c = 1;
+    if (c < -1) c = -1;
+    return acos(c)*180.0/ADCS_PI;
+}
+
+/* the position on the orbit's sphere where the Sun and the field are closest to deg apart (a grid of 1 deg) */
+static double tk_position_at_angle(double deg, adcs_real best[3])
+{
+    double bd = 1e9; int la, lo;
+    for (la = -89; la < 90; la++) for (lo = 0; lo < 360; lo++) {
+        double a = la*ADCS_PI/180.0, l = lo*ADCS_PI/180.0, d;
+        adcs_real r[3] = {6.9e6*cos(a)*cos(l), 6.9e6*cos(a)*sin(l), 6.9e6*sin(a)};
+        d = fabs(tk_sun_field_deg(r) - deg);
+        if (d < bd) { bd = d; best[0] = r[0]; best[1] = r[1]; best[2] = r[2]; }
+    }
+    return bd;
+}
+
+static void tk_triad_refused_5deg(void)
+{
+    adcs_real near[3], far[3]; double e;
+    tk_scene_init();
+    CHECK(tk_position_at_angle(5.0, near) < 0.5, "no position with the Sun and the field 5 deg apart");
+    CHECK(tk_position_at_angle(60.0, far) < 0.5, "no position with the Sun and the field 60 deg apart");
+    e = tk_start_run(1, 0, 0, 0, near, 30.0, -1, 0, 0, NULL);
+    CHECK(e == 180.0, "TRIAD started the filter with the Sun and the field %.1f deg apart (%g deg off)", tk_sun_field_deg(near), e);
+    e = tk_start_run(1, 0, 0, 0, far, 30.0, -1, 0, 0, NULL);
+    CHECK(e < 1.0, "TRIAD with the Sun and the field 60 deg apart left the filter %g deg off", e);
+}
+
+static void tk_sensor_rejected_for_good(void)
+{
+    uint32_t c60[2] = {0, 0}, c[2]; double e = tk_start_run(1, 0, 0, 0, TK_R0, 120.0, 60.0, 20.0, 11.34, c60);
+    adcs_fsw_est_counts(c);
+    CHECK(e < 180.0, "the filter did not start at all");
+    CHECK(c60[1] == 0, "the filter restarted with every sensor right");
+    CHECK(c[1] > c60[1], "a magnetometer wrong for 60 s and a Sun sensor right never restarted the filter");
+}
+
 /* The tick tests a fix has made pass: in main's run. A fix moves its tests here from the skipped list below. */
 static const struct { const char *name; void (*fn)(void); } ticks[] = {
     { "timestamps off by 1 us change no command (F3)", tk_jitter_1us },
@@ -544,6 +667,11 @@ static const struct { const char *name; void (*fn)(void); } ticks[] = {
     { "a healthy gyro leaves detumble on its rate (F5)", tk_exit_healthy_gyro },
     { "with no gyro a tumbling body does not leave detumble (F5)", tk_exit_no_gyro },
     { "a gyro failing in detumble does not let a tumbling body go (F5)", tk_exit_gyro_fails },
+    { "a tracker frame of norm 0.5 is refused at the start and counted (F4)", tk_st_norm_half },
+    { "a unit tracker frame starts the filter (F4)", tk_st_unit_starts },
+    { "with no head configured none is ever selected (F4)", tk_no_head_none_selected },
+    { "TRIAD is refused when the Sun and the field are 5 deg apart (G1)", tk_triad_refused_5deg },
+    { "a sensor rejected for good restarts the filter while another is accepted (G1)", tk_sensor_rejected_for_good },
 };
 
 static void t_ticks(void)

@@ -10,8 +10,8 @@ function [m] = damp_dipole(w, b, k)
     m = zeros(3, 1);
     bn = sqrt(b(1)*b(1) + b(2)*b(2) + b(3)*b(3));
     if (bn > 1e-9)
-        h__86 = asils.alg.steplaws.damp_excess(w);
-        h__87 = (b / bn);
-        m = ([h__86(2)*h__87(3) - h__86(3)*h__87(2); h__86(3)*h__87(1) - h__86(1)*h__87(3); h__86(1)*h__87(2) - h__86(2)*h__87(1)] * (k / bn));
+        h__90 = asils.alg.steplaws.damp_excess(w);
+        h__91 = (b / bn);
+        m = ([h__90(2)*h__91(3) - h__90(3)*h__91(2); h__90(3)*h__91(1) - h__90(1)*h__91(3); h__90(1)*h__91(2) - h__90(2)*h__91(1)] * (k / bn));
     end
 end

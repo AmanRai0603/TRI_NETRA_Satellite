@@ -25,10 +25,9 @@ static fsw_t S;
 /* a period in whole ticks (at least one): the rate groups count ticks, they do not compare times */
 static int ticks_of(double seconds, double dt) { int n = (int)floor(seconds/dt + 0.5); return n < 1 ? 1 : n; }
 
-/* A star-tracker quaternion further than ST_NORM_TOL from unit length is not a reading. (Its
- * innovation is not gated: after a slew or a coast the filter's covariance is too small, and a
- * gate rejects the very updates that correct it; gating waits on a consistent filter.) */
-#define ST_NORM_TOL 1e-3
+/* A star-tracker quaternion further than fsw_param_st_norm_tol from unit length is not a reading: the filter's start and its updates both
+ * ask the design's estimation::st_plausible (F4). The updates' innovation is not gated: after a slew or a coast the filter's
+ * covariance is too small, and a gate rejects the very updates that correct it; gating waits on a consistent filter. */
 
 /* two-body + J2 acceleration in J2000 (the pole of date is 0.4 deg off: second order on J2); no orbit to
  * speak of, no acceleration (not a division by zero) */
@@ -238,16 +237,30 @@ int32_t adcs_fsw_step(uint64_t now_ns)
     }
     if (!(S.mode == ADCS_MODE_DETUMBLE || S.mode == ADCS_MODE_DETUMBLE_RCS || S.mode == ADCS_MODE_SPINUP || S.mode == ADCS_MODE_SUN_SPIN)) {
         if (!S.ad_ok) {
+            int h = 0, refused = 0, found = 0;
             if (p->has_st && z->st_ok) {
-                adcs_real q0[4]; int h = 0;
-                while (h < p->n_heads && !z->st_valid[h]) h++;
+                {   /* estimation::st_head (fsw/alg): the first configured head whose reading is plausible, and how many valid frames were not */
+                    pc_a2a4f qh = {{{{0}}}}; pc_a2b vh = {{0}}; estimation_st_head_out sh; int hh;
+                    for (hh = 0; hh < 2; hh++) { qh.v[hh] = gl_v4(z->q_st[hh]); vh.v[hh] = z->st_valid[hh] != 0; }
+                    sh = estimation_st_head(qh, vh, p->n_heads, p->st_norm_tol);
+                    h = (int)sh.h; refused = (int)sh.refused; found = sh.found ? 1 : 0;
+                }
+                S.st_refused += (uint32_t)refused;
+            }
+            S.rej[0] = S.rej[1] = S.rej[2] = 0;
+            if (found) {
+                adcs_real q0[4];
                 adcs_latency(z->q_st[h], z->w, p->st_latency, q0);
                 adcs_mekf_init(&S.K, q0, 1e-3, 2e-4, p->gyro_arw, p->gyro_rrw);
                 S.ad_ok = 1; S.t_st = S.t;
             } else if (z->sun_ok && z->mag_ok && S.clean && S.bref_ok) {
                 adcs_real q0[4];
-                if (adcs_triad(z->sun, z->B, S.gd.sun_eci, S.Bref, q0) == 0) {       /* Sun and field not parallel */
-                    adcs_mekf_init(&S.K, q0, 0.05, 2e-4, p->gyro_arw, p->gyro_rrw);
+                if (adcs_triad(z->sun, z->B, S.gd.sun_eci, S.Bref, p->triad_sin_min, q0) == 0) {       /* the Sun and the field far enough apart */
+                    /* the start's covariance is the geometry's (Shuster and Oh 1981): the Sun's noise and the field's, as the updates use them */
+                    adcs_real Bn = adcs_norm3(z->B), e = p->mekf_mag_err_T/(Bn > 1e-9 ? Bn : 1e-9);
+                    pc_a3a3f pa = estimation_triad_cov(gl_v3(z->sun), gl_v3(z->B), p->mekf_sig_sun, sqrt(p->mekf_sig_mag*p->mekf_sig_mag + e*e));
+                    estimation_mekf_init_cov_out ic = estimation_mekf_init_cov(gl_v4(q0), pa, 2e-4);
+                    gl_o4(ic.q, S.K.q); gl_o3(ic.b, S.K.b); gl_om66(ic.p, &S.K.P[0][0]); S.K.arw = p->gyro_arw; S.K.rrw = p->gyro_rrw;
                     S.ad_ok = 1;
                 }
             }
@@ -256,9 +269,9 @@ int32_t adcs_fsw_step(uint64_t now_ns)
             if (p->has_st && z->st_ok) {
                 int h;
                 for (h = 0; h < p->n_heads; h++) {
-                    const adcs_real *qs = z->q_st[h];
-                    adcs_real qn = sqrt(qs[0]*qs[0] + qs[1]*qs[1] + qs[2]*qs[2] + qs[3]*qs[3]);
-                    if (z->st_valid[h] && fabs(qn - 1.0) < ST_NORM_TOL) {         /* a unit quaternion, or no reading */
+                    int plausible = estimation_st_plausible(gl_v4(z->q_st[h]), z->st_valid[h] != 0, h, p->n_heads, p->st_norm_tol);
+                    if (z->st_valid[h] && !plausible) S.st_refused++;                  /* counted, not taken */
+                    if (plausible) {                                                    /* a unit quaternion, or no reading */
                         adcs_real wb[3], ql[4], bs[3];
                         adcs_sub3(z->w, S.K.b, wb);
                         adcs_latency(z->q_st[h], wb, p->st_latency, ql);
@@ -272,22 +285,25 @@ int32_t adcs_fsw_step(uint64_t now_ns)
             } else {
                 /* vector updates once per coil cycle; the field on the first clean tick of the cycle (the
                  * coils are off from the cycle start, and the magnetometer sees the previous tick's dipole) */
-                int tried = 0, took = 0;
-                if (z->sun_ok && first) { tried++; took += adcs_mekf_vector(&S.K, z->sun, S.gd.sun_eci, p->mekf_sig_sun, p->mekf_gate); }
+                int tried = 0, took = 0, ok;
+                if (z->sun_ok && first) { tried++; ok = adcs_mekf_vector(&S.K, z->sun, S.gd.sun_eci, p->mekf_sig_sun, p->mekf_gate); took += ok; S.rej[0] = ok ? 0 : S.rej[0] + 1; }
                 if (S.clean && !S.mag_done && S.bref_ok && z->mag_ok) {
                     adcs_real Bn = adcs_norm3(z->B), e = p->mekf_mag_err_T/(Bn > 1e-9 ? Bn : 1e-9);
                     S.mag_done = 1; tried++;
-                    took += adcs_mekf_vector(&S.K, z->B, S.Bref, sqrt(p->mekf_sig_mag*p->mekf_sig_mag + e*e), p->mekf_gate);
+                    ok = adcs_mekf_vector(&S.K, z->B, S.Bref, sqrt(p->mekf_sig_mag*p->mekf_sig_mag + e*e), p->mekf_gate); took += ok; S.rej[1] = ok ? 0 : S.rej[1] + 1;
                 }
                 if (first && S.have_r && S.k_es >= 0 && (int64_t)S.tick - S.k_es < S.n_mtq) {    /* latest Earth-sensor sample of the cycle */
                     adcs_real nr_[3], sg = p->es_noise > 1e-3 ? p->es_noise : 1e-3;
                     adcs_scale3(S.r, -1.0, nr_);
-                    tried++; took += adcs_mekf_vector(&S.K, S.es_n, nr_, 2*sg, p->mekf_gate);
+                    tried++; ok = adcs_mekf_vector(&S.K, S.es_n, nr_, 2*sg, p->mekf_gate); took += ok; S.rej[2] = ok ? 0 : S.rej[2] + 1;
                     S.k_es = -1;
                 }
-                /* every update gated for mekf_rej_max in a row: the estimate has diverged, re-initialise */
+                /* every update gated for mekf_rej_max in a row, or one sensor's alone (G1: each sensor counts its own rejections, and
+                 * another sensor's accepted update does not reset them): the estimate has diverged, re-initialise */
                 if (tried) { if (took) S.n_rej = 0; else S.n_rej += tried; }
-                if (p->mekf_rej_max > 0 && S.n_rej >= p->mekf_rej_max) { S.ad_ok = 0; S.n_rej = 0; }
+                if (p->mekf_rej_max > 0 && (S.n_rej >= p->mekf_rej_max || S.rej[0] >= p->mekf_rej_max || S.rej[1] >= p->mekf_rej_max || S.rej[2] >= p->mekf_rej_max)) {
+                    S.ad_ok = 0; S.n_rej = 0; S.reinits++;
+                }
             }
         }
     }
@@ -584,6 +600,8 @@ int32_t adcs_fsw_peek(adcs_fsw_state_t *o)
 
 /* the onboard clock's counts: steps held, steps refused, GNSS dates adopted (for the tests and the SILS) */
 void adcs_fsw_clock_counts(uint32_t out[3]) { out[0] = S.clk_held; out[1] = S.clk_refused; out[2] = S.clk_adopted; }
+/* the estimator's counts: star-tracker readings refused as implausible, re-starts of the filter after a sensor was rejected for good */
+void adcs_fsw_est_counts(uint32_t out[2]) { out[0] = S.st_refused; out[1] = S.reinits; }
 
 const char *adcs_fsw_build_id(void) { return "trinetra-fsw-c/1.0.0 (adcs-fswcfg/1) alg " ADCS_ALG_ID; }
 

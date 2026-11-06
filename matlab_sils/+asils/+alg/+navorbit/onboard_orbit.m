@@ -27,22 +27,22 @@ function [r, v, have_r] = onboard_orbit(r0, v0, have, ok, r_fix, v_fix, ecef, la
     have_r = have;
     if asils.alg.navorbit.gnss_usable(ok, r_fix)
         if ecef
-            [t__9, t__10] = asils.alg.navorbit.fix_eci(r_fix, v_fix, (jd - (lat / 86400)));
-            r = t__9;
-            v = t__10;
+            [t__10, t__11] = asils.alg.navorbit.fix_eci(r_fix, v_fix, (jd - (lat / 86400)));
+            r = t__10;
+            v = t__11;
         else
             r = r_fix;
             v = v_fix;
         end
         if (lat > 0)
-            [t__11, t__12] = asils.alg.navorbit.verlet(r, v, lat, mu);
-            r = t__11;
-            v = t__12;
+            [t__12, t__13] = asils.alg.navorbit.verlet(r, v, lat, mu);
+            r = t__12;
+            v = t__13;
         end
         have_r = true;
     elseif have
-        [t__13, t__14] = asils.alg.navorbit.verlet(r0, v0, dt, mu);
-        r = t__13;
-        v = t__14;
+        [t__14, t__15] = asils.alg.navorbit.verlet(r0, v0, dt, mu);
+        r = t__14;
+        v = t__15;
     end
 end

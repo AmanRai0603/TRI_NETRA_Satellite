@@ -15,9 +15,9 @@ function [m0] = sun_spin_deruiter(b, w, s, eclipse, j, spin_dps, k, k1, k2)
     m0 = zeros(3, 1);
     m0 = zeros(3, 1);
     if (~eclipse)
-        h__67 = (spin_dps * (pi / 180));
-        if h__67 < 0, h__67 = -h__67; elseif h__67 == 0, h__67 = 0; end
-        ws = h__67;
+        h__71 = (spin_dps * (pi / 180));
+        if h__71 < 0, h__71 = -h__71; elseif h__71 == 0, h__71 = 0; end
+        ws = h__71;
         sg = sign(w(3));
         if (sg == 0)
             sg = 1;

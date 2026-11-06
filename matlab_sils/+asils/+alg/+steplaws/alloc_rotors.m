@@ -47,8 +47,8 @@ function [cmd_r, cmd_g] = alloc_rotors(tau_rot, a, cmd_r0, cmd_g0, nr, ng, rot_g
     end
     if (ng > 0)
         wheels = false;
-        t__17 = ((0):((nr) - 1)).';
-        for i = t__17(logical((rot_kind((t__17) + 1) == 3))).'
+        t__18 = ((0):((nr) - 1)).';
+        for i = t__18(logical((rot_kind((t__18) + 1) == 3))).'
             wheels = true;
         end
         [gd, hd] = asils.alg.allocation.steer_sr(tau_rot, a, zh, nr, ng, rot_gi, gim_axis, gim_rate_max, cmg_lam0, cmg_mu, wheels);
@@ -59,9 +59,9 @@ function [cmd_r, cmd_g] = alloc_rotors(tau_rot, a, cmd_r0, cmd_g0, nr, ng, rot_g
         if wheels
             i = ((0):((nr) - 1)).';
             if ~isempty(i)
-                m__18 = logical((reshape(rot_gi((i) + 1), [], 1) > 0));
-                if any(m__18)
-                    cmd_r((i(m__18)) + 1) = (reshape(hd((i(m__18)) + 1), [], 1) - (cmg_k_null .* (reshape(zh((i(m__18)) + 1), [], 1) - reshape(rot_h0((i(m__18)) + 1), [], 1))));
+                m__19 = logical((reshape(rot_gi((i) + 1), [], 1) > 0));
+                if any(m__19)
+                    cmd_r((i(m__19)) + 1) = (reshape(hd((i(m__19)) + 1), [], 1) - (cmg_k_null .* (reshape(zh((i(m__19)) + 1), [], 1) - reshape(rot_h0((i(m__19)) + 1), [], 1))));
                 end
             end
         end

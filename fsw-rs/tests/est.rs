@@ -139,13 +139,14 @@ fn the_filter_learns_the_gyro_bias() {
 
 #[test]
 fn triad_refuses_pairs_closer_than_its_angle_whatever_their_length() {
+    // the sine of the angle between the pair below the threshold (fsw_param_triad_sin_min, 0.2: 11.5 deg) fixes no attitude to trust (S11.6, G1)
     let x = [100.0, 0.0, 0.0];
     let tilt = |s: f64| scale3(&[(1.0 - s*s).sqrt(), s, 0.0], 100.0);
     let r = ([1.0, 0.0, 0.0], [0.0, 1.0, 0.0]);
-    assert!(est::triad(&x, &tilt(5e-4), &r.0, &r.1).is_none(), "0.03 deg apart in the body");
-    assert!(est::triad(&x, &tilt(2e-3), &r.0, &r.1).is_some());
-    assert!(est::triad(&r.0, &r.1, &x, &tilt(5e-4)).is_none(), "0.03 deg apart in the reference");
-    assert!(est::triad(&r.0, &r.1, &x, &tilt(2e-3)).is_some());
+    assert!(est::triad(&x, &tilt(0.1), &r.0, &r.1, 0.2).is_none(), "5.7 deg apart in the body");
+    assert!(est::triad(&x, &tilt(0.3), &r.0, &r.1, 0.2).is_some());
+    assert!(est::triad(&r.0, &r.1, &x, &tilt(0.1), 0.2).is_none(), "5.7 deg apart in the reference");
+    assert!(est::triad(&r.0, &r.1, &x, &tilt(0.3), 0.2).is_some());
 }
 
 #[test]

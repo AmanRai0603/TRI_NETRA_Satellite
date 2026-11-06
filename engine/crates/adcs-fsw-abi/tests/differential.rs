@@ -30,7 +30,7 @@ fn draw(r: &mut Rng) -> Params {
     p.igrf_nmax = 1 + r.below(13) as u8; p.rate_lpf_s = r.uniform(0.0, 1.0);
     p.ss_eclipse = 1 + r.below(2) as u8; p.gd_T = r.uniform(10.0, 300.0); p.mtq_phi = 0.01; p.rw_phi = 0.01; p.rw_dt = 0.1; p.fdir_s = 3.0; p.fdir_win_s = 120.0; p.fdir_h_frac = 0.005;
     p.rcsd_T_damp_s = 20.0; p.rcsd_period_s = 1.0; p.st_coast_s = 900.0;
-    p.mekf_sig_mag = 0.01; p.mekf_sig_sun = 0.005; p.mekf_meas_scale = 1.0; p.clock_step_max_s = 60.0; p.gyro_stale_ticks = 3; p.mekf_gate = 16.27; p.mekf_rej_max = 30.0;
+    p.mekf_sig_mag = 0.01; p.mekf_sig_sun = 0.005; p.mekf_meas_scale = 1.0; p.clock_step_max_s = 60.0; p.gyro_stale_ticks = 3; p.st_norm_tol = 1e-3; p.triad_sin_min = 0.2; p.mekf_gate = 16.27; p.mekf_rej_max = 30.0;
     for ax in 0..3 { p.mtq_Kp[ax] = j[ax]*2.5e-5; p.mtq_Kd[ax] = j[ax]*0.02; p.rw_Kp[ax] = j[ax]*0.8; p.rw_Kd[ax] = j[ax]*3.6; p.rw_Ki[ax] = j[ax]*0.1; }
     p.bdot_law = r.below(4) as u8; p.mtq_law = r.below(9) as u8; p.rw_law = r.below(3) as u8; p.ss_law = r.below(3) as u8;
     p.detumble_exit = 0.01; p.detumble_hold_s = r.uniform(1.0, 30.0);

@@ -19,7 +19,7 @@ function [qe, s, wr, we] = mtq_err(q, w, q_ref, w_ref)
     if (s == 0)
         s = 1;
     end
-    h__65 = asils.alg.math.dcm(qe);
-    wr = [h__65(1, 1)*w_ref(1) + h__65(1, 2)*w_ref(2) + h__65(1, 3)*w_ref(3); h__65(2, 1)*w_ref(1) + h__65(2, 2)*w_ref(2) + h__65(2, 3)*w_ref(3); h__65(3, 1)*w_ref(1) + h__65(3, 2)*w_ref(2) + h__65(3, 3)*w_ref(3)];
+    h__69 = asils.alg.math.dcm(qe);
+    wr = [h__69(1, 1)*w_ref(1) + h__69(1, 2)*w_ref(2) + h__69(1, 3)*w_ref(3); h__69(2, 1)*w_ref(1) + h__69(2, 2)*w_ref(2) + h__69(2, 3)*w_ref(3); h__69(3, 1)*w_ref(1) + h__69(3, 2)*w_ref(2) + h__69(3, 3)*w_ref(3)];
     we = (w - wr);
 end

@@ -41,6 +41,9 @@ typedef struct {
     int have_r; adcs_real r[3], v[3];
     /* estimation */
     adcs_mekf_t K; int ad_ok; double t_st; int mag_done, n_rej; double gh_jd;
+    /* F4/G1 (S11.6): star-tracker readings refused as implausible; re-starts of the filter after one sensor was rejected for good; the
+     * ticks each vector sensor (Sun, field, Earth) has been rejected in a row */
+    uint32_t st_refused, reinits; int rej[3];
     adcs_real es_n[3];                        /* latest valid Earth-sensor sample (k_es: its tick) */
     adcs_real w_est[3];
     adcs_real gh[195]; int gh_ok; adcs_real Bref[3]; int bref_ok;

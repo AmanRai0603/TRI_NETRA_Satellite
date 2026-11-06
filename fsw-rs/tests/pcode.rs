@@ -58,6 +58,10 @@ const BY_NAME: &[(&str, &str)] = &[
     ("modes::bdot_rate", "the runtime calls it in the tick's step 4 (fsw.rs Fsw::step): no public signature"),
     ("estimation::st_coasting", "the runtime calls it in the tick's step 2 (fsw.rs Fsw::step): no public signature"),
     ("estimation::att_rate", "the runtime calls it in the tick's step 2 (fsw.rs Fsw::step): no public signature"),
+    ("estimation::st_plausible", "the runtime calls it in the tick's step 2 (the start, the updates) and the generated st_head: no public signature"),
+    ("estimation::st_head", "the runtime calls it in the tick's step 2 (fsw.rs Fsw::step): no public signature"),
+    ("estimation::triad_cov", "the runtime calls it in the tick's step 2 (fsw.rs Fsw::step): no public signature"),
+    ("estimation::mekf_init_cov", "the runtime calls it in the tick's step 2 (fsw.rs Fsw::step): no public signature"),
     ("steplaws::damp_excess", "called only by the generated damp_torque and damp_dipole"),
     ("steplaws::damp_torque", "the runtime calls it in the tick's step 4 (fsw.rs Fsw::step): no public signature"),
     ("steplaws::damp_dipole", "the runtime calls it in the tick's step 4 (fsw.rs Fsw::step): no public signature"),
@@ -196,8 +200,8 @@ fn call(name: &str, x: &[f64]) -> Option<Vec<f64>> {
             o.s(&k.q).s(&k.b).m(&k.p).b(took);
         }
         "estimation::triad" => {
-            let (b1, b2, r1, r2) = (a.v3(), a.v3(), a.v3(), a.v3());
-            match est::triad(&b1, &b2, &r1, &r2) { Some(q) => { o.s(&q).b(true); } None => { o.s(&[0.0; 4]).b(false); } }
+            let (b1, b2, r1, r2, smin) = (a.v3(), a.v3(), a.v3(), a.v3(), a.f());
+            match est::triad(&b1, &b2, &r1, &r2, smin) { Some(q) => { o.s(&q).b(true); } None => { o.s(&[0.0; 4]).b(false); } }
         }
         "estimation::quest" => {
             let (b, r) = (a.m::<16, 3>(), a.m::<16, 3>());

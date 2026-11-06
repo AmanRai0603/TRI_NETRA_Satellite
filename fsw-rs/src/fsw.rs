@@ -64,6 +64,9 @@ pub struct Fsw {
     q_prev: Option<Q>,       // the filter's attitude of the last tick: with a quiet gyro its change is the controllers' rate
     have_r: bool, r: V3, v: V3,
     k: Mekf, ad_ok: bool, t_st: f64, mag_done: bool, n_rej: f64, gh_jd: f64,
+    // F4/G1 (S11.6): star-tracker readings refused as implausible (a frame of valid head whose quaternion is not unit); the filter's re-starts after one sensor
+    // was rejected mekf_rej_max times in a row; the ticks each vector sensor (Sun, field, Earth) has been rejected in a row
+    st_refused: u32, reinits: u32, rej: [f64; 3],
     es_n: V3,
     w_est: V3,
     gh: Option<[f64; 195]>, bref: Option<V3>,
@@ -266,17 +269,26 @@ impl Fsw {
         let m = self.mode;
         if !(m == DETUMBLE || m == DETUMBLE_RCS || m == SPINUP || m == SUN_SPIN) {
             if !self.ad_ok {
+                let (mut h, mut found) = (0usize, false);
                 if p.has_st != 0 && z.st_ok {
-                    let mut h = 0;
-                    while h < p.n_heads as usize && !z.st_valid[h] { h += 1; }
+                    // estimation::st_head (src/alg): the first configured head whose reading is plausible, and how many valid frames were not
+                    let (hh, f, refused) = crate::alg::estimation::st_head(z.q_st, z.st_valid, p.n_heads as i64, p.st_norm_tol);
+                    h = hh as usize; found = f; self.st_refused += refused as u32;
+                }
+                self.rej = [0.0; 3];
+                if found {
                     let q0 = est::latency(&z.q_st[h], &z.w, p.st_latency);
                     self.k = Mekf::new(&q0, 1e-3, 2e-4, p.gyro_arw, p.gyro_rrw);
                     self.ad_ok = true;
                     self.t_st = self.t;
                 } else if z.sun_ok && z.mag_ok && self.clean && self.bref.is_some() {
-                    // Sun and field not parallel
-                    if let Some(q0) = est::triad(&z.sun, &z.b, &self.gd.sun_eci, self.bref.as_ref().unwrap()) {
-                        self.k = Mekf::new(&q0, 0.05, 2e-4, p.gyro_arw, p.gyro_rrw);
+                    // the Sun and the field far enough apart
+                    if let Some(q0) = est::triad(&z.sun, &z.b, &self.gd.sun_eci, self.bref.as_ref().unwrap(), p.triad_sin_min) {
+                        // the start's covariance is the geometry's (Shuster and Oh 1981): the Sun's noise and the field's, as the updates use them
+                        let bn = norm3(&z.b);
+                        let e = p.mekf_mag_err_T/(if bn > 1e-9 { bn } else { 1e-9 });
+                        let pa = crate::alg::estimation::triad_cov(z.sun, z.b, p.mekf_sig_sun, sqrt(p.mekf_sig_mag*p.mekf_sig_mag + e*e));
+                        self.k = Mekf::with_cov(&q0, &pa, 2e-4, p.gyro_arw, p.gyro_rrw);
                         self.ad_ok = true;
                     }
                 }
@@ -284,9 +296,9 @@ impl Fsw {
                 self.k.predict(&z.w, dt, self.gyro_quiet);
                 if p.has_st != 0 && z.st_ok {
                     for h in 0..p.n_heads as usize {
-                        let qs = &z.q_st[h];
-                        let qn = sqrt(qs[0]*qs[0] + qs[1]*qs[1] + qs[2]*qs[2] + qs[3]*qs[3]);
-                        if z.st_valid[h] && fabs(qn - 1.0) < ST_NORM_TOL {     // a unit quaternion, or no reading
+                        let plausible = crate::alg::estimation::st_plausible(z.q_st[h], z.st_valid[h], h as i64, p.n_heads as i64, p.st_norm_tol);
+                        if z.st_valid[h] && !plausible { self.st_refused += 1; }     // counted, not taken
+                        if plausible {                                              // a unit quaternion, or no reading
                             let wb = sub3(&z.w, &self.k.b);
                             let ql = est::latency(&z.q_st[h], &wb, p.st_latency);
                             self.k.quat(&ql, p.st_noise_cross*p.mekf_meas_scale, p.st_noise_roll*p.mekf_meas_scale, &p.st_bs[h], 0.0);
@@ -298,13 +310,16 @@ impl Fsw {
                 } else {
                     // vector updates once per coil cycle; the field on the first clean tick of the cycle
                     let (mut tried, mut took) = (0.0, 0.0);
-                    if z.sun_ok && first { tried += 1.0; if self.k.vector(&z.sun, &self.gd.sun_eci, p.mekf_sig_sun, p.mekf_gate) { took += 1.0; } }
+                    if z.sun_ok && first {
+                        tried += 1.0;
+                        if self.k.vector(&z.sun, &self.gd.sun_eci, p.mekf_sig_sun, p.mekf_gate) { took += 1.0; self.rej[0] = 0.0; } else { self.rej[0] += 1.0; }
+                    }
                     if self.clean && !self.mag_done && z.mag_ok {
                         if let Some(br) = self.bref {
                             let bn = norm3(&z.b);
                             let e = p.mekf_mag_err_T/(if bn > 1e-9 { bn } else { 1e-9 });
                             self.mag_done = true; tried += 1.0;
-                            if self.k.vector(&z.b, &br, sqrt(p.mekf_sig_mag*p.mekf_sig_mag + e*e), p.mekf_gate) { took += 1.0; }
+                            if self.k.vector(&z.b, &br, sqrt(p.mekf_sig_mag*p.mekf_sig_mag + e*e), p.mekf_gate) { took += 1.0; self.rej[1] = 0.0; } else { self.rej[1] += 1.0; }
                         }
                     }
                     if first && self.have_r && self.k_es >= 0 && self.tick as i64 - self.k_es < self.n_mtq as i64 {
@@ -312,12 +327,15 @@ impl Fsw {
                         let sg = if p.es_noise > 1e-3 { p.es_noise } else { 1e-3 };
                         let esn = self.es_n;
                         tried += 1.0;
-                        if self.k.vector(&esn, &scale3(&self.r, -1.0), 2.0*sg, p.mekf_gate) { took += 1.0; }
+                        if self.k.vector(&esn, &scale3(&self.r, -1.0), 2.0*sg, p.mekf_gate) { took += 1.0; self.rej[2] = 0.0; } else { self.rej[2] += 1.0; }
                         self.k_es = -1;
                     }
-                    // every update gated for mekf_rej_max in a row: the estimate has diverged, re-initialise
+                    // every update gated for mekf_rej_max in a row, or one sensor's alone (G1: each sensor counts its own rejections, and
+                    // another sensor's accepted update does not reset them): the estimate has diverged, re-initialise
                     if tried > 0.0 { if took > 0.0 { self.n_rej = 0.0; } else { self.n_rej += tried; } }
-                    if p.mekf_rej_max > 0.0 && self.n_rej >= p.mekf_rej_max { self.ad_ok = false; self.n_rej = 0.0; }
+                    if p.mekf_rej_max > 0.0 && (self.n_rej >= p.mekf_rej_max || self.rej.iter().any(|&r| r >= p.mekf_rej_max)) {
+                        self.ad_ok = false; self.n_rej = 0.0; self.reinits += 1;
+                    }
                 }
             }
         }
@@ -641,6 +659,8 @@ impl Fsw {
     pub fn time(&self) -> f64 { self.t }
     /// The onboard clock's counts: steps held, steps refused, GNSS dates adopted.
     pub fn clock_counts(&self) -> (u32, u32, u32) { (self.clk_held, self.clk_refused, self.clk_adopted) }
+    /// The estimator's counts: star-tracker readings refused as implausible, and re-starts of the filter after a sensor was rejected for good.
+    pub fn est_counts(&self) -> (u32, u32) { (self.st_refused, self.reinits) }
 }
 
 /// The field model's refresh: at most once in this many seconds (a whole number of ticks, rounded up)
@@ -657,6 +677,3 @@ pub const FAULT_MAG_STALE: u16 = 1 << 8;
 pub const FAULT_GYRO_STALE: u16 = 1 << 9;
 /// A gyro quiet for fsw_param_gyro_stale_ticks ticks (bit 10; set and cleared by fdir_safe).
 pub const FAULT_GYRO_QUIET: u16 = 1 << 10;
-/// a star-tracker quaternion further than this from unit length is not a reading; its innovation is
-/// not gated (= adcs_fsw.c)
-const ST_NORM_TOL: f64 = 1e-3;

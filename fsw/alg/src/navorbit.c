@@ -49,9 +49,9 @@ navorbit_onboard_orbit_out navorbit_onboard_orbit(pc_a3f r0, pc_a3f v0, bool hav
     if (navorbit_gnss_usable(ok, r_fix)) {
         if (ecef) {
             {
-                navorbit_fix_eci_out t__77 = navorbit_fix_eci(r_fix, v_fix, (jd - (lat / 86400.0)));
-                r = t__77.r;
-                v = t__77.v;
+                navorbit_fix_eci_out t__82 = navorbit_fix_eci(r_fix, v_fix, (jd - (lat / 86400.0)));
+                r = t__82.r;
+                v = t__82.v;
             }
         } else {
             r = r_fix;
@@ -59,17 +59,17 @@ navorbit_onboard_orbit_out navorbit_onboard_orbit(pc_a3f r0, pc_a3f v0, bool hav
         }
         if ((lat > 0.0)) {
             {
-                navorbit_verlet_out t__78 = navorbit_verlet(r, v, lat, mu);
-                r = t__78.r;
-                v = t__78.v;
+                navorbit_verlet_out t__83 = navorbit_verlet(r, v, lat, mu);
+                r = t__83.r;
+                v = t__83.v;
             }
         }
         have_r = true;
     } else if (have) {
         {
-            navorbit_verlet_out t__79 = navorbit_verlet(r0, v0, dt, mu);
-            r = t__79.r;
-            v = t__79.v;
+            navorbit_verlet_out t__84 = navorbit_verlet(r0, v0, dt, mu);
+            r = t__84.r;
+            v = t__84.v;
         }
     }
     {

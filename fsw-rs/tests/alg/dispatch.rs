@@ -141,6 +141,25 @@ pub fn call(name: &str, x: &[f64]) -> Option<Vec<f64>> {
             for v in r.1.iter() { let v = *v; out.push(v); }
             for v in r.2.iter() { let v = *v; for v in v.iter() { let v = *v; out.push(v); } }
         }
+        "estimation::mekf_init_cov" => {
+            if x.len() != 14 { return None; }
+            let r = crate::estimation::mekf_init_cov([x[0], x[1], x[2], x[3]], [[x[4], x[5], x[6]], [x[7], x[8], x[9]], [x[10], x[11], x[12]]], x[13]);
+            for v in r.0.iter() { let v = *v; out.push(v); }
+            for v in r.1.iter() { let v = *v; out.push(v); }
+            for v in r.2.iter() { let v = *v; for v in v.iter() { let v = *v; out.push(v); } }
+        }
+        "estimation::st_plausible" => {
+            if x.len() != 8 { return None; }
+            let r = crate::estimation::st_plausible([x[0], x[1], x[2], x[3]], x[4] != 0.0, x[5] as i64, x[6] as i64, x[7]);
+            out.push(if r { 1.0 } else { 0.0 });
+        }
+        "estimation::st_head" => {
+            if x.len() != 12 { return None; }
+            let r = crate::estimation::st_head([[x[0], x[1], x[2], x[3]], [x[4], x[5], x[6], x[7]]], [x[8] != 0.0, x[9] != 0.0], x[10] as i64, x[11]);
+            out.push(r.0 as f64);
+            out.push(if r.1 { 1.0 } else { 0.0 });
+            out.push(r.2 as f64);
+        }
         "estimation::mekf_predict" => {
             if x.len() != 50 { return None; }
             let r = crate::estimation::mekf_predict([x[0], x[1], x[2], x[3]], [x[4], x[5], x[6]], [[x[7], x[8], x[9], x[10], x[11], x[12]], [x[13], x[14], x[15], x[16], x[17], x[18]], [x[19], x[20], x[21], x[22], x[23], x[24]], [x[25], x[26], x[27], x[28], x[29], x[30]], [x[31], x[32], x[33], x[34], x[35], x[36]], [x[37], x[38], x[39], x[40], x[41], x[42]]], x[43], x[44], [x[45], x[46], x[47]], x[48], x[49] != 0.0);
@@ -182,10 +201,15 @@ pub fn call(name: &str, x: &[f64]) -> Option<Vec<f64>> {
             out.push(if r.3 { 1.0 } else { 0.0 });
         }
         "estimation::triad" => {
-            if x.len() != 12 { return None; }
-            let r = crate::estimation::triad([x[0], x[1], x[2]], [x[3], x[4], x[5]], [x[6], x[7], x[8]], [x[9], x[10], x[11]]);
+            if x.len() != 13 { return None; }
+            let r = crate::estimation::triad([x[0], x[1], x[2]], [x[3], x[4], x[5]], [x[6], x[7], x[8]], [x[9], x[10], x[11]], x[12]);
             for v in r.0.iter() { let v = *v; out.push(v); }
             out.push(if r.1 { 1.0 } else { 0.0 });
+        }
+        "estimation::triad_cov" => {
+            if x.len() != 8 { return None; }
+            let r = crate::estimation::triad_cov([x[0], x[1], x[2]], [x[3], x[4], x[5]], x[6], x[7]);
+            for v in r.iter() { let v = *v; for v in v.iter() { let v = *v; out.push(v); } }
         }
         "estimation::quest" => {
             if x.len() != 113 { return None; }

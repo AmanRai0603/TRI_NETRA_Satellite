@@ -28,9 +28,9 @@ function [q, b, p, took] = mekf_quat(q0, b0, p0, qm, sc, sr, bs, gate)
     h((i) + 1, (j) + 1) = asils.pc.vchoose((i == j), 1, 0);
     j = (0):((3) - 1);
     r((i) + 1, (j) + 1) = (asils.pc.vchoose((i == j), (sc * sc), 0) + ((((sr * sr) - (sc * sc)) .* reshape(bs((i) + 1), [], 1)) .* reshape(bs((j) + 1), 1, [])));
-    [t__5, t__6, t__7, t__8] = asils.alg.estimation.update3(q0, b0, p0, h, r, y, gate);
-    q = t__5;
-    b = t__6;
-    p = t__7;
-    took = t__8;
+    [t__6, t__7, t__8, t__9] = asils.alg.estimation.update3(q0, b0, p0, h, r, y, gate);
+    q = t__6;
+    b = t__7;
+    p = t__8;
+    took = t__9;
 end

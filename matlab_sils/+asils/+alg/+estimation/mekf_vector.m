@@ -16,33 +16,33 @@ function [q, b, p, took] = mekf_vector(q0, b0, p0, bm, rr, sigma, gate)
     b = zeros(3, 1);
     p = zeros(6, 6);
     took = false;
-    h__24 = sqrt(bm(1)*bm(1) + bm(2)*bm(2) + bm(3)*bm(3));
-    if 1e-30 > h__24, h__24 = 1e-30; end
-    bu = (bm / h__24);
-    h__25 = sqrt(rr(1)*rr(1) + rr(2)*rr(2) + rr(3)*rr(3));
-    if 1e-30 > h__25, h__25 = 1e-30; end
-    ru = (rr / h__25);
-    h__26 = asils.alg.math.dcm(q0);
-    bh = [h__26(1, 1)*ru(1) + h__26(1, 2)*ru(2) + h__26(1, 3)*ru(3); h__26(2, 1)*ru(1) + h__26(2, 2)*ru(2) + h__26(2, 3)*ru(3); h__26(3, 1)*ru(1) + h__26(3, 2)*ru(2) + h__26(3, 3)*ru(3)];
+    h__26 = sqrt(bm(1)*bm(1) + bm(2)*bm(2) + bm(3)*bm(3));
+    if 1e-30 > h__26, h__26 = 1e-30; end
+    bu = (bm / h__26);
+    h__27 = sqrt(rr(1)*rr(1) + rr(2)*rr(2) + rr(3)*rr(3));
+    if 1e-30 > h__27, h__27 = 1e-30; end
+    ru = (rr / h__27);
+    h__28 = asils.alg.math.dcm(q0);
+    bh = [h__28(1, 1)*ru(1) + h__28(1, 2)*ru(2) + h__28(1, 3)*ru(3); h__28(2, 1)*ru(1) + h__28(2, 2)*ru(2) + h__28(2, 3)*ru(3); h__28(3, 1)*ru(1) + h__28(3, 2)*ru(2) + h__28(3, 3)*ru(3)];
     sk = asils.alg.math.skew(bh);
     h = zeros(3, 6);
     for i = (0):((3) - 1)
         for j = (0):((6) - 1)
             if (j < 3)
-                h__27 = sk((i) + 1, (j) + 1);
+                h__29 = sk((i) + 1, (j) + 1);
             else
-                h__27 = 0;
+                h__29 = 0;
             end
-            h((i) + 1, (j) + 1) = h__27;
+            h((i) + 1, (j) + 1) = h__29;
         end
     end
     r = zeros(3, 3);
     i = ((0):((3) - 1)).';
     j = (0):((3) - 1);
     r((i) + 1, (j) + 1) = asils.pc.vchoose((i == j), (sigma * sigma), 0);
-    [t__1, t__2, t__3, t__4] = asils.alg.estimation.update3(q0, b0, p0, h, r, (bu - bh), gate);
-    q = t__1;
-    b = t__2;
-    p = t__3;
-    took = t__4;
+    [t__2, t__3, t__4, t__5] = asils.alg.estimation.update3(q0, b0, p0, h, r, (bu - bh), gate);
+    q = t__2;
+    b = t__3;
+    p = t__4;
+    took = t__5;
 end

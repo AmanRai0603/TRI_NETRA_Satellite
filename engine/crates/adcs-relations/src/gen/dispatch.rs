@@ -431,8 +431,8 @@ pub fn call(name: &str, x: &[f64]) -> Option<Vec<f64>> {
             for v in r.iter() { let v = *v; for v in v.iter() { let v = *v; out.push(v); } }
         }
         "nav::triad" => {
-            if x.len() != 12 { return None; }
-            let r = crate::nav::triad([x[0], x[1], x[2]], [x[3], x[4], x[5]], [x[6], x[7], x[8]], [x[9], x[10], x[11]]);
+            if x.len() != 13 { return None; }
+            let r = crate::nav::triad([x[0], x[1], x[2]], [x[3], x[4], x[5]], [x[6], x[7], x[8]], [x[9], x[10], x[11]], x[12]);
             for v in r.0.iter() { let v = *v; out.push(v); }
             out.push(if r.1 { 1.0 } else { 0.0 });
         }

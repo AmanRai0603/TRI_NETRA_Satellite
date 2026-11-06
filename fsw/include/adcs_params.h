@@ -5,8 +5,8 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#define ADCS_PARAMS_PAYLOAD 2242u
-#define ADCS_PARAMS_BLOB_SIZE 2258u
+#define ADCS_PARAMS_PAYLOAD 2258u
+#define ADCS_PARAMS_BLOB_SIZE 2274u
 #define ADCS_MAX_ROTORS 8
 #define ADCS_MAX_GIMBALS 4
 #define ADCS_MAX_COUPLES 6
@@ -179,6 +179,8 @@ typedef struct {
     double gps_latency;  /* age of a GNSS fix when it arrives [s]: the fix is carried forward by it (0 = taken as current) */
     double clock_step_max_s;  /* the forward bound of the onboard clock [s]: a clock reading further on than this after the previous one is refused and counted (the time moves by one tick); a step back holds (DR-fsw-001) */
     uint8_t gyro_stale_ticks;  /* ticks a gyro sample may stay unchanged (or unanswered) before the gyro is quiet: its rate is zeroed for the controllers, the estimator's process noise is raised and the star-tracker coast ends (DR-fdir-002) */
+    double st_norm_tol;  /* how far from unit length a star tracker's quaternion may be and still be a reading: the filter's start and its updates both refuse a frame beyond it and count it (F4, S11.6) */
+    double triad_sin_min;  /* the least sine of the angle between the Sun and the field at which TRIAD fixes an attitude; below it the pair is refused (G1, S11.6; Shuster and Oh 1981) */
 } adcs_params_t;
 
 /* Decode an adcs-fswcfg/1 blob. 0 on success; -1 bad magic, -2 bad length, -3 bad CRC. */

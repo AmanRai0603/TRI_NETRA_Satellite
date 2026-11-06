@@ -14,8 +14,8 @@ function [tau] = mtq_pd(q, w, q_ref, w_ref, kp, kd)
     if (s == 0)
         s = 1;
     end
-    h__60 = asils.alg.math.dcm(qe);
-    wr = [h__60(1, 1)*w_ref(1) + h__60(1, 2)*w_ref(2) + h__60(1, 3)*w_ref(3); h__60(2, 1)*w_ref(1) + h__60(2, 2)*w_ref(2) + h__60(2, 3)*w_ref(3); h__60(3, 1)*w_ref(1) + h__60(3, 2)*w_ref(2) + h__60(3, 3)*w_ref(3)];
+    h__64 = asils.alg.math.dcm(qe);
+    wr = [h__64(1, 1)*w_ref(1) + h__64(1, 2)*w_ref(2) + h__64(1, 3)*w_ref(3); h__64(2, 1)*w_ref(1) + h__64(2, 2)*w_ref(2) + h__64(2, 3)*w_ref(3); h__64(3, 1)*w_ref(1) + h__64(3, 2)*w_ref(2) + h__64(3, 3)*w_ref(3)];
     i = ((0):((3) - 1)).';
     tau((i) + 1) = (((-(reshape(kp((i) + 1), [], 1))) .* (s .* reshape(qe((i) + 1), [], 1))) - (reshape(kd((i) + 1), [], 1) .* (reshape(w((i) + 1), [], 1) - reshape(wr((i) + 1), [], 1))));
 end

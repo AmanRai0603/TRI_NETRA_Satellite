@@ -14,6 +14,49 @@ fn mekf_init(q0: quat in -1 .. 1, sa: real[1] in 1e-4 .. 0.1, sb: real[1] in 1e-
     end
 end
 
+## A filter at q0, bias zero, with the attitude covariance pa (3 x 3, body frame, rad^2) and the bias variance sb^2: the start
+## from a TRIAD attitude, whose covariance the measurement geometry gives (triad_cov, S11.6, G1).
+fn mekf_init_cov(q0: quat in -1 .. 1, pa: mat3[1] in -1 .. 1, sb: real[1] in 1e-6 .. 1e-3) -> (q: quat, b: vec3[1], p: real[1][6][6])
+    q = q0
+    b = 0
+    p = 0
+    for i in 0 .. 3
+        for j in 0 .. 3
+            p[i][j] = pa[i][j]
+        end
+        p[i + 3][i + 3] = sb*sb
+    end
+end
+
+## Whether head h of the star tracker gives a reading the filter may take (S11.6, F4): the head is one the product carries
+## (h < n_heads: with no head configured none is ever chosen), the frame says it is valid, and its quaternion is of unit
+## length within tol (a reading of norm 0.5 is not an attitude). The filter's start and its updates both ask this.
+fn st_plausible(q: quat in -2 .. 2, valid: bool, h: int in 0 .. 2, n_heads: int in 0 .. 2, tol: real[1] in 1e-6 .. 0.1) -> ok: bool
+    let qn = sqrt(q[0]*q[0] + q[1]*q[1] + q[2]*q[2] + q[3]*q[3])
+    let d = if qn > 1.0 then qn - 1.0 else 1.0 - qn
+    ok = h < n_heads and valid and d < tol
+end
+
+## The head the filter starts from: the first configured head whose reading is plausible; refused counts the heads that
+## flagged a valid frame whose quaternion was not (the tick counts them).
+fn st_head(q_st: real[1][4][2] in -2 .. 2, valid: bool[2], n_heads: int in 0 .. 2, tol: real[1] in 1e-6 .. 0.1) -> (h: int, found: bool, refused: int)
+    h = 0
+    found = false
+    refused = 0
+    for k in 0 .. n_heads
+        if valid[k]
+            if st_plausible(q_st[k], valid[k], k, n_heads, tol)
+                if not found
+                    h = k
+                    found = true
+                end
+            else
+                refused = refused + 1
+            end
+        end
+    end
+end
+
 ## The prediction over dt on the measured rate wm, with gyro angle and rate random walks arw, rrw:
 ## q <- q fromrotvec((wm - b) dt), P <- Phi P Phi' + Q.
 ## With the gyro quiet (stale, DR-fdir-002, F2) the rate wm is the controllers' zero, not a measurement: the angle random
@@ -219,12 +262,14 @@ fn mekf_quat(q0: quat in -1 .. 1, b0: vec3[1] in -1e-3 .. 1e-3, p0: real[1][6][6
     q, b, p, took = update3(q0, b0, p0, h, r, y, gate)
 end
 
-## TRIAD from two body vectors and their references; ok = false when either pair is within
-## 1e-3 (0.06 deg) of parallel, which fixes no attitude.
-fn triad(b1: vec3[1] in -1 .. 1, b2: vec3[1] in -1 .. 1, r1: vec3[1] in -1 .. 1, r2: vec3[1] in -1 .. 1) -> (q: quat, ok: bool)
+## TRIAD from two body vectors and their references; ok = false when either pair has the sine of its angle below smin
+## (S11.6, G1): the attitude about the first vector comes from the second, with an error of the second's noise over that sine
+## (Shuster and Oh 1981: the covariance below), so a pair 5 deg apart fixes nothing the filter should
+## trust. smin is fsw_param_triad_sin_min (0.2, the developer's value within the 0.15 to 0.25 the inventory allows).
+fn triad(b1: vec3[1] in -1 .. 1, b2: vec3[1] in -1 .. 1, r1: vec3[1] in -1 .. 1, r2: vec3[1] in -1 .. 1, smin: real[1] in 0.01 .. 0.5) -> (q: quat, ok: bool)
     ok = false
     q = 0
-    if norm(cross(b1, b2)) > 1e-3*norm(b1)*norm(b2) and norm(cross(r1, r2)) > 1e-3*norm(r1)*norm(r2)
+    if norm(cross(b1, b2)) > smin*norm(b1)*norm(b2) and norm(cross(r1, r2)) > smin*norm(r1)*norm(r2)
         ok = true
         let tb0 = unit(b1)
         let tb1 = unit(cross(b1, b2))
@@ -239,6 +284,30 @@ fn triad(b1: vec3[1] in -1 .. 1, b2: vec3[1] in -1 .. 1, r1: vec3[1] in -1 .. 1,
             end
         end
         q = fromdcm(a)
+    end
+end
+
+## The covariance of the TRIAD attitude in the body frame [rad^2], from the geometry and the two vectors' noises s1 (the
+## first, whose direction the attitude keeps exactly) and s2 (S11.6, G1; Shuster and Oh 1981, J. Guidance and Control 4(1):70-77,
+## the covariance of the TRIAD error). In the frame of the first vector t0, the normal t1 of the pair's plane and t2 = t0 x t1,
+## with c and sn the cosine and sine of the angle between the vectors: variance (s2^2 + c^2 s1^2)/sn^2 about t0, s1^2 about t1
+## and t2, and -c s1^2/sn between t0 and t2. The attitude about t0 is only as good as the second vector over sn.
+fn triad_cov(b1: vec3[1] in -1 .. 1, b2: vec3[1] in -1 .. 1, s1: real[1] in 1e-4 .. 0.1, s2: real[1] in 1e-4 .. 0.1) -> pa: mat3[1]
+    let n1 = norm(b1)
+    let n2 = norm(b2)
+    let cr = cross(b1, b2)
+    let t0 = unit(b1)
+    let t1 = unit(cr)
+    let t2 = cross(t0, t1)
+    let sn = norm(cr)/(n1*n2)
+    let c = dot(b1, b2)/(n1*n2)
+    let d0 = (s2*s2 + c*c*s1*s1)/(sn*sn)
+    let x = -c*s1*s1/sn
+    pa = 0
+    for i in 0 .. 3
+        for j in 0 .. 3
+            pa[i][j] = d0*t0[i]*t0[j] + s1*s1*t1[i]*t1[j] + s1*s1*t2[i]*t2[j] + x*(t0[i]*t2[j] + t2[i]*t0[j])
+        end
     end
 end
 
