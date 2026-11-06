@@ -1,5 +1,8 @@
 function [kp, kd, ki] = fsw_rw_pid(ii, wn, z)
-%FSW_RW_PID  The fine pointing's PID gains on each principal axis: K_p = I wn^2, K_d = 2 z I wn, K_i = 0.15 I wn^3.
+%FSW_RW_PID  The fine pointing's PID gains on each principal axis. The law multiplies the quaternion's vector part, which is half the
+%   angle (theta/2), so the gains that place the loop on the ANGLE at the bandwidth wn and damping z carry the factor 2 (DR-ctl-001,
+%   Wie, Weiss and Arapostathis 1989): K_p = 2 I wn^2, K_i = 2 x 0.15 I wn^3, and the rate gain, which multiplies the rate itself,
+%   stays K_d = 2 z I wn. The angle's loop is then I s^3 + 2 z I wn s^2 + I wn^2 s + 0.15 I wn^3 (S11.6, G6).
 %   ii: real[1][3] (passed a plain number)
 %   wn: real[1] (passed a plain number)
 %   z: real[1] (passed a plain number)
@@ -14,7 +17,7 @@ function [kp, kd, ki] = fsw_rw_pid(ii, wn, z)
     kd = zeros(3, 1);
     ki = zeros(3, 1);
     ax = ((0):((3) - 1)).';
-    kp((ax) + 1) = ((reshape(ii((ax) + 1), [], 1) .* wn) .* wn);
+    kp((ax) + 1) = (((2 .* reshape(ii((ax) + 1), [], 1)) .* wn) .* wn);
     kd((ax) + 1) = (((2 * z) .* reshape(ii((ax) + 1), [], 1)) .* wn);
-    ki((ax) + 1) = ((((0.15 .* reshape(ii((ax) + 1), [], 1)) .* wn) .* wn) .* wn);
+    ki((ax) + 1) = (((((2 * 0.15) .* reshape(ii((ax) + 1), [], 1)) .* wn) .* wn) .* wn);
 end

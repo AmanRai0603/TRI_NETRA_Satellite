@@ -198,7 +198,8 @@ pub struct Held {
 }
 
 /// {path: held} of every file the design keeps whole (a lookup block's table, a method's pseudocode and its notes,
-/// a data block's module), by the path its origin names; the first node to name a path holds it (from_design.py `_held`).
+/// a data block's module), by the path its origin names; the last row of a path is the design's: a developer's revision of a method the node already had (S11.5, S11.6) follows
+/// the 1.0.0 row, which stays as provenance (from_design.py `_held`).
 fn held(ns: &[Node]) -> BTreeMap<String, Held> {
     let mut out = BTreeMap::new();
     for n in ns {
@@ -210,7 +211,7 @@ fn held(ns: &[Node]) -> BTreeMap<String, Held> {
             let kept = (sec == "table" && src.contains('/')) || sec == "data"
                 || (sec == "code" && field == "pseudocode") || (sec == "explain" && field == "theory");
             if kept && HELD_PREFIXES.iter().any(|p| src.starts_with(p)) && !value.is_empty() {
-                out.entry(src.to_string()).or_insert_with(|| Held { text: value.clone(), node: n.id.clone(), origin: origin.clone() });
+                out.insert(src.to_string(), Held { text: value.clone(), node: n.id.clone(), origin: origin.clone() });
             }
         }
     }

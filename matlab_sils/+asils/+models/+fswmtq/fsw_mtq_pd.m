@@ -1,5 +1,6 @@
 function [kp, kd, ki] = fsw_mtq_pd(ii, wn, z)
-%FSW_MTQ_PD  The magnetic pointing's PD gains on each principal axis: K_p = I wn^2, K_d = 2 z I wn, no integral.
+%FSW_MTQ_PD  The magnetic pointing's PD gains on each principal axis. The law multiplies the quaternion's vector part (half the angle),
+%   so K_p = 2 I wn^2 puts the stiffness I wn^2 on the angle (DR-ctl-001, S11.6); the rate gain stays K_d = 2 z I wn; no integral.
 %   ii: real[1][3] (passed a plain number)
 %   wn: real[1] (passed a plain number)
 %   z: real[1] (passed a plain number)
@@ -14,6 +15,6 @@ function [kp, kd, ki] = fsw_mtq_pd(ii, wn, z)
     kd = zeros(3, 1);
     ki = zeros(3, 1);
     ax = ((0):((3) - 1)).';
-    kp((ax) + 1) = ((reshape(ii((ax) + 1), [], 1) .* wn) .* wn);
+    kp((ax) + 1) = (((2 .* reshape(ii((ax) + 1), [], 1)) .* wn) .* wn);
     kd((ax) + 1) = (((2 * z) .* reshape(ii((ax) + 1), [], 1)) .* wn);
 end

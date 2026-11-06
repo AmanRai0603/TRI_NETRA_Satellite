@@ -93,7 +93,7 @@ class WiredDesign(unittest.TestCase):
         self.assertEqual(rows["dyn_truth_plant"]["si"], [[0.0067, 0, 0], [0, 0.042, 0], [0, 0, 0.042]])
         self.assertAlmostEqual(rows["fsw_param_ss_dr_k2"]["si"], 0.5 * 0.042, delta=1e-18)  # J_zz, an element of the plant's inertia
         self.assertAlmostEqual(rows["fsw_param_detumble_exit"]["si"], 0.5 * math.pi / 180, delta=1e-18)
-        self.assertEqual(rows["fsw_param_mtq_Kp"]["si"], [0.0067 * 0.005 ** 2, 0.042 * 0.005 ** 2, 0.042 * 0.005 ** 2])
+        self.assertEqual(rows["fsw_param_mtq_Kp"]["si"], [2 * 0.0067 * 0.005 ** 2, 2 * 0.042 * 0.005 ** 2, 2 * 0.042 * 0.005 ** 2])   # 2 J wn^2 since S11.6 (G6)
         self.assertAlmostEqual(rows["fsw_param_jd0"]["si"], 2461406.75, delta=1e-6)           # 2027-01-01 06:00 UTC
         self.assertEqual(rows["fsw_param_mu"]["si"], 3.986004418e14)
 
@@ -104,10 +104,11 @@ class WiredDesign(unittest.TestCase):
             self.assertTrue(rows[nid]["why"].startswith("computed during a run"), (nid, rows[nid]["why"]))
 
     def test_the_settling_time_closure_is_answered(self):
-        # gc_2 from the stated bandwidth 0.1 rad/s and damping 0.707: 4/(zeta wn) = 56.6 s, against the case's 20 s
+        # gc_2 from the flown loop's bandwidth 0.9 rad/s and damping 2 (gc_0, gc_1 since S11.6, G6): 4/(zeta wn) = 2.2 s, against
+        # the case's 20 s (the relation is the underdamped one; the step of engine/crates/adcs-sim/tests/loops.rs settles in 27.8 s)
         cl = {c["id"]: c for c in self.r["ais_img_3u"]["closures"]}["kpi_settling_time_after_a_slew_analysis"]
-        self.assertEqual(cl["answer"], "fail")
-        self.assertAlmostEqual(self.rows["ais_img_3u"]["gc_2"]["si"], 4 / (0.707 * 0.1), delta=1e-2)
+        self.assertEqual(cl["answer"], "pass")
+        self.assertAlmostEqual(self.rows["ais_img_3u"]["gc_2"]["si"], 4 / (2.0 * 0.9), delta=1e-2)
 
 
 if __name__ == "__main__":

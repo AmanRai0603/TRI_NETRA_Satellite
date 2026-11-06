@@ -3909,3 +3909,45 @@ why = "the quiet gyro's limit of DR-fdir-002 (docs/S11_INVENTORY.md F2/G3, S11.5
 [[revision.case]]
 file = "design/revisions/S11.5/fault_st_blind.toml"
 kind = "scenario"
+
+[[revision]]
+id = "S11.6"
+at = "2026-11-06T23:00:00Z"
+by = "the developer"
+about = "the estimator's start, the rotor allocation and the fine-pointing gains (docs/S11_INVENTORY.md G6 with TS3, F4, G1, G2; decision DR-ctl-001): the PID's proportional and integral gains and the magnetic PD's proportional gain act on the quaternion's vector part, which is half the angle, so they carry the factor 2 (K_p = 2 J wn^2, K_i = 2 x 0.15 J wn^3, K_d unchanged) and the loops fly at the bandwidth they are tuned to, not at 0.6 of it; the sliding modes' slope on the same vector part is wn/z for the wheels and the coils alike; the analysis row gc_0, gc_1 states the loop as flown"
+
+[[revision.method]]
+nodes = ["fsw_param_rw_Kp", "fsw_param_rw_Kd", "fsw_param_rw_Ki", "fsw_param_rw_Klqr", "fsw_param_rw_lambda", "fsw_param_rw_Gs", "fsw_param_rw_dt"]
+from = "method"
+to = "method"
+pseudocode = "design/revisions/S11.6/fswrw.pc"
+path = "fsw/params/fswrw.pc"
+transcribes = "design/revisions/S7.13/fswrw.pc as S7.13 left it, with the PID's K_p and K_i on the angle (the factor 2 of the quaternion's vector part) and the sliding mode's slope lambda = wn/z"
+source = "DR-ctl-001 (design/decisions/DR-ctl-001.toml): pole placement on the angle; Wie, Weiss and Arapostathis (1989), J. Guidance 12(3):375-380 (quaternion feedback: for small angles the vector part is theta/2, so the gain on it is twice the stiffness on the angle); Wie (2008), Space Vehicle Dynamics and Control, chapter 7; ECSS-E-ST-60-10C"
+generate = ["adcs-sim"]
+why = "the fine pointing's gains place the loop at the stated bandwidth (G6, TS3: the step response and the sweep of engine/crates/adcs-sim/tests/loops.rs hold it)"
+
+[[revision.method]]
+nodes = ["fsw_param_m_max", "fsw_param_bdot_k", "fsw_param_detumble_exit", "fsw_param_mtq_Kp", "fsw_param_mtq_Kd", "fsw_param_mtq_Ki", "fsw_param_mtq_Klqr", "fsw_param_mtq_lambda", "fsw_param_mtq_Gs", "fsw_param_mtq_k1", "fsw_param_mtq_k2", "fsw_param_mtq_k16", "fsw_param_mtq_lam16", "fsw_param_sb_kp", "fsw_param_sb_kd", "fsw_param_sb_kroll", "fsw_param_sb_kdroll", "fsw_param_sb_roll_gate", "fsw_param_mtq_Pth", "fsw_param_mtq_Pw"]
+from = "method"
+to = "method"
+pseudocode = "design/revisions/S11.6/fswmtq.pc"
+path = "fsw/params/fswmtq.pc"
+transcribes = "design/revisions/S7.13/fswmtq.pc as S7.13 left it, with the magnetic PD's K_p on the angle (the factor 2) and the sliding mode's slope stated as wn/z, the fine pointing's too"
+source = "DR-ctl-001 (design/decisions/DR-ctl-001.toml); Wie, Weiss and Arapostathis (1989), J. Guidance 12(3):375-380"
+generate = ["adcs-sim"]
+why = "the magnetic PD's stiffness on the angle and the one slope of the two sliding modes (G6; the S7 finding that the magnetic slope was twice the fine pointing's: it was the right one for the vector part, the fine pointing's was half of it)"
+
+[[revision.change]]
+match = { nodes = ["gc_0"] }
+from = "stated"
+to = "stated"
+content = [["value", "number", "0.9"], ["value", "source", "the loop as the flight software flies it: fsw_tune_rw_bandwidth (0.9 rad/s, S7.13), which the step response of engine/crates/adcs-sim/tests/loops.rs holds the fine pointing to; 1.0.0's 0.1 rad/s (adcs_ref_c1) was a figure of the analysis row, not of the flown loop (DR-ctl-001)"]]
+why = "ctl's analysis row states the loop as flown (docs/S11_INVENTORY.md G6; S7.19's finding: the settling by analysis was 56.6 s against the flown loop's)"
+
+[[revision.change]]
+match = { nodes = ["gc_1"] }
+from = "stated"
+to = "stated"
+content = [["value", "number", "2.0"], ["value", "source", "the loop as the flight software flies it: fsw_tune_rw_damping (2.0, S7.13); 1.0.0's 0.707 (adcs_ref_c1) was a figure of the analysis row, not of the flown loop (DR-ctl-001)"]]
+why = "ctl's analysis row states the loop as flown (docs/S11_INVENTORY.md G6)"
