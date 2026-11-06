@@ -21,6 +21,9 @@ typedef struct {
     int ready;
     uint64_t start_ns;
     double t, jd;
+    /* the rate groups: one integer tick counter each (docs/CHANGING.md, DR-ctl-001); the group lengths and the coil-cycle
+     * marks in ticks, worked out once at init from the periods; the ticks of the latest runs, -1: not yet */
+    uint64_t tick; int n_mtq, meas_i, meas_c, n_rcs, n_rw, n_bref; int64_t k_bref, k_es, k_ctrl;
     uint8_t mode;
     double t_mode, hold;
     /* sensors (latest) */
@@ -32,9 +35,9 @@ typedef struct {
     int have_r; adcs_real r[3], v[3];
     /* estimation */
     adcs_mekf_t K; int ad_ok; double t_st; int mag_done, n_rej; double gh_jd;
-    adcs_real es_n[3]; double es_t;           /* latest valid Earth-sensor sample and its time */
+    adcs_real es_n[3];                        /* latest valid Earth-sensor sample (k_es: its tick) */
     adcs_real w_est[3];
-    adcs_real gh[195]; int gh_ok; adcs_real Bref[3]; int bref_ok; double t_Bref;
+    adcs_real gh[195]; int gh_ok; adcs_real Bref[3]; int bref_ok;
     /* coil cycle */
     adcs_real bsum[3], bsum_raw[3]; int bn;
     adcs_real b1[3]; int b1_ok; adcs_real B1raw[3]; int B1raw_ok;
@@ -46,7 +49,7 @@ typedef struct {
     /* fine modes */
     adcs_guid_t gd;
     adcs_gains_t g_rw, g_mtq;
-    adcs_real q_ref[4], w_ref[3], tau_req[3], I_q[3]; double last_ctrl; int capturing;
+    adcs_real q_ref[4], w_ref[3], tau_req[3], I_q[3]; int capturing;
     adcs_real h_prev[NR]; int h_prev_ok; adcs_real cmd_r_prev[NR]; int rot_failed[NR]; adcs_real fd_count[NR];
     adcs_real fw_E[NR], fw_h0[NR]; double fw_t0, fw_last; int fw_on, fw_bad[NR];   /* windowed rotor FDIR */
     adcs_real h_t_rot[NR], H_t[3], cap[3], hcap[3], dump_hi, dump_lo;

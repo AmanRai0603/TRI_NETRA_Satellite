@@ -484,10 +484,24 @@ static void tk_quiet_gyro(int silent)
 static void tk_gyro_stops_answering(void) { tk_quiet_gyro(1); }
 static void tk_gyro_frozen(void) { tk_quiet_gyro(0); }
 
+/* The tick tests a fix has made pass: in main's run. A fix moves its tests here from the skipped list below. */
+static const struct { const char *name; void (*fn)(void); } ticks[] = {
+    { "timestamps off by 1 us change no command (F3)", tk_jitter_1us },
+    { "timestamps off by 5 ms change no command (F3)", tk_jitter_5ms },
+};
+
+static void t_ticks(void)
+{
+    size_t i;
+    for (i = 0; i < sizeof ticks/sizeof ticks[0]; i++) {
+        int f0 = n_fail;
+        ticks[i].fn();
+        if (n_fail > f0) printf("FAIL %s\n", ticks[i].name);
+    }
+}
+
 /* The skipped list: the tick tests no fix has made pass yet. The step that fixes one (named with it) moves it into main's run. */
 static const struct { const char *name; void (*fn)(void); const char *fixed_by; } skipped[] = {
-    { "timestamps off by 1 us change no command (F3)",                 tk_jitter_1us,          "S11.4b/S11.5" },
-    { "timestamps off by 5 ms change no command (F3)",                 tk_jitter_5ms,          "S11.4b/S11.5" },
     { "a warm reset 30 days in keeps the date (F1)",                   tk_reset_day30,         "S11.4b/S11.5" },
     { "a clock step of +1 h keeps the date (F1)",                      tk_step_plus_1h,        "S11.4b/S11.5" },
     { "a clock step of -1 s never runs the time back (F1)",            tk_step_minus_1s,       "S11.4b/S11.5" },
@@ -512,7 +526,7 @@ static void t_skipped(void)
 
 int main(void)
 {
-    t_math(); t_env(); t_estimation(); t_laws(); t_rcs(); t_abi(); t_st_frame(); t_nonfinite(); t_safe(); t_skipped();
+    t_math(); t_env(); t_estimation(); t_laws(); t_rcs(); t_abi(); t_st_frame(); t_nonfinite(); t_safe(); t_ticks(); t_skipped();
     printf("%d checks passed, %d failed (%s)\n", n_pass, n_fail, adcs_fsw_build_id());
     return n_fail ? 1 : 0;
 }

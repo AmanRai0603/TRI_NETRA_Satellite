@@ -46,6 +46,9 @@ pub struct Fsw {
     ready: bool,
     start_ns: u64,
     t: f64, jd: f64,
+    // the rate groups: one integer tick counter each (docs/CHANGING.md, DR-ctl-001); the group lengths and the coil-cycle marks in
+    // ticks, worked out once at init from the periods; the ticks of the latest runs, -1: not yet
+    tick: u64, n_mtq: u64, meas_i: u64, meas_c: u64, n_rcs: u64, n_rw: u64, n_bref: u64, k_bref: i64, k_es: i64, k_ctrl: i64,
     mode: u8,
     t_mode: f64, hold: f64,
     z: Meas,
@@ -55,9 +58,9 @@ pub struct Fsw {
     mag_age: f64, gyro_age: f64, mag_seen: bool, b_good: V3,
     have_r: bool, r: V3, v: V3,
     k: Mekf, ad_ok: bool, t_st: f64, mag_done: bool, n_rej: f64, gh_jd: f64,
-    es_n: V3, es_t: f64,
+    es_n: V3,
     w_est: V3,
-    gh: Option<[f64; 195]>, bref: Option<V3>, t_bref: f64,
+    gh: Option<[f64; 195]>, bref: Option<V3>,
     bsum: V3, bsum_raw: V3, bn: u32,
     b1: Option<V3>, b1raw: Option<V3>,
     m_hold: V3, b_dump: V3,
@@ -65,7 +68,7 @@ pub struct Fsw {
     s_prop: Option<V3>, acq_hold: f64,
     ho: bool, ho_t: f64,
     gd: Guid, g_rw: Gains, g_mtq: Gains,
-    q_ref: Q, w_ref: V3, tau_req: V3, i_q: V3, last_ctrl: f64, capturing: bool,
+    q_ref: Q, w_ref: V3, tau_req: V3, i_q: V3, capturing: bool,
     h_prev: Option<[f64; NR]>, cmd_r_prev: [f64; NR], rot_failed: [bool; NR], fd_count: [f64; NR],
     fw_e: [f64; NR], fw_h0: [f64; NR], fw_t0: f64, fw_last: f64, fw_on: bool, fw_bad: [u32; NR],   // windowed rotor FDIR
     h_t_rot: [f64; NR], h_t: V3, cap: V3, hcap: V3, dump_hi: f64, dump_lo: f64,
@@ -106,7 +109,10 @@ impl Fsw {
         self.p = p;
         self.start_ns = start_ns;
         self.mode = p.start_mode;
-        self.t_st = -1e9; self.t_bref = -1e9; self.last_ctrl = -1e9; self.es_t = -1e9;
+        self.t_st = -1e9; self.k_bref = -1; self.k_ctrl = -1; self.k_es = -1;
+        self.n_mtq = ticks_of(p.mtq_period, p.dt); self.n_rcs = ticks_of(p.rcsd_period_s, p.dt); self.n_rw = ticks_of(p.rw_dt, p.dt);
+        self.meas_i = (p.mtq_meas/p.dt + 0.5) as u64; self.meas_c = ceil_ticks(p.mtq_meas/p.dt - 1e-9);
+        self.n_bref = ticks_of(BREF_REFRESH_S, p.dt); if (self.n_bref as f64)*p.dt < BREF_REFRESH_S - 1e-9 { self.n_bref += 1; }
         self.sigma = p.ss_sigma0;
         self.clean = true;
         self.gd = Guid {
@@ -227,15 +233,15 @@ impl Fsw {
         // 2 estimation
         self.gd.sun_eci = env::sun_model(self.jd);
         if p.gd_yaw_flip != 0 && self.have_r { guid::yaw_flip(&mut self.gd, &self.r, &self.v, p.gd_flip_hyst); }
-        let phase = fmod(self.t + 1e-9, p.mtq_period);
-        let first = phase < dt - 1e-9;
+        let mi = self.tick % self.n_mtq;                       // the tick's place in the coil cycle: an integer, whatever the clock says
+        let first = mi == 0;
         if first { self.mag_done = false; }
-        if z.es_ok { self.es_n = z.nadir; self.es_t = self.t; }
-        if first && self.have_r && (self.t - self.t_bref) >= 0.999 {
+        if z.es_ok { self.es_n = z.nadir; self.k_es = self.tick as i64; }
+        if first && self.have_r && (self.k_bref < 0 || self.tick as i64 - self.k_bref >= self.n_bref as i64) {
             if self.gh.is_none() || fabs(self.jd - self.gh_jd) > 1.0 { self.gh = Some(env::igrf_gh(env::decyear(self.jd))); self.gh_jd = self.jd; }
             let gh = self.gh.as_ref().unwrap();
             self.bref = Some(env::field_eci(&self.r, self.jd, gh, p.igrf_nmax as i32));
-            self.t_bref = self.t;
+            self.k_bref = self.tick as i64;
         }
         let m = self.mode;
         if !(m == DETUMBLE || m == DETUMBLE_RCS || m == SPINUP || m == SUN_SPIN) {
@@ -281,13 +287,13 @@ impl Fsw {
                             if self.k.vector(&z.b, &br, sqrt(p.mekf_sig_mag*p.mekf_sig_mag + e*e), p.mekf_gate) { took += 1.0; }
                         }
                     }
-                    if first && self.have_r && self.t - self.es_t < p.mtq_period {
+                    if first && self.have_r && self.k_es >= 0 && self.tick as i64 - self.k_es < self.n_mtq as i64 {
                         // latest Earth-sensor sample of the cycle
                         let sg = if p.es_noise > 1e-3 { p.es_noise } else { 1e-3 };
                         let esn = self.es_n;
                         tried += 1.0;
                         if self.k.vector(&esn, &scale3(&self.r, -1.0), 2.0*sg, p.mekf_gate) { took += 1.0; }
-                        self.es_t = -1e9;
+                        self.k_es = -1;
                     }
                     // every update gated for mekf_rej_max in a row: the estimate has diverged, re-initialise
                     if tried > 0.0 { if took > 0.0 { self.n_rej = 0.0; } else { self.n_rej += tried; } }
@@ -314,7 +320,7 @@ impl Fsw {
         let mut duty = [0.0; NC];
         match self.mode {
             DETUMBLE => {
-                if phase < p.mtq_meas + dt/2.0 {
+                if mi <= self.meas_i {
                     m_body = [0.0; 3];
                     if first { self.bsum = [0.0; 3]; self.bsum_raw = [0.0; 3]; self.bn = 0; }
                     if z.mag_ok {
@@ -323,8 +329,8 @@ impl Fsw {
                         self.bn += 1;
                     }
                     // no field this cycle: no dipole, no rate across the gap
-                    if fabs(phase - p.mtq_meas) < dt/2.0 && self.bn == 0 { self.b1 = None; self.b1raw = None; }
-                    else if fabs(phase - p.mtq_meas) < dt/2.0 {
+                    if mi == self.meas_i && self.bn == 0 { self.b1 = None; self.b1raw = None; }
+                    else if mi == self.meas_i {
                         let b = unit(&scale3(&self.bsum, 1.0/self.bn as f64));
                         let mut law = p.bdot_law;
                         if law == 0 && (p.has_gyro == 0 || self.gyro_age > 0.0) { law = 1; }
@@ -363,7 +369,7 @@ impl Fsw {
             }
             DETUMBLE_RCS => {
                 let tc = p.rcsd_period_s;
-                if p.nc > 0 && (self.rcs_left.is_none() || fmod(self.t + 1e-9, tc) < dt - 1e-9) {
+                if p.nc > 0 && (self.rcs_left.is_none() || self.tick % self.n_rcs == 0) {
                     let mut left = [0.0; NC];
                     if norm3(&self.w_est) > p.rcsd_deadband_deg_s*D2R {
                         self.tau_req = mat3_vec(&p.J, &scale3(&self.w_est, -1.0/p.rcsd_T_damp_s));
@@ -386,7 +392,7 @@ impl Fsw {
             }
             NADIR_MTQ | SUN_MTQ => {
                 if first { m_body = [0.0; 3]; }
-                else if fabs(phase - p.mtq_meas) < dt/2.0 && self.ad_ok && self.have_r {
+                else if mi == self.meas_i && self.ad_ok && self.have_r {
                     let rf = guid::guidance(guid::kind_of(self.mode), &self.r, &self.v, self.t, &self.gd);
                     self.q_ref = rf.q; self.w_ref = rf.w;
                     // hand-over (05_control.md): the rate error is damped first with the detumble gain (Avanzini & Giulietti 2012)
@@ -414,7 +420,7 @@ impl Fsw {
                         ctl::torque2dipole(&self.tau_req, &z.b, p.m_max)
                     };
                     m_body = ctl::sat_dipole(&sub3(&md, &p.m_res_est), p.m_max);
-                } else if phase < p.mtq_meas { m_body = [0.0; 3]; }
+                } else if mi < self.meas_c { m_body = [0.0; 3]; }
             }
             NADIR_FINE | TARGET_FINE | SLEW_FINE | SUN_FINE | SUN_ACQ_ROTOR => {
                 let acq = self.mode == SUN_ACQ_ROTOR;
@@ -424,8 +430,8 @@ impl Fsw {
                 for i in 0..nr { hdev[0] += a[0][i]*z.h[i]; hdev[1] += a[1][i]*z.h[i]; hdev[2] += a[2][i]*z.h[i]; }
                 self.fdir_rotors(&z, dt);
                 // control law at the control rate
-                if acq && self.t - self.last_ctrl >= p.rw_dt - 1e-9 { self.sun_acq_law(&hdev); self.last_ctrl = self.t; }
-                else if !acq && self.ad_ok && self.have_r && self.t - self.last_ctrl >= p.rw_dt - 1e-9 {
+                if acq && (self.k_ctrl < 0 || self.tick as i64 - self.k_ctrl >= self.n_rw as i64) { self.sun_acq_law(&hdev); self.k_ctrl = self.tick as i64; }
+                else if !acq && self.ad_ok && self.have_r && (self.k_ctrl < 0 || self.tick as i64 - self.k_ctrl >= self.n_rw as i64) {
                     let rf = guid::guidance(guid::kind_of(self.mode), &self.r, &self.v, self.t, &self.gd);
                     self.q_ref = rf.q; self.w_ref = rf.w;
                     self.capturing = self.capture_law(&hdev);
@@ -433,7 +439,7 @@ impl Fsw {
                     else {
                         self.tau_req = ctl::control_law(&self.k.q, &self.w_est, &self.q_ref, &self.w_ref, &mut self.i_q, p.rw_dt, &self.g_rw, &p.J, &hdev, &rf.wd);
                     }
-                    self.last_ctrl = self.t;
+                    self.k_ctrl = self.tick as i64;
                 }
                 // momentum management
                 let dh = sub3(&hdev, &self.h_t);
@@ -442,7 +448,7 @@ impl Fsw {
                     else if norm3(&dh) < self.dump_lo { self.rcs_dumping = false; }
                 }
                 if first { m_body = [0.0; 3]; }
-                else if fabs(phase - p.mtq_meas) < dt/2.0 {
+                else if mi == self.meas_i {
                     let mut mm = [0.0; 3];
                     if !self.has_rcs_dump { mm = alloc::dump(&hdev, &self.h_t, &z.b, p.dump_k, p.m_max); }
                     if p.alloc == 1 && ctl_ok { mm = add3(&mm, &ctl::torque2dipole(&self.tau_req, &z.b, p.m_max)); }
@@ -466,7 +472,7 @@ impl Fsw {
                     }
                     m_body = ctl::sat_dipole(&sub3(&mm, &p.m_res_est), p.m_max);
                     self.b_dump = z.b;
-                } else if phase < p.mtq_meas { m_body = [0.0; 3]; }
+                } else if mi < self.meas_c { m_body = [0.0; 3]; }
                 // thrusters: assist and dumping
                 let mut tau_rcs = [0.0; 3];
                 if p.nc > 0 && ctl_ok {
@@ -498,12 +504,12 @@ impl Fsw {
                 self.h_prev = Some(hp);
             }
             SPINUP | SUN_SPIN => {
-                if phase < p.mtq_meas + dt/2.0 {
+                if mi <= self.meas_i {
                     m_body = [0.0; 3];
                     if first { self.bsum_raw = [0.0; 3]; self.bn = 0; }
                     if z.mag_ok { self.bsum_raw = add3(&self.bsum_raw, &z.b); self.bn += 1; }
-                    if fabs(phase - p.mtq_meas) < dt/2.0 && self.bn == 0 { self.b1raw = None; }
-                    else if fabs(phase - p.mtq_meas) < dt/2.0 {
+                    if mi == self.meas_i && self.bn == 0 { self.b1raw = None; }
+                    else if mi == self.meas_i {
                         let bav = scale3(&self.bsum_raw, 1.0/self.bn as f64);
                         let m0 = if self.mode == SPINUP {
                             let mut bd = [0.0; 3];
@@ -546,6 +552,7 @@ impl Fsw {
         self.out_r = cmd_r;
         self.out_g = cmd_g;
         self.out_duty = duty;
+        self.tick += 1;
         0
     }
 
@@ -596,6 +603,13 @@ impl Fsw {
     pub fn mode(&self) -> u8 { self.mode }
     pub fn time(&self) -> f64 { self.t }
 }
+
+/// The field model's refresh: at most once in this many seconds (a whole number of ticks, rounded up)
+const BREF_REFRESH_S: f64 = 0.999;
+/// A period in whole ticks (at least one): the rate groups count ticks, they do not compare times.
+fn ticks_of(seconds: f64, dt: f64) -> u64 { let n = (seconds/dt + 0.5) as u64; if n < 1 { 1 } else { n } }
+/// The smallest whole number of ticks not below x (0 for x <= 0).
+fn ceil_ticks(x: f64) -> u64 { if x <= 0.0 { 0 } else { let n = x as u64; if (n as f64) < x { n + 1 } else { n } } }
 
 /// The coils act on a held field for at most this many coil cycles (fdir.rs holds it).
 const MAG_HOLD_CYCLES: f64 = 2.0;

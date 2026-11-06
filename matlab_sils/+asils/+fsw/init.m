@@ -34,8 +34,14 @@ function F = init(blob, start_ns)
     F.have_r = false; F.r = zeros(3, 1); F.v = zeros(3, 1);
     F.K = struct('q', zeros(4, 1), 'b', zeros(3, 1), 'P', zeros(6, 6), 'arw', 0, 'rrw', 0);
     F.ad_ok = false; F.t_st = -1e9; F.mag_done = false; F.n_rej = 0; F.gh_jd = 0;
-    F.es_n = zeros(3, 1); F.es_t = -1e9; F.w_est = zeros(3, 1);
-    F.gh = []; F.bref = []; F.t_bref = -1e9;
+    F.es_n = zeros(3, 1); F.k_es = -1; F.w_est = zeros(3, 1);
+    F.gh = []; F.bref = []; F.k_bref = -1;
+    % the rate groups: one integer tick counter each (docs/CHANGING.md, DR-ctl-001); the group lengths and the coil-cycle marks in
+    % ticks, worked out once from the periods (= adcs_fsw.c, fsw.rs)
+    F.tick = 0;
+    F.n_mtq = ticks_of_(p.mtq_period, p.dt); F.n_rcs = ticks_of_(p.rcsd_period_s, p.dt); F.n_rw = ticks_of_(p.rw_dt, p.dt);
+    F.meas_i = floor(p.mtq_meas/p.dt + 0.5); F.meas_c = ceil(p.mtq_meas/p.dt - 1e-9);
+    F.n_bref = ticks_of_(0.999, p.dt); if F.n_bref*p.dt < 0.999 - 1e-9, F.n_bref = F.n_bref + 1; end
     F.bsum = zeros(3, 1); F.bsum_raw = zeros(3, 1); F.bn = 0; F.b1 = []; F.b1raw = [];
     F.m_hold = zeros(3, 1); F.b_dump = zeros(3, 1);
     F.sigma = p.ss_sigma0; F.sz_sum = 0; F.sz_n = 0; F.sz_t0 = 0; F.s_prop = []; F.acq_hold = 0;
@@ -46,7 +52,7 @@ function F = init(blob, start_ns)
     F.g_rw = gains_(p.rw_law, p.rw_Kp, p.rw_Kd, p.rw_Ki, p.rw_Klqr, p.rw_lambda, p.rw_phi, p.rw_Gs, p.rw_err_max, p.rw_int_max);
     ml = 0; if p.mtq_law == 1, ml = 1; elseif p.mtq_law == 2, ml = 2; end
     F.g_mtq = gains_(ml, p.mtq_Kp, p.mtq_Kd, p.mtq_Ki, p.mtq_Klqr, p.mtq_lambda, p.mtq_phi, p.mtq_Gs, p.mtq_err_max, p.mtq_int_max);
-    F.q_ref = zeros(4, 1); F.w_ref = zeros(3, 1); F.tau_req = zeros(3, 1); F.i_q = zeros(3, 1); F.last_ctrl = -1e9; F.capturing = false;
+    F.q_ref = zeros(4, 1); F.w_ref = zeros(3, 1); F.tau_req = zeros(3, 1); F.i_q = zeros(3, 1); F.k_ctrl = -1; F.capturing = false;
     F.h_prev = []; F.cmd_r_prev = zeros(NR, 1); F.rot_failed = false(NR, 1); F.fd_count = zeros(NR, 1);
     F.fw_e = zeros(NR, 1); F.fw_h0 = zeros(NR, 1); F.fw_t0 = 0; F.fw_last = 0; F.fw_on = false; F.fw_bad = zeros(NR, 1);
     % momentum targets and per-axis authority (fsw.rs Fsw::init)
@@ -113,4 +119,8 @@ function c = ctl_params_(p, g)
         'mtq_period', p.mtq_period, 'j', p.J, 'capture_deg', p.capture_deg, 'capture_rate_deg_s', p.capture_rate_deg_s, ...
         'sa_w_max_deg_s', p.sa_w_max_deg_s, 'sa_kd', p.sa_kd, 'g_law', g.law, 'g_kp', g.kp, 'g_kd', g.kd, 'g_ki', g.ki, ...
         'g_klqr', g.klqr, 'g_lambda', g.lambda, 'g_phi', g.phi, 'g_gs', g.gs, 'g_err_max', g.err_max, 'g_int_max', g.int_max);
+end
+
+function n = ticks_of_(seconds, dt)
+    n = max(1, floor(seconds/dt + 0.5));      % a period in whole ticks (at least one)
 end

@@ -32,16 +32,16 @@ function [F, bus] = step(F, bus)
         g = F.gd;
         F.gd.flip = asils.alg.guidance.yaw_flip(F.r, F.v, g.q_off, g.sun_axis, g.roll_axis, g.sun_eci, g.flip, p.gd_flip_hyst);
     end
-    phase = fmod_(F.t + 1e-9, p.mtq_period);
-    first = phase < dt - 1e-9;
+    mi = mod(F.tick, F.n_mtq);                    % the tick's place in the coil cycle: an integer, whatever the clock says
+    first = mi == 0;
     if first, F.mag_done = false; end
-    if z.es_ok, F.es_n = z.nadir; F.es_t = F.t; end
-    if first && F.have_r && (F.t - F.t_bref) >= 0.999
+    if z.es_ok, F.es_n = z.nadir; F.k_es = F.tick; end
+    if first && F.have_r && (F.k_bref < 0 || F.tick - F.k_bref >= F.n_bref)
         if isempty(F.gh) || fabs_(F.jd - F.gh_jd) > 1.0
             F.gh = asils.alg.frames.igrf_gh(asils.alg.frames.decyear(F.jd)); F.gh_jd = F.jd;
         end
         F.bref = asils.alg.frames.field_eci(F.r, F.jd, F.gh, p.igrf_nmax);
-        F.t_bref = F.t;
+        F.k_bref = F.tick;
     end
     m = F.mode;
     if ~(m == 0 || m == 7 || m == 5 || m == 6)            % not DETUMBLE, DETUMBLE_RCS, SPINUP, SUN_SPIN
@@ -92,13 +92,13 @@ function [F, bus] = step(F, bus)
                     [F.K, ok] = mekf_vector_(F.K, z.b, F.bref, sqrt(p.mekf_sig_mag*p.mekf_sig_mag + e*e), p.mekf_gate);
                     if ok, took = took + 1; end
                 end
-                if first && F.have_r && F.t - F.es_t < p.mtq_period
+                if first && F.have_r && F.k_es >= 0 && F.tick - F.k_es < F.n_mtq
                     % latest Earth-sensor sample of the cycle
                     if p.es_noise > 1e-3, sg = p.es_noise; else, sg = 1e-3; end
                     tried = tried + 1;
                     [F.K, ok] = mekf_vector_(F.K, F.es_n, F.r*(-1.0), 2.0*sg, p.mekf_gate);
                     if ok, took = took + 1; end
-                    F.es_t = -1e9;
+                    F.k_es = -1;
                 end
                 % every update gated for mekf_rej_max in a row: the estimate has diverged, re-initialise
                 if tried > 0, if took > 0, F.n_rej = 0; else, F.n_rej = F.n_rej + tried; end, end
@@ -124,7 +124,7 @@ function [F, bus] = step(F, bus)
     cmd_r = zeros(8, 1); cmd_g = zeros(4, 1); duty = zeros(6, 1);
     switch F.mode
         case 0                                         % DETUMBLE
-            if phase < p.mtq_meas + dt/2.0
+            if mi <= F.meas_i
                 m_body = zeros(3, 1);
                 if first, F.bsum = zeros(3, 1); F.bsum_raw = zeros(3, 1); F.bn = 0; end
                 if z.mag_ok
@@ -133,9 +133,9 @@ function [F, bus] = step(F, bus)
                     F.bn = F.bn + 1;
                 end
                 % no field this cycle: no dipole, no rate across the gap
-                if fabs_(phase - p.mtq_meas) < dt/2.0 && F.bn == 0
+                if mi == F.meas_i && F.bn == 0
                     F.b1 = []; F.b1raw = [];
-                elseif fabs_(phase - p.mtq_meas) < dt/2.0
+                elseif mi == F.meas_i
                     b = unit_(F.bsum*(1.0/F.bn));
                     law = p.bdot_law;
                     if law == 0 && (p.has_gyro == 0 || F.gyro_age > 0.0), law = 1; end
@@ -173,7 +173,7 @@ function [F, bus] = step(F, bus)
             if nr > 0, cmd_r = idle_rotors_(F, cmd_r, true); end
         case 7                                         % DETUMBLE_RCS
             tc = p.rcsd_period_s;
-            if p.nc > 0 && (isempty(F.rcs_left) || fmod_(F.t + 1e-9, tc) < dt - 1e-9)
+            if p.nc > 0 && (isempty(F.rcs_left) || mod(F.tick, F.n_rcs) == 0)
                 left = zeros(6, 1);
                 if norm3_(F.w_est) > p.rcsd_deadband_deg_s*D2R
                     F.tau_req = mat3_vec_(p.J, F.w_est*(-1.0/p.rcsd_T_damp_s));
@@ -195,7 +195,7 @@ function [F, bus] = step(F, bus)
         case {1, 9}                                    % NADIR_MTQ, SUN_MTQ
             if first
                 m_body = zeros(3, 1);
-            elseif fabs_(phase - p.mtq_meas) < dt/2.0 && F.ad_ok && F.have_r
+            elseif mi == F.meas_i && F.ad_ok && F.have_r
                 g = F.gd;
                 [F.q_ref, F.w_ref] = asils.alg.guidance.guidance(asils.alg.guidance.guid_kind(F.mode), F.r, F.v, F.t, g.q_off, ...
                     g.roll_deg, g.t0, g.t_slew, g.axis, g.q_inertial, g.sun_axis, g.roll_axis, g.sun_eci, g.flip);
@@ -227,7 +227,7 @@ function [F, bus] = step(F, bus)
                     md = asils.alg.control.torque2dipole(F.tau_req, z.b, p.m_max);
                 end
                 m_body = asils.alg.control.sat_dipole(md - p.m_res_est, p.m_max);
-            elseif phase < p.mtq_meas
+            elseif mi < F.meas_c
                 m_body = zeros(3, 1);
             end
         case {2, 3, 4, 10, 8}                          % NADIR_FINE, TARGET_FINE, SLEW_FINE, SUN_FINE, SUN_ACQ_ROTOR
@@ -240,10 +240,10 @@ function [F, bus] = step(F, bus)
             end
             F = fdir_rotors_(F, z, dt);
             % control law at the control rate
-            if acq && F.t - F.last_ctrl >= p.rw_dt - 1e-9
+            if acq && (F.k_ctrl < 0 || F.tick - F.k_ctrl >= F.n_rw)
                 F = set_ctl_(F, asils.alg.steplaws.ctl_sun_acq(ctl_state_(F), F.cp, hdev));
-                F.last_ctrl = F.t;
-            elseif ~acq && F.ad_ok && F.have_r && F.t - F.last_ctrl >= p.rw_dt - 1e-9
+                F.k_ctrl = F.tick;
+            elseif ~acq && F.ad_ok && F.have_r && (F.k_ctrl < 0 || F.tick - F.k_ctrl >= F.n_rw)
                 g = F.gd;
                 [F.q_ref, F.w_ref, wd] = asils.alg.guidance.guidance(asils.alg.guidance.guid_kind(F.mode), F.r, F.v, F.t, g.q_off, ...
                     g.roll_deg, g.t0, g.t_slew, g.axis, g.q_inertial, g.sun_axis, g.roll_axis, g.sun_eci, g.flip);
@@ -257,7 +257,7 @@ function [F, bus] = step(F, bus)
                     [F.tau_req, F.i_q] = asils.alg.control.control_law(F.K.q, F.w_est, F.q_ref, F.w_ref, F.i_q, p.rw_dt, gr.law, gr.kp, ...
                         gr.kd, gr.ki, gr.klqr, gr.lambda, gr.phi, gr.gs, gr.err_max, gr.int_max, p.J, hdev, wd);
                 end
-                F.last_ctrl = F.t;
+                F.k_ctrl = F.tick;
             end
             % momentum management
             dh = hdev - F.h_t;
@@ -267,7 +267,7 @@ function [F, bus] = step(F, bus)
             end
             if first
                 m_body = zeros(3, 1);
-            elseif fabs_(phase - p.mtq_meas) < dt/2.0
+            elseif mi == F.meas_i
                 mm = zeros(3, 1);
                 if ~F.has_rcs_dump, mm = asils.alg.allocation.dump(hdev, F.h_t, z.b, p.dump_k, p.m_max); end
                 if p.alloc == 1 && ctl_ok, mm = mm + asils.alg.control.torque2dipole(F.tau_req, z.b, p.m_max); end
@@ -291,7 +291,7 @@ function [F, bus] = step(F, bus)
                 end
                 m_body = asils.alg.control.sat_dipole(mm - p.m_res_est, p.m_max);
                 F.b_dump = z.b;
-            elseif phase < p.mtq_meas
+            elseif mi < F.meas_c
                 m_body = zeros(3, 1);
             end
             % thrusters: assist and dumping
@@ -323,13 +323,13 @@ function [F, bus] = step(F, bus)
             if ~isempty(F.h_prev), hp(nr+1:end) = F.h_prev(nr+1:end); end
             F.h_prev = hp;
         case {5, 6}                                    % SPINUP, SUN_SPIN
-            if phase < p.mtq_meas + dt/2.0
+            if mi <= F.meas_i
                 m_body = zeros(3, 1);
                 if first, F.bsum_raw = zeros(3, 1); F.bn = 0; end
                 if z.mag_ok, F.bsum_raw = F.bsum_raw + z.b; F.bn = F.bn + 1; end
-                if fabs_(phase - p.mtq_meas) < dt/2.0 && F.bn == 0
+                if mi == F.meas_i && F.bn == 0
                     F.b1raw = [];
-                elseif fabs_(phase - p.mtq_meas) < dt/2.0
+                elseif mi == F.meas_i
                     bav = F.bsum_raw*(1.0/F.bn);
                     if F.mode == 5
                         bd = zeros(3, 1);
@@ -368,6 +368,7 @@ function [F, bus] = step(F, bus)
     F.clean = is_zero3_(m_body);
     bus = asils.fsw.drv_write(bus, p, m_body, cmd_r, cmd_g, duty);
     F.out_m = m_body; F.out_r = cmd_r; F.out_g = cmd_g; F.out_duty = duty;
+    F.tick = F.tick + 1;
 end
 
 % ---------------- the runtime's helpers (fsw-rs math.rs, the toolbox's small kernel) ----------------
@@ -376,9 +377,6 @@ function y = fabs_(x)
 end
 function y = sign_(x)
     if x > 0, y = 1; elseif x < 0, y = -1; else, y = 0; end
-end
-function r = fmod_(x, y)
-    r = rem(x, y);
 end
 function n = norm3_(a)
     n = sqrt(a(1)*a(1) + a(2)*a(2) + a(3)*a(3));

@@ -19,6 +19,12 @@
 
 static fsw_t S;
 
+/* the field model's refresh: at most once in this many seconds (a whole number of ticks, rounded up) */
+#define BREF_REFRESH_S 0.999
+
+/* a period in whole ticks (at least one): the rate groups count ticks, they do not compare times */
+static int ticks_of(double seconds, double dt) { int n = (int)floor(seconds/dt + 0.5); return n < 1 ? 1 : n; }
+
 /* A star-tracker quaternion further than ST_NORM_TOL from unit length is not a reading. (Its
  * innovation is not gated: after a slew or a coast the filter's covariance is too small, and a
  * gate rejects the very updates that correct it; gating waits on a consistent filter.) */
@@ -66,7 +72,10 @@ int32_t adcs_fsw_init(const adcs_fsw_init_t *init)
     for (i = 0; i < S.p.n_sched; i++) if (!adcs_modes_feasible(&S.p, S.p.sched_mode[i])) return -13;
     p = &S.p;
     S.start_ns = init->start_ns;
-    S.mode = p->start_mode; S.t_st = -1e9; S.t_Bref = -1e9; S.last_ctrl = -1e9; S.es_t = -1e9;
+    S.mode = p->start_mode; S.t_st = -1e9; S.k_bref = -1; S.k_ctrl = -1; S.k_es = -1;
+    S.n_mtq = ticks_of(p->mtq_period, p->dt); S.n_rcs = ticks_of(p->rcsd_period_s, p->dt); S.n_rw = ticks_of(p->rw_dt, p->dt);
+    S.meas_i = (int)floor(p->mtq_meas/p->dt + 0.5); S.meas_c = (int)ceil(p->mtq_meas/p->dt - 1e-9);
+    S.n_bref = ticks_of(BREF_REFRESH_S, p->dt); if (S.n_bref*p->dt < BREF_REFRESH_S - 1e-9) S.n_bref++;
     S.sigma = p->ss_sigma0; S.clean = 1;
     for (i = 0; i < 4; i++) { S.q_ref[i] = 0; S.gd.q_off[i] = p->gd_q_off[i]; S.gd.q_inertial[i] = p->gd_q_inertial[i]; }
     for (i = 0; i < 3; i++) {
@@ -185,8 +194,8 @@ int32_t adcs_fsw_step(uint64_t now_ns)
 {
     adcs_params_t *p = &S.p;
     adcs_meas_t *z = &S.z;
-    double dt, phase;
-    int first, i, nr, ng;
+    double dt;
+    int mi, first, i, nr, ng;
     adcs_real m_body[3], cmd_r[NR], cmd_g[NG], duty[NC];
     if (!S.ready) return -1;
     dt = p->dt; nr = p->nr; ng = p->ng;
@@ -202,13 +211,13 @@ int32_t adcs_fsw_step(uint64_t now_ns)
     /* 2 estimation */
     adcs_sun_model(S.jd, S.gd.sun_eci);
     if (p->gd_yaw_flip && S.have_r) adcs_yaw_flip(&S.gd, S.r, S.v, p->gd_flip_hyst);
-    phase = fmod(S.t + 1e-9, p->mtq_period);
-    first = phase < dt - 1e-9;
+    mi = (int)(S.tick % (uint64_t)S.n_mtq);               /* the tick's place in the coil cycle: an integer, whatever the clock says */
+    first = mi == 0;
     if (first) S.mag_done = 0;
-    if (z->es_ok) { adcs_copy3(z->nadir, S.es_n); S.es_t = S.t; }
-    if (first && S.have_r && (S.t - S.t_Bref) >= 0.999) {
+    if (z->es_ok) { adcs_copy3(z->nadir, S.es_n); S.k_es = (int64_t)S.tick; }
+    if (first && S.have_r && (S.k_bref < 0 || (int64_t)S.tick - S.k_bref >= S.n_bref)) {
         if (!S.gh_ok || fabs(S.jd - S.gh_jd) > 1.0) { adcs_igrf_gh(adcs_decyear(S.jd), S.gh); S.gh_ok = 1; S.gh_jd = S.jd; }
-        adcs_field_eci(S.r, S.jd, S.gh, p->igrf_nmax, S.Bref); S.bref_ok = 1; S.t_Bref = S.t;
+        adcs_field_eci(S.r, S.jd, S.gh, p->igrf_nmax, S.Bref); S.bref_ok = 1; S.k_bref = (int64_t)S.tick;
     }
     if (!(S.mode == ADCS_MODE_DETUMBLE || S.mode == ADCS_MODE_DETUMBLE_RCS || S.mode == ADCS_MODE_SPINUP || S.mode == ADCS_MODE_SUN_SPIN)) {
         if (!S.ad_ok) {
@@ -253,11 +262,11 @@ int32_t adcs_fsw_step(uint64_t now_ns)
                     S.mag_done = 1; tried++;
                     took += adcs_mekf_vector(&S.K, z->B, S.Bref, sqrt(p->mekf_sig_mag*p->mekf_sig_mag + e*e), p->mekf_gate);
                 }
-                if (first && S.have_r && S.t - S.es_t < p->mtq_period) {    /* latest Earth-sensor sample of the cycle */
+                if (first && S.have_r && S.k_es >= 0 && (int64_t)S.tick - S.k_es < S.n_mtq) {    /* latest Earth-sensor sample of the cycle */
                     adcs_real nr_[3], sg = p->es_noise > 1e-3 ? p->es_noise : 1e-3;
                     adcs_scale3(S.r, -1.0, nr_);
                     tried++; took += adcs_mekf_vector(&S.K, S.es_n, nr_, 2*sg, p->mekf_gate);
-                    S.es_t = -1e9;
+                    S.k_es = -1;
                 }
                 /* every update gated for mekf_rej_max in a row: the estimate has diverged, re-initialise */
                 if (tried) { if (took) S.n_rej = 0; else S.n_rej += tried; }
@@ -284,12 +293,12 @@ int32_t adcs_fsw_step(uint64_t now_ns)
     for (i = 0; i < NC; i++) duty[i] = 0;
     switch (S.mode) {
     case ADCS_MODE_DETUMBLE:
-        if (phase < p->mtq_meas + dt/2) {
+        if (mi <= S.meas_i) {
             adcs_zero3(m_body);
             if (first) { adcs_zero3(S.bsum); adcs_zero3(S.bsum_raw); S.bn = 0; }
             if (z->mag_ok) { adcs_real u[3]; adcs_unit(z->B, u); adcs_add3(S.bsum, u, S.bsum); adcs_add3(S.bsum_raw, z->B, S.bsum_raw); S.bn++; }
-            if (fabs(phase - p->mtq_meas) < dt/2 && S.bn == 0) { S.b1_ok = 0; S.B1raw_ok = 0; }   /* no field this cycle: no dipole, no rate across the gap */
-            else if (fabs(phase - p->mtq_meas) < dt/2) {
+            if (mi == S.meas_i && S.bn == 0) { S.b1_ok = 0; S.B1raw_ok = 0; }   /* no field this cycle: no dipole, no rate across the gap */
+            else if (mi == S.meas_i) {
                 adcs_real b[3];
                 int law = p->bdot_law;
                 adcs_scale3(S.bsum, 1.0/S.bn, b); adcs_unit(b, b);
@@ -332,7 +341,7 @@ int32_t adcs_fsw_step(uint64_t now_ns)
 
     case ADCS_MODE_DETUMBLE_RCS: {
         double Tc = p->rcsd_period_s;
-        if (p->nc > 0 && (!S.rcs_left_ok || fmod(S.t + 1e-9, Tc) < dt - 1e-9)) {
+        if (p->nc > 0 && (!S.rcs_left_ok || S.tick % (uint64_t)S.n_rcs == 0)) {
             for (i = 0; i < NC; i++) S.rcs_left[i] = 0;
             S.rcs_left_ok = 1;
             if (adcs_norm3(S.w_est) > p->rcsd_deadband_deg_s*ADCS_D2R) {
@@ -354,7 +363,7 @@ int32_t adcs_fsw_step(uint64_t now_ns)
     case ADCS_MODE_NADIR_MTQ:
     case ADCS_MODE_SUN_MTQ:
         if (first) adcs_zero3(m_body);
-        else if (fabs(phase - p->mtq_meas) < dt/2 && S.ad_ok && S.have_r) {
+        else if (mi == S.meas_i && S.ad_ok && S.have_r) {
             adcs_real wd[3], qc[4], qe[4], A[3][3], wr[3], we[3], wen;
             adcs_guidance(adcs_guid_kind(S.mode), S.r, S.v, S.t, &S.gd, S.q_ref, S.w_ref, wd);
             /* hand-over (05_control.md): from a spinning body the rate error is damped first with the
@@ -387,7 +396,7 @@ int32_t adcs_fsw_step(uint64_t now_ns)
                 adcs_torque2dipole(S.tau_req, z->B, p->m_max, m_body);
             }
             adcs_sub3(m_body, p->m_res_est, m_body); adcs_sat_dipole(m_body, p->m_max);
-        } else if (phase < p->mtq_meas) adcs_zero3(m_body);
+        } else if (mi < S.meas_c) adcs_zero3(m_body);
         break;
 
     case ADCS_MODE_NADIR_FINE: case ADCS_MODE_TARGET_FINE: case ADCS_MODE_SLEW_FINE:
@@ -398,14 +407,14 @@ int32_t adcs_fsw_step(uint64_t now_ns)
         for (i = 0; i < nr; i++) { Hdev[0] += A[0][i]*z->h[i]; Hdev[1] += A[1][i]*z->h[i]; Hdev[2] += A[2][i]*z->h[i]; }
         adcs_fdir_rotors(&S, dt);
         /* control law at the control rate */
-        if (acq && S.t - S.last_ctrl >= p->rw_dt - 1e-9) { adcs_ctl_sun_acq(&S, Hdev); S.last_ctrl = S.t; }
-        else if (!acq && S.ad_ok && S.have_r && S.t - S.last_ctrl >= p->rw_dt - 1e-9) {
+        if (acq && (S.k_ctrl < 0 || (int64_t)S.tick - S.k_ctrl >= S.n_rw)) { adcs_ctl_sun_acq(&S, Hdev); S.k_ctrl = (int64_t)S.tick; }
+        else if (!acq && S.ad_ok && S.have_r && (S.k_ctrl < 0 || (int64_t)S.tick - S.k_ctrl >= S.n_rw)) {
             adcs_real wd[3];
             adcs_guidance(adcs_guid_kind(S.mode), S.r, S.v, S.t, &S.gd, S.q_ref, S.w_ref, wd);
             S.capturing = adcs_ctl_capture(&S, Hdev);
             if (S.capturing) adcs_zero3(S.I_q);
             else adcs_control_law(S.K.q, S.w_est, S.q_ref, S.w_ref, S.I_q, p->rw_dt, &S.g_rw, p->J, Hdev, wd, S.tau_req);
-            S.last_ctrl = S.t;
+            S.k_ctrl = (int64_t)S.tick;
         }
         /* momentum management */
         adcs_sub3(Hdev, S.H_t, dH);
@@ -414,7 +423,7 @@ int32_t adcs_fsw_step(uint64_t now_ns)
             else if (adcs_norm3(dH) < S.dump_lo) S.rcs_dumping = 0;
         }
         if (first) adcs_zero3(m_body);
-        else if (fabs(phase - p->mtq_meas) < dt/2) {
+        else if (mi == S.meas_i) {
             adcs_real m[3] = {0, 0, 0}, mi[3];
             if (!S.has_rcs_dump) adcs_dump(Hdev, S.H_t, z->B, p->dump_k, p->m_max, m);
             if (p->alloc == 1 && ctl_ok) { adcs_torque2dipole(S.tau_req, z->B, p->m_max, mi); adcs_add3(m, mi, m); }
@@ -436,7 +445,7 @@ int32_t adcs_fsw_step(uint64_t now_ns)
             }
             adcs_sub3(m, p->m_res_est, m_body); adcs_sat_dipole(m_body, p->m_max);
             adcs_copy3(z->B, S.B_dump);
-        } else if (phase < p->mtq_meas) adcs_zero3(m_body);
+        } else if (mi < S.meas_c) adcs_zero3(m_body);
         /* thrusters: assist and dumping */
         if (p->nc > 0 && ctl_ok) {
             adcs_real req[3] = {0, 0, 0};
@@ -464,12 +473,12 @@ int32_t adcs_fsw_step(uint64_t now_ns)
 
     case ADCS_MODE_SPINUP:
     case ADCS_MODE_SUN_SPIN:
-        if (phase < p->mtq_meas + dt/2) {
+        if (mi <= S.meas_i) {
             adcs_zero3(m_body);
             if (first) { adcs_zero3(S.bsum_raw); S.bn = 0; }
             if (z->mag_ok) { adcs_add3(S.bsum_raw, z->B, S.bsum_raw); S.bn++; }
-            if (fabs(phase - p->mtq_meas) < dt/2 && S.bn == 0) S.B1raw_ok = 0;
-            else if (fabs(phase - p->mtq_meas) < dt/2) {
+            if (mi == S.meas_i && S.bn == 0) S.B1raw_ok = 0;
+            else if (mi == S.meas_i) {
                 adcs_real Bav[3], m0[3];
                 adcs_scale3(S.bsum_raw, 1.0/S.bn, Bav);
                 if (S.mode == ADCS_MODE_SPINUP) {
@@ -513,6 +522,7 @@ int32_t adcs_fsw_step(uint64_t now_ns)
     for (i = 0; i < NG; i++) S.out_g[i] = cmd_g[i];
     for (i = 0; i < NC; i++) S.out_duty[i] = duty[i];
     (void)ng;
+    S.tick++;
     return 0;
 }
 

@@ -109,11 +109,9 @@ fn jitter_changes_no_command(amp_s: f64) {
 }
 
 #[test]
-#[ignore = "S11.4b/S11.5 fixes it"]
 fn timestamps_off_by_1_us_change_no_command() { jitter_changes_no_command(1e-6); }
 
 #[test]
-#[ignore = "S11.4b/S11.5 fixes it"]
 fn timestamps_off_by_5_ms_change_no_command() { jitter_changes_no_command(5e-3); }
 
 // ---- F1: the date the flight software keeps ----

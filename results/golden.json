@@ -315,19 +315,19 @@
    "metrics": {
     "fine_law_fraction": {
      "kind": "fine_law_fraction",
-     "value": 63.45182740862957,
-     "pass": 0,
+     "value": 100.0,
+     "pass": 1,
      "rel_tol": 1e-06
     },
     "ape_los_p9973": {
      "kind": "ape_los",
-     "value": 0.006389494122653212,
+     "value": 0.006162919399037202,
      "pass": 1,
      "rel_tol": 1e-06
     },
     "ake_los_p9973": {
      "kind": "ake_los",
-     "value": 0.0022936447463273,
+     "value": 0.002282078025316268,
      "pass": 1,
      "rel_tol": 1e-06
     }
@@ -346,19 +346,19 @@
    "metrics": {
     "fine_law_fraction": {
      "kind": "fine_law_fraction",
-     "value": 63.406829658517076,
-     "pass": 0,
+     "value": 100.0,
+     "pass": 1,
      "rel_tol": 1e-06
     },
     "ape_los_p9973": {
      "kind": "ape_los",
-     "value": 0.0064266486347114155,
+     "value": 0.006149648664408469,
      "pass": 1,
      "rel_tol": 1e-06
     },
     "ake_los_p9973": {
      "kind": "ake_los",
-     "value": 0.0022904683206446674,
+     "value": 0.002282108688928669,
      "pass": 1,
      "rel_tol": 1e-06
     }
@@ -377,13 +377,13 @@
    "metrics": {
     "ape_los_last_orbit": {
      "kind": "ape_los",
-     "value": 12.555379853959781,
+     "value": 12.55691923483996,
      "pass": null,
      "rel_tol": 1e-06
     },
     "ake_los_last_orbit": {
      "kind": "ake_los",
-     "value": 1.166942734155853,
+     "value": 1.167030259926974,
      "pass": 1,
      "rel_tol": 1e-06
     },
