@@ -3985,3 +3985,19 @@ source = "docs/S11_INVENTORY.md G2: a command beyond a rotor's torque limit was 
 generate = ["flight"]
 uses = ["01_math.pc", "02_time_frames_models.pc", "02_igrf13.pc"]
 why = "the rotor allocation keeps the direction of the torque and does not ask a full rotor for more (G2); the tick hands it the rotors' limits and momentum and keeps the order"
+
+[[revision]]
+id = "S11.7"
+at = "2026-11-07T09:00:00Z"
+by = "the developer"
+about = "the device models (docs/S11_INVENTORY.md M1, M5, M2; decision DR-act-002): a failed fluid ring spins down with its stated spin-down time T_sd (act_rotor_set coasts it through ring_rate with no pump) and so hands its momentum to the body, where it kept it for ever with zero friction terms"
+
+[[revision.method]]
+node = "act_rotor_set"
+pseudocode = "design/revisions/S11.7/rotorset.pc"
+path = "act/rotorset.pc"
+transcribes = "design/revisions/S7.7/rotorset.pc as S7.7 left it, with a failed ring coasting under its spin-down time"
+source = "docs/S11_INVENTORY.md M1: ring_constants' T_sd (the part's fluid viscosity, bore and density) is the time constant of the ring's own friction, h' = -h/T_sd (ring_rate with no pump)"
+generate = ["adcs-sim-core"]
+uses = ["act/wheelmotor.pc", "act/wheelspeed.pc", "act/wheelfriction.pc", "act/wheelcomp.pc", "act/wheelnoise.pc", "act/wheelaxis.pc", "act/wheelpower.pc", "act/ringpump.pc", "act/ringflow.pc", "act/ringnoise.pc", "act/ringfield.pc", "act/ringlimits.pc", "act/ringaxis.pc", "act/cmgmodel.pc", "act/vscmgmodel.pc", "act/gimbals.pc", "dyn/rotors.pc"]
+why = "a failed ring's momentum decays as exp(-t/T_sd) (M1) and its field stops with it"

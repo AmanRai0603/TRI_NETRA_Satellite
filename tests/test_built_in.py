@@ -226,7 +226,7 @@ class BuiltIn(unittest.TestCase):
             rows = {(s, f): (v, o) for s, f, v, o in x["body"]["content"]}
             self.assertEqual(self.beh(nid), "method", nid)
             self.assertEqual(x["body"]["node"]["group_id"], "act", nid)
-            self.assertIn("the developer's revision S7.7", rows[("code", "pseudocode")][1], nid)
+            self.assertTrue(any(f"the developer's revision {r}" in rows[("code", "pseudocode")][1] for r in ("S7.7", "S11.7")), nid)   # S11.7 revised act_rotor_set (M1, M5, M2) and wheel_power (M2)
             self.assertTrue(rows[("code", "transcribes")][0], nid)
             self.assertEqual(rows[("code", "generate")][0], "adcs-sim-core", nid)
             self.assertEqual(x["sealed_as"], "unconfirmed", nid)

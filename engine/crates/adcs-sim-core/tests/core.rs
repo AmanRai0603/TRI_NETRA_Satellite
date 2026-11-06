@@ -289,6 +289,34 @@ fn a_wheel_at_rest_breaks_away_only_above_its_static_friction() {
     assert!(close(hd(&mut x, 1e-4, w*1.6e-5), want, 1e-12), "{} vs {want}", hd(&mut x, 1e-4, w*1.6e-5));
 }
 
+fn one_ring() -> adcs_sim_core::actuators::MexDesc {
+    use adcs_sim_core::actuators::{Kind, MexDesc};
+    let mut m = MexDesc { n: 1, torque_noise: 0.0, friction_comp: 0.95, eta: 0.8, k_flow: 2.0, flow_tau: 0.1, ..Default::default() };
+    m.kind[0] = Kind::Fmr; m.a0[0] = [0.0, 1.0, 0.0]; m.h_max[0] = 0.01; m.torque_max[0] = 1e-3; m.jrot[0] = 1.0;
+    m.flo[0] = 1.0; m.fhi[0] = 1.0; m.t_sd[0] = 3.0; m.k_hv[0] = 1.0; m.ac[0] = 1.0; m.s[0] = 1.0; m.l[0] = 1.0; m.eta_lo[0] = 1.0; m.eta_hi[0] = 1.0;
+    m.h0[0] = 0.0;
+    m
+}
+
+#[test]
+fn a_failed_ring_spins_down_with_its_stated_spin_down_time() {
+    // M1: the ring's momentum decays as exp(-t/T_sd) and the body takes it up (the plant's hd is the body's -hd)
+    use adcs_sim_core::actuators::Mex;
+    let mut x = Mex::new(one_ring(), &mut Rng::new(1, 1), Rng::new(1, 2));
+    x.failed[0] = true;
+    let (dt, h0) = (0.01, 5e-3);
+    let mut h = [0.0; NR]; h[0] = h0;
+    let c = [0.0; NR];
+    let mut taken = 0.0;                                   // momentum handed to the body, -integral of hd
+    for _ in 0..600 {                                      // 6 s = 2 T_sd
+        let hd = x.apply(&c, &[0.0; NG], &h, dt).0[0];
+        h[0] += hd*dt; taken -= hd*dt;
+    }
+    let want = h0*(-6.0f64/3.0).exp();
+    assert!((h[0] - want).abs() < 0.02*want, "ring momentum {} vs {want}", h[0]);
+    assert!(taken > 0.8*h0 && (taken - (h0 - h[0])).abs() < 1e-12, "the momentum the body takes up: {taken}");
+}
+
 fn tracker(blind: f64) -> adcs_sim_core::sensors::St {
     use adcs_sim_core::sensors::{St, StDesc};
     let mut d = StDesc { fitted: true, nh: 1, noise_cross: 1e-4, noise_roll: 1e-3, rate_hz: 5.0, latency: 0.0, max_rate: 1.0,

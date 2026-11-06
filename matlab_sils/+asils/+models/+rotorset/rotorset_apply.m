@@ -18,7 +18,9 @@ function [hd, gd, p, s] = rotorset_apply(s, d, cmd_r, cmd_g, h, dt)
     gd = zeros(4, 1);
     p = 0;
     for i = (0):((d.n) - 1)
-        if s.failed((i) + 1)
+        if (s.failed((i) + 1) && (d.kind((i) + 1) == 1))
+            hd((i) + 1) = asils.models.ringlimits.ring_rate(0, h((i) + 1), d.t_sd((i) + 1), s.fscale((i) + 1), d.h_max((i) + 1));
+        elseif s.failed((i) + 1)
             hd((i) + 1) = asils.models.wheelfriction.rotor_coast(h((i) + 1), d.jrot((i) + 1), d.viscous((i) + 1), d.coulomb((i) + 1));
         elseif (d.kind((i) + 1) == 0)
             om = (h((i) + 1) / d.jrot((i) + 1));
